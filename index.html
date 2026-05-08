@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Indoor Cycle Prototype</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="app">
+    <aside class="panel">
+      <h1>Mapbox실내사이클 Prototype</h1>
+      <p class="caption">출발/도착을 지정하고 라이딩 세션을 기록합니다.</p>
+
+      <section class="group">
+        <h2>지명 검색</h2>
+        <label>장소 검색 (자동완성)</label>
+        <div class="search-box">
+          <input id="placeSearchInput" placeholder="예: golden gate bridge" autocomplete="off" />
+          <ul id="placeSearchResults" class="search-results"></ul>
+        </div>
+      </section>
+
+      <section class="group">
+        <h2>경로 설정</h2>
+        <label>지도 스타일</label>
+        <select id="mapStyleSelect">
+          <option value="mapbox://styles/mapbox/streets-v12">일반 지도</option>
+          <option value="mapbox://styles/mapbox/outdoors-v12">야외/지형 (자전거)</option>
+          <option value="mapbox://styles/mapbox/satellite-v9">위성</option>
+          <option value="mapbox://styles/mapbox/satellite-streets-v12" selected>위성 + 도로</option>
+        </select>
+        <label>출발 (lng,lat)</label>
+        <input id="startInput" placeholder="예: 127.025,37.501" />
+        <label>도착 (lng,lat)</label>
+        <input id="endInput" placeholder="예: 127.055,37.516" />
+        <button id="roadOverlayBtn" class="mode-btn">도로 보기</button>
+        <div class="route-mode-actions">
+          <button id="driveRouteBtn" class="mode-btn">자동차</button>
+          <button id="routeBtn" class="mode-btn active">자전거</button>
+          <button id="walkRouteBtn" class="mode-btn">보행자</button>
+        </div>
+        <p id="routeSummary">경로를 생성하면 거리/예상시간이 표시됩니다.</p>
+      </section>
+
+      <section class="group">
+        <h2>라이딩 세션</h2>
+        <label>가상 속도: <strong id="speedValue">25 km/h</strong></label>
+        <input id="speedSlider" type="range" min="5" max="50" step="1" value="25" />
+        <div class="metrics">
+          <span>상태</span><strong id="sessionState">대기</strong>
+          <span>경과 시간</span><strong id="elapsed">00:00</strong>
+          <span>가상 거리</span><strong id="distance">0.00 km</strong>
+          <span>평균 속도</span><strong id="avgSpeed">0.0 km/h</strong>
+        </div>
+        <div class="actions">
+          <button id="startBtn">시작</button>
+          <button id="pauseBtn" disabled>일시정지</button>
+          <button id="resumeBtn" disabled>재개</button>
+          <button id="endBtn" disabled>종료</button>
+        </div>
+      </section>
+
+      <section class="group">
+        <h2>카메라 방향</h2>
+        <div class="camera-actions">
+          <button id="cameraKeepBtn" class="mode-btn active">현재 방향 유지</button>
+          <button id="cameraNorthBtn" class="mode-btn">북쪽</button>
+          <button id="cameraFreeBtn" class="mode-btn">자유 카메라</button>
+        </div>
+        <div class="camera-actions four-grid">
+          <button id="cameraRear30Btn" class="mode-btn">후방</button>
+          <button id="cameraFront30Btn" class="mode-btn">전방 30도</button>
+          <button id="cameraRightFlatBtn" class="mode-btn">우측</button>
+          <button id="cameraLeftFlatBtn" class="mode-btn">좌측</button>
+        </div>
+      </section>
+
+      <section class="group">
+        <h2>3D 지도</h2>
+        <label class="check-row">
+          <input id="enable3D" type="checkbox" checked />
+          <span>3D 모드 사용 (카메라 + 지형)</span>
+        </label>
+        <label class="check-row">
+          <input id="enableBuildings3D" type="checkbox" checked />
+          <span>3D 건물 표시</span>
+        </label>
+        <label>지형 강조 (1.0 ~ 2.0)</label>
+        <input id="terrainExaggeration" type="range" min="1" max="2" step="0.1" value="1.3" />
+      </section>
+
+      <section class="group">
+        <h2>맵 줌 레벨</h2>
+        <label>줌: <strong id="mapZoomValue">12.0</strong></label>
+        <input id="mapZoomSlider" type="range" min="8" max="20" step="0.1" value="12" />
+      </section>
+
+      <section class="group">
+        <h2>My routes (즐겨찾기)</h2>
+        <label>경로 이름</label>
+        <input id="myRouteNameInput" placeholder="예: 출근 코스" maxlength="40" />
+        <button id="saveMyRouteBtn" type="button">현재 경로 저장</button>
+        <ul id="myRoutesList" class="simple-list"></ul>
+      </section>
+
+      <section class="group">
+        <h2>최근 기록</h2>
+        <ul id="sessionList"></ul>
+      </section>
+    </aside>
+    <main id="mapContainer">
+      <div id="map"></div>
+      <section id="elevationProfile" class="elevation-panel">
+        <div class="elevation-header">
+          <strong>Elevation Profile</strong>
+          <span id="elevationMeta">경로 생성 후 표시</span>
+        </div>
+        <div id="elevationChart" class="elevation-chart empty">데이터 없음</div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <!-- 개인 토큰 설정. config.local.js는 .gitignore 처리되어 커밋되지 않습니다. -->
+  <!-- 파일이 없으면 404가 나지만 페이지는 계속 동작하며 app.js가 안내 메시지를 표시합니다. -->
+  <script src="./config.local.js"></script>
+  <script src="./app.js" type="module"></script>
+</body>
+</html>

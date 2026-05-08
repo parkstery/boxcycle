@@ -1,0 +1,306 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  color: #1a1a1a;
+}
+
+#app {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  height: 100vh;
+}
+
+.panel {
+  overflow: auto;
+  border-right: 1px solid #e5e7eb;
+  padding: 16px;
+  background: #ffffff;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 1.2rem;
+}
+
+h2 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+}
+
+.caption {
+  margin: 0 0 16px;
+  color: #4b5563;
+  font-size: 0.9rem;
+}
+
+.group {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+label {
+  display: block;
+  font-size: 0.82rem;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+input,
+select {
+  width: 100%;
+  margin-bottom: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.check-row input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+.check-row span {
+  font-size: 0.84rem;
+  color: #374151;
+}
+
+.search-box {
+  position: relative;
+}
+
+.search-results {
+  list-style: none;
+  margin: -4px 0 0;
+  padding: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+  background: #fff;
+  display: none;
+}
+
+.search-results.show {
+  display: block;
+}
+
+.search-results li {
+  padding: 8px;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  font-size: 0.84rem;
+  color: #1f2937;
+}
+
+.search-results li:last-child {
+  border-bottom: 0;
+}
+
+.search-results li:hover {
+  background: #f9fafb;
+}
+
+.search-results li.active {
+  background: #dbeafe;
+  color: #1e3a8a;
+}
+
+button {
+  border: 0;
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: #111827;
+  color: #fff;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+#routeBtn {
+  width: 100%;
+}
+
+#roadOverlayBtn {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.route-mode-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+#routeSummary {
+  font-size: 0.82rem;
+  color: #374151;
+  margin-bottom: 0;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 8px;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.metrics span {
+  color: #6b7280;
+  font-size: 0.84rem;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.camera-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.camera-actions.four-grid {
+  margin-top: 8px;
+}
+
+.mode-btn.active {
+  background: #2563eb;
+}
+
+#sessionList {
+  margin: 0;
+  padding-left: 18px;
+  color: #374151;
+  font-size: 0.85rem;
+}
+
+.simple-list {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: #374151;
+  font-size: 0.85rem;
+}
+
+.simple-list li {
+  margin: 6px 0;
+}
+
+.my-route-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.my-route-row .title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-ghost {
+  background: #f3f4f6;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+}
+
+.btn-danger {
+  background: #fee2e2;
+  color: #7f1d1d;
+  border: 1px solid #fecaca;
+}
+
+#mapContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+}
+
+.elevation-panel {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  max-height: 30%;
+  height: min(30%, 220px);
+  background: rgba(255, 255, 255, 1);
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 8px 20px rgba(17, 24, 39, 0.18);
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+}
+
+.elevation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.82rem;
+  margin-bottom: 8px;
+  color: #374151;
+}
+
+.elevation-chart {
+  flex: 1;
+  min-height: 80px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #f9fafb;
+  overflow: hidden;
+}
+
+.elevation-chart.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 900px) {
+  #app {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .panel {
+    max-height: 50vh;
+    border-right: 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .elevation-panel {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    max-height: 30%;
+    height: min(30%, 190px);
+  }
+}
