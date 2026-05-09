@@ -19,6 +19,9 @@ const CAMERA_BEARING_WINDOW_METERS = 60;
 const CAMERA_BEARING_WINDOW_SAMPLES = 60;
 const ELEVATION_SAMPLE_COUNT = 72;
 
+/** 3D 기울기에서 DOM 마커가 지형 뒤로 가려지는 현상 완화 */
+const MARKER_MAP_ALIGNMENT = { pitchAlignment: "map" as const, rotationAlignment: "map" as const };
+
 /** 같은 코스를 주행 중인 다른 사용자(내 마커와 구분) */
 export type MapPeerMarker = { id: string; lngLat: LngLat; label?: string | null };
 
@@ -256,7 +259,7 @@ export function MapView({
 
     if (startLngLat) {
       if (!startMarkerRef.current) {
-        startMarkerRef.current = new mapboxgl.Marker({ color: "#16a34a" })
+        startMarkerRef.current = new mapboxgl.Marker({ color: "#16a34a", ...MARKER_MAP_ALIGNMENT })
           .setLngLat(startLngLat)
           .addTo(map);
       } else {
@@ -269,7 +272,7 @@ export function MapView({
 
     if (endLngLat) {
       if (!endMarkerRef.current) {
-        endMarkerRef.current = new mapboxgl.Marker({ color: "#dc2626" })
+        endMarkerRef.current = new mapboxgl.Marker({ color: "#dc2626", ...MARKER_MAP_ALIGNMENT })
           .setLngLat(endLngLat)
           .addTo(map);
       } else {
@@ -288,7 +291,7 @@ export function MapView({
 
     if (liveLngLat) {
       if (!liveMarkerRef.current) {
-        liveMarkerRef.current = new mapboxgl.Marker({ color: "#f59e0b" })
+        liveMarkerRef.current = new mapboxgl.Marker({ color: "#f59e0b", ...MARKER_MAP_ALIGNMENT })
           .setLngLat(liveLngLat)
           .addTo(map);
       } else {
@@ -316,7 +319,9 @@ export function MapView({
     for (const p of peers) {
       let marker = byId.get(p.id);
       if (!marker) {
-        marker = new mapboxgl.Marker({ color: "#7c3aed" }).setLngLat(p.lngLat).addTo(map);
+        marker = new mapboxgl.Marker({ color: "#7c3aed", ...MARKER_MAP_ALIGNMENT })
+          .setLngLat(p.lngLat)
+          .addTo(map);
         byId.set(p.id, marker);
       } else {
         marker.setLngLat(p.lngLat);

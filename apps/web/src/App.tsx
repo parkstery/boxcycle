@@ -26,7 +26,7 @@ import {
   saveRideSessionToFirestore,
 } from "./lib/firestoreRides";
 import type { LineStringGeometry, LngLat } from "./lib/geo";
-import { formatLngLat } from "./lib/geo";
+import { formatLngLat, getPointOnRouteByDistance } from "./lib/geo";
 import {
   loadRideSessions,
   saveRideSessions,
@@ -430,8 +430,24 @@ export default function App() {
     }
   }
 
-  const liveForMap: LngLat | null =
-    rideStatus === "idle" ? null : rideMetrics.liveLngLat;
+  /** 일시정지 직후 RAF가 멈추면 liveLngLat 가 잠깐 비는 구간이 있어, 가상 거리로 보정 */
+  const liveForMap: LngLat | null = useMemo(() => {
+    if (rideStatus === "idle") return null;
+    if (rideMetrics.liveLngLat) return rideMetrics.liveLngLat;
+    if (routeGeometry && routeDistanceMeters > 0) {
+      return getPointOnRouteByDistance(
+        routeGeometry,
+        Math.min(rideMetrics.virtualDistanceMeters, routeDistanceMeters),
+      );
+    }
+    return null;
+  }, [
+    rideStatus,
+    rideMetrics.liveLngLat,
+    rideMetrics.virtualDistanceMeters,
+    routeGeometry,
+    routeDistanceMeters,
+  ]);
   const startLabel = startLngLat ? formatLngLat(startLngLat) : "미설정";
   const endLabel = endLngLat ? formatLngLat(endLngLat) : "미설정";
 

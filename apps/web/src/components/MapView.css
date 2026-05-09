@@ -10,6 +10,11 @@
   min-height: 320px;
 }
 
+/* 3D·위성 스타일에서 다른 라이더(보라)·내 위치(주황) 마커가 캔버스에 가려지지 않게 */
+.map-view .mapboxgl-marker {
+  z-index: 5;
+}
+
 .elevation-overlay {
   position: absolute;
   left: 50%;

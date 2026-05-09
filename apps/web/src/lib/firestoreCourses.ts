@@ -106,10 +106,12 @@ export function isGeometryBasicStartHub(geometry: LineStringGeometry | null): bo
   if (!geometry?.coordinates?.length) return false;
   const ref = getBasicStartCourseStatic().geometry.coordinates;
   if (geometry.coordinates.length !== ref.length) return false;
+  /** Firestore·Mapbox 반올림으로 좌표가 조금 달라도 같은 코스로 본다 (~20m) */
+  const eps = 2e-4;
   for (let i = 0; i < ref.length; i++) {
     const a = geometry.coordinates[i];
     const b = ref[i];
-    if (Math.abs(a[0] - b[0]) > 1e-5 || Math.abs(a[1] - b[1]) > 1e-5) return false;
+    if (Math.abs(a[0] - b[0]) > eps || Math.abs(a[1] - b[1]) > eps) return false;
   }
   return true;
 }
