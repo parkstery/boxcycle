@@ -1,4 +1,4 @@
-import { startTransition, useCallback, useEffect, useMemo, useState } from "react";
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { User } from "firebase/auth";
 import {
   GoogleAuthProvider,
@@ -16,6 +16,7 @@ import {
   ensureBasicCoursesSeeded,
   fetchCourseRoutePayload,
   getBasicStartCourseStatic,
+  isGeometryBasicStartHub,
 } from "./lib/firestoreCourses";
 import { deleteCoursePresence } from "./lib/firestoreCoursePresence";
 import { deleteLobbyPresence, sanitizeRoomId } from "./lib/firestoreLobby";
@@ -88,6 +89,8 @@ export default function App() {
   const [basicStartHubJoined, setBasicStartHubJoined] = useState(false);
   const [basicStartLoading, setBasicStartLoading] = useState(false);
   const [coursePeerMarkers, setCoursePeerMarkers] = useState<MapPeerMarker[]>([]);
+  /** true면 입문 코스 경로가 있어도 동행 허브 자동 참여 안 함(「나가기」 후) */
+  const basicStartHubLeftExplicitRef = useRef(false);
 
   const onCoursePeersChange = useCallback((next: MapPeerMarker[]) => {
     setCoursePeerMarkers(next);
@@ -152,12 +155,31 @@ export default function App() {
   }, [configured, user]);
 
   useEffect(() => {
-    if (!user) startTransition(() => setBasicStartHubJoined(false));
+    if (!user) {
+      basicStartHubLeftExplicitRef.current = false;
+      startTransition(() => setBasicStartHubJoined(false));
+    }
   }, [user]);
 
   useEffect(() => {
     if (!basicStartHubJoined) startTransition(() => setCoursePeerMarkers([]));
   }, [basicStartHubJoined]);
+
+  useEffect(() => {
+    if (!routeGeometry || !isGeometryBasicStartHub(routeGeometry)) {
+      basicStartHubLeftExplicitRef.current = false;
+    }
+  }, [routeGeometry]);
+
+  useEffect(() => {
+    if (!configured || !user) return;
+    if (!routeGeometry || !isGeometryBasicStartHub(routeGeometry)) {
+      startTransition(() => setBasicStartHubJoined(false));
+      return;
+    }
+    if (basicStartHubLeftExplicitRef.current) return;
+    startTransition(() => setBasicStartHubJoined(true));
+  }, [configured, user, routeGeometry]);
 
   useEffect(() => {
     if (!configured || !user) return;
@@ -237,8 +259,12 @@ export default function App() {
       setRouteSummary(
         `입문 · ${resolved.title} · 거리 ${(resolved.distanceMeters / 1000).toFixed(2)} km / 예상 ${formatDuration(resolved.durationSec)}`,
       );
-      if (user) setBasicStartHubJoined(true);
-      else setBasicStartHubJoined(false);
+      if (user) {
+        basicStartHubLeftExplicitRef.current = false;
+        setBasicStartHubJoined(true);
+      } else {
+        setBasicStartHubJoined(false);
+      }
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
       setRouteSummary(message);
@@ -248,6 +274,7 @@ export default function App() {
   }, [rideStatus, configured, user, resetRide]);
 
   const leaveBasicStartHub = useCallback(async () => {
+    basicStartHubLeftExplicitRef.current = true;
     if (user) {
       await deleteCoursePresence(user.uid, BASIC_START_COURSE_ID).catch(() => {
         /* noop */

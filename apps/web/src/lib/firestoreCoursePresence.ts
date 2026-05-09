@@ -9,33 +9,29 @@ import {
   setDoc,
   GeoPoint,
   type FirestoreError,
-  type Timestamp,
   type Unsubscribe,
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
 import { getFirebaseApp } from "./firebase";
 import type { LngLat } from "./geo";
-import { LOBBY_STALE_MS } from "./firestoreLobby";
+import { isMemberRecentlySeen, lastSeenAtToMillis } from "./firestoreLobby";
 
 export type CourseMemberRow = {
   uid: string;
   displayName: string | null;
-  lastSeenAt: Timestamp | undefined;
+  lastSeenAtMs: number | null;
   /** 주행 중 지도에 표시할 위치 (없으면 목록만) */
   liveLngLat: LngLat | null;
 };
 
+/** 로비와 동일한 “최근 접속” 판정 */
+export const isCourseMemberActive = isMemberRecentlySeen;
+
+export const COURSE_LIVE_SHARE_INTERVAL_MS = 2000;
+
 function membersCollectionRef(courseId: string) {
   const db = getFirestore(getFirebaseApp());
   return collection(db, "coursePresence", courseId, "members");
-}
-
-/** lastSeenAt 이 아직 비어 있으면(서버 타임스탬프 반영 전) 접속 직후로 보고 활성으로 간주한다. */
-export function isCourseMemberActive(lastSeenAt: Timestamp | undefined): boolean {
-  if (lastSeenAt?.toMillis) {
-    return Date.now() - lastSeenAt.toMillis() < LOBBY_STALE_MS;
-  }
-  return true;
 }
 
 function parseLiveLngLat(data: Record<string, unknown>): LngLat | null {
@@ -122,7 +118,7 @@ export function subscribeCourseMembers(
         return {
           uid: d.id,
           displayName: typeof data.displayName === "string" ? data.displayName : null,
-          lastSeenAt: data.lastSeenAt as Timestamp | undefined,
+          lastSeenAtMs: lastSeenAtToMillis(data.lastSeenAt),
           liveLngLat: parseLiveLngLat(data),
         };
       });

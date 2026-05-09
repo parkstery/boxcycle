@@ -4,6 +4,7 @@ import {
   deleteLobbyPresence,
   isLobbyMemberActive,
   LOBBY_STALE_MS,
+  PRESENCE_HEARTBEAT_INTERVAL_MS,
   subscribeLobbyMembers,
   touchLobbyPresence,
   upsertLobbyPresence,
@@ -44,7 +45,7 @@ export function LobbyPresence({ user, roomId }: LobbyPresenceProps) {
         const message = e instanceof Error ? e.message : String(e);
         if (!cancelled) setPresenceError(message);
       });
-    }, 25_000);
+    }, PRESENCE_HEARTBEAT_INTERVAL_MS);
 
     return () => {
       cancelled = true;
@@ -56,7 +57,7 @@ export function LobbyPresence({ user, roomId }: LobbyPresenceProps) {
     };
   }, [user, roomId]);
 
-  const active = rows.filter((r) => isLobbyMemberActive(r.lastSeenAt));
+  const active = rows.filter((r) => isLobbyMemberActive(r.lastSeenAtMs));
 
   return (
     <section className="lobby-presence" aria-label="로비 접속자">

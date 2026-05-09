@@ -7,7 +7,6 @@ import {
   serverTimestamp,
   setDoc,
   type FirestoreError,
-  type Timestamp,
   type Unsubscribe,
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
@@ -26,23 +25,50 @@ export function sanitizeRoomId(raw: string | null | undefined): string {
 }
 
 /** 이 시간보다 오래된 lastSeenAt 은 “오프라인”으로 표시한다. */
-export const LOBBY_STALE_MS = 90_000;
+export const LOBBY_STALE_MS = 240_000;
+
+/** presence lastSeenAt 갱신 주기 (탭 절전·백그라운드 대비) */
+export const PRESENCE_HEARTBEAT_INTERVAL_MS = 12_000;
 
 export type LobbyMemberRow = {
   uid: string;
   displayName: string | null;
-  lastSeenAt: Timestamp | undefined;
+  /** 스냅샷의 lastSeenAt 을 epoch ms 로 정규화한 값. 없으면 서버 타임스탬프 대기·형식 불명 */
+  lastSeenAtMs: number | null;
 };
+
+/** Firestore Timestamp·{seconds,nanoseconds}·레거시 숫자 등을 ms 로 통일 */
+export function lastSeenAtToMillis(raw: unknown): number | null {
+  if (raw == null) return null;
+  if (typeof raw === "object" && raw !== null && typeof (raw as { toMillis?: () => number }).toMillis === "function") {
+    const ms = (raw as { toMillis: () => number }).toMillis();
+    return Number.isFinite(ms) ? ms : null;
+  }
+  if (typeof raw === "object" && raw !== null && "seconds" in raw) {
+    const o = raw as unknown as { seconds: unknown; nanoseconds?: unknown };
+    if (typeof o.seconds !== "number") return null;
+    const s = o.seconds;
+    const n = typeof o.nanoseconds === "number" ? o.nanoseconds : 0;
+    return s * 1000 + Math.floor(n / 1_000_000);
+  }
+  if (typeof raw === "number" && Number.isFinite(raw)) {
+    if (raw < 1e12) return Math.round(raw * 1000);
+    return raw;
+  }
+  return null;
+}
+
+export function isMemberRecentlySeen(lastSeenAtMs: number | null): boolean {
+  if (lastSeenAtMs == null) return true;
+  return Date.now() - lastSeenAtMs < LOBBY_STALE_MS;
+}
 
 function membersCollectionRef(roomId: string) {
   const db = getFirestore(getFirebaseApp());
   return collection(db, "rooms", roomId, "members");
 }
 
-export function isLobbyMemberActive(lastSeenAt: Timestamp | undefined): boolean {
-  if (!lastSeenAt?.toMillis) return false;
-  return Date.now() - lastSeenAt.toMillis() < LOBBY_STALE_MS;
-}
+export const isLobbyMemberActive = isMemberRecentlySeen;
 
 export async function upsertLobbyPresence(user: User, roomId: string): Promise<void> {
   const rid = sanitizeRoomId(roomId);
@@ -83,7 +109,7 @@ export function subscribeLobbyMembers(
         return {
           uid: d.id,
           displayName: typeof data.displayName === "string" ? data.displayName : null,
-          lastSeenAt: data.lastSeenAt as Timestamp | undefined,
+          lastSeenAtMs: lastSeenAtToMillis(data.lastSeenAt),
         };
       });
       onChange(rows);

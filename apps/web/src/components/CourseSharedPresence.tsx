@@ -1,6 +1,7 @@
 import { startTransition, useEffect, useRef, useState } from "react";
 import type { User } from "firebase/auth";
 import {
+  COURSE_LIVE_SHARE_INTERVAL_MS,
   deleteCoursePresence,
   isCourseMemberActive,
   mergeCourseMemberLiveLocation,
@@ -11,7 +12,7 @@ import {
 } from "../lib/firestoreCoursePresence";
 import type { LngLat } from "../lib/geo";
 import type { MapPeerMarker } from "./MapView";
-import { LOBBY_STALE_MS } from "../lib/firestoreLobby";
+import { LOBBY_STALE_MS, PRESENCE_HEARTBEAT_INTERVAL_MS } from "../lib/firestoreLobby";
 import "./LobbyPresence.css";
 
 type CourseSharedPresenceProps = {
@@ -69,7 +70,7 @@ export function CourseSharedPresence({
         const message = e instanceof Error ? e.message : String(e);
         if (!cancelled) setPresenceError(message);
       });
-    }, 25_000);
+    }, PRESENCE_HEARTBEAT_INTERVAL_MS);
 
     return () => {
       cancelled = true;
@@ -97,7 +98,7 @@ export function CourseSharedPresence({
       });
     };
     send();
-    const id = window.setInterval(send, 3000);
+    const id = window.setInterval(send, COURSE_LIVE_SHARE_INTERVAL_MS);
     return () => {
       window.clearInterval(id);
       void mergeCourseMemberLiveLocation(user, courseId, null).catch(() => {
@@ -106,7 +107,7 @@ export function CourseSharedPresence({
     };
   }, [isRiding, user, courseId]);
 
-  const active = rows.filter((r) => isCourseMemberActive(r.lastSeenAt));
+  const active = rows.filter((r) => isCourseMemberActive(r.lastSeenAtMs));
 
   useEffect(() => {
     const cb = onPeersChangeRef.current;

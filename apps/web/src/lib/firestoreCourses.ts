@@ -101,6 +101,19 @@ export function getBasicStartCourseStatic(): CourseRoutePayload {
   };
 }
 
+/** 지도에 올린 경로가 입문 상시 코스(그린델발트 5km)와 동일한 geometry 인지 */
+export function isGeometryBasicStartHub(geometry: LineStringGeometry | null): boolean {
+  if (!geometry?.coordinates?.length) return false;
+  const ref = getBasicStartCourseStatic().geometry.coordinates;
+  if (geometry.coordinates.length !== ref.length) return false;
+  for (let i = 0; i < ref.length; i++) {
+    const a = geometry.coordinates[i];
+    const b = ref[i];
+    if (Math.abs(a[0] - b[0]) > 1e-5 || Math.abs(a[1] - b[1]) > 1e-5) return false;
+  }
+  return true;
+}
+
 export async function fetchCourseRoutePayload(courseId: string): Promise<CourseRoutePayload | null> {
   const db = getFirestore(getFirebaseApp());
   const snap = await getDoc(doc(db, "courses", courseId));
