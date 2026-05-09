@@ -1,4 +1,4 @@
-// Mapbox 토큰은 config.local.js 에서 window.MAPBOX_ACCESS_TOKEN 으로 주입됩니다.
+// BOXCYCLE — Mapbox 토큰은 config.local.js 에서 window.MAPBOX_ACCESS_TOKEN 으로 주입됩니다.
 // (config.local.js 는 .gitignore 처리되어 깃에 커밋되지 않습니다.)
 const MAPBOX_ACCESS_TOKEN = window.MAPBOX_ACCESS_TOKEN || "YOUR_MAPBOX_ACCESS_TOKEN";
 

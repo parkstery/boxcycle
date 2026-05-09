@@ -17,9 +17,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Node (혹시 npx serve / 패키지 설치 시 대비)
+# Node
 node_modules/
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
 

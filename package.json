@@ -1,0 +1,29 @@
+{
+  "name": "boxcycle",
+  "version": "1.0.0",
+  "description": "문서 작성은 `document/260509-BOXCYCLE-문서-생성-및-수정-지침.md`를 따른다.",
+  "main": "app.js",
+  "scripts": {
+    "dev": "npm run dev --prefix ./apps/web",
+    "dev:localhost": "vite --host 127.0.0.1",
+    "build": "npm run build --prefix ./apps/web",
+    "preview": "npm run preview --prefix ./apps/web",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/parkstery/boxcycle.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/parkstery/boxcycle/issues"
+  },
+  "homepage": "https://github.com/parkstery/boxcycle#readme",
+  "dependencies": {
+    "firebase": "^12.13.0",
+    "vite": "^8.0.11"
+  }
+}

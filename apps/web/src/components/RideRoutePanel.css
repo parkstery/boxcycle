@@ -1,0 +1,247 @@
+.ride-panel {
+  width: 100%;
+  max-width: 22rem;
+  flex: 0 0 auto;
+  padding: 0.75rem 1rem 1rem;
+  border-right: 1px solid color-mix(in srgb, CanvasText 12%, transparent);
+  background: color-mix(in srgb, Canvas 97%, CanvasText 3%);
+  max-height: min(85vh, 720px);
+  overflow: auto;
+  box-sizing: border-box;
+}
+
+.ride-panel__h {
+  margin: 0.75rem 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.ride-panel__h:first-child {
+  margin-top: 0;
+}
+
+.ride-panel__help {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.ride-panel__point-box {
+  border: 1px solid color-mix(in srgb, CanvasText 14%, transparent);
+  border-radius: 8px;
+  padding: 0.5rem 0.55rem;
+  background: color-mix(in srgb, Canvas 96%, CanvasText 4%);
+}
+
+.ride-panel__point-label {
+  margin: 0.15rem 0 0.1rem;
+  font-size: 0.72rem;
+  opacity: 0.7;
+}
+
+.ride-panel__point-value {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+.ride-panel__label {
+  display: block;
+  font-size: 0.8rem;
+  margin: 0.45rem 0 0.2rem;
+  opacity: 0.9;
+}
+
+.ride-panel__input {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 0.88rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, CanvasText 22%, transparent);
+  background: Canvas;
+  color: CanvasText;
+}
+
+.ride-panel__modes {
+  margin-top: 0.65rem;
+}
+
+.ride-panel__label-inline {
+  font-size: 0.8rem;
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.ride-panel__mode-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.ride-panel__mode {
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, CanvasText 22%, transparent);
+  background: transparent;
+  cursor: pointer;
+}
+
+.ride-panel__mode.is-active {
+  border-color: #2563eb;
+  background: color-mix(in srgb, #2563eb 14%, transparent);
+  color: CanvasText;
+}
+
+.ride-panel__btn-primary {
+  margin-top: 0.65rem;
+  width: 100%;
+  font: inherit;
+  padding: 0.55rem;
+  border-radius: 8px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+}
+
+.ride-panel__btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ride-panel__basic-start {
+  margin: 0.5rem 0 0.65rem;
+  padding: 0.55rem 0.6rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, #15803d 35%, CanvasText 12%);
+  background: color-mix(in srgb, #15803d 8%, Canvas 92%);
+}
+
+.ride-panel__basic-start-title {
+  margin: 0 0 0.25rem;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.ride-panel__basic-start-desc {
+  margin: 0 0 0.45rem;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  opacity: 0.88;
+}
+
+.ride-panel__basic-start-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.ride-panel__btn-secondary {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, CanvasText 24%, transparent);
+  background: Canvas;
+  color: CanvasText;
+  cursor: pointer;
+}
+
+.ride-panel__btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ride-panel__btn-secondary--quiet {
+  border-style: dashed;
+  opacity: 0.92;
+}
+
+.ride-panel__basic-start-hint {
+  margin: 0.4rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.78;
+}
+
+.ride-panel__summary {
+  margin: 0.5rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  min-height: 2.6em;
+}
+
+.ride-panel__range {
+  width: 100%;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.ride-panel__metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem 0.75rem;
+  font-size: 0.82rem;
+  margin: 0.5rem 0;
+}
+
+.ride-panel__metric-label {
+  display: block;
+  font-size: 0.72rem;
+  opacity: 0.72;
+  margin-bottom: 0.1rem;
+}
+
+.ride-panel__session-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.ride-panel__session-btns button {
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, CanvasText 22%, transparent);
+  background: Canvas;
+  cursor: pointer;
+}
+
+.ride-panel__session-btns button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ride-panel__sessions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.ride-panel__sessions-empty {
+  opacity: 0.72;
+}
+
+.ride-panel__session-item {
+  padding: 0.25rem 0;
+  border-bottom: 1px solid color-mix(in srgb, CanvasText 8%, transparent);
+}
+
+.ride-panel__session-date {
+  opacity: 0.72;
+}
+
+@media (max-width: 900px) {
+  .ride-panel {
+    max-width: none;
+    border-right: none;
+    border-bottom: 1px solid color-mix(in srgb, CanvasText 12%, transparent);
+    max-height: none;
+  }
+}
