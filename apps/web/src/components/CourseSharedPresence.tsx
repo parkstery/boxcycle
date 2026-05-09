@@ -1,13 +1,16 @@
-import { startTransition, useEffect, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
 import type { User } from "firebase/auth";
 import {
   deleteCoursePresence,
   isCourseMemberActive,
+  mergeCourseMemberLiveLocation,
   subscribeCourseMembers,
   touchCoursePresence,
   upsertCoursePresence,
   type CourseMemberRow,
 } from "../lib/firestoreCoursePresence";
+import type { LngLat } from "../lib/geo";
+import type { MapPeerMarker } from "./MapView";
 import { LOBBY_STALE_MS } from "../lib/firestoreLobby";
 import "./LobbyPresence.css";
 
@@ -15,11 +18,32 @@ type CourseSharedPresenceProps = {
   user: User;
   courseId: string;
   title?: string;
+  /** 주행 중이면 주기적으로 지도 좌표를 공유 */
+  isRiding: boolean;
+  myLiveLngLat: LngLat | null;
+  onPeersChange?: (peers: MapPeerMarker[]) => void;
 };
 
-export function CourseSharedPresence({ user, courseId, title }: CourseSharedPresenceProps) {
+export function CourseSharedPresence({
+  user,
+  courseId,
+  title,
+  isRiding,
+  myLiveLngLat,
+  onPeersChange,
+}: CourseSharedPresenceProps) {
   const [rows, setRows] = useState<CourseMemberRow[]>([]);
   const [presenceError, setPresenceError] = useState<string | null>(null);
+  const liveRef = useRef<LngLat | null>(null);
+  const onPeersChangeRef = useRef(onPeersChange);
+
+  useEffect(() => {
+    liveRef.current = myLiveLngLat;
+  }, [myLiveLngLat]);
+
+  useEffect(() => {
+    onPeersChangeRef.current = onPeersChange;
+  }, [onPeersChange]);
 
   useEffect(() => {
     let cancelled = false;
@@ -57,7 +81,52 @@ export function CourseSharedPresence({ user, courseId, title }: CourseSharedPres
     };
   }, [user, courseId]);
 
+  useEffect(() => {
+    if (!isRiding) {
+      void mergeCourseMemberLiveLocation(user, courseId, null).catch(() => {
+        /* 퇴장·일시정지 시 위치 제거 실패는 무시 */
+      });
+      return;
+    }
+    const send = () => {
+      const p = liveRef.current;
+      if (!p) return;
+      void mergeCourseMemberLiveLocation(user, courseId, p).catch((e: unknown) => {
+        const message = e instanceof Error ? e.message : String(e);
+        setPresenceError(message);
+      });
+    };
+    send();
+    const id = window.setInterval(send, 3000);
+    return () => {
+      window.clearInterval(id);
+      void mergeCourseMemberLiveLocation(user, courseId, null).catch(() => {
+        /* noop */
+      });
+    };
+  }, [isRiding, user, courseId]);
+
   const active = rows.filter((r) => isCourseMemberActive(r.lastSeenAt));
+
+  useEffect(() => {
+    const cb = onPeersChangeRef.current;
+    if (!cb) return;
+    if (presenceError) {
+      cb([]);
+      return;
+    }
+    const others = active.filter((r) => r.uid !== user.uid && r.liveLngLat);
+    cb(
+      others.map((r) => ({
+        id: r.uid,
+        lngLat: r.liveLngLat!,
+        label: r.displayName,
+      })),
+    );
+  }, [active, presenceError, user.uid]);
+
+  const isPermissionError =
+    presenceError?.includes("permission") || presenceError?.includes("Permission");
 
   return (
     <section className="lobby-presence" aria-label="입문 코스 동시 주행자">
@@ -68,8 +137,22 @@ export function CourseSharedPresence({ user, courseId, title }: CourseSharedPres
           <code>{courseId}</code> · 활동 기준 {Math.round(LOBBY_STALE_MS / 1000)}초
         </span>
       </div>
+      {presenceError ? (
+        <p className="lobby-presence__err" title={presenceError}>
+          동행 동기화 오류: {presenceError}
+          {isPermissionError ? (
+            <>
+              {" "}
+              <span className="lobby-presence__err-hint">
+                (저장소 루트 <code>firestore.rules</code>의 <code>coursePresence</code> 규칙이 Firebase 프로젝트에
+                배포됐는지 확인하세요. 예: <code>firebase deploy --only firestore:rules</code>)
+              </span>
+            </>
+          ) : null}
+        </p>
+      ) : null}
       <p className="lobby-presence__count">
-        주행 중(추정): <strong>{active.length}</strong>명
+        접속 중(추정): <strong>{active.length}</strong>명
         {rows.length !== active.length ? (
           <span className="lobby-presence__stale-hint">
             {" "}
@@ -77,22 +160,22 @@ export function CourseSharedPresence({ user, courseId, title }: CourseSharedPres
           </span>
         ) : null}
       </p>
-      {active.length > 0 ? (
+      {!presenceError && active.length > 0 ? (
         <ul className="lobby-presence__list">
           {active.map((r) => (
             <li key={r.uid}>
               {r.displayName ?? r.uid}
               {r.uid === user.uid ? <span className="lobby-presence__you"> (나)</span> : null}
+              {r.liveLngLat ? <span className="lobby-presence__live-dot"> · 지도 공유 중</span> : null}
             </li>
           ))}
         </ul>
-      ) : (
-        <p className="lobby-presence__empty">아직 표시할 활성 주행자가 없습니다.</p>
-      )}
-      {presenceError ? (
-        <p className="lobby-presence__err" title={presenceError}>
-          동행 동기화 오류: {presenceError}
-        </p>
+      ) : null}
+      {!presenceError && active.length === 0 ? (
+        <p className="lobby-presence__empty">아직 표시할 접속자가 없습니다.</p>
+      ) : null}
+      {presenceError && rows.length === 0 ? (
+        <p className="lobby-presence__empty">목록을 불러오지 못했습니다. 위 오류를 해결한 뒤 새로고침하세요.</p>
       ) : null}
     </section>
   );

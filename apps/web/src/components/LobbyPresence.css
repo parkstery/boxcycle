@@ -60,3 +60,20 @@
   font-size: 0.78rem;
   overflow-wrap: anywhere;
 }
+
+.lobby-presence__err-hint {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  opacity: 0.95;
+  color: #7f1d1d;
+}
+
+.lobby-presence__err-hint code {
+  font-size: 0.85em;
+}
+
+.lobby-presence__live-dot {
+  font-size: 0.78rem;
+  opacity: 0.75;
+}

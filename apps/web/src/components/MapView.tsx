@@ -19,12 +19,17 @@ const CAMERA_BEARING_WINDOW_METERS = 60;
 const CAMERA_BEARING_WINDOW_SAMPLES = 60;
 const ELEVATION_SAMPLE_COUNT = 72;
 
+/** 같은 코스를 주행 중인 다른 사용자(내 마커와 구분) */
+export type MapPeerMarker = { id: string; lngLat: LngLat; label?: string | null };
+
 export type MapViewProps = {
   accessToken: string | undefined;
   routeGeometry: LineStringGeometry | null;
   startLngLat: LngLat | null;
   endLngLat: LngLat | null;
   liveLngLat: LngLat | null;
+  /** 입문 코스 동행 등: 다른 라이더 위치 */
+  peerMarkers?: MapPeerMarker[];
   mapStyle: string;
   mapZoom: number;
   followMode: FollowMode;
@@ -39,6 +44,7 @@ export function MapView({
   startLngLat,
   endLngLat,
   liveLngLat,
+  peerMarkers,
   mapStyle,
   mapZoom,
   followMode,
@@ -51,6 +57,7 @@ export function MapView({
   const startMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const endMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const liveMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const peerMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const popupRef = useRef<mapboxgl.Popup | null>(null);
   const routeGeometryRef = useRef<LineStringGeometry | null>(null);
   const liveLngLatRef = useRef<LngLat | null>(null);
@@ -177,11 +184,15 @@ export function MapView({
     window.addEventListener("resize", onResize);
     requestAnimationFrame(onResize);
 
+    const peerMarkerMap = peerMarkersRef.current;
+
     return () => {
       window.removeEventListener("resize", onResize);
       startMarkerRef.current?.remove();
       endMarkerRef.current?.remove();
       liveMarkerRef.current?.remove();
+      for (const m of peerMarkerMap.values()) m.remove();
+      peerMarkerMap.clear();
       popupRef.current?.remove();
       startMarkerRef.current = null;
       endMarkerRef.current = null;
@@ -288,6 +299,32 @@ export function MapView({
       liveMarkerRef.current = null;
     }
   }, [liveLngLat, mapLoaded]);
+
+  /** 다른 라이더(동행) 마커 — 보라색, 내 주행 마커(주황)와 구분 */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+    const peers = peerMarkers ?? [];
+    const want = new Map(peers.map((p) => [p.id, p]));
+    const byId = peerMarkersRef.current;
+    for (const [id, marker] of byId) {
+      if (!want.has(id)) {
+        marker.remove();
+        byId.delete(id);
+      }
+    }
+    for (const p of peers) {
+      let marker = byId.get(p.id);
+      if (!marker) {
+        marker = new mapboxgl.Marker({ color: "#7c3aed" }).setLngLat(p.lngLat).addTo(map);
+        byId.set(p.id, marker);
+      } else {
+        marker.setLngLat(p.lngLat);
+      }
+      const title = p.label?.trim() || "동행 라이더";
+      marker.getElement().setAttribute("title", title);
+    }
+  }, [peerMarkers, mapLoaded]);
 
   useEffect(() => {
     const map = mapRef.current;

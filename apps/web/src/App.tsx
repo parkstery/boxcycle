@@ -8,7 +8,7 @@ import {
 } from "firebase/auth";
 import { CourseSharedPresence } from "./components/CourseSharedPresence";
 import { LobbyPresence } from "./components/LobbyPresence";
-import { MapView } from "./components/MapView";
+import { MapView, type MapPeerMarker } from "./components/MapView";
 import { RideRoutePanel, type FollowMode } from "./components/RideRoutePanel";
 import { getFirebaseAuth, isFirebaseConfigured } from "./lib/firebase";
 import {
@@ -87,6 +87,11 @@ export default function App() {
   );
   const [basicStartHubJoined, setBasicStartHubJoined] = useState(false);
   const [basicStartLoading, setBasicStartLoading] = useState(false);
+  const [coursePeerMarkers, setCoursePeerMarkers] = useState<MapPeerMarker[]>([]);
+
+  const onCoursePeersChange = useCallback((next: MapPeerMarker[]) => {
+    setCoursePeerMarkers(next);
+  }, []);
 
   const {
     status: rideStatus,
@@ -149,6 +154,10 @@ export default function App() {
   useEffect(() => {
     if (!user) startTransition(() => setBasicStartHubJoined(false));
   }, [user]);
+
+  useEffect(() => {
+    if (!basicStartHubJoined) startTransition(() => setCoursePeerMarkers([]));
+  }, [basicStartHubJoined]);
 
   useEffect(() => {
     if (!configured || !user) return;
@@ -502,6 +511,9 @@ export default function App() {
             user={user}
             courseId={BASIC_START_COURSE_ID}
             title="Grindelwald 5km"
+            isRiding={rideStatus !== "idle"}
+            myLiveLngLat={liveForMap}
+            onPeersChange={onCoursePeersChange}
           />
         </div>
       ) : null}
@@ -550,6 +562,7 @@ export default function App() {
               startLngLat={startLngLat}
               endLngLat={endLngLat}
               liveLngLat={liveForMap}
+              peerMarkers={coursePeerMarkers}
               mapStyle={mapStyle}
               mapZoom={mapZoom}
               followMode={followMode}
