@@ -14,12 +14,21 @@ service cloud.firestore {
       return /databases/$(database)/documents/courses/$(courseId);
     }
 
-    /** 코스 문서의 presenceEnabled 로 입문 허브 등 동행 허용 여부 판별 (하드코딩 코스 ID 제거) */
+    /**
+     * 동행(presence) 허용: presenceEnabled 우선.
+     * 하위 호환: 입문 허브 시드에는 isSharedStartHub 가 있으나 courses.update 가 막혀
+     * 클라이언트 merge 로 presenceEnabled 를 못 넣은 문서가 있어 동일하게 허용한다.
+     */
     function isCourseSharedPresenceAllowed(courseId) {
       let p = coursePath(courseId);
-      return exists(p)
-        && get(p).data.keys().hasAny(['presenceEnabled'])
-        && get(p).data.presenceEnabled == true;
+      if (!exists(p)) {
+        return false;
+      }
+      let d = get(p).data;
+      if (d.keys().hasAny(['presenceEnabled']) && d.presenceEnabled == true) {
+        return true;
+      }
+      return d.keys().hasAny(['isSharedStartHub']) && d.isSharedStartHub == true;
     }
 
     match /users/{userId} {
@@ -43,6 +52,7 @@ service cloud.firestore {
     match /courses/{courseId} {
       allow read: if isSignedIn()
         || (resource.data.keys().hasAny(['presenceEnabled']) && resource.data.presenceEnabled == true)
+        || (resource.data.keys().hasAny(['isSharedStartHub']) && resource.data.isSharedStartHub == true)
         || (resource.data.keys().hasAny(['visibility']) && resource.data.visibility == 'public');
       allow create: if isSignedIn();
       allow update, delete: if false;

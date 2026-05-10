@@ -75,6 +75,8 @@ function isCourseSharedPresenceAllowed(courseId) {
 - Rules 수정·배포 불필요.
 - 코드와 Rules의 **단일 진실은 Firestore 데이터**.
 
+**운영 참고:** `courses` 에 대해 `update: false` 인 프로젝트에서는 클라이언트 `merge` 로 `presenceEnabled` 만 보강할 수 없다. 이때 Rules 에 **`isSharedStartHub == true` 와 동등 허용**(하위 호환)을 두거나, 콘솔·Admin SDK 로 필드를 넣는다.
+
 ### 2.2 게이트 헬퍼 함수(설계)
 
 ```javascript

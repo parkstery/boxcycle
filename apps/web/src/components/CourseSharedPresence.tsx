@@ -162,9 +162,9 @@ export function CourseSharedPresence({
             <>
               {" "}
               <span className="lobby-presence__err-hint">
-                (<code>courses/{'{courseId}'}</code> 문서에 <code>presenceEnabled: true</code> 가 있는지와,
-                저장소 루트 <code>firestore.rules</code> 배포 여부를 확인하세요. 예:{" "}
-                <code>firebase deploy --only firestore</code>)
+                (<code>courses/{'{courseId}'}</code> 에 <code>presenceEnabled: true</code> 또는 입문 허브 시드의{" "}
+                <code>isSharedStartHub: true</code> 가 있는지, 저장소 루트 <code>firestore.rules</code> 배포 여부를
+                확인하세요. 예: <code>firebase deploy --only firestore</code>)
               </span>
             </>
           ) : null}
