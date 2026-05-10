@@ -12,6 +12,7 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
+import { getPresenceDisplayName, getPresenceMemberType } from "./authDisplay";
 import { getFirebaseApp } from "./firebase";
 import type { LngLat } from "./geo";
 import { isMemberRecentlySeen, lastSeenAtToMillis } from "./firestoreLobby";
@@ -53,7 +54,8 @@ export async function upsertCoursePresence(user: User, courseId: string): Promis
   await setDoc(
     ref,
     {
-      displayName: user.displayName ?? user.email ?? user.uid,
+      memberType: getPresenceMemberType(user),
+      displayName: getPresenceDisplayName(user),
       photoURL: user.photoURL ?? null,
       lastSeenAt: serverTimestamp(),
     },
@@ -77,7 +79,8 @@ export async function mergeCourseMemberLiveLocation(
     await setDoc(
       ref,
       {
-        displayName: user.displayName ?? user.email ?? user.uid,
+        memberType: getPresenceMemberType(user),
+        displayName: getPresenceDisplayName(user),
         photoURL: user.photoURL ?? null,
         liveLng: lngLat[0],
         liveLat: lngLat[1],
@@ -89,7 +92,8 @@ export async function mergeCourseMemberLiveLocation(
     await setDoc(
       ref,
       {
-        displayName: user.displayName ?? user.email ?? user.uid,
+        memberType: getPresenceMemberType(user),
+        displayName: getPresenceDisplayName(user),
         photoURL: user.photoURL ?? null,
         liveLng: deleteField(),
         liveLat: deleteField(),

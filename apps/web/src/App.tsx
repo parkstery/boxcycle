@@ -2,7 +2,9 @@ import { startTransition, useCallback, useEffect, useMemo, useRef, useState } fr
 import type { User } from "firebase/auth";
 import {
   GoogleAuthProvider,
+  linkWithPopup,
   onAuthStateChanged,
+  signInAnonymously,
   signInWithPopup,
   signOut,
 } from "firebase/auth";
@@ -118,18 +120,37 @@ export default function App() {
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
+  const anonymousSignInFlightRef = useRef(false);
+
   useEffect(() => {
     if (!configured) {
       return;
     }
     const auth = getFirebaseAuth();
-    const unsub = onAuthStateChanged(auth, setUser);
+    const unsub = onAuthStateChanged(auth, (nextUser) => {
+      setUser(nextUser);
+      if (nextUser != null) return;
+      if (anonymousSignInFlightRef.current) return;
+      anonymousSignInFlightRef.current = true;
+      void signInAnonymously(auth)
+        .catch((e: unknown) => {
+          const message = e instanceof Error ? e.message : String(e);
+          setError(`익명 로그인 실패: ${message}`);
+        })
+        .finally(() => {
+          anonymousSignInFlightRef.current = false;
+        });
+    });
     return () => unsub();
   }, [configured]);
 
   useEffect(() => {
     if (!configured || !user) {
       startTransition(() => setFsSync({ state: "idle" }));
+      return;
+    }
+    if (user.isAnonymous) {
+      startTransition(() => setFsSync({ state: "ok" }));
       return;
     }
     let cancelled = false;
@@ -334,10 +355,22 @@ export default function App() {
       const auth = getFirebaseAuth();
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: "select_account" });
-      await signInWithPopup(auth, provider);
-    } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      setError(message);
+      const current = auth.currentUser;
+      if (current?.isAnonymous) {
+        await linkWithPopup(current, provider);
+      } else {
+        await signInWithPopup(auth, provider);
+      }
+    } catch (e: unknown) {
+      const err = e as { code?: string; message?: string };
+      if (
+        err.code === "auth/credential-already-in-use" ||
+        err.code === "auth/account-exists-with-different-credential"
+      ) {
+        setError("이 Google 계정은 이미 다른 계정에 연결되어 있습니다. 해당 Google 계정으로 로그인해 주세요.");
+      } else {
+        setError(e instanceof Error ? e.message : String(e));
+      }
     } finally {
       setBusy(false);
     }
@@ -473,15 +506,32 @@ export default function App() {
             {user ? (
               <div className="auth-row">
                 <div className="auth-info">
-                  <p className="lead tight">
-                    <strong>{user.displayName ?? user.email ?? user.uid}</strong>
-                  </p>
-                  <p className="meta tight">{user.uid}</p>
+                  {user.isAnonymous ? (
+                    <>
+                      <p className="lead tight">
+                        <strong>게스트로 이용 중</strong> ({user.uid.slice(0, 8)}…)
+                      </p>
+                      <p className="meta tight">
+                        동시 주행·로비는 익명 계정으로 참여합니다. Google을 연결하면 같은 uid로 기록이
+                        이어집니다.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="lead tight">
+                        <strong>{user.displayName ?? user.email ?? user.uid}</strong>
+                      </p>
+                      <p className="meta tight">{user.uid}</p>
+                    </>
+                  )}
                   {fsSync.state === "syncing" ? (
                     <p className="fs-hint">Firestore 동기화 중…</p>
                   ) : null}
-                  {fsSync.state === "ok" ? (
+                  {fsSync.state === "ok" && !user.isAnonymous ? (
                     <p className="fs-ok">Firestore 프로필 저장됨</p>
+                  ) : null}
+                  {fsSync.state === "ok" && user.isAnonymous ? (
+                    <p className="fs-ok">게스트 세션 활성</p>
                   ) : null}
                   {fsSync.state === "error" ? (
                     <p className="fs-err" title={fsSync.message}>
@@ -489,26 +539,30 @@ export default function App() {
                     </p>
                   ) : null}
                 </div>
-                <button
-                  type="button"
-                  className="btn secondary"
-                  disabled={busy}
-                  onClick={() => void handleSignOut()}
-                >
-                  로그아웃
-                </button>
+                <div className="auth-actions">
+                  {user.isAnonymous ? (
+                    <button
+                      type="button"
+                      className="btn primary"
+                      disabled={busy}
+                      onClick={() => void handleGoogleSignIn()}
+                    >
+                      {busy ? "처리 중…" : "Google 계정 연결"}
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="btn secondary"
+                    disabled={busy}
+                    onClick={() => void handleSignOut()}
+                  >
+                    로그아웃
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="auth-row">
-                <p className="lead tight">Google 로그인 후 서버 동기화를 켭니다.</p>
-                <button
-                  type="button"
-                  className="btn primary"
-                  disabled={busy}
-                  onClick={() => void handleGoogleSignIn()}
-                >
-                  {busy ? "처리 중…" : "Google로 로그인"}
-                </button>
+                <p className="lead tight">인증 준비 중…</p>
               </div>
             )}
             {error ? <p className="error tight">{error}</p> : null}
@@ -594,7 +648,7 @@ export default function App() {
             recentSessions={recentSessions}
             basicStartLoading={basicStartLoading}
             basicStartHubJoined={basicStartHubJoined}
-            userSignedIn={Boolean(user)}
+            authGuest={Boolean(user?.isAnonymous)}
             onEnterBasicStartHub={enterBasicStartHub}
             onLeaveBasicStartHub={leaveBasicStartHub}
           />

@@ -10,6 +10,7 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
+import { getPresenceDisplayName, getPresenceMemberType } from "./authDisplay";
 import { getFirebaseApp } from "./firebase";
 
 /** URL·입장 시 기본 방 */
@@ -77,7 +78,8 @@ export async function upsertLobbyPresence(user: User, roomId: string): Promise<v
   await setDoc(
     ref,
     {
-      displayName: user.displayName ?? user.email ?? user.uid,
+      memberType: getPresenceMemberType(user),
+      displayName: getPresenceDisplayName(user),
       photoURL: user.photoURL ?? null,
       lastSeenAt: serverTimestamp(),
     },

@@ -61,6 +61,13 @@
   min-width: 0;
 }
 
+.auth-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .lead {
   margin: 0 0 0.75rem;
   line-height: 1.5;

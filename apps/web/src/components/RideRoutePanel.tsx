@@ -44,7 +44,8 @@ type RideRoutePanelProps = {
   recentSessions: StoredRideSession[];
   basicStartLoading: boolean;
   basicStartHubJoined: boolean;
-  userSignedIn: boolean;
+  /** true면 Firebase 익명(게스트) — Google 연결 안내 문구용 */
+  authGuest: boolean;
   onEnterBasicStartHub: () => void;
   onLeaveBasicStartHub: () => void;
 };
@@ -68,8 +69,8 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
       <div className="ride-panel__basic-start" aria-label="입문 상시 코스">
         <p className="ride-panel__basic-start-title">입문 코스 (상시)</p>
         <p className="ride-panel__basic-start-desc">
-          스위스 그린델발트 인근 약 5km 코스를 불러옵니다. 로그인 시 같은 코스에 있는 주행자와 목록을
-          공유합니다.
+          스위스 그린델발트 인근 약 5km 코스를 불러옵니다. 같은 코스에 있는 주행자와 목록·지도 위치를
+          공유합니다(게스트 포함).
         </p>
         <div className="ride-panel__basic-start-btns">
           <button
@@ -84,7 +85,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
           >
             {props.basicStartLoading ? "불러오는 중…" : "입문 코스 입장 (5km)"}
           </button>
-          {props.userSignedIn && props.basicStartHubJoined ? (
+          {props.basicStartHubJoined ? (
             <button
               type="button"
               className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet"
@@ -95,8 +96,11 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             </button>
           ) : null}
         </div>
-        {!props.userSignedIn ? (
-          <p className="ride-panel__basic-start-hint">로그인하면 동시 주행자 목록에 참여할 수 있습니다.</p>
+        {props.authGuest ? (
+          <p className="ride-panel__basic-start-hint">
+            Google 계정을 연결하면 주행 기록·프로필을 클라우드에 저장합니다. 지금은 게스트로도 동시 주행에
+            참여할 수 있습니다.
+          </p>
         ) : null}
       </div>
 
