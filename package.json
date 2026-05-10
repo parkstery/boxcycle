@@ -10,7 +10,9 @@
     "preview": "npm run preview --prefix ./apps/web",
     "deploy:hosting": "npm run build && firebase deploy --only hosting",
     "deploy:firestore": "firebase deploy --only firestore",
+    "deploy:functions": "firebase deploy --only functions",
     "deploy:web": "npm run build && firebase deploy --only hosting,firestore",
+    "deploy:app": "npm run build && firebase deploy --only hosting,firestore,functions",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

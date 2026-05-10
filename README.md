@@ -15,7 +15,7 @@ Mapbox 기반 **실내 사이클** 서비스입니다. Mapbox 시뮬 검증은 �
 | 화면 특징 | 무엇이 떠 있는지 | 인증 |
 |-----------|------------------|------|
 | 좌측 긴 패널(지명 검색·경로·라이딩 세션)·지도가 전체 | 루트 **레거시** `index.html` + `app.js` | 없음 |
-| 상단 인증 영역 + 하단 **큰 지도**(위성·내비·축척) | **`apps/web`** React 앱(`#root`만 존재) | Firebase(동기화). 지도는 **Mapbox 토큰**만 있으면 로그인 없이도 타일 표시 |
+| 상단 인증 영역 + 하단 **큰 지도**(위성·내비·축척) | **`apps/web`** React 앱(`#root`만 존재) | Firebase. 경로 계산은 **Callable `getMapboxDirections`**. 지도 타일만 클라이언트 **Mapbox pk. 토큰** |
 
 **빠르게 확인:** 페이지에서 **마우스 우클릭 → “페이지 소스 보기”** — 본문에 `<div id="app"` 이 있으면 레거시, `<div id="root"` 만 있으면 `apps/web`.
 
@@ -46,6 +46,19 @@ firebase deploy --only firestore
 npm run build
 firebase deploy --only hosting
 ```
+
+**Cloud Functions(Mapbox Directions 프록시):** `functions/` 에 Callable **`getMapboxDirections`** 가 있다. Mapbox **secret** 을 쓰므로 프로젝트가 **Blaze(종량제)** 여야 하는 경우가 많다.
+
+```powershell
+cd C:\20.HDev\boxcycle\functions
+npm install
+cd ..
+# 최초 1회: 시크릿에 Mapbox 토큰 저장(Mapbox 계정에서 발급한 동일 토큰을 서버 전용으로 써도 되고, 제한된 pk.를 써도 됨)
+firebase functions:secrets:set MAPBOX_ACCESS_TOKEN
+firebase deploy --only functions
+```
+
+배포 후 웹 앱은 기본 리전 **`asia-northeast3`** 으로 Callable 을 호출한다. Functions 를 다른 리전에 두었다면 `apps/web/.env` 에 `VITE_FUNCTIONS_REGION` 을 맞춘다.
 
 개발용 규칙 예시는 아래와 같다(운영 전 반드시 재검토).
 

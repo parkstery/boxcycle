@@ -14,7 +14,7 @@ import { CourseSharedPresence } from "./components/CourseSharedPresence";
 import { LobbyPresence } from "./components/LobbyPresence";
 import { MapView, type MapPeerMarker } from "./components/MapView";
 import { RideRoutePanel, type FollowMode } from "./components/RideRoutePanel";
-import { getFirebaseAuth, isFirebaseConfigured } from "./lib/firebase";
+import { getFirebaseApp, getFirebaseAuth, isFirebaseConfigured } from "./lib/firebase";
 import {
   BASIC_SHARED_HUB_IDS,
   BASIC_SHARED_HUB_SUMMARIES,
@@ -41,9 +41,11 @@ import { readRoomIdFromLocation, replaceRoomInUrl } from "./lib/roomUrl";
 import { syncUserProfileToFirestore } from "./lib/firestoreUser";
 import { useVirtualRideSession } from "./hooks/useVirtualRideSession";
 import { fetchRouteByProfile, formatDuration, type RouteProfile } from "./services/mapboxDirections";
+import { getFunctions } from "firebase/functions";
 import "./App.css";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
+const FUNCTIONS_REGION = import.meta.env.VITE_FUNCTIONS_REGION?.trim() || "asia-northeast3";
 const MAP_STYLE_OPTIONS = [
   { value: "mapbox://styles/mapbox/streets-v12", label: "Streets" },
   { value: "mapbox://styles/mapbox/outdoors-v12", label: "Outdoors" },
@@ -335,8 +337,8 @@ export default function App() {
       setRouteSummary("세션이 대기 상태일 때만 경로를 바꿀 수 있습니다. 종료 후 다시 시도하세요.");
       return;
     }
-    if (!MAPBOX_TOKEN) {
-      setRouteSummary("Mapbox 토큰이 없습니다. apps/web/.env 의 VITE_MAPBOX_ACCESS_TOKEN 을 설정하세요.");
+    if (!user) {
+      setRouteSummary("경로 계산은 로그인(게스트 포함) 후에 사용할 수 있습니다.");
       return;
     }
     const start = startLngLat;
@@ -349,7 +351,8 @@ export default function App() {
     setRouteLoading(true);
     setRouteSummary("경로 계산 중…");
     try {
-      const route = await fetchRouteByProfile(MAPBOX_TOKEN, start, end, profile);
+      const functions = getFunctions(getFirebaseApp(), FUNCTIONS_REGION);
+      const route = await fetchRouteByProfile(functions, user, start, end, profile);
       setRouteGeometry(route.geometry);
       setRouteDistanceMeters(route.distance);
       setRouteDurationSec(route.duration);
@@ -357,22 +360,26 @@ export default function App() {
         `거리 ${(route.distance / 1000).toFixed(2)} km / 예상 ${formatDuration(route.duration)}`,
       );
       resetRide();
-    } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      setRouteSummary(message);
+    } catch (e: unknown) {
+      const fe = e as { code?: string; message?: string };
+      const message =
+        typeof fe?.message === "string"
+          ? fe.message
+          : e instanceof Error
+            ? e.message
+            : String(e);
+      const hint =
+        fe?.code === "functions/not-found"
+          ? " Cloud Functions 가 배포되지 않았을 수 있습니다. 저장소 루트에서 firebase deploy --only functions 를 실행하고, MAPBOX_ACCESS_TOKEN 시크릿을 설정하세요."
+          : "";
+      setRouteSummary(message + hint);
       setRouteGeometry(null);
       setRouteDistanceMeters(0);
       setRouteDurationSec(0);
     } finally {
       setRouteLoading(false);
     }
-  }, [
-    rideStatus,
-    startLngLat,
-    endLngLat,
-    profile,
-    resetRide,
-  ]);
+  }, [rideStatus, startLngLat, endLngLat, profile, resetRide, user]);
 
   async function handleGuestStart() {
     setError(null);
@@ -853,8 +860,8 @@ export default function App() {
 
       <footer className="footer">
         레거시 상세(3D·고도·지명검색 등)는 저장소 루트{" "}
-        <code className="inline">index.html</code> · <code className="inline">app.js</code> 참고. Mapbox
-        토큰은 배포 전 <strong>프록시 이전</strong>을 권장합니다.
+        <code className="inline">index.html</code> · <code className="inline">app.js</code> 참고. Directions는
+        Cloud Functions 프록시를 사용합니다. 지도 타일용 Mapbox 토큰만 클라이언트에 둡니다.
       </footer>
     </div>
   );
