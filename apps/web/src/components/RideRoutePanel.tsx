@@ -92,7 +92,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               disabled={props.basicStartLoading}
               onClick={() => void props.onLeaveBasicStartHub()}
             >
-              동행 목록에서 나가기
+              입문 코스 동행 나가기
             </button>
           ) : null}
         </div>

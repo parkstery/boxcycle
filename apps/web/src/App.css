@@ -68,6 +68,19 @@
   gap: 0.5rem;
 }
 
+.auth-row--gate {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.auth-actions--gate {
+  width: 100%;
+}
+
+.auth-gate-hint {
+  line-height: 1.45;
+}
+
 .lead {
   margin: 0 0 0.75rem;
   line-height: 1.5;
@@ -205,6 +218,17 @@
   align-items: stretch;
   min-height: 0;
   min-height: min(78vh, 800px);
+}
+
+.route-main--gate {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 1.25rem;
+}
+
+.gate-placeholder {
+  max-width: 28rem;
 }
 
 .map-stage--in-route {

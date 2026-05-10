@@ -125,7 +125,8 @@ export default function App() {
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
-  const anonymousSignInFlightRef = useRef(false);
+  /** Firebase Auth 첫 onAuthStateChanged 수신 여부(영속 세션 복원 vs 미로그인 구분) */
+  const [authInitialized, setAuthInitialized] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -143,21 +144,18 @@ export default function App() {
     }
     const auth = getFirebaseAuth();
     const unsub = onAuthStateChanged(auth, (nextUser) => {
+      startTransition(() => setAuthInitialized(true));
       setUser(nextUser);
-      if (nextUser != null) return;
-      if (anonymousSignInFlightRef.current) return;
-      anonymousSignInFlightRef.current = true;
-      void signInAnonymously(auth)
-        .catch((e: unknown) => {
-          const message = e instanceof Error ? e.message : String(e);
-          setError(`익명 로그인 실패: ${message}`);
-        })
-        .finally(() => {
-          anonymousSignInFlightRef.current = false;
-        });
     });
     return () => unsub();
   }, [configured]);
+
+  /** 로그아웃 후 로비 기본값 초기화(uid 전환 시 참여 플래그는 아래 user effect에서 처리) */
+  useEffect(() => {
+    if (user) return;
+    lobbyPresenceUidRef.current = null;
+    startTransition(() => setLobbyParticipationEnabled(true));
+  }, [user]);
 
   useEffect(() => {
     if (!configured || !user) {
@@ -363,6 +361,19 @@ export default function App() {
     resetRide,
   ]);
 
+  async function handleGuestStart() {
+    setError(null);
+    setBusy(true);
+    try {
+      await signInAnonymously(getFirebaseAuth());
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      setError(`게스트(익명) 로그인 실패: ${message}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function handleGoogleSignIn() {
     setError(null);
     setBusy(true);
@@ -371,7 +382,11 @@ export default function App() {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: "select_account" });
       const current = auth.currentUser;
-      if (current?.isAnonymous) {
+      if (!current) {
+        await signInWithPopup(auth, provider);
+        return;
+      }
+      if (current.isAnonymous) {
         try {
           await linkWithPopup(current, provider);
         } catch (inner: unknown) {
@@ -413,6 +428,7 @@ export default function App() {
     setRoomId(next);
     setRoomDraft(next);
     replaceRoomInUrl(next);
+    setLobbyParticipationEnabled(true);
   }
 
   function handleStartRide() {
@@ -468,7 +484,22 @@ export default function App() {
     resetRide();
   }
 
-  async function handleSignOut() {
+  /** 로비 실시간 참여만 중단(코스 동행·Firebase 세션은 유지) */
+  async function handleLeaveLobbyOnly() {
+    if (!user) return;
+    setError(null);
+    try {
+      await deleteLobbyPresence(user.uid, roomId).catch(() => {
+        /* noop */
+      });
+      setLobbyParticipationEnabled(false);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  /** 로비·코스 정리 후 Firebase 로그아웃 → 시작 화면으로 복귀(게스트·Google 공통) */
+  async function handleServiceExit() {
     setError(null);
     setBusy(true);
     try {
@@ -485,13 +516,10 @@ export default function App() {
         });
       }
       setBasicStartHubJoined(false);
+      setLobbyParticipationEnabled(false);
       setRecentSessions(loadRideSessions());
-      // 익명 계정은 signOut 하면 자격 증명이 사라지고, 이후 자동 익명 로그인 시 새 uid가 된다.
-      // 쿠키/캐시를 지우지 않은 한 같은 게스트를 유지하려면 게스트일 때는 Firebase 로그아웃을 하지 않는다.
-      if (user && !user.isAnonymous) {
-        await signOut(getFirebaseAuth());
-      }
-    } catch (e) {
+      await signOut(getFirebaseAuth());
+    } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
       setError(message);
     } finally {
@@ -539,7 +567,11 @@ export default function App() {
           </section>
         ) : (
           <section className="card card--compact auth-card">
-            {user ? (
+            {!authInitialized ? (
+              <div className="auth-row">
+                <p className="lead tight">Firebase 인증 연결 확인 중…</p>
+              </div>
+            ) : user ? (
               <div className="auth-row">
                 <div className="auth-info">
                   {user.isAnonymous ? (
@@ -548,8 +580,8 @@ export default function App() {
                         <strong>게스트로 이용 중</strong> ({user.uid.slice(0, 8)}…)
                       </p>
                       <p className="meta tight">
-                        동시 주행·로비는 익명 계정으로 참여합니다. Google을 연결하면 같은 uid로 기록이
-                        이어집니다.
+                        로비 나가기·입문 코스 동행 나가기·서비스 종료는 서로 다릅니다. Google을 연결하면 같은 uid로
+                        기록이 이어집니다.
                       </p>
                     </>
                   ) : (
@@ -590,20 +622,40 @@ export default function App() {
                     type="button"
                     className="btn secondary"
                     disabled={busy}
-                    onClick={() => void handleSignOut()}
-                    title={
-                      user.isAnonymous
-                        ? "로비·입문 코스 동행만 종료합니다. 이 브라우저의 게스트 id는 유지됩니다."
-                        : undefined
-                    }
+                    onClick={() => void handleServiceExit()}
+                    title="로비·코스 presence를 정리한 뒤 로그아웃합니다. 게스트도 다음 접속 시 다시 시작 화면으로 돌아옵니다."
                   >
-                    {user.isAnonymous ? "로비/코스 나가기" : "로그아웃"}
+                    {user.isAnonymous ? "서비스 종료" : "로그아웃"}
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="auth-row">
-                <p className="lead tight">인증 준비 중…</p>
+              <div className="auth-row auth-row--gate">
+                <div className="auth-info">
+                  <p className="lead tight">시작 방식을 선택하세요</p>
+                  <p className="meta tight auth-gate-hint">
+                    게스트 계정은 「게스트로 시작」을 눌렀을 때만 만들어져, 페이지만 열어도 익명 사용자가 늘어나지
+                    않습니다. 종료 후에는 다시 이 화면에서 선택합니다.
+                  </p>
+                </div>
+                <div className="auth-actions auth-actions--gate">
+                  <button
+                    type="button"
+                    className="btn secondary"
+                    disabled={busy}
+                    onClick={() => void handleGuestStart()}
+                  >
+                    {busy ? "처리 중…" : "게스트로 시작"}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn primary"
+                    disabled={busy}
+                    onClick={() => void handleGoogleSignIn()}
+                  >
+                    {busy ? "처리 중…" : "Google로 로그인"}
+                  </button>
+                </div>
               </div>
             )}
             {error ? <p className="error tight">{error}</p> : null}
@@ -634,6 +686,16 @@ export default function App() {
             <button type="button" className="btn primary room-bar__btn" onClick={joinRoomFromDraft}>
               입장
             </button>
+            {lobbyParticipationEnabled ? (
+              <button
+                type="button"
+                className="btn secondary room-bar__btn"
+                disabled={busy}
+                onClick={() => void handleLeaveLobbyOnly()}
+              >
+                로비 나가기
+              </button>
+            ) : null}
             <span className="room-bar__hint">
               주소창 URL을 복사해 공유하면 같은 방(`?room=`)으로 입장합니다. 방 ID는 영문·숫자·`_` `-` 만,
               최대 64자입니다.
@@ -678,7 +740,7 @@ export default function App() {
         </div>
       ) : null}
 
-      {configured ? (
+      {configured && user ? (
         <main className="route-main" aria-label="경로·지도">
           <RideRoutePanel
             startLabel={startLabel}
@@ -743,6 +805,26 @@ export default function App() {
               }}
             />
           </div>
+        </main>
+      ) : configured && authInitialized && !user ? (
+        <main className="route-main route-main--gate" aria-label="시작 전 안내">
+          <section className="card gate-placeholder">
+            <p className="lead tight">
+              상단에서 <strong>게스트로 시작</strong> 또는 <strong>Google로 로그인</strong>을 선택하면 지도·로비·입문
+              코스 동행을 사용할 수 있습니다.
+            </p>
+            <p className="meta tight">
+              <strong>입문 코스 동행 나가기</strong>는 왼쪽 패널에서만 해당 코스 동행을 끕니다.{" "}
+              <strong>로비 나가기</strong>는 방 실시간 목록만 끕니다. <strong>서비스 종료</strong>(또는 로그아웃)은
+              연결을 모두 끊고 이 시작 단계로 돌아갑니다.
+            </p>
+          </section>
+        </main>
+      ) : configured && !authInitialized ? (
+        <main className="route-main route-main--gate" aria-label="연결 중">
+          <p className="lead tight" style={{ padding: "1rem 1.25rem" }}>
+            Firebase 인증 연결 확인 중…
+          </p>
         </main>
       ) : (
         <main className="map-stage" aria-label="지도">
