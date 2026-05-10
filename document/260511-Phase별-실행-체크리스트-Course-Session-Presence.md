@@ -30,6 +30,8 @@
 | 1A-2 | Rules 하드코딩 제거 + `isCourseSharedPresenceAllowed()` 헬퍼 도입 | [`firestore.rules`](../firestore.rules) | 두 입문 허브 동시 주행 모두 정상 | [Rules 일반화 §2](260511-Firestore-Rules-일반화-방안.md) |
 | 1A-3 | 회귀 테스트(T1·T2·T3) 통과 확인 | (Emulator 또는 콘솔) | T1·T2·T3 모두 통과 | [Rules 일반화 §6](260511-Firestore-Rules-일반화-방안.md) |
 
+**진행 상태 (코드 반영):** 1A-1·1A-2 는 저장소에 반영됨(배포 시 `firebase deploy --only firestore`). 1A-3 은 수동 회귀.
+
 ### 1.2 Phase 1-B — sessions / presence 컬렉션 신설
 
 | # | 작업 | 영향 파일 | 수락 기준 | 대응 § |

@@ -1,5 +1,5 @@
 rules_version = '2';
-// 배포: firebase deploy --only firestore:rules  (프로젝트는 firebase use 또는 .firebaserc)
+// 배포: firebase deploy --only firestore  (프로젝트는 firebase use 또는 .firebaserc)
 service cloud.firestore {
   match /databases/{database}/documents {
     function isSignedIn() {
@@ -8,6 +8,18 @@ service cloud.firestore {
 
     function isSelf(userId) {
       return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function coursePath(courseId) {
+      return /databases/$(database)/documents/courses/$(courseId);
+    }
+
+    /** 코스 문서의 presenceEnabled 로 입문 허브 등 동행 허용 여부 판별 (하드코딩 코스 ID 제거) */
+    function isCourseSharedPresenceAllowed(courseId) {
+      let p = coursePath(courseId);
+      return exists(p)
+        && get(p).data.keys().hasAny(['presenceEnabled'])
+        && get(p).data.presenceEnabled == true;
     }
 
     match /users/{userId} {
@@ -29,15 +41,17 @@ service cloud.firestore {
     }
 
     match /courses/{courseId} {
-      allow read: if isSignedIn() || courseId == 'basic-alps-grindelwald-5km';
+      allow read: if isSignedIn()
+        || (resource.data.keys().hasAny(['presenceEnabled']) && resource.data.presenceEnabled == true)
+        || (resource.data.keys().hasAny(['visibility']) && resource.data.visibility == 'public');
       allow create: if isSignedIn();
       allow update, delete: if false;
     }
 
     match /coursePresence/{courseId}/members/{userId} {
-      allow read: if isSignedIn() && courseId == 'basic-alps-grindelwald-5km';
-      allow create, update: if isSelf(userId) && courseId == 'basic-alps-grindelwald-5km';
-      allow delete: if isSelf(userId) && courseId == 'basic-alps-grindelwald-5km';
+      allow read: if isSignedIn() && isCourseSharedPresenceAllowed(courseId);
+      allow create, update: if isSelf(userId) && isCourseSharedPresenceAllowed(courseId);
+      allow delete: if isSelf(userId) && isCourseSharedPresenceAllowed(courseId);
     }
   }
 }

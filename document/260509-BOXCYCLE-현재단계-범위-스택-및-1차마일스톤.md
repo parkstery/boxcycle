@@ -67,7 +67,8 @@
 
 - **본 개발 웹 앱:** `apps/web` — Vite + TypeScript + React, Firebase Auth(Google·게스트 등 콘솔 설정에 따름), **Mapbox GL 지도** 및 Directions REST(`src/services/mapboxDirections.ts`, 클라이언트 `VITE_MAPBOX_ACCESS_TOKEN` 사용), **`users/{uid}` 프로필**, **`rooms/{roomId}/members/{uid}`** 실시간 로비(`roomId` 기본 `default`, **`?room=`** 및 UI 입장), **`rides`** 주행 기록 저장, **`courses`** 입문·큐레이션 코스 시드/조회, **`coursePresence`** 입문 허브 동행 시 동료 마커 동기화(Open-Meteo 고도는 브라우저 직호출).
 - **Firebase 배포 설정(루트):** `firebase.json` — Firestore rules/indexes + **Hosting**(`public`: `apps/web/dist`, SPA rewrite). `.firebaserc` 에 기본 프로젝트 ID가 있다(민감 비밀이 아님). 실제 API 키·토큰은 **`apps/web/.env`**(커밋 제외), 템플릿은 **`apps/web/.env.example`**.
-- **다음(문서·계획 정렬):** Mapbox Directions/Geocoding **Cloud Functions 프록시**(REST만 서버 토큰; GL 타일용 pk. 토큰은 제한적 클라이언트 유지 가능), Firestore Rules 입문 허브 2·`presenceEnabled` 일반화 등 → [분리·리팩터링 문서](260509-app-js-프론트백엔드-분리-1차리팩터링.md) Phase 1-C·[Rules 일반화](260511-Firestore-Rules-일반화-방안.md).
+- **Firestore Rules:** `coursePresence` 허용 여부는 **`courses/{courseId}.presenceEnabled == true`** 로 판별(입문 허브 1·2 동일). 시드·merge는 `firestoreCourses.ts` 의 `ensureBasicCoursesSeeded` 가 허브에 `presenceEnabled` 를 기록.
+- **다음(문서·계획 정렬):** Mapbox Directions/Geocoding **Cloud Functions 프록시**(REST만 서버 토큰; GL 타일용 pk. 토큰은 제한적 클라이언트 유지 가능), `sessions`/`presence` 컬렉션 정착 등 → [분리·리팩터링 문서](260509-app-js-프론트백엔드-분리-1차리팩터링.md) Phase 1-C·[Phase 체크리스트](260511-Phase별-실행-체크리스트-Course-Session-Presence.md).
 - **레거시 참조:** 저장소 루트의 `index.html`, `app.js` 등은 Mapbox 검증 POC로 유지한다.
 
 ---
@@ -83,3 +84,4 @@
 | 2026-05-09 | 동적 `roomId` (`?room=` · 입장 UI) 반영 |
 | 2026-05-11 | RTW 마스터 비전·Phase 실행 체크리스트 연결, 인수 조건 D에 `sessions/{sessionId}` 후순위 명시 |
 | 2026-05-11 | §4 코드 상태 갱신(Firestore 컬렉션·Hosting·`.env`·미완 Functions); 상단 상태 메타 정렬 |
+| 2026-05-11 | §4 Rules `presenceEnabled` 일반화 반영, 다음 작업 목록에서 동일 항목 제거 |

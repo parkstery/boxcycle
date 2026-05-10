@@ -37,6 +37,8 @@ export type CourseDoc = {
   };
   /** 상시 입문 허브(공개 읽기·동시 주행 presence 등) */
   isSharedStartHub?: boolean;
+  /** Firestore Rules에서 coursePresence 허용 여부 판별 (입문 허브 등 true) */
+  presenceEnabled?: boolean;
   createdBy: string;
   createdAt: unknown;
   updatedAt: unknown;
@@ -253,6 +255,7 @@ const BASIC_COURSES: Omit<CourseDoc, "createdAt" | "updatedAt">[] = [
     isRequired: true,
     requiredOrder: 4,
     isSharedStartHub: true,
+    presenceEnabled: true,
     distanceMeters: 5000,
     durationSec: 1200,
     bounds: {
@@ -288,6 +291,7 @@ const BASIC_COURSES: Omit<CourseDoc, "createdAt" | "updatedAt">[] = [
     isRequired: true,
     requiredOrder: 5,
     isSharedStartHub: true,
+    presenceEnabled: true,
     distanceMeters: 5000,
     durationSec: 1200,
     bounds: {
@@ -345,6 +349,7 @@ export async function ensureBasicCoursesSeeded(currentUserId: string): Promise<v
       doc(db, "courses", hubId),
       {
         isSharedStartHub: true,
+        presenceEnabled: true,
         updatedAt: serverTimestamp(),
       },
       { merge: true },

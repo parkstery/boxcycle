@@ -18,9 +18,11 @@
 
 ## 1. 현재 갭
 
-### 1.1 하드코딩된 Rules
+### 1.1 하드코딩된 Rules (과거 예시)
 
-[`firestore.rules`](../firestore.rules) L31~L41 (현재 상태):
+> **2026-05-11 반영:** 저장소 [`firestore.rules`](../firestore.rules) 는 아래 패턴을 제거하고 `courses/{id}.presenceEnabled` 기반으로 교체되었다.
+
+[`firestore.rules`](../firestore.rules) 에서 이전에 쓰이던 형태(참고용):
 
 ```javascript
 match /courses/{courseId} {
