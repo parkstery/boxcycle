@@ -357,17 +357,26 @@ export default function App() {
       provider.setCustomParameters({ prompt: "select_account" });
       const current = auth.currentUser;
       if (current?.isAnonymous) {
-        await linkWithPopup(current, provider);
+        try {
+          await linkWithPopup(current, provider);
+        } catch (inner: unknown) {
+          const ie = inner as { code?: string };
+          // 이전에 같은 Google로 연결한 Firebase 사용자가 있으면 link 대신 그 계정으로 로그인
+          if (ie.code === "auth/credential-already-in-use") {
+            await signInWithPopup(auth, provider);
+          } else {
+            throw inner;
+          }
+        }
       } else {
         await signInWithPopup(auth, provider);
       }
     } catch (e: unknown) {
       const err = e as { code?: string; message?: string };
-      if (
-        err.code === "auth/credential-already-in-use" ||
-        err.code === "auth/account-exists-with-different-credential"
-      ) {
-        setError("이 Google 계정은 이미 다른 계정에 연결되어 있습니다. 해당 Google 계정으로 로그인해 주세요.");
+      if (err.code === "auth/account-exists-with-different-credential") {
+        setError(
+          "이 Google 계정은 다른 로그인 방식과 연결되어 있습니다. 해당 방식으로 로그인하거나 Firebase 콘솔에서 계정을 확인해 주세요.",
+        );
       } else {
         setError(e instanceof Error ? e.message : String(e));
       }
@@ -453,8 +462,12 @@ export default function App() {
         });
       }
       setBasicStartHubJoined(false);
-      await signOut(getFirebaseAuth());
       setRecentSessions(loadRideSessions());
+      // 익명 계정은 signOut 하면 자격 증명이 사라지고, 이후 자동 익명 로그인 시 새 uid가 된다.
+      // 쿠키/캐시를 지우지 않은 한 같은 게스트를 유지하려면 게스트일 때는 Firebase 로그아웃을 하지 않는다.
+      if (user && !user.isAnonymous) {
+        await signOut(getFirebaseAuth());
+      }
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
       setError(message);
@@ -555,8 +568,13 @@ export default function App() {
                     className="btn secondary"
                     disabled={busy}
                     onClick={() => void handleSignOut()}
+                    title={
+                      user.isAnonymous
+                        ? "로비·입문 코스 동행만 종료합니다. 이 브라우저의 게스트 id는 유지됩니다."
+                        : undefined
+                    }
                   >
-                    로그아웃
+                    {user.isAnonymous ? "로비/코스 나가기" : "로그아웃"}
                   </button>
                 </div>
               </div>
