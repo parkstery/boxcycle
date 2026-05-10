@@ -135,6 +135,26 @@
   opacity: 0.88;
 }
 
+.ride-panel__basic-start-list {
+  margin: 0 0 0.45rem;
+  padding-left: 1.15rem;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+.ride-panel__basic-start-active {
+  margin: 0 0 0.4rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.ride-panel__basic-start-idle {
+  margin: 0 0 0.4rem;
+  font-size: 0.76rem;
+  opacity: 0.78;
+}
+
 .ride-panel__basic-start-btns {
   display: flex;
   flex-wrap: wrap;

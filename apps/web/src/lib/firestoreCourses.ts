@@ -42,8 +42,19 @@ export type CourseDoc = {
   updatedAt: unknown;
 };
 
-/** 입문자용 상시 개방 주행 코스 ID (Basic 4 · Grindelwald 5km) */
-export const BASIC_START_COURSE_ID = "basic-alps-grindelwald-5km" as const;
+/** 동시 주행 presence 가 분리되는 입문 허브 코스 (테스트: A/B → 코스 1, C/D → 코스 2) */
+export const BASIC_HUB_COURSE_1_ID = "basic-alps-grindelwald-5km" as const;
+export const BASIC_HUB_COURSE_2_ID = "basic-iceland-ring-road-5km" as const;
+
+export const BASIC_SHARED_HUB_IDS = [
+  BASIC_HUB_COURSE_1_ID,
+  BASIC_HUB_COURSE_2_ID,
+] as const;
+
+export type BasicSharedHubCourseId = (typeof BASIC_SHARED_HUB_IDS)[number];
+
+/** 하위 호환: 입문 허브 코스 1과 동일 */
+export const BASIC_START_COURSE_ID = BASIC_HUB_COURSE_1_ID;
 
 export type CourseRoutePayload = {
   id: string;
@@ -87,10 +98,20 @@ function parseCourseRoutePayload(id: string, raw: Record<string, unknown>): Cour
   };
 }
 
-export function getBasicStartCourseStatic(): CourseRoutePayload {
-  const course = BASIC_COURSES.find((c) => c.id === BASIC_START_COURSE_ID);
+function coordinatesApproxEqual(a: LngLat[], b: LngLat[], eps = 2e-4): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    const p = a[i];
+    const q = b[i];
+    if (Math.abs(p[0] - q[0]) > eps || Math.abs(p[1] - q[1]) > eps) return false;
+  }
+  return true;
+}
+
+export function getBasicHubCoursePayload(courseId: string): CourseRoutePayload {
+  const course = BASIC_COURSES.find((c) => c.id === courseId);
   if (!course) {
-    throw new Error("BASIC_START_COURSE_ID 가 BASIC_COURSES 에 없습니다.");
+    throw new Error(`BASIC_COURSES 에 없는 courseId: ${courseId}`);
   }
   return {
     id: course.id,
@@ -101,19 +122,23 @@ export function getBasicStartCourseStatic(): CourseRoutePayload {
   };
 }
 
-/** 지도에 올린 경로가 입문 상시 코스(그린델발트 5km)와 동일한 geometry 인지 */
-export function isGeometryBasicStartHub(geometry: LineStringGeometry | null): boolean {
-  if (!geometry?.coordinates?.length) return false;
-  const ref = getBasicStartCourseStatic().geometry.coordinates;
-  if (geometry.coordinates.length !== ref.length) return false;
-  /** Firestore·Mapbox 반올림으로 좌표가 조금 달라도 같은 코스로 본다 (~20m) */
-  const eps = 2e-4;
-  for (let i = 0; i < ref.length; i++) {
-    const a = geometry.coordinates[i];
-    const b = ref[i];
-    if (Math.abs(a[0] - b[0]) > eps || Math.abs(a[1] - b[1]) > eps) return false;
+export function getBasicStartCourseStatic(): CourseRoutePayload {
+  return getBasicHubCoursePayload(BASIC_START_COURSE_ID);
+}
+
+/** 지도 geometry 가 어느 입문 허브 코스와 일치하는지(없으면 null) */
+export function matchBasicSharedHubCourseId(geometry: LineStringGeometry | null): string | null {
+  if (!geometry?.coordinates?.length) return null;
+  for (const id of BASIC_SHARED_HUB_IDS) {
+    const ref = getBasicHubCoursePayload(id).geometry.coordinates;
+    if (coordinatesApproxEqual(geometry.coordinates, ref)) return id;
   }
-  return true;
+  return null;
+}
+
+/** 지도에 올린 경로가 입문 허브 코스(그린델발트 또는 아이슬란드 링 로드 등) 중 하나와 동일한지 */
+export function isGeometryBasicStartHub(geometry: LineStringGeometry | null): boolean {
+  return matchBasicSharedHubCourseId(geometry) !== null;
 }
 
 export async function fetchCourseRoutePayload(courseId: string): Promise<CourseRoutePayload | null> {
@@ -217,7 +242,7 @@ const BASIC_COURSES: Omit<CourseDoc, "createdAt" | "updatedAt">[] = [
   },
   {
     id: "basic-alps-grindelwald-5km",
-    title: "Basic 4 · Grindelwald Valley (5km)",
+    title: "입문 코스 1 · 그린델발트 계곡 (5km)",
     description:
       "스위스 베른주 그린델발트 인근 루치네 계곡을 따라가는 약 5km 산악·알프스 풍경 코스.",
     category: "basic",
@@ -250,7 +275,53 @@ const BASIC_COURSES: Omit<CourseDoc, "createdAt" | "updatedAt">[] = [
     },
     createdBy: "system",
   },
+  {
+    id: "basic-iceland-ring-road-5km",
+    title: "입문 코스 2 · 아이슬란드 링 로드 (5km)",
+    description:
+      "아이슬란드 남부 국도 1호선(링 로드) 인근 구간을 모티브로 한 약 5km 해안·화산 지대 풍경 코스.",
+    category: "basic",
+    type: "starter",
+    profile: "cycling",
+    isPublic: false,
+    status: "published",
+    isRequired: true,
+    requiredOrder: 5,
+    isSharedStartHub: true,
+    distanceMeters: 5000,
+    durationSec: 1200,
+    bounds: {
+      minLng: -20.02,
+      minLat: 63.61,
+      maxLng: -19.87,
+      maxLat: 63.66,
+    },
+    geometry: {
+      type: "LineString",
+      coordinates: [
+        [-19.9886, 63.6155],
+        [-19.972, 63.619],
+        [-19.9555, 63.6225],
+        [-19.939, 63.626],
+        [-19.9225, 63.6295],
+        [-19.906, 63.633],
+        [-19.8895, 63.6365],
+      ],
+    },
+    createdBy: "system",
+  },
 ];
+
+export const BASIC_SHARED_HUB_SUMMARIES: { id: string; title: string }[] = BASIC_SHARED_HUB_IDS.map(
+  (id) => {
+    const course = BASIC_COURSES.find((c) => c.id === id)!;
+    return { id, title: course.title };
+  },
+);
+
+export function getBasicSharedHubSummaries(): { id: string; title: string }[] {
+  return BASIC_SHARED_HUB_SUMMARIES;
+}
 
 export async function ensureBasicCoursesSeeded(currentUserId: string): Promise<void> {
   const db = getFirestore(getFirebaseApp());
@@ -269,14 +340,16 @@ export async function ensureBasicCoursesSeeded(currentUserId: string): Promise<v
     } satisfies CourseDoc & { seededAt: Timestamp });
   }
 
-  await setDoc(
-    doc(db, "courses", BASIC_START_COURSE_ID),
-    {
-      isSharedStartHub: true,
-      updatedAt: serverTimestamp(),
-    },
-    { merge: true },
-  ).catch(() => {
-    /* 기존 환경에서 권한 등으로 실패해도 앱 동작 유지 */
-  });
+  for (const hubId of BASIC_SHARED_HUB_IDS) {
+    await setDoc(
+      doc(db, "courses", hubId),
+      {
+        isSharedStartHub: true,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true },
+    ).catch(() => {
+      /* 기존 환경에서 권한 등으로 실패해도 앱 동작 유지 */
+    });
+  }
 }

@@ -42,12 +42,16 @@ type RideRoutePanelProps = {
   distanceKm: string;
   avgSpeedLabel: string;
   recentSessions: StoredRideSession[];
+  /** 입문 허브 코스 목록(Firestore 정적 요약) */
+  basicSharedHubs: { id: string; title: string }[];
+  /** 현재 동행 중인 허브 코스 id(없으면 null) */
+  basicActiveHubCourseId: string | null;
   basicStartLoading: boolean;
   basicStartHubJoined: boolean;
   /** true면 Firebase 익명(게스트) — Google 연결 안내 문구용 */
   authGuest: boolean;
-  onEnterBasicStartHub: () => void;
-  onLeaveBasicStartHub: () => void;
+  onEnterBasicHub: (courseId: string) => void;
+  onLeaveBasicHub: () => void;
 };
 
 export function RideRoutePanel(props: RideRoutePanelProps) {
@@ -67,30 +71,52 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
       <p className="ride-panel__help">지도 클릭 후 팝업에서 출발지/도착지를 선택하세요.</p>
 
       <div className="ride-panel__basic-start" aria-label="입문 상시 코스">
-        <p className="ride-panel__basic-start-title">입문 코스 (상시)</p>
+        <p className="ride-panel__basic-start-title">입문 코스 (상시 · 동시 주행)</p>
         <p className="ride-panel__basic-start-desc">
-          스위스 그린델발트 인근 약 5km 코스를 불러옵니다. 같은 코스에 있는 주행자와 목록·지도 위치를
-          공유합니다(게스트 포함).
+          아래 코스 각각이 서로 다른 동시 주행 방입니다. 같은 코스를 선택한 사용자만 목록·지도 마커가
+          공유됩니다(게스트 포함).
         </p>
+        <ul className="ride-panel__basic-start-list">
+          {props.basicSharedHubs.map((hub, idx) => (
+            <li key={hub.id}>
+              <strong>코스 {idx + 1}</strong> · {hub.title}
+            </li>
+          ))}
+        </ul>
+        {props.basicActiveHubCourseId ? (
+          <p className="ride-panel__basic-start-active" role="status">
+            지금 동행 중:{" "}
+            <strong>
+              {props.basicSharedHubs.find((h) => h.id === props.basicActiveHubCourseId)?.title ??
+                props.basicActiveHubCourseId}
+            </strong>
+          </p>
+        ) : (
+          <p className="ride-panel__basic-start-idle">동행 중인 입문 코스 없음 · 입장 버튼으로 선택</p>
+        )}
         <div className="ride-panel__basic-start-btns">
-          <button
-            type="button"
-            className="ride-panel__btn-secondary"
-            disabled={
-              props.routeLoading ||
-              props.basicStartLoading ||
-              props.sessionStatus !== "idle"
-            }
-            onClick={() => void props.onEnterBasicStartHub()}
-          >
-            {props.basicStartLoading ? "불러오는 중…" : "입문 코스 입장 (5km)"}
-          </button>
+          {props.basicSharedHubs.map((hub, idx) => (
+            <button
+              key={hub.id}
+              type="button"
+              className="ride-panel__btn-secondary"
+              disabled={
+                props.routeLoading ||
+                props.basicStartLoading ||
+                props.sessionStatus !== "idle"
+              }
+              title={hub.title}
+              onClick={() => props.onEnterBasicHub(hub.id)}
+            >
+              {props.basicStartLoading ? "불러오는 중…" : `코스 ${idx + 1} 입장 (5km)`}
+            </button>
+          ))}
           {props.basicStartHubJoined ? (
             <button
               type="button"
               className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet"
               disabled={props.basicStartLoading}
-              onClick={() => void props.onLeaveBasicStartHub()}
+              onClick={() => void props.onLeaveBasicHub()}
             >
               입문 코스 동행 나가기
             </button>

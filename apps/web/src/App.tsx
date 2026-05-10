@@ -16,11 +16,12 @@ import { MapView, type MapPeerMarker } from "./components/MapView";
 import { RideRoutePanel, type FollowMode } from "./components/RideRoutePanel";
 import { getFirebaseAuth, isFirebaseConfigured } from "./lib/firebase";
 import {
-  BASIC_START_COURSE_ID,
+  BASIC_SHARED_HUB_IDS,
+  BASIC_SHARED_HUB_SUMMARIES,
   ensureBasicCoursesSeeded,
   fetchCourseRoutePayload,
-  getBasicStartCourseStatic,
-  isGeometryBasicStartHub,
+  getBasicHubCoursePayload,
+  matchBasicSharedHubCourseId,
 } from "./lib/firestoreCourses";
 import { deleteCoursePresence } from "./lib/firestoreCoursePresence";
 import { deleteLobbyPresence, sanitizeRoomId } from "./lib/firestoreLobby";
@@ -90,8 +91,10 @@ export default function App() {
   const [recentSessions, setRecentSessions] = useState<StoredRideSession[]>(() =>
     loadRideSessions(),
   );
-  const [basicStartHubJoined, setBasicStartHubJoined] = useState(false);
+  /** 입문 허브 동시 주행에 참여 중인 코스 document id(null 이면 미참여) */
+  const [basicActiveHubCourseId, setBasicActiveHubCourseId] = useState<string | null>(null);
   const [basicStartLoading, setBasicStartLoading] = useState(false);
+  const basicStartHubJoined = basicActiveHubCourseId !== null;
   const [coursePeerMarkers, setCoursePeerMarkers] = useState<MapPeerMarker[]>([]);
   /** false면 LobbyPresence 마운트 안 함(로비 문서·하트비트 중단). 게스트 id는 유지. */
   const [lobbyParticipationEnabled, setLobbyParticipationEnabled] = useState(true);
@@ -191,28 +194,30 @@ export default function App() {
   useEffect(() => {
     if (!user) {
       basicStartHubLeftExplicitRef.current = false;
-      startTransition(() => setBasicStartHubJoined(false));
+      startTransition(() => setBasicActiveHubCourseId(null));
     }
   }, [user]);
 
   useEffect(() => {
-    if (!basicStartHubJoined) startTransition(() => setCoursePeerMarkers([]));
-  }, [basicStartHubJoined]);
+    if (!basicActiveHubCourseId) startTransition(() => setCoursePeerMarkers([]));
+  }, [basicActiveHubCourseId]);
 
   useEffect(() => {
-    if (!routeGeometry || !isGeometryBasicStartHub(routeGeometry)) {
+    const matched = matchBasicSharedHubCourseId(routeGeometry);
+    if (!matched) {
       basicStartHubLeftExplicitRef.current = false;
     }
   }, [routeGeometry]);
 
   useEffect(() => {
     if (!configured || !user) return;
-    if (!routeGeometry || !isGeometryBasicStartHub(routeGeometry)) {
-      startTransition(() => setBasicStartHubJoined(false));
+    const matched = matchBasicSharedHubCourseId(routeGeometry);
+    if (!matched) {
+      startTransition(() => setBasicActiveHubCourseId(null));
       return;
     }
     if (basicStartHubLeftExplicitRef.current) return;
-    startTransition(() => setBasicStartHubJoined(true));
+    startTransition(() => setBasicActiveHubCourseId(matched));
   }, [configured, user, routeGeometry]);
 
   useEffect(() => {
@@ -265,57 +270,65 @@ export default function App() {
     return avg.toFixed(1);
   }, [rideMetrics.accumulatedMs, rideMetrics.virtualDistanceMeters]);
 
-  const enterBasicStartHub = useCallback(async () => {
-    if (rideStatus !== "idle") {
-      setRouteSummary("세션이 대기 상태일 때만 입문 코스를 불러올 수 있습니다. 종료 후 다시 시도하세요.");
-      return;
-    }
-    setBasicStartLoading(true);
-    setRouteSummary("입문 코스 불러오는 중…");
-    try {
-      let payload = null;
-      if (configured) {
-        try {
-          payload = await fetchCourseRoutePayload(BASIC_START_COURSE_ID);
-        } catch {
-          payload = null;
+  const enterBasicHub = useCallback(
+    async (courseId: string) => {
+      if (rideStatus !== "idle") {
+        setRouteSummary("세션이 대기 상태일 때만 입문 코스를 불러올 수 있습니다. 종료 후 다시 시도하세요.");
+        return;
+      }
+      setBasicStartLoading(true);
+      setRouteSummary("입문 코스 불러오는 중…");
+      try {
+        if (user && basicActiveHubCourseId && basicActiveHubCourseId !== courseId) {
+          await deleteCoursePresence(user.uid, basicActiveHubCourseId).catch(() => {
+            /* noop */
+          });
         }
-      }
-      const resolved = payload ?? getBasicStartCourseStatic();
-      const coords = resolved.geometry.coordinates;
-      setRouteGeometry(resolved.geometry);
-      setStartLngLat(coords[0] ?? null);
-      setEndLngLat(coords[coords.length - 1] ?? null);
-      setProfile("cycling");
-      setRouteDistanceMeters(resolved.distanceMeters);
-      setRouteDurationSec(resolved.durationSec);
-      resetRide();
-      setRouteSummary(
-        `입문 · ${resolved.title} · 거리 ${(resolved.distanceMeters / 1000).toFixed(2)} km / 예상 ${formatDuration(resolved.durationSec)}`,
-      );
-      if (user) {
+        let payload = null;
+        if (configured) {
+          try {
+            payload = await fetchCourseRoutePayload(courseId);
+          } catch {
+            payload = null;
+          }
+        }
+        const resolved = payload ?? getBasicHubCoursePayload(courseId);
+        const coords = resolved.geometry.coordinates;
+        setRouteGeometry(resolved.geometry);
+        setStartLngLat(coords[0] ?? null);
+        setEndLngLat(coords[coords.length - 1] ?? null);
+        setProfile("cycling");
+        setRouteDistanceMeters(resolved.distanceMeters);
+        setRouteDurationSec(resolved.durationSec);
+        resetRide();
+        setRouteSummary(
+          `${resolved.title} · 거리 ${(resolved.distanceMeters / 1000).toFixed(2)} km / 예상 ${formatDuration(resolved.durationSec)}`,
+        );
         basicStartHubLeftExplicitRef.current = false;
-        setBasicStartHubJoined(true);
-      } else {
-        setBasicStartHubJoined(false);
+        if (user) {
+          setBasicActiveHubCourseId(resolved.id);
+        } else {
+          setBasicActiveHubCourseId(null);
+        }
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        setRouteSummary(message);
+      } finally {
+        setBasicStartLoading(false);
       }
-    } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      setRouteSummary(message);
-    } finally {
-      setBasicStartLoading(false);
-    }
-  }, [rideStatus, configured, user, resetRide]);
+    },
+    [rideStatus, configured, user, resetRide, basicActiveHubCourseId],
+  );
 
-  const leaveBasicStartHub = useCallback(async () => {
+  const leaveBasicHub = useCallback(async () => {
     basicStartHubLeftExplicitRef.current = true;
-    if (user) {
-      await deleteCoursePresence(user.uid, BASIC_START_COURSE_ID).catch(() => {
+    if (user && basicActiveHubCourseId) {
+      await deleteCoursePresence(user.uid, basicActiveHubCourseId).catch(() => {
         /* noop */
       });
     }
-    setBasicStartHubJoined(false);
-  }, [user]);
+    setBasicActiveHubCourseId(null);
+  }, [user, basicActiveHubCourseId]);
 
   const generateRoute = useCallback(async () => {
     if (rideStatus !== "idle") {
@@ -511,11 +524,13 @@ export default function App() {
         await deleteLobbyPresence(user.uid, roomId).catch(() => {
           /* noop */
         });
-        await deleteCoursePresence(user.uid, BASIC_START_COURSE_ID).catch(() => {
-          /* noop */
-        });
+        for (const hid of BASIC_SHARED_HUB_IDS) {
+          await deleteCoursePresence(user.uid, hid).catch(() => {
+            /* noop */
+          });
+        }
       }
-      setBasicStartHubJoined(false);
+      setBasicActiveHubCourseId(null);
       setLobbyParticipationEnabled(false);
       setRecentSessions(loadRideSessions());
       await signOut(getFirebaseAuth());
@@ -727,12 +742,12 @@ export default function App() {
         </div>
       ) : null}
 
-      {configured && user && basicStartHubJoined ? (
+      {configured && user && basicActiveHubCourseId ? (
         <div className="lobby-strip">
           <CourseSharedPresence
             user={user}
-            courseId={BASIC_START_COURSE_ID}
-            title="Grindelwald 5km"
+            courseId={basicActiveHubCourseId}
+            title={getBasicHubCoursePayload(basicActiveHubCourseId).title}
             isRiding={rideStatus !== "idle"}
             myLiveLngLat={liveForMap}
             onPeersChange={onCoursePeersChange}
@@ -771,11 +786,13 @@ export default function App() {
             distanceKm={(rideMetrics.virtualDistanceMeters / 1000).toFixed(2)}
             avgSpeedLabel={avgSpeedLabel}
             recentSessions={recentSessions}
+            basicSharedHubs={BASIC_SHARED_HUB_SUMMARIES}
+            basicActiveHubCourseId={basicActiveHubCourseId}
             basicStartLoading={basicStartLoading}
             basicStartHubJoined={basicStartHubJoined}
             authGuest={Boolean(user?.isAnonymous)}
-            onEnterBasicStartHub={enterBasicStartHub}
-            onLeaveBasicStartHub={leaveBasicStartHub}
+            onEnterBasicHub={(courseId) => void enterBasicHub(courseId)}
+            onLeaveBasicHub={() => void leaveBasicHub()}
           />
           <div className="map-stage map-stage--in-route">
             <MapView
