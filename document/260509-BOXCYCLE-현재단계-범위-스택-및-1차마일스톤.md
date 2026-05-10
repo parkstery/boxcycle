@@ -4,8 +4,8 @@
 |------|------|
 | 문서 유형 | **product** + **architecture**(요약) — PM·개발 공통의 단일 진실(현재 단계) |
 | 최초 작성 | 2026-05-09 |
-| 상태 | **코드 반영 중** — `apps/web` Vite+React+TS 골격 및 Firebase Auth(Google) 화면 추가됨 |
-| 연결 문서 | [문서 생성·수정 지침](260509-BOXCYCLE-문서-생성-및-수정-지침.md), [Mapbox 시뮬 검증 기록](260508-개발중간보고-HTML과-JS-프로토타입.md), [아키텍처·DB 장기안](260509-아키텍쳐-DB설계.md), [Firestore→Postgres 피하기](260509-Firestore-Postgres-이전-체크리스트.md), [실행·리팩터링](260509-app-js-프론트백엔드-분리-1차리팩터링.md) |
+| 상태 | **코드 반영 중** — `apps/web` 에서 Firebase(Auth·Firestore)·Mapbox 기반 주행·로비·코스 동행까지 동작; Cloud Functions(Mapbox REST 프록시 등)는 미도입 |
+| 연결 문서 | [문서 생성·수정 지침](260509-BOXCYCLE-문서-생성-및-수정-지침.md), [**RTW 마스터 비전 및 종합계획**](260511-RTW-마스터-비전-및-종합계획.md), [Mapbox 시뮬 검증 기록](260508-개발중간보고-HTML과-JS-프로토타입.md), [아키텍처·DB 장기안](260509-아키텍쳐-DB설계.md), [Firestore→Postgres 피하기](260509-Firestore-Postgres-이전-체크리스트.md), [실행·리팩터링](260509-app-js-프론트백엔드-분리-1차리팩터링.md), [Phase별 실행 체크리스트(1차 마일스톤 직후)](260511-Phase별-실행-체크리스트-Course-Session-Presence.md) |
 
 ---
 
@@ -30,7 +30,7 @@
 | A | 인증 | **Google(Gmail) 로그인** 하나로 빠른 검증. 다른 제공자·이메일 비밀번호는 1차 범위 밖으로 둘 수 있다. |
 | B | 사용자 식별 | 로그인 사용자마다 **서버(Firebase) 기준 고유 ID**가 있고, 클라이언트가 이를 기준으로 동작한다. |
 | C | 동시 접속·공유 상태 | 동일 **방/코스/세션 ID**(제품 용어는 구현 시 확정)에 **2명 이상**이 동시에 참여할 때, **서버 또는 Firebase 실시간 채널 기준**으로 상대 존재 또는 진행 상태가 반영된다. |
-| D | 영속화 | 멀티 유저 검증에 필요한 최소 데이터(예: 방 멤버, 마지막 하트비트, 간단 세션 메타)가 **Firebase에 저장·동기**된다. |
+| D | 영속화 | 멀티 유저 검증에 필요한 최소 데이터(예: 방 멤버, 마지막 하트비트, 간단 세션 메타)가 **Firebase에 저장·동기**된다. **`sessions/{sessionId}` 컬렉션 도입은 1차 마일스톤 직후 후순위로 둔다** (장기 비전: [RTW 마스터 §2.1](260511-RTW-마스터-비전-및-종합계획.md), 작업 순서: [Phase별 실행 체크리스트 Phase 1-B](260511-Phase별-실행-체크리스트-Course-Session-Presence.md)). |
 | E | 재현 가능 | 배포 또는 스테이징 URL에서 PM이 **데모 시나리오**(계정 2개로 동시 접속 등)를 재현할 수 있다. |
 
 ### 2.2 1차에서 의도적으로 미포함 (명시적 후순위)
@@ -65,7 +65,9 @@
 
 ## 4. 저장소·코드 상태
 
-- **본 개발 웹 앱:** `apps/web` — Vite + TypeScript + React, Firebase Auth(Google), **Mapbox GL 지도**, **`users/{uid}` 프로필**, **`rooms/{roomId}/members/{uid}`** 실시간 로비(`roomId` 기본 `default`, **`?room=`** 및 UI 입장). 다음: 지도 위 동료 위치·경로 공유·Functions 프록시 등.
+- **본 개발 웹 앱:** `apps/web` — Vite + TypeScript + React, Firebase Auth(Google·게스트 등 콘솔 설정에 따름), **Mapbox GL 지도** 및 Directions REST(`src/services/mapboxDirections.ts`, 클라이언트 `VITE_MAPBOX_ACCESS_TOKEN` 사용), **`users/{uid}` 프로필**, **`rooms/{roomId}/members/{uid}`** 실시간 로비(`roomId` 기본 `default`, **`?room=`** 및 UI 입장), **`rides`** 주행 기록 저장, **`courses`** 입문·큐레이션 코스 시드/조회, **`coursePresence`** 입문 허브 동행 시 동료 마커 동기화(Open-Meteo 고도는 브라우저 직호출).
+- **Firebase 배포 설정(루트):** `firebase.json` — Firestore rules/indexes + **Hosting**(`public`: `apps/web/dist`, SPA rewrite). `.firebaserc` 에 기본 프로젝트 ID가 있다(민감 비밀이 아님). 실제 API 키·토큰은 **`apps/web/.env`**(커밋 제외), 템플릿은 **`apps/web/.env.example`**.
+- **다음(문서·계획 정렬):** Mapbox Directions/Geocoding **Cloud Functions 프록시**(REST만 서버 토큰; GL 타일용 pk. 토큰은 제한적 클라이언트 유지 가능), Firestore Rules 입문 허브 2·`presenceEnabled` 일반화 등 → [분리·리팩터링 문서](260509-app-js-프론트백엔드-분리-1차리팩터링.md) Phase 1-C·[Rules 일반화](260511-Firestore-Rules-일반화-방안.md).
 - **레거시 참조:** 저장소 루트의 `index.html`, `app.js` 등은 Mapbox 검증 POC로 유지한다.
 
 ---
@@ -79,3 +81,5 @@
 | 2026-05-09 | Mapbox 지도 + Firestore 사용자 프로필 동기화 반영 |
 | 2026-05-09 | 로비 `rooms/default/members` 실시간 접속 표시·하트비트 반영 |
 | 2026-05-09 | 동적 `roomId` (`?room=` · 입장 UI) 반영 |
+| 2026-05-11 | RTW 마스터 비전·Phase 실행 체크리스트 연결, 인수 조건 D에 `sessions/{sessionId}` 후순위 명시 |
+| 2026-05-11 | §4 코드 상태 갱신(Firestore 컬렉션·Hosting·`.env`·미완 Functions); 상단 상태 메타 정렬 |

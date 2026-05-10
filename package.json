@@ -8,6 +8,9 @@
     "dev:localhost": "vite --host 127.0.0.1",
     "build": "npm run build --prefix ./apps/web",
     "preview": "npm run preview --prefix ./apps/web",
+    "deploy:hosting": "npm run build && firebase deploy --only hosting",
+    "deploy:firestore": "firebase deploy --only firestore",
+    "deploy:web": "npm run build && firebase deploy --only hosting,firestore",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

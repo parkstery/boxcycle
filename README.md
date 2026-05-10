@@ -4,6 +4,8 @@
 
 **현재 단계·범위·스택·1차 마일스톤(멀티 유저 검증)** 의 단일 진실은 [`document/260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md`](document/260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md)를 본다.
 
+**서비스 비전·UGC 정책·저장 전략(장기)** 의 단일 진실은 [`document/260511-RTW-마스터-비전-및-종합계획.md`](document/260511-RTW-마스터-비전-및-종합계획.md)를 본다.
+
 Mapbox 기반 **실내 사이클** 서비스입니다. Mapbox 시뮬 검증은 완료되었으며, 본 개발 앱은 **`apps/web`** (Vite + TypeScript + React + Firebase Auth) 에서 진행한다.
 
 ## 본 개발 웹 앱 (`apps/web`)
@@ -30,11 +32,19 @@ npm run dev
 
 또는 저장소 루트에서: `npm install` 은 위와 같이 **`apps/web`** 에서 한 번 실행한 뒤, 루트에서 **`npm run dev`** (스크립트가 `apps/web` 개발 서버를 띄움).
 
-**Firestore(프로필/로비/라이드 동기화):** Firebase Console에서 **Firestore Database** 를 생성한다. 로그인 시 `users/{uid}` 문서에 표시 이름·이메일 등을 **merge** 저장한다. 로비는 `rooms/{roomId}/members/{uid}`, 주행 기록은 `rides` 컬렉션을 사용한다. 저장소 루트의 `firestore.rules`, `firestore.indexes.json`을 기준으로 적용한다.
+**Firebase CLI:** 프로젝트 연결은 저장소 **루트**의 `.firebaserc`(기본 프로젝트 ID)와 `firebase.json`을 쓴다. 명령은 루트에서 실행한다.
+
+**Firestore(프로필/로비/라이드/코스 동기화):** Firebase Console에서 **Firestore Database** 를 생성한다. 로그인 시 `users/{uid}` 문서에 표시 이름·이메일 등을 **merge** 저장한다. 로비는 `rooms/{roomId}/members/{uid}`, 주행 요약은 `rides`, 큐레이션·입문 코스는 `courses`(시드·조회), 입문 허브 동행 위치는 `coursePresence/{courseId}/members/{uid}` 를 사용한다. 저장소 루트의 `firestore.rules`, `firestore.indexes.json`을 기준으로 적용한다.
+
+**Hosting:** `firebase.json` 이 `apps/web/dist` 를 SPA(`rewrites` → `index.html`)로 배포하도록 설정되어 있다. 배포 전에 웹 앱을 빌드해야 한다.
 
 ```powershell
-# (Firebase CLI 설치/로그인 후)
-firebase deploy --only firestore:rules,firestore:indexes
+cd C:\20.HDev\boxcycle
+# Firestore 규칙·인덱스만
+firebase deploy --only firestore
+# 웹 빌드 + Hosting (또는 npm run deploy:hosting)
+npm run build
+firebase deploy --only hosting
 ```
 
 개발용 규칙 예시는 아래와 같다(운영 전 반드시 재검토).
