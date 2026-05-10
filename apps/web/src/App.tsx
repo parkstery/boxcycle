@@ -1,10 +1,12 @@
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { FirebaseError } from "firebase/app";
 import type { User } from "firebase/auth";
 import {
   GoogleAuthProvider,
   linkWithPopup,
   onAuthStateChanged,
   signInAnonymously,
+  signInWithCredential,
   signInWithPopup,
   signOut,
 } from "firebase/auth";
@@ -91,6 +93,9 @@ export default function App() {
   const [basicStartHubJoined, setBasicStartHubJoined] = useState(false);
   const [basicStartLoading, setBasicStartLoading] = useState(false);
   const [coursePeerMarkers, setCoursePeerMarkers] = useState<MapPeerMarker[]>([]);
+  /** false면 LobbyPresence 마운트 안 함(로비 문서·하트비트 중단). 게스트 id는 유지. */
+  const [lobbyParticipationEnabled, setLobbyParticipationEnabled] = useState(true);
+  const lobbyPresenceUidRef = useRef<string | null>(null);
   /** true면 입문 코스 경로가 있어도 동행 허브 자동 참여 안 함(「나가기」 후) */
   const basicStartHubLeftExplicitRef = useRef(false);
 
@@ -121,6 +126,16 @@ export default function App() {
   }, []);
 
   const anonymousSignInFlightRef = useRef(false);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+    if (lobbyPresenceUidRef.current !== user.uid) {
+      lobbyPresenceUidRef.current = user.uid;
+      startTransition(() => setLobbyParticipationEnabled(true));
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!configured) {
@@ -361,9 +376,17 @@ export default function App() {
           await linkWithPopup(current, provider);
         } catch (inner: unknown) {
           const ie = inner as { code?: string };
-          // 이전에 같은 Google로 연결한 Firebase 사용자가 있으면 link 대신 그 계정으로 로그인
-          if (ie.code === "auth/credential-already-in-use") {
-            await signInWithPopup(auth, provider);
+          // 같은 Google이 이미 다른 Firebase uid에 묶여 있으면, 두 번째 팝업 대신 실패 응답에 실린 credential 로 로그인
+          if (
+            ie.code === "auth/credential-already-in-use" ||
+            ie.code === "auth/account-exists-with-different-credential"
+          ) {
+            const cred = GoogleAuthProvider.credentialFromError(inner as FirebaseError);
+            if (cred) {
+              await signInWithCredential(auth, cred);
+            } else {
+              await signInWithPopup(auth, provider);
+            }
           } else {
             throw inner;
           }
@@ -616,7 +639,29 @@ export default function App() {
               최대 64자입니다.
             </span>
           </div>
-          <LobbyPresence user={user} roomId={roomId} />
+          {lobbyParticipationEnabled ? (
+            <LobbyPresence user={user} roomId={roomId} />
+          ) : (
+            <section className="lobby-presence lobby-presence--paused" aria-label="로비 참여 중지됨">
+              <div className="lobby-presence__head">
+                <strong>실시간 로비</strong>
+                <span className="lobby-presence__meta">참여 안 함 · 하트비트 없음</span>
+              </div>
+              <p className="lobby-presence__empty">
+                로비 목록에서 빠져 있습니다. 「로비 참여」 또는 방 「입장」으로 다시 연결할 수 있습니다.
+              </p>
+              <div className="lobby-presence__rejoin">
+                <button
+                  type="button"
+                  className="btn primary"
+                  disabled={busy}
+                  onClick={() => setLobbyParticipationEnabled(true)}
+                >
+                  로비 참여
+                </button>
+              </div>
+            </section>
+          )}
         </div>
       ) : null}
 

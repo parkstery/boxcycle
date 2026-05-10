@@ -7,6 +7,14 @@
   line-height: 1.45;
 }
 
+.lobby-presence--paused {
+  opacity: 0.92;
+}
+
+.lobby-presence__rejoin {
+  margin-top: 0.35rem;
+}
+
 .lobby-presence__head {
   display: flex;
   flex-wrap: wrap;
