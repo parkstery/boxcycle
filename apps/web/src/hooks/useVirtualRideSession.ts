@@ -50,25 +50,20 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
     routeDistanceRef.current = options.routeDistanceMeters;
   }, [options.routeGeometry, options.routeDistanceMeters]);
 
-  const flushUi = useCallback(
-    (ts: number, live: LngLat | null, forceFull: boolean) => {
-      if (
-        forceFull ||
-        lastUiTsRef.current == null ||
-        ts - lastUiTsRef.current >= METRICS_UI_MS
-      ) {
-        lastUiTsRef.current = ts;
-        setMetricsUi({
-          virtualDistanceMeters: virtualDistanceRef.current,
-          accumulatedMs: accumulatedMsRef.current,
-          liveLngLat: live,
-        });
-      } else {
-        setMetricsUi((prev) => ({ ...prev, liveLngLat: live }));
-      }
-    },
-    [],
-  );
+  /** rAF마다 setState 금지 — METRICS_UI_MS 간격으로만 React 상태 갱신 (무한 렌더 방지) */
+  const flushUi = useCallback((ts: number, live: LngLat | null, forceFull: boolean) => {
+    const shouldFlush =
+      forceFull ||
+      lastUiTsRef.current == null ||
+      ts - lastUiTsRef.current >= METRICS_UI_MS;
+    if (!shouldFlush) return;
+    lastUiTsRef.current = ts;
+    setMetricsUi({
+      virtualDistanceMeters: virtualDistanceRef.current,
+      accumulatedMs: accumulatedMsRef.current,
+      liveLngLat: live,
+    });
+  }, []);
 
   useEffect(() => {
     if (status !== "running") {

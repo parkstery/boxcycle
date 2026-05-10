@@ -1,4 +1,4 @@
-import { startTransition, useEffect, useRef, useState } from "react";
+import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import type { User } from "firebase/auth";
 import {
   COURSE_LIVE_SHARE_INTERVAL_MS,
@@ -14,6 +14,14 @@ import type { LngLat } from "../lib/geo";
 import type { MapPeerMarker } from "./MapView";
 import { LOBBY_STALE_MS, PRESENCE_HEARTBEAT_INTERVAL_MS } from "../lib/firestoreLobby";
 import "./LobbyPresence.css";
+
+function peersStableKey(peers: MapPeerMarker[]): string {
+  if (peers.length === 0) return "";
+  return peers
+    .map((p) => `${p.id}:${p.lngLat[0].toFixed(6)},${p.lngLat[1].toFixed(6)}:${p.label ?? ""}`)
+    .sort()
+    .join("|");
+}
 
 type CourseSharedPresenceProps = {
   user: User;
@@ -107,24 +115,33 @@ export function CourseSharedPresence({
     };
   }, [isRiding, user, courseId]);
 
-  const active = rows.filter((r) => isCourseMemberActive(r.lastSeenAtMs));
+  /** rows 참조가 바뀔 때만 재계산 — 매 부모 렌더마다 새 배열이 되면 안 됨 */
+  const active = useMemo(
+    () => rows.filter((r) => isCourseMemberActive(r.lastSeenAtMs)),
+    [rows],
+  );
+
+  const peerMarkersForMap = useMemo((): MapPeerMarker[] => {
+    if (presenceError) return [];
+    return active
+      .filter((r) => r.uid !== user.uid && r.liveLngLat)
+      .map((r) => ({
+        id: r.uid,
+        lngLat: r.liveLngLat!,
+        label: r.displayName,
+      }));
+  }, [active, presenceError, user.uid]);
+
+  const lastPeersKeyRef = useRef<string>("__init__");
 
   useEffect(() => {
     const cb = onPeersChangeRef.current;
     if (!cb) return;
-    if (presenceError) {
-      cb([]);
-      return;
-    }
-    const others = active.filter((r) => r.uid !== user.uid && r.liveLngLat);
-    cb(
-      others.map((r) => ({
-        id: r.uid,
-        lngLat: r.liveLngLat!,
-        label: r.displayName,
-      })),
-    );
-  }, [active, presenceError, user.uid]);
+    const nextKey = presenceError ? "__err__" : peersStableKey(peerMarkersForMap);
+    if (nextKey === lastPeersKeyRef.current) return;
+    lastPeersKeyRef.current = nextKey;
+    cb(presenceError ? [] : peerMarkersForMap);
+  }, [peerMarkersForMap, presenceError]);
 
   const isPermissionError =
     presenceError?.includes("permission") || presenceError?.includes("Permission");
