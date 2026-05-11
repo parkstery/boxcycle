@@ -169,6 +169,14 @@
   background: color-mix(in srgb, CanvasText 8%, transparent);
 }
 
+.pre-ride-strip {
+  padding: 0 1.25rem;
+}
+
+.pre-ride-strip__card {
+  margin-bottom: 0.25rem;
+}
+
 .lobby-strip {
   padding: 0 1.25rem;
   display: flex;

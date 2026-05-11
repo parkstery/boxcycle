@@ -570,6 +570,9 @@ export default function App() {
   const startLabel = startLngLat ? formatLngLat(startLngLat) : "미설정";
   const endLabel = endLngLat ? formatLngLat(endLngLat) : "미설정";
 
+  /** Firebase 미설정이거나 인증 준비 완료 후 — 로비·입문 코스 UI가 숨겨지지 않도록 메인 워크스페이스 표시 */
+  const rideWorkspaceOpen = !configured || (configured && authInitialized);
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -685,68 +688,94 @@ export default function App() {
         )}
       </header>
 
-      {configured && user ? (
-        <div className="lobby-strip">
-          <div className="room-bar">
-            <label className="room-bar__label" htmlFor="roomDraft">
-              방 ID
-            </label>
-            <input
-              id="roomDraft"
-              className="room-bar__input"
-              type="text"
-              maxLength={64}
-              autoComplete="off"
-              spellCheck={false}
-              value={roomDraft}
-              onChange={(e) => setRoomDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") joinRoomFromDraft();
-              }}
-              placeholder="예: demo-ride"
-            />
-            <button type="button" className="btn primary room-bar__btn" onClick={joinRoomFromDraft}>
-              입장
-            </button>
-            {lobbyParticipationEnabled ? (
-              <button
-                type="button"
-                className="btn secondary room-bar__btn"
-                disabled={busy}
-                onClick={() => void handleLeaveLobbyOnly()}
-              >
-                로비 나가기
+      {rideWorkspaceOpen ? (
+        configured && user ? (
+          <div className="lobby-strip">
+            <div className="room-bar">
+              <label className="room-bar__label" htmlFor="roomDraft">
+                방 ID
+              </label>
+              <input
+                id="roomDraft"
+                className="room-bar__input"
+                type="text"
+                maxLength={64}
+                autoComplete="off"
+                spellCheck={false}
+                value={roomDraft}
+                onChange={(e) => setRoomDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") joinRoomFromDraft();
+                }}
+                placeholder="예: demo-ride"
+              />
+              <button type="button" className="btn primary room-bar__btn" onClick={joinRoomFromDraft}>
+                입장
               </button>
-            ) : null}
-            <span className="room-bar__hint">
-              주소창 URL을 복사해 공유하면 같은 방(`?room=`)으로 입장합니다. 방 ID는 영문·숫자·`_` `-` 만,
-              최대 64자입니다.
-            </span>
-          </div>
-          {lobbyParticipationEnabled ? (
-            <LobbyPresence user={user} roomId={roomId} />
-          ) : (
-            <section className="lobby-presence lobby-presence--paused" aria-label="로비 참여 중지됨">
-              <div className="lobby-presence__head">
-                <strong>실시간 로비</strong>
-                <span className="lobby-presence__meta">참여 안 함 · 하트비트 없음</span>
-              </div>
-              <p className="lobby-presence__empty">
-                로비 목록에서 빠져 있습니다. 「로비 참여」 또는 방 「입장」으로 다시 연결할 수 있습니다.
-              </p>
-              <div className="lobby-presence__rejoin">
+              {lobbyParticipationEnabled ? (
                 <button
                   type="button"
-                  className="btn primary"
+                  className="btn secondary room-bar__btn"
                   disabled={busy}
-                  onClick={() => setLobbyParticipationEnabled(true)}
+                  onClick={() => void handleLeaveLobbyOnly()}
                 >
-                  로비 참여
+                  로비 나가기
                 </button>
+              ) : null}
+              <span className="room-bar__hint">
+                주소창 URL을 복사해 공유하면 같은 방(`?room=`)으로 입장합니다. 방 ID는 영문·숫자·`_` `-` 만,
+                최대 64자입니다.
+              </span>
+            </div>
+            {lobbyParticipationEnabled ? (
+              <LobbyPresence user={user} roomId={roomId} />
+            ) : (
+              <section className="lobby-presence lobby-presence--paused" aria-label="로비 참여 중지됨">
+                <div className="lobby-presence__head">
+                  <strong>실시간 로비</strong>
+                  <span className="lobby-presence__meta">참여 안 함 · 하트비트 없음</span>
+                </div>
+                <p className="lobby-presence__empty">
+                  로비 목록에서 빠져 있습니다. 「로비 참여」 또는 방 「입장」으로 다시 연결할 수 있습니다.
+                </p>
+                <div className="lobby-presence__rejoin">
+                  <button
+                    type="button"
+                    className="btn primary"
+                    disabled={busy}
+                    onClick={() => setLobbyParticipationEnabled(true)}
+                  >
+                    로비 참여
+                  </button>
+                </div>
+              </section>
+            )}
+          </div>
+        ) : (
+          <div className="lobby-strip">
+            <section className="lobby-presence lobby-presence--paused" aria-label="로비 안내">
+              <div className="lobby-presence__head">
+                <strong>실시간 로비</strong>
+                <span className="lobby-presence__meta">
+                  {!configured ? "Firebase 미설정 · 오프라인 미리보기" : "로그인 전 · 목록 비활성"}
+                </span>
               </div>
+              <p className="lobby-presence__empty">
+                {!configured ? (
+                  <>
+                    <code className="inline">apps/web/.env</code> 에 Firebase 값을 넣으면 방 ID·접속자 목록이
+                    살아납니다. 지금은 아래 <strong>입문 코스</strong>만 내장 경로로 불러와 주행해 볼 수 있습니다.
+                  </>
+                ) : (
+                  <>
+                    상단에서 <strong>게스트로 시작</strong> 또는 <strong>Google로 로그인</strong>하면 방·로비
+                    하트비트가 켜집니다. 그 전에도 왼쪽 패널에서 입문 코스 입장·지도 주행은 이용할 수 있습니다.
+                  </>
+                )}
+              </p>
             </section>
-          )}
-        </div>
+          </div>
+        )
       ) : null}
 
       {configured && user && basicActiveHubCourseId ? (
@@ -762,106 +791,102 @@ export default function App() {
         </div>
       ) : null}
 
-      {configured && user ? (
-        <main className="route-main" aria-label="경로·지도">
-          <RideRoutePanel
-            startLabel={startLabel}
-            endLabel={endLabel}
-            profile={profile}
-            onProfile={setProfile}
-            routeSummary={routeSummary}
-            routeLoading={routeLoading}
-            onGenerateRoute={() => void generateRoute()}
-            mapStyle={mapStyle}
-            mapStyleOptions={MAP_STYLE_OPTIONS}
-            onMapStyle={setMapStyle}
-            followMode={followMode}
-            onFollowMode={setFollowMode}
-            enable3D={enable3D}
-            onEnable3D={setEnable3D}
-            mapZoom={mapZoom}
-            onMapZoom={setMapZoom}
-            hasRoute={Boolean(routeGeometry)}
-            speedKmh={speedKmh}
-            onSpeedKmh={setSpeedKmh}
-            sessionStatus={rideStatus}
-            onStartRide={handleStartRide}
-            onPause={handlePause}
-            onResume={handleResume}
-            onEndRide={handleEndRide}
-            elapsedLabel={formatElapsedFromMs(rideMetrics.accumulatedMs)}
-            distanceKm={(rideMetrics.virtualDistanceMeters / 1000).toFixed(2)}
-            avgSpeedLabel={avgSpeedLabel}
-            recentSessions={recentSessions}
-            basicSharedHubs={BASIC_SHARED_HUB_SUMMARIES}
-            basicActiveHubCourseId={basicActiveHubCourseId}
-            basicStartLoading={basicStartLoading}
-            basicStartHubJoined={basicStartHubJoined}
-            authGuest={Boolean(user?.isAnonymous)}
-            onEnterBasicHub={(courseId) => void enterBasicHub(courseId)}
-            onLeaveBasicHub={() => void leaveBasicHub()}
-          />
-          <div className="map-stage map-stage--in-route">
-            <MapView
-              accessToken={MAPBOX_TOKEN || undefined}
-              routeGeometry={routeGeometry}
-              startLngLat={startLngLat}
-              endLngLat={endLngLat}
-              liveLngLat={liveForMap}
-              liveRiderMotion={
-                rideStatus === "idle"
-                  ? null
-                  : { sessionStatus: rideStatus, speedKmh }
-              }
-              peerMarkers={coursePeerMarkers}
+      {rideWorkspaceOpen ? (
+        <>
+          {configured && authInitialized && !user ? (
+            <div className="pre-ride-strip">
+              <section className="card card--compact pre-ride-strip__card" aria-label="시작 전 안내">
+                <p className="lead tight">
+                  실시간 로비·동시 주행을 쓰려면 상단에서 <strong>게스트로 시작</strong> 또는{" "}
+                  <strong>Google로 로그인</strong>하세요. 그 전에도 아래에서 입문 코스·지도를 바로 써 볼 수 있습니다.
+                </p>
+                <p className="meta tight">
+                  입문 코스 동행·로비는 로그인 후 활성화됩니다. 맞춤 경로(출발·도착 클릭 후 경로 생성)는 게스트 또는
+                  Google 세션이 필요합니다.
+                </p>
+              </section>
+            </div>
+          ) : null}
+          <main className="route-main" aria-label="경로·지도">
+            <RideRoutePanel
+              startLabel={startLabel}
+              endLabel={endLabel}
+              profile={profile}
+              onProfile={setProfile}
+              routeSummary={routeSummary}
+              routeLoading={routeLoading}
+              onGenerateRoute={() => void generateRoute()}
               mapStyle={mapStyle}
-              mapZoom={mapZoom}
+              mapStyleOptions={MAP_STYLE_OPTIONS}
+              onMapStyle={setMapStyle}
               followMode={followMode}
+              onFollowMode={setFollowMode}
               enable3D={enable3D}
+              onEnable3D={setEnable3D}
+              mapZoom={mapZoom}
               onMapZoom={setMapZoom}
-              onSelectPoint={(type, lngLat) => {
-                if (rideStatus !== "idle") {
-                  setRouteSummary("주행 중에는 출발지/도착지를 바꿀 수 없습니다. 세션 종료 후 다시 선택하세요.");
-                  return;
-                }
-                if (type === "start") {
-                  setStartLngLat(lngLat);
-                  setRouteSummary("출발지가 지도 클릭으로 설정되었습니다.");
-                  return;
-                }
-                setEndLngLat(lngLat);
-                setRouteSummary("도착지가 지도 클릭으로 설정되었습니다.");
-              }}
+              hasRoute={Boolean(routeGeometry)}
+              speedKmh={speedKmh}
+              onSpeedKmh={setSpeedKmh}
+              sessionStatus={rideStatus}
+              onStartRide={handleStartRide}
+              onPause={handlePause}
+              onResume={handleResume}
+              onEndRide={handleEndRide}
+              elapsedLabel={formatElapsedFromMs(rideMetrics.accumulatedMs)}
+              distanceKm={(rideMetrics.virtualDistanceMeters / 1000).toFixed(2)}
+              avgSpeedLabel={avgSpeedLabel}
+              recentSessions={recentSessions}
+              basicSharedHubs={BASIC_SHARED_HUB_SUMMARIES}
+              basicActiveHubCourseId={basicActiveHubCourseId}
+              basicStartLoading={basicStartLoading}
+              basicStartHubJoined={basicStartHubJoined}
+              authGuest={Boolean(user?.isAnonymous)}
+              onEnterBasicHub={(courseId) => void enterBasicHub(courseId)}
+              onLeaveBasicHub={() => void leaveBasicHub()}
             />
-          </div>
-        </main>
-      ) : configured && authInitialized && !user ? (
-        <main className="route-main route-main--gate" aria-label="시작 전 안내">
-          <section className="card gate-placeholder">
-            <p className="lead tight">
-              상단에서 <strong>게스트로 시작</strong> 또는 <strong>Google로 로그인</strong>을 선택하면 지도·로비·입문
-              코스 동행을 사용할 수 있습니다.
-            </p>
-            <p className="meta tight">
-              <strong>입문 코스 동행 나가기</strong>는 왼쪽 패널에서만 해당 코스 동행을 끕니다.{" "}
-              <strong>로비 나가기</strong>는 방 실시간 목록만 끕니다. <strong>서비스 종료</strong>(또는 로그아웃)은
-              연결을 모두 끊고 이 시작 단계로 돌아갑니다.
-            </p>
-          </section>
-        </main>
+            <div className="map-stage map-stage--in-route">
+              <MapView
+                accessToken={MAPBOX_TOKEN || undefined}
+                routeGeometry={routeGeometry}
+                startLngLat={startLngLat}
+                endLngLat={endLngLat}
+                liveLngLat={liveForMap}
+                liveRiderMotion={
+                  rideStatus === "idle"
+                    ? null
+                    : { sessionStatus: rideStatus, speedKmh }
+                }
+                peerMarkers={coursePeerMarkers}
+                mapStyle={mapStyle}
+                mapZoom={mapZoom}
+                followMode={followMode}
+                enable3D={enable3D}
+                onMapZoom={setMapZoom}
+                onSelectPoint={(type, lngLat) => {
+                  if (rideStatus !== "idle") {
+                    setRouteSummary("주행 중에는 출발지/도착지를 바꿀 수 없습니다. 세션 종료 후 다시 선택하세요.");
+                    return;
+                  }
+                  if (type === "start") {
+                    setStartLngLat(lngLat);
+                    setRouteSummary("출발지가 지도 클릭으로 설정되었습니다.");
+                    return;
+                  }
+                  setEndLngLat(lngLat);
+                  setRouteSummary("도착지가 지도 클릭으로 설정되었습니다.");
+                }}
+              />
+            </div>
+          </main>
+        </>
       ) : configured && !authInitialized ? (
         <main className="route-main route-main--gate" aria-label="연결 중">
           <p className="lead tight" style={{ padding: "1rem 1.25rem" }}>
             Firebase 인증 연결 확인 중…
           </p>
         </main>
-      ) : (
-        <main className="map-stage" aria-label="지도">
-          <p className="lead tight" style={{ padding: "1rem" }}>
-            Firebase 설정 후 경로 주행 UI가 표시됩니다.
-          </p>
-        </main>
-      )}
+      ) : null}
 
       <footer className="footer">
         레거시 상세(3D·고도·지명검색 등)는 저장소 루트{" "}

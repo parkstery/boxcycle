@@ -10,9 +10,22 @@
   min-height: 320px;
 }
 
-/* 3D·위성 스타일에서 다른 라이더(보라)·내 위치(주행 라이더) 마커가 캔버스에 가려지지 않게 */
+/* 빌보드 마커: 기본 레이어 위로. 동행(보라)이 라이더·핀에 가리지 않도록 순서 부여 */
 .map-view .mapboxgl-marker {
   z-index: 5;
+}
+
+.map-view .mapboxgl-marker.map-view__pin-marker {
+  z-index: 8;
+}
+
+.map-view .mapboxgl-marker.map-view__live-rider-marker,
+.map-view .mapboxgl-marker.cycling-sim-marker-host {
+  z-index: 10;
+}
+
+.map-view .mapboxgl-marker.map-view__peer-marker {
+  z-index: 12;
 }
 
 /* 내 라이브 위치: 페달 스프라이트 마커(보고서 6·9절) */

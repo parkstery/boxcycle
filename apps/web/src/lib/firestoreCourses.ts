@@ -7,7 +7,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { getFirebaseApp } from "./firebase";
-import type { LineStringGeometry, LngLat } from "./geo";
+import { getDistanceMeters, type LineStringGeometry, type LngLat } from "./geo";
 
 export type CourseCategory = "basic" | "public" | "recommended" | "challenge";
 export type CourseProfile = "cycling" | "driving" | "walking";
@@ -110,6 +110,38 @@ function coordinatesApproxEqual(a: LngLat[], b: LngLat[], eps = 2e-4): boolean {
   return true;
 }
 
+function polylineLengthMeters(coords: LngLat[]): number {
+  if (coords.length < 2) return 0;
+  let sum = 0;
+  for (let i = 1; i < coords.length; i += 1) {
+    sum += getDistanceMeters(coords[i - 1], coords[i]);
+  }
+  return sum;
+}
+
+/**
+ * Directions/OSRM 등으로 다시 계산된 경로는 꼭짓점 수가 달라 `coordinatesApproxEqual` 이 실패한다.
+ * 같은 입문 허브 코스로 보기: 시작·끝이 허브와 가깝고, 총연장이 허브와 비슷할 때만 허용.
+ */
+function hubGeometryLooseSameCourse(
+  userCoords: LngLat[],
+  refCoords: LngLat[],
+  endpointMaxMeters = 120,
+  lengthRelTol = 0.22,
+): boolean {
+  if (userCoords.length < 2 || refCoords.length < 2) return false;
+  const u0 = userCoords[0];
+  const u1 = userCoords[userCoords.length - 1];
+  const r0 = refCoords[0];
+  const r1 = refCoords[refCoords.length - 1];
+  if (getDistanceMeters(u0, r0) > endpointMaxMeters) return false;
+  if (getDistanceMeters(u1, r1) > endpointMaxMeters) return false;
+  const lenU = polylineLengthMeters(userCoords);
+  const lenR = polylineLengthMeters(refCoords);
+  if (lenR <= 0 || lenU <= 0) return false;
+  return Math.abs(lenU - lenR) / lenR <= lengthRelTol;
+}
+
 export function getBasicHubCoursePayload(courseId: string): CourseRoutePayload {
   const course = BASIC_COURSES.find((c) => c.id === courseId);
   if (!course) {
@@ -131,9 +163,11 @@ export function getBasicStartCourseStatic(): CourseRoutePayload {
 /** 지도 geometry 가 어느 입문 허브 코스와 일치하는지(없으면 null) */
 export function matchBasicSharedHubCourseId(geometry: LineStringGeometry | null): string | null {
   if (!geometry?.coordinates?.length) return null;
+  const userCoords = geometry.coordinates;
   for (const id of BASIC_SHARED_HUB_IDS) {
     const ref = getBasicHubCoursePayload(id).geometry.coordinates;
-    if (coordinatesApproxEqual(geometry.coordinates, ref)) return id;
+    if (coordinatesApproxEqual(userCoords, ref)) return id;
+    if (hubGeometryLooseSameCourse(userCoords, ref)) return id;
   }
   return null;
 }

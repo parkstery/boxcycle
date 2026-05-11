@@ -13,7 +13,9 @@ const RIDER_PEDAL_CELL_PX = 120;
 const RIDER_PEDAL_SPRITE_REVISION = 1;
 const RIDER_PEDAL_SPRITE_URL = `./public/rider/pedal-sprite.png?v=${RIDER_PEDAL_SPRITE_REVISION}`;
 const RIDER_PEDAL_STYLE_ID = "boxcycle-rider-pedal-strip-keyframes";
-const RIDER_MARKER_ALIGN = { pitchAlignment: "map", rotationAlignment: "map" };
+/** 출발/도착·라이더: 3D 피치에서도 화면에 세운 빌보드(viewport) */
+const PIN_MARKER_VIEWPORT_ALIGN = { pitchAlignment: "viewport", rotationAlignment: "viewport" };
+const RIDER_MARKER_ALIGN = PIN_MARKER_VIEWPORT_ALIGN;
 
 const startInput = document.getElementById("startInput");
 const endInput = document.getElementById("endInput");
@@ -177,13 +179,17 @@ function formatLngLat(lngLat) {
 function setStartPoint(lngLat) {
   startInput.value = formatLngLat(lngLat);
   if (startMarker) startMarker.remove();
-  startMarker = new mapboxgl.Marker({ color: "#16a34a" }).setLngLat(lngLat).addTo(map);
+  startMarker = new mapboxgl.Marker({ color: "#16a34a", ...PIN_MARKER_VIEWPORT_ALIGN })
+    .setLngLat(lngLat)
+    .addTo(map);
 }
 
 function setEndPoint(lngLat) {
   endInput.value = formatLngLat(lngLat);
   if (endMarker) endMarker.remove();
-  endMarker = new mapboxgl.Marker({ color: "#dc2626" }).setLngLat(lngLat).addTo(map);
+  endMarker = new mapboxgl.Marker({ color: "#dc2626", ...PIN_MARKER_VIEWPORT_ALIGN })
+    .setLngLat(lngLat)
+    .addTo(map);
 }
 
 function getDistanceMeters(a, b) {

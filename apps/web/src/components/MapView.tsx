@@ -21,8 +21,17 @@ const CAMERA_BEARING_WINDOW_METERS = 60;
 const CAMERA_BEARING_WINDOW_SAMPLES = 60;
 const ELEVATION_SAMPLE_COUNT = 72;
 
-/** 3D 기울기에서 DOM 마커가 지형 뒤로 가려지는 현상 완화 */
-const MARKER_MAP_ALIGNMENT = { pitchAlignment: "map" as const, rotationAlignment: "map" as const };
+/**
+ * 출발/도착/동행 핀: 3D 피치에서도 지면에 눕지 않고 화면에 세움.
+ * `map` 정렬은 지형·건물 뒤로 깔려 동행 마커가 안 보이는 경우가 있어 `viewport`로 통일.
+ */
+const PIN_MARKER_VIEWPORT_ALIGNMENT = {
+  pitchAlignment: "viewport" as const,
+  rotationAlignment: "viewport" as const,
+};
+
+/** 내 라이더 스프라이트(동일 빌보드 정렬) */
+const LIVE_RIDER_MARKER_ALIGNMENT = PIN_MARKER_VIEWPORT_ALIGNMENT;
 
 /** 같은 코스를 주행 중인 다른 사용자(내 마커와 구분) */
 export type MapPeerMarker = { id: string; lngLat: LngLat; label?: string | null };
@@ -273,7 +282,11 @@ export function MapView({
 
     if (startLngLat) {
       if (!startMarkerRef.current) {
-        startMarkerRef.current = new mapboxgl.Marker({ color: "#16a34a", ...MARKER_MAP_ALIGNMENT })
+        startMarkerRef.current = new mapboxgl.Marker({
+          color: "#16a34a",
+          className: "map-view__pin-marker map-view__pin-marker--start",
+          ...PIN_MARKER_VIEWPORT_ALIGNMENT,
+        })
           .setLngLat(startLngLat)
           .addTo(map);
       } else {
@@ -286,7 +299,11 @@ export function MapView({
 
     if (endLngLat) {
       if (!endMarkerRef.current) {
-        endMarkerRef.current = new mapboxgl.Marker({ color: "#dc2626", ...MARKER_MAP_ALIGNMENT })
+        endMarkerRef.current = new mapboxgl.Marker({
+          color: "#dc2626",
+          className: "map-view__pin-marker map-view__pin-marker--end",
+          ...PIN_MARKER_VIEWPORT_ALIGNMENT,
+        })
           .setLngLat(endLngLat)
           .addTo(map);
       } else {
@@ -309,7 +326,11 @@ export function MapView({
         liveMarkerFlipRef.current = flip;
         liveMarkerPedalSpriteRef.current = sprite;
         prevLiveForBearingRef.current = null;
-        liveMarkerRef.current = new mapboxgl.Marker({ element: root, ...MARKER_MAP_ALIGNMENT })
+        liveMarkerRef.current = new mapboxgl.Marker({
+          element: root,
+          className: "map-view__live-rider-marker",
+          ...LIVE_RIDER_MARKER_ALIGNMENT,
+        })
           .setLngLat(liveLngLat)
           .addTo(map);
       } else {
@@ -370,7 +391,11 @@ export function MapView({
     for (const p of peers) {
       let marker = byId.get(p.id);
       if (!marker) {
-        marker = new mapboxgl.Marker({ color: "#7c3aed", ...MARKER_MAP_ALIGNMENT })
+        marker = new mapboxgl.Marker({
+          color: "#7c3aed",
+          className: "map-view__peer-marker",
+          ...PIN_MARKER_VIEWPORT_ALIGNMENT,
+        })
           .setLngLat(p.lngLat)
           .addTo(map);
         byId.set(p.id, marker);
