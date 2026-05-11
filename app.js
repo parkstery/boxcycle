@@ -7,6 +7,14 @@ const DEFAULT_ZOOM = 12;
 const SESSIONS_KEY = "indoor_cycle_sessions_v1";
 const MY_ROUTES_KEY = "indoor_cycle_my_routes_v1";
 
+/** 루트 Live Server용: `public/rider/pedal-sprite.png`(2400×120 → 20×120px). Vite 앱은 apps/web/public/rider 동일 에셋 사용 */
+const RIDER_PEDAL_FRAME_COUNT = 20;
+const RIDER_PEDAL_CELL_PX = 120;
+const RIDER_PEDAL_SPRITE_REVISION = 1;
+const RIDER_PEDAL_SPRITE_URL = `./public/rider/pedal-sprite.png?v=${RIDER_PEDAL_SPRITE_REVISION}`;
+const RIDER_PEDAL_STYLE_ID = "boxcycle-rider-pedal-strip-keyframes";
+const RIDER_MARKER_ALIGN = { pitchAlignment: "map", rotationAlignment: "map" };
+
 const startInput = document.getElementById("startInput");
 const endInput = document.getElementById("endInput");
 const routeBtn = document.getElementById("routeBtn");
@@ -102,6 +110,9 @@ map.addControl(new mapboxgl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bo
 let startMarker = null;
 let endMarker = null;
 let liveMarker = null;
+let liveMarkerSpriteEl = null;
+let liveMarkerFlipEl = null;
+let prevLiveLngLatForRider = null;
 let currentRoute = null;
 let routeDistanceMeters = 0;
 let routeDurationSec = 0;
@@ -224,6 +235,96 @@ function getBearingFromPoints(a, b) {
   const y = Math.sin(dLng) * Math.cos(lat2);
   const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
   return (toDeg(Math.atan2(y, x)) + 360) % 360;
+}
+
+function ensureRiderPedalStripKeyframes() {
+  if (typeof document === "undefined") return;
+  if (document.getElementById(RIDER_PEDAL_STYLE_ID)) return;
+  const N = RIDER_PEDAL_FRAME_COUNT;
+  const CELL = RIDER_PEDAL_CELL_PX;
+  const totalW = N * CELL;
+  const style = document.createElement("style");
+  style.id = RIDER_PEDAL_STYLE_ID;
+  style.textContent = `
+@keyframes cycling-marker-riding-pedal-cycle {
+  from { background-position: 0 0; }
+  to { background-position: -${totalW}px 0; }
+}
+.cycling-sim-marker-pedal-sprite {
+  width: ${CELL}px;
+  height: ${CELL}px;
+  box-sizing: border-box;
+  background-repeat: no-repeat;
+  background-size: ${totalW}px ${CELL}px;
+  background-position: 0 0;
+  animation-name: cycling-marker-riding-pedal-cycle;
+  animation-timing-function: steps(${N}, end);
+  animation-iteration-count: infinite;
+  animation-play-state: paused;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+`;
+  document.head.appendChild(style);
+}
+
+function createLiveRiderMarkerRoot() {
+  ensureRiderPedalStripKeyframes();
+  const root = document.createElement("div");
+  root.className = "cycling-sim-marker-host";
+  const flip = document.createElement("div");
+  flip.className = "cycling-sim-marker-flip";
+  const stack = document.createElement("div");
+  stack.className = "cycling-sim-marker-stack";
+  const sprite = document.createElement("div");
+  sprite.className = "cycling-sim-marker-pedal-sprite";
+  sprite.style.backgroundImage = `url("${RIDER_PEDAL_SPRITE_URL}")`;
+  stack.appendChild(sprite);
+  flip.appendChild(stack);
+  root.appendChild(flip);
+  root.setAttribute("aria-hidden", "true");
+  root.title = "현재 위치";
+  return { root, flip, sprite };
+}
+
+function estimateCrankRpmFromSpeedKmh(speedKmh) {
+  const speed = Math.min(95, Math.max(0, speedKmh));
+  return Math.min(128, Math.max(16, 22 + speed * 2.85));
+}
+
+function updateLiveRiderPedalAndFlip(point, cappedDistance) {
+  if (!liveMarkerFlipEl || !liveMarkerSpriteEl) return;
+
+  const prev = prevLiveLngLatForRider;
+  let bearingDeg = null;
+  if (prev && getDistanceMeters(prev, point) >= 2) {
+    bearingDeg = getBearingFromPoints(prev, point);
+  }
+  if (bearingDeg == null) {
+    bearingDeg = getRouteHeadingByDistance(cappedDistance);
+  }
+  const b = bearingDeg ?? 0;
+  liveMarkerFlipEl.style.transform = b > 90 && b < 270 ? "scaleX(-1)" : "scaleX(1)";
+  prevLiveLngLatForRider = point;
+
+  const speedNow = rideConfig.speedKmh;
+  const pedalingRunning = session.status === "running" && speedNow > 0.35;
+  const rpm = estimateCrankRpmFromSpeedKmh(speedNow);
+  let pedalLoopSec = 60 / rpm;
+  pedalLoopSec = Math.min(5.5, Math.max(0.22, pedalLoopSec));
+  liveMarkerSpriteEl.style.animationDuration = `${pedalLoopSec}s`;
+  liveMarkerSpriteEl.style.animationPlayState = pedalingRunning ? "running" : "paused";
+}
+
+function syncLiveRiderMarkerAppearance() {
+  if (!liveMarkerSpriteEl || !currentRoute) return;
+  const cappedDistance =
+    routeDistanceMeters > 0
+      ? Math.min(session.virtualDistanceMeters, routeDistanceMeters)
+      : session.virtualDistanceMeters;
+  const point = getPointOnRouteByDistance(cappedDistance);
+  if (!point) return;
+  updateLiveRiderPedalAndFlip(point, cappedDistance);
 }
 
 function clamp(value, min, max) {
@@ -353,10 +454,17 @@ function updateLiveMarkerPosition(dtMs = 0) {
   if (!point) return;
 
   if (!liveMarker) {
-    liveMarker = new mapboxgl.Marker({ color: "#f59e0b" }).setLngLat(point).addTo(map);
+    const dom = createLiveRiderMarkerRoot();
+    liveMarkerFlipEl = dom.flip;
+    liveMarkerSpriteEl = dom.sprite;
+    prevLiveLngLatForRider = null;
+    liveMarker = new mapboxgl.Marker({ element: dom.root, ...RIDER_MARKER_ALIGN })
+      .setLngLat(point)
+      .addTo(map);
   } else {
     liveMarker.setLngLat(point);
   }
+  updateLiveRiderPedalAndFlip(point, cappedDistance);
 
   if (cameraFollowState.mode === "free" && cameraFollowState.viewMode === "none") {
     return;
@@ -481,6 +589,9 @@ function resetLiveMarker() {
     liveMarker.remove();
     liveMarker = null;
   }
+  liveMarkerSpriteEl = null;
+  liveMarkerFlipEl = null;
+  prevLiveLngLatForRider = null;
 }
 
 function formatDuration(totalSeconds) {
@@ -1106,6 +1217,7 @@ startBtn.addEventListener("click", () => {
 pauseBtn.addEventListener("click", () => {
   session.status = "paused";
   stopTicker();
+  syncLiveRiderMarkerAppearance();
   updateElevationProgressMarker();
   renderSessionMetrics();
   setButtonsByState();
@@ -1330,6 +1442,9 @@ cameraLeftFlatBtn.addEventListener("click", () => {
 speedSlider.addEventListener("input", () => {
   rideConfig.speedKmh = Number(speedSlider.value);
   renderSpeedValue();
+  if (session.status !== "idle") {
+    syncLiveRiderMarkerAppearance();
+  }
 });
 
 mapZoomSlider.addEventListener("input", () => {

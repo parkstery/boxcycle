@@ -4,6 +4,8 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import type { LngLat, LineStringGeometry } from "../lib/geo";
 import { getDistanceMeters, type LineStringGeometry as RouteLineStringGeometry } from "../lib/geo";
 import type { FollowMode } from "./RideRoutePanel";
+import { ensureRiderPedalStripKeyframes } from "../lib/riderPedalStripKeyframes";
+import { RIDER_PEDAL_SPRITE_REVISION } from "../lib/riderPedalSpriteMeta";
 import "./MapView.css";
 
 /** 레거시 `app.js` 와 동일한 서울 근처 기본 시야 */
@@ -25,12 +27,20 @@ const MARKER_MAP_ALIGNMENT = { pitchAlignment: "map" as const, rotationAlignment
 /** 같은 코스를 주행 중인 다른 사용자(내 마커와 구분) */
 export type MapPeerMarker = { id: string; lngLat: LngLat; label?: string | null };
 
+/** 가상 주행 세션과 연동해 페달 루프 주기·재생 여부를 맞춘다 */
+export type LiveRiderMotion = {
+  sessionStatus: "running" | "paused";
+  speedKmh: number;
+};
+
 export type MapViewProps = {
   accessToken: string | undefined;
   routeGeometry: LineStringGeometry | null;
   startLngLat: LngLat | null;
   endLngLat: LngLat | null;
   liveLngLat: LngLat | null;
+  /** 내 위치 마커 페달 애니메이션(주행/일시정지·가상 속도). 없으면 스프라이트만 정지 표시 */
+  liveRiderMotion?: LiveRiderMotion | null;
   /** 입문 코스 동행 등: 다른 라이더 위치 */
   peerMarkers?: MapPeerMarker[];
   mapStyle: string;
@@ -47,6 +57,7 @@ export function MapView({
   startLngLat,
   endLngLat,
   liveLngLat,
+  liveRiderMotion,
   peerMarkers,
   mapStyle,
   mapZoom,
@@ -60,6 +71,9 @@ export function MapView({
   const startMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const endMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const liveMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const liveMarkerPedalSpriteRef = useRef<HTMLDivElement | null>(null);
+  const liveMarkerFlipRef = useRef<HTMLDivElement | null>(null);
+  const prevLiveForBearingRef = useRef<LngLat | null>(null);
   const peerMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const popupRef = useRef<mapboxgl.Popup | null>(null);
   const routeGeometryRef = useRef<LineStringGeometry | null>(null);
@@ -284,14 +298,18 @@ export function MapView({
     }
   }, [startLngLat, endLngLat, mapLoaded]);
 
-  /** 라이브 위치 마커 */
+  /** 라이브 위치 마커 — 페달 스프라이트 라이더(보고서 6·7·8절) */
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
 
     if (liveLngLat) {
       if (!liveMarkerRef.current) {
-        liveMarkerRef.current = new mapboxgl.Marker({ color: "#f59e0b", ...MARKER_MAP_ALIGNMENT })
+        const { root, flip, sprite } = createLiveRiderMarkerRoot();
+        liveMarkerFlipRef.current = flip;
+        liveMarkerPedalSpriteRef.current = sprite;
+        prevLiveForBearingRef.current = null;
+        liveMarkerRef.current = new mapboxgl.Marker({ element: root, ...MARKER_MAP_ALIGNMENT })
           .setLngLat(liveLngLat)
           .addTo(map);
       } else {
@@ -300,8 +318,41 @@ export function MapView({
     } else {
       liveMarkerRef.current?.remove();
       liveMarkerRef.current = null;
+      liveMarkerFlipRef.current = null;
+      liveMarkerPedalSpriteRef.current = null;
+      prevLiveForBearingRef.current = null;
     }
   }, [liveLngLat, mapLoaded]);
+
+  /** 진행 방향 플립 + 속도·세션에 따른 페달 루프 */
+  useEffect(() => {
+    if (!mapLoaded || !liveLngLat) return;
+    const flip = liveMarkerFlipRef.current;
+    const sprite = liveMarkerPedalSpriteRef.current;
+    if (!flip || !sprite) return;
+
+    const prev = prevLiveForBearingRef.current;
+    let bearingDeg: number | null = null;
+    if (prev && getDistanceMeters(prev, liveLngLat) >= 2) {
+      bearingDeg = getBearing(prev, liveLngLat);
+    }
+    if (bearingDeg == null) {
+      bearingDeg = getHeadingFromRouteAtPoint(routeGeometry, liveLngLat);
+    }
+    const b = bearingDeg ?? 0;
+    flip.style.transform = b > 90 && b < 270 ? "scaleX(-1)" : "scaleX(1)";
+    prevLiveForBearingRef.current = liveLngLat;
+
+    const motion = liveRiderMotion;
+    const speedNow = motion?.speedKmh ?? 0;
+    const pedalingRunning =
+      motion != null && motion.sessionStatus === "running" && speedNow > 0.35;
+    const rpm = estimateCrankRpmFromSpeedKmh(speedNow);
+    let pedalLoopSec = 60 / rpm;
+    pedalLoopSec = Math.min(5.5, Math.max(0.22, pedalLoopSec));
+    sprite.style.animationDuration = `${pedalLoopSec}s`;
+    sprite.style.animationPlayState = pedalingRunning ? "running" : "paused";
+  }, [liveLngLat, liveRiderMotion, routeGeometry, mapLoaded]);
 
   /** 다른 라이더(동행) 마커 — 보라색, 내 주행 마커(주황)와 구분 */
   useEffect(() => {
@@ -510,6 +561,37 @@ export function MapView({
       ) : null}
     </div>
   );
+}
+
+function createLiveRiderMarkerRoot(): {
+  root: HTMLDivElement;
+  flip: HTMLDivElement;
+  sprite: HTMLDivElement;
+} {
+  ensureRiderPedalStripKeyframes();
+  const root = document.createElement("div");
+  root.className = "cycling-sim-marker-host";
+  const flip = document.createElement("div");
+  flip.className = "cycling-sim-marker-flip";
+  const stack = document.createElement("div");
+  stack.className = "cycling-sim-marker-stack";
+  const sprite = document.createElement("div");
+  sprite.className = "cycling-sim-marker-pedal-sprite";
+  const baseRaw = import.meta.env.BASE_URL ?? "/";
+  const base = baseRaw.endsWith("/") ? baseRaw : `${baseRaw}/`;
+  sprite.style.backgroundImage = `url("${base}rider/pedal-sprite.png?v=${RIDER_PEDAL_SPRITE_REVISION}")`;
+  stack.appendChild(sprite);
+  flip.appendChild(stack);
+  root.appendChild(flip);
+  root.setAttribute("aria-hidden", "true");
+  root.title = "내 위치";
+  return { root, flip, sprite };
+}
+
+/** 보고서 8.1 속도 기반 추정(센서 없음): km/h 상한 95 */
+function estimateCrankRpmFromSpeedKmh(speedKmh: number): number {
+  const speed = Math.min(95, Math.max(0, speedKmh));
+  return Math.min(128, Math.max(16, 22 + speed * 2.85));
 }
 
 function buildPickPopup(

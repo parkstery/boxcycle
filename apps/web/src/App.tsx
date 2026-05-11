@@ -808,6 +808,11 @@ export default function App() {
               startLngLat={startLngLat}
               endLngLat={endLngLat}
               liveLngLat={liveForMap}
+              liveRiderMotion={
+                rideStatus === "idle"
+                  ? null
+                  : { sessionStatus: rideStatus, speedKmh }
+              }
               peerMarkers={coursePeerMarkers}
               mapStyle={mapStyle}
               mapZoom={mapZoom}
