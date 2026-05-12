@@ -50,6 +50,8 @@ export type MapViewProps = {
   liveLngLat: LngLat | null;
   /** 내 위치 마커 페달 애니메이션(주행/일시정지·가상 속도). 없으면 스프라이트만 정지 표시 */
   liveRiderMotion?: LiveRiderMotion | null;
+  /** 주행 중 내 머리 위 표시(닉네임·guest1 등). 없으면 태그 숨김 */
+  liveRiderNametag?: string | null;
   /** 입문 코스 동행 등: 다른 라이더 위치 */
   peerMarkers?: MapPeerMarker[];
   mapStyle: string;
@@ -67,6 +69,7 @@ export function MapView({
   endLngLat,
   liveLngLat,
   liveRiderMotion,
+  liveRiderNametag,
   peerMarkers,
   mapStyle,
   mapZoom,
@@ -82,6 +85,7 @@ export function MapView({
   const liveMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const liveMarkerPedalSpriteRef = useRef<HTMLDivElement | null>(null);
   const liveMarkerFlipRef = useRef<HTMLDivElement | null>(null);
+  const liveMarkerNametagRef = useRef<HTMLDivElement | null>(null);
   const prevLiveForBearingRef = useRef<LngLat | null>(null);
   const peerMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const popupRef = useRef<mapboxgl.Popup | null>(null);
@@ -223,6 +227,9 @@ export function MapView({
       startMarkerRef.current = null;
       endMarkerRef.current = null;
       liveMarkerRef.current = null;
+      liveMarkerFlipRef.current = null;
+      liveMarkerPedalSpriteRef.current = null;
+      liveMarkerNametagRef.current = null;
       popupRef.current = null;
       map.remove();
       mapRef.current = null;
@@ -322,13 +329,15 @@ export function MapView({
 
     if (liveLngLat) {
       if (!liveMarkerRef.current) {
-        const { root, flip, sprite } = createLiveRiderMarkerRoot();
+        const { root, nametag, flip, sprite } = createLiveRiderMarkerRoot();
         liveMarkerFlipRef.current = flip;
         liveMarkerPedalSpriteRef.current = sprite;
+        liveMarkerNametagRef.current = nametag;
         prevLiveForBearingRef.current = null;
         liveMarkerRef.current = new mapboxgl.Marker({
           element: root,
           className: "map-view__live-rider-marker",
+          anchor: "bottom",
           ...LIVE_RIDER_MARKER_ALIGNMENT,
         })
           .setLngLat(liveLngLat)
@@ -341,9 +350,21 @@ export function MapView({
       liveMarkerRef.current = null;
       liveMarkerFlipRef.current = null;
       liveMarkerPedalSpriteRef.current = null;
+      liveMarkerNametagRef.current = null;
       prevLiveForBearingRef.current = null;
     }
-  }, [liveLngLat, mapLoaded]);
+
+    const tagEl = liveMarkerNametagRef.current;
+    if (tagEl) {
+      const t = liveRiderNametag?.trim();
+      tagEl.textContent = t ?? "";
+      tagEl.style.display = t ? "flex" : "none";
+    }
+    const host = liveMarkerRef.current?.getElement();
+    if (host) {
+      host.title = liveRiderNametag?.trim() || "내 위치";
+    }
+  }, [liveLngLat, liveRiderNametag, mapLoaded]);
 
   /** 진행 방향 플립 + 속도·세션에 따른 페달 루프 */
   useEffect(() => {
@@ -389,10 +410,13 @@ export function MapView({
       }
     }
     for (const p of peers) {
+      const label = p.label?.trim() || "동행";
       let marker = byId.get(p.id);
       if (!marker) {
+        const el = createPeerRiderMarkerElement(label);
         marker = new mapboxgl.Marker({
-          color: "#7c3aed",
+          element: el,
+          anchor: "bottom",
           className: "map-view__peer-marker",
           ...PIN_MARKER_VIEWPORT_ALIGNMENT,
         })
@@ -401,9 +425,11 @@ export function MapView({
         byId.set(p.id, marker);
       } else {
         marker.setLngLat(p.lngLat);
+        const wrap = marker.getElement();
+        const tag = wrap.querySelector(".map-view__rider-nametag--peer");
+        if (tag) tag.textContent = label;
+        wrap.title = label;
       }
-      const title = p.label?.trim() || "동행 라이더";
-      marker.getElement().setAttribute("title", title);
     }
   }, [peerMarkers, mapLoaded]);
 
@@ -588,14 +614,33 @@ export function MapView({
   );
 }
 
+function createPeerRiderMarkerElement(label: string): HTMLDivElement {
+  const wrap = document.createElement("div");
+  wrap.className = "map-view__peer-rider-wrap";
+  wrap.title = label;
+  const tag = document.createElement("div");
+  tag.className = "map-view__rider-nametag map-view__rider-nametag--peer";
+  tag.textContent = label;
+  tag.setAttribute("aria-hidden", "true");
+  const dot = document.createElement("div");
+  dot.className = "map-view__peer-rider-dot";
+  wrap.appendChild(tag);
+  wrap.appendChild(dot);
+  return wrap;
+}
+
 function createLiveRiderMarkerRoot(): {
   root: HTMLDivElement;
+  nametag: HTMLDivElement;
   flip: HTMLDivElement;
   sprite: HTMLDivElement;
 } {
   ensureRiderPedalStripKeyframes();
   const root = document.createElement("div");
-  root.className = "cycling-sim-marker-host";
+  root.className = "cycling-sim-marker-host map-view__live-rider-host";
+  const nametag = document.createElement("div");
+  nametag.className = "map-view__rider-nametag map-view__rider-nametag--live";
+  nametag.setAttribute("aria-hidden", "true");
   const flip = document.createElement("div");
   flip.className = "cycling-sim-marker-flip";
   const stack = document.createElement("div");
@@ -607,10 +652,10 @@ function createLiveRiderMarkerRoot(): {
   sprite.style.backgroundImage = `url("${base}rider/pedal-sprite.png?v=${RIDER_PEDAL_SPRITE_REVISION}")`;
   stack.appendChild(sprite);
   flip.appendChild(stack);
+  root.appendChild(nametag);
   root.appendChild(flip);
-  root.setAttribute("aria-hidden", "true");
   root.title = "내 위치";
-  return { root, flip, sprite };
+  return { root, nametag, flip, sprite };
 }
 
 /** 보고서 8.1 속도 기반 추정(센서 없음): km/h 상한 95 */

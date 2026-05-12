@@ -172,6 +172,18 @@ export function matchBasicSharedHubCourseId(geometry: LineStringGeometry | null)
   return null;
 }
 
+/** 이미 선택된 허브 `courseId` 와 경로가 같은 코스로 볼 수 있는지(저장소 geometry 가 내장과 조금 달라도 유지) */
+export function routeGeometryMatchesBasicSharedHub(
+  courseId: string,
+  geometry: LineStringGeometry | null,
+): boolean {
+  if (!geometry?.coordinates?.length) return false;
+  if (!(BASIC_SHARED_HUB_IDS as readonly string[]).includes(courseId)) return false;
+  const ref = getBasicHubCoursePayload(courseId as BasicSharedHubCourseId).geometry.coordinates;
+  const userCoords = geometry.coordinates;
+  return coordinatesApproxEqual(userCoords, ref) || hubGeometryLooseSameCourse(userCoords, ref);
+}
+
 /** 지도에 올린 경로가 입문 허브 코스(그린델발트 또는 아이슬란드 링 로드 등) 중 하나와 동일한지 */
 export function isGeometryBasicStartHub(geometry: LineStringGeometry | null): boolean {
   return matchBasicSharedHubCourseId(geometry) !== null;
@@ -361,6 +373,27 @@ export function getBasicSharedHubSummaries(): { id: string; title: string }[] {
   return BASIC_SHARED_HUB_SUMMARIES;
 }
 
+/**
+ * 입문 허브 `courses/{id}` 에 presence 허용 플래그를 merge 한다.
+ * 기존 문서에 필드가 없을 때 Rules 가 coursePresence 를 막는 문제를 막기 위해,
+ * 동행 UI 마운트 직전에도 호출한다.
+ */
+export async function ensureBasicSharedHubPresenceFlagsMerged(courseId: string): Promise<void> {
+  if (!(BASIC_SHARED_HUB_IDS as readonly string[]).includes(courseId)) {
+    return;
+  }
+  const db = getFirestore(getFirebaseApp());
+  await setDoc(
+    doc(db, "courses", courseId),
+    {
+      isSharedStartHub: true,
+      presenceEnabled: true,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+}
+
 export async function ensureBasicCoursesSeeded(currentUserId: string): Promise<void> {
   const db = getFirestore(getFirebaseApp());
 
@@ -379,15 +412,7 @@ export async function ensureBasicCoursesSeeded(currentUserId: string): Promise<v
   }
 
   for (const hubId of BASIC_SHARED_HUB_IDS) {
-    await setDoc(
-      doc(db, "courses", hubId),
-      {
-        isSharedStartHub: true,
-        presenceEnabled: true,
-        updatedAt: serverTimestamp(),
-      },
-      { merge: true },
-    ).catch(() => {
+    await ensureBasicSharedHubPresenceFlagsMerged(hubId).catch(() => {
       /* 기존 환경에서 권한 등으로 실패해도 앱 동작 유지 */
     });
   }

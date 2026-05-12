@@ -1,5 +1,6 @@
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import type { User } from "firebase/auth";
+import { ensureBasicSharedHubPresenceFlagsMerged } from "../lib/firestoreCourses";
 import {
   COURSE_LIVE_SHARE_INTERVAL_MS,
   deleteCoursePresence,
@@ -13,6 +14,7 @@ import {
 import type { LngLat } from "../lib/geo";
 import type { MapPeerMarker } from "./MapView";
 import { LOBBY_STALE_MS, PRESENCE_HEARTBEAT_INTERVAL_MS } from "../lib/firestoreLobby";
+import { mapNametagForMember, sortedGuestUids } from "../lib/guestNametag";
 import "./LobbyPresence.css";
 
 function peersStableKey(peers: MapPeerMarker[]): string {
@@ -31,6 +33,8 @@ type CourseSharedPresenceProps = {
   isRiding: boolean;
   myLiveLngLat: LngLat | null;
   onPeersChange?: (peers: MapPeerMarker[]) => void;
+  /** 내 라이더 머리 위 네임태그(닉네임·guest1 등) */
+  onLiveRiderNametagChange?: (nametag: string | null) => void;
 };
 
 export function CourseSharedPresence({
@@ -40,11 +44,22 @@ export function CourseSharedPresence({
   isRiding,
   myLiveLngLat,
   onPeersChange,
+  onLiveRiderNametagChange,
 }: CourseSharedPresenceProps) {
   const [rows, setRows] = useState<CourseMemberRow[]>([]);
   const [presenceError, setPresenceError] = useState<string | null>(null);
   const liveRef = useRef<LngLat | null>(null);
   const onPeersChangeRef = useRef(onPeersChange);
+  const onLiveTagRef = useRef(onLiveRiderNametagChange);
+  const userRef = useRef(user);
+  userRef.current = user;
+  onLiveTagRef.current = onLiveRiderNametagChange;
+
+  useEffect(() => {
+    return () => {
+      onLiveTagRef.current?.(null);
+    };
+  }, []);
 
   useEffect(() => {
     liveRef.current = myLiveLngLat;
@@ -55,44 +70,58 @@ export function CourseSharedPresence({
   }, [onPeersChange]);
 
   useEffect(() => {
+    const uid = user.uid;
     let cancelled = false;
+    let unsub: (() => void) | undefined;
+    let timer: number | undefined;
     startTransition(() => setPresenceError(null));
 
-    void upsertCoursePresence(user, courseId).catch((e: unknown) => {
-      const message = e instanceof Error ? e.message : String(e);
-      if (!cancelled) setPresenceError(message);
-    });
-
-    const unsub = subscribeCourseMembers(
-      courseId,
-      (next) => {
-        startTransition(() => setRows(next));
-      },
-      (err) => {
-        if (!cancelled) setPresenceError(err.message);
-      },
-    );
-
-    const timer = window.setInterval(() => {
-      void touchCoursePresence(user, courseId).catch((e: unknown) => {
+    void (async () => {
+      try {
+        await ensureBasicSharedHubPresenceFlagsMerged(courseId);
+      } catch {
+        /* merge 실패는 아래 upsert·스냅샷에서 다시 드러난다 */
+      }
+      if (cancelled) return;
+      try {
+        await upsertCoursePresence(userRef.current, courseId);
+      } catch (e: unknown) {
         const message = e instanceof Error ? e.message : String(e);
         if (!cancelled) setPresenceError(message);
-      });
-    }, PRESENCE_HEARTBEAT_INTERVAL_MS);
+      }
+      if (cancelled) return;
+
+      unsub = subscribeCourseMembers(
+        courseId,
+        (next) => {
+          startTransition(() => setRows(next));
+        },
+        (err) => {
+          if (!cancelled) setPresenceError(err.message);
+        },
+      );
+
+      timer = window.setInterval(() => {
+        void touchCoursePresence(userRef.current, courseId).catch((e: unknown) => {
+          const message = e instanceof Error ? e.message : String(e);
+          if (!cancelled) setPresenceError(message);
+        });
+      }, PRESENCE_HEARTBEAT_INTERVAL_MS);
+    })();
 
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
-      unsub();
-      void deleteCoursePresence(user.uid, courseId).catch(() => {
+      if (timer !== undefined) window.clearInterval(timer);
+      unsub?.();
+      void deleteCoursePresence(uid, courseId).catch(() => {
         /* 코스 전환·언마운트 시 무시 */
       });
     };
-  }, [user, courseId]);
+  }, [user.uid, courseId]);
 
   useEffect(() => {
     if (!isRiding) {
-      void mergeCourseMemberLiveLocation(user, courseId, null).catch(() => {
+      void mergeCourseMemberLiveLocation(userRef.current, courseId, null).catch(() => {
         /* 퇴장·일시정지 시 위치 제거 실패는 무시 */
       });
       return;
@@ -100,7 +129,7 @@ export function CourseSharedPresence({
     const send = () => {
       const p = liveRef.current;
       if (!p) return;
-      void mergeCourseMemberLiveLocation(user, courseId, p).catch((e: unknown) => {
+      void mergeCourseMemberLiveLocation(userRef.current, courseId, p).catch((e: unknown) => {
         const message = e instanceof Error ? e.message : String(e);
         setPresenceError(message);
       });
@@ -109,17 +138,38 @@ export function CourseSharedPresence({
     const id = window.setInterval(send, COURSE_LIVE_SHARE_INTERVAL_MS);
     return () => {
       window.clearInterval(id);
-      void mergeCourseMemberLiveLocation(user, courseId, null).catch(() => {
+      void mergeCourseMemberLiveLocation(userRef.current, courseId, null).catch(() => {
         /* noop */
       });
     };
-  }, [isRiding, user, courseId]);
+  }, [isRiding, user.uid, courseId]);
 
   /** rows 참조가 바뀔 때만 재계산 — 매 부모 렌더마다 새 배열이 되면 안 됨 */
   const active = useMemo(
     () => rows.filter((r) => isCourseMemberActive(r.lastSeenAtMs)),
     [rows],
   );
+
+  const guestUidsSorted = useMemo(() => {
+    const picks = active.map((r) => ({ uid: r.uid, memberType: r.memberType }));
+    let ids = sortedGuestUids(picks);
+    if (user.isAnonymous && !ids.includes(user.uid)) {
+      ids = [...ids, user.uid].sort((a, b) => a.localeCompare(b));
+    }
+    return ids;
+  }, [active, user.isAnonymous, user.uid]);
+
+  const myMapNametag = useMemo(() => {
+    if (user.isAnonymous) {
+      const i = guestUidsSorted.indexOf(user.uid);
+      return i >= 0 ? `guest${i + 1}` : "guest";
+    }
+    return user.displayName?.trim() || user.email?.trim() || "Rider";
+  }, [user, guestUidsSorted]);
+
+  useEffect(() => {
+    onLiveTagRef.current?.(myMapNametag);
+  }, [myMapNametag]);
 
   const peerMarkersForMap = useMemo((): MapPeerMarker[] => {
     if (presenceError) return [];
@@ -128,9 +178,9 @@ export function CourseSharedPresence({
       .map((r) => ({
         id: r.uid,
         lngLat: r.liveLngLat!,
-        label: r.displayName,
+        label: mapNametagForMember(r.uid, r.memberType, r.displayName, guestUidsSorted),
       }));
-  }, [active, presenceError, user.uid]);
+  }, [active, presenceError, user.uid, guestUidsSorted]);
 
   const lastPeersKeyRef = useRef<string>("__init__");
 
@@ -183,7 +233,7 @@ export function CourseSharedPresence({
         <ul className="lobby-presence__list">
           {active.map((r) => (
             <li key={r.uid}>
-              {r.displayName ?? r.uid}
+              {mapNametagForMember(r.uid, r.memberType, r.displayName, guestUidsSorted)}
               {r.uid === user.uid ? <span className="lobby-presence__you"> (나)</span> : null}
               {r.liveLngLat ? <span className="lobby-presence__live-dot"> · 지도 공유 중</span> : null}
             </li>

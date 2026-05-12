@@ -1,0 +1,62 @@
+.signup-nickname {
+  width: 100%;
+  max-width: 22rem;
+  padding: 0.25rem 0 0;
+}
+
+.signup-nickname__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+.signup-nickname__lead {
+  margin: 0 0 0.5rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.signup-nickname__rules {
+  margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+  opacity: 0.78;
+  line-height: 1.4;
+}
+
+.signup-nickname__rules--meta {
+  margin-top: -0.35rem;
+  opacity: 0.72;
+}
+
+.signup-nickname__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: stretch;
+}
+
+.signup-nickname__label {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.signup-nickname__input {
+  font: inherit;
+  padding: 0.45rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, CanvasText 18%, transparent);
+  background: Field;
+  color: FieldText;
+}
+
+.signup-nickname__err {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #b91c1c;
+  line-height: 1.35;
+}
+
+.signup-nickname__submit {
+  margin-top: 0.35rem;
+  align-self: flex-start;
+}

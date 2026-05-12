@@ -49,6 +49,21 @@
   max-width: 32rem;
 }
 
+.auth-card--wide {
+  max-width: 36rem;
+}
+
+.auth-row--signup-nickname {
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+}
+
+.auth-info--signup {
+  flex: 1 1 auto;
+  max-width: 28rem;
+}
+
 .auth-row {
   display: flex;
   flex-wrap: wrap;

@@ -12,7 +12,7 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
-import { getPresenceDisplayName, getPresenceMemberType } from "./authDisplay";
+import { getPresenceDisplayName, getPresenceMemberType, type PresenceMemberType } from "./authDisplay";
 import { getFirebaseApp } from "./firebase";
 import type { LngLat } from "./geo";
 import { isMemberRecentlySeen, lastSeenAtToMillis } from "./firestoreLobby";
@@ -20,6 +20,7 @@ import { isMemberRecentlySeen, lastSeenAtToMillis } from "./firestoreLobby";
 export type CourseMemberRow = {
   uid: string;
   displayName: string | null;
+  memberType: PresenceMemberType | null;
   lastSeenAtMs: number | null;
   /** 주행 중 지도에 표시할 위치 (없으면 목록만) */
   liveLngLat: LngLat | null;
@@ -119,9 +120,13 @@ export function subscribeCourseMembers(
     (snap) => {
       const rows: CourseMemberRow[] = snap.docs.map((d) => {
         const data = d.data() as Record<string, unknown>;
+        const mt = data.memberType;
+        const memberType: PresenceMemberType | null =
+          mt === "guest" || mt === "user" ? mt : null;
         return {
           uid: d.id,
           displayName: typeof data.displayName === "string" ? data.displayName : null,
+          memberType,
           lastSeenAtMs: lastSeenAtToMillis(data.lastSeenAt),
           liveLngLat: parseLiveLngLat(data),
         };

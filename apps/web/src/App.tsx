@@ -5,14 +5,17 @@ import {
   GoogleAuthProvider,
   linkWithPopup,
   onAuthStateChanged,
+  reload,
   signInAnonymously,
   signInWithCredential,
   signInWithPopup,
   signOut,
+  updateProfile,
 } from "firebase/auth";
 import { CourseSharedPresence } from "./components/CourseSharedPresence";
 import { LobbyPresence } from "./components/LobbyPresence";
 import { MapView, type MapPeerMarker } from "./components/MapView";
+import { SignUpNicknameCard } from "./components/SignUpNicknameCard";
 import { RideRoutePanel, type FollowMode } from "./components/RideRoutePanel";
 import { getFirebaseApp, getFirebaseAuth, isFirebaseConfigured } from "./lib/firebase";
 import {
@@ -22,6 +25,7 @@ import {
   fetchCourseRoutePayload,
   getBasicHubCoursePayload,
   matchBasicSharedHubCourseId,
+  routeGeometryMatchesBasicSharedHub,
 } from "./lib/firestoreCourses";
 import { deleteCoursePresence } from "./lib/firestoreCoursePresence";
 import { deleteLobbyPresence, sanitizeRoomId } from "./lib/firestoreLobby";
@@ -38,7 +42,12 @@ import {
   type StoredRideSession,
 } from "./lib/rideSessionsStorage";
 import { readRoomIdFromLocation, replaceRoomInUrl } from "./lib/roomUrl";
-import { syncUserProfileToFirestore } from "./lib/firestoreUser";
+import {
+  claimNicknameTransaction,
+  getUserProfileNickname,
+  NicknameTakenError,
+} from "./lib/firestoreUser";
+import { isValidNickname } from "./lib/nickname";
 import { useVirtualRideSession } from "./hooks/useVirtualRideSession";
 import { fetchRouteByProfile, formatDuration, type RouteProfile } from "./services/mapboxDirections";
 import { getFunctions } from "firebase/functions";
@@ -56,6 +65,7 @@ const MAP_STYLE_OPTIONS = [
 type FsSyncState =
   | { state: "idle" }
   | { state: "syncing" }
+  | { state: "awaiting_nickname" }
   | { state: "ok" }
   | { state: "error"; message: string };
 
@@ -98,6 +108,8 @@ export default function App() {
   const [basicStartLoading, setBasicStartLoading] = useState(false);
   const basicStartHubJoined = basicActiveHubCourseId !== null;
   const [coursePeerMarkers, setCoursePeerMarkers] = useState<MapPeerMarker[]>([]);
+  /** 입문 허브 동행에서 계산된 내 네임태그(없으면 단독 주행용 표시로 대체) */
+  const [liveRiderNametag, setLiveRiderNametag] = useState<string | null>(null);
   /** false면 LobbyPresence 마운트 안 함(로비 문서·하트비트 중단). 게스트 id는 유지. */
   const [lobbyParticipationEnabled, setLobbyParticipationEnabled] = useState(true);
   const lobbyPresenceUidRef = useRef<string | null>(null);
@@ -107,6 +119,15 @@ export default function App() {
   const onCoursePeersChange = useCallback((next: MapPeerMarker[]) => {
     setCoursePeerMarkers(next);
   }, []);
+
+  const selfRiderNametagFallback = useMemo(() => {
+    if (!user) return null;
+    if (basicActiveHubCourseId) return null;
+    if (user.isAnonymous) return "guest";
+    return user.displayName?.trim() || user.email?.trim() || "Rider";
+  }, [user, basicActiveHubCourseId]);
+
+  const resolvedLiveRiderNametag = liveRiderNametag ?? selfRiderNametagFallback;
 
   const {
     status: rideStatus,
@@ -173,14 +194,36 @@ export default function App() {
     }
     let cancelled = false;
     startTransition(() => setFsSync({ state: "syncing" }));
-    void syncUserProfileToFirestore(user)
-      .then(() => {
-        if (!cancelled) setFsSync({ state: "ok" });
-      })
-      .catch((e: unknown) => {
-        const message = e instanceof Error ? e.message : String(e);
-        if (!cancelled) setFsSync({ state: "error", message });
-      });
+    void (async () => {
+      try {
+        const stored = await getUserProfileNickname(user.uid);
+        if (cancelled) return;
+        if (stored == null || !isValidNickname(stored)) {
+          startTransition(() => setFsSync({ state: "awaiting_nickname" }));
+          return;
+        }
+        await claimNicknameTransaction(user, stored);
+        if (cancelled) return;
+        startTransition(() => setFsSync({ state: "ok" }));
+      } catch (e: unknown) {
+        if (e instanceof NicknameTakenError) {
+          if (!cancelled) startTransition(() => setFsSync({ state: "awaiting_nickname" }));
+          if (!cancelled) setError(`${e.message} 다른 계정이 먼저 사용 중입니다. 닉네임을 바꿔 주세요.`);
+        } else if (
+          typeof e === "object" &&
+          e !== null &&
+          (e as { code?: string }).code === "aborted"
+        ) {
+          if (!cancelled) startTransition(() => setFsSync({ state: "awaiting_nickname" }));
+          if (!cancelled) {
+            setError("다른 분이 먼저 같은 닉네임을 선택했습니다. 닉네임을 바꿔 주세요.");
+          }
+        } else {
+          const message = e instanceof Error ? e.message : String(e);
+          if (!cancelled) startTransition(() => setFsSync({ state: "error", message }));
+        }
+      }
+    })();
     return () => {
       cancelled = true;
     };
@@ -205,6 +248,10 @@ export default function App() {
   }, [basicActiveHubCourseId]);
 
   useEffect(() => {
+    if (!basicActiveHubCourseId) setLiveRiderNametag(null);
+  }, [basicActiveHubCourseId]);
+
+  useEffect(() => {
     const matched = matchBasicSharedHubCourseId(routeGeometry);
     if (!matched) {
       basicStartHubLeftExplicitRef.current = false;
@@ -213,14 +260,26 @@ export default function App() {
 
   useEffect(() => {
     if (!configured || !user) return;
+    if (basicStartHubLeftExplicitRef.current) return;
+
     const matched = matchBasicSharedHubCourseId(routeGeometry);
-    if (!matched) {
-      startTransition(() => setBasicActiveHubCourseId(null));
+    if (matched) {
+      startTransition(() => setBasicActiveHubCourseId(matched));
       return;
     }
-    if (basicStartHubLeftExplicitRef.current) return;
-    startTransition(() => setBasicActiveHubCourseId(matched));
-  }, [configured, user, routeGeometry]);
+
+    if (
+      basicActiveHubCourseId &&
+      (BASIC_SHARED_HUB_IDS as readonly string[]).includes(basicActiveHubCourseId) &&
+      routeGeometryMatchesBasicSharedHub(basicActiveHubCourseId, routeGeometry)
+    ) {
+      return;
+    }
+
+    if (routeGeometry?.coordinates?.length) {
+      startTransition(() => setBasicActiveHubCourseId(null));
+    }
+  }, [configured, user, routeGeometry, basicActiveHubCourseId]);
 
   useEffect(() => {
     if (!configured || !user) return;
@@ -443,6 +502,37 @@ export default function App() {
     }
   }
 
+  const handleCompleteNickname = useCallback(
+    async (nickname: string) => {
+      if (!user || user.isAnonymous) return;
+      if (!isValidNickname(nickname)) return;
+      setError(null);
+      setBusy(true);
+      try {
+        await claimNicknameTransaction(user, nickname);
+        await updateProfile(user, { displayName: nickname });
+        await reload(user);
+        startTransition(() => setFsSync({ state: "ok" }));
+      } catch (e: unknown) {
+        if (e instanceof NicknameTakenError) {
+          setError(e.message);
+        } else if (
+          typeof e === "object" &&
+          e !== null &&
+          (e as { code?: string }).code === "aborted"
+        ) {
+          setError("다른 분이 먼저 같은 닉네임을 선택했습니다. 다른 닉네임으로 다시 시도해 주세요.");
+        } else {
+          const message = e instanceof Error ? e.message : String(e);
+          setError(`닉네임 저장 실패: ${message}`);
+        }
+      } finally {
+        setBusy(false);
+      }
+    },
+    [user],
+  );
+
   function joinRoomFromDraft() {
     const next = sanitizeRoomId(roomDraft);
     setRoomId(next);
@@ -591,49 +681,29 @@ export default function App() {
             </p>
           </section>
         ) : (
-          <section className="card card--compact auth-card">
+          <section
+            className={`card card--compact auth-card${
+              user && !user.isAnonymous && fsSync.state === "awaiting_nickname" ? " auth-card--wide" : ""
+            }`}
+          >
             {!authInitialized ? (
               <div className="auth-row">
                 <p className="lead tight">Firebase 인증 연결 확인 중…</p>
               </div>
             ) : user ? (
-              <div className="auth-row">
-                <div className="auth-info">
-                  {user.isAnonymous ? (
-                    <>
-                      <p className="lead tight">
-                        <strong>게스트로 이용 중</strong> ({user.uid.slice(0, 8)}…)
-                      </p>
-                      <p className="meta tight">
-                        로비 나가기·입문 코스 동행 나가기·서비스 종료는 서로 다릅니다. Google을 연결하면 같은 uid로
-                        기록이 이어집니다.
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="lead tight">
-                        <strong>{user.displayName ?? user.email ?? user.uid}</strong>
-                      </p>
-                      <p className="meta tight">{user.uid}</p>
-                    </>
-                  )}
-                  {fsSync.state === "syncing" ? (
-                    <p className="fs-hint">Firestore 동기화 중…</p>
-                  ) : null}
-                  {fsSync.state === "ok" && !user.isAnonymous ? (
-                    <p className="fs-ok">Firestore 프로필 저장됨</p>
-                  ) : null}
-                  {fsSync.state === "ok" && user.isAnonymous ? (
-                    <p className="fs-ok">게스트 세션 활성</p>
-                  ) : null}
-                  {fsSync.state === "error" ? (
-                    <p className="fs-err" title={fsSync.message}>
-                      Firestore 오류: {fsSync.message}
+              user.isAnonymous ? (
+                <div className="auth-row">
+                  <div className="auth-info">
+                    <p className="lead tight">
+                      <strong>게스트로 이용 중</strong> ({user.uid.slice(0, 8)}…)
                     </p>
-                  ) : null}
-                </div>
-                <div className="auth-actions">
-                  {user.isAnonymous ? (
+                    <p className="meta tight">
+                      로비 나가기·입문 코스 동행 나가기·서비스 종료는 서로 다릅니다. Google을 연결하면 같은 uid로
+                      기록이 이어집니다.
+                    </p>
+                    {fsSync.state === "ok" ? <p className="fs-ok">게스트 세션 활성</p> : null}
+                  </div>
+                  <div className="auth-actions">
                     <button
                       type="button"
                       className="btn primary"
@@ -642,25 +712,76 @@ export default function App() {
                     >
                       {busy ? "처리 중…" : "Google 계정 연결"}
                     </button>
-                  ) : null}
-                  <button
-                    type="button"
-                    className="btn secondary"
-                    disabled={busy}
-                    onClick={() => void handleServiceExit()}
-                    title="로비·코스 presence를 정리한 뒤 로그아웃합니다. 게스트도 다음 접속 시 다시 시작 화면으로 돌아옵니다."
-                  >
-                    {user.isAnonymous ? "서비스 종료" : "로그아웃"}
-                  </button>
+                    <button
+                      type="button"
+                      className="btn secondary"
+                      disabled={busy}
+                      onClick={() => void handleServiceExit()}
+                      title="로비·코스 presence를 정리한 뒤 로그아웃합니다. 게스트도 다음 접속 시 다시 시작 화면으로 돌아옵니다."
+                    >
+                      서비스 종료
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ) : fsSync.state === "awaiting_nickname" ? (
+                <div className="auth-row auth-row--signup-nickname">
+                  <div className="auth-info auth-info--signup">
+                    <p className="meta tight">
+                      로그인 계정: <strong>{user.email ?? user.uid}</strong>
+                    </p>
+                    <SignUpNicknameCard busy={busy} onSubmit={handleCompleteNickname} />
+                    <p className="fs-hint">닉네임을 저장하면 회원가입이 완료됩니다.</p>
+                  </div>
+                  <div className="auth-actions">
+                    <button
+                      type="button"
+                      className="btn secondary"
+                      disabled={busy}
+                      onClick={() => void handleServiceExit()}
+                      title="가입을 중단하고 로그아웃합니다."
+                    >
+                      로그아웃
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="auth-row">
+                  <div className="auth-info">
+                    <p className="lead tight">
+                      <strong>{user.displayName ?? user.email ?? user.uid}</strong>
+                    </p>
+                    <p className="meta tight">{user.uid}</p>
+                    {fsSync.state === "syncing" ? (
+                      <p className="fs-hint">Firestore 동기화 중…</p>
+                    ) : null}
+                    {fsSync.state === "ok" ? <p className="fs-ok">Firestore 프로필 저장됨</p> : null}
+                    {fsSync.state === "error" ? (
+                      <p className="fs-err" title={fsSync.message}>
+                        Firestore 오류: {fsSync.message}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="auth-actions">
+                    <button
+                      type="button"
+                      className="btn secondary"
+                      disabled={busy}
+                      onClick={() => void handleServiceExit()}
+                      title="로비·코스 presence를 정리한 뒤 로그아웃합니다. 게스트도 다음 접속 시 다시 시작 화면으로 돌아옵니다."
+                    >
+                      로그아웃
+                    </button>
+                  </div>
+                </div>
+              )
             ) : (
               <div className="auth-row auth-row--gate">
                 <div className="auth-info">
                   <p className="lead tight">시작 방식을 선택하세요</p>
                   <p className="meta tight auth-gate-hint">
                     게스트 계정은 「게스트로 시작」을 눌렀을 때만 만들어져, 페이지만 열어도 익명 사용자가 늘어나지
-                    않습니다. 종료 후에는 다시 이 화면에서 선택합니다.
+                    않습니다. 종료 후에는 다시 이 화면에서 선택합니다. Gmail 회원가입·로그인 모두 Google 인증 후
+                    닉네임을 한 번 설정합니다.
                   </p>
                 </div>
                 <div className="auth-actions auth-actions--gate">
@@ -671,6 +792,14 @@ export default function App() {
                     onClick={() => void handleGuestStart()}
                   >
                     {busy ? "처리 중…" : "게스트로 시작"}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn secondary"
+                    disabled={busy}
+                    onClick={() => void handleGoogleSignIn()}
+                  >
+                    {busy ? "처리 중…" : "Google로 회원가입"}
                   </button>
                   <button
                     type="button"
@@ -787,6 +916,7 @@ export default function App() {
             isRiding={rideStatus !== "idle"}
             myLiveLngLat={liveForMap}
             onPeersChange={onCoursePeersChange}
+            onLiveRiderNametagChange={setLiveRiderNametag}
           />
         </div>
       ) : null}
@@ -857,6 +987,7 @@ export default function App() {
                     ? null
                     : { sessionStatus: rideStatus, speedKmh }
                 }
+                liveRiderNametag={resolvedLiveRiderNametag}
                 peerMarkers={coursePeerMarkers}
                 mapStyle={mapStyle}
                 mapZoom={mapZoom}

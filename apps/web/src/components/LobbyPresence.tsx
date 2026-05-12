@@ -1,4 +1,4 @@
-import { startTransition, useEffect, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
 import type { User } from "firebase/auth";
 import {
   deleteLobbyPresence,
@@ -20,12 +20,15 @@ type LobbyPresenceProps = {
 export function LobbyPresence({ user, roomId }: LobbyPresenceProps) {
   const [rows, setRows] = useState<LobbyMemberRow[]>([]);
   const [presenceError, setPresenceError] = useState<string | null>(null);
+  const userRef = useRef(user);
+  userRef.current = user;
 
   useEffect(() => {
+    const uid = user.uid;
     let cancelled = false;
     startTransition(() => setPresenceError(null));
 
-    void upsertLobbyPresence(user, roomId).catch((e: unknown) => {
+    void upsertLobbyPresence(userRef.current, roomId).catch((e: unknown) => {
       const message = e instanceof Error ? e.message : String(e);
       if (!cancelled) setPresenceError(message);
     });
@@ -41,7 +44,7 @@ export function LobbyPresence({ user, roomId }: LobbyPresenceProps) {
     );
 
     const timer = window.setInterval(() => {
-      void touchLobbyPresence(user, roomId).catch((e: unknown) => {
+      void touchLobbyPresence(userRef.current, roomId).catch((e: unknown) => {
         const message = e instanceof Error ? e.message : String(e);
         if (!cancelled) setPresenceError(message);
       });
@@ -51,11 +54,11 @@ export function LobbyPresence({ user, roomId }: LobbyPresenceProps) {
       cancelled = true;
       window.clearInterval(timer);
       unsub();
-      void deleteLobbyPresence(user.uid, roomId).catch(() => {
+      void deleteLobbyPresence(uid, roomId).catch(() => {
         /* 방 전환·언마운트 시 무시 */
       });
     };
-  }, [user, roomId]);
+  }, [user.uid, roomId]);
 
   const active = rows.filter((r) => isLobbyMemberActive(r.lastSeenAtMs));
 
