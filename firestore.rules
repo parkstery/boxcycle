@@ -49,7 +49,6 @@ service cloud.firestore {
      */
     function userNicknameReserved() {
       return request.resource.data.keys().hasAll(['nickname', 'nicknameKey'])
-        && request.resource.data.nickname is string
         && request.resource.data.nicknameKey is string
         && request.resource.data.nicknameKey.matches('^[a-z][a-z0-9]{3,11}$')
         && exists(/databases/$(database)/documents/nicknames/$(request.resource.data.nicknameKey))
@@ -71,15 +70,16 @@ service cloud.firestore {
 
     /**
      * 전역 닉네임 예약(소문자 키). 문서 ID = normalizeNicknameKey(닉네임).
-     * 필드는 ownerUid 만 둔다(규칙 hasOnly 와 serverTimestamp() 상호작용 회피).
+     * create 는 ownerUid 만 필수(hasOnly 는 SDK/필드 조합에서 거절되는 사례가 있어 완화).
      * list 는 막고 get 만 허용(무작위 열람 방지).
      */
     match /nicknames/{key} {
       allow get: if isSignedIn();
       allow list: if false;
       allow create: if isSignedIn()
-        && request.resource.data.keys().hasOnly(['ownerUid'])
         && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.ownerUid is string
+        && request.resource.data.keys().hasAll(['ownerUid'])
         && key.matches('^[a-z][a-z0-9]{3,11}$');
       allow update: if false;
       allow delete: if isSignedIn() && resource.data.ownerUid == request.auth.uid;

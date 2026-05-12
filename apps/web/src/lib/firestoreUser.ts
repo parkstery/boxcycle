@@ -1,7 +1,9 @@
+import { FirebaseError } from "firebase/app";
 import {
   deleteDoc,
   doc,
   getDoc,
+  getDocFromServer,
   getFirestore,
   runTransaction,
   serverTimestamp,
@@ -22,6 +24,15 @@ export class NicknameTakenError extends Error {
     super(message);
     this.name = "NicknameTakenError";
   }
+}
+
+function formatClaimFirestoreError(stageKo: string, err: unknown): Error {
+  const base = err instanceof Error ? err.message : String(err);
+  const hint =
+    err instanceof FirebaseError && err.code === "permission-denied"
+      ? " (Firestore 규칙 거절: 로그인·프로젝트 ID·firebase deploy --only firestore 배포를 확인하세요)"
+      : "";
+  return new Error(`${stageKo}: ${base}${hint}`);
 }
 
 export async function getUserProfileNickname(uid: string): Promise<string | null> {
@@ -45,9 +56,8 @@ function buildUserProfileWrite(user: User, nicknameTrimmed: string, keyLower: st
 }
 
 /**
- * `nicknames/{소문자}` 예약 후 `users/{uid}` 프로필을 반영한다.
- * (한 트랜잭션에 묶으면 users 규칙의 get(nicknames/…)가 아직 커밋되지 않은 예약을
- * 못 보고 permission-denied 가 나는 경우가 있어, 예약 커밋 뒤 setDoc 으로 나눈다.)
+ * `nicknames/{소문자}` 예약(트랜잭션) 후 서버에서 예약을 재확인(getDocFromServer)하고 `users/{uid}` 를 setDoc 한다.
+ * (users 규칙의 get(nicknames/…)는 커밋된 문서를 봐야 하므로 예약·프로필을 단계로 나눈다.)
  */
 export async function claimNicknameTransaction(user: User, nickname: string): Promise<void> {
   const trimmed = nickname.trim();
@@ -63,28 +73,51 @@ export async function claimNicknameTransaction(user: User, nickname: string): Pr
   const nickRef = doc(db, "nicknames", key);
   const userRef = doc(db, "users", user.uid);
 
-  const claimedNewInTxn = await runTransaction(db, async (transaction) => {
-    const nickSnap = await transaction.get(nickRef);
-    if (nickSnap.exists()) {
-      const owner = nickSnap.data()?.ownerUid;
-      if (owner !== user.uid) {
-        throw new NicknameTakenError();
-      }
-      return false;
-    }
-    transaction.set(nickRef, {
-      ownerUid: user.uid,
-    });
-    return true;
-  });
-
+  let claimedNewInTxn = false;
   try {
-    await setDoc(userRef, buildUserProfileWrite(user, trimmed, key), { merge: true });
-  } catch (err) {
+    claimedNewInTxn = await runTransaction(db, async (transaction) => {
+      const nickSnap = await transaction.get(nickRef);
+      if (nickSnap.exists()) {
+        const owner = nickSnap.data()?.ownerUid;
+        if (owner !== user.uid) {
+          throw new NicknameTakenError();
+        }
+        return false;
+      }
+      transaction.set(nickRef, {
+        ownerUid: user.uid,
+      });
+      return true;
+    });
+  } catch (e) {
+    if (e instanceof NicknameTakenError) throw e;
+    throw formatClaimFirestoreError("[예약]", e);
+  }
+
+  let nickVerified = false;
+  try {
+    const nickSnap = await getDocFromServer(nickRef);
+    nickVerified = nickSnap.exists() && nickSnap.data()?.ownerUid === user.uid;
+  } catch (e) {
+    throw formatClaimFirestoreError("[예약 확인]", e);
+  }
+  if (!nickVerified) {
     if (claimedNewInTxn) {
       await deleteDoc(nickRef).catch(() => {});
     }
-    throw err;
+    throw new Error(
+      "[예약 확인] 서버에 닉네임 예약이 보이지 않습니다. Firebase 프로젝트 ID·규칙 배포를 확인해 주세요.",
+    );
+  }
+
+  try {
+    await setDoc(userRef, buildUserProfileWrite(user, trimmed, key), { merge: true });
+  } catch (e) {
+    if (claimedNewInTxn) {
+      await deleteDoc(nickRef).catch(() => {});
+    }
+    if (e instanceof NicknameTakenError) throw e;
+    throw formatClaimFirestoreError("[프로필]", e);
   }
 }
 
