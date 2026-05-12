@@ -10,7 +10,7 @@
   min-height: 320px;
 }
 
-/* 빌보드 마커: 기본 레이어 위로. 동행(보라)이 라이더·핀에 가리지 않도록 순서 부여 */
+/* 빌보드 마커: 기본 레이어 위로. 동행(보라 점)이 라이더·핀에 가리지 않도록 순서 부여 */
 .map-view .mapboxgl-marker {
   z-index: 5;
 }
@@ -55,18 +55,41 @@
 .map-view__rider-nametag {
   font-size: 0.72rem;
   font-weight: 650;
-  line-height: 1.15;
-  padding: 0.14rem 0.5rem;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.94);
-  color: #0f172a;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  line-height: 1.2;
+  padding: 0.08rem 0.12rem;
   margin-bottom: 3px;
   max-width: 10rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   pointer-events: none;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* 자기: 파란 글자 + 흰 글로우(지도와 분리) */
+.map-view__rider-nametag--live {
+  color: #1d4ed8;
+  text-shadow:
+    0 0 1px #fff,
+    0 0 2px #fff,
+    0 0 4px #fff,
+    0 0 10px #fff,
+    0 0 14px rgba(37, 99, 235, 0.55),
+    0 1px 2px rgba(15, 23, 42, 0.55);
+}
+
+/* 동행: 보라 글자 + 동일한 흰 글로우 패턴 */
+.map-view__rider-nametag--peer {
+  color: #6d28d9;
+  text-shadow:
+    0 0 1px #fff,
+    0 0 2px #fff,
+    0 0 4px #fff,
+    0 0 10px #fff,
+    0 0 14px rgba(109, 40, 217, 0.5),
+    0 1px 2px rgba(15, 23, 42, 0.55);
 }
 
 .map-view__live-rider-host .cycling-sim-marker-flip {
