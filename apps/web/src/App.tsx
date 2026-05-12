@@ -115,6 +115,8 @@ export default function App() {
   const lobbyPresenceUidRef = useRef<string | null>(null);
   /** true면 입문 코스 경로가 있어도 동행 허브 자동 참여 안 함(「나가기」 후) */
   const basicStartHubLeftExplicitRef = useRef(false);
+  /** leaveBasicHub 등에서 최신 주행 종료 로직을 호출하기 위한 ref */
+  const handleEndRideRef = useRef<() => void>(() => {});
 
   const onCoursePeersChange = useCallback((next: MapPeerMarker[]) => {
     setCoursePeerMarkers(next);
@@ -382,6 +384,7 @@ export default function App() {
   );
 
   const leaveBasicHub = useCallback(async () => {
+    handleEndRideRef.current();
     basicStartHubLeftExplicitRef.current = true;
     if (user && basicActiveHubCourseId) {
       await deleteCoursePresence(user.uid, basicActiveHubCourseId).catch(() => {
@@ -593,6 +596,8 @@ export default function App() {
     setRideStatus("idle");
     resetRide();
   }
+
+  handleEndRideRef.current = handleEndRide;
 
   /** 로비 실시간 참여만 중단(코스 동행·Firebase 세션은 유지) */
   async function handleLeaveLobbyOnly() {
