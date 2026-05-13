@@ -28,6 +28,11 @@
   z-index: 12;
 }
 
+/* 픽업 팝업(출발/도착지 선택)은 모든 마커 위에 표시되어야 한다. mapbox-gl 기본값은 z-index 미설정이라 마커에 가려지므로 명시 고정. */
+.map-view .mapboxgl-popup {
+  z-index: 30;
+}
+
 /* 내 라이브 위치: 페달 스프라이트 마커(보고서 6·9절) */
 .map-view .mapboxgl-marker.cycling-sim-marker-host,
 .map-view .cycling-sim-marker-host.mapboxgl-marker {
