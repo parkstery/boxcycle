@@ -35,6 +35,7 @@ import {
   saveRideSessionToFirestore,
 } from "./lib/firestoreRides";
 import {
+  backfillSavedRoutesExpiresAt,
   deleteSavedRouteFromFirestore,
   loadSavedRoutesFromFirestore,
   migrateLocalRoutesToFirestore,
@@ -416,6 +417,27 @@ export default function App() {
         if (!cancelled) setSavedRoutes(loadSavedRoutesFromLocal());
       } finally {
         if (!cancelled) setSavedRoutesLoading(false);
+      }
+      /**
+       * expiresAt 백필 — 사용자당 1회.
+       * Firestore TTL 정책(Console UI)이 `savedRoutes.expiresAt` 필드를 인식하려면
+       * 컬렉션에 실제 필드가 1건 이상 존재해야 한다. 기존 경로(필드 없음)에는
+       * 「지금 + 7일」 의 유예를 새로 부여하여 채워 넣는다.
+       * 격상된(completed=1) 경로는 건너뛴다(영구 보존).
+       */
+      const backfillKey = `boxcycle_saved_routes_ttl_backfill_v1_${user.uid}`;
+      if (!cancelled && !localStorage.getItem(backfillKey)) {
+        try {
+          const result = await backfillSavedRoutesExpiresAt({ userId: user.uid });
+          console.info("[savedRoutes] expiresAt 백필 완료", result);
+          localStorage.setItem(backfillKey, new Date().toISOString());
+          if (result.updated > 0) {
+            const rows = await loadSavedRoutesFromFirestore(user.uid, 50);
+            if (!cancelled) setSavedRoutes(rows);
+          }
+        } catch (e) {
+          console.warn("[savedRoutes] expiresAt 백필 실패(다음 진입 시 재시도)", e);
+        }
       }
     })();
     return () => {

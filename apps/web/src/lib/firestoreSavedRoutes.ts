@@ -351,6 +351,57 @@ export async function deleteSavedRouteFromFirestore(routeId: string): Promise<vo
 }
 
 /**
+ * 기존 문서에 expiresAt 필드를 일회성으로 백필.
+ * - completed === 1 인 문서 → 건너뜀(영구 보존)
+ * - 이미 expiresAt 이 있는 문서 → 건너뜀
+ * - 그 외 → 「지금 + 7일」 로 설정(이미 만든 경로에도 7일 유예를 새로 부여)
+ *
+ * 필드가 한 번이라도 채워지면 Firebase Console TTL 설정 UI 에서
+ * `savedRoutes.expiresAt` 으로 인식·등록 가능해진다.
+ * 호출자(App.tsx)가 사용자별 localStorage 플래그로 중복 실행을 막는다.
+ */
+export async function backfillSavedRoutesExpiresAt(input: {
+  userId: string;
+}): Promise<{ scanned: number; updated: number; skipped: number; failed: number }> {
+  const db = getFirestore(getFirebaseApp());
+  const q = query(
+    collection(db, SAVED_ROUTES_COLLECTION),
+    where("userId", "==", input.userId),
+    limit(500),
+  );
+  const snap = await getDocs(q);
+  let updated = 0;
+  let skipped = 0;
+  let failed = 0;
+  for (const d of snap.docs) {
+    const data = d.data() as Partial<SavedRouteDoc>;
+    if (data.completed === 1) {
+      skipped++;
+      continue;
+    }
+    if (data.expiresAt instanceof Timestamp) {
+      skipped++;
+      continue;
+    }
+    const expiresAtDate = new Date(Date.now() + SAVED_ROUTE_EXPIRY_MS);
+    try {
+      await updateDoc(doc(db, SAVED_ROUTES_COLLECTION, d.id), {
+        userId: input.userId,
+        completed: data.completed === 1 ? 1 : 0,
+        completedAt: data.completedAt ?? null,
+        expiresAt: Timestamp.fromDate(expiresAtDate),
+        lastRideId: typeof data.lastRideId === "string" ? data.lastRideId : null,
+        updatedAt: serverTimestamp(),
+      });
+      updated++;
+    } catch {
+      failed++;
+    }
+  }
+  return { scanned: snap.size, updated, skipped, failed };
+}
+
+/**
  * 게스트(localStorage) → Google 로그인(Firestore) 1회 마이그레이션.
  * 입력으로 들어온 로컬 경로 배열을 순서대로 저장하고, 새 SavedRoute 목록을 돌려준다.
  * 호출자(App.tsx)가 성공한 경우에만 로컬 저장소를 비운다.
