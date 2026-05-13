@@ -241,6 +241,33 @@
   }
 }
 
+.ride-panel__adhoc-save {
+  margin: 0.4rem 0 0.2rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  background: color-mix(in srgb, Canvas 92%, CanvasText 8%);
+  border: 1px dashed color-mix(in srgb, CanvasText 25%, transparent);
+}
+
+.ride-panel__adhoc-save-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.ride-panel__adhoc-save-msg {
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.ride-panel__adhoc-save-actions {
+  display: flex;
+  gap: 0.3rem;
+  flex: 0 0 auto;
+}
+
 .ride-panel__basic-start {
   margin: 0.5rem 0 0.65rem;
   padding: 0.55rem 0.6rem;

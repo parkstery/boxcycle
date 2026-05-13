@@ -1,6 +1,7 @@
 import type { LineStringGeometry, LngLat } from "./geo";
 import type { RouteProfile } from "../services/mapboxDirections";
 import {
+  SAVED_ROUTE_EXPIRY_MS,
   SAVED_ROUTE_MAX_COORDS,
   SavedRouteValidationError,
   validateSavedRouteName,
@@ -18,10 +19,23 @@ function readAll(): Stored[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((x): x is Stored => isValidStored(x));
+    return parsed
+      .filter((x): x is Stored => isValidStored(x))
+      .map(hydrateLegacy);
   } catch {
     return [];
   }
+}
+
+/** 옛 로컬 데이터(필드 없음)에 안전 기본값을 채워 신규 모델로 정렬. */
+function hydrateLegacy(r: Stored): Stored {
+  return {
+    ...r,
+    completed: r.completed === 1 ? 1 : 0,
+    completedAtIso: r.completedAtIso ?? null,
+    expiresAtIso: r.expiresAtIso ?? null,
+    lastRideId: r.lastRideId ?? null,
+  };
 }
 
 function isValidStored(x: unknown): x is Stored {
@@ -67,6 +81,7 @@ function validateGeometryLocal(geometry: LineStringGeometry): void {
 }
 
 export function loadSavedRoutesFromLocal(): SavedRoute[] {
+  purgeExpiredLocalRoutes();
   return [...readAll()].sort((a, b) =>
     b.updatedAtIso.localeCompare(a.updatedAtIso),
   );
@@ -83,7 +98,8 @@ export function saveRouteToLocal(input: {
 }): SavedRoute {
   const name = validateSavedRouteName(input.name);
   validateGeometryLocal(input.geometry);
-  const now = new Date().toISOString();
+  const now = new Date();
+  const nowIso = now.toISOString();
   const item: SavedRoute = {
     id: genId(),
     name,
@@ -93,13 +109,40 @@ export function saveRouteToLocal(input: {
     geometry: input.geometry,
     distanceMeters: input.distanceMeters,
     durationSec: input.durationSec,
-    createdAtIso: now,
-    updatedAtIso: now,
+    createdAtIso: nowIso,
+    updatedAtIso: nowIso,
+    completed: 0,
+    completedAtIso: null,
+    expiresAtIso: new Date(now.getTime() + SAVED_ROUTE_EXPIRY_MS).toISOString(),
+    lastRideId: null,
   };
   const items = readAll();
   items.unshift(item);
   writeAll(items);
   return item;
+}
+
+/**
+ * 게스트(로컬) 사용자 경로 격상 — 주행 완료 시 호출.
+ * 게스트는 Firestore TTL 영향을 받지 않지만, 로그인 후 마이그레이션 시 동일 의미가 유지된다.
+ */
+export function promoteSavedRouteInLocal(input: {
+  routeId: string;
+  rideId: string;
+}): void {
+  const items = readAll();
+  const idx = items.findIndex((r) => r.id === input.routeId);
+  if (idx < 0) return;
+  const now = new Date().toISOString();
+  items[idx] = {
+    ...items[idx],
+    completed: 1,
+    completedAtIso: now,
+    expiresAtIso: null,
+    lastRideId: input.rideId,
+    updatedAtIso: now,
+  };
+  writeAll(items);
 }
 
 export function renameSavedRouteInLocal(routeId: string, newName: string): string {
@@ -110,6 +153,22 @@ export function renameSavedRouteInLocal(routeId: string, newName: string): strin
   items[idx] = { ...items[idx], name, updatedAtIso: new Date().toISOString() };
   writeAll(items);
   return name;
+}
+
+/**
+ * 만료된 로컬(게스트) 사용자 경로 정리. 로그인 사용자의 Firestore TTL 과 동등한 효과.
+ * `loadSavedRoutesFromLocal` 호출 시점에 lazy 로 1회 수행한다.
+ */
+export function purgeExpiredLocalRoutes(now: number = Date.now()): number {
+  const items = readAll();
+  const next = items.filter((r) => {
+    if (r.completed === 1) return true;
+    if (!r.expiresAtIso) return true;
+    const t = Date.parse(r.expiresAtIso);
+    return Number.isFinite(t) ? t > now : true;
+  });
+  if (next.length !== items.length) writeAll(next);
+  return items.length - next.length;
 }
 
 export function deleteSavedRouteFromLocal(routeId: string): void {

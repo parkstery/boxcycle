@@ -32,14 +32,24 @@ type RideDoc = {
   status: "completed";
   createdAt: unknown;
   updatedAt: unknown;
+  /** 격상시킨 사용자 경로 ID. ad-hoc 주행이면 null. */
+  userRouteId?: string | null;
+  /** 격상 시점 사용자 경로 이름 스냅샷. 사용자가 이후 이름을 바꿔도 기록은 보존. */
+  routeName?: string | null;
+  /** 완주율(0~1). 1.0 이상은 1.0 으로 캡. */
+  completionRatio?: number;
 };
 
+/**
+ * 주행 기록 1건 저장. 반환값은 신규 rides 문서 ID — 호출자가 격상 함수에 넘긴다.
+ * 메타(userRouteId/routeName/completionRatio)는 옵셔널이며 ad-hoc 주행에서는 모두 null/0.
+ */
 export async function saveRideSessionToFirestore(input: {
   userId: string;
   roomId: string | null;
   profile: "cycling" | "driving" | "walking";
   session: StoredRideSession;
-}): Promise<void> {
+}): Promise<string> {
   const db = getFirestore(getFirebaseApp());
   const endedAtDate = new Date(input.session.endedAt);
   const endedAt = Number.isNaN(endedAtDate.getTime())
@@ -63,9 +73,16 @@ export async function saveRideSessionToFirestore(input: {
     status: "completed",
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
+    userRouteId: input.session.userRouteId ?? null,
+    routeName: input.session.routeName ?? null,
+    completionRatio:
+      typeof input.session.completionRatio === "number"
+        ? Math.max(0, Math.min(1, input.session.completionRatio))
+        : 0,
   };
 
-  await addDoc(collection(db, RIDES_COLLECTION), docData);
+  const ref = await addDoc(collection(db, RIDES_COLLECTION), docData);
+  return ref.id;
 }
 
 export async function backfillRideSessionsToFirestore(input: {
@@ -114,6 +131,12 @@ export async function loadRecentRideSessionsFromFirestore(
       caloriesEstimate: Number(data.caloriesEstimate ?? 0),
       routeDistanceMeters: Number(data.routeDistanceMeters ?? 0),
       routeDurationSec: Number(data.routeDurationSec ?? 0),
+      userRouteId: typeof data.userRouteId === "string" ? data.userRouteId : null,
+      routeName: typeof data.routeName === "string" ? data.routeName : null,
+      completionRatio:
+        typeof data.completionRatio === "number"
+          ? Math.max(0, Math.min(1, data.completionRatio))
+          : 0,
     };
   });
 }

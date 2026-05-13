@@ -38,6 +38,7 @@ import {
   deleteSavedRouteFromFirestore,
   loadSavedRoutesFromFirestore,
   migrateLocalRoutesToFirestore,
+  promoteSavedRouteInFirestore,
   renameSavedRouteInFirestore,
   saveRouteToFirestore,
   type SavedRoute,
@@ -47,6 +48,7 @@ import {
   deleteSavedRouteFromLocal,
   exportLocalRoutesForMigration,
   loadSavedRoutesFromLocal,
+  promoteSavedRouteInLocal,
   renameSavedRouteInLocal,
   saveRouteToLocal,
 } from "./lib/savedRoutesLocal";
@@ -144,6 +146,29 @@ export default function App() {
   const basicStartHubLeftExplicitRef = useRef(false);
   /** leaveBasicHub 등에서 최신 주행 종료 로직을 호출하기 위한 ref */
   const handleEndRideRef = useRef<() => void>(() => {});
+  /**
+   * 현재 지도에 로드되어 있는 사용자 경로(SavedRoute) ID.
+   * - `handleLoadSavedRoute` 호출 시 채워지고
+   * - 새 경로 탐색 / 출발-도착 변경 / 입문 코스 진입 시 null 로 리셋
+   * - `handleEndRide` 에서 이 값이 있으면 → 격상(completed=1) 처리
+   * Ref 로 관리하는 이유: 격상은 종료 1회 이벤트라 렌더 사이클과 무관하고, useEffect 의존성 충돌을 피함.
+   */
+  const loadedSavedRouteIdRef = useRef<string | null>(null);
+  /**
+   * 가장 최근 격상된 사용자 경로의 이름(스냅샷). rides 문서 저장 시 routeName 으로 함께 적재.
+   * 격상 직전 단계에서 동기적으로 잡아 쓴다.
+   */
+  const loadedSavedRouteNameRef = useRef<string | null>(null);
+  /** 직전 종료(handleEndRide) 시 ad-hoc 주행이었는지 — 토스트 「사용자 경로로 저장」 버튼 노출 조건 */
+  const [lastEndedWasAdhoc, setLastEndedWasAdhoc] = useState<{
+    distanceMeters: number;
+    durationSec: number;
+    geometry: LineStringGeometry;
+    startLngLat: LngLat;
+    endLngLat: LngLat;
+    profile: RouteProfile;
+    rideId: string | null;
+  } | null>(null);
 
   const onCoursePeersChange = useCallback((next: MapPeerMarker[]) => {
     setCoursePeerMarkers(next);
@@ -447,6 +472,61 @@ export default function App() {
     ],
   );
 
+  /**
+   * 도착 토스트의 「사용자 경로로 저장」 액션.
+   * rides 는 보안 규칙상 update 불가 → 새 사용자 경로 생성 후 즉시 promote(completed=1) 하여
+   * 「완주 경로」 로 즉시 등록한다. rides 문서의 userRouteId 는 null 로 남지만, 사용자 경로 쪽에는
+   * lastRideId 로 연결되어 역추적 가능하다.
+   */
+  const handleSaveAdhocAsUserRoute = useCallback(
+    async (name: string) => {
+      if (!lastEndedWasAdhoc) {
+        throw new Error("저장 대상 경로 정보가 없습니다.");
+      }
+      const base = {
+        name,
+        profile: lastEndedWasAdhoc.profile,
+        startLngLat: lastEndedWasAdhoc.startLngLat,
+        endLngLat: lastEndedWasAdhoc.endLngLat,
+        geometry: lastEndedWasAdhoc.geometry,
+        distanceMeters: lastEndedWasAdhoc.distanceMeters,
+        durationSec: lastEndedWasAdhoc.durationSec,
+      };
+      const rideId = lastEndedWasAdhoc.rideId;
+      if (configured && user && !user.isAnonymous) {
+        const saved = await saveRouteToFirestore({ ...base, userId: user.uid });
+        try {
+          await promoteSavedRouteInFirestore({
+            userId: user.uid,
+            routeId: saved.id,
+            rideId: rideId ?? "",
+          });
+        } catch {
+          /* 격상 실패해도 사용자 경로는 이미 생성됨 */
+        }
+        const nowIso = new Date().toISOString();
+        const promoted: SavedRoute = {
+          ...saved,
+          completed: 1,
+          completedAtIso: nowIso,
+          expiresAtIso: null,
+          lastRideId: rideId ?? null,
+          updatedAtIso: nowIso,
+        };
+        setSavedRoutes((prev) => [promoted, ...prev]);
+      } else {
+        const saved = saveRouteToLocal(base);
+        promoteSavedRouteInLocal({
+          routeId: saved.id,
+          rideId: rideId ?? saved.id,
+        });
+        setSavedRoutes(loadSavedRoutesFromLocal());
+      }
+      setLastEndedWasAdhoc(null);
+    },
+    [configured, user, lastEndedWasAdhoc],
+  );
+
   const handleLoadSavedRoute = useCallback(
     (route: SavedRoute) => {
       if (rideStatus !== "idle") {
@@ -460,12 +540,16 @@ export default function App() {
       setRouteDistanceMeters(route.distanceMeters);
       setRouteDurationSec(route.durationSec);
       resetRide();
+      loadedSavedRouteIdRef.current = route.id;
+      loadedSavedRouteNameRef.current = route.name;
+      setLastEndedWasAdhoc(null);
       setRouteSummary(
         `「${route.name}」 불러옴 · 거리 ${(route.distanceMeters / 1000).toFixed(2)} km / 예상 ${formatDuration(route.durationSec)}`,
       );
     },
     [rideStatus, resetRide],
   );
+
 
   const handleRenameSavedRoute = useCallback(
     async (route: SavedRoute, newName: string) => {
@@ -546,6 +630,9 @@ export default function App() {
         setRouteSummary(
           `${resolved.title} · 거리 ${(resolved.distanceMeters / 1000).toFixed(2)} km / 예상 ${formatDuration(resolved.durationSec)}`,
         );
+        loadedSavedRouteIdRef.current = null;
+        loadedSavedRouteNameRef.current = null;
+        setLastEndedWasAdhoc(null);
         basicStartHubLeftExplicitRef.current = false;
         if (user) {
           setBasicActiveHubCourseId(resolved.id);
@@ -601,6 +688,9 @@ export default function App() {
         `거리 ${(route.distance / 1000).toFixed(2)} km / 예상 ${formatDuration(route.duration)}`,
       );
       resetRide();
+      loadedSavedRouteIdRef.current = null;
+      loadedSavedRouteNameRef.current = null;
+      setLastEndedWasAdhoc(null);
     } catch (e: unknown) {
       const fe = e as { code?: string; message?: string };
       const message =
@@ -746,6 +836,17 @@ export default function App() {
 
     const elapsedSec = Math.floor(rideMetrics.accumulatedMs / 1000);
     const caloriesEstimate = Math.round((rideMetrics.virtualDistanceMeters / 1000) * 30);
+    /**
+     * 격상 후보: 저장된 사용자 경로를 「불러와」 주행했는가?
+     * 새 경로 탐색·입문 코스 진입 시 ref 가 null 로 클리어되므로 여기 값이 살아 있다는 건 「내가 만든 사용자 경로 그대로 탔음」 을 의미.
+     */
+    const savedRouteIdAtEnd = loadedSavedRouteIdRef.current;
+    const savedRouteNameAtEnd = loadedSavedRouteNameRef.current;
+    const completionRatio =
+      routeDistanceMeters > 0
+        ? Math.max(0, Math.min(1, rideMetrics.virtualDistanceMeters / routeDistanceMeters))
+        : 0;
+
     const record: StoredRideSession = {
       id: crypto.randomUUID(),
       endedAt: new Date().toISOString(),
@@ -758,20 +859,107 @@ export default function App() {
       caloriesEstimate,
       routeDistanceMeters,
       routeDurationSec,
+      userRouteId: savedRouteIdAtEnd,
+      routeName: savedRouteNameAtEnd,
+      completionRatio,
     };
     const next = [record, ...loadRideSessions()].slice(0, 50);
     saveRideSessions(next);
     setRecentSessions(next);
+
+    /**
+     * 격상 정책:
+     *  - 저장된 사용자 경로(불러온 경로) → 주행 종료 시 completed=1, expiresAt=null 로 격상
+     *  - ad-hoc 경로(저장 안 한 채 주행) → rides 만 적재 + 토스트에 「사용자 경로로 저장」 액션 노출
+     *  - 격상은 「완주 여부 무관」: 일시정지 후 수동 종료여도 격상 (시니어 정책: 1회 탄 적이 있으면 보존 가치 있음)
+     */
     if (configured && user) {
-      void saveRideSessionToFirestore({
-        userId: user.uid,
-        roomId,
+      void (async () => {
+        try {
+          const rideId = await saveRideSessionToFirestore({
+            userId: user.uid,
+            roomId,
+            profile,
+            session: record,
+          });
+          if (savedRouteIdAtEnd && !savedRouteIdAtEnd.startsWith("local-")) {
+            try {
+              await promoteSavedRouteInFirestore({
+                userId: user.uid,
+                routeId: savedRouteIdAtEnd,
+                rideId,
+              });
+              setSavedRoutes((prev) =>
+                prev.map((r) =>
+                  r.id === savedRouteIdAtEnd
+                    ? {
+                        ...r,
+                        completed: 1,
+                        completedAtIso: new Date().toISOString(),
+                        expiresAtIso: null,
+                        lastRideId: rideId,
+                        updatedAtIso: new Date().toISOString(),
+                      }
+                    : r,
+                ),
+              );
+            } catch (e) {
+              console.warn("[savedRoutes] 격상 실패", e);
+            }
+          } else if (savedRouteIdAtEnd) {
+            // 로컬(게스트) 경로
+            promoteSavedRouteInLocal({ routeId: savedRouteIdAtEnd, rideId });
+            setSavedRoutes(loadSavedRoutesFromLocal());
+          } else if (
+            routeGeometry &&
+            routeGeometry.coordinates.length >= 2 &&
+            startLngLat &&
+            endLngLat &&
+            routeDistanceMeters > 0
+          ) {
+            // ad-hoc 주행 → 토스트 액션으로 「사용자 경로로 저장」 가능하도록 컨텍스트 보관
+            setLastEndedWasAdhoc({
+              distanceMeters: routeDistanceMeters,
+              durationSec: routeDurationSec,
+              geometry: routeGeometry,
+              startLngLat,
+              endLngLat,
+              profile,
+              rideId,
+            });
+          }
+        } catch {
+          // Firestore 저장 실패 시 로컬 저장본은 유지한다.
+        }
+      })();
+    } else if (savedRouteIdAtEnd) {
+      // 게스트(미로그인) 환경: rides 없이도 로컬 격상은 수행
+      promoteSavedRouteInLocal({
+        routeId: savedRouteIdAtEnd,
+        rideId: record.id,
+      });
+      setSavedRoutes(loadSavedRoutesFromLocal());
+    } else if (
+      routeGeometry &&
+      routeGeometry.coordinates.length >= 2 &&
+      startLngLat &&
+      endLngLat &&
+      routeDistanceMeters > 0
+    ) {
+      setLastEndedWasAdhoc({
+        distanceMeters: routeDistanceMeters,
+        durationSec: routeDurationSec,
+        geometry: routeGeometry,
+        startLngLat,
+        endLngLat,
         profile,
-        session: record,
-      }).catch(() => {
-        // Firestore 저장 실패 시 로컬 저장본은 유지한다.
+        rideId: null,
       });
     }
+
+    // 격상 후보는 한 번 사용 후 비워 다음 사이클을 깨끗하게 시작
+    loadedSavedRouteIdRef.current = null;
+    loadedSavedRouteNameRef.current = null;
 
     setRideStatus("idle");
     resetRide();
@@ -1192,6 +1380,10 @@ export default function App() {
               onRenameSavedRoute={handleRenameSavedRoute}
               onDeleteSavedRoute={handleDeleteSavedRoute}
               arrivalToastVisible={arrivalToastTick > 0}
+              adhocSaveAvailable={lastEndedWasAdhoc !== null}
+              onSaveAdhocAsUserRoute={handleSaveAdhocAsUserRoute}
+              onDismissAdhocSave={() => setLastEndedWasAdhoc(null)}
+              rideHistoryUserId={user && !user.isAnonymous ? user.uid : null}
             />
             <div className="map-stage map-stage--in-route">
               <MapView

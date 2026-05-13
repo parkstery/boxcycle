@@ -6,6 +6,7 @@ import type { StoredRideSession } from "../lib/rideSessionsStorage";
 import type { SavedRoute } from "../lib/firestoreSavedRoutes";
 import { SAVED_ROUTE_NAME_MAX } from "../lib/firestoreSavedRoutes";
 import { SavedRoutesPanel } from "./SavedRoutesPanel";
+import { RideHistoryPanel } from "./RideHistoryPanel";
 import "./RideRoutePanel.css";
 
 export type FollowMode =
@@ -53,7 +54,7 @@ type RideRoutePanelProps = {
   authGuest: boolean;
   onEnterBasicHub: (courseId: string) => void;
   onLeaveBasicHub: () => void;
-  /** 저장 경로 관련 */
+  /** 사용자 경로 관련 (= 기존 「저장된 경로」 라벨 변경) */
   savedRoutes: SavedRoute[];
   savedRoutesLoading: boolean;
   /** 현재 경로 저장 — 별칭 입력값을 받아 영속화 */
@@ -63,9 +64,17 @@ type RideRoutePanelProps = {
   onDeleteSavedRoute: (route: SavedRoute) => Promise<void> | void;
   /** 목적지 도달 시 3초간 표시되는 토스트. App.tsx 에서 자동으로 false 로 돌아옴. */
   arrivalToastVisible: boolean;
+  /** ad-hoc(저장 안 한 채) 주행이 직전에 종료되어 「사용자 경로로 저장」 액션이 가능한 상태인지 */
+  adhocSaveAvailable: boolean;
+  /** ad-hoc 경로를 새 사용자 경로로 저장하면서 즉시 완주 격상 */
+  onSaveAdhocAsUserRoute: (name: string) => Promise<void> | void;
+  /** ad-hoc 저장 안내(토스트 액션) 닫기 */
+  onDismissAdhocSave: () => void;
+  /** 「주행 기록」 탭 렌더에 필요한 사용자 ID (null = 게스트/미로그인) */
+  rideHistoryUserId: string | null;
 };
 
-type Tab = "route" | "saved";
+type Tab = "route" | "saved" | "history";
 
 export function RideRoutePanel(props: RideRoutePanelProps) {
   const [tab, setTab] = useState<Tab>("route");
@@ -73,6 +82,11 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
   const [saveDraft, setSaveDraft] = useState("");
   const [saveBusy, setSaveBusy] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  /** ad-hoc 저장 인라인 입력 폼 상태 — 토스트 액션이 열어줌 */
+  const [adhocSaveOpen, setAdhocSaveOpen] = useState(false);
+  const [adhocSaveDraft, setAdhocSaveDraft] = useState("");
+  const [adhocSaveBusy, setAdhocSaveBusy] = useState(false);
+  const [adhocSaveError, setAdhocSaveError] = useState<string | null>(null);
 
   const sessionLabel =
     props.sessionStatus === "idle"
@@ -112,6 +126,21 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
     }
   }
 
+  async function commitAdhocSave() {
+    if (adhocSaveBusy) return;
+    setAdhocSaveBusy(true);
+    setAdhocSaveError(null);
+    try {
+      await props.onSaveAdhocAsUserRoute(adhocSaveDraft);
+      setAdhocSaveOpen(false);
+      setAdhocSaveDraft("");
+    } catch (e) {
+      setAdhocSaveError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setAdhocSaveBusy(false);
+    }
+  }
+
   return (
     <aside className="ride-panel" aria-label="경로 및 라이딩">
       <div className="ride-panel__tabs" role="tablist" aria-label="패널 보기">
@@ -131,21 +160,30 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
           className={`ride-panel__tab ${tab === "saved" ? "is-active" : ""}`}
           onClick={() => setTab("saved")}
         >
-          저장된 경로
+          사용자 경로
           {props.savedRoutes.length > 0 ? (
             <span className="ride-panel__tab-badge">{props.savedRoutes.length}</span>
           ) : null}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "history"}
+          className={`ride-panel__tab ${tab === "history" ? "is-active" : ""}`}
+          onClick={() => setTab("history")}
+        >
+          주행 기록
         </button>
       </div>
 
       {tab === "saved" ? (
         <>
           <div className="ride-panel__saved-head">
-            <h2 className="ride-panel__h ride-panel__h--inline">저장된 경로</h2>
+            <h2 className="ride-panel__h ride-panel__h--inline">사용자 경로</h2>
             <button
               type="button"
               className="ride-panel__saved-close"
-              aria-label="저장된 경로 닫고 경로 화면으로 돌아가기"
+              aria-label="사용자 경로 닫고 경로 화면으로 돌아가기"
               title="경로 화면으로 돌아가기"
               onClick={() => setTab("route")}
             >
@@ -172,6 +210,12 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             경로 화면으로 돌아가기
           </button>
         </>
+      ) : tab === "history" ? (
+        <RideHistoryPanel
+          userId={props.rideHistoryUserId}
+          guestNotice={props.authGuest}
+          onClose={() => setTab("route")}
+        />
       ) : (
         <>
           <h2 className="ride-panel__h">경로 설정</h2>
@@ -472,6 +516,88 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             >
               주행이 완료되었습니다.
             </p>
+          ) : null}
+
+          {props.adhocSaveAvailable ? (
+            <div
+              className="ride-panel__adhoc-save"
+              role="status"
+              aria-live="polite"
+            >
+              {adhocSaveOpen ? (
+                <div className="ride-panel__save-route-form">
+                  <label
+                    className="ride-panel__label"
+                    htmlFor="ride-panel-adhoc-save-name"
+                  >
+                    이 경로를 사용자 경로로 저장 (1~{SAVED_ROUTE_NAME_MAX}자)
+                  </label>
+                  <input
+                    id="ride-panel-adhoc-save-name"
+                    className="ride-panel__input"
+                    type="text"
+                    maxLength={SAVED_ROUTE_NAME_MAX}
+                    value={adhocSaveDraft}
+                    placeholder="예: 한강 자전거길"
+                    onChange={(e) => setAdhocSaveDraft(e.target.value)}
+                    autoFocus
+                  />
+                  {adhocSaveError ? (
+                    <p className="ride-panel__save-route-error" role="alert">
+                      {adhocSaveError}
+                    </p>
+                  ) : null}
+                  <div className="ride-panel__save-route-actions">
+                    <button
+                      type="button"
+                      className="ride-panel__btn-primary ride-panel__btn-primary--small"
+                      disabled={adhocSaveBusy}
+                      onClick={() => void commitAdhocSave()}
+                    >
+                      {adhocSaveBusy ? "저장 중…" : "사용자 경로로 저장(완주)"}
+                    </button>
+                    <button
+                      type="button"
+                      className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet"
+                      disabled={adhocSaveBusy}
+                      onClick={() => {
+                        setAdhocSaveOpen(false);
+                        setAdhocSaveDraft("");
+                        setAdhocSaveError(null);
+                      }}
+                    >
+                      취소
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="ride-panel__adhoc-save-row">
+                  <span className="ride-panel__adhoc-save-msg">
+                    방금 주행한 경로를 사용자 경로(완주)로 저장하시겠어요?
+                  </span>
+                  <div className="ride-panel__adhoc-save-actions">
+                    <button
+                      type="button"
+                      className="ride-panel__btn-primary ride-panel__btn-primary--small"
+                      onClick={() => {
+                        setAdhocSaveError(null);
+                        setAdhocSaveDraft("");
+                        setAdhocSaveOpen(true);
+                      }}
+                    >
+                      저장
+                    </button>
+                    <button
+                      type="button"
+                      className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet"
+                      onClick={props.onDismissAdhocSave}
+                    >
+                      안 함
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           ) : null}
 
           <div className="ride-panel__session-btns">

@@ -127,3 +127,61 @@
   background: Canvas;
   color: CanvasText;
 }
+
+.saved-routes__filter {
+  display: flex;
+  gap: 0.3rem;
+  margin: 0 0 0.5rem;
+  flex-wrap: wrap;
+}
+
+.saved-routes__filter-btn {
+  font: inherit;
+  font-size: 0.72rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, CanvasText 18%, transparent);
+  background: Canvas;
+  color: CanvasText;
+  cursor: pointer;
+  opacity: 0.85;
+}
+
+.saved-routes__filter-btn.is-active {
+  background: color-mix(in srgb, #3b82f6 22%, Canvas);
+  border-color: color-mix(in srgb, #3b82f6 55%, transparent);
+  opacity: 1;
+}
+
+.saved-routes__head-tags {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 0 0 auto;
+}
+
+.saved-routes__badge {
+  flex: 0 0 auto;
+  font-size: 0.68rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.saved-routes__badge--ok {
+  color: #166534;
+  background: color-mix(in srgb, #bbf7d0 80%, Canvas 20%);
+  border: 1px solid color-mix(in srgb, #86efac 70%, transparent);
+}
+
+.saved-routes__badge--pending {
+  color: #475569;
+  background: color-mix(in srgb, #e2e8f0 80%, Canvas 20%);
+  border: 1px solid color-mix(in srgb, #cbd5e1 70%, transparent);
+}
+
+.saved-routes__badge--soon {
+  color: #92400e;
+  background: color-mix(in srgb, #fde68a 80%, Canvas 20%);
+  border: 1px solid color-mix(in srgb, #fcd34d 70%, transparent);
+}

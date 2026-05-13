@@ -9,6 +9,12 @@ export type StoredRideSession = {
   caloriesEstimate: number;
   routeDistanceMeters: number;
   routeDurationSec: number;
+  /** 격상시킨 사용자 경로 ID(저장된 경로를 불러와 주행한 경우만). ad-hoc 주행은 null. */
+  userRouteId?: string | null;
+  /** 격상 시점의 경로 이름 스냅샷. 이후 사용자가 이름을 바꿔도 기록의 이름은 보존됨. */
+  routeName?: string | null;
+  /** 완주율(0~1). routeDistanceMeters > 0 일 때만 의미 있음. */
+  completionRatio?: number;
 };
 
 export function loadRideSessions(): StoredRideSession[] {

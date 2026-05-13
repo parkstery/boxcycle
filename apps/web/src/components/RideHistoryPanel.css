@@ -1,0 +1,135 @@
+.ride-history {
+  margin-top: 0.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.ride-history__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin: 0 0 0.4rem;
+}
+
+.ride-history__h {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.ride-history__close {
+  font: inherit;
+  font-size: 0.74rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, CanvasText 22%, transparent);
+  background: Canvas;
+  color: CanvasText;
+  cursor: pointer;
+}
+
+.ride-history__notice {
+  margin: 0 0 0.5rem;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.74rem;
+  line-height: 1.4;
+  border-radius: 8px;
+  background: color-mix(in srgb, Canvas 92%, CanvasText 8%);
+  border: 1px dashed color-mix(in srgb, CanvasText 22%, transparent);
+}
+
+.ride-history__error {
+  margin: 0 0 0.5rem;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.78rem;
+  border-radius: 8px;
+  color: #b91c1c;
+  background: color-mix(in srgb, #fee2e2 85%, Canvas 15%);
+  border: 1px solid color-mix(in srgb, #fecaca 70%, transparent);
+}
+
+.ride-history__empty {
+  margin: 0.4rem 0;
+  font-size: 0.8rem;
+  opacity: 0.78;
+  line-height: 1.4;
+}
+
+.ride-history__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ride-history__item {
+  border: 1px solid color-mix(in srgb, CanvasText 14%, transparent);
+  border-radius: 10px;
+  padding: 0.5rem 0.55rem;
+  background: color-mix(in srgb, Canvas 96%, CanvasText 4%);
+}
+
+.ride-history__row1 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.ride-history__name {
+  font-size: 0.88rem;
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ride-history__badge {
+  flex: 0 0 auto;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+}
+
+.ride-history__badge--ok {
+  color: #166534;
+  background: color-mix(in srgb, #bbf7d0 80%, Canvas 20%);
+  border: 1px solid color-mix(in srgb, #86efac 70%, transparent);
+}
+
+.ride-history__badge--partial {
+  color: #92400e;
+  background: color-mix(in srgb, #fde68a 80%, Canvas 20%);
+  border: 1px solid color-mix(in srgb, #fcd34d 70%, transparent);
+}
+
+.ride-history__row2 {
+  margin: 0.2rem 0 0;
+  font-size: 0.76rem;
+  opacity: 0.85;
+}
+
+.ride-history__date {
+  opacity: 0.85;
+}
+
+.ride-history__row3 {
+  margin: 0.1rem 0 0;
+  font-size: 0.76rem;
+  opacity: 0.9;
+}
+
+.ride-history__back {
+  margin-top: 0.6rem;
+  align-self: flex-start;
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+  border: 1px dashed color-mix(in srgb, CanvasText 25%, transparent);
+  background: transparent;
+  color: CanvasText;
+  cursor: pointer;
+}

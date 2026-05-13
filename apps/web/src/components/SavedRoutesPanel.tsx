@@ -1,7 +1,19 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { SavedRoute } from "../lib/firestoreSavedRoutes";
 import { formatDuration } from "../services/mapboxDirections";
 import "./SavedRoutesPanel.css";
+
+type CompletionFilter = "all" | "completed" | "pending";
+
+/** 만료까지 남은 일수(올림). null 이면 만료 정보 없음(완주 또는 옛 데이터). */
+function daysUntilExpiry(expiresAtIso: string | null, now: number = Date.now()): number | null {
+  if (!expiresAtIso) return null;
+  const t = Date.parse(expiresAtIso);
+  if (!Number.isFinite(t)) return null;
+  const ms = t - now;
+  if (ms <= 0) return 0;
+  return Math.ceil(ms / (24 * 60 * 60 * 1000));
+}
 
 export type SavedRoutesPanelProps = {
   routes: SavedRoute[];
@@ -20,6 +32,19 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
   const [renameDraft, setRenameDraft] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<CompletionFilter>("all");
+
+  const filtered = useMemo(() => {
+    if (filter === "completed") return props.routes.filter((r) => r.completed === 1);
+    if (filter === "pending") return props.routes.filter((r) => r.completed !== 1);
+    return props.routes;
+  }, [props.routes, filter]);
+
+  const completedCount = useMemo(
+    () => props.routes.filter((r) => r.completed === 1).length,
+    [props.routes],
+  );
+  const pendingCount = props.routes.length - completedCount;
 
   function startRename(route: SavedRoute) {
     setError(null);
@@ -59,12 +84,48 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
   }
 
   return (
-    <section className="saved-routes" aria-label="저장된 경로">
+    <section className="saved-routes" aria-label="사용자 경로">
       {props.guestNotice ? (
         <p className="saved-routes__notice">
           게스트는 이 브라우저에만 저장됩니다. Google 계정으로 로그인하면 클라우드로 옮겨져 다른
           기기에서도 보입니다.
         </p>
+      ) : null}
+
+      {props.routes.length > 0 ? (
+        <div
+          className="saved-routes__filter"
+          role="tablist"
+          aria-label="사용자 경로 완주 여부 필터"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={filter === "all"}
+            className={`saved-routes__filter-btn ${filter === "all" ? "is-active" : ""}`}
+            onClick={() => setFilter("all")}
+          >
+            전체 ({props.routes.length})
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={filter === "completed"}
+            className={`saved-routes__filter-btn ${filter === "completed" ? "is-active" : ""}`}
+            onClick={() => setFilter("completed")}
+          >
+            완주 ({completedCount})
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={filter === "pending"}
+            className={`saved-routes__filter-btn ${filter === "pending" ? "is-active" : ""}`}
+            onClick={() => setFilter("pending")}
+          >
+            대기 ({pendingCount})
+          </button>
+        </div>
       ) : null}
 
       {error ? (
@@ -77,11 +138,18 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
         <p className="saved-routes__empty">불러오는 중…</p>
       ) : props.routes.length === 0 ? (
         <p className="saved-routes__empty">
-          저장된 경로가 없습니다. 「경로」 탭에서 경로 생성 후 「현재 경로 저장」 을 눌러 보세요.
+          사용자 경로가 없습니다. 「경로」 탭에서 경로 생성 후 「현재 경로 저장」 을 눌러 보세요.
+          저장된 경로는 7일 안에 주행하지 않으면 자동 삭제됩니다(주행 완료 시 영구 보존).
+        </p>
+      ) : filtered.length === 0 ? (
+        <p className="saved-routes__empty">
+          {filter === "completed"
+            ? "아직 완주한 사용자 경로가 없습니다."
+            : "대기 중인 사용자 경로가 없습니다."}
         </p>
       ) : (
         <ul className="saved-routes__list">
-          {props.routes.map((route) => {
+          {filtered.map((route) => {
             const isRenaming = renamingId === route.id;
             const isBusy = busyId === route.id;
             return (
@@ -121,13 +189,58 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                       <strong className="saved-routes__name" title={route.name}>
                         {route.name}
                       </strong>
-                      <span className="saved-routes__profile">
-                        {route.profile === "cycling"
-                          ? "자전거"
-                          : route.profile === "driving"
-                            ? "자동차"
-                            : "보행"}
-                      </span>
+                      <div className="saved-routes__head-tags">
+                        {(() => {
+                          if (route.completed === 1) {
+                            return (
+                              <span
+                                className="saved-routes__badge saved-routes__badge--ok"
+                                title={
+                                  route.completedAtIso
+                                    ? `완주: ${new Date(route.completedAtIso).toLocaleString()}`
+                                    : "완주 경로 · 영구 보존"
+                                }
+                              >
+                                완주
+                              </span>
+                            );
+                          }
+                          const d = daysUntilExpiry(route.expiresAtIso);
+                          if (d === null) {
+                            return (
+                              <span className="saved-routes__badge saved-routes__badge--pending">
+                                대기
+                              </span>
+                            );
+                          }
+                          if (d <= 0) {
+                            return (
+                              <span className="saved-routes__badge saved-routes__badge--soon">
+                                만료 임박
+                              </span>
+                            );
+                          }
+                          return (
+                            <span
+                              className={`saved-routes__badge ${
+                                d <= 2
+                                  ? "saved-routes__badge--soon"
+                                  : "saved-routes__badge--pending"
+                              }`}
+                              title={`주행하지 않으면 ${d}일 후 자동 삭제`}
+                            >
+                              {`대기 · D-${d}`}
+                            </span>
+                          );
+                        })()}
+                        <span className="saved-routes__profile">
+                          {route.profile === "cycling"
+                            ? "자전거"
+                            : route.profile === "driving"
+                              ? "자동차"
+                              : "보행"}
+                        </span>
+                      </div>
                     </div>
                     <p className="saved-routes__meta">
                       {(route.distanceMeters / 1000).toFixed(2)} km ·{" "}
