@@ -79,13 +79,71 @@ function validateGeometry(geometry: LineStringGeometry): void {
   }
 }
 
+/**
+ * Firestore 는 배열 안에 배열(중첩 배열)을 둘 수 없습니다.
+ * GeoJSON LineString 의 `coordinates: [lng,lat][]` 는 JSON 문자열로만 저장합니다.
+ * `startLngLat` / `endLngLat` 는 길이 2의 숫자 배열이라 허용됩니다.
+ */
+function encodeGeometryForFirestore(geometry: LineStringGeometry): {
+  geometryType: "LineString";
+  geometryCoordsJson: string;
+} {
+  return {
+    geometryType: "LineString",
+    geometryCoordsJson: JSON.stringify(geometry.coordinates),
+  };
+}
+
+function decodeGeometryFromFirestore(data: Record<string, unknown>): LineStringGeometry | null {
+  const json = data.geometryCoordsJson;
+  if (typeof json === "string" && json.length > 0) {
+    try {
+      const coords = JSON.parse(json) as unknown;
+      if (!Array.isArray(coords) || coords.length < 2) return null;
+      const ok = coords.every(
+        (c) =>
+          Array.isArray(c) &&
+          c.length === 2 &&
+          typeof c[0] === "number" &&
+          typeof c[1] === "number" &&
+          Number.isFinite(c[0]) &&
+          Number.isFinite(c[1]),
+      );
+      if (!ok) return null;
+      return { type: "LineString", coordinates: coords as [number, number][] };
+    } catch {
+      return null;
+    }
+  }
+  /** 구버전(실패한 쓰기는 없었을 수 있음): 직렬화 없이 geometry 필드만 있는 경우 */
+  const legacy = data.geometry as { type?: string; coordinates?: unknown } | undefined;
+  if (
+    legacy?.type === "LineString" &&
+    Array.isArray(legacy.coordinates) &&
+    legacy.coordinates.length >= 2
+  ) {
+    const coords = legacy.coordinates;
+    const ok = coords.every(
+      (c) =>
+        Array.isArray(c) &&
+        c.length === 2 &&
+        typeof c[0] === "number" &&
+        typeof c[1] === "number",
+    );
+    if (ok) return { type: "LineString", coordinates: coords as [number, number][] };
+  }
+  return null;
+}
+
 type SavedRouteDoc = {
   userId: string;
   name: string;
   profile: RouteProfile;
   startLngLat: LngLat;
   endLngLat: LngLat;
-  geometry: LineStringGeometry;
+  geometryType?: "LineString";
+  geometryCoordsJson?: string;
+  geometry?: LineStringGeometry;
   distanceMeters: number;
   durationSec: number;
   source: "web";
@@ -99,24 +157,18 @@ function toIso(value: unknown): string {
 }
 
 function fromDoc(id: string, data: Partial<SavedRouteDoc>): SavedRoute | null {
-  if (
-    !data ||
-    typeof data.name !== "string" ||
-    !data.geometry ||
-    data.geometry.type !== "LineString" ||
-    !Array.isArray(data.geometry.coordinates) ||
-    !Array.isArray(data.startLngLat) ||
-    !Array.isArray(data.endLngLat)
-  ) {
+  if (!data || typeof data.name !== "string" || !Array.isArray(data.startLngLat) || !Array.isArray(data.endLngLat)) {
     return null;
   }
+  const geometry = decodeGeometryFromFirestore(data as Record<string, unknown>);
+  if (!geometry) return null;
   return {
     id,
     name: data.name,
     profile: (data.profile ?? "cycling") as RouteProfile,
     startLngLat: data.startLngLat as LngLat,
     endLngLat: data.endLngLat as LngLat,
-    geometry: data.geometry,
+    geometry,
     distanceMeters: Number(data.distanceMeters ?? 0),
     durationSec: Number(data.durationSec ?? 0),
     createdAtIso: toIso(data.createdAt),
@@ -140,16 +192,16 @@ export async function saveRouteToFirestore(input: SaveRouteInput): Promise<Saved
   validateGeometry(input.geometry);
 
   const db = getFirestore(getFirebaseApp());
-  const payload: SavedRouteDoc = {
+  const payload = {
     userId: input.userId,
     name,
     profile: input.profile,
     startLngLat: input.startLngLat,
     endLngLat: input.endLngLat,
-    geometry: input.geometry,
+    ...encodeGeometryForFirestore(input.geometry),
     distanceMeters: input.distanceMeters,
     durationSec: input.durationSec,
-    source: "web",
+    source: "web" as const,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   };
