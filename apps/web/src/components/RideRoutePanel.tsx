@@ -61,6 +61,8 @@ type RideRoutePanelProps = {
   onLoadSavedRoute: (route: SavedRoute) => void;
   onRenameSavedRoute: (route: SavedRoute, newName: string) => Promise<void> | void;
   onDeleteSavedRoute: (route: SavedRoute) => Promise<void> | void;
+  /** 목적지 도달 시 3초간 표시되는 토스트. App.tsx 에서 자동으로 false 로 돌아옴. */
+  arrivalToastVisible: boolean;
 };
 
 type Tab = "route" | "saved";
@@ -443,6 +445,16 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               <strong>{props.avgSpeedLabel} km/h</strong>
             </div>
           </div>
+
+          {props.arrivalToastVisible ? (
+            <p
+              className="ride-panel__arrival-toast"
+              role="status"
+              aria-live="polite"
+            >
+              주행이 완료되었습니다.
+            </p>
+          ) : null}
 
           <div className="ride-panel__session-btns">
             <button type="button" disabled={!canStart} onClick={props.onStartRide}>

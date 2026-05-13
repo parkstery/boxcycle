@@ -96,6 +96,19 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
 
       const geom = routeGeometryRef.current;
       const routeLen = routeDistanceRef.current;
+
+      /**
+       * 목적지 도달: 거리 캡 + 최종 flush 후 RAF 정지(다음 프레임 예약 안 함).
+       * 상태(running) 전환은 호출 측(App.tsx)에서 메트릭 변화 useEffect로 마무리한다.
+       */
+      if (routeLen > 0 && virtualDistanceRef.current >= routeLen) {
+        virtualDistanceRef.current = routeLen;
+        const liveAtEnd = geom ? getPointOnRouteByDistance(geom, routeLen) : null;
+        flushUi(ts, liveAtEnd, true);
+        rafRef.current = null;
+        return;
+      }
+
       const vd = virtualDistanceRef.current;
       const capped = routeLen > 0 ? Math.min(vd, routeLen) : vd;
       const live = geom ? getPointOnRouteByDistance(geom, capped) : null;

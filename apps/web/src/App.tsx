@@ -124,6 +124,12 @@ export default function App() {
     loadSavedRoutesFromLocal(),
   );
   const [savedRoutesLoading, setSavedRoutesLoading] = useState(false);
+  /**
+   * 도착 시 3초간 표시되는 토스트. 매 도착마다 tick 을 증가시켜 동일 toast 가 다시 떠도
+   * setTimeout 이 갱신되도록 한다(useEffect dependency 변화 강제).
+   */
+  const [arrivalToastTick, setArrivalToastTick] = useState(0);
+  const arrivalHandledRef = useRef(false);
   /** 입문 허브 동시 주행에 참여 중인 코스 document id(null 이면 미참여) */
   const [basicActiveHubCourseId, setBasicActiveHubCourseId] = useState<string | null>(null);
   const [basicStartLoading, setBasicStartLoading] = useState(false);
@@ -715,6 +721,7 @@ export default function App() {
 
   function handleStartRide() {
     if (!routeGeometry || rideStatus !== "idle") return;
+    arrivalHandledRef.current = false;
     resetRide();
     setRideStatus("running");
   }
@@ -767,6 +774,32 @@ export default function App() {
   }
 
   handleEndRideRef.current = handleEndRide;
+
+  /**
+   * 가상 거리 ≥ 경로 거리이면 자동 종료. 훅이 RAF 를 멈춰 최종 메트릭이 들어온 직후
+   * handleEndRide() 가 호출되어 상태/저장/메트릭 리셋이 일괄 마무리되고, 도착 토스트가 3초 표시된다.
+   * 중복 트리거는 arrivalHandledRef 로 차단한다. handleEndRide 는 handleEndRideRef 로 접근해 의존성 충돌을 피한다.
+   */
+  useEffect(() => {
+    if (rideStatus === "idle") {
+      arrivalHandledRef.current = false;
+      return;
+    }
+    if (rideStatus !== "running") return;
+    if (routeDistanceMeters <= 0) return;
+    if (rideMetrics.virtualDistanceMeters < routeDistanceMeters) return;
+    if (arrivalHandledRef.current) return;
+    arrivalHandledRef.current = true;
+    handleEndRideRef.current();
+    setArrivalToastTick((t) => t + 1);
+  }, [rideStatus, rideMetrics.virtualDistanceMeters, routeDistanceMeters]);
+
+  /** 도착 토스트 자동 숨김(3초). tick 변경 시마다 타이머 재설정. */
+  useEffect(() => {
+    if (arrivalToastTick === 0) return;
+    const t = window.setTimeout(() => setArrivalToastTick(0), 3000);
+    return () => window.clearTimeout(t);
+  }, [arrivalToastTick]);
 
   /** 로비 실시간 참여만 중단(코스 동행·Firebase 세션은 유지) */
   async function handleLeaveLobbyOnly() {
@@ -1154,6 +1187,7 @@ export default function App() {
               onLoadSavedRoute={handleLoadSavedRoute}
               onRenameSavedRoute={handleRenameSavedRoute}
               onDeleteSavedRoute={handleDeleteSavedRoute}
+              arrivalToastVisible={arrivalToastTick > 0}
             />
             <div className="map-stage map-stage--in-route">
               <MapView

@@ -188,6 +188,30 @@
   color: #b91c1c;
 }
 
+.ride-panel__arrival-toast {
+  margin: 0.6rem 0 0.2rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 650;
+  text-align: center;
+  color: #14532d;
+  background: color-mix(in srgb, #22c55e 22%, Canvas);
+  border: 1px solid color-mix(in srgb, #22c55e 55%, transparent);
+  animation: ride-panel__arrival-toast-in 200ms ease-out;
+}
+
+@keyframes ride-panel__arrival-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .ride-panel__basic-start {
   margin: 0.5rem 0 0.65rem;
   padding: 0.55rem 0.6rem;
