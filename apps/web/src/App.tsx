@@ -34,6 +34,22 @@ import {
   loadRecentRideSessionsFromFirestore,
   saveRideSessionToFirestore,
 } from "./lib/firestoreRides";
+import {
+  deleteSavedRouteFromFirestore,
+  loadSavedRoutesFromFirestore,
+  migrateLocalRoutesToFirestore,
+  renameSavedRouteInFirestore,
+  saveRouteToFirestore,
+  type SavedRoute,
+} from "./lib/firestoreSavedRoutes";
+import {
+  clearSavedRoutesLocal,
+  deleteSavedRouteFromLocal,
+  exportLocalRoutesForMigration,
+  loadSavedRoutesFromLocal,
+  renameSavedRouteInLocal,
+  saveRouteToLocal,
+} from "./lib/savedRoutesLocal";
 import type { LineStringGeometry, LngLat } from "./lib/geo";
 import { formatLngLat, getPointOnRouteByDistance } from "./lib/geo";
 import {
@@ -103,6 +119,11 @@ export default function App() {
   const [recentSessions, setRecentSessions] = useState<StoredRideSession[]>(() =>
     loadRideSessions(),
   );
+  /** 사용자가 저장한 경로 — 로그인 사용자는 Firestore, 게스트/미로그인은 localStorage */
+  const [savedRoutes, setSavedRoutes] = useState<SavedRoute[]>(() =>
+    loadSavedRoutesFromLocal(),
+  );
+  const [savedRoutesLoading, setSavedRoutesLoading] = useState(false);
   /** 입문 허브 동시 주행에 참여 중인 코스 document id(null 이면 미참여) */
   const [basicActiveHubCourseId, setBasicActiveHubCourseId] = useState<string | null>(null);
   const [basicStartLoading, setBasicStartLoading] = useState(false);
@@ -332,6 +353,154 @@ export default function App() {
       (rideMetrics.virtualDistanceMeters / 1000) / (elapsedSec / 3600);
     return avg.toFixed(1);
   }, [rideMetrics.accumulatedMs, rideMetrics.virtualDistanceMeters]);
+
+  /**
+   * 저장 경로 로딩: 로그인(비익명) 사용자는 Firestore 에서 불러오고,
+   * 첫 진입 시 로컬에 남아있던 게스트 경로는 1회 마이그레이션 후 로컬을 비움.
+   * 게스트(익명)/미로그인 상태에서는 localStorage 만 사용.
+   */
+  useEffect(() => {
+    if (!configured || !user || user.isAnonymous) {
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      setSavedRoutesLoading(true);
+      try {
+        const localPending = exportLocalRoutesForMigration();
+        if (localPending.length > 0) {
+          await migrateLocalRoutesToFirestore({
+            userId: user.uid,
+            routes: localPending.map((r) => ({ ...r, userId: user.uid })),
+          });
+          clearSavedRoutesLocal();
+        }
+        const rows = await loadSavedRoutesFromFirestore(user.uid, 50);
+        if (!cancelled) setSavedRoutes(rows);
+      } catch {
+        if (!cancelled) setSavedRoutes(loadSavedRoutesFromLocal());
+      } finally {
+        if (!cancelled) setSavedRoutesLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [configured, user]);
+
+  /** 로그아웃·익명 전환 시 로컬 저장소로 폴백(외부 소스→React 동기화). */
+  useEffect(() => {
+    if (configured && user && !user.isAnonymous) return;
+    const local = loadSavedRoutesFromLocal();
+    setSavedRoutes((prev) => {
+      if (prev.length === local.length && prev.every((r, i) => r.id === local[i]?.id)) {
+        return prev;
+      }
+      return local;
+    });
+  }, [configured, user]);
+
+  const handleSaveCurrentRoute = useCallback(
+    async (name: string) => {
+      if (!routeGeometry || routeGeometry.coordinates.length < 2) {
+        throw new Error("저장할 경로가 없습니다. 경로 생성 후 다시 시도하세요.");
+      }
+      if (!startLngLat || !endLngLat) {
+        throw new Error("출발지·도착지가 설정되지 않았습니다.");
+      }
+      const baseInput = {
+        name,
+        profile,
+        startLngLat,
+        endLngLat,
+        geometry: routeGeometry,
+        distanceMeters: routeDistanceMeters,
+        durationSec: routeDurationSec,
+      };
+      if (configured && user && !user.isAnonymous) {
+        const saved = await saveRouteToFirestore({ ...baseInput, userId: user.uid });
+        setSavedRoutes((prev) => [saved, ...prev]);
+      } else {
+        const saved = saveRouteToLocal(baseInput);
+        setSavedRoutes((prev) => [saved, ...prev]);
+      }
+    },
+    [
+      configured,
+      user,
+      routeGeometry,
+      startLngLat,
+      endLngLat,
+      profile,
+      routeDistanceMeters,
+      routeDurationSec,
+    ],
+  );
+
+  const handleLoadSavedRoute = useCallback(
+    (route: SavedRoute) => {
+      if (rideStatus !== "idle") {
+        setRouteSummary("주행 중에는 경로를 바꿀 수 없습니다. 세션 종료 후 다시 시도하세요.");
+        return;
+      }
+      setStartLngLat(route.startLngLat);
+      setEndLngLat(route.endLngLat);
+      setProfile(route.profile);
+      setRouteGeometry(route.geometry);
+      setRouteDistanceMeters(route.distanceMeters);
+      setRouteDurationSec(route.durationSec);
+      resetRide();
+      setRouteSummary(
+        `「${route.name}」 불러옴 · 거리 ${(route.distanceMeters / 1000).toFixed(2)} km / 예상 ${formatDuration(route.durationSec)}`,
+      );
+    },
+    [rideStatus, resetRide],
+  );
+
+  const handleRenameSavedRoute = useCallback(
+    async (route: SavedRoute, newName: string) => {
+      const isFirestore = !route.id.startsWith("local-");
+      if (isFirestore) {
+        if (!configured || !user || user.isAnonymous) {
+          throw new Error("이 경로를 수정하려면 로그인이 필요합니다.");
+        }
+        const name = await renameSavedRouteInFirestore(user.uid, route.id, newName);
+        setSavedRoutes((prev) =>
+          prev.map((r) =>
+            r.id === route.id
+              ? { ...r, name, updatedAtIso: new Date().toISOString() }
+              : r,
+          ),
+        );
+      } else {
+        const name = renameSavedRouteInLocal(route.id, newName);
+        setSavedRoutes((prev) =>
+          prev.map((r) =>
+            r.id === route.id
+              ? { ...r, name, updatedAtIso: new Date().toISOString() }
+              : r,
+          ),
+        );
+      }
+    },
+    [configured, user],
+  );
+
+  const handleDeleteSavedRoute = useCallback(
+    async (route: SavedRoute) => {
+      const isFirestore = !route.id.startsWith("local-");
+      if (isFirestore) {
+        if (!configured || !user || user.isAnonymous) {
+          throw new Error("이 경로를 삭제하려면 로그인이 필요합니다.");
+        }
+        await deleteSavedRouteFromFirestore(route.id);
+      } else {
+        deleteSavedRouteFromLocal(route.id);
+      }
+      setSavedRoutes((prev) => prev.filter((r) => r.id !== route.id));
+    },
+    [configured, user],
+  );
 
   const enterBasicHub = useCallback(
     async (courseId: string) => {
@@ -979,6 +1148,12 @@ export default function App() {
               authGuest={Boolean(user?.isAnonymous)}
               onEnterBasicHub={(courseId) => void enterBasicHub(courseId)}
               onLeaveBasicHub={() => void leaveBasicHub()}
+              savedRoutes={savedRoutes}
+              savedRoutesLoading={savedRoutesLoading}
+              onSaveCurrentRoute={handleSaveCurrentRoute}
+              onLoadSavedRoute={handleLoadSavedRoute}
+              onRenameSavedRoute={handleRenameSavedRoute}
+              onDeleteSavedRoute={handleDeleteSavedRoute}
             />
             <div className="map-stage map-stage--in-route">
               <MapView

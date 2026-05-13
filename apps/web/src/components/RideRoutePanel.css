@@ -114,6 +114,80 @@
   cursor: not-allowed;
 }
 
+.ride-panel__btn-primary--small {
+  margin-top: 0;
+  width: auto;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.82rem;
+}
+
+.ride-panel__tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 0.6rem;
+  border-bottom: 1px solid color-mix(in srgb, CanvasText 12%, transparent);
+}
+
+.ride-panel__tab {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  background: transparent;
+  color: CanvasText;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.ride-panel__tab.is-active {
+  background: color-mix(in srgb, #2563eb 12%, Canvas);
+  border-color: color-mix(in srgb, CanvasText 12%, transparent);
+  font-weight: 650;
+}
+
+.ride-panel__tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.ride-panel__save-route {
+  margin-top: 0.5rem;
+}
+
+.ride-panel__save-route-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.5rem 0.55rem;
+  border-radius: 8px;
+  border: 1px dashed color-mix(in srgb, #2563eb 35%, CanvasText 14%);
+  background: color-mix(in srgb, #2563eb 6%, Canvas 94%);
+}
+
+.ride-panel__save-route-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.ride-panel__save-route-error {
+  margin: 0;
+  font-size: 0.76rem;
+  color: #b91c1c;
+}
+
 .ride-panel__basic-start {
   margin: 0.5rem 0 0.65rem;
   padding: 0.55rem 0.6rem;
