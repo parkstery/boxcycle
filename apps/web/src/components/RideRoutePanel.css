@@ -188,6 +188,35 @@
   color: #b91c1c;
 }
 
+.ride-panel__saved-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.ride-panel__h--inline {
+  margin: 0;
+}
+
+.ride-panel__saved-close {
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, CanvasText 22%, transparent);
+  background: Canvas;
+  color: CanvasText;
+  cursor: pointer;
+}
+
+.ride-panel__saved-back {
+  width: 100%;
+  margin-top: 0.75rem;
+}
+
 .ride-panel__arrival-toast {
   margin: 0.6rem 0 0.2rem;
   padding: 0.55rem 0.7rem;

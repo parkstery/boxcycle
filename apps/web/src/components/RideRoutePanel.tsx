@@ -140,7 +140,18 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
 
       {tab === "saved" ? (
         <>
-          <h2 className="ride-panel__h">저장된 경로</h2>
+          <div className="ride-panel__saved-head">
+            <h2 className="ride-panel__h ride-panel__h--inline">저장된 경로</h2>
+            <button
+              type="button"
+              className="ride-panel__saved-close"
+              aria-label="저장된 경로 닫고 경로 화면으로 돌아가기"
+              title="경로 화면으로 돌아가기"
+              onClick={() => setTab("route")}
+            >
+              닫기
+            </button>
+          </div>
           <SavedRoutesPanel
             routes={props.savedRoutes}
             loading={props.savedRoutesLoading}
@@ -153,6 +164,13 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             onRenameRoute={props.onRenameSavedRoute}
             onDeleteRoute={props.onDeleteSavedRoute}
           />
+          <button
+            type="button"
+            className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet ride-panel__saved-back"
+            onClick={() => setTab("route")}
+          >
+            경로 화면으로 돌아가기
+          </button>
         </>
       ) : (
         <>
