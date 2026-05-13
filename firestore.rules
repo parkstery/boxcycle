@@ -97,6 +97,21 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    /**
+     * 사용자가 저장한 경로(이름·출발/도착·geometry·거리/시간).
+     * 본인만 read/write. update 시 소유자(userId) 변경 금지.
+     * 게스트(익명)는 클라이언트 정책상 localStorage 만 사용 — 익명 uid 도 기술적으로는 허용됨.
+     */
+    match /savedRoutes/{routeId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
     match /courses/{courseId} {
       allow read: if isSignedIn()
         || (resource.data.keys().hasAny(['presenceEnabled']) && resource.data.presenceEnabled == true)
