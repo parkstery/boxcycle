@@ -387,12 +387,13 @@ export default function App() {
   }, [rideMetrics.accumulatedMs, rideMetrics.virtualDistanceMeters]);
 
   /**
-   * 저장 경로 로딩: 로그인(비익명) 사용자는 Firestore 에서 불러오고,
-   * 첫 진입 시 로컬에 남아있던 게스트 경로는 1회 마이그레이션 후 로컬을 비움.
-   * 게스트(익명)/미로그인 상태에서는 localStorage 만 사용.
+   * 사용자 경로 로딩: 로그인 사용자(익명 포함) 는 Firestore 사용.
+   * 첫 진입 시 로컬에 남아있던 옛 데이터는 1회 마이그레이션 후 로컬을 비움.
+   * 익명 게스트 → Google 전환은 `linkWithPopup` 으로 동일 uid 가 유지되어 데이터가 그대로 살아남는다.
+   * Firebase 미설정/미인증 상태에서만 localStorage 폴백 사용.
    */
   useEffect(() => {
-    if (!configured || !user || user.isAnonymous) {
+    if (!configured || !user) {
       return;
     }
     let cancelled = false;
@@ -445,9 +446,9 @@ export default function App() {
     };
   }, [configured, user]);
 
-  /** 로그아웃·익명 전환 시 로컬 저장소로 폴백(외부 소스→React 동기화). */
+  /** 미로그인 상태(또는 Firebase 미설정)에서만 로컬 저장소 폴백(외부 소스→React 동기화). */
   useEffect(() => {
-    if (configured && user && !user.isAnonymous) return;
+    if (configured && user) return;
     const local = loadSavedRoutesFromLocal();
     setSavedRoutes((prev) => {
       if (prev.length === local.length && prev.every((r, i) => r.id === local[i]?.id)) {
@@ -474,7 +475,7 @@ export default function App() {
         distanceMeters: routeDistanceMeters,
         durationSec: routeDurationSec,
       };
-      if (configured && user && !user.isAnonymous) {
+      if (configured && user) {
         const saved = await saveRouteToFirestore({ ...baseInput, userId: user.uid });
         setSavedRoutes((prev) => [saved, ...prev]);
       } else {
@@ -515,7 +516,7 @@ export default function App() {
         durationSec: lastEndedWasAdhoc.durationSec,
       };
       const rideId = lastEndedWasAdhoc.rideId;
-      if (configured && user && !user.isAnonymous) {
+      if (configured && user) {
         const saved = await saveRouteToFirestore({ ...base, userId: user.uid });
         try {
           await promoteSavedRouteInFirestore({
@@ -577,7 +578,7 @@ export default function App() {
     async (route: SavedRoute, newName: string) => {
       const isFirestore = !route.id.startsWith("local-");
       if (isFirestore) {
-        if (!configured || !user || user.isAnonymous) {
+        if (!configured || !user) {
           throw new Error("이 경로를 수정하려면 로그인이 필요합니다.");
         }
         const name = await renameSavedRouteInFirestore(user.uid, route.id, newName);
@@ -606,7 +607,7 @@ export default function App() {
     async (route: SavedRoute) => {
       const isFirestore = !route.id.startsWith("local-");
       if (isFirestore) {
-        if (!configured || !user || user.isAnonymous) {
+        if (!configured || !user) {
           throw new Error("이 경로를 삭제하려면 로그인이 필요합니다.");
         }
         await deleteSavedRouteFromFirestore(route.id);
@@ -1405,7 +1406,7 @@ export default function App() {
               adhocSaveAvailable={lastEndedWasAdhoc !== null}
               onSaveAdhocAsUserRoute={handleSaveAdhocAsUserRoute}
               onDismissAdhocSave={() => setLastEndedWasAdhoc(null)}
-              rideHistoryUserId={user && !user.isAnonymous ? user.uid : null}
+              rideHistoryUserId={configured && user ? user.uid : null}
             />
             <div className="map-stage map-stage--in-route">
               <MapView
