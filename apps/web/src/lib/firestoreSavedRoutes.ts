@@ -158,10 +158,21 @@ function toIso(value: unknown): string {
 
 function fromDoc(id: string, data: Partial<SavedRouteDoc>): SavedRoute | null {
   if (!data || typeof data.name !== "string" || !Array.isArray(data.startLngLat) || !Array.isArray(data.endLngLat)) {
+    console.warn(`[savedRoutes] skip ${id}: 필수 필드 누락(name/startLngLat/endLngLat)`, {
+      hasName: typeof data?.name === "string",
+      hasStart: Array.isArray(data?.startLngLat),
+      hasEnd: Array.isArray(data?.endLngLat),
+    });
     return null;
   }
   const geometry = decodeGeometryFromFirestore(data as Record<string, unknown>);
-  if (!geometry) return null;
+  if (!geometry) {
+    console.warn(`[savedRoutes] skip ${id}: geometry 디코딩 실패`, {
+      hasCoordsJson: typeof (data as Record<string, unknown>).geometryCoordsJson === "string",
+      hasLegacyGeometry: Boolean((data as { geometry?: unknown }).geometry),
+    });
+    return null;
+  }
   return {
     id,
     name: data.name,
@@ -232,11 +243,15 @@ export async function loadSavedRoutesFromFirestore(
     limit(limitCount),
   );
   const snap = await getDocs(q);
+  console.info(
+    `[savedRoutes] load userId=${userId} → 쿼리 hit ${snap.size}건 (orderBy updatedAt desc)`,
+  );
   const out: SavedRoute[] = [];
   for (const d of snap.docs) {
     const route = fromDoc(d.id, d.data() as Partial<SavedRouteDoc>);
     if (route) out.push(route);
   }
+  console.info(`[savedRoutes] 디코딩 성공 ${out.length}건 / 스킵 ${snap.size - out.length}건`);
   return out;
 }
 

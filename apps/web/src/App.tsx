@@ -374,6 +374,9 @@ export default function App() {
       setSavedRoutesLoading(true);
       try {
         const localPending = exportLocalRoutesForMigration();
+        console.info(
+          `[savedRoutes] 마이그레이션·로드 시작 uid=${user.uid} isAnonymous=${user.isAnonymous} 로컬보류=${localPending.length}건`,
+        );
         if (localPending.length > 0) {
           await migrateLocalRoutesToFirestore({
             userId: user.uid,
@@ -383,7 +386,8 @@ export default function App() {
         }
         const rows = await loadSavedRoutesFromFirestore(user.uid, 50);
         if (!cancelled) setSavedRoutes(rows);
-      } catch {
+      } catch (e) {
+        console.error("[savedRoutes] 로드/마이그레이션 실패 → localStorage 폴백", e);
         if (!cancelled) setSavedRoutes(loadSavedRoutesFromLocal());
       } finally {
         if (!cancelled) setSavedRoutesLoading(false);
