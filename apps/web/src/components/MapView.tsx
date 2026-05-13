@@ -4,8 +4,10 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import type { LngLat, LineStringGeometry } from "../lib/geo";
 import { getDistanceMeters, type LineStringGeometry as RouteLineStringGeometry } from "../lib/geo";
 import type { FollowMode } from "./RideRoutePanel";
+import type { CoverageOverlayMode } from "../lib/coverageOverlayMode";
 import { ensureRiderPedalStripKeyframes } from "../lib/riderPedalStripKeyframes";
 import { RIDER_PEDAL_SPRITE_REVISION } from "../lib/riderPedalSpriteMeta";
+import { applyCoverageOverlayMode } from "../services/coverageOverlaySync";
 import "./MapView.css";
 
 /** 레거시 `app.js` 와 동일한 서울 근처 기본 시야 */
@@ -60,6 +62,10 @@ export type MapViewProps = {
   enable3D: boolean;
   onMapZoom: (zoom: number) => void;
   onSelectPoint: (type: "start" | "end", lngLat: LngLat) => void;
+  /** OSRM(Mapbox Streets)·Mapillary 촬영 시퀀스 커버리지 */
+  coverageOverlayMode: CoverageOverlayMode;
+  /** Mapillary 타일·거리뷰용 클라이언트 토큰(없으면 Mapillary 모드 비활성) */
+  mapillaryClientToken?: string | null;
 };
 
 export function MapView({
@@ -77,6 +83,8 @@ export function MapView({
   enable3D,
   onMapZoom,
   onSelectPoint,
+  coverageOverlayMode,
+  mapillaryClientToken,
 }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -137,6 +145,11 @@ export function MapView({
     onSelectPointRef.current = onSelectPoint;
   }, [onSelectPoint]);
 
+  const coverageOverlayModeRef = useRef(coverageOverlayMode);
+  const mapillaryClientTokenRef = useRef(mapillaryClientToken);
+  coverageOverlayModeRef.current = coverageOverlayMode;
+  mapillaryClientTokenRef.current = mapillaryClientToken;
+
   useEffect(() => {
     onMapZoomRef.current = onMapZoom;
   }, [onMapZoom]);
@@ -185,6 +198,15 @@ export function MapView({
         }
       }
       apply3DState(map, enable3DRef.current, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID);
+      try {
+        applyCoverageOverlayMode(
+          map,
+          coverageOverlayModeRef.current,
+          mapillaryClientTokenRef.current ?? undefined,
+        );
+      } catch (e) {
+        console.warn("[MapView] coverage overlay", e);
+      }
     });
 
     map.on("click", (event) => {
@@ -245,6 +267,13 @@ export function MapView({
     if (!routeGeometry?.coordinates?.length) {
       if (map.getLayer("route")) map.removeLayer("route");
       if (map.getSource("route")) map.removeSource("route");
+      if (map.isStyleLoaded()) {
+        try {
+          applyCoverageOverlayMode(map, coverageOverlayMode, mapillaryClientToken ?? undefined);
+        } catch {
+          /* noop */
+        }
+      }
       return;
     }
 
@@ -272,7 +301,25 @@ export function MapView({
     const bounds = new mapboxgl.LngLatBounds();
     routeGeometry.coordinates.forEach((p) => bounds.extend(p as [number, number]));
     map.fitBounds(bounds, { padding: 40, maxZoom: 16 });
+
+    if (map.isStyleLoaded()) {
+      try {
+        applyCoverageOverlayMode(map, coverageOverlayMode, mapillaryClientToken ?? undefined);
+      } catch {
+        /* noop */
+      }
+    }
   }, [routeGeometry, mapLoaded]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded || !map.isStyleLoaded()) return;
+    try {
+      applyCoverageOverlayMode(map, coverageOverlayMode, mapillaryClientToken ?? undefined);
+    } catch {
+      /* noop */
+    }
+  }, [mapLoaded, coverageOverlayMode, mapillaryClientToken]);
 
   useEffect(() => {
     const map = mapRef.current;

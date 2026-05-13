@@ -16,6 +16,26 @@ export function formatLngLat(lngLat: LngLat): string {
   return `${lngLat[0].toFixed(6)},${lngLat[1].toFixed(6)}`;
 }
 
+/** LineString 좌표로부터 코스 bounds 계산 */
+export function boundsFromLineCoordinates(coords: [number, number][]): {
+  minLng: number;
+  minLat: number;
+  maxLng: number;
+  maxLat: number;
+} {
+  let minLng = Infinity;
+  let minLat = Infinity;
+  let maxLng = -Infinity;
+  let maxLat = -Infinity;
+  for (const [lng, lat] of coords) {
+    minLng = Math.min(minLng, lng);
+    minLat = Math.min(minLat, lat);
+    maxLng = Math.max(maxLng, lng);
+    maxLat = Math.max(maxLat, lat);
+  }
+  return { minLng, minLat, maxLng, maxLat };
+}
+
 export function getDistanceMeters(a: LngLat, b: LngLat): number {
   const toRad = (deg: number) => (deg * Math.PI) / 180;
   const earthRadius = 6371000;
@@ -55,4 +75,106 @@ export function getPointOnRouteByDistance(
     remaining -= segmentDistance;
   }
   return coords[coords.length - 1];
+}
+
+/** LineString 꼭짓점마다 시작점부터의 누적 거리(m). `cum[0] === 0`. */
+export function buildVertexCumulativeMeters(geometry: LineStringGeometry): number[] {
+  const coords = geometry.coordinates as LngLat[];
+  if (!coords.length) return [];
+  const cum: number[] = [0];
+  for (let i = 1; i < coords.length; i += 1) {
+    const d = getDistanceMeters(coords[i - 1], coords[i]);
+    cum.push(cum[i - 1] + d);
+  }
+  return cum;
+}
+
+/** 경로 전장(m). */
+export function lineStringLengthMeters(geometry: LineStringGeometry): number {
+  const cum = buildVertexCumulativeMeters(geometry);
+  return cum.length ? cum[cum.length - 1] : 0;
+}
+
+/**
+ * 경로를 `intervalMeters` 간격으로 재샘플한 LineString(시종점 유지).
+ * Mapillary Graph 샘플링 등 “경로상 촘촘한 질의용”에 사용.
+ */
+export function densifyLineStringByIntervalM(
+  geometry: LineStringGeometry,
+  intervalMeters: number,
+): LineStringGeometry {
+  const coords = geometry.coordinates as LngLat[];
+  if (coords.length < 2) {
+    return { type: "LineString", coordinates: [...coords] };
+  }
+  const total = lineStringLengthMeters(geometry);
+  if (total <= 0) {
+    return { type: "LineString", coordinates: [...coords] };
+  }
+  const step = Math.max(1, intervalMeters);
+  const out: LngLat[] = [];
+  for (let d = 0; d < total; d += step) {
+    const p = getPointOnRouteByDistance(geometry, d);
+    if (p) out.push(p);
+  }
+  const end = coords[coords.length - 1];
+  const last = out[out.length - 1];
+  if (!last || getDistanceMeters(last, end) > 0.5) {
+    out.push(end);
+  }
+  return { type: "LineString", coordinates: out };
+}
+
+/**
+ * `distanceMeters`가 위치하는 정점 구간에서, 시작점 기준 거리가 `distanceMeters` 이하인
+ * **가장 큰 정점 인덱스**(이진 탐색). `cum`은 `buildVertexCumulativeMeters` 결과.
+ */
+export function distanceMetersToVertexIndexAtOrBefore(cum: readonly number[], distanceMeters: number): number {
+  if (cum.length === 0) return 0;
+  const d = Math.max(0, distanceMeters);
+  let lo = 0;
+  let hi = cum.length - 1;
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi) / 2);
+    if (cum[mid] <= d) lo = mid;
+    else hi = mid - 1;
+  }
+  return lo;
+}
+
+/** 북 기준 시계방위각(0~360). */
+export function bearingDegrees(from: LngLat, to: LngLat): number {
+  const φ1 = (from[1] * Math.PI) / 180;
+  const φ2 = (to[1] * Math.PI) / 180;
+  const Δλ = ((to[0] - from[0]) * Math.PI) / 180;
+  const y = Math.sin(Δλ) * Math.cos(φ2);
+  const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+  const θ = Math.atan2(y, x);
+  return ((θ * 180) / Math.PI + 360) % 360;
+}
+
+/** 경로상 `distanceMeters`에서 소량 전방 구간의 진행 방위(도). */
+export function driveHeadingAtDistanceMeters(
+  geometry: LineStringGeometry,
+  distanceMeters: number,
+  lookaheadMeters = 14,
+): number | null {
+  const total = lineStringLengthMeters(geometry);
+  if (total <= 0) return null;
+  const a = getPointOnRouteByDistance(geometry, Math.min(distanceMeters, total));
+  const b = getPointOnRouteByDistance(geometry, Math.min(distanceMeters + lookaheadMeters, total));
+  if (!a || !b) return null;
+  if (getDistanceMeters(a, b) < 1) return null;
+  return bearingDegrees(a, b);
+}
+
+/** 경로를 따라 `startDistanceMeters`에서 `aheadMeters`만큼 앞 지점(캡). */
+export function pathPointAheadAlongLineString(
+  geometry: LineStringGeometry,
+  startDistanceMeters: number,
+  aheadMeters: number,
+): LngLat | null {
+  const total = lineStringLengthMeters(geometry);
+  if (total <= 0) return null;
+  return getPointOnRouteByDistance(geometry, Math.min(total, startDistanceMeters + aheadMeters));
 }

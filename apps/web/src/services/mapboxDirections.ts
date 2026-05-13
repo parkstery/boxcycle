@@ -1,5 +1,5 @@
 import type { User } from "firebase/auth";
-import { httpsCallable, type Functions } from "firebase/functions";
+import type { Functions } from "firebase/functions";
 import type { LineStringGeometry, LngLat } from "../lib/geo";
 
 export type RouteProfile = "cycling" | "driving" | "walking";
@@ -15,11 +15,11 @@ export type DirectionsRoute = {
  *   `apps/web/.env.local` 에 `VITE_DIRECTIONS_DIRECT=1` 을 두면
  *   브라우저가 Mapbox Directions REST 를 직접 호출합니다.
  *
- * 배경: Cloud Functions Gen2(Cloud Run) 의 Invoker 가 `allUsers` 가 아니면
- *       CORS preflight(OPTIONS) 가 403 으로 막혀 Callable 호출이 실패합니다.
- *       Firebase 측 정상화 전까지 개발 진행을 막지 않기 위한 *임시* 플래그입니다.
+ * 배경: Gen2 `httpsCallable` 은 Cloud Run Invoker 가 비공개일 때 OPTIONS 가 403 으로 막힐 수 있다.
+ *       서버는 `onRequest` + `invoker: "public"` 으로 해결하고, 웹은 Callable 과 동일한 JSON 으로 POST 한다.
+ *       그래도 막히면 이 플래그로 Mapbox REST 직접 호출(임시 우회)이 가능하다.
  *
- * 기본값(미설정/0/false)은 기존 아키텍처(Callable 경유) 유지.
+ * 기본값(미설정/0/false)은 HTTPS 함수 `getMapboxDirections`(Callable 호환 JSON) 경유.
  * Firebase 가 정상화되면 `.env.local` 에서 이 줄만 지우면 즉시 원복됩니다.
  *
  * 주의: direct 모드는 `VITE_MAPBOX_ACCESS_TOKEN(pk.)` 을 네트워크 탭에 노출합니다.
@@ -53,18 +53,73 @@ function normalizeRoute(data: {
   };
 }
 
+/** 서버 `HttpsError.toJSON().status`(대문자 스네이크) → 클라이언트 `FirebaseError.code` 근사치 */
+function wireStatusToFunctionsCode(status: string | undefined): string | undefined {
+  if (!status) return undefined;
+  const map: Record<string, string> = {
+    UNAUTHENTICATED: "functions/unauthenticated",
+    NOT_FOUND: "functions/not-found",
+    INVALID_ARGUMENT: "functions/invalid-argument",
+    INTERNAL: "functions/internal",
+    FAILED_PRECONDITION: "functions/failed-precondition",
+    UNAVAILABLE: "functions/unavailable",
+    PERMISSION_DENIED: "functions/permission-denied",
+  };
+  return map[status] ?? "functions/internal";
+}
+
 async function fetchRouteCallable(
   functions: Functions,
+  user: User,
   start: LngLat,
   end: LngLat,
   profile: RouteProfile,
 ): Promise<DirectionsRoute> {
-  const callable = httpsCallable<
-    { start: LngLat; end: LngLat; profile: RouteProfile },
-    DirectionsRoute
-  >(functions, "getMapboxDirections");
-  const result = await callable({ start, end, profile });
-  return normalizeRoute(result.data ?? {});
+  void functions;
+  const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID?.trim();
+  const region = import.meta.env.VITE_FUNCTIONS_REGION?.trim() || "asia-northeast3";
+  if (!projectId) {
+    throw new Error(
+      "VITE_FIREBASE_PROJECT_ID 가 비어 있어 getMapboxDirections URL 을 만들 수 없습니다. apps/web/.env 를 확인하세요.",
+    );
+  }
+  const url = `https://${region}-${projectId}.cloudfunctions.net/getMapboxDirections`;
+  const idToken = await user.getIdToken();
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${idToken}`,
+    },
+    body: JSON.stringify({ data: { start, end, profile } }),
+  });
+  let json: {
+    result?: { geometry?: unknown; distance?: unknown; duration?: unknown };
+    error?: { message?: string; status?: string };
+  };
+  try {
+    json = (await res.json()) as {
+      result?: { geometry?: unknown; distance?: unknown; duration?: unknown };
+      error?: { message?: string; status?: string };
+    };
+  } catch {
+    throw new Error(`경로 계산 응답을 해석할 수 없습니다. (HTTP ${res.status})`);
+  }
+  if (json.error) {
+    const err = new Error(json.error.message ?? "경로 계산에 실패했습니다.");
+    (err as { code?: string }).code = wireStatusToFunctionsCode(json.error.status);
+    throw err;
+  }
+  if (!res.ok) {
+    throw new Error(`경로 계산 요청이 거부되었습니다. (HTTP ${res.status})`);
+  }
+  return normalizeRoute(
+    (json.result ?? {}) as {
+      geometry?: { type?: string; coordinates?: unknown };
+      distance?: unknown;
+      duration?: unknown;
+    },
+  );
 }
 
 async function fetchRouteDirect(
@@ -113,7 +168,7 @@ async function fetchRouteDirect(
 }
 
 /**
- * Mapbox Directions 는 기본적으로 Cloud Functions Callable(`getMapboxDirections`) 을 사용합니다.
+ * Mapbox Directions 는 기본적으로 Cloud Functions HTTPS `getMapboxDirections`(Callable 호환 JSON) 을 사용합니다.
  * 브라우저 네트워크에 Mapbox REST `access_token` 이 노출되지 않습니다.
  * 지도 타일(Mapbox GL)용 pk. 토큰은 별도(`VITE_MAPBOX_ACCESS_TOKEN`) 입니다.
  *
@@ -121,16 +176,15 @@ async function fetchRouteDirect(
  */
 export async function fetchRouteByProfile(
   functions: Functions,
-  _user: User,
+  user: User,
   start: LngLat,
   end: LngLat,
   profile: RouteProfile,
 ): Promise<DirectionsRoute> {
-  void _user;
   if (DIRECT_DIRECTIONS) {
     return fetchRouteDirect(start, end, profile);
   }
-  return fetchRouteCallable(functions, start, end, profile);
+  return fetchRouteCallable(functions, user, start, end, profile);
 }
 
 export function formatDuration(totalSeconds: number): string {

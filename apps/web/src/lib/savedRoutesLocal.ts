@@ -8,6 +8,7 @@ import {
   type SavedRoute,
   type SaveRouteInput,
 } from "./firestoreSavedRoutes";
+import { computeRouteFingerprint } from "./routeFingerprint";
 
 const STORAGE_KEY = "boxcycle_web_saved_routes_v1";
 
@@ -87,7 +88,7 @@ export function loadSavedRoutesFromLocal(): SavedRoute[] {
   );
 }
 
-export function saveRouteToLocal(input: {
+export async function saveRouteToLocal(input: {
   name: string;
   profile: RouteProfile;
   startLngLat: LngLat;
@@ -95,9 +96,18 @@ export function saveRouteToLocal(input: {
   geometry: LineStringGeometry;
   distanceMeters: number;
   durationSec: number;
-}): SavedRoute {
+}): Promise<SavedRoute> {
   const name = validateSavedRouteName(input.name);
   validateGeometryLocal(input.geometry);
+  const fp = await computeRouteFingerprint(input.geometry, input.profile);
+  for (const existing of readAll()) {
+    const efp = await computeRouteFingerprint(existing.geometry, existing.profile);
+    if (efp === fp) {
+      throw new SavedRouteValidationError(
+        "이미 동일한 경로와 이동 수단으로 저장된 코스가 있습니다. 이름만 다른 중복 저장은 할 수 없습니다.",
+      );
+    }
+  }
   const now = new Date();
   const nowIso = now.toISOString();
   const item: SavedRoute = {

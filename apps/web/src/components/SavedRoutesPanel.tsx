@@ -22,6 +22,10 @@ export type SavedRoutesPanelProps = {
   guestNotice: boolean;
   /** 세션이 idle 일 때만 불러오기·삭제 허용 */
   sessionIdle: boolean;
+  /** 공개 등록 심사 중인 savedRouteId (Firestore 신청 기준) */
+  pendingPublicRouteIds?: ReadonlySet<string>;
+  /** 로그인 사용자: 완주 경로 퍼블릭 신청 모달 열기(게스트는 동일 라벨 비활성 버튼만 표시) */
+  onOpenPublicRequest?: (route: SavedRoute) => void;
   onLoadRoute: (route: SavedRoute) => void;
   onRenameRoute: (route: SavedRoute, newName: string) => Promise<void> | void;
   onDeleteRoute: (route: SavedRoute) => Promise<void> | void;
@@ -250,6 +254,41 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                       </span>
                     </p>
                     <div className="saved-routes__row-actions">
+                      {route.completed === 1 ? (
+                        props.guestNotice ? (
+                          <button
+                            type="button"
+                            className="saved-routes__btn saved-routes__btn--accent"
+                            disabled
+                            title="Google 계정으로 로그인하면 퍼블릭 신청을 할 수 있습니다"
+                          >
+                            퍼블릭 신청
+                          </button>
+                        ) : props.onOpenPublicRequest ? (
+                          props.pendingPublicRouteIds?.has(route.id) ? (
+                            <span
+                              className="saved-routes__badge saved-routes__badge--pending"
+                              title="관리자 승인 대기 중입니다"
+                            >
+                              공개 심사 중
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              className="saved-routes__btn saved-routes__btn--accent"
+                              disabled={isBusy || !props.sessionIdle}
+                              title={
+                                props.sessionIdle
+                                  ? "완주 경로를 다른 이용자에게 공개하도록 신청합니다"
+                                  : "주행 종료 후 신청할 수 있습니다"
+                              }
+                              onClick={() => props.onOpenPublicRequest?.(route)}
+                            >
+                              퍼블릭 신청
+                            </button>
+                          )
+                        ) : null
+                      ) : null}
                       <button
                         type="button"
                         className="saved-routes__btn saved-routes__btn--primary"

@@ -1,10 +1,15 @@
 import {
   Timestamp,
+  collection,
   doc,
   getDoc,
+  getDocs,
   getFirestore,
+  limit,
+  query,
   serverTimestamp,
   setDoc,
+  where,
 } from "firebase/firestore";
 import { getFirebaseApp } from "./firebase";
 import { getDistanceMeters, type LineStringGeometry, type LngLat } from "./geo";
@@ -31,10 +36,24 @@ export type CourseDoc = {
     maxLng: number;
     maxLat: number;
   };
-  geometry: {
+  /**
+   * Firestore 는 `[[lng,lat], ...]` 처럼 배열의 배열을 필드로 저장할 수 없음.
+   * DB에는 `geometryCoordsJson` 만 쓰고, 내장 BASIC_COURSES 등 로컬 상수에는 `geometry` 만 둘 수 있음.
+   */
+  geometryCoordsJson?: string;
+  geometry?: {
     type: "LineString";
     coordinates: LngLat[];
   };
+  /** Rules 공개 읽기 게이트 (`firestore.rules` 의 courses read 와 동기) */
+  visibility?: "public" | "unlisted" | "private";
+  lifecycleStage?: string;
+  sourcePublicRouteRequestId?: string;
+  sourceSavedRouteId?: string;
+  applicantUid?: string;
+  experienceTags?: string[];
+  /** 동일 퍼블릭/신청 중복 방지 (SHA-256 hex 64) */
+  routeFingerprint?: string;
   /** 상시 입문 허브(공개 읽기·동시 주행 presence 등) */
   isSharedStartHub?: boolean;
   /** Firestore Rules에서 coursePresence 허용 여부 판별 (입문 허브 등 true) */
@@ -64,7 +83,22 @@ export type CourseRoutePayload = {
   geometry: LineStringGeometry;
   distanceMeters: number;
   durationSec: number;
+  profile: CourseProfile;
 };
+
+/** 공개·게시된 퍼블릭 코스 목록(패널용 요약) */
+export type PublishedPublicCourseSummary = {
+  id: string;
+  title: string;
+  profile: CourseProfile;
+  distanceMeters: number;
+  durationSec: number;
+};
+
+function parseCourseProfile(raw: Record<string, unknown>): CourseProfile {
+  const p = raw.profile;
+  return p === "cycling" || p === "driving" || p === "walking" ? p : "cycling";
+}
 
 function isLngLatPair(v: unknown): v is LngLat {
   return (
@@ -77,17 +111,42 @@ function isLngLatPair(v: unknown): v is LngLat {
   );
 }
 
+function coordinatesFromGeometryCoordsJson(json: string): LngLat[] | null {
+  try {
+    const coords = JSON.parse(json) as unknown;
+    if (!Array.isArray(coords) || coords.length < 2) return null;
+    const out: LngLat[] = [];
+    for (const c of coords) {
+      if (!isLngLatPair(c)) return null;
+      out.push(c);
+    }
+    return out;
+  } catch {
+    return null;
+  }
+}
+
 function parseCourseRoutePayload(id: string, raw: Record<string, unknown>): CourseRoutePayload | null {
   const title = typeof raw.title === "string" ? raw.title : null;
-  const geom = raw.geometry as Record<string, unknown> | undefined;
-  const coords = geom?.coordinates;
-  if (!title || geom?.type !== "LineString" || !Array.isArray(coords)) return null;
-  const coordinates: LngLat[] = [];
-  for (const c of coords) {
-    if (!isLngLatPair(c)) return null;
-    coordinates.push(c);
+  if (!title) return null;
+
+  let coordinates: LngLat[] | null = null;
+  const jsonField = raw.geometryCoordsJson;
+  if (typeof jsonField === "string" && jsonField.length > 0) {
+    coordinates = coordinatesFromGeometryCoordsJson(jsonField);
+  }
+  if (!coordinates) {
+    const geom = raw.geometry as Record<string, unknown> | undefined;
+    const coords = geom?.coordinates;
+    if (geom?.type !== "LineString" || !Array.isArray(coords)) return null;
+    coordinates = [];
+    for (const c of coords) {
+      if (!isLngLatPair(c)) return null;
+      coordinates.push(c);
+    }
   }
   if (coordinates.length < 2) return null;
+
   const distanceMeters = typeof raw.distanceMeters === "number" ? raw.distanceMeters : Number.NaN;
   const durationSec = typeof raw.durationSec === "number" ? raw.durationSec : Number.NaN;
   if (!Number.isFinite(distanceMeters) || !Number.isFinite(durationSec)) return null;
@@ -97,6 +156,7 @@ function parseCourseRoutePayload(id: string, raw: Record<string, unknown>): Cour
     geometry: { type: "LineString", coordinates },
     distanceMeters,
     durationSec,
+    profile: parseCourseProfile(raw),
   };
 }
 
@@ -147,13 +207,48 @@ export function getBasicHubCoursePayload(courseId: string): CourseRoutePayload {
   if (!course) {
     throw new Error(`BASIC_COURSES 에 없는 courseId: ${courseId}`);
   }
+  const geom = course.geometry;
+  if (!geom?.coordinates?.length) {
+    throw new Error(`BASIC_COURSES 코스에 geometry 가 없습니다: ${courseId}`);
+  }
   return {
     id: course.id,
     title: course.title,
-    geometry: { type: "LineString", coordinates: [...course.geometry.coordinates] },
+    geometry: { type: "LineString", coordinates: [...geom.coordinates] },
     distanceMeters: course.distanceMeters,
     durationSec: course.durationSec,
+    profile: course.profile ?? "cycling",
   };
+}
+
+/**
+ * 심사 승인 등으로 등록된 퍼블릭 코스(`category`·`visibility`·`status` 일치) 목록.
+ * Firestore 복합 쿼리 인덱스 필요 — `firestore.indexes.json` 참고.
+ */
+export async function listPublishedPublicCourses(max = 40): Promise<PublishedPublicCourseSummary[]> {
+  const db = getFirestore(getFirebaseApp());
+  const qy = query(
+    collection(db, "courses"),
+    where("category", "==", "public"),
+    where("visibility", "==", "public"),
+    where("status", "==", "published"),
+    limit(Math.min(80, Math.max(1, max))),
+  );
+  const snap = await getDocs(qy);
+  const rows: PublishedPublicCourseSummary[] = [];
+  for (const d of snap.docs) {
+    const data = d.data() as Record<string, unknown>;
+    if (typeof data.title !== "string" || data.title.length < 1) continue;
+    rows.push({
+      id: d.id,
+      title: data.title,
+      profile: parseCourseProfile(data),
+      distanceMeters: typeof data.distanceMeters === "number" ? data.distanceMeters : 0,
+      durationSec: typeof data.durationSec === "number" ? data.durationSec : 0,
+    });
+  }
+  rows.sort((a, b) => a.title.localeCompare(b.title, "ko"));
+  return rows;
 }
 
 export function getBasicStartCourseStatic(): CourseRoutePayload {
@@ -402,8 +497,11 @@ export async function ensureBasicCoursesSeeded(currentUserId: string): Promise<v
     const snap = await getDoc(ref);
     if (snap.exists()) continue;
     const now = serverTimestamp();
+    const { geometry, ...courseRest } = course;
+    if (!geometry) continue;
     await setDoc(ref, {
-      ...course,
+      ...courseRest,
+      geometryCoordsJson: JSON.stringify(geometry.coordinates),
       createdBy: currentUserId || "system",
       createdAt: now,
       updatedAt: now,

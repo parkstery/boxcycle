@@ -1,12 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { User } from "firebase/auth";
 import type { RouteProfile } from "../services/mapboxDirections";
 import { formatDuration } from "../services/mapboxDirections";
+import type { PublishedPublicCourseSummary } from "../lib/firestoreCourses";
 import type { RideSessionStatus } from "../hooks/useVirtualRideSession";
 import type { StoredRideSession } from "../lib/rideSessionsStorage";
 import type { SavedRoute } from "../lib/firestoreSavedRoutes";
 import { SAVED_ROUTE_NAME_MAX } from "../lib/firestoreSavedRoutes";
+import type { CoverageOverlayMode } from "../lib/coverageOverlayMode";
+import { COVERAGE_OVERLAY_OPTIONS } from "../lib/coverageOverlayMode";
 import { SavedRoutesPanel } from "./SavedRoutesPanel";
 import { RideHistoryPanel } from "./RideHistoryPanel";
+import { AdminPublicRouteQueue } from "./AdminPublicRouteQueue";
 import "./RideRoutePanel.css";
 
 export type FollowMode =
@@ -26,6 +31,8 @@ type RideRoutePanelProps = {
   routeSummary: string;
   routeLoading: boolean;
   onGenerateRoute: () => void;
+  /** 공식 코스를 불러온 뒤에는 출발·도착 맞춤 「경로 생성」을 막음 */
+  officialCourseActive?: boolean;
   mapStyle: string;
   mapStyleOptions: { value: string; label: string }[];
   onMapStyle: (style: string) => void;
@@ -35,6 +42,11 @@ type RideRoutePanelProps = {
   onEnable3D: (enabled: boolean) => void;
   mapZoom: number;
   onMapZoom: (zoom: number) => void;
+  /** Mapbox Streets 기반 라우터블·Mapillary 시퀀스 커버리지 */
+  coverageOverlayMode: CoverageOverlayMode;
+  onCoverageOverlayMode: (mode: CoverageOverlayMode) => void;
+  /** Mapillary 토큰 없을 때 Mapillary·복합 모드 비활성 안내 */
+  mapillaryTokenConfigured: boolean;
   hasRoute: boolean;
   speedKmh: number;
   onSpeedKmh: (n: number) => void;
@@ -51,6 +63,11 @@ type RideRoutePanelProps = {
   basicActiveHubCourseId: string | null;
   basicStartLoading: boolean;
   basicStartHubJoined: boolean;
+  /** Firestore 사용 시 퍼블릭 코스 목록 조회 가능 */
+  officialCourseCatalogAvailable: boolean;
+  publishedPublicCourses: PublishedPublicCourseSummary[];
+  publishedPublicCoursesLoading: boolean;
+  publishedPublicCoursesError: string | null;
   authGuest: boolean;
   onEnterBasicHub: (courseId: string) => void;
   onLeaveBasicHub: () => void;
@@ -72,9 +89,24 @@ type RideRoutePanelProps = {
   onDismissAdhocSave: () => void;
   /** 「주행 기록」 탭 렌더에 필요한 사용자 ID (null = 게스트/미로그인) */
   rideHistoryUserId: string | null;
+  /** 공개 경로 심사자 — 설정 시 「심사」 탭 표시 */
+  isPublicRouteReviewer?: boolean;
+  publicRouteReviewUser?: User | null;
+  publicRouteReviewQueueCount?: number;
+  onPublicRouteReviewQueueChanged?: () => void;
+  pendingPublicRouteIds?: ReadonlySet<string>;
+  onOpenPublicRequest?: (route: SavedRoute) => void;
 };
 
-type Tab = "route" | "saved" | "history";
+type Tab = "route" | "saved" | "history" | "publicReview";
+
+type OfficialCourseSegment = "intro" | "public" | "event";
+
+function profileLabelKo(p: RouteProfile): string {
+  if (p === "walking") return "도보";
+  if (p === "driving") return "자동차";
+  return "자전거";
+}
 
 export function RideRoutePanel(props: RideRoutePanelProps) {
   const [tab, setTab] = useState<Tab>("route");
@@ -87,6 +119,13 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
   const [adhocSaveDraft, setAdhocSaveDraft] = useState("");
   const [adhocSaveBusy, setAdhocSaveBusy] = useState(false);
   const [adhocSaveError, setAdhocSaveError] = useState<string | null>(null);
+  const [officialSegment, setOfficialSegment] = useState<OfficialCourseSegment>("intro");
+
+  useEffect(() => {
+    if (tab === "publicReview" && !props.isPublicRouteReviewer) {
+      setTab("route");
+    }
+  }, [tab, props.isPublicRouteReviewer]);
 
   const sessionLabel =
     props.sessionStatus === "idle"
@@ -174,9 +213,49 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
         >
           주행 기록
         </button>
+        {props.isPublicRouteReviewer && props.publicRouteReviewUser ? (
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === "publicReview"}
+            className={`ride-panel__tab ${tab === "publicReview" ? "is-active" : ""}`}
+            onClick={() => setTab("publicReview")}
+          >
+            공개 심사
+            {(props.publicRouteReviewQueueCount ?? 0) > 0 ? (
+              <span className="ride-panel__tab-badge">{props.publicRouteReviewQueueCount}</span>
+            ) : null}
+          </button>
+        ) : null}
       </div>
 
-      {tab === "saved" ? (
+      {tab === "publicReview" && props.publicRouteReviewUser ? (
+        <>
+          <div className="ride-panel__saved-head">
+            <h2 className="ride-panel__h ride-panel__h--inline">공개 경로 심사</h2>
+            <button
+              type="button"
+              className="ride-panel__saved-close"
+              aria-label="심사 닫고 경로 화면으로"
+              title="경로 화면으로 돌아가기"
+              onClick={() => setTab("route")}
+            >
+              닫기
+            </button>
+          </div>
+          <AdminPublicRouteQueue
+            reviewer={props.publicRouteReviewUser}
+            onQueueChanged={() => props.onPublicRouteReviewQueueChanged?.()}
+          />
+          <button
+            type="button"
+            className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet ride-panel__saved-back"
+            onClick={() => setTab("route")}
+          >
+            경로 화면으로 돌아가기
+          </button>
+        </>
+      ) : tab === "saved" ? (
         <>
           <div className="ride-panel__saved-head">
             <h2 className="ride-panel__h ride-panel__h--inline">사용자 경로</h2>
@@ -195,6 +274,8 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             loading={props.savedRoutesLoading}
             guestNotice={props.authGuest}
             sessionIdle={props.sessionStatus === "idle"}
+            pendingPublicRouteIds={props.pendingPublicRouteIds}
+            onOpenPublicRequest={props.onOpenPublicRequest}
             onLoadRoute={(route) => {
               props.onLoadSavedRoute(route);
               setTab("route");
@@ -221,6 +302,45 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
           <h2 className="ride-panel__h">경로 설정</h2>
           <p className="ride-panel__help">지도 클릭 후 팝업에서 출발지/도착지를 선택하세요.</p>
 
+          <div className="ride-panel__official" aria-label="공식 코스">
+            <h3 className="ride-panel__official-title">공식 코스</h3>
+            <p className="ride-panel__official-lead">
+              운영·심사를 거친 코스입니다. 입문은 동시 주행 허브가 있고, 퍼블릭은 커뮤니티 제안이 승인된 루트입니다.
+            </p>
+            <div className="ride-panel__official-segments" role="tablist" aria-label="공식 코스 종류">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={officialSegment === "intro"}
+                className={`ride-panel__official-seg ${officialSegment === "intro" ? "is-active" : ""}`}
+                onClick={() => setOfficialSegment("intro")}
+              >
+                입문
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={officialSegment === "public"}
+                className={`ride-panel__official-seg ${officialSegment === "public" ? "is-active" : ""}`}
+                onClick={() => setOfficialSegment("public")}
+              >
+                퍼블릭
+                {props.publishedPublicCourses.length > 0 ? (
+                  <span className="ride-panel__official-seg-badge">{props.publishedPublicCourses.length}</span>
+                ) : null}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={officialSegment === "event"}
+                className={`ride-panel__official-seg ${officialSegment === "event" ? "is-active" : ""}`}
+                onClick={() => setOfficialSegment("event")}
+              >
+                이벤트
+              </button>
+            </div>
+
+            {officialSegment === "intro" ? (
           <div className="ride-panel__basic-start" aria-label="입문 상시 코스">
             <p className="ride-panel__basic-start-title">입문 코스 (상시 · 동시 주행)</p>
             <p className="ride-panel__basic-start-desc">
@@ -283,6 +403,70 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             ) : null}
           </div>
 
+            ) : officialSegment === "public" ? (
+              <div className="ride-panel__public-courses" aria-label="퍼블릭 코스">
+                {!props.officialCourseCatalogAvailable ? (
+                  <p className="ride-panel__public-courses-hint">
+                    Firebase 프로젝트가 연결되면 여기에서 퍼블릭 코스 목록을 불러옵니다.
+                  </p>
+                ) : props.publishedPublicCoursesLoading ? (
+                  <p className="ride-panel__public-courses-hint">목록 불러오는 중…</p>
+                ) : props.publishedPublicCoursesError ? (
+                  <p className="ride-panel__public-courses-error" role="alert">
+                    목록을 불러오지 못했습니다.{" "}
+                    <span className="ride-panel__public-courses-error-detail">
+                      {props.publishedPublicCoursesError}
+                    </span>
+                    {" · "}
+                    인덱스가 없으면{" "}
+                    <code className="ride-panel__inline-code">firebase deploy --only firestore</code> 후 콘솔 링크로
+                    복합 인덱스를 생성하세요.
+                  </p>
+                ) : props.publishedPublicCourses.length === 0 ? (
+                  <p className="ride-panel__public-courses-hint">
+                    아직 게시된 퍼블릭 코스가 없습니다. 공개 경로 심사 승인 후 이 목록에 나타납니다.
+                  </p>
+                ) : (
+                  <ul className="ride-panel__public-courses-list">
+                    {props.publishedPublicCourses.map((c) => (
+                      <li key={c.id} className="ride-panel__public-courses-item">
+                        <div className="ride-panel__public-courses-meta">
+                          <strong className="ride-panel__public-courses-name">{c.title}</strong>
+                          <span className="ride-panel__public-courses-sub">
+                            {profileLabelKo(c.profile)} · {(c.distanceMeters / 1000).toFixed(2)} km · 예상{" "}
+                            {formatDuration(c.durationSec)}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          className="ride-panel__btn-secondary ride-panel__btn-secondary--small"
+                          disabled={
+                            props.routeLoading ||
+                            props.basicStartLoading ||
+                            props.sessionStatus !== "idle"
+                          }
+                          onClick={() => props.onEnterBasicHub(c.id)}
+                        >
+                          불러오기
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <p className="ride-panel__public-courses-footnote">
+                  퍼블릭 코스는 입문 허브와 달리 <strong>동시 주행(presence) 방</strong>에 자동으로 들어가지 않습니다.
+                </p>
+              </div>
+            ) : (
+              <div className="ride-panel__event-placeholder" aria-label="이벤트 코스">
+                <p className="ride-panel__event-placeholder-text">
+                  <strong>이벤트·챌린지 코스</strong>는 향후 도입 예정입니다. 기간 한정 루트·랭킹·미션 등이 이 탭에
+                  모일 계획입니다.
+                </p>
+              </div>
+            )}
+          </div>
+
           <div className="ride-panel__point-box">
             <p className="ride-panel__point-label">출발지</p>
             <p className="ride-panel__point-value">{props.startLabel}</p>
@@ -320,7 +504,15 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
           <button
             type="button"
             className="ride-panel__btn-primary"
-            disabled={props.routeLoading}
+            disabled={
+              props.routeLoading ||
+              Boolean(props.officialCourseActive)
+            }
+            title={
+              props.officialCourseActive
+                ? "공식 코스를 불러온 상태입니다. 출발지·도착지를 지도에서 바꾼 뒤 맞춤 경로를 만들 수 있습니다."
+                : undefined
+            }
             onClick={() => void props.onGenerateRoute()}
           >
             {props.routeLoading ? "경로 계산 중…" : "경로 생성"}
@@ -398,6 +590,44 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               </option>
             ))}
           </select>
+
+          <div className="ride-panel__modes ride-panel__modes--coverage">
+            <span className="ride-panel__label-inline">노선 커버리지</span>
+            <div className="ride-panel__mode-btns ride-panel__mode-btns--compact">
+              {COVERAGE_OVERLAY_OPTIONS.map((opt) => {
+                const needsMly = opt.value === "mapillary" || opt.value === "both";
+                const disabled = needsMly && !props.mapillaryTokenConfigured;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    title={
+                      disabled
+                        ? "Mapillary 클라이언트 토큰이 필요합니다(VITE_MAPILLARY_CLIENT_TOKEN)"
+                        : opt.value === "osrm" || opt.value === "both"
+                          ? "Mapbox Streets 도로 클래스(자전거·도로 등) — OSRM 그래프와 동일하지 않을 수 있음"
+                          : "Mapillary 촬영 시퀀스"
+                    }
+                    className={`ride-panel__mode ride-panel__mode--compact ${
+                      props.coverageOverlayMode === opt.value ? "is-active" : ""
+                    }`}
+                    disabled={disabled}
+                    onClick={() => {
+                      if (!disabled) props.onCoverageOverlayMode(opt.value);
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            {!props.mapillaryTokenConfigured ? (
+              <p className="ride-panel__help ride-panel__help--tight">
+                Mapillary 표시는 <code className="inline">VITE_MAPILLARY_CLIENT_TOKEN</code> 설정 시 사용할 수
+                있습니다.
+              </p>
+            ) : null}
+          </div>
 
           <div className="ride-panel__modes">
             <span className="ride-panel__label-inline">카메라 추적</span>

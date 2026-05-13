@@ -1,4 +1,4 @@
-import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import type { FirebaseError } from "firebase/app";
 import type { User } from "firebase/auth";
 import {
@@ -17,6 +17,7 @@ import { LobbyPresence } from "./components/LobbyPresence";
 import { MapView, type MapPeerMarker } from "./components/MapView";
 import { SignUpNicknameCard } from "./components/SignUpNicknameCard";
 import { RideRoutePanel, type FollowMode } from "./components/RideRoutePanel";
+import { PublicRouteRequestModal } from "./components/PublicRouteRequestModal";
 import { getFirebaseApp, getFirebaseAuth, isFirebaseConfigured } from "./lib/firebase";
 import {
   BASIC_SHARED_HUB_IDS,
@@ -24,8 +25,10 @@ import {
   ensureBasicCoursesSeeded,
   fetchCourseRoutePayload,
   getBasicHubCoursePayload,
+  listPublishedPublicCourses,
   matchBasicSharedHubCourseId,
   routeGeometryMatchesBasicSharedHub,
+  type PublishedPublicCourseSummary,
 } from "./lib/firestoreCourses";
 import { deleteCoursePresence } from "./lib/firestoreCoursePresence";
 import { deleteLobbyPresence, sanitizeRoomId } from "./lib/firestoreLobby";
@@ -44,6 +47,13 @@ import {
   saveRouteToFirestore,
   type SavedRoute,
 } from "./lib/firestoreSavedRoutes";
+import {
+  createPublicRouteRequest,
+  isRouteReviewer,
+  loadMyPendingRequestRouteIds,
+  loadPendingPublicRouteRequests,
+  type ExperienceTagId,
+} from "./lib/publicRouteRequests";
 import {
   clearSavedRoutesLocal,
   deleteSavedRouteFromLocal,
@@ -68,6 +78,14 @@ import {
 } from "./lib/firestoreUser";
 import { isValidNickname } from "./lib/nickname";
 import { useVirtualRideSession } from "./hooks/useVirtualRideSession";
+import { useRideMapillaryStreet } from "./hooks/useRideMapillaryStreet";
+import { MAPILLARY_CLIENT_TOKEN, mapillaryTokenConfigured } from "./lib/mapillaryToken";
+import type { CoverageOverlayMode } from "./lib/coverageOverlayMode";
+
+const MapillaryRideViewer = lazy(async () => {
+  const m = await import("./components/MapillaryRideViewer");
+  return { default: m.MapillaryRideViewer };
+});
 import { fetchRouteByProfile, formatDuration, type RouteProfile } from "./services/mapboxDirections";
 import { getFunctions } from "firebase/functions";
 import "./App.css";
@@ -119,6 +137,7 @@ export default function App() {
   const [followMode, setFollowMode] = useState<FollowMode>("keep");
   const [enable3D, setEnable3D] = useState(true);
   const [speedKmh, setSpeedKmh] = useState(25);
+  const [coverageOverlayMode, setCoverageOverlayMode] = useState<CoverageOverlayMode>("off");
   const [recentSessions, setRecentSessions] = useState<StoredRideSession[]>(() =>
     loadRideSessions(),
   );
@@ -127,6 +146,14 @@ export default function App() {
     loadSavedRoutesFromLocal(),
   );
   const [savedRoutesLoading, setSavedRoutesLoading] = useState(false);
+  const [publicRouteRequestModalRoute, setPublicRouteRequestModalRoute] = useState<SavedRoute | null>(null);
+  const [isPublicRouteReviewer, setIsPublicRouteReviewer] = useState(false);
+  const [pendingPublicRouteIds, setPendingPublicRouteIds] = useState<ReadonlySet<string>>(() => new Set());
+  const [publicRouteReviewQueueCount, setPublicRouteReviewQueueCount] = useState(0);
+  /** 심사 승인된 퍼블릭 코스 카탈로그(공식 코스 · 퍼블릭 탭) */
+  const [publishedPublicCourses, setPublishedPublicCourses] = useState<PublishedPublicCourseSummary[]>([]);
+  const [publishedPublicCoursesLoading, setPublishedPublicCoursesLoading] = useState(false);
+  const [publishedPublicCoursesError, setPublishedPublicCoursesError] = useState<string | null>(null);
   /**
    * 도착 시 3초간 표시되는 토스트. 매 도착마다 tick 을 증가시켜 동일 toast 가 다시 떠도
    * setTimeout 이 갱신되도록 한다(useEffect dependency 변화 강제).
@@ -136,6 +163,8 @@ export default function App() {
   /** 입문 허브 동시 주행에 참여 중인 코스 document id(null 이면 미참여) */
   const [basicActiveHubCourseId, setBasicActiveHubCourseId] = useState<string | null>(null);
   const [basicStartLoading, setBasicStartLoading] = useState(false);
+  /** 지도에 올라온 경로가 공식 코스(입문 허브·퍼블릭 등)에서 온 경우 — 맞춤 「경로 생성」 비활성에 사용 */
+  const [activeOfficialCourseId, setActiveOfficialCourseId] = useState<string | null>(null);
   const basicStartHubJoined = basicActiveHubCourseId !== null;
   const [coursePeerMarkers, setCoursePeerMarkers] = useState<MapPeerMarker[]>([]);
   /** 입문 허브 동행에서 계산된 내 네임태그(없으면 단독 주행용 표시로 대체) */
@@ -150,9 +179,9 @@ export default function App() {
   /**
    * 현재 지도에 로드되어 있는 사용자 경로(SavedRoute) ID.
    * - `handleLoadSavedRoute` 호출 시 채워지고
+   * - `handleSaveCurrentRoute` 로 방금 저장한 경로를 지도에 그대로 두고 주행할 때도 채워진다(완주 격상 대상).
    * - 새 경로 탐색 / 출발-도착 변경 / 입문 코스 진입 시 null 로 리셋
    * - `handleEndRide` 에서 이 값이 있으면 → 격상(completed=1) 처리
-   * Ref 로 관리하는 이유: 격상은 종료 1회 이벤트라 렌더 사이클과 무관하고, useEffect 의존성 충돌을 피함.
    */
   const loadedSavedRouteIdRef = useRef<string | null>(null);
   /**
@@ -386,6 +415,60 @@ export default function App() {
     return avg.toFixed(1);
   }, [rideMetrics.accumulatedMs, rideMetrics.virtualDistanceMeters]);
 
+  const refreshPublishedPublicCourseCatalog = useCallback(async () => {
+    if (!configured) {
+      setPublishedPublicCourses([]);
+      setPublishedPublicCoursesError(null);
+      setPublishedPublicCoursesLoading(false);
+      return;
+    }
+    setPublishedPublicCoursesLoading(true);
+    setPublishedPublicCoursesError(null);
+    try {
+      const rows = await listPublishedPublicCourses(50);
+      setPublishedPublicCourses(rows);
+    } catch (e: unknown) {
+      setPublishedPublicCourses([]);
+      const msg = e instanceof Error ? e.message : String(e);
+      setPublishedPublicCoursesError(msg);
+    } finally {
+      setPublishedPublicCoursesLoading(false);
+    }
+  }, [configured]);
+
+  useEffect(() => {
+    void refreshPublishedPublicCourseCatalog();
+  }, [refreshPublishedPublicCourseCatalog]);
+
+  const refreshPublicRouteMeta = useCallback(async () => {
+    if (!configured || !user) {
+      setIsPublicRouteReviewer(false);
+      setPendingPublicRouteIds(new Set());
+      setPublicRouteReviewQueueCount(0);
+      return;
+    }
+    try {
+      const rev = await isRouteReviewer(user);
+      setIsPublicRouteReviewer(rev);
+      const mine = await loadMyPendingRequestRouteIds(user.uid);
+      setPendingPublicRouteIds(mine);
+      if (rev) {
+        const q = await loadPendingPublicRouteRequests();
+        setPublicRouteReviewQueueCount(q.length);
+      } else {
+        setPublicRouteReviewQueueCount(0);
+      }
+    } catch {
+      setIsPublicRouteReviewer(false);
+      setPendingPublicRouteIds(new Set());
+      setPublicRouteReviewQueueCount(0);
+    }
+  }, [configured, user]);
+
+  useEffect(() => {
+    void refreshPublicRouteMeta();
+  }, [refreshPublicRouteMeta]);
+
   /**
    * 사용자 경로 로딩: 로그인 사용자(익명 포함) 는 Firestore 사용.
    * 첫 진입 시 로컬에 남아있던 옛 데이터는 1회 마이그레이션 후 로컬을 비움.
@@ -440,11 +523,12 @@ export default function App() {
           console.warn("[savedRoutes] expiresAt 백필 실패(다음 진입 시 재시도)", e);
         }
       }
+      if (!cancelled) void refreshPublicRouteMeta();
     })();
     return () => {
       cancelled = true;
     };
-  }, [configured, user]);
+  }, [configured, user, refreshPublicRouteMeta]);
 
   /** 미로그인 상태(또는 Firebase 미설정)에서만 로컬 저장소 폴백(외부 소스→React 동기화). */
   useEffect(() => {
@@ -478,9 +562,15 @@ export default function App() {
       if (configured && user) {
         const saved = await saveRouteToFirestore({ ...baseInput, userId: user.uid });
         setSavedRoutes((prev) => [saved, ...prev]);
+        loadedSavedRouteIdRef.current = saved.id;
+        loadedSavedRouteNameRef.current = saved.name;
+        setLastEndedWasAdhoc(null);
       } else {
-        const saved = saveRouteToLocal(baseInput);
+        const saved = await saveRouteToLocal(baseInput);
         setSavedRoutes((prev) => [saved, ...prev]);
+        loadedSavedRouteIdRef.current = saved.id;
+        loadedSavedRouteNameRef.current = saved.name;
+        setLastEndedWasAdhoc(null);
       }
     },
     [
@@ -538,7 +628,7 @@ export default function App() {
         };
         setSavedRoutes((prev) => [promoted, ...prev]);
       } else {
-        const saved = saveRouteToLocal(base);
+        const saved = await saveRouteToLocal(base);
         promoteSavedRouteInLocal({
           routeId: saved.id,
           rideId: rideId ?? saved.id,
@@ -566,6 +656,7 @@ export default function App() {
       loadedSavedRouteIdRef.current = route.id;
       loadedSavedRouteNameRef.current = route.name;
       setLastEndedWasAdhoc(null);
+      setActiveOfficialCourseId(null);
       setRouteSummary(
         `「${route.name}」 불러옴 · 거리 ${(route.distanceMeters / 1000).toFixed(2)} km / 예상 ${formatDuration(route.durationSec)}`,
       );
@@ -589,6 +680,9 @@ export default function App() {
               : r,
           ),
         );
+        if (loadedSavedRouteIdRef.current === route.id) {
+          loadedSavedRouteNameRef.current = name;
+        }
       } else {
         const name = renameSavedRouteInLocal(route.id, newName);
         setSavedRoutes((prev) =>
@@ -598,6 +692,9 @@ export default function App() {
               : r,
           ),
         );
+        if (loadedSavedRouteIdRef.current === route.id) {
+          loadedSavedRouteNameRef.current = name;
+        }
       }
     },
     [configured, user],
@@ -615,9 +712,35 @@ export default function App() {
         deleteSavedRouteFromLocal(route.id);
       }
       setSavedRoutes((prev) => prev.filter((r) => r.id !== route.id));
+      if (loadedSavedRouteIdRef.current === route.id) {
+        loadedSavedRouteIdRef.current = null;
+        loadedSavedRouteNameRef.current = null;
+        setLastEndedWasAdhoc(null);
+      }
     },
     [configured, user],
   );
+
+  const handleSubmitPublicRouteRequest = useCallback(
+    async (input: {
+      publicTitle: string;
+      publicSummary: string;
+      experienceTags: ExperienceTagId[];
+    }) => {
+      if (!user) return;
+      const route = publicRouteRequestModalRoute;
+      if (!route) return;
+      await createPublicRouteRequest(user, route, input);
+      setPublicRouteRequestModalRoute(null);
+      await refreshPublicRouteMeta();
+    },
+    [user, publicRouteRequestModalRoute, refreshPublicRouteMeta],
+  );
+
+  const onPublicRouteReviewQueueChanged = useCallback(() => {
+    void refreshPublicRouteMeta();
+    void refreshPublishedPublicCourseCatalog();
+  }, [refreshPublicRouteMeta, refreshPublishedPublicCourseCatalog]);
 
   const enterBasicHub = useCallback(
     async (courseId: string) => {
@@ -626,7 +749,7 @@ export default function App() {
         return;
       }
       setBasicStartLoading(true);
-      setRouteSummary("입문 코스 불러오는 중…");
+      setRouteSummary("공식 코스 불러오는 중…");
       try {
         if (user && basicActiveHubCourseId && basicActiveHubCourseId !== courseId) {
           await deleteCoursePresence(user.uid, basicActiveHubCourseId).catch(() => {
@@ -646,7 +769,7 @@ export default function App() {
         setRouteGeometry(resolved.geometry);
         setStartLngLat(coords[0] ?? null);
         setEndLngLat(coords[coords.length - 1] ?? null);
-        setProfile("cycling");
+        setProfile(resolved.profile);
         setRouteDistanceMeters(resolved.distanceMeters);
         setRouteDurationSec(resolved.durationSec);
         resetRide();
@@ -657,11 +780,10 @@ export default function App() {
         loadedSavedRouteNameRef.current = null;
         setLastEndedWasAdhoc(null);
         basicStartHubLeftExplicitRef.current = false;
-        if (user) {
-          setBasicActiveHubCourseId(resolved.id);
-        } else {
-          setBasicActiveHubCourseId(null);
-        }
+        const joinHubPresence =
+          Boolean(user) && (BASIC_SHARED_HUB_IDS as readonly string[]).includes(resolved.id);
+        setBasicActiveHubCourseId(joinHubPresence ? resolved.id : null);
+        setActiveOfficialCourseId(resolved.id);
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
         setRouteSummary(message);
@@ -714,6 +836,7 @@ export default function App() {
       loadedSavedRouteIdRef.current = null;
       loadedSavedRouteNameRef.current = null;
       setLastEndedWasAdhoc(null);
+      setActiveOfficialCourseId(null);
     } catch (e: unknown) {
       const fe = e as { code?: string; message?: string };
       const message =
@@ -730,6 +853,7 @@ export default function App() {
       setRouteGeometry(null);
       setRouteDistanceMeters(0);
       setRouteDurationSec(0);
+      setActiveOfficialCourseId(null);
     } finally {
       setRouteLoading(false);
     }
@@ -860,8 +984,8 @@ export default function App() {
     const elapsedSec = Math.floor(rideMetrics.accumulatedMs / 1000);
     const caloriesEstimate = Math.round((rideMetrics.virtualDistanceMeters / 1000) * 30);
     /**
-     * 격상 후보: 저장된 사용자 경로를 「불러와」 주행했는가?
-     * 새 경로 탐색·입문 코스 진입 시 ref 가 null 로 클리어되므로 여기 값이 살아 있다는 건 「내가 만든 사용자 경로 그대로 탔음」 을 의미.
+     * 격상 후보: 저장된 사용자 경로를 「불러와」 주행했거나, 같은 지도 상태로 「현재 경로 저장」 직후 주행했는가?
+     * 새 경로 탐색·입문 코스 진입 시 ref 가 null 로 클리어되므로 여기 값이 살아 있다는 건 「이미 저장된 사용자 경로 그대로 탔음」 을 의미.
      */
     const savedRouteIdAtEnd = loadedSavedRouteIdRef.current;
     const savedRouteNameAtEnd = loadedSavedRouteNameRef.current;
@@ -892,7 +1016,7 @@ export default function App() {
 
     /**
      * 격상 정책:
-     *  - 저장된 사용자 경로(불러온 경로) → 주행 종료 시 completed=1, expiresAt=null 로 격상
+     *  - 저장된 사용자 경로(불러오기 또는 저장 직후 동일 경로로 주행) → 주행 종료 시 completed=1, expiresAt=null 로 격상
      *  - ad-hoc 경로(저장 안 한 채 주행) → rides 만 적재 + 토스트에 「사용자 경로로 저장」 액션 노출
      *  - 격상은 「완주 여부 무관」: 일시정지 후 수동 종료여도 격상 (시니어 정책: 1회 탄 적이 있으면 보존 가치 있음)
      */
@@ -985,14 +1109,14 @@ export default function App() {
     loadedSavedRouteNameRef.current = null;
 
     setRideStatus("idle");
-    resetRide();
+    // 완료 직후 패널의 경과·거리·평균 속도는 유지한다. 리셋은 「주행 시작」·경로 재계산·저장 경로 불러오기·입문 코스 진입 등에서만 수행한다.
   }
 
   handleEndRideRef.current = handleEndRide;
 
   /**
    * 가상 거리 ≥ 경로 거리이면 자동 종료. 훅이 RAF 를 멈춰 최종 메트릭이 들어온 직후
-   * handleEndRide() 가 호출되어 상태/저장/메트릭 리셋이 일괄 마무리되고, 도착 토스트가 3초 표시된다.
+   * handleEndRide() 가 호출되어 상태/저장이 마무리되고(메트릭 UI는 유지), 도착 토스트가 3초 표시된다.
    * 중복 트리거는 arrivalHandledRef 로 차단한다. handleEndRide 는 handleEndRideRef 로 접근해 의존성 충돌을 피한다.
    */
   useEffect(() => {
@@ -1079,6 +1203,17 @@ export default function App() {
     routeGeometry,
     routeDistanceMeters,
   ]);
+
+  const { streetState: rideMapillaryStreet, rideSync: mapillaryRideSync, dismissStreet: dismissMapillaryStreet } =
+    useRideMapillaryStreet({
+      accessToken: mapillaryTokenConfigured ? MAPILLARY_CLIENT_TOKEN : null,
+      routeGeometry,
+      routeTotalMeters: routeDistanceMeters,
+      virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
+      sessionStatus: rideStatus,
+      speedKmh,
+      riderLngLat: liveForMap,
+    });
   const startLabel = startLngLat ? formatLngLat(startLngLat) : "미설정";
   const endLabel = endLngLat ? formatLngLat(endLngLat) : "미설정";
 
@@ -1368,6 +1503,7 @@ export default function App() {
               routeSummary={routeSummary}
               routeLoading={routeLoading}
               onGenerateRoute={() => void generateRoute()}
+              officialCourseActive={activeOfficialCourseId !== null}
               mapStyle={mapStyle}
               mapStyleOptions={MAP_STYLE_OPTIONS}
               onMapStyle={setMapStyle}
@@ -1377,6 +1513,9 @@ export default function App() {
               onEnable3D={setEnable3D}
               mapZoom={mapZoom}
               onMapZoom={setMapZoom}
+              coverageOverlayMode={coverageOverlayMode}
+              onCoverageOverlayMode={setCoverageOverlayMode}
+              mapillaryTokenConfigured={mapillaryTokenConfigured}
               hasRoute={Boolean(routeGeometry)}
               speedKmh={speedKmh}
               onSpeedKmh={setSpeedKmh}
@@ -1393,6 +1532,10 @@ export default function App() {
               basicActiveHubCourseId={basicActiveHubCourseId}
               basicStartLoading={basicStartLoading}
               basicStartHubJoined={basicStartHubJoined}
+              officialCourseCatalogAvailable={configured}
+              publishedPublicCourses={publishedPublicCourses}
+              publishedPublicCoursesLoading={publishedPublicCoursesLoading}
+              publishedPublicCoursesError={publishedPublicCoursesError}
               authGuest={Boolean(user?.isAnonymous)}
               onEnterBasicHub={(courseId) => void enterBasicHub(courseId)}
               onLeaveBasicHub={() => void leaveBasicHub()}
@@ -1407,6 +1550,12 @@ export default function App() {
               onSaveAdhocAsUserRoute={handleSaveAdhocAsUserRoute}
               onDismissAdhocSave={() => setLastEndedWasAdhoc(null)}
               rideHistoryUserId={configured && user ? user.uid : null}
+              isPublicRouteReviewer={Boolean(configured && user && isPublicRouteReviewer)}
+              publicRouteReviewUser={user}
+              publicRouteReviewQueueCount={publicRouteReviewQueueCount}
+              onPublicRouteReviewQueueChanged={onPublicRouteReviewQueueChanged}
+              pendingPublicRouteIds={pendingPublicRouteIds}
+              onOpenPublicRequest={(route) => setPublicRouteRequestModalRoute(route)}
             />
             <div className="map-stage map-stage--in-route">
               <MapView
@@ -1427,11 +1576,14 @@ export default function App() {
                 followMode={followMode}
                 enable3D={enable3D}
                 onMapZoom={setMapZoom}
+                coverageOverlayMode={coverageOverlayMode}
+                mapillaryClientToken={mapillaryTokenConfigured ? MAPILLARY_CLIENT_TOKEN : null}
                 onSelectPoint={(type, lngLat) => {
                   if (rideStatus !== "idle") {
                     setRouteSummary("주행 중에는 출발지/도착지를 바꿀 수 없습니다. 세션 종료 후 다시 선택하세요.");
                     return;
                   }
+                  setActiveOfficialCourseId(null);
                   if (type === "start") {
                     setStartLngLat(lngLat);
                     setRouteSummary("출발지가 지도 클릭으로 설정되었습니다.");
@@ -1441,6 +1593,28 @@ export default function App() {
                   setRouteSummary("도착지가 지도 클릭으로 설정되었습니다.");
                 }}
               />
+              {rideMapillaryStreet && mapillaryRideSync && mapillaryTokenConfigured ? (
+                <div className="mapillary-street-floating" aria-label="Mapillary 거리뷰">
+                  <div className="mapillary-street-floating__head">
+                    <span className="mapillary-street-floating__title">Mapillary</span>
+                    <button type="button" className="mapillary-street-floating__close" onClick={dismissMapillaryStreet}>
+                      닫기
+                    </button>
+                  </div>
+                  <div className="mapillary-street-floating__video">
+                    <Suspense fallback={<div className="mapillary-street-floating__loading">거리뷰 로드 중…</div>}>
+                      <MapillaryRideViewer
+                        accessToken={MAPILLARY_CLIENT_TOKEN}
+                        imageId={rideMapillaryStreet.imageKey}
+                        lookAt={mapillaryRideSync.lookAt}
+                        driveHeadingDeg={mapillaryRideSync.driveHeadingDeg}
+                        sphericalNavigation={rideMapillaryStreet.isPano}
+                      />
+                    </Suspense>
+                  </div>
+                  <p className="mapillary-street-floating__attr">Imagery © Mapillary contributors</p>
+                </div>
+              ) : null}
             </div>
           </main>
         </>
@@ -1450,6 +1624,14 @@ export default function App() {
             Firebase 인증 연결 확인 중…
           </p>
         </main>
+      ) : null}
+
+      {publicRouteRequestModalRoute && user ? (
+        <PublicRouteRequestModal
+          route={publicRouteRequestModalRoute}
+          onClose={() => setPublicRouteRequestModalRoute(null)}
+          onSubmit={handleSubmitPublicRouteRequest}
+        />
       ) : null}
 
       <footer className="footer">

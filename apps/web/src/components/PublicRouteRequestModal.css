@@ -1,0 +1,124 @@
+.pr-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.pr-modal {
+  width: min(480px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  background: #1a1d24;
+  color: #e8eaef;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.pr-modal__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+}
+
+.pr-modal__lead {
+  margin: 0 0 1rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: #b8bec9;
+}
+
+.pr-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.pr-modal__label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+}
+
+.pr-modal__input,
+.pr-modal__textarea {
+  font: inherit;
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #3a4252;
+  background: #12151c;
+  color: inherit;
+}
+
+.pr-modal__fieldset {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.pr-modal__legend {
+  font-size: 0.85rem;
+  margin-bottom: 0.4rem;
+}
+
+.pr-modal__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.pr-modal__tag {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid #3a4252;
+  background: transparent;
+  color: #c5cad6;
+  cursor: pointer;
+}
+
+.pr-modal__tag.is-on {
+  border-color: #5b8cff;
+  background: rgba(91, 140, 255, 0.15);
+  color: #dbe6ff;
+}
+
+.pr-modal__error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #ff8a8a;
+}
+
+.pr-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.pr-modal__btn {
+  font: inherit;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid #3a4252;
+  background: transparent;
+  color: #e8eaef;
+  cursor: pointer;
+}
+
+.pr-modal__btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.pr-modal__btn--primary {
+  border-color: #5b8cff;
+  background: #5b8cff;
+  color: #0b1020;
+}

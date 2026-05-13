@@ -69,6 +69,30 @@
   margin-top: 0.65rem;
 }
 
+.ride-panel__modes--coverage {
+  margin-top: 0.55rem;
+}
+
+.ride-panel__mode-btns--compact {
+  gap: 0.25rem;
+}
+
+.ride-panel__mode--compact {
+  font-size: 0.72rem;
+  padding: 0.28rem 0.42rem;
+}
+
+.ride-panel__mode--compact:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.ride-panel__help--tight {
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
 .ride-panel__label-inline {
   font-size: 0.8rem;
   display: block;
@@ -340,6 +364,160 @@
   margin: 0.4rem 0 0;
   font-size: 0.72rem;
   opacity: 0.78;
+}
+
+.ride-panel__official {
+  margin: 0.5rem 0 0.75rem;
+  padding: 0.55rem 0.6rem 0.65rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, #1d4ed8 28%, CanvasText 12%);
+  background: color-mix(in srgb, #1d4ed8 6%, Canvas 94%);
+}
+
+.ride-panel__official-title {
+  margin: 0 0 0.3rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.ride-panel__official-lead {
+  margin: 0 0 0.55rem;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  opacity: 0.88;
+}
+
+.ride-panel__official-segments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.55rem;
+}
+
+.ride-panel__official-seg {
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, CanvasText 22%, transparent);
+  background: Canvas;
+  color: CanvasText;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ride-panel__official-seg.is-active {
+  border-color: #1d4ed8;
+  background: color-mix(in srgb, #1d4ed8 16%, transparent);
+}
+
+.ride-panel__official-seg-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: #1d4ed8;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ride-panel__public-courses-hint,
+.ride-panel__public-courses-error {
+  margin: 0 0 0.45rem;
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.ride-panel__public-courses-hint {
+  opacity: 0.88;
+}
+
+.ride-panel__public-courses-error {
+  color: color-mix(in srgb, #b91c1c 85%, CanvasText);
+}
+
+.ride-panel__public-courses-error-detail {
+  font-size: 0.72rem;
+  opacity: 0.95;
+  word-break: break-word;
+}
+
+.ride-panel__inline-code {
+  font-size: 0.72rem;
+  padding: 0.1rem 0.25rem;
+  border-radius: 4px;
+  background: color-mix(in srgb, CanvasText 8%, transparent);
+}
+
+.ride-panel__public-courses-list {
+  list-style: none;
+  margin: 0 0 0.4rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.ride-panel__public-courses-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, CanvasText 14%, transparent);
+  background: color-mix(in srgb, Canvas 98%, CanvasText 2%);
+}
+
+.ride-panel__public-courses-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.ride-panel__public-courses-name {
+  display: block;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.ride-panel__public-courses-sub {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  opacity: 0.82;
+  line-height: 1.35;
+}
+
+.ride-panel__public-courses-footnote {
+  margin: 0;
+  font-size: 0.7rem;
+  line-height: 1.45;
+  opacity: 0.78;
+}
+
+.ride-panel__event-placeholder {
+  padding: 0.4rem 0.15rem 0.15rem;
+}
+
+.ride-panel__event-placeholder-text {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  opacity: 0.88;
+}
+
+.ride-panel__btn-secondary--small {
+  flex-shrink: 0;
+  margin-top: 0;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.76rem;
 }
 
 .ride-panel__summary {

@@ -15,6 +15,7 @@ import {
 import { getFirebaseApp } from "./firebase";
 import type { LineStringGeometry, LngLat } from "./geo";
 import type { RouteProfile } from "../services/mapboxDirections";
+import { computeRouteFingerprint } from "./routeFingerprint";
 
 const SAVED_ROUTES_COLLECTION = "savedRoutes";
 
@@ -176,6 +177,7 @@ type SavedRouteDoc = {
   completedAt?: unknown;
   expiresAt?: unknown;
   lastRideId?: string | null;
+  routeFingerprint?: string;
 };
 
 function toIso(value: unknown): string {
@@ -235,11 +237,57 @@ export type SaveRouteInput = {
   durationSec: number;
 };
 
+async function assertNoDuplicateSavedRouteForUser(
+  db: ReturnType<typeof getFirestore>,
+  userId: string,
+  routeFingerprint: string,
+): Promise<void> {
+  const qIndexed = query(
+    collection(db, SAVED_ROUTES_COLLECTION),
+    where("userId", "==", userId),
+    where("routeFingerprint", "==", routeFingerprint),
+    limit(1),
+  );
+  const hitIndexed = await getDocs(qIndexed);
+  if (!hitIndexed.empty) {
+    throw new SavedRouteValidationError(
+      "이미 동일한 경로와 이동 수단으로 저장된 코스가 있습니다. 이름만 다른 중복 저장은 할 수 없습니다.",
+    );
+  }
+
+  const qLegacy = query(
+    collection(db, SAVED_ROUTES_COLLECTION),
+    where("userId", "==", userId),
+    limit(80),
+  );
+  const legacySnap = await getDocs(qLegacy);
+  for (const d of legacySnap.docs) {
+    const data = d.data() as Record<string, unknown>;
+    if (typeof data.routeFingerprint === "string" && data.routeFingerprint.length > 0) {
+      continue;
+    }
+    const g = decodeGeometryFromFirestore(data);
+    if (!g) continue;
+    const prof = (data.profile === "driving" || data.profile === "walking" || data.profile === "cycling"
+      ? data.profile
+      : "cycling") as RouteProfile;
+    const fp = await computeRouteFingerprint(g, prof);
+    if (fp === routeFingerprint) {
+      throw new SavedRouteValidationError(
+        "이미 동일한 경로와 이동 수단으로 저장된 코스가 있습니다. 이름만 다른 중복 저장은 할 수 없습니다.",
+      );
+    }
+  }
+}
+
 export async function saveRouteToFirestore(input: SaveRouteInput): Promise<SavedRoute> {
   const name = validateSavedRouteName(input.name);
   validateGeometry(input.geometry);
 
   const db = getFirestore(getFirebaseApp());
+  const routeFingerprint = await computeRouteFingerprint(input.geometry, input.profile);
+  await assertNoDuplicateSavedRouteForUser(db, input.userId, routeFingerprint);
+
   const expiresAtDate = new Date(Date.now() + SAVED_ROUTE_EXPIRY_MS);
   const payload = {
     userId: input.userId,
@@ -250,6 +298,7 @@ export async function saveRouteToFirestore(input: SaveRouteInput): Promise<Saved
     ...encodeGeometryForFirestore(input.geometry),
     distanceMeters: input.distanceMeters,
     durationSec: input.durationSec,
+    routeFingerprint,
     source: "web" as const,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),

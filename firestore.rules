@@ -31,6 +31,27 @@ service cloud.firestore {
         || courseId == 'basic-iceland-ring-road-5km';
     }
 
+    /** Firebase Console 에 `config/routeReviewers` 문서 `{ uids: ["uid1", ...] }` 수동 등록 */
+    function isRouteReviewer() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/config/routeReviewers)
+        && request.auth.uid in get(/databases/$(database)/documents/config/routeReviewers).data.uids;
+    }
+
+    function experienceTagsValidPublicRequest() {
+      let t = request.resource.data.experienceTags;
+      return t is list
+        && t.size() >= 1
+        && t.size() <= 3
+        && t.hasOnly(['mountain_trail', 'coastal_road', 'water_route', 'urban', 'countryside']);
+    }
+
+    function savedRouteOwnedAndCompletedForRequest(savedRouteId) {
+      return exists(/databases/$(database)/documents/savedRoutes/$(savedRouteId))
+        && get(/databases/$(database)/documents/savedRoutes/$(savedRouteId)).data.userId == request.auth.uid
+        && get(/databases/$(database)/documents/savedRoutes/$(savedRouteId)).data.completed == 1;
+    }
+
     /**
      * 기존 코스 문서에 presence 플래그가 없을 때 클라이언트 merge 로 보강 가능하게 한다.
      * 다른 필드 변경·삭제는 diff 로 차단.
@@ -105,11 +126,91 @@ service cloud.firestore {
     match /savedRoutes/{routeId} {
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow create: if isSignedIn()
-        && request.resource.data.userId == request.auth.uid;
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.routeFingerprint is string
+        && request.resource.data.routeFingerprint.size() == 64;
       allow update: if isSignedIn()
         && resource.data.userId == request.auth.uid
         && request.resource.data.userId == request.auth.uid;
       allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    match /config/{configId} {
+      allow get: if configId == 'routeReviewers'
+        && isSignedIn()
+        && exists(/databases/$(database)/documents/config/routeReviewers)
+        && request.auth.uid in get(/databases/$(database)/documents/config/routeReviewers).data.uids;
+      allow list: if false;
+      allow create, update, delete: if false;
+    }
+
+    match /publicRouteRequests/{requestId} {
+      allow read: if isSignedIn()
+        && (resource.data.applicantUid == request.auth.uid || isRouteReviewer());
+
+      allow create: if isSignedIn()
+        && request.resource.data.applicantUid == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.savedRouteId is string
+        && savedRouteOwnedAndCompletedForRequest(request.resource.data.savedRouteId)
+        && request.resource.data.savedRouteNameSnapshot is string
+        && request.resource.data.savedRouteNameSnapshot.size() >= 1
+        && request.resource.data.savedRouteNameSnapshot.size() <= 40
+        && request.resource.data.publicTitle is string
+        && request.resource.data.publicTitle.size() >= 1
+        && request.resource.data.publicTitle.size() <= 80
+        && request.resource.data.publicSummary is string
+        && request.resource.data.publicSummary.size() <= 500
+        && experienceTagsValidPublicRequest()
+        && request.resource.data.snapshotProfile in ['cycling', 'driving', 'walking']
+        && request.resource.data.snapshotDistanceMeters is number
+        && request.resource.data.snapshotDurationSec is number
+        && request.resource.data.snapshotStartLngLat is list
+        && request.resource.data.snapshotEndLngLat is list
+        && request.resource.data.geometryType == 'LineString'
+        && request.resource.data.geometryCoordsJson is string
+        && request.resource.data.geometryCoordsJson.size() >= 10
+        && request.resource.data.geometryCoordsJson.size() <= 4800000
+        && request.resource.data.routeFingerprint is string
+        && request.resource.data.routeFingerprint.size() == 64;
+
+      allow update: if resource.data.status == 'pending'
+        && (
+          (
+            isRouteReviewer()
+            && request.resource.data.applicantUid == resource.data.applicantUid
+            && request.resource.data.savedRouteId == resource.data.savedRouteId
+            && (
+              (
+                request.resource.data.status == 'approved'
+                && request.resource.data.reviewerUid == request.auth.uid
+                && request.resource.data.createdCourseId is string
+                && request.resource.data.createdCourseId.size() > 0
+                && request.resource.data.diff(resource.data).affectedKeys()
+                     .hasOnly(['status', 'reviewerUid', 'reviewedAt', 'updatedAt', 'createdCourseId'])
+              )
+              || (
+                request.resource.data.status == 'rejected'
+                && request.resource.data.reviewerUid == request.auth.uid
+                && request.resource.data.rejectionReason is string
+                && request.resource.data.rejectionReason.size() >= 1
+                && request.resource.data.rejectionReason.size() <= 500
+                && request.resource.data.diff(resource.data).affectedKeys()
+                     .hasOnly(['status', 'reviewerUid', 'reviewedAt', 'updatedAt', 'rejectionReason'])
+              )
+            )
+          )
+          || (
+            resource.data.applicantUid == request.auth.uid
+            && request.resource.data.status == 'withdrawn'
+            && request.resource.data.applicantUid == resource.data.applicantUid
+            && request.resource.data.savedRouteId == resource.data.savedRouteId
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['status', 'updatedAt', 'withdrawnAt'])
+          )
+        );
+
+      allow delete: if false;
     }
 
     match /courses/{courseId} {
@@ -117,7 +218,10 @@ service cloud.firestore {
         || (resource.data.keys().hasAny(['presenceEnabled']) && resource.data.presenceEnabled == true)
         || (resource.data.keys().hasAny(['isSharedStartHub']) && resource.data.isSharedStartHub == true)
         || (resource.data.keys().hasAny(['visibility']) && resource.data.visibility == 'public');
-      allow create: if isSignedIn();
+      allow create: if isSignedIn()
+        && (!request.resource.data.keys().hasAny(['routeFingerprint'])
+            || (request.resource.data.routeFingerprint is string
+                && request.resource.data.routeFingerprint.size() == 64));
       allow update: if isSignedIn() && isHubPresenceFlagsOnlyCourseUpdate(courseId);
       allow delete: if false;
     }

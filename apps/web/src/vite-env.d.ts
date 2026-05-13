@@ -17,6 +17,13 @@ interface ImportMetaEnv {
    * Firebase 정상화 후에는 즉시 제거하세요. (pk. 토큰이 네트워크에 노출됨)
    */
   readonly VITE_DIRECTIONS_DIRECT?: string;
+  /**
+   * 공개 경로 신청 제목·소개 원격 모더레이션(선택).
+   * POST JSON `{ title, summary }` → `{ allowed: boolean, reason?: string }` 규약. Functions 프록시 URL 권장.
+   */
+  readonly VITE_PUBLIC_ROUTE_MODERATION_URL?: string;
+  /** Mapillary Graph + mapillary-js Viewer용 클라이언트 토큰(선택). 없으면 거리뷰 비활성 */
+  readonly VITE_MAPILLARY_CLIENT_TOKEN?: string;
 }
 
 interface ImportMeta {

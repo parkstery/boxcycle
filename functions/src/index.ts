@@ -1,6 +1,8 @@
 import { initializeApp } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
 import { defineSecret } from "firebase-functions/params";
-import { HttpsError, onCall, type CallableRequest } from "firebase-functions/v2/https";
+import { HttpsError, onRequest, type Request } from "firebase-functions/v2/https";
+import type { Response } from "express";
 
 initializeApp();
 
@@ -40,63 +42,112 @@ function parseBody(data: unknown): { start: LngLat; end: LngLat; profile: RouteP
   return { start, end, profile };
 }
 
-/** Mapbox Directions API → geojson geometry + 거리·시간 */
-export const getMapboxDirections = onCall(
+/**
+ * Mapbox Directions (서버 시크릿).
+ *
+ * Gen2 `onCall` 은 firebase-functions 가 Cloud Run `invoker` 를 배포 스택에 넣지 않아
+ * OPTIONS 프리플라이트가 403 으로 막히는 경우가 있다. `onRequest` + `invoker: "public"` 으로
+ * Invoker 를 확실히 연 다음, Callable 과 동일한 JSON 계약(`{ data }` / `{ result|error }`)을 맞춘다.
+ */
+export const getMapboxDirections = onRequest(
   {
     region: "asia-northeast3",
     secrets: [mapboxAccessToken],
     timeoutSeconds: 30,
     memory: "256MiB",
+    cors: true,
+    invoker: "public",
   },
-  async (request: CallableRequest<{ start?: unknown; end?: unknown; profile?: unknown }>) => {
-    if (!request.auth?.uid) {
-      throw new HttpsError("unauthenticated", "경로 계산은 로그인(게스트 포함) 후에 사용할 수 있습니다.");
+  async (req: Request, res: Response) => {
+    if (req.method !== "POST") {
+      res.set("Allow", "POST");
+      res.status(405).send("Method Not Allowed");
+      return;
     }
 
-    const { start, end, profile } = parseBody(request.data);
-    const token = mapboxAccessToken.value();
-    if (!token?.trim()) {
-      throw new HttpsError("failed-precondition", "서버에 Mapbox 토큰이 설정되지 않았습니다.");
+    const authHeader = req.get("Authorization") ?? "";
+    const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
+    if (!tokenMatch) {
+      const err = new HttpsError("unauthenticated", "경로 계산은 로그인(게스트 포함) 후에 사용할 수 있습니다.");
+      res.status(err.httpErrorCode.status).json({ error: err.toJSON() });
+      return;
     }
-
-    const coords = `${start[0]},${start[1]};${end[0]},${end[1]}`;
-    const url =
-      `https://api.mapbox.com/directions/v5/mapbox/${profile}/${coords}` +
-      `?geometries=geojson&overview=full&steps=false&access_token=${encodeURIComponent(token.trim())}`;
-
-    let response: Response;
     try {
-      response = await fetch(url);
+      await getAuth().verifyIdToken(tokenMatch[1]);
     } catch {
-      throw new HttpsError("unavailable", "Directions API 연결에 실패했습니다.");
+      const err = new HttpsError("unauthenticated", "유효하지 않은 인증 토큰입니다.");
+      res.status(err.httpErrorCode.status).json({ error: err.toJSON() });
+      return;
     }
 
-    if (!response.ok) {
-      const body = await response.text().catch(() => "");
-      console.error("Mapbox Directions HTTP error", response.status, body.slice(0, 500));
-      throw new HttpsError("internal", "Directions API 요청이 거부되었습니다.");
+    let rawBody: unknown = req.body;
+    if (typeof rawBody === "string") {
+      try {
+        rawBody = JSON.parse(rawBody) as unknown;
+      } catch {
+        const err = new HttpsError("invalid-argument", "JSON 본문이 올바르지 않습니다.");
+        res.status(err.httpErrorCode.status).json({ error: err.toJSON() });
+        return;
+      }
     }
 
-    const data = (await response.json()) as {
-      code?: string;
-      message?: string;
-      routes?: { geometry: { type: string; coordinates: number[][] }; distance: number; duration: number }[];
-    };
+    try {
+      const dataField = (rawBody as { data?: unknown } | null)?.data;
+      const { start, end, profile } = parseBody(dataField);
+      const token = mapboxAccessToken.value();
+      if (!token?.trim()) {
+        throw new HttpsError("failed-precondition", "서버에 Mapbox 토큰이 설정되지 않았습니다.");
+      }
 
-    if (data.code && data.code !== "Ok") {
-      console.error("Mapbox Directions error body", data.code, data.message);
-      throw new HttpsError("invalid-argument", data.message ?? "경로를 계산할 수 없습니다.");
+      const coords = `${start[0]},${start[1]};${end[0]},${end[1]}`;
+      const url =
+        `https://api.mapbox.com/directions/v5/mapbox/${profile}/${coords}` +
+        `?geometries=geojson&overview=full&steps=false&access_token=${encodeURIComponent(token.trim())}`;
+
+      let mapResponse: globalThis.Response;
+      try {
+        mapResponse = await fetch(url);
+      } catch {
+        throw new HttpsError("unavailable", "Directions API 연결에 실패했습니다.");
+      }
+
+      if (!mapResponse.ok) {
+        const body = await mapResponse.text().catch(() => "");
+        console.error("Mapbox Directions HTTP error", mapResponse.status, body.slice(0, 500));
+        throw new HttpsError("internal", "Directions API 요청이 거부되었습니다.");
+      }
+
+      const mapJson = (await mapResponse.json()) as {
+        code?: string;
+        message?: string;
+        routes?: { geometry: { type: string; coordinates: number[][] }; distance: number; duration: number }[];
+      };
+
+      if (mapJson.code && mapJson.code !== "Ok") {
+        console.error("Mapbox Directions error body", mapJson.code, mapJson.message);
+        throw new HttpsError("invalid-argument", mapJson.message ?? "경로를 계산할 수 없습니다.");
+      }
+
+      const route = mapJson.routes?.[0];
+      if (!route?.geometry || route.geometry.type !== "LineString" || !Array.isArray(route.geometry.coordinates)) {
+        throw new HttpsError("not-found", "경로를 찾지 못했습니다.");
+      }
+
+      res.status(200).json({
+        result: {
+          geometry: route.geometry as { type: "LineString"; coordinates: [number, number][] },
+          distance: route.distance,
+          duration: route.duration,
+        },
+      });
+    } catch (e: unknown) {
+      if (e instanceof HttpsError) {
+        res.status(e.httpErrorCode.status).json({ error: e.toJSON() });
+        return;
+      }
+      console.error(e);
+      const err = new HttpsError("internal", "서버 오류가 발생했습니다.");
+      res.status(err.httpErrorCode.status).json({ error: err.toJSON() });
     }
-
-    const route = data.routes?.[0];
-    if (!route?.geometry || route.geometry.type !== "LineString" || !Array.isArray(route.geometry.coordinates)) {
-      throw new HttpsError("not-found", "경로를 찾지 못했습니다.");
-    }
-
-    return {
-      geometry: route.geometry as { type: "LineString"; coordinates: [number, number][] },
-      distance: route.distance,
-      duration: route.duration,
-    };
   },
 );
