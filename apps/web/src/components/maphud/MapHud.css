@@ -434,6 +434,16 @@
   margin-left: 0.05rem;
 }
 
+/* 경로만 선택·주행 전: 동일 칩 UI, 글자색만 구분 */
+.hud-metrics--route-preview .hud-metrics__chip {
+  color: #a5b4fc;
+}
+
+.hud-metrics--route-preview .hud-metrics__unit {
+  color: #c7d2fe;
+  opacity: 0.9;
+}
+
 /* ---------- BL: RoutePinChips / RouteBriefChip ---------- */
 .hud-pin-chip {
   display: inline-flex;

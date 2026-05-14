@@ -1551,15 +1551,30 @@ export default function App() {
 
   const elapsedLabel = formatElapsedFromMs(rideMetrics.accumulatedMs);
   const distanceKmLabel = (rideMetrics.virtualDistanceMeters / 1000).toFixed(2);
+  const hudRoutePreview =
+    rideStatus === "idle" &&
+    Boolean(routeGeometry) &&
+    routeDistanceMeters > 0 &&
+    !summarySheetVisible;
+
   const hudMetrics =
     rideStatus !== "idle"
       ? {
+          mode: "ride" as const,
           elapsed: elapsedLabel,
           distanceKm: distanceKmLabel,
           avgKmh: avgSpeedLabel,
           speedKmh,
         }
-      : null;
+      : hudRoutePreview
+        ? {
+            mode: "route-preview" as const,
+            elapsed: "00:00",
+            distanceKm: (routeDistanceMeters / 1000).toFixed(2),
+            avgKmh: "0",
+            speedKmh: 0,
+          }
+        : null;
   const accountInitial = (() => {
     if (!user) return null;
     if (user.isAnonymous) return "G";

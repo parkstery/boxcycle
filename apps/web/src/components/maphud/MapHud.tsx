@@ -37,8 +37,23 @@ export type MapHudProps = {
   coachData: CoachingData | null;
   coachLineEnabled: boolean;
 
-  // TC — 핵심 4지표 (riding/paused)
-  metrics: { elapsed: string; distanceKm: string; avgKmh: string; speedKmh: number } | null;
+  // TC — 핵심 4지표: 주행 중(riding/paused) 또는 경로만 계산된 대기(ready-to-start)
+  metrics:
+    | ({
+        mode: "ride";
+        elapsed: string;
+        distanceKm: string;
+        avgKmh: string;
+        speedKmh: number;
+      })
+    | ({
+        mode: "route-preview";
+        elapsed: string;
+        distanceKm: string;
+        avgKmh: string;
+        speedKmh: number;
+      })
+    | null;
 
   // BL — 핀 진행 칩 / 경로 요약
   pinState: { start: boolean; end: boolean; waypointCount: number };
@@ -121,7 +136,11 @@ export function MapHud(props: MapHudProps) {
   const showSignedOutAuth =
     !isGate && !isSummary && account === null && typeof onOpenSignedOutAuth === "function";
   const showMapViewTrigger = !isGate && !isSummary;
-  const showMetrics = metrics !== null && (riding || paused);
+  const showMetrics =
+    metrics !== null &&
+    !isGate &&
+    !isSummary &&
+    (riding || paused || metrics.mode === "route-preview");
   const showCoach = coachLineEnabled && coachData !== null && (riding || paused);
   const showBlPins =
     !riding &&
@@ -213,7 +232,9 @@ export function MapHud(props: MapHudProps) {
 
       {showMetrics && metrics ? (
         <div className="map-hud__tc">
-          <div className="hud-metrics">
+          <div
+            className={`hud-metrics${metrics.mode === "route-preview" ? " hud-metrics--route-preview" : ""}`}
+          >
             <span className="hud-metrics__chip" title="경과">
               {metrics.elapsed}
             </span>
