@@ -94,7 +94,11 @@ export function CourseSharedPresence({
     };
   }, []);
 
-  /** 포그라운드일 때만 멤버 스냅샷 구독 + 하트비트(주행/일시정지 주기 분리). 백그라운드에서는 구독 해제·문서 정리로 읽기·쓰기 절감 */
+  /**
+   * 포그라운드일 때만 멤버 스냅샷 구독.
+   * 백그라운드(탭 숨김)에서는 구독만 해제·라이브 좌표만 제거 — presence 문서는 유지해 delete/recreate 쓰기 남발을 막음.
+   * 문서 삭제는 uid/courseId 이탈 전용 이펙트에서만 수행.
+   */
   useEffect(() => {
     const uid = user.uid;
     let cancelled = false;
@@ -108,7 +112,6 @@ export function CourseSharedPresence({
       });
       return () => {
         void mergeCourseMemberLiveLocation(userRef.current, courseId, null).catch(() => {});
-        void deleteCoursePresence(uid, courseId).catch(() => {});
       };
     }
 
@@ -141,9 +144,18 @@ export function CourseSharedPresence({
     return () => {
       cancelled = true;
       unsub?.();
-      void deleteCoursePresence(uid, courseId).catch(() => {});
     };
   }, [user.uid, courseId, pageVisible]);
+
+  /** 코스 동행 문서 삭제 — 코스·uid 전환 또는 컴포넌트 언마운트 시에만(가시성 토글과 분리) */
+  useEffect(() => {
+    const uid = user.uid;
+    const cid = courseId;
+    return () => {
+      void mergeCourseMemberLiveLocation(userRef.current, cid, null).catch(() => {});
+      void deleteCoursePresence(uid, cid).catch(() => {});
+    };
+  }, [user.uid, courseId]);
 
   /** presence 생존 신호 — 주행 중은 기본 주기, 일시정지·대기는 저빈도(좌표 쓰기와 분리) */
   useEffect(() => {

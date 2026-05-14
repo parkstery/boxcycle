@@ -15,13 +15,25 @@ export function useLobbyRoomSession(opts: {
   user: User | null | undefined;
   roomId: string;
   enabled: boolean;
-  /** false면 멤버 스냅샷 해제·하트비트 중단(백그라운드) */
+  /** false면 멤버 스냅샷·하트비트만 중단 — members 문서는 유지(가시성 토글로 delete 반복 방지) */
   pageVisible: boolean;
 }): { rows: LobbyMemberRow[]; error: string | null } {
   const [rows, setRows] = useState<LobbyMemberRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const userRef = useRef<User | null>(null);
   userRef.current = opts.user ?? null;
+
+  /** 로비 이탈(비활성·uid·방 변경) 시에만 members 문서 삭제 — pageVisible 과 분리 */
+  useEffect(() => {
+    if (!opts.enabled || !opts.user) return;
+    const uid = opts.user.uid;
+    const rid = opts.roomId;
+    return () => {
+      void deleteLobbyPresence(uid, rid).catch(() => {
+        /* 방 전환·비활성 시 무시 */
+      });
+    };
+  }, [opts.enabled, opts.user?.uid, opts.roomId]);
 
   useEffect(() => {
     if (!opts.enabled || !opts.user || !opts.pageVisible) {
@@ -34,7 +46,6 @@ export function useLobbyRoomSession(opts: {
 
     const user = opts.user;
     const { roomId } = opts;
-    const uid = user.uid;
     let cancelled = false;
     startTransition(() => setError(null));
 
@@ -66,9 +77,6 @@ export function useLobbyRoomSession(opts: {
       cancelled = true;
       window.clearInterval(timer);
       unsub();
-      void deleteLobbyPresence(uid, roomId).catch(() => {
-        /* 방 전환·비활성 시 무시 */
-      });
     };
   }, [opts.enabled, opts.roomId, opts.user?.uid, opts.pageVisible]);
 
