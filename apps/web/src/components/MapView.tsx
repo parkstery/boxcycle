@@ -187,13 +187,28 @@ const CAMERA_BEARING_WINDOW_METERS = 60;
 const CAMERA_BEARING_WINDOW_SAMPLES = 60;
 
 /**
- * 출발/도착/동행 핀: 3D 피치에서도 지면에 눕지 않고 화면에 세움.
- * `map` 정렬은 지형·건물 뒤로 깔려 동행 마커가 안 보이는 경우가 있어 `viewport`로 통일.
+ * 출발/도착/경유 핀: 3D 피치에서도 빌보드로 세워 가림 최소화.
+ * (노선 위 라이더 마커는 아래 `RIDER_ON_ROUTE_*` — `line` 레이어와 평면을 맞춤)
  */
 const PIN_MARKER_VIEWPORT_ALIGNMENT = {
   pitchAlignment: "viewport" as const,
   rotationAlignment: "viewport" as const,
 };
+
+/**
+ * 노선 `line` 레이어와 동일한 맵 평면 정렬. viewport 빌보드면 피치 시 좌표는 같아도
+ * 화면상으로 선에서 떨어져 보일 수 있음.
+ */
+const RIDER_ON_ROUTE_MARKER_ALIGNMENT = {
+  pitchAlignment: "map" as const,
+  rotationAlignment: "map" as const,
+};
+
+/**
+ * 라이더 스프라이트 마커 — 앵커( bottom ) 대비 픽셀 보정. Mapbox `setOffset` 규약:
+ * 양수 → 오른쪽·아래, 음수 → 왼쪽·위. 스프라이트 셀 패딩·정렬 보정용.
+ */
+const RIDER_ROUTE_MARKER_OFFSET_PX: [number, number] = [6, 12];
 
 function pickPeerSourceFrameIndices(totalFrames: number): number[] {
   if (totalFrames < 2) return [0, 0, 0, 0, 0, 0];
@@ -260,7 +275,8 @@ function syncPeerDomMarkers(
         element: root,
         className: "map-view__peer-rider-marker",
         anchor: "bottom",
-        ...PIN_MARKER_VIEWPORT_ALIGNMENT,
+        offset: RIDER_ROUTE_MARKER_OFFSET_PX,
+        ...RIDER_ON_ROUTE_MARKER_ALIGNMENT,
       })
         .setLngLat(lngLat)
         .addTo(map);
@@ -303,8 +319,6 @@ function getReducedMotionServerSnapshot(): boolean {
   return false;
 }
 
-/** 내 라이더 스프라이트(동일 빌보드 정렬) */
-const LIVE_RIDER_MARKER_ALIGNMENT = PIN_MARKER_VIEWPORT_ALIGNMENT;
 
 /** 같은 코스를 주행 중인 다른 사용자 — `MapView` 에서는 Mapbox `Marker`(DOM)로 표시 */
 export type MapPeerMarker = { id: string; lngLat: LngLat; label?: string | null };
@@ -699,7 +713,25 @@ export function MapView({
 
     const bounds = new mapboxgl.LngLatBounds();
     routeGeometry.coordinates.forEach((p) => bounds.extend(p as [number, number]));
-    map.fitBounds(bounds, { padding: 40, maxZoom: 16 });
+
+    map.stop();
+    /** 경로 프레이밍 직후 `liveLngLat` 추적 jumpTo 가 카메라를 덮어쓰지 않도록 (입문·퍼블릭 불러오기 등) */
+    suppressCameraFollowUntilRef.current = performance.now() + (prefersReducedMotion ? 120 : 1700);
+
+    const syncZoomFromMap = () => {
+      onMapZoomRef.current(Number(map.getZoom().toFixed(1)));
+    };
+    const onMoveEnd = () => {
+      map.off("moveend", onMoveEnd);
+      syncZoomFromMap();
+    };
+    map.once("moveend", onMoveEnd);
+    map.fitBounds(bounds, {
+      padding: { top: 52, bottom: 120, left: 44, right: 44 },
+      maxZoom: 16,
+      duration: prefersReducedMotion ? 0 : 1100,
+      essential: true,
+    });
 
     if (map.isStyleLoaded()) {
       try {
@@ -708,7 +740,11 @@ export function MapView({
         /* noop */
       }
     }
-  }, [routeGeometry, mapLoaded]);
+
+    return () => {
+      map.off("moveend", onMoveEnd);
+    };
+  }, [routeGeometry, mapLoaded, prefersReducedMotion]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -811,7 +847,8 @@ export function MapView({
           element: root,
           className: "map-view__live-rider-marker",
           anchor: "bottom",
-          ...LIVE_RIDER_MARKER_ALIGNMENT,
+          offset: RIDER_ROUTE_MARKER_OFFSET_PX,
+          ...RIDER_ON_ROUTE_MARKER_ALIGNMENT,
         })
           .setLngLat(liveLngLat)
           .addTo(map);
