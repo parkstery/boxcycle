@@ -216,6 +216,30 @@
   font-size: 0.78rem;
 }
 
+.ride-panel__route-action-row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+}
+
+.ride-panel__route-action-row > .ride-panel__btn-primary {
+  margin-top: 0;
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+}
+
+.ride-panel__btn-secondary--save-inline {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 0.72rem;
+  padding: 0.34rem 0.45rem;
+  line-height: 1.2;
+  text-align: center;
+}
+
 .ride-panel__tabs {
   display: flex;
   gap: 0.2rem;

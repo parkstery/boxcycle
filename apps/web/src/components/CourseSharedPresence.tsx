@@ -100,7 +100,6 @@ export function CourseSharedPresence({
    * 문서 삭제는 uid/courseId 이탈 전용 이펙트에서만 수행.
    */
   useEffect(() => {
-    const uid = user.uid;
     let cancelled = false;
     let unsub: (() => void) | undefined;
     startTransition(() => setPresenceError(null));

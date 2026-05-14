@@ -471,22 +471,34 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             </div>
           </div>
 
-          <button
-            type="button"
-            className="ride-panel__btn-primary"
-            disabled={
-              props.routeLoading ||
-              Boolean(props.officialCourseActive)
-            }
-            title={
-              props.officialCourseActive
-                ? "공식 코스를 불러온 상태입니다. 출발지·도착지를 지도에서 바꾼 뒤 맞춤 경로를 만들 수 있습니다."
-                : undefined
-            }
-            onClick={() => void props.onGenerateRoute()}
-          >
-            {props.routeLoading ? "경로 계산 중…" : "경로 생성"}
-          </button>
+          <div className="ride-panel__route-action-row">
+            <button
+              type="button"
+              className="ride-panel__btn-primary"
+              disabled={
+                props.routeLoading ||
+                Boolean(props.officialCourseActive)
+              }
+              title={
+                props.officialCourseActive
+                  ? "공식 코스를 불러온 상태입니다. 출발지·도착지를 지도에서 바꾼 뒤 맞춤 경로를 만들 수 있습니다."
+                  : undefined
+              }
+              onClick={() => void props.onGenerateRoute()}
+            >
+              {props.routeLoading ? "경로 계산 중…" : "경로 생성"}
+            </button>
+            {!saveOpen ? (
+              <button
+                type="button"
+                className="ride-panel__btn-secondary ride-panel__btn-secondary--save-inline"
+                disabled={!canSaveRoute}
+                onClick={openSave}
+              >
+                내 경로로 저장
+              </button>
+            ) : null}
+          </div>
 
           {props.routeSummary.trim() ? (
             <p className="ride-panel__summary" role="status">
@@ -494,8 +506,8 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             </p>
           ) : null}
 
-          <div className="ride-panel__save-route">
-            {saveOpen ? (
+          {saveOpen ? (
+            <div className="ride-panel__save-route">
               <div className="ride-panel__save-route-form">
                 <label className="ride-panel__label" htmlFor="ride-panel-save-name">
                   경로 이름
@@ -534,17 +546,8 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                   </button>
                 </div>
               </div>
-            ) : (
-              <button
-                type="button"
-                className="ride-panel__btn-secondary"
-                disabled={!canSaveRoute}
-                onClick={openSave}
-              >
-                내 경로로 저장
-              </button>
-            )}
-          </div>
+            </div>
+          ) : null}
 
           <div className="ride-panel__session-block">
             <div className="ride-panel__session-block-head">
