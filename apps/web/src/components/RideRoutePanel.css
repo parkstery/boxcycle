@@ -70,17 +70,29 @@
 }
 
 .ride-panel__point-box {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.3rem 0.45rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
   border: 1px solid var(--rp-border);
   border-radius: 8px;
-  padding: 0.38rem 0.45rem;
+  padding: 0.32rem 0.4rem;
   background: var(--rp-surface);
 }
 
-.ride-panel__point-item--span {
-  grid-column: 1 / -1;
+.ride-panel__point-item {
+  display: grid;
+  grid-template-columns: 3.1rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.35rem;
+  column-gap: 0.45rem;
+}
+
+.ride-panel__point-item .ride-panel__point-label {
+  margin: 0;
+}
+
+.ride-panel__point-item .ride-panel__point-value {
+  margin: 0;
 }
 
 .ride-panel__point-label {

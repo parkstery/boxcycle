@@ -432,16 +432,16 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               <p className="ride-panel__point-label">출발</p>
               <p className="ride-panel__point-value">{props.startLabel}</p>
             </div>
-            <div className="ride-panel__point-item">
-              <p className="ride-panel__point-label">도착</p>
-              <p className="ride-panel__point-value">{props.endLabel}</p>
-            </div>
             {props.waypointLabels.map((label, i) => (
-              <div key={`wp-${i}-${label}`} className="ride-panel__point-item ride-panel__point-item--span">
+              <div key={`wp-${i}-${label}`} className="ride-panel__point-item">
                 <p className="ride-panel__point-label">경유 {i + 1}</p>
                 <p className="ride-panel__point-value">{label}</p>
               </div>
             ))}
+            <div className="ride-panel__point-item">
+              <p className="ride-panel__point-label">도착</p>
+              <p className="ride-panel__point-value">{props.endLabel}</p>
+            </div>
           </div>
 
           <div className="ride-panel__modes ride-panel__modes--inline">
