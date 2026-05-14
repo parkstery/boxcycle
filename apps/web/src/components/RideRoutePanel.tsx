@@ -488,16 +488,11 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             {props.routeLoading ? "경로 계산 중…" : "경로 생성"}
           </button>
 
-          <p className="ride-panel__summary" role="status">
-            {props.routeSummary}
-          </p>
-
-          <p
-            className="ride-panel__save-policy"
-            title="맵에서 경로를 여러 번 만들 수 있으며, 목록에 남기려면 아래에서 이름을 정해 저장하세요. 게스트는 기기 로컬에만 저장됩니다."
-          >
-            목록 반영은 「내 경로로 저장」에서만 됩니다.
-          </p>
+          {props.routeSummary.trim() ? (
+            <p className="ride-panel__summary" role="status">
+              {props.routeSummary}
+            </p>
+          ) : null}
 
           <div className="ride-panel__save-route">
             {saveOpen ? (

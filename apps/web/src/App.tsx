@@ -169,9 +169,7 @@ export default function App() {
   const [routeGeometry, setRouteGeometry] = useState<LineStringGeometry | null>(null);
   const [routeDistanceMeters, setRouteDistanceMeters] = useState(0);
   const [routeDurationSec, setRouteDurationSec] = useState(0);
-  const [routeSummary, setRouteSummary] = useState(
-    "지도를 클릭한 뒤 팝업에서 출발지·도착지·경과지(최대 3)를 선택하세요.",
-  );
+  const [routeSummary, setRouteSummary] = useState("");
   const [routeLoading, setRouteLoading] = useState(false);
   const [mapStyle, setMapStyle] = useState(MAP_STYLE_OPTIONS[3].value);
   const [mapZoom, setMapZoom] = useState(12);
@@ -1000,7 +998,7 @@ export default function App() {
       const start = startLngLat;
       const end = endLngLat;
       if (!start || !end) {
-        setRouteSummary("지도를 클릭해 출발지와 도착지를 먼저 선택하세요.");
+        setRouteSummary("");
         return;
       }
 
