@@ -22,6 +22,9 @@ import { MapHud } from "./components/maphud/MapHud";
 import { useLobbyRoomSession } from "./hooks/useLobbyRoomSession";
 import { useLobbyLiveCourseRidePublisher } from "./hooks/useLobbyLiveCourseRidePublisher";
 import { useLobbyLiveCourseRideSpectatorOverlay } from "./hooks/useLobbyLiveCourseRideSpectatorOverlay";
+import { useDocumentVisibility } from "./hooks/useDocumentVisibility";
+import { fetchWorldPresenceSummary, formatWorldPresenceHudLine } from "./lib/firestoreWorldPresence";
+import { MAP_ZOOM_WORLD_ACTIVITY_MAX, WORLD_PRESENCE_POLL_MS } from "./lib/rideSyncPolicy";
 import { AuthGateCard } from "./components/AuthGateCard";
 import { RideSummarySheet } from "./components/RideSummarySheet";
 import { MenuPanel } from "./components/MenuPanel";
@@ -229,11 +232,14 @@ export default function App() {
   /** 비로그인 맵에서 TR「로그인」으로 연 게스트/Google 카드 */
   const [authSheetOpen, setAuthSheetOpen] = useState(false);
   const lobbyPresenceUidRef = useRef<string | null>(null);
+  const pageVisible = useDocumentVisibility();
+  const [worldHudHint, setWorldHudHint] = useState<string | null>(null);
 
   const lobbyRoomSession = useLobbyRoomSession({
     user: user ?? undefined,
     roomId,
     enabled: Boolean(configured && user && lobbyParticipationEnabled),
+    pageVisible,
   });
   /** true면 입문 코스 경로가 있어도 동행 허브 자동 참여 안 함(「나가기」 후) */
   const basicStartHubLeftExplicitRef = useRef(false);
@@ -334,7 +340,11 @@ export default function App() {
   );
 
   const lobbySpectatorOverlayEnabled = Boolean(
-    configured && user && lobbyParticipationEnabled && rideStatus === "idle",
+    configured &&
+      user &&
+      lobbyParticipationEnabled &&
+      rideStatus === "idle" &&
+      pageVisible,
   );
 
   const { spectatorDots, spectatorRouteGeometries } = useLobbyLiveCourseRideSpectatorOverlay({
@@ -351,16 +361,37 @@ export default function App() {
       configured &&
         user &&
         lobbyParticipationEnabled &&
-        rideStatus !== "idle" &&
+        rideStatus === "running" &&
         (basicActiveHubCourseId ?? activeOfficialCourseId) &&
         Boolean(routeGeometry?.coordinates?.length),
     ),
+    pageVisible,
     roomId,
     courseId: basicActiveHubCourseId ?? activeOfficialCourseId,
     routeGeometry,
     routeDistanceMeters,
     virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
   });
+
+  useEffect(() => {
+    if (!configured || !user || !pageVisible || mapZoom > MAP_ZOOM_WORLD_ACTIVITY_MAX) {
+      setWorldHudHint(null);
+      return;
+    }
+    let cancelled = false;
+    const load = () => {
+      void (async () => {
+        const r = await fetchWorldPresenceSummary();
+        if (!cancelled) setWorldHudHint(formatWorldPresenceHudLine(r.regions));
+      })();
+    };
+    load();
+    const id = window.setInterval(load, WORLD_PRESENCE_POLL_MS);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, [configured, user, pageVisible, mapZoom]);
 
   useEffect(() => {
     const onPop = () => {
@@ -1553,6 +1584,16 @@ export default function App() {
       : null;
   const caloriesEstimate = Math.round((rideMetrics.virtualDistanceMeters / 1000) * 30);
 
+  const courseLiveProgressRatio = useMemo(() => {
+    if (routeDistanceMeters <= 0) return null;
+    return Math.max(0, Math.min(1, rideMetrics.virtualDistanceMeters / routeDistanceMeters));
+  }, [routeDistanceMeters, rideMetrics.virtualDistanceMeters]);
+
+  const worldActivityHint = useMemo(() => {
+    if (mapZoom > MAP_ZOOM_WORLD_ACTIVITY_MAX || !worldHudHint) return null;
+    return worldHudHint;
+  }, [mapZoom, worldHudHint]);
+
   const mapHudRidePresence = useMemo(() => {
     if (!configured || !user) return null;
     const courseTitle = basicActiveHubCourseId
@@ -1683,6 +1724,7 @@ export default function App() {
           showIdleHint={stage === "idle" && !idleHintDismissed}
           onDismissIdleHint={() => setIdleHintDismissed(true)}
           ridePresence={mapHudRidePresence}
+          worldActivityHint={worldActivityHint}
         />
 
         {rideMapillaryStreet && mapillaryRideSync && mapillaryTokenConfigured ? (
@@ -1926,7 +1968,8 @@ export default function App() {
           user={user}
           courseId={basicActiveHubCourseId}
           title={getBasicHubCoursePayload(basicActiveHubCourseId).title}
-          isRiding={rideStatus !== "idle"}
+          isRiding={rideStatus === "running"}
+          progressRatio={courseLiveProgressRatio}
           myLiveLngLat={liveForMap}
           onPeersChange={onCoursePeersChange}
           onLiveRiderNametagChange={setLiveRiderNametag}

@@ -335,6 +335,21 @@
   opacity: 0.62;
 }
 
+.hud-world-hint {
+  margin: 0.2rem 0 0;
+  padding: 0.35rem 0.55rem;
+  max-width: min(22rem, 88vw);
+  font-size: 0.68rem;
+  line-height: 1.35;
+  font-weight: 500;
+  color: rgba(226, 232, 240, 0.88);
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 0.45rem;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
 /* ---------- TR: AccountChip ---------- */
 .hud-avatar {
   width: 2.2rem;

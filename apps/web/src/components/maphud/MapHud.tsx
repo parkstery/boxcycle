@@ -66,6 +66,8 @@ export type MapHudProps = {
 
   /** 로비·코스 동행 요약(없으면 미표시) */
   ridePresence?: MapHudRidePresence | null;
+  /** 줌 축소 시 월드 레이어 한 줄(집계 문서 기반, 저빈도 갱신) */
+  worldActivityHint?: string | null;
 };
 
 /**
@@ -103,6 +105,7 @@ export function MapHud(props: MapHudProps) {
     showIdleHint,
     onDismissIdleHint,
     ridePresence,
+    worldActivityHint,
   } = props;
 
   const riding = stage === "riding";
@@ -147,6 +150,11 @@ export function MapHud(props: MapHudProps) {
               <span className="hud-brand__dot" aria-hidden />
               BOXCYCLE
             </button>
+            {worldActivityHint ? (
+              <p className="hud-world-hint" role="status">
+                {worldActivityHint}
+              </p>
+            ) : null}
             {showRidePresence && ridePresence ? (
               <aside className="hud-ride-presence hud-glass" aria-label="방·동행">
                 {ridePresence.lobbyEnabled ? (

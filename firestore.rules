@@ -249,5 +249,11 @@ service cloud.firestore {
       allow create, update: if isSelf(userId) && isCourseSharedPresenceAllowed(courseId);
       allow delete: if isSelf(userId) && isCourseSharedPresenceAllowed(courseId);
     }
+
+    /** 월드 활동 집계(선택). 콘솔/CF로만 수정 — 클라이언트 write 금지. 로그인 사용자 읽기. */
+    match /appMeta/{docId} {
+      allow read: if isSignedIn() && docId == 'worldPresence';
+      allow write: if false;
+    }
   }
 }

@@ -2,7 +2,6 @@ import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import type { User } from "firebase/auth";
 import { ensureBasicSharedHubPresenceFlagsMerged } from "../lib/firestoreCourses";
 import {
-  COURSE_LIVE_SHARE_INTERVAL_MS,
   deleteCoursePresence,
   isCourseMemberActive,
   mergeCourseMemberLiveLocation,
@@ -13,8 +12,19 @@ import {
 } from "../lib/firestoreCoursePresence";
 import type { LngLat } from "../lib/geo";
 import type { MapPeerMarker } from "./MapView";
-import { LOBBY_STALE_MS, PRESENCE_HEARTBEAT_INTERVAL_MS } from "../lib/firestoreLobby";
+import { LOBBY_STALE_MS } from "../lib/firestoreLobby";
+import {
+  COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS,
+  COURSE_PRESENCE_HEARTBEAT_PAUSED_MS,
+  haversineMeters,
+  LIVE_SHARE_MAX_WRITE_INTERVAL_MS,
+  LIVE_SHARE_MIN_MOVE_METERS,
+  LIVE_SHARE_MIN_PROGRESS_DELTA,
+  LIVE_SHARE_MIN_WRITE_INTERVAL_MS,
+  roundLngLatForLiveShare,
+} from "../lib/rideSyncPolicy";
 import { mapNametagForMember, sortedGuestUids } from "../lib/guestNametag";
+import { useDocumentVisibility } from "../hooks/useDocumentVisibility";
 import "./LobbyPresence.css";
 
 function peersStableKey(peers: MapPeerMarker[] | undefined): string {
@@ -29,8 +39,10 @@ type CourseSharedPresenceProps = {
   user: User;
   courseId: string;
   title?: string;
-  /** 주행 중이면 주기적으로 지도 좌표를 공유 */
+  /** 실제 주행(running)일 때만 라이브 좌표를 Firestore에 동기화 */
   isRiding: boolean;
+  /** 0~1 가상 진행률 — 이동·진행률 기반 쓰기 임계값 */
+  progressRatio?: number | null;
   myLiveLngLat: LngLat | null;
   onPeersChange?: (peers: MapPeerMarker[]) => void;
   /** 내 라이더 머리 위 네임태그(닉네임·guest1 등) */
@@ -42,18 +54,25 @@ export function CourseSharedPresence({
   courseId,
   title,
   isRiding,
+  progressRatio,
   myLiveLngLat,
   onPeersChange,
   onLiveRiderNametagChange,
 }: CourseSharedPresenceProps) {
+  const pageVisible = useDocumentVisibility();
   const [rows, setRows] = useState<CourseMemberRow[]>([]);
   const [presenceError, setPresenceError] = useState<string | null>(null);
   const liveRef = useRef<LngLat | null>(null);
+  const progressRef = useRef<number | null>(null);
   const onPeersChangeRef = useRef(onPeersChange);
   const onLiveTagRef = useRef(onLiveRiderNametagChange);
   const userRef = useRef(user);
   userRef.current = user;
   onLiveTagRef.current = onLiveRiderNametagChange;
+  progressRef.current =
+    typeof progressRatio === "number" && Number.isFinite(progressRatio)
+      ? Math.max(0, Math.min(1, progressRatio))
+      : null;
 
   useEffect(() => {
     return () => {
@@ -75,18 +94,29 @@ export function CourseSharedPresence({
     };
   }, []);
 
+  /** 포그라운드일 때만 멤버 스냅샷 구독 + 하트비트(주행/일시정지 주기 분리). 백그라운드에서는 구독 해제·문서 정리로 읽기·쓰기 절감 */
   useEffect(() => {
     const uid = user.uid;
     let cancelled = false;
     let unsub: (() => void) | undefined;
-    let timer: number | undefined;
     startTransition(() => setPresenceError(null));
+
+    if (!pageVisible) {
+      startTransition(() => {
+        setRows([]);
+        setPresenceError(null);
+      });
+      return () => {
+        void mergeCourseMemberLiveLocation(userRef.current, courseId, null).catch(() => {});
+        void deleteCoursePresence(uid, courseId).catch(() => {});
+      };
+    }
 
     void (async () => {
       try {
         await ensureBasicSharedHubPresenceFlagsMerged(courseId);
       } catch {
-        /* merge 실패는 아래 upsert·스냅샷에서 다시 드러난다 */
+        /* noop */
       }
       if (cancelled) return;
       try {
@@ -106,51 +136,74 @@ export function CourseSharedPresence({
           if (!cancelled) setPresenceError(err.message);
         },
       );
-
-      timer = window.setInterval(() => {
-        void touchCoursePresence(userRef.current, courseId).catch((e: unknown) => {
-          const message = e instanceof Error ? e.message : String(e);
-          if (!cancelled) setPresenceError(message);
-        });
-      }, PRESENCE_HEARTBEAT_INTERVAL_MS);
     })();
 
     return () => {
       cancelled = true;
-      if (timer !== undefined) window.clearInterval(timer);
       unsub?.();
-      void deleteCoursePresence(uid, courseId).catch(() => {
-        /* 코스 전환·언마운트 시 무시 */
-      });
+      void deleteCoursePresence(uid, courseId).catch(() => {});
     };
-  }, [user.uid, courseId]);
+  }, [user.uid, courseId, pageVisible]);
 
+  /** presence 생존 신호 — 주행 중은 기본 주기, 일시정지·대기는 저빈도(좌표 쓰기와 분리) */
   useEffect(() => {
-    if (!isRiding) {
-      void mergeCourseMemberLiveLocation(userRef.current, courseId, null).catch(() => {
-        /* 퇴장·일시정지 시 위치 제거 실패는 무시 */
+    if (!pageVisible) return;
+    const ms = isRiding ? COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS : COURSE_PRESENCE_HEARTBEAT_PAUSED_MS;
+    const id = window.setInterval(() => {
+      void touchCoursePresence(userRef.current, courseId).catch((e: unknown) => {
+        const message = e instanceof Error ? e.message : String(e);
+        setPresenceError(message);
       });
+    }, ms);
+    return () => window.clearInterval(id);
+  }, [pageVisible, isRiding, courseId, user.uid]);
+
+  /** 실제 주행 + 포그라운드일 때만 이동·진행률·시간 기반으로 라이브 좌표 쓰기 */
+  useEffect(() => {
+    if (!isRiding || !pageVisible) {
+      void mergeCourseMemberLiveLocation(userRef.current, courseId, null).catch(() => {});
       return;
     }
-    const send = () => {
+
+    const last = { writeAt: 0, lngLat: null as LngLat | null, ratio: null as number | null };
+
+    const tick = () => {
       const p = liveRef.current;
       if (!p) return;
-      void mergeCourseMemberLiveLocation(userRef.current, courseId, p).catch((e: unknown) => {
+      const now = Date.now();
+      const coarse = roundLngLatForLiveShare(p);
+      const ratio = progressRef.current;
+
+      const elapsed = last.writeAt === 0 ? LIVE_SHARE_MAX_WRITE_INTERVAL_MS : now - last.writeAt;
+      const maxDue = last.writeAt === 0 || elapsed >= LIVE_SHARE_MAX_WRITE_INTERVAL_MS;
+      const minOk = last.writeAt === 0 || elapsed >= LIVE_SHARE_MIN_WRITE_INTERVAL_MS;
+      const moved =
+        last.lngLat == null ? true : haversineMeters(last.lngLat, coarse) >= LIVE_SHARE_MIN_MOVE_METERS;
+      const prog =
+        ratio != null &&
+        last.ratio != null &&
+        Math.abs(ratio - last.ratio) >= LIVE_SHARE_MIN_PROGRESS_DELTA;
+
+      if (!minOk && !maxDue) return;
+      if (!maxDue && !moved && !prog) return;
+
+      last.writeAt = now;
+      last.lngLat = coarse;
+      last.ratio = ratio;
+      void mergeCourseMemberLiveLocation(userRef.current, courseId, coarse).catch((e: unknown) => {
         const message = e instanceof Error ? e.message : String(e);
         setPresenceError(message);
       });
     };
-    send();
-    const id = window.setInterval(send, COURSE_LIVE_SHARE_INTERVAL_MS);
+
+    tick();
+    const id = window.setInterval(tick, 1_000);
     return () => {
       window.clearInterval(id);
-      void mergeCourseMemberLiveLocation(userRef.current, courseId, null).catch(() => {
-        /* noop */
-      });
+      void mergeCourseMemberLiveLocation(userRef.current, courseId, null).catch(() => {});
     };
-  }, [isRiding, user.uid, courseId]);
+  }, [isRiding, pageVisible, user.uid, courseId]);
 
-  /** rows 참조가 바뀔 때만 재계산 — 매 부모 렌더마다 새 배열이 되면 안 됨 */
   const active = useMemo(
     () => rows.filter((r) => isCourseMemberActive(r.lastSeenAtMs)),
     [rows],
