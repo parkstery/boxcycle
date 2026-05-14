@@ -187,8 +187,7 @@ const CAMERA_BEARING_WINDOW_METERS = 60;
 const CAMERA_BEARING_WINDOW_SAMPLES = 60;
 
 /**
- * 출발/도착/경유 핀: 3D 피치에서도 빌보드로 세워 가림 최소화.
- * (노선 위 라이더 마커는 아래 `RIDER_ON_ROUTE_*` — `line` 레이어와 평면을 맞춤)
+ * 출발/도착/경유·라이더: 3D 피치에서도 빌보드(세움). `map` 정렬은 스프라이트가 지면에 눕는 문제가 있어 라이더도 viewport 유지.
  */
 const PIN_MARKER_VIEWPORT_ALIGNMENT = {
   pitchAlignment: "viewport" as const,
@@ -196,19 +195,10 @@ const PIN_MARKER_VIEWPORT_ALIGNMENT = {
 };
 
 /**
- * 노선 `line` 레이어와 동일한 맵 평면 정렬. viewport 빌보드면 피치 시 좌표는 같아도
- * 화면상으로 선에서 떨어져 보일 수 있음.
+ * 라이더 DOM 마커만 — 앵커(bottom) 대비 픽셀 보정. Mapbox: 양수 → 오른쪽·아래, 음수 → 왼쪽·위.
+ * (좌표 보간과 별개; 화면상 선·스프라이트 패딩 어긋남만 여기서 조절)
  */
-const RIDER_ON_ROUTE_MARKER_ALIGNMENT = {
-  pitchAlignment: "map" as const,
-  rotationAlignment: "map" as const,
-};
-
-/**
- * 라이더 스프라이트 마커 — 앵커( bottom ) 대비 픽셀 보정. Mapbox `setOffset` 규약:
- * 양수 → 오른쪽·아래, 음수 → 왼쪽·위. 스프라이트 셀 패딩·정렬 보정용.
- */
-const RIDER_ROUTE_MARKER_OFFSET_PX: [number, number] = [6, 12];
+const RIDER_ROUTE_MARKER_OFFSET_PX: [number, number] = [14, 18];
 
 function pickPeerSourceFrameIndices(totalFrames: number): number[] {
   if (totalFrames < 2) return [0, 0, 0, 0, 0, 0];
@@ -276,7 +266,7 @@ function syncPeerDomMarkers(
         className: "map-view__peer-rider-marker",
         anchor: "bottom",
         offset: RIDER_ROUTE_MARKER_OFFSET_PX,
-        ...RIDER_ON_ROUTE_MARKER_ALIGNMENT,
+        ...PIN_MARKER_VIEWPORT_ALIGNMENT,
       })
         .setLngLat(lngLat)
         .addTo(map);
@@ -848,7 +838,7 @@ export function MapView({
           className: "map-view__live-rider-marker",
           anchor: "bottom",
           offset: RIDER_ROUTE_MARKER_OFFSET_PX,
-          ...RIDER_ON_ROUTE_MARKER_ALIGNMENT,
+          ...PIN_MARKER_VIEWPORT_ALIGNMENT,
         })
           .setLngLat(liveLngLat)
           .addTo(map);
