@@ -165,6 +165,11 @@ export default function App() {
   const [startPlaceLabel, setStartPlaceLabel] = useState<string | null>(null);
   const [endPlaceLabel, setEndPlaceLabel] = useState<string | null>(null);
   const [routeWaypoints, setRouteWaypoints] = useState<LngLat[]>([]);
+  /** 경유지 표시용 — Mapbox 역지오코딩(null 이면 로딩 중) */
+  const [waypointPlaceLabels, setWaypointPlaceLabels] = useState<(string | null)[]>([]);
+  const routeWaypointsGeocodeRef = useRef(routeWaypoints);
+  routeWaypointsGeocodeRef.current = routeWaypoints;
+
   const [profile, setProfile] = useState<RouteProfile>("cycling");
   const [routeGeometry, setRouteGeometry] = useState<LineStringGeometry | null>(null);
   const [routeDistanceMeters, setRouteDistanceMeters] = useState(0);
@@ -1470,6 +1475,50 @@ export default function App() {
     return () => ac.abort();
   }, [endLngLat]);
 
+  useEffect(() => {
+    const wps = routeWaypoints;
+    const snapshot = JSON.stringify(wps);
+    const ac = new AbortController();
+
+    if (wps.length === 0) {
+      setWaypointPlaceLabels([]);
+      return () => ac.abort();
+    }
+
+    const token = MAPBOX_TOKEN.trim();
+    if (!token) {
+      setWaypointPlaceLabels(wps.map(formatLngLat));
+      return () => ac.abort();
+    }
+
+    setWaypointPlaceLabels(wps.map(() => null));
+
+    void (async () => {
+      try {
+        const resolved = await Promise.all(
+          wps.map(async (wp) => {
+            try {
+              const name = await fetchMapboxReverseGeocodePlaceName(wp, token, ac.signal);
+              if (ac.signal.aborted) return formatLngLat(wp);
+              return (name && name.trim()) || formatLngLat(wp);
+            } catch {
+              return formatLngLat(wp);
+            }
+          }),
+        );
+        if (ac.signal.aborted) return;
+        if (JSON.stringify(routeWaypointsGeocodeRef.current) !== snapshot) return;
+        setWaypointPlaceLabels(resolved);
+      } catch {
+        if (ac.signal.aborted) return;
+        if (JSON.stringify(routeWaypointsGeocodeRef.current) !== snapshot) return;
+        setWaypointPlaceLabels(wps.map(formatLngLat));
+      }
+    })();
+
+    return () => ac.abort();
+  }, [routeWaypoints]);
+
   const startLabel = !startLngLat
     ? "미설정"
     : startPlaceLabel === null
@@ -1480,6 +1529,17 @@ export default function App() {
     : endPlaceLabel === null
       ? "주소 불러오는 중…"
       : endPlaceLabel;
+
+  const waypointLabelsForPanel = useMemo(
+    () =>
+      routeWaypoints.map((wp, i) => {
+        const lab = waypointPlaceLabels[i];
+        if (lab === null) return "주소 불러오는 중…";
+        if (typeof lab === "string") return lab;
+        return formatLngLat(wp);
+      }),
+    [routeWaypoints, waypointPlaceLabels],
+  );
 
   /** Firebase 미설정이거나 인증 준비 완료 후 — 로비·입문 코스 UI가 숨겨지지 않도록 메인 워크스페이스 표시 */
   const rideWorkspaceOpen = !configured || (configured && authInitialized);
@@ -1779,7 +1839,7 @@ export default function App() {
         <RideRoutePanel
           startLabel={startLabel}
           endLabel={endLabel}
-          waypointLabels={routeWaypoints.map(formatLngLat)}
+          waypointLabels={waypointLabelsForPanel}
           profile={profile}
           onProfile={setProfile}
           routeSummary={routeSummary}
