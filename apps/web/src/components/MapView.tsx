@@ -579,10 +579,13 @@ export function MapView({
         popupRef.current?.remove();
         popupRef.current = null;
       };
+      const anchor = pickPickPopupAnchor(map, event);
       const popup = new mapboxgl.Popup({
         closeOnClick: true,
         className: "map-view__pick-popup",
-        maxWidth: "400px",
+        maxWidth: "min(20rem, calc(100vw - 1.5rem))",
+        anchor,
+        offset: 18,
       })
         .setLngLat(picked)
         .setDOMContent(
@@ -1149,6 +1152,22 @@ export function MapView({
   );
 }
 
+function pickPickPopupAnchor(
+  map: mapboxgl.Map,
+  e: mapboxgl.MapMouseEvent | mapboxgl.MapLayerMouseEvent,
+): "top" | "bottom" | "left" | "right" {
+  const canvas = map.getCanvas();
+  const w = Math.max(1, canvas.clientWidth);
+  const h = Math.max(1, canvas.clientHeight);
+  const { x, y } = e.point;
+  const m = Math.min(80, w * 0.14, h * 0.13);
+  if (y < m) return "top";
+  if (y > h - m) return "bottom";
+  if (x < m) return "left";
+  if (x > w - m) return "right";
+  return "bottom";
+}
+
 function createLiveRiderMarkerRoot(): {
   root: HTMLDivElement;
   nametag: HTMLDivElement;
@@ -1315,10 +1334,6 @@ function buildPickPopup(deps: {
   const profileSection = document.createElement("div");
   profileSection.className = "map-view__pick-profile-section";
 
-  const profileHint = document.createElement("p");
-  profileHint.className = "map-view__pick-profile-hint";
-  profileHint.textContent = "이동 수단을 고르면 즉시 경로를 계산하고 팝업이 닫힙니다.";
-
   const rowProfile = document.createElement("div");
   rowProfile.className = "map-view__pick-actions map-view__pick-actions--profile";
   rowProfile.setAttribute("role", "group");
@@ -1360,7 +1375,7 @@ function buildPickPopup(deps: {
     });
   }
 
-  profileSection.append(profileHint, rowProfile);
+  profileSection.append(rowProfile);
   syncProfileUi();
 
   wrap.append(addressEl, metaEl, rowMain, rowWp, profileSection);

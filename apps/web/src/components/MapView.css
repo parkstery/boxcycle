@@ -29,7 +29,7 @@
   z-index: 30;
 }
 
-/* 지도 클릭 — 출발/도착/경유 선택 팝업(밝은 카드, 목업 정렬) */
+/* 지도 클릭 — 출발/도착/경유·수단 (앱 다크 글래스 톤, 콤팩트) */
 .map-view .map-view__pick-popup.mapboxgl-popup {
   overflow: visible;
 }
@@ -37,38 +37,40 @@
 .map-view .map-view__pick-popup .mapboxgl-popup-content {
   padding: 0;
   overflow: visible;
-  border-radius: 16px;
-  background: #fff;
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.14);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(248, 250, 252, 0.18);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .map-view .map-view__pick-popup.mapboxgl-popup-anchor-top .mapboxgl-popup-tip {
-  border-bottom-color: #fff;
+  border-bottom-color: rgba(15, 23, 42, 0.92);
 }
 .map-view .map-view__pick-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
-  border-top-color: #fff;
+  border-top-color: rgba(15, 23, 42, 0.92);
 }
 .map-view .map-view__pick-popup.mapboxgl-popup-anchor-left .mapboxgl-popup-tip {
-  border-right-color: #fff;
+  border-right-color: rgba(15, 23, 42, 0.92);
 }
 .map-view .map-view__pick-popup.mapboxgl-popup-anchor-right .mapboxgl-popup-tip {
-  border-left-color: #fff;
+  border-left-color: rgba(15, 23, 42, 0.92);
 }
 
 .map-view .map-view__pick-popup .mapboxgl-popup-close-button {
-  color: #fff;
+  color: #f8fafc;
   font-size: 1rem;
   line-height: 1;
   padding: 0;
-  width: 28px;
-  height: 28px;
-  right: -6px;
-  top: -6px;
+  width: 1.65rem;
+  height: 1.65rem;
+  right: 0.2rem;
+  top: 0.2rem;
   border-radius: 50%;
-  background: #1e293b;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+  background: rgba(248, 250, 252, 0.12);
+  border: 1px solid rgba(248, 250, 252, 0.22);
+  box-shadow: none;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -76,38 +78,40 @@
 
 .map-view .map-view__pick-popup .mapboxgl-popup-close-button:hover {
   color: #fff;
-  background: #0f172a;
+  background: rgba(248, 250, 252, 0.2);
 }
 
 .map-view__pick {
-  padding: 0.85rem 0.85rem 0.9rem;
-  min-width: 15rem;
-  max-width: 22rem;
+  padding: 0.45rem 0.55rem 0.5rem;
+  padding-right: 1.85rem;
+  min-width: 13.5rem;
+  max-width: 20rem;
   box-sizing: border-box;
+  color: #f1f5f9;
 }
 
 .map-view__pick-address {
   font-size: 0.82rem;
   font-weight: 700;
-  line-height: 1.35;
-  color: #0f172a;
+  line-height: 1.3;
+  color: #f8fafc;
   word-break: break-word;
 }
 
 .map-view__pick-meta {
-  margin-top: 0.35rem;
+  margin-top: 0.22rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.68rem;
   letter-spacing: 0.01em;
-  color: #64748b;
-  line-height: 1.4;
+  color: rgba(226, 232, 240, 0.78);
+  line-height: 1.35;
   word-break: break-all;
 }
 
 .map-view__pick-actions {
   display: flex;
-  gap: 0.4rem;
-  margin-top: 0.65rem;
+  gap: 0.28rem;
+  margin-top: 0.38rem;
 }
 
 .map-view__pick-actions--main {
@@ -115,7 +119,7 @@
 }
 
 .map-view__pick-actions--wps {
-  margin-top: 0.4rem;
+  margin-top: 0.28rem;
 }
 
 .map-view__pick-btn {
@@ -125,7 +129,9 @@
   font: inherit;
   font-size: 0.74rem;
   font-weight: 700;
-  padding: 0.45rem 0.5rem;
+  padding: 0.26rem 0.42rem;
+  min-height: 0;
+  line-height: 1.25;
   border-radius: 999px;
   cursor: pointer;
   transition:
@@ -140,85 +146,75 @@
 }
 
 .map-view__pick-btn:disabled {
-  opacity: 0.42;
+  opacity: 0.38;
   cursor: not-allowed;
 }
 
 .map-view__pick-btn--start {
-  background: color-mix(in srgb, #3b82f6 14%, #fff);
-  border-color: color-mix(in srgb, #3b82f6 35%, #fff);
-  color: #1d4ed8;
+  background: rgba(56, 189, 248, 0.18);
+  border-color: rgba(56, 189, 248, 0.45);
+  color: #bae6fd;
 }
 
 .map-view__pick-btn--start:hover:not(:disabled) {
-  background: color-mix(in srgb, #3b82f6 22%, #fff);
-  border-color: color-mix(in srgb, #3b82f6 50%, #fff);
+  background: rgba(56, 189, 248, 0.28);
+  border-color: rgba(56, 189, 248, 0.6);
 }
 
 .map-view__pick-btn--end {
-  background: #2563eb;
-  border-color: #1d4ed8;
-  color: #fff;
+  background: rgba(14, 165, 233, 0.55);
+  border-color: rgba(125, 211, 252, 0.45);
+  color: #f0f9ff;
 }
 
 .map-view__pick-btn--end:hover:not(:disabled) {
-  background: #1d4ed8;
-  border-color: #1e40af;
+  background: rgba(2, 132, 199, 0.75);
+  border-color: rgba(186, 230, 253, 0.55);
 }
 
 .map-view__pick-btn--wp {
-  background: color-mix(in srgb, #fb923c 12%, #fff);
-  border-color: color-mix(in srgb, #ea580c 28%, #fff);
-  color: #c2410c;
+  background: rgba(251, 146, 60, 0.14);
+  border-color: rgba(251, 146, 60, 0.38);
+  color: #fed7aa;
 }
 
 .map-view__pick-btn--wp:hover:not(:disabled) {
-  background: color-mix(in srgb, #fb923c 20%, #fff);
-  border-color: color-mix(in srgb, #ea580c 42%, #fff);
+  background: rgba(251, 146, 60, 0.24);
+  border-color: rgba(253, 186, 116, 0.45);
 }
 
 .map-view__pick-profile-section {
-  margin-top: 0.45rem;
-}
-
-.map-view__pick-profile-hint {
-  margin: 0 0 0.35rem;
-  font-size: 0.68rem;
-  line-height: 1.35;
-  color: #64748b;
-}
-
-.map-view__pick--awaiting-profile .map-view__pick-profile-section .map-view__pick-profile-hint {
-  color: #2563eb;
-  font-weight: 600;
+  margin-top: 0.32rem;
 }
 
 .map-view__pick-actions--profile {
-  margin-top: 0.35rem;
+  margin-top: 0.28rem;
 }
 
 .map-view__pick-btn--profile {
-  background: color-mix(in srgb, #64748b 8%, #fff);
-  border-color: color-mix(in srgb, #64748b 22%, #fff);
-  color: #334155;
+  background: rgba(248, 250, 252, 0.08);
+  border-color: rgba(248, 250, 252, 0.16);
+  color: #e2e8f0;
   font-size: 0.72rem;
+  padding: 0.24rem 0.38rem;
+  line-height: 1.25;
 }
 
 .map-view__pick-btn--profile:hover:not(:disabled) {
-  background: color-mix(in srgb, #64748b 14%, #fff);
-  border-color: color-mix(in srgb, #475569 35%, #fff);
+  background: rgba(248, 250, 252, 0.14);
+  border-color: rgba(248, 250, 252, 0.24);
 }
 
 .map-view__pick-btn--profile.is-active {
-  background: color-mix(in srgb, #2563eb 18%, #fff);
-  border-color: color-mix(in srgb, #2563eb 45%, #fff);
-  color: #1e40af;
+  background: rgba(56, 189, 248, 0.28);
+  border-color: rgba(56, 189, 248, 0.55);
+  color: #f0f9ff;
 }
 
 .map-view__pick--awaiting-profile {
-  outline: 1px solid color-mix(in srgb, #2563eb 22%, transparent);
-  outline-offset: 2px;
-  border-radius: 12px;
+  outline: 1px solid rgba(56, 189, 248, 0.35);
+  outline-offset: 1px;
+  border-radius: 10px;
 }
 
 .map-view__waypoint-marker {
