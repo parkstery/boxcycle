@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { User } from "firebase/auth";
 import type { RouteProfile } from "../services/mapboxDirections";
 import { formatDuration } from "../services/mapboxDirections";
-import type { PublishedPublicCourseSummary } from "../lib/firestoreCourses";
+import type { PublishedPublicCourseSummary, CourseProfile } from "../lib/firestoreCourses";
 import type { BleCrankRpmUiState } from "../hooks/useBleCrankRpm";
 import type { RideSessionStatus } from "../hooks/useVirtualRideSession";
 import type { SavedRoute } from "../lib/firestoreSavedRoutes";
@@ -36,7 +36,7 @@ type RideRoutePanelProps = {
   speedKmh: number;
   onSpeedKmh: (n: number) => void;
   sessionStatus: RideSessionStatus;
-  basicSharedHubs: { id: string; title: string }[];
+  basicSharedHubs: PublishedPublicCourseSummary[];
   basicActiveHubCourseId: string | null;
   basicStartLoading: boolean;
   basicStartHubJoined: boolean;
@@ -99,7 +99,7 @@ type Tab = "route" | "saved" | "publicReview";
 
 type OfficialCourseSegment = "intro" | "public" | "event";
 
-function profileLabelKo(p: RouteProfile): string {
+function profileLabelKo(p: RouteProfile | CourseProfile): string {
   if (p === "walking") return "도보";
   if (p === "driving") return "자동차";
   return "자전거";
@@ -323,46 +323,56 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             </div>
 
             {officialSegment === "intro" ? (
-          <div className="ride-panel__basic-start" aria-label="입문 상시 코스">
-            {props.basicActiveHubCourseId ? (
-              <p className="ride-panel__basic-start-active" role="status">
-                선택:{" "}
-                <strong>
-                  {props.basicSharedHubs.find((h) => h.id === props.basicActiveHubCourseId)?.title ??
-                    props.basicActiveHubCourseId}
-                </strong>
-              </p>
-            ) : null}
-            <div className="ride-panel__basic-start-btns ride-panel__basic-start-btns--grid">
-              {props.basicSharedHubs.map((hub, idx) => (
-                <button
-                  key={hub.id}
-                  type="button"
-                  className="ride-panel__btn-secondary"
-                  disabled={
-                    props.routeLoading ||
-                    props.basicStartLoading ||
-                    props.sessionStatus !== "idle"
-                  }
-                  title={hub.title}
-                  onClick={() => props.onEnterBasicHub(hub.id)}
-                >
-                  {props.basicStartLoading ? "…" : `${idx + 1}`}
-                </button>
-              ))}
-              {props.basicStartHubJoined ? (
-                <button
-                  type="button"
-                  className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet"
-                  disabled={props.basicStartLoading}
-                  onClick={() => void props.onLeaveBasicHub()}
-                >
-                  나가기
-                </button>
-              ) : null}
-            </div>
-          </div>
-
+              <div className="ride-panel__public-courses" aria-label="입문 상시 코스">
+                {props.basicActiveHubCourseId ? (
+                  <p className="ride-panel__public-courses-hint" role="status">
+                    선택:{" "}
+                    <strong>
+                      {props.basicSharedHubs.find((h) => h.id === props.basicActiveHubCourseId)?.title ??
+                        props.basicActiveHubCourseId}
+                    </strong>
+                  </p>
+                ) : null}
+                {props.basicSharedHubs.length === 0 ? (
+                  <p className="ride-panel__public-courses-hint">입문 허브 코스 없음</p>
+                ) : (
+                  <ul className="ride-panel__public-courses-list">
+                    {props.basicSharedHubs.map((c) => (
+                      <li key={c.id} className="ride-panel__public-courses-item">
+                        <div className="ride-panel__public-courses-meta">
+                          <strong className="ride-panel__public-courses-name">{c.title}</strong>
+                          <span className="ride-panel__public-courses-sub">
+                            {profileLabelKo(c.profile)} · {(c.distanceMeters / 1000).toFixed(2)} km · 예상{" "}
+                            {formatDuration(c.durationSec)}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          className="ride-panel__btn-secondary ride-panel__btn-secondary--small"
+                          disabled={
+                            props.routeLoading ||
+                            props.basicStartLoading ||
+                            props.sessionStatus !== "idle"
+                          }
+                          onClick={() => props.onEnterBasicHub(c.id)}
+                        >
+                          불러오기
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {props.basicStartHubJoined ? (
+                  <button
+                    type="button"
+                    className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet ride-panel__hub-leave"
+                    disabled={props.basicStartLoading}
+                    onClick={() => void props.onLeaveBasicHub()}
+                  >
+                    나가기
+                  </button>
+                ) : null}
+              </div>
             ) : officialSegment === "public" ? (
               <div className="ride-panel__public-courses" aria-label="퍼블릭 코스">
                 {!props.officialCourseCatalogAvailable ? (

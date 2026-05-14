@@ -457,14 +457,20 @@ const BASIC_COURSES: Omit<CourseDoc, "createdAt" | "updatedAt">[] = [
   },
 ];
 
-export const BASIC_SHARED_HUB_SUMMARIES: { id: string; title: string }[] = BASIC_SHARED_HUB_IDS.map(
+export const BASIC_SHARED_HUB_SUMMARIES: PublishedPublicCourseSummary[] = BASIC_SHARED_HUB_IDS.map(
   (id) => {
     const course = BASIC_COURSES.find((c) => c.id === id)!;
-    return { id, title: course.title };
+    return {
+      id,
+      title: course.title,
+      profile: parseCourseProfile({ profile: course.profile }),
+      distanceMeters: course.distanceMeters,
+      durationSec: course.durationSec,
+    };
   },
 );
 
-export function getBasicSharedHubSummaries(): { id: string; title: string }[] {
+export function getBasicSharedHubSummaries(): PublishedPublicCourseSummary[] {
   return BASIC_SHARED_HUB_SUMMARIES;
 }
 
