@@ -1334,10 +1334,15 @@ function buildPickPopup(deps: {
   const profileSection = document.createElement("div");
   profileSection.className = "map-view__pick-profile-section";
 
+  const profileLabel = document.createElement("p");
+  profileLabel.className = "map-view__pick-profile-label";
+  profileLabel.id = "map-view-pick-profile-label";
+  profileLabel.textContent = "경로 탐색 유형 선택";
+
   const rowProfile = document.createElement("div");
   rowProfile.className = "map-view__pick-actions map-view__pick-actions--profile";
   rowProfile.setAttribute("role", "group");
-  rowProfile.setAttribute("aria-label", "주행 방법");
+  rowProfile.setAttribute("aria-labelledby", "map-view-pick-profile-label");
 
   const profileSpecs: { profile: RouteProfile; label: string }[] = [
     { profile: "driving", label: "자동차" },
@@ -1375,7 +1380,7 @@ function buildPickPopup(deps: {
     });
   }
 
-  profileSection.append(rowProfile);
+  profileSection.append(profileLabel, rowProfile);
   syncProfileUi();
 
   wrap.append(addressEl, metaEl, rowMain, rowWp, profileSection);
