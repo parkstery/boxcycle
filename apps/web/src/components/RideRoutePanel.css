@@ -1,35 +1,54 @@
+/* MapViewSheet 와 맞춘 다크 글래스 톤 · 모바일용 콤팩트 밀도 */
 .ride-panel {
+  --rp-fg: #f1f5f9;
+  --rp-fg-muted: rgba(226, 232, 240, 0.78);
+  --rp-border: rgba(248, 250, 252, 0.14);
+  --rp-surface: rgba(2, 6, 23, 0.38);
+  --rp-chip: rgba(248, 250, 252, 0.08);
+  --rp-accent: #38bdf8;
+  --rp-accent-strong: #0ea5e9;
+  --rp-btn-fg: #f8fafc;
+
   width: 100%;
   max-width: 22rem;
   flex: 0 0 auto;
-  padding: 0.75rem 1rem 1rem;
-  border-right: 1px solid rgba(15, 23, 42, 0.12);
-  background: #f8fafc;
-  color: #0f172a;
+  padding: 0.45rem 0.55rem 0.55rem;
+  border-right: 1px solid var(--rp-border);
+  background: transparent;
+  color: var(--rp-fg);
   max-height: min(85vh, 720px);
   overflow: auto;
   box-sizing: border-box;
-  /* 시스템 다크 모드에서도 Canvas/CanvasText 가 라이트로 고정 → 흰 배경 + 짙은 글자 보장 */
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 .ride-panel input,
 .ride-panel select,
 .ride-panel textarea {
-  color: #0f172a;
-  background: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.18);
-  border-radius: 6px;
-  padding: 0.32rem 0.5rem;
+  color: var(--rp-fg);
+  background: rgba(2, 6, 23, 0.55);
+  border: 1px solid var(--rp-border);
+  border-radius: 8px;
+  padding: 0.32rem 0.45rem;
 }
 
 .ride-panel button {
-  color: #0f172a;
+  color: var(--rp-btn-fg);
+}
+
+.ride-panel__kicker {
+  flex: 0 0 auto;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.72;
+  margin-right: 0.35rem;
 }
 
 .ride-panel__h {
-  margin: 0.75rem 0 0.5rem;
-  font-size: 0.95rem;
+  margin: 0.55rem 0 0.35rem;
+  font-size: 0.88rem;
   font-weight: 650;
 }
 
@@ -38,65 +57,114 @@
 }
 
 .ride-panel__help {
-  margin: 0.25rem 0 0.5rem;
-  font-size: 0.8rem;
-  opacity: 0.8;
+  margin: 0.2rem 0 0.35rem;
+  font-size: 0.72rem;
+  opacity: 0.78;
+  line-height: 1.3;
+}
+
+.ride-panel__help--tight {
+  margin-top: 0.2rem;
+  font-size: 0.68rem;
+  line-height: 1.3;
 }
 
 .ride-panel__point-box {
-  border: 1px solid color-mix(in srgb, CanvasText 14%, transparent);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem 0.45rem;
+  border: 1px solid var(--rp-border);
   border-radius: 8px;
-  padding: 0.5rem 0.55rem;
-  background: color-mix(in srgb, Canvas 96%, CanvasText 4%);
+  padding: 0.38rem 0.45rem;
+  background: var(--rp-surface);
+}
+
+.ride-panel__point-item--span {
+  grid-column: 1 / -1;
 }
 
 .ride-panel__point-label {
-  margin: 0.15rem 0 0.1rem;
-  font-size: 0.72rem;
+  margin: 0 0 0.06rem;
+  font-size: 0.65rem;
   opacity: 0.7;
+  letter-spacing: 0.02em;
 }
 
 .ride-panel__point-value {
   margin: 0;
-  font-size: 0.82rem;
-  line-height: 1.4;
-  word-break: break-all;
+  font-size: 0.78rem;
+  line-height: 1.25;
+  word-break: break-word;
 }
 
 .ride-panel__label {
   display: block;
-  font-size: 0.8rem;
-  margin: 0.45rem 0 0.2rem;
-  opacity: 0.9;
+  font-size: 0.76rem;
+  margin: 0.35rem 0 0.15rem;
+  opacity: 0.88;
 }
 
 .ride-panel__input {
   width: 100%;
   box-sizing: border-box;
   font: inherit;
-  font-size: 0.88rem;
-  padding: 0.45rem 0.5rem;
-  border-radius: 8px;
-  border: 1px solid color-mix(in srgb, CanvasText 22%, transparent);
-  background: Canvas;
-  color: CanvasText;
+  font-size: 0.82rem;
+  padding: 0.38rem 0.45rem;
 }
 
 .ride-panel__modes {
-  margin-top: 0.65rem;
+  margin-top: 0.4rem;
+}
+
+.ride-panel__modes--inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  flex-wrap: wrap;
 }
 
 .ride-panel__modes--coverage {
-  margin-top: 0.55rem;
+  margin-top: 0.4rem;
 }
 
-.ride-panel__mode-btns--compact {
+.ride-panel__label-inline {
+  font-size: 0.72rem;
+  font-weight: 600;
+  opacity: 0.82;
+  flex-shrink: 0;
+}
+
+.ride-panel__mode-btns {
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.25rem;
 }
 
-.ride-panel__mode--compact {
-  font-size: 0.72rem;
+.ride-panel__mode-btns--tight {
+  flex: 1;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.ride-panel__mode-btns--compact {
+  gap: 0.22rem;
+}
+
+.ride-panel__mode {
+  font: inherit;
+  font-size: 0.74rem;
   padding: 0.28rem 0.42rem;
+  border-radius: 999px;
+  border: 1px solid var(--rp-border);
+  background: var(--rp-chip);
+  color: var(--rp-fg);
+  cursor: pointer;
+}
+
+.ride-panel__mode--compact {
+  font-size: 0.7rem;
+  padding: 0.24rem 0.38rem;
 }
 
 .ride-panel__mode--compact:disabled {
@@ -104,89 +172,64 @@
   cursor: not-allowed;
 }
 
-.ride-panel__help--tight {
-  margin-top: 0.35rem;
-  font-size: 0.72rem;
-  line-height: 1.35;
-}
-
-.ride-panel__label-inline {
-  font-size: 0.8rem;
-  display: block;
-  margin-bottom: 0.35rem;
-}
-
-.ride-panel__mode-btns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
-.ride-panel__mode {
-  font: inherit;
-  font-size: 0.82rem;
-  padding: 0.35rem 0.55rem;
-  border-radius: 8px;
-  border: 1px solid color-mix(in srgb, CanvasText 22%, transparent);
-  background: transparent;
-  cursor: pointer;
-}
-
 .ride-panel__mode.is-active {
-  border-color: #2563eb;
-  background: color-mix(in srgb, #2563eb 14%, transparent);
-  color: CanvasText;
+  border-color: rgba(56, 189, 248, 0.55);
+  background: rgba(56, 189, 248, 0.22);
+  color: #f0f9ff;
 }
 
 .ride-panel__btn-primary {
-  margin-top: 0.65rem;
+  margin-top: 0.4rem;
   width: 100%;
   font: inherit;
-  padding: 0.55rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.45rem;
   border-radius: 8px;
   border: none;
-  background: #2563eb;
+  background: linear-gradient(180deg, #0ea5e9 0%, #0284c7 100%);
   color: #fff;
   cursor: pointer;
 }
 
 .ride-panel__btn-primary:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
 .ride-panel__btn-primary--small {
   margin-top: 0;
   width: auto;
-  padding: 0.4rem 0.75rem;
-  font-size: 0.82rem;
+  padding: 0.34rem 0.65rem;
+  font-size: 0.78rem;
 }
 
 .ride-panel__tabs {
   display: flex;
-  gap: 0.25rem;
-  margin-bottom: 0.6rem;
-  border-bottom: 1px solid color-mix(in srgb, CanvasText 12%, transparent);
+  gap: 0.2rem;
+  margin-bottom: 0.4rem;
+  border-bottom: 1px solid var(--rp-border);
 }
 
 .ride-panel__tab {
   font: inherit;
-  font-size: 0.85rem;
-  padding: 0.45rem 0.75rem;
+  font-size: 0.76rem;
+  padding: 0.32rem 0.5rem;
   border: 1px solid transparent;
   border-bottom: none;
   border-radius: 8px 8px 0 0;
   background: transparent;
-  color: CanvasText;
+  color: var(--rp-fg-muted);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.25rem;
 }
 
 .ride-panel__tab.is-active {
-  background: color-mix(in srgb, #2563eb 12%, Canvas);
-  border-color: color-mix(in srgb, CanvasText 12%, transparent);
+  background: rgba(56, 189, 248, 0.14);
+  border-color: var(--rp-border);
+  color: var(--rp-fg);
   font-weight: 650;
 }
 
@@ -194,59 +237,59 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.1rem;
-  height: 1.1rem;
-  padding: 0 0.3rem;
+  min-width: 1rem;
+  height: 1rem;
+  padding: 0 0.28rem;
   border-radius: 999px;
-  background: #2563eb;
+  background: var(--rp-accent-strong);
   color: #fff;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   line-height: 1;
 }
 
 .ride-panel__save-policy {
-  margin: 0.55rem 0 0.35rem;
-  padding: 0.45rem 0.5rem;
-  border-radius: 8px;
-  font-size: 0.72rem;
-  line-height: 1.45;
-  color: color-mix(in srgb, CanvasText 78%, Canvas 22%);
-  background: color-mix(in srgb, CanvasText 5%, Canvas 95%);
-  border: 1px solid color-mix(in srgb, CanvasText 10%, transparent);
+  margin: 0.32rem 0 0.25rem;
+  padding: 0.28rem 0.38rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  line-height: 1.35;
+  color: var(--rp-fg-muted);
+  background: var(--rp-surface);
+  border: 1px solid var(--rp-border);
 }
 
 .ride-panel__save-route {
-  margin-top: 0.5rem;
+  margin-top: 0.28rem;
 }
 
 .ride-panel__save-route-form {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  padding: 0.5rem 0.55rem;
+  gap: 0.28rem;
+  padding: 0.4rem 0.45rem;
   border-radius: 8px;
-  border: 1px dashed color-mix(in srgb, #2563eb 35%, CanvasText 14%);
-  background: color-mix(in srgb, #2563eb 6%, Canvas 94%);
+  border: 1px dashed rgba(56, 189, 248, 0.35);
+  background: rgba(56, 189, 248, 0.08);
 }
 
 .ride-panel__save-route-actions {
   display: flex;
-  gap: 0.35rem;
+  gap: 0.28rem;
+  flex-wrap: wrap;
 }
 
 .ride-panel__save-route-error {
   margin: 0;
-  font-size: 0.76rem;
-  color: #b91c1c;
+  font-size: 0.72rem;
+  color: #fca5a5;
 }
 
 .ride-panel__saved-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
-  margin-bottom: 0.25rem;
+  gap: 0.4rem;
+  margin: 0.15rem 0 0.35rem;
 }
 
 .ride-panel__h--inline {
@@ -255,30 +298,30 @@
 
 .ride-panel__saved-close {
   font: inherit;
-  font-size: 0.78rem;
-  padding: 0.3rem 0.65rem;
+  font-size: 0.72rem;
+  padding: 0.24rem 0.5rem;
   border-radius: 6px;
-  border: 1px solid color-mix(in srgb, CanvasText 22%, transparent);
-  background: Canvas;
-  color: CanvasText;
+  border: 1px solid var(--rp-border);
+  background: var(--rp-chip);
+  color: var(--rp-fg);
   cursor: pointer;
 }
 
 .ride-panel__saved-back {
   width: 100%;
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
 }
 
 .ride-panel__arrival-toast {
-  margin: 0.6rem 0 0.2rem;
-  padding: 0.55rem 0.7rem;
+  margin: 0.35rem 0 0.15rem;
+  padding: 0.38rem 0.5rem;
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 650;
   text-align: center;
-  color: #14532d;
-  background: color-mix(in srgb, #22c55e 22%, Canvas);
-  border: 1px solid color-mix(in srgb, #22c55e 55%, transparent);
+  color: #bbf7d0;
+  background: rgba(22, 163, 74, 0.22);
+  border: 1px solid rgba(34, 197, 94, 0.35);
   animation: ride-panel__arrival-toast-in 200ms ease-out;
 }
 
@@ -294,162 +337,180 @@
 }
 
 .ride-panel__adhoc-save {
-  margin: 0.4rem 0 0.2rem;
-  padding: 0.5rem 0.6rem;
+  margin: 0.3rem 0 0.15rem;
+  padding: 0.38rem 0.45rem;
   border-radius: 8px;
-  background: color-mix(in srgb, Canvas 92%, CanvasText 8%);
-  border: 1px dashed color-mix(in srgb, CanvasText 25%, transparent);
+  background: var(--rp-surface);
+  border: 1px dashed rgba(248, 250, 252, 0.2);
 }
 
 .ride-panel__adhoc-save-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.4rem;
+  gap: 0.35rem;
   flex-wrap: wrap;
 }
 
 .ride-panel__adhoc-save-msg {
-  font-size: 0.8rem;
-  line-height: 1.35;
+  font-size: 0.74rem;
+  line-height: 1.3;
+  flex: 1;
+  min-width: 8rem;
 }
 
 .ride-panel__adhoc-save-actions {
   display: flex;
-  gap: 0.3rem;
+  gap: 0.25rem;
   flex: 0 0 auto;
 }
 
 .ride-panel__basic-start {
-  margin: 0.5rem 0 0.65rem;
-  padding: 0.55rem 0.6rem;
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, #15803d 35%, CanvasText 12%);
-  background: color-mix(in srgb, #15803d 8%, Canvas 92%);
+  margin: 0.35rem 0 0.4rem;
+  padding: 0.35rem 0.4rem;
+  border-radius: 8px;
+  border: 1px solid var(--rp-border);
+  background: rgba(34, 197, 94, 0.08);
 }
 
 .ride-panel__basic-start-title {
-  margin: 0 0 0.25rem;
-  font-size: 0.82rem;
+  margin: 0 0 0.2rem;
+  font-size: 0.78rem;
   font-weight: 650;
 }
 
 .ride-panel__basic-start-desc {
-  margin: 0 0 0.45rem;
-  font-size: 0.76rem;
-  line-height: 1.45;
-  opacity: 0.88;
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  opacity: 0.85;
 }
 
 .ride-panel__basic-start-list {
-  margin: 0 0 0.45rem;
-  padding-left: 1.15rem;
-  font-size: 0.76rem;
-  line-height: 1.5;
-  opacity: 0.9;
+  margin: 0 0 0.35rem;
+  padding-left: 1rem;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  opacity: 0.88;
 }
 
 .ride-panel__basic-start-active {
-  margin: 0 0 0.4rem;
-  font-size: 0.78rem;
-  line-height: 1.45;
+  margin: 0 0 0.3rem;
+  font-size: 0.72rem;
+  line-height: 1.3;
 }
 
 .ride-panel__basic-start-idle {
-  margin: 0 0 0.4rem;
-  font-size: 0.76rem;
-  opacity: 0.78;
+  margin: 0 0 0.35rem;
+  font-size: 0.7rem;
+  opacity: 0.75;
 }
 
 .ride-panel__basic-start-btns {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.28rem;
+}
+
+.ride-panel__basic-start-btns--grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.28rem;
 }
 
 .ride-panel__btn-secondary {
   font: inherit;
-  font-size: 0.8rem;
-  padding: 0.45rem 0.65rem;
+  font-size: 0.76rem;
+  padding: 0.34rem 0.5rem;
   border-radius: 8px;
-  border: 1px solid rgba(15, 23, 42, 0.22);
-  background: #ffffff;
-  color: #0f172a;
+  border: 1px solid var(--rp-border);
+  background: var(--rp-chip);
+  color: var(--rp-fg);
   cursor: pointer;
 }
 
 .ride-panel__btn-secondary:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
 .ride-panel__btn-secondary--quiet {
   border-style: dashed;
-  opacity: 0.92;
+  opacity: 0.88;
 }
 
 .ride-panel__basic-start-hint {
-  margin: 0.4rem 0 0;
-  font-size: 0.72rem;
-  opacity: 0.78;
+  margin: 0.3rem 0 0;
+  font-size: 0.68rem;
+  opacity: 0.72;
 }
 
 .ride-panel__official {
-  margin: 0.5rem 0 0.75rem;
-  padding: 0.55rem 0.6rem 0.65rem;
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, #1d4ed8 28%, CanvasText 12%);
-  background: color-mix(in srgb, #1d4ed8 6%, Canvas 94%);
+  margin: 0.15rem 0 0.4rem;
+  padding: 0.38rem 0.42rem 0.4rem;
+  border-radius: 8px;
+  border: 1px solid var(--rp-border);
+  background: var(--rp-surface);
+}
+
+.ride-panel__official-head {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.3rem;
 }
 
 .ride-panel__official-title {
-  margin: 0 0 0.3rem;
-  font-size: 0.88rem;
+  margin: 0 0 0.25rem;
+  font-size: 0.82rem;
   font-weight: 700;
 }
 
 .ride-panel__official-lead {
-  margin: 0 0 0.55rem;
-  font-size: 0.74rem;
-  line-height: 1.45;
-  opacity: 0.88;
+  margin: 0 0 0.45rem;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  opacity: 0.85;
 }
 
 .ride-panel__official-segments {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-bottom: 0.55rem;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-end;
 }
 
 .ride-panel__official-seg {
   font: inherit;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  padding: 0.35rem 0.65rem;
+  padding: 0.26rem 0.5rem;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, CanvasText 22%, transparent);
-  background: Canvas;
-  color: CanvasText;
+  border: 1px solid var(--rp-border);
+  background: var(--rp-chip);
+  color: var(--rp-fg);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.28rem;
 }
 
 .ride-panel__official-seg.is-active {
-  border-color: #1d4ed8;
-  background: color-mix(in srgb, #1d4ed8 16%, transparent);
+  border-color: rgba(56, 189, 248, 0.55);
+  background: rgba(56, 189, 248, 0.18);
 }
 
 .ride-panel__official-seg-badge {
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  min-width: 1.1rem;
-  height: 1.1rem;
-  padding: 0 0.3rem;
+  min-width: 0.95rem;
+  height: 0.95rem;
+  padding: 0 0.26rem;
   border-radius: 999px;
-  background: #1d4ed8;
+  background: var(--rp-accent-strong);
   color: #fff;
   display: inline-flex;
   align-items: center;
@@ -458,50 +519,52 @@
 
 .ride-panel__public-courses-hint,
 .ride-panel__public-courses-error {
-  margin: 0 0 0.45rem;
-  font-size: 0.76rem;
-  line-height: 1.45;
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  line-height: 1.35;
 }
 
 .ride-panel__public-courses-hint {
-  opacity: 0.88;
+  opacity: 0.82;
 }
 
 .ride-panel__public-courses-error {
-  color: color-mix(in srgb, #b91c1c 85%, CanvasText);
+  color: #fca5a5;
 }
 
 .ride-panel__public-courses-error-detail {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   opacity: 0.95;
   word-break: break-word;
 }
 
 .ride-panel__inline-code {
-  font-size: 0.72rem;
-  padding: 0.1rem 0.25rem;
+  font-size: 0.68rem;
+  padding: 0.08rem 0.22rem;
   border-radius: 4px;
-  background: color-mix(in srgb, CanvasText 8%, transparent);
+  background: rgba(248, 250, 252, 0.1);
 }
 
 .ride-panel__public-courses-list {
   list-style: none;
-  margin: 0 0 0.4rem;
+  margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.32rem;
+  max-height: 5.5rem;
+  overflow: auto;
 }
 
 .ride-panel__public-courses-item {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.45rem 0.5rem;
+  gap: 0.4rem;
+  padding: 0.35rem 0.4rem;
   border-radius: 8px;
-  border: 1px solid color-mix(in srgb, CanvasText 14%, transparent);
-  background: color-mix(in srgb, Canvas 98%, CanvasText 2%);
+  border: 1px solid var(--rp-border);
+  background: rgba(2, 6, 23, 0.35);
 }
 
 .ride-panel__public-courses-meta {
@@ -511,100 +574,202 @@
 
 .ride-panel__public-courses-name {
   display: block;
-  font-size: 0.8rem;
-  line-height: 1.35;
+  font-size: 0.76rem;
+  line-height: 1.3;
 }
 
 .ride-panel__public-courses-sub {
   display: block;
-  margin-top: 0.2rem;
-  font-size: 0.72rem;
-  opacity: 0.82;
-  line-height: 1.35;
+  margin-top: 0.12rem;
+  font-size: 0.68rem;
+  opacity: 0.78;
+  line-height: 1.3;
 }
 
 .ride-panel__public-courses-footnote {
   margin: 0;
-  font-size: 0.7rem;
-  line-height: 1.45;
-  opacity: 0.78;
+  font-size: 0.65rem;
+  line-height: 1.35;
+  opacity: 0.72;
 }
 
 .ride-panel__event-placeholder {
-  padding: 0.4rem 0.15rem 0.15rem;
+  padding: 0.15rem 0;
 }
 
 .ride-panel__event-placeholder-text {
   margin: 0;
-  font-size: 0.76rem;
-  line-height: 1.5;
-  opacity: 0.88;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  opacity: 0.8;
 }
 
 .ride-panel__btn-secondary--small {
   flex-shrink: 0;
   margin-top: 0;
-  padding: 0.35rem 0.55rem;
-  font-size: 0.76rem;
+  padding: 0.28rem 0.45rem;
+  font-size: 0.7rem;
 }
 
 .ride-panel__summary {
-  margin: 0.5rem 0 0;
-  font-size: 0.82rem;
-  line-height: 1.45;
-  min-height: 2.6em;
+  margin: 0.35rem 0 0;
+  font-size: 0.74rem;
+  line-height: 1.3;
+  min-height: 1.35em;
+  max-height: 2.7em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  opacity: 0.88;
+}
+
+.ride-panel__session-block {
+  margin-top: 0.4rem;
+  padding: 0.38rem 0.42rem;
+  border-radius: 8px;
+  border: 1px solid var(--rp-border);
+  background: var(--rp-surface);
+}
+
+.ride-panel__session-block-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-bottom: 0.28rem;
+}
+
+.ride-panel__session-block-head .ride-panel__kicker {
+  margin-right: 0;
+}
+
+.ride-panel__session-state {
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.ride-panel__speed-label {
+  display: block;
+  font-size: 0.72rem;
+  margin-bottom: 0.12rem;
+  opacity: 0.88;
 }
 
 .ride-panel__range {
   width: 100%;
-  margin: 0.25rem 0 0.5rem;
+  margin: 0;
+  accent-color: var(--rp-accent);
 }
 
 .ride-panel__ble-cadence {
-  margin: 0.5rem 0 0.35rem;
-  padding: 0.5rem 0.55rem;
+  margin: 0.35rem 0 0.25rem;
+  padding: 0.35rem 0.4rem;
   border-radius: 8px;
-  background: color-mix(in srgb, #7c3aed 7%, #f8fafc);
-  border: 1px solid rgba(109, 40, 217, 0.22);
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(167, 139, 250, 0.28);
+}
+
+.ride-panel__ble-cadence-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.ride-panel__ble-status {
+  font-size: 0.7rem;
+  opacity: 0.88;
+  text-align: right;
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
 }
 
 .ride-panel__ble-actions {
-  margin-top: 0.4rem;
+  margin-top: 0.28rem;
+}
+
+.ride-panel__media-toggles {
+  margin-top: 0.35rem;
+  padding: 0.32rem 0.38rem;
+  border-radius: 8px;
+  border: 1px solid var(--rp-border);
+  background: var(--rp-surface);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.ride-panel__media-toggles .ride-panel__kicker {
+  margin-top: 0.12rem;
+}
+
+.ride-panel__toggle-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.25rem 0.45rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.ride-panel__toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.28rem;
+  font-size: 0.74rem;
+  cursor: pointer;
+  opacity: 0.95;
+  white-space: nowrap;
+}
+
+.ride-panel__toggle input {
+  margin: 0;
+  accent-color: var(--rp-accent);
 }
 
 .ride-panel__metrics {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.35rem 0.75rem;
-  font-size: 0.82rem;
-  margin: 0.5rem 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.28rem 0.4rem;
+  font-size: 0.76rem;
+  margin: 0.35rem 0 0.25rem;
 }
 
 .ride-panel__metric-label {
   display: block;
-  font-size: 0.72rem;
-  opacity: 0.72;
-  margin-bottom: 0.1rem;
+  font-size: 0.65rem;
+  opacity: 0.68;
+  margin-bottom: 0.06rem;
 }
 
 .ride-panel__session-btns {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.28rem;
+}
+
+.ride-panel__session-btns--grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.28rem;
 }
 
 .ride-panel__session-btns button {
   font: inherit;
-  font-size: 0.82rem;
-  padding: 0.4rem 0.6rem;
+  font-size: 0.76rem;
+  padding: 0.34rem 0.45rem;
   border-radius: 8px;
-  border: 1px solid color-mix(in srgb, CanvasText 22%, transparent);
-  background: Canvas;
+  border: 1px solid var(--rp-border);
+  background: var(--rp-chip);
+  color: var(--rp-fg);
   cursor: pointer;
 }
 
 .ride-panel__session-btns button:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
@@ -612,8 +777,8 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  font-size: 0.78rem;
-  line-height: 1.45;
+  font-size: 0.74rem;
+  line-height: 1.4;
 }
 
 .ride-panel__sessions-empty {
@@ -621,19 +786,69 @@
 }
 
 .ride-panel__session-item {
-  padding: 0.25rem 0;
-  border-bottom: 1px solid color-mix(in srgb, CanvasText 8%, transparent);
+  padding: 0.2rem 0;
+  border-bottom: 1px solid rgba(248, 250, 252, 0.08);
 }
 
 .ride-panel__session-date {
-  opacity: 0.72;
+  opacity: 0.7;
+}
+
+/* SavedRoutesPanel — 다크 패널 안 대비 */
+.ride-panel .saved-routes__notice {
+  background: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.28);
+  color: var(--rp-fg-muted);
+}
+
+.ride-panel .saved-routes__item {
+  background: rgba(2, 6, 23, 0.35);
+  border-color: var(--rp-border);
+}
+
+.ride-panel .saved-routes__name {
+  color: var(--rp-fg);
+}
+
+.ride-panel .saved-routes__meta,
+.ride-panel .saved-routes__empty {
+  color: var(--rp-fg-muted);
+}
+
+.ride-panel .saved-routes__profile {
+  background: rgba(248, 250, 252, 0.12);
+  color: var(--rp-fg);
+}
+
+.ride-panel .saved-routes__btn {
+  background: var(--rp-chip);
+  border-color: var(--rp-border);
+  color: var(--rp-fg);
+}
+
+.ride-panel .saved-routes__rename-input {
+  background: rgba(2, 6, 23, 0.55);
+  border-color: var(--rp-border);
+  color: var(--rp-fg);
+}
+
+.ride-panel .saved-routes__filter-btn {
+  background: var(--rp-chip);
+  border-color: var(--rp-border);
+  color: var(--rp-fg-muted);
+}
+
+.ride-panel .saved-routes__filter-btn.is-active {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: rgba(56, 189, 248, 0.45);
+  color: #f0f9ff;
 }
 
 @media (max-width: 900px) {
   .ride-panel {
     max-width: none;
     border-right: none;
-    border-bottom: 1px solid color-mix(in srgb, CanvasText 12%, transparent);
+    border-bottom: 1px solid var(--rp-border);
     max-height: none;
   }
 }

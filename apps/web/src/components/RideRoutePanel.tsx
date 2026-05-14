@@ -217,7 +217,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
           className={`ride-panel__tab ${tab === "saved" ? "is-active" : ""}`}
           onClick={() => setTab("saved")}
         >
-          사용자 경로
+          내 경로
           {props.savedRoutes.length > 0 ? (
             <span className="ride-panel__tab-badge">{props.savedRoutes.length}</span>
           ) : null}
@@ -230,7 +230,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             className={`ride-panel__tab ${tab === "publicReview" ? "is-active" : ""}`}
             onClick={() => setTab("publicReview")}
           >
-            공개 심사
+            심사
             {(props.publicRouteReviewQueueCount ?? 0) > 0 ? (
               <span className="ride-panel__tab-badge">{props.publicRouteReviewQueueCount}</span>
             ) : null}
@@ -241,7 +241,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
       {tab === "publicReview" && props.publicRouteReviewUser ? (
         <>
           <div className="ride-panel__saved-head">
-            <h2 className="ride-panel__h ride-panel__h--inline">공개 경로 심사</h2>
+            <h2 className="ride-panel__h ride-panel__h--inline">공개 심사</h2>
             <button
               type="button"
               className="ride-panel__saved-close"
@@ -261,13 +261,13 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet ride-panel__saved-back"
             onClick={() => setTab("route")}
           >
-            경로 화면으로 돌아가기
+            경로로
           </button>
         </>
       ) : tab === "saved" ? (
         <>
           <div className="ride-panel__saved-head">
-            <h2 className="ride-panel__h ride-panel__h--inline">사용자 경로</h2>
+            <h2 className="ride-panel__h ride-panel__h--inline">내 경로</h2>
             <button
               type="button"
               className="ride-panel__saved-close"
@@ -297,14 +297,15 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet ride-panel__saved-back"
             onClick={() => setTab("route")}
           >
-            경로 화면으로 돌아가기
+            경로로
           </button>
         </>
       ) : (
         <>
           <div className="ride-panel__official" aria-label="공식 코스">
-            <h3 className="ride-panel__official-title">공식 코스</h3>
-            <div className="ride-panel__official-segments" role="tablist" aria-label="공식 코스 종류">
+            <div className="ride-panel__official-head">
+              <span className="ride-panel__kicker">공식</span>
+              <div className="ride-panel__official-segments" role="tablist" aria-label="공식 코스 종류">
               <button
                 type="button"
                 role="tab"
@@ -335,20 +336,21 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               >
                 이벤트
               </button>
+              </div>
             </div>
 
             {officialSegment === "intro" ? (
           <div className="ride-panel__basic-start" aria-label="입문 상시 코스">
             {props.basicActiveHubCourseId ? (
               <p className="ride-panel__basic-start-active" role="status">
-                동행 중:{" "}
+                선택:{" "}
                 <strong>
                   {props.basicSharedHubs.find((h) => h.id === props.basicActiveHubCourseId)?.title ??
                     props.basicActiveHubCourseId}
                 </strong>
               </p>
             ) : null}
-            <div className="ride-panel__basic-start-btns">
+            <div className="ride-panel__basic-start-btns ride-panel__basic-start-btns--grid">
               {props.basicSharedHubs.map((hub, idx) => (
                 <button
                   key={hub.id}
@@ -362,7 +364,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                   title={hub.title}
                   onClick={() => props.onEnterBasicHub(hub.id)}
                 >
-                  {props.basicStartLoading ? "…" : `코스 ${idx + 1}`}
+                  {props.basicStartLoading ? "…" : `${idx + 1}`}
                 </button>
               ))}
               {props.basicStartHubJoined ? (
@@ -426,27 +428,31 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
           </div>
 
           <div className="ride-panel__point-box">
-            <p className="ride-panel__point-label">출발지</p>
-            <p className="ride-panel__point-value">{props.startLabel}</p>
+            <div className="ride-panel__point-item">
+              <p className="ride-panel__point-label">출발</p>
+              <p className="ride-panel__point-value">{props.startLabel}</p>
+            </div>
+            <div className="ride-panel__point-item">
+              <p className="ride-panel__point-label">도착</p>
+              <p className="ride-panel__point-value">{props.endLabel}</p>
+            </div>
             {props.waypointLabels.map((label, i) => (
-              <div key={`wp-${i}-${label}`} className="ride-panel__point-waypoint">
-                <p className="ride-panel__point-label">경과 {i + 1}</p>
+              <div key={`wp-${i}-${label}`} className="ride-panel__point-item ride-panel__point-item--span">
+                <p className="ride-panel__point-label">경유 {i + 1}</p>
                 <p className="ride-panel__point-value">{label}</p>
               </div>
             ))}
-            <p className="ride-panel__point-label">도착지</p>
-            <p className="ride-panel__point-value">{props.endLabel}</p>
           </div>
 
-          <div className="ride-panel__modes">
-            <span className="ride-panel__label-inline">이동 수단</span>
-            <div className="ride-panel__mode-btns">
+          <div className="ride-panel__modes ride-panel__modes--inline">
+            <span className="ride-panel__label-inline">수단</span>
+            <div className="ride-panel__mode-btns ride-panel__mode-btns--tight">
               <button
                 type="button"
                 className={`ride-panel__mode ${props.profile === "driving" ? "is-active" : ""}`}
                 onClick={() => props.onProfile("driving")}
               >
-                자동차
+                차
               </button>
               <button
                 type="button"
@@ -460,7 +466,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                 className={`ride-panel__mode ${props.profile === "walking" ? "is-active" : ""}`}
                 onClick={() => props.onProfile("walking")}
               >
-                보행
+                도보
               </button>
             </div>
           </div>
@@ -486,9 +492,11 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             {props.routeSummary}
           </p>
 
-          <p className="ride-panel__save-policy">
-            경로 생성은 맵에서 자유롭게 반복할 수 있으며, 그 자체로는 저장 목록에 올라가지 않습니다. 마음에 드는
-            코스만 「내 경로로 저장」에서 이름을 정하고 저장하면 DB(또는 게스트 로컬)에 바로 남습니다.
+          <p
+            className="ride-panel__save-policy"
+            title="맵에서 경로를 여러 번 만들 수 있으며, 목록에 남기려면 아래에서 이름을 정해 저장하세요. 게스트는 기기 로컬에만 저장됩니다."
+          >
+            목록 반영은 「내 경로로 저장」에서만 됩니다.
           </p>
 
           <div className="ride-panel__save-route">
@@ -543,38 +551,48 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             )}
           </div>
 
-          <h2 className="ride-panel__h">라이딩 세션</h2>
-          <label className="ride-panel__label">
-            가상 속도: <strong>{props.speedKmh} km/h</strong>
-          </label>
-          <input
-            type="range"
-            min={5}
-            max={50}
-            step={1}
-            value={props.speedKmh}
-            onChange={(e) => props.onSpeedKmh(Number(e.target.value))}
-            className="ride-panel__range"
-          />
+          <div className="ride-panel__session-block">
+            <div className="ride-panel__session-block-head">
+              <span className="ride-panel__kicker">세션</span>
+              <strong className="ride-panel__session-state">{sessionLabel}</strong>
+            </div>
+            <label className="ride-panel__speed-label" htmlFor="ride-panel-speed-range">
+              속도 <strong>{props.speedKmh}</strong> km/h
+            </label>
+            <input
+              id="ride-panel-speed-range"
+              type="range"
+              min={5}
+              max={50}
+              step={1}
+              value={props.speedKmh}
+              onChange={(e) => props.onSpeedKmh(Number(e.target.value))}
+              className="ride-panel__range"
+            />
+          </div>
 
           {props.bleCadence ? (
             <div className="ride-panel__ble-cadence">
-              <h2 className="ride-panel__h">BLE 케이던스(선택)</h2>
-              <p className="ride-panel__help ride-panel__help--tight">
-                크랭크 RPM이 있으면 지도 아바타 페달 주기에 반영됩니다. Chrome·Edge 등에서 HTTPS(또는 localhost)로
-                접속한 뒤 CSC 센서를 선택하세요.
+              <div className="ride-panel__ble-cadence-head">
+                <span className="ride-panel__kicker">RPM</span>
+                {props.bleCadence.deviceLabel ? (
+                  <span className="ride-panel__ble-status">
+                    <strong>{props.bleCadence.deviceLabel}</strong>
+                    {props.bleCadence.crankRpm != null ? (
+                      <>
+                        {" "}
+                        · {Math.round(props.bleCadence.crankRpm)}
+                      </>
+                    ) : null}
+                  </span>
+                ) : null}
+              </div>
+              <p
+                className="ride-panel__help ride-panel__help--tight"
+                title="크랭크 RPM이 있으면 아바타 페달에 반영됩니다. Chrome·Edge 등, HTTPS 또는 localhost에서 CSC 센서를 선택하세요."
+              >
+                HTTPS·localhost에서 Bluetooth CSC.
               </p>
-              {props.bleCadence.deviceLabel ? (
-                <p className="ride-panel__help ride-panel__help--tight">
-                  연결됨: <strong>{props.bleCadence.deviceLabel}</strong>
-                  {props.bleCadence.crankRpm != null ? (
-                    <>
-                      {" "}
-                      · 약 <strong>{Math.round(props.bleCadence.crankRpm)}</strong> RPM
-                    </>
-                  ) : null}
-                </p>
-              ) : null}
               <div className="ride-panel__ble-actions">
                 {props.bleCadence.uiState === "connected" ? (
                   <button
@@ -582,7 +600,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                     className="ride-panel__btn-secondary ride-panel__btn-secondary--small"
                     onClick={props.bleCadence.onDisconnect}
                   >
-                    센서 연결 해제
+                    해제
                   </button>
                 ) : props.bleCadence.uiState === "connecting" ? (
                   <span className="ride-panel__help">연결 중…</span>
@@ -592,7 +610,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                     className="ride-panel__btn-secondary ride-panel__btn-secondary--small"
                     onClick={() => void props.bleCadence?.onConnect()}
                   >
-                    센서 연결
+                    연결
                   </button>
                 )}
               </div>
@@ -604,44 +622,42 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             </div>
           ) : null}
 
-          <h2 className="ride-panel__h">코칭 · BGM</h2>
-          <label className="ride-panel__label">
-            <input
-              type="checkbox"
-              checked={props.rideCoachingBanner}
-              onChange={(e) => props.onRideCoachingBanner(e.target.checked)}
-            />{" "}
-            코칭 배너 표시
-          </label>
-          <label className="ride-panel__label">
-            <input
-              type="checkbox"
-              checked={props.rideTtsEnabled}
-              onChange={(e) => props.onRideTtsEnabled(e.target.checked)}
-            />{" "}
-            코칭 음성(TTS)
-          </label>
-          <label className="ride-panel__label">
-            <input
-              type="checkbox"
-              checked={props.rideBgmEnabled}
-              onChange={(e) => props.onRideBgmEnabled(e.target.checked)}
-              disabled={!props.rideBgmCatalogConfigured}
-            />{" "}
-            주행 BGM
-            {!props.rideBgmCatalogConfigured ? (
-              <span className="ride-panel__help--tight"> (플레이리스트 미설정)</span>
-            ) : null}
-          </label>
+          <div className="ride-panel__media-toggles" aria-label="코칭·BGM">
+            <span className="ride-panel__kicker">표시</span>
+            <div className="ride-panel__toggle-grid">
+              <label className="ride-panel__toggle">
+                <input
+                  type="checkbox"
+                  checked={props.rideCoachingBanner}
+                  onChange={(e) => props.onRideCoachingBanner(e.target.checked)}
+                />
+                배너
+              </label>
+              <label className="ride-panel__toggle">
+                <input
+                  type="checkbox"
+                  checked={props.rideTtsEnabled}
+                  onChange={(e) => props.onRideTtsEnabled(e.target.checked)}
+                />
+                TTS
+              </label>
+              <label className="ride-panel__toggle">
+                <input
+                  type="checkbox"
+                  checked={props.rideBgmEnabled}
+                  onChange={(e) => props.onRideBgmEnabled(e.target.checked)}
+                  disabled={!props.rideBgmCatalogConfigured}
+                  title={!props.rideBgmCatalogConfigured ? "BGM 플레이리스트가 설정되지 않았습니다." : undefined}
+                />
+                BGM
+              </label>
+            </div>
+          </div>
           {props.rideElevationProfileLoading ? (
-            <p className="ride-panel__help ride-panel__help--tight">경로 고도 프로필 로드 중…</p>
+            <p className="ride-panel__help ride-panel__help--tight">고도 프로필 로드 중…</p>
           ) : null}
 
           <div className="ride-panel__metrics">
-            <div>
-              <span className="ride-panel__metric-label">상태</span>
-              <strong>{sessionLabel}</strong>
-            </div>
             <div>
               <span className="ride-panel__metric-label">경과</span>
               <strong>{props.elapsedLabel}</strong>
@@ -713,8 +729,11 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                 </div>
               ) : (
                 <div className="ride-panel__adhoc-save-row">
-                  <span className="ride-panel__adhoc-save-msg">
-                    방금 탄 코스를 내 경로 목록에 남기려면 이름을 입력한 뒤 「저장」을 누르면 바로 DB·로컬에 반영됩니다.
+                  <span
+                    className="ride-panel__adhoc-save-msg"
+                    title="이름을 입력한 뒤 저장하면 내 경로 목록에 반영됩니다."
+                  >
+                    방금 코스를 목록에 남길까요?
                   </span>
                   <div className="ride-panel__adhoc-save-actions">
                     <button
@@ -741,7 +760,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             </div>
           ) : null}
 
-          <div className="ride-panel__session-btns">
+          <div className="ride-panel__session-btns ride-panel__session-btns--grid">
             <button type="button" disabled={!canStart} onClick={props.onStartRide}>
               시작
             </button>

@@ -136,7 +136,7 @@ export function MenuPlaceSearch({ accessToken, menuOpen, onPickPlace }: MenuPlac
         />
       </div>
       {!tokenOk ? (
-        <p className="menu-place-search__hint">Mapbox 토큰이 없으면 지명 검색을 쓸 수 없습니다.</p>
+        <p className="menu-place-search__hint">Mapbox 토큰이 없으면 검색할 수 없습니다.</p>
       ) : null}
       {showList ? (
         <>

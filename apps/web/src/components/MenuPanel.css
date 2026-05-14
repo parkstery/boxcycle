@@ -85,21 +85,23 @@
 .menu-panel__body {
   flex: 1;
   min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: rgba(2, 6, 23, 0.28);
+  color: #e2e8f0;
+}
+
+/* 지명 검색은 고정 높이, 경로 패널만 스크롤 → 모바일에서 한 화면에 가깝게 */
+.menu-panel__body > .menu-place-search {
+  flex-shrink: 0;
+}
+
+.menu-panel__body > .ride-panel {
+  flex: 1;
+  min-height: 0;
   overflow: auto;
-}
-
-/* RideRoutePanel 은 시스템 컬러(검정/흰색) 기반이므로 메뉴 안에서는
- * 다크 셸과 분리된 라이트 컨텐츠 카드로 둔다(고대비 보장). */
-.menu-panel__body {
-  background: #f8fafc;
-  color: #0f172a;
-}
-
-.menu-panel__body .ride-panel {
   border-right: none;
-  background: #f8fafc;
-  color: #0f172a;
   max-height: none;
   max-width: none;
-  padding: 0.75rem 0.85rem 1rem;
 }
