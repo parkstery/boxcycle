@@ -53,6 +53,35 @@ export function interpolatePoint(a: LngLat, b: LngLat, ratio: number): LngLat {
   return [a[0] + (b[0] - a[0]) * ratio, a[1] + (b[1] - a[1]) * ratio];
 }
 
+/** Web Mercator (EPSG:3857) 구면 반경 — Mapbox 경로선 세그먼트와 동일한 직선 보간에 사용 */
+const WEB_MERCATOR_R = 6378137;
+
+function lngLatToMercatorMeters(lngLat: LngLat): { x: number; y: number } {
+  const λ = (lngLat[0] * Math.PI) / 180;
+  const φ = (lngLat[1] * Math.PI) / 180;
+  return {
+    x: WEB_MERCATOR_R * λ,
+    y: WEB_MERCATOR_R * Math.log(Math.tan(Math.PI / 4 + φ / 2)),
+  };
+}
+
+function mercatorMetersToLngLat(x: number, y: number): LngLat {
+  const lng = ((x / WEB_MERCATOR_R) * 180) / Math.PI;
+  const lat = ((2 * Math.atan(Math.exp(y / WEB_MERCATOR_R)) - Math.PI / 2) * 180) / Math.PI;
+  return [lng, lat];
+}
+
+/**
+ * 두 지점을 Mapbox `line` 레이어와 같이 **머캐토 평면에서 직선**으로 잇는 가정 하의 보간.
+ * (경도·위도 선형 보간은 같은 세그먼트에서 화면상 선에서 벗어날 수 있음)
+ */
+export function interpolateLngLatAlongMercatorChord(a: LngLat, b: LngLat, ratio: number): LngLat {
+  const t = Math.min(1, Math.max(0, ratio));
+  const pa = lngLatToMercatorMeters(a);
+  const pb = lngLatToMercatorMeters(b);
+  return mercatorMetersToLngLat(pa.x + (pb.x - pa.x) * t, pa.y + (pb.y - pa.y) * t);
+}
+
 /** LineString `coordinates` 기준 누적 거리만큼 떨어진 점 */
 export function getPointOnRouteByDistance(
   geometry: LineStringGeometry,
@@ -70,7 +99,7 @@ export function getPointOnRouteByDistance(
     if (segmentDistance <= 0) continue;
     if (remaining <= segmentDistance) {
       const ratio = remaining / segmentDistance;
-      return interpolatePoint(segmentStart, segmentEnd, ratio);
+      return interpolateLngLatAlongMercatorChord(segmentStart, segmentEnd, ratio);
     }
     remaining -= segmentDistance;
   }
