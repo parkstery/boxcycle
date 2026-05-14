@@ -36,13 +36,6 @@ type RideRoutePanelProps = {
   speedKmh: number;
   onSpeedKmh: (n: number) => void;
   sessionStatus: RideSessionStatus;
-  onStartRide: () => void;
-  onPause: () => void;
-  onResume: () => void;
-  onEndRide: () => void;
-  elapsedLabel: string;
-  distanceKm: string;
-  avgSpeedLabel: string;
   basicSharedHubs: { id: string; title: string }[];
   basicActiveHubCourseId: string | null;
   basicStartLoading: boolean;
@@ -130,16 +123,6 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
       setTab("route");
     }
   }, [tab, props.isPublicRouteReviewer]);
-
-  const sessionLabel =
-    props.sessionStatus === "idle"
-      ? "대기"
-      : props.sessionStatus === "running"
-        ? "주행 중"
-        : "일시정지";
-
-  const canStart =
-    props.sessionStatus === "idle" && props.hasRoute && !props.routeLoading;
 
   const canSaveRoute =
     props.sessionStatus === "idle" && props.hasRoute && !props.routeLoading;
@@ -550,12 +533,8 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
           ) : null}
 
           <div className="ride-panel__session-block">
-            <div className="ride-panel__session-block-head">
-              <span className="ride-panel__kicker">세션</span>
-              <strong className="ride-panel__session-state">{sessionLabel}</strong>
-            </div>
             <label className="ride-panel__speed-label" htmlFor="ride-panel-speed-range">
-              속도 <strong>{props.speedKmh}</strong> km/h
+              <span className="ride-panel__kicker">세션</span> 속도 <strong>{props.speedKmh}</strong> km/h
             </label>
             <input
               id="ride-panel-speed-range"
@@ -655,21 +634,6 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             <p className="ride-panel__help ride-panel__help--tight">고도 프로필 로드 중…</p>
           ) : null}
 
-          <div className="ride-panel__metrics">
-            <div>
-              <span className="ride-panel__metric-label">경과</span>
-              <strong>{props.elapsedLabel}</strong>
-            </div>
-            <div>
-              <span className="ride-panel__metric-label">가상 거리</span>
-              <strong>{props.distanceKm} km</strong>
-            </div>
-            <div>
-              <span className="ride-panel__metric-label">평균 속도</span>
-              <strong>{props.avgSpeedLabel} km/h</strong>
-            </div>
-          </div>
-
           {props.arrivalToastVisible ? (
             <p className="ride-panel__arrival-toast" role="status" aria-live="polite">
               완료
@@ -757,33 +721,6 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               )}
             </div>
           ) : null}
-
-          <div className="ride-panel__session-btns ride-panel__session-btns--grid">
-            <button type="button" disabled={!canStart} onClick={props.onStartRide}>
-              시작
-            </button>
-            <button
-              type="button"
-              disabled={props.sessionStatus !== "running"}
-              onClick={props.onPause}
-            >
-              일시정지
-            </button>
-            <button
-              type="button"
-              disabled={props.sessionStatus !== "paused"}
-              onClick={props.onResume}
-            >
-              재개
-            </button>
-            <button
-              type="button"
-              disabled={props.sessionStatus === "idle"}
-              onClick={props.onEndRide}
-            >
-              종료
-            </button>
-          </div>
 
         </>
       )}

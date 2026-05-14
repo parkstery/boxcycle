@@ -657,28 +657,17 @@
   background: var(--rp-surface);
 }
 
-.ride-panel__session-block-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.4rem;
-  margin-bottom: 0.28rem;
-}
-
-.ride-panel__session-block-head .ride-panel__kicker {
-  margin-right: 0;
-}
-
-.ride-panel__session-state {
-  font-size: 0.8rem;
-  font-weight: 650;
-}
-
 .ride-panel__speed-label {
   display: block;
   font-size: 0.72rem;
   margin-bottom: 0.12rem;
   opacity: 0.88;
+}
+
+.ride-panel__speed-label .ride-panel__kicker {
+  display: inline;
+  margin-right: 0.35rem;
+  vertical-align: baseline;
 }
 
 .ride-panel__range {
@@ -753,49 +742,6 @@
 .ride-panel__toggle input {
   margin: 0;
   accent-color: var(--rp-accent);
-}
-
-.ride-panel__metrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.28rem 0.4rem;
-  font-size: 0.76rem;
-  margin: 0.35rem 0 0.25rem;
-}
-
-.ride-panel__metric-label {
-  display: block;
-  font-size: 0.65rem;
-  opacity: 0.68;
-  margin-bottom: 0.06rem;
-}
-
-.ride-panel__session-btns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.28rem;
-}
-
-.ride-panel__session-btns--grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.28rem;
-}
-
-.ride-panel__session-btns button {
-  font: inherit;
-  font-size: 0.76rem;
-  padding: 0.34rem 0.45rem;
-  border-radius: 8px;
-  border: 1px solid var(--rp-border);
-  background: var(--rp-chip);
-  color: var(--rp-fg);
-  cursor: pointer;
-}
-
-.ride-panel__session-btns button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
 }
 
 .ride-panel__sessions {

@@ -1790,16 +1790,6 @@ export default function App() {
           speedKmh={speedKmh}
           onSpeedKmh={setSpeedKmh}
           sessionStatus={rideStatus}
-          onStartRide={() => {
-            handleStartRide();
-            setMenuOpen(false);
-          }}
-          onPause={handlePause}
-          onResume={handleResume}
-          onEndRide={handleEndRide}
-          elapsedLabel={elapsedLabel}
-          distanceKm={distanceKmLabel}
-          avgSpeedLabel={avgSpeedLabel}
           basicSharedHubs={BASIC_SHARED_HUB_SUMMARIES}
           basicActiveHubCourseId={basicActiveHubCourseId}
           basicStartLoading={basicStartLoading}
