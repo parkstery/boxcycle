@@ -37,6 +37,9 @@ const LOBBY_SPEC_DOTS_SRC = "boxcycle-lobby-spectator-dots";
 const LOBBY_SPEC_DOTS_GLOW_LAYER = "boxcycle-lobby-spectator-dots-glow";
 const LOBBY_SPEC_DOTS_LAYER = "boxcycle-lobby-spectator-dots-circle";
 
+/** 사용자 경로 탐색 결과 폴리라인 (`route` 소스·레이어) */
+const ROUTE_LINE_COLOR = "#ef4444";
+
 function syncLobbySpectatorLayers(
   map: mapboxgl.Map,
   dots: readonly LobbySpectatorDot[],
@@ -535,7 +538,7 @@ export function MapView({
             id: "route",
             type: "line",
             source: "route",
-            paint: { "line-color": "#2563eb", "line-width": 4 },
+            paint: { "line-color": ROUTE_LINE_COLOR, "line-width": 4 },
           });
         }
       }
@@ -678,6 +681,9 @@ export function MapView({
 
     if (map.getSource("route")) {
       (map.getSource("route") as mapboxgl.GeoJSONSource).setData(routeFeature);
+      if (map.getLayer("route")) {
+        map.setPaintProperty("route", "line-color", ROUTE_LINE_COLOR);
+      }
     } else {
       map.addSource("route", { type: "geojson", data: routeFeature });
       map.addLayer({
@@ -685,7 +691,7 @@ export function MapView({
         type: "line",
         source: "route",
         paint: {
-          "line-color": "#2563eb",
+          "line-color": ROUTE_LINE_COLOR,
           "line-width": 4,
         },
       });
