@@ -27,19 +27,39 @@ function isLngLat(v: unknown): v is LngLat {
   );
 }
 
-function parseBody(data: unknown): { start: LngLat; end: LngLat; profile: RouteProfile } {
+const MAX_WAYPOINTS = 3;
+
+function parseWaypoints(raw: unknown): LngLat[] {
+  if (raw === undefined || raw === null) return [];
+  if (!Array.isArray(raw)) {
+    throw new HttpsError("invalid-argument", "waypoints 는 배열이어야 합니다.");
+  }
+  if (raw.length > MAX_WAYPOINTS) {
+    throw new HttpsError("invalid-argument", `경과지는 최대 ${MAX_WAYPOINTS}개까지입니다.`);
+  }
+  const out: LngLat[] = [];
+  for (const item of raw) {
+    if (!isLngLat(item)) {
+      throw new HttpsError("invalid-argument", "waypoints 항목은 [lng,lat] 숫자 배열이어야 합니다.");
+    }
+    out.push(item);
+  }
+  return out;
+}
+
+function parseBody(data: unknown): { start: LngLat; end: LngLat; profile: RouteProfile; waypoints: LngLat[] } {
   if (!data || typeof data !== "object") {
     throw new HttpsError("invalid-argument", "요청 본문이 올바르지 않습니다.");
   }
   const o = data as Record<string, unknown>;
-  const { start, end, profile } = o;
+  const { start, end, profile, waypoints } = o;
   if (!isLngLat(start) || !isLngLat(end)) {
     throw new HttpsError("invalid-argument", "start·end 는 [lng,lat] 숫자 배열이어야 합니다.");
   }
   if (profile !== "cycling" && profile !== "driving" && profile !== "walking") {
     throw new HttpsError("invalid-argument", "profile 은 cycling | driving | walking 만 허용됩니다.");
   }
-  return { start, end, profile };
+  return { start, end, profile, waypoints: parseWaypoints(waypoints) };
 }
 
 /**
@@ -93,13 +113,18 @@ export const getMapboxDirections = onRequest(
 
     try {
       const dataField = (rawBody as { data?: unknown } | null)?.data;
-      const { start, end, profile } = parseBody(dataField);
+      const { start, end, profile, waypoints } = parseBody(dataField);
       const token = mapboxAccessToken.value();
       if (!token?.trim()) {
         throw new HttpsError("failed-precondition", "서버에 Mapbox 토큰이 설정되지 않았습니다.");
       }
 
-      const coords = `${start[0]},${start[1]};${end[0]},${end[1]}`;
+      const segments: string[] = [`${start[0]},${start[1]}`];
+      for (const w of waypoints) {
+        segments.push(`${w[0]},${w[1]}`);
+      }
+      segments.push(`${end[0]},${end[1]}`);
+      const coords = segments.join(";");
       const url =
         `https://api.mapbox.com/directions/v5/mapbox/${profile}/${coords}` +
         `?geometries=geojson&overview=full&steps=false&access_token=${encodeURIComponent(token.trim())}`;

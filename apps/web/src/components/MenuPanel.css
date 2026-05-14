@@ -1,0 +1,105 @@
+.menu-panel-root {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.menu-panel-root.is-open {
+  pointer-events: auto;
+}
+
+.menu-panel__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.42);
+  opacity: 0;
+  transition: opacity 0.18s ease-out;
+  border: none;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.menu-panel-root.is-open .menu-panel__scrim {
+  opacity: 1;
+}
+
+.menu-panel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(22rem, 92vw);
+  background: rgba(15, 23, 42, 0.86);
+  color: #f8fafc;
+  border-right: 1px solid rgba(248, 250, 252, 0.18);
+  box-shadow: 6px 0 28px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transform: translateX(-105%);
+  transition: transform 0.22s ease-out;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.menu-panel-root.is-open .menu-panel {
+  transform: translateX(0);
+}
+
+.menu-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid rgba(248, 250, 252, 0.12);
+}
+
+.menu-panel__title {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.menu-panel__close {
+  appearance: none;
+  border: 1px solid rgba(248, 250, 252, 0.22);
+  background: rgba(248, 250, 252, 0.06);
+  color: #f8fafc;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.menu-panel__close:hover {
+  background: rgba(248, 250, 252, 0.18);
+}
+
+.menu-panel__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* RideRoutePanel 은 시스템 컬러(검정/흰색) 기반이므로 메뉴 안에서는
+ * 다크 셸과 분리된 라이트 컨텐츠 카드로 둔다(고대비 보장). */
+.menu-panel__body {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.menu-panel__body .ride-panel {
+  border-right: none;
+  background: #f8fafc;
+  color: #0f172a;
+  max-height: none;
+  max-width: none;
+  padding: 0.75rem 0.85rem 1rem;
+}

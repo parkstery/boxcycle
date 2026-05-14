@@ -112,6 +112,24 @@ service cloud.firestore {
       allow delete: if isSelf(userId);
     }
 
+    /** 로비: 코스 주행 진행률만 공유(geometry 미저장). 같은 방 로그인 사용자가 읽기. */
+    match /rooms/{roomId}/liveCourseRides/{userId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSelf(userId)
+        && request.resource.data.keys().hasAll(['courseId', 'progressRatio', 'lastSeenAt'])
+        && request.resource.data.keys().hasOnly(['courseId', 'progressRatio', 'lastSeenAt', 'displayName'])
+        && request.resource.data.courseId is string
+        && request.resource.data.courseId.size() >= 1
+        && request.resource.data.courseId.size() <= 128
+        && request.resource.data.progressRatio is number
+        && request.resource.data.progressRatio >= 0
+        && request.resource.data.progressRatio <= 1
+        && (!request.resource.data.keys().hasAny(['displayName'])
+            || (request.resource.data.displayName is string
+                && request.resource.data.displayName.size() <= 80));
+      allow delete: if isSelf(userId);
+    }
+
     match /rides/{rideId} {
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;

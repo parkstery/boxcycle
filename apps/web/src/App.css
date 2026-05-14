@@ -5,6 +5,33 @@
   box-sizing: border-box;
 }
 
+/* ===== Map-first 풀스크린 셸 ===== */
+.app-shell--map-first {
+  position: relative;
+  min-height: 100dvh;
+  height: 100dvh;
+  overflow: hidden;
+  background: #020617;
+  color: #f8fafc;
+}
+
+.app-shell--map-first .app-map-stage {
+  position: absolute;
+  inset: 0;
+}
+
+.app-shell--map-first .map-view,
+.app-shell--map-first .app-map-stage > .map-view {
+  width: 100%;
+  height: 100%;
+}
+
+.auth-sheet-dismiss {
+  display: block;
+  width: 100%;
+  margin-top: 0.75rem;
+}
+
 .app-header {
   display: flex;
   flex-wrap: wrap;
@@ -286,6 +313,71 @@
   position: relative;
 }
 
+.ride-panel-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 59;
+  margin: 0;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  background: rgba(2, 6, 23, 0.42);
+}
+
+.ride-panel-host--desktop {
+  flex: 0 0 min(22rem, 40vw);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ride-panel-host--mobile {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(22rem, 92vw);
+  z-index: 60;
+  transform: translateX(-105%);
+  transition: transform 0.22s ease-out;
+  box-sizing: border-box;
+  box-shadow: 6px 0 32px rgba(0, 0, 0, 0.22);
+}
+
+.ride-panel-host--mobile.is-open {
+  transform: translateX(0);
+}
+
+.ride-panel-host--mobile .ride-panel {
+  max-height: none;
+  height: 100%;
+  min-height: 100dvh;
+  border-right: none;
+  border-bottom: none;
+}
+
+@media (max-width: 720px) {
+  .route-main--mobile-map {
+    flex-direction: column;
+    position: relative;
+    min-height: min(82dvh, 760px);
+  }
+
+  .route-main--mobile-map .map-stage--in-route {
+    flex: 1;
+    min-height: min(70dvh, 680px);
+    padding: 0.5rem 0.5rem 0.65rem;
+    min-width: 0;
+  }
+
+  .mapillary-street-floating {
+    left: max(0.75rem, env(safe-area-inset-left, 0px));
+    right: max(0.75rem, env(safe-area-inset-right, 0px));
+    width: auto;
+    bottom: calc(10rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 .mapillary-street-floating {
   position: absolute;
   right: max(0.75rem, env(safe-area-inset-right, 0px));
@@ -355,15 +447,6 @@
   font-size: 0.65rem;
   opacity: 0.75;
   border-top: 1px solid color-mix(in srgb, CanvasText 10%, transparent);
-}
-
-@media (max-width: 720px) {
-  .mapillary-street-floating {
-    left: max(0.75rem, env(safe-area-inset-left, 0px));
-    right: max(0.75rem, env(safe-area-inset-right, 0px));
-    width: auto;
-    bottom: calc(10rem + env(safe-area-inset-bottom, 0px));
-  }
 }
 
 .footer {

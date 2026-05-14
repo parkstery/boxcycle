@@ -18,6 +18,24 @@ import { MapView, type MapPeerMarker } from "./components/MapView";
 import { SignUpNicknameCard } from "./components/SignUpNicknameCard";
 import { RideRoutePanel, type FollowMode } from "./components/RideRoutePanel";
 import { PublicRouteRequestModal } from "./components/PublicRouteRequestModal";
+import { MapHud } from "./components/maphud/MapHud";
+import { useLobbyRoomSession } from "./hooks/useLobbyRoomSession";
+import { useLobbyLiveCourseRidePublisher } from "./hooks/useLobbyLiveCourseRidePublisher";
+import { useLobbyLiveCourseRideSpectatorOverlay } from "./hooks/useLobbyLiveCourseRideSpectatorOverlay";
+import { AuthGateCard } from "./components/AuthGateCard";
+import { RideSummarySheet } from "./components/RideSummarySheet";
+import { MenuPanel } from "./components/MenuPanel";
+import { MenuPlaceSearch } from "./components/MenuPlaceSearch";
+import { RotateOverlay } from "./components/RotateOverlay";
+import { MapViewSheet } from "./components/MapViewSheet";
+import { UserInfoSheet } from "./components/UserInfoSheet";
+import { useRideUiStage } from "./hooks/useRideUiStage";
+import {
+  useRideArrivalAutoEnd,
+  useRideCoachingMedia,
+  useRideFeedbackPreferences,
+} from "./features/ride-feedback";
+import { safeRideSpeechCancel } from "./lib/rideSpeech";
 import { getFirebaseApp, getFirebaseAuth, isFirebaseConfigured } from "./lib/firebase";
 import {
   BASIC_SHARED_HUB_IDS,
@@ -31,7 +49,7 @@ import {
   type PublishedPublicCourseSummary,
 } from "./lib/firestoreCourses";
 import { deleteCoursePresence } from "./lib/firestoreCoursePresence";
-import { deleteLobbyPresence, sanitizeRoomId } from "./lib/firestoreLobby";
+import { deleteLobbyPresence, isLobbyMemberActive, sanitizeRoomId } from "./lib/firestoreLobby";
 import {
   backfillRideSessionsToFirestore,
   loadRecentRideSessionsFromFirestore,
@@ -45,6 +63,7 @@ import {
   promoteSavedRouteInFirestore,
   renameSavedRouteInFirestore,
   saveRouteToFirestore,
+  SAVED_ROUTE_NAME_MAX,
   type SavedRoute,
 } from "./lib/firestoreSavedRoutes";
 import {
@@ -64,7 +83,8 @@ import {
   saveRouteToLocal,
 } from "./lib/savedRoutesLocal";
 import type { LineStringGeometry, LngLat } from "./lib/geo";
-import { formatLngLat, getPointOnRouteByDistance } from "./lib/geo";
+import { formatLngLat, getPointOnRouteByDistance, lineStringLengthMeters } from "./lib/geo";
+import { MAX_ROUTE_WAYPOINTS } from "./lib/routeWaypoints";
 import {
   loadRideSessions,
   saveRideSessions,
@@ -78,6 +98,7 @@ import {
 } from "./lib/firestoreUser";
 import { isValidNickname } from "./lib/nickname";
 import { useVirtualRideSession } from "./hooks/useVirtualRideSession";
+import { useBleCrankRpm } from "./hooks/useBleCrankRpm";
 import { useRideMapillaryStreet } from "./hooks/useRideMapillaryStreet";
 import { MAPILLARY_CLIENT_TOKEN, mapillaryTokenConfigured } from "./lib/mapillaryToken";
 import type { CoverageOverlayMode } from "./lib/coverageOverlayMode";
@@ -87,11 +108,23 @@ const MapillaryRideViewer = lazy(async () => {
   return { default: m.MapillaryRideViewer };
 });
 import { fetchRouteByProfile, formatDuration, type RouteProfile } from "./services/mapboxDirections";
+import { fetchMapboxReverseGeocodePlaceName } from "./services/mapboxReverseGeocode";
 import { getFunctions } from "firebase/functions";
 import "./App.css";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
 const FUNCTIONS_REGION = import.meta.env.VITE_FUNCTIONS_REGION?.trim() || "asia-northeast3";
+/** 로그아웃 직후 같은 탭에서 맵을 유지할지(sessionStorage). 최초 방문은 플래그 없음 → 기존처럼 전체 인증 게이트. */
+const POST_SIGNOUT_MAP_SESSION_KEY = "boxcycle_post_signout_map_v1";
+
+function readPostSignoutMapSessionFlag(): boolean {
+  if (typeof sessionStorage === "undefined") return false;
+  try {
+    return sessionStorage.getItem(POST_SIGNOUT_MAP_SESSION_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
 const MAP_STYLE_OPTIONS = [
   { value: "mapbox://styles/mapbox/streets-v12", label: "Streets" },
   { value: "mapbox://styles/mapbox/outdoors-v12", label: "Outdoors" },
@@ -126,17 +159,43 @@ export default function App() {
 
   const [startLngLat, setStartLngLat] = useState<LngLat | null>(null);
   const [endLngLat, setEndLngLat] = useState<LngLat | null>(null);
+  const [startPlaceLabel, setStartPlaceLabel] = useState<string | null>(null);
+  const [endPlaceLabel, setEndPlaceLabel] = useState<string | null>(null);
+  const [routeWaypoints, setRouteWaypoints] = useState<LngLat[]>([]);
   const [profile, setProfile] = useState<RouteProfile>("cycling");
   const [routeGeometry, setRouteGeometry] = useState<LineStringGeometry | null>(null);
   const [routeDistanceMeters, setRouteDistanceMeters] = useState(0);
   const [routeDurationSec, setRouteDurationSec] = useState(0);
-  const [routeSummary, setRouteSummary] = useState("지도를 클릭한 뒤 팝업에서 출발지/도착지를 선택하세요.");
+  const [routeSummary, setRouteSummary] = useState(
+    "지도를 클릭한 뒤 팝업에서 출발지·도착지·경과지(최대 3)를 선택하세요.",
+  );
   const [routeLoading, setRouteLoading] = useState(false);
   const [mapStyle, setMapStyle] = useState(MAP_STYLE_OPTIONS[3].value);
   const [mapZoom, setMapZoom] = useState(12);
   const [followMode, setFollowMode] = useState<FollowMode>("keep");
   const [enable3D, setEnable3D] = useState(true);
   const [speedKmh, setSpeedKmh] = useState(25);
+  const {
+    rideTtsEnabled,
+    setRideTtsEnabled,
+    rideBgmEnabled,
+    setRideBgmEnabled,
+    rideCoachingBannerVisible,
+    setRideCoachingBannerVisible,
+  } = useRideFeedbackPreferences();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [externalCameraJump, setExternalCameraJump] = useState<{
+    lngLat: LngLat;
+    zoom?: number;
+    requestId: number;
+    /** Mapbox [west,south,east,north] — 있으면 지도가 `fitBounds` 로 도시 프레이밍 */
+    bbox?: [number, number, number, number] | null;
+  } | null>(null);
+  const cameraJumpSeqRef = useRef(0);
+  const [mapViewSheetOpen, setMapViewSheetOpen] = useState(false);
+  const [userInfoSheetOpen, setUserInfoSheetOpen] = useState(false);
+  const [idleHintDismissed, setIdleHintDismissed] = useState(false);
+  const [summarySheetVisible, setSummarySheetVisible] = useState(false);
   const [coverageOverlayMode, setCoverageOverlayMode] = useState<CoverageOverlayMode>("off");
   const [recentSessions, setRecentSessions] = useState<StoredRideSession[]>(() =>
     loadRideSessions(),
@@ -154,12 +213,6 @@ export default function App() {
   const [publishedPublicCourses, setPublishedPublicCourses] = useState<PublishedPublicCourseSummary[]>([]);
   const [publishedPublicCoursesLoading, setPublishedPublicCoursesLoading] = useState(false);
   const [publishedPublicCoursesError, setPublishedPublicCoursesError] = useState<string | null>(null);
-  /**
-   * 도착 시 3초간 표시되는 토스트. 매 도착마다 tick 을 증가시켜 동일 toast 가 다시 떠도
-   * setTimeout 이 갱신되도록 한다(useEffect dependency 변화 강제).
-   */
-  const [arrivalToastTick, setArrivalToastTick] = useState(0);
-  const arrivalHandledRef = useRef(false);
   /** 입문 허브 동시 주행에 참여 중인 코스 document id(null 이면 미참여) */
   const [basicActiveHubCourseId, setBasicActiveHubCourseId] = useState<string | null>(null);
   const [basicStartLoading, setBasicStartLoading] = useState(false);
@@ -171,7 +224,17 @@ export default function App() {
   const [liveRiderNametag, setLiveRiderNametag] = useState<string | null>(null);
   /** false면 LobbyPresence 마운트 안 함(로비 문서·하트비트 중단). 게스트 id는 유지. */
   const [lobbyParticipationEnabled, setLobbyParticipationEnabled] = useState(true);
+  /** true면 최초 진입이 아닌 「로그아웃 후」 맵 모드 — 전체 인증 게이트 대신 맵 + 선택적 로그인 시트. */
+  const [postSignoutMapSession, setPostSignoutMapSession] = useState(readPostSignoutMapSessionFlag);
+  /** 비로그인 맵에서 TR「로그인」으로 연 게스트/Google 카드 */
+  const [authSheetOpen, setAuthSheetOpen] = useState(false);
   const lobbyPresenceUidRef = useRef<string | null>(null);
+
+  const lobbyRoomSession = useLobbyRoomSession({
+    user: user ?? undefined,
+    roomId,
+    enabled: Boolean(configured && user && lobbyParticipationEnabled),
+  });
   /** true면 입문 코스 경로가 있어도 동행 허브 자동 참여 안 함(「나가기」 후) */
   const basicStartHubLeftExplicitRef = useRef(false);
   /** leaveBasicHub 등에서 최신 주행 종료 로직을 호출하기 위한 ref */
@@ -196,6 +259,7 @@ export default function App() {
     geometry: LineStringGeometry;
     startLngLat: LngLat;
     endLngLat: LngLat;
+    waypoints: LngLat[];
     profile: RouteProfile;
     rideId: string | null;
   } | null>(null);
@@ -225,6 +289,79 @@ export default function App() {
     routeDistanceMeters,
   });
 
+  const bleCrankRpm = useBleCrankRpm({ sessionActive: rideStatus !== "idle" });
+
+  const bleCadencePanel = useMemo(() => {
+    if (!bleCrankRpm.capable) return undefined;
+    return {
+      uiState: bleCrankRpm.uiState,
+      crankRpm: bleCrankRpm.crankRpm,
+      deviceLabel: bleCrankRpm.deviceLabel,
+      errorMessage: bleCrankRpm.errorMessage,
+      onConnect: () => void bleCrankRpm.connect(),
+      onDisconnect: bleCrankRpm.disconnect,
+    };
+  }, [
+    bleCrankRpm.capable,
+    bleCrankRpm.uiState,
+    bleCrankRpm.crankRpm,
+    bleCrankRpm.deviceLabel,
+    bleCrankRpm.errorMessage,
+    bleCrankRpm.connect,
+    bleCrankRpm.disconnect,
+  ]);
+
+  const { coachData, rideElevationProfile, rideBgmCatalogConfigured } = useRideCoachingMedia({
+    routeGeometry,
+    routeDistanceMeters,
+    virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
+    sessionStatus: rideStatus,
+    speedKmh,
+    rideTtsEnabled,
+    rideBgmEnabled,
+  });
+  const rideElevationProfileLoading = rideElevationProfile.loading;
+  const { arrivalToastTick, resetArrivalToast, resetArrivalGate } = useRideArrivalAutoEnd({
+    rideStatus,
+    routeDistanceMeters,
+    virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
+    endRideRef: handleEndRideRef,
+  });
+
+  const coursePeerIdsForLobbySpectator = useMemo(
+    () => new Set(coursePeerMarkers.map((p) => p.id)),
+    [coursePeerMarkers],
+  );
+
+  const lobbySpectatorOverlayEnabled = Boolean(
+    configured && user && lobbyParticipationEnabled && rideStatus === "idle",
+  );
+
+  const { spectatorDots, spectatorRouteGeometries } = useLobbyLiveCourseRideSpectatorOverlay({
+    user,
+    roomId,
+    enabled: lobbySpectatorOverlayEnabled,
+    mapZoom,
+    excludePeerIds: coursePeerIdsForLobbySpectator,
+  });
+
+  useLobbyLiveCourseRidePublisher({
+    user,
+    enabled: Boolean(
+      configured &&
+        user &&
+        lobbyParticipationEnabled &&
+        rideStatus !== "idle" &&
+        (basicActiveHubCourseId ?? activeOfficialCourseId) &&
+        Boolean(routeGeometry?.coordinates?.length),
+    ),
+    roomId,
+    courseId: basicActiveHubCourseId ?? activeOfficialCourseId,
+    routeGeometry,
+    routeDistanceMeters,
+    virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
+  });
+
   useEffect(() => {
     const onPop = () => {
       const next = readRoomIdFromLocation();
@@ -242,6 +379,13 @@ export default function App() {
     if (!user) {
       return;
     }
+    try {
+      sessionStorage.removeItem(POST_SIGNOUT_MAP_SESSION_KEY);
+    } catch {
+      /* noop */
+    }
+    setPostSignoutMapSession(false);
+    setAuthSheetOpen(false);
     if (lobbyPresenceUidRef.current !== user.uid) {
       lobbyPresenceUidRef.current = user.uid;
       startTransition(() => setLobbyParticipationEnabled(true));
@@ -544,6 +688,7 @@ export default function App() {
 
   const handleSaveCurrentRoute = useCallback(
     async (name: string) => {
+      // RideRoutePanel: 이름 검증 후 저장 확정 시에만 호출(경로 생성만으로는 DB/로컬 목록에 쓰지 않음).
       if (!routeGeometry || routeGeometry.coordinates.length < 2) {
         throw new Error("저장할 경로가 없습니다. 경로 생성 후 다시 시도하세요.");
       }
@@ -555,6 +700,7 @@ export default function App() {
         profile,
         startLngLat,
         endLngLat,
+        waypoints: routeWaypoints.slice(0, MAX_ROUTE_WAYPOINTS),
         geometry: routeGeometry,
         distanceMeters: routeDistanceMeters,
         durationSec: routeDurationSec,
@@ -579,6 +725,7 @@ export default function App() {
       routeGeometry,
       startLngLat,
       endLngLat,
+      routeWaypoints,
       profile,
       routeDistanceMeters,
       routeDurationSec,
@@ -586,13 +733,14 @@ export default function App() {
   );
 
   /**
-   * 도착 토스트의 「사용자 경로로 저장」 액션.
+   * 완주 후 「내 경로로 저장」— RideRoutePanel / RideSummarySheet 에서 이름 검증·confirm 후에만 호출.
    * rides 는 보안 규칙상 update 불가 → 새 사용자 경로 생성 후 즉시 promote(completed=1) 하여
    * 「완주 경로」 로 즉시 등록한다. rides 문서의 userRouteId 는 null 로 남지만, 사용자 경로 쪽에는
    * lastRideId 로 연결되어 역추적 가능하다.
    */
   const handleSaveAdhocAsUserRoute = useCallback(
     async (name: string) => {
+      // UI에서 confirm·이름 정규화 후에만 호출.
       if (!lastEndedWasAdhoc) {
         throw new Error("저장 대상 경로 정보가 없습니다.");
       }
@@ -601,6 +749,7 @@ export default function App() {
         profile: lastEndedWasAdhoc.profile,
         startLngLat: lastEndedWasAdhoc.startLngLat,
         endLngLat: lastEndedWasAdhoc.endLngLat,
+        waypoints: lastEndedWasAdhoc.waypoints,
         geometry: lastEndedWasAdhoc.geometry,
         distanceMeters: lastEndedWasAdhoc.distanceMeters,
         durationSec: lastEndedWasAdhoc.durationSec,
@@ -648,6 +797,7 @@ export default function App() {
       }
       setStartLngLat(route.startLngLat);
       setEndLngLat(route.endLngLat);
+      setRouteWaypoints(route.waypoints ?? []);
       setProfile(route.profile);
       setRouteGeometry(route.geometry);
       setRouteDistanceMeters(route.distanceMeters);
@@ -769,6 +919,7 @@ export default function App() {
         setRouteGeometry(resolved.geometry);
         setStartLngLat(coords[0] ?? null);
         setEndLngLat(coords[coords.length - 1] ?? null);
+        setRouteWaypoints([]);
         setProfile(resolved.profile);
         setRouteDistanceMeters(resolved.distanceMeters);
         setRouteDurationSec(resolved.durationSec);
@@ -805,59 +956,73 @@ export default function App() {
     setBasicActiveHubCourseId(null);
   }, [user, basicActiveHubCourseId]);
 
-  const generateRoute = useCallback(async () => {
-    if (rideStatus !== "idle") {
-      setRouteSummary("세션이 대기 상태일 때만 경로를 바꿀 수 있습니다. 종료 후 다시 시도하세요.");
-      return;
-    }
-    if (!user) {
-      setRouteSummary("경로 계산은 로그인(게스트 포함) 후에 사용할 수 있습니다.");
-      return;
-    }
-    const start = startLngLat;
-    const end = endLngLat;
-    if (!start || !end) {
-      setRouteSummary("지도를 클릭해 출발지와 도착지를 먼저 선택하세요.");
-      return;
-    }
+  const generateRoute = useCallback(
+    async (profileOverride?: RouteProfile) => {
+      if (rideStatus !== "idle") {
+        setRouteSummary("세션이 대기 상태일 때만 경로를 바꿀 수 있습니다. 종료 후 다시 시도하세요.");
+        return;
+      }
+      if (!user) {
+        setRouteSummary("경로 계산은 로그인(게스트 포함) 후에 사용할 수 있습니다.");
+        return;
+      }
+      const start = startLngLat;
+      const end = endLngLat;
+      if (!start || !end) {
+        setRouteSummary("지도를 클릭해 출발지와 도착지를 먼저 선택하세요.");
+        return;
+      }
 
-    setRouteLoading(true);
-    setRouteSummary("경로 계산 중…");
-    try {
-      const functions = getFunctions(getFirebaseApp(), FUNCTIONS_REGION);
-      const route = await fetchRouteByProfile(functions, user, start, end, profile);
-      setRouteGeometry(route.geometry);
-      setRouteDistanceMeters(route.distance);
-      setRouteDurationSec(route.duration);
-      setRouteSummary(
-        `거리 ${(route.distance / 1000).toFixed(2)} km / 예상 ${formatDuration(route.duration)}`,
-      );
-      resetRide();
-      loadedSavedRouteIdRef.current = null;
-      loadedSavedRouteNameRef.current = null;
-      setLastEndedWasAdhoc(null);
-      setActiveOfficialCourseId(null);
-    } catch (e: unknown) {
-      const fe = e as { code?: string; message?: string };
-      const message =
-        typeof fe?.message === "string"
-          ? fe.message
-          : e instanceof Error
-            ? e.message
-            : String(e);
-      const hint =
-        fe?.code === "functions/not-found"
-          ? " Cloud Functions 가 배포되지 않았을 수 있습니다. 저장소 루트에서 firebase deploy --only functions 를 실행하고, MAPBOX_ACCESS_TOKEN 시크릿을 설정하세요."
-          : "";
-      setRouteSummary(message + hint);
-      setRouteGeometry(null);
-      setRouteDistanceMeters(0);
-      setRouteDurationSec(0);
-      setActiveOfficialCourseId(null);
-    } finally {
-      setRouteLoading(false);
-    }
-  }, [rideStatus, startLngLat, endLngLat, profile, resetRide, user]);
+      const activeProfile = profileOverride ?? profile;
+
+      setRouteLoading(true);
+      setRouteSummary("경로 계산 중…");
+      try {
+        const functions = getFunctions(getFirebaseApp(), FUNCTIONS_REGION);
+        const wps = routeWaypoints.slice(0, MAX_ROUTE_WAYPOINTS);
+        const route = await fetchRouteByProfile(
+          functions,
+          user,
+          start,
+          end,
+          activeProfile,
+          wps.length ? wps : undefined,
+        );
+        setRouteGeometry(route.geometry);
+        setRouteDistanceMeters(route.distance);
+        setRouteDurationSec(route.duration);
+        const viaNote = wps.length ? ` · 경과 ${wps.length}곳` : "";
+        setRouteSummary(
+          `거리 ${(route.distance / 1000).toFixed(2)} km / 예상 ${formatDuration(route.duration)}${viaNote}`,
+        );
+        resetRide();
+        loadedSavedRouteIdRef.current = null;
+        loadedSavedRouteNameRef.current = null;
+        setLastEndedWasAdhoc(null);
+        setActiveOfficialCourseId(null);
+      } catch (e: unknown) {
+        const fe = e as { code?: string; message?: string };
+        const message =
+          typeof fe?.message === "string"
+            ? fe.message
+            : e instanceof Error
+              ? e.message
+              : String(e);
+        const hint =
+          fe?.code === "functions/not-found"
+            ? " Cloud Functions 가 배포되지 않았을 수 있습니다. 저장소 루트에서 firebase deploy --only functions 를 실행하고, MAPBOX_ACCESS_TOKEN 시크릿을 설정하세요."
+            : "";
+        setRouteSummary(message + hint);
+        setRouteGeometry(null);
+        setRouteDistanceMeters(0);
+        setRouteDurationSec(0);
+        setActiveOfficialCourseId(null);
+      } finally {
+        setRouteLoading(false);
+      }
+    },
+    [rideStatus, startLngLat, endLngLat, routeWaypoints, profile, resetRide, user],
+  );
 
   async function handleGuestStart() {
     setError(null);
@@ -952,6 +1117,7 @@ export default function App() {
     [user],
   );
 
+  /** 향후 「방 변경」 UI 가 메뉴 패널에 추가될 때 다시 연결. 현재 Map-first 레이아웃에선 URL `?room=` 만으로 진입. */
   function joinRoomFromDraft() {
     const next = sanitizeRoomId(roomDraft);
     setRoomId(next);
@@ -959,10 +1125,11 @@ export default function App() {
     replaceRoomInUrl(next);
     setLobbyParticipationEnabled(true);
   }
+  void joinRoomFromDraft;
 
   function handleStartRide() {
     if (!routeGeometry || rideStatus !== "idle") return;
-    arrivalHandledRef.current = false;
+    resetArrivalGate();
     resetRide();
     setRideStatus("running");
   }
@@ -980,11 +1147,12 @@ export default function App() {
 
   function handleEndRide() {
     if (rideStatus === "idle") return;
+    safeRideSpeechCancel();
 
     const elapsedSec = Math.floor(rideMetrics.accumulatedMs / 1000);
     const caloriesEstimate = Math.round((rideMetrics.virtualDistanceMeters / 1000) * 30);
     /**
-     * 격상 후보: 저장된 사용자 경로를 「불러와」 주행했거나, 같은 지도 상태로 「현재 경로 저장」 직후 주행했는가?
+     * 격상 후보: 저장된 사용자 경로를 「불러와」 주행했거나, 같은 지도 상태로 「내 경로로 저장」 직후 주행했는가?
      * 새 경로 탐색·입문 코스 진입 시 ref 가 null 로 클리어되므로 여기 값이 살아 있다는 건 「이미 저장된 사용자 경로 그대로 탔음」 을 의미.
      */
     const savedRouteIdAtEnd = loadedSavedRouteIdRef.current;
@@ -1071,6 +1239,7 @@ export default function App() {
               geometry: routeGeometry,
               startLngLat,
               endLngLat,
+              waypoints: routeWaypoints.slice(0, MAX_ROUTE_WAYPOINTS),
               profile,
               rideId,
             });
@@ -1099,6 +1268,7 @@ export default function App() {
         geometry: routeGeometry,
         startLngLat,
         endLngLat,
+        waypoints: routeWaypoints.slice(0, MAX_ROUTE_WAYPOINTS),
         profile,
         rideId: null,
       });
@@ -1114,31 +1284,16 @@ export default function App() {
 
   handleEndRideRef.current = handleEndRide;
 
-  /**
-   * 가상 거리 ≥ 경로 거리이면 자동 종료. 훅이 RAF 를 멈춰 최종 메트릭이 들어온 직후
-   * handleEndRide() 가 호출되어 상태/저장이 마무리되고(메트릭 UI는 유지), 도착 토스트가 3초 표시된다.
-   * 중복 트리거는 arrivalHandledRef 로 차단한다. handleEndRide 는 handleEndRideRef 로 접근해 의존성 충돌을 피한다.
-   */
-  useEffect(() => {
-    if (rideStatus === "idle") {
-      arrivalHandledRef.current = false;
-      return;
-    }
-    if (rideStatus !== "running") return;
-    if (routeDistanceMeters <= 0) return;
-    if (rideMetrics.virtualDistanceMeters < routeDistanceMeters) return;
-    if (arrivalHandledRef.current) return;
-    arrivalHandledRef.current = true;
-    handleEndRideRef.current();
-    setArrivalToastTick((t) => t + 1);
-  }, [rideStatus, rideMetrics.virtualDistanceMeters, routeDistanceMeters]);
-
-  /** 도착 토스트 자동 숨김(3초). tick 변경 시마다 타이머 재설정. */
+  /** 도착 시 결과 시트가 열림. 닫기는 사용자 명시 액션. */
   useEffect(() => {
     if (arrivalToastTick === 0) return;
-    const t = window.setTimeout(() => setArrivalToastTick(0), 3000);
-    return () => window.clearTimeout(t);
+    setSummarySheetVisible(true);
   }, [arrivalToastTick]);
+
+  /** ad-hoc 저장 안내가 새로 생기면 결과 시트도 함께 노출 */
+  useEffect(() => {
+    if (lastEndedWasAdhoc) setSummarySheetVisible(true);
+  }, [lastEndedWasAdhoc]);
 
   /** 로비 실시간 참여만 중단(코스 동행·Firebase 세션은 유지) */
   async function handleLeaveLobbyOnly() {
@@ -1154,7 +1309,7 @@ export default function App() {
     }
   }
 
-  /** 로비·코스 정리 후 Firebase 로그아웃 → 시작 화면으로 복귀(게스트·Google 공통) */
+  /** 로비·코스 정리 후 Firebase 로그아웃 — 맵은 유지하고 우측 상단「로그인」으로 재인증(게스트·Google 공통) */
   async function handleServiceExit() {
     setError(null);
     setBusy(true);
@@ -1176,7 +1331,24 @@ export default function App() {
       setBasicActiveHubCourseId(null);
       setLobbyParticipationEnabled(false);
       setRecentSessions(loadRideSessions());
-      await signOut(getFirebaseAuth());
+      setAuthSheetOpen(false);
+      try {
+        sessionStorage.setItem(POST_SIGNOUT_MAP_SESSION_KEY, "1");
+      } catch {
+        /* noop */
+      }
+      setPostSignoutMapSession(true);
+      try {
+        await signOut(getFirebaseAuth());
+      } catch (signOutErr) {
+        try {
+          sessionStorage.removeItem(POST_SIGNOUT_MAP_SESSION_KEY);
+        } catch {
+          /* noop */
+        }
+        setPostSignoutMapSession(false);
+        throw signOutErr;
+      }
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
       setError(message);
@@ -1185,21 +1357,25 @@ export default function App() {
     }
   }
 
-  /** 일시정지 직후 RAF가 멈추면 liveLngLat 가 잠깐 비는 구간이 있어, 가상 거리로 보정 */
+  /** 지도·동행 공유: 항상 경로 폴리라인 위의 점만 사용(가상 거리 → 선상 보간). `liveLngLat` 직접 사용 시 경로와 미세 어긋날 수 있음 */
   const liveForMap: LngLat | null = useMemo(() => {
     if (rideStatus === "idle") return null;
-    if (rideMetrics.liveLngLat) return rideMetrics.liveLngLat;
-    if (routeGeometry && routeDistanceMeters > 0) {
-      return getPointOnRouteByDistance(
-        routeGeometry,
-        Math.min(rideMetrics.virtualDistanceMeters, routeDistanceMeters),
-      );
+    if (!routeGeometry || routeGeometry.coordinates.length < 2) {
+      return rideMetrics.liveLngLat ?? null;
     }
-    return null;
+    const geoLen = lineStringLengthMeters(routeGeometry);
+    if (!Number.isFinite(geoLen) || geoLen <= 0) return rideMetrics.liveLngLat ?? null;
+    const routeCap = routeDistanceMeters > 0 ? routeDistanceMeters : geoLen;
+    const d = Math.min(
+      Math.max(0, rideMetrics.virtualDistanceMeters),
+      routeCap,
+      geoLen,
+    );
+    return getPointOnRouteByDistance(routeGeometry, d);
   }, [
     rideStatus,
-    rideMetrics.liveLngLat,
     rideMetrics.virtualDistanceMeters,
+    rideMetrics.liveLngLat,
     routeGeometry,
     routeDistanceMeters,
   ]);
@@ -1214,417 +1390,451 @@ export default function App() {
       speedKmh,
       riderLngLat: liveForMap,
     });
-  const startLabel = startLngLat ? formatLngLat(startLngLat) : "미설정";
-  const endLabel = endLngLat ? formatLngLat(endLngLat) : "미설정";
+
+  useEffect(() => {
+    if (!startLngLat) {
+      setStartPlaceLabel(null);
+      return;
+    }
+    const token = MAPBOX_TOKEN.trim();
+    if (!token) {
+      setStartPlaceLabel(formatLngLat(startLngLat));
+      return;
+    }
+    const ac = new AbortController();
+    setStartPlaceLabel(null);
+    void (async () => {
+      try {
+        const name = await fetchMapboxReverseGeocodePlaceName(startLngLat, token, ac.signal);
+        if (ac.signal.aborted) return;
+        setStartPlaceLabel((name && name.trim()) || formatLngLat(startLngLat));
+      } catch {
+        if (ac.signal.aborted) return;
+        setStartPlaceLabel(formatLngLat(startLngLat));
+      }
+    })();
+    return () => ac.abort();
+  }, [startLngLat]);
+
+  useEffect(() => {
+    if (!endLngLat) {
+      setEndPlaceLabel(null);
+      return;
+    }
+    const token = MAPBOX_TOKEN.trim();
+    if (!token) {
+      setEndPlaceLabel(formatLngLat(endLngLat));
+      return;
+    }
+    const ac = new AbortController();
+    setEndPlaceLabel(null);
+    void (async () => {
+      try {
+        const name = await fetchMapboxReverseGeocodePlaceName(endLngLat, token, ac.signal);
+        if (ac.signal.aborted) return;
+        setEndPlaceLabel((name && name.trim()) || formatLngLat(endLngLat));
+      } catch {
+        if (ac.signal.aborted) return;
+        setEndPlaceLabel(formatLngLat(endLngLat));
+      }
+    })();
+    return () => ac.abort();
+  }, [endLngLat]);
+
+  const startLabel = !startLngLat
+    ? "미설정"
+    : startPlaceLabel === null
+      ? "주소 불러오는 중…"
+      : startPlaceLabel;
+  const endLabel = !endLngLat
+    ? "미설정"
+    : endPlaceLabel === null
+      ? "주소 불러오는 중…"
+      : endPlaceLabel;
 
   /** Firebase 미설정이거나 인증 준비 완료 후 — 로비·입문 코스 UI가 숨겨지지 않도록 메인 워크스페이스 표시 */
   const rideWorkspaceOpen = !configured || (configured && authInitialized);
+  void rideWorkspaceOpen;
+
+  // ===== Map-first stage 머신 =====
+  const summaryVisible = summarySheetVisible && (arrivalToastTick > 0 || lastEndedWasAdhoc !== null);
+  const needsAuthCard =
+    !configured || (configured && authInitialized && !user && !postSignoutMapSession);
+  const needsNicknameCard =
+    configured && Boolean(user) && !user!.isAnonymous && fsSync.state === "awaiting_nickname";
+  const stage = useRideUiStage({
+    needsAuthCard,
+    needsNicknameCard,
+    rideStatus,
+    hasRoute: Boolean(routeGeometry) && routeDistanceMeters > 0,
+    hasStartPin: Boolean(startLngLat),
+    hasEndPin: Boolean(endLngLat),
+    summaryVisible,
+  });
+  const rideLocked = stage === "riding" || stage === "paused";
+
+  const applyRouteProfileFromMapPopup = useCallback(
+    (p: RouteProfile) => {
+      if (rideLocked) return;
+      setProfile(p);
+      void generateRoute(p);
+    },
+    [rideLocked, generateRoute],
+  );
+
+  // ===== Map-first 핸들러 =====
+  function handleClearPins() {
+    if (rideLocked) return;
+    setStartLngLat(null);
+    setEndLngLat(null);
+    setRouteWaypoints([]);
+    setRouteGeometry(null);
+    setRouteDistanceMeters(0);
+    setRouteDurationSec(0);
+    setRouteSummary("");
+    loadedSavedRouteIdRef.current = null;
+    loadedSavedRouteNameRef.current = null;
+    setActiveOfficialCourseId(null);
+  }
+
+  function handleMenuPlacePick(lngLat: LngLat, _placeName: string, bbox: [number, number, number, number] | null) {
+    /** `liveForMap` 추적 jumpTo 가 flyTo 를 덮어쓰지 않도록 */
+    setFollowMode("free");
+    cameraJumpSeqRef.current += 1;
+    setExternalCameraJump({
+      lngLat,
+      bbox,
+      requestId: cameraJumpSeqRef.current,
+    });
+    setMenuOpen(false);
+  }
+
+  function handleCloseSummary() {
+    setSummarySheetVisible(false);
+    resetArrivalToast();
+    setLastEndedWasAdhoc(null);
+  }
+
+  function handleModifyFromPause() {
+    handleEndRide();
+    setMenuOpen(true);
+  }
+
+  const elapsedLabel = formatElapsedFromMs(rideMetrics.accumulatedMs);
+  const distanceKmLabel = (rideMetrics.virtualDistanceMeters / 1000).toFixed(2);
+  const hudMetrics =
+    rideStatus !== "idle"
+      ? {
+          elapsed: elapsedLabel,
+          distanceKm: distanceKmLabel,
+          avgKmh: avgSpeedLabel,
+          speedKmh,
+        }
+      : null;
+  const accountInitial = (() => {
+    if (!user) return null;
+    if (user.isAnonymous) return "G";
+    const src = user.displayName?.trim() || user.email?.trim() || "U";
+    return src.slice(0, 1).toUpperCase();
+  })();
+  const accountChip =
+    user && accountInitial !== null
+      ? {
+          initial: accountInitial,
+          isGuest: user.isAnonymous,
+        }
+      : null;
+  const routeBrief =
+    routeGeometry && routeDistanceMeters > 0
+      ? {
+          distanceKm: (routeDistanceMeters / 1000).toFixed(2),
+          durationLabel: formatDuration(routeDurationSec),
+        }
+      : null;
+  const caloriesEstimate = Math.round((rideMetrics.virtualDistanceMeters / 1000) * 30);
+
+  const mapHudRidePresence = useMemo(() => {
+    if (!configured || !user) return null;
+    const courseTitle = basicActiveHubCourseId
+      ? getBasicHubCoursePayload(basicActiveHubCourseId).title.trim() || "입문 코스"
+      : null;
+    const coursePeerNames = coursePeerMarkers
+      .map((p) => (p.label ?? "동행").trim())
+      .filter((n) => n.length > 0);
+    const lobbyMembers = lobbyRoomSession.rows.map((r) => ({
+      key: r.uid,
+      display: r.displayName?.trim() || r.uid.slice(0, 8),
+      isSelf: r.uid === user.uid,
+      active: isLobbyMemberActive(r.lastSeenAtMs),
+    }));
+    const lobbyError = lobbyParticipationEnabled ? lobbyRoomSession.error : null;
+    const hasAny =
+      lobbyParticipationEnabled ||
+      Boolean(courseTitle) ||
+      coursePeerNames.length > 0 ||
+      Boolean(lobbyError);
+    if (!hasAny) return null;
+    return {
+      lobbyEnabled: lobbyParticipationEnabled,
+      roomId: sanitizeRoomId(roomId),
+      lobbyMembers,
+      lobbyError,
+      courseTitle,
+      coursePeerNames,
+    };
+  }, [
+    configured,
+    user,
+    lobbyParticipationEnabled,
+    roomId,
+    lobbyRoomSession.rows,
+    lobbyRoomSession.error,
+    basicActiveHubCourseId,
+    coursePeerMarkers,
+  ]);
 
   return (
-    <div className="app-shell">
-      <header className="app-header">
-        <div className="brand">
-          <h1 className="title">BOXCYCLE</h1>
-          <p className="subtitle">
-            Vite + React + TypeScript · Firebase · Mapbox
-          </p>
-        </div>
+    <div className="app-shell app-shell--map-first">
+      <RotateOverlay />
 
-        {!configured ? (
-          <section className="card card--compact">
-            <p className="lead tight">
-              Firebase 환경 변수가 없습니다.{" "}
-              <code className="inline">apps/web/.env</code> 를 확인하세요.
-            </p>
-          </section>
-        ) : (
-          <section
-            className={`card card--compact auth-card${
-              user && !user.isAnonymous && fsSync.state === "awaiting_nickname" ? " auth-card--wide" : ""
-            }`}
-          >
-            {!authInitialized ? (
-              <div className="auth-row">
-                <p className="lead tight">Firebase 인증 연결 확인 중…</p>
-              </div>
-            ) : user ? (
-              user.isAnonymous ? (
-                <div className="auth-row">
-                  <div className="auth-info">
-                    <p className="lead tight">
-                      <strong>게스트로 이용 중</strong> ({user.uid.slice(0, 8)}…)
-                    </p>
-                    <p className="meta tight">
-                      로비 나가기·입문 코스 동행 나가기·서비스 종료는 서로 다릅니다. Google을 연결하면 같은 uid로
-                      기록이 이어집니다.
-                    </p>
-                    {fsSync.state === "ok" ? <p className="fs-ok">게스트 세션 활성</p> : null}
-                  </div>
-                  <div className="auth-actions">
-                    <button
-                      type="button"
-                      className="btn primary"
-                      disabled={busy}
-                      onClick={() => void handleGoogleSignIn()}
-                    >
-                      {busy ? "처리 중…" : "Google 계정 연결"}
-                    </button>
-                    <button
-                      type="button"
-                      className="btn secondary"
-                      disabled={busy}
-                      onClick={() => void handleServiceExit()}
-                      title="로비·코스 presence를 정리한 뒤 로그아웃합니다. 게스트도 다음 접속 시 다시 시작 화면으로 돌아옵니다."
-                    >
-                      서비스 종료
-                    </button>
-                  </div>
-                </div>
-              ) : fsSync.state === "awaiting_nickname" ? (
-                <div className="auth-row auth-row--signup-nickname">
-                  <div className="auth-info auth-info--signup">
-                    <p className="meta tight">
-                      로그인 계정: <strong>{user.email ?? user.uid}</strong>
-                    </p>
-                    <SignUpNicknameCard busy={busy} onSubmit={handleCompleteNickname} />
-                    <p className="fs-hint">닉네임을 저장하면 회원가입이 완료됩니다.</p>
-                  </div>
-                  <div className="auth-actions">
-                    <button
-                      type="button"
-                      className="btn secondary"
-                      disabled={busy}
-                      onClick={() => void handleServiceExit()}
-                      title="가입을 중단하고 로그아웃합니다."
-                    >
-                      로그아웃
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="auth-row">
-                  <div className="auth-info">
-                    <p className="lead tight">
-                      <strong>{user.displayName ?? user.email ?? user.uid}</strong>
-                    </p>
-                    <p className="meta tight">{user.uid}</p>
-                    {fsSync.state === "syncing" ? (
-                      <p className="fs-hint">Firestore 동기화 중…</p>
-                    ) : null}
-                    {fsSync.state === "ok" ? <p className="fs-ok">Firestore 프로필 저장됨</p> : null}
-                    {fsSync.state === "error" ? (
-                      <p className="fs-err" title={fsSync.message}>
-                        Firestore 오류: {fsSync.message}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div className="auth-actions">
-                    <button
-                      type="button"
-                      className="btn secondary"
-                      disabled={busy}
-                      onClick={() => void handleServiceExit()}
-                      title="로비·코스 presence를 정리한 뒤 로그아웃합니다. 게스트도 다음 접속 시 다시 시작 화면으로 돌아옵니다."
-                    >
-                      로그아웃
-                    </button>
-                  </div>
-                </div>
-              )
-            ) : (
-              <div className="auth-row auth-row--gate">
-                <div className="auth-info">
-                  <p className="lead tight">시작 방식을 선택하세요</p>
-                  <p className="meta tight auth-gate-hint">
-                    게스트 계정은 「게스트로 시작」을 눌렀을 때만 만들어져, 페이지만 열어도 익명 사용자가 늘어나지
-                    않습니다. 종료 후에는 다시 이 화면에서 선택합니다. Gmail 회원가입·로그인 모두 Google 인증 후
-                    닉네임을 한 번 설정합니다.
-                  </p>
-                </div>
-                <div className="auth-actions auth-actions--gate">
-                  <button
-                    type="button"
-                    className="btn secondary"
-                    disabled={busy}
-                    onClick={() => void handleGuestStart()}
-                  >
-                    {busy ? "처리 중…" : "게스트로 시작"}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn secondary"
-                    disabled={busy}
-                    onClick={() => void handleGoogleSignIn()}
-                  >
-                    {busy ? "처리 중…" : "Google로 회원가입"}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn primary"
-                    disabled={busy}
-                    onClick={() => void handleGoogleSignIn()}
-                  >
-                    {busy ? "처리 중…" : "Google로 로그인"}
-                  </button>
-                </div>
-              </div>
-            )}
-            {error ? <p className="error tight">{error}</p> : null}
-          </section>
-        )}
-      </header>
-
-      {rideWorkspaceOpen ? (
-        configured && user ? (
-          <div className="lobby-strip">
-            <div className="room-bar">
-              <label className="room-bar__label" htmlFor="roomDraft">
-                방 ID
-              </label>
-              <input
-                id="roomDraft"
-                className="room-bar__input"
-                type="text"
-                maxLength={64}
-                autoComplete="off"
-                spellCheck={false}
-                value={roomDraft}
-                onChange={(e) => setRoomDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") joinRoomFromDraft();
-                }}
-                placeholder="예: demo-ride"
-              />
-              <button type="button" className="btn primary room-bar__btn" onClick={joinRoomFromDraft}>
-                입장
-              </button>
-              {lobbyParticipationEnabled ? (
-                <button
-                  type="button"
-                  className="btn secondary room-bar__btn"
-                  disabled={busy}
-                  onClick={() => void handleLeaveLobbyOnly()}
-                >
-                  로비 나가기
-                </button>
-              ) : null}
-              <span className="room-bar__hint">
-                주소창 URL을 복사해 공유하면 같은 방(`?room=`)으로 입장합니다. 방 ID는 영문·숫자·`_` `-` 만,
-                최대 64자입니다.
-              </span>
-            </div>
-            {lobbyParticipationEnabled ? (
-              <LobbyPresence user={user} roomId={roomId} />
-            ) : (
-              <section className="lobby-presence lobby-presence--paused" aria-label="로비 참여 중지됨">
-                <div className="lobby-presence__head">
-                  <strong>실시간 로비</strong>
-                  <span className="lobby-presence__meta">참여 안 함 · 하트비트 없음</span>
-                </div>
-                <p className="lobby-presence__empty">
-                  로비 목록에서 빠져 있습니다. 「로비 참여」 또는 방 「입장」으로 다시 연결할 수 있습니다.
-                </p>
-                <div className="lobby-presence__rejoin">
-                  <button
-                    type="button"
-                    className="btn primary"
-                    disabled={busy}
-                    onClick={() => setLobbyParticipationEnabled(true)}
-                  >
-                    로비 참여
-                  </button>
-                </div>
-              </section>
-            )}
-          </div>
-        ) : (
-          <div className="lobby-strip">
-            <section className="lobby-presence lobby-presence--paused" aria-label="로비 안내">
-              <div className="lobby-presence__head">
-                <strong>실시간 로비</strong>
-                <span className="lobby-presence__meta">
-                  {!configured ? "Firebase 미설정 · 오프라인 미리보기" : "로그인 전 · 목록 비활성"}
-                </span>
-              </div>
-              <p className="lobby-presence__empty">
-                {!configured ? (
-                  <>
-                    <code className="inline">apps/web/.env</code> 에 Firebase 값을 넣으면 방 ID·접속자 목록이
-                    살아납니다. 지금은 아래 <strong>입문 코스</strong>만 내장 경로로 불러와 주행해 볼 수 있습니다.
-                  </>
-                ) : (
-                  <>
-                    상단에서 <strong>게스트로 시작</strong> 또는 <strong>Google로 로그인</strong>하면 방·로비
-                    하트비트가 켜집니다. 그 전에도 왼쪽 패널에서 입문 코스 입장·지도 주행은 이용할 수 있습니다.
-                  </>
-                )}
-              </p>
-            </section>
-          </div>
-        )
-      ) : null}
-
-      {configured && user && basicActiveHubCourseId ? (
-        <div className="lobby-strip">
-          <CourseSharedPresence
-            user={user}
-            courseId={basicActiveHubCourseId}
-            title={getBasicHubCoursePayload(basicActiveHubCourseId).title}
-            isRiding={rideStatus !== "idle"}
-            myLiveLngLat={liveForMap}
-            onPeersChange={onCoursePeersChange}
-            onLiveRiderNametagChange={setLiveRiderNametag}
-          />
-        </div>
-      ) : null}
-
-      {rideWorkspaceOpen ? (
-        <>
-          {configured && authInitialized && !user ? (
-            <div className="pre-ride-strip">
-              <section className="card card--compact pre-ride-strip__card" aria-label="시작 전 안내">
-                <p className="lead tight">
-                  실시간 로비·동시 주행을 쓰려면 상단에서 <strong>게스트로 시작</strong> 또는{" "}
-                  <strong>Google로 로그인</strong>하세요. 그 전에도 아래에서 입문 코스·지도를 바로 써 볼 수 있습니다.
-                </p>
-                <p className="meta tight">
-                  입문 코스 동행·로비는 로그인 후 활성화됩니다. 맞춤 경로(출발·도착 클릭 후 경로 생성)는 게스트 또는
-                  Google 세션이 필요합니다.
-                </p>
-              </section>
-            </div>
-          ) : null}
-          <main className="route-main" aria-label="경로·지도">
-            <RideRoutePanel
-              startLabel={startLabel}
-              endLabel={endLabel}
-              profile={profile}
-              onProfile={setProfile}
-              routeSummary={routeSummary}
-              routeLoading={routeLoading}
-              onGenerateRoute={() => void generateRoute()}
-              officialCourseActive={activeOfficialCourseId !== null}
-              mapStyle={mapStyle}
-              mapStyleOptions={MAP_STYLE_OPTIONS}
-              onMapStyle={setMapStyle}
-              followMode={followMode}
-              onFollowMode={setFollowMode}
-              enable3D={enable3D}
-              onEnable3D={setEnable3D}
-              mapZoom={mapZoom}
-              onMapZoom={setMapZoom}
-              coverageOverlayMode={coverageOverlayMode}
-              onCoverageOverlayMode={setCoverageOverlayMode}
-              mapillaryTokenConfigured={mapillaryTokenConfigured}
-              hasRoute={Boolean(routeGeometry)}
-              speedKmh={speedKmh}
-              onSpeedKmh={setSpeedKmh}
-              sessionStatus={rideStatus}
-              onStartRide={handleStartRide}
-              onPause={handlePause}
-              onResume={handleResume}
-              onEndRide={handleEndRide}
-              elapsedLabel={formatElapsedFromMs(rideMetrics.accumulatedMs)}
-              distanceKm={(rideMetrics.virtualDistanceMeters / 1000).toFixed(2)}
-              avgSpeedLabel={avgSpeedLabel}
-              recentSessions={recentSessions}
-              basicSharedHubs={BASIC_SHARED_HUB_SUMMARIES}
-              basicActiveHubCourseId={basicActiveHubCourseId}
-              basicStartLoading={basicStartLoading}
-              basicStartHubJoined={basicStartHubJoined}
-              officialCourseCatalogAvailable={configured}
-              publishedPublicCourses={publishedPublicCourses}
-              publishedPublicCoursesLoading={publishedPublicCoursesLoading}
-              publishedPublicCoursesError={publishedPublicCoursesError}
-              authGuest={Boolean(user?.isAnonymous)}
-              onEnterBasicHub={(courseId) => void enterBasicHub(courseId)}
-              onLeaveBasicHub={() => void leaveBasicHub()}
-              savedRoutes={savedRoutes}
-              savedRoutesLoading={savedRoutesLoading}
-              onSaveCurrentRoute={handleSaveCurrentRoute}
-              onLoadSavedRoute={handleLoadSavedRoute}
-              onRenameSavedRoute={handleRenameSavedRoute}
-              onDeleteSavedRoute={handleDeleteSavedRoute}
-              arrivalToastVisible={arrivalToastTick > 0}
-              adhocSaveAvailable={lastEndedWasAdhoc !== null}
-              onSaveAdhocAsUserRoute={handleSaveAdhocAsUserRoute}
-              onDismissAdhocSave={() => setLastEndedWasAdhoc(null)}
-              rideHistoryUserId={configured && user ? user.uid : null}
-              isPublicRouteReviewer={Boolean(configured && user && isPublicRouteReviewer)}
-              publicRouteReviewUser={user}
-              publicRouteReviewQueueCount={publicRouteReviewQueueCount}
-              onPublicRouteReviewQueueChanged={onPublicRouteReviewQueueChanged}
-              pendingPublicRouteIds={pendingPublicRouteIds}
-              onOpenPublicRequest={(route) => setPublicRouteRequestModalRoute(route)}
-            />
-            <div className="map-stage map-stage--in-route">
-              <MapView
-                accessToken={MAPBOX_TOKEN || undefined}
-                routeGeometry={routeGeometry}
-                startLngLat={startLngLat}
-                endLngLat={endLngLat}
-                liveLngLat={liveForMap}
-                liveRiderMotion={
-                  rideStatus === "idle"
-                    ? null
-                    : { sessionStatus: rideStatus, speedKmh }
+      <div className="app-map-stage">
+        <MapView
+          accessToken={MAPBOX_TOKEN || undefined}
+          routeElevationProfile={rideElevationProfile}
+          routeGeometry={routeGeometry}
+          startLngLat={startLngLat}
+          endLngLat={endLngLat}
+          routeWaypoints={routeWaypoints}
+          liveLngLat={liveForMap}
+          liveRiderMotion={
+            rideStatus === "idle"
+              ? null
+              : {
+                  sessionStatus: rideStatus,
+                  speedKmh,
+                  crankRpmFromSensor: bleCrankRpm.crankRpm,
                 }
-                liveRiderNametag={resolvedLiveRiderNametag}
-                peerMarkers={coursePeerMarkers}
-                mapStyle={mapStyle}
-                mapZoom={mapZoom}
-                followMode={followMode}
-                enable3D={enable3D}
-                onMapZoom={setMapZoom}
-                coverageOverlayMode={coverageOverlayMode}
-                mapillaryClientToken={mapillaryTokenConfigured ? MAPILLARY_CLIENT_TOKEN : null}
-                onSelectPoint={(type, lngLat) => {
-                  if (rideStatus !== "idle") {
-                    setRouteSummary("주행 중에는 출발지/도착지를 바꿀 수 없습니다. 세션 종료 후 다시 선택하세요.");
-                    return;
-                  }
-                  setActiveOfficialCourseId(null);
-                  if (type === "start") {
-                    setStartLngLat(lngLat);
-                    setRouteSummary("출발지가 지도 클릭으로 설정되었습니다.");
-                    return;
-                  }
-                  setEndLngLat(lngLat);
-                  setRouteSummary("도착지가 지도 클릭으로 설정되었습니다.");
-                }}
-              />
-              {rideMapillaryStreet && mapillaryRideSync && mapillaryTokenConfigured ? (
-                <div className="mapillary-street-floating" aria-label="Mapillary 거리뷰">
-                  <div className="mapillary-street-floating__head">
-                    <span className="mapillary-street-floating__title">Mapillary</span>
-                    <button type="button" className="mapillary-street-floating__close" onClick={dismissMapillaryStreet}>
-                      닫기
-                    </button>
-                  </div>
-                  <div className="mapillary-street-floating__video">
-                    <Suspense fallback={<div className="mapillary-street-floating__loading">거리뷰 로드 중…</div>}>
-                      <MapillaryRideViewer
-                        accessToken={MAPILLARY_CLIENT_TOKEN}
-                        imageId={rideMapillaryStreet.imageKey}
-                        lookAt={mapillaryRideSync.lookAt}
-                        driveHeadingDeg={mapillaryRideSync.driveHeadingDeg}
-                        sphericalNavigation={rideMapillaryStreet.isPano}
-                      />
-                    </Suspense>
-                  </div>
-                  <p className="mapillary-street-floating__attr">Imagery © Mapillary contributors</p>
-                </div>
-              ) : null}
+          }
+          liveRiderNametag={resolvedLiveRiderNametag}
+          peerMarkers={coursePeerMarkers}
+          mapStyle={mapStyle}
+          mapZoom={mapZoom}
+          followMode={followMode}
+          enable3D={enable3D}
+          onMapZoom={setMapZoom}
+          coverageOverlayMode={coverageOverlayMode}
+          mapillaryClientToken={mapillaryTokenConfigured ? MAPILLARY_CLIENT_TOKEN : null}
+          routeProfile={profile}
+          onRouteProfile={applyRouteProfileFromMapPopup}
+          onSelectPoint={(type, lngLat, waypointSlot) => {
+            if (rideLocked) return;
+            setActiveOfficialCourseId(null);
+            if (type === "start") setStartLngLat(lngLat);
+            else if (type === "end") setEndLngLat(lngLat);
+            else {
+              const slot = waypointSlot ?? 0;
+              setRouteWaypoints((prev) => {
+                if (slot < prev.length) {
+                  return prev.map((p, j) => (j === slot ? lngLat : p));
+                }
+                if (slot === prev.length && prev.length < MAX_ROUTE_WAYPOINTS) {
+                  return [...prev, lngLat];
+                }
+                return prev;
+              });
+            }
+          }}
+          externalCameraJump={externalCameraJump}
+          lobbySpectatorDots={spectatorDots}
+          lobbySpectatorRoutes={spectatorRouteGeometries}
+        />
+
+        <MapHud
+          stage={stage}
+          onOpenMenu={() => setMenuOpen(true)}
+          menuOpen={menuOpen}
+          account={accountChip}
+          onOpenUserInfo={() => setUserInfoSheetOpen(true)}
+          userInfoOpen={userInfoSheetOpen}
+          onOpenSignedOutAuth={
+            configured && authInitialized && !user ? () => setAuthSheetOpen(true) : undefined
+          }
+          onOpenMapView={() => setMapViewSheetOpen(true)}
+          mapViewOpen={mapViewSheetOpen}
+          coachData={coachData}
+          coachLineEnabled={rideCoachingBannerVisible}
+          metrics={hudMetrics}
+          pinState={{
+            start: Boolean(startLngLat),
+            end: Boolean(endLngLat),
+            waypointCount: routeWaypoints.length,
+          }}
+          routeBrief={routeBrief}
+          onClearPins={handleClearPins}
+          routeError={null}
+          canStartRide={Boolean(routeGeometry) && !routeLoading}
+          onStartRide={handleStartRide}
+          onPauseRide={handlePause}
+          onResumeRide={handleResume}
+          onEndRide={handleEndRide}
+          onResumeFromPause={handleResume}
+          onEndFromPause={handleEndRide}
+          onModifyFromPause={handleModifyFromPause}
+          showIdleHint={stage === "idle" && !idleHintDismissed}
+          onDismissIdleHint={() => setIdleHintDismissed(true)}
+          ridePresence={mapHudRidePresence}
+        />
+
+        {rideMapillaryStreet && mapillaryRideSync && mapillaryTokenConfigured ? (
+          <div className="mapillary-street-floating" aria-label="Mapillary 거리뷰">
+            <div className="mapillary-street-floating__head">
+              <span className="mapillary-street-floating__title">Mapillary</span>
+              <button
+                type="button"
+                className="mapillary-street-floating__close"
+                onClick={dismissMapillaryStreet}
+              >
+                닫기
+              </button>
             </div>
-          </main>
-        </>
-      ) : configured && !authInitialized ? (
-        <main className="route-main route-main--gate" aria-label="연결 중">
-          <p className="lead tight" style={{ padding: "1rem 1.25rem" }}>
-            Firebase 인증 연결 확인 중…
-          </p>
-        </main>
-      ) : null}
+            <div className="mapillary-street-floating__video">
+              <Suspense
+                fallback={<div className="mapillary-street-floating__loading">거리뷰 로드 중…</div>}
+              >
+                <MapillaryRideViewer
+                  accessToken={MAPILLARY_CLIENT_TOKEN}
+                  imageId={rideMapillaryStreet.imageKey}
+                  lookAt={mapillaryRideSync.lookAt}
+                  driveHeadingDeg={mapillaryRideSync.driveHeadingDeg}
+                  sphericalNavigation={rideMapillaryStreet.isPano}
+                />
+              </Suspense>
+            </div>
+            <p className="mapillary-street-floating__attr">Imagery © Mapillary contributors</p>
+          </div>
+        ) : null}
+      </div>
+
+      <MenuPanel open={menuOpen} onClose={() => setMenuOpen(false)}>
+        <MenuPlaceSearch
+          accessToken={MAPBOX_TOKEN}
+          menuOpen={menuOpen}
+          onPickPlace={handleMenuPlacePick}
+        />
+        <RideRoutePanel
+          startLabel={startLabel}
+          endLabel={endLabel}
+          waypointLabels={routeWaypoints.map(formatLngLat)}
+          profile={profile}
+          onProfile={setProfile}
+          routeSummary={routeSummary}
+          routeLoading={routeLoading}
+          onGenerateRoute={() => void generateRoute()}
+          officialCourseActive={activeOfficialCourseId !== null}
+          hasRoute={Boolean(routeGeometry)}
+          speedKmh={speedKmh}
+          onSpeedKmh={setSpeedKmh}
+          sessionStatus={rideStatus}
+          onStartRide={() => {
+            handleStartRide();
+            setMenuOpen(false);
+          }}
+          onPause={handlePause}
+          onResume={handleResume}
+          onEndRide={handleEndRide}
+          elapsedLabel={elapsedLabel}
+          distanceKm={distanceKmLabel}
+          avgSpeedLabel={avgSpeedLabel}
+          basicSharedHubs={BASIC_SHARED_HUB_SUMMARIES}
+          basicActiveHubCourseId={basicActiveHubCourseId}
+          basicStartLoading={basicStartLoading}
+          basicStartHubJoined={basicStartHubJoined}
+          officialCourseCatalogAvailable={configured}
+          publishedPublicCourses={publishedPublicCourses}
+          publishedPublicCoursesLoading={publishedPublicCoursesLoading}
+          publishedPublicCoursesError={publishedPublicCoursesError}
+          authGuest={Boolean(user?.isAnonymous)}
+          onEnterBasicHub={(courseId) => {
+            void enterBasicHub(courseId);
+          }}
+          onLeaveBasicHub={() => void leaveBasicHub()}
+          savedRoutes={savedRoutes}
+          savedRoutesLoading={savedRoutesLoading}
+          onSaveCurrentRoute={handleSaveCurrentRoute}
+          onLoadSavedRoute={(route) => {
+            handleLoadSavedRoute(route);
+            setMenuOpen(false);
+          }}
+          onRenameSavedRoute={handleRenameSavedRoute}
+          onDeleteSavedRoute={handleDeleteSavedRoute}
+          arrivalToastVisible={false}
+          adhocSaveAvailable={false}
+          onSaveAdhocAsUserRoute={handleSaveAdhocAsUserRoute}
+          onDismissAdhocSave={() => setLastEndedWasAdhoc(null)}
+          isPublicRouteReviewer={Boolean(configured && user && isPublicRouteReviewer)}
+          publicRouteReviewUser={user}
+          publicRouteReviewQueueCount={publicRouteReviewQueueCount}
+          onPublicRouteReviewQueueChanged={onPublicRouteReviewQueueChanged}
+          pendingPublicRouteIds={pendingPublicRouteIds}
+          onOpenPublicRequest={(route) => setPublicRouteRequestModalRoute(route)}
+          rideTtsEnabled={rideTtsEnabled}
+          onRideTtsEnabled={setRideTtsEnabled}
+          rideBgmEnabled={rideBgmEnabled}
+          onRideBgmEnabled={setRideBgmEnabled}
+          rideCoachingBanner={rideCoachingBannerVisible}
+          onRideCoachingBanner={setRideCoachingBannerVisible}
+          rideElevationProfileLoading={rideElevationProfileLoading}
+          rideBgmCatalogConfigured={rideBgmCatalogConfigured}
+          bleCadence={bleCadencePanel}
+        />
+      </MenuPanel>
+
+      <MapViewSheet
+        open={mapViewSheetOpen}
+        onClose={() => setMapViewSheetOpen(false)}
+        mapStyle={mapStyle}
+        mapStyleOptions={MAP_STYLE_OPTIONS}
+        onMapStyle={setMapStyle}
+        coverageOverlayMode={coverageOverlayMode}
+        onCoverageOverlayMode={setCoverageOverlayMode}
+        mapillaryTokenConfigured={mapillaryTokenConfigured}
+        enable3D={enable3D}
+        onEnable3D={setEnable3D}
+        followMode={followMode}
+        onFollowMode={setFollowMode}
+        mapZoom={mapZoom}
+        onMapZoom={setMapZoom}
+      />
+
+      <UserInfoSheet
+        open={userInfoSheetOpen}
+        onClose={() => setUserInfoSheetOpen(false)}
+        user={user}
+        recentSessions={recentSessions}
+        isGuest={Boolean(user?.isAnonymous)}
+        busy={busy}
+        onLinkGoogle={user?.isAnonymous ? () => void handleGoogleSignIn() : undefined}
+        onLeaveLobby={() => void handleLeaveLobbyOnly()}
+        onServiceExit={() => void handleServiceExit()}
+      />
+
+      <RideSummarySheet
+        open={summaryVisible}
+        arrivalCompleted={arrivalToastTick > 0}
+        elapsedLabel={elapsedLabel}
+        distanceKm={distanceKmLabel}
+        avgKmh={avgSpeedLabel}
+        caloriesEstimate={caloriesEstimate}
+        adhocSaveAvailable={lastEndedWasAdhoc !== null}
+        maxNameLength={SAVED_ROUTE_NAME_MAX}
+        onSaveAdhoc={async (name) => {
+          await handleSaveAdhocAsUserRoute(name);
+          setSummarySheetVisible(false);
+          resetArrivalToast();
+        }}
+        onDismissAdhoc={() => setLastEndedWasAdhoc(null)}
+        onClose={handleCloseSummary}
+      />
 
       {publicRouteRequestModalRoute && user ? (
         <PublicRouteRequestModal
@@ -1634,11 +1844,98 @@ export default function App() {
         />
       ) : null}
 
-      <footer className="footer">
-        레거시 상세(3D·고도·지명검색 등)는 저장소 루트{" "}
-        <code className="inline">index.html</code> · <code className="inline">app.js</code> 참고. Directions는
-        Cloud Functions 프록시를 사용합니다. 지도 타일용 Mapbox 토큰만 클라이언트에 둡니다.
-      </footer>
+      {stage === "gate" ? (
+        <AuthGateCard>
+          {!configured ? (
+            <p className="meta tight">Firebase 설정 필요</p>
+          ) : !authInitialized ? (
+            <p className="meta tight">연결 중…</p>
+          ) : (
+            <div className="auth-actions auth-actions--gate">
+              <button
+                type="button"
+                className="btn secondary"
+                disabled={busy}
+                onClick={() => void handleGuestStart()}
+              >
+                {busy ? "…" : "게스트"}
+              </button>
+              <button
+                type="button"
+                className="btn primary"
+                disabled={busy}
+                onClick={() => void handleGoogleSignIn()}
+              >
+                {busy ? "…" : "Google"}
+              </button>
+            </div>
+          )}
+          {error ? <p className="error tight">{error}</p> : null}
+        </AuthGateCard>
+      ) : null}
+
+      {authSheetOpen && configured && authInitialized && !user ? (
+        <AuthGateCard title="로그인">
+          <div className="auth-actions auth-actions--gate">
+            <button
+              type="button"
+              className="btn secondary"
+              disabled={busy}
+              onClick={() => void handleGuestStart()}
+            >
+              {busy ? "…" : "게스트"}
+            </button>
+            <button
+              type="button"
+              className="btn primary"
+              disabled={busy}
+              onClick={() => void handleGoogleSignIn()}
+            >
+              {busy ? "…" : "Google"}
+            </button>
+          </div>
+          {error ? <p className="error tight">{error}</p> : null}
+          <button
+            type="button"
+            className="btn secondary auth-sheet-dismiss"
+            disabled={busy}
+            onClick={() => setAuthSheetOpen(false)}
+          >
+            닫기
+          </button>
+        </AuthGateCard>
+      ) : null}
+
+      {stage === "gate-nickname" && user ? (
+        <AuthGateCard title="닉네임">
+          <SignUpNicknameCard busy={busy} onSubmit={handleCompleteNickname} />
+          {error ? <p className="error tight">{error}</p> : null}
+          <button
+            type="button"
+            className="btn secondary"
+            disabled={busy}
+            onClick={() => void handleServiceExit()}
+          >
+            로그아웃
+          </button>
+        </AuthGateCard>
+      ) : null}
+
+      {configured && user && basicActiveHubCourseId ? (
+        <CourseSharedPresence
+          user={user}
+          courseId={basicActiveHubCourseId}
+          title={getBasicHubCoursePayload(basicActiveHubCourseId).title}
+          isRiding={rideStatus !== "idle"}
+          myLiveLngLat={liveForMap}
+          onPeersChange={onCoursePeersChange}
+          onLiveRiderNametagChange={setLiveRiderNametag}
+        />
+      ) : null}
+
+      {configured && user && lobbyParticipationEnabled ? (
+        <LobbyPresence user={user} roomId={roomId} rows={lobbyRoomSession.rows} error={lobbyRoomSession.error} />
+      ) : null}
     </div>
   );
 }

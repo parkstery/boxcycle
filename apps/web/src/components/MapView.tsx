@@ -1,14 +1,175 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import type { LngLat, LineStringGeometry } from "../lib/geo";
-import { getDistanceMeters, type LineStringGeometry as RouteLineStringGeometry } from "../lib/geo";
+import {
+  getDistanceMeters,
+  lineStringLengthMeters,
+  type LineStringGeometry as RouteLineStringGeometry,
+} from "../lib/geo";
+import type { RouteElevationProfileState } from "../hooks/useRouteElevationProfile";
 import type { FollowMode } from "./RideRoutePanel";
 import type { CoverageOverlayMode } from "../lib/coverageOverlayMode";
+import { MAX_ROUTE_WAYPOINTS } from "../lib/routeWaypoints";
+import type { RouteProfile } from "../services/mapboxDirections";
+import { fetchMapboxReverseGeocodePlaceName } from "../services/mapboxReverseGeocode";
 import { ensureRiderPedalStripKeyframes } from "../lib/riderPedalStripKeyframes";
-import { RIDER_PEDAL_SPRITE_REVISION } from "../lib/riderPedalSpriteMeta";
+import {
+  RIDER_PEDAL_CELL_PX,
+  RIDER_PEDAL_FRAME_COUNT,
+  RIDER_PEDAL_SPRITE_REVISION,
+} from "../lib/riderPedalSpriteMeta";
+import { estimateCrankRpmFromSpeedKmh, resolvePedalCrankRpm } from "../lib/riderPedalMotion";
+import {
+  mergePeerTargets,
+  stepPeerDriveAndBuildGeoJson,
+  type PeerDriveSimState,
+} from "../lib/peerRidersDrive";
 import { applyCoverageOverlayMode } from "../services/coverageOverlaySync";
+import type { LobbySpectatorDot } from "../hooks/useLobbyLiveCourseRideSpectatorOverlay";
 import "./MapView.css";
+
+/** 로비 관전: 다른 사용자 코스 진행률 기반(geometry 는 로컬 로드, Firestore 는 진행률만). */
+const LOBBY_SPEC_ROUTES_SRC = "boxcycle-lobby-spectator-routes";
+const LOBBY_SPEC_ROUTES_GLOW_LAYER = "boxcycle-lobby-spectator-routes-glow";
+const LOBBY_SPEC_ROUTES_LAYER = "boxcycle-lobby-spectator-routes-line";
+const LOBBY_SPEC_DOTS_SRC = "boxcycle-lobby-spectator-dots";
+const LOBBY_SPEC_DOTS_GLOW_LAYER = "boxcycle-lobby-spectator-dots-glow";
+const LOBBY_SPEC_DOTS_LAYER = "boxcycle-lobby-spectator-dots-circle";
+
+function syncLobbySpectatorLayers(
+  map: mapboxgl.Map,
+  dots: readonly LobbySpectatorDot[],
+  routes: readonly LineStringGeometry[],
+): void {
+  if (!map.isStyleLoaded()) return;
+
+  const routeFeatures = routes.map((geometry, i) => ({
+    type: "Feature" as const,
+    id: `lobby-r-${i}`,
+    properties: { i },
+    geometry,
+  }));
+  const routeFc = { type: "FeatureCollection" as const, features: routeFeatures };
+
+  const dotFeatures = dots.map((d) => ({
+    type: "Feature" as const,
+    id: `lobby-d-${d.id}`,
+    properties: { id: d.id },
+    geometry: { type: "Point" as const, coordinates: d.lngLat },
+  }));
+  const dotFc = { type: "FeatureCollection" as const, features: dotFeatures };
+
+  const beforeRoute = map.getLayer("route") ? "route" : undefined;
+
+  try {
+    if (!map.getSource(LOBBY_SPEC_ROUTES_SRC)) {
+      map.addSource(LOBBY_SPEC_ROUTES_SRC, { type: "geojson", data: routeFc });
+      map.addLayer(
+        {
+          id: LOBBY_SPEC_ROUTES_GLOW_LAYER,
+          type: "line",
+          source: LOBBY_SPEC_ROUTES_SRC,
+          paint: {
+            "line-color": "#ffffff",
+            "line-width": ["interpolate", ["linear"], ["zoom"], 8, 5, 12, 8, 16, 12],
+            "line-blur": ["interpolate", ["linear"], ["zoom"], 8, 2.2, 14, 4.5],
+            "line-opacity": ["interpolate", ["linear"], ["zoom"], 8, 0.5, 14, 0.72],
+          },
+          layout: { "line-join": "round", "line-cap": "round" },
+        },
+        beforeRoute,
+      );
+      map.addLayer(
+        {
+          id: LOBBY_SPEC_ROUTES_LAYER,
+          type: "line",
+          source: LOBBY_SPEC_ROUTES_SRC,
+          paint: {
+            "line-color": "#dc2626",
+            "line-width": ["interpolate", ["linear"], ["zoom"], 8, 1.8, 12, 3, 16, 4.2],
+            "line-opacity": 0.95,
+          },
+          layout: { "line-join": "round", "line-cap": "round" },
+        },
+        beforeRoute,
+      );
+    } else {
+      (map.getSource(LOBBY_SPEC_ROUTES_SRC) as mapboxgl.GeoJSONSource).setData(routeFc);
+      if (!map.getLayer(LOBBY_SPEC_ROUTES_GLOW_LAYER) && map.getLayer(LOBBY_SPEC_ROUTES_LAYER)) {
+        map.addLayer(
+          {
+            id: LOBBY_SPEC_ROUTES_GLOW_LAYER,
+            type: "line",
+            source: LOBBY_SPEC_ROUTES_SRC,
+            paint: {
+              "line-color": "#ffffff",
+              "line-width": ["interpolate", ["linear"], ["zoom"], 8, 5, 12, 8, 16, 12],
+              "line-blur": ["interpolate", ["linear"], ["zoom"], 8, 2.2, 14, 4.5],
+              "line-opacity": ["interpolate", ["linear"], ["zoom"], 8, 0.5, 14, 0.72],
+            },
+            layout: { "line-join": "round", "line-cap": "round" },
+          },
+          LOBBY_SPEC_ROUTES_LAYER,
+        );
+      }
+    }
+
+    if (!map.getSource(LOBBY_SPEC_DOTS_SRC)) {
+      map.addSource(LOBBY_SPEC_DOTS_SRC, { type: "geojson", data: dotFc });
+      map.addLayer(
+        {
+          id: LOBBY_SPEC_DOTS_GLOW_LAYER,
+          type: "circle",
+          source: LOBBY_SPEC_DOTS_SRC,
+          paint: {
+            "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 7, 14, 12],
+            "circle-color": "#ffffff",
+            "circle-opacity": ["interpolate", ["linear"], ["zoom"], 9, 0.55, 14, 0.7],
+            "circle-blur": 0.55,
+          },
+        },
+        beforeRoute,
+      );
+      map.addLayer(
+        {
+          id: LOBBY_SPEC_DOTS_LAYER,
+          type: "circle",
+          source: LOBBY_SPEC_DOTS_SRC,
+          paint: {
+            "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 3.6, 14, 7],
+            "circle-color": "#dc2626",
+            "circle-stroke-width": 1.8,
+            "circle-stroke-color": "#ffffff",
+            "circle-opacity": 0.96,
+            "circle-blur": 0.05,
+          },
+        },
+        beforeRoute,
+      );
+    } else {
+      (map.getSource(LOBBY_SPEC_DOTS_SRC) as mapboxgl.GeoJSONSource).setData(dotFc);
+      if (!map.getLayer(LOBBY_SPEC_DOTS_GLOW_LAYER) && map.getLayer(LOBBY_SPEC_DOTS_LAYER)) {
+        map.addLayer(
+          {
+            id: LOBBY_SPEC_DOTS_GLOW_LAYER,
+            type: "circle",
+            source: LOBBY_SPEC_DOTS_SRC,
+            paint: {
+              "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 7, 14, 12],
+              "circle-color": "#ffffff",
+              "circle-opacity": ["interpolate", ["linear"], ["zoom"], 9, 0.55, 14, 0.7],
+              "circle-blur": 0.55,
+            },
+          },
+          LOBBY_SPEC_DOTS_LAYER,
+        );
+      }
+    }
+  } catch (e) {
+    console.warn("[MapView] lobby spectator layers", e);
+  }
+}
 
 /** 레거시 `app.js` 와 동일한 서울 근처 기본 시야 */
 const DEFAULT_CENTER: [number, number] = [127.035, 37.505];
@@ -21,7 +182,6 @@ const CAMERA_BEARING_MAX_DPS_SECONDARY = 170;
 const CAMERA_MAX_DT_MS = 50;
 const CAMERA_BEARING_WINDOW_METERS = 60;
 const CAMERA_BEARING_WINDOW_SAMPLES = 60;
-const ELEVATION_SAMPLE_COUNT = 72;
 
 /**
  * 출발/도착/동행 핀: 3D 피치에서도 지면에 눕지 않고 화면에 세움.
@@ -32,23 +192,137 @@ const PIN_MARKER_VIEWPORT_ALIGNMENT = {
   rotationAlignment: "viewport" as const,
 };
 
+function pickPeerSourceFrameIndices(totalFrames: number): number[] {
+  if (totalFrames < 2) return [0, 0, 0, 0, 0, 0];
+  return [0, 1, 2, 3, 4, 5].map((i) => Math.min(totalFrames - 1, Math.round((i * (totalFrames - 1)) / 5)));
+}
+
+const PEER_DOM_STRIP_INDICES = pickPeerSourceFrameIndices(RIDER_PEDAL_FRAME_COUNT);
+
+type PeerDomGJFeature = {
+  type: "Feature";
+  geometry: { type: "Point"; coordinates: LngLat };
+  properties: { id: string; label: string; pframe: number; hdg: number };
+};
+
+function applyPeerDomSpriteFrame(sprite: HTMLDivElement | null, pframe: number): void {
+  if (!sprite) return;
+  const idx = ((Math.round(pframe) % 6) + 6) % 6;
+  const stripIndex = PEER_DOM_STRIP_INDICES[idx] ?? 0;
+  const cell = RIDER_PEDAL_CELL_PX;
+  sprite.style.backgroundPosition = `-${stripIndex * cell}px 0`;
+}
+
+function createPeerRiderMarkerRoot(initialLabel: string): HTMLDivElement {
+  ensureRiderPedalStripKeyframes();
+  const root = document.createElement("div");
+  root.className = "cycling-sim-marker-host map-view__peer-rider-host";
+  const nametag = document.createElement("div");
+  nametag.className = "map-view__rider-nametag map-view__rider-nametag--peer";
+  nametag.setAttribute("aria-hidden", "true");
+  nametag.textContent = initialLabel;
+  const flip = document.createElement("div");
+  flip.className = "cycling-sim-marker-flip";
+  const stack = document.createElement("div");
+  stack.className = "cycling-sim-marker-stack";
+  const sprite = document.createElement("div");
+  sprite.className = "cycling-sim-marker-pedal-sprite";
+  const baseRaw = import.meta.env.BASE_URL ?? "/";
+  const base = baseRaw.endsWith("/") ? baseRaw : `${baseRaw}/`;
+  sprite.style.backgroundImage = `url("${base}rider/pedal-sprite.png?v=${RIDER_PEDAL_SPRITE_REVISION}")`;
+  sprite.style.animationPlayState = "paused";
+  stack.appendChild(sprite);
+  flip.appendChild(stack);
+  root.appendChild(nametag);
+  root.appendChild(flip);
+  return root;
+}
+
+function syncPeerDomMarkers(
+  map: mapboxgl.Map,
+  features: PeerDomGJFeature[],
+  markersRef: { current: Map<string, mapboxgl.Marker> },
+): void {
+  const markers = markersRef.current;
+  const next = new Set<string>();
+  for (const f of features) {
+    const id = f.properties.id;
+    next.add(id);
+    const lngLat = f.geometry.coordinates;
+    const { label, pframe, hdg } = f.properties;
+    let mk = markers.get(id);
+    if (!mk) {
+      const root = createPeerRiderMarkerRoot(label);
+      mk = new mapboxgl.Marker({
+        element: root,
+        className: "map-view__peer-rider-marker",
+        anchor: "bottom",
+        ...PIN_MARKER_VIEWPORT_ALIGNMENT,
+      })
+        .setLngLat(lngLat)
+        .addTo(map);
+      markers.set(id, mk);
+    } else {
+      mk.setLngLat(lngLat);
+    }
+    const root = mk.getElement();
+    const nametag = root.querySelector<HTMLDivElement>(".map-view__rider-nametag--peer");
+    const flip = root.querySelector<HTMLDivElement>(".cycling-sim-marker-flip");
+    const sprite = root.querySelector<HTMLDivElement>(".cycling-sim-marker-pedal-sprite");
+    if (nametag) nametag.textContent = label;
+    applyPeerDomSpriteFrame(sprite, pframe);
+    if (flip) {
+      flip.style.transform = hdg > 90 && hdg < 270 ? "scaleX(-1)" : "scaleX(1)";
+    }
+  }
+  for (const id of [...markers.keys()]) {
+    if (!next.has(id)) {
+      markers.get(id)?.remove();
+      markers.delete(id);
+    }
+  }
+}
+
+function subscribeReducedMotion(callback: () => void): () => void {
+  if (typeof window === "undefined" || !window.matchMedia) return () => {};
+  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const handler = () => callback();
+  mq.addEventListener("change", handler);
+  return () => mq.removeEventListener("change", handler);
+}
+
+function getReducedMotionSnapshot(): boolean {
+  if (typeof window === "undefined" || !window.matchMedia) return false;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function getReducedMotionServerSnapshot(): boolean {
+  return false;
+}
+
 /** 내 라이더 스프라이트(동일 빌보드 정렬) */
 const LIVE_RIDER_MARKER_ALIGNMENT = PIN_MARKER_VIEWPORT_ALIGNMENT;
 
-/** 같은 코스를 주행 중인 다른 사용자(내 마커와 구분) */
+/** 같은 코스를 주행 중인 다른 사용자 — `MapView` 에서는 Mapbox `Marker`(DOM)로 표시 */
 export type MapPeerMarker = { id: string; lngLat: LngLat; label?: string | null };
 
 /** 가상 주행 세션과 연동해 페달 루프 주기·재생 여부를 맞춘다 */
 export type LiveRiderMotion = {
   sessionStatus: "running" | "paused";
   speedKmh: number;
+  /** BLE 크랭크 RPM 등 — 유효·임계 이상이면 속도 추정보다 우선 */
+  crankRpmFromSensor?: number | null;
 };
 
 export type MapViewProps = {
   accessToken: string | undefined;
+  /** 부모 `useRouteElevationProfile` 과 동일(도로형 보정 포함) — 차트·코칭과 통일 */
+  routeElevationProfile: RouteElevationProfileState;
   routeGeometry: LineStringGeometry | null;
   startLngLat: LngLat | null;
   endLngLat: LngLat | null;
+  /** 출발·도착 사이 경유(순서대로 최대 3) */
+  routeWaypoints: LngLat[];
   liveLngLat: LngLat | null;
   /** 내 위치 마커 페달 애니메이션(주행/일시정지·가상 속도). 없으면 스프라이트만 정지 표시 */
   liveRiderMotion?: LiveRiderMotion | null;
@@ -61,18 +335,38 @@ export type MapViewProps = {
   followMode: FollowMode;
   enable3D: boolean;
   onMapZoom: (zoom: number) => void;
-  onSelectPoint: (type: "start" | "end", lngLat: LngLat) => void;
+  /** `waypoint`일 때만 `waypointSlot`(0=WP1 … 2=WP3) 전달 */
+  onSelectPoint: (
+    type: "start" | "end" | "waypoint",
+    lngLat: LngLat,
+    waypointSlot?: 0 | 1 | 2,
+  ) => void;
+  /** Directions 프로필. 지도 팝업에서 호출 시 부모가 프로필 반영 후 즉시 경로 계산까지 수행할 수 있음. */
+  routeProfile: RouteProfile;
+  onRouteProfile: (p: RouteProfile) => void;
   /** OSRM(Mapbox Streets)·Mapillary 촬영 시퀀스 커버리지 */
   coverageOverlayMode: CoverageOverlayMode;
   /** Mapillary 타일·거리뷰용 클라이언트 토큰(없으면 Mapillary 모드 비활성) */
   mapillaryClientToken?: string | null;
+  /** 메뉴 지명 검색 등 — `requestId`가 바뀔 때마다 한 번 카메라 이동 (`bbox` 있으면 도시 단위 fitBounds) */
+  externalCameraJump?: {
+    lngLat: LngLat;
+    zoom?: number;
+    requestId: number;
+    bbox?: [number, number, number, number] | null;
+  } | null;
+  /** 로비: 같은 방에서 코스 주행 중인 다른 사용자(원 + 노선 LOD 는 부모에서 처리) */
+  lobbySpectatorDots?: LobbySpectatorDot[] | null;
+  lobbySpectatorRoutes?: LineStringGeometry[] | null;
 };
 
 export function MapView({
   accessToken,
+  routeElevationProfile,
   routeGeometry,
   startLngLat,
   endLngLat,
+  routeWaypoints,
   liveLngLat,
   liveRiderMotion,
   liveRiderNametag,
@@ -83,19 +377,39 @@ export function MapView({
   enable3D,
   onMapZoom,
   onSelectPoint,
+  routeProfile,
+  onRouteProfile,
   coverageOverlayMode,
   mapillaryClientToken,
+  externalCameraJump = null,
+  lobbySpectatorDots = null,
+  lobbySpectatorRoutes = null,
 }: MapViewProps) {
+  const lobbySpectatorDataRef = useRef<{ dots: LobbySpectatorDot[]; routes: LineStringGeometry[] }>({
+    dots: [],
+    routes: [],
+  });
+  lobbySpectatorDataRef.current = {
+    dots: lobbySpectatorDots ?? [],
+    routes: lobbySpectatorRoutes ?? [],
+  };
+
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const startMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const endMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const waypointMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const liveMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const liveMarkerPedalSpriteRef = useRef<HTMLDivElement | null>(null);
   const liveMarkerFlipRef = useRef<HTMLDivElement | null>(null);
   const liveMarkerNametagRef = useRef<HTMLDivElement | null>(null);
   const prevLiveForBearingRef = useRef<LngLat | null>(null);
-  const peerMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
+  /** 스타일 리로드 시 동행 GeoJSON 재적용용 */
+  const latestPeerMarkersRef = useRef<MapPeerMarker[]>([]);
+  latestPeerMarkersRef.current = peerMarkers ?? [];
+  const peerDriveSimRef = useRef(new Map<string, PeerDriveSimState>());
+  const peerRidersRafRef = useRef<number | null>(null);
+  const peerDomMarkersRef = useRef(new Map<string, mapboxgl.Marker>());
   const popupRef = useRef<mapboxgl.Popup | null>(null);
   const routeGeometryRef = useRef<LineStringGeometry | null>(null);
   const liveLngLatRef = useRef<LngLat | null>(null);
@@ -103,8 +417,15 @@ export function MapView({
   const initialMapStyleRef = useRef(mapStyle);
   const currentStyleRef = useRef(mapStyle);
   const onSelectPointRef = useRef(onSelectPoint);
+  const routeWaypointsRef = useRef(routeWaypoints);
+  const startLngLatRef = useRef(startLngLat);
+  const endLngLatRef = useRef(endLngLat);
+  const routeProfileRef = useRef(routeProfile);
+  const onRouteProfileRef = useRef(onRouteProfile);
   const onMapZoomRef = useRef(onMapZoom);
   const prevLiveRef = useRef<LngLat | null>(null);
+  /** 지명 검색 flyTo 직후 `liveLngLat` 추적 jumpTo 가 카메라를 되돌리는 것을 막는다 */
+  const suppressCameraFollowUntilRef = useRef(0);
   const cameraSmoothRef = useRef<{
     center: LngLat | null;
     bearingPrimary: number | null;
@@ -121,11 +442,11 @@ export function MapView({
     lastTs: null,
   });
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [elevation, setElevation] = useState<{
-    routeSig: string;
-    error: boolean;
-    values: number[];
-  }>({ routeSig: "", error: false, values: [] });
+  const prefersReducedMotion = useSyncExternalStore(
+    subscribeReducedMotion,
+    getReducedMotionSnapshot,
+    getReducedMotionServerSnapshot,
+  );
   const BUILDING_LAYER_ID = "boxcycle-3d-buildings";
   const TERRAIN_SOURCE_ID = "boxcycle-dem";
 
@@ -144,6 +465,26 @@ export function MapView({
   useEffect(() => {
     onSelectPointRef.current = onSelectPoint;
   }, [onSelectPoint]);
+
+  useEffect(() => {
+    routeWaypointsRef.current = routeWaypoints;
+  }, [routeWaypoints]);
+
+  useEffect(() => {
+    startLngLatRef.current = startLngLat;
+  }, [startLngLat]);
+
+  useEffect(() => {
+    endLngLatRef.current = endLngLat;
+  }, [endLngLat]);
+
+  useEffect(() => {
+    routeProfileRef.current = routeProfile;
+  }, [routeProfile]);
+
+  useEffect(() => {
+    onRouteProfileRef.current = onRouteProfile;
+  }, [onRouteProfile]);
 
   const coverageOverlayModeRef = useRef(coverageOverlayMode);
   const mapillaryClientTokenRef = useRef(mapillaryClientToken);
@@ -167,6 +508,7 @@ export function MapView({
     }
 
     mapboxgl.accessToken = accessToken.trim();
+    peerDriveSimRef.current.clear();
     const map = new mapboxgl.Map({
       container: el,
       style: initialMapStyleRef.current,
@@ -207,25 +549,62 @@ export function MapView({
       } catch (e) {
         console.warn("[MapView] coverage overlay", e);
       }
+      /** 스타일 리로드 시 기존 동행 DOM 마커 제거 후 시뮬 타깃만 재병합(동행은 GeoJSON이 아닌 Marker 로 표시) */
+      for (const m of peerDomMarkersRef.current.values()) {
+        try {
+          m.remove();
+        } catch {
+          /* noop */
+        }
+      }
+      peerDomMarkersRef.current.clear();
+      mergePeerTargets(peerDriveSimRef.current, latestPeerMarkersRef.current, performance.now());
+      try {
+        syncLobbySpectatorLayers(
+          map,
+          lobbySpectatorDataRef.current.dots,
+          lobbySpectatorDataRef.current.routes,
+        );
+      } catch {
+        /* noop */
+      }
     });
 
     map.on("click", (event) => {
       const picked: LngLat = [event.lngLat.lng, event.lngLat.lat];
       popupRef.current?.remove();
+      const ac = new AbortController();
       const closePopup = () => {
+        ac.abort();
         popupRef.current?.remove();
         popupRef.current = null;
       };
-      popupRef.current = new mapboxgl.Popup({ closeOnClick: true })
+      const popup = new mapboxgl.Popup({
+        closeOnClick: true,
+        className: "map-view__pick-popup",
+        maxWidth: "400px",
+      })
         .setLngLat(picked)
         .setDOMContent(
-          buildPickPopup(
-            picked,
-            (type, lngLat) => onSelectPointRef.current(type, lngLat),
+          buildPickPopup({
+            lngLat: picked,
+            getWaypointCount: () => routeWaypointsRef.current.length,
+            accessToken: accessToken.trim(),
+            signal: ac.signal,
+            onSelectPoint: (type, lngLat, slot) => onSelectPointRef.current(type, lngLat, slot),
+            routeProfile: routeProfileRef.current,
+            onRouteProfile: (p) => onRouteProfileRef.current(p),
+            initialHasStart: Boolean(startLngLatRef.current),
+            initialHasEnd: Boolean(endLngLatRef.current),
             closePopup,
-          ),
+          }),
         )
         .addTo(map);
+      popup.on("close", () => {
+        ac.abort();
+        if (popupRef.current === popup) popupRef.current = null;
+      });
+      popupRef.current = popup;
     });
 
     map.on("zoom", () => {
@@ -236,23 +615,34 @@ export function MapView({
     window.addEventListener("resize", onResize);
     requestAnimationFrame(onResize);
 
-    const peerMarkerMap = peerMarkersRef.current;
-
     return () => {
       window.removeEventListener("resize", onResize);
       startMarkerRef.current?.remove();
       endMarkerRef.current?.remove();
+      for (const wm of waypointMarkersRef.current) wm.remove();
+      waypointMarkersRef.current = [];
       liveMarkerRef.current?.remove();
-      for (const m of peerMarkerMap.values()) m.remove();
-      peerMarkerMap.clear();
       popupRef.current?.remove();
       startMarkerRef.current = null;
       endMarkerRef.current = null;
+      waypointMarkersRef.current = [];
       liveMarkerRef.current = null;
       liveMarkerFlipRef.current = null;
       liveMarkerPedalSpriteRef.current = null;
       liveMarkerNametagRef.current = null;
       popupRef.current = null;
+      if (peerRidersRafRef.current != null) {
+        cancelAnimationFrame(peerRidersRafRef.current);
+        peerRidersRafRef.current = null;
+      }
+      for (const m of peerDomMarkersRef.current.values()) {
+        try {
+          m.remove();
+        } catch {
+          /* noop */
+        }
+      }
+      peerDomMarkersRef.current.clear();
       map.remove();
       mapRef.current = null;
       setMapLoaded(false);
@@ -369,6 +759,33 @@ export function MapView({
     }
   }, [startLngLat, endLngLat, mapLoaded]);
 
+  /** 경과지 마커(순번 1…3) */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+
+    const markers = waypointMarkersRef.current;
+    while (markers.length > routeWaypoints.length) {
+      markers.pop()?.remove();
+    }
+    while (markers.length < routeWaypoints.length) {
+      const idx = markers.length;
+      const order = idx + 1;
+      const el = createWaypointMarkerEl(order);
+      const m = new mapboxgl.Marker({
+        element: el,
+        className: "map-view__pin-marker map-view__waypoint-marker-host",
+        ...PIN_MARKER_VIEWPORT_ALIGNMENT,
+      })
+        .setLngLat(routeWaypoints[idx]!)
+        .addTo(map);
+      markers.push(m);
+    }
+    for (let i = 0; i < routeWaypoints.length; i++) {
+      markers[i]?.setLngLat(routeWaypoints[i]!);
+    }
+  }, [routeWaypoints, mapLoaded]);
+
   /** 라이브 위치 마커 — 페달 스프라이트 라이더(보고서 6·7·8절) */
   useEffect(() => {
     const map = mapRef.current;
@@ -436,56 +853,137 @@ export function MapView({
     const speedNow = motion?.speedKmh ?? 0;
     const pedalingRunning =
       motion != null && motion.sessionStatus === "running" && speedNow > 0.35;
-    const rpm = estimateCrankRpmFromSpeedKmh(speedNow);
+    const rpm = motion
+      ? resolvePedalCrankRpm({
+          speedKmh: motion.speedKmh,
+          crankRpmFromSensor: motion.crankRpmFromSensor,
+        })
+      : estimateCrankRpmFromSpeedKmh(0);
     let pedalLoopSec = 60 / rpm;
     pedalLoopSec = Math.min(5.5, Math.max(0.22, pedalLoopSec));
     sprite.style.animationDuration = `${pedalLoopSec}s`;
-    sprite.style.animationPlayState = pedalingRunning ? "running" : "paused";
-  }, [liveLngLat, liveRiderMotion, routeGeometry, mapLoaded]);
+    const allowPedalAnim = !prefersReducedMotion && pedalingRunning;
+    sprite.style.animationPlayState = allowPedalAnim ? "running" : "paused";
+  }, [liveLngLat, liveRiderMotion, routeGeometry, mapLoaded, prefersReducedMotion]);
 
-  /** 다른 라이더(동행) 마커 — 보라색, 내 주행 마커(주황)와 구분 */
+  /** 다른 라이더(동행): Firestore 스냅샷이 바뀌면 즉시 타깃만 병합(rAF 가 lerp·스프라이트 갱신) */
   useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
-    const peers = peerMarkers ?? [];
-    const want = new Map(peers.map((p) => [p.id, p]));
-    const byId = peerMarkersRef.current;
-    for (const [id, marker] of byId) {
-      if (!want.has(id)) {
-        marker.remove();
-        byId.delete(id);
+    mergePeerTargets(peerDriveSimRef.current, peerMarkers ?? [], performance.now());
+  }, [peerMarkers]);
+
+  /** 동행 위치·페달 프레임: rAF 로 부드럽게 보간 */
+  useEffect(() => {
+    if (!mapLoaded) return;
+    let lastTs = performance.now();
+    const tick = (now: number) => {
+      const map = mapRef.current;
+      if (!map?.isStyleLoaded()) {
+        peerRidersRafRef.current = requestAnimationFrame(tick);
+        return;
       }
-    }
-    for (const p of peers) {
-      const label = p.label?.trim() || "동행";
-      let marker = byId.get(p.id);
-      if (!marker) {
-        const el = createPeerRiderMarkerElement(label);
-        marker = new mapboxgl.Marker({
-          element: el,
-          anchor: "bottom",
-          className: "map-view__peer-marker",
-          ...PIN_MARKER_VIEWPORT_ALIGNMENT,
-        })
-          .setLngLat(p.lngLat)
-          .addTo(map);
-        byId.set(p.id, marker);
-      } else {
-        marker.setLngLat(p.lngLat);
-        const wrap = marker.getElement();
-        const tag = wrap.querySelector(".map-view__rider-nametag--peer");
-        if (tag) tag.textContent = label;
-        wrap.title = label;
+      const dt = Math.min(0.1, (now - lastTs) / 1000);
+      lastTs = now;
+      mergePeerTargets(peerDriveSimRef.current, latestPeerMarkersRef.current, now);
+      const fc = stepPeerDriveAndBuildGeoJson(peerDriveSimRef.current, dt, getBearing);
+      syncPeerDomMarkers(map, fc.features as PeerDomGJFeature[], peerDomMarkersRef);
+      peerRidersRafRef.current = requestAnimationFrame(tick);
+    };
+    peerRidersRafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (peerRidersRafRef.current != null) {
+        cancelAnimationFrame(peerRidersRafRef.current);
       }
-    }
-  }, [peerMarkers, mapLoaded]);
+      peerRidersRafRef.current = null;
+    };
+  }, [mapLoaded]);
 
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
+    if (performance.now() < suppressCameraFollowUntilRef.current) return;
     if (Math.abs(map.getZoom() - mapZoom) < 0.05) return;
     map.zoomTo(mapZoom, { duration: 0 });
   }, [mapZoom, mapLoaded]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded || !map.isStyleLoaded()) return;
+    syncLobbySpectatorLayers(map, lobbySpectatorDots ?? [], lobbySpectatorRoutes ?? []);
+  }, [mapLoaded, lobbySpectatorDots, lobbySpectatorRoutes]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded || !externalCameraJump) return;
+    const { lngLat, zoom: zoomHint, bbox } = externalCameraJump;
+    map.stop();
+
+    const syncZoomFromMap = () => {
+      onMapZoomRef.current(Number(map.getZoom().toFixed(1)));
+    };
+
+    const useBbox =
+      bbox != null &&
+      bbox.length === 4 &&
+      Number.isFinite(bbox[0]) &&
+      Number.isFinite(bbox[1]) &&
+      Number.isFinite(bbox[2]) &&
+      Number.isFinite(bbox[3]) &&
+      bbox[2] > bbox[0] &&
+      bbox[3] > bbox[1];
+
+    suppressCameraFollowUntilRef.current = performance.now() + (prefersReducedMotion ? 120 : 1700);
+
+    if (useBbox) {
+      const onEnd = () => {
+        map.off("moveend", onEnd);
+        syncZoomFromMap();
+      };
+      map.once("moveend", onEnd);
+      map.fitBounds(
+        [
+          [bbox[0], bbox[1]],
+          [bbox[2], bbox[3]],
+        ],
+        {
+          padding: { top: 52, bottom: 120, left: 44, right: 44 },
+          maxZoom: 16,
+          duration: prefersReducedMotion ? 0 : 1100,
+          essential: true,
+        },
+      );
+      return () => {
+        map.off("moveend", onEnd);
+      };
+    }
+
+    const cur = map.getCenter();
+    const from: LngLat = [cur.lng, cur.lat];
+    const dM = getDistanceMeters(from, lngLat);
+    let chosenZoom = zoomHint ?? 12;
+    if (zoomHint == null) {
+      if (dM > 1_200_000) chosenZoom = 5;
+      else if (dM > 400_000) chosenZoom = 6;
+      else if (dM > 120_000) chosenZoom = 9;
+      else if (dM > 35_000) chosenZoom = 11;
+      else if (dM > 8_000) chosenZoom = 13;
+      else if (dM > 2_500) chosenZoom = 14;
+      else chosenZoom = Math.max(map.getZoom(), 15);
+    }
+    const onEndFly = () => {
+      map.off("moveend", onEndFly);
+      syncZoomFromMap();
+    };
+    map.once("moveend", onEndFly);
+    map.flyTo({
+      center: lngLat,
+      zoom: chosenZoom,
+      duration: prefersReducedMotion ? 0 : 1100,
+      essential: true,
+    });
+    return () => {
+      map.off("moveend", onEndFly);
+    };
+  }, [externalCameraJump, mapLoaded, prefersReducedMotion]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -493,27 +991,11 @@ export function MapView({
     apply3DState(map, enable3D, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID);
   }, [enable3D, mapLoaded]);
 
-  const routeSig = getRouteSignature(routeGeometry);
-
-  useEffect(() => {
-    if (!routeGeometry || routeGeometry.coordinates.length < 2) return;
-    let cancelled = false;
-    const sampled = sampleRouteCoordinates(routeGeometry.coordinates, ELEVATION_SAMPLE_COUNT);
-    void fetchElevations(sampled)
-      .then((values) => {
-        if (!cancelled) setElevation({ routeSig, error: false, values });
-      })
-      .catch(() => {
-        if (!cancelled) setElevation({ routeSig, error: true, values: [] });
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [routeGeometry, routeSig]);
-
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoaded || !liveLngLat) return;
+    if (!map || !mapLoaded) return;
+    if (performance.now() < suppressCameraFollowUntilRef.current) return;
+    if (!liveLngLat) return;
 
     if (followMode === "free") {
       prevLiveRef.current = liveLngLat;
@@ -604,12 +1086,18 @@ export function MapView({
   }
 
   const progressRatio = getProgressRatioOnRoute(routeGeometry, liveLngLat);
-  const elevationUi = buildElevationUi(elevation.values, progressRatio);
   const hasRoute = Boolean(routeGeometry && routeGeometry.coordinates.length > 1);
-  const isLoadingElevation = hasRoute && elevation.routeSig !== routeSig && !elevation.error;
-  const isElevationError = hasRoute && elevation.routeSig === routeSig && elevation.error;
+  /** 부모 `routeElevationProfile` — 예전 로컬 state 이름(`elevation`)과 혼동 방지용 별칭 */
+  const elevation = routeElevationProfile;
+  const isLoadingElevation = hasRoute && elevation.loading;
+  const isElevationError = hasRoute && elevation.error !== null;
   const isElevationReady =
-    hasRoute && elevation.routeSig === routeSig && !elevation.error && elevation.values.length > 1;
+    hasRoute && !elevation.loading && elevation.error === null && elevation.values.length > 1;
+  const routeLenMForChart =
+    routeGeometry && routeGeometry.coordinates.length > 1 ? lineStringLengthMeters(routeGeometry) : 0;
+  const elevationUi = isElevationReady
+    ? buildElevationUi(elevation.values, progressRatio, routeLenMForChart)
+    : null;
   return (
     <div className="map-view-shell">
       <div ref={containerRef} className="map-view" role="presentation" />
@@ -623,7 +1111,7 @@ export function MapView({
           <div className="elevation-overlay__empty">고도 데이터를 불러오지 못했습니다.</div>
         </div>
       ) : null}
-      {isElevationReady ? (
+      {elevationUi ? (
         <div className="elevation-overlay">
           <div className="elevation-overlay__meta">
             <span>시점 {elevationUi.startMeters.toFixed(0)}m</span>
@@ -661,21 +1149,6 @@ export function MapView({
   );
 }
 
-function createPeerRiderMarkerElement(label: string): HTMLDivElement {
-  const wrap = document.createElement("div");
-  wrap.className = "map-view__peer-rider-wrap";
-  wrap.title = label;
-  const tag = document.createElement("div");
-  tag.className = "map-view__rider-nametag map-view__rider-nametag--peer";
-  tag.textContent = label;
-  tag.setAttribute("aria-hidden", "true");
-  const dot = document.createElement("div");
-  dot.className = "map-view__peer-rider-dot";
-  wrap.appendChild(tag);
-  wrap.appendChild(dot);
-  return wrap;
-}
-
 function createLiveRiderMarkerRoot(): {
   root: HTMLDivElement;
   nametag: HTMLDivElement;
@@ -705,44 +1178,228 @@ function createLiveRiderMarkerRoot(): {
   return { root, nametag, flip, sprite };
 }
 
-/** 보고서 8.1 속도 기반 추정(센서 없음): km/h 상한 95 */
-function estimateCrankRpmFromSpeedKmh(speedKmh: number): number {
-  const speed = Math.min(95, Math.max(0, speedKmh));
-  return Math.min(128, Math.max(16, 22 + speed * 2.85));
+function createWaypointMarkerEl(order: number): HTMLDivElement {
+  const el = document.createElement("div");
+  el.className = "map-view__waypoint-marker";
+  el.textContent = String(order);
+  el.title = `경과지 ${order}`;
+  return el;
 }
 
-function buildPickPopup(
-  lngLat: LngLat,
-  onSelectPoint: (type: "start" | "end", lngLat: LngLat) => void,
-  closePopup: () => void,
-) {
+function isWaypointSlotEnabled(currentCount: number, slot: 0 | 1 | 2): boolean {
+  if (slot < currentCount) return true;
+  if (slot === currentCount && currentCount < MAX_ROUTE_WAYPOINTS) return true;
+  return false;
+}
+
+function waypointSlotTitle(slot: 0 | 1 | 2, count: number): string {
+  if (isWaypointSlotEnabled(count, slot)) {
+    return slot < count
+      ? `경유 ${slot + 1}번(WP${slot + 1}) 위치를 이 지점으로 바꿉니다`
+      : `경유 ${slot + 1}번(WP${slot + 1})로 이 지점을 추가합니다`;
+  }
+  if (slot > count) {
+    return `WP${slot + 1}을 쓰려면 먼저 WP${count + 1}까지 순서대로 설정하세요`;
+  }
+  return "경유지를 더 추가할 수 없습니다";
+}
+
+async function fetchPointElevationMeters(lngLat: LngLat, signal: AbortSignal): Promise<number | null> {
+  const [lng, lat] = lngLat;
+  const url = `https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lng}`;
+  const response = await fetch(url, { signal });
+  if (!response.ok) return null;
+  const data = (await response.json()) as { elevation?: number[] };
+  const v = data.elevation?.[0];
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+function buildPickPopup(deps: {
+  lngLat: LngLat;
+  getWaypointCount: () => number;
+  accessToken: string;
+  signal: AbortSignal;
+  onSelectPoint: (
+    type: "start" | "end" | "waypoint",
+    lngLat: LngLat,
+    waypointSlot?: 0 | 1 | 2,
+  ) => void;
+  routeProfile: RouteProfile;
+  onRouteProfile: (p: RouteProfile) => void;
+  initialHasStart: boolean;
+  initialHasEnd: boolean;
+  closePopup: () => void;
+}): HTMLDivElement {
+  const {
+    lngLat,
+    getWaypointCount,
+    accessToken,
+    signal,
+    onSelectPoint,
+    routeProfile,
+    onRouteProfile,
+    initialHasStart,
+    initialHasEnd,
+    closePopup,
+  } = deps;
+  const [lng, lat] = lngLat;
+
   const wrap = document.createElement("div");
-  wrap.style.minWidth = "180px";
-  const text = document.createElement("div");
-  text.textContent = `${lngLat[0].toFixed(6)},${lngLat[1].toFixed(6)}`;
-  text.style.fontSize = "12px";
-  text.style.marginBottom = "8px";
+  wrap.className = "map-view__pick";
+
+  /** 팝업이 열린 뒤 출발/도착 클릭으로 갱신되는 끝점 보유 상태(리렌더 전에도 동작). */
+  const pins = { start: initialHasStart, end: initialHasEnd };
+
+  const addressEl = document.createElement("div");
+  addressEl.className = "map-view__pick-address";
+  addressEl.textContent = "주소를 불러오는 중…";
+
+  const metaEl = document.createElement("div");
+  metaEl.className = "map-view__pick-meta";
+  metaEl.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)} · 고도 …`;
+
+  const rowMain = document.createElement("div");
+  rowMain.className = "map-view__pick-actions map-view__pick-actions--main";
 
   const startBtn = document.createElement("button");
   startBtn.type = "button";
-  startBtn.textContent = "출발지로 설정";
-  startBtn.style.width = "100%";
-  startBtn.style.marginBottom = "6px";
+  startBtn.className = "map-view__pick-btn map-view__pick-btn--start";
+  startBtn.textContent = "출발 (A)";
+  startBtn.title = "이 위치를 출발지(A)로 설정";
+  startBtn.setAttribute("aria-label", "출발지로 설정");
   startBtn.onclick = () => {
     onSelectPoint("start", lngLat);
-    closePopup();
+    pins.start = true;
+    if (!pins.end) closePopup();
+    else syncProfileUi();
   };
 
   const endBtn = document.createElement("button");
   endBtn.type = "button";
-  endBtn.textContent = "도착지로 설정";
-  endBtn.style.width = "100%";
+  endBtn.className = "map-view__pick-btn map-view__pick-btn--end";
+  endBtn.textContent = "도착 (B)";
+  endBtn.title = "이 위치를 도착지(B)로 설정";
+  endBtn.setAttribute("aria-label", "도착지로 설정");
   endBtn.onclick = () => {
     onSelectPoint("end", lngLat);
-    closePopup();
+    pins.end = true;
+    if (!pins.start) closePopup();
+    else syncProfileUi();
   };
 
-  wrap.append(text, startBtn, endBtn);
+  rowMain.append(startBtn, endBtn);
+
+  const rowWp = document.createElement("div");
+  rowWp.className = "map-view__pick-actions map-view__pick-actions--wps";
+
+  const wpSlots: (0 | 1 | 2)[] = [0, 1, 2];
+  const initialCount = getWaypointCount();
+  for (const slot of wpSlots) {
+    const wpBtn = document.createElement("button");
+    wpBtn.type = "button";
+    wpBtn.className = "map-view__pick-btn map-view__pick-btn--wp";
+    wpBtn.textContent = `WP${slot + 1}`;
+    const enabled = isWaypointSlotEnabled(initialCount, slot);
+    wpBtn.disabled = !enabled;
+    wpBtn.title = waypointSlotTitle(slot, initialCount);
+    wpBtn.setAttribute("aria-label", `경유지 ${slot + 1}번(WP${slot + 1})`);
+    wpBtn.onclick = () => {
+      const count = getWaypointCount();
+      if (!isWaypointSlotEnabled(count, slot)) return;
+      onSelectPoint("waypoint", lngLat, slot);
+      closePopup();
+    };
+    rowWp.appendChild(wpBtn);
+  }
+
+  const profileSection = document.createElement("div");
+  profileSection.className = "map-view__pick-profile-section";
+
+  const profileHint = document.createElement("p");
+  profileHint.className = "map-view__pick-profile-hint";
+  profileHint.textContent = "이동 수단을 고르면 즉시 경로를 계산하고 팝업이 닫힙니다.";
+
+  const rowProfile = document.createElement("div");
+  rowProfile.className = "map-view__pick-actions map-view__pick-actions--profile";
+  rowProfile.setAttribute("role", "group");
+  rowProfile.setAttribute("aria-label", "주행 방법");
+
+  const profileSpecs: { profile: RouteProfile; label: string }[] = [
+    { profile: "driving", label: "자동차" },
+    { profile: "cycling", label: "자전거" },
+    { profile: "walking", label: "보행" },
+  ];
+
+  const profileButtons: HTMLButtonElement[] = [];
+  for (const { profile, label } of profileSpecs) {
+    const pb = document.createElement("button");
+    pb.type = "button";
+    pb.className = "map-view__pick-btn map-view__pick-btn--profile";
+    if (profile === routeProfile) pb.classList.add("is-active");
+    pb.textContent = label;
+    pb.title = `${label}로 경로를 계산합니다`;
+    pb.setAttribute("aria-label", `${label} 주행`);
+    pb.onclick = () => {
+      if (!pins.start || !pins.end) return;
+      onRouteProfile(profile);
+      closePopup();
+    };
+    profileButtons.push(pb);
+    rowProfile.appendChild(pb);
+  }
+
+  function syncProfileUi() {
+    const ready = pins.start && pins.end;
+    profileSection.hidden = !ready;
+    wrap.classList.toggle("map-view__pick--awaiting-profile", ready);
+    if (!ready) return;
+    profileSpecs.forEach((spec, i) => {
+      const pb = profileButtons[i];
+      if (!pb) return;
+      pb.title = `${spec.label}로 경로를 계산합니다`;
+    });
+  }
+
+  profileSection.append(profileHint, rowProfile);
+  syncProfileUi();
+
+  wrap.append(addressEl, metaEl, rowMain, rowWp, profileSection);
+
+  const token = accessToken.trim();
+  if (token.length > 0) {
+    void (async () => {
+      try {
+        const [place, elevM] = await Promise.all([
+          fetchMapboxReverseGeocodePlaceName(lngLat, token, signal),
+          fetchPointElevationMeters(lngLat, signal),
+        ]);
+        if (signal.aborted) return;
+        addressEl.textContent = place ?? "주소를 찾을 수 없습니다";
+        const elevLabel =
+          elevM != null && Number.isFinite(elevM) ? `${Math.round(elevM)}m` : "—";
+        metaEl.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)} · 고도 ${elevLabel}`;
+      } catch {
+        if (signal.aborted) return;
+        addressEl.textContent = "주소를 불러오지 못했습니다";
+        metaEl.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)} · 고도 —`;
+      }
+    })();
+  } else {
+    addressEl.textContent = "지도 토큰이 없어 주소를 표시할 수 없습니다";
+    void (async () => {
+      try {
+        const elevM = await fetchPointElevationMeters(lngLat, signal);
+        if (signal.aborted) return;
+        const elevLabel =
+          elevM != null && Number.isFinite(elevM) ? `${Math.round(elevM)}m` : "—";
+        metaEl.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)} · 고도 ${elevLabel}`;
+      } catch {
+        if (signal.aborted) return;
+        metaEl.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)} · 고도 —`;
+      }
+    })();
+  }
+
   return wrap;
 }
 
@@ -993,44 +1650,47 @@ function apply3DState(
   }
 }
 
-function sampleRouteCoordinates(coords: LngLat[], sampleCount: number): LngLat[] {
-  if (coords.length <= sampleCount) return coords;
-  const sampled: LngLat[] = [];
-  for (let i = 0; i < sampleCount; i += 1) {
-    const idx = Math.round((i / (sampleCount - 1)) * (coords.length - 1));
-    sampled.push(coords[idx]);
-  }
-  return sampled;
-}
+/** 짧은 코스에서 세로 “자동 맞춤”만으로 고도 잡음이 과대 표시되는 것을 줄이기 위한 상한(m). */
+const ELEV_CHART_SHORT_ROUTE_MAX_M = 10_000;
+/** 전장 대비 세로 최소 표시 고도폭: 전장의 약 1.1%를 한 번에 쓰는 구간으로 본다(도심 완만 구간 완화). */
+const ELEV_CHART_VERT_FLOOR_PER_ROUTE_M = 0.011;
+/** 최소 표시 고도폭 하한(m): 아주 짧은 구간에서도 극단 과장 방지 */
+const ELEV_CHART_VERT_FLOOR_MIN_M = 12;
 
-function getRouteSignature(geometry: LineStringGeometry | null) {
-  if (!geometry || geometry.coordinates.length < 2) return "";
-  const first = geometry.coordinates[0];
-  const last = geometry.coordinates[geometry.coordinates.length - 1];
-  return `${geometry.coordinates.length}:${first[0].toFixed(5)},${first[1].toFixed(5)}:${last[0].toFixed(5)},${last[1].toFixed(5)}`;
-}
-
-async function fetchElevations(sampledCoords: LngLat[]): Promise<number[]> {
-  const latitudes = sampledCoords.map((coord) => coord[1].toFixed(6)).join(",");
-  const longitudes = sampledCoords.map((coord) => coord[0].toFixed(6)).join(",");
-  const url = `https://api.open-meteo.com/v1/elevation?latitude=${latitudes}&longitude=${longitudes}`;
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("elevation request failed");
-  const data = (await response.json()) as { elevation?: number[] };
-  if (!data.elevation || data.elevation.length < 2) throw new Error("empty elevation");
-  return data.elevation;
-}
-
-function buildElevationUi(values: number[], progressRatio: number | null) {
+/**
+ * 고도 차트 세로 스케일.
+ * - 10km 초과: 데이터 최소~최대를 세로에 맞춤(기존과 동일).
+ * - 10km 이하: `max(데이터폭, 거리기반 바닥폭)`으로 세로 범위를 넓혀, 작은 편차가 그래프 높이를 덜 잡아먹게 함(중심 정렬).
+ */
+function buildElevationUi(
+  values: number[],
+  progressRatio: number | null,
+  routeLengthMeters: number,
+) {
   const width = 420;
   const height = 100;
   const pad = 8;
   const min = Math.min(...values);
   const max = Math.max(...values);
-  const range = Math.max(max - min, 1);
+  const dataSpan = Math.max(max - min, 1);
+  const mid = (min + max) / 2;
+  let dispMin = min;
+  let range = dataSpan;
+  if (
+    routeLengthMeters > 0 &&
+    routeLengthMeters <= ELEV_CHART_SHORT_ROUTE_MAX_M &&
+    Number.isFinite(routeLengthMeters)
+  ) {
+    const floorSpan = Math.max(
+      ELEV_CHART_VERT_FLOOR_MIN_M,
+      routeLengthMeters * ELEV_CHART_VERT_FLOOR_PER_ROUTE_M,
+    );
+    range = Math.max(dataSpan, floorSpan);
+    dispMin = mid - range / 2;
+  }
   const points = values.map((value, index) => {
     const x = pad + (index / (values.length - 1)) * (width - pad * 2);
-    const y = height - pad - ((value - min) / range) * (height - pad * 2);
+    const y = height - pad - ((value - dispMin) / range) * (height - pad * 2);
     return `${x.toFixed(2)},${y.toFixed(2)}`;
   });
   let marker: { x: string; y: string } | null = null;
@@ -1042,8 +1702,8 @@ function buildElevationUi(values: number[], progressRatio: number | null) {
     const t = markerIdx - lowerIdx;
     const xLower = pad + (lowerIdx / (values.length - 1)) * (width - pad * 2);
     const xUpper = pad + (upperIdx / (values.length - 1)) * (width - pad * 2);
-    const yLower = height - pad - ((values[lowerIdx] - min) / range) * (height - pad * 2);
-    const yUpper = height - pad - ((values[upperIdx] - min) / range) * (height - pad * 2);
+    const yLower = height - pad - ((values[lowerIdx] - dispMin) / range) * (height - pad * 2);
+    const yUpper = height - pad - ((values[upperIdx] - dispMin) / range) * (height - pad * 2);
     marker = {
       x: (xLower + (xUpper - xLower) * t).toFixed(2),
       y: (yLower + (yUpper - yLower) * t).toFixed(2),

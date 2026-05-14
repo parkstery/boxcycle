@@ -1,66 +1,18 @@
-import { startTransition, useEffect, useRef, useState } from "react";
 import type { User } from "firebase/auth";
-import {
-  deleteLobbyPresence,
-  isLobbyMemberActive,
-  LOBBY_STALE_MS,
-  PRESENCE_HEARTBEAT_INTERVAL_MS,
-  subscribeLobbyMembers,
-  touchLobbyPresence,
-  upsertLobbyPresence,
-  type LobbyMemberRow,
-} from "../lib/firestoreLobby";
+import { isLobbyMemberActive, LOBBY_STALE_MS, type LobbyMemberRow } from "../lib/firestoreLobby";
 import "./LobbyPresence.css";
 
 type LobbyPresenceProps = {
   user: User;
   roomId: string;
+  /** 부모 `useLobbyRoomSession` 스냅샷 */
+  rows?: LobbyMemberRow[] | null;
+  error: string | null;
 };
 
-export function LobbyPresence({ user, roomId }: LobbyPresenceProps) {
-  const [rows, setRows] = useState<LobbyMemberRow[]>([]);
-  const [presenceError, setPresenceError] = useState<string | null>(null);
-  const userRef = useRef(user);
-  userRef.current = user;
-
-  useEffect(() => {
-    const uid = user.uid;
-    let cancelled = false;
-    startTransition(() => setPresenceError(null));
-
-    void upsertLobbyPresence(userRef.current, roomId).catch((e: unknown) => {
-      const message = e instanceof Error ? e.message : String(e);
-      if (!cancelled) setPresenceError(message);
-    });
-
-    const unsub = subscribeLobbyMembers(
-      roomId,
-      (next) => {
-        startTransition(() => setRows(next));
-      },
-      (err) => {
-        if (!cancelled) setPresenceError(err.message);
-      },
-    );
-
-    const timer = window.setInterval(() => {
-      void touchLobbyPresence(userRef.current, roomId).catch((e: unknown) => {
-        const message = e instanceof Error ? e.message : String(e);
-        if (!cancelled) setPresenceError(message);
-      });
-    }, PRESENCE_HEARTBEAT_INTERVAL_MS);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(timer);
-      unsub();
-      void deleteLobbyPresence(uid, roomId).catch(() => {
-        /* 방 전환·언마운트 시 무시 */
-      });
-    };
-  }, [user.uid, roomId]);
-
-  const active = rows.filter((r) => isLobbyMemberActive(r.lastSeenAtMs));
+export function LobbyPresence({ user, roomId, rows, error: presenceError }: LobbyPresenceProps) {
+  const safeRows = rows ?? [];
+  const active = safeRows.filter((r) => isLobbyMemberActive(r.lastSeenAtMs));
 
   return (
     <section className="lobby-presence" aria-label="로비 접속자">
@@ -72,10 +24,10 @@ export function LobbyPresence({ user, roomId }: LobbyPresenceProps) {
       </div>
       <p className="lobby-presence__count">
         접속 중(추정): <strong>{active.length}</strong>명
-        {rows.length !== active.length ? (
+        {safeRows.length !== active.length ? (
           <span className="lobby-presence__stale-hint">
             {" "}
-            (문서 {rows.length}건 중 비활성 제외)
+            (문서 {safeRows.length}건 중 비활성 제외)
           </span>
         ) : null}
       </p>

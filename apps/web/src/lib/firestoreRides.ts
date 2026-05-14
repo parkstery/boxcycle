@@ -104,9 +104,10 @@ export async function backfillRideSessionsToFirestore(input: {
   }
 }
 
-export async function loadRecentRideSessionsFromFirestore(
+/** 통계·기간 집계용 — 동일 인덱스(`userId` + `endedAt` desc), 상한만 크게 잡음 */
+export async function loadRideSessionsForStatsFromFirestore(
   userId: string,
-  limitCount = 50,
+  limitCount = 400,
 ): Promise<StoredRideSession[]> {
   const db = getFirestore(getFirebaseApp());
   const q = query(
@@ -139,4 +140,11 @@ export async function loadRecentRideSessionsFromFirestore(
           : 0,
     };
   });
+}
+
+export async function loadRecentRideSessionsFromFirestore(
+  userId: string,
+  limitCount = 50,
+): Promise<StoredRideSession[]> {
+  return loadRideSessionsForStatsFromFirestore(userId, limitCount);
 }

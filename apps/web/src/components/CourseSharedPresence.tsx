@@ -17,8 +17,8 @@ import { LOBBY_STALE_MS, PRESENCE_HEARTBEAT_INTERVAL_MS } from "../lib/firestore
 import { mapNametagForMember, sortedGuestUids } from "../lib/guestNametag";
 import "./LobbyPresence.css";
 
-function peersStableKey(peers: MapPeerMarker[]): string {
-  if (peers.length === 0) return "";
+function peersStableKey(peers: MapPeerMarker[] | undefined): string {
+  if (!peers?.length) return "";
   return peers
     .map((p) => `${p.id}:${p.lngLat[0].toFixed(6)},${p.lngLat[1].toFixed(6)}:${p.label ?? ""}`)
     .sort()
@@ -68,6 +68,12 @@ export function CourseSharedPresence({
   useEffect(() => {
     onPeersChangeRef.current = onPeersChange;
   }, [onPeersChange]);
+
+  useEffect(() => {
+    return () => {
+      onPeersChangeRef.current?.([]);
+    };
+  }, []);
 
   useEffect(() => {
     const uid = user.uid;

@@ -1,5 +1,6 @@
 import type { LineStringGeometry, LngLat } from "./geo";
 import type { RouteProfile } from "../services/mapboxDirections";
+import { MAX_ROUTE_WAYPOINTS } from "./routeWaypoints";
 import {
   SAVED_ROUTE_EXPIRY_MS,
   SAVED_ROUTE_MAX_COORDS,
@@ -32,6 +33,7 @@ function readAll(): Stored[] {
 function hydrateLegacy(r: Stored): Stored {
   return {
     ...r,
+    waypoints: Array.isArray(r.waypoints) ? r.waypoints : [],
     completed: r.completed === 1 ? 1 : 0,
     completedAtIso: r.completedAtIso ?? null,
     expiresAtIso: r.expiresAtIso ?? null,
@@ -42,15 +44,29 @@ function hydrateLegacy(r: Stored): Stored {
 function isValidStored(x: unknown): x is Stored {
   if (!x || typeof x !== "object") return false;
   const r = x as Partial<Stored>;
-  return (
-    typeof r.id === "string" &&
-    typeof r.name === "string" &&
-    Array.isArray(r.startLngLat) &&
-    Array.isArray(r.endLngLat) &&
-    r.geometry?.type === "LineString" &&
-    Array.isArray(r.geometry.coordinates) &&
-    typeof r.distanceMeters === "number" &&
-    typeof r.durationSec === "number"
+  if (
+    typeof r.id !== "string" ||
+    typeof r.name !== "string" ||
+    !Array.isArray(r.startLngLat) ||
+    !Array.isArray(r.endLngLat) ||
+    r.geometry?.type !== "LineString" ||
+    !Array.isArray(r.geometry.coordinates) ||
+    typeof r.distanceMeters !== "number" ||
+    typeof r.durationSec !== "number"
+  ) {
+    return false;
+  }
+  const wp = r.waypoints;
+  if (wp === undefined) return true;
+  if (!Array.isArray(wp) || wp.length > 3) return false;
+  return wp.every(
+    (c) =>
+      Array.isArray(c) &&
+      c.length === 2 &&
+      typeof c[0] === "number" &&
+      typeof c[1] === "number" &&
+      Number.isFinite(c[0]) &&
+      Number.isFinite(c[1]),
   );
 }
 
@@ -93,6 +109,7 @@ export async function saveRouteToLocal(input: {
   profile: RouteProfile;
   startLngLat: LngLat;
   endLngLat: LngLat;
+  waypoints?: LngLat[];
   geometry: LineStringGeometry;
   distanceMeters: number;
   durationSec: number;
@@ -116,6 +133,7 @@ export async function saveRouteToLocal(input: {
     profile: input.profile,
     startLngLat: input.startLngLat,
     endLngLat: input.endLngLat,
+    waypoints: (input.waypoints ?? []).slice(0, MAX_ROUTE_WAYPOINTS),
     geometry: input.geometry,
     distanceMeters: input.distanceMeters,
     durationSec: input.durationSec,
@@ -197,6 +215,7 @@ export function exportLocalRoutesForMigration(): Omit<SaveRouteInput, "userId">[
     profile: r.profile,
     startLngLat: r.startLngLat,
     endLngLat: r.endLngLat,
+    waypoints: r.waypoints?.length ? r.waypoints : undefined,
     geometry: r.geometry,
     distanceMeters: r.distanceMeters,
     durationSec: r.durationSec,

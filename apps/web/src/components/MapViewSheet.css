@@ -1,0 +1,130 @@
+.map-view-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.map-view-sheet__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.32);
+  border: none;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.map-view-sheet__panel {
+  position: relative;
+  z-index: 1;
+  width: min(34rem, 96%);
+  max-height: 70%;
+  overflow: auto;
+  margin-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  padding: 0.6rem 1rem 1rem;
+  border-radius: 14px 14px 12px 12px;
+  background: rgba(15, 23, 42, 0.84);
+  border: 1px solid rgba(248, 250, 252, 0.18);
+  color: #f8fafc;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  animation: map-view-sheet-up 180ms ease-out;
+  box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.35);
+}
+
+@keyframes map-view-sheet-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.map-view-sheet__handle {
+  width: 2.4rem;
+  height: 0.22rem;
+  border-radius: 99px;
+  background: rgba(248, 250, 252, 0.32);
+  margin: 0.05rem auto 0.3rem;
+}
+
+.map-view-sheet__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.map-view-sheet__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  opacity: 0.82;
+}
+
+.map-view-sheet__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.map-view-sheet__chip {
+  appearance: none;
+  border: 1px solid rgba(248, 250, 252, 0.2);
+  background: rgba(248, 250, 252, 0.06);
+  color: #f8fafc;
+  font: inherit;
+  font-size: 0.75rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.map-view-sheet__chip:hover {
+  background: rgba(248, 250, 252, 0.14);
+}
+
+.map-view-sheet__chip.is-active {
+  background: rgba(56, 189, 248, 0.4);
+  border-color: rgba(56, 189, 248, 0.6);
+  color: #f0f9ff;
+}
+
+.map-view-sheet__chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.map-view-sheet__help {
+  font-size: 0.68rem;
+  opacity: 0.72;
+  line-height: 1.35;
+}
+
+.map-view-sheet__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.map-view-sheet__check input {
+  accent-color: #38bdf8;
+}
+
+.map-view-sheet__range {
+  width: 100%;
+  accent-color: #38bdf8;
+}

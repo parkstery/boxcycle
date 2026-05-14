@@ -10,7 +10,7 @@
   min-height: 320px;
 }
 
-/* 빌보드 마커: 기본 레이어 위로. 동행(보라 점)이 라이더·핀에 가리지 않도록 순서 부여 */
+/* 빌보드 마커: 기본 레이어 위로. 내 라이더·핀이 동행(맵 레이어)보다 위에 오도록 */
 .map-view .mapboxgl-marker {
   z-index: 5;
 }
@@ -24,13 +24,216 @@
   z-index: 10;
 }
 
-.map-view .mapboxgl-marker.map-view__peer-marker {
-  z-index: 12;
-}
-
-/* 픽업 팝업(출발/도착지 선택)은 모든 마커 위에 표시되어야 한다. mapbox-gl 기본값은 z-index 미설정이라 마커에 가려지므로 명시 고정. */
+/* 동행은 GeoJSON 레이어(맵 캔버스)로 그려 HTML 마커 z-index와 무관 */
 .map-view .mapboxgl-popup {
   z-index: 30;
+}
+
+/* 지도 클릭 — 출발/도착/경유 선택 팝업(밝은 카드, 목업 정렬) */
+.map-view .map-view__pick-popup.mapboxgl-popup {
+  overflow: visible;
+}
+
+.map-view .map-view__pick-popup .mapboxgl-popup-content {
+  padding: 0;
+  overflow: visible;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.14);
+}
+
+.map-view .map-view__pick-popup.mapboxgl-popup-anchor-top .mapboxgl-popup-tip {
+  border-bottom-color: #fff;
+}
+.map-view .map-view__pick-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
+  border-top-color: #fff;
+}
+.map-view .map-view__pick-popup.mapboxgl-popup-anchor-left .mapboxgl-popup-tip {
+  border-right-color: #fff;
+}
+.map-view .map-view__pick-popup.mapboxgl-popup-anchor-right .mapboxgl-popup-tip {
+  border-left-color: #fff;
+}
+
+.map-view .map-view__pick-popup .mapboxgl-popup-close-button {
+  color: #fff;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  right: -6px;
+  top: -6px;
+  border-radius: 50%;
+  background: #1e293b;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-view .map-view__pick-popup .mapboxgl-popup-close-button:hover {
+  color: #fff;
+  background: #0f172a;
+}
+
+.map-view__pick {
+  padding: 0.85rem 0.85rem 0.9rem;
+  min-width: 15rem;
+  max-width: 22rem;
+  box-sizing: border-box;
+}
+
+.map-view__pick-address {
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #0f172a;
+  word-break: break-word;
+}
+
+.map-view__pick-meta {
+  margin-top: 0.35rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.01em;
+  color: #64748b;
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+.map-view__pick-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
+}
+
+.map-view__pick-actions--main {
+  flex-wrap: nowrap;
+}
+
+.map-view__pick-actions--wps {
+  margin-top: 0.4rem;
+}
+
+.map-view__pick-btn {
+  flex: 1;
+  appearance: none;
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 0.45rem 0.5rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.map-view__pick-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.map-view__pick-btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.map-view__pick-btn--start {
+  background: color-mix(in srgb, #3b82f6 14%, #fff);
+  border-color: color-mix(in srgb, #3b82f6 35%, #fff);
+  color: #1d4ed8;
+}
+
+.map-view__pick-btn--start:hover:not(:disabled) {
+  background: color-mix(in srgb, #3b82f6 22%, #fff);
+  border-color: color-mix(in srgb, #3b82f6 50%, #fff);
+}
+
+.map-view__pick-btn--end {
+  background: #2563eb;
+  border-color: #1d4ed8;
+  color: #fff;
+}
+
+.map-view__pick-btn--end:hover:not(:disabled) {
+  background: #1d4ed8;
+  border-color: #1e40af;
+}
+
+.map-view__pick-btn--wp {
+  background: color-mix(in srgb, #fb923c 12%, #fff);
+  border-color: color-mix(in srgb, #ea580c 28%, #fff);
+  color: #c2410c;
+}
+
+.map-view__pick-btn--wp:hover:not(:disabled) {
+  background: color-mix(in srgb, #fb923c 20%, #fff);
+  border-color: color-mix(in srgb, #ea580c 42%, #fff);
+}
+
+.map-view__pick-profile-section {
+  margin-top: 0.45rem;
+}
+
+.map-view__pick-profile-hint {
+  margin: 0 0 0.35rem;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: #64748b;
+}
+
+.map-view__pick--awaiting-profile .map-view__pick-profile-section .map-view__pick-profile-hint {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.map-view__pick-actions--profile {
+  margin-top: 0.35rem;
+}
+
+.map-view__pick-btn--profile {
+  background: color-mix(in srgb, #64748b 8%, #fff);
+  border-color: color-mix(in srgb, #64748b 22%, #fff);
+  color: #334155;
+  font-size: 0.72rem;
+}
+
+.map-view__pick-btn--profile:hover:not(:disabled) {
+  background: color-mix(in srgb, #64748b 14%, #fff);
+  border-color: color-mix(in srgb, #475569 35%, #fff);
+}
+
+.map-view__pick-btn--profile.is-active {
+  background: color-mix(in srgb, #2563eb 18%, #fff);
+  border-color: color-mix(in srgb, #2563eb 45%, #fff);
+  color: #1e40af;
+}
+
+.map-view__pick--awaiting-profile {
+  outline: 1px solid color-mix(in srgb, #2563eb 22%, transparent);
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+.map-view__waypoint-marker {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #fefce8;
+  background: linear-gradient(145deg, rgba(234, 179, 8, 0.95), rgba(180, 83, 9, 0.92));
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
 }
 
 /* 내 라이브 위치: 페달 스프라이트 마커(보고서 6·9절) */
@@ -85,39 +288,41 @@
     0 1px 2px rgba(15, 23, 42, 0.55);
 }
 
-/* 동행: 보라 글자 + 동일한 흰 글로우 패턴 */
-.map-view__rider-nametag--peer {
-  color: #6d28d9;
-  text-shadow:
-    0 0 1px #fff,
-    0 0 2px #fff,
-    0 0 4px #fff,
-    0 0 10px #fff,
-    0 0 14px rgba(109, 40, 217, 0.5),
-    0 1px 2px rgba(15, 23, 42, 0.55);
-}
-
 .map-view__live-rider-host .cycling-sim-marker-flip {
   width: 120px;
   height: 120px;
   flex-shrink: 0;
 }
 
-.map-view__peer-rider-wrap {
+/* 동행 라이더 DOM 마커 — 본인과 톤만 구분 */
+.map-view__peer-rider-host.cycling-sim-marker-host {
   display: flex;
   flex-direction: column;
   align-items: center;
-  pointer-events: none;
+  justify-content: flex-end;
+  height: auto;
+  min-height: 120px;
+  width: auto;
+  min-width: 120px;
 }
 
-.map-view__peer-rider-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #7c3aed;
-  border: 2px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+.map-view__peer-rider-host .cycling-sim-marker-flip {
+  width: 120px;
+  height: 120px;
   flex-shrink: 0;
+}
+
+.map-view__rider-nametag--peer {
+  color: #0f766e;
+  text-shadow:
+    0 0 1px #fff,
+    0 0 2px #fff,
+    0 0 4px #fff,
+    0 1px 2px rgba(15, 23, 42, 0.55);
+}
+
+.map-view__peer-rider-host .cycling-sim-marker-pedal-sprite {
+  filter: hue-rotate(175deg) saturate(1.12) brightness(1.02);
 }
 
 .cycling-sim-marker-flip {
@@ -193,4 +398,14 @@
   padding: 0.12em 0.35em;
   border-radius: 4px;
   background: color-mix(in srgb, CanvasText 10%, transparent);
+}
+
+/*
+ * MapHud 우상단 프로필( .hud-avatar 2.2rem )과 Mapbox NavigationControl 이 겹침.
+ * HUD 상단 패딩과 동일한 clamp 로 맞춘 뒤, 아바타 + 소간격 + 컨트롤 버튼 높이의 1.5배만큼 아래로 내림.
+ */
+.app-shell--map-first .map-view .mapboxgl-ctrl-top-right {
+  margin-top: calc(
+    max(clamp(0.45rem, 1.4vw, 0.85rem), env(safe-area-inset-top, 0px)) + 2.2rem + 0.4rem + 1.5 * 30px
+  );
 }

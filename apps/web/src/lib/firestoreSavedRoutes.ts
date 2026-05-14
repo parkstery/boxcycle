@@ -15,6 +15,7 @@ import {
 import { getFirebaseApp } from "./firebase";
 import type { LineStringGeometry, LngLat } from "./geo";
 import type { RouteProfile } from "../services/mapboxDirections";
+import { MAX_ROUTE_WAYPOINTS } from "./routeWaypoints";
 import { computeRouteFingerprint } from "./routeFingerprint";
 
 const SAVED_ROUTES_COLLECTION = "savedRoutes";
@@ -42,6 +43,8 @@ export type SavedRoute = {
   profile: RouteProfile;
   startLngLat: LngLat;
   endLngLat: LngLat;
+  /** 출발·도착 사이 경유지(최대 3). 옛 문서는 빈 배열로 폴백 */
+  waypoints: LngLat[];
   geometry: LineStringGeometry;
   distanceMeters: number;
   durationSec: number;
@@ -118,6 +121,42 @@ function encodeGeometryForFirestore(geometry: LineStringGeometry): {
   };
 }
 
+function decodeWaypointsFromFirestore(data: Record<string, unknown>): LngLat[] {
+  const raw = data.waypointsLngLat;
+  if (!Array.isArray(raw) || raw.length === 0) return [];
+  const out: LngLat[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const o = item as Record<string, unknown>;
+    const lng = Number(o.lng);
+    const lat = Number(o.lat);
+    if (!Number.isFinite(lng) || !Number.isFinite(lat)) continue;
+    if (lng < -180 || lng > 180 || lat < -90 || lat > 90) continue;
+    out.push([lng, lat]);
+    if (out.length >= MAX_ROUTE_WAYPOINTS) break;
+  }
+  return out;
+}
+
+function encodeWaypointsForFirestore(waypoints: LngLat[]): { waypointsLngLat?: { lng: number; lat: number }[] } {
+  const w = waypoints.slice(0, MAX_ROUTE_WAYPOINTS);
+  if (w.length === 0) return {};
+  return { waypointsLngLat: w.map(([lng, lat]) => ({ lng, lat })) };
+}
+
+function validateWaypointsForSave(waypoints: LngLat[] | undefined): LngLat[] {
+  if (!waypoints?.length) return [];
+  if (waypoints.length > MAX_ROUTE_WAYPOINTS) {
+    throw new SavedRouteValidationError(`경과지는 최대 ${MAX_ROUTE_WAYPOINTS}개까지 저장할 수 있습니다.`);
+  }
+  for (const p of waypoints) {
+    if (!Array.isArray(p) || p.length !== 2 || typeof p[0] !== "number" || typeof p[1] !== "number") {
+      throw new SavedRouteValidationError("경과지 좌표가 올바르지 않습니다.");
+    }
+  }
+  return waypoints;
+}
+
 function decodeGeometryFromFirestore(data: Record<string, unknown>): LineStringGeometry | null {
   const json = data.geometryCoordsJson;
   if (typeof json === "string" && json.length > 0) {
@@ -165,6 +204,8 @@ type SavedRouteDoc = {
   profile: RouteProfile;
   startLngLat: LngLat;
   endLngLat: LngLat;
+  /** 경유지 — 배열 안에 배열 불가하므로 {lng,lat}[] */
+  waypointsLngLat?: { lng: number; lat: number }[];
   geometryType?: "LineString";
   geometryCoordsJson?: string;
   geometry?: LineStringGeometry;
@@ -208,12 +249,14 @@ function fromDoc(id: string, data: Partial<SavedRouteDoc>): SavedRoute | null {
     return null;
   }
   const completed: 0 | 1 = data.completed === 1 ? 1 : 0;
+  const waypoints = decodeWaypointsFromFirestore(data as Record<string, unknown>);
   return {
     id,
     name: data.name,
     profile: (data.profile ?? "cycling") as RouteProfile,
     startLngLat: data.startLngLat as LngLat,
     endLngLat: data.endLngLat as LngLat,
+    waypoints,
     geometry,
     distanceMeters: Number(data.distanceMeters ?? 0),
     durationSec: Number(data.durationSec ?? 0),
@@ -232,6 +275,8 @@ export type SaveRouteInput = {
   profile: RouteProfile;
   startLngLat: LngLat;
   endLngLat: LngLat;
+  /** 출발·도착 사이 경유(최대 3). 생략 시 빈 배열로 저장 */
+  waypoints?: LngLat[];
   geometry: LineStringGeometry;
   distanceMeters: number;
   durationSec: number;
@@ -283,6 +328,7 @@ async function assertNoDuplicateSavedRouteForUser(
 export async function saveRouteToFirestore(input: SaveRouteInput): Promise<SavedRoute> {
   const name = validateSavedRouteName(input.name);
   validateGeometry(input.geometry);
+  const waypoints = validateWaypointsForSave(input.waypoints);
 
   const db = getFirestore(getFirebaseApp());
   const routeFingerprint = await computeRouteFingerprint(input.geometry, input.profile);
@@ -295,6 +341,7 @@ export async function saveRouteToFirestore(input: SaveRouteInput): Promise<Saved
     profile: input.profile,
     startLngLat: input.startLngLat,
     endLngLat: input.endLngLat,
+    ...encodeWaypointsForFirestore(waypoints),
     ...encodeGeometryForFirestore(input.geometry),
     distanceMeters: input.distanceMeters,
     durationSec: input.durationSec,
@@ -315,6 +362,7 @@ export async function saveRouteToFirestore(input: SaveRouteInput): Promise<Saved
     profile: input.profile,
     startLngLat: input.startLngLat,
     endLngLat: input.endLngLat,
+    waypoints,
     geometry: input.geometry,
     distanceMeters: input.distanceMeters,
     durationSec: input.durationSec,

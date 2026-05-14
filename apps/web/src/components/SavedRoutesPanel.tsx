@@ -142,7 +142,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
         <p className="saved-routes__empty">불러오는 중…</p>
       ) : props.routes.length === 0 ? (
         <p className="saved-routes__empty">
-          사용자 경로가 없습니다. 「경로」 탭에서 경로 생성 후 「현재 경로 저장」 을 눌러 보세요.
+          사용자 경로가 없습니다. 「경로」 탭에서 경로를 만든 뒤 「내 경로로 저장」으로 목록에 올려 보세요.
           저장된 경로는 7일 안에 주행하지 않으면 자동 삭제됩니다(주행 완료 시 영구 보존).
         </p>
       ) : filtered.length === 0 ? (

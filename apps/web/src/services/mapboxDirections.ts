@@ -1,6 +1,7 @@
 import type { User } from "firebase/auth";
 import type { Functions } from "firebase/functions";
 import type { LineStringGeometry, LngLat } from "../lib/geo";
+import { MAX_ROUTE_WAYPOINTS } from "../lib/routeWaypoints";
 
 export type RouteProfile = "cycling" | "driving" | "walking";
 
@@ -68,12 +69,23 @@ function wireStatusToFunctionsCode(status: string | undefined): string | undefin
   return map[status] ?? "functions/internal";
 }
 
+function buildDirectionsCoordPath(start: LngLat, end: LngLat, waypoints: LngLat[] | null | undefined): string {
+  const wps = (waypoints ?? []).slice(0, MAX_ROUTE_WAYPOINTS);
+  const parts: string[] = [`${start[0]},${start[1]}`];
+  for (const w of wps) {
+    parts.push(`${w[0]},${w[1]}`);
+  }
+  parts.push(`${end[0]},${end[1]}`);
+  return parts.join(";");
+}
+
 async function fetchRouteCallable(
   functions: Functions,
   user: User,
   start: LngLat,
   end: LngLat,
   profile: RouteProfile,
+  waypoints?: LngLat[] | null,
 ): Promise<DirectionsRoute> {
   void functions;
   const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID?.trim();
@@ -85,13 +97,14 @@ async function fetchRouteCallable(
   }
   const url = `https://${region}-${projectId}.cloudfunctions.net/getMapboxDirections`;
   const idToken = await user.getIdToken();
+  const wps = (waypoints ?? []).slice(0, MAX_ROUTE_WAYPOINTS);
   const res = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${idToken}`,
     },
-    body: JSON.stringify({ data: { start, end, profile } }),
+    body: JSON.stringify({ data: { start, end, profile, waypoints: wps.length ? wps : undefined } }),
   });
   let json: {
     result?: { geometry?: unknown; distance?: unknown; duration?: unknown };
@@ -126,6 +139,7 @@ async function fetchRouteDirect(
   start: LngLat,
   end: LngLat,
   profile: RouteProfile,
+  waypoints?: LngLat[] | null,
 ): Promise<DirectionsRoute> {
   const token = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim();
   if (!token) {
@@ -133,7 +147,7 @@ async function fetchRouteDirect(
       "VITE_MAPBOX_ACCESS_TOKEN(pk.) 가 비어 있습니다. apps/web/.env.local 에 설정하세요.",
     );
   }
-  const coords = `${start[0]},${start[1]};${end[0]},${end[1]}`;
+  const coords = buildDirectionsCoordPath(start, end, waypoints);
   const url =
     `https://api.mapbox.com/directions/v5/mapbox/${profile}/${coords}` +
     `?geometries=geojson&overview=full&steps=false&access_token=${encodeURIComponent(token)}`;
@@ -180,11 +194,12 @@ export async function fetchRouteByProfile(
   start: LngLat,
   end: LngLat,
   profile: RouteProfile,
+  waypoints?: LngLat[] | null,
 ): Promise<DirectionsRoute> {
   if (DIRECT_DIRECTIONS) {
-    return fetchRouteDirect(start, end, profile);
+    return fetchRouteDirect(start, end, profile, waypoints);
   }
-  return fetchRouteCallable(functions, user, start, end, profile);
+  return fetchRouteCallable(functions, user, start, end, profile, waypoints);
 }
 
 export function formatDuration(totalSeconds: number): string {
