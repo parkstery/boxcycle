@@ -11,7 +11,7 @@
 
 ## 1. 단계 선언
 
-- **Mapbox 기반 실내 사이클링 시뮬 검증**은 완료되었다. 저장소의 정적 HTML·`app.js` 자산은 **검증 완료 POC(레거시 참조)** 로 남긴다.
+- **Mapbox 기반 실내 사이클링 시뮬 검증**은 완료되었다. 당시 정적 HTML·`app.js` POC는 **[260508 기록](260508-개발중간보고-HTML과-JS-프로토타입.md)** 및 커밋 이력으로만 참고하고, **저장소 루트 레거시 파일은 제거**하였다.
 - **현재부터는 본격 프로젝트**로 진행한다. 문서·커뮤니케이션에서 **「프로토타입」 꼬리표는 사용하지 않는다.** (과거 구간만 지칭할 때는 **검증 POC** 또는 **260508 기록** 으로 구분한다.)
 - 개발은 **프론트엔드와 백엔드(및 데이터)를 동시에** 진행한다.
 
@@ -58,18 +58,18 @@
 
 ### 3.3 Mapbox·외부 API
 
-- 레거시 POC는 클라이언트에서 Mapbox를 직접 호출한다.  
-- 본 개발에서는 **토큰 보호·레이트 제한**을 위해 **서버 측 프록시(예: Cloud Functions 또는 추후 Node API)** 로 옮기는 것을 목표로 한다. 실행 순서는 [260509-app-js-프론트백엔드-분리-1차리팩터링.md](260509-app-js-프론트백엔드-분리-1차리팩터링.md)와 정렬한다.
+- 과거 검증 POC(260508 기록)는 클라이언트에서 Mapbox를 직접 호출했다.  
+- 본 개발에서는 **토큰 보호·레이트 제한**을 위해 **서버 측 프록시(Cloud Functions `getMapboxDirections` 등)** 를 쓴다. 실행 순서는 [260509-app-js-프론트백엔드-분리-1차리팩터링.md](260509-app-js-프론트백엔드-분리-1차리팩터링.md)와 정렬한다.
 
 ---
 
 ## 4. 저장소·코드 상태
 
-- **본 개발 웹 앱:** `apps/web` — Vite + TypeScript + React, Firebase Auth(Google·게스트 등 콘솔 설정에 따름), **Mapbox GL 지도**(클라이언트 `VITE_MAPBOX_ACCESS_TOKEN` 만 타일용), **경로 계산**은 Firebase Callable **`getMapboxDirections`**(`functions/`, 서버 시크릿 `MAPBOX_ACCESS_TOKEN`), **`users/{uid}` 프로필**, **`rooms/{roomId}/members/{uid}`** 실시간 로비(`roomId` 기본 `default`, **`?room=`** 및 UI 입장), **`rides`** 주행 기록 저장, **`courses`** 입문·큐레이션 코스 시드/조회, **`coursePresence`** 입문 허브 동행 시 동료 마커 동기화(Open-Meteo 고도는 브라우저 직호출).
+- **본 개발 웹 앱:** `apps/web` — npm 패키지명 **`boxcycle-web`**. 저장소 루트는 **npm workspaces**로 이 패키지를 묶으며, **`npm install`은 루트에서 한 번**(잠금 파일은 루트 `package-lock.json`만). Vite + TypeScript + React, Firebase Auth(Google·게스트 등 콘솔 설정에 따름), **Mapbox GL 지도**(클라이언트 `VITE_MAPBOX_ACCESS_TOKEN` 만 타일용), **경로 계산**은 Firebase Callable **`getMapboxDirections`**(`functions/`, 서버 시크릿 `MAPBOX_ACCESS_TOKEN`), **`users/{uid}` 프로필**, **`rooms/{roomId}/members/{uid}`** 실시간 로비(`roomId` 기본 `default`, **`?room=`** 및 UI 입장), **`rides`** 주행 기록 저장, **`courses`** 입문·큐레이션 코스 시드/조회, **`coursePresence`** 입문 허브 동행 시 동료 마커 동기화(Open-Meteo 고도는 브라우저 직호출).
 - **Firebase 배포 설정(루트):** `firebase.json` — Firestore rules/indexes + **Hosting**(`public`: `apps/web/dist`, SPA rewrite). `.firebaserc` 에 기본 프로젝트 ID가 있다(민감 비밀이 아님). 실제 API 키·토큰은 **`apps/web/.env`**(커밋 제외), 템플릿은 **`apps/web/.env.example`**.
 - **Firestore Rules:** `coursePresence` 허용 여부는 **`courses/{courseId}.presenceEnabled == true`** 로 판별(입문 허브 1·2 동일). 시드·merge는 `firestoreCourses.ts` 의 `ensureBasicCoursesSeeded` 가 허브에 `presenceEnabled` 를 기록.
 - **다음(문서·계획 정렬):** Mapbox **Geocoding** Functions 프록시(선택), `sessions`/`presence` 컬렉션 정착 등 → [분리·리팩터링 문서](260509-app-js-프론트백엔드-분리-1차리팩터링.md)·[Phase 체크리스트](260511-Phase별-실행-체크리스트-Course-Session-Presence.md).
-- **레거시 참조:** 저장소 루트의 `index.html`, `app.js` 등은 Mapbox 검증 POC로 유지한다.
+- **과거 POC:** 루트 정적 `index.html` / `app.js` 등은 혼동 방지를 위해 **저장소에서 제거**함. 구현·기능 목록은 [260508 기록](260508-개발중간보고-HTML과-JS-프로토타입.md)을 본다.
 
 ---
 
@@ -86,3 +86,4 @@
 | 2026-05-11 | §4 코드 상태 갱신(Firestore 컬렉션·Hosting·`.env`·미완 Functions); 상단 상태 메타 정렬 |
 | 2026-05-11 | §4 Rules `presenceEnabled` 일반화 반영, 다음 작업 목록에서 동일 항목 제거 |
 | 2026-05-11 | Directions Callable·§4·상단 메타 반영(Geocoding 프록시는 후속) |
+| 2026-05-16 | 루트 정적 POC 제거; npm **workspaces**(`apps/web` → `boxcycle-web`): 루트 단일 `npm install`·잠금 파일, 루트 스크립트가 워크스페이스 위임 |

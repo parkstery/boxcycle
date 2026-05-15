@@ -28,7 +28,7 @@ pnpm-lock.yaml
 .env.*.local
 secrets.json
 
-# 로컬 전용 설정 (Mapbox 토큰 등) - 커밋 금지
+# 로컬 전용 설정 — 과거 루트 정적 POC용 `config.local.js` 등(저장소에서 POC 제거 후에도 워킹 트리에 남을 수 있음)
 config.local.js
 
 # 빌드/배포 산출물

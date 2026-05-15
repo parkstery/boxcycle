@@ -1,13 +1,17 @@
 {
   "name": "boxcycle",
+  "private": true,
   "version": "1.0.0",
   "description": "문서 작성은 `document/260509-BOXCYCLE-문서-생성-및-수정-지침.md`를 따른다.",
-  "main": "app.js",
+  "workspaces": [
+    "apps/web"
+  ],
   "scripts": {
-    "dev": "npm --prefix ./apps/web run dev --",
-    "dev:localhost": "vite --host 127.0.0.1",
-    "build": "npm run build --prefix ./apps/web",
-    "preview": "npm run preview --prefix ./apps/web",
+    "dev": "npm run dev -w boxcycle-web --",
+    "dev:localhost": "npm run dev:localhost -w boxcycle-web --",
+    "build": "npm run build -w boxcycle-web",
+    "preview": "npm run preview -w boxcycle-web",
+    "lint": "npm run lint -w boxcycle-web",
     "deploy:hosting": "npm run build && firebase deploy --only hosting",
     "deploy:firestore": "firebase deploy --only firestore",
     "deploy:functions": "firebase deploy --only functions",
@@ -22,22 +26,8 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/parkstery/boxcycle/issues"
   },
-  "homepage": "https://github.com/parkstery/boxcycle#readme",
-  "dependencies": {
-    "firebase": "^12.13.0",
-    "mapbox-gl": "^3.23.1",
-    "mapillary-js": "^4.1.2",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
-    "vite": "^8.0.11"
-  },
-  "devDependencies": {
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.1"
-  }
+  "homepage": "https://github.com/parkstery/boxcycle#readme"
 }

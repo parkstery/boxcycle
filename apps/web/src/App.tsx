@@ -112,47 +112,27 @@ import { useBleCrankRpm } from "./hooks/useBleCrankRpm";
 import { useRideMapillaryStreet } from "./hooks/useRideMapillaryStreet";
 import { MAPILLARY_CLIENT_TOKEN, mapillaryTokenConfigured } from "./lib/mapillaryToken";
 import type { CoverageOverlayMode } from "./lib/coverageOverlayMode";
-
-const MapillaryRideViewer = lazy(async () => {
-  const m = await import("./components/MapillaryRideViewer");
-  return { default: m.MapillaryRideViewer };
-});
+import {
+  B_JOURNEY_HINT_SESSION_KEY,
+  MAP_STYLE_OPTIONS,
+  POST_SIGNOUT_MAP_SESSION_KEY,
+  readBJourneyHintDismissedSession,
+  readPostSignoutMapSessionFlag,
+} from "./lib/appSessionKeys";
+import { formatElapsedFromMs } from "./lib/rideFormat";
+import { isBenignAuthPopupCancel } from "./lib/firebaseAuthPopup";
 import { fetchRouteByProfile, formatDuration, type RouteProfile } from "./services/mapboxDirections";
 import { fetchMapboxReverseGeocodePlaceName } from "./services/mapboxReverseGeocode";
 import { getFunctions } from "firebase/functions";
 import "./App.css";
 
+const MapillaryRideViewer = lazy(async () => {
+  const m = await import("./components/MapillaryRideViewer");
+  return { default: m.MapillaryRideViewer };
+});
+
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
 const FUNCTIONS_REGION = import.meta.env.VITE_FUNCTIONS_REGION?.trim() || "asia-northeast3";
-/** 로그아웃 직후 같은 탭에서 맵을 유지할지(sessionStorage). 최초 방문은 플래그 없음 → 기존처럼 전체 인증 게이트. */
-const POST_SIGNOUT_MAP_SESSION_KEY = "boxcycle_post_signout_map_v1";
-
-function readPostSignoutMapSessionFlag(): boolean {
-  if (typeof sessionStorage === "undefined") return false;
-  try {
-    return sessionStorage.getItem(POST_SIGNOUT_MAP_SESSION_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-/** B 여정 setup 안내 탭 닫힘 — 브라우저 탭 세션 동안만 유지(새 탭이면 다시 표시 가능) */
-const B_JOURNEY_HINT_SESSION_KEY = "boxcycle_b_journey_hint_dismissed_v1";
-
-function readBJourneyHintDismissedSession(): boolean {
-  if (typeof sessionStorage === "undefined") return false;
-  try {
-    return sessionStorage.getItem(B_JOURNEY_HINT_SESSION_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-const MAP_STYLE_OPTIONS = [
-  { value: "mapbox://styles/mapbox/streets-v12", label: "Streets" },
-  { value: "mapbox://styles/mapbox/outdoors-v12", label: "Outdoors" },
-  { value: "mapbox://styles/mapbox/light-v11", label: "Light" },
-  { value: "mapbox://styles/mapbox/satellite-streets-v12", label: "Satellite" },
-];
 
 type FsSyncState =
   | { state: "idle" }
@@ -160,23 +140,6 @@ type FsSyncState =
   | { state: "awaiting_nickname" }
   | { state: "ok" }
   | { state: "error"; message: string };
-
-function formatElapsedFromMs(ms: number): string {
-  const totalSeconds = Math.floor(ms / 1000);
-  const m = Math.floor(totalSeconds / 60)
-    .toString()
-    .padStart(2, "0");
-  const s = (totalSeconds % 60).toString().padStart(2, "0");
-  return `${m}:${s}`;
-}
-
-function isBenignAuthPopupCancel(e: unknown): boolean {
-  const code =
-    typeof e === "object" && e !== null && "code" in e
-      ? (e as { code?: string }).code
-      : undefined;
-  return code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request";
-}
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -524,8 +487,9 @@ export default function App() {
     }
   }, [user]);
 
+  /** 허브 코스 id 가 바뀌거나 빠질 때마다 비움 — 다른 입문 코스로 바꿀 때 이전 동행 마커가 남지 않게 함 */
   useEffect(() => {
-    if (!basicActiveHubCourseId) startTransition(() => setCoursePeerMarkers([]));
+    startTransition(() => setCoursePeerMarkers([]));
   }, [basicActiveHubCourseId]);
 
   useEffect(() => {
@@ -1048,6 +1012,7 @@ export default function App() {
       });
     }
     setBasicActiveHubCourseId(null);
+    setPlaceSearchMarkerLngLat(null);
   }, [user, basicActiveHubCourseId]);
 
   const generateRoute = useCallback(
@@ -1921,6 +1886,7 @@ export default function App() {
           onSelectPoint={(type, lngLat, waypointSlot) => {
             if (rideLocked) return;
             setActiveOfficialCourseId(null);
+            setPlaceSearchMarkerLngLat(null);
             if (type === "start") setStartLngLat(lngLat);
             else if (type === "end") setEndLngLat(lngLat);
             else {
@@ -2017,7 +1983,10 @@ export default function App() {
       <MenuPanel
         open={menuOpen}
         locked={menuPanelLockedDuringRide}
-        onClose={() => setMenuOpen(false)}
+        onClose={() => {
+          setMenuOpen(false);
+          setPlaceSearchMarkerLngLat(null);
+        }}
         onOpenSettings={openRideSettingsPanel}
       >
         <RoomSwitcher
