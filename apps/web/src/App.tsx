@@ -1,17 +1,4 @@
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
-import type { FirebaseError } from "firebase/app";
-import type { User } from "firebase/auth";
-import {
-  GoogleAuthProvider,
-  linkWithPopup,
-  onAuthStateChanged,
-  reload,
-  signInAnonymously,
-  signInWithCredential,
-  signInWithPopup,
-  signOut,
-  updateProfile,
-} from "firebase/auth";
 import { CourseSharedPresence } from "./components/CourseSharedPresence";
 import { LobbyPresence } from "./components/LobbyPresence";
 import { MapView, type MapPeerMarker } from "./components/MapView";
@@ -41,7 +28,7 @@ import {
   useRideFeedbackPreferences,
 } from "./features/ride-feedback";
 import { safeRideSpeechCancel } from "./lib/rideSpeech";
-import { getFirebaseApp, getFirebaseAuth, isFirebaseConfigured } from "./lib/firebase";
+import { getFirebaseApp, isFirebaseConfigured } from "./lib/firebase";
 import {
   BASIC_SHARED_HUB_IDS,
   BASIC_SHARED_HUB_SUMMARIES,
@@ -100,27 +87,19 @@ import {
   saveRideSessions,
   type StoredRideSession,
 } from "./lib/rideSessionsStorage";
+import { useAppAuth } from "./hooks/useAppAuth";
 import { useAppRoom } from "./hooks/useAppRoom";
 import {
-  claimNicknameTransaction,
-  getUserProfileNickname,
-  NicknameTakenError,
-} from "./lib/firestoreUser";
-import { isValidNickname } from "./lib/nickname";
+  B_JOURNEY_HINT_SESSION_KEY,
+  MAP_STYLE_OPTIONS,
+  readBJourneyHintDismissedSession,
+} from "./lib/appSessionKeys";
+import { formatElapsedFromMs } from "./lib/rideFormat";
 import { useVirtualRideSession } from "./hooks/useVirtualRideSession";
 import { useBleCrankRpm } from "./hooks/useBleCrankRpm";
 import { useRideMapillaryStreet } from "./hooks/useRideMapillaryStreet";
 import { MAPILLARY_CLIENT_TOKEN, mapillaryTokenConfigured } from "./lib/mapillaryToken";
 import type { CoverageOverlayMode } from "./lib/coverageOverlayMode";
-import {
-  B_JOURNEY_HINT_SESSION_KEY,
-  MAP_STYLE_OPTIONS,
-  POST_SIGNOUT_MAP_SESSION_KEY,
-  readBJourneyHintDismissedSession,
-  readPostSignoutMapSessionFlag,
-} from "./lib/appSessionKeys";
-import { formatElapsedFromMs } from "./lib/rideFormat";
-import { isBenignAuthPopupCancel } from "./lib/firebaseAuthPopup";
 import { fetchRouteByProfile, formatDuration, type RouteProfile } from "./services/mapboxDirections";
 import { fetchMapboxReverseGeocodePlaceName } from "./services/mapboxReverseGeocode";
 import { getFunctions } from "firebase/functions";
@@ -134,20 +113,28 @@ const MapillaryRideViewer = lazy(async () => {
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
 const FUNCTIONS_REGION = import.meta.env.VITE_FUNCTIONS_REGION?.trim() || "asia-northeast3";
 
-type FsSyncState =
-  | { state: "idle" }
-  | { state: "syncing" }
-  | { state: "awaiting_nickname" }
-  | { state: "ok" }
-  | { state: "error"; message: string };
-
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [fsSync, setFsSync] = useState<FsSyncState>({ state: "idle" });
   const { roomId, roomDraft, setRoomDraft, applyRoomFromDraft: commitRoomFromDraft } = useAppRoom();
   const configured = isFirebaseConfigured();
+  const {
+    user,
+    busy,
+    error,
+    fsSync,
+    authInitialized,
+    postSignoutMapSession,
+    authSheetOpen,
+    setAuthSheetOpen,
+    authPickCardHidden,
+    setAuthPickCardHidden,
+    openSignedOutAuthSheet,
+    handleGuestStart,
+    handleGoogleSignIn,
+    handleCompleteNickname,
+    completeFirebaseSignOutKeepMap,
+    setError,
+    setBusy,
+  } = useAppAuth(configured);
 
   const [startLngLat, setStartLngLat] = useState<LngLat | null>(null);
   const [endLngLat, setEndLngLat] = useState<LngLat | null>(null);
@@ -224,11 +211,6 @@ export default function App() {
   const [liveRiderNametag, setLiveRiderNametag] = useState<string | null>(null);
   /** 로그인(게스트 포함) 세션 동안 로비 presence·관전 항상 on — 사용자용 로비 진입·이탈 토글 없음 */
   const lobbySessionActive = Boolean(configured && user);
-  const [postSignoutMapSession, setPostSignoutMapSession] = useState(readPostSignoutMapSessionFlag);
-  /** 비로그인 맵에서 TR「로그인」으로 연 게스트/Google 카드 */
-  const [authSheetOpen, setAuthSheetOpen] = useState(false);
-  /** 게스트/Google 클릭 직후 첫 진입 풀스크린 선택 카드만 숨김(stage 는 아직 gate 일 수 있음) */
-  const [authPickCardHidden, setAuthPickCardHidden] = useState(false);
   const pageVisible = useDocumentVisibility();
   const [worldHudHint, setWorldHudHint] = useState<string | null>(null);
 
@@ -384,83 +366,10 @@ export default function App() {
     };
   }, [configured, user, pageVisible, mapZoom]);
 
-  /** Firebase Auth 첫 onAuthStateChanged 수신 여부(영속 세션 복원 vs 미로그인 구분) */
-  const [authInitialized, setAuthInitialized] = useState(false);
-
-  useEffect(() => {
-    if (!user) {
-      return;
-    }
-    try {
-      sessionStorage.removeItem(POST_SIGNOUT_MAP_SESSION_KEY);
-    } catch {
-      /* noop */
-    }
-    setPostSignoutMapSession(false);
-    setAuthSheetOpen(false);
-  }, [user]);
-  useEffect(() => {
-    if (!configured) {
-      return;
-    }
-    const auth = getFirebaseAuth();
-    const unsub = onAuthStateChanged(auth, (nextUser) => {
-      startTransition(() => setAuthInitialized(true));
-      setUser(nextUser);
-    });
-    return () => unsub();
-  }, [configured]);
-
   /** 비로그인 상태에서는 사용자 시트 액션(로비/로그아웃)이 없으므로 시트를 닫음 */
   useEffect(() => {
     if (!user) setUserInfoSheetOpen(false);
   }, [user]);
-
-  useEffect(() => {
-    if (!configured || !user) {
-      startTransition(() => setFsSync({ state: "idle" }));
-      return;
-    }
-    if (user.isAnonymous) {
-      startTransition(() => setFsSync({ state: "ok" }));
-      return;
-    }
-    let cancelled = false;
-    startTransition(() => setFsSync({ state: "syncing" }));
-    void (async () => {
-      try {
-        const stored = await getUserProfileNickname(user.uid);
-        if (cancelled) return;
-        if (stored == null || !isValidNickname(stored)) {
-          startTransition(() => setFsSync({ state: "awaiting_nickname" }));
-          return;
-        }
-        await claimNicknameTransaction(user, stored);
-        if (cancelled) return;
-        startTransition(() => setFsSync({ state: "ok" }));
-      } catch (e: unknown) {
-        if (e instanceof NicknameTakenError) {
-          if (!cancelled) startTransition(() => setFsSync({ state: "awaiting_nickname" }));
-          if (!cancelled) setError(`${e.message} 다른 계정이 먼저 사용 중입니다. 닉네임을 바꿔 주세요.`);
-        } else if (
-          typeof e === "object" &&
-          e !== null &&
-          (e as { code?: string }).code === "aborted"
-        ) {
-          if (!cancelled) startTransition(() => setFsSync({ state: "awaiting_nickname" }));
-          if (!cancelled) {
-            setError("다른 분이 먼저 같은 닉네임을 선택했습니다. 닉네임을 바꿔 주세요.");
-          }
-        } else {
-          const message = e instanceof Error ? e.message : String(e);
-          if (!cancelled) startTransition(() => setFsSync({ state: "error", message }));
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [configured, user]);
 
   useEffect(() => {
     if (!configured || !user) return;
@@ -1073,121 +982,6 @@ export default function App() {
     [rideStatus, startLngLat, endLngLat, routeWaypoints, profile, resetRide, user],
   );
 
-  /** 로그아웃 후 맵 TR「로그인」— 이전 Google 팝업 취소로 남은 busy 를 지워 즉시 버튼을 활성화 */
-  const openSignedOutAuthSheet = useCallback(() => {
-    setBusy(false);
-    setAuthSheetOpen(true);
-  }, []);
-
-  async function handleGuestStart() {
-    if (!postSignoutMapSession) {
-      setAuthSheetOpen(false);
-    }
-    setAuthPickCardHidden(true);
-    setError(null);
-    setBusy(true);
-    try {
-      await signInAnonymously(getFirebaseAuth());
-    } catch (e: unknown) {
-      setAuthPickCardHidden(false);
-      if (postSignoutMapSession) setAuthSheetOpen(true);
-      const message = e instanceof Error ? e.message : String(e);
-      setError(`게스트(익명) 로그인 실패: ${message}`);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function handleGoogleSignIn() {
-    if (!postSignoutMapSession) {
-      setAuthSheetOpen(false);
-    }
-    setAuthPickCardHidden(true);
-    setError(null);
-    // Google 팝업은 자체 로딩 UX — signInWithPopup 이 취소 후에도 수 초 pending 될 수 있어
-    // busy 로 버튼을 막으면 로그인 시트가 5초+ 비활성처럼 보인다.
-    try {
-      const auth = getFirebaseAuth();
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: "select_account" });
-      const current = auth.currentUser;
-      if (!current) {
-        await signInWithPopup(auth, provider);
-        return;
-      }
-      if (current.isAnonymous) {
-        try {
-          await linkWithPopup(current, provider);
-        } catch (inner: unknown) {
-          const ie = inner as { code?: string };
-          // 같은 Google이 이미 다른 Firebase uid에 묶여 있으면, 두 번째 팝업 대신 실패 응답에 실린 credential 로 로그인
-          if (
-            ie.code === "auth/credential-already-in-use" ||
-            ie.code === "auth/account-exists-with-different-credential"
-          ) {
-            const cred = GoogleAuthProvider.credentialFromError(inner as FirebaseError);
-            if (cred) {
-              await signInWithCredential(auth, cred);
-            } else {
-              await signInWithPopup(auth, provider);
-            }
-          } else {
-            throw inner;
-          }
-        }
-      } else {
-        await signInWithPopup(auth, provider);
-      }
-    } catch (e: unknown) {
-      if (isBenignAuthPopupCancel(e)) {
-        setAuthPickCardHidden(false);
-        if (postSignoutMapSession) setAuthSheetOpen(true);
-        return;
-      }
-      setAuthPickCardHidden(false);
-      if (postSignoutMapSession) setAuthSheetOpen(true);
-      const err = e as { code?: string; message?: string };
-      if (err.code === "auth/account-exists-with-different-credential") {
-        setError(
-          "이 Google 계정은 다른 로그인 방식과 연결되어 있습니다. 해당 방식으로 로그인하거나 Firebase 콘솔에서 계정을 확인해 주세요.",
-        );
-      } else {
-        setError(e instanceof Error ? e.message : String(e));
-      }
-    }
-  }
-
-  const handleCompleteNickname = useCallback(
-    async (nickname: string) => {
-      if (!user || user.isAnonymous) return;
-      if (!isValidNickname(nickname)) return;
-      setError(null);
-      setBusy(true);
-      try {
-        await claimNicknameTransaction(user, nickname);
-        await updateProfile(user, { displayName: nickname });
-        await reload(user);
-        startTransition(() => setFsSync({ state: "ok" }));
-      } catch (e: unknown) {
-        if (e instanceof NicknameTakenError) {
-          setError(e.message);
-        } else if (
-          typeof e === "object" &&
-          e !== null &&
-          (e as { code?: string }).code === "aborted"
-        ) {
-          setError("다른 분이 먼저 같은 닉네임을 선택했습니다. 다른 닉네임으로 다시 시도해 주세요.");
-        } else {
-          const message = e instanceof Error ? e.message : String(e);
-          setError(`닉네임 저장 실패: ${message}`);
-        }
-      } finally {
-        setBusy(false);
-      }
-    },
-    [user],
-  );
-
   /** URL·MENU 방 전환 후 메뉴 닫고 지도에 집중(지명 선택과 동일한 습관) */
   const applyRoomFromDraft = useCallback(() => {
     commitRoomFromDraft();
@@ -1433,7 +1227,8 @@ export default function App() {
     if (lastEndedWasAdhoc) setSummarySheetVisible(true);
   }, [lastEndedWasAdhoc]);
 
-  /** 로비·코스 정리 후 Firebase 로그아웃 — 맵은 유지하고 우측 상단「로그인」으로 재인증(게스트·Google 공통) */  async function handleServiceExit() {
+  /** 로비·코스 정리 후 Firebase 로그아웃 — 맵은 유지하고 우측 상단「로그인」으로 재인증(게스트·Google 공통) */
+  async function handleServiceExit() {
     setError(null);
     setBusy(true);
     try {
@@ -1453,24 +1248,7 @@ export default function App() {
       }
       setBasicActiveHubCourseId(null);
       setRecentSessions(loadRideSessions());
-      setAuthSheetOpen(false);
-      try {
-        sessionStorage.setItem(POST_SIGNOUT_MAP_SESSION_KEY, "1");
-      } catch {
-        /* noop */
-      }
-      setPostSignoutMapSession(true);
-      try {
-        await signOut(getFirebaseAuth());
-      } catch (signOutErr) {
-        try {
-          sessionStorage.removeItem(POST_SIGNOUT_MAP_SESSION_KEY);
-        } catch {
-          /* noop */
-        }
-        setPostSignoutMapSession(false);
-        throw signOutErr;
-      }
+      await completeFirebaseSignOutKeepMap();
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
       setError(message);
