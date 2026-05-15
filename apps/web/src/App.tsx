@@ -224,6 +224,8 @@ export default function App() {
     /** Mapbox [west,south,east,north] — 있으면 지도가 `fitBounds` 로 도시 프레이밍 */
     bbox?: [number, number, number, number] | null;
   } | null>(null);
+  /** 메뉴 장소 검색으로 이동한 위치(지도 마커) */
+  const [placeSearchMarkerLngLat, setPlaceSearchMarkerLngLat] = useState<LngLat | null>(null);
   const cameraJumpSeqRef = useRef(0);
   const [mapViewSheetOpen, setMapViewSheetOpen] = useState(false);
   const [userInfoSheetOpen, setUserInfoSheetOpen] = useState(false);
@@ -897,6 +899,7 @@ export default function App() {
       loadedSavedRouteNameRef.current = route.name;
       setLastEndedWasAdhoc(null);
       setActiveOfficialCourseId(null);
+      setPlaceSearchMarkerLngLat(null);
       setRouteSummary(
         `「${route.name}」 불러옴 · 거리 ${(route.distanceMeters / 1000).toFixed(2)} km / 예상 ${formatDuration(route.durationSec)}`,
       );
@@ -1021,6 +1024,7 @@ export default function App() {
         loadedSavedRouteNameRef.current = null;
         setLastEndedWasAdhoc(null);
         basicStartHubLeftExplicitRef.current = false;
+        setPlaceSearchMarkerLngLat(null);
         const joinHubPresence =
           Boolean(user) && (BASIC_SHARED_HUB_IDS as readonly string[]).includes(resolved.id);
         setBasicActiveHubCourseId(joinHubPresence ? resolved.id : null);
@@ -1090,6 +1094,7 @@ export default function App() {
         loadedSavedRouteNameRef.current = null;
         setLastEndedWasAdhoc(null);
         setActiveOfficialCourseId(null);
+        setPlaceSearchMarkerLngLat(null);
       } catch (e: unknown) {
         const fe = e as { code?: string; message?: string };
         const message =
@@ -1759,6 +1764,7 @@ export default function App() {
     loadedSavedRouteIdRef.current = null;
     loadedSavedRouteNameRef.current = null;
     setActiveOfficialCourseId(null);
+    setPlaceSearchMarkerLngLat(null);
   }
 
   function handleMenuPlacePick(lngLat: LngLat, _placeName: string, _bbox: [number, number, number, number] | null) {
@@ -1772,6 +1778,7 @@ export default function App() {
       zoom: 13,
       requestId: cameraJumpSeqRef.current,
     });
+    setPlaceSearchMarkerLngLat(lngLat);
     setMenuOpen(false);
   }
 
@@ -1930,6 +1937,7 @@ export default function App() {
             }
           }}
           externalCameraJump={externalCameraJump}
+          placeSearchMarkerLngLat={placeSearchMarkerLngLat}
           lobbySpectatorDots={spectatorDots}
           lobbySpectatorRoutes={spectatorRouteGeometries}
         />

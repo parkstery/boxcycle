@@ -374,6 +374,8 @@ export type MapViewProps = {
     requestId: number;
     bbox?: [number, number, number, number] | null;
   } | null;
+  /** 메뉴 장소 검색으로 이동한 위치 — 기본 핀과 구분되는 마커 */
+  placeSearchMarkerLngLat?: LngLat | null;
   /** 로비: 같은 방에서 코스 주행 중인 다른 사용자(원 + 노선 LOD 는 부모에서 처리) */
   lobbySpectatorDots?: LobbySpectatorDot[] | null;
   lobbySpectatorRoutes?: LineStringGeometry[] | null;
@@ -402,6 +404,7 @@ export function MapView({
   coverageOverlayMode,
   mapillaryClientToken,
   externalCameraJump = null,
+  placeSearchMarkerLngLat = null,
   lobbySpectatorDots = null,
   lobbySpectatorRoutes = null,
 }: MapViewProps) {
@@ -418,6 +421,7 @@ export function MapView({
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const startMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const endMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const placeSearchMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const waypointMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const liveMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const liveMarkerPedalSpriteRef = useRef<HTMLDivElement | null>(null);
@@ -654,12 +658,14 @@ export function MapView({
       window.removeEventListener("resize", onResize);
       startMarkerRef.current?.remove();
       endMarkerRef.current?.remove();
+      placeSearchMarkerRef.current?.remove();
       for (const wm of waypointMarkersRef.current) wm.remove();
       waypointMarkersRef.current = [];
       liveMarkerRef.current?.remove();
       popupRef.current?.remove();
       startMarkerRef.current = null;
       endMarkerRef.current = null;
+      placeSearchMarkerRef.current = null;
       waypointMarkersRef.current = [];
       liveMarkerRef.current = null;
       liveMarkerFlipRef.current = null;
@@ -818,6 +824,29 @@ export function MapView({
       endMarkerRef.current = null;
     }
   }, [startLngLat, endLngLat, mapLoaded]);
+
+  /** 메뉴 장소 검색 결과 위치 */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+
+    if (placeSearchMarkerLngLat) {
+      if (!placeSearchMarkerRef.current) {
+        placeSearchMarkerRef.current = new mapboxgl.Marker({
+          color: "#0ea5e9",
+          className: "map-view__pin-marker map-view__pin-marker--place-search",
+          ...PIN_MARKER_VIEWPORT_ALIGNMENT,
+        })
+          .setLngLat(placeSearchMarkerLngLat)
+          .addTo(map);
+      } else {
+        placeSearchMarkerRef.current.setLngLat(placeSearchMarkerLngLat);
+      }
+    } else {
+      placeSearchMarkerRef.current?.remove();
+      placeSearchMarkerRef.current = null;
+    }
+  }, [placeSearchMarkerLngLat, mapLoaded]);
 
   /** 경과지 마커(순번 1…3) */
   useEffect(() => {
