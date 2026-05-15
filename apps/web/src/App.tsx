@@ -100,7 +100,7 @@ import {
   saveRideSessions,
   type StoredRideSession,
 } from "./lib/rideSessionsStorage";
-import { readRoomIdFromLocation, replaceRoomInUrl } from "./lib/roomUrl";
+import { useAppRoom } from "./hooks/useAppRoom";
 import {
   claimNicknameTransaction,
   getUserProfileNickname,
@@ -146,8 +146,7 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fsSync, setFsSync] = useState<FsSyncState>({ state: "idle" });
-  const [roomId, setRoomId] = useState(readRoomIdFromLocation);
-  const [roomDraft, setRoomDraft] = useState(readRoomIdFromLocation);
+  const { roomId, roomDraft, setRoomDraft, applyRoomFromDraft: commitRoomFromDraft } = useAppRoom();
   const configured = isFirebaseConfigured();
 
   const [startLngLat, setStartLngLat] = useState<LngLat | null>(null);
@@ -384,16 +383,6 @@ export default function App() {
       window.clearInterval(id);
     };
   }, [configured, user, pageVisible, mapZoom]);
-
-  useEffect(() => {
-    const onPop = () => {
-      const next = readRoomIdFromLocation();
-      setRoomId(next);
-      setRoomDraft(next);
-    };
-    window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
-  }, []);
 
   /** Firebase Auth 첫 onAuthStateChanged 수신 여부(영속 세션 복원 vs 미로그인 구분) */
   const [authInitialized, setAuthInitialized] = useState(false);
@@ -1201,12 +1190,9 @@ export default function App() {
 
   /** URL·MENU 방 전환 후 메뉴 닫고 지도에 집중(지명 선택과 동일한 습관) */
   const applyRoomFromDraft = useCallback(() => {
-    const next = sanitizeRoomId(roomDraft);
-    setRoomDraft(next);
-    setRoomId(next);
-    replaceRoomInUrl(next);
+    commitRoomFromDraft();
     setMenuOpen(false);
-  }, [roomDraft]);
+  }, [commitRoomFromDraft]);
 
   function handleStartRide() {
     if (!routeGeometry || rideStatus !== "idle") return;
