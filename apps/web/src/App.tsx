@@ -1727,13 +1727,15 @@ export default function App() {
     setActiveOfficialCourseId(null);
   }
 
-  function handleMenuPlacePick(lngLat: LngLat, _placeName: string, bbox: [number, number, number, number] | null) {
+  function handleMenuPlacePick(lngLat: LngLat, _placeName: string, _bbox: [number, number, number, number] | null) {
     /** `liveForMap` 추적 jumpTo 가 flyTo 를 덮어쓰지 않도록 */
     setFollowMode("free");
     cameraJumpSeqRef.current += 1;
     setExternalCameraJump({
       lngLat,
-      bbox,
+      /** 검색 위치 이동은 줌 13 고정 — bbox fitBounds 는 줌이 들쭉날쭉해져서 사용하지 않음 */
+      bbox: null,
+      zoom: 13,
       requestId: cameraJumpSeqRef.current,
     });
     setMenuOpen(false);
