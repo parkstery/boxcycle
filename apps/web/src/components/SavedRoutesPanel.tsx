@@ -24,7 +24,9 @@ export type SavedRoutesPanelProps = {
   sessionIdle: boolean;
   /** 공개 등록 심사 중인 savedRouteId (Firestore 신청 기준) */
   pendingPublicRouteIds?: ReadonlySet<string>;
-  /** 로그인 사용자: 완주 경로 퍼블릭 신청 모달 열기(게스트는 동일 라벨 비활성 버튼만 표시) */
+  /** 이미 퍼블릭 코스로 승인·등록된 원본 savedRouteId (`courses.sourceSavedRouteId`) */
+  publishedPublicSavedRouteIds?: ReadonlySet<string>;
+  /** 로그인 사용자: 완주 경로 퍼블릭 등록 모달 열기(게스트는 동일 라벨 비활성 버튼만 표시) */
   onOpenPublicRequest?: (route: SavedRoute) => void;
   onLoadRoute: (route: SavedRoute) => void;
   onRenameRoute: (route: SavedRoute, newName: string) => Promise<void> | void;
@@ -271,18 +273,27 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                             type="button"
                             className="saved-routes__btn saved-routes__btn--accent"
                             disabled
-                            title="Sign in to request public listing"
+                            title="퍼블릭 등록을 쓰려면 로그인하세요"
                           >
-                            퍼블릭 신청
+                            퍼블릭
                           </button>
                         ) : props.onOpenPublicRequest ? (
                           props.pendingPublicRouteIds?.has(route.id) ? (
                             <span
                               className="saved-routes__badge saved-routes__badge--pending"
-                              title="Awaiting admin review"
+                              title="관리자 심사 대기 중"
                             >
                               공개 심사 중
                             </span>
+                          ) : props.publishedPublicSavedRouteIds?.has(route.id) ? (
+                            <button
+                              type="button"
+                              className="saved-routes__btn saved-routes__btn--accent"
+                              disabled
+                              title="이미 퍼블릭 코스로 등록된 경로입니다"
+                            >
+                              퍼블릭
+                            </button>
                           ) : (
                             <button
                               type="button"
@@ -290,12 +301,12 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                               disabled={isBusy || !props.sessionIdle}
                               title={
                                 props.sessionIdle
-                                  ? "Request listing this route publicly"
-                                  : "Available when idle"
+                                  ? "퍼블릭 코스 등록 신청"
+                                  : "주행 종료 후 사용할 수 있습니다"
                               }
                               onClick={() => props.onOpenPublicRequest?.(route)}
                             >
-                              퍼블릭 신청
+                              퍼블릭
                             </button>
                           )
                         ) : null

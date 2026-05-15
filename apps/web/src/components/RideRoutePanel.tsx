@@ -70,6 +70,8 @@ type RideRoutePanelProps = {
   publicRouteReviewQueueCount?: number;
   onPublicRouteReviewQueueChanged?: () => void;
   pendingPublicRouteIds?: ReadonlySet<string>;
+  /** 퍼블릭 코스로 이미 등록된 원본 savedRouteId */
+  publishedPublicSavedRouteIds?: ReadonlySet<string>;
   onOpenPublicRequest?: (route: SavedRoute) => void;
   /** 코칭 TTS(Web Speech) */
   rideTtsEnabled: boolean;
@@ -300,6 +302,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             guestNotice={props.authGuest}
             sessionIdle={props.sessionStatus === "idle"}
             pendingPublicRouteIds={props.pendingPublicRouteIds}
+            publishedPublicSavedRouteIds={props.publishedPublicSavedRouteIds}
             onOpenPublicRequest={props.onOpenPublicRequest}
             onLoadRoute={(route) => {
               props.onLoadSavedRoute(route);

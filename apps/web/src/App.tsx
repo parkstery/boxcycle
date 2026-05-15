@@ -630,6 +630,16 @@ export default function App() {
     void refreshPublishedPublicCourseCatalog();
   }, [refreshPublishedPublicCourseCatalog]);
 
+  const publishedPublicSavedRouteIds = useMemo(
+    () =>
+      new Set(
+        publishedPublicCourses
+          .map((c) => c.sourceSavedRouteId)
+          .filter((id): id is string => typeof id === "string" && id.length > 0),
+      ),
+    [publishedPublicCourses],
+  );
+
   const refreshPublicRouteMeta = useCallback(async () => {
     if (!configured || !user) {
       setIsPublicRouteReviewer(false);
@@ -2023,6 +2033,7 @@ export default function App() {
           publicRouteReviewQueueCount={publicRouteReviewQueueCount}
           onPublicRouteReviewQueueChanged={onPublicRouteReviewQueueChanged}
           pendingPublicRouteIds={pendingPublicRouteIds}
+          publishedPublicSavedRouteIds={publishedPublicSavedRouteIds}
           onOpenPublicRequest={(route) => setPublicRouteRequestModalRoute(route)}
           rideTtsEnabled={rideTtsEnabled}
           onRideTtsEnabled={setRideTtsEnabled}

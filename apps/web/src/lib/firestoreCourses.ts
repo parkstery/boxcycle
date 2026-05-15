@@ -93,6 +93,8 @@ export type PublishedPublicCourseSummary = {
   profile: CourseProfile;
   distanceMeters: number;
   durationSec: number;
+  /** UGC 승인 시 원본 `savedRoutes` 문서 ID — 동일 내 경로의 퍼블릭 재신청 방지에 사용 */
+  sourceSavedRouteId?: string | null;
 };
 
 function parseCourseProfile(raw: Record<string, unknown>): CourseProfile {
@@ -239,12 +241,15 @@ export async function listPublishedPublicCourses(max = 40): Promise<PublishedPub
   for (const d of snap.docs) {
     const data = d.data() as Record<string, unknown>;
     if (typeof data.title !== "string" || data.title.length < 1) continue;
+    const sid = data.sourceSavedRouteId;
     rows.push({
       id: d.id,
       title: data.title,
       profile: parseCourseProfile(data),
       distanceMeters: typeof data.distanceMeters === "number" ? data.distanceMeters : 0,
       durationSec: typeof data.durationSec === "number" ? data.durationSec : 0,
+      sourceSavedRouteId:
+        typeof sid === "string" && sid.length > 0 ? sid : null,
     });
   }
   rows.sort((a, b) => a.title.localeCompare(b.title, "ko"));
