@@ -1,5 +1,9 @@
 import { useMemo, useState } from "react";
 import type { SavedRoute } from "../lib/firestoreSavedRoutes";
+import {
+  encodeCanonicalRouteGeometryProfile,
+  fingerprintFromCanonicalSync,
+} from "../lib/routeFingerprint";
 import { formatDuration } from "../services/mapboxDirections";
 import "./SavedRoutesPanel.css";
 
@@ -26,6 +30,8 @@ export type SavedRoutesPanelProps = {
   pendingPublicRouteIds?: ReadonlySet<string>;
   /** 이미 퍼블릭 코스로 승인·등록된 원본 savedRouteId (`courses.sourceSavedRouteId`) */
   publishedPublicSavedRouteIds?: ReadonlySet<string>;
+  /** 퍼블릭 게시 코스와 동일한 경로 지문(카탈로그 밖 코스까지 DB 조회) */
+  publishedPublicRouteFingerprints?: ReadonlySet<string>;
   /** 로그인 사용자: 완주 경로 퍼블릭 등록 모달 열기(게스트는 동일 라벨 비활성 버튼만 표시) */
   onOpenPublicRequest?: (route: SavedRoute) => void;
   onLoadRoute: (route: SavedRoute) => void;
@@ -161,6 +167,12 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
           {filtered.map((route) => {
             const isRenaming = renamingId === route.id;
             const isBusy = busyId === route.id;
+            const routeFp = fingerprintFromCanonicalSync(
+              encodeCanonicalRouteGeometryProfile(route.geometry, route.profile),
+            );
+            const alreadyPublishedPublic =
+              (props.publishedPublicSavedRouteIds?.has(route.id) ?? false) ||
+              (props.publishedPublicRouteFingerprints?.has(routeFp) ?? false);
             return (
               <li key={route.id} className="saved-routes__item">
                 {isRenaming ? (
@@ -285,7 +297,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                             >
                               공개 심사 중
                             </span>
-                          ) : props.publishedPublicSavedRouteIds?.has(route.id) ? (
+                          ) : alreadyPublishedPublic ? (
                             <button
                               type="button"
                               className="saved-routes__btn saved-routes__btn--accent"

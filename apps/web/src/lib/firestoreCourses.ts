@@ -256,6 +256,36 @@ export async function listPublishedPublicCourses(max = 40): Promise<PublishedPub
   return rows;
 }
 
+/**
+ * 완주 사용자 경로 지문 중, 이미 퍼블릭 코스(`courses`)로 게시된 것만 반환.
+ * `listPublishedPublicCourses` 일부만 로드할 때 빠지는 코스를 보완한다.
+ */
+export async function findPublishedPublicFingerprintsAmong(
+  candidates: readonly string[],
+): Promise<Set<string>> {
+  const out = new Set<string>();
+  const uniq = [...new Set(candidates.filter((f) => typeof f === "string" && f.length === 64))];
+  if (uniq.length === 0) return out;
+  const db = getFirestore(getFirebaseApp());
+  const chunkSize = 30;
+  for (let i = 0; i < uniq.length; i += chunkSize) {
+    const chunk = uniq.slice(i, i + chunkSize);
+    const qy = query(
+      collection(db, "courses"),
+      where("routeFingerprint", "in", chunk),
+      where("category", "==", "public"),
+      where("status", "==", "published"),
+      limit(chunkSize),
+    );
+    const snap = await getDocs(qy);
+    snap.forEach((docSnap) => {
+      const fp = (docSnap.data() as { routeFingerprint?: unknown }).routeFingerprint;
+      if (typeof fp === "string" && chunk.includes(fp)) out.add(fp);
+    });
+  }
+  return out;
+}
+
 export function getBasicStartCourseStatic(): CourseRoutePayload {
   return getBasicHubCoursePayload(BASIC_START_COURSE_ID);
 }

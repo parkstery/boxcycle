@@ -49,6 +49,7 @@ import {
   fetchCourseRoutePayload,
   getBasicHubCoursePayload,
   listPublishedPublicCourses,
+  findPublishedPublicFingerprintsAmong,
   matchBasicSharedHubCourseId,
   routeGeometryMatchesBasicSharedHub,
   type PublishedPublicCourseSummary,
@@ -90,6 +91,10 @@ import {
 import type { LineStringGeometry, LngLat } from "./lib/geo";
 import { formatLngLat, getPointOnRouteByDistance, lineStringLengthMeters } from "./lib/geo";
 import { MAX_ROUTE_WAYPOINTS } from "./lib/routeWaypoints";
+import {
+  encodeCanonicalRouteGeometryProfile,
+  fingerprintFromCanonicalSync,
+} from "./lib/routeFingerprint";
 import {
   loadRideSessions,
   saveRideSessions,
@@ -639,6 +644,35 @@ export default function App() {
       ),
     [publishedPublicCourses],
   );
+
+  const [publishedPublicRouteFingerprints, setPublishedPublicRouteFingerprints] = useState<
+    ReadonlySet<string>
+  >(() => new Set());
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!configured || !user) {
+      setPublishedPublicRouteFingerprints(new Set());
+      return;
+    }
+    const fps = savedRoutes
+      .filter((r) => r.completed === 1)
+      .map((r) =>
+        fingerprintFromCanonicalSync(
+          encodeCanonicalRouteGeometryProfile(r.geometry, r.profile),
+        ),
+      );
+    void findPublishedPublicFingerprintsAmong(fps)
+      .then((hit) => {
+        if (!cancelled) setPublishedPublicRouteFingerprints(hit);
+      })
+      .catch(() => {
+        if (!cancelled) setPublishedPublicRouteFingerprints(new Set());
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [configured, user, savedRoutes, publishedPublicCourses, pendingPublicRouteIds]);
 
   const refreshPublicRouteMeta = useCallback(async () => {
     if (!configured || !user) {
@@ -2036,6 +2070,7 @@ export default function App() {
           onPublicRouteReviewQueueChanged={onPublicRouteReviewQueueChanged}
           pendingPublicRouteIds={pendingPublicRouteIds}
           publishedPublicSavedRouteIds={publishedPublicSavedRouteIds}
+          publishedPublicRouteFingerprints={publishedPublicRouteFingerprints}
           onOpenPublicRequest={(route) => setPublicRouteRequestModalRoute(route)}
           rideTtsEnabled={rideTtsEnabled}
           onRideTtsEnabled={setRideTtsEnabled}
