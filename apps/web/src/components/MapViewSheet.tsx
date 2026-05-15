@@ -203,9 +203,33 @@ export function MapViewSheet(props: MapViewSheetProps) {
         <div className="map-view-sheet__group">
           <span className="map-view-sheet__label-title">줌</span>
           <div className="map-view-sheet__row-body map-view-sheet__row-body--zoom">
+            <button
+              type="button"
+              className="map-view-sheet__zoom-step"
+              title="한 단계 축소"
+              aria-label="줌 한 단계 축소"
+              onClick={() => {
+                const z = Math.round((props.mapZoom - 1) * 10) / 10;
+                props.onMapZoom(Math.max(3, z));
+              }}
+            >
+              −
+            </button>
             <span className="map-view-sheet__zoom-readout" aria-live="polite">
               {props.mapZoom.toFixed(1)}
             </span>
+            <button
+              type="button"
+              className="map-view-sheet__zoom-step"
+              title="한 단계 확대"
+              aria-label="줌 한 단계 확대"
+              onClick={() => {
+                const z = Math.round((props.mapZoom + 1) * 10) / 10;
+                props.onMapZoom(Math.min(20, z));
+              }}
+            >
+              +
+            </button>
             <input
               type="range"
               className="map-view-sheet__range"

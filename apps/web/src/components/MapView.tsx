@@ -419,6 +419,8 @@ export function MapView({
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
+  /** props `mapZoom` → `map.zoomTo` 적용을 한 프레임으로 묶어 연속 onChange·리렌더 떨림 완화 */
+  const mapZoomApplyRafRef = useRef<number | null>(null);
   const startMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const endMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const placeSearchMarkerRef = useRef<mapboxgl.Marker | null>(null);
@@ -549,7 +551,10 @@ export function MapView({
     map.addControl(new mapboxgl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-right");
     mapRef.current = map;
 
-    map.on("load", () => setMapLoaded(true));
+    map.on("load", () => {
+      setMapLoaded(true);
+      onMapZoomRef.current(Number(map.getZoom().toFixed(1)));
+    });
 
     map.on("style.load", () => {
       const latestRoute = routeGeometryRef.current;
@@ -646,7 +651,8 @@ export function MapView({
       popupRef.current = popup;
     });
 
-    map.on("zoom", () => {
+    /** `zoom` 은 제스처·네비 버튼 애니메이션 중 매 프레임 발생 → React 재동기화가 `zoomTo` 와 맞물려 떨림 유발. 완료 시점만 반영 */
+    map.on("zoomend", () => {
       onMapZoomRef.current(Number(map.getZoom().toFixed(1)));
     });
 
@@ -992,7 +998,22 @@ export function MapView({
     if (!map || !mapLoaded) return;
     if (performance.now() < suppressCameraFollowUntilRef.current) return;
     if (Math.abs(map.getZoom() - mapZoom) < 0.05) return;
-    map.zoomTo(mapZoom, { duration: 0 });
+
+    if (mapZoomApplyRafRef.current != null) cancelAnimationFrame(mapZoomApplyRafRef.current);
+    mapZoomApplyRafRef.current = requestAnimationFrame(() => {
+      mapZoomApplyRafRef.current = null;
+      const m = mapRef.current;
+      if (!m || !m.isStyleLoaded()) return;
+      if (performance.now() < suppressCameraFollowUntilRef.current) return;
+      if (Math.abs(m.getZoom() - mapZoom) < 0.05) return;
+      m.zoomTo(mapZoom, { duration: 0 });
+    });
+    return () => {
+      if (mapZoomApplyRafRef.current != null) {
+        cancelAnimationFrame(mapZoomApplyRafRef.current);
+        mapZoomApplyRafRef.current = null;
+      }
+    };
   }, [mapZoom, mapLoaded]);
 
   useEffect(() => {

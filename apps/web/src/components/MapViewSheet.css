@@ -252,7 +252,31 @@
 }
 
 .map-view-sheet__row-body--zoom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 0.45rem;
+}
+
+.map-view-sheet__zoom-step {
+  flex: 0 0 auto;
+  appearance: none;
+  width: 1.85rem;
+  height: 1.65rem;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid rgba(248, 250, 252, 0.22);
+  background: rgba(15, 23, 42, 0.55);
+  color: #f8fafc;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.map-view-sheet__zoom-step:hover {
+  background: rgba(248, 250, 252, 0.12);
 }
 
 .map-view-sheet__zoom-readout {
