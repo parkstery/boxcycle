@@ -85,6 +85,13 @@ export type MapHudProps = {
   ridePresence?: MapHudRidePresence | null;
   /** 줌 축소 시 월드 레이어 한 줄(집계 문서 기반, 저빈도 갱신) */
   worldActivityHint?: string | null;
+  /** idle 단계 첫 진입 안내 문구 */
+  idleHintMessage?: string;
+  /** setup 단계(B 여정)·세션당 1회 안내 표시 여부(App 이 sessionStorage 와 상태로 제어) */
+  showSetupRouteHint?: boolean;
+  onDismissSetupRouteHint?: () => void;
+  /** B 여정 안내 문구 (setup 단계) */
+  setupRouteHintMessage?: string;
 };
 
 /**
@@ -124,6 +131,10 @@ export function MapHud(props: MapHudProps) {
     onDismissIdleHint,
     ridePresence,
     worldActivityHint,
+    idleHintMessage = "입문: MENU → 입문 코스 → ▶",
+    showSetupRouteHint = false,
+    onDismissSetupRouteHint,
+    setupRouteHintMessage = "내 경로: 출발·도착까지 찍은 뒤 MENU → 「경로 생성」",
   } = props;
 
   const riding = stage === "riding";
@@ -184,7 +195,7 @@ export function MapHud(props: MapHudProps) {
                 {ridePresence.lobbyEnabled ? (
                   <div className="hud-ride-presence__block">
                     <div className="hud-ride-presence__head">
-                      <span className="hud-ride-presence__tag">로비</span>
+                      <span className="hud-ride-presence__tag">접속</span>
                       <span className="hud-ride-presence__room" title={ridePresence.roomId}>
                         방 {ridePresence.roomId}
                       </span>
@@ -313,6 +324,18 @@ export function MapHud(props: MapHudProps) {
               </button>
             )}
           </div>
+          {stage === "setup" &&
+          showSetupRouteHint &&
+          typeof onDismissSetupRouteHint === "function" ? (
+            <button
+              type="button"
+              className="hud-setup-route-hint"
+              onClick={onDismissSetupRouteHint}
+              title="안내 닫기(이 브라우저 탭에서는 다시 안 띄움)"
+            >
+              {setupRouteHintMessage}
+            </button>
+          ) : null}
         </div>
       ) : null}
 
@@ -424,7 +447,7 @@ export function MapHud(props: MapHudProps) {
               onClick={onDismissIdleHint}
               title="Dismiss hint"
             >
-              지도를 탭 → 출발·도착
+              {idleHintMessage}
             </button>
           ) : null}
           <div className="map-hud__br-main">

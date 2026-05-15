@@ -60,26 +60,37 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
         title="Close"
         onClick={props.onClose}
       />
-      <div className="ride-summary__sheet">
+      <div className="ride-summary__sheet" role="dialog" aria-labelledby="ride-summary-title">
         <div className="ride-summary__handle" aria-hidden />
         <div className="ride-summary__head">
-          <h2 className="ride-summary__title">주행 결과</h2>
+          <h2 id="ride-summary-title" className="ride-summary__title">
+            주행 결과
+          </h2>
           {props.arrivalCompleted ? <span className="ride-summary__badge">도착</span> : null}
+          <button
+            type="button"
+            className="ride-summary__close"
+            title="Close"
+            aria-label="닫기"
+            onClick={props.onClose}
+          >
+            닫기
+          </button>
         </div>
-        <div className="ride-summary__grid">
-          <div className="ride-summary__cell">
+        <div className="ride-summary__stats">
+          <div className="ride-summary__stat">
             <span className="ride-summary__k">시간</span>
             <strong className="ride-summary__v">{props.elapsedLabel}</strong>
           </div>
-          <div className="ride-summary__cell">
+          <div className="ride-summary__stat">
             <span className="ride-summary__k">거리</span>
             <strong className="ride-summary__v">{props.distanceKm} km</strong>
           </div>
-          <div className="ride-summary__cell">
+          <div className="ride-summary__stat">
             <span className="ride-summary__k">평속</span>
             <strong className="ride-summary__v">{props.avgKmh} km/h</strong>
           </div>
-          <div className="ride-summary__cell">
+          <div className="ride-summary__stat">
             <span className="ride-summary__k">칼로리</span>
             <strong className="ride-summary__v">{props.caloriesEstimate} kcal</strong>
           </div>
@@ -88,8 +99,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
         {props.adhocSaveAvailable ? (
           <>
             <p className="ride-summary__policy">
-              주행 종료 후에도 코스는 자동 저장되지 않습니다. 목록에 남기려면 이름을 입력한 뒤 「내 경로로
-              저장」을 누르면 바로 저장됩니다.
+              자동 저장은 없습니다. 목록에 남기려면 이름을 입력한 뒤 저장하세요.
             </p>
             <div className="ride-summary__form">
               <input
@@ -100,39 +110,30 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
-              <button
-                type="button"
-                className="ride-summary__btn ride-summary__btn--primary"
-                title="Save to my routes"
-                onClick={() => void commitSave()}
-                disabled={busy}
-              >
-                {busy ? "저장 중…" : "내 경로로 저장"}
-              </button>
-              <button
-                type="button"
-                className="ride-summary__btn"
-                title="Skip saving"
-                onClick={props.onDismissAdhoc}
-                disabled={busy}
-              >
-                저장 안 함
-              </button>
+              <div className="ride-summary__form-btns">
+                <button
+                  type="button"
+                  className="ride-summary__btn ride-summary__btn--primary"
+                  title="Save to my routes"
+                  onClick={() => void commitSave()}
+                  disabled={busy}
+                >
+                  {busy ? "저장 중…" : "내 경로로 저장"}
+                </button>
+                <button
+                  type="button"
+                  className="ride-summary__btn ride-summary__btn--ghost"
+                  title="Skip saving"
+                  onClick={props.onDismissAdhoc}
+                  disabled={busy}
+                >
+                  저장 안 함
+                </button>
+              </div>
             </div>
             {error ? <p className="ride-summary__err">{error}</p> : null}
           </>
         ) : null}
-
-        <div className="ride-summary__actions">
-          <button
-            type="button"
-            className="ride-summary__btn"
-            title="Close"
-            onClick={props.onClose}
-          >
-            닫기
-          </button>
-        </div>
       </div>
     </div>
   );

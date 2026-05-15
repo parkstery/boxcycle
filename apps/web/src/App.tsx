@@ -29,9 +29,11 @@ import { AuthGateCard, AuthGoogleMark } from "./components/AuthGateCard";
 import { RideSummarySheet } from "./components/RideSummarySheet";
 import { MenuPanel } from "./components/MenuPanel";
 import { MenuPlaceSearch } from "./components/MenuPlaceSearch";
+import { RoomSwitcher } from "./components/RoomSwitcher";
 import { RotateOverlay } from "./components/RotateOverlay";
 import { MapViewSheet } from "./components/MapViewSheet";
 import { UserInfoSheet } from "./components/UserInfoSheet";
+import { RideSettingsSheet } from "./components/RideSettingsSheet";
 import { useRideUiStage } from "./hooks/useRideUiStage";
 import {
   useRideArrivalAutoEnd,
@@ -128,6 +130,18 @@ function readPostSignoutMapSessionFlag(): boolean {
     return false;
   }
 }
+/** B 여정 setup 안내 탭 닫힘 — 브라우저 탭 세션 동안만 유지(새 탭이면 다시 표시 가능) */
+const B_JOURNEY_HINT_SESSION_KEY = "boxcycle_b_journey_hint_dismissed_v1";
+
+function readBJourneyHintDismissedSession(): boolean {
+  if (typeof sessionStorage === "undefined") return false;
+  try {
+    return sessionStorage.getItem(B_JOURNEY_HINT_SESSION_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
 const MAP_STYLE_OPTIONS = [
   { value: "mapbox://styles/mapbox/streets-v12", label: "Streets" },
   { value: "mapbox://styles/mapbox/outdoors-v12", label: "Outdoors" },
@@ -208,7 +222,10 @@ export default function App() {
   const cameraJumpSeqRef = useRef(0);
   const [mapViewSheetOpen, setMapViewSheetOpen] = useState(false);
   const [userInfoSheetOpen, setUserInfoSheetOpen] = useState(false);
+  const [rideSettingsSheetOpen, setRideSettingsSheetOpen] = useState(false);
   const [idleHintDismissed, setIdleHintDismissed] = useState(false);
+  /** B 여정(커스텀 경로): setup 안내 세션 플래그 */
+  const [bJourneyHintDismissedSession, setBJourneyHintDismissedSession] = useState(readBJourneyHintDismissedSession);
   const [summarySheetVisible, setSummarySheetVisible] = useState(false);
   const [coverageOverlayMode, setCoverageOverlayMode] = useState<CoverageOverlayMode>("off");
   const [recentSessions, setRecentSessions] = useState<StoredRideSession[]>(() =>
@@ -236,22 +253,20 @@ export default function App() {
   const [coursePeerMarkers, setCoursePeerMarkers] = useState<MapPeerMarker[]>([]);
   /** 입문 허브 동행에서 계산된 내 네임태그(없으면 단독 주행용 표시로 대체) */
   const [liveRiderNametag, setLiveRiderNametag] = useState<string | null>(null);
-  /** false면 LobbyPresence 마운트 안 함(로비 문서·하트비트 중단). 게스트 id는 유지. */
-  const [lobbyParticipationEnabled, setLobbyParticipationEnabled] = useState(true);
-  /** true면 최초 진입이 아닌 「로그아웃 후」 맵 모드 — 전체 인증 게이트 대신 맵 + 선택적 로그인 시트. */
+  /** 로그인(게스트 포함) 세션 동안 로비 presence·관전 항상 on — 사용자용 로비 진입·이탈 토글 없음 */
+  const lobbySessionActive = Boolean(configured && user);
   const [postSignoutMapSession, setPostSignoutMapSession] = useState(readPostSignoutMapSessionFlag);
   /** 비로그인 맵에서 TR「로그인」으로 연 게스트/Google 카드 */
   const [authSheetOpen, setAuthSheetOpen] = useState(false);
   /** 게스트/Google 클릭 직후 첫 진입 풀스크린 선택 카드만 숨김(stage 는 아직 gate 일 수 있음) */
   const [authPickCardHidden, setAuthPickCardHidden] = useState(false);
-  const lobbyPresenceUidRef = useRef<string | null>(null);
   const pageVisible = useDocumentVisibility();
   const [worldHudHint, setWorldHudHint] = useState<string | null>(null);
 
   const lobbyRoomSession = useLobbyRoomSession({
     user: user ?? undefined,
     roomId,
-    enabled: Boolean(configured && user && lobbyParticipationEnabled),
+    enabled: lobbySessionActive,
     pageVisible,
   });
   /** true면 입문 코스 경로가 있어도 동행 허브 자동 참여 안 함(「나가기」 후) */
@@ -353,11 +368,7 @@ export default function App() {
   );
 
   const lobbySpectatorOverlayEnabled = Boolean(
-    configured &&
-      user &&
-      lobbyParticipationEnabled &&
-      rideStatus === "idle" &&
-      pageVisible,
+    lobbySessionActive && rideStatus === "idle" && pageVisible,
   );
 
   const { spectatorDots, spectatorRouteGeometries } = useLobbyLiveCourseRideSpectatorOverlay({
@@ -371,9 +382,7 @@ export default function App() {
   useLobbyLiveCourseRidePublisher({
     user,
     enabled: Boolean(
-      configured &&
-        user &&
-        lobbyParticipationEnabled &&
+      lobbySessionActive &&
         rideStatus === "running" &&
         (basicActiveHubCourseId ?? activeOfficialCourseId) &&
         Boolean(routeGeometry?.coordinates?.length),
@@ -430,12 +439,7 @@ export default function App() {
     }
     setPostSignoutMapSession(false);
     setAuthSheetOpen(false);
-    if (lobbyPresenceUidRef.current !== user.uid) {
-      lobbyPresenceUidRef.current = user.uid;
-      startTransition(() => setLobbyParticipationEnabled(true));
-    }
   }, [user]);
-
   useEffect(() => {
     if (!configured) {
       return;
@@ -447,13 +451,6 @@ export default function App() {
     });
     return () => unsub();
   }, [configured]);
-
-  /** 로그아웃 후 로비 기본값 초기화(uid 전환 시 참여 플래그는 아래 user effect에서 처리) */
-  useEffect(() => {
-    if (user) return;
-    lobbyPresenceUidRef.current = null;
-    startTransition(() => setLobbyParticipationEnabled(true));
-  }, [user]);
 
   /** 비로그인 상태에서는 사용자 시트 액션(로비/로그아웃)이 없으므로 시트를 닫음 */
   useEffect(() => {
@@ -1073,8 +1070,16 @@ export default function App() {
     [rideStatus, startLngLat, endLngLat, routeWaypoints, profile, resetRide, user],
   );
 
+  /** 로그아웃 후 맵 TR「로그인」— 이전 Google 팝업 취소로 남은 busy 를 지워 즉시 버튼을 활성화 */
+  const openSignedOutAuthSheet = useCallback(() => {
+    setBusy(false);
+    setAuthSheetOpen(true);
+  }, []);
+
   async function handleGuestStart() {
-    setAuthSheetOpen(false);
+    if (!postSignoutMapSession) {
+      setAuthSheetOpen(false);
+    }
     setAuthPickCardHidden(true);
     setError(null);
     setBusy(true);
@@ -1091,10 +1096,13 @@ export default function App() {
   }
 
   async function handleGoogleSignIn() {
-    setAuthSheetOpen(false);
+    if (!postSignoutMapSession) {
+      setAuthSheetOpen(false);
+    }
     setAuthPickCardHidden(true);
     setError(null);
-    setBusy(true);
+    // Google 팝업은 자체 로딩 UX — signInWithPopup 이 취소 후에도 수 초 pending 될 수 있어
+    // busy 로 버튼을 막으면 로그인 시트가 5초+ 비활성처럼 보인다.
     try {
       const auth = getFirebaseAuth();
       const provider = new GoogleAuthProvider();
@@ -1129,6 +1137,8 @@ export default function App() {
       }
     } catch (e: unknown) {
       if (isBenignAuthPopupCancel(e)) {
+        setAuthPickCardHidden(false);
+        if (postSignoutMapSession) setAuthSheetOpen(true);
         return;
       }
       setAuthPickCardHidden(false);
@@ -1141,8 +1151,6 @@ export default function App() {
       } else {
         setError(e instanceof Error ? e.message : String(e));
       }
-    } finally {
-      setBusy(false);
     }
   }
 
@@ -1177,15 +1185,14 @@ export default function App() {
     [user],
   );
 
-  /** 향후 「방 변경」 UI 가 메뉴 패널에 추가될 때 다시 연결. 현재 Map-first 레이아웃에선 URL `?room=` 만으로 진입. */
-  function joinRoomFromDraft() {
+  /** URL·MENU 방 전환 후 메뉴 닫고 지도에 집중(지명 선택과 동일한 습관) */
+  const applyRoomFromDraft = useCallback(() => {
     const next = sanitizeRoomId(roomDraft);
-    setRoomId(next);
     setRoomDraft(next);
+    setRoomId(next);
     replaceRoomInUrl(next);
-    setLobbyParticipationEnabled(true);
-  }
-  void joinRoomFromDraft;
+    setMenuOpen(false);
+  }, [roomDraft]);
 
   function handleStartRide() {
     if (!routeGeometry || rideStatus !== "idle") return;
@@ -1426,22 +1433,7 @@ export default function App() {
     if (lastEndedWasAdhoc) setSummarySheetVisible(true);
   }, [lastEndedWasAdhoc]);
 
-  /** 로비 실시간 참여만 중단(코스 동행·Firebase 세션은 유지) */
-  async function handleLeaveLobbyOnly() {
-    if (!user) return;
-    setError(null);
-    try {
-      await deleteLobbyPresence(user.uid, roomId).catch(() => {
-        /* noop */
-      });
-      setLobbyParticipationEnabled(false);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : String(e));
-    }
-  }
-
-  /** 로비·코스 정리 후 Firebase 로그아웃 — 맵은 유지하고 우측 상단「로그인」으로 재인증(게스트·Google 공통) */
-  async function handleServiceExit() {
+  /** 로비·코스 정리 후 Firebase 로그아웃 — 맵은 유지하고 우측 상단「로그인」으로 재인증(게스트·Google 공통) */  async function handleServiceExit() {
     setError(null);
     setBusy(true);
     try {
@@ -1460,7 +1452,6 @@ export default function App() {
         }
       }
       setBasicActiveHubCourseId(null);
-      setLobbyParticipationEnabled(false);
       setRecentSessions(loadRideSessions());
       setAuthSheetOpen(false);
       try {
@@ -1658,6 +1649,45 @@ export default function App() {
     summaryVisible,
   });
   const rideLocked = stage === "riding" || stage === "paused";
+  /** 개발 서버에서만 주행 중에도 경로 메뉴(드로어) 유지 — 프로덕션에서는 기존처럼 잠금 */
+  const menuPanelLockedDuringRide = rideLocked && !import.meta.env.DEV;
+
+  const dismissBJourneyHint = useCallback(() => {
+    try {
+      sessionStorage.setItem(B_JOURNEY_HINT_SESSION_KEY, "1");
+    } catch {
+      /* noop */
+    }
+    setBJourneyHintDismissedSession(true);
+  }, []);
+
+  const openMenuPanel = useCallback(() => {
+    setMapViewSheetOpen(false);
+    setUserInfoSheetOpen(false);
+    setRideSettingsSheetOpen(false);
+    setMenuOpen(true);
+  }, []);
+
+  const openMapViewPanel = useCallback(() => {
+    setMenuOpen(false);
+    setUserInfoSheetOpen(false);
+    setRideSettingsSheetOpen(false);
+    setMapViewSheetOpen((v) => !v);
+  }, []);
+
+  const openUserInfoPanel = useCallback(() => {
+    setMenuOpen(false);
+    setMapViewSheetOpen(false);
+    setRideSettingsSheetOpen(false);
+    setUserInfoSheetOpen((v) => !v);
+  }, []);
+
+  const openRideSettingsPanel = useCallback(() => {
+    setMenuOpen(false);
+    setMapViewSheetOpen(false);
+    setUserInfoSheetOpen(false);
+    setRideSettingsSheetOpen(true);
+  }, []);
 
   useEffect(() => {
     if (!needsAuthCard) setAuthPickCardHidden(false);
@@ -1707,7 +1737,7 @@ export default function App() {
 
   function handleModifyFromPause() {
     handleEndRide();
-    setMenuOpen(true);
+    openMenuPanel();
   }
 
   const elapsedLabel = formatElapsedFromMs(rideMetrics.accumulatedMs);
@@ -1782,15 +1812,9 @@ export default function App() {
       isSelf: r.uid === user.uid,
       active: isLobbyMemberActive(r.lastSeenAtMs),
     }));
-    const lobbyError = lobbyParticipationEnabled ? lobbyRoomSession.error : null;
-    const hasAny =
-      lobbyParticipationEnabled ||
-      Boolean(courseTitle) ||
-      coursePeerNames.length > 0 ||
-      Boolean(lobbyError);
-    if (!hasAny) return null;
+    const lobbyError = lobbyRoomSession.error;
     return {
-      lobbyEnabled: lobbyParticipationEnabled,
+      lobbyEnabled: true,
       roomId: sanitizeRoomId(roomId),
       lobbyMembers,
       lobbyError,
@@ -1800,7 +1824,6 @@ export default function App() {
   }, [
     configured,
     user,
-    lobbyParticipationEnabled,
     roomId,
     lobbyRoomSession.rows,
     lobbyRoomSession.error,
@@ -1867,17 +1890,18 @@ export default function App() {
 
         <MapHud
           stage={stage}
-          onOpenMenu={() => setMenuOpen(true)}
+          onOpenMenu={openMenuPanel}
           menuOpen={menuOpen}
           account={accountChip}
-          onOpenUserInfo={() => setUserInfoSheetOpen(true)}
+          onOpenUserInfo={openUserInfoPanel}
           userInfoOpen={userInfoSheetOpen}
           onOpenSignedOutAuth={
-            configured && authInitialized && !user ? () => setAuthSheetOpen(true) : undefined
+            configured && authInitialized && !user ? openSignedOutAuthSheet : undefined
           }
           authGateVisualDismissed={authPickCardHidden}
-          onOpenMapView={() => setMapViewSheetOpen(true)}
+          onOpenMapView={openMapViewPanel}
           mapViewOpen={mapViewSheetOpen}
+          idleHintMessage="입문: MENU → 입문 코스 → ▶"
           coachData={coachData}
           coachLineEnabled={rideCoachingBannerVisible}
           metrics={hudMetrics}
@@ -1899,6 +1923,8 @@ export default function App() {
           onModifyFromPause={handleModifyFromPause}
           showIdleHint={stage === "idle" && !idleHintDismissed}
           onDismissIdleHint={() => setIdleHintDismissed(true)}
+          showSetupRouteHint={stage === "setup" && !bJourneyHintDismissedSession}
+          onDismissSetupRouteHint={dismissBJourneyHint}
           ridePresence={mapHudRidePresence}
           worldActivityHint={worldActivityHint}
         />
@@ -1934,7 +1960,19 @@ export default function App() {
         ) : null}
       </div>
 
-      <MenuPanel open={menuOpen} onClose={() => setMenuOpen(false)}>
+      <MenuPanel
+        open={menuOpen}
+        locked={menuPanelLockedDuringRide}
+        onClose={() => setMenuOpen(false)}
+        onOpenSettings={openRideSettingsPanel}
+      >
+        <RoomSwitcher
+          roomDraft={roomDraft}
+          onDraftChange={setRoomDraft}
+          activeRoomId={sanitizeRoomId(roomId)}
+          onApply={applyRoomFromDraft}
+          presenceSyncPossible={Boolean(configured && user)}
+        />
         <MenuPlaceSearch
           accessToken={MAPBOX_TOKEN}
           menuOpen={menuOpen}
@@ -1998,6 +2036,20 @@ export default function App() {
         />
       </MenuPanel>
 
+      <RideSettingsSheet
+        open={rideSettingsSheetOpen}
+        onClose={() => setRideSettingsSheetOpen(false)}
+        rideTtsEnabled={rideTtsEnabled}
+        onRideTtsEnabled={setRideTtsEnabled}
+        rideBgmEnabled={rideBgmEnabled}
+        onRideBgmEnabled={setRideBgmEnabled}
+        rideCoachingBanner={rideCoachingBannerVisible}
+        onRideCoachingBanner={setRideCoachingBannerVisible}
+        rideBgmCatalogConfigured={rideBgmCatalogConfigured}
+        rideElevationProfileLoading={rideElevationProfileLoading}
+        bleCadence={bleCadencePanel}
+      />
+
       <MapViewSheet
         open={mapViewSheetOpen}
         onClose={() => setMapViewSheetOpen(false)}
@@ -2023,7 +2075,6 @@ export default function App() {
         isGuest={Boolean(user?.isAnonymous)}
         busy={busy}
         onLinkGoogle={user?.isAnonymous ? () => void handleGoogleSignIn() : undefined}
-        onLeaveLobby={() => void handleLeaveLobbyOnly()}
         onServiceExit={() => void handleServiceExit()}
       />
 
@@ -2073,18 +2124,11 @@ export default function App() {
               <button
                 type="button"
                 className="btn primary auth-gate-google"
-                disabled={busy}
                 title="Sign in with Google"
                 onClick={() => void handleGoogleSignIn()}
               >
-                {busy ? (
-                  "…"
-                ) : (
-                  <>
-                    <AuthGoogleMark />
-                    Google
-                  </>
-                )}
+                <AuthGoogleMark />
+                Google
               </button>
             </div>
           )}
@@ -2095,7 +2139,6 @@ export default function App() {
       {authSheetOpen && configured && authInitialized && !user ? (
         <AuthGateCard
           title="로그인"
-          dismissDisabled={busy}
           onDismiss={() => setAuthSheetOpen(false)}
         >
           <div className="auth-actions auth-actions--gate">
@@ -2111,18 +2154,11 @@ export default function App() {
             <button
               type="button"
               className="btn primary auth-gate-google"
-              disabled={busy}
               title="Sign in with Google"
               onClick={() => void handleGoogleSignIn()}
             >
-              {busy ? (
-                "…"
-              ) : (
-                <>
-                  <AuthGoogleMark />
-                  Google
-                </>
-              )}
+              <AuthGoogleMark />
+              Google
             </button>
           </div>
           {error ? <p className="error tight">{error}</p> : null}
@@ -2158,7 +2194,7 @@ export default function App() {
         />
       ) : null}
 
-      {configured && user && lobbyParticipationEnabled ? (
+      {configured && user ? (
         <LobbyPresence user={user} roomId={roomId} rows={lobbyRoomSession.rows} error={lobbyRoomSession.error} />
       ) : null}
     </div>

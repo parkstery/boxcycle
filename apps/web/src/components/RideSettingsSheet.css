@@ -1,0 +1,144 @@
+.ride-settings-sheet {
+  /* 메뉴 드로어(z-50) 위에 올라와야 함 — position:fixed 로 스테이지 밖에도 전체 덮음 */
+  position: fixed;
+  inset: 0;
+  z-index: 56;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.ride-settings-sheet__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.32);
+  border: none;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.ride-settings-sheet__panel {
+  position: relative;
+  z-index: 1;
+  width: min(22rem, calc(100vw - 1rem));
+  max-width: 100%;
+  max-height: 65%;
+  overflow: auto;
+  margin-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  padding: 0.55rem 0.85rem 1rem;
+  border-radius: 14px 14px 12px 12px;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(248, 250, 252, 0.18);
+  color: #f8fafc;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  animation: ride-settings-sheet-up 180ms ease-out;
+  box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.35);
+}
+
+@keyframes ride-settings-sheet-up {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.ride-settings-sheet__handle {
+  width: 2.4rem;
+  height: 0.22rem;
+  border-radius: 99px;
+  background: rgba(248, 250, 252, 0.28);
+  align-self: center;
+  margin-bottom: 0.15rem;
+}
+
+.ride-settings-sheet__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.ride-settings-sheet__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ride-settings-sheet__kicker {
+  font-size: 0.62rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.95);
+}
+
+.ride-settings-sheet__toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.65rem;
+}
+
+.ride-settings-sheet__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.ride-settings-sheet__toggle input {
+  accent-color: #38bdf8;
+}
+
+.ride-settings-sheet__help {
+  margin: 0;
+  font-size: 0.68rem;
+  color: rgba(248, 250, 252, 0.72);
+  line-height: 1.35;
+}
+
+.ride-settings-sheet__device {
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+.ride-settings-sheet__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ride-settings-sheet__btn {
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 650;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(248, 250, 252, 0.22);
+  background: rgba(15, 23, 42, 0.55);
+  color: #f8fafc;
+  cursor: pointer;
+}
+
+.ride-settings-sheet__btn--primary {
+  background: rgba(56, 189, 248, 0.28);
+  border-color: rgba(56, 189, 248, 0.5);
+}
+
+.ride-settings-sheet__error {
+  margin: 0;
+  font-size: 0.68rem;
+  color: #fecaca;
+}

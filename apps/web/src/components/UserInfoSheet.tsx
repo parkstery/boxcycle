@@ -18,7 +18,6 @@ type UserInfoSheetProps = {
   isGuest: boolean;
   busy: boolean;
   onLinkGoogle?: () => void;
-  onLeaveLobby: () => void;
   onServiceExit: () => void;
 };
 
@@ -169,9 +168,9 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
       : props.user.email ?? props.user.uid
     : "";
 
-  const showSignedInLobbyActions = props.user != null;
   const showGoogleLink = Boolean(props.isGuest && props.onLinkGoogle);
-  const showActionsFooter = showGoogleLink || showSignedInLobbyActions;
+  const showLogout = props.user != null;
+  const showActionsFooter = showGoogleLink || showLogout;
 
   return (
     <div
@@ -327,27 +326,16 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
                 Google 연결
               </button>
             ) : null}
-            {showSignedInLobbyActions ? (
-              <>
-                <button
-                  type="button"
-                  className="user-info-sheet__btn"
-                  disabled={props.busy}
-                  title="Leave lobby"
-                  onClick={props.onLeaveLobby}
-                >
-                  로비 나가기
-                </button>
-                <button
-                  type="button"
-                  className="user-info-sheet__btn user-info-sheet__btn--danger"
-                  disabled={props.busy}
-                  title="Sign out"
-                  onClick={props.onServiceExit}
-                >
-                  로그아웃
-                </button>
-              </>
+            {showLogout ? (
+              <button
+                type="button"
+                className="user-info-sheet__btn user-info-sheet__btn--danger"
+                disabled={props.busy}
+                title="Sign out"
+                onClick={props.onServiceExit}
+              >
+                로그아웃
+              </button>
             ) : null}
           </div>
         ) : null}

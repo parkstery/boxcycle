@@ -6,6 +6,8 @@ type MenuPanelProps = {
   onClose: () => void;
   /** 라이딩·일시정지 단계에서는 메뉴 자체를 열 수 없도록 강제 닫기 */
   locked?: boolean;
+  /** 주행 설정 시트( BLE·TTS 등 ) */
+  onOpenSettings?: () => void;
   children: ReactNode;
 };
 
@@ -13,7 +15,7 @@ type MenuPanelProps = {
  * 좌측에서 슬라이드 인 하는 글래스 드로어.
  * - 라이딩 중 잠금: `locked` 가 true 면 마운트되어 있어도 자동으로 닫힘.
  */
-export function MenuPanel({ open, onClose, locked, children }: MenuPanelProps) {
+export function MenuPanel({ open, onClose, locked, onOpenSettings, children }: MenuPanelProps) {
   useEffect(() => {
     if (locked && open) onClose();
   }, [locked, open, onClose]);
@@ -40,15 +42,28 @@ export function MenuPanel({ open, onClose, locked, children }: MenuPanelProps) {
       <aside className="menu-panel" role="dialog" aria-label="메뉴">
         <div className="menu-panel__head">
           <h2 className="menu-panel__title">MENU</h2>
-          <button
-            type="button"
-            className="menu-panel__close"
-            onClick={onClose}
-            aria-label="메뉴 닫기"
-            title="Close menu"
-          >
-            ×
-          </button>
+          <div className="menu-panel__head-actions">
+            {onOpenSettings ? (
+              <button
+                type="button"
+                className="menu-panel__settings"
+                onClick={onOpenSettings}
+                aria-label="주행 설정"
+                title="BLE·TTS·BGM 등"
+              >
+                설정
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="menu-panel__close"
+              onClick={onClose}
+              aria-label="메뉴 닫기"
+              title="Close menu"
+            >
+              ×
+            </button>
+          </div>
         </div>
         <div className="menu-panel__body">{children}</div>
       </aside>

@@ -65,6 +65,32 @@
   letter-spacing: 0.06em;
 }
 
+.menu-panel__head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.menu-panel__settings {
+  appearance: none;
+  border: 1px solid rgba(248, 250, 252, 0.22);
+  background: rgba(248, 250, 252, 0.06);
+  color: #f8fafc;
+  min-height: 2rem;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.menu-panel__settings:hover {
+  background: rgba(248, 250, 252, 0.18);
+}
+
 .menu-panel__close {
   appearance: none;
   border: 1px solid rgba(248, 250, 252, 0.22);
@@ -94,6 +120,10 @@
 }
 
 /* 지명 검색은 고정 높이, 경로 패널만 스크롤 → 모바일에서 한 화면에 가깝게 */
+.menu-panel__body > .room-switcher {
+  flex-shrink: 0;
+}
+
 .menu-panel__body > .menu-place-search {
   flex-shrink: 0;
 }

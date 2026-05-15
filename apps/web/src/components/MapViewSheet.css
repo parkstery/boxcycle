@@ -1,7 +1,7 @@
 .map-view-sheet {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  z-index: 30;
+  z-index: 54;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -52,6 +52,92 @@
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+.map-view-sheet__group--in-advanced {
+  width: 100%;
+  align-items: flex-start;
+}
+
+.map-view-sheet__group--in-advanced .map-view-sheet__row-body {
+  flex-wrap: wrap;
+}
+
+/* ----- 고급: 노선 커버리지 접기 ----- */
+.map-view-sheet__advanced {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.map-view-sheet__advanced-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  margin: 0;
+  padding: 0.38rem 0.45rem;
+  border-radius: 10px;
+  border: 1px solid rgba(248, 250, 252, 0.16);
+  background: rgba(2, 6, 23, 0.35);
+  color: #e2e8f0;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.map-view-sheet__advanced-toggle:hover {
+  background: rgba(248, 250, 252, 0.08);
+}
+
+.map-view-sheet__advanced-toggle:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+.map-view-sheet__advanced-leading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.map-view-sheet__advanced-leading strong {
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+}
+
+.map-view-sheet__advanced-sub {
+  font-size: 0.62rem;
+  font-weight: 500;
+  opacity: 0.75;
+}
+
+.map-view-sheet__advanced-pill {
+  flex-shrink: 0;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  background: rgba(56, 189, 248, 0.28);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  color: #f0f9ff;
+}
+
+.map-view-sheet__advanced-chevron {
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  opacity: 0.85;
+  width: 1rem;
+  text-align: center;
+}
+
+.map-view-sheet__advanced-body {
+  padding: 0 0.1rem 0.15rem;
 }
 
 .map-view-sheet__handle {
