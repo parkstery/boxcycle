@@ -38,6 +38,8 @@ type RideDoc = {
   routeName?: string | null;
   /** 완주율(0~1). 1.0 이상은 1.0 으로 캡. */
   completionRatio?: number;
+  startPlaceLabel?: string | null;
+  endPlaceLabel?: string | null;
 };
 
 /**
@@ -79,6 +81,14 @@ export async function saveRideSessionToFirestore(input: {
       typeof input.session.completionRatio === "number"
         ? Math.max(0, Math.min(1, input.session.completionRatio))
         : 0,
+    startPlaceLabel:
+      typeof input.session.startPlaceLabel === "string" && input.session.startPlaceLabel.trim().length > 0
+        ? input.session.startPlaceLabel.trim()
+        : null,
+    endPlaceLabel:
+      typeof input.session.endPlaceLabel === "string" && input.session.endPlaceLabel.trim().length > 0
+        ? input.session.endPlaceLabel.trim()
+        : null,
   };
 
   const ref = await addDoc(collection(db, RIDES_COLLECTION), docData);
@@ -138,6 +148,14 @@ export async function loadRideSessionsForStatsFromFirestore(
         typeof data.completionRatio === "number"
           ? Math.max(0, Math.min(1, data.completionRatio))
           : 0,
+      startPlaceLabel:
+        typeof data.startPlaceLabel === "string" && data.startPlaceLabel.trim().length > 0
+          ? data.startPlaceLabel.trim()
+          : undefined,
+      endPlaceLabel:
+        typeof data.endPlaceLabel === "string" && data.endPlaceLabel.trim().length > 0
+          ? data.endPlaceLabel.trim()
+          : undefined,
     };
   });
 }

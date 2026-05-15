@@ -31,9 +31,19 @@ const FOLLOW_OPTIONS: { value: FollowMode; label: string }[] = [
   { value: "rightFlat", label: "우측" },
 ];
 
+const FOLLOW_TITLES: Record<FollowMode, string> = {
+  free: "Free camera",
+  keep: "Follow, keep bearing",
+  north: "North up",
+  rear30: "Rear 30°",
+  front30: "Front 30°",
+  leftFlat: "Left side",
+  rightFlat: "Right side",
+};
+
 /**
  * BC 슬롯에서 위로 슬라이드 인 하는 맵 뷰 컨트롤 시트.
- * - 맵 스타일·노선 커버리지·3D·카메라·줌. 라이딩 중에도 접근 가능.
+ * 각 블록은 한 줄: 왼쪽 타이틀 · 오른쪽 컨트롤(줄바꿈 없이, 필요 시 가로 스크롤).
  */
 export function MapViewSheet(props: MapViewSheetProps) {
   useEffect(() => {
@@ -53,100 +63,121 @@ export function MapViewSheet(props: MapViewSheetProps) {
         type="button"
         className="map-view-sheet__scrim"
         aria-label="닫기"
+        title="Close"
         onClick={props.onClose}
       />
       <div className="map-view-sheet__panel">
         <div className="map-view-sheet__handle" aria-hidden />
 
         <div className="map-view-sheet__group">
-          <span className="map-view-sheet__label">맵 스타일</span>
-          <div className="map-view-sheet__chips">
-            {props.mapStyleOptions.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                className={`map-view-sheet__chip ${props.mapStyle === opt.value ? "is-active" : ""}`}
-                onClick={() => props.onMapStyle(opt.value)}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="map-view-sheet__group">
-          <span className="map-view-sheet__label">노선 커버리지</span>
-          <div className="map-view-sheet__chips">
-            {COVERAGE_OVERLAY_OPTIONS.map((opt) => {
-              const needsMly = opt.value === "mapillary" || opt.value === "both";
-              const disabled = needsMly && !props.mapillaryTokenConfigured;
-              return (
+          <span className="map-view-sheet__label-title">맵 스타일</span>
+          <div className="map-view-sheet__row-body">
+            <label
+              className="map-view-sheet__check map-view-sheet__check--inline-3d"
+              title="Tilt map and show 3D buildings"
+            >
+              <input
+                type="checkbox"
+                checked={props.enable3D}
+                onChange={(e) => props.onEnable3D(e.target.checked)}
+              />
+              3D 뷰
+            </label>
+            <div className="map-view-sheet__chips map-view-sheet__chips--inline">
+              {props.mapStyleOptions.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
-                  title={
-                    disabled
-                      ? "Mapillary 클라이언트 토큰이 필요합니다(VITE_MAPILLARY_CLIENT_TOKEN)"
-                      : opt.value === "osrm" || opt.value === "both"
-                        ? "Mapbox Streets 도로 클래스(자전거·도로 등) — OSRM 그래프와 동일하지 않을 수 있음"
-                        : "Mapillary 촬영 시퀀스"
-                  }
-                  className={`map-view-sheet__chip ${
-                    props.coverageOverlayMode === opt.value ? "is-active" : ""
-                  }`}
-                  disabled={disabled}
-                  onClick={() => {
-                    if (!disabled) props.onCoverageOverlayMode(opt.value);
-                  }}
+                  className={`map-view-sheet__chip ${props.mapStyle === opt.value ? "is-active" : ""}`}
+                  title={`${opt.label} basemap`}
+                  onClick={() => props.onMapStyle(opt.value)}
                 >
                   {opt.label}
                 </button>
-              );
-            })}
+              ))}
+            </div>
           </div>
-          {!props.mapillaryTokenConfigured ? (
-            <span className="map-view-sheet__help">Mapillary 토큰 미설정</span>
-          ) : null}
         </div>
 
         <div className="map-view-sheet__group">
-          <label className="map-view-sheet__check">
+          <span className="map-view-sheet__label-title">노선</span>
+          <div className="map-view-sheet__row-body">
+            <div className="map-view-sheet__chips map-view-sheet__chips--inline">
+              {COVERAGE_OVERLAY_OPTIONS.map((opt) => {
+                const needsMly = opt.value === "mapillary" || opt.value === "both";
+                const disabled = needsMly && !props.mapillaryTokenConfigured;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    title={
+                      disabled
+                        ? "Mapillary token required (VITE_MAPILLARY_CLIENT_TOKEN)"
+                        : opt.value === "off"
+                          ? "Hide coverage overlay"
+                          : opt.value === "osrm"
+                            ? "Road coverage (Mapbox vs OSRM may differ)"
+                            : opt.value === "mapillary"
+                              ? "Street imagery (Mapillary)"
+                              : "Road + Mapillary"
+                    }
+                    className={`map-view-sheet__chip ${
+                      props.coverageOverlayMode === opt.value ? "is-active" : ""
+                    }`}
+                    disabled={disabled}
+                    onClick={() => {
+                      if (!disabled) props.onCoverageOverlayMode(opt.value);
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            {!props.mapillaryTokenConfigured ? (
+              <span className="map-view-sheet__help map-view-sheet__help--inline" title="Mapillary 토큰 미설정">
+                Mapillary 토큰 미설정
+              </span>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="map-view-sheet__group">
+          <span className="map-view-sheet__label-title">카메라</span>
+          <div className="map-view-sheet__row-body">
+            <div className="map-view-sheet__chips map-view-sheet__chips--inline">
+              {FOLLOW_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`map-view-sheet__chip ${props.followMode === opt.value ? "is-active" : ""}`}
+                  title={FOLLOW_TITLES[opt.value]}
+                  onClick={() => props.onFollowMode(opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="map-view-sheet__group">
+          <span className="map-view-sheet__label-title">줌</span>
+          <div className="map-view-sheet__row-body map-view-sheet__row-body--zoom">
+            <span className="map-view-sheet__zoom-readout" aria-live="polite">
+              {props.mapZoom.toFixed(1)}
+            </span>
             <input
-              type="checkbox"
-              checked={props.enable3D}
-              onChange={(e) => props.onEnable3D(e.target.checked)}
+              type="range"
+              className="map-view-sheet__range"
+              min={3}
+              max={20}
+              step={0.1}
+              value={props.mapZoom}
+              onChange={(e) => props.onMapZoom(Number(e.target.value))}
+              aria-label={`줌 ${props.mapZoom.toFixed(1)}`}
             />
-            3D 뷰
-          </label>
-        </div>
-
-        <div className="map-view-sheet__group">
-          <span className="map-view-sheet__label">카메라</span>
-          <div className="map-view-sheet__chips">
-            {FOLLOW_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                className={`map-view-sheet__chip ${props.followMode === opt.value ? "is-active" : ""}`}
-                onClick={() => props.onFollowMode(opt.value)}
-              >
-                {opt.label}
-              </button>
-            ))}
           </div>
-        </div>
-
-        <div className="map-view-sheet__group">
-          <span className="map-view-sheet__label">줌 · {props.mapZoom.toFixed(1)}</span>
-          <input
-            type="range"
-            className="map-view-sheet__range"
-            min={3}
-            max={20}
-            step={0.1}
-            value={props.mapZoom}
-            onChange={(e) => props.onMapZoom(Number(e.target.value))}
-          />
         </div>
       </div>
     </div>

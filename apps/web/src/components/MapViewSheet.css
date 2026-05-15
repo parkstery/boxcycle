@@ -22,11 +22,13 @@
 .map-view-sheet__panel {
   position: relative;
   z-index: 1;
-  width: min(34rem, 96%);
+  /* 한 줄 칩 유지를 위해 넉넉한 상한 — 뷰포트에 맞춰 줄어듦 */
+  width: min(25rem, calc(100vw - 1rem));
+  max-width: 100%;
   max-height: 70%;
   overflow: auto;
   margin-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
-  padding: 0.6rem 1rem 1rem;
+  padding: 0.55rem 0.75rem 0.9rem;
   border-radius: 14px 14px 12px 12px;
   background: rgba(15, 23, 42, 0.84);
   border: 1px solid rgba(248, 250, 252, 0.18);
@@ -36,7 +38,7 @@
   pointer-events: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0.5rem;
   animation: map-view-sheet-up 180ms ease-out;
   box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.35);
 }
@@ -60,23 +62,60 @@
   margin: 0.05rem auto 0.3rem;
 }
 
+/* 한 줄: 왼쪽 타이틀 · 오른쪽 컨트롤 */
 .map-view-sheet__group {
   display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
 }
 
-.map-view-sheet__label {
+.map-view-sheet__label-title {
+  flex: 0 0 2.8rem;
+  width: 2.8rem;
+  min-width: 3.2rem;
+  margin: 0;
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   opacity: 0.82;
+  line-height: 1.25;
 }
 
-.map-view-sheet__chips {
+.map-view-sheet__row-body {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
+  flex: 1;
+  min-width: 0;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.28rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.map-view-sheet__check--inline-3d {
+  flex-shrink: 0;
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.map-view-sheet__chips--inline {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.24rem;
+}
+
+.map-view-sheet__group .map-view-sheet__chip {
+  flex-shrink: 0;
+  padding: 0.22rem 0.42rem;
+  font-size: 0.68rem;
 }
 
 .map-view-sheet__chip {
@@ -85,8 +124,7 @@
   background: rgba(248, 250, 252, 0.06);
   color: #f8fafc;
   font: inherit;
-  font-size: 0.75rem;
-  padding: 0.3rem 0.7rem;
+  font-weight: 600;
   border-radius: 999px;
   cursor: pointer;
 }
@@ -106,17 +144,20 @@
   cursor: not-allowed;
 }
 
-.map-view-sheet__help {
-  font-size: 0.68rem;
+.map-view-sheet__help--inline {
+  flex-shrink: 0;
+  margin: 0;
+  padding-left: 0.15rem;
+  font-size: 0.62rem;
+  font-weight: 500;
   opacity: 0.72;
-  line-height: 1.35;
+  white-space: nowrap;
 }
 
 .map-view-sheet__check {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.78rem;
+  gap: 0.35rem;
   cursor: pointer;
 }
 
@@ -124,7 +165,25 @@
   accent-color: #38bdf8;
 }
 
+.map-view-sheet__row-body--zoom {
+  gap: 0.45rem;
+}
+
+.map-view-sheet__zoom-readout {
+  flex: 0 0 auto;
+  min-width: 2.25rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  opacity: 0.9;
+  text-align: right;
+}
+
 .map-view-sheet__range {
-  width: 100%;
+  flex: 1;
+  min-width: 5rem;
+  width: auto;
+  max-width: 100%;
   accent-color: #38bdf8;
 }

@@ -57,6 +57,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
         type="button"
         className="ride-summary__scrim"
         aria-label="닫기"
+        title="Close"
         onClick={props.onClose}
       />
       <div className="ride-summary__sheet">
@@ -102,6 +103,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
               <button
                 type="button"
                 className="ride-summary__btn ride-summary__btn--primary"
+                title="Save to my routes"
                 onClick={() => void commitSave()}
                 disabled={busy}
               >
@@ -110,6 +112,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
               <button
                 type="button"
                 className="ride-summary__btn"
+                title="Skip saving"
                 onClick={props.onDismissAdhoc}
                 disabled={busy}
               >
@@ -121,7 +124,12 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
         ) : null}
 
         <div className="ride-summary__actions">
-          <button type="button" className="ride-summary__btn" onClick={props.onClose}>
+          <button
+            type="button"
+            className="ride-summary__btn"
+            title="Close"
+            onClick={props.onClose}
+          >
             닫기
           </button>
         </div>

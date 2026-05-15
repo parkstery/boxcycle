@@ -30,6 +30,8 @@ export type MapHudProps = {
   userInfoOpen: boolean;
   /** 로그아웃 후 등 비로그인 맵 모드에서만 — 게스트/Google 오버레이 열기 */
   onOpenSignedOutAuth?: () => void;
+  /** 첫 진입 게이트 카드만 숨긴 뒤에도 stage 가 gate 일 때 — HUD 를 비게이트처럼 취급 */
+  authGateVisualDismissed?: boolean;
 
   // BC — 맵 뷰 시트 트리거 + 라이딩 중 코칭 라인
   onOpenMapView: () => void;
@@ -100,6 +102,7 @@ export function MapHud(props: MapHudProps) {
     onOpenUserInfo,
     userInfoOpen,
     onOpenSignedOutAuth,
+    authGateVisualDismissed = false,
     onOpenMapView,
     mapViewOpen,
     coachData,
@@ -126,7 +129,8 @@ export function MapHud(props: MapHudProps) {
   const riding = stage === "riding";
   const paused = stage === "paused";
   const idle = stage === "idle";
-  const isGate = stage === "gate" || stage === "gate-nickname";
+  const isGate =
+    stage === "gate-nickname" || (stage === "gate" && !authGateVisualDismissed);
   const isSummary = stage === "summary";
 
   // 트리거 노출 정책: gate/summary 가 아닌 동안 항상 보임.
@@ -165,6 +169,7 @@ export function MapHud(props: MapHudProps) {
               onClick={onOpenMenu}
               aria-label="경로·코스 메뉴"
               aria-expanded={menuOpen}
+              title="Route menu"
             >
               <span className="hud-brand__dot" aria-hidden />
               BOXCYCLE
@@ -235,18 +240,18 @@ export function MapHud(props: MapHudProps) {
           <div
             className={`hud-metrics${metrics.mode === "route-preview" ? " hud-metrics--route-preview" : ""}`}
           >
-            <span className="hud-metrics__chip" title="경과">
+            <span className="hud-metrics__chip" title="Elapsed time">
               {metrics.elapsed}
             </span>
-            <span className="hud-metrics__chip" title="거리">
+            <span className="hud-metrics__chip" title="Distance">
               {metrics.distanceKm}
               <span className="hud-metrics__unit">km</span>
             </span>
-            <span className="hud-metrics__chip" title="평속">
+            <span className="hud-metrics__chip" title="Average speed">
               {metrics.avgKmh}
               <span className="hud-metrics__unit">avg</span>
             </span>
-            <span className="hud-metrics__chip" title="현재">
+            <span className="hud-metrics__chip" title="Current speed">
               {metrics.speedKmh}
               <span className="hud-metrics__unit">km/h</span>
             </span>
@@ -261,6 +266,7 @@ export function MapHud(props: MapHudProps) {
             className={`hud-avatar ${account.isGuest ? "hud-avatar--guest" : ""}`}
             aria-label="사용자 정보"
             aria-expanded={userInfoOpen}
+            title="Account"
             onClick={onOpenUserInfo}
           >
             {account.initial}
@@ -274,6 +280,7 @@ export function MapHud(props: MapHudProps) {
             type="button"
             className="hud-signin-pill"
             aria-label="로그인 또는 게스트로 시작"
+            title="Sign in"
             onClick={onOpenSignedOutAuth}
           >
             로그인
@@ -300,7 +307,7 @@ export function MapHud(props: MapHudProps) {
                 className="hud-pin-chip__clear"
                 onClick={onClearPins}
                 aria-label="핀 초기화"
-                title="핀 초기화"
+                title="Clear pins"
               >
                 ✕
               </button>
@@ -321,7 +328,7 @@ export function MapHud(props: MapHudProps) {
               className="hud-pin-chip__clear hud-chip hud-chip--mute"
               onClick={onClearPins}
               aria-label="경로 초기화"
-              title="경로 초기화"
+              title="Reset route"
             >
               ↺ 변경
             </button>
@@ -345,6 +352,7 @@ export function MapHud(props: MapHudProps) {
               onClick={onOpenMapView}
               aria-label="맵 뷰 설정"
               aria-expanded={mapViewOpen}
+              title="Map view"
             >
               <span className="hud-bc-trigger__icon" aria-hidden>
                 ◰
@@ -361,7 +369,12 @@ export function MapHud(props: MapHudProps) {
             <div className="hud-action" role="alert">
               <p className="hud-action__title">{routeError}</p>
               <div className="hud-action__row">
-                <button type="button" className="hud-action__btn" onClick={onClearPins}>
+                <button
+                  type="button"
+                  className="hud-action__btn"
+                  title="Clear pins"
+                  onClick={onClearPins}
+                >
                   핀 초기화
                 </button>
               </div>
@@ -375,16 +388,23 @@ export function MapHud(props: MapHudProps) {
                 <button
                   type="button"
                   className="hud-action__btn hud-action__btn--primary"
+                  title="Resume"
                   onClick={onResumeFromPause}
                 >
                   재개
                 </button>
-                <button type="button" className="hud-action__btn" onClick={onModifyFromPause}>
+                <button
+                  type="button"
+                  className="hud-action__btn"
+                  title="Edit route"
+                  onClick={onModifyFromPause}
+                >
                   변경
                 </button>
                 <button
                   type="button"
                   className="hud-action__btn hud-action__btn--danger"
+                  title="End ride"
                   onClick={onEndFromPause}
                 >
                   종료
@@ -402,58 +422,62 @@ export function MapHud(props: MapHudProps) {
               type="button"
               className="hud-idle-hint"
               onClick={onDismissIdleHint}
-              title="닫기"
+              title="Dismiss hint"
             >
               지도를 탭 → 출발·도착
             </button>
           ) : null}
-          {riding ? (
-            <button
-              type="button"
-              className="hud-main-fab hud-main-fab--pause"
-              onClick={onPauseRide}
-              aria-label="일시정지"
-              title="일시정지"
-            >
-              ‖
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="hud-main-fab"
-              onClick={onStartRide}
-              disabled={!canStartRide}
-              aria-label="주행 시작"
-              title="주행 시작"
-            >
-              ▶
-            </button>
-          )}
-          {riding ? (
-            <button
-              type="button"
-              className="hud-icon-btn hud-icon-btn--danger"
-              onClick={onEndRide}
-              aria-label="주행 종료"
-              title="주행 종료"
-            >
-              ■
-            </button>
-          ) : null}
+          <div className="map-hud__br-main">
+            {riding ? (
+              <button
+                type="button"
+                className="hud-main-fab hud-main-fab--pause"
+                onClick={onPauseRide}
+                aria-label="일시정지"
+                title="Pause"
+              >
+                ‖
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="hud-main-fab"
+                onClick={onStartRide}
+                disabled={!canStartRide}
+                aria-label="주행 시작"
+                title="Start ride"
+              >
+                ▶
+              </button>
+            )}
+            {riding ? (
+              <button
+                type="button"
+                className="hud-icon-btn hud-icon-btn--danger"
+                onClick={onEndRide}
+                aria-label="주행 종료"
+                title="Stop ride"
+              >
+                ■
+              </button>
+            ) : null}
+          </div>
         </div>
       ) : null}
 
       {paused ? (
         <div className="map-hud__br">
-          <button
-            type="button"
-            className="hud-icon-btn hud-icon-btn--primary"
-            onClick={onResumeRide}
-            aria-label="재개"
-            title="재개"
-          >
-            ▶
-          </button>
+          <div className="map-hud__br-main">
+            <button
+              type="button"
+              className="hud-icon-btn hud-icon-btn--primary"
+              onClick={onResumeRide}
+              aria-label="재개"
+              title="Resume"
+            >
+              ▶
+            </button>
+          </div>
         </div>
       ) : null}
     </div>

@@ -37,6 +37,16 @@ const LOBBY_SPEC_DOTS_SRC = "boxcycle-lobby-spectator-dots";
 const LOBBY_SPEC_DOTS_GLOW_LAYER = "boxcycle-lobby-spectator-dots-glow";
 const LOBBY_SPEC_DOTS_LAYER = "boxcycle-lobby-spectator-dots-circle";
 
+/**
+ * 지도 탭 팝업 — 경로 프로필(차·자전거·보행) 아이콘.
+ * Lucide (https://lucide.dev) `car-front`, `bike`, `footprints` — ISC License.
+ */
+const PICK_POPUP_PROFILE_ICON_SVG: Record<RouteProfile, string> = {
+  driving: `<svg class="map-view__pick-profile-ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 8-2 2-1.5-3.7A2 2 0 0 0 15.646 5H8.4a2 2 0 0 0-1.903 1.257L5 10 3 8"/><path d="M7 14h.01"/><path d="M17 14h.01"/><rect width="18" height="8" x="3" y="10" rx="2"/><path d="M5 18v2"/><path d="M19 18v2"/></svg>`,
+  cycling: `<svg class="map-view__pick-profile-ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg>`,
+  walking: `<svg class="map-view__pick-profile-ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"/><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/><path d="M16 17h4"/><path d="M4 13h4"/></svg>`,
+};
+
 /** 사용자 경로 탐색 결과 폴리라인 (`route` 소스·레이어) */
 const ROUTE_LINE_COLOR = "#ef4444";
 
@@ -351,6 +361,8 @@ export type MapViewProps = {
   /** Directions 프로필. 지도 팝업에서 호출 시 부모가 프로필 반영 후 즉시 경로 계산까지 수행할 수 있음. */
   routeProfile: RouteProfile;
   onRouteProfile: (p: RouteProfile) => void;
+  /** 지도 지점 선택 팝업에서 출발·도착·경유·계산 경로 전체 초기화 */
+  onClearRoute?: () => void;
   /** OSRM(Mapbox Streets)·Mapillary 촬영 시퀀스 커버리지 */
   coverageOverlayMode: CoverageOverlayMode;
   /** Mapillary 타일·거리뷰용 클라이언트 토큰(없으면 Mapillary 모드 비활성) */
@@ -386,6 +398,7 @@ export function MapView({
   onSelectPoint,
   routeProfile,
   onRouteProfile,
+  onClearRoute,
   coverageOverlayMode,
   mapillaryClientToken,
   externalCameraJump = null,
@@ -429,6 +442,7 @@ export function MapView({
   const endLngLatRef = useRef(endLngLat);
   const routeProfileRef = useRef(routeProfile);
   const onRouteProfileRef = useRef(onRouteProfile);
+  const onClearRouteRef = useRef(onClearRoute);
   const onMapZoomRef = useRef(onMapZoom);
   const prevLiveRef = useRef<LngLat | null>(null);
   /** 지명 검색 flyTo 직후 `liveLngLat` 추적 jumpTo 가 카메라를 되돌리는 것을 막는다 */
@@ -493,6 +507,10 @@ export function MapView({
     onRouteProfileRef.current = onRouteProfile;
   }, [onRouteProfile]);
 
+  useEffect(() => {
+    onClearRouteRef.current = onClearRoute;
+  }, [onClearRoute]);
+
   const coverageOverlayModeRef = useRef(coverageOverlayMode);
   const mapillaryClientTokenRef = useRef(mapillaryClientToken);
   coverageOverlayModeRef.current = coverageOverlayMode;
@@ -523,6 +541,7 @@ export function MapView({
       zoom: DEFAULT_ZOOM,
     });
     map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), "top-right");
+    /** 축척: Mapbox 기본 우하단(bottom-right) */
     map.addControl(new mapboxgl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-right");
     mapRef.current = map;
 
@@ -604,6 +623,12 @@ export function MapView({
             onSelectPoint: (type, lngLat, slot) => onSelectPointRef.current(type, lngLat, slot),
             routeProfile: routeProfileRef.current,
             onRouteProfile: (p) => onRouteProfileRef.current(p),
+            onClearRoute:
+              typeof onClearRouteRef.current === "function"
+                ? () => {
+                    onClearRouteRef.current?.();
+                  }
+                : undefined,
             initialHasStart: Boolean(startLngLatRef.current),
             initialHasEnd: Boolean(endLngLatRef.current),
             closePopup,
@@ -1247,13 +1272,13 @@ function isWaypointSlotEnabled(currentCount: number, slot: 0 | 1 | 2): boolean {
 function waypointSlotTitle(slot: 0 | 1 | 2, count: number): string {
   if (isWaypointSlotEnabled(count, slot)) {
     return slot < count
-      ? `경유 ${slot + 1}번(WP${slot + 1}) 위치를 이 지점으로 바꿉니다`
-      : `경유 ${slot + 1}번(WP${slot + 1})로 이 지점을 추가합니다`;
+      ? `Move waypoint ${slot + 1} here`
+      : `Add waypoint ${slot + 1} here`;
   }
   if (slot > count) {
-    return `WP${slot + 1}을 쓰려면 먼저 WP${count + 1}까지 순서대로 설정하세요`;
+    return `Set WP${count + 1} before WP${slot + 1}`;
   }
-  return "경유지를 더 추가할 수 없습니다";
+  return "No more waypoints";
 }
 
 async function fetchPointElevationMeters(lngLat: LngLat, signal: AbortSignal): Promise<number | null> {
@@ -1278,6 +1303,7 @@ function buildPickPopup(deps: {
   ) => void;
   routeProfile: RouteProfile;
   onRouteProfile: (p: RouteProfile) => void;
+  onClearRoute?: (() => void) | undefined;
   initialHasStart: boolean;
   initialHasEnd: boolean;
   closePopup: () => void;
@@ -1290,6 +1316,7 @@ function buildPickPopup(deps: {
     onSelectPoint,
     routeProfile,
     onRouteProfile,
+    onClearRoute,
     initialHasStart,
     initialHasEnd,
     closePopup,
@@ -1310,15 +1337,15 @@ function buildPickPopup(deps: {
   metaEl.className = "map-view__pick-meta";
   metaEl.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)} · 고도 …`;
 
-  const rowMain = document.createElement("div");
-  rowMain.className = "map-view__pick-actions map-view__pick-actions--main";
+  const pinRow = document.createElement("div");
+  pinRow.className = "map-view__pick-actions map-view__pick-actions--pin-row";
 
   const startBtn = document.createElement("button");
   startBtn.type = "button";
   startBtn.className = "map-view__pick-btn map-view__pick-btn--start";
-  startBtn.textContent = "출발 (A)";
-  startBtn.title = "이 위치를 출발지(A)로 설정";
-  startBtn.setAttribute("aria-label", "출발지로 설정");
+  startBtn.textContent = "Start";
+  startBtn.title = "Set as start";
+  startBtn.setAttribute("aria-label", "Set start");
   startBtn.onclick = () => {
     onSelectPoint("start", lngLat);
     pins.start = true;
@@ -1326,26 +1353,9 @@ function buildPickPopup(deps: {
     else syncProfileUi();
   };
 
-  const endBtn = document.createElement("button");
-  endBtn.type = "button";
-  endBtn.className = "map-view__pick-btn map-view__pick-btn--end";
-  endBtn.textContent = "도착 (B)";
-  endBtn.title = "이 위치를 도착지(B)로 설정";
-  endBtn.setAttribute("aria-label", "도착지로 설정");
-  endBtn.onclick = () => {
-    onSelectPoint("end", lngLat);
-    pins.end = true;
-    if (!pins.start) closePopup();
-    else syncProfileUi();
-  };
-
-  rowMain.append(startBtn, endBtn);
-
-  const rowWp = document.createElement("div");
-  rowWp.className = "map-view__pick-actions map-view__pick-actions--wps";
-
   const wpSlots: (0 | 1 | 2)[] = [0, 1, 2];
   const initialCount = getWaypointCount();
+  const wpButtons: HTMLButtonElement[] = [];
   for (const slot of wpSlots) {
     const wpBtn = document.createElement("button");
     wpBtn.type = "button";
@@ -1354,44 +1364,81 @@ function buildPickPopup(deps: {
     const enabled = isWaypointSlotEnabled(initialCount, slot);
     wpBtn.disabled = !enabled;
     wpBtn.title = waypointSlotTitle(slot, initialCount);
-    wpBtn.setAttribute("aria-label", `경유지 ${slot + 1}번(WP${slot + 1})`);
+    wpBtn.setAttribute("aria-label", `Waypoint ${slot + 1} (WP${slot + 1})`);
     wpBtn.onclick = () => {
       const count = getWaypointCount();
       if (!isWaypointSlotEnabled(count, slot)) return;
       onSelectPoint("waypoint", lngLat, slot);
       closePopup();
     };
-    rowWp.appendChild(wpBtn);
+    wpButtons.push(wpBtn);
   }
+
+  const endBtn = document.createElement("button");
+  endBtn.type = "button";
+  endBtn.className = "map-view__pick-btn map-view__pick-btn--end";
+  endBtn.textContent = "End";
+  endBtn.title = "Set as end";
+  endBtn.setAttribute("aria-label", "Set end");
+  endBtn.onclick = () => {
+    onSelectPoint("end", lngLat);
+    pins.end = true;
+    if (!pins.start) closePopup();
+    else syncProfileUi();
+  };
+
+  pinRow.append(startBtn, wpButtons[0]!, wpButtons[1]!, wpButtons[2]!, endBtn);
 
   const profileSection = document.createElement("div");
   profileSection.className = "map-view__pick-profile-section";
+
+  const profileHeader = document.createElement("div");
+  profileHeader.className = "map-view__pick-profile-header";
 
   const profileLabel = document.createElement("p");
   profileLabel.className = "map-view__pick-profile-label";
   profileLabel.id = "map-view-pick-profile-label";
   profileLabel.textContent = "경로 탐색 유형 선택";
 
+  if (typeof onClearRoute === "function") {
+    const clearRouteBtn = document.createElement("button");
+    clearRouteBtn.type = "button";
+    clearRouteBtn.className = "map-view__pick-btn map-view__pick-btn--clear-route";
+    clearRouteBtn.textContent = "경로 삭제";
+    clearRouteBtn.title = "Clear route";
+    clearRouteBtn.setAttribute("aria-label", "경로 전체 삭제");
+    clearRouteBtn.onclick = () => {
+      onClearRoute();
+      pins.start = false;
+      pins.end = false;
+      closePopup();
+    };
+    profileHeader.append(profileLabel, clearRouteBtn);
+  } else {
+    profileHeader.appendChild(profileLabel);
+  }
+
   const rowProfile = document.createElement("div");
   rowProfile.className = "map-view__pick-actions map-view__pick-actions--profile";
   rowProfile.setAttribute("role", "group");
   rowProfile.setAttribute("aria-labelledby", "map-view-pick-profile-label");
 
-  const profileSpecs: { profile: RouteProfile; label: string }[] = [
-    { profile: "driving", label: "자동차" },
-    { profile: "cycling", label: "자전거" },
-    { profile: "walking", label: "보행" },
+  const profileSpecs: { profile: RouteProfile; ariaLabelKo: string }[] = [
+    { profile: "driving", ariaLabelKo: "자동차 경로" },
+    { profile: "cycling", ariaLabelKo: "자전거 경로" },
+    { profile: "walking", ariaLabelKo: "보행 경로" },
   ];
 
   const profileButtons: HTMLButtonElement[] = [];
-  for (const { profile, label } of profileSpecs) {
+  for (const { profile, ariaLabelKo } of profileSpecs) {
     const pb = document.createElement("button");
     pb.type = "button";
     pb.className = "map-view__pick-btn map-view__pick-btn--profile";
     if (profile === routeProfile) pb.classList.add("is-active");
-    pb.textContent = label;
-    pb.title = `${label}로 경로를 계산합니다`;
-    pb.setAttribute("aria-label", `${label} 주행`);
+    pb.innerHTML = PICK_POPUP_PROFILE_ICON_SVG[profile];
+    pb.title =
+      profile === "driving" ? "Route by car" : profile === "walking" ? "Route on foot" : "Route by bike";
+    pb.setAttribute("aria-label", ariaLabelKo);
     pb.onclick = () => {
       if (!pins.start || !pins.end) return;
       onRouteProfile(profile);
@@ -1403,20 +1450,31 @@ function buildPickPopup(deps: {
 
   function syncProfileUi() {
     const ready = pins.start && pins.end;
-    profileSection.hidden = !ready;
+    if (typeof onClearRoute === "function") {
+      profileSection.hidden = false;
+      rowProfile.hidden = !ready;
+    } else {
+      profileSection.hidden = !ready;
+      rowProfile.hidden = false;
+    }
     wrap.classList.toggle("map-view__pick--awaiting-profile", ready);
     if (!ready) return;
     profileSpecs.forEach((spec, i) => {
       const pb = profileButtons[i];
       if (!pb) return;
-      pb.title = `${spec.label}로 경로를 계산합니다`;
+      pb.title =
+        spec.profile === "driving"
+          ? "Route by car"
+          : spec.profile === "walking"
+            ? "Route on foot"
+            : "Route by bike";
     });
   }
 
-  profileSection.append(profileLabel, rowProfile);
+  profileSection.append(profileHeader, rowProfile);
   syncProfileUi();
 
-  wrap.append(addressEl, metaEl, rowMain, rowWp, profileSection);
+  wrap.append(addressEl, metaEl, pinRow, profileSection);
 
   const token = accessToken.trim();
   if (token.length > 0) {

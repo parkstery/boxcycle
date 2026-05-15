@@ -77,7 +77,13 @@ export function AdminPublicRouteQueue(props: AdminPublicRouteQueueProps) {
     <section className="admin-prq" aria-label="공개 경로 신청 심사">
       <div className="admin-prq__head">
         <h2 className="admin-prq__title">공개 경로 심사 대기</h2>
-        <button type="button" className="admin-prq__refresh" disabled={loading} onClick={() => void reload()}>
+        <button
+          type="button"
+          className="admin-prq__refresh"
+          disabled={loading}
+          title="Refresh queue"
+          onClick={() => void reload()}
+        >
           {loading ? "불러오는 중…" : "새로고침"}
         </button>
       </div>
@@ -111,6 +117,7 @@ export function AdminPublicRouteQueue(props: AdminPublicRouteQueueProps) {
                     type="button"
                     className="admin-prq__btn admin-prq__btn--ok"
                     disabled={busy}
+                    title="Approve and publish"
                     onClick={() => void onApprove(req)}
                   >
                     승인
@@ -119,6 +126,7 @@ export function AdminPublicRouteQueue(props: AdminPublicRouteQueueProps) {
                     type="button"
                     className="admin-prq__btn admin-prq__btn--no"
                     disabled={busy}
+                    title="Reject with reason"
                     onClick={() => void onReject(req)}
                   >
                     거절

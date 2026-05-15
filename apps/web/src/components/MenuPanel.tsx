@@ -33,6 +33,7 @@ export function MenuPanel({ open, onClose, locked, children }: MenuPanelProps) {
         type="button"
         className="menu-panel__scrim"
         aria-label="메뉴 닫기"
+        title="Close menu"
         onClick={onClose}
         tabIndex={open ? 0 : -1}
       />
@@ -44,6 +45,7 @@ export function MenuPanel({ open, onClose, locked, children }: MenuPanelProps) {
             className="menu-panel__close"
             onClick={onClose}
             aria-label="메뉴 닫기"
+            title="Close menu"
           >
             ×
           </button>

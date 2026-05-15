@@ -105,6 +105,35 @@ function profileLabelKo(p: RouteProfile | CourseProfile): string {
   return "자전거";
 }
 
+/** 입문·퍼블릭 코스 한 줄 — 카드 전체 탭으로 불러오기 */
+function PublicCoursePickRow(props: {
+  course: PublishedPublicCourseSummary;
+  selected: boolean;
+  loadDisabled: boolean;
+  onLoad: () => void;
+}) {
+  const c = props.course;
+  return (
+    <li>
+      <button
+        type="button"
+        className={`ride-panel__public-courses-item${props.selected ? " is-selected" : ""}`}
+        title={props.loadDisabled ? "Available when idle" : "Load course"}
+        disabled={props.loadDisabled}
+        onClick={props.onLoad}
+      >
+        <span className="ride-panel__public-courses-meta">
+          <strong className="ride-panel__public-courses-name">{c.title}</strong>
+          <span className="ride-panel__public-courses-sub">
+            {profileLabelKo(c.profile)} · {(c.distanceMeters / 1000).toFixed(2)} km · 예상{" "}
+            {formatDuration(c.durationSec)}
+          </span>
+        </span>
+      </button>
+    </li>
+  );
+}
+
 export function RideRoutePanel(props: RideRoutePanelProps) {
   const [tab, setTab] = useState<Tab>("route");
   const [saveOpen, setSaveOpen] = useState(false);
@@ -189,6 +218,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
           role="tab"
           aria-selected={tab === "route"}
           className={`ride-panel__tab ${tab === "route" ? "is-active" : ""}`}
+          title="Route"
           onClick={() => setTab("route")}
         >
           경로
@@ -198,6 +228,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
           role="tab"
           aria-selected={tab === "saved"}
           className={`ride-panel__tab ${tab === "saved" ? "is-active" : ""}`}
+          title="My routes"
           onClick={() => setTab("saved")}
         >
           내 경로
@@ -211,6 +242,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             role="tab"
             aria-selected={tab === "publicReview"}
             className={`ride-panel__tab ${tab === "publicReview" ? "is-active" : ""}`}
+            title="Review queue"
             onClick={() => setTab("publicReview")}
           >
             심사
@@ -229,7 +261,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               type="button"
               className="ride-panel__saved-close"
               aria-label="심사 닫고 경로 화면으로"
-              title="경로 화면으로 돌아가기"
+              title="Back to route"
               onClick={() => setTab("route")}
             >
               닫기
@@ -242,6 +274,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
           <button
             type="button"
             className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet ride-panel__saved-back"
+            title="Back to route"
             onClick={() => setTab("route")}
           >
             경로로
@@ -255,7 +288,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               type="button"
               className="ride-panel__saved-close"
               aria-label="사용자 경로 닫고 경로 화면으로 돌아가기"
-              title="경로 화면으로 돌아가기"
+              title="Back to route"
               onClick={() => setTab("route")}
             >
               닫기
@@ -278,6 +311,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
           <button
             type="button"
             className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet ride-panel__saved-back"
+            title="Back to route"
             onClick={() => setTab("route")}
           >
             경로로
@@ -294,6 +328,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                 role="tab"
                 aria-selected={officialSegment === "intro"}
                 className={`ride-panel__official-seg ${officialSegment === "intro" ? "is-active" : ""}`}
+                title="Intro courses"
                 onClick={() => setOfficialSegment("intro")}
               >
                 입문
@@ -303,6 +338,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                 role="tab"
                 aria-selected={officialSegment === "public"}
                 className={`ride-panel__official-seg ${officialSegment === "public" ? "is-active" : ""}`}
+                title="Public courses"
                 onClick={() => setOfficialSegment("public")}
               >
                 퍼블릭
@@ -315,6 +351,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                 role="tab"
                 aria-selected={officialSegment === "event"}
                 className={`ride-panel__official-seg ${officialSegment === "event" ? "is-active" : ""}`}
+                title="Events (coming soon)"
                 onClick={() => setOfficialSegment("event")}
               >
                 이벤트
@@ -338,27 +375,17 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                 ) : (
                   <ul className="ride-panel__public-courses-list">
                     {props.basicSharedHubs.map((c) => (
-                      <li key={c.id} className="ride-panel__public-courses-item">
-                        <div className="ride-panel__public-courses-meta">
-                          <strong className="ride-panel__public-courses-name">{c.title}</strong>
-                          <span className="ride-panel__public-courses-sub">
-                            {profileLabelKo(c.profile)} · {(c.distanceMeters / 1000).toFixed(2)} km · 예상{" "}
-                            {formatDuration(c.durationSec)}
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          className="ride-panel__btn-secondary ride-panel__btn-secondary--small"
-                          disabled={
-                            props.routeLoading ||
-                            props.basicStartLoading ||
-                            props.sessionStatus !== "idle"
-                          }
-                          onClick={() => props.onEnterBasicHub(c.id)}
-                        >
-                          불러오기
-                        </button>
-                      </li>
+                      <PublicCoursePickRow
+                        key={c.id}
+                        course={c}
+                        selected={props.basicActiveHubCourseId === c.id}
+                        loadDisabled={
+                          props.routeLoading ||
+                          props.basicStartLoading ||
+                          props.sessionStatus !== "idle"
+                        }
+                        onLoad={() => props.onEnterBasicHub(c.id)}
+                      />
                     ))}
                   </ul>
                 )}
@@ -367,6 +394,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                     type="button"
                     className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet ride-panel__hub-leave"
                     disabled={props.basicStartLoading}
+                    title="Leave course"
                     onClick={() => void props.onLeaveBasicHub()}
                   >
                     나가기
@@ -388,27 +416,17 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                 ) : (
                   <ul className="ride-panel__public-courses-list">
                     {props.publishedPublicCourses.map((c) => (
-                      <li key={c.id} className="ride-panel__public-courses-item">
-                        <div className="ride-panel__public-courses-meta">
-                          <strong className="ride-panel__public-courses-name">{c.title}</strong>
-                          <span className="ride-panel__public-courses-sub">
-                            {profileLabelKo(c.profile)} · {(c.distanceMeters / 1000).toFixed(2)} km · 예상{" "}
-                            {formatDuration(c.durationSec)}
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          className="ride-panel__btn-secondary ride-panel__btn-secondary--small"
-                          disabled={
-                            props.routeLoading ||
-                            props.basicStartLoading ||
-                            props.sessionStatus !== "idle"
-                          }
-                          onClick={() => props.onEnterBasicHub(c.id)}
-                        >
-                          불러오기
-                        </button>
-                      </li>
+                      <PublicCoursePickRow
+                        key={c.id}
+                        course={c}
+                        selected={props.basicActiveHubCourseId === c.id}
+                        loadDisabled={
+                          props.routeLoading ||
+                          props.basicStartLoading ||
+                          props.sessionStatus !== "idle"
+                        }
+                        onLoad={() => props.onEnterBasicHub(c.id)}
+                      />
                     ))}
                   </ul>
                 )}
@@ -443,6 +461,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               <button
                 type="button"
                 className={`ride-panel__mode ${props.profile === "driving" ? "is-active" : ""}`}
+                title="Driving"
                 onClick={() => props.onProfile("driving")}
               >
                 차
@@ -450,6 +469,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               <button
                 type="button"
                 className={`ride-panel__mode ${props.profile === "cycling" ? "is-active" : ""}`}
+                title="Cycling"
                 onClick={() => props.onProfile("cycling")}
               >
                 자전거
@@ -457,6 +477,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               <button
                 type="button"
                 className={`ride-panel__mode ${props.profile === "walking" ? "is-active" : ""}`}
+                title="Walking"
                 onClick={() => props.onProfile("walking")}
               >
                 도보
@@ -474,8 +495,8 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               }
               title={
                 props.officialCourseActive
-                  ? "공식 코스를 불러온 상태입니다. 출발지·도착지를 지도에서 바꾼 뒤 맞춤 경로를 만들 수 있습니다."
-                  : undefined
+                  ? "Official course loaded — change pins on map to build a custom route."
+                  : "Build route"
               }
               onClick={() => void props.onGenerateRoute()}
             >
@@ -486,6 +507,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                 type="button"
                 className="ride-panel__btn-secondary ride-panel__btn-secondary--save-inline"
                 disabled={!canSaveRoute}
+                title="Save as my route"
                 onClick={openSave}
               >
                 내 경로로 저장
@@ -525,6 +547,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                     type="button"
                     className="ride-panel__btn-primary ride-panel__btn-primary--small"
                     disabled={saveBusy}
+                    title="Save"
                     onClick={() => void commitSave()}
                   >
                     {saveBusy ? "저장 중…" : "저장"}
@@ -533,6 +556,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                     type="button"
                     className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet"
                     disabled={saveBusy}
+                    title="Cancel"
                     onClick={cancelSave}
                   >
                     취소
@@ -553,6 +577,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               max={50}
               step={1}
               value={props.speedKmh}
+              title="Session speed"
               onChange={(e) => props.onSpeedKmh(Number(e.target.value))}
               className="ride-panel__range"
             />
@@ -560,8 +585,10 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
 
           {props.bleCadence ? (
             <div className="ride-panel__ble-cadence">
-              <div className="ride-panel__ble-cadence-head">
-                <span className="ride-panel__kicker">RPM</span>
+              <div className="ride-panel__ble-cadence-row">
+                <div className="ride-panel__ble-cadence-copy">
+                  <div className="ride-panel__ble-cadence-head">
+                    <span className="ride-panel__kicker">RPM</span>
                 {props.bleCadence.deviceLabel ? (
                   <span className="ride-panel__ble-status">
                     <strong>{props.bleCadence.deviceLabel}</strong>
@@ -576,15 +603,17 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               </div>
               <p
                 className="ride-panel__help ride-panel__help--tight"
-                title="크랭크 RPM이 있으면 아바타 페달에 반영됩니다. Chrome·Edge 등, HTTPS 또는 localhost에서 CSC 센서를 선택하세요."
+                title="Crank RPM drives the pedal sprite. Use Chrome/Edge over HTTPS or localhost."
               >
                 HTTPS·localhost에서 Bluetooth CSC.
               </p>
-              <div className="ride-panel__ble-actions">
+                </div>
+                <div className="ride-panel__ble-actions">
                 {props.bleCadence.uiState === "connected" ? (
                   <button
                     type="button"
                     className="ride-panel__btn-secondary ride-panel__btn-secondary--small"
+                    title="Disconnect sensor"
                     onClick={props.bleCadence.onDisconnect}
                   >
                     해제
@@ -595,11 +624,13 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                   <button
                     type="button"
                     className="ride-panel__btn-secondary ride-panel__btn-secondary--small"
+                    title="Connect sensor"
                     onClick={() => void props.bleCadence?.onConnect()}
                   >
                     연결
                   </button>
                 )}
+                </div>
               </div>
               {props.bleCadence.errorMessage ? (
                 <p className="ride-panel__save-route-error" role="alert">
@@ -612,7 +643,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
           <div className="ride-panel__media-toggles" aria-label="코칭·BGM">
             <span className="ride-panel__kicker">표시</span>
             <div className="ride-panel__toggle-grid">
-              <label className="ride-panel__toggle">
+              <label className="ride-panel__toggle" title="Coaching banner">
                 <input
                   type="checkbox"
                   checked={props.rideCoachingBanner}
@@ -620,7 +651,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                 />
                 배너
               </label>
-              <label className="ride-panel__toggle">
+              <label className="ride-panel__toggle" title="Text-to-speech">
                 <input
                   type="checkbox"
                   checked={props.rideTtsEnabled}
@@ -628,13 +659,13 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                 />
                 TTS
               </label>
-              <label className="ride-panel__toggle">
+              <label className="ride-panel__toggle" title="Background music">
                 <input
                   type="checkbox"
                   checked={props.rideBgmEnabled}
                   onChange={(e) => props.onRideBgmEnabled(e.target.checked)}
                   disabled={!props.rideBgmCatalogConfigured}
-                  title={!props.rideBgmCatalogConfigured ? "BGM 플레이리스트가 설정되지 않았습니다." : undefined}
+                  title={!props.rideBgmCatalogConfigured ? "BGM not configured" : undefined}
                 />
                 BGM
               </label>
@@ -681,6 +712,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                       type="button"
                       className="ride-panel__btn-primary ride-panel__btn-primary--small"
                       disabled={adhocSaveBusy}
+                      title="Save"
                       onClick={() => void commitAdhocSave()}
                     >
                       {adhocSaveBusy ? "저장 중…" : "저장"}
@@ -689,6 +721,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                       type="button"
                       className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet"
                       disabled={adhocSaveBusy}
+                      title="Cancel"
                       onClick={() => {
                         setAdhocSaveOpen(false);
                         setAdhocSaveDraft("");
@@ -703,7 +736,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                 <div className="ride-panel__adhoc-save-row">
                   <span
                     className="ride-panel__adhoc-save-msg"
-                    title="이름을 입력한 뒤 저장하면 내 경로 목록에 반영됩니다."
+                    title="Name and save to your route list."
                   >
                     방금 코스를 목록에 남길까요?
                   </span>
@@ -711,6 +744,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                     <button
                       type="button"
                       className="ride-panel__btn-primary ride-panel__btn-primary--small"
+                      title="Save to my routes"
                       onClick={() => {
                         setAdhocSaveError(null);
                         setAdhocSaveDraft("");
@@ -722,6 +756,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                     <button
                       type="button"
                       className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet"
+                      title="Skip"
                       onClick={props.onDismissAdhocSave}
                     >
                       안 함

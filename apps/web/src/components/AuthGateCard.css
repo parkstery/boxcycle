@@ -1,3 +1,4 @@
+/* 맵 퍼스트 UI — MapViewSheet / UserInfoSheet 와 맞춘 다크 글래스 톤 */
 .auth-gate {
   position: fixed;
   inset: 0;
@@ -5,121 +6,278 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: max(1rem, env(safe-area-inset-top, 0px))
-    max(1rem, env(safe-area-inset-right, 0px))
-    max(1rem, env(safe-area-inset-bottom, 0px))
-    max(1rem, env(safe-area-inset-left, 0px));
-  background: linear-gradient(135deg, rgba(2, 6, 23, 0.78), rgba(15, 23, 42, 0.62));
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  padding: max(0.65rem, env(safe-area-inset-top, 0px))
+    max(0.65rem, env(safe-area-inset-right, 0px))
+    max(0.65rem, env(safe-area-inset-bottom, 0px))
+    max(0.65rem, env(safe-area-inset-left, 0px));
+  background: rgba(2, 6, 23, 0.42);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .auth-gate__card {
-  width: min(28rem, 100%);
+  width: min(16.5rem, 92vw);
   max-height: 100%;
   overflow: auto;
-  border-radius: 16px;
-  background: #f8fafc;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  color: #0f172a;
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
-  padding: 1.2rem 1.25rem;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(248, 250, 252, 0.18);
+  color: #f8fafc;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.38);
+  padding: 0.65rem 0.75rem 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  color-scheme: light;
+  gap: 0.45rem;
+  color-scheme: dark;
+  animation: auth-gate-card-in 0.2s ease-out;
 }
 
-/* 카드 안 버튼/입력은 라이트 톤으로 통일 */
-.auth-gate__card .btn {
-  appearance: none;
-  font: inherit;
-  font-weight: 600;
-  padding: 0.55rem 1rem;
-  border-radius: 8px;
-  border: 1px solid rgba(15, 23, 42, 0.18);
-  background: #ffffff;
-  color: #0f172a;
-  cursor: pointer;
+@keyframes auth-gate-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.auth-gate__card .btn.primary {
-  background: #2563eb;
-  border-color: #2563eb;
-  color: #ffffff;
-}
-
-.auth-gate__card .btn.secondary {
-  background: #ffffff;
-  color: #0f172a;
-}
-
-.auth-gate__card .btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.auth-gate__card .auth-actions {
+.auth-gate__topbar {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.auth-gate__card .auth-actions--gate .btn {
-  flex: 1 1 8rem;
-}
-
-.auth-gate__card .meta {
-  margin: 0;
-  font-size: 0.78rem;
-  color: rgba(15, 23, 42, 0.7);
-}
-
-.auth-gate__card .error {
-  margin: 0;
-  font-size: 0.78rem;
-  color: #b91c1c;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
 }
 
 .auth-gate__brand {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  min-width: 0;
+  flex: 1;
   font-weight: 700;
-  letter-spacing: 0.1em;
-  font-size: 0.95rem;
-  color: #0f172a;
+  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+  color: rgba(248, 250, 252, 0.92);
 }
 
 .auth-gate__brand-dot {
-  width: 0.7rem;
-  height: 0.7rem;
+  width: 0.5rem;
+  height: 0.5rem;
   border-radius: 50%;
-  background: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  background: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35);
+  flex-shrink: 0;
+}
+
+.auth-gate__close {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 1.85rem;
+  height: 1.85rem;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  appearance: none;
+  border: 1px solid rgba(248, 250, 252, 0.22);
+  border-radius: 50%;
+  background: rgba(248, 250, 252, 0.06);
+  color: #f8fafc;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.auth-gate__close:hover:not(:disabled) {
+  background: rgba(248, 250, 252, 0.16);
+}
+
+.auth-gate__close:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+.auth-gate__close:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .auth-gate__title {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  color: #0f172a;
+  letter-spacing: 0.04em;
+  color: rgba(248, 250, 252, 0.88);
 }
 
 .auth-gate__body {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.45rem;
+}
+
+/* 카드 내 공통 버튼 — UserInfoSheet 버튼과 유사 */
+.auth-gate__card .btn {
+  appearance: none;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.74rem;
+  padding: 0.42rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid rgba(248, 250, 252, 0.22);
+  background: rgba(248, 250, 252, 0.06);
+  color: #f8fafc;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.auth-gate__card .btn:hover:not(:disabled) {
+  background: rgba(248, 250, 252, 0.14);
+}
+
+.auth-gate__card .btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.auth-gate__card .auth-actions {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 0.35rem;
+}
+
+.auth-gate__card .auth-actions--gate .btn {
+  flex: none;
+  width: 100%;
+  text-align: center;
+  justify-content: center;
+}
+
+/* 게스트: 글래스 유지(secondary) */
+.auth-gate__card .btn.secondary {
+  background: rgba(248, 250, 252, 0.05);
+  border-color: rgba(248, 250, 252, 0.18);
+  color: rgba(248, 250, 252, 0.95);
+}
+
+.auth-gate__card .btn.secondary:hover:not(:disabled) {
+  background: rgba(248, 250, 252, 0.12);
+}
+
+/* 기본 primary — 닉네임 제출 등 */
+.auth-gate__card .btn.primary {
+  background: rgba(56, 189, 248, 0.28);
+  border-color: rgba(56, 189, 248, 0.5);
+  color: #f8fafc;
+}
+
+.auth-gate__card .btn.primary:hover:not(:disabled) {
+  background: rgba(56, 189, 248, 0.4);
+}
+
+/* Google — 계정 선택용 밝은 CTA (앱 내 버튼만; 실제 구글 팝업은 구글 호스트) */
+.auth-gate__card .btn.auth-gate-google {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  background: #f8fafc;
+  border-color: rgba(248, 250, 252, 0.9);
+  color: #0f172a;
+  font-weight: 650;
+}
+
+.auth-gate__card .btn.auth-gate-google:hover:not(:disabled) {
+  background: #ffffff;
+}
+
+.auth-gate-google-mark {
+  flex-shrink: 0;
+  display: block;
+}
+
+.auth-gate__card .meta {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.4;
+  color: rgba(248, 250, 252, 0.65);
+}
+
+.auth-gate__card .error {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: #fca5a5;
+}
+
+/* SignUpNicknameCard — 다크 카드 위 가독성 */
+.auth-gate__card .signup-nickname {
+  max-width: none;
+  padding-top: 0.1rem;
+}
+
+.auth-gate__card .signup-nickname__title {
+  color: #f8fafc;
+  font-size: 0.82rem;
+  margin-bottom: 0.35rem;
+}
+
+.auth-gate__card .signup-nickname__lead {
+  color: rgba(248, 250, 252, 0.78);
+  font-size: 0.72rem;
+  line-height: 1.4;
+  margin-bottom: 0.35rem;
+}
+
+.auth-gate__card .signup-nickname__rules {
+  color: rgba(248, 250, 252, 0.62);
+  font-size: 0.66rem;
+  margin-bottom: 0.45rem;
+}
+
+.auth-gate__card .signup-nickname__rules--meta {
+  color: rgba(248, 250, 252, 0.55);
+}
+
+.auth-gate__card .signup-nickname__label {
+  color: rgba(248, 250, 252, 0.82);
+  font-size: 0.72rem;
+}
+
+.auth-gate__card .signup-nickname__input {
+  border: 1px solid rgba(248, 250, 252, 0.22);
+  background: rgba(2, 6, 23, 0.45);
+  color: #f8fafc;
+}
+
+.auth-gate__card .signup-nickname__input::placeholder {
+  color: rgba(248, 250, 252, 0.38);
+}
+
+.auth-gate__card .signup-nickname__input:focus {
+  outline: none;
+  border-color: rgba(56, 189, 248, 0.55);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.35);
+}
+
+.auth-gate__card .signup-nickname__err {
+  color: #fca5a5;
 }
 
 @media (orientation: landscape) and (max-height: 480px) {
   .auth-gate {
     align-items: flex-start;
-    padding-top: 0.5rem;
+    padding-top: 0.35rem;
   }
 
   .auth-gate__card {
-    padding: 0.75rem 0.9rem;
-    gap: 0.5rem;
+    padding: 0.55rem 0.65rem 0.65rem;
+    gap: 0.35rem;
   }
 }

@@ -153,6 +153,7 @@ export function MenuPlaceSearch({ accessToken, menuOpen, onPickPlace }: MenuPlac
                     type="button"
                     role="option"
                     className="menu-place-search__item"
+                    title="Go to this place"
                     onClick={() => handlePick(s)}
                   >
                     {s.placeName}

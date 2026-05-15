@@ -15,6 +15,10 @@ export type StoredRideSession = {
   routeName?: string | null;
   /** 완주율(0~1). routeDistanceMeters > 0 일 때만 의미 있음. */
   completionRatio?: number;
+  /** 출발지 역지오코딩(맵 UI·주행 종료 시 스냅샷). */
+  startPlaceLabel?: string;
+  /** 도착지 역지오코딩. */
+  endPlaceLabel?: string;
 };
 
 export function loadRideSessions(): StoredRideSession[] {

@@ -76,7 +76,7 @@ export function RideHistoryPanel(props: RideHistoryPanelProps) {
           type="button"
           className="ride-history__close"
           aria-label="주행 기록 닫고 경로 화면으로 돌아가기"
-          title="경로 화면으로 돌아가기"
+          title="Back to routes"
           onClick={props.onClose}
         >
           닫기
@@ -150,6 +150,7 @@ export function RideHistoryPanel(props: RideHistoryPanelProps) {
       <button
         type="button"
         className="ride-history__back"
+        title="Back to routes"
         onClick={props.onClose}
       >
         경로 화면으로 돌아가기

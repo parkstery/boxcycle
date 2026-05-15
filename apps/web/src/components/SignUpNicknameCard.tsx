@@ -55,7 +55,12 @@ export function SignUpNicknameCard({ busy, onSubmit }: SignUpNicknameCardProps) 
             {localError}
           </p>
         ) : null}
-        <button type="submit" className="btn primary signup-nickname__submit" disabled={busy}>
+        <button
+          type="submit"
+          className="btn primary signup-nickname__submit"
+          disabled={busy}
+          title="Save nickname"
+        >
           {busy ? "저장 중…" : "가입 완료"}
         </button>
       </form>

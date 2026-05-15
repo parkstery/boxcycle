@@ -10,7 +10,7 @@
   --rp-btn-fg: #f8fafc;
 
   width: 100%;
-  max-width: 22rem;
+  max-width: var(--menu-panel-width, 15.4rem);
   flex: 0 0 auto;
   padding: 0.45rem 0.55rem 0.55rem;
   border-right: 1px solid var(--rp-border);
@@ -527,15 +527,53 @@
   overflow: auto;
 }
 
+.ride-panel__public-courses-list > li {
+  list-style: none;
+}
+
+/* 카드 전체 탭 → 코스 불러오기 */
 .ride-panel__public-courses-item {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.4rem;
-  padding: 0.35rem 0.4rem;
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0.38rem 0.45rem;
   border-radius: 8px;
   border: 1px solid var(--rp-border);
   background: rgba(2, 6, 23, 0.35);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.ride-panel__public-courses-item:hover:not(:disabled) {
+  background: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.42);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.12);
+}
+
+.ride-panel__public-courses-item:focus-visible {
+  outline: 2px solid rgba(56, 189, 248, 0.75);
+  outline-offset: 2px;
+}
+
+.ride-panel__public-courses-item.is-selected {
+  background: rgba(56, 189, 248, 0.16);
+  border-color: rgba(56, 189, 248, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.2);
+}
+
+.ride-panel__public-courses-item:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.ride-panel__public-courses-item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .ride-panel__public-courses-meta {
@@ -630,6 +668,18 @@
   border: 1px solid rgba(167, 139, 250, 0.28);
 }
 
+.ride-panel__ble-cadence-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.ride-panel__ble-cadence-copy {
+  flex: 1;
+  min-width: 0;
+}
+
 .ride-panel__ble-cadence-head {
   display: flex;
   align-items: baseline;
@@ -647,8 +697,19 @@
   word-break: break-word;
 }
 
+.ride-panel__ble-cadence-copy .ride-panel__help--tight {
+  margin: 0.1rem 0 0;
+}
+
 .ride-panel__ble-actions {
-  margin-top: 0.28rem;
+  flex-shrink: 0;
+  margin: 0;
+  align-self: center;
+}
+
+.ride-panel__ble-connecting {
+  white-space: nowrap;
+  font-size: 0.7rem;
 }
 
 .ride-panel__media-toggles {

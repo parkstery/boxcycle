@@ -107,6 +107,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
             role="tab"
             aria-selected={filter === "all"}
             className={`saved-routes__filter-btn ${filter === "all" ? "is-active" : ""}`}
+            title="Show all"
             onClick={() => setFilter("all")}
           >
             전체 ({props.routes.length})
@@ -116,6 +117,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
             role="tab"
             aria-selected={filter === "completed"}
             className={`saved-routes__filter-btn ${filter === "completed" ? "is-active" : ""}`}
+            title="Completed only"
             onClick={() => setFilter("completed")}
           >
             완주 ({completedCount})
@@ -125,6 +127,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
             role="tab"
             aria-selected={filter === "pending"}
             className={`saved-routes__filter-btn ${filter === "pending" ? "is-active" : ""}`}
+            title="Pending only"
             onClick={() => setFilter("pending")}
           >
             대기 ({pendingCount})
@@ -173,6 +176,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                         type="button"
                         className="saved-routes__btn saved-routes__btn--primary"
                         disabled={isBusy}
+                        title="Save name"
                         onClick={() => void commitRename(route)}
                       >
                         저장
@@ -181,6 +185,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                         type="button"
                         className="saved-routes__btn"
                         disabled={isBusy}
+                        title="Cancel"
                         onClick={cancelRename}
                       >
                         취소
@@ -201,8 +206,8 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                                 className="saved-routes__badge saved-routes__badge--ok"
                                 title={
                                   route.completedAtIso
-                                    ? `완주: ${new Date(route.completedAtIso).toLocaleString()}`
-                                    : "완주 경로 · 영구 보존"
+                                    ? `Completed: ${new Date(route.completedAtIso).toLocaleString()}`
+                                    : "Completed · kept permanently"
                                 }
                               >
                                 완주
@@ -212,14 +217,20 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                           const d = daysUntilExpiry(route.expiresAtIso);
                           if (d === null) {
                             return (
-                              <span className="saved-routes__badge saved-routes__badge--pending">
+                              <span
+                                className="saved-routes__badge saved-routes__badge--pending"
+                                title="Pending completion"
+                              >
                                 대기
                               </span>
                             );
                           }
                           if (d <= 0) {
                             return (
-                              <span className="saved-routes__badge saved-routes__badge--soon">
+                              <span
+                                className="saved-routes__badge saved-routes__badge--soon"
+                                title="Expires soon if not ridden"
+                              >
                                 만료 임박
                               </span>
                             );
@@ -231,7 +242,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                                   ? "saved-routes__badge--soon"
                                   : "saved-routes__badge--pending"
                               }`}
-                              title={`주행하지 않으면 ${d}일 후 자동 삭제`}
+                              title={`Auto-delete in ${d} day(s) if not ridden`}
                             >
                               {`대기 · D-${d}`}
                             </span>
@@ -260,7 +271,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                             type="button"
                             className="saved-routes__btn saved-routes__btn--accent"
                             disabled
-                            title="Google 계정으로 로그인하면 퍼블릭 신청을 할 수 있습니다"
+                            title="Sign in to request public listing"
                           >
                             퍼블릭 신청
                           </button>
@@ -268,7 +279,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                           props.pendingPublicRouteIds?.has(route.id) ? (
                             <span
                               className="saved-routes__badge saved-routes__badge--pending"
-                              title="관리자 승인 대기 중입니다"
+                              title="Awaiting admin review"
                             >
                               공개 심사 중
                             </span>
@@ -279,8 +290,8 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                               disabled={isBusy || !props.sessionIdle}
                               title={
                                 props.sessionIdle
-                                  ? "완주 경로를 다른 이용자에게 공개하도록 신청합니다"
-                                  : "주행 종료 후 신청할 수 있습니다"
+                                  ? "Request listing this route publicly"
+                                  : "Available when idle"
                               }
                               onClick={() => props.onOpenPublicRequest?.(route)}
                             >
@@ -294,9 +305,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                         className="saved-routes__btn saved-routes__btn--primary"
                         disabled={isBusy || !props.sessionIdle}
                         title={
-                          props.sessionIdle
-                            ? "이 경로를 지도에 불러옵니다"
-                            : "주행 종료 후 불러올 수 있습니다"
+                          props.sessionIdle ? "Load route on map" : "Available when idle"
                         }
                         onClick={() => props.onLoadRoute(route)}
                       >
@@ -306,6 +315,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                         type="button"
                         className="saved-routes__btn"
                         disabled={isBusy || !props.sessionIdle}
+                        title={props.sessionIdle ? "Rename" : "Available when idle"}
                         onClick={() => startRename(route)}
                       >
                         이름 변경
@@ -314,6 +324,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                         type="button"
                         className="saved-routes__btn saved-routes__btn--danger"
                         disabled={isBusy || !props.sessionIdle}
+                        title={props.sessionIdle ? "Delete route" : "Available when idle"}
                         onClick={() => void commitDelete(route)}
                       >
                         삭제

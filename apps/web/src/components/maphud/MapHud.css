@@ -8,6 +8,8 @@
   inset: 0;
   z-index: 5;
   pointer-events: none;
+  /** `.hud-main-fab` 와 동기 — BR 주행 버튼 뭉치 수직 오프셋에 사용 */
+  --hud-main-fab-size: 3.8rem;
   --hud-pad: clamp(0.45rem, 1.4vw, 0.85rem);
   --hud-pad-top: max(var(--hud-pad), env(safe-area-inset-top, 0px));
   --hud-pad-bottom: max(var(--hud-pad), env(safe-area-inset-bottom, 0px));
@@ -278,6 +280,16 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 0.35rem;
+}
+
+/* 주행 종료는 DOM 상 뒤지만 column-reverse 로 일시정지·재생 아래에 두지 않고 위에 배치 → 플레이/일시정지 위치·축척과의 관계 유지 */
+.map-hud__br-main {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-end;
+  gap: 0.35rem;
+  /* 주행 시작 FAB 높이의 약 1/2 만큼 위로 (맵 하단·축척과 간격) */
+  transform: translateY(calc(-0.7 * var(--hud-main-fab-size)));
 }
 
 .map-hud__mc {
@@ -647,8 +659,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 3.8rem;
-  height: 3.8rem;
+  width: var(--hud-main-fab-size);
+  height: var(--hud-main-fab-size);
   border-radius: 50%;
   border: 1.5px solid rgba(248, 250, 252, 0.35);
   background: rgba(56, 189, 248, 0.4);
@@ -746,6 +758,10 @@
 
 /* ---------- 반응형 ---------- */
 @media (max-width: 640px) {
+  .map-hud {
+    --hud-main-fab-size: 3.3rem;
+  }
+
   .hud-icon-btn--xl {
     width: 3rem;
     height: 3rem;
@@ -753,8 +769,8 @@
   }
 
   .hud-main-fab {
-    width: 3.3rem;
-    height: 3.3rem;
+    width: var(--hud-main-fab-size);
+    height: var(--hud-main-fab-size);
     font-size: 1.35rem;
   }
 

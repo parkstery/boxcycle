@@ -114,12 +114,20 @@
   margin-top: 0.38rem;
 }
 
-.map-view__pick-actions--main {
+.map-view__pick-actions--pin-row {
   flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0.24rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
-.map-view__pick-actions--wps {
-  margin-top: 0.28rem;
+.map-view__pick-actions--pin-row .map-view__pick-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0.24rem 0.32rem;
+  font-size: 0.7rem;
 }
 
 .map-view__pick-btn {
@@ -187,8 +195,21 @@
   margin-top: 0.32rem;
 }
 
+.map-view__pick-profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  margin-bottom: 0.22rem;
+}
+
+.map-view__pick-profile-header .map-view__pick-profile-label {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
 .map-view__pick-profile-label {
-  margin: 0 0 0.22rem;
   font-size: 0.68rem;
   font-weight: 650;
   letter-spacing: 0.02em;
@@ -196,17 +217,64 @@
   line-height: 1.3;
 }
 
+.map-view__pick-btn--clear-route {
+  flex: 0 0 auto;
+  appearance: none;
+  font: inherit;
+  font-size: 0.66rem;
+  font-weight: 650;
+  padding: 0.2rem 0.48rem;
+  line-height: 1.25;
+  border-radius: 999px;
+  cursor: pointer;
+  border: 1px solid rgba(248, 250, 252, 0.18);
+  background: rgba(248, 250, 252, 0.08);
+  color: #e2e8f0;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.map-view__pick-btn--clear-route:hover {
+  background: rgba(248, 250, 252, 0.14);
+  border-color: rgba(248, 250, 252, 0.26);
+}
+
+.map-view__pick-btn--clear-route:active {
+  transform: scale(0.98);
+}
+
 .map-view__pick-actions--profile {
   margin-top: 0;
 }
 
 .map-view__pick-btn--profile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: 2.35rem;
+  height: 2.35rem;
+  min-width: 2.35rem;
+  min-height: 2.35rem;
+  max-width: 2.35rem;
+  max-height: 2.35rem;
+  padding: 0;
+  border-radius: 50%;
   background: rgba(248, 250, 252, 0.08);
   border-color: rgba(248, 250, 252, 0.16);
   color: #e2e8f0;
   font-size: 0.72rem;
-  padding: 0.24rem 0.38rem;
-  line-height: 1.25;
+  line-height: 1;
+}
+
+.map-view__pick-profile-ico {
+  width: 1.22rem;
+  height: 1.22rem;
+  display: block;
+  flex-shrink: 0;
 }
 
 .map-view__pick-btn--profile:hover:not(:disabled) {
@@ -413,4 +481,12 @@
   margin-top: calc(
     max(clamp(0.45rem, 1.4vw, 0.85rem), env(safe-area-inset-top, 0px)) + 2.2rem + 0.4rem + 1.5 * 30px
   );
+}
+
+/*
+ * 축척( bottom-right ): Mapbox 기본값이 attribution 위에 넉넉한 간격을 둠 → 저작권 바에 더 붙이기.
+ * HUD 주행 FAB은 맵 밖 오버레이라 여기 margin 은 Mapbox 컨트롤만 영향.
+ */
+.app-shell--map-first .map-view .mapboxgl-ctrl-bottom-right {
+  margin-bottom: -0.25rem;
 }

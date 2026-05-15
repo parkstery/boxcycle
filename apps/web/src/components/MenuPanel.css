@@ -30,7 +30,8 @@
   top: 0;
   bottom: 0;
   left: 0;
-  width: min(22rem, 92vw);
+  --menu-panel-width: 15.4rem; /* 기존 22rem 대비 약 30% 축소 */
+  width: min(var(--menu-panel-width), 92vw);
   background: rgba(15, 23, 42, 0.86);
   color: #f8fafc;
   border-right: 1px solid rgba(248, 250, 252, 0.18);

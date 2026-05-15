@@ -25,7 +25,7 @@ import { useLobbyLiveCourseRideSpectatorOverlay } from "./hooks/useLobbyLiveCour
 import { useDocumentVisibility } from "./hooks/useDocumentVisibility";
 import { fetchWorldPresenceSummary, formatWorldPresenceHudLine } from "./lib/firestoreWorldPresence";
 import { MAP_ZOOM_WORLD_ACTIVITY_MAX, WORLD_PRESENCE_POLL_MS } from "./lib/rideSyncPolicy";
-import { AuthGateCard } from "./components/AuthGateCard";
+import { AuthGateCard, AuthGoogleMark } from "./components/AuthGateCard";
 import { RideSummarySheet } from "./components/RideSummarySheet";
 import { MenuPanel } from "./components/MenuPanel";
 import { MenuPlaceSearch } from "./components/MenuPlaceSearch";
@@ -151,6 +151,14 @@ function formatElapsedFromMs(ms: number): string {
   return `${m}:${s}`;
 }
 
+function isBenignAuthPopupCancel(e: unknown): boolean {
+  const code =
+    typeof e === "object" && e !== null && "code" in e
+      ? (e as { code?: string }).code
+      : undefined;
+  return code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request";
+}
+
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [busy, setBusy] = useState(false);
@@ -234,6 +242,8 @@ export default function App() {
   const [postSignoutMapSession, setPostSignoutMapSession] = useState(readPostSignoutMapSessionFlag);
   /** 비로그인 맵에서 TR「로그인」으로 연 게스트/Google 카드 */
   const [authSheetOpen, setAuthSheetOpen] = useState(false);
+  /** 게스트/Google 클릭 직후 첫 진입 풀스크린 선택 카드만 숨김(stage 는 아직 gate 일 수 있음) */
+  const [authPickCardHidden, setAuthPickCardHidden] = useState(false);
   const lobbyPresenceUidRef = useRef<string | null>(null);
   const pageVisible = useDocumentVisibility();
   const [worldHudHint, setWorldHudHint] = useState<string | null>(null);
@@ -443,6 +453,11 @@ export default function App() {
     if (user) return;
     lobbyPresenceUidRef.current = null;
     startTransition(() => setLobbyParticipationEnabled(true));
+  }, [user]);
+
+  /** 비로그인 상태에서는 사용자 시트 액션(로비/로그아웃)이 없으므로 시트를 닫음 */
+  useEffect(() => {
+    if (!user) setUserInfoSheetOpen(false);
   }, [user]);
 
   useEffect(() => {
@@ -1059,11 +1074,15 @@ export default function App() {
   );
 
   async function handleGuestStart() {
+    setAuthSheetOpen(false);
+    setAuthPickCardHidden(true);
     setError(null);
     setBusy(true);
     try {
       await signInAnonymously(getFirebaseAuth());
     } catch (e: unknown) {
+      setAuthPickCardHidden(false);
+      if (postSignoutMapSession) setAuthSheetOpen(true);
       const message = e instanceof Error ? e.message : String(e);
       setError(`게스트(익명) 로그인 실패: ${message}`);
     } finally {
@@ -1072,6 +1091,8 @@ export default function App() {
   }
 
   async function handleGoogleSignIn() {
+    setAuthSheetOpen(false);
+    setAuthPickCardHidden(true);
     setError(null);
     setBusy(true);
     try {
@@ -1107,6 +1128,11 @@ export default function App() {
         await signInWithPopup(auth, provider);
       }
     } catch (e: unknown) {
+      if (isBenignAuthPopupCancel(e)) {
+        return;
+      }
+      setAuthPickCardHidden(false);
+      if (postSignoutMapSession) setAuthSheetOpen(true);
       const err = e as { code?: string; message?: string };
       if (err.code === "auth/account-exists-with-different-credential") {
         setError(
@@ -1196,6 +1222,19 @@ export default function App() {
         ? Math.max(0, Math.min(1, rideMetrics.virtualDistanceMeters / routeDistanceMeters))
         : 0;
 
+    const startPlaceSnapshot =
+      startLngLat != null
+        ? startPlaceLabel !== null && startPlaceLabel.trim().length > 0
+          ? startPlaceLabel.trim()
+          : formatLngLat(startLngLat)
+        : undefined;
+    const endPlaceSnapshot =
+      endLngLat != null
+        ? endPlaceLabel !== null && endPlaceLabel.trim().length > 0
+          ? endPlaceLabel.trim()
+          : formatLngLat(endLngLat)
+        : undefined;
+
     const record: StoredRideSession = {
       id: crypto.randomUUID(),
       endedAt: new Date().toISOString(),
@@ -1211,6 +1250,8 @@ export default function App() {
       userRouteId: savedRouteIdAtEnd,
       routeName: savedRouteNameAtEnd,
       completionRatio,
+      startPlaceLabel: startPlaceSnapshot,
+      endPlaceLabel: endPlaceSnapshot,
     };
     const next = [record, ...loadRideSessions()].slice(0, 50);
     saveRideSessions(next);
@@ -1225,11 +1266,37 @@ export default function App() {
     if (configured && user) {
       void (async () => {
         try {
+          let sessionForPersist: StoredRideSession = record;
+          const token = MAPBOX_TOKEN.trim();
+          if (token && startLngLat && endLngLat) {
+            try {
+              const [sName, eName] = await Promise.all([
+                fetchMapboxReverseGeocodePlaceName(startLngLat, token),
+                fetchMapboxReverseGeocodePlaceName(endLngLat, token),
+              ]);
+              const sFromApi = sName?.trim();
+              const eFromApi = eName?.trim();
+              if (sFromApi || eFromApi) {
+                sessionForPersist = {
+                  ...record,
+                  startPlaceLabel: sFromApi || record.startPlaceLabel,
+                  endPlaceLabel: eFromApi || record.endPlaceLabel,
+                };
+                const rows = loadRideSessions().map((r) =>
+                  r.id === record.id ? sessionForPersist : r,
+                );
+                saveRideSessions(rows);
+                setRecentSessions(rows);
+              }
+            } catch {
+              /* noop */
+            }
+          }
           const rideId = await saveRideSessionToFirestore({
             userId: user.uid,
             roomId,
             profile,
-            session: record,
+            session: sessionForPersist,
           });
           if (savedRouteIdAtEnd && !savedRouteIdAtEnd.startsWith("local-")) {
             try {
@@ -1306,6 +1373,36 @@ export default function App() {
         profile,
         rideId: null,
       });
+    }
+
+    /** Firebase 미연동·비로그인: 클라우드 저장 없이도 역지오코딩으로 로컬 기록만 보강 */
+    if (!(configured && user)) {
+      const token = MAPBOX_TOKEN.trim();
+      if (token && startLngLat && endLngLat) {
+        void (async () => {
+          try {
+            const [sName, eName] = await Promise.all([
+              fetchMapboxReverseGeocodePlaceName(startLngLat, token),
+              fetchMapboxReverseGeocodePlaceName(endLngLat, token),
+            ]);
+            const sFromApi = sName?.trim();
+            const eFromApi = eName?.trim();
+            if (!sFromApi && !eFromApi) return;
+            const sessionForPersist: StoredRideSession = {
+              ...record,
+              startPlaceLabel: sFromApi || record.startPlaceLabel,
+              endPlaceLabel: eFromApi || record.endPlaceLabel,
+            };
+            const rows = loadRideSessions().map((r) =>
+              r.id === record.id ? sessionForPersist : r,
+            );
+            saveRideSessions(rows);
+            setRecentSessions(rows);
+          } catch {
+            /* noop */
+          }
+        })();
+      }
     }
 
     // 격상 후보는 한 번 사용 후 비워 다음 사이클을 깨끗하게 시작
@@ -1562,6 +1659,10 @@ export default function App() {
   });
   const rideLocked = stage === "riding" || stage === "paused";
 
+  useEffect(() => {
+    if (!needsAuthCard) setAuthPickCardHidden(false);
+  }, [needsAuthCard]);
+
   const applyRouteProfileFromMapPopup = useCallback(
     (p: RouteProfile) => {
       if (rideLocked) return;
@@ -1740,6 +1841,7 @@ export default function App() {
           mapillaryClientToken={mapillaryTokenConfigured ? MAPILLARY_CLIENT_TOKEN : null}
           routeProfile={profile}
           onRouteProfile={applyRouteProfileFromMapPopup}
+          onClearRoute={handleClearPins}
           onSelectPoint={(type, lngLat, waypointSlot) => {
             if (rideLocked) return;
             setActiveOfficialCourseId(null);
@@ -1773,6 +1875,7 @@ export default function App() {
           onOpenSignedOutAuth={
             configured && authInitialized && !user ? () => setAuthSheetOpen(true) : undefined
           }
+          authGateVisualDismissed={authPickCardHidden}
           onOpenMapView={() => setMapViewSheetOpen(true)}
           mapViewOpen={mapViewSheetOpen}
           coachData={coachData}
@@ -1807,6 +1910,7 @@ export default function App() {
               <button
                 type="button"
                 className="mapillary-street-floating__close"
+                title="Close street view"
                 onClick={dismissMapillaryStreet}
               >
                 닫기
@@ -1949,7 +2053,7 @@ export default function App() {
         />
       ) : null}
 
-      {stage === "gate" ? (
+      {stage === "gate" && !authPickCardHidden ? (
         <AuthGateCard>
           {!configured ? (
             <p className="meta tight">Firebase 설정 필요</p>
@@ -1961,17 +2065,26 @@ export default function App() {
                 type="button"
                 className="btn secondary"
                 disabled={busy}
+                title="Continue as guest"
                 onClick={() => void handleGuestStart()}
               >
                 {busy ? "…" : "게스트"}
               </button>
               <button
                 type="button"
-                className="btn primary"
+                className="btn primary auth-gate-google"
                 disabled={busy}
+                title="Sign in with Google"
                 onClick={() => void handleGoogleSignIn()}
               >
-                {busy ? "…" : "Google"}
+                {busy ? (
+                  "…"
+                ) : (
+                  <>
+                    <AuthGoogleMark />
+                    Google
+                  </>
+                )}
               </button>
             </div>
           )}
@@ -1980,34 +2093,39 @@ export default function App() {
       ) : null}
 
       {authSheetOpen && configured && authInitialized && !user ? (
-        <AuthGateCard title="로그인">
+        <AuthGateCard
+          title="로그인"
+          dismissDisabled={busy}
+          onDismiss={() => setAuthSheetOpen(false)}
+        >
           <div className="auth-actions auth-actions--gate">
             <button
               type="button"
               className="btn secondary"
               disabled={busy}
+              title="Continue as guest"
               onClick={() => void handleGuestStart()}
             >
               {busy ? "…" : "게스트"}
             </button>
             <button
               type="button"
-              className="btn primary"
+              className="btn primary auth-gate-google"
               disabled={busy}
+              title="Sign in with Google"
               onClick={() => void handleGoogleSignIn()}
             >
-              {busy ? "…" : "Google"}
+              {busy ? (
+                "…"
+              ) : (
+                <>
+                  <AuthGoogleMark />
+                  Google
+                </>
+              )}
             </button>
           </div>
           {error ? <p className="error tight">{error}</p> : null}
-          <button
-            type="button"
-            className="btn secondary auth-sheet-dismiss"
-            disabled={busy}
-            onClick={() => setAuthSheetOpen(false)}
-          >
-            닫기
-          </button>
         </AuthGateCard>
       ) : null}
 
@@ -2019,6 +2137,7 @@ export default function App() {
             type="button"
             className="btn secondary"
             disabled={busy}
+            title="Sign out"
             onClick={() => void handleServiceExit()}
           >
             로그아웃

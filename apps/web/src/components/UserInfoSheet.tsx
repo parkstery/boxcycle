@@ -7,7 +7,7 @@ import {
   type RideStatsPeriod,
 } from "../lib/rideStatsAggregate";
 import type { StoredRideSession } from "../lib/rideSessionsStorage";
-import { formatDuration } from "../services/mapboxDirections";
+import { AuthGoogleMark } from "./AuthGateCard";
 import "./UserInfoSheet.css";
 
 type UserInfoSheetProps = {
@@ -28,6 +28,47 @@ function formatElapsedFromSec(sec: number): string {
   const m = totalMin % 60;
   if (h > 0) return `${h}h ${m}m`;
   return `${m}m`;
+}
+
+/** 출발·도착 한 줄(전체 주소는 title 로 노출, 한 줄은 CSS 말줄임). */
+function rideSessionPlacesCaption(s: StoredRideSession): string {
+  const a = s.startPlaceLabel?.trim();
+  const b = s.endPlaceLabel?.trim();
+  if (a && b) return `${a} / ${b}`;
+  if (a) return a;
+  if (b) return b;
+  return "주소 없음";
+}
+
+function formatRideEndedAtKo(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleString("ko-KR", {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+/** 주행 기록 패널과 동일: 계획 거리 대비 95% 이상이면 완주 */
+function rideCompletionDisplay(s: StoredRideSession): {
+  label: string;
+  isCompleted: boolean;
+  title: string;
+} {
+  const r = s.completionRatio;
+  if (typeof r !== "number" || !Number.isFinite(r)) {
+    return { label: "—", isCompleted: false, title: "완주율 없음" };
+  }
+  const pct = Math.round(Math.max(0, Math.min(1, r)) * 100);
+  const isCompleted = pct >= 95;
+  const label = isCompleted ? "완주" : `미완주 (${pct}%)`;
+  const title = isCompleted
+    ? "계획 경로 대비 95% 이상 주행(완주로 표시)"
+    : `계획 경로 대비 ${pct}%`;
+  return { label, isCompleted, title };
 }
 
 /**
@@ -128,6 +169,10 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
       : props.user.email ?? props.user.uid
     : "";
 
+  const showSignedInLobbyActions = props.user != null;
+  const showGoogleLink = Boolean(props.isGuest && props.onLinkGoogle);
+  const showActionsFooter = showGoogleLink || showSignedInLobbyActions;
+
   return (
     <div
       className={`user-info-sheet-root${props.open ? " is-open" : ""}`}
@@ -137,6 +182,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
         type="button"
         className="user-info-sheet__scrim"
         aria-label="닫기"
+        title="Close"
         onClick={props.onClose}
         tabIndex={props.open ? 0 : -1}
       />
@@ -154,12 +200,14 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
             className="user-info-sheet__close"
             onClick={props.onClose}
             aria-label="닫기"
+            title="Close"
           >
             ×
           </button>
         </div>
 
-        <div className="user-info-sheet__stats-head" role="tablist" aria-label="통계 기간">
+        <div className="user-info-sheet__scroll-body">
+          <div className="user-info-sheet__stats-head" role="tablist" aria-label="통계 기간">
           {(
             [
               { id: "week" as const, label: "주간" },
@@ -173,13 +221,16 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
               role="tab"
               aria-selected={statsPeriod === t.id}
               className={`user-info-sheet__stats-tab ${statsPeriod === t.id ? "is-active" : ""}`}
+              title={
+                t.id === "week" ? "This week" : t.id === "month" ? "This month" : "This year"
+              }
               onClick={() => setStatsPeriod(t.id)}
             >
               {t.label}
             </button>
           ))}
         </div>
-        <p className="user-info-sheet__stats-range" title="기기 로컬 달력 기준">
+        <p className="user-info-sheet__stats-range" title="Local calendar on this device">
           {statsLoading ? "통계 불러오는 중…" : periodStats.range.labelKo}
         </p>
         {statsLoadNote ? (
@@ -215,10 +266,10 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
           className="user-info-sheet__h-toggle"
           aria-expanded={historyOpen}
           aria-controls="user-info-sheet-history-list"
+          title="Recent rides"
           onClick={() => setHistoryOpen((v) => !v)}
         >
           <span>최근 주행</span>
-          <span className="user-info-sheet__h-count">{props.recentSessions.length}</span>
           <span className="user-info-sheet__h-chevron" aria-hidden>
             {historyOpen ? "▾" : "▸"}
           </span>
@@ -228,46 +279,78 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
             {props.recentSessions.length === 0 ? (
               <li className="user-info-sheet__empty">기록 없음</li>
             ) : (
-              props.recentSessions.slice(0, 8).map((s) => (
-                <li key={s.id} className="user-info-sheet__item">
-                  <strong>{(s.distanceMeters / 1000).toFixed(2)} km</strong>
-                  <span>{formatDuration(s.elapsedSec)}</span>
-                  <span className="user-info-sheet__date">
-                    {new Date(s.endedAt).toLocaleDateString()}
-                  </span>
-                </li>
-              ))
+              props.recentSessions.map((s) => {
+                const routeCaption = rideSessionPlacesCaption(s);
+                const whenLabel = formatRideEndedAtKo(s.endedAt);
+                const completion = rideCompletionDisplay(s);
+                const kmLabel = `${(s.distanceMeters / 1000).toFixed(2)} km`;
+                const summaryTitle = `${kmLabel}  ${whenLabel}  ${completion.label}`;
+                return (
+                  <li key={s.id} className="user-info-sheet__item">
+                    <div className="user-info-sheet__item-summary" title={summaryTitle}>
+                      <strong className="user-info-sheet__item-km">{kmLabel}</strong>
+                      <span className="user-info-sheet__item-when">{whenLabel}</span>
+                      <span
+                        className={`user-info-sheet__item-completion ${
+                          completion.label === "—"
+                            ? "is-unknown"
+                            : completion.isCompleted
+                              ? "is-completed"
+                              : "is-partial"
+                        }`}
+                        title={completion.title}
+                      >
+                        {completion.label}
+                      </span>
+                    </div>
+                    <span className="user-info-sheet__item-route" title={routeCaption}>
+                      {routeCaption}
+                    </span>
+                  </li>
+                );
+              })
             )}
           </ul>
         ) : null}
 
-        <div className="user-info-sheet__actions">
-          {props.isGuest && props.onLinkGoogle ? (
-            <button
-              type="button"
-              className="user-info-sheet__btn"
-              disabled={props.busy}
-              onClick={props.onLinkGoogle}
-            >
-              Google 연결
-            </button>
-          ) : null}
-          <button
-            type="button"
-            className="user-info-sheet__btn"
-            disabled={props.busy}
-            onClick={props.onLeaveLobby}
-          >
-            로비 나가기
-          </button>
-          <button
-            type="button"
-            className="user-info-sheet__btn user-info-sheet__btn--danger"
-            disabled={props.busy}
-            onClick={props.onServiceExit}
-          >
-            로그아웃
-          </button>
+        {showActionsFooter ? (
+          <div className="user-info-sheet__actions">
+            {showGoogleLink ? (
+              <button
+                type="button"
+                className="user-info-sheet__btn user-info-sheet__btn--google"
+                disabled={props.busy}
+                title="Link Google account"
+                onClick={props.onLinkGoogle}
+              >
+                <AuthGoogleMark className="user-info-sheet__google-mark" />
+                Google 연결
+              </button>
+            ) : null}
+            {showSignedInLobbyActions ? (
+              <>
+                <button
+                  type="button"
+                  className="user-info-sheet__btn"
+                  disabled={props.busy}
+                  title="Leave lobby"
+                  onClick={props.onLeaveLobby}
+                >
+                  로비 나가기
+                </button>
+                <button
+                  type="button"
+                  className="user-info-sheet__btn user-info-sheet__btn--danger"
+                  disabled={props.busy}
+                  title="Sign out"
+                  onClick={props.onServiceExit}
+                >
+                  로그아웃
+                </button>
+              </>
+            ) : null}
+          </div>
+        ) : null}
         </div>
       </aside>
     </div>

@@ -93,6 +93,7 @@ export function PublicRouteRequestModal(props: PublicRouteRequestModalProps) {
                   key={opt.id}
                   type="button"
                   className={`pr-modal__tag ${tags.includes(opt.id) ? "is-on" : ""}`}
+                  title="Toggle experience tag (max 3)"
                   onClick={() => toggleTag(opt.id)}
                 >
                   {opt.label}
@@ -106,10 +107,21 @@ export function PublicRouteRequestModal(props: PublicRouteRequestModalProps) {
             </p>
           ) : null}
           <div className="pr-modal__actions">
-            <button type="button" className="pr-modal__btn" disabled={busy} onClick={props.onClose}>
+            <button
+              type="button"
+              className="pr-modal__btn"
+              disabled={busy}
+              title="Cancel"
+              onClick={props.onClose}
+            >
               취소
             </button>
-            <button type="submit" className="pr-modal__btn pr-modal__btn--primary" disabled={busy}>
+            <button
+              type="submit"
+              className="pr-modal__btn pr-modal__btn--primary"
+              disabled={busy}
+              title="Submit request"
+            >
               {busy ? "제출 중…" : "신청하기"}
             </button>
           </div>
