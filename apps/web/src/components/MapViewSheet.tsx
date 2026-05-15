@@ -22,7 +22,7 @@ type MapViewSheetProps = {
 };
 
 const FOLLOW_OPTIONS: { value: FollowMode; label: string }[] = [
-  { value: "free", label: "자유" },
+  { value: "free", label: "free" },
   { value: "keep", label: "유지" },
   { value: "north", label: "북향" },
   { value: "rear30", label: "후방" },
