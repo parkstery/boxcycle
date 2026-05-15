@@ -28,7 +28,7 @@ import {
   useRideFeedbackPreferences,
 } from "./features/ride-feedback";
 import { safeRideSpeechCancel } from "./lib/rideSpeech";
-import { getFirebaseApp, isFirebaseConfigured } from "./lib/firebase";
+import { isFirebaseConfigured } from "./lib/firebase";
 import {
   BASIC_SHARED_HUB_IDS,
   BASIC_SHARED_HUB_SUMMARIES,
@@ -89,20 +89,19 @@ import {
 } from "./lib/rideSessionsStorage";
 import { useAppAuth } from "./hooks/useAppAuth";
 import { useAppRoom } from "./hooks/useAppRoom";
+import { useRoutePlanning } from "./hooks/useRoutePlanning";
 import {
   B_JOURNEY_HINT_SESSION_KEY,
   MAP_STYLE_OPTIONS,
   readBJourneyHintDismissedSession,
 } from "./lib/appSessionKeys";
 import { formatElapsedFromMs } from "./lib/rideFormat";
-import { useVirtualRideSession } from "./hooks/useVirtualRideSession";
 import { useBleCrankRpm } from "./hooks/useBleCrankRpm";
 import { useRideMapillaryStreet } from "./hooks/useRideMapillaryStreet";
 import { MAPILLARY_CLIENT_TOKEN, mapillaryTokenConfigured } from "./lib/mapillaryToken";
 import type { CoverageOverlayMode } from "./lib/coverageOverlayMode";
-import { fetchRouteByProfile, formatDuration, type RouteProfile } from "./services/mapboxDirections";
+import { formatDuration, type RouteProfile } from "./services/mapboxDirections";
 import { fetchMapboxReverseGeocodePlaceName } from "./services/mapboxReverseGeocode";
-import { getFunctions } from "firebase/functions";
 import "./App.css";
 
 const MapillaryRideViewer = lazy(async () => {
@@ -136,22 +135,6 @@ export default function App() {
     setBusy,
   } = useAppAuth(configured);
 
-  const [startLngLat, setStartLngLat] = useState<LngLat | null>(null);
-  const [endLngLat, setEndLngLat] = useState<LngLat | null>(null);
-  const [startPlaceLabel, setStartPlaceLabel] = useState<string | null>(null);
-  const [endPlaceLabel, setEndPlaceLabel] = useState<string | null>(null);
-  const [routeWaypoints, setRouteWaypoints] = useState<LngLat[]>([]);
-  /** 경유지 표시용 — Mapbox 역지오코딩(null 이면 로딩 중) */
-  const [waypointPlaceLabels, setWaypointPlaceLabels] = useState<(string | null)[]>([]);
-  const routeWaypointsGeocodeRef = useRef(routeWaypoints);
-  routeWaypointsGeocodeRef.current = routeWaypoints;
-
-  const [profile, setProfile] = useState<RouteProfile>("cycling");
-  const [routeGeometry, setRouteGeometry] = useState<LineStringGeometry | null>(null);
-  const [routeDistanceMeters, setRouteDistanceMeters] = useState(0);
-  const [routeDurationSec, setRouteDurationSec] = useState(0);
-  const [routeSummary, setRouteSummary] = useState("");
-  const [routeLoading, setRouteLoading] = useState(false);
   const [mapStyle, setMapStyle] = useState(MAP_STYLE_OPTIONS[3].value);
   const [mapZoom, setMapZoom] = useState(12);
   const [followMode, setFollowMode] = useState<FollowMode>("keep");
@@ -249,6 +232,59 @@ export default function App() {
     rideId: string | null;
   } | null>(null);
 
+  const clearRouteArtifactsRef = useRef<() => void>(() => {});
+  const onRouteDirectionsErrorRef = useRef<() => void>(() => {});
+  clearRouteArtifactsRef.current = () => {
+    loadedSavedRouteIdRef.current = null;
+    loadedSavedRouteNameRef.current = null;
+    setLastEndedWasAdhoc(null);
+    setActiveOfficialCourseId(null);
+    setPlaceSearchMarkerLngLat(null);
+  };
+  onRouteDirectionsErrorRef.current = () => {
+    setActiveOfficialCourseId(null);
+  };
+
+  const {
+    startLngLat,
+    setStartLngLat,
+    endLngLat,
+    setEndLngLat,
+    routeWaypoints,
+    setRouteWaypoints,
+    profile,
+    setProfile,
+    routeGeometry,
+    setRouteGeometry,
+    routeDistanceMeters,
+    setRouteDistanceMeters,
+    routeDurationSec,
+    setRouteDurationSec,
+    routeSummary,
+    setRouteSummary,
+    routeLoading,
+    rideStatus,
+    setRideStatus,
+    rideMetrics,
+    resetRide,
+    syncLiveFromDistance,
+    startLabel,
+    endLabel,
+    startPlaceLabel,
+    endPlaceLabel,
+    waypointLabelsForPanel,
+    generateRoute,
+    clearRoutePins,
+    applyRouteProfileFromMapPopup: applyRouteProfileForMapLocked,
+  } = useRoutePlanning({
+    user,
+    speedKmh,
+    mapboxAccessToken: MAPBOX_TOKEN,
+    functionsRegion: FUNCTIONS_REGION,
+    clearRouteArtifactsRef,
+    onRouteDirectionsErrorRef,
+  });
+
   const onCoursePeersChange = useCallback((next: MapPeerMarker[]) => {
     setCoursePeerMarkers(next);
   }, []);
@@ -261,18 +297,6 @@ export default function App() {
   }, [user, basicActiveHubCourseId]);
 
   const resolvedLiveRiderNametag = liveRiderNametag ?? selfRiderNametagFallback;
-
-  const {
-    status: rideStatus,
-    setStatus: setRideStatus,
-    metrics: rideMetrics,
-    resetDistances: resetRide,
-    syncLiveFromDistance,
-  } = useVirtualRideSession({
-    speedKmh,
-    routeGeometry,
-    routeDistanceMeters,
-  });
 
   const bleCrankRpm = useBleCrankRpm({ sessionActive: rideStatus !== "idle" });
 
@@ -913,75 +937,6 @@ export default function App() {
     setPlaceSearchMarkerLngLat(null);
   }, [user, basicActiveHubCourseId]);
 
-  const generateRoute = useCallback(
-    async (profileOverride?: RouteProfile) => {
-      if (rideStatus !== "idle") {
-        setRouteSummary("세션이 대기 상태일 때만 경로를 바꿀 수 있습니다. 종료 후 다시 시도하세요.");
-        return;
-      }
-      if (!user) {
-        setRouteSummary("경로 계산은 로그인(게스트 포함) 후에 사용할 수 있습니다.");
-        return;
-      }
-      const start = startLngLat;
-      const end = endLngLat;
-      if (!start || !end) {
-        setRouteSummary("");
-        return;
-      }
-
-      const activeProfile = profileOverride ?? profile;
-
-      setRouteLoading(true);
-      setRouteSummary("경로 계산 중…");
-      try {
-        const functions = getFunctions(getFirebaseApp(), FUNCTIONS_REGION);
-        const wps = routeWaypoints.slice(0, MAX_ROUTE_WAYPOINTS);
-        const route = await fetchRouteByProfile(
-          functions,
-          user,
-          start,
-          end,
-          activeProfile,
-          wps.length ? wps : undefined,
-        );
-        setRouteGeometry(route.geometry);
-        setRouteDistanceMeters(route.distance);
-        setRouteDurationSec(route.duration);
-        const viaNote = wps.length ? ` · 경과 ${wps.length}곳` : "";
-        setRouteSummary(
-          `거리 ${(route.distance / 1000).toFixed(2)} km / 예상 ${formatDuration(route.duration)}${viaNote}`,
-        );
-        resetRide();
-        loadedSavedRouteIdRef.current = null;
-        loadedSavedRouteNameRef.current = null;
-        setLastEndedWasAdhoc(null);
-        setActiveOfficialCourseId(null);
-        setPlaceSearchMarkerLngLat(null);
-      } catch (e: unknown) {
-        const fe = e as { code?: string; message?: string };
-        const message =
-          typeof fe?.message === "string"
-            ? fe.message
-            : e instanceof Error
-              ? e.message
-              : String(e);
-        const hint =
-          fe?.code === "functions/not-found"
-            ? " Cloud Functions 가 배포되지 않았을 수 있습니다. 저장소 루트에서 firebase deploy --only functions 를 실행하고, MAPBOX_ACCESS_TOKEN 시크릿을 설정하세요."
-            : "";
-        setRouteSummary(message + hint);
-        setRouteGeometry(null);
-        setRouteDistanceMeters(0);
-        setRouteDurationSec(0);
-        setActiveOfficialCourseId(null);
-      } finally {
-        setRouteLoading(false);
-      }
-    },
-    [rideStatus, startLngLat, endLngLat, routeWaypoints, profile, resetRide, user],
-  );
-
   /** URL·MENU 방 전환 후 메뉴 닫고 지도에 집중(지명 선택과 동일한 습관) */
   const applyRoomFromDraft = useCallback(() => {
     commitRoomFromDraft();
@@ -1291,122 +1246,6 @@ export default function App() {
       riderLngLat: liveForMap,
     });
 
-  useEffect(() => {
-    if (!startLngLat) {
-      setStartPlaceLabel(null);
-      return;
-    }
-    const token = MAPBOX_TOKEN.trim();
-    if (!token) {
-      setStartPlaceLabel(formatLngLat(startLngLat));
-      return;
-    }
-    const ac = new AbortController();
-    setStartPlaceLabel(null);
-    void (async () => {
-      try {
-        const name = await fetchMapboxReverseGeocodePlaceName(startLngLat, token, ac.signal);
-        if (ac.signal.aborted) return;
-        setStartPlaceLabel((name && name.trim()) || formatLngLat(startLngLat));
-      } catch {
-        if (ac.signal.aborted) return;
-        setStartPlaceLabel(formatLngLat(startLngLat));
-      }
-    })();
-    return () => ac.abort();
-  }, [startLngLat]);
-
-  useEffect(() => {
-    if (!endLngLat) {
-      setEndPlaceLabel(null);
-      return;
-    }
-    const token = MAPBOX_TOKEN.trim();
-    if (!token) {
-      setEndPlaceLabel(formatLngLat(endLngLat));
-      return;
-    }
-    const ac = new AbortController();
-    setEndPlaceLabel(null);
-    void (async () => {
-      try {
-        const name = await fetchMapboxReverseGeocodePlaceName(endLngLat, token, ac.signal);
-        if (ac.signal.aborted) return;
-        setEndPlaceLabel((name && name.trim()) || formatLngLat(endLngLat));
-      } catch {
-        if (ac.signal.aborted) return;
-        setEndPlaceLabel(formatLngLat(endLngLat));
-      }
-    })();
-    return () => ac.abort();
-  }, [endLngLat]);
-
-  useEffect(() => {
-    const wps = routeWaypoints;
-    const snapshot = JSON.stringify(wps);
-    const ac = new AbortController();
-
-    if (wps.length === 0) {
-      setWaypointPlaceLabels([]);
-      return () => ac.abort();
-    }
-
-    const token = MAPBOX_TOKEN.trim();
-    if (!token) {
-      setWaypointPlaceLabels(wps.map(formatLngLat));
-      return () => ac.abort();
-    }
-
-    setWaypointPlaceLabels(wps.map(() => null));
-
-    void (async () => {
-      try {
-        const resolved = await Promise.all(
-          wps.map(async (wp) => {
-            try {
-              const name = await fetchMapboxReverseGeocodePlaceName(wp, token, ac.signal);
-              if (ac.signal.aborted) return formatLngLat(wp);
-              return (name && name.trim()) || formatLngLat(wp);
-            } catch {
-              return formatLngLat(wp);
-            }
-          }),
-        );
-        if (ac.signal.aborted) return;
-        if (JSON.stringify(routeWaypointsGeocodeRef.current) !== snapshot) return;
-        setWaypointPlaceLabels(resolved);
-      } catch {
-        if (ac.signal.aborted) return;
-        if (JSON.stringify(routeWaypointsGeocodeRef.current) !== snapshot) return;
-        setWaypointPlaceLabels(wps.map(formatLngLat));
-      }
-    })();
-
-    return () => ac.abort();
-  }, [routeWaypoints]);
-
-  const startLabel = !startLngLat
-    ? "미설정"
-    : startPlaceLabel === null
-      ? "주소 불러오는 중…"
-      : startPlaceLabel;
-  const endLabel = !endLngLat
-    ? "미설정"
-    : endPlaceLabel === null
-      ? "주소 불러오는 중…"
-      : endPlaceLabel;
-
-  const waypointLabelsForPanel = useMemo(
-    () =>
-      routeWaypoints.map((wp, i) => {
-        const lab = waypointPlaceLabels[i];
-        if (lab === null) return "주소 불러오는 중…";
-        if (typeof lab === "string") return lab;
-        return formatLngLat(wp);
-      }),
-    [routeWaypoints, waypointPlaceLabels],
-  );
-
   /** Firebase 미설정이거나 인증 준비 완료 후 — 로비·입문 코스 UI가 숨겨지지 않도록 메인 워크스페이스 표시 */
   const rideWorkspaceOpen = !configured || (configured && authInitialized);
   void rideWorkspaceOpen;
@@ -1429,6 +1268,15 @@ export default function App() {
   const rideLocked = stage === "riding" || stage === "paused";
   /** 개발 서버에서만 주행 중에도 경로 메뉴(드로어) 유지 — 프로덕션에서는 기존처럼 잠금 */
   const menuPanelLockedDuringRide = rideLocked && !import.meta.env.DEV;
+
+  const handleClearPins = useCallback(() => {
+    clearRoutePins(rideLocked);
+  }, [clearRoutePins, rideLocked]);
+
+  const handleMapRouteProfile = useCallback(
+    (p: RouteProfile) => applyRouteProfileForMapLocked(rideLocked, p),
+    [applyRouteProfileForMapLocked, rideLocked],
+  );
 
   const dismissBJourneyHint = useCallback(() => {
     try {
@@ -1471,31 +1319,7 @@ export default function App() {
     if (!needsAuthCard) setAuthPickCardHidden(false);
   }, [needsAuthCard]);
 
-  const applyRouteProfileFromMapPopup = useCallback(
-    (p: RouteProfile) => {
-      if (rideLocked) return;
-      setProfile(p);
-      void generateRoute(p);
-    },
-    [rideLocked, generateRoute],
-  );
-
   // ===== Map-first 핸들러 =====
-  function handleClearPins() {
-    if (rideLocked) return;
-    setStartLngLat(null);
-    setEndLngLat(null);
-    setRouteWaypoints([]);
-    setRouteGeometry(null);
-    setRouteDistanceMeters(0);
-    setRouteDurationSec(0);
-    setRouteSummary("");
-    loadedSavedRouteIdRef.current = null;
-    loadedSavedRouteNameRef.current = null;
-    setActiveOfficialCourseId(null);
-    setPlaceSearchMarkerLngLat(null);
-  }
-
   function handleMenuPlacePick(lngLat: LngLat, _placeName: string, _bbox: [number, number, number, number] | null) {
     /** `liveForMap` 추적 jumpTo 가 flyTo 를 덮어쓰지 않도록 */
     setFollowMode("free");
@@ -1645,7 +1469,7 @@ export default function App() {
           coverageOverlayMode={coverageOverlayMode}
           mapillaryClientToken={mapillaryTokenConfigured ? MAPILLARY_CLIENT_TOKEN : null}
           routeProfile={profile}
-          onRouteProfile={applyRouteProfileFromMapPopup}
+          onRouteProfile={handleMapRouteProfile}
           onClearRoute={handleClearPins}
           onSelectPoint={(type, lngLat, waypointSlot) => {
             if (rideLocked) return;
