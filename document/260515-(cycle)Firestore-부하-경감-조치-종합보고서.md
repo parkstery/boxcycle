@@ -4,6 +4,8 @@
 **범위:** 웹 앱(`apps/web`) 클라이언트 + `firestore.rules`  
 **상태:** **1차 일단락** — 추가 튜닝·서버 집계·모니터링은 향후 과제로 분리
 
+> **제품 용어(2026-05-17):** Lobby → **Trailhead**, Room(방) → **Trail**. 본문 「로비」= Trailhead·Trail 동기화 맥락 — [용어집](260517-제품-용어-Trailhead-Trail.md).
+
 ---
 
 ## 1. 목적과 배경

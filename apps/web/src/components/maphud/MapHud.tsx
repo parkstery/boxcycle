@@ -7,14 +7,16 @@ export type AccountChipState = {
   isGuest: boolean;
 };
 
-/** 좌상단: 로비 방 + 접속자 / 입문 코스 동행 이름 */
+/** 좌상단: Trail + 접속자 / 입문 코스 동행 이름 */
 export type MapHudRidePresence = {
-  lobbyEnabled: boolean;
-  roomId: string;
-  lobbyMembers: { key: string; display: string; isSelf: boolean; active: boolean }[];
-  lobbyError: string | null;
+  trailheadEnabled: boolean;
+  trailId: string;
+  trailMembers: { key: string; display: string; isSelf: boolean; active: boolean }[];
+  trailError: string | null;
   courseTitle: string | null;
   coursePeerNames: string[];
+  /** `courseActivity` aggregate 한 줄(지금 N명 · 최근 7일 등) */
+  courseActivityHudLine?: string | null;
 };
 
 export type MapHudProps = {
@@ -81,7 +83,7 @@ export type MapHudProps = {
   showIdleHint: boolean;
   onDismissIdleHint: () => void;
 
-  /** 로비·코스 동행 요약(없으면 미표시) */
+  /** Trailhead·코스 동행 요약(없으면 미표시) */
   ridePresence?: MapHudRidePresence | null;
   /** 줌 축소 시 월드 레이어 한 줄(집계 문서 기반, 저빈도 갱신) */
   worldActivityHint?: string | null;
@@ -191,22 +193,22 @@ export function MapHud(props: MapHudProps) {
               </p>
             ) : null}
             {showRidePresence && ridePresence ? (
-              <aside className="hud-ride-presence hud-glass" aria-label="방·동행">
-                {ridePresence.lobbyEnabled ? (
+              <aside className="hud-ride-presence hud-glass" aria-label="Trail·동행">
+                {ridePresence.trailheadEnabled ? (
                   <div className="hud-ride-presence__block">
                     <div className="hud-ride-presence__head">
                       <span className="hud-ride-presence__tag">접속</span>
-                      <span className="hud-ride-presence__room" title={ridePresence.roomId}>
-                        방 {ridePresence.roomId}
+                      <span className="hud-ride-presence__room" title={ridePresence.trailId}>
+                        Trail {ridePresence.trailId}
                       </span>
                     </div>
-                    {ridePresence.lobbyError ? (
-                      <p className="hud-ride-presence__err" title={ridePresence.lobbyError}>
-                        {ridePresence.lobbyError}
+                    {ridePresence.trailError ? (
+                      <p className="hud-ride-presence__err" title={ridePresence.trailError}>
+                        {ridePresence.trailError}
                       </p>
-                    ) : ridePresence.lobbyMembers.filter((m) => m.active).length > 0 ? (
+                    ) : ridePresence.trailMembers.filter((m) => m.active).length > 0 ? (
                       <ul className="hud-ride-presence__list">
-                        {ridePresence.lobbyMembers
+                        {ridePresence.trailMembers
                           .filter((m) => m.active)
                           .map((m) => (
                             <li key={m.key}>
@@ -221,7 +223,8 @@ export function MapHud(props: MapHudProps) {
                   </div>
                 ) : null}
                 {ridePresence.courseTitle != null ||
-                ridePresence.coursePeerNames.length > 0 ? (
+                ridePresence.coursePeerNames.length > 0 ||
+                ridePresence.courseActivityHudLine ? (
                   <div className="hud-ride-presence__block">
                     <div className="hud-ride-presence__head">
                       <span className="hud-ride-presence__tag">동행</span>
@@ -229,6 +232,9 @@ export function MapHud(props: MapHudProps) {
                         {ridePresence.courseTitle ?? "코스"}
                       </span>
                     </div>
+                    {ridePresence.courseActivityHudLine ? (
+                      <p className="hud-ride-presence__activity">{ridePresence.courseActivityHudLine}</p>
+                    ) : null}
                     {ridePresence.coursePeerNames.length > 0 ? (
                       <ul className="hud-ride-presence__list">
                         {ridePresence.coursePeerNames.map((name, i) => (

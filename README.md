@@ -30,7 +30,7 @@ npm run dev
 
 **Firebase CLI:** 프로젝트 연결은 저장소 **루트**의 `.firebaserc`(기본 프로젝트 ID)와 `firebase.json`을 쓴다. 명령은 루트에서 실행한다.
 
-**Firestore(프로필/로비/라이드/코스 동기화):** Firebase Console에서 **Firestore Database** 를 생성한다. 로그인 시 `users/{uid}` 문서에 표시 이름·이메일 등을 **merge** 저장한다. 로비는 `rooms/{roomId}/members/{uid}`, 주행 요약은 `rides`, 큐레이션·입문 코스는 `courses`(시드·조회), 입문 허브 동행 위치는 `coursePresence/{courseId}/members/{uid}` 를 사용한다. 저장소 루트의 `firestore.rules`, `firestore.indexes.json`을 기준으로 적용한다.
+**Firestore(프로필/Trailhead·Trail/라이드/코스 동기화):** Firebase Console에서 **Firestore Database** 를 생성한다. 로그인 시 `users/{uid}` 문서에 표시 이름·이메일 등을 **merge** 저장한다. Trail presence는 `trails/{trailId}/members/{uid}`, Trail 주행 진행률은 `trails/{trailId}/liveCourseRides/{uid}`, 주행 요약은 `rides`, 코스는 `courses`, 입문 허브 동행은 `coursePresence/{courseId}/members/{uid}` 를 사용한다. `rooms/` 레거시 데이터는 `npm run admin:migrate-rooms-to-trails` 로 이전한다(용어·배포 순서: `document/260517-제품-용어-Trailhead-Trail.md` §8). 저장소 루트의 `firestore.rules`, `firestore.indexes.json`을 기준으로 적용한다.
 
 **Hosting:** `firebase.json` 이 `apps/web/dist` 를 SPA(`rewrites` → `index.html`)로 배포하도록 설정되어 있다. 배포 전에 웹 앱을 빌드해야 한다.
 
@@ -67,7 +67,7 @@ service cloud.firestore {
       allow create, update: if request.auth != null && request.auth.uid == userId;
       allow delete: if false;
     }
-    match /rooms/{roomId}/members/{userId} {
+    match /trails/{trailId}/members/{userId} {
       allow read: if request.auth != null;
       allow create, update: if request.auth != null && request.auth.uid == userId;
       allow delete: if request.auth != null && request.auth.uid == userId;
@@ -88,7 +88,7 @@ service cloud.firestore {
 
 **LAN에 열지 않고 이 PC만:** 루트에서 `npm run dev:localhost` (또는 `cd apps/web` 후 동일 스크립트)
 
-**실시간 로비 방:** 기본은 `default` 이다. 다른 방은 **`http://<호스트>:<포트>/?room=my-ride`** 처럼 쿼리로 지정하거나, 화면의 **방 ID + 입장** 으로 전환한다. Firestore 경로는 `rooms/{roomId}/members/{uid}` 이다.
+**Trail:** 기본 Trail ID는 `default` 이다. 다른 Trail은 **`http://<호스트>:<포트>/?trail=my-ride`** (또는 `?room=` 호환) 또는 MENU **Trail 이동**으로 전환한다. Firestore 경로는 `trails/{trailId}/members/{uid}` 이다.
 
 **Google 로그인 테스트**는 Cursor **간이 브라우저(리디렉션 탭)** 대신 **Chrome / Edge 같은 일반 브라우저**를 권장한다. 임베디드 탭에서 `firebaseapp.com/__/auth/handler` 가 흰 화면으로 멈추는 경우가 있다(팝업·쿠키·리디렉션 제한).
 

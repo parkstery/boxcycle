@@ -49,6 +49,8 @@ type RideDoc = {
 export async function saveRideSessionToFirestore(input: {
   userId: string;
   roomId: string | null;
+  /** 입문·공식 코스 주행 시 aggregate(`courseActivity`) 갱신용 */
+  courseId?: string | null;
   profile: "cycling" | "driving" | "walking";
   session: StoredRideSession;
 }): Promise<string> {
@@ -61,7 +63,10 @@ export async function saveRideSessionToFirestore(input: {
   const docData: RideDoc = {
     userId: input.userId,
     roomId: input.roomId,
-    courseId: null,
+    courseId:
+      typeof input.courseId === "string" && input.courseId.trim().length > 0
+        ? input.courseId.trim()
+        : null,
     profile: input.profile,
     startedAt: null,
     endedAt,

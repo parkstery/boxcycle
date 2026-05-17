@@ -3,10 +3,13 @@ import type { User } from "firebase/auth";
 import type { RouteProfile } from "../services/mapboxDirections";
 import { formatDuration } from "../services/mapboxDirections";
 import type { PublishedPublicCourseSummary, CourseProfile } from "../lib/firestoreCourses";
+import type { CourseActivitySnapshot } from "../lib/firestoreCourseActivity";
+import { formatCourseActivityListBadge } from "../lib/firestoreCourseActivity";
 import type { BleCrankRpmUiState } from "../hooks/useBleCrankRpm";
 import type { RideSessionStatus } from "../hooks/useVirtualRideSession";
 import type { SavedRoute } from "../lib/firestoreSavedRoutes";
 import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../lib/firestoreSavedRoutes";
+import { lockRouteWorkspaceDuringRide } from "../lib/routeWorkspaceLock";
 import { SavedRoutesPanel } from "./SavedRoutesPanel";
 import { AdminPublicRouteQueue } from "./AdminPublicRouteQueue";
 import "./RideRoutePanel.css";
@@ -45,6 +48,8 @@ type RideRoutePanelProps = {
   publishedPublicCourses: PublishedPublicCourseSummary[];
   publishedPublicCoursesLoading: boolean;
   publishedPublicCoursesError: string | null;
+  /** 코스별 activity aggregate(메뉴·카탈로그 로드 후) */
+  courseActivityByCourseId?: ReadonlyMap<string, CourseActivitySnapshot | null>;
   authGuest: boolean;
   onEnterBasicHub: (courseId: string) => void;
   onLeaveBasicHub: () => void;
@@ -114,6 +119,7 @@ function PublicCoursePickRow(props: {
   course: PublishedPublicCourseSummary;
   selected: boolean;
   loadDisabled: boolean;
+  activityBadge: string | null;
   onLoad: () => void;
 }) {
   const c = props.course;
@@ -131,6 +137,9 @@ function PublicCoursePickRow(props: {
           <span className="ride-panel__public-courses-sub">
             {profileLabelKo(c.profile)} · {(c.distanceMeters / 1000).toFixed(2)} km · 예상{" "}
             {formatDuration(c.durationSec)}
+            {props.activityBadge ? (
+              <span className="ride-panel__public-courses-activity"> · {props.activityBadge}</span>
+            ) : null}
           </span>
         </span>
       </button>
@@ -151,14 +160,15 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
   const [adhocSaveError, setAdhocSaveError] = useState<string | null>(null);
   const [officialSegment, setOfficialSegment] = useState<OfficialCourseSegment>("intro");
 
+  const routeLocksAsIdle = !lockRouteWorkspaceDuringRide(props.sessionStatus !== "idle");
+
   useEffect(() => {
     if (tab === "publicReview" && !props.isPublicRouteReviewer) {
       setTab("route");
     }
   }, [tab, props.isPublicRouteReviewer]);
 
-  const canSaveRoute =
-    props.sessionStatus === "idle" && props.hasRoute && !props.routeLoading;
+  const canSaveRoute = routeLocksAsIdle && props.hasRoute && !props.routeLoading;
 
   function openSave() {
     setSaveError(null);
@@ -302,7 +312,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             routes={props.savedRoutes}
             loading={props.savedRoutesLoading}
             guestNotice={props.authGuest}
-            sessionIdle={props.sessionStatus === "idle"}
+            sessionIdle={routeLocksAsIdle}
             pendingPublicRouteIds={props.pendingPublicRouteIds}
             publishedPublicSavedRouteIds={props.publishedPublicSavedRouteIds}
             publishedPublicRouteFingerprints={props.publishedPublicRouteFingerprints}
@@ -386,10 +396,11 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                         course={c}
                         selected={props.basicActiveHubCourseId === c.id}
                         loadDisabled={
-                          props.routeLoading ||
-                          props.basicStartLoading ||
-                          props.sessionStatus !== "idle"
+                          props.routeLoading || props.basicStartLoading || !routeLocksAsIdle
                         }
+                        activityBadge={formatCourseActivityListBadge(
+                          props.courseActivityByCourseId?.get(c.id) ?? null,
+                        )}
                         onLoad={() => props.onEnterBasicHub(c.id)}
                       />
                     ))}
@@ -427,10 +438,11 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                         course={c}
                         selected={props.basicActiveHubCourseId === c.id}
                         loadDisabled={
-                          props.routeLoading ||
-                          props.basicStartLoading ||
-                          props.sessionStatus !== "idle"
+                          props.routeLoading || props.basicStartLoading || !routeLocksAsIdle
                         }
+                        activityBadge={formatCourseActivityListBadge(
+                          props.courseActivityByCourseId?.get(c.id) ?? null,
+                        )}
                         onLoad={() => props.onEnterBasicHub(c.id)}
                       />
                     ))}

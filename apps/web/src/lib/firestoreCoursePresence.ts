@@ -15,7 +15,7 @@ import type { User } from "firebase/auth";
 import { getPresenceDisplayName, getPresenceMemberType, type PresenceMemberType } from "./authDisplay";
 import { getFirebaseApp } from "./firebase";
 import type { LngLat } from "./geo";
-import { isMemberRecentlySeen, lastSeenAtToMillis } from "./firestoreLobby";
+import { isMemberRecentlySeen, lastSeenAtToMillis } from "./firestoreTrail";
 
 export type CourseMemberRow = {
   uid: string;

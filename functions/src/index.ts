@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
+import { adminPromoteSavedRoute } from "./adminPromoteSavedRoute.js";
 import { defineSecret } from "firebase-functions/params";
 import { HttpsError, onRequest, type Request } from "firebase-functions/v2/https";
 import type { Response } from "express";
@@ -176,3 +177,8 @@ export const getMapboxDirections = onRequest(
     }
   },
 );
+
+export { adminPromoteSavedRoute };
+export { courseActivityOnRideCreated } from "./courseActivityOnRideCreated.js";
+export { courseActivityOnLiveCourseRideWritten } from "./courseActivityOnLiveCourseRideWritten.js";
+export { courseActivityScheduledReconcile } from "./courseActivityScheduledReconcile.js";

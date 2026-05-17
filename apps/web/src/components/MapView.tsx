@@ -26,16 +26,16 @@ import {
   type PeerDriveSimState,
 } from "../lib/peerRidersDrive";
 import { applyCoverageOverlayMode } from "../services/coverageOverlaySync";
-import type { LobbySpectatorDot } from "../hooks/useLobbyLiveCourseRideSpectatorOverlay";
+import type { TrailSpectatorDot } from "../hooks/useTrailLiveCourseRideSpectatorOverlay";
 import "./MapView.css";
 
 /** 로비 관전: 다른 사용자 코스 진행률 기반(geometry 는 로컬 로드, Firestore 는 진행률만). */
-const LOBBY_SPEC_ROUTES_SRC = "boxcycle-lobby-spectator-routes";
-const LOBBY_SPEC_ROUTES_GLOW_LAYER = "boxcycle-lobby-spectator-routes-glow";
-const LOBBY_SPEC_ROUTES_LAYER = "boxcycle-lobby-spectator-routes-line";
-const LOBBY_SPEC_DOTS_SRC = "boxcycle-lobby-spectator-dots";
-const LOBBY_SPEC_DOTS_GLOW_LAYER = "boxcycle-lobby-spectator-dots-glow";
-const LOBBY_SPEC_DOTS_LAYER = "boxcycle-lobby-spectator-dots-circle";
+const TRAIL_SPEC_ROUTES_SRC = "boxcycle-lobby-spectator-routes";
+const TRAIL_SPEC_ROUTES_GLOW_LAYER = "boxcycle-lobby-spectator-routes-glow";
+const TRAIL_SPEC_ROUTES_LAYER = "boxcycle-lobby-spectator-routes-line";
+const TRAIL_SPEC_DOTS_SRC = "boxcycle-lobby-spectator-dots";
+const TRAIL_SPEC_DOTS_GLOW_LAYER = "boxcycle-lobby-spectator-dots-glow";
+const TRAIL_SPEC_DOTS_LAYER = "boxcycle-lobby-spectator-dots-circle";
 
 /**
  * 지도 탭 팝업 — 경로 프로필(차·자전거·보행) 아이콘.
@@ -50,16 +50,109 @@ const PICK_POPUP_PROFILE_ICON_SVG: Record<RouteProfile, string> = {
 /** 사용자 경로 탐색 결과 폴리라인 (`route` 소스·레이어) */
 const ROUTE_LINE_COLOR = "#ef4444";
 
-function syncLobbySpectatorLayers(
+const ACTIVITY_PULSE_SRC = "boxcycle-activity-pulse-routes";
+const ACTIVITY_PULSE_GLOW = "boxcycle-activity-pulse-routes-glow";
+const ACTIVITY_PULSE_LINE = "boxcycle-activity-pulse-routes-line";
+const ACTIVITY_HEAT_SRC = "boxcycle-activity-heat-routes";
+const ACTIVITY_HEAT_LINE = "boxcycle-activity-heat-routes-line";
+
+function syncCourseActivityLayers(
   map: mapboxgl.Map,
-  dots: readonly LobbySpectatorDot[],
+  pulseRoutes: readonly LineStringGeometry[],
+  heatRoutes: readonly LineStringGeometry[],
+): void {
+  if (!map.isStyleLoaded()) return;
+
+  const pulseFc = {
+    type: "FeatureCollection" as const,
+    features: pulseRoutes.map((geometry, i) => ({
+      type: "Feature" as const,
+      id: `act-p-${i}`,
+      properties: { i },
+      geometry,
+    })),
+  };
+  const heatFc = {
+    type: "FeatureCollection" as const,
+    features: heatRoutes.map((geometry, i) => ({
+      type: "Feature" as const,
+      id: `act-h-${i}`,
+      properties: { i },
+      geometry,
+    })),
+  };
+  const beforeRoute = map.getLayer("route") ? "route" : undefined;
+
+  try {
+    if (!map.getSource(ACTIVITY_PULSE_SRC)) {
+      map.addSource(ACTIVITY_PULSE_SRC, { type: "geojson", data: pulseFc });
+      map.addLayer(
+        {
+          id: ACTIVITY_PULSE_GLOW,
+          type: "line",
+          source: ACTIVITY_PULSE_SRC,
+          paint: {
+            "line-color": "#4ade80",
+            "line-width": ["interpolate", ["linear"], ["zoom"], 8, 6, 12, 10, 16, 14],
+            "line-blur": ["interpolate", ["linear"], ["zoom"], 8, 2.5, 14, 5],
+            "line-opacity": ["interpolate", ["linear"], ["zoom"], 8, 0.45, 14, 0.65],
+          },
+          layout: { "line-join": "round", "line-cap": "round" },
+        },
+        beforeRoute,
+      );
+      map.addLayer(
+        {
+          id: ACTIVITY_PULSE_LINE,
+          type: "line",
+          source: ACTIVITY_PULSE_SRC,
+          paint: {
+            "line-color": "#22c55e",
+            "line-width": ["interpolate", ["linear"], ["zoom"], 8, 2, 12, 3.5, 16, 5],
+            "line-opacity": 0.92,
+          },
+          layout: { "line-join": "round", "line-cap": "round" },
+        },
+        beforeRoute,
+      );
+    } else {
+      (map.getSource(ACTIVITY_PULSE_SRC) as mapboxgl.GeoJSONSource).setData(pulseFc);
+    }
+
+    if (!map.getSource(ACTIVITY_HEAT_SRC)) {
+      map.addSource(ACTIVITY_HEAT_SRC, { type: "geojson", data: heatFc });
+      map.addLayer(
+        {
+          id: ACTIVITY_HEAT_LINE,
+          type: "line",
+          source: ACTIVITY_HEAT_SRC,
+          paint: {
+            "line-color": "#94a3b8",
+            "line-width": ["interpolate", ["linear"], ["zoom"], 8, 1.5, 12, 2.5, 16, 3.5],
+            "line-opacity": 0.55,
+          },
+          layout: { "line-join": "round", "line-cap": "round" },
+        },
+        beforeRoute,
+      );
+    } else {
+      (map.getSource(ACTIVITY_HEAT_SRC) as mapboxgl.GeoJSONSource).setData(heatFc);
+    }
+  } catch (e) {
+    console.warn("[MapView] course activity layers", e);
+  }
+}
+
+function syncTrailSpectatorLayers(
+  map: mapboxgl.Map,
+  dots: readonly TrailSpectatorDot[],
   routes: readonly LineStringGeometry[],
 ): void {
   if (!map.isStyleLoaded()) return;
 
   const routeFeatures = routes.map((geometry, i) => ({
     type: "Feature" as const,
-    id: `lobby-r-${i}`,
+    id: `trail-r-${i}`,
     properties: { i },
     geometry,
   }));
@@ -67,7 +160,7 @@ function syncLobbySpectatorLayers(
 
   const dotFeatures = dots.map((d) => ({
     type: "Feature" as const,
-    id: `lobby-d-${d.id}`,
+    id: `trail-d-${d.id}`,
     properties: { id: d.id },
     geometry: { type: "Point" as const, coordinates: d.lngLat },
   }));
@@ -76,13 +169,13 @@ function syncLobbySpectatorLayers(
   const beforeRoute = map.getLayer("route") ? "route" : undefined;
 
   try {
-    if (!map.getSource(LOBBY_SPEC_ROUTES_SRC)) {
-      map.addSource(LOBBY_SPEC_ROUTES_SRC, { type: "geojson", data: routeFc });
+    if (!map.getSource(TRAIL_SPEC_ROUTES_SRC)) {
+      map.addSource(TRAIL_SPEC_ROUTES_SRC, { type: "geojson", data: routeFc });
       map.addLayer(
         {
-          id: LOBBY_SPEC_ROUTES_GLOW_LAYER,
+          id: TRAIL_SPEC_ROUTES_GLOW_LAYER,
           type: "line",
-          source: LOBBY_SPEC_ROUTES_SRC,
+          source: TRAIL_SPEC_ROUTES_SRC,
           paint: {
             "line-color": "#ffffff",
             "line-width": ["interpolate", ["linear"], ["zoom"], 8, 5, 12, 8, 16, 12],
@@ -95,9 +188,9 @@ function syncLobbySpectatorLayers(
       );
       map.addLayer(
         {
-          id: LOBBY_SPEC_ROUTES_LAYER,
+          id: TRAIL_SPEC_ROUTES_LAYER,
           type: "line",
-          source: LOBBY_SPEC_ROUTES_SRC,
+          source: TRAIL_SPEC_ROUTES_SRC,
           paint: {
             "line-color": "#dc2626",
             "line-width": ["interpolate", ["linear"], ["zoom"], 8, 1.8, 12, 3, 16, 4.2],
@@ -108,13 +201,13 @@ function syncLobbySpectatorLayers(
         beforeRoute,
       );
     } else {
-      (map.getSource(LOBBY_SPEC_ROUTES_SRC) as mapboxgl.GeoJSONSource).setData(routeFc);
-      if (!map.getLayer(LOBBY_SPEC_ROUTES_GLOW_LAYER) && map.getLayer(LOBBY_SPEC_ROUTES_LAYER)) {
+      (map.getSource(TRAIL_SPEC_ROUTES_SRC) as mapboxgl.GeoJSONSource).setData(routeFc);
+      if (!map.getLayer(TRAIL_SPEC_ROUTES_GLOW_LAYER) && map.getLayer(TRAIL_SPEC_ROUTES_LAYER)) {
         map.addLayer(
           {
-            id: LOBBY_SPEC_ROUTES_GLOW_LAYER,
+            id: TRAIL_SPEC_ROUTES_GLOW_LAYER,
             type: "line",
-            source: LOBBY_SPEC_ROUTES_SRC,
+            source: TRAIL_SPEC_ROUTES_SRC,
             paint: {
               "line-color": "#ffffff",
               "line-width": ["interpolate", ["linear"], ["zoom"], 8, 5, 12, 8, 16, 12],
@@ -123,18 +216,18 @@ function syncLobbySpectatorLayers(
             },
             layout: { "line-join": "round", "line-cap": "round" },
           },
-          LOBBY_SPEC_ROUTES_LAYER,
+          TRAIL_SPEC_ROUTES_LAYER,
         );
       }
     }
 
-    if (!map.getSource(LOBBY_SPEC_DOTS_SRC)) {
-      map.addSource(LOBBY_SPEC_DOTS_SRC, { type: "geojson", data: dotFc });
+    if (!map.getSource(TRAIL_SPEC_DOTS_SRC)) {
+      map.addSource(TRAIL_SPEC_DOTS_SRC, { type: "geojson", data: dotFc });
       map.addLayer(
         {
-          id: LOBBY_SPEC_DOTS_GLOW_LAYER,
+          id: TRAIL_SPEC_DOTS_GLOW_LAYER,
           type: "circle",
-          source: LOBBY_SPEC_DOTS_SRC,
+          source: TRAIL_SPEC_DOTS_SRC,
           paint: {
             "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 7, 14, 12],
             "circle-color": "#ffffff",
@@ -146,9 +239,9 @@ function syncLobbySpectatorLayers(
       );
       map.addLayer(
         {
-          id: LOBBY_SPEC_DOTS_LAYER,
+          id: TRAIL_SPEC_DOTS_LAYER,
           type: "circle",
-          source: LOBBY_SPEC_DOTS_SRC,
+          source: TRAIL_SPEC_DOTS_SRC,
           paint: {
             "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 3.6, 14, 7],
             "circle-color": "#dc2626",
@@ -161,13 +254,13 @@ function syncLobbySpectatorLayers(
         beforeRoute,
       );
     } else {
-      (map.getSource(LOBBY_SPEC_DOTS_SRC) as mapboxgl.GeoJSONSource).setData(dotFc);
-      if (!map.getLayer(LOBBY_SPEC_DOTS_GLOW_LAYER) && map.getLayer(LOBBY_SPEC_DOTS_LAYER)) {
+      (map.getSource(TRAIL_SPEC_DOTS_SRC) as mapboxgl.GeoJSONSource).setData(dotFc);
+      if (!map.getLayer(TRAIL_SPEC_DOTS_GLOW_LAYER) && map.getLayer(TRAIL_SPEC_DOTS_LAYER)) {
         map.addLayer(
           {
-            id: LOBBY_SPEC_DOTS_GLOW_LAYER,
+            id: TRAIL_SPEC_DOTS_GLOW_LAYER,
             type: "circle",
-            source: LOBBY_SPEC_DOTS_SRC,
+            source: TRAIL_SPEC_DOTS_SRC,
             paint: {
               "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 7, 14, 12],
               "circle-color": "#ffffff",
@@ -175,12 +268,12 @@ function syncLobbySpectatorLayers(
               "circle-blur": 0.55,
             },
           },
-          LOBBY_SPEC_DOTS_LAYER,
+          TRAIL_SPEC_DOTS_LAYER,
         );
       }
     }
   } catch (e) {
-    console.warn("[MapView] lobby spectator layers", e);
+    console.warn("[MapView] trail spectator layers", e);
   }
 }
 
@@ -376,9 +469,13 @@ export type MapViewProps = {
   } | null;
   /** 메뉴 장소 검색으로 이동한 위치 — 기본 핀과 구분되는 마커 */
   placeSearchMarkerLngLat?: LngLat | null;
-  /** 로비: 같은 방에서 코스 주행 중인 다른 사용자(원 + 노선 LOD 는 부모에서 처리) */
-  lobbySpectatorDots?: LobbySpectatorDot[] | null;
-  lobbySpectatorRoutes?: LineStringGeometry[] | null;
+  /** Trail: 같은 Trail 에서 코스 주행 중인 다른 사용자(원 + 노선 LOD 는 부모에서 처리) */
+  trailSpectatorDots?: TrailSpectatorDot[] | null;
+  trailSpectatorRoutes?: LineStringGeometry[] | null;
+  /** aggregate 기반 라이브 코스 펄스(녹색) */
+  activityPulseRoutes?: LineStringGeometry[] | null;
+  /** aggregate 기반 최근 활동 heat(회색) */
+  activityHeatRoutes?: LineStringGeometry[] | null;
 };
 
 export function MapView({
@@ -405,16 +502,18 @@ export function MapView({
   mapillaryClientToken,
   externalCameraJump = null,
   placeSearchMarkerLngLat = null,
-  lobbySpectatorDots = null,
-  lobbySpectatorRoutes = null,
+  trailSpectatorDots = null,
+  trailSpectatorRoutes = null,
+  activityPulseRoutes = null,
+  activityHeatRoutes = null,
 }: MapViewProps) {
-  const lobbySpectatorDataRef = useRef<{ dots: LobbySpectatorDot[]; routes: LineStringGeometry[] }>({
+  const trailSpectatorDataRef = useRef<{ dots: TrailSpectatorDot[]; routes: LineStringGeometry[] }>({
     dots: [],
     routes: [],
   });
-  lobbySpectatorDataRef.current = {
-    dots: lobbySpectatorDots ?? [],
-    routes: lobbySpectatorRoutes ?? [],
+  trailSpectatorDataRef.current = {
+    dots: trailSpectatorDots ?? [],
+    routes: trailSpectatorRoutes ?? [],
   };
 
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -595,10 +694,10 @@ export function MapView({
       peerDomMarkersRef.current.clear();
       mergePeerTargets(peerDriveSimRef.current, latestPeerMarkersRef.current, performance.now());
       try {
-        syncLobbySpectatorLayers(
+        syncTrailSpectatorLayers(
           map,
-          lobbySpectatorDataRef.current.dots,
-          lobbySpectatorDataRef.current.routes,
+          trailSpectatorDataRef.current.dots,
+          trailSpectatorDataRef.current.routes,
         );
       } catch {
         /* noop */
@@ -1019,8 +1118,14 @@ export function MapView({
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded || !map.isStyleLoaded()) return;
-    syncLobbySpectatorLayers(map, lobbySpectatorDots ?? [], lobbySpectatorRoutes ?? []);
-  }, [mapLoaded, lobbySpectatorDots, lobbySpectatorRoutes]);
+    syncTrailSpectatorLayers(map, trailSpectatorDots ?? [], trailSpectatorRoutes ?? []);
+  }, [mapLoaded, trailSpectatorDots, trailSpectatorRoutes]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded || !map.isStyleLoaded()) return;
+    syncCourseActivityLayers(map, activityPulseRoutes ?? [], activityHeatRoutes ?? []);
+  }, [mapLoaded, activityPulseRoutes, activityHeatRoutes]);
 
   useEffect(() => {
     const map = mapRef.current;

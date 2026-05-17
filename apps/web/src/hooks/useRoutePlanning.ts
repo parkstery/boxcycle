@@ -12,6 +12,7 @@ import { getFirebaseApp } from "../lib/firebase";
 import type { LineStringGeometry, LngLat } from "../lib/geo";
 import { formatLngLat } from "../lib/geo";
 import { MAX_ROUTE_WAYPOINTS } from "../lib/routeWaypoints";
+import { lockRouteWorkspaceDuringRide } from "../lib/routeWorkspaceLock";
 import { fetchRouteByProfile, formatDuration, type RouteProfile } from "../services/mapboxDirections";
 import { fetchMapboxReverseGeocodePlaceName } from "../services/mapboxReverseGeocode";
 import { useVirtualRideSession } from "./useVirtualRideSession";
@@ -180,7 +181,7 @@ export function useRoutePlanning(options: UseRoutePlanningOptions) {
 
   const generateRoute = useCallback(
     async (profileOverride?: RouteProfile) => {
-      if (rideStatus !== "idle") {
+      if (lockRouteWorkspaceDuringRide(rideStatus !== "idle")) {
         setRouteSummary("세션이 대기 상태일 때만 경로를 바꿀 수 있습니다. 종료 후 다시 시도하세요.");
         return;
       }

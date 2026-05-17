@@ -106,14 +106,15 @@ service cloud.firestore {
       allow delete: if isSignedIn() && resource.data.ownerUid == request.auth.uid;
     }
 
-    match /rooms/{roomId}/members/{userId} {
+    /** Trail presence — `rooms/` 레거시는 아래 read-only */
+    match /trails/{trailId}/members/{userId} {
       allow read: if isSignedIn();
       allow create, update: if isSelf(userId);
       allow delete: if isSelf(userId);
     }
 
-    /** 로비: 코스 주행 진행률만 공유(geometry 미저장). 같은 방 로그인 사용자가 읽기. */
-    match /rooms/{roomId}/liveCourseRides/{userId} {
+    /** Trail: 코스 주행 진행률만 공유(geometry 미저장). */
+    match /trails/{trailId}/liveCourseRides/{userId} {
       allow read: if isSignedIn();
       allow create, update: if isSelf(userId)
         && request.resource.data.keys().hasAll(['courseId', 'progressRatio', 'lastSeenAt'])
@@ -128,6 +129,17 @@ service cloud.firestore {
             || (request.resource.data.displayName is string
                 && request.resource.data.displayName.size() <= 80));
       allow delete: if isSelf(userId);
+    }
+
+    /** @deprecated `rooms/` — 마이그레이션 후 read-only(클라이언트 write 금지) */
+    match /rooms/{roomId}/members/{userId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    match /rooms/{roomId}/liveCourseRides/{userId} {
+      allow read: if isSignedIn();
+      allow write: if false;
     }
 
     match /rides/{rideId} {
@@ -253,6 +265,17 @@ service cloud.firestore {
     /** 월드 활동 집계(선택). 콘솔/CF로만 수정 — 클라이언트 write 금지. 로그인 사용자 읽기. */
     match /appMeta/{docId} {
       allow read: if isSignedIn() && docId == 'worldPresence';
+      allow write: if false;
+    }
+
+    /** Activity World — 코스 단위 aggregate. 읽기만 클라이언트, 쓰기는 Functions. */
+    match /courseActivity/{courseId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    match /worldActivity/{tileId} {
+      allow read: if isSignedIn();
       allow write: if false;
     }
   }

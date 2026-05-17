@@ -12,7 +12,7 @@ import {
 } from "../lib/firestoreCoursePresence";
 import type { LngLat } from "../lib/geo";
 import type { MapPeerMarker } from "./MapView";
-import { LOBBY_STALE_MS } from "../lib/firestoreLobby";
+import { TRAIL_PRESENCE_STALE_MS } from "../lib/firestoreTrail";
 import {
   COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS,
   COURSE_PRESENCE_HEARTBEAT_PAUSED_MS,
@@ -25,7 +25,7 @@ import {
 } from "../lib/rideSyncPolicy";
 import { mapNametagForMember, sortedGuestUids } from "../lib/guestNametag";
 import { useDocumentVisibility } from "../hooks/useDocumentVisibility";
-import "./LobbyPresence.css";
+import "./TrailheadPresence.css";
 
 function peersStableKey(peers: MapPeerMarker[] | undefined): string {
   if (!peers?.length) return "";
@@ -41,6 +41,8 @@ type CourseSharedPresenceProps = {
   title?: string;
   /** 실제 주행(running)일 때만 라이브 좌표를 Firestore에 동기화 */
   isRiding: boolean;
+  /** running 또는 paused — paused 시에는 좌표 쓰기만 멈추고 마지막 위치는 지우지 않음 */
+  rideSessionActive: boolean;
   /** 0~1 가상 진행률 — 이동·진행률 기반 쓰기 임계값 */
   progressRatio?: number | null;
   myLiveLngLat: LngLat | null;
@@ -54,6 +56,7 @@ export function CourseSharedPresence({
   courseId,
   title,
   isRiding,
+  rideSessionActive,
   progressRatio,
   myLiveLngLat,
   onPeersChange,
@@ -159,7 +162,10 @@ export function CourseSharedPresence({
   /** presence 생존 신호 — 주행 중은 기본 주기, 일시정지·대기는 저빈도(좌표 쓰기와 분리) */
   useEffect(() => {
     if (!pageVisible) return;
-    const ms = isRiding ? COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS : COURSE_PRESENCE_HEARTBEAT_PAUSED_MS;
+    const ms =
+      rideSessionActive && isRiding
+        ? COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS
+        : COURSE_PRESENCE_HEARTBEAT_PAUSED_MS;
     const id = window.setInterval(() => {
       void touchCoursePresence(userRef.current, courseId).catch((e: unknown) => {
         const message = e instanceof Error ? e.message : String(e);
@@ -167,12 +173,20 @@ export function CourseSharedPresence({
       });
     }, ms);
     return () => window.clearInterval(id);
-  }, [pageVisible, isRiding, courseId, user.uid]);
+  }, [pageVisible, rideSessionActive, isRiding, courseId, user.uid]);
 
   /** 실제 주행 + 포그라운드일 때만 이동·진행률·시간 기반으로 라이브 좌표 쓰기 */
   useEffect(() => {
-    if (!isRiding || !pageVisible) {
+    if (!pageVisible) {
       void mergeCourseMemberLiveLocation(userRef.current, courseId, null).catch(() => {});
+      return;
+    }
+    if (!rideSessionActive) {
+      void mergeCourseMemberLiveLocation(userRef.current, courseId, null).catch(() => {});
+      return;
+    }
+    if (!isRiding) {
+      // paused: Firestore liveLngLat 유지 — 동료 화면에서 캐릭터가 사라지지 않게 함
       return;
     }
 
@@ -211,9 +225,8 @@ export function CourseSharedPresence({
     const id = window.setInterval(tick, 1_000);
     return () => {
       window.clearInterval(id);
-      void mergeCourseMemberLiveLocation(userRef.current, courseId, null).catch(() => {});
     };
-  }, [isRiding, pageVisible, user.uid, courseId]);
+  }, [isRiding, rideSessionActive, pageVisible, user.uid, courseId]);
 
   const active = useMemo(
     () => rows.filter((r) => isCourseMemberActive(r.lastSeenAtMs)),
@@ -267,21 +280,21 @@ export function CourseSharedPresence({
     presenceError?.includes("permission") || presenceError?.includes("Permission");
 
   return (
-    <section className="lobby-presence" aria-label="입문 코스 동시 주행자">
-      <div className="lobby-presence__head">
+    <section className="trailhead-presence" aria-label="입문 코스 동시 주행자">
+      <div className="trailhead-presence__head">
         <strong>입문 코스 동행</strong>
-        <span className="lobby-presence__meta">
+        <span className="trailhead-presence__meta">
           {title ? `${title} · ` : null}
-          <code>{courseId}</code> · 활동 기준 {Math.round(LOBBY_STALE_MS / 1000)}초
+          <code>{courseId}</code> · 활동 기준 {Math.round(TRAIL_PRESENCE_STALE_MS / 1000)}초
         </span>
       </div>
       {presenceError ? (
-        <p className="lobby-presence__err" title={presenceError}>
+        <p className="trailhead-presence__err" title={presenceError}>
           동행 동기화 오류: {presenceError}
           {isPermissionError ? (
             <>
               {" "}
-              <span className="lobby-presence__err-hint">
+              <span className="trailhead-presence__err-hint">
                 (<code>courses/{'{courseId}'}</code> 에 <code>presenceEnabled: true</code> 또는 입문 허브 시드의{" "}
                 <code>isSharedStartHub: true</code> 가 있는지, 저장소 루트 <code>firestore.rules</code> 배포 여부를
                 확인하세요. 예: <code>firebase deploy --only firestore</code>)
@@ -290,31 +303,31 @@ export function CourseSharedPresence({
           ) : null}
         </p>
       ) : null}
-      <p className="lobby-presence__count">
+      <p className="trailhead-presence__count">
         접속 중(추정): <strong>{active.length}</strong>명
         {rows.length !== active.length ? (
-          <span className="lobby-presence__stale-hint">
+          <span className="trailhead-presence__stale-hint">
             {" "}
             (문서 {rows.length}건 중 비활성 제외)
           </span>
         ) : null}
       </p>
       {!presenceError && active.length > 0 ? (
-        <ul className="lobby-presence__list">
+        <ul className="trailhead-presence__list">
           {active.map((r) => (
             <li key={r.uid}>
               {mapNametagForMember(r.uid, r.memberType, r.displayName, guestUidsSorted)}
-              {r.uid === user.uid ? <span className="lobby-presence__you"> (나)</span> : null}
-              {r.liveLngLat ? <span className="lobby-presence__live-dot"> · 지도 공유 중</span> : null}
+              {r.uid === user.uid ? <span className="trailhead-presence__you"> (나)</span> : null}
+              {r.liveLngLat ? <span className="trailhead-presence__live-dot"> · 지도 공유 중</span> : null}
             </li>
           ))}
         </ul>
       ) : null}
       {!presenceError && active.length === 0 ? (
-        <p className="lobby-presence__empty">아직 표시할 접속자가 없습니다.</p>
+        <p className="trailhead-presence__empty">아직 표시할 접속자가 없습니다.</p>
       ) : null}
       {presenceError && rows.length === 0 ? (
-        <p className="lobby-presence__empty">목록을 불러오지 못했습니다. 위 오류를 해결한 뒤 새로고침하세요.</p>
+        <p className="trailhead-presence__empty">목록을 불러오지 못했습니다. 위 오류를 해결한 뒤 새로고침하세요.</p>
       ) : null}
     </section>
   );

@@ -319,12 +319,39 @@ export function isGeometryBasicStartHub(geometry: LineStringGeometry | null): bo
   return matchBasicSharedHubCourseId(geometry) !== null;
 }
 
-export async function fetchCourseRoutePayload(courseId: string): Promise<CourseRoutePayload | null> {
+/** 세션 동안 `courses/{id}` getDoc 중복 방지(관전 등에서 동일 코스 반복 조회 시) */
+const courseRoutePayloadMemoryCache = new Map<string, CourseRoutePayload | null>();
+const courseRoutePayloadInflight = new Map<string, Promise<CourseRoutePayload | null>>();
+
+async function fetchCourseRoutePayloadUncached(courseId: string): Promise<CourseRoutePayload | null> {
   const db = getFirestore(getFirebaseApp());
   const snap = await getDoc(doc(db, "courses", courseId));
   if (!snap.exists()) return null;
   const data = snap.data() as Record<string, unknown>;
   return parseCourseRoutePayload(courseId, data);
+}
+
+export async function fetchCourseRoutePayload(courseId: string): Promise<CourseRoutePayload | null> {
+  const id = courseId.trim();
+  if (!id) return null;
+  if (courseRoutePayloadMemoryCache.has(id)) {
+    return courseRoutePayloadMemoryCache.get(id)!;
+  }
+  let inflight = courseRoutePayloadInflight.get(id);
+  if (!inflight) {
+    inflight = fetchCourseRoutePayloadUncached(id)
+      .then((payload) => {
+        courseRoutePayloadMemoryCache.set(id, payload);
+        courseRoutePayloadInflight.delete(id);
+        return payload;
+      })
+      .catch((e) => {
+        courseRoutePayloadInflight.delete(id);
+        throw e;
+      });
+    courseRoutePayloadInflight.set(id, inflight);
+  }
+  return inflight;
 }
 
 const BASIC_COURSES: Omit<CourseDoc, "createdAt" | "updatedAt">[] = [

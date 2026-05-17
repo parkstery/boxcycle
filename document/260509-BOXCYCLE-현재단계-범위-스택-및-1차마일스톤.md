@@ -5,7 +5,9 @@
 | 문서 유형 | **product** + **architecture**(요약) — PM·개발 공통의 단일 진실(현재 단계) |
 | 최초 작성 | 2026-05-09 |
 | 상태 | **코드 반영 중** — `apps/web` + Firebase(Auth·Firestore·**Directions Callable**)·Mapbox GL; Geocoding 프록시 등은 미도입 |
-| 연결 문서 | [문서 생성·수정 지침](260509-BOXCYCLE-문서-생성-및-수정-지침.md), [**RTW 마스터 비전 및 종합계획**](260511-RTW-마스터-비전-및-종합계획.md), [Mapbox 시뮬 검증 기록](260508-개발중간보고-HTML과-JS-프로토타입.md), [아키텍처·DB 장기안](260509-아키텍쳐-DB설계.md), [Firestore→Postgres 피하기](260509-Firestore-Postgres-이전-체크리스트.md), [실행·리팩터링](260509-app-js-프론트백엔드-분리-1차리팩터링.md), [Phase별 실행 체크리스트(1차 마일스톤 직후)](260511-Phase별-실행-체크리스트-Course-Session-Presence.md) |
+| 연결 문서 | [문서 생성·수정 지침](260509-BOXCYCLE-문서-생성-및-수정-지침.md), [**RTW 마스터 비전 및 종합계획**](260511-RTW-마스터-비전-및-종합계획.md), [Mapbox 시뮬 검증 기록](260508-개발중간보고-HTML과-JS-프로토타입.md), [아키텍처·DB 장기안](260509-아키텍쳐-DB설계.md), [Firestore→Postgres 피하기](260509-Firestore-Postgres-이전-체크리스트.md), [실행·리팩터링](260509-app-js-프론트백엔드-분리-1차리팩터링.md), [Phase별 실행 체크리스트(1차 마일스톤 직후)](260511-Phase별-실행-체크리스트-Course-Session-Presence.md), [제품 용어 Trailhead·Trail](260517-제품-용어-Trailhead-Trail.md) |
+
+> **제품 용어(2026-05-17):** Lobby → **Trailhead**, Room(방) → **Trail**. Firestore `trails/{trailId}` 가 Trail 인스턴스 경로이다.
 
 ---
 
@@ -29,8 +31,8 @@
 |---|------|------|
 | A | 인증 | **Google(Gmail) 로그인** 하나로 빠른 검증. 다른 제공자·이메일 비밀번호는 1차 범위 밖으로 둘 수 있다. |
 | B | 사용자 식별 | 로그인 사용자마다 **서버(Firebase) 기준 고유 ID**가 있고, 클라이언트가 이를 기준으로 동작한다. |
-| C | 동시 접속·공유 상태 | 동일 **방/코스/세션 ID**(제품 용어는 구현 시 확정)에 **2명 이상**이 동시에 참여할 때, **서버 또는 Firebase 실시간 채널 기준**으로 상대 존재 또는 진행 상태가 반영된다. |
-| D | 영속화 | 멀티 유저 검증에 필요한 최소 데이터(예: 방 멤버, 마지막 하트비트, 간단 세션 메타)가 **Firebase에 저장·동기**된다. **`sessions/{sessionId}` 컬렉션 도입은 1차 마일스톤 직후 후순위로 둔다** (장기 비전: [RTW 마스터 §2.1](260511-RTW-마스터-비전-및-종합계획.md), 작업 순서: [Phase별 실행 체크리스트 Phase 1-B](260511-Phase별-실행-체크리스트-Course-Session-Presence.md)). |
+| C | 동시 접속·공유 상태 | 동일 **Trail/코스/세션 ID**에 **2명 이상**이 동시에 참여할 때, **서버 또는 Firebase 실시간 채널 기준**으로 상대 존재 또는 진행 상태가 반영된다. |
+| D | 영속화 | 멀티 유저 검증에 필요한 최소 데이터(예: Trail 멤버, 마지막 하트비트, 간단 세션 메타)가 **Firebase에 저장·동기**된다. **`sessions/{sessionId}` 컬렉션 도입은 1차 마일스톤 직후 후순위로 둔다** (장기 비전: [RTW 마스터 §2.1](260511-RTW-마스터-비전-및-종합계획.md), 작업 순서: [Phase별 실행 체크리스트 Phase 1-B](260511-Phase별-실행-체크리스트-Course-Session-Presence.md)). |
 | E | 재현 가능 | 배포 또는 스테이징 URL에서 PM이 **데모 시나리오**(계정 2개로 동시 접속 등)를 재현할 수 있다. |
 
 ### 2.2 1차에서 의도적으로 미포함 (명시적 후순위)
@@ -65,7 +67,7 @@
 
 ## 4. 저장소·코드 상태
 
-- **본 개발 웹 앱:** `apps/web` — npm 패키지명 **`boxcycle-web`**. 저장소 루트는 **npm workspaces**로 이 패키지를 묶으며, **`npm install`은 루트에서 한 번**(잠금 파일은 루트 `package-lock.json`만). Vite + TypeScript + React, Firebase Auth(Google·게스트 등 콘솔 설정에 따름), **Mapbox GL 지도**(클라이언트 `VITE_MAPBOX_ACCESS_TOKEN` 만 타일용), **경로 계산**은 Firebase Callable **`getMapboxDirections`**(`functions/`, 서버 시크릿 `MAPBOX_ACCESS_TOKEN`), **`users/{uid}` 프로필**, **`rooms/{roomId}/members/{uid}`** 실시간 로비(`roomId` 기본 `default`, **`?room=`** 및 UI 입장), **`rides`** 주행 기록 저장, **`courses`** 입문·큐레이션 코스 시드/조회, **`coursePresence`** 입문 허브 동행 시 동료 마커 동기화(Open-Meteo 고도는 브라우저 직호출).
+- **본 개발 웹 앱:** `apps/web` — npm 패키지명 **`boxcycle-web`**. 저장소 루트는 **npm workspaces**로 이 패키지를 묶으며, **`npm install`은 루트에서 한 번**(잠금 파일은 루트 `package-lock.json`만). Vite + TypeScript + React, Firebase Auth(Google·게스트 등 콘솔 설정에 따름), **Mapbox GL 지도**(클라이언트 `VITE_MAPBOX_ACCESS_TOKEN` 만 타일용), **경로 계산**은 Firebase Callable **`getMapboxDirections`**(`functions/`, 서버 시크릿 `MAPBOX_ACCESS_TOKEN`), **`users/{uid}` 프로필**, **`trails/{trailId}/members/{uid}`** Trailhead·Trail presence(기본 `default`, **`?trail=`** · `?room=` 호환), **`rides`** 주행 기록 저장, **`courses`** 입문·큐레이션 코스 시드/조회, **`coursePresence`** 입문 허브 동행 시 동료 마커 동기화(Open-Meteo 고도는 브라우저 직호출).
 - **Firebase 배포 설정(루트):** `firebase.json` — Firestore rules/indexes + **Hosting**(`public`: `apps/web/dist`, SPA rewrite). `.firebaserc` 에 기본 프로젝트 ID가 있다(민감 비밀이 아님). 실제 API 키·토큰은 **`apps/web/.env`**(커밋 제외), 템플릿은 **`apps/web/.env.example`**.
 - **Firestore Rules:** `coursePresence` 허용 여부는 **`courses/{courseId}.presenceEnabled == true`** 로 판별(입문 허브 1·2 동일). 시드·merge는 `firestoreCourses.ts` 의 `ensureBasicCoursesSeeded` 가 허브에 `presenceEnabled` 를 기록.
 - **다음(문서·계획 정렬):** Mapbox **Geocoding** Functions 프록시(선택), `sessions`/`presence` 컬렉션 정착 등 → [분리·리팩터링 문서](260509-app-js-프론트백엔드-분리-1차리팩터링.md)·[Phase 체크리스트](260511-Phase별-실행-체크리스트-Course-Session-Presence.md).

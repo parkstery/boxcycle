@@ -1,18 +1,48 @@
-.room-switcher {
+.trail-switcher {
   flex-shrink: 0;
   padding: 0.55rem 0.75rem 0.65rem;
   border-bottom: 1px solid rgba(248, 250, 252, 0.1);
   background: rgba(2, 6, 23, 0.45);
 }
 
-.room-switcher__row {
+.trail-switcher__row {
   display: flex;
   align-items: center;
   gap: 0.4rem;
   min-width: 0;
 }
 
-.room-switcher__kicker {
+.trail-switcher__row--trailhead {
+  margin-bottom: 0.4rem;
+}
+
+.trail-switcher__trailhead-btn {
+  flex: 1;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.42rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid rgba(251, 191, 36, 0.55);
+  background: rgba(251, 191, 36, 0.16);
+  color: #fef9c3;
+  cursor: pointer;
+}
+
+.trail-switcher__trailhead-btn:hover:not(:disabled) {
+  background: rgba(251, 191, 36, 0.28);
+}
+
+.trail-switcher__trailhead-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+  border-color: rgba(248, 250, 252, 0.12);
+  background: rgba(248, 250, 252, 0.06);
+  color: rgba(248, 250, 252, 0.55);
+}
+
+.trail-switcher__kicker {
   flex-shrink: 0;
   font-size: 0.62rem;
   font-weight: 750;
@@ -21,7 +51,7 @@
   color: rgba(148, 163, 184, 0.95);
 }
 
-.room-switcher__input {
+.trail-switcher__input {
   flex: 1;
   min-width: 0;
   font: inherit;
@@ -33,15 +63,15 @@
   color: #f8fafc;
 }
 
-.room-switcher__input:disabled {
+.trail-switcher__input:disabled {
   opacity: 0.55;
 }
 
-.room-switcher__input::placeholder {
+.trail-switcher__input::placeholder {
   color: rgba(248, 250, 252, 0.35);
 }
 
-.room-switcher__btn {
+.trail-switcher__btn {
   flex-shrink: 0;
   font: inherit;
   font-size: 0.72rem;
@@ -54,30 +84,30 @@
   cursor: pointer;
 }
 
-.room-switcher__btn:hover:not(:disabled) {
+.trail-switcher__btn:hover:not(:disabled) {
   background: rgba(56, 189, 248, 0.35);
 }
 
-.room-switcher__btn:disabled {
+.trail-switcher__btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
 
-.room-switcher__hint,
-.room-switcher__note {
+.trail-switcher__hint,
+.trail-switcher__note {
   margin: 0.38rem 0 0;
   font-size: 0.61rem;
   line-height: 1.35;
   color: rgba(248, 250, 252, 0.62);
 }
 
-.room-switcher__hint code {
+.trail-switcher__hint code {
   font-size: 0.92em;
   padding: 0.05rem 0.2rem;
   border-radius: 4px;
   background: rgba(248, 250, 252, 0.08);
 }
 
-.room-switcher__note {
+.trail-switcher__note {
   color: rgba(251, 191, 36, 0.95);
 }

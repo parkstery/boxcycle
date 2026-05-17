@@ -1,4 +1,4 @@
-.lobby-presence {
+.trailhead-presence {
   border: 1px solid color-mix(in srgb, CanvasText 14%, transparent);
   border-radius: 12px;
   padding: 0.65rem 0.85rem;
@@ -7,15 +7,15 @@
   line-height: 1.45;
 }
 
-.lobby-presence--paused {
+.trailhead-presence--paused {
   opacity: 0.92;
 }
 
-.lobby-presence__rejoin {
+.trailhead-presence__rejoin {
   margin-top: 0.35rem;
 }
 
-.lobby-presence__head {
+.trailhead-presence__head {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -23,53 +23,53 @@
   margin-bottom: 0.35rem;
 }
 
-.lobby-presence__meta {
+.trailhead-presence__meta {
   font-size: 0.78rem;
   opacity: 0.78;
 }
 
-.lobby-presence__meta code {
+.trailhead-presence__meta code {
   font-size: 0.85em;
   padding: 0.08em 0.3em;
   border-radius: 4px;
   background: color-mix(in srgb, CanvasText 10%, transparent);
 }
 
-.lobby-presence__count {
+.trailhead-presence__count {
   margin: 0 0 0.35rem;
 }
 
-.lobby-presence__stale-hint {
+.trailhead-presence__stale-hint {
   font-size: 0.78rem;
   opacity: 0.72;
 }
 
-.lobby-presence__list {
+.trailhead-presence__list {
   margin: 0;
   padding-left: 1.15rem;
   max-height: 6.5rem;
   overflow: auto;
 }
 
-.lobby-presence__you {
+.trailhead-presence__you {
   font-weight: 600;
   opacity: 0.85;
 }
 
-.lobby-presence__empty {
+.trailhead-presence__empty {
   margin: 0;
   opacity: 0.72;
   font-size: 0.82rem;
 }
 
-.lobby-presence__err {
+.trailhead-presence__err {
   margin: 0.45rem 0 0;
   color: #b91c1c;
   font-size: 0.78rem;
   overflow-wrap: anywhere;
 }
 
-.lobby-presence__err-hint {
+.trailhead-presence__err-hint {
   display: block;
   margin-top: 0.35rem;
   font-size: 0.72rem;
@@ -77,11 +77,11 @@
   color: #7f1d1d;
 }
 
-.lobby-presence__err-hint code {
+.trailhead-presence__err-hint code {
   font-size: 0.85em;
 }
 
-.lobby-presence__live-dot {
+.trailhead-presence__live-dot {
   font-size: 0.78rem;
   opacity: 0.75;
 }
