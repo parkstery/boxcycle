@@ -61,6 +61,14 @@
       "collectionGroup": "courses",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "courses",
+      "queryScope": "COLLECTION",
+      "fields": [
         { "fieldPath": "routeFingerprint", "order": "ASCENDING" },
         { "fieldPath": "category", "order": "ASCENDING" },
         { "fieldPath": "status", "order": "ASCENDING" }
@@ -74,6 +82,14 @@
         { "fieldPath": "visibility", "order": "ASCENDING" },
         { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "profile", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "routeTokenLedger",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
     }
   ],

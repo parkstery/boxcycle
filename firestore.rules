@@ -80,12 +80,30 @@ service cloud.firestore {
       return request.resource.data.diff(resource.data).affectedKeys().hasAny(['nickname', 'nicknameKey']);
     }
 
+    function userRouteTokenFieldsUntouched() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'routeTokenBalance',
+        'routeTokenBalanceUpdatedAt',
+        'routeTokenOnboardingGranted',
+        'routeTokenEarnDayKey',
+        'routeTokenEarnedToday'
+      ]);
+    }
+
     match /users/{userId} {
       allow read: if isSignedIn();
       allow create: if isSelf(userId)
-        && (!request.resource.data.keys().hasAny(['nickname', 'nicknameKey']) || userNicknameReserved());
+        && (!request.resource.data.keys().hasAny(['nickname', 'nicknameKey']) || userNicknameReserved())
+        && !request.resource.data.keys().hasAny([
+          'routeTokenBalance',
+          'routeTokenBalanceUpdatedAt',
+          'routeTokenOnboardingGranted',
+          'routeTokenEarnDayKey',
+          'routeTokenEarnedToday'
+        ]);
       allow update: if isSelf(userId)
-        && (!userNicknameChanged() || userNicknameReserved());
+        && (!userNicknameChanged() || userNicknameReserved())
+        && userRouteTokenFieldsUntouched();
       allow delete: if false;
     }
 
@@ -275,6 +293,18 @@ service cloud.firestore {
     }
 
     match /worldActivity/{tileId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    /** Route Token 원장 — Functions 전용 쓰기. 본인 ledger 읽기만 허용. */
+    match /routeTokenLedger/{entryId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+
+    /** 경제 수치 — 로그인 읽기, 쓰기는 콘솔·Functions(Admin SDK). */
+    match /config/routeTokenEconomy {
       allow read: if isSignedIn();
       allow write: if false;
     }

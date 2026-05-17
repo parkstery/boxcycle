@@ -6,7 +6,7 @@
 | 작성일 | 2026-05-17 |
 | 상태 | **v1+v2(anchor) 구현 완료** — 타일·수동 스모크 잔여 |
 | 상위 | [Firestore 트래픽·Activity World](260516-Firestore-트래픽-저감-상세-수정-계획.md) §4 |
-| 구분 | [제품 용어 Trailhead·Trail](260517-제품-용어-Trailhead-Trail.md), [같은 Trail 관전](260514-(cycle)로비_코스주행자_맵관전_구현_보고서.md) |
+| 구분 | [제품 용어 Trailhead·Trail](260517-제품-용어-Trailhead-Trail.md), [같은 Trail 관전](260514-(cycle)로비_코스주행자_맵관전_구현_보고서.md), [Route Token 경제](260518-Route-Token-경제-설계.md) §6.3 (토큰 드롭 v2) |
 
 ---
 
@@ -37,7 +37,14 @@
 | **B. 같은 Trail 관전** | 이 Trail에서 지금 누가 어느 코스를 얼마나 탔나? | `trails/.../liveCourseRides` | 빨간 점 + 빨간 노선 (진행률) |
 | **C. 같은 코스 동행** | 이 코스에 같이 입장한 사람 GPS? | `coursePresence` | 라이더 스프라이트 |
 
-**Trailhead** 는 제품 **허브(메뉴·Trail 선택)** 이지, A/B/C 중 하나의 Firestore 경로 이름이 아니다.  
+**Trailhead** = 기본 Trail **`trails/default`** 의 제품 이름이다. 「지금 어느 Trail에 있는가」에는 **Trailhead와 Trail 3 등이 같은 범주**에 들어간다. ([용어집 §2](260517-제품-용어-Trailhead-Trail.md))
+
+| 데이터 층 | Trail 범위 |
+|-----------|------------|
+| **A. Activity World** | **Trail 무관** — Trailhead·다른 Trail 어디서나 **동일** `courseActivity` (「다른 Trail의 aggregate」가 아님) |
+| **B. 같은 Trail 관전** | **시청자 `trailId` === 주행자 `trailId`** — Trailhead면 둘 다 `default` |
+| **C. 코스 동행** | **코스** 단위 (`coursePresence`) |
+
 A는 **전역 aggregate**, B는 **Trail 인스턴스 realtime** 이다.
 
 ---
@@ -59,7 +66,7 @@ MAP_ZOOM_WORLD_HUD_MAX     = 9   // 기존 rideSyncPolicy — HUD만 (오버레�
 ```
 
 - **30km** 는 “지도 **한 화면**에 담기는 거리” 기준이다. 사용자·코스 간 거리가 아니라 **줌/뷰포트 span** 이다.
-- 코스가 화면 밖이면 LINE 모드여도 그리지 않음(Mapbox clip). DOT 모드는 **화면에 걸치는 live 코스**만 후보.
+- LINE 모드: Mapbox가 화면 밖 구간 clip. **DOT 모드: 라이브·heat 후보는 뷰포트와 무관하게 전역 앵커 표시**(멀리서 지역 핀 — 화면 밖 점은 Mapbox clip).
 
 ### 3.2 앵커 점 위치 (DOT)
 
@@ -191,6 +198,7 @@ BASIC_SHARED_HUB_IDS
 | 전역 GPS 추적 지양 | 유지 — DOT는 **코스 앵커**, Trail B만 진행 점 |
 | `highlightedCourses` + 카탈로그 16건 geometry | 유지 — LINE 로드 상한 동일 |
 | 타일 `worldActivity/{tileId}` 미착수 | §6 단계 6으로 유지 |
+| 토큰 드롭 POI (v2) | [Route Token 설계](260518-Route-Token-경제-설계.md) §6.3 — Activity World DOT와 별 레이어·저빈도 |
 
 §4.2 「Mapbox 레이어 예」는 구현 시 아래처럼 **갱신**한다:
 
@@ -217,3 +225,4 @@ BASIC_SHARED_HUB_IDS
 | 2026-05-17 | 초안 — Activity World DOT/LINE LOD, v1/v2 데이터, 260516 정렬 |
 | 2026-05-17 | v1 클라이언트 구현 완료 — `activityWorldLod`, MapView dots, 스모크 §J-4 |
 | 2026-05-17 | v2 `liveAnchorLngLat` — CF geometry 보간 + 클라이언트 DOT 우선 사용 |
+| 2026-05-18 | [Route Token 경제](260518-Route-Token-경제-설계.md) §6.3 토큰 드롭 — 메타·§7 링크 |

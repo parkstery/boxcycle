@@ -9,6 +9,7 @@ export type DirectionsRoute = {
   geometry: LineStringGeometry;
   distance: number;
   duration: number;
+  routeTokenBalance?: number;
 };
 
 /**
@@ -35,6 +36,7 @@ function normalizeRoute(data: {
   geometry?: { type?: string; coordinates?: unknown };
   distance?: unknown;
   duration?: unknown;
+  routeTokenBalance?: unknown;
 }): DirectionsRoute {
   if (
     !data?.geometry ||
@@ -47,11 +49,15 @@ function normalizeRoute(data: {
   if (typeof data.distance !== "number" || typeof data.duration !== "number") {
     throw new Error("경로 거리·시간 응답이 올바르지 않습니다.");
   }
-  return {
+  const route: DirectionsRoute = {
     geometry: data.geometry as LineStringGeometry,
     distance: data.distance,
     duration: data.duration,
   };
+  if (typeof data.routeTokenBalance === "number" && Number.isFinite(data.routeTokenBalance)) {
+    route.routeTokenBalance = Math.max(0, Math.floor(data.routeTokenBalance));
+  }
+  return route;
 }
 
 /** 서버 `HttpsError.toJSON().status`(대문자 스네이크) → 클라이언트 `FirebaseError.code` 근사치 */
@@ -65,6 +71,7 @@ function wireStatusToFunctionsCode(status: string | undefined): string | undefin
     FAILED_PRECONDITION: "functions/failed-precondition",
     UNAVAILABLE: "functions/unavailable",
     PERMISSION_DENIED: "functions/permission-denied",
+    RESOURCE_EXHAUSTED: "functions/resource-exhausted",
   };
   return map[status] ?? "functions/internal";
 }
@@ -85,7 +92,8 @@ async function fetchRouteCallable(
   start: LngLat,
   end: LngLat,
   profile: RouteProfile,
-  waypoints?: LngLat[] | null,
+  waypoints: LngLat[] | null | undefined,
+  requestId: string,
 ): Promise<DirectionsRoute> {
   void functions;
   const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID?.trim();
@@ -104,15 +112,17 @@ async function fetchRouteCallable(
       "Content-Type": "application/json",
       Authorization: `Bearer ${idToken}`,
     },
-    body: JSON.stringify({ data: { start, end, profile, waypoints: wps.length ? wps : undefined } }),
+    body: JSON.stringify({
+      data: { start, end, profile, waypoints: wps.length ? wps : undefined, requestId },
+    }),
   });
   let json: {
-    result?: { geometry?: unknown; distance?: unknown; duration?: unknown };
+    result?: { geometry?: unknown; distance?: unknown; duration?: unknown; routeTokenBalance?: unknown };
     error?: { message?: string; status?: string };
   };
   try {
     json = (await res.json()) as {
-      result?: { geometry?: unknown; distance?: unknown; duration?: unknown };
+      result?: { geometry?: unknown; distance?: unknown; duration?: unknown; routeTokenBalance?: unknown };
       error?: { message?: string; status?: string };
     };
   } catch {
@@ -131,6 +141,7 @@ async function fetchRouteCallable(
       geometry?: { type?: string; coordinates?: unknown };
       distance?: unknown;
       duration?: unknown;
+      routeTokenBalance?: unknown;
     },
   );
 }
@@ -195,11 +206,17 @@ export async function fetchRouteByProfile(
   end: LngLat,
   profile: RouteProfile,
   waypoints?: LngLat[] | null,
+  requestId?: string,
 ): Promise<DirectionsRoute> {
   if (DIRECT_DIRECTIONS) {
     return fetchRouteDirect(start, end, profile, waypoints);
   }
-  return fetchRouteCallable(functions, user, start, end, profile, waypoints);
+  const rid =
+    requestId?.trim() ||
+    (typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID().replace(/-/g, "")
+      : `req_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`);
+  return fetchRouteCallable(functions, user, start, end, profile, waypoints, rid);
 }
 
 export function formatDuration(totalSeconds: number): string {

@@ -625,6 +625,18 @@
   font-size: 0.7rem;
 }
 
+.ride-panel__route-token {
+  margin: 0.35rem 0 0;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  color: var(--ride-panel-muted, rgba(255, 255, 255, 0.72));
+}
+
+.ride-panel__route-token strong {
+  color: var(--ride-panel-fg, #fff);
+  font-weight: 600;
+}
+
 .ride-panel__summary {
   margin: 0.35rem 0 0;
   font-size: 0.74rem;

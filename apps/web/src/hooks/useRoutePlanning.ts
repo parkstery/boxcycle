@@ -203,6 +203,10 @@ export function useRoutePlanning(options: UseRoutePlanningOptions) {
       try {
         const functions = getFunctions(getFirebaseApp(), functionsRegion);
         const wps = routeWaypoints.slice(0, MAX_ROUTE_WAYPOINTS);
+        const requestId =
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID().replace(/-/g, "")
+            : `req_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
         const route = await fetchRouteByProfile(
           functions,
           user,
@@ -210,6 +214,7 @@ export function useRoutePlanning(options: UseRoutePlanningOptions) {
           end,
           activeProfile,
           wps.length ? wps : undefined,
+          requestId,
         );
         setRouteGeometry(route.geometry);
         setRouteDistanceMeters(route.distance);

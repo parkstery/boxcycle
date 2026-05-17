@@ -1,0 +1,10 @@
+{
+  "generateCostBase": 1,
+  "earnPerKm": 0.15,
+  "onboardingGrant": 3,
+  "introRideBonus": 2,
+  "minRideDistanceM": 1000,
+  "minRideDurationSec": 180,
+  "dailyEarnCap": 10,
+  "guestDailyEarnCap": 5
+}

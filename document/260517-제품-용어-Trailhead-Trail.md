@@ -20,9 +20,32 @@
 
 **코스(course)와 구분:** 코스·경로 = 지도에 그려진 **설계도**. Trail = 그 위에서 **지금 함께 도는 세션**. UI에서는 가능하면 `○○ 코스 · Trail 3`처럼 병기한다.
 
+**Trailhead도 Trail이다:** Trailhead는 “트레일 밖 허브”가 아니라, 기본 Trail 인스턴스 **`trails/default`** (`DEFAULT_TRAIL_ID`) 를 가리키는 **제품 라벨**이다. 따라서 「지금 **어느 Trail**에 서 있는가?」를 말할 때 범주에는 **Trailhead(= default)** 와 `Trail 1`, `Trail 2` … 가 **같은 축**에 놓인다.
+
 ---
 
-## 2. 레이어별 용어 (개발 시 혼동 방지)
+## 2. 「어느 Trail에서 무엇을 보는가」 (시청 컨텍스트)
+
+로그인·Trailhead 세션이 켜진 사용자는 **항상 정확히 하나의 `trailId`** 에 속한다. UI에서 Trailhead 버튼·기본 진입 = **`default`**.
+
+| 시청자가 있는 Trail (예) | Activity World (`courseActivity`) | 같은 Trail 관전 (`liveCourseRides`) |
+|--------------------------|-----------------------------------|-------------------------------------|
+| **Trailhead** (`default`) | **전역** — 다른 Trail에 있어도 동일 aggregate | **`default` 에 있는 주행자만** |
+| **Trail 3** | **전역** — 위와 동일 | **`3` 에 있는 주행자만** |
+
+**표현 정리 (회의·문서):**
+
+- 「**다른 Trail**의 realtime」→ `trailId` 가 다를 때만 `liveCourseRides` 구독·표시 (Trailhead↔Trail 3 포함).
+- 「**다른 Trail**의 aggregate」라고 부르면 **Activity World(`courseActivity`)와 혼동**하기 쉽다. 후자는 Trail **무관**·코스 단위 전역 집계이며, Trailhead에서 보나 Trail 3에서 보나 **같은 문서**를 읽는다.
+- 올바른 구분: *「**어느 Trail에 서서**(Trailhead 포함) **전역 Activity World**를 본다」* vs *「**같은 Trail 안**에서만 빨간 관전 점을 본다」*.
+
+구현: `App` 의 `trailId` · `trailheadSessionActive` — Trailhead도 `sanitizeTrailId` 결과가 `default` 이면 하나의 Trail로 취급한다.
+
+**자주 헷갈리는 증상:** Trailhead(`default`)에서는 **빨간 관전 점**이 안 보이고 Trail 3으로 옮기면 보인다 → 주행자가 **Trail 3**에 있기 때문(같은 Trail 관전). Trailhead에서도 **다른 Trail 주행**을 보려면 **녹색 Activity World**(전역 `courseActivity`)를 본다. (과거 버그: 줌 >9 일 때 `highlightedCourses` 를 비워 Activity World 후보가 줄어듦 — `App` 에서 HUD와 분리해 수정.)
+
+---
+
+## 3. 레이어별 용어 (개발 시 혼동 방지)
 
 | 레이어 | Trailhead | Trail | 비고 |
 |--------|-----------|-------|------|
@@ -35,7 +58,7 @@
 
 ---
 
-## 3. 기능 ↔ 용어 매핑 (현재 구현 기준)
+## 4. 기능 ↔ 용어 매핑 (현재 구현 기준)
 
 | 기능 | 제품 용어 | Firestore / 코드 (현행) |
 |------|-----------|-------------------------|
@@ -48,9 +71,9 @@
 
 ---
 
-## 4. UI 카피 가이드 (한·영)
+## 5. UI 카피 가이드 (한·영)
 
-### 4.1 권장
+### 5.1 권장
 
 | 상황 | 예 |
 |------|-----|
@@ -61,7 +84,7 @@
 | 활성 수 | **활성 Trail 3개** |
 | 주행 종료 | **Trail 종료** (승패 아님) |
 
-### 4.2 지양 (제품 톤)
+### 5.2 지양 (제품 톤)
 
 | 지양 | 이유 |
 |------|------|
@@ -69,7 +92,7 @@
 | Party, Arena, Match | 경쟁·대전 |
 | Session (HUD 라벨) | 기술어·길음 — 코드 내부만 |
 
-### 4.3 개발·회의 구어
+### 5.3 개발·회의 구어
 
 - “로비” → **「Trailhead 쪽」**
 - “방 3” → **「Trail 3」**
@@ -77,7 +100,7 @@
 
 ---
 
-## 5. 문서·코드 반영 순서 (권장)
+## 6. 문서·코드 반영 순서 (권장)
 
 | 단계 | 범위 | 목적 |
 |------|------|------|
@@ -92,7 +115,7 @@
 
 ---
 
-## 6. 관련 문서 갱신 체크리스트
+## 7. 관련 문서 갱신 체크리스트
 
 갱신 시 본 문서를 링크하고, 본문의 「로비」「방」「room」「lobby」 사용자 표현을 Trailhead/Trail로 맞춘다.
 
@@ -105,15 +128,16 @@
 
 ---
 
-## 7. 개정 이력
+## 8. 개정 이력
 
 | 날짜 | 내용 |
 |------|------|
 | 2026-05-17 | 최초 채택 — Lobby→Trailhead, Room→Trail (자문·시니어 합의) |
 | 2026-05-17 | Firestore `trails/` 전환·마이그레이션 CLI (`admin:migrate-rooms-to-trails`) |
 | 2026-05-17 | [Activity World 지도 LOD](260517-Activity-World-지도-LOD-설계.md) — 전역 라이브 코스 점/라인 |
+| 2026-05-17 | §2 시청 컨텍스트 — 「어느 Trail」에 Trailhead(`default`) 포함, Activity World vs 관전 구분 |
 
-### 8. `rooms` → `trails` 배포 순서
+### 9. `rooms` → `trails` 배포 순서
 
 1. `npm run deploy:firestore` — `trails` write·`rooms` read-only 규칙 반영  
 2. `npm run admin:migrate-rooms-to-trails -- --dry-run` 후 본 실행  

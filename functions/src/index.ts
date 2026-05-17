@@ -1,6 +1,13 @@
 import { initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
+import { getFirestore } from "firebase-admin/firestore";
 import { adminPromoteSavedRoute } from "./adminPromoteSavedRoute.js";
+import {
+  ensureRouteTokenOnboarding,
+  loadRouteTokenEconomy,
+  refundRouteGenerateToken,
+  spendRouteGenerateToken,
+} from "./routeTokenCore.js";
 import { defineSecret } from "firebase-functions/params";
 import { HttpsError, onRequest, type Request } from "firebase-functions/v2/https";
 import type { Response } from "express";
@@ -48,19 +55,36 @@ function parseWaypoints(raw: unknown): LngLat[] {
   return out;
 }
 
-function parseBody(data: unknown): { start: LngLat; end: LngLat; profile: RouteProfile; waypoints: LngLat[] } {
+function parseRequestId(raw: unknown): string {
+  if (typeof raw !== "string") {
+    throw new HttpsError("invalid-argument", "requestId 가 필요합니다.");
+  }
+  const id = raw.trim();
+  if (id.length < 8 || id.length > 64 || !/^[a-zA-Z0-9_-]+$/.test(id)) {
+    throw new HttpsError("invalid-argument", "requestId 형식이 올바르지 않습니다.");
+  }
+  return id;
+}
+
+function parseBody(data: unknown): {
+  start: LngLat;
+  end: LngLat;
+  profile: RouteProfile;
+  waypoints: LngLat[];
+  requestId: string;
+} {
   if (!data || typeof data !== "object") {
     throw new HttpsError("invalid-argument", "요청 본문이 올바르지 않습니다.");
   }
   const o = data as Record<string, unknown>;
-  const { start, end, profile, waypoints } = o;
+  const { start, end, profile, waypoints, requestId } = o;
   if (!isLngLat(start) || !isLngLat(end)) {
     throw new HttpsError("invalid-argument", "start·end 는 [lng,lat] 숫자 배열이어야 합니다.");
   }
   if (profile !== "cycling" && profile !== "driving" && profile !== "walking") {
     throw new HttpsError("invalid-argument", "profile 은 cycling | driving | walking 만 허용됩니다.");
   }
-  return { start, end, profile, waypoints: parseWaypoints(waypoints) };
+  return { start, end, profile, waypoints: parseWaypoints(waypoints), requestId: parseRequestId(requestId) };
 }
 
 /**
@@ -93,8 +117,10 @@ export const getMapboxDirections = onRequest(
       res.status(err.httpErrorCode.status).json({ error: err.toJSON() });
       return;
     }
+    let uid: string;
     try {
-      await getAuth().verifyIdToken(tokenMatch[1]);
+      const decoded = await getAuth().verifyIdToken(tokenMatch[1]);
+      uid = decoded.uid;
     } catch {
       const err = new HttpsError("unauthenticated", "유효하지 않은 인증 토큰입니다.");
       res.status(err.httpErrorCode.status).json({ error: err.toJSON() });
@@ -114,9 +140,25 @@ export const getMapboxDirections = onRequest(
 
     try {
       const dataField = (rawBody as { data?: unknown } | null)?.data;
-      const { start, end, profile, waypoints } = parseBody(dataField);
+      const { start, end, profile, waypoints, requestId } = parseBody(dataField);
+      const economy = await loadRouteTokenEconomy();
+      try {
+        const userRecord = await getAuth().getUser(uid);
+        await getFirestore()
+          .doc(`users/${uid}`)
+          .set({ isAnonymous: userRecord.providerData.length === 0 }, { merge: true });
+      } catch {
+        /* users 메타 실패해도 경로 계산은 진행 */
+      }
+      await ensureRouteTokenOnboarding(uid);
+      let routeTokenBalance = await spendRouteGenerateToken(uid, requestId);
+      const generateCost = Math.max(0, Math.floor(economy.generateCostBase));
+
       const token = mapboxAccessToken.value();
       if (!token?.trim()) {
+        if (generateCost > 0) {
+          await refundRouteGenerateToken(uid, requestId, generateCost);
+        }
         throw new HttpsError("failed-precondition", "서버에 Mapbox 토큰이 설정되지 않았습니다.");
       }
 
@@ -134,12 +176,18 @@ export const getMapboxDirections = onRequest(
       try {
         mapResponse = await fetch(url);
       } catch {
+        if (generateCost > 0) {
+          await refundRouteGenerateToken(uid, requestId, generateCost);
+        }
         throw new HttpsError("unavailable", "Directions API 연결에 실패했습니다.");
       }
 
       if (!mapResponse.ok) {
         const body = await mapResponse.text().catch(() => "");
         console.error("Mapbox Directions HTTP error", mapResponse.status, body.slice(0, 500));
+        if (generateCost > 0) {
+          await refundRouteGenerateToken(uid, requestId, generateCost);
+        }
         throw new HttpsError("internal", "Directions API 요청이 거부되었습니다.");
       }
 
@@ -151,11 +199,17 @@ export const getMapboxDirections = onRequest(
 
       if (mapJson.code && mapJson.code !== "Ok") {
         console.error("Mapbox Directions error body", mapJson.code, mapJson.message);
+        if (generateCost > 0) {
+          await refundRouteGenerateToken(uid, requestId, generateCost);
+        }
         throw new HttpsError("invalid-argument", mapJson.message ?? "경로를 계산할 수 없습니다.");
       }
 
       const route = mapJson.routes?.[0];
       if (!route?.geometry || route.geometry.type !== "LineString" || !Array.isArray(route.geometry.coordinates)) {
+        if (generateCost > 0) {
+          await refundRouteGenerateToken(uid, requestId, generateCost);
+        }
         throw new HttpsError("not-found", "경로를 찾지 못했습니다.");
       }
 
@@ -164,6 +218,7 @@ export const getMapboxDirections = onRequest(
           geometry: route.geometry as { type: "LineString"; coordinates: [number, number][] },
           distance: route.distance,
           duration: route.duration,
+          routeTokenBalance,
         },
       });
     } catch (e: unknown) {
@@ -182,3 +237,5 @@ export { adminPromoteSavedRoute };
 export { courseActivityOnRideCreated } from "./courseActivityOnRideCreated.js";
 export { courseActivityOnLiveCourseRideWritten } from "./courseActivityOnLiveCourseRideWritten.js";
 export { courseActivityScheduledReconcile } from "./courseActivityScheduledReconcile.js";
+export { routeTokenOnRideCreated } from "./routeTokenOnRideCreated.js";
+export { ensureRouteTokenOnboardingHttp } from "./routeTokenEnsureOnboarding.js";
