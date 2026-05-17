@@ -519,6 +519,117 @@ const BASIC_COURSES: Omit<CourseDoc, "createdAt" | "updatedAt">[] = [
   },
 ];
 
+export type CourseBounds = CourseDoc["bounds"];
+
+export function boundsCenterLngLat(bounds: CourseBounds): LngLat {
+  return [(bounds.minLng + bounds.maxLng) / 2, (bounds.minLat + bounds.maxLat) / 2];
+}
+
+export function boundsFromLineStringGeometry(geometry: LineStringGeometry): CourseBounds | null {
+  const coords = geometry.coordinates;
+  if (coords.length < 1) return null;
+  let minLng = coords[0]![0];
+  let maxLng = minLng;
+  let minLat = coords[0]![1];
+  let maxLat = minLat;
+  for (const [lng, lat] of coords) {
+    if (lng < minLng) minLng = lng;
+    if (lng > maxLng) maxLng = lng;
+    if (lat < minLat) minLat = lat;
+    if (lat > maxLat) maxLat = lat;
+  }
+  return { minLng, minLat, maxLng, maxLat };
+}
+
+function parseCourseBoundsField(raw: Record<string, unknown>): CourseBounds | null {
+  const b = raw.bounds;
+  if (!b || typeof b !== "object") return null;
+  const o = b as Record<string, unknown>;
+  const minLng = o.minLng;
+  const minLat = o.minLat;
+  const maxLng = o.maxLng;
+  const maxLat = o.maxLat;
+  if (
+    typeof minLng !== "number" ||
+    typeof minLat !== "number" ||
+    typeof maxLng !== "number" ||
+    typeof maxLat !== "number" ||
+    !Number.isFinite(minLng) ||
+    !Number.isFinite(minLat) ||
+    !Number.isFinite(maxLng) ||
+    !Number.isFinite(maxLat)
+  ) {
+    return null;
+  }
+  return { minLng, minLat, maxLng, maxLat };
+}
+
+export function getBasicHubCourseBounds(courseId: string): CourseBounds | null {
+  const course = BASIC_COURSES.find((c) => c.id === courseId);
+  return course?.bounds ?? null;
+}
+
+const courseBoundsMemoryCache = new Map<string, CourseBounds | null>();
+const courseBoundsInflight = new Map<string, Promise<CourseBounds | null>>();
+
+async function fetchCourseBoundsUncached(courseId: string): Promise<CourseBounds | null> {
+  const basic = getBasicHubCourseBounds(courseId);
+  if (basic) return basic;
+
+  const db = getFirestore(getFirebaseApp());
+  const snap = await getDoc(doc(db, "courses", courseId));
+  if (!snap.exists()) return null;
+  const data = snap.data() as Record<string, unknown>;
+  const fromField = parseCourseBoundsField(data);
+  if (fromField) return fromField;
+
+  const jsonField = data.geometryCoordsJson;
+  if (typeof jsonField === "string" && jsonField.length > 0) {
+    const coords = coordinatesFromGeometryCoordsJson(jsonField);
+    if (coords?.length) {
+      return boundsFromLineStringGeometry({ type: "LineString", coordinates: coords });
+    }
+  }
+  const geom = data.geometry;
+  if (geom && typeof geom === "object") {
+    const g = geom as { type?: unknown; coordinates?: unknown };
+    if (g.type === "LineString" && Array.isArray(g.coordinates)) {
+      const coords: LngLat[] = [];
+      for (const c of g.coordinates) {
+        if (!isLngLatPair(c)) return null;
+        coords.push(c);
+      }
+      if (coords.length >= 1) {
+        return boundsFromLineStringGeometry({ type: "LineString", coordinates: coords });
+      }
+    }
+  }
+  return null;
+}
+
+/** Activity World DOT 앵커용 — geometry 전체 로드 없이 bounds 만 */
+export async function fetchCourseBounds(courseId: string): Promise<CourseBounds | null> {
+  const id = courseId.trim();
+  if (!id) return null;
+  if (courseBoundsMemoryCache.has(id)) return courseBoundsMemoryCache.get(id)!;
+
+  let pending = courseBoundsInflight.get(id);
+  if (!pending) {
+    pending = fetchCourseBoundsUncached(id)
+      .then((bounds) => {
+        courseBoundsMemoryCache.set(id, bounds);
+        courseBoundsInflight.delete(id);
+        return bounds;
+      })
+      .catch((e) => {
+        courseBoundsInflight.delete(id);
+        throw e;
+      });
+    courseBoundsInflight.set(id, pending);
+  }
+  return pending;
+}
+
 export const BASIC_SHARED_HUB_SUMMARIES: PublishedPublicCourseSummary[] = BASIC_SHARED_HUB_IDS.map(
   (id) => {
     const course = BASIC_COURSES.find((c) => c.id === id)!;

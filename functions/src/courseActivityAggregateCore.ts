@@ -1,4 +1,5 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
+import { liveAnchorFromCourseData } from "./courseGeometryAnchor.js";
 
 export const COURSE_ACTIVITY_COLLECTION = "courseActivity";
 export const WORLD_ACTIVITY_COLLECTION = "worldActivity";
@@ -46,16 +47,17 @@ export async function bumpCourseLiveSessionEnded(courseId: string): Promise<void
         ? Math.max(0, Math.floor(snap.data()!.activeRiderCount as number))
         : 0;
     const next = Math.max(0, cur - 1);
-    tx.set(
-      ref,
-      {
-        activeRiderCount: next,
-        liveNow: next > 0,
-        pulseLevel: next > 0 ? 1 : 0,
-        updatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
+    const endedPatch: Record<string, unknown> = {
+      activeRiderCount: next,
+      liveNow: next > 0,
+      pulseLevel: next > 0 ? 1 : 0,
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+    if (next === 0) {
+      endedPatch.liveAnchorLngLat = FieldValue.delete();
+      endedPatch.liveAnchorProgressRatio = FieldValue.delete();
+    }
+    tx.set(ref, endedPatch, { merge: true });
   });
   const worldRef = db.doc(`${WORLD_ACTIVITY_COLLECTION}/${WORLD_GLOBAL_ID}`);
   await db.runTransaction(async (tx) => {
@@ -80,14 +82,25 @@ export async function touchCourseLiveProgress(courseId: string, progressRatio: n
   const id = courseId.trim();
   if (!id) return;
   const db = getFirestore();
-  await db.doc(`${COURSE_ACTIVITY_COLLECTION}/${id}`).set(
-    {
-      liveNow: true,
-      pulseLevel: pulseLevelFromProgress(progressRatio),
-      updatedAt: FieldValue.serverTimestamp(),
-    },
-    { merge: true },
-  );
+  const patch: Record<string, unknown> = {
+    liveNow: true,
+    pulseLevel: pulseLevelFromProgress(progressRatio),
+    updatedAt: FieldValue.serverTimestamp(),
+  };
+
+  const courseSnap = await db.doc(`courses/${id}`).get();
+  if (courseSnap.exists) {
+    const anchor = liveAnchorFromCourseData(
+      courseSnap.data() as Record<string, unknown>,
+      progressRatio,
+    );
+    if (anchor) {
+      patch.liveAnchorLngLat = anchor.lngLat;
+      patch.liveAnchorProgressRatio = anchor.progressRatio;
+    }
+  }
+
+  await db.doc(`${COURSE_ACTIVITY_COLLECTION}/${id}`).set(patch, { merge: true });
 }
 
 const HIGHLIGHTED_COURSES_MAX = 8;

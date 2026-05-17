@@ -1,5 +1,6 @@
 import { doc, getDoc, getFirestore } from "firebase/firestore";
 import { getFirebaseApp } from "./firebase";
+import type { LngLat } from "./geo";
 import { lastSeenAtToMillis } from "./firestoreTrail";
 
 /** `courseActivity/{courseId}` — 코스 단위 aggregate(클라이언트 write 없음) */
@@ -11,6 +12,9 @@ export type CourseActivitySnapshot = {
   liveNow: boolean;
   pulseLevel: number;
   updatedAtMs: number | null;
+  /** v2: CF가 진행률·코스 geometry 로 계산(없으면 bounds 중심 DOT) */
+  liveAnchorLngLat: LngLat | null;
+  liveAnchorProgressRatio: number | null;
 };
 
 const COLLECTION = "courseActivity";
@@ -18,6 +22,16 @@ const COLLECTION = "courseActivity";
 function clampPulseLevel(raw: unknown): number {
   if (typeof raw !== "number" || !Number.isFinite(raw)) return 0;
   return Math.max(0, Math.min(3, Math.round(raw)));
+}
+
+function parseLiveAnchorLngLat(raw: unknown): LngLat | null {
+  if (!Array.isArray(raw) || raw.length !== 2) return null;
+  const lng = raw[0];
+  const lat = raw[1];
+  if (typeof lng !== "number" || typeof lat !== "number" || !Number.isFinite(lng) || !Number.isFinite(lat)) {
+    return null;
+  }
+  return [lng, lat];
 }
 
 function parseCourseActivityDoc(courseId: string, data: Record<string, unknown>): CourseActivitySnapshot {
@@ -35,6 +49,11 @@ function parseCourseActivityDoc(courseId: string, data: Record<string, unknown>)
       : 0;
   const liveNow = data.liveNow === true;
   const pulseLevel = clampPulseLevel(data.pulseLevel);
+  const liveAnchorLngLat = parseLiveAnchorLngLat(data.liveAnchorLngLat);
+  const liveAnchorProgressRatio =
+    typeof data.liveAnchorProgressRatio === "number" && Number.isFinite(data.liveAnchorProgressRatio)
+      ? Math.max(0, Math.min(1, data.liveAnchorProgressRatio))
+      : null;
   return {
     courseId,
     activeRiderCount,
@@ -43,6 +62,8 @@ function parseCourseActivityDoc(courseId: string, data: Record<string, unknown>)
     liveNow: liveNow || pulseLevel > 0,
     pulseLevel: liveNow && pulseLevel === 0 ? 1 : pulseLevel,
     updatedAtMs: lastSeenAtToMillis(data.updatedAt),
+    liveAnchorLngLat,
+    liveAnchorProgressRatio,
   };
 }
 

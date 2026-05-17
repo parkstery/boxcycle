@@ -16,6 +16,10 @@ import { useDocumentVisibility } from "./hooks/useDocumentVisibility";
 import { formatCourseActivityHudLine } from "./lib/firestoreCourseActivity";
 import { fetchWorldPresenceSummary, formatWorldPresenceHudLine } from "./lib/firestoreWorldPresence";
 import { fetchWorldActivityGlobal, formatWorldActivityHudLine, mergeWorldHudLines } from "./lib/firestoreWorldActivity";
+import {
+  isActivityWorldLineMode,
+  type MapViewportBounds,
+} from "./lib/activityWorldLod";
 import { MAP_ZOOM_WORLD_ACTIVITY_MAX, WORLD_PRESENCE_POLL_MS } from "./lib/rideSyncPolicy";
 import { AuthGateCard, AuthGoogleMark } from "./components/AuthGateCard";
 import { RideSummarySheet } from "./components/RideSummarySheet";
@@ -112,6 +116,15 @@ export default function App() {
 
   const [mapStyle, setMapStyle] = useState(MAP_STYLE_OPTIONS[3].value);
   const [mapZoom, setMapZoom] = useState(12);
+  const [mapViewport, setMapViewport] = useState<MapViewportBounds | null>(null);
+  const [mapViewportSpanKm, setMapViewportSpanKm] = useState<number | null>(null);
+  const activityWorldLineMode =
+    mapViewportSpanKm != null ? isActivityWorldLineMode(mapViewportSpanKm) : false;
+
+  const onMapViewport = useCallback((viewport: MapViewportBounds, spanKm: number) => {
+    setMapViewport(viewport);
+    setMapViewportSpanKm(spanKm);
+  }, []);
   const [followMode, setFollowMode] = useState<FollowMode>("keep");
   const [enable3D, setEnable3D] = useState(true);
   const [speedKmh, setSpeedKmh] = useState(25);
@@ -356,12 +369,18 @@ export default function App() {
     enabled: courseActivityEnabled,
   });
 
-  const { pulseRoutes: activeCoursePulseRoutes, heatRoutes: activeCourseHeatRoutes } =
-    useCourseActivityMapOverlay({
-      activity: courseActivity,
-      routeGeometry,
-      mapZoom,
-    });
+  const {
+    pulseRoutes: activeCoursePulseRoutes,
+    heatRoutes: activeCourseHeatRoutes,
+    pulseDots: activeCoursePulseDots,
+    heatDots: activeCourseHeatDots,
+  } = useCourseActivityMapOverlay({
+    activity: courseActivity,
+    routeGeometry,
+    mapZoom,
+    lineMode: activityWorldLineMode,
+    mapViewport,
+  });
 
   const catalogCourseIds = useMemo(() => {
     const ids = new Set<string>(BASIC_SHARED_HUB_IDS as readonly string[]);
@@ -377,21 +396,34 @@ export default function App() {
   const {
     pulseRoutes: catalogPulseRoutes,
     heatRoutes: catalogHeatRoutes,
+    pulseDots: catalogPulseDots,
+    heatDots: catalogHeatDots,
     activityByCourseId: courseActivityByCourseId,
   } = usePublishedCoursesActivityMapOverlay({
     courseIds: catalogCourseIds,
     excludeCourseId: trackedCourseId,
     mapZoom,
+    lineMode: activityWorldLineMode,
+    mapViewport,
     enabled: catalogActivityEnabled,
   });
 
   const activityPulseRoutes = useMemo(
-    () => [...activeCoursePulseRoutes, ...catalogPulseRoutes],
-    [activeCoursePulseRoutes, catalogPulseRoutes],
+    () => (activityWorldLineMode ? [...activeCoursePulseRoutes, ...catalogPulseRoutes] : []),
+    [activityWorldLineMode, activeCoursePulseRoutes, catalogPulseRoutes],
   );
   const activityHeatRoutes = useMemo(
-    () => [...activeCourseHeatRoutes, ...catalogHeatRoutes],
-    [activeCourseHeatRoutes, catalogHeatRoutes],
+    () => (activityWorldLineMode ? [...activeCourseHeatRoutes, ...catalogHeatRoutes] : []),
+    [activityWorldLineMode, activeCourseHeatRoutes, catalogHeatRoutes],
+  );
+  const activityPulseDots = useMemo(
+    () =>
+      activityWorldLineMode ? [] : [...activeCoursePulseDots, ...catalogPulseDots],
+    [activityWorldLineMode, activeCoursePulseDots, catalogPulseDots],
+  );
+  const activityHeatDots = useMemo(
+    () => (activityWorldLineMode ? [] : [...activeCourseHeatDots, ...catalogHeatDots]),
+    [activityWorldLineMode, activeCourseHeatDots, catalogHeatDots],
   );
 
   useEffect(() => {
@@ -894,6 +926,7 @@ export default function App() {
           followMode={followMode}
           enable3D={enable3D}
           onMapZoom={setMapZoom}
+          onMapViewport={onMapViewport}
           coverageOverlayMode={coverageOverlayMode}
           mapillaryClientToken={mapillaryTokenConfigured ? MAPILLARY_CLIENT_TOKEN : null}
           routeProfile={profile}
@@ -924,6 +957,8 @@ export default function App() {
           trailSpectatorRoutes={spectatorRouteGeometries}
           activityPulseRoutes={activityPulseRoutes}
           activityHeatRoutes={activityHeatRoutes}
+          activityPulseDots={activityPulseDots}
+          activityHeatDots={activityHeatDots}
         />
 
         <MapHud

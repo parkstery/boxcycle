@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import {
+  lngLatBoundsToViewport,
+  viewportSpanKm,
+  type MapViewportBounds,
+} from "../lib/activityWorldLod";
 import type { LngLat, LineStringGeometry } from "../lib/geo";
 import {
   getDistanceMeters,
@@ -55,6 +60,121 @@ const ACTIVITY_PULSE_GLOW = "boxcycle-activity-pulse-routes-glow";
 const ACTIVITY_PULSE_LINE = "boxcycle-activity-pulse-routes-line";
 const ACTIVITY_HEAT_SRC = "boxcycle-activity-heat-routes";
 const ACTIVITY_HEAT_LINE = "boxcycle-activity-heat-routes-line";
+const ACTIVITY_PULSE_DOTS_SRC = "boxcycle-activity-pulse-dots";
+const ACTIVITY_PULSE_DOTS_GLOW = "boxcycle-activity-pulse-dots-glow";
+const ACTIVITY_PULSE_DOTS_LAYER = "boxcycle-activity-pulse-dots-layer";
+const ACTIVITY_HEAT_DOTS_SRC = "boxcycle-activity-heat-dots";
+const ACTIVITY_HEAT_DOTS_LAYER = "boxcycle-activity-heat-dots-layer";
+
+type ActivityWorldDotFeature = {
+  courseId: string;
+  lngLat: LngLat;
+  pulseLevel: number;
+};
+
+function syncActivityWorldDotLayers(
+  map: mapboxgl.Map,
+  pulseDots: readonly ActivityWorldDotFeature[],
+  heatDots: readonly ActivityWorldDotFeature[],
+): void {
+  if (!map.isStyleLoaded()) return;
+
+  const pulseFc = {
+    type: "FeatureCollection" as const,
+    features: pulseDots.map((d) => ({
+      type: "Feature" as const,
+      id: `act-pd-${d.courseId}`,
+      properties: { courseId: d.courseId, pulseLevel: d.pulseLevel },
+      geometry: { type: "Point" as const, coordinates: d.lngLat },
+    })),
+  };
+  const heatFc = {
+    type: "FeatureCollection" as const,
+    features: heatDots.map((d) => ({
+      type: "Feature" as const,
+      id: `act-hd-${d.courseId}`,
+      properties: { courseId: d.courseId },
+      geometry: { type: "Point" as const, coordinates: d.lngLat },
+    })),
+  };
+  const beforeRoute = map.getLayer("route") ? "route" : undefined;
+
+  try {
+    if (!map.getSource(ACTIVITY_PULSE_DOTS_SRC)) {
+      map.addSource(ACTIVITY_PULSE_DOTS_SRC, { type: "geojson", data: pulseFc });
+      map.addLayer(
+        {
+          id: ACTIVITY_PULSE_DOTS_GLOW,
+          type: "circle",
+          source: ACTIVITY_PULSE_DOTS_SRC,
+          paint: {
+            "circle-radius": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              4,
+              ["+", 6, ["*", ["get", "pulseLevel"], 2]],
+              10,
+              ["+", 10, ["*", ["get", "pulseLevel"], 2.5]],
+            ],
+            "circle-color": "#ffffff",
+            "circle-opacity": ["interpolate", ["linear"], ["zoom"], 4, 0.5, 10, 0.72],
+            "circle-blur": 0.55,
+          },
+        },
+        beforeRoute,
+      );
+      map.addLayer(
+        {
+          id: ACTIVITY_PULSE_DOTS_LAYER,
+          type: "circle",
+          source: ACTIVITY_PULSE_DOTS_SRC,
+          paint: {
+            "circle-radius": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              4,
+              ["+", 3.5, ["*", ["get", "pulseLevel"], 1.2]],
+              10,
+              ["+", 6, ["*", ["get", "pulseLevel"], 1.5]],
+            ],
+            "circle-color": "#22c55e",
+            "circle-stroke-width": 1.6,
+            "circle-stroke-color": "#ffffff",
+            "circle-opacity": 0.94,
+          },
+        },
+        beforeRoute,
+      );
+    } else {
+      (map.getSource(ACTIVITY_PULSE_DOTS_SRC) as mapboxgl.GeoJSONSource).setData(pulseFc);
+    }
+
+    if (!map.getSource(ACTIVITY_HEAT_DOTS_SRC)) {
+      map.addSource(ACTIVITY_HEAT_DOTS_SRC, { type: "geojson", data: heatFc });
+      map.addLayer(
+        {
+          id: ACTIVITY_HEAT_DOTS_LAYER,
+          type: "circle",
+          source: ACTIVITY_HEAT_DOTS_SRC,
+          paint: {
+            "circle-radius": ["interpolate", ["linear"], ["zoom"], 4, 2.5, 10, 4.5],
+            "circle-color": "#94a3b8",
+            "circle-stroke-width": 1,
+            "circle-stroke-color": "#e2e8f0",
+            "circle-opacity": 0.72,
+          },
+        },
+        beforeRoute,
+      );
+    } else {
+      (map.getSource(ACTIVITY_HEAT_DOTS_SRC) as mapboxgl.GeoJSONSource).setData(heatFc);
+    }
+  } catch (e) {
+    console.warn("[MapView] activity world dot layers", e);
+  }
+}
 
 function syncCourseActivityLayers(
   map: mapboxgl.Map,
@@ -472,10 +592,15 @@ export type MapViewProps = {
   /** Trail: 같은 Trail 에서 코스 주행 중인 다른 사용자(원 + 노선 LOD 는 부모에서 처리) */
   trailSpectatorDots?: TrailSpectatorDot[] | null;
   trailSpectatorRoutes?: LineStringGeometry[] | null;
-  /** aggregate 기반 라이브 코스 펄스(녹색) */
+  /** aggregate 기반 라이브 코스 펄스(녹색) — LINE 모드 */
   activityPulseRoutes?: LineStringGeometry[] | null;
-  /** aggregate 기반 최근 활동 heat(회색) */
+  /** aggregate 기반 최근 활동 heat(회색) — LINE 모드 */
   activityHeatRoutes?: LineStringGeometry[] | null;
+  /** Activity World DOT 모드 — 라이브 앵커 */
+  activityPulseDots?: ActivityWorldDotFeature[] | null;
+  activityHeatDots?: ActivityWorldDotFeature[] | null;
+  /** 맵 이동·줌 완료 시 뷰포트(span km 포함) */
+  onMapViewport?: (viewport: MapViewportBounds, spanKm: number) => void;
 };
 
 export function MapView({
@@ -506,6 +631,9 @@ export function MapView({
   trailSpectatorRoutes = null,
   activityPulseRoutes = null,
   activityHeatRoutes = null,
+  activityPulseDots = null,
+  activityHeatDots = null,
+  onMapViewport,
 }: MapViewProps) {
   const trailSpectatorDataRef = useRef<{ dots: TrailSpectatorDot[]; routes: LineStringGeometry[] }>({
     dots: [],
@@ -514,6 +642,18 @@ export function MapView({
   trailSpectatorDataRef.current = {
     dots: trailSpectatorDots ?? [],
     routes: trailSpectatorRoutes ?? [],
+  };
+  const activityWorldDataRef = useRef<{
+    pulseRoutes: LineStringGeometry[];
+    heatRoutes: LineStringGeometry[];
+    pulseDots: ActivityWorldDotFeature[];
+    heatDots: ActivityWorldDotFeature[];
+  }>({ pulseRoutes: [], heatRoutes: [], pulseDots: [], heatDots: [] });
+  activityWorldDataRef.current = {
+    pulseRoutes: activityPulseRoutes ?? [],
+    heatRoutes: activityHeatRoutes ?? [],
+    pulseDots: activityPulseDots ?? [],
+    heatDots: activityHeatDots ?? [],
   };
 
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -549,6 +689,7 @@ export function MapView({
   const onRouteProfileRef = useRef(onRouteProfile);
   const onClearRouteRef = useRef(onClearRoute);
   const onMapZoomRef = useRef(onMapZoom);
+  const onMapViewportRef = useRef(onMapViewport);
   const prevLiveRef = useRef<LngLat | null>(null);
   /** 지명 검색 flyTo 직후 `liveLngLat` 추적 jumpTo 가 카메라를 되돌리는 것을 막는다 */
   const suppressCameraFollowUntilRef = useRef(0);
@@ -626,6 +767,10 @@ export function MapView({
   }, [onMapZoom]);
 
   useEffect(() => {
+    onMapViewportRef.current = onMapViewport;
+  }, [onMapViewport]);
+
+  useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
     resetCameraSmoothing(cameraSmoothRef.current, map);
@@ -650,10 +795,21 @@ export function MapView({
     map.addControl(new mapboxgl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-right");
     mapRef.current = map;
 
+    const reportMapViewport = () => {
+      const bounds = map.getBounds();
+      if (!bounds) return;
+      const viewport = lngLatBoundsToViewport(bounds);
+      onMapViewportRef.current?.(viewport, viewportSpanKm(viewport));
+    };
+
     map.on("load", () => {
       setMapLoaded(true);
       onMapZoomRef.current(Number(map.getZoom().toFixed(1)));
+      reportMapViewport();
     });
+
+    map.on("moveend", reportMapViewport);
+    map.on("zoomend", reportMapViewport);
 
     map.on("style.load", () => {
       const latestRoute = routeGeometryRef.current;
@@ -698,6 +854,16 @@ export function MapView({
           map,
           trailSpectatorDataRef.current.dots,
           trailSpectatorDataRef.current.routes,
+        );
+        syncCourseActivityLayers(
+          map,
+          activityWorldDataRef.current.pulseRoutes,
+          activityWorldDataRef.current.heatRoutes,
+        );
+        syncActivityWorldDotLayers(
+          map,
+          activityWorldDataRef.current.pulseDots,
+          activityWorldDataRef.current.heatDots,
         );
       } catch {
         /* noop */
@@ -760,6 +926,8 @@ export function MapView({
     requestAnimationFrame(onResize);
 
     return () => {
+      map.off("moveend", reportMapViewport);
+      map.off("zoomend", reportMapViewport);
       window.removeEventListener("resize", onResize);
       startMarkerRef.current?.remove();
       endMarkerRef.current?.remove();
@@ -1125,7 +1293,8 @@ export function MapView({
     const map = mapRef.current;
     if (!map || !mapLoaded || !map.isStyleLoaded()) return;
     syncCourseActivityLayers(map, activityPulseRoutes ?? [], activityHeatRoutes ?? []);
-  }, [mapLoaded, activityPulseRoutes, activityHeatRoutes]);
+    syncActivityWorldDotLayers(map, activityPulseDots ?? [], activityHeatDots ?? []);
+  }, [mapLoaded, activityPulseRoutes, activityHeatRoutes, activityPulseDots, activityHeatDots]);
 
   useEffect(() => {
     const map = mapRef.current;

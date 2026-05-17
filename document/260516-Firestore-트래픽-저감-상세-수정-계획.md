@@ -162,7 +162,7 @@ BOXCYCLE 세계관·자문 정리 이후, 본 문서의 중심축은 아래로 �
 | `highlightedCourses` 서버·지도 | **완료** | CF `refreshWorldHighlightedCourses`(세션 시작/종료), 클라이언트 카탈로그 병합 |
 | `worldActivity/global` HUD 병합 | **완료** | `fetchWorldActivityGlobal` + `mergeWorldHudLines` |
 | 퍼블릭·입문 코스 배치 `courseActivity` | **완료** | `fetchCourseActivitiesBatch`, `usePublishedCoursesActivityMapOverlay` |
-| 지도 다중 코스 pulse/heat | **완료** | 카탈로그 최대 16건 geometry + 목록 배지 |
+| 지도 다중 코스 pulse/heat + LOD | **완료** | span>30km DOT / ≤30km LINE — [지도 LOD 설계](260517-Activity-World-지도-LOD-설계.md) |
 
 **로컬 시드 예시** (콘솔):
 
@@ -218,14 +218,16 @@ courseActivity/{courseId}
 
 | 현재 | 지향 |
 |------|------|
-| `useLobbyLiveCourseRideSpectatorOverlay` + 진행률 dots | **activityOverlay**: 코스 펄스, 라이브 경로 glow, recent heat |
+| `useTrailLiveCourseRideSpectatorOverlay` + 진행률 dots | **activityOverlay**: 코스 펄스, 라이브 경로 glow, recent heat |
 | “관전자가 A의 GPS를 쫓는다” | **“이 길(코스)이 지금/최근 살아 있다”** |
-| `liveCourseRides` 구독 (**같은 방**) | **유지** — 주행·일시정지 포함; 다른 방은 미구독. aggregate는 **보조**(코스 생명감) |
+| `trails/.../liveCourseRides` 구독 (**같은 Trail**) | **유지** — 주행·일시정지 포함; 다른 Trail은 미구독. aggregate는 **보조**(코스 생명감) |
 
-**Mapbox 레이어 예 (와이어)**
+**지도 LOD (v1 구현 완료):** 멀리(span > 30km) → **점**, 가까이(≤ 30km) → **라인**. 상세·스모크: **[260517-Activity-World-지도-LOD-설계.md](260517-Activity-World-지도-LOD-설계.md)**, 체크리스트 **§J-4**.
 
-- 회색: `recentActivityHeat` (30d aggregate 또는 타일 요약).
-- 녹색: `liveCoursePulse` (`courseActivity.liveNow` / `pulseLevel`).
+**Mapbox 레이어 예 (와이어) — LOD 반영 후**
+
+- **줌 아웃:** 녹색/회색 **점** (`activity-live-dots`, `courseActivity` + `courses.bounds`).
+- **줌 인 (≤30km span):** 녹색 `liveCoursePulse` / 회색 `recentActivityHeat` **라인** (기존 pulse/heat 레이어).
 - 동행 스프라이트: **Ride Session 참가 중**에만 `coursePresence` peer markers.
 
 **마이그레이션**

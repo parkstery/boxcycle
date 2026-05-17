@@ -35,6 +35,7 @@ export const courseActivityOnLiveCourseRideWritten = onDocumentWritten(
       const courseId = readCourseId(after);
       if (courseId) {
         await bumpCourseLiveSessionStarted(courseId);
+        await touchCourseLiveProgress(courseId, readProgressRatio(after));
         await refreshWorldHighlightedCourses();
       }
       return;
@@ -55,6 +56,8 @@ export const courseActivityOnLiveCourseRideWritten = onDocumentWritten(
       if (courseIdBefore && courseIdAfter && courseIdBefore !== courseIdAfter) {
         await bumpCourseLiveSessionEnded(courseIdBefore);
         await bumpCourseLiveSessionStarted(courseIdAfter);
+        await touchCourseLiveProgress(courseIdAfter, readProgressRatio(after));
+        await refreshWorldHighlightedCourses();
         return;
       }
       if (courseIdAfter) {

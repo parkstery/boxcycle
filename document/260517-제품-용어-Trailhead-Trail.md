@@ -111,6 +111,7 @@
 |------|------|
 | 2026-05-17 | 최초 채택 — Lobby→Trailhead, Room→Trail (자문·시니어 합의) |
 | 2026-05-17 | Firestore `trails/` 전환·마이그레이션 CLI (`admin:migrate-rooms-to-trails`) |
+| 2026-05-17 | [Activity World 지도 LOD](260517-Activity-World-지도-LOD-설계.md) — 전역 라이브 코스 점/라인 |
 
 ### 8. `rooms` → `trails` 배포 순서
 
