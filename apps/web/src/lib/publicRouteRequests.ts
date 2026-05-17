@@ -100,7 +100,12 @@ async function resolvePublicRequestFingerprint(req: PublicRouteRequest): Promise
 async function assertNoDuplicatePublicCatalogRoute(
   db: ReturnType<typeof getFirestore>,
   fingerprint: string,
-  options?: { excludePublicRouteRequestId?: string },
+  options?: {
+    excludePublicRouteRequestId?: string;
+    applicantUid?: string;
+    /** 심사자만 타인 pending 지문 조회 가능 */
+    scanAllPending?: boolean;
+  },
 ): Promise<void> {
   const courseHit = await getDocs(
     query(
@@ -115,19 +120,29 @@ async function assertNoDuplicatePublicCatalogRoute(
     throw new Error("이미 퍼블릭 코스로 등록된 동일한 경로입니다(이동 수단·꼭짓점 기준).");
   }
 
-  const pendingHit = await getDocs(
-    query(
-      collection(db, PUBLIC_ROUTE_REQUESTS_COLLECTION),
-      where("routeFingerprint", "==", fingerprint),
-      where("status", "==", "pending"),
-      limit(16),
-    ),
-  );
-  for (const d of pendingHit.docs) {
-    if (options?.excludePublicRouteRequestId && d.id === options.excludePublicRouteRequestId) {
-      continue;
+  if (options?.scanAllPending || options?.applicantUid) {
+    const pendingQ =
+      options.scanAllPending === true
+        ? query(
+            collection(db, PUBLIC_ROUTE_REQUESTS_COLLECTION),
+            where("routeFingerprint", "==", fingerprint),
+            where("status", "==", "pending"),
+            limit(16),
+          )
+        : query(
+            collection(db, PUBLIC_ROUTE_REQUESTS_COLLECTION),
+            where("routeFingerprint", "==", fingerprint),
+            where("status", "==", "pending"),
+            where("applicantUid", "==", options.applicantUid!),
+            limit(8),
+          );
+    const pendingHit = await getDocs(pendingQ);
+    for (const d of pendingHit.docs) {
+      if (options?.excludePublicRouteRequestId && d.id === options.excludePublicRouteRequestId) {
+        continue;
+      }
+      throw new Error("동일한 경로로 심사 대기 중인 신청이 이미 있습니다.");
     }
-    throw new Error("동일한 경로로 심사 대기 중인 신청이 이미 있습니다.");
   }
 }
 
@@ -247,9 +262,10 @@ export async function createPublicRouteRequest(
     db,
     geometry: route.geometry,
     profile: route.profile,
+    applicantUid: user.uid,
   });
   const routeFingerprint = await computeRouteFingerprint(route.geometry, route.profile);
-  await assertNoDuplicatePublicCatalogRoute(db, routeFingerprint);
+  await assertNoDuplicatePublicCatalogRoute(db, routeFingerprint, { applicantUid: user.uid });
 
   const payload = {
     applicantUid: user.uid,
@@ -382,10 +398,12 @@ export async function approvePublicRouteRequest(
     geometry: geom,
     profile: request.snapshotProfile,
     excludePublicRouteRequestId: request.id,
+    scanAllPendingRequests: true,
   });
   const routeFingerprint = await resolvePublicRequestFingerprint(request);
   await assertNoDuplicatePublicCatalogRoute(db, routeFingerprint, {
     excludePublicRouteRequestId: request.id,
+    scanAllPending: true,
   });
 
   const courseRef = doc(collection(db, "courses"));

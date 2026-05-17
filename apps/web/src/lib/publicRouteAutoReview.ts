@@ -121,8 +121,13 @@ export async function assertPublicRouteAutoReview(input: {
   profile: RouteProfile;
   /** 승인 시 현재 신청 문서는 유사도 비교에서 제외 */
   excludePublicRouteRequestId?: string;
+  /** 일반 신청: Rules 상 본인 pending 만 조회 가능 */
+  applicantUid?: string;
+  /** 심사자 승인 검수: 타인 pending 유사도 비교(리뷰어 read 규칙) */
+  scanAllPendingRequests?: boolean;
 }): Promise<void> {
-  const { db, geometry, profile, excludePublicRouteRequestId } = input;
+  const { db, geometry, profile, excludePublicRouteRequestId, applicantUid, scanAllPendingRequests } =
+    input;
   const len = polylineLengthMeters(geometry.coordinates);
   if (len < PUBLIC_ROUTE_MIN_LENGTH_METERS) {
     throw new Error(
@@ -158,25 +163,35 @@ export async function assertPublicRouteAutoReview(input: {
     }
   }
 
-  const reqSnap = await getDocs(
-    query(
-      collection(db, PUBLIC_ROUTE_REQUESTS_COLLECTION),
-      where("status", "==", "pending"),
-      limit(80),
-    ),
-  );
-  for (const d of reqSnap.docs) {
-    if (excludePublicRouteRequestId && d.id === excludePublicRouteRequestId) continue;
-    const data = d.data() as Record<string, unknown>;
-    if (data.snapshotProfile !== profile) continue;
-    const json = data.geometryCoordsJson;
-    if (typeof json !== "string") continue;
-    const other = decodeLineStringCoordsJson(json);
-    if (!other) continue;
-    if (routePolylineSimilaritySymmetric(geometry, other) >= PUBLIC_ROUTE_SIMILARITY_BLOCK) {
-      throw new Error(
-        "심사 대기 중인 다른 신청과 경로가 너무 유사합니다(같은 이동 수단, 약 90% 이상).",
-      );
+  if (scanAllPendingRequests || applicantUid) {
+    const pendingQ = scanAllPendingRequests
+      ? query(
+          collection(db, PUBLIC_ROUTE_REQUESTS_COLLECTION),
+          where("status", "==", "pending"),
+          limit(80),
+        )
+      : query(
+          collection(db, PUBLIC_ROUTE_REQUESTS_COLLECTION),
+          where("status", "==", "pending"),
+          where("applicantUid", "==", applicantUid!),
+          limit(20),
+        );
+    const reqSnap = await getDocs(pendingQ);
+    for (const d of reqSnap.docs) {
+      if (excludePublicRouteRequestId && d.id === excludePublicRouteRequestId) continue;
+      const data = d.data() as Record<string, unknown>;
+      if (data.snapshotProfile !== profile) continue;
+      const json = data.geometryCoordsJson;
+      if (typeof json !== "string") continue;
+      const other = decodeLineStringCoordsJson(json);
+      if (!other) continue;
+      if (routePolylineSimilaritySymmetric(geometry, other) >= PUBLIC_ROUTE_SIMILARITY_BLOCK) {
+        throw new Error(
+          scanAllPendingRequests
+            ? "심사 대기 중인 다른 신청과 경로가 너무 유사합니다(같은 이동 수단, 약 90% 이상)."
+            : "본인의 다른 심사 대기 신청과 경로가 너무 유사합니다(같은 이동 수단, 약 90% 이상).",
+        );
+      }
     }
   }
 }
