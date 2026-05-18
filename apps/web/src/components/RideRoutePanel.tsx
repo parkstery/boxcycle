@@ -9,7 +9,6 @@ import type { BleCrankRpmUiState } from "../hooks/useBleCrankRpm";
 import type { RideSessionStatus } from "../hooks/useVirtualRideSession";
 import type { SavedRoute } from "../lib/firestoreSavedRoutes";
 import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../lib/firestoreSavedRoutes";
-import { lockRouteWorkspaceDuringRide } from "../lib/routeWorkspaceLock";
 import { SavedRoutesPanel } from "./SavedRoutesPanel";
 import { AdminPublicRouteQueue } from "./AdminPublicRouteQueue";
 import "./RideRoutePanel.css";
@@ -36,6 +35,9 @@ type RideRoutePanelProps = {
   /** 공식 코스를 불러온 뒤에는 출발·도착 맞춤 「경로 생성」을 막음 */
   officialCourseActive?: boolean;
   hasRoute: boolean;
+  /** 경로가 준비되었을 때 메뉴·맵 FAB 공통 */
+  canStartRide: boolean;
+  onStartRide: () => void;
   speedKmh: number;
   onSpeedKmh: (n: number) => void;
   sessionStatus: RideSessionStatus;
@@ -53,6 +55,8 @@ type RideRoutePanelProps = {
   /** 코스별 activity aggregate(메뉴·카탈로그 로드 후) */
   courseActivityByCourseId?: ReadonlyMap<string, CourseActivitySnapshot | null>;
   authGuest: boolean;
+  /** Firebase Auth 세션(게스트·Google 포함) */
+  signedIn: boolean;
   onEnterBasicHub: (courseId: string) => void;
   onLeaveBasicHub: () => void;
   /** 사용자 경로 관련 (= 기존 「저장된 경로」 라벨 변경) */
@@ -142,6 +146,9 @@ function PublicCoursePickRow(props: {
           <span className="ride-panel__public-courses-sub">
             {profileLabelKo(c.profile)} · {(c.distanceMeters / 1000).toFixed(2)} km · 예상{" "}
             {formatDuration(c.durationSec)}
+            {c.publisherNickname ? (
+              <span className="ride-panel__public-courses-publisher"> · {c.publisherNickname}</span>
+            ) : null}
             {props.activityBadge ? (
               <span className="ride-panel__public-courses-activity"> · {props.activityBadge}</span>
             ) : null}
@@ -165,7 +172,8 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
   const [adhocSaveError, setAdhocSaveError] = useState<string | null>(null);
   const [officialSegment, setOfficialSegment] = useState<OfficialCourseSegment>("intro");
 
-  const routeLocksAsIdle = !lockRouteWorkspaceDuringRide(props.sessionStatus !== "idle");
+  /** 주행 중에도 MENU(경로·코스·속도·시작)는 사용 가능 — 맵 핀 편집만 App 쪽에서 별도 잠금 */
+  const routeLocksAsIdle = true;
 
   useEffect(() => {
     if (tab === "publicReview" && !props.isPublicRouteReviewer) {
@@ -248,7 +256,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
           title="Route"
           onClick={() => setTab("route")}
         >
-          경로
+          공식경로
         </button>
         <button
           type="button"
@@ -449,7 +457,9 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                   </p>
                 ) : props.publishedPublicCourses.length === 0 ? (
                   <p className="ride-panel__public-courses-hint">
-                    아직 등록된 코스 없음. 심사 승인된 퍼블릭 코스가 있으면 여기에 표시됩니다.
+                    {!props.signedIn && props.officialCourseCatalogAvailable
+                      ? "퍼블릭 코스 목록을 보려면 우측 상단에서 게스트로 시작하거나 로그인해 주세요."
+                      : "등록된 퍼블릭 코스가 없습니다."}
                   </p>
                 ) : (
                   <ul className="ride-panel__public-courses-list">
@@ -619,23 +629,6 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             </div>
           ) : null}
 
-          <div className="ride-panel__session-block">
-            <label className="ride-panel__speed-label" htmlFor="ride-panel-speed-range">
-              <span className="ride-panel__kicker">세션</span> 속도 <strong>{props.speedKmh}</strong> km/h
-            </label>
-            <input
-              id="ride-panel-speed-range"
-              type="range"
-              min={5}
-              max={50}
-              step={1}
-              value={props.speedKmh}
-              title="Session speed"
-              onChange={(e) => props.onSpeedKmh(Number(e.target.value))}
-              className="ride-panel__range"
-            />
-          </div>
-
           {props.arrivalToastVisible ? (
             <p className="ride-panel__arrival-toast" role="status" aria-live="polite">
               완료
@@ -727,6 +720,44 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               )}
             </div>
           ) : null}
+
+          <div className="ride-panel__session-block">
+            <label className="ride-panel__speed-label" htmlFor="ride-panel-speed-range">
+              <span className="ride-panel__kicker">세션</span> 속도 <strong>{props.speedKmh}</strong> km/h
+            </label>
+            <div className="ride-panel__session-controls">
+              <input
+                id="ride-panel-speed-range"
+                type="range"
+                min={5}
+                max={50}
+                step={1}
+                value={props.speedKmh}
+                title="Session speed"
+                onChange={(e) => props.onSpeedKmh(Number(e.target.value))}
+                className="ride-panel__range ride-panel__range--session"
+              />
+              {props.sessionStatus === "idle" ? (
+                <button
+                  type="button"
+                  className="ride-panel__btn-primary ride-panel__start-ride ride-panel__start-ride--compact"
+                  disabled={!props.canStartRide}
+                  title="주행 시작"
+                  aria-label="주행 시작"
+                  onClick={props.onStartRide}
+                >
+                  ▶ 시작
+                </button>
+              ) : null}
+            </div>
+            {props.sessionStatus === "idle" && !props.canStartRide ? (
+              <p className="ride-panel__start-ride-hint">
+                {props.routeLoading
+                  ? "경로를 계산하는 중입니다…"
+                  : "출발·도착을 정한 뒤 경로를 생성하거나 코스를 불러오세요."}
+              </p>
+            ) : null}
+          </div>
 
         </>
       )}
