@@ -87,6 +87,22 @@ const TRACE_STRENGTH_MULT: mapboxgl.ExpressionSpecification = [
   0.5,
 ];
 
+/** `zoom` 은 최상위 `interpolate`/`step` 에만 허용 — stop 값에서 traceStrength 곱 */
+function traceLineOpacityByZoom(
+  opacityAtZoom8: number,
+  opacityAtZoom14: number,
+): mapboxgl.ExpressionSpecification {
+  return [
+    "interpolate",
+    ["linear"],
+    ["zoom"],
+    8,
+    ["*", opacityAtZoom8, TRACE_STRENGTH_MULT],
+    14,
+    ["*", opacityAtZoom14, TRACE_STRENGTH_MULT],
+  ];
+}
+
 function moveActivityWorldDotLayersToTop(map: mapboxgl.Map): void {
   for (const id of [
     ACTIVITY_PULSE_DOTS_GLOW,
@@ -276,11 +292,7 @@ function syncCourseActivityLayers(
             "line-color": ACTIVITY_TRACE_RED,
             "line-width": ["interpolate", ["linear"], ["zoom"], 8, 6, 12, 10, 16, 14],
             "line-blur": ["interpolate", ["linear"], ["zoom"], 8, 2.5, 14, 5],
-            "line-opacity": [
-              "*",
-              ["interpolate", ["linear"], ["zoom"], 8, 0.45, 14, 0.65],
-              TRACE_STRENGTH_MULT,
-            ],
+            "line-opacity": traceLineOpacityByZoom(0.45, 0.65),
           },
           layout: { "line-join": "round", "line-cap": "round" },
         },
@@ -315,11 +327,7 @@ function syncCourseActivityLayers(
             "line-color": ACTIVITY_TRACE_RED,
             "line-width": ["interpolate", ["linear"], ["zoom"], 8, 5, 12, 8, 16, 11],
             "line-blur": ["interpolate", ["linear"], ["zoom"], 8, 2, 14, 4],
-            "line-opacity": [
-              "*",
-              ["interpolate", ["linear"], ["zoom"], 8, 0.35, 14, 0.5],
-              TRACE_STRENGTH_MULT,
-            ],
+            "line-opacity": traceLineOpacityByZoom(0.35, 0.5),
           },
           layout: { "line-join": "round", "line-cap": "round" },
         },
