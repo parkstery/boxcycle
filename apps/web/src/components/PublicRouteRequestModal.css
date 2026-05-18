@@ -32,6 +32,62 @@
   color: #b8bec9;
 }
 
+.pr-modal__notice {
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #3a4252;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.pr-modal__notice-title {
+  margin: 0 0 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.pr-modal__notice-list {
+  margin: 0 0 0.5rem;
+  padding-left: 1.1rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #b8bec9;
+}
+
+.pr-modal__guide {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #9aa3b2;
+}
+
+.pr-modal__hint {
+  margin: -0.35rem 0 0;
+  font-size: 0.78rem;
+  color: #f0c674;
+}
+
+.pr-modal__name-note {
+  margin: -0.35rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: #9aa3b2;
+}
+
+.pr-modal__ack {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #c8cdd6;
+  cursor: pointer;
+}
+
+.pr-modal__ack input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
 .pr-modal__form {
   display: flex;
   flex-direction: column;

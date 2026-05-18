@@ -55,6 +55,7 @@ export function usePublicRouteReviewMeta(options: UsePublicRouteReviewMetaOption
       publicTitle: string;
       publicSummary: string;
       experienceTags: ExperienceTagId[];
+      namingPolicyAcknowledged: boolean;
     }) => {
       if (!user) return;
       const route = publicRouteRequestModalRoute;

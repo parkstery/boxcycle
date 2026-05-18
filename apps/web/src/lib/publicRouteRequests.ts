@@ -26,6 +26,9 @@ import { decodeLineStringCoordsJson } from "./lineStringCoordsJson";
 import { assertPublicRouteAutoReview } from "./publicRouteAutoReview";
 import { writeRoutePublicationOnApprove } from "./firestoreRoutePublications";
 import {
+  PUBLIC_ROUTE_NAMING_POLICY_VERSION,
+} from "./publicRouteNamingPolicy";
+import {
   maybeModeratePublicRouteCopyRemote,
   validatePublicRouteTitleAndSummary,
 } from "./publicRouteContentPolicy";
@@ -222,8 +225,12 @@ export async function createPublicRouteRequest(
     publicTitle: string;
     publicSummary: string;
     experienceTags: ExperienceTagId[];
+    namingPolicyAcknowledged: boolean;
   },
 ): Promise<string> {
+  if (!input.namingPolicyAcknowledged) {
+    throw new Error("공개 제목 정책에 동의한 뒤 신청할 수 있습니다.");
+  }
   if (route.completed !== 1) {
     throw new Error("완주한 사용자 경로만 공개 등록을 신청할 수 있습니다.");
   }
@@ -284,6 +291,8 @@ export async function createPublicRouteRequest(
     geometryType: "LineString" as const,
     geometryCoordsJson: encodeGeometryJson(route.geometry),
     routeFingerprint,
+    namingPolicyAcknowledged: true,
+    namingPolicyVersion: PUBLIC_ROUTE_NAMING_POLICY_VERSION,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   };

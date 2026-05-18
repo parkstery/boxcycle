@@ -237,5 +237,7 @@ export { adminPromoteSavedRoute };
 export { courseActivityOnRideCreated } from "./courseActivityOnRideCreated.js";
 export { courseActivityOnLiveCourseRideWritten } from "./courseActivityOnLiveCourseRideWritten.js";
 export { courseActivityScheduledReconcile } from "./courseActivityScheduledReconcile.js";
+export { courseActivityHeatReconcile } from "./courseActivityHeatReconcile.js";
 export { routeTokenOnRideCreated } from "./routeTokenOnRideCreated.js";
 export { ensureRouteTokenOnboardingHttp } from "./routeTokenEnsureOnboarding.js";
+export { backfillRoutePublicationsHttp } from "./backfillRoutePublications.js";

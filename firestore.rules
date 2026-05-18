@@ -220,7 +220,10 @@ service cloud.firestore {
         && request.resource.data.geometryCoordsJson.size() >= 10
         && request.resource.data.geometryCoordsJson.size() <= 4800000
         && request.resource.data.routeFingerprint is string
-        && request.resource.data.routeFingerprint.size() == 64;
+        && request.resource.data.routeFingerprint.size() == 64
+        && request.resource.data.namingPolicyAcknowledged == true
+        && request.resource.data.namingPolicyVersion is string
+        && request.resource.data.namingPolicyVersion.size() >= 4;
 
       allow update: if resource.data.status == 'pending'
         && (

@@ -4,7 +4,7 @@
 |------|------|
 | 문서 유형 | architecture — 경로 정체성·퍼블릭 출판·주행 연결 |
 | 작성 | 2026-05-18 |
-| 상태 | **진행 중** — Phase A~B 클라이언트 반영, `courses` 레거시 병행 |
+| 상태 | **진행 중** — Phase A~D 반영, Phase E(geometry LOD) 예정 |
 | 연결 | [코스 수명 UGC 정책](260511-코스-수명-UGC-품질-정책.md), [경로 저장 계층화](260511-경로저장-계층화-Frozen-Route-Segment.md) |
 
 ---
@@ -89,11 +89,12 @@
 
 | 단계 | 내용 | 상태 |
 |------|------|------|
-| **A** | 주행 종료·내 경로 로드 시 `resolvePublishedRouteLink` → `courseId`·`publicationId`·`routeId` 통합 | **이번 PR** |
-| **B** | 승인 시 `routePublications` 듀얼 라이트, Rules·인덱스 | **이번 PR** |
-| **C** | 카탈로그 UI를 publication 조인으로 전환 | 예정 |
-| **D** | 레거시 `courses` UGC read 경로 축소, revision 발행 UI | 예정 |
+| **A** | 주행 종료·내 경로 로드 시 `resolvePublishedRouteLink` → `courseId`·`publicationId`·`routeId` 통합 | **완료** |
+| **B** | 승인 시 `routePublications` 듀얼 라이트, Rules·인덱스 | **완료** |
+| **C** | 카탈로그·geometry 로드 — `routePublications` 우선 | **완료** |
+| **D** | 퍼블릭 신청 고지·명명 가이드·`namingPolicyAcknowledged` | **완료** |
 | **E** | geometry 서브컬렉션·맵 LOD | 예정 |
+| **백필** | `backfillRoutePublicationsHttp` (심사자 POST) | **완료** |
 
 ---
 
@@ -120,15 +121,18 @@
 
 ---
 
-## 7. 운영·백필 (수동)
+## 7. 운영·백필
 
-- 기존 `courses`(UGC)에 대해 `routePublications` 문서를 Functions/스크립트로 1회 생성 가능 (`routeId=sourceSavedRouteId`, `courseId=course.id`).
-- 인덱스: `routePublications` — `(routeId, status)`, `(routeFingerprint, status)`; `courses` — `(sourceSavedRouteId, category, status)`.
+**HTTP:** `POST https://{region}-{project}.cloudfunctions.net/backfillRoutePublicationsHttp`  
+헤더: `Authorization: Bearer {심사자 ID 토큰}`  
+본문: `{ "dryRun": true, "limit": 100 }` → 확인 후 `dryRun: false`.
+
+- 기존 UGC `courses` → `routePublications/{courseId}` (`routeId=sourceSavedRouteId`).
+- 인덱스: `firebase deploy --only firestore:indexes,firestore:rules` 후 Functions 배포.
 
 ---
 
-## 8. 제품 고지 (퍼블릭 신청 모달, 별도 UX 티켓)
+## 8. 제품 고지 (퍼블릭 신청 모달)
 
-- 공개 제목은 승인 후 커뮤니티 명칭이며 등록자가 임의 변경 불가.
-- 권장 형식: `{닉네임} · {지역/랜드마크} · {거리·특성}`.
-- 내 경로 개인 이름과 공개 제목은 별개.
+- `PublicRouteRequestModal` — 정책 안내·명명 가이드·동의 체크박스.
+- 신청 문서: `namingPolicyAcknowledged`, `namingPolicyVersion` (`publicRouteNamingPolicy.ts`).

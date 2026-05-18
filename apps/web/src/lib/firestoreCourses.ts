@@ -12,6 +12,11 @@ import {
   where,
 } from "firebase/firestore";
 import { getFirebaseApp } from "./firebase";
+import {
+  findPublishedRoutePublicationByCourseId,
+  listPublishedRoutePublications,
+  type RoutePublicationRow,
+} from "./firestoreRoutePublications";
 import { getUserPublicLabelsByUid } from "./firestoreUser";
 import { getDistanceMeters, type LineStringGeometry, type LngLat } from "./geo";
 
@@ -89,11 +94,17 @@ export type CourseRoutePayload = {
 
 /** 공개·게시된 퍼블릭 코스 목록(패널용 요약) */
 export type PublishedPublicCourseSummary = {
+  /** 카탈로그·`courseActivity` 키 (`courses/{id}`) */
   id: string;
+  /** 공개 제목 (`routePublications.publicTitle` 우선) */
   title: string;
   profile: CourseProfile;
   distanceMeters: number;
   durationSec: number;
+  /** 통합 경로 정체성 — `savedRoutes` id */
+  routeId?: string | null;
+  /** 출판 리비전 id (마이그레이션 기간 `id` 와 동일할 수 있음) */
+  publicationId?: string | null;
   /** UGC 승인 시 원본 `savedRoutes` 문서 ID — 동일 내 경로의 퍼블릭 재신청 방지에 사용 */
   sourceSavedRouteId?: string | null;
   /** 승인된 UGC 코스의 신청자 uid */
@@ -101,6 +112,57 @@ export type PublishedPublicCourseSummary = {
   /** `users/{applicantUid}` 닉네임(없으면 displayName 등) */
   publisherNickname?: string | null;
 };
+
+function summaryFromPublication(pub: RoutePublicationRow): PublishedPublicCourseSummary {
+  return {
+    id: pub.courseId,
+    title: pub.publicTitle,
+    profile: pub.snapshotProfile,
+    distanceMeters: pub.snapshotDistanceMeters,
+    durationSec: pub.snapshotDurationSec,
+    routeId: pub.routeId,
+    publicationId: pub.publicationId,
+    sourceSavedRouteId: pub.routeId,
+    applicantUid: pub.applicantUid.length > 0 ? pub.applicantUid : null,
+  };
+}
+
+async function listPublishedPublicCoursesFromLegacyCourses(
+  max: number,
+): Promise<PublishedPublicCourseSummary[]> {
+  const db = getFirestore(getFirebaseApp());
+  const qy = query(
+    collection(db, "courses"),
+    where("category", "==", "public"),
+    where("visibility", "==", "public"),
+    where("status", "==", "published"),
+    limit(Math.min(80, Math.max(1, max))),
+  );
+  const snap = await getDocs(qy);
+  const rows: PublishedPublicCourseSummary[] = [];
+  for (const d of snap.docs) {
+    const data = d.data() as Record<string, unknown>;
+    const vis = data.visibility;
+    if (vis !== undefined && vis !== "public") continue;
+    if (typeof data.title !== "string" || data.title.length < 1) continue;
+    const sid = data.sourceSavedRouteId;
+    const routeId = typeof sid === "string" && sid.length > 0 ? sid : null;
+    const applicantUid =
+      typeof data.applicantUid === "string" && data.applicantUid.length > 0 ? data.applicantUid : null;
+    rows.push({
+      id: d.id,
+      title: data.title,
+      profile: parseCourseProfile(data),
+      distanceMeters: typeof data.distanceMeters === "number" ? data.distanceMeters : 0,
+      durationSec: typeof data.durationSec === "number" ? data.durationSec : 0,
+      routeId,
+      publicationId: d.id,
+      sourceSavedRouteId: routeId,
+      applicantUid,
+    });
+  }
+  return rows;
+}
 
 function parseCourseProfile(raw: Record<string, unknown>): CourseProfile {
   const p = raw.profile;
@@ -229,41 +291,27 @@ export function getBasicHubCoursePayload(courseId: string): CourseRoutePayload {
 }
 
 /**
- * 심사 승인 등으로 등록된 퍼블릭 코스(`category`·`visibility`·`status` 일치) 목록.
- * Firestore 복합 쿼리 인덱스 필요 — `firestore.indexes.json` 참고.
+ * 퍼블릭 카탈로그 — `routePublications` 우선, 없는 항목만 레거시 `courses` 로 보완.
  */
 export async function listPublishedPublicCourses(max = 40): Promise<PublishedPublicCourseSummary[]> {
-  const db = getFirestore(getFirebaseApp());
-  const qy = query(
-    collection(db, "courses"),
-    where("category", "==", "public"),
-    where("visibility", "==", "public"),
-    where("status", "==", "published"),
-    limit(Math.min(80, Math.max(1, max))),
-  );
-  const snap = await getDocs(qy);
-  const rows: PublishedPublicCourseSummary[] = [];
-  for (const d of snap.docs) {
-    const data = d.data() as Record<string, unknown>;
-    const vis = data.visibility;
-    if (vis !== undefined && vis !== "public") continue;
-    if (typeof data.title !== "string" || data.title.length < 1) continue;
-    const sid = data.sourceSavedRouteId;
-    const applicantUid = typeof data.applicantUid === "string" && data.applicantUid.length > 0
-      ? data.applicantUid
-      : null;
-    rows.push({
-      id: d.id,
-      title: data.title,
-      profile: parseCourseProfile(data),
-      distanceMeters: typeof data.distanceMeters === "number" ? data.distanceMeters : 0,
-      durationSec: typeof data.durationSec === "number" ? data.durationSec : 0,
-      sourceSavedRouteId:
-        typeof sid === "string" && sid.length > 0 ? sid : null,
-      applicantUid,
-    });
+  const cap = Math.min(80, Math.max(1, max));
+  const byCourseId = new Map<string, PublishedPublicCourseSummary>();
+
+  try {
+    const pubs = await listPublishedRoutePublications(cap);
+    for (const pub of pubs) {
+      byCourseId.set(pub.courseId, summaryFromPublication(pub));
+    }
+  } catch {
+    /* publication 컬렉션 미배포·인덱스 대기 시 레거시만 */
   }
-  rows.sort((a, b) => a.title.localeCompare(b.title, "ko"));
+
+  const legacy = await listPublishedPublicCoursesFromLegacyCourses(cap);
+  for (const row of legacy) {
+    if (!byCourseId.has(row.id)) byCourseId.set(row.id, row);
+  }
+
+  const rows = [...byCourseId.values()].sort((a, b) => a.title.localeCompare(b.title, "ko"));
   const labelByUid = await getUserPublicLabelsByUid(
     rows.map((r) => r.applicantUid).filter((uid): uid is string => Boolean(uid)),
   );
@@ -408,7 +456,31 @@ export function isGeometryBasicStartHub(geometry: LineStringGeometry | null): bo
 const courseRoutePayloadMemoryCache = new Map<string, CourseRoutePayload | null>();
 const courseRoutePayloadInflight = new Map<string, Promise<CourseRoutePayload | null>>();
 
+function courseRoutePayloadFromPublication(
+  pub: Awaited<ReturnType<typeof findPublishedRoutePublicationByCourseId>>,
+): CourseRoutePayload | null {
+  if (!pub?.geometryCoordsJson) return null;
+  const coordinates = coordinatesFromGeometryCoordsJson(pub.geometryCoordsJson);
+  if (!coordinates || coordinates.length < 2) return null;
+  return {
+    id: pub.courseId,
+    title: pub.publicTitle,
+    geometry: { type: "LineString", coordinates },
+    distanceMeters: pub.snapshotDistanceMeters,
+    durationSec: pub.snapshotDurationSec,
+    profile: pub.snapshotProfile,
+  };
+}
+
 async function fetchCourseRoutePayloadUncached(courseId: string): Promise<CourseRoutePayload | null> {
+  try {
+    const pub = await findPublishedRoutePublicationByCourseId(courseId);
+    const fromPub = courseRoutePayloadFromPublication(pub);
+    if (fromPub) return fromPub;
+  } catch {
+    /* noop — 레거시 courses */
+  }
+
   const db = getFirestore(getFirebaseApp());
   const snap = await getDoc(doc(db, "courses", courseId));
   if (!snap.exists()) return null;

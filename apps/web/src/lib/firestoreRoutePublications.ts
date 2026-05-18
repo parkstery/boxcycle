@@ -146,6 +146,24 @@ export async function findPublishedRoutePublicationByFingerprint(
   return parsePublicationRow(d.id, d.data() as Record<string, unknown>);
 }
 
+/** 퍼블릭 탭 카탈로그 — `routePublications` 우선(Phase C) */
+export async function listPublishedRoutePublications(max = 50): Promise<RoutePublicationRow[]> {
+  const db = getFirestore(getFirebaseApp());
+  const qy = query(
+    collection(db, ROUTE_PUBLICATIONS_COLLECTION),
+    where("status", "==", "published"),
+    limit(Math.min(80, Math.max(1, max))),
+  );
+  const snap = await getDocs(qy);
+  const rows: RoutePublicationRow[] = [];
+  for (const d of snap.docs) {
+    const row = parsePublicationRow(d.id, d.data() as Record<string, unknown>);
+    if (row) rows.push(row);
+  }
+  rows.sort((a, b) => a.publicTitle.localeCompare(b.publicTitle, "ko"));
+  return rows;
+}
+
 export async function findPublishedRoutePublicationByCourseId(
   courseId: string,
 ): Promise<RoutePublicationRow | null> {
