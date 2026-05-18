@@ -5,6 +5,7 @@
 | 문서 유형 | **product** + **architecture** (지도 UX·데이터 경계) |
 | 작성일 | 2026-05-17 |
 | 상태 | **v1+v2(anchor) 구현 완료** — 타일·수동 스모크 잔여 |
+| 백로그 | [경로 표시 우선순위](260518-Activity-World-경로표시-우선순위-백로그.md) P0~P3 |
 | 상위 | [Firestore 트래픽·Activity World](260516-Firestore-트래픽-저감-상세-수정-계획.md) §4 |
 | 구분 | [제품 용어 Trailhead·Trail](260517-제품-용어-Trailhead-Trail.md), [같은 Trail 관전](260514-(cycle)로비_코스주행자_맵관전_구현_보고서.md), [Route Token 경제](260518-Route-Token-경제-설계.md) §6.3 (토큰 드롭 v2) |
 
@@ -17,7 +18,7 @@
 **대표 UX (제품 이미지):**
 
 - 줌 아웃·Trailhead(월드 뷰): *「캐나다 앨버타 근처에서 누가 달리고 있나 보다」* → **라이브 코스 위치를 점**으로 표시.
-- 맵을 확대해 **화면에 보이는 범위가 대략 30km 이내**가 되면: 그 코스는 **노선(라인)** 으로 보이기 시작.
+- 맵을 확대해 **화면 span이 대략 20km 이하**이고 줌이 충분하면: 그 코스는 **노선(라인)** 으로 보이기 시작(중간 줌대는 점+선 혼합 가능).
 
 **본 설계의 범위 밖 (이미 구현·별도 유지):**
 
@@ -51,22 +52,28 @@ A는 **전역 aggregate**, B는 **Trail 인스턴스 realtime** 이다.
 
 ## 3. LOD 규칙 (점 ↔ 라인)
 
-### 3.1 모드 정의
+### 3.1 모드 정의 (코드: `resolveActivityWorldDisplay`)
 
-| 모드 | 조건 (AND) | 지도 |
-|------|------------|------|
-| **DOT** (월드 핀) | 뷰포트 **가로·세로 중 큰 변**이 `VIEWPORT_SPAN_LINE_MAX_KM` **초과** | 라이브·(선택) heat 코스를 **앵커 1점**씩 |
-| **LINE** (코스 노선) | 뷰포트 span ≤ `VIEWPORT_SPAN_LINE_MAX_KM` **이고**, 해당 코스 geometry 로드 완료 | 기존과 같이 **LineString** (녹색 pulse / 회색 heat) |
+**원칙:** loader는 dots·lines **항상 생성**, LOD는 **표시만** 결정 (`showDots` / `showLines`).
 
-**기본 상수 (초안):**
+| 표시 | 조건 (요약) | 지도 |
+|------|-------------|------|
+| **DOT** | span > 20km **또는** zoom < 11.5 **또는** (11.5≤zoom<13 hybrid) | 라이브·heat **앵커 점** |
+| **LINE** | span ≤ 20km **및** zoom ≥ 11.5, geometry ready | pulse·heat **LineString** (red 계열, §3.3) |
+| **LINE 우선** | zoom ≥ 13 **및** 라인 데이터 있음 | 점 숨김, 라인만 |
+| **LINE 폴백** | zoom ≥ 13 이지만 geometry 미준비 | **점 유지** |
+
+**상수 (`activityWorldLod.ts`):**
 
 ```text
-VIEWPORT_SPAN_LINE_MAX_KM = 30   // “30km 이내가 되면 라인”에 대응
-MAP_ZOOM_WORLD_HUD_MAX     = 9   // 기존 rideSyncPolicy — HUD만 (오버레이와 분리 가능)
+VIEWPORT_SPAN_LINE_MAX_KM = 20
+MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN = 11.5   // 미만 → 점만
+MAP_ZOOM_ACTIVITY_WORLD_LINE_MAX = 13     // 미만 hybrid(점+준비된 선)
+MAP_ZOOM_WORLD_HUD_MAX = 9                // 월드 HUD 텍스트만
 ```
 
-- **30km** 는 “지도 **한 화면**에 담기는 거리” 기준이다. 사용자·코스 간 거리가 아니라 **줌/뷰포트 span** 이다.
-- LINE 모드: Mapbox가 화면 밖 구간 clip. **DOT 모드: 라이브·heat 후보는 뷰포트와 무관하게 전역 앵커 표시**(멀리서 지역 핀 — 화면 밖 점은 Mapbox clip).
+- span은 지도 **한 화면** 너비·높이 중 큰 변(km). 코스 간 거리가 아님.
+- **DOT:** 라이브·heat 후보는 뷰포트와 무관하게 전역 앵커(화면 밖은 Mapbox clip).
 
 ### 3.2 앵커 점 위치 (DOT)
 
@@ -78,13 +85,19 @@ MAP_ZOOM_WORLD_HUD_MAX     = 9   // 기존 rideSyncPolicy — HUD만 (오버레�
 
 **v1 의도:** 전역 맵에서는 **“이 코스(이 길)에서 지금 라이브”** 를 지역으로 알려 주고, **정확한 주행자 GPS는 같은 Trail 관전(B)** 에만 둔다. 260516 철학(전역 GPS fan-out 지양)과 일치.
 
-### 3.3 시각 (와이어)
+### 3.3 시각 (구현 기준)
 
 | 레이어 | DOT | LINE |
 |--------|-----|------|
-| 라이브 (`liveNow`) | 녹색 원 + 흰 글로우 (Trail 관전 점과 스타일 구분 가능) | 기존 `activity-pulse-*` 녹색 라인 |
-| 최근 활동 (`recentRideCount7d`, live 아님) | 회색 작은 점 (선택) | 기존 `activity-heat-*` 회색 라인 |
-| 펄스 강도 | `pulseLevel` → 반경·opacity 단계 | 라인 glow 두께(기존) |
+| 라이브 (`liveNow`) | red 계열 원 + 흰 글로우 (`traceStrength=1`) | `activity-pulse-*` — red, 실선 |
+| 완료·최근 활동 heat (`recentRideCount7d`, live 아님) | red 계열 점 (`traceStrength` 구간별) | `activity-heat-*` — red, **dash** |
+| 펄스·인기 | `pulseLevel` / `recentRideCount7d` → 반경·opacity | glow 두께·`traceStrength` (0.3~1) |
+
+**색상 (`activityWorldTraceStyle.ts`, MapView):**
+
+- 공통 hue: **`#dc2626`** (`ACTIVITY_TRACE_RED`) — 사용자 탐색 경로(`route` 레이어)·Trail 관전 빨간 톤과 **맵 전역 red 계열** 정렬.
+- **라이브 vs 완료 heat** 구분: hue가 아니라 **`traceStrength`**(라이브 1.0, heat는 `updatedAt` 기준 0.8 / 0.5 / 0.3)와 heat 라인 **점선**.
+- **회색 heat를 쓰지 않은 이유:** Strava·맵 앱 등에서 흔한 「완료 흔적=회색」 컨셉이 본 서비스 **지도 베이스·UI 회색**과 겹쳐 흔적이 안 보이거나 배경과 구분되지 않음 → **의도적으로 red 계열**로 통일.
 
 DOT·LINE **동시에 같은 코스를 이중 표시하지 않음** — 모드에 따라 하나만.
 
@@ -185,8 +198,8 @@ BASIC_SHARED_HUB_IDS
 
 1. 계정 A: 입문/퍼블릭 코스 주행(running) → CF로 `courseActivity.liveNow`.
 2. 계정 B: 같은 Trail 아님, **멀리 줌** → 앨버타(해당 bounds) 근처 **녹색 점** 1개 이상.
-3. B: 해당 지역 **확대(화면 span ≤ 30km)** → **녹색 라인**으로 코스 형상 표시.
-4. A: 주행 종료 → 점/라인 사라짐(또는 heat만 회색 점).
+3. B: 해당 지역 **확대(화면 span ≤ 20km, zoom 충분)** → **녹색 라인**으로 코스 형상 표시.
+4. A: 주행 종료 → 점/라인 사라짐(또는 heat만 red 점·약한 red 라인).
 
 ---
 
@@ -202,8 +215,8 @@ BASIC_SHARED_HUB_IDS
 
 §4.2 「Mapbox 레이어 예」는 구현 시 아래처럼 **갱신**한다:
 
-- **줌 아웃 (span > 30km):** `activity-live-dots`, `activity-heat-dots` (선택).
-- **줌 인 (span ≤ 30km):** `activity-pulse-routes-line`, `activity-heat-routes-line` (기존).
+- **줌 아웃 (span > 20km):** `activity-pulse-dots`, `activity-heat-dots`.
+- **줌 인 (span ≤ 20km):** `activity-pulse-routes-line`, `activity-heat-routes-line`.
 
 ---
 
@@ -212,7 +225,8 @@ BASIC_SHARED_HUB_IDS
 | 항목 | 내용 |
 |------|------|
 | DOT가 bounds 중심 | 실제 주행 위치와 수 km 차이 가능 → v2 `liveAnchor` 또는 툴팁「라이브 코스 · N명」 |
-| 30km 고정 | 위도·UI에 따라 조정 가능 — 상수 한 곳에서 관리 |
+| 20km·zoom 밴드 | 위도·UI에 따라 조정 — `activityWorldLod.ts` 한 곳 |
+| heat 7일 | CF `courseActivityHeatReconcile` 일 1회 재집계 — [백로그 P1-1](260518-Activity-World-경로표시-우선순위-백로그.md) |
 | geometry 16건 상한 | 화면에 live 코스가 많으면 멀리서 점은 더 많이, 가까이서 라인은 일부만 |
 | CF 미배포 시 | `liveNow` 없으면 점/라인 없음 — 배포·스모크 필수 |
 
@@ -226,3 +240,4 @@ BASIC_SHARED_HUB_IDS
 | 2026-05-17 | v1 클라이언트 구현 완료 — `activityWorldLod`, MapView dots, 스모크 §J-4 |
 | 2026-05-17 | v2 `liveAnchorLngLat` — CF geometry 보간 + 클라이언트 DOT 우선 사용 |
 | 2026-05-18 | [Route Token 경제](260518-Route-Token-경제-설계.md) §6.3 토큰 드롭 — 메타·§7 링크 |
+| 2026-05-18 | §3.3 heat 시각 — 와이어 「회색」→ 구현 **red 계열** (`#dc2626`, `traceStrength`·dash로 라이브/heat 구분), 지도 회색 UI 혼동 방지 rationale |

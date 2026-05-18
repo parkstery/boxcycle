@@ -450,3 +450,22 @@
   line-height: 1.5;
   border-top: 1px solid color-mix(in srgb, CanvasText 10%, transparent);
 }
+
+.activity-world-lod-debug {
+  position: absolute;
+  left: 0.5rem;
+  bottom: 5.5rem;
+  z-index: 12;
+  margin: 0;
+  padding: 0.35rem 0.5rem;
+  max-width: min(22rem, calc(100vw - 1rem));
+  font-family: ui-monospace, monospace;
+  font-size: 0.62rem;
+  line-height: 1.35;
+  color: #ecfdf5;
+  background: rgb(2 6 23 / 0.82);
+  border: 1px solid rgb(34 197 94 / 0.45);
+  border-radius: 6px;
+  pointer-events: none;
+  white-space: pre-wrap;
+}

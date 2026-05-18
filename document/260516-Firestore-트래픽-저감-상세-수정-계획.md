@@ -35,7 +35,7 @@ BOXCYCLE 세계관·자문 정리 이후, 본 문서의 중심축은 아래로 �
 ### 1.1 Global Activity Layer
 
 - **목표**: “텅 빈 세계”가 아닌 **활동하는 세계(activity world)**.
-- **표시 예**: 최근 30일 흔적(회색), 현재 라이브 펄스(녹색), 인기 코스, 활성 코스 수.
+- **표시 예**: 최근 7일·30일 **heat 흔적**(red 계열·강도 단계), 라이브 펄스(red·`traceStrength=1`), 인기 코스, 활성 코스 수. (회색 heat 와이어는 [LOD §3.3](260517-Activity-World-지도-LOD-설계.md) 에서 red로 정렬)
 - **데이터**: 대부분 **aggregate**, 저빈도 갱신, **위치 스트리밍 최소화**.
 - **현재 코드 힌트**: `appMeta/worldPresence` + `WORLD_PRESENCE_POLL_MS` (90s `getDoc`) — 프로토타입에 해당.
 
@@ -156,7 +156,7 @@ BOXCYCLE 세계관·자문 정리 이후, 본 문서의 중심축은 아래로 �
 | Firestore Rules 읽기 전용 | **완료** | `courseActivity`, `worldActivity` |
 | CF `courseActivityOnRideCreated` | **완료** | `rides` 생성 시 7d/30d increment |
 | `rides.courseId` 저장 | **완료** | 입문·공식 코스 주행 종료 시 |
-| activityOverlay 지도 레이어 | **프로토타입** | 녹색 pulse / 회색 heat, 현재 코스 1개 |
+| activityOverlay 지도 레이어 | **v1** | red 계열 pulse·heat (`activityWorldTraceStyle`), 현재·카탈로그 코스 |
 | HUD 코스 activity 한 줄 | **완료** | `courseActivityHudLine` |
 | `liveCourseRides` 관전 | **유지** | **같은 방**이면 idle·주행·일시정지 모두 구독; **다른 방**은 미구독(기존 `roomId` 경계) |
 | 다중 코스 heat·타일 `worldActivity` | **부분 완료** | 카탈로그·`highlightedCourses` 병합 오버레이; 타일별 `worldActivity/{tileId}`는 미착수 |
@@ -164,7 +164,8 @@ BOXCYCLE 세계관·자문 정리 이후, 본 문서의 중심축은 아래로 �
 | `highlightedCourses` 서버·지도 | **완료** | CF `refreshWorldHighlightedCourses`(세션 시작/종료), 클라이언트 카탈로그 병합 |
 | `worldActivity/global` HUD 병합 | **완료** | `fetchWorldActivityGlobal` + `mergeWorldHudLines` |
 | 퍼블릭·입문 코스 배치 `courseActivity` | **완료** | `fetchCourseActivitiesBatch`, `usePublishedCoursesActivityMapOverlay` |
-| 지도 다중 코스 pulse/heat + LOD | **완료** | span>30km DOT / ≤30km LINE — [지도 LOD 설계](260517-Activity-World-지도-LOD-설계.md) |
+| 지도 다중 코스 pulse/heat + LOD | **완료** | span>20km DOT / ≤20km LINE+zoom — [LOD](260517-Activity-World-지도-LOD-설계.md), [백로그](260518-Activity-World-경로표시-우선순위-백로그.md) |
+| heat `recentRideCount7d` 일일 재집계 | **완료** | `courseActivityHeatReconcile` |
 
 **로컬 시드 예시** (콘솔):
 
@@ -224,12 +225,12 @@ courseActivity/{courseId}
 | “관전자가 A의 GPS를 쫓는다” | **“이 길(코스)이 지금/최근 살아 있다”** |
 | `trails/.../liveCourseRides` 구독 (**같은 Trail**) | **유지** — 주행·일시정지 포함; 다른 Trail은 미구독. aggregate는 **보조**(코스 생명감) |
 
-**지도 LOD (v1 구현 완료):** 멀리(span > 30km) → **점**, 가까이(≤ 30km) → **라인**. 상세·스모크: **[260517-Activity-World-지도-LOD-설계.md](260517-Activity-World-지도-LOD-설계.md)**, 체크리스트 **§J-4**.
+**지도 LOD (v1 구현 완료):** 멀리(span > 20km) → **점**, 가까이(≤ 20km + zoom) → **라인**. 상세·스모크: **[LOD](260517-Activity-World-지도-LOD-설계.md)**, **§J-4**, **[백로그](260518-Activity-World-경로표시-우선순위-백로그.md)**.
 
 **Mapbox 레이어 예 (와이어) — LOD 반영 후**
 
-- **줌 아웃:** 녹색/회색 **점** (`activity-live-dots`, `courseActivity` + `courses.bounds`).
-- **줌 인 (≤30km span):** 녹색 `liveCoursePulse` / 회색 `recentActivityHeat` **라인** (기존 pulse/heat 레이어).
+- **줌 아웃:** red 계열 **점** (`activity-pulse-dots`, `activity-heat-dots` + `courses.bounds`).
+- **줌 인 (span ≤ 20km):** `activity-pulse-routes` / `activity-heat-routes` **라인** (red, heat는 dash·`traceStrength` 구간).
 - 동행 스프라이트: **Ride Session 참가 중**에만 `coursePresence` peer markers.
 
 **마이그레이션**

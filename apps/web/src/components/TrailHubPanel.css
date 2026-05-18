@@ -1,0 +1,127 @@
+.trail-hub {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  margin-bottom: 0.5rem;
+  border-radius: 10px;
+  background: rgba(12, 18, 28, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.trail-hub__kicker {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+.trail-hub__current {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.trail-hub__current-id {
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.trail-hub__current-meta {
+  font-size: 0.78rem;
+  line-height: 1.35;
+  opacity: 0.82;
+}
+
+.trail-hub__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.trail-hub__trailhead-btn {
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.trail-hub__trailhead-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.trail-hub__visibility {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.trail-hub__vis-btn {
+  padding: 0.3rem 0.5rem;
+  font-size: 0.72rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.trail-hub__vis-btn--on {
+  border-color: rgba(120, 200, 255, 0.55);
+  background: rgba(80, 160, 255, 0.15);
+}
+
+.trail-hub__list-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.trail-hub__meta {
+  font-size: 0.72rem;
+  opacity: 0.6;
+}
+
+.trail-hub__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 9.5rem;
+  overflow-y: auto;
+}
+
+.trail-hub__join-btn {
+  width: 100%;
+  text-align: left;
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+  color: inherit;
+  font-size: 0.76rem;
+  font-family: ui-monospace, monospace;
+  cursor: pointer;
+}
+
+.trail-hub__join-btn:hover {
+  border-color: rgba(120, 200, 255, 0.35);
+}
+
+.trail-hub__empty,
+.trail-hub__err {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.75;
+}
+
+.trail-hub__err {
+  color: #ffb4b4;
+}

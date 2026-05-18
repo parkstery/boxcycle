@@ -4,7 +4,7 @@ import "./MenuPanel.css";
 type MenuPanelProps = {
   open: boolean;
   onClose: () => void;
-  /** 라이딩·일시정지 단계에서는 메뉴 자체를 열 수 없도록 강제 닫기 */
+  /** @deprecated 주행 중 자동 닫기는 사용하지 않음 — 하위 호환용만 유지 */
   locked?: boolean;
   /** 주행 설정 시트( BLE·TTS 등 ) */
   onOpenSettings?: () => void;
@@ -13,12 +13,9 @@ type MenuPanelProps = {
 
 /**
  * 좌측에서 슬라이드 인 하는 글래스 드로어.
- * - 라이딩 중 잠금: `locked` 가 true 면 마운트되어 있어도 자동으로 닫힘.
  */
-export function MenuPanel({ open, onClose, locked, onOpenSettings, children }: MenuPanelProps) {
-  useEffect(() => {
-    if (locked && open) onClose();
-  }, [locked, open, onClose]);
+export function MenuPanel({ open, onClose, locked: _locked, onOpenSettings, children }: MenuPanelProps) {
+  void _locked;
 
   useEffect(() => {
     if (!open) return;

@@ -11,6 +11,8 @@ export type AccountChipState = {
 export type MapHudRidePresence = {
   trailheadEnabled: boolean;
   trailId: string;
+  /** UI용 3자리 번호 또는 Trailhead */
+  trailDisplayLabel: string;
   trailMembers: { key: string; display: string; isSelf: boolean; active: boolean }[];
   trailError: string | null;
   courseTitle: string | null;
@@ -199,7 +201,7 @@ export function MapHud(props: MapHudProps) {
                     <div className="hud-ride-presence__head">
                       <span className="hud-ride-presence__tag">접속</span>
                       <span className="hud-ride-presence__room" title={ridePresence.trailId}>
-                        Trail {ridePresence.trailId}
+                        Trail {ridePresence.trailDisplayLabel}
                       </span>
                     </div>
                     {ridePresence.trailError ? (

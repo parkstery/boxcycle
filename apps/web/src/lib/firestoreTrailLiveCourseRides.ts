@@ -2,6 +2,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getCountFromServer,
   getFirestore,
   onSnapshot,
   serverTimestamp,
@@ -102,6 +103,15 @@ export async function deleteTrailLiveCourseRide(uid: string, trailId: string): P
   const rid = sanitizeTrailId(trailId);
   const db = getFirestore(getFirebaseApp());
   await deleteDoc(doc(db, TRAILS_COLLECTION, rid, TRAIL_LIVE_COURSE_RIDES_SUBCOLLECTION, uid));
+}
+
+/** Trail 에서 `liveCourseRides` 문서 수(주행·대기 중 라이더 근사) */
+export async function countTrailLiveRiders(trailId: string): Promise<number> {
+  const rid = sanitizeTrailId(trailId);
+  const db = getFirestore(getFirebaseApp());
+  const coll = collection(db, TRAILS_COLLECTION, rid, TRAIL_LIVE_COURSE_RIDES_SUBCOLLECTION);
+  const snap = await getCountFromServer(coll);
+  return snap.data().count;
 }
 
 /** @deprecated `deleteTrailLiveCourseRide` */

@@ -2,6 +2,8 @@ import type { User } from "firebase/auth";
 import { useCallback, useEffect, useState } from "react";
 import {
   fetchCourseActivity,
+  invalidateCourseActivityCache,
+  markCourseActivityRideCompletedOptimistic,
   type CourseActivitySnapshot,
 } from "../lib/firestoreCourseActivity";
 import { COURSE_ACTIVITY_POLL_MS } from "../lib/rideSyncPolicy";
@@ -22,7 +24,7 @@ export function useCourseActivity(options: UseCourseActivityOptions) {
   const [activity, setActivity] = useState<CourseActivitySnapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const reload = useCallback(async () => {
+  const reload = useCallback(async (options?: { forceInvalidate?: boolean }) => {
     const cid = courseId?.trim();
     if (!configured || !user || !cid) {
       setActivity(null);
@@ -31,6 +33,9 @@ export function useCourseActivity(options: UseCourseActivityOptions) {
     }
     try {
       setError(null);
+      if (options?.forceInvalidate !== false) {
+        invalidateCourseActivityCache([cid]);
+      }
       const row = await fetchCourseActivity(cid);
       setActivity(row);
     } catch (e: unknown) {
@@ -39,6 +44,14 @@ export function useCourseActivity(options: UseCourseActivityOptions) {
       setActivity(null);
     }
   }, [configured, user, courseId]);
+
+  /** `handleEndRide` 직후 — 캐시 낙관을 React state에 즉시 반영(비동기 reload 대기 없음) */
+  const applyRideCompletedOptimistic = useCallback(() => {
+    const cid = courseId?.trim();
+    if (!cid) return;
+    const row = markCourseActivityRideCompletedOptimistic(cid);
+    if (row) setActivity(row);
+  }, [courseId]);
 
   useEffect(() => {
     if (!enabled) {
@@ -60,5 +73,5 @@ export function useCourseActivity(options: UseCourseActivityOptions) {
     };
   }, [enabled, reload]);
 
-  return { activity, error, reload };
+  return { activity, error, reload, applyRideCompletedOptimistic };
 }

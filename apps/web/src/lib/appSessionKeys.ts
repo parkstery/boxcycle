@@ -3,15 +3,39 @@
  * (Phase 1: App.tsx 에서 분리)
  */
 
-/** 로그아웃 직후 같은 탭에서 맵을 유지할지. 최초 방문은 플래그 없음 → 전체 인증 게이트. */
-export const POST_SIGNOUT_MAP_SESSION_KEY = "boxcycle_post_signout_map_v1";
+/** 명시적 로그아웃 후 자동 익명 진입을 막는 플래그(같은 탭). */
+export const USER_SIGNED_OUT_SESSION_KEY = "boxcycle_user_signed_out_v1";
 
-export function readPostSignoutMapSessionFlag(): boolean {
+const LEGACY_POST_SIGNOUT_MAP_SESSION_KEY = "boxcycle_post_signout_map_v1";
+
+export function readUserSignedOutSessionFlag(): boolean {
   if (typeof sessionStorage === "undefined") return false;
   try {
-    return sessionStorage.getItem(POST_SIGNOUT_MAP_SESSION_KEY) === "1";
+    if (sessionStorage.getItem(USER_SIGNED_OUT_SESSION_KEY) === "1") return true;
+    if (sessionStorage.getItem(LEGACY_POST_SIGNOUT_MAP_SESSION_KEY) === "1") {
+      sessionStorage.setItem(USER_SIGNED_OUT_SESSION_KEY, "1");
+      sessionStorage.removeItem(LEGACY_POST_SIGNOUT_MAP_SESSION_KEY);
+      return true;
+    }
+    return false;
   } catch {
     return false;
+  }
+}
+
+export function setUserSignedOutSessionFlag(): void {
+  try {
+    sessionStorage.setItem(USER_SIGNED_OUT_SESSION_KEY, "1");
+  } catch {
+    /* noop */
+  }
+}
+
+export function clearUserSignedOutSessionFlag(): void {
+  try {
+    sessionStorage.removeItem(USER_SIGNED_OUT_SESSION_KEY);
+  } catch {
+    /* noop */
   }
 }
 

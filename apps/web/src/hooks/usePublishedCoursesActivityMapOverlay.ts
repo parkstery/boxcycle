@@ -1,9 +1,10 @@
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
+import type { ActivityWorldMapDot, ActivityWorldMapRoute } from "../lib/activityWorldLod";
 import {
-  isLngLatInViewport,
-  type ActivityWorldMapDot,
-  type MapViewportBounds,
-} from "../lib/activityWorldLod";
+  ACTIVITY_TRACE_LIVE_STRENGTH,
+  resolveHeatTraceStrength,
+} from "../lib/activityWorldTraceStyle";
+import type { LngLat } from "../lib/geo";
 import {
   BASIC_SHARED_HUB_IDS,
   boundsCenterLngLat,
@@ -14,6 +15,9 @@ import {
 } from "../lib/firestoreCourses";
 import {
   fetchCourseActivitiesBatch,
+  heatVisualWeight,
+  isCourseActivityHeat,
+  isCourseActivityLive,
   type CourseActivitySnapshot,
 } from "../lib/firestoreCourseActivity";
 import type { LineStringGeometry } from "../lib/geo";
@@ -21,7 +25,8 @@ import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../
 import { COURSE_ACTIVITY_POLL_MS } from "../lib/rideSyncPolicy";
 import type { CourseActivityMapOverlay } from "./useCourseActivityMapOverlay";
 
-const MAX_MAP_OVERLAY_LOADS = 16;
+const MAX_LIVE_MAP_OVERLAY = 10;
+const MAX_HEAT_MAP_OVERLAY = 10;
 
 type GeomEntry =
   | { status: "ready"; geometry: LineStringGeometry }
@@ -29,45 +34,159 @@ type GeomEntry =
   | { status: "missing" };
 
 type BoundsEntry =
-  | { status: "ready"; lngLat: [number, number] }
+  | { status: "ready"; lngLat: LngLat }
   | { status: "loading" }
   | { status: "missing" };
 
-type UsePublishedCoursesActivityMapOverlayOpts = {
-  courseIds: readonly string[];
-  /** 현재 지도에 올린 코스 — 단일 코스 오버레이 훅과 중복 방지 */
-  excludeCourseId: string | null;
-  mapZoom: number;
-  lineMode: boolean;
-  mapViewport: MapViewportBounds | null;
-  enabled: boolean;
+export type PublishedCoursesActivityOverlayStats = {
+  boundsReady: number;
+  geometryReady: number;
+  boundsLoading: number;
+  geometryLoading: number;
+  activityRows: number;
+  liveCandidates: number;
+  heatCandidates: number;
 };
 
-function scoreActivity(a: CourseActivitySnapshot): number {
+type UsePublishedCoursesActivityMapOverlayOpts = {
+  courseIds: readonly string[];
+  excludeCourseId: string | null;
+  mapZoom: number;
+  enabled: boolean;
+  /** 주행 종료 등 — 즉시 aggregate·bounds 재조회 */
+  refreshNonce?: number;
+};
+
+function scoreLiveActivity(a: CourseActivitySnapshot): number {
   if (a.liveNow) return 1000 + a.activeRiderCount * 10 + a.pulseLevel;
+  return 0;
+}
+
+function scoreHeatActivity(a: CourseActivitySnapshot): number {
   return a.recentRideCount7d;
 }
 
+function selectOverlayCandidateIds(
+  map: ReadonlyMap<string, CourseActivitySnapshot | null>,
+  excludeCourseId: string,
+): string[] {
+  const live: [string, CourseActivitySnapshot][] = [];
+  const heat: [string, CourseActivitySnapshot][] = [];
+
+  for (const [id, row] of map) {
+    if (!row) continue;
+    if (isCourseActivityLive(row)) {
+      if (id !== excludeCourseId) live.push([id, row]);
+      continue;
+    }
+    if (isCourseActivityHeat(row)) heat.push([id, row]);
+  }
+
+  live.sort((a, b) => scoreLiveActivity(b[1]) - scoreLiveActivity(a[1]));
+  heat.sort((a, b) => scoreHeatActivity(b[1]) - scoreHeatActivity(a[1]));
+
+  const liveIds = live.slice(0, MAX_LIVE_MAP_OVERLAY).map(([id]) => id);
+  const heatIds = heat.slice(0, MAX_HEAT_MAP_OVERLAY).map(([id]) => id);
+  return [...new Set([...liveIds, ...heatIds])];
+}
+
+function ensureBoundsLoaded(
+  cid: string,
+  row: CourseActivitySnapshot,
+  boundsMap: Map<string, BoundsEntry>,
+  onReady: () => void,
+): void {
+  const existing = boundsMap.get(cid);
+  if (existing?.status === "ready" || existing?.status === "loading") return;
+
+  if (row.liveAnchorLngLat) {
+    boundsMap.set(cid, { status: "ready", lngLat: row.liveAnchorLngLat });
+    onReady();
+    return;
+  }
+
+  const hubBounds = getBasicHubCourseBounds(cid);
+  if (hubBounds) {
+    boundsMap.set(cid, { status: "ready", lngLat: boundsCenterLngLat(hubBounds) });
+    onReady();
+    return;
+  }
+
+  boundsMap.set(cid, { status: "loading" });
+  void (async () => {
+    try {
+      const b = await fetchCourseBounds(cid);
+      if (b) {
+        boundsMap.set(cid, { status: "ready", lngLat: boundsCenterLngLat(b) });
+      } else {
+        boundsMap.set(cid, { status: "missing" });
+      }
+    } catch {
+      boundsMap.set(cid, { status: "missing" });
+    }
+    onReady();
+  })();
+}
+
+function ensureGeometryLoaded(
+  cid: string,
+  geomMap: Map<string, GeomEntry>,
+  onReady: () => void,
+): void {
+  const existing = geomMap.get(cid);
+  if (existing?.status === "ready" || existing?.status === "loading") return;
+
+  geomMap.set(cid, { status: "loading" });
+  const isBasic = (BASIC_SHARED_HUB_IDS as readonly string[]).includes(cid);
+  void (async () => {
+    try {
+      const geometry: LineStringGeometry | null = isBasic
+        ? getBasicHubCoursePayload(cid).geometry
+        : (await fetchCourseRoutePayload(cid))?.geometry ?? null;
+      if (!geometry?.coordinates?.length) {
+        geomMap.set(cid, { status: "missing" });
+      } else {
+        geomMap.set(cid, { status: "ready", geometry });
+      }
+    } catch {
+      geomMap.set(cid, { status: "missing" });
+    }
+    onReady();
+  })();
+}
+
 /**
- * 퍼블릭·입문 허브 등 카탈로그 코스의 activity aggregate.
- * LINE 모드: geometry(저빈도 getDoc). DOT 모드: bounds 앵커만.
+ * 퍼블릭·입문 허브 등 카탈로그 코스 activity aggregate.
+ * 라이브·heat 후보 풀 분리 — 종료 주행 흔적(heat)이 라이브 16건에 밀리지 않음.
  */
 export function usePublishedCoursesActivityMapOverlay(
   opts: UsePublishedCoursesActivityMapOverlayOpts,
-): CourseActivityMapOverlay & { activityByCourseId: ReadonlyMap<string, CourseActivitySnapshot | null> } {
-  const { courseIds, excludeCourseId, mapZoom, lineMode, mapViewport, enabled } = opts;
+): CourseActivityMapOverlay & {
+  activityByCourseId: ReadonlyMap<string, CourseActivitySnapshot | null>;
+  overlayStats: PublishedCoursesActivityOverlayStats;
+} {
+  const { courseIds, excludeCourseId, mapZoom, enabled, refreshNonce = 0 } = opts;
   const [activityByCourseId, setActivityByCourseId] = useState<
     ReadonlyMap<string, CourseActivitySnapshot | null>
   >(() => new Map());
+  const [overlayCandidateIds, setOverlayCandidateIds] = useState<string[]>([]);
   const [overlayEpoch, setOverlayEpoch] = useState(0);
   const geomByCourseRef = useRef<Map<string, GeomEntry>>(new Map());
   const boundsByCourseRef = useRef<Map<string, BoundsEntry>>(new Map());
+  const bumpOverlay = useRef(() => setOverlayEpoch((n) => n + 1));
 
   const courseIdsKey = useMemo(() => [...new Set(courseIds)].sort().join(","), [courseIds]);
 
   useEffect(() => {
+    bumpOverlay.current = () => setOverlayEpoch((n) => n + 1);
+  });
+
+  useEffect(() => {
     if (!enabled || courseIds.length === 0) {
-      startTransition(() => setActivityByCourseId(new Map()));
+      startTransition(() => {
+        setActivityByCourseId(new Map());
+        setOverlayCandidateIds([]);
+      });
       geomByCourseRef.current.clear();
       boundsByCourseRef.current.clear();
       setOverlayEpoch((n) => n + 1);
@@ -75,93 +194,42 @@ export function usePublishedCoursesActivityMapOverlay(
     }
 
     let cancelled = false;
+    const bump = () => {
+      if (!cancelled) bumpOverlay.current();
+    };
 
     const tick = async () => {
-      const map = await fetchCourseActivitiesBatch(courseIds);
+      const map = await fetchCourseActivitiesBatch(courseIds, { refresh: true });
       if (cancelled) return;
-      startTransition(() => setActivityByCourseId(map));
-
       const exclude = excludeCourseId?.trim() ?? "";
-      const candidates = [...map.entries()]
-        .filter(([id, row]) => {
-          if (!row || id === exclude) return false;
-          return row.liveNow || row.recentRideCount7d > 0;
-        })
-        .sort((a, b) => scoreActivity(b[1]!) - scoreActivity(a[1]!))
-        .slice(0, MAX_MAP_OVERLAY_LOADS);
+      const candidateIds = selectOverlayCandidateIds(map, exclude);
 
-      const keep = new Set(candidates.map(([id]) => id));
+      startTransition(() => {
+        setActivityByCourseId(map);
+        setOverlayCandidateIds(candidateIds);
+      });
 
-      if (lineMode) {
-        boundsByCourseRef.current.clear();
-        const geomMap = geomByCourseRef.current;
-        for (const key of [...geomMap.keys()]) {
-          if (!keep.has(key)) geomMap.delete(key);
-        }
+      const keep = new Set(candidateIds);
+      const geomMap = geomByCourseRef.current;
+      const boundsMap = boundsByCourseRef.current;
 
-        let scheduled = false;
-        for (const [cid] of candidates) {
-          if (geomMap.has(cid)) continue;
-          geomMap.set(cid, { status: "loading" });
-          scheduled = true;
-          const isBasic = (BASIC_SHARED_HUB_IDS as readonly string[]).includes(cid);
-          void (async () => {
-            try {
-              const geometry: LineStringGeometry | null = isBasic
-                ? getBasicHubCoursePayload(cid).geometry
-                : (await fetchCourseRoutePayload(cid))?.geometry ?? null;
-              if (!geometry?.coordinates?.length) {
-                geomByCourseRef.current.set(cid, { status: "missing" });
-              } else {
-                geomByCourseRef.current.set(cid, { status: "ready", geometry });
-              }
-            } catch {
-              geomByCourseRef.current.set(cid, { status: "missing" });
-            }
-            if (!cancelled) setOverlayEpoch((n) => n + 1);
-          })();
-        }
-        if (scheduled) setOverlayEpoch((n) => n + 1);
-      } else {
-        geomByCourseRef.current.clear();
-        const boundsMap = boundsByCourseRef.current;
-        for (const key of [...boundsMap.keys()]) {
-          if (!keep.has(key)) boundsMap.delete(key);
-        }
-
-        let scheduled = false;
-        for (const [cid, row] of candidates) {
-          if (row?.liveAnchorLngLat) {
-            boundsMap.set(cid, { status: "ready", lngLat: row.liveAnchorLngLat });
-            continue;
-          }
-          const hubBounds = getBasicHubCourseBounds(cid);
-          if (hubBounds) {
-            boundsMap.set(cid, { status: "ready", lngLat: boundsCenterLngLat(hubBounds) });
-            continue;
-          }
-          if (boundsMap.has(cid)) continue;
-          boundsMap.set(cid, { status: "loading" });
-          scheduled = true;
-          void (async () => {
-            try {
-              const b = await fetchCourseBounds(cid);
-              if (b) {
-                boundsByCourseRef.current.set(cid, {
-                  status: "ready",
-                  lngLat: boundsCenterLngLat(b),
-                });
-              } else {
-                boundsByCourseRef.current.set(cid, { status: "missing" });
-              }
-            } catch {
-              boundsByCourseRef.current.set(cid, { status: "missing" });
-            }
-            if (!cancelled) setOverlayEpoch((n) => n + 1);
-          })();
-        }
-        if (scheduled) setOverlayEpoch((n) => n + 1);
+      for (const key of [...geomMap.keys()]) {
+        if (!keep.has(key)) geomMap.delete(key);
       }
+      for (const key of [...boundsMap.keys()]) {
+        if (!keep.has(key)) boundsMap.delete(key);
+      }
+
+      let kicked = false;
+      for (const cid of candidateIds) {
+        const row = map.get(cid);
+        if (!row) continue;
+        ensureBoundsLoaded(cid, row, boundsMap, bump);
+        ensureGeometryLoaded(cid, geomMap, bump);
+        kicked = true;
+      }
+
+      if (kicked) bump();
     };
 
     void tick();
@@ -170,55 +238,129 @@ export function usePublishedCoursesActivityMapOverlay(
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [enabled, courseIdsKey, excludeCourseId, courseIds, lineMode]);
+  }, [enabled, courseIdsKey, excludeCourseId, courseIds]);
 
-  const overlay = useMemo((): CourseActivityMapOverlay => {
-    const pulseRoutes: LineStringGeometry[] = [];
-    const heatRoutes: LineStringGeometry[] = [];
+  useEffect(() => {
+    if (!enabled || refreshNonce === 0) return;
+    let cancelled = false;
+    const bump = () => {
+      if (!cancelled) bumpOverlay.current();
+    };
+    void (async () => {
+      const map = await fetchCourseActivitiesBatch(courseIds, { refresh: true });
+      if (cancelled) return;
+      const exclude = excludeCourseId?.trim() ?? "";
+      const candidateIds = selectOverlayCandidateIds(map, exclude);
+      startTransition(() => {
+        setActivityByCourseId(map);
+        setOverlayCandidateIds(candidateIds);
+      });
+      const geomMap = geomByCourseRef.current;
+      const boundsMap = boundsByCourseRef.current;
+      for (const cid of candidateIds) {
+        const row = map.get(cid);
+        if (!row) continue;
+        ensureBoundsLoaded(cid, row, boundsMap, bump);
+        ensureGeometryLoaded(cid, geomMap, bump);
+      }
+      bump();
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshNonce, enabled, courseIdsKey, excludeCourseId, courseIds]);
+
+  const { overlay, overlayStats } = useMemo(() => {
+    const pulseRoutes: ActivityWorldMapRoute[] = [];
+    const heatRoutes: ActivityWorldMapRoute[] = [];
     const pulseDots: ActivityWorldMapDot[] = [];
     const heatDots: ActivityWorldMapDot[] = [];
 
-    if (lineMode) {
-      const maxV = maxLineStringVerticesForMapZoom(mapZoom);
-      const geomMap = geomByCourseRef.current;
-      for (const [cid, row] of activityByCourseId) {
-        if (!row || cid === excludeCourseId) continue;
-        const g = geomMap.get(cid);
-        if (!g || g.status !== "ready") continue;
-        const line = decimateLineStringVertices(g.geometry, maxV);
-        if (row.liveNow || row.pulseLevel > 0) {
-          pulseRoutes.push(line);
-        } else if (row.recentRideCount7d > 0) {
-          heatRoutes.push(line);
-        }
-      }
-    } else {
-      const boundsMap = boundsByCourseRef.current;
-      for (const [cid, row] of activityByCourseId) {
-        if (!row || cid === excludeCourseId) continue;
-        const b = boundsMap.get(cid);
-        if (!b || b.status !== "ready") continue;
-        if (!isLngLatInViewport(b.lngLat, mapViewport)) continue;
-        if (row.liveNow || row.pulseLevel > 0) {
+    const geomMap = geomByCourseRef.current;
+    const boundsMap = boundsByCourseRef.current;
+
+    let boundsReady = 0;
+    let geometryReady = 0;
+    let boundsLoading = 0;
+    let geometryLoading = 0;
+    let activityRows = 0;
+    let liveCandidates = 0;
+    let heatCandidates = 0;
+
+    const exclude = excludeCourseId?.trim() ?? "";
+
+    for (const cid of overlayCandidateIds) {
+      const row = activityByCourseId.get(cid);
+      if (!row) continue;
+      if (cid === exclude && isCourseActivityLive(row)) continue;
+      if (isCourseActivityLive(row)) liveCandidates += 1;
+      else if (isCourseActivityHeat(row)) heatCandidates += 1;
+      if (isCourseActivityLive(row) || isCourseActivityHeat(row)) activityRows += 1;
+
+      const b = boundsMap.get(cid);
+      if (b?.status === "ready") boundsReady += 1;
+      else if (b?.status === "loading") boundsLoading += 1;
+      const g = geomMap.get(cid);
+      if (g?.status === "ready") geometryReady += 1;
+      else if (g?.status === "loading") geometryLoading += 1;
+
+      let lngLat: LngLat | null = row.liveAnchorLngLat;
+      if (!lngLat && b?.status === "ready") lngLat = b.lngLat;
+      if (lngLat) {
+        if (isCourseActivityLive(row)) {
           pulseDots.push({
             courseId: cid,
-            lngLat: b.lngLat,
+            lngLat,
             pulseLevel: row.pulseLevel > 0 ? row.pulseLevel : 1,
             kind: "pulse",
+            traceStrength: ACTIVITY_TRACE_LIVE_STRENGTH,
           });
-        } else if (row.recentRideCount7d > 0) {
+        } else if (isCourseActivityHeat(row)) {
+          const traceStrength = resolveHeatTraceStrength(row.updatedAtMs);
           heatDots.push({
             courseId: cid,
-            lngLat: b.lngLat,
-            pulseLevel: 0,
+            lngLat,
+            pulseLevel: heatVisualWeight(row.recentRideCount7d),
             kind: "heat",
+            recentRideCount7d: row.recentRideCount7d,
+            traceStrength,
+          });
+        }
+      }
+
+      if (g?.status === "ready") {
+        const line = decimateLineStringVertices(g.geometry, maxLineStringVerticesForMapZoom(mapZoom));
+        if (isCourseActivityLive(row)) {
+          pulseRoutes.push({
+            courseId: cid,
+            geometry: line,
+            kind: "pulse",
+            traceStrength: ACTIVITY_TRACE_LIVE_STRENGTH,
+          });
+        } else if (isCourseActivityHeat(row)) {
+          heatRoutes.push({
+            courseId: cid,
+            geometry: line,
+            kind: "heat",
+            traceStrength: resolveHeatTraceStrength(row.updatedAtMs),
           });
         }
       }
     }
 
-    return { pulseRoutes, heatRoutes, pulseDots, heatDots };
-  }, [activityByCourseId, excludeCourseId, mapZoom, lineMode, mapViewport, overlayEpoch]);
+    return {
+      overlay: { pulseRoutes, heatRoutes, pulseDots, heatDots } satisfies CourseActivityMapOverlay,
+      overlayStats: {
+        boundsReady,
+        geometryReady,
+        boundsLoading,
+        geometryLoading,
+        activityRows,
+        liveCandidates,
+        heatCandidates,
+      } satisfies PublishedCoursesActivityOverlayStats,
+    };
+  }, [activityByCourseId, overlayCandidateIds, mapZoom, overlayEpoch]);
 
-  return { ...overlay, activityByCourseId };
+  return { ...overlay, activityByCourseId, overlayStats };
 }

@@ -5,7 +5,8 @@ import {
   deleteTrailLiveCourseRide,
   mergeTrailLiveCourseRideSnapshot,
 } from "../lib/firestoreTrailLiveCourseRides";
-import { sanitizeTrailId } from "../lib/firestoreTrail";
+import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "../lib/firestoreTrail";
+import { touchTrailInstanceActivity } from "../lib/firestoreTrailInstance";
 import {
   TRAIL_LIVE_PROGRESS_MAX_WRITE_MS,
   TRAIL_LIVE_PROGRESS_MIN_DELTA,
@@ -84,6 +85,9 @@ export function useTrailLiveCourseRidePublisher(opts: UseTrailLiveCourseRidePubl
         courseId: c,
         progressRatio: ratio,
       }).catch(() => {});
+      if (tid !== DEFAULT_TRAIL_ID && maxDue) {
+        void touchTrailInstanceActivity(tid);
+      }
     };
 
     const cid0 = courseIdRef.current?.trim();

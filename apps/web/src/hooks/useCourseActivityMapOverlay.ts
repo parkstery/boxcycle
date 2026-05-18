@@ -1,20 +1,22 @@
 import { useMemo } from "react";
+import type { ActivityWorldMapDot, ActivityWorldMapRoute } from "../lib/activityWorldLod";
 import {
-  isLngLatInViewport,
-  type ActivityWorldMapDot,
-  type MapViewportBounds,
-} from "../lib/activityWorldLod";
+  ACTIVITY_TRACE_LIVE_STRENGTH,
+  resolveHeatTraceStrength,
+} from "../lib/activityWorldTraceStyle";
 import { boundsCenterLngLat, boundsFromLineStringGeometry } from "../lib/firestoreCourses";
-import type { CourseActivitySnapshot } from "../lib/firestoreCourseActivity";
+import {
+  heatVisualWeight,
+  isCourseActivityHeat,
+  isCourseActivityLive,
+  type CourseActivitySnapshot,
+} from "../lib/firestoreCourseActivity";
 import type { LineStringGeometry } from "../lib/geo";
 import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../lib/geoDecimate";
 
 export type CourseActivityMapOverlay = {
-  /** 녹색 라이브 펄스 — `liveNow` / `pulseLevel` (LINE 모드) */
-  pulseRoutes: LineStringGeometry[];
-  /** 회색 최근 활동 — 7일 내 주행 흔적 (LINE 모드) */
-  heatRoutes: LineStringGeometry[];
-  /** 월드 뷰 DOT 모드 */
+  pulseRoutes: ActivityWorldMapRoute[];
+  heatRoutes: ActivityWorldMapRoute[];
   pulseDots: ActivityWorldMapDot[];
   heatDots: ActivityWorldMapDot[];
 };
@@ -30,16 +32,13 @@ type UseCourseActivityMapOverlayOpts = {
   activity: CourseActivitySnapshot | null;
   routeGeometry: LineStringGeometry | null;
   mapZoom: number;
-  /** false = DOT(앵커), true = LINE */
-  lineMode: boolean;
-  mapViewport: MapViewportBounds | null;
 };
 
-/** 현재 지도에 올린 코스 1건 — aggregate 펄스/heat */
+/** 현재 지도에 올린 코스 1건 — 라이브 펄스 + 종료 후 heat 흔적 */
 export function useCourseActivityMapOverlay(
   opts: UseCourseActivityMapOverlayOpts,
 ): CourseActivityMapOverlay {
-  const { activity, routeGeometry, mapZoom, lineMode, mapViewport } = opts;
+  const { activity, routeGeometry, mapZoom } = opts;
 
   return useMemo(() => {
     if (!routeGeometry?.coordinates?.length || routeGeometry.coordinates.length < 2) {
@@ -47,40 +46,67 @@ export function useCourseActivityMapOverlay(
     }
     if (!activity) return EMPTY;
 
-    if (!lineMode) {
-      const lngLat =
-        activity.liveAnchorLngLat ??
-        (() => {
-          const bounds = boundsFromLineStringGeometry(routeGeometry);
-          return bounds ? boundsCenterLngLat(bounds) : null;
-        })();
-      if (!lngLat || !isLngLatInViewport(lngLat, mapViewport)) return EMPTY;
-      const pulseDots: ActivityWorldMapDot[] =
-        activity.liveNow || activity.pulseLevel > 0
-          ? [
-              {
-                courseId: activity.courseId,
-                lngLat,
-                pulseLevel: activity.pulseLevel > 0 ? activity.pulseLevel : 1,
-                kind: "pulse",
-              },
-            ]
-          : [];
-      const heatDots: ActivityWorldMapDot[] =
-        !pulseDots.length && activity.recentRideCount7d > 0
-          ? [{ courseId: activity.courseId, lngLat, pulseLevel: 0, kind: "heat" }]
-          : [];
-      return { ...EMPTY, pulseDots, heatDots };
-    }
+    const lngLat =
+      activity.liveAnchorLngLat ??
+      (() => {
+        const bounds = boundsFromLineStringGeometry(routeGeometry);
+        return bounds ? boundsCenterLngLat(bounds) : null;
+      })();
+
+    if (!lngLat) return EMPTY;
+
+    const heatStrength = resolveHeatTraceStrength(activity.updatedAtMs);
+
+    const pulseDots: ActivityWorldMapDot[] = isCourseActivityLive(activity)
+      ? [
+          {
+            courseId: activity.courseId,
+            lngLat,
+            pulseLevel: activity.pulseLevel > 0 ? activity.pulseLevel : 1,
+            kind: "pulse",
+            traceStrength: ACTIVITY_TRACE_LIVE_STRENGTH,
+          },
+        ]
+      : [];
+
+    const heatDots: ActivityWorldMapDot[] =
+      isCourseActivityHeat(activity)
+        ? [
+            {
+              courseId: activity.courseId,
+              lngLat,
+              pulseLevel: heatVisualWeight(activity.recentRideCount7d),
+              kind: "heat",
+              recentRideCount7d: activity.recentRideCount7d,
+              traceStrength: heatStrength,
+            },
+          ]
+        : [];
 
     const maxV = maxLineStringVerticesForMapZoom(mapZoom);
     const geom = decimateLineStringVertices(routeGeometry, maxV);
 
-    const pulseRoutes: LineStringGeometry[] =
-      activity.liveNow || activity.pulseLevel > 0 ? [geom] : [];
-    const heatRoutes: LineStringGeometry[] =
-      !pulseRoutes.length && activity.recentRideCount7d > 0 ? [geom] : [];
+    const pulseRoutes: ActivityWorldMapRoute[] = isCourseActivityLive(activity)
+      ? [
+          {
+            courseId: activity.courseId,
+            geometry: geom,
+            kind: "pulse",
+            traceStrength: ACTIVITY_TRACE_LIVE_STRENGTH,
+          },
+        ]
+      : [];
+    const heatRoutes: ActivityWorldMapRoute[] = isCourseActivityHeat(activity)
+      ? [
+          {
+            courseId: activity.courseId,
+            geometry: geom,
+            kind: "heat",
+            traceStrength: heatStrength,
+          },
+        ]
+      : [];
 
-    return { pulseRoutes, heatRoutes, pulseDots: [], heatDots: [] };
-  }, [activity, routeGeometry, mapZoom, lineMode, mapViewport]);
+    return { pulseRoutes, heatRoutes, pulseDots, heatDots };
+  }, [activity, routeGeometry, mapZoom]);
 }

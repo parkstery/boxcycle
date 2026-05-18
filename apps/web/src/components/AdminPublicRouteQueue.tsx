@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { User } from "firebase/auth";
+import { getUserPublicLabelsByUid } from "../lib/firestoreUser";
 import {
   approvePublicRouteRequest,
   loadPendingPublicRouteRequests,
@@ -15,6 +16,7 @@ export type AdminPublicRouteQueueProps = {
 
 export function AdminPublicRouteQueue(props: AdminPublicRouteQueueProps) {
   const [rows, setRows] = useState<PublicRouteRequest[]>([]);
+  const [applicantLabels, setApplicantLabels] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -35,6 +37,20 @@ export function AdminPublicRouteQueue(props: AdminPublicRouteQueueProps) {
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  useEffect(() => {
+    if (rows.length === 0) {
+      setApplicantLabels({});
+      return;
+    }
+    let cancelled = false;
+    void getUserPublicLabelsByUid(rows.map((r) => r.applicantUid)).then((labels) => {
+      if (!cancelled) setApplicantLabels(Object.fromEntries(labels));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [rows]);
 
   async function onApprove(req: PublicRouteRequest) {
     if (busyId) return;
@@ -105,7 +121,8 @@ export function AdminPublicRouteQueue(props: AdminPublicRouteQueueProps) {
                 <div className="admin-prq__item-head">
                   <strong>{req.publicTitle}</strong>
                   <span className="admin-prq__meta">
-                    신청자 uid {req.applicantUid.slice(0, 8)}… · 저장 경로 {req.savedRouteNameSnapshot}
+                    신청자 {applicantLabels[req.applicantUid] ?? "불러오는 중…"} · 저장 경로{" "}
+                    {req.savedRouteNameSnapshot}
                   </span>
                 </div>
                 {req.publicSummary ? <p className="admin-prq__summary">{req.publicSummary}</p> : null}

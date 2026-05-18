@@ -59,8 +59,9 @@ function parseCourseActivityDoc(courseId: string, data: Record<string, unknown>)
     activeRiderCount,
     recentRideCount7d,
     recentLikeCount,
-    liveNow: liveNow || pulseLevel > 0,
-    pulseLevel: liveNow && pulseLevel === 0 ? 1 : pulseLevel,
+    /** 서버 `liveNow`만 신뢰 — pulseLevel 잔존 시 heat가 막히지 않게 */
+    liveNow,
+    pulseLevel: liveNow && pulseLevel === 0 ? 1 : liveNow ? pulseLevel : 0,
     updatedAtMs: lastSeenAtToMillis(data.updatedAt),
     liveAnchorLngLat,
     liveAnchorProgressRatio,
@@ -69,6 +70,61 @@ function parseCourseActivityDoc(courseId: string, data: Record<string, unknown>)
 
 const memoryCache = new Map<string, CourseActivitySnapshot | null>();
 const inflight = new Map<string, Promise<CourseActivitySnapshot | null>>();
+/** 주행 종료 직후 서버 `liveNow`가 늦게 내려갈 때 heat 표시 유지 */
+const rideCompletedOptimistic = new Map<string, CourseActivitySnapshot>();
+
+function mergeRideCompletedOptimistic(
+  courseId: string,
+  server: CourseActivitySnapshot | null,
+): CourseActivitySnapshot | null {
+  const opt = rideCompletedOptimistic.get(courseId);
+  if (!opt) return server;
+  if (!server) return opt;
+
+  const server7d = server.recentRideCount7d;
+  const liveStuck =
+    server.liveNow && server.activeRiderCount > 0;
+  /** CF 지연: `liveNow`만 남고 rider=0·7d 미반영 — 낙관 heat 유지 */
+  const staleLiveWithoutHeat =
+    server.liveNow && server.activeRiderCount === 0 && server7d < opt.recentRideCount7d;
+  const serverCaughtUp = server7d >= opt.recentRideCount7d && !liveStuck && !staleLiveWithoutHeat;
+
+  if (serverCaughtUp) {
+    rideCompletedOptimistic.delete(courseId);
+    return server;
+  }
+
+  return {
+    ...server,
+    liveNow: false,
+    activeRiderCount: 0,
+    pulseLevel: 0,
+    liveAnchorLngLat: null,
+    liveAnchorProgressRatio: null,
+    recentRideCount7d: Math.max(server7d, opt.recentRideCount7d),
+  };
+}
+
+/** 종료 직후 지도 heat — Firestore·CF 반영 전 클라이언트 표시 */
+export function markCourseActivityRideCompletedOptimistic(courseId: string): CourseActivitySnapshot | null {
+  const id = courseId.trim();
+  if (!id) return null;
+  const prev = memoryCache.get(id) ?? rideCompletedOptimistic.get(id) ?? null;
+  const next: CourseActivitySnapshot = {
+    courseId: id,
+    activeRiderCount: 0,
+    recentRideCount7d: (prev?.recentRideCount7d ?? 0) + 1,
+    recentLikeCount: prev?.recentLikeCount ?? 0,
+    liveNow: false,
+    pulseLevel: 0,
+    updatedAtMs: Date.now(),
+    liveAnchorLngLat: null,
+    liveAnchorProgressRatio: null,
+  };
+  rideCompletedOptimistic.set(id, next);
+  memoryCache.set(id, next);
+  return next;
+}
 
 /** 저빈도 `getDoc` — 세션 캐시·in-flight 공유 */
 export async function fetchCourseActivity(courseId: string): Promise<CourseActivitySnapshot | null> {
@@ -84,9 +140,10 @@ export async function fetchCourseActivity(courseId: string): Promise<CourseActiv
       const parsed = snap.exists()
         ? parseCourseActivityDoc(id, snap.data() as Record<string, unknown>)
         : null;
-      memoryCache.set(id, parsed);
+      const merged = mergeRideCompletedOptimistic(id, parsed);
+      memoryCache.set(id, merged);
       inflight.delete(id);
-      return parsed;
+      return merged;
     })().catch((e) => {
       inflight.delete(id);
       throw e;
@@ -94,6 +151,23 @@ export async function fetchCourseActivity(courseId: string): Promise<CourseActiv
     inflight.set(id, pending);
   }
   return pending;
+}
+
+/** 지도 라이브 펄스 — 실제 주행자가 있을 때만(집계 `liveNow` 단독은 heat로 넘김) */
+export function isCourseActivityLive(activity: CourseActivitySnapshot): boolean {
+  return activity.liveNow && activity.activeRiderCount > 0;
+}
+
+/** 지도 heat(주행 종료 후 7일 흔적) — 라이브가 아니면 `recentRideCount7d`만으로 판정 */
+export function isCourseActivityHeat(activity: CourseActivitySnapshot): boolean {
+  if (isCourseActivityLive(activity)) return false;
+  return activity.recentRideCount7d > 0;
+}
+
+/** heat 점·선 시각 강도 1..5 */
+export function heatVisualWeight(recentRideCount7d: number): number {
+  if (!Number.isFinite(recentRideCount7d) || recentRideCount7d <= 0) return 1;
+  return Math.min(5, Math.max(1, Math.round(recentRideCount7d)));
 }
 
 /** 코스 목록 행용 짧은 배지 */
@@ -107,15 +181,41 @@ export function formatCourseActivityListBadge(activity: CourseActivitySnapshot |
   return null;
 }
 
+/** 맵 오버레이 폴링 시 aggregate 재조회(라이브 `liveNow` 반영) */
+export function invalidateCourseActivityCache(courseIds?: readonly string[]): void {
+  if (!courseIds?.length) {
+    memoryCache.clear();
+    return;
+  }
+  for (const id of courseIds) {
+    const key = id.trim();
+    if (key) memoryCache.delete(key);
+  }
+}
+
 /** 여러 코스 aggregate — 코스당 `getDoc` 1회(캐시·in-flight 공유) */
 export async function fetchCourseActivitiesBatch(
   courseIds: readonly string[],
+  options?: { refresh?: boolean },
 ): Promise<Map<string, CourseActivitySnapshot | null>> {
   const uniq = [...new Set(courseIds.map((id) => id.trim()).filter(Boolean))];
+  if (options?.refresh) invalidateCourseActivityCache(uniq);
   const pairs = await Promise.all(
     uniq.map(async (id) => [id, await fetchCourseActivity(id)] as const),
   );
   return new Map(pairs);
+}
+
+/** Activity World 지도 핀 탭 팝업 */
+export function formatActivityWorldPinPopup(
+  activity: CourseActivitySnapshot | null,
+  kind: "pulse" | "heat",
+): string {
+  const title = kind === "pulse" ? "라이브 코스" : "최근 활동";
+  const detail = formatCourseActivityHudLine(activity);
+  if (detail) return `${title}\n${detail}`;
+  if (kind === "pulse") return `${title}\n지금 이 코스에서 주행 중`;
+  return `${title}\n최근 7일 내 주행 흔적`;
 }
 
 export function formatCourseActivityHudLine(activity: CourseActivitySnapshot | null): string | null {

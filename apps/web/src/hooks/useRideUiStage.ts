@@ -17,7 +17,7 @@ export type RideUiStage =
   | "summary";
 
 export type RideUiStageInputs = {
-  /** 인증 카드(게스트/Google 선택)가 필요한 상태 */
+  /** 인증 게이트(미설정·부트·미로그인·로그아웃)가 필요한 상태 */
   needsAuthCard: boolean;
   /** Gmail 로그인 직후 닉네임 입력이 필요한 상태 */
   needsNicknameCard: boolean;

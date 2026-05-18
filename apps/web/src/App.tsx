@@ -29,7 +29,17 @@ import { AuthGateCard, AuthGoogleMark } from "./components/AuthGateCard";
 import { RideSummarySheet } from "./components/RideSummarySheet";
 import { MenuPanel } from "./components/MenuPanel";
 import { MenuPlaceSearch } from "./components/MenuPlaceSearch";
-import { TrailSwitcher } from "./components/TrailSwitcher";
+import { TrailHubPanel } from "./components/TrailHubPanel";
+import { useOpenTrails } from "./hooks/useOpenTrails";
+import { useTrailInstanceMeta } from "./hooks/useTrailInstanceMeta";
+import {
+  buildTrailRegionLabel,
+  closeTrailInstance,
+  createTrailInstance,
+  fetchTrailInstance,
+  setTrailVisibility,
+} from "./lib/firestoreTrailInstance";
+import { formatTrailDisplayNumber } from "./lib/trailDisplayNumber";
 import { RotateOverlay } from "./components/RotateOverlay";
 import { MapViewSheet } from "./components/MapViewSheet";
 import { UserInfoSheet } from "./components/UserInfoSheet";
@@ -45,6 +55,7 @@ import {
   BASIC_SHARED_HUB_IDS,
   BASIC_SHARED_HUB_SUMMARIES,
   ensureBasicCoursesSeeded,
+  fetchCourseRoutePayload,
   getBasicHubCoursePayload,
 } from "./lib/firestoreCourses";
 import { deleteCoursePresence } from "./lib/firestoreCoursePresence";
@@ -101,9 +112,7 @@ export default function App() {
   const {
     trailId,
     setTrailId,
-    trailDraft,
     setTrailDraft,
-    applyTrailFromDraft: commitTrailFromDraft,
   } = useAppTrail();
   const configured = isFirebaseConfigured();
   const {
@@ -112,16 +121,12 @@ export default function App() {
     error,
     fsSync,
     authInitialized,
-    postSignoutMapSession,
-    authSheetOpen,
-    setAuthSheetOpen,
-    authPickCardHidden,
-    setAuthPickCardHidden,
-    openSignedOutAuthSheet,
-    handleGuestStart,
+    authSigningIn,
+    userSignedOut,
+    beginAuthenticatedSession,
     handleGoogleSignIn,
     handleCompleteNickname,
-    completeFirebaseSignOutKeepMap,
+    completeFirebaseSignOut,
     setError,
     setBusy,
   } = useAppAuth(configured);
@@ -188,12 +193,30 @@ export default function App() {
   const pageVisible = useDocumentVisibility();
   const [worldHighlightedCourseIds, setWorldHighlightedCourseIds] = useState<string[]>([]);
   const [worldHudLines, setWorldHudLines] = useState<string | null>(null);
+  const [openTrailsRefreshNonce, setOpenTrailsRefreshNonce] = useState(0);
+  const [trailVisibilityBusy, setTrailVisibilityBusy] = useState(false);
+  const [trailStartBusy, setTrailStartBusy] = useState(false);
+  /** 이번 주행에서 호스트로 연 Trail — 종료 시 close */
+  const hostTrailIdRef = useRef<string | null>(null);
 
   const trailSession = useTrailSession({
     user: user ?? undefined,
     trailId,
     enabled: trailheadSessionActive,
     pageVisible,
+  });
+
+  const sanitizedTrailId = sanitizeTrailId(trailId);
+  const onDedicatedTrail = sanitizedTrailId !== DEFAULT_TRAIL_ID;
+
+  const { meta: currentTrailMeta, reload: reloadCurrentTrailMeta } = useTrailInstanceMeta(
+    sanitizedTrailId,
+    Boolean(configured && user && onDedicatedTrail),
+  );
+
+  const openTrailsQuery = useOpenTrails({
+    enabled: Boolean(configured && user && trailheadSessionActive && menuOpen),
+    refreshNonce: openTrailsRefreshNonce,
   });
   /** leaveBasicHub 등에서 최신 주행 종료 로직을 호출하기 위한 ref */
   const handleEndRideRef = useRef<() => void>(() => {});
@@ -370,7 +393,6 @@ export default function App() {
     onRideEndedWithCourse,
     onRidePersistedToFirestore,
   });
-  handleEndRideRef.current = handleEndRide;
 
   const {
     publishedPublicCourses,
@@ -676,12 +698,12 @@ export default function App() {
   );
 
   /**
-   * 같은 Trail(`trailId`) 주행자 위치 — idle·주행·일시정지 모두 `liveCourseRides` 구독.
-   * 다른 Trail 은 애초에 구독하지 않음. 동일 코스 동행 스프라이트는 `excludePeerIds`로 dots 중복 제거.
-   * 코스 단위 “살아 있음”은 `activityPulseRoutes` / `activityHeatRoutes`(aggregate)가 담당.
+   * 같은 Trail(`trailId`) 주행자만 `liveCourseRides` 실시간 위치.
+   * Trailhead(`default`)·다른 Trail 은 구독하지 않음 — 타 Trail 활동은 Activity World(aggregate)로만 인지.
    */
   const trailSpectatorOverlayEnabled = Boolean(
     trailheadSessionActive &&
+      onDedicatedTrail &&
       (rideStatus === "idle" || rideStatus === "running" || rideStatus === "paused") &&
       pageVisible,
   );
@@ -771,26 +793,163 @@ export default function App() {
     return avg.toFixed(1);
   }, [rideMetrics.accumulatedMs, rideMetrics.virtualDistanceMeters]);
 
-  /** URL·MENU Trail 전환 후 메뉴 닫고 지도에 집중(지명 선택과 동일한 습관) */
-  const applyTrailFromDraftAndCloseMenu = useCallback(() => {
-    commitTrailFromDraft();
-    setMenuOpen(false);
-  }, [commitTrailFromDraft]);
-
-  const goTrailheadAndCloseMenu = useCallback(() => {
+  const returnToTrailhead = useCallback(() => {
     const tid = DEFAULT_TRAIL_ID;
     setTrailDraft(tid);
     setTrailId(tid);
     replaceTrailInUrl(tid);
-    setMenuOpen(false);
+    hostTrailIdRef.current = null;
+    setOpenTrailsRefreshNonce((n) => n + 1);
   }, [setTrailDraft, setTrailId]);
 
+  const goTrailheadAndCloseMenu = useCallback(() => {
+    returnToTrailhead();
+    setMenuOpen(false);
+  }, [returnToTrailhead]);
+
+  const loadCourseRouteForTrailJoin = useCallback(
+    async (courseId: string) => {
+      if ((BASIC_SHARED_HUB_IDS as readonly string[]).includes(courseId)) {
+        await enterBasicHub(courseId);
+        return;
+      }
+      const payload = configured ? await fetchCourseRoutePayload(courseId).catch(() => null) : null;
+      if (!payload?.geometry?.coordinates?.length) {
+        setRouteSummary(`Trail 코스(${courseId}) 경로를 불러오지 못했습니다.`);
+        return;
+      }
+      const coords = payload.geometry.coordinates;
+      resetRide();
+      setRouteGeometry(payload.geometry);
+      setStartLngLat(coords[0] ?? null);
+      setEndLngLat(coords[coords.length - 1] ?? null);
+      setRouteWaypoints([]);
+      setProfile(payload.profile);
+      setRouteDistanceMeters(payload.distanceMeters);
+      setRouteDurationSec(payload.durationSec);
+      setActiveOfficialCourseId(courseId);
+      setBasicActiveHubCourseId(null);
+      setPlaceSearchMarkerLngLat(null);
+      setRouteSummary(
+        `Trail 합류 · ${payload.title} · ${(payload.distanceMeters / 1000).toFixed(2)} km`,
+      );
+    },
+    [
+      configured,
+      enterBasicHub,
+      resetRide,
+      setRouteGeometry,
+      setStartLngLat,
+      setEndLngLat,
+      setRouteWaypoints,
+      setProfile,
+      setRouteDistanceMeters,
+      setRouteDurationSec,
+      setActiveOfficialCourseId,
+      setBasicActiveHubCourseId,
+      setPlaceSearchMarkerLngLat,
+      setRouteSummary,
+    ],
+  );
+
+  const joinTrailAndCloseMenu = useCallback(
+    (nextTrailId: string) => {
+      if (rideStatus !== "idle") {
+        setRouteSummary("주행 중에는 Trail을 바꿀 수 없습니다.");
+        return;
+      }
+      const next = sanitizeTrailId(nextTrailId);
+      if (next === DEFAULT_TRAIL_ID) return;
+      void (async () => {
+        const meta = await fetchTrailInstance(next).catch(() => null);
+        if (meta?.courseId) {
+          await loadCourseRouteForTrailJoin(meta.courseId);
+        }
+        hostTrailIdRef.current = null;
+        setTrailDraft(next);
+        setTrailId(next);
+        replaceTrailInUrl(next);
+        setMenuOpen(false);
+      })();
+    },
+    [rideStatus, setRouteSummary, setTrailDraft, setTrailId, loadCourseRouteForTrailJoin],
+  );
+
+  const handleSetTrailVisibility = useCallback(
+    (visibility: "open" | "private") => {
+      if (!currentTrailMeta || !user || currentTrailMeta.hostUid !== user.uid) return;
+      setTrailVisibilityBusy(true);
+      void setTrailVisibility(currentTrailMeta.id, visibility)
+        .then(() => reloadCurrentTrailMeta())
+        .catch((e: unknown) => {
+          const message = e instanceof Error ? e.message : String(e);
+          setError(message);
+        })
+        .finally(() => setTrailVisibilityBusy(false));
+    },
+    [currentTrailMeta, user, reloadCurrentTrailMeta, setError],
+  );
+
   function handleStartRide() {
-    if (!routeGeometry || rideStatus !== "idle") return;
-    resetArrivalGate();
-    resetRide();
-    setRideStatus("running");
+    if (!routeGeometry || rideStatus !== "idle" || !user || !configured || trailStartBusy) return;
+    setTrailStartBusy(true);
+    const courseId = basicActiveHubCourseId ?? activeOfficialCourseId;
+    const courseTitle = courseId
+      ? (BASIC_SHARED_HUB_IDS as readonly string[]).includes(courseId)
+        ? getBasicHubCoursePayload(courseId).title
+        : (publishedPublicCourses.find((c) => c.id === courseId)?.title ?? null)
+      : null;
+    const regionLabel = buildTrailRegionLabel({
+      startPlaceLabel,
+      endPlaceLabel,
+      courseTitle,
+    });
+    void (async () => {
+      try {
+        const trail = await createTrailInstance({
+          hostUid: user.uid,
+          courseId,
+          regionLabel,
+          distanceKm: routeDistanceMeters > 0 ? routeDistanceMeters / 1000 : null,
+          visibility: "open",
+        });
+        hostTrailIdRef.current = trail.id;
+        const prev = sanitizeTrailId(trailId);
+        if (prev !== trail.id) {
+          await deleteTrailPresence(user.uid, prev).catch(() => {});
+        }
+        setTrailId(trail.id);
+        setTrailDraft(trail.id);
+        replaceTrailInUrl(trail.id);
+        setOpenTrailsRefreshNonce((n) => n + 1);
+        resetArrivalGate();
+        resetRide();
+        setRideStatus("running");
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : String(e);
+        setError(message);
+      } finally {
+        setTrailStartBusy(false);
+      }
+    })();
   }
+
+  const handleEndRideWithTrailCleanup = useCallback(() => {
+    const endedTrailId = sanitizeTrailId(trailId);
+    const uid = user?.uid ?? null;
+    const wasHostTrail = hostTrailIdRef.current === endedTrailId;
+    handleEndRide();
+    void (async () => {
+      if (uid && wasHostTrail && endedTrailId !== DEFAULT_TRAIL_ID) {
+        await closeTrailInstance(endedTrailId).catch(() => {});
+      }
+      returnToTrailhead();
+    })();
+  }, [trailId, user?.uid, handleEndRide, returnToTrailhead]);
+
+  useEffect(() => {
+    handleEndRideRef.current = handleEndRideWithTrailCleanup;
+  }, [handleEndRideWithTrailCleanup]);
 
   function handlePause() {
     if (rideStatus !== "running") return;
@@ -814,7 +973,7 @@ export default function App() {
     if (lastEndedWasAdhoc) setSummarySheetVisible(true);
   }, [lastEndedWasAdhoc]);
 
-  /** Trailhead·코스 정리 후 Firebase 로그아웃 — 맵은 유지하고 우측 상단「로그인」으로 재인증(게스트·Google 공통) */
+  /** Trailhead·코스 정리 후 Firebase 로그아웃 — 맵·기능 없이 앱 이탈(재진입은 게이트에서) */
   async function handleServiceExit() {
     setError(null);
     setBusy(true);
@@ -835,7 +994,7 @@ export default function App() {
       }
       setBasicActiveHubCourseId(null);
       reloadRecentSessionsFromLocalStorage();
-      await completeFirebaseSignOutKeepMap();
+      await completeFirebaseSignOut();
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
       setError(message);
@@ -884,8 +1043,7 @@ export default function App() {
 
   // ===== Map-first stage 머신 =====
   const summaryVisible = summarySheetVisible && (arrivalToastTick > 0 || lastEndedWasAdhoc !== null);
-  const needsAuthCard =
-    !configured || (configured && authInitialized && !user && !postSignoutMapSession);
+  const needsAuthCard = !configured || !authInitialized || !user;
   const needsNicknameCard =
     configured && Boolean(user) && !user!.isAnonymous && fsSync.state === "awaiting_nickname";
   const stage = useRideUiStage({
@@ -945,10 +1103,6 @@ export default function App() {
     setUserInfoSheetOpen(false);
     setRideSettingsSheetOpen(true);
   }, []);
-
-  useEffect(() => {
-    if (!needsAuthCard) setAuthPickCardHidden(false);
-  }, [needsAuthCard]);
 
   // ===== Map-first 핸들러 =====
   function handleMenuPlacePick(lngLat: LngLat, _placeName: string, _bbox: [number, number, number, number] | null) {
@@ -1051,9 +1205,17 @@ export default function App() {
     }));
     const trailError = trailSession.error;
     const courseActivityHudLine = formatCourseActivityHudLine(courseActivity);
+    const tid = sanitizeTrailId(trailId);
+    const trailDisplayLabel =
+      tid === DEFAULT_TRAIL_ID
+        ? "Trailhead"
+        : currentTrailMeta
+          ? formatTrailDisplayNumber(currentTrailMeta.displayNumber)
+          : tid.slice(0, 8);
     return {
       trailheadEnabled: true,
-      trailId: sanitizeTrailId(trailId),
+      trailId: tid,
+      trailDisplayLabel,
       trailMembers,
       trailError,
       courseTitle,
@@ -1064,6 +1226,7 @@ export default function App() {
     configured,
     user,
     trailId,
+    currentTrailMeta,
     trailSession.rows,
     trailSession.error,
     basicActiveHubCourseId,
@@ -1157,10 +1320,7 @@ geom ${catalogActivityOverlayStats.geometryReady}/${catalogActivityOverlayStats.
           account={accountChip}
           onOpenUserInfo={openUserInfoPanel}
           userInfoOpen={userInfoSheetOpen}
-          onOpenSignedOutAuth={
-            configured && authInitialized && !user ? openSignedOutAuthSheet : undefined
-          }
-          authGateVisualDismissed={authPickCardHidden}
+          authGateVisualDismissed={needsAuthCard}
           onOpenMapView={openMapViewPanel}
           mapViewOpen={mapViewSheetOpen}
           idleHintMessage="입문: MENU → 입문 코스 → 주행 시작"
@@ -1179,9 +1339,9 @@ geom ${catalogActivityOverlayStats.geometryReady}/${catalogActivityOverlayStats.
           onStartRide={handleStartRide}
           onPauseRide={handlePause}
           onResumeRide={handleResume}
-          onEndRide={handleEndRide}
+          onEndRide={handleEndRideWithTrailCleanup}
           onResumeFromPause={handleResume}
-          onEndFromPause={handleEndRide}
+          onEndFromPause={handleEndRideWithTrailCleanup}
           onModifyFromPause={handleModifyFromPause}
           showIdleHint={stage === "idle" && !idleHintDismissed}
           onDismissIdleHint={() => setIdleHintDismissed(true)}
@@ -1230,12 +1390,17 @@ geom ${catalogActivityOverlayStats.geometryReady}/${catalogActivityOverlayStats.
         }}
         onOpenSettings={openRideSettingsPanel}
       >
-        <TrailSwitcher
-          trailDraft={trailDraft}
-          onDraftChange={setTrailDraft}
-          activeTrailId={sanitizeTrailId(trailId)}
-          onApply={applyTrailFromDraftAndCloseMenu}
+        <TrailHubPanel
+          user={user}
+          activeTrailId={sanitizedTrailId}
+          currentTrail={currentTrailMeta}
+          openTrails={openTrailsQuery.rows}
+          openTrailsLoading={openTrailsQuery.loading}
+          openTrailsError={openTrailsQuery.error}
           onGoTrailhead={goTrailheadAndCloseMenu}
+          onJoinTrail={joinTrailAndCloseMenu}
+          onSetVisibility={handleSetTrailVisibility}
+          visibilityBusy={trailVisibilityBusy}
         />
         <MenuPlaceSearch
           accessToken={MAPBOX_TOKEN}
@@ -1380,63 +1545,49 @@ geom ${catalogActivityOverlayStats.geometryReady}/${catalogActivityOverlayStats.
         />
       ) : null}
 
-      {stage === "gate" && !authPickCardHidden ? (
+      {stage === "gate" ? (
         <AuthGateCard>
           {!configured ? (
             <p className="meta tight">Firebase 설정 필요</p>
-          ) : !authInitialized ? (
+          ) : !authInitialized || authSigningIn ? (
             <p className="meta tight">연결 중…</p>
+          ) : userSignedOut ? (
+            <>
+              <p className="meta tight">로그아웃되었습니다.</p>
+              <div className="auth-actions auth-actions--gate">
+                <button
+                  type="button"
+                  className="btn primary"
+                  disabled={busy}
+                  onClick={() => void beginAuthenticatedSession()}
+                >
+                  {busy ? "…" : "다시 시작"}
+                </button>
+                <button
+                  type="button"
+                  className="btn secondary auth-gate-google"
+                  disabled={busy}
+                  title="Sign in with Google"
+                  onClick={() => void handleGoogleSignIn()}
+                >
+                  <AuthGoogleMark />
+                  Google
+                </button>
+              </div>
+            </>
           ) : (
-            <div className="auth-actions auth-actions--gate">
+            <>
+              <p className="meta tight">서비스에 연결할 수 없습니다.</p>
               <button
                 type="button"
-                className="btn secondary"
+                className="btn primary"
                 disabled={busy}
-                title="Continue as guest"
-                onClick={() => void handleGuestStart()}
+                onClick={() => void beginAuthenticatedSession()}
               >
-                {busy ? "…" : "게스트"}
+                {busy ? "…" : "다시 시도"}
               </button>
-              <button
-                type="button"
-                className="btn primary auth-gate-google"
-                title="Sign in with Google"
-                onClick={() => void handleGoogleSignIn()}
-              >
-                <AuthGoogleMark />
-                Google
-              </button>
-            </div>
+            </>
           )}
-          {error ? <p className="error tight">{error}</p> : null}
-        </AuthGateCard>
-      ) : null}
-
-      {authSheetOpen && configured && authInitialized && !user ? (
-        <AuthGateCard
-          title="로그인"
-          onDismiss={() => setAuthSheetOpen(false)}
-        >
-          <div className="auth-actions auth-actions--gate">
-            <button
-              type="button"
-              className="btn secondary"
-              disabled={busy}
-              title="Continue as guest"
-              onClick={() => void handleGuestStart()}
-            >
-              {busy ? "…" : "게스트"}
-            </button>
-            <button
-              type="button"
-              className="btn primary auth-gate-google"
-              title="Sign in with Google"
-              onClick={() => void handleGoogleSignIn()}
-            >
-              <AuthGoogleMark />
-              Google
-            </button>
-          </div>
           {error ? <p className="error tight">{error}</p> : null}
         </AuthGateCard>
       ) : null}

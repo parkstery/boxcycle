@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { CoverageOverlayMode } from "../lib/coverageOverlayMode";
 import { COVERAGE_OVERLAY_OPTIONS } from "../lib/coverageOverlayMode";
+import { MAP_GLOBE_MIN_ZOOM, MAP_ZOOM_SLIDER_MAX } from "../lib/mapGlobeView";
 import type { FollowMode } from "./RideRoutePanel";
 import "./MapViewSheet.css";
 
@@ -210,7 +211,7 @@ export function MapViewSheet(props: MapViewSheetProps) {
               aria-label="줌 한 단계 축소"
               onClick={() => {
                 const z = Math.round((props.mapZoom - 1) * 10) / 10;
-                props.onMapZoom(Math.max(3, z));
+                props.onMapZoom(Math.max(MAP_GLOBE_MIN_ZOOM, z));
               }}
             >
               −
@@ -225,7 +226,7 @@ export function MapViewSheet(props: MapViewSheetProps) {
               aria-label="줌 한 단계 확대"
               onClick={() => {
                 const z = Math.round((props.mapZoom + 1) * 10) / 10;
-                props.onMapZoom(Math.min(20, z));
+                props.onMapZoom(Math.min(MAP_ZOOM_SLIDER_MAX, z));
               }}
             >
               +
@@ -233,10 +234,10 @@ export function MapViewSheet(props: MapViewSheetProps) {
             <input
               type="range"
               className="map-view-sheet__range"
-              min={3}
-              max={20}
+              min={MAP_GLOBE_MIN_ZOOM}
+              max={MAP_ZOOM_SLIDER_MAX}
               step={0.1}
-              value={props.mapZoom}
+              value={Math.min(MAP_ZOOM_SLIDER_MAX, Math.max(MAP_GLOBE_MIN_ZOOM, props.mapZoom))}
               onChange={(e) => props.onMapZoom(Number(e.target.value))}
               aria-label={`줌 ${props.mapZoom.toFixed(1)}`}
             />

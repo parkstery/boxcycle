@@ -11,8 +11,12 @@ import {
   signOut,
   updateProfile,
 } from "firebase/auth";
-import { startTransition, useCallback, useEffect, useState } from "react";
-import { POST_SIGNOUT_MAP_SESSION_KEY, readPostSignoutMapSessionFlag } from "../lib/appSessionKeys";
+import { startTransition, useCallback, useEffect, useRef, useState } from "react";
+import {
+  clearUserSignedOutSessionFlag,
+  readUserSignedOutSessionFlag,
+  setUserSignedOutSessionFlag,
+} from "../lib/appSessionKeys";
 import { isBenignAuthPopupCancel } from "../lib/firebaseAuthPopup";
 import { getFirebaseAuth } from "../lib/firebase";
 import {
@@ -30,8 +34,8 @@ export type FsSyncState =
   | { state: "error"; message: string };
 
 /**
- * Firebase Auth, Firestore 프로필 닉네임 동기(fsSync), 로그인 시트·게스트/Google 핸들러.
- * 로그아웃 전 로비/주행 정리는 호출 측에서 한 뒤 `completeFirebaseSignOutKeepMap`만 호출한다.
+ * Firebase Auth, Firestore 프로필 닉네임 동기(fsSync), 자동 익명 진입·Google·로그아웃.
+ * 로그아웃 전 로비/주행 정리는 호출 측에서 한 뒤 `completeFirebaseSignOut`만 호출한다.
  */
 export function useAppAuth(configured: boolean) {
   const [user, setUser] = useState<User | null>(null);
@@ -39,21 +43,17 @@ export function useAppAuth(configured: boolean) {
   const [error, setError] = useState<string | null>(null);
   const [fsSync, setFsSync] = useState<FsSyncState>({ state: "idle" });
   const [authInitialized, setAuthInitialized] = useState(false);
-  const [postSignoutMapSession, setPostSignoutMapSession] = useState(readPostSignoutMapSessionFlag);
-  const [authSheetOpen, setAuthSheetOpen] = useState(false);
-  const [authPickCardHidden, setAuthPickCardHidden] = useState(false);
+  const [authSigningIn, setAuthSigningIn] = useState(false);
+  const [userSignedOut, setUserSignedOut] = useState(readUserSignedOutSessionFlag);
+  const autoSignInStartedRef = useRef(false);
 
   useEffect(() => {
     if (!user) {
       return;
     }
-    try {
-      sessionStorage.removeItem(POST_SIGNOUT_MAP_SESSION_KEY);
-    } catch {
-      /* noop */
-    }
-    setPostSignoutMapSession(false);
-    setAuthSheetOpen(false);
+    clearUserSignedOutSessionFlag();
+    setUserSignedOut(false);
+    autoSignInStartedRef.current = false;
   }, [user]);
 
   useEffect(() => {
@@ -67,6 +67,39 @@ export function useAppAuth(configured: boolean) {
     });
     return () => unsub();
   }, [configured]);
+
+  useEffect(() => {
+    if (!configured || !authInitialized || user) {
+      return;
+    }
+    if (readUserSignedOutSessionFlag()) {
+      setUserSignedOut(true);
+      return;
+    }
+    if (autoSignInStartedRef.current) {
+      return;
+    }
+    autoSignInStartedRef.current = true;
+    let cancelled = false;
+    setAuthSigningIn(true);
+    setError(null);
+    void (async () => {
+      try {
+        await signInAnonymously(getFirebaseAuth());
+      } catch (e: unknown) {
+        if (!cancelled) {
+          autoSignInStartedRef.current = false;
+          const message = e instanceof Error ? e.message : String(e);
+          setError(`익명 로그인 실패: ${message}`);
+        }
+      } finally {
+        if (!cancelled) setAuthSigningIn(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [configured, authInitialized, user]);
 
   useEffect(() => {
     if (!configured || !user) {
@@ -114,36 +147,28 @@ export function useAppAuth(configured: boolean) {
     };
   }, [configured, user]);
 
-  const openSignedOutAuthSheet = useCallback(() => {
-    setBusy(false);
-    setAuthSheetOpen(true);
-  }, []);
-
-  const handleGuestStart = useCallback(async () => {
-    if (!postSignoutMapSession) {
-      setAuthSheetOpen(false);
-    }
-    setAuthPickCardHidden(true);
+  const beginAuthenticatedSession = useCallback(async () => {
+    clearUserSignedOutSessionFlag();
+    setUserSignedOut(false);
+    autoSignInStartedRef.current = false;
     setError(null);
     setBusy(true);
     try {
       await signInAnonymously(getFirebaseAuth());
     } catch (e: unknown) {
-      setAuthPickCardHidden(false);
-      if (postSignoutMapSession) setAuthSheetOpen(true);
       const message = e instanceof Error ? e.message : String(e);
-      setError(`게스트(익명) 로그인 실패: ${message}`);
+      setError(`익명 로그인 실패: ${message}`);
+      throw e;
     } finally {
       setBusy(false);
     }
-  }, [postSignoutMapSession]);
+  }, []);
 
   const handleGoogleSignIn = useCallback(async () => {
-    if (!postSignoutMapSession) {
-      setAuthSheetOpen(false);
-    }
-    setAuthPickCardHidden(true);
+    clearUserSignedOutSessionFlag();
+    setUserSignedOut(false);
     setError(null);
+    setBusy(true);
     try {
       const auth = getFirebaseAuth();
       const provider = new GoogleAuthProvider();
@@ -177,12 +202,8 @@ export function useAppAuth(configured: boolean) {
       }
     } catch (e: unknown) {
       if (isBenignAuthPopupCancel(e)) {
-        setAuthPickCardHidden(false);
-        if (postSignoutMapSession) setAuthSheetOpen(true);
         return;
       }
-      setAuthPickCardHidden(false);
-      if (postSignoutMapSession) setAuthSheetOpen(true);
       const err = e as { code?: string; message?: string };
       if (err.code === "auth/account-exists-with-different-credential") {
         setError(
@@ -191,8 +212,10 @@ export function useAppAuth(configured: boolean) {
       } else {
         setError(e instanceof Error ? e.message : String(e));
       }
+    } finally {
+      setBusy(false);
     }
-  }, [postSignoutMapSession]);
+  }, []);
 
   const handleCompleteNickname = useCallback(
     async (nickname: string) => {
@@ -225,24 +248,16 @@ export function useAppAuth(configured: boolean) {
     [user],
   );
 
-  /** 세션 플래그 + `signOut`만(실패 시 플래그 롤백). 로비 정리 등은 호출 전에 끝낸다. */
-  const completeFirebaseSignOutKeepMap = useCallback(async () => {
-    setAuthSheetOpen(false);
-    try {
-      sessionStorage.setItem(POST_SIGNOUT_MAP_SESSION_KEY, "1");
-    } catch {
-      /* noop */
-    }
-    setPostSignoutMapSession(true);
+  /** 로그아웃 = 세션 종료(맵·기능 없음). 자동 익명 재진입은 `beginAuthenticatedSession`으로만. */
+  const completeFirebaseSignOut = useCallback(async () => {
+    autoSignInStartedRef.current = false;
+    setUserSignedOutSessionFlag();
+    setUserSignedOut(true);
     try {
       await signOut(getFirebaseAuth());
     } catch (signOutErr) {
-      try {
-        sessionStorage.removeItem(POST_SIGNOUT_MAP_SESSION_KEY);
-      } catch {
-        /* noop */
-      }
-      setPostSignoutMapSession(false);
+      clearUserSignedOutSessionFlag();
+      setUserSignedOut(false);
       throw signOutErr;
     }
   }, []);
@@ -253,16 +268,12 @@ export function useAppAuth(configured: boolean) {
     error,
     fsSync,
     authInitialized,
-    postSignoutMapSession,
-    authSheetOpen,
-    setAuthSheetOpen,
-    authPickCardHidden,
-    setAuthPickCardHidden,
-    openSignedOutAuthSheet,
-    handleGuestStart,
+    authSigningIn,
+    userSignedOut,
+    beginAuthenticatedSession,
     handleGoogleSignIn,
     handleCompleteNickname,
-    completeFirebaseSignOutKeepMap,
+    completeFirebaseSignOut,
     setError,
     setBusy,
   };

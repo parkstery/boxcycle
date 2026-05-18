@@ -9,7 +9,6 @@ type TrailSwitcherProps = {
   onApply: () => void;
   /** 기본 Trail(`default`) = Trailhead 허브 */
   onGoTrailhead: () => void;
-  presenceSyncPossible: boolean;
 };
 
 export function TrailSwitcher(props: TrailSwitcherProps) {
@@ -64,15 +63,6 @@ export function TrailSwitcher(props: TrailSwitcherProps) {
           이동
         </button>
       </div>
-      <p className="trail-switcher__hint">
-        {TRAILHEAD_LABEL} = Trail <strong>{DEFAULT_TRAIL_ID}</strong> · 다른 번호는 Trail 이동 · URL{" "}
-        <code>?trail=</code>
-      </p>
-      {!props.presenceSyncPossible ? (
-        <p className="trail-switcher__note">
-          로그인·Firebase 연결 시 접속자 목록이 이 Trail 기준으로 갱신됩니다.
-        </p>
-      ) : null}
     </div>
   );
 }
@@ -83,7 +73,6 @@ export function RoomSwitcher(props: {
   onDraftChange: (value: string) => void;
   activeRoomId: string;
   onApply: () => void;
-  presenceSyncPossible: boolean;
 }) {
   return (
     <TrailSwitcher
@@ -95,7 +84,6 @@ export function RoomSwitcher(props: {
         props.onDraftChange(DEFAULT_TRAIL_ID);
         props.onApply();
       }}
-      presenceSyncPossible={props.presenceSyncPossible}
     />
   );
 }

@@ -4,8 +4,10 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import {
   lngLatBoundsToViewport,
   viewportSpanKm,
+  type ActivityWorldMapRoute,
   type MapViewportBounds,
 } from "../lib/activityWorldLod";
+import { ACTIVITY_TRACE_RED } from "../lib/activityWorldTraceStyle";
 import type { LngLat, LineStringGeometry } from "../lib/geo";
 import {
   getDistanceMeters,
@@ -32,6 +34,8 @@ import {
 } from "../lib/peerRidersDrive";
 import { applyCoverageOverlayMode } from "../services/coverageOverlaySync";
 import type { TrailSpectatorDot } from "../hooks/useTrailLiveCourseRideSpectatorOverlay";
+import { MapZoomGlobeControl } from "./map/MapZoomGlobeControl";
+import { MAP_GLOBE_MIN_ZOOM } from "../lib/mapGlobeView";
 import "./MapView.css";
 
 /** 로비 관전: 다른 사용자 코스 진행률 기반(geometry 는 로컬 로드, Firestore 는 진행률만). */
@@ -59,7 +63,9 @@ const ACTIVITY_PULSE_SRC = "boxcycle-activity-pulse-routes";
 const ACTIVITY_PULSE_GLOW = "boxcycle-activity-pulse-routes-glow";
 const ACTIVITY_PULSE_LINE = "boxcycle-activity-pulse-routes-line";
 const ACTIVITY_HEAT_SRC = "boxcycle-activity-heat-routes";
+const ACTIVITY_HEAT_GLOW = "boxcycle-activity-heat-routes-glow";
 const ACTIVITY_HEAT_LINE = "boxcycle-activity-heat-routes-line";
+const ACTIVITY_HEAT_DOTS_GLOW = "boxcycle-activity-heat-dots-glow";
 const ACTIVITY_PULSE_DOTS_SRC = "boxcycle-activity-pulse-dots";
 const ACTIVITY_PULSE_DOTS_GLOW = "boxcycle-activity-pulse-dots-glow";
 const ACTIVITY_PULSE_DOTS_LAYER = "boxcycle-activity-pulse-dots-layer";
@@ -70,7 +76,33 @@ type ActivityWorldDotFeature = {
   courseId: string;
   lngLat: LngLat;
   pulseLevel: number;
+  recentRideCount7d?: number;
+  traceStrength: number;
 };
+
+/** Mapbox paint — feature `traceStrength` (0.3..1) */
+const TRACE_STRENGTH_MULT: mapboxgl.ExpressionSpecification = [
+  "coalesce",
+  ["get", "traceStrength"],
+  0.5,
+];
+
+function moveActivityWorldDotLayersToTop(map: mapboxgl.Map): void {
+  for (const id of [
+    ACTIVITY_PULSE_DOTS_GLOW,
+    ACTIVITY_PULSE_DOTS_LAYER,
+    ACTIVITY_HEAT_DOTS_GLOW,
+    ACTIVITY_HEAT_DOTS_LAYER,
+  ]) {
+    if (map.getLayer(id)) {
+      try {
+        map.moveLayer(id);
+      } catch {
+        /* style switching */
+      }
+    }
+  }
+}
 
 function syncActivityWorldDotLayers(
   map: mapboxgl.Map,
@@ -84,7 +116,11 @@ function syncActivityWorldDotLayers(
     features: pulseDots.map((d) => ({
       type: "Feature" as const,
       id: `act-pd-${d.courseId}`,
-      properties: { courseId: d.courseId, pulseLevel: d.pulseLevel },
+      properties: {
+        courseId: d.courseId,
+        pulseLevel: d.pulseLevel,
+        traceStrength: d.traceStrength,
+      },
       geometry: { type: "Point" as const, coordinates: d.lngLat },
     })),
   };
@@ -93,84 +129,109 @@ function syncActivityWorldDotLayers(
     features: heatDots.map((d) => ({
       type: "Feature" as const,
       id: `act-hd-${d.courseId}`,
-      properties: { courseId: d.courseId },
+      properties: {
+        courseId: d.courseId,
+        heatWeight: d.pulseLevel > 0 ? d.pulseLevel : 1,
+        recent7d: d.recentRideCount7d ?? 0,
+        traceStrength: d.traceStrength,
+      },
       geometry: { type: "Point" as const, coordinates: d.lngLat },
     })),
   };
-  const beforeRoute = map.getLayer("route") ? "route" : undefined;
-
   try {
     if (!map.getSource(ACTIVITY_PULSE_DOTS_SRC)) {
       map.addSource(ACTIVITY_PULSE_DOTS_SRC, { type: "geojson", data: pulseFc });
-      map.addLayer(
-        {
-          id: ACTIVITY_PULSE_DOTS_GLOW,
-          type: "circle",
-          source: ACTIVITY_PULSE_DOTS_SRC,
-          paint: {
-            "circle-radius": [
-              "interpolate",
-              ["linear"],
-              ["zoom"],
-              4,
-              ["+", 6, ["*", ["get", "pulseLevel"], 2]],
-              10,
-              ["+", 10, ["*", ["get", "pulseLevel"], 2.5]],
-            ],
-            "circle-color": "#ffffff",
-            "circle-opacity": ["interpolate", ["linear"], ["zoom"], 4, 0.5, 10, 0.72],
-            "circle-blur": 0.55,
-          },
+      map.addLayer({
+        id: ACTIVITY_PULSE_DOTS_GLOW,
+        type: "circle",
+        source: ACTIVITY_PULSE_DOTS_SRC,
+        paint: {
+          "circle-radius": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            3,
+            ["+", 10, ["*", ["get", "pulseLevel"], 3]],
+            8,
+            ["+", 12, ["*", ["get", "pulseLevel"], 2.5]],
+            12,
+            ["+", 8, ["*", ["get", "pulseLevel"], 2]],
+          ],
+          "circle-color": "#ffffff",
+          "circle-opacity": ["interpolate", ["linear"], ["zoom"], 4, 0.5, 10, 0.72],
+          "circle-blur": 0.55,
         },
-        beforeRoute,
-      );
-      map.addLayer(
-        {
-          id: ACTIVITY_PULSE_DOTS_LAYER,
-          type: "circle",
-          source: ACTIVITY_PULSE_DOTS_SRC,
-          paint: {
-            "circle-radius": [
-              "interpolate",
-              ["linear"],
-              ["zoom"],
-              4,
-              ["+", 3.5, ["*", ["get", "pulseLevel"], 1.2]],
-              10,
-              ["+", 6, ["*", ["get", "pulseLevel"], 1.5]],
-            ],
-            "circle-color": "#22c55e",
-            "circle-stroke-width": 1.6,
-            "circle-stroke-color": "#ffffff",
-            "circle-opacity": 0.94,
-          },
+      });
+      map.addLayer({
+        id: ACTIVITY_PULSE_DOTS_LAYER,
+        type: "circle",
+        source: ACTIVITY_PULSE_DOTS_SRC,
+        paint: {
+          "circle-radius": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            4,
+            ["+", 5, ["*", ["get", "pulseLevel"], 1.5]],
+            10,
+            ["+", 7, ["*", ["get", "pulseLevel"], 1.5]],
+          ],
+          "circle-color": ACTIVITY_TRACE_RED,
+          "circle-stroke-width": 1.6,
+          "circle-stroke-color": "#ffffff",
+          "circle-opacity": ["*", 0.94, TRACE_STRENGTH_MULT],
         },
-        beforeRoute,
-      );
+      });
     } else {
       (map.getSource(ACTIVITY_PULSE_DOTS_SRC) as mapboxgl.GeoJSONSource).setData(pulseFc);
     }
 
     if (!map.getSource(ACTIVITY_HEAT_DOTS_SRC)) {
       map.addSource(ACTIVITY_HEAT_DOTS_SRC, { type: "geojson", data: heatFc });
-      map.addLayer(
-        {
-          id: ACTIVITY_HEAT_DOTS_LAYER,
-          type: "circle",
-          source: ACTIVITY_HEAT_DOTS_SRC,
-          paint: {
-            "circle-radius": ["interpolate", ["linear"], ["zoom"], 4, 2.5, 10, 4.5],
-            "circle-color": "#94a3b8",
-            "circle-stroke-width": 1,
-            "circle-stroke-color": "#e2e8f0",
-            "circle-opacity": 0.72,
-          },
+      map.addLayer({
+        id: ACTIVITY_HEAT_DOTS_GLOW,
+        type: "circle",
+        source: ACTIVITY_HEAT_DOTS_SRC,
+        paint: {
+          "circle-radius": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            4,
+            ["+", 6, ["*", ["get", "heatWeight"], 1.2]],
+            10,
+            ["+", 9, ["*", ["get", "heatWeight"], 1.5]],
+          ],
+          "circle-color": ACTIVITY_TRACE_RED,
+          "circle-opacity": ["*", 0.4, TRACE_STRENGTH_MULT],
+          "circle-blur": 0.5,
         },
-        beforeRoute,
-      );
+      });
+      map.addLayer({
+        id: ACTIVITY_HEAT_DOTS_LAYER,
+        type: "circle",
+        source: ACTIVITY_HEAT_DOTS_SRC,
+        paint: {
+          "circle-radius": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            4,
+            ["+", 3.5, ["*", ["get", "heatWeight"], 1]],
+            10,
+            ["+", 5.5, ["*", ["get", "heatWeight"], 1.2]],
+          ],
+          "circle-color": ACTIVITY_TRACE_RED,
+          "circle-stroke-width": 1.4,
+          "circle-stroke-color": "#ffffff",
+          "circle-opacity": ["*", 0.88, TRACE_STRENGTH_MULT],
+        },
+      });
     } else {
       (map.getSource(ACTIVITY_HEAT_DOTS_SRC) as mapboxgl.GeoJSONSource).setData(heatFc);
     }
+
+    moveActivityWorldDotLayersToTop(map);
   } catch (e) {
     console.warn("[MapView] activity world dot layers", e);
   }
@@ -178,27 +239,27 @@ function syncActivityWorldDotLayers(
 
 function syncCourseActivityLayers(
   map: mapboxgl.Map,
-  pulseRoutes: readonly LineStringGeometry[],
-  heatRoutes: readonly LineStringGeometry[],
+  pulseRoutes: readonly ActivityWorldMapRoute[],
+  heatRoutes: readonly ActivityWorldMapRoute[],
 ): void {
   if (!map.isStyleLoaded()) return;
 
   const pulseFc = {
     type: "FeatureCollection" as const,
-    features: pulseRoutes.map((geometry, i) => ({
+    features: pulseRoutes.map((seg, i) => ({
       type: "Feature" as const,
-      id: `act-p-${i}`,
-      properties: { i },
-      geometry,
+      id: `act-p-${seg.courseId}-${i}`,
+      properties: { courseId: seg.courseId, traceStrength: seg.traceStrength },
+      geometry: seg.geometry,
     })),
   };
   const heatFc = {
     type: "FeatureCollection" as const,
-    features: heatRoutes.map((geometry, i) => ({
+    features: heatRoutes.map((seg, i) => ({
       type: "Feature" as const,
-      id: `act-h-${i}`,
-      properties: { i },
-      geometry,
+      id: `act-h-${seg.courseId}-${i}`,
+      properties: { courseId: seg.courseId, traceStrength: seg.traceStrength },
+      geometry: seg.geometry,
     })),
   };
   const beforeRoute = map.getLayer("route") ? "route" : undefined;
@@ -212,10 +273,14 @@ function syncCourseActivityLayers(
           type: "line",
           source: ACTIVITY_PULSE_SRC,
           paint: {
-            "line-color": "#4ade80",
+            "line-color": ACTIVITY_TRACE_RED,
             "line-width": ["interpolate", ["linear"], ["zoom"], 8, 6, 12, 10, 16, 14],
             "line-blur": ["interpolate", ["linear"], ["zoom"], 8, 2.5, 14, 5],
-            "line-opacity": ["interpolate", ["linear"], ["zoom"], 8, 0.45, 14, 0.65],
+            "line-opacity": [
+              "*",
+              ["interpolate", ["linear"], ["zoom"], 8, 0.45, 14, 0.65],
+              TRACE_STRENGTH_MULT,
+            ],
           },
           layout: { "line-join": "round", "line-cap": "round" },
         },
@@ -227,9 +292,9 @@ function syncCourseActivityLayers(
           type: "line",
           source: ACTIVITY_PULSE_SRC,
           paint: {
-            "line-color": "#22c55e",
+            "line-color": ACTIVITY_TRACE_RED,
             "line-width": ["interpolate", ["linear"], ["zoom"], 8, 2, 12, 3.5, 16, 5],
-            "line-opacity": 0.92,
+            "line-opacity": ["*", 0.92, TRACE_STRENGTH_MULT],
           },
           layout: { "line-join": "round", "line-cap": "round" },
         },
@@ -243,13 +308,33 @@ function syncCourseActivityLayers(
       map.addSource(ACTIVITY_HEAT_SRC, { type: "geojson", data: heatFc });
       map.addLayer(
         {
+          id: ACTIVITY_HEAT_GLOW,
+          type: "line",
+          source: ACTIVITY_HEAT_SRC,
+          paint: {
+            "line-color": ACTIVITY_TRACE_RED,
+            "line-width": ["interpolate", ["linear"], ["zoom"], 8, 5, 12, 8, 16, 11],
+            "line-blur": ["interpolate", ["linear"], ["zoom"], 8, 2, 14, 4],
+            "line-opacity": [
+              "*",
+              ["interpolate", ["linear"], ["zoom"], 8, 0.35, 14, 0.5],
+              TRACE_STRENGTH_MULT,
+            ],
+          },
+          layout: { "line-join": "round", "line-cap": "round" },
+        },
+        beforeRoute,
+      );
+      map.addLayer(
+        {
           id: ACTIVITY_HEAT_LINE,
           type: "line",
           source: ACTIVITY_HEAT_SRC,
           paint: {
-            "line-color": "#94a3b8",
-            "line-width": ["interpolate", ["linear"], ["zoom"], 8, 1.5, 12, 2.5, 16, 3.5],
-            "line-opacity": 0.55,
+            "line-color": ACTIVITY_TRACE_RED,
+            "line-width": ["interpolate", ["linear"], ["zoom"], 8, 2, 12, 3, 16, 4],
+            "line-opacity": ["*", 0.78, TRACE_STRENGTH_MULT],
+            "line-dasharray": [2, 1.5],
           },
           layout: { "line-join": "round", "line-cap": "round" },
         },
@@ -592,13 +677,15 @@ export type MapViewProps = {
   /** Trail: 같은 Trail 에서 코스 주행 중인 다른 사용자(원 + 노선 LOD 는 부모에서 처리) */
   trailSpectatorDots?: TrailSpectatorDot[] | null;
   trailSpectatorRoutes?: LineStringGeometry[] | null;
-  /** aggregate 기반 라이브 코스 펄스(녹색) — LINE 모드 */
-  activityPulseRoutes?: LineStringGeometry[] | null;
-  /** aggregate 기반 최근 활동 heat(회색) — LINE 모드 */
-  activityHeatRoutes?: LineStringGeometry[] | null;
+  /** aggregate 기반 라이브 코스(빨강 100%) — LINE 모드 */
+  activityPulseRoutes?: ActivityWorldMapRoute[] | null;
+  /** aggregate 기반 최근 활동 흔적(빨강 강도 단계) — LINE 모드 */
+  activityHeatRoutes?: ActivityWorldMapRoute[] | null;
   /** Activity World DOT 모드 — 라이브 앵커 */
   activityPulseDots?: ActivityWorldDotFeature[] | null;
   activityHeatDots?: ActivityWorldDotFeature[] | null;
+  /** Activity World 점 탭 시 팝업 문구 (없으면 기본 pick 팝업) */
+  getActivityWorldPinLabel?: ((courseId: string, kind: "pulse" | "heat") => string | null) | null;
   /** 맵 이동·줌 완료 시 뷰포트(span km 포함) */
   onMapViewport?: (viewport: MapViewportBounds, spanKm: number) => void;
 };
@@ -633,6 +720,7 @@ export function MapView({
   activityHeatRoutes = null,
   activityPulseDots = null,
   activityHeatDots = null,
+  getActivityWorldPinLabel = null,
   onMapViewport,
 }: MapViewProps) {
   const trailSpectatorDataRef = useRef<{ dots: TrailSpectatorDot[]; routes: LineStringGeometry[] }>({
@@ -644,8 +732,8 @@ export function MapView({
     routes: trailSpectatorRoutes ?? [],
   };
   const activityWorldDataRef = useRef<{
-    pulseRoutes: LineStringGeometry[];
-    heatRoutes: LineStringGeometry[];
+    pulseRoutes: ActivityWorldMapRoute[];
+    heatRoutes: ActivityWorldMapRoute[];
     pulseDots: ActivityWorldDotFeature[];
     heatDots: ActivityWorldDotFeature[];
   }>({ pulseRoutes: [], heatRoutes: [], pulseDots: [], heatDots: [] });
@@ -690,6 +778,7 @@ export function MapView({
   const onClearRouteRef = useRef(onClearRoute);
   const onMapZoomRef = useRef(onMapZoom);
   const onMapViewportRef = useRef(onMapViewport);
+  const getActivityWorldPinLabelRef = useRef(getActivityWorldPinLabel);
   const prevLiveRef = useRef<LngLat | null>(null);
   /** 지명 검색 flyTo 직후 `liveLngLat` 추적 jumpTo 가 카메라를 되돌리는 것을 막는다 */
   const suppressCameraFollowUntilRef = useRef(0);
@@ -771,6 +860,10 @@ export function MapView({
   }, [onMapViewport]);
 
   useEffect(() => {
+    getActivityWorldPinLabelRef.current = getActivityWorldPinLabel;
+  }, [getActivityWorldPinLabel]);
+
+  useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
     resetCameraSmoothing(cameraSmoothRef.current, map);
@@ -789,8 +882,13 @@ export function MapView({
       style: initialMapStyleRef.current,
       center: DEFAULT_CENTER,
       zoom: DEFAULT_ZOOM,
+      minZoom: MAP_GLOBE_MIN_ZOOM,
     });
-    map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), "top-right");
+    map.addControl(new MapZoomGlobeControl(), "top-right");
+    map.addControl(
+      new mapboxgl.NavigationControl({ visualizePitch: true, showZoom: false }),
+      "top-right",
+    );
     /** 축척: Mapbox 기본 우하단(bottom-right) */
     map.addControl(new mapboxgl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-right");
     mapRef.current = map;
@@ -810,6 +908,7 @@ export function MapView({
 
     map.on("moveend", reportMapViewport);
     map.on("zoomend", reportMapViewport);
+    map.on("idle", reportMapViewport);
 
     map.on("style.load", () => {
       const latestRoute = routeGeometryRef.current;
@@ -871,6 +970,14 @@ export function MapView({
     });
 
     map.on("click", (event) => {
+      const pinLabel = getActivityWorldPinLabelRef.current;
+      if (
+        pinLabel &&
+        tryOpenActivityWorldPinPopup(map, event, pinLabel, popupRef, pickPickPopupAnchor)
+      ) {
+        return;
+      }
+
       const picked: LngLat = [event.lngLat.lng, event.lngLat.lat];
       popupRef.current?.remove();
       const ac = new AbortController();
@@ -928,6 +1035,7 @@ export function MapView({
     return () => {
       map.off("moveend", reportMapViewport);
       map.off("zoomend", reportMapViewport);
+      map.off("idle", reportMapViewport);
       window.removeEventListener("resize", onResize);
       startMarkerRef.current?.remove();
       endMarkerRef.current?.remove();
@@ -1260,22 +1368,34 @@ export function MapView({
     };
   }, [mapLoaded]);
 
+  /** UI·시트에서 바꾼 `mapZoom` props → Mapbox. (자동 fitBounds 직후 suppress 로는 막지 않음) */
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
-    if (performance.now() < suppressCameraFollowUntilRef.current) return;
     if (Math.abs(map.getZoom() - mapZoom) < 0.05) return;
 
-    if (mapZoomApplyRafRef.current != null) cancelAnimationFrame(mapZoomApplyRafRef.current);
-    mapZoomApplyRafRef.current = requestAnimationFrame(() => {
-      mapZoomApplyRafRef.current = null;
+    const applyPropZoom = () => {
       const m = mapRef.current;
-      if (!m || !m.isStyleLoaded()) return;
-      if (performance.now() < suppressCameraFollowUntilRef.current) return;
-      if (Math.abs(m.getZoom() - mapZoom) < 0.05) return;
-      m.zoomTo(mapZoom, { duration: 0 });
-    });
+      if (!m || Math.abs(m.getZoom() - mapZoom) < 0.05) return;
+      cameraSmoothRef.current.zoom = mapZoom;
+      suppressCameraFollowUntilRef.current = performance.now() + 600;
+      if (mapZoomApplyRafRef.current != null) cancelAnimationFrame(mapZoomApplyRafRef.current);
+      mapZoomApplyRafRef.current = requestAnimationFrame(() => {
+        mapZoomApplyRafRef.current = null;
+        const live = mapRef.current;
+        if (!live || Math.abs(live.getZoom() - mapZoom) < 0.05) return;
+        live.zoomTo(mapZoom, { duration: 0 });
+      });
+    };
+
+    if (map.isStyleLoaded()) {
+      applyPropZoom();
+    } else {
+      map.once("style.load", applyPropZoom);
+    }
+
     return () => {
+      map.off("style.load", applyPropZoom);
       if (mapZoomApplyRafRef.current != null) {
         cancelAnimationFrame(mapZoomApplyRafRef.current);
         mapZoomApplyRafRef.current = null;
@@ -1430,7 +1550,7 @@ export function MapView({
       lerp(curCenter[1], liveLngLat[1], alphaPos),
     ];
     const nextPitch = lerp(curPitch, nextCamera.pitch, alphaPos);
-    const nextZoom = lerp(curZoom, map.getZoom(), alphaPos);
+    const nextZoom = lerp(curZoom, mapZoom, alphaPos);
     const nextBearingPrimary = lerpAngle(
       curBearingPrimary,
       nextCamera.bearing,
@@ -1457,7 +1577,7 @@ export function MapView({
       pitch: nextPitch,
       zoom: nextZoom,
     });
-  }, [liveLngLat, followMode, enable3D, mapLoaded, routeGeometry]);
+  }, [liveLngLat, followMode, enable3D, mapLoaded, routeGeometry, mapZoom]);
 
   if (!accessToken?.trim()) {
     return (
@@ -1613,6 +1733,61 @@ async function fetchPointElevationMeters(lngLat: LngLat, signal: AbortSignal): P
   const data = (await response.json()) as { elevation?: number[] };
   const v = data.elevation?.[0];
   return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+function buildActivityWorldPopupElement(text: string, kind: "pulse" | "heat"): HTMLElement {
+  const wrap = document.createElement("div");
+  wrap.className = `map-view__activity-popup map-view__activity-popup--${kind}`;
+  const lines = text.split("\n").filter((line) => line.length > 0);
+  const title = document.createElement("div");
+  title.className = "map-view__activity-popup-title";
+  title.textContent = lines[0] ?? "Activity";
+  wrap.appendChild(title);
+  if (lines.length > 1) {
+    const body = document.createElement("div");
+    body.className = "map-view__activity-popup-body";
+    body.textContent = lines.slice(1).join(" · ");
+    wrap.appendChild(body);
+  }
+  return wrap;
+}
+
+function tryOpenActivityWorldPinPopup(
+  map: mapboxgl.Map,
+  event: mapboxgl.MapMouseEvent,
+  getLabel: (courseId: string, kind: "pulse" | "heat") => string | null,
+  popupRef: { current: mapboxgl.Popup | null },
+  pickAnchor: (map: mapboxgl.Map, event: mapboxgl.MapMouseEvent) => mapboxgl.Anchor,
+): boolean {
+  const layers = [ACTIVITY_PULSE_DOTS_LAYER, ACTIVITY_HEAT_DOTS_LAYER].filter((id) =>
+    map.getLayer(id),
+  );
+  if (!layers.length) return false;
+  const features = map.queryRenderedFeatures(event.point, { layers });
+  if (!features.length) return false;
+  const hit = features[0];
+  const courseId = hit.properties?.courseId;
+  if (typeof courseId !== "string" || !courseId.trim()) return false;
+  const kind: "pulse" | "heat" = hit.layer?.id === ACTIVITY_HEAT_DOTS_LAYER ? "heat" : "pulse";
+  const label = getLabel(courseId.trim(), kind);
+  if (!label) return false;
+
+  popupRef.current?.remove();
+  const popup = new mapboxgl.Popup({
+    closeOnClick: true,
+    className: "map-view__activity-popup-wrap",
+    maxWidth: "min(16rem, calc(100vw - 1.5rem))",
+    anchor: pickAnchor(map, event),
+    offset: 12,
+  })
+    .setLngLat(event.lngLat)
+    .setDOMContent(buildActivityWorldPopupElement(label, kind))
+    .addTo(map);
+  popup.on("close", () => {
+    if (popupRef.current === popup) popupRef.current = null;
+  });
+  popupRef.current = popup;
+  return true;
 }
 
 function buildPickPopup(deps: {

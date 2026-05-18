@@ -43,6 +43,51 @@ export async function getUserProfileNickname(uid: string): Promise<string | null
   return typeof n === "string" ? n.trim() : null;
 }
 
+type UserProfilePublicLabel = {
+  nickname: string | null;
+  displayName: string | null;
+};
+
+/** 공개 UI용 — 닉네임 → displayName → uid 앞 8자 */
+export function formatUserPublicLabel(uid: string, profile: UserProfilePublicLabel | null): string {
+  const n = profile?.nickname?.trim();
+  if (n) return n;
+  const d = profile?.displayName?.trim();
+  if (d) return d;
+  return `사용자 ${uid.slice(0, 8)}`;
+}
+
+/** 여러 uid의 표시 이름(닉네임 우선)을 병렬 조회 */
+export async function getUserPublicLabelsByUid(uids: readonly string[]): Promise<Map<string, string>> {
+  const uniq = [...new Set(uids.filter((id) => typeof id === "string" && id.length > 0))];
+  const map = new Map<string, string>();
+  if (uniq.length === 0) return map;
+
+  const db = getFirestore(getFirebaseApp());
+  await Promise.all(
+    uniq.map(async (uid) => {
+      try {
+        const snap = await getDoc(doc(db, "users", uid));
+        if (!snap.exists()) {
+          map.set(uid, formatUserPublicLabel(uid, null));
+          return;
+        }
+        const data = snap.data();
+        map.set(
+          uid,
+          formatUserPublicLabel(uid, {
+            nickname: typeof data.nickname === "string" ? data.nickname : null,
+            displayName: typeof data.displayName === "string" ? data.displayName : null,
+          }),
+        );
+      } catch {
+        map.set(uid, formatUserPublicLabel(uid, null));
+      }
+    }),
+  );
+  return map;
+}
+
 function buildUserProfileWrite(user: User, nicknameTrimmed: string, keyLower: string) {
   return {
     displayName: user.displayName ?? null,
