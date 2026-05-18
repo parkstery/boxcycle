@@ -1,5 +1,5 @@
 import type { User } from "firebase/auth";
-import type { Dispatch, SetStateAction } from "react";
+import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   backfillSavedRoutesExpiresAt,
@@ -24,6 +24,7 @@ import {
   saveRouteToLocal,
 } from "../lib/savedRoutesLocal";
 import { formatDuration, type RouteProfile } from "../services/mapboxDirections";
+import type { PublishedRouteLink } from "../lib/routePublicationResolve";
 import type { RideSessionStatus } from "./useVirtualRideSession";
 
 export type LastEndedAdhocState = {
@@ -59,6 +60,11 @@ export type UseSavedRoutesWorkspaceOptions = {
   resetRide: () => void;
   setActiveOfficialCourseId: Dispatch<SetStateAction<string | null>>;
   setPlaceSearchMarkerLngLat: Dispatch<SetStateAction<LngLat | null>>;
+  /** 내 경로 로드 시 퍼블릭 출판과 동일 routeId면 courseId 연동 */
+  resolvePublishedLinkForSavedRouteRef?: MutableRefObject<
+    ((route: SavedRoute) => Promise<PublishedRouteLink | null>) | null
+  >;
+  onSavedRouteRideEntry?: () => void;
 };
 
 /**
@@ -87,6 +93,8 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
     resetRide,
     setActiveOfficialCourseId,
     setPlaceSearchMarkerLngLat,
+    resolvePublishedLinkForSavedRouteRef,
+    onSavedRouteRideEntry,
   } = options;
 
   const [savedRoutes, setSavedRoutes] = useState<SavedRoute[]>(() => loadSavedRoutesFromLocal());
@@ -272,10 +280,20 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
       loadedSavedRouteNameRef.current = route.name;
       setLastEndedWasAdhoc(null);
       setActiveOfficialCourseId(null);
+      onSavedRouteRideEntry?.();
       setPlaceSearchMarkerLngLat(null);
-      setRouteSummary(
-        `「${route.name}」 불러옴 · 거리 ${(route.distanceMeters / 1000).toFixed(2)} km / 예상 ${formatDuration(route.durationSec)}`,
-      );
+      const summaryBase = `「${route.name}」 불러옴 · 거리 ${(route.distanceMeters / 1000).toFixed(2)} km / 예상 ${formatDuration(route.durationSec)}`;
+      setRouteSummary(summaryBase);
+      const resolveLink = resolvePublishedLinkForSavedRouteRef?.current;
+      if (resolveLink) {
+        void resolveLink(route).then((link) => {
+          if (!link) return;
+          setActiveOfficialCourseId(link.courseId);
+          setRouteSummary(
+            `${summaryBase} · 퍼블릭 「${link.publicTitle}」과 동일 경로(주행·활동 집계 연동)`,
+          );
+        });
+      }
     },
     [
       rideStatus,
@@ -290,6 +308,8 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
       setRouteDurationSec,
       setActiveOfficialCourseId,
       setPlaceSearchMarkerLngLat,
+      resolvePublishedLinkForSavedRouteRef,
+      onSavedRouteRideEntry,
     ],
   );
 

@@ -1,0 +1,163 @@
+import {
+  collection,
+  doc,
+  getDocs,
+  getFirestore,
+  limit,
+  query,
+  serverTimestamp,
+  where,
+  writeBatch,
+} from "firebase/firestore";
+import { getFirebaseApp } from "./firebase";
+import type { RouteProfile } from "../services/mapboxDirections";
+
+export const ROUTE_PUBLICATIONS_COLLECTION = "routePublications";
+
+export type RoutePublicationStatus = "published" | "archived";
+
+export type RoutePublicationDoc = {
+  routeId: string;
+  courseId: string;
+  publicTitle: string;
+  publicSummary: string | null;
+  status: RoutePublicationStatus;
+  revision: number;
+  routeFingerprint: string;
+  geometryCoordsJson: string;
+  snapshotProfile: RouteProfile;
+  snapshotDistanceMeters: number;
+  snapshotDurationSec: number;
+  applicantUid: string;
+  sourcePublicRouteRequestId: string;
+  createdAt: unknown;
+  updatedAt: unknown;
+};
+
+export type RoutePublicationRow = RoutePublicationDoc & {
+  publicationId: string;
+};
+
+function parsePublicationRow(id: string, data: Record<string, unknown>): RoutePublicationRow | null {
+  const routeId = data.routeId;
+  const courseId = data.courseId;
+  const publicTitle = data.publicTitle;
+  if (typeof routeId !== "string" || routeId.length < 1) return null;
+  if (typeof courseId !== "string" || courseId.length < 1) return null;
+  if (typeof publicTitle !== "string" || publicTitle.length < 1) return null;
+  const status = data.status === "archived" ? "archived" : "published";
+  const profile = data.snapshotProfile;
+  const snapshotProfile: RouteProfile =
+    profile === "cycling" || profile === "driving" || profile === "walking" ? profile : "cycling";
+  return {
+    publicationId: id,
+    routeId,
+    courseId,
+    publicTitle,
+    publicSummary: typeof data.publicSummary === "string" ? data.publicSummary : null,
+    status,
+    revision: typeof data.revision === "number" && Number.isFinite(data.revision) ? data.revision : 1,
+    routeFingerprint:
+      typeof data.routeFingerprint === "string" && data.routeFingerprint.length === 64
+        ? data.routeFingerprint
+        : "",
+    geometryCoordsJson: typeof data.geometryCoordsJson === "string" ? data.geometryCoordsJson : "",
+    snapshotProfile,
+    snapshotDistanceMeters:
+      typeof data.snapshotDistanceMeters === "number" ? data.snapshotDistanceMeters : 0,
+    snapshotDurationSec: typeof data.snapshotDurationSec === "number" ? data.snapshotDurationSec : 0,
+    applicantUid: typeof data.applicantUid === "string" ? data.applicantUid : "",
+    sourcePublicRouteRequestId:
+      typeof data.sourcePublicRouteRequestId === "string" ? data.sourcePublicRouteRequestId : "",
+    createdAt: data.createdAt,
+    updatedAt: data.updatedAt,
+  };
+}
+
+/** 승인 시 `courses` 와 동일 id 로 publication 스냅샷 기록 */
+export function writeRoutePublicationOnApprove(
+  batch: ReturnType<typeof writeBatch>,
+  input: {
+    publicationId: string;
+    routeId: string;
+    courseId: string;
+    publicTitle: string;
+    publicSummary: string;
+    routeFingerprint: string;
+    geometryCoordsJson: string;
+    snapshotProfile: RouteProfile;
+    snapshotDistanceMeters: number;
+    snapshotDurationSec: number;
+    applicantUid: string;
+    sourcePublicRouteRequestId: string;
+  },
+): void {
+  const db = getFirestore(getFirebaseApp());
+  const ref = doc(db, ROUTE_PUBLICATIONS_COLLECTION, input.publicationId);
+  batch.set(ref, {
+    routeId: input.routeId,
+    courseId: input.courseId,
+    publicTitle: input.publicTitle,
+    publicSummary: input.publicSummary.length > 0 ? input.publicSummary : null,
+    status: "published",
+    revision: 1,
+    routeFingerprint: input.routeFingerprint,
+    geometryCoordsJson: input.geometryCoordsJson,
+    snapshotProfile: input.snapshotProfile,
+    snapshotDistanceMeters: input.snapshotDistanceMeters,
+    snapshotDurationSec: input.snapshotDurationSec,
+    applicantUid: input.applicantUid,
+    sourcePublicRouteRequestId: input.sourcePublicRouteRequestId,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function findPublishedRoutePublicationByRouteId(
+  routeId: string,
+): Promise<RoutePublicationRow | null> {
+  const db = getFirestore(getFirebaseApp());
+  const qy = query(
+    collection(db, ROUTE_PUBLICATIONS_COLLECTION),
+    where("routeId", "==", routeId),
+    where("status", "==", "published"),
+    limit(1),
+  );
+  const snap = await getDocs(qy);
+  const d = snap.docs[0];
+  if (!d) return null;
+  return parsePublicationRow(d.id, d.data() as Record<string, unknown>);
+}
+
+export async function findPublishedRoutePublicationByFingerprint(
+  routeFingerprint: string,
+): Promise<RoutePublicationRow | null> {
+  if (routeFingerprint.length !== 64) return null;
+  const db = getFirestore(getFirebaseApp());
+  const qy = query(
+    collection(db, ROUTE_PUBLICATIONS_COLLECTION),
+    where("routeFingerprint", "==", routeFingerprint),
+    where("status", "==", "published"),
+    limit(1),
+  );
+  const snap = await getDocs(qy);
+  const d = snap.docs[0];
+  if (!d) return null;
+  return parsePublicationRow(d.id, d.data() as Record<string, unknown>);
+}
+
+export async function findPublishedRoutePublicationByCourseId(
+  courseId: string,
+): Promise<RoutePublicationRow | null> {
+  const db = getFirestore(getFirebaseApp());
+  const qy = query(
+    collection(db, ROUTE_PUBLICATIONS_COLLECTION),
+    where("courseId", "==", courseId),
+    where("status", "==", "published"),
+    limit(1),
+  );
+  const snap = await getDocs(qy);
+  const d = snap.docs[0];
+  if (!d) return null;
+  return parsePublicationRow(d.id, d.data() as Record<string, unknown>);
+}

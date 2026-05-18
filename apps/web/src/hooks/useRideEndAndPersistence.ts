@@ -2,6 +2,7 @@ import type { User } from "firebase/auth";
 import type { Dispatch, MutableRefObject, RefObject, SetStateAction } from "react";
 import { useCallback } from "react";
 import { promoteSavedRouteInFirestore, type SavedRoute } from "../lib/firestoreSavedRoutes";
+import { markCourseActivityRideCompletedOptimistic } from "../lib/firestoreCourseActivity";
 import { saveRideSessionToFirestore } from "../lib/firestoreRides";
 import type { LineStringGeometry, LngLat } from "../lib/geo";
 import { formatLngLat } from "../lib/geo";
@@ -11,6 +12,12 @@ import { loadRideSessions, saveRideSessions, type StoredRideSession } from "../l
 import { loadSavedRoutesFromLocal, promoteSavedRouteInLocal } from "../lib/savedRoutesLocal";
 import { fetchMapboxReverseGeocodePlaceName } from "../services/mapboxReverseGeocode";
 import type { RouteProfile } from "../services/mapboxDirections";
+import type { PublishedPublicCourseSummary } from "../lib/firestoreCourses";
+import {
+  resolvePublishedRouteLink,
+  resolvePublishedRouteLinkByCourseId,
+  type RouteRideEntry,
+} from "../lib/routePublicationResolve";
 import type { LastEndedAdhocState } from "./useSavedRoutesWorkspace";
 import type { RideMetricsUi, RideSessionStatus } from "./useVirtualRideSession";
 
@@ -21,6 +28,10 @@ export type UseRideEndAndPersistenceOptions = {
   roomId: string;
   /** 주행 종료 시점 코스 ID — `rides.courseId`·CF aggregate용 */
   courseIdRef: RefObject<string | null>;
+  /** 종료 직후 heat 낙관 표시(서버 `liveNow` 지연 대비) */
+  onRideEndedWithCourse?: (courseId: string) => void;
+  /** aggregate 캐시 무효화 직후 UI 갱신(heat 반영) */
+  onRidePersistedToFirestore?: (courseId: string | null) => void;
   profile: RouteProfile;
   rideStatus: RideSessionStatus;
   setRideStatus: Dispatch<SetStateAction<RideSessionStatus>>;
@@ -35,6 +46,10 @@ export type UseRideEndAndPersistenceOptions = {
   endPlaceLabel: string | null;
   loadedSavedRouteIdRef: MutableRefObject<string | null>;
   loadedSavedRouteNameRef: MutableRefObject<string | null>;
+  /** 주행 입구 — 내 경로 vs 퍼블릭 탭 */
+  rideEntryRef?: RefObject<RouteRideEntry | null>;
+  /** `resolvePublishedRouteLink` 카탈로그 1차 힌트 */
+  publishedCatalogRef?: RefObject<readonly PublishedPublicCourseSummary[]>;
   setSavedRoutes: Dispatch<SetStateAction<SavedRoute[]>>;
   setLastEndedWasAdhoc: Dispatch<SetStateAction<LastEndedAdhocState | null>>;
   setRecentSessions: Dispatch<SetStateAction<StoredRideSession[]>>;
@@ -50,6 +65,8 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     user,
     roomId,
     courseIdRef,
+    onRideEndedWithCourse,
+    onRidePersistedToFirestore,
     profile,
     rideStatus,
     setRideStatus,
@@ -64,6 +81,8 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     endPlaceLabel,
     loadedSavedRouteIdRef,
     loadedSavedRouteNameRef,
+    rideEntryRef,
+    publishedCatalogRef,
     setSavedRoutes,
     setLastEndedWasAdhoc,
     setRecentSessions,
@@ -146,13 +165,75 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
               /* noop */
             }
           }
+          let persistedCourseId = courseIdRef.current?.trim() || null;
+          let canonicalRouteId = savedRouteIdAtEnd;
+          let publicationId: string | null = null;
+          let publicTitleSnap: string | null = null;
+          let routeEntry: RouteRideEntry | null = rideEntryRef?.current ?? null;
+
+          if (
+            !persistedCourseId &&
+            savedRouteIdAtEnd &&
+            routeGeometry &&
+            routeGeometry.coordinates.length >= 2
+          ) {
+            try {
+              const link = await resolvePublishedRouteLink({
+                savedRouteId: savedRouteIdAtEnd,
+                geometry: routeGeometry,
+                profile,
+                catalogHints: publishedCatalogRef?.current,
+              });
+              if (link) {
+                persistedCourseId = link.courseId;
+                publicationId = link.publicationId;
+                canonicalRouteId = link.routeId;
+                publicTitleSnap = link.publicTitle;
+                if (!routeEntry) routeEntry = "owner_library";
+              }
+            } catch {
+              /* publication 조회 실패 시 courseId 없이 저장 */
+            }
+          }
+
+          if (persistedCourseId && !canonicalRouteId) {
+            try {
+              const link = await resolvePublishedRouteLinkByCourseId(persistedCourseId);
+              if (link) {
+                canonicalRouteId = link.routeId;
+                publicationId = publicationId ?? link.publicationId;
+                publicTitleSnap = publicTitleSnap ?? link.publicTitle;
+                if (!routeEntry) routeEntry = "public_catalog";
+              }
+            } catch {
+              /* noop */
+            }
+          }
+
+          if (savedRouteIdAtEnd && !routeEntry) routeEntry = "owner_library";
+          if (persistedCourseId && !savedRouteIdAtEnd && !routeEntry) {
+            routeEntry = "public_catalog";
+          }
+
           const rideId = await saveRideSessionToFirestore({
             userId: user.uid,
             roomId,
-            courseId: courseIdRef.current,
+            courseId: persistedCourseId,
+            routeId: canonicalRouteId,
+            publicationId,
+            routeEntry,
+            publicTitleSnap,
             profile,
             session: sessionForPersist,
           });
+          // aggregate 재조회는 onRidePersisted에서 수행 — 여기서 invalidate 하면
+          // CF `recentRideCount7d` 반영 전 서버 0이 낙관 heat를 지워 버린다.
+          onRidePersistedToFirestore?.(persistedCourseId);
+          const courseIdBeforeAsync = courseIdRef.current?.trim() || null;
+          if (persistedCourseId && persistedCourseId !== courseIdBeforeAsync) {
+            markCourseActivityRideCompletedOptimistic(persistedCourseId);
+            onRideEndedWithCourse?.(persistedCourseId);
+          }
           if (savedRouteIdAtEnd && !savedRouteIdAtEnd.startsWith("local-")) {
             try {
               await promoteSavedRouteInFirestore({
@@ -258,6 +339,13 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
 
     loadedSavedRouteIdRef.current = null;
     loadedSavedRouteNameRef.current = null;
+    if (rideEntryRef) rideEntryRef.current = null;
+
+    const courseIdAtEnd = courseIdRef.current?.trim() || null;
+    if (courseIdAtEnd) {
+      markCourseActivityRideCompletedOptimistic(courseIdAtEnd);
+      onRideEndedWithCourse?.(courseIdAtEnd);
+    }
 
     setRideStatus("idle");
   }, [
@@ -282,6 +370,8 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     setSavedRoutes,
     setLastEndedWasAdhoc,
     setRecentSessions,
+    onRideEndedWithCourse,
+    onRidePersistedToFirestore,
   ]);
 
   return { handleEndRide };

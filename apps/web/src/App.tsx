@@ -13,7 +13,10 @@ import { useCourseActivity } from "./hooks/useCourseActivity";
 import { useCourseActivityMapOverlay } from "./hooks/useCourseActivityMapOverlay";
 import { usePublishedCoursesActivityMapOverlay } from "./hooks/usePublishedCoursesActivityMapOverlay";
 import { useDocumentVisibility } from "./hooks/useDocumentVisibility";
-import { formatCourseActivityHudLine } from "./lib/firestoreCourseActivity";
+import {
+  formatActivityWorldPinPopup,
+  formatCourseActivityHudLine,
+} from "./lib/firestoreCourseActivity";
 import { fetchWorldPresenceSummary, formatWorldPresenceHudLine } from "./lib/firestoreWorldPresence";
 import { fetchWorldActivityGlobal, formatWorldActivityHudLine, mergeWorldHudLines } from "./lib/firestoreWorldActivity";
 import {
@@ -56,6 +59,13 @@ import type { LngLat } from "./lib/geo";
 import { getPointOnRouteByDistance, lineStringLengthMeters } from "./lib/geo";
 import { MAX_ROUTE_WAYPOINTS } from "./lib/routeWaypoints";
 import { lockRouteWorkspaceDuringRide } from "./lib/routeWorkspaceLock";
+import type { PublishedPublicCourseSummary } from "./lib/firestoreCourses";
+import {
+  resolvePublishedRouteLink,
+  type PublishedRouteLink,
+  type RouteRideEntry,
+} from "./lib/routePublicationResolve";
+import type { SavedRoute } from "./lib/firestoreSavedRoutes";
 import { SAVED_ROUTE_NAME_MAX } from "./lib/firestoreSavedRoutes";
 import { useAppAuth } from "./hooks/useAppAuth";
 import { useRouteTokenBalance } from "./hooks/useRouteTokenBalance";
@@ -191,6 +201,11 @@ export default function App() {
   const activeCourseIdRef = useRef<string | null>(null);
   /** `useSavedRoutesWorkspace` 가 주입 — `useRoutePlanning` 보다 아래에서 대입 */
   const clearSavedRouteArtifactsRef = useRef<() => void>(() => {});
+  const rideEntryRef = useRef<RouteRideEntry | null>(null);
+  const publishedCatalogRef = useRef<readonly PublishedPublicCourseSummary[]>([]);
+  const resolvePublishedLinkForSavedRouteRef = useRef<
+    ((route: SavedRoute) => Promise<PublishedRouteLink | null>) | null
+  >(null);
 
   const enterBasicHubArtifactsRef = useRef<() => void>(() => {});
   enterBasicHubArtifactsRef.current = () => {
@@ -278,6 +293,10 @@ export default function App() {
     resetRide,
     setActiveOfficialCourseId,
     setPlaceSearchMarkerLngLat,
+    resolvePublishedLinkForSavedRouteRef,
+    onSavedRouteRideEntry: () => {
+      rideEntryRef.current = "owner_library";
+    },
   });
   clearSavedRouteArtifactsRef.current = savedRoutesWorkspace.clearLoadedRouteAndAdhoc;
 
@@ -296,17 +315,32 @@ export default function App() {
     handleDeleteSavedRoute,
   } = savedRoutesWorkspace;
 
-  const reloadCourseActivityRef = useRef<() => void>(() => {});
+  const reloadCourseActivityRef = useRef<
+    (options?: { forceInvalidate?: boolean }) => void
+  >(() => {});
+  const applyRideCompletedOptimisticRef = useRef<() => void>(() => {});
   const [activityMapRefreshNonce, setActivityMapRefreshNonce] = useState(0);
-  const onRidePersistedToFirestore = useCallback((courseId: string | null) => {
-    if (!courseId?.trim()) return;
+  const onRideEndedWithCourse = useCallback((_courseId: string) => {
+    applyRideCompletedOptimisticRef.current();
+    reloadCourseActivityRef.current({ forceInvalidate: false });
     setActivityMapRefreshNonce((n) => n + 1);
-    const bump = () => reloadCourseActivityRef.current();
-    bump();
-    for (const ms of [2_000, 5_000, 12_000]) {
-      window.setTimeout(bump, ms);
-    }
   }, []);
+  const onRidePersistedToFirestore = useCallback((courseId: string | null) => {
+    if (courseId?.trim()) {
+      applyRideCompletedOptimisticRef.current();
+      setActivityMapRefreshNonce((n) => n + 1);
+      const bumpSoft = () => reloadCourseActivityRef.current({ forceInvalidate: false });
+      bumpSoft();
+      for (const ms of [2_000, 5_000]) {
+        window.setTimeout(bumpSoft, ms);
+      }
+      window.setTimeout(() => reloadCourseActivityRef.current(), 12_000);
+      return;
+    }
+    setRouteSummary(
+      "주행 기록은 저장되었습니다. 지도 빨간 주행 흔적은 입문·퍼블릭 등 공식 코스 주행에만 표시됩니다.",
+    );
+  }, [setRouteSummary]);
 
   const { handleEndRide } = useRideEndAndPersistence({
     mapboxAccessToken: MAPBOX_TOKEN,
@@ -328,9 +362,12 @@ export default function App() {
     endPlaceLabel,
     loadedSavedRouteIdRef,
     loadedSavedRouteNameRef,
+    rideEntryRef,
+    publishedCatalogRef,
     setSavedRoutes,
     setLastEndedWasAdhoc,
     setRecentSessions,
+    onRideEndedWithCourse,
     onRidePersistedToFirestore,
   });
   handleEndRideRef.current = handleEndRide;
@@ -368,22 +405,41 @@ export default function App() {
     enterBasicHubArtifactsRef,
     savedRoutes,
     pendingPublicRouteIds,
+    onPublicCatalogRideEntry: () => {
+      rideEntryRef.current = "public_catalog";
+    },
   });
+
+  publishedCatalogRef.current = publishedPublicCourses;
+  resolvePublishedLinkForSavedRouteRef.current = async (route) => {
+    if (!configured) return null;
+    return resolvePublishedRouteLink({
+      savedRouteId: route.id,
+      geometry: route.geometry,
+      profile: route.profile,
+      catalogHints: publishedCatalogRef.current,
+    });
+  };
 
   activeCourseIdRef.current = basicActiveHubCourseId ?? activeOfficialCourseId;
 
   const trackedCourseId = basicActiveHubCourseId ?? activeOfficialCourseId;
   const courseActivityEnabled = Boolean(configured && user && trackedCourseId && pageVisible);
 
-  const { activity: courseActivity, reload: reloadCourseActivity } = useCourseActivity({
+  const {
+    activity: courseActivity,
+    reload: reloadCourseActivity,
+    applyRideCompletedOptimistic,
+  } = useCourseActivity({
     configured,
     user,
     courseId: trackedCourseId,
     enabled: courseActivityEnabled,
   });
-  reloadCourseActivityRef.current = () => {
-    void reloadCourseActivity();
+  reloadCourseActivityRef.current = (options) => {
+    void reloadCourseActivity(options);
   };
+  applyRideCompletedOptimisticRef.current = applyRideCompletedOptimistic;
 
   const {
     pulseRoutes: activeCoursePulseRoutes,
@@ -434,7 +490,7 @@ export default function App() {
       return { heatRoutes: catalogHeatRoutes, heatDots: catalogHeatDots };
     }
     return {
-      heatRoutes: catalogHeatRoutes,
+      heatRoutes: catalogHeatRoutes.filter((r) => r.courseId !== tracked),
       heatDots: catalogHeatDots.filter((d) => d.courseId !== tracked),
     };
   }, [
@@ -495,6 +551,18 @@ export default function App() {
     [activityWorldDisplay.showDots, activityWorldRaw.heatDots],
   );
 
+  const getActivityWorldPinLabel = useCallback(
+    (courseId: string, kind: "pulse" | "heat") => {
+      const id = courseId.trim();
+      const row =
+        id && id === trackedCourseId?.trim()
+          ? courseActivity
+          : courseActivityByCourseId.get(id) ?? null;
+      return formatActivityWorldPinPopup(row, kind);
+    },
+    [trackedCourseId, courseActivity, courseActivityByCourseId],
+  );
+
   useEffect(() => {
     if (!import.meta.env.DEV) return;
     console.debug("[ActivityWorld]", {
@@ -530,12 +598,12 @@ export default function App() {
   ]);
 
   useEffect(() => {
+    if (!configured || !menuOpen) return;
+    void refreshPublishedPublicCourseCatalog();
     if (!user) {
       menuFirestorePrimedUidRef.current = null;
       return;
     }
-    if (!configured || !menuOpen) return;
-    void refreshPublishedPublicCourseCatalog();
     if (menuFirestorePrimedUidRef.current === user.uid) return;
     menuFirestorePrimedUidRef.current = user.uid;
     void refreshPublicRouteMeta();
@@ -829,9 +897,8 @@ export default function App() {
     hasEndPin: Boolean(endLngLat),
     summaryVisible,
   });
-  /** 프로덕션에서만 주행 중 메뉴 잠금 — 개발 서버에서는 경로 메뉴·편집 유지 */
+  /** 맵 핀·경로 생성 등 — 프로덕션 주행 중에만 맵에서 잠금(좌측 MENU 패널은 항상 사용 가능) */
   const routeMenuLockedForProd = lockRouteWorkspaceDuringRide(rideStatus !== "idle");
-  const menuPanelLockedDuringRide = routeMenuLockedForProd;
 
   const handleClearPins = useCallback(() => {
     clearRoutePins(routeMenuLockedForProd);
@@ -1066,9 +1133,10 @@ export default function App() {
           activityHeatRoutes={activityHeatRoutes}
           activityPulseDots={activityPulseDots}
           activityHeatDots={activityHeatDots}
+          getActivityWorldPinLabel={getActivityWorldPinLabel}
         />
 
-        {import.meta.env.DEV ? (
+        {import.meta.env.DEV && import.meta.env.VITE_SHOW_ACTIVITY_LOD_DEBUG === "true" ? (
           <pre
             className="activity-world-lod-debug"
             aria-hidden
@@ -1095,7 +1163,7 @@ geom ${catalogActivityOverlayStats.geometryReady}/${catalogActivityOverlayStats.
           authGateVisualDismissed={authPickCardHidden}
           onOpenMapView={openMapViewPanel}
           mapViewOpen={mapViewSheetOpen}
-          idleHintMessage="입문: MENU → 입문 코스 → ▶"
+          idleHintMessage="입문: MENU → 입문 코스 → 주행 시작"
           coachData={coachData}
           coachLineEnabled={rideCoachingBannerVisible}
           metrics={hudMetrics}
@@ -1156,7 +1224,6 @@ geom ${catalogActivityOverlayStats.geometryReady}/${catalogActivityOverlayStats.
 
       <MenuPanel
         open={menuOpen}
-        locked={menuPanelLockedDuringRide}
         onClose={() => {
           setMenuOpen(false);
           setPlaceSearchMarkerLngLat(null);
@@ -1169,7 +1236,6 @@ geom ${catalogActivityOverlayStats.geometryReady}/${catalogActivityOverlayStats.
           activeTrailId={sanitizeTrailId(trailId)}
           onApply={applyTrailFromDraftAndCloseMenu}
           onGoTrailhead={goTrailheadAndCloseMenu}
-          presenceSyncPossible={Boolean(configured && user)}
         />
         <MenuPlaceSearch
           accessToken={MAPBOX_TOKEN}
@@ -1187,6 +1253,11 @@ geom ${catalogActivityOverlayStats.geometryReady}/${catalogActivityOverlayStats.
           onGenerateRoute={() => void generateRoute()}
           officialCourseActive={activeOfficialCourseId !== null}
           hasRoute={Boolean(routeGeometry)}
+          canStartRide={Boolean(routeGeometry) && !routeLoading}
+          onStartRide={() => {
+            handleStartRide();
+            setMenuOpen(false);
+          }}
           speedKmh={speedKmh}
           onSpeedKmh={setSpeedKmh}
           sessionStatus={rideStatus}
@@ -1201,6 +1272,7 @@ geom ${catalogActivityOverlayStats.geometryReady}/${catalogActivityOverlayStats.
           onRefreshPublishedPublicCourses={onRefreshPublishedPublicCourses}
           courseActivityByCourseId={courseActivityByCourseId}
           authGuest={Boolean(user?.isAnonymous)}
+          signedIn={Boolean(user)}
           onEnterBasicHub={(courseId) => {
             void enterBasicHub(courseId);
           }}

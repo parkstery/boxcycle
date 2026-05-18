@@ -44,6 +44,8 @@ export type UseOfficialCoursesHubOptions = {
   enterBasicHubArtifactsRef: MutableRefObject<() => void>;
   savedRoutes: SavedRoute[];
   pendingPublicRouteIds: ReadonlySet<string>;
+  /** 퍼블릭·입문 코스 탭에서 불러올 때 주행 입구 표시 */
+  onPublicCatalogRideEntry?: () => void;
 };
 
 /**
@@ -70,6 +72,7 @@ export function useOfficialCoursesHub(options: UseOfficialCoursesHubOptions) {
     enterBasicHubArtifactsRef,
     savedRoutes,
     pendingPublicRouteIds,
+    onPublicCatalogRideEntry,
   } = options;
 
   const [publishedPublicCourses, setPublishedPublicCourses] = useState<PublishedPublicCourseSummary[]>([]);
@@ -219,6 +222,7 @@ export function useOfficialCoursesHub(options: UseOfficialCoursesHubOptions) {
           Boolean(user) && (BASIC_SHARED_HUB_IDS as readonly string[]).includes(resolved.id);
         setBasicActiveHubCourseId(joinHubPresence ? resolved.id : null);
         setActiveOfficialCourseId(resolved.id);
+        onPublicCatalogRideEntry?.();
       } catch (e: unknown) {
         const message = e instanceof Error ? e.message : String(e);
         setRouteSummary(message);
@@ -243,6 +247,7 @@ export function useOfficialCoursesHub(options: UseOfficialCoursesHubOptions) {
       setActiveOfficialCourseId,
       setPlaceSearchMarkerLngLat,
       enterBasicHubArtifactsRef,
+      onPublicCatalogRideEntry,
     ],
   );
 

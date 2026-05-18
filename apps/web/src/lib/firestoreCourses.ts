@@ -12,6 +12,7 @@ import {
   where,
 } from "firebase/firestore";
 import { getFirebaseApp } from "./firebase";
+import { getUserPublicLabelsByUid } from "./firestoreUser";
 import { getDistanceMeters, type LineStringGeometry, type LngLat } from "./geo";
 
 export type CourseCategory = "basic" | "public" | "recommended" | "challenge";
@@ -95,6 +96,10 @@ export type PublishedPublicCourseSummary = {
   durationSec: number;
   /** UGC 승인 시 원본 `savedRoutes` 문서 ID — 동일 내 경로의 퍼블릭 재신청 방지에 사용 */
   sourceSavedRouteId?: string | null;
+  /** 승인된 UGC 코스의 신청자 uid */
+  applicantUid?: string | null;
+  /** `users/{applicantUid}` 닉네임(없으면 displayName 등) */
+  publisherNickname?: string | null;
 };
 
 function parseCourseProfile(raw: Record<string, unknown>): CourseProfile {
@@ -240,8 +245,13 @@ export async function listPublishedPublicCourses(max = 40): Promise<PublishedPub
   const rows: PublishedPublicCourseSummary[] = [];
   for (const d of snap.docs) {
     const data = d.data() as Record<string, unknown>;
+    const vis = data.visibility;
+    if (vis !== undefined && vis !== "public") continue;
     if (typeof data.title !== "string" || data.title.length < 1) continue;
     const sid = data.sourceSavedRouteId;
+    const applicantUid = typeof data.applicantUid === "string" && data.applicantUid.length > 0
+      ? data.applicantUid
+      : null;
     rows.push({
       id: d.id,
       title: data.title,
@@ -250,16 +260,91 @@ export async function listPublishedPublicCourses(max = 40): Promise<PublishedPub
       durationSec: typeof data.durationSec === "number" ? data.durationSec : 0,
       sourceSavedRouteId:
         typeof sid === "string" && sid.length > 0 ? sid : null,
+      applicantUid,
     });
   }
   rows.sort((a, b) => a.title.localeCompare(b.title, "ko"));
-  return rows;
+  const labelByUid = await getUserPublicLabelsByUid(
+    rows.map((r) => r.applicantUid).filter((uid): uid is string => Boolean(uid)),
+  );
+  return rows.map((r) => ({
+    ...r,
+    publisherNickname: r.applicantUid ? (labelByUid.get(r.applicantUid) ?? null) : null,
+  }));
 }
 
 /**
  * 완주 사용자 경로 지문 중, 이미 퍼블릭 코스(`courses`)로 게시된 것만 반환.
  * `listPublishedPublicCourses` 일부만 로드할 때 빠지는 코스를 보완한다.
  */
+type PublishedLegacyCourseRef = {
+  id: string;
+  title: string;
+  sourceSavedRouteId: string | null;
+};
+
+function parsePublishedLegacyCourse(
+  id: string,
+  data: Record<string, unknown>,
+): PublishedLegacyCourseRef | null {
+  if (data.category !== "public" || data.status !== "published") return null;
+  const vis = data.visibility;
+  if (vis !== undefined && vis !== "public") return null;
+  if (typeof data.title !== "string" || data.title.length < 1) return null;
+  const sid = data.sourceSavedRouteId;
+  return {
+    id,
+    title: data.title,
+    sourceSavedRouteId: typeof sid === "string" && sid.length > 0 ? sid : null,
+  };
+}
+
+export async function findPublishedPublicCourseBySourceSavedRouteId(
+  savedRouteId: string,
+): Promise<PublishedLegacyCourseRef | null> {
+  const id = savedRouteId.trim();
+  if (!id) return null;
+  const db = getFirestore(getFirebaseApp());
+  const qy = query(
+    collection(db, "courses"),
+    where("sourceSavedRouteId", "==", id),
+    where("category", "==", "public"),
+    where("status", "==", "published"),
+    limit(1),
+  );
+  const snap = await getDocs(qy);
+  const d = snap.docs[0];
+  if (!d) return null;
+  return parsePublishedLegacyCourse(d.id, d.data() as Record<string, unknown>);
+}
+
+export async function findPublishedPublicCourseByCourseId(
+  courseId: string,
+): Promise<PublishedLegacyCourseRef | null> {
+  const db = getFirestore(getFirebaseApp());
+  const snap = await getDoc(doc(db, "courses", courseId.trim()));
+  if (!snap.exists()) return null;
+  return parsePublishedLegacyCourse(snap.id, snap.data() as Record<string, unknown>);
+}
+
+export async function findPublishedPublicCourseByFingerprint(
+  routeFingerprint: string,
+): Promise<PublishedLegacyCourseRef | null> {
+  if (routeFingerprint.length !== 64) return null;
+  const db = getFirestore(getFirebaseApp());
+  const qy = query(
+    collection(db, "courses"),
+    where("routeFingerprint", "==", routeFingerprint),
+    where("category", "==", "public"),
+    where("status", "==", "published"),
+    limit(1),
+  );
+  const snap = await getDocs(qy);
+  const d = snap.docs[0];
+  if (!d) return null;
+  return parsePublishedLegacyCourse(d.id, d.data() as Record<string, unknown>);
+}
+
 export async function findPublishedPublicFingerprintsAmong(
   candidates: readonly string[],
 ): Promise<Set<string>> {

@@ -274,6 +274,26 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    /** UGC 퍼블릭 출판 스냅샷 — `routeId` = `savedRoutes` id, `courseId` = 레거시 카탈로그 */
+    match /routePublications/{publicationId} {
+      allow read: if isSignedIn()
+        || (resource.data.keys().hasAny(['status']) && resource.data.status == 'published');
+      allow create: if isRouteReviewer()
+        && request.resource.data.routeId is string
+        && request.resource.data.routeId.size() > 0
+        && request.resource.data.courseId is string
+        && request.resource.data.courseId.size() > 0
+        && request.resource.data.publicTitle is string
+        && request.resource.data.publicTitle.size() >= 1
+        && request.resource.data.publicTitle.size() <= 80
+        && request.resource.data.status == 'published'
+        && request.resource.data.routeFingerprint is string
+        && request.resource.data.routeFingerprint.size() == 64
+        && request.resource.data.geometryCoordsJson is string
+        && request.resource.data.geometryCoordsJson.size() >= 10;
+      allow update, delete: if false;
+    }
+
     match /coursePresence/{courseId}/members/{userId} {
       allow read: if isSignedIn() && isCourseSharedPresenceAllowed(courseId);
       allow create, update: if isSelf(userId) && isCourseSharedPresenceAllowed(courseId);

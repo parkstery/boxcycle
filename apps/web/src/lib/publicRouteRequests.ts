@@ -24,6 +24,7 @@ import { SAVED_ROUTE_MAX_COORDS } from "./firestoreSavedRoutes";
 import { computeRouteFingerprint } from "./routeFingerprint";
 import { decodeLineStringCoordsJson } from "./lineStringCoordsJson";
 import { assertPublicRouteAutoReview } from "./publicRouteAutoReview";
+import { writeRoutePublicationOnApprove } from "./firestoreRoutePublications";
 import {
   maybeModeratePublicRouteCopyRemote,
   validatePublicRouteTitleAndSummary,
@@ -416,6 +417,20 @@ export async function approvePublicRouteRequest(
     ...courseBody,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
+  });
+  writeRoutePublicationOnApprove(batch, {
+    publicationId: courseId,
+    routeId: request.savedRouteId,
+    courseId,
+    publicTitle: request.publicTitle,
+    publicSummary: request.publicSummary,
+    routeFingerprint,
+    geometryCoordsJson: request.geometryCoordsJson,
+    snapshotProfile: request.snapshotProfile,
+    snapshotDistanceMeters: request.snapshotDistanceMeters,
+    snapshotDurationSec: request.snapshotDurationSec,
+    applicantUid: request.applicantUid,
+    sourcePublicRouteRequestId: request.id,
   });
   batch.update(reqRef, {
     status: "approved",
