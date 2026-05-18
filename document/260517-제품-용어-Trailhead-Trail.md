@@ -20,7 +20,25 @@
 
 **코스(course)와 구분:** 코스·경로 = 지도에 그려진 **설계도**. Trail = 그 위에서 **지금 함께 도는 세션**. UI에서는 가능하면 `○○ 코스 · Trail 3`처럼 병기한다.
 
-**Trailhead도 Trail이다:** Trailhead는 “트레일 밖 허브”가 아니라, 기본 Trail 인스턴스 **`trails/default`** (`DEFAULT_TRAIL_ID`) 를 가리키는 **제품 라벨**이다. 따라서 「지금 **어느 Trail**에 서 있는가?」를 말할 때 범주에는 **Trailhead(= default)** 와 `Trail 1`, `Trail 2` … 가 **같은 축**에 놓인다.
+**Trailhead (2026-05-19 갱신):** Trailhead는 **코스·활동 허브 UI**이며, Firestore `trails/default` 는 **presence 허브**로만 쓴다. **주행 세션(라이브 인스턴스)** 은 ▶ 시 `trails/{autoId}` 가 자동 생성된다. 사용자는 “방 만들기”를 하지 않는다.
+
+| 개념 | Firestore | UI |
+|------|-----------|-----|
+| Trailhead | `trailId=default` (문서 없음·멤버만) | MENU TrailHub, 코스 선택 |
+| Trail (라이브 판) | `trails/{id}` 메타 + members + liveCourseRides | `Trail 035` (3자리 `displayNumber`) |
+| Ride 기록 | `rides.roomId` = Trail ID | 주행 종료 후 Trailhead 복귀 |
+
+**표시 번호:** 내부 ID = Firestore auto-id. 사람에게는 `001`–`999` 랜덤 `displayNumber` (일일 순번·날짜코드는 미사용).
+
+---
+
+## 1-b. 시청·지도 (living world, 2026-05-19)
+
+| 위치 | 실시간 위치 (`liveCourseRides`) | 활동 인지 (`courseActivity` / Activity World) |
+|------|--------------------------------|-----------------------------------------------|
+| **내 Trail** (`trailId !== default`) | **같은 Trail** 주행자만 | 전역(코스 단위) |
+| **Trailhead** (`default`) | 구독 안 함 | 전역 |
+| **다른 Trail** | 구독 안 함 | 전역 — “지금 N명” 등 aggregate |
 
 ---
 
@@ -65,7 +83,9 @@
 | 로그인 후 presence·하트비트 | Trailhead에서 **활성 Trail** 참가 | `trails/{trailId}/members/{uid}` |
 | 같은 Trail 주행 진행률·관전 점 | **Trail** 위 주행/관전 | `trails/{trailId}/liveCourseRides/{uid}` |
 | 입문 허브 동행 마커 | **코스** 동행 (Trail과 별도) | `coursePresence/{courseId}/members` |
-| Trail(방) 바꾸기 | **Trail 이동** | `RoomSwitcher` → UI 카피만 Trail, `applyRoomFromDraft` |
+| Trail 합류 | **열린 Trail** 목록 탭 | `TrailHubPanel` · `fetchOpenTrailInstances` |
+| 주행 시작 | **Trail 자동 개설** (기본 open) | `createTrailInstance` · ▶ |
+| Trail 공개 전환 | 호스트만 Open/Private | `setTrailVisibility` |
 | Trail 이탈 | 로그아웃, **다른 Trail로 이동**, 주행 종료 | `deleteLobbyPresence` / `deleteLobbyLiveCourseRide` 등 |
 | 사용자 「나가기」 버튼 | **없음** (Trailhead 정책) | 세션 종료·이동·로그아웃으로만 정리 |
 
@@ -136,6 +156,7 @@
 | 2026-05-17 | Firestore `trails/` 전환·마이그레이션 CLI (`admin:migrate-rooms-to-trails`) |
 | 2026-05-17 | [Activity World 지도 LOD](260517-Activity-World-지도-LOD-설계.md) — 전역 라이브 코스 점/라인 |
 | 2026-05-17 | §2 시청 컨텍스트 — 「어느 Trail」에 Trailhead(`default`) 포함, Activity World vs 관전 구분 |
+| 2026-05-19 | §1 Trailhead=허브·▶ 자동 Trail·3자리 displayNumber·§1-b living world 분리·TrailHubPanel |
 
 ### 9. `rooms` → `trails` 배포 순서
 

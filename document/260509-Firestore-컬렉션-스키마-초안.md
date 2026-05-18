@@ -72,7 +72,32 @@
 - `id`를 문서 내부에도 중복 저장(이전 스크립트 단순화).
 - 이메일은 변경 가능 필드로 취급, docId에는 불변 `uid`만 사용.
 
-### 3.2 `rooms/{roomId}`
+### 3.2 `trails/{trailId}` (2026-05-19, `rooms` 후속)
+
+`trailId=default` 는 **Trailhead presence 허브** — 루트 메타 문서 없음.
+
+```json
+{
+  "hostUid": "uid",
+  "displayNumber": 35,
+  "courseId": "course-id|null",
+  "regionLabel": "Korea, Seoul|null",
+  "distanceKm": 12.3,
+  "visibility": "open|private",
+  "status": "open|closed|archived",
+  "createdAt": "Timestamp",
+  "closedAt": "Timestamp|null",
+  "archivedAt": "Timestamp|null",
+  "lastActivityAt": "Timestamp"
+}
+```
+
+설명:
+- `displayNumber`: UI 3자리 (`035`). 문서 ID는 Firestore auto-id.
+- open 목록: `status==open` && `visibility==open`.
+- `closed` 24h 후 CF `archived`, 7d 후 서브컬렉션·문서 purge (`trailInstanceLifecycle`).
+
+### 3.2-legacy `rooms/{roomId}`
 
 ```json
 {
@@ -86,7 +111,7 @@
 ```
 
 설명:
-- 현재는 멤버 하위 컬렉션만 사용해도 되나, 상위 문서 메타를 두면 관리/UI 확장에 유리.
+- 레거시. `trails/` 마이그레이션 후 read-only.
 
 ### 3.3 `rooms/{roomId}/members/{userId}`
 

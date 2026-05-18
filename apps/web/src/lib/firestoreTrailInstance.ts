@@ -20,7 +20,7 @@ import { TRAILS_COLLECTION } from "./firestoreTrailPaths";
 import { countTrailLiveRiders } from "./firestoreTrailLiveCourseRides";
 
 export type TrailVisibility = "open" | "private";
-export type TrailStatus = "open" | "closed";
+export type TrailStatus = "open" | "closed" | "archived";
 
 export type TrailInstance = {
   id: string;
@@ -72,7 +72,12 @@ function parseTrailInstance(id: string, data: Record<string, unknown>): TrailIns
     distanceKm:
       typeof data.distanceKm === "number" && Number.isFinite(data.distanceKm) ? data.distanceKm : null,
     visibility: data.visibility === "private" ? "private" : "open",
-    status: data.status === "closed" ? "closed" : "open",
+    status:
+      data.status === "archived"
+        ? "archived"
+        : data.status === "closed"
+          ? "closed"
+          : "open",
     createdAtMs: timestampToMs(data.createdAt),
     lastActivityAtMs: timestampToMs(data.lastActivityAt),
   };
@@ -139,6 +144,7 @@ export async function closeTrailInstance(trailId: string): Promise<void> {
   const db = getFirestore(getFirebaseApp());
   await updateDoc(doc(db, TRAILS_COLLECTION, trailId), {
     status: "closed",
+    closedAt: serverTimestamp(),
     lastActivityAt: serverTimestamp(),
   });
 }

@@ -241,3 +241,4 @@ export { courseActivityHeatReconcile } from "./courseActivityHeatReconcile.js";
 export { routeTokenOnRideCreated } from "./routeTokenOnRideCreated.js";
 export { ensureRouteTokenOnboardingHttp } from "./routeTokenEnsureOnboarding.js";
 export { backfillRoutePublicationsHttp } from "./backfillRoutePublications.js";
+export { trailInstanceLifecycle } from "./trailInstanceLifecycle.js";

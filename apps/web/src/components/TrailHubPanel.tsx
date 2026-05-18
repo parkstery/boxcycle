@@ -10,7 +10,7 @@ import { formatTrailDisplayNumber } from "../lib/trailDisplayNumber";
 import { TRAILHEAD_LABEL, TRAIL_LABEL } from "../lib/productTerms";
 import "./TrailHubPanel.css";
 
-type TrailHubPanelProps = {
+export type TrailHubPanelProps = {
   user: User | null | undefined;
   activeTrailId: string;
   currentTrail: TrailInstance | null;
