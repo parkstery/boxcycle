@@ -442,9 +442,9 @@ function syncTrailSpectatorLayers(
           type: "circle",
           source: TRAIL_SPEC_DOTS_SRC,
           paint: {
-            "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 7, 14, 12],
+            "circle-radius": ["interpolate", ["linear"], ["zoom"], 3, 5, 9, 7, 14, 12],
             "circle-color": "#ffffff",
-            "circle-opacity": ["interpolate", ["linear"], ["zoom"], 9, 0.55, 14, 0.7],
+            "circle-opacity": ["interpolate", ["linear"], ["zoom"], 3, 0.62, 9, 0.55, 14, 0.7],
             "circle-blur": 0.55,
           },
         },
@@ -456,7 +456,7 @@ function syncTrailSpectatorLayers(
           type: "circle",
           source: TRAIL_SPEC_DOTS_SRC,
           paint: {
-            "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 3.6, 14, 7],
+            "circle-radius": ["interpolate", ["linear"], ["zoom"], 3, 4.2, 9, 3.6, 14, 7],
             "circle-color": "#dc2626",
             "circle-stroke-width": 1.8,
             "circle-stroke-color": "#ffffff",
@@ -475,9 +475,9 @@ function syncTrailSpectatorLayers(
             type: "circle",
             source: TRAIL_SPEC_DOTS_SRC,
             paint: {
-              "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 7, 14, 12],
+              "circle-radius": ["interpolate", ["linear"], ["zoom"], 3, 5, 9, 7, 14, 12],
               "circle-color": "#ffffff",
-              "circle-opacity": ["interpolate", ["linear"], ["zoom"], 9, 0.55, 14, 0.7],
+              "circle-opacity": ["interpolate", ["linear"], ["zoom"], 3, 0.62, 9, 0.55, 14, 0.7],
               "circle-blur": 0.55,
             },
           },
@@ -696,6 +696,11 @@ export type MapViewProps = {
   getActivityWorldPinLabel?: ((courseId: string, kind: "pulse" | "heat") => string | null) | null;
   /** 맵 이동·줌 완료 시 뷰포트(span km 포함) */
   onMapViewport?: (viewport: MapViewportBounds, spanKm: number) => void;
+  /**
+   * LOD(점↔선) 전용 — 제스처 중에도 스로틀되어 span·zoom 반영.
+   * `onMapZoom`/`onMapViewport` 는 `zoomend`·`moveend` 만 써서 HUD 떨림을 막고, LOD 는 여기로 분리.
+   */
+  onMapLodViewport?: (spanKm: number, zoom: number) => void;
 };
 
 export function MapView({
@@ -730,6 +735,7 @@ export function MapView({
   activityHeatDots = null,
   getActivityWorldPinLabel = null,
   onMapViewport,
+  onMapLodViewport,
 }: MapViewProps) {
   const trailSpectatorDataRef = useRef<{ dots: TrailSpectatorDot[]; routes: LineStringGeometry[] }>({
     dots: [],
@@ -786,6 +792,7 @@ export function MapView({
   const onClearRouteRef = useRef(onClearRoute);
   const onMapZoomRef = useRef(onMapZoom);
   const onMapViewportRef = useRef(onMapViewport);
+  const onMapLodViewportRef = useRef(onMapLodViewport);
   const getActivityWorldPinLabelRef = useRef(getActivityWorldPinLabel);
   const prevLiveRef = useRef<LngLat | null>(null);
   /** 지명 검색 flyTo 직후 `liveLngLat` 추적 jumpTo 가 카메라를 되돌리는 것을 막는다 */
@@ -866,6 +873,9 @@ export function MapView({
   useEffect(() => {
     onMapViewportRef.current = onMapViewport;
   }, [onMapViewport]);
+  useEffect(() => {
+    onMapLodViewportRef.current = onMapLodViewport;
+  }, [onMapLodViewport]);
 
   useEffect(() => {
     getActivityWorldPinLabelRef.current = getActivityWorldPinLabel;
@@ -908,15 +918,43 @@ export function MapView({
       onMapViewportRef.current?.(viewport, viewportSpanKm(viewport));
     };
 
+    const reportMapLodViewport = () => {
+      const bounds = map.getBounds();
+      if (!bounds) return;
+      const viewport = lngLatBoundsToViewport(bounds);
+      onMapLodViewportRef.current?.(viewportSpanKm(viewport), Number(map.getZoom().toFixed(1)));
+    };
+
+    let lodRaf = 0;
+    let lodLastEmit = 0;
+    const LOD_VIEWPORT_THROTTLE_MS = 100;
+    const scheduleLodViewportReport = () => {
+      if (!onMapLodViewportRef.current) return;
+      if (lodRaf) return;
+      lodRaf = requestAnimationFrame(() => {
+        lodRaf = 0;
+        const now = performance.now();
+        if (now - lodLastEmit < LOD_VIEWPORT_THROTTLE_MS) {
+          scheduleLodViewportReport();
+          return;
+        }
+        lodLastEmit = now;
+        reportMapLodViewport();
+      });
+    };
+
     map.on("load", () => {
       setMapLoaded(true);
       onMapZoomRef.current(Number(map.getZoom().toFixed(1)));
       reportMapViewport();
+      reportMapLodViewport();
     });
 
     map.on("moveend", reportMapViewport);
     map.on("zoomend", reportMapViewport);
     map.on("idle", reportMapViewport);
+    map.on("move", scheduleLodViewportReport);
+    map.on("zoom", scheduleLodViewportReport);
 
     map.on("style.load", () => {
       const latestRoute = routeGeometryRef.current;
@@ -1044,6 +1082,9 @@ export function MapView({
       map.off("moveend", reportMapViewport);
       map.off("zoomend", reportMapViewport);
       map.off("idle", reportMapViewport);
+      map.off("move", scheduleLodViewportReport);
+      map.off("zoom", scheduleLodViewportReport);
+      if (lodRaf) cancelAnimationFrame(lodRaf);
       window.removeEventListener("resize", onResize);
       startMarkerRef.current?.remove();
       endMarkerRef.current?.remove();
@@ -1413,15 +1454,43 @@ export function MapView({
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoaded || !map.isStyleLoaded()) return;
-    syncTrailSpectatorLayers(map, trailSpectatorDots ?? [], trailSpectatorRoutes ?? []);
+    if (!map || !mapLoaded) return;
+
+    const syncTrail = () => {
+      if (!map.isStyleLoaded()) return;
+      syncTrailSpectatorLayers(map, trailSpectatorDots ?? [], trailSpectatorRoutes ?? []);
+    };
+
+    syncTrail();
+    if (!map.isStyleLoaded()) {
+      map.once("style.load", syncTrail);
+      map.once("idle", syncTrail);
+    }
+    return () => {
+      map.off("style.load", syncTrail);
+      map.off("idle", syncTrail);
+    };
   }, [mapLoaded, trailSpectatorDots, trailSpectatorRoutes]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoaded || !map.isStyleLoaded()) return;
-    syncCourseActivityLayers(map, activityPulseRoutes ?? [], activityHeatRoutes ?? []);
-    syncActivityWorldDotLayers(map, activityPulseDots ?? [], activityHeatDots ?? []);
+    if (!map || !mapLoaded) return;
+
+    const syncActivity = () => {
+      if (!map.isStyleLoaded()) return;
+      syncCourseActivityLayers(map, activityPulseRoutes ?? [], activityHeatRoutes ?? []);
+      syncActivityWorldDotLayers(map, activityPulseDots ?? [], activityHeatDots ?? []);
+    };
+
+    syncActivity();
+    if (!map.isStyleLoaded()) {
+      map.once("style.load", syncActivity);
+      map.once("idle", syncActivity);
+    }
+    return () => {
+      map.off("style.load", syncActivity);
+      map.off("idle", syncActivity);
+    };
   }, [mapLoaded, activityPulseRoutes, activityHeatRoutes, activityPulseDots, activityHeatDots]);
 
   useEffect(() => {

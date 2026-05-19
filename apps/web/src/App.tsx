@@ -136,9 +136,16 @@ export default function App() {
   const [mapStyle, setMapStyle] = useState(MAP_STYLE_OPTIONS[3].value);
   const [mapZoom, setMapZoom] = useState(12);
   const [mapViewportSpanKm, setMapViewportSpanKm] = useState<number | null>(null);
+  /** Activity World LOD — 제스처 중 실제 줌·span (HUD `mapZoom` 과 분리) */
+  const [mapLodZoom, setMapLodZoom] = useState(12);
+  const [mapLodSpanKm, setMapLodSpanKm] = useState<number | null>(null);
 
   const onMapViewport = useCallback((_viewport: MapViewportBounds, spanKm: number) => {
     setMapViewportSpanKm(spanKm);
+  }, []);
+  const onMapLodViewport = useCallback((spanKm: number, zoom: number) => {
+    setMapLodSpanKm(spanKm);
+    setMapLodZoom(zoom);
   }, []);
   const [followMode, setFollowMode] = useState<FollowMode>("keep");
   const [enable3D, setEnable3D] = useState(true);
@@ -546,14 +553,14 @@ export default function App() {
   const activityWorldDisplay = useMemo(
     () =>
       resolveActivityWorldDisplay({
-        mapZoom,
-        spanKm: mapViewportSpanKm,
+        mapZoom: mapLodZoom,
+        spanKm: mapLodSpanKm,
         pulseDotCount: activityWorldRaw.pulseDots.length,
         heatDotCount: activityWorldRaw.heatDots.length,
         pulseLineCount: activityWorldRaw.pulseRoutes.length,
         heatLineCount: activityWorldRaw.heatRoutes.length,
       }),
-    [mapZoom, mapViewportSpanKm, activityWorldRaw],
+    [mapLodZoom, mapLodSpanKm, activityWorldRaw],
   );
 
   const activityPulseRoutes = useMemo(
@@ -589,7 +596,9 @@ export default function App() {
     if (!import.meta.env.DEV) return;
     console.debug("[ActivityWorld]", {
       zoom: mapZoom,
+      lodZoom: mapLodZoom,
       spanKm: mapViewportSpanKm,
+      lodSpanKm: mapLodSpanKm,
       display: activityWorldDisplay,
       raw: {
         pulseDots: activityWorldRaw.pulseDots.length,
@@ -610,7 +619,9 @@ export default function App() {
     });
   }, [
     mapZoom,
+    mapLodZoom,
     mapViewportSpanKm,
+    mapLodSpanKm,
     activityWorldDisplay,
     activityWorldRaw,
     activityPulseDots.length,
@@ -1264,6 +1275,7 @@ export default function App() {
           enable3D={enable3D}
           onMapZoom={setMapZoom}
           onMapViewport={onMapViewport}
+          onMapLodViewport={onMapLodViewport}
           coverageOverlayMode={coverageOverlayMode}
           mapillaryClientToken={mapillaryTokenConfigured ? MAPILLARY_CLIENT_TOKEN : null}
           routeProfile={profile}

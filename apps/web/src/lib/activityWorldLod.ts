@@ -113,8 +113,10 @@ export function resolveActivityWorldDisplay(input: ActivityWorldDisplayInput): A
     };
   }
 
+  /** 가까운 축척(z≥13·span≤20km)에서만 점 숨김 — LOD 입력은 제스처 중 실시간 줌·span 사용 */
   if (
     hasLines &&
+    zoom >= MAP_ZOOM_ACTIVITY_WORLD_LINE_MAX &&
     span != null &&
     Number.isFinite(span) &&
     span <= VIEWPORT_SPAN_LINE_MAX_KM
