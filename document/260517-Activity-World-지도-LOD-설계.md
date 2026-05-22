@@ -18,7 +18,7 @@
 **대표 UX (제품 이미지):**
 
 - 줌 아웃·Trailhead(월드 뷰): *「캐나다 앨버타 근처에서 누가 달리고 있나 보다」* → **라이브 코스 위치를 점**으로 표시.
-- 맵을 확대해 **화면 span이 대략 20km 이하**이고 줌이 충분하면: 그 코스는 **노선(라인)** 으로 보이기 시작(중간 줌대는 점+선 혼합 가능).
+- 맵을 확대해 **화면 span이 대략 10km 이하**이고 줌이 충분하면: 그 코스는 **노선(라인)** 으로 표시. **10km 초과(줌아웃)** 는 **점**만.
 
 **본 설계의 범위 밖 (이미 구현·별도 유지):**
 
@@ -117,18 +117,16 @@ flowchart TB
 
 | 표시 | 조건 (요약) | 지도 |
 |------|-------------|------|
-| **DOT** | span > 20km **또는** zoom < 11.5 **또는** (11.5≤zoom<13 hybrid) | 라이브·heat **앵커 점** |
-| **LINE** | span ≤ 20km **및** zoom ≥ 11.5, geometry ready | pulse·heat **LineString** (red 계열, §3.3) |
-| **LINE 우선** | zoom ≥ 13 **및** 라인 데이터 있음 | 점 숨김, 라인만 |
-| **LINE 폴백** | `lines-only` 인데 전달 라인 0건 | **점 유지** (`applyActivityWorldRenderFilter`) |
-| **span null** | LOD 미동기 시 줌만 판정 — z≥13 이면 라인 허용(멀리 >20km 제외) | `spanAllowsActivityWorldLines` |
+| **DOT** | span **> 10km** **또는** span 미동기 **또는** zoom < 11.5 | 라이브·heat **앵커 점** |
+| **LINE** | span **≤ 10km** **및** zoom ≥ 11.5, geometry ready | pulse·heat **LineString** (red 계열, §3.3) |
+| **폴백** | 선택 채널이 비었는데 반대 데이터 있음 | **점↔라인 자동 전환** (`applyActivityWorldRenderFilter`) |
+| **span null** | 라인 채널 금지, **점 우선** (빈 맵 방지) | `spanAllowsActivityWorldLines` |
 
 **상수 (`activityWorldLod.ts`):**
 
 ```text
-VIEWPORT_SPAN_LINE_MAX_KM = 20
-MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN = 11.5   // 미만 → 점만
-MAP_ZOOM_ACTIVITY_WORLD_LINE_MAX = 13     // 미만 hybrid(점+준비된 선)
+VIEWPORT_SPAN_LINE_MAX_KM = 10
+MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN = 11.5   // span≤10km 구간에서도 미만 → 점만
 MAP_ZOOM_WORLD_HUD_MAX = 9                // 월드 HUD 텍스트만
 ```
 

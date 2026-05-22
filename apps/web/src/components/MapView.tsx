@@ -120,6 +120,106 @@ function moveActivityWorldDotLayersToTop(map: mapboxgl.Map): void {
   }
 }
 
+function addActivityPulseDotLayers(map: mapboxgl.Map): void {
+  if (map.getLayer(ACTIVITY_PULSE_DOTS_LAYER)) return;
+  const beforeId = map.getLayer(ACTIVITY_PULSE_DOTS_GLOW) ? ACTIVITY_PULSE_DOTS_GLOW : undefined;
+  if (!map.getLayer(ACTIVITY_PULSE_DOTS_GLOW)) {
+    map.addLayer({
+      id: ACTIVITY_PULSE_DOTS_GLOW,
+      type: "circle",
+      source: ACTIVITY_PULSE_DOTS_SRC,
+      paint: {
+        "circle-radius": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          3,
+          ["+", 10, ["*", ["get", "pulseLevel"], 3]],
+          8,
+          ["+", 12, ["*", ["get", "pulseLevel"], 2.5]],
+          12,
+          ["+", 8, ["*", ["get", "pulseLevel"], 2]],
+        ],
+        "circle-color": "#ffffff",
+        "circle-opacity": ["interpolate", ["linear"], ["zoom"], 4, 0.5, 10, 0.72],
+        "circle-blur": 0.55,
+      },
+    });
+  }
+  map.addLayer(
+    {
+      id: ACTIVITY_PULSE_DOTS_LAYER,
+      type: "circle",
+      source: ACTIVITY_PULSE_DOTS_SRC,
+      paint: {
+        "circle-radius": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          4,
+          ["+", 5, ["*", ["get", "pulseLevel"], 1.5]],
+          10,
+          ["+", 7, ["*", ["get", "pulseLevel"], 1.5]],
+        ],
+        "circle-color": ACTIVITY_TRACE_RED,
+        "circle-stroke-width": 1.6,
+        "circle-stroke-color": "#ffffff",
+        "circle-opacity": ["min", 1, ["*", 0.94, TRACE_STRENGTH_MULT]],
+      },
+    },
+    beforeId,
+  );
+}
+
+function addActivityHeatDotLayers(map: mapboxgl.Map): void {
+  if (map.getLayer(ACTIVITY_HEAT_DOTS_LAYER)) return;
+  const beforeId = map.getLayer(ACTIVITY_HEAT_DOTS_GLOW) ? ACTIVITY_HEAT_DOTS_GLOW : undefined;
+  if (!map.getLayer(ACTIVITY_HEAT_DOTS_GLOW)) {
+    map.addLayer({
+      id: ACTIVITY_HEAT_DOTS_GLOW,
+      type: "circle",
+      source: ACTIVITY_HEAT_DOTS_SRC,
+      paint: {
+        "circle-radius": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          4,
+          ["+", 6, ["*", ["get", "heatWeight"], 1.2]],
+          10,
+          ["+", 9, ["*", ["get", "heatWeight"], 1.5]],
+        ],
+        "circle-color": ACTIVITY_TRACE_RED,
+        "circle-opacity": ["min", 1, ["*", 0.55, TRACE_STRENGTH_MULT]],
+        "circle-blur": 0.5,
+      },
+    });
+  }
+  map.addLayer(
+    {
+      id: ACTIVITY_HEAT_DOTS_LAYER,
+      type: "circle",
+      source: ACTIVITY_HEAT_DOTS_SRC,
+      paint: {
+        "circle-radius": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          4,
+          ["+", 3.5, ["*", ["get", "heatWeight"], 1]],
+          10,
+          ["+", 5.5, ["*", ["get", "heatWeight"], 1.2]],
+        ],
+        "circle-color": ACTIVITY_TRACE_RED,
+        "circle-stroke-width": 1.4,
+        "circle-stroke-color": "#ffffff",
+        "circle-opacity": ["min", 1, ["*", 0.88, TRACE_STRENGTH_MULT]],
+      },
+    },
+    beforeId,
+  );
+}
+
 function syncActivityWorldDotLayers(
   map: mapboxgl.Map,
   pulseDots: readonly ActivityWorldDotFeature[],
@@ -157,94 +257,18 @@ function syncActivityWorldDotLayers(
   try {
     if (!map.getSource(ACTIVITY_PULSE_DOTS_SRC)) {
       map.addSource(ACTIVITY_PULSE_DOTS_SRC, { type: "geojson", data: pulseFc });
-      map.addLayer({
-        id: ACTIVITY_PULSE_DOTS_GLOW,
-        type: "circle",
-        source: ACTIVITY_PULSE_DOTS_SRC,
-        paint: {
-          "circle-radius": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            3,
-            ["+", 10, ["*", ["get", "pulseLevel"], 3]],
-            8,
-            ["+", 12, ["*", ["get", "pulseLevel"], 2.5]],
-            12,
-            ["+", 8, ["*", ["get", "pulseLevel"], 2]],
-          ],
-          "circle-color": "#ffffff",
-          "circle-opacity": ["interpolate", ["linear"], ["zoom"], 4, 0.5, 10, 0.72],
-          "circle-blur": 0.55,
-        },
-      });
-      map.addLayer({
-        id: ACTIVITY_PULSE_DOTS_LAYER,
-        type: "circle",
-        source: ACTIVITY_PULSE_DOTS_SRC,
-        paint: {
-          "circle-radius": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            4,
-            ["+", 5, ["*", ["get", "pulseLevel"], 1.5]],
-            10,
-            ["+", 7, ["*", ["get", "pulseLevel"], 1.5]],
-          ],
-          "circle-color": ACTIVITY_TRACE_RED,
-          "circle-stroke-width": 1.6,
-          "circle-stroke-color": "#ffffff",
-          "circle-opacity": ["min", 1, ["*", 0.94, TRACE_STRENGTH_MULT]],
-        },
-      });
+      addActivityPulseDotLayers(map);
     } else {
       (map.getSource(ACTIVITY_PULSE_DOTS_SRC) as mapboxgl.GeoJSONSource).setData(pulseFc);
+      if (!map.getLayer(ACTIVITY_PULSE_DOTS_LAYER)) addActivityPulseDotLayers(map);
     }
 
     if (!map.getSource(ACTIVITY_HEAT_DOTS_SRC)) {
       map.addSource(ACTIVITY_HEAT_DOTS_SRC, { type: "geojson", data: heatFc });
-      map.addLayer({
-        id: ACTIVITY_HEAT_DOTS_GLOW,
-        type: "circle",
-        source: ACTIVITY_HEAT_DOTS_SRC,
-        paint: {
-          "circle-radius": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            4,
-            ["+", 6, ["*", ["get", "heatWeight"], 1.2]],
-            10,
-            ["+", 9, ["*", ["get", "heatWeight"], 1.5]],
-          ],
-          "circle-color": ACTIVITY_TRACE_RED,
-          "circle-opacity": ["min", 1, ["*", 0.55, TRACE_STRENGTH_MULT]],
-          "circle-blur": 0.5,
-        },
-      });
-      map.addLayer({
-        id: ACTIVITY_HEAT_DOTS_LAYER,
-        type: "circle",
-        source: ACTIVITY_HEAT_DOTS_SRC,
-        paint: {
-          "circle-radius": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            4,
-            ["+", 3.5, ["*", ["get", "heatWeight"], 1]],
-            10,
-            ["+", 5.5, ["*", ["get", "heatWeight"], 1.2]],
-          ],
-          "circle-color": ACTIVITY_TRACE_RED,
-          "circle-stroke-width": 1.4,
-          "circle-stroke-color": "#ffffff",
-          "circle-opacity": ["min", 1, ["*", 0.88, TRACE_STRENGTH_MULT]],
-        },
-      });
+      addActivityHeatDotLayers(map);
     } else {
       (map.getSource(ACTIVITY_HEAT_DOTS_SRC) as mapboxgl.GeoJSONSource).setData(heatFc);
+      if (!map.getLayer(ACTIVITY_HEAT_DOTS_LAYER)) addActivityHeatDotLayers(map);
     }
 
     moveActivityWorldDotLayersToTop(map);

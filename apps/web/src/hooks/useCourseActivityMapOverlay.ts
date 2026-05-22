@@ -41,17 +41,19 @@ export function useCourseActivityMapOverlay(
   const { activity, routeGeometry, mapZoom } = opts;
 
   return useMemo(() => {
-    if (!routeGeometry?.coordinates?.length || routeGeometry.coordinates.length < 2) {
-      return EMPTY;
-    }
     if (!activity) return EMPTY;
+
+    const hasRoute =
+      Boolean(routeGeometry?.coordinates?.length && routeGeometry.coordinates.length >= 2);
 
     const lngLat =
       activity.liveAnchorLngLat ??
-      (() => {
-        const bounds = boundsFromLineStringGeometry(routeGeometry);
-        return bounds ? boundsCenterLngLat(bounds) : null;
-      })();
+      (hasRoute
+        ? (() => {
+            const bounds = boundsFromLineStringGeometry(routeGeometry!);
+            return bounds ? boundsCenterLngLat(bounds) : null;
+          })()
+        : null);
 
     if (!lngLat) return EMPTY;
 
@@ -83,8 +85,12 @@ export function useCourseActivityMapOverlay(
           ]
         : [];
 
+    if (!hasRoute) {
+      return { pulseRoutes: [], heatRoutes: [], pulseDots, heatDots };
+    }
+
     const maxV = maxLineStringVerticesForMapZoom(mapZoom);
-    const geom = decimateLineStringVertices(routeGeometry, maxV);
+    const geom = decimateLineStringVertices(routeGeometry!, maxV);
 
     const pulseRoutes: ActivityWorldMapRoute[] = isCourseActivityLive(activity)
       ? [
