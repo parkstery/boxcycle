@@ -716,12 +716,12 @@ export default function App() {
   );
 
   /**
-   * 같은 Trail(`trailId`) 주행자만 `liveCourseRides` 실시간 위치.
-   * Trailhead(`default`)·다른 Trail 은 구독하지 않음 — 타 Trail 활동은 Activity World(aggregate)로만 인지.
+   * 같은 Trail(`trailId`) 주행자 — `liveCourseRides` 실시간 점·노선.
+   * Trailhead(`default`) 포함. 다른 Trail 은 `trailId` 불일치로 구독·표시 없음.
+   * 동일 코스 동행(`coursePresence`)과 중복되는 uid 는 `excludePeerIds` 로 제외.
    */
   const trailSpectatorOverlayEnabled = Boolean(
     trailheadSessionActive &&
-      onDedicatedTrail &&
       (rideStatus === "idle" || rideStatus === "running" || rideStatus === "paused") &&
       pageVisible,
   );

@@ -89,9 +89,9 @@ flowchart TB
   end
   subgraph mapB ["지도 — 시청자 B"]
     CA --> AW["A · Activity World 레이어"]
-    LCR --> TS{"trailId === dedicated?"}
+    LCR --> TS{"시청자 trailId === 주행자?"}
     TS -->|예| SPEC["B · Trail 관전 레이어"]
-    TS -->|Trailhead default| OFF["B · 관전 구독 OFF"]
+    TS -->|아니오| OFF["B · 미구독"]
     CP["coursePresence"] --> SPR["C · 동행 스프라이트"]
   end
 ```
@@ -100,11 +100,12 @@ flowchart TB
 
 | 증상 | 흔한 원인 | 확인 |
 |------|-----------|------|
-| Trailhead만 쓰는데 **다른 사람 진행 점·경로** 없음 | **B층** — `App.tsx` 에서 `onDedicatedTrail`( `trailId !== default` ) 일 때만 `liveCourseRides` 관전 | 전용 Trail URL·§J-2 스모크 |
+| **다른 Trail** URL 인데 상대 진행 없음 | **B층** — `trailId` 불일치(주행·시청 각각 `?trail=` 확인) | 동일 `trailId`·§J-2 |
+| 같은 Trail 인데 진행 없음 | `liveCourseRides` 미갱신·stale(240s)·Rules·비주행 | Firestore `trails/{id}/liveCourseRides` |
 | 멀리서도 **코스 빨간 점** 없음 | **A층** — `courseActivity` 없음·CF 미배포·비공식 코스 주행·뷰포트가 코스 bounds 밖 | Console `courseActivity` · §J-4 |
 | 같은 코스 입장했는데 **캐릭터** 없음 | **C층** — `coursePresence` · Rules `presenceEnabled` | 입문 허브 동행 UI |
 
-주행자는 Trailhead(`default`)에서도 `liveCourseRides` 에 쓰지만, 시청자 관전 구독은 꺼져 있다. Trailhead에서 타인 활동은 **A(Activity World)** 로 인지하는 것이 현행 제품·코드 정합이다.
+주행·시청 모두 **같은 `trailId`**(Trailhead `default` 포함)이면 **B(관전)** 가 켜진다. 입문 허브 동행 중인 상대는 **C** 스프라이트로 보이며 B 점과 uid 중복 제거된다.
 
 ---
 
@@ -300,3 +301,4 @@ BASIC_SHARED_HUB_IDS
 | 2026-05-18 | [Route Token 경제](260518-Route-Token-경제-설계.md) §6.3 토큰 드롭 — 메타·§7 링크 |
 | 2026-05-18 | §3.3 heat 시각 — 와이어 「회색」→ 구현 **red 계열** (`#dc2626`, `traceStrength`·dash로 라이브/heat 구분), 지도 회색 UI 혼동 방지 rationale |
 | 2026-05-23 | §2.1 데이터 흐름 Mermaid(배경 transparent) · §2.2 Trailhead 관전 OFF·A/B/C 점검 표 |
+| 2026-05-23 | B층 — Trailhead(`default`) 포함 동일 `trailId` 관전 재활성 (`App.tsx` `onDedicatedTrail` 제거) |
