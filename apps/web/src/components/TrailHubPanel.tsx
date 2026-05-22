@@ -69,8 +69,8 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
           </span>
         ) : (
           <span className="trail-hub__current-meta">
-            코스를 고르고 ▶ 주행하면 Trail이 자동으로 열립니다. 다른 Trail 주행자는 Activity
-            World로, 같은 Trail은 지도에서 실시간으로 보입니다.
+            Trailhead에서는 ▶ 시 새 Trail이 열립니다. 아래 목록에서 Trail을 고른 뒤 ▶ 하면
+            그 Trail에 합류해 함께 주행합니다.
           </span>
         )}
       </div>

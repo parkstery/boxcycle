@@ -43,8 +43,9 @@ import {
   createTrailInstance,
   fetchTrailInstance,
   setTrailVisibility,
+  touchTrailInstanceActivity,
 } from "./lib/firestoreTrailInstance";
-import { resolveTrailDisplayLabel } from "./lib/trailDisplayNumber";
+import { formatTrailDisplayNumber, resolveTrailDisplayLabel } from "./lib/trailDisplayNumber";
 import { RotateOverlay } from "./components/RotateOverlay";
 import { MapViewSheet } from "./components/MapViewSheet";
 import { UserInfoSheet } from "./components/UserInfoSheet";
@@ -950,6 +951,31 @@ export default function App() {
     });
     void (async () => {
       try {
+        const currentTid = sanitizeTrailId(trailId);
+
+        /** MENU에서 연 Trail(081 등) 합류 후 ▶ — 새 Trail 생성하지 않음 */
+        if (currentTid !== DEFAULT_TRAIL_ID) {
+          const existing = await fetchTrailInstance(currentTid);
+          if (!existing) {
+            setError("선택한 Trail을 찾을 수 없습니다.");
+            return;
+          }
+          if (existing.status !== "open") {
+            setError("이 Trail은 이미 종료되었습니다. Trailhead에서 새 Trail을 시작하세요.");
+            return;
+          }
+          hostTrailIdRef.current = existing.hostUid === user.uid ? existing.id : null;
+          void touchTrailInstanceActivity(currentTid);
+          const num = formatTrailDisplayNumber(existing.displayNumber);
+          setRouteSummary(
+            `Trail ${num} 합류 · ${existing.regionLabel?.trim() || "같은 Trail에서 주행"}`,
+          );
+          resetArrivalGate();
+          resetRide();
+          setRideStatus("running");
+          return;
+        }
+
         const trail = await createTrailInstance({
           hostUid: user.uid,
           courseId,
