@@ -14,7 +14,9 @@ import {
 } from "firebase/firestore";
 import { getFirebaseApp } from "./firebase";
 import type { LineStringGeometry, LngLat } from "./geo";
+import type { User } from "firebase/auth";
 import type { RouteProfile } from "../services/mapboxDirections";
+import { assertTierQuotaClient } from "./tierQuota";
 import { MAX_ROUTE_WAYPOINTS } from "./routeWaypoints";
 import { computeRouteFingerprint } from "./routeFingerprint";
 
@@ -325,10 +327,15 @@ async function assertNoDuplicateSavedRouteForUser(
   }
 }
 
-export async function saveRouteToFirestore(input: SaveRouteInput): Promise<SavedRoute> {
+export async function saveRouteToFirestore(
+  input: SaveRouteInput,
+  authUser: User,
+): Promise<SavedRoute> {
   const name = validateSavedRouteName(input.name);
   validateGeometry(input.geometry);
   const waypoints = validateWaypointsForSave(input.waypoints);
+
+  await assertTierQuotaClient(authUser, "save_route");
 
   const db = getFirestore(getFirebaseApp());
   const routeFingerprint = await computeRouteFingerprint(input.geometry, input.profile);
@@ -506,11 +513,12 @@ export async function backfillSavedRoutesExpiresAt(input: {
 export async function migrateLocalRoutesToFirestore(input: {
   userId: string;
   routes: SaveRouteInput[];
+  authUser: User;
 }): Promise<SavedRoute[]> {
   const created: SavedRoute[] = [];
   for (const r of input.routes) {
     try {
-      const saved = await saveRouteToFirestore({ ...r, userId: input.userId });
+      const saved = await saveRouteToFirestore({ ...r, userId: input.userId }, input.authUser);
       created.push(saved);
     } catch {
       // 한 건 실패해도 나머지는 계속 시도

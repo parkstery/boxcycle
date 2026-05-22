@@ -1,14 +1,30 @@
 import { getAuth } from "firebase-admin/auth";
 import { HttpsError, onRequest, type Request } from "firebase-functions/v2/https";
 import type { Response } from "express";
-import { ensureRouteTokenOnboarding } from "./routeTokenCore.js";
+import { assertTierQuota, type TierQuotaAction } from "./tierQuotaCore.js";
 import { mergeUserAuthMeta } from "./userTierCore.js";
 
+const ACTIONS: TierQuotaAction[] = ["save_route", "public_route_request", "create_event"];
+
+function parseAction(body: unknown): TierQuotaAction {
+  const raw =
+    typeof body === "object" && body !== null && "action" in body
+      ? (body as { action?: unknown }).action
+      : undefined;
+  if (typeof raw !== "string" || !ACTIONS.includes(raw as TierQuotaAction)) {
+    throw new HttpsError(
+      "invalid-argument",
+      `action 은 ${ACTIONS.join(" | ")} 중 하나여야 합니다.`,
+    );
+  }
+  return raw as TierQuotaAction;
+}
+
 /**
- * 로그인 직후 클라이언트가 1회 호출 — 온보딩 토큰 지급·잔액 표시.
- * POST + Bearer ID token, 응답 `{ result: { routeTokenBalance } }`.
+ * tier quota 선검사 — 저장·공개 신청 전 클라이언트 호출.
+ * POST + Bearer, 본문 `{ "action": "save_route" | "public_route_request" | "create_event" }`
  */
-export const ensureRouteTokenOnboardingHttp = onRequest(
+export const assertTierQuotaHttp = onRequest(
   {
     region: "asia-northeast3",
     cors: true,
@@ -40,11 +56,14 @@ export const ensureRouteTokenOnboardingHttp = onRequest(
     }
 
     try {
-      await mergeUserAuthMeta(uid).catch(() => {
+      const action = parseAction(req.body);
+      try {
+        await mergeUserAuthMeta(uid);
+      } catch {
         /* noop */
-      });
-      const routeTokenBalance = await ensureRouteTokenOnboarding(uid);
-      res.status(200).json({ result: { routeTokenBalance } });
+      }
+      const result = await assertTierQuota(uid, action);
+      res.status(200).json({ result });
     } catch (e: unknown) {
       if (e instanceof HttpsError) {
         res.status(e.httpErrorCode.status).json({ error: e.toJSON() });

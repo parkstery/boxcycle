@@ -1,0 +1,27 @@
+{
+  "monthTimezone": "Asia/Seoul",
+  "anonymous": {
+    "saveRoutePerMonth": 3,
+    "saveRouteMaxActive": 5,
+    "publicRouteRequestPerMonth": 0,
+    "createEventPerMonth": 0
+  },
+  "registered_free": {
+    "saveRoutePerMonth": 15,
+    "saveRouteMaxActive": 30,
+    "publicRouteRequestPerMonth": 2,
+    "createEventPerMonth": 0
+  },
+  "registered_paid": {
+    "saveRoutePerMonth": 50,
+    "saveRouteMaxActive": 100,
+    "publicRouteRequestPerMonth": 10,
+    "createEventPerMonth": 5
+  },
+  "admin": {
+    "saveRoutePerMonth": null,
+    "saveRouteMaxActive": null,
+    "publicRouteRequestPerMonth": null,
+    "createEventPerMonth": null
+  }
+}

@@ -29,6 +29,7 @@ import {
   PUBLIC_ROUTE_NAMING_POLICY_VERSION,
 } from "./publicRouteNamingPolicy";
 import { getUserProfileTier } from "./firestoreUser";
+import { assertTierQuotaClient } from "./tierQuota";
 import { canSubmitPublicRoute, GUEST_PUBLIC_ROUTE_MSG } from "./userTier";
 import {
   maybeModeratePublicRouteCopyRemote,
@@ -280,6 +281,8 @@ export async function createPublicRouteRequest(
   });
   const routeFingerprint = await computeRouteFingerprint(route.geometry, route.profile);
   await assertNoDuplicatePublicCatalogRoute(db, routeFingerprint, { applicantUid: user.uid });
+
+  await assertTierQuotaClient(user, "public_route_request");
 
   const payload = {
     applicantUid: user.uid,

@@ -33,6 +33,14 @@
       ]
     },
     {
+      "collectionGroup": "savedRoutes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "publicRouteRequests",
       "queryScope": "COLLECTION",
       "fields": [
@@ -46,6 +54,14 @@
       "fields": [
         { "fieldPath": "applicantUid", "order": "ASCENDING" },
         { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "publicRouteRequests",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "applicantUid", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "ASCENDING" }
       ]
     },
     {

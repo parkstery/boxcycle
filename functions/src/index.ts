@@ -237,5 +237,10 @@ export { courseActivityScheduledReconcile } from "./courseActivityScheduledRecon
 export { courseActivityHeatReconcile } from "./courseActivityHeatReconcile.js";
 export { routeTokenOnRideCreated } from "./routeTokenOnRideCreated.js";
 export { ensureRouteTokenOnboardingHttp } from "./routeTokenEnsureOnboarding.js";
+export { assertTierQuotaHttp } from "./tierQuotaHttp.js";
+export {
+  savedRoutesTierQuotaGuard,
+  publicRouteRequestsTierQuotaGuard,
+} from "./tierQuotaEnforcement.js";
 export { backfillRoutePublicationsHttp } from "./backfillRoutePublications.js";
 export { trailInstanceLifecycle } from "./trailInstanceLifecycle.js";

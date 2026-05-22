@@ -123,6 +123,7 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
         if (localPending.length > 0) {
           await migrateLocalRoutesToFirestore({
             userId: user.uid,
+            authUser: user,
             routes: localPending.map((r) => ({ ...r, userId: user.uid })),
           });
           clearSavedRoutesLocal();
@@ -183,7 +184,7 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
       if (!configured) {
         throw new Error("Firebase 설정이 필요합니다.");
       }
-      const saved = await saveRouteToFirestore({ ...baseInput, userId: uid });
+      const saved = await saveRouteToFirestore({ ...baseInput, userId: uid }, user!);
       setSavedRoutes((prev) => [saved, ...prev]);
       loadedSavedRouteIdRef.current = saved.id;
       loadedSavedRouteNameRef.current = saved.name;
@@ -223,7 +224,7 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
       if (!configured) {
         throw new Error("Firebase 설정이 필요합니다.");
       }
-      const saved = await saveRouteToFirestore({ ...base, userId: uid });
+      const saved = await saveRouteToFirestore({ ...base, userId: uid }, user!);
       try {
         await promoteSavedRouteInFirestore({
           userId: uid,
