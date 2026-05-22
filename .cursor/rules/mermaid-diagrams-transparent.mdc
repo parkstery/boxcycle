@@ -1,0 +1,52 @@
+---
+description: Mermaid 다이어그램은 항상 배경 transparent — 채팅·문서 공통
+alwaysApply: true
+---
+
+# Mermaid 다이어그램 (배경 없음)
+
+**모든** Mermaid 블록(채팅 응답, `document/*.md`, README 등)은 **배경색 없이** 그린다. 흰/회색 `mainBkg` 기본값을 쓰지 않는다.
+
+## 필수
+
+1. 코드 펜스는 ` ```mermaid ` 로 시작한다.
+2. **첫 줄**에 아래 `%%{init: ...}%%` 블록을 넣은 뒤 `flowchart` / `sequenceDiagram` 등을 이어 쓴다.
+3. 노드·클러스터·엣지 라벨 배경도 `transparent` 로 맞춘다.
+
+## 표준 init (복사용)
+
+```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "darkMode": "true",
+    "background": "transparent",
+    "primaryColor": "transparent",
+    "primaryTextColor": "#e6edf3",
+    "primaryBorderColor": "#8b949e",
+    "secondaryColor": "transparent",
+    "secondaryTextColor": "#e6edf3",
+    "secondaryBorderColor": "#8b949e",
+    "tertiaryColor": "transparent",
+    "tertiaryTextColor": "#e6edf3",
+    "tertiaryBorderColor": "#8b949e",
+    "lineColor": "#8b949e",
+    "textColor": "#e6edf3",
+    "mainBkg": "transparent",
+    "nodeBorder": "#8b949e",
+    "clusterBkg": "transparent",
+    "clusterBorder": "#8b949e",
+    "titleColor": "#e6edf3",
+    "edgeLabelBackground": "transparent"
+  }
+}}%%
+```
+
+## 문서
+
+- 신규·수정 Mermaid가 있는 제품/아키텍처 문서는 위 init 을 포함한다.
+- 참고 예: `document/260517-Activity-World-지도-LOD-설계.md` §2.1, `document/260519-사용자-tier-및-진입-정책.md` §2.1.
+
+## 예외
+
+- 사용자가 **의도적으로** 배경·테마를 지정한 경우만 그 지시를 따른다.
