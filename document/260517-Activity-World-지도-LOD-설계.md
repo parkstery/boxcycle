@@ -48,6 +48,64 @@
 
 A는 **전역 aggregate**, B는 **Trail 인스턴스 realtime** 이다.
 
+### 2.1 데이터 흐름 (주행 → 지도)
+
+다이어그램은 **배경 없음**(다크·라이트 문서 모두). Mermaid 미리보기가 흰 박스로 보이면 뷰어 테마 이슈이며, `themeVariables.background`·`mainBkg` 는 `transparent` 로 맞춰 두었다.
+
+```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "darkMode": "true",
+    "background": "transparent",
+    "primaryColor": "transparent",
+    "primaryTextColor": "#e6edf3",
+    "primaryBorderColor": "#8b949e",
+    "secondaryColor": "transparent",
+    "secondaryTextColor": "#e6edf3",
+    "secondaryBorderColor": "#8b949e",
+    "tertiaryColor": "transparent",
+    "tertiaryTextColor": "#e6edf3",
+    "tertiaryBorderColor": "#8b949e",
+    "lineColor": "#8b949e",
+    "textColor": "#e6edf3",
+    "mainBkg": "transparent",
+    "nodeBorder": "#8b949e",
+    "clusterBkg": "transparent",
+    "clusterBorder": "#8b949e",
+    "titleColor": "#e6edf3",
+    "edgeLabelBackground": "transparent"
+  }
+}}%%
+flowchart TB
+  subgraph publish ["주행자"]
+    R["주행 running / paused"]
+    LCR["trails / trailId / liveCourseRides"]
+    R --> LCR
+    LCR --> CF1["CF courseActivityOnLiveCourseRideWritten"]
+    CF1 --> CA["courseActivity / courseId"]
+    RideEnd["rides 문서 생성"] --> CF2["CF courseActivityOnRideCreated"]
+    CF2 --> CA
+  end
+  subgraph mapB ["지도 — 시청자 B"]
+    CA --> AW["A · Activity World 레이어"]
+    LCR --> TS{"trailId === dedicated?"}
+    TS -->|예| SPEC["B · Trail 관전 레이어"]
+    TS -->|Trailhead default| OFF["B · 관전 구독 OFF"]
+    CP["coursePresence"] --> SPR["C · 동행 스프라이트"]
+  end
+```
+
+### 2.2 「맵에 안 보임」 점검 (혼동 방지)
+
+| 증상 | 흔한 원인 | 확인 |
+|------|-----------|------|
+| Trailhead만 쓰는데 **다른 사람 진행 점·경로** 없음 | **B층** — `App.tsx` 에서 `onDedicatedTrail`( `trailId !== default` ) 일 때만 `liveCourseRides` 관전 | 전용 Trail URL·§J-2 스모크 |
+| 멀리서도 **코스 빨간 점** 없음 | **A층** — `courseActivity` 없음·CF 미배포·비공식 코스 주행·뷰포트가 코스 bounds 밖 | Console `courseActivity` · §J-4 |
+| 같은 코스 입장했는데 **캐릭터** 없음 | **C층** — `coursePresence` · Rules `presenceEnabled` | 입문 허브 동행 UI |
+
+주행자는 Trailhead(`default`)에서도 `liveCourseRides` 에 쓰지만, 시청자 관전 구독은 꺼져 있다. Trailhead에서 타인 활동은 **A(Activity World)** 로 인지하는 것이 현행 제품·코드 정합이다.
+
 ---
 
 ## 3. LOD 규칙 (점 ↔ 라인)
@@ -241,3 +299,4 @@ BASIC_SHARED_HUB_IDS
 | 2026-05-17 | v2 `liveAnchorLngLat` — CF geometry 보간 + 클라이언트 DOT 우선 사용 |
 | 2026-05-18 | [Route Token 경제](260518-Route-Token-경제-설계.md) §6.3 토큰 드롭 — 메타·§7 링크 |
 | 2026-05-18 | §3.3 heat 시각 — 와이어 「회색」→ 구현 **red 계열** (`#dc2626`, `traceStrength`·dash로 라이브/heat 구분), 지도 회색 UI 혼동 방지 rationale |
+| 2026-05-23 | §2.1 데이터 흐름 Mermaid(배경 transparent) · §2.2 Trailhead 관전 OFF·A/B/C 점검 표 |
