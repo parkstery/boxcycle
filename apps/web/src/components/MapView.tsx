@@ -80,11 +80,11 @@ type ActivityWorldDotFeature = {
   traceStrength: number;
 };
 
-/** Mapbox paint — feature `traceStrength` (0.3..1) */
+/** Mapbox paint — feature `traceStrength` (0.3..1). 최소 알파로 오래된 heat 도 식별 가능 */
 const TRACE_STRENGTH_MULT: mapboxgl.ExpressionSpecification = [
-  "coalesce",
-  ["get", "traceStrength"],
-  0.5,
+  "max",
+  0.28,
+  ["coalesce", ["get", "traceStrength"], 0.5],
 ];
 
 /** `zoom` 은 최상위 `interpolate`/`step` 에만 허용 — stop 값에서 traceStrength 곱 */
@@ -195,7 +195,7 @@ function syncActivityWorldDotLayers(
           "circle-color": ACTIVITY_TRACE_RED,
           "circle-stroke-width": 1.6,
           "circle-stroke-color": "#ffffff",
-          "circle-opacity": ["*", 0.94, TRACE_STRENGTH_MULT],
+          "circle-opacity": ["min", 1, ["*", 0.94, TRACE_STRENGTH_MULT]],
         },
       });
     } else {
@@ -219,7 +219,7 @@ function syncActivityWorldDotLayers(
             ["+", 9, ["*", ["get", "heatWeight"], 1.5]],
           ],
           "circle-color": ACTIVITY_TRACE_RED,
-          "circle-opacity": ["*", 0.4, TRACE_STRENGTH_MULT],
+          "circle-opacity": ["min", 1, ["*", 0.55, TRACE_STRENGTH_MULT]],
           "circle-blur": 0.5,
         },
       });
@@ -240,7 +240,7 @@ function syncActivityWorldDotLayers(
           "circle-color": ACTIVITY_TRACE_RED,
           "circle-stroke-width": 1.4,
           "circle-stroke-color": "#ffffff",
-          "circle-opacity": ["*", 0.88, TRACE_STRENGTH_MULT],
+          "circle-opacity": ["min", 1, ["*", 0.88, TRACE_STRENGTH_MULT]],
         },
       });
     } else {

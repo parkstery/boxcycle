@@ -72,12 +72,22 @@ export function lngLatBoundsToViewport(bounds: {
 }
 
 export function isActivityWorldLineMode(spanKm: number): boolean {
-  return Number.isFinite(spanKm) && spanKm <= VIEWPORT_SPAN_LINE_MAX_KM;
+  return spanAllowsActivityWorldLines(spanKm);
+}
+
+/** span 미보고(null) = 아직 LOD 미동기 — 멀리(>20km)가 아니면 라인 허용 */
+export function spanAllowsActivityWorldLines(spanKm: number | null): boolean {
+  if (spanKm == null || !Number.isFinite(spanKm)) return true;
+  return spanKm <= VIEWPORT_SPAN_LINE_MAX_KM;
+}
+
+export function spanForcesActivityWorldDotsOnly(spanKm: number | null): boolean {
+  return spanKm != null && Number.isFinite(spanKm) && spanKm > VIEWPORT_SPAN_LINE_MAX_KM;
 }
 
 /**
- * DOT = 기본 존재감, LINE = 준비된 경우의 추가 디테일.
- * showDots는 채널 on/off(데이터 개수와 무관) — 로딩 중에도 점 슬롯 유지.
+ * DOT = 소축척(멀리·줌아웃), LINE = 대축척(가까이·줌인).
+ * showDots/showLines는 채널 on/off — {@link applyActivityWorldRenderFilter} 로 실제 전달 배열 결정.
  */
 export function resolveActivityWorldDisplay(input: ActivityWorldDisplayInput): ActivityWorldDisplay {
   const zoom = Number.isFinite(input.mapZoom) ? input.mapZoom : 12;
@@ -85,8 +95,9 @@ export function resolveActivityWorldDisplay(input: ActivityWorldDisplayInput): A
   const hasLines = input.pulseLineCount + input.heatLineCount > 0;
   const spanLabel =
     span != null && Number.isFinite(span) ? `${span.toFixed(0)}km` : "span?";
+  const linesOk = spanAllowsActivityWorldLines(span);
 
-  if (span != null && Number.isFinite(span) && span > VIEWPORT_SPAN_LINE_MAX_KM) {
+  if (spanForcesActivityWorldDotsOnly(span)) {
     return {
       showDots: true,
       showLines: false,
@@ -104,28 +115,21 @@ export function resolveActivityWorldDisplay(input: ActivityWorldDisplayInput): A
     };
   }
 
-  if (zoom < MAP_ZOOM_ACTIVITY_WORLD_LINE_MAX) {
-    return {
-      showDots: true,
-      showLines: hasLines,
-      mode: hasLines ? "hybrid" : "dots-only",
-      label: hasLines ? `HYBRID z${zoom.toFixed(1)}` : `DOT z${zoom.toFixed(1)}`,
-    };
-  }
-
-  /** 가까운 축척(z≥13·span≤20km)에서만 점 숨김 — LOD 입력은 제스처 중 실시간 줌·span 사용 */
-  if (
-    hasLines &&
-    zoom >= MAP_ZOOM_ACTIVITY_WORLD_LINE_MAX &&
-    span != null &&
-    Number.isFinite(span) &&
-    span <= VIEWPORT_SPAN_LINE_MAX_KM
-  ) {
+  if (zoom >= MAP_ZOOM_ACTIVITY_WORLD_LINE_MAX && linesOk && hasLines) {
     return {
       showDots: false,
       showLines: true,
       mode: "lines-only",
-      label: `LINE z${zoom.toFixed(1)}`,
+      label: `LINE z${zoom.toFixed(1)}${span != null ? ` ${spanLabel}` : ""}`,
+    };
+  }
+
+  if (zoom >= MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN && linesOk && hasLines) {
+    return {
+      showDots: true,
+      showLines: true,
+      mode: "hybrid",
+      label: `HYBRID z${zoom.toFixed(1)}`,
     };
   }
 
@@ -133,8 +137,45 @@ export function resolveActivityWorldDisplay(input: ActivityWorldDisplayInput): A
     showDots: true,
     showLines: false,
     mode: "dots-only",
-    label: `DOT↩ z${zoom.toFixed(1)}`,
+    label: `DOT z${zoom.toFixed(1)}`,
   };
+}
+
+export type ActivityWorldRawOverlay = {
+  pulseRoutes: readonly ActivityWorldMapRoute[];
+  heatRoutes: readonly ActivityWorldMapRoute[];
+  pulseDots: readonly ActivityWorldMapDot[];
+  heatDots: readonly ActivityWorldMapDot[];
+};
+
+/** LOD 정책 → MapView 로 넘길 배열. lines-only 인데 라인 0건이면 점 폴백. */
+export type ActivityWorldRenderOverlay = {
+  pulseRoutes: ActivityWorldMapRoute[];
+  heatRoutes: ActivityWorldMapRoute[];
+  pulseDots: ActivityWorldMapDot[];
+  heatDots: ActivityWorldMapDot[];
+};
+
+export function applyActivityWorldRenderFilter(
+  display: ActivityWorldDisplay,
+  raw: ActivityWorldRawOverlay,
+): ActivityWorldRenderOverlay {
+  const pulseRoutes = display.showLines ? [...raw.pulseRoutes] : [];
+  const heatRoutes = display.showLines ? [...raw.heatRoutes] : [];
+  let pulseDots = display.showDots ? [...raw.pulseDots] : [];
+  let heatDots = display.showDots ? [...raw.heatDots] : [];
+
+  if (
+    display.mode === "lines-only" &&
+    pulseRoutes.length === 0 &&
+    heatRoutes.length === 0 &&
+    (raw.pulseDots.length > 0 || raw.heatDots.length > 0)
+  ) {
+    pulseDots = [...raw.pulseDots];
+    heatDots = [...raw.heatDots];
+  }
+
+  return { pulseRoutes, heatRoutes, pulseDots, heatDots };
 }
 
 /** @deprecated 표시 정책은 `resolveActivityWorldDisplay` 사용 */

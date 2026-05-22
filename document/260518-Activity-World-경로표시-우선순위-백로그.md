@@ -46,6 +46,7 @@
 | P2-2 | `recentLikeCount` 지도 반영 (heat red보다 약한 레이어?) | ⬜ | 패널 배지는 있음; heat는 red 계열 확정([LOD §3.3](260517-Activity-World-지도-LOD-설계.md)) |
 | P2-3 | **30일** heat / `worldActivity` 타일 | ⬜ | v2 |
 | P2-4 | LOD **히스테리시스** (span/zoom 경계 떨림) | ⬜ | zoom 11.5~13 hybrid 이미 완화 |
+| P2-7 | LOD span null·lines-only 빈 맵·heat `traceStrength` 가시성 | ✅ | 2026-05-23 `activityWorldLod`·MapView |
 | P2-5 | reconcile 시 `liveAnchor` 정리 (stale live) | ⬜ | 6h reconcile 확장 |
 | P2-6 | Trailhead(`default`)에서 **B층 관전** 활성화 | ✅ | `trailSpectatorOverlayEnabled` — `onDedicatedTrail` 조건 제거 (2026-05-23) |
 
@@ -85,3 +86,4 @@ firebase deploy --only firestore:indexes
 | 2026-05-18 | 초안 — P0~P3 백로그, P1 heat reconcile·문서 20km 반영 |
 | 2026-05-18 | P2-2 — heat red 계열 문서 정렬(회색 heat 와이어 폐기) |
 | 2026-05-23 | P2-6 — Trailhead 포함 동일 Trail 관전 복구 |
+| 2026-05-23 | P2-7 — LOD·traceStrength 회귀 수정 |

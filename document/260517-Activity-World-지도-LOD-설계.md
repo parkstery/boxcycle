@@ -120,7 +120,8 @@ flowchart TB
 | **DOT** | span > 20km **또는** zoom < 11.5 **또는** (11.5≤zoom<13 hybrid) | 라이브·heat **앵커 점** |
 | **LINE** | span ≤ 20km **및** zoom ≥ 11.5, geometry ready | pulse·heat **LineString** (red 계열, §3.3) |
 | **LINE 우선** | zoom ≥ 13 **및** 라인 데이터 있음 | 점 숨김, 라인만 |
-| **LINE 폴백** | zoom ≥ 13 이지만 geometry 미준비 | **점 유지** |
+| **LINE 폴백** | `lines-only` 인데 전달 라인 0건 | **점 유지** (`applyActivityWorldRenderFilter`) |
+| **span null** | LOD 미동기 시 줌만 판정 — z≥13 이면 라인 허용(멀리 >20km 제외) | `spanAllowsActivityWorldLines` |
 
 **상수 (`activityWorldLod.ts`):**
 
@@ -302,3 +303,4 @@ BASIC_SHARED_HUB_IDS
 | 2026-05-18 | §3.3 heat 시각 — 와이어 「회색」→ 구현 **red 계열** (`#dc2626`, `traceStrength`·dash로 라이브/heat 구분), 지도 회색 UI 혼동 방지 rationale |
 | 2026-05-23 | §2.1 데이터 흐름 Mermaid(배경 transparent) · §2.2 Trailhead 관전 OFF·A/B/C 점검 표 |
 | 2026-05-23 | B층 — Trailhead(`default`) 포함 동일 `trailId` 관전 재활성 (`App.tsx` `onDedicatedTrail` 제거) |
+| 2026-05-23 | LOD — span null·고줌 라인 누락 수정, lines-only 점 폴백, `traceStrength` 최소 opacity(MapView) |

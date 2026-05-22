@@ -21,6 +21,7 @@ import { fetchWorldPresenceSummary, formatWorldPresenceHudLine } from "./lib/fir
 import { fetchWorldActivityGlobal, formatWorldActivityHudLine, mergeWorldHudLines } from "./lib/firestoreWorldActivity";
 import {
   mergeActivityWorldDots,
+  applyActivityWorldRenderFilter,
   resolveActivityWorldDisplay,
   type MapViewportBounds,
 } from "./lib/activityWorldLod";
@@ -557,35 +558,30 @@ export default function App() {
     ],
   );
 
+  const activityLodSpanKm = mapLodSpanKm ?? mapViewportSpanKm;
+
   const activityWorldDisplay = useMemo(
     () =>
       resolveActivityWorldDisplay({
         mapZoom: mapLodZoom,
-        spanKm: mapLodSpanKm,
+        spanKm: activityLodSpanKm,
         pulseDotCount: activityWorldRaw.pulseDots.length,
         heatDotCount: activityWorldRaw.heatDots.length,
         pulseLineCount: activityWorldRaw.pulseRoutes.length,
         heatLineCount: activityWorldRaw.heatRoutes.length,
       }),
-    [mapLodZoom, mapLodSpanKm, activityWorldRaw],
+    [mapLodZoom, activityLodSpanKm, activityWorldRaw],
   );
 
-  const activityPulseRoutes = useMemo(
-    () => (activityWorldDisplay.showLines ? activityWorldRaw.pulseRoutes : []),
-    [activityWorldDisplay.showLines, activityWorldRaw.pulseRoutes],
+  const activityWorldRender = useMemo(
+    () => applyActivityWorldRenderFilter(activityWorldDisplay, activityWorldRaw),
+    [activityWorldDisplay, activityWorldRaw],
   );
-  const activityHeatRoutes = useMemo(
-    () => (activityWorldDisplay.showLines ? activityWorldRaw.heatRoutes : []),
-    [activityWorldDisplay.showLines, activityWorldRaw.heatRoutes],
-  );
-  const activityPulseDots = useMemo(
-    () => (activityWorldDisplay.showDots ? activityWorldRaw.pulseDots : []),
-    [activityWorldDisplay.showDots, activityWorldRaw.pulseDots],
-  );
-  const activityHeatDots = useMemo(
-    () => (activityWorldDisplay.showDots ? activityWorldRaw.heatDots : []),
-    [activityWorldDisplay.showDots, activityWorldRaw.heatDots],
-  );
+
+  const activityPulseRoutes = activityWorldRender.pulseRoutes;
+  const activityHeatRoutes = activityWorldRender.heatRoutes;
+  const activityPulseDots = activityWorldRender.pulseDots;
+  const activityHeatDots = activityWorldRender.heatDots;
 
   const getActivityWorldPinLabel = useCallback(
     (courseId: string, kind: "pulse" | "heat") => {
@@ -606,6 +602,7 @@ export default function App() {
       lodZoom: mapLodZoom,
       spanKm: mapViewportSpanKm,
       lodSpanKm: mapLodSpanKm,
+      activityLodSpanKm,
       display: activityWorldDisplay,
       raw: {
         pulseDots: activityWorldRaw.pulseDots.length,
@@ -629,6 +626,7 @@ export default function App() {
     mapLodZoom,
     mapViewportSpanKm,
     mapLodSpanKm,
+    activityLodSpanKm,
     activityWorldDisplay,
     activityWorldRaw,
     activityPulseDots.length,
