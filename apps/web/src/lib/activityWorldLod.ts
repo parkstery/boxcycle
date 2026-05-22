@@ -2,10 +2,13 @@ import type { LngLat } from "./geo";
 import type { LineStringGeometry } from "./geo";
 import { haversineMeters } from "./rideSyncPolicy";
 
-/** 화면 span(km)이 이 값보다 크면 점만, 이하이면 라인(대축척) */
-export const VIEWPORT_SPAN_LINE_MAX_KM = 10;
+/**
+ * 화면 span(km)이 이 값 **이하**일 때만 라인(대축척·Mapbox 축척 ~500m급).
+ * **초과**하면 점(소축척·축척 1km~10km·줌아웃) — 도심 1km 뷰에서 점이 꺼지지 않게.
+ */
+export const VIEWPORT_SPAN_LINE_MAX_KM = 1;
 
-/** span ≤ 10km 구간에서도 줌이 이보다 낮으면 점만(라인이 화면에 안 읽힘) */
+/** span ≤ 1km 구간에서도 줌이 이보다 낮으면 점만 */
 export const MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN = 11.5;
 
 export type MapViewportBounds = {
@@ -20,9 +23,7 @@ export type ActivityWorldMapDot = {
   lngLat: LngLat;
   pulseLevel: number;
   kind: "pulse" | "heat";
-  /** heat 전용 — `recentRideCount7d` 기반 시각 가중(크기) */
   recentRideCount7d?: number;
-  /** 라인·점 색 강도 0.3..1 — 라이브 1, heat는 `updatedAt` 구간별 */
   traceStrength: number;
 };
 
@@ -35,7 +36,6 @@ export type ActivityWorldMapRoute = {
 
 export type ActivityWorldDisplayMode = "dots-only" | "lines-only";
 
-/** LOD는 표시만 결정 — loader/cache와 분리 */
 export type ActivityWorldDisplay = {
   showDots: boolean;
   showLines: boolean;
@@ -72,20 +72,20 @@ export function isActivityWorldLineMode(spanKm: number): boolean {
   return spanAllowsActivityWorldLines(spanKm);
 }
 
-/** span ≤ {@link VIEWPORT_SPAN_LINE_MAX_KM} 일 때만 라인 채널 허용 */
+/** span ≤ {@link VIEWPORT_SPAN_LINE_MAX_KM} — 가까이(선) */
 export function spanAllowsActivityWorldLines(spanKm: number | null): boolean {
   if (spanKm == null || !Number.isFinite(spanKm)) return false;
   return spanKm <= VIEWPORT_SPAN_LINE_MAX_KM;
 }
 
-/** span > 10km — 줌아웃(소축척): 점만 */
+/** span > 1km — 멀리(점). Mapbox 축척 1km·5km·10km 구간 */
 export function spanForcesActivityWorldDotsOnly(spanKm: number | null): boolean {
   return spanKm != null && Number.isFinite(spanKm) && spanKm > VIEWPORT_SPAN_LINE_MAX_KM;
 }
 
 /**
- * span 기준 이진 전환 — 10km 초과: 점, 10km 이하(+줌): 라인.
- * zoom 밴드로 hybrid/lines-only 떨림을 없애고, 데이터가 있으면 한 채널은 반드시 표시.
+ * span > 1km → 점만 | span ≤ 1km + 줌 → 선 | 그 외 → 점.
+ * (이전 10km 기준은 도심 1~9km에서 선만 켜져 점·선 모두 안 보이는 버그 유발)
  */
 export function resolveActivityWorldDisplay(input: ActivityWorldDisplayInput): ActivityWorldDisplay {
   const zoom = Number.isFinite(input.mapZoom) ? input.mapZoom : 12;
@@ -121,7 +121,7 @@ export function resolveActivityWorldDisplay(input: ActivityWorldDisplayInput): A
     };
   }
 
-  if (hasLines) {
+  if (hasLines && spanAllowsActivityWorldLines(span)) {
     return {
       showDots: false,
       showLines: true,
@@ -134,7 +134,7 @@ export function resolveActivityWorldDisplay(input: ActivityWorldDisplayInput): A
     showDots: true,
     showLines: false,
     mode: "dots-only",
-    label: `DOT no-lines ${spanLabel}`,
+    label: `DOT ${spanLabel}`,
   };
 }
 
@@ -145,7 +145,6 @@ export type ActivityWorldRawOverlay = {
   heatDots: readonly ActivityWorldMapDot[];
 };
 
-/** LOD 정책 → MapView 로 넘길 배열. 한쪽이 비면 반대 채널로 폴백(빈 맵 방지). */
 export type ActivityWorldRenderOverlay = {
   pulseRoutes: ActivityWorldMapRoute[];
   heatRoutes: ActivityWorldMapRoute[];
@@ -168,12 +167,12 @@ export function applyActivityWorldRenderFilter(
   const rawDots = raw.pulseDots.length + raw.heatDots.length;
 
   if (renderedLines === 0 && renderedDots === 0) {
-    if (rawLines > 0) {
-      pulseRoutes = [...raw.pulseRoutes];
-      heatRoutes = [...raw.heatRoutes];
-    } else if (rawDots > 0) {
+    if (rawDots > 0) {
       pulseDots = [...raw.pulseDots];
       heatDots = [...raw.heatDots];
+    } else if (rawLines > 0) {
+      pulseRoutes = [...raw.pulseRoutes];
+      heatRoutes = [...raw.heatRoutes];
     }
   } else if (renderedLines === 0 && rawDots > 0) {
     pulseDots = [...raw.pulseDots];
@@ -186,23 +185,23 @@ export function applyActivityWorldRenderFilter(
   return { pulseRoutes, heatRoutes, pulseDots, heatDots };
 }
 
-/** @deprecated 표시 정책은 `resolveActivityWorldDisplay` 사용 */
+/** @deprecated */
 export function resolveActivityWorldLineMode(spanKm: number | null, mapZoom: number): boolean {
-  const display = resolveActivityWorldDisplay({
-    mapZoom,
-    spanKm,
-    pulseDotCount: 1,
-    heatDotCount: 0,
-    pulseLineCount: 1,
-    heatLineCount: 0,
-  });
-  return display.mode === "lines-only";
+  return (
+    resolveActivityWorldDisplay({
+      mapZoom,
+      spanKm,
+      pulseDotCount: 1,
+      heatDotCount: 0,
+      pulseLineCount: 1,
+      heatLineCount: 0,
+    }).mode === "lines-only"
+  );
 }
 
-/** @deprecated hybrid 제거 — 하위 호환 re-export */
+/** @deprecated */
 export const MAP_ZOOM_ACTIVITY_WORLD_LINE_MAX = 13;
 
-/** 동일 courseId 중복 제거 — primary(현재 코스) 우선 */
 export function mergeActivityWorldDots(
   primary: readonly ActivityWorldMapDot[],
   secondary: readonly ActivityWorldMapDot[],
