@@ -45,6 +45,22 @@ export async function getUserProfileNickname(uid: string): Promise<string | null
   return typeof n === "string" ? n.trim() : null;
 }
 
+export async function getUserProfileTier(uid: string): Promise<UserTier | null> {
+  const db = getFirestore(getFirebaseApp());
+  const snap = await getDoc(doc(db, "users", uid));
+  if (!snap.exists()) return null;
+  const t = snap.data().tier;
+  if (
+    t === "anonymous" ||
+    t === "registered_free" ||
+    t === "registered_paid" ||
+    t === "admin"
+  ) {
+    return t;
+  }
+  return null;
+}
+
 type UserProfilePublicLabel = {
   nickname: string | null;
   displayName: string | null;

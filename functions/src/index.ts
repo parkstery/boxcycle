@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
+import { mergeUserAuthMeta } from "./userTierCore.js";
 import { adminPromoteSavedRoute } from "./adminPromoteSavedRoute.js";
 import {
   ensureRouteTokenOnboarding,
@@ -143,10 +143,7 @@ export const getMapboxDirections = onRequest(
       const { start, end, profile, waypoints, requestId } = parseBody(dataField);
       const economy = await loadRouteTokenEconomy();
       try {
-        const userRecord = await getAuth().getUser(uid);
-        await getFirestore()
-          .doc(`users/${uid}`)
-          .set({ isAnonymous: userRecord.providerData.length === 0 }, { merge: true });
+        await mergeUserAuthMeta(uid);
       } catch {
         /* users 메타 실패해도 경로 계산은 진행 */
       }

@@ -26,6 +26,10 @@ import {
 } from "./lib/activityWorldLod";
 import { MAP_ZOOM_WORLD_ACTIVITY_MAX, WORLD_PRESENCE_POLL_MS } from "./lib/rideSyncPolicy";
 import { AuthGateCard, AuthGoogleMark } from "./components/AuthGateCard";
+import { GuestEntryCard } from "./components/GuestEntryCard";
+import { allowUnauthMapDev } from "./lib/authGatePolicy";
+import { readGuestEntryAccepted } from "./lib/appSessionKeys";
+import { useUserTier } from "./hooks/useUserTier";
 import { RideSummarySheet } from "./components/RideSummarySheet";
 import { MenuPanel } from "./components/MenuPanel";
 import { MenuPlaceSearch } from "./components/MenuPlaceSearch";
@@ -130,6 +134,8 @@ export default function App() {
     setError,
     setBusy,
   } = useAppAuth(configured);
+
+  const userTier = useUserTier(user, configured);
 
   const { routeTokenBalance, routeTokenLoading } = useRouteTokenBalance(user, configured);
 
@@ -1054,7 +1060,17 @@ export default function App() {
 
   // ===== Map-first stage 머신 =====
   const summaryVisible = summarySheetVisible && (arrivalToastTick > 0 || lastEndedWasAdhoc !== null);
-  const needsAuthCard = !configured || !authInitialized || !user;
+  const needsGuestEntry =
+    configured &&
+    authInitialized &&
+    !user &&
+    !userSignedOut &&
+    !readGuestEntryAccepted();
+
+  const needsAuthCard =
+    !configured ||
+    !authInitialized ||
+    (!allowUnauthMapDev() && !user);
   const needsNicknameCard =
     configured && Boolean(user) && !user!.isAnonymous && fsSync.state === "awaiting_nickname";
   const stage = useRideUiStage({
@@ -1448,7 +1464,7 @@ geom ${catalogActivityOverlayStats.geometryReady}/${catalogActivityOverlayStats.
           publishedPublicCoursesError={publishedPublicCoursesError}
           onRefreshPublishedPublicCourses={onRefreshPublishedPublicCourses}
           courseActivityByCourseId={courseActivityByCourseId}
-          authGuest={Boolean(user?.isAnonymous)}
+          authGuest={userTier.isGuest}
           signedIn={Boolean(user)}
           onEnterBasicHub={(courseId) => {
             void enterBasicHub(courseId);
@@ -1557,7 +1573,16 @@ geom ${catalogActivityOverlayStats.geometryReady}/${catalogActivityOverlayStats.
         />
       ) : null}
 
-      {stage === "gate" ? (
+      {needsGuestEntry ? (
+        <GuestEntryCard
+          busy={busy || authSigningIn}
+          error={error}
+          onStartGuest={() => void beginAuthenticatedSession()}
+          onGoogleSignIn={() => void handleGoogleSignIn()}
+        />
+      ) : null}
+
+      {stage === "gate" && !needsGuestEntry ? (
         <AuthGateCard>
           {!configured ? (
             <p className="meta tight">Firebase 설정 필요</p>

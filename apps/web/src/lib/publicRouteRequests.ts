@@ -28,6 +28,8 @@ import { writeRoutePublicationOnApprove } from "./firestoreRoutePublications";
 import {
   PUBLIC_ROUTE_NAMING_POLICY_VERSION,
 } from "./publicRouteNamingPolicy";
+import { getUserProfileTier } from "./firestoreUser";
+import { canSubmitPublicRoute, GUEST_PUBLIC_ROUTE_MSG } from "./userTier";
 import {
   maybeModeratePublicRouteCopyRemote,
   validatePublicRouteTitleAndSummary,
@@ -228,6 +230,10 @@ export async function createPublicRouteRequest(
     namingPolicyAcknowledged: boolean;
   },
 ): Promise<string> {
+  const tier = await getUserProfileTier(user.uid);
+  if (!canSubmitPublicRoute(tier, user)) {
+    throw new Error(GUEST_PUBLIC_ROUTE_MSG);
+  }
   if (!input.namingPolicyAcknowledged) {
     throw new Error("공개 제목 정책에 동의한 뒤 신청할 수 있습니다.");
   }

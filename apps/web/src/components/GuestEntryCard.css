@@ -1,0 +1,61 @@
+.guest-entry {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(6px);
+}
+
+.guest-entry__card {
+  width: min(100%, 22rem);
+  padding: 1.25rem 1.35rem 1.4rem;
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+
+.guest-entry__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+.guest-entry__brand-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: #dc2626;
+}
+
+.guest-entry__title {
+  margin: 0.85rem 0 0.5rem;
+  font-size: 1.15rem;
+  color: #0f172a;
+}
+
+.guest-entry__lead {
+  margin: 0 0 1rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: #475569;
+}
+
+.guest-entry__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.guest-entry__google {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}

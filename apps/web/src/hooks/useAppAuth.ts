@@ -14,7 +14,9 @@ import {
 import { startTransition, useCallback, useEffect, useRef, useState } from "react";
 import {
   clearUserSignedOutSessionFlag,
+  readGuestEntryAccepted,
   readUserSignedOutSessionFlag,
+  setGuestEntryAccepted,
   setUserSignedOutSessionFlag,
 } from "../lib/appSessionKeys";
 import { isBenignAuthPopupCancel } from "../lib/firebaseAuthPopup";
@@ -75,6 +77,9 @@ export function useAppAuth(configured: boolean) {
     }
     if (readUserSignedOutSessionFlag()) {
       setUserSignedOut(true);
+      return;
+    }
+    if (!readGuestEntryAccepted()) {
       return;
     }
     if (autoSignInStartedRef.current) {
@@ -159,6 +164,7 @@ export function useAppAuth(configured: boolean) {
   }, [configured, user]);
 
   const beginAuthenticatedSession = useCallback(async () => {
+    setGuestEntryAccepted();
     clearUserSignedOutSessionFlag();
     setUserSignedOut(false);
     autoSignInStartedRef.current = false;
@@ -176,6 +182,7 @@ export function useAppAuth(configured: boolean) {
   }, []);
 
   const handleGoogleSignIn = useCallback(async () => {
+    setGuestEntryAccepted();
     clearUserSignedOutSessionFlag();
     setUserSignedOut(false);
     setError(null);

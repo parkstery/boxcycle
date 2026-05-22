@@ -6,6 +6,26 @@
 /** 명시적 로그아웃 후 자동 익명 진입을 막는 플래그(같은 탭). */
 export const USER_SIGNED_OUT_SESSION_KEY = "boxcycle_user_signed_out_v1";
 
+/** 최초 1회 Guest(익명) 진입 안내 수락 — [tier 정책 §3.2](document/260519-사용자-tier-및-진입-정책.md) */
+export const GUEST_ENTRY_ACCEPTED_SESSION_KEY = "boxcycle_guest_entry_v1";
+
+export function readGuestEntryAccepted(): boolean {
+  if (typeof sessionStorage === "undefined") return false;
+  try {
+    return sessionStorage.getItem(GUEST_ENTRY_ACCEPTED_SESSION_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function setGuestEntryAccepted(): void {
+  try {
+    sessionStorage.setItem(GUEST_ENTRY_ACCEPTED_SESSION_KEY, "1");
+  } catch {
+    /* noop */
+  }
+}
+
 const LEGACY_POST_SIGNOUT_MAP_SESSION_KEY = "boxcycle_post_signout_map_v1";
 
 export function readUserSignedOutSessionFlag(): boolean {

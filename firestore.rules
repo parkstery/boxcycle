@@ -111,6 +111,16 @@ service cloud.firestore {
           && !changed.hasAny(['subscriptionStatus', 'subscriptionExpiresAt']));
     }
 
+    function userDocPath() {
+      return /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+
+    function userTierAllowsPublicRoute() {
+      return isSignedIn()
+        && exists(userDocPath())
+        && get(userDocPath()).data.tier in ['registered_free', 'registered_paid', 'admin'];
+    }
+
     match /users/{userId} {
       allow read: if isSignedIn();
       allow create: if isSelf(userId)
@@ -244,6 +254,7 @@ service cloud.firestore {
         && (resource.data.applicantUid == request.auth.uid || isRouteReviewer());
 
       allow create: if isSignedIn()
+        && userTierAllowsPublicRoute()
         && request.resource.data.applicantUid == request.auth.uid
         && request.resource.data.status == 'pending'
         && request.resource.data.savedRouteId is string

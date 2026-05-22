@@ -209,6 +209,9 @@ export async function fetchRouteByProfile(
   requestId?: string,
 ): Promise<DirectionsRoute> {
   if (DIRECT_DIRECTIONS) {
+    if (!user?.uid) {
+      throw new Error("경로 계산은 로그인(임시 라이더) 후에 사용할 수 있습니다.");
+    }
     return fetchRouteDirect(start, end, profile, waypoints);
   }
   const rid =

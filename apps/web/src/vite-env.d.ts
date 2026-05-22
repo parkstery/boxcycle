@@ -26,6 +26,11 @@ interface ImportMetaEnv {
   readonly VITE_MAPILLARY_CLIENT_TOKEN?: string;
   /** 주행 BGM URL JSON 배열. 없거나 비면 앱 내장 플레이리스트 사용 */
   readonly VITE_RIDE_BGM_PLAYLIST_JSON?: string;
+  /**
+   * QA 전용. "1" 또는 "true" 이면 `user === null` 에서도 맵·HUD 사용(프로덕션 비권장).
+   * [tier 정책 §3.3](document/260519-사용자-tier-및-진입-정책.md)
+   */
+  readonly VITE_ALLOW_UNAUTH_MAP?: string;
 }
 
 interface ImportMeta {

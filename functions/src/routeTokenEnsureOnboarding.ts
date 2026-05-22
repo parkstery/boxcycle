@@ -1,8 +1,8 @@
 import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
 import { HttpsError, onRequest, type Request } from "firebase-functions/v2/https";
 import type { Response } from "express";
 import { ensureRouteTokenOnboarding } from "./routeTokenCore.js";
+import { mergeUserAuthMeta } from "./userTierCore.js";
 
 /**
  * 로그인 직후 클라이언트가 1회 호출 — 온보딩 토큰 지급·잔액 표시.
@@ -41,17 +41,7 @@ export const ensureRouteTokenOnboardingHttp = onRequest(
 
     try {
       try {
-        const userRecord = await getAuth().getUser(uid);
-        const isAnonymous = userRecord.providerData.length === 0;
-        await getFirestore()
-          .doc(`users/${uid}`)
-          .set(
-            {
-              isAnonymous,
-              ...(isAnonymous ? { tier: "anonymous" } : {}),
-            },
-            { merge: true },
-          );
+        await mergeUserAuthMeta(uid);
       } catch {
         /* noop */
       }
