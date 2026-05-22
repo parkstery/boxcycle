@@ -132,6 +132,58 @@
   background: rgba(248, 250, 252, 0.18);
 }
 
+.user-info-sheet__plan {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: 8px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+}
+
+.user-info-sheet__plan-tier {
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.user-info-sheet__plan-status {
+  font-size: 0.64rem;
+  opacity: 0.85;
+}
+
+.user-info-sheet__subscription {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.user-info-sheet__subscription-copy {
+  margin: 0;
+  font-size: 0.64rem;
+  line-height: 1.4;
+  opacity: 0.82;
+}
+
+.user-info-sheet__subscription-note {
+  margin: 0;
+  font-size: 0.6rem;
+  line-height: 1.35;
+  color: #fde68a;
+}
+
+.user-info-sheet__subscription-note.is-ok {
+  color: #86efac;
+}
+
+.user-info-sheet__btn--upgrade {
+  background: rgba(56, 189, 248, 0.22);
+  border-color: rgba(56, 189, 248, 0.45);
+  font-weight: 700;
+}
+
 .user-info-sheet__stats-head {
   display: flex;
   gap: 0.25rem;

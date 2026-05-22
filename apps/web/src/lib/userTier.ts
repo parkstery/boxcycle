@@ -39,5 +39,9 @@ export function canSubmitPublicRoute(tier: UserTier | null, user: User | null): 
   return effective != null && (PUBLIC_ROUTE_TIERS as readonly string[]).includes(effective);
 }
 
+export function isPaidTier(tier: UserTier | null): boolean {
+  return tier === "registered_paid" || tier === "admin";
+}
+
 export const GUEST_PUBLIC_ROUTE_MSG =
   "퍼블릭 경로 공개 신청은 Google 로그인 후 닉네임을 설정한 계정에서만 할 수 있습니다.";

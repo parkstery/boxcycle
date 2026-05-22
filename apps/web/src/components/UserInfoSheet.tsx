@@ -7,6 +7,15 @@ import {
   type RideStatsPeriod,
 } from "../lib/rideStatsAggregate";
 import type { StoredRideSession } from "../lib/rideSessionsStorage";
+import type { UserTier } from "../lib/firestoreUser";
+import {
+  fetchSubscriptionMe,
+  openSubscriptionPortal,
+  startSubscriptionCheckout,
+  subscriptionStatusLabelKo,
+  tierPlanLabel,
+  type SubscriptionStatus,
+} from "../lib/subscription";
 import { AuthGoogleMark } from "./AuthGateCard";
 import "./UserInfoSheet.css";
 
@@ -16,7 +25,11 @@ type UserInfoSheetProps = {
   user: User | null;
   recentSessions: StoredRideSession[];
   isGuest: boolean;
+  tier: UserTier | null;
+  subscriptionStatus: SubscriptionStatus;
+  isPaid: boolean;
   busy: boolean;
+  subscriptionFlash?: string | null;
   onLinkGoogle?: () => void;
   onServiceExit: () => void;
 };
@@ -80,6 +93,10 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
   const [statsSessions, setStatsSessions] = useState<StoredRideSession[]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsLoadNote, setStatsLoadNote] = useState<string | null>(null);
+  const [subscriptionBusy, setSubscriptionBusy] = useState(false);
+  const [subscriptionNote, setSubscriptionNote] = useState<string | null>(null);
+  const [canCheckout, setCanCheckout] = useState(false);
+  const [canManagePortal, setCanManagePortal] = useState(false);
 
   useEffect(() => {
     if (!props.open) return;
@@ -94,6 +111,70 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
   useEffect(() => {
     if (!props.open) setHistoryOpen(false);
   }, [props.open]);
+
+  useEffect(() => {
+    if (!props.open || !props.user || props.isGuest) {
+      setCanCheckout(false);
+      setCanManagePortal(false);
+      setSubscriptionNote(null);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const me = await fetchSubscriptionMe(props.user!);
+        if (cancelled) return;
+        setCanCheckout(me.canCheckout);
+        setCanManagePortal(me.canManagePortal);
+        setSubscriptionNote(null);
+      } catch (e) {
+        if (!cancelled) {
+          setCanCheckout(false);
+          setCanManagePortal(false);
+          setSubscriptionNote(
+            e instanceof Error ? e.message : "구독 정보를 불러오지 못했습니다.",
+          );
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [props.open, props.user, props.isGuest]);
+
+  const handleUpgrade = () => {
+    if (!props.user) return;
+    const base = window.location.origin + window.location.pathname;
+    const successUrl = `${base}?subscription=success`;
+    const cancelUrl = `${base}?subscription=cancel`;
+    setSubscriptionBusy(true);
+    setSubscriptionNote(null);
+    void (async () => {
+      try {
+        const url = await startSubscriptionCheckout(props.user!, { successUrl, cancelUrl });
+        window.location.assign(url);
+      } catch (e) {
+        setSubscriptionNote(e instanceof Error ? e.message : "결제 페이지를 열지 못했습니다.");
+        setSubscriptionBusy(false);
+      }
+    })();
+  };
+
+  const handleManagePortal = () => {
+    if (!props.user) return;
+    const returnUrl = window.location.href.split("?")[0] ?? window.location.href;
+    setSubscriptionBusy(true);
+    setSubscriptionNote(null);
+    void (async () => {
+      try {
+        const url = await openSubscriptionPortal(props.user!, returnUrl);
+        window.location.assign(url);
+      } catch (e) {
+        setSubscriptionNote(e instanceof Error ? e.message : "구독 관리 페이지를 열지 못했습니다.");
+        setSubscriptionBusy(false);
+      }
+    })();
+  };
 
   const recentSessionsTipId = props.recentSessions[0]?.id ?? "";
 
@@ -206,6 +287,56 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
         </div>
 
         <div className="user-info-sheet__scroll-body">
+          <div className="user-info-sheet__plan" aria-label="플랜">
+            <span className="user-info-sheet__plan-tier">{tierPlanLabel(props.tier)}</span>
+            <span className="user-info-sheet__plan-status">
+              {subscriptionStatusLabelKo(props.subscriptionStatus)}
+            </span>
+          </div>
+          {!props.isGuest ? (
+            <div className="user-info-sheet__subscription">
+              {props.isPaid ? (
+                <p className="user-info-sheet__subscription-copy">
+                  유료 플랜 — 경로·공개 신청 한도가 확장됩니다.
+                </p>
+              ) : (
+                <p className="user-info-sheet__subscription-copy">
+                  Free 플랜 — Google·닉네임 등록 후 유료로 업그레이드할 수 있습니다.
+                </p>
+              )}
+              {canCheckout ? (
+                <button
+                  type="button"
+                  className="user-info-sheet__btn user-info-sheet__btn--upgrade"
+                  disabled={props.busy || subscriptionBusy}
+                  onClick={handleUpgrade}
+                >
+                  유료 플랜 구독
+                </button>
+              ) : null}
+              {canManagePortal ? (
+                <button
+                  type="button"
+                  className="user-info-sheet__btn"
+                  disabled={props.busy || subscriptionBusy}
+                  onClick={handleManagePortal}
+                >
+                  구독 관리
+                </button>
+              ) : null}
+              {props.subscriptionFlash ? (
+                <p className="user-info-sheet__subscription-note is-ok" role="status">
+                  {props.subscriptionFlash}
+                </p>
+              ) : null}
+              {subscriptionNote ? (
+                <p className="user-info-sheet__subscription-note" role="status">
+                  {subscriptionNote}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
           <div className="user-info-sheet__stats-head" role="tablist" aria-label="통계 기간">
           {(
             [

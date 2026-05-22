@@ -41,6 +41,14 @@
       ]
     },
     {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tier", "order": "ASCENDING" },
+        { "fieldPath": "subscriptionExpiresAt", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "publicRouteRequests",
       "queryScope": "COLLECTION",
       "fields": [

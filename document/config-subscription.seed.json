@@ -1,0 +1,12 @@
+{
+  "planCode": "boxcycle_premium_monthly",
+  "stripeSecrets": ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "STRIPE_PRICE_ID"],
+  "checkoutSuccessQuery": "subscription=success",
+  "checkoutCancelQuery": "subscription=cancel",
+  "webhookEvents": [
+    "checkout.session.completed",
+    "customer.subscription.updated",
+    "customer.subscription.deleted",
+    "invoice.payment_failed"
+  ]
+}

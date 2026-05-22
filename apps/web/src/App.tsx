@@ -179,6 +179,7 @@ export default function App() {
   const menuFirestorePrimedUidRef = useRef<string | null>(null);
   const [mapViewSheetOpen, setMapViewSheetOpen] = useState(false);
   const [userInfoSheetOpen, setUserInfoSheetOpen] = useState(false);
+  const [subscriptionFlash, setSubscriptionFlash] = useState<string | null>(null);
   const [rideSettingsSheetOpen, setRideSettingsSheetOpen] = useState(false);
   const [idleHintDismissed, setIdleHintDismissed] = useState(false);
   /** B 여정(커스텀 경로): setup 안내 세션 플래그 */
@@ -785,6 +786,22 @@ export default function App() {
   useEffect(() => {
     if (!user) setUserInfoSheetOpen(false);
   }, [user]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sub = params.get("subscription");
+    if (!sub) return;
+    if (sub === "success") {
+      setSubscriptionFlash("구독이 완료되었습니다. 플랜이 곧 반영됩니다.");
+      setUserInfoSheetOpen(true);
+    } else if (sub === "cancel") {
+      setSubscriptionFlash("결제가 취소되었습니다.");
+    }
+    params.delete("subscription");
+    const qs = params.toString();
+    const next = `${window.location.pathname}${qs ? `?${qs}` : ""}${window.location.hash}`;
+    window.history.replaceState(null, "", next);
+  }, []);
 
   useEffect(() => {
     if (!configured || !user) return;
@@ -1538,11 +1555,18 @@ geom ${catalogActivityOverlayStats.geometryReady}/${catalogActivityOverlayStats.
 
       <UserInfoSheet
         open={userInfoSheetOpen}
-        onClose={() => setUserInfoSheetOpen(false)}
+        onClose={() => {
+          setUserInfoSheetOpen(false);
+          setSubscriptionFlash(null);
+        }}
         user={user}
         recentSessions={recentSessions}
         isGuest={Boolean(user?.isAnonymous)}
+        tier={userTier.tier}
+        subscriptionStatus={userTier.subscriptionStatus}
+        isPaid={userTier.isPaid}
         busy={busy}
+        subscriptionFlash={subscriptionFlash}
         onLinkGoogle={user?.isAnonymous ? () => void handleGoogleSignIn() : undefined}
         onServiceExit={() => void handleServiceExit()}
       />

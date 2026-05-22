@@ -93,12 +93,21 @@ service cloud.firestore {
     function userTierProtectedFieldsUntouched() {
       return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
         'subscriptionStatus',
-        'subscriptionExpiresAt'
+        'subscriptionExpiresAt',
+        'stripeCustomerId',
+        'stripeSubscriptionId'
       ]);
     }
 
     function userTierOnCreateValid() {
-      return !request.resource.data.keys().hasAny(['tier', 'tierUpdatedAt', 'subscriptionStatus', 'subscriptionExpiresAt'])
+      return !request.resource.data.keys().hasAny([
+          'tier',
+          'tierUpdatedAt',
+          'subscriptionStatus',
+          'subscriptionExpiresAt',
+          'stripeCustomerId',
+          'stripeSubscriptionId'
+        ])
         || request.resource.data.tier == 'anonymous';
     }
 
@@ -388,6 +397,11 @@ service cloud.firestore {
     match /config/routeTokenEconomy {
       allow read: if isSignedIn();
       allow write: if false;
+    }
+
+    /** Stripe Webhook 멱등 — Functions(Admin SDK) 전용 */
+    match /billingProcessedEvents/{eventId} {
+      allow read, write: if false;
     }
   }
 }
