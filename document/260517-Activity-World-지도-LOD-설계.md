@@ -18,8 +18,9 @@
 **대표 UX (제품 이미지):**
 
 - 줌 아웃·Trailhead(월드 뷰): *「캐나다 앨버타 근처에서 누가 달리고 있나 보다」* → **라이브 코스 위치를 점**으로 표시.
-- **가까이**(화면 span **≤ 약 1km**, Mapbox 축척 ~500m): 코스 **노선(라인)**.
-- **멀리**(span **> 1km**, 축척 1km~10km·줌아웃): **앵커 점**만. (구 10km 뷰포트 기준은 도심 1km 뷰에서 점이 꺼지는 버그 유발)
+- **줌 ≥ 13** + geometry ready → **라인** (가능할 때만).
+- **그 외** → **점** (`showDots:false` 없음 — 라인 불가 시 DOT 폴백, blank 금지).
+- **span은 LOD에 미사용** (화면비·위도로 오동작).
 
 **본 설계의 범위 밖 (이미 구현·별도 유지):**
 
@@ -112,27 +113,25 @@ flowchart TB
 
 ## 3. LOD 규칙 (점 ↔ 라인)
 
-### 3.1 모드 정의 (코드: `resolveActivityWorldDisplay`)
+### 3.1 렌더 우선순위 (코드: `resolveActivityWorldRender`)
 
-**원칙:** loader는 dots·lines **항상 생성**, LOD는 **표시만** 결정 (`showDots` / `showLines`).
+**원칙:** loader는 dots·lines **항상 생성**. **LINE 가능하면 LINE, 아니면 DOT** — `showDots:false` 구조 없음.
 
-| 표시 | 조건 (요약) | 지도 |
-|------|-------------|------|
-| **DOT** | span **> 1km** **또는** span 미동기 **또는** zoom < 11.5 | 라이브·heat **앵커 점** (축척 1~10km 구간) |
-| **LINE** | span **≤ 1km** **및** zoom ≥ 11.5, geometry ready | pulse·heat **LineString** (red 계열, §3.3) |
-| **폴백** | 선택 채널이 비었는데 반대 데이터 있음 | **점↔라인 자동 전환** (`applyActivityWorldRenderFilter`) |
-| **span null** | 라인 채널 금지, **점 우선** (빈 맵 방지) | `spanAllowsActivityWorldLines` |
+1. LINE을 그릴 수 있는가? (`mapZoom ≥ 13`, geometry ready)
+2. 가능하면 LINE만 전달
+3. 불가능하면 DOT 전달 (**blank 금지**)
 
-**상수 (`activityWorldLod.ts`):**
+| 채널 | 조건 | 지도 |
+|------|------|------|
+| **LINE** | zoom **≥ 13** + LineString 준비됨 | pulse·heat 라인 (§3.3) |
+| **DOT** | 그 외 (또는 라인 미준비) | 앵커 점 |
 
 ```text
-VIEWPORT_SPAN_LINE_MAX_KM = 1
-MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN = 11.5   // span≤1km 구간에서도 미만 → 점만
-MAP_ZOOM_WORLD_HUD_MAX = 9                // 월드 HUD 텍스트만
+MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN = 13
 ```
 
-- span은 지도 **한 화면** 너비·높이 중 큰 변(km). 코스 간 거리가 아님.
-- **DOT:** 라이브·heat 후보는 뷰포트와 무관하게 전역 앵커(화면 밖은 Mapbox clip).
+- **span은 LOD 판정에 쓰지 않음** (화면비·위도 오동작). `viewportSpanKm` 은 HUD·디버그용만.
+- **DOT:** 라이브·heat 앵커는 뷰포트 클립만 Mapbox 적용.
 
 ### 3.2 앵커 점 위치 (DOT)
 

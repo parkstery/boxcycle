@@ -21,8 +21,8 @@ import { fetchWorldPresenceSummary, formatWorldPresenceHudLine } from "./lib/fir
 import { fetchWorldActivityGlobal, formatWorldActivityHudLine, mergeWorldHudLines } from "./lib/firestoreWorldActivity";
 import {
   mergeActivityWorldDots,
-  applyActivityWorldRenderFilter,
-  resolveActivityWorldDisplay,
+  resolveActivityWorldLodDebug,
+  resolveActivityWorldRender,
   type MapViewportBounds,
 } from "./lib/activityWorldLod";
 import { MAP_ZOOM_WORLD_ACTIVITY_MAX, WORLD_PRESENCE_POLL_MS } from "./lib/rideSyncPolicy";
@@ -559,24 +559,14 @@ export default function App() {
     ],
   );
 
-  const activityLodSpanKm = mapLodSpanKm ?? mapViewportSpanKm;
-
-  const activityWorldDisplay = useMemo(
-    () =>
-      resolveActivityWorldDisplay({
-        mapZoom: mapLodZoom,
-        spanKm: activityLodSpanKm,
-        pulseDotCount: activityWorldRaw.pulseDots.length,
-        heatDotCount: activityWorldRaw.heatDots.length,
-        pulseLineCount: activityWorldRaw.pulseRoutes.length,
-        heatLineCount: activityWorldRaw.heatRoutes.length,
-      }),
-    [mapLodZoom, activityLodSpanKm, activityWorldRaw],
+  const activityWorldRender = useMemo(
+    () => resolveActivityWorldRender(mapLodZoom, activityWorldRaw),
+    [mapLodZoom, activityWorldRaw],
   );
 
-  const activityWorldRender = useMemo(
-    () => applyActivityWorldRenderFilter(activityWorldDisplay, activityWorldRaw),
-    [activityWorldDisplay, activityWorldRaw],
+  const activityWorldLodDebug = useMemo(
+    () => resolveActivityWorldLodDebug(mapLodZoom, activityWorldRaw, activityWorldRender),
+    [mapLodZoom, activityWorldRaw, activityWorldRender],
   );
 
   const activityPulseRoutes = activityWorldRender.pulseRoutes;
@@ -603,8 +593,7 @@ export default function App() {
       lodZoom: mapLodZoom,
       spanKm: mapViewportSpanKm,
       lodSpanKm: mapLodSpanKm,
-      activityLodSpanKm,
-      display: activityWorldDisplay,
+      activityLod: activityWorldLodDebug,
       raw: {
         pulseDots: activityWorldRaw.pulseDots.length,
         heatDots: activityWorldRaw.heatDots.length,
@@ -627,8 +616,7 @@ export default function App() {
     mapLodZoom,
     mapViewportSpanKm,
     mapLodSpanKm,
-    activityLodSpanKm,
-    activityWorldDisplay,
+    activityWorldLodDebug,
     activityWorldRaw,
     activityPulseDots.length,
     activityPulseRoutes.length,
@@ -1380,7 +1368,7 @@ export default function App() {
           <pre
             className="activity-world-lod-debug"
             aria-hidden
-          >{`LOD ${activityWorldDisplay.label} | z ${mapZoom.toFixed(1)} span ${
+          >{`LOD ${activityWorldLodDebug.label} | z ${mapLodZoom.toFixed(1)} (HUD ${mapZoom.toFixed(1)}) span ${
             mapViewportSpanKm != null ? `${mapViewportSpanKm.toFixed(0)}km` : "—"
           }
 dots ${activityWorldRaw.pulseDots.length}+${activityWorldRaw.heatDots.length} → ${

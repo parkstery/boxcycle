@@ -48,8 +48,8 @@ export const LOBBY_LIVE_PROGRESS_MIN_DELTA = TRAIL_LIVE_PROGRESS_MIN_DELTA;
 /** 월드 힌트 HUD: 이 줌 이하에서만 표시(맵 축소 시) */
 export const MAP_ZOOM_WORLD_ACTIVITY_MAX = 9;
 
-/** @see `activityWorldLod.VIEWPORT_SPAN_LINE_MAX_KM` — re-export for policy consumers */
-export { VIEWPORT_SPAN_LINE_MAX_KM } from "./activityWorldLod";
+/** @see `activityWorldLod.MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN` — LOD 라인 전환 줌 */
+export { MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN } from "./activityWorldLod";
 
 /** 월드 집계 문서 폴링 주기 — onSnapshot 대신 저빈도 getDoc */
 export const WORLD_PRESENCE_POLL_MS = 90_000;

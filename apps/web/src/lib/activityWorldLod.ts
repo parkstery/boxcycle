@@ -2,14 +2,14 @@ import type { LngLat } from "./geo";
 import type { LineStringGeometry } from "./geo";
 import { haversineMeters } from "./rideSyncPolicy";
 
-/**
- * 화면 span(km)이 이 값 **이하**일 때만 라인(대축척·Mapbox 축척 ~500m급).
- * **초과**하면 점(소축척·축척 1km~10km·줌아웃) — 도심 1km 뷰에서 점이 꺼지지 않게.
- */
-export const VIEWPORT_SPAN_LINE_MAX_KM = 1;
+/** zoom ≥ 이 값 + geometry ready → LINE, 그 외 → DOT (span 미사용) */
+export const MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN = 13;
 
-/** span ≤ 1km 구간에서도 줌이 이보다 낮으면 점만 */
-export const MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN = 11.5;
+/** @deprecated span 기준 LOD 제거 — 하위 호환 re-export */
+export const VIEWPORT_SPAN_LINE_MAX_KM = 10;
+
+/** @deprecated {@link MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN} 와 동일 */
+export const MAP_ZOOM_ACTIVITY_WORLD_LINE_MAX = MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN;
 
 export type MapViewportBounds = {
   west: number;
@@ -34,22 +34,25 @@ export type ActivityWorldMapRoute = {
   traceStrength: number;
 };
 
-export type ActivityWorldDisplayMode = "dots-only" | "lines-only";
-
-export type ActivityWorldDisplay = {
-  showDots: boolean;
-  showLines: boolean;
-  mode: ActivityWorldDisplayMode;
-  label: string;
+export type ActivityWorldRawOverlay = {
+  pulseRoutes: readonly ActivityWorldMapRoute[];
+  heatRoutes: readonly ActivityWorldMapRoute[];
+  pulseDots: readonly ActivityWorldMapDot[];
+  heatDots: readonly ActivityWorldMapDot[];
 };
 
-export type ActivityWorldDisplayInput = {
+export type ActivityWorldRenderOverlay = {
+  pulseRoutes: ActivityWorldMapRoute[];
+  heatRoutes: ActivityWorldMapRoute[];
+  pulseDots: ActivityWorldMapDot[];
+  heatDots: ActivityWorldMapDot[];
+};
+
+export type ActivityWorldLodDebug = {
+  label: string;
+  channel: "line" | "dot";
+  lineRenderable: boolean;
   mapZoom: number;
-  spanKm: number | null;
-  pulseDotCount: number;
-  heatDotCount: number;
-  pulseLineCount: number;
-  heatLineCount: number;
 };
 
 export function viewportSpanKm(bounds: MapViewportBounds): number {
@@ -68,139 +71,88 @@ export function lngLatBoundsToViewport(bounds: {
   return { west: sw.lng, south: sw.lat, east: ne.lng, north: ne.lat };
 }
 
-export function isActivityWorldLineMode(spanKm: number): boolean {
-  return spanAllowsActivityWorldLines(spanKm);
-}
-
-/** span ≤ {@link VIEWPORT_SPAN_LINE_MAX_KM} — 가까이(선) */
-export function spanAllowsActivityWorldLines(spanKm: number | null): boolean {
-  if (spanKm == null || !Number.isFinite(spanKm)) return false;
-  return spanKm <= VIEWPORT_SPAN_LINE_MAX_KM;
-}
-
-/** span > 1km — 멀리(점). Mapbox 축척 1km·5km·10km 구간 */
-export function spanForcesActivityWorldDotsOnly(spanKm: number | null): boolean {
-  return spanKm != null && Number.isFinite(spanKm) && spanKm > VIEWPORT_SPAN_LINE_MAX_KM;
+/** close zoom + loader가 만든 LineString 존재 */
+export function canRenderActivityWorldLines(
+  mapZoom: number,
+  raw: ActivityWorldRawOverlay,
+): boolean {
+  const z = Number.isFinite(mapZoom) ? mapZoom : 12;
+  const geometryReady = raw.pulseRoutes.length + raw.heatRoutes.length > 0;
+  return z >= MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN && geometryReady;
 }
 
 /**
- * span > 1km → 점만 | span ≤ 1km + 줌 → 선 | 그 외 → 점.
- * (이전 10km 기준은 도심 1~9km에서 선만 켜져 점·선 모두 안 보이는 버그 유발)
+ * LINE 가능하면 LINE, 아니면 DOT — DOT를 먼저 끄는 `showDots:false` 구조 없음.
+ * MapView 소스 존재는 sync 레이어 책임; 여기서는 전달 배열만 결정.
  */
-export function resolveActivityWorldDisplay(input: ActivityWorldDisplayInput): ActivityWorldDisplay {
-  const zoom = Number.isFinite(input.mapZoom) ? input.mapZoom : 12;
-  const span = input.spanKm;
-  const hasLines = input.pulseLineCount + input.heatLineCount > 0;
-  const spanLabel =
-    span != null && Number.isFinite(span) ? `${span.toFixed(1)}km` : "span?";
+export function resolveActivityWorldRender(
+  mapZoom: number,
+  raw: ActivityWorldRawOverlay,
+): ActivityWorldRenderOverlay {
+  const lineOk = canRenderActivityWorldLines(mapZoom, raw);
+  const rawDotCount = raw.pulseDots.length + raw.heatDots.length;
+  const rawLineCount = raw.pulseRoutes.length + raw.heatRoutes.length;
 
-  if (spanForcesActivityWorldDotsOnly(span)) {
+  if (lineOk) {
     return {
-      showDots: true,
-      showLines: false,
-      mode: "dots-only",
-      label: `DOT span>${VIEWPORT_SPAN_LINE_MAX_KM} (${spanLabel})`,
+      pulseRoutes: [...raw.pulseRoutes],
+      heatRoutes: [...raw.heatRoutes],
+      pulseDots: [],
+      heatDots: [],
     };
   }
 
-  if (span == null || !Number.isFinite(span)) {
-    return {
-      showDots: true,
-      showLines: false,
-      mode: "dots-only",
-      label: `DOT pending-span z${zoom.toFixed(1)}`,
-    };
-  }
+  const pulseDots = rawDotCount > 0 ? [...raw.pulseDots] : [];
+  const heatDots = rawDotCount > 0 ? [...raw.heatDots] : [];
 
-  if (zoom < MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN) {
+  if (pulseDots.length + heatDots.length === 0 && rawLineCount > 0) {
     return {
-      showDots: true,
-      showLines: false,
-      mode: "dots-only",
-      label: `DOT z${zoom.toFixed(1)} ${spanLabel}`,
-    };
-  }
-
-  if (hasLines && spanAllowsActivityWorldLines(span)) {
-    return {
-      showDots: false,
-      showLines: true,
-      mode: "lines-only",
-      label: `LINE ≤${VIEWPORT_SPAN_LINE_MAX_KM}km ${spanLabel} z${zoom.toFixed(1)}`,
+      pulseRoutes: [...raw.pulseRoutes],
+      heatRoutes: [...raw.heatRoutes],
+      pulseDots: [],
+      heatDots: [],
     };
   }
 
   return {
-    showDots: true,
-    showLines: false,
-    mode: "dots-only",
-    label: `DOT ${spanLabel}`,
+    pulseRoutes: [],
+    heatRoutes: [],
+    pulseDots,
+    heatDots,
   };
 }
 
-export type ActivityWorldRawOverlay = {
-  pulseRoutes: readonly ActivityWorldMapRoute[];
-  heatRoutes: readonly ActivityWorldMapRoute[];
-  pulseDots: readonly ActivityWorldMapDot[];
-  heatDots: readonly ActivityWorldMapDot[];
-};
-
-export type ActivityWorldRenderOverlay = {
-  pulseRoutes: ActivityWorldMapRoute[];
-  heatRoutes: ActivityWorldMapRoute[];
-  pulseDots: ActivityWorldMapDot[];
-  heatDots: ActivityWorldMapDot[];
-};
-
-export function applyActivityWorldRenderFilter(
-  display: ActivityWorldDisplay,
+export function resolveActivityWorldLodDebug(
+  mapZoom: number,
   raw: ActivityWorldRawOverlay,
-): ActivityWorldRenderOverlay {
-  let pulseRoutes = display.showLines ? [...raw.pulseRoutes] : [];
-  let heatRoutes = display.showLines ? [...raw.heatRoutes] : [];
-  let pulseDots = display.showDots ? [...raw.pulseDots] : [];
-  let heatDots = display.showDots ? [...raw.heatDots] : [];
-
-  const renderedLines = pulseRoutes.length + heatRoutes.length;
-  const renderedDots = pulseDots.length + heatDots.length;
-  const rawLines = raw.pulseRoutes.length + raw.heatRoutes.length;
-  const rawDots = raw.pulseDots.length + raw.heatDots.length;
-
-  if (renderedLines === 0 && renderedDots === 0) {
-    if (rawDots > 0) {
-      pulseDots = [...raw.pulseDots];
-      heatDots = [...raw.heatDots];
-    } else if (rawLines > 0) {
-      pulseRoutes = [...raw.pulseRoutes];
-      heatRoutes = [...raw.heatRoutes];
-    }
-  } else if (renderedLines === 0 && rawDots > 0) {
-    pulseDots = [...raw.pulseDots];
-    heatDots = [...raw.heatDots];
-  } else if (renderedDots === 0 && rawLines > 0) {
-    pulseRoutes = [...raw.pulseRoutes];
-    heatRoutes = [...raw.heatRoutes];
-  }
-
-  return { pulseRoutes, heatRoutes, pulseDots, heatDots };
+  render: ActivityWorldRenderOverlay,
+): ActivityWorldLodDebug {
+  const z = Number.isFinite(mapZoom) ? mapZoom : 12;
+  const lineRenderable = canRenderActivityWorldLines(z, raw);
+  const showingLine = render.pulseRoutes.length + render.heatRoutes.length > 0;
+  const channel: "line" | "dot" = showingLine ? "line" : "dot";
+  const label = lineRenderable
+    ? `LINE z≥${MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN} (${z.toFixed(1)})`
+    : raw.pulseDots.length + raw.heatDots.length > 0
+      ? `DOT z<${MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN} (${z.toFixed(1)})`
+      : `DOT fallback (${z.toFixed(1)})`;
+  return { label, channel, lineRenderable, mapZoom: z };
 }
 
-/** @deprecated */
-export function resolveActivityWorldLineMode(spanKm: number | null, mapZoom: number): boolean {
-  return (
-    resolveActivityWorldDisplay({
-      mapZoom,
-      spanKm,
-      pulseDotCount: 1,
-      heatDotCount: 0,
-      pulseLineCount: 1,
-      heatLineCount: 0,
-    }).mode === "lines-only"
-  );
+/** @deprecated {@link resolveActivityWorldRender} 사용 */
+export function resolveActivityWorldLineMode(_spanKm: number | null, mapZoom: number): boolean {
+  return Number.isFinite(mapZoom) && mapZoom >= MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN;
 }
 
-/** @deprecated */
-export const MAP_ZOOM_ACTIVITY_WORLD_LINE_MAX = 13;
+/** @deprecated span LOD 제거 */
+export function spanAllowsActivityWorldLines(_spanKm: number | null): boolean {
+  return false;
+}
+
+/** @deprecated span LOD 제거 */
+export function isActivityWorldLineMode(spanKm: number): boolean {
+  return spanAllowsActivityWorldLines(spanKm);
+}
 
 export function mergeActivityWorldDots(
   primary: readonly ActivityWorldMapDot[],
