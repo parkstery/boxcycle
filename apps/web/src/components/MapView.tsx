@@ -45,6 +45,7 @@ const TRAIL_SPEC_ROUTES_LAYER = "boxcycle-lobby-spectator-routes-line";
 const TRAIL_SPEC_DOTS_SRC = "boxcycle-lobby-spectator-dots";
 const TRAIL_SPEC_DOTS_GLOW_LAYER = "boxcycle-lobby-spectator-dots-glow";
 const TRAIL_SPEC_DOTS_LAYER = "boxcycle-lobby-spectator-dots-circle";
+const TRAIL_SPEC_DOTS_LABEL_LAYER = "boxcycle-lobby-spectator-dots-label";
 
 /**
  * 지도 탭 팝업 — 경로 프로필(차·자전거·보행) 아이콘.
@@ -398,7 +399,7 @@ function syncTrailSpectatorLayers(
   const dotFeatures = dots.map((d) => ({
     type: "Feature" as const,
     id: `trail-d-${d.id}`,
-    properties: { id: d.id },
+    properties: { id: d.id, label: d.label?.trim() ?? "" },
     geometry: { type: "Point" as const, coordinates: d.lngLat },
   }));
   const dotFc = { type: "FeatureCollection" as const, features: dotFeatures };
@@ -490,8 +491,55 @@ function syncTrailSpectatorLayers(
         },
         beforeRoute,
       );
+      map.addLayer(
+        {
+          id: TRAIL_SPEC_DOTS_LABEL_LAYER,
+          type: "symbol",
+          source: TRAIL_SPEC_DOTS_SRC,
+          filter: [">", ["length", ["coalesce", ["get", "label"], ""]], 0],
+          layout: {
+            "text-field": ["get", "label"],
+            "text-size": 11,
+            "text-anchor": "bottom",
+            "text-offset": [0, -1.35],
+            "text-max-width": 14,
+            "text-allow-overlap": true,
+            "text-ignore-placement": false,
+          },
+          paint: {
+            "text-color": "#fef2f2",
+            "text-halo-color": "#7f1d1d",
+            "text-halo-width": 1.2,
+          },
+        },
+        beforeRoute,
+      );
     } else {
       (map.getSource(TRAIL_SPEC_DOTS_SRC) as mapboxgl.GeoJSONSource).setData(dotFc);
+      if (!map.getLayer(TRAIL_SPEC_DOTS_LABEL_LAYER) && map.getLayer(TRAIL_SPEC_DOTS_LAYER)) {
+        map.addLayer(
+          {
+            id: TRAIL_SPEC_DOTS_LABEL_LAYER,
+            type: "symbol",
+            source: TRAIL_SPEC_DOTS_SRC,
+            filter: [">", ["length", ["coalesce", ["get", "label"], ""]], 0],
+            layout: {
+              "text-field": ["get", "label"],
+              "text-size": 11,
+              "text-anchor": "bottom",
+              "text-offset": [0, -1.35],
+              "text-max-width": 14,
+              "text-allow-overlap": true,
+            },
+            paint: {
+              "text-color": "#fef2f2",
+              "text-halo-color": "#7f1d1d",
+              "text-halo-width": 1.2,
+            },
+          },
+          TRAIL_SPEC_DOTS_LAYER,
+        );
+      }
       if (!map.getLayer(TRAIL_SPEC_DOTS_GLOW_LAYER) && map.getLayer(TRAIL_SPEC_DOTS_LAYER)) {
         map.addLayer(
           {

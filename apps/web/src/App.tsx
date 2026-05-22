@@ -44,7 +44,7 @@ import {
   fetchTrailInstance,
   setTrailVisibility,
 } from "./lib/firestoreTrailInstance";
-import { formatTrailDisplayNumber } from "./lib/trailDisplayNumber";
+import { resolveTrailDisplayLabel } from "./lib/trailDisplayNumber";
 import { RotateOverlay } from "./components/RotateOverlay";
 import { MapViewSheet } from "./components/MapViewSheet";
 import { UserInfoSheet } from "./components/UserInfoSheet";
@@ -667,7 +667,18 @@ export default function App() {
     return user.displayName?.trim() || user.email?.trim() || "Rider";
   }, [user, basicActiveHubCourseId]);
 
-  const resolvedLiveRiderNametag = liveRiderNametag ?? selfRiderNametagFallback;
+  const trailDisplayLabels = useMemo(
+    () => resolveTrailDisplayLabel(sanitizedTrailId, currentTrailMeta),
+    [sanitizedTrailId, currentTrailMeta],
+  );
+
+  const resolvedLiveRiderNametag = useMemo(() => {
+    const base = (liveRiderNametag ?? selfRiderNametagFallback)?.trim();
+    const riding = rideStatus === "running" || rideStatus === "paused";
+    if (!riding) return base || null;
+    const room = trailDisplayLabels.room;
+    return base ? `${room} · ${base}` : room;
+  }, [liveRiderNametag, selfRiderNametagFallback, rideStatus, trailDisplayLabels.room]);
 
   const bleCrankRpm = useBleCrankRpm({ sessionActive: rideStatus !== "idle" });
 
@@ -727,6 +738,7 @@ export default function App() {
   const { spectatorDots, spectatorRouteGeometries } = useTrailLiveCourseRideSpectatorOverlay({
     user,
     trailId,
+    trailRoomLabel: trailDisplayLabels.room,
     enabled: trailSpectatorOverlayEnabled,
     mapZoom,
     excludePeerIds: coursePeerIdsForTrailSpectator,
@@ -1248,16 +1260,11 @@ export default function App() {
     const trailError = trailSession.error;
     const courseActivityHudLine = formatCourseActivityHudLine(courseActivity);
     const tid = sanitizeTrailId(trailId);
-    const trailDisplayLabel =
-      tid === DEFAULT_TRAIL_ID
-        ? "Trailhead"
-        : currentTrailMeta
-          ? formatTrailDisplayNumber(currentTrailMeta.displayNumber)
-          : tid.slice(0, 8);
     return {
       trailheadEnabled: true,
       trailId: tid,
-      trailDisplayLabel,
+      trailDisplayLabel: trailDisplayLabels.short,
+      trailRoomLabel: trailDisplayLabels.room,
       trailMembers,
       trailError,
       courseTitle,
@@ -1268,6 +1275,7 @@ export default function App() {
     configured,
     user,
     trailId,
+    trailDisplayLabels,
     currentTrailMeta,
     trailSession.rows,
     trailSession.error,

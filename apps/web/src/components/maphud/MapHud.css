@@ -420,6 +420,13 @@
 }
 
 /* ---------- TC: MetricChips ---------- */
+.hud-metrics__chip--trail {
+  background: rgba(220, 38, 38, 0.22);
+  border-color: rgba(248, 113, 113, 0.55);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
 .hud-metrics {
   display: flex;
   gap: 0.3rem;

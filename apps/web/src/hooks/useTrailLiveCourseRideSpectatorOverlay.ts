@@ -15,7 +15,7 @@ import {
   type TrailLiveCourseRideRow,
 } from "../lib/firestoreTrailLiveCourseRides";
 
-export type TrailSpectatorDot = { id: string; lngLat: LngLat };
+export type TrailSpectatorDot = { id: string; lngLat: LngLat; /** 주행자 네임태그 — Trail 번호 포함 */ label: string };
 
 /** @deprecated `TrailSpectatorDot` */
 export type LobbySpectatorDot = TrailSpectatorDot;
@@ -23,6 +23,8 @@ export type LobbySpectatorDot = TrailSpectatorDot;
 type UseTrailLiveCourseRideSpectatorOverlayOpts = {
   user: User | null | undefined;
   trailId: string;
+  /** 같은 Trail 방 이름 — `Trail 042` / `Trailhead` */
+  trailRoomLabel: string;
   enabled: boolean;
   mapZoom: number;
   excludePeerIds: ReadonlySet<string>;
@@ -38,7 +40,7 @@ export function useTrailLiveCourseRideSpectatorOverlay(opts: UseTrailLiveCourseR
   spectatorRouteGeometries: LineStringGeometry[];
   error: string | null;
 } {
-  const { user, trailId, enabled, mapZoom, excludePeerIds } = opts;
+  const { user, trailId, trailRoomLabel, enabled, mapZoom, excludePeerIds } = opts;
   const [rows, setRows] = useState<TrailLiveCourseRideRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [geomEpoch, setGeomEpoch] = useState(0);
@@ -135,10 +137,17 @@ export function useTrailLiveCourseRideSpectatorOverlay(opts: UseTrailLiveCourseR
       const len = lineStringLengthMeters(g.geometry);
       if (len <= 0) continue;
       const p = getPointOnRouteByDistance(g.geometry, r.progressRatio * len);
-      if (p) out.push({ id: r.uid, lngLat: p });
+      if (p) {
+        const who = r.displayName?.trim() || r.uid.slice(0, 6);
+        out.push({
+          id: r.uid,
+          lngLat: p,
+          label: `${trailRoomLabel} · ${who}`,
+        });
+      }
     }
     return out;
-  }, [activeRows, geomEpoch]);
+  }, [activeRows, geomEpoch, trailRoomLabel]);
 
   const spectatorRouteGeometries = useMemo((): LineStringGeometry[] => {
     const map = geomByCourseRef.current;
