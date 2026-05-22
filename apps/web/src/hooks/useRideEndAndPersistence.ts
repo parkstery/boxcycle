@@ -132,11 +132,16 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
       startPlaceLabel: startPlaceSnapshot,
       endPlaceLabel: endPlaceSnapshot,
     };
+    if (!user) {
+      setRideStatus("idle");
+      return;
+    }
+
     const next = [record, ...loadRideSessions()].slice(0, 50);
-    saveRideSessions(next);
+    saveRideSessions(next, user);
     setRecentSessions(next);
 
-    if (configured && user) {
+    if (configured) {
       void (async () => {
         try {
           let sessionForPersist: StoredRideSession = record;
@@ -158,7 +163,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
                 const rows = loadRideSessions().map((r) =>
                   r.id === record.id ? sessionForPersist : r,
                 );
-                saveRideSessions(rows);
+                saveRideSessions(rows, user);
                 setRecentSessions(rows);
               }
             } catch {
@@ -328,7 +333,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
             const rows = loadRideSessions().map((r) =>
               r.id === record.id ? sessionForPersist : r,
             );
-            saveRideSessions(rows);
+            saveRideSessions(rows, user);
             setRecentSessions(rows);
           } catch {
             /* noop */

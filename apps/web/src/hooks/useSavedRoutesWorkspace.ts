@@ -1,6 +1,7 @@
 import type { User } from "firebase/auth";
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { assertCanPersistAppData, canPersistAppData } from "../lib/clientPersistencePolicy";
 import {
   backfillSavedRoutesExpiresAt,
   deleteSavedRouteFromFirestore,
@@ -19,9 +20,7 @@ import {
   deleteSavedRouteFromLocal,
   exportLocalRoutesForMigration,
   loadSavedRoutesFromLocal,
-  promoteSavedRouteInLocal,
   renameSavedRouteInLocal,
-  saveRouteToLocal,
 } from "../lib/savedRoutesLocal";
 import { formatDuration, type RouteProfile } from "../services/mapboxDirections";
 import type { PublishedRouteLink } from "../lib/routePublicationResolve";
@@ -97,7 +96,7 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
     onSavedRouteRideEntry,
   } = options;
 
-  const [savedRoutes, setSavedRoutes] = useState<SavedRoute[]>(() => loadSavedRoutesFromLocal());
+  const [savedRoutes, setSavedRoutes] = useState<SavedRoute[]>([]);
   const [savedRoutesLoading, setSavedRoutesLoading] = useState(false);
   const loadedSavedRouteIdRef = useRef<string | null>(null);
   const loadedSavedRouteNameRef = useRef<string | null>(null);
@@ -157,15 +156,9 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
   }, [configured, user]);
 
   useEffect(() => {
-    if (configured && user) return;
-    const local = loadSavedRoutesFromLocal();
-    setSavedRoutes((prev) => {
-      if (prev.length === local.length && prev.every((r, i) => r.id === local[i]?.id)) {
-        return prev;
-      }
-      return local;
-    });
-  }, [configured, user]);
+    if (user) return;
+    setSavedRoutes([]);
+  }, [user]);
 
   const handleSaveCurrentRoute = useCallback(
     async (name: string) => {
@@ -185,19 +178,16 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
         distanceMeters: routeDistanceMeters,
         durationSec: routeDurationSec,
       };
-      if (configured && user) {
-        const saved = await saveRouteToFirestore({ ...baseInput, userId: user.uid });
-        setSavedRoutes((prev) => [saved, ...prev]);
-        loadedSavedRouteIdRef.current = saved.id;
-        loadedSavedRouteNameRef.current = saved.name;
-        setLastEndedWasAdhoc(null);
-      } else {
-        const saved = await saveRouteToLocal(baseInput);
-        setSavedRoutes((prev) => [saved, ...prev]);
-        loadedSavedRouteIdRef.current = saved.id;
-        loadedSavedRouteNameRef.current = saved.name;
-        setLastEndedWasAdhoc(null);
+      assertCanPersistAppData(user);
+      const uid = user!.uid;
+      if (!configured) {
+        throw new Error("Firebase 설정이 필요합니다.");
       }
+      const saved = await saveRouteToFirestore({ ...baseInput, userId: uid });
+      setSavedRoutes((prev) => [saved, ...prev]);
+      loadedSavedRouteIdRef.current = saved.id;
+      loadedSavedRouteNameRef.current = saved.name;
+      setLastEndedWasAdhoc(null);
     },
     [
       configured,
@@ -228,35 +218,31 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
         durationSec: lastEndedWasAdhoc.durationSec,
       };
       const rideId = lastEndedWasAdhoc.rideId;
-      if (configured && user) {
-        const saved = await saveRouteToFirestore({ ...base, userId: user.uid });
-        try {
-          await promoteSavedRouteInFirestore({
-            userId: user.uid,
-            routeId: saved.id,
-            rideId: rideId ?? "",
-          });
-        } catch {
-          /* 격상 실패해도 사용자 경로는 이미 생성됨 */
-        }
-        const nowIso = new Date().toISOString();
-        const promoted: SavedRoute = {
-          ...saved,
-          completed: 1,
-          completedAtIso: nowIso,
-          expiresAtIso: null,
-          lastRideId: rideId ?? null,
-          updatedAtIso: nowIso,
-        };
-        setSavedRoutes((prev) => [promoted, ...prev]);
-      } else {
-        const saved = await saveRouteToLocal(base);
-        promoteSavedRouteInLocal({
-          routeId: saved.id,
-          rideId: rideId ?? saved.id,
-        });
-        setSavedRoutes(loadSavedRoutesFromLocal());
+      assertCanPersistAppData(user);
+      const uid = user!.uid;
+      if (!configured) {
+        throw new Error("Firebase 설정이 필요합니다.");
       }
+      const saved = await saveRouteToFirestore({ ...base, userId: uid });
+      try {
+        await promoteSavedRouteInFirestore({
+          userId: uid,
+          routeId: saved.id,
+          rideId: rideId ?? "",
+        });
+      } catch {
+        /* 격상 실패해도 사용자 경로는 이미 생성됨 */
+      }
+      const nowIso = new Date().toISOString();
+      const promoted: SavedRoute = {
+        ...saved,
+        completed: 1,
+        completedAtIso: nowIso,
+        expiresAtIso: null,
+        lastRideId: rideId ?? null,
+        updatedAtIso: nowIso,
+      };
+      setSavedRoutes((prev) => [promoted, ...prev]);
       setLastEndedWasAdhoc(null);
     },
     [configured, user, lastEndedWasAdhoc],
@@ -329,6 +315,8 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
         if (loadedSavedRouteIdRef.current === route.id) {
           loadedSavedRouteNameRef.current = name;
         }
+      } else if (!canPersistAppData(user)) {
+        throw new Error("이 경로를 수정하려면 로그인이 필요합니다.");
       } else {
         const name = renameSavedRouteInLocal(route.id, newName);
         setSavedRoutes((prev) =>
@@ -352,6 +340,8 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
           throw new Error("이 경로를 삭제하려면 로그인이 필요합니다.");
         }
         await deleteSavedRouteFromFirestore(route.id);
+      } else if (!canPersistAppData(user)) {
+        throw new Error("이 경로를 삭제하려면 로그인이 필요합니다.");
       } else {
         deleteSavedRouteFromLocal(route.id);
       }

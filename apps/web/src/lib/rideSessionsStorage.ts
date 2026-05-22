@@ -1,3 +1,6 @@
+import type { User } from "firebase/auth";
+import { canPersistAppData } from "./clientPersistencePolicy";
+
 const SESSIONS_KEY = "boxcycle_web_ride_sessions_v1";
 
 export type StoredRideSession = {
@@ -32,6 +35,7 @@ export function loadRideSessions(): StoredRideSession[] {
   }
 }
 
-export function saveRideSessions(items: StoredRideSession[]): void {
+export function saveRideSessions(items: StoredRideSession[], user: User | null): void {
+  if (!canPersistAppData(user) || typeof localStorage === "undefined") return;
   localStorage.setItem(SESSIONS_KEY, JSON.stringify(items));
 }

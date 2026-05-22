@@ -13,7 +13,8 @@ export type RideHistoryPanelProps = {
   /**
    * 영구 주행 기록을 표시한다.
    * - 로그인 사용자: Firestore `rides` 컬렉션 (최근 50건)
-   * - 게스트 / 미로그인: localStorage 의 최근 기록
+   * - 미로그인: 기록 없음(영속 금지)
+   * - 로그인(게스트·Google): Firestore `rides`
    */
   userId: string | null;
   /** 게스트 안내 표시(미로그인 또는 익명) */
@@ -41,7 +42,7 @@ export function RideHistoryPanel(props: RideHistoryPanelProps) {
     void (async () => {
       if (!props.userId) {
         if (!cancelled) {
-          setRides(loadRideSessions());
+          setRides([]);
           setError(null);
           setLoading(false);
         }

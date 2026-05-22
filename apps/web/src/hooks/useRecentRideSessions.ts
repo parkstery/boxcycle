@@ -27,13 +27,17 @@ export function useRecentRideSessions(options: UseRecentRideSessionsOptions) {
   }, []);
 
   useEffect(() => {
-    if (!configured || !user) return;
+    if (!user) {
+      setRecentSessions([]);
+      return;
+    }
+    if (!configured) return;
     let cancelled = false;
     void loadRecentRideSessionsFromFirestore(user.uid, 50)
       .then(async (rows) => {
         if (cancelled) return;
         if (rows.length > 0) {
-          saveRideSessions(rows);
+          saveRideSessions(rows, user);
           setRecentSessions(rows);
           return;
         }
@@ -48,7 +52,7 @@ export function useRecentRideSessions(options: UseRecentRideSessionsOptions) {
             });
             const synced = await loadRecentRideSessionsFromFirestore(user.uid, 50);
             if (!cancelled && synced.length > 0) {
-              saveRideSessions(synced);
+              saveRideSessions(synced, user);
               setRecentSessions(synced);
               return;
             }

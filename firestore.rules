@@ -90,6 +90,27 @@ service cloud.firestore {
       ]);
     }
 
+    function userTierProtectedFieldsUntouched() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'subscriptionStatus',
+        'subscriptionExpiresAt'
+      ]);
+    }
+
+    function userTierOnCreateValid() {
+      return !request.resource.data.keys().hasAny(['tier', 'tierUpdatedAt', 'subscriptionStatus', 'subscriptionExpiresAt'])
+        || request.resource.data.tier == 'anonymous';
+    }
+
+    /** 닉네임 확정 시에만 registered_free 승격 허용 */
+    function userTierUpdateValid() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return !changed.hasAny(['tier', 'tierUpdatedAt'])
+        || (userNicknameChanged()
+          && request.resource.data.tier == 'registered_free'
+          && !changed.hasAny(['subscriptionStatus', 'subscriptionExpiresAt']));
+    }
+
     match /users/{userId} {
       allow read: if isSignedIn();
       allow create: if isSelf(userId)
@@ -100,10 +121,13 @@ service cloud.firestore {
           'routeTokenOnboardingGranted',
           'routeTokenEarnDayKey',
           'routeTokenEarnedToday'
-        ]);
+        ])
+        && userTierOnCreateValid();
       allow update: if isSelf(userId)
         && (!userNicknameChanged() || userNicknameReserved())
-        && userRouteTokenFieldsUntouched();
+        && userRouteTokenFieldsUntouched()
+        && userTierProtectedFieldsUntouched()
+        && userTierUpdateValid();
       allow delete: if false;
     }
 

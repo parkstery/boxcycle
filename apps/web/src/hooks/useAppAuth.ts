@@ -21,6 +21,7 @@ import { isBenignAuthPopupCancel } from "../lib/firebaseAuthPopup";
 import { getFirebaseAuth } from "../lib/firebase";
 import {
   claimNicknameTransaction,
+  ensureAnonymousUserTier,
   getUserProfileNickname,
   NicknameTakenError,
 } from "../lib/firestoreUser";
@@ -107,8 +108,18 @@ export function useAppAuth(configured: boolean) {
       return;
     }
     if (user.isAnonymous) {
-      startTransition(() => setFsSync({ state: "ok" }));
-      return;
+      let cancelled = false;
+      void (async () => {
+        try {
+          await ensureAnonymousUserTier(user);
+        } catch {
+          /* tier 미설정이어도 게스트 주행은 허용 — Rules·CF 재시도 */
+        }
+        if (!cancelled) startTransition(() => setFsSync({ state: "ok" }));
+      })();
+      return () => {
+        cancelled = true;
+      };
     }
     let cancelled = false;
     startTransition(() => setFsSync({ state: "syncing" }));

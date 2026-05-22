@@ -1282,7 +1282,7 @@ export default function App() {
           onRouteProfile={handleMapRouteProfile}
           onClearRoute={handleClearPins}
           onSelectPoint={(type, lngLat, waypointSlot) => {
-            if (routeMenuLockedForProd) return;
+            if (!user || routeMenuLockedForProd) return;
             setActiveOfficialCourseId(null);
             setPlaceSearchMarkerLngLat(null);
             if (type === "start") setStartLngLat(lngLat);

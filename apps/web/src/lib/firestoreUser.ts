@@ -18,6 +18,8 @@ import {
   normalizeNicknameKey,
 } from "./nickname";
 
+export type UserTier = "anonymous" | "registered_free" | "registered_paid" | "admin";
+
 export class NicknameTakenError extends Error {
   readonly code = "nickname-taken" as const;
   constructor(message = "이미 사용 중인 닉네임입니다.") {
@@ -93,11 +95,36 @@ function buildUserProfileWrite(user: User, nicknameTrimmed: string, keyLower: st
     displayName: user.displayName ?? null,
     email: user.email ?? null,
     photoURL: user.photoURL ?? null,
-    isAnonymous: user.isAnonymous,
+    isAnonymous: false,
+    tier: "registered_free" as const,
+    tierUpdatedAt: serverTimestamp(),
     nickname: nicknameTrimmed,
     nicknameKey: keyLower,
     updatedAt: serverTimestamp(),
   };
+}
+
+/** Guest tier — 문서 없거나 tier 미설정 시 1회 merge */
+export async function ensureAnonymousUserTier(user: User): Promise<void> {
+  if (!user.isAnonymous) return;
+  const db = getFirestore(getFirebaseApp());
+  const userRef = doc(db, "users", user.uid);
+  const snap = await getDoc(userRef);
+  const tier = snap.data()?.tier;
+  if (typeof tier === "string" && tier.length > 0) return;
+  await setDoc(
+    userRef,
+    {
+      displayName: user.displayName ?? getPresenceDisplayName(user),
+      email: user.email ?? null,
+      photoURL: user.photoURL ?? null,
+      isAnonymous: true,
+      tier: "anonymous",
+      tierUpdatedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
 }
 
 /**

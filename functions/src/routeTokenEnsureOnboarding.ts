@@ -42,9 +42,16 @@ export const ensureRouteTokenOnboardingHttp = onRequest(
     try {
       try {
         const userRecord = await getAuth().getUser(uid);
+        const isAnonymous = userRecord.providerData.length === 0;
         await getFirestore()
           .doc(`users/${uid}`)
-          .set({ isAnonymous: userRecord.providerData.length === 0 }, { merge: true });
+          .set(
+            {
+              isAnonymous,
+              ...(isAnonymous ? { tier: "anonymous" } : {}),
+            },
+            { merge: true },
+          );
       } catch {
         /* noop */
       }
