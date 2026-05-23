@@ -25,7 +25,7 @@ import {
 } from "../lib/rideSyncPolicy";
 import { mapNametagForMember, sortedGuestUids } from "../lib/guestNametag";
 import { useDocumentVisibility } from "../hooks/useDocumentVisibility";
-import "./TrailheadPresence.css";
+import "./trail/TrailheadPresence.css";
 
 function peersStableKey(peers: MapPeerMarker[] | undefined): string {
   if (!peers?.length) return "";

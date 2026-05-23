@@ -94,15 +94,14 @@ import { useRideMapillaryStreet } from "./hooks/useRideMapillaryStreet";
 import { MAPILLARY_CLIENT_TOKEN, mapillaryTokenConfigured } from "./lib/mapillaryToken";
 import type { CoverageOverlayMode } from "./lib/coverageOverlayMode";
 import { formatDuration, type RouteProfile } from "./services/mapboxDirections";
+import { FUNCTIONS_REGION, MAPBOX_TOKEN } from "./app/env";
+import { useAppSheetNavigation } from "./app/useAppSheetNavigation";
 import "./App.css";
 
 const MapillaryRideViewer = lazy(async () => {
   const m = await import("./components/MapillaryRideViewer");
   return { default: m.MapillaryRideViewer };
 });
-
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN?.trim() ?? "";
-const FUNCTIONS_REGION = import.meta.env.VITE_FUNCTIONS_REGION?.trim() || "asia-northeast3";
 
 export default function App() {
   const {
@@ -156,7 +155,20 @@ export default function App() {
     rideCoachingBannerVisible,
     setRideCoachingBannerVisible,
   } = useRideFeedbackPreferences();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const {
+    menuOpen,
+    mapViewSheetOpen,
+    userInfoSheetOpen,
+    rideSettingsSheetOpen,
+    setMenuOpen,
+    setMapViewSheetOpen,
+    setUserInfoSheetOpen,
+    setRideSettingsSheetOpen,
+    openMenuPanel,
+    openMapViewPanel,
+    openUserInfoPanel,
+    openRideSettingsPanel,
+  } = useAppSheetNavigation();
   const [externalCameraJump, setExternalCameraJump] = useState<{
     lngLat: LngLat;
     zoom?: number;
@@ -169,10 +181,7 @@ export default function App() {
   const cameraJumpSeqRef = useRef(0);
   /** MENU 최초 오픈 시에만 퍼블릭 카탈로그·심사 메타 Firestore 로드(세션당 uid 1회) */
   const menuFirestorePrimedUidRef = useRef<string | null>(null);
-  const [mapViewSheetOpen, setMapViewSheetOpen] = useState(false);
-  const [userInfoSheetOpen, setUserInfoSheetOpen] = useState(false);
   const [subscriptionFlash, setSubscriptionFlash] = useState<string | null>(null);
-  const [rideSettingsSheetOpen, setRideSettingsSheetOpen] = useState(false);
   const [idleHintDismissed, setIdleHintDismissed] = useState(false);
   /** B 여정(커스텀 경로): setup 안내 세션 플래그 */
   const [bJourneyHintDismissedSession, setBJourneyHintDismissedSession] = useState(readBJourneyHintDismissedSession);
@@ -999,34 +1008,6 @@ export default function App() {
       /* noop */
     }
     setBJourneyHintDismissedSession(true);
-  }, []);
-
-  const openMenuPanel = useCallback(() => {
-    setMapViewSheetOpen(false);
-    setUserInfoSheetOpen(false);
-    setRideSettingsSheetOpen(false);
-    setMenuOpen(true);
-  }, []);
-
-  const openMapViewPanel = useCallback(() => {
-    setMenuOpen(false);
-    setUserInfoSheetOpen(false);
-    setRideSettingsSheetOpen(false);
-    setMapViewSheetOpen((v) => !v);
-  }, []);
-
-  const openUserInfoPanel = useCallback(() => {
-    setMenuOpen(false);
-    setMapViewSheetOpen(false);
-    setRideSettingsSheetOpen(false);
-    setUserInfoSheetOpen((v) => !v);
-  }, []);
-
-  const openRideSettingsPanel = useCallback(() => {
-    setMenuOpen(false);
-    setMapViewSheetOpen(false);
-    setUserInfoSheetOpen(false);
-    setRideSettingsSheetOpen(true);
   }, []);
 
   // ===== Map-first 핸들러 =====

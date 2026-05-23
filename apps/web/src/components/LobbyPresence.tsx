@@ -1,2 +1,2 @@
 /** @deprecated `TrailheadPresence` */
-export { LobbyPresence, TrailheadPresence } from "./TrailheadPresence";
+export { LobbyPresence, TrailheadPresence } from "./trail/TrailheadPresence";
