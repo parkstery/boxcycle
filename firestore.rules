@@ -421,6 +421,12 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    /** World Activity Presence — publication 1 dot. 읽기만 클라이언트, 쓰기는 Functions. */
+    match /publicationPresence/{publicationId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
     match /worldActivity/{tileId} {
       allow read: if isSignedIn();
       allow write: if false;

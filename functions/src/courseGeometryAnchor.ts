@@ -1,5 +1,7 @@
 type LngLat = [number, number];
 
+export type { LngLat };
+
 const COORD_DECIMALS = 3;
 const EARTH_RADIUS_M = 6_371_000;
 

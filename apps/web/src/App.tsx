@@ -12,6 +12,7 @@ import { useTrailLiveCourseRideSpectatorOverlay } from "./hooks/useTrailLiveCour
 import { useCourseActivity } from "./hooks/useCourseActivity";
 import { useCourseActivityMapOverlay } from "./hooks/useCourseActivityMapOverlay";
 import { usePublishedCoursesActivityMapOverlay } from "./hooks/usePublishedCoursesActivityMapOverlay";
+import { useWorldPublicationPresenceOverlay } from "./hooks/useWorldPublicationPresenceOverlay";
 import { useDocumentVisibility } from "./hooks/useDocumentVisibility";
 import {
   formatActivityWorldPinPopup,
@@ -19,6 +20,7 @@ import {
   formatCourseActivityHudLine,
   invalidateLiveCourseActivityIdsCache,
 } from "./lib/firestoreCourseActivity";
+import { formatPublicationPresencePinPopup } from "./lib/firestorePublicationPresence";
 import { fetchWorldPresenceSummary, formatWorldPresenceHudLine } from "./lib/firestoreWorldPresence";
 import { fetchWorldActivityGlobal, formatWorldActivityHudLine, mergeWorldHudLines } from "./lib/firestoreWorldActivity";
 import {
@@ -542,6 +544,19 @@ export default function App() {
     configured && user && pageVisible && catalogCourseIds.length > 0,
   );
 
+  const publicationPresenceWorldMapEnabled =
+    catalogActivityEnabled && import.meta.env.VITE_USE_PUBLICATION_PRESENCE !== "false";
+
+  const {
+    pulseDots: publicationPulseDots,
+    heatDots: publicationHeatDots,
+    presenceByPublicationId,
+    overlayStats: publicationPresenceOverlayStats,
+  } = useWorldPublicationPresenceOverlay({
+    enabled: publicationPresenceWorldMapEnabled,
+    refreshNonce: activityMapRefreshNonce,
+  });
+
   const {
     pulseRoutes: catalogPulseRoutes,
     heatRoutes: catalogHeatRoutes,
@@ -583,12 +598,21 @@ export default function App() {
     activeCoursePulseRoutes,
   ]);
 
+  const catalogPulseDotsForWorld = publicationPresenceWorldMapEnabled ? [] : catalogPulseDots;
+  const catalogHeatDotsForWorld = publicationPresenceWorldMapEnabled ? [] : catalogHeatForMerge.heatDots;
+
   const activityWorldRaw = useMemo(
     () => ({
       pulseRoutes: [...activeCoursePulseRoutes, ...catalogPulseRoutes],
       heatRoutes: [...activeCourseHeatRoutes, ...catalogHeatForMerge.heatRoutes],
-      pulseDots: mergeActivityWorldDots(activeCoursePulseDots, catalogPulseDots),
-      heatDots: mergeActivityWorldDots(activeCourseHeatDots, catalogHeatForMerge.heatDots),
+      pulseDots: mergeActivityWorldDots(
+        activeCoursePulseDots,
+        publicationPresenceWorldMapEnabled ? publicationPulseDots : catalogPulseDotsForWorld,
+      ),
+      heatDots: mergeActivityWorldDots(
+        activeCourseHeatDots,
+        publicationPresenceWorldMapEnabled ? publicationHeatDots : catalogHeatDotsForWorld,
+      ),
     }),
     [
       activeCoursePulseRoutes,
@@ -596,7 +620,10 @@ export default function App() {
       activeCourseHeatRoutes,
       catalogHeatForMerge,
       activeCoursePulseDots,
-      catalogPulseDots,
+      catalogPulseDotsForWorld,
+      publicationPulseDots,
+      publicationHeatDots,
+      publicationPresenceWorldMapEnabled,
       activeCourseHeatDots,
     ],
   );
@@ -614,13 +641,26 @@ export default function App() {
   const getActivityWorldPinLabel = useCallback(
     (courseId: string, kind: "pulse" | "heat") => {
       const id = courseId.trim();
+      if (publicationPresenceWorldMapEnabled && id) {
+        const presenceLabel = formatPublicationPresencePinPopup(
+          presenceByPublicationId.get(id),
+          kind,
+        );
+        if (presenceLabel) return presenceLabel;
+      }
       const row =
         id && id === trackedCourseId?.trim()
           ? courseActivity
           : courseActivityByCourseId.get(id) ?? null;
       return formatActivityWorldPinPopup(row, kind);
     },
-    [trackedCourseId, courseActivity, courseActivityByCourseId],
+    [
+      publicationPresenceWorldMapEnabled,
+      presenceByPublicationId,
+      trackedCourseId,
+      courseActivity,
+      courseActivityByCourseId,
+    ],
   );
 
   useEffect(() => {
@@ -649,6 +689,8 @@ export default function App() {
       render: activityWorldRender,
       catalog: catalogActivityOverlayStats,
       catalogEnabled: catalogActivityEnabled,
+      publicationPresence: publicationPresenceOverlayStats,
+      publicationPresenceEnabled: publicationPresenceWorldMapEnabled,
     });
   }, [
     mapZoom,
@@ -660,6 +702,8 @@ export default function App() {
     activityWorldRender,
     catalogActivityOverlayStats,
     catalogActivityEnabled,
+    publicationPresenceOverlayStats,
+    publicationPresenceWorldMapEnabled,
   ]);
 
   /** 퍼블릭 코스 ID — MENU 없이도 Activity World 카탈로그에 포함(주행 미참여 관전) */

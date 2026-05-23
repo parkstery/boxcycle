@@ -173,6 +173,23 @@
         { "fieldPath": "liveNow", "order": "ASCENDING" },
         { "fieldPath": "activeRiderCount", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "publicationPresence",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "visibility", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "publicationPresence",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "visibility", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "closedAt", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": [

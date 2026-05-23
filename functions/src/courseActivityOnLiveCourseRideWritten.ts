@@ -8,6 +8,10 @@ import {
   touchCourseLiveProgressPulseOnly,
   touchCourseLiveProgressWithAnchor,
 } from "./courseActivityAggregateCore.js";
+import {
+  bumpPublicationLiveSessionEnded,
+  bumpPublicationLiveSessionStarted,
+} from "./publicationPresenceCore.js";
 
 /** 클라이언트 `TRAIL_LIVE_PROGRESS_MIN_DELTA` 와 동일 — 이보다 작은 progress 변화는 집계 생략 */
 const PROGRESS_AGGREGATE_MIN_DELTA = 0.012;
@@ -65,6 +69,7 @@ export const courseActivityOnLiveCourseRideWritten = onDocumentWritten(
       const courseId = readCourseId(after);
       if (courseId) {
         await bumpCourseLiveSessionStarted(courseId);
+        await bumpPublicationLiveSessionStarted(courseId);
         await touchCourseLiveProgressWithAnchor(courseId, readProgressRatio(after));
         await refreshWorldHighlightedCourses();
       }
@@ -75,6 +80,7 @@ export const courseActivityOnLiveCourseRideWritten = onDocumentWritten(
       const courseId = readCourseId(before);
       if (courseId) {
         await bumpCourseLiveSessionEnded(courseId);
+        await bumpPublicationLiveSessionEnded(courseId);
         await refreshWorldHighlightedCourses();
       }
       return;
@@ -92,7 +98,9 @@ export const courseActivityOnLiveCourseRideWritten = onDocumentWritten(
 
       if (courseIdBefore && courseIdAfter && courseIdBefore !== courseIdAfter) {
         await bumpCourseLiveSessionEnded(courseIdBefore);
+        await bumpPublicationLiveSessionEnded(courseIdBefore);
         await bumpCourseLiveSessionStarted(courseIdAfter);
+        await bumpPublicationLiveSessionStarted(courseIdAfter);
         await touchCourseLiveProgressWithAnchor(courseIdAfter, prAfter);
         await refreshWorldHighlightedCourses();
         return;

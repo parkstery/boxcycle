@@ -5,6 +5,7 @@ import {
   WORLD_ACTIVITY_COLLECTION,
   WORLD_GLOBAL_ID,
 } from "./courseActivityAggregateCore.js";
+import { reconcilePublicationPresenceFromLiveRides } from "./publicationPresenceCore.js";
 
 /** 클라이언트 `LOBBY_STALE_MS`(240s)보다 짧게 — stale live 문서는 집계에서 제외 */
 const LIVE_RIDE_FRESH_MS = 180_000;
@@ -106,5 +107,7 @@ export const courseActivityScheduledReconcile = onSchedule(
       activeCourseCount: byCourse.size,
       highlightedCourses,
     });
+
+    await reconcilePublicationPresenceFromLiveRides();
   },
 );
