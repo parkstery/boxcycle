@@ -21,6 +21,21 @@
 
 **단일 진실(비용 원인 가설):** Gen2 Functions(Cloud Run) **실행 시간·메모리·함수 수** + `liveCourseRides` **Firestore 트리거 연쇄** + (잠재) **`getMapboxDirections` 남용**.
 
+### 1.1 콘솔 24시간 요청 수 (2026-05-23 검증)
+
+| 함수 | 요청(24h) | min/max 인스턴스 | 해석 |
+|------|-----------|------------------|------|
+| **courseActivityOnLiveCourseRideWritten** | **1637** | 0 / 20 | **압도적 1위** — `document.written` + 클라이언트 8~25s `liveCourseRides` 쓰기 |
+| ensureRouteTokenOnboardingHttp | 243 | 0 / 20 | 로그인·온보딩 |
+| courseActivityOnRideCreated | 184 | 0 / 20 | `rides` create 1:1 (정상) |
+| routeTokenOnRideCreated | 184 | 0 / 20 | 동일 ride당 중복 트리거 |
+| getMapboxDirections | **0** | 0 / 20 | **현재 비용 원인 아님** |
+| backfillRoutePublicationsHttp | 0 | 0 / 20 | 미사용 |
+
+- **self-write 루프 없음** — 트리거는 `courseActivity`·`worldActivity`만 갱신.
+- **호출 수**는 클라이언트 `liveCourseRides` write 횟수와 거의 1:1. 비용·CPU는 트리거 **내부 Firestore 읽기/쓰기**가 크다.
+- 코드 대응(2026-05-23): update 시 하트비트·미미한 progress 변화 **조기 return**, anchor는 세션 시작·8%p 이상 progress 시만 `courses` 읽기.
+
 ---
 
 ## 2. 비용이 커지는 경로 (코드 기준)
@@ -169,8 +184,9 @@ flowchart TB
 
 ### P1 — 단기 (아키텍처)
 
-- [ ] `touchCourseLiveProgress`: 진행률만 갱신 시 **`courses` 읽기 생략** (anchor는 세션 시작 1회 캐시)
-- [ ] `refreshWorldHighlightedCourses`: **시작/종료·N분 1회**로 제한 (매 progress write X)
+- [x] `touchCourseLiveProgress`: 진행률만 갱신 시 **`courses` 읽기 생략** (`touchCourseLiveProgressPulseOnly` / `WithAnchor` 분리, 2026-05-23)
+- [x] `courseActivityOnLiveCourseRideWritten`: update **필드 가드**·하트비트 조기 return (2026-05-23)
+- [x] `refreshWorldHighlightedCourses`: **create/delete·코스 전환**에만 호출 (progress update 제외, 2026-05-23)
 - [ ] `rides` 트리거 **`routeTokenOnRideCreated` + `courseActivityOnRideCreated` → 단일 함수** 통합
 - [ ] HTTP 단순 조회 함수 메모리 **128MiB** 시험 (`getMapboxDirections`만 256MiB 유지)
 
@@ -226,3 +242,4 @@ flowchart TB
 | 날짜 | 내용 |
 |------|------|
 | 2026-05-23 | 최초 작성 — Blaze ₩35 관측·자문단 분석·코드베이스 대조 반영 |
+| 2026-05-23 | §1.1 콘솔 24h 요청 수·P1 트리거 가드 반영 |

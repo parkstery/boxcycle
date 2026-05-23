@@ -78,7 +78,30 @@ export async function bumpCourseLiveSessionEnded(courseId: string): Promise<void
   });
 }
 
-export async function touchCourseLiveProgress(courseId: string, progressRatio: number): Promise<void> {
+/** 진행률·pulse만 반영 — `courses` 읽기 없음 (하트비트·소폭 progress 갱신용) */
+export async function touchCourseLiveProgressPulseOnly(
+  courseId: string,
+  progressRatio: number,
+): Promise<void> {
+  const id = courseId.trim();
+  if (!id) return;
+  const db = getFirestore();
+  await db.doc(`${COURSE_ACTIVITY_COLLECTION}/${id}`).set(
+    {
+      liveNow: true,
+      pulseLevel: pulseLevelFromProgress(progressRatio),
+      liveAnchorProgressRatio: Math.max(0, Math.min(1, progressRatio)),
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true },
+  );
+}
+
+/** 세션 시작·코스 전환 등 — geometry anchor 포함 (`courses` 1회 읽기) */
+export async function touchCourseLiveProgressWithAnchor(
+  courseId: string,
+  progressRatio: number,
+): Promise<void> {
   const id = courseId.trim();
   if (!id) return;
   const db = getFirestore();
@@ -101,6 +124,11 @@ export async function touchCourseLiveProgress(courseId: string, progressRatio: n
   }
 
   await db.doc(`${COURSE_ACTIVITY_COLLECTION}/${id}`).set(patch, { merge: true });
+}
+
+/** @deprecated 내부 호환 — anchor 포함 전체 갱신 */
+export async function touchCourseLiveProgress(courseId: string, progressRatio: number): Promise<void> {
+  await touchCourseLiveProgressWithAnchor(courseId, progressRatio);
 }
 
 const HIGHLIGHTED_COURSES_MAX = 24;
