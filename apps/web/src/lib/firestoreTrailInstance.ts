@@ -12,6 +12,11 @@ import type { User } from "firebase/auth";
 import { getFirebaseApp } from "./firebase";
 import { pickRandomTrailDisplayNumber } from "./trailDisplayNumber";
 import { TRAILS_COLLECTION } from "./firestoreTrailPaths";
+import {
+  removeOpenTrailListing,
+  refreshOpenTrailListingFromTrail,
+  scheduleOpenTrailListingRefresh,
+} from "./firestoreOpenTrailListings";
 import { assertPublicTrailHasRoute, trailHasConfiguredRoute } from "./trailAccessPolicy";
 
 export type TrailVisibility = "open" | "private";
@@ -130,6 +135,7 @@ export async function createTrailInstance(input: {
     createdAtMs: Date.now(),
     lastActivityAtMs: Date.now(),
   };
+  void refreshOpenTrailListingFromTrail(created.id);
   return created;
 }
 
@@ -147,6 +153,7 @@ export async function closeTrailInstance(trailId: string): Promise<void> {
     closedAt: serverTimestamp(),
     lastActivityAt: serverTimestamp(),
   });
+  void removeOpenTrailListing(trailId);
 }
 
 export async function touchTrailInstanceActivity(trailId: string): Promise<void> {
@@ -154,6 +161,7 @@ export async function touchTrailInstanceActivity(trailId: string): Promise<void>
   await updateDoc(doc(db, TRAILS_COLLECTION, trailId), {
     lastActivityAt: serverTimestamp(),
   }).catch(() => {});
+  scheduleOpenTrailListingRefresh(trailId);
 }
 
 export async function setTrailVisibility(
@@ -171,6 +179,9 @@ export async function setTrailVisibility(
     visibility,
     lastActivityAt: serverTimestamp(),
   });
+  void (visibility === "open"
+    ? refreshOpenTrailListingFromTrail(trailId)
+    : removeOpenTrailListing(trailId));
 }
 
 export function canUserManageTrail(trail: TrailInstance | null, user: User | null | undefined): boolean {

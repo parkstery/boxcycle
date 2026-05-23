@@ -195,10 +195,21 @@ service cloud.firestore {
       allow delete: if isSignedIn() && resource.data.ownerUid == request.auth.uid;
     }
 
-    /** Trailhead 공개 목록 — CF projection 전용 (`openTrailListingProjection`) */
+    /** Trailhead 공개 목록 — CF 전환 전까지 클라이언트도 listing 유지 */
     match /openTrailListings/{trailId} {
       allow read: if isSignedIn();
-      allow write: if false;
+      allow create: if isSignedIn()
+        && request.resource.data.hostUid == request.auth.uid
+        && request.resource.data.trailId == trailId
+        && request.resource.data.courseId is string
+        && request.resource.data.courseId.size() > 0;
+      allow update: if isSignedIn()
+        && (
+          resource.data.hostUid == request.auth.uid
+          || request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['riderCount', 'updatedAt'])
+        );
+      allow delete: if isSignedIn();
     }
 
     /** Trail 라이브 인스턴스 메타 (`default` 는 허브 전용·문서 없음) */

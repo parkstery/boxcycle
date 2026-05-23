@@ -1,21 +1,84 @@
 import {
   collection,
+  deleteDoc,
+  doc,
+  getDoc,
   getFirestore,
   limit,
   onSnapshot,
   orderBy,
   query,
+  serverTimestamp,
+  setDoc,
   type FirestoreError,
   type Unsubscribe,
 } from "firebase/firestore";
 import { getFirebaseApp } from "./firebase";
-import { TRAIL_PRESENCE_STALE_MS } from "./firestoreTrail";
+import { countTrailMembersFresh, TRAIL_PRESENCE_STALE_MS } from "./firestoreTrail";
+import { countTrailLiveRidersFresh } from "./firestoreTrailLiveCourseRides";
+import { trailHasConfiguredRoute } from "./trailAccessPolicy";
+import { TRAILS_COLLECTION } from "./firestoreTrailPaths";
 import type { TrailInstance } from "./firestoreTrailInstance";
 
-/** Trailhead 공개 목록 — CF가 유지, 클라이언트는 subscribe 만 */
+/** Trailhead 공개 목록 — realtime 단일 진실 (자문: openTrailInstances) */
 export const OPEN_TRAIL_LISTINGS_COLLECTION = "openTrailListings";
 
 const OPEN_TRAIL_LISTINGS_LIMIT = 40;
+
+type OpenTrailListingDoc = {
+  trailId: string;
+  hostUid: string;
+  displayNumber: number;
+  regionLabel: string | null;
+  distanceKm: number | null;
+  courseId: string;
+  riderCount: number;
+  updatedAt: ReturnType<typeof serverTimestamp>;
+};
+
+function listingRef(trailId: string) {
+  return doc(getFirestore(getFirebaseApp()), OPEN_TRAIL_LISTINGS_COLLECTION, trailId);
+}
+
+async function countTrailActiveParticipantsFresh(trailId: string): Promise<number> {
+  const [live, members] = await Promise.all([
+    countTrailLiveRidersFresh(trailId).catch(() => 0),
+    countTrailMembersFresh(trailId).catch(() => 0),
+  ]);
+  return Math.max(live, members);
+}
+
+async function loadTrailForListing(trailId: string): Promise<TrailInstance | null> {
+  const snap = await getDoc(doc(getFirestore(getFirebaseApp()), TRAILS_COLLECTION, trailId));
+  if (!snap.exists()) return null;
+  const data = snap.data() as Record<string, unknown>;
+  return {
+    id: snap.id,
+    hostUid: typeof data.hostUid === "string" ? data.hostUid : "",
+    displayNumber:
+      typeof data.displayNumber === "number" && Number.isFinite(data.displayNumber)
+        ? Math.max(1, Math.min(999, Math.floor(data.displayNumber)))
+        : 1,
+    courseId: typeof data.courseId === "string" && data.courseId.trim() ? data.courseId.trim() : null,
+    regionLabel:
+      typeof data.regionLabel === "string" && data.regionLabel.trim() ? data.regionLabel.trim() : null,
+    distanceKm:
+      typeof data.distanceKm === "number" && Number.isFinite(data.distanceKm) ? data.distanceKm : null,
+    visibility: data.visibility === "private" ? "private" : "open",
+    status:
+      data.status === "archived" ? "archived" : data.status === "closed" ? "closed" : "open",
+    createdAtMs: null,
+    lastActivityAtMs: null,
+  };
+}
+
+function isListableTrail(trail: TrailInstance): boolean {
+  return (
+    trail.status === "open" &&
+    trail.visibility === "open" &&
+    trailHasConfiguredRoute(trail)
+  );
+}
 
 function listingToTrailInstance(
   trailId: string,
@@ -59,6 +122,48 @@ function timestampToMs(raw: unknown): number | null {
     return Number.isFinite(ms) ? ms : null;
   }
   return null;
+}
+
+export async function removeOpenTrailListing(trailId: string): Promise<void> {
+  await deleteDoc(listingRef(trailId)).catch(() => {});
+}
+
+/** `trails/{id}` 메타·활성 인원 기준으로 listing upsert 또는 제거 */
+export async function refreshOpenTrailListingFromTrail(trailId: string): Promise<void> {
+  const trail = await loadTrailForListing(trailId);
+  if (!trail || !isListableTrail(trail)) {
+    await removeOpenTrailListing(trailId);
+    return;
+  }
+  const riderCount = await countTrailActiveParticipantsFresh(trailId).catch(() => 0);
+  if (riderCount <= 0) {
+    await removeOpenTrailListing(trailId);
+    return;
+  }
+  const payload: OpenTrailListingDoc = {
+    trailId: trail.id,
+    hostUid: trail.hostUid,
+    displayNumber: trail.displayNumber,
+    regionLabel: trail.regionLabel,
+    distanceKm: trail.distanceKm,
+    courseId: trail.courseId!,
+    riderCount,
+    updatedAt: serverTimestamp(),
+  };
+  await setDoc(listingRef(trailId), payload, { merge: true });
+}
+
+const refreshScheduled = new Map<string, ReturnType<typeof setTimeout>>();
+
+/** presence·liveCourseRides 갱신 시 listing debounce 동기화 */
+export function scheduleOpenTrailListingRefresh(trailId: string, debounceMs = 2_500): void {
+  const prev = refreshScheduled.get(trailId);
+  if (prev) window.clearTimeout(prev);
+  const id = window.setTimeout(() => {
+    refreshScheduled.delete(trailId);
+    void refreshOpenTrailListingFromTrail(trailId).catch(() => {});
+  }, debounceMs);
+  refreshScheduled.set(trailId, id);
 }
 
 /**
