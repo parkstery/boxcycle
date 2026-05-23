@@ -115,7 +115,7 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
       </div>
 
       <div className="trail-hub__list-head">
-        <span className="trail-hub__kicker">열린 Trail</span>
+        <span className="trail-hub__kicker">주행 중 Trail</span>
         {props.openTrailsLoading ? <span className="trail-hub__meta">불러오는 중…</span> : null}
       </div>
       {props.openTrailsError ? (
@@ -139,7 +139,9 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
         </ul>
       ) : (
         <p className="trail-hub__empty">
-          {onTrailhead ? "지금 합류할 공개 Trail이 없습니다." : "다른 공개 Trail이 없습니다."}
+          {onTrailhead
+            ? "지금 주행 중인 공개 Trail이 없습니다."
+            : "다른 주행 중인 Trail이 없습니다."}
         </p>
       )}
     </section>

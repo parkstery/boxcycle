@@ -17,7 +17,10 @@ import type { User } from "firebase/auth";
 import { getFirebaseApp } from "./firebase";
 import { pickRandomTrailDisplayNumber } from "./trailDisplayNumber";
 import { TRAILS_COLLECTION } from "./firestoreTrailPaths";
-import { countTrailLiveRiders } from "./firestoreTrailLiveCourseRides";
+import {
+  countTrailLiveRidersFresh,
+  fetchTrailIdsWithActiveLiveRides,
+} from "./firestoreTrailLiveCourseRides";
 
 export type TrailVisibility = "open" | "private";
 export type TrailStatus = "open" | "closed" | "archived";
@@ -167,30 +170,66 @@ export async function setTrailVisibility(
   });
 }
 
-const OPEN_TRAILS_LIST_LIMIT = 24;
+const OPEN_TRAILS_CANDIDATE_LIMIT = 40;
 
-/** Trailhead에서 합류 가능한 공개·진행 중 Trail */
-export async function fetchOpenTrailInstances(): Promise<TrailInstance[]> {
+function shouldFallbackOpenTrailsList(e: unknown): boolean {
+  const code = (e as { code?: string })?.code;
+  if (code === "permission-denied" || code === "failed-precondition") return true;
+  const msg = e instanceof Error ? e.message : String(e);
+  return msg.includes("Missing or insufficient permissions") || msg.includes("requires an index");
+}
+
+async function enrichOpenTrailsWithLiveCounts(base: TrailInstance[]): Promise<TrailInstance[]> {
+  const withCounts = await Promise.all(
+    base.map(async (t) => {
+      try {
+        const liveRiderCount = await countTrailLiveRidersFresh(t.id);
+        return { ...t, liveRiderCount };
+      } catch {
+        return { ...t, liveRiderCount: 0 };
+      }
+    }),
+  );
+  return withCounts
+    .filter((t) => (t.liveRiderCount ?? 0) > 0)
+    .sort((a, b) => (b.liveRiderCount ?? 0) - (a.liveRiderCount ?? 0));
+}
+
+/** collection group 실패 시: 공개 open Trail 후보를 훑고 fresh 라이더만 남김 */
+async function fetchOpenTrailInstancesFromCandidates(): Promise<TrailInstance[]> {
   const db = getFirestore(getFirebaseApp());
   const q = query(
     collection(db, TRAILS_COLLECTION),
     where("status", "==", "open"),
     where("visibility", "==", "open"),
     orderBy("lastActivityAt", "desc"),
-    limit(OPEN_TRAILS_LIST_LIMIT),
+    limit(OPEN_TRAILS_CANDIDATE_LIMIT),
   );
   const snap = await getDocs(q);
   const base = snap.docs.map((d) => parseTrailInstance(d.id, d.data() as Record<string, unknown>));
-  return Promise.all(
-    base.map(async (t) => {
-      try {
-        const liveRiderCount = await countTrailLiveRiders(t.id);
-        return { ...t, liveRiderCount };
-      } catch {
-        return t;
-      }
-    }),
+  return enrichOpenTrailsWithLiveCounts(base);
+}
+
+async function fetchOpenTrailInstancesFromLiveRides(): Promise<TrailInstance[]> {
+  const trailIds = await fetchTrailIdsWithActiveLiveRides();
+  if (trailIds.length === 0) return [];
+
+  const metas = await Promise.all(trailIds.map((id) => fetchTrailInstance(id)));
+  const joinable = metas.filter(
+    (t): t is TrailInstance =>
+      t != null && t.status === "open" && t.visibility === "open",
   );
+  return enrichOpenTrailsWithLiveCounts(joinable);
+}
+
+/** Trailhead에서 합류 가능한 공개 Trail — 지금 `liveCourseRides` 가 살아 있는 Trail 만 */
+export async function fetchOpenTrailInstances(): Promise<TrailInstance[]> {
+  try {
+    return await fetchOpenTrailInstancesFromLiveRides();
+  } catch (e) {
+    if (!shouldFallbackOpenTrailsList(e)) throw e;
+    return fetchOpenTrailInstancesFromCandidates();
+  }
 }
 
 export function canUserManageTrail(trail: TrailInstance | null, user: User | null | undefined): boolean {

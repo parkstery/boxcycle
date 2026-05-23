@@ -85,7 +85,7 @@ export function useTrailLiveCourseRidePublisher(opts: UseTrailLiveCourseRidePubl
         courseId: c,
         progressRatio: ratio,
       }).catch(() => {});
-      if (tid !== DEFAULT_TRAIL_ID && maxDue) {
+      if (tid !== DEFAULT_TRAIL_ID) {
         void touchTrailInstanceActivity(tid);
       }
     };

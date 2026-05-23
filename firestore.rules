@@ -197,6 +197,14 @@ service cloud.firestore {
       allow delete: if isSelf(userId);
     }
 
+    /**
+     * `liveCourseRides` collection group 목록(주행 중 Trail 탐색).
+     * 경로별 match 만으로는 collectionGroup 쿼리가 permission-denied 될 수 있음 — rules v2 와일드카드 필수.
+     */
+    match /{path=**}/liveCourseRides/{userId} {
+      allow read: if isSignedIn();
+    }
+
     /** Trail: 코스 주행 진행률만 공유(geometry 미저장). */
     match /trails/{trailId}/liveCourseRides/{userId} {
       allow read: if isSignedIn();

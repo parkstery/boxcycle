@@ -181,7 +181,7 @@
   font-weight: 750;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: rgba(56, 189, 248, 0.95);
+  color: red;
 }
 
 .hud-ride-presence__room {
