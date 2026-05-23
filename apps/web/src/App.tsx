@@ -1,36 +1,20 @@
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import { CourseSharedPresence } from "./components/CourseSharedPresence";
 import { TrailheadPresence } from "./components/TrailheadPresence";
-import { MapView, type MapPeerMarker } from "./components/MapView";
+import type { MapPeerMarker } from "./components/MapView";
 import { SignUpNicknameCard } from "./components/SignUpNicknameCard";
 import { RideRoutePanel, type FollowMode } from "./components/RideRoutePanel";
 import { PublicRouteRequestModal } from "./components/PublicRouteRequestModal";
-import { MapHud } from "./components/maphud/MapHud";
 import { useTrailSession } from "./hooks/useTrailSession";
 import { useTrailLiveCourseRidePublisher } from "./hooks/useTrailLiveCourseRidePublisher";
-import { useTrailLiveCourseRideSpectatorOverlay } from "./hooks/useTrailLiveCourseRideSpectatorOverlay";
-import { useCourseActivity } from "./hooks/useCourseActivity";
-import { useCourseActivityMapOverlay } from "./hooks/useCourseActivityMapOverlay";
-import { usePublishedCoursesActivityMapOverlay } from "./hooks/usePublishedCoursesActivityMapOverlay";
-import { useWorldPublicationPresenceOverlay } from "./hooks/useWorldPublicationPresenceOverlay";
 import { useDocumentVisibility } from "./hooks/useDocumentVisibility";
 import {
-  formatActivityWorldPinPopup,
-  fetchLiveCourseActivityIds,
   formatCourseActivityHudLine,
   invalidateLiveCourseActivityIdsCache,
 } from "./lib/firestoreCourseActivity";
-import { formatPublicationPresencePinPopup } from "./lib/firestorePublicationPresence";
-import { fetchWorldPresenceSummary, formatWorldPresenceHudLine } from "./lib/firestoreWorldPresence";
-import { fetchWorldActivityGlobal, formatWorldActivityHudLine, mergeWorldHudLines } from "./lib/firestoreWorldActivity";
-import {
-  mergeActivityWorldDots,
-  resolveActivityWorldLodDebug,
-  resolveActivityWorldRender,
-  runActivityWorldLodP0Checks,
-  type MapViewportBounds,
-} from "./lib/activityWorldLod";
-import { MAP_ZOOM_WORLD_ACTIVITY_MAX, WORLD_PRESENCE_POLL_MS } from "./lib/rideSyncPolicy";
+import { AppMapStage, useAppMapOverlays } from "./features/map-overlays";
+import type { MapViewportBounds } from "./lib/activityWorldLod";
+import { MAP_ZOOM_WORLD_ACTIVITY_MAX } from "./lib/rideSyncPolicy";
 import { AuthGateCard, AuthGoogleMark } from "./components/AuthGateCard";
 import { GuestEntryCard } from "./components/GuestEntryCard";
 import { allowUnauthMapDev } from "./lib/authGatePolicy";
@@ -213,10 +197,6 @@ export default function App() {
   /** 로그인(게스트 포함) 세션 동안 Trailhead presence·관전 항상 on — Trailhead 진입·이탈 토글 없음 */
   const trailheadSessionActive = Boolean(configured && user);
   const pageVisible = useDocumentVisibility();
-  const [worldHighlightedCourseIds, setWorldHighlightedCourseIds] = useState<string[]>([]);
-  /** `liveNow` 쿼리 — 카탈로그·highlighted 밖 라이브 코스 포함 */
-  const [liveActivityCourseIds, setLiveActivityCourseIds] = useState<string[]>([]);
-  const [worldHudLines, setWorldHudLines] = useState<string | null>(null);
   const [trailVisibilityBusy, setTrailVisibilityBusy] = useState(false);
   const [trailStartBusy, setTrailStartBusy] = useState(false);
   /** 이번 주행에서 호스트로 연 Trail — 종료 시 close */
@@ -471,255 +451,49 @@ export default function App() {
 
   const trackedCourseId = basicActiveHubCourseId ?? activeOfficialCourseId;
   const isRideSessionActive = rideStatus === "running" || rideStatus === "paused";
-  const courseActivityEnabled = Boolean(configured && user && trackedCourseId && pageVisible);
-
-  const {
-    activity: courseActivity,
-    reload: reloadCourseActivity,
-    applyRideCompletedOptimistic,
-  } = useCourseActivity({
-    configured,
-    user,
-    courseId: trackedCourseId,
-    enabled: courseActivityEnabled,
-  });
-  reloadCourseActivityRef.current = (options) => {
-    void reloadCourseActivity(options);
-  };
-  applyRideCompletedOptimisticRef.current = applyRideCompletedOptimistic;
-
-  const {
-    pulseRoutes: activeCoursePulseRoutes,
-    heatRoutes: activeCourseHeatRoutes,
-    pulseDots: activeCoursePulseDots,
-    heatDots: activeCourseHeatDots,
-  } = useCourseActivityMapOverlay({
-    activity: courseActivity,
-    routeGeometry,
-    mapZoom,
-  });
 
   const trailDisplayLabels = useMemo(
     () => resolveTrailDisplayLabel(sanitizedTrailId, currentTrailMeta),
     [sanitizedTrailId, currentTrailMeta],
   );
 
-  const coursePeerIdsForTrailSpectator = useMemo(
-    () => new Set(coursePeerMarkers.map((p) => p.id)),
-    [coursePeerMarkers],
-  );
-
-  /** 주행 여부와 무관 — Trailhead 세션·관전만으로 다른 코스 주행 표시 */
-  const trailSpectatorOverlayEnabled = Boolean(
-    trailheadSessionActive &&
-      (rideStatus === "idle" || rideStatus === "running" || rideStatus === "paused") &&
-      pageVisible,
-  );
-
-  const {
-    spectatorDots,
-    spectatorRouteGeometries,
-    liveCourseIds: trailLiveCourseIds,
-  } = useTrailLiveCourseRideSpectatorOverlay({
+  const mapOverlays = useAppMapOverlays({
+    configured,
     user,
+    pageVisible,
     trailId,
-    trailRoomLabel: trailDisplayLabels.room,
-    enabled: trailSpectatorOverlayEnabled,
-    mapZoom,
-    excludePeerIds: coursePeerIdsForTrailSpectator,
-  });
-
-  const catalogCourseIds = useMemo(() => {
-    const ids = new Set<string>(BASIC_SHARED_HUB_IDS as readonly string[]);
-    for (const c of publishedPublicCourses) ids.add(c.id);
-    for (const id of worldHighlightedCourseIds) ids.add(id);
-    for (const id of trailLiveCourseIds) ids.add(id);
-    for (const id of liveActivityCourseIds) ids.add(id);
-    return [...ids];
-  }, [publishedPublicCourses, worldHighlightedCourseIds, trailLiveCourseIds, liveActivityCourseIds]);
-
-  const catalogActivityEnabled = Boolean(
-    configured && user && pageVisible && catalogCourseIds.length > 0,
-  );
-
-  const publicationPresenceWorldMapEnabled =
-    catalogActivityEnabled && import.meta.env.VITE_USE_PUBLICATION_PRESENCE !== "false";
-
-  const {
-    pulseDots: publicationPulseDots,
-    heatDots: publicationHeatDots,
-    pulseRoutes: publicationPulseRoutes,
-    heatRoutes: publicationHeatRoutes,
-    presenceByPublicationId,
-    overlayStats: publicationPresenceOverlayStats,
-  } = useWorldPublicationPresenceOverlay({
-    enabled: publicationPresenceWorldMapEnabled,
-    mapZoom,
-    excludePublicationId: isRideSessionActive ? trackedCourseId : null,
-    refreshNonce: activityMapRefreshNonce,
-  });
-
-  const {
-    pulseRoutes: catalogPulseRoutes,
-    heatRoutes: catalogHeatRoutes,
-    pulseDots: catalogPulseDots,
-    heatDots: catalogHeatDots,
-    activityByCourseId: courseActivityByCourseId,
-    overlayStats: catalogActivityOverlayStats,
-  } = usePublishedCoursesActivityMapOverlay({
-    courseIds: catalogCourseIds,
-    /** 주행 중에만 추적 코스 라이브를 카탈로그에서 빼고 active 오버레이로 — idle 관전은 카탈로그에 포함 */
-    excludeCourseId: isRideSessionActive ? trackedCourseId : null,
-    mapZoom,
-    enabled: catalogActivityEnabled,
-    worldMapRenderEnabled: !publicationPresenceWorldMapEnabled,
-    refreshNonce: activityMapRefreshNonce,
-  });
-
-  const catalogHeatForMerge = useMemo(() => {
-    const tracked = trackedCourseId?.trim() ?? "";
-    const activeCoversTracked =
-      Boolean(tracked) &&
-      (activeCourseHeatDots.length > 0 ||
-        activeCourseHeatRoutes.length > 0 ||
-        activeCoursePulseDots.length > 0 ||
-        activeCoursePulseRoutes.length > 0);
-    if (!activeCoversTracked) {
-      return { heatRoutes: catalogHeatRoutes, heatDots: catalogHeatDots };
-    }
-    return {
-      heatRoutes: catalogHeatRoutes.filter((r) => r.courseId !== tracked),
-      heatDots: catalogHeatDots.filter((d) => d.courseId !== tracked),
-    };
-  }, [
-    trackedCourseId,
-    catalogHeatRoutes,
-    catalogHeatDots,
-    activeCourseHeatDots,
-    activeCourseHeatRoutes,
-    activeCoursePulseDots,
-    activeCoursePulseRoutes,
-  ]);
-
-  const catalogPulseDotsForWorld = publicationPresenceWorldMapEnabled ? [] : catalogPulseDots;
-  const catalogHeatDotsForWorld = publicationPresenceWorldMapEnabled ? [] : catalogHeatForMerge.heatDots;
-  const catalogPulseRoutesForWorld = publicationPresenceWorldMapEnabled ? [] : catalogPulseRoutes;
-  const catalogHeatRoutesForWorld = publicationPresenceWorldMapEnabled
-    ? []
-    : catalogHeatForMerge.heatRoutes;
-
-  const activityWorldRaw = useMemo(
-    () => ({
-      pulseRoutes: [
-        ...activeCoursePulseRoutes,
-        ...(publicationPresenceWorldMapEnabled ? publicationPulseRoutes : catalogPulseRoutesForWorld),
-      ],
-      heatRoutes: [
-        ...activeCourseHeatRoutes,
-        ...(publicationPresenceWorldMapEnabled ? publicationHeatRoutes : catalogHeatRoutesForWorld),
-      ],
-      pulseDots: mergeActivityWorldDots(
-        activeCoursePulseDots,
-        publicationPresenceWorldMapEnabled ? publicationPulseDots : catalogPulseDotsForWorld,
-      ),
-      heatDots: mergeActivityWorldDots(
-        activeCourseHeatDots,
-        publicationPresenceWorldMapEnabled ? publicationHeatDots : catalogHeatDotsForWorld,
-      ),
-    }),
-    [
-      activeCoursePulseRoutes,
-      catalogPulseRoutesForWorld,
-      publicationPulseRoutes,
-      activeCourseHeatRoutes,
-      catalogHeatRoutesForWorld,
-      publicationHeatRoutes,
-      activeCoursePulseDots,
-      catalogPulseDotsForWorld,
-      publicationPulseDots,
-      publicationHeatDots,
-      publicationPresenceWorldMapEnabled,
-      activeCourseHeatDots,
-    ],
-  );
-
-  const activityWorldRender = useMemo(
-    () => resolveActivityWorldRender(mapLodZoom, activityWorldRaw),
-    [mapLodZoom, activityWorldRaw],
-  );
-
-  const activityWorldLodDebug = useMemo(
-    () => resolveActivityWorldLodDebug(mapLodZoom, activityWorldRaw, activityWorldRender),
-    [mapLodZoom, activityWorldRaw, activityWorldRender],
-  );
-
-  const getActivityWorldPinLabel = useCallback(
-    (courseId: string, kind: "pulse" | "heat") => {
-      const id = courseId.trim();
-      if (publicationPresenceWorldMapEnabled && id) {
-        const presenceLabel = formatPublicationPresencePinPopup(
-          presenceByPublicationId.get(id),
-          kind,
-        );
-        if (presenceLabel) return presenceLabel;
-      }
-      const row =
-        id && id === trackedCourseId?.trim()
-          ? courseActivity
-          : courseActivityByCourseId.get(id) ?? null;
-      return formatActivityWorldPinPopup(row, kind);
-    },
-    [
-      publicationPresenceWorldMapEnabled,
-      presenceByPublicationId,
-      trackedCourseId,
-      courseActivity,
-      courseActivityByCourseId,
-    ],
-  );
-
-  useEffect(() => {
-    if (!import.meta.env.DEV) return;
-    try {
-      runActivityWorldLodP0Checks();
-    } catch (e) {
-      console.error("[ActivityWorld] P0 LOD checks failed", e);
-    }
-    console.debug("[ActivityWorld]", {
-      zoom: mapZoom,
-      lodZoom: mapLodZoom,
-      spanKm: mapViewportSpanKm,
-      lodSpanKm: mapLodSpanKm,
-      activityLod: activityWorldLodDebug,
-      raw: {
-        pulseDots: activityWorldRaw.pulseDots.length,
-        heatDots: activityWorldRaw.heatDots.length,
-        pulseLines: activityWorldRaw.pulseRoutes.length,
-        heatLines: activityWorldRaw.heatRoutes.length,
-      },
-      heatPool: {
-        live: catalogActivityOverlayStats.liveCandidates,
-        heat: catalogActivityOverlayStats.heatCandidates,
-      },
-      render: activityWorldRender,
-      catalog: catalogActivityOverlayStats,
-      catalogEnabled: catalogActivityEnabled,
-      publicationPresence: publicationPresenceOverlayStats,
-      publicationPresenceEnabled: publicationPresenceWorldMapEnabled,
-    });
-  }, [
+    sanitizedTrailId,
+    currentTrailMeta,
+    trailheadSessionActive,
+    rideStatus,
     mapZoom,
     mapLodZoom,
     mapViewportSpanKm,
     mapLodSpanKm,
-    activityWorldLodDebug,
+    routeGeometry,
+    trackedCourseId,
+    publishedPublicCourses,
+    coursePeerMarkers,
+    activityMapRefreshNonce,
+  });
+
+  const {
     activityWorldRaw,
-    activityWorldRender,
-    catalogActivityOverlayStats,
-    catalogActivityEnabled,
-    publicationPresenceOverlayStats,
-    publicationPresenceWorldMapEnabled,
-  ]);
+    getActivityWorldPinLabel,
+    trailSpectatorDots: spectatorDots,
+    trailSpectatorRoutes: spectatorRouteGeometries,
+    courseActivity,
+    reloadCourseActivity,
+    applyRideCompletedOptimistic,
+    courseActivityByCourseId,
+    worldHudLines,
+    lodDebugPanelProps,
+  } = mapOverlays;
+
+  reloadCourseActivityRef.current = (options) => {
+    void reloadCourseActivity(options);
+  };
+  applyRideCompletedOptimisticRef.current = applyRideCompletedOptimistic;
 
   /** 퍼블릭 코스 ID — MENU 없이도 Activity World 카탈로그에 포함(주행 미참여 관전) */
   useEffect(() => {
@@ -820,43 +594,6 @@ export default function App() {
     routeDistanceMeters,
     virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
   });
-
-  /** `highlightedCourses` — Activity World 카탈로그(줌·Trail 무관). HUD 텍스트만 줌 ≤9 */
-  useEffect(() => {
-    if (!configured || !user || !pageVisible) {
-      setWorldHudLines(null);
-      setWorldHighlightedCourseIds([]);
-      setLiveActivityCourseIds([]);
-      return;
-    }
-    let cancelled = false;
-    const load = () => {
-      void (async () => {
-        const [presence, worldActivity, liveIds] = await Promise.all([
-          fetchWorldPresenceSummary(),
-          fetchWorldActivityGlobal(),
-          fetchLiveCourseActivityIds(),
-        ]);
-        if (cancelled) return;
-        setLiveActivityCourseIds(liveIds);
-        const highlighted = new Set<string>(worldActivity?.highlightedCourses ?? []);
-        for (const id of liveIds) highlighted.add(id);
-        setWorldHighlightedCourseIds([...highlighted]);
-        setWorldHudLines(
-          mergeWorldHudLines(
-            formatWorldPresenceHudLine(presence.regions),
-            formatWorldActivityHudLine(worldActivity),
-          ),
-        );
-      })();
-    };
-    load();
-    const id = window.setInterval(load, WORLD_PRESENCE_POLL_MS);
-    return () => {
-      cancelled = true;
-      window.clearInterval(id);
-    };
-  }, [configured, user, pageVisible]);
 
   /** 비로그인 상태에서는 사용자 시트 액션(Trailhead/로그아웃)이 없으므로 시트를 닫음 */
   useEffect(() => {
@@ -1423,123 +1160,102 @@ export default function App() {
       <RotateOverlay />
 
       <div className="app-map-stage">
-        <MapView
-          accessToken={MAPBOX_TOKEN || undefined}
-          routeElevationProfile={rideElevationProfile}
-          routeGeometry={routeGeometry}
-          startLngLat={startLngLat}
-          endLngLat={endLngLat}
-          routeWaypoints={routeWaypoints}
-          liveLngLat={liveForMap}
-          liveRiderMotion={
-            rideStatus === "idle"
-              ? null
-              : {
-                  sessionStatus: rideStatus,
-                  speedKmh,
-                  crankRpmFromSensor: bleCrankRpm.crankRpm,
-                }
-          }
-          liveRiderNametag={resolvedLiveRiderNametag}
-          peerMarkers={coursePeerMarkers}
-          mapStyle={mapStyle}
-          mapZoom={mapZoom}
-          followMode={followMode}
-          enable3D={enable3D}
-          onMapZoom={setMapZoom}
-          onMapViewport={onMapViewport}
-          onMapLodViewport={onMapLodViewport}
-          coverageOverlayMode={coverageOverlayMode}
-          mapillaryClientToken={mapillaryTokenConfigured ? MAPILLARY_CLIENT_TOKEN : null}
-          routeProfile={profile}
-          onRouteProfile={handleMapRouteProfile}
-          onClearRoute={handleClearPins}
-          onSelectPoint={(type, lngLat, waypointSlot) => {
-            if (!user || routeMenuLockedForProd) return;
-            setActiveOfficialCourseId(null);
-            setPlaceSearchMarkerLngLat(null);
-            if (type === "start") setStartLngLat(lngLat);
-            else if (type === "end") setEndLngLat(lngLat);
-            else {
-              const slot = waypointSlot ?? 0;
-              setRouteWaypoints((prev) => {
-                if (slot < prev.length) {
-                  return prev.map((p, j) => (j === slot ? lngLat : p));
-                }
-                if (slot === prev.length && prev.length < MAX_ROUTE_WAYPOINTS) {
-                  return [...prev, lngLat];
-                }
-                return prev;
-              });
-            }
+        <AppMapStage
+          mapView={{
+            accessToken: MAPBOX_TOKEN || undefined,
+            routeElevationProfile: rideElevationProfile,
+            routeGeometry,
+            startLngLat,
+            endLngLat,
+            routeWaypoints,
+            liveLngLat: liveForMap,
+            liveRiderMotion:
+              rideStatus === "idle"
+                ? null
+                : {
+                    sessionStatus: rideStatus,
+                    speedKmh,
+                    crankRpmFromSensor: bleCrankRpm.crankRpm,
+                  },
+            liveRiderNametag: resolvedLiveRiderNametag,
+            peerMarkers: coursePeerMarkers,
+            mapStyle,
+            mapZoom,
+            followMode,
+            enable3D,
+            onMapZoom: setMapZoom,
+            onMapViewport,
+            onMapLodViewport,
+            coverageOverlayMode,
+            mapillaryClientToken: mapillaryTokenConfigured ? MAPILLARY_CLIENT_TOKEN : null,
+            routeProfile: profile,
+            onRouteProfile: handleMapRouteProfile,
+            onClearRoute: handleClearPins,
+            onSelectPoint: (type, lngLat, waypointSlot) => {
+              if (!user || routeMenuLockedForProd) return;
+              setActiveOfficialCourseId(null);
+              setPlaceSearchMarkerLngLat(null);
+              if (type === "start") setStartLngLat(lngLat);
+              else if (type === "end") setEndLngLat(lngLat);
+              else {
+                const slot = waypointSlot ?? 0;
+                setRouteWaypoints((prev) => {
+                  if (slot < prev.length) {
+                    return prev.map((p, j) => (j === slot ? lngLat : p));
+                  }
+                  if (slot === prev.length && prev.length < MAX_ROUTE_WAYPOINTS) {
+                    return [...prev, lngLat];
+                  }
+                  return prev;
+                });
+              }
+            },
+            externalCameraJump,
+            placeSearchMarkerLngLat,
+            trailSpectatorDots: spectatorDots,
+            trailSpectatorRoutes: spectatorRouteGeometries,
+            activityWorldRaw,
+            getActivityWorldPinLabel,
           }}
-          externalCameraJump={externalCameraJump}
-          placeSearchMarkerLngLat={placeSearchMarkerLngLat}
-          trailSpectatorDots={spectatorDots}
-          trailSpectatorRoutes={spectatorRouteGeometries}
-          activityWorldRaw={activityWorldRaw}
-          getActivityWorldPinLabel={getActivityWorldPinLabel}
-        />
-
-        {import.meta.env.DEV && import.meta.env.VITE_SHOW_ACTIVITY_LOD_DEBUG === "true" ? (
-          <pre
-            className="activity-world-lod-debug"
-            aria-hidden
-          >{`LOD ${activityWorldLodDebug.label} | z ${mapLodZoom.toFixed(1)} (HUD ${mapZoom.toFixed(1)}) span ${
-            mapViewportSpanKm != null ? `${mapViewportSpanKm.toFixed(0)}km` : "—"
-          }
-dots ${activityWorldRaw.pulseDots.length}+${activityWorldRaw.heatDots.length} → ${
-            activityWorldRender.pulseDots.length
-          } | lines ${activityWorldRaw.pulseRoutes.length} → ${activityWorldRender.pulseRoutes.length}
-heat ${publicationPresenceWorldMapEnabled ? publicationPresenceOverlayStats.activeCount : catalogActivityOverlayStats.liveCandidates} live ${
-            publicationPresenceWorldMapEnabled ? publicationPresenceOverlayStats.closedCount : catalogActivityOverlayStats.heatCandidates
-          }
-geom ${
-            publicationPresenceWorldMapEnabled
-              ? `${publicationPresenceOverlayStats.geometryReady}/${publicationPresenceOverlayStats.activeCount + publicationPresenceOverlayStats.closedCount}`
-              : `${catalogActivityOverlayStats.geometryReady}/${catalogActivityOverlayStats.activityRows}`
-          } anchorMiss ${publicationPresenceWorldMapEnabled ? publicationPresenceOverlayStats.anchorMissing : catalogActivityOverlayStats.anchorMissing}
-liveIds ${liveActivityCourseIds.length} catalog ${catalogCourseIds.length}`}</pre>
-        ) : null}
-
-        <MapHud
-          stage={stage}
-          onOpenMenu={openMenuPanel}
-          menuOpen={menuOpen}
-          account={accountChip}
-          onOpenUserInfo={openUserInfoPanel}
-          userInfoOpen={userInfoSheetOpen}
-          authGateVisualDismissed={needsAuthCard}
-          onOpenMapView={openMapViewPanel}
-          mapViewOpen={mapViewSheetOpen}
-          idleHintMessage="입문: MENU → 입문 코스 → 주행 시작"
-          coachData={coachData}
-          coachLineEnabled={rideCoachingBannerVisible}
-          metrics={hudMetrics}
-          pinState={{
-            start: Boolean(startLngLat),
-            end: Boolean(endLngLat),
-            waypointCount: routeWaypoints.length,
+          lodDebug={lodDebugPanelProps}
+          mapHud={{
+            stage,
+            onOpenMenu: openMenuPanel,
+            menuOpen,
+            account: accountChip,
+            onOpenUserInfo: openUserInfoPanel,
+            userInfoOpen: userInfoSheetOpen,
+            authGateVisualDismissed: needsAuthCard,
+            onOpenMapView: openMapViewPanel,
+            mapViewOpen: mapViewSheetOpen,
+            idleHintMessage: "입문: MENU → 입문 코스 → 주행 시작",
+            coachData,
+            coachLineEnabled: rideCoachingBannerVisible,
+            metrics: hudMetrics,
+            pinState: {
+              start: Boolean(startLngLat),
+              end: Boolean(endLngLat),
+              waypointCount: routeWaypoints.length,
+            },
+            routeBrief,
+            onClearPins: handleClearPins,
+            routeError: null,
+            canStartRide: Boolean(routeGeometry) && !routeLoading,
+            onStartRide: handleStartRide,
+            onPauseRide: handlePause,
+            onResumeRide: handleResume,
+            onEndRide: handleEndRideWithTrailCleanup,
+            onResumeFromPause: handleResume,
+            onEndFromPause: handleEndRideWithTrailCleanup,
+            onModifyFromPause: handleModifyFromPause,
+            showIdleHint: stage === "idle" && !idleHintDismissed,
+            onDismissIdleHint: () => setIdleHintDismissed(true),
+            showSetupRouteHint: stage === "setup" && !bJourneyHintDismissedSession,
+            onDismissSetupRouteHint: dismissBJourneyHint,
+            ridePresence: mapHudRidePresence,
+            worldActivityHint,
           }}
-          routeBrief={routeBrief}
-          onClearPins={handleClearPins}
-          routeError={null}
-          canStartRide={Boolean(routeGeometry) && !routeLoading}
-          onStartRide={handleStartRide}
-          onPauseRide={handlePause}
-          onResumeRide={handleResume}
-          onEndRide={handleEndRideWithTrailCleanup}
-          onResumeFromPause={handleResume}
-          onEndFromPause={handleEndRideWithTrailCleanup}
-          onModifyFromPause={handleModifyFromPause}
-          showIdleHint={stage === "idle" && !idleHintDismissed}
-          onDismissIdleHint={() => setIdleHintDismissed(true)}
-          showSetupRouteHint={stage === "setup" && !bJourneyHintDismissedSession}
-          onDismissSetupRouteHint={dismissBJourneyHint}
-          ridePresence={mapHudRidePresence}
-          worldActivityHint={worldActivityHint}
-        />
-
+        >
         {rideMapillaryStreet && mapillaryRideSync && mapillaryTokenConfigured ? (
           <div className="mapillary-street-floating" aria-label="Mapillary 거리뷰">
             <div className="mapillary-street-floating__head">
@@ -1569,6 +1285,7 @@ liveIds ${liveActivityCourseIds.length} catalog ${catalogCourseIds.length}`}</pr
             <p className="mapillary-street-floating__attr">Imagery © Mapillary contributors</p>
           </div>
         ) : null}
+        </AppMapStage>
       </div>
 
       <MenuPanel

@@ -1,0 +1,33 @@
+---
+description: React hook 3계층 — UI / Domain / Projection vs Firestore adapter
+globs: apps/web/src/hooks/**/*.ts,apps/web/src/features/**/*.ts
+alwaysApply: false
+---
+
+# Hook 계층 규칙
+
+## 계층
+
+| 계층 | 위치 | 역할 | Firestore 직접 호출 |
+|------|------|------|---------------------|
+| **UI hook** | `hooks/useOpenTrails`, `useRideUiStage` | 패널·시트·로컬 UI 상태 | 금지 (lib 경유) |
+| **Domain hook** | `hooks/useTrailSession`, `useVirtualRideSession` | 한 도메인 orchestration | `lib/firestore*` 만 |
+| **Projection hook** | `features/map-overlays/*`, `*MapOverlay`, `*SpectatorOverlay` | 지도/목록 **읽기 전용 view model** | `lib/` 경유, subscribe/get |
+| **Adapter** | `lib/firestore*.ts` | parse, path, batch | SDK 여기만 |
+
+## 금지
+
+- Projection hook → Projection hook import (merge 는 `features/map-overlays/worldMapOverlayCore` 같은 **pure** 모듈)
+- Domain hook ↔ Domain hook **순환** import
+- UI hook 에서 `onSnapshot` 직접 (lib 로 이동)
+
+## 지도 overlay 단일 진실
+
+- Activity World raw merge: **`resolveWorldMapOverlay()`** (`features/map-overlays/worldMapOverlayCore.ts`)
+- App.tsx 에 publication/catalog merge 블록 **추가 금지** — `useAppMapOverlays` 만
+
+## 새 overlay 추가 시
+
+1. `lib/` 또는 CF 에 data source
+2. `hooks/use*Overlay` 또는 `features/map-overlays/` 에 projection
+3. `resolveWorldMapOverlay` 또는 MapView props 로만 MapView 연결
