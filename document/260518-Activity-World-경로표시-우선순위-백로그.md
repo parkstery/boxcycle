@@ -18,8 +18,10 @@
 | P0-1 | **§J-4 LOD 스모크** 2계정 (라이브 점→선, 종료 heat) | QA/개발 | ⬜ | 체크리스트 `[x]` — 배포 후 수동 |
 | P0-2 | **§J-3** 카탈로그·activity 배지 | QA | ⬜ | |
 | P0-3 | **프로덕션 배포** Hosting + CF (`courseActivity*`, `rides`) | Ops | ✅ | https://boxcycle-dc2df.web.app (2026-05-18) |
-| P0-4 | 문서·코드 **span 20km** 정합 | 문서 | ✅ | `VIEWPORT_SPAN_LINE_MAX_KM=20`, LOD·스모크 문서 반영 |
-| P0-5 | Firestore **indexes** 배포 (`rides` status+endedAt) | Ops | ✅ | `deploy:firestore` indexes |
+| P0-4 | LOD **zoom≥13** 기준·span 폐기 문서 정합 | 문서 | ✅ | `MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN=13`, span 미사용 |
+| P0-5 | Firestore **indexes** 배포 (`rides` + `courseActivity` liveNow) | Ops | ⬜ | `courseActivity` 복합 인덱스 — 배포 후 Building 확인 |
+| P0-6 | 코스별 LOD MIX·`fetchLiveCourseActivityIds`·highlighted 24 | 웹·CF | ✅ | `runActivityWorldLodP0Checks` DEV |
+| P0-7 | **재배포** Hosting + CF (P0-6 반영) | Ops | ⬜ | 아래 배포 체크리스트 |
 
 ---
 
@@ -47,6 +49,7 @@
 | P2-3 | **30일** heat / `worldActivity` 타일 | ⬜ | v2 |
 | P2-4 | LOD **히스테리시스** (span/zoom 경계 떨림) | ⬜ | zoom 11.5~13 hybrid 이미 완화 |
 | P2-7 | LOD span null·lines-only 빈 맵·heat `traceStrength` 가시성 | ✅ | 2026-05-23 `activityWorldLod`·MapView |
+| P2-8 | 코스별 LOD XOR·`fetchLiveCourseActivityIds`·폴링 캐시 | 웹 | ✅ | 2026-05-23 전역 LINE→mixed, liveNow 쿼리 |
 | P2-5 | reconcile 시 `liveAnchor` 정리 (stale live) | ⬜ | 6h reconcile 확장 |
 | P2-6 | Trailhead(`default`)에서 **B층 관전** 활성화 | ✅ | `trailSpectatorOverlayEnabled` — `onDedicatedTrail` 조건 제거 (2026-05-23) |
 
@@ -73,9 +76,11 @@ npm run deploy:hosting
 # Functions (예시)
 firebase deploy --only functions:courseActivityOnRideCreated,functions:courseActivityOnLiveCourseRideWritten,functions:courseActivityScheduledReconcile,functions:courseActivityHeatReconcile
 
-# 인덱스
+# 인덱스 (`courseActivity` liveNow + activeRiderCount 포함)
 firebase deploy --only firestore:indexes
 ```
+
+**P0-6 배포 순서:** indexes → functions → hosting (인덱스 Ready 전에도 웹은 폴백 쿼리 동작).
 
 ---
 
@@ -87,3 +92,4 @@ firebase deploy --only firestore:indexes
 | 2026-05-18 | P2-2 — heat red 계열 문서 정렬(회색 heat 와이어 폐기) |
 | 2026-05-23 | P2-6 — Trailhead 포함 동일 Trail 관전 복구 |
 | 2026-05-23 | P2-7 — LOD·traceStrength 회귀 수정 |
+| 2026-05-23 | P0-6 — 코스별 LOD·liveNow 쿼리·CF highlighted 24 |

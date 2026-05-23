@@ -38,6 +38,8 @@ type CourseGeomState =
 export function useTrailLiveCourseRideSpectatorOverlay(opts: UseTrailLiveCourseRideSpectatorOverlayOpts): {
   spectatorDots: TrailSpectatorDot[];
   spectatorRouteGeometries: LineStringGeometry[];
+  /** 같은 Trail `liveCourseRides` 에 등장한 코스 ID — Activity World 카탈로그 보강용 */
+  liveCourseIds: string[];
   error: string | null;
 } {
   const { user, trailId, trailRoomLabel, enabled, mapZoom, excludePeerIds } = opts;
@@ -149,6 +151,11 @@ export function useTrailLiveCourseRideSpectatorOverlay(opts: UseTrailLiveCourseR
     return out;
   }, [activeRows, geomEpoch, trailRoomLabel]);
 
+  const liveCourseIds = useMemo(
+    () => [...new Set(activeRows.map((r) => r.courseId.trim()).filter(Boolean))],
+    [activeRows],
+  );
+
   const spectatorRouteGeometries = useMemo((): LineStringGeometry[] => {
     const map = geomByCourseRef.current;
     const maxV = maxLineStringVerticesForMapZoom(mapZoom);
@@ -164,7 +171,7 @@ export function useTrailLiveCourseRideSpectatorOverlay(opts: UseTrailLiveCourseR
     return out;
   }, [activeRows, mapZoom, geomEpoch]);
 
-  return { spectatorDots, spectatorRouteGeometries, error };
+  return { spectatorDots, spectatorRouteGeometries, liveCourseIds, error };
 }
 
 /** @deprecated `useTrailLiveCourseRideSpectatorOverlay` */

@@ -8,7 +8,7 @@ import {
 
 /** 클라이언트 `LOBBY_STALE_MS`(240s)보다 짧게 — stale live 문서는 집계에서 제외 */
 const LIVE_RIDE_FRESH_MS = 180_000;
-const HIGHLIGHTED_COURSES_MAX = 8;
+const HIGHLIGHTED_COURSES_MAX = 24;
 
 function lastSeenMs(raw: unknown): number | null {
   if (raw == null) return null;

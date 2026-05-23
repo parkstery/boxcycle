@@ -103,7 +103,7 @@ export async function touchCourseLiveProgress(courseId: string, progressRatio: n
   await db.doc(`${COURSE_ACTIVITY_COLLECTION}/${id}`).set(patch, { merge: true });
 }
 
-const HIGHLIGHTED_COURSES_MAX = 8;
+const HIGHLIGHTED_COURSES_MAX = 24;
 
 /** 라이브 코스 상위 N개를 `worldActivity/global.highlightedCourses`에 반영 */
 export async function refreshWorldHighlightedCourses(): Promise<void> {
@@ -111,6 +111,7 @@ export async function refreshWorldHighlightedCourses(): Promise<void> {
   const snap = await db
     .collection(COURSE_ACTIVITY_COLLECTION)
     .where("liveNow", "==", true)
+    .orderBy("activeRiderCount", "desc")
     .limit(32)
     .get();
 

@@ -46,6 +46,8 @@ export type PublishedCoursesActivityOverlayStats = {
   activityRows: number;
   liveCandidates: number;
   heatCandidates: number;
+  /** live/heat 후보인데 앵커 좌표 없음 (`courses`·bounds·liveAnchor) */
+  anchorMissing: number;
 };
 
 type UsePublishedCoursesActivityMapOverlayOpts = {
@@ -157,7 +159,7 @@ function ensureGeometryLoaded(
 
 /**
  * 퍼블릭·입문 허브 등 카탈로그 코스 activity aggregate.
- * 라이브·heat 후보 풀 분리 — 종료 주행 흔적(heat)이 라이브 16건에 밀리지 않음.
+ * 라이브·heat 후보 풀 분리 — live 최대 10 + heat 최대 10.
  */
 export function usePublishedCoursesActivityMapOverlay(
   opts: UsePublishedCoursesActivityMapOverlayOpts,
@@ -199,7 +201,7 @@ export function usePublishedCoursesActivityMapOverlay(
     };
 
     const tick = async () => {
-      const map = await fetchCourseActivitiesBatch(courseIds, { refresh: true });
+      const map = await fetchCourseActivitiesBatch(courseIds, { refresh: false });
       if (cancelled) return;
       const exclude = excludeCourseId?.trim() ?? "";
       const candidateIds = selectOverlayCandidateIds(map, exclude);
@@ -286,13 +288,11 @@ export function usePublishedCoursesActivityMapOverlay(
     let activityRows = 0;
     let liveCandidates = 0;
     let heatCandidates = 0;
-
-    const exclude = excludeCourseId?.trim() ?? "";
+    let anchorMissing = 0;
 
     for (const cid of overlayCandidateIds) {
       const row = activityByCourseId.get(cid);
       if (!row) continue;
-      if (cid === exclude && isCourseActivityLive(row)) continue;
       if (isCourseActivityLive(row)) liveCandidates += 1;
       else if (isCourseActivityHeat(row)) heatCandidates += 1;
       if (isCourseActivityLive(row) || isCourseActivityHeat(row)) activityRows += 1;
@@ -306,6 +306,10 @@ export function usePublishedCoursesActivityMapOverlay(
 
       let lngLat: LngLat | null = row.liveAnchorLngLat;
       if (!lngLat && b?.status === "ready") lngLat = b.lngLat;
+      if (isCourseActivityLive(row) || isCourseActivityHeat(row)) {
+        if (!lngLat) anchorMissing += 1;
+      }
+
       if (lngLat) {
         if (isCourseActivityLive(row)) {
           pulseDots.push({
@@ -358,6 +362,7 @@ export function usePublishedCoursesActivityMapOverlay(
         activityRows,
         liveCandidates,
         heatCandidates,
+        anchorMissing,
       } satisfies PublishedCoursesActivityOverlayStats,
     };
   }, [activityByCourseId, overlayCandidateIds, mapZoom, overlayEpoch]);

@@ -115,16 +115,19 @@ flowchart TB
 
 ### 3.1 렌더 우선순위 (코드: `resolveActivityWorldRender`)
 
-**원칙:** loader는 dots·lines **항상 생성**. **LINE 가능하면 LINE, 아니면 DOT** — `showDots:false` 구조 없음.
+**원칙:** loader는 dots·lines **항상 생성**. 표시는 `resolveActivityWorldRender` 한 곳.
 
-1. LINE을 그릴 수 있는가? (`mapZoom ≥ 13`, geometry ready)
-2. 가능하면 LINE만 전달
-3. 불가능하면 DOT 전달 (**blank 금지**)
+1. LINE 가능? (`mapZoom ≥ 13`, geometry ready) — MapView는 **`map.getZoom()`** 으로 판정(span 미사용)
+2. 가능하면 **LINE만** (점 배열 비움 — `showDots:false` 모드 없음)
+3. 불가하면 **DOT만** — 라인 배열 비움
+4. 둘 다 비면 반대 채널 폴백 (**blank 금지**)
+
+**코스별 적용:** zoom≥13 이어도 **geometry 가 로드된 코스만** LINE; 다른 코스는 DOT 유지 (전역 LINE 모드로 타 대륙 점이 꺼지지 않음).
 
 | 채널 | 조건 | 지도 |
 |------|------|------|
-| **LINE** | zoom **≥ 13** + LineString 준비됨 | pulse·heat 라인 (§3.3) |
-| **DOT** | 그 외 (또는 라인 미준비) | 앵커 점 |
+| **LINE** | zoom **≥ 13** + **해당 코스** LineString 준비 | pulse·heat 라인 (§3.3) |
+| **DOT** | 그 외 또는 해당 코스 geometry 미준비 | 앵커 점 |
 
 ```text
 MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN = 13
@@ -271,10 +274,10 @@ BASIC_SHARED_HUB_IDS
 | 타일 `worldActivity/{tileId}` 미착수 | §6 단계 6으로 유지 |
 | 토큰 드롭 POI (v2) | [Route Token 설계](260518-Route-Token-경제-설계.md) §6.3 — Activity World DOT와 별 레이어·저빈도 |
 
-§4.2 「Mapbox 레이어 예」는 구현 시 아래처럼 **갱신**한다:
+§4.2 Mapbox 레이어 (현재 구현):
 
-- **줌 아웃 (span > 20km):** `activity-pulse-dots`, `activity-heat-dots`.
-- **줌 인 (span ≤ 20km):** `activity-pulse-routes-line`, `activity-heat-routes-line`.
+- **줌 &lt; 13** 또는 코스 geometry 미로드: `activity-pulse-dots`, `activity-heat-dots`.
+- **줌 ≥ 13** + 해당 코스 geometry 로드: `activity-pulse-routes-line`, `activity-heat-routes-line` (동시에 다른 코스는 DOT 가능 — **mixed**).
 
 ---
 

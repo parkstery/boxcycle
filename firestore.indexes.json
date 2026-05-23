@@ -165,6 +165,14 @@
         { "fieldPath": "userId", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "courseActivity",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "liveNow", "order": "ASCENDING" },
+        { "fieldPath": "activeRiderCount", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

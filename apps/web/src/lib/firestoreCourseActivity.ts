@@ -1,4 +1,14 @@
-import { doc, getDoc, getFirestore } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  getFirestore,
+  limit,
+  orderBy,
+  query,
+  where,
+} from "firebase/firestore";
 import { getFirebaseApp } from "./firebase";
 import type { LngLat } from "./geo";
 import { lastSeenAtToMillis } from "./firestoreTrail";
@@ -185,12 +195,62 @@ export function formatCourseActivityListBadge(activity: CourseActivitySnapshot |
 export function invalidateCourseActivityCache(courseIds?: readonly string[]): void {
   if (!courseIds?.length) {
     memoryCache.clear();
+    invalidateLiveCourseActivityIdsCache();
     return;
   }
   for (const id of courseIds) {
     const key = id.trim();
     if (key) memoryCache.delete(key);
   }
+  invalidateLiveCourseActivityIdsCache();
+}
+
+const LIVE_COURSE_IDS_QUERY_MAX = 32;
+
+let liveCourseIdsCache: { ids: string[]; at: number } | null = null;
+const LIVE_COURSE_IDS_CACHE_MS = 45_000;
+
+/**
+ * `liveNow` 코스 ID — 카탈로그 화이트리스트 밖 라이브도 Activity World 조회에 포함.
+ * 복합 인덱스 `liveNow` + `activeRiderCount` 필요(없으면 단순 쿼리 폴백).
+ */
+export async function fetchLiveCourseActivityIds(
+  max = LIVE_COURSE_IDS_QUERY_MAX,
+): Promise<string[]> {
+  const cap = Math.max(1, Math.min(max, LIVE_COURSE_IDS_QUERY_MAX));
+  const now = Date.now();
+  if (liveCourseIdsCache && now - liveCourseIdsCache.at < LIVE_COURSE_IDS_CACHE_MS) {
+    return liveCourseIdsCache.ids;
+  }
+
+  const db = getFirestore(getFirebaseApp());
+  const col = collection(db, COLLECTION);
+
+  const runQuery = async (ordered: boolean) => {
+    const q = ordered
+      ? query(col, where("liveNow", "==", true), orderBy("activeRiderCount", "desc"), limit(cap))
+      : query(col, where("liveNow", "==", true), limit(cap));
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => d.id.trim()).filter(Boolean);
+  };
+
+  try {
+    const ids = await runQuery(true);
+    liveCourseIdsCache = { ids, at: now };
+    return ids;
+  } catch {
+    try {
+      const ids = await runQuery(false);
+      liveCourseIdsCache = { ids, at: now };
+      return ids;
+    } catch {
+      return liveCourseIdsCache?.ids ?? [];
+    }
+  }
+}
+
+export function invalidateLiveCourseActivityIdsCache(): void {
+  liveCourseIdsCache = null;
 }
 
 /** 여러 코스 aggregate — 코스당 `getDoc` 1회(캐시·in-flight 공유) */

@@ -2,14 +2,8 @@ import type { LngLat } from "./geo";
 import type { LineStringGeometry } from "./geo";
 import { haversineMeters } from "./rideSyncPolicy";
 
-/** zoom ≥ 이 값 + geometry ready → LINE, 그 외 → DOT (span 미사용) */
+/** zoom ≥ 이 값 + 해당 코스 geometry ready → 그 코스만 LINE, 그 외 DOT. span 미사용. */
 export const MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN = 13;
-
-/** @deprecated span 기준 LOD 제거 — 하위 호환 re-export */
-export const VIEWPORT_SPAN_LINE_MAX_KM = 10;
-
-/** @deprecated {@link MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN} 와 동일 */
-export const MAP_ZOOM_ACTIVITY_WORLD_LINE_MAX = MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN;
 
 export type MapViewportBounds = {
   west: number;
@@ -50,7 +44,7 @@ export type ActivityWorldRenderOverlay = {
 
 export type ActivityWorldLodDebug = {
   label: string;
-  channel: "line" | "dot";
+  channel: "line" | "dot" | "mixed" | "empty";
   lineRenderable: boolean;
   mapZoom: number;
 };
@@ -71,76 +65,103 @@ export function lngLatBoundsToViewport(bounds: {
   return { west: sw.lng, south: sw.lat, east: ne.lng, north: ne.lat };
 }
 
-/** close zoom + loader가 만든 LineString 존재 */
-export function canRenderActivityWorldLines(
-  mapZoom: number,
-  raw: ActivityWorldRawOverlay,
-): boolean {
+function courseIdsWithLineGeometry(raw: ActivityWorldRawOverlay): Set<string> {
+  const ids = new Set<string>();
+  for (const r of raw.pulseRoutes) ids.add(r.courseId);
+  for (const r of raw.heatRoutes) ids.add(r.courseId);
+  return ids;
+}
+
+function lineModeForCourse(mapZoom: number, courseId: string, lineReady: Set<string>): boolean {
   const z = Number.isFinite(mapZoom) ? mapZoom : 12;
-  const geometryReady = raw.pulseRoutes.length + raw.heatRoutes.length > 0;
-  return z >= MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN && geometryReady;
+  return z >= MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN && lineReady.has(courseId);
 }
 
 /**
- * 1) DOT는 raw에 있으면 **항상** 전달 (줌아웃 blank 방지).
- * 2) zoom≥13 + geometry → LINE **추가**.
- * MapView는 `map.getZoom()` 으로 호출 — React `mapLodZoom` 지연과 분리.
+ * 코스별 LINE/DOT — 한 코스 geometry 로드가 다른 대륙 DOT 을 끄지 않음.
+ * MapView는 `map.getZoom()` 으로 호출.
  */
 export function resolveActivityWorldRender(
   mapZoom: number,
   raw: ActivityWorldRawOverlay,
 ): ActivityWorldRenderOverlay {
-  const lineOk = canRenderActivityWorldLines(mapZoom, raw);
-  const pulseDots = [...raw.pulseDots];
-  const heatDots = [...raw.heatDots];
-  let pulseRoutes = lineOk ? [...raw.pulseRoutes] : [];
-  let heatRoutes = lineOk ? [...raw.heatRoutes] : [];
+  const lineReady = courseIdsWithLineGeometry(raw);
 
-  const hasDots = pulseDots.length + heatDots.length > 0;
-  const hasLines = pulseRoutes.length + heatRoutes.length > 0;
+  const pulseRoutes: ActivityWorldMapRoute[] = [];
+  const heatRoutes: ActivityWorldMapRoute[] = [];
+  const pulseDots: ActivityWorldMapDot[] = [];
+  const heatDots: ActivityWorldMapDot[] = [];
 
-  if (!hasDots && !hasLines) {
-    const rawLines = raw.pulseRoutes.length + raw.heatRoutes.length;
-    if (rawLines > 0) {
-      pulseRoutes = [...raw.pulseRoutes];
-      heatRoutes = [...raw.heatRoutes];
-    }
+  for (const r of raw.pulseRoutes) {
+    if (lineModeForCourse(mapZoom, r.courseId, lineReady)) pulseRoutes.push({ ...r });
+  }
+  for (const r of raw.heatRoutes) {
+    if (lineModeForCourse(mapZoom, r.courseId, lineReady)) heatRoutes.push({ ...r });
+  }
+  for (const d of raw.pulseDots) {
+    if (!lineModeForCourse(mapZoom, d.courseId, lineReady)) pulseDots.push({ ...d });
+  }
+  for (const d of raw.heatDots) {
+    if (!lineModeForCourse(mapZoom, d.courseId, lineReady)) heatDots.push({ ...d });
   }
 
-  return { pulseRoutes, heatRoutes, pulseDots, heatDots };
+  if (pulseRoutes.length + heatRoutes.length + pulseDots.length + heatDots.length > 0) {
+    return { pulseRoutes, heatRoutes, pulseDots, heatDots };
+  }
+
+  if (raw.pulseDots.length + raw.heatDots.length > 0) {
+    return {
+      pulseRoutes: [],
+      heatRoutes: [],
+      pulseDots: [...raw.pulseDots],
+      heatDots: [...raw.heatDots],
+    };
+  }
+  if (raw.pulseRoutes.length + raw.heatRoutes.length > 0) {
+    return {
+      pulseRoutes: [...raw.pulseRoutes],
+      heatRoutes: [...raw.heatRoutes],
+      pulseDots: [],
+      heatDots: [],
+    };
+  }
+
+  return { pulseRoutes: [], heatRoutes: [], pulseDots: [], heatDots: [] };
+}
+
+/** 디버그: 지도에 실제로 LINE/DOT 이 섞여 있는지 */
+export function canRenderActivityWorldLines(
+  mapZoom: number,
+  raw: ActivityWorldRawOverlay,
+): boolean {
+  const render = resolveActivityWorldRender(mapZoom, raw);
+  return render.pulseRoutes.length + render.heatRoutes.length > 0;
 }
 
 export function resolveActivityWorldLodDebug(
   mapZoom: number,
-  raw: ActivityWorldRawOverlay,
+  _raw: ActivityWorldRawOverlay,
   render: ActivityWorldRenderOverlay,
 ): ActivityWorldLodDebug {
   const z = Number.isFinite(mapZoom) ? mapZoom : 12;
-  const lineRenderable = canRenderActivityWorldLines(z, raw);
   const showingLine = render.pulseRoutes.length + render.heatRoutes.length > 0;
   const showingDot = render.pulseDots.length + render.heatDots.length > 0;
-  const channel: "line" | "dot" = showingLine && lineRenderable ? "line" : "dot";
-  const label = lineRenderable
-    ? `LINE+DOT z≥${MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN} (${z.toFixed(1)})`
-    : showingDot
-      ? `DOT z<${MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN} (${z.toFixed(1)})`
-      : `empty (${z.toFixed(1)})`;
-  return { label, channel, lineRenderable, mapZoom: z };
-}
-
-/** @deprecated {@link resolveActivityWorldRender} 사용 */
-export function resolveActivityWorldLineMode(_spanKm: number | null, mapZoom: number): boolean {
-  return Number.isFinite(mapZoom) && mapZoom >= MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN;
-}
-
-/** @deprecated span LOD 제거 */
-export function spanAllowsActivityWorldLines(_spanKm: number | null): boolean {
-  return false;
-}
-
-/** @deprecated span LOD 제거 */
-export function isActivityWorldLineMode(spanKm: number): boolean {
-  return spanAllowsActivityWorldLines(spanKm);
+  const channel: ActivityWorldLodDebug["channel"] = showingLine && showingDot
+    ? "mixed"
+    : showingLine
+      ? "line"
+      : showingDot
+        ? "dot"
+        : "empty";
+  const label =
+    channel === "mixed"
+      ? `MIX z≥${MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN} (${z.toFixed(1)})`
+      : channel === "line"
+        ? `LINE z≥${MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN} (${z.toFixed(1)})`
+        : channel === "dot"
+          ? `DOT (${z.toFixed(1)})`
+          : `empty (${z.toFixed(1)})`;
+  return { label, channel, lineRenderable: showingLine, mapZoom: z };
 }
 
 export function mergeActivityWorldDots(
@@ -153,6 +174,68 @@ export function mergeActivityWorldDots(
   return [...m.values()];
 }
 
+const P0_TEST_LINE: LineStringGeometry = {
+  type: "LineString",
+  coordinates: [
+    [0, 0],
+    [1, 1],
+  ],
+};
+
+function p0Dot(courseId: string): ActivityWorldMapDot {
+  return {
+    courseId,
+    lngLat: [2, 2],
+    pulseLevel: 1,
+    kind: "pulse",
+    traceStrength: 1,
+  };
+}
+
+/**
+ * P0 회귀 — 코스별 LOD·blank guard. DEV에서 1회 실행.
+ * @throws invariant 위반 시
+ */
+export function runActivityWorldLodP0Checks(): void {
+  const rawMixed: ActivityWorldRawOverlay = {
+    pulseRoutes: [
+      { courseId: "seoul", geometry: P0_TEST_LINE, kind: "pulse", traceStrength: 1 },
+    ],
+    heatRoutes: [],
+    pulseDots: [p0Dot("pyongyang")],
+    heatDots: [],
+  };
+  const mixed = resolveActivityWorldRender(14, rawMixed);
+  if (mixed.pulseRoutes.length !== 1 || mixed.pulseDots.length !== 1) {
+    throw new Error("P0: z14 mixed — LINE(seoul)+DOT(pyongyang) required");
+  }
+
+  const rawDotsOnly: ActivityWorldRawOverlay = {
+    pulseRoutes: [],
+    heatRoutes: [],
+    pulseDots: [p0Dot("doha"), p0Dot("greenville")],
+    heatDots: [],
+  };
+  const far = resolveActivityWorldRender(11, rawDotsOnly);
+  if (far.pulseDots.length !== 2 || far.pulseRoutes.length !== 0) {
+    throw new Error("P0: z11 — all DOT, no global LINE wipe");
+  }
+
+  const rawLinesOnly: ActivityWorldRawOverlay = {
+    pulseRoutes: [
+      { courseId: "x", geometry: P0_TEST_LINE, kind: "pulse", traceStrength: 1 },
+    ],
+    heatRoutes: [],
+    pulseDots: [],
+    heatDots: [],
+  };
+  const lineFallback = resolveActivityWorldRender(11, rawLinesOnly);
+  if (lineFallback.pulseRoutes.length !== 1) {
+    throw new Error("P0: blank guard — routes-only fallback at z11");
+  }
+}
+
+/** 뷰포트 밖 geometry 로드 상한 등 후속용 */
 export function isLngLatInViewport(lngLat: LngLat, viewport: MapViewportBounds | null): boolean {
   if (!viewport) return true;
   const lngPad = Math.max(0.02, (viewport.east - viewport.west) * 0.08);

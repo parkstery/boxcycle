@@ -15,7 +15,9 @@ import { usePublishedCoursesActivityMapOverlay } from "./hooks/usePublishedCours
 import { useDocumentVisibility } from "./hooks/useDocumentVisibility";
 import {
   formatActivityWorldPinPopup,
+  fetchLiveCourseActivityIds,
   formatCourseActivityHudLine,
+  invalidateLiveCourseActivityIdsCache,
 } from "./lib/firestoreCourseActivity";
 import { fetchWorldPresenceSummary, formatWorldPresenceHudLine } from "./lib/firestoreWorldPresence";
 import { fetchWorldActivityGlobal, formatWorldActivityHudLine, mergeWorldHudLines } from "./lib/firestoreWorldActivity";
@@ -23,6 +25,7 @@ import {
   mergeActivityWorldDots,
   resolveActivityWorldLodDebug,
   resolveActivityWorldRender,
+  runActivityWorldLodP0Checks,
   type MapViewportBounds,
 } from "./lib/activityWorldLod";
 import { MAP_ZOOM_WORLD_ACTIVITY_MAX, WORLD_PRESENCE_POLL_MS } from "./lib/rideSyncPolicy";
@@ -208,6 +211,8 @@ export default function App() {
   const trailheadSessionActive = Boolean(configured && user);
   const pageVisible = useDocumentVisibility();
   const [worldHighlightedCourseIds, setWorldHighlightedCourseIds] = useState<string[]>([]);
+  /** `liveNow` 쿼리 — 카탈로그·highlighted 밖 라이브 코스 포함 */
+  const [liveActivityCourseIds, setLiveActivityCourseIds] = useState<string[]>([]);
   const [worldHudLines, setWorldHudLines] = useState<string | null>(null);
   const [openTrailsRefreshNonce, setOpenTrailsRefreshNonce] = useState(0);
   const [trailVisibilityBusy, setTrailVisibilityBusy] = useState(false);
@@ -361,12 +366,14 @@ export default function App() {
   const [activityMapRefreshNonce, setActivityMapRefreshNonce] = useState(0);
   const onRideEndedWithCourse = useCallback((_courseId: string) => {
     applyRideCompletedOptimisticRef.current();
+    invalidateLiveCourseActivityIdsCache();
     reloadCourseActivityRef.current({ forceInvalidate: false });
     setActivityMapRefreshNonce((n) => n + 1);
   }, []);
   const onRidePersistedToFirestore = useCallback((courseId: string | null) => {
     if (courseId?.trim()) {
       applyRideCompletedOptimisticRef.current();
+      invalidateLiveCourseActivityIdsCache();
       setActivityMapRefreshNonce((n) => n + 1);
       const bumpSoft = () => reloadCourseActivityRef.current({ forceInvalidate: false });
       bumpSoft();
@@ -462,6 +469,7 @@ export default function App() {
   activeCourseIdRef.current = basicActiveHubCourseId ?? activeOfficialCourseId;
 
   const trackedCourseId = basicActiveHubCourseId ?? activeOfficialCourseId;
+  const isRideSessionActive = rideStatus === "running" || rideStatus === "paused";
   const courseActivityEnabled = Boolean(configured && user && trackedCourseId && pageVisible);
 
   const {
@@ -490,12 +498,44 @@ export default function App() {
     mapZoom,
   });
 
+  const trailDisplayLabels = useMemo(
+    () => resolveTrailDisplayLabel(sanitizedTrailId, currentTrailMeta),
+    [sanitizedTrailId, currentTrailMeta],
+  );
+
+  const coursePeerIdsForTrailSpectator = useMemo(
+    () => new Set(coursePeerMarkers.map((p) => p.id)),
+    [coursePeerMarkers],
+  );
+
+  /** 주행 여부와 무관 — Trailhead 세션·관전만으로 다른 코스 주행 표시 */
+  const trailSpectatorOverlayEnabled = Boolean(
+    trailheadSessionActive &&
+      (rideStatus === "idle" || rideStatus === "running" || rideStatus === "paused") &&
+      pageVisible,
+  );
+
+  const {
+    spectatorDots,
+    spectatorRouteGeometries,
+    liveCourseIds: trailLiveCourseIds,
+  } = useTrailLiveCourseRideSpectatorOverlay({
+    user,
+    trailId,
+    trailRoomLabel: trailDisplayLabels.room,
+    enabled: trailSpectatorOverlayEnabled,
+    mapZoom,
+    excludePeerIds: coursePeerIdsForTrailSpectator,
+  });
+
   const catalogCourseIds = useMemo(() => {
     const ids = new Set<string>(BASIC_SHARED_HUB_IDS as readonly string[]);
     for (const c of publishedPublicCourses) ids.add(c.id);
     for (const id of worldHighlightedCourseIds) ids.add(id);
+    for (const id of trailLiveCourseIds) ids.add(id);
+    for (const id of liveActivityCourseIds) ids.add(id);
     return [...ids];
-  }, [publishedPublicCourses, worldHighlightedCourseIds]);
+  }, [publishedPublicCourses, worldHighlightedCourseIds, trailLiveCourseIds, liveActivityCourseIds]);
 
   const catalogActivityEnabled = Boolean(
     configured && user && pageVisible && catalogCourseIds.length > 0,
@@ -510,7 +550,8 @@ export default function App() {
     overlayStats: catalogActivityOverlayStats,
   } = usePublishedCoursesActivityMapOverlay({
     courseIds: catalogCourseIds,
-    excludeCourseId: trackedCourseId,
+    /** 주행 중에만 추적 코스 라이브를 카탈로그에서 빼고 active 오버레이로 — idle 관전은 카탈로그에 포함 */
+    excludeCourseId: isRideSessionActive ? trackedCourseId : null,
     mapZoom,
     enabled: catalogActivityEnabled,
     refreshNonce: activityMapRefreshNonce,
@@ -583,6 +624,11 @@ export default function App() {
 
   useEffect(() => {
     if (!import.meta.env.DEV) return;
+    try {
+      runActivityWorldLodP0Checks();
+    } catch (e) {
+      console.error("[ActivityWorld] P0 LOD checks failed", e);
+    }
     console.debug("[ActivityWorld]", {
       zoom: mapZoom,
       lodZoom: mapLodZoom,
@@ -615,9 +661,14 @@ export default function App() {
     catalogActivityEnabled,
   ]);
 
+  /** 퍼블릭 코스 ID — MENU 없이도 Activity World 카탈로그에 포함(주행 미참여 관전) */
+  useEffect(() => {
+    if (!configured || !user || !pageVisible) return;
+    void refreshPublishedPublicCourseCatalog();
+  }, [configured, user, pageVisible, refreshPublishedPublicCourseCatalog]);
+
   useEffect(() => {
     if (!configured || !menuOpen) return;
-    void refreshPublishedPublicCourseCatalog();
     if (!user) {
       menuFirestorePrimedUidRef.current = null;
       return;
@@ -646,11 +697,6 @@ export default function App() {
     if (user.isAnonymous) return "guest";
     return user.displayName?.trim() || user.email?.trim() || "Rider";
   }, [user, basicActiveHubCourseId]);
-
-  const trailDisplayLabels = useMemo(
-    () => resolveTrailDisplayLabel(sanitizedTrailId, currentTrailMeta),
-    [sanitizedTrailId, currentTrailMeta],
-  );
 
   const resolvedLiveRiderNametag = useMemo(() => {
     const base = (liveRiderNametag ?? selfRiderNametagFallback)?.trim();
@@ -699,36 +745,11 @@ export default function App() {
     endRideRef: handleEndRideRef,
   });
 
-  const coursePeerIdsForTrailSpectator = useMemo(
-    () => new Set(coursePeerMarkers.map((p) => p.id)),
-    [coursePeerMarkers],
-  );
-
-  /**
-   * 같은 Trail(`trailId`) 주행자 — `liveCourseRides` 실시간 점·노선.
-   * Trailhead(`default`) 포함. 다른 Trail 은 `trailId` 불일치로 구독·표시 없음.
-   * 동일 코스 동행(`coursePresence`)과 중복되는 uid 는 `excludePeerIds` 로 제외.
-   */
-  const trailSpectatorOverlayEnabled = Boolean(
-    trailheadSessionActive &&
-      (rideStatus === "idle" || rideStatus === "running" || rideStatus === "paused") &&
-      pageVisible,
-  );
-
-  const { spectatorDots, spectatorRouteGeometries } = useTrailLiveCourseRideSpectatorOverlay({
-    user,
-    trailId,
-    trailRoomLabel: trailDisplayLabels.room,
-    enabled: trailSpectatorOverlayEnabled,
-    mapZoom,
-    excludePeerIds: coursePeerIdsForTrailSpectator,
-  });
-
   useTrailLiveCourseRidePublisher({
     user,
     enabled: Boolean(
       trailheadSessionActive &&
-        (rideStatus === "running" || rideStatus === "paused") &&
+        isRideSessionActive &&
         (basicActiveHubCourseId ?? activeOfficialCourseId) &&
         Boolean(routeGeometry?.coordinates?.length),
     ),
@@ -745,17 +766,22 @@ export default function App() {
     if (!configured || !user || !pageVisible) {
       setWorldHudLines(null);
       setWorldHighlightedCourseIds([]);
+      setLiveActivityCourseIds([]);
       return;
     }
     let cancelled = false;
     const load = () => {
       void (async () => {
-        const [presence, worldActivity] = await Promise.all([
+        const [presence, worldActivity, liveIds] = await Promise.all([
           fetchWorldPresenceSummary(),
           fetchWorldActivityGlobal(),
+          fetchLiveCourseActivityIds(),
         ]);
         if (cancelled) return;
-        setWorldHighlightedCourseIds(worldActivity?.highlightedCourses ?? []);
+        setLiveActivityCourseIds(liveIds);
+        const highlighted = new Set<string>(worldActivity?.highlightedCourses ?? []);
+        for (const id of liveIds) highlighted.add(id);
+        setWorldHighlightedCourseIds([...highlighted]);
         setWorldHudLines(
           mergeWorldHudLines(
             formatWorldPresenceHudLine(presence.regions),
@@ -1363,7 +1389,8 @@ dots ${activityWorldRaw.pulseDots.length}+${activityWorldRaw.heatDots.length} �
             activityWorldRender.pulseDots.length
           } | lines ${activityWorldRaw.pulseRoutes.length} → ${activityWorldRender.pulseRoutes.length}
 heat ${catalogActivityOverlayStats.heatCandidates} live ${catalogActivityOverlayStats.liveCandidates}
-geom ${catalogActivityOverlayStats.geometryReady}/${catalogActivityOverlayStats.activityRows} bounds ${catalogActivityOverlayStats.boundsReady}`}</pre>
+geom ${catalogActivityOverlayStats.geometryReady}/${catalogActivityOverlayStats.activityRows} bounds ${catalogActivityOverlayStats.boundsReady} anchorMiss ${catalogActivityOverlayStats.anchorMissing}
+liveIds ${liveActivityCourseIds.length} catalog ${catalogCourseIds.length}`}</pre>
         ) : null}
 
         <MapHud
