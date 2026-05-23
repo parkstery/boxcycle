@@ -2,10 +2,14 @@ import {
   collection,
   deleteDoc,
   doc,
+  getCountFromServer,
   getFirestore,
   onSnapshot,
+  query,
   serverTimestamp,
   setDoc,
+  Timestamp,
+  where,
   type FirestoreError,
   type Unsubscribe,
 } from "firebase/firestore";
@@ -119,6 +123,19 @@ export async function deleteTrailPresence(uid: string, trailId: string): Promise
   const rid = sanitizeTrailId(trailId);
   const db = getFirestore(getFirebaseApp());
   await deleteDoc(doc(db, TRAILS_COLLECTION, rid, TRAIL_MEMBERS_SUBCOLLECTION, uid));
+}
+
+function memberFreshnessCutoff(): Timestamp {
+  return Timestamp.fromMillis(Date.now() - TRAIL_PRESENCE_STALE_MS);
+}
+
+/** Trail `members` 중 최근 접속(lastSeenAt) — 공개 Trail 목록·주행 중 인원 집계용 */
+export async function countTrailMembersFresh(trailId: string): Promise<number> {
+  const rid = sanitizeTrailId(trailId);
+  if (rid === DEFAULT_TRAIL_ID) return 0;
+  const q = query(membersCollectionRef(rid), where("lastSeenAt", ">", memberFreshnessCutoff()));
+  const snap = await getCountFromServer(q);
+  return snap.data().count;
 }
 
 /** @deprecated `deleteTrailPresence` */

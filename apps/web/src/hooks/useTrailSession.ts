@@ -3,11 +3,14 @@ import type { User } from "firebase/auth";
 import type { FirestoreError } from "firebase/firestore";
 import {
   deleteTrailPresence,
+  DEFAULT_TRAIL_ID,
+  sanitizeTrailId,
   subscribeTrailMembers,
   touchTrailPresence,
   upsertTrailPresence,
   type TrailMemberRow,
 } from "../lib/firestoreTrail";
+import { touchTrailInstanceActivity } from "../lib/firestoreTrailInstance";
 import { TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS } from "../lib/rideSyncPolicy";
 
 /** Trail 1곳에 대한 upsert·스냅샷·하트비트 — 단일 구독용(App + 표시 컴포넌트 공유) */
@@ -67,6 +70,10 @@ export function useTrailSession(opts: {
         const message = e instanceof Error ? e.message : String(e);
         if (!cancelled) setError(message);
       });
+      const tid = sanitizeTrailId(trailId);
+      if (tid !== DEFAULT_TRAIL_ID) {
+        void touchTrailInstanceActivity(tid).catch(() => {});
+      }
     }, TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS);
 
     return () => {

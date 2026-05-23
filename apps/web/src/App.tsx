@@ -812,12 +812,12 @@ export default function App() {
     enabled: Boolean(
       trailheadSessionActive &&
         isRideSessionActive &&
-        (basicActiveHubCourseId ?? activeOfficialCourseId) &&
+        (basicActiveHubCourseId ?? activeOfficialCourseId ?? currentTrailMeta?.courseId) &&
         Boolean(routeGeometry?.coordinates?.length),
     ),
     pageVisible,
     trailId,
-    courseId: basicActiveHubCourseId ?? activeOfficialCourseId,
+    courseId: basicActiveHubCourseId ?? activeOfficialCourseId ?? currentTrailMeta?.courseId ?? null,
     routeGeometry,
     routeDistanceMeters,
     virtualDistanceMeters: rideMetrics.virtualDistanceMeters,

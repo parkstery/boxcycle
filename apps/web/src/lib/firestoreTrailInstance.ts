@@ -21,6 +21,7 @@ import {
   countTrailLiveRidersFresh,
   fetchTrailIdsWithActiveLiveRides,
 } from "./firestoreTrailLiveCourseRides";
+import { countTrailMembersFresh } from "./firestoreTrail";
 import { assertPublicTrailHasRoute, trailHasConfiguredRoute } from "./trailAccessPolicy";
 
 export type TrailVisibility = "open" | "private";
@@ -190,11 +191,19 @@ function shouldFallbackOpenTrailsList(e: unknown): boolean {
   return msg.includes("Missing or insufficient permissions") || msg.includes("requires an index");
 }
 
+async function countTrailActiveParticipantsFresh(trailId: string): Promise<number> {
+  const [live, members] = await Promise.all([
+    countTrailLiveRidersFresh(trailId).catch(() => 0),
+    countTrailMembersFresh(trailId).catch(() => 0),
+  ]);
+  return Math.max(live, members);
+}
+
 async function enrichOpenTrailsWithLiveCounts(base: TrailInstance[]): Promise<TrailInstance[]> {
   const withCounts = await Promise.all(
     base.map(async (t) => {
       try {
-        const liveRiderCount = await countTrailLiveRidersFresh(t.id);
+        const liveRiderCount = await countTrailActiveParticipantsFresh(t.id);
         return { ...t, liveRiderCount };
       } catch {
         return { ...t, liveRiderCount: 0 };
@@ -204,6 +213,19 @@ async function enrichOpenTrailsWithLiveCounts(base: TrailInstance[]): Promise<Tr
   return withCounts
     .filter((t) => (t.liveRiderCount ?? 0) > 0)
     .sort((a, b) => (b.liveRiderCount ?? 0) - (a.liveRiderCount ?? 0));
+}
+
+function mergeOpenTrailLists(...lists: TrailInstance[][]): TrailInstance[] {
+  const byId = new Map<string, TrailInstance>();
+  for (const list of lists) {
+    for (const t of list) {
+      const prev = byId.get(t.id);
+      if (!prev || (t.liveRiderCount ?? 0) > (prev.liveRiderCount ?? 0)) {
+        byId.set(t.id, t);
+      }
+    }
+  }
+  return [...byId.values()].sort((a, b) => (b.liveRiderCount ?? 0) - (a.liveRiderCount ?? 0));
 }
 
 /** collection group 실패 시: 공개 open Trail 후보를 훑고 fresh 라이더만 남김 */
@@ -238,14 +260,24 @@ async function fetchOpenTrailInstancesFromLiveRides(): Promise<TrailInstance[]> 
   return enrichOpenTrailsWithLiveCounts(joinable);
 }
 
-/** Trailhead에서 합류 가능한 공개 Trail — 지금 `liveCourseRides` 가 살아 있는 Trail 만 */
+/** Trailhead에서 합류 가능한 공개 Trail — 주행 중(`liveCourseRides`·`members`) + 메타 조회 병합 */
 export async function fetchOpenTrailInstances(): Promise<TrailInstance[]> {
+  let fromLive: TrailInstance[] = [];
+  let fromCandidates: TrailInstance[] = [];
+
   try {
-    return await fetchOpenTrailInstancesFromLiveRides();
+    fromLive = await fetchOpenTrailInstancesFromLiveRides();
   } catch (e) {
     if (!shouldFallbackOpenTrailsList(e)) throw e;
-    return fetchOpenTrailInstancesFromCandidates();
   }
+
+  try {
+    fromCandidates = await fetchOpenTrailInstancesFromCandidates();
+  } catch (e) {
+    if (fromLive.length === 0 && !shouldFallbackOpenTrailsList(e)) throw e;
+  }
+
+  return mergeOpenTrailLists(fromLive, fromCandidates);
 }
 
 export function canUserManageTrail(trail: TrailInstance | null, user: User | null | undefined): boolean {
