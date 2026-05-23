@@ -21,7 +21,8 @@
 | P0-4 | LOD **zoom≥13** 기준·span 폐기 문서 정합 | 문서 | ✅ | `MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN=13`, span 미사용 |
 | P0-5 | Firestore **indexes** 배포 (`rides` + `courseActivity` liveNow) | Ops | ✅ | 2026-05-23 `courseActivity` liveNow+activeRiderCount |
 | P0-6 | 코스별 LOD MIX·`fetchLiveCourseActivityIds`·highlighted 24 | 웹·CF | ✅ | `runActivityWorldLodP0Checks` DEV · `ea8dce3` |
-| P0-7 | **재배포** Hosting + CF (P0-6 반영) | Ops | 🟡 | Hosting ✅ `boxcycle-dc2df.web.app` · CF는 STRIPE 시크릿 필요 |
+| P0-7 | **재배포** Hosting + CF + Rules (P0-6 반영) | Ops | 🟡 | Hosting·Rules·indexes ✅ (2026-05-23) · CF만 `STRIPE_*` 시크릿 후 |
+| P0-8 | Trail **주행 중** 목록 + `liveCourseRides` CG Rules | 웹 | ✅ | `5b1f5fd` |
 
 ---
 
@@ -44,7 +45,7 @@
 
 | ID | 작업 | 상태 | 비고 |
 |----|------|------|------|
-| P2-1 | geometry 로드 **상한 20건** — 화면 밖 live 코스 라인 누락 문서화 | ⬜ | 멀리 점은 더 많을 수 있음 |
+| P2-1 | geometry 로드 **상한 20건** — 화면 밖 live 코스 라인 누락 문서화 | ✅ | [LOD §8](260517-Activity-World-지도-LOD-설계.md) 2026-05-23 |
 | P2-2 | `recentLikeCount` 지도 반영 (heat red보다 약한 레이어?) | ⬜ | 패널 배지는 있음; heat는 red 계열 확정([LOD §3.3](260517-Activity-World-지도-LOD-설계.md)) |
 | P2-3 | **30일** heat / `worldActivity` 타일 | ⬜ | v2 |
 | P2-4 | LOD **히스테리시스** (span/zoom 경계 떨림) | ⬜ | zoom 11.5~13 hybrid 이미 완화 |
@@ -76,8 +77,17 @@ npm run deploy:hosting
 # Functions (예시)
 firebase deploy --only functions:courseActivityOnRideCreated,functions:courseActivityOnLiveCourseRideWritten,functions:courseActivityScheduledReconcile,functions:courseActivityHeatReconcile
 
-# 인덱스 (`courseActivity` liveNow + activeRiderCount 포함)
-firebase deploy --only firestore:indexes
+# 인덱스·규칙 (`courseActivity` liveNow + `liveCourseRides` collection group)
+firebase deploy --only firestore:indexes,firestore:rules
+```
+
+**CF만 배포(Stripe 시크릿 설정 후):**
+
+```bash
+firebase functions:secrets:set STRIPE_SECRET_KEY
+firebase functions:secrets:set STRIPE_PRICE_ID
+firebase functions:secrets:set STRIPE_WEBHOOK_SECRET
+firebase deploy --only functions:courseActivityOnRideCreated,functions:courseActivityOnLiveCourseRideWritten,functions:courseActivityScheduledReconcile,functions:courseActivityHeatReconcile
 ```
 
 **P0-6 배포 순서:** indexes → functions → hosting (인덱스 Ready 전에도 웹은 폴백 쿼리 동작).
@@ -93,3 +103,4 @@ firebase deploy --only firestore:indexes
 | 2026-05-23 | P2-6 — Trailhead 포함 동일 Trail 관전 복구 |
 | 2026-05-23 | P2-7 — LOD·traceStrength 회귀 수정 |
 | 2026-05-23 | P0-6 — 코스별 LOD·liveNow 쿼리·CF highlighted 24 |
+| 2026-05-23 | P0-8·P2-1 — Trail CG·LOD §8 상한 문서 |
