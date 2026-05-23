@@ -46,13 +46,22 @@ firebase deploy --only hosting
 **Cloud Functions(Mapbox Directions 프록시):** `functions/` 에 Callable **`getMapboxDirections`** 가 있다. Mapbox **secret** 을 쓰므로 프로젝트가 **Blaze(종량제)** 여야 하는 경우가 많다.
 
 ```powershell
-cd C:\20.HDev\boxcycle\functions
-npm install
-cd ..
-# 최초 1회: 시크릿에 Mapbox 토큰 저장(Mapbox 계정에서 발급한 동일 토큰을 서버 전용으로 써도 되고, 제한된 pk.를 써도 됨)
+cd C:\20.HDev\boxcycle
+# 최초 1회: Secret Manager (저장소 루트에서 실행)
 firebase functions:secrets:set MAPBOX_ACCESS_TOKEN
+# 구독 Functions 배포·전체 deploy 시 필수 (Stripe 테스트/라이브 키 — 빈 Enter 금지)
+firebase functions:secrets:set STRIPE_SECRET_KEY
+firebase functions:secrets:set STRIPE_PRICE_ID
+firebase functions:secrets:set STRIPE_WEBHOOK_SECRET
+
+cd functions
+npm install
+npm run build
+cd ..
 firebase deploy --only functions
 ```
+
+**단일 함수만 배포**해도(`--only functions:courseActivityOnLiveCourseRideWritten` 등) CLI는 **전체 `functions/src` 를 분석**하므로, 위 Stripe 시크릿에 **ENABLED 버전**이 없으면 배포 중 `Secret Payload cannot be empty` 가 날 수 있다. `firebase functions:secrets:describe STRIPE_PRICE_ID` 로 버전 표가 비어 있지 않은지 확인한다.
 
 배포 후 웹 앱은 기본 리전 **`asia-northeast3`** 으로 Callable 을 호출한다. Functions 를 다른 리전에 두었다면 `apps/web/.env` 에 `VITE_FUNCTIONS_REGION` 을 맞춘다.
 

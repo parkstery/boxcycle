@@ -216,6 +216,8 @@ flowchart TB
 
 ## 7. 배포·개발 시 습관
 
+- [ ] Functions 배포 전 시크릿: `MAPBOX_ACCESS_TOKEN`(버전 있음) · `STRIPE_SECRET_KEY` · `STRIPE_PRICE_ID` · `STRIPE_WEBHOOK_SECRET` — **빈 값으로 Enter 하지 않음** (`Secret Payload cannot be empty`)
+- [ ] 단일 함수 deploy 도 전체 코드베이스 분석 → Stripe 시크릿 없으면 `courseActivityOnLiveCourseRideWritten` 만 배포해도 실패할 수 있음
 - [ ] 로컬·CI에서 **에뮬레이터** 우선 (`firebase emulators`) — Blaze 실과금 테스트 최소화
 - [ ] E2E·수동 테스트 후 Functions 호출 수·Logging **스파이크** 확인
 - [ ] `.env` / secret / `.firebase/` 캐시는 **커밋·배포 산출물 제외**
