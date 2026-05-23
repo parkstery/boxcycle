@@ -13,6 +13,8 @@
     "preview": "npm run preview -w boxcycle-web",
     "lint": "npm run lint -w boxcycle-web",
     "deploy:hosting": "npm run build && firebase deploy --only hosting",
+    "deploy:course-activity-functions": "firebase deploy --only \"functions:courseActivityOnLiveCourseRideWritten,functions:courseActivityScheduledReconcile\"",
+    "deploy:publication-presence": "npm run build && firebase deploy --only firestore:indexes,firestore:rules && firebase deploy --only \"functions:courseActivityOnLiveCourseRideWritten,functions:courseActivityScheduledReconcile\" && firebase deploy --only hosting",
     "deploy:firestore": "firebase deploy --only firestore",
     "deploy:functions": "firebase deploy --only functions",
     "deploy:web": "npm run build && firebase deploy --only hosting,firestore",

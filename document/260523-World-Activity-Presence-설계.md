@@ -223,6 +223,26 @@ Layer 1·2의 **단일 진실**. `publicationId` === `routePublications` 문서 
 
 **M1 전제:** CF 배포·Rules·midpoint 계산(서버 또는 publication 승인 시 1회).
 
+### 9.1 배포 (PowerShell — **저장소 루트**에서)
+
+| 단계 | 명령 | 비고 |
+|------|------|------|
+| 1 | `cd C:\20.HDev\boxcycle` | **`functions\` 안에서 workspace·firebase 필터 오동작** |
+| 2 | `firebase deploy --only firestore:indexes,firestore:rules` | ✅ 완료 시 생략 |
+| 3 | `firebase deploy --only "functions:courseActivityOnLiveCourseRideWritten,functions:courseActivityScheduledReconcile"` | **`--only` 값은 반드시 따옴표** (PowerShell 쉼표=배열) |
+| 4 | `npm run build` | 루트 script → `boxcycle-web` 빌드 |
+| 5 | `firebase deploy --only hosting` | 또는 `npm run deploy:hosting` |
+
+**Functions 배포가 `STRIPE_PRICE_ID` 등으로 막히면:** 코드베이스 전체가 Secret Manager를 검사한다. 구독 미사용이어도 **placeholder 시크릿 1회 등록** 후 3번 재시도:
+
+```powershell
+firebase functions:secrets:set STRIPE_SECRET_KEY
+firebase functions:secrets:set STRIPE_PRICE_ID
+firebase functions:secrets:set STRIPE_WEBHOOK_SECRET
+```
+
+**`No function matches given --only filters`:** (1) 루트가 아닌 CWD (2) `--only` 미인용 (PowerShell).
+
 ---
 
 ## 10. [Activity World LOD](260517-Activity-World-지도-LOD-설계.md) 와의 역할 분담
