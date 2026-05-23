@@ -82,44 +82,32 @@ export function canRenderActivityWorldLines(
 }
 
 /**
- * LINE 가능하면 LINE, 아니면 DOT — DOT를 먼저 끄는 `showDots:false` 구조 없음.
- * MapView 소스 존재는 sync 레이어 책임; 여기서는 전달 배열만 결정.
+ * 1) DOT는 raw에 있으면 **항상** 전달 (줌아웃 blank 방지).
+ * 2) zoom≥13 + geometry → LINE **추가**.
+ * MapView는 `map.getZoom()` 으로 호출 — React `mapLodZoom` 지연과 분리.
  */
 export function resolveActivityWorldRender(
   mapZoom: number,
   raw: ActivityWorldRawOverlay,
 ): ActivityWorldRenderOverlay {
   const lineOk = canRenderActivityWorldLines(mapZoom, raw);
-  const rawDotCount = raw.pulseDots.length + raw.heatDots.length;
-  const rawLineCount = raw.pulseRoutes.length + raw.heatRoutes.length;
+  const pulseDots = [...raw.pulseDots];
+  const heatDots = [...raw.heatDots];
+  let pulseRoutes = lineOk ? [...raw.pulseRoutes] : [];
+  let heatRoutes = lineOk ? [...raw.heatRoutes] : [];
 
-  if (lineOk) {
-    return {
-      pulseRoutes: [...raw.pulseRoutes],
-      heatRoutes: [...raw.heatRoutes],
-      pulseDots: [],
-      heatDots: [],
-    };
+  const hasDots = pulseDots.length + heatDots.length > 0;
+  const hasLines = pulseRoutes.length + heatRoutes.length > 0;
+
+  if (!hasDots && !hasLines) {
+    const rawLines = raw.pulseRoutes.length + raw.heatRoutes.length;
+    if (rawLines > 0) {
+      pulseRoutes = [...raw.pulseRoutes];
+      heatRoutes = [...raw.heatRoutes];
+    }
   }
 
-  const pulseDots = rawDotCount > 0 ? [...raw.pulseDots] : [];
-  const heatDots = rawDotCount > 0 ? [...raw.heatDots] : [];
-
-  if (pulseDots.length + heatDots.length === 0 && rawLineCount > 0) {
-    return {
-      pulseRoutes: [...raw.pulseRoutes],
-      heatRoutes: [...raw.heatRoutes],
-      pulseDots: [],
-      heatDots: [],
-    };
-  }
-
-  return {
-    pulseRoutes: [],
-    heatRoutes: [],
-    pulseDots,
-    heatDots,
-  };
+  return { pulseRoutes, heatRoutes, pulseDots, heatDots };
 }
 
 export function resolveActivityWorldLodDebug(
@@ -130,12 +118,13 @@ export function resolveActivityWorldLodDebug(
   const z = Number.isFinite(mapZoom) ? mapZoom : 12;
   const lineRenderable = canRenderActivityWorldLines(z, raw);
   const showingLine = render.pulseRoutes.length + render.heatRoutes.length > 0;
-  const channel: "line" | "dot" = showingLine ? "line" : "dot";
+  const showingDot = render.pulseDots.length + render.heatDots.length > 0;
+  const channel: "line" | "dot" = showingLine && lineRenderable ? "line" : "dot";
   const label = lineRenderable
-    ? `LINE z≥${MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN} (${z.toFixed(1)})`
-    : raw.pulseDots.length + raw.heatDots.length > 0
+    ? `LINE+DOT z≥${MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN} (${z.toFixed(1)})`
+    : showingDot
       ? `DOT z<${MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN} (${z.toFixed(1)})`
-      : `DOT fallback (${z.toFixed(1)})`;
+      : `empty (${z.toFixed(1)})`;
   return { label, channel, lineRenderable, mapZoom: z };
 }
 

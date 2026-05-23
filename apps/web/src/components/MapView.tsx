@@ -3,8 +3,10 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import {
   lngLatBoundsToViewport,
+  resolveActivityWorldRender,
   viewportSpanKm,
   type ActivityWorldMapRoute,
+  type ActivityWorldRawOverlay,
   type MapViewportBounds,
 } from "../lib/activityWorldLod";
 import { ACTIVITY_TRACE_RED } from "../lib/activityWorldTraceStyle";
@@ -59,6 +61,13 @@ const PICK_POPUP_PROFILE_ICON_SVG: Record<RouteProfile, string> = {
 
 /** 사용자 경로 탐색 결과 폴리라인 (`route` 소스·레이어) */
 const ROUTE_LINE_COLOR = "#ef4444";
+
+const EMPTY_ACTIVITY_WORLD_RAW: ActivityWorldRawOverlay = {
+  pulseRoutes: [],
+  heatRoutes: [],
+  pulseDots: [],
+  heatDots: [],
+};
 
 const ACTIVITY_PULSE_SRC = "boxcycle-activity-pulse-routes";
 const ACTIVITY_PULSE_GLOW = "boxcycle-activity-pulse-routes-glow";
@@ -757,13 +766,8 @@ export type MapViewProps = {
   /** Trail: 같은 Trail 에서 코스 주행 중인 다른 사용자(원 + 노선 LOD 는 부모에서 처리) */
   trailSpectatorDots?: TrailSpectatorDot[] | null;
   trailSpectatorRoutes?: LineStringGeometry[] | null;
-  /** aggregate 기반 라이브 코스(빨강 100%) — LINE 모드 */
-  activityPulseRoutes?: ActivityWorldMapRoute[] | null;
-  /** aggregate 기반 최근 활동 흔적(빨강 강도 단계) — LINE 모드 */
-  activityHeatRoutes?: ActivityWorldMapRoute[] | null;
-  /** Activity World DOT 모드 — 라이브 앵커 */
-  activityPulseDots?: ActivityWorldDotFeature[] | null;
-  activityHeatDots?: ActivityWorldDotFeature[] | null;
+  /** Activity World loader 출력 — MapView 가 map zoom 으로 LINE/DOT 적용 */
+  activityWorldRaw?: ActivityWorldRawOverlay | null;
   /** Activity World 점 탭 시 팝업 문구 (없으면 기본 pick 팝업) */
   getActivityWorldPinLabel?: ((courseId: string, kind: "pulse" | "heat") => string | null) | null;
   /** 맵 이동·줌 완료 시 뷰포트(span km 포함) */
@@ -801,10 +805,7 @@ export function MapView({
   placeSearchMarkerLngLat = null,
   trailSpectatorDots = null,
   trailSpectatorRoutes = null,
-  activityPulseRoutes = null,
-  activityHeatRoutes = null,
-  activityPulseDots = null,
-  activityHeatDots = null,
+  activityWorldRaw = null,
   getActivityWorldPinLabel = null,
   onMapViewport,
   onMapLodViewport,
@@ -817,17 +818,15 @@ export function MapView({
     dots: trailSpectatorDots ?? [],
     routes: trailSpectatorRoutes ?? [],
   };
-  const activityWorldDataRef = useRef<{
-    pulseRoutes: ActivityWorldMapRoute[];
-    heatRoutes: ActivityWorldMapRoute[];
-    pulseDots: ActivityWorldDotFeature[];
-    heatDots: ActivityWorldDotFeature[];
-  }>({ pulseRoutes: [], heatRoutes: [], pulseDots: [], heatDots: [] });
-  activityWorldDataRef.current = {
-    pulseRoutes: activityPulseRoutes ?? [],
-    heatRoutes: activityHeatRoutes ?? [],
-    pulseDots: activityPulseDots ?? [],
-    heatDots: activityHeatDots ?? [],
+  const activityWorldRawRef = useRef<ActivityWorldRawOverlay>(EMPTY_ACTIVITY_WORLD_RAW);
+  activityWorldRawRef.current = activityWorldRaw ?? EMPTY_ACTIVITY_WORLD_RAW;
+  const syncActivityWorldLayersOnMapRef = useRef<(map: mapboxgl.Map) => void>(() => {});
+  syncActivityWorldLayersOnMapRef.current = (map) => {
+    if (!map.isStyleLoaded()) return;
+    const z = Number(map.getZoom().toFixed(1));
+    const render = resolveActivityWorldRender(z, activityWorldRawRef.current);
+    syncCourseActivityLayers(map, render.pulseRoutes, render.heatRoutes);
+    syncActivityWorldDotLayers(map, render.pulseDots, render.heatDots);
   };
 
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -1001,7 +1000,6 @@ export function MapView({
     let lodLastEmit = 0;
     const LOD_VIEWPORT_THROTTLE_MS = 100;
     const scheduleLodViewportReport = () => {
-      if (!onMapLodViewportRef.current) return;
       if (lodRaf) return;
       lodRaf = requestAnimationFrame(() => {
         lodRaf = 0;
@@ -1011,7 +1009,8 @@ export function MapView({
           return;
         }
         lodLastEmit = now;
-        reportMapLodViewport();
+        if (onMapLodViewportRef.current) reportMapLodViewport();
+        syncActivityWorldLayersOnMapRef.current(map);
       });
     };
 
@@ -1020,6 +1019,7 @@ export function MapView({
       onMapZoomRef.current(Number(map.getZoom().toFixed(1)));
       reportMapViewport();
       reportMapLodViewport();
+      syncActivityWorldLayersOnMapRef.current(map);
     });
 
     map.on("moveend", reportMapViewport);
@@ -1072,16 +1072,7 @@ export function MapView({
           trailSpectatorDataRef.current.dots,
           trailSpectatorDataRef.current.routes,
         );
-        syncCourseActivityLayers(
-          map,
-          activityWorldDataRef.current.pulseRoutes,
-          activityWorldDataRef.current.heatRoutes,
-        );
-        syncActivityWorldDotLayers(
-          map,
-          activityWorldDataRef.current.pulseDots,
-          activityWorldDataRef.current.heatDots,
-        );
+        syncActivityWorldLayersOnMapRef.current(map);
       } catch {
         /* noop */
       }
@@ -1548,11 +1539,7 @@ export function MapView({
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
 
-    const syncActivity = () => {
-      if (!map.isStyleLoaded()) return;
-      syncCourseActivityLayers(map, activityPulseRoutes ?? [], activityHeatRoutes ?? []);
-      syncActivityWorldDotLayers(map, activityPulseDots ?? [], activityHeatDots ?? []);
-    };
+    const syncActivity = () => syncActivityWorldLayersOnMapRef.current(map);
 
     syncActivity();
     if (!map.isStyleLoaded()) {
@@ -1563,7 +1550,7 @@ export function MapView({
       map.off("style.load", syncActivity);
       map.off("idle", syncActivity);
     };
-  }, [mapLoaded, activityPulseRoutes, activityHeatRoutes, activityPulseDots, activityHeatDots]);
+  }, [mapLoaded, activityWorldRaw]);
 
   useEffect(() => {
     const map = mapRef.current;

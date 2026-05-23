@@ -569,11 +569,6 @@ export default function App() {
     [mapLodZoom, activityWorldRaw, activityWorldRender],
   );
 
-  const activityPulseRoutes = activityWorldRender.pulseRoutes;
-  const activityHeatRoutes = activityWorldRender.heatRoutes;
-  const activityPulseDots = activityWorldRender.pulseDots;
-  const activityHeatDots = activityWorldRender.heatDots;
-
   const getActivityWorldPinLabel = useCallback(
     (courseId: string, kind: "pulse" | "heat") => {
       const id = courseId.trim();
@@ -604,10 +599,7 @@ export default function App() {
         live: catalogActivityOverlayStats.liveCandidates,
         heat: catalogActivityOverlayStats.heatCandidates,
       },
-      render: {
-        pulseDots: activityPulseDots.length,
-        pulseLines: activityPulseRoutes.length,
-      },
+      render: activityWorldRender,
       catalog: catalogActivityOverlayStats,
       catalogEnabled: catalogActivityEnabled,
     });
@@ -618,8 +610,7 @@ export default function App() {
     mapLodSpanKm,
     activityWorldLodDebug,
     activityWorldRaw,
-    activityPulseDots.length,
-    activityPulseRoutes.length,
+    activityWorldRender,
     catalogActivityOverlayStats,
     catalogActivityEnabled,
   ]);
@@ -1357,10 +1348,7 @@ export default function App() {
           placeSearchMarkerLngLat={placeSearchMarkerLngLat}
           trailSpectatorDots={spectatorDots}
           trailSpectatorRoutes={spectatorRouteGeometries}
-          activityPulseRoutes={activityPulseRoutes}
-          activityHeatRoutes={activityHeatRoutes}
-          activityPulseDots={activityPulseDots}
-          activityHeatDots={activityHeatDots}
+          activityWorldRaw={activityWorldRaw}
           getActivityWorldPinLabel={getActivityWorldPinLabel}
         />
 
@@ -1372,8 +1360,8 @@ export default function App() {
             mapViewportSpanKm != null ? `${mapViewportSpanKm.toFixed(0)}km` : "—"
           }
 dots ${activityWorldRaw.pulseDots.length}+${activityWorldRaw.heatDots.length} → ${
-            activityPulseDots.length
-          } | lines ${activityWorldRaw.pulseRoutes.length} → ${activityPulseRoutes.length}
+            activityWorldRender.pulseDots.length
+          } | lines ${activityWorldRaw.pulseRoutes.length} → ${activityWorldRender.pulseRoutes.length}
 heat ${catalogActivityOverlayStats.heatCandidates} live ${catalogActivityOverlayStats.liveCandidates}
 geom ${catalogActivityOverlayStats.geometryReady}/${catalogActivityOverlayStats.activityRows} bounds ${catalogActivityOverlayStats.boundsReady}`}</pre>
         ) : null}
