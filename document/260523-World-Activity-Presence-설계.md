@@ -4,7 +4,7 @@
 |------|------|
 | 문서 유형 | **product** + **architecture** — 월드 맵 activity event·presence·비용 경계의 **단일 진실** |
 | 최초 작성 | 2026-05-23 |
-| 상태 | **코드 반영 중** — M1·M2 클라이언트·CF 집계 (2026-05-23) |
+| 상태 | **코드 반영 중** — M1~M3 클라이언트·CF 집계 (2026-05-23) |
 | 연결 문서 | [Route Publication 모델](260518-Route-Publication-통합-모델-및-마이그레이션.md), [Activity World LOD](260517-Activity-World-지도-LOD-설계.md)(렌더·줌), [Firestore 트래픽 계획](260516-Firestore-트래픽-저감-상세-수정-계획.md), [Firebase 비용 체크리스트](260523-Firebase-비용-운영-체크리스트.md), [경로 표시 백로그](260518-Activity-World-경로표시-우선순위-백로그.md) |
 
 ---
@@ -219,7 +219,7 @@ Layer 1·2의 **단일 진실**. `publicationId` === `routePublications` 문서 
 |------|------|---------|
 | **M1** | `publicationPresence` + Layer 2 active dot + Layer 3 heartbeat **집계 분리** | “지금 세계 각지에서 activity event” + **비용 안정** |
 | **M2** | Layer 1 closed + age fade | “예전에도 달렸다” |
-| **M3** | zoom≥13 publication geometry **선** ([LOD](260517-Activity-World-지도-LOD-설계.md) 재사용) | 가까이서 **형상** — heartbeat 없음 |
+| **M3** | zoom≥13 publication geometry **선** — `useWorldPublicationPresenceOverlay` | **코드 반영** (2026-05-23) |
 
 **M1 전제:** CF 배포·Rules·midpoint 계산(서버 또는 publication 승인 시 1회).
 
@@ -255,3 +255,4 @@ publication 단위 dot·closed fade가 쌓이면:
 |------|------|
 | 2026-05-23 | PM 확정 — publication 1 dot, distance midpoint, public/private, 3-layer·heartbeat 분리 |
 | 2026-05-23 | M1·M2 코드 — `publicationPresence` CF·클라이언트 폴링·월드 dot |
+| 2026-05-23 | M3 — publication geometry line, catalog `worldMapRenderEnabled` skip |

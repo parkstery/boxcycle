@@ -550,10 +550,14 @@ export default function App() {
   const {
     pulseDots: publicationPulseDots,
     heatDots: publicationHeatDots,
+    pulseRoutes: publicationPulseRoutes,
+    heatRoutes: publicationHeatRoutes,
     presenceByPublicationId,
     overlayStats: publicationPresenceOverlayStats,
   } = useWorldPublicationPresenceOverlay({
     enabled: publicationPresenceWorldMapEnabled,
+    mapZoom,
+    excludePublicationId: isRideSessionActive ? trackedCourseId : null,
     refreshNonce: activityMapRefreshNonce,
   });
 
@@ -570,6 +574,7 @@ export default function App() {
     excludeCourseId: isRideSessionActive ? trackedCourseId : null,
     mapZoom,
     enabled: catalogActivityEnabled,
+    worldMapRenderEnabled: !publicationPresenceWorldMapEnabled,
     refreshNonce: activityMapRefreshNonce,
   });
 
@@ -600,11 +605,21 @@ export default function App() {
 
   const catalogPulseDotsForWorld = publicationPresenceWorldMapEnabled ? [] : catalogPulseDots;
   const catalogHeatDotsForWorld = publicationPresenceWorldMapEnabled ? [] : catalogHeatForMerge.heatDots;
+  const catalogPulseRoutesForWorld = publicationPresenceWorldMapEnabled ? [] : catalogPulseRoutes;
+  const catalogHeatRoutesForWorld = publicationPresenceWorldMapEnabled
+    ? []
+    : catalogHeatForMerge.heatRoutes;
 
   const activityWorldRaw = useMemo(
     () => ({
-      pulseRoutes: [...activeCoursePulseRoutes, ...catalogPulseRoutes],
-      heatRoutes: [...activeCourseHeatRoutes, ...catalogHeatForMerge.heatRoutes],
+      pulseRoutes: [
+        ...activeCoursePulseRoutes,
+        ...(publicationPresenceWorldMapEnabled ? publicationPulseRoutes : catalogPulseRoutesForWorld),
+      ],
+      heatRoutes: [
+        ...activeCourseHeatRoutes,
+        ...(publicationPresenceWorldMapEnabled ? publicationHeatRoutes : catalogHeatRoutesForWorld),
+      ],
       pulseDots: mergeActivityWorldDots(
         activeCoursePulseDots,
         publicationPresenceWorldMapEnabled ? publicationPulseDots : catalogPulseDotsForWorld,
@@ -616,9 +631,11 @@ export default function App() {
     }),
     [
       activeCoursePulseRoutes,
-      catalogPulseRoutes,
+      catalogPulseRoutesForWorld,
+      publicationPulseRoutes,
       activeCourseHeatRoutes,
-      catalogHeatForMerge,
+      catalogHeatRoutesForWorld,
+      publicationHeatRoutes,
       activeCoursePulseDots,
       catalogPulseDotsForWorld,
       publicationPulseDots,
@@ -1478,8 +1495,14 @@ export default function App() {
 dots ${activityWorldRaw.pulseDots.length}+${activityWorldRaw.heatDots.length} → ${
             activityWorldRender.pulseDots.length
           } | lines ${activityWorldRaw.pulseRoutes.length} → ${activityWorldRender.pulseRoutes.length}
-heat ${catalogActivityOverlayStats.heatCandidates} live ${catalogActivityOverlayStats.liveCandidates}
-geom ${catalogActivityOverlayStats.geometryReady}/${catalogActivityOverlayStats.activityRows} bounds ${catalogActivityOverlayStats.boundsReady} anchorMiss ${catalogActivityOverlayStats.anchorMissing}
+heat ${publicationPresenceWorldMapEnabled ? publicationPresenceOverlayStats.activeCount : catalogActivityOverlayStats.liveCandidates} live ${
+            publicationPresenceWorldMapEnabled ? publicationPresenceOverlayStats.closedCount : catalogActivityOverlayStats.heatCandidates
+          }
+geom ${
+            publicationPresenceWorldMapEnabled
+              ? `${publicationPresenceOverlayStats.geometryReady}/${publicationPresenceOverlayStats.activeCount + publicationPresenceOverlayStats.closedCount}`
+              : `${catalogActivityOverlayStats.geometryReady}/${catalogActivityOverlayStats.activityRows}`
+          } anchorMiss ${publicationPresenceWorldMapEnabled ? publicationPresenceOverlayStats.anchorMissing : catalogActivityOverlayStats.anchorMissing}
 liveIds ${liveActivityCourseIds.length} catalog ${catalogCourseIds.length}`}</pre>
         ) : null}
 

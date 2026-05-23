@@ -55,6 +55,8 @@ type UsePublishedCoursesActivityMapOverlayOpts = {
   excludeCourseId: string | null;
   mapZoom: number;
   enabled: boolean;
+  /** false면 aggregate만 조회 — dot/line·geometry 로드 생략(publication presence 사용 시) */
+  worldMapRenderEnabled?: boolean;
   /** 주행 종료 등 — 즉시 aggregate·bounds 재조회 */
   refreshNonce?: number;
 };
@@ -167,7 +169,7 @@ export function usePublishedCoursesActivityMapOverlay(
   activityByCourseId: ReadonlyMap<string, CourseActivitySnapshot | null>;
   overlayStats: PublishedCoursesActivityOverlayStats;
 } {
-  const { courseIds, excludeCourseId, mapZoom, enabled, refreshNonce = 0 } = opts;
+  const { courseIds, excludeCourseId, mapZoom, enabled, worldMapRenderEnabled = true, refreshNonce = 0 } = opts;
   const [activityByCourseId, setActivityByCourseId] = useState<
     ReadonlyMap<string, CourseActivitySnapshot | null>
   >(() => new Map());
@@ -204,12 +206,20 @@ export function usePublishedCoursesActivityMapOverlay(
       const map = await fetchCourseActivitiesBatch(courseIds, { refresh: false });
       if (cancelled) return;
       const exclude = excludeCourseId?.trim() ?? "";
-      const candidateIds = selectOverlayCandidateIds(map, exclude);
+      const candidateIds = worldMapRenderEnabled
+        ? selectOverlayCandidateIds(map, exclude)
+        : [];
 
       startTransition(() => {
         setActivityByCourseId(map);
         setOverlayCandidateIds(candidateIds);
       });
+
+      if (!worldMapRenderEnabled) {
+        geomByCourseRef.current.clear();
+        boundsByCourseRef.current.clear();
+        return;
+      }
 
       const keep = new Set(candidateIds);
       const geomMap = geomByCourseRef.current;
@@ -240,7 +250,7 @@ export function usePublishedCoursesActivityMapOverlay(
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [enabled, courseIdsKey, excludeCourseId, courseIds]);
+  }, [enabled, courseIdsKey, excludeCourseId, courseIds, worldMapRenderEnabled]);
 
   useEffect(() => {
     if (!enabled || refreshNonce === 0) return;
@@ -252,11 +262,14 @@ export function usePublishedCoursesActivityMapOverlay(
       const map = await fetchCourseActivitiesBatch(courseIds, { refresh: true });
       if (cancelled) return;
       const exclude = excludeCourseId?.trim() ?? "";
-      const candidateIds = selectOverlayCandidateIds(map, exclude);
+      const candidateIds = worldMapRenderEnabled
+        ? selectOverlayCandidateIds(map, exclude)
+        : [];
       startTransition(() => {
         setActivityByCourseId(map);
         setOverlayCandidateIds(candidateIds);
       });
+      if (!worldMapRenderEnabled) return;
       const geomMap = geomByCourseRef.current;
       const boundsMap = boundsByCourseRef.current;
       for (const cid of candidateIds) {
@@ -270,9 +283,30 @@ export function usePublishedCoursesActivityMapOverlay(
     return () => {
       cancelled = true;
     };
-  }, [refreshNonce, enabled, courseIdsKey, excludeCourseId, courseIds]);
+  }, [refreshNonce, enabled, courseIdsKey, excludeCourseId, courseIds, worldMapRenderEnabled]);
 
   const { overlay, overlayStats } = useMemo(() => {
+    if (!worldMapRenderEnabled) {
+      return {
+        overlay: {
+          pulseRoutes: [],
+          heatRoutes: [],
+          pulseDots: [],
+          heatDots: [],
+        } satisfies CourseActivityMapOverlay,
+        overlayStats: {
+          boundsReady: 0,
+          geometryReady: 0,
+          boundsLoading: 0,
+          geometryLoading: 0,
+          activityRows: 0,
+          liveCandidates: 0,
+          heatCandidates: 0,
+          anchorMissing: 0,
+        } satisfies PublishedCoursesActivityOverlayStats,
+      };
+    }
+
     const pulseRoutes: ActivityWorldMapRoute[] = [];
     const heatRoutes: ActivityWorldMapRoute[] = [];
     const pulseDots: ActivityWorldMapDot[] = [];
@@ -365,7 +399,7 @@ export function usePublishedCoursesActivityMapOverlay(
         anchorMissing,
       } satisfies PublishedCoursesActivityOverlayStats,
     };
-  }, [activityByCourseId, overlayCandidateIds, mapZoom, overlayEpoch]);
+  }, [activityByCourseId, overlayCandidateIds, mapZoom, overlayEpoch, worldMapRenderEnabled]);
 
   return { ...overlay, activityByCourseId, overlayStats };
 }
