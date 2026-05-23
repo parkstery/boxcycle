@@ -19,9 +19,9 @@
 | P0-2 | **§J-3** 카탈로그·activity 배지 | QA | ⬜ | |
 | P0-3 | **프로덕션 배포** Hosting + CF (`courseActivity*`, `rides`) | Ops | ✅ | https://boxcycle-dc2df.web.app (2026-05-18) |
 | P0-4 | LOD **zoom≥13** 기준·span 폐기 문서 정합 | 문서 | ✅ | `MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN=13`, span 미사용 |
-| P0-5 | Firestore **indexes** 배포 (`rides` + `courseActivity` liveNow) | Ops | ⬜ | `courseActivity` 복합 인덱스 — 배포 후 Building 확인 |
-| P0-6 | 코스별 LOD MIX·`fetchLiveCourseActivityIds`·highlighted 24 | 웹·CF | ✅ | `runActivityWorldLodP0Checks` DEV |
-| P0-7 | **재배포** Hosting + CF (P0-6 반영) | Ops | ⬜ | 아래 배포 체크리스트 |
+| P0-5 | Firestore **indexes** 배포 (`rides` + `courseActivity` liveNow) | Ops | ✅ | 2026-05-23 `courseActivity` liveNow+activeRiderCount |
+| P0-6 | 코스별 LOD MIX·`fetchLiveCourseActivityIds`·highlighted 24 | 웹·CF | ✅ | `runActivityWorldLodP0Checks` DEV · `ea8dce3` |
+| P0-7 | **재배포** Hosting + CF (P0-6 반영) | Ops | 🟡 | Hosting ✅ `boxcycle-dc2df.web.app` · CF는 STRIPE 시크릿 필요 |
 
 ---
 
