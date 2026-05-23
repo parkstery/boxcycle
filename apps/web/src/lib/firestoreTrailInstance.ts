@@ -2,15 +2,10 @@ import {
   collection,
   doc,
   getDoc,
-  getDocs,
   getFirestore,
-  limit,
-  orderBy,
-  query,
   serverTimestamp,
   setDoc,
   updateDoc,
-  where,
   type FieldValue,
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
@@ -18,10 +13,10 @@ import { getFirebaseApp } from "./firebase";
 import { pickRandomTrailDisplayNumber } from "./trailDisplayNumber";
 import { TRAILS_COLLECTION } from "./firestoreTrailPaths";
 import {
-  countTrailLiveRidersFresh,
-  fetchTrailIdsWithActiveLiveRides,
-} from "./firestoreTrailLiveCourseRides";
-import { countTrailMembersFresh } from "./firestoreTrail";
+  removeOpenTrailListing,
+  refreshOpenTrailListingFromTrail,
+  scheduleOpenTrailListingRefresh,
+} from "./firestoreOpenTrailListings";
 import { assertPublicTrailHasRoute, trailHasConfiguredRoute } from "./trailAccessPolicy";
 
 export type TrailVisibility = "open" | "private";
@@ -128,7 +123,7 @@ export async function createTrailInstance(input: {
     lastActivityAt: serverTimestamp(),
   };
   await setDoc(ref, payload);
-  return {
+  const created: TrailInstance = {
     id: ref.id,
     hostUid: input.hostUid,
     displayNumber,
@@ -140,6 +135,8 @@ export async function createTrailInstance(input: {
     createdAtMs: Date.now(),
     lastActivityAtMs: Date.now(),
   };
+  void refreshOpenTrailListingFromTrail(created.id);
+  return created;
 }
 
 export async function fetchTrailInstance(trailId: string): Promise<TrailInstance | null> {
@@ -156,6 +153,7 @@ export async function closeTrailInstance(trailId: string): Promise<void> {
     closedAt: serverTimestamp(),
     lastActivityAt: serverTimestamp(),
   });
+  void removeOpenTrailListing(trailId);
 }
 
 export async function touchTrailInstanceActivity(trailId: string): Promise<void> {
@@ -163,6 +161,7 @@ export async function touchTrailInstanceActivity(trailId: string): Promise<void>
   await updateDoc(doc(db, TRAILS_COLLECTION, trailId), {
     lastActivityAt: serverTimestamp(),
   }).catch(() => {});
+  scheduleOpenTrailListingRefresh(trailId);
 }
 
 export async function setTrailVisibility(
@@ -180,104 +179,9 @@ export async function setTrailVisibility(
     visibility,
     lastActivityAt: serverTimestamp(),
   });
-}
-
-const OPEN_TRAILS_CANDIDATE_LIMIT = 40;
-
-function shouldFallbackOpenTrailsList(e: unknown): boolean {
-  const code = (e as { code?: string })?.code;
-  if (code === "permission-denied" || code === "failed-precondition") return true;
-  const msg = e instanceof Error ? e.message : String(e);
-  return msg.includes("Missing or insufficient permissions") || msg.includes("requires an index");
-}
-
-async function countTrailActiveParticipantsFresh(trailId: string): Promise<number> {
-  const [live, members] = await Promise.all([
-    countTrailLiveRidersFresh(trailId).catch(() => 0),
-    countTrailMembersFresh(trailId).catch(() => 0),
-  ]);
-  return Math.max(live, members);
-}
-
-async function enrichOpenTrailsWithLiveCounts(base: TrailInstance[]): Promise<TrailInstance[]> {
-  const withCounts = await Promise.all(
-    base.map(async (t) => {
-      try {
-        const liveRiderCount = await countTrailActiveParticipantsFresh(t.id);
-        return { ...t, liveRiderCount };
-      } catch {
-        return { ...t, liveRiderCount: 0 };
-      }
-    }),
-  );
-  return withCounts
-    .filter((t) => (t.liveRiderCount ?? 0) > 0)
-    .sort((a, b) => (b.liveRiderCount ?? 0) - (a.liveRiderCount ?? 0));
-}
-
-function mergeOpenTrailLists(...lists: TrailInstance[][]): TrailInstance[] {
-  const byId = new Map<string, TrailInstance>();
-  for (const list of lists) {
-    for (const t of list) {
-      const prev = byId.get(t.id);
-      if (!prev || (t.liveRiderCount ?? 0) > (prev.liveRiderCount ?? 0)) {
-        byId.set(t.id, t);
-      }
-    }
-  }
-  return [...byId.values()].sort((a, b) => (b.liveRiderCount ?? 0) - (a.liveRiderCount ?? 0));
-}
-
-/** collection group 실패 시: 공개 open Trail 후보를 훑고 fresh 라이더만 남김 */
-async function fetchOpenTrailInstancesFromCandidates(): Promise<TrailInstance[]> {
-  const db = getFirestore(getFirebaseApp());
-  const q = query(
-    collection(db, TRAILS_COLLECTION),
-    where("status", "==", "open"),
-    where("visibility", "==", "open"),
-    orderBy("lastActivityAt", "desc"),
-    limit(OPEN_TRAILS_CANDIDATE_LIMIT),
-  );
-  const snap = await getDocs(q);
-  const base = snap.docs
-    .map((d) => parseTrailInstance(d.id, d.data() as Record<string, unknown>))
-    .filter((t) => trailHasConfiguredRoute(t));
-  return enrichOpenTrailsWithLiveCounts(base);
-}
-
-async function fetchOpenTrailInstancesFromLiveRides(): Promise<TrailInstance[]> {
-  const trailIds = await fetchTrailIdsWithActiveLiveRides();
-  if (trailIds.length === 0) return [];
-
-  const metas = await Promise.all(trailIds.map((id) => fetchTrailInstance(id)));
-  const joinable = metas.filter(
-    (t): t is TrailInstance =>
-      t != null &&
-      t.status === "open" &&
-      t.visibility === "open" &&
-      trailHasConfiguredRoute(t),
-  );
-  return enrichOpenTrailsWithLiveCounts(joinable);
-}
-
-/** Trailhead에서 합류 가능한 공개 Trail — 주행 중(`liveCourseRides`·`members`) + 메타 조회 병합 */
-export async function fetchOpenTrailInstances(): Promise<TrailInstance[]> {
-  let fromLive: TrailInstance[] = [];
-  let fromCandidates: TrailInstance[] = [];
-
-  try {
-    fromLive = await fetchOpenTrailInstancesFromLiveRides();
-  } catch (e) {
-    if (!shouldFallbackOpenTrailsList(e)) throw e;
-  }
-
-  try {
-    fromCandidates = await fetchOpenTrailInstancesFromCandidates();
-  } catch (e) {
-    if (fromLive.length === 0 && !shouldFallbackOpenTrailsList(e)) throw e;
-  }
-
-  return mergeOpenTrailLists(fromLive, fromCandidates);
+  void (visibility === "open"
+    ? refreshOpenTrailListingFromTrail(trailId)
+    : removeOpenTrailListing(trailId));
 }
 
 export function canUserManageTrail(trail: TrailInstance | null, user: User | null | undefined): boolean {

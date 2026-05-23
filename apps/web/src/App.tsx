@@ -217,7 +217,6 @@ export default function App() {
   /** `liveNow` 쿼리 — 카탈로그·highlighted 밖 라이브 코스 포함 */
   const [liveActivityCourseIds, setLiveActivityCourseIds] = useState<string[]>([]);
   const [worldHudLines, setWorldHudLines] = useState<string | null>(null);
-  const [openTrailsRefreshNonce, setOpenTrailsRefreshNonce] = useState(0);
   const [trailVisibilityBusy, setTrailVisibilityBusy] = useState(false);
   const [trailStartBusy, setTrailStartBusy] = useState(false);
   /** 이번 주행에서 호스트로 연 Trail — 종료 시 close */
@@ -240,7 +239,6 @@ export default function App() {
 
   const openTrailsQuery = useOpenTrails({
     enabled: Boolean(configured && user && trailheadSessionActive && menuOpen),
-    refreshNonce: openTrailsRefreshNonce,
   });
   /** leaveBasicHub 등에서 최신 주행 종료 로직을 호출하기 위한 ref */
   const handleEndRideRef = useRef<() => void>(() => {});
@@ -911,7 +909,6 @@ export default function App() {
     setTrailId(tid);
     replaceTrailInUrl(tid);
     hostTrailIdRef.current = null;
-    setOpenTrailsRefreshNonce((n) => n + 1);
   }, [setTrailDraft, setTrailId]);
 
   const goTrailheadAndCloseMenu = useCallback(() => {
@@ -1103,7 +1100,6 @@ export default function App() {
         setTrailId(trail.id);
         setTrailDraft(trail.id);
         replaceTrailInUrl(trail.id);
-        setOpenTrailsRefreshNonce((n) => n + 1);
         resetArrivalGate();
         resetRide();
         setRideStatus("running");
