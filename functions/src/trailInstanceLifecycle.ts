@@ -1,5 +1,6 @@
 import { FieldValue, getFirestore, Timestamp } from "firebase-admin/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
+import { OPEN_TRAIL_LISTINGS_COLLECTION } from "./openTrailListingCore.js";
 
 const TRAILS_COLLECTION = "trails";
 const MEMBERS_SUB = "members";
@@ -88,6 +89,7 @@ export const trailInstanceLifecycle = onSchedule(
       if (archivedMs == null || archivedMs > purgeCutoff) continue;
       const trailId = doc.id;
       if (trailId === "default") continue;
+      await db.collection(OPEN_TRAIL_LISTINGS_COLLECTION).doc(trailId).delete().catch(() => {});
       await deleteSubcollection(trailId, MEMBERS_SUB);
       await deleteSubcollection(trailId, LIVE_SUB);
       await doc.ref.delete();

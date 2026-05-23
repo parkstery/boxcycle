@@ -252,3 +252,9 @@ export { subscriptionExpireSweep } from "./subscriptionScheduled.js";
 export { subscriptionDevApplyHttp } from "./subscriptionDevHttp.js";
 export { backfillRoutePublicationsHttp } from "./backfillRoutePublications.js";
 export { trailInstanceLifecycle } from "./trailInstanceLifecycle.js";
+export {
+  openTrailListingOnTrailWritten,
+  openTrailListingOnMemberWritten,
+  openTrailListingOnLiveCourseRideWritten,
+} from "./openTrailListingProjection.js";
+export { openTrailListingsSweep } from "./openTrailListingsSweep.js";
