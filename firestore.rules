@@ -130,6 +130,34 @@ service cloud.firestore {
         && get(userDocPath()).data.tier in ['registered_free', 'registered_paid', 'admin'];
     }
 
+    function trailInstanceDoc(trailId) {
+      return /databases/$(database)/documents/trails/$(trailId);
+    }
+
+    function trailHasCourseId(data) {
+      return data.keys().hasAny(['courseId'])
+        && data.courseId is string
+        && data.courseId.size() > 0;
+    }
+
+    /** 공개 Trail 은 courseId 필수 — 비공개는 경로 없이 개설 가능(개설자 전용) */
+    function trailOpenVisibilityValid(data) {
+      return data.visibility != 'open' || trailHasCourseId(data);
+    }
+
+    /**
+     * Trail presence·liveCourseRides — Trailhead(`default`)·공개 Trail·비공개 Trail 개설자.
+     * 비공개 Trail 타인 합류는 초대·승인 후속 — Rules 에서 차단.
+     */
+    function trailParticipantWriteAllowed(trailId) {
+      return trailId == 'default'
+        || (exists(trailInstanceDoc(trailId))
+          && (
+            get(trailInstanceDoc(trailId)).data.visibility == 'open'
+            || get(trailInstanceDoc(trailId)).data.hostUid == request.auth.uid
+          ));
+    }
+
     match /users/{userId} {
       allow read: if isSignedIn();
       allow create: if isSelf(userId)
@@ -178,6 +206,7 @@ service cloud.firestore {
         && request.resource.data.displayNumber <= 999
         && request.resource.data.status == 'open'
         && request.resource.data.visibility in ['open', 'private']
+        && trailOpenVisibilityValid(request.resource.data)
         && request.resource.data.keys().hasAll([
           'hostUid', 'displayNumber', 'status', 'visibility', 'createdAt', 'lastActivityAt'
         ]);
@@ -186,14 +215,15 @@ service cloud.firestore {
         && request.resource.data.hostUid == resource.data.hostUid
         && request.resource.data.displayNumber == resource.data.displayNumber
         && request.resource.data.status in ['open', 'closed']
-        && request.resource.data.visibility in ['open', 'private'];
+        && request.resource.data.visibility in ['open', 'private']
+        && trailOpenVisibilityValid(request.resource.data);
       allow delete: if false;
     }
 
     /** Trail presence — `rooms/` 레거시는 아래 read-only */
     match /trails/{trailId}/members/{userId} {
       allow read: if isSignedIn();
-      allow create, update: if isSelf(userId);
+      allow create, update: if isSelf(userId) && trailParticipantWriteAllowed(trailId);
       allow delete: if isSelf(userId);
     }
 
@@ -209,6 +239,7 @@ service cloud.firestore {
     match /trails/{trailId}/liveCourseRides/{userId} {
       allow read: if isSignedIn();
       allow create, update: if isSelf(userId)
+        && trailParticipantWriteAllowed(trailId)
         && request.resource.data.keys().hasAll(['courseId', 'progressRatio', 'lastSeenAt'])
         && request.resource.data.keys().hasOnly(['courseId', 'progressRatio', 'lastSeenAt', 'displayName'])
         && request.resource.data.courseId is string

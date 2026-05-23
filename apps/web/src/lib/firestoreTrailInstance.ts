@@ -21,6 +21,7 @@ import {
   countTrailLiveRidersFresh,
   fetchTrailIdsWithActiveLiveRides,
 } from "./firestoreTrailLiveCourseRides";
+import { assertPublicTrailHasRoute, trailHasConfiguredRoute } from "./trailAccessPolicy";
 
 export type TrailVisibility = "open" | "private";
 export type TrailStatus = "open" | "closed" | "archived";
@@ -107,6 +108,10 @@ export async function createTrailInstance(input: {
   distanceKm: number | null;
   visibility?: TrailVisibility;
 }): Promise<TrailInstance> {
+  const visibility = input.visibility ?? "open";
+  if (visibility === "open") {
+    assertPublicTrailHasRoute(input.courseId);
+  }
   const db = getFirestore(getFirebaseApp());
   const ref = doc(collection(db, TRAILS_COLLECTION));
   const displayNumber = pickRandomTrailDisplayNumber();
@@ -116,7 +121,7 @@ export async function createTrailInstance(input: {
     courseId: input.courseId,
     regionLabel: input.regionLabel,
     distanceKm: input.distanceKm,
-    visibility: input.visibility ?? "open",
+    visibility,
     status: "open",
     createdAt: serverTimestamp(),
     lastActivityAt: serverTimestamp(),
@@ -163,6 +168,12 @@ export async function setTrailVisibility(
   trailId: string,
   visibility: TrailVisibility,
 ): Promise<void> {
+  if (visibility === "open") {
+    const existing = await fetchTrailInstance(trailId);
+    if (!existing || !trailHasConfiguredRoute(existing)) {
+      throw new Error("공개 Trail은 경로(코스)가 설정된 후에만 가능합니다.");
+    }
+  }
   const db = getFirestore(getFirebaseApp());
   await updateDoc(doc(db, TRAILS_COLLECTION, trailId), {
     visibility,
@@ -206,7 +217,9 @@ async function fetchOpenTrailInstancesFromCandidates(): Promise<TrailInstance[]>
     limit(OPEN_TRAILS_CANDIDATE_LIMIT),
   );
   const snap = await getDocs(q);
-  const base = snap.docs.map((d) => parseTrailInstance(d.id, d.data() as Record<string, unknown>));
+  const base = snap.docs
+    .map((d) => parseTrailInstance(d.id, d.data() as Record<string, unknown>))
+    .filter((t) => trailHasConfiguredRoute(t));
   return enrichOpenTrailsWithLiveCounts(base);
 }
 
@@ -217,7 +230,10 @@ async function fetchOpenTrailInstancesFromLiveRides(): Promise<TrailInstance[]> 
   const metas = await Promise.all(trailIds.map((id) => fetchTrailInstance(id)));
   const joinable = metas.filter(
     (t): t is TrailInstance =>
-      t != null && t.status === "open" && t.visibility === "open",
+      t != null &&
+      t.status === "open" &&
+      t.visibility === "open" &&
+      trailHasConfiguredRoute(t),
   );
   return enrichOpenTrailsWithLiveCounts(joinable);
 }

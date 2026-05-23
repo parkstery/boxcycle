@@ -74,6 +74,7 @@ import {
   isTrailMemberActive,
   sanitizeTrailId,
 } from "./lib/firestoreTrail";
+import { canUserJoinTrail, resolveNewTrailVisibility } from "./lib/trailAccessPolicy";
 import { replaceTrailInUrl } from "./lib/trailUrl";
 import type { LngLat } from "./lib/geo";
 import { getPointOnRouteByDistance, lineStringLengthMeters } from "./lib/geo";
@@ -912,7 +913,16 @@ export default function App() {
       if (next === DEFAULT_TRAIL_ID) return;
       void (async () => {
         const meta = await fetchTrailInstance(next).catch(() => null);
-        if (meta?.courseId) {
+        if (!meta) {
+          setRouteSummary("Trail을 찾을 수 없습니다.");
+          return;
+        }
+        const gate = canUserJoinTrail(meta, user);
+        if (!gate.ok) {
+          setRouteSummary(gate.message);
+          return;
+        }
+        if (meta.courseId) {
           await loadCourseRouteForTrailJoin(meta.courseId);
         }
         hostTrailIdRef.current = null;
@@ -922,7 +932,7 @@ export default function App() {
         setMenuOpen(false);
       })();
     },
-    [rideStatus, setRouteSummary, setTrailDraft, setTrailId, loadCourseRouteForTrailJoin],
+    [rideStatus, setRouteSummary, setTrailDraft, setTrailId, loadCourseRouteForTrailJoin, user],
   );
 
   const handleSetTrailVisibility = useCallback(
@@ -939,6 +949,36 @@ export default function App() {
     },
     [currentTrailMeta, user, reloadCurrentTrailMeta, setError],
   );
+
+  /** URL·북마크로 비공개 Trail 등에 직접 진입한 경우 Trailhead로 되돌림 */
+  useEffect(() => {
+    if (!configured || !user || rideStatus !== "idle") return;
+    const tid = sanitizedTrailId;
+    if (tid === DEFAULT_TRAIL_ID) return;
+    let cancelled = false;
+    void (async () => {
+      const meta = await fetchTrailInstance(tid).catch(() => null);
+      if (cancelled) return;
+      if (!meta) {
+        setRouteSummary("Trail을 찾을 수 없습니다.");
+        returnToTrailhead();
+        return;
+      }
+      const gate = canUserJoinTrail(meta, user);
+      if (!gate.ok) {
+        setRouteSummary(gate.message);
+        returnToTrailhead();
+        return;
+      }
+      if (meta.courseId) {
+        await loadCourseRouteForTrailJoin(meta.courseId);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- trailId 전환 시 1회만 검증·경로 로드
+  }, [sanitizedTrailId, user?.uid, configured, rideStatus]);
 
   function handleStartRide() {
     if (!routeGeometry || rideStatus !== "idle" || !user || !configured || trailStartBusy) return;
@@ -958,11 +998,16 @@ export default function App() {
       try {
         const currentTid = sanitizeTrailId(trailId);
 
-        /** MENU에서 연 Trail(081 등) 합류 후 ▶ — 새 Trail 생성하지 않음 */
+        /** MENU에서 연 Trail 합류 후 ▶ — 새 Trail 생성하지 않음 */
         if (currentTid !== DEFAULT_TRAIL_ID) {
           const existing = await fetchTrailInstance(currentTid);
           if (!existing) {
             setError("선택한 Trail을 찾을 수 없습니다.");
+            return;
+          }
+          const gate = canUserJoinTrail(existing, user);
+          if (!gate.ok) {
+            setError(gate.message);
             return;
           }
           if (existing.status !== "open") {
@@ -981,12 +1026,13 @@ export default function App() {
           return;
         }
 
+        const visibility = resolveNewTrailVisibility(courseId);
         const trail = await createTrailInstance({
           hostUid: user.uid,
-          courseId,
+          courseId: courseId ?? null,
           regionLabel,
           distanceKm: routeDistanceMeters > 0 ? routeDistanceMeters / 1000 : null,
-          visibility: "open",
+          visibility,
         });
         hostTrailIdRef.current = trail.id;
         const prev = sanitizeTrailId(trailId);

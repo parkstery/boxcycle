@@ -32,7 +32,7 @@ function formatTrailRow(t: TrailInstance): string {
       : "—";
   const km =
     t.distanceKm != null && Number.isFinite(t.distanceKm) ? `${t.distanceKm.toFixed(1)} km` : "—";
-  const vis = t.visibility === "private" ? "PRIVATE" : "OPEN";
+  const vis = t.visibility === "private" ? "비공개" : "공개";
   return `${num} / ${region} / ${riders} / ${km} / ${vis}`;
 }
 
@@ -69,8 +69,8 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
           </span>
         ) : (
           <span className="trail-hub__current-meta">
-            Trailhead에서는 ▶ 시 새 Trail이 열립니다. 아래 목록에서 Trail을 고른 뒤 ▶ 하면
-            그 Trail에 합류해 함께 주행합니다.
+            Trailhead에서는 ▶ 시 Trail이 열립니다(코스·경로 필요). 아래 공개 Trail 목록에서
+            선택한 뒤 ▶ 하면 해당 Trail 안에서 함께 주행합니다.
           </span>
         )}
       </div>
@@ -96,7 +96,7 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
               disabled={props.visibilityBusy}
               onClick={() => props.onSetVisibility("open")}
             >
-              Open
+              공개
             </button>
             <button
               type="button"
@@ -108,14 +108,14 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
               disabled={props.visibilityBusy}
               onClick={() => props.onSetVisibility("private")}
             >
-              Private
+              비공개
             </button>
           </div>
         ) : null}
       </div>
 
       <div className="trail-hub__list-head">
-        <span className="trail-hub__kicker">주행 중 Trail</span>
+        <span className="trail-hub__kicker">공개 Trail</span>
         {props.openTrailsLoading ? <span className="trail-hub__meta">불러오는 중…</span> : null}
       </div>
       {props.openTrailsError ? (
@@ -140,7 +140,7 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
       ) : (
         <p className="trail-hub__empty">
           {onTrailhead
-            ? "지금 주행 중인 공개 Trail이 없습니다."
+            ? "지금 합류 가능한 공개 Trail이 없습니다. ▶ 로 Trail을 열거나, 주행 중인 공개 Trail이 생기면 여기에 표시됩니다."
             : "다른 주행 중인 Trail이 없습니다."}
         </p>
       )}
