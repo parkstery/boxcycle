@@ -286,7 +286,8 @@ BASIC_SHARED_HUB_IDS
 | 항목 | 내용 |
 |------|------|
 | DOT가 bounds 중심 | 실제 주행 위치와 수 km 차이 가능 → v2 `liveAnchor` 또는 툴팁「라이브 코스 · N명」 |
-| zoom **≥ 13** (코스별) | `MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN` — 한 곳에서 조정 |
+| zoom **≥ 13** (코스별) | `MAP_ZOOM_ACTIVITY_WORLD_LINE_ENTER_MIN` — 한 곳에서 조정 |
+| zoom 히스테리시스 | LINE 유지 `≥ 12.5` (`EXIT_MIN`) · DOT 전환 `≥ 13` (`ENTER_MIN`) — MapView ref |
 | heat 7일 | CF `courseActivityHeatReconcile` 일 1회 재집계 — [백로그 P1-1](260518-Activity-World-경로표시-우선순위-백로그.md) |
 | geometry·후보 상한 | 카탈로그 **라이브 10 + heat 10** (`MAX_*_MAP_OVERLAY`). 멀리서 **DOT**는 `liveNow` 쿼리·highlighted로 더 많을 수 있음. **LINE**은 후보 20건 중 geometry 로드된 코스만(z≥13·코스별 MIX). 화면 밖 코스도 bounds·앵커는 표시될 수 있음 |
 | 카탈로그 화이트리스트 | 퍼블릭·highlighted·`fetchLiveCourseActivityIds`·Trail `liveCourseIds` 합집 — 문서에 없는 코스 ID는 aggregate 미조회 |

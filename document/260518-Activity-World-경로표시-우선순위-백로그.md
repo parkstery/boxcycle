@@ -48,10 +48,10 @@
 | P2-1 | geometry 로드 **상한 20건** — 화면 밖 live 코스 라인 누락 문서화 | ✅ | [LOD §8](260517-Activity-World-지도-LOD-설계.md) 2026-05-23 |
 | P2-2 | `recentLikeCount` 지도 반영 (heat red보다 약한 레이어?) | ⬜ | 패널 배지는 있음; heat는 red 계열 확정([LOD §3.3](260517-Activity-World-지도-LOD-설계.md)) |
 | P2-3 | **30일** heat / `worldActivity` 타일 | ⬜ | v2 |
-| P2-4 | LOD **히스테리시스** (span/zoom 경계 떨림) | ⬜ | zoom 11.5~13 hybrid 이미 완화 |
+| P2-4 | LOD **히스테리시스** (zoom 12.5~13) | ✅ | enter 13 / exit 12.5 · MapView `activityWorldLodStateRef` |
 | P2-7 | LOD span null·lines-only 빈 맵·heat `traceStrength` 가시성 | ✅ | 2026-05-23 `activityWorldLod`·MapView |
 | P2-8 | 코스별 LOD XOR·`fetchLiveCourseActivityIds`·폴링 캐시 | 웹 | ✅ | 2026-05-23 전역 LINE→mixed, liveNow 쿼리 |
-| P2-5 | reconcile 시 `liveAnchor` 정리 (stale live) | ⬜ | 6h reconcile 확장 |
+| P2-5 | reconcile 시 `liveAnchor` 정리 (stale live) | ✅ | `courseActivityScheduledReconcile` count=0 시 delete |
 | P2-6 | Trailhead(`default`)에서 **B층 관전** 활성화 | ✅ | `trailSpectatorOverlayEnabled` — `onDedicatedTrail` 조건 제거 (2026-05-23) |
 
 ---
@@ -104,3 +104,4 @@ firebase deploy --only functions:courseActivityOnRideCreated,functions:courseAct
 | 2026-05-23 | P2-7 — LOD·traceStrength 회귀 수정 |
 | 2026-05-23 | P0-6 — 코스별 LOD·liveNow 쿼리·CF highlighted 24 |
 | 2026-05-23 | P0-8·P2-1 — Trail CG·LOD §8 상한 문서 |
+| 2026-05-23 | P2-4·P2-5 — LOD 히스테리시스·reconcile liveAnchor 삭제 |

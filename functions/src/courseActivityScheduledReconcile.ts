@@ -52,16 +52,17 @@ export const courseActivityScheduledReconcile = onSchedule(
 
     const writeCourse = (courseId: string, count: number) => {
       const ref = db.doc(`${COURSE_ACTIVITY_COLLECTION}/${courseId}`);
-      batch.set(
-        ref,
-        {
-          activeRiderCount: count,
-          liveNow: count > 0,
-          pulseLevel: count > 0 ? Math.min(3, Math.max(1, count)) : 0,
-          updatedAt: FieldValue.serverTimestamp(),
-        },
-        { merge: true },
-      );
+      const patch: Record<string, unknown> = {
+        activeRiderCount: count,
+        liveNow: count > 0,
+        pulseLevel: count > 0 ? Math.min(3, Math.max(1, count)) : 0,
+        updatedAt: FieldValue.serverTimestamp(),
+      };
+      if (count === 0) {
+        patch.liveAnchorLngLat = FieldValue.delete();
+        patch.liveAnchorProgressRatio = FieldValue.delete();
+      }
+      batch.set(ref, patch, { merge: true });
       batchOps += 1;
     };
 

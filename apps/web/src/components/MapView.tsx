@@ -2,9 +2,11 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import {
+  DEFAULT_ACTIVITY_WORLD_LOD_STATE,
   lngLatBoundsToViewport,
   resolveActivityWorldRender,
   viewportSpanKm,
+  type ActivityWorldLodState,
   type ActivityWorldMapRoute,
   type ActivityWorldRawOverlay,
   type MapViewportBounds,
@@ -820,11 +822,13 @@ export function MapView({
   };
   const activityWorldRawRef = useRef<ActivityWorldRawOverlay>(EMPTY_ACTIVITY_WORLD_RAW);
   activityWorldRawRef.current = activityWorldRaw ?? EMPTY_ACTIVITY_WORLD_RAW;
+  const activityWorldLodStateRef = useRef<ActivityWorldLodState>(DEFAULT_ACTIVITY_WORLD_LOD_STATE);
   const syncActivityWorldLayersOnMapRef = useRef<(map: mapboxgl.Map) => void>(() => {});
   syncActivityWorldLayersOnMapRef.current = (map) => {
     if (!map.isStyleLoaded()) return;
     const z = Number(map.getZoom().toFixed(1));
-    const render = resolveActivityWorldRender(z, activityWorldRawRef.current);
+    const render = resolveActivityWorldRender(z, activityWorldRawRef.current, activityWorldLodStateRef.current);
+    activityWorldLodStateRef.current = render.nextLodState;
     syncCourseActivityLayers(map, render.pulseRoutes, render.heatRoutes);
     syncActivityWorldDotLayers(map, render.pulseDots, render.heatDots);
   };
