@@ -5,7 +5,7 @@
 | 문서 유형 | **execution** — Blaze 비용 관측·예산·Functions/Firestore/Storage 대응 체크리스트 |
 | 최초 작성 | 2026-05-23 |
 | 상태 | **검토됨** |
-| 연결 문서 | [보안 분석 보고서](260516-보안-분석-보고서.md), [Firestore 트래픽 저감 계획](260516-Firestore-트래픽-저감-상세-수정-계획.md), [Firestore 부하 1차 조치 종합](260515-(cycle)Firestore-부하-경감-조치-종합보고서.md), [Activity World LOD](260517-Activity-World-지도-LOD-설계.md), [문서 생성·수정 지침](260509-BOXCYCLE-문서-생성-및-수정-지침.md) |
+| 연결 문서 | [World Activity Presence](260523-World-Activity-Presence-설계.md), [보안 분석 보고서](260516-보안-분석-보고서.md), [Firestore 트래픽 저감 계획](260516-Firestore-트래픽-저감-상세-수정-계획.md), [Firestore 부하 1차 조치 종합](260515-(cycle)Firestore-부하-경감-조치-종합보고서.md), [Activity World LOD](260517-Activity-World-지도-LOD-설계.md), [문서 생성·수정 지침](260509-BOXCYCLE-문서-생성-및-수정-지침.md) |
 
 ---
 

@@ -4,10 +4,10 @@
 |------|------|
 | 작성일 | 2026-05-18 |
 | 상태 | **진행 중** — P0·P1 일부 반영 |
-| 상위 | [지도 LOD 설계](260517-Activity-World-지도-LOD-설계.md), [Firestore 트래픽 계획](260516-Firestore-트래픽-저감-상세-수정-계획.md) |
+| 상위 | [World Activity Presence](260523-World-Activity-Presence-설계.md), [지도 LOD 설계](260517-Activity-World-지도-LOD-설계.md), [Firestore 트래픽 계획](260516-Firestore-트래픽-저감-상세-수정-계획.md) |
 | 스모크 | [수동 스모크 §J](260516-수동-스모크-체크리스트.md) §J-3~J-4 |
 
-**v1 판정:** 지도에 코스·라이브·종료 heat를 보여주는 **1차 목표는 달성**. 아래는 **출시 품질·운영·발견(v1.5)·확장(v2)** 순이다.
+**v1 판정:** 지도에 코스·라이브·종료 heat를 보여주는 **1차 목표는 달성**(레거시 `courseActivity` 구현). **2026-05-23 PM 확정:** 월드 맵 presence는 [World Activity Presence](260523-World-Activity-Presence-설계.md) (`publicationId` 1 dot)로 **재정의·M1~M3 이전** — 아래 P0·P1은 구현 기준 갱신 예정.
 
 ---
 
@@ -105,3 +105,4 @@ firebase deploy --only functions:courseActivityOnRideCreated,functions:courseAct
 | 2026-05-23 | P0-6 — 코스별 LOD·liveNow 쿼리·CF highlighted 24 |
 | 2026-05-23 | P0-8·P2-1 — Trail CG·LOD §8 상한 문서 |
 | 2026-05-23 | P2-4·P2-5 — LOD 히스테리시스·reconcile liveAnchor 삭제 |
+| 2026-05-23 | [World Activity Presence](260523-World-Activity-Presence-설계.md) — 월드 맵 presence 재정의, M1~M3 이전 |

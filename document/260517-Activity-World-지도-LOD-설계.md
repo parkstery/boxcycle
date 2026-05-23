@@ -2,12 +2,15 @@
 
 | 항목 | 내용 |
 |------|------|
-| 문서 유형 | **product** + **architecture** (지도 UX·데이터 경계) |
+| 문서 유형 | **product** + **architecture** (지도 UX·**줌 LOD 렌더**) |
 | 작성일 | 2026-05-17 |
-| 상태 | **v1+v2(anchor) 구현 완료** — 타일·수동 스모크 잔여 |
+| 상태 | **v1+v2(anchor) 구현 완료** — **데이터·presence 키는 [World Activity Presence](260523-World-Activity-Presence-설계.md)로 이전 예정** |
+| **Presence 단일 진실** | [World Activity Presence](260523-World-Activity-Presence-설계.md) — `publicationId` 1 dot, distance midpoint, heartbeat 분리 |
 | 백로그 | [경로 표시 우선순위](260518-Activity-World-경로표시-우선순위-백로그.md) P0~P3 |
 | 상위 | [Firestore 트래픽·Activity World](260516-Firestore-트래픽-저감-상세-수정-계획.md) §4 |
 | 구분 | [제품 용어 Trailhead·Trail](260517-제품-용어-Trailhead-Trail.md), [같은 Trail 관전](260514-(cycle)로비_코스주행자_맵관전_구현_보고서.md), [Route Token 경제](260518-Route-Token-경제-설계.md) §6.3 (토큰 드롭 v2) |
+
+> **2026-05-23:** 월드 맵 **무엇을·왜** 표시할지(`courseId` aggregate → **`routePublicationId` presence dot**)는 [260523-World-Activity-Presence-설계.md](260523-World-Activity-Presence-설계.md)가 우선한다. 본 문서는 **점↔선 LOD·Mapbox 레이어·줌 임계값**을 담는다.
 
 ---
 
@@ -307,4 +310,5 @@ BASIC_SHARED_HUB_IDS
 | 2026-05-18 | §3.3 heat 시각 — 와이어 「회색」→ 구현 **red 계열** (`#dc2626`, `traceStrength`·dash로 라이브/heat 구분), 지도 회색 UI 혼동 방지 rationale |
 | 2026-05-23 | §2.1 데이터 흐름 Mermaid(배경 transparent) · §2.2 Trailhead 관전 OFF·A/B/C 점검 표 |
 | 2026-05-23 | B층 — Trailhead(`default`) 포함 동일 `trailId` 관전 재활성 (`App.tsx` `onDedicatedTrail` 제거) |
+| 2026-05-23 | [World Activity Presence](260523-World-Activity-Presence-설계.md) — presence·데이터 키 단일 진실 분리, 본 문서는 LOD 렌더 보조 |
 | 2026-05-23 | LOD — span null·고줌 라인 누락 수정, lines-only 점 폴백, `traceStrength` 최소 opacity(MapView) |

@@ -21,6 +21,7 @@
 | 서비스 비전·UGC·권한(장기) | [260511-RTW-마스터-비전-및-종합계획](260511-RTW-마스터-비전-및-종합계획.md) |
 | 제품 용어 Trailhead / Trail | [260517-제품-용어-Trailhead-Trail](260517-제품-용어-Trailhead-Trail.md) |
 | tier·진입·Firestore identity | [260519-사용자-tier-및-진입-정책](260519-사용자-tier-및-진입-정책.md) |
+| 월드 맵 activity presence · publication dot | [260523-World-Activity-Presence-설계](260523-World-Activity-Presence-설계.md) |
 
 ---
 
@@ -37,7 +38,8 @@
 | [260519-tier-subscription-정책](260519-tier-subscription-정책.md) | Stripe 구독 → `registered_paid` | |
 | [260519-tier-quota-정책](260519-tier-quota-정책.md) | tier별 생성·저장 한도 | |
 | [260518-Route-Token-경제-설계](260518-Route-Token-경제-설계.md) | Route Token 경제 루프 | `+architecture` |
-| [260517-Activity-World-지도-LOD-설계](260517-Activity-World-지도-LOD-설계.md) | Activity World 지도 LOD·UX | `+architecture` |
+| [260523-World-Activity-Presence-설계](260523-World-Activity-Presence-설계.md) | publication 1 dot · heartbeat 분리 | 단일 진실 · `+architecture` |
+| [260517-Activity-World-지도-LOD-설계](260517-Activity-World-지도-LOD-설계.md) | 지도 LOD(점↔선)·Mapbox | presence는 위 문서 우선 |
 | [260514-맵퍼스트-HUD-시트-화면구성-디자인-분석](260514-맵퍼스트-HUD-시트-화면구성-디자인-분석.md) | 맵 퍼스트 HUD·시트 구현 분석 | 메타 블록 없음 · 2026-05-14 코드 기준 |
 
 ---
@@ -52,7 +54,7 @@
 | [260511-경로저장-계층화-Frozen-Route-Segment](260511-경로저장-계층화-Frozen-Route-Segment.md) | Frozen Route·Segment 저장 | 단일 진실 |
 | [260511-코스-수명-UGC-품질-정책](260511-코스-수명-UGC-품질-정책.md) | UGC 코스 수명·품질 게이트 | 단일 진실 |
 | [260511-Firestore-Rules-일반화-방안](260511-Firestore-Rules-일반화-방안.md) | Rules 데이터 기반 일반화 | 단일 진실 |
-| [260518-Route-Publication-통합-모델-및-마이그레이션](260518-Route-Publication-통합-모델-및-마이그레이션.md) | 경로 정체성·퍼블릭 출판 | |
+| [260518-Route-Publication-통합-모델-및-마이그레이션](260518-Route-Publication-통합-모델-및-마이그레이션.md) | 경로 정체성·퍼블릭 출판 | presence 키: `publicationId` |
 | [260516-보안-분석-보고서](260516-보안-분석-보고서.md) | 코드베이스 정적 보안 분석 | |
 | [260523-Firebase-비용-운영-체크리스트](260523-Firebase-비용-운영-체크리스트.md) | Firebase·GCP 비용 관측·예산·증폭 경로 | `+execution` · [실행](#execution--실행)에도 교차 참조 |
 | [260515-로그인-인증-코드-위치-및-흐름-보고서](260515-로그인-인증-코드-위치-및-흐름-보고서.md) | 인증 스택·코드 위치 | `+record` · [기록](#record--기록)에도 교차 참조 |
@@ -114,3 +116,4 @@
 |------|------|
 | 2026-05-23 | 최초 작성 — 네 덩어리 색인(단기 방안: 파일명·폴더 구조 유지) |
 | 2026-05-23 | `260523-Firebase-비용-운영-체크리스트` 추가 (execution·architecture 교차) |
+| 2026-05-23 | `260523-World-Activity-Presence-설계` 추가 — 단일 진실 |

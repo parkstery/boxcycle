@@ -6,6 +6,8 @@
 
 **서비스 비전·UGC 정책·저장 전략(장기)** 의 단일 진실은 [`document/260511-RTW-마스터-비전-및-종합계획.md`](document/260511-RTW-마스터-비전-및-종합계획.md)를 본다.
 
+**월드 맵 activity presence(publication dot·heartbeat 분리)** 의 단일 진실은 [`document/260523-World-Activity-Presence-설계.md`](document/260523-World-Activity-Presence-설계.md)를 본다.
+
 Mapbox 기반 **실내 사이클** 서비스입니다. Mapbox 시뮬 검증은 완료되었으며, 본 개발 앱은 **`apps/web`** (Vite + TypeScript + React + Firebase Auth) 에서 진행한다.
 
 ## 본 개발 웹 앱 (`apps/web`)
