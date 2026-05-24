@@ -482,6 +482,7 @@ export default function App() {
     routeGeometry,
     trackedCourseId,
     publishedPublicCourses,
+    openTrails: openTrailsQuery.rows,
     coursePeerMarkers,
     activityMapRefreshNonce,
   });

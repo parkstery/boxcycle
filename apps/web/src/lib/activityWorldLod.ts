@@ -146,6 +146,18 @@ export function resolveActivityWorldRender(
     if (!lineModeForCourse(mapZoom, d.courseId, lineReady, lodState)) heatDots.push({ ...d });
   }
 
+  /** LINE 모드인데 해당 코스 라인이 아직 없으면 DOT 유지 — geometry 로드 지연·줌 전환 깜빡임 방지 */
+  const pulseLineCourseIds = new Set(pulseRoutes.map((r) => r.courseId));
+  for (const d of raw.pulseDots) {
+    if (pulseDots.some((x) => x.courseId === d.courseId)) continue;
+    if (!pulseLineCourseIds.has(d.courseId)) pulseDots.push({ ...d });
+  }
+  const heatLineCourseIds = new Set(heatRoutes.map((r) => r.courseId));
+  for (const d of raw.heatDots) {
+    if (heatDots.some((x) => x.courseId === d.courseId)) continue;
+    if (!heatLineCourseIds.has(d.courseId)) heatDots.push({ ...d });
+  }
+
   let overlay: ActivityWorldRenderOverlay;
   if (pulseRoutes.length + heatRoutes.length + pulseDots.length + heatDots.length > 0) {
     overlay = { pulseRoutes, heatRoutes, pulseDots, heatDots };

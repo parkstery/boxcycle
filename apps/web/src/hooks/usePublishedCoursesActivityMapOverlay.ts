@@ -22,6 +22,7 @@ import {
 } from "../lib/firestoreCourseActivity";
 import type { LineStringGeometry } from "../lib/geo";
 import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../lib/geoDecimate";
+import { resolveActivityWorldDotLngLat } from "../lib/activityWorldAnchor";
 import { COURSE_ACTIVITY_POLL_MS } from "../lib/rideSyncPolicy";
 import type { CourseActivityMapOverlay } from "./useCourseActivityMapOverlay";
 
@@ -123,7 +124,18 @@ function ensureBoundsLoaded(
       if (b) {
         boundsMap.set(cid, { status: "ready", lngLat: boundsCenterLngLat(b) });
       } else {
-        boundsMap.set(cid, { status: "missing" });
+        const payload = await fetchCourseRoutePayload(cid);
+        const geom = payload?.geometry;
+        if (geom?.coordinates?.length) {
+          const derived = resolveActivityWorldDotLngLat(row, geom);
+          if (derived) {
+            boundsMap.set(cid, { status: "ready", lngLat: derived });
+          } else {
+            boundsMap.set(cid, { status: "missing" });
+          }
+        } else {
+          boundsMap.set(cid, { status: "missing" });
+        }
       }
     } catch {
       boundsMap.set(cid, { status: "missing" });
@@ -340,6 +352,10 @@ export function usePublishedCoursesActivityMapOverlay(
 
       let lngLat: LngLat | null = row.liveAnchorLngLat;
       if (!lngLat && b?.status === "ready") lngLat = b.lngLat;
+      const routeGeometry = g?.status === "ready" ? g.geometry : null;
+      if (!lngLat && routeGeometry) {
+        lngLat = resolveActivityWorldDotLngLat(row, routeGeometry);
+      }
       if (isCourseActivityLive(row) || isCourseActivityHeat(row)) {
         if (!lngLat) anchorMissing += 1;
       }

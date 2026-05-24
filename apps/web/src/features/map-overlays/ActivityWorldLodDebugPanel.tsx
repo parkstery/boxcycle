@@ -17,6 +17,8 @@ export type ActivityWorldLodDebugPanelProps = {
   catalogGeometryReady: number;
   catalogActivityRows: number;
   catalogAnchorMissing: number;
+  liveCourseRidePulse: number;
+  liveCourseRideCourses: number;
   liveActivityCourseIdsCount: number;
   catalogCourseIdsCount: number;
 };
@@ -39,6 +41,8 @@ export function ActivityWorldLodDebugPanel(props: ActivityWorldLodDebugPanelProp
     catalogGeometryReady,
     catalogActivityRows,
     catalogAnchorMissing,
+    liveCourseRidePulse,
+    liveCourseRideCourses,
     liveActivityCourseIdsCount,
     catalogCourseIdsCount,
   } = props;
@@ -63,7 +67,8 @@ geom ${
       } anchorMiss ${
         publicationPresenceWorldMapEnabled ? publicationAnchorMissing : catalogAnchorMissing
       }
-liveIds ${liveActivityCourseIdsCount} catalog ${catalogCourseIdsCount}`}
+liveIds ${liveActivityCourseIdsCount} catalog ${catalogCourseIdsCount}
+liveRides ${liveCourseRideCourses}→dot ${liveCourseRidePulse}`}
     </pre>
   );
 }
