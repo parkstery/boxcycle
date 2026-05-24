@@ -1,19 +1,7 @@
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
-import {
-  collectionGroup,
-  getFirestore,
-  limit,
-  onSnapshot,
-  orderBy,
-  query,
-  Timestamp,
-  where,
-  type FirestoreError,
-} from "firebase/firestore";
 import type { ActivityWorldMapDot, ActivityWorldMapRoute } from "../../lib/activityWorldLod";
 import { ACTIVITY_TRACE_LIVE_STRENGTH } from "../../lib/activityWorldTraceStyle";
 import { resolveActivityWorldDotLngLat } from "../../lib/activityWorldAnchor";
-import { getFirebaseApp } from "../../lib/firebase";
 import {
   BASIC_SHARED_HUB_IDS,
   fetchCourseRoutePayload,
@@ -22,15 +10,13 @@ import {
 import type { CourseActivitySnapshot } from "../../lib/firestoreCourseActivity";
 import {
   isTrailLiveCourseRideRowFresh,
+  subscribeTrailLiveCourseRides,
   type TrailLiveCourseRideRow,
 } from "../../lib/firestoreTrailLiveCourseRides";
-import { TRAIL_LIVE_COURSE_RIDES_SUBCOLLECTION } from "../../lib/firestoreTrailPaths";
-import { lastSeenAtToMillis, TRAIL_PRESENCE_STALE_MS } from "../../lib/firestoreTrail";
+import { sanitizeTrailId } from "../../lib/firestoreTrail";
 import type { LineStringGeometry } from "../../lib/geo";
 import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../../lib/geoDecimate";
 import type { CourseActivityMapOverlay } from "../../hooks/useCourseActivityMapOverlay";
-
-const WORLD_LIVE_RIDES_QUERY_LIMIT = 48;
 
 type CourseGeomState =
   | { status: "ready"; geometry: LineStringGeometry }
@@ -42,21 +28,6 @@ type LiveCourseAggregate = {
   progressRatio: number;
   riderCount: number;
 };
-
-function parseLiveCourseRideRow(uid: string, data: Record<string, unknown>): TrailLiveCourseRideRow | null {
-  const courseId = typeof data.courseId === "string" ? data.courseId.trim() : "";
-  const pr = data.progressRatio;
-  const progressRatio =
-    typeof pr === "number" && Number.isFinite(pr) ? Math.max(0, Math.min(1, pr)) : Number.NaN;
-  if (!courseId || Number.isNaN(progressRatio)) return null;
-  return {
-    uid,
-    courseId,
-    progressRatio,
-    lastSeenAtMs: lastSeenAtToMillis(data.lastSeenAt),
-    displayName: typeof data.displayName === "string" ? data.displayName : null,
-  };
-}
 
 function aggregateLiveCourses(rows: readonly TrailLiveCourseRideRow[]): LiveCourseAggregate[] {
   const byCourse = new Map<string, { progressRatio: number; riderCount: number }>();
@@ -89,67 +60,94 @@ function syntheticActivityRow(agg: LiveCourseAggregate): CourseActivitySnapshot 
   };
 }
 
+function mergeLiveRows(maps: Map<string, TrailLiveCourseRideRow>[]): TrailLiveCourseRideRow[] {
+  const merged = new Map<string, TrailLiveCourseRideRow>();
+  for (const m of maps) {
+    for (const [uid, row] of m) {
+      const prev = merged.get(uid);
+      if (!prev || (row.lastSeenAtMs ?? 0) >= (prev.lastSeenAtMs ?? 0)) {
+        merged.set(uid, row);
+      }
+    }
+  }
+  return [...merged.values()];
+}
+
 /**
- * `liveCourseRides` collection group → Activity World pulse dot/line.
- * `courseActivity` 집계 지연·앵커 누락 시에도 주행 중인 코스를 지도에 표시한다.
+ * 공개 Trail·현재 Trail `liveCourseRides` → Activity World pulse dot/line.
+ * Trailhead 에서도 openTrail 목록 경로로 주행 dot 을 표시한다.
  */
 export function useWorldLiveCourseRideMapOverlay(opts: {
   enabled: boolean;
   mapZoom: number;
   myUid: string | null;
   excludeCourseId: string | null;
-}): CourseActivityMapOverlay & { liveCourseCount: number } {
-  const { enabled, mapZoom, myUid, excludeCourseId } = opts;
+  /** 현재 Trail + openTrailListings — trail 별 onSnapshot */
+  trailIds: readonly string[];
+}): CourseActivityMapOverlay & { liveCourseCount: number; liveRideRowCount: number } {
+  const { enabled, mapZoom, myUid, excludeCourseId, trailIds } = opts;
   const [rows, setRows] = useState<TrailLiveCourseRideRow[]>([]);
   const [geomEpoch, setGeomEpoch] = useState(0);
   const geomByCourseRef = useRef<Map<string, CourseGeomState>>(new Map());
 
+  const trailIdsKey = useMemo(() => {
+    const ids = new Set<string>();
+    for (const raw of trailIds) {
+      const tid = sanitizeTrailId(raw);
+      if (tid) ids.add(tid);
+    }
+    return [...ids].sort().join(",");
+  }, [trailIds]);
+
   useEffect(() => {
-    if (!enabled) {
+    if (!enabled || !trailIdsKey) {
       startTransition(() => setRows([]));
       geomByCourseRef.current.clear();
       setGeomEpoch((n) => n + 1);
       return;
     }
 
-    const db = getFirestore(getFirebaseApp());
-    const cutoff = Timestamp.fromMillis(Date.now() - TRAIL_PRESENCE_STALE_MS);
-    const q = query(
-      collectionGroup(db, TRAIL_LIVE_COURSE_RIDES_SUBCOLLECTION),
-      where("lastSeenAt", ">", cutoff),
-      orderBy("lastSeenAt", "desc"),
-      limit(WORLD_LIVE_RIDES_QUERY_LIMIT),
-    );
-
-    let cancelled = false;
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        const next: TrailLiveCourseRideRow[] = [];
-        for (const d of snap.docs) {
-          const row = parseLiveCourseRideRow(d.id, d.data() as Record<string, unknown>);
-          if (!row || !isTrailLiveCourseRideRowFresh(row)) continue;
-          if (myUid && row.uid === myUid) continue;
-          next.push(row);
-        }
-        if (!cancelled) startTransition(() => setRows(next));
-      },
-      (_err: FirestoreError) => {
-        if (!cancelled) startTransition(() => setRows([]));
-      },
-    );
-
-    return () => {
-      cancelled = true;
-      unsub();
+    const trailIdList = trailIdsKey.split(",").filter(Boolean);
+    const rowMaps = trailIdList.map(() => new Map<string, TrailLiveCourseRideRow>());
+    const emit = () => {
+      startTransition(() => setRows(mergeLiveRows(rowMaps)));
     };
-  }, [enabled, myUid]);
+
+    const unsubs = trailIdList.map((tid, index) =>
+      subscribeTrailLiveCourseRides(
+        tid,
+        (next) => {
+          const map = rowMaps[index]!;
+          map.clear();
+          for (const row of next) {
+            if (!isTrailLiveCourseRideRowFresh(row)) continue;
+            map.set(row.uid, row);
+          }
+          emit();
+        },
+        (err) => {
+          if (import.meta.env.DEV) {
+            console.warn("[WorldLiveCourseRide] subscribe failed", tid, err.message);
+          }
+        },
+      ),
+    );
+
+    emit();
+    return () => {
+      for (const u of unsubs) u();
+    };
+  }, [enabled, trailIdsKey]);
 
   const aggregates = useMemo(() => {
     const exclude = excludeCourseId?.trim() ?? "";
-    const filtered = exclude ? rows.filter((r) => r.courseId.trim() !== exclude) : rows;
+    const filtered = rows.filter((r) => {
+      if (exclude && r.courseId.trim() === exclude) return false;
+      if (myUid && r.uid === myUid) return false;
+      return true;
+    });
     return aggregateLiveCourses(filtered);
-  }, [rows, excludeCourseId]);
+  }, [rows, excludeCourseId, myUid]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -177,6 +175,9 @@ export function useWorldLiveCourseRideMapOverlay(opts: {
           const cur = geomByCourseRef.current;
           if (!geometry?.coordinates?.length) {
             cur.set(cid, { status: "missing" });
+            if (import.meta.env.DEV) {
+              console.warn("[WorldLiveCourseRide] geometry missing", cid);
+            }
           } else {
             cur.set(cid, { status: "ready", geometry });
           }
@@ -232,5 +233,9 @@ export function useWorldLiveCourseRideMapOverlay(opts: {
     };
   }, [aggregates, mapZoom, geomEpoch]);
 
-  return { ...overlay, liveCourseCount: aggregates.length };
+  return {
+    ...overlay,
+    liveCourseCount: aggregates.length,
+    liveRideRowCount: rows.length,
+  };
 }
