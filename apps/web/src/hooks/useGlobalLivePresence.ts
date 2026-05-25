@@ -36,7 +36,12 @@ export function useGlobalLivePresence(opts: UseGlobalLivePresenceOpts): {
 
     const unsub = subscribeGlobalLivePresence(
       (next) => {
-        if (!cancelled) startTransition(() => setRows(next));
+        if (!cancelled) {
+          if (import.meta.env.DEV) {
+            console.debug("[GlobalLivePresence] rows", next.length);
+          }
+          startTransition(() => setRows(next));
+        }
       },
       (err) => {
         if (!cancelled) setError(err.message);

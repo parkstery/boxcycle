@@ -1232,7 +1232,7 @@ export default function App() {
             placeSearchMarkerLngLat,
             trailSpectatorDots: spectatorDots,
             trailSpectatorRoutes: spectatorRouteGeometries,
-            globalPresenceDots: globalPresenceRenderDots,
+            globalPresenceDots: globalPresenceDots,
             activityWorldRaw,
             getActivityWorldPinLabel,
           }}

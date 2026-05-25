@@ -60,6 +60,18 @@ const GLOBAL_LIVE_PRESENCE_GLOW_LAYER = "boxcycle-global-live-presence-glow";
 const GLOBAL_LIVE_PRESENCE_LAYER = "boxcycle-global-live-presence-dot";
 const GLOBAL_LIVE_PRESENCE_LABEL_LAYER = "boxcycle-global-live-presence-label";
 
+const EMPTY_GEOJSON_FC = { type: "FeatureCollection" as const, features: [] as never[] };
+
+function isMapAttachedToContainer(map: mapboxgl.Map, container: HTMLElement | null): boolean {
+  if (!container) return false;
+  try {
+    const el = map.getContainer();
+    return el.parentNode === container;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * 지도 탭 팝업 — 경로 프로필(차·자전거·보행) 아이콘.
  * Lucide (https://lucide.dev) `car-front`, `bike`, `footprints` — ISC License.
@@ -401,34 +413,14 @@ function syncCourseActivityLayers(
   }
 }
 
-function syncTrailSpectatorLayers(
-  map: mapboxgl.Map,
-  dots: readonly TrailSpectatorDot[],
-  routes: readonly LineStringGeometry[],
-): void {
-  if (!map.isStyleLoaded()) return;
-
-  const routeFeatures = routes.map((geometry, i) => ({
-    type: "Feature" as const,
-    id: `trail-r-${i}`,
-    properties: { i },
-    geometry,
-  }));
-  const routeFc = { type: "FeatureCollection" as const, features: routeFeatures };
-
-  const dotFeatures = dots.map((d) => ({
-    type: "Feature" as const,
-    id: `trail-d-${d.id}`,
-    properties: { id: d.id, label: d.label?.trim() ?? "" },
-    geometry: { type: "Point" as const, coordinates: d.lngLat },
-  }));
-  const dotFc = { type: "FeatureCollection" as const, features: dotFeatures };
-
+function ensureTrailSpectatorRouteLayers(map: mapboxgl.Map): boolean {
+  if (!map.isStyleLoaded()) return false;
   const beforeRoute = map.getLayer("route") ? "route" : undefined;
-
   try {
     if (!map.getSource(TRAIL_SPEC_ROUTES_SRC)) {
-      map.addSource(TRAIL_SPEC_ROUTES_SRC, { type: "geojson", data: routeFc });
+      map.addSource(TRAIL_SPEC_ROUTES_SRC, { type: "geojson", data: EMPTY_GEOJSON_FC });
+    }
+    if (!map.getLayer(TRAIL_SPEC_ROUTES_GLOW_LAYER)) {
       map.addLayer(
         {
           id: TRAIL_SPEC_ROUTES_GLOW_LAYER,
@@ -444,6 +436,8 @@ function syncTrailSpectatorLayers(
         },
         beforeRoute,
       );
+    }
+    if (!map.getLayer(TRAIL_SPEC_ROUTES_LAYER)) {
       map.addLayer(
         {
           id: TRAIL_SPEC_ROUTES_LAYER,
@@ -458,29 +452,22 @@ function syncTrailSpectatorLayers(
         },
         beforeRoute,
       );
-    } else {
-      (map.getSource(TRAIL_SPEC_ROUTES_SRC) as mapboxgl.GeoJSONSource).setData(routeFc);
-      if (!map.getLayer(TRAIL_SPEC_ROUTES_GLOW_LAYER) && map.getLayer(TRAIL_SPEC_ROUTES_LAYER)) {
-        map.addLayer(
-          {
-            id: TRAIL_SPEC_ROUTES_GLOW_LAYER,
-            type: "line",
-            source: TRAIL_SPEC_ROUTES_SRC,
-            paint: {
-              "line-color": "#ffffff",
-              "line-width": ["interpolate", ["linear"], ["zoom"], 8, 5, 12, 8, 16, 12],
-              "line-blur": ["interpolate", ["linear"], ["zoom"], 8, 2.2, 14, 4.5],
-              "line-opacity": ["interpolate", ["linear"], ["zoom"], 8, 0.5, 14, 0.72],
-            },
-            layout: { "line-join": "round", "line-cap": "round" },
-          },
-          TRAIL_SPEC_ROUTES_LAYER,
-        );
-      }
     }
+    return true;
+  } catch (e) {
+    console.warn("[MapView] ensure trail spectator route layers", e);
+    return false;
+  }
+}
 
+function ensureTrailSpectatorDotLayers(map: mapboxgl.Map): boolean {
+  if (!map.isStyleLoaded()) return false;
+  const beforeRoute = map.getLayer("route") ? "route" : undefined;
+  try {
     if (!map.getSource(TRAIL_SPEC_DOTS_SRC)) {
-      map.addSource(TRAIL_SPEC_DOTS_SRC, { type: "geojson", data: dotFc });
+      map.addSource(TRAIL_SPEC_DOTS_SRC, { type: "geojson", data: EMPTY_GEOJSON_FC });
+    }
+    if (!map.getLayer(TRAIL_SPEC_DOTS_GLOW_LAYER)) {
       map.addLayer(
         {
           id: TRAIL_SPEC_DOTS_GLOW_LAYER,
@@ -495,6 +482,8 @@ function syncTrailSpectatorLayers(
         },
         beforeRoute,
       );
+    }
+    if (!map.getLayer(TRAIL_SPEC_DOTS_LAYER)) {
       map.addLayer(
         {
           id: TRAIL_SPEC_DOTS_LAYER,
@@ -511,6 +500,8 @@ function syncTrailSpectatorLayers(
         },
         beforeRoute,
       );
+    }
+    if (!map.getLayer(TRAIL_SPEC_DOTS_LABEL_LAYER)) {
       map.addLayer(
         {
           id: TRAIL_SPEC_DOTS_LABEL_LAYER,
@@ -534,48 +525,51 @@ function syncTrailSpectatorLayers(
         },
         beforeRoute,
       );
-    } else {
-      (map.getSource(TRAIL_SPEC_DOTS_SRC) as mapboxgl.GeoJSONSource).setData(dotFc);
-      if (!map.getLayer(TRAIL_SPEC_DOTS_LABEL_LAYER) && map.getLayer(TRAIL_SPEC_DOTS_LAYER)) {
-        map.addLayer(
-          {
-            id: TRAIL_SPEC_DOTS_LABEL_LAYER,
-            type: "symbol",
-            source: TRAIL_SPEC_DOTS_SRC,
-            filter: [">", ["length", ["coalesce", ["get", "label"], ""]], 0],
-            layout: {
-              "text-field": ["get", "label"],
-              "text-size": 11,
-              "text-anchor": "bottom",
-              "text-offset": [0, -1.35],
-              "text-max-width": 14,
-              "text-allow-overlap": true,
-            },
-            paint: {
-              "text-color": "#fef2f2",
-              "text-halo-color": "#7f1d1d",
-              "text-halo-width": 1.2,
-            },
-          },
-          TRAIL_SPEC_DOTS_LAYER,
-        );
-      }
-      if (!map.getLayer(TRAIL_SPEC_DOTS_GLOW_LAYER) && map.getLayer(TRAIL_SPEC_DOTS_LAYER)) {
-        map.addLayer(
-          {
-            id: TRAIL_SPEC_DOTS_GLOW_LAYER,
-            type: "circle",
-            source: TRAIL_SPEC_DOTS_SRC,
-            paint: {
-              "circle-radius": ["interpolate", ["linear"], ["zoom"], 3, 5, 9, 7, 14, 12],
-              "circle-color": "#ffffff",
-              "circle-opacity": ["interpolate", ["linear"], ["zoom"], 3, 0.62, 9, 0.55, 14, 0.7],
-              "circle-blur": 0.55,
-            },
-          },
-          TRAIL_SPEC_DOTS_LAYER,
-        );
-      }
+    }
+    return true;
+  } catch (e) {
+    console.warn("[MapView] ensure trail spectator dot layers", e);
+    return false;
+  }
+}
+
+function syncTrailSpectatorLayers(
+  map: mapboxgl.Map,
+  dots: readonly TrailSpectatorDot[],
+  routes: readonly LineStringGeometry[],
+): void {
+  if (!map.isStyleLoaded()) return;
+
+  const routeFeatures = routes.map((geometry, i) => ({
+    type: "Feature" as const,
+    id: `trail-r-${i}`,
+    properties: { i },
+    geometry,
+  }));
+  const routeFc = { type: "FeatureCollection" as const, features: routeFeatures };
+
+  const dotFeatures = dots.map((d) => ({
+    type: "Feature" as const,
+    id: `trail-d-${d.id}`,
+    properties: { id: d.id, label: d.label?.trim() ?? "" },
+    geometry: { type: "Point" as const, coordinates: d.lngLat },
+  }));
+  const dotFc = { type: "FeatureCollection" as const, features: dotFeatures };
+
+  try {
+    if (ensureTrailSpectatorRouteLayers(map)) {
+      (map.getSource(TRAIL_SPEC_ROUTES_SRC) as mapboxgl.GeoJSONSource | undefined)?.setData(routeFc);
+    }
+    if (ensureTrailSpectatorDotLayers(map)) {
+      (map.getSource(TRAIL_SPEC_DOTS_SRC) as mapboxgl.GeoJSONSource | undefined)?.setData(dotFc);
+    }
+    if (import.meta.env.DEV && (dots.length > 0 || routes.length > 0)) {
+      console.debug("[MapView] trail spectator sync", {
+        dots: dots.length,
+        routes: routes.length,
+        hasDotLayer: Boolean(map.getLayer(TRAIL_SPEC_DOTS_LAYER)),
+        hasSrc: Boolean(map.getSource(TRAIL_SPEC_DOTS_SRC)),
+      });
     }
   } catch (e) {
     console.warn("[MapView] trail spectator layers", e);
@@ -598,6 +592,77 @@ function moveGlobalLivePresenceLayersToTop(map: mapboxgl.Map): void {
   }
 }
 
+function ensureGlobalLivePresenceLayers(map: mapboxgl.Map): boolean {
+  if (!map.isStyleLoaded()) return false;
+  const beforeRoute = map.getLayer("route") ? "route" : undefined;
+  try {
+    if (!map.getSource(GLOBAL_LIVE_PRESENCE_SRC)) {
+      map.addSource(GLOBAL_LIVE_PRESENCE_SRC, { type: "geojson", data: EMPTY_GEOJSON_FC });
+    }
+    if (!map.getLayer(GLOBAL_LIVE_PRESENCE_GLOW_LAYER)) {
+      map.addLayer(
+        {
+          id: GLOBAL_LIVE_PRESENCE_GLOW_LAYER,
+          type: "circle",
+          source: GLOBAL_LIVE_PRESENCE_SRC,
+          paint: {
+            "circle-radius": ["interpolate", ["linear"], ["zoom"], 2, 6, 6, 8, 12, 14, 18, 18],
+            "circle-color": "#ffffff",
+            "circle-opacity": ["interpolate", ["linear"], ["zoom"], 2, 0.55, 12, 0.72],
+            "circle-blur": 0.5,
+          },
+        },
+        beforeRoute,
+      );
+    }
+    if (!map.getLayer(GLOBAL_LIVE_PRESENCE_LAYER)) {
+      map.addLayer(
+        {
+          id: GLOBAL_LIVE_PRESENCE_LAYER,
+          type: "circle",
+          source: GLOBAL_LIVE_PRESENCE_SRC,
+          paint: {
+            "circle-radius": ["interpolate", ["linear"], ["zoom"], 2, 4.5, 6, 6, 12, 10, 18, 14],
+            "circle-color": "#0ea5e9",
+            "circle-stroke-width": 2,
+            "circle-stroke-color": "#ffffff",
+            "circle-opacity": 0.95,
+          },
+        },
+        beforeRoute,
+      );
+    }
+    if (!map.getLayer(GLOBAL_LIVE_PRESENCE_LABEL_LAYER)) {
+      map.addLayer(
+        {
+          id: GLOBAL_LIVE_PRESENCE_LABEL_LAYER,
+          type: "symbol",
+          source: GLOBAL_LIVE_PRESENCE_SRC,
+          filter: [">", ["length", ["coalesce", ["get", "label"], ""]], 0],
+          layout: {
+            "text-field": ["get", "label"],
+            "text-size": 10,
+            "text-anchor": "bottom",
+            "text-offset": [0, -1.2],
+            "text-max-width": 12,
+            "text-allow-overlap": true,
+          },
+          paint: {
+            "text-color": "#e0f2fe",
+            "text-halo-color": "#0369a1",
+            "text-halo-width": 1.1,
+          },
+        },
+        beforeRoute,
+      );
+    }
+    return true;
+  } catch (e) {
+    console.warn("[MapView] ensure global live presence layers", e);
+    return false;
+  }
+}
+
 /** 1순위 fallback — Activity World·Trail 관전·동행·LOD와 독립 */
 function syncGlobalLivePresenceLayers(
   map: mapboxgl.Map,
@@ -614,57 +679,29 @@ function syncGlobalLivePresenceLayers(
   const dotFc = { type: "FeatureCollection" as const, features: dotFeatures };
 
   try {
-    if (!map.getSource(GLOBAL_LIVE_PRESENCE_SRC)) {
-      map.addSource(GLOBAL_LIVE_PRESENCE_SRC, { type: "geojson", data: dotFc });
-      map.addLayer({
-        id: GLOBAL_LIVE_PRESENCE_GLOW_LAYER,
-        type: "circle",
-        source: GLOBAL_LIVE_PRESENCE_SRC,
-        paint: {
-          "circle-radius": ["interpolate", ["linear"], ["zoom"], 2, 6, 6, 8, 12, 14, 18, 18],
-          "circle-color": "#ffffff",
-          "circle-opacity": ["interpolate", ["linear"], ["zoom"], 2, 0.55, 12, 0.72],
-          "circle-blur": 0.5,
-        },
-      });
-      map.addLayer({
-        id: GLOBAL_LIVE_PRESENCE_LAYER,
-        type: "circle",
-        source: GLOBAL_LIVE_PRESENCE_SRC,
-        paint: {
-          "circle-radius": ["interpolate", ["linear"], ["zoom"], 2, 4.5, 6, 6, 12, 10, 18, 14],
-          "circle-color": "#0ea5e9",
-          "circle-stroke-width": 2,
-          "circle-stroke-color": "#ffffff",
-          "circle-opacity": 0.95,
-        },
-      });
-      map.addLayer({
-        id: GLOBAL_LIVE_PRESENCE_LABEL_LAYER,
-        type: "symbol",
-        source: GLOBAL_LIVE_PRESENCE_SRC,
-        filter: [">", ["length", ["coalesce", ["get", "label"], ""]], 0],
-        layout: {
-          "text-field": ["get", "label"],
-          "text-size": 10,
-          "text-anchor": "bottom",
-          "text-offset": [0, -1.2],
-          "text-max-width": 12,
-          "text-allow-overlap": true,
-        },
-        paint: {
-          "text-color": "#e0f2fe",
-          "text-halo-color": "#0369a1",
-          "text-halo-width": 1.1,
-        },
-      });
-    } else {
-      (map.getSource(GLOBAL_LIVE_PRESENCE_SRC) as mapboxgl.GeoJSONSource).setData(dotFc);
-    }
+    if (!ensureGlobalLivePresenceLayers(map)) return;
+    (map.getSource(GLOBAL_LIVE_PRESENCE_SRC) as mapboxgl.GeoJSONSource | undefined)?.setData(dotFc);
     moveGlobalLivePresenceLayersToTop(map);
+    if (import.meta.env.DEV) {
+      console.debug("[MapView] global presence sync", {
+        dots: dots.length,
+        hasLayer: Boolean(map.getLayer(GLOBAL_LIVE_PRESENCE_LAYER)),
+        hasSrc: Boolean(map.getSource(GLOBAL_LIVE_PRESENCE_SRC)),
+      });
+    }
   } catch (e) {
     console.warn("[MapView] global live presence layers", e);
   }
+}
+
+function syncLiveOverlayLayersOnMap(
+  map: mapboxgl.Map,
+  trailDots: readonly TrailSpectatorDot[],
+  trailRoutes: readonly LineStringGeometry[],
+  globalDots: readonly GlobalLivePresenceDot[],
+): void {
+  syncTrailSpectatorLayers(map, trailDots, trailRoutes);
+  syncGlobalLivePresenceLayers(map, globalDots);
 }
 
 /** 레거시 `app.js` 와 동일한 서울 근처 기본 시야 */
@@ -1067,9 +1104,19 @@ export function MapView({
       return;
     }
 
-    /** React StrictMode — effect mount/unmount/remount 시 Map 중복 생성·telemetry 폭주 방지 */
-    if (mapRef.current) {
-      return;
+    /** StrictMode: remove() 된 map 인스턴스가 mapRef 에 남으면 dot layer 가 죽은 채로 early-return 됨 */
+    const staleMap = mapRef.current;
+    if (staleMap) {
+      if (isMapAttachedToContainer(staleMap, el)) {
+        return;
+      }
+      try {
+        staleMap.remove();
+      } catch {
+        /* noop */
+      }
+      mapRef.current = null;
+      setMapLoaded(false);
     }
 
     mapboxgl.accessToken = accessToken.trim();
@@ -1175,12 +1222,12 @@ export function MapView({
       peerDomMarkersRef.current.clear();
       mergePeerTargets(peerDriveSimRef.current, latestPeerMarkersRef.current, performance.now());
       try {
-        syncTrailSpectatorLayers(
+        syncLiveOverlayLayersOnMap(
           map,
           trailSpectatorDataRef.current.dots,
           trailSpectatorDataRef.current.routes,
+          globalPresenceDataRef.current,
         );
-        syncGlobalLivePresenceLayers(map, globalPresenceDataRef.current);
         syncActivityWorldLayersOnMapRef.current(map);
       } catch {
         /* noop */
@@ -1286,8 +1333,14 @@ export function MapView({
         }
       }
       peerDomMarkersRef.current.clear();
-      map.remove();
-      mapRef.current = null;
+      if (mapRef.current === map) {
+        try {
+          map.remove();
+        } catch {
+          /* noop */
+        }
+        mapRef.current = null;
+      }
       setMapLoaded(false);
     };
   }, [accessToken]);
@@ -1628,41 +1681,22 @@ export function MapView({
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
 
-    const syncTrail = () => {
+    const syncOverlays = () => {
       if (!map.isStyleLoaded()) return;
-      syncTrailSpectatorLayers(map, trailSpectatorDots ?? [], trailSpectatorRoutes ?? []);
+      syncLiveOverlayLayersOnMap(
+        map,
+        trailSpectatorDots ?? [],
+        trailSpectatorRoutes ?? [],
+        globalPresenceDots ?? [],
+      );
     };
 
-    syncTrail();
-    if (!map.isStyleLoaded()) {
-      map.once("style.load", syncTrail);
-      map.once("idle", syncTrail);
-    }
+    syncOverlays();
+    map.on("style.load", syncOverlays);
     return () => {
-      map.off("style.load", syncTrail);
-      map.off("idle", syncTrail);
+      map.off("style.load", syncOverlays);
     };
-  }, [mapLoaded, trailSpectatorDots, trailSpectatorRoutes]);
-
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
-
-    const syncGlobal = () => {
-      if (!map.isStyleLoaded()) return;
-      syncGlobalLivePresenceLayers(map, globalPresenceDots ?? []);
-    };
-
-    syncGlobal();
-    if (!map.isStyleLoaded()) {
-      map.once("style.load", syncGlobal);
-      map.once("idle", syncGlobal);
-    }
-    return () => {
-      map.off("style.load", syncGlobal);
-      map.off("idle", syncGlobal);
-    };
-  }, [mapLoaded, globalPresenceDots]);
+  }, [mapLoaded, trailSpectatorDots, trailSpectatorRoutes, globalPresenceDots]);
 
   useEffect(() => {
     const map = mapRef.current;
