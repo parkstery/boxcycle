@@ -986,11 +986,6 @@ export default function App() {
     return coursePeerMarkers;
   }, [mapZoom, coursePeerMarkers]);
 
-  const globalPresenceRenderDots = useMemo(() => {
-    const exclude = new Set(peerMarkersForMap.map((p) => p.id));
-    return globalPresenceDots.filter((d) => !exclude.has(d.id));
-  }, [globalPresenceDots, peerMarkersForMap]);
-
   const { streetState: rideMapillaryStreet, rideSync: mapillaryRideSync, dismissStreet: dismissMapillaryStreet } =
     useRideMapillaryStreet({
       user,
