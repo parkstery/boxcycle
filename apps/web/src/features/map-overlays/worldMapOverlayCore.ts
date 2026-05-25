@@ -6,7 +6,7 @@ import type { CourseActivityMapOverlay } from "../../hooks/useCourseActivityMapO
 
 export type WorldMapOverlaySlice = CourseActivityMapOverlay;
 
-/** catalog·publication 에 pulse 가 없을 때 liveCourseRides 로 gap-fill */
+/** catalog·publication 에 pulse line 이 없을 때 liveCourseRides route 로 gap-fill (dot 없음) */
 function mergeLiveCourseRideGapFill(
   base: WorldMapOverlaySlice,
   live: WorldMapOverlaySlice,
@@ -55,7 +55,7 @@ export type ResolveWorldMapOverlayInput = {
   active: WorldMapOverlaySlice;
   catalog: WorldMapOverlaySlice;
   publication: WorldMapOverlaySlice;
-  /** `liveCourseRides` 직접 합성 — courseActivity 지연 시 gap-fill */
+  /** `liveCourseRides` 직접 합성 — courseActivity 지연 시 **line** gap-fill (dot 은 global livePresence) */
   liveCourseRides?: WorldMapOverlaySlice;
   /** true면 publication 우선 + catalog gap-fill (전면 0 덮어쓰기 금지) */
   publicationPresenceWorldMapEnabled: boolean;

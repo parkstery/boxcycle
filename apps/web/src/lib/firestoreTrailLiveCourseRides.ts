@@ -3,7 +3,6 @@ import {
   collectionGroup,
   deleteDoc,
   doc,
-  getCountFromServer,
   getDocs,
   getFirestore,
   limit,
@@ -122,20 +121,25 @@ function liveRideFreshnessCutoff(): Timestamp {
   return Timestamp.fromMillis(Date.now() - TRAIL_PRESENCE_STALE_MS);
 }
 
-/** Trail 에서 최근 활동(`lastSeenAt`) 있는 `liveCourseRides` 문서 수 */
+const LIVE_RIDES_COUNT_SCAN_LIMIT = 48;
+
+/** Trail 에서 최근 활동(`lastSeenAt`) 있는 `liveCourseRides` — aggregation 없이 소량 getDocs */
 export async function countTrailLiveRidersFresh(trailId: string): Promise<number> {
-  const q = query(liveRidesCollectionRef(trailId), where("lastSeenAt", ">", liveRideFreshnessCutoff()));
-  const snap = await getCountFromServer(q);
-  return snap.data().count;
+  const coll = liveRidesCollectionRef(trailId);
+  const cutoffMs = Date.now() - TRAIL_PRESENCE_STALE_MS;
+  const snap = await getDocs(query(coll, limit(LIVE_RIDES_COUNT_SCAN_LIMIT)));
+  let n = 0;
+  for (const d of snap.docs) {
+    const ms = lastSeenAtToMillis((d.data() as Record<string, unknown>).lastSeenAt);
+    if (ms != null && ms >= cutoffMs) n += 1;
+  }
+  return n;
 }
 
 /** Trail 에서 `liveCourseRides` 문서 수(레거시·stale 포함) */
 export async function countTrailLiveRiders(trailId: string): Promise<number> {
-  const rid = sanitizeTrailId(trailId);
-  const db = getFirestore(getFirebaseApp());
-  const coll = collection(db, TRAILS_COLLECTION, rid, TRAIL_LIVE_COURSE_RIDES_SUBCOLLECTION);
-  const snap = await getCountFromServer(coll);
-  return snap.data().count;
+  const snap = await getDocs(query(liveRidesCollectionRef(trailId), limit(LIVE_RIDES_COUNT_SCAN_LIMIT)));
+  return snap.size;
 }
 
 const ACTIVE_LIVE_RIDE_TRAIL_SCAN_LIMIT = 80;

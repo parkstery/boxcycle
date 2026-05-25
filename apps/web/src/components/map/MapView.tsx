@@ -37,6 +37,7 @@ import {
   type PeerDriveSimState,
 } from "../../lib/peerRidersDrive";
 import { applyCoverageOverlayMode } from "../../services/coverageOverlaySync";
+import type { GlobalLivePresenceDot } from "../../hooks/useGlobalLivePresence";
 import type { TrailSpectatorDot } from "../../hooks/useTrailLiveCourseRideSpectatorOverlay";
 import { MapZoomGlobeControl } from "./MapZoomGlobeControl";
 import { MAP_GLOBE_MIN_ZOOM } from "../../lib/mapGlobeView";
@@ -46,10 +47,17 @@ import "./MapView.css";
 const TRAIL_SPEC_ROUTES_SRC = "boxcycle-lobby-spectator-routes";
 const TRAIL_SPEC_ROUTES_GLOW_LAYER = "boxcycle-lobby-spectator-routes-glow";
 const TRAIL_SPEC_ROUTES_LAYER = "boxcycle-lobby-spectator-routes-line";
+
 const TRAIL_SPEC_DOTS_SRC = "boxcycle-lobby-spectator-dots";
 const TRAIL_SPEC_DOTS_GLOW_LAYER = "boxcycle-lobby-spectator-dots-glow";
 const TRAIL_SPEC_DOTS_LAYER = "boxcycle-lobby-spectator-dots-circle";
 const TRAIL_SPEC_DOTS_LABEL_LAYER = "boxcycle-lobby-spectator-dots-label";
+
+/** 전역 livePresence — line·LOD·courseId 와 무관, 항상 dot */
+const GLOBAL_LIVE_PRESENCE_SRC = "boxcycle-global-live-presence";
+const GLOBAL_LIVE_PRESENCE_GLOW_LAYER = "boxcycle-global-live-presence-glow";
+const GLOBAL_LIVE_PRESENCE_LAYER = "boxcycle-global-live-presence-dot";
+const GLOBAL_LIVE_PRESENCE_LABEL_LAYER = "boxcycle-global-live-presence-label";
 
 /**
  * 지도 탭 팝업 — 경로 프로필(차·자전거·보행) 아이콘.
@@ -573,6 +581,91 @@ function syncTrailSpectatorLayers(
   }
 }
 
+function moveGlobalLivePresenceLayersToTop(map: mapboxgl.Map): void {
+  for (const id of [
+    GLOBAL_LIVE_PRESENCE_GLOW_LAYER,
+    GLOBAL_LIVE_PRESENCE_LAYER,
+    GLOBAL_LIVE_PRESENCE_LABEL_LAYER,
+  ]) {
+    if (map.getLayer(id)) {
+      try {
+        map.moveLayer(id);
+      } catch {
+        /* style switching */
+      }
+    }
+  }
+}
+
+/** 1순위 fallback — Activity World·Trail 관전·동행·LOD와 독립 */
+function syncGlobalLivePresenceLayers(
+  map: mapboxgl.Map,
+  dots: readonly GlobalLivePresenceDot[],
+): void {
+  if (!map.isStyleLoaded()) return;
+
+  const dotFeatures = dots.map((d) => ({
+    type: "Feature" as const,
+    id: `glp-${d.id}`,
+    properties: { id: d.id, label: d.label?.trim() ?? "" },
+    geometry: { type: "Point" as const, coordinates: d.lngLat },
+  }));
+  const dotFc = { type: "FeatureCollection" as const, features: dotFeatures };
+
+  try {
+    if (!map.getSource(GLOBAL_LIVE_PRESENCE_SRC)) {
+      map.addSource(GLOBAL_LIVE_PRESENCE_SRC, { type: "geojson", data: dotFc });
+      map.addLayer({
+        id: GLOBAL_LIVE_PRESENCE_GLOW_LAYER,
+        type: "circle",
+        source: GLOBAL_LIVE_PRESENCE_SRC,
+        paint: {
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 2, 6, 6, 8, 12, 14, 18, 18],
+          "circle-color": "#ffffff",
+          "circle-opacity": ["interpolate", ["linear"], ["zoom"], 2, 0.55, 12, 0.72],
+          "circle-blur": 0.5,
+        },
+      });
+      map.addLayer({
+        id: GLOBAL_LIVE_PRESENCE_LAYER,
+        type: "circle",
+        source: GLOBAL_LIVE_PRESENCE_SRC,
+        paint: {
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 2, 4.5, 6, 6, 12, 10, 18, 14],
+          "circle-color": "#0ea5e9",
+          "circle-stroke-width": 2,
+          "circle-stroke-color": "#ffffff",
+          "circle-opacity": 0.95,
+        },
+      });
+      map.addLayer({
+        id: GLOBAL_LIVE_PRESENCE_LABEL_LAYER,
+        type: "symbol",
+        source: GLOBAL_LIVE_PRESENCE_SRC,
+        filter: [">", ["length", ["coalesce", ["get", "label"], ""]], 0],
+        layout: {
+          "text-field": ["get", "label"],
+          "text-size": 10,
+          "text-anchor": "bottom",
+          "text-offset": [0, -1.2],
+          "text-max-width": 12,
+          "text-allow-overlap": true,
+        },
+        paint: {
+          "text-color": "#e0f2fe",
+          "text-halo-color": "#0369a1",
+          "text-halo-width": 1.1,
+        },
+      });
+    } else {
+      (map.getSource(GLOBAL_LIVE_PRESENCE_SRC) as mapboxgl.GeoJSONSource).setData(dotFc);
+    }
+    moveGlobalLivePresenceLayersToTop(map);
+  } catch (e) {
+    console.warn("[MapView] global live presence layers", e);
+  }
+}
+
 /** 레거시 `app.js` 와 동일한 서울 근처 기본 시야 */
 const DEFAULT_CENTER: [number, number] = [127.035, 37.505];
 const DEFAULT_ZOOM = 12;
@@ -765,9 +858,11 @@ export type MapViewProps = {
   } | null;
   /** 메뉴 장소 검색으로 이동한 위치 — 기본 핀과 구분되는 마커 */
   placeSearchMarkerLngLat?: LngLat | null;
-  /** Trail: 같은 Trail 에서 코스 주행 중인 다른 사용자(원 + 노선 LOD 는 부모에서 처리) */
+  /** Trail: 같은 Trail 에서 코스 주행 중인 다른 사용자 (빨간 dot + 노선) */
   trailSpectatorDots?: TrailSpectatorDot[] | null;
   trailSpectatorRoutes?: LineStringGeometry[] | null;
+  /** 전역 livePresence dot — line·courseId·trail 조건과 무관 */
+  globalPresenceDots?: GlobalLivePresenceDot[] | null;
   /** Activity World loader 출력 — MapView 가 map zoom 으로 LINE/DOT 적용 */
   activityWorldRaw?: ActivityWorldRawOverlay | null;
   /** Activity World 점 탭 시 팝업 문구 (없으면 기본 pick 팝업) */
@@ -807,6 +902,7 @@ export function MapView({
   placeSearchMarkerLngLat = null,
   trailSpectatorDots = null,
   trailSpectatorRoutes = null,
+  globalPresenceDots = null,
   activityWorldRaw = null,
   getActivityWorldPinLabel = null,
   onMapViewport,
@@ -820,6 +916,8 @@ export function MapView({
     dots: trailSpectatorDots ?? [],
     routes: trailSpectatorRoutes ?? [],
   };
+  const globalPresenceDataRef = useRef<GlobalLivePresenceDot[]>([]);
+  globalPresenceDataRef.current = globalPresenceDots ?? [];
   const activityWorldRawRef = useRef<ActivityWorldRawOverlay>(EMPTY_ACTIVITY_WORLD_RAW);
   activityWorldRawRef.current = activityWorldRaw ?? EMPTY_ACTIVITY_WORLD_RAW;
   const activityWorldLodStateRef = useRef<ActivityWorldLodState>(DEFAULT_ACTIVITY_WORLD_LOD_STATE);
@@ -968,6 +1066,11 @@ export function MapView({
       return;
     }
 
+    /** React StrictMode — effect mount/unmount/remount 시 Map 중복 생성·telemetry 폭주 방지 */
+    if (mapRef.current) {
+      return;
+    }
+
     mapboxgl.accessToken = accessToken.trim();
     peerDriveSimRef.current.clear();
     const map = new mapboxgl.Map({
@@ -1076,6 +1179,7 @@ export function MapView({
           trailSpectatorDataRef.current.dots,
           trailSpectatorDataRef.current.routes,
         );
+        syncGlobalLivePresenceLayers(map, globalPresenceDataRef.current);
         syncActivityWorldLayersOnMapRef.current(map);
       } catch {
         /* noop */
@@ -1538,6 +1642,26 @@ export function MapView({
       map.off("idle", syncTrail);
     };
   }, [mapLoaded, trailSpectatorDots, trailSpectatorRoutes]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+
+    const syncGlobal = () => {
+      if (!map.isStyleLoaded()) return;
+      syncGlobalLivePresenceLayers(map, globalPresenceDots ?? []);
+    };
+
+    syncGlobal();
+    if (!map.isStyleLoaded()) {
+      map.once("style.load", syncGlobal);
+      map.once("idle", syncGlobal);
+    }
+    return () => {
+      map.off("style.load", syncGlobal);
+      map.off("idle", syncGlobal);
+    };
+  }, [mapLoaded, globalPresenceDots]);
 
   useEffect(() => {
     const map = mapRef.current;

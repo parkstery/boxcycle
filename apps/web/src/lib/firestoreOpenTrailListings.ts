@@ -40,12 +40,17 @@ function listingRef(trailId: string) {
   return doc(getFirestore(getFirebaseApp()), OPEN_TRAIL_LISTINGS_COLLECTION, trailId);
 }
 
-async function countTrailActiveParticipantsFresh(trailId: string): Promise<number> {
+/** listing riderCount — RunAggregationQuery 없이 trail 메타·소량 scan */
+async function countTrailActiveParticipantsForTrail(trail: TrailInstance): Promise<number> {
+  const metaCount =
+    typeof trail.liveRiderCount === "number" && Number.isFinite(trail.liveRiderCount)
+      ? Math.max(0, Math.floor(trail.liveRiderCount))
+      : 0;
   const [live, members] = await Promise.all([
-    countTrailLiveRidersFresh(trailId).catch(() => 0),
-    countTrailMembersFresh(trailId).catch(() => 0),
+    countTrailLiveRidersFresh(trail.id).catch(() => 0),
+    countTrailMembersFresh(trail.id).catch(() => 0),
   ]);
-  return Math.max(live, members);
+  return Math.max(metaCount, live, members);
 }
 
 async function loadTrailForListing(trailId: string): Promise<TrailInstance | null> {
@@ -69,6 +74,10 @@ async function loadTrailForListing(trailId: string): Promise<TrailInstance | nul
       data.status === "archived" ? "archived" : data.status === "closed" ? "closed" : "open",
     createdAtMs: null,
     lastActivityAtMs: null,
+    liveRiderCount:
+      typeof data.liveRiderCount === "number" && Number.isFinite(data.liveRiderCount)
+        ? Math.max(0, Math.floor(data.liveRiderCount))
+        : undefined,
   };
 }
 
@@ -135,7 +144,7 @@ export async function refreshOpenTrailListingFromTrail(trailId: string): Promise
     await removeOpenTrailListing(trailId);
     return;
   }
-  const riderCount = await countTrailActiveParticipantsFresh(trailId).catch(() => 0);
+  const riderCount = await countTrailActiveParticipantsForTrail(trail).catch(() => 0);
   if (riderCount <= 0) {
     await removeOpenTrailListing(trailId);
     return;

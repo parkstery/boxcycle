@@ -6,7 +6,8 @@ import { SignUpNicknameCard } from "./components/SignUpNicknameCard";
 import { RideRoutePanel, type FollowMode } from "./components/RideRoutePanel";
 import { PublicRouteRequestModal } from "./components/PublicRouteRequestModal";
 import { useTrailSession } from "./hooks/useTrailSession";
-import { useTrailLiveCourseRidePublisher } from "./hooks/useTrailLiveCourseRidePublisher";
+import { useLiveLocationPublishSession } from "./hooks/useLiveLocationPublishSession";
+import { useGlobalLivePresence } from "./hooks/useGlobalLivePresence";
 import { useDocumentVisibility } from "./hooks/useDocumentVisibility";
 import {
   formatCourseActivityHudLine,
@@ -14,7 +15,7 @@ import {
 } from "./lib/firestoreCourseActivity";
 import { AppMapStage, useAppMapOverlays } from "./features/map-overlays";
 import type { MapViewportBounds } from "./lib/activityWorldLod";
-import { MAP_ZOOM_WORLD_ACTIVITY_MAX } from "./lib/rideSyncPolicy";
+import { MAP_ZOOM_WORLD_ACTIVITY_MAX, MAP_PEER_SPRITE_MIN_ZOOM } from "./lib/rideSyncPolicy";
 import { AuthGateCard, AuthGoogleMark } from "./components/AuthGateCard";
 import { GuestEntryCard } from "./components/GuestEntryCard";
 import { allowUnauthMapDev } from "./lib/authGatePolicy";
@@ -54,6 +55,7 @@ import {
   getBasicHubCoursePayload,
 } from "./lib/firestoreCourses";
 import { deleteCoursePresence } from "./lib/firestoreCoursePresence";
+import { deleteGlobalLivePresence } from "./lib/firestoreGlobalLivePresence";
 import {
   DEFAULT_TRAIL_ID,
   deleteTrailPresence,
@@ -133,12 +135,19 @@ export default function App() {
   const [mapStyle, setMapStyle] = useState(MAP_STYLE_OPTIONS[3].value);
   const [mapZoom, setMapZoom] = useState(12);
   const [mapViewportSpanKm, setMapViewportSpanKm] = useState<number | null>(null);
+  /** 전역 livePresence publish — idle 시 지도 중심(주행 중에는 liveForMap 우선) */
+  const [mapViewportCenterLngLat, setMapViewportCenterLngLat] = useState<LngLat>([127.035, 37.505]);
   /** Activity World LOD — 제스처 중 실제 줌·span (HUD `mapZoom` 과 분리) */
   const [mapLodZoom, setMapLodZoom] = useState(12);
   const [mapLodSpanKm, setMapLodSpanKm] = useState<number | null>(null);
 
-  const onMapViewport = useCallback((_viewport: MapViewportBounds, spanKm: number) => {
+  const onMapViewport = useCallback((viewport: MapViewportBounds, spanKm: number) => {
     setMapViewportSpanKm(spanKm);
+    const centerLng = (viewport.west + viewport.east) / 2;
+    const centerLat = (viewport.south + viewport.north) / 2;
+    if (Number.isFinite(centerLng) && Number.isFinite(centerLat)) {
+      setMapViewportCenterLngLat([centerLng, centerLat]);
+    }
   }, []);
   const onMapLodViewport = useCallback((spanKm: number, zoom: number) => {
     setMapLodSpanKm(spanKm);
@@ -146,7 +155,7 @@ export default function App() {
   }, []);
   const [followMode, setFollowMode] = useState<FollowMode>("keep");
   const [enable3D, setEnable3D] = useState(true);
-  const [speedKmh, setSpeedKmh] = useState(25);
+  const [speedKmh, setSpeedKmh] = useState(5);
   const {
     rideTtsEnabled,
     setRideTtsEnabled,
@@ -483,7 +492,7 @@ export default function App() {
     trackedCourseId,
     publishedPublicCourses,
     openTrails: openTrailsQuery.rows,
-    coursePeerMarkers,
+    trailRoomLabel: trailDisplayLabels.room,
     activityMapRefreshNonce,
   });
 
@@ -587,22 +596,6 @@ export default function App() {
     routeDistanceMeters,
     virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
     endRideRef: handleEndRideRef,
-  });
-
-  useTrailLiveCourseRidePublisher({
-    user,
-    enabled: Boolean(
-      trailheadSessionActive &&
-        isRideSessionActive &&
-        (basicActiveHubCourseId ?? activeOfficialCourseId ?? currentTrailMeta?.courseId) &&
-        Boolean(routeGeometry?.coordinates?.length),
-    ),
-    pageVisible,
-    trailId,
-    courseId: basicActiveHubCourseId ?? activeOfficialCourseId ?? currentTrailMeta?.courseId ?? null,
-    routeGeometry,
-    routeDistanceMeters,
-    virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
   });
 
   /** 비로그인 상태에서는 사용자 시트 액션(Trailhead/로그아웃)이 없으므로 시트를 닫음 */
@@ -911,6 +904,9 @@ export default function App() {
         await deleteTrailPresence(user.uid, trailId).catch(() => {
           /* noop */
         });
+        await deleteGlobalLivePresence(user.uid).catch(() => {
+          /* noop */
+        });
         for (const hid of BASIC_SHARED_HUB_IDS) {
           await deleteCoursePresence(user.uid, hid).catch(() => {
             /* noop */
@@ -950,6 +946,50 @@ export default function App() {
     routeGeometry,
     routeDistanceMeters,
   ]);
+
+  const globalPresencePublishLngLat = useMemo(
+    (): LngLat => liveForMap ?? mapViewportCenterLngLat,
+    [liveForMap, mapViewportCenterLngLat],
+  );
+
+  useLiveLocationPublishSession({
+    user,
+    globalEnabled: Boolean(configured && user),
+    routeEnabled: Boolean(
+      trailheadSessionActive &&
+        isRideSessionActive &&
+        (basicActiveHubCourseId ?? activeOfficialCourseId ?? currentTrailMeta?.courseId) &&
+        Boolean(routeGeometry?.coordinates?.length),
+    ),
+    pageVisible,
+    lngLat: globalPresencePublishLngLat,
+    trailId,
+    courseId: basicActiveHubCourseId ?? activeOfficialCourseId ?? currentTrailMeta?.courseId ?? null,
+    routeGeometry,
+    routeDistanceMeters,
+    virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
+  });
+
+  const { dots: globalPresenceDots } = useGlobalLivePresence({
+    user,
+    enabled: configured && Boolean(user),
+  });
+
+  const globalPeerPositionsByUid = useMemo((): ReadonlyMap<string, LngLat> => {
+    const m = new Map<string, LngLat>();
+    for (const d of globalPresenceDots) m.set(d.id, d.lngLat);
+    return m;
+  }, [globalPresenceDots]);
+
+  const peerMarkersForMap = useMemo(() => {
+    if (mapZoom <= MAP_PEER_SPRITE_MIN_ZOOM) return [];
+    return coursePeerMarkers;
+  }, [mapZoom, coursePeerMarkers]);
+
+  const globalPresenceRenderDots = useMemo(() => {
+    const exclude = new Set(peerMarkersForMap.map((p) => p.id));
+    return globalPresenceDots.filter((d) => !exclude.has(d.id));
+  }, [globalPresenceDots, peerMarkersForMap]);
 
   const { streetState: rideMapillaryStreet, rideSync: mapillaryRideSync, dismissStreet: dismissMapillaryStreet } =
     useRideMapillaryStreet({
@@ -1086,11 +1126,6 @@ export default function App() {
       : null;
   const caloriesEstimate = Math.round((rideMetrics.virtualDistanceMeters / 1000) * 30);
 
-  const courseLiveProgressRatio = useMemo(() => {
-    if (routeDistanceMeters <= 0) return null;
-    return Math.max(0, Math.min(1, rideMetrics.virtualDistanceMeters / routeDistanceMeters));
-  }, [routeDistanceMeters, rideMetrics.virtualDistanceMeters]);
-
   const worldActivityHint = useMemo(() => {
     if (mapZoom > MAP_ZOOM_WORLD_ACTIVITY_MAX || !worldHudLines) return null;
     return worldHudLines;
@@ -1160,7 +1195,7 @@ export default function App() {
                     crankRpmFromSensor: bleCrankRpm.crankRpm,
                   },
             liveRiderNametag: resolvedLiveRiderNametag,
-            peerMarkers: coursePeerMarkers,
+            peerMarkers: peerMarkersForMap,
             mapStyle,
             mapZoom,
             followMode,
@@ -1196,6 +1231,7 @@ export default function App() {
             placeSearchMarkerLngLat,
             trailSpectatorDots: spectatorDots,
             trailSpectatorRoutes: spectatorRouteGeometries,
+            globalPresenceDots: globalPresenceRenderDots,
             activityWorldRaw,
             getActivityWorldPinLabel,
           }}
@@ -1519,8 +1555,7 @@ export default function App() {
           title={getBasicHubCoursePayload(basicActiveHubCourseId).title}
           isRiding={rideStatus === "running"}
           rideSessionActive={rideStatus === "running" || rideStatus === "paused"}
-          progressRatio={courseLiveProgressRatio}
-          myLiveLngLat={liveForMap}
+          globalPeerPositionsByUid={globalPeerPositionsByUid}
           onPeersChange={onCoursePeersChange}
           onLiveRiderNametagChange={setLiveRiderNametag}
         />

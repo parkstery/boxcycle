@@ -45,6 +45,15 @@ export const TRAIL_LIVE_PROGRESS_MIN_DELTA = 0.012;
 /** @deprecated `TRAIL_LIVE_PROGRESS_MIN_DELTA` */
 export const LOBBY_LIVE_PROGRESS_MIN_DELTA = TRAIL_LIVE_PROGRESS_MIN_DELTA;
 
+/** 입문 코스 동행 DOM 스프라이트 — 고줌에서만 (dot 은 global livePresence) */
+export const MAP_PEER_SPRITE_MIN_ZOOM = 14;
+/** 전역 livePresence: 최소 쓰기 간격(ms) */
+export const GLOBAL_LIVE_PRESENCE_MIN_WRITE_INTERVAL_MS = 4_000;
+/** 전역 livePresence: 이 시간이 지나면 이동 없어도 1회 동기화 */
+export const GLOBAL_LIVE_PRESENCE_MAX_WRITE_INTERVAL_MS = 12_000;
+/** 전역 livePresence: 직전 기록 대비 이 거리(m) 이상일 때 쓰기 */
+export const GLOBAL_LIVE_PRESENCE_MIN_MOVE_METERS = 40;
+
 /** 월드 힌트 HUD: 이 줌 이하에서만 표시(맵 축소 시) */
 export const MAP_ZOOM_WORLD_ACTIVITY_MAX = 9;
 

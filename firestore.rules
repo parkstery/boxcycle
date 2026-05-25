@@ -195,6 +195,27 @@ service cloud.firestore {
       allow delete: if isSignedIn() && resource.data.ownerUid == request.auth.uid;
     }
 
+    /**
+     * 전역 라이브 presence — lat/lng 만. courseId·trail·geometry 불필요.
+     * 로그인 사용자는 전원 읽기, 본인 문서만 쓰기.
+     */
+    match /livePresence/{userId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSelf(userId)
+        && request.resource.data.keys().hasAll(['lat', 'lng', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['lat', 'lng', 'updatedAt', 'displayName'])
+        && request.resource.data.lat is number
+        && request.resource.data.lat >= -90
+        && request.resource.data.lat <= 90
+        && request.resource.data.lng is number
+        && request.resource.data.lng >= -180
+        && request.resource.data.lng <= 180
+        && (!request.resource.data.keys().hasAny(['displayName'])
+            || (request.resource.data.displayName is string
+                && request.resource.data.displayName.size() <= 80));
+      allow delete: if isSelf(userId);
+    }
+
     /** Trailhead 공개 목록 — CF 전환 전까지 클라이언트도 listing 유지 */
     match /openTrailListings/{trailId} {
       allow read: if isSignedIn();

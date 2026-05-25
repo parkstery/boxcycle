@@ -68,7 +68,7 @@ export async function touchCoursePresence(user: User, courseId: string): Promise
   await upsertCoursePresence(user, courseId);
 }
 
-/** 주행 중 내 위치를 같은 코스 멤버가 지도에서 볼 수 있게 갱신한다. */
+/** @deprecated 좌표는 `livePresence` only — membership heartbeat 는 `upsertCoursePresence` */
 export async function mergeCourseMemberLiveLocation(
   user: User,
   courseId: string,

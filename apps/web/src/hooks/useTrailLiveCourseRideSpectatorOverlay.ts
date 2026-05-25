@@ -8,14 +8,14 @@ import {
 import type { LineStringGeometry, LngLat } from "../lib/geo";
 import { getPointOnRouteByDistance, lineStringLengthMeters } from "../lib/geo";
 import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../lib/geoDecimate";
+import { acquireTrailLiveCourseRidesSubscription } from "../lib/liveCourseRidesSubscriptionHub";
 import { sanitizeTrailId } from "../lib/firestoreTrail";
 import {
   isTrailLiveCourseRideRowFresh,
-  subscribeTrailLiveCourseRides,
   type TrailLiveCourseRideRow,
 } from "../lib/firestoreTrailLiveCourseRides";
 
-export type TrailSpectatorDot = { id: string; lngLat: LngLat; /** 주행자 네임태그 — Trail 번호 포함 */ label: string };
+export type TrailSpectatorDot = { id: string; lngLat: LngLat; label: string };
 
 /** @deprecated `TrailSpectatorDot` */
 export type LobbySpectatorDot = TrailSpectatorDot;
@@ -23,7 +23,6 @@ export type LobbySpectatorDot = TrailSpectatorDot;
 type UseTrailLiveCourseRideSpectatorOverlayOpts = {
   user: User | null | undefined;
   trailId: string;
-  /** 같은 Trail 방 이름 — `Trail 042` / `Trailhead` */
   trailRoomLabel: string;
   enabled: boolean;
   mapZoom: number;
@@ -35,10 +34,13 @@ type CourseGeomState =
   | { status: "loading" }
   | { status: "missing" };
 
+/**
+ * 같은 Trail `liveCourseRides` → 동행 라이더 dot + 노선(line).
+ * world 전역 dot 은 `livePresence` (MapView global layer).
+ */
 export function useTrailLiveCourseRideSpectatorOverlay(opts: UseTrailLiveCourseRideSpectatorOverlayOpts): {
   spectatorDots: TrailSpectatorDot[];
   spectatorRouteGeometries: LineStringGeometry[];
-  /** 같은 Trail `liveCourseRides` 에 등장한 코스 ID — Activity World 카탈로그 보강용 */
   liveCourseIds: string[];
   error: string | null;
 } {
@@ -63,7 +65,7 @@ export function useTrailLiveCourseRideSpectatorOverlay(opts: UseTrailLiveCourseR
     let cancelled = false;
     startTransition(() => setError(null));
 
-    const unsub = subscribeTrailLiveCourseRides(
+    const release = acquireTrailLiveCourseRidesSubscription(
       tid,
       (next) => {
         if (!cancelled) startTransition(() => setRows(next));
@@ -75,7 +77,7 @@ export function useTrailLiveCourseRideSpectatorOverlay(opts: UseTrailLiveCourseR
 
     return () => {
       cancelled = true;
-      unsub();
+      release();
     };
   }, [enabled, trailId, user]);
 

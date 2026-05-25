@@ -19,9 +19,8 @@ import { BASIC_SHARED_HUB_IDS } from "../../lib/firestoreCourses";
 import type { PublishedPublicCourseSummary } from "../../lib/firestoreCourses";
 import type { TrailInstance } from "../../lib/firestoreTrailInstance";
 import { sanitizeTrailId } from "../../lib/firestoreTrail";
-import { resolveTrailDisplayLabel } from "../../lib/trailDisplayNumber";
+import { debugTrailLiveCourseRidesSubscriptionCount } from "../../lib/liveCourseRidesSubscriptionHub";
 import type { LineStringGeometry } from "../../lib/geo";
-import type { MapPeerMarker } from "../../components/MapView";
 import type { ActivityWorldLodDebugPanelProps } from "./ActivityWorldLodDebugPanel";
 import { resolveWorldMapOverlay, runWorldMapOverlayMergeChecks } from "./worldMapOverlayCore";
 import { useWorldActivityCatalog } from "./useWorldActivityCatalog";
@@ -45,7 +44,7 @@ export type UseAppMapOverlaysOpts = {
   publishedPublicCourses: readonly PublishedPublicCourseSummary[];
   /** Trailhead 공개 Trail 목록 — 라이브 코스 ID 카탈로그 보강 */
   openTrails: readonly TrailInstance[];
-  coursePeerMarkers: MapPeerMarker[];
+  trailRoomLabel: string;
   activityMapRefreshNonce: number;
 };
 
@@ -83,9 +82,11 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     trackedCourseId,
     publishedPublicCourses,
     openTrails,
-    coursePeerMarkers: _coursePeerMarkers,
+    trailRoomLabel,
     activityMapRefreshNonce,
   } = opts;
+
+  const coursePeerIdsForTrailSpectator = useMemo(() => new Set<string>(), []);
 
   const { worldHighlightedCourseIds, liveActivityCourseIds, worldHudLines } = useWorldActivityCatalog({
     configured,
@@ -113,16 +114,6 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     mapZoom,
   });
 
-  const trailDisplayLabels = useMemo(
-    () => resolveTrailDisplayLabel(sanitizedTrailId, currentTrailMeta),
-    [sanitizedTrailId, currentTrailMeta],
-  );
-
-  const coursePeerIdsForTrailSpectator = useMemo(
-    () => new Set<string>(),
-    [],
-  );
-
   const liveRideTrailIds = useMemo(() => {
     const ids = new Set<string>([sanitizedTrailId]);
     for (const t of openTrails) {
@@ -137,18 +128,15 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       pageVisible,
   );
 
-  const {
-    spectatorDots,
-    spectatorRouteGeometries,
-    liveCourseIds: trailLiveCourseIds,
-  } = useTrailLiveCourseRideSpectatorOverlay({
-    user,
-    trailId,
-    trailRoomLabel: trailDisplayLabels.room,
-    enabled: trailSpectatorOverlayEnabled,
-    mapZoom,
-    excludePeerIds: coursePeerIdsForTrailSpectator,
-  });
+  const { spectatorDots, spectatorRouteGeometries, liveCourseIds: trailLiveCourseIds } =
+    useTrailLiveCourseRideSpectatorOverlay({
+      user,
+      trailId,
+      trailRoomLabel,
+      enabled: trailSpectatorOverlayEnabled,
+      mapZoom,
+      excludePeerIds: coursePeerIdsForTrailSpectator,
+    });
 
   const openTrailCourseIds = useMemo(
     () =>
@@ -303,9 +291,10 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       render: activityWorldRender,
       catalog: catalogOverlay.overlayStats,
       catalogEnabled: catalogActivityEnabled,
-      liveCourseRidePulse: liveCourseRideOverlay.pulseDots.length,
+      liveCourseRideLines: liveCourseRideOverlay.pulseRoutes.length,
       liveCourseRideCourses: liveCourseRideOverlay.liveCourseCount,
       liveCourseRideRows: liveCourseRideOverlay.liveRideRowCount,
+      liveCourseRidesHubSubs: debugTrailLiveCourseRidesSubscriptionCount(),
       publicationPresence: publicationOverlay.overlayStats,
       publicationPresenceEnabled: publicationPresenceWorldMapEnabled,
     });
@@ -319,7 +308,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     activityWorldRender,
     catalogOverlay.overlayStats,
     catalogActivityEnabled,
-    liveCourseRideOverlay.pulseDots.length,
+    liveCourseRideOverlay.pulseRoutes.length,
     liveCourseRideOverlay.liveCourseCount,
     liveCourseRideOverlay.liveRideRowCount,
     publicationOverlay.overlayStats,
@@ -345,7 +334,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
           catalogGeometryReady: catalogOverlay.overlayStats.geometryReady,
           catalogActivityRows: catalogOverlay.overlayStats.activityRows,
           catalogAnchorMissing: catalogOverlay.overlayStats.anchorMissing,
-          liveCourseRidePulse: liveCourseRideOverlay.pulseDots.length,
+          liveCourseRideLines: liveCourseRideOverlay.pulseRoutes.length,
           liveCourseRideCourses: liveCourseRideOverlay.liveCourseCount,
           liveCourseRideRows: liveCourseRideOverlay.liveRideRowCount,
           liveActivityCourseIdsCount: liveActivityCourseIds.length,

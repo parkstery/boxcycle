@@ -1,18 +1,16 @@
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
-import type { ActivityWorldMapDot, ActivityWorldMapRoute } from "../../lib/activityWorldLod";
+import type { ActivityWorldMapRoute } from "../../lib/activityWorldLod";
 import { ACTIVITY_TRACE_LIVE_STRENGTH } from "../../lib/activityWorldTraceStyle";
-import { resolveActivityWorldDotLngLat } from "../../lib/activityWorldAnchor";
 import {
   BASIC_SHARED_HUB_IDS,
   fetchCourseRoutePayload,
   getBasicHubCoursePayload,
 } from "../../lib/firestoreCourses";
-import type { CourseActivitySnapshot } from "../../lib/firestoreCourseActivity";
 import {
   isTrailLiveCourseRideRowFresh,
-  subscribeTrailLiveCourseRides,
   type TrailLiveCourseRideRow,
 } from "../../lib/firestoreTrailLiveCourseRides";
+import { acquireTrailLiveCourseRidesSubscription } from "../../lib/liveCourseRidesSubscriptionHub";
 import { sanitizeTrailId } from "../../lib/firestoreTrail";
 import type { LineStringGeometry } from "../../lib/geo";
 import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../../lib/geoDecimate";
@@ -46,20 +44,6 @@ function aggregateLiveCourses(rows: readonly TrailLiveCourseRideRow[]): LiveCour
   }));
 }
 
-function syntheticActivityRow(agg: LiveCourseAggregate): CourseActivitySnapshot {
-  return {
-    courseId: agg.courseId,
-    activeRiderCount: agg.riderCount,
-    recentRideCount7d: 0,
-    recentLikeCount: 0,
-    liveNow: true,
-    pulseLevel: Math.min(3, Math.max(1, agg.riderCount)),
-    updatedAtMs: Date.now(),
-    liveAnchorLngLat: null,
-    liveAnchorProgressRatio: agg.progressRatio,
-  };
-}
-
 function mergeLiveRows(maps: Map<string, TrailLiveCourseRideRow>[]): TrailLiveCourseRideRow[] {
   const merged = new Map<string, TrailLiveCourseRideRow>();
   for (const m of maps) {
@@ -73,16 +57,23 @@ function mergeLiveRows(maps: Map<string, TrailLiveCourseRideRow>[]): TrailLiveCo
   return [...merged.values()];
 }
 
+const EMPTY_LIVE_OVERLAY: CourseActivityMapOverlay = {
+  pulseRoutes: [],
+  heatRoutes: [],
+  pulseDots: [],
+  heatDots: [],
+};
+
 /**
- * 공개 Trail·현재 Trail `liveCourseRides` → Activity World pulse dot/line.
- * Trailhead 에서도 openTrail 목록 경로로 주행 dot 을 표시한다.
+ * `liveCourseRides` → Activity World **pulse line only** (per-user dot 은 global livePresence).
+ * catalog·publication 에 라인이 없을 때 route geometry gap-fill.
  */
 export function useWorldLiveCourseRideMapOverlay(opts: {
   enabled: boolean;
   mapZoom: number;
   myUid: string | null;
   excludeCourseId: string | null;
-  /** 현재 Trail + openTrailListings — trail 별 onSnapshot */
+  /** 현재 Trail + openTrailListings */
   trailIds: readonly string[];
 }): CourseActivityMapOverlay & { liveCourseCount: number; liveRideRowCount: number } {
   const { enabled, mapZoom, myUid, excludeCourseId, trailIds } = opts;
@@ -113,8 +104,8 @@ export function useWorldLiveCourseRideMapOverlay(opts: {
       startTransition(() => setRows(mergeLiveRows(rowMaps)));
     };
 
-    const unsubs = trailIdList.map((tid, index) =>
-      subscribeTrailLiveCourseRides(
+    const releases = trailIdList.map((tid, index) =>
+      acquireTrailLiveCourseRidesSubscription(
         tid,
         (next) => {
           const map = rowMaps[index]!;
@@ -133,9 +124,8 @@ export function useWorldLiveCourseRideMapOverlay(opts: {
       ),
     );
 
-    emit();
     return () => {
-      for (const u of unsubs) u();
+      for (const release of releases) release();
     };
   }, [enabled, trailIdsKey]);
 
@@ -197,25 +187,14 @@ export function useWorldLiveCourseRideMapOverlay(opts: {
   }, [enabled, aggregates]);
 
   const overlay = useMemo((): CourseActivityMapOverlay => {
+    if (aggregates.length === 0) return EMPTY_LIVE_OVERLAY;
+
     const pulseRoutes: ActivityWorldMapRoute[] = [];
-    const pulseDots: ActivityWorldMapDot[] = [];
     const geomMap = geomByCourseRef.current;
 
     for (const agg of aggregates) {
       const g = geomMap.get(agg.courseId);
       if (!g || g.status !== "ready") continue;
-
-      const activityRow = syntheticActivityRow(agg);
-      const lngLat = resolveActivityWorldDotLngLat(activityRow, g.geometry);
-      if (!lngLat) continue;
-
-      pulseDots.push({
-        courseId: agg.courseId,
-        lngLat,
-        pulseLevel: activityRow.pulseLevel,
-        kind: "pulse",
-        traceStrength: ACTIVITY_TRACE_LIVE_STRENGTH,
-      });
 
       pulseRoutes.push({
         courseId: agg.courseId,
@@ -228,7 +207,7 @@ export function useWorldLiveCourseRideMapOverlay(opts: {
     return {
       pulseRoutes,
       heatRoutes: [],
-      pulseDots,
+      pulseDots: [],
       heatDots: [],
     };
   }, [aggregates, mapZoom, geomEpoch]);

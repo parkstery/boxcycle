@@ -2,8 +2,9 @@ import {
   collection,
   deleteDoc,
   doc,
-  getCountFromServer,
+  getDocs,
   getFirestore,
+  limit,
   onSnapshot,
   query,
   serverTimestamp,
@@ -129,13 +130,21 @@ function memberFreshnessCutoff(): Timestamp {
   return Timestamp.fromMillis(Date.now() - TRAIL_PRESENCE_STALE_MS);
 }
 
-/** Trail `members` 중 최근 접속(lastSeenAt) — 공개 Trail 목록·주행 중 인원 집계용 */
+const MEMBERS_COUNT_SCAN_LIMIT = 48;
+
+/** Trail `members` 중 최근 접속(lastSeenAt) — aggregation 없이 소량 getDocs */
 export async function countTrailMembersFresh(trailId: string): Promise<number> {
   const rid = sanitizeTrailId(trailId);
   if (rid === DEFAULT_TRAIL_ID) return 0;
-  const q = query(membersCollectionRef(rid), where("lastSeenAt", ">", memberFreshnessCutoff()));
-  const snap = await getCountFromServer(q);
-  return snap.data().count;
+  const coll = membersCollectionRef(rid);
+  const cutoffMs = Date.now() - TRAIL_PRESENCE_STALE_MS;
+  const snap = await getDocs(query(coll, limit(MEMBERS_COUNT_SCAN_LIMIT)));
+  let n = 0;
+  for (const d of snap.docs) {
+    const ms = lastSeenAtToMillis((d.data() as Record<string, unknown>).lastSeenAt);
+    if (ms != null && ms >= cutoffMs) n += 1;
+  }
+  return n;
 }
 
 /** @deprecated `deleteTrailPresence` */
