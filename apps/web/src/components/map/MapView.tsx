@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import "../../lib/disableMapboxTelemetry";
 import {
   DEFAULT_ACTIVITY_WORLD_LOD_STATE,
   lngLatBoundsToViewport,

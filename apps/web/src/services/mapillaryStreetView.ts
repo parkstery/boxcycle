@@ -1,10 +1,7 @@
+import type { User } from "firebase/auth";
 import type { LngLat } from "../lib/geo";
 import { getDistanceMeters } from "../lib/geo";
-
-const GRAPH_IMAGES = "https://graph.mapillary.com/images";
-
-const FIELDS =
-  "id,geometry,compass_angle,computed_compass_angle,sequence,is_pano,width,height";
+import { fetchMapillaryImageRows } from "./mapillaryImagesFetch";
 
 export const MAPILLARY_QUERY_PATH_INTERVAL_M = 12;
 
@@ -42,7 +39,7 @@ function parseSequenceId(seq: unknown): string | null {
   return null;
 }
 
-function parseImageRow(row: unknown): MapillaryStreetCandidate | null {
+export function parseMapillaryImageRow(row: unknown): MapillaryStreetCandidate | null {
   if (!row || typeof row !== "object") return null;
   const o = row as Record<string, unknown>;
   const id = typeof o.id === "string" ? o.id : null;
@@ -70,27 +67,24 @@ function parseImageRow(row: unknown): MapillaryStreetCandidate | null {
 }
 
 export async function fetchMapillaryStreetCandidates(
-  accessToken: string,
+  ctx: { accessToken: string; user: User | null },
   lat: number,
   lng: number,
   radiusM: number,
   opts?: { signal?: AbortSignal; limit?: number },
 ): Promise<MapillaryStreetCandidate[]> {
-  const limit = opts?.limit ?? 12;
-  const u = new URL(GRAPH_IMAGES);
-  u.searchParams.set("access_token", accessToken);
-  u.searchParams.set("fields", FIELDS);
-  u.searchParams.set("lat", String(lat));
-  u.searchParams.set("lng", String(lng));
-  u.searchParams.set("radius", String(Math.round(radiusM)));
-  u.searchParams.set("limit", String(limit));
-  const res = await fetch(u.toString(), { signal: opts?.signal });
-  if (!res.ok) return [];
-  const json = (await res.json()) as { data?: unknown[] };
-  const rows = Array.isArray(json.data) ? json.data : [];
+  const rows = await fetchMapillaryImageRows({
+    user: ctx.user,
+    accessToken: ctx.accessToken,
+    lat,
+    lng,
+    radiusM,
+    limit: opts?.limit ?? 12,
+    signal: opts?.signal,
+  });
   const out: MapillaryStreetCandidate[] = [];
   for (const row of rows) {
-    const p = parseImageRow(row);
+    const p = parseMapillaryImageRow(row);
     if (p) out.push(p);
   }
   return out;
@@ -147,27 +141,57 @@ export function pickMapillaryStreetCandidate(
   return best;
 }
 
+const MAPILLARY_PATH_QUERY_CONCURRENCY = 2;
+
+function coordDedupeKey(lngLat: LngLat): string {
+  return `${lngLat[0].toFixed(4)}:${lngLat[1].toFixed(4)}`;
+}
+
+async function mapWithConcurrency<T, R>(
+  items: readonly T[],
+  concurrency: number,
+  fn: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const out: R[] = new Array(items.length);
+  let i = 0;
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    for (;;) {
+      const idx = i++;
+      if (idx >= items.length) break;
+      out[idx] = await fn(items[idx]!);
+    }
+  });
+  await Promise.all(workers);
+  return out;
+}
+
 export async function queryMapillaryAlongPathSamples(
-  accessToken: string,
+  ctx: { accessToken: string; user: User | null },
   sampleLngLats: { sampleM: number; lngLat: LngLat }[],
   opts: { signal?: AbortSignal; speedKmH: number; driveHeadingDeg: number | null },
 ): Promise<MapillaryStreetSampleRow[]> {
   const radius = mapillaryStreetSearchRadiusM(opts.speedKmH);
-  const rows = await Promise.all(
-    sampleLngLats.map(async ({ sampleM, lngLat }) => {
-      const cands = await fetchMapillaryStreetCandidates(
-        accessToken,
-        lngLat[1],
-        lngLat[0],
-        radius,
-        { signal: opts.signal },
-      );
-      const pickRaw = pickMapillaryStreetCandidate(cands, lngLat, opts.driveHeadingDeg);
-      const pick = pickRaw ? { ...pickRaw, sampleM } : null;
-      return { sampleM, pick };
-    }),
-  );
-  return rows;
+  const candsByKey = new Map<string, MapillaryStreetCandidate[]>();
+
+  const uniqueCoords = new Map<string, LngLat>();
+  for (const { lngLat } of sampleLngLats) {
+    const k = coordDedupeKey(lngLat);
+    if (!uniqueCoords.has(k)) uniqueCoords.set(k, lngLat);
+  }
+
+  await mapWithConcurrency([...uniqueCoords.entries()], MAPILLARY_PATH_QUERY_CONCURRENCY, async ([k, lngLat]) => {
+    const cands = await fetchMapillaryStreetCandidates(ctx, lngLat[1], lngLat[0], radius, {
+      signal: opts.signal,
+    });
+    candsByKey.set(k, cands);
+  });
+
+  return sampleLngLats.map(({ sampleM, lngLat }) => {
+    const cands = candsByKey.get(coordDedupeKey(lngLat)) ?? [];
+    const pickRaw = pickMapillaryStreetCandidate(cands, lngLat, opts.driveHeadingDeg);
+    const pick = pickRaw ? { ...pickRaw, sampleM } : null;
+    return { sampleM, pick };
+  });
 }
 
 export type ChooseAlongPathInput = {

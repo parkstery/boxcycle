@@ -23,6 +23,7 @@ interface ImportMetaEnv {
    */
   readonly VITE_PUBLIC_ROUTE_MODERATION_URL?: string;
   /** Mapillary Graph + mapillary-js Viewer용 클라이언트 토큰(선택). 없으면 거리뷰 비활성 */
+  readonly VITE_MAPILLARY_DIRECT?: string;
   readonly VITE_MAPILLARY_CLIENT_TOKEN?: string;
   /** 주행 BGM URL JSON 배열. 없거나 비면 앱 내장 플레이리스트 사용 */
   readonly VITE_RIDE_BGM_PLAYLIST_JSON?: string;

@@ -1,3 +1,4 @@
+import type { User } from "firebase/auth";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { LineStringGeometry, LngLat } from "../lib/geo";
 import {
@@ -28,8 +29,8 @@ export type MapillaryRideSync = {
   driveHeadingDeg: number | null;
 };
 
-const FETCH_MIN_MOVE_M = 24;
-const FETCH_THROTTLE_MS = 780;
+const FETCH_MIN_MOVE_M = 30;
+const FETCH_THROTTLE_MS = 1200;
 const NO_HIT_GRACE_MS = 9000;
 const MIN_HOLD_MS = 1350;
 const ANCHOR_JUMP_RESET_M = 130;
@@ -39,6 +40,7 @@ function clamp(n: number, lo: number, hi: number): number {
 }
 
 export function useRideMapillaryStreet(options: {
+  user: User | null;
   accessToken: string | null;
   routeGeometry: LineStringGeometry | null;
   routeTotalMeters: number;
@@ -51,7 +53,7 @@ export function useRideMapillaryStreet(options: {
   rideSync: MapillaryRideSync | null;
   dismissStreet: () => void;
 } {
-  const { accessToken, routeGeometry, routeTotalMeters, virtualDistanceMeters, sessionStatus, speedKmh, riderLngLat } =
+  const { user, accessToken, routeGeometry, routeTotalMeters, virtualDistanceMeters, sessionStatus, speedKmh, riderLngLat } =
     options;
 
   const [streetState, setStreetState] = useState<RideMapillaryStreetState | null>(null);
@@ -91,6 +93,7 @@ export function useRideMapillaryStreet(options: {
   const lastPickRef = useRef<MapillaryStreetPick | null>(null);
   const dismissedKeyRef = useRef<string | null>(null);
   const routeSigRef = useRef<string>("");
+  const fetchInFlightRef = useRef(false);
 
   const resetRefs = () => {
     lastAnchorLngLatRef.current = null;
@@ -112,7 +115,7 @@ export function useRideMapillaryStreet(options: {
   }, [routeGeometry]);
 
   useEffect(() => {
-    if (!mapillaryTokenConfigured || !accessToken) {
+    if (!mapillaryTokenConfigured || !accessToken || !user) {
       resetRefs();
       setStreetState(null);
       return;
@@ -132,12 +135,13 @@ export function useRideMapillaryStreet(options: {
       return;
     }
 
-    const intervalMs = clamp(Math.floor(FETCH_THROTTLE_MS / 2), 120, 400);
+    const intervalMs = clamp(Math.floor(FETCH_THROTTLE_MS / 2), 400, 800);
     const ac = new AbortController();
 
     const tryFetch = async () => {
       if (sessionRef.current !== "running") return;
       if (ac.signal.aborted) return;
+      if (fetchInFlightRef.current) return;
 
       const vd = Math.min(virtualDistanceRef.current, routeTotalMeters);
       const rider = riderLngLatRef.current;
@@ -170,15 +174,18 @@ export function useRideMapillaryStreet(options: {
 
       if (!samplePoints.length) return;
 
+      fetchInFlightRef.current = true;
       let rows;
       try {
-        rows = await queryMapillaryAlongPathSamples(accessToken, samplePoints, {
+        rows = await queryMapillaryAlongPathSamples({ accessToken, user }, samplePoints, {
           signal: ac.signal,
           speedKmH: speedRef.current,
           driveHeadingDeg: driveHeading,
         });
       } catch {
         return;
+      } finally {
+        fetchInFlightRef.current = false;
       }
       if (ac.signal.aborted || gen !== fetchGenRef.current) return;
 
@@ -222,7 +229,7 @@ export function useRideMapillaryStreet(options: {
       window.clearInterval(id);
       ac.abort();
     };
-  }, [accessToken, routeGeometry, densePack, routeTotalMeters, sessionStatus]);
+  }, [user, accessToken, routeGeometry, densePack, routeTotalMeters, sessionStatus]);
 
   const dismissStreet = useMemo(
     () => () => {

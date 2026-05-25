@@ -993,6 +993,7 @@ export default function App() {
 
   const { streetState: rideMapillaryStreet, rideSync: mapillaryRideSync, dismissStreet: dismissMapillaryStreet } =
     useRideMapillaryStreet({
+      user,
       accessToken: mapillaryTokenConfigured ? MAPILLARY_CLIENT_TOKEN : null,
       routeGeometry,
       routeTotalMeters: routeDistanceMeters,
