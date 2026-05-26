@@ -168,9 +168,11 @@ function routeLayerInsertBefore(map: mapboxgl.Map): string | undefined {
   );
 }
 
-function addActivityPulseDotLayers(map: mapboxgl.Map): void {
-  if (map.getLayer(ACTIVITY_PULSE_DOTS_LAYER)) return;
-  const beforeId = map.getLayer(ACTIVITY_PULSE_DOTS_GLOW) ? ACTIVITY_PULSE_DOTS_GLOW : undefined;
+/** DEV: 스타일 하드코딩 — `VITE_DEBUG_ACTIVITY_PULSE_DOT_STYLE=false` 로 끔 */
+const ACTIVITY_PULSE_DOT_STYLE_DEBUG =
+  import.meta.env.DEV && import.meta.env.VITE_DEBUG_ACTIVITY_PULSE_DOT_STYLE !== "false";
+
+function ensureActivityPulseDotLayers(map: mapboxgl.Map): void {
   if (!map.getLayer(ACTIVITY_PULSE_DOTS_GLOW)) {
     map.addLayer({
       id: ACTIVITY_PULSE_DOTS_GLOW,
@@ -182,11 +184,11 @@ function addActivityPulseDotLayers(map: mapboxgl.Map): void {
           ["linear"],
           ["zoom"],
           3,
-          ["+", 10, ["*", ["get", "pulseLevel"], 3]],
+          ["+", 10, ["*", ["coalesce", ["get", "pulseLevel"], 1], 3]],
           8,
-          ["+", 12, ["*", ["get", "pulseLevel"], 2.5]],
+          ["+", 12, ["*", ["coalesce", ["get", "pulseLevel"], 1], 2.5]],
           12,
-          ["+", 8, ["*", ["get", "pulseLevel"], 2]],
+          ["+", 8, ["*", ["coalesce", ["get", "pulseLevel"], 1], 2]],
         ],
         "circle-color": "#ffffff",
         "circle-opacity": ["interpolate", ["linear"], ["zoom"], 4, 0.5, 10, 0.72],
@@ -194,8 +196,8 @@ function addActivityPulseDotLayers(map: mapboxgl.Map): void {
       },
     });
   }
-  map.addLayer(
-    {
+  if (!map.getLayer(ACTIVITY_PULSE_DOTS_LAYER)) {
+    map.addLayer({
       id: ACTIVITY_PULSE_DOTS_LAYER,
       type: "circle",
       source: ACTIVITY_PULSE_DOTS_SRC,
@@ -205,18 +207,81 @@ function addActivityPulseDotLayers(map: mapboxgl.Map): void {
           ["linear"],
           ["zoom"],
           4,
-          ["+", 5, ["*", ["get", "pulseLevel"], 1.5]],
+          ["+", 5, ["*", ["coalesce", ["get", "pulseLevel"], 1], 1.5]],
           10,
-          ["+", 7, ["*", ["get", "pulseLevel"], 1.5]],
+          ["+", 7, ["*", ["coalesce", ["get", "pulseLevel"], 1], 1.5]],
+          12,
+          ["+", 10, ["*", ["coalesce", ["get", "pulseLevel"], 1], 1.5]],
         ],
         "circle-color": ACTIVITY_TRACE_RED,
         "circle-stroke-width": 1.6,
         "circle-stroke-color": "#ffffff",
         "circle-opacity": ["min", 1, ["*", 0.94, TRACE_STRENGTH_MULT]],
       },
-    },
-    beforeId,
-  );
+    });
+  }
+}
+
+function applyActivityPulseDotDebugStyle(map: mapboxgl.Map): void {
+  if (!map.getLayer(ACTIVITY_PULSE_DOTS_LAYER)) return;
+  map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-radius", 12);
+  map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-opacity", 1);
+  map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-color", "#ff0000");
+  map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-stroke-width", 2);
+  map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-stroke-color", "#ffffff");
+  if (map.getLayer(ACTIVITY_PULSE_DOTS_GLOW)) {
+    map.setPaintProperty(ACTIVITY_PULSE_DOTS_GLOW, "circle-opacity", 0);
+  }
+}
+
+function inspectActivityPulseDotLayer(
+  map: mapboxgl.Map,
+  pulseDots: readonly ActivityWorldDotFeature[],
+): void {
+  const layerId = ACTIVITY_PULSE_DOTS_LAYER;
+  if (!map.getLayer(layerId)) {
+    console.warn("[MapView] pulse dot inspect: layer missing", { layerId });
+    return;
+  }
+
+  const bounds = map.getBounds();
+  const first = pulseDots[0];
+  let inBounds: boolean | null = null;
+  if (first && bounds) {
+    inBounds = bounds.contains(first.lngLat as [number, number]);
+  }
+
+  let queryRenderedCount = -1;
+  try {
+    queryRenderedCount = map.queryRenderedFeatures({ layers: [layerId] }).length;
+  } catch (e) {
+    console.warn("[MapView] pulse dot inspect: queryRenderedFeatures failed", e);
+  }
+
+  console.log("[MapView] pulse dot style inspect", {
+    layerId,
+    glowLayerId: ACTIVITY_PULSE_DOTS_GLOW,
+    zoom: Number(map.getZoom().toFixed(2)),
+    filter: map.getFilter(layerId) ?? null,
+    layoutVisibility: map.getLayoutProperty(layerId, "visibility") ?? "visible",
+    circleRadius: map.getPaintProperty(layerId, "circle-radius"),
+    circleOpacity: map.getPaintProperty(layerId, "circle-opacity"),
+    circleColor: map.getPaintProperty(layerId, "circle-color"),
+    circleStrokeWidth: map.getPaintProperty(layerId, "circle-stroke-width"),
+    queryRenderedCount,
+    sourceFeatureCount: pulseDots.length,
+    firstCourseId: first?.courseId ?? null,
+    firstLngLat: first ? [first.lngLat[0], first.lngLat[1]] : null,
+    inBounds,
+    styleDebugHardcoded: ACTIVITY_PULSE_DOT_STYLE_DEBUG,
+  });
+}
+
+function addActivityPulseDotLayers(map: mapboxgl.Map): void {
+  ensureActivityPulseDotLayers(map);
+  if (ACTIVITY_PULSE_DOT_STYLE_DEBUG) {
+    applyActivityPulseDotDebugStyle(map);
+  }
 }
 
 function addActivityHeatDotLayers(map: mapboxgl.Map): void {
@@ -282,8 +347,8 @@ function syncActivityWorldDotLayers(
       id: `act-pd-${d.courseId}`,
       properties: {
         courseId: d.courseId,
-        pulseLevel: d.pulseLevel,
-        traceStrength: d.traceStrength,
+        pulseLevel: Number.isFinite(d.pulseLevel) ? d.pulseLevel : 1,
+        traceStrength: Number.isFinite(d.traceStrength) ? d.traceStrength : 1,
       },
       geometry: { type: "Point" as const, coordinates: d.lngLat },
     })),
@@ -305,11 +370,10 @@ function syncActivityWorldDotLayers(
   try {
     if (!map.getSource(ACTIVITY_PULSE_DOTS_SRC)) {
       map.addSource(ACTIVITY_PULSE_DOTS_SRC, { type: "geojson", data: pulseFc });
-      addActivityPulseDotLayers(map);
     } else {
       (map.getSource(ACTIVITY_PULSE_DOTS_SRC) as mapboxgl.GeoJSONSource).setData(pulseFc);
-      if (!map.getLayer(ACTIVITY_PULSE_DOTS_LAYER)) addActivityPulseDotLayers(map);
     }
+    addActivityPulseDotLayers(map);
 
     if (!map.getSource(ACTIVITY_HEAT_DOTS_SRC)) {
       map.addSource(ACTIVITY_HEAT_DOTS_SRC, { type: "geojson", data: heatFc });
@@ -320,12 +384,9 @@ function syncActivityWorldDotLayers(
     }
 
     moveActivityWorldLayersToTop(map);
-    const firstPulse = pulseDots[0]?.lngLat;
-    console.log("[MapView] activity world dots (layer)", {
-      pulse: pulseDots.length,
-      heat: heatDots.length,
-      firstLngLat: firstPulse ? [firstPulse[0].toFixed(4), firstPulse[1].toFixed(4)] : null,
-    });
+    if (pulseDots.length > 0) {
+      inspectActivityPulseDotLayer(map, pulseDots);
+    }
   } catch (e) {
     console.warn("[MapView] activity world dot layers", e);
   }
