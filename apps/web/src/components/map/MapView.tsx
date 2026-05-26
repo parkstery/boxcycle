@@ -576,6 +576,10 @@ function syncTrailSpectatorLayers(
   }
 }
 
+const DEBUG_GLOBAL_LIVE_PRESENCE_ON_MAP =
+  import.meta.env.DEV &&
+  import.meta.env.VITE_DEBUG_GLOBAL_LIVE_PRESENCE_ON_MAP === "true";
+
 function moveGlobalLivePresenceLayersToTop(map: mapboxgl.Map): void {
   for (const id of [
     GLOBAL_LIVE_PRESENCE_GLOW_LAYER,
@@ -681,7 +685,9 @@ function syncGlobalLivePresenceLayers(
   try {
     if (!ensureGlobalLivePresenceLayers(map)) return;
     (map.getSource(GLOBAL_LIVE_PRESENCE_SRC) as mapboxgl.GeoJSONSource | undefined)?.setData(dotFc);
-    moveGlobalLivePresenceLayersToTop(map);
+    if (DEBUG_GLOBAL_LIVE_PRESENCE_ON_MAP) {
+      moveGlobalLivePresenceLayersToTop(map);
+    }
     if (import.meta.env.DEV) {
       console.debug("[MapView] global presence sync", {
         dots: dots.length,

@@ -975,6 +975,10 @@ export default function App() {
     enabled: configured && Boolean(user),
   });
 
+  const debugGlobalPresenceOnMap =
+    import.meta.env.DEV &&
+    import.meta.env.VITE_DEBUG_GLOBAL_LIVE_PRESENCE_ON_MAP === "true";
+
   const globalPeerPositionsByUid = useMemo((): ReadonlyMap<string, LngLat> => {
     const m = new Map<string, LngLat>();
     for (const d of globalPresenceDots) m.set(d.id, d.lngLat);
@@ -1227,7 +1231,7 @@ export default function App() {
             placeSearchMarkerLngLat,
             trailSpectatorDots: spectatorDots,
             trailSpectatorRoutes: spectatorRouteGeometries,
-            globalPresenceDots: globalPresenceDots,
+            globalPresenceDots: debugGlobalPresenceOnMap ? globalPresenceDots : null,
             activityWorldRaw,
             getActivityWorldPinLabel,
           }}

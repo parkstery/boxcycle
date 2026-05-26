@@ -55,7 +55,7 @@ export function useGlobalLivePresence(opts: UseGlobalLivePresenceOpts): {
   }, [enabled, user?.uid]);
 
   const dots = useMemo(
-    () => globalLivePresenceRowsToDots(rows, { myUid: user?.uid ?? null, includeSelf: true }),
+    () => globalLivePresenceRowsToDots(rows, { myUid: user?.uid ?? null, includeSelf: false }),
     [rows, user?.uid],
   );
 

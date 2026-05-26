@@ -58,6 +58,7 @@
 | [260519-tier-quota-정책](260519-tier-quota-정책.md) | tier별 한도 | 초안 | tier 부록 |
 | [260518-Route-Token-경제-설계](260518-Route-Token-경제-설계.md) | Route Token 경제 | 초안 | `+architecture` |
 | [260523-World-Activity-Presence-설계](260523-World-Activity-Presence-설계.md) | publication dot·heartbeat | SoT | `+architecture` |
+| [260526-World-Activity-Presence-자문단-정렬-보고](260526-World-Activity-Presence-자문단-정렬-보고.md) | 자문 검토·코드 갭·P0 로드맵 | 초안 | presence SoT 보조 |
 | [260517-Activity-World-지도-LOD-설계](260517-Activity-World-지도-LOD-설계.md) | 지도 LOD | 반영중 | presence는 위 SoT |
 | [260514-맵퍼스트-HUD-시트-화면구성-디자인-분석](260514-맵퍼스트-HUD-시트-화면구성-디자인-분석.md) | HUD·시트 구현 분석 | 기록 | 2026-05-14 스냅샷 |
 
@@ -137,3 +138,4 @@
 | 2026-05-23 | `260523-Firebase-비용-운영-체크리스트` 추가 (execution·architecture 교차) |
 | 2026-05-23 | `260523-World-Activity-Presence-설계` 추가 — 단일 진실 |
 | 2026-05-26 | 신뢰도 열·tier 계층·(cycle) 머리글 정합 — [현재 단계](260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md) §2.1 진행 표 |
+| 2026-05-26 | `260526-World-Activity-Presence-자문단-정렬-보고` 추가 |

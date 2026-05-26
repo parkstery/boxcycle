@@ -181,13 +181,16 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     excludeCourseId: isRideSessionActive ? trackedCourseId : null,
     mapZoom,
     enabled: catalogActivityEnabled,
-    /** publication 모드에서도 aggregate·bounds 로드 — gap-fill 에 사용 */
+    /** publication 모드에서도 aggregate·bounds 로드 — merge dot 출력은 publication 전용 */
     worldMapRenderEnabled: true,
     refreshNonce: activityMapRefreshNonce,
   });
 
+  const worldLiveCourseRideOverlayEnabled =
+    Boolean(configured && user && pageVisible) && !publicationPresenceWorldMapEnabled;
+
   const liveCourseRideOverlay = useWorldLiveCourseRideMapOverlay({
-    enabled: Boolean(configured && user && pageVisible),
+    enabled: worldLiveCourseRideOverlayEnabled,
     mapZoom,
     myUid: user?.uid ?? null,
     excludeCourseId: isRideSessionActive ? trackedCourseId : null,
