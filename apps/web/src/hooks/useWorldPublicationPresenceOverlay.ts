@@ -6,7 +6,7 @@ import {
 } from "../lib/activityWorldTraceStyle";
 import { BASIC_SHARED_HUB_IDS, fetchCourseRoutePayload, getBasicHubCoursePayload } from "../lib/firestoreCourses";
 import {
-  fetchPublicPublicationPresences,
+  fetchPublicPublicationPresencesDetailed,
   PUBLICATION_PRESENCE_POLL_MS,
   type PublicationPresenceSnapshot,
 } from "../lib/firestorePublicationPresence";
@@ -19,6 +19,8 @@ export type WorldPublicationPresenceOverlayStats = {
   anchorMissing: number;
   geometryReady: number;
   geometryLoading: number;
+  fetchRowCount: number;
+  lastFetchError: string | null;
 };
 
 const MAX_GEOMETRY_LOAD = 20;
@@ -52,11 +54,14 @@ function presenceToDots(rows: readonly PublicationPresenceSnapshot[]): {
       continue;
     }
     const publicationId = row.publicationId;
-    if (row.status === "active" && row.activeRiderCount > 0) {
+    const activeLive =
+      row.status === "active" && (row.activeRiderCount > 0 || row.liveNow);
+    if (activeLive) {
+      const level = row.activeRiderCount > 0 ? row.activeRiderCount : 1;
       pulseDots.push({
         courseId: publicationId,
         lngLat,
-        pulseLevel: Math.min(3, Math.max(1, row.activeRiderCount)),
+        pulseLevel: Math.min(3, Math.max(1, level)),
         kind: "pulse",
         traceStrength: ACTIVITY_TRACE_LIVE_STRENGTH,
       });
@@ -114,6 +119,7 @@ export function useWorldPublicationPresenceOverlay(opts: UseWorldPublicationPres
 } {
   const { enabled, mapZoom, excludePublicationId = null, refreshNonce = 0 } = opts;
   const [rows, setRows] = useState<PublicationPresenceSnapshot[]>([]);
+  const [lastFetchError, setLastFetchError] = useState<string | null>(null);
   const [overlayEpoch, setOverlayEpoch] = useState(0);
   const geomByPublicationRef = useRef<Map<string, GeomEntry>>(new Map());
   const bumpOverlay = useRef(() => setOverlayEpoch((n) => n + 1));
@@ -124,7 +130,10 @@ export function useWorldPublicationPresenceOverlay(opts: UseWorldPublicationPres
 
   useEffect(() => {
     if (!enabled) {
-      startTransition(() => setRows([]));
+      startTransition(() => {
+        setRows([]);
+        setLastFetchError(null);
+      });
       geomByPublicationRef.current.clear();
       setOverlayEpoch((n) => n + 1);
       return;
@@ -133,10 +142,31 @@ export function useWorldPublicationPresenceOverlay(opts: UseWorldPublicationPres
     let cancelled = false;
     const tick = async () => {
       try {
-        const list = await fetchPublicPublicationPresences();
-        if (!cancelled) startTransition(() => setRows(list));
-      } catch {
-        if (!cancelled) startTransition(() => setRows([]));
+        const { rows: list, activeQueryError, closedQueryError } =
+          await fetchPublicPublicationPresencesDetailed();
+        if (cancelled) return;
+        const err = activeQueryError ?? closedQueryError;
+        startTransition(() => {
+          setRows(list);
+          setLastFetchError(err);
+        });
+        if (import.meta.env.DEV && err) {
+          console.warn("[PublicationPresence] fetch partial failure", {
+            activeQueryError,
+            closedQueryError,
+            rowCount: list.length,
+          });
+        }
+      } catch (e) {
+        if (cancelled) return;
+        const msg = e instanceof Error ? e.message : String(e);
+        if (import.meta.env.DEV) {
+          console.warn("[PublicationPresence] fetch failed", e);
+        }
+        startTransition(() => {
+          setRows([]);
+          setLastFetchError(msg);
+        });
       }
     };
 
@@ -153,10 +183,18 @@ export function useWorldPublicationPresenceOverlay(opts: UseWorldPublicationPres
     let cancelled = false;
     void (async () => {
       try {
-        const list = await fetchPublicPublicationPresences();
-        if (!cancelled) startTransition(() => setRows(list));
-      } catch {
-        /* ignore */
+        const { rows: list, activeQueryError, closedQueryError } =
+          await fetchPublicPublicationPresencesDetailed();
+        if (!cancelled) {
+          startTransition(() => {
+            setRows(list);
+            setLastFetchError(activeQueryError ?? closedQueryError);
+          });
+        }
+      } catch (e) {
+        if (import.meta.env.DEV) {
+          console.warn("[PublicationPresence] refresh fetch failed", e);
+        }
       }
     })();
     return () => {
@@ -169,7 +207,7 @@ export function useWorldPublicationPresenceOverlay(opts: UseWorldPublicationPres
     const ids: string[] = [];
     for (const row of rows) {
       if (exclude && row.publicationId === exclude) continue;
-      if (row.status === "active" && row.activeRiderCount > 0) {
+      if (row.status === "active" && (row.activeRiderCount > 0 || row.liveNow)) {
         ids.push(row.publicationId);
       } else if (row.status === "closed") {
         ids.push(row.publicationId);
@@ -227,7 +265,7 @@ export function useWorldPublicationPresenceOverlay(opts: UseWorldPublicationPres
         if (g?.status !== "ready") continue;
 
         const line = decimateLineStringVertices(g.geometry, maxLineStringVerticesForMapZoom(mapZoom));
-        if (row.status === "active" && row.activeRiderCount > 0) {
+        if (row.status === "active" && (row.activeRiderCount > 0 || row.liveNow)) {
           pulseRoutes.push({
             courseId: pid,
             geometry: line,
@@ -264,13 +302,17 @@ export function useWorldPublicationPresenceOverlay(opts: UseWorldPublicationPres
 
   const overlayStats = useMemo(
     (): WorldPublicationPresenceOverlayStats => ({
-      activeCount: rows.filter((r) => r.status === "active" && r.activeRiderCount > 0).length,
+      activeCount: rows.filter(
+        (r) => r.status === "active" && (r.activeRiderCount > 0 || r.liveNow),
+      ).length,
       closedCount: rows.filter((r) => r.status === "closed").length,
       anchorMissing,
       geometryReady,
       geometryLoading,
+      fetchRowCount: rows.length,
+      lastFetchError,
     }),
-    [rows, anchorMissing, geometryReady, geometryLoading],
+    [rows, anchorMissing, geometryReady, geometryLoading, lastFetchError],
   );
 
   return { pulseDots, heatDots, pulseRoutes, heatRoutes, presenceByPublicationId, overlayStats };

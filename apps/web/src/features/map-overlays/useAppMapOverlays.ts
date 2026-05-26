@@ -22,6 +22,7 @@ import { sanitizeTrailId } from "../../lib/firestoreTrail";
 import { debugTrailLiveCourseRidesSubscriptionCount } from "../../lib/liveCourseRidesSubscriptionHub";
 import type { LineStringGeometry } from "../../lib/geo";
 import type { ActivityWorldLodDebugPanelProps } from "./ActivityWorldLodDebugPanel";
+import { runPublicationPresenceParseChecks } from "../../lib/firestorePublicationPresence";
 import { resolveWorldMapOverlay, runWorldMapOverlayMergeChecks } from "./worldMapOverlayCore";
 import { useWorldActivityCatalog } from "./useWorldActivityCatalog";
 import { useWorldLiveCourseRideMapOverlay } from "./useWorldLiveCourseRideMapOverlay";
@@ -278,6 +279,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     try {
       runActivityWorldLodP0Checks();
       runWorldMapOverlayMergeChecks();
+      runPublicationPresenceParseChecks();
     } catch (e) {
       console.error("[ActivityWorld] P0 LOD checks failed", e);
     }
@@ -306,6 +308,18 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       liveCourseRidesHubSubs: debugTrailLiveCourseRidesSubscriptionCount(),
       publicationPresence: publicationOverlay.overlayStats,
       publicationPresenceEnabled: publicationPresenceWorldMapEnabled,
+      publicationRawDots: {
+        pulse: publicationOverlay.pulseDots.length,
+        heat: publicationOverlay.heatDots.length,
+      },
+      publicationMergedRawDots: {
+        pulse: activityWorldRaw.pulseDots.length,
+        heat: activityWorldRaw.heatDots.length,
+      },
+      publicationRenderDots: {
+        pulse: activityWorldRender.pulseDots.length,
+        heat: activityWorldRender.heatDots.length,
+      },
     });
   }, [
     mapZoom,
@@ -321,7 +335,11 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     liveCourseRideOverlay.liveCourseCount,
     liveCourseRideOverlay.liveRideRowCount,
     publicationOverlay.overlayStats,
+    publicationOverlay.pulseDots.length,
+    publicationOverlay.heatDots.length,
     publicationPresenceWorldMapEnabled,
+    activityWorldRender.pulseDots.length,
+    activityWorldRender.heatDots.length,
   ]);
 
   const lodDebugPanelProps: ActivityWorldLodDebugPanelProps | null =
@@ -338,6 +356,8 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
           publicationClosedCount: publicationOverlay.overlayStats.closedCount,
           publicationGeometryReady: publicationOverlay.overlayStats.geometryReady,
           publicationAnchorMissing: publicationOverlay.overlayStats.anchorMissing,
+          publicationFetchRowCount: publicationOverlay.overlayStats.fetchRowCount,
+          publicationLastFetchError: publicationOverlay.overlayStats.lastFetchError,
           catalogLiveCandidates: catalogOverlay.overlayStats.liveCandidates,
           catalogHeatCandidates: catalogOverlay.overlayStats.heatCandidates,
           catalogGeometryReady: catalogOverlay.overlayStats.geometryReady,

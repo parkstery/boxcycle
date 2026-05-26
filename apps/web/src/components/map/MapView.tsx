@@ -305,6 +305,12 @@ function syncActivityWorldDotLayers(
     }
 
     moveActivityWorldDotLayersToTop(map);
+    if (import.meta.env.DEV) {
+      console.debug("[MapView] activity world dots", {
+        pulse: pulseDots.length,
+        heat: heatDots.length,
+      });
+    }
   } catch (e) {
     console.warn("[MapView] activity world dot layers", e);
   }

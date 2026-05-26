@@ -123,6 +123,8 @@ flowchart TB
 | P0-B2 | publication ON → `catalogOverlayEnabled` false (N×getDoc 생략) | ✅ |
 | P0-B3 | Trailhead idle → trail spectator OFF | ✅ |
 | P0-B4 | `globalEnabled` = 주행 중·코스 있을 때만 publish | ✅ |
+| P0-C1 | parse GeoPoint·문서 drop 제거·client midpoint·fetch DEV warn | ✅ |
+| P0-C3 | LOD 패널 pubFetch·`[MapView] activity world dots` DEV 로그 | ✅ |
 | P1 | MapView `syncWorldLayers` / `syncSessionLayers` / `syncDebugLayers` 분리 | ⬜ |
 
 **AC 추가**

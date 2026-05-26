@@ -12,6 +12,8 @@ export type ActivityWorldLodDebugPanelProps = {
   publicationClosedCount: number;
   publicationGeometryReady: number;
   publicationAnchorMissing: number;
+  publicationFetchRowCount?: number;
+  publicationLastFetchError?: string | null;
   catalogLiveCandidates: number;
   catalogHeatCandidates: number;
   catalogGeometryReady: number;
@@ -37,6 +39,8 @@ export function ActivityWorldLodDebugPanel(props: ActivityWorldLodDebugPanelProp
     publicationClosedCount,
     publicationGeometryReady,
     publicationAnchorMissing,
+    publicationFetchRowCount = 0,
+    publicationLastFetchError = null,
     catalogLiveCandidates,
     catalogHeatCandidates,
     catalogGeometryReady,
@@ -68,6 +72,9 @@ geom ${
           : `${catalogGeometryReady}/${catalogActivityRows}`
       } anchorMiss ${
         publicationPresenceWorldMapEnabled ? publicationAnchorMissing : catalogAnchorMissing
+      }
+pubFetch ${publicationFetchRowCount}${
+        publicationLastFetchError ? ` err ${publicationLastFetchError.slice(0, 40)}` : ""
       }
 liveIds ${liveActivityCourseIdsCount} catalog ${catalogCourseIdsCount}
 liveRides ${liveCourseRideCourses} rows ${liveCourseRideRows}→line ${liveCourseRideLines}`}
