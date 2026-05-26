@@ -1006,6 +1006,8 @@ export function MapView({
         zoom: z,
         firstCourseId: first?.courseId ?? null,
         firstLngLat: first ? [first.lngLat[0].toFixed(4), first.lngLat[1].toFixed(4)] : null,
+        hasPulseLayer: Boolean(map.getLayer(ACTIVITY_PULSE_DOTS_LAYER)),
+        hasPulseSource: Boolean(map.getSource(ACTIVITY_PULSE_DOTS_SRC)),
       });
     }
     syncCourseActivityLayers(map, render.pulseRoutes, render.heatRoutes);

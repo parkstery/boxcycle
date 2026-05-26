@@ -27,6 +27,7 @@ import { resolveWorldMapOverlay, runWorldMapOverlayMergeChecks } from "./worldMa
 import { useWorldActivityCatalog } from "./useWorldActivityCatalog";
 import { useWorldLiveCourseRideMapOverlay } from "./useWorldLiveCourseRideMapOverlay";
 import {
+  ensureWorldActivityMinimumDots,
   mergePublicationWorldPulseDots,
   runWorldPublicationMapDotsChecks,
 } from "./worldPublicationMapDots";
@@ -228,41 +229,50 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     ],
   );
 
-  const activityWorldRaw = useMemo(
-    () =>
-      resolveWorldMapOverlay({
-        trackedCourseId,
-        active: activeOverlay,
-        catalog: {
-          pulseRoutes: catalogOverlay.pulseRoutes,
-          heatRoutes: catalogOverlay.heatRoutes,
-          pulseDots: catalogOverlay.pulseDots,
-          heatDots: catalogOverlay.heatDots,
-        },
-        publication: {
-          pulseRoutes: publicationOverlay.pulseRoutes,
-          heatRoutes: publicationOverlay.heatRoutes,
-          pulseDots: publicationWorldDots.pulseDots,
-          heatDots: publicationWorldDots.heatDots,
-        },
-        liveCourseRides: {
-          pulseRoutes: liveCourseRideOverlay.pulseRoutes,
-          heatRoutes: liveCourseRideOverlay.heatRoutes,
-          pulseDots: liveCourseRideOverlay.pulseDots,
-          heatDots: liveCourseRideOverlay.heatDots,
-        },
-        publicationPresenceWorldMapEnabled,
-      }),
-    [
+  const mapSessionActive = worldMapActivityEnabled;
+
+  const activityWorldRaw = useMemo(() => {
+    const merged = resolveWorldMapOverlay({
       trackedCourseId,
-      activeOverlay,
-      catalogOverlay,
-      publicationOverlay,
-      publicationWorldDots,
-      liveCourseRideOverlay,
+      active: activeOverlay,
+      catalog: {
+        pulseRoutes: catalogOverlay.pulseRoutes,
+        heatRoutes: catalogOverlay.heatRoutes,
+        pulseDots: catalogOverlay.pulseDots,
+        heatDots: catalogOverlay.heatDots,
+      },
+      publication: {
+        pulseRoutes: publicationOverlay.pulseRoutes,
+        heatRoutes: publicationOverlay.heatRoutes,
+        pulseDots: publicationWorldDots.pulseDots,
+        heatDots: publicationWorldDots.heatDots,
+      },
+      liveCourseRides: {
+        pulseRoutes: liveCourseRideOverlay.pulseRoutes,
+        heatRoutes: liveCourseRideOverlay.heatRoutes,
+        pulseDots: liveCourseRideOverlay.pulseDots,
+        heatDots: liveCourseRideOverlay.heatDots,
+      },
       publicationPresenceWorldMapEnabled,
-    ],
-  );
+    });
+    return ensureWorldActivityMinimumDots(merged, {
+      mapSessionActive,
+      isRideSessionActive,
+      trackedCourseId,
+      routeGeometry,
+    });
+  }, [
+    trackedCourseId,
+    activeOverlay,
+    catalogOverlay,
+    publicationOverlay,
+    publicationWorldDots,
+    liveCourseRideOverlay,
+    publicationPresenceWorldMapEnabled,
+    mapSessionActive,
+    isRideSessionActive,
+    routeGeometry,
+  ]);
 
   const activityWorldRender = useMemo(
     () => resolveActivityWorldRender(mapLodZoom, activityWorldRaw),
@@ -346,7 +356,18 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
         pulse: activityWorldRender.pulseDots.length,
         heat: activityWorldRender.heatDots.length,
       },
+      publicationWorldMapEnabled: publicationPresenceWorldMapEnabled,
+      mapSessionActive,
     });
+    if (activityWorldRaw.pulseDots.length === 0 && activityWorldRaw.heatDots.length === 0) {
+      console.warn("[ActivityWorld] raw overlay still zero after minimum-dot guard", {
+        publicationPresenceWorldMapEnabled,
+        mapSessionActive,
+        configured,
+        hasUser: Boolean(user),
+        pageVisible,
+      });
+    }
   }, [
     mapZoom,
     mapLodZoom,

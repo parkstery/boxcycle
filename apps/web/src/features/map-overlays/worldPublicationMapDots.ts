@@ -1,4 +1,4 @@
-import type { ActivityWorldMapDot } from "../../lib/activityWorldLod";
+import type { ActivityWorldMapDot, ActivityWorldRawOverlay } from "../../lib/activityWorldLod";
 import { mergeActivityWorldDots } from "../../lib/activityWorldLod";
 import { ACTIVITY_TRACE_LIVE_STRENGTH } from "../../lib/activityWorldTraceStyle";
 import { BASIC_SHARED_HUB_IDS, getBasicHubCoursePayload } from "../../lib/firestoreCourses";
@@ -77,6 +77,29 @@ export function mergePublicationWorldPulseDots(input: {
   return { pulseDots: pulse, heatDots: [...serverHeatDots] };
 }
 
+/** MapView 로 전달 직전 — raw 가 0이면 입문 허브·주행 midpoint 로 최소 1개 보장 */
+export function ensureWorldActivityMinimumDots(
+  raw: ActivityWorldRawOverlay,
+  opts: {
+    mapSessionActive: boolean;
+    isRideSessionActive: boolean;
+    trackedCourseId: string | null;
+    routeGeometry: LineStringGeometry | null;
+  },
+): ActivityWorldRawOverlay {
+  if (!opts.mapSessionActive) return raw;
+  if (raw.pulseDots.length > 0 || raw.heatDots.length > 0) return raw;
+
+  let pulse = buildBasicHubWorldPulseDots();
+  if (opts.isRideSessionActive) {
+    const local = buildLocalRidePublicationPulseDot(opts.trackedCourseId, opts.routeGeometry);
+    if (local) pulse = mergeActivityWorldDots(pulse, [local]);
+  }
+  if (pulse.length === 0) return raw;
+
+  return { ...raw, pulseDots: pulse };
+}
+
 export function runWorldPublicationMapDotsChecks(): void {
   if (buildBasicHubWorldPulseDots().length < 1) {
     throw new Error("basic hub fallback must produce at least one dot");
@@ -91,5 +114,12 @@ export function runWorldPublicationMapDotsChecks(): void {
   });
   if (merged.pulseDots.length < 1) {
     throw new Error("publication world merge must yield pulse dots");
+  }
+  const guarded = ensureWorldActivityMinimumDots(
+    { pulseRoutes: [], heatRoutes: [], pulseDots: [], heatDots: [] },
+    { mapSessionActive: true, isRideSessionActive: false, trackedCourseId: null, routeGeometry: null },
+  );
+  if (guarded.pulseDots.length < 1) {
+    throw new Error("ensureWorldActivityMinimumDots must yield pulse dots");
   }
 }
