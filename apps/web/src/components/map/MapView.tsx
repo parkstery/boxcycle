@@ -1725,7 +1725,14 @@ export function MapView({
       map.off("style.load", syncActivity);
       map.off("idle", syncActivity);
     };
-  }, [mapLoaded, activityWorldRaw]);
+  }, [
+    mapLoaded,
+    activityWorldRaw,
+    activityWorldRaw.pulseDots.length,
+    activityWorldRaw.heatDots.length,
+    activityWorldRaw.pulseRoutes.length,
+    activityWorldRaw.heatRoutes.length,
+  ]);
 
   useEffect(() => {
     const map = mapRef.current;

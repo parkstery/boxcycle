@@ -26,6 +26,10 @@ import { runPublicationPresenceParseChecks } from "../../lib/firestorePublicatio
 import { resolveWorldMapOverlay, runWorldMapOverlayMergeChecks } from "./worldMapOverlayCore";
 import { useWorldActivityCatalog } from "./useWorldActivityCatalog";
 import { useWorldLiveCourseRideMapOverlay } from "./useWorldLiveCourseRideMapOverlay";
+import {
+  mergePublicationWorldPulseDots,
+  runWorldPublicationMapDotsChecks,
+} from "./worldPublicationMapDots";
 
 export type UseAppMapOverlaysOpts = {
   configured: boolean;
@@ -204,6 +208,26 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     trailIds: liveRideTrailIds,
   });
 
+  const publicationWorldDots = useMemo(
+    () =>
+      mergePublicationWorldPulseDots({
+        serverPulseDots: publicationOverlay.pulseDots,
+        serverHeatDots: publicationOverlay.heatDots,
+        publicationWorldMapEnabled: publicationPresenceWorldMapEnabled,
+        isRideSessionActive,
+        trackedCourseId,
+        routeGeometry,
+      }),
+    [
+      publicationOverlay.pulseDots,
+      publicationOverlay.heatDots,
+      publicationPresenceWorldMapEnabled,
+      isRideSessionActive,
+      trackedCourseId,
+      routeGeometry,
+    ],
+  );
+
   const activityWorldRaw = useMemo(
     () =>
       resolveWorldMapOverlay({
@@ -218,8 +242,8 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
         publication: {
           pulseRoutes: publicationOverlay.pulseRoutes,
           heatRoutes: publicationOverlay.heatRoutes,
-          pulseDots: publicationOverlay.pulseDots,
-          heatDots: publicationOverlay.heatDots,
+          pulseDots: publicationWorldDots.pulseDots,
+          heatDots: publicationWorldDots.heatDots,
         },
         liveCourseRides: {
           pulseRoutes: liveCourseRideOverlay.pulseRoutes,
@@ -234,6 +258,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       activeOverlay,
       catalogOverlay,
       publicationOverlay,
+      publicationWorldDots,
       liveCourseRideOverlay,
       publicationPresenceWorldMapEnabled,
     ],
@@ -280,6 +305,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       runActivityWorldLodP0Checks();
       runWorldMapOverlayMergeChecks();
       runPublicationPresenceParseChecks();
+      runWorldPublicationMapDotsChecks();
     } catch (e) {
       console.error("[ActivityWorld] P0 LOD checks failed", e);
     }
