@@ -122,11 +122,16 @@ export function resolveWorldMapOverlay(input: ResolveWorldMapOverlayInput): Acti
     ? baseSlice
     : mergeLiveCourseRideGapFill(baseSlice, liveCourseRides);
 
+  /** publication 모드: 월드 = L1/L2 only — courseActivity live dot/line 은 코스 뷰·L3 */
+  const activeWorld = publicationPresenceWorldMapEnabled
+    ? { pulseRoutes: [], heatRoutes: [], pulseDots: [], heatDots: [] }
+    : active;
+
   return {
-    pulseRoutes: [...active.pulseRoutes, ...worldSlice.pulseRoutes],
-    heatRoutes: [...active.heatRoutes, ...worldSlice.heatRoutes],
-    pulseDots: mergeActivityWorldDots(active.pulseDots, worldSlice.pulseDots),
-    heatDots: mergeActivityWorldDots(active.heatDots, worldSlice.heatDots),
+    pulseRoutes: [...activeWorld.pulseRoutes, ...worldSlice.pulseRoutes],
+    heatRoutes: [...activeWorld.heatRoutes, ...worldSlice.heatRoutes],
+    pulseDots: mergeActivityWorldDots(activeWorld.pulseDots, worldSlice.pulseDots),
+    heatDots: mergeActivityWorldDots(activeWorld.heatDots, worldSlice.heatDots),
   };
 }
 

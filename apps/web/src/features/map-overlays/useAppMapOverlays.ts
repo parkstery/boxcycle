@@ -180,7 +180,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   const publicationOverlay = useWorldPublicationPresenceOverlay({
     enabled: publicationPresenceWorldMapEnabled,
     mapZoom,
-    excludePublicationId: isRideSessionActive ? trackedCourseId : null,
+    excludePublicationRoutesId: isRideSessionActive ? trackedCourseId : null,
     refreshNonce: activityMapRefreshNonce,
   });
 

@@ -33,8 +33,8 @@ type GeomEntry =
 type UseWorldPublicationPresenceOverlayOpts = {
   enabled: boolean;
   mapZoom: number;
-  /** 주행 중 추적 publication — 라인·dot 중복 제거 */
-  excludePublicationId?: string | null;
+  /** 주행 중 추적 publication — geometry line 중복만 제거 (L2 dot 은 월드에 유지) */
+  excludePublicationRoutesId?: string | null;
   refreshNonce?: number;
 };
 
@@ -117,7 +117,7 @@ export function useWorldPublicationPresenceOverlay(opts: UseWorldPublicationPres
   presenceByPublicationId: ReadonlyMap<string, PublicationPresenceSnapshot>;
   overlayStats: WorldPublicationPresenceOverlayStats;
 } {
-  const { enabled, mapZoom, excludePublicationId = null, refreshNonce = 0 } = opts;
+  const { enabled, mapZoom, excludePublicationRoutesId = null, refreshNonce = 0 } = opts;
   const [rows, setRows] = useState<PublicationPresenceSnapshot[]>([]);
   const [lastFetchError, setLastFetchError] = useState<string | null>(null);
   const [overlayEpoch, setOverlayEpoch] = useState(0);
@@ -203,7 +203,7 @@ export function useWorldPublicationPresenceOverlay(opts: UseWorldPublicationPres
   }, [refreshNonce, enabled]);
 
   const geometryCandidateIds = useMemo(() => {
-    const exclude = excludePublicationId?.trim() ?? "";
+    const exclude = excludePublicationRoutesId?.trim() ?? "";
     const ids: string[] = [];
     for (const row of rows) {
       if (exclude && row.publicationId === exclude) continue;
@@ -214,7 +214,7 @@ export function useWorldPublicationPresenceOverlay(opts: UseWorldPublicationPres
       }
     }
     return [...new Set(ids)].slice(0, MAX_GEOMETRY_LOAD);
-  }, [rows, excludePublicationId]);
+  }, [rows, excludePublicationRoutesId]);
 
   useEffect(() => {
     if (!enabled || geometryCandidateIds.length === 0) {
@@ -246,9 +246,7 @@ export function useWorldPublicationPresenceOverlay(opts: UseWorldPublicationPres
 
   const { pulseDots, heatDots, pulseRoutes, heatRoutes, anchorMissing, geometryReady, geometryLoading } =
     useMemo(() => {
-      const exclude = excludePublicationId?.trim() ?? "";
-      const filtered = exclude ? rows.filter((r) => r.publicationId !== exclude) : rows;
-      const { pulseDots: pd, heatDots: hd, anchorMissing: am } = presenceToDots(filtered);
+      const { pulseDots: pd, heatDots: hd, anchorMissing: am } = presenceToDots(rows);
 
       const pulseRoutes: ActivityWorldMapRoute[] = [];
       const heatRoutes: ActivityWorldMapRoute[] = [];
@@ -293,7 +291,6 @@ export function useWorldPublicationPresenceOverlay(opts: UseWorldPublicationPres
       };
     }, [
       rows,
-      excludePublicationId,
       geometryCandidateIds,
       presenceByPublicationId,
       mapZoom,
