@@ -24,6 +24,18 @@
   z-index: 10;
 }
 
+/* 260527 Phase A–C — Mapbox circle 실패 시 WORLD_LIGHT DOM 폴백 */
+.map-debug-world-light-marker {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ff0000;
+  border: 3px solid #fff;
+  box-shadow: 0 0 16px #ff0000, 0 0 4px rgb(0 0 0 / 0.5);
+  pointer-events: none;
+  z-index: 12;
+}
+
 /* 동행은 GeoJSON 레이어(맵 캔버스)로 그려 HTML 마커 z-index와 무관 */
 .map-view .mapboxgl-popup {
   z-index: 30;

@@ -24,6 +24,7 @@ export type ActivityWorldLodDebugPanelProps = {
   liveCourseRideRows: number;
   liveActivityCourseIdsCount: number;
   catalogCourseIdsCount: number;
+  mapDebugPhase?: string | null;
 };
 
 export function ActivityWorldLodDebugPanel(props: ActivityWorldLodDebugPanelProps) {
@@ -51,11 +52,12 @@ export function ActivityWorldLodDebugPanel(props: ActivityWorldLodDebugPanelProp
     liveCourseRideRows,
     liveActivityCourseIdsCount,
     catalogCourseIdsCount,
+    mapDebugPhase = null,
   } = props;
 
   return (
     <pre className="activity-world-lod-debug" aria-hidden>
-      {`LOD ${activityWorldLodDebug.label} | z ${mapLodZoom.toFixed(1)} (HUD ${mapZoom.toFixed(1)}) span ${
+      {`${mapDebugPhase ? `Phase ${mapDebugPhase} (MapView only) | ` : ""}LOD ${activityWorldLodDebug.label} | z ${mapLodZoom.toFixed(1)} (HUD ${mapZoom.toFixed(1)}) span ${
         mapViewportSpanKm != null ? `${mapViewportSpanKm.toFixed(0)}km` : "—"
       }
 dots ${activityWorldRaw.pulseDots.length}+${activityWorldRaw.heatDots.length} → ${

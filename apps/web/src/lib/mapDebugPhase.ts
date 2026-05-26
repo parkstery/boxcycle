@@ -54,6 +54,26 @@ export function shouldDisablePublicationOverlayHooks(): boolean {
   return shouldSkipLiveOverlaysOnMap();
 }
 
+export function isMapDebugPhaseRecovery(): boolean {
+  return shouldSkipLiveOverlaysOnMap();
+}
+
+/** DEV 부팅 시 콘솔에서 Phase 적용 여부 확인 */
+export function logMapDebugPhaseBoot(): void {
+  if (!import.meta.env.DEV) return;
+  const envRaw = import.meta.env.VITE_MAP_DEBUG_PHASE;
+  console.info("[MapDebug] boot", {
+    env: envRaw == null || envRaw === "" ? "(unset)" : envRaw,
+    effectivePhase: getMapDebugPhase(),
+    skipLiveOverlays: shouldSkipLiveOverlaysOnMap(),
+    publicationHooksOff: shouldDisablePublicationOverlayHooks(),
+  });
+}
+
+if (import.meta.env.DEV) {
+  logMapDebugPhaseBoot();
+}
+
 export function buildMapDebugPhaseAHardcodedDot(): ActivityWorldMapDot {
   return {
     courseId: "debug-hardcoded",

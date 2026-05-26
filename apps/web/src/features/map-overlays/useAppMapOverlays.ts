@@ -33,6 +33,7 @@ import {
 } from "./worldPublicationMapDots";
 import {
   getMapDebugPhase,
+  isMapDebugPhaseRecovery,
   shouldDisablePublicationOverlayHooks,
   shouldSkipLiveOverlaysOnMap,
 } from "../../lib/mapDebugPhase";
@@ -379,13 +380,24 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       publicationWorldMapEnabled: publicationPresenceWorldMapEnabled,
       mapSessionActive,
     });
-    if (activityWorldRaw.pulseDots.length === 0 && activityWorldRaw.heatDots.length === 0) {
+    if (
+      !isMapDebugPhaseRecovery() &&
+      activityWorldRaw.pulseDots.length === 0 &&
+      activityWorldRaw.heatDots.length === 0
+    ) {
       console.warn("[ActivityWorld] raw overlay still zero after minimum-dot guard", {
         publicationPresenceWorldMapEnabled,
         mapSessionActive,
         configured,
         hasUser: Boolean(user),
         pageVisible,
+        mapDebugPhase: getMapDebugPhase(),
+      });
+    } else if (isMapDebugPhaseRecovery() && import.meta.env.DEV) {
+      console.info("[MapDebug] overlay hooks bypassed — WORLD_LIGHT는 MapView Phase에서만 그림", {
+        mapDebugPhase: getMapDebugPhase(),
+        publicationPresenceWorldMapEnabled,
+        note: "publicationPresenceWorldMapEnabled=false 는 Phase A–C 에서 정상",
       });
     }
   }, [
@@ -435,6 +447,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
           liveCourseRideRows: liveCourseRideOverlay.liveRideRowCount,
           liveActivityCourseIdsCount: liveActivityCourseIds.length,
           catalogCourseIdsCount: catalogCourseIds.length,
+          mapDebugPhase,
         }
       : null;
 
