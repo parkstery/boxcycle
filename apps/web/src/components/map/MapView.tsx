@@ -168,9 +168,38 @@ function routeLayerInsertBefore(map: mapboxgl.Map): string | undefined {
   );
 }
 
-/** DEV: 스타일 하드코딩 — `VITE_DEBUG_ACTIVITY_PULSE_DOT_STYLE=false` 로 끔 */
+/** MapView pulse dot sync revision — 콘솔에서 배포 버전 확인용 */
+const ACTIVITY_PULSE_DOT_SYNC_REV = 3;
+
+/** DEV 기본 ON — `VITE_DEBUG_ACTIVITY_PULSE_DOT_STYLE=false` 로 끔 */
 const ACTIVITY_PULSE_DOT_STYLE_DEBUG =
   import.meta.env.DEV && import.meta.env.VITE_DEBUG_ACTIVITY_PULSE_DOT_STYLE !== "false";
+
+/** zoom 전용 radius — feature property 중첩 표현식 회피 */
+const ACTIVITY_PULSE_DOT_RADIUS_EXPR: mapboxgl.ExpressionSpecification = [
+  "interpolate",
+  ["linear"],
+  ["zoom"],
+  3,
+  8,
+  8,
+  10,
+  12,
+  12,
+  16,
+  14,
+];
+
+function isValidActivityDotLngLat(lngLat: LngLat): boolean {
+  return (
+    Array.isArray(lngLat) &&
+    lngLat.length >= 2 &&
+    Number.isFinite(lngLat[0]) &&
+    Number.isFinite(lngLat[1]) &&
+    Math.abs(lngLat[0]) <= 180 &&
+    Math.abs(lngLat[1]) <= 90
+  );
+}
 
 function ensureActivityPulseDotLayers(map: mapboxgl.Map): void {
   if (!map.getLayer(ACTIVITY_PULSE_DOTS_GLOW)) {
@@ -178,21 +207,16 @@ function ensureActivityPulseDotLayers(map: mapboxgl.Map): void {
       id: ACTIVITY_PULSE_DOTS_GLOW,
       type: "circle",
       source: ACTIVITY_PULSE_DOTS_SRC,
+      layout: {
+        visibility: "visible",
+      },
       paint: {
-        "circle-radius": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          3,
-          ["+", 10, ["*", ["coalesce", ["get", "pulseLevel"], 1], 3]],
-          8,
-          ["+", 12, ["*", ["coalesce", ["get", "pulseLevel"], 1], 2.5]],
-          12,
-          ["+", 8, ["*", ["coalesce", ["get", "pulseLevel"], 1], 2]],
-        ],
+        "circle-radius": ACTIVITY_PULSE_DOT_RADIUS_EXPR,
         "circle-color": "#ffffff",
-        "circle-opacity": ["interpolate", ["linear"], ["zoom"], 4, 0.5, 10, 0.72],
+        "circle-opacity": 0.55,
         "circle-blur": 0.55,
+        "circle-pitch-alignment": "map",
+        "circle-pitch-scale": "viewport",
       },
     });
   }
@@ -201,47 +225,77 @@ function ensureActivityPulseDotLayers(map: mapboxgl.Map): void {
       id: ACTIVITY_PULSE_DOTS_LAYER,
       type: "circle",
       source: ACTIVITY_PULSE_DOTS_SRC,
+      layout: {
+        visibility: "visible",
+      },
       paint: {
-        "circle-radius": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          4,
-          ["+", 5, ["*", ["coalesce", ["get", "pulseLevel"], 1], 1.5]],
-          10,
-          ["+", 7, ["*", ["coalesce", ["get", "pulseLevel"], 1], 1.5]],
-          12,
-          ["+", 10, ["*", ["coalesce", ["get", "pulseLevel"], 1], 1.5]],
-        ],
+        "circle-radius": ACTIVITY_PULSE_DOT_RADIUS_EXPR,
         "circle-color": ACTIVITY_TRACE_RED,
         "circle-stroke-width": 1.6,
         "circle-stroke-color": "#ffffff",
-        "circle-opacity": ["min", 1, ["*", 0.94, TRACE_STRENGTH_MULT]],
+        "circle-opacity": 0.95,
+        "circle-pitch-alignment": "map",
+        "circle-pitch-scale": "viewport",
       },
     });
   }
 }
 
-function applyActivityPulseDotDebugStyle(map: mapboxgl.Map): void {
+/** 매 sync 마다 paint 재적용 — 레이어 early-return 시 paint 미갱신 회귀 방지 */
+function applyActivityPulseDotPaint(map: mapboxgl.Map): void {
   if (!map.getLayer(ACTIVITY_PULSE_DOTS_LAYER)) return;
-  map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-radius", 12);
-  map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-opacity", 1);
-  map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-color", "#ff0000");
-  map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-stroke-width", 2);
+  map.setFilter(ACTIVITY_PULSE_DOTS_LAYER, null);
+  map.setLayoutProperty(ACTIVITY_PULSE_DOTS_LAYER, "visibility", "visible");
+
+  if (ACTIVITY_PULSE_DOT_STYLE_DEBUG) {
+    map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-radius", 12);
+    map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-opacity", 1);
+    map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-color", "#ff0000");
+    map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-stroke-width", 2);
+    map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-stroke-color", "#ffffff");
+    if (map.getLayer(ACTIVITY_PULSE_DOTS_GLOW)) {
+      map.setPaintProperty(ACTIVITY_PULSE_DOTS_GLOW, "circle-opacity", 0);
+    }
+    return;
+  }
+
+  map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-radius", ACTIVITY_PULSE_DOT_RADIUS_EXPR);
+  map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-opacity", 0.95);
+  map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-color", ACTIVITY_TRACE_RED);
+  map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-stroke-width", 1.6);
   map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-stroke-color", "#ffffff");
   if (map.getLayer(ACTIVITY_PULSE_DOTS_GLOW)) {
-    map.setPaintProperty(ACTIVITY_PULSE_DOTS_GLOW, "circle-opacity", 0);
+    map.setPaintProperty(ACTIVITY_PULSE_DOTS_GLOW, "circle-radius", ACTIVITY_PULSE_DOT_RADIUS_EXPR);
+    map.setPaintProperty(ACTIVITY_PULSE_DOTS_GLOW, "circle-opacity", 0.55);
   }
 }
+
+type ActivityPulseDotStyleInspect = {
+  layerId: string;
+  zoom: number;
+  filter: mapboxgl.FilterSpecification | null | undefined;
+  layoutVisibility: string;
+  circleRadius: unknown;
+  circleOpacity: unknown;
+  circleColor: unknown;
+  queryRenderedCount: number;
+  querySourceCount: number;
+  sourceFeatureCount: number;
+  firstCourseId: string | null;
+  firstLngLat: [number, number] | null;
+  inBounds: boolean | null;
+  styleDebugHardcoded: boolean;
+  syncRev: number;
+};
 
 function inspectActivityPulseDotLayer(
   map: mapboxgl.Map,
   pulseDots: readonly ActivityWorldDotFeature[],
-): void {
+): ActivityPulseDotStyleInspect | null {
   const layerId = ACTIVITY_PULSE_DOTS_LAYER;
   if (!map.getLayer(layerId)) {
-    console.warn("[MapView] pulse dot inspect: layer missing", { layerId });
-    return;
+    console.warn("[MapView] pulse dot inspect: layer missing", { layerId, syncRev: ACTIVITY_PULSE_DOT_SYNC_REV });
+    return null;
   }
 
   const bounds = map.getBounds();
@@ -252,36 +306,43 @@ function inspectActivityPulseDotLayer(
   }
 
   let queryRenderedCount = -1;
+  let querySourceCount = -1;
   try {
     queryRenderedCount = map.queryRenderedFeatures({ layers: [layerId] }).length;
   } catch (e) {
     console.warn("[MapView] pulse dot inspect: queryRenderedFeatures failed", e);
   }
+  try {
+    querySourceCount = map.querySourceFeatures(ACTIVITY_PULSE_DOTS_SRC).length;
+  } catch (e) {
+    console.warn("[MapView] pulse dot inspect: querySourceFeatures failed", e);
+  }
 
-  console.log("[MapView] pulse dot style inspect", {
+  const inspect: ActivityPulseDotStyleInspect = {
     layerId,
-    glowLayerId: ACTIVITY_PULSE_DOTS_GLOW,
     zoom: Number(map.getZoom().toFixed(2)),
     filter: map.getFilter(layerId) ?? null,
-    layoutVisibility: map.getLayoutProperty(layerId, "visibility") ?? "visible",
+    layoutVisibility: String(map.getLayoutProperty(layerId, "visibility") ?? "visible"),
     circleRadius: map.getPaintProperty(layerId, "circle-radius"),
     circleOpacity: map.getPaintProperty(layerId, "circle-opacity"),
     circleColor: map.getPaintProperty(layerId, "circle-color"),
-    circleStrokeWidth: map.getPaintProperty(layerId, "circle-stroke-width"),
     queryRenderedCount,
+    querySourceCount,
     sourceFeatureCount: pulseDots.length,
     firstCourseId: first?.courseId ?? null,
     firstLngLat: first ? [first.lngLat[0], first.lngLat[1]] : null,
     inBounds,
     styleDebugHardcoded: ACTIVITY_PULSE_DOT_STYLE_DEBUG,
-  });
+    syncRev: ACTIVITY_PULSE_DOT_SYNC_REV,
+  };
+
+  console.log("[MapView] pulse dot style inspect", inspect);
+  return inspect;
 }
 
 function addActivityPulseDotLayers(map: mapboxgl.Map): void {
   ensureActivityPulseDotLayers(map);
-  if (ACTIVITY_PULSE_DOT_STYLE_DEBUG) {
-    applyActivityPulseDotDebugStyle(map);
-  }
+  applyActivityPulseDotPaint(map);
 }
 
 function addActivityHeatDotLayers(map: mapboxgl.Map): void {
@@ -340,9 +401,18 @@ function syncActivityWorldDotLayers(
 ): void {
   if (!map.isStyleLoaded()) return;
 
+  const validPulseDots = pulseDots.filter((d) => isValidActivityDotLngLat(d.lngLat));
+  if (validPulseDots.length !== pulseDots.length && import.meta.env.DEV) {
+    console.warn("[MapView] pulse dots dropped invalid lngLat", {
+      syncRev: ACTIVITY_PULSE_DOT_SYNC_REV,
+      total: pulseDots.length,
+      valid: validPulseDots.length,
+    });
+  }
+
   const pulseFc = {
     type: "FeatureCollection" as const,
-    features: pulseDots.map((d) => ({
+    features: validPulseDots.map((d) => ({
       type: "Feature" as const,
       id: `act-pd-${d.courseId}`,
       properties: {
@@ -384,8 +454,10 @@ function syncActivityWorldDotLayers(
     }
 
     moveActivityWorldLayersToTop(map);
-    if (pulseDots.length > 0) {
-      inspectActivityPulseDotLayer(map, pulseDots);
+    if (validPulseDots.length > 0) {
+      map.once("idle", () => {
+        inspectActivityPulseDotLayer(map, validPulseDots);
+      });
     }
   } catch (e) {
     console.warn("[MapView] activity world dot layers", e);
@@ -790,6 +862,7 @@ function syncLiveOverlayLayersOnMap(
 ): void {
   syncTrailSpectatorLayers(map, trailDots, trailRoutes);
   syncGlobalLivePresenceLayers(map, globalDots);
+  moveActivityWorldLayersToTop(map);
 }
 
 /** 레거시 `app.js` 와 동일한 서울 근처 기본 시야 */
@@ -1069,6 +1142,8 @@ export function MapView({
         firstLngLat: first ? [first.lngLat[0].toFixed(4), first.lngLat[1].toFixed(4)] : null,
         hasPulseLayer: Boolean(map.getLayer(ACTIVITY_PULSE_DOTS_LAYER)),
         hasPulseSource: Boolean(map.getSource(ACTIVITY_PULSE_DOTS_SRC)),
+        pulseDotSyncRev: ACTIVITY_PULSE_DOT_SYNC_REV,
+        styleDebugHardcoded: ACTIVITY_PULSE_DOT_STYLE_DEBUG,
       });
     }
     syncCourseActivityLayers(map, render.pulseRoutes, render.heatRoutes);
