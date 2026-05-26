@@ -136,8 +136,13 @@ function traceLineOpacityByZoom(
   ];
 }
 
-function moveActivityWorldDotLayersToTop(map: mapboxgl.Map): void {
+/** Activity World dot·line — `route`·coverage 위로 (route effect 가 dot 뒤에 addLayer 되는 회귀 방지) */
+function moveActivityWorldLayersToTop(map: mapboxgl.Map): void {
   for (const id of [
+    ACTIVITY_PULSE_GLOW,
+    ACTIVITY_PULSE_LINE,
+    ACTIVITY_HEAT_GLOW,
+    ACTIVITY_HEAT_LINE,
     ACTIVITY_PULSE_DOTS_GLOW,
     ACTIVITY_PULSE_DOTS_LAYER,
     ACTIVITY_HEAT_DOTS_GLOW,
@@ -151,6 +156,16 @@ function moveActivityWorldDotLayersToTop(map: mapboxgl.Map): void {
       }
     }
   }
+}
+
+function routeLayerInsertBefore(map: mapboxgl.Map): string | undefined {
+  return (
+    map.getLayer(ACTIVITY_PULSE_DOTS_LAYER)?.id ??
+    map.getLayer(ACTIVITY_PULSE_DOTS_GLOW)?.id ??
+    map.getLayer(ACTIVITY_PULSE_LINE)?.id ??
+    map.getLayer(ACTIVITY_PULSE_GLOW)?.id ??
+    undefined
+  );
 }
 
 function addActivityPulseDotLayers(map: mapboxgl.Map): void {
@@ -304,10 +319,12 @@ function syncActivityWorldDotLayers(
       if (!map.getLayer(ACTIVITY_HEAT_DOTS_LAYER)) addActivityHeatDotLayers(map);
     }
 
-    moveActivityWorldDotLayersToTop(map);
+    moveActivityWorldLayersToTop(map);
+    const firstPulse = pulseDots[0]?.lngLat;
     console.log("[MapView] activity world dots (layer)", {
       pulse: pulseDots.length,
       heat: heatDots.length,
+      firstLngLat: firstPulse ? [firstPulse[0].toFixed(4), firstPulse[1].toFixed(4)] : null,
     });
   } catch (e) {
     console.warn("[MapView] activity world dot layers", e);
@@ -969,6 +986,7 @@ export function MapView({
   const activityWorldRawRef = useRef<ActivityWorldRawOverlay>(EMPTY_ACTIVITY_WORLD_RAW);
   activityWorldRawRef.current = activityWorldRaw ?? EMPTY_ACTIVITY_WORLD_RAW;
   const activityWorldLodStateRef = useRef<ActivityWorldLodState>(DEFAULT_ACTIVITY_WORLD_LOD_STATE);
+  const activityWorldDotLogKeyRef = useRef("");
   const syncActivityWorldLayersOnMapRef = useRef<(map: mapboxgl.Map) => void>(() => {});
   syncActivityWorldLayersOnMapRef.current = (map) => {
     if (!map.isStyleLoaded()) return;
@@ -976,15 +994,23 @@ export function MapView({
     const raw = activityWorldRawRef.current;
     const render = resolveActivityWorldRender(z, raw, activityWorldLodStateRef.current);
     activityWorldLodStateRef.current = render.nextLodState;
-    console.log("[MapView] activity world dots", {
-      pulse: render.pulseDots.length,
-      heat: render.heatDots.length,
-      rawPulse: raw.pulseDots.length,
-      rawHeat: raw.heatDots.length,
-      zoom: z,
-    });
+    const logKey = `${render.pulseDots.length}|${render.heatDots.length}|${raw.pulseDots.length}|${z}`;
+    if (logKey !== activityWorldDotLogKeyRef.current) {
+      activityWorldDotLogKeyRef.current = logKey;
+      const first = render.pulseDots[0] ?? render.heatDots[0];
+      console.log("[MapView] activity world dots", {
+        pulse: render.pulseDots.length,
+        heat: render.heatDots.length,
+        rawPulse: raw.pulseDots.length,
+        rawHeat: raw.heatDots.length,
+        zoom: z,
+        firstCourseId: first?.courseId ?? null,
+        firstLngLat: first ? [first.lngLat[0].toFixed(4), first.lngLat[1].toFixed(4)] : null,
+      });
+    }
     syncCourseActivityLayers(map, render.pulseRoutes, render.heatRoutes);
     syncActivityWorldDotLayers(map, render.pulseDots, render.heatDots);
+    moveActivityWorldLayersToTop(map);
   };
 
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -1211,14 +1237,18 @@ export function MapView({
         };
         if (!map.getSource("route")) {
           map.addSource("route", { type: "geojson", data: routeFeature });
-          map.addLayer({
-            id: "route",
-            type: "line",
-            source: "route",
-            paint: { "line-color": ROUTE_LINE_COLOR, "line-width": 4 },
-          });
+          map.addLayer(
+            {
+              id: "route",
+              type: "line",
+              source: "route",
+              paint: { "line-color": ROUTE_LINE_COLOR, "line-width": 4 },
+            },
+            routeLayerInsertBefore(map),
+          );
         }
       }
+      moveActivityWorldLayersToTop(map);
       apply3DState(map, enable3DRef.current, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID);
       try {
         applyCoverageOverlayMode(
@@ -1394,16 +1424,21 @@ export function MapView({
       }
     } else {
       map.addSource("route", { type: "geojson", data: routeFeature });
-      map.addLayer({
-        id: "route",
-        type: "line",
-        source: "route",
-        paint: {
-          "line-color": ROUTE_LINE_COLOR,
-          "line-width": 4,
+      map.addLayer(
+        {
+          id: "route",
+          type: "line",
+          source: "route",
+          paint: {
+            "line-color": ROUTE_LINE_COLOR,
+            "line-width": 4,
+          },
         },
-      });
+        routeLayerInsertBefore(map),
+      );
     }
+
+    moveActivityWorldLayersToTop(map);
 
     const bounds = new mapboxgl.LngLatBounds();
     routeGeometry.coordinates.forEach((p) => bounds.extend(p as [number, number]));
