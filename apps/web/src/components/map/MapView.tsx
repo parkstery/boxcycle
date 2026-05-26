@@ -13,6 +13,18 @@ import {
   type MapViewportBounds,
 } from "../../lib/activityWorldLod";
 import { ACTIVITY_TRACE_RED } from "../../lib/activityWorldTraceStyle";
+import {
+  buildMapDebugPhaseAHardcodedDot,
+  getMapDebugPhase,
+  isMapDebugPhaseA,
+  isMapDebugPhaseB,
+  isMapDebugPhaseC,
+  MAP_DEBUG_PHASE_A_LNGLAT,
+  shouldMoveActivityWorldLayersToTop,
+  shouldSkipActivityWorldLod,
+  shouldSkipLiveOverlaysOnMap,
+  useMapDebugPhaseBPulseDot,
+} from "../../lib/mapDebugPhase";
 import type { LngLat, LineStringGeometry } from "../../lib/geo";
 import {
   getDistanceMeters,
@@ -169,7 +181,7 @@ function routeLayerInsertBefore(map: mapboxgl.Map): string | undefined {
 }
 
 /** MapView pulse dot sync revision — 콘솔에서 배포 버전 확인용 */
-const ACTIVITY_PULSE_DOT_SYNC_REV = 3;
+const ACTIVITY_PULSE_DOT_SYNC_REV = 4;
 
 /** DEV 기본 ON — `VITE_DEBUG_ACTIVITY_PULSE_DOT_STYLE=false` 로 끔 */
 const ACTIVITY_PULSE_DOT_STYLE_DEBUG =
@@ -201,7 +213,18 @@ function isValidActivityDotLngLat(lngLat: LngLat): boolean {
   );
 }
 
+function useLiteralPulseDotPaint(): boolean {
+  const phase = getMapDebugPhase();
+  return phase === "A" || phase === "B" || ACTIVITY_PULSE_DOT_STYLE_DEBUG;
+}
+
 function ensureActivityPulseDotLayers(map: mapboxgl.Map): void {
+  const literal = useLiteralPulseDotPaint();
+  const mainRadius = literal ? 12 : ACTIVITY_PULSE_DOT_RADIUS_EXPR;
+  const mainOpacity = literal ? 1 : 0.95;
+  const mainColor = literal ? "#ff0000" : ACTIVITY_TRACE_RED;
+  const glowOpacity = literal ? 0 : 0.55;
+
   if (!map.getLayer(ACTIVITY_PULSE_DOTS_GLOW)) {
     map.addLayer({
       id: ACTIVITY_PULSE_DOTS_GLOW,
@@ -211,12 +234,10 @@ function ensureActivityPulseDotLayers(map: mapboxgl.Map): void {
         visibility: "visible",
       },
       paint: {
-        "circle-radius": ACTIVITY_PULSE_DOT_RADIUS_EXPR,
+        "circle-radius": literal ? 14 : ACTIVITY_PULSE_DOT_RADIUS_EXPR,
         "circle-color": "#ffffff",
-        "circle-opacity": 0.55,
+        "circle-opacity": glowOpacity,
         "circle-blur": 0.55,
-        "circle-pitch-alignment": "map",
-        "circle-pitch-scale": "viewport",
       },
     });
   }
@@ -229,13 +250,11 @@ function ensureActivityPulseDotLayers(map: mapboxgl.Map): void {
         visibility: "visible",
       },
       paint: {
-        "circle-radius": ACTIVITY_PULSE_DOT_RADIUS_EXPR,
-        "circle-color": ACTIVITY_TRACE_RED,
-        "circle-stroke-width": 1.6,
+        "circle-radius": mainRadius,
+        "circle-color": mainColor,
+        "circle-stroke-width": literal ? 2 : 1.6,
         "circle-stroke-color": "#ffffff",
-        "circle-opacity": 0.95,
-        "circle-pitch-alignment": "map",
-        "circle-pitch-scale": "viewport",
+        "circle-opacity": mainOpacity,
       },
     });
   }
@@ -247,7 +266,10 @@ function applyActivityPulseDotPaint(map: mapboxgl.Map): void {
   map.setFilter(ACTIVITY_PULSE_DOTS_LAYER, null);
   map.setLayoutProperty(ACTIVITY_PULSE_DOTS_LAYER, "visibility", "visible");
 
-  if (ACTIVITY_PULSE_DOT_STYLE_DEBUG) {
+  const phase = getMapDebugPhase();
+  const literal = useLiteralPulseDotPaint();
+
+  if (literal) {
     map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-radius", 12);
     map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-opacity", 1);
     map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-color", "#ff0000");
@@ -255,6 +277,19 @@ function applyActivityPulseDotPaint(map: mapboxgl.Map): void {
     map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-stroke-color", "#ffffff");
     if (map.getLayer(ACTIVITY_PULSE_DOTS_GLOW)) {
       map.setPaintProperty(ACTIVITY_PULSE_DOTS_GLOW, "circle-opacity", 0);
+    }
+    return;
+  }
+
+  if (phase === "C") {
+    map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-radius", ACTIVITY_PULSE_DOT_RADIUS_EXPR);
+    map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-opacity", 0.95);
+    map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-color", ACTIVITY_TRACE_RED);
+    map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-stroke-width", 1.6);
+    map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-stroke-color", "#ffffff");
+    if (map.getLayer(ACTIVITY_PULSE_DOTS_GLOW)) {
+      map.setPaintProperty(ACTIVITY_PULSE_DOTS_GLOW, "circle-radius", ACTIVITY_PULSE_DOT_RADIUS_EXPR);
+      map.setPaintProperty(ACTIVITY_PULSE_DOTS_GLOW, "circle-opacity", 0.55);
     }
     return;
   }
@@ -285,6 +320,7 @@ type ActivityPulseDotStyleInspect = {
   firstLngLat: [number, number] | null;
   inBounds: boolean | null;
   styleDebugHardcoded: boolean;
+  mapDebugPhase: ReturnType<typeof getMapDebugPhase>;
   syncRev: number;
 };
 
@@ -333,6 +369,7 @@ function inspectActivityPulseDotLayer(
     firstLngLat: first ? [first.lngLat[0], first.lngLat[1]] : null,
     inBounds,
     styleDebugHardcoded: ACTIVITY_PULSE_DOT_STYLE_DEBUG,
+    mapDebugPhase: getMapDebugPhase(),
     syncRev: ACTIVITY_PULSE_DOT_SYNC_REV,
   };
 
@@ -394,10 +431,37 @@ function addActivityHeatDotLayers(map: mapboxgl.Map): void {
   );
 }
 
+function logMapDebugPhaseAIdle(
+  map: mapboxgl.Map,
+  pulseDots: readonly ActivityWorldDotFeature[],
+): void {
+  let queryRenderedCount = -1;
+  let querySourceCount = -1;
+  try {
+    queryRenderedCount = map
+      .queryRenderedFeatures({ layers: [ACTIVITY_PULSE_DOTS_LAYER] })
+      .length;
+  } catch {
+    /* noop */
+  }
+  try {
+    querySourceCount = map.querySourceFeatures(ACTIVITY_PULSE_DOTS_SRC).length;
+  } catch {
+    /* noop */
+  }
+  console.log("[MapDebug:A] idle", {
+    queryRenderedCount,
+    querySourceCount,
+    zoom: Number(map.getZoom().toFixed(2)),
+  });
+  inspectActivityPulseDotLayer(map, pulseDots);
+}
+
 function syncActivityWorldDotLayers(
   map: mapboxgl.Map,
   pulseDots: readonly ActivityWorldDotFeature[],
   heatDots: readonly ActivityWorldDotFeature[],
+  options?: { skipHeat?: boolean; runMoveToTop?: boolean },
 ): void {
   if (!map.isStyleLoaded()) return;
 
@@ -445,18 +509,39 @@ function syncActivityWorldDotLayers(
     }
     addActivityPulseDotLayers(map);
 
-    if (!map.getSource(ACTIVITY_HEAT_DOTS_SRC)) {
-      map.addSource(ACTIVITY_HEAT_DOTS_SRC, { type: "geojson", data: heatFc });
-      addActivityHeatDotLayers(map);
-    } else {
-      (map.getSource(ACTIVITY_HEAT_DOTS_SRC) as mapboxgl.GeoJSONSource).setData(heatFc);
-      if (!map.getLayer(ACTIVITY_HEAT_DOTS_LAYER)) addActivityHeatDotLayers(map);
+    if (!options?.skipHeat) {
+      if (!map.getSource(ACTIVITY_HEAT_DOTS_SRC)) {
+        map.addSource(ACTIVITY_HEAT_DOTS_SRC, { type: "geojson", data: heatFc });
+        addActivityHeatDotLayers(map);
+      } else {
+        (map.getSource(ACTIVITY_HEAT_DOTS_SRC) as mapboxgl.GeoJSONSource).setData(heatFc);
+        if (!map.getLayer(ACTIVITY_HEAT_DOTS_LAYER)) addActivityHeatDotLayers(map);
+      }
+    } else if (map.getSource(ACTIVITY_HEAT_DOTS_SRC)) {
+      (map.getSource(ACTIVITY_HEAT_DOTS_SRC) as mapboxgl.GeoJSONSource).setData(EMPTY_GEOJSON_FC);
     }
 
-    moveActivityWorldLayersToTop(map);
+    const runMoveToTop = options?.runMoveToTop ?? shouldMoveActivityWorldLayersToTop();
+    if (runMoveToTop) {
+      moveActivityWorldLayersToTop(map);
+    }
+
+    if (isMapDebugPhaseA()) {
+      console.log("[MapDebug:A] sync", {
+        hasLayer: Boolean(map.getLayer(ACTIVITY_PULSE_DOTS_LAYER)),
+        hasSource: Boolean(map.getSource(ACTIVITY_PULSE_DOTS_SRC)),
+        featureCount: validPulseDots.length,
+        syncRev: ACTIVITY_PULSE_DOT_SYNC_REV,
+      });
+    }
+
     if (validPulseDots.length > 0) {
       map.once("idle", () => {
-        inspectActivityPulseDotLayer(map, validPulseDots);
+        if (isMapDebugPhaseA()) {
+          logMapDebugPhaseAIdle(map, validPulseDots);
+        } else {
+          inspectActivityPulseDotLayer(map, validPulseDots);
+        }
       });
     }
   } catch (e) {
@@ -860,9 +945,12 @@ function syncLiveOverlayLayersOnMap(
   trailRoutes: readonly LineStringGeometry[],
   globalDots: readonly GlobalLivePresenceDot[],
 ): void {
+  if (shouldSkipLiveOverlaysOnMap()) return;
   syncTrailSpectatorLayers(map, trailDots, trailRoutes);
   syncGlobalLivePresenceLayers(map, globalDots);
-  moveActivityWorldLayersToTop(map);
+  if (shouldMoveActivityWorldLayersToTop()) {
+    moveActivityWorldLayersToTop(map);
+  }
 }
 
 /** 레거시 `app.js` 와 동일한 서울 근처 기본 시야 */
@@ -1121,11 +1209,71 @@ export function MapView({
   activityWorldRawRef.current = activityWorldRaw ?? EMPTY_ACTIVITY_WORLD_RAW;
   const activityWorldLodStateRef = useRef<ActivityWorldLodState>(DEFAULT_ACTIVITY_WORLD_LOD_STATE);
   const activityWorldDotLogKeyRef = useRef("");
+  const mapDebugPhaseACameraDoneRef = useRef(false);
+  const { dot: mapDebugPhaseBDot, meta: mapDebugPhaseBMeta } = useMapDebugPhaseBPulseDot(
+    isMapDebugPhaseB() || isMapDebugPhaseC(),
+  );
+  const mapDebugPhaseBDotRef = useRef<ActivityWorldDotFeature | null>(null);
+  mapDebugPhaseBDotRef.current = mapDebugPhaseBDot;
+
   const syncActivityWorldLayersOnMapRef = useRef<(map: mapboxgl.Map) => void>(() => {});
   syncActivityWorldLayersOnMapRef.current = (map) => {
     if (!map.isStyleLoaded()) return;
+    const phase = getMapDebugPhase();
+    const pulseOnlyOpts = { skipHeat: true as const, runMoveToTop: shouldMoveActivityWorldLayersToTop() };
+
+    if (phase === "A") {
+      if (!mapDebugPhaseACameraDoneRef.current) {
+        mapDebugPhaseACameraDoneRef.current = true;
+        try {
+          map.jumpTo({ center: MAP_DEBUG_PHASE_A_LNGLAT, zoom: 12 });
+        } catch {
+          /* noop */
+        }
+      }
+      const hardcoded = [buildMapDebugPhaseAHardcodedDot()];
+      syncCourseActivityLayers(map, [], []);
+      syncActivityWorldDotLayers(map, hardcoded, [], pulseOnlyOpts);
+      return;
+    }
+
+    if (phase === "B" || phase === "C") {
+      const dot = mapDebugPhaseBDotRef.current;
+      const dots = dot ? [dot] : [];
+      if (phase === "B" && import.meta.env.DEV) {
+        console.log("[MapDebug:B] sync", {
+          rowCount: mapDebugPhaseBMeta.rowCount,
+          fetchError: mapDebugPhaseBMeta.fetchError,
+          hasDot: Boolean(dot),
+          firstLngLat: dot ? [dot.lngLat[0], dot.lngLat[1]] : null,
+        });
+      }
+      syncCourseActivityLayers(map, [], []);
+      syncActivityWorldDotLayers(map, dots, [], pulseOnlyOpts);
+      return;
+    }
+
     const z = Number(map.getZoom().toFixed(1));
     const raw = activityWorldRawRef.current;
+
+    if (shouldSkipActivityWorldLod()) {
+      const logKey = `${raw.pulseDots.length}|${raw.heatDots.length}|${z}|skipLod`;
+      if (logKey !== activityWorldDotLogKeyRef.current) {
+        activityWorldDotLogKeyRef.current = logKey;
+        console.log("[MapDebug:D] overlay", {
+          rawPulse: raw.pulseDots.length,
+          rawHeat: raw.heatDots.length,
+          zoom: z,
+          skipLod: true,
+        });
+      }
+      syncCourseActivityLayers(map, [], []);
+      syncActivityWorldDotLayers(map, [...raw.pulseDots], [...raw.heatDots], {
+        runMoveToTop: true,
+      });
+      return;
+    }
+
     const render = resolveActivityWorldRender(z, raw, activityWorldLodStateRef.current);
     activityWorldLodStateRef.current = render.nextLodState;
     const logKey = `${render.pulseDots.length}|${render.heatDots.length}|${raw.pulseDots.length}|${z}`;
@@ -1143,12 +1291,15 @@ export function MapView({
         hasPulseLayer: Boolean(map.getLayer(ACTIVITY_PULSE_DOTS_LAYER)),
         hasPulseSource: Boolean(map.getSource(ACTIVITY_PULSE_DOTS_SRC)),
         pulseDotSyncRev: ACTIVITY_PULSE_DOT_SYNC_REV,
+        mapDebugPhase: phase,
         styleDebugHardcoded: ACTIVITY_PULSE_DOT_STYLE_DEBUG,
       });
     }
     syncCourseActivityLayers(map, render.pulseRoutes, render.heatRoutes);
     syncActivityWorldDotLayers(map, render.pulseDots, render.heatDots);
-    moveActivityWorldLayersToTop(map);
+    if (shouldMoveActivityWorldLayersToTop()) {
+      moveActivityWorldLayersToTop(map);
+    }
   };
 
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -1386,7 +1537,9 @@ export function MapView({
           );
         }
       }
-      moveActivityWorldLayersToTop(map);
+      if (shouldMoveActivityWorldLayersToTop()) {
+        moveActivityWorldLayersToTop(map);
+      }
       apply3DState(map, enable3DRef.current, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID);
       try {
         applyCoverageOverlayMode(
@@ -1576,7 +1729,9 @@ export function MapView({
       );
     }
 
-    moveActivityWorldLayersToTop(map);
+    if (shouldMoveActivityWorldLayersToTop()) {
+      moveActivityWorldLayersToTop(map);
+    }
 
     const bounds = new mapboxgl.LngLatBounds();
     routeGeometry.coordinates.forEach((p) => bounds.extend(p as [number, number]));
@@ -1911,6 +2066,9 @@ export function MapView({
     activityWorldRaw.heatDots.length,
     activityWorldRaw.pulseRoutes.length,
     activityWorldRaw.heatRoutes.length,
+    mapDebugPhaseBDot,
+    mapDebugPhaseBMeta.rowCount,
+    mapDebugPhaseBMeta.fetchError,
   ]);
 
   useEffect(() => {

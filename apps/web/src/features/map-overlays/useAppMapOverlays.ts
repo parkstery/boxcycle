@@ -31,6 +31,11 @@ import {
   mergePublicationWorldPulseDots,
   runWorldPublicationMapDotsChecks,
 } from "./worldPublicationMapDots";
+import {
+  getMapDebugPhase,
+  shouldDisablePublicationOverlayHooks,
+  shouldSkipLiveOverlaysOnMap,
+} from "../../lib/mapDebugPhase";
 
 export type UseAppMapOverlaysOpts = {
   configured: boolean;
@@ -129,11 +134,15 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   }, [sanitizedTrailId, openTrails]);
 
   /** AC-7: Trailhead idle = publication만 — L3 spectator는 주행·일시정지(관전 세션)에서만 */
-  const trailSpectatorOverlayEnabled = Boolean(
-    trailheadSessionActive &&
-      (rideStatus === "running" || rideStatus === "paused") &&
-      pageVisible,
-  );
+  const mapDebugPhase = getMapDebugPhase();
+
+  const trailSpectatorOverlayEnabled =
+    !shouldSkipLiveOverlaysOnMap() &&
+    Boolean(
+      trailheadSessionActive &&
+        (rideStatus === "running" || rideStatus === "paused") &&
+        pageVisible,
+    );
 
   const { spectatorDots, spectatorRouteGeometries, liveCourseIds: trailLiveCourseIds } =
     useTrailLiveCourseRideSpectatorOverlay({
@@ -172,7 +181,9 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   const worldMapActivityEnabled = Boolean(configured && user && pageVisible);
 
   const publicationPresenceWorldMapEnabled =
-    worldMapActivityEnabled && import.meta.env.VITE_USE_PUBLICATION_PRESENCE !== "false";
+    worldMapActivityEnabled &&
+    import.meta.env.VITE_USE_PUBLICATION_PRESENCE !== "false" &&
+    !shouldDisablePublicationOverlayHooks();
 
   const catalogActivityEnabled = Boolean(
     worldMapActivityEnabled && catalogCourseIds.length > 0,
@@ -232,6 +243,14 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   const mapSessionActive = worldMapActivityEnabled;
 
   const activityWorldRaw = useMemo(() => {
+    if (mapDebugPhase === "A" || mapDebugPhase === "B" || mapDebugPhase === "C") {
+      return {
+        pulseRoutes: [],
+        heatRoutes: [],
+        pulseDots: [],
+        heatDots: [],
+      };
+    }
     const merged = resolveWorldMapOverlay({
       trackedCourseId,
       active: activeOverlay,
@@ -262,6 +281,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       routeGeometry,
     });
   }, [
+    mapDebugPhase,
     trackedCourseId,
     activeOverlay,
     catalogOverlay,
