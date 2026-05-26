@@ -952,9 +952,31 @@ export default function App() {
     [liveForMap, mapViewportCenterLngLat],
   );
 
+  const activeCourseIdForGlobalPresence =
+    basicActiveHubCourseId ?? activeOfficialCourseId ?? currentTrailMeta?.courseId ?? null;
+
+  const debugGlobalPresenceOnMap =
+    import.meta.env.DEV &&
+    import.meta.env.VITE_DEBUG_GLOBAL_LIVE_PRESENCE_ON_MAP === "true";
+
+  const globalLivePresenceSubscribeEnabled = Boolean(
+    configured &&
+      user &&
+      pageVisible &&
+      (debugGlobalPresenceOnMap || Boolean(activeCourseIdForGlobalPresence?.trim())),
+  );
+
+  const globalLivePresencePublishEnabled = Boolean(
+    configured &&
+      user &&
+      pageVisible &&
+      isRideSessionActive &&
+      Boolean(activeCourseIdForGlobalPresence?.trim()),
+  );
+
   useLiveLocationPublishSession({
     user,
-    globalEnabled: Boolean(configured && user),
+    globalEnabled: globalLivePresencePublishEnabled,
     routeEnabled: Boolean(
       trailheadSessionActive &&
         isRideSessionActive &&
@@ -972,12 +994,8 @@ export default function App() {
 
   const { dots: globalPresenceDots } = useGlobalLivePresence({
     user,
-    enabled: configured && Boolean(user),
+    enabled: globalLivePresenceSubscribeEnabled,
   });
-
-  const debugGlobalPresenceOnMap =
-    import.meta.env.DEV &&
-    import.meta.env.VITE_DEBUG_GLOBAL_LIVE_PRESENCE_ON_MAP === "true";
 
   const globalPeerPositionsByUid = useMemo((): ReadonlyMap<string, LngLat> => {
     const m = new Map<string, LngLat>();

@@ -4,7 +4,7 @@
 |------|------|
 | 문서 유형 | **product** + **architecture** — 자문 검토·문서 대비 코드 갭·정렬 로드맵 |
 | 작성일 | 2026-05-26 |
-| 상태 | **초안** — P0 코드 작업 전 기획 합의용 |
+| 상태 | **반영 중** — P0·P0-B 맵·구독 경계 (2026-05-26) |
 | 연결 문서 | [World Activity Presence 설계](260523-World-Activity-Presence-설계.md), [Activity World LOD](260517-Activity-World-지도-LOD-설계.md), [Firestore 트래픽 계획](260516-Firestore-트래픽-저감-상세-수정-계획.md) |
 
 ---
@@ -43,7 +43,7 @@
 
 - `resolveWorldMapOverlay` — publication + catalog + `liveCourseRides` merge (`useAppMapOverlays.ts`)
 - `useWorldLiveCourseRideMapOverlay` — 주석: per-user dot은 global livePresence
-- `useGlobalLivePresence` — 로그인 시 항상 구독, `includeSelf: true`
+- ~~`useGlobalLivePresence` — 로그인 시 항상 구독~~ → 코스·debug 스코프만 (P0-B1)
 - `MapView.syncLiveOverlayLayersOnMap` — trail spectator + global livePresence 동시, global 레이어 top
 
 **제품 테스트:** 이 픽셀이 **누구의 GPS인가** → 예면 L3·debug, 아니면 L1·L2.
@@ -113,13 +113,17 @@ flowchart TB
 | debug.globalLivePresence | livePresence | OFF | env debug flag |
 | session.coursePeer | coursePresence | 고줌만 | 동일 코스 |
 
-| 순서 | 작업 |
-|------|------|
-| P0-1 | `globalPresenceDots` MapView 기본 미전달. `includeSelf` 기본 false |
-| P0-2 | world idle에서 `useWorldLiveCourseRideMapOverlay` disabled |
-| P0-3 | publication ON 시 catalog dot gap-fill OFF |
-| P0-4 | liveCourseRides merge는 pulse line만 재검토 또는 OFF |
-| P1 | MapView `syncWorldLayers` / `syncSessionLayers` / `syncDebugLayers` 분리 |
+| 순서 | 작업 | 상태 |
+|------|------|------|
+| P0-1 | `globalPresenceDots` MapView 기본 미전달. `includeSelf` 기본 false | ✅ |
+| P0-2 | world idle에서 `useWorldLiveCourseRideMapOverlay` disabled | ✅ |
+| P0-3 | publication ON 시 catalog dot gap-fill OFF | ✅ |
+| P0-4 | publication ON 시 catalog route gap-fill·liveCourseRides merge OFF | ✅ |
+| P0-B1 | `useGlobalLivePresence` 코스·debug 스코프만 구독 | ✅ |
+| P0-B2 | publication ON → `catalogOverlayEnabled` false (N×getDoc 생략) | ✅ |
+| P0-B3 | Trailhead idle → trail spectator OFF | ✅ |
+| P0-B4 | `globalEnabled` = 주행 중·코스 있을 때만 publish | ✅ |
+| P1 | MapView `syncWorldLayers` / `syncSessionLayers` / `syncDebugLayers` 분리 | ⬜ |
 
 **AC 추가**
 

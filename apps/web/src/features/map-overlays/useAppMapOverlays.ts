@@ -122,9 +122,10 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     return [...ids];
   }, [sanitizedTrailId, openTrails]);
 
+  /** AC-7: Trailhead idle = publication만 — L3 spectator는 주행·일시정지(관전 세션)에서만 */
   const trailSpectatorOverlayEnabled = Boolean(
     trailheadSessionActive &&
-      (rideStatus === "idle" || rideStatus === "running" || rideStatus === "paused") &&
+      (rideStatus === "running" || rideStatus === "paused") &&
       pageVisible,
   );
 
@@ -162,12 +163,18 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     openTrailCourseIds,
   ]);
 
-  const catalogActivityEnabled = Boolean(
-    configured && user && pageVisible && catalogCourseIds.length > 0,
-  );
+  const worldMapActivityEnabled = Boolean(configured && user && pageVisible);
 
   const publicationPresenceWorldMapEnabled =
-    catalogActivityEnabled && import.meta.env.VITE_USE_PUBLICATION_PRESENCE !== "false";
+    worldMapActivityEnabled && import.meta.env.VITE_USE_PUBLICATION_PRESENCE !== "false";
+
+  const catalogActivityEnabled = Boolean(
+    worldMapActivityEnabled && catalogCourseIds.length > 0,
+  );
+
+  /** publication 모드: courseActivity N×getDoc·geometry OFF — 패널·HUD는 publication·worldActivityCatalog */
+  const catalogOverlayEnabled =
+    catalogActivityEnabled && !publicationPresenceWorldMapEnabled;
 
   const publicationOverlay = useWorldPublicationPresenceOverlay({
     enabled: publicationPresenceWorldMapEnabled,
@@ -180,9 +187,8 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     courseIds: catalogCourseIds,
     excludeCourseId: isRideSessionActive ? trackedCourseId : null,
     mapZoom,
-    enabled: catalogActivityEnabled,
-    /** publication 모드에서도 aggregate·bounds 로드 — merge dot 출력은 publication 전용 */
-    worldMapRenderEnabled: true,
+    enabled: catalogOverlayEnabled,
+    worldMapRenderEnabled: catalogOverlayEnabled,
     refreshNonce: activityMapRefreshNonce,
   });
 

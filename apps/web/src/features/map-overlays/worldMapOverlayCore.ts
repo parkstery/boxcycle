@@ -75,37 +75,9 @@ function filterHeatByTracked(
   };
 }
 
-/** publication·catalog 중 publication에 없는 courseId 만 catalog **route** 로 보충 (dot 은 publication 전용) */
-function mergePublicationWithCatalogFallback(
-  publication: WorldMapOverlaySlice,
-  catalog: WorldMapOverlaySlice,
-): WorldMapOverlaySlice {
-  const pubPulseIds = new Set([
-    ...publication.pulseDots.map((d) => d.courseId),
-    ...publication.pulseRoutes.map((r) => r.courseId),
-  ]);
-  const pubHeatIds = new Set([
-    ...publication.heatDots.map((d) => d.courseId),
-    ...publication.heatRoutes.map((r) => r.courseId),
-  ]);
-
-  return {
-    pulseDots: publication.pulseDots,
-    pulseRoutes: [
-      ...publication.pulseRoutes,
-      ...catalog.pulseRoutes.filter((r) => !pubPulseIds.has(r.courseId)),
-    ],
-    heatDots: publication.heatDots,
-    heatRoutes: [
-      ...publication.heatRoutes,
-      ...catalog.heatRoutes.filter((r) => !pubHeatIds.has(r.courseId)),
-    ],
-  };
-}
-
 /**
  * Activity World 지도 raw overlay — 단일 merge 진실.
- * publication 모드: dot = publication only; catalog/liveCourseRides 는 route gap-fill 만 (선택).
+ * publication 모드: L1/L2 = publicationPresence only (dot·line, catalog gap-fill 없음).
  */
 export function resolveWorldMapOverlay(input: ResolveWorldMapOverlayInput): ActivityWorldRawOverlay {
   const {
@@ -133,11 +105,12 @@ export function resolveWorldMapOverlay(input: ResolveWorldMapOverlayInput): Acti
   const catalogHeat = filterHeatByTracked(catalog, tracked, activeCoversTracked);
 
   const baseSlice = publicationPresenceWorldMapEnabled
-    ? mergePublicationWithCatalogFallback(publication, {
-        ...catalog,
-        heatRoutes: catalogHeat.heatRoutes,
-        heatDots: catalogHeat.heatDots,
-      })
+    ? {
+        pulseDots: publication.pulseDots,
+        pulseRoutes: publication.pulseRoutes,
+        heatDots: publication.heatDots,
+        heatRoutes: publication.heatRoutes,
+      }
     : {
         pulseRoutes: catalog.pulseRoutes,
         heatRoutes: catalogHeat.heatRoutes,
@@ -200,5 +173,29 @@ export function runWorldMapOverlayMergeChecks(): void {
   }
   if (mergedWithPub.pulseDots[0]!.lngLat[0] !== 1) {
     throw new Error("publication mode: catalog dot must not override publication");
+  }
+
+  const catalogWithRoute: WorldMapOverlaySlice = {
+    pulseDots: [],
+    pulseRoutes: [
+      {
+        courseId: "c1",
+        geometry: { type: "LineString", coordinates: [[0, 0], [1, 1]] },
+        kind: "pulse",
+        traceStrength: 1,
+      },
+    ],
+    heatDots: [],
+    heatRoutes: [],
+  };
+  const mergedRoutes = resolveWorldMapOverlay({
+    trackedCourseId: null,
+    active: emptyPub,
+    catalog: catalogWithRoute,
+    publication: emptyPub,
+    publicationPresenceWorldMapEnabled: true,
+  });
+  if (mergedRoutes.pulseRoutes.length !== 0) {
+    throw new Error("publication mode: catalog routes must not gap-fill");
   }
 }
