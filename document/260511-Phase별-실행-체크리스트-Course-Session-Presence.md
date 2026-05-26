@@ -4,7 +4,7 @@
 |------|------|
 | 문서 유형 | **execution** — 4개 architecture·product 결정의 코드 작업 단위 변환 |
 | 최초 작성 | 2026-05-11 |
-| 상태 | **초안** — 1차 마일스톤 직후부터 시작. Phase별 수락 기준 도달 시 본 문서 상단 갱신. |
+| 상태 | **코드 반영 중** — Phase 1-A·Trail 기반 presence는 반영. `sessions`/`presence` 루트 컬렉션(1-B)은 미착수. |
 | 연결 문서 | [RTW 마스터](260511-RTW-마스터-비전-및-종합계획.md), [코스 수명·UGC 품질 정책](260511-코스-수명-UGC-품질-정책.md), [경로 저장 계층화](260511-경로저장-계층화-Frozen-Route-Segment.md), [Firestore Rules 일반화](260511-Firestore-Rules-일반화-방안.md), [현재 단계·1차 마일스톤](260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md), [app.js 분리 1차 리팩터링](260509-app-js-프론트백엔드-분리-1차리팩터링.md), [Firestore 스키마 초안](260509-Firestore-컬렉션-스키마-초안.md) |
 
 ---
@@ -14,7 +14,20 @@
 - 본 문서는 **마스터·architecture 결정을 PR·이슈 단위로 분해한 실행 체크리스트**다.
 - 각 Phase는 **수락 기준 + 영향받는 파일 + 대응 architecture 문서 §** 표 형식.
 - Phase 간 의존성은 §6 의존성 그래프.
-- 1차 마일스톤(현재 진행 중) 자체 범위는 [현재 단계 문서](260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md)가 단일 진실. 본 Phase 1은 1차 마일스톤 **직후**에 시작한다.
+- 1차 마일스톤 범위·진행 표는 [현재 단계 문서 §2.1](260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md)이 단일 진실.
+
+### 0.1 2026-05 실제 반영 (계획 vs 코드)
+
+본 절은 **아래 Phase 표(원안)** 와 저장소 **현재 코드**의 차이를 고정한다. Trail 마이그레이션으로 presence 요구는 상당 부분 충족했으나, RTW의 `sessions`/`presence` **루트 컬렉션 분리(1-B~1-D)는 아직 착수하지 않았다.**
+
+| 원안 Phase | 계획 요약 | 실제 (2026-05-26) |
+|------------|-----------|-------------------|
+| 1-A | Rules `presenceEnabled` 일반화 | ✅ 1A-1·1A-2 반영. 1A-3 회귀 T1~T3 ⬜ 수동 |
+| 1-B~1-D | `sessions/` · `presence/` 신설, `coursePresence` 폐기 | ⬜ `firestoreSessions.ts` 없음. `coursePresence`·`firestoreCoursePresence.ts` **유지** |
+| (병행) Trail presence | 원안 1C-2는 `rooms/…/members` | ✅ **`trails/{trailId}/members`**, `liveCourseRides`, `useTrailSession`(별칭 `useLobbyRoomSession`) — [용어집](260517-제품-용어-Trailhead-Trail.md) |
+| (병행) Activity·출판 | Phase 2 이후 | 🔄 `courseActivity`, `routePublications`, World Presence M1~M3 — [현재 단계 §4.3](260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md) |
+
+**의사결정:** 1차 마일스톤 **C·D** 는 Trail·`coursePresence` 로 검증 가능. **1-B는 1차 달성 후** 또는 UGC Phase 2와 일정 조율.
 
 ---
 
@@ -46,7 +59,7 @@
 | # | 작업 | 영향 파일 | 수락 기준 |
 |---|------|-----------|-----------|
 | 1C-1 | 입문 허브 진입 시 `coursePresence` 대신 임시 `sessionId = courseId` 로 새 helper 호출(이전 단계) | [`apps/web/src/App.tsx`](../apps/web/src/App.tsx) `enterBasicHub` / `leaveBasicHub`, [`apps/web/src/components/CourseSharedPresence.tsx`](../apps/web/src/components/CourseSharedPresence.tsx) | 입문 허브 동행 동작 동일, 데이터는 `presence/` 로 기록 |
-| 1C-2 | 로비 `rooms/{roomId}/members` 는 **로비 전용**으로 잔존(이름 그대로) | [`apps/web/src/components/LobbyPresence.tsx`](../apps/web/src/components/LobbyPresence.tsx) | 변경 없음 |
+| 1C-2 | ~~로비 `rooms/{roomId}/members` 잔존~~ → **`trails/{trailId}/members`** 로 이전됨(2026-05-17~) | `firestoreTrail.ts`, `useTrailSession` | Trailhead·Trail presence 동작. `rooms/` Rules는 레거시 read-only |
 
 ### 1.4 Phase 1-D — 호환 코드 정리
 
@@ -249,3 +262,4 @@ flowchart TD
 | 날짜 | 내용 |
 |------|------|
 | 2026-05-11 | 최초 작성 — 자문 13장 + 4개 architecture 문서 결정을 5개 Phase로 분해. |
+| 2026-05-26 | §0.1 실제 반영 표, 1C-2 Trail 이전 반영, 상단 상태 갱신 |

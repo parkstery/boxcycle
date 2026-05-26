@@ -7,13 +7,13 @@
 | 상태 | **채택(참고)** — 코드·Rules와 동기 유지, RTW·현재 단계 문서가 우선 |
 | 연결 문서 | [RTW 마스터 비전](260511-RTW-마스터-비전-및-종합계획.md), [코스 수명·UGC 품질 정책](260511-코스-수명-UGC-품질-정책.md), [경로 저장 계층화](260511-경로저장-계층화-Frozen-Route-Segment.md), [Firestore Rules 일반화](260511-Firestore-Rules-일반화-방안.md), [현재 단계·1차 마일스톤](260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md), [Firestore→Postgres 체크리스트](260509-Firestore-Postgres-이전-체크리스트.md), [아키텍처·DB 장기안](260509-아키텍쳐-DB설계.md), [제품 용어 Trailhead·Trail](260517-제품-용어-Trailhead-Trail.md) |
 
-> **제품 용어:** `rooms/{roomId}` = **Trail** 인스턴스. `members` = Trailhead에서 해당 Trail 참가자 presence.
+> **제품 용어:** **`trails/{trailId}`** = Trail 인스턴스(단일 진실). `rooms/` = 마이그레이션 완료 **레거시 read-only** — [용어집 §8](260517-제품-용어-Trailhead-Trail.md).
 
 ---
 
 ## 1) 목표
 
-- 현재 `apps/web` 코드에서 이미 쓰는 데이터(`users`, `rooms/{roomId}/members`)를 기준으로,
+- 현재 `apps/web` 코드에서 이미 쓰는 데이터(`users`, `trails/{trailId}/members`, `trails/…/liveCourseRides`)를 기준으로,
 - 로컬 주행기록(`localStorage`)을 서버 영속(`rides`)으로 승격 가능한 구조를 먼저 확정한다.
 - 이후 Postgres 이전 시 테이블 분해가 쉬운 형태로 유지한다.
 
@@ -23,28 +23,26 @@
 
 ```json
 {
-  "users": "사용자 기본 프로필",
-  "rooms": {
-    "{roomId}": {
-      "members": "Trail presence (Trailhead·Trail 전용; coursePresence 코스 동행과 별도)"
+  "users": "사용자 프로필·tier",
+  "trails": {
+    "{trailId}": {
+      "members": "Trailhead(default)·Trail 인스턴스 presence",
+      "liveCourseRides": "같은 Trail 내 코스 주행 진행·관전"
     }
   },
-  "rides": "주행 세션 요약 기록 (Phase 4 이후 'activities'로 명칭 정렬)",
-  "courses": "경로/코스 메타 + (소형) GeoJSON 또는 geometryRef 포인터",
-  "presence_events": "선택: 실시간 이벤트 로그(짧은 TTL 운영 권장)",
-
-  "sessions": "(2026-05-11 추가) 같은 코스에서 여러 세션 동시 가능. linkedCourseId 보유",
-  "presence": {
-    "{sessionId}": {
-      "members": "(2026-05-11 추가) 세션 내부 실시간 위치/속도/하트비트"
-    }
-  },
-  "coursePresence": "(현재 코드) 코스 단위 동행 — Phase 1-D에서 'presence/{sessionId}'로 이전 후 폐기",
-  "coursePresenceConfig": "(2026-05-11 추가, 선택) Rules 게이트가 무거우면 별도 캐시 문서로 분리",
-  "courseLifecycleEvents": "(2026-05-11 추가) 코스 상태 전이 불변 로그 (감사·복원·디버그)",
-  "activities": "(Phase 4) 사용자 실제 주행 기록 (rides 후속)",
-  "rankings": "(Phase 4) 코스 기반 경쟁 데이터",
-  "events": "(Phase 4) 기간성 이벤트"
+  "openTrailListings": "공개 Trail 메타 목록",
+  "livePresence": "글로벌 라이브 presence(설계 범위)",
+  "rides": "주행 요약 (필드 roomId = Trail ID, 레거시 필드명)",
+  "courses": "코스 메타 + presenceEnabled 등",
+  "coursePresence": "코스 단위 동행(입문 허브) — Phase 1-D에서 presence/ 이전 예정",
+  "courseActivity": "Activity World 집계(코스 단위)",
+  "routePublications": "경로 출판 스냅샷",
+  "publicationPresence": "출판 세션 heartbeat",
+  "worldActivity": "타일 단위 월드 집계(선택)",
+  "savedRoutes": "사용자 저장 경로",
+  "sessions": "(미착수) RTW Session — Phase 1-B",
+  "presence": "(미착수) RTW Presence 루트 — Phase 1-B",
+  "rooms": "(레거시) read-only — trails로 이전 완료"
 }
 ```
 
@@ -99,7 +97,7 @@
 
 ### 3.2.1 `trails/{trailId}/members/{userId}`
 
-`rooms/.../members` 와 동일 필드·heartbeat. Trailhead(`default`)·Trail 인스턴스 presence.
+Trailhead(`default`)·Trail 인스턴스 presence·heartbeat.
 
 ```json
 {
@@ -112,40 +110,26 @@
 }
 ```
 
-### 3.2-legacy `rooms/{roomId}`
+### 3.2.2 `trails/{trailId}/liveCourseRides/{userId}`
 
 ```json
 {
-  "id": "room-id",
-  "title": "string|null",
-  "visibility": "public|private",
-  "createdBy": "userId",
-  "createdAt": "Timestamp",
+  "userId": "uid",
+  "courseId": "string",
+  "progressRatio": 0.0,
   "updatedAt": "Timestamp"
 }
 ```
 
 설명:
-- 레거시. `trails/` 마이그레이션 후 read-only.
+- Trail 내 코스 주행·관전. Rules: `trails/…/liveCourseRides` 및 레거시 `rooms/…` read-only 병행.
 
-### 3.3 `rooms/{roomId}/members/{userId}`
+### 3.2-legacy `rooms/{roomId}` · `rooms/…/members` · `rooms/…/liveCourseRides`
 
-```json
-{
-  "userId": "uid-string",
-  "displayName": "string|null",
-  "photoURL": "string|null",
-  "state": "online|idle|riding|offline",
-  "lastSeenAt": "Timestamp",
-  "updatedAt": "Timestamp"
-}
-```
+- **마이그레이션 완료.** 신규 쓰기는 `trails/` 만. Rules에 read-only 매칭 잔존.
+- 필드 형태는 §3.2·§3.2.1·§3.2.2 와 동일. 상세는 Git·`npm run admin:migrate-rooms-to-trails` 이력 참고.
 
-설명:
-- 현재 코드의 `lastSeenAt` heartbeat와 호환.
-- presence 고빈도 쓰기는 최소 필드만 갱신.
-
-### 3.4 `rides/{rideId}`
+### 3.3 `rides/{rideId}`
 
 ```json
 {
@@ -297,7 +281,8 @@
 - `courses`: `(isPublic ASC, status ASC, updatedAt DESC)` *(v1)*
 - `courses`: `(visibility ASC, lifecycleStage ASC, score DESC)` *(2026-05-11 v2 — 공개 검색·인기순)*
 - `courses`: `(lifecycleStage ASC, lastActivityAt ASC)` *(2026-05-11 v2 — archive 일배치 스캔)*
-- `rooms/{roomId}/members`: `(lastSeenAt DESC)` (활성 사용자 정렬용)
+- `trails/{trailId}/members`: `(lastSeenAt DESC)` (활성 사용자 정렬용)
+- `rooms/{roomId}/members`: *(레거시, 동일 패턴)*
 - `sessions`: `(linkedCourseId ASC, createdAt DESC)` *(2026-05-11 v2)*
 - `presence/{sessionId}/members`: `(lastSeenAt DESC)` *(2026-05-11 v2)*
 
@@ -309,7 +294,7 @@
 ## 5) 보안 규칙 초안 원칙
 
 - `users/{userId}`: 본인 읽기/쓰기 기본, 운영자 확장 별도.
-- `rooms/{roomId}/members/{userId}`:
+- `trails/{trailId}/members/{userId}` (및 레거시 `rooms/…/members`):
   - 본인 문서만 upsert/delete 가능
   - `lastSeenAt`/`state`만 갱신 허용(필드 화이트리스트)
 - `rides/{rideId}`:
@@ -334,8 +319,8 @@
 ## 7) Postgres 이전 매핑 (요약)
 
 - `users` -> `users`
-- `rooms` -> `rooms`
-- `rooms/{roomId}/members` -> `room_members`
+- `trails` -> `trails` (구 `rooms`)
+- `trails/{trailId}/members` -> `trail_members`
 - `rides` -> `rides`
 - `courses` -> `courses` (+ `route_geom` PostGIS 변환)
 
@@ -350,3 +335,4 @@
 |------|------|
 | 2026-05-09 | 최초 작성 |
 | 2026-05-11 | v2 — `sessions`/`presence`/`coursePresenceConfig`/`courseLifecycleEvents`/`activities`/`rankings`/`events` 컬렉션 추가, `courses` 수명·visibility·geometryRef 필드 추가, v1→v2 마이그레이션 표 |
+| 2026-05-26 | §2 `trails` 중심 구조, `liveCourseRides`·Activity·출판 컬렉션, `rooms` 레거시 블록 축소 |
