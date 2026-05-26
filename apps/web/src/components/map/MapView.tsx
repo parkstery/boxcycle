@@ -305,12 +305,10 @@ function syncActivityWorldDotLayers(
     }
 
     moveActivityWorldDotLayersToTop(map);
-    if (import.meta.env.DEV) {
-      console.debug("[MapView] activity world dots", {
-        pulse: pulseDots.length,
-        heat: heatDots.length,
-      });
-    }
+    console.log("[MapView] activity world dots (layer)", {
+      pulse: pulseDots.length,
+      heat: heatDots.length,
+    });
   } catch (e) {
     console.warn("[MapView] activity world dot layers", e);
   }
@@ -975,8 +973,16 @@ export function MapView({
   syncActivityWorldLayersOnMapRef.current = (map) => {
     if (!map.isStyleLoaded()) return;
     const z = Number(map.getZoom().toFixed(1));
-    const render = resolveActivityWorldRender(z, activityWorldRawRef.current, activityWorldLodStateRef.current);
+    const raw = activityWorldRawRef.current;
+    const render = resolveActivityWorldRender(z, raw, activityWorldLodStateRef.current);
     activityWorldLodStateRef.current = render.nextLodState;
+    console.log("[MapView] activity world dots", {
+      pulse: render.pulseDots.length,
+      heat: render.heatDots.length,
+      rawPulse: raw.pulseDots.length,
+      rawHeat: raw.heatDots.length,
+      zoom: z,
+    });
     syncCourseActivityLayers(map, render.pulseRoutes, render.heatRoutes);
     syncActivityWorldDotLayers(map, render.pulseDots, render.heatDots);
   };
