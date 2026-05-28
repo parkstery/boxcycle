@@ -17,13 +17,10 @@ import {
   buildMapDebugPhaseAHardcodedDot,
   getMapDebugPhase,
   isMapDebugPhaseA,
-  isMapDebugPhaseB,
-  isMapDebugPhaseC,
   MAP_DEBUG_PHASE_A_LNGLAT,
   shouldMoveActivityWorldLayersToTop,
   shouldSkipActivityWorldLod,
   shouldSkipLiveOverlaysOnMap,
-  useMapDebugPhaseBPulseDot,
   isMapDebugPhaseRecovery,
 } from "../../lib/mapDebugPhase";
 import type { LngLat, LineStringGeometry } from "../../lib/geo";
@@ -1283,11 +1280,7 @@ export function MapView({
   const activityWorldLodStateRef = useRef<ActivityWorldLodState>(DEFAULT_ACTIVITY_WORLD_LOD_STATE);
   const activityWorldDotLogKeyRef = useRef("");
   const mapDebugPhaseACameraDoneRef = useRef(false);
-  const { dot: mapDebugPhaseBDot, meta: mapDebugPhaseBMeta } = useMapDebugPhaseBPulseDot(
-    isMapDebugPhaseB() || isMapDebugPhaseC(),
-  );
-  const mapDebugPhaseBDotRef = useRef<ActivityWorldDotFeature | null>(null);
-  mapDebugPhaseBDotRef.current = mapDebugPhaseBDot;
+  const mapDebugPhaseBCameraKeyRef = useRef<string>("");
   const mapDebugWorldLightDomMarkerRef = useRef<mapboxgl.Marker | null>(null);
 
   const syncActivityWorldLayersOnMapRef = useRef<(map: mapboxgl.Map) => void>(() => {});
@@ -1321,12 +1314,24 @@ export function MapView({
     }
 
     if (phase === "B" || phase === "C") {
-      const dot = mapDebugPhaseBDotRef.current;
+      const raw = activityWorldRawRef.current;
+      const dot = raw.pulseDots[0] ?? raw.heatDots[0] ?? null;
       const dots = dot ? [dot] : [];
       if (phase === "B" && import.meta.env.DEV) {
+        const key = dot ? `${dot.lngLat[0].toFixed(5)}|${dot.lngLat[1].toFixed(5)}` : "";
+        if (key && key !== mapDebugPhaseBCameraKeyRef.current) {
+          mapDebugPhaseBCameraKeyRef.current = key;
+          try {
+            map.panTo(dot.lngLat as [number, number], { duration: 700, essential: true });
+          } catch {
+            map.jumpTo({ center: dot.lngLat as [number, number], zoom: Math.max(9, map.getZoom()) });
+          }
+        }
+        if (dot) {
+          ensureMapDebugWorldLightDomMarker(map, dot.lngLat as [number, number], mapDebugWorldLightDomMarkerRef);
+        }
         console.log("[MapDebug:B] sync", {
-          rowCount: mapDebugPhaseBMeta.rowCount,
-          fetchError: mapDebugPhaseBMeta.fetchError,
+          rowCount: raw.pulseDots.length + raw.heatDots.length,
           hasDot: Boolean(dot),
           firstLngLat: dot ? [dot.lngLat[0], dot.lngLat[1]] : null,
         });
@@ -2151,9 +2156,6 @@ export function MapView({
     activityWorldRaw.heatDots.length,
     activityWorldRaw.pulseRoutes.length,
     activityWorldRaw.heatRoutes.length,
-    mapDebugPhaseBDot,
-    mapDebugPhaseBMeta.rowCount,
-    mapDebugPhaseBMeta.fetchError,
   ]);
 
   /** Phase A–C: MapView WORLD_LIGHT 전용 — raw overlay 0 과 무관하게 주기적 sync */
@@ -2179,7 +2181,7 @@ export function MapView({
       map.off("idle", onIdle);
       removeMapDebugWorldLightDomMarker(mapDebugWorldLightDomMarkerRef);
     };
-  }, [mapLoaded, mapDebugPhaseBDot]);
+  }, [mapLoaded, activityWorldRaw]);
 
   useEffect(() => {
     const map = mapRef.current;

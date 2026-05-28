@@ -32,7 +32,6 @@ import {
   runWorldPublicationMapDotsChecks,
 } from "./worldPublicationMapDots";
 import {
-  buildMapDebugPhaseAHardcodedDot,
   getMapDebugPhase,
   isMapDebugPhaseRecovery,
   shouldDisablePublicationOverlayHooks,
@@ -137,7 +136,9 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
 
   /** AC-7: Trailhead idle = publication만 — L3 spectator는 주행·일시정지(관전 세션)에서만 */
   const mapDebugPhase = getMapDebugPhase();
-  const forceHardcodedDebugDot = mapDebugPhase === "A" || isMapDebugPhaseRecovery();
+  const isPhaseA = mapDebugPhase === "A";
+  const isPhaseB = mapDebugPhase === "B";
+  const forceDebugBypass = isMapDebugPhaseRecovery();
 
   const trailSpectatorOverlayEnabled =
     !shouldSkipLiveOverlaysOnMap() &&
@@ -197,7 +198,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     catalogActivityEnabled && !publicationPresenceWorldMapEnabled;
 
   const publicationOverlay = useWorldPublicationPresenceOverlay({
-    enabled: publicationPresenceWorldMapEnabled,
+    enabled: publicationPresenceWorldMapEnabled || isPhaseB,
     mapZoom,
     excludePublicationRoutesId: isRideSessionActive ? trackedCourseId : null,
     refreshNonce: activityMapRefreshNonce,
@@ -246,12 +247,22 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   const mapSessionActive = worldMapActivityEnabled;
 
   const activityWorldRaw = useMemo(() => {
-    if (forceHardcodedDebugDot) {
+    if (isPhaseA) {
       return {
         pulseRoutes: [],
         heatRoutes: [],
-        pulseDots: [buildMapDebugPhaseAHardcodedDot()],
+        pulseDots: [],
         heatDots: [],
+      };
+    }
+    if (isPhaseB) {
+      const firstPulse = publicationOverlay.pulseDots[0];
+      const firstHeat = publicationOverlay.heatDots[0];
+      return {
+        pulseRoutes: [],
+        heatRoutes: [],
+        pulseDots: firstPulse ? [firstPulse] : [],
+        heatDots: firstPulse ? [] : firstHeat ? [firstHeat] : [],
       };
     }
     const merged = resolveWorldMapOverlay({
@@ -284,8 +295,9 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       routeGeometry,
     });
   }, [
-    forceHardcodedDebugDot,
     mapDebugPhase,
+    isPhaseA,
+    isPhaseB,
     trackedCourseId,
     activeOverlay,
     catalogOverlay,
@@ -384,7 +396,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       mapSessionActive,
     });
     if (
-      !forceHardcodedDebugDot &&
+      !forceDebugBypass &&
       activityWorldRaw.pulseDots.length === 0 &&
       activityWorldRaw.heatDots.length === 0
     ) {
@@ -396,7 +408,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
         pageVisible,
         mapDebugPhase: getMapDebugPhase(),
       });
-    } else if (forceHardcodedDebugDot && import.meta.env.DEV) {
+    } else if (forceDebugBypass && import.meta.env.DEV) {
       console.info("[MapDebug] overlay hooks bypassed — WORLD_LIGHT는 MapView Phase에서만 그림", {
         mapDebugPhase: getMapDebugPhase(),
         publicationPresenceWorldMapEnabled,
@@ -422,7 +434,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     publicationPresenceWorldMapEnabled,
     activityWorldRender.pulseDots.length,
     activityWorldRender.heatDots.length,
-    forceHardcodedDebugDot,
+    forceDebugBypass,
   ]);
 
   const lodDebugPanelProps: ActivityWorldLodDebugPanelProps | null =
