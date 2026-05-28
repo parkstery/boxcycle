@@ -14,6 +14,7 @@ import {
   invalidateLiveCourseActivityIdsCache,
 } from "./lib/firestoreCourseActivity";
 import { AppMapStage, useAppMapOverlays } from "./features/map-overlays";
+import { DebugMapStage } from "./features/map-overlays/DebugMapStage";
 import type { MapViewportBounds } from "./lib/activityWorldLod";
 import { MAP_ZOOM_WORLD_ACTIVITY_MAX, MAP_PEER_SPRITE_MIN_ZOOM } from "./lib/rideSyncPolicy";
 import { AuthGateCard, AuthGoogleMark } from "./components/AuthGateCard";
@@ -98,6 +99,7 @@ import type { CoverageOverlayMode } from "./lib/coverageOverlayMode";
 import { formatDuration, type RouteProfile } from "./services/mapboxDirections";
 import { FUNCTIONS_REGION, MAPBOX_TOKEN } from "./app/env";
 import { useAppSheetNavigation } from "./app/useAppSheetNavigation";
+import { getMapDebugPhase } from "./lib/mapDebugPhase";
 import "./App.css";
 
 const MapillaryRideViewer = lazy(async () => {
@@ -474,6 +476,9 @@ export default function App() {
     () => resolveTrailDisplayLabel(sanitizedTrailId, currentTrailMeta),
     [sanitizedTrailId, currentTrailMeta],
   );
+  const debugMapPhase = getMapDebugPhase();
+  const debugMapIsolationActive =
+    debugMapPhase === "A" || debugMapPhase === "B" || debugMapPhase === "C";
 
   const mapOverlays = useAppMapOverlays({
     configured,
@@ -494,6 +499,7 @@ export default function App() {
     openTrails: openTrailsQuery.rows,
     trailRoomLabel: trailDisplayLabels.room,
     activityMapRefreshNonce,
+    debugIsolation: debugMapIsolationActive,
   });
 
   const {
@@ -1195,133 +1201,210 @@ export default function App() {
       <RotateOverlay />
 
       <div className="app-map-stage">
-        <AppMapStage
-          mapView={{
-            accessToken: MAPBOX_TOKEN || undefined,
-            routeElevationProfile: rideElevationProfile,
-            routeGeometry,
-            startLngLat,
-            endLngLat,
-            routeWaypoints,
-            liveLngLat: liveForMap,
-            liveRiderMotion:
-              rideStatus === "idle"
-                ? null
-                : {
-                    sessionStatus: rideStatus,
-                    speedKmh,
-                    crankRpmFromSensor: bleCrankRpm.crankRpm,
-                  },
-            liveRiderNametag: resolvedLiveRiderNametag,
-            peerMarkers: peerMarkersForMap,
-            mapStyle,
-            mapZoom,
-            followMode,
-            enable3D,
-            onMapZoom: setMapZoom,
-            onMapViewport,
-            onMapLodViewport,
-            coverageOverlayMode,
-            mapillaryClientToken: mapillaryTokenConfigured ? MAPILLARY_CLIENT_TOKEN : null,
-            routeProfile: profile,
-            onRouteProfile: handleMapRouteProfile,
-            onClearRoute: handleClearPins,
-            onSelectPoint: (type, lngLat, waypointSlot) => {
-              if (!user || routeMenuLockedForProd) return;
-              setActiveOfficialCourseId(null);
-              setPlaceSearchMarkerLngLat(null);
-              if (type === "start") setStartLngLat(lngLat);
-              else if (type === "end") setEndLngLat(lngLat);
-              else {
-                const slot = waypointSlot ?? 0;
-                setRouteWaypoints((prev) => {
-                  if (slot < prev.length) {
-                    return prev.map((p, j) => (j === slot ? lngLat : p));
-                  }
-                  if (slot === prev.length && prev.length < MAX_ROUTE_WAYPOINTS) {
-                    return [...prev, lngLat];
-                  }
-                  return prev;
-                });
-              }
-            },
-            externalCameraJump,
-            placeSearchMarkerLngLat,
-            trailSpectatorDots: spectatorDots,
-            trailSpectatorRoutes: spectatorRouteGeometries,
-            globalPresenceDots: debugGlobalPresenceOnMap ? globalPresenceDots : null,
-            activityWorldRaw,
-            getActivityWorldPinLabel,
-          }}
-          lodDebug={lodDebugPanelProps}
-          mapHud={{
-            stage,
-            onOpenMenu: openMenuPanel,
-            menuOpen,
-            account: accountChip,
-            onOpenUserInfo: openUserInfoPanel,
-            userInfoOpen: userInfoSheetOpen,
-            authGateVisualDismissed: needsAuthCard,
-            onOpenMapView: openMapViewPanel,
-            mapViewOpen: mapViewSheetOpen,
-            idleHintMessage: "입문: MENU → 입문 코스 → 주행 시작",
-            coachData,
-            coachLineEnabled: rideCoachingBannerVisible,
-            metrics: hudMetrics,
-            pinState: {
-              start: Boolean(startLngLat),
-              end: Boolean(endLngLat),
-              waypointCount: routeWaypoints.length,
-            },
-            routeBrief,
-            onClearPins: handleClearPins,
-            routeError: null,
-            canStartRide: Boolean(routeGeometry) && !routeLoading,
-            onStartRide: handleStartRide,
-            onPauseRide: handlePause,
-            onResumeRide: handleResume,
-            onEndRide: handleEndRideWithTrailCleanup,
-            onResumeFromPause: handleResume,
-            onEndFromPause: handleEndRideWithTrailCleanup,
-            onModifyFromPause: handleModifyFromPause,
-            showIdleHint: stage === "idle" && !idleHintDismissed,
-            onDismissIdleHint: () => setIdleHintDismissed(true),
-            showSetupRouteHint: stage === "setup" && !bJourneyHintDismissedSession,
-            onDismissSetupRouteHint: dismissBJourneyHint,
-            ridePresence: mapHudRidePresence,
-            worldActivityHint,
-          }}
-        >
-        {rideMapillaryStreet && mapillaryRideSync && mapillaryTokenConfigured ? (
-          <div className="mapillary-street-floating" aria-label="Mapillary 거리뷰">
-            <div className="mapillary-street-floating__head">
-              <span className="mapillary-street-floating__title">Mapillary</span>
-              <button
-                type="button"
-                className="mapillary-street-floating__close"
-                title="Close street view"
-                onClick={dismissMapillaryStreet}
-              >
-                닫기
-              </button>
-            </div>
-            <div className="mapillary-street-floating__video">
-              <Suspense
-                fallback={<div className="mapillary-street-floating__loading">거리뷰 로드 중…</div>}
-              >
-                <MapillaryRideViewer
-                  accessToken={MAPILLARY_CLIENT_TOKEN}
-                  imageId={rideMapillaryStreet.imageKey}
-                  lookAt={mapillaryRideSync.lookAt}
-                  driveHeadingDeg={mapillaryRideSync.driveHeadingDeg}
-                  sphericalNavigation={rideMapillaryStreet.isPano}
-                />
-              </Suspense>
-            </div>
-            <p className="mapillary-street-floating__attr">Imagery © Mapillary contributors</p>
-          </div>
-        ) : null}
-        </AppMapStage>
+        {debugMapIsolationActive ? (
+          <DebugMapStage
+            accessToken={MAPBOX_TOKEN || undefined}
+            mapStyle={mapStyle}
+            mapZoom={mapZoom}
+            onMapZoom={setMapZoom}
+            onMapViewport={onMapViewport}
+            mapHud={{
+              stage,
+              onOpenMenu: openMenuPanel,
+              menuOpen,
+              account: accountChip,
+              onOpenUserInfo: openUserInfoPanel,
+              userInfoOpen: userInfoSheetOpen,
+              authGateVisualDismissed: needsAuthCard,
+              onOpenMapView: openMapViewPanel,
+              mapViewOpen: mapViewSheetOpen,
+              idleHintMessage: "입문: MENU → 입문 코스 → 주행 시작",
+              coachData,
+              coachLineEnabled: rideCoachingBannerVisible,
+              metrics: hudMetrics,
+              pinState: {
+                start: Boolean(startLngLat),
+                end: Boolean(endLngLat),
+                waypointCount: routeWaypoints.length,
+              },
+              routeBrief,
+              onClearPins: handleClearPins,
+              routeError: null,
+              canStartRide: Boolean(routeGeometry) && !routeLoading,
+              onStartRide: handleStartRide,
+              onPauseRide: handlePause,
+              onResumeRide: handleResume,
+              onEndRide: handleEndRideWithTrailCleanup,
+              onResumeFromPause: handleResume,
+              onEndFromPause: handleEndRideWithTrailCleanup,
+              onModifyFromPause: handleModifyFromPause,
+              showIdleHint: stage === "idle" && !idleHintDismissed,
+              onDismissIdleHint: () => setIdleHintDismissed(true),
+              showSetupRouteHint: stage === "setup" && !bJourneyHintDismissedSession,
+              onDismissSetupRouteHint: dismissBJourneyHint,
+              ridePresence: mapHudRidePresence,
+              worldActivityHint,
+            }}
+          >
+            {rideMapillaryStreet && mapillaryRideSync && mapillaryTokenConfigured ? (
+              <div className="mapillary-street-floating" aria-label="Mapillary 거리뷰">
+                <div className="mapillary-street-floating__head">
+                  <span className="mapillary-street-floating__title">Mapillary</span>
+                  <button
+                    type="button"
+                    className="mapillary-street-floating__close"
+                    title="Close street view"
+                    onClick={dismissMapillaryStreet}
+                  >
+                    닫기
+                  </button>
+                </div>
+                <div className="mapillary-street-floating__video">
+                  <Suspense
+                    fallback={<div className="mapillary-street-floating__loading">거리뷰 로드 중…</div>}
+                  >
+                    <MapillaryRideViewer
+                      accessToken={MAPILLARY_CLIENT_TOKEN}
+                      imageId={rideMapillaryStreet.imageKey}
+                      lookAt={mapillaryRideSync.lookAt}
+                      driveHeadingDeg={mapillaryRideSync.driveHeadingDeg}
+                      sphericalNavigation={rideMapillaryStreet.isPano}
+                    />
+                  </Suspense>
+                </div>
+                <p className="mapillary-street-floating__attr">Imagery © Mapillary contributors</p>
+              </div>
+            ) : null}
+          </DebugMapStage>
+        ) : (
+          <AppMapStage
+            mapView={{
+              accessToken: MAPBOX_TOKEN || undefined,
+              routeElevationProfile: rideElevationProfile,
+              routeGeometry,
+              startLngLat,
+              endLngLat,
+              routeWaypoints,
+              liveLngLat: liveForMap,
+              liveRiderMotion:
+                rideStatus === "idle"
+                  ? null
+                  : {
+                      sessionStatus: rideStatus,
+                      speedKmh,
+                      crankRpmFromSensor: bleCrankRpm.crankRpm,
+                    },
+              liveRiderNametag: resolvedLiveRiderNametag,
+              peerMarkers: peerMarkersForMap,
+              mapStyle,
+              mapZoom,
+              followMode,
+              enable3D,
+              onMapZoom: setMapZoom,
+              onMapViewport,
+              onMapLodViewport,
+              coverageOverlayMode,
+              mapillaryClientToken: mapillaryTokenConfigured ? MAPILLARY_CLIENT_TOKEN : null,
+              routeProfile: profile,
+              onRouteProfile: handleMapRouteProfile,
+              onClearRoute: handleClearPins,
+              onSelectPoint: (type, lngLat, waypointSlot) => {
+                if (!user || routeMenuLockedForProd) return;
+                setActiveOfficialCourseId(null);
+                setPlaceSearchMarkerLngLat(null);
+                if (type === "start") setStartLngLat(lngLat);
+                else if (type === "end") setEndLngLat(lngLat);
+                else {
+                  const slot = waypointSlot ?? 0;
+                  setRouteWaypoints((prev) => {
+                    if (slot < prev.length) {
+                      return prev.map((p, j) => (j === slot ? lngLat : p));
+                    }
+                    if (slot === prev.length && prev.length < MAX_ROUTE_WAYPOINTS) {
+                      return [...prev, lngLat];
+                    }
+                    return prev;
+                  });
+                }
+              },
+              externalCameraJump,
+              placeSearchMarkerLngLat,
+              trailSpectatorDots: spectatorDots,
+              trailSpectatorRoutes: spectatorRouteGeometries,
+              globalPresenceDots: debugGlobalPresenceOnMap ? globalPresenceDots : null,
+              activityWorldRaw,
+              getActivityWorldPinLabel,
+            }}
+            lodDebug={lodDebugPanelProps}
+            mapHud={{
+              stage,
+              onOpenMenu: openMenuPanel,
+              menuOpen,
+              account: accountChip,
+              onOpenUserInfo: openUserInfoPanel,
+              userInfoOpen: userInfoSheetOpen,
+              authGateVisualDismissed: needsAuthCard,
+              onOpenMapView: openMapViewPanel,
+              mapViewOpen: mapViewSheetOpen,
+              idleHintMessage: "입문: MENU → 입문 코스 → 주행 시작",
+              coachData,
+              coachLineEnabled: rideCoachingBannerVisible,
+              metrics: hudMetrics,
+              pinState: {
+                start: Boolean(startLngLat),
+                end: Boolean(endLngLat),
+                waypointCount: routeWaypoints.length,
+              },
+              routeBrief,
+              onClearPins: handleClearPins,
+              routeError: null,
+              canStartRide: Boolean(routeGeometry) && !routeLoading,
+              onStartRide: handleStartRide,
+              onPauseRide: handlePause,
+              onResumeRide: handleResume,
+              onEndRide: handleEndRideWithTrailCleanup,
+              onResumeFromPause: handleResume,
+              onEndFromPause: handleEndRideWithTrailCleanup,
+              onModifyFromPause: handleModifyFromPause,
+              showIdleHint: stage === "idle" && !idleHintDismissed,
+              onDismissIdleHint: () => setIdleHintDismissed(true),
+              showSetupRouteHint: stage === "setup" && !bJourneyHintDismissedSession,
+              onDismissSetupRouteHint: dismissBJourneyHint,
+              ridePresence: mapHudRidePresence,
+              worldActivityHint,
+            }}
+          >
+            {rideMapillaryStreet && mapillaryRideSync && mapillaryTokenConfigured ? (
+              <div className="mapillary-street-floating" aria-label="Mapillary 거리뷰">
+                <div className="mapillary-street-floating__head">
+                  <span className="mapillary-street-floating__title">Mapillary</span>
+                  <button
+                    type="button"
+                    className="mapillary-street-floating__close"
+                    title="Close street view"
+                    onClick={dismissMapillaryStreet}
+                  >
+                    닫기
+                  </button>
+                </div>
+                <div className="mapillary-street-floating__video">
+                  <Suspense
+                    fallback={<div className="mapillary-street-floating__loading">거리뷰 로드 중…</div>}
+                  >
+                    <MapillaryRideViewer
+                      accessToken={MAPILLARY_CLIENT_TOKEN}
+                      imageId={rideMapillaryStreet.imageKey}
+                      lookAt={mapillaryRideSync.lookAt}
+                      driveHeadingDeg={mapillaryRideSync.driveHeadingDeg}
+                      sphericalNavigation={rideMapillaryStreet.isPano}
+                    />
+                  </Suspense>
+                </div>
+                <p className="mapillary-street-floating__attr">Imagery © Mapillary contributors</p>
+              </div>
+            ) : null}
+          </AppMapStage>
+        )}
       </div>
 
       <MenuPanel

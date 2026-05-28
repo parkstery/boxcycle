@@ -58,6 +58,8 @@ export type UseAppMapOverlaysOpts = {
   openTrails: readonly TrailInstance[];
   trailRoomLabel: string;
   activityMapRefreshNonce: number;
+  /** WO-260528: A/B/C 디버그 분리 시 기존 overlay 체인 완전 비활성화 */
+  debugIsolation?: boolean;
 };
 
 export type AppMapOverlaysResult = {
@@ -96,6 +98,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     openTrails,
     trailRoomLabel,
     activityMapRefreshNonce,
+    debugIsolation = false,
   } = opts;
 
   const coursePeerIdsForTrailSpectator = useMemo(() => new Set<string>(), []);
@@ -140,8 +143,10 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   const isPhaseB = mapDebugPhase === "B";
   const isPhaseC = mapDebugPhase === "C";
   const forceDebugBypass = isMapDebugPhaseRecovery();
+  const debugIsolationOn = debugIsolation && (isPhaseA || isPhaseB || isPhaseC);
 
   const trailSpectatorOverlayEnabled =
+    !debugIsolationOn &&
     !shouldSkipLiveOverlaysOnMap() &&
     Boolean(
       trailheadSessionActive &&
@@ -186,6 +191,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   const worldMapActivityEnabled = Boolean(configured && user && pageVisible);
 
   const publicationPresenceWorldMapEnabled =
+    !debugIsolationOn &&
     worldMapActivityEnabled &&
     import.meta.env.VITE_USE_PUBLICATION_PRESENCE !== "false" &&
     !shouldDisablePublicationOverlayHooks();
@@ -196,10 +202,10 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
 
   /** publication 모드: courseActivity N×getDoc·geometry OFF — 패널·HUD는 publication·worldActivityCatalog */
   const catalogOverlayEnabled =
-    catalogActivityEnabled && !publicationPresenceWorldMapEnabled;
+    !debugIsolationOn && catalogActivityEnabled && !publicationPresenceWorldMapEnabled;
 
   const publicationOverlay = useWorldPublicationPresenceOverlay({
-    enabled: publicationPresenceWorldMapEnabled || isPhaseB || isPhaseC,
+    enabled: debugIsolationOn ? false : publicationPresenceWorldMapEnabled || isPhaseB || isPhaseC,
     mapZoom,
     excludePublicationRoutesId: isRideSessionActive ? trackedCourseId : null,
     refreshNonce: activityMapRefreshNonce,
@@ -215,7 +221,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   });
 
   const worldLiveCourseRideOverlayEnabled =
-    Boolean(configured && user && pageVisible) && !publicationPresenceWorldMapEnabled;
+    !debugIsolationOn && Boolean(configured && user && pageVisible) && !publicationPresenceWorldMapEnabled;
 
   const liveCourseRideOverlay = useWorldLiveCourseRideMapOverlay({
     enabled: worldLiveCourseRideOverlayEnabled,
@@ -258,6 +264,9 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   );
 
   const activityWorldRaw = useMemo(() => {
+    if (debugIsolationOn) {
+      return { pulseRoutes: [], heatRoutes: [], pulseDots: [], heatDots: [] };
+    }
     if (isPhaseA) {
       return {
         pulseRoutes: [],
@@ -323,6 +332,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     isRideSessionActive,
     routeGeometry,
     phaseBFallbackDot,
+    debugIsolationOn,
   ]);
 
   const activityWorldRender = useMemo(
@@ -361,6 +371,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   );
 
   useEffect(() => {
+    if (debugIsolationOn) return;
     if (!import.meta.env.DEV) return;
     try {
       runActivityWorldLodP0Checks();
@@ -457,6 +468,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     activityWorldRender.pulseDots.length,
     activityWorldRender.heatDots.length,
     forceDebugBypass,
+    debugIsolationOn,
   ]);
 
   const lodDebugPanelProps: ActivityWorldLodDebugPanelProps | null =
