@@ -7,7 +7,7 @@ import {
 } from "./firestorePublicationPresence";
 import type { LngLat } from "./geo";
 
-/** 260527 Map 표현 계층 디버그 Phase — `VITE_MAP_DEBUG_PHASE` (DEV 미설정 시 A) */
+/** 260527 Map 표현 계층 디버그 Phase — `VITE_MAP_DEBUG_PHASE` (unset = null → Phase D MapView) */
 export type MapDebugPhase = "A" | "B" | "C";
 
 export const MAP_DEBUG_PHASE_A_LNGLAT: LngLat = [127.035, 37.505];
@@ -15,7 +15,6 @@ export const MAP_DEBUG_PHASE_A_LNGLAT: LngLat = [127.035, 37.505];
 export function getMapDebugPhase(): MapDebugPhase | null {
   const raw = import.meta.env.VITE_MAP_DEBUG_PHASE?.trim().toUpperCase();
   if (raw === "A" || raw === "B" || raw === "C") return raw;
-  if (import.meta.env.DEV) return "A";
   return null;
 }
 
