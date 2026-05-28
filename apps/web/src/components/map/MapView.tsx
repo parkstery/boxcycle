@@ -1289,6 +1289,8 @@ export function MapView({
   activityWorldRawRef.current = activityWorldRaw ?? EMPTY_ACTIVITY_WORLD_RAW;
   const activityWorldLodStateRef = useRef<ActivityWorldLodState>(DEFAULT_ACTIVITY_WORLD_LOD_STATE);
   const activityWorldDotLogKeyRef = useRef("");
+  const activityWorldIdleRenderLogKeyRef = useRef("");
+  const phaseDRenderLogKeyRef = useRef("");
   const mapDebugPhaseACameraDoneRef = useRef(false);
   const mapDebugPhaseBCameraKeyRef = useRef<string>("");
   const mapDebugWorldLightDomMarkerRef = useRef<mapboxgl.Marker | null>(null);
@@ -1415,6 +1417,41 @@ export function MapView({
     syncActivityWorldDotLayers(map, render.pulseDots, render.heatDots, {
       domMarkerRef: undefined,
     });
+    if (phase == null && import.meta.env.DEV) {
+      const rawPulse = raw.pulseDots.length;
+      const rawHeat = raw.heatDots.length;
+      map.once("idle", () => {
+        let queryRenderedCount = -1;
+        let querySourceCount = -1;
+        try {
+          queryRenderedCount = map.queryRenderedFeatures({ layers: [ACTIVITY_PULSE_DOTS_LAYER] }).length;
+        } catch {
+          /* noop */
+        }
+        try {
+          querySourceCount = map.querySourceFeatures(ACTIVITY_PULSE_DOTS_SRC).length;
+        } catch {
+          /* noop */
+        }
+        const idleKey = `${rawPulse}|${rawHeat}|${queryRenderedCount}`;
+        if (activityWorldIdleRenderLogKeyRef.current !== idleKey) {
+          activityWorldIdleRenderLogKeyRef.current = idleKey;
+          console.log("[MapView] activity world dots", {
+            rawPulse,
+            rawHeat,
+            queryRenderedCount,
+          });
+        }
+        const phaseDKey = `${querySourceCount}|${queryRenderedCount}`;
+        if (phaseDRenderLogKeyRef.current !== phaseDKey) {
+          phaseDRenderLogKeyRef.current = phaseDKey;
+          console.log("[PhaseD] render", {
+            querySourceCount,
+            queryRenderedCount,
+          });
+        }
+      });
+    }
     if (shouldMoveActivityWorldLayersToTop()) {
       moveActivityWorldLayersToTop(map);
     }

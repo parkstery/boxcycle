@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { User } from "firebase/auth";
 import { useCourseActivity } from "../../hooks/useCourseActivity";
 import { useCourseActivityMapOverlay } from "../../hooks/useCourseActivityMapOverlay";
@@ -27,7 +27,6 @@ import { resolveWorldMapOverlay, runWorldMapOverlayMergeChecks } from "./worldMa
 import { useWorldActivityCatalog } from "./useWorldActivityCatalog";
 import { useWorldLiveCourseRideMapOverlay } from "./useWorldLiveCourseRideMapOverlay";
 import {
-  ensureWorldActivityMinimumDots,
   mergePublicationWorldPulseDots,
   runWorldPublicationMapDotsChecks,
 } from "./worldPublicationMapDots";
@@ -100,6 +99,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     activityMapRefreshNonce,
     debugIsolation = false,
   } = opts;
+  void currentTrailMeta;
 
   const coursePeerIdsForTrailSpectator = useMemo(() => new Set<string>(), []);
 
@@ -287,6 +287,14 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
         heatDots: selectedPulse ? [] : firstHeat ? [firstHeat] : [],
       };
     }
+    if (publicationPresenceWorldMapEnabled) {
+      return {
+        pulseRoutes: [...publicationOverlay.pulseRoutes],
+        heatRoutes: [...publicationOverlay.heatRoutes],
+        pulseDots: [...publicationWorldDots.pulseDots],
+        heatDots: [...publicationWorldDots.heatDots],
+      };
+    }
     const merged = resolveWorldMapOverlay({
       trackedCourseId,
       active: activeOverlay,
@@ -310,12 +318,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       },
       publicationPresenceWorldMapEnabled,
     });
-    return ensureWorldActivityMinimumDots(merged, {
-      mapSessionActive,
-      isRideSessionActive,
-      trackedCourseId,
-      routeGeometry,
-    });
+    return merged;
   }, [
     mapDebugPhase,
     isPhaseA,
@@ -333,6 +336,27 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     routeGeometry,
     phaseBFallbackDot,
     debugIsolationOn,
+  ]);
+
+  const phaseDSourceLogKeyRef = useRef("");
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    if (isPhaseA || isPhaseB || isPhaseC) return;
+    const key = `${publicationPresenceWorldMapEnabled}|${activityWorldRaw.pulseDots.length}|${activityWorldRaw.heatDots.length}`;
+    if (phaseDSourceLogKeyRef.current === key) return;
+    phaseDSourceLogKeyRef.current = key;
+    console.log("[PhaseD] source", {
+      publicationPresenceWorldMapEnabled,
+      rawPulse: activityWorldRaw.pulseDots.length,
+      rawHeat: activityWorldRaw.heatDots.length,
+    });
+  }, [
+    isPhaseA,
+    isPhaseB,
+    isPhaseC,
+    publicationPresenceWorldMapEnabled,
+    activityWorldRaw.pulseDots.length,
+    activityWorldRaw.heatDots.length,
   ]);
 
   const activityWorldRender = useMemo(
