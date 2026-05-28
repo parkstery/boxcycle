@@ -533,6 +533,7 @@ function syncActivityWorldDotLayers(
   },
 ): void {
   if (!map.isStyleLoaded()) return;
+  const phase = getMapDebugPhase();
 
   const validPulseDots = pulseDots.filter((d) => isValidActivityDotLngLat(d.lngLat));
   if (validPulseDots.length !== pulseDots.length && import.meta.env.DEV) {
@@ -604,7 +605,16 @@ function syncActivityWorldDotLayers(
       });
     }
 
-    if (validPulseDots.length > 0 && isMapDebugPhaseRecovery() && options?.domMarkerRef) {
+    if (phase === "C") {
+      console.log("[MapDebug:C] Mapbox custom layer synced. Source dot count:", validPulseDots.length);
+    }
+
+    if (
+      validPulseDots.length > 0 &&
+      phase !== "C" &&
+      isMapDebugPhaseRecovery() &&
+      options?.domMarkerRef
+    ) {
       const domRef = options.domMarkerRef;
       map.once("idle", () => {
         afterMapDebugPulseDotIdle(map, validPulseDots, domRef);
@@ -1317,34 +1327,37 @@ export function MapView({
       const raw = activityWorldRawRef.current;
       const dot = raw.pulseDots[0] ?? raw.heatDots[0] ?? null;
       const dots = dot ? [dot] : [];
-      if (phase === "B" && import.meta.env.DEV) {
+      if (phase === "C") {
+        removeMapDebugWorldLightDomMarker(mapDebugWorldLightDomMarkerRef);
+      }
+      if ((phase === "B" || phase === "C") && import.meta.env.DEV) {
         const key = dot ? `${dot.lngLat[0].toFixed(5)}|${dot.lngLat[1].toFixed(5)}` : "";
         if (key && key !== mapDebugPhaseBCameraKeyRef.current) {
           mapDebugPhaseBCameraKeyRef.current = key;
           try {
             map.panTo(dot.lngLat as [number, number], { duration: 700, essential: true });
-            console.log("[MapDebug:B] camera moved", {
+            console.log(`[MapDebug:${phase}] camera moved`, {
               mode: "panTo",
               lngLat: [dot.lngLat[0], dot.lngLat[1]],
               fallback: dot.courseId === "debug-phase-b-fallback",
             });
           } catch {
             map.jumpTo({ center: dot.lngLat as [number, number], zoom: Math.max(9, map.getZoom()) });
-            console.log("[MapDebug:B] camera moved", {
+            console.log(`[MapDebug:${phase}] camera moved`, {
               mode: "jumpTo",
               lngLat: [dot.lngLat[0], dot.lngLat[1]],
               fallback: dot.courseId === "debug-phase-b-fallback",
             });
           }
         }
-        if (dot) {
+        if (dot && phase === "B") {
           ensureMapDebugWorldLightDomMarker(map, dot.lngLat as [number, number], mapDebugWorldLightDomMarkerRef);
           console.log("[MapDebug:B] dom marker placed", {
             lngLat: [dot.lngLat[0], dot.lngLat[1]],
             fallback: dot.courseId === "debug-phase-b-fallback",
           });
         }
-        console.log("[MapDebug:B] sync", {
+        console.log(`[MapDebug:${phase}] sync`, {
           rowCount: raw.pulseDots.length + raw.heatDots.length,
           hasDot: Boolean(dot),
           firstLngLat: dot ? [dot.lngLat[0], dot.lngLat[1]] : null,
@@ -2173,9 +2186,11 @@ export function MapView({
     activityWorldRaw.heatRoutes.length,
   ]);
 
-  /** Phase A–C: MapView WORLD_LIGHT 전용 — raw overlay 0 과 무관하게 주기적 sync */
+  /** Phase A–B: MapView WORLD_LIGHT 전용 — raw overlay 0 과 무관하게 주기적 sync */
   useEffect(() => {
-    if (!mapLoaded || !isMapDebugPhaseRecovery()) {
+    const phase = getMapDebugPhase();
+    const enableRecoveryLoop = phase === "A" || phase === "B";
+    if (!mapLoaded || !enableRecoveryLoop) {
       removeMapDebugWorldLightDomMarker(mapDebugWorldLightDomMarkerRef);
       return;
     }
