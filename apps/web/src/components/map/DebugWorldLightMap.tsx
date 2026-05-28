@@ -8,7 +8,7 @@ import {
   fetchPublicPublicationPresencesDetailed,
   PUBLICATION_PRESENCE_POLL_MS,
 } from "../../lib/firestorePublicationPresence";
-import { getMapDebugPhase } from "../../lib/mapDebugPhase";
+import { getMapDebugPhase, type MapDebugPhase } from "../../lib/mapDebugPhase";
 
 const DEBUG_SRC_ID = "debug-world-light-src";
 const DEBUG_LAYER_ID = "debug-world-light-circle";
@@ -16,6 +16,24 @@ const STYLE_RELOAD_DEBOUNCE_MS = 300;
 
 const PHASE_A_LNGLAT: LngLat = [127.035, 37.505];
 const PHASE_B_FALLBACK_LNGLAT: LngLat = [8.04, 46.63];
+
+/** Phase C — zoom 대응 radius (z3→8, z12→14) */
+const PHASE_C_CIRCLE_RADIUS: mapboxgl.ExpressionSpecification = [
+  "interpolate",
+  ["linear"],
+  ["zoom"],
+  3,
+  8,
+  12,
+  14,
+];
+
+const DEBUG_CIRCLE_PAINT_BASE = {
+  "circle-color": "#ff0000",
+  "circle-opacity": 1,
+  "circle-stroke-width": 2,
+  "circle-stroke-color": "#ffffff",
+} as const;
 
 type DebugWorldLightMapProps = {
   accessToken?: string;
@@ -75,8 +93,38 @@ function resolveBeforeId(map: mapboxgl.Map): string | undefined {
   return undefined;
 }
 
+function circleRadiusForPhase(phase: MapDebugPhase | null): number | mapboxgl.ExpressionSpecification {
+  return phase === "C" ? PHASE_C_CIRCLE_RADIUS : 12;
+}
+
+function applyDebugCirclePaint(map: mapboxgl.Map): void {
+  if (!map.getLayer(DEBUG_LAYER_ID)) return;
+  map.setPaintProperty(
+    DEBUG_LAYER_ID,
+    "circle-radius",
+    circleRadiusForPhase(getMapDebugPhase()),
+  );
+}
+
+function queryDotCounts(map: mapboxgl.Map): { querySourceCount: number; queryRenderedCount: number } {
+  let querySourceCount = 0;
+  let queryRenderedCount = 0;
+  try {
+    querySourceCount = map.querySourceFeatures(DEBUG_SRC_ID).length;
+  } catch {
+    /* noop */
+  }
+  try {
+    queryRenderedCount = map.queryRenderedFeatures({ layers: [DEBUG_LAYER_ID] }).length;
+  } catch {
+    /* noop */
+  }
+  return { querySourceCount, queryRenderedCount };
+}
+
 /** source/layer를 이번 호출에서 새로 만든 경우에만 true */
 function ensureDebugLayer(map: mapboxgl.Map): boolean {
+  const phase = getMapDebugPhase();
   let rebound = false;
   if (!map.getSource(DEBUG_SRC_ID)) {
     map.addSource(DEBUG_SRC_ID, { type: "geojson", data: singlePointFc(null) });
@@ -90,16 +138,15 @@ function ensureDebugLayer(map: mapboxgl.Map): boolean {
         type: "circle",
         source: DEBUG_SRC_ID,
         paint: {
-          "circle-radius": 12,
-          "circle-color": "#ff0000",
-          "circle-opacity": 1,
-          "circle-stroke-width": 2,
-          "circle-stroke-color": "#ffffff",
+          ...DEBUG_CIRCLE_PAINT_BASE,
+          "circle-radius": circleRadiusForPhase(phase),
         },
       },
       beforeId,
     );
     rebound = true;
+  } else {
+    applyDebugCirclePaint(map);
   }
   try {
     map.moveLayer(DEBUG_LAYER_ID);
@@ -163,6 +210,7 @@ export function DebugWorldLightMap({
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const dotRef = useRef<LngLat | null>(null);
   const cameraKeyRef = useRef("");
+  const lastZoomCheckRef = useRef<number | null>(null);
   const styleReloadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onMapZoomRef = useRef(onMapZoom);
   const onMapViewportRef = useRef(onMapViewport);
@@ -191,7 +239,24 @@ export function DebugWorldLightMap({
       const v = viewportFromBounds(bounds);
       onMapViewportRef.current(v, approxSpanKm(v));
     };
-    map.on("zoomend", () => onMapZoomRef.current?.(Number(map.getZoom().toFixed(1))));
+
+    const logZoomCheckIfPhaseC = () => {
+      if (getMapDebugPhase() !== "C") return;
+      const zoom = Math.round(map.getZoom() * 10) / 10;
+      if (lastZoomCheckRef.current === zoom) return;
+      lastZoomCheckRef.current = zoom;
+      const { querySourceCount, queryRenderedCount } = queryDotCounts(map);
+      console.log("[DebugWorldLight] zoom-check", {
+        zoom,
+        queryRenderedCount,
+        querySourceCount,
+      });
+    };
+
+    map.on("zoomend", () => {
+      onMapZoomRef.current?.(Number(map.getZoom().toFixed(1)));
+      logZoomCheckIfPhaseC();
+    });
     map.on("moveend", reportViewport);
 
     const applyAfterStyleReload = () => {
@@ -199,6 +264,7 @@ export function DebugWorldLightMap({
       if (rebound) {
         console.log("[DebugWorldLight] style-reload", { rebound: true });
       }
+      applyDebugCirclePaint(map);
       const fc = singlePointFc(dotRef.current);
       (map.getSource(DEBUG_SRC_ID) as mapboxgl.GeoJSONSource | undefined)?.setData(fc);
     };
@@ -221,6 +287,7 @@ export function DebugWorldLightMap({
       map.off("style.load", onStyleLoad);
       map.remove();
       mapRef.current = null;
+      lastZoomCheckRef.current = null;
     };
   }, [accessToken, mapStyle, defaultCenter, mapZoom]);
 
@@ -247,6 +314,7 @@ export function DebugWorldLightMap({
       if (!live || !live.isStyleLoaded()) return;
       dotRef.current = lngLat;
       ensureDebugLayer(live);
+      applyDebugCirclePaint(live);
       const fc = singlePointFc(lngLat);
       (live.getSource(DEBUG_SRC_ID) as mapboxgl.GeoJSONSource | undefined)?.setData(fc);
 
@@ -261,18 +329,7 @@ export function DebugWorldLightMap({
       });
 
       live.once("idle", () => {
-        let querySourceCount = 0;
-        let queryRenderedCount = 0;
-        try {
-          querySourceCount = live.querySourceFeatures(DEBUG_SRC_ID).length;
-        } catch {
-          /* noop */
-        }
-        try {
-          queryRenderedCount = live.queryRenderedFeatures({ layers: [DEBUG_LAYER_ID] }).length;
-        } catch {
-          /* noop */
-        }
+        const { querySourceCount, queryRenderedCount } = queryDotCounts(live);
         console.log("[DebugWorldLight] idle-check", { querySourceCount, queryRenderedCount });
       });
 
