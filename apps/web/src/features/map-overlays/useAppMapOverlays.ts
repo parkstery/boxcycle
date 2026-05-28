@@ -138,6 +138,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   const mapDebugPhase = getMapDebugPhase();
   const isPhaseA = mapDebugPhase === "A";
   const isPhaseB = mapDebugPhase === "B";
+  const isPhaseC = mapDebugPhase === "C";
   const forceDebugBypass = isMapDebugPhaseRecovery();
 
   const trailSpectatorOverlayEnabled =
@@ -198,7 +199,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     catalogActivityEnabled && !publicationPresenceWorldMapEnabled;
 
   const publicationOverlay = useWorldPublicationPresenceOverlay({
-    enabled: publicationPresenceWorldMapEnabled || isPhaseB,
+    enabled: publicationPresenceWorldMapEnabled || isPhaseB || isPhaseC,
     mapZoom,
     excludePublicationRoutesId: isRideSessionActive ? trackedCourseId : null,
     refreshNonce: activityMapRefreshNonce,
@@ -265,7 +266,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
         heatDots: [],
       };
     }
-    if (isPhaseB) {
+    if (isPhaseB || isPhaseC) {
       const firstPulse = publicationOverlay.pulseDots[0];
       const firstHeat = publicationOverlay.heatDots[0];
       const useFallback = !firstPulse && !firstHeat;
@@ -310,6 +311,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     mapDebugPhase,
     isPhaseA,
     isPhaseB,
+    isPhaseC,
     trackedCourseId,
     activeOverlay,
     catalogOverlay,
