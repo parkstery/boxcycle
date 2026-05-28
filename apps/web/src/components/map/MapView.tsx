@@ -2180,10 +2180,10 @@ export function MapView({
   }, [
     mapLoaded,
     activityWorldRaw,
-    activityWorldRaw.pulseDots.length,
-    activityWorldRaw.heatDots.length,
-    activityWorldRaw.pulseRoutes.length,
-    activityWorldRaw.heatRoutes.length,
+    activityWorldRaw?.pulseDots.length ?? 0,
+    activityWorldRaw?.heatDots.length ?? 0,
+    activityWorldRaw?.pulseRoutes.length ?? 0,
+    activityWorldRaw?.heatRoutes.length ?? 0,
   ]);
 
   /** Phase A–B: MapView WORLD_LIGHT 전용 — raw overlay 0 과 무관하게 주기적 sync */

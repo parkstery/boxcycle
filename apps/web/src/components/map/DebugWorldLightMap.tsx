@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import type { FeatureCollection, Point } from "geojson";
 import type { MapViewportBounds } from "../../lib/activityWorldLod";
 import type { LngLat } from "../../lib/geo";
 import {
@@ -22,8 +23,8 @@ type DebugWorldLightMapProps = {
   onMapViewport?: (viewport: MapViewportBounds, spanKm: number) => void;
 };
 
-function singlePointFc(lngLat: LngLat | null) {
-  if (!lngLat) return { type: "FeatureCollection" as const, features: [] as const };
+function singlePointFc(lngLat: LngLat | null): FeatureCollection<Point> {
+  if (!lngLat) return { type: "FeatureCollection", features: [] };
   return {
     type: "FeatureCollection" as const,
     features: [
@@ -107,7 +108,6 @@ export function DebugWorldLightMap({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const dotRef = useRef<LngLat | null>(null);
-  const phaseRef = useRef(getMapDebugPhase());
   const cameraKeyRef = useRef("");
   const onMapZoomRef = useRef(onMapZoom);
   const onMapViewportRef = useRef(onMapViewport);
@@ -168,10 +168,9 @@ export function DebugWorldLightMap({
     const map = mapRef.current;
     if (!map) return;
 
-    const syncWithLngLat = (phase: string | null, lngLat: LngLat | null) => {
+    const syncWithLngLat = (phase: ReturnType<typeof getMapDebugPhase>, lngLat: LngLat | null) => {
       const live = mapRef.current;
       if (!live || !live.isStyleLoaded()) return;
-      phaseRef.current = phase;
       dotRef.current = lngLat;
       const rebound = ensureDebugLayer(live);
       const fc = singlePointFc(lngLat);
