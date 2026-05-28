@@ -32,6 +32,7 @@ import {
   runWorldPublicationMapDotsChecks,
 } from "./worldPublicationMapDots";
 import {
+  buildMapDebugPhaseAHardcodedDot,
   getMapDebugPhase,
   isMapDebugPhaseRecovery,
   shouldDisablePublicationOverlayHooks,
@@ -136,6 +137,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
 
   /** AC-7: Trailhead idle = publication만 — L3 spectator는 주행·일시정지(관전 세션)에서만 */
   const mapDebugPhase = getMapDebugPhase();
+  const forceHardcodedDebugDot = mapDebugPhase === "A" || isMapDebugPhaseRecovery();
 
   const trailSpectatorOverlayEnabled =
     !shouldSkipLiveOverlaysOnMap() &&
@@ -244,11 +246,11 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   const mapSessionActive = worldMapActivityEnabled;
 
   const activityWorldRaw = useMemo(() => {
-    if (mapDebugPhase === "A" || mapDebugPhase === "B" || mapDebugPhase === "C") {
+    if (forceHardcodedDebugDot) {
       return {
         pulseRoutes: [],
         heatRoutes: [],
-        pulseDots: [],
+        pulseDots: [buildMapDebugPhaseAHardcodedDot()],
         heatDots: [],
       };
     }
@@ -282,6 +284,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       routeGeometry,
     });
   }, [
+    forceHardcodedDebugDot,
     mapDebugPhase,
     trackedCourseId,
     activeOverlay,
@@ -381,7 +384,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       mapSessionActive,
     });
     if (
-      !isMapDebugPhaseRecovery() &&
+      !forceHardcodedDebugDot &&
       activityWorldRaw.pulseDots.length === 0 &&
       activityWorldRaw.heatDots.length === 0
     ) {
@@ -393,7 +396,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
         pageVisible,
         mapDebugPhase: getMapDebugPhase(),
       });
-    } else if (isMapDebugPhaseRecovery() && import.meta.env.DEV) {
+    } else if (forceHardcodedDebugDot && import.meta.env.DEV) {
       console.info("[MapDebug] overlay hooks bypassed — WORLD_LIGHT는 MapView Phase에서만 그림", {
         mapDebugPhase: getMapDebugPhase(),
         publicationPresenceWorldMapEnabled,
@@ -419,6 +422,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     publicationPresenceWorldMapEnabled,
     activityWorldRender.pulseDots.length,
     activityWorldRender.heatDots.length,
+    forceHardcodedDebugDot,
   ]);
 
   const lodDebugPanelProps: ActivityWorldLodDebugPanelProps | null =

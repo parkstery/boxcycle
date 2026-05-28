@@ -1310,6 +1310,11 @@ export function MapView({
         }
       }
       const hardcoded = [buildMapDebugPhaseAHardcodedDot()];
+      ensureMapDebugWorldLightDomMarker(
+        map,
+        MAP_DEBUG_PHASE_A_LNGLAT,
+        mapDebugWorldLightDomMarkerRef,
+      );
       syncCourseActivityLayers(map, [], []);
       syncActivityWorldDotLayers(map, hardcoded, [], pulseOnlyOpts);
       return;
