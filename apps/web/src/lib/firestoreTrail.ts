@@ -9,8 +9,6 @@ import {
   query,
   serverTimestamp,
   setDoc,
-  Timestamp,
-  where,
   type FirestoreError,
   type Unsubscribe,
 } from "firebase/firestore";
@@ -124,10 +122,6 @@ export async function deleteTrailPresence(uid: string, trailId: string): Promise
   const rid = sanitizeTrailId(trailId);
   const db = getFirestore(getFirebaseApp());
   await deleteDoc(doc(db, TRAILS_COLLECTION, rid, TRAIL_MEMBERS_SUBCOLLECTION, uid));
-}
-
-function memberFreshnessCutoff(): Timestamp {
-  return Timestamp.fromMillis(Date.now() - TRAIL_PRESENCE_STALE_MS);
 }
 
 const MEMBERS_COUNT_SCAN_LIMIT = 48;

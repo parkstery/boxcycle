@@ -10,7 +10,10 @@ declare global {
 export function ensureMapboxTelemetryDisabled(): void {
   if (typeof window === "undefined" || window.__boxcycleMapboxTelemetryOff) return;
   try {
-    mapboxgl.setTelemetryEnabled(false);
+    const mb = mapboxgl as typeof mapboxgl & {
+      setTelemetryEnabled?: (enabled: boolean) => void;
+    };
+    mb.setTelemetryEnabled?.(false);
   } catch {
     /* 구버전 mapbox-gl */
   }
