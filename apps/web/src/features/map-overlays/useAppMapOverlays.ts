@@ -245,6 +245,16 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   );
 
   const mapSessionActive = worldMapActivityEnabled;
+  const phaseBFallbackDot = useMemo(
+    () => ({
+      courseId: "debug-phase-b-fallback",
+      lngLat: [8.04, 46.63] as [number, number],
+      pulseLevel: 1,
+      kind: "pulse" as const,
+      traceStrength: 1,
+    }),
+    [],
+  );
 
   const activityWorldRaw = useMemo(() => {
     if (isPhaseA) {
@@ -258,11 +268,13 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     if (isPhaseB) {
       const firstPulse = publicationOverlay.pulseDots[0];
       const firstHeat = publicationOverlay.heatDots[0];
+      const useFallback = !firstPulse && !firstHeat;
+      const selectedPulse = firstPulse ?? (useFallback ? phaseBFallbackDot : null);
       return {
         pulseRoutes: [],
         heatRoutes: [],
-        pulseDots: firstPulse ? [firstPulse] : [],
-        heatDots: firstPulse ? [] : firstHeat ? [firstHeat] : [],
+        pulseDots: selectedPulse ? [selectedPulse] : [],
+        heatDots: selectedPulse ? [] : firstHeat ? [firstHeat] : [],
       };
     }
     const merged = resolveWorldMapOverlay({
@@ -308,6 +320,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     mapSessionActive,
     isRideSessionActive,
     routeGeometry,
+    phaseBFallbackDot,
   ]);
 
   const activityWorldRender = useMemo(
@@ -409,10 +422,17 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
         mapDebugPhase: getMapDebugPhase(),
       });
     } else if (forceDebugBypass && import.meta.env.DEV) {
+      const isB = getMapDebugPhase() === "B";
+      const usedBFallback =
+        isB &&
+        activityWorldRaw.pulseDots[0]?.courseId === "debug-phase-b-fallback" &&
+        activityWorldRaw.pulseDots.length > 0;
       console.info("[MapDebug] overlay hooks bypassed — WORLD_LIGHT는 MapView Phase에서만 그림", {
         mapDebugPhase: getMapDebugPhase(),
         publicationPresenceWorldMapEnabled,
         note: "publicationPresenceWorldMapEnabled=false 는 Phase A–C 에서 정상",
+        phaseBUsedFallback: usedBFallback,
+        phaseBFallbackLngLat: usedBFallback ? [8.04, 46.63] : null,
       });
     }
   }, [

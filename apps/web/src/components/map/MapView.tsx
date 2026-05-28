@@ -1323,17 +1323,32 @@ export function MapView({
           mapDebugPhaseBCameraKeyRef.current = key;
           try {
             map.panTo(dot.lngLat as [number, number], { duration: 700, essential: true });
+            console.log("[MapDebug:B] camera moved", {
+              mode: "panTo",
+              lngLat: [dot.lngLat[0], dot.lngLat[1]],
+              fallback: dot.courseId === "debug-phase-b-fallback",
+            });
           } catch {
             map.jumpTo({ center: dot.lngLat as [number, number], zoom: Math.max(9, map.getZoom()) });
+            console.log("[MapDebug:B] camera moved", {
+              mode: "jumpTo",
+              lngLat: [dot.lngLat[0], dot.lngLat[1]],
+              fallback: dot.courseId === "debug-phase-b-fallback",
+            });
           }
         }
         if (dot) {
           ensureMapDebugWorldLightDomMarker(map, dot.lngLat as [number, number], mapDebugWorldLightDomMarkerRef);
+          console.log("[MapDebug:B] dom marker placed", {
+            lngLat: [dot.lngLat[0], dot.lngLat[1]],
+            fallback: dot.courseId === "debug-phase-b-fallback",
+          });
         }
         console.log("[MapDebug:B] sync", {
           rowCount: raw.pulseDots.length + raw.heatDots.length,
           hasDot: Boolean(dot),
           firstLngLat: dot ? [dot.lngLat[0], dot.lngLat[1]] : null,
+          fallback: dot?.courseId === "debug-phase-b-fallback",
         });
       }
       syncCourseActivityLayers(map, [], []);
