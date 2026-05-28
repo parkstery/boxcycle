@@ -191,10 +191,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   const worldMapActivityEnabled = Boolean(configured && user && pageVisible);
 
   const publicationPresenceWorldMapEnabled =
-    !debugIsolationOn &&
-    worldMapActivityEnabled &&
-    import.meta.env.VITE_USE_PUBLICATION_PRESENCE !== "false" &&
-    !shouldDisablePublicationOverlayHooks();
+    !debugIsolationOn && worldMapActivityEnabled && !shouldDisablePublicationOverlayHooks();
 
   const catalogActivityEnabled = Boolean(
     worldMapActivityEnabled && catalogCourseIds.length > 0,
