@@ -1,9 +1,9 @@
-import type { PublishedPublicCourseSummary } from "./firestoreCourses";
+import type { PublishedPublicRouteSummary } from "./firestoreRouteCatalog";
 import {
-  findPublishedPublicCourseByCourseId,
-  findPublishedPublicCourseByFingerprint,
-  findPublishedPublicCourseBySourceSavedRouteId,
-} from "./firestoreCourses";
+  findPublishedPublicRouteByCatalogId,
+  findPublishedPublicRouteByFingerprint,
+  findPublishedPublicRouteBySourceSavedRouteId,
+} from "./firestoreRouteCatalog";
 import {
   findPublishedRoutePublicationByCourseId,
   findPublishedRoutePublicationByFingerprint,
@@ -15,23 +15,28 @@ import type { RouteProfile } from "../services/mapboxDirections";
 
 export type RouteRideEntry = "owner_library" | "public_catalog";
 
-/** 주행·Activity 연동용 — 단일 routeId + publication·course 레거리 키 */
+/** 주행·Activity 연동용 — 단일 routeId + publication·카탈로그 키 */
 export type PublishedRouteLink = {
   routeId: string;
-  courseId: string;
+  /** 카탈로그 Route id (`courses/{id}` legacy collection) */
+  catalogRouteId: string;
   publicationId: string;
   publicTitle: string;
+  /** @deprecated use catalogRouteId */
+  courseId: string;
 };
 
 function linkFromCatalog(
   savedRouteId: string,
-  catalog: readonly PublishedPublicCourseSummary[],
+  catalog: readonly PublishedPublicRouteSummary[],
 ): PublishedRouteLink | null {
   const row = catalog.find((c) => c.sourceSavedRouteId === savedRouteId);
   if (!row?.sourceSavedRouteId) return null;
+  const catalogRouteId = row.id;
   return {
     routeId: row.sourceSavedRouteId,
-    courseId: row.id,
+    catalogRouteId,
+    courseId: catalogRouteId,
     publicationId: row.id,
     publicTitle: row.title,
   };
@@ -43,9 +48,11 @@ function linkFromPublicationRow(row: {
   publicationId: string;
   publicTitle: string;
 }): PublishedRouteLink {
+  const catalogRouteId = row.courseId;
   return {
     routeId: row.routeId,
-    courseId: row.courseId,
+    catalogRouteId,
+    courseId: catalogRouteId,
     publicationId: row.publicationId,
     publicTitle: row.publicTitle,
   };
@@ -57,9 +64,11 @@ function linkFromLegacyCourse(row: {
   sourceSavedRouteId: string | null;
 }): PublishedRouteLink | null {
   if (!row.sourceSavedRouteId) return null;
+  const catalogRouteId = row.id;
   return {
     routeId: row.sourceSavedRouteId,
-    courseId: row.id,
+    catalogRouteId,
+    courseId: catalogRouteId,
     publicationId: row.id,
     publicTitle: row.title,
   };
@@ -73,7 +82,7 @@ export async function resolvePublishedRouteLink(input: {
   savedRouteId?: string | null;
   geometry: LineStringGeometry;
   profile: RouteProfile;
-  catalogHints?: readonly PublishedPublicCourseSummary[];
+  catalogHints?: readonly PublishedPublicRouteSummary[];
 }): Promise<PublishedRouteLink | null> {
   const routeId = input.savedRouteId?.trim() || null;
 
@@ -86,7 +95,7 @@ export async function resolvePublishedRouteLink(input: {
     const pub = await findPublishedRoutePublicationByRouteId(routeId);
     if (pub) return linkFromPublicationRow(pub);
 
-    const legacy = await findPublishedPublicCourseBySourceSavedRouteId(routeId);
+    const legacy = await findPublishedPublicRouteBySourceSavedRouteId(routeId);
     const fromLegacy = legacy ? linkFromLegacyCourse(legacy) : null;
     if (fromLegacy) return fromLegacy;
   }
@@ -96,7 +105,7 @@ export async function resolvePublishedRouteLink(input: {
   const pubByFp = await findPublishedRoutePublicationByFingerprint(fingerprint);
   if (pubByFp) return linkFromPublicationRow(pubByFp);
 
-  const legacyByFp = await findPublishedPublicCourseByFingerprint(fingerprint);
+  const legacyByFp = await findPublishedPublicRouteByFingerprint(fingerprint);
   if (legacyByFp) {
     const fromLegacy = linkFromLegacyCourse(legacyByFp);
     if (fromLegacy) return fromLegacy;
@@ -105,18 +114,21 @@ export async function resolvePublishedRouteLink(input: {
   return null;
 }
 
-/** 퍼블릭 탭 주행 종료 — courseId만 있을 때 routeId 역조회 */
-export async function resolvePublishedRouteLinkByCourseId(
-  courseId: string,
+/** 퍼블릭 탭 주행 종료 — catalogRouteId만 있을 때 routeId 역조회 */
+export async function resolvePublishedRouteLinkByCatalogRouteId(
+  catalogRouteId: string,
 ): Promise<PublishedRouteLink | null> {
-  const cid = courseId.trim();
+  const cid = catalogRouteId.trim();
   if (!cid) return null;
 
   const pub = await findPublishedRoutePublicationByCourseId(cid);
   if (pub) return linkFromPublicationRow(pub);
 
-  const legacy = await findPublishedPublicCourseByCourseId(cid);
+  const legacy = await findPublishedPublicRouteByCatalogId(cid);
   if (legacy) return linkFromLegacyCourse(legacy);
 
   return null;
 }
+
+/** @deprecated use resolvePublishedRouteLinkByCatalogRouteId */
+export const resolvePublishedRouteLinkByCourseId = resolvePublishedRouteLinkByCatalogRouteId;

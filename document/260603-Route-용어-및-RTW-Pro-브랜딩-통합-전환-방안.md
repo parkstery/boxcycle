@@ -243,3 +243,4 @@ flowchart LR
 |------|------|
 | 2026-06-03 | 최초 작성 — 자문 Route 통일 + RTW Pro 공식명·BOXCYCLE alias 퇴출 통합 방안 |
 | 2026-06-03 | **P0·P1 반영** — RTW 마스터·제품 용어·Route-Publication·README, UI RTW Pro, RideRoutePanel 경로 카피, `.cursor/rules/domain-terminology-rtw-pro.mdc` |
+| 2026-06-03 | **P2·P3 반영** — `firestoreRouteCatalog`, `useOfficialRouteCatalog`, `rides.catalogRouteId` dual-write, `routePublications.catalogRouteId`, App·RideRoutePanel·overlay 표면 rename |

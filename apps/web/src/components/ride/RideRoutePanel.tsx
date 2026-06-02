@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { User } from "firebase/auth";
 import type { RouteProfile } from "../../services/mapboxDirections";
 import { formatDuration } from "../../services/mapboxDirections";
-import type { PublishedPublicCourseSummary, CourseProfile } from "../../lib/firestoreCourses";
+import type { PublishedPublicRouteSummary, RouteCatalogProfile } from "../../lib/firestoreRouteCatalog";
 import type { CourseActivitySnapshot } from "../../lib/firestoreCourseActivity";
 import { formatCourseActivityListBadge } from "../../lib/firestoreCourseActivity";
 import type { BleCrankRpmUiState } from "../../hooks/useBleCrankRpm";
@@ -33,6 +33,8 @@ type RideRoutePanelProps = {
   routeLoading: boolean;
   onGenerateRoute: () => void;
   /** 공식 코스를 불러온 뒤에는 출발·도착 맞춤 「경로 생성」을 막음 */
+  officialRouteActive?: boolean;
+  /** @deprecated use officialRouteActive */
   officialCourseActive?: boolean;
   hasRoute: boolean;
   /** 경로가 준비되었을 때 메뉴·맵 FAB 공통 */
@@ -41,17 +43,16 @@ type RideRoutePanelProps = {
   speedKmh: number;
   onSpeedKmh: (n: number) => void;
   sessionStatus: RideSessionStatus;
-  basicSharedHubs: PublishedPublicCourseSummary[];
-  basicActiveHubCourseId: string | null;
+  basicSharedHubs: PublishedPublicRouteSummary[];
+  basicActiveHubRouteId: string | null;
   basicStartLoading: boolean;
   basicStartHubJoined: boolean;
   /** Firestore 사용 시 퍼블릭 코스 목록 조회 가능 */
-  officialCourseCatalogAvailable: boolean;
-  publishedPublicCourses: PublishedPublicCourseSummary[];
-  publishedPublicCoursesLoading: boolean;
-  publishedPublicCoursesError: string | null;
-  /** 퍼블릭 탭 진입 시 카탈로그 재조회 */
-  onRefreshPublishedPublicCourses?: () => void;
+  officialRouteCatalogAvailable: boolean;
+  publishedPublicRoutes: PublishedPublicRouteSummary[];
+  publishedPublicRoutesLoading: boolean;
+  publishedPublicRoutesError: string | null;
+  onRefreshPublishedPublicRoutes?: () => void;
   /** 코스별 activity aggregate(메뉴·카탈로그 로드 후) */
   courseActivityByCourseId?: ReadonlyMap<string, CourseActivitySnapshot | null>;
   authGuest: boolean;
@@ -117,7 +118,7 @@ type Tab = "route" | "saved" | "publicReview";
 
 type OfficialCourseSegment = "intro" | "public" | "event";
 
-function profileLabelKo(p: RouteProfile | CourseProfile): string {
+function profileLabelKo(p: RouteProfile | RouteCatalogProfile): string {
   if (p === "walking") return "도보";
   if (p === "driving") return "자동차";
   return "자전거";
@@ -125,13 +126,13 @@ function profileLabelKo(p: RouteProfile | CourseProfile): string {
 
 /** 입문·퍼블릭 코스 한 줄 — 카드 전체 탭으로 불러오기 */
 function PublicCoursePickRow(props: {
-  course: PublishedPublicCourseSummary;
+  route: PublishedPublicRouteSummary;
   selected: boolean;
   loadDisabled: boolean;
   activityBadge: string | null;
   onLoad: () => void;
 }) {
-  const c = props.course;
+  const c = props.route;
   return (
     <li>
       <button
@@ -181,13 +182,13 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
     }
   }, [tab, props.isPublicRouteReviewer]);
 
-  const refreshPublishedCatalogRef = useRef(props.onRefreshPublishedPublicCourses);
-  refreshPublishedCatalogRef.current = props.onRefreshPublishedPublicCourses;
+  const refreshPublishedCatalogRef = useRef(props.onRefreshPublishedPublicRoutes);
+  refreshPublishedCatalogRef.current = props.onRefreshPublishedPublicRoutes;
 
   useEffect(() => {
-    if (officialSegment !== "public" || !props.officialCourseCatalogAvailable) return;
+    if (officialSegment !== "public" || !props.officialRouteCatalogAvailable) return;
     refreshPublishedCatalogRef.current?.();
-  }, [officialSegment, props.officialCourseCatalogAvailable]);
+  }, [officialSegment, props.officialRouteCatalogAvailable]);
 
   const canSaveRoute = routeLocksAsIdle && props.hasRoute && !props.routeLoading;
 
@@ -378,12 +379,12 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                 title="Public routes"
                 onClick={() => {
                   setOfficialSegment("public");
-                  props.onRefreshPublishedPublicCourses?.();
+                  props.onRefreshPublishedPublicRoutes?.();
                 }}
               >
                 퍼블릭
-                {props.publishedPublicCourses.length > 0 ? (
-                  <span className="ride-panel__official-seg-badge">{props.publishedPublicCourses.length}</span>
+                {props.publishedPublicRoutes.length > 0 ? (
+                  <span className="ride-panel__official-seg-badge">{props.publishedPublicRoutes.length}</span>
                 ) : null}
               </button>
               <button
@@ -401,12 +402,12 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
 
             {officialSegment === "intro" ? (
               <div className="ride-panel__public-courses" aria-label="입문 상시 경로">
-                {props.basicActiveHubCourseId ? (
+                {props.basicActiveHubRouteId ? (
                   <p className="ride-panel__public-courses-hint" role="status">
                     선택:{" "}
                     <strong>
-                      {props.basicSharedHubs.find((h) => h.id === props.basicActiveHubCourseId)?.title ??
-                        props.basicActiveHubCourseId}
+                      {props.basicSharedHubs.find((h) => h.id === props.basicActiveHubRouteId)?.title ??
+                        props.basicActiveHubRouteId}
                     </strong>
                   </p>
                 ) : null}
@@ -417,8 +418,8 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                     {props.basicSharedHubs.map((c) => (
                       <PublicCoursePickRow
                         key={c.id}
-                        course={c}
-                        selected={props.basicActiveHubCourseId === c.id}
+                        route={c}
+                        selected={props.basicActiveHubRouteId === c.id}
                         loadDisabled={
                           props.routeLoading || props.basicStartLoading || !routeLocksAsIdle
                         }
@@ -444,30 +445,30 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               </div>
             ) : officialSegment === "public" ? (
               <div className="ride-panel__public-courses" aria-label="퍼블릭 경로">
-                {!props.officialCourseCatalogAvailable ? (
+                {!props.officialRouteCatalogAvailable ? (
                   <p className="ride-panel__public-courses-hint">목록 미연결</p>
-                ) : props.publishedPublicCoursesLoading ? (
+                ) : props.publishedPublicRoutesLoading ? (
                   <p className="ride-panel__public-courses-hint">불러오는 중…</p>
-                ) : props.publishedPublicCoursesError ? (
+                ) : props.publishedPublicRoutesError ? (
                   <p className="ride-panel__public-courses-error" role="alert">
                     목록을 불러오지 못했어요.{" "}
                     <span className="ride-panel__public-courses-error-detail">
-                      {props.publishedPublicCoursesError}
+                      {props.publishedPublicRoutesError}
                     </span>
                   </p>
-                ) : props.publishedPublicCourses.length === 0 ? (
+                ) : props.publishedPublicRoutes.length === 0 ? (
                   <p className="ride-panel__public-courses-hint">
-                    {!props.signedIn && props.officialCourseCatalogAvailable
+                    {!props.signedIn && props.officialRouteCatalogAvailable
                       ? "퍼블릭 경로 목록을 보려면 우측 상단에서 게스트로 시작하거나 로그인해 주세요."
                       : "등록된 퍼블릭 경로가 없습니다."}
                   </p>
                 ) : (
                   <ul className="ride-panel__public-courses-list">
-                    {props.publishedPublicCourses.map((c) => (
+                    {props.publishedPublicRoutes.map((c) => (
                       <PublicCoursePickRow
                         key={c.id}
-                        course={c}
-                        selected={props.basicActiveHubCourseId === c.id}
+                        route={c}
+                        selected={props.basicActiveHubRouteId === c.id}
                         loadDisabled={
                           props.routeLoading || props.basicStartLoading || !routeLocksAsIdle
                         }
@@ -551,11 +552,11 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               className="ride-panel__btn-primary"
               disabled={
                 props.routeLoading ||
-                Boolean(props.officialCourseActive) ||
+                Boolean(props.officialRouteActive ?? props.officialCourseActive) ||
                 (props.routeTokenBalance != null && props.routeTokenBalance < 1)
               }
               title={
-                props.officialCourseActive
+                (props.officialRouteActive ?? props.officialCourseActive)
                   ? "Official route loaded — change pins on map to build a custom route."
                   : props.routeTokenBalance != null && props.routeTokenBalance < 1
                     ? "경로 토큰이 부족합니다. 주행을 완료하면 토큰을 받을 수 있습니다."

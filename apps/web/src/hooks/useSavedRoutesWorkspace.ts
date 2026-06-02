@@ -57,7 +57,9 @@ export type UseSavedRoutesWorkspaceOptions = {
   setRouteDistanceMeters: Dispatch<SetStateAction<number>>;
   setRouteDurationSec: Dispatch<SetStateAction<number>>;
   resetRide: () => void;
-  setActiveOfficialCourseId: Dispatch<SetStateAction<string | null>>;
+  setActiveOfficialCatalogRouteId?: Dispatch<SetStateAction<string | null>>;
+  /** @deprecated use setActiveOfficialCatalogRouteId */
+  setActiveOfficialCourseId?: Dispatch<SetStateAction<string | null>>;
   setPlaceSearchMarkerLngLat: Dispatch<SetStateAction<LngLat | null>>;
   /** 내 경로 로드 시 퍼블릭 출판과 동일 routeId면 courseId 연동 */
   resolvePublishedLinkForSavedRouteRef?: MutableRefObject<
@@ -90,11 +92,15 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
     setRouteDistanceMeters,
     setRouteDurationSec,
     resetRide,
-    setActiveOfficialCourseId,
+    setActiveOfficialCatalogRouteId: setActiveOfficialCatalogRouteIdOpt,
+    setActiveOfficialCourseId: setActiveOfficialCourseIdLegacy,
     setPlaceSearchMarkerLngLat,
     resolvePublishedLinkForSavedRouteRef,
     onSavedRouteRideEntry,
   } = options;
+
+  const setActiveOfficialCatalogRouteId =
+    setActiveOfficialCatalogRouteIdOpt ?? setActiveOfficialCourseIdLegacy;
 
   const [savedRoutes, setSavedRoutes] = useState<SavedRoute[]>([]);
   const [savedRoutesLoading, setSavedRoutesLoading] = useState(false);
@@ -266,7 +272,7 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
       loadedSavedRouteIdRef.current = route.id;
       loadedSavedRouteNameRef.current = route.name;
       setLastEndedWasAdhoc(null);
-      setActiveOfficialCourseId(null);
+      setActiveOfficialCatalogRouteId?.(null);
       onSavedRouteRideEntry?.();
       setPlaceSearchMarkerLngLat(null);
       const summaryBase = `「${route.name}」 불러옴 · 거리 ${(route.distanceMeters / 1000).toFixed(2)} km / 예상 ${formatDuration(route.durationSec)}`;
@@ -275,7 +281,7 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
       if (resolveLink) {
         void resolveLink(route).then((link) => {
           if (!link) return;
-          setActiveOfficialCourseId(link.courseId);
+          setActiveOfficialCatalogRouteId?.(link.catalogRouteId);
           setRouteSummary(
             `${summaryBase} · 퍼블릭 「${link.publicTitle}」과 동일 경로(주행·활동 집계 연동)`,
           );
@@ -293,7 +299,7 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
       setRouteGeometry,
       setRouteDistanceMeters,
       setRouteDurationSec,
-      setActiveOfficialCourseId,
+      setActiveOfficialCatalogRouteId,
       setPlaceSearchMarkerLngLat,
       resolvePublishedLinkForSavedRouteRef,
       onSavedRouteRideEntry,

@@ -12,10 +12,10 @@ import { loadRideSessions, saveRideSessions, type StoredRideSession } from "../l
 import { loadSavedRoutesFromLocal, promoteSavedRouteInLocal } from "../lib/savedRoutesLocal";
 import { fetchMapboxReverseGeocodePlaceName } from "../services/mapboxReverseGeocode";
 import type { RouteProfile } from "../services/mapboxDirections";
-import type { PublishedPublicCourseSummary } from "../lib/firestoreCourses";
+import type { PublishedPublicRouteSummary } from "../lib/firestoreRouteCatalog";
 import {
   resolvePublishedRouteLink,
-  resolvePublishedRouteLinkByCourseId,
+  resolvePublishedRouteLinkByCatalogRouteId,
   type RouteRideEntry,
 } from "../lib/routePublicationResolve";
 import type { LastEndedAdhocState } from "./useSavedRoutesWorkspace";
@@ -26,12 +26,14 @@ export type UseRideEndAndPersistenceOptions = {
   configured: boolean;
   user: User | null;
   roomId: string;
-  /** 주행 종료 시점 코스 ID — `rides.courseId`·CF aggregate용 */
-  courseIdRef: RefObject<string | null>;
-  /** 종료 직후 heat 낙관 표시(서버 `liveNow` 지연 대비) */
-  onRideEndedWithCourse?: (courseId: string) => void;
-  /** aggregate 캐시 무효화 직후 UI 갱신(heat 반영) */
-  onRidePersistedToFirestore?: (courseId: string | null) => void;
+  /** 주행 종료 시점 카탈로그 Route id — `rides.catalogRouteId`·CF `courseActivity`용 */
+  catalogRouteIdRef?: RefObject<string | null>;
+  /** @deprecated use catalogRouteIdRef */
+  courseIdRef?: RefObject<string | null>;
+  onRideEndedWithCatalogRoute?: (catalogRouteId: string) => void;
+  /** @deprecated use onRideEndedWithCatalogRoute */
+  onRideEndedWithCourse?: (catalogRouteId: string) => void;
+  onRidePersistedToFirestore?: (catalogRouteId: string | null) => void;
   profile: RouteProfile;
   rideStatus: RideSessionStatus;
   setRideStatus: Dispatch<SetStateAction<RideSessionStatus>>;
@@ -49,7 +51,7 @@ export type UseRideEndAndPersistenceOptions = {
   /** 주행 입구 — 내 경로 vs 퍼블릭 탭 */
   rideEntryRef?: RefObject<RouteRideEntry | null>;
   /** `resolvePublishedRouteLink` 카탈로그 1차 힌트 */
-  publishedCatalogRef?: RefObject<readonly PublishedPublicCourseSummary[]>;
+  publishedCatalogRef?: RefObject<readonly PublishedPublicRouteSummary[]>;
   setSavedRoutes: Dispatch<SetStateAction<SavedRoute[]>>;
   setLastEndedWasAdhoc: Dispatch<SetStateAction<LastEndedAdhocState | null>>;
   setRecentSessions: Dispatch<SetStateAction<StoredRideSession[]>>;
@@ -64,7 +66,9 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     configured,
     user,
     roomId,
-    courseIdRef,
+    catalogRouteIdRef: catalogRouteIdRefOpt,
+    courseIdRef: courseIdRefLegacy,
+    onRideEndedWithCatalogRoute,
     onRideEndedWithCourse,
     onRidePersistedToFirestore,
     profile,
@@ -87,6 +91,10 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     setLastEndedWasAdhoc,
     setRecentSessions,
   } = options;
+
+  const catalogRouteIdRef = catalogRouteIdRefOpt ?? courseIdRefLegacy;
+  const onRideEnded =
+    onRideEndedWithCatalogRoute ?? onRideEndedWithCourse;
 
   const handleEndRide = useCallback(() => {
     if (rideStatus === "idle") return;
@@ -170,14 +178,14 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
               /* noop */
             }
           }
-          let persistedCourseId = courseIdRef.current?.trim() || null;
+          let persistedCatalogRouteId = catalogRouteIdRef?.current?.trim() || null;
           let canonicalRouteId = savedRouteIdAtEnd;
           let publicationId: string | null = null;
           let publicTitleSnap: string | null = null;
           let routeEntry: RouteRideEntry | null = rideEntryRef?.current ?? null;
 
           if (
-            !persistedCourseId &&
+            !persistedCatalogRouteId &&
             savedRouteIdAtEnd &&
             routeGeometry &&
             routeGeometry.coordinates.length >= 2
@@ -190,7 +198,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
                 catalogHints: publishedCatalogRef?.current,
               });
               if (link) {
-                persistedCourseId = link.courseId;
+                persistedCatalogRouteId = link.catalogRouteId;
                 publicationId = link.publicationId;
                 canonicalRouteId = link.routeId;
                 publicTitleSnap = link.publicTitle;
@@ -201,9 +209,9 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
             }
           }
 
-          if (persistedCourseId && !canonicalRouteId) {
+          if (persistedCatalogRouteId && !canonicalRouteId) {
             try {
-              const link = await resolvePublishedRouteLinkByCourseId(persistedCourseId);
+              const link = await resolvePublishedRouteLinkByCatalogRouteId(persistedCatalogRouteId);
               if (link) {
                 canonicalRouteId = link.routeId;
                 publicationId = publicationId ?? link.publicationId;
@@ -216,14 +224,15 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
           }
 
           if (savedRouteIdAtEnd && !routeEntry) routeEntry = "owner_library";
-          if (persistedCourseId && !savedRouteIdAtEnd && !routeEntry) {
+          if (persistedCatalogRouteId && !savedRouteIdAtEnd && !routeEntry) {
             routeEntry = "public_catalog";
           }
 
           const rideId = await saveRideSessionToFirestore({
             userId: user.uid,
             roomId,
-            courseId: persistedCourseId,
+            catalogRouteId: persistedCatalogRouteId,
+            courseId: persistedCatalogRouteId,
             routeId: canonicalRouteId,
             publicationId,
             routeEntry,
@@ -233,11 +242,11 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
           });
           // aggregate 재조회는 onRidePersisted에서 수행 — 여기서 invalidate 하면
           // CF `recentRideCount7d` 반영 전 서버 0이 낙관 heat를 지워 버린다.
-          onRidePersistedToFirestore?.(persistedCourseId);
-          const courseIdBeforeAsync = courseIdRef.current?.trim() || null;
-          if (persistedCourseId && persistedCourseId !== courseIdBeforeAsync) {
-            markCourseActivityRideCompletedOptimistic(persistedCourseId);
-            onRideEndedWithCourse?.(persistedCourseId);
+          onRidePersistedToFirestore?.(persistedCatalogRouteId);
+          const catalogRouteIdBeforeAsync = catalogRouteIdRef?.current?.trim() || null;
+          if (persistedCatalogRouteId && persistedCatalogRouteId !== catalogRouteIdBeforeAsync) {
+            markCourseActivityRideCompletedOptimistic(persistedCatalogRouteId);
+            onRideEnded?.(persistedCatalogRouteId);
           }
           if (savedRouteIdAtEnd && !savedRouteIdAtEnd.startsWith("local-")) {
             try {
@@ -346,10 +355,10 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     loadedSavedRouteNameRef.current = null;
     if (rideEntryRef) rideEntryRef.current = null;
 
-    const courseIdAtEnd = courseIdRef.current?.trim() || null;
-    if (courseIdAtEnd) {
-      markCourseActivityRideCompletedOptimistic(courseIdAtEnd);
-      onRideEndedWithCourse?.(courseIdAtEnd);
+    const catalogRouteIdAtEnd = catalogRouteIdRef?.current?.trim() || null;
+    if (catalogRouteIdAtEnd) {
+      markCourseActivityRideCompletedOptimistic(catalogRouteIdAtEnd);
+      onRideEnded?.(catalogRouteIdAtEnd);
     }
 
     setRideStatus("idle");
@@ -375,8 +384,11 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     setSavedRoutes,
     setLastEndedWasAdhoc,
     setRecentSessions,
-    onRideEndedWithCourse,
+    catalogRouteIdRef,
+    onRideEnded,
     onRidePersistedToFirestore,
+    publishedCatalogRef,
+    rideEntryRef,
   ]);
 
   return { handleEndRide };

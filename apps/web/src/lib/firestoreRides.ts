@@ -19,7 +19,10 @@ const RIDES_COLLECTION = "rides";
 type RideDoc = {
   userId: string;
   roomId: string | null;
+  /** 레거시 — `catalogRouteId` 와 동일 값 유지 */
   courseId: string | null;
+  /** 카탈로그 Route id (`courses/{id}`). 신규 쓰기 우선 */
+  catalogRouteId?: string | null;
   profile: "cycling" | "driving" | "walking";
   startedAt: Timestamp | null;
   endedAt: Timestamp;
@@ -58,7 +61,9 @@ type RideDoc = {
 export async function saveRideSessionToFirestore(input: {
   userId: string;
   roomId: string | null;
-  /** 입문·공식 코스 주행 시 aggregate(`courseActivity`) 갱신용 */
+  /** 카탈로그 Route id — `courseActivity` aggregate 키 (Firestore `courses` legacy) */
+  catalogRouteId?: string | null;
+  /** @deprecated use catalogRouteId — 동일 값 dual-write */
   courseId?: string | null;
   routeId?: string | null;
   publicationId?: string | null;
@@ -73,13 +78,17 @@ export async function saveRideSessionToFirestore(input: {
     ? Timestamp.now()
     : Timestamp.fromDate(endedAtDate);
 
+  const catalogRouteIdRaw =
+    (typeof input.catalogRouteId === "string" && input.catalogRouteId.trim()) ||
+    (typeof input.courseId === "string" && input.courseId.trim()) ||
+    "";
+  const catalogRouteId = catalogRouteIdRaw.length > 0 ? catalogRouteIdRaw : null;
+
   const docData: RideDoc = {
     userId: input.userId,
     roomId: input.roomId,
-    courseId:
-      typeof input.courseId === "string" && input.courseId.trim().length > 0
-        ? input.courseId.trim()
-        : null,
+    catalogRouteId,
+    courseId: catalogRouteId,
     profile: input.profile,
     startedAt: null,
     endedAt,
