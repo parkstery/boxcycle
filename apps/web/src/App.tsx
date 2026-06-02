@@ -385,7 +385,7 @@ export default function App() {
       return;
     }
     setRouteSummary(
-      "주행 기록은 저장되었습니다. 지도 빨간 주행 흔적은 입문·퍼블릭 등 공식 코스 주행에만 표시됩니다.",
+      "주행 기록은 저장되었습니다. 지도 빨간 주행 흔적은 입문·퍼블릭 등 공식 경로 주행에만 표시됩니다.",
     );
   }, [setRouteSummary]);
 

@@ -1,6 +1,8 @@
-# BOXCYCLE
+# RTW Pro
 
-문서 작성은 [`document/260509-BOXCYCLE-문서-생성-및-수정-지침.md`](document/260509-BOXCYCLE-문서-생성-및-수정-지침.md)를 따른다. **분류별 전체 목록**은 [`document/README.md`](document/README.md)를 본다.
+**Ride The World Pro** — Mapbox 기반 실내 사이클 웹 앱. 저장소 폴더·패키지명 `boxcycle` 은 개발 중 사용한 **엔지니어링 별칭(레거시)** 이다.
+
+문서 작성은 [`document/260509-BOXCYCLE-문서-생성-및-수정-지침.md`](document/260509-BOXCYCLE-문서-생성-및-수정-지침.md)를 따른다. **용어·브랜딩 SoT:** [`document/260603-Route-용어-및-RTW-Pro-브랜딩-통합-전환-방안.md`](document/260603-Route-용어-및-RTW-Pro-브랜딩-통합-전환-방안.md), [`document/260517-제품-용어-Trailhead-Trail.md`](document/260517-제품-용어-Trailhead-Trail.md). **분류별 전체 목록**은 [`document/README.md`](document/README.md)를 본다.
 
 **현재 단계·범위·스택·1차 마일스톤(멀티 유저 검증)** 의 단일 진실은 [`document/260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md`](document/260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md)를 본다.
 

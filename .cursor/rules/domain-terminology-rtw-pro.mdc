@@ -1,0 +1,29 @@
+---
+description: RTW Pro 도메인·브랜딩 용어 — Route 단일, Course/BOXCYCLE 사용자 노출 금지
+alwaysApply: true
+---
+
+# RTW Pro — 도메인·브랜딩 용어
+
+단일 진실: `document/260603-Route-용어-및-RTW-Pro-브랜딩-통합-전환-방안.md`, `document/260517-제품-용어-Trailhead-Trail.md`
+
+## 제품명
+
+- 사용자·UI·신규 문서: **RTW Pro** (시리즈: Ride The World / RTW).
+- **BOXCYCLE**: 엔지니어링 별칭만 (repo slug, `boxcycle-web`, Firebase project id, Mapbox layer prefix). 사용자-facing 문자열·신규 카피에 넣지 않음.
+- **RTW Free**: 본 repo 범위 밖(별 제품).
+
+## 도메인
+
+- 엔티티는 **Route** 하나. 공식·퍼블릭·입문·이벤트는 **속성**(official, visibility, routeKind).
+- 신규 코드·문서·프롬프트에 domain 용어 **course / Course / 코스(엔티티명)** 사용 금지.
+- Firestore `courses`, `courseId`, `courseActivity` 등은 **레거시 경로·필드** — 변경 시 전환 방안 문서 Phase를 따름. 주석에 `legacy` 병기.
+
+## Trail
+
+- 실시간 판: **Trail** / **Trailhead** (제품 용어집). Session/Room/Lobby 사용자 UI 금지.
+
+## UI 카피 (한·영)
+
+- 한국어: 공식 경로, 입문 경로, 퍼블릭 경로, 내 경로.
+- English: Official Route, Public Route, Intro Route, My Route — not "Course".

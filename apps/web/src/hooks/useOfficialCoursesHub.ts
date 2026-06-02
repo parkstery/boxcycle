@@ -187,7 +187,7 @@ export function useOfficialCoursesHub(options: UseOfficialCoursesHubOptions) {
         return;
       }
       setBasicStartLoading(true);
-      setRouteSummary("공식 코스 불러오는 중…");
+      setRouteSummary("공식 경로 불러오는 중…");
       try {
         if (user && basicActiveHubCourseId && basicActiveHubCourseId !== courseId) {
           await deleteCoursePresence(user.uid, basicActiveHubCourseId).catch(() => {

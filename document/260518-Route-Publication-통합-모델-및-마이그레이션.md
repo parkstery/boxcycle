@@ -5,7 +5,9 @@
 | 문서 유형 | architecture — 경로 정체성·퍼블릭 출판·주행 연결 |
 | 작성 | 2026-05-18 |
 | 상태 | **진행 중** — Phase A~D 반영, Phase E(geometry LOD) 예정 |
-| 연결 | [코스 수명 UGC 정책](260511-코스-수명-UGC-품질-정책.md), [경로 저장 계층화](260511-경로저장-계층화-Frozen-Route-Segment.md), [World Activity Presence](260523-World-Activity-Presence-설계.md) |
+| 연결 | [Route·RTW Pro 전환](260603-Route-용어-및-RTW-Pro-브랜딩-통합-전환-방안.md), [코스 수명 UGC 정책](260511-코스-수명-UGC-품질-정책.md), [경로 저장 계층화](260511-경로저장-계층화-Frozen-Route-Segment.md), [World Activity Presence](260523-World-Activity-Presence-설계.md) |
+
+> **용어 (2026-06-03):** 도메인은 **Route** 단일. 본문의 `courseId`·`courses` 는 **레거시 카탈로그 키·컬렉션명**(목표 rename: `catalogRouteId` / `routeCatalog`). Publication·`routeId` 는 이미 route 중심.
 
 ---
 

@@ -1,6 +1,6 @@
-# BOXCYCLE 웹 (`boxcycle-web`)
+# RTW Pro 웹 (`boxcycle-web`)
 
-Vite + TypeScript + React 본 개발 앱입니다.
+**Ride The World Pro** — Vite + TypeScript + React 본 개발 앱. npm 패키지명 `boxcycle-web` 은 엔지니어링 별칭(레거시)이다.
 
 ## 설치·실행 규칙 (혼동 방지)
 

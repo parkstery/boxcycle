@@ -7,7 +7,7 @@ export const PUBLIC_ROUTE_NAMING_GUIDE_KO =
 export const PUBLIC_ROUTE_NAMING_DISCLOSURE_KO = [
   "공개 제목은 승인 후 모든 라이더에게 보이는 이름이며, 널리 쓰이기 시작하면 커뮤니티가 기억하는 지명이 됩니다.",
   "승인 후 등록자가 임의로 바꿀 수 없습니다(오타·지명 오류는 운영·심사 절차로만 수정).",
-  "「내 경로」에 붙인 개인용 이름과는 별개이며, 여기서 정한 공개 제목만 퍼블릭 코스에 반영됩니다.",
+  "「내 경로」에 붙인 개인용 이름과는 별개이며, 여기서 정한 공개 제목만 퍼블릭 경로에 반영됩니다.",
 ] as const;
 
 const GENERIC_TITLE_ONLY =
