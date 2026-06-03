@@ -18,6 +18,7 @@ import type { User } from "firebase/auth";
 import { getFirebaseApp } from "./firebase";
 import { boundsFromLineCoordinates, type LineStringGeometry, type LngLat } from "./geo";
 import type { CourseDoc } from "./firestoreCourses";
+import { ROUTE_CATALOG_COLLECTION } from "./firestoreCollections";
 import type { RouteProfile } from "../services/mapboxDirections";
 import type { SavedRoute } from "./firestoreSavedRoutes";
 import { SAVED_ROUTE_MAX_COORDS } from "./firestoreSavedRoutes";
@@ -116,7 +117,7 @@ async function assertNoDuplicatePublicCatalogRoute(
 ): Promise<void> {
   const courseHit = await getDocs(
     query(
-      collection(db, "courses"),
+      collection(db, ROUTE_CATALOG_COLLECTION),
       where("routeFingerprint", "==", fingerprint),
       where("category", "==", "public"),
       where("status", "==", "published"),
@@ -425,7 +426,7 @@ export async function approvePublicRouteRequest(
     scanAllPending: true,
   });
 
-  const courseRef = doc(collection(db, "courses"));
+  const courseRef = doc(collection(db, ROUTE_CATALOG_COLLECTION));
   const courseId = courseRef.id;
   const courseBody = buildCoursePayloadFromRequest(request, courseId, reviewer.uid, routeFingerprint);
   const reqRef = doc(db, PUBLIC_ROUTE_REQUESTS_COLLECTION, request.id);

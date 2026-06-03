@@ -1,5 +1,5 @@
 /**
- * Route catalog API — Firestore `courses` collection (legacy path).
+ * Route catalog API — Firestore `routeCatalog` (`courses` read fallback).
  * @see firestoreCourses.ts implementation
  * @see document/260603-Route-용어-및-RTW-Pro-브랜딩-통합-전환-방안.md
  */

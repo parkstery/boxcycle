@@ -10,9 +10,9 @@ import { useLiveLocationPublishSession } from "./hooks/useLiveLocationPublishSes
 import { useGlobalLivePresence } from "./hooks/useGlobalLivePresence";
 import { useDocumentVisibility } from "./hooks/useDocumentVisibility";
 import {
-  formatCourseActivityHudLine,
-  invalidateLiveCourseActivityIdsCache,
-} from "./lib/firestoreCourseActivity";
+  formatRouteActivityHudLine,
+  invalidateLiveRouteActivityIdsCache,
+} from "./lib/firestoreRouteActivity";
 import { AppMapStage, useAppMapOverlays } from "./features/map-overlays";
 import { DebugMapStage } from "./features/map-overlays/DebugMapStage";
 import type { MapViewportBounds } from "./lib/activityWorldLod";
@@ -213,7 +213,7 @@ export default function App() {
   const [activeOfficialCatalogRouteId, setActiveOfficialCatalogRouteId] = useState<string | null>(
     null,
   );
-  const [coursePeerMarkers, setCoursePeerMarkers] = useState<MapPeerMarker[]>([]);
+  const [routePeerMarkers, setRoutePeerMarkers] = useState<MapPeerMarker[]>([]);
   /** 입문 허브 동행에서 계산된 내 네임태그(없으면 단독 주행용 표시로 대체) */
   const [liveRiderNametag, setLiveRiderNametag] = useState<string | null>(null);
   /** 로그인(게스트 포함) 세션 동안 Trailhead presence·관전 항상 on — Trailhead 진입·이탈 토글 없음 */
@@ -362,28 +362,28 @@ export default function App() {
     handleDeleteSavedRoute,
   } = savedRoutesWorkspace;
 
-  const reloadCourseActivityRef = useRef<
+  const reloadRouteActivityRef = useRef<
     (options?: { forceInvalidate?: boolean }) => void
   >(() => {});
   const applyRideCompletedOptimisticRef = useRef<() => void>(() => {});
   const [activityMapRefreshNonce, setActivityMapRefreshNonce] = useState(0);
-  const onRideEndedWithCourse = useCallback((_courseId: string) => {
+  const onRideEndedWithCatalogRoute = useCallback((_catalogRouteId: string) => {
     applyRideCompletedOptimisticRef.current();
-    invalidateLiveCourseActivityIdsCache();
-    reloadCourseActivityRef.current({ forceInvalidate: false });
+    invalidateLiveRouteActivityIdsCache();
+    reloadRouteActivityRef.current({ forceInvalidate: false });
     setActivityMapRefreshNonce((n) => n + 1);
   }, []);
-  const onRidePersistedToFirestore = useCallback((courseId: string | null) => {
-    if (courseId?.trim()) {
+  const onRidePersistedToFirestore = useCallback((catalogRouteId: string | null) => {
+    if (catalogRouteId?.trim()) {
       applyRideCompletedOptimisticRef.current();
-      invalidateLiveCourseActivityIdsCache();
+      invalidateLiveRouteActivityIdsCache();
       setActivityMapRefreshNonce((n) => n + 1);
-      const bumpSoft = () => reloadCourseActivityRef.current({ forceInvalidate: false });
+      const bumpSoft = () => reloadRouteActivityRef.current({ forceInvalidate: false });
       bumpSoft();
       for (const ms of [2_000, 5_000]) {
         window.setTimeout(bumpSoft, ms);
       }
-      window.setTimeout(() => reloadCourseActivityRef.current(), 12_000);
+      window.setTimeout(() => reloadRouteActivityRef.current(), 12_000);
       return;
     }
     setRouteSummary(
@@ -416,7 +416,7 @@ export default function App() {
     setSavedRoutes,
     setLastEndedWasAdhoc,
     setRecentSessions,
-    onRideEndedWithCourse,
+    onRideEndedWithCatalogRoute,
     onRidePersistedToFirestore,
   });
 
@@ -509,16 +509,16 @@ export default function App() {
     getActivityWorldPinLabel,
     trailSpectatorDots: spectatorDots,
     trailSpectatorRoutes: spectatorRouteGeometries,
-    courseActivity,
-    reloadCourseActivity,
+    routeActivity,
+    reloadRouteActivity,
     applyRideCompletedOptimistic,
-    courseActivityByCourseId,
+    routeActivityByCatalogRouteId,
     worldHudLines,
     lodDebugPanelProps,
   } = mapOverlays;
 
-  reloadCourseActivityRef.current = (options) => {
-    void reloadCourseActivity(options);
+  reloadRouteActivityRef.current = (options) => {
+    void reloadRouteActivity(options);
   };
   applyRideCompletedOptimisticRef.current = applyRideCompletedOptimistic;
 
@@ -548,8 +548,8 @@ export default function App() {
     void refreshPublishedPublicRouteCatalog();
   }, [refreshPublishedPublicRouteCatalog]);
 
-  const onCoursePeersChange = useCallback((next: MapPeerMarker[]) => {
-    setCoursePeerMarkers(next);
+  const onRoutePeersChange = useCallback((next: MapPeerMarker[]) => {
+    setRoutePeerMarkers(next);
   }, []);
 
   const selfRiderNametagFallback = useMemo(() => {
@@ -636,7 +636,7 @@ export default function App() {
 
   /** 허브 코스 id 가 바뀌거나 빠질 때마다 비움 — 다른 입문 코스로 바꿀 때 이전 동행 마커가 남지 않게 함 */
   useEffect(() => {
-    startTransition(() => setCoursePeerMarkers([]));
+    startTransition(() => setRoutePeerMarkers([]));
   }, [basicActiveHubRouteId]);
 
   useEffect(() => {
@@ -664,15 +664,17 @@ export default function App() {
     setMenuOpen(false);
   }, [returnToTrailhead]);
 
-  const loadCourseRouteForTrailJoin = useCallback(
-    async (courseId: string) => {
-      if ((BASIC_SHARED_HUB_IDS as readonly string[]).includes(courseId)) {
-        await enterBasicHub(courseId);
+  const loadCatalogRouteForTrailJoin = useCallback(
+    async (catalogRouteId: string) => {
+      if ((BASIC_SHARED_HUB_IDS as readonly string[]).includes(catalogRouteId)) {
+        await enterBasicHub(catalogRouteId);
         return;
       }
-      const payload = configured ? await fetchCatalogRoutePayload(courseId).catch(() => null) : null;
+      const payload = configured
+        ? await fetchCatalogRoutePayload(catalogRouteId).catch(() => null)
+        : null;
       if (!payload?.geometry?.coordinates?.length) {
-        setRouteSummary(`Trail 경로(${courseId})를 불러오지 못했습니다.`);
+        setRouteSummary(`Trail 경로(${catalogRouteId})를 불러오지 못했습니다.`);
         return;
       }
       const coords = payload.geometry.coordinates;
@@ -684,7 +686,7 @@ export default function App() {
       setProfile(payload.profile);
       setRouteDistanceMeters(payload.distanceMeters);
       setRouteDurationSec(payload.durationSec);
-      setActiveOfficialCatalogRouteId(courseId);
+      setActiveOfficialCatalogRouteId(catalogRouteId);
       setBasicActiveHubRouteId(null);
       setPlaceSearchMarkerLngLat(null);
       setRouteSummary(
@@ -729,7 +731,7 @@ export default function App() {
           return;
         }
         if (meta.courseId) {
-          await loadCourseRouteForTrailJoin(meta.courseId);
+          await loadCatalogRouteForTrailJoin(meta.courseId);
         }
         hostTrailIdRef.current = null;
         setTrailDraft(next);
@@ -738,7 +740,7 @@ export default function App() {
         setMenuOpen(false);
       })();
     },
-    [rideStatus, setRouteSummary, setTrailDraft, setTrailId, loadCourseRouteForTrailJoin, user],
+    [rideStatus, setRouteSummary, setTrailDraft, setTrailId, loadCatalogRouteForTrailJoin, user],
   );
 
   const handleSetTrailVisibility = useCallback(
@@ -777,7 +779,7 @@ export default function App() {
         return;
       }
       if (meta.courseId) {
-        await loadCourseRouteForTrailJoin(meta.courseId);
+        await loadCatalogRouteForTrailJoin(meta.courseId);
       }
     })();
     return () => {
@@ -789,16 +791,16 @@ export default function App() {
   function handleStartRide() {
     if (!routeGeometry || rideStatus !== "idle" || !user || !configured || trailStartBusy) return;
     setTrailStartBusy(true);
-    const courseId = basicActiveHubRouteId ?? activeOfficialCatalogRouteId;
-    const courseTitle = courseId
-      ? (BASIC_SHARED_HUB_IDS as readonly string[]).includes(courseId)
-        ? getBasicHubRoutePayload(courseId).title
-        : (publishedPublicRoutes.find((c) => c.id === courseId)?.title ?? null)
+    const catalogRouteId = basicActiveHubRouteId ?? activeOfficialCatalogRouteId;
+    const catalogRouteTitle = catalogRouteId
+      ? (BASIC_SHARED_HUB_IDS as readonly string[]).includes(catalogRouteId)
+        ? getBasicHubRoutePayload(catalogRouteId).title
+        : (publishedPublicRoutes.find((c) => c.id === catalogRouteId)?.title ?? null)
       : null;
     const regionLabel = buildTrailRegionLabel({
       startPlaceLabel,
       endPlaceLabel,
-      courseTitle,
+      courseTitle: catalogRouteTitle,
     });
     void (async () => {
       try {
@@ -832,10 +834,10 @@ export default function App() {
           return;
         }
 
-        const visibility = resolveNewTrailVisibility(courseId);
+        const visibility = resolveNewTrailVisibility(catalogRouteId);
         const trail = await createTrailInstance({
           hostUid: user.uid,
-          courseId: courseId ?? null,
+          courseId: catalogRouteId ?? null,
           regionLabel,
           distanceKm: routeDistanceMeters > 0 ? routeDistanceMeters / 1000 : null,
           visibility,
@@ -960,7 +962,7 @@ export default function App() {
     [liveForMap, mapViewportCenterLngLat],
   );
 
-  const activeCourseIdForGlobalPresence =
+  const activeCatalogRouteIdForGlobalPresence =
     basicActiveHubRouteId ?? activeOfficialCatalogRouteId ?? currentTrailMeta?.courseId ?? null;
 
   const debugGlobalPresenceOnMap =
@@ -971,7 +973,7 @@ export default function App() {
     configured &&
       user &&
       pageVisible &&
-      (debugGlobalPresenceOnMap || Boolean(activeCourseIdForGlobalPresence?.trim())),
+      (debugGlobalPresenceOnMap || Boolean(activeCatalogRouteIdForGlobalPresence?.trim())),
   );
 
   const globalLivePresencePublishEnabled = Boolean(
@@ -979,7 +981,7 @@ export default function App() {
       user &&
       pageVisible &&
       isRideSessionActive &&
-      Boolean(activeCourseIdForGlobalPresence?.trim()),
+      Boolean(activeCatalogRouteIdForGlobalPresence?.trim()),
   );
 
   useLiveLocationPublishSession({
@@ -1013,8 +1015,8 @@ export default function App() {
 
   const peerMarkersForMap = useMemo(() => {
     if (mapZoom <= MAP_PEER_SPRITE_MIN_ZOOM) return [];
-    return coursePeerMarkers;
-  }, [mapZoom, coursePeerMarkers]);
+    return routePeerMarkers;
+  }, [mapZoom, routePeerMarkers]);
 
   const { streetState: rideMapillaryStreet, rideSync: mapillaryRideSync, dismissStreet: dismissMapillaryStreet } =
     useRideMapillaryStreet({
@@ -1159,10 +1161,10 @@ export default function App() {
 
   const mapHudRidePresence = useMemo(() => {
     if (!configured || !user) return null;
-    const courseTitle = basicActiveHubRouteId
+    const routeTitle = basicActiveHubRouteId
       ? getBasicHubRoutePayload(basicActiveHubRouteId).title.trim() || "입문 경로"
       : null;
-    const coursePeerNames = coursePeerMarkers
+    const routePeerNames = routePeerMarkers
       .map((p) => (p.label ?? "동행").trim())
       .filter((n) => n.length > 0);
     const trailMembers = trailSession.rows.map((r) => ({
@@ -1172,7 +1174,7 @@ export default function App() {
       active: isTrailMemberActive(r.lastSeenAtMs),
     }));
     const trailError = trailSession.error;
-    const courseActivityHudLine = formatCourseActivityHudLine(courseActivity);
+    const routeActivityHudLine = formatRouteActivityHudLine(routeActivity);
     const tid = sanitizeTrailId(trailId);
     return {
       trailheadEnabled: true,
@@ -1181,9 +1183,9 @@ export default function App() {
       trailRoomLabel: trailDisplayLabels.room,
       trailMembers,
       trailError,
-      courseTitle,
-      coursePeerNames,
-      courseActivityHudLine,
+      courseTitle: routeTitle,
+      coursePeerNames: routePeerNames,
+      courseActivityHudLine: routeActivityHudLine,
     };
   }, [
     configured,
@@ -1194,8 +1196,8 @@ export default function App() {
     trailSession.rows,
     trailSession.error,
     basicActiveHubRouteId,
-    coursePeerMarkers,
-    courseActivity,
+    routePeerMarkers,
+    routeActivity,
   ]);
 
   return (
@@ -1462,11 +1464,11 @@ export default function App() {
           publishedPublicRoutesLoading={publishedPublicRoutesLoading}
           publishedPublicRoutesError={publishedPublicRoutesError}
           onRefreshPublishedPublicRoutes={onRefreshPublishedPublicRoutes}
-          courseActivityByCourseId={courseActivityByCourseId}
+          routeActivityByCatalogRouteId={routeActivityByCatalogRouteId}
           authGuest={userTier.isGuest}
           signedIn={Boolean(user)}
-          onEnterBasicHub={(courseId) => {
-            void enterBasicHub(courseId);
+          onEnterBasicHub={(catalogRouteId) => {
+            void enterBasicHub(catalogRouteId);
           }}
           onLeaveBasicHub={() => void leaveBasicHub()}
           savedRoutes={savedRoutes}
@@ -1659,7 +1661,7 @@ export default function App() {
           isRiding={rideStatus === "running"}
           rideSessionActive={rideStatus === "running" || rideStatus === "paused"}
           globalPeerPositionsByUid={globalPeerPositionsByUid}
-          onPeersChange={onCoursePeersChange}
+          onPeersChange={onRoutePeersChange}
           onLiveRiderNametagChange={setLiveRiderNametag}
         />
       ) : null}

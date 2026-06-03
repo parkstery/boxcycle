@@ -81,7 +81,7 @@
       ]
     },
     {
-      "collectionGroup": "courses",
+      "collectionGroup": "routeCatalog",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "category", "order": "ASCENDING" },
@@ -94,6 +94,32 @@
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "visibility", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "routeCatalog",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "courses",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "routeCatalog",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "routeFingerprint", "order": "ASCENDING" },
+        { "fieldPath": "category", "order": "ASCENDING" },
         { "fieldPath": "status", "order": "ASCENDING" }
       ]
     },
@@ -102,6 +128,15 @@
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "routeFingerprint", "order": "ASCENDING" },
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "routeCatalog",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "sourceSavedRouteId", "order": "ASCENDING" },
         { "fieldPath": "category", "order": "ASCENDING" },
         { "fieldPath": "status", "order": "ASCENDING" }
       ]
@@ -140,6 +175,16 @@
       ]
     },
     {
+      "collectionGroup": "routeCatalog",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "visibility", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "profile", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "courses",
       "queryScope": "COLLECTION",
       "fields": [
@@ -164,6 +209,14 @@
       "fields": [
         { "fieldPath": "userId", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "routeActivity",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "liveNow", "order": "ASCENDING" },
+        { "fieldPath": "activeRiderCount", "order": "DESCENDING" }
       ]
     },
     {
@@ -193,6 +246,24 @@
     }
   ],
   "fieldOverrides": [
+    {
+      "collectionGroup": "liveRouteRides",
+      "fieldPath": "lastSeenAt",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        },
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
     {
       "collectionGroup": "liveCourseRides",
       "fieldPath": "lastSeenAt",

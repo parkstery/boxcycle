@@ -58,7 +58,7 @@ function isHeartbeatOnlyUpdate(before: DocumentSnapshot, after: DocumentSnapshot
  * `liveCourseRides` 문서에는 다시 쓰지 않는다 (self-write 루프 없음).
  */
 export const courseActivityOnLiveCourseRideWritten = onDocumentWritten(
-  { document: "trails/{trailId}/liveCourseRides/{uid}", region: "asia-northeast3" },
+  { document: "trails/{trailId}/liveRouteRides/{uid}", region: "asia-northeast3" },
   async (event) => {
     const before = event.data?.before;
     const after = event.data?.after;

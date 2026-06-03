@@ -13,6 +13,10 @@ import {
 } from "firebase/firestore";
 import { getFirebaseApp } from "./firebase";
 import {
+  LEGACY_COURSES_COLLECTION,
+  ROUTE_CATALOG_COLLECTION,
+} from "./firestoreCollections";
+import {
   findPublishedRoutePublicationByCourseId,
   listPublishedRoutePublications,
   type RoutePublicationRow,
@@ -127,12 +131,20 @@ function summaryFromPublication(pub: RoutePublicationRow): PublishedPublicCourse
   };
 }
 
+async function getRouteCatalogDocSnap(courseId: string) {
+  const db = getFirestore(getFirebaseApp());
+  const id = courseId.trim();
+  const primary = await getDoc(doc(db, ROUTE_CATALOG_COLLECTION, id));
+  if (primary.exists()) return primary;
+  return getDoc(doc(db, LEGACY_COURSES_COLLECTION, id));
+}
+
 async function listPublishedPublicCoursesFromLegacyCourses(
   max: number,
 ): Promise<PublishedPublicCourseSummary[]> {
   const db = getFirestore(getFirebaseApp());
   const qy = query(
-    collection(db, "courses"),
+    collection(db, ROUTE_CATALOG_COLLECTION),
     where("category", "==", "public"),
     where("visibility", "==", "public"),
     where("status", "==", "published"),
@@ -354,7 +366,7 @@ export async function findPublishedPublicCourseBySourceSavedRouteId(
   if (!id) return null;
   const db = getFirestore(getFirebaseApp());
   const qy = query(
-    collection(db, "courses"),
+    collection(db, ROUTE_CATALOG_COLLECTION),
     where("sourceSavedRouteId", "==", id),
     where("category", "==", "public"),
     where("status", "==", "published"),
@@ -369,8 +381,7 @@ export async function findPublishedPublicCourseBySourceSavedRouteId(
 export async function findPublishedPublicCourseByCourseId(
   courseId: string,
 ): Promise<PublishedLegacyCourseRef | null> {
-  const db = getFirestore(getFirebaseApp());
-  const snap = await getDoc(doc(db, "courses", courseId.trim()));
+  const snap = await getRouteCatalogDocSnap(courseId);
   if (!snap.exists()) return null;
   return parsePublishedLegacyCourse(snap.id, snap.data() as Record<string, unknown>);
 }
@@ -381,7 +392,7 @@ export async function findPublishedPublicCourseByFingerprint(
   if (routeFingerprint.length !== 64) return null;
   const db = getFirestore(getFirebaseApp());
   const qy = query(
-    collection(db, "courses"),
+    collection(db, ROUTE_CATALOG_COLLECTION),
     where("routeFingerprint", "==", routeFingerprint),
     where("category", "==", "public"),
     where("status", "==", "published"),
@@ -404,7 +415,7 @@ export async function findPublishedPublicFingerprintsAmong(
   for (let i = 0; i < uniq.length; i += chunkSize) {
     const chunk = uniq.slice(i, i + chunkSize);
     const qy = query(
-      collection(db, "courses"),
+      collection(db, ROUTE_CATALOG_COLLECTION),
       where("routeFingerprint", "in", chunk),
       where("category", "==", "public"),
       where("status", "==", "published"),
@@ -481,8 +492,7 @@ async function fetchCourseRoutePayloadUncached(courseId: string): Promise<Course
     /* noop — 레거시 courses */
   }
 
-  const db = getFirestore(getFirebaseApp());
-  const snap = await getDoc(doc(db, "courses", courseId));
+  const snap = await getRouteCatalogDocSnap(courseId);
   if (!snap.exists()) return null;
   const data = snap.data() as Record<string, unknown>;
   return parseCourseRoutePayload(courseId, data);
@@ -733,8 +743,7 @@ async function fetchCourseBoundsUncached(courseId: string): Promise<CourseBounds
   const basic = getBasicHubCourseBounds(courseId);
   if (basic) return basic;
 
-  const db = getFirestore(getFirebaseApp());
-  const snap = await getDoc(doc(db, "courses", courseId));
+  const snap = await getRouteCatalogDocSnap(courseId);
   if (!snap.exists()) return null;
   const data = snap.data() as Record<string, unknown>;
   const fromField = parseCourseBoundsField(data);
@@ -815,7 +824,7 @@ export async function ensureBasicSharedHubPresenceFlagsMerged(courseId: string):
   }
   const db = getFirestore(getFirebaseApp());
   await setDoc(
-    doc(db, "courses", courseId),
+    doc(db, ROUTE_CATALOG_COLLECTION, courseId),
     {
       isSharedStartHub: true,
       presenceEnabled: true,
@@ -829,7 +838,7 @@ export async function ensureBasicCoursesSeeded(currentUserId: string): Promise<v
   const db = getFirestore(getFirebaseApp());
 
   for (const course of BASIC_COURSES) {
-    const ref = doc(db, "courses", course.id);
+    const ref = doc(db, ROUTE_CATALOG_COLLECTION, course.id);
     const snap = await getDoc(ref);
     if (snap.exists()) continue;
     const now = serverTimestamp();

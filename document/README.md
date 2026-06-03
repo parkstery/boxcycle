@@ -40,6 +40,7 @@
 | 서비스 비전·UGC·권한(장기) | [260511-RTW-마스터-비전-및-종합계획](260511-RTW-마스터-비전-및-종합계획.md) |
 | 제품 용어 Trailhead / Trail / Route·브랜드 | [260517-제품-용어-Trailhead-Trail](260517-제품-용어-Trailhead-Trail.md) |
 | Route 단일 용어 · RTW Pro 브랜딩 | [260603-Route-용어-및-RTW-Pro-브랜딩-통합-전환-방안](260603-Route-용어-및-RTW-Pro-브랜딩-통합-전환-방안.md) |
+| **Obsidian·앱 용어집** (복사용) | [260603-RTW-Pro-앱-용어집-Obsidian](260603-RTW-Pro-앱-용어집-Obsidian.md) |
 | tier·진입·Firestore identity | [260519-사용자-tier-및-진입-정책](260519-사용자-tier-및-진입-정책.md) |
 | 월드 맵 activity presence · publication dot | [260523-World-Activity-Presence-설계](260523-World-Activity-Presence-설계.md) |
 

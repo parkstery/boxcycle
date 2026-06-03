@@ -36,7 +36,7 @@ export const courseActivityScheduledReconcile = onSchedule(
     const byCourse = new Map<string, number>();
     let livePulseCount = 0;
 
-    const liveSnap = await db.collectionGroup("liveCourseRides").get();
+    const liveSnap = await db.collectionGroup("liveRouteRides").get();
     for (const doc of liveSnap.docs) {
       const data = doc.data();
       const seenMs = lastSeenMs(data.lastSeenAt);

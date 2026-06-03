@@ -21,6 +21,7 @@
     "deploy:app": "npm run build && firebase deploy --only hosting,firestore,functions",
     "admin:promote-saved-route": "npm --prefix functions run admin:promote-saved-route --",
     "admin:migrate-rooms-to-trails": "npm --prefix functions run admin:migrate-rooms-to-trails --",
+    "admin:migrate-route-catalog-paths": "npm --prefix functions run admin:migrate-route-catalog-paths --",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

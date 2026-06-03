@@ -1,4 +1,9 @@
 import { getFirestore, type DocumentReference } from "firebase-admin/firestore";
+import {
+  LEGACY_LIVE_COURSE_RIDES_SUBCOLLECTION,
+  LIVE_ROUTE_RIDES_SUBCOLLECTION,
+  TRAILS_COLLECTION,
+} from "./firestoreCollections.js";
 
 export type MigrateRoomsToTrailsResult = {
   membersCopied: number;
@@ -23,7 +28,15 @@ function roomsToTrailsRef(source: DocumentReference): DocumentReference {
   const trailId = parts[1];
   const sub = parts[2];
   const docId = parts[3];
-  return getFirestore().collection("trails").doc(trailId).collection(sub).doc(docId);
+  const targetSub =
+    sub === LEGACY_LIVE_COURSE_RIDES_SUBCOLLECTION
+      ? LIVE_ROUTE_RIDES_SUBCOLLECTION
+      : sub;
+  return getFirestore()
+    .collection(TRAILS_COLLECTION)
+    .doc(trailId)
+    .collection(targetSub)
+    .doc(docId);
 }
 
 /**
