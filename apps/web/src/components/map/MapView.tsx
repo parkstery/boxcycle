@@ -912,6 +912,13 @@ export function MapView({
           hasSource: Boolean(map.getSource(ACTIVITY_PULSE_DOTS_SRC)),
         });
         map.once("idle", () => {
+          if (!map.getLayer(ACTIVITY_PULSE_DOTS_LAYER)) {
+            console.log("[MapView] world red dots idle", {
+              rawPulse: raw.pulseDots.length,
+              layerMissing: true,
+            });
+            return;
+          }
           let queryRenderedCount = -1;
           let querySourceCount = -1;
           try {
