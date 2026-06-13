@@ -3,25 +3,16 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "../../lib/disableMapboxTelemetry";
 import {
-  DEFAULT_ACTIVITY_WORLD_LOD_STATE,
   lngLatBoundsToViewport,
-  resolveActivityWorldRender,
   viewportSpanKm,
-  type ActivityWorldLodState,
   type ActivityWorldMapRoute,
   type ActivityWorldRawOverlay,
   type MapViewportBounds,
 } from "../../lib/activityWorldLod";
 import { ACTIVITY_TRACE_RED } from "../../lib/activityWorldTraceStyle";
 import {
-  buildMapDebugPhaseAHardcodedDot,
-  getMapDebugPhase,
-  isMapDebugPhaseA,
-  MAP_DEBUG_PHASE_A_LNGLAT,
   shouldMoveActivityWorldLayersToTop,
-  shouldSkipActivityWorldLod,
   shouldSkipLiveOverlaysOnMap,
-  isMapDebugPhaseRecovery,
 } from "../../lib/mapDebugPhase";
 import type { LngLat, LineStringGeometry } from "../../lib/geo";
 import {
@@ -112,7 +103,6 @@ const ACTIVITY_HEAT_DOTS_GLOW = "boxcycle-activity-heat-dots-glow";
 const ACTIVITY_PULSE_DOTS_SRC = "boxcycle-activity-pulse-dots";
 const ACTIVITY_PULSE_DOTS_GLOW = "boxcycle-activity-pulse-dots-glow";
 const ACTIVITY_PULSE_DOTS_LAYER = "boxcycle-activity-pulse-dots-layer";
-const ACTIVITY_HEAT_DOTS_SRC = "boxcycle-activity-heat-dots";
 const ACTIVITY_HEAT_DOTS_LAYER = "boxcycle-activity-heat-dots-layer";
 
 type ActivityWorldDotFeature = {
@@ -178,28 +168,6 @@ function routeLayerInsertBefore(map: mapboxgl.Map): string | undefined {
   );
 }
 
-/** MapView pulse dot sync revision — 콘솔에서 배포 버전 확인용 */
-const ACTIVITY_PULSE_DOT_SYNC_REV = 5;
-
-/** DEV 기본 ON — `VITE_DEBUG_ACTIVITY_PULSE_DOT_STYLE=false` 로 끔 */
-const ACTIVITY_PULSE_DOT_STYLE_DEBUG =
-  import.meta.env.DEV && import.meta.env.VITE_DEBUG_ACTIVITY_PULSE_DOT_STYLE !== "false";
-
-/** zoom 전용 radius — feature property 중첩 표현식 회피 */
-const ACTIVITY_PULSE_DOT_RADIUS_EXPR: mapboxgl.ExpressionSpecification = [
-  "interpolate",
-  ["linear"],
-  ["zoom"],
-  3,
-  8,
-  8,
-  10,
-  12,
-  12,
-  16,
-  14,
-];
-
 function isValidActivityDotLngLat(lngLat: LngLat): boolean {
   return (
     Array.isArray(lngLat) &&
@@ -211,421 +179,55 @@ function isValidActivityDotLngLat(lngLat: LngLat): boolean {
   );
 }
 
-function useLiteralPulseDotPaint(): boolean {
-  const phase = getMapDebugPhase();
-  return phase === "A" || phase === "B" || ACTIVITY_PULSE_DOT_STYLE_DEBUG;
-}
-
-function ensureActivityPulseDotLayers(map: mapboxgl.Map): void {
-  const literal = useLiteralPulseDotPaint();
-  const mainRadius = literal ? 12 : ACTIVITY_PULSE_DOT_RADIUS_EXPR;
-  const mainOpacity = literal ? 1 : 0.95;
-  const mainColor = literal ? "#ff0000" : ACTIVITY_TRACE_RED;
-  const glowOpacity = literal ? 0 : 0.55;
-
-  if (!map.getLayer(ACTIVITY_PULSE_DOTS_GLOW)) {
-    map.addLayer({
-      id: ACTIVITY_PULSE_DOTS_GLOW,
-      type: "circle",
-      source: ACTIVITY_PULSE_DOTS_SRC,
-      layout: {
-        visibility: "visible",
-      },
-      paint: {
-        "circle-radius": literal ? 14 : ACTIVITY_PULSE_DOT_RADIUS_EXPR,
-        "circle-color": "#ffffff",
-        "circle-opacity": glowOpacity,
-        "circle-blur": 0.55,
-      },
-    });
+/** 운영 World dot — publication aggregate(trail당 1개). 단일 source + 단일 circle layer, 고정 red. */
+function ensureWorldRedDotLayer(map: mapboxgl.Map): void {
+  if (!map.getSource(ACTIVITY_PULSE_DOTS_SRC)) {
+    map.addSource(ACTIVITY_PULSE_DOTS_SRC, { type: "geojson", data: EMPTY_GEOJSON_FC });
   }
   if (!map.getLayer(ACTIVITY_PULSE_DOTS_LAYER)) {
     map.addLayer({
       id: ACTIVITY_PULSE_DOTS_LAYER,
       type: "circle",
       source: ACTIVITY_PULSE_DOTS_SRC,
-      layout: {
-        visibility: "visible",
-      },
       paint: {
-        "circle-radius": mainRadius,
-        "circle-color": mainColor,
-        "circle-stroke-width": literal ? 2 : 1.6,
+        "circle-radius": ["interpolate", ["linear"], ["zoom"], 3, 8, 12, 14],
+        "circle-color": "#ff0000",
+        "circle-opacity": 1,
+        "circle-stroke-width": 2,
         "circle-stroke-color": "#ffffff",
-        "circle-opacity": mainOpacity,
       },
-    });
-  }
-}
-
-/** 매 sync 마다 paint 재적용 — 레이어 early-return 시 paint 미갱신 회귀 방지 */
-function applyActivityPulseDotPaint(map: mapboxgl.Map): void {
-  if (!map.getLayer(ACTIVITY_PULSE_DOTS_LAYER)) return;
-  map.setFilter(ACTIVITY_PULSE_DOTS_LAYER, null);
-  map.setLayoutProperty(ACTIVITY_PULSE_DOTS_LAYER, "visibility", "visible");
-
-  const phase = getMapDebugPhase();
-  const literal = useLiteralPulseDotPaint();
-
-  if (literal) {
-    map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-radius", 12);
-    map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-opacity", 1);
-    map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-color", "#ff0000");
-    map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-stroke-width", 2);
-    map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-stroke-color", "#ffffff");
-    if (map.getLayer(ACTIVITY_PULSE_DOTS_GLOW)) {
-      map.setPaintProperty(ACTIVITY_PULSE_DOTS_GLOW, "circle-opacity", 0);
-    }
-    return;
-  }
-
-  if (phase === "C") {
-    map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-radius", ACTIVITY_PULSE_DOT_RADIUS_EXPR);
-    map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-opacity", 0.95);
-    map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-color", ACTIVITY_TRACE_RED);
-    map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-stroke-width", 1.6);
-    map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-stroke-color", "#ffffff");
-    if (map.getLayer(ACTIVITY_PULSE_DOTS_GLOW)) {
-      map.setPaintProperty(ACTIVITY_PULSE_DOTS_GLOW, "circle-radius", ACTIVITY_PULSE_DOT_RADIUS_EXPR);
-      map.setPaintProperty(ACTIVITY_PULSE_DOTS_GLOW, "circle-opacity", 0.55);
-    }
-    return;
-  }
-
-  map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-radius", ACTIVITY_PULSE_DOT_RADIUS_EXPR);
-  map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-opacity", 0.95);
-  map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-color", ACTIVITY_TRACE_RED);
-  map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-stroke-width", 1.6);
-  map.setPaintProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-stroke-color", "#ffffff");
-  if (map.getLayer(ACTIVITY_PULSE_DOTS_GLOW)) {
-    map.setPaintProperty(ACTIVITY_PULSE_DOTS_GLOW, "circle-radius", ACTIVITY_PULSE_DOT_RADIUS_EXPR);
-    map.setPaintProperty(ACTIVITY_PULSE_DOTS_GLOW, "circle-opacity", 0.55);
-  }
-}
-
-type ActivityPulseDotStyleInspect = {
-  layerId: string;
-  zoom: number;
-  filter: mapboxgl.FilterSpecification | null | undefined;
-  layoutVisibility: string;
-  circleRadius: unknown;
-  circleOpacity: unknown;
-  circleColor: unknown;
-  queryRenderedCount: number;
-  querySourceCount: number;
-  sourceFeatureCount: number;
-  firstCourseId: string | null;
-  firstLngLat: [number, number] | null;
-  inBounds: boolean | null;
-  styleDebugHardcoded: boolean;
-  mapDebugPhase: ReturnType<typeof getMapDebugPhase>;
-  syncRev: number;
-};
-
-function inspectActivityPulseDotLayer(
-  map: mapboxgl.Map,
-  pulseDots: readonly ActivityWorldDotFeature[],
-): ActivityPulseDotStyleInspect | null {
-  const layerId = ACTIVITY_PULSE_DOTS_LAYER;
-  if (!map.getLayer(layerId)) {
-    console.warn("[MapView] pulse dot inspect: layer missing", { layerId, syncRev: ACTIVITY_PULSE_DOT_SYNC_REV });
-    return null;
-  }
-
-  const bounds = map.getBounds();
-  const first = pulseDots[0];
-  let inBounds: boolean | null = null;
-  if (first && bounds) {
-    inBounds = bounds.contains(first.lngLat as [number, number]);
-  }
-
-  let queryRenderedCount = -1;
-  let querySourceCount = -1;
-  try {
-    queryRenderedCount = map.queryRenderedFeatures({ layers: [layerId] }).length;
-  } catch (e) {
-    console.warn("[MapView] pulse dot inspect: queryRenderedFeatures failed", e);
-  }
-  try {
-    querySourceCount = map.querySourceFeatures(ACTIVITY_PULSE_DOTS_SRC).length;
-  } catch (e) {
-    console.warn("[MapView] pulse dot inspect: querySourceFeatures failed", e);
-  }
-
-  const inspect: ActivityPulseDotStyleInspect = {
-    layerId,
-    zoom: Number(map.getZoom().toFixed(2)),
-    filter: map.getFilter(layerId) ?? null,
-    layoutVisibility: String(map.getLayoutProperty(layerId, "visibility") ?? "visible"),
-    circleRadius: map.getPaintProperty(layerId, "circle-radius"),
-    circleOpacity: map.getPaintProperty(layerId, "circle-opacity"),
-    circleColor: map.getPaintProperty(layerId, "circle-color"),
-    queryRenderedCount,
-    querySourceCount,
-    sourceFeatureCount: pulseDots.length,
-    firstCourseId: first?.courseId ?? null,
-    firstLngLat: first ? [first.lngLat[0], first.lngLat[1]] : null,
-    inBounds,
-    styleDebugHardcoded: ACTIVITY_PULSE_DOT_STYLE_DEBUG,
-    mapDebugPhase: getMapDebugPhase(),
-    syncRev: ACTIVITY_PULSE_DOT_SYNC_REV,
-  };
-
-  console.log("[MapView] pulse dot style inspect", inspect);
-  return inspect;
-}
-
-function addActivityPulseDotLayers(map: mapboxgl.Map): void {
-  ensureActivityPulseDotLayers(map);
-  applyActivityPulseDotPaint(map);
-}
-
-function addActivityHeatDotLayers(map: mapboxgl.Map): void {
-  if (map.getLayer(ACTIVITY_HEAT_DOTS_LAYER)) return;
-  const beforeId = map.getLayer(ACTIVITY_HEAT_DOTS_GLOW) ? ACTIVITY_HEAT_DOTS_GLOW : undefined;
-  if (!map.getLayer(ACTIVITY_HEAT_DOTS_GLOW)) {
-    map.addLayer({
-      id: ACTIVITY_HEAT_DOTS_GLOW,
-      type: "circle",
-      source: ACTIVITY_HEAT_DOTS_SRC,
-      paint: {
-        "circle-radius": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          4,
-          ["+", 6, ["*", ["get", "heatWeight"], 1.2]],
-          10,
-          ["+", 9, ["*", ["get", "heatWeight"], 1.5]],
-        ],
-        "circle-color": ACTIVITY_TRACE_RED,
-        "circle-opacity": ["min", 1, ["*", 0.55, TRACE_STRENGTH_MULT]],
-        "circle-blur": 0.5,
-      },
-    });
-  }
-  map.addLayer(
-    {
-      id: ACTIVITY_HEAT_DOTS_LAYER,
-      type: "circle",
-      source: ACTIVITY_HEAT_DOTS_SRC,
-      paint: {
-        "circle-radius": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          4,
-          ["+", 3.5, ["*", ["get", "heatWeight"], 1]],
-          10,
-          ["+", 5.5, ["*", ["get", "heatWeight"], 1.2]],
-        ],
-        "circle-color": ACTIVITY_TRACE_RED,
-        "circle-stroke-width": 1.4,
-        "circle-stroke-color": "#ffffff",
-        "circle-opacity": ["min", 1, ["*", 0.88, TRACE_STRENGTH_MULT]],
-      },
-    },
-    beforeId,
-  );
-}
-
-function ensureMapDebugWorldLightDomMarker(
-  map: mapboxgl.Map,
-  lngLat: LngLat,
-  markerRef: { current: mapboxgl.Marker | null },
-): void {
-  if (!markerRef.current) {
-    const el = document.createElement("div");
-    el.className = "map-debug-world-light-marker";
-    el.setAttribute("aria-hidden", "true");
-    markerRef.current = new mapboxgl.Marker({ element: el, anchor: "center" })
-      .setLngLat(lngLat)
-      .addTo(map);
-    return;
-  }
-  markerRef.current.setLngLat(lngLat);
-}
-
-function removeMapDebugWorldLightDomMarker(markerRef: {
-  current: mapboxgl.Marker | null;
-}): void {
-  markerRef.current?.remove();
-  markerRef.current = null;
-}
-
-function afterMapDebugPulseDotIdle(
-  map: mapboxgl.Map,
-  pulseDots: readonly ActivityWorldDotFeature[],
-  domMarkerRef: { current: mapboxgl.Marker | null },
-): void {
-  const phase = getMapDebugPhase();
-  if (!phase) return;
-
-  let queryRenderedCount = 0;
-  try {
-    queryRenderedCount = map
-      .queryRenderedFeatures({ layers: [ACTIVITY_PULSE_DOTS_LAYER] })
-      .length;
-  } catch {
-    /* noop */
-  }
-
-  const first = pulseDots[0];
-  if (first) {
-    ensureMapDebugWorldLightDomMarker(map, first.lngLat, domMarkerRef);
-  }
-
-  if (phase === "A") {
-    logMapDebugPhaseAIdle(map, pulseDots);
-  } else {
-    inspectActivityPulseDotLayer(map, pulseDots);
-  }
-
-  if (queryRenderedCount === 0 && pulseDots.length > 0) {
-    console.warn("[MapDebug] Mapbox circle rendered 0 — DOM marker shown", {
-      phase,
-      layerId: ACTIVITY_PULSE_DOTS_LAYER,
-      firstLngLat: first ? [first.lngLat[0], first.lngLat[1]] : null,
-      domMarker: true,
     });
     try {
-      moveActivityWorldLayersToTop(map);
+      // 3D pitch 에서 지면 circle 이 묻히지 않게 viewport 정렬 (타입 정의 누락 회피)
+      map.setLayoutProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-pitch-alignment" as never, "viewport" as never);
     } catch {
       /* noop */
     }
   }
 }
 
-function logMapDebugPhaseAIdle(
+/** publication raw dot → 단일 red circle 레이어로 직접 렌더(LOD·glow·heat·DOM 마커 없음). */
+function syncWorldRedDots(
   map: mapboxgl.Map,
   pulseDots: readonly ActivityWorldDotFeature[],
-): void {
-  let queryRenderedCount = -1;
-  let querySourceCount = -1;
-  try {
-    queryRenderedCount = map
-      .queryRenderedFeatures({ layers: [ACTIVITY_PULSE_DOTS_LAYER] })
-      .length;
-  } catch {
-    /* noop */
-  }
-  try {
-    querySourceCount = map.querySourceFeatures(ACTIVITY_PULSE_DOTS_SRC).length;
-  } catch {
-    /* noop */
-  }
-  console.log("[MapDebug:A] idle", {
-    queryRenderedCount,
-    querySourceCount,
-    zoom: Number(map.getZoom().toFixed(2)),
-  });
-  inspectActivityPulseDotLayer(map, pulseDots);
-}
-
-function syncActivityWorldDotLayers(
-  map: mapboxgl.Map,
-  pulseDots: readonly ActivityWorldDotFeature[],
-  heatDots: readonly ActivityWorldDotFeature[],
-  options?: {
-    skipHeat?: boolean;
-    runMoveToTop?: boolean;
-    domMarkerRef?: { current: mapboxgl.Marker | null };
-  },
 ): void {
   if (!map.isStyleLoaded()) return;
-  const phase = getMapDebugPhase();
-
-  const validPulseDots = pulseDots.filter((d) => isValidActivityDotLngLat(d.lngLat));
-  if (validPulseDots.length !== pulseDots.length && import.meta.env.DEV) {
-    console.warn("[MapView] pulse dots dropped invalid lngLat", {
-      syncRev: ACTIVITY_PULSE_DOT_SYNC_REV,
-      total: pulseDots.length,
-      valid: validPulseDots.length,
-    });
-  }
-
-  const pulseFc = {
+  const valid = pulseDots.filter((d) => isValidActivityDotLngLat(d.lngLat));
+  const fc = {
     type: "FeatureCollection" as const,
-    features: validPulseDots.map((d) => ({
+    features: valid.map((d) => ({
       type: "Feature" as const,
       id: `act-pd-${d.courseId}`,
-      properties: {
-        courseId: d.courseId,
-        pulseLevel: Number.isFinite(d.pulseLevel) ? d.pulseLevel : 1,
-        traceStrength: Number.isFinite(d.traceStrength) ? d.traceStrength : 1,
-      },
-      geometry: { type: "Point" as const, coordinates: d.lngLat },
-    })),
-  };
-  const heatFc = {
-    type: "FeatureCollection" as const,
-    features: heatDots.map((d) => ({
-      type: "Feature" as const,
-      id: `act-hd-${d.courseId}`,
-      properties: {
-        courseId: d.courseId,
-        heatWeight: d.pulseLevel > 0 ? d.pulseLevel : 1,
-        recent7d: d.recentRideCount7d ?? 0,
-        traceStrength: d.traceStrength,
-      },
+      properties: { courseId: d.courseId },
       geometry: { type: "Point" as const, coordinates: d.lngLat },
     })),
   };
   try {
-    if (!map.getSource(ACTIVITY_PULSE_DOTS_SRC)) {
-      map.addSource(ACTIVITY_PULSE_DOTS_SRC, { type: "geojson", data: pulseFc });
-    } else {
-      (map.getSource(ACTIVITY_PULSE_DOTS_SRC) as mapboxgl.GeoJSONSource).setData(pulseFc);
-    }
-    addActivityPulseDotLayers(map);
-
-    if (!options?.skipHeat) {
-      if (!map.getSource(ACTIVITY_HEAT_DOTS_SRC)) {
-        map.addSource(ACTIVITY_HEAT_DOTS_SRC, { type: "geojson", data: heatFc });
-        addActivityHeatDotLayers(map);
-      } else {
-        (map.getSource(ACTIVITY_HEAT_DOTS_SRC) as mapboxgl.GeoJSONSource).setData(heatFc);
-        if (!map.getLayer(ACTIVITY_HEAT_DOTS_LAYER)) addActivityHeatDotLayers(map);
-      }
-    } else if (map.getSource(ACTIVITY_HEAT_DOTS_SRC)) {
-      (map.getSource(ACTIVITY_HEAT_DOTS_SRC) as mapboxgl.GeoJSONSource).setData(EMPTY_GEOJSON_FC);
-    }
-
-    const runMoveToTop = options?.runMoveToTop ?? shouldMoveActivityWorldLayersToTop();
-    if (runMoveToTop) {
-      moveActivityWorldLayersToTop(map);
-    }
-
-    if (isMapDebugPhaseA()) {
-      console.log("[MapDebug:A] sync", {
-        hasLayer: Boolean(map.getLayer(ACTIVITY_PULSE_DOTS_LAYER)),
-        hasSource: Boolean(map.getSource(ACTIVITY_PULSE_DOTS_SRC)),
-        featureCount: validPulseDots.length,
-        syncRev: ACTIVITY_PULSE_DOT_SYNC_REV,
-      });
-    }
-
-    if (phase === "C") {
-      console.log("[MapDebug:C] Mapbox custom layer synced. Source dot count:", validPulseDots.length);
-    }
-
-    if (
-      validPulseDots.length > 0 &&
-      phase !== "C" &&
-      isMapDebugPhaseRecovery() &&
-      options?.domMarkerRef
-    ) {
-      const domRef = options.domMarkerRef;
-      map.once("idle", () => {
-        afterMapDebugPulseDotIdle(map, validPulseDots, domRef);
-      });
-    } else if (validPulseDots.length > 0) {
-      map.once("idle", () => {
-        inspectActivityPulseDotLayer(map, validPulseDots);
-      });
-    }
+    ensureWorldRedDotLayer(map);
+    (map.getSource(ACTIVITY_PULSE_DOTS_SRC) as mapboxgl.GeoJSONSource).setData(fc);
+    map.moveLayer(ACTIVITY_PULSE_DOTS_LAYER);
   } catch (e) {
-    console.warn("[MapView] activity world dot layers", e);
+    console.warn("[MapView] world red dot sync", e);
   }
 }
 
@@ -1287,173 +889,48 @@ export function MapView({
   globalPresenceDataRef.current = globalPresenceDots ?? [];
   const activityWorldRawRef = useRef<ActivityWorldRawOverlay>(EMPTY_ACTIVITY_WORLD_RAW);
   activityWorldRawRef.current = activityWorldRaw ?? EMPTY_ACTIVITY_WORLD_RAW;
-  const activityWorldLodStateRef = useRef<ActivityWorldLodState>(DEFAULT_ACTIVITY_WORLD_LOD_STATE);
   const activityWorldDotLogKeyRef = useRef("");
-  const activityWorldIdleRenderLogKeyRef = useRef("");
-  const phaseDRenderLogKeyRef = useRef("");
-  const mapDebugPhaseACameraDoneRef = useRef(false);
-  const mapDebugPhaseBCameraKeyRef = useRef<string>("");
-  const mapDebugWorldLightDomMarkerRef = useRef<mapboxgl.Marker | null>(null);
 
   const syncActivityWorldLayersOnMapRef = useRef<(map: mapboxgl.Map) => void>(() => {});
   syncActivityWorldLayersOnMapRef.current = (map) => {
     if (!map.isStyleLoaded()) return;
-    const phase = getMapDebugPhase();
-    const pulseOnlyOpts = {
-      skipHeat: true as const,
-      runMoveToTop: shouldMoveActivityWorldLayersToTop(),
-      domMarkerRef: mapDebugWorldLightDomMarkerRef,
-    };
-
-    if (phase === "A") {
-      if (!mapDebugPhaseACameraDoneRef.current) {
-        mapDebugPhaseACameraDoneRef.current = true;
-        try {
-          map.jumpTo({ center: MAP_DEBUG_PHASE_A_LNGLAT, zoom: 12 });
-        } catch {
-          /* noop */
-        }
-      }
-      const hardcoded = [buildMapDebugPhaseAHardcodedDot()];
-      ensureMapDebugWorldLightDomMarker(
-        map,
-        MAP_DEBUG_PHASE_A_LNGLAT,
-        mapDebugWorldLightDomMarkerRef,
-      );
-      syncCourseActivityLayers(map, [], []);
-      syncActivityWorldDotLayers(map, hardcoded, [], pulseOnlyOpts);
-      return;
-    }
-
-    if (phase === "B" || phase === "C") {
-      const raw = activityWorldRawRef.current;
-      const dot = raw.pulseDots[0] ?? raw.heatDots[0] ?? null;
-      const dots = dot ? [dot] : [];
-      if (phase === "C") {
-        removeMapDebugWorldLightDomMarker(mapDebugWorldLightDomMarkerRef);
-      }
-      if ((phase === "B" || phase === "C") && import.meta.env.DEV) {
-        const key = dot ? `${dot.lngLat[0].toFixed(5)}|${dot.lngLat[1].toFixed(5)}` : "";
-        if (key && key !== mapDebugPhaseBCameraKeyRef.current) {
-          mapDebugPhaseBCameraKeyRef.current = key;
-          try {
-            map.panTo(dot.lngLat as [number, number], { duration: 700, essential: true });
-            console.log(`[MapDebug:${phase}] camera moved`, {
-              mode: "panTo",
-              lngLat: [dot.lngLat[0], dot.lngLat[1]],
-              fallback: dot.courseId === "debug-phase-b-fallback",
-            });
-          } catch {
-            map.jumpTo({ center: dot.lngLat as [number, number], zoom: Math.max(9, map.getZoom()) });
-            console.log(`[MapDebug:${phase}] camera moved`, {
-              mode: "jumpTo",
-              lngLat: [dot.lngLat[0], dot.lngLat[1]],
-              fallback: dot.courseId === "debug-phase-b-fallback",
-            });
-          }
-        }
-        if (dot && phase === "B") {
-          ensureMapDebugWorldLightDomMarker(map, dot.lngLat as [number, number], mapDebugWorldLightDomMarkerRef);
-          console.log("[MapDebug:B] dom marker placed", {
-            lngLat: [dot.lngLat[0], dot.lngLat[1]],
-            fallback: dot.courseId === "debug-phase-b-fallback",
-          });
-        }
-        console.log(`[MapDebug:${phase}] sync`, {
-          rowCount: raw.pulseDots.length + raw.heatDots.length,
-          hasDot: Boolean(dot),
-          firstLngLat: dot ? [dot.lngLat[0], dot.lngLat[1]] : null,
-          fallback: dot?.courseId === "debug-phase-b-fallback",
-        });
-      }
-      syncCourseActivityLayers(map, [], []);
-      syncActivityWorldDotLayers(map, dots, [], pulseOnlyOpts);
-      return;
-    }
-
-    const z = Number(map.getZoom().toFixed(1));
     const raw = activityWorldRawRef.current;
 
-    if (shouldSkipActivityWorldLod()) {
-      const logKey = `${raw.pulseDots.length}|${raw.heatDots.length}|${z}|skipLod`;
+    syncCourseActivityLayers(map, raw.pulseRoutes, raw.heatRoutes);
+    syncWorldRedDots(map, raw.pulseDots);
+
+    if (import.meta.env.DEV) {
+      const logKey = `${raw.pulseDots.length}|${Number(map.getZoom().toFixed(1))}`;
       if (logKey !== activityWorldDotLogKeyRef.current) {
         activityWorldDotLogKeyRef.current = logKey;
-        console.log("[MapDebug:D] overlay", {
+        const first = raw.pulseDots[0];
+        console.log("[MapView] world red dots", {
           rawPulse: raw.pulseDots.length,
-          rawHeat: raw.heatDots.length,
-          zoom: z,
-          skipLod: true,
+          firstCourseId: first?.courseId ?? null,
+          firstLngLat: first ? [first.lngLat[0].toFixed(4), first.lngLat[1].toFixed(4)] : null,
+          hasLayer: Boolean(map.getLayer(ACTIVITY_PULSE_DOTS_LAYER)),
+          hasSource: Boolean(map.getSource(ACTIVITY_PULSE_DOTS_SRC)),
         });
-      }
-      syncCourseActivityLayers(map, [], []);
-      syncActivityWorldDotLayers(map, [...raw.pulseDots], [...raw.heatDots], {
-        runMoveToTop: true,
-      });
-      return;
-    }
-
-    const render = resolveActivityWorldRender(z, raw, activityWorldLodStateRef.current);
-    activityWorldLodStateRef.current = render.nextLodState;
-    const logKey = `${render.pulseDots.length}|${render.heatDots.length}|${raw.pulseDots.length}|${z}`;
-    if (logKey !== activityWorldDotLogKeyRef.current) {
-      activityWorldDotLogKeyRef.current = logKey;
-      const first = render.pulseDots[0] ?? render.heatDots[0];
-      console.log("[MapView] activity world dots", {
-        pulse: render.pulseDots.length,
-        heat: render.heatDots.length,
-        rawPulse: raw.pulseDots.length,
-        rawHeat: raw.heatDots.length,
-        zoom: z,
-        firstCourseId: first?.courseId ?? null,
-        firstLngLat: first ? [first.lngLat[0].toFixed(4), first.lngLat[1].toFixed(4)] : null,
-        hasPulseLayer: Boolean(map.getLayer(ACTIVITY_PULSE_DOTS_LAYER)),
-        hasPulseSource: Boolean(map.getSource(ACTIVITY_PULSE_DOTS_SRC)),
-        pulseDotSyncRev: ACTIVITY_PULSE_DOT_SYNC_REV,
-        mapDebugPhase: phase,
-        styleDebugHardcoded: ACTIVITY_PULSE_DOT_STYLE_DEBUG,
-      });
-    }
-    syncCourseActivityLayers(map, render.pulseRoutes, render.heatRoutes);
-    syncActivityWorldDotLayers(map, render.pulseDots, render.heatDots, {
-      domMarkerRef: undefined,
-    });
-    if (phase == null && import.meta.env.DEV) {
-      const rawPulse = raw.pulseDots.length;
-      const rawHeat = raw.heatDots.length;
-      map.once("idle", () => {
-        let queryRenderedCount = -1;
-        let querySourceCount = -1;
-        try {
-          queryRenderedCount = map.queryRenderedFeatures({ layers: [ACTIVITY_PULSE_DOTS_LAYER] }).length;
-        } catch {
-          /* noop */
-        }
-        try {
-          querySourceCount = map.querySourceFeatures(ACTIVITY_PULSE_DOTS_SRC).length;
-        } catch {
-          /* noop */
-        }
-        const idleKey = `${rawPulse}|${rawHeat}|${queryRenderedCount}`;
-        if (activityWorldIdleRenderLogKeyRef.current !== idleKey) {
-          activityWorldIdleRenderLogKeyRef.current = idleKey;
-          console.log("[MapView] activity world dots", {
-            rawPulse,
-            rawHeat,
-            queryRenderedCount,
-          });
-        }
-        const phaseDKey = `${querySourceCount}|${queryRenderedCount}`;
-        if (phaseDRenderLogKeyRef.current !== phaseDKey) {
-          phaseDRenderLogKeyRef.current = phaseDKey;
-          console.log("[PhaseD] render", {
+        map.once("idle", () => {
+          let queryRenderedCount = -1;
+          let querySourceCount = -1;
+          try {
+            queryRenderedCount = map.queryRenderedFeatures({ layers: [ACTIVITY_PULSE_DOTS_LAYER] }).length;
+          } catch {
+            /* noop */
+          }
+          try {
+            querySourceCount = map.querySourceFeatures(ACTIVITY_PULSE_DOTS_SRC).length;
+          } catch {
+            /* noop */
+          }
+          console.log("[MapView] world red dots idle", {
+            rawPulse: raw.pulseDots.length,
             querySourceCount,
             queryRenderedCount,
           });
-        }
-      });
-    }
-    if (shouldMoveActivityWorldLayersToTop()) {
-      moveActivityWorldLayersToTop(map);
+        });
+      }
     }
   };
 
@@ -1632,6 +1109,10 @@ export function MapView({
       onMapViewportRef.current?.(viewport, viewportSpanKm(viewport));
     };
 
+    const reportMapZoomToApp = () => {
+      onMapZoomRef.current?.(Number(map.getZoom().toFixed(1)));
+    };
+
     const reportMapLodViewport = () => {
       const bounds = map.getBounds();
       if (!bounds) return;
@@ -1667,6 +1148,7 @@ export function MapView({
 
     map.on("moveend", reportMapViewport);
     map.on("zoomend", reportMapViewport);
+    map.on("zoomend", reportMapZoomToApp);
     map.on("idle", reportMapViewport);
     map.on("move", scheduleLodViewportReport);
     map.on("zoom", scheduleLodViewportReport);
@@ -2223,14 +1705,10 @@ export function MapView({
     activityWorldRaw?.heatRoutes.length ?? 0,
   ]);
 
-  /** Phase A–B: MapView WORLD_LIGHT 전용 — raw overlay 0 과 무관하게 주기적 sync */
+  /** style.reload 후 dot layer 유실 시 주기적 재동기화 */
   useEffect(() => {
-    const phase = getMapDebugPhase();
-    const enableRecoveryLoop = phase === "A" || phase === "B";
-    if (!mapLoaded || !enableRecoveryLoop) {
-      removeMapDebugWorldLightDomMarker(mapDebugWorldLightDomMarkerRef);
-      return;
-    }
+    const hasDots = (activityWorldRaw?.pulseDots.length ?? 0) > 0;
+    if (!mapLoaded || !hasDots) return;
     const map = mapRef.current;
     if (!map) return;
 
@@ -2246,7 +1724,6 @@ export function MapView({
       window.clearInterval(intervalId);
       map.off("style.load", onStyle);
       map.off("idle", onIdle);
-      removeMapDebugWorldLightDomMarker(mapDebugWorldLightDomMarkerRef);
     };
   }, [mapLoaded, activityWorldRaw]);
 
