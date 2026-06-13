@@ -97,7 +97,6 @@ export function writeRoutePublicationOnApprove(
   batch.set(ref, {
     routeId: input.routeId,
     courseId: input.courseId,
-    catalogRouteId: input.courseId,
     publicTitle: input.publicTitle,
     publicSummary: input.publicSummary.length > 0 ? input.publicSummary : null,
     status: "published",
