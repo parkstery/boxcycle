@@ -180,23 +180,39 @@ function isValidActivityDotLngLat(lngLat: LngLat): boolean {
 }
 
 /** 운영 World dot — publication aggregate(trail당 1개). 단일 source + 단일 circle layer, 고정 red. */
-function ensureWorldRedDotLayer(map: mapboxgl.Map): void {
+function ensureWorldRedDotLayer(map: mapboxgl.Map): boolean {
   if (!map.getSource(ACTIVITY_PULSE_DOTS_SRC)) {
-    map.addSource(ACTIVITY_PULSE_DOTS_SRC, { type: "geojson", data: EMPTY_GEOJSON_FC });
+    try {
+      map.addSource(ACTIVITY_PULSE_DOTS_SRC, { type: "geojson", data: EMPTY_GEOJSON_FC });
+    } catch (e) {
+      console.warn("[MapView] red dot addSource failed", {
+        isStyleLoaded: map.isStyleLoaded(),
+        error: e instanceof Error ? e.message : String(e),
+      });
+      return false;
+    }
   }
   if (!map.getLayer(ACTIVITY_PULSE_DOTS_LAYER)) {
-    map.addLayer({
-      id: ACTIVITY_PULSE_DOTS_LAYER,
-      type: "circle",
-      source: ACTIVITY_PULSE_DOTS_SRC,
-      paint: {
-        "circle-radius": ["interpolate", ["linear"], ["zoom"], 3, 8, 12, 14],
-        "circle-color": "#ff0000",
-        "circle-opacity": 1,
-        "circle-stroke-width": 2,
-        "circle-stroke-color": "#ffffff",
-      },
-    });
+    try {
+      map.addLayer({
+        id: ACTIVITY_PULSE_DOTS_LAYER,
+        type: "circle",
+        source: ACTIVITY_PULSE_DOTS_SRC,
+        paint: {
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 3, 8, 12, 14],
+          "circle-color": "#ff0000",
+          "circle-opacity": 1,
+          "circle-stroke-width": 2,
+          "circle-stroke-color": "#ffffff",
+        },
+      });
+    } catch (e) {
+      console.warn("[MapView] red dot addLayer failed", {
+        hasSource: Boolean(map.getSource(ACTIVITY_PULSE_DOTS_SRC)),
+        error: e instanceof Error ? e.message : String(e),
+      });
+      return false;
+    }
     try {
       // 3D pitch 에서 지면 circle 이 묻히지 않게 viewport 정렬 (타입 정의 누락 회피)
       map.setLayoutProperty(ACTIVITY_PULSE_DOTS_LAYER, "circle-pitch-alignment" as never, "viewport" as never);
@@ -204,6 +220,7 @@ function ensureWorldRedDotLayer(map: mapboxgl.Map): void {
       /* noop */
     }
   }
+  return Boolean(map.getLayer(ACTIVITY_PULSE_DOTS_LAYER));
 }
 
 /** publication raw dot → 단일 red circle 레이어로 직접 렌더(LOD·glow·heat·DOM 마커 없음). */
@@ -222,12 +239,19 @@ function syncWorldRedDots(
       geometry: { type: "Point" as const, coordinates: d.lngLat },
     })),
   };
+  if (!ensureWorldRedDotLayer(map)) return;
+  const src = map.getSource(ACTIVITY_PULSE_DOTS_SRC) as mapboxgl.GeoJSONSource | undefined;
+  if (!src) {
+    console.warn("[MapView] red dot source missing after ensure", {
+      isStyleLoaded: map.isStyleLoaded(),
+    });
+    return;
+  }
   try {
-    ensureWorldRedDotLayer(map);
-    (map.getSource(ACTIVITY_PULSE_DOTS_SRC) as mapboxgl.GeoJSONSource).setData(fc);
+    src.setData(fc);
     map.moveLayer(ACTIVITY_PULSE_DOTS_LAYER);
   } catch (e) {
-    console.warn("[MapView] world red dot sync", e);
+    console.warn("[MapView] red dot setData/move failed", e);
   }
 }
 
