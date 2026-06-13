@@ -9,8 +9,7 @@
     "build": "tsc",
     "serve": "npm run build && firebase emulators:start --only functions",
     "admin:promote-saved-route": "npm run build && node lib/cliPromoteSavedRoute.js",
-    "admin:migrate-rooms-to-trails": "npm run build && node lib/cliMigrateRoomsToTrails.js",
-    "admin:migrate-route-catalog-paths": "npm run build && node lib/cliMigrateRouteCatalogPaths.js"
+    "admin:migrate-rooms-to-trails": "npm run build && node lib/cliMigrateRoomsToTrails.js"
   },
   "dependencies": {
     "firebase-admin": "^13.6.0",

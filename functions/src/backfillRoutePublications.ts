@@ -64,7 +64,7 @@ export const backfillRoutePublicationsHttp = onRequest(
 
     const db = getFirestore();
     const snap = await db
-      .collection("routeCatalog")
+      .collection("courses")
       .where("category", "==", "public")
       .where("status", "==", "published")
       .limit(limit)

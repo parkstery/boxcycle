@@ -10,28 +10,19 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function routeCatalogPath(routeId) {
-      return /databases/$(database)/documents/routeCatalog/$(routeId);
-    }
-
-    function legacyCoursePath(courseId) {
+    function coursePath(courseId) {
       return /databases/$(database)/documents/courses/$(courseId);
     }
 
     /** 동행(presence) 허용: presenceEnabled 우선. 하위 호환: isSharedStartHub 만 있는 입문 허브 시드도 허용. */
-    function isRouteCatalogPresenceAllowedFromPath(p) {
-      return exists(p)
-        && (
-          (get(p).data.keys().hasAny(['presenceEnabled'])
-            && get(p).data.presenceEnabled == true)
-          || (get(p).data.keys().hasAny(['isSharedStartHub'])
-            && get(p).data.isSharedStartHub == true)
-        );
-    }
-
     function isCourseSharedPresenceAllowed(courseId) {
-      return isRouteCatalogPresenceAllowedFromPath(routeCatalogPath(courseId))
-        || isRouteCatalogPresenceAllowedFromPath(legacyCoursePath(courseId));
+      return exists(coursePath(courseId))
+        && (
+          (get(coursePath(courseId)).data.keys().hasAny(['presenceEnabled'])
+            && get(coursePath(courseId)).data.presenceEnabled == true)
+          || (get(coursePath(courseId)).data.keys().hasAny(['isSharedStartHub'])
+            && get(coursePath(courseId)).data.isSharedStartHub == true)
+        );
     }
 
     /** 입문 동시 주행 허브 — `firestoreCourses.ts` 의 BASIC_SHARED_HUB_IDS 와 동기 */
@@ -275,15 +266,15 @@ service cloud.firestore {
     }
 
     /**
-     * `liveRouteRides` collection group 목록(주행 중 Trail 탐색).
+     * `liveCourseRides` collection group 목록(주행 중 Trail 탐색).
      * 경로별 match 만으로는 collectionGroup 쿼리가 permission-denied 될 수 있음 — rules v2 와일드카드 필수.
      */
-    match /{path=**}/liveRouteRides/{userId} {
+    match /{path=**}/liveCourseRides/{userId} {
       allow read: if isSignedIn();
     }
 
-    /** Trail: 경로 주행 진행률만 공유(geometry 미저장). */
-    match /trails/{trailId}/liveRouteRides/{userId} {
+    /** Trail: 코스 주행 진행률만 공유(geometry 미저장). */
+    match /trails/{trailId}/liveCourseRides/{userId} {
       allow read: if isSignedIn();
       allow create, update: if isSelf(userId)
         && trailParticipantWriteAllowed(trailId)
@@ -308,17 +299,6 @@ service cloud.firestore {
     }
 
     match /rooms/{roomId}/liveCourseRides/{userId} {
-      allow read: if isSignedIn();
-      allow write: if false;
-    }
-
-    /** @deprecated P4 이전 `liveCourseRides` — 마이그레이션 후 read-only */
-    match /{path=**}/liveCourseRides/{userId} {
-      allow read: if isSignedIn();
-      allow write: if false;
-    }
-
-    match /trails/{trailId}/liveCourseRides/{userId} {
       allow read: if isSignedIn();
       allow write: if false;
     }
@@ -428,7 +408,7 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    match /routeCatalog/{courseId} {
+    match /courses/{courseId} {
       allow read: if isSignedIn()
         || (resource.data.keys().hasAny(['presenceEnabled']) && resource.data.presenceEnabled == true)
         || (resource.data.keys().hasAny(['isSharedStartHub']) && resource.data.isSharedStartHub == true)
@@ -439,15 +419,6 @@ service cloud.firestore {
                 && request.resource.data.routeFingerprint.size() == 64));
       allow update: if isSignedIn() && isHubPresenceFlagsOnlyCourseUpdate(courseId);
       allow delete: if false;
-    }
-
-    /** @deprecated P4 — `routeCatalog` 마이그레이션 후 read-only */
-    match /courses/{courseId} {
-      allow read: if isSignedIn()
-        || (resource.data.keys().hasAny(['presenceEnabled']) && resource.data.presenceEnabled == true)
-        || (resource.data.keys().hasAny(['isSharedStartHub']) && resource.data.isSharedStartHub == true)
-        || (resource.data.keys().hasAny(['visibility']) && resource.data.visibility == 'public');
-      allow create, update, delete: if false;
     }
 
     /** UGC 퍼블릭 출판 스냅샷 — `routeId` = `savedRoutes` id, `courseId` = 레거시 카탈로그 */
@@ -470,16 +441,10 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    match /routePresence/{courseId}/members/{userId} {
+    match /coursePresence/{courseId}/members/{userId} {
       allow read: if isSignedIn() && isCourseSharedPresenceAllowed(courseId);
       allow create, update: if isSelf(userId) && isCourseSharedPresenceAllowed(courseId);
       allow delete: if isSelf(userId) && isCourseSharedPresenceAllowed(courseId);
-    }
-
-    /** @deprecated P4 — `routePresence` 마이그레이션 후 read-only */
-    match /coursePresence/{courseId}/members/{userId} {
-      allow read: if isSignedIn() && isCourseSharedPresenceAllowed(courseId);
-      allow write: if false;
     }
 
     /** 월드 활동 집계(선택). 콘솔/CF로만 수정 — 클라이언트 write 금지. 로그인 사용자 읽기. */
@@ -488,13 +453,7 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    /** Activity World — 경로 단위 aggregate. 읽기만 클라이언트, 쓰기는 Functions. */
-    match /routeActivity/{courseId} {
-      allow read: if isSignedIn();
-      allow write: if false;
-    }
-
-    /** @deprecated P4 — `routeActivity` 마이그레이션 후 read-only */
+    /** Activity World — 코스 단위 aggregate. 읽기만 클라이언트, 쓰기는 Functions. */
     match /courseActivity/{courseId} {
       allow read: if isSignedIn();
       allow write: if false;

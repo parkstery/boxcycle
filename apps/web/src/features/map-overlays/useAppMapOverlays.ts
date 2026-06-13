@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { User } from "firebase/auth";
-import { useRouteActivity } from "../../hooks/useRouteActivity";
+import { useCourseActivity } from "../../hooks/useCourseActivity";
 import { useCourseActivityMapOverlay } from "../../hooks/useCourseActivityMapOverlay";
 import { usePublishedCoursesActivityMapOverlay } from "../../hooks/usePublishedCoursesActivityMapOverlay";
 import { useTrailLiveCourseRideSpectatorOverlay } from "../../hooks/useTrailLiveCourseRideSpectatorOverlay";
 import { useWorldPublicationPresenceOverlay } from "../../hooks/useWorldPublicationPresenceOverlay";
 import {
   formatActivityWorldPinPopup,
-  type RouteActivitySnapshot,
-} from "../../lib/firestoreRouteActivity";
+  type CourseActivitySnapshot,
+} from "../../lib/firestoreCourseActivity";
 import { formatPublicationPresencePinPopup } from "../../lib/firestorePublicationPresence";
 import {
   resolveActivityWorldLodDebug,
@@ -67,13 +67,13 @@ export type AppMapOverlaysResult = {
   activityWorldRaw: ReturnType<typeof resolveWorldMapOverlay>;
   activityWorldRender: ReturnType<typeof resolveActivityWorldRender>;
   activityWorldLodDebug: ReturnType<typeof resolveActivityWorldLodDebug>;
-  getActivityWorldPinLabel: (catalogRouteId: string, kind: "pulse" | "heat") => string | null;
+  getActivityWorldPinLabel: (courseId: string, kind: "pulse" | "heat") => string | null;
   trailSpectatorDots: ReturnType<typeof useTrailLiveCourseRideSpectatorOverlay>["spectatorDots"];
   trailSpectatorRoutes: ReturnType<typeof useTrailLiveCourseRideSpectatorOverlay>["spectatorRouteGeometries"];
-  routeActivity: RouteActivitySnapshot | null;
-  reloadRouteActivity: ReturnType<typeof useRouteActivity>["reload"];
-  applyRideCompletedOptimistic: ReturnType<typeof useRouteActivity>["applyRideCompletedOptimistic"];
-  routeActivityByCatalogRouteId: ReadonlyMap<string, RouteActivitySnapshot | null>;
+  courseActivity: CourseActivitySnapshot | null;
+  reloadCourseActivity: ReturnType<typeof useCourseActivity>["reload"];
+  applyRideCompletedOptimistic: ReturnType<typeof useCourseActivity>["applyRideCompletedOptimistic"];
+  courseActivityByCourseId: ReadonlyMap<string, CourseActivitySnapshot | null>;
   worldHudLines: string | null;
   publicationPresenceWorldMapEnabled: boolean;
   lodDebugPanelProps: ActivityWorldLodDebugPanelProps | null;
@@ -106,30 +106,30 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
 
   const trackedCatalogRouteId = trackedCatalogRouteIdOpt ?? trackedCourseIdLegacy ?? null;
 
-  const routePeerIdsForTrailSpectator = useMemo(() => new Set<string>(), []);
+  const coursePeerIdsForTrailSpectator = useMemo(() => new Set<string>(), []);
 
-  const { worldHighlightedCourseIds: worldHighlightedCatalogRouteIds, liveActivityCourseIds: liveActivityCatalogRouteIds, worldHudLines } = useWorldActivityCatalog({
+  const { worldHighlightedCourseIds, liveActivityCourseIds, worldHudLines } = useWorldActivityCatalog({
     configured,
     user,
     pageVisible,
   });
 
   const isRideSessionActive = rideStatus === "running" || rideStatus === "paused";
-  const routeActivityEnabled = Boolean(configured && user && trackedCatalogRouteId && pageVisible);
+  const courseActivityEnabled = Boolean(configured && user && trackedCatalogRouteId && pageVisible);
 
   const {
-    activity: routeActivity,
-    reload: reloadRouteActivity,
+    activity: courseActivity,
+    reload: reloadCourseActivity,
     applyRideCompletedOptimistic,
-  } = useRouteActivity({
+  } = useCourseActivity({
     configured,
     user,
-    catalogRouteId: trackedCatalogRouteId,
-    enabled: routeActivityEnabled,
+    courseId: trackedCatalogRouteId,
+    enabled: courseActivityEnabled,
   });
 
   const activeOverlay = useCourseActivityMapOverlay({
-    activity: routeActivity,
+    activity: courseActivity,
     routeGeometry,
     mapZoom,
   });
@@ -166,10 +166,10 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       trailRoomLabel,
       enabled: trailSpectatorOverlayEnabled,
       mapZoom,
-      excludePeerIds: routePeerIdsForTrailSpectator,
+      excludePeerIds: coursePeerIdsForTrailSpectator,
     });
 
-  const openTrailCatalogRouteIds = useMemo(
+  const openTrailCourseIds = useMemo(
     () =>
       openTrails
         .map((t) => t.courseId?.trim() ?? "")
@@ -177,20 +177,20 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     [openTrails],
   );
 
-  const catalogRouteIds = useMemo(() => {
+  const catalogCourseIds = useMemo(() => {
     const ids = new Set<string>(BASIC_SHARED_HUB_IDS as readonly string[]);
     for (const c of publishedPublicRoutes) ids.add(c.id);
-    for (const id of worldHighlightedCatalogRouteIds) ids.add(id);
+    for (const id of worldHighlightedCourseIds) ids.add(id);
     for (const id of trailLiveCourseIds) ids.add(id);
-    for (const id of liveActivityCatalogRouteIds) ids.add(id);
-    for (const id of openTrailCatalogRouteIds) ids.add(id);
+    for (const id of liveActivityCourseIds) ids.add(id);
+    for (const id of openTrailCourseIds) ids.add(id);
     return [...ids];
   }, [
     publishedPublicRoutes,
-    worldHighlightedCatalogRouteIds,
+    worldHighlightedCourseIds,
     trailLiveCourseIds,
-    liveActivityCatalogRouteIds,
-    openTrailCatalogRouteIds,
+    liveActivityCourseIds,
+    openTrailCourseIds,
   ]);
 
   const worldMapActivityEnabled = Boolean(configured && user && pageVisible);
@@ -199,10 +199,10 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     !debugIsolationOn && worldMapActivityEnabled && !shouldDisablePublicationOverlayHooks();
 
   const catalogActivityEnabled = Boolean(
-    worldMapActivityEnabled && catalogRouteIds.length > 0,
+    worldMapActivityEnabled && catalogCourseIds.length > 0,
   );
 
-  /** publication 모드: routeActivity N×getDoc·geometry OFF — 패널·HUD는 publication·worldActivityCatalog */
+  /** publication 모드: courseActivity N×getDoc·geometry OFF — 패널·HUD는 publication·worldActivityCatalog */
   const catalogOverlayEnabled =
     !debugIsolationOn && catalogActivityEnabled && !publicationPresenceWorldMapEnabled;
 
@@ -214,7 +214,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   });
 
   const catalogOverlay = usePublishedCoursesActivityMapOverlay({
-    courseIds: catalogRouteIds,
+    courseIds: catalogCourseIds,
     excludeCourseId: isRideSessionActive ? trackedCatalogRouteId : null,
     mapZoom,
     enabled: catalogOverlayEnabled,
@@ -372,8 +372,8 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   );
 
   const getActivityWorldPinLabel = useCallback(
-    (catalogRouteId: string, kind: "pulse" | "heat") => {
-      const id = catalogRouteId.trim();
+    (courseId: string, kind: "pulse" | "heat") => {
+      const id = courseId.trim();
       if (publicationPresenceWorldMapEnabled && id) {
         const presenceLabel = formatPublicationPresencePinPopup(
           publicationOverlay.presenceByPublicationId.get(id),
@@ -383,7 +383,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       }
       const row =
         id && id === trackedCatalogRouteId?.trim()
-          ? routeActivity
+          ? courseActivity
           : catalogOverlay.activityByCourseId.get(id) ?? null;
       return formatActivityWorldPinPopup(row, kind);
     },
@@ -391,7 +391,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       publicationPresenceWorldMapEnabled,
       publicationOverlay.presenceByPublicationId,
       trackedCatalogRouteId,
-      routeActivity,
+      courseActivity,
       catalogOverlay.activityByCourseId,
     ],
   );
@@ -521,8 +521,8 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
           liveCourseRideLines: liveCourseRideOverlay.pulseRoutes.length,
           liveCourseRideCourses: liveCourseRideOverlay.liveCourseCount,
           liveCourseRideRows: liveCourseRideOverlay.liveRideRowCount,
-          liveActivityCourseIdsCount: liveActivityCatalogRouteIds.length,
-          catalogCourseIdsCount: catalogRouteIds.length,
+          liveActivityCourseIdsCount: liveActivityCourseIds.length,
+          catalogCourseIdsCount: catalogCourseIds.length,
           mapDebugPhase,
         }
       : null;
@@ -534,10 +534,10 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     getActivityWorldPinLabel,
     trailSpectatorDots: spectatorDots,
     trailSpectatorRoutes: spectatorRouteGeometries,
-    routeActivity,
-    reloadRouteActivity,
+    courseActivity,
+    reloadCourseActivity,
     applyRideCompletedOptimistic,
-    routeActivityByCatalogRouteId: catalogOverlay.activityByCourseId,
+    courseActivityByCourseId: catalogOverlay.activityByCourseId,
     worldHudLines,
     publicationPresenceWorldMapEnabled,
     lodDebugPanelProps,

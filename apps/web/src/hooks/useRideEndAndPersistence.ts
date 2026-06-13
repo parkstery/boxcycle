@@ -2,7 +2,7 @@ import type { User } from "firebase/auth";
 import type { Dispatch, MutableRefObject, RefObject, SetStateAction } from "react";
 import { useCallback } from "react";
 import { promoteSavedRouteInFirestore, type SavedRoute } from "../lib/firestoreSavedRoutes";
-import { markRouteActivityRideCompletedOptimistic } from "../lib/firestoreRouteActivity";
+import { markCourseActivityRideCompletedOptimistic } from "../lib/firestoreCourseActivity";
 import { saveRideSessionToFirestore } from "../lib/firestoreRides";
 import type { LineStringGeometry, LngLat } from "../lib/geo";
 import { formatLngLat } from "../lib/geo";
@@ -245,7 +245,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
           onRidePersistedToFirestore?.(persistedCatalogRouteId);
           const catalogRouteIdBeforeAsync = catalogRouteIdRef?.current?.trim() || null;
           if (persistedCatalogRouteId && persistedCatalogRouteId !== catalogRouteIdBeforeAsync) {
-            markRouteActivityRideCompletedOptimistic(persistedCatalogRouteId);
+            markCourseActivityRideCompletedOptimistic(persistedCatalogRouteId);
             onRideEnded?.(persistedCatalogRouteId);
           }
           if (savedRouteIdAtEnd && !savedRouteIdAtEnd.startsWith("local-")) {
@@ -357,7 +357,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
 
     const catalogRouteIdAtEnd = catalogRouteIdRef?.current?.trim() || null;
     if (catalogRouteIdAtEnd) {
-      markRouteActivityRideCompletedOptimistic(catalogRouteIdAtEnd);
+      markCourseActivityRideCompletedOptimistic(catalogRouteIdAtEnd);
       onRideEnded?.(catalogRouteIdAtEnd);
     }
 

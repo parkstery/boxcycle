@@ -1,6 +1,5 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { distanceMidpointLngLat, type LngLat } from "./routeGeometryMidpoint.js";
-import { LEGACY_COURSES_COLLECTION, ROUTE_CATALOG_COLLECTION } from "./firestoreCollections.js";
 
 export const PUBLICATION_PRESENCE_COLLECTION = "publicationPresence";
 
@@ -67,12 +66,9 @@ async function loadGeometrySource(
     return { routeId, data };
   }
 
-  let catalogSnap = await db.doc(`${ROUTE_CATALOG_COLLECTION}/${id}`).get();
-  if (!catalogSnap.exists) {
-    catalogSnap = await db.doc(`${LEGACY_COURSES_COLLECTION}/${id}`).get();
-  }
-  if (catalogSnap.exists) {
-    const data = catalogSnap.data() as Record<string, unknown>;
+  const courseSnap = await db.doc(`courses/${id}`).get();
+  if (courseSnap.exists) {
+    const data = courseSnap.data() as Record<string, unknown>;
     const routeId =
       typeof data.sourceSavedRouteId === "string" ? data.sourceSavedRouteId.trim() : null;
     return { routeId, data };
@@ -94,14 +90,11 @@ export async function resolvePublicationVisibility(publicationId: string): Promi
     return "private";
   }
 
-  let catalogSnap = await db.doc(`${ROUTE_CATALOG_COLLECTION}/${id}`).get();
-  if (!catalogSnap.exists) {
-    catalogSnap = await db.doc(`${LEGACY_COURSES_COLLECTION}/${id}`).get();
-  }
-  if (catalogSnap.exists) {
-    const vis = catalogSnap.get("visibility");
+  const courseSnap = await db.doc(`courses/${id}`).get();
+  if (courseSnap.exists) {
+    const vis = courseSnap.get("visibility");
     if (vis === "public") return "public";
-    const category = catalogSnap.get("category");
+    const category = courseSnap.get("category");
     if (category === "basic" || category === "public" || category === "recommended") {
       return "public";
     }
@@ -227,7 +220,7 @@ export async function reconcilePublicationPresenceFromLiveRides(): Promise<void>
   const LIVE_RIDE_FRESH_MS = 180_000;
   const byPublication = new Map<string, number>();
 
-  const liveSnap = await db.collectionGroup("liveRouteRides").get();
+  const liveSnap = await db.collectionGroup("liveCourseRides").get();
   for (const doc of liveSnap.docs) {
     const data = doc.data();
     const seenRaw = data.lastSeenAt;

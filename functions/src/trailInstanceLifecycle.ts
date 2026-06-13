@@ -4,9 +4,7 @@ import { OPEN_TRAIL_LISTINGS_COLLECTION } from "./openTrailListingCore.js";
 
 const TRAILS_COLLECTION = "trails";
 const MEMBERS_SUB = "members";
-import { LIVE_ROUTE_RIDES_SUBCOLLECTION } from "./firestoreCollections.js";
-
-const LIVE_SUB = LIVE_ROUTE_RIDES_SUBCOLLECTION;
+const LIVE_SUB = "liveCourseRides";
 
 /** UI 목록에서 사라진 뒤 DB에 남기는 기간 */
 const CLOSED_TO_ARCHIVED_MS = 24 * 60 * 60 * 1000;

@@ -7,10 +7,10 @@ import {
 import { boundsCenterLngLat, boundsFromLineStringGeometry } from "../lib/firestoreCourses";
 import {
   heatVisualWeight,
-  isRouteActivityHeat,
-  isRouteActivityLive,
-  type RouteActivitySnapshot,
-} from "../lib/firestoreRouteActivity";
+  isCourseActivityHeat,
+  isCourseActivityLive,
+  type CourseActivitySnapshot,
+} from "../lib/firestoreCourseActivity";
 import type { LineStringGeometry } from "../lib/geo";
 import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../lib/geoDecimate";
 
@@ -29,7 +29,7 @@ const EMPTY: CourseActivityMapOverlay = {
 };
 
 type UseCourseActivityMapOverlayOpts = {
-  activity: RouteActivitySnapshot | null;
+  activity: CourseActivitySnapshot | null;
   routeGeometry: LineStringGeometry | null;
   mapZoom: number;
 };
@@ -59,10 +59,10 @@ export function useCourseActivityMapOverlay(
 
     const heatStrength = resolveHeatTraceStrength(activity.updatedAtMs);
 
-    const pulseDots: ActivityWorldMapDot[] = isRouteActivityLive(activity)
+    const pulseDots: ActivityWorldMapDot[] = isCourseActivityLive(activity)
       ? [
           {
-            courseId: activity.catalogRouteId,
+            courseId: activity.courseId,
             lngLat,
             pulseLevel: activity.pulseLevel > 0 ? activity.pulseLevel : 1,
             kind: "pulse",
@@ -72,10 +72,10 @@ export function useCourseActivityMapOverlay(
       : [];
 
     const heatDots: ActivityWorldMapDot[] =
-      isRouteActivityHeat(activity)
+      isCourseActivityHeat(activity)
         ? [
             {
-              courseId: activity.catalogRouteId,
+              courseId: activity.courseId,
               lngLat,
               pulseLevel: heatVisualWeight(activity.recentRideCount7d),
               kind: "heat",
@@ -92,20 +92,20 @@ export function useCourseActivityMapOverlay(
     const maxV = maxLineStringVerticesForMapZoom(mapZoom);
     const geom = decimateLineStringVertices(routeGeometry!, maxV);
 
-    const pulseRoutes: ActivityWorldMapRoute[] = isRouteActivityLive(activity)
+    const pulseRoutes: ActivityWorldMapRoute[] = isCourseActivityLive(activity)
       ? [
           {
-            courseId: activity.catalogRouteId,
+            courseId: activity.courseId,
             geometry: geom,
             kind: "pulse",
             traceStrength: ACTIVITY_TRACE_LIVE_STRENGTH,
           },
         ]
       : [];
-    const heatRoutes: ActivityWorldMapRoute[] = isRouteActivityHeat(activity)
+    const heatRoutes: ActivityWorldMapRoute[] = isCourseActivityHeat(activity)
       ? [
           {
-            courseId: activity.catalogRouteId,
+            courseId: activity.courseId,
             geometry: geom,
             kind: "heat",
             traceStrength: heatStrength,

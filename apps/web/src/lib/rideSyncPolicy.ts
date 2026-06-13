@@ -68,10 +68,7 @@ export {
 export const WORLD_PRESENCE_POLL_MS = 90_000;
 
 /** 코스 activity aggregate 폴링 — `courseActivity/{courseId}` 1문서 */
-export const ROUTE_ACTIVITY_POLL_MS = 90_000;
-
-/** @deprecated `ROUTE_ACTIVITY_POLL_MS` */
-export const COURSE_ACTIVITY_POLL_MS = ROUTE_ACTIVITY_POLL_MS;
+export const COURSE_ACTIVITY_POLL_MS = 90_000;
 
 export function roundLngLatForLiveShare(lngLat: LngLat, decimals = LIVE_SHARE_COORD_DECIMALS): LngLat {
   const f = 10 ** decimals;

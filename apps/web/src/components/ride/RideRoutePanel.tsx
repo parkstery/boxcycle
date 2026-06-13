@@ -3,8 +3,8 @@ import type { User } from "firebase/auth";
 import type { RouteProfile } from "../../services/mapboxDirections";
 import { formatDuration } from "../../services/mapboxDirections";
 import type { PublishedPublicRouteSummary, RouteCatalogProfile } from "../../lib/firestoreRouteCatalog";
-import type { RouteActivitySnapshot } from "../../lib/firestoreRouteActivity";
-import { formatRouteActivityListBadge } from "../../lib/firestoreRouteActivity";
+import type { CourseActivitySnapshot } from "../../lib/firestoreCourseActivity";
+import { formatCourseActivityListBadge } from "../../lib/firestoreCourseActivity";
 import type { BleCrankRpmUiState } from "../../hooks/useBleCrankRpm";
 import type { RideSessionStatus } from "../../hooks/useVirtualRideSession";
 import type { SavedRoute } from "../../lib/firestoreSavedRoutes";
@@ -32,8 +32,10 @@ type RideRoutePanelProps = {
   routeSummary: string;
   routeLoading: boolean;
   onGenerateRoute: () => void;
-  /** 공식 경로를 불러온 뒤에는 출발·도착 맞춤 「경로 생성」을 막음 */
+  /** 공식 코스를 불러온 뒤에는 출발·도착 맞춤 「경로 생성」을 막음 */
   officialRouteActive?: boolean;
+  /** @deprecated use officialRouteActive */
+  officialCourseActive?: boolean;
   hasRoute: boolean;
   /** 경로가 준비되었을 때 메뉴·맵 FAB 공통 */
   canStartRide: boolean;
@@ -45,18 +47,18 @@ type RideRoutePanelProps = {
   basicActiveHubRouteId: string | null;
   basicStartLoading: boolean;
   basicStartHubJoined: boolean;
-  /** Firestore 사용 시 퍼블릭 경로 목록 조회 가능 */
+  /** Firestore 사용 시 퍼블릭 코스 목록 조회 가능 */
   officialRouteCatalogAvailable: boolean;
   publishedPublicRoutes: PublishedPublicRouteSummary[];
   publishedPublicRoutesLoading: boolean;
   publishedPublicRoutesError: string | null;
   onRefreshPublishedPublicRoutes?: () => void;
-  /** 카탈로그 경로별 routeActivity aggregate(메뉴·카탈로그 로드 후) */
-  routeActivityByCatalogRouteId?: ReadonlyMap<string, RouteActivitySnapshot | null>;
+  /** 코스별 activity aggregate(메뉴·카탈로그 로드 후) */
+  courseActivityByCourseId?: ReadonlyMap<string, CourseActivitySnapshot | null>;
   authGuest: boolean;
   /** Firebase Auth 세션(게스트·Google 포함) */
   signedIn: boolean;
-  onEnterBasicHub: (catalogRouteId: string) => void;
+  onEnterBasicHub: (courseId: string) => void;
   onLeaveBasicHub: () => void;
   /** 사용자 경로 관련 (= 기존 「저장된 경로」 라벨 변경) */
   savedRoutes: SavedRoute[];
@@ -83,9 +85,9 @@ type RideRoutePanelProps = {
   /** Route Token 잔액(null=로딩 전) */
   routeTokenBalance?: number | null;
   routeTokenLoading?: boolean;
-  /** 퍼블릭 경로로 이미 등록된 원본 savedRouteId */
+  /** 퍼블릭 코스로 이미 등록된 원본 savedRouteId */
   publishedPublicSavedRouteIds?: ReadonlySet<string>;
-  /** 퍼블릭 게시 경로와 동일한 경로 지문(DB 조회) */
+  /** 퍼블릭 게시 코스와 동일한 경로 지문(DB 조회) */
   publishedPublicRouteFingerprints?: ReadonlySet<string>;
   onOpenPublicRequest?: (route: SavedRoute) => void;
   /** 코칭 TTS(Web Speech) */
@@ -114,7 +116,7 @@ type RideRoutePanelProps = {
 
 type Tab = "route" | "saved" | "publicReview";
 
-type OfficialRouteSegment = "intro" | "public" | "event";
+type OfficialCourseSegment = "intro" | "public" | "event";
 
 function profileLabelKo(p: RouteProfile | RouteCatalogProfile): string {
   if (p === "walking") return "도보";
@@ -122,8 +124,8 @@ function profileLabelKo(p: RouteProfile | RouteCatalogProfile): string {
   return "자전거";
 }
 
-/** 입문·퍼블릭 경로 한 줄 — 카드 전체 탭으로 불러오기 */
-function PublicRoutePickRow(props: {
+/** 입문·퍼블릭 코스 한 줄 — 카드 전체 탭으로 불러오기 */
+function PublicCoursePickRow(props: {
   route: PublishedPublicRouteSummary;
   selected: boolean;
   loadDisabled: boolean;
@@ -169,9 +171,9 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
   const [adhocSaveDraft, setAdhocSaveDraft] = useState("");
   const [adhocSaveBusy, setAdhocSaveBusy] = useState(false);
   const [adhocSaveError, setAdhocSaveError] = useState<string | null>(null);
-  const [officialSegment, setOfficialSegment] = useState<OfficialRouteSegment>("intro");
+  const [officialSegment, setOfficialSegment] = useState<OfficialCourseSegment>("intro");
 
-  /** 주행 중에도 MENU(경로·속도·시작)는 사용 가능 — 맵 핀 편집만 App 쪽에서 별도 잠금 */
+  /** 주행 중에도 MENU(경로·코스·속도·시작)는 사용 가능 — 맵 핀 편집만 App 쪽에서 별도 잠금 */
   const routeLocksAsIdle = true;
 
   useEffect(() => {
@@ -414,15 +416,15 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                 ) : (
                   <ul className="ride-panel__public-courses-list">
                     {props.basicSharedHubs.map((c) => (
-                      <PublicRoutePickRow
+                      <PublicCoursePickRow
                         key={c.id}
                         route={c}
                         selected={props.basicActiveHubRouteId === c.id}
                         loadDisabled={
                           props.routeLoading || props.basicStartLoading || !routeLocksAsIdle
                         }
-                        activityBadge={formatRouteActivityListBadge(
-                          props.routeActivityByCatalogRouteId?.get(c.id) ?? null,
+                        activityBadge={formatCourseActivityListBadge(
+                          props.courseActivityByCourseId?.get(c.id) ?? null,
                         )}
                         onLoad={() => props.onEnterBasicHub(c.id)}
                       />
@@ -463,15 +465,15 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                 ) : (
                   <ul className="ride-panel__public-courses-list">
                     {props.publishedPublicRoutes.map((c) => (
-                      <PublicRoutePickRow
+                      <PublicCoursePickRow
                         key={c.id}
                         route={c}
                         selected={props.basicActiveHubRouteId === c.id}
                         loadDisabled={
                           props.routeLoading || props.basicStartLoading || !routeLocksAsIdle
                         }
-                        activityBadge={formatRouteActivityListBadge(
-                          props.routeActivityByCatalogRouteId?.get(c.id) ?? null,
+                        activityBadge={formatCourseActivityListBadge(
+                          props.courseActivityByCourseId?.get(c.id) ?? null,
                         )}
                         onLoad={() => props.onEnterBasicHub(c.id)}
                       />
@@ -550,11 +552,11 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               className="ride-panel__btn-primary"
               disabled={
                 props.routeLoading ||
-                Boolean(props.officialRouteActive) ||
+                Boolean(props.officialRouteActive ?? props.officialCourseActive) ||
                 (props.routeTokenBalance != null && props.routeTokenBalance < 1)
               }
               title={
-                props.officialRouteActive
+                (props.officialRouteActive ?? props.officialCourseActive)
                   ? "Official route loaded — change pins on map to build a custom route."
                   : props.routeTokenBalance != null && props.routeTokenBalance < 1
                     ? "경로 토큰이 부족합니다. 주행을 완료하면 토큰을 받을 수 있습니다."

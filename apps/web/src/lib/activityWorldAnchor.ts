@@ -1,11 +1,11 @@
-import type { RouteActivitySnapshot } from "./firestoreRouteActivity";
+import type { CourseActivitySnapshot } from "./firestoreCourseActivity";
 import { boundsCenterLngLat, boundsFromLineStringGeometry } from "./firestoreCourses";
 import type { LineStringGeometry, LngLat } from "./geo";
 import { getPointOnRouteByDistance, lineStringLengthMeters } from "./geo";
 
-/** routeActivity 앵커·bounds 없을 때 geometry(+진행률)로 DOT 좌표 보충 */
+/** courseActivity 앵커·bounds 없을 때 geometry(+진행률)로 DOT 좌표 보충 */
 export function resolveActivityWorldDotLngLat(
-  row: RouteActivitySnapshot,
+  row: CourseActivitySnapshot,
   geometry: LineStringGeometry | null | undefined,
 ): LngLat | null {
   if (row.liveAnchorLngLat) return row.liveAnchorLngLat;

@@ -1,12 +1,7 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { liveAnchorFromCourseData } from "./courseGeometryAnchor.js";
-import {
-  LEGACY_COURSES_COLLECTION,
-  ROUTE_ACTIVITY_COLLECTION,
-  ROUTE_CATALOG_COLLECTION,
-} from "./firestoreCollections.js";
 
-export const COURSE_ACTIVITY_COLLECTION = ROUTE_ACTIVITY_COLLECTION;
+export const COURSE_ACTIVITY_COLLECTION = "courseActivity";
 export const WORLD_ACTIVITY_COLLECTION = "worldActivity";
 export const WORLD_GLOBAL_ID = "global";
 
@@ -116,11 +111,7 @@ export async function touchCourseLiveProgressWithAnchor(
     updatedAt: FieldValue.serverTimestamp(),
   };
 
-  const routeCatalogRef = db.doc(`${ROUTE_CATALOG_COLLECTION}/${id}`);
-  let courseSnap = await routeCatalogRef.get();
-  if (!courseSnap.exists) {
-    courseSnap = await db.doc(`${LEGACY_COURSES_COLLECTION}/${id}`).get();
-  }
+  const courseSnap = await db.doc(`courses/${id}`).get();
   if (courseSnap.exists) {
     const anchor = liveAnchorFromCourseData(
       courseSnap.data() as Record<string, unknown>,

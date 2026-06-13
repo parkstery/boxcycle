@@ -1,9 +1,7 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 
-import { ROUTE_ACTIVITY_COLLECTION } from "./firestoreCollections.js";
-
-const COURSE_ACTIVITY = ROUTE_ACTIVITY_COLLECTION;
+const COURSE_ACTIVITY = "courseActivity";
 const WORLD_ACTIVITY = "worldActivity";
 const WORLD_GLOBAL_ID = "global";
 

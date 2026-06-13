@@ -15,10 +15,6 @@ import type { User } from "firebase/auth";
 import { getPresenceDisplayName, getPresenceMemberType, type PresenceMemberType } from "./authDisplay";
 import { getFirebaseApp } from "./firebase";
 import type { LngLat } from "./geo";
-import {
-  ROUTE_PRESENCE_COLLECTION,
-  ROUTE_PRESENCE_MEMBERS_SUBCOLLECTION,
-} from "./firestoreCollections";
 import { isMemberRecentlySeen, lastSeenAtToMillis } from "./firestoreTrail";
 
 export type CourseMemberRow = {
@@ -37,7 +33,7 @@ export const COURSE_LIVE_SHARE_INTERVAL_MS = 2000;
 
 function membersCollectionRef(courseId: string) {
   const db = getFirestore(getFirebaseApp());
-  return collection(db, ROUTE_PRESENCE_COLLECTION, courseId, ROUTE_PRESENCE_MEMBERS_SUBCOLLECTION);
+  return collection(db, "coursePresence", courseId, "members");
 }
 
 function parseLiveLngLat(data: Record<string, unknown>): LngLat | null {
@@ -55,7 +51,7 @@ function parseLiveLngLat(data: Record<string, unknown>): LngLat | null {
 
 export async function upsertCoursePresence(user: User, courseId: string): Promise<void> {
   const db = getFirestore(getFirebaseApp());
-  const ref = doc(db, ROUTE_PRESENCE_COLLECTION, courseId, ROUTE_PRESENCE_MEMBERS_SUBCOLLECTION, user.uid);
+  const ref = doc(db, "coursePresence", courseId, "members", user.uid);
   await setDoc(
     ref,
     {
@@ -79,7 +75,7 @@ export async function mergeCourseMemberLiveLocation(
   lngLat: LngLat | null,
 ): Promise<void> {
   const db = getFirestore(getFirebaseApp());
-  const ref = doc(db, ROUTE_PRESENCE_COLLECTION, courseId, ROUTE_PRESENCE_MEMBERS_SUBCOLLECTION, user.uid);
+  const ref = doc(db, "coursePresence", courseId, "members", user.uid);
   if (lngLat) {
     await setDoc(
       ref,
@@ -111,9 +107,7 @@ export async function mergeCourseMemberLiveLocation(
 
 export async function deleteCoursePresence(uid: string, courseId: string): Promise<void> {
   const db = getFirestore(getFirebaseApp());
-  await deleteDoc(
-    doc(db, ROUTE_PRESENCE_COLLECTION, courseId, ROUTE_PRESENCE_MEMBERS_SUBCOLLECTION, uid),
-  );
+  await deleteDoc(doc(db, "coursePresence", courseId, "members", uid));
 }
 
 export function subscribeCourseMembers(

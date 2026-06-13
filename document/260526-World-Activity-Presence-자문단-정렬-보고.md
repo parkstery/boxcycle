@@ -5,7 +5,7 @@
 | 문서 유형 | **product** + **architecture** — 자문 검토·문서 대비 코드 갭·정렬 로드맵 |
 | 작성일 | 2026-05-26 |
 | 상태 | **반영 중** — P0·P0-B 맵·구독 경계 (2026-05-26) |
-| 연결 문서 | [World Activity Presence 설계](260523-World-Activity-Presence-설계.md), [Activity World LOD](260517-Activity-World-지도-LOD-설계.md), [Firestore 트래픽 계획](260516-Firestore-트래픽-저감-상세-수정-계획.md), [Map 표현계층 디버그 Phase A–E](260527-Map-표현계층-디버그-Phase-AE.md) |
+| 연결 문서 | [World Activity Presence 설계](260523-World-Activity-Presence-설계.md), [Activity World LOD](260517-Activity-World-지도-LOD-설계.md), [Firestore 트래픽 계획](260516-Firestore-트래픽-저감-상세-수정-계획.md) |
 
 ---
 

@@ -8,9 +8,7 @@ import {
 export const TRAILS_COLLECTION = "trails";
 export const OPEN_TRAIL_LISTINGS_COLLECTION = "openTrailListings";
 const MEMBERS_SUB = "members";
-import { LIVE_ROUTE_RIDES_SUBCOLLECTION } from "./firestoreCollections.js";
-
-const LIVE_SUB = LIVE_ROUTE_RIDES_SUBCOLLECTION;
+const LIVE_SUB = "liveCourseRides";
 
 /** 클라이언트 `TRAIL_PRESENCE_STALE_MS` 와 동일 */
 export const TRAIL_PRESENCE_STALE_MS = 240_000;

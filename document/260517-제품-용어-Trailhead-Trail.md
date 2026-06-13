@@ -47,9 +47,9 @@
 
 ## 1-b. 시청·지도 (living world, 2026-05-19)
 
-| 위치 | 실시간 위치 (`liveRouteRides`) | 활동 인지 (`routeActivity` / Activity World) |
+| 위치 | 실시간 위치 (`liveCourseRides`) | 활동 인지 (`courseActivity` / Activity World) |
 |------|--------------------------------|-----------------------------------------------|
-| **내 Trail** (`trailId !== default`) | **같은 Trail** 주행자만 | 전역(경로 단위) |
+| **내 Trail** (`trailId !== default`) | **같은 Trail** 주행자만 | 전역(코스 단위) |
 | **Trailhead** (`default`) | 구독 안 함 | 전역 |
 | **다른 Trail** | 구독 안 함 | 전역 — “지금 N명” 등 aggregate |
 
@@ -59,15 +59,15 @@
 
 로그인·Trailhead 세션이 켜진 사용자는 **항상 정확히 하나의 `trailId`** 에 속한다. UI에서 Trailhead 버튼·기본 진입 = **`default`**.
 
-| 시청자가 있는 Trail (예) | Activity World (`routeActivity`) | 같은 Trail 관전 (`liveRouteRides`) |
+| 시청자가 있는 Trail (예) | Activity World (`courseActivity`) | 같은 Trail 관전 (`liveCourseRides`) |
 |--------------------------|-----------------------------------|-------------------------------------|
 | **Trailhead** (`default`) | **전역** — 다른 Trail에 있어도 동일 aggregate | **`default` 에 있는 주행자만** |
 | **Trail 3** | **전역** — 위와 동일 | **`3` 에 있는 주행자만** |
 
 **표현 정리 (회의·문서):**
 
-- 「**다른 Trail**의 realtime」→ `trailId` 가 다를 때만 `liveRouteRides` 구독·표시 (Trailhead↔Trail 3 포함).
-- 「**다른 Trail**의 aggregate」라고 부르면 **Activity World(`routeActivity`)와 혼동**하기 쉽다. 후자는 Trail **무관**·경로 단위 전역 집계이며, Trailhead에서 보나 Trail 3에서 보나 **같은 문서**를 읽는다.
+- 「**다른 Trail**의 realtime」→ `trailId` 가 다를 때만 `liveCourseRides` 구독·표시 (Trailhead↔Trail 3 포함).
+- 「**다른 Trail**의 aggregate」라고 부르면 **Activity World(`courseActivity`)와 혼동**하기 쉽다. 후자는 Trail **무관**·코스 단위 전역 집계이며, Trailhead에서 보나 Trail 3에서 보나 **같은 문서**를 읽는다.
 - 올바른 구분: *「**어느 Trail에 서서**(Trailhead 포함) **전역 Activity World**를 본다」* vs *「**같은 Trail 안**에서만 빨간 관전 점을 본다」*.
 
 구현: `App` 의 `trailId` · `trailheadSessionActive` — Trailhead도 `sanitizeTrailId` 결과가 `default` 이면 하나의 Trail로 취급한다.
@@ -83,7 +83,7 @@
 | **사용자 UI·HUD·MENU** | Trailhead | Trail 3, Trail 이동 | 우선 적용 대상 |
 | **한국어 카피** | 트레일헤드(또는 Trailhead 유지) | 트레일 N / Trail N | 짧은 라벨은 영문 Trail 권장 |
 | **URL 쿼리 (현행)** | — | `?trail=` (기본 기록) · `?room=` 하위 호환 | 라벨 Trail, 읽기 시 `trail` 우선 |
-| **Firestore 경로 (현행)** | (개념만) | `trails/{trailId}/members`, `trails/{trailId}/liveRouteRides` | `rooms/`·`liveCourseRides` 는 마이그레이션 후 read-only |
+| **Firestore 경로 (현행)** | (개념만) | `trails/{trailId}/members`, `trails/{trailId}/liveCourseRides` | `rooms/` 는 마이그레이션 후 read-only |
 | **코드 식별자 (현행)** | `lobbySessionActive`, `useLobbyRoomSession` | `roomId`, `sanitizeRoomId` | 주석·타입명은 Trailhead/Trail **별칭** 병기 후 점진 rename |
 | **내부 기술 (유지)** | — | `rideSession`, `rideSessionId` (도입 시) | 사용자에게 "Session" 노출은 지양(길고 게임 Session과 혼동) |
 
@@ -94,8 +94,8 @@
 | 기능 | 제품 용어 | Firestore / 코드 (현행) |
 |------|-----------|-------------------------|
 | 로그인 후 presence·하트비트 | Trailhead에서 **활성 Trail** 참가 | `trails/{trailId}/members/{uid}` |
-| 같은 Trail 주행 진행률·관전 점 | **Trail** 위 주행/관전 | `trails/{trailId}/liveRouteRides/{uid}` |
-| 입문 허브 동행 마커 | **입문 경로** 동행 (Trail과 별도) | `routePresence/{routeId}/members` |
+| 같은 Trail 주행 진행률·관전 점 | **Trail** 위 주행/관전 | `trails/{trailId}/liveCourseRides/{uid}` |
+| 입문 허브 동행 마커 | **코스** 동행 (Trail과 별도) | `coursePresence/{courseId}/members` |
 | Trail 합류 | **열린 Trail** 목록 탭 | `TrailHubPanel` · `fetchOpenTrailInstances` |
 | 주행 시작 | **Trail 자동 개설** (기본 open) | `createTrailInstance` · ▶ |
 | Trail 공개 전환 | 호스트만 Open/Private | `setTrailVisibility` |
@@ -171,7 +171,6 @@
 | 2026-05-17 | §2 시청 컨텍스트 — 「어느 Trail」에 Trailhead(`default`) 포함, Activity World vs 관전 구분 |
 | 2026-05-19 | §1 Trailhead=허브·▶ 자동 Trail·3자리 displayNumber·§1-b living world 분리·TrailHubPanel |
 | 2026-06-03 | RTW Pro 브랜드·Route 단일 엔티티(Course 배제) — §0·§1 갱신 |
-| 2026-06-03 | P4 Firestore 경로 — `routeCatalog`·`routeActivity`·`routePresence`·`liveRouteRides`; Obsidian 용어집 링크 |
 
 ---
 
@@ -184,27 +183,11 @@
 | 운영·카탈로그 | 공식 경로, 입문 경로, 퍼블릭 경로 | Official / Intro / Public Route |
 | 지양 | (엔티티로) 코스, Course | Course |
 
-| Firestore (현행) | 레거시 (read-only) |
-|------------------|-------------------|
-| `routeCatalog/{id}` | `courses/{id}` |
-| `routeActivity/{id}` | `courseActivity/{id}` |
-| `routePresence/{routeId}/members` | `coursePresence/...` |
+Firestore `courses`·`courseId`·`courseActivity` = **legacy** (rename 예정).
 
-필드: `catalogRouteId` (신규) ↔ `courseId` (레거시, `rides`·`routePublications` dual-write).
+### 9. `rooms` → `trails` 배포 순서
 
-**Obsidian 용어집:** [260603-RTW-Pro-앱-용어집-Obsidian](260603-RTW-Pro-앱-용어집-Obsidian.md)
-
-### 9. Firestore 마이그레이션 배포 순서
-
-**P4 — Route 경로**
-
-1. `firebase deploy --only firestore` (rules·indexes)  
-2. `npm run admin:migrate-route-catalog-paths -- --dry-run` → 본 실행  
-3. `firebase deploy --only functions,hosting`  
-4. 스모크: 입문·퍼블릭 **경로** 로드, `routeActivity`, Trail `liveRouteRides`
-
-**rooms → trails** (잔존 시)
-
-1. `npm run deploy:firestore`  
-2. `npm run admin:migrate-rooms-to-trails` (대상 서브컬렉션: `liveRouteRides`)  
-3. hosting·functions 배포  
+1. `npm run deploy:firestore` — `trails` write·`rooms` read-only 규칙 반영  
+2. `npm run admin:migrate-rooms-to-trails -- --dry-run` 후 본 실행  
+3. `npm run deploy:app` — 웹(`trails` 경로)·Functions(`courseActivityOnLiveCourseRideWritten`)  
+4. 스모크: Trail 전환·동행·관전·`courseActivity` 갱신 확인  

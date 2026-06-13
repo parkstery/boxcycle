@@ -77,7 +77,7 @@
 
 | 레이어 | 규모 감 | 비고 |
 |--------|---------|------|
-| Firestore | ~~`courses` 등~~ → **`routeCatalog`**, `routeActivity`, `routePresence`, `liveRouteRides` (P4 반영) | 레거시 컬렉션 read-only·마이그레이션 CLI |
+| Firestore | `courses`, `courseActivity`, `coursePresence`, `liveCourseRides` | path rename은 최후 |
 | `apps/web` | `firestoreCourses`, `courseId`, `useOfficialCoursesHub` 등 | alias 단계 |
 | Functions | `courseActivityOn*` | 트리거 경로 의존 |
 | 문서 SoT | 코스 수명, Phase 체크리스트 제목 | 제목·본문 점진 |
@@ -106,7 +106,7 @@
 | P0-1 | 본 문서 팀 합의 | ✅ | ✅ |
 | P0-2 | [제품 용어](260517-제품-용어-Trailhead-Trail.md) § “Route 단일·브랜드” 추가 | ✅ | ✅ |
 | P0-3 | [RTW 마스터](260511-RTW-마스터-비전-및-종합계획.md) §0 명칭·§7 Q1 결론·§2.1 Route/Trail/Presence | ✅ | ✅ |
-| P0-4 | Obsidian / 용어집 — Route + RTW Pro 판 | ✅ | ✅ — [앱 용어집 Obsidian](260603-RTW-Pro-앱-용어집-Obsidian.md) |
+| P0-4 | Obsidian / 용어집 — Route + RTW Pro 판 | ✅ | ✅ |
 | P0-5 | `.cursor/rules` 초안: `domain: Route only`; `product: RTW Pro`; `alias: BOXCYCLE internal` | ✅ | ✅ |
 
 **완료 기준:** 신규 PR·Cursor 지시에 course(도메인)·BOXCYCLE(사용자-facing) 0건.
@@ -244,12 +244,3 @@ flowchart LR
 | 2026-06-03 | 최초 작성 — 자문 Route 통일 + RTW Pro 공식명·BOXCYCLE alias 퇴출 통합 방안 |
 | 2026-06-03 | **P0·P1 반영** — RTW 마스터·제품 용어·Route-Publication·README, UI RTW Pro, RideRoutePanel 경로 카피, `.cursor/rules/domain-terminology-rtw-pro.mdc` |
 | 2026-06-03 | **P2·P3 반영** — `firestoreRouteCatalog`, `useOfficialRouteCatalog`, `rides.catalogRouteId` dual-write, `routePublications.catalogRouteId`, App·RideRoutePanel·overlay 표면 rename |
-| 2026-06-03 | **P4 반영** — `firestoreCollections`, `routeCatalog`/`routeActivity`/`routePresence`/`liveRouteRides`, rules·indexes, CF 트리거 경로, `admin:migrate-route-catalog-paths` |
-| 2026-06-03 | **Obsidian 용어집** — [260603-RTW-Pro-앱-용어집-Obsidian](260603-RTW-Pro-앱-용어집-Obsidian.md) (앱 UI·Firestore·금지어 통합) |
-
-### P4 배포 순서
-
-1. `firebase deploy --only firestore` (rules + indexes)
-2. `npm run admin:migrate-route-catalog-paths -- --dry-run` → 본 실행
-3. `firebase deploy --only functions,hosting`
-4. (선택) `npm run admin:migrate-rooms-to-trails` — 아직 `rooms/` 잔존 시, 대상은 `trails/*/liveRouteRides`
