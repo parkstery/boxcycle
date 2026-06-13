@@ -189,7 +189,7 @@ export function MapHud(props: MapHudProps) {
               title="Route menu"
             >
               <span className="hud-brand__dot" aria-hidden />
-              RTW Pro
+              BOXCYCLE
             </button>
             {worldActivityHint ? (
               <p className="hud-world-hint" role="status">

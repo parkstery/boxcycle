@@ -1,24 +1,11 @@
-# RTW Pro 제품 용어 — Trailhead · Trail · Route
+# BOXCYCLE 제품 용어 — Trailhead · Trail
 
 | 항목 | 내용 |
 |------|------|
 | 문서 유형 | **제품·범위** (`product`) — 용어·브랜딩의 **단일 진실(source of truth)** |
 | 작성일 | 2026-05-17 |
 | 상태 | **채택** — UI·카피·신규 문서는 본 문서를 따른다. 코드·Firestore 경로는 단계적 반영 |
-| 연결 | [Route·RTW Pro 전환](260603-Route-용어-및-RTW-Pro-브랜딩-통합-전환-방안.md), [RTW 마스터](260511-RTW-마스터-비전-및-종합계획.md), [주행 여정·패널 IA](260515-ux-주행-여정-및-패널-IA.md), [Firestore 스키마 초안](260509-Firestore-컬렉션-스키마-초안.md) |
-
-> 파일명·일부 문서 제목의 `BOXCYCLE` 은 **개발 별칭(레거시)** 이다. 사용자 노출·신규 카피는 **RTW Pro** 를 쓴다.
-
----
-
-## 0. 브랜드·제품군 (2026-06-03)
-
-| 명칭 | 용도 |
-|------|------|
-| **RTW Pro** | 본 앱 공식명 (`apps/web`) — UI·스토어·문서 |
-| **Ride The World (RTW)** | 제품군·비전 |
-| **RTW Free** | 별 트랙(미완) — 본 저장소 비범위 |
-| **BOXCYCLE** | repo slug·`boxcycle-web`·Firebase project — **엔지니어링 별칭만** |
+| 연결 | [주행 여정·패널 IA](260515-ux-주행-여정-및-패널-IA.md), [Firestore 스키마 초안](260509-Firestore-컬렉션-스키마-초안.md), [로비·코스주행자 맵관전](260514-(cycle)로비_코스주행자_맵관전_구현_보고서.md) |
 
 ---
 
@@ -31,13 +18,13 @@
 
 **의도:** Room/Lobby의 MMO·경쟁 톤을 줄이고, “같은 길을 달리는 경험(길동무)”에 맞는 언어를 쓴다.
 
-**Route와 Trail 구분:** **Route** = 지도에 그려진 **설계도**(정적). **Trail** = 그 위에서 **지금 함께 도는 판**. UI에서는 `○○ Official Route · Trail 3` / `○○ 공식 경로 · Trail 3` 처럼 병기한다. 신규 문서·코드에서 domain **Course 금지** — [전환 방안](260603-Route-용어-및-RTW-Pro-브랜딩-통합-전환-방안.md).
+**코스(course)와 구분:** 코스·경로 = 지도에 그려진 **설계도**. Trail = 그 위에서 **지금 함께 도는 세션**. UI에서는 가능하면 `○○ 코스 · Trail 3`처럼 병기한다.
 
-**Trailhead (2026-05-19 갱신):** Trailhead는 **Route·활동 허브 UI**이며, Firestore `trails/default` 는 **presence 허브**로만 쓴다. **주행(라이브 Trail)** 은 ▶ 시 `trails/{autoId}` 가 자동 생성된다. 사용자는 “방 만들기”를 하지 않는다.
+**Trailhead (2026-05-19 갱신):** Trailhead는 **코스·활동 허브 UI**이며, Firestore `trails/default` 는 **presence 허브**로만 쓴다. **주행 세션(라이브 인스턴스)** 은 ▶ 시 `trails/{autoId}` 가 자동 생성된다. 사용자는 “방 만들기”를 하지 않는다.
 
 | 개념 | Firestore | UI |
 |------|-----------|-----|
-| Trailhead | `trailId=default` (문서 없음·멤버만) | MENU TrailHub, 경로 선택 |
+| Trailhead | `trailId=default` (문서 없음·멤버만) | MENU TrailHub, 코스 선택 |
 | Trail (라이브 판) | `trails/{id}` 메타 + members + liveCourseRides | `Trail 035` (3자리 `displayNumber`) |
 | Ride 기록 | `rides.roomId` = Trail ID | 주행 종료 후 Trailhead 복귀 |
 
@@ -170,20 +157,6 @@
 | 2026-05-17 | [Activity World 지도 LOD](260517-Activity-World-지도-LOD-설계.md) — 전역 라이브 코스 점/라인 |
 | 2026-05-17 | §2 시청 컨텍스트 — 「어느 Trail」에 Trailhead(`default`) 포함, Activity World vs 관전 구분 |
 | 2026-05-19 | §1 Trailhead=허브·▶ 자동 Trail·3자리 displayNumber·§1-b living world 분리·TrailHubPanel |
-| 2026-06-03 | RTW Pro 브랜드·Route 단일 엔티티(Course 배제) — §0·§1 갱신 |
-
----
-
-## 1-c. Route (경로) — 카피
-
-| 구분 | 한국어 | English |
-|------|--------|---------|
-| 엔티티 | 경로 | Route |
-| 개인 저장 | 내 경로 | My Route |
-| 운영·카탈로그 | 공식 경로, 입문 경로, 퍼블릭 경로 | Official / Intro / Public Route |
-| 지양 | (엔티티로) 코스, Course | Course |
-
-Firestore `courses`·`courseId`·`courseActivity` = **legacy** (rename 예정).
 
 ### 9. `rooms` → `trails` 배포 순서
 

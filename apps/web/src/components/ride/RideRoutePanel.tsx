@@ -137,7 +137,7 @@ function PublicCoursePickRow(props: {
       <button
         type="button"
         className={`ride-panel__public-courses-item${props.selected ? " is-selected" : ""}`}
-        title={props.loadDisabled ? "Available when idle" : "Load route"}
+        title={props.loadDisabled ? "Available when idle" : "Load course"}
         disabled={props.loadDisabled}
         onClick={props.onLoad}
       >
@@ -356,16 +356,16 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
         </>
       ) : (
         <>
-          <div className="ride-panel__official" aria-label="공식 경로">
+          <div className="ride-panel__official" aria-label="공식 코스">
             <div className="ride-panel__official-head">
               <span className="ride-panel__kicker">공식</span>
-              <div className="ride-panel__official-segments" role="tablist" aria-label="공식 경로 종류">
+              <div className="ride-panel__official-segments" role="tablist" aria-label="공식 코스 종류">
               <button
                 type="button"
                 role="tab"
                 aria-selected={officialSegment === "intro"}
                 className={`ride-panel__official-seg ${officialSegment === "intro" ? "is-active" : ""}`}
-                title="Intro routes"
+                title="Intro courses"
                 onClick={() => setOfficialSegment("intro")}
               >
                 입문
@@ -375,7 +375,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                 role="tab"
                 aria-selected={officialSegment === "public"}
                 className={`ride-panel__official-seg ${officialSegment === "public" ? "is-active" : ""}`}
-                title="Public routes"
+                title="Public courses"
                 onClick={() => {
                   setOfficialSegment("public");
                   props.onRefreshPublishedPublicCourses?.();
@@ -400,7 +400,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             </div>
 
             {officialSegment === "intro" ? (
-              <div className="ride-panel__public-courses" aria-label="입문 상시 경로">
+              <div className="ride-panel__public-courses" aria-label="입문 상시 코스">
                 {props.basicActiveHubCourseId ? (
                   <p className="ride-panel__public-courses-hint" role="status">
                     선택:{" "}
@@ -411,7 +411,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                   </p>
                 ) : null}
                 {props.basicSharedHubs.length === 0 ? (
-                  <p className="ride-panel__public-courses-hint">입문 허브 경로 없음</p>
+                  <p className="ride-panel__public-courses-hint">입문 허브 코스 없음</p>
                 ) : (
                   <ul className="ride-panel__public-courses-list">
                     {props.basicSharedHubs.map((c) => (
@@ -435,7 +435,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                     type="button"
                     className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet ride-panel__hub-leave"
                     disabled={props.basicStartLoading}
-                    title="Leave route hub"
+                    title="Leave course"
                     onClick={() => void props.onLeaveBasicHub()}
                   >
                     나가기
@@ -443,7 +443,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                 ) : null}
               </div>
             ) : officialSegment === "public" ? (
-              <div className="ride-panel__public-courses" aria-label="퍼블릭 경로">
+              <div className="ride-panel__public-courses" aria-label="퍼블릭 코스">
                 {!props.officialCourseCatalogAvailable ? (
                   <p className="ride-panel__public-courses-hint">목록 미연결</p>
                 ) : props.publishedPublicCoursesLoading ? (
@@ -458,8 +458,8 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                 ) : props.publishedPublicCourses.length === 0 ? (
                   <p className="ride-panel__public-courses-hint">
                     {!props.signedIn && props.officialCourseCatalogAvailable
-                      ? "퍼블릭 경로 목록을 보려면 우측 상단에서 게스트로 시작하거나 로그인해 주세요."
-                      : "등록된 퍼블릭 경로가 없습니다."}
+                      ? "퍼블릭 코스 목록을 보려면 우측 상단에서 게스트로 시작하거나 로그인해 주세요."
+                      : "등록된 퍼블릭 코스가 없습니다."}
                   </p>
                 ) : (
                   <ul className="ride-panel__public-courses-list">
@@ -481,8 +481,8 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                 )}
               </div>
             ) : (
-              <div className="ride-panel__event-placeholder" aria-label="이벤트 경로">
-                <p className="ride-panel__event-placeholder-text">이벤트 경로 (준비 중)</p>
+              <div className="ride-panel__event-placeholder" aria-label="이벤트 코스">
+                <p className="ride-panel__event-placeholder-text">이벤트 코스 (준비 중)</p>
               </div>
             )}
           </div>
@@ -556,7 +556,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               }
               title={
                 props.officialCourseActive
-                  ? "Official route loaded — change pins on map to build a custom route."
+                  ? "Official course loaded — change pins on map to build a custom route."
                   : props.routeTokenBalance != null && props.routeTokenBalance < 1
                     ? "경로 토큰이 부족합니다. 주행을 완료하면 토큰을 받을 수 있습니다."
                     : "Build route"
@@ -596,7 +596,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                   type="text"
                   maxLength={SAVED_ROUTE_NAME_MAX}
                   value={saveDraft}
-                  placeholder="예: 한강 라이딩"
+                  placeholder="예: 한강 코스"
                   onChange={(e) => setSaveDraft(e.target.value)}
                   autoFocus
                 />
@@ -652,7 +652,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                     type="text"
                     maxLength={SAVED_ROUTE_NAME_MAX}
                     value={adhocSaveDraft}
-                    placeholder="예: 한강 라이딩"
+                    placeholder="예: 한강 코스"
                     onChange={(e) => setAdhocSaveDraft(e.target.value)}
                     autoFocus
                   />
@@ -692,7 +692,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                     className="ride-panel__adhoc-save-msg"
                     title="Name and save to your route list."
                   >
-                    방금 경로를 목록에 남길까요?
+                    방금 코스를 목록에 남길까요?
                   </span>
                   <div className="ride-panel__adhoc-save-actions">
                     <button
@@ -754,7 +754,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               <p className="ride-panel__start-ride-hint">
                 {props.routeLoading
                   ? "경로를 계산하는 중입니다…"
-                  : "출발·도착을 정한 뒤 경로를 생성하거나 공식 경로를 불러오세요."}
+                  : "출발·도착을 정한 뒤 경로를 생성하거나 코스를 불러오세요."}
               </p>
             ) : null}
           </div>

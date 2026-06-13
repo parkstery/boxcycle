@@ -55,7 +55,7 @@ export function AuthGateCard({
         <div className="auth-gate__topbar">
           <div className="auth-gate__brand">
             <span className="auth-gate__brand-dot" aria-hidden />
-            RTW Pro
+            BOXCYCLE
           </div>
           {onDismiss ? (
             <button

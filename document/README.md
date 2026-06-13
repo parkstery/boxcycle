@@ -38,8 +38,7 @@
 |------|------|
 | 현재 단계·스택·1차 마일스톤 | [260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤](260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md) |
 | 서비스 비전·UGC·권한(장기) | [260511-RTW-마스터-비전-및-종합계획](260511-RTW-마스터-비전-및-종합계획.md) |
-| 제품 용어 Trailhead / Trail / Route·브랜드 | [260517-제품-용어-Trailhead-Trail](260517-제품-용어-Trailhead-Trail.md) |
-| Route 단일 용어 · RTW Pro 브랜딩 | [260603-Route-용어-및-RTW-Pro-브랜딩-통합-전환-방안](260603-Route-용어-및-RTW-Pro-브랜딩-통합-전환-방안.md) |
+| 제품 용어 Trailhead / Trail | [260517-제품-용어-Trailhead-Trail](260517-제품-용어-Trailhead-Trail.md) |
 | tier·진입·Firestore identity | [260519-사용자-tier-및-진입-정책](260519-사용자-tier-및-진입-정책.md) |
 | 월드 맵 activity presence · publication dot | [260523-World-Activity-Presence-설계](260523-World-Activity-Presence-설계.md) |
 
@@ -54,14 +53,12 @@
 | [260509-기능-추가-계획-제품-및-아키텍처](260509-기능-추가-계획-제품-및-아키텍처.md) | 기능 로드맵·데이터 확장 | 초안 | `+architecture` |
 | [260515-ux-주행-여정-및-패널-IA](260515-ux-주행-여정-및-패널-IA.md) | 주행 여정·패널 IA | 반영중 | |
 | [260517-제품-용어-Trailhead-Trail](260517-제품-용어-Trailhead-Trail.md) | 용어·브랜딩 | SoT | |
-| [260603-Route-용어-및-RTW-Pro-브랜딩-통합-전환-방안](260603-Route-용어-및-RTW-Pro-브랜딩-통합-전환-방안.md) | Route 통일·RTW Pro·BOXCYCLE alias | **SoT** | `+architecture` · P0~P4 로드맵 |
 | [260519-사용자-tier-및-진입-정책](260519-사용자-tier-및-진입-정책.md) | identity·tier·진입 | SoT | tier 계층 상단 |
 | [260519-tier-subscription-정책](260519-tier-subscription-정책.md) | Stripe 구독 | 초안 | tier 부록 |
 | [260519-tier-quota-정책](260519-tier-quota-정책.md) | tier별 한도 | 초안 | tier 부록 |
 | [260518-Route-Token-경제-설계](260518-Route-Token-경제-설계.md) | Route Token 경제 | 초안 | `+architecture` |
 | [260523-World-Activity-Presence-설계](260523-World-Activity-Presence-설계.md) | publication dot·heartbeat | SoT | `+architecture` |
 | [260526-World-Activity-Presence-자문단-정렬-보고](260526-World-Activity-Presence-자문단-정렬-보고.md) | 자문 검토·코드 갭·P0 로드맵 | 초안 | presence SoT 보조 |
-| [260527-Map-표현계층-디버그-Phase-AE](260527-Map-표현계층-디버그-Phase-AE.md) | Map dot Phase A–E 복구 | 초안 | `+execution` |
 | [260517-Activity-World-지도-LOD-설계](260517-Activity-World-지도-LOD-설계.md) | 지도 LOD | 반영중 | presence는 위 SoT |
 | [260514-맵퍼스트-HUD-시트-화면구성-디자인-분석](260514-맵퍼스트-HUD-시트-화면구성-디자인-분석.md) | HUD·시트 구현 분석 | 기록 | 2026-05-14 스냅샷 |
 
@@ -96,7 +93,6 @@
 | [260518-Activity-World-경로표시-우선순위-백로그](260518-Activity-World-경로표시-우선순위-백로그.md) | 경로 표시 백로그 | 반영중 | |
 | [260516-수동-스모크-체크리스트](260516-수동-스모크-체크리스트.md) | 수동 QA·스모크 | 반영중 | 1차 마일스톤 E |
 | [260523-Firebase-비용-운영-체크리스트](260523-Firebase-비용-운영-체크리스트.md) | 비용 관측·대응 | 반영중 | `+architecture` |
-| [260527-Map-표현계층-디버그-Phase-AE](260527-Map-표현계층-디버그-Phase-AE.md) | Map dot Phase A–E 복구 | 초안 | presence 표현 SoT |
 
 ---
 
@@ -143,4 +139,3 @@
 | 2026-05-23 | `260523-World-Activity-Presence-설계` 추가 — 단일 진실 |
 | 2026-05-26 | 신뢰도 열·tier 계층·(cycle) 머리글 정합 — [현재 단계](260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md) §2.1 진행 표 |
 | 2026-05-26 | `260526-World-Activity-Presence-자문단-정렬-보고` 추가 |
-| 2026-05-27 | `260527-Map-표현계층-디버그-Phase-AE` 추가 — Builder Phase 복구 SoT |

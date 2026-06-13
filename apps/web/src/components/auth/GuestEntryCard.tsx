@@ -18,11 +18,11 @@ export function GuestEntryCard({ busy, error, onStartGuest, onGoogleSignIn }: Gu
       <div className="guest-entry__card">
         <div className="guest-entry__brand">
           <span className="guest-entry__brand-dot" aria-hidden />
-          RTW Pro
+          BOXCYCLE
         </div>
         <h2 className="guest-entry__title">세계에 참가하기</h2>
         <p className="guest-entry__lead">
-          임시 라이더 ID를 만들어 지도에서 입문·퍼블릭 경로를 주행할 수 있습니다. 나중에 Google
+          임시 라이더 ID를 만들어 지도에서 입문·퍼블릭 코스를 주행할 수 있습니다. 나중에 Google
           계정과 닉네임으로 전환해 경로를 클라우드에 저장하고 퍼블릭 신청을 할 수 있습니다.
         </p>
         <div className="guest-entry__actions">
