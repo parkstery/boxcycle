@@ -100,6 +100,7 @@ const ACTIVITY_HEAT_SRC = "boxcycle-activity-heat-routes";
 const ACTIVITY_HEAT_GLOW = "boxcycle-activity-heat-routes-glow";
 const ACTIVITY_HEAT_LINE = "boxcycle-activity-heat-routes-line";
 const ACTIVITY_HEAT_DOTS_GLOW = "boxcycle-activity-heat-dots-glow";
+const ACTIVITY_HEAT_DOTS_SRC = "boxcycle-activity-heat-dots";
 const ACTIVITY_PULSE_DOTS_SRC = "boxcycle-activity-pulse-dots";
 const ACTIVITY_PULSE_DOTS_GLOW = "boxcycle-activity-pulse-dots-glow";
 const ACTIVITY_PULSE_DOTS_LAYER = "boxcycle-activity-pulse-dots-layer";
@@ -113,10 +114,10 @@ type ActivityWorldDotFeature = {
   traceStrength: number;
 };
 
-/** Mapbox paint — feature `traceStrength` (0.3..1). 최소 알파로 오래된 heat 도 식별 가능 */
+/** Mapbox paint — feature `traceStrength` (0.1..1). heat 일 단위 fade 하한과 맞춤 */
 const TRACE_STRENGTH_MULT: mapboxgl.ExpressionSpecification = [
   "max",
-  0.28,
+  0.1,
   ["coalesce", ["get", "traceStrength"], 0.5],
 ];
 
@@ -254,6 +255,116 @@ function syncWorldRedDots(
     map.moveLayer(ACTIVITY_PULSE_DOTS_LAYER);
   } catch (e) {
     console.warn("[MapView] red dot setData/move failed", e);
+  }
+}
+
+/** 최근 7일 heat — live보다 작고 `traceStrength` 로 일 단위 fade */
+function ensureWorldHeatDotLayer(map: mapboxgl.Map): boolean {
+  if (!map.getSource(ACTIVITY_HEAT_DOTS_SRC)) {
+    try {
+      map.addSource(ACTIVITY_HEAT_DOTS_SRC, { type: "geojson", data: EMPTY_GEOJSON_FC });
+    } catch (e) {
+      console.warn("[MapView] heat dot addSource failed", {
+        error: e instanceof Error ? e.message : String(e),
+      });
+      return false;
+    }
+  }
+  if (!map.getLayer(ACTIVITY_HEAT_DOTS_GLOW)) {
+    try {
+      map.addLayer({
+        id: ACTIVITY_HEAT_DOTS_GLOW,
+        type: "circle",
+        source: ACTIVITY_HEAT_DOTS_SRC,
+        paint: {
+          "circle-radius": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            3,
+            ["+", 5, ["*", ["coalesce", ["get", "heatWeight"], 1], 0.8]],
+            12,
+            ["+", 7, ["*", ["coalesce", ["get", "heatWeight"], 1], 1]],
+          ],
+          "circle-color": ACTIVITY_TRACE_RED,
+          "circle-opacity": ["min", 1, ["*", 0.5, TRACE_STRENGTH_MULT]],
+          "circle-blur": 0.45,
+        },
+      });
+    } catch (e) {
+      console.warn("[MapView] heat dot glow addLayer failed", e);
+      return false;
+    }
+  }
+  if (!map.getLayer(ACTIVITY_HEAT_DOTS_LAYER)) {
+    try {
+      map.addLayer({
+        id: ACTIVITY_HEAT_DOTS_LAYER,
+        type: "circle",
+        source: ACTIVITY_HEAT_DOTS_SRC,
+        paint: {
+          "circle-radius": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            3,
+            ["+", 4, ["*", ["coalesce", ["get", "heatWeight"], 1], 0.6]],
+            12,
+            ["+", 6, ["*", ["coalesce", ["get", "heatWeight"], 1], 0.8]],
+          ],
+          "circle-color": ACTIVITY_TRACE_RED,
+          "circle-stroke-width": 1.2,
+          "circle-stroke-color": "#ffffff",
+          "circle-opacity": ["min", 1, ["*", 0.85, TRACE_STRENGTH_MULT]],
+        },
+      });
+    } catch (e) {
+      console.warn("[MapView] heat dot addLayer failed", e);
+      return false;
+    }
+    try {
+      map.setLayoutProperty(ACTIVITY_HEAT_DOTS_LAYER, "circle-pitch-alignment" as never, "viewport" as never);
+    } catch {
+      /* noop */
+    }
+  }
+  return Boolean(map.getLayer(ACTIVITY_HEAT_DOTS_LAYER));
+}
+
+function syncWorldHeatDots(
+  map: mapboxgl.Map,
+  heatDots: readonly ActivityWorldDotFeature[],
+): void {
+  if (!map.style) return;
+  const valid = heatDots.filter(
+    (d) =>
+      isValidActivityDotLngLat(d.lngLat) &&
+      Number.isFinite(d.traceStrength) &&
+      d.traceStrength > 0,
+  );
+  const fc = {
+    type: "FeatureCollection" as const,
+    features: valid.map((d) => ({
+      type: "Feature" as const,
+      id: `act-hd-${d.courseId}`,
+      properties: {
+        courseId: d.courseId,
+        heatWeight: d.pulseLevel > 0 ? d.pulseLevel : 1,
+        traceStrength: d.traceStrength,
+      },
+      geometry: { type: "Point" as const, coordinates: d.lngLat },
+    })),
+  };
+  if (!ensureWorldHeatDotLayer(map)) return;
+  const src = map.getSource(ACTIVITY_HEAT_DOTS_SRC) as mapboxgl.GeoJSONSource | undefined;
+  if (!src) return;
+  try {
+    src.setData(fc);
+    if (map.getLayer(ACTIVITY_HEAT_DOTS_LAYER)) {
+      map.moveLayer(ACTIVITY_HEAT_DOTS_LAYER);
+    }
+  } catch (e) {
+    console.warn("[MapView] heat dot setData/move failed", e);
   }
 }
 
@@ -920,7 +1031,9 @@ export function MapView({
     if (!map.style) return;
     const raw = activityWorldRawRef.current;
     syncCourseActivityLayers(map, raw.pulseRoutes, raw.heatRoutes);
+    syncWorldHeatDots(map, raw.heatDots);
     syncWorldRedDots(map, raw.pulseDots);
+    moveActivityWorldLayersToTop(map);
   };
 
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -1696,7 +1809,9 @@ export function MapView({
 
   /** style.reload 후 dot layer 유실 시 주기적 재동기화 */
   useEffect(() => {
-    const hasDots = (activityWorldRaw?.pulseDots.length ?? 0) > 0;
+    const hasDots =
+      (activityWorldRaw?.pulseDots.length ?? 0) > 0 ||
+      (activityWorldRaw?.heatDots.length ?? 0) > 0;
     if (!mapLoaded || !hasDots) return;
     const map = mapRef.current;
     if (!map) return;
