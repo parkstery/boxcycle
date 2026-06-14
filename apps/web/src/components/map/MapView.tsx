@@ -228,7 +228,9 @@ function syncWorldRedDots(
   map: mapboxgl.Map,
   pulseDots: readonly ActivityWorldDotFeature[],
 ): void {
-  if (!map.isStyleLoaded()) return;
+  // isStyleLoaded() 는 위성+3D terrain + 최신 mapbox-gl 에서 영구 false 가능 → dot 영영 차단.
+  // map.style 만 확인하고, 미준비 시는 ensure/ setData 의 try/catch 가 안전 처리한다.
+  if (!map.style) return;
   const valid = pulseDots.filter((d) => isValidActivityDotLngLat(d.lngLat));
   const fc = {
     type: "FeatureCollection" as const,
@@ -260,7 +262,7 @@ function syncCourseActivityLayers(
   pulseRoutes: readonly ActivityWorldMapRoute[],
   heatRoutes: readonly ActivityWorldMapRoute[],
 ): void {
-  if (!map.isStyleLoaded()) return;
+  if (!map.style) return;
 
   const pulseFc = {
     type: "FeatureCollection" as const,
@@ -913,56 +915,12 @@ export function MapView({
   globalPresenceDataRef.current = globalPresenceDots ?? [];
   const activityWorldRawRef = useRef<ActivityWorldRawOverlay>(EMPTY_ACTIVITY_WORLD_RAW);
   activityWorldRawRef.current = activityWorldRaw ?? EMPTY_ACTIVITY_WORLD_RAW;
-  const activityWorldDotLogKeyRef = useRef("");
-
   const syncActivityWorldLayersOnMapRef = useRef<(map: mapboxgl.Map) => void>(() => {});
   syncActivityWorldLayersOnMapRef.current = (map) => {
-    if (!map.isStyleLoaded()) return;
+    if (!map.style) return;
     const raw = activityWorldRawRef.current;
-
     syncCourseActivityLayers(map, raw.pulseRoutes, raw.heatRoutes);
     syncWorldRedDots(map, raw.pulseDots);
-
-    if (import.meta.env.DEV) {
-      const logKey = `${raw.pulseDots.length}|${Number(map.getZoom().toFixed(1))}`;
-      if (logKey !== activityWorldDotLogKeyRef.current) {
-        activityWorldDotLogKeyRef.current = logKey;
-        const first = raw.pulseDots[0];
-        console.log("[MapView] world red dots", {
-          rawPulse: raw.pulseDots.length,
-          firstCourseId: first?.courseId ?? null,
-          firstLngLat: first ? [first.lngLat[0].toFixed(4), first.lngLat[1].toFixed(4)] : null,
-          hasLayer: Boolean(map.getLayer(ACTIVITY_PULSE_DOTS_LAYER)),
-          hasSource: Boolean(map.getSource(ACTIVITY_PULSE_DOTS_SRC)),
-        });
-        map.once("idle", () => {
-          if (!map.getLayer(ACTIVITY_PULSE_DOTS_LAYER)) {
-            console.log("[MapView] world red dots idle", {
-              rawPulse: raw.pulseDots.length,
-              layerMissing: true,
-            });
-            return;
-          }
-          let queryRenderedCount = -1;
-          let querySourceCount = -1;
-          try {
-            queryRenderedCount = map.queryRenderedFeatures({ layers: [ACTIVITY_PULSE_DOTS_LAYER] }).length;
-          } catch {
-            /* noop */
-          }
-          try {
-            querySourceCount = map.querySourceFeatures(ACTIVITY_PULSE_DOTS_SRC).length;
-          } catch {
-            /* noop */
-          }
-          console.log("[MapView] world red dots idle", {
-            rawPulse: raw.pulseDots.length,
-            querySourceCount,
-            queryRenderedCount,
-          });
-        });
-      }
-    }
   };
 
   const containerRef = useRef<HTMLDivElement | null>(null);

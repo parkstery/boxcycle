@@ -190,8 +190,14 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
 
   const worldMapActivityEnabled = Boolean(configured && user && pageVisible);
 
-  const publicationPresenceWorldMapEnabled =
-    !debugIsolationOn && worldMapActivityEnabled && !shouldDisablePublicationOverlayHooks();
+  /**
+   * publication presence "전용" 모드는 실제 주행(courseActivity/liveCourseRides)을 World dot 으로
+   * 잡지 못한다(260614 보고서). 사용자 의도(주행 중 라이더의 경로 dot)는 courseActivity catalog +
+   * liveCourseRides 기반(5/19 검증 방식)이므로 publication-only 경로를 비활성화한다.
+   * (publication presence 는 추후 재설계 시 다시 켠다)
+   */
+  void shouldDisablePublicationOverlayHooks;
+  const publicationPresenceWorldMapEnabled = false;
 
   const catalogActivityEnabled = Boolean(
     worldMapActivityEnabled && catalogCourseIds.length > 0,
