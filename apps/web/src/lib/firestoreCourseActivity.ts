@@ -91,13 +91,20 @@ function mergeRideCompletedOptimistic(
   if (!opt) return server;
   if (!server) return opt;
 
+  /**
+   * 서버가 다시 live(실제 라이더 존재)면 종료-낙관치를 즉시 폐기한다.
+   * 그렇지 않으면 내가 종료한 코스를 다른 라이더가 달려도 liveNow가 계속 가려진다.
+   */
+  if (server.liveNow && server.activeRiderCount > 0) {
+    rideCompletedOptimistic.delete(courseId);
+    return server;
+  }
+
   const server7d = server.recentRideCount7d;
-  const liveStuck =
-    server.liveNow && server.activeRiderCount > 0;
   /** CF 지연: `liveNow`만 남고 rider=0·7d 미반영 — 낙관 heat 유지 */
   const staleLiveWithoutHeat =
     server.liveNow && server.activeRiderCount === 0 && server7d < opt.recentRideCount7d;
-  const serverCaughtUp = server7d >= opt.recentRideCount7d && !liveStuck && !staleLiveWithoutHeat;
+  const serverCaughtUp = server7d >= opt.recentRideCount7d && !staleLiveWithoutHeat;
 
   if (serverCaughtUp) {
     rideCompletedOptimistic.delete(courseId);

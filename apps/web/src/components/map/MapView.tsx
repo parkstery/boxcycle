@@ -228,7 +228,9 @@ function syncWorldRedDots(
   map: mapboxgl.Map,
   pulseDots: readonly ActivityWorldDotFeature[],
 ): void {
-  if (!map.isStyleLoaded()) return;
+  // isStyleLoaded() 는 위성+3D terrain + 최신 mapbox-gl 에서 영구 false 가능 → dot 영영 차단.
+  // map.style 만 확인하고, 미준비 시는 ensure/ setData 의 try/catch 가 안전 처리한다.
+  if (!map.style) return;
   const valid = pulseDots.filter((d) => isValidActivityDotLngLat(d.lngLat));
   const fc = {
     type: "FeatureCollection" as const,
@@ -260,7 +262,7 @@ function syncCourseActivityLayers(
   pulseRoutes: readonly ActivityWorldMapRoute[],
   heatRoutes: readonly ActivityWorldMapRoute[],
 ): void {
-  if (!map.isStyleLoaded()) return;
+  if (!map.style) return;
 
   const pulseFc = {
     type: "FeatureCollection" as const,
@@ -917,7 +919,7 @@ export function MapView({
 
   const syncActivityWorldLayersOnMapRef = useRef<(map: mapboxgl.Map) => void>(() => {});
   syncActivityWorldLayersOnMapRef.current = (map) => {
-    if (!map.isStyleLoaded()) return;
+    if (!map.style) return;
     const raw = activityWorldRawRef.current;
 
     syncCourseActivityLayers(map, raw.pulseRoutes, raw.heatRoutes);
