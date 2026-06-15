@@ -46,7 +46,7 @@ export const EXPERIENCE_TAG_OPTIONS = [
   { id: "coastal_road", label: "해변·연안 도로" },
   { id: "water_route", label: "수상 루트" },
   { id: "urban", label: "도심" },
-  { id: "countryside", label: "시골·농로" },
+  { id: "countryside", label: "교외지" },
 ] as const;
 
 export type ExperienceTagId = (typeof EXPERIENCE_TAG_OPTIONS)[number]["id"];
