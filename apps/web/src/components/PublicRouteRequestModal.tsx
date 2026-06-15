@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { SavedRoute } from "../lib/firestoreSavedRoutes";
 import {
   PUBLIC_ROUTE_NAMING_DISCLOSURE_KO,
   PUBLIC_ROUTE_NAMING_GUIDE_KO,
   hintPublicRouteTitle,
+  shouldOpenNamingHelpForError,
 } from "../lib/publicRouteNamingPolicy";
 import {
   EXPERIENCE_TAG_OPTIONS,
@@ -22,15 +23,52 @@ export type PublicRouteRequestModalProps = {
   }) => Promise<void>;
 };
 
+function NamingHelpPanel(props: { onClose: () => void }) {
+  return (
+    <div
+      className="pr-modal__help-overlay"
+      role="presentation"
+      onMouseDown={() => props.onClose()}
+    >
+      <div
+        className="pr-modal__help"
+        role="dialog"
+        aria-labelledby="pr-naming-help-title"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <h3 id="pr-naming-help-title" className="pr-modal__help-title">
+          공개 제목 안내
+        </h3>
+        <ul className="pr-modal__help-list">
+          {PUBLIC_ROUTE_NAMING_DISCLOSURE_KO.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+        <p className="pr-modal__help-guide">{PUBLIC_ROUTE_NAMING_GUIDE_KO}</p>
+        <button type="button" className="pr-modal__btn" onClick={props.onClose}>
+          닫기
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function PublicRouteRequestModal(props: PublicRouteRequestModalProps) {
   const [publicTitle, setPublicTitle] = useState(props.route.name);
-  const [publicSummary, setPublicSummary] = useState("");
   const [tags, setTags] = useState<ExperienceTagId[]>([]);
   const [policyAck, setPolicyAck] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const lastHintRef = useRef<string | null>(null);
 
   const titleHint = useMemo(() => hintPublicRouteTitle(publicTitle), [publicTitle]);
+
+  useEffect(() => {
+    if (!titleHint || titleHint === lastHintRef.current) return;
+    lastHintRef.current = titleHint;
+    setHelpOpen(true);
+  }, [titleHint]);
 
   function toggleTag(id: ExperienceTagId) {
     setTags((prev) => {
@@ -44,24 +82,29 @@ export function PublicRouteRequestModal(props: PublicRouteRequestModalProps) {
     e.preventDefault();
     setError(null);
     if (!policyAck) {
-      setError("공개 제목 정책에 동의해야 신청할 수 있습니다.");
+      setError("제목 정책에 동의해 주세요.");
+      setHelpOpen(true);
       return;
     }
     if (tags.length < 1) {
-      setError("경로 프로필 태그를 1개 이상 선택하세요.");
+      setError("태그 1개 이상 선택");
       return;
     }
     setBusy(true);
     try {
       await props.onSubmit({
         publicTitle,
-        publicSummary,
+        publicSummary: "",
         experienceTags: tags,
         namingPolicyAcknowledged: true,
       });
       props.onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
+      if (shouldOpenNamingHelpForError(message)) {
+        setHelpOpen(true);
+      }
     } finally {
       setBusy(false);
     }
@@ -76,63 +119,44 @@ export function PublicRouteRequestModal(props: PublicRouteRequestModalProps) {
         onMouseDown={(e) => e.stopPropagation()}
       >
         <h2 id="pr-modal-title" className="pr-modal__title">
-          공개 경로 등록 신청
+          퍼블릭 신청
         </h2>
-        <p className="pr-modal__lead">
-          완주한 사용자 경로 「{props.route.name}」을 다른 이용자에게 공개하려면 아래를 작성한 뒤 제출하세요. 관리자
-          승인 후 퍼블릭 경로로 등록됩니다.
-        </p>
-
-        <section className="pr-modal__notice" aria-label="공개 제목 정책">
-          <h3 className="pr-modal__notice-title">공개 제목 안내</h3>
-          <ul className="pr-modal__notice-list">
-            {PUBLIC_ROUTE_NAMING_DISCLOSURE_KO.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-          <p className="pr-modal__guide">{PUBLIC_ROUTE_NAMING_GUIDE_KO}</p>
-        </section>
 
         <form onSubmit={(e) => void handleSubmit(e)} className="pr-modal__form">
-          <label className="pr-modal__label">
-            공개 제목 (1~80자)
+          <div className="pr-modal__field">
+            <div className="pr-modal__label-row">
+              <label className="pr-modal__label" htmlFor="pr-public-title">
+                공개 제목
+              </label>
+              <button
+                type="button"
+                className="pr-modal__help-btn"
+                aria-label="공개 제목 안내"
+                title="안내"
+                onClick={() => setHelpOpen(true)}
+              >
+                ?
+              </button>
+            </div>
             <input
+              id="pr-public-title"
               className="pr-modal__input"
               value={publicTitle}
               maxLength={80}
               required
-              placeholder="예: 닉네임 · 한강 양화 · 왕복 12km"
+              placeholder="닉네임 · 지역 · 특성"
               onChange={(e) => setPublicTitle(e.target.value)}
             />
-          </label>
-          {titleHint ? (
-            <p className="pr-modal__hint" role="status">
-              {titleHint}
-            </p>
-          ) : null}
-          <p className="pr-modal__name-note">
-            내 경로 이름 「{props.route.name}」은 본인만 보는 라벨이며, 위 공개 제목과 자동으로 맞춰지지
-            않습니다.
-          </p>
-          <label className="pr-modal__label">
-            간단 소개 (선택, 최대 500자)
-            <textarea
-              className="pr-modal__textarea"
-              value={publicSummary}
-              maxLength={500}
-              rows={3}
-              onChange={(e) => setPublicSummary(e.target.value)}
-            />
-          </label>
+          </div>
+
           <fieldset className="pr-modal__fieldset">
-            <legend className="pr-modal__legend">경로 프로필 (1~3개)</legend>
+            <legend className="pr-modal__legend">태그 (1~3)</legend>
             <div className="pr-modal__tags">
               {EXPERIENCE_TAG_OPTIONS.map((opt) => (
                 <button
                   key={opt.id}
                   type="button"
                   className={`pr-modal__tag ${tags.includes(opt.id) ? "is-on" : ""}`}
-                  title="Toggle experience tag (max 3)"
                   onClick={() => toggleTag(opt.id)}
                 >
                   {opt.label}
@@ -147,7 +171,18 @@ export function PublicRouteRequestModal(props: PublicRouteRequestModalProps) {
               checked={policyAck}
               onChange={(e) => setPolicyAck(e.target.checked)}
             />
-            <span>공개 제목은 승인 후 임의로 바꿀 수 없으며, 위 안내와 명명 가이드를 확인했습니다.</span>
+            <span>제목 정책 확인</span>
+            <button
+              type="button"
+              className="pr-modal__help-btn pr-modal__help-btn--inline"
+              aria-label="제목 정책 안내"
+              onClick={(e) => {
+                e.preventDefault();
+                setHelpOpen(true);
+              }}
+            >
+              ?
+            </button>
           </label>
 
           {error ? (
@@ -156,25 +191,20 @@ export function PublicRouteRequestModal(props: PublicRouteRequestModalProps) {
             </p>
           ) : null}
           <div className="pr-modal__actions">
-            <button
-              type="button"
-              className="pr-modal__btn"
-              disabled={busy}
-              title="Cancel"
-              onClick={props.onClose}
-            >
+            <button type="button" className="pr-modal__btn" disabled={busy} onClick={props.onClose}>
               취소
             </button>
             <button
               type="submit"
               className="pr-modal__btn pr-modal__btn--primary"
               disabled={busy || !policyAck}
-              title="Submit request"
             >
-              {busy ? "제출 중…" : "신청하기"}
+              {busy ? "제출 중…" : "신청"}
             </button>
           </div>
         </form>
+
+        {helpOpen ? <NamingHelpPanel onClose={() => setHelpOpen(false)} /> : null}
       </div>
     </div>
   );
