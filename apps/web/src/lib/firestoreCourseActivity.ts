@@ -280,10 +280,10 @@ export function formatActivityWorldPinPopup(
   activity: CourseActivitySnapshot | null,
   kind: "pulse" | "heat",
 ): string {
-  const title = kind === "pulse" ? "라이브 코스" : "최근 활동";
+  const title = kind === "pulse" ? "라이브 경로" : "최근 활동";
   const detail = formatCourseActivityHudLine(activity);
   if (detail) return `${title}\n${detail}`;
-  if (kind === "pulse") return `${title}\n지금 이 코스에서 주행 중`;
+  if (kind === "pulse") return `${title}\n지금 주행 중`;
   return `${title}\n최근 7일 내 주행 흔적`;
 }
 

@@ -54,7 +54,7 @@ export function AdminPublicRouteQueue(props: AdminPublicRouteQueueProps) {
 
   async function onApprove(req: PublicRouteRequest) {
     if (busyId) return;
-    if (!window.confirm(`「${req.publicTitle}」 신청을 승인하고 공개 코스를 생성할까요?`)) return;
+    if (!window.confirm(`「${req.publicTitle}」 신청을 승인할까요?`)) return;
     setBusyId(req.id);
     setError(null);
     try {

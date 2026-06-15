@@ -137,7 +137,7 @@ export function MapHud(props: MapHudProps) {
     onDismissIdleHint,
     ridePresence,
     worldActivityHint,
-    idleHintMessage = "입문: MENU → 입문 코스 → ▶",
+    idleHintMessage = "MENU → 입문 경로",
     showSetupRouteHint = false,
     onDismissSetupRouteHint,
     setupRouteHintMessage = "내 경로: 출발·도착까지 찍은 뒤 MENU → 「경로 생성」",
@@ -184,7 +184,7 @@ export function MapHud(props: MapHudProps) {
               type="button"
               className={`hud-brand ${menuOpen ? "hud-brand--muted" : ""}`}
               onClick={onOpenMenu}
-              aria-label="경로·코스 메뉴"
+              aria-label="경로 메뉴"
               aria-expanded={menuOpen}
               title="Route menu"
             >
@@ -233,7 +233,7 @@ export function MapHud(props: MapHudProps) {
                     <div className="hud-ride-presence__head">
                       <span className="hud-ride-presence__tag">동행</span>
                       <span className="hud-ride-presence__room" title={ridePresence.courseTitle ?? ""}>
-                        {ridePresence.courseTitle ?? "코스"}
+                        {ridePresence.courseTitle ?? "경로"}
                       </span>
                     </div>
                     {ridePresence.courseActivityHudLine ? (

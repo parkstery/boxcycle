@@ -1,6 +1,5 @@
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import { CourseSharedPresence } from "./components/CourseSharedPresence";
-import { TrailheadPresence } from "./components/TrailheadPresence";
 import type { MapPeerMarker } from "./components/MapView";
 import { SignUpNicknameCard } from "./components/SignUpNicknameCard";
 import { RideRoutePanel, type FollowMode } from "./components/RideRoutePanel";
@@ -387,7 +386,7 @@ export default function App() {
       return;
     }
     setRouteSummary(
-      "주행 기록은 저장되었습니다. 지도 빨간 주행 흔적은 입문·퍼블릭 등 공식 코스 주행에만 표시됩니다.",
+      "주행 기록을 저장했습니다.",
     );
   }, [setRouteSummary]);
 
@@ -562,7 +561,7 @@ export default function App() {
       return getBasicHubCoursePayload(sharedPresenceCourseId).title;
     }
     return (
-      publishedPublicCourses.find((c) => c.id === sharedPresenceCourseId)?.title ?? "공식 코스"
+      publishedPublicCourses.find((c) => c.id === sharedPresenceCourseId)?.title ?? "공식 경로"
     );
   }, [sharedPresenceCourseId, publishedPublicCourses]);
 
@@ -831,7 +830,7 @@ export default function App() {
             return;
           }
           if (existing.status !== "open") {
-            setError("이 Trail은 이미 종료되었습니다. Trailhead에서 새 Trail을 시작하세요.");
+            setError("이 Trail은 종료되었습니다.");
             return;
           }
           hostTrailIdRef.current = existing.hostUid === user.uid ? existing.id : null;
@@ -1174,7 +1173,7 @@ export default function App() {
   const mapHudRidePresence = useMemo(() => {
     if (!configured || !user) return null;
     const courseTitle = sharedPresenceCourseId
-      ? (sharedPresenceCourseTitle?.trim() || "공식 코스")
+      ? (sharedPresenceCourseTitle?.trim() || "공식 경로")
       : null;
     const coursePeerNames = coursePeerMarkers
       .map((p) => (p.label ?? "동행").trim())
@@ -1235,7 +1234,7 @@ export default function App() {
               authGateVisualDismissed: needsAuthCard,
               onOpenMapView: openMapViewPanel,
               mapViewOpen: mapViewSheetOpen,
-              idleHintMessage: "입문: MENU → 입문 코스 → 주행 시작",
+              idleHintMessage: "MENU → 입문 경로",
               coachData,
               coachLineEnabled: rideCoachingBannerVisible,
               metrics: hudMetrics,
@@ -1363,7 +1362,7 @@ export default function App() {
               authGateVisualDismissed: needsAuthCard,
               onOpenMapView: openMapViewPanel,
               mapViewOpen: mapViewSheetOpen,
-              idleHintMessage: "입문: MENU → 입문 코스 → 주행 시작",
+              idleHintMessage: "MENU → 입문 경로",
               coachData,
               coachLineEnabled: rideCoachingBannerVisible,
               metrics: hudMetrics,
@@ -1677,10 +1676,6 @@ export default function App() {
           onPeersChange={onCoursePeersChange}
           onLiveRiderNametagChange={setLiveRiderNametag}
         />
-      ) : null}
-
-      {configured && user ? (
-        <TrailheadPresence user={user} trailId={trailId} rows={trailSession.rows} error={trailSession.error} />
       ) : null}
     </div>
   );

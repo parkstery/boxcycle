@@ -36,6 +36,8 @@ type CourseSharedPresenceProps = {
   globalPeerPositionsByUid: ReadonlyMap<string, LngLat>;
   onPeersChange?: (peers: MapPeerMarker[]) => void;
   onLiveRiderNametagChange?: (nametag: string | null) => void;
+  /** false — 동행 동기화만, 패널 미표시(모바일) */
+  showPanel?: boolean;
 };
 
 export function CourseSharedPresence({
@@ -47,6 +49,7 @@ export function CourseSharedPresence({
   globalPeerPositionsByUid,
   onPeersChange,
   onLiveRiderNametagChange,
+  showPanel = false,
 }: CourseSharedPresenceProps) {
   const pageVisible = useDocumentVisibility();
   const [rows, setRows] = useState<CourseMemberRow[]>([]);
@@ -189,31 +192,21 @@ export function CourseSharedPresence({
     cb(presenceError ? [] : peerMarkersForMap);
   }, [peerMarkersForMap, presenceError]);
 
-  const isPermissionError =
-    presenceError?.includes("permission") || presenceError?.includes("Permission");
+  if (!showPanel) return null;
 
   return (
-    <section className="trailhead-presence" aria-label="코스 동시 주행자">
+    <section className="trailhead-presence" aria-label="경로 동시 주행">
       <div className="trailhead-presence__head">
-        <strong>코스 동행</strong>
+        <strong>경로 동행</strong>
         <span className="trailhead-presence__meta">
-          {title ? `${title} · ` : null}
-          <code>{courseId}</code> · 활동 기준 {Math.round(TRAIL_PRESENCE_STALE_MS / 1000)}초
+          {title ? `${title}` : null}
+          {title ? " · " : null}
+          접속 {Math.round(TRAIL_PRESENCE_STALE_MS / 1000)}초
         </span>
       </div>
       {presenceError ? (
         <p className="trailhead-presence__err" title={presenceError}>
-          동행 동기화 오류: {presenceError}
-          {isPermissionError ? (
-            <>
-              {" "}
-              <span className="trailhead-presence__err-hint">
-                (<code>courses/{'{courseId}'}</code> 에 <code>presenceEnabled: true</code> 또는 입문 허브 시드의{" "}
-                <code>isSharedStartHub: true</code> 가 있는지, 저장소 루트 <code>firestore.rules</code> 배포 여부를
-                확인하세요. 예: <code>firebase deploy --only firestore</code>)
-              </span>
-            </>
-          ) : null}
+          동기화 오류
         </p>
       ) : null}
       <p className="trailhead-presence__count">

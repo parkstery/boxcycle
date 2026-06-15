@@ -80,7 +80,7 @@ export function PublicRouteRequestModal(props: PublicRouteRequestModalProps) {
         </h2>
         <p className="pr-modal__lead">
           완주한 사용자 경로 「{props.route.name}」을 다른 이용자에게 공개하려면 아래를 작성한 뒤 제출하세요. 관리자
-          승인 후 공개 코스로 등록됩니다.
+          승인 후 퍼블릭 경로로 등록됩니다.
         </p>
 
         <section className="pr-modal__notice" aria-label="공개 제목 정책">

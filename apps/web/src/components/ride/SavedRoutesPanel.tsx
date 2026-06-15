@@ -302,7 +302,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                               type="button"
                               className="saved-routes__btn saved-routes__btn--accent"
                               disabled
-                              title="이미 퍼블릭 코스로 등록된 경로입니다"
+                              title="이미 퍼블릭 경로입니다"
                             >
                               퍼블릭신청
                             </button>
@@ -313,7 +313,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                               disabled={isBusy || !props.sessionIdle}
                               title={
                                 props.sessionIdle
-                                  ? "퍼블릭 코스 등록 신청"
+                                  ? "퍼블릭 등록 신청"
                                   : "주행 종료 후 사용할 수 있습니다"
                               }
                               onClick={() => props.onOpenPublicRequest?.(route)}

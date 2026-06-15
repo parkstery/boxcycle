@@ -67,12 +67,7 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
             {props.currentTrail.regionLabel ?? "—"} ·{" "}
             {props.currentTrail.visibility === "private" ? "비공개" : "공개"}
           </span>
-        ) : (
-          <span className="trail-hub__current-meta">
-            Trailhead에서는 ▶ 시 Trail이 열립니다(코스·경로 필요). 아래 공개 Trail 목록에서
-            선택한 뒤 ▶ 하면 해당 Trail 안에서 함께 주행합니다.
-          </span>
-        )}
+        ) : null}
       </div>
 
       <div className="trail-hub__row">
@@ -115,7 +110,7 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
       </div>
 
       <div className="trail-hub__list-head">
-        <span className="trail-hub__kicker">공개 Trail</span>
+        <span className="trail-hub__kicker">Trail</span>
         {props.openTrailsLoading ? <span className="trail-hub__meta">불러오는 중…</span> : null}
       </div>
       {props.openTrailsError ? (
@@ -138,11 +133,7 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
           ))}
         </ul>
       ) : (
-        <p className="trail-hub__empty">
-          {onTrailhead
-            ? "지금 합류 가능한 공개 Trail이 없습니다. ▶ 로 Trail을 열거나, 주행 중인 공개 Trail이 생기면 여기에 표시됩니다."
-            : "다른 주행 중인 Trail이 없습니다."}
-        </p>
+        <p className="trail-hub__empty">없음</p>
       )}
     </section>
   );

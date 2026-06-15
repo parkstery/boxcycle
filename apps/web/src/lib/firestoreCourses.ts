@@ -604,9 +604,8 @@ const BASIC_COURSES: Omit<CourseDoc, "createdAt" | "updatedAt">[] = [
   },
   {
     id: "basic-alps-grindelwald-5km",
-    title: "입문 코스 1 · 그린델발트 계곡 (5km)",
-    description:
-      "스위스 베른주 그린델발트 인근 루치네 계곡을 따라가는 약 5km 산악·알프스 풍경 코스.",
+    title: "입문 경로 1 · 그린델발트 계곡 (5km)",
+    description: "그린델발트 계곡 5km.",
     category: "basic",
     type: "starter",
     profile: "cycling",
@@ -640,9 +639,8 @@ const BASIC_COURSES: Omit<CourseDoc, "createdAt" | "updatedAt">[] = [
   },
   {
     id: "basic-iceland-ring-road-5km",
-    title: "입문 코스 2 · 아이슬란드 링 로드 (5km)",
-    description:
-      "아이슬란드 남부 국도 1호선(링 로드) 인근 구간을 모티브로 한 약 5km 해안·화산 지대 풍경 코스.",
+    title: "입문 경로 2 · 아이슬란드 링 로드 (5km)",
+    description: "아이슬란드 링 로드 5km.",
     category: "basic",
     type: "starter",
     profile: "cycling",

@@ -186,11 +186,11 @@ export function useOfficialCoursesHub(options: UseOfficialCoursesHubOptions) {
   const enterBasicHub = useCallback(
     async (courseId: string) => {
       if (lockRouteWorkspaceDuringRide(rideStatus !== "idle")) {
-        setRouteSummary("세션이 대기 상태일 때만 입문 코스를 불러올 수 있습니다. 종료 후 다시 시도하세요.");
+        setRouteSummary("세션이 대기 상태일 때만 입문 경로를 불러올 수 있습니다.");
         return;
       }
       setBasicStartLoading(true);
-      setRouteSummary("공식 코스 불러오는 중…");
+      setRouteSummary("공식 경로 불러오는 중…");
       try {
         if (user && basicActiveHubCourseId && basicActiveHubCourseId !== courseId) {
           await deleteCoursePresence(user.uid, basicActiveHubCourseId).catch(() => {
