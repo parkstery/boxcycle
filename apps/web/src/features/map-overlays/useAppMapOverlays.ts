@@ -15,6 +15,7 @@ import {
   resolveActivityWorldRender,
   runActivityWorldLodP0Checks,
 } from "../../lib/activityWorldLod";
+import { runActivityWorldPollPolicyChecks } from "../../lib/activityWorldPollPolicy";
 import { BASIC_SHARED_HUB_IDS } from "../../lib/firestoreCourses";
 import type { PublishedPublicCourseSummary } from "../../lib/firestoreCourses";
 import type { TrailInstance } from "../../lib/firestoreTrailInstance";
@@ -24,7 +25,7 @@ import type { LineStringGeometry } from "../../lib/geo";
 import type { ActivityWorldLodDebugPanelProps } from "./ActivityWorldLodDebugPanel";
 import { runPublicationPresenceParseChecks } from "../../lib/firestorePublicationPresence";
 import { resolveWorldMapOverlay, runWorldMapOverlayMergeChecks } from "./worldMapOverlayCore";
-import { useWorldActivityCatalog } from "./useWorldActivityCatalog";
+import { useActivityWorldDataSync } from "./useActivityWorldDataSync";
 import { useWorldLiveCourseRideMapOverlay } from "./useWorldLiveCourseRideMapOverlay";
 import {
   mergePublicationWorldPulseDots,
@@ -103,12 +104,6 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
 
   const coursePeerIdsForTrailSpectator = useMemo(() => new Set<string>(), []);
 
-  const { worldHighlightedCourseIds, liveActivityCourseIds, worldHudLines } = useWorldActivityCatalog({
-    configured,
-    user,
-    pageVisible,
-  });
-
   const isRideSessionActive = rideStatus === "running" || rideStatus === "paused";
   const courseActivityEnabled = Boolean(configured && user && trackedCourseId && pageVisible);
 
@@ -121,6 +116,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     user,
     courseId: trackedCourseId,
     enabled: courseActivityEnabled,
+    selfRideActive: isRideSessionActive,
   });
 
   const activeOverlay = useCourseActivityMapOverlay({
@@ -172,32 +168,42 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     [openTrails],
   );
 
-  const catalogCourseIds = useMemo(() => {
+  const baseCatalogCourseIds = useMemo(() => {
     const ids = new Set<string>(BASIC_SHARED_HUB_IDS as readonly string[]);
     for (const c of publishedPublicCourses) ids.add(c.id);
-    for (const id of worldHighlightedCourseIds) ids.add(id);
-    for (const id of trailLiveCourseIds) ids.add(id);
-    for (const id of liveActivityCourseIds) ids.add(id);
     for (const id of openTrailCourseIds) ids.add(id);
+    for (const id of trailLiveCourseIds) ids.add(id);
     return [...ids];
-  }, [
-    publishedPublicCourses,
-    worldHighlightedCourseIds,
-    trailLiveCourseIds,
-    liveActivityCourseIds,
-    openTrailCourseIds,
-  ]);
+  }, [publishedPublicCourses, openTrailCourseIds, trailLiveCourseIds]);
 
   const worldMapActivityEnabled = Boolean(configured && user && pageVisible);
 
-  /**
-   * publication presence "전용" 모드는 실제 주행(courseActivity/liveCourseRides)을 World dot 으로
-   * 잡지 못한다(260614 보고서). 사용자 의도(주행 중 라이더의 경로 dot)는 courseActivity catalog +
-   * liveCourseRides 기반(5/19 검증 방식)이므로 publication-only 경로를 비활성화한다.
-   * (publication presence 는 추후 재설계 시 다시 켠다)
-   */
   void shouldDisablePublicationOverlayHooks;
   const publicationPresenceWorldMapEnabled = false;
+
+  const activityWorldSyncEnabled = Boolean(
+    !debugIsolationOn &&
+      worldMapActivityEnabled &&
+      !publicationPresenceWorldMapEnabled &&
+      baseCatalogCourseIds.length > 0,
+  );
+
+  const activityWorldSync = useActivityWorldDataSync({
+    enabled: activityWorldSyncEnabled,
+    selfRideActive: isRideSessionActive,
+    courseIds: baseCatalogCourseIds,
+    excludeCourseId: isRideSessionActive ? trackedCourseId : null,
+    refreshNonce: activityMapRefreshNonce,
+  });
+
+  const { worldHighlightedCourseIds, liveActivityCourseIds, worldHudLines } = activityWorldSync;
+
+  const catalogCourseIds = useMemo(() => {
+    const ids = new Set<string>(baseCatalogCourseIds);
+    for (const id of worldHighlightedCourseIds) ids.add(id);
+    for (const id of liveActivityCourseIds) ids.add(id);
+    return [...ids];
+  }, [baseCatalogCourseIds, worldHighlightedCourseIds, liveActivityCourseIds]);
 
   const catalogActivityEnabled = Boolean(
     worldMapActivityEnabled && catalogCourseIds.length > 0,
@@ -221,6 +227,12 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     enabled: catalogOverlayEnabled,
     worldMapRenderEnabled: catalogOverlayEnabled,
     refreshNonce: activityMapRefreshNonce,
+    externalSync: activityWorldSyncEnabled
+      ? {
+          activityByCourseId: activityWorldSync.activityByCourseId,
+          syncEpoch: activityWorldSync.syncEpoch,
+        }
+      : undefined,
   });
 
   const worldLiveCourseRideOverlayEnabled =
@@ -402,6 +414,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     if (!import.meta.env.DEV) return;
     try {
       runActivityWorldLodP0Checks();
+      runActivityWorldPollPolicyChecks();
       runWorldMapOverlayMergeChecks();
       runPublicationPresenceParseChecks();
       runWorldPublicationMapDotsChecks();

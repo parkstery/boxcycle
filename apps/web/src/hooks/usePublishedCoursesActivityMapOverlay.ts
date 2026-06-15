@@ -1,4 +1,4 @@
-import { startTransition, useEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ActivityWorldMapDot, ActivityWorldMapRoute } from "../lib/activityWorldLod";
 import {
   ACTIVITY_TRACE_LIVE_STRENGTH,
@@ -23,7 +23,6 @@ import {
 import type { LineStringGeometry } from "../lib/geo";
 import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../lib/geoDecimate";
 import { resolveActivityWorldDotLngLat } from "../lib/activityWorldAnchor";
-import { COURSE_ACTIVITY_POLL_MS } from "../lib/rideSyncPolicy";
 import type { CourseActivityMapOverlay } from "./useCourseActivityMapOverlay";
 
 const MAX_LIVE_MAP_OVERLAY = 10;
@@ -60,6 +59,11 @@ type UsePublishedCoursesActivityMapOverlayOpts = {
   worldMapRenderEnabled?: boolean;
   /** 주행 종료 등 — 즉시 aggregate·bounds 재조회 */
   refreshNonce?: number;
+  /** WO-A coordinator — 제공 시 내부 poll 생략 */
+  externalSync?: {
+    activityByCourseId: ReadonlyMap<string, CourseActivitySnapshot | null>;
+    syncEpoch: number;
+  };
 };
 
 function scoreLiveActivity(a: CourseActivitySnapshot): number {
@@ -181,7 +185,7 @@ export function usePublishedCoursesActivityMapOverlay(
   activityByCourseId: ReadonlyMap<string, CourseActivitySnapshot | null>;
   overlayStats: PublishedCoursesActivityOverlayStats;
 } {
-  const { courseIds, excludeCourseId, mapZoom, enabled, worldMapRenderEnabled = true, refreshNonce = 0 } = opts;
+  const { courseIds, excludeCourseId, mapZoom, enabled, worldMapRenderEnabled = true, refreshNonce = 0, externalSync } = opts;
   const [activityByCourseId, setActivityByCourseId] = useState<
     ReadonlyMap<string, CourseActivitySnapshot | null>
   >(() => new Map());
@@ -192,35 +196,12 @@ export function usePublishedCoursesActivityMapOverlay(
   const bumpOverlay = useRef(() => setOverlayEpoch((n) => n + 1));
 
   const courseIdsKey = useMemo(() => [...new Set(courseIds)].sort().join(","), [courseIds]);
+  const useExternalSync = externalSync != null;
 
-  useEffect(() => {
-    bumpOverlay.current = () => setOverlayEpoch((n) => n + 1);
-  });
-
-  useEffect(() => {
-    if (!enabled || courseIds.length === 0) {
-      startTransition(() => {
-        setActivityByCourseId(new Map());
-        setOverlayCandidateIds([]);
-      });
-      geomByCourseRef.current.clear();
-      boundsByCourseRef.current.clear();
-      setOverlayEpoch((n) => n + 1);
-      return;
-    }
-
-    let cancelled = false;
-    const bump = () => {
-      if (!cancelled) bumpOverlay.current();
-    };
-
-    const tick = async () => {
-      const map = await fetchCourseActivitiesBatch(courseIds, { refresh: false });
-      if (cancelled) return;
+  const applyBatchMap = useCallback(
+    (map: ReadonlyMap<string, CourseActivitySnapshot | null>) => {
       const exclude = excludeCourseId?.trim() ?? "";
-      const candidateIds = worldMapRenderEnabled
-        ? selectOverlayCandidateIds(map, exclude)
-        : [];
+      const candidateIds = worldMapRenderEnabled ? selectOverlayCandidateIds(map, exclude) : [];
 
       startTransition(() => {
         setActivityByCourseId(map);
@@ -248,54 +229,66 @@ export function usePublishedCoursesActivityMapOverlay(
       for (const cid of candidateIds) {
         const row = map.get(cid);
         if (!row) continue;
-        ensureBoundsLoaded(cid, row, boundsMap, bump);
-        ensureGeometryLoaded(cid, geomMap, bump);
+        ensureBoundsLoaded(cid, row, boundsMap, () => bumpOverlay.current());
+        ensureGeometryLoaded(cid, geomMap, () => bumpOverlay.current());
         kicked = true;
       }
 
-      if (kicked) bump();
+      if (kicked) bumpOverlay.current();
+    },
+    [excludeCourseId, worldMapRenderEnabled],
+  );
+
+  useEffect(() => {
+    bumpOverlay.current = () => setOverlayEpoch((n) => n + 1);
+  });
+
+  useEffect(() => {
+    if (!useExternalSync || !enabled) return;
+    applyBatchMap(externalSync.activityByCourseId);
+  }, [useExternalSync, enabled, externalSync?.syncEpoch, externalSync?.activityByCourseId, applyBatchMap]);
+
+  useEffect(() => {
+    if (useExternalSync || !enabled || courseIds.length === 0) {
+      if (!enabled || courseIds.length === 0) {
+        startTransition(() => {
+          setActivityByCourseId(new Map());
+          setOverlayCandidateIds([]);
+        });
+        geomByCourseRef.current.clear();
+        boundsByCourseRef.current.clear();
+        setOverlayEpoch((n) => n + 1);
+      }
+      return;
+    }
+
+    let cancelled = false;
+
+    const tick = async () => {
+      const map = await fetchCourseActivitiesBatch(courseIds, { refresh: false });
+      if (cancelled) return;
+      applyBatchMap(map);
     };
 
     void tick();
-    const id = window.setInterval(() => void tick(), COURSE_ACTIVITY_POLL_MS);
     return () => {
       cancelled = true;
-      window.clearInterval(id);
     };
-  }, [enabled, courseIdsKey, excludeCourseId, courseIds, worldMapRenderEnabled]);
+  }, [useExternalSync, enabled, courseIdsKey, courseIds, applyBatchMap]);
 
   useEffect(() => {
+    if (useExternalSync) return;
     if (!enabled || refreshNonce === 0) return;
     let cancelled = false;
-    const bump = () => {
-      if (!cancelled) bumpOverlay.current();
-    };
     void (async () => {
       const map = await fetchCourseActivitiesBatch(courseIds, { refresh: true });
       if (cancelled) return;
-      const exclude = excludeCourseId?.trim() ?? "";
-      const candidateIds = worldMapRenderEnabled
-        ? selectOverlayCandidateIds(map, exclude)
-        : [];
-      startTransition(() => {
-        setActivityByCourseId(map);
-        setOverlayCandidateIds(candidateIds);
-      });
-      if (!worldMapRenderEnabled) return;
-      const geomMap = geomByCourseRef.current;
-      const boundsMap = boundsByCourseRef.current;
-      for (const cid of candidateIds) {
-        const row = map.get(cid);
-        if (!row) continue;
-        ensureBoundsLoaded(cid, row, boundsMap, bump);
-        ensureGeometryLoaded(cid, geomMap, bump);
-      }
-      bump();
+      applyBatchMap(map);
     })();
     return () => {
       cancelled = true;
     };
-  }, [refreshNonce, enabled, courseIdsKey, excludeCourseId, courseIds, worldMapRenderEnabled]);
+  }, [useExternalSync, refreshNonce, enabled, courseIdsKey, courseIds, applyBatchMap]);
 
   const { overlay, overlayStats } = useMemo(() => {
     if (!worldMapRenderEnabled) {

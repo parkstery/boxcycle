@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fetchLiveCourseActivityIds } from "../../lib/firestoreCourseActivity";
 import { fetchWorldPresenceSummary, formatWorldPresenceHudLine } from "../../lib/firestoreWorldPresence";
 import {
@@ -6,58 +6,71 @@ import {
   formatWorldActivityHudLine,
   mergeWorldHudLines,
 } from "../../lib/firestoreWorldActivity";
-import { WORLD_PRESENCE_POLL_MS } from "../../lib/rideSyncPolicy";
+import { useActivityWorldAdaptivePoll } from "../../hooks/useActivityWorldAdaptivePoll";
+import { resolveActivityWorldPollMode } from "../../lib/activityWorldPollPolicy";
+import { getActivityWorldPollSignals } from "../../lib/activityWorldPollSignals";
 
-/** 카탈로그·Activity World overlay 후보 코스 ID + HUD 라인 */
+/**
+ * @deprecated `useActivityWorldDataSync` 사용. 디버그·레거시 호출만 유지.
+ * 카탈로그·Activity World overlay 후보 코스 ID + HUD 라인
+ */
 export function useWorldActivityCatalog(opts: {
   configured: boolean;
   user: unknown;
   pageVisible: boolean;
+  selfRideActive?: boolean;
 }): {
   worldHighlightedCourseIds: string[];
   liveActivityCourseIds: string[];
   worldHudLines: string | null;
 } {
-  const { configured, user, pageVisible } = opts;
+  const { configured, user, pageVisible, selfRideActive = false } = opts;
   const [worldHighlightedCourseIds, setWorldHighlightedCourseIds] = useState<string[]>([]);
   const [liveActivityCourseIds, setLiveActivityCourseIds] = useState<string[]>([]);
   const [worldHudLines, setWorldHudLines] = useState<string | null>(null);
 
+  const loadRef = useRef<() => Promise<void>>(async () => {});
+
   useEffect(() => {
-    if (!configured || !user || !pageVisible) {
+    loadRef.current = async () => {
+      const [presence, worldActivity, liveIds] = await Promise.all([
+        fetchWorldPresenceSummary(),
+        fetchWorldActivityGlobal(),
+        fetchLiveCourseActivityIds(),
+      ]);
+      setLiveActivityCourseIds(liveIds);
+      const highlighted = new Set<string>(worldActivity?.highlightedCourses ?? []);
+      for (const id of liveIds) highlighted.add(id);
+      setWorldHighlightedCourseIds([...highlighted]);
+      setWorldHudLines(
+        mergeWorldHudLines(
+          formatWorldPresenceHudLine(presence.regions),
+          formatWorldActivityHudLine(worldActivity),
+        ),
+      );
+    };
+  });
+
+  const enabled = Boolean(configured && user && pageVisible);
+
+  useActivityWorldAdaptivePoll({
+    enabled,
+    selfRideActive,
+    onTick: () => loadRef.current(),
+    resolveModeAfterTick: () =>
+      resolveActivityWorldPollMode({
+        ...getActivityWorldPollSignals(),
+        selfRideActive,
+      }),
+  });
+
+  useEffect(() => {
+    if (!enabled) {
       setWorldHudLines(null);
       setWorldHighlightedCourseIds([]);
       setLiveActivityCourseIds([]);
-      return;
     }
-    let cancelled = false;
-    const load = () => {
-      void (async () => {
-        const [presence, worldActivity, liveIds] = await Promise.all([
-          fetchWorldPresenceSummary(),
-          fetchWorldActivityGlobal(),
-          fetchLiveCourseActivityIds(),
-        ]);
-        if (cancelled) return;
-        setLiveActivityCourseIds(liveIds);
-        const highlighted = new Set<string>(worldActivity?.highlightedCourses ?? []);
-        for (const id of liveIds) highlighted.add(id);
-        setWorldHighlightedCourseIds([...highlighted]);
-        setWorldHudLines(
-          mergeWorldHudLines(
-            formatWorldPresenceHudLine(presence.regions),
-            formatWorldActivityHudLine(worldActivity),
-          ),
-        );
-      })();
-    };
-    load();
-    const id = window.setInterval(load, WORLD_PRESENCE_POLL_MS);
-    return () => {
-      cancelled = true;
-      window.clearInterval(id);
-    };
-  }, [configured, user, pageVisible]);
+  }, [enabled]);
 
   return { worldHighlightedCourseIds, liveActivityCourseIds, worldHudLines };
 }

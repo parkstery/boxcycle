@@ -64,11 +64,21 @@ export {
   MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN,
 } from "./activityWorldLod";
 
-/** 월드 집계 문서 폴링 주기 — onSnapshot 대신 저빈도 getDoc */
-export const WORLD_PRESENCE_POLL_MS = 90_000;
+/** WO-A adaptive — 전 세계 live 없음(idle) */
+export const ACTIVITY_WORLD_POLL_IDLE_MS = 300_000;
 
-/** 코스 activity aggregate 폴링 — `courseActivity/{courseId}` 1문서 */
-export const COURSE_ACTIVITY_POLL_MS = 90_000;
+/** WO-A adaptive — live activity 있음(active) */
+export const ACTIVITY_WORLD_POLL_ACTIVE_MS = 30_000;
+
+/**
+ * @deprecated WO-A `ACTIVITY_WORLD_POLL_*` adaptive 사용. 호환 alias(active).
+ */
+export const WORLD_PRESENCE_POLL_MS = ACTIVITY_WORLD_POLL_ACTIVE_MS;
+
+/**
+ * @deprecated WO-A `ACTIVITY_WORLD_POLL_*` adaptive 사용. 호환 alias(active).
+ */
+export const COURSE_ACTIVITY_POLL_MS = ACTIVITY_WORLD_POLL_ACTIVE_MS;
 
 export function roundLngLatForLiveShare(lngLat: LngLat, decimals = LIVE_SHARE_COORD_DECIMALS): LngLat {
   const f = 10 ** decimals;

@@ -90,6 +90,7 @@
 | [260511-Phase별-실행-체크리스트-Course-Session-Presence](260511-Phase별-실행-체크리스트-Course-Session-Presence.md) | Phase 체크리스트 | 반영중 | §0.1 계획 vs 코드 |
 | [260516-App-도메인-훅-분리-분석-및-계획](260516-App-도메인-훅-분리-분석-및-계획.md) | 훅 분리 계획 | 반영중 | |
 | [260516-Firestore-트래픽-저감-상세-수정-계획](260516-Firestore-트래픽-저감-상세-수정-계획.md) | 트래픽·Activity World | 반영중 | |
+| [260615-Activity-World-Adaptive-Polling-C-적용-계획](260615-Activity-World-Adaptive-Polling-C-적용-계획.md) | idle 5분 / active 30s 폴링 WO-A | 반영중 | `+architecture` |
 | [260518-Activity-World-경로표시-우선순위-백로그](260518-Activity-World-경로표시-우선순위-백로그.md) | 경로 표시 백로그 | 반영중 | |
 | [260516-수동-스모크-체크리스트](260516-수동-스모크-체크리스트.md) | 수동 QA·스모크 | 반영중 | 1차 마일스톤 E |
 | [260523-Firebase-비용-운영-체크리스트](260523-Firebase-비용-운영-체크리스트.md) | 비용 관측·대응 | 반영중 | `+architecture` |
@@ -139,3 +140,4 @@
 | 2026-05-23 | `260523-World-Activity-Presence-설계` 추가 — 단일 진실 |
 | 2026-05-26 | 신뢰도 열·tier 계층·(cycle) 머리글 정합 — [현재 단계](260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md) §2.1 진행 표 |
 | 2026-05-26 | `260526-World-Activity-Presence-자문단-정렬-보고` 추가 |
+| 2026-06-15 | `260615-Activity-World-Adaptive-Polling-C-적용-계획` 추가 |
