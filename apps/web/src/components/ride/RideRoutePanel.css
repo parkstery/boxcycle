@@ -872,6 +872,16 @@
   color: var(--rp-fg);
 }
 
+.ride-panel .saved-routes__btn--accent {
+  background: rgba(139, 92, 246, 0.24);
+  border-color: rgba(167, 139, 250, 0.58);
+  color: #f5f3ff;
+}
+
+.ride-panel .saved-routes__btn--accent:disabled {
+  opacity: 0.55;
+}
+
 .ride-panel .saved-routes__rename-input {
   background: rgba(2, 6, 23, 0.55);
   border-color: var(--rp-border);

@@ -287,7 +287,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                             disabled
                             title="로그인을 하면 퍼블릭 신청 기능을 쓸 수 있습니다."
                           >
-                            퍼블릭
+                            퍼블릭신청
                           </button>
                         ) : props.onOpenPublicRequest ? (
                           props.pendingPublicRouteIds?.has(route.id) ? (
@@ -304,7 +304,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                               disabled
                               title="이미 퍼블릭 코스로 등록된 경로입니다"
                             >
-                              퍼블릭
+                              퍼블릭신청
                             </button>
                           ) : (
                             <button
@@ -318,10 +318,19 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                               }
                               onClick={() => props.onOpenPublicRequest?.(route)}
                             >
-                              퍼블릭
+                              퍼블릭신청
                             </button>
                           )
-                        ) : null
+                        ) : (
+                          <button
+                            type="button"
+                            className="saved-routes__btn saved-routes__btn--accent"
+                            disabled
+                            title="퍼블릭 신청을 사용할 수 없습니다"
+                          >
+                            퍼블릭신청
+                          </button>
+                        )
                       ) : null}
                       <button
                         type="button"

@@ -1707,7 +1707,8 @@ export function MapView({
     let lastTs = performance.now();
     const tick = (now: number) => {
       const map = mapRef.current;
-      if (!map?.isStyleLoaded()) {
+      // isStyleLoaded() 는 위성+3D terrain 에서 영구 false 가능 → 동행 스프라이트 영영 차단.
+      if (!map?.style) {
         peerRidersRafRef.current = requestAnimationFrame(tick);
         return;
       }

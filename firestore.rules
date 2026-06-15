@@ -14,7 +14,7 @@ service cloud.firestore {
       return /databases/$(database)/documents/courses/$(courseId);
     }
 
-    /** 동행(presence) 허용: presenceEnabled 우선. 하위 호환: isSharedStartHub 만 있는 입문 허브 시드도 허용. */
+    /** 동행(presence) 허용: presenceEnabled 우선. 하위 호환: isSharedStartHub·퍼블릭 UGC(category+status) */
     function isCourseSharedPresenceAllowed(courseId) {
       return exists(coursePath(courseId))
         && (
@@ -22,6 +22,14 @@ service cloud.firestore {
             && get(coursePath(courseId)).data.presenceEnabled == true)
           || (get(coursePath(courseId)).data.keys().hasAny(['isSharedStartHub'])
             && get(coursePath(courseId)).data.isSharedStartHub == true)
+          || (get(coursePath(courseId)).data.keys().hasAny(['visibility'])
+            && get(coursePath(courseId)).data.visibility == 'public'
+            && get(coursePath(courseId)).data.keys().hasAny(['status'])
+            && get(coursePath(courseId)).data.status == 'published')
+          || (get(coursePath(courseId)).data.keys().hasAny(['category'])
+            && get(coursePath(courseId)).data.category == 'public'
+            && get(coursePath(courseId)).data.keys().hasAny(['status'])
+            && get(coursePath(courseId)).data.status == 'published')
         );
     }
 
@@ -62,6 +70,16 @@ service cloud.firestore {
              .hasOnly(['presenceEnabled', 'isSharedStartHub', 'updatedAt'])
         && request.resource.data.presenceEnabled == true
         && request.resource.data.isSharedStartHub == true;
+    }
+
+    /** 승인 퍼블릭 코스 — `presenceEnabled` 만 클라이언트 merge 허용 */
+    function isPublicPublishedCoursePresenceFlagsOnlyUpdate(courseId) {
+      let c = get(coursePath(courseId)).data;
+      return c.keys().hasAny(['category']) && c.category == 'public'
+        && c.keys().hasAny(['status']) && c.status == 'published'
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['presenceEnabled', 'updatedAt'])
+        && request.resource.data.presenceEnabled == true;
     }
 
     /**
@@ -417,7 +435,9 @@ service cloud.firestore {
         && (!request.resource.data.keys().hasAny(['routeFingerprint'])
             || (request.resource.data.routeFingerprint is string
                 && request.resource.data.routeFingerprint.size() == 64));
-      allow update: if isSignedIn() && isHubPresenceFlagsOnlyCourseUpdate(courseId);
+      allow update: if isSignedIn()
+        && (isHubPresenceFlagsOnlyCourseUpdate(courseId)
+            || isPublicPublishedCoursePresenceFlagsOnlyUpdate(courseId));
       allow delete: if false;
     }
 

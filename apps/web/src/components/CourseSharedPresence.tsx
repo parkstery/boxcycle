@@ -1,6 +1,6 @@
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import type { User } from "firebase/auth";
-import { ensureBasicSharedHubPresenceFlagsMerged } from "../lib/firestoreCourses";
+import { ensureCoursePresenceFlagsMerged } from "../lib/firestoreCourses";
 import {
   deleteCoursePresence,
   isCourseMemberActive,
@@ -88,7 +88,7 @@ export function CourseSharedPresence({
 
     void (async () => {
       try {
-        await ensureBasicSharedHubPresenceFlagsMerged(courseId);
+        await ensureCoursePresenceFlagsMerged(courseId);
       } catch {
         /* noop */
       }
@@ -193,9 +193,9 @@ export function CourseSharedPresence({
     presenceError?.includes("permission") || presenceError?.includes("Permission");
 
   return (
-    <section className="trailhead-presence" aria-label="입문 코스 동시 주행자">
+    <section className="trailhead-presence" aria-label="코스 동시 주행자">
       <div className="trailhead-presence__head">
-        <strong>입문 코스 동행</strong>
+        <strong>코스 동행</strong>
         <span className="trailhead-presence__meta">
           {title ? `${title} · ` : null}
           <code>{courseId}</code> · 활동 기준 {Math.round(TRAIL_PRESENCE_STALE_MS / 1000)}초

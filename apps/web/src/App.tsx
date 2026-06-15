@@ -211,6 +211,8 @@ export default function App() {
 
   /** 지도에 올라온 경로가 공식 코스(입문 허브·퍼블릭 등)에서 온 경우 — 맞춤 「경로 생성」 비활성에 사용 */
   const [activeOfficialCourseId, setActiveOfficialCourseId] = useState<string | null>(null);
+  const activeOfficialCourseIdRef = useRef<string | null>(null);
+  activeOfficialCourseIdRef.current = activeOfficialCourseId;
   const [coursePeerMarkers, setCoursePeerMarkers] = useState<MapPeerMarker[]>([]);
   /** 입문 허브 동행에서 계산된 내 네임태그(없으면 단독 주행용 표시로 대체) */
   const [liveRiderNametag, setLiveRiderNametag] = useState<string | null>(null);
@@ -449,6 +451,7 @@ export default function App() {
     setActiveOfficialCourseId,
     setPlaceSearchMarkerLngLat,
     enterBasicHubArtifactsRef,
+    activeOfficialCourseIdRef,
     savedRoutes,
     pendingPublicRouteIds,
     onPublicCatalogRideEntry: () => {
@@ -550,12 +553,25 @@ export default function App() {
     setCoursePeerMarkers(next);
   }, []);
 
+  /** 입문 허브·퍼블릭 등 공식 코스 동행 presence — coursePresence + global livePresence */
+  const sharedPresenceCourseId = basicActiveHubCourseId ?? activeOfficialCourseId ?? null;
+
+  const sharedPresenceCourseTitle = useMemo(() => {
+    if (!sharedPresenceCourseId) return undefined;
+    if ((BASIC_SHARED_HUB_IDS as readonly string[]).includes(sharedPresenceCourseId)) {
+      return getBasicHubCoursePayload(sharedPresenceCourseId).title;
+    }
+    return (
+      publishedPublicCourses.find((c) => c.id === sharedPresenceCourseId)?.title ?? "공식 코스"
+    );
+  }, [sharedPresenceCourseId, publishedPublicCourses]);
+
   const selfRiderNametagFallback = useMemo(() => {
     if (!user) return null;
-    if (basicActiveHubCourseId) return null;
+    if (sharedPresenceCourseId) return null;
     if (user.isAnonymous) return "guest";
     return user.displayName?.trim() || user.email?.trim() || "Rider";
-  }, [user, basicActiveHubCourseId]);
+  }, [user, sharedPresenceCourseId]);
 
   const resolvedLiveRiderNametag = useMemo(() => {
     const base = (liveRiderNametag ?? selfRiderNametagFallback)?.trim();
@@ -632,14 +648,14 @@ export default function App() {
     });
   }, [configured, user]);
 
-  /** 허브 코스 id 가 바뀌거나 빠질 때마다 비움 — 다른 입문 코스로 바꿀 때 이전 동행 마커가 남지 않게 함 */
+  /** 코스 id 가 바뀌거나 빠질 때마다 비움 — 다른 코스로 바꿀 때 이전 동행 마커가 남지 않게 함 */
   useEffect(() => {
     startTransition(() => setCoursePeerMarkers([]));
-  }, [basicActiveHubCourseId]);
+  }, [sharedPresenceCourseId]);
 
   useEffect(() => {
-    if (!basicActiveHubCourseId) setLiveRiderNametag(null);
-  }, [basicActiveHubCourseId]);
+    if (!sharedPresenceCourseId) setLiveRiderNametag(null);
+  }, [sharedPresenceCourseId]);
 
   const avgSpeedLabel = useMemo(() => {
     const elapsedSec = Math.floor(rideMetrics.accumulatedMs / 1000);
@@ -1157,8 +1173,8 @@ export default function App() {
 
   const mapHudRidePresence = useMemo(() => {
     if (!configured || !user) return null;
-    const courseTitle = basicActiveHubCourseId
-      ? getBasicHubCoursePayload(basicActiveHubCourseId).title.trim() || "입문 코스"
+    const courseTitle = sharedPresenceCourseId
+      ? (sharedPresenceCourseTitle?.trim() || "공식 코스")
       : null;
     const coursePeerNames = coursePeerMarkers
       .map((p) => (p.label ?? "동행").trim())
@@ -1191,7 +1207,8 @@ export default function App() {
     currentTrailMeta,
     trailSession.rows,
     trailSession.error,
-    basicActiveHubCourseId,
+    sharedPresenceCourseId,
+    sharedPresenceCourseTitle,
     coursePeerMarkers,
     courseActivity,
   ]);
@@ -1649,11 +1666,11 @@ export default function App() {
         </AuthGateCard>
       ) : null}
 
-      {configured && user && basicActiveHubCourseId ? (
+      {configured && user && sharedPresenceCourseId ? (
         <CourseSharedPresence
           user={user}
-          courseId={basicActiveHubCourseId}
-          title={getBasicHubCoursePayload(basicActiveHubCourseId).title}
+          courseId={sharedPresenceCourseId}
+          title={sharedPresenceCourseTitle}
           isRiding={rideStatus === "running"}
           rideSessionActive={rideStatus === "running" || rideStatus === "paused"}
           globalPeerPositionsByUid={globalPeerPositionsByUid}

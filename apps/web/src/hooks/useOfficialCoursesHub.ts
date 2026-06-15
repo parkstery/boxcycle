@@ -42,6 +42,8 @@ export type UseOfficialCoursesHubOptions = {
   setPlaceSearchMarkerLngLat: Dispatch<SetStateAction<LngLat | null>>;
   /** 입문 코스 로드 직전에 저장 경로 ref·ad-hoc 등 App 쪽 정리 */
   enterBasicHubArtifactsRef: MutableRefObject<() => void>;
+  /** 퍼블릭 코스 전환 시 이전 coursePresence 정리 */
+  activeOfficialCourseIdRef?: MutableRefObject<string | null>;
   savedRoutes: SavedRoute[];
   pendingPublicRouteIds: ReadonlySet<string>;
   /** 퍼블릭·입문 코스 탭에서 불러올 때 주행 입구 표시 */
@@ -70,6 +72,7 @@ export function useOfficialCoursesHub(options: UseOfficialCoursesHubOptions) {
     setActiveOfficialCourseId,
     setPlaceSearchMarkerLngLat,
     enterBasicHubArtifactsRef,
+    activeOfficialCourseIdRef,
     savedRoutes,
     pendingPublicRouteIds,
     onPublicCatalogRideEntry,
@@ -194,6 +197,12 @@ export function useOfficialCoursesHub(options: UseOfficialCoursesHubOptions) {
             /* noop */
           });
         }
+        const prevOfficial = activeOfficialCourseIdRef?.current;
+        if (user && prevOfficial && prevOfficial !== courseId) {
+          await deleteCoursePresence(user.uid, prevOfficial).catch(() => {
+            /* noop */
+          });
+        }
         let payload = null;
         if (configured) {
           try {
@@ -247,6 +256,7 @@ export function useOfficialCoursesHub(options: UseOfficialCoursesHubOptions) {
       setActiveOfficialCourseId,
       setPlaceSearchMarkerLngLat,
       enterBasicHubArtifactsRef,
+      activeOfficialCourseIdRef,
       onPublicCatalogRideEntry,
     ],
   );

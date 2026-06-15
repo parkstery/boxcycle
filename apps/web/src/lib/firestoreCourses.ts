@@ -825,6 +825,32 @@ export async function ensureBasicSharedHubPresenceFlagsMerged(courseId: string):
   );
 }
 
+/**
+ * 입문 허브·승인 퍼블릭 코스 — `courses/{id}` 에 presence 허용 플래그를 merge 한다.
+ * Rules 가 `presenceEnabled` 없이 coursePresence 를 막는 레거시 문서를 보강한다.
+ */
+export async function ensureCoursePresenceFlagsMerged(courseId: string): Promise<void> {
+  if ((BASIC_SHARED_HUB_IDS as readonly string[]).includes(courseId)) {
+    await ensureBasicSharedHubPresenceFlagsMerged(courseId);
+    return;
+  }
+  const db = getFirestore(getFirebaseApp());
+  const ref = doc(db, "courses", courseId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+  const data = snap.data() as Record<string, unknown>;
+  if (data.category !== "public" || data.status !== "published") return;
+  if (data.presenceEnabled === true) return;
+  await setDoc(
+    ref,
+    {
+      presenceEnabled: true,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+}
+
 export async function ensureBasicCoursesSeeded(currentUserId: string): Promise<void> {
   const db = getFirestore(getFirebaseApp());
 

@@ -387,6 +387,7 @@ function buildCoursePayloadFromRequest(
     routeFingerprint,
     visibility: "public",
     lifecycleStage: "public_approved",
+    presenceEnabled: true,
     sourcePublicRouteRequestId: req.id,
     sourceSavedRouteId: req.savedRouteId,
     applicantUid: req.applicantUid,

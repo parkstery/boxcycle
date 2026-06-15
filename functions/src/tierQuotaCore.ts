@@ -8,6 +8,7 @@ export type TierQuotaAction = "save_route" | "public_route_request" | "create_ev
 export type TierQuotaLimits = {
   saveRoutePerMonth: number | null;
   saveRouteMaxActive: number | null;
+  publicRouteRequestPerDay: number | null;
   publicRouteRequestPerMonth: number | null;
   createEventPerMonth: number | null;
 };
@@ -15,6 +16,7 @@ export type TierQuotaLimits = {
 export type TierQuotaUsage = {
   saveRouteCreatedThisMonth: number;
   saveRouteActiveTotal: number;
+  publicRouteRequestToday: number;
   publicRouteRequestThisMonth: number;
   createEventThisMonth: number;
 };
@@ -23,24 +25,28 @@ const QUOTA_BY_TIER: Record<ServerUserTier, TierQuotaLimits> = {
   anonymous: {
     saveRoutePerMonth: 3,
     saveRouteMaxActive: 5,
+    publicRouteRequestPerDay: 0,
     publicRouteRequestPerMonth: 0,
     createEventPerMonth: 0,
   },
   registered_free: {
     saveRoutePerMonth: 15,
     saveRouteMaxActive: 30,
-    publicRouteRequestPerMonth: 2,
+    publicRouteRequestPerDay: 5,
+    publicRouteRequestPerMonth: null,
     createEventPerMonth: 0,
   },
   registered_paid: {
     saveRoutePerMonth: 50,
     saveRouteMaxActive: 100,
-    publicRouteRequestPerMonth: 10,
+    publicRouteRequestPerDay: 10,
+    publicRouteRequestPerMonth: null,
     createEventPerMonth: 5,
   },
   admin: {
     saveRoutePerMonth: null,
     saveRouteMaxActive: null,
+    publicRouteRequestPerDay: null,
     publicRouteRequestPerMonth: null,
     createEventPerMonth: null,
   },
@@ -55,12 +61,30 @@ export function kstMonthKey(now = new Date()): string {
   return `${y}-${String(m).padStart(2, "0")}`;
 }
 
+/** KST 달력 일 `YYYY-MM-DD` */
+export function kstDayKey(now = new Date()): string {
+  const kstMs = now.getTime() + 9 * 60 * 60 * 1000;
+  const d = new Date(kstMs);
+  const y = d.getUTCFullYear();
+  const m = d.getUTCMonth() + 1;
+  const day = d.getUTCDate();
+  return `${y}-${String(m).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
 function kstMonthStartUtc(monthKey: string): Date {
   const [y, m] = monthKey.split("-").map((x) => Number(x));
   if (!Number.isFinite(y) || !Number.isFinite(m)) {
     return new Date();
   }
   return new Date(Date.UTC(y, m - 1, 1, -9, 0, 0));
+}
+
+function kstDayStartUtc(dayKey: string): Date {
+  const [y, m, d] = dayKey.split("-").map((x) => Number(x));
+  if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) {
+    return new Date();
+  }
+  return new Date(Date.UTC(y, m - 1, d, -9, 0, 0));
 }
 
 function resolveTierFromUserDoc(data: Record<string, unknown> | undefined): ServerUserTier {
@@ -97,8 +121,9 @@ function isUnlimited(limit: number | null): boolean {
 export async function loadTierQuotaUsage(uid: string, monthKey = kstMonthKey()): Promise<TierQuotaUsage> {
   const db = getFirestore();
   const monthStart = Timestamp.fromDate(kstMonthStartUtc(monthKey));
+  const dayStart = Timestamp.fromDate(kstDayStartUtc(kstDayKey()));
 
-  const [savedMonthSnap, savedTotalSnap, publicMonthSnap] = await Promise.all([
+  const [savedMonthSnap, savedTotalSnap, publicMonthSnap, publicDaySnap] = await Promise.all([
     db
       .collection("savedRoutes")
       .where("userId", "==", uid)
@@ -112,11 +137,18 @@ export async function loadTierQuotaUsage(uid: string, monthKey = kstMonthKey()):
       .where("createdAt", ">=", monthStart)
       .count()
       .get(),
+    db
+      .collection("publicRouteRequests")
+      .where("applicantUid", "==", uid)
+      .where("createdAt", ">=", dayStart)
+      .count()
+      .get(),
   ]);
 
   return {
     saveRouteCreatedThisMonth: savedMonthSnap.data().count,
     saveRouteActiveTotal: savedTotalSnap.data().count,
+    publicRouteRequestToday: publicDaySnap.data().count,
     publicRouteRequestThisMonth: publicMonthSnap.data().count,
     createEventThisMonth: 0,
   };
@@ -153,6 +185,12 @@ function quotaMessage(
     }
   }
   if (action === "public_route_request") {
+    if (
+      limits.publicRouteRequestPerDay != null &&
+      usage.publicRouteRequestToday >= limits.publicRouteRequestPerDay
+    ) {
+      return `오늘 공개 신청 가능 횟수(${limits.publicRouteRequestPerDay}회)를 모두 사용했습니다.`;
+    }
     if (
       limits.publicRouteRequestPerMonth != null &&
       usage.publicRouteRequestThisMonth >= limits.publicRouteRequestPerMonth
@@ -211,6 +249,18 @@ export async function assertTierQuota(
   }
 
   if (action === "public_route_request") {
+    if (
+      !isUnlimited(limits.publicRouteRequestPerDay) &&
+      limits.publicRouteRequestPerDay === 0
+    ) {
+      throw new HttpsError("failed-precondition", quotaMessage(tier, action, usage, limits));
+    }
+    if (
+      !isUnlimited(limits.publicRouteRequestPerDay) &&
+      usage.publicRouteRequestToday >= (limits.publicRouteRequestPerDay as number)
+    ) {
+      throw new HttpsError("resource-exhausted", quotaMessage(tier, action, usage, limits));
+    }
     if (
       !isUnlimited(limits.publicRouteRequestPerMonth) &&
       limits.publicRouteRequestPerMonth === 0

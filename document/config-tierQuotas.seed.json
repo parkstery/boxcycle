@@ -3,24 +3,28 @@
   "anonymous": {
     "saveRoutePerMonth": 3,
     "saveRouteMaxActive": 5,
+    "publicRouteRequestPerDay": 0,
     "publicRouteRequestPerMonth": 0,
     "createEventPerMonth": 0
   },
   "registered_free": {
     "saveRoutePerMonth": 15,
     "saveRouteMaxActive": 30,
-    "publicRouteRequestPerMonth": 2,
+    "publicRouteRequestPerDay": 5,
+    "publicRouteRequestPerMonth": null,
     "createEventPerMonth": 0
   },
   "registered_paid": {
     "saveRoutePerMonth": 50,
     "saveRouteMaxActive": 100,
-    "publicRouteRequestPerMonth": 10,
+    "publicRouteRequestPerDay": 10,
+    "publicRouteRequestPerMonth": null,
     "createEventPerMonth": 5
   },
   "admin": {
     "saveRoutePerMonth": null,
     "saveRouteMaxActive": null,
+    "publicRouteRequestPerDay": null,
     "publicRouteRequestPerMonth": null,
     "createEventPerMonth": null
   }

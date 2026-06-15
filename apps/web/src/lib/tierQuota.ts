@@ -9,12 +9,14 @@ export type TierQuotaCheckResult = {
   usage: {
     saveRouteCreatedThisMonth: number;
     saveRouteActiveTotal: number;
+    publicRouteRequestToday: number;
     publicRouteRequestThisMonth: number;
     createEventThisMonth: number;
   };
   limits: {
     saveRoutePerMonth: number | null;
     saveRouteMaxActive: number | null;
+    publicRouteRequestPerDay: number | null;
     publicRouteRequestPerMonth: number | null;
     createEventPerMonth: number | null;
   };
