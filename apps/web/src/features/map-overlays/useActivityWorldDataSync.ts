@@ -20,6 +20,7 @@ import {
   formatWorldActivityHudLine,
   mergeWorldHudLines,
 } from "../../lib/firestoreWorldActivity";
+import { isActivityLodDebugPanelEnabled } from "../../lib/mapDebugPhase";
 
 export type UseActivityWorldDataSyncOpts = {
   enabled: boolean;
@@ -131,10 +132,12 @@ export function useActivityWorldDataSync(opts: UseActivityWorldDataSyncOpts): Ac
     selfRideActive,
     onTick: () => runFullSyncRef.current(false),
     resolveModeAfterTick: () =>
-      resolveActivityWorldPollMode({
-        ...getActivityWorldPollSignals(),
-        selfRideActive: selfRideRef.current,
-      }),
+      isActivityLodDebugPanelEnabled()
+        ? "active"
+        : resolveActivityWorldPollMode({
+            ...getActivityWorldPollSignals(),
+            selfRideActive: selfRideRef.current,
+          }),
   });
 
   useEffect(() => {

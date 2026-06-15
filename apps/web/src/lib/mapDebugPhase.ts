@@ -18,6 +18,24 @@ export function getMapDebugPhase(): MapDebugPhase | null {
   return null;
 }
 
+/** Activity World LOD 디버그 패널 — `useAppMapOverlays` catalog 경로와 연동 */
+export function isActivityLodDebugPanelEnabled(): boolean {
+  return import.meta.env.DEV && import.meta.env.VITE_SHOW_ACTIVITY_LOD_DEBUG === "true";
+}
+
+/**
+ * 런타임 Map overlay 에 적용할 Phase.
+ * LOD 패널(E2E) + env Phase B/C 는 courseActivity catalog 를 우회하므로 Phase D 로 강등한다.
+ */
+export function getEffectiveMapDebugPhase(): MapDebugPhase | null {
+  const env = getMapDebugPhase();
+  if (!env) return null;
+  if (isActivityLodDebugPanelEnabled() && (env === "B" || env === "C")) {
+    return null;
+  }
+  return env;
+}
+
 export function isMapDebugPhaseA(): boolean {
   return getMapDebugPhase() === "A";
 }
@@ -32,13 +50,13 @@ export function isMapDebugPhaseC(): boolean {
 
 /** Phase A–C: trail·global·publication poll 등 world 변수 제거 */
 export function shouldSkipLiveOverlaysOnMap(): boolean {
-  const p = getMapDebugPhase();
+  const p = getEffectiveMapDebugPhase();
   return p === "A" || p === "B" || p === "C";
 }
 
 /** 260527 §5 — Phase A·B 에서 moveToTop 금지 */
 export function shouldMoveActivityWorldLayersToTop(): boolean {
-  const p = getMapDebugPhase();
+  const p = getEffectiveMapDebugPhase();
   if (p === "A" || p === "B") return false;
   if (p === "C") return true;
   return true;
@@ -63,7 +81,8 @@ export function logMapDebugPhaseBoot(): void {
   const envRaw = import.meta.env.VITE_MAP_DEBUG_PHASE;
   console.info("[MapDebug] boot", {
     env: envRaw == null || envRaw === "" ? "(unset)" : envRaw,
-    effectivePhase: getMapDebugPhase(),
+    effectivePhase: getEffectiveMapDebugPhase(),
+    lodDebugPanel: isActivityLodDebugPanelEnabled(),
     skipLiveOverlays: shouldSkipLiveOverlaysOnMap(),
     publicationHooksOff: shouldDisablePublicationOverlayHooks(),
   });

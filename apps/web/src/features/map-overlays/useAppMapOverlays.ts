@@ -32,7 +32,9 @@ import {
   runWorldPublicationMapDotsChecks,
 } from "./worldPublicationMapDots";
 import {
+  getEffectiveMapDebugPhase,
   getMapDebugPhase,
+  isActivityLodDebugPanelEnabled,
   isMapDebugPhaseRecovery,
   shouldDisablePublicationOverlayHooks,
   shouldSkipLiveOverlaysOnMap,
@@ -134,7 +136,8 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   }, [sanitizedTrailId, openTrails]);
 
   /** AC-7: Trailhead idle = publication만 — L3 spectator는 주행·일시정지(관전 세션)에서만 */
-  const mapDebugPhase = getMapDebugPhase();
+  const mapDebugPhaseEnv = getMapDebugPhase();
+  const mapDebugPhase = getEffectiveMapDebugPhase();
   const isPhaseA = mapDebugPhase === "A";
   const isPhaseB = mapDebugPhase === "B";
   const isPhaseC = mapDebugPhase === "C";
@@ -512,7 +515,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   ]);
 
   const lodDebugPanelProps: ActivityWorldLodDebugPanelProps | null =
-    import.meta.env.DEV && import.meta.env.VITE_SHOW_ACTIVITY_LOD_DEBUG === "true"
+    isActivityLodDebugPanelEnabled()
       ? {
           activityWorldLodDebug,
           mapLodZoom,
@@ -520,6 +523,11 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
           mapViewportSpanKm,
           activityWorldRaw,
           activityWorldRender,
+          catalogPulseDots: catalogOverlay.pulseDots.length,
+          catalogHeatDots: catalogOverlay.heatDots.length,
+          catalogPulseRoutes: catalogOverlay.pulseRoutes.length,
+          mapDebugPhaseEnv,
+          mapDebugPhaseEffective: mapDebugPhase,
           publicationPresenceWorldMapEnabled,
           publicationActiveCount: publicationOverlay.overlayStats.activeCount,
           publicationClosedCount: publicationOverlay.overlayStats.closedCount,
@@ -537,7 +545,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
           liveCourseRideRows: liveCourseRideOverlay.liveRideRowCount,
           liveActivityCourseIdsCount: liveActivityCourseIds.length,
           catalogCourseIdsCount: catalogCourseIds.length,
-          mapDebugPhase,
+          mapDebugPhase: mapDebugPhase,
         }
       : null;
 

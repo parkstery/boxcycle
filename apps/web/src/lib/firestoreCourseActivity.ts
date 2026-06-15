@@ -10,6 +10,7 @@ import {
   where,
 } from "firebase/firestore";
 import { getFirebaseApp } from "./firebase";
+import { isActivityLodDebugPanelEnabled } from "./mapDebugPhase";
 import type { LngLat } from "./geo";
 import { lastSeenAtToMillis } from "./firestoreTrail";
 
@@ -226,7 +227,8 @@ export async function fetchLiveCourseActivityIds(
 ): Promise<string[]> {
   const cap = Math.max(1, Math.min(max, LIVE_COURSE_IDS_QUERY_MAX));
   const now = Date.now();
-  if (liveCourseIdsCache && now - liveCourseIdsCache.at < LIVE_COURSE_IDS_CACHE_MS) {
+  const cacheMs = isActivityLodDebugPanelEnabled() ? 10_000 : LIVE_COURSE_IDS_CACHE_MS;
+  if (liveCourseIdsCache && now - liveCourseIdsCache.at < cacheMs) {
     return liveCourseIdsCache.ids;
   }
 
