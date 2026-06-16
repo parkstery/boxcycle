@@ -1146,6 +1146,8 @@ export function MapView({
   const liveLngLatRef = useRef<LngLat | null>(null);
   const sampleLiveLngLatRef = useRef(sampleLiveLngLat);
   const liveRiderMotionRef = useRef(liveRiderMotion);
+  const followModeRef = useRef(followMode);
+  const mapZoomRef = useRef(mapZoom);
   const prefersReducedMotionRef = useRef(false);
   const enable3DRef = useRef(enable3D);
   const initialMapStyleRef = useRef(mapStyle);
@@ -1203,6 +1205,14 @@ export function MapView({
   useEffect(() => {
     liveRiderMotionRef.current = liveRiderMotion;
   }, [liveRiderMotion]);
+
+  useEffect(() => {
+    followModeRef.current = followMode;
+  }, [followMode]);
+
+  useEffect(() => {
+    mapZoomRef.current = mapZoom;
+  }, [mapZoom]);
 
   useEffect(() => {
     prefersReducedMotionRef.current = prefersReducedMotion;
@@ -1841,6 +1851,16 @@ export function MapView({
           liveMarkerPedalSpriteRef,
           prefersReducedMotionRef.current,
         );
+        tickRideCameraFollow(map, sampled, {
+          followMode: followModeRef.current,
+          enable3D: enable3DRef.current,
+          mapZoom: mapZoomRef.current,
+          routeGeometry: routeGeometryRef.current,
+          prevLiveRef: prevLiveRef,
+          smooth: cameraSmoothRef.current,
+          suppressUntilMs: suppressCameraFollowUntilRef.current,
+          nowMs: now,
+        });
       }
 
       mergePeerTargets(
@@ -2072,89 +2092,6 @@ export function MapView({
     if (!map || !mapLoaded) return;
     apply3DState(map, enable3D, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID);
   }, [enable3D, mapLoaded]);
-
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
-    if (performance.now() < suppressCameraFollowUntilRef.current) return;
-    if (!liveLngLat) return;
-
-    if (followMode === "free") {
-      prevLiveRef.current = liveLngLat;
-      return;
-    }
-
-    const prev = prevLiveRef.current;
-    const headingFromMove =
-      prev && getDistanceMeters(prev, liveLngLat) >= 2 ? getBearing(prev, liveLngLat) : null;
-    const headingFromRoute = getAverageHeadingAheadFromPoint(
-      routeGeometry,
-      liveLngLat,
-      CAMERA_BEARING_WINDOW_METERS,
-      CAMERA_BEARING_WINDOW_SAMPLES,
-    );
-    const baseHeading = headingFromMove ?? headingFromRoute ?? map.getBearing();
-    const nextCamera = getCameraForFollowMode({
-      mode: followMode,
-      baseHeading,
-      currentPitch: map.getPitch(),
-      enable3D,
-    });
-
-    prevLiveRef.current = liveLngLat;
-    const smooth = cameraSmoothRef.current;
-    if (!smooth.center || smooth.bearing == null || smooth.bearingPrimary == null || smooth.pitch == null || smooth.zoom == null) {
-      resetCameraSmoothing(smooth, map);
-    }
-    const nowTs = performance.now();
-    const dtMs = smooth.lastTs == null ? 0 : nowTs - smooth.lastTs;
-    smooth.lastTs = nowTs;
-    const dtSec = clamp(dtMs, 0, CAMERA_MAX_DT_MS) / 1000;
-    const alphaPos = dampAlpha(dtSec, CAMERA_POSITION_TAU_SEC);
-    const alphaBearingPrimary = dampAlpha(dtSec, CAMERA_BEARING_TAU_PRIMARY_SEC);
-    const alphaBearingSecondary = dampAlpha(dtSec, CAMERA_BEARING_TAU_SECONDARY_SEC);
-    const maxStepPrimary = CAMERA_BEARING_MAX_DPS_PRIMARY * dtSec;
-    const maxStepSecondary = CAMERA_BEARING_MAX_DPS_SECONDARY * dtSec;
-
-    const curCenter = smooth.center ?? liveLngLat;
-    const curPitch = smooth.pitch ?? map.getPitch();
-    const curZoom = smooth.zoom ?? map.getZoom();
-    const curBearingPrimary = smooth.bearingPrimary ?? map.getBearing();
-    const curBearing = smooth.bearing ?? map.getBearing();
-
-    const nextCenter: LngLat = [
-      lerp(curCenter[0], liveLngLat[0], alphaPos),
-      lerp(curCenter[1], liveLngLat[1], alphaPos),
-    ];
-    const nextPitch = lerp(curPitch, nextCamera.pitch, alphaPos);
-    const nextZoom = lerp(curZoom, mapZoom, alphaPos);
-    const nextBearingPrimary = lerpAngle(
-      curBearingPrimary,
-      nextCamera.bearing,
-      alphaBearingPrimary,
-      maxStepPrimary,
-    );
-    const nextBearing = lerpAngle(
-      curBearing,
-      nextBearingPrimary,
-      alphaBearingSecondary,
-      maxStepSecondary,
-    );
-
-    smooth.center = nextCenter;
-    smooth.pitch = nextPitch;
-    smooth.zoom = nextZoom;
-    smooth.bearingPrimary = nextBearingPrimary;
-    smooth.bearing = nextBearing;
-
-    map.stop();
-    map.jumpTo({
-      center: nextCenter,
-      bearing: nextBearing,
-      pitch: nextPitch,
-      zoom: nextZoom,
-    });
-  }, [liveLngLat, followMode, enable3D, mapLoaded, routeGeometry, mapZoom]);
 
   if (!accessToken?.trim()) {
     return (
@@ -2797,6 +2734,113 @@ function resetCameraSmoothing(
   state.pitch = map.getPitch();
   state.zoom = map.getZoom();
   state.lastTs = null;
+}
+
+/** 팔로우 모드 카메라 — rAF 매 프레임 (React liveLngLat 200ms throttle 우회) */
+function tickRideCameraFollow(
+  map: mapboxgl.Map,
+  targetLngLat: LngLat,
+  opts: {
+    followMode: FollowMode;
+    enable3D: boolean;
+    mapZoom: number;
+    routeGeometry: LineStringGeometry | null;
+    prevLiveRef: { current: LngLat | null };
+    smooth: {
+      center: LngLat | null;
+      bearingPrimary: number | null;
+      bearing: number | null;
+      pitch: number | null;
+      zoom: number | null;
+      lastTs: number | null;
+    };
+    suppressUntilMs: number;
+    nowMs: number;
+  },
+): void {
+  if (opts.nowMs < opts.suppressUntilMs) return;
+
+  if (opts.followMode === "free") {
+    opts.prevLiveRef.current = targetLngLat;
+    return;
+  }
+
+  const prev = opts.prevLiveRef.current;
+  const headingFromMove =
+    prev && getDistanceMeters(prev, targetLngLat) >= 2 ? getBearing(prev, targetLngLat) : null;
+  const headingFromRoute = getAverageHeadingAheadFromPoint(
+    opts.routeGeometry,
+    targetLngLat,
+    CAMERA_BEARING_WINDOW_METERS,
+    CAMERA_BEARING_WINDOW_SAMPLES,
+  );
+  const baseHeading = headingFromMove ?? headingFromRoute ?? map.getBearing();
+  const nextCamera = getCameraForFollowMode({
+    mode: opts.followMode,
+    baseHeading,
+    currentPitch: map.getPitch(),
+    enable3D: opts.enable3D,
+  });
+
+  opts.prevLiveRef.current = targetLngLat;
+  const smooth = opts.smooth;
+  if (
+    !smooth.center ||
+    smooth.bearing == null ||
+    smooth.bearingPrimary == null ||
+    smooth.pitch == null ||
+    smooth.zoom == null
+  ) {
+    resetCameraSmoothing(smooth, map);
+  }
+
+  const dtMs = smooth.lastTs == null ? 0 : opts.nowMs - smooth.lastTs;
+  smooth.lastTs = opts.nowMs;
+  const dtSec = clamp(dtMs, 0, CAMERA_MAX_DT_MS) / 1000;
+  const alphaPos = dampAlpha(dtSec, CAMERA_POSITION_TAU_SEC);
+  const alphaBearingPrimary = dampAlpha(dtSec, CAMERA_BEARING_TAU_PRIMARY_SEC);
+  const alphaBearingSecondary = dampAlpha(dtSec, CAMERA_BEARING_TAU_SECONDARY_SEC);
+  const maxStepPrimary = CAMERA_BEARING_MAX_DPS_PRIMARY * dtSec;
+  const maxStepSecondary = CAMERA_BEARING_MAX_DPS_SECONDARY * dtSec;
+
+  const curCenter = smooth.center ?? targetLngLat;
+  const curPitch = smooth.pitch ?? map.getPitch();
+  const curZoom = smooth.zoom ?? map.getZoom();
+  const curBearingPrimary = smooth.bearingPrimary ?? map.getBearing();
+  const curBearing = smooth.bearing ?? map.getBearing();
+
+  const nextCenter: LngLat = [
+    lerp(curCenter[0], targetLngLat[0], alphaPos),
+    lerp(curCenter[1], targetLngLat[1], alphaPos),
+  ];
+  const nextPitch = lerp(curPitch, nextCamera.pitch, alphaPos);
+  const nextZoom = lerp(curZoom, opts.mapZoom, alphaPos);
+  const nextBearingPrimary = lerpAngle(
+    curBearingPrimary,
+    nextCamera.bearing,
+    alphaBearingPrimary,
+    maxStepPrimary,
+  );
+  const nextBearing = lerpAngle(
+    curBearing,
+    nextBearingPrimary,
+    alphaBearingSecondary,
+    maxStepSecondary,
+  );
+
+  smooth.center = nextCenter;
+  smooth.pitch = nextPitch;
+  smooth.zoom = nextZoom;
+  smooth.bearingPrimary = nextBearingPrimary;
+  smooth.bearing = nextBearing;
+
+  map.stop();
+  map.jumpTo({
+    center: nextCenter,
+    bearing: nextBearing,
+    pitch: nextPitch,
+    zoom: nextZoom,
+  });
 }
 
 function clamp(v: number, min: number, max: number) {
