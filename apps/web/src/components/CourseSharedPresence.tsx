@@ -9,7 +9,12 @@ import {
   upsertCoursePresence,
   type CourseMemberRow,
 } from "../lib/firestoreCoursePresence";
-import type { LngLat } from "../lib/geo";
+import {
+  isTrailLiveCourseRideRowFresh,
+  type TrailLiveCourseRideRow,
+} from "../lib/firestoreTrailLiveCourseRides";
+import { acquireTrailLiveCourseRidesSubscription } from "../lib/liveCourseRidesSubscriptionHub";
+import { sanitizeTrailId } from "../lib/firestoreTrail";
 import type { MapPeerMarker } from "./MapView";
 import { TRAIL_PRESENCE_STALE_MS } from "../lib/firestoreTrail";
 import { COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS, COURSE_PRESENCE_HEARTBEAT_PAUSED_MS } from "../lib/rideSyncPolicy";
@@ -20,7 +25,15 @@ import "./trail/TrailheadPresence.css";
 function peersStableKey(peers: MapPeerMarker[] | undefined): string {
   if (!peers?.length) return "";
   return peers
-    .map((p) => `${p.id}:${p.lngLat[0].toFixed(6)},${p.lngLat[1].toFixed(6)}:${p.label ?? ""}`)
+    .map((p) => {
+      if (typeof p.progressRatio === "number" && Number.isFinite(p.progressRatio)) {
+        return `${p.id}:p${p.progressRatio.toFixed(5)}:${p.label ?? ""}`;
+      }
+      if (p.lngLat) {
+        return `${p.id}:${p.lngLat[0].toFixed(6)},${p.lngLat[1].toFixed(6)}:${p.label ?? ""}`;
+      }
+      return `${p.id}:?`;
+    })
     .sort()
     .join("|");
 }
@@ -28,12 +41,11 @@ function peersStableKey(peers: MapPeerMarker[] | undefined): string {
 type CourseSharedPresenceProps = {
   user: User;
   courseId: string;
+  trailId: string;
   title?: string;
   isRiding: boolean;
   /** running 또는 paused — heartbeat 주기만 조절 */
   rideSessionActive: boolean;
-  /** global livePresence 좌표 — coursePresence 에 좌표를 쓰지 않음 */
-  globalPeerPositionsByUid: ReadonlyMap<string, LngLat>;
   onPeersChange?: (peers: MapPeerMarker[]) => void;
   onLiveRiderNametagChange?: (nametag: string | null) => void;
   /** false — 동행 동기화만, 패널 미표시(모바일) */
@@ -43,16 +55,17 @@ type CourseSharedPresenceProps = {
 export function CourseSharedPresence({
   user,
   courseId,
+  trailId,
   title,
   isRiding,
   rideSessionActive,
-  globalPeerPositionsByUid,
   onPeersChange,
   onLiveRiderNametagChange,
   showPanel = false,
 }: CourseSharedPresenceProps) {
   const pageVisible = useDocumentVisibility();
   const [rows, setRows] = useState<CourseMemberRow[]>([]);
+  const [liveRideRows, setLiveRideRows] = useState<TrailLiveCourseRideRow[]>([]);
   const [presenceError, setPresenceError] = useState<string | null>(null);
   const onPeersChangeRef = useRef(onPeersChange);
   const onLiveTagRef = useRef(onLiveRiderNametagChange);
@@ -122,6 +135,30 @@ export function CourseSharedPresence({
   }, [user.uid, courseId, pageVisible]);
 
   useEffect(() => {
+    if (!pageVisible || !rideSessionActive) {
+      startTransition(() => setLiveRideRows([]));
+      return;
+    }
+
+    const tid = sanitizeTrailId(trailId);
+    let cancelled = false;
+    const release = acquireTrailLiveCourseRidesSubscription(
+      tid,
+      (next) => {
+        if (!cancelled) startTransition(() => setLiveRideRows(next));
+      },
+      () => {
+        /* live ride 구독 오류는 멤버 presence 와 분리 — 맵 동행만 생략 */
+      },
+    );
+
+    return () => {
+      cancelled = true;
+      release();
+    };
+  }, [pageVisible, rideSessionActive, trailId]);
+
+  useEffect(() => {
     const uid = user.uid;
     const cid = courseId;
     return () => {
@@ -149,6 +186,18 @@ export function CourseSharedPresence({
     [rows],
   );
 
+  const liveRidesByUid = useMemo(() => {
+    const m = new Map<string, TrailLiveCourseRideRow>();
+    const cid = courseId.trim();
+    for (const row of liveRideRows) {
+      if (row.uid === user.uid) continue;
+      if (!isTrailLiveCourseRideRowFresh(row)) continue;
+      if (row.courseId.trim() !== cid) continue;
+      m.set(row.uid, row);
+    }
+    return m;
+  }, [liveRideRows, courseId, user.uid]);
+
   const guestUidsSorted = useMemo(() => {
     const picks = active.map((r) => ({ uid: r.uid, memberType: r.memberType }));
     let ids = sortedGuestUids(picks);
@@ -173,13 +222,16 @@ export function CourseSharedPresence({
   const peerMarkersForMap = useMemo((): MapPeerMarker[] => {
     if (presenceError) return [];
     return active
-      .filter((r) => r.uid !== user.uid && globalPeerPositionsByUid.has(r.uid))
-      .map((r) => ({
-        id: r.uid,
-        lngLat: globalPeerPositionsByUid.get(r.uid)!,
-        label: mapNametagForMember(r.uid, r.memberType, r.displayName, guestUidsSorted),
-      }));
-  }, [active, presenceError, user.uid, guestUidsSorted, globalPeerPositionsByUid]);
+      .filter((r) => r.uid !== user.uid && liveRidesByUid.has(r.uid))
+      .map((r) => {
+        const live = liveRidesByUid.get(r.uid)!;
+        return {
+          id: r.uid,
+          progressRatio: live.progressRatio,
+          label: mapNametagForMember(r.uid, r.memberType, r.displayName, guestUidsSorted),
+        };
+      });
+  }, [active, presenceError, user.uid, guestUidsSorted, liveRidesByUid]);
 
   const lastPeersKeyRef = useRef<string>("__init__");
 
@@ -224,7 +276,7 @@ export function CourseSharedPresence({
             <li key={r.uid}>
               {mapNametagForMember(r.uid, r.memberType, r.displayName, guestUidsSorted)}
               {r.uid === user.uid ? <span className="trailhead-presence__you"> (나)</span> : null}
-              {globalPeerPositionsByUid.has(r.uid) ? (
+              {liveRidesByUid.has(r.uid) ? (
                 <span className="trailhead-presence__live-dot"> · 지도 공유 중</span>
               ) : null}
             </li>

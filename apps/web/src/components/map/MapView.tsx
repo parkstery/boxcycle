@@ -933,7 +933,14 @@ function getReducedMotionServerSnapshot(): boolean {
 
 
 /** 같은 코스를 주행 중인 다른 사용자 — `MapView` 에서는 Mapbox `Marker`(DOM)로 표시 */
-export type MapPeerMarker = { id: string; lngLat: LngLat; label?: string | null };
+export type MapPeerMarker = {
+  id: string;
+  label?: string | null;
+  /** 동일 코스 geometry — 진행률 기반 동행 위치(우선) */
+  progressRatio?: number;
+  /** progressRatio 없을 때 폴백 */
+  lngLat?: LngLat;
+};
 
 /** 가상 주행 세션과 연동해 페달 루프 주기·재생 여부를 맞춘다 */
 export type LiveRiderMotion = {
@@ -1323,7 +1330,12 @@ export function MapView({
         }
       }
       peerDomMarkersRef.current.clear();
-      mergePeerTargets(peerDriveSimRef.current, latestPeerMarkersRef.current, performance.now());
+      mergePeerTargets(
+        peerDriveSimRef.current,
+        latestPeerMarkersRef.current,
+        performance.now(),
+        routeGeometryRef.current,
+      );
       try {
         syncLiveOverlayLayersOnMap(
           map,
@@ -1771,8 +1783,13 @@ export function MapView({
 
   /** 다른 라이더(동행): Firestore 스냅샷이 바뀌면 즉시 타깃만 병합(rAF 가 lerp·스프라이트 갱신) */
   useEffect(() => {
-    mergePeerTargets(peerDriveSimRef.current, peerMarkers ?? [], performance.now());
-  }, [peerMarkers]);
+    mergePeerTargets(
+      peerDriveSimRef.current,
+      peerMarkers ?? [],
+      performance.now(),
+      routeGeometryRef.current,
+    );
+  }, [peerMarkers, routeGeometry]);
 
   /** 동행 위치·페달 프레임: rAF 로 부드럽게 보간 */
   useEffect(() => {
@@ -1787,8 +1804,18 @@ export function MapView({
       }
       const dt = Math.min(0.1, (now - lastTs) / 1000);
       lastTs = now;
-      mergePeerTargets(peerDriveSimRef.current, latestPeerMarkersRef.current, now);
-      const fc = stepPeerDriveAndBuildGeoJson(peerDriveSimRef.current, dt, getBearing);
+      mergePeerTargets(
+        peerDriveSimRef.current,
+        latestPeerMarkersRef.current,
+        now,
+        routeGeometryRef.current,
+      );
+      const fc = stepPeerDriveAndBuildGeoJson(
+        peerDriveSimRef.current,
+        dt,
+        getBearing,
+        routeGeometryRef.current,
+      );
       syncPeerDomMarkers(map, fc.features as PeerDomGJFeature[], peerDomMarkersRef);
       if (RIDER_PROTOTYPE_MODE === "glb") {
         const specs: { id: string; lngLat: LngLat; bearingDeg: number }[] = [];

@@ -28,19 +28,19 @@ export const TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS = 30_000;
 export const LOBBY_PRESENCE_HEARTBEAT_ACTIVE_MS = TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS;
 
 /** Trail `liveCourseRides` 진행률: 최소 쓰기 간격 */
-export const TRAIL_LIVE_PROGRESS_MIN_WRITE_MS = 8_000;
+export const TRAIL_LIVE_PROGRESS_MIN_WRITE_MS = 5_000;
 
 /** @deprecated `TRAIL_LIVE_PROGRESS_MIN_WRITE_MS` */
 export const LOBBY_LIVE_PROGRESS_MIN_WRITE_MS = TRAIL_LIVE_PROGRESS_MIN_WRITE_MS;
 
 /** Trail `liveCourseRides` 진행률: 최대 간격(강제 1회 플러시) */
-export const TRAIL_LIVE_PROGRESS_MAX_WRITE_MS = 25_000;
+export const TRAIL_LIVE_PROGRESS_MAX_WRITE_MS = 12_000;
 
 /** @deprecated `TRAIL_LIVE_PROGRESS_MAX_WRITE_MS` */
 export const LOBBY_LIVE_PROGRESS_MAX_WRITE_MS = TRAIL_LIVE_PROGRESS_MAX_WRITE_MS;
 
 /** Trail `liveCourseRides`: 진행률 변화가 이 값 이상일 때만 의미 있는 변화로 간주 */
-export const TRAIL_LIVE_PROGRESS_MIN_DELTA = 0.012;
+export const TRAIL_LIVE_PROGRESS_MIN_DELTA = 0.008;
 
 /** @deprecated `TRAIL_LIVE_PROGRESS_MIN_DELTA` */
 export const LOBBY_LIVE_PROGRESS_MIN_DELTA = TRAIL_LIVE_PROGRESS_MIN_DELTA;

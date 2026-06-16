@@ -1018,12 +1018,6 @@ export default function App() {
     enabled: globalLivePresenceSubscribeEnabled,
   });
 
-  const globalPeerPositionsByUid = useMemo((): ReadonlyMap<string, LngLat> => {
-    const m = new Map<string, LngLat>();
-    for (const d of globalPresenceDots) m.set(d.id, d.lngLat);
-    return m;
-  }, [globalPresenceDots]);
-
   const peerMarkersForMap = useMemo(() => {
     if (mapZoom <= MAP_PEER_SPRITE_MIN_ZOOM) return [];
     return coursePeerMarkers;
@@ -1669,10 +1663,10 @@ export default function App() {
         <CourseSharedPresence
           user={user}
           courseId={sharedPresenceCourseId}
+          trailId={trailId}
           title={sharedPresenceCourseTitle}
           isRiding={rideStatus === "running"}
           rideSessionActive={rideStatus === "running" || rideStatus === "paused"}
-          globalPeerPositionsByUid={globalPeerPositionsByUid}
           onPeersChange={onCoursePeersChange}
           onLiveRiderNametagChange={setLiveRiderNametag}
         />
