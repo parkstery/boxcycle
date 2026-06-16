@@ -292,6 +292,7 @@ export default function App() {
     rideMetrics,
     resetRide,
     syncLiveFromDistance,
+    sampleLiveLngLat,
     startLabel,
     endLabel,
     startPlaceLabel,
@@ -1296,6 +1297,7 @@ export default function App() {
               endLngLat,
               routeWaypoints,
               liveLngLat: liveForMap,
+              sampleLiveLngLat: rideStatus === "idle" ? undefined : sampleLiveLngLat,
               liveRiderMotion:
                 rideStatus === "idle"
                   ? null

@@ -950,6 +950,57 @@ export type LiveRiderMotion = {
   crankRpmFromSensor?: number | null;
 };
 
+/** rAF tick — 본인 라이더 마커 방향·페달 (동행과 동일 프레임) */
+function syncLiveSelfRiderVisual(
+  pos: LngLat,
+  motion: LiveRiderMotion | null | undefined,
+  routeGeometry: LineStringGeometry | null,
+  prevLiveForBearingRef: { current: LngLat | null },
+  flipRef: { current: HTMLDivElement | null },
+  imgRef: { current: HTMLImageElement | null },
+  spriteRef: { current: HTMLDivElement | null },
+  prefersReducedMotion: boolean,
+): void {
+  const prev = prevLiveForBearingRef.current;
+  let bearingDeg: number | null = null;
+  if (prev && getDistanceMeters(prev, pos) >= 0.4) {
+    bearingDeg = getBearing(prev, pos);
+  }
+  if (bearingDeg == null) {
+    bearingDeg = getHeadingFromRouteAtPoint(routeGeometry, pos);
+  }
+  const b = bearingDeg ?? 0;
+  prevLiveForBearingRef.current = pos;
+
+  if (RIDER_PROTOTYPE_MODE === "iso2d") {
+    const flip = flipRef.current;
+    const img = imgRef.current;
+    if (flip && img) applyIso2dRiderBearing(flip, img, "self", b);
+    return;
+  }
+  if (RIDER_PROTOTYPE_MODE === "glb") return;
+
+  const flip = flipRef.current;
+  const sprite = spriteRef.current;
+  if (!flip || !sprite) return;
+
+  flip.style.transform = b > 90 && b < 270 ? "scaleX(-1)" : "scaleX(1)";
+
+  const speedNow = motion?.speedKmh ?? 0;
+  const pedalingRunning = motion != null && motion.sessionStatus === "running" && speedNow > 0.35;
+  const rpm = motion
+    ? resolvePedalCrankRpm({
+        speedKmh: motion.speedKmh,
+        crankRpmFromSensor: motion.crankRpmFromSensor,
+      })
+    : estimateCrankRpmFromSpeedKmh(0);
+  let pedalLoopSec = 60 / rpm;
+  pedalLoopSec = Math.min(5.5, Math.max(0.22, pedalLoopSec));
+  sprite.style.animationDuration = `${pedalLoopSec}s`;
+  const allowPedalAnim = !prefersReducedMotion && pedalingRunning;
+  sprite.style.animationPlayState = allowPedalAnim ? "running" : "paused";
+}
+
 export type MapViewProps = {
   accessToken: string | undefined;
   /** 부모 `useRouteElevationProfile` 과 동일(도로형 보정 포함) — 차트·코칭과 통일 */
@@ -960,6 +1011,8 @@ export type MapViewProps = {
   /** 출발·도착 사이 경유(순서대로 최대 3) */
   routeWaypoints: LngLat[];
   liveLngLat: LngLat | null;
+  /** rAF 샘플 — React throttle 없이 맵 마커 위치 (가상 주행 세션) */
+  sampleLiveLngLat?: () => LngLat | null;
   /** 내 위치 마커 페달 애니메이션(주행/일시정지·가상 속도). 없으면 스프라이트만 정지 표시 */
   liveRiderMotion?: LiveRiderMotion | null;
   /** 주행 중 내 머리 위 표시(닉네임·guest1 등). 없으면 태그 숨김 */
@@ -1021,6 +1074,7 @@ export function MapView({
   endLngLat,
   routeWaypoints,
   liveLngLat,
+  sampleLiveLngLat,
   liveRiderMotion,
   liveRiderNametag,
   peerMarkers,
@@ -1090,6 +1144,9 @@ export function MapView({
   const popupRef = useRef<mapboxgl.Popup | null>(null);
   const routeGeometryRef = useRef<LineStringGeometry | null>(null);
   const liveLngLatRef = useRef<LngLat | null>(null);
+  const sampleLiveLngLatRef = useRef(sampleLiveLngLat);
+  const liveRiderMotionRef = useRef(liveRiderMotion);
+  const prefersReducedMotionRef = useRef(false);
   const enable3DRef = useRef(enable3D);
   const initialMapStyleRef = useRef(mapStyle);
   const currentStyleRef = useRef(mapStyle);
@@ -1138,6 +1195,18 @@ export function MapView({
   useEffect(() => {
     liveLngLatRef.current = liveLngLat;
   }, [liveLngLat]);
+
+  useEffect(() => {
+    sampleLiveLngLatRef.current = sampleLiveLngLat;
+  }, [sampleLiveLngLat]);
+
+  useEffect(() => {
+    liveRiderMotionRef.current = liveRiderMotion;
+  }, [liveRiderMotion]);
+
+  useEffect(() => {
+    prefersReducedMotionRef.current = prefersReducedMotion;
+  }, [prefersReducedMotion]);
 
   useEffect(() => {
     enable3DRef.current = enable3D;
@@ -1654,12 +1723,10 @@ export function MapView({
     }
   }, [routeWaypoints, mapLoaded]);
 
-  /** 라이브 위치 마커 — 페달 스프라이트 / isometric 2D / GLB 프로토타입 */
+  /** 라이브 위치 마커 생성·제거 — 위치 갱신은 rAF(sampleLiveLngLat) */
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
-
-    liveLngLatRef.current = liveLngLat;
 
     if (liveLngLat) {
       if (RIDER_PROTOTYPE_MODE === "glb") {
@@ -1707,8 +1774,6 @@ export function MapView({
             .setLngLat(liveLngLat)
             .addTo(map);
         }
-      } else {
-        liveMarkerRef.current.setLngLat(liveLngLat);
       }
     } else {
       liveMarkerRef.current?.remove();
@@ -1735,52 +1800,6 @@ export function MapView({
     }
   }, [liveLngLat, liveRiderNametag, mapLoaded]);
 
-  /** 진행 방향 플립 + 속도·세션에 따른 페달 루프 (legacy) / 방향 스프라이트(iso2d) */
-  useEffect(() => {
-    if (!mapLoaded || !liveLngLat) return;
-
-    const prev = prevLiveForBearingRef.current;
-    let bearingDeg: number | null = null;
-    if (prev && getDistanceMeters(prev, liveLngLat) >= 2) {
-      bearingDeg = getBearing(prev, liveLngLat);
-    }
-    if (bearingDeg == null) {
-      bearingDeg = getHeadingFromRouteAtPoint(routeGeometry, liveLngLat);
-    }
-    const b = bearingDeg ?? 0;
-    prevLiveForBearingRef.current = liveLngLat;
-
-    if (RIDER_PROTOTYPE_MODE === "iso2d") {
-      const flip = liveMarkerFlipRef.current;
-      const img = liveMarkerImgRef.current;
-      if (flip && img) applyIso2dRiderBearing(flip, img, "self", b);
-      return;
-    }
-    if (RIDER_PROTOTYPE_MODE === "glb") return;
-
-    const flip = liveMarkerFlipRef.current;
-    const sprite = liveMarkerPedalSpriteRef.current;
-    if (!flip || !sprite) return;
-
-    flip.style.transform = b > 90 && b < 270 ? "scaleX(-1)" : "scaleX(1)";
-
-    const motion = liveRiderMotion;
-    const speedNow = motion?.speedKmh ?? 0;
-    const pedalingRunning =
-      motion != null && motion.sessionStatus === "running" && speedNow > 0.35;
-    const rpm = motion
-      ? resolvePedalCrankRpm({
-          speedKmh: motion.speedKmh,
-          crankRpmFromSensor: motion.crankRpmFromSensor,
-        })
-      : estimateCrankRpmFromSpeedKmh(0);
-    let pedalLoopSec = 60 / rpm;
-    pedalLoopSec = Math.min(5.5, Math.max(0.22, pedalLoopSec));
-    sprite.style.animationDuration = `${pedalLoopSec}s`;
-    const allowPedalAnim = !prefersReducedMotion && pedalingRunning;
-    sprite.style.animationPlayState = allowPedalAnim ? "running" : "paused";
-  }, [liveLngLat, liveRiderMotion, routeGeometry, mapLoaded, prefersReducedMotion]);
-
   /** 다른 라이더(동행): Firestore 스냅샷이 바뀌면 즉시 타깃만 병합(rAF 가 lerp·스프라이트 갱신) */
   useEffect(() => {
     mergePeerTargets(
@@ -1791,7 +1810,7 @@ export function MapView({
     );
   }, [peerMarkers, routeGeometry]);
 
-  /** 동행 위치·페달 프레임: rAF 로 부드럽게 보간 */
+  /** 본인·동행 라이더: rAF 로 위치·방향·페달 갱신 */
   useEffect(() => {
     if (!mapLoaded) return;
     let lastTs = performance.now();
@@ -1804,6 +1823,26 @@ export function MapView({
       }
       const dt = Math.min(0.1, (now - lastTs) / 1000);
       lastTs = now;
+
+      const sampleFn = sampleLiveLngLatRef.current;
+      const sampled = sampleFn?.() ?? liveLngLatRef.current;
+      if (sampled) {
+        liveLngLatRef.current = sampled;
+        if (liveMarkerRef.current && RIDER_PROTOTYPE_MODE !== "glb") {
+          liveMarkerRef.current.setLngLat(sampled);
+        }
+        syncLiveSelfRiderVisual(
+          sampled,
+          liveRiderMotionRef.current,
+          routeGeometryRef.current,
+          prevLiveForBearingRef,
+          liveMarkerFlipRef,
+          liveMarkerImgRef,
+          liveMarkerPedalSpriteRef,
+          prefersReducedMotionRef.current,
+        );
+      }
+
       mergePeerTargets(
         peerDriveSimRef.current,
         latestPeerMarkersRef.current,

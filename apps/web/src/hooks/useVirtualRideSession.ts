@@ -151,11 +151,25 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
     setMetricsUi((prev) => ({ ...prev, liveLngLat: live }));
   }, []);
 
+  /**
+   * rAF 루프 내부 거리·경로 기준 위치 — React METRICS_UI_MS throttle 없이 맵 마커용.
+   * idle 이면 null, paused 는 마지막 거리 고정.
+   */
+  const sampleLiveLngLat = useCallback((): LngLat | null => {
+    if (statusRef.current === "idle") return null;
+    const geom = routeGeometryRef.current;
+    const routeLen = routeDistanceRef.current;
+    const vd = virtualDistanceRef.current;
+    const capped = routeLen > 0 ? Math.min(vd, routeLen) : vd;
+    return geom ? getPointOnRouteByDistance(geom, capped) : null;
+  }, []);
+
   return {
     status,
     setStatus,
     metrics: metricsUi,
     resetDistances,
     syncLiveFromDistance,
+    sampleLiveLngLat,
   };
 }
