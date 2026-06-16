@@ -15,6 +15,8 @@ export function riderPrototypeGlbUrl(): string {
 
 export const RIDER_GLB_MODEL_SOURCE_ID = "boxcycle-rider-prototype-source";
 export const RIDER_GLB_MODEL_LAYER_ID = "boxcycle-rider-prototype-layer";
+/** Mapbox model-rotation feature-state — GLB 노드 `crank` */
+export const RIDER_GLB_CRANK_STATE_KEY = "crank-rotation";
 
 /** Mapbox model orientation 3번째 값(요) — 모델 +X(동) 기준 */
 export function bearingToModelYawDeg(bearing: number): number {

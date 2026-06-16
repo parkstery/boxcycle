@@ -17,7 +17,9 @@ import {
 import type { LngLat, LineStringGeometry } from "../../lib/geo";
 import {
   getDistanceMeters,
+  headingOnRouteAtPoint,
   lineStringLengthMeters,
+  resolveRiderBearingDeg,
   type LineStringGeometry as RouteLineStringGeometry,
 } from "../../lib/geo";
 import type { RouteElevationProfileState } from "../../hooks/useRouteElevationProfile";
@@ -47,6 +49,7 @@ import {
   createIso2dRiderMarkerRoot,
 } from "../../lib/riderPrototype/iso2dMarker";
 import { clearRiderGlbModels, syncRiderGlbModels } from "../../lib/riderPrototype/glbModelLayer";
+import { PEER_RIDER_PEDAL_FRAME_COUNT } from "../../lib/registerPeerRiderPedalSprites";
 import { MapZoomGlobeControl } from "./MapZoomGlobeControl";
 import { MAP_GLOBE_MIN_ZOOM } from "../../lib/mapGlobeView";
 import "./MapView.css";
@@ -962,14 +965,7 @@ function syncLiveSelfRiderVisual(
   prefersReducedMotion: boolean,
 ): void {
   const prev = prevLiveForBearingRef.current;
-  let bearingDeg: number | null = null;
-  if (prev && getDistanceMeters(prev, pos) >= 0.4) {
-    bearingDeg = getBearing(prev, pos);
-  }
-  if (bearingDeg == null) {
-    bearingDeg = getHeadingFromRouteAtPoint(routeGeometry, pos);
-  }
-  const b = bearingDeg ?? 0;
+  const b = resolveRiderBearingDeg(routeGeometry, pos, prev);
   prevLiveForBearingRef.current = pos;
 
   if (RIDER_PROTOTYPE_MODE === "iso2d") {
@@ -1135,6 +1131,7 @@ export function MapView({
   const liveMarkerFlipRef = useRef<HTMLDivElement | null>(null);
   const liveMarkerNametagRef = useRef<HTMLDivElement | null>(null);
   const prevLiveForBearingRef = useRef<LngLat | null>(null);
+  const liveCrankPhaseRevRef = useRef(0);
   /** 스타일 리로드 시 동행 GeoJSON 재적용용 */
   const latestPeerMarkersRef = useRef<MapPeerMarker[]>([]);
   latestPeerMarkersRef.current = peerMarkers ?? [];
@@ -1836,6 +1833,7 @@ export function MapView({
 
       const sampleFn = sampleLiveLngLatRef.current;
       const sampled = sampleFn?.() ?? liveLngLatRef.current;
+      const prevForBearing = prevLiveForBearingRef.current;
       if (sampled) {
         liveLngLatRef.current = sampled;
         if (liveMarkerRef.current && RIDER_PROTOTYPE_MODE !== "glb") {
@@ -1877,23 +1875,46 @@ export function MapView({
       );
       syncPeerDomMarkers(map, fc.features as PeerDomGJFeature[], peerDomMarkersRef);
       if (RIDER_PROTOTYPE_MODE === "glb") {
-        const specs: { id: string; lngLat: LngLat; bearingDeg: number }[] = [];
+        const specs: {
+          id: string;
+          lngLat: LngLat;
+          bearingDeg: number;
+          crankRotationDeg?: number;
+        }[] = [];
         const live = liveLngLatRef.current;
         if (live) {
-          let bearingDeg = 0;
-          const prev = prevLiveForBearingRef.current;
-          if (prev && getDistanceMeters(prev, live) >= 2) {
-            bearingDeg = getBearing(prev, live);
-          } else {
-            bearingDeg = getHeadingFromRouteAtPoint(routeGeometryRef.current, live) ?? 0;
+          const bearingDeg = resolveRiderBearingDeg(
+            routeGeometryRef.current,
+            live,
+            prevForBearing,
+          );
+          const motion = liveRiderMotionRef.current;
+          const speedNow = motion?.speedKmh ?? 0;
+          const pedalingRunning =
+            motion != null && motion.sessionStatus === "running" && speedNow > 0.35;
+          if (pedalingRunning && !prefersReducedMotionRef.current) {
+            const rpm = resolvePedalCrankRpm({
+              speedKmh: motion.speedKmh,
+              crankRpmFromSensor: motion.crankRpmFromSensor,
+            });
+            liveCrankPhaseRevRef.current += (rpm / 60) * dt;
           }
-          specs.push({ id: "live-self", lngLat: live, bearingDeg });
+          specs.push({
+            id: "live-self",
+            lngLat: live,
+            bearingDeg,
+            crankRotationDeg: (liveCrankPhaseRevRef.current % 1) * 360,
+          });
         }
         for (const f of fc.features as PeerDomGJFeature[]) {
           specs.push({
             id: f.properties.id,
             lngLat: f.geometry.coordinates,
             bearingDeg: f.properties.hdg,
+            crankRotationDeg:
+              f.properties.pframe > 0
+                ? (f.properties.pframe / PEER_RIDER_PEDAL_FRAME_COUNT) * 360
+                : 0,
           });
         }
         syncRiderGlbModels(map, specs);
@@ -2615,29 +2636,6 @@ function normalizeCompass(deg: number) {
   return x;
 }
 
-function getHeadingFromRouteAtPoint(
-  geometry: RouteLineStringGeometry | null,
-  point: LngLat,
-): number | null {
-  if (!geometry || geometry.coordinates.length < 2) return null;
-  const coords = geometry.coordinates;
-
-  let nearestIdx = -1;
-  let nearestDist = Number.POSITIVE_INFINITY;
-  for (let i = 0; i < coords.length; i += 1) {
-    const d = getDistanceMeters(coords[i], point);
-    if (d < nearestDist) {
-      nearestDist = d;
-      nearestIdx = i;
-    }
-  }
-  if (nearestIdx < 0) return null;
-  if (nearestIdx === coords.length - 1) {
-    return getBearing(coords[coords.length - 2], coords[coords.length - 1]);
-  }
-  return getBearing(coords[nearestIdx], coords[nearestIdx + 1]);
-}
-
 function getAverageHeadingAheadFromPoint(
   geometry: RouteLineStringGeometry | null,
   point: LngLat,
@@ -2646,7 +2644,7 @@ function getAverageHeadingAheadFromPoint(
 ): number | null {
   if (!geometry || geometry.coordinates.length < 2) return null;
   const currentDistance = getDistanceOnRouteByProjectedPoint(geometry.coordinates, point);
-  if (currentDistance == null) return getHeadingFromRouteAtPoint(geometry, point);
+  if (currentDistance == null) return headingOnRouteAtPoint(geometry, point);
   if (windowMeters <= 0 || samples <= 0) {
     return getHeadingByRouteDistance(geometry.coordinates, currentDistance);
   }

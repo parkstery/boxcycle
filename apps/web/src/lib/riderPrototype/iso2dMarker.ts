@@ -77,4 +77,6 @@ export type RiderGlbModelSpec = {
   id: string;
   lngLat: LngLat;
   bearingDeg: number;
+  /** Mapbox nodeOverride crank 회전(도) — 본인 라이브 */
+  crankRotationDeg?: number;
 };

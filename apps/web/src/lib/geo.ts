@@ -171,6 +171,87 @@ export function distanceMetersToVertexIndexAtOrBefore(cum: readonly number[], di
   return lo;
 }
 
+/** 경로상 투영점까지의 누적 거리(m). */
+export function distanceOnRouteByProjectedPoint(
+  geometry: LineStringGeometry,
+  point: LngLat,
+): number | null {
+  const coords = geometry.coordinates as LngLat[];
+  if (coords.length < 2) return null;
+  let cumulative = 0;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  let bestRouteDistance = 0;
+
+  for (let i = 0; i < coords.length - 1; i += 1) {
+    const a = coords[i];
+    const b = coords[i + 1];
+    const segLen = getDistanceMeters(a, b);
+    if (segLen <= 0) continue;
+
+    const abx = b[0] - a[0];
+    const aby = b[1] - a[1];
+    const apx = point[0] - a[0];
+    const apy = point[1] - a[1];
+    const denom = abx * abx + aby * aby;
+    const rawT = denom > 0 ? (apx * abx + apy * aby) / denom : 0;
+    const t = Math.max(0, Math.min(1, rawT));
+    const projected: LngLat = [a[0] + abx * t, a[1] + aby * t];
+    const d = getDistanceMeters(projected, point);
+    if (d < bestDistance) {
+      bestDistance = d;
+      bestRouteDistance = cumulative + segLen * t;
+    }
+    cumulative += segLen;
+  }
+  return bestRouteDistance;
+}
+
+/** 경로상 distanceMeters 지점 세그먼트의 진행 방위(도) — 코너 직전 선행 꺾임 없음. */
+export function headingAtRouteDistanceMeters(
+  geometry: LineStringGeometry,
+  distanceMeters: number,
+): number | null {
+  const coords = geometry.coordinates as LngLat[];
+  if (coords.length < 2) return null;
+  let idx = 0;
+  let remain = Math.max(0, distanceMeters);
+  while (idx < coords.length - 1) {
+    const seg = getDistanceMeters(coords[idx], coords[idx + 1]);
+    if (seg <= 0) {
+      idx += 1;
+      continue;
+    }
+    if (remain <= seg) return bearingDegrees(coords[idx], coords[idx + 1]);
+    remain -= seg;
+    idx += 1;
+  }
+  return bearingDegrees(coords[coords.length - 2], coords[coords.length - 1]);
+}
+
+/** point 가 올라간 **현재 세그먼트** 방향(도). */
+export function headingOnRouteAtPoint(geometry: LineStringGeometry, point: LngLat): number | null {
+  const d = distanceOnRouteByProjectedPoint(geometry, point);
+  if (d == null) return null;
+  return headingAtRouteDistanceMeters(geometry, d);
+}
+
+/** 이동 벡터가 충분할 때만 GPS 방향, 아니면 현재 세그먼트 방향. */
+export function resolveRiderBearingDeg(
+  geometry: LineStringGeometry | null,
+  pos: LngLat,
+  prev: LngLat | null,
+  minMoveMeters = 0.4,
+): number {
+  if (prev && getDistanceMeters(prev, pos) >= minMoveMeters) {
+    return bearingDegrees(prev, pos);
+  }
+  if (geometry) {
+    const h = headingOnRouteAtPoint(geometry, pos);
+    if (h != null) return h;
+  }
+  return 0;
+}
+
 /** 북 기준 시계방위각(0~360). */
 export function bearingDegrees(from: LngLat, to: LngLat): number {
   const φ1 = (from[1] * Math.PI) / 180;

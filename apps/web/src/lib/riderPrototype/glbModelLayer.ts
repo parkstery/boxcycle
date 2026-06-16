@@ -1,5 +1,6 @@
 import type { Map as MapboxMap, Source } from "mapbox-gl";
 import {
+  RIDER_GLB_CRANK_STATE_KEY,
   RIDER_GLB_MODEL_LAYER_ID,
   RIDER_GLB_MODEL_SOURCE_ID,
   bearingToModelYawDeg,
@@ -12,6 +13,16 @@ type ModelSource = Source & {
 };
 
 let layerReady = false;
+
+const RIDER_GLB_LAYER_PAINT = {
+  "model-rotation": [
+    "match",
+    ["get", "part"],
+    "crank",
+    ["feature-state", RIDER_GLB_CRANK_STATE_KEY],
+    [0, 0, 0],
+  ],
+} as Record<string, unknown>;
 
 export function ensureRiderGlbLayer(map: MapboxMap): boolean {
   if (!map.style) return false;
@@ -27,6 +38,7 @@ export function ensureRiderGlbLayer(map: MapboxMap): boolean {
         id: RIDER_GLB_MODEL_LAYER_ID,
         type: "model",
         source: RIDER_GLB_MODEL_SOURCE_ID,
+        paint: RIDER_GLB_LAYER_PAINT,
       } as Parameters<MapboxMap["addLayer"]>[0]);
     }
     layerReady = true;
@@ -37,6 +49,23 @@ export function ensureRiderGlbLayer(map: MapboxMap): boolean {
     }
     layerReady = false;
     return false;
+  }
+}
+
+export function syncRiderGlbCrankFeatureState(
+  map: MapboxMap,
+  modelId: string,
+  crankRotationDeg: number,
+): void {
+  try {
+    map.setFeatureState(
+      { source: RIDER_GLB_MODEL_SOURCE_ID, sourceLayer: "", id: modelId },
+      { [RIDER_GLB_CRANK_STATE_KEY]: [0, 0, crankRotationDeg] },
+    );
+  } catch (e) {
+    if (import.meta.env.DEV) {
+      console.warn("[riderPrototype] setFeatureState crank failed", e);
+    }
   }
 }
 
@@ -53,10 +82,16 @@ export function syncRiderGlbModels(map: MapboxMap, specs: readonly RiderGlbModel
       uri: glbUrl,
       position: [lng, lat],
       orientation: [0, 0, bearingToModelYawDeg(s.bearingDeg)],
+      nodeOverrideNames: ["crank"],
     };
   }
   try {
     src.setModels(models);
+    for (const s of specs) {
+      if (typeof s.crankRotationDeg === "number" && Number.isFinite(s.crankRotationDeg)) {
+        syncRiderGlbCrankFeatureState(map, s.id, s.crankRotationDeg);
+      }
+    }
   } catch (e) {
     if (import.meta.env.DEV) console.warn("[riderPrototype] setModels failed", e);
   }

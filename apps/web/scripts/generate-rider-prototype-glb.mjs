@@ -144,6 +144,20 @@ root.add(tube([barCenter[0] - 0.12, barCenter[1], 0], [barCenter[0] + 0.12, barC
 root.add(tube([barCenter[0], barCenter[1], -0.1], [barCenter[0], barCenter[1], 0.1], 0.016, COL.bar));
 root.add(tube(headTube, barCenter, 0.018, COL.frameDark));
 
+/** Mapbox nodeOverride — Z축 회전(페달) */
+function crankAssembly() {
+  const crank = new THREE.Group();
+  crank.name = "crank";
+  crank.position.set(bb[0], bb[1], bb[2]);
+  const armLen = 0.14;
+  crank.add(tube([0, 0, 0], [0, armLen, 0], 0.012, COL.frameDark));
+  crank.add(tube([0, 0, 0], [0, -armLen, 0], 0.012, COL.frameDark));
+  crank.add(box(0.07, 0.02, 0.05, COL.rim, 0, armLen, 0));
+  crank.add(box(0.07, 0.02, 0.05, COL.rim, 0, -armLen, 0));
+  return crank;
+}
+root.add(crankAssembly());
+
 const pelvis = [-0.12, 0.8, 0];
 const shoulder = [0.02, 1.02, 0];
 const headC = [0.1, 1.2, 0];

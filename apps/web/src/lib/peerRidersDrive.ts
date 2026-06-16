@@ -2,6 +2,7 @@ import type { LineStringGeometry, LngLat } from "./geo";
 import {
   getDistanceMeters,
   getPointOnRouteByDistance,
+  headingAtRouteDistanceMeters,
   interpolatePoint,
   lineStringLengthMeters,
 } from "./geo";
@@ -38,7 +39,6 @@ const PROGRESS_PULL_TAU_SEC = 2.2;
 const SPEED_EMA = 0.5;
 const PROGRESS_VEL_EMA = 0.35;
 const PROGRESS_EPS = 1e-6;
-const HEADING_LOOKAHEAD_M = 12;
 
 function clamp01(v: number): number {
   if (!Number.isFinite(v)) return 0;
@@ -80,15 +80,9 @@ function headingOnRouteProgress(
   geometry: LineStringGeometry,
   routeLenM: number,
   progress: number,
-  getBearing: (a: LngLat, b: LngLat) => number,
 ): number {
   const distM = clamp01(progress) * routeLenM;
-  const pos = getPointOnRouteByDistance(geometry, distM);
-  const ahead = getPointOnRouteByDistance(geometry, Math.min(routeLenM, distM + HEADING_LOOKAHEAD_M));
-  if (pos && ahead && getDistanceMeters(pos, ahead) >= 0.4) {
-    return getBearing(pos, ahead);
-  }
-  return 0;
+  return headingAtRouteDistanceMeters(geometry, distM) ?? 0;
 }
 
 export function mergePeerTargets(
@@ -223,7 +217,7 @@ export function stepPeerDriveAndBuildGeoJson(
       if (pos) {
         s.pos = pos;
         s.target = pos;
-        const h = headingOnRouteProgress(routeGeometry, s.routeLenM, s.simProgress, getBearing);
+        const h = headingOnRouteProgress(routeGeometry, s.routeLenM, s.simProgress);
         if (h !== 0 || s.emaSpeedKmh > 0.38) s.hdg = h;
       }
     } else {
