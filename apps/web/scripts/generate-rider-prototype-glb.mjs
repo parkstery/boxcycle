@@ -1,5 +1,6 @@
 /**
  * 저폴리 자전거+라이더 GLB 프로토타입 생성.
+ * 좌표: +X 진행(동), +Y 위, +Z 좌우(바퀴 축). 지면 y=0.
  * 실행: npm run gen:rider-glb (apps/web)
  */
 import * as THREE from "three";
@@ -22,7 +23,7 @@ globalThis.FileReader = class FileReaderPoly {
     };
     try {
       if (blob instanceof ArrayBuffer) {
-        queueMicrotask(() => finish(blob));
+        queueMicrotask(() => finish(buf));
         return;
       }
       if (ArrayBuffer.isView(blob)) {
@@ -44,66 +45,129 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.join(__dirname, "..", "public", "rider", "prototype");
 const outFile = path.join(outDir, "rider-lowpoly.glb");
 
-function box(w, h, d, color, x, y, z, rx = 0, ry = 0, rz = 0) {
-  const geo = new THREE.BoxGeometry(w, h, d);
-  const mat = new THREE.MeshBasicMaterial({ color });
-  const mesh = new THREE.Mesh(geo, mat);
-  mesh.position.set(x, y, z);
-  mesh.rotation.set(rx, ry, rz);
+const COL = {
+  tire: 0x1e293b,
+  rim: 0x64748b,
+  frame: 0x334155,
+  frameDark: 0x1e293b,
+  bar: 0x0f172a,
+  jersey: 0x1d4ed8,
+  jerseyDark: 0x1e40af,
+  skin: 0xfde68a,
+  helmet: 0x1e3a8a,
+  short: 0x1e3a8a,
+  shadow: 0x000000,
+};
+
+const WHEEL_R = 0.26;
+const REAR_X = -0.5;
+const FRONT_X = 0.52;
+const HUB_Y = WHEEL_R;
+
+function mat(color, opacity = 1) {
+  return new THREE.MeshBasicMaterial({
+    color,
+    transparent: opacity < 1,
+    opacity,
+  });
+}
+
+/** Y축 실린더를 from→to 방향으로 배치 */
+function tube(from, to, radius, color) {
+  const a = new THREE.Vector3(...from);
+  const b = new THREE.Vector3(...to);
+  const dir = b.clone().sub(a);
+  const len = dir.length();
+  if (len < 1e-4) return new THREE.Group();
+  const geo = new THREE.CylinderGeometry(radius, radius, len, 8);
+  geo.translate(0, len / 2, 0);
+  const mesh = new THREE.Mesh(geo, mat(color));
+  mesh.position.copy(a);
+  mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize());
   return mesh;
 }
 
-function wheel(radius, x, y, z) {
-  const geo = new THREE.CylinderGeometry(radius, radius, 0.12, 16);
-  geo.rotateZ(Math.PI / 2);
-  const tire = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0x1e293b }));
-  tire.position.set(x, y, z);
-  const rimGeo = new THREE.CylinderGeometry(radius * 0.55, radius * 0.55, 0.14, 12);
-  rimGeo.rotateZ(Math.PI / 2);
-  const rim = new THREE.Mesh(rimGeo, new THREE.MeshBasicMaterial({ color: 0x64748b }));
-  rim.position.set(x, y, z);
+/** 바퀴 — XY 평면 원(축 Z), 허브 y=바닥+반경 */
+function wheel(hubX) {
   const g = new THREE.Group();
+  const tire = new THREE.Mesh(
+    new THREE.TorusGeometry(WHEEL_R, WHEEL_R * 0.11, 10, 22),
+    mat(COL.tire),
+  );
+  tire.position.set(hubX, HUB_Y, 0);
+  const rim = new THREE.Mesh(
+    new THREE.TorusGeometry(WHEEL_R * 0.62, WHEEL_R * 0.04, 8, 18),
+    mat(COL.rim),
+  );
+  rim.position.set(hubX, HUB_Y, 0);
   g.add(tire, rim);
   return g;
+}
+
+function box(w, h, d, color, x, y, z, rx = 0, ry = 0, rz = 0) {
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(color));
+  mesh.position.set(x, y, z);
+  mesh.rotation.set(rx, ry, rz);
+  return mesh;
 }
 
 const root = new THREE.Group();
 root.name = "RiderBike";
 
 const shadow = new THREE.Mesh(
-  new THREE.CircleGeometry(0.55, 24),
-  new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.28 }),
+  new THREE.CircleGeometry(0.62, 28),
+  mat(COL.shadow, 0.26),
 );
 shadow.rotation.x = -Math.PI / 2;
-shadow.position.y = 0.02;
+shadow.position.set(0, 0.015, 0);
 root.add(shadow);
 
-root.add(wheel(0.34, -0.55, 0.34, 0));
-root.add(wheel(0.34, 0.55, 0.34, 0));
-root.add(box(1.05, 0.06, 0.06, 0x475569, 0, 0.42, 0.34, 0, 0, -0.18));
-root.add(box(0.55, 0.05, 0.05, 0x334155, -0.22, 0.28, 0.34, 0, 0, 0.55));
-root.add(box(0.42, 0.05, 0.05, 0x334155, 0.28, 0.52, 0.34, 0, 0, -0.42));
-root.add(box(0.05, 0.32, 0.05, 0x334155, 0.05, 0.38, 0.34));
-root.add(box(0.38, 0.05, 0.05, 0x1e293b, 0.42, 0.62, 0.34));
-root.add(box(0.05, 0.18, 0.05, 0x1e293b, 0.42, 0.56, 0.34));
-root.add(box(0.28, 0.42, 0.18, 0x1d4ed8, -0.02, 0.78, 0.34, 0, 0, 0.22));
+root.add(wheel(REAR_X));
+root.add(wheel(FRONT_X));
 
-const head = new THREE.Mesh(
-  new THREE.SphereGeometry(0.16, 12, 10),
-  new THREE.MeshBasicMaterial({ color: 0xfde68a }),
-);
-head.position.set(0.08, 1.08, 0.34);
+const rear = [REAR_X, HUB_Y, 0];
+const front = [FRONT_X, HUB_Y, 0];
+const bb = [-0.04, 0.4, 0];
+const seat = [-0.14, 0.74, 0];
+const headTube = [0.36, 0.66, 0];
+const barCenter = [0.4, 0.84, 0];
+
+root.add(tube(rear, bb, 0.025, COL.frame));
+root.add(tube(rear, seat, 0.022, COL.frame));
+root.add(tube(bb, headTube, 0.028, COL.frame));
+root.add(tube(seat, headTube, 0.024, COL.frameDark));
+root.add(tube(front, headTube, 0.022, COL.frameDark));
+root.add(tube(seat, bb, 0.02, COL.frame));
+
+root.add(box(0.14, 0.04, 0.08, COL.frameDark, seat[0], seat[1] + 0.02, 0));
+root.add(tube([barCenter[0] - 0.12, barCenter[1], 0], [barCenter[0] + 0.12, barCenter[1], 0], 0.018, COL.bar));
+root.add(tube([barCenter[0], barCenter[1], -0.1], [barCenter[0], barCenter[1], 0.1], 0.016, COL.bar));
+root.add(tube(headTube, barCenter, 0.018, COL.frameDark));
+
+const pelvis = [-0.12, 0.8, 0];
+const shoulder = [0.02, 1.02, 0];
+const headC = [0.1, 1.2, 0];
+
+root.add(tube(pelvis, shoulder, 0.09, COL.jersey));
+root.add(tube(pelvis, bb, 0.055, COL.short));
+root.add(tube([pelvis[0] + 0.04, pelvis[1] - 0.02, 0], bb, 0.05, COL.short));
+
+root.add(tube(shoulder, [barCenter[0] - 0.04, barCenter[1] - 0.02, 0.06], 0.035, COL.jersey));
+root.add(tube(shoulder, [barCenter[0] - 0.04, barCenter[1] - 0.02, -0.06], 0.035, COL.jerseyDark));
+
+const head = new THREE.Mesh(new THREE.SphereGeometry(0.11, 12, 10), mat(COL.skin));
+head.position.set(headC[0], headC[1], headC[2]);
 root.add(head);
 
 const helmet = new THREE.Mesh(
-  new THREE.SphereGeometry(0.17, 12, 10, 0, Math.PI * 2, 0, Math.PI * 0.55),
-  new THREE.MeshBasicMaterial({ color: 0x1e3a8a }),
+  new THREE.SphereGeometry(0.115, 12, 10, 0, Math.PI * 2, 0, Math.PI * 0.52),
+  mat(COL.helmet),
 );
-helmet.position.set(0.08, 1.1, 0.34);
-helmet.rotation.x = -0.25;
+helmet.position.set(headC[0], headC[1] + 0.02, headC[2]);
+helmet.rotation.x = -0.2;
 root.add(helmet);
-root.add(box(0.34, 0.08, 0.12, 0x1e40af, 0.12, 0.72, 0.34, 0, 0, -0.35));
-root.add(box(0.1, 0.28, 0.1, 0x1d4ed8, -0.18, 0.72, 0.34, 0, 0, 0.5));
+
+root.add(tube(shoulder, headC, 0.045, COL.jersey));
 
 const exporter = new GLTFExporter();
 const data = await exporter.parseAsync(root, { binary: true });
