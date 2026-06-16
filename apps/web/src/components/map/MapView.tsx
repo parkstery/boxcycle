@@ -41,9 +41,17 @@ import {
 import { applyCoverageOverlayMode } from "../../services/coverageOverlaySync";
 import type { GlobalLivePresenceDot } from "../../hooks/useGlobalLivePresence";
 import type { TrailSpectatorDot } from "../../hooks/useTrailLiveCourseRideSpectatorOverlay";
+import { getRiderPrototypeMode } from "../../lib/riderPrototype/config";
+import {
+  applyIso2dRiderBearing,
+  createIso2dRiderMarkerRoot,
+} from "../../lib/riderPrototype/iso2dMarker";
+import { clearRiderGlbModels, syncRiderGlbModels } from "../../lib/riderPrototype/glbModelLayer";
 import { MapZoomGlobeControl } from "./MapZoomGlobeControl";
 import { MAP_GLOBE_MIN_ZOOM } from "../../lib/mapGlobeView";
 import "./MapView.css";
+
+const RIDER_PROTOTYPE_MODE = getRiderPrototypeMode();
 
 /** 로비 관전: 다른 사용자 코스 진행률 기반(geometry 는 로컬 로드, Firestore 는 진행률만). */
 const TRAIL_SPEC_ROUTES_SRC = "boxcycle-lobby-spectator-routes";
@@ -820,6 +828,9 @@ function applyPeerDomSpriteFrame(sprite: HTMLDivElement | null, pframe: number):
 }
 
 function createPeerRiderMarkerRoot(initialLabel: string): HTMLDivElement {
+  if (RIDER_PROTOTYPE_MODE === "iso2d") {
+    return createIso2dRiderMarkerRoot("peer", initialLabel, "map-view__peer-rider-host").root;
+  }
   ensureRiderPedalStripKeyframes();
   const root = document.createElement("div");
   root.className = "cycling-sim-marker-host map-view__peer-rider-host";
@@ -849,6 +860,11 @@ function syncPeerDomMarkers(
   features: PeerDomGJFeature[],
   markersRef: { current: Map<string, mapboxgl.Marker> },
 ): void {
+  if (RIDER_PROTOTYPE_MODE === "glb") {
+    for (const mk of markersRef.current.values()) mk.remove();
+    markersRef.current.clear();
+    return;
+  }
   const markers = markersRef.current;
   const next = new Set<string>();
   for (const f of features) {
@@ -874,12 +890,20 @@ function syncPeerDomMarkers(
     }
     const root = mk.getElement();
     const nametag = root.querySelector<HTMLDivElement>(".map-view__rider-nametag--peer");
-    const flip = root.querySelector<HTMLDivElement>(".cycling-sim-marker-flip");
-    const sprite = root.querySelector<HTMLDivElement>(".cycling-sim-marker-pedal-sprite");
-    if (nametag) nametag.textContent = label;
-    applyPeerDomSpriteFrame(sprite, pframe);
-    if (flip) {
-      flip.style.transform = hdg > 90 && hdg < 270 ? "scaleX(-1)" : "scaleX(1)";
+    const flip = root.querySelector<HTMLDivElement>(
+      RIDER_PROTOTYPE_MODE === "iso2d" ? ".map-view__proto-iso-flip" : ".cycling-sim-marker-flip",
+    );
+    if (RIDER_PROTOTYPE_MODE === "iso2d") {
+      const img = root.querySelector<HTMLImageElement>(".map-view__proto-iso-sprite");
+      if (nametag) nametag.textContent = label;
+      if (flip && img) applyIso2dRiderBearing(flip, img, "peer", hdg);
+    } else {
+      const sprite = root.querySelector<HTMLDivElement>(".cycling-sim-marker-pedal-sprite");
+      if (nametag) nametag.textContent = label;
+      applyPeerDomSpriteFrame(sprite, pframe);
+      if (flip) {
+        flip.style.transform = hdg > 90 && hdg < 270 ? "scaleX(-1)" : "scaleX(1)";
+      }
     }
   }
   for (const id of [...markers.keys()]) {
@@ -1046,6 +1070,7 @@ export function MapView({
   const waypointMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const liveMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const liveMarkerPedalSpriteRef = useRef<HTMLDivElement | null>(null);
+  const liveMarkerImgRef = useRef<HTMLImageElement | null>(null);
   const liveMarkerFlipRef = useRef<HTMLDivElement | null>(null);
   const liveMarkerNametagRef = useRef<HTMLDivElement | null>(null);
   const prevLiveForBearingRef = useRef<LngLat | null>(null);
@@ -1533,8 +1558,9 @@ export function MapView({
     if (startLngLat) {
       if (!startMarkerRef.current) {
         startMarkerRef.current = new mapboxgl.Marker({
-          color: "#16a34a",
-          className: "map-view__pin-marker map-view__pin-marker--start",
+          element: createRouteEndpointPinEl("start"),
+          anchor: "bottom",
+          className: "map-view__pin-marker map-view__pin-marker--start map-view__route-pin-marker",
           ...PIN_MARKER_VIEWPORT_ALIGNMENT,
         })
           .setLngLat(startLngLat)
@@ -1550,8 +1576,9 @@ export function MapView({
     if (endLngLat) {
       if (!endMarkerRef.current) {
         endMarkerRef.current = new mapboxgl.Marker({
-          color: "#dc2626",
-          className: "map-view__pin-marker map-view__pin-marker--end",
+          element: createRouteEndpointPinEl("end"),
+          anchor: "bottom",
+          className: "map-view__pin-marker map-view__pin-marker--end map-view__route-pin-marker",
           ...PIN_MARKER_VIEWPORT_ALIGNMENT,
         })
           .setLngLat(endLngLat)
@@ -1615,27 +1642,59 @@ export function MapView({
     }
   }, [routeWaypoints, mapLoaded]);
 
-  /** 라이브 위치 마커 — 페달 스프라이트 라이더(보고서 6·7·8절) */
+  /** 라이브 위치 마커 — 페달 스프라이트 / isometric 2D / GLB 프로토타입 */
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
 
+    liveLngLatRef.current = liveLngLat;
+
     if (liveLngLat) {
-      if (!liveMarkerRef.current) {
-        const { root, nametag, flip, sprite } = createLiveRiderMarkerRoot();
-        liveMarkerFlipRef.current = flip;
-        liveMarkerPedalSpriteRef.current = sprite;
-        liveMarkerNametagRef.current = nametag;
-        prevLiveForBearingRef.current = null;
-        liveMarkerRef.current = new mapboxgl.Marker({
-          element: root,
-          className: "map-view__live-rider-marker",
-          anchor: "bottom",
-          offset: RIDER_ROUTE_MARKER_OFFSET_PX,
-          ...PIN_MARKER_VIEWPORT_ALIGNMENT,
-        })
-          .setLngLat(liveLngLat)
-          .addTo(map);
+      if (RIDER_PROTOTYPE_MODE === "glb") {
+        liveMarkerRef.current?.remove();
+        liveMarkerRef.current = null;
+        liveMarkerFlipRef.current = null;
+        liveMarkerPedalSpriteRef.current = null;
+        liveMarkerImgRef.current = null;
+        liveMarkerNametagRef.current = null;
+      } else if (!liveMarkerRef.current) {
+        if (RIDER_PROTOTYPE_MODE === "iso2d") {
+          const { root, nametag, flip, img } = createIso2dRiderMarkerRoot(
+            "self",
+            "",
+            "map-view__live-rider-host",
+          );
+          liveMarkerFlipRef.current = flip;
+          liveMarkerImgRef.current = img;
+          liveMarkerNametagRef.current = nametag;
+          liveMarkerPedalSpriteRef.current = null;
+          prevLiveForBearingRef.current = null;
+          liveMarkerRef.current = new mapboxgl.Marker({
+            element: root,
+            className: "map-view__live-rider-marker",
+            anchor: "bottom",
+            offset: RIDER_ROUTE_MARKER_OFFSET_PX,
+            ...PIN_MARKER_VIEWPORT_ALIGNMENT,
+          })
+            .setLngLat(liveLngLat)
+            .addTo(map);
+        } else {
+          const { root, nametag, flip, sprite } = createLiveRiderMarkerRoot();
+          liveMarkerFlipRef.current = flip;
+          liveMarkerPedalSpriteRef.current = sprite;
+          liveMarkerImgRef.current = null;
+          liveMarkerNametagRef.current = nametag;
+          prevLiveForBearingRef.current = null;
+          liveMarkerRef.current = new mapboxgl.Marker({
+            element: root,
+            className: "map-view__live-rider-marker",
+            anchor: "bottom",
+            offset: RIDER_ROUTE_MARKER_OFFSET_PX,
+            ...PIN_MARKER_VIEWPORT_ALIGNMENT,
+          })
+            .setLngLat(liveLngLat)
+            .addTo(map);
+        }
       } else {
         liveMarkerRef.current.setLngLat(liveLngLat);
       }
@@ -1644,8 +1703,12 @@ export function MapView({
       liveMarkerRef.current = null;
       liveMarkerFlipRef.current = null;
       liveMarkerPedalSpriteRef.current = null;
+      liveMarkerImgRef.current = null;
       liveMarkerNametagRef.current = null;
       prevLiveForBearingRef.current = null;
+      if (RIDER_PROTOTYPE_MODE === "glb") {
+        clearRiderGlbModels(map);
+      }
     }
 
     const tagEl = liveMarkerNametagRef.current;
@@ -1660,12 +1723,9 @@ export function MapView({
     }
   }, [liveLngLat, liveRiderNametag, mapLoaded]);
 
-  /** 진행 방향 플립 + 속도·세션에 따른 페달 루프 */
+  /** 진행 방향 플립 + 속도·세션에 따른 페달 루프 (legacy) / 방향 스프라이트(iso2d) */
   useEffect(() => {
     if (!mapLoaded || !liveLngLat) return;
-    const flip = liveMarkerFlipRef.current;
-    const sprite = liveMarkerPedalSpriteRef.current;
-    if (!flip || !sprite) return;
 
     const prev = prevLiveForBearingRef.current;
     let bearingDeg: number | null = null;
@@ -1676,8 +1736,21 @@ export function MapView({
       bearingDeg = getHeadingFromRouteAtPoint(routeGeometry, liveLngLat);
     }
     const b = bearingDeg ?? 0;
-    flip.style.transform = b > 90 && b < 270 ? "scaleX(-1)" : "scaleX(1)";
     prevLiveForBearingRef.current = liveLngLat;
+
+    if (RIDER_PROTOTYPE_MODE === "iso2d") {
+      const flip = liveMarkerFlipRef.current;
+      const img = liveMarkerImgRef.current;
+      if (flip && img) applyIso2dRiderBearing(flip, img, "self", b);
+      return;
+    }
+    if (RIDER_PROTOTYPE_MODE === "glb") return;
+
+    const flip = liveMarkerFlipRef.current;
+    const sprite = liveMarkerPedalSpriteRef.current;
+    if (!flip || !sprite) return;
+
+    flip.style.transform = b > 90 && b < 270 ? "scaleX(-1)" : "scaleX(1)";
 
     const motion = liveRiderMotion;
     const speedNow = motion?.speedKmh ?? 0;
@@ -1717,6 +1790,28 @@ export function MapView({
       mergePeerTargets(peerDriveSimRef.current, latestPeerMarkersRef.current, now);
       const fc = stepPeerDriveAndBuildGeoJson(peerDriveSimRef.current, dt, getBearing);
       syncPeerDomMarkers(map, fc.features as PeerDomGJFeature[], peerDomMarkersRef);
+      if (RIDER_PROTOTYPE_MODE === "glb") {
+        const specs: { id: string; lngLat: LngLat; bearingDeg: number }[] = [];
+        const live = liveLngLatRef.current;
+        if (live) {
+          let bearingDeg = 0;
+          const prev = prevLiveForBearingRef.current;
+          if (prev && getDistanceMeters(prev, live) >= 2) {
+            bearingDeg = getBearing(prev, live);
+          } else {
+            bearingDeg = getHeadingFromRouteAtPoint(routeGeometryRef.current, live) ?? 0;
+          }
+          specs.push({ id: "live-self", lngLat: live, bearingDeg });
+        }
+        for (const f of fc.features as PeerDomGJFeature[]) {
+          specs.push({
+            id: f.properties.id,
+            lngLat: f.geometry.coordinates,
+            bearingDeg: f.properties.hdg,
+          });
+        }
+        syncRiderGlbModels(map, specs);
+      }
       peerRidersRafRef.current = requestAnimationFrame(tick);
     };
     peerRidersRafRef.current = requestAnimationFrame(tick);
@@ -2113,6 +2208,57 @@ function createLiveRiderMarkerRoot(): {
   root.appendChild(flip);
   root.title = "내 위치";
   return { root, nametag, flip, sprite };
+}
+
+/** Mapbox 기본 핀 형태 — 흰 원 없이 핀 머리에 큰 흰색 S/E */
+function createRouteEndpointPinEl(kind: "start" | "end"): HTMLDivElement {
+  const color = kind === "start" ? "#16a34a" : "#dc2626";
+  const letter = kind === "start" ? "S" : "E";
+  const root = document.createElement("div");
+  root.className = `map-view__route-pin map-view__route-pin--${kind}`;
+  root.title = kind === "start" ? "출발 (Start)" : "도착 (End)";
+  root.setAttribute("aria-label", root.title);
+
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("display", "block");
+  svg.setAttribute("height", "41");
+  svg.setAttribute("width", "27");
+  svg.setAttribute("viewBox", "0 0 27 41");
+  svg.setAttribute("aria-hidden", "true");
+
+  const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  g.setAttribute("fill-rule", "nonzero");
+
+  const pinPath =
+    "M27,13.5 C27,19.074644 20.250001,27.000002 14.75,34.500002 C14.016665,35.500004 12.983335,35.500004 12.25,34.500002 C6.7499993,27.000002 0,19.222448 0,13.5 C0,6.0441559 6.0441559,0 13.5,0 C20.955844,0 27,6.0441559 27,13.5 Z";
+
+  const shadow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  shadow.setAttribute("fill", "rgba(0,0,0,0.25)");
+  shadow.setAttribute("d", pinPath);
+  shadow.setAttribute("transform", "translate(3,3)");
+
+  const fill = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  fill.setAttribute("fill", color);
+  fill.setAttribute("d", pinPath);
+
+  const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  text.setAttribute("x", "13.5");
+  text.setAttribute("y", "14.5");
+  text.setAttribute("text-anchor", "middle");
+  text.setAttribute("dominant-baseline", "middle");
+  text.setAttribute("fill", "#ffffff");
+  text.setAttribute("font-size", "13");
+  text.setAttribute("font-weight", "800");
+  text.setAttribute("font-family", "system-ui, -apple-system, Segoe UI, sans-serif");
+  text.setAttribute("paint-order", "stroke fill");
+  text.setAttribute("stroke", "rgba(0,0,0,0.35)");
+  text.setAttribute("stroke-width", "0.6");
+  text.textContent = letter;
+
+  g.append(shadow, fill, text);
+  svg.append(g);
+  root.append(svg);
+  return root;
 }
 
 function createWaypointMarkerEl(order: number): HTMLDivElement {

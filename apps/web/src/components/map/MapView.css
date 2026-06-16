@@ -352,6 +352,50 @@
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
 }
 
+.map-view .mapboxgl-marker.map-view__route-pin-marker {
+  background: transparent !important;
+}
+
+.map-view__route-pin {
+  width: 27px;
+  height: 41px;
+  line-height: 0;
+  pointer-events: none;
+}
+
+/* 라이더 프로토타입 — isometric 2D (VITE_RIDER_PROTOTYPE=iso2d) */
+.map-view__proto-iso-host.cycling-sim-marker-host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  width: auto;
+  min-width: 72px;
+  height: auto;
+  min-height: 72px;
+  background: transparent !important;
+}
+
+.map-view__proto-iso-flip {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  transform-origin: 50% 85%;
+}
+
+.map-view__proto-iso-sprite {
+  width: 72px;
+  height: auto;
+  max-height: 72px;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+}
+
 /* 내 라이브 위치: 페달 스프라이트 마커(보고서 6·9절) */
 .map-view .mapboxgl-marker.cycling-sim-marker-host,
 .map-view .cycling-sim-marker-host.mapboxgl-marker {

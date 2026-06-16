@@ -1,15 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { User } from "firebase/auth";
 import type { RouteProfile } from "../../services/mapboxDirections";
-import { formatDuration } from "../../services/mapboxDirections";
-import type { PublishedPublicCourseSummary, CourseProfile } from "../../lib/firestoreCourses";
+import type { PublishedPublicCourseSummary } from "../../lib/firestoreCourses";
 import type { CourseActivitySnapshot } from "../../lib/firestoreCourseActivity";
-import { formatCourseActivityListBadge } from "../../lib/firestoreCourseActivity";
 import type { BleCrankRpmUiState } from "../../hooks/useBleCrankRpm";
 import type { RideSessionStatus } from "../../hooks/useVirtualRideSession";
 import type { SavedRoute } from "../../lib/firestoreSavedRoutes";
 import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/firestoreSavedRoutes";
 import { SavedRoutesPanel } from "./SavedRoutesPanel";
+import {
+  OfficialCourseListModal,
+  type OfficialCourseSegment,
+} from "./OfficialCourseListModal";
 import { AdminPublicRouteQueue } from "../AdminPublicRouteQueue";
 import "./RideRoutePanel.css";
 
@@ -115,50 +117,6 @@ type RideRoutePanelProps = {
 
 type Tab = "route" | "saved" | "publicReview";
 
-type OfficialCourseSegment = "intro" | "public" | "event";
-
-function profileLabelKo(p: RouteProfile | CourseProfile): string {
-  if (p === "walking") return "도보";
-  if (p === "driving") return "자동차";
-  return "자전거";
-}
-
-/** 입문·퍼블릭 코스 한 줄 — 카드 전체 탭으로 불러오기 */
-function PublicCoursePickRow(props: {
-  course: PublishedPublicCourseSummary;
-  selected: boolean;
-  loadDisabled: boolean;
-  activityBadge: string | null;
-  onLoad: () => void;
-}) {
-  const c = props.course;
-  return (
-    <li>
-      <button
-        type="button"
-        className={`ride-panel__public-courses-item${props.selected ? " is-selected" : ""}`}
-        title={props.loadDisabled ? "Available when idle" : "Load course"}
-        disabled={props.loadDisabled}
-        onClick={props.onLoad}
-      >
-        <span className="ride-panel__public-courses-meta">
-          <strong className="ride-panel__public-courses-name">{c.title}</strong>
-          <span className="ride-panel__public-courses-sub">
-            {profileLabelKo(c.profile)} · {(c.distanceMeters / 1000).toFixed(2)} km · 예상{" "}
-            {formatDuration(c.durationSec)}
-            {c.publisherNickname ? (
-              <span className="ride-panel__public-courses-publisher"> · {c.publisherNickname}</span>
-            ) : null}
-            {props.activityBadge ? (
-              <span className="ride-panel__public-courses-activity"> · {props.activityBadge}</span>
-            ) : null}
-          </span>
-        </span>
-      </button>
-    </li>
-  );
-}
-
 export function RideRoutePanel(props: RideRoutePanelProps) {
   const [tab, setTab] = useState<Tab>("route");
   const [saveOpen, setSaveOpen] = useState(false);
@@ -170,7 +128,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
   const [adhocSaveDraft, setAdhocSaveDraft] = useState("");
   const [adhocSaveBusy, setAdhocSaveBusy] = useState(false);
   const [adhocSaveError, setAdhocSaveError] = useState<string | null>(null);
-  const [officialSegment, setOfficialSegment] = useState<OfficialCourseSegment>("intro");
+  const [officialListModal, setOfficialListModal] = useState<OfficialCourseSegment | null>(null);
 
   /** 주행 중에도 MENU(경로·코스·속도·시작)는 사용 가능 — 맵 핀 편집만 App 쪽에서 별도 잠금 */
   const routeLocksAsIdle = true;
@@ -181,13 +139,19 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
     }
   }, [tab, props.isPublicRouteReviewer]);
 
-  const refreshPublishedCatalogRef = useRef(props.onRefreshPublishedPublicCourses);
-  refreshPublishedCatalogRef.current = props.onRefreshPublishedPublicCourses;
+  function openOfficialList(segment: OfficialCourseSegment) {
+    setOfficialListModal(segment);
+    if (segment === "public") {
+      props.onRefreshPublishedPublicCourses?.();
+    }
+  }
 
-  useEffect(() => {
-    if (officialSegment !== "public" || !props.officialCourseCatalogAvailable) return;
-    refreshPublishedCatalogRef.current?.();
-  }, [officialSegment, props.officialCourseCatalogAvailable]);
+  const activeOfficialTitle =
+    props.basicActiveHubCourseId != null
+      ? (props.basicSharedHubs.find((h) => h.id === props.basicActiveHubCourseId)?.title ??
+        props.publishedPublicCourses.find((c) => c.id === props.basicActiveHubCourseId)?.title ??
+        props.basicActiveHubCourseId)
+      : null;
 
   const canSaveRoute = routeLocksAsIdle && props.hasRoute && !props.routeLoading;
 
@@ -359,27 +323,24 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
           <div className="ride-panel__official" aria-label="공식 경로">
             <div className="ride-panel__official-head">
               <span className="ride-panel__kicker">공식</span>
-              <div className="ride-panel__official-segments" role="tablist" aria-label="공식 경로 종류">
+              <div className="ride-panel__official-segments" role="group" aria-label="공식 경로 종류">
               <button
                 type="button"
-                role="tab"
-                aria-selected={officialSegment === "intro"}
-                className={`ride-panel__official-seg ${officialSegment === "intro" ? "is-active" : ""}`}
-                title="Intro courses"
-                onClick={() => setOfficialSegment("intro")}
+                className={`ride-panel__official-seg ${officialListModal === "intro" ? "is-active" : ""}`}
+                title="입문 경로 목록"
+                aria-haspopup="dialog"
+                aria-expanded={officialListModal === "intro"}
+                onClick={() => openOfficialList("intro")}
               >
                 입문
               </button>
               <button
                 type="button"
-                role="tab"
-                aria-selected={officialSegment === "public"}
-                className={`ride-panel__official-seg ${officialSegment === "public" ? "is-active" : ""}`}
-                title="Public courses"
-                onClick={() => {
-                  setOfficialSegment("public");
-                  props.onRefreshPublishedPublicCourses?.();
-                }}
+                className={`ride-panel__official-seg ${officialListModal === "public" ? "is-active" : ""}`}
+                title="퍼블릭 경로 목록"
+                aria-haspopup="dialog"
+                aria-expanded={officialListModal === "public"}
+                onClick={() => openOfficialList("public")}
               >
                 퍼블릭
                 {props.publishedPublicCourses.length > 0 ? (
@@ -388,52 +349,26 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               </button>
               <button
                 type="button"
-                role="tab"
-                aria-selected={officialSegment === "event"}
-                className={`ride-panel__official-seg ${officialSegment === "event" ? "is-active" : ""}`}
-                title="Events (coming soon)"
-                onClick={() => setOfficialSegment("event")}
+                className={`ride-panel__official-seg ${officialListModal === "event" ? "is-active" : ""}`}
+                title="이벤트 목록"
+                aria-haspopup="dialog"
+                aria-expanded={officialListModal === "event"}
+                onClick={() => openOfficialList("event")}
               >
                 이벤트
               </button>
               </div>
             </div>
 
-            {officialSegment === "intro" ? (
-              <div className="ride-panel__public-courses" aria-label="입문 경로">
-                {props.basicActiveHubCourseId ? (
-                  <p className="ride-panel__public-courses-hint" role="status">
-                    선택:{" "}
-                    <strong>
-                      {props.basicSharedHubs.find((h) => h.id === props.basicActiveHubCourseId)?.title ??
-                        props.basicActiveHubCourseId}
-                    </strong>
-                  </p>
-                ) : null}
-                {props.basicSharedHubs.length === 0 ? (
-                  <p className="ride-panel__public-courses-hint">입문 경로 없음</p>
-                ) : (
-                  <ul className="ride-panel__public-courses-list">
-                    {props.basicSharedHubs.map((c) => (
-                      <PublicCoursePickRow
-                        key={c.id}
-                        course={c}
-                        selected={props.basicActiveHubCourseId === c.id}
-                        loadDisabled={
-                          props.routeLoading || props.basicStartLoading || !routeLocksAsIdle
-                        }
-                        activityBadge={formatCourseActivityListBadge(
-                          props.courseActivityByCourseId?.get(c.id) ?? null,
-                        )}
-                        onLoad={() => props.onEnterBasicHub(c.id)}
-                      />
-                    ))}
-                  </ul>
-                )}
+            {activeOfficialTitle ? (
+              <div className="ride-panel__official-active" role="status">
+                <span className="ride-panel__official-active-label">
+                  선택: <strong>{activeOfficialTitle}</strong>
+                </span>
                 {props.basicStartHubJoined ? (
                   <button
                     type="button"
-                    className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet ride-panel__hub-leave"
+                    className="ride-panel__official-active-leave"
                     disabled={props.basicStartLoading}
                     title="Leave course"
                     onClick={() => void props.onLeaveBasicHub()}
@@ -442,49 +377,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                   </button>
                 ) : null}
               </div>
-            ) : officialSegment === "public" ? (
-              <div className="ride-panel__public-courses" aria-label="퍼블릭 경로">
-                {!props.officialCourseCatalogAvailable ? (
-                  <p className="ride-panel__public-courses-hint">목록 미연결</p>
-                ) : props.publishedPublicCoursesLoading ? (
-                  <p className="ride-panel__public-courses-hint">불러오는 중…</p>
-                ) : props.publishedPublicCoursesError ? (
-                  <p className="ride-panel__public-courses-error" role="alert">
-                    목록을 불러오지 못했어요.{" "}
-                    <span className="ride-panel__public-courses-error-detail">
-                      {props.publishedPublicCoursesError}
-                    </span>
-                  </p>
-                ) : props.publishedPublicCourses.length === 0 ? (
-                  <p className="ride-panel__public-courses-hint">
-                    {!props.signedIn && props.officialCourseCatalogAvailable
-                      ? "로그인 후 목록"
-                      : "퍼블릭 경로 없음"}
-                  </p>
-                ) : (
-                  <ul className="ride-panel__public-courses-list">
-                    {props.publishedPublicCourses.map((c) => (
-                      <PublicCoursePickRow
-                        key={c.id}
-                        course={c}
-                        selected={props.basicActiveHubCourseId === c.id}
-                        loadDisabled={
-                          props.routeLoading || props.basicStartLoading || !routeLocksAsIdle
-                        }
-                        activityBadge={formatCourseActivityListBadge(
-                          props.courseActivityByCourseId?.get(c.id) ?? null,
-                        )}
-                        onLoad={() => props.onEnterBasicHub(c.id)}
-                      />
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ) : (
-              <div className="ride-panel__event-placeholder" aria-label="이벤트 경로">
-                <p className="ride-panel__event-placeholder-text">이벤트 (준비 중)</p>
-              </div>
-            )}
+            ) : null}
           </div>
 
           <div className="ride-panel__point-box">
@@ -761,6 +654,27 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
 
         </>
       )}
+
+      {officialListModal ? (
+        <OfficialCourseListModal
+          segment={officialListModal}
+          onClose={() => setOfficialListModal(null)}
+          basicSharedHubs={props.basicSharedHubs}
+          basicActiveHubCourseId={props.basicActiveHubCourseId}
+          basicStartLoading={props.basicStartLoading}
+          basicStartHubJoined={props.basicStartHubJoined}
+          routeLoading={props.routeLoading}
+          sessionIdle={routeLocksAsIdle}
+          officialCourseCatalogAvailable={props.officialCourseCatalogAvailable}
+          publishedPublicCourses={props.publishedPublicCourses}
+          publishedPublicCoursesLoading={props.publishedPublicCoursesLoading}
+          publishedPublicCoursesError={props.publishedPublicCoursesError}
+          signedIn={props.signedIn}
+          courseActivityByCourseId={props.courseActivityByCourseId}
+          onEnterBasicHub={props.onEnterBasicHub}
+          onLeaveBasicHub={props.onLeaveBasicHub}
+        />
+      ) : null}
     </aside>
   );
 }

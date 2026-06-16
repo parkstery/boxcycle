@@ -494,6 +494,48 @@
   justify-content: center;
 }
 
+.ride-panel__official-active {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  margin-top: 0.15rem;
+  padding: 0.28rem 0.35rem;
+  border-radius: 8px;
+  border: 1px solid var(--rp-border);
+  background: rgba(2, 6, 23, 0.28);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.ride-panel__official-active-label {
+  min-width: 0;
+  opacity: 0.9;
+}
+
+.ride-panel__official-active-leave {
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.2rem 0.42rem;
+  border-radius: 999px;
+  border: 1px solid var(--rp-border);
+  background: var(--rp-chip);
+  color: var(--rp-fg);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.ride-panel__official-active-leave:hover:not(:disabled) {
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.45);
+}
+
+.ride-panel__official-active-leave:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .ride-panel__public-courses-hint,
 .ride-panel__public-courses-error {
   margin: 0 0 0.35rem;
