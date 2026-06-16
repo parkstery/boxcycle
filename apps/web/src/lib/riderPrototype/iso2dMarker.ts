@@ -1,4 +1,5 @@
 import type { LngLat } from "../geo";
+import type { RiderGlbPedalPose } from "../riderGlbPedalPose";
 
 export type RiderVisualKind = "self" | "peer";
 
@@ -77,6 +78,6 @@ export type RiderGlbModelSpec = {
   id: string;
   lngLat: LngLat;
   bearingDeg: number;
-  /** Mapbox nodeOverride crank 회전(도) — 본인 라이브 */
-  crankRotationDeg?: number;
+  /** 크랭크·다리 nodeOverride 회전 */
+  pedalPose?: RiderGlbPedalPose;
 };

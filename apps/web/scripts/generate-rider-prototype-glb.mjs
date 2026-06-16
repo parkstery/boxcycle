@@ -144,6 +144,10 @@ root.add(tube([barCenter[0] - 0.12, barCenter[1], 0], [barCenter[0] + 0.12, barC
 root.add(tube([barCenter[0], barCenter[1], -0.1], [barCenter[0], barCenter[1], 0.1], 0.016, COL.bar));
 root.add(tube(headTube, barCenter, 0.018, COL.frameDark));
 
+const pelvis = [-0.12, 0.8, 0];
+const shoulder = [0.02, 1.02, 0];
+const headC = [0.1, 1.2, 0];
+
 /** Mapbox nodeOverride — Z축 회전(페달) */
 function crankAssembly() {
   const crank = new THREE.Group();
@@ -158,13 +162,30 @@ function crankAssembly() {
 }
 root.add(crankAssembly());
 
-const pelvis = [-0.12, 0.8, 0];
-const shoulder = [0.02, 1.02, 0];
-const headC = [0.1, 1.2, 0];
+/** 허벅지·정강이 — hip/knee pivot, Mapbox nodeOverride */
+function legAssembly(side) {
+  const sign = side === "l" ? 1 : -1;
+  const hipZ = 0.068 * sign;
+  const leg = new THREE.Group();
+  leg.name = `leg_${side}`;
+  leg.position.set(pelvis[0], pelvis[1] - 0.05, hipZ);
+
+  const knee = [0.04, -0.24, -0.028 * sign];
+  leg.add(tube([0, 0, 0], knee, 0.048, COL.short));
+
+  const shin = new THREE.Group();
+  shin.name = `leg_${side}_shin`;
+  shin.position.set(knee[0], knee[1], knee[2]);
+  const foot = [0.05, -0.2, 0.012 * sign];
+  shin.add(tube([0, 0, 0], foot, 0.042, COL.short));
+  shin.add(box(0.06, 0.03, 0.05, COL.skin, foot[0], foot[1], foot[2]));
+  leg.add(shin);
+  return leg;
+}
 
 root.add(tube(pelvis, shoulder, 0.09, COL.jersey));
-root.add(tube(pelvis, bb, 0.055, COL.short));
-root.add(tube([pelvis[0] + 0.04, pelvis[1] - 0.02, 0], bb, 0.05, COL.short));
+root.add(legAssembly("l"));
+root.add(legAssembly("r"));
 
 root.add(tube(shoulder, [barCenter[0] - 0.04, barCenter[1] - 0.02, 0.06], 0.035, COL.jersey));
 root.add(tube(shoulder, [barCenter[0] - 0.04, barCenter[1] - 0.02, -0.06], 0.035, COL.jerseyDark));

@@ -1,12 +1,18 @@
 import type { Map as MapboxMap, Source } from "mapbox-gl";
 import {
   RIDER_GLB_CRANK_STATE_KEY,
+  RIDER_GLB_LEG_L_SHIN_STATE_KEY,
+  RIDER_GLB_LEG_L_STATE_KEY,
+  RIDER_GLB_LEG_R_SHIN_STATE_KEY,
+  RIDER_GLB_LEG_R_STATE_KEY,
   RIDER_GLB_MODEL_LAYER_ID,
   RIDER_GLB_MODEL_SOURCE_ID,
+  RIDER_GLB_NODE_OVERRIDE_NAMES,
   bearingToModelYawDeg,
   riderPrototypeGlbUrl,
 } from "./config";
 import type { RiderGlbModelSpec } from "./iso2dMarker";
+import type { RiderGlbPedalPose } from "../riderGlbPedalPose";
 
 type ModelSource = Source & {
   setModels: (models: Record<string, unknown>) => void;
@@ -20,6 +26,14 @@ const RIDER_GLB_LAYER_PAINT = {
     ["get", "part"],
     "crank",
     ["feature-state", RIDER_GLB_CRANK_STATE_KEY],
+    "leg_l",
+    ["feature-state", RIDER_GLB_LEG_L_STATE_KEY],
+    "leg_l_shin",
+    ["feature-state", RIDER_GLB_LEG_L_SHIN_STATE_KEY],
+    "leg_r",
+    ["feature-state", RIDER_GLB_LEG_R_STATE_KEY],
+    "leg_r_shin",
+    ["feature-state", RIDER_GLB_LEG_R_SHIN_STATE_KEY],
     [0, 0, 0],
   ],
 } as Record<string, unknown>;
@@ -52,19 +66,25 @@ export function ensureRiderGlbLayer(map: MapboxMap): boolean {
   }
 }
 
-export function syncRiderGlbCrankFeatureState(
+export function syncRiderGlbPedalFeatureState(
   map: MapboxMap,
   modelId: string,
-  crankRotationDeg: number,
+  pose: RiderGlbPedalPose,
 ): void {
   try {
     map.setFeatureState(
       { source: RIDER_GLB_MODEL_SOURCE_ID, sourceLayer: "", id: modelId },
-      { [RIDER_GLB_CRANK_STATE_KEY]: [0, 0, crankRotationDeg] },
+      {
+        [RIDER_GLB_CRANK_STATE_KEY]: [0, 0, pose.crankRotationDeg],
+        [RIDER_GLB_LEG_L_STATE_KEY]: pose.legLRotationDeg,
+        [RIDER_GLB_LEG_L_SHIN_STATE_KEY]: pose.legLShinRotationDeg,
+        [RIDER_GLB_LEG_R_STATE_KEY]: pose.legRRotationDeg,
+        [RIDER_GLB_LEG_R_SHIN_STATE_KEY]: pose.legRShinRotationDeg,
+      },
     );
   } catch (e) {
     if (import.meta.env.DEV) {
-      console.warn("[riderPrototype] setFeatureState crank failed", e);
+      console.warn("[riderPrototype] setFeatureState pedal pose failed", e);
     }
   }
 }
@@ -82,15 +102,13 @@ export function syncRiderGlbModels(map: MapboxMap, specs: readonly RiderGlbModel
       uri: glbUrl,
       position: [lng, lat],
       orientation: [0, 0, bearingToModelYawDeg(s.bearingDeg)],
-      nodeOverrideNames: ["crank"],
+      nodeOverrideNames: [...RIDER_GLB_NODE_OVERRIDE_NAMES],
     };
   }
   try {
     src.setModels(models);
     for (const s of specs) {
-      if (typeof s.crankRotationDeg === "number" && Number.isFinite(s.crankRotationDeg)) {
-        syncRiderGlbCrankFeatureState(map, s.id, s.crankRotationDeg);
-      }
+      if (s.pedalPose) syncRiderGlbPedalFeatureState(map, s.id, s.pedalPose);
     }
   } catch (e) {
     if (import.meta.env.DEV) console.warn("[riderPrototype] setModels failed", e);

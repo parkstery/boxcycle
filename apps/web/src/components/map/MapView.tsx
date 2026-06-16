@@ -35,6 +35,7 @@ import {
   RIDER_PEDAL_SPRITE_REVISION,
 } from "../../lib/riderPedalSpriteMeta";
 import { estimateCrankRpmFromSpeedKmh, resolvePedalCrankRpm } from "../../lib/riderPedalMotion";
+import { resolveGlbPedalPose } from "../../lib/riderGlbPedalPose";
 import {
   mergePeerTargets,
   stepPeerDriveAndBuildGeoJson,
@@ -1879,7 +1880,7 @@ export function MapView({
           id: string;
           lngLat: LngLat;
           bearingDeg: number;
-          crankRotationDeg?: number;
+          pedalPose?: ReturnType<typeof resolveGlbPedalPose>;
         }[] = [];
         const live = liveLngLatRef.current;
         if (live) {
@@ -1903,18 +1904,19 @@ export function MapView({
             id: "live-self",
             lngLat: live,
             bearingDeg,
-            crankRotationDeg: (liveCrankPhaseRevRef.current % 1) * 360,
+            pedalPose: resolveGlbPedalPose(liveCrankPhaseRevRef.current),
           });
         }
         for (const f of fc.features as PeerDomGJFeature[]) {
+          const phaseRev =
+            f.properties.pframe > 0
+              ? f.properties.pframe / PEER_RIDER_PEDAL_FRAME_COUNT
+              : 0;
           specs.push({
             id: f.properties.id,
             lngLat: f.geometry.coordinates,
             bearingDeg: f.properties.hdg,
-            crankRotationDeg:
-              f.properties.pframe > 0
-                ? (f.properties.pframe / PEER_RIDER_PEDAL_FRAME_COUNT) * 360
-                : 0,
+            pedalPose: resolveGlbPedalPose(phaseRev),
           });
         }
         syncRiderGlbModels(map, specs);
