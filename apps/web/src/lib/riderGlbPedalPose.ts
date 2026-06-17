@@ -9,24 +9,27 @@ export type RiderGlbPedalPose = {
   legRShinRotationDeg: GlbNodeRotationDeg;
 };
 
-/** `generate-rider-prototype-glb.mjs` legAssembly() 와 동일 */
+/**
+ * `generate-rider-prototype-glb.mjs` legAssembly() 와 동기.
+ * 좌표: +X 전진, +Y 위. hip→knee→발바닥(페달 접촉점) 2D IK.
+ */
 const PELVIS: Vec2 = { x: -0.12, y: 0.8 };
-const LEG_HIP_OFFSET_Y = -0.06;
+const LEG_HIP_OFFSET = { x: 0.02, y: -0.08 };
 
 const BB: Vec2 = { x: -0.04, y: 0.4 };
 const CRANK_ARM_M = 0.14;
 
-const KNEE_LOCAL = { x: 0.03, y: -0.17 };
-const FOOT_LOCAL = { x: 0.035, y: -0.15 };
+/** 허벅지 끝(무릎 pivot) — leg 로컬 */
+const KNEE_LOCAL = { x: 0.05, y: -0.26 };
+/** 무릎→발바닥(페달 접촉) — shin 로컬, `ankle` + pad */
+const FOOT_FROM_KNEE = { x: 0.065, y: -0.234 };
+
 const THIGH_LEN_M = Math.hypot(KNEE_LOCAL.x, KNEE_LOCAL.y);
-const SHIN_LEN_M = Math.hypot(FOOT_LOCAL.x, FOOT_LOCAL.y);
+const SHIN_LEN_M = Math.hypot(FOOT_FROM_KNEE.x, FOOT_FROM_KNEE.y);
 
 const REST_THIGH_DIR = Math.atan2(KNEE_LOCAL.y, KNEE_LOCAL.x);
-const REST_SHIN_DIR = Math.atan2(FOOT_LOCAL.y, FOOT_LOCAL.x);
-const REST_SHIN_REL = REST_SHIN_DIR - REST_THIGH_DIR;
-
-const KNEE_MIN_DEG = 92;
-const KNEE_MAX_DEG = 178;
+const REST_SHIN_REL =
+  Math.atan2(FOOT_FROM_KNEE.y, FOOT_FROM_KNEE.x) - REST_THIGH_DIR;
 
 type Vec2 = { x: number; y: number };
 
@@ -45,14 +48,21 @@ function radToDeg(r: number): number {
   return (r * 180) / Math.PI;
 }
 
-function hipWorld(): Vec2 {
-  return { x: PELVIS.x, y: PELVIS.y + LEG_HIP_OFFSET_Y };
+function hipWorld(crankRad: number): Vec2 {
+  /** 실제 주행처럼 골반 소폭 상하·전후 — TDC에서 hip↔페달 거리 확보 */
+  const bobY = 0.032 * Math.sin(crankRad);
+  const bobX = 0.014 * Math.cos(crankRad);
+  return {
+    x: PELVIS.x + LEG_HIP_OFFSET.x + bobX,
+    y: PELVIS.y + LEG_HIP_OFFSET.y + bobY,
+  };
 }
 
 function crankRadFromPhase(phase: number): number {
   return -phase * Math.PI * 2;
 }
 
+/** 크랭크 팔 끝 페달 중심 — IK 목표(보정 없음) */
 function pedalWorld(side: "l" | "r", crankRad: number): Vec2 {
   const sign = side === "l" ? -1 : 1;
   return {
@@ -61,75 +71,47 @@ function pedalWorld(side: "l" | "r", crankRad: number): Vec2 {
   };
 }
 
-/** TDC 등 hip–페달 거리가 너무 짧을 때 거의 펴진 다리가 되도록 목표 보정 */
-function footIkTarget(hip: Vec2, pedal: Vec2): Vec2 {
-  const dx = pedal.x - hip.x;
-  const dy = pedal.y - hip.y;
-  const d = Math.hypot(dx, dy);
-  const maxReach = THIGH_LEN_M + SHIN_LEN_M - 0.006;
-  const minTarget = maxReach * 0.93;
-  if (d >= minTarget) return pedal;
-  const scale = minTarget / Math.max(d, 1e-5);
-  return { x: hip.x + dx * scale, y: hip.y + dy * scale };
-}
-
 function kneeInternalDeg(thighDir: number, shinDir: number): number {
   const between = Math.acos(clamp(Math.cos(thighDir - shinDir), -1, 1));
   return radToDeg(Math.PI - between);
 }
 
-function evaluateIkSolution(
-  hip: Vec2,
-  foot: Vec2,
-  thighDir: number,
-): IkSolution | null {
+function evaluateIkSolution(hip: Vec2, pedal: Vec2, thighDir: number): IkSolution {
   const kneeX = hip.x + THIGH_LEN_M * Math.cos(thighDir);
   const kneeY = hip.y + THIGH_LEN_M * Math.sin(thighDir);
-  const shinDir = Math.atan2(foot.y - kneeY, foot.x - kneeX);
+  const shinDir = Math.atan2(pedal.y - kneeY, pedal.x - kneeX);
   const kneeDeg = kneeInternalDeg(thighDir, shinDir);
 
-  if (kneeDeg < KNEE_MIN_DEG - 2 || kneeDeg > KNEE_MAX_DEG + 1) return null;
+  const kneeForward = kneeX - hip.x;
+  const kneeBelow = hip.y - kneeY;
+  const flexMid = 1 - Math.abs(kneeDeg - 128) / 52;
+  const flexPenalty =
+    kneeDeg < 88 ? (88 - kneeDeg) * 0.15 : kneeDeg > 176 ? (kneeDeg - 176) * 0.2 : 0;
 
-  const midFlexBonus = 1 - Math.abs(kneeDeg - 132) / 48;
-  const score =
-    (kneeX - hip.x) * 5 +
-    (hip.y - kneeY) * 1.2 +
-    midFlexBonus * 2 +
-    (kneeDeg >= KNEE_MIN_DEG && kneeDeg <= KNEE_MAX_DEG ? 3 : 0);
+  const score = kneeForward * 6 + kneeBelow * 1.5 + flexMid * 2 - flexPenalty;
 
   return { thighDir, shinDir, kneeDeg, score };
 }
 
-/** 2-bone IK — 페달(발) 목표에서 허벅지·정강이 Z 회전(무릎 90~178°) */
-function solveLegIk(hip: Vec2, foot: Vec2): { thighZ: number; shinZ: number; kneeDeg: number } {
-  const dx = foot.x - hip.x;
-  const dy = foot.y - hip.y;
-  let d = Math.hypot(dx, dy);
-  const minD = Math.abs(THIGH_LEN_M - SHIN_LEN_M) + 0.002;
-  const maxD = THIGH_LEN_M + SHIN_LEN_M - 0.002;
-  d = clamp(d, minD, maxD);
+/** 2-bone IK — 발바닥을 페달 좌표에 고정 */
+function solveLegIk(hip: Vec2, pedal: Vec2): { thighZ: number; shinZ: number; kneeDeg: number } {
+  const dx = pedal.x - hip.x;
+  const dy = pedal.y - hip.y;
+  const d = Math.hypot(dx, dy);
+  const maxReach = THIGH_LEN_M + SHIN_LEN_M - 0.004;
 
-  const toFoot = Math.atan2(dy, dx);
-  const cosHip = (THIGH_LEN_M * THIGH_LEN_M + d * d - SHIN_LEN_M * SHIN_LEN_M) / (2 * THIGH_LEN_M * d);
+  const toPedal = Math.atan2(dy, dx);
+  const cosHip =
+    d >= maxReach
+      ? -1
+      : (THIGH_LEN_M * THIGH_LEN_M + d * d - SHIN_LEN_M * SHIN_LEN_M) / (2 * THIGH_LEN_M * d);
   const hipOffset = Math.acos(clamp(cosHip, -1, 1));
 
-  const candidates = [toFoot + hipOffset, toFoot - hipOffset];
-  let best: IkSolution | null = null;
-  for (const thighDir of candidates) {
-    const sol = evaluateIkSolution(hip, foot, thighDir);
-    if (!sol) continue;
-    if (!best || sol.score > best.score) best = sol;
-  }
-
-  if (!best) {
-    const thighDir = toFoot + hipOffset;
-    const kneeX = hip.x + THIGH_LEN_M * Math.cos(thighDir);
-    const kneeY = hip.y + THIGH_LEN_M * Math.sin(thighDir);
-    const shinDir = Math.atan2(foot.y - kneeY, foot.x - kneeX);
-    const kneeDeg = kneeInternalDeg(thighDir, shinDir);
-    const thighZ = radToDeg(thighDir - REST_THIGH_DIR);
-    const shinZ = radToDeg(shinDir - thighDir - REST_SHIN_REL);
-    return { thighZ, shinZ, kneeDeg };
+  const candidates = [toPedal + hipOffset, toPedal - hipOffset];
+  let best = evaluateIkSolution(hip, pedal, candidates[0]);
+  for (let i = 1; i < candidates.length; i += 1) {
+    const sol = evaluateIkSolution(hip, pedal, candidates[i]);
+    if (sol.score > best.score) best = sol;
   }
 
   const thighZ = radToDeg(best.thighDir - REST_THIGH_DIR);
@@ -138,9 +120,8 @@ function solveLegIk(hip: Vec2, foot: Vec2): { thighZ: number; shinZ: number; kne
 }
 
 function legPose(side: "l" | "r", crankRad: number): { thighZ: number; shinZ: number } {
-  const hip = hipWorld();
-  const foot = footIkTarget(hip, pedalWorld(side, crankRad));
-  const ik = solveLegIk(hip, foot);
+  const hip = hipWorld(crankRad);
+  const ik = solveLegIk(hip, pedalWorld(side, crankRad));
   return { thighZ: ik.thighZ, shinZ: ik.shinZ };
 }
 
@@ -166,10 +147,10 @@ export function resolveGlbPedalPose(phaseRev: number): RiderGlbPedalPose {
 export function sampleKneeAnglesForPhase(phaseRev: number): { left: number; right: number } {
   const phase = ((phaseRev % 1) + 1) % 1;
   const crankRad = crankRadFromPhase(phase);
-  const hip = hipWorld();
+  const hip = hipWorld(crankRad);
   return {
-    left: solveLegIk(hip, footIkTarget(hip, pedalWorld("l", crankRad))).kneeDeg,
-    right: solveLegIk(hip, footIkTarget(hip, pedalWorld("r", crankRad))).kneeDeg,
+    left: solveLegIk(hip, pedalWorld("l", crankRad)).kneeDeg,
+    right: solveLegIk(hip, pedalWorld("r", crankRad)).kneeDeg,
   };
 }
 
@@ -177,4 +158,5 @@ export const RIDER_GLB_LEG_IK = {
   thighLenM: THIGH_LEN_M,
   shinLenM: SHIN_LEN_M,
   crankArmM: CRANK_ARM_M,
+  maxReachM: THIGH_LEN_M + SHIN_LEN_M,
 } as const;
