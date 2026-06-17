@@ -170,8 +170,8 @@ function legAssembly(side) {
   leg.name = `leg_${side}`;
   leg.position.set(pelvis[0] + 0.02, pelvis[1] - 0.08, hipZ);
 
-  const knee = [0.05, -0.26, -0.022 * sign];
-  leg.add(tube([0, 0, 0], knee, 0.048, COL.short));
+  const knee = [0.04, -0.208, -0.022 * sign];
+  leg.add(tube([0, 0, 0], knee, 0.046, COL.short));
 
   const shin = new THREE.Group();
   shin.name = `leg_${side}_shin`;

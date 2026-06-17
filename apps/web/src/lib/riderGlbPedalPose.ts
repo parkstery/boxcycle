@@ -19,8 +19,8 @@ const LEG_HIP_OFFSET = { x: 0.02, y: -0.08 };
 const BB: Vec2 = { x: -0.04, y: 0.4 };
 const CRANK_ARM_M = 0.14;
 
-/** 허벅지 끝(무릎 pivot) — leg 로컬 */
-const KNEE_LOCAL = { x: 0.05, y: -0.26 };
+/** 허벅지 끝(무릎 pivot) — leg 로컬 (길이 80%) */
+const KNEE_LOCAL = { x: 0.04, y: -0.208 };
 /** 무릎→발바닥(페달 접촉) — shin 로컬, `ankle` + pad */
 const FOOT_FROM_KNEE = { x: 0.065, y: -0.234 };
 
@@ -49,9 +49,9 @@ function radToDeg(r: number): number {
 }
 
 function hipWorld(crankRad: number): Vec2 {
-  /** 실제 주행처럼 골반 소폭 상하·전후 — TDC에서 hip↔페달 거리 확보 */
-  const bobY = 0.032 * Math.sin(crankRad);
-  const bobX = 0.014 * Math.cos(crankRad);
+  /** 짧아진 허벅지 — BDC 도달·무릎 과굴곡 완화용 골반 bob */
+  const bobY = 0.036 * Math.sin(crankRad);
+  const bobX = 0.016 * Math.cos(crankRad);
   return {
     x: PELVIS.x + LEG_HIP_OFFSET.x + bobX,
     y: PELVIS.y + LEG_HIP_OFFSET.y + bobY,
@@ -88,11 +88,11 @@ function evaluateIkSolution(hip: Vec2, pedal: Vec2, thighDir: number): IkSolutio
 
   const kneeForward = kneeX - hip.x;
   const kneeBelow = hip.y - kneeY;
-  const flexMid = 1 - Math.abs(kneeDeg - 128) / 52;
+  const flexMid = 1 - Math.abs(kneeDeg - 138) / 45;
   const flexPenalty =
-    kneeDeg < 88 ? (88 - kneeDeg) * 0.15 : kneeDeg > 176 ? (kneeDeg - 176) * 0.2 : 0;
+    kneeDeg < 95 ? (95 - kneeDeg) * 0.28 : kneeDeg > 172 ? (kneeDeg - 172) * 0.18 : 0;
 
-  const score = kneeForward * 6 + kneeBelow * 1.5 + flexMid * 2 - flexPenalty;
+  const score = kneeForward * 6 + kneeBelow * 1.4 + flexMid * 2.5 - flexPenalty;
 
   return { thighDir, shinDir, kneeDeg, score };
 }
