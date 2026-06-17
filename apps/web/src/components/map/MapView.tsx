@@ -810,6 +810,128 @@ const PIN_MARKER_VIEWPORT_ALIGNMENT = {
  */
 const RIDER_ROUTE_MARKER_OFFSET_PX: [number, number] = [14, 18];
 
+/** GLB 네임태그 — `viewport` 빌보드(측면 3D 시점에서도 읽힘). 위치 추적은 rAF·render 재투영으로 처리 */
+const RIDER_GLB_NAMETAG_ALIGNMENT = {
+  pitchAlignment: "viewport" as const,
+  rotationAlignment: "viewport" as const,
+};
+
+/** GLB 모드 — 캐릭터 머리 위 네임태그(지면 앵커 + 화면 픽셀 위로) */
+const RIDER_GLB_NAMETAG_OFFSET_PX: [number, number] = [0, -40];
+
+const RIDER_GLB_NAMETAG_MARKER_OPTS = {
+  anchor: "bottom" as const,
+  offset: RIDER_GLB_NAMETAG_OFFSET_PX,
+  ...RIDER_GLB_NAMETAG_ALIGNMENT,
+  /** GLB 머리 높이(~1.1m) — terrain 표면 기준, 과도한 상승 방지 */
+  altitude: 1.05,
+};
+
+function createGlbRiderNametagRoot(kind: "live" | "peer", label: string): HTMLDivElement {
+  const root = document.createElement("div");
+  root.className = `map-view__glb-nametag-host map-view__glb-nametag-host--${kind}`;
+  const nametag = document.createElement("div");
+  nametag.className =
+    kind === "live"
+      ? "map-view__rider-nametag map-view__rider-nametag--live"
+      : "map-view__rider-nametag map-view__rider-nametag--peer";
+  nametag.setAttribute("aria-hidden", "true");
+  nametag.textContent = label;
+  if (!label.trim()) nametag.style.display = "none";
+  root.appendChild(nametag);
+  return root;
+}
+
+function applyGlbNametagLabel(el: HTMLDivElement | null, label: string): void {
+  if (!el) return;
+  const t = label.trim();
+  el.textContent = t;
+  el.style.display = t ? "flex" : "none";
+}
+
+/** terrain·피치 변화 시 DOM 마커 재투영 (최초 생성 좌표에 고정되는 Mapbox 이슈 완화) */
+function reprojectGlbNametagMarkers(
+  liveMarker: mapboxgl.Marker | null,
+  peerMarkers: ReadonlyMap<string, mapboxgl.Marker>,
+): void {
+  if (liveMarker) {
+    const ll = liveMarker.getLngLat();
+    liveMarker.setLngLat([ll.lng, ll.lat]);
+  }
+  for (const mk of peerMarkers.values()) {
+    const ll = mk.getLngLat();
+    mk.setLngLat([ll.lng, ll.lat]);
+  }
+}
+
+function syncGlbLiveNametagMarker(
+  map: mapboxgl.Map,
+  lngLat: LngLat | null,
+  label: string,
+  markerRef: { current: mapboxgl.Marker | null },
+  nametagElRef: { current: HTMLDivElement | null },
+): void {
+  if (!lngLat) {
+    markerRef.current?.remove();
+    markerRef.current = null;
+    nametagElRef.current = null;
+    return;
+  }
+  let mk = markerRef.current;
+  if (!mk) {
+    const root = createGlbRiderNametagRoot("live", label);
+    nametagElRef.current = root.querySelector<HTMLDivElement>(".map-view__rider-nametag");
+    mk = new mapboxgl.Marker({
+      element: root,
+      className: "map-view__glb-nametag-marker map-view__live-rider-marker",
+      ...RIDER_GLB_NAMETAG_MARKER_OPTS,
+    })
+      .setLngLat(lngLat)
+      .addTo(map);
+    markerRef.current = mk;
+  } else {
+    mk.setLngLat(lngLat);
+    applyGlbNametagLabel(nametagElRef.current, label);
+  }
+}
+
+function syncGlbPeerNametagMarkers(
+  map: mapboxgl.Map,
+  features: PeerDomGJFeature[],
+  markersRef: { current: Map<string, mapboxgl.Marker> },
+): void {
+  const markers = markersRef.current;
+  const next = new Set<string>();
+  for (const f of features) {
+    const id = f.properties.id;
+    next.add(id);
+    const lngLat = f.geometry.coordinates;
+    const { label } = f.properties;
+    let mk = markers.get(id);
+    if (!mk) {
+      const root = createGlbRiderNametagRoot("peer", label);
+      mk = new mapboxgl.Marker({
+        element: root,
+        className: "map-view__glb-nametag-marker",
+        ...RIDER_GLB_NAMETAG_MARKER_OPTS,
+      })
+        .setLngLat(lngLat)
+        .addTo(map);
+      markers.set(id, mk);
+    } else {
+      mk.setLngLat(lngLat);
+      const nametag = mk.getElement().querySelector<HTMLDivElement>(".map-view__rider-nametag");
+      applyGlbNametagLabel(nametag, label);
+    }
+  }
+  for (const id of [...markers.keys()]) {
+    if (!next.has(id)) {
+      markers.get(id)?.remove();
+      markers.delete(id);
+    }
+  }
+}
+
 function pickPeerSourceFrameIndices(totalFrames: number): number[] {
   if (totalFrames < 2) return [0, 0, 0, 0, 0, 0];
   return [0, 1, 2, 3, 4, 5].map((i) => Math.min(totalFrames - 1, Math.round((i * (totalFrames - 1)) / 5)));
@@ -865,8 +987,7 @@ function syncPeerDomMarkers(
   markersRef: { current: Map<string, mapboxgl.Marker> },
 ): void {
   if (RIDER_PROTOTYPE_MODE === "glb") {
-    for (const mk of markersRef.current.values()) mk.remove();
-    markersRef.current.clear();
+    syncGlbPeerNametagMarkers(map, features, markersRef);
     return;
   }
   const markers = markersRef.current;
@@ -1139,6 +1260,9 @@ export function MapView({
   const peerDriveSimRef = useRef(new Map<string, PeerDriveSimState>());
   const peerRidersRafRef = useRef<number | null>(null);
   const peerDomMarkersRef = useRef(new Map<string, mapboxgl.Marker>());
+  const glbLiveNametagMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const glbLiveNametagElRef = useRef<HTMLDivElement | null>(null);
+  const liveRiderNametagRef = useRef(liveRiderNametag);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
   const routeGeometryRef = useRef<LineStringGeometry | null>(null);
   const liveLngLatRef = useRef<LngLat | null>(null);
@@ -1187,6 +1311,10 @@ export function MapView({
   );
   const BUILDING_LAYER_ID = "boxcycle-3d-buildings";
   const TERRAIN_SOURCE_ID = "boxcycle-dem";
+
+  useEffect(() => {
+    liveRiderNametagRef.current = liveRiderNametag;
+  }, [liveRiderNametag]);
 
   useEffect(() => {
     routeGeometryRef.current = routeGeometry;
@@ -1399,6 +1527,9 @@ export function MapView({
         console.warn("[MapView] coverage overlay", e);
       }
       /** 스타일 리로드 시 기존 동행 DOM 마커 제거 후 시뮬 타깃만 재병합(동행은 GeoJSON이 아닌 Marker 로 표시) */
+      glbLiveNametagMarkerRef.current?.remove();
+      glbLiveNametagMarkerRef.current = null;
+      glbLiveNametagElRef.current = null;
       for (const m of peerDomMarkersRef.current.values()) {
         try {
           m.remove();
@@ -1503,12 +1634,15 @@ export function MapView({
       for (const wm of waypointMarkersRef.current) wm.remove();
       waypointMarkersRef.current = [];
       liveMarkerRef.current?.remove();
+      glbLiveNametagMarkerRef.current?.remove();
       popupRef.current?.remove();
       startMarkerRef.current = null;
       endMarkerRef.current = null;
       placeSearchMarkerRef.current = null;
       waypointMarkersRef.current = [];
       liveMarkerRef.current = null;
+      glbLiveNametagMarkerRef.current = null;
+      glbLiveNametagElRef.current = null;
       liveMarkerFlipRef.current = null;
       liveMarkerPedalSpriteRef.current = null;
       liveMarkerNametagRef.current = null;
@@ -1737,14 +1871,7 @@ export function MapView({
     if (!map || !mapLoaded) return;
 
     if (liveLngLat) {
-      if (RIDER_PROTOTYPE_MODE === "glb") {
-        liveMarkerRef.current?.remove();
-        liveMarkerRef.current = null;
-        liveMarkerFlipRef.current = null;
-        liveMarkerPedalSpriteRef.current = null;
-        liveMarkerImgRef.current = null;
-        liveMarkerNametagRef.current = null;
-      } else if (!liveMarkerRef.current) {
+      if (RIDER_PROTOTYPE_MODE !== "glb" && !liveMarkerRef.current) {
         if (RIDER_PROTOTYPE_MODE === "iso2d") {
           const { root, nametag, flip, img } = createIso2dRiderMarkerRoot(
             "self",
@@ -1785,7 +1912,10 @@ export function MapView({
       }
     } else {
       liveMarkerRef.current?.remove();
+      glbLiveNametagMarkerRef.current?.remove();
       liveMarkerRef.current = null;
+      glbLiveNametagMarkerRef.current = null;
+      glbLiveNametagElRef.current = null;
       liveMarkerFlipRef.current = null;
       liveMarkerPedalSpriteRef.current = null;
       liveMarkerImgRef.current = null;
@@ -1796,15 +1926,17 @@ export function MapView({
       }
     }
 
-    const tagEl = liveMarkerNametagRef.current;
-    if (tagEl) {
-      const t = liveRiderNametag?.trim();
-      tagEl.textContent = t ?? "";
-      tagEl.style.display = t ? "flex" : "none";
-    }
-    const host = liveMarkerRef.current?.getElement();
-    if (host) {
-      host.title = liveRiderNametag?.trim() || "내 위치";
+    if (RIDER_PROTOTYPE_MODE !== "glb") {
+      const tagEl = liveMarkerNametagRef.current;
+      if (tagEl) {
+        const t = liveRiderNametag?.trim();
+        tagEl.textContent = t ?? "";
+        tagEl.style.display = t ? "flex" : "none";
+      }
+      const host = liveMarkerRef.current?.getElement();
+      if (host) {
+        host.title = liveRiderNametag?.trim() || "내 위치";
+      }
     }
   }, [liveLngLat, liveRiderNametag, mapLoaded]);
 
@@ -1920,6 +2052,14 @@ export function MapView({
           });
         }
         syncRiderGlbModels(map, specs);
+        const liveLabel = liveRiderNametagRef.current?.trim() ?? "";
+        syncGlbLiveNametagMarker(
+          map,
+          live,
+          liveLabel,
+          glbLiveNametagMarkerRef,
+          glbLiveNametagElRef,
+        );
       }
       peerRidersRafRef.current = requestAnimationFrame(tick);
     };
@@ -1929,6 +2069,20 @@ export function MapView({
         cancelAnimationFrame(peerRidersRafRef.current);
       }
       peerRidersRafRef.current = null;
+    };
+  }, [mapLoaded]);
+
+  /** GLB 네임태그 — 3D terrain·카메라 이동 시 DOM 마커 재투영 */
+  useEffect(() => {
+    if (!mapLoaded || RIDER_PROTOTYPE_MODE !== "glb") return;
+    const map = mapRef.current;
+    if (!map) return;
+    const onRender = () => {
+      reprojectGlbNametagMarkers(glbLiveNametagMarkerRef.current, peerDomMarkersRef.current);
+    };
+    map.on("render", onRender);
+    return () => {
+      map.off("render", onRender);
     };
   }, [mapLoaded]);
 

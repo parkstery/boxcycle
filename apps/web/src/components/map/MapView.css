@@ -481,6 +481,38 @@
     0 1px 2px rgba(15, 23, 42, 0.55);
 }
 
+/* GLB 모드 — 캐릭터 위 네임태그만 DOM 마커 */
+.map-view__glb-nametag-host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  pointer-events: none;
+  background: transparent !important;
+}
+
+.map-view__glb-nametag-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.map-view__glb-nametag-host .map-view__rider-nametag {
+  display: flex;
+  justify-content: center;
+  max-width: 11rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.map-view__glb-nametag-host--live .map-view__rider-nametag--live {
+  color: #1d4ed8;
+}
+
+.map-view__glb-nametag-host--peer .map-view__rider-nametag--peer {
+  color: #0f766e;
+}
+
 .map-view__peer-rider-host .cycling-sim-marker-pedal-sprite {
   filter: hue-rotate(175deg) saturate(1.12) brightness(1.02);
 }

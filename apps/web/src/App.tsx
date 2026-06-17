@@ -34,6 +34,7 @@ import {
   fetchTrailInstance,
   setTrailVisibility,
   touchTrailInstanceActivity,
+  type TrailInstance,
 } from "./lib/firestoreTrailInstance";
 import { formatTrailDisplayNumber, resolveTrailDisplayLabel } from "./lib/trailDisplayNumber";
 import { RotateOverlay } from "./components/RotateOverlay";
@@ -222,6 +223,8 @@ export default function App() {
   const [trailStartBusy, setTrailStartBusy] = useState(false);
   /** 이번 주행에서 호스트로 연 Trail — 종료 시 close */
   const hostTrailIdRef = useRef<string | null>(null);
+  /** Trail 생성·MENU 합류 직후 `displayNumber` 즉시 표시 — `useTrailInstanceMeta` fetch 전 */
+  const [trailMetaSeed, setTrailMetaSeed] = useState<TrailInstance | null>(null);
 
   const trailSession = useTrailSession({
     user: user ?? undefined,
@@ -233,9 +236,16 @@ export default function App() {
   const sanitizedTrailId = sanitizeTrailId(trailId);
   const onDedicatedTrail = sanitizedTrailId !== DEFAULT_TRAIL_ID;
 
+  useEffect(() => {
+    if (trailMetaSeed && trailMetaSeed.id !== sanitizedTrailId) {
+      setTrailMetaSeed(null);
+    }
+  }, [sanitizedTrailId, trailMetaSeed]);
+
   const { meta: currentTrailMeta, reload: reloadCurrentTrailMeta } = useTrailInstanceMeta(
     sanitizedTrailId,
     Boolean(configured && user && onDedicatedTrail),
+    trailMetaSeed,
   );
 
   const openTrailsQuery = useOpenTrails({
@@ -671,6 +681,7 @@ export default function App() {
     setTrailId(tid);
     replaceTrailInUrl(tid);
     hostTrailIdRef.current = null;
+    setTrailMetaSeed(null);
   }, [setTrailDraft, setTrailId]);
 
   const goTrailheadAndCloseMenu = useCallback(() => {
@@ -746,6 +757,7 @@ export default function App() {
           await loadCourseRouteForTrailJoin(meta.courseId);
         }
         hostTrailIdRef.current = null;
+        setTrailMetaSeed(meta);
         setTrailDraft(next);
         setTrailId(next);
         replaceTrailInUrl(next);
@@ -835,6 +847,7 @@ export default function App() {
             return;
           }
           hostTrailIdRef.current = existing.hostUid === user.uid ? existing.id : null;
+          setTrailMetaSeed(existing);
           void touchTrailInstanceActivity(currentTid);
           const num = formatTrailDisplayNumber(existing.displayNumber);
           setRouteSummary(
@@ -855,6 +868,7 @@ export default function App() {
           visibility,
         });
         hostTrailIdRef.current = trail.id;
+        setTrailMetaSeed(trail);
         const prev = sanitizeTrailId(trailId);
         if (prev !== trail.id) {
           await deleteTrailPresence(user.uid, prev).catch(() => {});
@@ -862,6 +876,11 @@ export default function App() {
         setTrailId(trail.id);
         setTrailDraft(trail.id);
         replaceTrailInUrl(trail.id);
+        const num = formatTrailDisplayNumber(trail.displayNumber);
+        setRouteSummary(
+          `Trail ${num} 개설 · ${trail.regionLabel?.trim() || regionLabel.trim() || "새 Trail"}`,
+        );
+        reloadCurrentTrailMeta();
         resetArrivalGate();
         resetRide();
         setRideStatus("running");
