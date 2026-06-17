@@ -162,23 +162,23 @@ function crankAssembly() {
 }
 root.add(crankAssembly());
 
-/** 허벅지·정강이 — hip/knee pivot, Mapbox nodeOverride */
+/** 허벅지·정강이 — hip/knee pivot, Mapbox nodeOverride (길이 ≈ IK 상수와 동기) */
 function legAssembly(side) {
   const sign = side === "l" ? 1 : -1;
   const hipZ = 0.068 * sign;
   const leg = new THREE.Group();
   leg.name = `leg_${side}`;
-  leg.position.set(pelvis[0], pelvis[1] - 0.05, hipZ);
+  leg.position.set(pelvis[0], pelvis[1] - 0.06, hipZ);
 
-  const knee = [0.04, -0.24, -0.028 * sign];
-  leg.add(tube([0, 0, 0], knee, 0.048, COL.short));
+  const knee = [0.03, -0.17, -0.02 * sign];
+  leg.add(tube([0, 0, 0], knee, 0.046, COL.short));
 
   const shin = new THREE.Group();
   shin.name = `leg_${side}_shin`;
   shin.position.set(knee[0], knee[1], knee[2]);
-  const foot = [0.05, -0.2, 0.012 * sign];
-  shin.add(tube([0, 0, 0], foot, 0.042, COL.short));
-  shin.add(box(0.06, 0.03, 0.05, COL.skin, foot[0], foot[1], foot[2]));
+  const foot = [0.035, -0.15, 0.01 * sign];
+  shin.add(tube([0, 0, 0], foot, 0.04, COL.short));
+  shin.add(box(0.055, 0.028, 0.045, COL.skin, foot[0], foot[1], foot[2]));
   leg.add(shin);
   return leg;
 }
