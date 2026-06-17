@@ -54,7 +54,9 @@ const COL = {
   jersey: 0x1d4ed8,
   jerseyDark: 0x1e40af,
   skin: 0xfde68a,
-  helmet: 0x1e3a8a,
+  helmetShell: 0xf1f5f9,
+  helmetVisor: 0x334155,
+  helmetStripe: 0x1d4ed8,
   short: 0x1e3a8a,
   shadow: 0x000000,
 };
@@ -190,17 +192,38 @@ root.add(legAssembly("r"));
 root.add(tube(shoulder, [barCenter[0] - 0.04, barCenter[1] - 0.02, 0.06], 0.035, COL.jersey));
 root.add(tube(shoulder, [barCenter[0] - 0.04, barCenter[1] - 0.02, -0.06], 0.035, COL.jerseyDark));
 
-const head = new THREE.Mesh(new THREE.SphereGeometry(0.11, 12, 10), mat(COL.skin));
+const head = new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 10), mat(COL.skin));
 head.position.set(headC[0], headC[1], headC[2]);
 root.add(head);
 
-const helmet = new THREE.Mesh(
-  new THREE.SphereGeometry(0.115, 12, 10, 0, Math.PI * 2, 0, Math.PI * 0.52),
-  mat(COL.helmet),
-);
-helmet.position.set(headC[0], headC[1] + 0.02, headC[2]);
-helmet.rotation.x = -0.2;
-root.add(helmet);
+/** 로드 헬멧 — 쉘·바이저·스트라이프 */
+function helmetAssembly() {
+  const g = new THREE.Group();
+  g.name = "helmet";
+  const hx = headC[0];
+  const hy = headC[1];
+  const hz = headC[2];
+
+  const shell = new THREE.Mesh(
+    new THREE.SphereGeometry(0.122, 14, 12, 0, Math.PI * 2, 0, Math.PI * 0.62),
+    mat(COL.helmetShell),
+  );
+  shell.scale.set(1.08, 0.92, 1.12);
+  shell.position.set(hx, hy + 0.04, hz);
+  shell.rotation.x = -0.12;
+  g.add(shell);
+
+  const visor = box(0.14, 0.025, 0.07, COL.helmetVisor, hx + 0.09, hy + 0.08, hz, -0.42);
+  g.add(visor);
+
+  g.add(box(0.16, 0.018, 0.09, COL.helmetStripe, hx - 0.01, hy + 0.1, hz, -0.08));
+
+  const rear = box(0.08, 0.04, 0.06, COL.helmetShell, hx - 0.1, hy + 0.06, hz, 0.15);
+  g.add(rear);
+
+  return g;
+}
+root.add(helmetAssembly());
 
 root.add(tube(shoulder, headC, 0.045, COL.jersey));
 
