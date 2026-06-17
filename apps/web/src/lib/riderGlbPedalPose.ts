@@ -62,13 +62,17 @@ function crankRadFromPhase(phase: number): number {
   return -phase * Math.PI * 2;
 }
 
-/** 크랭크 팔 끝 페달 중심 — IK 목표(보정 없음) */
+/**
+ * 크랭크 Z축 회전(θ) 시 팔 끝 — THREE/Mapbox right-hand rule.
+ * +Y arm(오른발): (-R·sin θ, R·cos θ), -Y arm(왼발): (R·sin θ, -R·cos θ)
+ */
 function pedalWorld(side: "l" | "r", crankRad: number): Vec2 {
-  const sign = side === "l" ? -1 : 1;
-  return {
-    x: BB.x + sign * CRANK_ARM_M * Math.sin(crankRad),
-    y: BB.y + sign * CRANK_ARM_M * Math.cos(crankRad),
-  };
+  const s = Math.sin(crankRad);
+  const c = Math.cos(crankRad);
+  if (side === "r") {
+    return { x: BB.x - CRANK_ARM_M * s, y: BB.y + CRANK_ARM_M * c };
+  }
+  return { x: BB.x + CRANK_ARM_M * s, y: BB.y - CRANK_ARM_M * c };
 }
 
 function kneeInternalDeg(thighDir: number, shinDir: number): number {
