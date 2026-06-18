@@ -1,5 +1,6 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import { ROUTE_ACTIVITY_COLLECTION } from "./routeActivityConstants.js";
 
 const COURSE_ACTIVITY = "courseActivity";
 const WORLD_ACTIVITY = "worldActivity";
@@ -32,12 +33,12 @@ export const courseActivityOnRideCreated = onDocumentCreated(
 
     if (!activityKey) return;
 
-    await db.doc(`${COURSE_ACTIVITY}/${activityKey}`).set(
-      {
-        recentRideCount7d: FieldValue.increment(1),
-        updatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
+    const heatPatch = {
+      recentRideCount7d: FieldValue.increment(1),
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+
+    await db.doc(`${COURSE_ACTIVITY}/${activityKey}`).set(heatPatch, { merge: true });
+    await db.doc(`${ROUTE_ACTIVITY_COLLECTION}/${activityKey}`).set(heatPatch, { merge: true });
   },
 );

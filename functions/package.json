@@ -12,7 +12,10 @@
     "admin:migrate-rooms-to-trails": "npm run build && node lib/cliMigrateRoomsToTrails.js",
     "admin:purge-discardable-rides": "npm run build && node lib/cliPurgeDiscardableRides.js",
     "admin:audit-terminology": "npm run build && node lib/cliAuditTerminology.js",
-    "admin:backfill-rides-terminology": "npm run build && node lib/cliBackfillRidesTerminology.js"
+    "admin:backfill-rides-terminology": "npm run build && node lib/cliBackfillRidesTerminology.js",
+    "admin:backfill-route-publications": "npm run build && node lib/cliBackfillRoutePublications.js",
+    "admin:backfill-route-activity": "npm run build && node lib/cliBackfillRouteActivity.js",
+    "admin:purge-ride-legacy-fields": "npm run build && node lib/cliPurgeRideLegacyFields.js"
   },
   "dependencies": {
     "firebase-admin": "^13.6.0",

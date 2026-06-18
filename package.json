@@ -24,6 +24,9 @@
     "admin:purge-discardable-rides": "npm --prefix functions run admin:purge-discardable-rides --",
     "admin:audit-terminology": "npm --prefix functions run admin:audit-terminology --",
     "admin:backfill-rides-terminology": "npm --prefix functions run admin:backfill-rides-terminology --",
+    "admin:backfill-route-publications": "npm --prefix functions run admin:backfill-route-publications --",
+    "admin:backfill-route-activity": "npm --prefix functions run admin:backfill-route-activity --",
+    "admin:purge-ride-legacy-fields": "npm --prefix functions run admin:purge-ride-legacy-fields --",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

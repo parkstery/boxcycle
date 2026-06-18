@@ -1,9 +1,32 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { liveAnchorFromCourseData } from "./courseGeometryAnchor.js";
+import { ROUTE_ACTIVITY_COLLECTION } from "./routeActivityConstants.js";
 
 export const COURSE_ACTIVITY_COLLECTION = "courseActivity";
 export const WORLD_ACTIVITY_COLLECTION = "worldActivity";
 export const WORLD_GLOBAL_ID = "global";
+
+function activityDocRefs(db: FirebaseFirestore.Firestore, publicationId: string) {
+  const id = publicationId.trim();
+  return {
+    course: db.doc(`${COURSE_ACTIVITY_COLLECTION}/${id}`),
+    route: db.doc(`${ROUTE_ACTIVITY_COLLECTION}/${id}`),
+  };
+}
+
+async function mergeActivityDocs(
+  publicationId: string,
+  patch: Record<string, unknown>,
+): Promise<void> {
+  const id = publicationId.trim();
+  if (!id) return;
+  const db = getFirestore();
+  const { course, route } = activityDocRefs(db, id);
+  await Promise.all([
+    course.set(patch, { merge: true }),
+    route.set(patch, { merge: true }),
+  ]);
+}
 
 export function pulseLevelFromProgress(progressRatio: number): number {
   if (!Number.isFinite(progressRatio)) return 1;
@@ -17,15 +40,13 @@ export async function bumpCourseLiveSessionStarted(courseId: string): Promise<vo
   const id = courseId.trim();
   if (!id) return;
   const db = getFirestore();
-  await db.doc(`${COURSE_ACTIVITY_COLLECTION}/${id}`).set(
-    {
-      activeRiderCount: FieldValue.increment(1),
-      liveNow: true,
-      pulseLevel: 1,
-      updatedAt: FieldValue.serverTimestamp(),
-    },
-    { merge: true },
-  );
+  const patch = {
+    activeRiderCount: FieldValue.increment(1),
+    liveNow: true,
+    pulseLevel: 1,
+    updatedAt: FieldValue.serverTimestamp(),
+  };
+  await mergeActivityDocs(id, patch);
   await db.doc(`${WORLD_ACTIVITY_COLLECTION}/${WORLD_GLOBAL_ID}`).set(
     {
       livePulseCount: FieldValue.increment(1),
@@ -39,9 +60,9 @@ export async function bumpCourseLiveSessionEnded(courseId: string): Promise<void
   const id = courseId.trim();
   if (!id) return;
   const db = getFirestore();
-  const ref = db.doc(`${COURSE_ACTIVITY_COLLECTION}/${id}`);
+  const { course, route } = activityDocRefs(db, id);
   await db.runTransaction(async (tx) => {
-    const snap = await tx.get(ref);
+    const snap = await tx.get(course);
     const cur =
       typeof snap.data()?.activeRiderCount === "number" && Number.isFinite(snap.data()!.activeRiderCount)
         ? Math.max(0, Math.floor(snap.data()!.activeRiderCount as number))
@@ -57,7 +78,8 @@ export async function bumpCourseLiveSessionEnded(courseId: string): Promise<void
       endedPatch.liveAnchorLngLat = FieldValue.delete();
       endedPatch.liveAnchorProgressRatio = FieldValue.delete();
     }
-    tx.set(ref, endedPatch, { merge: true });
+    tx.set(course, endedPatch, { merge: true });
+    tx.set(route, endedPatch, { merge: true });
   });
   const worldRef = db.doc(`${WORLD_ACTIVITY_COLLECTION}/${WORLD_GLOBAL_ID}`);
   await db.runTransaction(async (tx) => {
@@ -85,16 +107,13 @@ export async function touchCourseLiveProgressPulseOnly(
 ): Promise<void> {
   const id = courseId.trim();
   if (!id) return;
-  const db = getFirestore();
-  await db.doc(`${COURSE_ACTIVITY_COLLECTION}/${id}`).set(
-    {
-      liveNow: true,
-      pulseLevel: pulseLevelFromProgress(progressRatio),
-      liveAnchorProgressRatio: Math.max(0, Math.min(1, progressRatio)),
-      updatedAt: FieldValue.serverTimestamp(),
-    },
-    { merge: true },
-  );
+  const patch = {
+    liveNow: true,
+    pulseLevel: pulseLevelFromProgress(progressRatio),
+    liveAnchorProgressRatio: Math.max(0, Math.min(1, progressRatio)),
+    updatedAt: FieldValue.serverTimestamp(),
+  };
+  await mergeActivityDocs(id, patch);
 }
 
 /** 세션 시작·코스 전환 등 — geometry anchor 포함 (`courses` 1회 읽기) */
@@ -123,7 +142,7 @@ export async function touchCourseLiveProgressWithAnchor(
     }
   }
 
-  await db.doc(`${COURSE_ACTIVITY_COLLECTION}/${id}`).set(patch, { merge: true });
+  await mergeActivityDocs(id, patch);
 }
 
 /** @deprecated 내부 호환 — anchor 포함 전체 갱신 */

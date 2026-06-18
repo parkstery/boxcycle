@@ -473,7 +473,13 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    /** Activity World — 코스 단위 aggregate. 읽기만 클라이언트, 쓰기는 Functions. */
+    /** Activity World — publication 단위 aggregate. 읽기만 클라이언트, 쓰기는 Functions. */
+    match /routeActivity/{publicationId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    /** Activity World — 레거시 aggregate (routeActivity 폴백). */
     match /courseActivity/{courseId} {
       allow read: if isSignedIn();
       allow write: if false;

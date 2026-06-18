@@ -175,6 +175,14 @@
       ]
     },
     {
+      "collectionGroup": "routeActivity",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "liveNow", "order": "ASCENDING" },
+        { "fieldPath": "activeRiderCount", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "publicationPresence",
       "queryScope": "COLLECTION",
       "fields": [

@@ -6,6 +6,7 @@ import {
 } from "firebase-admin/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { COURSE_ACTIVITY_COLLECTION } from "./courseActivityAggregateCore.js";
+import { ROUTE_ACTIVITY_COLLECTION } from "./routeActivityConstants.js";
 
 const RIDES_COLLECTION = "rides";
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -38,11 +39,16 @@ export const courseActivityHeatReconcile = onSchedule(
       const snap = await q.get();
       if (snap.empty) break;
       for (const doc of snap.docs) {
+        const publicationId = doc.get("publicationId");
         const courseId = doc.get("courseId");
-        if (typeof courseId !== "string") continue;
-        const id = courseId.trim();
-        if (!id) continue;
-        counts.set(id, (counts.get(id) ?? 0) + 1);
+        const raw =
+          typeof publicationId === "string" && publicationId.trim().length > 0
+            ? publicationId.trim()
+            : typeof courseId === "string"
+              ? courseId.trim()
+              : "";
+        if (!raw) continue;
+        counts.set(raw, (counts.get(raw) ?? 0) + 1);
       }
       last = snap.docs[snap.docs.length - 1];
       if (snap.size < PAGE_SIZE) break;
@@ -62,15 +68,12 @@ export const courseActivityHeatReconcile = onSchedule(
     let ops = 0;
     for (const courseId of toUpdate) {
       const next = counts.get(courseId) ?? 0;
-      const ref = db.doc(`${COURSE_ACTIVITY_COLLECTION}/${courseId}`);
-      batch.set(
-        ref,
-        {
-          recentRideCount7d: next,
-          updatedAt: FieldValue.serverTimestamp(),
-        },
-        { merge: true },
-      );
+      const heatPatch = {
+        recentRideCount7d: next,
+        updatedAt: FieldValue.serverTimestamp(),
+      };
+      batch.set(db.doc(`${COURSE_ACTIVITY_COLLECTION}/${courseId}`), heatPatch, { merge: true });
+      batch.set(db.doc(`${ROUTE_ACTIVITY_COLLECTION}/${courseId}`), heatPatch, { merge: true });
       ops += 1;
       if (ops >= 400) {
         await batch.commit();

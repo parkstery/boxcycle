@@ -15,7 +15,7 @@ import type { LngLat } from "./geo";
 import { isWithinActivityTraceHeatWindow } from "./activityWorldTraceStyle";
 import { lastSeenAtToMillis } from "./firestoreTrail";
 
-/** `courseActivity/{courseId}` — 코스 단위 aggregate(클라이언트 write 없음) */
+/** `routeActivity/{publicationId}` — canonical aggregate (레거시 `courseActivity` 폴백) */
 export type CourseActivitySnapshot = {
   courseId: string;
   activeRiderCount: number;
@@ -29,7 +29,8 @@ export type CourseActivitySnapshot = {
   liveAnchorProgressRatio: number | null;
 };
 
-const COLLECTION = "courseActivity";
+const ROUTE_ACTIVITY_COLLECTION = "routeActivity";
+const LEGACY_COURSE_ACTIVITY_COLLECTION = "courseActivity";
 
 function clampPulseLevel(raw: unknown): number {
   if (typeof raw !== "number" || !Number.isFinite(raw)) return 0;
@@ -155,8 +156,12 @@ export async function fetchCourseActivity(courseId: string): Promise<CourseActiv
   if (!pending) {
     pending = (async () => {
       const db = getFirestore(getFirebaseApp());
-      const snap = await getDoc(doc(db, COLLECTION, id));
-      const parsed = snap.exists()
+      const routeSnap = await getDoc(doc(db, ROUTE_ACTIVITY_COLLECTION, id));
+      const legacySnap = routeSnap.exists()
+        ? null
+        : await getDoc(doc(db, LEGACY_COURSE_ACTIVITY_COLLECTION, id));
+      const snap = routeSnap.exists() ? routeSnap : legacySnap;
+      const parsed = snap?.exists()
         ? parseCourseActivityDoc(id, snap.data() as Record<string, unknown>)
         : null;
       const merged = mergeRideCompletedOptimistic(id, parsed);
@@ -235,9 +240,9 @@ export async function fetchLiveCourseActivityIds(
   }
 
   const db = getFirestore(getFirebaseApp());
-  const col = collection(db, COLLECTION);
 
-  const runQuery = async (ordered: boolean) => {
+  const runQuery = async (collectionId: string, ordered: boolean) => {
+    const col = collection(db, collectionId);
     const q = ordered
       ? query(col, where("liveNow", "==", true), orderBy("activeRiderCount", "desc"), limit(cap))
       : query(col, where("liveNow", "==", true), limit(cap));
@@ -246,16 +251,28 @@ export async function fetchLiveCourseActivityIds(
   };
 
   try {
-    const ids = await runQuery(true);
+    const ids = await runQuery(ROUTE_ACTIVITY_COLLECTION, true);
     liveCourseIdsCache = { ids, at: now };
     return ids;
   } catch {
     try {
-      const ids = await runQuery(false);
+      const ids = await runQuery(ROUTE_ACTIVITY_COLLECTION, false);
       liveCourseIdsCache = { ids, at: now };
       return ids;
     } catch {
-      return liveCourseIdsCache?.ids ?? [];
+      try {
+        const ids = await runQuery(LEGACY_COURSE_ACTIVITY_COLLECTION, true);
+        liveCourseIdsCache = { ids, at: now };
+        return ids;
+      } catch {
+        try {
+          const ids = await runQuery(LEGACY_COURSE_ACTIVITY_COLLECTION, false);
+          liveCourseIdsCache = { ids, at: now };
+          return ids;
+        } catch {
+          return liveCourseIdsCache?.ids ?? [];
+        }
+      }
     }
   }
 }
