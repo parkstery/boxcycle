@@ -10,7 +10,7 @@ import type { RouteProfile } from "../services/mapboxDirections";
 export type UseRecentRideSessionsOptions = {
   configured: boolean;
   user: User | null;
-  roomId: string;
+  trailId: string;
   profile: RouteProfile;
 };
 
@@ -18,7 +18,7 @@ export type UseRecentRideSessionsOptions = {
  * 최근 주행 세션 목록(로컬 + 로그인 시 Firestore 동기·백필).
  */
 export function useRecentRideSessions(options: UseRecentRideSessionsOptions) {
-  const { configured, user, roomId, profile } = options;
+  const { configured, user, trailId, profile } = options;
 
   const [recentSessions, setRecentSessions] = useState<StoredRideSession[]>(() => loadRideSessions());
 
@@ -46,7 +46,7 @@ export function useRecentRideSessions(options: UseRecentRideSessionsOptions) {
           try {
             await backfillRideSessionsToFirestore({
               userId: user.uid,
-              roomId,
+              trailId,
               profile,
               sessions: localRows,
             });
@@ -70,7 +70,7 @@ export function useRecentRideSessions(options: UseRecentRideSessionsOptions) {
     return () => {
       cancelled = true;
     };
-  }, [configured, user, roomId, profile]);
+  }, [configured, user, trailId, profile]);
 
   return {
     recentSessions,

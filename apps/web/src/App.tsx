@@ -324,7 +324,7 @@ export default function App() {
     useRecentRideSessions({
       configured,
       user,
-      roomId: trailId,
+      trailId: trailId,
       profile,
     });
 
@@ -405,7 +405,7 @@ export default function App() {
     mapboxAccessToken: MAPBOX_TOKEN,
     configured,
     user,
-    roomId: trailId,
+    trailId,
     courseIdRef: activeCourseIdRef,
     profile,
     rideStatus,

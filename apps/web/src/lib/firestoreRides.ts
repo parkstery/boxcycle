@@ -11,6 +11,7 @@ import {
   where,
 } from "firebase/firestore";
 import { getFirebaseApp } from "./firebase";
+import { buildRideCanonicalWriteFields, resolveRideRouteId } from "./rideDocFields";
 import type { RouteRideEntry } from "./routePublicationResolve";
 import type { StoredRideSession } from "./rideSessionsStorage";
 import { isDiscardableRideRecord } from "./rideRecordPolicy";
@@ -19,7 +20,9 @@ const RIDES_COLLECTION = "rides";
 
 type RideDoc = {
   userId: string;
-  roomId: string | null;
+  trailId: string | null;
+  /** @deprecated read fallback only — 신규 write 없음 */
+  roomId?: string | null;
   courseId: string | null;
   profile: "cycling" | "driving" | "walking";
   startedAt: Timestamp | null;
@@ -34,19 +37,13 @@ type RideDoc = {
   status: "completed";
   createdAt: unknown;
   updatedAt: unknown;
-  /** 격상시킨 사용자 경로 ID. ad-hoc 주행이면 null. */
-  userRouteId?: string | null;
-  /** 통합 경로 정체성(`savedRoutes` id). `userRouteId` 와 동일 값. */
   routeId?: string | null;
-  /** 퍼블릭 출판 리비전 id(마이그레이션 기간 `courseId` 와 동일할 수 있음). */
+  /** @deprecated read fallback only — 신규 write 없음 */
+  userRouteId?: string | null;
   publicationId?: string | null;
-  /** `owner_library` | `public_catalog` */
   routeEntry?: RouteRideEntry | null;
-  /** 격상 시점 사용자 경로 이름 스냅샷. 사용자가 이후 이름을 바꿔도 기록은 보존. */
   routeName?: string | null;
-  /** 주행 시점 공개 제목 스냅샷(퍼블릭 연동 시). */
   publicTitleSnap?: string | null;
-  /** 완주율(0~1). 1.0 이상은 1.0 으로 캡. */
   completionRatio?: number;
   startPlaceLabel?: string | null;
   endPlaceLabel?: string | null;
@@ -54,12 +51,11 @@ type RideDoc = {
 
 /**
  * 주행 기록 1건 저장. 반환값은 신규 rides 문서 ID — 호출자가 격상 함수에 넘긴다.
- * 메타(userRouteId/routeName/completionRatio)는 옵셔널이며 ad-hoc 주행에서는 모두 null/0.
  */
 export async function saveRideSessionToFirestore(input: {
   userId: string;
-  roomId: string | null;
-  /** 입문·공식 코스 주행 시 aggregate(`courseActivity`) 갱신용 */
+  trailId: string | null;
+  /** Activity aggregate — `publicationId` 와 동일 값으로 `courseId` mirror */
   courseId?: string | null;
   routeId?: string | null;
   publicationId?: string | null;
@@ -77,13 +73,25 @@ export async function saveRideSessionToFirestore(input: {
     ? Timestamp.now()
     : Timestamp.fromDate(endedAtDate);
 
+  const canonicalRouteId = input.routeId ?? input.session.userRouteId ?? null;
+  const canonicalPublicationId =
+    (typeof input.publicationId === "string" && input.publicationId.trim().length > 0
+      ? input.publicationId.trim()
+      : null) ??
+    (typeof input.courseId === "string" && input.courseId.trim().length > 0
+      ? input.courseId.trim()
+      : null);
+
+  const canonical = buildRideCanonicalWriteFields({
+    trailId: input.trailId,
+    routeId: canonicalRouteId,
+    publicationId: canonicalPublicationId,
+  });
+
   const docData: RideDoc = {
     userId: input.userId,
-    roomId: input.roomId,
-    courseId:
-      typeof input.courseId === "string" && input.courseId.trim().length > 0
-        ? input.courseId.trim()
-        : null,
+    trailId: canonical.trailId,
+    courseId: canonical.courseId,
     profile: input.profile,
     startedAt: null,
     endedAt,
@@ -97,12 +105,8 @@ export async function saveRideSessionToFirestore(input: {
     status: "completed",
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
-    userRouteId: input.session.userRouteId ?? input.routeId ?? null,
-    routeId: input.routeId ?? input.session.userRouteId ?? null,
-    publicationId:
-      typeof input.publicationId === "string" && input.publicationId.trim().length > 0
-        ? input.publicationId.trim()
-        : null,
+    routeId: canonical.routeId,
+    publicationId: canonical.publicationId,
     routeEntry: input.routeEntry ?? null,
     routeName: input.session.routeName ?? null,
     publicTitleSnap:
@@ -129,7 +133,7 @@ export async function saveRideSessionToFirestore(input: {
 
 export async function backfillRideSessionsToFirestore(input: {
   userId: string;
-  roomId: string | null;
+  trailId: string | null;
   profile: "cycling" | "driving" | "walking";
   sessions: StoredRideSession[];
 }): Promise<void> {
@@ -140,7 +144,7 @@ export async function backfillRideSessionsToFirestore(input: {
   for (const session of ordered) {
     await saveRideSessionToFirestore({
       userId: input.userId,
-      roomId: input.roomId,
+      trailId: input.trailId,
       profile: input.profile,
       session,
     });
@@ -162,36 +166,36 @@ export async function loadRideSessionsForStatsFromFirestore(
   const snap = await getDocs(q);
   return snap.docs
     .map((d) => {
-    const data = d.data() as Partial<RideDoc>;
-    const endedAt =
-      data.endedAt instanceof Timestamp
-        ? data.endedAt.toDate().toISOString()
-        : new Date().toISOString();
-    return {
-      id: d.id,
-      endedAt,
-      elapsedSec: Number(data.elapsedSec ?? 0),
-      distanceMeters: Number(data.distanceMeters ?? 0),
-      avgSpeedKmh: Number(data.avgSpeedKmh ?? 0),
-      caloriesEstimate: Number(data.caloriesEstimate ?? 0),
-      routeDistanceMeters: Number(data.routeDistanceMeters ?? 0),
-      routeDurationSec: Number(data.routeDurationSec ?? 0),
-      userRouteId: typeof data.userRouteId === "string" ? data.userRouteId : null,
-      routeName: typeof data.routeName === "string" ? data.routeName : null,
-      completionRatio:
-        typeof data.completionRatio === "number"
-          ? Math.max(0, Math.min(1, data.completionRatio))
-          : 0,
-      startPlaceLabel:
-        typeof data.startPlaceLabel === "string" && data.startPlaceLabel.trim().length > 0
-          ? data.startPlaceLabel.trim()
-          : undefined,
-      endPlaceLabel:
-        typeof data.endPlaceLabel === "string" && data.endPlaceLabel.trim().length > 0
-          ? data.endPlaceLabel.trim()
-          : undefined,
-    };
-  })
+      const data = d.data() as Partial<RideDoc>;
+      const endedAt =
+        data.endedAt instanceof Timestamp
+          ? data.endedAt.toDate().toISOString()
+          : new Date().toISOString();
+      return {
+        id: d.id,
+        endedAt,
+        elapsedSec: Number(data.elapsedSec ?? 0),
+        distanceMeters: Number(data.distanceMeters ?? 0),
+        avgSpeedKmh: Number(data.avgSpeedKmh ?? 0),
+        caloriesEstimate: Number(data.caloriesEstimate ?? 0),
+        routeDistanceMeters: Number(data.routeDistanceMeters ?? 0),
+        routeDurationSec: Number(data.routeDurationSec ?? 0),
+        userRouteId: resolveRideRouteId(data as Record<string, unknown>),
+        routeName: typeof data.routeName === "string" ? data.routeName : null,
+        completionRatio:
+          typeof data.completionRatio === "number"
+            ? Math.max(0, Math.min(1, data.completionRatio))
+            : 0,
+        startPlaceLabel:
+          typeof data.startPlaceLabel === "string" && data.startPlaceLabel.trim().length > 0
+            ? data.startPlaceLabel.trim()
+            : undefined,
+        endPlaceLabel:
+          typeof data.endPlaceLabel === "string" && data.endPlaceLabel.trim().length > 0
+            ? data.endPlaceLabel.trim()
+            : undefined,
+      };
+    })
     .filter((s) => !isDiscardableRideRecord(s.distanceMeters, s.elapsedSec));
 }
 

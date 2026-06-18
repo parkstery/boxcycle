@@ -16,6 +16,8 @@ export const courseActivityOnRideCreated = onDocumentCreated(
     if (!data) return;
 
     const courseId = typeof data.courseId === "string" ? data.courseId.trim() : "";
+    const publicationId = typeof data.publicationId === "string" ? data.publicationId.trim() : "";
+    const activityKey = publicationId || courseId;
     const db = getFirestore();
 
     await db
@@ -28,9 +30,9 @@ export const courseActivityOnRideCreated = onDocumentCreated(
         { merge: true },
       );
 
-    if (!courseId) return;
+    if (!activityKey) return;
 
-    await db.doc(`${COURSE_ACTIVITY}/${courseId}`).set(
+    await db.doc(`${COURSE_ACTIVITY}/${activityKey}`).set(
       {
         recentRideCount7d: FieldValue.increment(1),
         updatedAt: FieldValue.serverTimestamp(),

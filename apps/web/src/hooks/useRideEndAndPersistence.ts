@@ -26,8 +26,8 @@ export type UseRideEndAndPersistenceOptions = {
   mapboxAccessToken: string;
   configured: boolean;
   user: User | null;
-  roomId: string;
-  /** 주행 종료 시점 코스 ID — `rides.courseId`·CF aggregate용 */
+  trailId: string;
+  /** 주행 종료 시점 publication ID — `rides.publicationId`·CF aggregate용 */
   courseIdRef: RefObject<string | null>;
   /** 종료 직후 heat 낙관 표시(서버 `liveNow` 지연 대비) */
   onRideEndedWithCourse?: (courseId: string) => void;
@@ -64,7 +64,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     mapboxAccessToken,
     configured,
     user,
-    roomId,
+    trailId,
     courseIdRef,
     onRideEndedWithCourse,
     onRidePersistedToFirestore,
@@ -230,7 +230,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
 
           const rideId = await saveRideSessionToFirestore({
             userId: user.uid,
-            roomId,
+            trailId,
             courseId: persistedCourseId,
             routeId: canonicalRouteId,
             publicationId,
@@ -367,7 +367,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     mapboxAccessToken,
     configured,
     user,
-    roomId,
+    trailId,
     profile,
     rideStatus,
     setRideStatus,
