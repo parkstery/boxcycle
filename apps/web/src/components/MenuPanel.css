@@ -120,10 +120,6 @@
 }
 
 /* 지명 검색은 고정 높이, 경로 패널만 스크롤 → 모바일에서 한 화면에 가깝게 */
-.menu-panel__body > .room-switcher {
-  flex-shrink: 0;
-}
-
 .menu-panel__body > .menu-place-search {
   flex-shrink: 0;
 }

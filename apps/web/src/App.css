@@ -213,48 +213,6 @@
   margin-bottom: 0.25rem;
 }
 
-.lobby-strip {
-  padding: 0 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-}
-
-.room-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 0.65rem;
-  font-size: 0.88rem;
-}
-
-.room-bar__label {
-  font-weight: 600;
-}
-
-.room-bar__input {
-  font: inherit;
-  min-width: 10rem;
-  max-width: 18rem;
-  flex: 1 1 12rem;
-  padding: 0.45rem 0.55rem;
-  border-radius: 8px;
-  border: 1px solid color-mix(in srgb, CanvasText 22%, transparent);
-  background: Canvas;
-  color: CanvasText;
-}
-
-.room-bar__btn {
-  padding: 0.45rem 0.85rem;
-}
-
-.room-bar__hint {
-  flex: 1 1 100%;
-  font-size: 0.78rem;
-  opacity: 0.72;
-  line-height: 1.4;
-}
-
 .route-main {
   flex: 1;
   display: flex;

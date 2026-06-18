@@ -14,7 +14,7 @@ export type MapHudRidePresence = {
   /** UI용 3자리 번호 또는 Trailhead */
   trailDisplayLabel: string;
   /** `Trail 042` / `Trailhead` — 주행 중 배지·네임태그 */
-  trailRoomLabel: string;
+  trailLabel: string;
   trailMembers: { key: string; display: string; isSelf: boolean; active: boolean }[];
   trailError: string | null;
   courseTitle: string | null;
@@ -203,7 +203,7 @@ export function MapHud(props: MapHudProps) {
                     <div className="hud-ride-presence__head">
                       <span className="hud-ride-presence__tag">접속</span>
                       <span className="hud-ride-presence__room" title={ridePresence.trailId}>
-                        {ridePresence.trailRoomLabel}
+                        {ridePresence.trailLabel}
                       </span>
                     </div>
                     {ridePresence.trailError ? (
@@ -266,7 +266,7 @@ export function MapHud(props: MapHudProps) {
                 className="hud-metrics__trail hud-metrics__chip hud-metrics__chip--trail"
                 title={ridePresence.trailId}
               >
-                {ridePresence.trailRoomLabel}
+                {ridePresence.trailLabel}
               </span>
             ) : null}
             <span className="hud-metrics__chip" title="Elapsed time">

@@ -104,6 +104,3 @@ export function useTrailLiveCourseRidePublisher(opts: UseTrailLiveCourseRidePubl
     };
   }, [enabled, pageVisible, trailId, user?.uid, courseId]);
 }
-
-/** @deprecated `useTrailLiveCourseRidePublisher` */
-export const useLobbyLiveCourseRidePublisher = useTrailLiveCourseRidePublisher;

@@ -28,15 +28,3 @@ export function useAppTrail() {
 
   return { trailId, setTrailId, trailDraft, setTrailDraft, applyTrailFromDraft };
 }
-
-/** @deprecated `useAppTrail` */
-export function useAppRoom() {
-  const t = useAppTrail();
-  return {
-    roomId: t.trailId,
-    setRoomId: t.setTrailId,
-    roomDraft: t.trailDraft,
-    setRoomDraft: t.setTrailDraft,
-    applyRoomFromDraft: t.applyTrailFromDraft,
-  };
-}

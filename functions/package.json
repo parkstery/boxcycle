@@ -10,7 +10,8 @@
     "serve": "npm run build && firebase emulators:start --only functions",
     "admin:promote-saved-route": "npm run build && node lib/cliPromoteSavedRoute.js",
     "admin:migrate-rooms-to-trails": "npm run build && node lib/cliMigrateRoomsToTrails.js",
-    "admin:purge-discardable-rides": "npm run build && node lib/cliPurgeDiscardableRides.js"
+    "admin:purge-discardable-rides": "npm run build && node lib/cliPurgeDiscardableRides.js",
+    "admin:audit-terminology": "npm run build && node lib/cliAuditTerminology.js"
   },
   "dependencies": {
     "firebase-admin": "^13.6.0",

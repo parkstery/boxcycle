@@ -58,7 +58,7 @@ export type UseAppMapOverlaysOpts = {
   publishedPublicCourses: readonly PublishedPublicCourseSummary[];
   /** Trailhead 공개 Trail 목록 — 라이브 코스 ID 카탈로그 보강 */
   openTrails: readonly TrailInstance[];
-  trailRoomLabel: string;
+  trailLabel: string;
   activityMapRefreshNonce: number;
   /** WO-260528: A/B/C 디버그 분리 시 기존 overlay 체인 완전 비활성화 */
   debugIsolation?: boolean;
@@ -98,7 +98,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     trackedCourseId,
     publishedPublicCourses,
     openTrails,
-    trailRoomLabel,
+    trailLabel,
     activityMapRefreshNonce,
     debugIsolation = false,
   } = opts;
@@ -157,7 +157,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     useTrailLiveCourseRideSpectatorOverlay({
       user,
       trailId,
-      trailRoomLabel,
+      trailLabel,
       enabled: trailSpectatorOverlayEnabled,
       mapZoom,
       excludePeerIds: coursePeerIdsForTrailSpectator,

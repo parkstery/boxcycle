@@ -17,13 +17,10 @@ import {
 
 export type TrailSpectatorDot = { id: string; lngLat: LngLat; label: string };
 
-/** @deprecated `TrailSpectatorDot` */
-export type LobbySpectatorDot = TrailSpectatorDot;
-
 type UseTrailLiveCourseRideSpectatorOverlayOpts = {
   user: User | null | undefined;
   trailId: string;
-  trailRoomLabel: string;
+  trailLabel: string;
   enabled: boolean;
   mapZoom: number;
   excludePeerIds: ReadonlySet<string>;
@@ -44,7 +41,7 @@ export function useTrailLiveCourseRideSpectatorOverlay(opts: UseTrailLiveCourseR
   liveCourseIds: string[];
   error: string | null;
 } {
-  const { user, trailId, trailRoomLabel, enabled, mapZoom, excludePeerIds } = opts;
+  const { user, trailId, trailLabel, enabled, mapZoom, excludePeerIds } = opts;
   const [rows, setRows] = useState<TrailLiveCourseRideRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [geomEpoch, setGeomEpoch] = useState(0);
@@ -146,12 +143,12 @@ export function useTrailLiveCourseRideSpectatorOverlay(opts: UseTrailLiveCourseR
         out.push({
           id: r.uid,
           lngLat: p,
-          label: `${trailRoomLabel} · ${who}`,
+          label: `${trailLabel} · ${who}`,
         });
       }
     }
     return out;
-  }, [activeRows, geomEpoch, trailRoomLabel]);
+  }, [activeRows, geomEpoch, trailLabel]);
 
   const liveCourseIds = useMemo(
     () => [...new Set(activeRows.map((r) => r.courseId.trim()).filter(Boolean))],
@@ -175,6 +172,3 @@ export function useTrailLiveCourseRideSpectatorOverlay(opts: UseTrailLiveCourseR
 
   return { spectatorDots, spectatorRouteGeometries, liveCourseIds, error };
 }
-
-/** @deprecated `useTrailLiveCourseRideSpectatorOverlay` */
-export const useLobbyLiveCourseRideSpectatorOverlay = useTrailLiveCourseRideSpectatorOverlay;

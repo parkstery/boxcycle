@@ -34,9 +34,6 @@ import {
 /** 코스 진행률만 주기적으로 올려 부담을 줄임 (좌표·geometry 미전송). */
 export const TRAIL_LIVE_COURSE_RIDE_WRITE_INTERVAL_MS = 4_000;
 
-/** @deprecated `TRAIL_LIVE_COURSE_RIDE_WRITE_INTERVAL_MS` */
-export const LOBBY_LIVE_COURSE_RIDE_WRITE_INTERVAL_MS = TRAIL_LIVE_COURSE_RIDE_WRITE_INTERVAL_MS;
-
 export type TrailLiveCourseRideRow = {
   uid: string;
   courseId: string;
@@ -44,9 +41,6 @@ export type TrailLiveCourseRideRow = {
   lastSeenAtMs: number | null;
   displayName: string | null;
 };
-
-/** @deprecated `TrailLiveCourseRideRow` */
-export type LobbyLiveCourseRideRow = TrailLiveCourseRideRow;
 
 function liveRidesCollectionRef(trailId: string) {
   const db = getFirestore(getFirebaseApp());
@@ -85,9 +79,6 @@ export function subscribeTrailLiveCourseRides(
   );
 }
 
-/** @deprecated `subscribeTrailLiveCourseRides` */
-export const subscribeLobbyLiveCourseRides = subscribeTrailLiveCourseRides;
-
 export async function mergeTrailLiveCourseRideSnapshot(
   user: User,
   trailId: string,
@@ -107,9 +98,6 @@ export async function mergeTrailLiveCourseRideSnapshot(
     { merge: true },
   );
 }
-
-/** @deprecated `mergeTrailLiveCourseRideSnapshot` */
-export const mergeLobbyLiveCourseRideSnapshot = mergeTrailLiveCourseRideSnapshot;
 
 export async function deleteTrailLiveCourseRide(uid: string, trailId: string): Promise<void> {
   const rid = sanitizeTrailId(trailId);
@@ -168,12 +156,6 @@ export async function fetchTrailIdsWithActiveLiveRides(): Promise<string[]> {
   return ids;
 }
 
-/** @deprecated `deleteTrailLiveCourseRide` */
-export const deleteLobbyLiveCourseRide = deleteTrailLiveCourseRide;
-
 export function isTrailLiveCourseRideRowFresh(row: TrailLiveCourseRideRow): boolean {
   return isMemberRecentlySeen(row.lastSeenAtMs);
 }
-
-/** @deprecated `isTrailLiveCourseRideRowFresh` */
-export const isLobbyLiveCourseRideRowFresh = isTrailLiveCourseRideRowFresh;

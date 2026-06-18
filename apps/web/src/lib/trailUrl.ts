@@ -14,9 +14,6 @@ export function readTrailIdFromLocation(): string {
   return sanitizeTrailId(null);
 }
 
-/** @deprecated `readTrailIdFromLocation` 사용 */
-export const readRoomIdFromLocation = readTrailIdFromLocation;
-
 export function replaceTrailInUrl(trailId: string): void {
   const r = sanitizeTrailId(trailId);
   const url = new URL(window.location.href);
@@ -29,6 +26,3 @@ export function replaceTrailInUrl(trailId: string): void {
   url.searchParams.set("trail", r);
   window.history.replaceState(null, "", url.toString());
 }
-
-/** @deprecated `replaceTrailInUrl` 사용 */
-export const replaceRoomInUrl = replaceTrailInUrl;

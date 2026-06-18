@@ -22,6 +22,7 @@
     "admin:promote-saved-route": "npm --prefix functions run admin:promote-saved-route --",
     "admin:migrate-rooms-to-trails": "npm --prefix functions run admin:migrate-rooms-to-trails --",
     "admin:purge-discardable-rides": "npm --prefix functions run admin:purge-discardable-rides --",
+    "admin:audit-terminology": "npm --prefix functions run admin:audit-terminology --",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

@@ -23,26 +23,17 @@ import {
 /** URL·입장 시 기본 Trail ID (Firestore: `trails/default`) */
 export const DEFAULT_TRAIL_ID = "default";
 
-/** @deprecated `DEFAULT_TRAIL_ID` */
-export const DEFAULT_LOBBY_ROOM_ID = DEFAULT_TRAIL_ID;
-
 const TRAIL_ID_RE = /^[a-zA-Z0-9_-]{1,64}$/;
 
-/** Firestore `rooms/{id}` 경로용 Trail ID. 허용되지 않으면 `default` */
+/** Firestore `trails/{id}` 경로용 Trail ID. 허용되지 않으면 `default` */
 export function sanitizeTrailId(raw: string | null | undefined): string {
   const t = (raw ?? "").trim();
   if (!t || !TRAIL_ID_RE.test(t)) return DEFAULT_TRAIL_ID;
   return t;
 }
 
-/** @deprecated `sanitizeTrailId` */
-export const sanitizeRoomId = sanitizeTrailId;
-
 /** 이 시간보다 오래된 lastSeenAt 은 “오프라인”으로 표시한다. */
 export const TRAIL_PRESENCE_STALE_MS = 240_000;
-
-/** @deprecated `TRAIL_PRESENCE_STALE_MS` */
-export const LOBBY_STALE_MS = TRAIL_PRESENCE_STALE_MS;
 
 /** presence lastSeenAt 갱신 주기 (탭 절전·백그라운드 대비) */
 export const PRESENCE_HEARTBEAT_INTERVAL_MS = 12_000;
@@ -52,9 +43,6 @@ export type TrailMemberRow = {
   displayName: string | null;
   lastSeenAtMs: number | null;
 };
-
-/** @deprecated `TrailMemberRow` */
-export type LobbyMemberRow = TrailMemberRow;
 
 /** Firestore Timestamp·{seconds,nanoseconds}·레거시 숫자 등을 ms 로 통일 */
 export function lastSeenAtToMillis(raw: unknown): number | null {
@@ -89,9 +77,6 @@ function membersCollectionRef(trailId: string) {
 
 export const isTrailMemberActive = isMemberRecentlySeen;
 
-/** @deprecated `isTrailMemberActive` */
-export const isLobbyMemberActive = isTrailMemberActive;
-
 export async function upsertTrailPresence(user: User, trailId: string): Promise<void> {
   const rid = sanitizeTrailId(trailId);
   const db = getFirestore(getFirebaseApp());
@@ -108,15 +93,9 @@ export async function upsertTrailPresence(user: User, trailId: string): Promise<
   );
 }
 
-/** @deprecated `upsertTrailPresence` */
-export const upsertLobbyPresence = upsertTrailPresence;
-
 export async function touchTrailPresence(user: User, trailId: string): Promise<void> {
   await upsertTrailPresence(user, trailId);
 }
-
-/** @deprecated `touchTrailPresence` */
-export const touchLobbyPresence = touchTrailPresence;
 
 export async function deleteTrailPresence(uid: string, trailId: string): Promise<void> {
   const rid = sanitizeTrailId(trailId);
@@ -141,9 +120,6 @@ export async function countTrailMembersFresh(trailId: string): Promise<number> {
   return n;
 }
 
-/** @deprecated `deleteTrailPresence` */
-export const deleteLobbyPresence = deleteTrailPresence;
-
 export function subscribeTrailMembers(
   trailId: string,
   onChange: (members: TrailMemberRow[]) => void,
@@ -166,6 +142,3 @@ export function subscribeTrailMembers(
     (err) => onError?.(err),
   );
 }
-
-/** @deprecated `subscribeTrailMembers` */
-export const subscribeLobbyMembers = subscribeTrailMembers;

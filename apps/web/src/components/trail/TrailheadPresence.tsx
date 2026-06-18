@@ -50,15 +50,3 @@ export function TrailheadPresence({ user, trailId, rows, error: presenceError }:
     </section>
   );
 }
-
-/** @deprecated `TrailheadPresence` */
-export function LobbyPresence(props: {
-  user: User;
-  roomId: string;
-  rows?: TrailMemberRow[] | null;
-  error: string | null;
-}) {
-  return (
-    <TrailheadPresence user={props.user} trailId={props.roomId} rows={props.rows} error={props.error} />
-  );
-}

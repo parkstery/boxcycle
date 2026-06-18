@@ -510,7 +510,7 @@ export default function App() {
     trackedCourseId,
     publishedPublicCourses,
     openTrails: openTrailsQuery.rows,
-    trailRoomLabel: trailDisplayLabels.room,
+    trailLabel: trailDisplayLabels.label,
     activityMapRefreshNonce,
     debugIsolation: debugMapIsolationActive,
   });
@@ -587,9 +587,9 @@ export default function App() {
     const base = (liveRiderNametag ?? selfRiderNametagFallback)?.trim();
     const riding = rideStatus === "running" || rideStatus === "paused";
     if (!riding) return base || null;
-    const room = trailDisplayLabels.room;
-    return base ? `${room} · ${base}` : room;
-  }, [liveRiderNametag, selfRiderNametagFallback, rideStatus, trailDisplayLabels.room]);
+    const label = trailDisplayLabels.label;
+    return base ? `${label} · ${base}` : label;
+  }, [liveRiderNametag, selfRiderNametagFallback, rideStatus, trailDisplayLabels.label]);
 
   const bleCrankRpm = useBleCrankRpm({ sessionActive: rideStatus !== "idle" });
 
@@ -1205,7 +1205,7 @@ export default function App() {
       trailheadEnabled: true,
       trailId: tid,
       trailDisplayLabel: trailDisplayLabels.short,
-      trailRoomLabel: trailDisplayLabels.room,
+      trailLabel: trailDisplayLabels.label,
       trailMembers,
       trailError,
       courseTitle,

@@ -24,26 +24,14 @@ export const COURSE_PRESENCE_HEARTBEAT_PAUSED_MS = 180_000;
 /** Trail 멤버 하트비트 — 포그라운드(탭 숨김 시 구독 자체 해제로 백그라운드 쓰기 없음) */
 export const TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS = 30_000;
 
-/** @deprecated `TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS` */
-export const LOBBY_PRESENCE_HEARTBEAT_ACTIVE_MS = TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS;
-
 /** Trail `liveCourseRides` 진행률: 최소 쓰기 간격 */
 export const TRAIL_LIVE_PROGRESS_MIN_WRITE_MS = 5_000;
-
-/** @deprecated `TRAIL_LIVE_PROGRESS_MIN_WRITE_MS` */
-export const LOBBY_LIVE_PROGRESS_MIN_WRITE_MS = TRAIL_LIVE_PROGRESS_MIN_WRITE_MS;
 
 /** Trail `liveCourseRides` 진행률: 최대 간격(강제 1회 플러시) */
 export const TRAIL_LIVE_PROGRESS_MAX_WRITE_MS = 12_000;
 
-/** @deprecated `TRAIL_LIVE_PROGRESS_MAX_WRITE_MS` */
-export const LOBBY_LIVE_PROGRESS_MAX_WRITE_MS = TRAIL_LIVE_PROGRESS_MAX_WRITE_MS;
-
 /** Trail `liveCourseRides`: 진행률 변화가 이 값 이상일 때만 의미 있는 변화로 간주 */
 export const TRAIL_LIVE_PROGRESS_MIN_DELTA = 0.008;
-
-/** @deprecated `TRAIL_LIVE_PROGRESS_MIN_DELTA` */
-export const LOBBY_LIVE_PROGRESS_MIN_DELTA = TRAIL_LIVE_PROGRESS_MIN_DELTA;
 
 /** 입문 코스 동행 DOM 스프라이트 — 고줌에서만 (dot 은 global livePresence) */
 export const MAP_PEER_SPRITE_MIN_ZOOM = 14;

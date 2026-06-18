@@ -88,6 +88,3 @@ export function useTrailSession(opts: {
   }
   return { rows, error };
 }
-
-/** @deprecated `useTrailSession` */
-export const useLobbyRoomSession = useTrailSession;
