@@ -3,11 +3,8 @@ import { distanceMidpointLngLat, type LngLat } from "./routeGeometryMidpoint.js"
 
 export const PUBLICATION_PRESENCE_COLLECTION = "publicationPresence";
 
-/** `apps/web` `BASIC_SHARED_HUB_IDS` 와 동기 */
-const BASIC_SHARED_HUB_IDS = new Set([
-  "basic-alps-grindelwald-5km",
-  "basic-iceland-ring-road-5km",
-]);
+/** `apps/web` `BASIC_SHARED_HUB_IDS` 와 동기 — 재생성 전까지 비어 있음 */
+const BASIC_SHARED_HUB_IDS = new Set<string>([]);
 
 type PublicationVisibility = "public" | "private";
 

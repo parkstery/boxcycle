@@ -33,12 +33,6 @@ service cloud.firestore {
         );
     }
 
-    /** 입문 동시 주행 허브 — `firestoreCourses.ts` 의 BASIC_SHARED_HUB_IDS 와 동기 */
-    function isBasicSharedHubCourseId(courseId) {
-      return courseId == 'basic-alps-grindelwald-5km'
-        || courseId == 'basic-iceland-ring-road-5km';
-    }
-
     /** Firebase Console 에 `config/routeReviewers` 문서 `{ uids: ["uid1", ...] }` 수동 등록 */
     function isRouteReviewer() {
       return isSignedIn()
@@ -61,15 +55,10 @@ service cloud.firestore {
     }
 
     /**
-     * 기존 코스 문서에 presence 플래그가 없을 때 클라이언트 merge 로 보강 가능하게 한다.
-     * 다른 필드 변경·삭제는 diff 로 차단.
+     * 입문 허브 코스 presence 플래그 merge — 허브 재생성 전까지 비활성.
      */
     function isHubPresenceFlagsOnlyCourseUpdate(courseId) {
-      return isBasicSharedHubCourseId(courseId)
-        && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['presenceEnabled', 'isSharedStartHub', 'updatedAt'])
-        && request.resource.data.presenceEnabled == true
-        && request.resource.data.isSharedStartHub == true;
+      return false;
     }
 
     /** 승인 퍼블릭 코스 — `presenceEnabled` 만 클라이언트 merge 허용 */

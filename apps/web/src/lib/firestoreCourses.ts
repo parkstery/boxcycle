@@ -69,19 +69,10 @@ export type CourseDoc = {
   updatedAt: unknown;
 };
 
-/** 동시 주행 presence 가 분리되는 입문 허브 코스 (테스트: A/B → 코스 1, C/D → 코스 2) */
-export const BASIC_HUB_COURSE_1_ID = "basic-alps-grindelwald-5km" as const;
-export const BASIC_HUB_COURSE_2_ID = "basic-iceland-ring-road-5km" as const;
+/** 동시 주행 presence 가 분리되는 입문 허브 코스 — 재생성 전까지 비어 있음 */
+export const BASIC_SHARED_HUB_IDS: readonly string[] = [];
 
-export const BASIC_SHARED_HUB_IDS = [
-  BASIC_HUB_COURSE_1_ID,
-  BASIC_HUB_COURSE_2_ID,
-] as const;
-
-export type BasicSharedHubCourseId = (typeof BASIC_SHARED_HUB_IDS)[number];
-
-/** 하위 호환: 입문 허브 코스 1과 동일 */
-export const BASIC_START_COURSE_ID = BASIC_HUB_COURSE_1_ID;
+export type BasicSharedHubCourseId = string;
 
 export type CourseRoutePayload = {
   id: string;
@@ -419,8 +410,9 @@ export async function findPublishedPublicFingerprintsAmong(
   return out;
 }
 
-export function getBasicStartCourseStatic(): CourseRoutePayload {
-  return getBasicHubCoursePayload(BASIC_START_COURSE_ID);
+export function getBasicStartCourseStatic(): CourseRoutePayload | null {
+  if (BASIC_SHARED_HUB_IDS.length === 0) return null;
+  return getBasicHubCoursePayload(BASIC_SHARED_HUB_IDS[0]!);
 }
 
 /** 지도 geometry 가 어느 입문 허브 코스와 일치하는지(없으면 null) */
@@ -602,76 +594,6 @@ const BASIC_COURSES: Omit<CourseDoc, "createdAt" | "updatedAt">[] = [
     },
     createdBy: "system",
   },
-  {
-    id: "basic-alps-grindelwald-5km",
-    title: "입문 경로 1 · 그린델발트 계곡 (5km)",
-    description: "그린델발트 계곡 5km.",
-    category: "basic",
-    type: "starter",
-    profile: "cycling",
-    isPublic: false,
-    status: "published",
-    isRequired: true,
-    requiredOrder: 4,
-    isSharedStartHub: true,
-    presenceEnabled: true,
-    distanceMeters: 5000,
-    durationSec: 1200,
-    bounds: {
-      minLng: 8.018,
-      minLat: 46.612,
-      maxLng: 8.056,
-      maxLat: 46.654,
-    },
-    geometry: {
-      type: "LineString",
-      coordinates: [
-        [8.0185, 46.6128],
-        [8.0262, 46.6194],
-        [8.0338, 46.6261],
-        [8.0412, 46.6325],
-        [8.0486, 46.6392],
-        [8.0554, 46.6465],
-        [8.0528, 46.6532],
-      ],
-    },
-    createdBy: "system",
-  },
-  {
-    id: "basic-iceland-ring-road-5km",
-    title: "입문 경로 2 · 아이슬란드 링 로드 (5km)",
-    description: "아이슬란드 링 로드 5km.",
-    category: "basic",
-    type: "starter",
-    profile: "cycling",
-    isPublic: false,
-    status: "published",
-    isRequired: true,
-    requiredOrder: 5,
-    isSharedStartHub: true,
-    presenceEnabled: true,
-    distanceMeters: 5000,
-    durationSec: 1200,
-    bounds: {
-      minLng: -20.02,
-      minLat: 63.61,
-      maxLng: -19.87,
-      maxLat: 63.66,
-    },
-    geometry: {
-      type: "LineString",
-      coordinates: [
-        [-19.9886, 63.6155],
-        [-19.972, 63.619],
-        [-19.9555, 63.6225],
-        [-19.939, 63.626],
-        [-19.9225, 63.6295],
-        [-19.906, 63.633],
-        [-19.8895, 63.6365],
-      ],
-    },
-    createdBy: "system",
-  },
 ];
 
 export type CourseBounds = CourseDoc["bounds"];
@@ -785,18 +707,7 @@ export async function fetchCourseBounds(courseId: string): Promise<CourseBounds 
   return pending;
 }
 
-export const BASIC_SHARED_HUB_SUMMARIES: PublishedPublicCourseSummary[] = BASIC_SHARED_HUB_IDS.map(
-  (id) => {
-    const course = BASIC_COURSES.find((c) => c.id === id)!;
-    return {
-      id,
-      title: course.title,
-      profile: parseCourseProfile({ profile: course.profile }),
-      distanceMeters: course.distanceMeters,
-      durationSec: course.durationSec,
-    };
-  },
-);
+export const BASIC_SHARED_HUB_SUMMARIES: PublishedPublicCourseSummary[] = [];
 
 export function getBasicSharedHubSummaries(): PublishedPublicCourseSummary[] {
   return BASIC_SHARED_HUB_SUMMARIES;

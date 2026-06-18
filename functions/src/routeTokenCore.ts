@@ -10,11 +10,8 @@ import { HttpsError } from "firebase-functions/v2/https";
 export const ROUTE_TOKEN_LEDGER = "routeTokenLedger";
 export const ROUTE_TOKEN_ECONOMY_PATH = "config/routeTokenEconomy";
 
-/** `firestore.rules` · `firestoreCourses.ts` 와 동기 */
-export const BASIC_INTRO_COURSE_IDS = [
-  "basic-alps-grindelwald-5km",
-  "basic-iceland-ring-road-5km",
-] as const;
+/** `firestore.rules` · `firestoreCourses.ts` 와 동기 — 재생성 전까지 비어 있음 */
+export const BASIC_INTRO_COURSE_IDS = [] as const;
 
 export type RouteTokenReason =
   | "onboarding"
