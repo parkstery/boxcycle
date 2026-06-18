@@ -9,6 +9,7 @@ import { formatLngLat } from "../lib/geo";
 import { MAX_ROUTE_WAYPOINTS } from "../lib/routeWaypoints";
 import { safeRideSpeechCancel } from "../lib/rideSpeech";
 import { loadRideSessions, saveRideSessions, type StoredRideSession } from "../lib/rideSessionsStorage";
+import { isDiscardableRideRecord } from "../lib/rideRecordPolicy";
 import { loadSavedRoutesFromLocal, promoteSavedRouteInLocal } from "../lib/savedRoutesLocal";
 import { fetchMapboxReverseGeocodePlaceName } from "../services/mapboxReverseGeocode";
 import type { RouteProfile } from "../services/mapboxDirections";
@@ -137,11 +138,18 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
       return;
     }
 
-    const next = [record, ...loadRideSessions()].slice(0, 50);
-    saveRideSessions(next, user);
-    setRecentSessions(next);
+    const discardRecord = isDiscardableRideRecord(
+      record.distanceMeters,
+      record.elapsedSec,
+    );
 
-    if (configured) {
+    if (!discardRecord) {
+      const next = [record, ...loadRideSessions()].slice(0, 50);
+      saveRideSessions(next, user);
+      setRecentSessions(next);
+    }
+
+    if (configured && !discardRecord) {
       void (async () => {
         try {
           let sessionForPersist: StoredRideSession = record;
@@ -231,6 +239,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
             profile,
             session: sessionForPersist,
           });
+          if (!rideId) return;
           // aggregate 재조회는 onRidePersisted에서 수행 — 여기서 invalidate 하면
           // CF `recentRideCount7d` 반영 전 서버 0이 낙관 heat를 지워 버린다.
           onRidePersistedToFirestore?.(persistedCourseId);
@@ -288,13 +297,14 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
           // Firestore 저장 실패 시 로컬 저장본은 유지한다.
         }
       })();
-    } else if (savedRouteIdAtEnd) {
+    } else if (!discardRecord && savedRouteIdAtEnd) {
       promoteSavedRouteInLocal({
         routeId: savedRouteIdAtEnd,
         rideId: record.id,
       });
       setSavedRoutes(loadSavedRoutesFromLocal());
     } else if (
+      !discardRecord &&
       routeGeometry &&
       routeGeometry.coordinates.length >= 2 &&
       startLngLat &&
@@ -313,7 +323,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
       });
     }
 
-    if (!(configured && user)) {
+    if (!(configured && user) && !discardRecord) {
       const token = mapboxAccessToken.trim();
       if (token && startLngLat && endLngLat) {
         void (async () => {
@@ -347,7 +357,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     if (rideEntryRef) rideEntryRef.current = null;
 
     const courseIdAtEnd = courseIdRef.current?.trim() || null;
-    if (courseIdAtEnd) {
+    if (courseIdAtEnd && !discardRecord) {
       markCourseActivityRideCompletedOptimistic(courseIdAtEnd);
       onRideEndedWithCourse?.(courseIdAtEnd);
     }

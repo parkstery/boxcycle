@@ -13,6 +13,7 @@ import {
 import { getFirebaseApp } from "./firebase";
 import type { RouteRideEntry } from "./routePublicationResolve";
 import type { StoredRideSession } from "./rideSessionsStorage";
+import { isDiscardableRideRecord } from "./rideRecordPolicy";
 
 const RIDES_COLLECTION = "rides";
 
@@ -66,7 +67,10 @@ export async function saveRideSessionToFirestore(input: {
   publicTitleSnap?: string | null;
   profile: "cycling" | "driving" | "walking";
   session: StoredRideSession;
-}): Promise<string> {
+}): Promise<string | null> {
+  if (isDiscardableRideRecord(input.session.distanceMeters, input.session.elapsedSec)) {
+    return null;
+  }
   const db = getFirestore(getFirebaseApp());
   const endedAtDate = new Date(input.session.endedAt);
   const endedAt = Number.isNaN(endedAtDate.getTime())
@@ -131,6 +135,7 @@ export async function backfillRideSessionsToFirestore(input: {
 }): Promise<void> {
   const ordered = [...input.sessions]
     .filter((s) => s && Number.isFinite(s.elapsedSec))
+    .filter((s) => !isDiscardableRideRecord(s.distanceMeters, s.elapsedSec))
     .sort((a, b) => new Date(a.endedAt).getTime() - new Date(b.endedAt).getTime());
   for (const session of ordered) {
     await saveRideSessionToFirestore({
@@ -155,7 +160,8 @@ export async function loadRideSessionsForStatsFromFirestore(
     limit(limitCount),
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => {
+  return snap.docs
+    .map((d) => {
     const data = d.data() as Partial<RideDoc>;
     const endedAt =
       data.endedAt instanceof Timestamp
@@ -185,7 +191,8 @@ export async function loadRideSessionsForStatsFromFirestore(
           ? data.endPlaceLabel.trim()
           : undefined,
     };
-  });
+  })
+    .filter((s) => !isDiscardableRideRecord(s.distanceMeters, s.elapsedSec));
 }
 
 export async function loadRecentRideSessionsFromFirestore(
