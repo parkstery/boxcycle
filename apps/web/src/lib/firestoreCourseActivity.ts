@@ -15,7 +15,7 @@ import type { LngLat } from "./geo";
 import { isWithinActivityTraceHeatWindow } from "./activityWorldTraceStyle";
 import { lastSeenAtToMillis } from "./firestoreTrail";
 
-/** `routeActivity/{publicationId}` — canonical aggregate (레거시 `courseActivity` 폴백) */
+/** `routeActivity/{publicationId}` — canonical aggregate */
 export type CourseActivitySnapshot = {
   courseId: string;
   activeRiderCount: number;
@@ -30,7 +30,6 @@ export type CourseActivitySnapshot = {
 };
 
 const ROUTE_ACTIVITY_COLLECTION = "routeActivity";
-const LEGACY_COURSE_ACTIVITY_COLLECTION = "courseActivity";
 
 function clampPulseLevel(raw: unknown): number {
   if (typeof raw !== "number" || !Number.isFinite(raw)) return 0;
@@ -157,12 +156,8 @@ export async function fetchCourseActivity(courseId: string): Promise<CourseActiv
     pending = (async () => {
       const db = getFirestore(getFirebaseApp());
       const routeSnap = await getDoc(doc(db, ROUTE_ACTIVITY_COLLECTION, id));
-      const legacySnap = routeSnap.exists()
-        ? null
-        : await getDoc(doc(db, LEGACY_COURSE_ACTIVITY_COLLECTION, id));
-      const snap = routeSnap.exists() ? routeSnap : legacySnap;
-      const parsed = snap?.exists()
-        ? parseCourseActivityDoc(id, snap.data() as Record<string, unknown>)
+      const parsed = routeSnap.exists()
+        ? parseCourseActivityDoc(id, routeSnap.data() as Record<string, unknown>)
         : null;
       const merged = mergeRideCompletedOptimistic(id, parsed);
       memoryCache.set(id, merged);
@@ -260,19 +255,7 @@ export async function fetchLiveCourseActivityIds(
       liveCourseIdsCache = { ids, at: now };
       return ids;
     } catch {
-      try {
-        const ids = await runQuery(LEGACY_COURSE_ACTIVITY_COLLECTION, true);
-        liveCourseIdsCache = { ids, at: now };
-        return ids;
-      } catch {
-        try {
-          const ids = await runQuery(LEGACY_COURSE_ACTIVITY_COLLECTION, false);
-          liveCourseIdsCache = { ids, at: now };
-          return ids;
-        } catch {
-          return liveCourseIdsCache?.ids ?? [];
-        }
-      }
+      return liveCourseIdsCache?.ids ?? [];
     }
   }
 }

@@ -25,6 +25,7 @@
     "admin:audit-terminology": "npm --prefix functions run admin:audit-terminology --",
     "admin:backfill-rides-terminology": "npm --prefix functions run admin:backfill-rides-terminology --",
     "admin:backfill-route-publications": "npm --prefix functions run admin:backfill-route-publications --",
+    "admin:backfill-course-metadata": "npm --prefix functions run admin:backfill-course-metadata --",
     "admin:backfill-route-activity": "npm --prefix functions run admin:backfill-route-activity --",
     "admin:purge-ride-legacy-fields": "npm --prefix functions run admin:purge-ride-legacy-fields --",
     "test": "echo \"Error: no test specified\" && exit 1"

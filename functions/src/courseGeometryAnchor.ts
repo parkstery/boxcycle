@@ -22,7 +22,7 @@ function haversineMeters(a: LngLat, b: LngLat): number {
   return 2 * EARTH_RADIUS_M * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
-function parseCoordsFromCourseData(data: Record<string, unknown>): LngLat[] | null {
+export function parseCoordsFromCourseData(data: Record<string, unknown>): LngLat[] | null {
   const jsonField = data.geometryCoordsJson;
   if (typeof jsonField === "string" && jsonField.length > 0) {
     try {

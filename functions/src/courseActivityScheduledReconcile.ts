@@ -5,6 +5,7 @@ import {
   WORLD_ACTIVITY_COLLECTION,
   WORLD_GLOBAL_ID,
 } from "./courseActivityAggregateCore.js";
+import { ROUTE_ACTIVITY_COLLECTION } from "./routeActivityConstants.js";
 import { reconcilePublicationPresenceFromLiveRides } from "./publicationPresenceCore.js";
 
 /** 클라이언트 `TRAIL_PRESENCE_STALE_MS`(240s)보다 짧게 — stale live 문서는 집계에서 제외 */
@@ -52,7 +53,6 @@ export const courseActivityScheduledReconcile = onSchedule(
     let batchOps = 0;
 
     const writeCourse = (courseId: string, count: number) => {
-      const ref = db.doc(`${COURSE_ACTIVITY_COLLECTION}/${courseId}`);
       const patch: Record<string, unknown> = {
         activeRiderCount: count,
         liveNow: count > 0,
@@ -63,8 +63,9 @@ export const courseActivityScheduledReconcile = onSchedule(
         patch.liveAnchorLngLat = FieldValue.delete();
         patch.liveAnchorProgressRatio = FieldValue.delete();
       }
-      batch.set(ref, patch, { merge: true });
-      batchOps += 1;
+      batch.set(db.doc(`${COURSE_ACTIVITY_COLLECTION}/${courseId}`), patch, { merge: true });
+      batch.set(db.doc(`${ROUTE_ACTIVITY_COLLECTION}/${courseId}`), patch, { merge: true });
+      batchOps += 2;
     };
 
     for (const [courseId, count] of byCourse) {
