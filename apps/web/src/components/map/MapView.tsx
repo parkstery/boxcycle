@@ -126,11 +126,11 @@ type ActivityWorldDotFeature = {
   traceStrength: number;
 };
 
-/** Mapbox paint — feature `traceStrength` (0.1..1). heat 일 단위 fade 하한과 맞춤 */
+/** Mapbox paint — feature `traceStrength` (0=숨김, 0.7=완료, 1=라이브) */
 const TRACE_STRENGTH_MULT: mapboxgl.ExpressionSpecification = [
-  "max",
-  0.1,
-  ["coalesce", ["get", "traceStrength"], 0.5],
+  "coalesce",
+  ["get", "traceStrength"],
+  0.7,
 ];
 
 /** `zoom` 은 최상위 `interpolate`/`step` 에만 허용 — stop 값에서 traceStrength 곱 */
@@ -270,7 +270,7 @@ function syncWorldRedDots(
   }
 }
 
-/** 최근 7일 heat — live보다 작고 `traceStrength` 로 일 단위 fade */
+/** 최근 24시간 heat — 완료 trail opacity 70% */
 function ensureWorldHeatDotLayer(map: mapboxgl.Map): boolean {
   if (!map.getSource(ACTIVITY_HEAT_DOTS_SRC)) {
     try {
@@ -299,7 +299,7 @@ function ensureWorldHeatDotLayer(map: mapboxgl.Map): boolean {
             ["+", 7, ["*", ["coalesce", ["get", "heatWeight"], 1], 1]],
           ],
           "circle-color": ACTIVITY_TRACE_RED,
-          "circle-opacity": ["min", 1, ["*", 0.5, TRACE_STRENGTH_MULT]],
+          "circle-opacity": ["*", 0.5, TRACE_STRENGTH_MULT],
           "circle-blur": 0.45,
         },
       });
@@ -327,7 +327,7 @@ function ensureWorldHeatDotLayer(map: mapboxgl.Map): boolean {
           "circle-color": ACTIVITY_TRACE_RED,
           "circle-stroke-width": 1.2,
           "circle-stroke-color": "#ffffff",
-          "circle-opacity": ["min", 1, ["*", 0.85, TRACE_STRENGTH_MULT]],
+          "circle-opacity": TRACE_STRENGTH_MULT,
         },
       });
     } catch (e) {

@@ -66,12 +66,14 @@ function presenceToDots(rows: readonly PublicationPresenceSnapshot[]): {
         traceStrength: ACTIVITY_TRACE_LIVE_STRENGTH,
       });
     } else if (row.status === "closed") {
+      const traceStrength = resolveClosedPresenceOpacity(row.closedAtMs);
+      if (traceStrength <= 0) continue;
       heatDots.push({
         courseId: publicationId,
         lngLat,
         pulseLevel: 1,
         kind: "heat",
-        traceStrength: resolveClosedPresenceOpacity(row.closedAtMs),
+        traceStrength,
       });
     }
   }
@@ -271,11 +273,13 @@ export function useWorldPublicationPresenceOverlay(opts: UseWorldPublicationPres
             traceStrength: ACTIVITY_TRACE_LIVE_STRENGTH,
           });
         } else if (row.status === "closed") {
+          const traceStrength = resolveClosedPresenceOpacity(row.closedAtMs);
+          if (traceStrength <= 0) continue;
           heatRoutes.push({
             courseId: pid,
             geometry: line,
             kind: "heat",
-            traceStrength: resolveClosedPresenceOpacity(row.closedAtMs),
+            traceStrength,
           });
         }
       }

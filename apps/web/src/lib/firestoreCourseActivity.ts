@@ -12,6 +12,7 @@ import {
 import { getFirebaseApp } from "./firebase";
 import { isActivityLodDebugPanelEnabled } from "./mapDebugPhase";
 import type { LngLat } from "./geo";
+import { isWithinActivityTraceHeatWindow } from "./activityWorldTraceStyle";
 import { lastSeenAtToMillis } from "./firestoreTrail";
 
 /** `courseActivity/{courseId}` — 코스 단위 aggregate(클라이언트 write 없음) */
@@ -176,10 +177,11 @@ export function isCourseActivityLive(activity: CourseActivitySnapshot): boolean 
   return activity.liveNow && activity.activeRiderCount > 0;
 }
 
-/** 지도 heat(주행 종료 후 7일 흔적) — 라이브가 아니면 `recentRideCount7d`만으로 판정 */
+/** 지도 heat — 주행 종료 후 24시간 이내 흔적만 */
 export function isCourseActivityHeat(activity: CourseActivitySnapshot): boolean {
   if (isCourseActivityLive(activity)) return false;
-  return activity.recentRideCount7d > 0;
+  if (activity.recentRideCount7d <= 0) return false;
+  return isWithinActivityTraceHeatWindow(activity.updatedAtMs);
 }
 
 /** heat 점·선 시각 강도 1..5 */
@@ -194,7 +196,7 @@ export function formatCourseActivityListBadge(activity: CourseActivitySnapshot |
   if (activity.liveNow) {
     return activity.activeRiderCount > 0 ? `라이브 ${activity.activeRiderCount}` : "라이브";
   }
-  if (activity.recentRideCount7d > 0) return `7일 ${activity.recentRideCount7d}회`;
+  if (activity.recentRideCount7d > 0) return `24시간 ${activity.recentRideCount7d}회`;
   if (activity.recentLikeCount > 0) return `♥ ${activity.recentLikeCount}`;
   return null;
 }
@@ -284,7 +286,7 @@ export function formatActivityWorldPinPopup(
   const detail = formatCourseActivityHudLine(activity);
   if (detail) return `${title}\n${detail}`;
   if (kind === "pulse") return `${title}\n지금 주행 중`;
-  return `${title}\n최근 7일 내 주행 흔적`;
+  return `${title}\n최근 24시간 내 주행 흔적`;
 }
 
 export function formatCourseActivityHudLine(activity: CourseActivitySnapshot | null): string | null {
@@ -297,7 +299,7 @@ export function formatCourseActivityHudLine(activity: CourseActivitySnapshot | n
         : "지금 활동 중",
     );
   } else if (activity.recentRideCount7d > 0) {
-    parts.push(`최근 7일 ${activity.recentRideCount7d}회`);
+    parts.push(`최근 24시간 ${activity.recentRideCount7d}회`);
   }
   if (activity.recentLikeCount > 0) parts.push(`좋아요 ${activity.recentLikeCount}`);
   return parts.length > 0 ? parts.join(" · ") : null;

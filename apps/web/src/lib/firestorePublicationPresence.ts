@@ -43,7 +43,8 @@ export type PublicationPresenceSnapshot = {
 const COLLECTION = PUBLICATION_PRESENCE_COLLECTION;
 const MAX_ACTIVE = 48;
 const MAX_CLOSED = 32;
-const CLOSED_WINDOW_MS = 30 * 86_400_000;
+/** 월드 heat dot — {@link activityWorldTraceStyle.ACTIVITY_TRACE_HEAT_WINDOW_MS} 와 동일 */
+const CLOSED_WINDOW_MS = 24 * 60 * 60 * 1000;
 const MAX_CLIENT_MIDPOINT_RESOLVE = 12;
 
 /** Firestore `GeoPoint`·배열·객체 — parse 실패 시 null (문서는 유지) */
@@ -237,12 +238,11 @@ export function formatPublicationPresencePinPopup(
     return n === 1 ? "지금 1명 주행 중" : `지금 ${n}명 주행 중`;
   }
   if (row.closedAtMs != null) {
-    const days = Math.floor((Date.now() - row.closedAtMs) / 86_400_000);
-    if (days <= 0) return "오늘 완료된 활동";
-    if (days < 7) return `${days}일 전 활동`;
-    return "최근 활동 흔적";
+    const ageMs = Math.max(0, Date.now() - row.closedAtMs);
+    if (ageMs < 24 * 60 * 60 * 1000) return "최근 24시간 내 완료";
+    return null;
   }
-  return "최근 활동 흔적";
+  return null;
 }
 
 /** DEV 회귀 — representativePoint 파싱 */
