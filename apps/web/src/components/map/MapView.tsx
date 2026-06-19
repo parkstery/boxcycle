@@ -2051,6 +2051,7 @@ export function MapView({
         dt,
         getBearing,
         routeGeometryRef.current,
+        now,
       );
       syncPeerDomMarkers(map, fc.features as PeerDomGJFeature[], peerDomMarkersRef);
       if (RIDER_PROTOTYPE_MODE === "glb") {
