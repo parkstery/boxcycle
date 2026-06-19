@@ -5,9 +5,9 @@ export type TrailJoinGate =
   | { ok: true }
   | { ok: false; message: string };
 
-/** 공개 Trail(`visibility: open`) — Firestore에 코스 ID가 있어야 함 */
-export function trailHasConfiguredRoute(trail: Pick<TrailInstance, "courseId">): boolean {
-  return typeof trail.courseId === "string" && trail.courseId.trim().length > 0;
+/** 공개 Trail(`visibility: open`) — Firestore에 출판 ID가 있어야 함 */
+export function trailHasConfiguredRoute(trail: Pick<TrailInstance, "publicationId">): boolean {
+  return typeof trail.publicationId === "string" && trail.publicationId.trim().length > 0;
 }
 
 export function isPublicTrail(trail: Pick<TrailInstance, "visibility">): boolean {
@@ -16,9 +16,9 @@ export function isPublicTrail(trail: Pick<TrailInstance, "visibility">): boolean
 
 /** 공개 전환·공개 Trail 생성 시 경로 필수 */
 export function assertPublicTrailHasRoute(
-  courseId: string | null | undefined,
+  publicationId: string | null | undefined,
 ): void {
-  if (!courseId?.trim()) {
+  if (!publicationId?.trim()) {
     throw new Error("공개 Trail은 경로(코스)가 설정되어 있어야 합니다.");
   }
 }
@@ -51,7 +51,7 @@ export function canUserJoinTrail(
   return { ok: true };
 }
 
-/** Trailhead ▶ 신규 개설 — 공개는 코스 필수, 경로 없으면 비공개(개설자 전용) */
-export function resolveNewTrailVisibility(courseId: string | null | undefined): TrailVisibility {
-  return courseId?.trim() ? "open" : "private";
+/** Trailhead ▶ 신규 개설 — 공개는 출판 경로 필수, 없으면 비공개(개설자 전용) */
+export function resolveNewTrailVisibility(publicationId: string | null | undefined): TrailVisibility {
+  return publicationId?.trim() ? "open" : "private";
 }

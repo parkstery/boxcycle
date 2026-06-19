@@ -41,9 +41,7 @@ function resolveListingPublicationId(data: Record<string, unknown>): string | nu
     typeof data.publicationId === "string" && data.publicationId.trim()
       ? data.publicationId.trim()
       : "";
-  if (publicationId) return publicationId;
-  const legacy = typeof data.courseId === "string" && data.courseId.trim() ? data.courseId.trim() : "";
-  return legacy || null;
+  return publicationId || null;
 }
 
 function listingRef(trailId: string) {
@@ -74,7 +72,7 @@ async function loadTrailForListing(trailId: string): Promise<TrailInstance | nul
       typeof data.displayNumber === "number" && Number.isFinite(data.displayNumber)
         ? Math.max(1, Math.min(999, Math.floor(data.displayNumber)))
         : 1,
-    courseId: resolveListingPublicationId(data),
+    publicationId: resolveListingPublicationId(data),
     regionLabel:
       typeof data.regionLabel === "string" && data.regionLabel.trim() ? data.regionLabel.trim() : null,
     distanceKm:
@@ -110,7 +108,7 @@ function listingToTrailInstance(
       typeof data.displayNumber === "number" && Number.isFinite(data.displayNumber)
         ? Math.max(1, Math.min(999, Math.floor(data.displayNumber)))
         : 1,
-    courseId: resolveListingPublicationId(data),
+    publicationId: resolveListingPublicationId(data),
     regionLabel:
       typeof data.regionLabel === "string" && data.regionLabel.trim()
         ? data.regionLabel.trim()
@@ -165,7 +163,7 @@ export async function refreshOpenTrailListingFromTrail(trailId: string): Promise
     displayNumber: trail.displayNumber,
     regionLabel: trail.regionLabel,
     distanceKm: trail.distanceKm,
-    publicationId: trail.courseId!,
+    publicationId: trail.publicationId!,
     riderCount,
     updatedAt: serverTimestamp(),
   };

@@ -119,7 +119,7 @@ const ACTIVITY_PULSE_DOTS_LAYER = "boxcycle-activity-pulse-dots-layer";
 const ACTIVITY_HEAT_DOTS_LAYER = "boxcycle-activity-heat-dots-layer";
 
 type ActivityWorldDotFeature = {
-  courseId: string;
+  publicationId: string;
   lngLat: LngLat;
   pulseLevel: number;
   recentRideCount7d?: number;
@@ -249,8 +249,8 @@ function syncWorldRedDots(
     type: "FeatureCollection" as const,
     features: valid.map((d) => ({
       type: "Feature" as const,
-      id: `act-pd-${d.courseId}`,
-      properties: { courseId: d.courseId },
+      id: `act-pd-${d.publicationId}`,
+      properties: { publicationId: d.publicationId },
       geometry: { type: "Point" as const, coordinates: d.lngLat },
     })),
   };
@@ -358,9 +358,9 @@ function syncWorldHeatDots(
     type: "FeatureCollection" as const,
     features: valid.map((d) => ({
       type: "Feature" as const,
-      id: `act-hd-${d.courseId}`,
+      id: `act-hd-${d.publicationId}`,
       properties: {
-        courseId: d.courseId,
+        publicationId: d.publicationId,
         heatWeight: d.pulseLevel > 0 ? d.pulseLevel : 1,
         traceStrength: d.traceStrength,
       },
@@ -391,8 +391,8 @@ function syncCourseActivityLayers(
     type: "FeatureCollection" as const,
     features: pulseRoutes.map((seg, i) => ({
       type: "Feature" as const,
-      id: `act-p-${seg.courseId}-${i}`,
-      properties: { courseId: seg.courseId, traceStrength: seg.traceStrength },
+      id: `act-p-${seg.publicationId}-${i}`,
+      properties: { publicationId: seg.publicationId, traceStrength: seg.traceStrength },
       geometry: seg.geometry,
     })),
   };
@@ -400,8 +400,8 @@ function syncCourseActivityLayers(
     type: "FeatureCollection" as const,
     features: heatRoutes.map((seg, i) => ({
       type: "Feature" as const,
-      id: `act-h-${seg.courseId}-${i}`,
-      properties: { courseId: seg.courseId, traceStrength: seg.traceStrength },
+      id: `act-h-${seg.publicationId}-${i}`,
+      properties: { publicationId: seg.publicationId, traceStrength: seg.traceStrength },
       geometry: seg.geometry,
     })),
   };
@@ -1174,7 +1174,7 @@ export type MapViewProps = {
   /** Activity World loader 출력 — MapView 가 map zoom 으로 LINE/DOT 적용 */
   activityWorldRaw?: ActivityWorldRawOverlay | null;
   /** Activity World 점 탭 시 팝업 문구 (없으면 기본 pick 팝업) */
-  getActivityWorldPinLabel?: ((courseId: string, kind: "pulse" | "heat") => string | null) | null;
+  getActivityWorldPinLabel?: ((publicationId: string, kind: "pulse" | "heat") => string | null) | null;
   /** 맵 이동·줌 완료 시 뷰포트(span km 포함) */
   onMapViewport?: (viewport: MapViewportBounds, spanKm: number) => void;
   /**
@@ -2497,7 +2497,7 @@ function buildActivityWorldPopupElement(text: string, kind: "pulse" | "heat"): H
 function tryOpenActivityWorldPinPopup(
   map: mapboxgl.Map,
   event: mapboxgl.MapMouseEvent,
-  getLabel: (courseId: string, kind: "pulse" | "heat") => string | null,
+  getLabel: (publicationId: string, kind: "pulse" | "heat") => string | null,
   popupRef: { current: mapboxgl.Popup | null },
   pickAnchor: (map: mapboxgl.Map, event: mapboxgl.MapMouseEvent) => mapboxgl.Anchor,
 ): boolean {
@@ -2508,10 +2508,10 @@ function tryOpenActivityWorldPinPopup(
   const features = map.queryRenderedFeatures(event.point, { layers });
   if (!features.length) return false;
   const hit = features[0];
-  const courseId = hit.properties?.courseId;
-  if (typeof courseId !== "string" || !courseId.trim()) return false;
+  const publicationId = hit.properties?.publicationId;
+  if (typeof publicationId !== "string" || !publicationId.trim()) return false;
   const kind: "pulse" | "heat" = hit.layer?.id === ACTIVITY_HEAT_DOTS_LAYER ? "heat" : "pulse";
-  const label = getLabel(courseId.trim(), kind);
+  const label = getLabel(publicationId.trim(), kind);
   if (!label) return false;
 
   popupRef.current?.remove();

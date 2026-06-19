@@ -14,7 +14,7 @@ export function buildBasicHubWorldPulseDots(): ActivityWorldMapDot[] {
     const lngLat = distanceMidpointLngLat(coords);
     if (!lngLat) continue;
     out.push({
-      courseId: id,
+      publicationId: id,
       lngLat,
       pulseLevel: 1,
       kind: "pulse",
@@ -34,7 +34,7 @@ export function buildLocalRidePublicationPulseDot(
   const lngLat = distanceMidpointLngLat(routeGeometry.coordinates);
   if (!lngLat) return null;
   return {
-    courseId: id,
+    publicationId: id,
     lngLat,
     pulseLevel: 1,
     kind: "pulse",
@@ -47,7 +47,7 @@ export function mergePublicationWorldPulseDots(input: {
   serverHeatDots: readonly ActivityWorldMapDot[];
   publicationWorldMapEnabled: boolean;
   isRideSessionActive: boolean;
-  trackedCourseId: string | null;
+  trackedPublicationId: string | null;
   routeGeometry: LineStringGeometry | null;
 }): { pulseDots: ActivityWorldMapDot[]; heatDots: ActivityWorldMapDot[] } {
   const {
@@ -55,7 +55,7 @@ export function mergePublicationWorldPulseDots(input: {
     serverHeatDots,
     publicationWorldMapEnabled,
     isRideSessionActive,
-    trackedCourseId,
+    trackedPublicationId,
     routeGeometry,
   } = input;
 
@@ -66,7 +66,7 @@ export function mergePublicationWorldPulseDots(input: {
   let pulse = mergeActivityWorldDots([], serverPulseDots);
 
   if (isRideSessionActive) {
-    const local = buildLocalRidePublicationPulseDot(trackedCourseId, routeGeometry);
+    const local = buildLocalRidePublicationPulseDot(trackedPublicationId, routeGeometry);
     if (local) pulse = mergeActivityWorldDots(pulse, [local]);
   }
 
@@ -83,7 +83,7 @@ export function ensureWorldActivityMinimumDots(
   opts: {
     mapSessionActive: boolean;
     isRideSessionActive: boolean;
-    trackedCourseId: string | null;
+    trackedPublicationId: string | null;
     routeGeometry: LineStringGeometry | null;
   },
 ): ActivityWorldRawOverlay {
@@ -92,7 +92,7 @@ export function ensureWorldActivityMinimumDots(
 
   let pulse = buildBasicHubWorldPulseDots();
   if (opts.isRideSessionActive) {
-    const local = buildLocalRidePublicationPulseDot(opts.trackedCourseId, opts.routeGeometry);
+    const local = buildLocalRidePublicationPulseDot(opts.trackedPublicationId, opts.routeGeometry);
     if (local) pulse = mergeActivityWorldDots(pulse, [local]);
   }
   if (pulse.length === 0) return raw;
@@ -109,7 +109,7 @@ export function runWorldPublicationMapDotsChecks(): void {
     serverHeatDots: [],
     publicationWorldMapEnabled: true,
     isRideSessionActive: false,
-    trackedCourseId: null,
+    trackedPublicationId: null,
     routeGeometry: null,
   });
   if (merged.pulseDots.length < 1) {
@@ -117,7 +117,7 @@ export function runWorldPublicationMapDotsChecks(): void {
   }
   const guarded = ensureWorldActivityMinimumDots(
     { pulseRoutes: [], heatRoutes: [], pulseDots: [], heatDots: [] },
-    { mapSessionActive: true, isRideSessionActive: false, trackedCourseId: null, routeGeometry: null },
+    { mapSessionActive: true, isRideSessionActive: false, trackedPublicationId: null, routeGeometry: null },
   );
   if (guarded.pulseDots.length < 1) {
     throw new Error("ensureWorldActivityMinimumDots must yield pulse dots");

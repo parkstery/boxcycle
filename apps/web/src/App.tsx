@@ -482,7 +482,7 @@ export default function App() {
 
   activeCourseIdRef.current = basicActiveHubCourseId ?? activeOfficialCourseId;
 
-  const trackedCourseId = basicActiveHubCourseId ?? activeOfficialCourseId;
+  const trackedPublicationId = basicActiveHubCourseId ?? activeOfficialCourseId;
   const isRideSessionActive = rideStatus === "running" || rideStatus === "paused";
 
   const trailDisplayLabels = useMemo(
@@ -507,7 +507,7 @@ export default function App() {
     mapViewportSpanKm,
     mapLodSpanKm,
     routeGeometry,
-    trackedCourseId,
+    trackedPublicationId,
     publishedPublicCourses,
     openTrails: openTrailsQuery.rows,
     trailLabel: trailDisplayLabels.label,
@@ -523,7 +523,7 @@ export default function App() {
     courseActivity,
     reloadCourseActivity,
     applyRideCompletedOptimistic,
-    courseActivityByCourseId,
+    publicationActivityByPublicationId,
     worldHudLines,
     lodDebugPanelProps,
   } = mapOverlays;
@@ -753,8 +753,8 @@ export default function App() {
           setRouteSummary(gate.message);
           return;
         }
-        if (meta.courseId) {
-          await loadCourseRouteForTrailJoin(meta.courseId);
+        if (meta.publicationId) {
+          await loadCourseRouteForTrailJoin(meta.publicationId);
         }
         hostTrailIdRef.current = null;
         setTrailMetaSeed(meta);
@@ -802,8 +802,8 @@ export default function App() {
         returnToTrailhead();
         return;
       }
-      if (meta.courseId) {
-        await loadCourseRouteForTrailJoin(meta.courseId);
+      if (meta.publicationId) {
+        await loadCourseRouteForTrailJoin(meta.publicationId);
       }
     })();
     return () => {
@@ -862,7 +862,7 @@ export default function App() {
         const visibility = resolveNewTrailVisibility(courseId);
         const trail = await createTrailInstance({
           hostUid: user.uid,
-          courseId: courseId ?? null,
+          publicationId: courseId ?? null,
           regionLabel,
           distanceKm: routeDistanceMeters > 0 ? routeDistanceMeters / 1000 : null,
           visibility,
@@ -994,7 +994,7 @@ export default function App() {
   );
 
   const activeCourseIdForGlobalPresence =
-    basicActiveHubCourseId ?? activeOfficialCourseId ?? currentTrailMeta?.courseId ?? null;
+    basicActiveHubCourseId ?? activeOfficialCourseId ?? currentTrailMeta?.publicationId ?? null;
 
   const debugGlobalPresenceOnMap =
     import.meta.env.DEV &&
@@ -1021,13 +1021,13 @@ export default function App() {
     routeEnabled: Boolean(
       trailheadSessionActive &&
         isRideSessionActive &&
-        (basicActiveHubCourseId ?? activeOfficialCourseId ?? currentTrailMeta?.courseId) &&
+        (basicActiveHubCourseId ?? activeOfficialCourseId ?? currentTrailMeta?.publicationId) &&
         Boolean(routeGeometry?.coordinates?.length),
     ),
     pageVisible,
     lngLat: globalPresencePublishLngLat,
     trailId,
-    courseId: basicActiveHubCourseId ?? activeOfficialCourseId ?? currentTrailMeta?.courseId ?? null,
+    publicationId: basicActiveHubCourseId ?? activeOfficialCourseId ?? currentTrailMeta?.publicationId ?? null,
     routeGeometry,
     routeDistanceMeters,
     virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
@@ -1491,7 +1491,7 @@ export default function App() {
           publishedPublicCoursesLoading={publishedPublicCoursesLoading}
           publishedPublicCoursesError={publishedPublicCoursesError}
           onRefreshPublishedPublicCourses={onRefreshPublishedPublicCourses}
-          courseActivityByCourseId={courseActivityByCourseId}
+          publicationActivityByPublicationId={publicationActivityByPublicationId}
           authGuest={userTier.isGuest}
           signedIn={Boolean(user)}
           onEnterBasicHub={(courseId) => {

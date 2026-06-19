@@ -15,7 +15,7 @@ import {
 export type LiveLocationPublishInput = {
   lngLat: LngLat | null;
   trailId: string;
-  courseId: string | null;
+  publicationId: string | null;
   routeGeometry: LineStringGeometry | null;
   routeDistanceMeters: number;
   virtualDistanceMeters: number;
@@ -25,7 +25,7 @@ export type LiveLocationPublishInput = {
 export type LiveLocationSnapshot = {
   lngLat: LngLat;
   trailId: string;
-  courseId: string;
+  publicationId: string;
   progressRatio: number;
   routeReady: boolean;
 };
@@ -41,13 +41,13 @@ export function computeRouteProgressRatio(
 
 export function buildLiveLocationSnapshot(input: LiveLocationPublishInput): LiveLocationSnapshot | null {
   if (!input.lngLat) return null;
-  const courseId = input.courseId?.trim() ?? "";
+  const publicationId = input.publicationId?.trim() ?? "";
   const hasGeometry = Boolean(input.routeGeometry?.coordinates?.length);
-  const routeReady = Boolean(courseId && hasGeometry);
+  const routeReady = Boolean(publicationId && hasGeometry);
   return {
     lngLat: roundLngLatForLiveShare(input.lngLat),
     trailId: sanitizeTrailId(input.trailId),
-    courseId,
+    publicationId,
     progressRatio: computeRouteProgressRatio(input.virtualDistanceMeters, input.routeDistanceMeters),
     routeReady,
   };

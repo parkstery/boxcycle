@@ -12,7 +12,5 @@ export const LIVE_RIDE_SUBCOLLECTIONS = [
 
 export function readPublicationIdFromLiveRideData(data: Record<string, unknown>): string {
   const pub = data.publicationId;
-  if (typeof pub === "string" && pub.trim()) return pub.trim();
-  const legacy = data.courseId;
-  return typeof legacy === "string" ? legacy.trim() : "";
+  return typeof pub === "string" ? pub.trim() : "";
 }

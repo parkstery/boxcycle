@@ -24,16 +24,12 @@ type TrailMeta = {
   id: string;
   hostUid: string;
   displayNumber: number;
-  courseId: string | null;
+  publicationId: string | null;
   regionLabel: string | null;
   distanceKm: number | null;
   visibility: "open" | "private";
   status: "open" | "closed" | "archived";
 };
-
-function presenceCutoff(): Timestamp {
-  return Timestamp.fromMillis(Date.now() - TRAIL_PRESENCE_STALE_MS);
-}
 
 function resolveTrailPublicationId(data: DocumentData | undefined): string | null {
   if (!data) return null;
@@ -41,10 +37,11 @@ function resolveTrailPublicationId(data: DocumentData | undefined): string | nul
     typeof data.publicationId === "string" && data.publicationId.trim()
       ? data.publicationId.trim()
       : "";
-  if (publicationId) return publicationId;
-  const legacy =
-    typeof data.courseId === "string" && data.courseId.trim() ? data.courseId.trim() : "";
-  return legacy || null;
+  return publicationId || null;
+}
+
+function presenceCutoff(): Timestamp {
+  return Timestamp.fromMillis(Date.now() - TRAIL_PRESENCE_STALE_MS);
 }
 
 function parseTrailMeta(trailId: string, data: DocumentData | undefined): TrailMeta | null {
@@ -56,7 +53,7 @@ function parseTrailMeta(trailId: string, data: DocumentData | undefined): TrailM
       typeof data.displayNumber === "number" && Number.isFinite(data.displayNumber)
         ? Math.max(1, Math.min(999, Math.floor(data.displayNumber)))
         : 1,
-    courseId: resolveTrailPublicationId(data),
+    publicationId: resolveTrailPublicationId(data),
     regionLabel:
       typeof data.regionLabel === "string" && data.regionLabel.trim() ? data.regionLabel.trim() : null,
     distanceKm:
@@ -72,7 +69,7 @@ function parseTrailMeta(trailId: string, data: DocumentData | undefined): TrailM
 }
 
 function isListableTrail(trail: TrailMeta): boolean {
-  return trail.status === "open" && trail.visibility === "open" && Boolean(trail.courseId?.trim());
+  return trail.status === "open" && trail.visibility === "open" && Boolean(trail.publicationId?.trim());
 }
 
 async function countActiveParticipants(trailId: string): Promise<number> {
@@ -122,7 +119,7 @@ export async function recomputeOpenTrailListing(
       displayNumber: trail.displayNumber,
       regionLabel: trail.regionLabel,
       distanceKm: trail.distanceKm,
-      publicationId: trail.courseId,
+      publicationId: trail.publicationId,
       riderCount,
       updatedAt: FieldValue.serverTimestamp(),
     },

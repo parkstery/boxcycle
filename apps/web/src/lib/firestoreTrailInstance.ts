@@ -26,14 +26,14 @@ export type TrailInstance = {
   id: string;
   hostUid: string;
   displayNumber: number;
-  courseId: string | null;
+  publicationId: string | null;
   regionLabel: string | null;
   distanceKm: number | null;
   visibility: TrailVisibility;
   status: TrailStatus;
   createdAtMs: number | null;
   lastActivityAtMs: number | null;
-  /** `liveCourseRides` 서브컬렉션 문서 수(목록 UI용, best-effort) */
+  /** `livePublicationRides` 서브컬렉션 문서 수(목록 UI용, best-effort) */
   liveRiderCount?: number;
 };
 
@@ -41,8 +41,6 @@ type TrailInstanceDoc = {
   hostUid: string;
   displayNumber: number;
   publicationId?: string | null;
-  /** @deprecated Phase 7 — read fallback only */
-  courseId?: string | null;
   regionLabel?: string | null;
   distanceKm?: number | null;
   visibility: TrailVisibility;
@@ -56,9 +54,7 @@ function resolveTrailPublicationId(data: Record<string, unknown>): string | null
     typeof data.publicationId === "string" && data.publicationId.trim()
       ? data.publicationId.trim()
       : "";
-  if (publicationId) return publicationId;
-  const legacy = typeof data.courseId === "string" && data.courseId.trim() ? data.courseId.trim() : "";
-  return legacy || null;
+  return publicationId || null;
 }
 
 function timestampToMs(raw: unknown): number | null {
@@ -78,7 +74,7 @@ function parseTrailInstance(id: string, data: Record<string, unknown>): TrailIns
       typeof data.displayNumber === "number" && Number.isFinite(data.displayNumber)
         ? Math.max(1, Math.min(999, Math.floor(data.displayNumber)))
         : 1,
-    courseId: resolveTrailPublicationId(data),
+    publicationId: resolveTrailPublicationId(data),
     regionLabel:
       typeof data.regionLabel === "string" && data.regionLabel.trim() ? data.regionLabel.trim() : null,
     distanceKm:
@@ -111,19 +107,19 @@ export function buildTrailRegionLabel(input: {
 
 export async function createTrailInstance(input: {
   hostUid: string;
-  courseId: string | null;
+  publicationId: string | null;
   regionLabel: string;
   distanceKm: number | null;
   visibility?: TrailVisibility;
 }): Promise<TrailInstance> {
   const visibility = input.visibility ?? "open";
   if (visibility === "open") {
-    assertPublicTrailHasRoute(input.courseId);
+    assertPublicTrailHasRoute(input.publicationId);
   }
   const db = getFirestore(getFirebaseApp());
   const ref = doc(collection(db, TRAILS_COLLECTION));
   const displayNumber = pickRandomTrailDisplayNumber();
-  const publicationId = input.courseId?.trim() || null;
+  const publicationId = input.publicationId?.trim() || null;
   const payload: TrailInstanceDoc = {
     hostUid: input.hostUid,
     displayNumber,
@@ -140,7 +136,7 @@ export async function createTrailInstance(input: {
     id: ref.id,
     hostUid: input.hostUid,
     displayNumber,
-    courseId: publicationId,
+    publicationId,
     regionLabel: input.regionLabel,
     distanceKm: input.distanceKm,
     visibility: payload.visibility,

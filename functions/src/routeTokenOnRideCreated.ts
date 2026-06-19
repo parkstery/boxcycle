@@ -16,11 +16,7 @@ export const routeTokenOnRideCreated = onDocumentCreated(
 
     const rideId = event.params.rideId;
     const publicationId =
-      typeof data.publicationId === "string"
-        ? data.publicationId
-        : typeof data.courseId === "string"
-          ? data.courseId
-          : null;
+      typeof data.publicationId === "string" ? data.publicationId.trim() : "";
     const distanceMeters = Number(data.distanceMeters ?? 0);
     const elapsedSec = Number(data.elapsedSec ?? 0);
     const status = typeof data.status === "string" ? data.status : "";

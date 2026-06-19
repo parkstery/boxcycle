@@ -25,7 +25,7 @@ export type UseLiveLocationPublishSessionOpts = {
   pageVisible: boolean;
   lngLat: LngLat | null;
   trailId: string;
-  courseId: string | null;
+  publicationId: string | null;
   routeGeometry: LineStringGeometry | null;
   routeDistanceMeters: number;
   virtualDistanceMeters: number;
@@ -44,7 +44,7 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
     pageVisible,
     lngLat,
     trailId,
-    courseId,
+    publicationId,
     routeGeometry,
     routeDistanceMeters,
     virtualDistanceMeters,
@@ -59,7 +59,7 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
   const inputRef = useRef<LiveLocationPublishInput>({
     lngLat: null,
     trailId,
-    courseId,
+    publicationId,
     routeGeometry,
     routeDistanceMeters,
     virtualDistanceMeters,
@@ -67,7 +67,7 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
   inputRef.current = {
     lngLat,
     trailId,
-    courseId,
+    publicationId,
     routeGeometry,
     routeDistanceMeters,
     virtualDistanceMeters,
@@ -124,7 +124,7 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
             route: result.route,
             lngLat: snapshot.lngLat,
             progressRatio: snapshot.progressRatio,
-            courseId: snapshot.courseId || null,
+            publicationId: snapshot.publicationId || null,
             trailId: snapshot.trailId,
           });
         }

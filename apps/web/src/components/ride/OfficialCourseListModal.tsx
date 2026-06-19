@@ -70,7 +70,7 @@ export type OfficialCourseListModalProps = {
   publishedPublicCoursesLoading: boolean;
   publishedPublicCoursesError: string | null;
   signedIn: boolean;
-  courseActivityByCourseId?: ReadonlyMap<string, RouteActivitySnapshot | null>;
+  publicationActivityByPublicationId?: ReadonlyMap<string, RouteActivitySnapshot | null>;
   onEnterBasicHub: (courseId: string) => void;
   onLeaveBasicHub: () => void;
 };
@@ -114,7 +114,7 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
                 selected={props.basicActiveHubCourseId === c.id}
                 loadDisabled={loadDisabled}
                 activityBadge={formatRouteActivityListBadge(
-                  props.courseActivityByCourseId?.get(c.id) ?? null,
+                  props.publicationActivityByPublicationId?.get(c.id) ?? null,
                 )}
                 onLoad={() => handleLoad(c.id)}
               />
@@ -162,7 +162,7 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
                 selected={props.basicActiveHubCourseId === c.id}
                 loadDisabled={loadDisabled}
                 activityBadge={formatRouteActivityListBadge(
-                  props.courseActivityByCourseId?.get(c.id) ?? null,
+                  props.publicationActivityByPublicationId?.get(c.id) ?? null,
                 )}
                 onLoad={() => handleLoad(c.id)}
               />

@@ -21,37 +21,37 @@ function mergeLivePublicationRideGapFill(
   }
 
   const pulseIds = new Set([
-    ...base.pulseDots.map((d) => d.courseId),
-    ...base.pulseRoutes.map((r) => r.courseId),
+    ...base.pulseDots.map((d) => d.publicationId),
+    ...base.pulseRoutes.map((r) => r.publicationId),
   ]);
   const heatIds = new Set([
-    ...base.heatDots.map((d) => d.courseId),
-    ...base.heatRoutes.map((r) => r.courseId),
+    ...base.heatDots.map((d) => d.publicationId),
+    ...base.heatRoutes.map((r) => r.publicationId),
   ]);
 
   return {
     pulseDots: mergeActivityWorldDots(
       base.pulseDots,
-      live.pulseDots.filter((d) => !pulseIds.has(d.courseId)),
+      live.pulseDots.filter((d) => !pulseIds.has(d.publicationId)),
     ),
     pulseRoutes: [
       ...base.pulseRoutes,
-      ...live.pulseRoutes.filter((r) => !pulseIds.has(r.courseId)),
+      ...live.pulseRoutes.filter((r) => !pulseIds.has(r.publicationId)),
     ],
     heatDots: mergeActivityWorldDots(
       base.heatDots,
-      live.heatDots.filter((d) => !heatIds.has(d.courseId)),
+      live.heatDots.filter((d) => !heatIds.has(d.publicationId)),
     ),
     heatRoutes: [
       ...base.heatRoutes,
-      ...live.heatRoutes.filter((r) => !heatIds.has(r.courseId)),
+      ...live.heatRoutes.filter((r) => !heatIds.has(r.publicationId)),
     ],
   };
 }
 
 export type ResolveWorldMapOverlayInput = {
   /** 추적 중인 publication — active 오버레이가 heat/catalog 중복 제거에 사용 */
-  trackedCourseId: string | null;
+  trackedPublicationId: string | null;
   active: WorldMapOverlaySlice;
   catalog: WorldMapOverlaySlice;
   publication: WorldMapOverlaySlice;
@@ -72,8 +72,8 @@ function filterHeatByTracked(
     return { heatRoutes: slice.heatRoutes, heatDots: slice.heatDots };
   }
   return {
-    heatRoutes: slice.heatRoutes.filter((r) => r.courseId !== tracked),
-    heatDots: slice.heatDots.filter((d) => d.courseId !== tracked),
+    heatRoutes: slice.heatRoutes.filter((r) => r.publicationId !== tracked),
+    heatDots: slice.heatDots.filter((d) => d.publicationId !== tracked),
   };
 }
 
@@ -83,7 +83,7 @@ function filterHeatByTracked(
  */
 export function resolveWorldMapOverlay(input: ResolveWorldMapOverlayInput): ActivityWorldRawOverlay {
   const {
-    trackedCourseId,
+    trackedPublicationId,
     active,
     catalog,
     publication,
@@ -96,7 +96,7 @@ export function resolveWorldMapOverlay(input: ResolveWorldMapOverlayInput): Acti
     publicationPresenceWorldMapEnabled,
   } = input;
 
-  const tracked = trackedCourseId?.trim() ?? "";
+  const tracked = trackedPublicationId?.trim() ?? "";
   const activeCoversTracked =
     Boolean(tracked) &&
     (active.heatDots.length > 0 ||
@@ -140,7 +140,7 @@ export function resolveWorldMapOverlay(input: ResolveWorldMapOverlayInput): Acti
 /** DEV 회귀 — publication 모드 dot/catalog·livePublicationRides 격리 */
 export function runWorldMapOverlayMergeChecks(): void {
   const catalog: WorldMapOverlaySlice = {
-    pulseDots: [{ courseId: "c1", lngLat: [0, 0], pulseLevel: 1, kind: "pulse", traceStrength: 1 }],
+    pulseDots: [{ publicationId: "c1", lngLat: [0, 0], pulseLevel: 1, kind: "pulse", traceStrength: 1 }],
     pulseRoutes: [],
     heatDots: [],
     heatRoutes: [],
@@ -152,7 +152,7 @@ export function runWorldMapOverlayMergeChecks(): void {
     heatRoutes: [],
   };
   const mergedEmptyPub = resolveWorldMapOverlay({
-    trackedCourseId: null,
+    trackedPublicationId: null,
     active: emptyPub,
     catalog,
     publication: emptyPub,
@@ -163,13 +163,13 @@ export function runWorldMapOverlayMergeChecks(): void {
   }
 
   const pubWithDot: WorldMapOverlaySlice = {
-    pulseDots: [{ courseId: "c1", lngLat: [1, 1], pulseLevel: 2, kind: "pulse", traceStrength: 1 }],
+    pulseDots: [{ publicationId: "c1", lngLat: [1, 1], pulseLevel: 2, kind: "pulse", traceStrength: 1 }],
     pulseRoutes: [],
     heatDots: [],
     heatRoutes: [],
   };
   const mergedWithPub = resolveWorldMapOverlay({
-    trackedCourseId: null,
+    trackedPublicationId: null,
     active: emptyPub,
     catalog,
     publication: pubWithDot,
@@ -186,7 +186,7 @@ export function runWorldMapOverlayMergeChecks(): void {
     pulseDots: [],
     pulseRoutes: [
       {
-        courseId: "c1",
+        publicationId: "c1",
         geometry: { type: "LineString", coordinates: [[0, 0], [1, 1]] },
         kind: "pulse",
         traceStrength: 1,
@@ -196,7 +196,7 @@ export function runWorldMapOverlayMergeChecks(): void {
     heatRoutes: [],
   };
   const mergedRoutes = resolveWorldMapOverlay({
-    trackedCourseId: null,
+    trackedPublicationId: null,
     active: emptyPub,
     catalog: catalogWithRoute,
     publication: emptyPub,

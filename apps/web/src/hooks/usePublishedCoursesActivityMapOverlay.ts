@@ -51,8 +51,8 @@ export type PublishedCoursesActivityOverlayStats = {
 };
 
 type UsePublishedCoursesActivityMapOverlayOpts = {
-  courseIds: readonly string[];
-  excludeCourseId: string | null;
+  publicationIds: readonly string[];
+  excludePublicationId: string | null;
   mapZoom: number;
   enabled: boolean;
   /** false면 aggregate만 조회 — dot/line·geometry 로드 생략(publication presence 사용 시) */
@@ -61,7 +61,7 @@ type UsePublishedCoursesActivityMapOverlayOpts = {
   refreshNonce?: number;
   /** WO-A coordinator — 제공 시 내부 poll 생략 */
   externalSync?: {
-    activityByCourseId: ReadonlyMap<string, RouteActivitySnapshot | null>;
+    activityByPublicationId: ReadonlyMap<string, RouteActivitySnapshot | null>;
     syncEpoch: number;
   };
 };
@@ -77,7 +77,7 @@ function scoreHeatActivity(a: RouteActivitySnapshot): number {
 
 function selectOverlayCandidateIds(
   map: ReadonlyMap<string, RouteActivitySnapshot | null>,
-  excludeCourseId: string,
+  excludePublicationId: string,
 ): string[] {
   const live: [string, RouteActivitySnapshot][] = [];
   const heat: [string, RouteActivitySnapshot][] = [];
@@ -85,7 +85,7 @@ function selectOverlayCandidateIds(
   for (const [id, row] of map) {
     if (!row) continue;
     if (isRouteActivityLive(row)) {
-      if (id !== excludeCourseId) live.push([id, row]);
+      if (id !== excludePublicationId) live.push([id, row]);
       continue;
     }
     if (isRouteActivityHeat(row)) heat.push([id, row]);
@@ -182,11 +182,11 @@ function ensureGeometryLoaded(
 export function usePublishedCoursesActivityMapOverlay(
   opts: UsePublishedCoursesActivityMapOverlayOpts,
 ): RouteActivityMapOverlay & {
-  activityByCourseId: ReadonlyMap<string, RouteActivitySnapshot | null>;
+  activityByPublicationId: ReadonlyMap<string, RouteActivitySnapshot | null>;
   overlayStats: PublishedCoursesActivityOverlayStats;
 } {
-  const { courseIds, excludeCourseId, mapZoom, enabled, worldMapRenderEnabled = true, refreshNonce = 0, externalSync } = opts;
-  const [activityByCourseId, setActivityByCourseId] = useState<
+  const { publicationIds, excludePublicationId, mapZoom, enabled, worldMapRenderEnabled = true, refreshNonce = 0, externalSync } = opts;
+  const [activityByPublicationId, setActivityByPublicationId] = useState<
     ReadonlyMap<string, RouteActivitySnapshot | null>
   >(() => new Map());
   const [overlayCandidateIds, setOverlayCandidateIds] = useState<string[]>([]);
@@ -195,16 +195,16 @@ export function usePublishedCoursesActivityMapOverlay(
   const boundsByCourseRef = useRef<Map<string, BoundsEntry>>(new Map());
   const bumpOverlay = useRef(() => setOverlayEpoch((n) => n + 1));
 
-  const courseIdsKey = useMemo(() => [...new Set(courseIds)].sort().join(","), [courseIds]);
+  const publicationIdsKey = useMemo(() => [...new Set(publicationIds)].sort().join(","), [publicationIds]);
   const useExternalSync = externalSync != null;
 
   const applyBatchMap = useCallback(
     (map: ReadonlyMap<string, RouteActivitySnapshot | null>) => {
-      const exclude = excludeCourseId?.trim() ?? "";
+      const exclude = excludePublicationId?.trim() ?? "";
       const candidateIds = worldMapRenderEnabled ? selectOverlayCandidateIds(map, exclude) : [];
 
       startTransition(() => {
-        setActivityByCourseId(map);
+        setActivityByPublicationId(map);
         setOverlayCandidateIds(candidateIds);
       });
 
@@ -236,7 +236,7 @@ export function usePublishedCoursesActivityMapOverlay(
 
       if (kicked) bumpOverlay.current();
     },
-    [excludeCourseId, worldMapRenderEnabled],
+    [excludePublicationId, worldMapRenderEnabled],
   );
 
   useEffect(() => {
@@ -245,14 +245,14 @@ export function usePublishedCoursesActivityMapOverlay(
 
   useEffect(() => {
     if (!useExternalSync || !enabled) return;
-    applyBatchMap(externalSync.activityByCourseId);
-  }, [useExternalSync, enabled, externalSync?.syncEpoch, externalSync?.activityByCourseId, applyBatchMap]);
+    applyBatchMap(externalSync.activityByPublicationId);
+  }, [useExternalSync, enabled, externalSync?.syncEpoch, externalSync?.activityByPublicationId, applyBatchMap]);
 
   useEffect(() => {
-    if (useExternalSync || !enabled || courseIds.length === 0) {
-      if (!enabled || courseIds.length === 0) {
+    if (useExternalSync || !enabled || publicationIds.length === 0) {
+      if (!enabled || publicationIds.length === 0) {
         startTransition(() => {
-          setActivityByCourseId(new Map());
+          setActivityByPublicationId(new Map());
           setOverlayCandidateIds([]);
         });
         geomByCourseRef.current.clear();
@@ -265,7 +265,7 @@ export function usePublishedCoursesActivityMapOverlay(
     let cancelled = false;
 
     const tick = async () => {
-      const map = await fetchRouteActivitiesBatch(courseIds, { refresh: false });
+      const map = await fetchRouteActivitiesBatch(publicationIds, { refresh: false });
       if (cancelled) return;
       applyBatchMap(map);
     };
@@ -274,21 +274,21 @@ export function usePublishedCoursesActivityMapOverlay(
     return () => {
       cancelled = true;
     };
-  }, [useExternalSync, enabled, courseIdsKey, courseIds, applyBatchMap]);
+  }, [useExternalSync, enabled, publicationIdsKey, publicationIds, applyBatchMap]);
 
   useEffect(() => {
     if (useExternalSync) return;
     if (!enabled || refreshNonce === 0) return;
     let cancelled = false;
     void (async () => {
-      const map = await fetchRouteActivitiesBatch(courseIds, { refresh: true });
+      const map = await fetchRouteActivitiesBatch(publicationIds, { refresh: true });
       if (cancelled) return;
       applyBatchMap(map);
     })();
     return () => {
       cancelled = true;
     };
-  }, [useExternalSync, refreshNonce, enabled, courseIdsKey, courseIds, applyBatchMap]);
+  }, [useExternalSync, refreshNonce, enabled, publicationIdsKey, publicationIds, applyBatchMap]);
 
   const { overlay, overlayStats } = useMemo(() => {
     if (!worldMapRenderEnabled) {
@@ -330,7 +330,7 @@ export function usePublishedCoursesActivityMapOverlay(
     let anchorMissing = 0;
 
     for (const cid of overlayCandidateIds) {
-      const row = activityByCourseId.get(cid);
+      const row = activityByPublicationId.get(cid);
       if (!row) continue;
       if (isRouteActivityLive(row)) liveCandidates += 1;
       else if (isRouteActivityHeat(row)) heatCandidates += 1;
@@ -356,7 +356,7 @@ export function usePublishedCoursesActivityMapOverlay(
       if (lngLat) {
         if (isRouteActivityLive(row)) {
           pulseDots.push({
-            courseId: cid,
+            publicationId: cid,
             lngLat,
             pulseLevel: row.pulseLevel > 0 ? row.pulseLevel : 1,
             kind: "pulse",
@@ -365,7 +365,7 @@ export function usePublishedCoursesActivityMapOverlay(
         } else if (isRouteActivityHeat(row)) {
           const traceStrength = resolveHeatTraceStrength(row.updatedAtMs);
           heatDots.push({
-            courseId: cid,
+            publicationId: cid,
             lngLat,
             pulseLevel: heatVisualWeight(row.recentRideCount7d),
             kind: "heat",
@@ -379,14 +379,14 @@ export function usePublishedCoursesActivityMapOverlay(
         const line = decimateLineStringVertices(g.geometry, maxLineStringVerticesForMapZoom(mapZoom));
         if (isRouteActivityLive(row)) {
           pulseRoutes.push({
-            courseId: cid,
+            publicationId: cid,
             geometry: line,
             kind: "pulse",
             traceStrength: ACTIVITY_TRACE_LIVE_STRENGTH,
           });
         } else if (isRouteActivityHeat(row)) {
           heatRoutes.push({
-            courseId: cid,
+            publicationId: cid,
             geometry: line,
             kind: "heat",
             traceStrength: resolveHeatTraceStrength(row.updatedAtMs),
@@ -408,7 +408,7 @@ export function usePublishedCoursesActivityMapOverlay(
         anchorMissing,
       } satisfies PublishedCoursesActivityOverlayStats,
     };
-  }, [activityByCourseId, overlayCandidateIds, mapZoom, overlayEpoch, worldMapRenderEnabled]);
+  }, [activityByPublicationId, overlayCandidateIds, mapZoom, overlayEpoch, worldMapRenderEnabled]);
 
-  return { ...overlay, activityByCourseId, overlayStats };
+  return { ...overlay, activityByPublicationId, overlayStats };
 }

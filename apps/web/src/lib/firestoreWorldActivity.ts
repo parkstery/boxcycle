@@ -4,13 +4,9 @@ import { lastSeenAtToMillis } from "./firestoreTrail";
 
 /** `worldActivity/global` — 줌 아웃 시 월드 레이어 힌트(저빈도 getDoc) */
 export type WorldActivitySnapshot = {
-  /** @deprecated Phase 7 — {@link activePublicationCount} */
-  activeCourseCount: number;
   activePublicationCount: number;
   livePulseCount: number;
   recentRideCount30d: number;
-  /** @deprecated Phase 7 — {@link highlightedPublications} */
-  highlightedCourses: string[];
   highlightedPublications: string[];
   updatedAtMs: number | null;
 };
@@ -27,9 +23,7 @@ function parseWorldActivityDoc(data: Record<string, unknown>): WorldActivitySnap
   const activePublicationCount =
     typeof data.activePublicationCount === "number" && Number.isFinite(data.activePublicationCount)
       ? Math.max(0, Math.floor(data.activePublicationCount))
-      : typeof data.activeCourseCount === "number" && Number.isFinite(data.activeCourseCount)
-        ? Math.max(0, Math.floor(data.activeCourseCount))
-        : 0;
+      : 0;
   const livePulseCount =
     typeof data.livePulseCount === "number" && Number.isFinite(data.livePulseCount)
       ? Math.max(0, Math.floor(data.livePulseCount))
@@ -38,18 +32,11 @@ function parseWorldActivityDoc(data: Record<string, unknown>): WorldActivitySnap
     typeof data.recentRideCount30d === "number" && Number.isFinite(data.recentRideCount30d)
       ? Math.max(0, Math.floor(data.recentRideCount30d))
       : 0;
-  const highlightedPublications = stringIds(data.highlightedPublications);
-  const highlightedCourses =
-    highlightedPublications.length > 0
-      ? highlightedPublications
-      : stringIds(data.highlightedCourses);
   return {
-    activeCourseCount: activePublicationCount,
     activePublicationCount,
     livePulseCount,
     recentRideCount30d,
-    highlightedCourses,
-    highlightedPublications: highlightedCourses,
+    highlightedPublications: stringIds(data.highlightedPublications),
     updatedAtMs: lastSeenAtToMillis(data.updatedAt),
   };
 }

@@ -29,8 +29,8 @@ export type ActivityWorldLodDebugPanelProps = {
   livePublicationRideLines: number;
   livePublicationRidePublications: number;
   livePublicationRideRows: number;
-  liveActivityCourseIdsCount: number;
-  catalogCourseIdsCount: number;
+  liveActivityPublicationIdsCount: number;
+  catalogPublicationIdsCount: number;
   mapDebugPhase?: MapDebugPhase | null;
 };
 
@@ -62,8 +62,8 @@ export function ActivityWorldLodDebugPanel(props: ActivityWorldLodDebugPanelProp
     livePublicationRideLines,
     livePublicationRidePublications,
     livePublicationRideRows,
-    liveActivityCourseIdsCount,
-    catalogCourseIdsCount,
+    liveActivityPublicationIdsCount,
+    catalogPublicationIdsCount,
   } = props;
 
   const phaseLine =
@@ -95,7 +95,7 @@ geom ${
 pubFetch ${publicationFetchRowCount}${
         publicationLastFetchError ? ` err ${publicationLastFetchError.slice(0, 40)}` : ""
       }
-liveIds ${liveActivityCourseIdsCount} catalog ${catalogCourseIdsCount}
+liveIds ${liveActivityPublicationIdsCount} catalog ${catalogPublicationIdsCount}
 liveRides ${livePublicationRidePublications} rows ${livePublicationRideRows}→line ${livePublicationRideLines}`}
     </pre>
   );

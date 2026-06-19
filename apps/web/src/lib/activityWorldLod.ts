@@ -25,7 +25,7 @@ export type MapViewportBounds = {
 };
 
 export type ActivityWorldMapDot = {
-  courseId: string;
+  publicationId: string;
   lngLat: LngLat;
   pulseLevel: number;
   kind: "pulse" | "heat";
@@ -34,7 +34,7 @@ export type ActivityWorldMapDot = {
 };
 
 export type ActivityWorldMapRoute = {
-  courseId: string;
+  publicationId: string;
   geometry: LineStringGeometry;
   kind: "pulse" | "heat";
   traceStrength: number;
@@ -82,10 +82,10 @@ export function lngLatBoundsToViewport(bounds: {
   return { west: sw.lng, south: sw.lat, east: ne.lng, north: ne.lat };
 }
 
-function courseIdsWithLineGeometry(raw: ActivityWorldRawOverlay): Set<string> {
+function publicationIdsWithLineGeometry(raw: ActivityWorldRawOverlay): Set<string> {
   const ids = new Set<string>();
-  for (const r of raw.pulseRoutes) ids.add(r.courseId);
-  for (const r of raw.heatRoutes) ids.add(r.courseId);
+  for (const r of raw.pulseRoutes) ids.add(r.publicationId);
+  for (const r of raw.heatRoutes) ids.add(r.publicationId);
   return ids;
 }
 
@@ -95,14 +95,14 @@ function lineZoomThreshold(lodState: ActivityWorldLodState): number {
     : MAP_ZOOM_ACTIVITY_WORLD_LINE_ENTER_MIN;
 }
 
-function lineModeForCourse(
+function lineModeForPublication(
   mapZoom: number,
-  courseId: string,
+  publicationId: string,
   lineReady: Set<string>,
   lodState: ActivityWorldLodState,
 ): boolean {
   const z = Number.isFinite(mapZoom) ? mapZoom : 12;
-  return z >= lineZoomThreshold(lodState) && lineReady.has(courseId);
+  return z >= lineZoomThreshold(lodState) && lineReady.has(publicationId);
 }
 
 export function nextActivityWorldLodState(
@@ -126,7 +126,7 @@ export function resolveActivityWorldRender(
   raw: ActivityWorldRawOverlay,
   lodState: ActivityWorldLodState = DEFAULT_ACTIVITY_WORLD_LOD_STATE,
 ): ActivityWorldRenderResult {
-  const lineReady = courseIdsWithLineGeometry(raw);
+  const lineReady = publicationIdsWithLineGeometry(raw);
 
   const pulseRoutes: ActivityWorldMapRoute[] = [];
   const heatRoutes: ActivityWorldMapRoute[] = [];
@@ -134,28 +134,28 @@ export function resolveActivityWorldRender(
   const heatDots: ActivityWorldMapDot[] = [];
 
   for (const r of raw.pulseRoutes) {
-    if (lineModeForCourse(mapZoom, r.courseId, lineReady, lodState)) pulseRoutes.push({ ...r });
+    if (lineModeForPublication(mapZoom, r.publicationId, lineReady, lodState)) pulseRoutes.push({ ...r });
   }
   for (const r of raw.heatRoutes) {
-    if (lineModeForCourse(mapZoom, r.courseId, lineReady, lodState)) heatRoutes.push({ ...r });
+    if (lineModeForPublication(mapZoom, r.publicationId, lineReady, lodState)) heatRoutes.push({ ...r });
   }
   for (const d of raw.pulseDots) {
-    if (!lineModeForCourse(mapZoom, d.courseId, lineReady, lodState)) pulseDots.push({ ...d });
+    if (!lineModeForPublication(mapZoom, d.publicationId, lineReady, lodState)) pulseDots.push({ ...d });
   }
   for (const d of raw.heatDots) {
-    if (!lineModeForCourse(mapZoom, d.courseId, lineReady, lodState)) heatDots.push({ ...d });
+    if (!lineModeForPublication(mapZoom, d.publicationId, lineReady, lodState)) heatDots.push({ ...d });
   }
 
-  /** LINE 모드인데 해당 코스 라인이 아직 없으면 DOT 유지 — geometry 로드 지연·줌 전환 깜빡임 방지 */
-  const pulseLineCourseIds = new Set(pulseRoutes.map((r) => r.courseId));
+  /** LINE 모드인데 해당 출판 라인이 아직 없으면 DOT 유지 — geometry 로드 지연·줌 전환 깜빡임 방지 */
+  const pulseLinePublicationIds = new Set(pulseRoutes.map((r) => r.publicationId));
   for (const d of raw.pulseDots) {
-    if (pulseDots.some((x) => x.courseId === d.courseId)) continue;
-    if (!pulseLineCourseIds.has(d.courseId)) pulseDots.push({ ...d });
+    if (pulseDots.some((x) => x.publicationId === d.publicationId)) continue;
+    if (!pulseLinePublicationIds.has(d.publicationId)) pulseDots.push({ ...d });
   }
-  const heatLineCourseIds = new Set(heatRoutes.map((r) => r.courseId));
+  const heatLinePublicationIds = new Set(heatRoutes.map((r) => r.publicationId));
   for (const d of raw.heatDots) {
-    if (heatDots.some((x) => x.courseId === d.courseId)) continue;
-    if (!heatLineCourseIds.has(d.courseId)) heatDots.push({ ...d });
+    if (heatDots.some((x) => x.publicationId === d.publicationId)) continue;
+    if (!heatLinePublicationIds.has(d.publicationId)) heatDots.push({ ...d });
   }
 
   let overlay: ActivityWorldRenderOverlay;
@@ -232,8 +232,8 @@ export function mergeActivityWorldDots(
   secondary: readonly ActivityWorldMapDot[],
 ): ActivityWorldMapDot[] {
   const m = new Map<string, ActivityWorldMapDot>();
-  for (const d of secondary) m.set(d.courseId, d);
-  for (const d of primary) m.set(d.courseId, d);
+  for (const d of secondary) m.set(d.publicationId, d);
+  for (const d of primary) m.set(d.publicationId, d);
   return [...m.values()];
 }
 
@@ -245,9 +245,9 @@ const P0_TEST_LINE: LineStringGeometry = {
   ],
 };
 
-function p0Dot(courseId: string): ActivityWorldMapDot {
+function p0Dot(publicationId: string): ActivityWorldMapDot {
   return {
-    courseId,
+    publicationId,
     lngLat: [2, 2],
     pulseLevel: 1,
     kind: "pulse",
@@ -259,7 +259,7 @@ function p0Dot(courseId: string): ActivityWorldMapDot {
 export function runActivityWorldLodP0Checks(): void {
   const rawMixed: ActivityWorldRawOverlay = {
     pulseRoutes: [
-      { courseId: "seoul", geometry: P0_TEST_LINE, kind: "pulse", traceStrength: 1 },
+      { publicationId: "seoul", geometry: P0_TEST_LINE, kind: "pulse", traceStrength: 1 },
     ],
     heatRoutes: [],
     pulseDots: [p0Dot("pyongyang")],
@@ -283,7 +283,7 @@ export function runActivityWorldLodP0Checks(): void {
 
   const rawLinesOnly: ActivityWorldRawOverlay = {
     pulseRoutes: [
-      { courseId: "x", geometry: P0_TEST_LINE, kind: "pulse", traceStrength: 1 },
+      { publicationId: "x", geometry: P0_TEST_LINE, kind: "pulse", traceStrength: 1 },
     ],
     heatRoutes: [],
     pulseDots: [],

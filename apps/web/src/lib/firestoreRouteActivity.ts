@@ -18,8 +18,6 @@ import { lastSeenAtToMillis } from "./firestoreTrail";
 /** `routeActivity/{publicationId}` — canonical aggregate */
 export type RouteActivitySnapshot = {
   publicationId: string;
-  /** @deprecated {@link publicationId} */
-  courseId: string;
   activeRiderCount: number;
   recentRideCount7d: number;
   recentLikeCount: number;
@@ -70,7 +68,6 @@ function parseRouteActivityDoc(publicationId: string, data: Record<string, unkno
       : null;
   return {
     publicationId,
-    courseId: publicationId,
     activeRiderCount,
     recentRideCount7d,
     recentLikeCount,
@@ -89,10 +86,10 @@ const inflight = new Map<string, Promise<RouteActivitySnapshot | null>>();
 const rideCompletedOptimistic = new Map<string, RouteActivitySnapshot>();
 
 function mergeRideCompletedOptimistic(
-  courseId: string,
+  publicationId: string,
   server: RouteActivitySnapshot | null,
 ): RouteActivitySnapshot | null {
-  const opt = rideCompletedOptimistic.get(courseId);
+  const opt = rideCompletedOptimistic.get(publicationId);
   if (!opt) return server;
   if (!server) return opt;
 
@@ -101,7 +98,7 @@ function mergeRideCompletedOptimistic(
    * 그렇지 않으면 내가 종료한 코스를 다른 라이더가 달려도 liveNow가 계속 가려진다.
    */
   if (server.liveNow && server.activeRiderCount > 0) {
-    rideCompletedOptimistic.delete(courseId);
+    rideCompletedOptimistic.delete(publicationId);
     return server;
   }
 
@@ -112,7 +109,7 @@ function mergeRideCompletedOptimistic(
   const serverCaughtUp = server7d >= opt.recentRideCount7d && !staleLiveWithoutHeat;
 
   if (serverCaughtUp) {
-    rideCompletedOptimistic.delete(courseId);
+    rideCompletedOptimistic.delete(publicationId);
     return server;
   }
 
@@ -134,7 +131,6 @@ export function markRouteActivityRideCompletedOptimistic(publicationId: string):
   const prev = memoryCache.get(id) ?? rideCompletedOptimistic.get(id) ?? null;
   const next: RouteActivitySnapshot = {
     publicationId: id,
-    courseId: id,
     activeRiderCount: 0,
     recentRideCount7d: (prev?.recentRideCount7d ?? 0) + 1,
     recentLikeCount: prev?.recentLikeCount ?? 0,

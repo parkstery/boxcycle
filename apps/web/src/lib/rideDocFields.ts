@@ -14,12 +14,12 @@ export function resolveRideRouteId(data: Record<string, unknown>): string | null
   return trimOrNull(data.routeId) ?? trimOrNull(data.userRouteId);
 }
 
-/** Firestore rides — 출판 ID (`publicationId` 우선, 레거시 `courseId` 폴백). */
+/** Firestore rides — 출판 ID (`publicationId` only). */
 export function resolveRidePublicationId(data: Record<string, unknown>): string | null {
-  return trimOrNull(data.publicationId) ?? trimOrNull(data.courseId);
+  return trimOrNull(data.publicationId);
 }
 
-/** 신규 rides write — canonical 필드만 (`publicationId`; 레거시 `courseId` 미기록). */
+/** 신규 rides write — canonical 필드만 (`publicationId`). */
 export function buildRideCanonicalWriteFields(input: {
   trailId: string | null;
   routeId: string | null;

@@ -16,7 +16,7 @@ import type { RouteProfile } from "../services/mapboxDirections";
 import type { PublishedPublicCourseSummary } from "../lib/firestoreCourses";
 import {
   resolvePublishedRouteLink,
-  resolvePublishedRouteLinkByCourseId,
+  resolvePublishedRouteLinkByPublicationId,
   type RouteRideEntry,
 } from "../lib/routePublicationResolve";
 import type { LastEndedAdhocState } from "./useSavedRoutesWorkspace";
@@ -178,14 +178,14 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
               /* noop */
             }
           }
-          let persistedCourseId = courseIdRef.current?.trim() || null;
+          let persistedPublicationId = courseIdRef.current?.trim() || null;
           let canonicalRouteId = savedRouteIdAtEnd;
-          let publicationId: string | null = null;
+          let publicationId: string | null = persistedPublicationId;
           let publicTitleSnap: string | null = null;
           let routeEntry: RouteRideEntry | null = rideEntryRef?.current ?? null;
 
           if (
-            !persistedCourseId &&
+            !persistedPublicationId &&
             savedRouteIdAtEnd &&
             routeGeometry &&
             routeGeometry.coordinates.length >= 2
@@ -198,20 +198,20 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
                 catalogHints: publishedCatalogRef?.current,
               });
               if (link) {
-                persistedCourseId = link.courseId;
+                persistedPublicationId = link.publicationId;
                 publicationId = link.publicationId;
                 canonicalRouteId = link.routeId;
                 publicTitleSnap = link.publicTitle;
                 if (!routeEntry) routeEntry = "owner_library";
               }
             } catch {
-              /* publication 조회 실패 시 courseId 없이 저장 */
+              /* publication 조회 실패 시 publicationId 없이 저장 */
             }
           }
 
-          if (persistedCourseId && !canonicalRouteId) {
+          if (persistedPublicationId && !canonicalRouteId) {
             try {
-              const link = await resolvePublishedRouteLinkByCourseId(persistedCourseId);
+              const link = await resolvePublishedRouteLinkByPublicationId(persistedPublicationId);
               if (link) {
                 canonicalRouteId = link.routeId;
                 publicationId = publicationId ?? link.publicationId;
@@ -224,14 +224,13 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
           }
 
           if (savedRouteIdAtEnd && !routeEntry) routeEntry = "owner_library";
-          if (persistedCourseId && !savedRouteIdAtEnd && !routeEntry) {
+          if (persistedPublicationId && !savedRouteIdAtEnd && !routeEntry) {
             routeEntry = "public_catalog";
           }
 
           const rideId = await saveRideSessionToFirestore({
             userId: user.uid,
             trailId,
-            courseId: persistedCourseId,
             routeId: canonicalRouteId,
             publicationId,
             routeEntry,
@@ -242,11 +241,11 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
           if (!rideId) return;
           // aggregate 재조회는 onRidePersisted에서 수행 — 여기서 invalidate 하면
           // CF `recentRideCount7d` 반영 전 서버 0이 낙관 heat를 지워 버린다.
-          onRidePersistedToFirestore?.(persistedCourseId);
-          const courseIdBeforeAsync = courseIdRef.current?.trim() || null;
-          if (persistedCourseId && persistedCourseId !== courseIdBeforeAsync) {
-            markRouteActivityRideCompletedOptimistic(persistedCourseId);
-            onRideEndedWithCourse?.(persistedCourseId);
+          onRidePersistedToFirestore?.(persistedPublicationId);
+          const publicationIdBeforeAsync = courseIdRef.current?.trim() || null;
+          if (persistedPublicationId && persistedPublicationId !== publicationIdBeforeAsync) {
+            markRouteActivityRideCompletedOptimistic(persistedPublicationId);
+            onRideEndedWithCourse?.(persistedPublicationId);
           }
           if (savedRouteIdAtEnd && !savedRouteIdAtEnd.startsWith("local-")) {
             try {

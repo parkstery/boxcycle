@@ -55,7 +55,7 @@ type RideRoutePanelProps = {
   /** 퍼블릭 탭 진입 시 카탈로그 재조회 */
   onRefreshPublishedPublicCourses?: () => void;
   /** 코스별 activity aggregate(메뉴·카탈로그 로드 후) */
-  courseActivityByCourseId?: ReadonlyMap<string, RouteActivitySnapshot | null>;
+  publicationActivityByPublicationId?: ReadonlyMap<string, RouteActivitySnapshot | null>;
   authGuest: boolean;
   /** Firebase Auth 세션(게스트·Google 포함) */
   signedIn: boolean;
@@ -670,7 +670,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
           publishedPublicCoursesLoading={props.publishedPublicCoursesLoading}
           publishedPublicCoursesError={props.publishedPublicCoursesError}
           signedIn={props.signedIn}
-          courseActivityByCourseId={props.courseActivityByCourseId}
+          publicationActivityByPublicationId={props.publicationActivityByPublicationId}
           onEnterBasicHub={props.onEnterBasicHub}
           onLeaveBasicHub={props.onLeaveBasicHub}
         />

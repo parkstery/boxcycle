@@ -20,8 +20,6 @@ export type RoutePublicationStatus = "published" | "archived";
 
 export type RoutePublicationDoc = {
   routeId: string;
-  /** @deprecated Phase 7 — doc id = {@link RoutePublicationRow.publicationId}; 필드는 purge 예정 */
-  courseId?: string;
   publicTitle: string;
   publicSummary: string | null;
   status: RoutePublicationStatus;
@@ -48,8 +46,6 @@ function parsePublicationRow(id: string, data: Record<string, unknown>): RoutePu
   const publicTitle = data.publicTitle;
   if (typeof routeId !== "string" || routeId.length < 1) return null;
   if (typeof publicTitle !== "string" || publicTitle.length < 1) return null;
-  const legacyCourseId =
-    typeof data.courseId === "string" && data.courseId.trim().length > 0 ? data.courseId.trim() : id;
   const status = data.status === "archived" ? "archived" : "published";
   const profile = data.snapshotProfile;
   const snapshotProfile: RouteProfile =
@@ -57,7 +53,6 @@ function parsePublicationRow(id: string, data: Record<string, unknown>): RoutePu
   return {
     publicationId: id,
     routeId,
-    courseId: legacyCourseId,
     publicTitle,
     publicSummary: typeof data.publicSummary === "string" ? data.publicSummary : null,
     status,

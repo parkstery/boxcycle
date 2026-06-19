@@ -54,7 +54,7 @@ export type UseAppMapOverlaysOpts = {
   mapViewportSpanKm: number | null;
   mapLodSpanKm: number | null;
   routeGeometry: LineStringGeometry | null;
-  trackedCourseId: string | null;
+  trackedPublicationId: string | null;
   publishedPublicCourses: readonly PublishedPublicCourseSummary[];
   /** Trailhead 공개 Trail 목록 — 라이브 코스 ID 카탈로그 보강 */
   openTrails: readonly TrailInstance[];
@@ -68,13 +68,13 @@ export type AppMapOverlaysResult = {
   activityWorldRaw: ReturnType<typeof resolveWorldMapOverlay>;
   activityWorldRender: ReturnType<typeof resolveActivityWorldRender>;
   activityWorldLodDebug: ReturnType<typeof resolveActivityWorldLodDebug>;
-  getActivityWorldPinLabel: (courseId: string, kind: "pulse" | "heat") => string | null;
+  getActivityWorldPinLabel: (publicationId: string, kind: "pulse" | "heat") => string | null;
   trailSpectatorDots: ReturnType<typeof useTrailLivePublicationRideSpectatorOverlay>["spectatorDots"];
   trailSpectatorRoutes: ReturnType<typeof useTrailLivePublicationRideSpectatorOverlay>["spectatorRouteGeometries"];
   courseActivity: RouteActivitySnapshot | null;
   reloadCourseActivity: ReturnType<typeof useRouteActivity>["reload"];
   applyRideCompletedOptimistic: ReturnType<typeof useRouteActivity>["applyRideCompletedOptimistic"];
-  courseActivityByCourseId: ReadonlyMap<string, RouteActivitySnapshot | null>;
+  publicationActivityByPublicationId: ReadonlyMap<string, RouteActivitySnapshot | null>;
   worldHudLines: string | null;
   publicationPresenceWorldMapEnabled: boolean;
   lodDebugPanelProps: ActivityWorldLodDebugPanelProps | null;
@@ -95,7 +95,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     mapViewportSpanKm,
     mapLodSpanKm,
     routeGeometry,
-    trackedCourseId,
+    trackedPublicationId,
     publishedPublicCourses,
     openTrails,
     trailLabel,
@@ -107,7 +107,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   const coursePeerIdsForTrailSpectator = useMemo(() => new Set<string>(), []);
 
   const isRideSessionActive = rideStatus === "running" || rideStatus === "paused";
-  const courseActivityEnabled = Boolean(configured && user && trackedCourseId && pageVisible);
+  const courseActivityEnabled = Boolean(configured && user && trackedPublicationId && pageVisible);
 
   const {
     activity: courseActivity,
@@ -116,7 +116,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   } = useRouteActivity({
     configured,
     user,
-    publicationId: trackedCourseId,
+    publicationId: trackedPublicationId,
     enabled: courseActivityEnabled,
     selfRideActive: isRideSessionActive,
   });
@@ -163,21 +163,21 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       excludePeerIds: coursePeerIdsForTrailSpectator,
     });
 
-  const openTrailCourseIds = useMemo(
+  const openTrailPublicationIds = useMemo(
     () =>
       openTrails
-        .map((t) => t.courseId?.trim() ?? "")
+        .map((t) => t.publicationId?.trim() ?? "")
         .filter(Boolean),
     [openTrails],
   );
 
-  const baseCatalogCourseIds = useMemo(() => {
+  const baseCatalogPublicationIds = useMemo(() => {
     const ids = new Set<string>(BASIC_SHARED_HUB_IDS as readonly string[]);
     for (const c of publishedPublicCourses) ids.add(c.id);
-    for (const id of openTrailCourseIds) ids.add(id);
+    for (const id of openTrailPublicationIds) ids.add(id);
     for (const id of trailLivePublicationIds) ids.add(id);
     return [...ids];
-  }, [publishedPublicCourses, openTrailCourseIds, trailLivePublicationIds]);
+  }, [publishedPublicCourses, openTrailPublicationIds, trailLivePublicationIds]);
 
   const worldMapActivityEnabled = Boolean(configured && user && pageVisible);
 
@@ -188,28 +188,32 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     !debugIsolationOn &&
       worldMapActivityEnabled &&
       !publicationPresenceWorldMapEnabled &&
-      baseCatalogCourseIds.length > 0,
+      baseCatalogPublicationIds.length > 0,
   );
 
   const activityWorldSync = useActivityWorldDataSync({
     enabled: activityWorldSyncEnabled,
     selfRideActive: isRideSessionActive,
-    courseIds: baseCatalogCourseIds,
-    excludeCourseId: isRideSessionActive ? trackedCourseId : null,
+    publicationIds: baseCatalogPublicationIds,
+    excludePublicationId: isRideSessionActive ? trackedPublicationId : null,
     refreshNonce: activityMapRefreshNonce,
   });
 
-  const { worldHighlightedCourseIds, liveActivityCourseIds, worldHudLines } = activityWorldSync;
+  const {
+    worldHighlightedPublicationIds,
+    liveActivityPublicationIds,
+    worldHudLines,
+  } = activityWorldSync;
 
-  const catalogCourseIds = useMemo(() => {
-    const ids = new Set<string>(baseCatalogCourseIds);
-    for (const id of worldHighlightedCourseIds) ids.add(id);
-    for (const id of liveActivityCourseIds) ids.add(id);
+  const catalogPublicationIds = useMemo(() => {
+    const ids = new Set<string>(baseCatalogPublicationIds);
+    for (const id of worldHighlightedPublicationIds) ids.add(id);
+    for (const id of liveActivityPublicationIds) ids.add(id);
     return [...ids];
-  }, [baseCatalogCourseIds, worldHighlightedCourseIds, liveActivityCourseIds]);
+  }, [baseCatalogPublicationIds, worldHighlightedPublicationIds, liveActivityPublicationIds]);
 
   const catalogActivityEnabled = Boolean(
-    worldMapActivityEnabled && catalogCourseIds.length > 0,
+    worldMapActivityEnabled && catalogPublicationIds.length > 0,
   );
 
   /** publication 모드: courseActivity N×getDoc·geometry OFF — 패널·HUD는 publication·worldActivityCatalog */
@@ -219,20 +223,20 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   const publicationOverlay = useWorldPublicationPresenceOverlay({
     enabled: debugIsolationOn ? false : publicationPresenceWorldMapEnabled || isPhaseB || isPhaseC,
     mapZoom,
-    excludePublicationRoutesId: isRideSessionActive ? trackedCourseId : null,
+    excludePublicationRoutesId: isRideSessionActive ? trackedPublicationId : null,
     refreshNonce: activityMapRefreshNonce,
   });
 
   const catalogOverlay = usePublishedCoursesActivityMapOverlay({
-    courseIds: catalogCourseIds,
-    excludeCourseId: isRideSessionActive ? trackedCourseId : null,
+    publicationIds: catalogPublicationIds,
+    excludePublicationId: isRideSessionActive ? trackedPublicationId : null,
     mapZoom,
     enabled: catalogOverlayEnabled,
     worldMapRenderEnabled: catalogOverlayEnabled,
     refreshNonce: activityMapRefreshNonce,
     externalSync: activityWorldSyncEnabled
       ? {
-          activityByCourseId: activityWorldSync.activityByCourseId,
+          activityByPublicationId: activityWorldSync.activityByPublicationId,
           syncEpoch: activityWorldSync.syncEpoch,
         }
       : undefined,
@@ -245,7 +249,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     enabled: worldLivePublicationRideOverlayEnabled,
     mapZoom,
     myUid: user?.uid ?? null,
-    excludePublicationId: isRideSessionActive ? trackedCourseId : null,
+    excludePublicationId: isRideSessionActive ? trackedPublicationId : null,
     trailIds: liveRideTrailIds,
   });
 
@@ -256,7 +260,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
         serverHeatDots: publicationOverlay.heatDots,
         publicationWorldMapEnabled: publicationPresenceWorldMapEnabled,
         isRideSessionActive,
-        trackedCourseId,
+        trackedPublicationId,
         routeGeometry,
       }),
     [
@@ -264,7 +268,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       publicationOverlay.heatDots,
       publicationPresenceWorldMapEnabled,
       isRideSessionActive,
-      trackedCourseId,
+      trackedPublicationId,
       routeGeometry,
     ],
   );
@@ -272,7 +276,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   const mapSessionActive = worldMapActivityEnabled;
   const phaseBFallbackDot = useMemo(
     () => ({
-      courseId: "debug-phase-b-fallback",
+      publicationId: "debug-phase-b-fallback",
       lngLat: [8.04, 46.63] as [number, number],
       pulseLevel: 1,
       kind: "pulse" as const,
@@ -314,7 +318,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       };
     }
     const merged = resolveWorldMapOverlay({
-      trackedCourseId,
+      trackedPublicationId,
       active: activeOverlay,
       catalog: {
         pulseRoutes: catalogOverlay.pulseRoutes,
@@ -342,7 +346,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     isPhaseA,
     isPhaseB,
     isPhaseC,
-    trackedCourseId,
+    trackedPublicationId,
     activeOverlay,
     catalogOverlay,
     publicationOverlay,
@@ -388,8 +392,8 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   );
 
   const getActivityWorldPinLabel = useCallback(
-    (courseId: string, kind: "pulse" | "heat") => {
-      const id = courseId.trim();
+    (publicationId: string, kind: "pulse" | "heat") => {
+      const id = publicationId.trim();
       if (publicationPresenceWorldMapEnabled && id) {
         const presenceLabel = formatPublicationPresencePinPopup(
           publicationOverlay.presenceByPublicationId.get(id),
@@ -398,17 +402,17 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
         if (presenceLabel) return presenceLabel;
       }
       const row =
-        id && id === trackedCourseId?.trim()
+        id && id === trackedPublicationId?.trim()
           ? courseActivity
-          : catalogOverlay.activityByCourseId.get(id) ?? null;
+          : catalogOverlay.activityByPublicationId.get(id) ?? null;
       return formatActivityWorldPinPopup(row, kind);
     },
     [
       publicationPresenceWorldMapEnabled,
       publicationOverlay.presenceByPublicationId,
-      trackedCourseId,
+      trackedPublicationId,
       courseActivity,
-      catalogOverlay.activityByCourseId,
+      catalogOverlay.activityByPublicationId,
     ],
   );
 
@@ -481,7 +485,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       const isB = getMapDebugPhase() === "B";
       const usedBFallback =
         isB &&
-        activityWorldRaw.pulseDots[0]?.courseId === "debug-phase-b-fallback" &&
+        activityWorldRaw.pulseDots[0]?.publicationId === "debug-phase-b-fallback" &&
         activityWorldRaw.pulseDots.length > 0;
       console.info("[MapDebug] overlay hooks bypassed — WORLD_LIGHT는 MapView Phase에서만 그림", {
         mapDebugPhase: getMapDebugPhase(),
@@ -543,8 +547,8 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
           livePublicationRideLines: livePublicationRideOverlay.pulseRoutes.length,
           livePublicationRidePublications: livePublicationRideOverlay.livePublicationCount,
           livePublicationRideRows: livePublicationRideOverlay.liveRideRowCount,
-          liveActivityCourseIdsCount: liveActivityCourseIds.length,
-          catalogCourseIdsCount: catalogCourseIds.length,
+          liveActivityPublicationIdsCount: liveActivityPublicationIds.length,
+          catalogPublicationIdsCount: catalogPublicationIds.length,
           mapDebugPhase: mapDebugPhase,
         }
       : null;
@@ -559,7 +563,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     courseActivity,
     reloadCourseActivity,
     applyRideCompletedOptimistic,
-    courseActivityByCourseId: catalogOverlay.activityByCourseId,
+    publicationActivityByPublicationId: catalogOverlay.activityByPublicationId,
     worldHudLines,
     publicationPresenceWorldMapEnabled,
     lodDebugPanelProps,

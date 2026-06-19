@@ -26,9 +26,9 @@ export async function publishLiveLocationFanout(
     result.global = true;
   }
 
-  if (opts.publishRoute && snapshot.routeReady && snapshot.courseId) {
+  if (opts.publishRoute && snapshot.routeReady && snapshot.publicationId) {
     await mergeTrailLivePublicationRideSnapshot(user, snapshot.trailId, {
-      publicationId: snapshot.courseId,
+      publicationId: snapshot.publicationId,
       progressRatio: snapshot.progressRatio,
     });
     if (snapshot.trailId !== DEFAULT_TRAIL_ID) {

@@ -62,7 +62,7 @@ export function useRouteActivityMapOverlay(
     const pulseDots: ActivityWorldMapDot[] = isRouteActivityLive(activity)
       ? [
           {
-            courseId: pubId,
+            publicationId: pubId,
             lngLat,
             pulseLevel: activity.pulseLevel > 0 ? activity.pulseLevel : 1,
             kind: "pulse",
@@ -74,7 +74,7 @@ export function useRouteActivityMapOverlay(
     const heatDots: ActivityWorldMapDot[] = isRouteActivityHeat(activity)
       ? [
           {
-            courseId: pubId,
+            publicationId: pubId,
             lngLat,
             pulseLevel: heatVisualWeight(activity.recentRideCount7d),
             kind: "heat",
@@ -92,10 +92,10 @@ export function useRouteActivityMapOverlay(
     const geom = decimateLineStringVertices(routeGeometry!, maxV);
 
     const pulseRoutes: ActivityWorldMapRoute[] = isRouteActivityLive(activity)
-      ? [{ courseId: pubId, geometry: geom, kind: "pulse", traceStrength: ACTIVITY_TRACE_LIVE_STRENGTH }]
+      ? [{ publicationId: pubId, geometry: geom, kind: "pulse", traceStrength: ACTIVITY_TRACE_LIVE_STRENGTH }]
       : [];
     const heatRoutes: ActivityWorldMapRoute[] = isRouteActivityHeat(activity)
-      ? [{ courseId: pubId, geometry: geom, kind: "heat", traceStrength: heatStrength }]
+      ? [{ publicationId: pubId, geometry: geom, kind: "heat", traceStrength: heatStrength }]
       : [];
 
     return { pulseRoutes, heatRoutes, pulseDots, heatDots };

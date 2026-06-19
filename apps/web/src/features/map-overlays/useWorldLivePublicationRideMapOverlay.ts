@@ -197,7 +197,7 @@ export function useWorldLivePublicationRideMapOverlay(opts: {
       if (!g || g.status !== "ready") continue;
 
       pulseRoutes.push({
-        courseId: agg.publicationId,
+        publicationId: agg.publicationId,
         geometry: decimateLineStringVertices(g.geometry, maxLineStringVerticesForMapZoom(mapZoom)),
         kind: "pulse",
         traceStrength: ACTIVITY_TRACE_LIVE_STRENGTH,

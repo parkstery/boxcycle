@@ -59,7 +59,7 @@ function presenceToDots(rows: readonly PublicationPresenceSnapshot[]): {
     if (activeLive) {
       const level = row.activeRiderCount > 0 ? row.activeRiderCount : 1;
       pulseDots.push({
-        courseId: publicationId,
+        publicationId: publicationId,
         lngLat,
         pulseLevel: Math.min(3, Math.max(1, level)),
         kind: "pulse",
@@ -69,7 +69,7 @@ function presenceToDots(rows: readonly PublicationPresenceSnapshot[]): {
       const traceStrength = resolveClosedPresenceOpacity(row.closedAtMs);
       if (traceStrength <= 0) continue;
       heatDots.push({
-        courseId: publicationId,
+        publicationId: publicationId,
         lngLat,
         pulseLevel: 1,
         kind: "heat",
@@ -267,7 +267,7 @@ export function useWorldPublicationPresenceOverlay(opts: UseWorldPublicationPres
         const line = decimateLineStringVertices(g.geometry, maxLineStringVerticesForMapZoom(mapZoom));
         if (row.status === "active" && (row.activeRiderCount > 0 || row.liveNow)) {
           pulseRoutes.push({
-            courseId: pid,
+            publicationId: pid,
             geometry: line,
             kind: "pulse",
             traceStrength: ACTIVITY_TRACE_LIVE_STRENGTH,
@@ -276,7 +276,7 @@ export function useWorldPublicationPresenceOverlay(opts: UseWorldPublicationPres
           const traceStrength = resolveClosedPresenceOpacity(row.closedAtMs);
           if (traceStrength <= 0) continue;
           heatRoutes.push({
-            courseId: pid,
+            publicationId: pid,
             geometry: line,
             kind: "heat",
             traceStrength,

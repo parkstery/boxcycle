@@ -94,7 +94,7 @@ if (import.meta.env.DEV) {
 
 export function buildMapDebugPhaseAHardcodedDot(): ActivityWorldMapDot {
   return {
-    courseId: "debug-hardcoded",
+    publicationId: "debug-hardcoded",
     lngLat: MAP_DEBUG_PHASE_A_LNGLAT,
     pulseLevel: 1,
     kind: "pulse",
@@ -136,7 +136,7 @@ export function useMapDebugPhaseBPulseDot(enabled: boolean): {
         setMeta({ rowCount: rows.length, fetchError });
         if (withPoint?.representativePoint) {
           setDot({
-            courseId: withPoint.publicationId,
+            publicationId: withPoint.publicationId,
             lngLat: withPoint.representativePoint,
             pulseLevel: 1,
             kind: "pulse",

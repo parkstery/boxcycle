@@ -275,7 +275,7 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
       if (resolveLink) {
         void resolveLink(route).then((link) => {
           if (!link) return;
-          setActiveOfficialCourseId(link.courseId);
+          setActiveOfficialCourseId(link.publicationId);
           setRouteSummary(
             `${summaryBase} · 퍼블릭 「${link.publicTitle}」과 동일 경로(주행·활동 집계 연동)`,
           );

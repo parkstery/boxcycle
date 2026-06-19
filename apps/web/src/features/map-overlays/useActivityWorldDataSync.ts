@@ -25,54 +25,54 @@ import { isActivityLodDebugPanelEnabled } from "../../lib/mapDebugPhase";
 export type UseActivityWorldDataSyncOpts = {
   enabled: boolean;
   selfRideActive: boolean;
-  courseIds: readonly string[];
-  excludeCourseId: string | null;
+  publicationIds: readonly string[];
+  excludePublicationId: string | null;
   refreshNonce?: number;
 };
 
 export type ActivityWorldDataSyncResult = {
-  worldHighlightedCourseIds: string[];
-  liveActivityCourseIds: string[];
+  worldHighlightedPublicationIds: string[];
+  liveActivityPublicationIds: string[];
   worldHudLines: string | null;
-  activityByCourseId: ReadonlyMap<string, RouteActivitySnapshot | null>;
+  activityByPublicationId: ReadonlyMap<string, RouteActivitySnapshot | null>;
   syncEpoch: number;
 };
 
 /**
- * WO-A: catalog + N×courseActivity batch를 단일 adaptive poll로 동기화(중복 fetch 방지).
+ * WO-A: catalog + N×routeActivity batch를 단일 adaptive poll로 동기화(중복 fetch 방지).
  */
 export function useActivityWorldDataSync(opts: UseActivityWorldDataSyncOpts): ActivityWorldDataSyncResult {
-  const { enabled, selfRideActive, courseIds, excludeCourseId, refreshNonce = 0 } = opts;
+  const { enabled, selfRideActive, publicationIds, excludePublicationId, refreshNonce = 0 } = opts;
 
-  const [worldHighlightedCourseIds, setWorldHighlightedCourseIds] = useState<string[]>([]);
-  const [liveActivityCourseIds, setLiveActivityCourseIds] = useState<string[]>([]);
+  const [worldHighlightedPublicationIds, setWorldHighlightedPublicationIds] = useState<string[]>([]);
+  const [liveActivityPublicationIds, setLiveActivityPublicationIds] = useState<string[]>([]);
   const [worldHudLines, setWorldHudLines] = useState<string | null>(null);
-  const [activityByCourseId, setActivityByCourseId] = useState<
+  const [activityByPublicationId, setActivityByPublicationId] = useState<
     ReadonlyMap<string, RouteActivitySnapshot | null>
   >(() => new Map());
   const [syncEpoch, setSyncEpoch] = useState(0);
 
-  const courseIdsKey = useMemo(() => [...new Set(courseIds)].sort().join(","), [courseIds]);
-  const courseIdsRef = useRef(courseIds);
-  courseIdsRef.current = courseIds;
-  const highlightedRef = useRef(worldHighlightedCourseIds);
-  highlightedRef.current = worldHighlightedCourseIds;
-  const liveIdsRef = useRef(liveActivityCourseIds);
-  liveIdsRef.current = liveActivityCourseIds;
+  const publicationIdsKey = useMemo(() => [...new Set(publicationIds)].sort().join(","), [publicationIds]);
+  const publicationIdsRef = useRef(publicationIds);
+  publicationIdsRef.current = publicationIds;
+  const highlightedRef = useRef(worldHighlightedPublicationIds);
+  highlightedRef.current = worldHighlightedPublicationIds;
+  const liveIdsRef = useRef(liveActivityPublicationIds);
+  liveIdsRef.current = liveActivityPublicationIds;
 
-  const resolveFetchCourseIds = useCallback((): string[] => {
-    const merged = new Set<string>(courseIdsRef.current);
+  const resolveFetchPublicationIds = useCallback((): string[] => {
+    const merged = new Set<string>(publicationIdsRef.current);
     for (const id of highlightedRef.current) merged.add(id);
     for (const id of liveIdsRef.current) merged.add(id);
     return [...merged];
   }, []);
-  const excludeRef = useRef(excludeCourseId);
-  excludeRef.current = excludeCourseId;
+  const excludeRef = useRef(excludePublicationId);
+  excludeRef.current = excludePublicationId;
   const selfRideRef = useRef(selfRideActive);
   selfRideRef.current = selfRideActive;
 
   const runFullSync = useCallback(async (refresh: boolean) => {
-    const ids = resolveFetchCourseIds();
+    const ids = resolveFetchPublicationIds();
     if (refresh && ids.length > 0) {
       invalidateRouteActivityCache([...ids]);
     }
@@ -93,24 +93,22 @@ export function useActivityWorldDataSync(opts: UseActivityWorldDataSyncOpts): Ac
       lastBatchLiveCount,
     });
 
-      const highlighted = new Set<string>(
-        worldActivity?.highlightedPublications ?? worldActivity?.highlightedCourses ?? [],
-      );
+    const highlighted = new Set<string>(worldActivity?.highlightedPublications ?? []);
     for (const id of liveIds) highlighted.add(id);
 
     startTransition(() => {
-      setLiveActivityCourseIds(liveIds);
-      setWorldHighlightedCourseIds([...highlighted]);
+      setLiveActivityPublicationIds(liveIds);
+      setWorldHighlightedPublicationIds([...highlighted]);
       setWorldHudLines(
         mergeWorldHudLines(
           formatWorldPresenceHudLine(presence.regions),
           formatWorldActivityHudLine(worldActivity),
         ),
       );
-      setActivityByCourseId(batchMap);
+      setActivityByPublicationId(batchMap);
       setSyncEpoch((n) => n + 1);
     });
-  }, [resolveFetchCourseIds]);
+  }, [resolveFetchPublicationIds]);
 
   const runFullSyncRef = useRef(runFullSync);
   runFullSyncRef.current = runFullSync;
@@ -118,9 +116,9 @@ export function useActivityWorldDataSync(opts: UseActivityWorldDataSyncOpts): Ac
   useEffect(() => {
     if (!enabled) {
       setWorldHudLines(null);
-      setWorldHighlightedCourseIds([]);
-      setLiveActivityCourseIds([]);
-      setActivityByCourseId(new Map());
+      setWorldHighlightedPublicationIds([]);
+      setLiveActivityPublicationIds([]);
+      setActivityByPublicationId(new Map());
       reportActivityWorldPollSignals({
         selfRideActive: false,
         worldLivePulseCount: 0,
@@ -147,13 +145,13 @@ export function useActivityWorldDataSync(opts: UseActivityWorldDataSyncOpts): Ac
     void runFullSyncRef.current(true);
   }, [enabled, refreshNonce]);
 
-  void courseIdsKey;
+  void publicationIdsKey;
 
   return {
-    worldHighlightedCourseIds,
-    liveActivityCourseIds,
+    worldHighlightedPublicationIds,
+    liveActivityPublicationIds,
     worldHudLines,
-    activityByCourseId,
+    activityByPublicationId,
     syncEpoch,
   };
 }

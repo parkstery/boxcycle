@@ -23,7 +23,6 @@ type RideDoc = {
   trailId: string | null;
   /** @deprecated read fallback only — 신규 write 없음 */
   roomId?: string | null;
-  courseId: string | null;
   profile: "cycling" | "driving" | "walking";
   startedAt: Timestamp | null;
   endedAt: Timestamp;
@@ -55,8 +54,6 @@ type RideDoc = {
 export async function saveRideSessionToFirestore(input: {
   userId: string;
   trailId: string | null;
-  /** Activity aggregate — `publicationId` (레거시 `courseId` 파라미터는 publicationId 로 해석) */
-  courseId?: string | null;
   routeId?: string | null;
   publicationId?: string | null;
   routeEntry?: RouteRideEntry | null;
@@ -75,12 +72,9 @@ export async function saveRideSessionToFirestore(input: {
 
   const canonicalRouteId = input.routeId ?? input.session.userRouteId ?? null;
   const canonicalPublicationId =
-    (typeof input.publicationId === "string" && input.publicationId.trim().length > 0
+    typeof input.publicationId === "string" && input.publicationId.trim().length > 0
       ? input.publicationId.trim()
-      : null) ??
-    (typeof input.courseId === "string" && input.courseId.trim().length > 0
-      ? input.courseId.trim()
-      : null);
+      : null;
 
   const canonical = buildRideCanonicalWriteFields({
     trailId: input.trailId,
@@ -91,7 +85,6 @@ export async function saveRideSessionToFirestore(input: {
   const docData: RideDoc = {
     userId: input.userId,
     trailId: canonical.trailId,
-    courseId: null,
     profile: input.profile,
     startedAt: null,
     endedAt,
