@@ -13,6 +13,7 @@ export type BackfillTrailsPublicationIdResult = {
   dryRun: boolean;
   trails: { scanned: number; publicationIdSet: number; courseIdRemoved: number };
   listings: { scanned: number; publicationIdSet: number; courseIdRemoved: number };
+  openTrailListingsRefreshed: number;
 };
 
 async function processCollection(
@@ -71,11 +72,63 @@ async function processCollection(
   return { scanned, publicationIdSet, courseIdRemoved };
 }
 
+/** 공개 Trail — `openTrailListings` upsert (라이더 0명도 목록 유지) */
+async function refreshOpenTrailListingsFromTrails(
+  dryRun: boolean,
+): Promise<number> {
+  const db = getFirestore();
+  const snap = await db
+    .collection("trails")
+    .where("visibility", "==", "open")
+    .where("status", "==", "open")
+    .get();
+  let refreshed = 0;
+  const pending: Array<{ ref: FirebaseFirestore.DocumentReference; patch: Record<string, unknown> }> =
+    [];
+
+  for (const doc of snap.docs) {
+    const data = doc.data() as Record<string, unknown>;
+    const publicationId = trimOrNull(data.publicationId) ?? trimOrNull(data.courseId);
+    if (!publicationId) continue;
+    refreshed += 1;
+    if (!dryRun) {
+      pending.push({
+        ref: db.collection("openTrailListings").doc(doc.id),
+        patch: {
+          trailId: doc.id,
+          hostUid: typeof data.hostUid === "string" ? data.hostUid : "",
+          displayNumber:
+            typeof data.displayNumber === "number" && Number.isFinite(data.displayNumber)
+              ? Math.max(1, Math.min(999, Math.floor(data.displayNumber)))
+              : 1,
+          regionLabel: typeof data.regionLabel === "string" ? data.regionLabel : null,
+          distanceKm: typeof data.distanceKm === "number" ? data.distanceKm : null,
+          publicationId,
+          riderCount: 0,
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+      });
+    }
+  }
+
+  if (!dryRun) {
+    for (let i = 0; i < pending.length; i += BATCH_LIMIT) {
+      const chunk = pending.slice(i, i + BATCH_LIMIT);
+      const batch = db.batch();
+      for (const item of chunk) batch.set(item.ref, item.patch, { merge: true });
+      await batch.commit();
+    }
+  }
+
+  return refreshed;
+}
+
 /** `trails`·`openTrailListings` — `courseId` → `publicationId` copy 후 `courseId` delete */
 export async function backfillTrailsPublicationIdWithAdminSdk(input: {
   dryRun: boolean;
 }): Promise<BackfillTrailsPublicationIdResult> {
   const trails = await processCollection("trails", input.dryRun);
   const listings = await processCollection("openTrailListings", input.dryRun);
-  return { dryRun: input.dryRun, trails, listings };
+  const openTrailListingsRefreshed = await refreshOpenTrailListingsFromTrails(input.dryRun);
+  return { dryRun: input.dryRun, trails, listings, openTrailListingsRefreshed };
 }

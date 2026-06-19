@@ -18,6 +18,7 @@ import {
   scheduleOpenTrailListingRefresh,
 } from "./firestoreOpenTrailListings";
 import { assertPublicTrailHasRoute, trailHasConfiguredRoute } from "./trailAccessPolicy";
+import { resolvePublicationIdFromDoc } from "./resolvePublicationIdFromDoc";
 
 export type TrailVisibility = "open" | "private";
 export type TrailStatus = "open" | "closed" | "archived";
@@ -50,11 +51,7 @@ type TrailInstanceDoc = {
 };
 
 function resolveTrailPublicationId(data: Record<string, unknown>): string | null {
-  const publicationId =
-    typeof data.publicationId === "string" && data.publicationId.trim()
-      ? data.publicationId.trim()
-      : "";
-  return publicationId || null;
+  return resolvePublicationIdFromDoc(data);
 }
 
 function timestampToMs(raw: unknown): number | null {
@@ -146,6 +143,15 @@ export async function createTrailInstance(input: {
   };
   void refreshOpenTrailListingFromTrail(created.id);
   return created;
+}
+
+export function withResolvedTrailPublicationId(
+  trail: TrailInstance,
+  fallbackPublicationId?: string | null,
+): TrailInstance {
+  if (trail.publicationId?.trim()) return trail;
+  const id = fallbackPublicationId?.trim();
+  return id ? { ...trail, publicationId: id } : trail;
 }
 
 export async function fetchTrailInstance(trailId: string): Promise<TrailInstance | null> {

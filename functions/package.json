@@ -21,7 +21,8 @@
     "admin:migrate-live-publication-rides": "npm run build && node lib/cliMigrateLivePublicationRides.js",
     "admin:archive-courses": "npm run build && node lib/cliArchiveCourses.js",
     "admin:migrate-publication-sessions": "npm run build && node lib/cliMigratePublicationSessions.js",
-    "admin:phase7-terminology-purge": "npm run build && node lib/cliPhase7TerminologyPurge.js"
+    "admin:phase7-terminology-purge": "npm run build && node lib/cliPhase7TerminologyPurge.js",
+    "admin:backfill-trails-publication-id": "npm run build && node lib/cliBackfillTrailsPublicationId.js"
   },
   "dependencies": {
     "firebase-admin": "^13.6.0",

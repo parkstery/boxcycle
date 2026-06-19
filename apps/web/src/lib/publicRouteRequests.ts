@@ -14,12 +14,13 @@ import {
   writeBatch,
   getFirestore,
 } from "firebase/firestore";
+import { FirebaseError } from "firebase/app";
 import type { User } from "firebase/auth";
 import { getFirebaseApp } from "./firebase";
 import { type LineStringGeometry, type LngLat } from "./geo";
 import type { RouteProfile } from "../services/mapboxDirections";
 import type { SavedRoute } from "./firestoreSavedRoutes";
-import { SAVED_ROUTE_MAX_COORDS } from "./firestoreSavedRoutes";
+import { SAVED_ROUTE_MAX_COORDS, SAVED_ROUTES_COLLECTION } from "./firestoreSavedRoutes";
 import { computeRouteFingerprint } from "./routeFingerprint";
 import { decodeLineStringCoordsJson } from "./lineStringCoordsJson";
 import { assertPublicRouteAutoReview } from "./publicRouteAutoReview";
@@ -84,6 +85,47 @@ const PUBLIC_SUMMARY_MAX = 500;
 const REJECTION_REASON_MAX = 500;
 
 const ALLOWED_TAG_SET = new Set<string>(EXPERIENCE_TAG_OPTIONS.map((o) => o.id));
+
+function isSavedRouteCompletedInFirestore(data: Record<string, unknown>): boolean {
+  return data.completed === 1 || data.completed === true;
+}
+
+function formatPublicRouteFirestoreError(err: unknown): Error {
+  if (err instanceof FirebaseError) {
+    if (err.code === "permission-denied") {
+      return new Error(
+        "퍼블릭 신청 권한이 없습니다. Google 로그인·닉네임 설정·경로 완주(클라우드 저장) 상태를 확인한 뒤 새로고침해 보세요.",
+      );
+    }
+    if (err.code === "failed-precondition" && err.message.includes("index")) {
+      return new Error("서버 인덱스 준비 중입니다. 잠시 후 다시 시도해 주세요.");
+    }
+  }
+  return err instanceof Error ? err : new Error(String(err));
+}
+
+async function assertPublicRouteRequestPreflight(user: User, route: SavedRoute): Promise<void> {
+  const db = getFirestore(getFirebaseApp());
+  const routeSnap = await getDoc(doc(db, SAVED_ROUTES_COLLECTION, route.id));
+  if (!routeSnap.exists()) {
+    throw new Error("클라우드에 저장된 경로를 찾을 수 없습니다. 새로고침 후 다시 시도하세요.");
+  }
+  const routeData = routeSnap.data() as Record<string, unknown>;
+  if (routeData.userId !== user.uid) {
+    throw new Error("본인 경로만 신청할 수 있습니다.");
+  }
+  if (!isSavedRouteCompletedInFirestore(routeData)) {
+    throw new Error(
+      "서버에 완주 기록이 없습니다. 해당 경로를 다시 완주하거나 목록을 새로고침한 뒤 신청하세요.",
+    );
+  }
+
+  const userSnap = await getDoc(doc(db, "users", user.uid));
+  const tier = userSnap.data()?.tier;
+  if (tier !== "registered_free" && tier !== "registered_paid" && tier !== "admin") {
+    throw new Error(GUEST_PUBLIC_ROUTE_MSG);
+  }
+}
 
 function toIso(value: unknown): string {
   if (value instanceof Timestamp) return value.toDate().toISOString();
@@ -237,6 +279,7 @@ export async function createPublicRouteRequest(
     namingPolicyAcknowledged: boolean;
   },
 ): Promise<string> {
+  try {
   const tier = await getUserProfileTier(user.uid);
   if (!canSubmitPublicRoute(tier, user)) {
     throw new Error(GUEST_PUBLIC_ROUTE_MSG);
@@ -266,6 +309,7 @@ export async function createPublicRouteRequest(
   }
 
   const db = getFirestore(getFirebaseApp());
+  await assertPublicRouteRequestPreflight(user, route);
   const existing = await getDocs(
     query(
       collection(db, PUBLIC_ROUTE_REQUESTS_COLLECTION),
@@ -314,6 +358,9 @@ export async function createPublicRouteRequest(
 
   const ref = await addDoc(collection(db, PUBLIC_ROUTE_REQUESTS_COLLECTION), payload);
   return ref.id;
+  } catch (err) {
+    throw formatPublicRouteFirestoreError(err);
+  }
 }
 
 export async function loadPendingPublicRouteRequests(): Promise<PublicRouteRequest[]> {

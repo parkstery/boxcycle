@@ -18,7 +18,7 @@ export type TrailHubPanelProps = {
   openTrailsLoading: boolean;
   openTrailsError: string | null;
   onGoTrailhead: () => void;
-  onJoinTrail: (trailId: string) => void;
+  onJoinTrail: (trailId: string, listingPublicationId?: string | null) => void;
   onSetVisibility: (visibility: TrailVisibility) => void;
   visibilityBusy?: boolean;
 };
@@ -125,7 +125,7 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
               <button
                 type="button"
                 className="trail-hub__join-btn"
-                onClick={() => props.onJoinTrail(t.id)}
+                onClick={() => props.onJoinTrail(t.id, t.publicationId)}
               >
                 {formatTrailRow(t)}
               </button>

@@ -20,7 +20,7 @@ import { assertTierQuotaClient } from "./tierQuota";
 import { MAX_ROUTE_WAYPOINTS } from "./routeWaypoints";
 import { computeRouteFingerprint } from "./routeFingerprint";
 
-const SAVED_ROUTES_COLLECTION = "savedRoutes";
+export const SAVED_ROUTES_COLLECTION = "savedRoutes";
 
 /**
  * 사용자 경로 TTL 정책.

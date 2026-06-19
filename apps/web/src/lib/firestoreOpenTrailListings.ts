@@ -19,6 +19,7 @@ import { countTrailLiveRidersFresh } from "./firestoreTrailLivePublicationRides"
 import { trailHasConfiguredRoute } from "./trailAccessPolicy";
 import { TRAILS_COLLECTION } from "./firestoreTrailPaths";
 import type { TrailInstance } from "./firestoreTrailInstance";
+import { resolvePublicationIdFromDoc } from "./resolvePublicationIdFromDoc";
 
 /** Trailhead 공개 목록 — realtime 단일 진실 (자문: openTrailInstances) */
 export const OPEN_TRAIL_LISTINGS_COLLECTION = "openTrailListings";
@@ -37,11 +38,7 @@ type OpenTrailListingDoc = {
 };
 
 function resolveListingPublicationId(data: Record<string, unknown>): string | null {
-  const publicationId =
-    typeof data.publicationId === "string" && data.publicationId.trim()
-      ? data.publicationId.trim()
-      : "";
-  return publicationId || null;
+  return resolvePublicationIdFromDoc(data);
 }
 
 function listingRef(trailId: string) {
@@ -141,6 +138,12 @@ function timestampToMs(raw: unknown): number | null {
   return null;
 }
 
+export async function fetchOpenTrailListingPublicationId(trailId: string): Promise<string | null> {
+  const snap = await getDoc(listingRef(trailId));
+  if (!snap.exists()) return null;
+  return resolveListingPublicationId(snap.data() as Record<string, unknown>);
+}
+
 export async function removeOpenTrailListing(trailId: string): Promise<void> {
   await deleteDoc(listingRef(trailId)).catch(() => {});
 }
@@ -153,10 +156,6 @@ export async function refreshOpenTrailListingFromTrail(trailId: string): Promise
     return;
   }
   const riderCount = await countTrailActiveParticipantsForTrail(trail).catch(() => 0);
-  if (riderCount <= 0) {
-    await removeOpenTrailListing(trailId);
-    return;
-  }
   const payload: OpenTrailListingDoc = {
     trailId: trail.id,
     hostUid: trail.hostUid,

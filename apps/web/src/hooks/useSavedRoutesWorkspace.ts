@@ -225,24 +225,28 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
         throw new Error("Firebase 설정이 필요합니다.");
       }
       const saved = await saveRouteToFirestore({ ...base, userId: uid }, user!);
+      let promotedOnServer = false;
       try {
         await promoteSavedRouteInFirestore({
           userId: uid,
           routeId: saved.id,
           rideId: rideId ?? "",
         });
+        promotedOnServer = true;
       } catch {
-        /* 격상 실패해도 사용자 경로는 이미 생성됨 */
+        /* 격상 실패 시 로컬 completed=1 로 표시하지 않음 */
       }
       const nowIso = new Date().toISOString();
-      const promoted: SavedRoute = {
-        ...saved,
-        completed: 1,
-        completedAtIso: nowIso,
-        expiresAtIso: null,
-        lastRideId: rideId ?? null,
-        updatedAtIso: nowIso,
-      };
+      const promoted: SavedRoute = promotedOnServer
+        ? {
+            ...saved,
+            completed: 1,
+            completedAtIso: nowIso,
+            expiresAtIso: null,
+            lastRideId: rideId ?? null,
+            updatedAtIso: nowIso,
+          }
+        : saved;
       setSavedRoutes((prev) => [promoted, ...prev]);
       setLastEndedWasAdhoc(null);
     },

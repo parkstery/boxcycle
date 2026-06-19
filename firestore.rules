@@ -40,10 +40,16 @@ service cloud.firestore {
         && t.hasOnly(['mountain_trail', 'coastal_road', 'water_route', 'urban', 'countryside']);
     }
 
+    function savedRouteCompleted(data) {
+      return data.keys().hasAny(['completed'])
+        && (data.completed == 1 || data.completed == true);
+    }
+
     function savedRouteOwnedAndCompletedForRequest(savedRouteId) {
+      let routeDoc = get(/databases/$(database)/documents/savedRoutes/$(savedRouteId));
       return exists(/databases/$(database)/documents/savedRoutes/$(savedRouteId))
-        && get(/databases/$(database)/documents/savedRoutes/$(savedRouteId)).data.userId == request.auth.uid
-        && get(/databases/$(database)/documents/savedRoutes/$(savedRouteId)).data.completed == 1;
+        && routeDoc.data.userId == request.auth.uid
+        && savedRouteCompleted(routeDoc.data);
     }
 
     /**
@@ -117,9 +123,12 @@ service cloud.firestore {
     }
 
     function trailHasPublicationId(data) {
-      return data.keys().hasAny(['publicationId'])
-        && data.publicationId is string
-        && data.publicationId.size() > 0;
+      return (data.keys().hasAny(['publicationId'])
+          && data.publicationId is string
+          && data.publicationId.size() > 0)
+        || (data.keys().hasAny(['courseId'])
+          && data.courseId is string
+          && data.courseId.size() > 0);
     }
 
     /** 공개 Trail 은 publicationId 필수 — 비공개는 경로 없이 개설 가능(개설자 전용) */
@@ -404,7 +413,7 @@ service cloud.firestore {
     /** UGC 퍼블릭 출판 스냅샷 — `routeId` = `savedRoutes` id */
     match /routePublications/{publicationId} {
       allow read: if isSignedIn()
-        || (resource.data.keys().hasAny(['status']) && resource.data.status == 'published');
+        || resource.data.get('status', '') == 'published';
       allow create: if isRouteReviewer()
         && request.resource.data.routeId is string
         && request.resource.data.routeId.size() > 0

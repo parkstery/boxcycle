@@ -9,6 +9,12 @@ export const MAP_GLOBE_MIN_ZOOM = 0;
 /** 맵 시트 슬라이더 상한(Mapbox 기본 maxZoom 근처) */
 export const MAP_ZOOM_SLIDER_MAX = 22;
 
+/** 주행 중 후방 추적 카메라 줌 — 캐릭터가 화면에 들어오도록 21.5 고정 */
+export const RIDE_FOLLOW_CAMERA_ZOOM = 21.5;
+
+/** 주행 시작 시 자동 적용할 팔로우 모드 */
+export const RIDE_FOLLOW_CAMERA_MODE = "rear30" as const;
+
 /** 지구 전체가 한 화면에 보이도록 카메라를 맞춘다(극지 왜곡 완화용 위도 클램프). */
 export function applyMapGlobeView(map: MapboxMap): void {
   map.stop();

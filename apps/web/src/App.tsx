@@ -16,6 +16,7 @@ import { AppMapStage, useAppMapOverlays } from "./features/map-overlays";
 import { DebugMapStage } from "./features/map-overlays/DebugMapStage";
 import type { MapViewportBounds } from "./lib/activityWorldLod";
 import { MAP_ZOOM_WORLD_ACTIVITY_MAX, MAP_PEER_SPRITE_MIN_ZOOM } from "./lib/rideSyncPolicy";
+import { RIDE_FOLLOW_CAMERA_MODE, RIDE_FOLLOW_CAMERA_ZOOM } from "./lib/mapGlobeView";
 import { AuthGateCard, AuthGoogleMark } from "./components/AuthGateCard";
 import { GuestEntryCard } from "./components/GuestEntryCard";
 import { allowUnauthMapDev } from "./lib/authGatePolicy";
@@ -34,8 +35,10 @@ import {
   fetchTrailInstance,
   setTrailVisibility,
   touchTrailInstanceActivity,
+  withResolvedTrailPublicationId,
   type TrailInstance,
 } from "./lib/firestoreTrailInstance";
+import { fetchOpenTrailListingPublicationId } from "./lib/firestoreOpenTrailListings";
 import { formatTrailDisplayNumber, resolveTrailDisplayLabel } from "./lib/trailDisplayNumber";
 import { RotateOverlay } from "./components/RotateOverlay";
 import { MapViewSheet } from "./components/MapViewSheet";
@@ -136,6 +139,7 @@ export default function App() {
 
   const [mapStyle, setMapStyle] = useState(MAP_STYLE_OPTIONS[3].value);
   const [mapZoom, setMapZoom] = useState(12);
+  const [rideFollowCameraNonce, setRideFollowCameraNonce] = useState(0);
   const [mapViewportSpanKm, setMapViewportSpanKm] = useState<number | null>(null);
   /** 전역 livePresence publish — idle 시 지도 중심(주행 중에는 liveForMap 우선) */
   const [mapViewportCenterLngLat, setMapViewportCenterLngLat] = useState<LngLat>([127.035, 37.505]);
@@ -157,6 +161,11 @@ export default function App() {
   }, []);
   const [followMode, setFollowMode] = useState<FollowMode>("keep");
   const [enable3D, setEnable3D] = useState(true);
+  const followModeSnapshotRef = useRef(followMode);
+  const mapZoomSnapshotRef = useRef(mapZoom);
+  followModeSnapshotRef.current = followMode;
+  mapZoomSnapshotRef.current = mapZoom;
+  const rideCameraRestoreRef = useRef<{ follow: FollowMode; zoom: number } | null>(null);
   const [speedKmh, setSpeedKmh] = useState(5);
   const {
     rideTtsEnabled,
@@ -242,11 +251,35 @@ export default function App() {
     }
   }, [sanitizedTrailId, trailMetaSeed]);
 
-  const { meta: currentTrailMeta, reload: reloadCurrentTrailMeta } = useTrailInstanceMeta(
+  const { meta: currentTrailMetaRaw, reload: reloadCurrentTrailMeta } = useTrailInstanceMeta(
     sanitizedTrailId,
     Boolean(configured && user && onDedicatedTrail),
     trailMetaSeed,
   );
+
+  const [trailListingPublicationId, setTrailListingPublicationId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!configured || sanitizedTrailId === DEFAULT_TRAIL_ID) {
+      setTrailListingPublicationId(null);
+      return;
+    }
+    let cancelled = false;
+    void fetchOpenTrailListingPublicationId(sanitizedTrailId)
+      .then((id) => {
+        if (!cancelled) setTrailListingPublicationId(id);
+      })
+      .catch(() => {
+        if (!cancelled) setTrailListingPublicationId(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [configured, sanitizedTrailId]);
+
+  const currentTrailMeta = useMemo(() => {
+    if (!currentTrailMetaRaw) return null;
+    return withResolvedTrailPublicationId(currentTrailMetaRaw, trailListingPublicationId);
+  }, [currentTrailMetaRaw, trailListingPublicationId]);
 
   const openTrailsQuery = useOpenTrails({
     enabled: Boolean(configured && user && trailheadSessionActive && menuOpen),
@@ -319,6 +352,29 @@ export default function App() {
     clearRouteArtifactsRef,
     onRouteDirectionsErrorRef,
   });
+
+  /** 주행 시작 — 후방 추적·최대 줌 / 종료 시 이전 카메라 설정 복원 */
+  useEffect(() => {
+    if (rideStatus === "running") {
+      if (!rideCameraRestoreRef.current) {
+        rideCameraRestoreRef.current = {
+          follow: followModeSnapshotRef.current,
+          zoom: mapZoomSnapshotRef.current,
+        };
+        setFollowMode(RIDE_FOLLOW_CAMERA_MODE);
+        setEnable3D(true);
+        setMapZoom(RIDE_FOLLOW_CAMERA_ZOOM);
+        setRideFollowCameraNonce((n) => n + 1);
+      }
+      return;
+    }
+    if (rideStatus === "idle" && rideCameraRestoreRef.current) {
+      const { follow, zoom } = rideCameraRestoreRef.current;
+      rideCameraRestoreRef.current = null;
+      setFollowMode(follow);
+      setMapZoom(zoom);
+    }
+  }, [rideStatus]);
 
   const { recentSessions, setRecentSessions, reloadRecentSessionsFromLocalStorage } =
     useRecentRideSessions({
@@ -533,11 +589,11 @@ export default function App() {
   };
   applyRideCompletedOptimisticRef.current = applyRideCompletedOptimistic;
 
-  /** 퍼블릭 코스 ID — MENU 없이도 Activity World 카탈로그에 포함(주행 미참여 관전) */
+  /** 퍼블릭 코스 ID — 로그인 없이도 published 목록 로드(Rules: status=published 공개 읽기) */
   useEffect(() => {
-    if (!configured || !user || !pageVisible) return;
+    if (!configured || !pageVisible) return;
     void refreshPublishedPublicCourseCatalog();
-  }, [configured, user, pageVisible, refreshPublishedPublicCourseCatalog]);
+  }, [configured, pageVisible, refreshPublishedPublicCourseCatalog]);
 
   useEffect(() => {
     if (!configured || !menuOpen) return;
@@ -735,7 +791,7 @@ export default function App() {
   );
 
   const joinTrailAndCloseMenu = useCallback(
-    (nextTrailId: string) => {
+    (nextTrailId: string, listingPublicationId?: string | null) => {
       if (rideStatus !== "idle") {
         setRouteSummary("주행 중에는 Trail을 바꿀 수 없습니다.");
         return;
@@ -748,16 +804,20 @@ export default function App() {
           setRouteSummary("Trail을 찾을 수 없습니다.");
           return;
         }
-        const gate = canUserJoinTrail(meta, user);
+        const listingPub =
+          listingPublicationId?.trim() ||
+          (await fetchOpenTrailListingPublicationId(next).catch(() => null));
+        const resolvedMeta = withResolvedTrailPublicationId(meta, listingPub);
+        const gate = canUserJoinTrail(resolvedMeta, user);
         if (!gate.ok) {
           setRouteSummary(gate.message);
           return;
         }
-        if (meta.publicationId) {
-          await loadCourseRouteForTrailJoin(meta.publicationId);
+        if (resolvedMeta.publicationId) {
+          await loadCourseRouteForTrailJoin(resolvedMeta.publicationId);
         }
         hostTrailIdRef.current = null;
-        setTrailMetaSeed(meta);
+        setTrailMetaSeed(resolvedMeta);
         setTrailDraft(next);
         setTrailId(next);
         replaceTrailInUrl(next);
@@ -796,14 +856,16 @@ export default function App() {
         returnToTrailhead();
         return;
       }
-      const gate = canUserJoinTrail(meta, user);
+      const listingPub = await fetchOpenTrailListingPublicationId(tid).catch(() => null);
+      const resolvedMeta = withResolvedTrailPublicationId(meta, listingPub);
+      const gate = canUserJoinTrail(resolvedMeta, user);
       if (!gate.ok) {
         setRouteSummary(gate.message);
         returnToTrailhead();
         return;
       }
-      if (meta.publicationId) {
-        await loadCourseRouteForTrailJoin(meta.publicationId);
+      if (resolvedMeta.publicationId) {
+        await loadCourseRouteForTrailJoin(resolvedMeta.publicationId);
       }
     })();
     return () => {
@@ -832,11 +894,13 @@ export default function App() {
 
         /** MENU에서 연 Trail 합류 후 ▶ — 새 Trail 생성하지 않음 */
         if (currentTid !== DEFAULT_TRAIL_ID) {
-          const existing = await fetchTrailInstance(currentTid);
-          if (!existing) {
+          const existingRaw = await fetchTrailInstance(currentTid);
+          if (!existingRaw) {
             setError("선택한 Trail을 찾을 수 없습니다.");
             return;
           }
+          const listingPub = await fetchOpenTrailListingPublicationId(currentTid).catch(() => null);
+          const existing = withResolvedTrailPublicationId(existingRaw, listingPub);
           const gate = canUserJoinTrail(existing, user);
           if (!gate.ok) {
             setError(gate.message);
@@ -1365,6 +1429,7 @@ export default function App() {
               globalPresenceDots: debugGlobalPresenceOnMap ? globalPresenceDots : null,
               activityWorldRaw,
               getActivityWorldPinLabel,
+              rideFollowCameraNonce,
             }}
             lodDebug={lodDebugPanelProps}
             mapHud={{

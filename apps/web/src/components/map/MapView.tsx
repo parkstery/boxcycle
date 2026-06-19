@@ -52,7 +52,7 @@ import {
 import { clearRiderGlbModels, syncRiderGlbModels } from "../../lib/riderPrototype/glbModelLayer";
 import { PEER_RIDER_PEDAL_FRAME_COUNT } from "../../lib/registerPeerRiderPedalSprites";
 import { MapZoomGlobeControl } from "./MapZoomGlobeControl";
-import { MAP_GLOBE_MIN_ZOOM } from "../../lib/mapGlobeView";
+import { MAP_GLOBE_MIN_ZOOM, RIDE_FOLLOW_CAMERA_ZOOM } from "../../lib/mapGlobeView";
 import "./MapView.css";
 
 const RIDER_PROTOTYPE_MODE = getRiderPrototypeMode();
@@ -795,6 +795,9 @@ const CAMERA_BEARING_MAX_DPS_SECONDARY = 170;
 const CAMERA_MAX_DT_MS = 50;
 const CAMERA_BEARING_WINDOW_METERS = 60;
 const CAMERA_BEARING_WINDOW_SAMPLES = 60;
+/** 후방 추적 — 카메라 pivot 을 캐릭터 뒤로 (줌 21.5 근처에서 캐릭터가 화면에 보이도록) */
+const REAR_FOLLOW_OFFSET_M_MIN = 16;
+const REAR_FOLLOW_OFFSET_M_MAX = 58;
 
 /**
  * 출발/도착/경유·라이더: 3D 피치에서도 빌보드(세움). `map` 정렬은 스프라이트가 지면에 눕는 문제가 있어 라이더도 viewport 유지.
@@ -1182,6 +1185,8 @@ export type MapViewProps = {
    * `onMapZoom`/`onMapViewport` 는 `zoomend`·`moveend` 만 써서 HUD 떨림을 막고, LOD 는 여기로 분리.
    */
   onMapLodViewport?: (spanKm: number, zoom: number) => void;
+  /** 주행 시작 시 후방·줌 21.5 즉시 적용 — `requestId` 증가마다 1회 */
+  rideFollowCameraNonce?: number;
 };
 
 export function MapView({
@@ -1216,6 +1221,7 @@ export function MapView({
   getActivityWorldPinLabel = null,
   onMapViewport,
   onMapLodViewport,
+  rideFollowCameraNonce = 0,
 }: MapViewProps) {
   const trailSpectatorDataRef = useRef<{ dots: TrailSpectatorDot[]; routes: LineStringGeometry[] }>({
     dots: [],
@@ -1449,6 +1455,14 @@ export function MapView({
     };
 
     const reportMapZoomToApp = () => {
+      if (
+        !shouldSyncMapZoomToApp(
+          liveRiderMotionRef.current?.sessionStatus,
+          followModeRef.current,
+        )
+      ) {
+        return;
+      }
       onMapZoomRef.current?.(Number(map.getZoom().toFixed(1)));
     };
 
@@ -1720,6 +1734,18 @@ export function MapView({
       moveActivityWorldLayersToTop(map);
     }
 
+    const session = liveRiderMotionRef.current?.sessionStatus;
+    if (session === "running" || session === "paused") {
+      if (map.isStyleLoaded()) {
+        try {
+          applyCoverageOverlayMode(map, coverageOverlayMode, mapillaryClientToken ?? undefined);
+        } catch {
+          /* noop */
+        }
+      }
+      return;
+    }
+
     const bounds = new mapboxgl.LngLatBounds();
     routeGeometry.coordinates.forEach((p) => bounds.extend(p as [number, number]));
 
@@ -1728,6 +1754,14 @@ export function MapView({
     suppressCameraFollowUntilRef.current = performance.now() + (prefersReducedMotion ? 120 : 1700);
 
     const syncZoomFromMap = () => {
+      if (
+        !shouldSyncMapZoomToApp(
+          liveRiderMotionRef.current?.sessionStatus,
+          followModeRef.current,
+        )
+      ) {
+        return;
+      }
       onMapZoomRef.current(Number(map.getZoom().toFixed(1)));
     };
     const onMoveEnd = () => {
@@ -1986,6 +2020,7 @@ export function MapView({
           followMode: followModeRef.current,
           enable3D: enable3DRef.current,
           mapZoom: mapZoomRef.current,
+          sessionStatus: liveRiderMotionRef.current?.sessionStatus,
           routeGeometry: routeGeometryRef.current,
           prevLiveRef: prevLiveRef,
           smooth: cameraSmoothRef.current,
@@ -2120,6 +2155,68 @@ export function MapView({
       }
     };
   }, [mapZoom, mapLoaded]);
+
+  /** 주행 시작 — fitBounds·zoomend 동기화와 무관하게 후방·줌 21.5 즉시 스냅 */
+  useEffect(() => {
+    if (!rideFollowCameraNonce || !mapLoaded) return;
+    const map = mapRef.current;
+    if (!map) return;
+
+    const target = liveLngLatRef.current ?? startLngLatRef.current;
+    if (!target) return;
+
+    mapZoomRef.current = RIDE_FOLLOW_CAMERA_ZOOM;
+    suppressCameraFollowUntilRef.current = 0;
+    cameraSmoothRef.current.zoom = RIDE_FOLLOW_CAMERA_ZOOM;
+
+    const headingFromRoute = getAverageHeadingAheadFromPoint(
+      routeGeometryRef.current,
+      target,
+      CAMERA_BEARING_WINDOW_METERS,
+      CAMERA_BEARING_WINDOW_SAMPLES,
+    );
+    const baseHeading = headingFromRoute ?? map.getBearing();
+    const nextCamera = getCameraForFollowMode({
+      mode: "rear30",
+      baseHeading,
+      currentPitch: map.getPitch(),
+      enable3D: enable3DRef.current,
+    });
+    const center = offsetLngLatByBearingMeters(
+      target,
+      nextCamera.bearing + 180,
+      rearFollowOffsetMeters(RIDE_FOLLOW_CAMERA_ZOOM),
+    );
+
+    const applySnap = () => {
+      const live = mapRef.current;
+      if (!live) return;
+      live.stop();
+      live.jumpTo({
+        center,
+        zoom: RIDE_FOLLOW_CAMERA_ZOOM,
+        bearing: nextCamera.bearing,
+        pitch: nextCamera.pitch,
+      });
+      const smooth = cameraSmoothRef.current;
+      smooth.center = center;
+      smooth.bearing = nextCamera.bearing;
+      smooth.bearingPrimary = nextCamera.bearing;
+      smooth.pitch = nextCamera.pitch;
+      smooth.zoom = RIDE_FOLLOW_CAMERA_ZOOM;
+      smooth.lastTs = null;
+    };
+
+    if (map.isStyleLoaded()) {
+      applySnap();
+    } else {
+      map.once("style.load", applySnap);
+    }
+
+    return () => {
+      map.off("style.load", applySnap);
+    };
+  }, [rideFollowCameraNonce, mapLoaded]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -2792,6 +2889,32 @@ function normalizeCompass(deg: number) {
   return x;
 }
 
+function rearFollowOffsetMeters(zoom: number): number {
+  const t = clamp((zoom - 12) / 10, 0, 1);
+  return lerp(REAR_FOLLOW_OFFSET_M_MAX, REAR_FOLLOW_OFFSET_M_MIN, t);
+}
+
+/** bearing 방향으로 distanceM 이동한 좌표 (구면 근사) */
+function offsetLngLatByBearingMeters(origin: LngLat, bearingDeg: number, distanceMeters: number): LngLat {
+  if (distanceMeters <= 0) return origin;
+  const earthRadiusM = 6378137;
+  const bearingRad = (normalizeCompass(bearingDeg) * Math.PI) / 180;
+  const latRad = (origin[1] * Math.PI) / 180;
+  const lngRad = (origin[0] * Math.PI) / 180;
+  const angDist = distanceMeters / earthRadiusM;
+  const lat2 = Math.asin(
+    Math.sin(latRad) * Math.cos(angDist) +
+      Math.cos(latRad) * Math.sin(angDist) * Math.cos(bearingRad),
+  );
+  const lng2 =
+    lngRad +
+    Math.atan2(
+      Math.sin(bearingRad) * Math.sin(angDist) * Math.cos(latRad),
+      Math.cos(angDist) - Math.sin(latRad) * Math.sin(lat2),
+    );
+  return [(lng2 * 180) / Math.PI, (lat2 * 180) / Math.PI];
+}
+
 function getAverageHeadingAheadFromPoint(
   geometry: RouteLineStringGeometry | null,
   point: LngLat,
@@ -2891,6 +3014,13 @@ function resetCameraSmoothing(
 }
 
 /** 팔로우 모드 카메라 — rAF 매 프레임 (React liveLngLat 200ms throttle 우회) */
+function shouldSyncMapZoomToApp(
+  session: LiveRiderMotion["sessionStatus"] | undefined,
+  followMode: FollowMode,
+): boolean {
+  return !((session === "running" || session === "paused") && followMode !== "free");
+}
+
 function tickRideCameraFollow(
   map: mapboxgl.Map,
   targetLngLat: LngLat,
@@ -2898,6 +3028,7 @@ function tickRideCameraFollow(
     followMode: FollowMode;
     enable3D: boolean;
     mapZoom: number;
+    sessionStatus?: LiveRiderMotion["sessionStatus"];
     routeGeometry: LineStringGeometry | null;
     prevLiveRef: { current: LngLat | null };
     smooth: {
@@ -2919,6 +3050,12 @@ function tickRideCameraFollow(
     return;
   }
 
+  const rideActive = opts.sessionStatus === "running" || opts.sessionStatus === "paused";
+  const followZoom =
+    rideActive && opts.followMode === "rear30"
+      ? RIDE_FOLLOW_CAMERA_ZOOM
+      : opts.mapZoom;
+
   const prev = opts.prevLiveRef.current;
   const headingFromMove =
     prev && getDistanceMeters(prev, targetLngLat) >= 2 ? getBearing(prev, targetLngLat) : null;
@@ -2935,6 +3072,15 @@ function tickRideCameraFollow(
     currentPitch: map.getPitch(),
     enable3D: opts.enable3D,
   });
+
+  const cameraCenterTarget =
+    opts.followMode === "rear30"
+      ? offsetLngLatByBearingMeters(
+          targetLngLat,
+          nextCamera.bearing + 180,
+          rearFollowOffsetMeters(followZoom),
+        )
+      : targetLngLat;
 
   opts.prevLiveRef.current = targetLngLat;
   const smooth = opts.smooth;
@@ -2957,18 +3103,18 @@ function tickRideCameraFollow(
   const maxStepPrimary = CAMERA_BEARING_MAX_DPS_PRIMARY * dtSec;
   const maxStepSecondary = CAMERA_BEARING_MAX_DPS_SECONDARY * dtSec;
 
-  const curCenter = smooth.center ?? targetLngLat;
+  const curCenter = smooth.center ?? cameraCenterTarget;
   const curPitch = smooth.pitch ?? map.getPitch();
   const curZoom = smooth.zoom ?? map.getZoom();
   const curBearingPrimary = smooth.bearingPrimary ?? map.getBearing();
   const curBearing = smooth.bearing ?? map.getBearing();
 
   const nextCenter: LngLat = [
-    lerp(curCenter[0], targetLngLat[0], alphaPos),
-    lerp(curCenter[1], targetLngLat[1], alphaPos),
+    lerp(curCenter[0], cameraCenterTarget[0], alphaPos),
+    lerp(curCenter[1], cameraCenterTarget[1], alphaPos),
   ];
   const nextPitch = lerp(curPitch, nextCamera.pitch, alphaPos);
-  const nextZoom = lerp(curZoom, opts.mapZoom, alphaPos);
+  const nextZoom = lerp(curZoom, followZoom, alphaPos);
   const nextBearingPrimary = lerpAngle(
     curBearingPrimary,
     nextCamera.bearing,
