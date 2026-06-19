@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { User } from "firebase/auth";
 import type { RouteProfile } from "../../services/mapboxDirections";
 import type { PublishedPublicCourseSummary } from "../../lib/firestoreCourses";
-import type { CourseActivitySnapshot } from "../../lib/firestoreCourseActivity";
+import type { RouteActivitySnapshot } from "../../lib/firestoreRouteActivity";
 import type { BleCrankRpmUiState } from "../../hooks/useBleCrankRpm";
 import type { RideSessionStatus } from "../../hooks/useVirtualRideSession";
 import type { SavedRoute } from "../../lib/firestoreSavedRoutes";
@@ -55,7 +55,7 @@ type RideRoutePanelProps = {
   /** 퍼블릭 탭 진입 시 카탈로그 재조회 */
   onRefreshPublishedPublicCourses?: () => void;
   /** 코스별 activity aggregate(메뉴·카탈로그 로드 후) */
-  courseActivityByCourseId?: ReadonlyMap<string, CourseActivitySnapshot | null>;
+  courseActivityByCourseId?: ReadonlyMap<string, RouteActivitySnapshot | null>;
   authGuest: boolean;
   /** Firebase Auth 세션(게스트·Google 포함) */
   signedIn: boolean;

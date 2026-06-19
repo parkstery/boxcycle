@@ -1,4 +1,4 @@
-import { isCourseActivityLive, type CourseActivitySnapshot } from "./firestoreCourseActivity";
+import { isRouteActivityLive, type RouteActivitySnapshot } from "./firestoreRouteActivity";
 import {
   ACTIVITY_WORLD_POLL_ACTIVE_MS,
   ACTIVITY_WORLD_POLL_IDLE_MS,
@@ -23,20 +23,23 @@ export function activityWorldPollIntervalMs(mode: ActivityWorldPollMode): number
   return mode === "active" ? ACTIVITY_WORLD_POLL_ACTIVE_MS : ACTIVITY_WORLD_POLL_IDLE_MS;
 }
 
-/** batch 결과에서 `isCourseActivityLive` 건수(exclude 제외) */
-export function countCourseActivityLiveInBatch(
-  map: ReadonlyMap<string, CourseActivitySnapshot | null>,
-  excludeCourseId?: string | null,
+/** batch 결과에서 `isRouteActivityLive` 건수(exclude 제외) */
+export function countRouteActivityLiveInBatch(
+  map: ReadonlyMap<string, RouteActivitySnapshot | null>,
+  excludePublicationId?: string | null,
 ): number {
-  const exclude = excludeCourseId?.trim() ?? "";
+  const exclude = excludePublicationId?.trim() ?? "";
   let count = 0;
   for (const [id, row] of map) {
-    if (!row || !isCourseActivityLive(row)) continue;
+    if (!row || !isRouteActivityLive(row)) continue;
     if (exclude && id === exclude) continue;
     count += 1;
   }
   return count;
 }
+
+/** @deprecated {@link countRouteActivityLiveInBatch} */
+export const countCourseActivityLiveInBatch = countRouteActivityLiveInBatch;
 
 /** P0 — mode·interval 결정 */
 export function runActivityWorldPollPolicyChecks(): void {

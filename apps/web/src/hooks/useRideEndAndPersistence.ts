@@ -2,7 +2,7 @@ import type { User } from "firebase/auth";
 import type { Dispatch, MutableRefObject, RefObject, SetStateAction } from "react";
 import { useCallback } from "react";
 import { promoteSavedRouteInFirestore, type SavedRoute } from "../lib/firestoreSavedRoutes";
-import { markCourseActivityRideCompletedOptimistic } from "../lib/firestoreCourseActivity";
+import { markRouteActivityRideCompletedOptimistic } from "../lib/firestoreRouteActivity";
 import { saveRideSessionToFirestore } from "../lib/firestoreRides";
 import type { LineStringGeometry, LngLat } from "../lib/geo";
 import { formatLngLat } from "../lib/geo";
@@ -245,7 +245,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
           onRidePersistedToFirestore?.(persistedCourseId);
           const courseIdBeforeAsync = courseIdRef.current?.trim() || null;
           if (persistedCourseId && persistedCourseId !== courseIdBeforeAsync) {
-            markCourseActivityRideCompletedOptimistic(persistedCourseId);
+            markRouteActivityRideCompletedOptimistic(persistedCourseId);
             onRideEndedWithCourse?.(persistedCourseId);
           }
           if (savedRouteIdAtEnd && !savedRouteIdAtEnd.startsWith("local-")) {
@@ -358,7 +358,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
 
     const courseIdAtEnd = courseIdRef.current?.trim() || null;
     if (courseIdAtEnd && !discardRecord) {
-      markCourseActivityRideCompletedOptimistic(courseIdAtEnd);
+      markRouteActivityRideCompletedOptimistic(courseIdAtEnd);
       onRideEndedWithCourse?.(courseIdAtEnd);
     }
 

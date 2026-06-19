@@ -14,16 +14,16 @@ import {
   getBasicHubCoursePayload,
 } from "../lib/firestoreCourses";
 import {
-  fetchCourseActivitiesBatch,
+  fetchRouteActivitiesBatch,
   heatVisualWeight,
-  isCourseActivityHeat,
-  isCourseActivityLive,
-  type CourseActivitySnapshot,
-} from "../lib/firestoreCourseActivity";
+  isRouteActivityHeat,
+  isRouteActivityLive,
+  type RouteActivitySnapshot,
+} from "../lib/firestoreRouteActivity";
 import type { LineStringGeometry } from "../lib/geo";
 import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../lib/geoDecimate";
 import { resolveActivityWorldDotLngLat } from "../lib/activityWorldAnchor";
-import type { CourseActivityMapOverlay } from "./useCourseActivityMapOverlay";
+import type { RouteActivityMapOverlay } from "./useRouteActivityMapOverlay";
 
 const MAX_LIVE_MAP_OVERLAY = 10;
 const MAX_HEAT_MAP_OVERLAY = 10;
@@ -61,34 +61,34 @@ type UsePublishedCoursesActivityMapOverlayOpts = {
   refreshNonce?: number;
   /** WO-A coordinator — 제공 시 내부 poll 생략 */
   externalSync?: {
-    activityByCourseId: ReadonlyMap<string, CourseActivitySnapshot | null>;
+    activityByCourseId: ReadonlyMap<string, RouteActivitySnapshot | null>;
     syncEpoch: number;
   };
 };
 
-function scoreLiveActivity(a: CourseActivitySnapshot): number {
+function scoreLiveActivity(a: RouteActivitySnapshot): number {
   if (a.liveNow) return 1000 + a.activeRiderCount * 10 + a.pulseLevel;
   return 0;
 }
 
-function scoreHeatActivity(a: CourseActivitySnapshot): number {
+function scoreHeatActivity(a: RouteActivitySnapshot): number {
   return a.recentRideCount7d;
 }
 
 function selectOverlayCandidateIds(
-  map: ReadonlyMap<string, CourseActivitySnapshot | null>,
+  map: ReadonlyMap<string, RouteActivitySnapshot | null>,
   excludeCourseId: string,
 ): string[] {
-  const live: [string, CourseActivitySnapshot][] = [];
-  const heat: [string, CourseActivitySnapshot][] = [];
+  const live: [string, RouteActivitySnapshot][] = [];
+  const heat: [string, RouteActivitySnapshot][] = [];
 
   for (const [id, row] of map) {
     if (!row) continue;
-    if (isCourseActivityLive(row)) {
+    if (isRouteActivityLive(row)) {
       if (id !== excludeCourseId) live.push([id, row]);
       continue;
     }
-    if (isCourseActivityHeat(row)) heat.push([id, row]);
+    if (isRouteActivityHeat(row)) heat.push([id, row]);
   }
 
   live.sort((a, b) => scoreLiveActivity(b[1]) - scoreLiveActivity(a[1]));
@@ -101,7 +101,7 @@ function selectOverlayCandidateIds(
 
 function ensureBoundsLoaded(
   cid: string,
-  row: CourseActivitySnapshot,
+  row: RouteActivitySnapshot,
   boundsMap: Map<string, BoundsEntry>,
   onReady: () => void,
 ): void {
@@ -181,13 +181,13 @@ function ensureGeometryLoaded(
  */
 export function usePublishedCoursesActivityMapOverlay(
   opts: UsePublishedCoursesActivityMapOverlayOpts,
-): CourseActivityMapOverlay & {
-  activityByCourseId: ReadonlyMap<string, CourseActivitySnapshot | null>;
+): RouteActivityMapOverlay & {
+  activityByCourseId: ReadonlyMap<string, RouteActivitySnapshot | null>;
   overlayStats: PublishedCoursesActivityOverlayStats;
 } {
   const { courseIds, excludeCourseId, mapZoom, enabled, worldMapRenderEnabled = true, refreshNonce = 0, externalSync } = opts;
   const [activityByCourseId, setActivityByCourseId] = useState<
-    ReadonlyMap<string, CourseActivitySnapshot | null>
+    ReadonlyMap<string, RouteActivitySnapshot | null>
   >(() => new Map());
   const [overlayCandidateIds, setOverlayCandidateIds] = useState<string[]>([]);
   const [overlayEpoch, setOverlayEpoch] = useState(0);
@@ -199,7 +199,7 @@ export function usePublishedCoursesActivityMapOverlay(
   const useExternalSync = externalSync != null;
 
   const applyBatchMap = useCallback(
-    (map: ReadonlyMap<string, CourseActivitySnapshot | null>) => {
+    (map: ReadonlyMap<string, RouteActivitySnapshot | null>) => {
       const exclude = excludeCourseId?.trim() ?? "";
       const candidateIds = worldMapRenderEnabled ? selectOverlayCandidateIds(map, exclude) : [];
 
@@ -265,7 +265,7 @@ export function usePublishedCoursesActivityMapOverlay(
     let cancelled = false;
 
     const tick = async () => {
-      const map = await fetchCourseActivitiesBatch(courseIds, { refresh: false });
+      const map = await fetchRouteActivitiesBatch(courseIds, { refresh: false });
       if (cancelled) return;
       applyBatchMap(map);
     };
@@ -281,7 +281,7 @@ export function usePublishedCoursesActivityMapOverlay(
     if (!enabled || refreshNonce === 0) return;
     let cancelled = false;
     void (async () => {
-      const map = await fetchCourseActivitiesBatch(courseIds, { refresh: true });
+      const map = await fetchRouteActivitiesBatch(courseIds, { refresh: true });
       if (cancelled) return;
       applyBatchMap(map);
     })();
@@ -298,7 +298,7 @@ export function usePublishedCoursesActivityMapOverlay(
           heatRoutes: [],
           pulseDots: [],
           heatDots: [],
-        } satisfies CourseActivityMapOverlay,
+        } satisfies RouteActivityMapOverlay,
         overlayStats: {
           boundsReady: 0,
           geometryReady: 0,
@@ -332,9 +332,9 @@ export function usePublishedCoursesActivityMapOverlay(
     for (const cid of overlayCandidateIds) {
       const row = activityByCourseId.get(cid);
       if (!row) continue;
-      if (isCourseActivityLive(row)) liveCandidates += 1;
-      else if (isCourseActivityHeat(row)) heatCandidates += 1;
-      if (isCourseActivityLive(row) || isCourseActivityHeat(row)) activityRows += 1;
+      if (isRouteActivityLive(row)) liveCandidates += 1;
+      else if (isRouteActivityHeat(row)) heatCandidates += 1;
+      if (isRouteActivityLive(row) || isRouteActivityHeat(row)) activityRows += 1;
 
       const b = boundsMap.get(cid);
       if (b?.status === "ready") boundsReady += 1;
@@ -349,12 +349,12 @@ export function usePublishedCoursesActivityMapOverlay(
       if (!lngLat && routeGeometry) {
         lngLat = resolveActivityWorldDotLngLat(row, routeGeometry);
       }
-      if (isCourseActivityLive(row) || isCourseActivityHeat(row)) {
+      if (isRouteActivityLive(row) || isRouteActivityHeat(row)) {
         if (!lngLat) anchorMissing += 1;
       }
 
       if (lngLat) {
-        if (isCourseActivityLive(row)) {
+        if (isRouteActivityLive(row)) {
           pulseDots.push({
             courseId: cid,
             lngLat,
@@ -362,7 +362,7 @@ export function usePublishedCoursesActivityMapOverlay(
             kind: "pulse",
             traceStrength: ACTIVITY_TRACE_LIVE_STRENGTH,
           });
-        } else if (isCourseActivityHeat(row)) {
+        } else if (isRouteActivityHeat(row)) {
           const traceStrength = resolveHeatTraceStrength(row.updatedAtMs);
           heatDots.push({
             courseId: cid,
@@ -377,14 +377,14 @@ export function usePublishedCoursesActivityMapOverlay(
 
       if (g?.status === "ready") {
         const line = decimateLineStringVertices(g.geometry, maxLineStringVerticesForMapZoom(mapZoom));
-        if (isCourseActivityLive(row)) {
+        if (isRouteActivityLive(row)) {
           pulseRoutes.push({
             courseId: cid,
             geometry: line,
             kind: "pulse",
             traceStrength: ACTIVITY_TRACE_LIVE_STRENGTH,
           });
-        } else if (isCourseActivityHeat(row)) {
+        } else if (isRouteActivityHeat(row)) {
           heatRoutes.push({
             courseId: cid,
             geometry: line,
@@ -396,7 +396,7 @@ export function usePublishedCoursesActivityMapOverlay(
     }
 
     return {
-      overlay: { pulseRoutes, heatRoutes, pulseDots, heatDots } satisfies CourseActivityMapOverlay,
+      overlay: { pulseRoutes, heatRoutes, pulseDots, heatDots } satisfies RouteActivityMapOverlay,
       overlayStats: {
         boundsReady,
         geometryReady,

@@ -3,8 +3,8 @@ import { createPortal } from "react-dom";
 import type { RouteProfile } from "../../services/mapboxDirections";
 import { formatDuration } from "../../services/mapboxDirections";
 import type { PublishedPublicCourseSummary, CourseProfile } from "../../lib/firestoreCourses";
-import type { CourseActivitySnapshot } from "../../lib/firestoreCourseActivity";
-import { formatCourseActivityListBadge } from "../../lib/firestoreCourseActivity";
+import type { RouteActivitySnapshot } from "../../lib/firestoreRouteActivity";
+import { formatRouteActivityListBadge } from "../../lib/firestoreRouteActivity";
 import "./OfficialCourseListModal.css";
 
 export type OfficialCourseSegment = "intro" | "public" | "event";
@@ -70,7 +70,7 @@ export type OfficialCourseListModalProps = {
   publishedPublicCoursesLoading: boolean;
   publishedPublicCoursesError: string | null;
   signedIn: boolean;
-  courseActivityByCourseId?: ReadonlyMap<string, CourseActivitySnapshot | null>;
+  courseActivityByCourseId?: ReadonlyMap<string, RouteActivitySnapshot | null>;
   onEnterBasicHub: (courseId: string) => void;
   onLeaveBasicHub: () => void;
 };
@@ -113,7 +113,7 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
                 course={c}
                 selected={props.basicActiveHubCourseId === c.id}
                 loadDisabled={loadDisabled}
-                activityBadge={formatCourseActivityListBadge(
+                activityBadge={formatRouteActivityListBadge(
                   props.courseActivityByCourseId?.get(c.id) ?? null,
                 )}
                 onLoad={() => handleLoad(c.id)}
@@ -161,7 +161,7 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
                 course={c}
                 selected={props.basicActiveHubCourseId === c.id}
                 loadDisabled={loadDisabled}
-                activityBadge={formatCourseActivityListBadge(
+                activityBadge={formatRouteActivityListBadge(
                   props.courseActivityByCourseId?.get(c.id) ?? null,
                 )}
                 onLoad={() => handleLoad(c.id)}

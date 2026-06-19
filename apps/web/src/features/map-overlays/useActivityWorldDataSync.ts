@@ -1,7 +1,7 @@
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useActivityWorldAdaptivePoll } from "../../hooks/useActivityWorldAdaptivePoll";
 import {
-  countCourseActivityLiveInBatch,
+  countRouteActivityLiveInBatch,
   resolveActivityWorldPollMode,
 } from "../../lib/activityWorldPollPolicy";
 import {
@@ -9,11 +9,11 @@ import {
   reportActivityWorldPollSignals,
 } from "../../lib/activityWorldPollSignals";
 import {
-  fetchCourseActivitiesBatch,
-  fetchLiveCourseActivityIds,
-  invalidateCourseActivityCache,
-  type CourseActivitySnapshot,
-} from "../../lib/firestoreCourseActivity";
+  fetchRouteActivitiesBatch,
+  fetchLiveRouteActivityIds,
+  invalidateRouteActivityCache,
+  type RouteActivitySnapshot,
+} from "../../lib/firestoreRouteActivity";
 import { fetchWorldPresenceSummary, formatWorldPresenceHudLine } from "../../lib/firestoreWorldPresence";
 import {
   fetchWorldActivityGlobal,
@@ -34,7 +34,7 @@ export type ActivityWorldDataSyncResult = {
   worldHighlightedCourseIds: string[];
   liveActivityCourseIds: string[];
   worldHudLines: string | null;
-  activityByCourseId: ReadonlyMap<string, CourseActivitySnapshot | null>;
+  activityByCourseId: ReadonlyMap<string, RouteActivitySnapshot | null>;
   syncEpoch: number;
 };
 
@@ -48,7 +48,7 @@ export function useActivityWorldDataSync(opts: UseActivityWorldDataSyncOpts): Ac
   const [liveActivityCourseIds, setLiveActivityCourseIds] = useState<string[]>([]);
   const [worldHudLines, setWorldHudLines] = useState<string | null>(null);
   const [activityByCourseId, setActivityByCourseId] = useState<
-    ReadonlyMap<string, CourseActivitySnapshot | null>
+    ReadonlyMap<string, RouteActivitySnapshot | null>
   >(() => new Map());
   const [syncEpoch, setSyncEpoch] = useState(0);
 
@@ -74,18 +74,18 @@ export function useActivityWorldDataSync(opts: UseActivityWorldDataSyncOpts): Ac
   const runFullSync = useCallback(async (refresh: boolean) => {
     const ids = resolveFetchCourseIds();
     if (refresh && ids.length > 0) {
-      invalidateCourseActivityCache([...ids]);
+      invalidateRouteActivityCache([...ids]);
     }
 
     const [presence, worldActivity, liveIds, batchMap] = await Promise.all([
       fetchWorldPresenceSummary(),
       fetchWorldActivityGlobal(),
-      fetchLiveCourseActivityIds(),
-      ids.length > 0 ? fetchCourseActivitiesBatch(ids, { refresh }) : Promise.resolve(new Map()),
+      fetchLiveRouteActivityIds(),
+      ids.length > 0 ? fetchRouteActivitiesBatch(ids, { refresh }) : Promise.resolve(new Map()),
     ]);
 
     const worldLivePulseCount = worldActivity?.livePulseCount ?? 0;
-    const lastBatchLiveCount = countCourseActivityLiveInBatch(batchMap, excludeRef.current);
+    const lastBatchLiveCount = countRouteActivityLiveInBatch(batchMap, excludeRef.current);
 
     reportActivityWorldPollSignals({
       selfRideActive: selfRideRef.current,

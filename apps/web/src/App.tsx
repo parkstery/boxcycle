@@ -1,5 +1,5 @@
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
-import { CourseSharedPresence } from "./components/CourseSharedPresence";
+import { PublicationSharedPresence } from "./components/PublicationSharedPresence";
 import type { MapPeerMarker } from "./components/MapView";
 import { SignUpNicknameCard } from "./components/SignUpNicknameCard";
 import { RideRoutePanel, type FollowMode } from "./components/RideRoutePanel";
@@ -9,9 +9,9 @@ import { useLiveLocationPublishSession } from "./hooks/useLiveLocationPublishSes
 import { useGlobalLivePresence } from "./hooks/useGlobalLivePresence";
 import { useDocumentVisibility } from "./hooks/useDocumentVisibility";
 import {
-  formatCourseActivityHudLine,
-  invalidateLiveCourseActivityIdsCache,
-} from "./lib/firestoreCourseActivity";
+  formatRouteActivityHudLine,
+  invalidateLiveRouteActivityIdsCache,
+} from "./lib/firestoreRouteActivity";
 import { AppMapStage, useAppMapOverlays } from "./features/map-overlays";
 import { DebugMapStage } from "./features/map-overlays/DebugMapStage";
 import type { MapViewportBounds } from "./lib/activityWorldLod";
@@ -55,7 +55,7 @@ import {
   fetchCourseRoutePayload,
   getBasicHubCoursePayload,
 } from "./lib/firestoreCourses";
-import { deleteCoursePresence } from "./lib/firestoreCoursePresence";
+import { deletePublicationSessionMember } from "./lib/firestorePublicationSessionPresence";
 import { deleteGlobalLivePresence } from "./lib/firestoreGlobalLivePresence";
 import {
   DEFAULT_TRAIL_ID,
@@ -82,7 +82,7 @@ import { useRouteTokenBalance } from "./hooks/useRouteTokenBalance";
 import { useAppTrail } from "./hooks/useAppTrail";
 import { useRoutePlanning } from "./hooks/useRoutePlanning";
 import { useRecentRideSessions } from "./hooks/useRecentRideSessions";
-import { useOfficialCoursesHub } from "./hooks/useOfficialCoursesHub";
+import { usePublicationCatalogHub } from "./hooks/usePublicationCatalogHub";
 import { usePublicRouteReviewMeta } from "./hooks/usePublicRouteReviewMeta";
 import { useSavedRoutesWorkspace } from "./hooks/useSavedRoutesWorkspace";
 import { useRideEndAndPersistence } from "./hooks/useRideEndAndPersistence";
@@ -379,14 +379,14 @@ export default function App() {
   const [activityMapRefreshNonce, setActivityMapRefreshNonce] = useState(0);
   const onRideEndedWithCourse = useCallback((_courseId: string) => {
     applyRideCompletedOptimisticRef.current();
-    invalidateLiveCourseActivityIdsCache();
+    invalidateLiveRouteActivityIdsCache();
     reloadCourseActivityRef.current({ forceInvalidate: false });
     setActivityMapRefreshNonce((n) => n + 1);
   }, []);
   const onRidePersistedToFirestore = useCallback((courseId: string | null) => {
     if (courseId?.trim()) {
       applyRideCompletedOptimisticRef.current();
-      invalidateLiveCourseActivityIdsCache();
+      invalidateLiveRouteActivityIdsCache();
       setActivityMapRefreshNonce((n) => n + 1);
       const bumpSoft = () => reloadCourseActivityRef.current({ forceInvalidate: false });
       bumpSoft();
@@ -443,7 +443,7 @@ export default function App() {
     basicStartHubJoined,
     enterBasicHub,
     leaveBasicHub,
-  } = useOfficialCoursesHub({
+  } = usePublicationCatalogHub({
     configured,
     user,
     routeGeometry,
@@ -949,7 +949,7 @@ export default function App() {
           /* noop */
         });
         for (const hid of BASIC_SHARED_HUB_IDS) {
-          await deleteCoursePresence(user.uid, hid).catch(() => {
+          await deletePublicationSessionMember(user.uid, hid).catch(() => {
             /* noop */
           });
         }
@@ -1199,7 +1199,7 @@ export default function App() {
       active: isTrailMemberActive(r.lastSeenAtMs),
     }));
     const trailError = trailSession.error;
-    const courseActivityHudLine = formatCourseActivityHudLine(courseActivity);
+    const courseActivityHudLine = formatRouteActivityHudLine(courseActivity);
     const tid = sanitizeTrailId(trailId);
     return {
       trailheadEnabled: true,
@@ -1681,9 +1681,9 @@ export default function App() {
       ) : null}
 
       {configured && user && sharedPresenceCourseId ? (
-        <CourseSharedPresence
+        <PublicationSharedPresence
           user={user}
-          courseId={sharedPresenceCourseId}
+          publicationId={sharedPresenceCourseId}
           trailId={trailId}
           title={sharedPresenceCourseTitle}
           isRiding={rideStatus === "running"}

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { fetchLiveCourseActivityIds } from "../../lib/firestoreCourseActivity";
+import { fetchLiveRouteActivityIds } from "../../lib/firestoreRouteActivity";
 import { fetchWorldPresenceSummary, formatWorldPresenceHudLine } from "../../lib/firestoreWorldPresence";
 import {
   fetchWorldActivityGlobal,
@@ -36,7 +36,7 @@ export function useWorldActivityCatalog(opts: {
       const [presence, worldActivity, liveIds] = await Promise.all([
         fetchWorldPresenceSummary(),
         fetchWorldActivityGlobal(),
-        fetchLiveCourseActivityIds(),
+        fetchLiveRouteActivityIds(),
       ]);
       setLiveActivityCourseIds(liveIds);
       const highlighted = new Set<string>(worldActivity?.highlightedCourses ?? []);
