@@ -30,6 +30,7 @@ import {
   TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION,
   TRAILS_COLLECTION,
 } from "./firestoreTrailPaths";
+import { resolvePublicationIdFromDoc } from "./resolvePublicationIdFromDoc";
 
 /** publication 진행률만 주기적으로 올려 부담을 줄임 (좌표·geometry 미전송). */
 export const TRAIL_LIVE_PUBLICATION_RIDE_WRITE_INTERVAL_MS = 4_000;
@@ -44,8 +45,7 @@ export type TrailLivePublicationRideRow = {
 };
 
 function readPublicationIdFromDoc(data: Record<string, unknown>): string {
-  const pub = data.publicationId;
-  return typeof pub === "string" && pub.trim() ? pub.trim() : "";
+  return resolvePublicationIdFromDoc(data) ?? "";
 }
 
 function liveRidesCollectionRef(trailId: string) {

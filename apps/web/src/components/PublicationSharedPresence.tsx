@@ -173,10 +173,14 @@ export function PublicationSharedPresence({
         ? COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS
         : COURSE_PRESENCE_HEARTBEAT_PAUSED_MS;
     const id = window.setInterval(() => {
-      void touchPublicationSessionMember(userRef.current, publicationId).catch((e: unknown) => {
-        const message = e instanceof Error ? e.message : String(e);
-        setPresenceError(message);
-      });
+      void touchPublicationSessionMember(userRef.current, publicationId)
+        .then(() => {
+          setPresenceError(null);
+        })
+        .catch((e: unknown) => {
+          const message = e instanceof Error ? e.message : String(e);
+          setPresenceError(message);
+        });
     }, ms);
     return () => window.clearInterval(id);
   }, [pageVisible, rideSessionActive, isRiding, publicationId, user.uid]);
@@ -226,7 +230,6 @@ export function PublicationSharedPresence({
   }, [rows]);
 
   const peerMarkersForMap = useMemo((): MapPeerMarker[] => {
-    if (presenceError) return [];
     /** 지도 peer — fresh `livePublicationRides` 우선 (세션 멤버 등록 전에도 표시) */
     return [...liveRidesByUid.entries()].map(([uid, live]) => {
       const member = sessionByUid.get(uid);
@@ -239,18 +242,18 @@ export function PublicationSharedPresence({
         label,
       };
     });
-  }, [liveRidesByUid, presenceError, sessionByUid, guestUidsSorted]);
+  }, [liveRidesByUid, sessionByUid, guestUidsSorted]);
 
   const lastPeersKeyRef = useRef<string>("__init__");
 
   useEffect(() => {
     const cb = onPeersChangeRef.current;
     if (!cb) return;
-    const nextKey = presenceError ? "__err__" : peersStableKey(peerMarkersForMap);
+    const nextKey = peersStableKey(peerMarkersForMap);
     if (nextKey === lastPeersKeyRef.current) return;
     lastPeersKeyRef.current = nextKey;
-    cb(presenceError ? [] : peerMarkersForMap);
-  }, [peerMarkersForMap, presenceError]);
+    cb(peerMarkersForMap);
+  }, [peerMarkersForMap]);
 
   if (!showPanel) return null;
 

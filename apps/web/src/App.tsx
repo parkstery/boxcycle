@@ -619,8 +619,9 @@ export default function App() {
     setCoursePeerMarkers(next);
   }, []);
 
-  /** 입문 허브·퍼블릭 등 공식 코스 동행 presence — coursePresence + global livePresence */
-  const sharedPresenceCourseId = basicActiveHubCourseId ?? activeOfficialCourseId ?? null;
+  /** 입문 허브·퍼블릭 등 공식 코스 동행 presence — publish·필터 publicationId 와 동일 기준 */
+  const sharedPresenceCourseId =
+    basicActiveHubCourseId ?? activeOfficialCourseId ?? currentTrailMeta?.publicationId ?? null;
 
   const sharedPresenceCourseTitle = useMemo(() => {
     if (!sharedPresenceCourseId) return undefined;
