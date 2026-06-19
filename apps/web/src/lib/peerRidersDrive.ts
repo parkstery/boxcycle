@@ -6,6 +6,7 @@ import {
   interpolatePoint,
   lineStringLengthMeters,
 } from "./geo";
+import { progressRatioToRouteDistanceMeters } from "./liveLocationSnapshot";
 import { estimateCrankRpmFromSpeedKmh } from "./riderPedalMotion";
 import { PEER_RIDER_PEDAL_FRAME_COUNT } from "./registerPeerRiderPedalSprites";
 
@@ -31,23 +32,27 @@ export type PeerDriveSimState = {
   simProgress: number;
   progressPerSec: number;
   routeLenM: number;
+  /** Directions 총거리 — publish progressRatio 와 동일 기준 */
+  routeCapM: number;
 };
 
 const PEER_MAX = 30;
 const COORD_LERP_TAU_SEC = 0.34;
-const PROGRESS_PULL_TAU_SEC = 2.2;
+const PROGRESS_LERP_TAU_SEC = 0.55;
 const SPEED_EMA = 0.5;
 const PROGRESS_VEL_EMA = 0.35;
 const PROGRESS_EPS = 1e-6;
+/** 네트워크 progress 점프 — 이보다 크면 lerp 대신 스냅 */
+const PROGRESS_SNAP_THRESHOLD = 0.012;
 
 function clamp01(v: number): number {
   if (!Number.isFinite(v)) return 0;
   return Math.max(0, Math.min(1, v));
 }
 
-function progressToSpeedKmh(progressPerSec: number, routeLenM: number): number {
-  if (!Number.isFinite(progressPerSec) || routeLenM <= 0) return 0;
-  return Math.min(85, Math.max(0, progressPerSec * routeLenM * 3.6));
+function progressToSpeedKmh(progressPerSec: number, routeCapM: number): number {
+  if (!Number.isFinite(progressPerSec) || routeCapM <= 0) return 0;
+  return Math.min(85, Math.max(0, progressPerSec * routeCapM * 3.6));
 }
 
 function resolvePeerMode(
@@ -69,19 +74,22 @@ function resolvePeerMode(
 
 function pointOnRouteProgress(
   geometry: LineStringGeometry,
-  routeLenM: number,
+  geoLenM: number,
   progress: number,
+  routeCapM: number,
 ): LngLat | null {
-  if (routeLenM <= 0) return null;
-  return getPointOnRouteByDistance(geometry, clamp01(progress) * routeLenM);
+  if (geoLenM <= 0) return null;
+  const distM = progressRatioToRouteDistanceMeters(progress, routeCapM, geoLenM);
+  return getPointOnRouteByDistance(geometry, distM);
 }
 
 function headingOnRouteProgress(
   geometry: LineStringGeometry,
-  routeLenM: number,
+  geoLenM: number,
   progress: number,
+  routeCapM: number,
 ): number {
-  const distM = clamp01(progress) * routeLenM;
+  const distM = progressRatioToRouteDistanceMeters(progress, routeCapM, geoLenM);
   return headingAtRouteDistanceMeters(geometry, distM) ?? 0;
 }
 
@@ -90,8 +98,10 @@ export function mergePeerTargets(
   peers: MapPeerInput[],
   nowMs: number,
   routeGeometry: LineStringGeometry | null = null,
+  routeDistanceMeters = 0,
 ): void {
   const routeLenM = routeGeometry ? lineStringLengthMeters(routeGeometry) : 0;
+  const routeCapM = routeDistanceMeters > 0 ? routeDistanceMeters : routeLenM;
   const targets = peers.slice(0, PEER_MAX);
   const seen = new Set<string>();
 
@@ -104,7 +114,7 @@ export function mergePeerTargets(
     if (!cur) {
       if (mode === "progress" && routeGeometry && routeLenM > 0) {
         const p = clamp01(t.progressRatio!);
-        const pos = pointOnRouteProgress(routeGeometry, routeLenM, p) ?? [0, 0];
+        const pos = pointOnRouteProgress(routeGeometry, routeLenM, p, routeCapM) ?? [0, 0];
         sim.set(t.id, {
           label,
           hdg: 0,
@@ -118,6 +128,7 @@ export function mergePeerTargets(
           simProgress: p,
           progressPerSec: 0,
           routeLenM,
+          routeCapM,
         });
       } else if (t.lngLat) {
         sim.set(t.id, {
@@ -133,6 +144,7 @@ export function mergePeerTargets(
           simProgress: 0,
           progressPerSec: 0,
           routeLenM: 0,
+          routeCapM: 0,
         });
       }
       continue;
@@ -140,6 +152,7 @@ export function mergePeerTargets(
 
     cur.label = label;
     cur.routeLenM = routeLenM;
+    cur.routeCapM = routeCapM;
 
     if (mode === "progress" && routeGeometry && routeLenM > 0) {
       cur.mode = "progress";
@@ -151,8 +164,14 @@ export function mergePeerTargets(
         if (Number.isFinite(instPerSec)) {
           cur.progressPerSec =
             cur.progressPerSec * (1 - PROGRESS_VEL_EMA) + instPerSec * PROGRESS_VEL_EMA;
-          const spd = progressToSpeedKmh(cur.progressPerSec, routeLenM);
+          const spd = progressToSpeedKmh(cur.progressPerSec, routeCapM);
           cur.emaSpeedKmh = cur.emaSpeedKmh * (1 - SPEED_EMA) + spd * SPEED_EMA;
+        }
+        if (Math.abs(cur.simProgress - nextP) > PROGRESS_SNAP_THRESHOLD) {
+          cur.simProgress = nextP;
+          cur.progressPerSec = 0;
+        } else if (nextP < cur.simProgress) {
+          cur.progressPerSec = 0;
         }
         cur.targetProgress = nextP;
         cur.lastTargetMs = nowMs;
@@ -197,7 +216,7 @@ export function stepPeerDriveAndBuildGeoJson(
   const coordAlpha =
     COORD_LERP_TAU_SEC > 0 ? 1 - Math.exp(-clampedDt / COORD_LERP_TAU_SEC) : 1;
   const progressPullAlpha =
-    PROGRESS_PULL_TAU_SEC > 0 ? 1 - Math.exp(-clampedDt / PROGRESS_PULL_TAU_SEC) : 1;
+    PROGRESS_LERP_TAU_SEC > 0 ? 1 - Math.exp(-clampedDt / PROGRESS_LERP_TAU_SEC) : 1;
 
   const features: Array<{
     type: "Feature";
@@ -207,17 +226,17 @@ export function stepPeerDriveAndBuildGeoJson(
 
   for (const [id, s] of sim) {
     if (s.mode === "progress" && routeGeometry && s.routeLenM > 0) {
-      if (Math.abs(s.progressPerSec) > PROGRESS_EPS) {
-        s.simProgress = clamp01(s.simProgress + s.progressPerSec * clampedDt);
-      }
       s.simProgress = clamp01(
-        s.simProgress + (s.targetProgress - s.simProgress) * progressPullAlpha * 0.22,
+        s.simProgress + (s.targetProgress - s.simProgress) * progressPullAlpha,
       );
-      const pos = pointOnRouteProgress(routeGeometry, s.routeLenM, s.simProgress);
+      if (s.simProgress > s.targetProgress) {
+        s.simProgress = s.targetProgress;
+      }
+      const pos = pointOnRouteProgress(routeGeometry, s.routeLenM, s.simProgress, s.routeCapM);
       if (pos) {
         s.pos = pos;
         s.target = pos;
-        const h = headingOnRouteProgress(routeGeometry, s.routeLenM, s.simProgress);
+        const h = headingOnRouteProgress(routeGeometry, s.routeLenM, s.simProgress, s.routeCapM);
         if (h !== 0 || s.emaSpeedKmh > 0.38) s.hdg = h;
       }
     } else {

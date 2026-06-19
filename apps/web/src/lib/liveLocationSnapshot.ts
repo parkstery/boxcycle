@@ -39,6 +39,19 @@ export function computeRouteProgressRatio(
   return Math.max(0, Math.min(1, virtualDistanceMeters / tot));
 }
 
+/** publish(`progressRatio`) ↔ 지도 거리 — Directions 거리·geometry 길이와 본인 `liveForMap` 통일 */
+export function progressRatioToRouteDistanceMeters(
+  progressRatio: number,
+  routeDistanceMeters: number,
+  geometryLengthMeters: number,
+): number {
+  const p = Math.max(0, Math.min(1, progressRatio));
+  const cap = routeDistanceMeters > 0 ? routeDistanceMeters : geometryLengthMeters;
+  const geoCap = geometryLengthMeters > 0 ? geometryLengthMeters : cap;
+  if (cap <= 0) return 0;
+  return Math.min(p * cap, geoCap);
+}
+
 export function buildLiveLocationSnapshot(input: LiveLocationPublishInput): LiveLocationSnapshot | null {
   if (!input.lngLat) return null;
   const publicationId = input.publicationId?.trim() ?? "";

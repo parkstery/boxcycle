@@ -1127,6 +1127,8 @@ export type MapViewProps = {
   /** 부모 `useRouteElevationProfile` 과 동일(도로형 보정 포함) — 차트·코칭과 통일 */
   routeElevationProfile: RouteElevationProfileState;
   routeGeometry: LineStringGeometry | null;
+  /** Directions 총거리 — 동행 progressRatio 표시를 publish·본인 위치와 통일 */
+  routeDistanceMeters?: number;
   startLngLat: LngLat | null;
   endLngLat: LngLat | null;
   /** 출발·도착 사이 경유(순서대로 최대 3) */
@@ -1193,6 +1195,7 @@ export function MapView({
   accessToken,
   routeElevationProfile,
   routeGeometry,
+  routeDistanceMeters = 0,
   startLngLat,
   endLngLat,
   routeWaypoints,
@@ -1271,6 +1274,7 @@ export function MapView({
   const liveRiderNametagRef = useRef(liveRiderNametag);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
   const routeGeometryRef = useRef<LineStringGeometry | null>(null);
+  const routeDistanceMetersRef = useRef(routeDistanceMeters);
   const liveLngLatRef = useRef<LngLat | null>(null);
   const sampleLiveLngLatRef = useRef(sampleLiveLngLat);
   const liveRiderMotionRef = useRef(liveRiderMotion);
@@ -1325,6 +1329,10 @@ export function MapView({
   useEffect(() => {
     routeGeometryRef.current = routeGeometry;
   }, [routeGeometry]);
+
+  useEffect(() => {
+    routeDistanceMetersRef.current = routeDistanceMeters;
+  }, [routeDistanceMeters]);
 
   useEffect(() => {
     liveLngLatRef.current = liveLngLat;
@@ -1557,6 +1565,7 @@ export function MapView({
         latestPeerMarkersRef.current,
         performance.now(),
         routeGeometryRef.current,
+        routeDistanceMetersRef.current,
       );
       try {
         syncLiveOverlayLayersOnMap(
@@ -1981,8 +1990,9 @@ export function MapView({
       peerMarkers ?? [],
       performance.now(),
       routeGeometryRef.current,
+      routeDistanceMetersRef.current,
     );
-  }, [peerMarkers, routeGeometry]);
+  }, [peerMarkers, routeGeometry, routeDistanceMeters]);
 
   /** 본인·동행 라이더: rAF 로 위치·방향·페달 갱신 */
   useEffect(() => {
@@ -2034,6 +2044,7 @@ export function MapView({
         latestPeerMarkersRef.current,
         now,
         routeGeometryRef.current,
+        routeDistanceMetersRef.current,
       );
       const fc = stepPeerDriveAndBuildGeoJson(
         peerDriveSimRef.current,

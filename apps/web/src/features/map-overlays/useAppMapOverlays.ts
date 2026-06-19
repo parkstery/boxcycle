@@ -54,6 +54,7 @@ export type UseAppMapOverlaysOpts = {
   mapViewportSpanKm: number | null;
   mapLodSpanKm: number | null;
   routeGeometry: LineStringGeometry | null;
+  routeDistanceMeters: number;
   trackedPublicationId: string | null;
   publishedPublicCourses: readonly PublishedPublicCourseSummary[];
   /** Trailhead 공개 Trail 목록 — 라이브 코스 ID 카탈로그 보강 */
@@ -95,6 +96,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     mapViewportSpanKm,
     mapLodSpanKm,
     routeGeometry,
+    routeDistanceMeters,
     trackedPublicationId,
     publishedPublicCourses,
     openTrails,
@@ -161,6 +163,8 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       enabled: trailSpectatorOverlayEnabled,
       mapZoom,
       excludePeerIds: coursePeerIdsForTrailSpectator,
+      routeDistanceMeters,
+      localPublicationId: trackedPublicationId,
     });
 
   const openTrailPublicationIds = useMemo(
