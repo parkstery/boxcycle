@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { LineStringGeometry, LngLat } from "../lib/geo";
-import { getPointOnRouteByDistance } from "../lib/geo";
+import { getPointOnRouteByDistance, lineStringLengthMeters } from "../lib/geo";
+import { rideDistanceAlongRoute } from "../lib/liveLocationSnapshot";
 
 export type RideSessionStatus = "idle" | "running" | "paused";
 
@@ -96,22 +97,22 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
 
       const geom = routeGeometryRef.current;
       const routeLen = routeDistanceRef.current;
+      const geoLen = geom ? lineStringLengthMeters(geom) : 0;
 
       /**
        * 목적지 도달: 거리 캡 + 최종 flush 후 RAF 정지(다음 프레임 예약 안 함).
        * 상태(running) 전환은 호출 측(App.tsx)에서 메트릭 변화 useEffect로 마무리한다.
        */
+      const capDist = rideDistanceAlongRoute(virtualDistanceRef.current, routeLen, geoLen);
       if (routeLen > 0 && virtualDistanceRef.current >= routeLen) {
         virtualDistanceRef.current = routeLen;
-        const liveAtEnd = geom ? getPointOnRouteByDistance(geom, routeLen) : null;
+        const liveAtEnd = geom ? getPointOnRouteByDistance(geom, capDist) : null;
         flushUi(ts, liveAtEnd, true);
         rafRef.current = null;
         return;
       }
 
-      const vd = virtualDistanceRef.current;
-      const capped = routeLen > 0 ? Math.min(vd, routeLen) : vd;
-      const live = geom ? getPointOnRouteByDistance(geom, capped) : null;
+      const live = geom ? getPointOnRouteByDistance(geom, capDist) : null;
 
       const forceFull =
         lastUiTsRef.current == null || ts - lastUiTsRef.current >= METRICS_UI_MS;
@@ -145,9 +146,9 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
   const syncLiveFromDistance = useCallback(() => {
     const geom = routeGeometryRef.current;
     const routeLen = routeDistanceRef.current;
-    const vd = virtualDistanceRef.current;
-    const capped = routeLen > 0 ? Math.min(vd, routeLen) : vd;
-    const live = geom ? getPointOnRouteByDistance(geom, capped) : null;
+    const geoLen = geom ? lineStringLengthMeters(geom) : 0;
+    const dist = rideDistanceAlongRoute(virtualDistanceRef.current, routeLen, geoLen);
+    const live = geom ? getPointOnRouteByDistance(geom, dist) : null;
     setMetricsUi((prev) => ({ ...prev, liveLngLat: live }));
   }, []);
 
@@ -159,9 +160,9 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
     if (statusRef.current === "idle") return null;
     const geom = routeGeometryRef.current;
     const routeLen = routeDistanceRef.current;
-    const vd = virtualDistanceRef.current;
-    const capped = routeLen > 0 ? Math.min(vd, routeLen) : vd;
-    return geom ? getPointOnRouteByDistance(geom, capped) : null;
+    const geoLen = geom ? lineStringLengthMeters(geom) : 0;
+    const dist = rideDistanceAlongRoute(virtualDistanceRef.current, routeLen, geoLen);
+    return geom ? getPointOnRouteByDistance(geom, dist) : null;
   }, []);
 
   return {

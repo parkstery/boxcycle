@@ -25,9 +25,6 @@ type UseTrailLivePublicationRideSpectatorOverlayOpts = {
   enabled: boolean;
   mapZoom: number;
   excludePeerIds: ReadonlySet<string>;
-  /** 로드된 코스와 같을 때 progress→거리 변환 통일 */
-  routeDistanceMeters?: number;
-  localPublicationId?: string | null;
 };
 
 type PublicationGeomState =
@@ -45,7 +42,7 @@ export function useTrailLivePublicationRideSpectatorOverlay(opts: UseTrailLivePu
   livePublicationIds: string[];
   error: string | null;
 } {
-  const { user, trailId, trailLabel, enabled, mapZoom, excludePeerIds, routeDistanceMeters = 0, localPublicationId = null } = opts;
+  const { user, trailId, trailLabel, enabled, mapZoom, excludePeerIds } = opts;
   const [rows, setRows] = useState<TrailLivePublicationRideRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [geomEpoch, setGeomEpoch] = useState(0);
@@ -141,13 +138,7 @@ export function useTrailLivePublicationRideSpectatorOverlay(opts: UseTrailLivePu
       if (!g || g.status !== "ready") continue;
       const len = lineStringLengthMeters(g.geometry);
       if (len <= 0) continue;
-      const routeCapM =
-        localPublicationId &&
-        r.publicationId.trim() === localPublicationId.trim() &&
-        routeDistanceMeters > 0
-          ? routeDistanceMeters
-          : len;
-      const distM = progressRatioToRouteDistanceMeters(r.progressRatio, routeCapM, len);
+      const distM = progressRatioToRouteDistanceMeters(r.progressRatio, len);
       const p = getPointOnRouteByDistance(g.geometry, distM);
       if (p) {
         const who = r.displayName?.trim() || r.uid.slice(0, 6);
@@ -159,7 +150,7 @@ export function useTrailLivePublicationRideSpectatorOverlay(opts: UseTrailLivePu
       }
     }
     return out;
-  }, [activeRows, geomEpoch, trailLabel, routeDistanceMeters, localPublicationId]);
+  }, [activeRows, geomEpoch, trailLabel]);
 
   const livePublicationIds = useMemo(
     () => [...new Set(activeRows.map((r) => r.publicationId.trim()).filter(Boolean))],

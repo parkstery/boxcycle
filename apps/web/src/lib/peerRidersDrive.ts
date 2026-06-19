@@ -30,14 +30,12 @@ export type PeerDriveSimState = {
   mode: "progress" | "coords";
   pos: LngLat;
   target: LngLat;
-  /** 마지막 수신 progress (앵커) */
+  /** 마지막 수신 progress (geometry fraction 앵커) */
   targetProgress: number;
   simProgress: number;
   /** progress/s — 최근 샘플 간격에서 EMA 추정 */
   progressPerSec: number;
   routeLenM: number;
-  /** Directions 총거리 — publish progressRatio 와 동일 기준 */
-  routeCapM: number;
 };
 
 const PEER_MAX = 30;
@@ -46,30 +44,34 @@ const SPEED_EMA = 0.5;
 const PROGRESS_VEL_EMA = 0.42;
 const PROGRESS_EPS = 1e-6;
 /** publish max 간격 + 여유 — 그 이상은 외삽하지 않음 */
-const MAX_EXTRAP_SEC = TRAIL_LIVE_PROGRESS_MAX_WRITE_MS / 1000 + 2;
-/** 85 km/h 상한에 대응하는 progress/s (routeCap 기준) */
-const MAX_PROGRESS_PER_SEC = 0.028;
+const MAX_EXTRAP_SEC = TRAIL_LIVE_PROGRESS_MAX_WRITE_MS / 1000 + 1;
 
 function clamp01(v: number): number {
   if (!Number.isFinite(v)) return 0;
   return Math.max(0, Math.min(1, v));
 }
 
-function progressToSpeedKmh(progressPerSec: number, routeCapM: number): number {
-  if (!Number.isFinite(progressPerSec) || routeCapM <= 0) return 0;
-  return Math.min(85, Math.max(0, progressPerSec * routeCapM * 3.6));
+function maxProgressPerSec(routeLenM: number): number {
+  if (routeLenM <= 0) return 0.028;
+  return Math.min(0.028, 85 / 3.6 / routeLenM);
 }
 
-function capProgressPerSec(v: number): number {
+function progressToSpeedKmh(progressPerSec: number, routeLenM: number): number {
+  if (!Number.isFinite(progressPerSec) || routeLenM <= 0) return 0;
+  return Math.min(85, Math.max(0, progressPerSec * routeLenM * 3.6));
+}
+
+function capProgressPerSec(v: number, routeLenM: number): number {
   if (!Number.isFinite(v)) return 0;
-  return Math.max(0, Math.min(MAX_PROGRESS_PER_SEC, v));
+  return Math.max(0, Math.min(maxProgressPerSec(routeLenM), v));
 }
 
-/** 앵커 + 최근 속도로 표시 progress (프레임마다 재계산) */
+/** 앵커 + 최근 속도로 표시 progress (프레임마다 재계산, 앵커 너머 과도 외삽 금지) */
 function extrapolatePeerProgress(s: PeerDriveSimState, nowMs: number): number {
   const elapsedSec = Math.max(0, (nowMs - s.lastTargetMs) / 1000);
   const leadSec = Math.min(elapsedSec, MAX_EXTRAP_SEC);
-  return clamp01(s.targetProgress + s.progressPerSec * leadSec);
+  const maxLead = s.progressPerSec * leadSec;
+  return clamp01(s.targetProgress + maxLead);
 }
 
 function resolvePeerMode(
@@ -93,10 +95,9 @@ function pointOnRouteProgress(
   geometry: LineStringGeometry,
   geoLenM: number,
   progress: number,
-  routeCapM: number,
 ): LngLat | null {
   if (geoLenM <= 0) return null;
-  const distM = progressRatioToRouteDistanceMeters(progress, routeCapM, geoLenM);
+  const distM = progressRatioToRouteDistanceMeters(progress, geoLenM);
   return getPointOnRouteByDistance(geometry, distM);
 }
 
@@ -104,9 +105,8 @@ function headingOnRouteProgress(
   geometry: LineStringGeometry,
   geoLenM: number,
   progress: number,
-  routeCapM: number,
 ): number {
-  const distM = progressRatioToRouteDistanceMeters(progress, routeCapM, geoLenM);
+  const distM = progressRatioToRouteDistanceMeters(progress, geoLenM);
   return headingAtRouteDistanceMeters(geometry, distM) ?? 0;
 }
 
@@ -115,10 +115,9 @@ export function mergePeerTargets(
   peers: MapPeerInput[],
   nowMs: number,
   routeGeometry: LineStringGeometry | null = null,
-  routeDistanceMeters = 0,
+  _routeDistanceMeters = 0,
 ): void {
   const routeLenM = routeGeometry ? lineStringLengthMeters(routeGeometry) : 0;
-  const routeCapM = routeDistanceMeters > 0 ? routeDistanceMeters : routeLenM;
   const targets = peers.slice(0, PEER_MAX);
   const seen = new Set<string>();
 
@@ -131,7 +130,7 @@ export function mergePeerTargets(
     if (!cur) {
       if (mode === "progress" && routeGeometry && routeLenM > 0) {
         const p = clamp01(t.progressRatio!);
-        const pos = pointOnRouteProgress(routeGeometry, routeLenM, p, routeCapM) ?? [0, 0];
+        const pos = pointOnRouteProgress(routeGeometry, routeLenM, p) ?? [0, 0];
         sim.set(t.id, {
           label,
           hdg: 0,
@@ -145,7 +144,6 @@ export function mergePeerTargets(
           simProgress: p,
           progressPerSec: 0,
           routeLenM,
-          routeCapM,
         });
       } else if (t.lngLat) {
         sim.set(t.id, {
@@ -161,7 +159,6 @@ export function mergePeerTargets(
           simProgress: 0,
           progressPerSec: 0,
           routeLenM: 0,
-          routeCapM: 0,
         });
       }
       continue;
@@ -169,23 +166,28 @@ export function mergePeerTargets(
 
     cur.label = label;
     cur.routeLenM = routeLenM;
-    cur.routeCapM = routeCapM;
 
     if (mode === "progress" && routeGeometry && routeLenM > 0) {
       cur.mode = "progress";
       const nextP = clamp01(t.progressRatio!);
       const deltaP = nextP - cur.targetProgress;
       if (Math.abs(deltaP) > PROGRESS_EPS) {
+        const predicted = extrapolatePeerProgress(cur, nowMs);
         const dtSec = Math.max(0.04, (nowMs - cur.lastTargetMs) / 1000);
-        const instPerSec = capProgressPerSec(deltaP / dtSec);
+        const instPerSec = capProgressPerSec(deltaP / dtSec, routeLenM);
         cur.progressPerSec = capProgressPerSec(
           cur.progressPerSec * (1 - PROGRESS_VEL_EMA) + instPerSec * PROGRESS_VEL_EMA,
+          routeLenM,
         );
-        const spd = progressToSpeedKmh(cur.progressPerSec, routeCapM);
+        const spd = progressToSpeedKmh(cur.progressPerSec, routeLenM);
         cur.emaSpeedKmh = cur.emaSpeedKmh * (1 - SPEED_EMA) + spd * SPEED_EMA;
         cur.targetProgress = nextP;
         cur.lastTargetMs = nowMs;
-        cur.simProgress = extrapolatePeerProgress(cur, nowMs);
+        if (nextP < predicted - 0.0008) {
+          cur.simProgress = nextP;
+        } else {
+          cur.simProgress = extrapolatePeerProgress(cur, nowMs);
+        }
       }
       continue;
     }
@@ -237,11 +239,11 @@ export function stepPeerDriveAndBuildGeoJson(
   for (const [id, s] of sim) {
     if (s.mode === "progress" && routeGeometry && s.routeLenM > 0) {
       s.simProgress = extrapolatePeerProgress(s, nowMs);
-      const pos = pointOnRouteProgress(routeGeometry, s.routeLenM, s.simProgress, s.routeCapM);
+      const pos = pointOnRouteProgress(routeGeometry, s.routeLenM, s.simProgress);
       if (pos) {
         s.pos = pos;
         s.target = pos;
-        const h = headingOnRouteProgress(routeGeometry, s.routeLenM, s.simProgress, s.routeCapM);
+        const h = headingOnRouteProgress(routeGeometry, s.routeLenM, s.simProgress);
         if (h !== 0 || s.emaSpeedKmh > 0.38) s.hdg = h;
       }
     } else {

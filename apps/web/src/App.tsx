@@ -17,6 +17,7 @@ import { DebugMapStage } from "./features/map-overlays/DebugMapStage";
 import type { MapViewportBounds } from "./lib/activityWorldLod";
 import { MAP_ZOOM_WORLD_ACTIVITY_MAX, MAP_PEER_SPRITE_MIN_ZOOM } from "./lib/rideSyncPolicy";
 import { RIDE_FOLLOW_CAMERA_MODE, RIDE_FOLLOW_CAMERA_ZOOM } from "./lib/mapGlobeView";
+import { rideDistanceAlongRoute } from "./lib/liveLocationSnapshot";
 import { AuthGateCard, AuthGoogleMark } from "./components/AuthGateCard";
 import { GuestEntryCard } from "./components/GuestEntryCard";
 import { allowUnauthMapDev } from "./lib/authGatePolicy";
@@ -565,7 +566,6 @@ export default function App() {
     mapViewportSpanKm,
     mapLodSpanKm,
     routeGeometry,
-    routeDistanceMeters,
     trackedPublicationId,
     publishedPublicCourses,
     openTrails: openTrailsQuery.rows,
@@ -1041,10 +1041,9 @@ export default function App() {
     }
     const geoLen = lineStringLengthMeters(routeGeometry);
     if (!Number.isFinite(geoLen) || geoLen <= 0) return rideMetrics.liveLngLat ?? null;
-    const routeCap = routeDistanceMeters > 0 ? routeDistanceMeters : geoLen;
-    const d = Math.min(
-      Math.max(0, rideMetrics.virtualDistanceMeters),
-      routeCap,
+    const d = rideDistanceAlongRoute(
+      rideMetrics.virtualDistanceMeters,
+      routeDistanceMeters,
       geoLen,
     );
     return getPointOnRouteByDistance(routeGeometry, d);
