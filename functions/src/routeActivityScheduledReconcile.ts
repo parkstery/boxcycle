@@ -1,0 +1,110 @@
+import { FieldValue, getFirestore, Timestamp } from "firebase-admin/firestore";
+import { onSchedule } from "firebase-functions/v2/scheduler";
+import {
+  WORLD_ACTIVITY_COLLECTION,
+  WORLD_GLOBAL_ID,
+} from "./routeActivityAggregateCore.js";
+import { ROUTE_ACTIVITY_COLLECTION } from "./routeActivityConstants.js";
+import { reconcilePublicationPresenceFromLiveRides } from "./publicationPresenceCore.js";
+import { scanAllLiveRideDocs } from "./liveRideScan.js";
+
+/** 클라이언트 `TRAIL_PRESENCE_STALE_MS`(240s)보다 짧게 — stale live 문서는 집계에서 제외 */
+const LIVE_RIDE_FRESH_MS = 180_000;
+const HIGHLIGHTED_PUBLICATIONS_MAX = 24;
+
+function lastSeenMs(raw: unknown): number | null {
+  if (raw == null) return null;
+  if (typeof raw === "object" && raw !== null && typeof (raw as Timestamp).toMillis === "function") {
+    const ms = (raw as Timestamp).toMillis();
+    return Number.isFinite(ms) ? ms : null;
+  }
+  return null;
+}
+
+/**
+ * `livePublicationRides` collection group 기준으로 publication별 activeRiderCount·world 집계를 재계산한다.
+ */
+export const routeActivityScheduledReconcile = onSchedule(
+  {
+    schedule: "every 6 hours",
+    region: "asia-northeast3",
+    timeZone: "Asia/Seoul",
+  },
+  async () => {
+    const db = getFirestore();
+    const now = Date.now();
+    const byPublication = new Map<string, number>();
+    let livePulseCount = 0;
+
+    const liveRows = await scanAllLiveRideDocs();
+    for (const row of liveRows) {
+      const seenMs = lastSeenMs(row.lastSeenAt);
+      if (seenMs == null || now - seenMs > LIVE_RIDE_FRESH_MS) continue;
+      const publicationId = row.publicationId;
+      livePulseCount += 1;
+      byPublication.set(publicationId, (byPublication.get(publicationId) ?? 0) + 1);
+    }
+
+    const activitySnap = await db.collection(ROUTE_ACTIVITY_COLLECTION).get();
+    const batch = db.batch();
+    let batchOps = 0;
+
+    const writePublication = (publicationId: string, count: number) => {
+      const patch: Record<string, unknown> = {
+        activeRiderCount: count,
+        liveNow: count > 0,
+        pulseLevel: count > 0 ? Math.min(3, Math.max(1, count)) : 0,
+        updatedAt: FieldValue.serverTimestamp(),
+      };
+      if (count === 0) {
+        patch.liveAnchorLngLat = FieldValue.delete();
+        patch.liveAnchorProgressRatio = FieldValue.delete();
+      }
+      batch.set(db.doc(`${ROUTE_ACTIVITY_COLLECTION}/${publicationId}`), patch, { merge: true });
+      batchOps += 1;
+    };
+
+    for (const [publicationId, count] of byPublication) {
+      writePublication(publicationId, count);
+    }
+
+    for (const d of activitySnap.docs) {
+      if (byPublication.has(d.id)) continue;
+      const prev = d.data();
+      const hadLive =
+        prev.liveNow === true ||
+        (typeof prev.activeRiderCount === "number" && prev.activeRiderCount > 0);
+      if (!hadLive) continue;
+      writePublication(d.id, 0);
+    }
+
+    const highlightedCourses = [...byPublication.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, HIGHLIGHTED_PUBLICATIONS_MAX)
+      .map(([id]) => id);
+
+    batch.set(
+      db.doc(`${WORLD_ACTIVITY_COLLECTION}/${WORLD_GLOBAL_ID}`),
+      {
+        livePulseCount,
+        activeCourseCount: byPublication.size,
+        highlightedCourses,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
+    batchOps += 1;
+
+    if (batchOps > 0) {
+      await batch.commit();
+    }
+
+    console.info("[routeActivityReconcile]", {
+      livePulseCount,
+      activePublicationCount: byPublication.size,
+      highlightedCourses,
+    });
+
+    await reconcilePublicationPresenceFromLiveRides();
+  },
+);

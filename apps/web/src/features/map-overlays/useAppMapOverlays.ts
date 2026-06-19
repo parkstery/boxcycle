@@ -26,7 +26,7 @@ import type { ActivityWorldLodDebugPanelProps } from "./ActivityWorldLodDebugPan
 import { runPublicationPresenceParseChecks } from "../../lib/firestorePublicationPresence";
 import { resolveWorldMapOverlay, runWorldMapOverlayMergeChecks } from "./worldMapOverlayCore";
 import { useActivityWorldDataSync } from "./useActivityWorldDataSync";
-import { useWorldLiveCourseRideMapOverlay } from "./useWorldLiveCourseRideMapOverlay";
+import { useWorldLivePublicationRideMapOverlay } from "./useWorldLivePublicationRideMapOverlay";
 import {
   mergePublicationWorldPulseDots,
   runWorldPublicationMapDotsChecks,
@@ -238,14 +238,14 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       : undefined,
   });
 
-  const worldLiveCourseRideOverlayEnabled =
+  const worldLivePublicationRideOverlayEnabled =
     !debugIsolationOn && Boolean(configured && user && pageVisible) && !publicationPresenceWorldMapEnabled;
 
-  const liveCourseRideOverlay = useWorldLiveCourseRideMapOverlay({
-    enabled: worldLiveCourseRideOverlayEnabled,
+  const livePublicationRideOverlay = useWorldLivePublicationRideMapOverlay({
+    enabled: worldLivePublicationRideOverlayEnabled,
     mapZoom,
     myUid: user?.uid ?? null,
-    excludeCourseId: isRideSessionActive ? trackedCourseId : null,
+    excludePublicationId: isRideSessionActive ? trackedCourseId : null,
     trailIds: liveRideTrailIds,
   });
 
@@ -329,10 +329,10 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
         heatDots: publicationWorldDots.heatDots,
       },
       liveCourseRides: {
-        pulseRoutes: liveCourseRideOverlay.pulseRoutes,
-        heatRoutes: liveCourseRideOverlay.heatRoutes,
-        pulseDots: liveCourseRideOverlay.pulseDots,
-        heatDots: liveCourseRideOverlay.heatDots,
+        pulseRoutes: livePublicationRideOverlay.pulseRoutes,
+        heatRoutes: livePublicationRideOverlay.heatRoutes,
+        pulseDots: livePublicationRideOverlay.pulseDots,
+        heatDots: livePublicationRideOverlay.heatDots,
       },
       publicationPresenceWorldMapEnabled,
     });
@@ -347,7 +347,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     catalogOverlay,
     publicationOverlay,
     publicationWorldDots,
-    liveCourseRideOverlay,
+    livePublicationRideOverlay,
     publicationPresenceWorldMapEnabled,
     mapSessionActive,
     isRideSessionActive,
@@ -443,9 +443,9 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       render: activityWorldRender,
       catalog: catalogOverlay.overlayStats,
       catalogEnabled: catalogActivityEnabled,
-      liveCourseRideLines: liveCourseRideOverlay.pulseRoutes.length,
-      liveCourseRideCourses: liveCourseRideOverlay.liveCourseCount,
-      liveCourseRideRows: liveCourseRideOverlay.liveRideRowCount,
+      liveCourseRideLines: livePublicationRideOverlay.pulseRoutes.length,
+      liveCourseRideCourses: livePublicationRideOverlay.livePublicationCount,
+      liveCourseRideRows: livePublicationRideOverlay.liveRideRowCount,
       liveCourseRidesHubSubs: debugTrailLiveCourseRidesSubscriptionCount(),
       publicationPresence: publicationOverlay.overlayStats,
       publicationPresenceEnabled: publicationPresenceWorldMapEnabled,
@@ -501,9 +501,9 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     activityWorldRender,
     catalogOverlay.overlayStats,
     catalogActivityEnabled,
-    liveCourseRideOverlay.pulseRoutes.length,
-    liveCourseRideOverlay.liveCourseCount,
-    liveCourseRideOverlay.liveRideRowCount,
+    livePublicationRideOverlay.pulseRoutes.length,
+    livePublicationRideOverlay.livePublicationCount,
+    livePublicationRideOverlay.liveRideRowCount,
     publicationOverlay.overlayStats,
     publicationOverlay.pulseDots.length,
     publicationOverlay.heatDots.length,
@@ -540,9 +540,9 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
           catalogGeometryReady: catalogOverlay.overlayStats.geometryReady,
           catalogActivityRows: catalogOverlay.overlayStats.activityRows,
           catalogAnchorMissing: catalogOverlay.overlayStats.anchorMissing,
-          liveCourseRideLines: liveCourseRideOverlay.pulseRoutes.length,
-          liveCourseRideCourses: liveCourseRideOverlay.liveCourseCount,
-          liveCourseRideRows: liveCourseRideOverlay.liveRideRowCount,
+          liveCourseRideLines: livePublicationRideOverlay.pulseRoutes.length,
+          liveCourseRideCourses: livePublicationRideOverlay.livePublicationCount,
+          liveCourseRideRows: livePublicationRideOverlay.liveRideRowCount,
           liveActivityCourseIdsCount: liveActivityCourseIds.length,
           catalogCourseIdsCount: catalogCourseIds.length,
           mapDebugPhase: mapDebugPhase,
