@@ -11,7 +11,9 @@ import {
   type LiveLocationPublishInput,
 } from "../lib/liveLocationSnapshot";
 import { cleanupLiveLocationPublish, publishLiveLocationFanout } from "../lib/publishLiveLocationFanout";
+import { mergeGlobalLivePresence } from "../lib/firestoreGlobalLivePresence";
 import { deleteTrailLivePublicationRide } from "../lib/firestoreTrailLivePublicationRides";
+import { flushRideJoinPresenceBurst } from "../lib/rideJoinPresenceBurst";
 import { sanitizeTrailId } from "../lib/firestoreTrail";
 
 const PUBLISH_TICK_MS = 1_000;
@@ -29,6 +31,8 @@ export type UseLiveLocationPublishSessionOpts = {
   routeGeometry: LineStringGeometry | null;
   routeDistanceMeters: number;
   virtualDistanceMeters: number;
+  /** 주행 시작( idle→running )마다 +1 — join burst 1회 */
+  joinBurstNonce?: number;
   onError?: (message: string) => void;
 };
 
@@ -48,6 +52,7 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
     routeGeometry,
     routeDistanceMeters,
     virtualDistanceMeters,
+    joinBurstNonce = 0,
     onError,
   } = opts;
 
@@ -76,6 +81,69 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
   const flagsRef = useRef({ globalEnabled, routeEnabled, pageVisible });
   flagsRef.current = { globalEnabled, routeEnabled, pageVisible };
 
+  const throttleRef = useRef(createLiveLocationPublishThrottleState());
+  const joinBurstDoneNonceRef = useRef(0);
+
+  const reportErrorRef = useRef((e: unknown) => {
+    const message = e instanceof Error ? e.message : String(e);
+    onErrorRef.current?.(message);
+  });
+
+  /** idle→running — 스로틀·ensure 대기 없이 세션+progress 즉시 1회 기록 */
+  useEffect(() => {
+    if (!joinBurstNonce || joinBurstNonce <= joinBurstDoneNonceRef.current) return;
+
+    let cancelled = false;
+    const reportError = (e: unknown) => {
+      if (!cancelled) reportErrorRef.current(e);
+    };
+
+    const attempt = async (): Promise<boolean> => {
+      const u = userRef.current;
+      if (!u || !flagsRef.current.pageVisible) return false;
+      const snapshot = buildLiveLocationSnapshot(inputRef.current);
+      if (!snapshot?.routeReady) return false;
+      try {
+        await flushRideJoinPresenceBurst(u, snapshot);
+        if (flagsRef.current.globalEnabled) {
+          await mergeGlobalLivePresence(u, snapshot.lngLat);
+        }
+        if (cancelled) return false;
+        const now = Date.now();
+        markRouteProgressPublished(throttleRef.current, now, snapshot.progressRatio);
+        if (flagsRef.current.globalEnabled) {
+          markGlobalPresencePublished(throttleRef.current, now, snapshot.lngLat);
+        }
+        joinBurstDoneNonceRef.current = joinBurstNonce;
+        if (import.meta.env.DEV) {
+          console.debug("[LiveLocationPublish] join burst", {
+            progressRatio: snapshot.progressRatio,
+            publicationId: snapshot.publicationId,
+            trailId: snapshot.trailId,
+          });
+        }
+        return true;
+      } catch (e) {
+        reportError(e);
+        return false;
+      }
+    };
+
+    void attempt();
+    const retryId = window.setInterval(() => {
+      void attempt().then((ok) => {
+        if (ok) window.clearInterval(retryId);
+      });
+    }, 300);
+    const stopId = window.setTimeout(() => window.clearInterval(retryId), 4_000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(retryId);
+      window.clearTimeout(stopId);
+    };
+  }, [joinBurstNonce, publicationId, routeGeometry, pageVisible, user?.uid]);
+
   useEffect(() => {
     const u = userRef.current;
     if (!u || !globalEnabled) return;
@@ -85,12 +153,11 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
       return;
     }
 
-    const throttle = createLiveLocationPublishThrottleState();
+    const throttle = throttleRef.current;
     let routeDocActive = false;
 
     const reportError = (e: unknown) => {
-      const message = e instanceof Error ? e.message : String(e);
-      onErrorRef.current?.(message);
+      reportErrorRef.current(e);
     };
 
     const tick = async () => {

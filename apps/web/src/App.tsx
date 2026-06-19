@@ -140,6 +140,7 @@ export default function App() {
   const [mapStyle, setMapStyle] = useState(MAP_STYLE_OPTIONS[3].value);
   const [mapZoom, setMapZoom] = useState(12);
   const [rideFollowCameraNonce, setRideFollowCameraNonce] = useState(0);
+  const [rideJoinBurstNonce, setRideJoinBurstNonce] = useState(0);
   const [mapViewportSpanKm, setMapViewportSpanKm] = useState<number | null>(null);
   /** 전역 livePresence publish — idle 시 지도 중심(주행 중에는 liveForMap 우선) */
   const [mapViewportCenterLngLat, setMapViewportCenterLngLat] = useState<LngLat>([127.035, 37.505]);
@@ -365,6 +366,7 @@ export default function App() {
         setEnable3D(true);
         setMapZoom(RIDE_FOLLOW_CAMERA_ZOOM);
         setRideFollowCameraNonce((n) => n + 1);
+        setRideJoinBurstNonce((n) => n + 1);
       }
       return;
     }
@@ -1096,6 +1098,7 @@ export default function App() {
     routeGeometry,
     routeDistanceMeters,
     virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
+    joinBurstNonce: rideJoinBurstNonce,
   });
 
   const { dots: globalPresenceDots } = useGlobalLivePresence({
