@@ -40,6 +40,8 @@ export type TrailInstance = {
 type TrailInstanceDoc = {
   hostUid: string;
   displayNumber: number;
+  publicationId?: string | null;
+  /** @deprecated Phase 7 — read fallback only */
   courseId?: string | null;
   regionLabel?: string | null;
   distanceKm?: number | null;
@@ -48,6 +50,16 @@ type TrailInstanceDoc = {
   createdAt?: FieldValue;
   lastActivityAt?: FieldValue;
 };
+
+function resolveTrailPublicationId(data: Record<string, unknown>): string | null {
+  const publicationId =
+    typeof data.publicationId === "string" && data.publicationId.trim()
+      ? data.publicationId.trim()
+      : "";
+  if (publicationId) return publicationId;
+  const legacy = typeof data.courseId === "string" && data.courseId.trim() ? data.courseId.trim() : "";
+  return legacy || null;
+}
 
 function timestampToMs(raw: unknown): number | null {
   if (raw == null) return null;
@@ -66,7 +78,7 @@ function parseTrailInstance(id: string, data: Record<string, unknown>): TrailIns
       typeof data.displayNumber === "number" && Number.isFinite(data.displayNumber)
         ? Math.max(1, Math.min(999, Math.floor(data.displayNumber)))
         : 1,
-    courseId: typeof data.courseId === "string" && data.courseId.trim() ? data.courseId.trim() : null,
+    courseId: resolveTrailPublicationId(data),
     regionLabel:
       typeof data.regionLabel === "string" && data.regionLabel.trim() ? data.regionLabel.trim() : null,
     distanceKm:
@@ -111,10 +123,11 @@ export async function createTrailInstance(input: {
   const db = getFirestore(getFirebaseApp());
   const ref = doc(collection(db, TRAILS_COLLECTION));
   const displayNumber = pickRandomTrailDisplayNumber();
+  const publicationId = input.courseId?.trim() || null;
   const payload: TrailInstanceDoc = {
     hostUid: input.hostUid,
     displayNumber,
-    courseId: input.courseId,
+    publicationId,
     regionLabel: input.regionLabel,
     distanceKm: input.distanceKm,
     visibility,
@@ -127,7 +140,7 @@ export async function createTrailInstance(input: {
     id: ref.id,
     hostUid: input.hostUid,
     displayNumber,
-    courseId: input.courseId,
+    courseId: publicationId,
     regionLabel: input.regionLabel,
     distanceKm: input.distanceKm,
     visibility: payload.visibility,

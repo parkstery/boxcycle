@@ -74,6 +74,8 @@ export type PublicRouteRequest = {
   reviewedAtIso: string | null;
   reviewerUid: string | null;
   createdCourseId: string | null;
+  /** Phase 7 — 승인 시 생성된 publication id */
+  createdPublicationId: string | null;
   rejectionReason: string | null;
 };
 
@@ -211,6 +213,12 @@ function fromRequestDoc(id: string, data: Record<string, unknown>): PublicRouteR
     reviewedAtIso: data.reviewedAt ? toIso(data.reviewedAt) : null,
     reviewerUid: typeof data.reviewerUid === "string" ? data.reviewerUid : null,
     createdCourseId: typeof data.createdCourseId === "string" ? data.createdCourseId : null,
+    createdPublicationId:
+      typeof data.createdPublicationId === "string"
+        ? data.createdPublicationId
+        : typeof data.createdCourseId === "string"
+          ? data.createdCourseId
+          : null,
     rejectionReason: typeof data.rejectionReason === "string" ? data.rejectionReason : null,
     routeFingerprint:
       typeof data.routeFingerprint === "string" && data.routeFingerprint.length === 64
@@ -395,7 +403,6 @@ export async function approvePublicRouteRequest(
   writeRoutePublicationOnApprove(batch, {
     publicationId,
     routeId: request.savedRouteId,
-    courseId: publicationId,
     publicTitle: request.publicTitle,
     publicSummary: request.publicSummary,
     routeFingerprint,
@@ -411,7 +418,6 @@ export async function approvePublicRouteRequest(
     reviewerUid: reviewer.uid,
     reviewedAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
-    createdCourseId: publicationId,
     createdPublicationId: publicationId,
   });
   await batch.commit();

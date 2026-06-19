@@ -31,10 +31,20 @@ type OpenTrailListingDoc = {
   displayNumber: number;
   regionLabel: string | null;
   distanceKm: number | null;
-  courseId: string;
+  publicationId: string;
   riderCount: number;
   updatedAt: ReturnType<typeof serverTimestamp>;
 };
+
+function resolveListingPublicationId(data: Record<string, unknown>): string | null {
+  const publicationId =
+    typeof data.publicationId === "string" && data.publicationId.trim()
+      ? data.publicationId.trim()
+      : "";
+  if (publicationId) return publicationId;
+  const legacy = typeof data.courseId === "string" && data.courseId.trim() ? data.courseId.trim() : "";
+  return legacy || null;
+}
 
 function listingRef(trailId: string) {
   return doc(getFirestore(getFirebaseApp()), OPEN_TRAIL_LISTINGS_COLLECTION, trailId);
@@ -64,7 +74,7 @@ async function loadTrailForListing(trailId: string): Promise<TrailInstance | nul
       typeof data.displayNumber === "number" && Number.isFinite(data.displayNumber)
         ? Math.max(1, Math.min(999, Math.floor(data.displayNumber)))
         : 1,
-    courseId: typeof data.courseId === "string" && data.courseId.trim() ? data.courseId.trim() : null,
+    courseId: resolveListingPublicationId(data),
     regionLabel:
       typeof data.regionLabel === "string" && data.regionLabel.trim() ? data.regionLabel.trim() : null,
     distanceKm:
@@ -100,7 +110,7 @@ function listingToTrailInstance(
       typeof data.displayNumber === "number" && Number.isFinite(data.displayNumber)
         ? Math.max(1, Math.min(999, Math.floor(data.displayNumber)))
         : 1,
-    courseId: typeof data.courseId === "string" ? data.courseId : null,
+    courseId: resolveListingPublicationId(data),
     regionLabel:
       typeof data.regionLabel === "string" && data.regionLabel.trim()
         ? data.regionLabel.trim()
@@ -155,7 +165,7 @@ export async function refreshOpenTrailListingFromTrail(trailId: string): Promise
     displayNumber: trail.displayNumber,
     regionLabel: trail.regionLabel,
     distanceKm: trail.distanceKm,
-    courseId: trail.courseId!,
+    publicationId: trail.courseId!,
     riderCount,
     updatedAt: serverTimestamp(),
   };

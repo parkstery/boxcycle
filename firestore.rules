@@ -116,15 +116,18 @@ service cloud.firestore {
       return /databases/$(database)/documents/trails/$(trailId);
     }
 
-    function trailHasCourseId(data) {
-      return data.keys().hasAny(['courseId'])
+    function trailHasPublicationId(data) {
+      return (data.keys().hasAny(['publicationId'])
+        && data.publicationId is string
+        && data.publicationId.size() > 0)
+        || (data.keys().hasAny(['courseId'])
         && data.courseId is string
-        && data.courseId.size() > 0;
+        && data.courseId.size() > 0);
     }
 
-    /** 공개 Trail 은 courseId 필수 — 비공개는 경로 없이 개설 가능(개설자 전용) */
+    /** 공개 Trail 은 publicationId 필수 — 비공개는 경로 없이 개설 가능(개설자 전용) */
     function trailOpenVisibilityValid(data) {
-      return data.visibility != 'open' || trailHasCourseId(data);
+      return data.visibility != 'open' || trailHasPublicationId(data);
     }
 
     /**
@@ -204,8 +207,14 @@ service cloud.firestore {
       allow create: if isSignedIn()
         && request.resource.data.hostUid == request.auth.uid
         && request.resource.data.trailId == trailId
-        && request.resource.data.courseId is string
-        && request.resource.data.courseId.size() > 0;
+        && (
+          (request.resource.data.keys().hasAll(['publicationId'])
+            && request.resource.data.publicationId is string
+            && request.resource.data.publicationId.size() > 0)
+          || (request.resource.data.keys().hasAll(['courseId'])
+            && request.resource.data.courseId is string
+            && request.resource.data.courseId.size() > 0)
+        );
       allow update: if isSignedIn()
         && (
           resource.data.hostUid == request.auth.uid
@@ -371,10 +380,10 @@ service cloud.firestore {
               (
                 request.resource.data.status == 'approved'
                 && request.resource.data.reviewerUid == request.auth.uid
-                && request.resource.data.createdCourseId is string
-                && request.resource.data.createdCourseId.size() > 0
+                && request.resource.data.createdPublicationId is string
+                && request.resource.data.createdPublicationId.size() > 0
                 && request.resource.data.diff(resource.data).affectedKeys()
-                     .hasOnly(['status', 'reviewerUid', 'reviewedAt', 'updatedAt', 'createdCourseId'])
+                     .hasOnly(['status', 'reviewerUid', 'reviewedAt', 'updatedAt', 'createdPublicationId'])
               )
               || (
                 request.resource.data.status == 'rejected'

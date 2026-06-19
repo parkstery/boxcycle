@@ -5,9 +5,7 @@
  *   npm run admin:migrate-live-publication-rides
  *   npm run admin:migrate-live-publication-rides -- --delete-legacy
  */
-import { cert, getApps, initializeApp } from "firebase-admin/app";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { initFirebaseAdminForCli } from "./initAdminForCli.js";
 import { migrateLivePublicationRidesWithAdminSdk } from "./migrateLivePublicationRidesCore.js";
 
 function arg(name: string): string | undefined {
@@ -20,28 +18,19 @@ function hasFlag(name: string): boolean {
   return process.argv.includes(`--${name}`);
 }
 
-function initFirebaseAdmin(): void {
-  if (getApps().length > 0) return;
-  const explicit = arg("serviceAccount");
-  if (explicit) {
-    const raw = readFileSync(resolve(explicit), "utf8");
-    const parsed = JSON.parse(raw) as Parameters<typeof cert>[0];
-    initializeApp({ credential: cert(parsed) });
-    return;
-  }
-  initializeApp();
-}
-
 async function main(): Promise<void> {
   if (hasFlag("help") || hasFlag("h")) {
     console.info(`Usage:
-  npm run admin:migrate-live-publication-rides -- [--dry-run] [--delete-legacy] [--serviceAccount=/abs/path.json]
+  npm run admin:migrate-live-publication-rides -- [--dry-run] [--delete-legacy] [--projectId=boxcycle-dc2df] [--serviceAccount=/abs/path.json]
 
 Copies trails/{id}/liveCourseRides/* to livePublicationRides/* with publicationId field.`);
     return;
   }
 
-  initFirebaseAdmin();
+  initFirebaseAdminForCli({
+    projectId: arg("projectId"),
+    serviceAccountPath: arg("serviceAccount"),
+  });
   const dryRun = hasFlag("dry-run");
   const result = await migrateLivePublicationRidesWithAdminSdk({
     dryRun,

@@ -20,7 +20,8 @@ export type RoutePublicationStatus = "published" | "archived";
 
 export type RoutePublicationDoc = {
   routeId: string;
-  courseId: string;
+  /** @deprecated Phase 7 — doc id = {@link RoutePublicationRow.publicationId}; 필드는 purge 예정 */
+  courseId?: string;
   publicTitle: string;
   publicSummary: string | null;
   status: RoutePublicationStatus;
@@ -44,11 +45,11 @@ export type RoutePublicationRow = RoutePublicationDoc & {
 
 function parsePublicationRow(id: string, data: Record<string, unknown>): RoutePublicationRow | null {
   const routeId = data.routeId;
-  const courseId = data.courseId;
   const publicTitle = data.publicTitle;
   if (typeof routeId !== "string" || routeId.length < 1) return null;
-  if (typeof courseId !== "string" || courseId.length < 1) return null;
   if (typeof publicTitle !== "string" || publicTitle.length < 1) return null;
+  const legacyCourseId =
+    typeof data.courseId === "string" && data.courseId.trim().length > 0 ? data.courseId.trim() : id;
   const status = data.status === "archived" ? "archived" : "published";
   const profile = data.snapshotProfile;
   const snapshotProfile: RouteProfile =
@@ -56,7 +57,7 @@ function parsePublicationRow(id: string, data: Record<string, unknown>): RoutePu
   return {
     publicationId: id,
     routeId,
-    courseId,
+    courseId: legacyCourseId,
     publicTitle,
     publicSummary: typeof data.publicSummary === "string" ? data.publicSummary : null,
     status,
@@ -78,13 +79,12 @@ function parsePublicationRow(id: string, data: Record<string, unknown>): RoutePu
   };
 }
 
-/** 승인 시 `courses` 와 동일 id 로 publication 스냅샷 기록 */
+/** 승인 시 publication 스냅샷 기록 (doc id = publicationId) */
 export function writeRoutePublicationOnApprove(
   batch: ReturnType<typeof writeBatch>,
   input: {
     publicationId: string;
     routeId: string;
-    courseId: string;
     publicTitle: string;
     publicSummary: string;
     routeFingerprint: string;
@@ -100,7 +100,6 @@ export function writeRoutePublicationOnApprove(
   const ref = doc(db, ROUTE_PUBLICATIONS_COLLECTION, input.publicationId);
   batch.set(ref, {
     routeId: input.routeId,
-    courseId: input.courseId,
     publicTitle: input.publicTitle,
     publicSummary: input.publicSummary.length > 0 ? input.publicSummary : null,
     status: "published",

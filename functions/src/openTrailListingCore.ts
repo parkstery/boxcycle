@@ -35,6 +35,18 @@ function presenceCutoff(): Timestamp {
   return Timestamp.fromMillis(Date.now() - TRAIL_PRESENCE_STALE_MS);
 }
 
+function resolveTrailPublicationId(data: DocumentData | undefined): string | null {
+  if (!data) return null;
+  const publicationId =
+    typeof data.publicationId === "string" && data.publicationId.trim()
+      ? data.publicationId.trim()
+      : "";
+  if (publicationId) return publicationId;
+  const legacy =
+    typeof data.courseId === "string" && data.courseId.trim() ? data.courseId.trim() : "";
+  return legacy || null;
+}
+
 function parseTrailMeta(trailId: string, data: DocumentData | undefined): TrailMeta | null {
   if (!data) return null;
   return {
@@ -44,7 +56,7 @@ function parseTrailMeta(trailId: string, data: DocumentData | undefined): TrailM
       typeof data.displayNumber === "number" && Number.isFinite(data.displayNumber)
         ? Math.max(1, Math.min(999, Math.floor(data.displayNumber)))
         : 1,
-    courseId: typeof data.courseId === "string" && data.courseId.trim() ? data.courseId.trim() : null,
+    courseId: resolveTrailPublicationId(data),
     regionLabel:
       typeof data.regionLabel === "string" && data.regionLabel.trim() ? data.regionLabel.trim() : null,
     distanceKm:
@@ -110,7 +122,7 @@ export async function recomputeOpenTrailListing(
       displayNumber: trail.displayNumber,
       regionLabel: trail.regionLabel,
       distanceKm: trail.distanceKm,
-      courseId: trail.courseId,
+      publicationId: trail.courseId,
       riderCount,
       updatedAt: FieldValue.serverTimestamp(),
     },
