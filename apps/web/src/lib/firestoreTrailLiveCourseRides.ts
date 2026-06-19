@@ -27,7 +27,7 @@ import {
   TRAIL_PRESENCE_STALE_MS,
 } from "./firestoreTrail";
 import {
-  TRAIL_LIVE_COURSE_RIDES_SUBCOLLECTION,
+  TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION,
   TRAILS_COLLECTION,
 } from "./firestoreTrailPaths";
 
@@ -36,16 +36,24 @@ export const TRAIL_LIVE_COURSE_RIDE_WRITE_INTERVAL_MS = 4_000;
 
 export type TrailLiveCourseRideRow = {
   uid: string;
-  courseId: string;
+  /** 출판 ID — 레거시 문서의 `courseId` 와 동일 값 */
+  publicationId: string;
   progressRatio: number;
   lastSeenAtMs: number | null;
   displayName: string | null;
 };
 
+function readPublicationIdFromDoc(data: Record<string, unknown>): string {
+  const pub = data.publicationId;
+  if (typeof pub === "string" && pub.trim()) return pub.trim();
+  const legacy = data.courseId;
+  return typeof legacy === "string" ? legacy.trim() : "";
+}
+
 function liveRidesCollectionRef(trailId: string) {
   const db = getFirestore(getFirebaseApp());
   const rid = sanitizeTrailId(trailId);
-  return collection(db, TRAILS_COLLECTION, rid, TRAIL_LIVE_COURSE_RIDES_SUBCOLLECTION);
+  return collection(db, TRAILS_COLLECTION, rid, TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION);
 }
 
 export function subscribeTrailLiveCourseRides(
@@ -60,14 +68,14 @@ export function subscribeTrailLiveCourseRides(
       const rows: TrailLiveCourseRideRow[] = [];
       for (const d of snap.docs) {
         const data = d.data() as Record<string, unknown>;
-        const courseId = typeof data.courseId === "string" ? data.courseId.trim() : "";
+        const publicationId = readPublicationIdFromDoc(data);
         const pr = data.progressRatio;
         const progressRatio =
           typeof pr === "number" && Number.isFinite(pr) ? Math.max(0, Math.min(1, pr)) : Number.NaN;
-        if (!courseId || Number.isNaN(progressRatio)) continue;
+        if (!publicationId || Number.isNaN(progressRatio)) continue;
         rows.push({
           uid: d.id,
-          courseId,
+          publicationId,
           progressRatio,
           lastSeenAtMs: lastSeenAtToMillis(data.lastSeenAt),
           displayName: typeof data.displayName === "string" ? data.displayName : null,
@@ -82,15 +90,15 @@ export function subscribeTrailLiveCourseRides(
 export async function mergeTrailLiveCourseRideSnapshot(
   user: User,
   trailId: string,
-  input: { courseId: string; progressRatio: number },
+  input: { publicationId: string; progressRatio: number },
 ): Promise<void> {
   const rid = sanitizeTrailId(trailId);
   const db = getFirestore(getFirebaseApp());
-  const ref = doc(db, TRAILS_COLLECTION, rid, TRAIL_LIVE_COURSE_RIDES_SUBCOLLECTION, user.uid);
+  const ref = doc(db, TRAILS_COLLECTION, rid, TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION, user.uid);
   await setDoc(
     ref,
     {
-      courseId: input.courseId.trim(),
+      publicationId: input.publicationId.trim(),
       progressRatio: Math.max(0, Math.min(1, input.progressRatio)),
       displayName: getPresenceDisplayName(user),
       lastSeenAt: serverTimestamp(),
@@ -102,7 +110,7 @@ export async function mergeTrailLiveCourseRideSnapshot(
 export async function deleteTrailLiveCourseRide(uid: string, trailId: string): Promise<void> {
   const rid = sanitizeTrailId(trailId);
   const db = getFirestore(getFirebaseApp());
-  await deleteDoc(doc(db, TRAILS_COLLECTION, rid, TRAIL_LIVE_COURSE_RIDES_SUBCOLLECTION, uid));
+  await deleteDoc(doc(db, TRAILS_COLLECTION, rid, TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION, uid));
 }
 
 function liveRideFreshnessCutoff(): Timestamp {
@@ -111,7 +119,7 @@ function liveRideFreshnessCutoff(): Timestamp {
 
 const LIVE_RIDES_COUNT_SCAN_LIMIT = 48;
 
-/** Trail 에서 최근 활동(`lastSeenAt`) 있는 `liveCourseRides` — aggregation 없이 소량 getDocs */
+/** Trail 에서 최근 활동(`lastSeenAt`) 있는 `livePublicationRides` — aggregation 없이 소량 getDocs */
 export async function countTrailLiveRidersFresh(trailId: string): Promise<number> {
   const coll = liveRidesCollectionRef(trailId);
   const cutoffMs = Date.now() - TRAIL_PRESENCE_STALE_MS;
@@ -124,7 +132,7 @@ export async function countTrailLiveRidersFresh(trailId: string): Promise<number
   return n;
 }
 
-/** Trail 에서 `liveCourseRides` 문서 수(레거시·stale 포함) */
+/** Trail 에서 `livePublicationRides` 문서 수(레거시·stale 포함) */
 export async function countTrailLiveRiders(trailId: string): Promise<number> {
   const snap = await getDocs(query(liveRidesCollectionRef(trailId), limit(LIVE_RIDES_COUNT_SCAN_LIMIT)));
   return snap.size;
@@ -133,13 +141,12 @@ export async function countTrailLiveRiders(trailId: string): Promise<number> {
 const ACTIVE_LIVE_RIDE_TRAIL_SCAN_LIMIT = 80;
 
 /**
- * 지금 주행 중인 Trail ID — `liveCourseRides` collection group 기준(최근 lastSeenAt).
- * 열린 Trail 목록은 이 집합과 메타(status·visibility)로 합류 가능 여부를 판단한다.
+ * 지금 주행 중인 Trail ID — `livePublicationRides` collection group 기준(최근 lastSeenAt).
  */
 export async function fetchTrailIdsWithActiveLiveRides(): Promise<string[]> {
   const db = getFirestore(getFirebaseApp());
   const q = query(
-    collectionGroup(db, TRAIL_LIVE_COURSE_RIDES_SUBCOLLECTION),
+    collectionGroup(db, TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION),
     where("lastSeenAt", ">", liveRideFreshnessCutoff()),
     orderBy("lastSeenAt", "desc"),
     limit(ACTIVE_LIVE_RIDE_TRAIL_SCAN_LIMIT),

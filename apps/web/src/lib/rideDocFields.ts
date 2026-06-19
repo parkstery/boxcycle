@@ -19,7 +19,7 @@ export function resolveRidePublicationId(data: Record<string, unknown>): string 
   return trimOrNull(data.publicationId) ?? trimOrNull(data.courseId);
 }
 
-/** 신규 rides write — canonical 필드 + CF 호환 `courseId` mirror. */
+/** 신규 rides write — canonical 필드만 (`publicationId`; 레거시 `courseId` 미기록). */
 export function buildRideCanonicalWriteFields(input: {
   trailId: string | null;
   routeId: string | null;
@@ -28,7 +28,6 @@ export function buildRideCanonicalWriteFields(input: {
   trailId: string | null;
   routeId: string | null;
   publicationId: string | null;
-  courseId: string | null;
 } {
   const trailId = trimOrNull(input.trailId);
   const routeId = trimOrNull(input.routeId);
@@ -37,6 +36,5 @@ export function buildRideCanonicalWriteFields(input: {
     trailId,
     routeId,
     publicationId,
-    courseId: publicationId,
   };
 }

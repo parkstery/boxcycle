@@ -48,11 +48,10 @@ export async function discardBasicHubCoursesWithAdminSdk(input: {
         result.archived += 1;
       }
 
-      for (const col of ["courseActivity", "routeActivity"] as const) {
-        const ref = db.doc(`${col}/${courseId}`);
-        const snap = await ref.get();
-        if (!snap.exists) continue;
-        if (!input.dryRun) await ref.delete();
+      const activityRef = db.doc(`routeActivity/${courseId}`);
+      const activitySnap = await activityRef.get();
+      if (activitySnap.exists) {
+        if (!input.dryRun) await activityRef.delete();
         result.activityDeleted += 1;
       }
 

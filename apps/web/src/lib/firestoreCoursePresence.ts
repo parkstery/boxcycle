@@ -1,138 +1,48 @@
-import {
-  collection,
-  deleteDoc,
-  deleteField,
-  doc,
-  getFirestore,
-  onSnapshot,
-  serverTimestamp,
-  setDoc,
-  GeoPoint,
-  type FirestoreError,
-  type Unsubscribe,
-} from "firebase/firestore";
+/**
+ * @deprecated Phase 6 — {@link ./firestorePublicationSessionPresence.ts} 사용.
+ */
 import type { User } from "firebase/auth";
-import { getPresenceDisplayName, getPresenceMemberType, type PresenceMemberType } from "./authDisplay";
-import { getFirebaseApp } from "./firebase";
+import type { FirestoreError, Unsubscribe } from "firebase/firestore";
 import type { LngLat } from "./geo";
-import { isMemberRecentlySeen, lastSeenAtToMillis } from "./firestoreTrail";
+import {
+  deletePublicationSessionMember,
+  isPublicationSessionMemberActive,
+  mergePublicationSessionMemberLiveLocation,
+  PUBLICATION_SESSION_LIVE_SHARE_INTERVAL_MS,
+  subscribePublicationSessionMembers,
+  touchPublicationSessionMember,
+  upsertPublicationSessionMember,
+  type PublicationSessionMemberRow,
+} from "./firestorePublicationSessionPresence";
 
-export type CourseMemberRow = {
-  uid: string;
-  displayName: string | null;
-  memberType: PresenceMemberType | null;
-  lastSeenAtMs: number | null;
-  /** 주행 중 지도에 표시할 위치 (없으면 목록만) */
-  liveLngLat: LngLat | null;
-};
+export type CourseMemberRow = PublicationSessionMemberRow;
+export const isCourseMemberActive = isPublicationSessionMemberActive;
+export const COURSE_LIVE_SHARE_INTERVAL_MS = PUBLICATION_SESSION_LIVE_SHARE_INTERVAL_MS;
 
-/** 로비와 동일한 “최근 접속” 판정 */
-export const isCourseMemberActive = isMemberRecentlySeen;
-
-export const COURSE_LIVE_SHARE_INTERVAL_MS = 2000;
-
-function membersCollectionRef(courseId: string) {
-  const db = getFirestore(getFirebaseApp());
-  return collection(db, "coursePresence", courseId, "members");
+export async function upsertCoursePresence(user: User, publicationId: string): Promise<void> {
+  await upsertPublicationSessionMember(user, publicationId);
 }
 
-function parseLiveLngLat(data: Record<string, unknown>): LngLat | null {
-  const lng = data.liveLng;
-  const lat = data.liveLat;
-  if (typeof lng === "number" && typeof lat === "number" && Number.isFinite(lng) && Number.isFinite(lat)) {
-    return [lng, lat];
-  }
-  const gp = data.liveGeo;
-  if (gp instanceof GeoPoint) {
-    return [gp.longitude, gp.latitude];
-  }
-  return null;
+export async function touchCoursePresence(user: User, publicationId: string): Promise<void> {
+  await touchPublicationSessionMember(user, publicationId);
 }
 
-export async function upsertCoursePresence(user: User, courseId: string): Promise<void> {
-  const db = getFirestore(getFirebaseApp());
-  const ref = doc(db, "coursePresence", courseId, "members", user.uid);
-  await setDoc(
-    ref,
-    {
-      memberType: getPresenceMemberType(user),
-      displayName: getPresenceDisplayName(user),
-      photoURL: user.photoURL ?? null,
-      lastSeenAt: serverTimestamp(),
-    },
-    { merge: true },
-  );
-}
-
-export async function touchCoursePresence(user: User, courseId: string): Promise<void> {
-  await upsertCoursePresence(user, courseId);
-}
-
-/** @deprecated 좌표는 `livePresence` only — membership heartbeat 는 `upsertCoursePresence` */
 export async function mergeCourseMemberLiveLocation(
   user: User,
-  courseId: string,
+  publicationId: string,
   lngLat: LngLat | null,
 ): Promise<void> {
-  const db = getFirestore(getFirebaseApp());
-  const ref = doc(db, "coursePresence", courseId, "members", user.uid);
-  if (lngLat) {
-    await setDoc(
-      ref,
-      {
-        memberType: getPresenceMemberType(user),
-        displayName: getPresenceDisplayName(user),
-        photoURL: user.photoURL ?? null,
-        liveLng: lngLat[0],
-        liveLat: lngLat[1],
-        lastSeenAt: serverTimestamp(),
-      },
-      { merge: true },
-    );
-  } else {
-    await setDoc(
-      ref,
-      {
-        memberType: getPresenceMemberType(user),
-        displayName: getPresenceDisplayName(user),
-        photoURL: user.photoURL ?? null,
-        liveLng: deleteField(),
-        liveLat: deleteField(),
-        lastSeenAt: serverTimestamp(),
-      },
-      { merge: true },
-    );
-  }
+  await mergePublicationSessionMemberLiveLocation(user, publicationId, lngLat);
 }
 
-export async function deleteCoursePresence(uid: string, courseId: string): Promise<void> {
-  const db = getFirestore(getFirebaseApp());
-  await deleteDoc(doc(db, "coursePresence", courseId, "members", uid));
+export async function deleteCoursePresence(uid: string, publicationId: string): Promise<void> {
+  await deletePublicationSessionMember(uid, publicationId);
 }
 
 export function subscribeCourseMembers(
-  courseId: string,
+  publicationId: string,
   onChange: (members: CourseMemberRow[]) => void,
   onError?: (e: FirestoreError) => void,
 ): Unsubscribe {
-  return onSnapshot(
-    membersCollectionRef(courseId),
-    (snap) => {
-      const rows: CourseMemberRow[] = snap.docs.map((d) => {
-        const data = d.data() as Record<string, unknown>;
-        const mt = data.memberType;
-        const memberType: PresenceMemberType | null =
-          mt === "guest" || mt === "user" ? mt : null;
-        return {
-          uid: d.id,
-          displayName: typeof data.displayName === "string" ? data.displayName : null,
-          memberType,
-          lastSeenAtMs: lastSeenAtToMillis(data.lastSeenAt),
-          liveLngLat: parseLiveLngLat(data),
-        };
-      });
-      onChange(rows);
-    },
-    (err) => onError?.(err),
-  );
+  return subscribePublicationSessionMembers(publicationId, onChange, onError);
 }

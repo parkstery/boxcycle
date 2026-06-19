@@ -4,6 +4,7 @@
  */
 import { collection, getDocs, limit, query, where } from "firebase/firestore";
 import type { Firestore } from "firebase/firestore";
+import { listPublishedRoutePublications } from "./firestoreRoutePublications";
 import type { LineStringGeometry, LngLat } from "./geo";
 import { getDistanceMeters, getPointOnRouteByDistance } from "./geo";
 import type { RouteProfile } from "../services/mapboxDirections";
@@ -140,21 +141,10 @@ export async function assertPublicRouteAutoReview(input: {
     );
   }
 
-  const coursesSnap = await getDocs(
-    query(
-      collection(db, "courses"),
-      where("category", "==", "public"),
-      where("visibility", "==", "public"),
-      where("status", "==", "published"),
-      where("profile", "==", profile),
-      limit(100),
-    ),
-  );
-  for (const d of coursesSnap.docs) {
-    const data = d.data() as Record<string, unknown>;
-    const json = data.geometryCoordsJson;
-    if (typeof json !== "string") continue;
-    const other = decodeLineStringCoordsJson(json);
+  const published = await listPublishedRoutePublications(100);
+  for (const pub of published) {
+    if (pub.snapshotProfile !== profile) continue;
+    const other = decodeLineStringCoordsJson(pub.geometryCoordsJson);
     if (!other) continue;
     if (routePolylineSimilaritySymmetric(geometry, other) >= PUBLIC_ROUTE_SIMILARITY_BLOCK) {
       throw new Error(

@@ -5,7 +5,6 @@ import {
   type QueryDocumentSnapshot,
 } from "firebase-admin/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { COURSE_ACTIVITY_COLLECTION } from "./courseActivityAggregateCore.js";
 import { ROUTE_ACTIVITY_COLLECTION } from "./routeActivityConstants.js";
 
 const RIDES_COLLECTION = "rides";
@@ -13,8 +12,8 @@ const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 const PAGE_SIZE = 400;
 
 /**
- * 최근 7일 `rides`(completed, courseId 있음)를 집계해
- * `courseActivity.recentRideCount7d` 를 increment 드리프트 없이 맞춘다.
+ * 최근 7일 `rides`(completed, publicationId/courseId)를 집계해
+ * `routeActivity.recentRideCount7d` 를 increment 드리프트 없이 맞춘다.
  */
 export const courseActivityHeatReconcile = onSchedule(
   {
@@ -54,7 +53,7 @@ export const courseActivityHeatReconcile = onSchedule(
       if (snap.size < PAGE_SIZE) break;
     }
 
-    const activitySnap = await db.collection(COURSE_ACTIVITY_COLLECTION).get();
+    const activitySnap = await db.collection(ROUTE_ACTIVITY_COLLECTION).get();
     const toUpdate = new Set<string>([...counts.keys()]);
     for (const d of activitySnap.docs) {
       const prev =
@@ -66,14 +65,16 @@ export const courseActivityHeatReconcile = onSchedule(
 
     let batch = db.batch();
     let ops = 0;
-    for (const courseId of toUpdate) {
-      const next = counts.get(courseId) ?? 0;
-      const heatPatch = {
-        recentRideCount7d: next,
-        updatedAt: FieldValue.serverTimestamp(),
-      };
-      batch.set(db.doc(`${COURSE_ACTIVITY_COLLECTION}/${courseId}`), heatPatch, { merge: true });
-      batch.set(db.doc(`${ROUTE_ACTIVITY_COLLECTION}/${courseId}`), heatPatch, { merge: true });
+    for (const publicationId of toUpdate) {
+      const next = counts.get(publicationId) ?? 0;
+      batch.set(
+        db.doc(`${ROUTE_ACTIVITY_COLLECTION}/${publicationId}`),
+        {
+          recentRideCount7d: next,
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
       ops += 1;
       if (ops >= 400) {
         await batch.commit();
@@ -83,9 +84,9 @@ export const courseActivityHeatReconcile = onSchedule(
     }
     if (ops > 0) await batch.commit();
 
-    console.info("[courseActivityHeatReconcile]", {
-      coursesWithRides7d: counts.size,
-      coursesUpdated: toUpdate.size,
+    console.info("[routeActivityHeatReconcile]", {
+      publicationsWithRides7d: counts.size,
+      publicationsUpdated: toUpdate.size,
     });
   },
 );

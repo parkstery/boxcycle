@@ -82,7 +82,7 @@ export function useTrailLiveCourseRidePublisher(opts: UseTrailLiveCourseRidePubl
       last.writeAt = now;
       last.ratio = ratio;
       void mergeTrailLiveCourseRideSnapshot(u2, tid, {
-        courseId: c,
+        publicationId: c,
         progressRatio: ratio,
       }).catch(() => {});
       if (tid !== DEFAULT_TRAIL_ID) {

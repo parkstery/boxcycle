@@ -2,4 +2,6 @@
 export const TRAILS_COLLECTION = "trails" as const;
 
 export const TRAIL_MEMBERS_SUBCOLLECTION = "members" as const;
+/** @deprecated Phase 5 — `livePublicationRides` 단일 */
 export const TRAIL_LIVE_COURSE_RIDES_SUBCOLLECTION = "liveCourseRides" as const;
+export const TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION = "livePublicationRides" as const;

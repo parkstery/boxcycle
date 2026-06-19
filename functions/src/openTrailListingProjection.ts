@@ -52,7 +52,7 @@ export const openTrailListingOnMemberWritten = onDocumentWritten(
 
 export const openTrailListingOnLiveCourseRideWritten = onDocumentWritten(
   {
-    document: "trails/{trailId}/liveCourseRides/{uid}",
+    document: "trails/{trailId}/livePublicationRides/{uid}",
     region: "asia-northeast3",
   },
   async (event) => {

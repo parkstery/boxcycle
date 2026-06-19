@@ -30,7 +30,7 @@ type LiveCourseAggregate = {
 function aggregateLiveCourses(rows: readonly TrailLiveCourseRideRow[]): LiveCourseAggregate[] {
   const byCourse = new Map<string, { progressRatio: number; riderCount: number }>();
   for (const row of rows) {
-    const courseId = row.courseId.trim();
+    const courseId = row.publicationId.trim();
     if (!courseId) continue;
     const cur = byCourse.get(courseId) ?? { progressRatio: 0, riderCount: 0 };
     cur.progressRatio = Math.max(cur.progressRatio, row.progressRatio);
@@ -132,7 +132,7 @@ export function useWorldLiveCourseRideMapOverlay(opts: {
   const aggregates = useMemo(() => {
     const exclude = excludeCourseId?.trim() ?? "";
     const filtered = rows.filter((r) => {
-      if (exclude && r.courseId.trim() === exclude) return false;
+      if (exclude && r.publicationId.trim() === exclude) return false;
       if (myUid && r.uid === myUid) return false;
       return true;
     });

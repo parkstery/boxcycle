@@ -55,7 +55,7 @@ type RideDoc = {
 export async function saveRideSessionToFirestore(input: {
   userId: string;
   trailId: string | null;
-  /** Activity aggregate — `publicationId` 와 동일 값으로 `courseId` mirror */
+  /** Activity aggregate — `publicationId` (레거시 `courseId` 파라미터는 publicationId 로 해석) */
   courseId?: string | null;
   routeId?: string | null;
   publicationId?: string | null;
@@ -91,7 +91,7 @@ export async function saveRideSessionToFirestore(input: {
   const docData: RideDoc = {
     userId: input.userId,
     trailId: canonical.trailId,
-    courseId: canonical.courseId,
+    courseId: null,
     profile: input.profile,
     startedAt: null,
     endedAt,

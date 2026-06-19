@@ -48,7 +48,7 @@ export type AuditTerminologyResult = {
     rides: number;
     courses: number;
     routePublications: number;
-    courseActivity: number;
+    routeActivity: number;
     publicationPresence: number;
   };
   roomsVsTrails: {
@@ -85,7 +85,7 @@ export async function auditTerminologyWithAdminSdk(): Promise<AuditTerminologyRe
     rides,
     courses,
     routePublications,
-    courseActivity,
+    routeActivity,
     publicationPresence,
   ] = await Promise.all([
     countCollectionDocs("rooms"),
@@ -93,7 +93,7 @@ export async function auditTerminologyWithAdminSdk(): Promise<AuditTerminologyRe
     countCollectionDocs("rides"),
     countCollectionDocs("courses"),
     countCollectionDocs("routePublications"),
-    countCollectionDocs("courseActivity"),
+    countCollectionDocs("routeActivity"),
     countCollectionDocs("publicationPresence"),
   ]);
 
@@ -182,7 +182,7 @@ export async function auditTerminologyWithAdminSdk(): Promise<AuditTerminologyRe
       rides,
       courses,
       routePublications,
-      courseActivity,
+      routeActivity,
       publicationPresence,
     },
     roomsVsTrails: {

@@ -192,7 +192,7 @@ export function CourseSharedPresence({
     for (const row of liveRideRows) {
       if (row.uid === user.uid) continue;
       if (!isTrailLiveCourseRideRowFresh(row)) continue;
-      if (row.courseId.trim() !== cid) continue;
+      if (row.publicationId.trim() !== cid) continue;
       m.set(row.uid, row);
     }
     return m;

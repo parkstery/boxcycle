@@ -231,10 +231,10 @@ export const getMapboxDirections = onRequest(
 );
 
 export { adminPromoteSavedRoute };
-export { courseActivityOnRideCreated } from "./courseActivityOnRideCreated.js";
-export { courseActivityOnLiveCourseRideWritten } from "./courseActivityOnLiveCourseRideWritten.js";
-export { courseActivityScheduledReconcile } from "./courseActivityScheduledReconcile.js";
-export { courseActivityHeatReconcile } from "./courseActivityHeatReconcile.js";
+export { courseActivityOnRideCreated as routeActivityOnRideCreated } from "./courseActivityOnRideCreated.js";
+export { courseActivityOnLiveCourseRideWritten as routeActivityOnLivePublicationRideWritten } from "./courseActivityOnLiveCourseRideWritten.js";
+export { courseActivityScheduledReconcile as routeActivityScheduledReconcile } from "./courseActivityScheduledReconcile.js";
+export { courseActivityHeatReconcile as routeActivityHeatReconcile } from "./courseActivityHeatReconcile.js";
 export { routeTokenOnRideCreated } from "./routeTokenOnRideCreated.js";
 export { ensureRouteTokenOnboardingHttp } from "./routeTokenEnsureOnboarding.js";
 export { assertTierQuotaHttp } from "./tierQuotaHttp.js";

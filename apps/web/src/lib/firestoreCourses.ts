@@ -1,5 +1,4 @@
 import {
-  Timestamp,
   collection,
   doc,
   getDoc,
@@ -13,12 +12,15 @@ import {
 } from "firebase/firestore";
 import { getFirebaseApp } from "./firebase";
 import {
-  findPublishedRoutePublicationByCourseId,
+  findPublishedRoutePublicationById,
   listPublishedRoutePublications,
+  mergePublicationPresenceEnabled,
+  ROUTE_PUBLICATIONS_COLLECTION,
   type RoutePublicationRow,
 } from "./firestoreRoutePublications";
 import { getUserPublicLabelsByUid } from "./firestoreUser";
 import { getDistanceMeters, type LineStringGeometry, type LngLat } from "./geo";
+import { computeRouteFingerprint } from "./routeFingerprint";
 
 export type CourseCategory = "basic" | "public" | "recommended" | "challenge";
 export type CourseProfile = "cycling" | "driving" | "walking";
@@ -106,7 +108,7 @@ export type PublishedPublicCourseSummary = {
 
 function summaryFromPublication(pub: RoutePublicationRow): PublishedPublicCourseSummary {
   return {
-    id: pub.courseId,
+    id: pub.publicationId,
     title: pub.publicTitle,
     profile: pub.snapshotProfile,
     distanceMeters: pub.snapshotDistanceMeters,
@@ -118,46 +120,20 @@ function summaryFromPublication(pub: RoutePublicationRow): PublishedPublicCourse
   };
 }
 
-async function listPublishedPublicCoursesFromLegacyCourses(
-  max: number,
-): Promise<PublishedPublicCourseSummary[]> {
-  const db = getFirestore(getFirebaseApp());
-  const qy = query(
-    collection(db, "courses"),
-    where("category", "==", "public"),
-    where("visibility", "==", "public"),
-    where("status", "==", "published"),
-    limit(Math.min(80, Math.max(1, max))),
+/**
+ * 퍼블릭 카탈로그 — `routePublications` 단일 (Phase 5: `courses` 폴백 제거).
+ */
+export async function listPublishedPublicCourses(max = 40): Promise<PublishedPublicCourseSummary[]> {
+  const cap = Math.min(80, Math.max(1, max));
+  const pubs = await listPublishedRoutePublications(cap);
+  const rows = pubs.map(summaryFromPublication);
+  const labelByUid = await getUserPublicLabelsByUid(
+    rows.map((r) => r.applicantUid).filter((uid): uid is string => Boolean(uid)),
   );
-  const snap = await getDocs(qy);
-  const rows: PublishedPublicCourseSummary[] = [];
-  for (const d of snap.docs) {
-    const data = d.data() as Record<string, unknown>;
-    const vis = data.visibility;
-    if (vis !== undefined && vis !== "public") continue;
-    if (typeof data.title !== "string" || data.title.length < 1) continue;
-    const sid = data.sourceSavedRouteId;
-    const routeId = typeof sid === "string" && sid.length > 0 ? sid : null;
-    const applicantUid =
-      typeof data.applicantUid === "string" && data.applicantUid.length > 0 ? data.applicantUid : null;
-    rows.push({
-      id: d.id,
-      title: data.title,
-      profile: parseCourseProfile(data),
-      distanceMeters: typeof data.distanceMeters === "number" ? data.distanceMeters : 0,
-      durationSec: typeof data.durationSec === "number" ? data.durationSec : 0,
-      routeId,
-      publicationId: d.id,
-      sourceSavedRouteId: routeId,
-      applicantUid,
-    });
-  }
-  return rows;
-}
-
-function parseCourseProfile(raw: Record<string, unknown>): CourseProfile {
-  const p = raw.profile;
-  return p === "cycling" || p === "driving" || p === "walking" ? p : "cycling";
+  return rows.map((r) => ({
+    ...r,
+    publisherNickname: r.applicantUid ? (labelByUid.get(r.applicantUid) ?? null) : null,
+  }));
 }
 
 function isLngLatPair(v: unknown): v is LngLat {
@@ -184,40 +160,6 @@ function coordinatesFromGeometryCoordsJson(json: string): LngLat[] | null {
   } catch {
     return null;
   }
-}
-
-function parseCourseRoutePayload(id: string, raw: Record<string, unknown>): CourseRoutePayload | null {
-  const title = typeof raw.title === "string" ? raw.title : null;
-  if (!title) return null;
-
-  let coordinates: LngLat[] | null = null;
-  const jsonField = raw.geometryCoordsJson;
-  if (typeof jsonField === "string" && jsonField.length > 0) {
-    coordinates = coordinatesFromGeometryCoordsJson(jsonField);
-  }
-  if (!coordinates) {
-    const geom = raw.geometry as Record<string, unknown> | undefined;
-    const coords = geom?.coordinates;
-    if (geom?.type !== "LineString" || !Array.isArray(coords)) return null;
-    coordinates = [];
-    for (const c of coords) {
-      if (!isLngLatPair(c)) return null;
-      coordinates.push(c);
-    }
-  }
-  if (coordinates.length < 2) return null;
-
-  const distanceMeters = typeof raw.distanceMeters === "number" ? raw.distanceMeters : Number.NaN;
-  const durationSec = typeof raw.durationSec === "number" ? raw.durationSec : Number.NaN;
-  if (!Number.isFinite(distanceMeters) || !Number.isFinite(durationSec)) return null;
-  return {
-    id,
-    title,
-    geometry: { type: "LineString", coordinates },
-    distanceMeters,
-    durationSec,
-    profile: parseCourseProfile(raw),
-  };
 }
 
 function coordinatesApproxEqual(a: LngLat[], b: LngLat[], eps = 2e-4): boolean {
@@ -281,109 +223,6 @@ export function getBasicHubCoursePayload(courseId: string): CourseRoutePayload {
   };
 }
 
-/**
- * 퍼블릭 카탈로그 — `routePublications` 우선, 없는 항목만 레거시 `courses` 로 보완.
- */
-export async function listPublishedPublicCourses(max = 40): Promise<PublishedPublicCourseSummary[]> {
-  const cap = Math.min(80, Math.max(1, max));
-  const byCourseId = new Map<string, PublishedPublicCourseSummary>();
-
-  try {
-    const pubs = await listPublishedRoutePublications(cap);
-    for (const pub of pubs) {
-      byCourseId.set(pub.courseId, summaryFromPublication(pub));
-    }
-  } catch {
-    /* publication 컬렉션 미배포·인덱스 대기 시 레거시만 */
-  }
-
-  const legacy = await listPublishedPublicCoursesFromLegacyCourses(cap);
-  for (const row of legacy) {
-    if (!byCourseId.has(row.id)) byCourseId.set(row.id, row);
-  }
-
-  const rows = [...byCourseId.values()].sort((a, b) => a.title.localeCompare(b.title, "ko"));
-  const labelByUid = await getUserPublicLabelsByUid(
-    rows.map((r) => r.applicantUid).filter((uid): uid is string => Boolean(uid)),
-  );
-  return rows.map((r) => ({
-    ...r,
-    publisherNickname: r.applicantUid ? (labelByUid.get(r.applicantUid) ?? null) : null,
-  }));
-}
-
-/**
- * 완주 사용자 경로 지문 중, 이미 퍼블릭 코스(`courses`)로 게시된 것만 반환.
- * `listPublishedPublicCourses` 일부만 로드할 때 빠지는 코스를 보완한다.
- */
-type PublishedLegacyCourseRef = {
-  id: string;
-  title: string;
-  sourceSavedRouteId: string | null;
-};
-
-function parsePublishedLegacyCourse(
-  id: string,
-  data: Record<string, unknown>,
-): PublishedLegacyCourseRef | null {
-  if (data.category !== "public" || data.status !== "published") return null;
-  const vis = data.visibility;
-  if (vis !== undefined && vis !== "public") return null;
-  if (typeof data.title !== "string" || data.title.length < 1) return null;
-  const sid = data.sourceSavedRouteId;
-  return {
-    id,
-    title: data.title,
-    sourceSavedRouteId: typeof sid === "string" && sid.length > 0 ? sid : null,
-  };
-}
-
-export async function findPublishedPublicCourseBySourceSavedRouteId(
-  savedRouteId: string,
-): Promise<PublishedLegacyCourseRef | null> {
-  const id = savedRouteId.trim();
-  if (!id) return null;
-  const db = getFirestore(getFirebaseApp());
-  const qy = query(
-    collection(db, "courses"),
-    where("sourceSavedRouteId", "==", id),
-    where("category", "==", "public"),
-    where("status", "==", "published"),
-    limit(1),
-  );
-  const snap = await getDocs(qy);
-  const d = snap.docs[0];
-  if (!d) return null;
-  return parsePublishedLegacyCourse(d.id, d.data() as Record<string, unknown>);
-}
-
-export async function findPublishedPublicCourseByCourseId(
-  courseId: string,
-): Promise<PublishedLegacyCourseRef | null> {
-  const db = getFirestore(getFirebaseApp());
-  const snap = await getDoc(doc(db, "courses", courseId.trim()));
-  if (!snap.exists()) return null;
-  return parsePublishedLegacyCourse(snap.id, snap.data() as Record<string, unknown>);
-}
-
-export async function findPublishedPublicCourseByFingerprint(
-  routeFingerprint: string,
-): Promise<PublishedLegacyCourseRef | null> {
-  if (routeFingerprint.length !== 64) return null;
-  const db = getFirestore(getFirebaseApp());
-  const qy = query(
-    collection(db, "courses"),
-    where("routeFingerprint", "==", routeFingerprint),
-    where("category", "==", "public"),
-    where("status", "==", "published"),
-    limit(1),
-  );
-  const snap = await getDocs(qy);
-  const d = snap.docs[0];
-  if (!d) return null;
-  return parsePublishedLegacyCourse(d.id, d.data() as Record<string, unknown>);
-}
-
 export async function findPublishedPublicFingerprintsAmong(
   candidates: readonly string[],
 ): Promise<Set<string>> {
@@ -395,9 +234,8 @@ export async function findPublishedPublicFingerprintsAmong(
   for (let i = 0; i < uniq.length; i += chunkSize) {
     const chunk = uniq.slice(i, i + chunkSize);
     const qy = query(
-      collection(db, "courses"),
+      collection(db, ROUTE_PUBLICATIONS_COLLECTION),
       where("routeFingerprint", "in", chunk),
-      where("category", "==", "public"),
       where("status", "==", "published"),
       limit(chunkSize),
     );
@@ -449,13 +287,13 @@ const courseRoutePayloadMemoryCache = new Map<string, CourseRoutePayload | null>
 const courseRoutePayloadInflight = new Map<string, Promise<CourseRoutePayload | null>>();
 
 function courseRoutePayloadFromPublication(
-  pub: Awaited<ReturnType<typeof findPublishedRoutePublicationByCourseId>>,
+  pub: RoutePublicationRow,
 ): CourseRoutePayload | null {
-  if (!pub?.geometryCoordsJson) return null;
+  if (!pub.geometryCoordsJson) return null;
   const coordinates = coordinatesFromGeometryCoordsJson(pub.geometryCoordsJson);
   if (!coordinates || coordinates.length < 2) return null;
   return {
-    id: pub.courseId,
+    id: pub.publicationId,
     title: pub.publicTitle,
     geometry: { type: "LineString", coordinates },
     distanceMeters: pub.snapshotDistanceMeters,
@@ -464,24 +302,13 @@ function courseRoutePayloadFromPublication(
   };
 }
 
-async function fetchCourseRoutePayloadUncached(courseId: string): Promise<CourseRoutePayload | null> {
-  try {
-    const pub = await findPublishedRoutePublicationByCourseId(courseId);
-    const fromPub = courseRoutePayloadFromPublication(pub);
-    if (fromPub) return fromPub;
-  } catch {
-    /* noop — 레거시 courses */
-  }
-
-  const db = getFirestore(getFirebaseApp());
-  const snap = await getDoc(doc(db, "courses", courseId));
-  if (!snap.exists()) return null;
-  const data = snap.data() as Record<string, unknown>;
-  return parseCourseRoutePayload(courseId, data);
+async function fetchCourseRoutePayloadUncached(publicationId: string): Promise<CourseRoutePayload | null> {
+  const pub = await findPublishedRoutePublicationById(publicationId);
+  return pub ? courseRoutePayloadFromPublication(pub) : null;
 }
 
-export async function fetchCourseRoutePayload(courseId: string): Promise<CourseRoutePayload | null> {
-  const id = courseId.trim();
+export async function fetchCourseRoutePayload(publicationId: string): Promise<CourseRoutePayload | null> {
+  const id = publicationId.trim();
   if (!id) return null;
   if (courseRoutePayloadMemoryCache.has(id)) {
     return courseRoutePayloadMemoryCache.get(id)!;
@@ -618,29 +445,6 @@ export function boundsFromLineStringGeometry(geometry: LineStringGeometry): Cour
   return { minLng, minLat, maxLng, maxLat };
 }
 
-function parseCourseBoundsField(raw: Record<string, unknown>): CourseBounds | null {
-  const b = raw.bounds;
-  if (!b || typeof b !== "object") return null;
-  const o = b as Record<string, unknown>;
-  const minLng = o.minLng;
-  const minLat = o.minLat;
-  const maxLng = o.maxLng;
-  const maxLat = o.maxLat;
-  if (
-    typeof minLng !== "number" ||
-    typeof minLat !== "number" ||
-    typeof maxLng !== "number" ||
-    typeof maxLat !== "number" ||
-    !Number.isFinite(minLng) ||
-    !Number.isFinite(minLat) ||
-    !Number.isFinite(maxLng) ||
-    !Number.isFinite(maxLat)
-  ) {
-    return null;
-  }
-  return { minLng, minLat, maxLng, maxLat };
-}
-
 export function getBasicHubCourseBounds(courseId: string): CourseBounds | null {
   const course = BASIC_COURSES.find((c) => c.id === courseId);
   return course?.bounds ?? null;
@@ -649,44 +453,23 @@ export function getBasicHubCourseBounds(courseId: string): CourseBounds | null {
 const courseBoundsMemoryCache = new Map<string, CourseBounds | null>();
 const courseBoundsInflight = new Map<string, Promise<CourseBounds | null>>();
 
-async function fetchCourseBoundsUncached(courseId: string): Promise<CourseBounds | null> {
-  const basic = getBasicHubCourseBounds(courseId);
+async function fetchCourseBoundsUncached(publicationId: string): Promise<CourseBounds | null> {
+  const basic = getBasicHubCourseBounds(publicationId);
   if (basic) return basic;
 
-  const db = getFirestore(getFirebaseApp());
-  const snap = await getDoc(doc(db, "courses", courseId));
-  if (!snap.exists()) return null;
-  const data = snap.data() as Record<string, unknown>;
-  const fromField = parseCourseBoundsField(data);
-  if (fromField) return fromField;
-
-  const jsonField = data.geometryCoordsJson;
-  if (typeof jsonField === "string" && jsonField.length > 0) {
-    const coords = coordinatesFromGeometryCoordsJson(jsonField);
+  const pub = await findPublishedRoutePublicationById(publicationId);
+  if (pub?.geometryCoordsJson) {
+    const coords = coordinatesFromGeometryCoordsJson(pub.geometryCoordsJson);
     if (coords?.length) {
       return boundsFromLineStringGeometry({ type: "LineString", coordinates: coords });
-    }
-  }
-  const geom = data.geometry;
-  if (geom && typeof geom === "object") {
-    const g = geom as { type?: unknown; coordinates?: unknown };
-    if (g.type === "LineString" && Array.isArray(g.coordinates)) {
-      const coords: LngLat[] = [];
-      for (const c of g.coordinates) {
-        if (!isLngLatPair(c)) return null;
-        coords.push(c);
-      }
-      if (coords.length >= 1) {
-        return boundsFromLineStringGeometry({ type: "LineString", coordinates: coords });
-      }
     }
   }
   return null;
 }
 
 /** Activity World DOT 앵커용 — geometry 전체 로드 없이 bounds 만 */
-export async function fetchCourseBounds(courseId: string): Promise<CourseBounds | null> {
-  const id = courseId.trim();
+export async function fetchCourseBounds(publicationId: string): Promise<CourseBounds | null> {
+  const id = publicationId.trim();
   if (!id) return null;
   if (courseBoundsMemoryCache.has(id)) return courseBoundsMemoryCache.get(id)!;
 
@@ -714,75 +497,65 @@ export function getBasicSharedHubSummaries(): PublishedPublicCourseSummary[] {
 }
 
 /**
- * 입문 허브 `courses/{id}` 에 presence 허용 플래그를 merge 한다.
- * 기존 문서에 필드가 없을 때 Rules 가 coursePresence 를 막는 문제를 막기 위해,
- * 동행 UI 마운트 직전에도 호출한다.
+ * publication — `routePublications/{id}` 에 presence 허용 플래그 merge.
  */
-export async function ensureBasicSharedHubPresenceFlagsMerged(courseId: string): Promise<void> {
-  if (!(BASIC_SHARED_HUB_IDS as readonly string[]).includes(courseId)) {
+export async function ensureBasicSharedHubPresenceFlagsMerged(publicationId: string): Promise<void> {
+  if (!(BASIC_SHARED_HUB_IDS as readonly string[]).includes(publicationId)) {
     return;
   }
-  const db = getFirestore(getFirebaseApp());
-  await setDoc(
-    doc(db, "courses", courseId),
-    {
-      isSharedStartHub: true,
-      presenceEnabled: true,
-      updatedAt: serverTimestamp(),
-    },
-    { merge: true },
-  );
+  await mergePublicationPresenceEnabled(publicationId);
 }
 
-/**
- * 입문 허브·승인 퍼블릭 코스 — `courses/{id}` 에 presence 허용 플래그를 merge 한다.
- * Rules 가 `presenceEnabled` 없이 coursePresence 를 막는 레거시 문서를 보강한다.
- */
-export async function ensureCoursePresenceFlagsMerged(courseId: string): Promise<void> {
-  if ((BASIC_SHARED_HUB_IDS as readonly string[]).includes(courseId)) {
-    await ensureBasicSharedHubPresenceFlagsMerged(courseId);
+/** @deprecated {@link ensurePublicationPresenceFlagsMerged} */
+export async function ensureCoursePresenceFlagsMerged(publicationId: string): Promise<void> {
+  await ensurePublicationPresenceFlagsMerged(publicationId);
+}
+
+export async function ensurePublicationPresenceFlagsMerged(publicationId: string): Promise<void> {
+  if ((BASIC_SHARED_HUB_IDS as readonly string[]).includes(publicationId)) {
+    await ensureBasicSharedHubPresenceFlagsMerged(publicationId);
     return;
   }
-  const db = getFirestore(getFirebaseApp());
-  const ref = doc(db, "courses", courseId);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return;
-  const data = snap.data() as Record<string, unknown>;
-  if (data.category !== "public" || data.status !== "published") return;
-  if (data.presenceEnabled === true) return;
-  await setDoc(
-    ref,
-    {
-      presenceEnabled: true,
-      updatedAt: serverTimestamp(),
-    },
-    { merge: true },
-  );
+  await mergePublicationPresenceEnabled(publicationId);
 }
 
-export async function ensureBasicCoursesSeeded(currentUserId: string): Promise<void> {
+export async function ensureBasicCoursesSeeded(_currentUserId?: string): Promise<void> {
   const db = getFirestore(getFirebaseApp());
 
   for (const course of BASIC_COURSES) {
-    const ref = doc(db, "courses", course.id);
-    const snap = await getDoc(ref);
+    const pubRef = doc(db, ROUTE_PUBLICATIONS_COLLECTION, course.id);
+    const snap = await getDoc(pubRef);
     if (snap.exists()) continue;
-    const now = serverTimestamp();
-    const { geometry, ...courseRest } = course;
+    const geometry = course.geometry;
     if (!geometry) continue;
-    await setDoc(ref, {
-      ...courseRest,
+    const profile = course.profile ?? "cycling";
+    const routeFingerprint = await computeRouteFingerprint(
+      { type: "LineString", coordinates: geometry.coordinates },
+      profile,
+    );
+    await setDoc(pubRef, {
+      routeId: course.id,
+      courseId: course.id,
+      publicTitle: course.title,
+      publicSummary: course.description ?? null,
+      status: "published",
+      revision: 1,
+      routeFingerprint,
       geometryCoordsJson: JSON.stringify(geometry.coordinates),
-      createdBy: currentUserId || "system",
-      createdAt: now,
-      updatedAt: now,
-      seededAt: Timestamp.now(),
-    } satisfies CourseDoc & { seededAt: Timestamp });
+      snapshotProfile: profile,
+      snapshotDistanceMeters: course.distanceMeters,
+      snapshotDurationSec: course.durationSec,
+      applicantUid: "",
+      sourcePublicRouteRequestId: "",
+      presenceEnabled: course.presenceEnabled === true || course.isSharedStartHub === true,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
   }
 
   for (const hubId of BASIC_SHARED_HUB_IDS) {
     await ensureBasicSharedHubPresenceFlagsMerged(hubId).catch(() => {
-      /* 기존 환경에서 권한 등으로 실패해도 앱 동작 유지 */
+      /* 권한 등으로 실패해도 앱 동작 유지 */
     });
   }
 }

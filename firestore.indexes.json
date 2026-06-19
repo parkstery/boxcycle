@@ -202,6 +202,24 @@
   ],
   "fieldOverrides": [
     {
+      "collectionGroup": "livePublicationRides",
+      "fieldPath": "lastSeenAt",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        },
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
+    {
       "collectionGroup": "liveCourseRides",
       "fieldPath": "lastSeenAt",
       "indexes": [

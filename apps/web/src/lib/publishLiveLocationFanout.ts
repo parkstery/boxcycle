@@ -28,7 +28,7 @@ export async function publishLiveLocationFanout(
 
   if (opts.publishRoute && snapshot.routeReady && snapshot.courseId) {
     await mergeTrailLiveCourseRideSnapshot(user, snapshot.trailId, {
-      courseId: snapshot.courseId,
+      publicationId: snapshot.courseId,
       progressRatio: snapshot.progressRatio,
     });
     if (snapshot.trailId !== DEFAULT_TRAIL_ID) {

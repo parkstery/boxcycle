@@ -1,5 +1,6 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { distanceMidpointLngLat, type LngLat } from "./routeGeometryMidpoint.js";
+import { scanAllLiveRideDocs } from "./liveRideScan.js";
 
 export const PUBLICATION_PRESENCE_COLLECTION = "publicationPresence";
 
@@ -63,14 +64,6 @@ async function loadGeometrySource(
     return { routeId, data };
   }
 
-  const courseSnap = await db.doc(`courses/${id}`).get();
-  if (courseSnap.exists) {
-    const data = courseSnap.data() as Record<string, unknown>;
-    const routeId =
-      typeof data.sourceSavedRouteId === "string" ? data.sourceSavedRouteId.trim() : null;
-    return { routeId, data };
-  }
-
   return null;
 }
 
@@ -85,16 +78,6 @@ export async function resolvePublicationVisibility(publicationId: string): Promi
     const status = pubSnap.get("status");
     if (status === "published") return "public";
     return "private";
-  }
-
-  const courseSnap = await db.doc(`courses/${id}`).get();
-  if (courseSnap.exists) {
-    const vis = courseSnap.get("visibility");
-    if (vis === "public") return "public";
-    const category = courseSnap.get("category");
-    if (category === "basic" || category === "public" || category === "recommended") {
-      return "public";
-    }
   }
 
   return "private";
@@ -217,11 +200,10 @@ export async function reconcilePublicationPresenceFromLiveRides(): Promise<void>
   const LIVE_RIDE_FRESH_MS = 180_000;
   const byPublication = new Map<string, number>();
 
-  const liveSnap = await db.collectionGroup("liveCourseRides").get();
-  for (const doc of liveSnap.docs) {
-    const data = doc.data();
-    const seenRaw = data.lastSeenAt;
+  const liveRows = await scanAllLiveRideDocs();
+  for (const row of liveRows) {
     let seenMs: number | null = null;
+    const seenRaw = row.lastSeenAt;
     if (
       seenRaw &&
       typeof seenRaw === "object" &&
@@ -230,11 +212,7 @@ export async function reconcilePublicationPresenceFromLiveRides(): Promise<void>
       seenMs = (seenRaw as { toMillis: () => number }).toMillis();
     }
     if (seenMs == null || now - seenMs > LIVE_RIDE_FRESH_MS) continue;
-    const publicationId =
-      (typeof data.publicationId === "string" && data.publicationId.trim()) ||
-      (typeof data.courseId === "string" && data.courseId.trim()) ||
-      "";
-    if (!publicationId) continue;
+    const publicationId = row.publicationId;
     byPublication.set(publicationId, (byPublication.get(publicationId) ?? 0) + 1);
   }
 

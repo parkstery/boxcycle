@@ -1,11 +1,13 @@
 import {
   collection,
   doc,
+  getDoc,
   getDocs,
   getFirestore,
   limit,
   query,
   serverTimestamp,
+  setDoc,
   where,
   writeBatch,
 } from "firebase/firestore";
@@ -30,6 +32,8 @@ export type RoutePublicationDoc = {
   snapshotDurationSec: number;
   applicantUid: string;
   sourcePublicRouteRequestId: string;
+  /** 동행(coursePresence) Rules — `routePublications/{id}` 기준 */
+  presenceEnabled?: boolean;
   createdAt: unknown;
   updatedAt: unknown;
 };
@@ -164,9 +168,12 @@ export async function listPublishedRoutePublications(max = 50): Promise<RoutePub
   return rows;
 }
 
+/** @deprecated `courseId` 필드 조회 — 신규는 {@link findPublishedRoutePublicationById} */
 export async function findPublishedRoutePublicationByCourseId(
   courseId: string,
 ): Promise<RoutePublicationRow | null> {
+  const byId = await findPublishedRoutePublicationById(courseId);
+  if (byId) return byId;
   const db = getFirestore(getFirebaseApp());
   const qy = query(
     collection(db, ROUTE_PUBLICATIONS_COLLECTION),
@@ -178,4 +185,37 @@ export async function findPublishedRoutePublicationByCourseId(
   const d = snap.docs[0];
   if (!d) return null;
   return parsePublicationRow(d.id, d.data() as Record<string, unknown>);
+}
+
+export async function findPublishedRoutePublicationById(
+  publicationId: string,
+): Promise<RoutePublicationRow | null> {
+  const id = publicationId.trim();
+  if (!id) return null;
+  const db = getFirestore(getFirebaseApp());
+  const snap = await getDoc(doc(db, ROUTE_PUBLICATIONS_COLLECTION, id));
+  if (!snap.exists()) return null;
+  const row = parsePublicationRow(snap.id, snap.data() as Record<string, unknown>);
+  return row?.status === "published" ? row : null;
+}
+
+/** UGC·입문 publication — coursePresence Rules용 `presenceEnabled` merge */
+export async function mergePublicationPresenceEnabled(publicationId: string): Promise<void> {
+  const id = publicationId.trim();
+  if (!id) return;
+  const db = getFirestore(getFirebaseApp());
+  const ref = doc(db, ROUTE_PUBLICATIONS_COLLECTION, id);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+  const data = snap.data() as Record<string, unknown>;
+  if (data.status !== "published") return;
+  if (data.presenceEnabled === true) return;
+  await setDoc(
+    ref,
+    {
+      presenceEnabled: true,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
 }

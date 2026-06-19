@@ -93,7 +93,7 @@ export function useTrailLiveCourseRideSpectatorOverlay(opts: UseTrailLiveCourseR
     }
     if (activeRows.length === 0) return;
 
-    const courseIds = [...new Set(activeRows.map((r) => r.courseId))];
+    const courseIds = [...new Set(activeRows.map((r) => r.publicationId))];
     const map = geomByCourseRef.current;
     let scheduled = false;
 
@@ -133,7 +133,7 @@ export function useTrailLiveCourseRideSpectatorOverlay(opts: UseTrailLiveCourseR
     const map = geomByCourseRef.current;
     const out: TrailSpectatorDot[] = [];
     for (const r of activeRows) {
-      const g = map.get(r.courseId);
+      const g = map.get(r.publicationId);
       if (!g || g.status !== "ready") continue;
       const len = lineStringLengthMeters(g.geometry);
       if (len <= 0) continue;
@@ -151,7 +151,7 @@ export function useTrailLiveCourseRideSpectatorOverlay(opts: UseTrailLiveCourseR
   }, [activeRows, geomEpoch, trailLabel]);
 
   const liveCourseIds = useMemo(
-    () => [...new Set(activeRows.map((r) => r.courseId.trim()).filter(Boolean))],
+    () => [...new Set(activeRows.map((r) => r.publicationId.trim()).filter(Boolean))],
     [activeRows],
   );
 
@@ -161,9 +161,9 @@ export function useTrailLiveCourseRideSpectatorOverlay(opts: UseTrailLiveCourseR
     const seen = new Set<string>();
     const out: LineStringGeometry[] = [];
     for (const r of activeRows) {
-      if (seen.has(r.courseId)) continue;
-      seen.add(r.courseId);
-      const g = map.get(r.courseId);
+      if (seen.has(r.publicationId)) continue;
+      seen.add(r.publicationId);
+      const g = map.get(r.publicationId);
       if (!g || g.status !== "ready") continue;
       out.push(decimateLineStringVertices(g.geometry, maxV));
     }

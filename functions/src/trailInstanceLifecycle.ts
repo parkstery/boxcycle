@@ -2,9 +2,11 @@ import { FieldValue, getFirestore, Timestamp } from "firebase-admin/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { OPEN_TRAIL_LISTINGS_COLLECTION } from "./openTrailListingCore.js";
 
+import { TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION } from "./trailPaths.js";
+
 const TRAILS_COLLECTION = "trails";
 const MEMBERS_SUB = "members";
-const LIVE_SUB = "liveCourseRides";
+const LIVE_SUB = TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION;
 
 /** UI 목록에서 사라진 뒤 DB에 남기는 기간 */
 const CLOSED_TO_ARCHIVED_MS = 24 * 60 * 60 * 1000;

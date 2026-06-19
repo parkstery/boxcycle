@@ -17,7 +17,10 @@
     "admin:backfill-course-metadata": "npm run build && node lib/cliBackfillCourseMetadata.js",
     "admin:discard-basic-hub-courses": "npm run build && node lib/cliDiscardBasicHubCourses.js",
     "admin:backfill-route-activity": "npm run build && node lib/cliBackfillRouteActivity.js",
-    "admin:purge-ride-legacy-fields": "npm run build && node lib/cliPurgeRideLegacyFields.js"
+    "admin:purge-ride-legacy-fields": "npm run build && node lib/cliPurgeRideLegacyFields.js",
+    "admin:migrate-live-publication-rides": "npm run build && node lib/cliMigrateLivePublicationRides.js",
+    "admin:archive-courses": "npm run build && node lib/cliArchiveCourses.js",
+    "admin:migrate-publication-sessions": "npm run build && node lib/cliMigratePublicationSessions.js"
   },
   "dependencies": {
     "firebase-admin": "^13.6.0",

@@ -5,10 +5,12 @@ import {
   Timestamp,
 } from "firebase-admin/firestore";
 
+import { TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION } from "./trailPaths.js";
+
 export const TRAILS_COLLECTION = "trails";
 export const OPEN_TRAIL_LISTINGS_COLLECTION = "openTrailListings";
 const MEMBERS_SUB = "members";
-const LIVE_SUB = "liveCourseRides";
+const LIVE_SUB = TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION;
 
 /** 클라이언트 `TRAIL_PRESENCE_STALE_MS` 와 동일 */
 export const TRAIL_PRESENCE_STALE_MS = 240_000;

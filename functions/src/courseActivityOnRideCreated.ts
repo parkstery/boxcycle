@@ -2,13 +2,11 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { ROUTE_ACTIVITY_COLLECTION } from "./routeActivityConstants.js";
 
-const COURSE_ACTIVITY = "courseActivity";
 const WORLD_ACTIVITY = "worldActivity";
 const WORLD_GLOBAL_ID = "global";
 
 /**
- * `rides` 완주 시 코스·월드 aggregate increment (클라이언트 write 없음).
- * 문서가 없으면 merge로 생성된다.
+ * `rides` 완주 시 publication·월드 aggregate increment (클라이언트 write 없음).
  */
 export const courseActivityOnRideCreated = onDocumentCreated(
   { document: "rides/{rideId}", region: "asia-northeast3" },
@@ -33,12 +31,12 @@ export const courseActivityOnRideCreated = onDocumentCreated(
 
     if (!activityKey) return;
 
-    const heatPatch = {
-      recentRideCount7d: FieldValue.increment(1),
-      updatedAt: FieldValue.serverTimestamp(),
-    };
-
-    await db.doc(`${COURSE_ACTIVITY}/${activityKey}`).set(heatPatch, { merge: true });
-    await db.doc(`${ROUTE_ACTIVITY_COLLECTION}/${activityKey}`).set(heatPatch, { merge: true });
+    await db.doc(`${ROUTE_ACTIVITY_COLLECTION}/${activityKey}`).set(
+      {
+        recentRideCount7d: FieldValue.increment(1),
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
   },
 );

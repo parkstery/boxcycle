@@ -16,8 +16,7 @@ import {
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
 import { getFirebaseApp } from "./firebase";
-import { boundsFromLineCoordinates, type LineStringGeometry, type LngLat } from "./geo";
-import type { CourseDoc } from "./firestoreCourses";
+import { type LineStringGeometry, type LngLat } from "./geo";
 import type { RouteProfile } from "../services/mapboxDirections";
 import type { SavedRoute } from "./firestoreSavedRoutes";
 import { SAVED_ROUTE_MAX_COORDS } from "./firestoreSavedRoutes";
@@ -114,16 +113,15 @@ async function assertNoDuplicatePublicCatalogRoute(
     scanAllPending?: boolean;
   },
 ): Promise<void> {
-  const courseHit = await getDocs(
+  const pubHit = await getDocs(
     query(
-      collection(db, "courses"),
+      collection(db, "routePublications"),
       where("routeFingerprint", "==", fingerprint),
-      where("category", "==", "public"),
       where("status", "==", "published"),
       limit(1),
     ),
   );
-  if (!courseHit.empty) {
+  if (!pubHit.empty) {
     throw new Error("이미 퍼블릭 코스로 등록된 동일한 경로입니다(이동 수단·꼭짓점 기준).");
   }
 
@@ -359,43 +357,6 @@ export async function withdrawPublicRouteRequest(user: User, requestId: string):
   });
 }
 
-function buildCoursePayloadFromRequest(
-  req: PublicRouteRequest,
-  courseId: string,
-  reviewerUid: string,
-  routeFingerprint: string,
-): Omit<CourseDoc, "createdAt" | "updatedAt"> {
-  const geometry = decodeLineStringCoordsJson(req.geometryCoordsJson);
-  if (!geometry) throw new Error("신청에 포함된 경로 geometry 가 올바르지 않습니다.");
-  const bounds = boundsFromLineCoordinates(geometry.coordinates);
-  return {
-    id: courseId,
-    title: req.publicTitle,
-    description: req.publicSummary.length > 0 ? req.publicSummary : null,
-    category: "public",
-    type: "ugc",
-    profile: req.snapshotProfile,
-    isPublic: true,
-    status: "published",
-    isRequired: false,
-    requiredOrder: null,
-    distanceMeters: req.snapshotDistanceMeters,
-    durationSec: req.snapshotDurationSec,
-    bounds,
-    /** Firestore: 중첩 배열 금지 → 신청과 동일한 JSON 문자열로만 저장 */
-    geometryCoordsJson: req.geometryCoordsJson,
-    routeFingerprint,
-    visibility: "public",
-    lifecycleStage: "public_approved",
-    presenceEnabled: true,
-    sourcePublicRouteRequestId: req.id,
-    sourceSavedRouteId: req.savedRouteId,
-    applicantUid: req.applicantUid,
-    experienceTags: [...req.experienceTags],
-    createdBy: reviewerUid,
-  };
-}
-
 export async function approvePublicRouteRequest(
   reviewer: User,
   request: PublicRouteRequest,
@@ -426,21 +387,15 @@ export async function approvePublicRouteRequest(
     scanAllPending: true,
   });
 
-  const courseRef = doc(collection(db, "courses"));
-  const courseId = courseRef.id;
-  const courseBody = buildCoursePayloadFromRequest(request, courseId, reviewer.uid, routeFingerprint);
+  const pubRef = doc(collection(db, "routePublications"));
+  const publicationId = pubRef.id;
   const reqRef = doc(db, PUBLIC_ROUTE_REQUESTS_COLLECTION, request.id);
 
   const batch = writeBatch(db);
-  batch.set(courseRef, {
-    ...courseBody,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
   writeRoutePublicationOnApprove(batch, {
-    publicationId: courseId,
+    publicationId,
     routeId: request.savedRouteId,
-    courseId,
+    courseId: publicationId,
     publicTitle: request.publicTitle,
     publicSummary: request.publicSummary,
     routeFingerprint,
@@ -456,10 +411,11 @@ export async function approvePublicRouteRequest(
     reviewerUid: reviewer.uid,
     reviewedAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
-    createdCourseId: courseId,
+    createdCourseId: publicationId,
+    createdPublicationId: publicationId,
   });
   await batch.commit();
-  return courseId;
+  return publicationId;
 }
 
 export async function rejectPublicRouteRequest(
