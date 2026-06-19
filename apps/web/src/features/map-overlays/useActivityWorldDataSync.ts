@@ -93,7 +93,9 @@ export function useActivityWorldDataSync(opts: UseActivityWorldDataSyncOpts): Ac
       lastBatchLiveCount,
     });
 
-    const highlighted = new Set<string>(worldActivity?.highlightedCourses ?? []);
+      const highlighted = new Set<string>(
+        worldActivity?.highlightedPublications ?? worldActivity?.highlightedCourses ?? [],
+      );
     for (const id of liveIds) highlighted.add(id);
 
     startTransition(() => {

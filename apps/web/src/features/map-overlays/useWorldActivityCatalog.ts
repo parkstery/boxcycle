@@ -39,7 +39,9 @@ export function useWorldActivityCatalog(opts: {
         fetchLiveRouteActivityIds(),
       ]);
       setLiveActivityCourseIds(liveIds);
-      const highlighted = new Set<string>(worldActivity?.highlightedCourses ?? []);
+      const highlighted = new Set<string>(
+        worldActivity?.highlightedPublications ?? worldActivity?.highlightedCourses ?? [],
+      );
       for (const id of liveIds) highlighted.add(id);
       setWorldHighlightedCourseIds([...highlighted]);
       setWorldHudLines(

@@ -159,15 +159,11 @@ npm run admin:migrate-live-publication-rides -- --dry-run
 | `admin:migrate-live-publication-rides` | live ride field rename | §1 G0-4 |
 | `admin:backfill-route-publications` | courses→publications | courses=0 이면 skip |
 
-### 6.2 Phase 7 신규 CLI (구현 필요)
+### 6.2 Phase 7 CLI
 
-| 제안 script | 대상 | 동작 |
-|-------------|------|------|
-| `admin:backfill-trails-publication-id` | `trails`, `openTrailListings` | `courseId`→`publicationId` copy |
-| `admin:purge-publication-course-id-field` | `routePublications` | `courseId` field delete (doc.id 유지) |
-| `admin:purge-ride-course-id-field` | `rides` | `courseId` delete when `publicationId` set |
-| `admin:migrate-world-activity-fields` | `worldActivity/global` | `highlightedCourses`→`highlightedPublications`, `activeCourseCount`→`activePublicationCount` |
-| `admin:audit-terminology` **확장** | §1.2 표 전체 | 필드级 카운트 |
+| script | 대상 | 동작 |
+|--------|------|------|
+| `admin:phase7-terminology-purge` | trails·listings·rides·routePublications·publicRouteRequests·worldActivity | 일괄 backfill + purge (2026-06-16 적용) |
 
 ---
 
@@ -269,7 +265,7 @@ flowchart TD
   "purgeRideLegacyFieldsDryRun": { "scanned": 507, "matched": 0 },
   "backfillRidesTerminologyDryRun": { "scanned": 507, "matched": 0 },
   "migrateLivePublicationRidesDryRun": "2026-06-16 scanned 14 → apply copied 14 → delete-legacy deletedLegacy 14",
-  "migrateLivePublicationRidesPostDelete": { "scanned": 0, "note": "re-run --dry-run expected scanned 0" }
+  "phase7PurgeApplied": "2026-06-16 — trails 144 publicationId, rides 64 courseId removed, routePublications 25, requests 22, worldActivity migrated"
 }
 ```
 

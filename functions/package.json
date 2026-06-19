@@ -20,7 +20,8 @@
     "admin:purge-ride-legacy-fields": "npm run build && node lib/cliPurgeRideLegacyFields.js",
     "admin:migrate-live-publication-rides": "npm run build && node lib/cliMigrateLivePublicationRides.js",
     "admin:archive-courses": "npm run build && node lib/cliArchiveCourses.js",
-    "admin:migrate-publication-sessions": "npm run build && node lib/cliMigratePublicationSessions.js"
+    "admin:migrate-publication-sessions": "npm run build && node lib/cliMigratePublicationSessions.js",
+    "admin:phase7-terminology-purge": "npm run build && node lib/cliPhase7TerminologyPurge.js"
   },
   "dependencies": {
     "firebase-admin": "^13.6.0",

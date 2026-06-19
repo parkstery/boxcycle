@@ -87,8 +87,8 @@ export const routeActivityScheduledReconcile = onSchedule(
       db.doc(`${WORLD_ACTIVITY_COLLECTION}/${WORLD_GLOBAL_ID}`),
       {
         livePulseCount,
-        activeCourseCount: byPublication.size,
-        highlightedCourses,
+        activePublicationCount: byPublication.size,
+        highlightedPublications: highlightedCourses,
         updatedAt: FieldValue.serverTimestamp(),
       },
       { merge: true },

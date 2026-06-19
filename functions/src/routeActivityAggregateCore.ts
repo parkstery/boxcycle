@@ -141,7 +141,7 @@ export async function touchCourseLiveProgress(publicationId: string, progressRat
 
 const HIGHLIGHTED_PUBLICATIONS_MAX = 24;
 
-/** 라이브 publication 상위 N개를 `worldActivity/global.highlightedCourses`에 반영 */
+/** 라이브 publication 상위 N개를 `worldActivity/global.highlightedPublications`에 반영 */
 export async function refreshWorldHighlightedCourses(): Promise<void> {
   const db = getFirestore();
   const snap = await db
@@ -175,8 +175,8 @@ export async function refreshWorldHighlightedCourses(): Promise<void> {
 
   await db.doc(`${WORLD_ACTIVITY_COLLECTION}/${WORLD_GLOBAL_ID}`).set(
     {
-      highlightedCourses: ranked,
-      activeCourseCount: snap.size,
+      highlightedPublications: ranked,
+      activePublicationCount: snap.size,
       livePulseCount,
       updatedAt: FieldValue.serverTimestamp(),
     },
