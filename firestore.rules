@@ -117,12 +117,9 @@ service cloud.firestore {
     }
 
     function trailHasPublicationId(data) {
-      return (data.keys().hasAny(['publicationId'])
+      return data.keys().hasAny(['publicationId'])
         && data.publicationId is string
-        && data.publicationId.size() > 0)
-        || (data.keys().hasAny(['courseId'])
-        && data.courseId is string
-        && data.courseId.size() > 0);
+        && data.publicationId.size() > 0;
     }
 
     /** 공개 Trail 은 publicationId 필수 — 비공개는 경로 없이 개설 가능(개설자 전용) */
@@ -131,7 +128,7 @@ service cloud.firestore {
     }
 
     /**
-     * Trail presence·liveCourseRides — Trailhead(`default`)·공개 Trail·비공개 Trail 개설자.
+     * Trail presence·livePublicationRides — Trailhead(`default`)·공개 Trail·비공개 Trail 개설자.
      * 비공개 Trail 타인 합류는 초대·승인 후속 — Rules 에서 차단.
      */
     function trailParticipantWriteAllowed(trailId) {
@@ -181,7 +178,7 @@ service cloud.firestore {
     }
 
     /**
-     * 전역 라이브 presence — lat/lng 만. courseId·trail·geometry 불필요.
+     * 전역 라이브 presence — lat/lng 만. publicationId·trail·geometry 불필요.
      * 로그인 사용자는 전원 읽기, 본인 문서만 쓰기.
      */
     match /livePresence/{userId} {
@@ -207,14 +204,9 @@ service cloud.firestore {
       allow create: if isSignedIn()
         && request.resource.data.hostUid == request.auth.uid
         && request.resource.data.trailId == trailId
-        && (
-          (request.resource.data.keys().hasAll(['publicationId'])
-            && request.resource.data.publicationId is string
-            && request.resource.data.publicationId.size() > 0)
-          || (request.resource.data.keys().hasAll(['courseId'])
-            && request.resource.data.courseId is string
-            && request.resource.data.courseId.size() > 0)
-        );
+        && request.resource.data.keys().hasAll(['publicationId'])
+        && request.resource.data.publicationId is string
+        && request.resource.data.publicationId.size() > 0;
       allow update: if isSignedIn()
         && (
           resource.data.hostUid == request.auth.uid

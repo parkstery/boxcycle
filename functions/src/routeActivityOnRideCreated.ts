@@ -14,9 +14,9 @@ export const routeActivityOnRideCreated = onDocumentCreated(
     const data = event.data?.data();
     if (!data) return;
 
-    const courseId = typeof data.courseId === "string" ? data.courseId.trim() : "";
-    const publicationId = typeof data.publicationId === "string" ? data.publicationId.trim() : "";
-    const activityKey = publicationId || courseId;
+    const publicationId =
+      typeof data.publicationId === "string" ? data.publicationId.trim() : "";
+    const activityKey = publicationId;
     const db = getFirestore();
 
     await db

@@ -12,7 +12,7 @@ const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 const PAGE_SIZE = 400;
 
 /**
- * 최근 7일 `rides`(completed, publicationId/courseId)를 집계해
+ * 최근 7일 `rides`(completed, publicationId)를 집계해
  * `routeActivity.recentRideCount7d` 를 increment 드리프트 없이 맞춘다.
  */
 export const routeActivityHeatReconcile = onSchedule(
@@ -39,13 +39,10 @@ export const routeActivityHeatReconcile = onSchedule(
       if (snap.empty) break;
       for (const doc of snap.docs) {
         const publicationId = doc.get("publicationId");
-        const courseId = doc.get("courseId");
         const raw =
           typeof publicationId === "string" && publicationId.trim().length > 0
             ? publicationId.trim()
-            : typeof courseId === "string"
-              ? courseId.trim()
-              : "";
+            : "";
         if (!raw) continue;
         counts.set(raw, (counts.get(raw) ?? 0) + 1);
       }

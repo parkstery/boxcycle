@@ -167,23 +167,11 @@ export async function listPublishedRoutePublications(max = 50): Promise<RoutePub
   return rows;
 }
 
-/** @deprecated `courseId` 필드 조회 — 신규는 {@link findPublishedRoutePublicationById} */
+/** @deprecated shim — {@link findPublishedRoutePublicationById} (doc id = publicationId) */
 export async function findPublishedRoutePublicationByCourseId(
   courseId: string,
 ): Promise<RoutePublicationRow | null> {
-  const byId = await findPublishedRoutePublicationById(courseId);
-  if (byId) return byId;
-  const db = getFirestore(getFirebaseApp());
-  const qy = query(
-    collection(db, ROUTE_PUBLICATIONS_COLLECTION),
-    where("courseId", "==", courseId),
-    where("status", "==", "published"),
-    limit(1),
-  );
-  const snap = await getDocs(qy);
-  const d = snap.docs[0];
-  if (!d) return null;
-  return parsePublicationRow(d.id, d.data() as Record<string, unknown>);
+  return findPublishedRoutePublicationById(courseId);
 }
 
 export async function findPublishedRoutePublicationById(

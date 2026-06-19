@@ -15,7 +15,12 @@ export const routeTokenOnRideCreated = onDocumentCreated(
     if (!userId) return;
 
     const rideId = event.params.rideId;
-    const courseId = typeof data.courseId === "string" ? data.courseId : null;
+    const publicationId =
+      typeof data.publicationId === "string"
+        ? data.publicationId
+        : typeof data.courseId === "string"
+          ? data.courseId
+          : null;
     const distanceMeters = Number(data.distanceMeters ?? 0);
     const elapsedSec = Number(data.elapsedSec ?? 0);
     const status = typeof data.status === "string" ? data.status : "";
@@ -28,7 +33,7 @@ export const routeTokenOnRideCreated = onDocumentCreated(
       await earnRouteTokenForCompletedRide({
         userId,
         rideId,
-        courseId,
+        courseId: publicationId,
         distanceMeters,
         elapsedSec,
         status,

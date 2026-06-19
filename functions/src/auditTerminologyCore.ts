@@ -69,10 +69,12 @@ export type AuditTerminologyResult = {
     bothPublicationIdsMatch: number;
   };
   coursesVsPublications: {
-    coursesWithoutPublicationDoc: number;
-    sampleCourseIdsWithoutPublication: string[];
-    publicationsWithoutCourseDoc: number;
-    samplePublicationIdsWithoutCourse: string[];
+    /** `courses` 컬렉션 잔존 문서 수 — Phase 7 Gate 0 기대값 0 */
+    coursesCollectionRemaining: number;
+    routePublicationsWithCourseIdField: number;
+    trailsWithCourseIdOnly: number;
+    trailsOpenMissingPublicationId: number;
+    openTrailListingsWithCourseIdOnly: number;
   };
 };
 
@@ -159,20 +161,61 @@ export async function auditTerminologyWithAdminSdk(): Promise<AuditTerminologyRe
     if (snap.size < PAGE_SIZE) break;
   }
 
-  const courseIds = courses > 0 ? await listCollectionDocIds("courses") : [];
-  const publicationIds =
-    routePublications > 0 ? await listCollectionDocIds("routePublications") : [];
-  const publicationIdSet = new Set(publicationIds);
-  const courseIdSet = new Set(courseIds);
+  const publicationLegacy = {
+    coursesCollectionRemaining: courses,
+    routePublicationsWithCourseIdField: 0,
+    trailsWithCourseIdOnly: 0,
+    trailsOpenMissingPublicationId: 0,
+    openTrailListingsWithCourseIdOnly: 0,
+  };
 
-  const coursesWithoutPublication: string[] = [];
-  for (const courseId of courseIds) {
-    if (!publicationIdSet.has(courseId)) coursesWithoutPublication.push(courseId);
+  let lastPublicationId: string | undefined;
+  while (true) {
+    let q = db.collection("routePublications").orderBy(FieldPath.documentId()).limit(PAGE_SIZE);
+    if (lastPublicationId) q = q.startAfter(lastPublicationId);
+    const snap = await q.get();
+    if (snap.empty) break;
+    for (const doc of snap.docs) {
+      const data = doc.data() as Record<string, unknown>;
+      if (strField(data, "courseId")) publicationLegacy.routePublicationsWithCourseIdField += 1;
+    }
+    lastPublicationId = snap.docs[snap.docs.length - 1]!.id;
+    if (snap.size < PAGE_SIZE) break;
   }
 
-  const publicationsWithoutCourse: string[] = [];
-  for (const publicationId of publicationIds) {
-    if (!courseIdSet.has(publicationId)) publicationsWithoutCourse.push(publicationId);
+  let lastTrailId: string | undefined;
+  while (true) {
+    let q = db.collection("trails").orderBy(FieldPath.documentId()).limit(PAGE_SIZE);
+    if (lastTrailId) q = q.startAfter(lastTrailId);
+    const snap = await q.get();
+    if (snap.empty) break;
+    for (const doc of snap.docs) {
+      const data = doc.data() as Record<string, unknown>;
+      const courseId = strField(data, "courseId");
+      const publicationId = strField(data, "publicationId");
+      if (courseId && !publicationId) publicationLegacy.trailsWithCourseIdOnly += 1;
+      if (data.visibility === "open" && !publicationId) {
+        publicationLegacy.trailsOpenMissingPublicationId += 1;
+      }
+    }
+    lastTrailId = snap.docs[snap.docs.length - 1]!.id;
+    if (snap.size < PAGE_SIZE) break;
+  }
+
+  let lastListingId: string | undefined;
+  while (true) {
+    let q = db.collection("openTrailListings").orderBy(FieldPath.documentId()).limit(PAGE_SIZE);
+    if (lastListingId) q = q.startAfter(lastListingId);
+    const snap = await q.get();
+    if (snap.empty) break;
+    for (const doc of snap.docs) {
+      const data = doc.data() as Record<string, unknown>;
+      const courseId = strField(data, "courseId");
+      const publicationId = strField(data, "publicationId");
+      if (courseId && !publicationId) publicationLegacy.openTrailListingsWithCourseIdOnly += 1;
+    }
+    lastListingId = snap.docs[snap.docs.length - 1]!.id;
+    if (snap.size < PAGE_SIZE) break;
   }
 
   return {
@@ -191,11 +234,6 @@ export async function auditTerminologyWithAdminSdk(): Promise<AuditTerminologyRe
       sampleMissingTrailIds: missingTrailIds.slice(0, 10),
     },
     ridesFields,
-    coursesVsPublications: {
-      coursesWithoutPublicationDoc: coursesWithoutPublication.length,
-      sampleCourseIdsWithoutPublication: coursesWithoutPublication.slice(0, 10),
-      publicationsWithoutCourseDoc: publicationsWithoutCourse.length,
-      samplePublicationIdsWithoutCourse: publicationsWithoutCourse.slice(0, 10),
-    },
+    coursesVsPublications: publicationLegacy,
   };
 }
