@@ -219,19 +219,27 @@ export function PublicationSharedPresence({
     onLiveTagRef.current?.(myMapNametag);
   }, [myMapNametag]);
 
+  const sessionByUid = useMemo(() => {
+    const m = new Map<string, PublicationSessionMemberRow>();
+    for (const r of rows) m.set(r.uid, r);
+    return m;
+  }, [rows]);
+
   const peerMarkersForMap = useMemo((): MapPeerMarker[] => {
     if (presenceError) return [];
-    return active
-      .filter((r) => r.uid !== user.uid && liveRidesByUid.has(r.uid))
-      .map((r) => {
-        const live = liveRidesByUid.get(r.uid)!;
-        return {
-          id: r.uid,
-          progressRatio: live.progressRatio,
-          label: mapNametagForMember(r.uid, r.memberType, r.displayName, guestUidsSorted),
-        };
-      });
-  }, [active, presenceError, user.uid, guestUidsSorted, liveRidesByUid]);
+    /** 지도 peer — fresh `livePublicationRides` 우선 (세션 멤버 등록 전에도 표시) */
+    return [...liveRidesByUid.entries()].map(([uid, live]) => {
+      const member = sessionByUid.get(uid);
+      const label = member
+        ? mapNametagForMember(uid, member.memberType, member.displayName, guestUidsSorted)
+        : live.displayName?.trim() || uid.slice(0, 6);
+      return {
+        id: uid,
+        progressRatio: live.progressRatio,
+        label,
+      };
+    });
+  }, [liveRidesByUid, presenceError, sessionByUid, guestUidsSorted]);
 
   const lastPeersKeyRef = useRef<string>("__init__");
 
