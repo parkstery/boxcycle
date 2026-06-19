@@ -26,9 +26,9 @@ export type ActivityWorldLodDebugPanelProps = {
   catalogGeometryReady: number;
   catalogActivityRows: number;
   catalogAnchorMissing: number;
-  liveCourseRideLines: number;
-  liveCourseRideCourses: number;
-  liveCourseRideRows: number;
+  livePublicationRideLines: number;
+  livePublicationRidePublications: number;
+  livePublicationRideRows: number;
   liveActivityCourseIdsCount: number;
   catalogCourseIdsCount: number;
   mapDebugPhase?: MapDebugPhase | null;
@@ -59,9 +59,9 @@ export function ActivityWorldLodDebugPanel(props: ActivityWorldLodDebugPanelProp
     catalogGeometryReady,
     catalogActivityRows,
     catalogAnchorMissing,
-    liveCourseRideLines,
-    liveCourseRideCourses,
-    liveCourseRideRows,
+    livePublicationRideLines,
+    livePublicationRidePublications,
+    livePublicationRideRows,
     liveActivityCourseIdsCount,
     catalogCourseIdsCount,
   } = props;
@@ -96,7 +96,7 @@ pubFetch ${publicationFetchRowCount}${
         publicationLastFetchError ? ` err ${publicationLastFetchError.slice(0, 40)}` : ""
       }
 liveIds ${liveActivityCourseIdsCount} catalog ${catalogCourseIdsCount}
-liveRides ${liveCourseRideCourses} rows ${liveCourseRideRows}→line ${liveCourseRideLines}`}
+liveRides ${livePublicationRidePublications} rows ${livePublicationRideRows}→line ${livePublicationRideLines}`}
     </pre>
   );
 }

@@ -3,7 +3,7 @@ import type { User } from "firebase/auth";
 import { useRouteActivity } from "../../hooks/useRouteActivity";
 import { useRouteActivityMapOverlay } from "../../hooks/useRouteActivityMapOverlay";
 import { usePublishedCoursesActivityMapOverlay } from "../../hooks/usePublishedCoursesActivityMapOverlay";
-import { useTrailLiveCourseRideSpectatorOverlay } from "../../hooks/useTrailLiveCourseRideSpectatorOverlay";
+import { useTrailLivePublicationRideSpectatorOverlay } from "../../hooks/useTrailLivePublicationRideSpectatorOverlay";
 import { useWorldPublicationPresenceOverlay } from "../../hooks/useWorldPublicationPresenceOverlay";
 import {
   formatActivityWorldPinPopup,
@@ -20,7 +20,7 @@ import { BASIC_SHARED_HUB_IDS } from "../../lib/firestoreCourses";
 import type { PublishedPublicCourseSummary } from "../../lib/firestoreCourses";
 import type { TrailInstance } from "../../lib/firestoreTrailInstance";
 import { sanitizeTrailId } from "../../lib/firestoreTrail";
-import { debugTrailLiveCourseRidesSubscriptionCount } from "../../lib/liveCourseRidesSubscriptionHub";
+import { debugTrailLivePublicationRidesSubscriptionCount } from "../../lib/livePublicationRidesSubscriptionHub";
 import type { LineStringGeometry } from "../../lib/geo";
 import type { ActivityWorldLodDebugPanelProps } from "./ActivityWorldLodDebugPanel";
 import { runPublicationPresenceParseChecks } from "../../lib/firestorePublicationPresence";
@@ -69,8 +69,8 @@ export type AppMapOverlaysResult = {
   activityWorldRender: ReturnType<typeof resolveActivityWorldRender>;
   activityWorldLodDebug: ReturnType<typeof resolveActivityWorldLodDebug>;
   getActivityWorldPinLabel: (courseId: string, kind: "pulse" | "heat") => string | null;
-  trailSpectatorDots: ReturnType<typeof useTrailLiveCourseRideSpectatorOverlay>["spectatorDots"];
-  trailSpectatorRoutes: ReturnType<typeof useTrailLiveCourseRideSpectatorOverlay>["spectatorRouteGeometries"];
+  trailSpectatorDots: ReturnType<typeof useTrailLivePublicationRideSpectatorOverlay>["spectatorDots"];
+  trailSpectatorRoutes: ReturnType<typeof useTrailLivePublicationRideSpectatorOverlay>["spectatorRouteGeometries"];
   courseActivity: RouteActivitySnapshot | null;
   reloadCourseActivity: ReturnType<typeof useRouteActivity>["reload"];
   applyRideCompletedOptimistic: ReturnType<typeof useRouteActivity>["applyRideCompletedOptimistic"];
@@ -153,8 +153,8 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
         pageVisible,
     );
 
-  const { spectatorDots, spectatorRouteGeometries, liveCourseIds: trailLiveCourseIds } =
-    useTrailLiveCourseRideSpectatorOverlay({
+  const { spectatorDots, spectatorRouteGeometries, livePublicationIds: trailLivePublicationIds } =
+    useTrailLivePublicationRideSpectatorOverlay({
       user,
       trailId,
       trailLabel,
@@ -175,9 +175,9 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     const ids = new Set<string>(BASIC_SHARED_HUB_IDS as readonly string[]);
     for (const c of publishedPublicCourses) ids.add(c.id);
     for (const id of openTrailCourseIds) ids.add(id);
-    for (const id of trailLiveCourseIds) ids.add(id);
+    for (const id of trailLivePublicationIds) ids.add(id);
     return [...ids];
-  }, [publishedPublicCourses, openTrailCourseIds, trailLiveCourseIds]);
+  }, [publishedPublicCourses, openTrailCourseIds, trailLivePublicationIds]);
 
   const worldMapActivityEnabled = Boolean(configured && user && pageVisible);
 
@@ -328,7 +328,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
         pulseDots: publicationWorldDots.pulseDots,
         heatDots: publicationWorldDots.heatDots,
       },
-      liveCourseRides: {
+      livePublicationRides: {
         pulseRoutes: livePublicationRideOverlay.pulseRoutes,
         heatRoutes: livePublicationRideOverlay.heatRoutes,
         pulseDots: livePublicationRideOverlay.pulseDots,
@@ -443,10 +443,10 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       render: activityWorldRender,
       catalog: catalogOverlay.overlayStats,
       catalogEnabled: catalogActivityEnabled,
-      liveCourseRideLines: livePublicationRideOverlay.pulseRoutes.length,
-      liveCourseRideCourses: livePublicationRideOverlay.livePublicationCount,
-      liveCourseRideRows: livePublicationRideOverlay.liveRideRowCount,
-      liveCourseRidesHubSubs: debugTrailLiveCourseRidesSubscriptionCount(),
+      livePublicationRideLines: livePublicationRideOverlay.pulseRoutes.length,
+      livePublicationRidePublications: livePublicationRideOverlay.livePublicationCount,
+      livePublicationRideRows: livePublicationRideOverlay.liveRideRowCount,
+      livePublicationRidesHubSubs: debugTrailLivePublicationRidesSubscriptionCount(),
       publicationPresence: publicationOverlay.overlayStats,
       publicationPresenceEnabled: publicationPresenceWorldMapEnabled,
       publicationRawDots: {
@@ -540,9 +540,9 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
           catalogGeometryReady: catalogOverlay.overlayStats.geometryReady,
           catalogActivityRows: catalogOverlay.overlayStats.activityRows,
           catalogAnchorMissing: catalogOverlay.overlayStats.anchorMissing,
-          liveCourseRideLines: livePublicationRideOverlay.pulseRoutes.length,
-          liveCourseRideCourses: livePublicationRideOverlay.livePublicationCount,
-          liveCourseRideRows: livePublicationRideOverlay.liveRideRowCount,
+          livePublicationRideLines: livePublicationRideOverlay.pulseRoutes.length,
+          livePublicationRidePublications: livePublicationRideOverlay.livePublicationCount,
+          livePublicationRideRows: livePublicationRideOverlay.liveRideRowCount,
           liveActivityCourseIdsCount: liveActivityCourseIds.length,
           catalogCourseIdsCount: catalogCourseIds.length,
           mapDebugPhase: mapDebugPhase,

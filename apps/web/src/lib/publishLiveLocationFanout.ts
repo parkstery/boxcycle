@@ -1,9 +1,9 @@
 import type { User } from "firebase/auth";
 import { deleteGlobalLivePresence, mergeGlobalLivePresence } from "./firestoreGlobalLivePresence";
 import {
-  deleteTrailLiveCourseRide,
-  mergeTrailLiveCourseRideSnapshot,
-} from "./firestoreTrailLiveCourseRides";
+  deleteTrailLivePublicationRide,
+  mergeTrailLivePublicationRideSnapshot,
+} from "./firestoreTrailLivePublicationRides";
 import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "./firestoreTrail";
 import { touchTrailInstanceActivity } from "./firestoreTrailInstance";
 import type { LiveLocationSnapshot } from "./liveLocationSnapshot";
@@ -13,7 +13,7 @@ export type LiveLocationFanoutResult = {
   route: boolean;
 };
 
-/** global livePresence + (선택) liveCourseRides progress — 좌표는 global only */
+/** global livePresence + (선택) livePublicationRides progress — 좌표는 global only */
 export async function publishLiveLocationFanout(
   user: User,
   snapshot: LiveLocationSnapshot,
@@ -27,7 +27,7 @@ export async function publishLiveLocationFanout(
   }
 
   if (opts.publishRoute && snapshot.routeReady && snapshot.courseId) {
-    await mergeTrailLiveCourseRideSnapshot(user, snapshot.trailId, {
+    await mergeTrailLivePublicationRideSnapshot(user, snapshot.trailId, {
       publicationId: snapshot.courseId,
       progressRatio: snapshot.progressRatio,
     });
@@ -44,6 +44,6 @@ export async function cleanupLiveLocationPublish(uid: string, trailId: string): 
   const tid = sanitizeTrailId(trailId);
   await Promise.all([
     deleteGlobalLivePresence(uid).catch(() => {}),
-    deleteTrailLiveCourseRide(uid, tid).catch(() => {}),
+    deleteTrailLivePublicationRide(uid, tid).catch(() => {}),
   ]);
 }

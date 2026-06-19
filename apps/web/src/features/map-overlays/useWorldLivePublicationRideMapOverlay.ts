@@ -7,10 +7,10 @@ import {
   getBasicHubCoursePayload,
 } from "../../lib/firestoreCourses";
 import {
-  isTrailLiveCourseRideRowFresh,
-  type TrailLiveCourseRideRow,
-} from "../../lib/firestoreTrailLiveCourseRides";
-import { acquireTrailLiveCourseRidesSubscription } from "../../lib/liveCourseRidesSubscriptionHub";
+  isTrailLivePublicationRideRowFresh,
+  type TrailLivePublicationRideRow,
+} from "../../lib/firestoreTrailLivePublicationRides";
+import { acquireTrailLivePublicationRidesSubscription } from "../../lib/livePublicationRidesSubscriptionHub";
 import { sanitizeTrailId } from "../../lib/firestoreTrail";
 import type { LineStringGeometry } from "../../lib/geo";
 import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../../lib/geoDecimate";
@@ -27,7 +27,7 @@ type LivePublicationAggregate = {
   riderCount: number;
 };
 
-function aggregateLivePublications(rows: readonly TrailLiveCourseRideRow[]): LivePublicationAggregate[] {
+function aggregateLivePublications(rows: readonly TrailLivePublicationRideRow[]): LivePublicationAggregate[] {
   const byPublication = new Map<string, { progressRatio: number; riderCount: number }>();
   for (const row of rows) {
     const publicationId = row.publicationId.trim();
@@ -44,8 +44,8 @@ function aggregateLivePublications(rows: readonly TrailLiveCourseRideRow[]): Liv
   }));
 }
 
-function mergeLiveRows(maps: Map<string, TrailLiveCourseRideRow>[]): TrailLiveCourseRideRow[] {
-  const merged = new Map<string, TrailLiveCourseRideRow>();
+function mergeLiveRows(maps: Map<string, TrailLivePublicationRideRow>[]): TrailLivePublicationRideRow[] {
+  const merged = new Map<string, TrailLivePublicationRideRow>();
   for (const m of maps) {
     for (const [uid, row] of m) {
       const prev = merged.get(uid);
@@ -77,7 +77,7 @@ export function useWorldLivePublicationRideMapOverlay(opts: {
   trailIds: readonly string[];
 }): RouteActivityMapOverlay & { livePublicationCount: number; liveRideRowCount: number } {
   const { enabled, mapZoom, myUid, excludePublicationId, trailIds } = opts;
-  const [rows, setRows] = useState<TrailLiveCourseRideRow[]>([]);
+  const [rows, setRows] = useState<TrailLivePublicationRideRow[]>([]);
   const [geomEpoch, setGeomEpoch] = useState(0);
   const geomByPublicationRef = useRef<Map<string, PublicationGeomState>>(new Map());
 
@@ -99,19 +99,19 @@ export function useWorldLivePublicationRideMapOverlay(opts: {
     }
 
     const trailIdList = trailIdsKey.split(",").filter(Boolean);
-    const rowMaps = trailIdList.map(() => new Map<string, TrailLiveCourseRideRow>());
+    const rowMaps = trailIdList.map(() => new Map<string, TrailLivePublicationRideRow>());
     const emit = () => {
       startTransition(() => setRows(mergeLiveRows(rowMaps)));
     };
 
     const releases = trailIdList.map((tid, index) =>
-      acquireTrailLiveCourseRidesSubscription(
+      acquireTrailLivePublicationRidesSubscription(
         tid,
         (next) => {
           const map = rowMaps[index]!;
           map.clear();
           for (const row of next) {
-            if (!isTrailLiveCourseRideRowFresh(row)) continue;
+            if (!isTrailLivePublicationRideRowFresh(row)) continue;
             map.set(row.uid, row);
           }
           emit();

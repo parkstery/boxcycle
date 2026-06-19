@@ -2,12 +2,12 @@ import {
   mergeActivityWorldDots,
   type ActivityWorldRawOverlay,
 } from "../../lib/activityWorldLod";
-import type { CourseActivityMapOverlay } from "../../hooks/useCourseActivityMapOverlay";
+import type { RouteActivityMapOverlay } from "../../hooks/useRouteActivityMapOverlay";
 
-export type WorldMapOverlaySlice = CourseActivityMapOverlay;
+export type WorldMapOverlaySlice = RouteActivityMapOverlay;
 
-/** catalog·publication 에 pulse line 이 없을 때 liveCourseRides route 로 gap-fill (dot 없음) */
-function mergeLiveCourseRideGapFill(
+/** catalog·publication 에 pulse line 이 없을 때 livePublicationRides route 로 gap-fill (dot 없음) */
+function mergeLivePublicationRideGapFill(
   base: WorldMapOverlaySlice,
   live: WorldMapOverlaySlice,
 ): WorldMapOverlaySlice {
@@ -50,12 +50,14 @@ function mergeLiveCourseRideGapFill(
 }
 
 export type ResolveWorldMapOverlayInput = {
-  /** 추적 중인 코스 — active 오버레이가 heat/catalog 중복 제거에 사용 */
+  /** 추적 중인 publication — active 오버레이가 heat/catalog 중복 제거에 사용 */
   trackedCourseId: string | null;
   active: WorldMapOverlaySlice;
   catalog: WorldMapOverlaySlice;
   publication: WorldMapOverlaySlice;
-  /** `liveCourseRides` 직접 합성 — courseActivity 지연 시 **line** gap-fill (dot 은 global livePresence) */
+  /** `livePublicationRides` 직접 합성 — routeActivity 지연 시 **line** gap-fill (dot 은 global livePresence) */
+  livePublicationRides?: WorldMapOverlaySlice;
+  /** @deprecated {@link livePublicationRides} */
   liveCourseRides?: WorldMapOverlaySlice;
   /** true면 publication 우선 + catalog gap-fill (전면 0 덮어쓰기 금지) */
   publicationPresenceWorldMapEnabled: boolean;
@@ -85,7 +87,7 @@ export function resolveWorldMapOverlay(input: ResolveWorldMapOverlayInput): Acti
     active,
     catalog,
     publication,
-    liveCourseRides = {
+    livePublicationRides = input.liveCourseRides ?? {
       pulseRoutes: [],
       heatRoutes: [],
       pulseDots: [],
@@ -120,9 +122,9 @@ export function resolveWorldMapOverlay(input: ResolveWorldMapOverlayInput): Acti
 
   const worldSlice = publicationPresenceWorldMapEnabled
     ? baseSlice
-    : mergeLiveCourseRideGapFill(baseSlice, liveCourseRides);
+    : mergeLivePublicationRideGapFill(baseSlice, livePublicationRides);
 
-  /** publication 모드: 월드 = L1/L2 only — courseActivity live dot/line 은 코스 뷰·L3 */
+  /** publication 모드: 월드 = L1/L2 only — routeActivity live dot/line 은 코스 뷰·L3 */
   const activeWorld = publicationPresenceWorldMapEnabled
     ? { pulseRoutes: [], heatRoutes: [], pulseDots: [], heatDots: [] }
     : active;
@@ -135,7 +137,7 @@ export function resolveWorldMapOverlay(input: ResolveWorldMapOverlayInput): Acti
   };
 }
 
-/** DEV 회귀 — publication 모드 dot/catalog·liveCourseRides 격리 */
+/** DEV 회귀 — publication 모드 dot/catalog·livePublicationRides 격리 */
 export function runWorldMapOverlayMergeChecks(): void {
   const catalog: WorldMapOverlaySlice = {
     pulseDots: [{ courseId: "c1", lngLat: [0, 0], pulseLevel: 1, kind: "pulse", traceStrength: 1 }],

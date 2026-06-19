@@ -11,7 +11,7 @@ import {
   type LiveLocationPublishInput,
 } from "../lib/liveLocationSnapshot";
 import { cleanupLiveLocationPublish, publishLiveLocationFanout } from "../lib/publishLiveLocationFanout";
-import { deleteTrailLiveCourseRide } from "../lib/firestoreTrailLiveCourseRides";
+import { deleteTrailLivePublicationRide } from "../lib/firestoreTrailLivePublicationRides";
 import { sanitizeTrailId } from "../lib/firestoreTrail";
 
 const PUBLISH_TICK_MS = 1_000;
@@ -20,7 +20,7 @@ export type UseLiveLocationPublishSessionOpts = {
   user: User | null | undefined;
   /** global livePresence publish */
   globalEnabled: boolean;
-  /** trails/.../liveCourseRides progress publish */
+  /** trails/.../livePublicationRides progress publish */
   routeEnabled: boolean;
   pageVisible: boolean;
   lngLat: LngLat | null;
@@ -141,7 +141,7 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
     return () => {
       window.clearInterval(id);
       if (routeDocActive || flagsRef.current.routeEnabled) {
-        void deleteTrailLiveCourseRide(u.uid, sanitizeTrailId(trailId)).catch(() => {});
+        void deleteTrailLivePublicationRide(u.uid, sanitizeTrailId(trailId)).catch(() => {});
       }
       void cleanupLiveLocationPublish(u.uid, trailId).catch(() => {});
     };

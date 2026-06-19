@@ -10,10 +10,10 @@ import {
   type PublicationSessionMemberRow,
 } from "../lib/firestorePublicationSessionPresence";
 import {
-  isTrailLiveCourseRideRowFresh,
-  type TrailLiveCourseRideRow,
-} from "../lib/firestoreTrailLiveCourseRides";
-import { acquireTrailLiveCourseRidesSubscription } from "../lib/liveCourseRidesSubscriptionHub";
+  isTrailLivePublicationRideRowFresh,
+  type TrailLivePublicationRideRow,
+} from "../lib/firestoreTrailLivePublicationRides";
+import { acquireTrailLivePublicationRidesSubscription } from "../lib/livePublicationRidesSubscriptionHub";
 import { sanitizeTrailId } from "../lib/firestoreTrail";
 import type { MapPeerMarker } from "./MapView";
 import { TRAIL_PRESENCE_STALE_MS } from "../lib/firestoreTrail";
@@ -65,7 +65,7 @@ export function PublicationSharedPresence({
 }: PublicationSharedPresenceProps) {
   const pageVisible = useDocumentVisibility();
   const [rows, setRows] = useState<PublicationSessionMemberRow[]>([]);
-  const [liveRideRows, setLiveRideRows] = useState<TrailLiveCourseRideRow[]>([]);
+  const [liveRideRows, setLiveRideRows] = useState<TrailLivePublicationRideRow[]>([]);
   const [presenceError, setPresenceError] = useState<string | null>(null);
   const onPeersChangeRef = useRef(onPeersChange);
   const onLiveTagRef = useRef(onLiveRiderNametagChange);
@@ -142,7 +142,7 @@ export function PublicationSharedPresence({
 
     const tid = sanitizeTrailId(trailId);
     let cancelled = false;
-    const release = acquireTrailLiveCourseRidesSubscription(
+    const release = acquireTrailLivePublicationRidesSubscription(
       tid,
       (next) => {
         if (!cancelled) startTransition(() => setLiveRideRows(next));
@@ -187,11 +187,11 @@ export function PublicationSharedPresence({
   );
 
   const liveRidesByUid = useMemo(() => {
-    const m = new Map<string, TrailLiveCourseRideRow>();
+    const m = new Map<string, TrailLivePublicationRideRow>();
     const pid = publicationId.trim();
     for (const row of liveRideRows) {
       if (row.uid === user.uid) continue;
-      if (!isTrailLiveCourseRideRowFresh(row)) continue;
+      if (!isTrailLivePublicationRideRowFresh(row)) continue;
       if (row.publicationId.trim() !== pid) continue;
       m.set(row.uid, row);
     }

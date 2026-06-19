@@ -43,7 +43,7 @@ import {
 } from "../../lib/peerRidersDrive";
 import { applyCoverageOverlayMode } from "../../services/coverageOverlaySync";
 import type { GlobalLivePresenceDot } from "../../hooks/useGlobalLivePresence";
-import type { TrailSpectatorDot } from "../../hooks/useTrailLiveCourseRideSpectatorOverlay";
+import type { TrailSpectatorDot } from "../../hooks/useTrailLivePublicationRideSpectatorOverlay";
 import { getRiderPrototypeMode } from "../../lib/riderPrototype/config";
 import {
   applyIso2dRiderBearing,
