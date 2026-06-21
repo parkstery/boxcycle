@@ -17,6 +17,7 @@
     "admin:backfill-course-metadata": "npm run build && node lib/cliBackfillCourseMetadata.js",
     "admin:discard-basic-hub-courses": "npm run build && node lib/cliDiscardBasicHubCourses.js",
     "admin:backfill-route-activity": "npm run build && node lib/cliBackfillRouteActivity.js",
+    "admin:backfill-last-completed-ride-at": "npm run build && node lib/cliBackfillLastCompletedRideAt.js",
     "admin:purge-ride-legacy-fields": "npm run build && node lib/cliPurgeRideLegacyFields.js",
     "admin:migrate-live-publication-rides": "npm run build && node lib/cliMigrateLivePublicationRides.js",
     "admin:archive-courses": "npm run build && node lib/cliArchiveCourses.js",

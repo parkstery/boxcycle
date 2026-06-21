@@ -1,11 +1,9 @@
-import { getAuth } from "firebase-admin/auth";
-import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { HttpsError, onRequest } from "firebase-functions/v2/https";
 import type { Request, Response } from "express";
+import { getAuth } from "firebase-admin/auth";
 import { isRouteReviewerUid } from "./savedRouteAdminPromoteCore.js";
-import { ROUTE_ACTIVITY_COLLECTION } from "./routeActivityConstants.js";
+import { backfillRouteActivityLastCompletedRideAt } from "./backfillRouteActivityLastCompletedRideAtCore.js";
 
-const RIDES_COLLECTION = "rides";
 const REGION = "asia-northeast3";
 
 async function assertBearerRouteReviewer(req: Request): Promise<string> {
@@ -29,22 +27,6 @@ async function assertBearerRouteReviewer(req: Request): Promise<string> {
   }
   return decoded.uid;
 }
-
-function readEndedAt(raw: unknown): Timestamp | null {
-  if (raw instanceof Timestamp) return raw;
-  if (typeof raw === "object" && raw !== null && typeof (raw as Timestamp).toMillis === "function") {
-    const ms = (raw as Timestamp).toMillis();
-    return Number.isFinite(ms) ? (raw as Timestamp) : null;
-  }
-  return null;
-}
-
-type BackfillResult = {
-  scanned: number;
-  updated: number;
-  skipped: number;
-  errors: number;
-};
 
 /**
  * routeActivity.lastCompletedRideAt 레거시 백필.
@@ -74,63 +56,13 @@ export const backfillRouteActivityLastCompletedRideAtHttp = onRequest(
       limit?: number;
       publicationId?: string;
     };
-    const dryRun = body.dryRun === true;
-    const limit = Math.min(200, Math.max(1, typeof body.limit === "number" ? body.limit : 50));
-    const singlePublicationId = typeof body.publicationId === "string" ? body.publicationId.trim() : "";
 
-    const db = getFirestore();
-    const result: BackfillResult = { scanned: 0, updated: 0, skipped: 0, errors: 0 };
+    const result = await backfillRouteActivityLastCompletedRideAt({
+      dryRun: body.dryRun === true,
+      limit: body.limit,
+      publicationId: body.publicationId,
+    });
 
-    let activityDocs: FirebaseFirestore.QueryDocumentSnapshot[];
-    if (singlePublicationId) {
-      const snap = await db.doc(`${ROUTE_ACTIVITY_COLLECTION}/${singlePublicationId}`).get();
-      activityDocs = snap.exists ? [snap as FirebaseFirestore.QueryDocumentSnapshot] : [];
-    } else {
-      const snap = await db.collection(ROUTE_ACTIVITY_COLLECTION).limit(limit).get();
-      activityDocs = snap.docs;
-    }
-
-    for (const activityDoc of activityDocs) {
-      result.scanned += 1;
-      const data = activityDoc.data();
-      if (data.lastCompletedRideAt != null) {
-        result.skipped += 1;
-        continue;
-      }
-
-      try {
-        const rideSnap = await db
-          .collection(RIDES_COLLECTION)
-          .where("publicationId", "==", activityDoc.id)
-          .where("status", "==", "completed")
-          .orderBy("endedAt", "desc")
-          .limit(1)
-          .get();
-
-        if (rideSnap.empty) {
-          result.skipped += 1;
-          continue;
-        }
-
-        const endedAt = readEndedAt(rideSnap.docs[0].get("endedAt"));
-        if (!endedAt) {
-          result.skipped += 1;
-          continue;
-        }
-
-        if (!dryRun) {
-          await db.doc(`${ROUTE_ACTIVITY_COLLECTION}/${activityDoc.id}`).set(
-            { lastCompletedRideAt: endedAt },
-            { merge: true },
-          );
-        }
-        result.updated += 1;
-      } catch (e) {
-        console.error("[backfillRouteActivityLastCompletedRideAt]", activityDoc.id, e);
-        result.errors += 1;
-      }
-    }
-
-    res.status(200).json({ result, dryRun });
+    res.status(200).json({ result, dryRun: body.dryRun === true });
   },
 );

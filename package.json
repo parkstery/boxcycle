@@ -28,6 +28,7 @@
     "admin:backfill-course-metadata": "npm --prefix functions run admin:backfill-course-metadata --",
     "admin:discard-basic-hub-courses": "npm --prefix functions run admin:discard-basic-hub-courses --",
     "admin:backfill-route-activity": "npm --prefix functions run admin:backfill-route-activity --",
+    "admin:backfill-last-completed-ride-at": "npm --prefix functions run admin:backfill-last-completed-ride-at --",
     "admin:purge-ride-legacy-fields": "npm --prefix functions run admin:purge-ride-legacy-fields --",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
