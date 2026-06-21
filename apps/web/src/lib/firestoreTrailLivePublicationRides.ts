@@ -31,9 +31,16 @@ import {
   TRAILS_COLLECTION,
 } from "./firestoreTrailPaths";
 import { resolvePublicationIdFromDoc } from "./resolvePublicationIdFromDoc";
+import {
+  PEER_LIVE_RIDE_COMPLETED_VISIBLE_MS,
+  PEER_LIVE_RIDE_FINAL_BURST_MS,
+  PEER_LIVE_RIDE_STALE_MS,
+} from "./rideSyncPolicy";
 
 /** publication 진행률만 주기적으로 올려 부담을 줄임 (좌표·geometry 미전송). */
 export const TRAIL_LIVE_PUBLICATION_RIDE_WRITE_INTERVAL_MS = 4_000;
+
+export type TrailLiveRidePhase = "live" | "paused" | "completed";
 
 export type TrailLivePublicationRideRow = {
   uid: string;
@@ -44,10 +51,19 @@ export type TrailLivePublicationRideRow = {
   distMeters: number | null;
   lastSeenAtMs: number | null;
   displayName: string | null;
+  /** m/s — 송신 측 속도(없으면 수신 측 delta 추정) */
+  speedMps: number | null;
+  ridePhase: TrailLiveRidePhase | null;
 };
 
 function readPublicationIdFromDoc(data: Record<string, unknown>): string {
   return resolvePublicationIdFromDoc(data) ?? "";
+}
+
+function readRidePhase(data: Record<string, unknown>): TrailLiveRidePhase | null {
+  const v = data.ridePhase;
+  if (v === "live" || v === "paused" || v === "completed") return v;
+  return null;
 }
 
 function liveRidesCollectionRef(trailId: string) {
@@ -75,6 +91,9 @@ export function subscribeTrailLivePublicationRides(
         const dm = data.distMeters;
         const distMeters =
           typeof dm === "number" && Number.isFinite(dm) ? Math.max(0, dm) : null;
+        const sm = data.speedMps;
+        const speedMps =
+          typeof sm === "number" && Number.isFinite(sm) ? Math.max(0, sm) : null;
         if (!publicationId || Number.isNaN(progressRatio)) continue;
         rows.push({
           uid: d.id,
@@ -83,6 +102,8 @@ export function subscribeTrailLivePublicationRides(
           distMeters,
           lastSeenAtMs: lastSeenAtToMillis(data.lastSeenAt),
           displayName: typeof data.displayName === "string" ? data.displayName : null,
+          speedMps,
+          ridePhase: readRidePhase(data),
         });
       }
       onChange(rows);
@@ -91,10 +112,18 @@ export function subscribeTrailLivePublicationRides(
   );
 }
 
+export type TrailLivePublicationRideSnapshotInput = {
+  publicationId: string;
+  progressRatio: number;
+  distMeters?: number;
+  speedMps?: number;
+  ridePhase?: TrailLiveRidePhase;
+};
+
 export async function mergeTrailLivePublicationRideSnapshot(
   user: User,
   trailId: string,
-  input: { publicationId: string; progressRatio: number; distMeters?: number },
+  input: TrailLivePublicationRideSnapshotInput,
 ): Promise<void> {
   const rid = sanitizeTrailId(trailId);
   const db = getFirestore(getFirebaseApp());
@@ -104,9 +133,13 @@ export async function mergeTrailLivePublicationRideSnapshot(
     progressRatio: Math.max(0, Math.min(1, input.progressRatio)),
     displayName: getPresenceDisplayName(user),
     lastSeenAt: serverTimestamp(),
+    ridePhase: input.ridePhase ?? "live",
   };
   if (typeof input.distMeters === "number" && Number.isFinite(input.distMeters)) {
     payload.distMeters = Math.round(Math.max(0, input.distMeters) * 10) / 10;
+  }
+  if (typeof input.speedMps === "number" && Number.isFinite(input.speedMps)) {
+    payload.speedMps = Math.round(Math.max(0, input.speedMps) * 100) / 100;
   }
   await setDoc(ref, payload, { merge: true });
 }
@@ -115,6 +148,25 @@ export async function deleteTrailLivePublicationRide(uid: string, trailId: strin
   const rid = sanitizeTrailId(trailId);
   const db = getFirestore(getFirebaseApp());
   await deleteDoc(doc(db, TRAILS_COLLECTION, rid, TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION, uid));
+}
+
+/** 완주 final burst — completed 기록 후 잠시 유지하고 삭제 */
+export async function finalizeAndDeleteTrailLivePublicationRide(
+  user: User,
+  trailId: string,
+  input: Omit<TrailLivePublicationRideSnapshotInput, "ridePhase" | "speedMps">,
+): Promise<void> {
+  try {
+    await mergeTrailLivePublicationRideSnapshot(user, trailId, {
+      ...input,
+      speedMps: 0,
+      ridePhase: "completed",
+    });
+    await new Promise((r) => window.setTimeout(r, PEER_LIVE_RIDE_FINAL_BURST_MS));
+  } catch {
+    /* noop */
+  }
+  await deleteTrailLivePublicationRide(user.uid, trailId).catch(() => {});
 }
 
 function liveRideFreshnessCutoff(): Timestamp {
@@ -167,6 +219,20 @@ export async function fetchTrailIdsWithActiveLiveRides(): Promise<string[]> {
   return ids;
 }
 
+/** 멤버·카운트용 — TRAIL_PRESENCE_STALE_MS(240s) */
 export function isTrailLivePublicationRideRowFresh(row: TrailLivePublicationRideRow): boolean {
   return isMemberRecentlySeen(row.lastSeenAtMs);
+}
+
+/** 맵 peer 표시용 — live 4s, completed 15s */
+export function isTrailLivePublicationRideRowPeerVisible(
+  row: TrailLivePublicationRideRow,
+  nowMs = Date.now(),
+): boolean {
+  const ms = row.lastSeenAtMs;
+  if (ms == null) return false;
+  if (row.ridePhase === "completed") {
+    return nowMs - ms <= PEER_LIVE_RIDE_COMPLETED_VISIBLE_MS;
+  }
+  return nowMs - ms <= PEER_LIVE_RIDE_STALE_MS;
 }

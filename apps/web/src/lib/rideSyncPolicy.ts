@@ -25,10 +25,19 @@ export const COURSE_PRESENCE_HEARTBEAT_PAUSED_MS = 180_000;
 export const TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS = 30_000;
 
 /** Trail `livePublicationRides` 진행률: 최소 쓰기 간격 */
-export const TRAIL_LIVE_PROGRESS_MIN_WRITE_MS = 2_500;
+export const TRAIL_LIVE_PROGRESS_MIN_WRITE_MS = 1_000;
 
 /** Trail `livePublicationRides` 진행률: 최대 간격(강제 1회 플러시) */
-export const TRAIL_LIVE_PROGRESS_MAX_WRITE_MS = 8_000;
+export const TRAIL_LIVE_PROGRESS_MAX_WRITE_MS = 2_000;
+
+/** 동행 peer 맵 — live 패킷 fresh 기준(ms). TRAIL_PRESENCE_STALE_MS(240s) 와 분리 */
+export const PEER_LIVE_RIDE_STALE_MS = 4_000;
+
+/** 완주 final burst 후 peer 가 최종 위치를 유지하는 시간 */
+export const PEER_LIVE_RIDE_COMPLETED_VISIBLE_MS = 15_000;
+
+/** 완주 final burst — Firestore 삭제 전 대기 */
+export const PEER_LIVE_RIDE_FINAL_BURST_MS = 3_000;
 
 /** Trail `livePublicationRides`: 진행률 변화가 이 값 이상일 때만 의미 있는 변화로 간주 */
 export const TRAIL_LIVE_PROGRESS_MIN_DELTA = 0.005;

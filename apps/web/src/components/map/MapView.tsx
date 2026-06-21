@@ -1072,6 +1072,9 @@ export type MapPeerMarker = {
   progressRatio?: number;
   /** progress·dist 모두 없을 때 폴백 */
   lngLat?: LngLat;
+  /** m/s — 송신 측 속도 */
+  speedMps?: number | null;
+  ridePhase?: "live" | "paused" | "completed" | null;
 };
 
 /** 가상 주행 세션과 연동해 페달 루프 주기·재생 여부를 맞춘다 */

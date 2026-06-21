@@ -31,6 +31,8 @@ export async function publishLiveLocationFanout(
       publicationId: snapshot.publicationId,
       progressRatio: snapshot.progressRatio,
       distMeters: snapshot.distMetersAlongRoute,
+      speedMps: snapshot.speedMps,
+      ridePhase: snapshot.routeRidePhase,
     });
     if (snapshot.trailId !== DEFAULT_TRAIL_ID) {
       void touchTrailInstanceActivity(snapshot.trailId);
@@ -41,10 +43,15 @@ export async function publishLiveLocationFanout(
   return result;
 }
 
-export async function cleanupLiveLocationPublish(uid: string, trailId: string): Promise<void> {
+export async function cleanupLiveLocationPublish(
+  uid: string,
+  trailId: string,
+  opts?: { skipRouteDelete?: boolean },
+): Promise<void> {
   const tid = sanitizeTrailId(trailId);
-  await Promise.all([
-    deleteGlobalLivePresence(uid).catch(() => {}),
-    deleteTrailLivePublicationRide(uid, tid).catch(() => {}),
-  ]);
+  const tasks: Promise<void>[] = [deleteGlobalLivePresence(uid).catch(() => {})];
+  if (!opts?.skipRouteDelete) {
+    tasks.push(deleteTrailLivePublicationRide(uid, tid).catch(() => {}));
+  }
+  await Promise.all(tasks);
 }

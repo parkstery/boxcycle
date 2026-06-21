@@ -10,14 +10,18 @@ import {
   type PublicationSessionMemberRow,
 } from "../lib/firestorePublicationSessionPresence";
 import {
-  isTrailLivePublicationRideRowFresh,
+  isTrailLivePublicationRideRowPeerVisible,
   type TrailLivePublicationRideRow,
 } from "../lib/firestoreTrailLivePublicationRides";
 import { acquireTrailLivePublicationRidesSubscription } from "../lib/livePublicationRidesSubscriptionHub";
 import { sanitizeTrailId } from "../lib/firestoreTrail";
 import type { MapPeerMarker } from "./MapView";
 import { TRAIL_PRESENCE_STALE_MS } from "../lib/firestoreTrail";
-import { COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS, COURSE_PRESENCE_HEARTBEAT_PAUSED_MS } from "../lib/rideSyncPolicy";
+import {
+  COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS,
+  COURSE_PRESENCE_HEARTBEAT_PAUSED_MS,
+  PEER_LIVE_RIDE_STALE_MS,
+} from "../lib/rideSyncPolicy";
 import { mapNametagForMember, sortedGuestUids } from "../lib/guestNametag";
 import { useDocumentVisibility } from "../hooks/useDocumentVisibility";
 import "./trail/TrailheadPresence.css";
@@ -27,7 +31,7 @@ function peersStableKey(peers: MapPeerMarker[] | undefined): string {
   return peers
     .map((p) => {
       if (typeof p.distMeters === "number" && Number.isFinite(p.distMeters)) {
-        return `${p.id}:d${p.distMeters.toFixed(1)}:t${p.sampleAtMs ?? 0}:${p.label ?? ""}`;
+        return `${p.id}:d${p.distMeters.toFixed(1)}:t${p.sampleAtMs ?? 0}:s${p.speedMps?.toFixed(2) ?? "?"}:ph${p.ridePhase ?? ""}:${p.label ?? ""}`;
       }
       if (typeof p.progressRatio === "number" && Number.isFinite(p.progressRatio)) {
         return `${p.id}:p${p.progressRatio.toFixed(5)}:t${p.sampleAtMs ?? 0}:${p.label ?? ""}`;
@@ -69,6 +73,7 @@ export function PublicationSharedPresence({
   const pageVisible = useDocumentVisibility();
   const [rows, setRows] = useState<PublicationSessionMemberRow[]>([]);
   const [liveRideRows, setLiveRideRows] = useState<TrailLivePublicationRideRow[]>([]);
+  const [peerVisibilityTick, setPeerVisibilityTick] = useState(0);
   const [presenceError, setPresenceError] = useState<string | null>(null);
   const onPeersChangeRef = useRef(onPeersChange);
   const onLiveTagRef = useRef(onLiveRiderNametagChange);
@@ -138,7 +143,7 @@ export function PublicationSharedPresence({
   }, [user.uid, publicationId, pageVisible]);
 
   useEffect(() => {
-    if (!pageVisible || !rideSessionActive) {
+    if (!pageVisible) {
       startTransition(() => setLiveRideRows([]));
       return;
     }
@@ -159,7 +164,13 @@ export function PublicationSharedPresence({
       cancelled = true;
       release();
     };
-  }, [pageVisible, rideSessionActive, trailId]);
+  }, [pageVisible, trailId]);
+
+  useEffect(() => {
+    if (!pageVisible || liveRideRows.length === 0) return;
+    const id = window.setInterval(() => setPeerVisibilityTick((n) => n + 1), 1_000);
+    return () => window.clearInterval(id);
+  }, [pageVisible, liveRideRows.length]);
 
   useEffect(() => {
     const uid = user.uid;
@@ -198,12 +209,12 @@ export function PublicationSharedPresence({
     const pid = publicationId.trim();
     for (const row of liveRideRows) {
       if (row.uid === user.uid) continue;
-      if (!isTrailLivePublicationRideRowFresh(row)) continue;
+      if (!isTrailLivePublicationRideRowPeerVisible(row)) continue;
       if (row.publicationId.trim() !== pid) continue;
       m.set(row.uid, row);
     }
     return m;
-  }, [liveRideRows, publicationId, user.uid]);
+  }, [liveRideRows, publicationId, user.uid, peerVisibilityTick]);
 
   const guestUidsSorted = useMemo(() => {
     const picks = active.map((r) => ({ uid: r.uid, memberType: r.memberType }));
@@ -244,6 +255,8 @@ export function PublicationSharedPresence({
         distMeters: live.distMeters,
         sampleAtMs: live.lastSeenAtMs,
         progressRatio: live.progressRatio,
+        speedMps: live.speedMps,
+        ridePhase: live.ridePhase,
         label,
       };
     });
@@ -269,7 +282,7 @@ export function PublicationSharedPresence({
         <span className="trailhead-presence__meta">
           {title ? `${title}` : null}
           {title ? " · " : null}
-          접속 {Math.round(TRAIL_PRESENCE_STALE_MS / 1000)}초
+          접속 {Math.round(TRAIL_PRESENCE_STALE_MS / 1000)}초 · peer {Math.round(PEER_LIVE_RIDE_STALE_MS / 1000)}초
         </span>
       </div>
       {presenceError ? (

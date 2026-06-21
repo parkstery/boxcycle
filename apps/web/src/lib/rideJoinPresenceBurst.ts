@@ -18,6 +18,8 @@ export async function flushRideJoinPresenceBurst(
       publicationId: snapshot.publicationId,
       progressRatio: snapshot.progressRatio,
       distMeters: snapshot.distMetersAlongRoute,
+      speedMps: snapshot.speedMps,
+      ridePhase: snapshot.routeRidePhase,
     }),
   ]);
 

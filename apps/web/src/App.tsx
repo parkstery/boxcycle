@@ -1101,6 +1101,8 @@ export default function App() {
     routeGeometry,
     routeDistanceMeters,
     virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
+    speedKmh,
+    routeRidePhase: rideStatus === "paused" ? "paused" : "live",
     joinBurstNonce: rideJoinBurstNonce,
   });
 

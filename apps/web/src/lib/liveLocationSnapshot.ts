@@ -21,6 +21,10 @@ export type LiveLocationPublishInput = {
   routeGeometry: LineStringGeometry | null;
   routeDistanceMeters: number;
   virtualDistanceMeters: number;
+  /** 가상 주행 속도(km/h) — peer speedMps publish */
+  speedKmh?: number;
+  /** running=live, paused=paused */
+  routeRidePhase?: "live" | "paused";
 };
 
 /** 단일 위치·진행률 스냅샷 — publish fan-out 의 단일 진실 */
@@ -32,6 +36,8 @@ export type LiveLocationSnapshot = {
   /** geometry 위 주행 거리(m) — peer 표시·외삽용 */
   distMetersAlongRoute: number;
   routeReady: boolean;
+  speedMps: number;
+  routeRidePhase: "live" | "paused";
 };
 
 /** 본인·동행 공통 — geometry 위 주행 거리(m). `liveForMap`·rAF 샘플과 동일 */
@@ -86,6 +92,13 @@ export function buildLiveLocationSnapshot(input: LiveLocationPublishInput): Live
     input.routeDistanceMeters,
     geoLen,
   );
+  const speedKmh = input.speedKmh ?? 0;
+  const speedMps =
+    input.routeRidePhase === "paused"
+      ? 0
+      : Number.isFinite(speedKmh)
+        ? Math.max(0, speedKmh / 3.6)
+        : 0;
   return {
     lngLat: roundLngLatForLiveShare(input.lngLat),
     trailId: sanitizeTrailId(input.trailId),
@@ -97,6 +110,8 @@ export function buildLiveLocationSnapshot(input: LiveLocationPublishInput): Live
     ),
     distMetersAlongRoute,
     routeReady,
+    speedMps,
+    routeRidePhase: input.routeRidePhase ?? "live",
   };
 }
 

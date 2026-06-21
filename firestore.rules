@@ -270,7 +270,7 @@ service cloud.firestore {
       allow create, update: if isSelf(userId)
         && trailParticipantWriteAllowed(trailId)
         && request.resource.data.keys().hasAll(['publicationId', 'progressRatio', 'lastSeenAt'])
-        && request.resource.data.keys().hasOnly(['publicationId', 'progressRatio', 'lastSeenAt', 'displayName', 'distMeters'])
+        && request.resource.data.keys().hasOnly(['publicationId', 'progressRatio', 'lastSeenAt', 'displayName', 'distMeters', 'speedMps', 'ridePhase'])
         && request.resource.data.publicationId is string
         && request.resource.data.publicationId.size() >= 1
         && request.resource.data.publicationId.size() <= 128
@@ -283,7 +283,14 @@ service cloud.firestore {
                 && request.resource.data.distMeters <= 500000))
         && (!request.resource.data.keys().hasAny(['displayName'])
             || (request.resource.data.displayName is string
-                && request.resource.data.displayName.size() <= 80));
+                && request.resource.data.displayName.size() <= 80))
+        && (!request.resource.data.keys().hasAny(['speedMps'])
+            || (request.resource.data.speedMps is number
+                && request.resource.data.speedMps >= 0
+                && request.resource.data.speedMps <= 30))
+        && (!request.resource.data.keys().hasAny(['ridePhase'])
+            || (request.resource.data.ridePhase is string
+                && request.resource.data.ridePhase in ['live', 'paused', 'completed']));
       allow delete: if isSelf(userId);
     }
 

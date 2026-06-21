@@ -12,7 +12,10 @@ import {
 } from "../lib/liveLocationSnapshot";
 import { cleanupLiveLocationPublish, publishLiveLocationFanout } from "../lib/publishLiveLocationFanout";
 import { mergeGlobalLivePresence } from "../lib/firestoreGlobalLivePresence";
-import { deleteTrailLivePublicationRide } from "../lib/firestoreTrailLivePublicationRides";
+import {
+  finalizeAndDeleteTrailLivePublicationRide,
+  deleteTrailLivePublicationRide,
+} from "../lib/firestoreTrailLivePublicationRides";
 import { flushRideJoinPresenceBurst } from "../lib/rideJoinPresenceBurst";
 import { sanitizeTrailId } from "../lib/firestoreTrail";
 
@@ -31,6 +34,9 @@ export type UseLiveLocationPublishSessionOpts = {
   routeGeometry: LineStringGeometry | null;
   routeDistanceMeters: number;
   virtualDistanceMeters: number;
+  speedKmh?: number;
+  /** running=live, paused=paused */
+  routeRidePhase?: "live" | "paused";
   /** 주행 시작( idle→running )마다 +1 — join burst 1회 */
   joinBurstNonce?: number;
   onError?: (message: string) => void;
@@ -52,6 +58,8 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
     routeGeometry,
     routeDistanceMeters,
     virtualDistanceMeters,
+    speedKmh = 0,
+    routeRidePhase = "live",
     joinBurstNonce = 0,
     onError,
   } = opts;
@@ -68,6 +76,8 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
     routeGeometry,
     routeDistanceMeters,
     virtualDistanceMeters,
+    speedKmh,
+    routeRidePhase,
   });
   inputRef.current = {
     lngLat,
@@ -76,6 +86,8 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
     routeGeometry,
     routeDistanceMeters,
     virtualDistanceMeters,
+    speedKmh,
+    routeRidePhase,
   };
 
   const flagsRef = useRef({ globalEnabled, routeEnabled, pageVisible });
@@ -124,6 +136,7 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
           console.debug("[LiveLocationPublish] join burst", {
             progressRatio: snapshot.progressRatio,
             distMeters: snapshot.distMetersAlongRoute,
+            speedMps: snapshot.speedMps,
             publicationId: snapshot.publicationId,
             trailId: snapshot.trailId,
           });
@@ -203,6 +216,7 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
             lngLat: snapshot.lngLat,
             progressRatio: snapshot.progressRatio,
             distMeters: snapshot.distMetersAlongRoute,
+            speedMps: snapshot.speedMps,
             publicationId: snapshot.publicationId || null,
             trailId: snapshot.trailId,
           });
@@ -219,10 +233,22 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
 
     return () => {
       window.clearInterval(id);
-      if (routeDocActive || flagsRef.current.routeEnabled) {
-        void deleteTrailLivePublicationRide(u.uid, sanitizeTrailId(trailId)).catch(() => {});
+      const tid = sanitizeTrailId(trailId);
+      const snap = buildLiveLocationSnapshot(inputRef.current);
+      const hadRoute = routeDocActive || flagsRef.current.routeEnabled;
+      if (hadRoute && snap?.routeReady && snap.publicationId) {
+        void finalizeAndDeleteTrailLivePublicationRide(u, tid, {
+          publicationId: snap.publicationId,
+          progressRatio: snap.progressRatio,
+          distMeters: snap.distMetersAlongRoute,
+        });
+        void cleanupLiveLocationPublish(u.uid, trailId, { skipRouteDelete: true }).catch(() => {});
+      } else {
+        if (hadRoute) {
+          void deleteTrailLivePublicationRide(u.uid, tid).catch(() => {});
+        }
+        void cleanupLiveLocationPublish(u.uid, trailId).catch(() => {});
       }
-      void cleanupLiveLocationPublish(u.uid, trailId).catch(() => {});
     };
   }, [globalEnabled, pageVisible, routeEnabled, trailId, user?.uid]);
 }
