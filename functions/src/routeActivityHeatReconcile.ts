@@ -16,7 +16,7 @@ const PAGE_SIZE = 400;
  */
 export const routeActivityHeatReconcile = onSchedule(
   {
-    schedule: "every 7 days",
+    schedule: "0 4 * * 0",
     region: "asia-northeast3",
     timeZone: "Asia/Seoul",
   },
@@ -24,6 +24,7 @@ export const routeActivityHeatReconcile = onSchedule(
     const db = getFirestore();
     const since = Timestamp.fromMillis(Date.now() - HEAT_WINDOW_MS);
     const counts = new Map<string, number>();
+    const lastEndedAt = new Map<string, Timestamp>();
 
     let last: QueryDocumentSnapshot | undefined;
     for (;;) {
@@ -44,6 +45,13 @@ export const routeActivityHeatReconcile = onSchedule(
             : "";
         if (!raw) continue;
         counts.set(raw, (counts.get(raw) ?? 0) + 1);
+        const endedAt = doc.get("endedAt");
+        if (endedAt instanceof Timestamp) {
+          const prev = lastEndedAt.get(raw);
+          if (!prev || endedAt.toMillis() > prev.toMillis()) {
+            lastEndedAt.set(raw, endedAt);
+          }
+        }
       }
       last = snap.docs[snap.docs.length - 1];
       if (snap.size < PAGE_SIZE) break;
@@ -59,7 +67,7 @@ export const routeActivityHeatReconcile = onSchedule(
       prevById.set(d.id, prev);
     }
 
-    const toUpdate = new Set<string>([...counts.keys()]);
+    const toUpdate = new Set<string>([...counts.keys(), ...lastEndedAt.keys()]);
     for (const [id, prev] of prevById) {
       if (prev > 0) toUpdate.add(id);
     }
@@ -70,10 +78,14 @@ export const routeActivityHeatReconcile = onSchedule(
     for (const publicationId of toUpdate) {
       const next = counts.get(publicationId) ?? 0;
       const prev = prevById.get(publicationId) ?? 0;
-      if (next === prev) continue;
+      const endedAt = lastEndedAt.get(publicationId);
+      const patch: Record<string, unknown> = {};
+      if (next !== prev) patch.recentRideCount7d = next;
+      if (endedAt) patch.lastCompletedRideAt = endedAt;
+      if (Object.keys(patch).length === 0) continue;
       batch.set(
         db.doc(`${ROUTE_ACTIVITY_COLLECTION}/${publicationId}`),
-        { recentRideCount7d: next },
+        patch,
         { merge: true },
       );
       ops += 1;

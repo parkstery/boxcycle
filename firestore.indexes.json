@@ -17,6 +17,15 @@
       ]
     },
     {
+      "collectionGroup": "rides",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "publicationId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "endedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "savedRoutes",
       "queryScope": "COLLECTION",
       "fields": [
