@@ -134,12 +134,13 @@ export async function mergeTrailLivePublicationRideSnapshot(
     displayName: getPresenceDisplayName(user),
     lastSeenAt: serverTimestamp(),
     ridePhase: input.ridePhase ?? "live",
+    speedMps:
+      typeof input.speedMps === "number" && Number.isFinite(input.speedMps)
+        ? Math.round(Math.max(0, input.speedMps) * 100) / 100
+        : 0,
   };
   if (typeof input.distMeters === "number" && Number.isFinite(input.distMeters)) {
     payload.distMeters = Math.round(Math.max(0, input.distMeters) * 10) / 10;
-  }
-  if (typeof input.speedMps === "number" && Number.isFinite(input.speedMps)) {
-    payload.speedMps = Math.round(Math.max(0, input.speedMps) * 100) / 100;
   }
   await setDoc(ref, payload, { merge: true });
 }

@@ -165,7 +165,8 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
 
   useEffect(() => {
     const u = userRef.current;
-    if (!u || !globalEnabled) return;
+    if (!u) return;
+    if (!globalEnabled && !routeEnabled) return;
 
     if (!pageVisible) {
       void cleanupLiveLocationPublish(u.uid, trailId).catch(() => {});
@@ -183,13 +184,13 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
       const u2 = userRef.current;
       if (!u2) return;
       const { globalEnabled: ge, routeEnabled: re, pageVisible: pv } = flagsRef.current;
-      if (!ge || !pv) return;
+      if (!pv || (!ge && !re)) return;
 
       const snapshot = buildLiveLocationSnapshot(inputRef.current);
       if (!snapshot) return;
 
       const now = Date.now();
-      const publishGlobal = shouldPublishGlobalPresence(now, throttle, snapshot.lngLat);
+      const publishGlobal = ge && shouldPublishGlobalPresence(now, throttle, snapshot.lngLat);
       const publishRoute =
         re &&
         snapshot.routeReady &&
