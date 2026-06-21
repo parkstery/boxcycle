@@ -24,24 +24,15 @@ import {
   PEER_LIVE_RIDE_STALE_MS,
 } from "../lib/rideSyncPolicy";
 import { mapNametagForMember, sortedGuestUids } from "../lib/guestNametag";
+import { getPeerMotionRegistry, resetPeerMotionRegistry, trailLiveRowToPeerMotionPacket } from "../lib/peerMotion";
 import { useDocumentVisibility } from "../hooks/useDocumentVisibility";
 import "./trail/TrailheadPresence.css";
 
-function peersStableKey(peers: MapPeerMarker[] | undefined): string {
+/** HUD 전용 — motion 은 Registry ingest, React setState 에 dist/speed 를 넣지 않음 */
+function peerHudStableKey(peers: MapPeerMarker[] | undefined): string {
   if (!peers?.length) return "";
   return peers
-    .map((p) => {
-      if (typeof p.distMeters === "number" && Number.isFinite(p.distMeters)) {
-        return `${p.id}:d${p.distMeters.toFixed(1)}:t${p.sampleAtMs ?? 0}:s${p.speedMps?.toFixed(2) ?? "?"}:ph${p.ridePhase ?? ""}:${p.label ?? ""}`;
-      }
-      if (typeof p.progressRatio === "number" && Number.isFinite(p.progressRatio)) {
-        return `${p.id}:p${p.progressRatio.toFixed(5)}:t${p.sampleAtMs ?? 0}:${p.label ?? ""}`;
-      }
-      if (p.lngLat) {
-        return `${p.id}:${p.lngLat[0].toFixed(6)},${p.lngLat[1].toFixed(6)}:${p.label ?? ""}`;
-      }
-      return `${p.id}:?`;
-    })
+    .map((p) => `${p.id}:${p.label ?? ""}`)
     .sort()
     .join("|");
 }
@@ -98,8 +89,14 @@ export function PublicationSharedPresence({
   useEffect(() => {
     return () => {
       onPeersChangeRef.current?.([]);
+      resetPeerMotionRegistry();
     };
   }, []);
+
+  useEffect(() => {
+    resetPeerMotionRegistry();
+    stickyPeersRef.current.clear();
+  }, [publicationId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -262,22 +259,33 @@ export function PublicationSharedPresence({
     return m;
   }, [rows]);
 
-  const peerMarkersForMap = useMemo((): MapPeerMarker[] => {
-    /** 지도 peer — fresh `livePublicationRides` 우선 (세션 멤버 등록 전에도 표시) */
-    return [...liveRidesByUid.entries()].map(([uid, live]) => {
+  /** Firestore → PeerMotionRegistry (display snap 없음, rAF 가 displayDistM 적분) */
+  useEffect(() => {
+    const pid = publicationId.trim();
+    if (!pid) return;
+    const registry = getPeerMotionRegistry();
+    const activeUids: string[] = [];
+    for (const [uid, live] of liveRidesByUid) {
+      const packet = trailLiveRowToPeerMotionPacket(live, pid, 0);
+      if (!packet) continue;
       const member = sessionByUid.get(uid);
       const label = member
         ? mapNametagForMember(uid, member.memberType, member.displayName, guestUidsSorted)
         : live.displayName?.trim() || uid.slice(0, 6);
-      return {
-        id: uid,
-        distMeters: live.distMeters,
-        sampleAtMs: live.lastSeenAtMs,
-        progressRatio: live.progressRatio,
-        speedMps: live.speedMps,
-        ridePhase: live.ridePhase,
-        label,
-      };
+      registry.ingest(packet, label);
+      activeUids.push(uid);
+    }
+    registry.markActiveUids(activeUids);
+  }, [liveRidesByUid, sessionByUid, guestUidsSorted, publicationId]);
+
+  const peerHudMarkers = useMemo((): MapPeerMarker[] => {
+    return [...liveRidesByUid.keys()].map((uid) => {
+      const live = liveRidesByUid.get(uid)!;
+      const member = sessionByUid.get(uid);
+      const label = member
+        ? mapNametagForMember(uid, member.memberType, member.displayName, guestUidsSorted)
+        : live.displayName?.trim() || uid.slice(0, 6);
+      return { id: uid, label };
     });
   }, [liveRidesByUid, sessionByUid, guestUidsSorted]);
 
@@ -286,11 +294,11 @@ export function PublicationSharedPresence({
   useEffect(() => {
     const cb = onPeersChangeRef.current;
     if (!cb) return;
-    const nextKey = peersStableKey(peerMarkersForMap);
+    const nextKey = peerHudStableKey(peerHudMarkers);
     if (nextKey === lastPeersKeyRef.current) return;
     lastPeersKeyRef.current = nextKey;
-    cb(peerMarkersForMap);
-  }, [peerMarkersForMap]);
+    cb(peerHudMarkers);
+  }, [peerHudMarkers]);
 
   if (!showPanel) return null;
 

@@ -36,11 +36,9 @@ import {
 } from "../../lib/riderPedalSpriteMeta";
 import { estimateCrankRpmFromSpeedKmh, resolvePedalCrankRpm } from "../../lib/riderPedalMotion";
 import { resolveGlbPedalPose } from "../../lib/riderGlbPedalPose";
-import {
-  mergePeerTargets,
-  stepPeerDriveAndBuildGeoJson,
-  type PeerDriveSimState,
-} from "../../lib/peerRidersDrive";
+import { stepPeerDriveAndBuildGeoJson } from "../../lib/peerRidersDrive";
+import { resetPeerMotionRegistry } from "../../lib/peerMotion";
+import { MAP_PEER_SPRITE_MIN_ZOOM } from "../../lib/rideSyncPolicy";
 import { applyCoverageOverlayMode } from "../../services/coverageOverlaySync";
 import type { GlobalLivePresenceDot } from "../../hooks/useGlobalLivePresence";
 import type { TrailSpectatorDot } from "../../hooks/useTrailLivePublicationRideSpectatorOverlay";
@@ -1210,7 +1208,7 @@ export function MapView({
   sampleLiveLngLat,
   liveRiderMotion,
   liveRiderNametag,
-  peerMarkers,
+  peerMarkers: _peerMarkers,
   mapStyle,
   mapZoom,
   followMode,
@@ -1270,10 +1268,6 @@ export function MapView({
   const liveMarkerNametagRef = useRef<HTMLDivElement | null>(null);
   const prevLiveForBearingRef = useRef<LngLat | null>(null);
   const liveCrankPhaseRevRef = useRef(0);
-  /** 스타일 리로드 시 동행 GeoJSON 재적용용 */
-  const latestPeerMarkersRef = useRef<MapPeerMarker[]>([]);
-  latestPeerMarkersRef.current = peerMarkers ?? [];
-  const peerDriveSimRef = useRef(new Map<string, PeerDriveSimState>());
   const peerRidersRafRef = useRef<number | null>(null);
   const peerDomMarkersRef = useRef(new Map<string, mapboxgl.Marker>());
   const glbLiveNametagMarkerRef = useRef<mapboxgl.Marker | null>(null);
@@ -1445,7 +1439,7 @@ export function MapView({
     }
 
     mapboxgl.accessToken = accessToken.trim();
-    peerDriveSimRef.current.clear();
+    resetPeerMotionRegistry();
     const map = new mapboxgl.Map({
       container: el,
       style: initialMapStyleRef.current,
@@ -1567,13 +1561,6 @@ export function MapView({
         }
       }
       peerDomMarkersRef.current.clear();
-      mergePeerTargets(
-        peerDriveSimRef.current,
-        latestPeerMarkersRef.current,
-        Date.now(),
-        routeGeometryRef.current,
-        routeDistanceMetersRef.current,
-      );
       try {
         syncLiveOverlayLayersOnMap(
           map,
@@ -1990,18 +1977,7 @@ export function MapView({
     }
   }, [liveLngLat, liveRiderNametag, mapLoaded]);
 
-  /** 다른 라이더(동행): Firestore 스냅샷이 바뀌면 즉시 타깃만 병합(rAF 가 lerp·스프라이트 갱신) */
-  useEffect(() => {
-    mergePeerTargets(
-      peerDriveSimRef.current,
-      peerMarkers ?? [],
-      Date.now(),
-      routeGeometryRef.current,
-      routeDistanceMetersRef.current,
-    );
-  }, [peerMarkers, routeGeometry, routeDistanceMeters]);
-
-  /** 본인·동행 라이더: rAF 로 위치·방향·페달 갱신 */
+  /** 본인·동행 라이더: rAF 로 위치·방향·페달 갱신 (동행 motion 은 PeerMotionRegistry) */
   useEffect(() => {
     if (!mapLoaded) return;
     let lastTs = performance.now();
@@ -2046,20 +2022,16 @@ export function MapView({
         });
       }
 
-      mergePeerTargets(
-        peerDriveSimRef.current,
-        latestPeerMarkersRef.current,
-        Date.now(),
-        routeGeometryRef.current,
-        routeDistanceMetersRef.current,
-      );
-      const fc = stepPeerDriveAndBuildGeoJson(
-        peerDriveSimRef.current,
-        dt,
-        getBearing,
-        routeGeometryRef.current,
-        Date.now(),
-      );
+      const showPeerSprites = mapZoomRef.current > MAP_PEER_SPRITE_MIN_ZOOM;
+      const fc = showPeerSprites
+        ? stepPeerDriveAndBuildGeoJson(
+            null,
+            dt,
+            getBearing,
+            routeGeometryRef.current,
+            Date.now(),
+          )
+        : EMPTY_GEOJSON_FC;
       syncPeerDomMarkers(map, fc.features as PeerDomGJFeature[], peerDomMarkersRef);
       if (RIDER_PROTOTYPE_MODE === "glb") {
         const specs: {

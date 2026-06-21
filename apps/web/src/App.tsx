@@ -15,7 +15,7 @@ import {
 import { AppMapStage, useAppMapOverlays } from "./features/map-overlays";
 import { DebugMapStage } from "./features/map-overlays/DebugMapStage";
 import type { MapViewportBounds } from "./lib/activityWorldLod";
-import { MAP_ZOOM_WORLD_ACTIVITY_MAX, MAP_PEER_SPRITE_MIN_ZOOM } from "./lib/rideSyncPolicy";
+import { MAP_ZOOM_WORLD_ACTIVITY_MAX } from "./lib/rideSyncPolicy";
 import { armPostRideActivityWatch } from "./lib/activityWorldPollSignals";
 import { RIDE_FOLLOW_CAMERA_MODE, RIDE_FOLLOW_CAMERA_ZOOM } from "./lib/mapGlobeView";
 import { rideDistanceAlongRoute } from "./lib/liveLocationSnapshot";
@@ -1111,11 +1111,6 @@ export default function App() {
     enabled: globalLivePresenceSubscribeEnabled,
   });
 
-  const peerMarkersForMap = useMemo(() => {
-    if (mapZoom <= MAP_PEER_SPRITE_MIN_ZOOM) return [];
-    return coursePeerMarkers;
-  }, [mapZoom, coursePeerMarkers]);
-
   const { streetState: rideMapillaryStreet, rideSync: mapillaryRideSync, dismissStreet: dismissMapillaryStreet } =
     useRideMapillaryStreet({
       user,
@@ -1400,7 +1395,6 @@ export default function App() {
                       crankRpmFromSensor: bleCrankRpm.crankRpm,
                     },
               liveRiderNametag: resolvedLiveRiderNametag,
-              peerMarkers: peerMarkersForMap,
               mapStyle,
               mapZoom,
               followMode,
