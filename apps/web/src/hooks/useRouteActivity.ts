@@ -52,8 +52,8 @@ export function useRouteActivity(options: UseRouteActivityOptions) {
   const applyRideCompletedOptimistic = useCallback(() => {
     const id = publicationId?.trim();
     if (!id) return;
-    const row = markRouteActivityRideCompletedOptimistic(id);
-    if (row) setActivity(row);
+    markRouteActivityRideCompletedOptimistic(id);
+    void reloadRef.current({ forceInvalidate: false });
   }, [publicationId]);
 
   useEffect(() => {

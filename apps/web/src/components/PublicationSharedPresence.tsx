@@ -26,8 +26,11 @@ function peersStableKey(peers: MapPeerMarker[] | undefined): string {
   if (!peers?.length) return "";
   return peers
     .map((p) => {
+      if (typeof p.distMeters === "number" && Number.isFinite(p.distMeters)) {
+        return `${p.id}:d${p.distMeters.toFixed(1)}:t${p.sampleAtMs ?? 0}:${p.label ?? ""}`;
+      }
       if (typeof p.progressRatio === "number" && Number.isFinite(p.progressRatio)) {
-        return `${p.id}:p${p.progressRatio.toFixed(5)}:${p.label ?? ""}`;
+        return `${p.id}:p${p.progressRatio.toFixed(5)}:t${p.sampleAtMs ?? 0}:${p.label ?? ""}`;
       }
       if (p.lngLat) {
         return `${p.id}:${p.lngLat[0].toFixed(6)},${p.lngLat[1].toFixed(6)}:${p.label ?? ""}`;
@@ -238,6 +241,8 @@ export function PublicationSharedPresence({
         : live.displayName?.trim() || uid.slice(0, 6);
       return {
         id: uid,
+        distMeters: live.distMeters,
+        sampleAtMs: live.lastSeenAtMs,
         progressRatio: live.progressRatio,
         label,
       };

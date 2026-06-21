@@ -30,6 +30,7 @@ export async function publishLiveLocationFanout(
     await mergeTrailLivePublicationRideSnapshot(user, snapshot.trailId, {
       publicationId: snapshot.publicationId,
       progressRatio: snapshot.progressRatio,
+      distMeters: snapshot.distMetersAlongRoute,
     });
     if (snapshot.trailId !== DEFAULT_TRAIL_ID) {
       void touchTrailInstanceActivity(snapshot.trailId);

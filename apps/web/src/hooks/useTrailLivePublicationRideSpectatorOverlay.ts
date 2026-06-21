@@ -15,6 +15,7 @@ import {
   isTrailLivePublicationRideRowFresh,
   type TrailLivePublicationRideRow,
 } from "../lib/firestoreTrailLivePublicationRides";
+import { PEER_EXTRAP_DEFAULT_SPEED_KMH } from "../lib/rideSyncPolicy";
 
 export type TrailSpectatorDot = { id: string; lngLat: LngLat; label: string };
 
@@ -138,7 +139,16 @@ export function useTrailLivePublicationRideSpectatorOverlay(opts: UseTrailLivePu
       if (!g || g.status !== "ready") continue;
       const len = lineStringLengthMeters(g.geometry);
       if (len <= 0) continue;
-      const distM = progressRatioToRouteDistanceMeters(r.progressRatio, len);
+      const anchorDistM =
+        typeof r.distMeters === "number" && Number.isFinite(r.distMeters)
+          ? Math.max(0, Math.min(len, r.distMeters))
+          : progressRatioToRouteDistanceMeters(r.progressRatio, len);
+      const sampleAtMs = r.lastSeenAtMs ?? Date.now();
+      const elapsedSec = Math.max(0, (Date.now() - sampleAtMs) / 1000);
+      const distM = Math.min(
+        len,
+        anchorDistM + (PEER_EXTRAP_DEFAULT_SPEED_KMH / 3.6) * elapsedSec,
+      );
       const p = getPointOnRouteByDistance(g.geometry, distM);
       if (p) {
         const who = r.displayName?.trim() || r.uid.slice(0, 6);

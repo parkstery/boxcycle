@@ -56,7 +56,7 @@ export function useRouteActivityMapOverlay(
 
     if (!lngLat) return EMPTY;
 
-    const heatStrength = resolveHeatTraceStrength(activity.updatedAtMs);
+    const heatStrength = resolveHeatTraceStrength(activity.lastCompletedRideAtMs);
     const pubId = activity.publicationId;
 
     const pulseDots: ActivityWorldMapDot[] = isRouteActivityLive(activity)

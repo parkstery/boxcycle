@@ -110,7 +110,12 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
         }
         if (cancelled) return false;
         const now = Date.now();
-        markRouteProgressPublished(throttleRef.current, now, snapshot.progressRatio);
+        markRouteProgressPublished(
+          throttleRef.current,
+          now,
+          snapshot.progressRatio,
+          snapshot.distMetersAlongRoute,
+        );
         if (flagsRef.current.globalEnabled) {
           markGlobalPresencePublished(throttleRef.current, now, snapshot.lngLat);
         }
@@ -118,6 +123,7 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
         if (import.meta.env.DEV) {
           console.debug("[LiveLocationPublish] join burst", {
             progressRatio: snapshot.progressRatio,
+            distMeters: snapshot.distMetersAlongRoute,
             publicationId: snapshot.publicationId,
             trailId: snapshot.trailId,
           });
@@ -174,7 +180,7 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
       const publishRoute =
         re &&
         snapshot.routeReady &&
-        shouldPublishRouteProgress(now, throttle, snapshot.progressRatio);
+        shouldPublishRouteProgress(now, throttle, snapshot.progressRatio, snapshot.distMetersAlongRoute);
 
       if (!publishGlobal && !publishRoute) return;
 
@@ -182,7 +188,12 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
         const result = await publishLiveLocationFanout(u2, snapshot, { publishGlobal, publishRoute });
         if (publishGlobal) markGlobalPresencePublished(throttle, now, snapshot.lngLat);
         if (publishRoute) {
-          markRouteProgressPublished(throttle, now, snapshot.progressRatio);
+          markRouteProgressPublished(
+            throttle,
+            now,
+            snapshot.progressRatio,
+            snapshot.distMetersAlongRoute,
+          );
           routeDocActive = true;
         }
         if (import.meta.env.DEV && (result.global || result.route)) {
@@ -191,6 +202,7 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
             route: result.route,
             lngLat: snapshot.lngLat,
             progressRatio: snapshot.progressRatio,
+            distMeters: snapshot.distMetersAlongRoute,
             publicationId: snapshot.publicationId || null,
             trailId: snapshot.trailId,
           });

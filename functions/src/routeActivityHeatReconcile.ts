@@ -1,5 +1,4 @@
 import {
-  FieldValue,
   getFirestore,
   Timestamp,
   type QueryDocumentSnapshot,
@@ -8,22 +7,22 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { ROUTE_ACTIVITY_COLLECTION } from "./routeActivityConstants.js";
 
 const RIDES_COLLECTION = "rides";
-const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+/** heat 배지용 — 최근 24h completed rides 만 집계 */
+const HEAT_WINDOW_MS = 24 * 60 * 60 * 1000;
 const PAGE_SIZE = 400;
 
 /**
- * 최근 7일 `rides`(completed, publicationId)를 집계해
- * `routeActivity.recentRideCount7d` 를 increment 드리프트 없이 맞춘다.
+ * 선택적 백필 — ride increment 가 주 경로. updatedAt 미기록 heat 시계 오염 방지.
  */
 export const routeActivityHeatReconcile = onSchedule(
   {
-    schedule: "every day 04:00",
+    schedule: "every 7 days",
     region: "asia-northeast3",
     timeZone: "Asia/Seoul",
   },
   async () => {
     const db = getFirestore();
-    const since = Timestamp.fromMillis(Date.now() - SEVEN_DAYS_MS);
+    const since = Timestamp.fromMillis(Date.now() - HEAT_WINDOW_MS);
     const counts = new Map<string, number>();
 
     let last: QueryDocumentSnapshot | undefined;
@@ -51,28 +50,34 @@ export const routeActivityHeatReconcile = onSchedule(
     }
 
     const activitySnap = await db.collection(ROUTE_ACTIVITY_COLLECTION).get();
-    const toUpdate = new Set<string>([...counts.keys()]);
+    const prevById = new Map<string, number>();
     for (const d of activitySnap.docs) {
       const prev =
         typeof d.data().recentRideCount7d === "number" && Number.isFinite(d.data().recentRideCount7d)
           ? Math.max(0, Math.floor(d.data().recentRideCount7d))
           : 0;
-      if (prev > 0) toUpdate.add(d.id);
+      prevById.set(d.id, prev);
+    }
+
+    const toUpdate = new Set<string>([...counts.keys()]);
+    for (const [id, prev] of prevById) {
+      if (prev > 0) toUpdate.add(id);
     }
 
     let batch = db.batch();
     let ops = 0;
+    let changed = 0;
     for (const publicationId of toUpdate) {
       const next = counts.get(publicationId) ?? 0;
+      const prev = prevById.get(publicationId) ?? 0;
+      if (next === prev) continue;
       batch.set(
         db.doc(`${ROUTE_ACTIVITY_COLLECTION}/${publicationId}`),
-        {
-          recentRideCount7d: next,
-          updatedAt: FieldValue.serverTimestamp(),
-        },
+        { recentRideCount7d: next },
         { merge: true },
       );
       ops += 1;
+      changed += 1;
       if (ops >= 400) {
         await batch.commit();
         batch = db.batch();
@@ -82,8 +87,8 @@ export const routeActivityHeatReconcile = onSchedule(
     if (ops > 0) await batch.commit();
 
     console.info("[routeActivityHeatReconcile]", {
-      publicationsWithRides7d: counts.size,
-      publicationsUpdated: toUpdate.size,
+      publicationsWithRides24h: counts.size,
+      publicationsChanged: changed,
     });
   },
 );

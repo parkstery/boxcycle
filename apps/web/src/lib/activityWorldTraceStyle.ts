@@ -21,12 +21,12 @@ export function isWithinActivityTraceHeatWindow(
   return Math.max(0, nowMs - activityAtMs) < ACTIVITY_TRACE_HEAT_WINDOW_MS;
 }
 
-/** `courseActivity.updatedAt` 기준 — 24시간 이내만 completed opacity, 그 외 미표시 */
+/** heat dot·line opacity — {@link lastCompletedRideAt} 24h 이내만 */
 export function resolveHeatTraceStrength(
-  updatedAtMs: number | null,
+  lastCompletedRideAtMs: number | null,
   nowMs: number = Date.now(),
 ): number {
-  return isWithinActivityTraceHeatWindow(updatedAtMs, nowMs)
+  return isWithinActivityTraceHeatWindow(lastCompletedRideAtMs, nowMs)
     ? ACTIVITY_TRACE_COMPLETED_OPACITY
     : 0;
 }

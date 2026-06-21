@@ -25,13 +25,19 @@ export const COURSE_PRESENCE_HEARTBEAT_PAUSED_MS = 180_000;
 export const TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS = 30_000;
 
 /** Trail `livePublicationRides` 진행률: 최소 쓰기 간격 */
-export const TRAIL_LIVE_PROGRESS_MIN_WRITE_MS = 5_000;
+export const TRAIL_LIVE_PROGRESS_MIN_WRITE_MS = 2_500;
 
 /** Trail `livePublicationRides` 진행률: 최대 간격(강제 1회 플러시) */
-export const TRAIL_LIVE_PROGRESS_MAX_WRITE_MS = 12_000;
+export const TRAIL_LIVE_PROGRESS_MAX_WRITE_MS = 8_000;
 
 /** Trail `livePublicationRides`: 진행률 변화가 이 값 이상일 때만 의미 있는 변화로 간주 */
-export const TRAIL_LIVE_PROGRESS_MIN_DELTA = 0.008;
+export const TRAIL_LIVE_PROGRESS_MIN_DELTA = 0.005;
+
+/** Trail `livePublicationRides`: geometry 거리(m) 변화가 이 값 이상일 때 publish */
+export const TRAIL_LIVE_PROGRESS_MIN_DIST_DELTA_M = 1.5;
+
+/** 동행 peer 외삽 — 샘플 간격 속도 미상일 때 가정 km/h (가상 주행 기본) */
+export const PEER_EXTRAP_DEFAULT_SPEED_KMH = 5;
 
 /** 입문 코스 동행 DOM 스프라이트 — 고줌에서만 (dot 은 global livePresence) */
 export const MAP_PEER_SPRITE_MIN_ZOOM = 14;
@@ -52,11 +58,11 @@ export {
   MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN,
 } from "./activityWorldLod";
 
-/** WO-A adaptive — 전 세계 live 없음(idle) */
-export const ACTIVITY_WORLD_POLL_IDLE_MS = 300_000;
+/** WO-A adaptive — live activity 있음 active */
+export const ACTIVITY_WORLD_POLL_ACTIVE_MS = 60_000;
 
-/** WO-A adaptive — live activity 있음(active) */
-export const ACTIVITY_WORLD_POLL_ACTIVE_MS = 30_000;
+/** WO-A adaptive — live 없음 idle */
+export const ACTIVITY_WORLD_POLL_IDLE_MS = 600_000;
 
 /**
  * @deprecated WO-A `ACTIVITY_WORLD_POLL_*` adaptive 사용. 호환 alias(active).

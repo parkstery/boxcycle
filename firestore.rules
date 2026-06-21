@@ -270,13 +270,17 @@ service cloud.firestore {
       allow create, update: if isSelf(userId)
         && trailParticipantWriteAllowed(trailId)
         && request.resource.data.keys().hasAll(['publicationId', 'progressRatio', 'lastSeenAt'])
-        && request.resource.data.keys().hasOnly(['publicationId', 'progressRatio', 'lastSeenAt', 'displayName'])
+        && request.resource.data.keys().hasOnly(['publicationId', 'progressRatio', 'lastSeenAt', 'displayName', 'distMeters'])
         && request.resource.data.publicationId is string
         && request.resource.data.publicationId.size() >= 1
         && request.resource.data.publicationId.size() <= 128
         && request.resource.data.progressRatio is number
         && request.resource.data.progressRatio >= 0
         && request.resource.data.progressRatio <= 1
+        && (!request.resource.data.keys().hasAny(['distMeters'])
+            || (request.resource.data.distMeters is number
+                && request.resource.data.distMeters >= 0
+                && request.resource.data.distMeters <= 500000))
         && (!request.resource.data.keys().hasAny(['displayName'])
             || (request.resource.data.displayName is string
                 && request.resource.data.displayName.size() <= 80));

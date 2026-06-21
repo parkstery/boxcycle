@@ -5,10 +5,9 @@ import {
   WORLD_GLOBAL_ID,
 } from "./routeActivityAggregateCore.js";
 import { ROUTE_ACTIVITY_COLLECTION } from "./routeActivityConstants.js";
-import { reconcilePublicationPresenceFromLiveRides } from "./publicationPresenceCore.js";
 import { scanAllLiveRideDocs } from "./liveRideScan.js";
 
-/** 클라이언트 `TRAIL_PRESENCE_STALE_MS`(240s)보다 짧게 — stale live 문서는 집계에서 제외 */
+/** 클라이언트 TRAIL_PRESENCE_STALE_MS 240s 보다 짧게 — stale live 문서 제외 */
 const LIVE_RIDE_FRESH_MS = 180_000;
 const HIGHLIGHTED_PUBLICATIONS_MAX = 24;
 
@@ -22,11 +21,11 @@ function lastSeenMs(raw: unknown): number | null {
 }
 
 /**
- * `livePublicationRides` collection group 기준으로 publication별 activeRiderCount·world 집계를 재계산한다.
+ * livePublicationRides 기준 live 집계 safety net — 24h 주기. updatedAt 미갱신.
  */
 export const routeActivityScheduledReconcile = onSchedule(
   {
-    schedule: "every 6 hours",
+    schedule: "every 24 hours",
     region: "asia-northeast3",
     timeZone: "Asia/Seoul",
   },
@@ -54,7 +53,6 @@ export const routeActivityScheduledReconcile = onSchedule(
         activeRiderCount: count,
         liveNow: count > 0,
         pulseLevel: count > 0 ? Math.min(3, Math.max(1, count)) : 0,
-        updatedAt: FieldValue.serverTimestamp(),
       };
       if (count === 0) {
         patch.liveAnchorLngLat = FieldValue.delete();
@@ -104,7 +102,5 @@ export const routeActivityScheduledReconcile = onSchedule(
       activePublicationCount: byPublication.size,
       highlightedCourses,
     });
-
-    await reconcilePublicationPresenceFromLiveRides();
   },
 );

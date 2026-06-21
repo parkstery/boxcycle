@@ -17,6 +17,7 @@ export async function flushRideJoinPresenceBurst(
     mergeTrailLivePublicationRideSnapshot(user, snapshot.trailId, {
       publicationId: snapshot.publicationId,
       progressRatio: snapshot.progressRatio,
+      distMeters: snapshot.distMetersAlongRoute,
     }),
   ]);
 

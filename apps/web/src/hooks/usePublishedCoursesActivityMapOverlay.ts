@@ -363,7 +363,7 @@ export function usePublishedCoursesActivityMapOverlay(
             traceStrength: ACTIVITY_TRACE_LIVE_STRENGTH,
           });
         } else if (isRouteActivityHeat(row)) {
-          const traceStrength = resolveHeatTraceStrength(row.updatedAtMs);
+          const traceStrength = resolveHeatTraceStrength(row.lastCompletedRideAtMs);
           heatDots.push({
             publicationId: cid,
             lngLat,
@@ -389,7 +389,7 @@ export function usePublishedCoursesActivityMapOverlay(
             publicationId: cid,
             geometry: line,
             kind: "heat",
-            traceStrength: resolveHeatTraceStrength(row.updatedAtMs),
+            traceStrength: resolveHeatTraceStrength(row.lastCompletedRideAtMs),
           });
         }
       }

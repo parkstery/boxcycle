@@ -40,6 +40,8 @@ export type TrailLivePublicationRideRow = {
   /** 출판 ID — 레거시 문서의 `courseId` 와 동일 값 */
   publicationId: string;
   progressRatio: number;
+  /** geometry 위 주행 거리(m) — progressRatio 변환 오차 제거 */
+  distMeters: number | null;
   lastSeenAtMs: number | null;
   displayName: string | null;
 };
@@ -70,11 +72,15 @@ export function subscribeTrailLivePublicationRides(
         const pr = data.progressRatio;
         const progressRatio =
           typeof pr === "number" && Number.isFinite(pr) ? Math.max(0, Math.min(1, pr)) : Number.NaN;
+        const dm = data.distMeters;
+        const distMeters =
+          typeof dm === "number" && Number.isFinite(dm) ? Math.max(0, dm) : null;
         if (!publicationId || Number.isNaN(progressRatio)) continue;
         rows.push({
           uid: d.id,
           publicationId,
           progressRatio,
+          distMeters,
           lastSeenAtMs: lastSeenAtToMillis(data.lastSeenAt),
           displayName: typeof data.displayName === "string" ? data.displayName : null,
         });
@@ -88,21 +94,21 @@ export function subscribeTrailLivePublicationRides(
 export async function mergeTrailLivePublicationRideSnapshot(
   user: User,
   trailId: string,
-  input: { publicationId: string; progressRatio: number },
+  input: { publicationId: string; progressRatio: number; distMeters?: number },
 ): Promise<void> {
   const rid = sanitizeTrailId(trailId);
   const db = getFirestore(getFirebaseApp());
   const ref = doc(db, TRAILS_COLLECTION, rid, TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION, user.uid);
-  await setDoc(
-    ref,
-    {
-      publicationId: input.publicationId.trim(),
-      progressRatio: Math.max(0, Math.min(1, input.progressRatio)),
-      displayName: getPresenceDisplayName(user),
-      lastSeenAt: serverTimestamp(),
-    },
-    { merge: true },
-  );
+  const payload: Record<string, unknown> = {
+    publicationId: input.publicationId.trim(),
+    progressRatio: Math.max(0, Math.min(1, input.progressRatio)),
+    displayName: getPresenceDisplayName(user),
+    lastSeenAt: serverTimestamp(),
+  };
+  if (typeof input.distMeters === "number" && Number.isFinite(input.distMeters)) {
+    payload.distMeters = Math.round(Math.max(0, input.distMeters) * 10) / 10;
+  }
+  await setDoc(ref, payload, { merge: true });
 }
 
 export async function deleteTrailLivePublicationRide(uid: string, trailId: string): Promise<void> {

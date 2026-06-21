@@ -7,6 +7,7 @@ import {
   GLOBAL_LIVE_PRESENCE_MIN_WRITE_INTERVAL_MS,
   TRAIL_LIVE_PROGRESS_MAX_WRITE_MS,
   TRAIL_LIVE_PROGRESS_MIN_DELTA,
+  TRAIL_LIVE_PROGRESS_MIN_DIST_DELTA_M,
   TRAIL_LIVE_PROGRESS_MIN_WRITE_MS,
   haversineMeters,
   roundLngLatForLiveShare,
@@ -28,6 +29,8 @@ export type LiveLocationSnapshot = {
   trailId: string;
   publicationId: string;
   progressRatio: number;
+  /** geometry 위 주행 거리(m) — peer 표시·외삽용 */
+  distMetersAlongRoute: number;
   routeReady: boolean;
 };
 
@@ -78,6 +81,11 @@ export function buildLiveLocationSnapshot(input: LiveLocationPublishInput): Live
   const routeReady = Boolean(publicationId && hasGeometry);
   const geoLen =
     hasGeometry && input.routeGeometry ? lineStringLengthMeters(input.routeGeometry) : 0;
+  const distMetersAlongRoute = rideDistanceAlongRoute(
+    input.virtualDistanceMeters,
+    input.routeDistanceMeters,
+    geoLen,
+  );
   return {
     lngLat: roundLngLatForLiveShare(input.lngLat),
     trailId: sanitizeTrailId(input.trailId),
@@ -87,6 +95,7 @@ export function buildLiveLocationSnapshot(input: LiveLocationPublishInput): Live
       input.routeDistanceMeters,
       geoLen,
     ),
+    distMetersAlongRoute,
     routeReady,
   };
 }
@@ -96,6 +105,7 @@ export type LiveLocationPublishThrottleState = {
   globalLngLat: LngLat | null;
   routeWriteAt: number;
   routeRatio: number;
+  routeDistM: number;
 };
 
 export function createLiveLocationPublishThrottleState(): LiveLocationPublishThrottleState {
@@ -104,6 +114,7 @@ export function createLiveLocationPublishThrottleState(): LiveLocationPublishThr
     globalLngLat: null,
     routeWriteAt: 0,
     routeRatio: -1,
+    routeDistM: -1,
   };
 }
 
@@ -125,12 +136,17 @@ export function shouldPublishRouteProgress(
   now: number,
   state: LiveLocationPublishThrottleState,
   progressRatio: number,
+  distMetersAlongRoute: number,
 ): boolean {
   const elapsed = state.routeWriteAt === 0 ? TRAIL_LIVE_PROGRESS_MAX_WRITE_MS : now - state.routeWriteAt;
   const maxDue = state.routeWriteAt === 0 || elapsed >= TRAIL_LIVE_PROGRESS_MAX_WRITE_MS;
-  const deltaOk = state.routeRatio < 0 || Math.abs(progressRatio - state.routeRatio) >= TRAIL_LIVE_PROGRESS_MIN_DELTA;
+  const ratioDeltaOk =
+    state.routeRatio < 0 || Math.abs(progressRatio - state.routeRatio) >= TRAIL_LIVE_PROGRESS_MIN_DELTA;
+  const distDeltaOk =
+    state.routeDistM < 0 ||
+    Math.abs(distMetersAlongRoute - state.routeDistM) >= TRAIL_LIVE_PROGRESS_MIN_DIST_DELTA_M;
   const minOk = state.routeWriteAt === 0 || now - state.routeWriteAt >= TRAIL_LIVE_PROGRESS_MIN_WRITE_MS;
-  if (!maxDue && !(deltaOk && minOk)) return false;
+  if (!maxDue && !((ratioDeltaOk || distDeltaOk) && minOk)) return false;
   return true;
 }
 
@@ -147,7 +163,9 @@ export function markRouteProgressPublished(
   state: LiveLocationPublishThrottleState,
   now: number,
   progressRatio: number,
+  distMetersAlongRoute: number,
 ): void {
   state.routeWriteAt = now;
   state.routeRatio = progressRatio;
+  state.routeDistM = distMetersAlongRoute;
 }

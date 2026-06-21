@@ -7,16 +7,20 @@ import {
   lineStringLengthMeters,
 } from "./geo";
 import { progressRatioToRouteDistanceMeters } from "./liveLocationSnapshot";
-import { TRAIL_LIVE_PROGRESS_MAX_WRITE_MS } from "./rideSyncPolicy";
+import { PEER_EXTRAP_DEFAULT_SPEED_KMH } from "./rideSyncPolicy";
 import { estimateCrankRpmFromSpeedKmh } from "./riderPedalMotion";
 import { PEER_RIDER_PEDAL_FRAME_COUNT } from "./registerPeerRiderPedalSprites";
 
 export type MapPeerInput = {
   id: string;
   label?: string | null;
-  /** 경로 진행률(0~1) — 동일 코스 geometry 가 있으면 lngLat 보다 우선 */
+  /** geometry 위 주행 거리(m) — 우선 */
+  distMeters?: number | null;
+  /** Firestore lastSeenAt ms — 외삽 기준 시각 */
+  sampleAtMs?: number | null;
+  /** distMeters 없을 때 폴백 */
   progressRatio?: number;
-  /** progressRatio 없을 때 폴백 */
+  /** progress·dist 모두 없을 때 폴백 */
   lngLat?: LngLat;
 };
 
@@ -25,89 +29,82 @@ export type PeerDriveSimState = {
   hdg: number;
   phaseRev: number;
   emaSpeedKmh: number;
-  /** 마지막 네트워크 progress 수신 시각 */
-  lastTargetMs: number;
-  mode: "progress" | "coords";
+  mode: "route" | "coords";
   pos: LngLat;
   target: LngLat;
-  /** 마지막 수신 progress (geometry fraction 앵커) */
-  targetProgress: number;
-  simProgress: number;
-  /** progress/s — 최근 샘플 간격에서 EMA 추정 */
-  progressPerSec: number;
+  /** 마지막 수신 거리 앵커(m) */
+  anchorDistM: number;
+  /** 앵커 수신 시각 — 서버 lastSeenAt 우선 */
+  sampleAtMs: number;
+  /** m/s — 샘플 간 EMA */
+  speedMps: number;
   routeLenM: number;
 };
 
 const PEER_MAX = 30;
 const COORD_LERP_TAU_SEC = 0.34;
 const SPEED_EMA = 0.5;
-const PROGRESS_VEL_EMA = 0.42;
-const PROGRESS_EPS = 1e-6;
-/** publish max 간격 + 여유 — 그 이상은 외삽하지 않음 */
-const MAX_EXTRAP_SEC = TRAIL_LIVE_PROGRESS_MAX_WRITE_MS / 1000 + 1;
+const SPEED_MPS_EMA = 0.42;
+const DIST_EPS_M = 0.25;
+const DEFAULT_SPEED_MPS = PEER_EXTRAP_DEFAULT_SPEED_KMH / 3.6;
+const MAX_SPEED_MPS = 85 / 3.6;
 
-function clamp01(v: number): number {
-  if (!Number.isFinite(v)) return 0;
-  return Math.max(0, Math.min(1, v));
+function clampDist(distM: number, routeLenM: number): number {
+  if (!Number.isFinite(distM)) return 0;
+  if (routeLenM <= 0) return Math.max(0, distM);
+  return Math.max(0, Math.min(routeLenM, distM));
 }
 
-function maxProgressPerSec(routeLenM: number): number {
-  if (routeLenM <= 0) return 0.028;
-  return Math.min(0.028, 85 / 3.6 / routeLenM);
+function capSpeedMps(v: number): number {
+  if (!Number.isFinite(v)) return DEFAULT_SPEED_MPS;
+  return Math.max(0, Math.min(MAX_SPEED_MPS, v));
 }
 
-function progressToSpeedKmh(progressPerSec: number, routeLenM: number): number {
-  if (!Number.isFinite(progressPerSec) || routeLenM <= 0) return 0;
-  return Math.min(85, Math.max(0, progressPerSec * routeLenM * 3.6));
-}
-
-function capProgressPerSec(v: number, routeLenM: number): number {
-  if (!Number.isFinite(v)) return 0;
-  return Math.max(0, Math.min(maxProgressPerSec(routeLenM), v));
-}
-
-/** 앵커 + 최근 속도로 표시 progress (프레임마다 재계산, 앵커 너머 과도 외삽 금지) */
-function extrapolatePeerProgress(s: PeerDriveSimState, nowMs: number): number {
-  const elapsedSec = Math.max(0, (nowMs - s.lastTargetMs) / 1000);
-  const leadSec = Math.min(elapsedSec, MAX_EXTRAP_SEC);
-  const maxLead = s.progressPerSec * leadSec;
-  return clamp01(s.targetProgress + maxLead);
+function resolvePeerDistM(peer: MapPeerInput, routeLenM: number): number | null {
+  if (typeof peer.distMeters === "number" && Number.isFinite(peer.distMeters)) {
+    return clampDist(peer.distMeters, routeLenM);
+  }
+  if (
+    routeLenM > 0 &&
+    typeof peer.progressRatio === "number" &&
+    Number.isFinite(peer.progressRatio)
+  ) {
+    return clampDist(progressRatioToRouteDistanceMeters(peer.progressRatio, routeLenM), routeLenM);
+  }
+  return null;
 }
 
 function resolvePeerMode(
   peer: MapPeerInput,
   routeGeometry: LineStringGeometry | null,
   routeLenM: number,
-): "progress" | "coords" {
-  if (
-    routeGeometry &&
-    routeLenM > 0 &&
-    typeof peer.progressRatio === "number" &&
-    Number.isFinite(peer.progressRatio)
-  ) {
-    return "progress";
+): "route" | "coords" {
+  if (routeGeometry && routeLenM > 0 && resolvePeerDistM(peer, routeLenM) != null) {
+    return "route";
   }
   if (peer.lngLat) return "coords";
   return "coords";
 }
 
-function pointOnRouteProgress(
-  geometry: LineStringGeometry,
-  geoLenM: number,
-  progress: number,
-): LngLat | null {
-  if (geoLenM <= 0) return null;
-  const distM = progressRatioToRouteDistanceMeters(progress, geoLenM);
+function pointOnRouteDistM(geometry: LineStringGeometry, distM: number): LngLat | null {
   return getPointOnRouteByDistance(geometry, distM);
 }
 
-function headingOnRouteProgress(
-  geometry: LineStringGeometry,
-  geoLenM: number,
-  progress: number,
-): number {
-  const distM = progressRatioToRouteDistanceMeters(progress, geoLenM);
+function headingOnRouteDistM(geometry: LineStringGeometry, distM: number): number {
   return headingAtRouteDistanceMeters(geometry, distM) ?? 0;
+}
+
+function peerExtrapSpeedMps(s: PeerDriveSimState): number {
+  return s.speedMps > 0.02 ? s.speedMps : DEFAULT_SPEED_MPS;
+}
+
+/**
+ * 앵커 + 속도로 표시 거리(m).
+ * publish 간격(최대 ~8s) 동안 rAF 와 동일하게 전진 — 상한 없음(stale peer 는 presence 구독에서 제거).
+ */
+function extrapolatePeerDistM(s: PeerDriveSimState, nowMs: number): number {
+  const elapsedSec = Math.max(0, (nowMs - s.sampleAtMs) / 1000);
+  return clampDist(s.anchorDistM + peerExtrapSpeedMps(s) * elapsedSec, s.routeLenM);
 }
 
 export function mergePeerTargets(
@@ -126,23 +123,26 @@ export function mergePeerTargets(
     const label = (t.label?.trim() || "동행").slice(0, 48);
     const mode = resolvePeerMode(t, routeGeometry, routeLenM);
     const cur = sim.get(t.id);
+    const sampleAtMs =
+      typeof t.sampleAtMs === "number" && Number.isFinite(t.sampleAtMs) && t.sampleAtMs > 0
+        ? t.sampleAtMs
+        : nowMs;
 
     if (!cur) {
-      if (mode === "progress" && routeGeometry && routeLenM > 0) {
-        const p = clamp01(t.progressRatio!);
-        const pos = pointOnRouteProgress(routeGeometry, routeLenM, p) ?? [0, 0];
+      if (mode === "route" && routeGeometry && routeLenM > 0) {
+        const distM = resolvePeerDistM(t, routeLenM)!;
+        const pos = pointOnRouteDistM(routeGeometry, distM) ?? [0, 0];
         sim.set(t.id, {
           label,
           hdg: 0,
           phaseRev: 0,
-          emaSpeedKmh: 0,
-          lastTargetMs: nowMs,
-          mode: "progress",
+          emaSpeedKmh: PEER_EXTRAP_DEFAULT_SPEED_KMH * 0.5,
+          mode: "route",
           pos,
           target: pos,
-          targetProgress: p,
-          simProgress: p,
-          progressPerSec: 0,
+          anchorDistM: distM,
+          sampleAtMs,
+          speedMps: DEFAULT_SPEED_MPS,
           routeLenM,
         });
       } else if (t.lngLat) {
@@ -151,13 +151,12 @@ export function mergePeerTargets(
           hdg: 0,
           phaseRev: 0,
           emaSpeedKmh: 0,
-          lastTargetMs: nowMs,
           mode: "coords",
           pos: t.lngLat,
           target: t.lngLat,
-          targetProgress: 0,
-          simProgress: 0,
-          progressPerSec: 0,
+          anchorDistM: 0,
+          sampleAtMs,
+          speedMps: 0,
           routeLenM: 0,
         });
       }
@@ -167,28 +166,20 @@ export function mergePeerTargets(
     cur.label = label;
     cur.routeLenM = routeLenM;
 
-    if (mode === "progress" && routeGeometry && routeLenM > 0) {
-      cur.mode = "progress";
-      const nextP = clamp01(t.progressRatio!);
-      const deltaP = nextP - cur.targetProgress;
-      if (Math.abs(deltaP) > PROGRESS_EPS) {
-        const predicted = extrapolatePeerProgress(cur, nowMs);
-        const dtSec = Math.max(0.04, (nowMs - cur.lastTargetMs) / 1000);
-        const instPerSec = capProgressPerSec(deltaP / dtSec, routeLenM);
-        cur.progressPerSec = capProgressPerSec(
-          cur.progressPerSec * (1 - PROGRESS_VEL_EMA) + instPerSec * PROGRESS_VEL_EMA,
-          routeLenM,
-        );
-        const spd = progressToSpeedKmh(cur.progressPerSec, routeLenM);
-        cur.emaSpeedKmh = cur.emaSpeedKmh * (1 - SPEED_EMA) + spd * SPEED_EMA;
-        cur.targetProgress = nextP;
-        cur.lastTargetMs = nowMs;
-        if (nextP < predicted - 0.0008) {
-          cur.simProgress = nextP;
-        } else {
-          cur.simProgress = extrapolatePeerProgress(cur, nowMs);
-        }
+    if (mode === "route" && routeGeometry && routeLenM > 0) {
+      cur.mode = "route";
+      const nextDistM = resolvePeerDistM(t, routeLenM)!;
+      const deltaM = nextDistM - cur.anchorDistM;
+      if (Math.abs(deltaM) > DIST_EPS_M) {
+        const dtSec = Math.max(0.04, (sampleAtMs - cur.sampleAtMs) / 1000);
+        const instMps = capSpeedMps(deltaM / dtSec);
+        cur.speedMps = capSpeedMps(cur.speedMps * (1 - SPEED_MPS_EMA) + instMps * SPEED_MPS_EMA);
+        const spdKmh = cur.speedMps * 3.6;
+        cur.emaSpeedKmh = cur.emaSpeedKmh * (1 - SPEED_EMA) + spdKmh * SPEED_EMA;
+        cur.anchorDistM = nextDistM;
+        cur.sampleAtMs = sampleAtMs;
       }
+      /* distMeters·lastSeenAt 만 갱신된 경우 sampleAtMs 를 리셋하지 않음 — 외삽 시계 유지 */
       continue;
     }
 
@@ -196,14 +187,14 @@ export function mergePeerTargets(
     cur.mode = "coords";
     const jumped = getDistanceMeters(cur.target, t.lngLat);
     if (jumped > 0.35) {
-      const dtSec = Math.max(0.04, (nowMs - cur.lastTargetMs) / 1000);
+      const dtSec = Math.max(0.04, (nowMs - cur.sampleAtMs) / 1000);
       const instKmh = (jumped / dtSec) * 3.6;
       if (Number.isFinite(instKmh)) {
         cur.emaSpeedKmh =
           cur.emaSpeedKmh * (1 - SPEED_EMA) + Math.min(85, Math.max(0, instKmh)) * SPEED_EMA;
       }
       cur.target = t.lngLat;
-      cur.lastTargetMs = nowMs;
+      cur.sampleAtMs = nowMs;
     }
   }
 
@@ -237,13 +228,13 @@ export function stepPeerDriveAndBuildGeoJson(
   }> = [];
 
   for (const [id, s] of sim) {
-    if (s.mode === "progress" && routeGeometry && s.routeLenM > 0) {
-      s.simProgress = extrapolatePeerProgress(s, nowMs);
-      const pos = pointOnRouteProgress(routeGeometry, s.routeLenM, s.simProgress);
+    if (s.mode === "route" && routeGeometry && s.routeLenM > 0) {
+      const distM = extrapolatePeerDistM(s, nowMs);
+      const pos = pointOnRouteDistM(routeGeometry, distM);
       if (pos) {
         s.pos = pos;
         s.target = pos;
-        const h = headingOnRouteProgress(routeGeometry, s.routeLenM, s.simProgress);
+        const h = headingOnRouteDistM(routeGeometry, distM);
         if (h !== 0 || s.emaSpeedKmh > 0.38) s.hdg = h;
       }
     } else {
@@ -254,7 +245,7 @@ export function stepPeerDriveAndBuildGeoJson(
       }
     }
 
-    const spd = s.emaSpeedKmh;
+    const spd = s.emaSpeedKmh > 0.38 ? s.emaSpeedKmh : peerExtrapSpeedMps(s) * 3.6;
     if (spd > 0.38) {
       const rpm = estimateCrankRpmFromSpeedKmh(spd);
       s.phaseRev += (rpm / 60) * clampedDt;

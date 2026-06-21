@@ -1064,9 +1064,13 @@ function getReducedMotionServerSnapshot(): boolean {
 export type MapPeerMarker = {
   id: string;
   label?: string | null;
-  /** 동일 코스 geometry — 진행률 기반 동행 위치(우선) */
+  /** geometry 위 주행 거리(m) — 우선 */
+  distMeters?: number | null;
+  /** Firestore lastSeenAt ms — peer 외삽 기준 */
+  sampleAtMs?: number | null;
+  /** distMeters 없을 때 폴백 */
   progressRatio?: number;
-  /** progressRatio 없을 때 폴백 */
+  /** progress·dist 모두 없을 때 폴백 */
   lngLat?: LngLat;
 };
 

@@ -1,30 +1,15 @@
 import type { ActivityWorldMapDot, ActivityWorldRawOverlay } from "../../lib/activityWorldLod";
 import { mergeActivityWorldDots } from "../../lib/activityWorldLod";
 import { ACTIVITY_TRACE_LIVE_STRENGTH } from "../../lib/activityWorldTraceStyle";
-import { BASIC_SHARED_HUB_IDS, getBasicHubCoursePayload } from "../../lib/firestoreCourses";
 import type { LineStringGeometry } from "../../lib/geo";
 import { distanceMidpointLngLat } from "../../lib/routeGeometryMidpoint";
 
-/** 입문 허브 — `publicationPresence` 미동기화·CF 미배포 시에도 월드 geography 앵커 */
+/** @deprecated publication world mode 전용 — catalog 모드에서는 사용 안 함 */
 export function buildBasicHubWorldPulseDots(): ActivityWorldMapDot[] {
-  const out: ActivityWorldMapDot[] = [];
-  for (const id of BASIC_SHARED_HUB_IDS) {
-    const coords = getBasicHubCoursePayload(id).geometry?.coordinates;
-    if (!coords?.length) continue;
-    const lngLat = distanceMidpointLngLat(coords);
-    if (!lngLat) continue;
-    out.push({
-      publicationId: id,
-      lngLat,
-      pulseLevel: 1,
-      kind: "pulse",
-      traceStrength: ACTIVITY_TRACE_LIVE_STRENGTH,
-    });
-  }
-  return out;
+  return [];
 }
 
-/** 주행 중 — 서버 문서 전 `publicationPresence` 와 무관하게 L2 midpoint 1개 보장 */
+/** 주행 중 publication world mode — 로컬 midpoint 1개 */
 export function buildLocalRidePublicationPulseDot(
   publicationId: string | null | undefined,
   routeGeometry: LineStringGeometry | null | undefined,
@@ -70,56 +55,39 @@ export function mergePublicationWorldPulseDots(input: {
     if (local) pulse = mergeActivityWorldDots(pulse, [local]);
   }
 
-  if (pulse.length === 0) {
-    pulse = mergeActivityWorldDots(pulse, buildBasicHubWorldPulseDots());
-  }
-
   return { pulseDots: pulse, heatDots: [...serverHeatDots] };
 }
 
-/** MapView 로 전달 직전 — raw 가 0이면 입문 허브·주행 midpoint 로 최소 1개 보장 */
+/** MapView 전달 직전 — fallback dot 없음 activity 없으면 빈 overlay */
 export function ensureWorldActivityMinimumDots(
   raw: ActivityWorldRawOverlay,
-  opts: {
+  _opts: {
     mapSessionActive: boolean;
     isRideSessionActive: boolean;
     trackedPublicationId: string | null;
     routeGeometry: LineStringGeometry | null;
   },
 ): ActivityWorldRawOverlay {
-  if (!opts.mapSessionActive) return raw;
-  if (raw.pulseDots.length > 0 || raw.heatDots.length > 0) return raw;
-
-  let pulse = buildBasicHubWorldPulseDots();
-  if (opts.isRideSessionActive) {
-    const local = buildLocalRidePublicationPulseDot(opts.trackedPublicationId, opts.routeGeometry);
-    if (local) pulse = mergeActivityWorldDots(pulse, [local]);
-  }
-  if (pulse.length === 0) return raw;
-
-  return { ...raw, pulseDots: pulse };
+  return raw;
 }
 
 export function runWorldPublicationMapDotsChecks(): void {
-  if (buildBasicHubWorldPulseDots().length < 1) {
-    throw new Error("basic hub fallback must produce at least one dot");
-  }
   const merged = mergePublicationWorldPulseDots({
     serverPulseDots: [],
     serverHeatDots: [],
-    publicationWorldMapEnabled: true,
+    publicationWorldMapEnabled: false,
     isRideSessionActive: false,
     trackedPublicationId: null,
     routeGeometry: null,
   });
-  if (merged.pulseDots.length < 1) {
-    throw new Error("publication world merge must yield pulse dots");
+  if (merged.pulseDots.length !== 0 || merged.heatDots.length !== 0) {
+    throw new Error("catalog mode merge must pass through server dots only");
   }
   const guarded = ensureWorldActivityMinimumDots(
     { pulseRoutes: [], heatRoutes: [], pulseDots: [], heatDots: [] },
     { mapSessionActive: true, isRideSessionActive: false, trackedPublicationId: null, routeGeometry: null },
   );
-  if (guarded.pulseDots.length < 1) {
-    throw new Error("ensureWorldActivityMinimumDots must yield pulse dots");
+  if (guarded.pulseDots.length !== 0) {
+    throw new Error("ensureWorldActivityMinimumDots must not inject fallback dots");
   }
 }

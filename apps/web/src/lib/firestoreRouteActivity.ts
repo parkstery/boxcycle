@@ -15,16 +15,24 @@ import type { LngLat } from "./geo";
 import { isWithinActivityTraceHeatWindow } from "./activityWorldTraceStyle";
 import { lastSeenAtToMillis } from "./firestoreTrail";
 
-/** `routeActivity/{publicationId}` — canonical aggregate */
+/**
+ * Activity World invariant
+ * - Heat dot: last completed ride within 24h via lastCompletedRideAtMs
+ * - Live pulse: liveNow and activeRiderCount greater than zero
+ * - updatedAtMs is server metadata only — never used for heat visibility
+ */
 export type RouteActivitySnapshot = {
   publicationId: string;
   activeRiderCount: number;
+  /** 배지·heat 강도용 — 24h 윈도우 ride 횟수 근사 increment */
   recentRideCount7d: number;
   recentLikeCount: number;
   liveNow: boolean;
   pulseLevel: number;
+  /** 서버 merge 시각 — heat 표시에 사용하지 않음 */
   updatedAtMs: number | null;
-  /** v2: CF가 진행률·코스 geometry 로 계산(없으면 bounds 중심 DOT) */
+  /** 마지막 completed ride endedAt — heat dot 유일 시계 */
+  lastCompletedRideAtMs: number | null;
   liveAnchorLngLat: LngLat | null;
   liveAnchorProgressRatio: number | null;
 };
@@ -66,15 +74,16 @@ function parseRouteActivityDoc(publicationId: string, data: Record<string, unkno
     typeof data.liveAnchorProgressRatio === "number" && Number.isFinite(data.liveAnchorProgressRatio)
       ? Math.max(0, Math.min(1, data.liveAnchorProgressRatio))
       : null;
+  const lastCompletedRideAtMs = lastSeenAtToMillis(data.lastCompletedRideAt);
   return {
     publicationId,
     activeRiderCount,
     recentRideCount7d,
     recentLikeCount,
-    /** 서버 `liveNow`만 신뢰 — pulseLevel 잔존 시 heat가 막히지 않게 */
     liveNow,
     pulseLevel: liveNow && pulseLevel === 0 ? 1 : liveNow ? pulseLevel : 0,
     updatedAtMs: lastSeenAtToMillis(data.updatedAt),
+    lastCompletedRideAtMs,
     liveAnchorLngLat,
     liveAnchorProgressRatio,
   };
@@ -82,68 +91,6 @@ function parseRouteActivityDoc(publicationId: string, data: Record<string, unkno
 
 const memoryCache = new Map<string, RouteActivitySnapshot | null>();
 const inflight = new Map<string, Promise<RouteActivitySnapshot | null>>();
-/** 주행 종료 직후 서버 `liveNow`가 늦게 내려갈 때 heat 표시 유지 */
-const rideCompletedOptimistic = new Map<string, RouteActivitySnapshot>();
-
-function mergeRideCompletedOptimistic(
-  publicationId: string,
-  server: RouteActivitySnapshot | null,
-): RouteActivitySnapshot | null {
-  const opt = rideCompletedOptimistic.get(publicationId);
-  if (!opt) return server;
-  if (!server) return opt;
-
-  /**
-   * 서버가 다시 live(실제 라이더 존재)면 종료-낙관치를 즉시 폐기한다.
-   * 그렇지 않으면 내가 종료한 코스를 다른 라이더가 달려도 liveNow가 계속 가려진다.
-   */
-  if (server.liveNow && server.activeRiderCount > 0) {
-    rideCompletedOptimistic.delete(publicationId);
-    return server;
-  }
-
-  const server7d = server.recentRideCount7d;
-  /** CF 지연: `liveNow`만 남고 rider=0·7d 미반영 — 낙관 heat 유지 */
-  const staleLiveWithoutHeat =
-    server.liveNow && server.activeRiderCount === 0 && server7d < opt.recentRideCount7d;
-  const serverCaughtUp = server7d >= opt.recentRideCount7d && !staleLiveWithoutHeat;
-
-  if (serverCaughtUp) {
-    rideCompletedOptimistic.delete(publicationId);
-    return server;
-  }
-
-  return {
-    ...server,
-    liveNow: false,
-    activeRiderCount: 0,
-    pulseLevel: 0,
-    liveAnchorLngLat: null,
-    liveAnchorProgressRatio: null,
-    recentRideCount7d: Math.max(server7d, opt.recentRideCount7d),
-  };
-}
-
-/** 종료 직후 지도 heat — Firestore·CF 반영 전 클라이언트 표시 */
-export function markRouteActivityRideCompletedOptimistic(publicationId: string): RouteActivitySnapshot | null {
-  const id = publicationId.trim();
-  if (!id) return null;
-  const prev = memoryCache.get(id) ?? rideCompletedOptimistic.get(id) ?? null;
-  const next: RouteActivitySnapshot = {
-    publicationId: id,
-    activeRiderCount: 0,
-    recentRideCount7d: (prev?.recentRideCount7d ?? 0) + 1,
-    recentLikeCount: prev?.recentLikeCount ?? 0,
-    liveNow: false,
-    pulseLevel: 0,
-    updatedAtMs: Date.now(),
-    liveAnchorLngLat: null,
-    liveAnchorProgressRatio: null,
-  };
-  rideCompletedOptimistic.set(id, next);
-  memoryCache.set(id, next);
-  return next;
-}
 
 /** 저빈도 `getDoc` — 세션 캐시·in-flight 공유 */
 export async function fetchRouteActivity(publicationId: string): Promise<RouteActivitySnapshot | null> {
@@ -159,10 +106,9 @@ export async function fetchRouteActivity(publicationId: string): Promise<RouteAc
       const parsed = routeSnap.exists()
         ? parseRouteActivityDoc(id, routeSnap.data() as Record<string, unknown>)
         : null;
-      const merged = mergeRideCompletedOptimistic(id, parsed);
-      memoryCache.set(id, merged);
+      memoryCache.set(id, parsed);
       inflight.delete(id);
-      return merged;
+      return parsed;
     })().catch((e) => {
       inflight.delete(id);
       throw e;
@@ -172,16 +118,19 @@ export async function fetchRouteActivity(publicationId: string): Promise<RouteAc
   return pending;
 }
 
-/** 지도 라이브 펄스 — 실제 주행자가 있을 때만(집계 `liveNow` 단독은 heat로 넘김) */
+export function routeActivityHeatAnchorMs(activity: RouteActivitySnapshot): number | null {
+  return activity.lastCompletedRideAtMs;
+}
+
+/** 지도 라이브 펄스 — 실제 주행자가 있을 때만 */
 export function isRouteActivityLive(activity: RouteActivitySnapshot): boolean {
   return activity.liveNow && activity.activeRiderCount > 0;
 }
 
-/** 지도 heat — 주행 종료 후 24시간 이내 흔적만 */
+/** 지도 heat — lastCompletedRideAt 24h 이내만 */
 export function isRouteActivityHeat(activity: RouteActivitySnapshot): boolean {
   if (isRouteActivityLive(activity)) return false;
-  if (activity.recentRideCount7d <= 0) return false;
-  return isWithinActivityTraceHeatWindow(activity.updatedAtMs);
+  return isWithinActivityTraceHeatWindow(activity.lastCompletedRideAtMs);
 }
 
 /** heat 점·선 시각 강도 1..5 */
@@ -196,12 +145,14 @@ export function formatRouteActivityListBadge(activity: RouteActivitySnapshot | n
   if (activity.liveNow) {
     return activity.activeRiderCount > 0 ? `라이브 ${activity.activeRiderCount}` : "라이브";
   }
-  if (activity.recentRideCount7d > 0) return `24시간 ${activity.recentRideCount7d}회`;
+  if (isRouteActivityHeat(activity) && activity.recentRideCount7d > 0) {
+    return `24시간 ${activity.recentRideCount7d}회`;
+  }
   if (activity.recentLikeCount > 0) return `♥ ${activity.recentLikeCount}`;
   return null;
 }
 
-/** 맵 오버레이 폴링 시 aggregate 재조회(라이브 `liveNow` 반영) */
+/** 맵 오버레이 폴링 시 aggregate 재조회 */
 export function invalidateRouteActivityCache(publicationIds?: readonly string[]): void {
   if (!publicationIds?.length) {
     memoryCache.clear();
@@ -213,6 +164,13 @@ export function invalidateRouteActivityCache(publicationIds?: readonly string[])
     if (key) memoryCache.delete(key);
   }
   invalidateLiveRouteActivityIdsCache();
+}
+
+/** @deprecated 낙관 heat 제거 — 캐시 무효화만 */
+export function markRouteActivityRideCompletedOptimistic(publicationId: string): void {
+  const id = publicationId.trim();
+  if (!id) return;
+  memoryCache.delete(id);
 }
 
 const LIVE_ROUTE_IDS_QUERY_MAX = 32;
@@ -294,7 +252,7 @@ export function formatRouteActivityHudLine(activity: RouteActivitySnapshot | nul
         ? `지금 ${activity.activeRiderCount}명 주행`
         : "지금 활동 중",
     );
-  } else if (activity.recentRideCount7d > 0) {
+  } else if (isRouteActivityHeat(activity) && activity.recentRideCount7d > 0) {
     parts.push(`최근 24시간 ${activity.recentRideCount7d}회`);
   }
   if (activity.recentLikeCount > 0) parts.push(`좋아요 ${activity.recentLikeCount}`);
