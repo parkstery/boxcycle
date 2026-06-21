@@ -5,11 +5,14 @@ import {
   buildLiveLocationSnapshot,
   createLiveLocationPublishThrottleState,
   markGlobalPresencePublished,
+  markPeerMotionPublished,
   markRouteProgressPublished,
   shouldPublishGlobalPresence,
+  shouldPublishPeerMotion,
   shouldPublishRouteProgress,
   type LiveLocationPublishInput,
 } from "../lib/liveLocationSnapshot";
+import { isFirebaseDatabaseConfigured } from "../lib/firebase";
 import { cleanupLiveLocationPublish, publishLiveLocationFanout } from "../lib/publishLiveLocationFanout";
 import { mergeGlobalLivePresence } from "../lib/firestoreGlobalLivePresence";
 import {
@@ -19,7 +22,7 @@ import {
 import { flushRideJoinPresenceBurst } from "../lib/rideJoinPresenceBurst";
 import { sanitizeTrailId } from "../lib/firestoreTrail";
 
-const PUBLISH_TICK_MS = 500;
+const PUBLISH_TICK_MS = 200;
 
 export type UseLiveLocationPublishSessionOpts = {
   user: User | null | undefined;
@@ -136,6 +139,9 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
             snapshot.progressRatio,
             snapshot.distMetersAlongRoute,
           );
+          if (isFirebaseDatabaseConfigured()) {
+            markPeerMotionPublished(throttleRef.current, now);
+          }
         }
         if (ge) {
           markGlobalPresencePublished(throttleRef.current, now, snapshot.lngLat);
@@ -200,15 +206,24 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
 
       const now = Date.now();
       const publishGlobal = ge && shouldPublishGlobalPresence(now, throttle, snapshot.lngLat);
+      const publishMotion =
+        re &&
+        isFirebaseDatabaseConfigured() &&
+        snapshot.routeReady &&
+        shouldPublishPeerMotion(now, throttle);
       const publishRoute =
         re &&
         snapshot.routeReady &&
         shouldPublishRouteProgress(now, throttle, snapshot.progressRatio, snapshot.distMetersAlongRoute);
 
-      if (!publishGlobal && !publishRoute) return;
+      if (!publishGlobal && !publishRoute && !publishMotion) return;
 
       try {
-        const result = await publishLiveLocationFanout(u2, snapshot, { publishGlobal, publishRoute });
+        const result = await publishLiveLocationFanout(u2, snapshot, {
+          publishGlobal,
+          publishRoute,
+          publishMotion,
+        });
         if (publishGlobal) markGlobalPresencePublished(throttle, now, snapshot.lngLat);
         if (publishRoute) {
           markRouteProgressPublished(
@@ -219,10 +234,12 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
           );
           routeDocActive = true;
         }
-        if (import.meta.env.DEV && (result.global || result.route)) {
+        if (publishMotion) markPeerMotionPublished(throttle, now);
+        if (import.meta.env.DEV && (result.global || result.route || result.motion)) {
           console.debug("[LiveLocationPublish]", {
             global: result.global,
             route: result.route,
+            motion: result.motion,
             lngLat: snapshot.lngLat,
             progressRatio: snapshot.progressRatio,
             distMeters: snapshot.distMetersAlongRoute,

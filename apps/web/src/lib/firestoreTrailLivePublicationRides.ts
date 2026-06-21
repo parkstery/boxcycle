@@ -36,6 +36,7 @@ import {
   PEER_LIVE_RIDE_FINAL_BURST_MS,
   PEER_LIVE_RIDE_STALE_MS,
 } from "./rideSyncPolicy";
+import { deleteTrailMotion } from "./rtdbTrailMotion";
 
 /** publication 진행률만 주기적으로 올려 부담을 줄임 (좌표·geometry 미전송). */
 export const TRAIL_LIVE_PUBLICATION_RIDE_WRITE_INTERVAL_MS = 4_000;
@@ -168,6 +169,7 @@ export async function finalizeAndDeleteTrailLivePublicationRide(
     /* noop */
   }
   await deleteTrailLivePublicationRide(user.uid, trailId).catch(() => {});
+  await deleteTrailMotion(user.uid, trailId);
 }
 
 function liveRideFreshnessCutoff(): Timestamp {

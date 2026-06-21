@@ -4,6 +4,8 @@ import { mergeTrailLivePublicationRideSnapshot } from "./firestoreTrailLivePubli
 import { DEFAULT_TRAIL_ID } from "./firestoreTrail";
 import { touchTrailInstanceActivity } from "./firestoreTrailInstance";
 import type { LiveLocationSnapshot } from "./liveLocationSnapshot";
+import { isFirebaseDatabaseConfigured } from "./firebase";
+import { mergeTrailMotionSnapshot, snapshotToRtdbTrailMotionSnapshot } from "./rtdbTrailMotion";
 
 /** 주행 시작 직후 1회 — 세션 멤버 + livePublicationRides (스로틀 우회) */
 export async function flushRideJoinPresenceBurst(
@@ -21,6 +23,9 @@ export async function flushRideJoinPresenceBurst(
       speedMps: snapshot.speedMps,
       ridePhase: snapshot.routeRidePhase,
     }),
+    isFirebaseDatabaseConfigured()
+      ? mergeTrailMotionSnapshot(user, snapshot.trailId, snapshotToRtdbTrailMotionSnapshot(snapshot))
+      : Promise.resolve(),
   ]);
 
   if (snapshot.trailId !== DEFAULT_TRAIL_ID) {

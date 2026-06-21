@@ -14,6 +14,8 @@ import {
   type TrailLivePublicationRideRow,
 } from "../lib/firestoreTrailLivePublicationRides";
 import { acquireTrailLivePublicationRidesSubscription } from "../lib/livePublicationRidesSubscriptionHub";
+import { acquireTrailMotionSubscription } from "../lib/rtdbMotionSubscriptionHub";
+import { isFirebaseDatabaseConfigured } from "../lib/firebase";
 import { sanitizeTrailId } from "../lib/firestoreTrail";
 import { TRAIL_PRESENCE_STALE_MS } from "../lib/firestoreTrail";
 import {
@@ -22,7 +24,13 @@ import {
   PEER_LIVE_RIDE_STALE_MS,
 } from "../lib/rideSyncPolicy";
 import { mapNametagForMember, sortedGuestUids } from "../lib/guestNametag";
-import { getPeerMotionRegistry, resetPeerMotionRegistry, trailLiveRowToPeerMotionPacket } from "../lib/peerMotion";
+import {
+  getPeerMotionRegistry,
+  resetPeerMotionRegistry,
+  rtdbMotionRowToPeerMotionPacket,
+  trailLiveRowToPeerMotionPacket,
+} from "../lib/peerMotion";
+import type { RtdbTrailMotionRow } from "../lib/rtdbTrailMotion";
 import { peerHudStableKey, type PeerHudEntry } from "../lib/peerHud";
 import { useDocumentVisibility } from "../hooks/useDocumentVisibility";
 import "./trail/TrailheadPresence.css";
@@ -55,6 +63,7 @@ export function PublicationSharedPresence({
   const pageVisible = useDocumentVisibility();
   const [rows, setRows] = useState<PublicationSessionMemberRow[]>([]);
   const [liveRideRows, setLiveRideRows] = useState<TrailLivePublicationRideRow[]>([]);
+  const [motionRows, setMotionRows] = useState<RtdbTrailMotionRow[]>([]);
   const [peerVisibilityTick, setPeerVisibilityTick] = useState(0);
   const [presenceError, setPresenceError] = useState<string | null>(null);
   const onPeerHudChangeRef = useRef(onPeerHudChange);
@@ -154,10 +163,35 @@ export function PublicationSharedPresence({
   }, [pageVisible, trailId]);
 
   useEffect(() => {
-    if (!pageVisible || liveRideRows.length === 0) return;
+    if (!pageVisible || !isFirebaseDatabaseConfigured()) {
+      startTransition(() => setMotionRows([]));
+      return;
+    }
+
+    const tid = sanitizeTrailId(trailId);
+    let cancelled = false;
+    const release = acquireTrailMotionSubscription(
+      tid,
+      (next) => {
+        if (!cancelled) setMotionRows(next);
+      },
+      () => {
+        /* RTDB motion 오류 — Firestore fallback ingest */
+      },
+    );
+
+    return () => {
+      cancelled = true;
+      release();
+    };
+  }, [pageVisible, trailId]);
+
+  useEffect(() => {
+    if (!pageVisible) return;
+    if (liveRideRows.length === 0 && motionRows.length === 0) return;
     const id = window.setInterval(() => setPeerVisibilityTick((n) => n + 1), 1_000);
     return () => window.clearInterval(id);
-  }, [pageVisible, liveRideRows.length]);
+  }, [pageVisible, liveRideRows.length, motionRows.length]);
 
   useEffect(() => {
     const uid = user.uid;
@@ -203,14 +237,30 @@ export function PublicationSharedPresence({
     return m;
   }, [liveRideRows, publicationId, user.uid]);
 
+  const motionRowsByUid = useMemo(() => {
+    const m = new Map<string, RtdbTrailMotionRow>();
+    const pid = publicationId.trim();
+    for (const row of motionRows) {
+      if (row.uid === user.uid) continue;
+      if (row.publicationId.trim() !== pid) continue;
+      m.set(row.uid, row);
+    }
+    return m;
+  }, [motionRows, publicationId, user.uid]);
+
   const peerVisibleByUid = useMemo(() => {
     const now = Date.now();
     const m = new Map<string, boolean>();
     for (const [uid, row] of liveRidesByUid) {
       m.set(uid, isTrailLivePublicationRideRowPeerVisible(row, now));
     }
+    for (const [uid, row] of motionRowsByUid) {
+      if (m.get(uid)) continue;
+      const age = row.serverAtMs > 0 ? now - row.serverAtMs : 0;
+      m.set(uid, age <= PEER_LIVE_RIDE_STALE_MS);
+    }
     return m;
-  }, [liveRidesByUid, peerVisibilityTick]);
+  }, [liveRidesByUid, motionRowsByUid, peerVisibilityTick]);
 
   const guestUidsSorted = useMemo(() => {
     const picks = active.map((r) => ({ uid: r.uid, memberType: r.memberType }));
@@ -239,24 +289,34 @@ export function PublicationSharedPresence({
     return m;
   }, [rows]);
 
-  /** Firestore → PeerMotionRegistry (display snap 없음, rAF 가 displayDistM 적분) */
+  /** Firestore 1Hz + RTDB 5Hz → PeerMotionRegistry (RTDB 우선) */
   useEffect(() => {
     const pid = publicationId.trim();
     if (!pid) return;
     const registry = getPeerMotionRegistry();
     const activeUids: string[] = [];
-    for (const [uid, live] of liveRidesByUid) {
-      const packet = trailLiveRowToPeerMotionPacket(live, pid, 0);
+    const allUids = new Set<string>([...liveRidesByUid.keys(), ...motionRowsByUid.keys()]);
+
+    for (const uid of allUids) {
+      const rtdbRow = motionRowsByUid.get(uid);
+      let packet =
+        rtdbRow != null ? rtdbMotionRowToPeerMotionPacket(rtdbRow, pid) : null;
+      if (!packet) {
+        const live = liveRidesByUid.get(uid);
+        if (live) packet = trailLiveRowToPeerMotionPacket(live, pid, 0);
+      }
       if (!packet) continue;
+
       const member = sessionByUid.get(uid);
+      const live = liveRidesByUid.get(uid);
       const label = member
         ? mapNametagForMember(uid, member.memberType, member.displayName, guestUidsSorted)
-        : live.displayName?.trim() || uid.slice(0, 6);
+        : live?.displayName?.trim() || rtdbRow?.uid.slice(0, 6) || uid.slice(0, 6);
       registry.ingest(packet, label);
       activeUids.push(uid);
     }
     registry.markActiveUids(activeUids);
-  }, [liveRidesByUid, sessionByUid, guestUidsSorted, publicationId]);
+  }, [liveRidesByUid, motionRowsByUid, sessionByUid, guestUidsSorted, publicationId]);
 
   const peerHudEntries = useMemo((): PeerHudEntry[] => {
     return [...liveRidesByUid.keys()]

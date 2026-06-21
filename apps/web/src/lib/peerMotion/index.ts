@@ -5,3 +5,4 @@ export {
   type PeerMotionRenderFeature,
 } from "./PeerMotionRegistry";
 export { trailLiveRowToPeerMotionPacket } from "./rowToPacket";
+export { rtdbMotionRowToPeerMotionPacket } from "./rtdbToPacket";

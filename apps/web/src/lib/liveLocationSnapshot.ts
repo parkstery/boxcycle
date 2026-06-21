@@ -6,6 +6,7 @@ import {
   GLOBAL_LIVE_PRESENCE_MIN_MOVE_METERS,
   GLOBAL_LIVE_PRESENCE_MIN_WRITE_INTERVAL_MS,
   TRAIL_LIVE_PROGRESS_HEARTBEAT_MS,
+  PEER_MOTION_PUBLISH_INTERVAL_MS,
   haversineMeters,
   roundLngLatForLiveShare,
 } from "./rideSyncPolicy";
@@ -118,6 +119,7 @@ export type LiveLocationPublishThrottleState = {
   routeWriteAt: number;
   routeRatio: number;
   routeDistM: number;
+  motionWriteAt: number;
 };
 
 export function createLiveLocationPublishThrottleState(): LiveLocationPublishThrottleState {
@@ -127,6 +129,7 @@ export function createLiveLocationPublishThrottleState(): LiveLocationPublishThr
     routeWriteAt: 0,
     routeRatio: -1,
     routeDistM: -1,
+    motionWriteAt: 0,
   };
 }
 
@@ -153,6 +156,16 @@ export function shouldPublishRouteProgress(
 ): boolean {
   if (state.routeWriteAt === 0) return true;
   return now - state.routeWriteAt >= TRAIL_LIVE_PROGRESS_HEARTBEAT_MS;
+}
+
+/** 5Hz — RTDB motion (Firestore 와 분리) */
+export function shouldPublishPeerMotion(now: number, state: LiveLocationPublishThrottleState): boolean {
+  if (state.motionWriteAt === 0) return true;
+  return now - state.motionWriteAt >= PEER_MOTION_PUBLISH_INTERVAL_MS;
+}
+
+export function markPeerMotionPublished(state: LiveLocationPublishThrottleState, now: number): void {
+  state.motionWriteAt = now;
 }
 
 export function markGlobalPresencePublished(

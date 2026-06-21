@@ -27,6 +27,9 @@ export const TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS = 30_000;
 /** Trail `livePublicationRides` — 1Hz 절대 dist+speed 하트비트 (수신 측 보간용) */
 export const TRAIL_LIVE_PROGRESS_HEARTBEAT_MS = 1_000;
 
+/** P1 RTDB `/trails/{trailId}/motion/{uid}` — 5Hz motion publish */
+export const PEER_MOTION_PUBLISH_INTERVAL_MS = 200;
+
 /** @deprecated heartbeat 와 동일 — 호환 alias */
 export const TRAIL_LIVE_PROGRESS_MIN_WRITE_MS = TRAIL_LIVE_PROGRESS_HEARTBEAT_MS;
 
