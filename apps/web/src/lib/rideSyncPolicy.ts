@@ -42,6 +42,9 @@ export const PEER_LIVE_RIDE_COMPLETED_VISIBLE_MS = 15_000;
 /** 완주 final burst — Firestore 삭제 전 대기 */
 export const PEER_LIVE_RIDE_FINAL_BURST_MS = 3_000;
 
+/** 마지막 패킷 이후 송신 speedMps 로 rAF 전진 허용(ms) — heartbeat + 네트워크 여유 */
+export const PEER_SPEED_EXTRAP_MAX_MS = TRAIL_LIVE_PROGRESS_HEARTBEAT_MS + 600;
+
 /** Trail `livePublicationRides`: 진행률 변화가 이 값 이상일 때만 의미 있는 변화로 간주 */
 export const TRAIL_LIVE_PROGRESS_MIN_DELTA = 0.005;
 
