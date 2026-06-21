@@ -1058,23 +1058,6 @@ function getReducedMotionServerSnapshot(): boolean {
 }
 
 
-/** 같은 코스를 주행 중인 다른 사용자 — `MapView` 에서는 Mapbox `Marker`(DOM)로 표시 */
-export type MapPeerMarker = {
-  id: string;
-  label?: string | null;
-  /** geometry 위 주행 거리(m) — 우선 */
-  distMeters?: number | null;
-  /** Firestore lastSeenAt ms — peer 외삽 기준 */
-  sampleAtMs?: number | null;
-  /** distMeters 없을 때 폴백 */
-  progressRatio?: number;
-  /** progress·dist 모두 없을 때 폴백 */
-  lngLat?: LngLat;
-  /** m/s — 송신 측 속도 */
-  speedMps?: number | null;
-  ridePhase?: "live" | "paused" | "completed" | null;
-};
-
 /** 가상 주행 세션과 연동해 페달 루프 주기·재생 여부를 맞춘다 */
 export type LiveRiderMotion = {
   sessionStatus: "running" | "paused";
@@ -1145,8 +1128,6 @@ export type MapViewProps = {
   liveRiderMotion?: LiveRiderMotion | null;
   /** 주행 중 내 머리 위 표시(닉네임·guest1 등). 없으면 태그 숨김 */
   liveRiderNametag?: string | null;
-  /** 입문 코스 동행 등: 다른 라이더 위치 */
-  peerMarkers?: MapPeerMarker[];
   mapStyle: string;
   mapZoom: number;
   followMode: FollowMode;
@@ -1208,7 +1189,6 @@ export function MapView({
   sampleLiveLngLat,
   liveRiderMotion,
   liveRiderNametag,
-  peerMarkers: _peerMarkers,
   mapStyle,
   mapZoom,
   followMode,

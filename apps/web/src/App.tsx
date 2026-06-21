@@ -1,6 +1,6 @@
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import { PublicationSharedPresence } from "./components/PublicationSharedPresence";
-import type { MapPeerMarker } from "./components/MapView";
+import { peerHudLabels, type PeerHudEntry } from "./lib/peerHud";
 import { SignUpNicknameCard } from "./components/SignUpNicknameCard";
 import { RideRoutePanel, type FollowMode } from "./components/RideRoutePanel";
 import { PublicRouteRequestModal } from "./components/PublicRouteRequestModal";
@@ -225,7 +225,7 @@ export default function App() {
   const [activeOfficialCourseId, setActiveOfficialCourseId] = useState<string | null>(null);
   const activeOfficialCourseIdRef = useRef<string | null>(null);
   activeOfficialCourseIdRef.current = activeOfficialCourseId;
-  const [coursePeerMarkers, setCoursePeerMarkers] = useState<MapPeerMarker[]>([]);
+  const [coursePeerHud, setCoursePeerHud] = useState<PeerHudEntry[]>([]);
   /** 입문 허브 동행에서 계산된 내 네임태그(없으면 단독 주행용 표시로 대체) */
   const [liveRiderNametag, setLiveRiderNametag] = useState<string | null>(null);
   /** 로그인(게스트 포함) 세션 동안 Trailhead presence·관전 항상 on — Trailhead 진입·이탈 토글 없음 */
@@ -621,8 +621,8 @@ export default function App() {
     void refreshPublishedPublicCourseCatalog();
   }, [refreshPublishedPublicCourseCatalog]);
 
-  const onCoursePeersChange = useCallback((next: MapPeerMarker[]) => {
-    setCoursePeerMarkers(next);
+  const onCoursePeerHudChange = useCallback((next: PeerHudEntry[]) => {
+    setCoursePeerHud(next);
   }, []);
 
   /** 입문 허브·퍼블릭 등 공식 코스 동행 presence — publish·필터 publicationId 와 동일 기준 */
@@ -723,7 +723,7 @@ export default function App() {
 
   /** 코스 id 가 바뀌거나 빠질 때마다 비움 — 다른 코스로 바꿀 때 이전 동행 마커가 남지 않게 함 */
   useEffect(() => {
-    startTransition(() => setCoursePeerMarkers([]));
+    startTransition(() => setCoursePeerHud([]));
   }, [sharedPresenceCourseId]);
 
   useEffect(() => {
@@ -1257,9 +1257,7 @@ export default function App() {
     const courseTitle = sharedPresenceCourseId
       ? (sharedPresenceCourseTitle?.trim() || "공식 경로")
       : null;
-    const coursePeerNames = coursePeerMarkers
-      .map((p) => (p.label ?? "동행").trim())
-      .filter((n) => n.length > 0);
+    const coursePeerNames = peerHudLabels(coursePeerHud);
     const trailMembers = trailSession.rows.map((r) => ({
       key: r.uid,
       display: r.displayName?.trim() || r.uid.slice(0, 8),
@@ -1290,7 +1288,7 @@ export default function App() {
     trailSession.error,
     sharedPresenceCourseId,
     sharedPresenceCourseTitle,
-    coursePeerMarkers,
+    coursePeerHud,
     courseActivity,
   ]);
 
@@ -1757,7 +1755,7 @@ export default function App() {
           title={sharedPresenceCourseTitle}
           isRiding={rideStatus === "running"}
           rideSessionActive={rideStatus === "running" || rideStatus === "paused"}
-          onPeersChange={onCoursePeersChange}
+          onPeerHudChange={onCoursePeerHudChange}
           onLiveRiderNametagChange={setLiveRiderNametag}
         />
       ) : null}

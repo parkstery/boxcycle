@@ -15,27 +15,17 @@ import {
 } from "../lib/firestoreTrailLivePublicationRides";
 import { acquireTrailLivePublicationRidesSubscription } from "../lib/livePublicationRidesSubscriptionHub";
 import { sanitizeTrailId } from "../lib/firestoreTrail";
-import type { MapPeerMarker } from "./MapView";
 import { TRAIL_PRESENCE_STALE_MS } from "../lib/firestoreTrail";
 import {
   COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS,
   COURSE_PRESENCE_HEARTBEAT_PAUSED_MS,
-  PEER_DRIVE_SIM_GRACE_MS,
   PEER_LIVE_RIDE_STALE_MS,
 } from "../lib/rideSyncPolicy";
 import { mapNametagForMember, sortedGuestUids } from "../lib/guestNametag";
 import { getPeerMotionRegistry, resetPeerMotionRegistry, trailLiveRowToPeerMotionPacket } from "../lib/peerMotion";
+import { peerHudStableKey, type PeerHudEntry } from "../lib/peerHud";
 import { useDocumentVisibility } from "../hooks/useDocumentVisibility";
 import "./trail/TrailheadPresence.css";
-
-/** HUD 전용 — motion 은 Registry ingest, React setState 에 dist/speed 를 넣지 않음 */
-function peerHudStableKey(peers: MapPeerMarker[] | undefined): string {
-  if (!peers?.length) return "";
-  return peers
-    .map((p) => `${p.id}:${p.label ?? ""}`)
-    .sort()
-    .join("|");
-}
 
 type PublicationSharedPresenceProps = {
   user: User;
@@ -45,7 +35,7 @@ type PublicationSharedPresenceProps = {
   isRiding: boolean;
   /** running 또는 paused — heartbeat 주기만 조절 */
   rideSessionActive: boolean;
-  onPeersChange?: (peers: MapPeerMarker[]) => void;
+  onPeerHudChange?: (peers: PeerHudEntry[]) => void;
   onLiveRiderNametagChange?: (nametag: string | null) => void;
   /** false — 동행 동기화만, 패널 미표시(모바일) */
   showPanel?: boolean;
@@ -58,7 +48,7 @@ export function PublicationSharedPresence({
   title,
   isRiding,
   rideSessionActive,
-  onPeersChange,
+  onPeerHudChange,
   onLiveRiderNametagChange,
   showPanel = false,
 }: PublicationSharedPresenceProps) {
@@ -67,12 +57,9 @@ export function PublicationSharedPresence({
   const [liveRideRows, setLiveRideRows] = useState<TrailLivePublicationRideRow[]>([]);
   const [peerVisibilityTick, setPeerVisibilityTick] = useState(0);
   const [presenceError, setPresenceError] = useState<string | null>(null);
-  const onPeersChangeRef = useRef(onPeersChange);
+  const onPeerHudChangeRef = useRef(onPeerHudChange);
   const onLiveTagRef = useRef(onLiveRiderNametagChange);
   const userRef = useRef(user);
-  const stickyPeersRef = useRef(
-    new Map<string, { row: TrailLivePublicationRideRow; lastLocalMs: number }>(),
-  );
   userRef.current = user;
   onLiveTagRef.current = onLiveRiderNametagChange;
 
@@ -83,19 +70,18 @@ export function PublicationSharedPresence({
   }, []);
 
   useEffect(() => {
-    onPeersChangeRef.current = onPeersChange;
-  }, [onPeersChange]);
+    onPeerHudChangeRef.current = onPeerHudChange;
+  }, [onPeerHudChange]);
 
   useEffect(() => {
     return () => {
-      onPeersChangeRef.current?.([]);
+      onPeerHudChangeRef.current?.([]);
       resetPeerMotionRegistry();
     };
   }, []);
 
   useEffect(() => {
     resetPeerMotionRegistry();
-    stickyPeersRef.current.clear();
   }, [publicationId]);
 
   useEffect(() => {
@@ -205,32 +191,26 @@ export function PublicationSharedPresence({
     [rows],
   );
 
+  /** Firestore 구독 행 — sim ingest 는 stale 여부와 무관, HUD 만 visibility 판단 */
   const liveRidesByUid = useMemo(() => {
     const m = new Map<string, TrailLivePublicationRideRow>();
     const pid = publicationId.trim();
-    const now = Date.now();
-    const sticky = stickyPeersRef.current;
-
     for (const row of liveRideRows) {
       if (row.uid === user.uid) continue;
       if (row.publicationId.trim() !== pid) continue;
-      sticky.set(row.uid, { row, lastLocalMs: now });
-      if (isTrailLivePublicationRideRowPeerVisible(row, now)) {
-        m.set(row.uid, row);
-      }
+      m.set(row.uid, row);
     }
-
-    for (const [uid, entry] of sticky) {
-      if (m.has(uid)) continue;
-      if (now - entry.lastLocalMs > PEER_DRIVE_SIM_GRACE_MS) {
-        sticky.delete(uid);
-        continue;
-      }
-      m.set(uid, entry.row);
-    }
-
     return m;
-  }, [liveRideRows, publicationId, user.uid, peerVisibilityTick]);
+  }, [liveRideRows, publicationId, user.uid]);
+
+  const peerVisibleByUid = useMemo(() => {
+    const now = Date.now();
+    const m = new Map<string, boolean>();
+    for (const [uid, row] of liveRidesByUid) {
+      m.set(uid, isTrailLivePublicationRideRowPeerVisible(row, now));
+    }
+    return m;
+  }, [liveRidesByUid, peerVisibilityTick]);
 
   const guestUidsSorted = useMemo(() => {
     const picks = active.map((r) => ({ uid: r.uid, memberType: r.memberType }));
@@ -278,27 +258,29 @@ export function PublicationSharedPresence({
     registry.markActiveUids(activeUids);
   }, [liveRidesByUid, sessionByUid, guestUidsSorted, publicationId]);
 
-  const peerHudMarkers = useMemo((): MapPeerMarker[] => {
-    return [...liveRidesByUid.keys()].map((uid) => {
-      const live = liveRidesByUid.get(uid)!;
-      const member = sessionByUid.get(uid);
-      const label = member
-        ? mapNametagForMember(uid, member.memberType, member.displayName, guestUidsSorted)
-        : live.displayName?.trim() || uid.slice(0, 6);
-      return { id: uid, label };
-    });
-  }, [liveRidesByUid, sessionByUid, guestUidsSorted]);
+  const peerHudEntries = useMemo((): PeerHudEntry[] => {
+    return [...liveRidesByUid.keys()]
+      .filter((uid) => peerVisibleByUid.get(uid))
+      .map((uid) => {
+        const live = liveRidesByUid.get(uid)!;
+        const member = sessionByUid.get(uid);
+        const label = member
+          ? mapNametagForMember(uid, member.memberType, member.displayName, guestUidsSorted)
+          : live.displayName?.trim() || uid.slice(0, 6);
+        return { id: uid, label };
+      });
+  }, [liveRidesByUid, peerVisibleByUid, sessionByUid, guestUidsSorted]);
 
-  const lastPeersKeyRef = useRef<string>("__init__");
+  const lastPeerHudKeyRef = useRef<string>("__init__");
 
   useEffect(() => {
-    const cb = onPeersChangeRef.current;
+    const cb = onPeerHudChangeRef.current;
     if (!cb) return;
-    const nextKey = peerHudStableKey(peerHudMarkers);
-    if (nextKey === lastPeersKeyRef.current) return;
-    lastPeersKeyRef.current = nextKey;
-    cb(peerHudMarkers);
-  }, [peerHudMarkers]);
+    const nextKey = peerHudStableKey(peerHudEntries);
+    if (nextKey === lastPeerHudKeyRef.current) return;
+    lastPeerHudKeyRef.current = nextKey;
+    cb(peerHudEntries);
+  }, [peerHudEntries]);
 
   if (!showPanel) return null;
 
@@ -332,7 +314,7 @@ export function PublicationSharedPresence({
             <li key={r.uid}>
               {mapNametagForMember(r.uid, r.memberType, r.displayName, guestUidsSorted)}
               {r.uid === user.uid ? <span className="trailhead-presence__you"> (나)</span> : null}
-              {liveRidesByUid.has(r.uid) ? (
+              {peerVisibleByUid.get(r.uid) ? (
                 <span className="trailhead-presence__live-dot"> · 지도 공유 중</span>
               ) : null}
             </li>

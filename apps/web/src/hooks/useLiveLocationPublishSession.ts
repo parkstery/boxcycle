@@ -113,22 +113,31 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
     const attempt = async (): Promise<boolean> => {
       const u = userRef.current;
       if (!u || !flagsRef.current.pageVisible) return false;
+      const { globalEnabled: ge, routeEnabled: re } = flagsRef.current;
+      if (!ge && !re) return false;
+
       const snapshot = buildLiveLocationSnapshot(inputRef.current);
-      if (!snapshot?.routeReady) return false;
+      if (!snapshot) return false;
+      if (re && !snapshot.routeReady) return false;
+
       try {
-        await flushRideJoinPresenceBurst(u, snapshot);
-        if (flagsRef.current.globalEnabled) {
+        if (re) {
+          await flushRideJoinPresenceBurst(u, snapshot);
+        }
+        if (ge) {
           await mergeGlobalLivePresence(u, snapshot.lngLat);
         }
         if (cancelled) return false;
         const now = Date.now();
-        markRouteProgressPublished(
-          throttleRef.current,
-          now,
-          snapshot.progressRatio,
-          snapshot.distMetersAlongRoute,
-        );
-        if (flagsRef.current.globalEnabled) {
+        if (re) {
+          markRouteProgressPublished(
+            throttleRef.current,
+            now,
+            snapshot.progressRatio,
+            snapshot.distMetersAlongRoute,
+          );
+        }
+        if (ge) {
           markGlobalPresencePublished(throttleRef.current, now, snapshot.lngLat);
         }
         joinBurstDoneNonceRef.current = joinBurstNonce;
