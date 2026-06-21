@@ -16,6 +16,7 @@ import { AppMapStage, useAppMapOverlays } from "./features/map-overlays";
 import { DebugMapStage } from "./features/map-overlays/DebugMapStage";
 import type { MapViewportBounds } from "./lib/activityWorldLod";
 import { MAP_ZOOM_WORLD_ACTIVITY_MAX, MAP_PEER_SPRITE_MIN_ZOOM } from "./lib/rideSyncPolicy";
+import { armPostRideActivityWatch } from "./lib/activityWorldPollSignals";
 import { RIDE_FOLLOW_CAMERA_MODE, RIDE_FOLLOW_CAMERA_ZOOM } from "./lib/mapGlobeView";
 import { rideDistanceAlongRoute } from "./lib/liveLocationSnapshot";
 import { AuthGateCard, AuthGoogleMark } from "./components/AuthGateCard";
@@ -437,13 +438,15 @@ export default function App() {
   const applyRideCompletedOptimisticRef = useRef<() => void>(() => {});
   const [activityMapRefreshNonce, setActivityMapRefreshNonce] = useState(0);
   const onRideEndedWithCourse = useCallback((_courseId: string) => {
+    armPostRideActivityWatch();
     applyRideCompletedOptimisticRef.current();
     invalidateLiveRouteActivityIdsCache();
-    reloadCourseActivityRef.current({ forceInvalidate: false });
+    reloadCourseActivityRef.current({ forceInvalidate: true });
     setActivityMapRefreshNonce((n) => n + 1);
   }, []);
   const onRidePersistedToFirestore = useCallback((courseId: string | null) => {
     if (courseId?.trim()) {
+      armPostRideActivityWatch();
       applyRideCompletedOptimisticRef.current();
       invalidateLiveRouteActivityIdsCache();
       setActivityMapRefreshNonce((n) => n + 1);

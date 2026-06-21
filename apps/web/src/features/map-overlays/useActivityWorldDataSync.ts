@@ -6,6 +6,7 @@ import {
 } from "../../lib/activityWorldPollPolicy";
 import {
   getActivityWorldPollSignals,
+  isPostRideActivityWatchActive,
   reportActivityWorldPollSignals,
 } from "../../lib/activityWorldPollSignals";
 import {
@@ -130,7 +131,7 @@ export function useActivityWorldDataSync(opts: UseActivityWorldDataSyncOpts): Ac
   useActivityWorldAdaptivePoll({
     enabled,
     selfRideActive,
-    onTick: () => runFullSyncRef.current(false),
+    onTick: () => runFullSyncRef.current(isPostRideActivityWatchActive()),
     resolveModeAfterTick: () =>
       isActivityLodDebugPanelEnabled()
         ? "active"

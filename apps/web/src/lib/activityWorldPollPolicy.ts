@@ -10,10 +10,12 @@ export type ActivityWorldPollModeInput = {
   selfRideActive: boolean;
   worldLivePulseCount: number;
   lastBatchLiveCount: number;
+  postRideWatchActive?: boolean;
 };
 
 export function resolveActivityWorldPollMode(input: ActivityWorldPollModeInput): ActivityWorldPollMode {
   if (input.selfRideActive) return "active";
+  if (input.postRideWatchActive) return "active";
   if (input.worldLivePulseCount > 0) return "active";
   if (input.lastBatchLiveCount > 0) return "active";
   return "idle";
@@ -54,6 +56,16 @@ export function runActivityWorldPollPolicyChecks(): void {
   }
   if (resolveActivityWorldPollMode({ selfRideActive: false, worldLivePulseCount: 0, lastBatchLiveCount: 0 }) !== "idle") {
     throw new Error("[ActivityWorldPoll] all zero must be idle");
+  }
+  if (
+    resolveActivityWorldPollMode({
+      selfRideActive: false,
+      worldLivePulseCount: 0,
+      lastBatchLiveCount: 0,
+      postRideWatchActive: true,
+    }) !== "active"
+  ) {
+    throw new Error("[ActivityWorldPoll] postRideWatchActive must force active");
   }
   if (activityWorldPollIntervalMs("idle") !== ACTIVITY_WORLD_POLL_IDLE_MS) {
     throw new Error("[ActivityWorldPoll] idle interval mismatch");

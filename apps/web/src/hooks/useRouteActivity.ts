@@ -7,7 +7,7 @@ import {
   type RouteActivitySnapshot,
 } from "../lib/firestoreRouteActivity";
 import { resolveActivityWorldPollMode } from "../lib/activityWorldPollPolicy";
-import { getActivityWorldPollSignals } from "../lib/activityWorldPollSignals";
+import { getActivityWorldPollSignals, isPostRideActivityWatchActive } from "../lib/activityWorldPollSignals";
 import { useActivityWorldAdaptivePoll } from "./useActivityWorldAdaptivePoll";
 
 export type UseRouteActivityOptions = {
@@ -66,7 +66,7 @@ export function useRouteActivity(options: UseRouteActivityOptions) {
   useActivityWorldAdaptivePoll({
     enabled,
     selfRideActive,
-    onTick: () => reloadRef.current({ forceInvalidate: false }),
+    onTick: () => reloadRef.current({ forceInvalidate: isPostRideActivityWatchActive() }),
     resolveModeAfterTick: () =>
       resolveActivityWorldPollMode({
         ...getActivityWorldPollSignals(),

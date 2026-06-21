@@ -64,6 +64,9 @@ export const ACTIVITY_WORLD_POLL_ACTIVE_MS = 60_000;
 /** WO-A adaptive — live 없음 idle */
 export const ACTIVITY_WORLD_POLL_IDLE_MS = 600_000;
 
+/** 주행 종료 후 peer 완주·heat 반영 대기 — active poll 유지 */
+export const ACTIVITY_WORLD_POST_RIDE_WATCH_MS = 900_000;
+
 /**
  * @deprecated WO-A `ACTIVITY_WORLD_POLL_*` adaptive 사용. 호환 alias(active).
  */
