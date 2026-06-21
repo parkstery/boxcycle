@@ -34,6 +34,8 @@ export type PeerDriveSimState = {
   target: LngLat;
   /** 마지막 수신 거리 앵커(m) */
   anchorDistM: number;
+  /** rAF 표시 거리 — anchor 외삽 목표를 부드럽게 추적 */
+  displayDistM: number;
   /** 앵커 수신 시각 — 서버 lastSeenAt 우선 */
   sampleAtMs: number;
   /** m/s — 샘플 간 EMA */
@@ -48,6 +50,10 @@ const SPEED_MPS_EMA = 0.42;
 const DIST_EPS_M = 0.25;
 const DEFAULT_SPEED_MPS = PEER_EXTRAP_DEFAULT_SPEED_KMH / 3.6;
 const MAX_SPEED_MPS = 85 / 3.6;
+/** route peer — Firestore 패킷 간 표시 거리 스무딩 */
+const ROUTE_DIST_LERP_TAU_SEC = 0.48;
+const ROUTE_DIST_SNAP_EPS_M = 0.12;
+const ROUTE_DIST_MAX_CATCHUP_MPS = 14;
 
 function clampDist(distM: number, routeLenM: number): number {
   if (!Number.isFinite(distM)) return 0;
@@ -107,6 +113,16 @@ function extrapolatePeerDistM(s: PeerDriveSimState, nowMs: number): number {
   return clampDist(s.anchorDistM + peerExtrapSpeedMps(s) * elapsedSec, s.routeLenM);
 }
 
+function stepRouteDisplayDistM(s: PeerDriveSimState, targetDistM: number, dtSec: number): number {
+  const err = targetDistM - s.displayDistM;
+  if (Math.abs(err) < ROUTE_DIST_SNAP_EPS_M) return targetDistM;
+  const alpha = ROUTE_DIST_LERP_TAU_SEC > 0 ? 1 - Math.exp(-dtSec / ROUTE_DIST_LERP_TAU_SEC) : 1;
+  let step = err * alpha;
+  const maxStep = ROUTE_DIST_MAX_CATCHUP_MPS * dtSec;
+  if (Math.abs(step) > maxStep) step = Math.sign(step) * maxStep;
+  return clampDist(s.displayDistM + step, s.routeLenM);
+}
+
 export function mergePeerTargets(
   sim: Map<string, PeerDriveSimState>,
   peers: MapPeerInput[],
@@ -141,6 +157,7 @@ export function mergePeerTargets(
           pos,
           target: pos,
           anchorDistM: distM,
+          displayDistM: distM,
           sampleAtMs,
           speedMps: DEFAULT_SPEED_MPS,
           routeLenM,
@@ -155,6 +172,7 @@ export function mergePeerTargets(
           pos: t.lngLat,
           target: t.lngLat,
           anchorDistM: 0,
+          displayDistM: 0,
           sampleAtMs,
           speedMps: 0,
           routeLenM: 0,
@@ -229,12 +247,13 @@ export function stepPeerDriveAndBuildGeoJson(
 
   for (const [id, s] of sim) {
     if (s.mode === "route" && routeGeometry && s.routeLenM > 0) {
-      const distM = extrapolatePeerDistM(s, nowMs);
-      const pos = pointOnRouteDistM(routeGeometry, distM);
+      const targetDistM = extrapolatePeerDistM(s, nowMs);
+      s.displayDistM = stepRouteDisplayDistM(s, targetDistM, clampedDt);
+      const pos = pointOnRouteDistM(routeGeometry, s.displayDistM);
       if (pos) {
         s.pos = pos;
         s.target = pos;
-        const h = headingOnRouteDistM(routeGeometry, distM);
+        const h = headingOnRouteDistM(routeGeometry, s.displayDistM);
         if (h !== 0 || s.emaSpeedKmh > 0.38) s.hdg = h;
       }
     } else {
