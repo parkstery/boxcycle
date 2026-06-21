@@ -7,7 +7,6 @@ import {
   lineStringLengthMeters,
 } from "./geo";
 import { progressRatioToRouteDistanceMeters } from "./liveLocationSnapshot";
-import { PEER_EXTRAP_DEFAULT_SPEED_KMH } from "./rideSyncPolicy";
 import type { TrailLiveRidePhase } from "./firestoreTrailLivePublicationRides";
 import { estimateCrankRpmFromSpeedKmh } from "./riderPedalMotion";
 import { PEER_RIDER_PEDAL_FRAME_COUNT } from "./registerPeerRiderPedalSprites";
@@ -17,52 +16,42 @@ export type MapPeerInput = {
   label?: string | null;
   /** geometry 위 주행 거리(m) — 우선 */
   distMeters?: number | null;
-  /** Firestore lastSeenAt ms — 외삽 기준 시각 */
+  /** Firestore lastSeenAt ms — stale 판정용 (보간 시각은 수신 시각) */
   sampleAtMs?: number | null;
   /** distMeters 없을 때 폴백 */
   progressRatio?: number;
   /** progress·dist 모두 없을 때 폴백 */
   lngLat?: LngLat;
-  /** m/s — 송신 측 속도 */
+  /** m/s — 페달·표시용 (위치는 distMeters 보간만 사용) */
   speedMps?: number | null;
   ridePhase?: TrailLiveRidePhase | null;
 };
 
-type RouteSample = { distM: number; tMs: number; speedMps: number };
+/** 클라이언트 수신 시각 기준 — server lastSeenAt 과 rAF 시계 혼용 방지 */
+type RouteSample = { distM: number; receivedAtMs: number; speedMps: number };
 
 export type PeerDriveSimState = {
   label: string;
   hdg: number;
   phaseRev: number;
-  emaSpeedKmh: number;
+  /** 페달 RPM 추정용 — 위치와 분리 */
+  pedalSpeedKmh: number;
   mode: "route" | "coords";
   pos: LngLat;
   target: LngLat;
-  /** 마지막 수신 거리 앵커(m) */
-  anchorDistM: number;
-  /** rAF 표시 거리 — 보간 목표를 부드럽게 추적 */
-  displayDistM: number;
-  /** 앵커 수신 시각 — 서버 lastSeenAt 우선 */
-  sampleAtMs: number;
-  /** m/s — 최근 패킷 속도 */
-  speedMps: number;
   routeLenM: number;
-  /** 최근 2개 route 샘플 — 선형 보간 */
+  /** 최근 2개 — receivedAtMs 사이 선형 보간, extrapolation 없음 */
   samples: RouteSample[];
   ridePhase: TrailLiveRidePhase;
+  /** Firestore lastSeenAt — 동일 패킷 중복 ingest 방지 */
+  lastServerAtMs: number;
 };
 
 const PEER_MAX = 30;
 const COORD_LERP_TAU_SEC = 0.34;
-const SPEED_EMA = 0.5;
-const DIST_EPS_M = 0.25;
-const DEFAULT_SPEED_MPS = PEER_EXTRAP_DEFAULT_SPEED_KMH / 3.6;
+const PEDAL_SPEED_EMA = 0.35;
+const DIST_EPS_M = 0.2;
 const MAX_SPEED_MPS = 85 / 3.6;
-const MAX_EXTRAP_AFTER_LAST_SAMPLE_SEC = 2;
-/** route peer — Firestore 패킷 간 표시 거리 스무딩 */
-const ROUTE_DIST_LERP_TAU_SEC = 0.32;
-const ROUTE_DIST_SNAP_EPS_M = 0.12;
-const ROUTE_DIST_MAX_CATCHUP_MPS = 18;
 
 function clampDist(distM: number, routeLenM: number): number {
   if (!Number.isFinite(distM)) return 0;
@@ -71,7 +60,7 @@ function clampDist(distM: number, routeLenM: number): number {
 }
 
 function capSpeedMps(v: number): number {
-  if (!Number.isFinite(v)) return DEFAULT_SPEED_MPS;
+  if (!Number.isFinite(v)) return 0;
   return Math.max(0, Math.min(MAX_SPEED_MPS, v));
 }
 
@@ -109,66 +98,69 @@ function headingOnRouteDistM(geometry: LineStringGeometry, distM: number): numbe
   return headingAtRouteDistanceMeters(geometry, distM) ?? 0;
 }
 
+/** 단조 dist — 역전·튐 방지 */
 function pushRouteSample(samples: RouteSample[], sample: RouteSample): void {
   const last = samples[samples.length - 1];
-  if (last && last.tMs === sample.tMs && Math.abs(last.distM - sample.distM) < DIST_EPS_M) {
-    last.speedMps = sample.speedMps;
-    return;
+  if (last) {
+    if (sample.distM < last.distM - DIST_EPS_M) return;
+    if (
+      Math.abs(sample.distM - last.distM) < DIST_EPS_M &&
+      sample.receivedAtMs - last.receivedAtMs < 80
+    ) {
+      last.speedMps = sample.speedMps;
+      return;
+    }
   }
-  if (last && sample.tMs < last.tMs) return;
   samples.push(sample);
   while (samples.length > 2) samples.shift();
 }
 
+/**
+ * 두 수신 샘플 사이만 선형 보간. 마지막 샘플 이후 extrapolation 없음 → 느림/빠름 반복 제거.
+ */
 function routeDistFromSamples(
   samples: RouteSample[],
   ridePhase: TrailLiveRidePhase,
   routeLenM: number,
   nowMs: number,
 ): number {
-  if (ridePhase === "completed" || ridePhase === "paused") {
-    const s = samples[samples.length - 1];
-    return s ? clampDist(s.distM, routeLenM) : 0;
-  }
   if (samples.length === 0) return 0;
+  const last = samples[samples.length - 1]!;
+
+  if (ridePhase === "completed" || ridePhase === "paused") {
+    return clampDist(last.distM, routeLenM);
+  }
+
   if (samples.length === 1) {
-    const s = samples[0];
-    const speed = s.speedMps > 0.02 ? s.speedMps : DEFAULT_SPEED_MPS;
-    const elapsed = Math.max(0, (nowMs - s.tMs) / 1000);
-    return clampDist(
-      s.distM + speed * Math.min(elapsed, MAX_EXTRAP_AFTER_LAST_SAMPLE_SEC),
-      routeLenM,
-    );
+    return clampDist(last.distM, routeLenM);
   }
+
   const [a, b] = samples;
-  if (nowMs <= a.tMs) return clampDist(a.distM, routeLenM);
-  if (nowMs >= b.tMs) {
-    const speed = b.speedMps > 0.02 ? b.speedMps : DEFAULT_SPEED_MPS;
-    const elapsed = (nowMs - b.tMs) / 1000;
-    return clampDist(
-      b.distM + speed * Math.min(Math.max(0, elapsed), MAX_EXTRAP_AFTER_LAST_SAMPLE_SEC),
-      routeLenM,
-    );
-  }
-  const span = b.tMs - a.tMs;
-  const u = span > 0 ? (nowMs - a.tMs) / span : 1;
+  if (nowMs <= a.receivedAtMs) return clampDist(a.distM, routeLenM);
+  if (nowMs >= b.receivedAtMs) return clampDist(b.distM, routeLenM);
+
+  const span = b.receivedAtMs - a.receivedAtMs;
+  const u = span > 0 ? (nowMs - a.receivedAtMs) / span : 1;
   return clampDist(a.distM + (b.distM - a.distM) * u, routeLenM);
 }
 
-function stepRouteDisplayDistM(s: PeerDriveSimState, targetDistM: number, dtSec: number): number {
-  const err = targetDistM - s.displayDistM;
-  if (Math.abs(err) < ROUTE_DIST_SNAP_EPS_M) return targetDistM;
-  const alpha = ROUTE_DIST_LERP_TAU_SEC > 0 ? 1 - Math.exp(-dtSec / ROUTE_DIST_LERP_TAU_SEC) : 1;
-  let step = err * alpha;
-  const maxStep = ROUTE_DIST_MAX_CATCHUP_MPS * dtSec;
-  if (Math.abs(step) > maxStep) step = Math.sign(step) * maxStep;
-  return clampDist(s.displayDistM + step, s.routeLenM);
+function ingestRouteSample(
+  cur: PeerDriveSimState,
+  distM: number,
+  speedMps: number,
+  ridePhase: TrailLiveRidePhase,
+): void {
+  const receivedAtMs = Date.now();
+  pushRouteSample(cur.samples, { distM, receivedAtMs, speedMps: capSpeedMps(speedMps) });
+  cur.ridePhase = ridePhase;
+  const spdKmh = capSpeedMps(speedMps) * 3.6;
+  cur.pedalSpeedKmh = cur.pedalSpeedKmh * (1 - PEDAL_SPEED_EMA) + spdKmh * PEDAL_SPEED_EMA;
 }
 
 export function mergePeerTargets(
   sim: Map<string, PeerDriveSimState>,
   peers: MapPeerInput[],
-  nowMs: number,
+  _nowMs: number,
   routeGeometry: LineStringGeometry | null = null,
   _routeDistanceMeters = 0,
 ): void {
@@ -181,52 +173,44 @@ export function mergePeerTargets(
     const label = (t.label?.trim() || "동행").slice(0, 48);
     const mode = resolvePeerMode(t, routeGeometry, routeLenM);
     const cur = sim.get(t.id);
-    const sampleAtMs =
-      typeof t.sampleAtMs === "number" && Number.isFinite(t.sampleAtMs) && t.sampleAtMs > 0
-        ? t.sampleAtMs
-        : nowMs;
     const ridePhase: TrailLiveRidePhase = t.ridePhase ?? "live";
 
     if (!cur) {
       if (mode === "route" && routeGeometry && routeLenM > 0) {
         const distM = resolvePeerDistM(t, routeLenM)!;
-        const publishedSpeed =
-          typeof t.speedMps === "number" && Number.isFinite(t.speedMps)
-            ? capSpeedMps(t.speedMps)
-            : DEFAULT_SPEED_MPS;
+        const speedMps =
+          typeof t.speedMps === "number" && Number.isFinite(t.speedMps) ? t.speedMps : 0;
         const pos = pointOnRouteDistM(routeGeometry, distM) ?? [0, 0];
-        sim.set(t.id, {
+        const state: PeerDriveSimState = {
           label,
           hdg: 0,
           phaseRev: 0,
-          emaSpeedKmh: publishedSpeed * 3.6 * 0.5,
+          pedalSpeedKmh: capSpeedMps(speedMps) * 3.6,
           mode: "route",
           pos,
           target: pos,
-          anchorDistM: distM,
-          displayDistM: distM,
-          sampleAtMs,
-          speedMps: publishedSpeed,
           routeLenM,
-          samples: [{ distM, tMs: sampleAtMs, speedMps: publishedSpeed }],
+          samples: [],
           ridePhase,
-        });
+          lastServerAtMs: 0,
+        };
+        ingestRouteSample(state, distM, speedMps, ridePhase);
+        state.lastServerAtMs =
+          typeof t.sampleAtMs === "number" && t.sampleAtMs > 0 ? t.sampleAtMs : Date.now();
+        sim.set(t.id, state);
       } else if (t.lngLat) {
         sim.set(t.id, {
           label,
           hdg: 0,
           phaseRev: 0,
-          emaSpeedKmh: 0,
+          pedalSpeedKmh: 0,
           mode: "coords",
           pos: t.lngLat,
           target: t.lngLat,
-          anchorDistM: 0,
-          displayDistM: 0,
-          sampleAtMs,
-          speedMps: 0,
           routeLenM: 0,
           samples: [],
           ridePhase: "live",
+          lastServerAtMs: 0,
         });
       }
       continue;
@@ -234,36 +218,27 @@ export function mergePeerTargets(
 
     cur.label = label;
     cur.routeLenM = routeLenM;
-    cur.ridePhase = ridePhase;
 
     if (mode === "route" && routeGeometry && routeLenM > 0) {
       cur.mode = "route";
       const nextDistM = resolvePeerDistM(t, routeLenM)!;
       const publishedSpeed =
-        typeof t.speedMps === "number" && Number.isFinite(t.speedMps)
-          ? capSpeedMps(t.speedMps)
-          : null;
-      const prevSample = cur.samples[cur.samples.length - 1];
-      let speedMps = publishedSpeed;
-      if (speedMps == null && prevSample && sampleAtMs > prevSample.tMs) {
-        const dtSec = (sampleAtMs - prevSample.tMs) / 1000;
-        if (dtSec > 0.04) {
-          speedMps = capSpeedMps((nextDistM - prevSample.distM) / dtSec);
-        }
-      }
-      if (speedMps == null) speedMps = cur.speedMps > 0.02 ? cur.speedMps : DEFAULT_SPEED_MPS;
-
-      const distChanged = Math.abs(nextDistM - cur.anchorDistM) > DIST_EPS_M;
-      const timeAdvanced = sampleAtMs > cur.sampleAtMs;
-      if (distChanged || timeAdvanced || ridePhase !== cur.ridePhase) {
-        pushRouteSample(cur.samples, { distM: nextDistM, tMs: sampleAtMs, speedMps });
-        cur.anchorDistM = nextDistM;
-        cur.sampleAtMs = sampleAtMs;
-        cur.speedMps = speedMps;
-        const spdKmh = speedMps * 3.6;
-        cur.emaSpeedKmh = cur.emaSpeedKmh * (1 - SPEED_EMA) + spdKmh * SPEED_EMA;
-      } else if (publishedSpeed != null) {
-        cur.speedMps = publishedSpeed;
+        typeof t.speedMps === "number" && Number.isFinite(t.speedMps) ? t.speedMps : 0;
+      const serverAtMs =
+        typeof t.sampleAtMs === "number" && Number.isFinite(t.sampleAtMs) && t.sampleAtMs > 0
+          ? t.sampleAtMs
+          : 0;
+      const isNewPacket =
+        serverAtMs > cur.lastServerAtMs ||
+        ridePhase !== cur.ridePhase ||
+        Math.abs(nextDistM - (cur.samples[cur.samples.length - 1]?.distM ?? -1)) > DIST_EPS_M;
+      if (isNewPacket) {
+        ingestRouteSample(cur, nextDistM, publishedSpeed, ridePhase);
+        if (serverAtMs > 0) cur.lastServerAtMs = serverAtMs;
+      } else if (publishedSpeed > 0) {
+        cur.pedalSpeedKmh =
+          cur.pedalSpeedKmh * (1 - PEDAL_SPEED_EMA) + capSpeedMps(publishedSpeed) * 3.6 * PEDAL_SPEED_EMA;
+        cur.ridePhase = ridePhase;
       }
       continue;
     }
@@ -272,14 +247,7 @@ export function mergePeerTargets(
     cur.mode = "coords";
     const jumped = getDistanceMeters(cur.target, t.lngLat);
     if (jumped > 0.35) {
-      const dtSec = Math.max(0.04, (nowMs - cur.sampleAtMs) / 1000);
-      const instKmh = (jumped / dtSec) * 3.6;
-      if (Number.isFinite(instKmh)) {
-        cur.emaSpeedKmh =
-          cur.emaSpeedKmh * (1 - SPEED_EMA) + Math.min(85, Math.max(0, instKmh)) * SPEED_EMA;
-      }
       cur.target = t.lngLat;
-      cur.sampleAtMs = nowMs;
     }
   }
 
@@ -293,7 +261,7 @@ export function stepPeerDriveAndBuildGeoJson(
   dtSec: number,
   getBearing: (a: LngLat, b: LngLat) => number,
   routeGeometry: LineStringGeometry | null = null,
-  nowMs = performance.now(),
+  nowMs = Date.now(),
 ): {
   type: "FeatureCollection";
   features: Array<{
@@ -314,20 +282,14 @@ export function stepPeerDriveAndBuildGeoJson(
 
   for (const [id, s] of sim) {
     if (s.mode === "route" && routeGeometry && s.routeLenM > 0) {
-      const targetDistM = routeDistFromSamples(s.samples, s.ridePhase, s.routeLenM, nowMs);
-      s.displayDistM = stepRouteDisplayDistM(s, targetDistM, clampedDt);
-      const pos = pointOnRouteDistM(routeGeometry, s.displayDistM);
+      const distM = routeDistFromSamples(s.samples, s.ridePhase, s.routeLenM, nowMs);
+      const pos = pointOnRouteDistM(routeGeometry, distM);
       if (pos) {
         s.pos = pos;
         s.target = pos;
-        const h = headingOnRouteDistM(routeGeometry, s.displayDistM);
-        const spdKmh =
-          s.ridePhase === "paused" || s.ridePhase === "completed"
-            ? 0
-            : s.speedMps > 0.02
-              ? s.speedMps * 3.6
-              : s.emaSpeedKmh;
-        if (h !== 0 || spdKmh > 0.38) s.hdg = h;
+        const h = headingOnRouteDistM(routeGeometry, distM);
+        const moving = s.ridePhase === "live" && s.pedalSpeedKmh > 0.38;
+        if (h !== 0 || moving) s.hdg = h;
       }
     } else {
       s.pos = interpolatePoint(s.pos, s.target, coordAlpha);
@@ -338,13 +300,7 @@ export function stepPeerDriveAndBuildGeoJson(
     }
 
     const spd =
-      s.ridePhase === "paused" || s.ridePhase === "completed"
-        ? 0
-        : s.emaSpeedKmh > 0.38
-          ? s.emaSpeedKmh
-          : s.speedMps > 0.02
-            ? s.speedMps * 3.6
-            : DEFAULT_SPEED_MPS * 3.6;
+      s.ridePhase === "paused" || s.ridePhase === "completed" ? 0 : s.pedalSpeedKmh;
     if (spd > 0.38) {
       const rpm = estimateCrankRpmFromSpeedKmh(spd);
       s.phaseRev += (rpm / 60) * clampedDt;

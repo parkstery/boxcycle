@@ -24,11 +24,14 @@ export const COURSE_PRESENCE_HEARTBEAT_PAUSED_MS = 180_000;
 /** Trail 멤버 하트비트 — 포그라운드(탭 숨김 시 구독 자체 해제로 백그라운드 쓰기 없음) */
 export const TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS = 30_000;
 
-/** Trail `livePublicationRides` 진행률: 최소 쓰기 간격 */
-export const TRAIL_LIVE_PROGRESS_MIN_WRITE_MS = 1_000;
+/** Trail `livePublicationRides` — 1Hz 절대 dist+speed 하트비트 (수신 측 보간용) */
+export const TRAIL_LIVE_PROGRESS_HEARTBEAT_MS = 1_000;
 
-/** Trail `livePublicationRides` 진행률: 최대 간격(강제 1회 플러시) */
-export const TRAIL_LIVE_PROGRESS_MAX_WRITE_MS = 2_000;
+/** @deprecated heartbeat 와 동일 — 호환 alias */
+export const TRAIL_LIVE_PROGRESS_MIN_WRITE_MS = TRAIL_LIVE_PROGRESS_HEARTBEAT_MS;
+
+/** @deprecated heartbeat 와 동일 — 호환 alias */
+export const TRAIL_LIVE_PROGRESS_MAX_WRITE_MS = TRAIL_LIVE_PROGRESS_HEARTBEAT_MS;
 
 /** 동행 peer 맵 — live 패킷 fresh 기준(ms). TRAIL_PRESENCE_STALE_MS(240s) 와 분리 */
 export const PEER_LIVE_RIDE_STALE_MS = 4_000;
@@ -42,8 +45,8 @@ export const PEER_LIVE_RIDE_FINAL_BURST_MS = 3_000;
 /** Trail `livePublicationRides`: 진행률 변화가 이 값 이상일 때만 의미 있는 변화로 간주 */
 export const TRAIL_LIVE_PROGRESS_MIN_DELTA = 0.005;
 
-/** Trail `livePublicationRides`: geometry 거리(m) 변화가 이 값 이상일 때 publish */
-export const TRAIL_LIVE_PROGRESS_MIN_DIST_DELTA_M = 1.5;
+/** Trail `livePublicationRides`: geometry 거리(m) 변화 — heartbeat 외 조기 publish 는 사용 안 함 */
+export const TRAIL_LIVE_PROGRESS_MIN_DIST_DELTA_M = 0;
 
 /** 동행 peer 외삽 — 샘플 간격 속도 미상일 때 가정 km/h (가상 주행 기본) */
 export const PEER_EXTRAP_DEFAULT_SPEED_KMH = 5;

@@ -1570,7 +1570,7 @@ export function MapView({
       mergePeerTargets(
         peerDriveSimRef.current,
         latestPeerMarkersRef.current,
-        performance.now(),
+        Date.now(),
         routeGeometryRef.current,
         routeDistanceMetersRef.current,
       );
@@ -1995,7 +1995,7 @@ export function MapView({
     mergePeerTargets(
       peerDriveSimRef.current,
       peerMarkers ?? [],
-      performance.now(),
+      Date.now(),
       routeGeometryRef.current,
       routeDistanceMetersRef.current,
     );
@@ -2049,7 +2049,7 @@ export function MapView({
       mergePeerTargets(
         peerDriveSimRef.current,
         latestPeerMarkersRef.current,
-        now,
+        Date.now(),
         routeGeometryRef.current,
         routeDistanceMetersRef.current,
       );
@@ -2058,7 +2058,7 @@ export function MapView({
         dt,
         getBearing,
         routeGeometryRef.current,
-        now,
+        Date.now(),
       );
       syncPeerDomMarkers(map, fc.features as PeerDomGJFeature[], peerDomMarkersRef);
       if (RIDER_PROTOTYPE_MODE === "glb") {

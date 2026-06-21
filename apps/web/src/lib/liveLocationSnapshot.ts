@@ -5,10 +5,7 @@ import {
   GLOBAL_LIVE_PRESENCE_MAX_WRITE_INTERVAL_MS,
   GLOBAL_LIVE_PRESENCE_MIN_MOVE_METERS,
   GLOBAL_LIVE_PRESENCE_MIN_WRITE_INTERVAL_MS,
-  TRAIL_LIVE_PROGRESS_MAX_WRITE_MS,
-  TRAIL_LIVE_PROGRESS_MIN_DELTA,
-  TRAIL_LIVE_PROGRESS_MIN_DIST_DELTA_M,
-  TRAIL_LIVE_PROGRESS_MIN_WRITE_MS,
+  TRAIL_LIVE_PROGRESS_HEARTBEAT_MS,
   haversineMeters,
   roundLngLatForLiveShare,
 } from "./rideSyncPolicy";
@@ -147,22 +144,15 @@ export function shouldPublishGlobalPresence(
   return maxDue || moved;
 }
 
+/** 1Hz — 절대 distMeters+speedMps. delta 조건 없음(수신 측 2-sample 보간 전제). */
 export function shouldPublishRouteProgress(
   now: number,
   state: LiveLocationPublishThrottleState,
-  progressRatio: number,
-  distMetersAlongRoute: number,
+  _progressRatio: number,
+  _distMetersAlongRoute: number,
 ): boolean {
-  const elapsed = state.routeWriteAt === 0 ? TRAIL_LIVE_PROGRESS_MAX_WRITE_MS : now - state.routeWriteAt;
-  const maxDue = state.routeWriteAt === 0 || elapsed >= TRAIL_LIVE_PROGRESS_MAX_WRITE_MS;
-  const ratioDeltaOk =
-    state.routeRatio < 0 || Math.abs(progressRatio - state.routeRatio) >= TRAIL_LIVE_PROGRESS_MIN_DELTA;
-  const distDeltaOk =
-    state.routeDistM < 0 ||
-    Math.abs(distMetersAlongRoute - state.routeDistM) >= TRAIL_LIVE_PROGRESS_MIN_DIST_DELTA_M;
-  const minOk = state.routeWriteAt === 0 || now - state.routeWriteAt >= TRAIL_LIVE_PROGRESS_MIN_WRITE_MS;
-  if (!maxDue && !((ratioDeltaOk || distDeltaOk) && minOk)) return false;
-  return true;
+  if (state.routeWriteAt === 0) return true;
+  return now - state.routeWriteAt >= TRAIL_LIVE_PROGRESS_HEARTBEAT_MS;
 }
 
 export function markGlobalPresencePublished(
