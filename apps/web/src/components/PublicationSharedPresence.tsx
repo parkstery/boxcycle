@@ -20,6 +20,7 @@ import { TRAIL_PRESENCE_STALE_MS } from "../lib/firestoreTrail";
 import {
   COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS,
   COURSE_PRESENCE_HEARTBEAT_PAUSED_MS,
+  PEER_DRIVE_SIM_GRACE_MS,
   PEER_LIVE_RIDE_STALE_MS,
 } from "../lib/rideSyncPolicy";
 import { mapNametagForMember, sortedGuestUids } from "../lib/guestNametag";
@@ -78,6 +79,9 @@ export function PublicationSharedPresence({
   const onPeersChangeRef = useRef(onPeersChange);
   const onLiveTagRef = useRef(onLiveRiderNametagChange);
   const userRef = useRef(user);
+  const stickyPeersRef = useRef(
+    new Map<string, { row: TrailLivePublicationRideRow; lastLocalMs: number }>(),
+  );
   userRef.current = user;
   onLiveTagRef.current = onLiveRiderNametagChange;
 
@@ -207,12 +211,27 @@ export function PublicationSharedPresence({
   const liveRidesByUid = useMemo(() => {
     const m = new Map<string, TrailLivePublicationRideRow>();
     const pid = publicationId.trim();
+    const now = Date.now();
+    const sticky = stickyPeersRef.current;
+
     for (const row of liveRideRows) {
       if (row.uid === user.uid) continue;
-      if (!isTrailLivePublicationRideRowPeerVisible(row)) continue;
       if (row.publicationId.trim() !== pid) continue;
-      m.set(row.uid, row);
+      sticky.set(row.uid, { row, lastLocalMs: now });
+      if (isTrailLivePublicationRideRowPeerVisible(row, now)) {
+        m.set(row.uid, row);
+      }
     }
+
+    for (const [uid, entry] of sticky) {
+      if (m.has(uid)) continue;
+      if (now - entry.lastLocalMs > PEER_DRIVE_SIM_GRACE_MS) {
+        sticky.delete(uid);
+        continue;
+      }
+      m.set(uid, entry.row);
+    }
+
     return m;
   }, [liveRideRows, publicationId, user.uid, peerVisibilityTick]);
 

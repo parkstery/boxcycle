@@ -33,8 +33,14 @@ export const TRAIL_LIVE_PROGRESS_MIN_WRITE_MS = TRAIL_LIVE_PROGRESS_HEARTBEAT_MS
 /** @deprecated heartbeat 와 동일 — 호환 alias */
 export const TRAIL_LIVE_PROGRESS_MAX_WRITE_MS = TRAIL_LIVE_PROGRESS_HEARTBEAT_MS;
 
-/** 동행 peer 맵 — live 패킷 fresh 기준(ms). TRAIL_PRESENCE_STALE_MS(240s) 와 분리 */
-export const PEER_LIVE_RIDE_STALE_MS = 4_000;
+/** 동행 peer 맵 hide — Firestore lastSeenAt (1Hz + jitter 여유) */
+export const PEER_LIVE_RIDE_STALE_MS = 15_000;
+
+/** rAF speed 적분 상한 — hide 보다 짧게 두지 않음 */
+export const PEER_LIVE_RIDE_EXTRAP_MAX_MS = 12_000;
+
+/** peer 목록에서 잠깐 빠져도 sim·마커 유지 */
+export const PEER_DRIVE_SIM_GRACE_MS = 10_000;
 
 /** 완주 final burst 후 peer 가 최종 위치를 유지하는 시간 */
 export const PEER_LIVE_RIDE_COMPLETED_VISIBLE_MS = 15_000;
@@ -42,8 +48,8 @@ export const PEER_LIVE_RIDE_COMPLETED_VISIBLE_MS = 15_000;
 /** 완주 final burst — Firestore 삭제 전 대기 */
 export const PEER_LIVE_RIDE_FINAL_BURST_MS = 3_000;
 
-/** 마지막 패킷 이후 송신 speedMps 로 rAF 전진 허용(ms) — heartbeat + 네트워크 여유 */
-export const PEER_SPEED_EXTRAP_MAX_MS = TRAIL_LIVE_PROGRESS_HEARTBEAT_MS + 600;
+/** @deprecated {@link PEER_LIVE_RIDE_EXTRAP_MAX_MS} */
+export const PEER_SPEED_EXTRAP_MAX_MS = PEER_LIVE_RIDE_EXTRAP_MAX_MS;
 
 /** Trail `livePublicationRides`: 진행률 변화가 이 값 이상일 때만 의미 있는 변화로 간주 */
 export const TRAIL_LIVE_PROGRESS_MIN_DELTA = 0.005;

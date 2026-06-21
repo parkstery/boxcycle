@@ -7,7 +7,10 @@ import {
   lineStringLengthMeters,
 } from "./geo";
 import { progressRatioToRouteDistanceMeters } from "./liveLocationSnapshot";
-import { PEER_LIVE_RIDE_STALE_MS } from "./rideSyncPolicy";
+import {
+  PEER_DRIVE_SIM_GRACE_MS,
+  PEER_LIVE_RIDE_EXTRAP_MAX_MS,
+} from "./rideSyncPolicy";
 import type { TrailLiveRidePhase } from "./firestoreTrailLivePublicationRides";
 import { estimateCrankRpmFromSpeedKmh } from "./riderPedalMotion";
 import { PEER_RIDER_PEDAL_FRAME_COUNT } from "./registerPeerRiderPedalSprites";
@@ -19,7 +22,6 @@ export type MapPeerInput = {
   sampleAtMs?: number | null;
   progressRatio?: number;
   lngLat?: LngLat;
-  /** m/s — 송신 속도, 패킷 간 rAF 적분 */
   speedMps?: number | null;
   ridePhase?: TrailLiveRidePhase | null;
 };
@@ -34,13 +36,12 @@ export type PeerDriveSimState = {
   target: LngLat;
   routeLenM: number;
   ridePhase: TrailLiveRidePhase;
-  /** 마지막 authoritative distMeters */
   anchorDistM: number;
-  /** anchor 기준 시각 — rAF 적분 시작점 */
   anchorAtMs: number;
-  /** 송신 speedMps (패킷·dist delta 로 갱신) */
   liveSpeedMps: number;
   lastServerAtMs: number;
+  /** mergePeerTargets 목록에서 마지막으로 본 시각 */
+  lastInTargetsAtMs: number;
 };
 
 const PEER_MAX = 30;
@@ -48,6 +49,8 @@ const COORD_LERP_TAU_SEC = 0.34;
 const PEDAL_SPEED_EMA = 0.35;
 const DIST_EPS_M = 0.2;
 const MAX_SPEED_MPS = 85 / 3.6;
+/** 패킷 권위 dist 와 rAF 표시 간 허용 오차(m) — 이내면 연속 유지 */
+const ANCHOR_SOFT_CORRECT_M = 3.5;
 
 function clampDist(distM: number, routeLenM: number): number {
   if (!Number.isFinite(distM)) return 0;
@@ -94,7 +97,6 @@ function headingOnRouteDistM(geometry: LineStringGeometry, distM: number): numbe
   return headingAtRouteDistanceMeters(geometry, distM) ?? 0;
 }
 
-/** 송신 speedMps 우선, 없으면 server lastSeenAt 간 dist delta */
 function resolveLiveSpeedMps(
   publishedMps: number,
   nextDistM: number,
@@ -114,10 +116,6 @@ function resolveLiveSpeedMps(
   return 0;
 }
 
-/**
- * 본인 가상 주행과 동일 — anchor + speedMps × Δt (rAF 매 프레임).
- * 패킷 도착 시 anchor 만 갱신, 속도는 송신값 유지 → 끊김 없음.
- */
 function routeDistFromAnchor(s: PeerDriveSimState, routeLenM: number, nowMs: number): number {
   if (s.ridePhase === "completed" || s.ridePhase === "paused") {
     return clampDist(s.anchorDistM, routeLenM);
@@ -126,11 +124,9 @@ function routeDistFromAnchor(s: PeerDriveSimState, routeLenM: number, nowMs: num
     return clampDist(s.anchorDistM, routeLenM);
   }
   const elapsedSec = Math.max(0, (nowMs - s.anchorAtMs) / 1000);
-  const staleSec = PEER_LIVE_RIDE_STALE_MS / 1000;
-  if (elapsedSec > staleSec) {
-    return clampDist(s.anchorDistM, routeLenM);
-  }
-  return clampDist(s.anchorDistM + s.liveSpeedMps * elapsedSec, routeLenM);
+  const maxSec = PEER_LIVE_RIDE_EXTRAP_MAX_MS / 1000;
+  const cappedSec = Math.min(elapsedSec, maxSec);
+  return clampDist(s.anchorDistM + s.liveSpeedMps * cappedSec, routeLenM);
 }
 
 function setPedalSpeed(cur: PeerDriveSimState, speedMps: number): void {
@@ -139,6 +135,7 @@ function setPedalSpeed(cur: PeerDriveSimState, speedMps: number): void {
   cur.pedalSpeedKmh = cur.pedalSpeedKmh * (1 - PEDAL_SPEED_EMA) + spdKmh * PEDAL_SPEED_EMA;
 }
 
+/** 패킷 도착 — 표시 위치 연속 유지 + 속도 갱신 */
 function applyRoutePacket(
   cur: PeerDriveSimState,
   nextDistM: number,
@@ -146,6 +143,8 @@ function applyRoutePacket(
   serverAtMs: number,
   ridePhase: TrailLiveRidePhase,
 ): void {
+  const nowMs = Date.now();
+  const displayed = routeDistFromAnchor(cur, cur.routeLenM, nowMs);
   const speed = resolveLiveSpeedMps(
     publishedMps,
     nextDistM,
@@ -154,12 +153,18 @@ function applyRoutePacket(
     cur.lastServerAtMs,
     cur.liveSpeedMps,
   );
-  cur.anchorDistM = nextDistM;
-  cur.anchorAtMs = Date.now();
-  if (speed > 0.02) {
-    cur.liveSpeedMps = speed;
-  }
+  const err = nextDistM - displayed;
+
   cur.ridePhase = ridePhase;
+  if (speed > 0.02) cur.liveSpeedMps = speed;
+
+  if (Math.abs(err) <= ANCHOR_SOFT_CORRECT_M) {
+    cur.anchorDistM = displayed;
+  } else {
+    cur.anchorDistM = nextDistM;
+  }
+  cur.anchorAtMs = nowMs;
+
   if (cur.liveSpeedMps > 0.02) setPedalSpeed(cur, cur.liveSpeedMps);
   if (serverAtMs > 0) cur.lastServerAtMs = serverAtMs;
 }
@@ -167,7 +172,7 @@ function applyRoutePacket(
 export function mergePeerTargets(
   sim: Map<string, PeerDriveSimState>,
   peers: MapPeerInput[],
-  _nowMs: number,
+  nowMs: number,
   routeGeometry: LineStringGeometry | null = null,
   _routeDistanceMeters = 0,
 ): void {
@@ -203,9 +208,10 @@ export function mergePeerTargets(
           routeLenM,
           ridePhase,
           anchorDistM: distM,
-          anchorAtMs: Date.now(),
+          anchorAtMs: nowMs,
           liveSpeedMps: capSpeedMps(publishedMps),
           lastServerAtMs: serverAtMs,
+          lastInTargetsAtMs: nowMs,
         };
         if (publishedMps > 0.02) setPedalSpeed(state, publishedMps);
         sim.set(t.id, state);
@@ -221,9 +227,10 @@ export function mergePeerTargets(
           routeLenM: 0,
           ridePhase: "live",
           anchorDistM: 0,
-          anchorAtMs: Date.now(),
+          anchorAtMs: nowMs,
           liveSpeedMps: 0,
           lastServerAtMs: 0,
+          lastInTargetsAtMs: nowMs,
         });
       }
       continue;
@@ -231,6 +238,7 @@ export function mergePeerTargets(
 
     cur.label = label;
     cur.routeLenM = routeLenM;
+    cur.lastInTargetsAtMs = nowMs;
 
     if (mode === "route" && routeGeometry && routeLenM > 0) {
       cur.mode = "route";
@@ -260,7 +268,10 @@ export function mergePeerTargets(
   }
 
   for (const id of [...sim.keys()]) {
-    if (!seen.has(id)) sim.delete(id);
+    if (seen.has(id)) continue;
+    const s = sim.get(id)!;
+    if (nowMs - s.lastInTargetsAtMs <= PEER_DRIVE_SIM_GRACE_MS) continue;
+    sim.delete(id);
   }
 }
 

@@ -231,7 +231,9 @@ export function isTrailLivePublicationRideRowPeerVisible(
   nowMs = Date.now(),
 ): boolean {
   const ms = row.lastSeenAtMs;
-  if (ms == null) return false;
+  if (ms == null) {
+    return row.ridePhase !== "completed";
+  }
   if (row.ridePhase === "completed") {
     return nowMs - ms <= PEER_LIVE_RIDE_COMPLETED_VISIBLE_MS;
   }
