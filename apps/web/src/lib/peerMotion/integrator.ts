@@ -1,4 +1,5 @@
 import type { PeerMotionEntity, PeerMotionPacket } from "./types";
+import { applyReconciliationOnIngest, applyReconciliationStep } from "./reconciliation";
 
 const DIST_EPS_M = 0.2;
 const MAX_SPEED_MPS = 85 / 3.6;
@@ -51,6 +52,9 @@ export function applyPeerMotionIngest(
   if (packet.phase === "paused" || packet.phase === "completed") {
     entity.displayDistM = packet.distM;
     entity.speedMps = packet.phase === "completed" ? 0 : entity.speedMps;
+    entity.reconcilePullMps = 0;
+  } else {
+    applyReconciliationOnIngest(entity);
   }
 }
 
@@ -69,6 +73,7 @@ export function createPeerMotionEntity(
     displayDistM: packet.distM,
     lastServerAtMs: packet.serverAtMs,
     lastIngestLocalMs: Date.now(),
+    reconcilePullMps: 0,
     hdg: 0,
     phaseRev: 0,
     pedalSpeedKmh: speed * 3.6,
@@ -86,6 +91,9 @@ export function stepPeerMotionEntity(
       entity.displayDistM + entity.speedMps * dtSec,
       routeLenM,
     );
+    applyReconciliationStep(entity, dtSec, routeLenM);
+  } else if (entity.phase === "live") {
+    applyReconciliationStep(entity, dtSec, routeLenM);
   } else if (entity.phase === "paused" || entity.phase === "completed") {
     entity.displayDistM = clampRouteDist(entity.authDistM, routeLenM);
   }

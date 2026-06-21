@@ -42,6 +42,18 @@ export const PEER_LIVE_RIDE_EXTRAP_MAX_MS = 12_000;
 /** peer 목록에서 잠깐 빠져도 sim·마커 유지 */
 export const PEER_DRIVE_SIM_GRACE_MS = 10_000;
 
+/** R2 — auth vs display 오차 이내면 pull 없음 (구 anchor soft correct) */
+export const PEER_RECONCILE_SOFT_M = 3.5;
+
+/** R2 — 이 이상이면 hard pull (snap 금지) */
+export const PEER_RECONCILE_HARD_M = 28;
+
+/** R2 — soft 구간 pull 속도 (m/s) */
+export const PEER_RECONCILE_SOFT_PULL_MPS = 2.2;
+
+/** R2 — hard 구간 pull 속도 (m/s) */
+export const PEER_RECONCILE_HARD_PULL_MPS = 9;
+
 /** 완주 final burst 후 peer 가 최종 위치를 유지하는 시간 */
 export const PEER_LIVE_RIDE_COMPLETED_VISIBLE_MS = 15_000;
 

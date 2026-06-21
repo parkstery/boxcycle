@@ -23,6 +23,8 @@ export type PeerMotionEntity = {
   displayDistM: number;
   lastServerAtMs: number;
   lastIngestLocalMs: number;
+  /** R2 — authDistM 쪽으로 m/s pull (0 = 연속 sim) */
+  reconcilePullMps: number;
   /** render */
   hdg: number;
   phaseRev: number;
