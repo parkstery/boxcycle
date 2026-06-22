@@ -50,7 +50,7 @@ import {
 import { clearRiderGlbModels, ensureRiderGlbLayer, syncRiderGlbModels } from "../../lib/riderPrototype/glbModelLayer";
 import { PEER_RIDER_PEDAL_FRAME_COUNT } from "../../lib/registerPeerRiderPedalSprites";
 import { MapZoomGlobeControl } from "./MapZoomGlobeControl";
-import { MAP_GLOBE_MIN_ZOOM, RIDE_FOLLOW_CAMERA_ZOOM } from "../../lib/mapGlobeView";
+import { MAP_GLOBE_MIN_ZOOM, DEFAULT_MAP_ZOOM, RIDE_FOLLOW_CAMERA_ZOOM } from "../../lib/mapGlobeView";
 import "./MapView.css";
 
 const RIDER_PROTOTYPE_MODE = getRiderPrototypeMode();
@@ -784,7 +784,7 @@ function syncLiveOverlayLayersOnMap(
 
 /** 레거시 `app.js` 와 동일한 서울 근처 기본 시야 */
 const DEFAULT_CENTER: [number, number] = [127.035, 37.505];
-const DEFAULT_ZOOM = 12;
+const DEFAULT_ZOOM = DEFAULT_MAP_ZOOM;
 const CAMERA_POSITION_TAU_SEC = 0.1;
 const CAMERA_BEARING_TAU_PRIMARY_SEC = 0.2;
 const CAMERA_BEARING_TAU_SECONDARY_SEC = 0.45;

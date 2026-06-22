@@ -77,3 +77,6 @@ export const MAP_STYLE_OPTIONS = [
   { value: "mapbox://styles/mapbox/light-v11", label: "Light" },
   { value: "mapbox://styles/mapbox/satellite-streets-v12", label: "Satellite" },
 ];
+
+/** 앱 진입 시 기본 맵 스타일 — Light */
+export const DEFAULT_MAP_STYLE = MAP_STYLE_OPTIONS[2]!.value;

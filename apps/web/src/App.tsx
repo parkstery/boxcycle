@@ -17,7 +17,13 @@ import { DebugMapStage } from "./features/map-overlays/DebugMapStage";
 import type { MapViewportBounds } from "./lib/activityWorldLod";
 import { MAP_ZOOM_WORLD_ACTIVITY_MAX } from "./lib/rideSyncPolicy";
 import { armPostRideActivityWatch } from "./lib/activityWorldPollSignals";
-import { RIDE_FOLLOW_CAMERA_MODE, RIDE_FOLLOW_CAMERA_ZOOM } from "./lib/mapGlobeView";
+import {
+  DEFAULT_FOLLOW_MODE,
+  DEFAULT_MAP_ENABLE_3D,
+  DEFAULT_MAP_ZOOM,
+  RIDE_FOLLOW_CAMERA_MODE,
+  RIDE_FOLLOW_CAMERA_ZOOM,
+} from "./lib/mapGlobeView";
 import { rideDistanceAlongRoute } from "./lib/liveLocationSnapshot";
 import { AuthGateCard, AuthGoogleMark } from "./components/AuthGateCard";
 import { GuestEntryCard } from "./components/GuestEntryCard";
@@ -93,6 +99,7 @@ import { useSavedRoutesWorkspace } from "./hooks/useSavedRoutesWorkspace";
 import { useRideEndAndPersistence } from "./hooks/useRideEndAndPersistence";
 import {
   B_JOURNEY_HINT_SESSION_KEY,
+  DEFAULT_MAP_STYLE,
   MAP_STYLE_OPTIONS,
   readBJourneyHintDismissedSession,
 } from "./lib/appSessionKeys";
@@ -139,15 +146,15 @@ export default function App() {
 
   const { routeTokenBalance, routeTokenLoading } = useRouteTokenBalance(user, configured);
 
-  const [mapStyle, setMapStyle] = useState(MAP_STYLE_OPTIONS[3].value);
-  const [mapZoom, setMapZoom] = useState(12);
+  const [mapStyle, setMapStyle] = useState(DEFAULT_MAP_STYLE);
+  const [mapZoom, setMapZoom] = useState(DEFAULT_MAP_ZOOM);
   const [rideFollowCameraNonce, setRideFollowCameraNonce] = useState(0);
   const [rideJoinBurstNonce, setRideJoinBurstNonce] = useState(0);
   const [mapViewportSpanKm, setMapViewportSpanKm] = useState<number | null>(null);
   /** 전역 livePresence publish — idle 시 지도 중심(주행 중에는 liveForMap 우선) */
   const [mapViewportCenterLngLat, setMapViewportCenterLngLat] = useState<LngLat>([127.035, 37.505]);
   /** Activity World LOD — 제스처 중 실제 줌·span (HUD `mapZoom` 과 분리) */
-  const [mapLodZoom, setMapLodZoom] = useState(12);
+  const [mapLodZoom, setMapLodZoom] = useState(DEFAULT_MAP_ZOOM);
   const [mapLodSpanKm, setMapLodSpanKm] = useState<number | null>(null);
 
   const onMapViewport = useCallback((viewport: MapViewportBounds, spanKm: number) => {
@@ -162,8 +169,8 @@ export default function App() {
     setMapLodSpanKm(spanKm);
     setMapLodZoom(zoom);
   }, []);
-  const [followMode, setFollowMode] = useState<FollowMode>("keep");
-  const [enable3D, setEnable3D] = useState(true);
+  const [followMode, setFollowMode] = useState<FollowMode>(DEFAULT_FOLLOW_MODE);
+  const [enable3D, setEnable3D] = useState(DEFAULT_MAP_ENABLE_3D);
   const followModeSnapshotRef = useRef(followMode);
   const mapZoomSnapshotRef = useRef(mapZoom);
   followModeSnapshotRef.current = followMode;
