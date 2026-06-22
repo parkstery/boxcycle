@@ -746,6 +746,26 @@
   width: auto;
 }
 
+.ride-panel__speed-input {
+  flex: 0 0 3.4rem;
+  width: 3.4rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.2rem 0.35rem;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  border-radius: 6px;
+  border: 1px solid var(--rp-border);
+  background: rgba(15, 23, 42, 0.92);
+  color: inherit;
+}
+
+.ride-panel__speed-input:focus-visible {
+  outline: 2px solid var(--rp-accent);
+  outline-offset: 1px;
+}
+
 .ride-panel__start-ride--compact {
   flex: 0 0 auto;
   margin-top: 0;
