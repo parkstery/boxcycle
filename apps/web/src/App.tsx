@@ -1759,6 +1759,11 @@ export default function App() {
           publicationId={sharedPresenceCourseId}
           trailId={trailId}
           title={sharedPresenceCourseTitle}
+          routeLenM={
+            routeGeometry?.coordinates?.length
+              ? lineStringLengthMeters(routeGeometry)
+              : 0
+          }
           isRiding={rideStatus === "running"}
           rideSessionActive={rideStatus === "running" || rideStatus === "paused"}
           onPeerHudChange={onCoursePeerHudChange}

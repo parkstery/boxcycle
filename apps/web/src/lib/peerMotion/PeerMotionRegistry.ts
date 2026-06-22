@@ -38,9 +38,11 @@ export class PeerMotionRegistry {
 
     const cur = this.entities.get(packet.uid);
     if (cur) {
-      if (packet.serverAtMs > 0 && packet.serverAtMs <= cur.lastServerAtMs) {
-        if (Math.abs(packet.distM - cur.authDistM) <= DIST_EPS_M) return;
-      }
+    if (packet.serverAtMs > 0 && packet.serverAtMs <= cur.lastServerAtMs) {
+      const distClose = Math.abs(packet.distM - cur.authDistM) <= DIST_EPS_M;
+      const speedClose = Math.abs(packet.speedMps - cur.speedMps) <= 0.02;
+      if (distClose && speedClose) return;
+    }
       if (
         packet.phase === "live" &&
         packet.distM < cur.authDistM - DIST_EPS_M

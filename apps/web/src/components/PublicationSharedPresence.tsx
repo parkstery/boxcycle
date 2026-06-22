@@ -25,10 +25,8 @@ import {
 } from "../lib/rideSyncPolicy";
 import { mapNametagForMember, sortedGuestUids } from "../lib/guestNametag";
 import {
-  getPeerMotionRegistry,
   resetPeerMotionRegistry,
-  rtdbMotionRowToPeerMotionPacket,
-  trailLiveRowToPeerMotionPacket,
+  syncPeerMotionFromPresence,
 } from "../lib/peerMotion";
 import type { RtdbTrailMotionRow } from "../lib/rtdbTrailMotion";
 import { peerHudStableKey, type PeerHudEntry } from "../lib/peerHud";
@@ -59,6 +57,8 @@ type PublicationSharedPresenceProps = {
   publicationId: string;
   trailId: string;
   title?: string;
+  /** geometry 길이(m) — Firestore progressRatio → distM fallback */
+  routeLenM?: number;
   isRiding: boolean;
   /** running 또는 paused — heartbeat 주기만 조절 */
   rideSessionActive: boolean;
@@ -73,6 +73,7 @@ export function PublicationSharedPresence({
   publicationId,
   trailId,
   title,
+  routeLenM = 0,
   isRiding,
   rideSessionActive,
   onPeerHudChange,
@@ -88,7 +89,16 @@ export function PublicationSharedPresence({
   const onPeerHudChangeRef = useRef(onPeerHudChange);
   const onLiveTagRef = useRef(onLiveRiderNametagChange);
   const userRef = useRef(user);
+  const publicationIdRef = useRef(publicationId);
+  const routeLenMRef = useRef(routeLenM);
+  const liveRideRowsRef = useRef(liveRideRows);
+  const sessionRowsRef = useRef(rows);
+  const guestUidsRef = useRef<string[]>([]);
   userRef.current = user;
+  publicationIdRef.current = publicationId;
+  routeLenMRef.current = routeLenM;
+  liveRideRowsRef.current = liveRideRows;
+  sessionRowsRef.current = rows;
   onLiveTagRef.current = onLiveRiderNametagChange;
 
   useEffect(() => {
@@ -194,6 +204,15 @@ export function PublicationSharedPresence({
       (next) => {
         if (cancelled) return;
         setMotionRows((prev) => (motionRowsEqual(prev, next) ? prev : next));
+        syncPeerMotionFromPresence({
+          publicationId: publicationIdRef.current,
+          myUid: userRef.current.uid,
+          motionRows: next,
+          liveRideRows: liveRideRowsRef.current,
+          sessionMembers: sessionRowsRef.current,
+          guestUidsSorted: guestUidsRef.current,
+          routeLenM: routeLenMRef.current,
+        });
       },
       () => {
         /* RTDB motion 오류 — Firestore fallback ingest */
@@ -291,6 +310,8 @@ export function PublicationSharedPresence({
     return ids;
   }, [active, user.isAnonymous, user.uid]);
 
+  guestUidsRef.current = guestUidsSorted;
+
   const myMapNametag = useMemo(() => {
     if (user.isAnonymous) {
       const i = guestUidsSorted.indexOf(user.uid);
@@ -309,34 +330,18 @@ export function PublicationSharedPresence({
     return m;
   }, [rows]);
 
-  /** Firestore 1Hz + RTDB 5Hz → PeerMotionRegistry (RTDB 우선) */
+  /** Firestore 1Hz + RTDB 5Hz → PeerMotionRegistry (소스별 최신 패킷 병합) */
   useEffect(() => {
-    const pid = publicationId.trim();
-    if (!pid) return;
-    const registry = getPeerMotionRegistry();
-    const activeUids: string[] = [];
-    const allUids = new Set<string>([...liveRidesByUid.keys(), ...motionRowsByUid.keys()]);
-
-    for (const uid of allUids) {
-      const rtdbRow = motionRowsByUid.get(uid);
-      let packet =
-        rtdbRow != null ? rtdbMotionRowToPeerMotionPacket(rtdbRow, pid) : null;
-      if (!packet) {
-        const live = liveRidesByUid.get(uid);
-        if (live) packet = trailLiveRowToPeerMotionPacket(live, pid, 0);
-      }
-      if (!packet) continue;
-
-      const member = sessionByUid.get(uid);
-      const live = liveRidesByUid.get(uid);
-      const label = member
-        ? mapNametagForMember(uid, member.memberType, member.displayName, guestUidsSorted)
-        : live?.displayName?.trim() || rtdbRow?.uid.slice(0, 6) || uid.slice(0, 6);
-      registry.ingest(packet, label);
-      activeUids.push(uid);
-    }
-    registry.markActiveUids(activeUids);
-  }, [liveRidesByUid, motionRowsByUid, sessionByUid, guestUidsSorted, publicationId]);
+    syncPeerMotionFromPresence({
+      publicationId,
+      myUid: user.uid,
+      motionRows,
+      liveRideRows,
+      sessionMembers: rows,
+      guestUidsSorted,
+      routeLenM,
+    });
+  }, [motionRows, liveRideRows, rows, guestUidsSorted, publicationId, user.uid, routeLenM]);
 
   const peerHudEntries = useMemo((): PeerHudEntry[] => {
     return [...liveRidesByUid.keys()]
