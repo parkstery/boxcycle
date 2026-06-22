@@ -3,7 +3,7 @@ import type { TrailLivePublicationRideRow } from "../firestoreTrailLivePublicati
 import type { RtdbTrailMotionRow } from "../rtdbTrailMotion";
 import { mapNametagForMember } from "../guestNametag";
 import { getPeerMotionRegistry } from "./PeerMotionRegistry";
-import { pickFresherPeerMotionPacket } from "./mergePackets";
+import { mergePeerMotionPackets } from "./mergePackets";
 import { rtdbMotionRowToPeerMotionPacket } from "./rtdbToPacket";
 import { trailLiveRowToPeerMotionPacket } from "./rowToPacket";
 
@@ -48,7 +48,7 @@ export function syncPeerMotionFromPresence(input: SyncPeerMotionFromPresenceInpu
     const rtdbPacket = rtdbRow != null ? rtdbMotionRowToPeerMotionPacket(rtdbRow, pid) : null;
     const liveRow = liveByUid.get(uid);
     const fsPacket = liveRow ? trailLiveRowToPeerMotionPacket(liveRow, pid, routeLenM) : null;
-    const packet = pickFresherPeerMotionPacket(rtdbPacket, fsPacket);
+    const packet = mergePeerMotionPackets(rtdbPacket, fsPacket);
     if (!packet) continue;
 
     const member = sessionByUid.get(uid);

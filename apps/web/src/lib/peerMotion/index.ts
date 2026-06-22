@@ -4,7 +4,7 @@ export {
   resetPeerMotionRegistry,
   type PeerMotionRenderFeature,
 } from "./PeerMotionRegistry";
-export { pickFresherPeerMotionPacket } from "./mergePackets";
+export { mergePeerMotionPackets, pickFresherPeerMotionPacket } from "./mergePackets";
 export { syncPeerMotionFromPresence, type SyncPeerMotionFromPresenceInput } from "./syncFromPresence";
 export { trailLiveRowToPeerMotionPacket } from "./rowToPacket";
 export { rtdbMotionRowToPeerMotionPacket } from "./rtdbToPacket";

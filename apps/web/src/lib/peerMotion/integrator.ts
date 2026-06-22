@@ -1,5 +1,5 @@
 import type { PeerMotionEntity, PeerMotionPacket } from "./types";
-import { applyReconciliationOnIngest, applyReconciliationStep } from "./reconciliation";
+import { applyReconciliationOnIngest, applyReconciliationStep, applyDisplayCatchUpOnIngest } from "./reconciliation";
 
 const DIST_EPS_M = 0.2;
 const MAX_SPEED_MPS = 85 / 3.6;
@@ -54,6 +54,7 @@ export function applyPeerMotionIngest(
     entity.speedMps = packet.phase === "completed" ? 0 : entity.speedMps;
     entity.reconcilePullMps = 0;
   } else {
+    applyDisplayCatchUpOnIngest(entity);
     applyReconciliationOnIngest(entity);
   }
 }

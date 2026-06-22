@@ -9,6 +9,7 @@ import { estimateCrankRpmFromSpeedKmh } from "../riderPedalMotion";
 import { PEER_RIDER_PEDAL_FRAME_COUNT } from "../registerPeerRiderPedalSprites";
 import {
   applyPeerMotionIngest,
+  capSpeedMps,
   clampRouteDist,
   createPeerMotionEntity,
   stepPeerMotionEntity,
@@ -38,11 +39,17 @@ export class PeerMotionRegistry {
 
     const cur = this.entities.get(packet.uid);
     if (cur) {
-    if (packet.serverAtMs > 0 && packet.serverAtMs <= cur.lastServerAtMs) {
-      const distClose = Math.abs(packet.distM - cur.authDistM) <= DIST_EPS_M;
-      const speedClose = Math.abs(packet.speedMps - cur.speedMps) <= 0.02;
-      if (distClose && speedClose) return;
-    }
+      if (packet.serverAtMs > 0 && packet.serverAtMs <= cur.lastServerAtMs) {
+        const distClose = Math.abs(packet.distM - cur.authDistM) <= DIST_EPS_M;
+        const speedClose = Math.abs(packet.speedMps - cur.speedMps) <= 0.02;
+        if (distClose && speedClose) return;
+        if (distClose && !speedClose) {
+          cur.speedMps = capSpeedMps(packet.speedMps);
+          cur.lastIngestLocalMs = Date.now();
+          if (packet.serverAtMs > 0) cur.lastServerAtMs = packet.serverAtMs;
+          return;
+        }
+      }
       if (
         packet.phase === "live" &&
         packet.distM < cur.authDistM - DIST_EPS_M

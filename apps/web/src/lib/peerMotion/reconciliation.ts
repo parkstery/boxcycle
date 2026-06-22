@@ -15,6 +15,20 @@ function signM(v: number): number {
   return 0;
 }
 
+/** ingest 직후 auth 대비 display 가 크게 뒤처지면 즉시 일부 따라잡기 (추월 반영) */
+export function applyDisplayCatchUpOnIngest(entity: PeerMotionEntity): void {
+  if (entity.phase !== "live") return;
+
+  const err = entity.authDistM - entity.displayDistM;
+  if (err <= DIST_EPS_M) return;
+
+  if (err > PEER_RECONCILE_HARD_M) {
+    entity.displayDistM = clampRouteDist(entity.displayDistM + err * 0.55, 0);
+  } else if (err > PEER_RECONCILE_SOFT_M) {
+    entity.displayDistM = clampRouteDist(entity.displayDistM + err * 0.4, 0);
+  }
+}
+
 /**
  * 패킷 ingest 직후 — displayDistM 은 건드리지 않고 pull 속도만 설정.
  * |err| ≤ SOFT: pull 0 (연속 sim 유지)

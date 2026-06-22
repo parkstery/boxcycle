@@ -1,27 +1,53 @@
 import type { PeerMotionPacket } from "./types";
 
-const DIST_EPS_M = 0.2;
 const SPEED_EPS_MPS = 0.02;
 
-/** RTDB 5Hz vs Firestore 1Hz — 더 최신 패킷 선택 (동일 시 dist·speed 우선) */
+/**
+ * RTDB 5Hz + Firestore 1Hz 필드 병합.
+ * - distM: live 구간 전진은 max (추월·가속 위치 반영)
+ * - speedMps·phase: 더 최신 serverAtMs 패킷
+ * - serverAtMs: max (ingest stale 판정 완화)
+ */
+export function mergePeerMotionPackets(
+  rtdb: PeerMotionPacket | null,
+  fs: PeerMotionPacket | null,
+): PeerMotionPacket | null {
+  if (!rtdb) return fs;
+  if (!fs) return rtdb;
+
+  const rtdbMs = rtdb.serverAtMs > 0 ? rtdb.serverAtMs : 0;
+  const fsMs = fs.serverAtMs > 0 ? fs.serverAtMs : 0;
+  const newer = rtdbMs >= fsMs ? rtdb : fs;
+  const older = newer === rtdb ? fs : rtdb;
+
+  let distM = newer.distM;
+  if (newer.phase === "live" && older.phase === "live") {
+    distM = Math.max(newer.distM, older.distM);
+  }
+
+  let speedMps = newer.speedMps;
+  if (
+    newer.speedMps <= SPEED_EPS_MPS &&
+    older.speedMps > SPEED_EPS_MPS &&
+    Math.abs(rtdbMs - fsMs) <= 1_500
+  ) {
+    speedMps = older.speedMps;
+  }
+
+  return {
+    uid: newer.uid,
+    publicationId: newer.publicationId,
+    distM,
+    speedMps,
+    phase: newer.phase,
+    serverAtMs: Math.max(rtdbMs, fsMs),
+  };
+}
+
+/** @deprecated {@link mergePeerMotionPackets} */
 export function pickFresherPeerMotionPacket(
   a: PeerMotionPacket | null,
   b: PeerMotionPacket | null,
 ): PeerMotionPacket | null {
-  if (!a) return b;
-  if (!b) return a;
-
-  const aMs = a.serverAtMs > 0 ? a.serverAtMs : 0;
-  const bMs = b.serverAtMs > 0 ? b.serverAtMs : 0;
-  if (aMs !== bMs) return aMs > bMs ? a : b;
-
-  if (a.phase === "live" && b.phase === "live" && Math.abs(a.distM - b.distM) > DIST_EPS_M) {
-    return a.distM >= b.distM ? a : b;
-  }
-
-  if (Math.abs(a.speedMps - b.speedMps) > SPEED_EPS_MPS) {
-    return a.speedMps >= b.speedMps ? a : b;
-  }
-
-  return a;
+  return mergePeerMotionPackets(a, b);
 }
