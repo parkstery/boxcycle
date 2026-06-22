@@ -87,6 +87,15 @@ export function useTrailLivePublicationRideSpectatorOverlay(opts: UseTrailLivePu
     );
   }, [rows, myUid, excludePeerIds]);
 
+  const activeRowsKey = useMemo(
+    () =>
+      activeRows
+        .map((r) => `${r.uid}\0${r.publicationId}\0${r.progressRatio.toFixed(5)}`)
+        .sort()
+        .join("|"),
+    [activeRows],
+  );
+
   useEffect(() => {
     if (!enabled) {
       geomByPublicationRef.current.clear();
@@ -129,7 +138,7 @@ export function useTrailLivePublicationRideSpectatorOverlay(opts: UseTrailLivePu
     }
 
     if (scheduled) setGeomEpoch((n) => n + 1);
-  }, [enabled, activeRows]);
+  }, [enabled, activeRowsKey]);
 
   const spectatorDots = useMemo((): TrailSpectatorDot[] => {
     const map = geomByPublicationRef.current;
@@ -164,7 +173,7 @@ export function useTrailLivePublicationRideSpectatorOverlay(opts: UseTrailLivePu
 
   const livePublicationIds = useMemo(
     () => [...new Set(activeRows.map((r) => r.publicationId.trim()).filter(Boolean))],
-    [activeRows],
+    [activeRowsKey],
   );
 
   const spectatorRouteGeometries = useMemo((): LineStringGeometry[] => {

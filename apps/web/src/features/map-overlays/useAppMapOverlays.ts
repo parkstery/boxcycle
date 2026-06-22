@@ -27,6 +27,7 @@ import { runPublicationPresenceParseChecks } from "../../lib/firestorePublicatio
 import { resolveWorldMapOverlay, runWorldMapOverlayMergeChecks } from "./worldMapOverlayCore";
 import { useActivityWorldDataSync } from "./useActivityWorldDataSync";
 import { useWorldLivePublicationRideMapOverlay } from "./useWorldLivePublicationRideMapOverlay";
+import { EMPTY_PEER_HUD_IDS, peerHudIdsKey } from "../../lib/peerHud";
 import {
   mergePublicationWorldPulseDots,
   runWorldPublicationMapDotsChecks,
@@ -101,15 +102,16 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     publishedPublicCourses,
     openTrails,
     trailLabel,
-    coursePeerHudIds = [],
+    coursePeerHudIds = EMPTY_PEER_HUD_IDS,
     activityMapRefreshNonce,
     debugIsolation = false,
   } = opts;
   void currentTrailMeta;
 
+  const coursePeerIdsKey = peerHudIdsKey(coursePeerHudIds);
   const coursePeerIdsForTrailSpectator = useMemo(
     () => new Set(coursePeerHudIds),
-    [coursePeerHudIds],
+    [coursePeerIdsKey],
   );
 
   const isRideSessionActive = rideStatus === "running" || rideStatus === "paused";

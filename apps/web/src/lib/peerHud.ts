@@ -15,3 +15,10 @@ export function peerHudStableKey(peers: PeerHudEntry[] | undefined): string {
 export function peerHudLabels(peers: PeerHudEntry[]): string[] {
   return peers.map((p) => p.label.trim()).filter((n) => n.length > 0);
 }
+
+export function peerHudIdsKey(ids: readonly string[]): string {
+  if (!ids.length) return "";
+  return [...ids].sort().join("|");
+}
+
+export const EMPTY_PEER_HUD_IDS: readonly string[] = [];

@@ -35,6 +35,25 @@ import { peerHudStableKey, type PeerHudEntry } from "../lib/peerHud";
 import { useDocumentVisibility } from "../hooks/useDocumentVisibility";
 import "./trail/TrailheadPresence.css";
 
+function motionRowsEqual(a: RtdbTrailMotionRow[], b: RtdbTrailMotionRow[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i += 1) {
+    const x = a[i]!;
+    const y = b[i]!;
+    if (
+      x.uid !== y.uid ||
+      x.publicationId !== y.publicationId ||
+      x.distM !== y.distM ||
+      x.speedMps !== y.speedMps ||
+      x.ridePhase !== y.ridePhase ||
+      x.serverAtMs !== y.serverAtMs
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
 type PublicationSharedPresenceProps = {
   user: User;
   publicationId: string;
@@ -173,7 +192,8 @@ export function PublicationSharedPresence({
     const release = acquireTrailMotionSubscription(
       tid,
       (next) => {
-        if (!cancelled) setMotionRows(next);
+        if (cancelled) return;
+        setMotionRows((prev) => (motionRowsEqual(prev, next) ? prev : next));
       },
       () => {
         /* RTDB motion 오류 — Firestore fallback ingest */

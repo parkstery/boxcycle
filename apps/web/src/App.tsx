@@ -555,6 +555,11 @@ export default function App() {
   const debugMapIsolationActive =
     debugMapPhase === "A" || debugMapPhase === "B" || debugMapPhase === "C";
 
+  const coursePeerHudIds = useMemo(
+    () => coursePeerHud.map((p) => p.id),
+    [coursePeerHud],
+  );
+
   const mapOverlays = useAppMapOverlays({
     configured,
     user,
@@ -573,7 +578,7 @@ export default function App() {
     publishedPublicCourses,
     openTrails: openTrailsQuery.rows,
     trailLabel: trailDisplayLabels.label,
-    coursePeerHudIds: coursePeerHud.map((p) => p.id),
+    coursePeerHudIds,
     activityMapRefreshNonce,
     debugIsolation: debugMapIsolationActive,
   });
