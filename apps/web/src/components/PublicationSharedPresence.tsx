@@ -92,12 +92,14 @@ export function PublicationSharedPresence({
   const publicationIdRef = useRef(publicationId);
   const routeLenMRef = useRef(routeLenM);
   const liveRideRowsRef = useRef(liveRideRows);
+  const motionRowsRef = useRef(motionRows);
   const sessionRowsRef = useRef(rows);
   const guestUidsRef = useRef<string[]>([]);
   userRef.current = user;
   publicationIdRef.current = publicationId;
   routeLenMRef.current = routeLenM;
   liveRideRowsRef.current = liveRideRows;
+  motionRowsRef.current = motionRows;
   sessionRowsRef.current = rows;
   onLiveTagRef.current = onLiveRiderNametagChange;
 
@@ -179,6 +181,15 @@ export function PublicationSharedPresence({
       tid,
       (next) => {
         if (!cancelled) startTransition(() => setLiveRideRows(next));
+        syncPeerMotionFromPresence({
+          publicationId: publicationIdRef.current,
+          myUid: userRef.current.uid,
+          motionRows: motionRowsRef.current,
+          liveRideRows: next,
+          sessionMembers: sessionRowsRef.current,
+          guestUidsSorted: guestUidsRef.current,
+          routeLenM: routeLenMRef.current,
+        });
       },
       () => {
         /* live ride 구독 오류는 멤버 presence 와 분리 — 맵 동행만 생략 */

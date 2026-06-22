@@ -44,10 +44,22 @@ export function applyPeerMotionIngest(
   entity.authDistM = packet.distM;
   entity.lastIngestLocalMs = Date.now();
   if (packet.serverAtMs > 0) entity.lastServerAtMs = packet.serverAtMs;
-  if (speed > 0.02) {
-    entity.speedMps = speed;
-    const spdKmh = speed * 3.6;
-    entity.pedalSpeedKmh = entity.pedalSpeedKmh * (1 - PEDAL_SPEED_EMA) + spdKmh * PEDAL_SPEED_EMA;
+
+  const publishedSpeed = capSpeedMps(packet.speedMps);
+  if (packet.phase === "live") {
+    if (publishedSpeed > 0.02) {
+      entity.speedMps = publishedSpeed;
+    } else if (speed > 0.02) {
+      entity.speedMps = speed;
+    }
+  } else if (packet.phase === "paused") {
+    if (publishedSpeed > 0.02) entity.speedMps = publishedSpeed;
+  }
+
+  const spdForPedal =
+    entity.speedMps > 0.02 ? entity.speedMps * 3.6 : speed > 0.02 ? speed * 3.6 : 0;
+  if (spdForPedal > 0.38) {
+    entity.pedalSpeedKmh = entity.pedalSpeedKmh * (1 - PEDAL_SPEED_EMA) + spdForPedal * PEDAL_SPEED_EMA;
   }
   if (packet.phase === "paused" || packet.phase === "completed") {
     entity.displayDistM = packet.distM;

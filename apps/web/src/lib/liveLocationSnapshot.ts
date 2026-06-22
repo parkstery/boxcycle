@@ -119,7 +119,9 @@ export type LiveLocationPublishThrottleState = {
   routeWriteAt: number;
   routeRatio: number;
   routeDistM: number;
+  routeSpeedMps: number;
   motionWriteAt: number;
+  motionSpeedMps: number;
 };
 
 export function createLiveLocationPublishThrottleState(): LiveLocationPublishThrottleState {
@@ -129,7 +131,9 @@ export function createLiveLocationPublishThrottleState(): LiveLocationPublishThr
     routeWriteAt: 0,
     routeRatio: -1,
     routeDistM: -1,
+    routeSpeedMps: -1,
     motionWriteAt: 0,
+    motionSpeedMps: -1,
   };
 }
 
@@ -147,25 +151,58 @@ export function shouldPublishGlobalPresence(
   return maxDue || moved;
 }
 
-/** 1Hz — 절대 distMeters+speedMps. delta 조건 없음(수신 측 2-sample 보간 전제). */
+/** 슬라이더 등 속도 변경 시 즉시 publish (≈1 km/h) */
+const SPEED_PUBLISH_DELTA_MPS = 0.28;
+
+/** 1Hz — 절대 distMeters+speedMps. 속도 변경 시 heartbeat 대기 없이 1회 publish */
 export function shouldPublishRouteProgress(
   now: number,
   state: LiveLocationPublishThrottleState,
   _progressRatio: number,
   _distMetersAlongRoute: number,
+  speedMps?: number,
 ): boolean {
   if (state.routeWriteAt === 0) return true;
-  return now - state.routeWriteAt >= TRAIL_LIVE_PROGRESS_HEARTBEAT_MS;
+  if (now - state.routeWriteAt >= TRAIL_LIVE_PROGRESS_HEARTBEAT_MS) return true;
+  if (
+    typeof speedMps === "number" &&
+    Number.isFinite(speedMps) &&
+    state.routeSpeedMps >= 0 &&
+    Math.abs(speedMps - state.routeSpeedMps) >= SPEED_PUBLISH_DELTA_MPS
+  ) {
+    return true;
+  }
+  return false;
 }
 
-/** 5Hz — RTDB motion (Firestore 와 분리) */
-export function shouldPublishPeerMotion(now: number, state: LiveLocationPublishThrottleState): boolean {
+/** 5Hz RTDB motion — 속도 변경 시 즉시 publish */
+export function shouldPublishPeerMotion(
+  now: number,
+  state: LiveLocationPublishThrottleState,
+  speedMps?: number,
+): boolean {
   if (state.motionWriteAt === 0) return true;
-  return now - state.motionWriteAt >= PEER_MOTION_PUBLISH_INTERVAL_MS;
+  if (now - state.motionWriteAt >= PEER_MOTION_PUBLISH_INTERVAL_MS) return true;
+  if (
+    typeof speedMps === "number" &&
+    Number.isFinite(speedMps) &&
+    state.motionSpeedMps >= 0 &&
+    Math.abs(speedMps - state.motionSpeedMps) >= SPEED_PUBLISH_DELTA_MPS
+  ) {
+    return true;
+  }
+  return false;
 }
 
-export function markPeerMotionPublished(state: LiveLocationPublishThrottleState, now: number): void {
+export function markPeerMotionPublished(
+  state: LiveLocationPublishThrottleState,
+  now: number,
+  speedMps?: number,
+): void {
   state.motionWriteAt = now;
+  if (typeof speedMps === "number" && Number.isFinite(speedMps)) {
+    state.motionSpeedMps = speedMps;
+  }
 }
 
 export function markGlobalPresencePublished(
@@ -182,8 +219,12 @@ export function markRouteProgressPublished(
   now: number,
   progressRatio: number,
   distMetersAlongRoute: number,
+  speedMps?: number,
 ): void {
   state.routeWriteAt = now;
   state.routeRatio = progressRatio;
   state.routeDistM = distMetersAlongRoute;
+  if (typeof speedMps === "number" && Number.isFinite(speedMps)) {
+    state.routeSpeedMps = speedMps;
+  }
 }

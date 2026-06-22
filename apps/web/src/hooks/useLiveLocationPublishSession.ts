@@ -98,6 +98,7 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
 
   const throttleRef = useRef(createLiveLocationPublishThrottleState());
   const joinBurstDoneNonceRef = useRef(0);
+  const publishBurstRef = useRef<(() => void) | null>(null);
 
   const reportErrorRef = useRef((e: unknown) => {
     const message = e instanceof Error ? e.message : String(e);
@@ -138,9 +139,10 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
             now,
             snapshot.progressRatio,
             snapshot.distMetersAlongRoute,
+            snapshot.speedMps,
           );
           if (isFirebaseDatabaseConfigured()) {
-            markPeerMotionPublished(throttleRef.current, now);
+            markPeerMotionPublished(throttleRef.current, now, snapshot.speedMps);
           }
         }
         if (ge) {
@@ -210,11 +212,17 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
         re &&
         isFirebaseDatabaseConfigured() &&
         snapshot.routeReady &&
-        shouldPublishPeerMotion(now, throttle);
+        shouldPublishPeerMotion(now, throttle, snapshot.speedMps);
       const publishRoute =
         re &&
         snapshot.routeReady &&
-        shouldPublishRouteProgress(now, throttle, snapshot.progressRatio, snapshot.distMetersAlongRoute);
+        shouldPublishRouteProgress(
+          now,
+          throttle,
+          snapshot.progressRatio,
+          snapshot.distMetersAlongRoute,
+          snapshot.speedMps,
+        );
 
       if (!publishGlobal && !publishRoute && !publishMotion) return;
 
@@ -231,10 +239,11 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
             now,
             snapshot.progressRatio,
             snapshot.distMetersAlongRoute,
+            snapshot.speedMps,
           );
           routeDocActive = true;
         }
-        if (publishMotion) markPeerMotionPublished(throttle, now);
+        if (publishMotion) markPeerMotionPublished(throttle, now, snapshot.speedMps);
         if (import.meta.env.DEV && (result.global || result.route || result.motion)) {
           console.debug("[LiveLocationPublish]", {
             global: result.global,
@@ -254,11 +263,15 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
     };
 
     void tick();
+    publishBurstRef.current = () => {
+      void tick();
+    };
     const id = window.setInterval(() => {
       void tick();
     }, PUBLISH_TICK_MS);
 
     return () => {
+      publishBurstRef.current = null;
       window.clearInterval(id);
       const tid = sanitizeTrailId(trailId);
       const snap = buildLiveLocationSnapshot(inputRef.current);
@@ -278,4 +291,19 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
       }
     };
   }, [globalEnabled, pageVisible, routeEnabled, trailId, user?.uid]);
+
+  /** 슬라이더·숫자 입력 속도 변경 — 스로틀 우회 즉시 fan-out */
+  const speedBurstInitRef = useRef(false);
+  useEffect(() => {
+    if (!speedBurstInitRef.current) {
+      speedBurstInitRef.current = true;
+      return;
+    }
+    const throttle = throttleRef.current;
+    throttle.motionWriteAt = 0;
+    throttle.motionSpeedMps = -1;
+    throttle.routeWriteAt = 0;
+    throttle.routeSpeedMps = -1;
+    publishBurstRef.current?.();
+  }, [speedKmh]);
 }

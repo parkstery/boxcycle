@@ -14,6 +14,7 @@ import {
   createPeerMotionEntity,
   stepPeerMotionEntity,
 } from "./integrator";
+import { applyDisplayCatchUpOnIngest, applyReconciliationOnIngest } from "./reconciliation";
 import type { PeerMotionEntity, PeerMotionPacket } from "./types";
 
 const PEER_MAX = 30;
@@ -47,6 +48,20 @@ export class PeerMotionRegistry {
           cur.speedMps = capSpeedMps(packet.speedMps);
           cur.lastIngestLocalMs = Date.now();
           if (packet.serverAtMs > 0) cur.lastServerAtMs = packet.serverAtMs;
+          return;
+        }
+        if (
+          !distClose &&
+          packet.phase === "live" &&
+          packet.distM > cur.authDistM + DIST_EPS_M
+        ) {
+          cur.authDistM = packet.distM;
+          cur.lastIngestLocalMs = Date.now();
+          applyDisplayCatchUpOnIngest(cur);
+          applyReconciliationOnIngest(cur);
+          if (!speedClose) {
+            cur.speedMps = capSpeedMps(packet.speedMps);
+          }
           return;
         }
       }
@@ -128,9 +143,18 @@ export class PeerMotionRegistry {
             PEER_RIDER_PEDAL_FRAME_COUNT
           : 0;
 
+      const speedKmhLive =
+        entity.phase === "live" && entity.speedMps > 0.02
+          ? Math.round(entity.speedMps * 3.6)
+          : null;
+      const mapLabel =
+        speedKmhLive != null && speedKmhLive > 0
+          ? `${entity.label} · ${speedKmhLive} km/h`.slice(0, 56)
+          : entity.label;
+
       out.push({
         id: entity.uid,
-        label: entity.label,
+        label: mapLabel,
         lngLat,
         hdg: Number.isFinite(entity.hdg) ? entity.hdg : 0,
         pframe: Number.isFinite(pframeRaw) ? pframeRaw : 0,
