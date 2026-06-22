@@ -47,7 +47,7 @@ import {
   applyIso2dRiderBearing,
   createIso2dRiderMarkerRoot,
 } from "../../lib/riderPrototype/iso2dMarker";
-import { clearRiderGlbModels, syncRiderGlbModels } from "../../lib/riderPrototype/glbModelLayer";
+import { clearRiderGlbModels, ensureRiderGlbLayer, syncRiderGlbModels } from "../../lib/riderPrototype/glbModelLayer";
 import { PEER_RIDER_PEDAL_FRAME_COUNT } from "../../lib/registerPeerRiderPedalSprites";
 import { MapZoomGlobeControl } from "./MapZoomGlobeControl";
 import { MAP_GLOBE_MIN_ZOOM, RIDE_FOLLOW_CAMERA_ZOOM } from "../../lib/mapGlobeView";
@@ -987,7 +987,7 @@ function syncPeerDomMarkers(
   features: PeerDomGJFeature[],
   markersRef: { current: Map<string, mapboxgl.Marker> },
 ): void {
-  if (RIDER_PROTOTYPE_MODE === "glb") {
+  if (RIDER_PROTOTYPE_MODE === "glb" && ensureRiderGlbLayer(map)) {
     syncGlbPeerNametagMarkers(map, features, markersRef);
     return;
   }
@@ -1520,6 +1520,8 @@ export function MapView({
         moveActivityWorldLayersToTop(map);
       }
       apply3DState(map, enable3DRef.current, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID);
+      clearRiderGlbModels(map);
+      ensureRiderGlbLayer(map);
       try {
         applyCoverageOverlayMode(
           map,
@@ -2013,7 +2015,7 @@ export function MapView({
           )
         : EMPTY_GEOJSON_FC;
       syncPeerDomMarkers(map, fc.features as PeerDomGJFeature[], peerDomMarkersRef);
-      if (RIDER_PROTOTYPE_MODE === "glb") {
+      if (RIDER_PROTOTYPE_MODE === "glb" && ensureRiderGlbLayer(map)) {
         const specs: {
           id: string;
           lngLat: LngLat;

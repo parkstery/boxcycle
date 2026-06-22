@@ -573,6 +573,7 @@ export default function App() {
     publishedPublicCourses,
     openTrails: openTrailsQuery.rows,
     trailLabel: trailDisplayLabels.label,
+    coursePeerHudIds: coursePeerHud.map((p) => p.id),
     activityMapRefreshNonce,
     debugIsolation: debugMapIsolationActive,
   });

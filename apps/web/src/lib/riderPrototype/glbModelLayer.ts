@@ -18,9 +18,8 @@ type ModelSource = Source & {
   setModels: (models: Record<string, unknown>) => void;
 };
 
-let layerReady = false;
-
 const RIDER_GLB_LAYER_PAINT = {
+  "model-elevation-reference": "ground",
   "model-rotation": [
     "match",
     ["get", "part"],
@@ -55,13 +54,11 @@ export function ensureRiderGlbLayer(map: MapboxMap): boolean {
         paint: RIDER_GLB_LAYER_PAINT,
       } as Parameters<MapboxMap["addLayer"]>[0]);
     }
-    layerReady = true;
     return true;
   } catch (e) {
     if (import.meta.env.DEV) {
       console.warn("[riderPrototype] GLB layer init failed", e);
     }
-    layerReady = false;
     return false;
   }
 }
@@ -116,7 +113,7 @@ export function syncRiderGlbModels(map: MapboxMap, specs: readonly RiderGlbModel
 }
 
 export function clearRiderGlbModels(map: MapboxMap | null): void {
-  if (!map || !layerReady) return;
+  if (!map) return;
   const src = map.getSource(RIDER_GLB_MODEL_SOURCE_ID) as ModelSource | undefined;
   try {
     src?.setModels?.({});
