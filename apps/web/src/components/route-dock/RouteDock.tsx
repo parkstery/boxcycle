@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
 import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/firestoreSavedRoutes";
-import { formatVirtualRideDurationLabel } from "../../lib/virtualRideDuration";
 import { SESSION_SPEED_MIN_KMH } from "../../lib/sessionSpeedKmh";
 import { SessionSpeedControl } from "./SessionSpeedControl";
 import type { RouteDockStop, RouteDockStopId } from "./useRouteDockStops";
@@ -10,8 +9,6 @@ import "./RouteDock.css";
 export type RouteDockProps = {
   stage: RideUiStage;
   stops: RouteDockStop[];
-  routeDistanceMeters: number;
-  hasRoute: boolean;
   routeLoading: boolean;
   speedKmh: number;
   onSpeedKmh: (n: number) => void;
@@ -35,8 +32,6 @@ export function RouteDock(props: RouteDockProps) {
   const {
     stage,
     stops,
-    routeDistanceMeters,
-    hasRoute,
     routeLoading,
     speedKmh,
     onSpeedKmh,
@@ -83,11 +78,6 @@ export function RouteDock(props: RouteDockProps) {
     }
   }
   if (!visible) return null;
-
-  const distanceKmLabel =
-    hasRoute && routeDistanceMeters > 0 ? (routeDistanceMeters / 1000).toFixed(1) : null;
-  const durationLabel =
-    distanceKmLabel != null ? formatVirtualRideDurationLabel(routeDistanceMeters, speedKmh) : null;
 
   return (
     <div
@@ -265,21 +255,6 @@ export function RouteDock(props: RouteDockProps) {
         <SessionSpeedControl speedKmh={speedKmh} onSpeedKmh={onSpeedKmh} disabled={editLocked} />
 
         <footer className="route-dock__foot">
-          <div className="route-dock__summary" aria-live="polite">
-            {distanceKmLabel != null ? (
-              <>
-                <strong>{distanceKmLabel} km</strong>
-                <span className="route-dock__summary-sep" aria-hidden>
-                  {" "}
-                </span>
-                <span>{durationLabel}</span>
-              </>
-            ) : (
-              <span className="route-dock__summary-muted">
-                {routeLoading ? "경로 계산 중…" : "출발·도착 후 거리 표시"}
-              </span>
-            )}
-          </div>
           <div className="route-dock__foot-actions">
             <button
               type="button"

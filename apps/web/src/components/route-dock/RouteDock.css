@@ -434,26 +434,11 @@
 .route-dock__foot {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 0.4rem;
   padding-top: 0.12rem;
   border-top: 1px solid rgba(248, 250, 252, 0.1);
   flex: 0 0 auto;
-}
-
-.route-dock__summary {
-  font-size: 0.74rem;
-  line-height: 1.25;
-  min-width: 0;
-}
-
-.route-dock__summary strong {
-  font-weight: 700;
-}
-
-.route-dock__summary-muted {
-  opacity: 0.72;
-  font-size: 0.66rem;
 }
 
 .route-dock__foot-actions {

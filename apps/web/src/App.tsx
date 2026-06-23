@@ -1327,8 +1327,6 @@ export default function App() {
     <RouteDock
       stage={stage}
       stops={routeDockStops}
-      routeDistanceMeters={routeDistanceMeters}
-      hasRoute={Boolean(routeGeometry) && routeDistanceMeters > 0}
       routeLoading={routeLoading}
       speedKmh={speedKmh}
       onSpeedKmh={setSpeedKmh}
