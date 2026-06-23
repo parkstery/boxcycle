@@ -20,11 +20,12 @@
 
 본 절은 **아래 Phase 표(원안)** 와 저장소 **현재 코드**의 차이를 고정한다. Trail 마이그레이션으로 presence 요구는 상당 부분 충족했으나, RTW의 `sessions`/`presence` **루트 컬렉션 분리(1-B~1-D)는 아직 착수하지 않았다.**
 
-| 원안 Phase | 계획 요약 | 실제 (2026-05-26) |
+| 원안 Phase | 계획 요약 | 실제 (2026-06-24) |
 |------------|-----------|-------------------|
 | 1-A | Rules `presenceEnabled` 일반화 | ✅ 1A-1·1A-2 반영. 1A-3 회귀 T1~T3 ⬜ 수동 |
 | 1-B~1-D | `sessions/` · `presence/` 신설, `coursePresence` 폐기 | ⬜ `firestoreSessions.ts` 없음. `coursePresence`·`firestoreCoursePresence.ts` **유지** |
-| (병행) Trail presence | 원안 1C-2는 `rooms/…/members` | ✅ **`trails/{trailId}/members`**, `liveCourseRides`, `useTrailSession`(별칭 `useLobbyRoomSession`) — [용어집](260517-제품-용어-Trailhead-Trail.md) |
+| (병행) Trail presence | 원안 1C-2는 `rooms/…/members` | ✅ **`trails/{trailId}/members`**, `livePublicationRides`, `useTrailSession` — [용어집](260517-제품-용어-Trailhead-Trail.md) |
+| (병행) Trailhead MENU listing | — | ✅ `openTrailListings` + CG, **활성 라이더만** — [스키마 §3.2.3](260509-Firestore-컬렉션-스키마-초안.md) |
 | (병행) Activity·출판 | Phase 2 이후 | 🔄 `courseActivity`, `routePublications`, World Presence M1~M3 — [현재 단계 §4.3](260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md) |
 
 **의사결정:** 1차 마일스톤 **C·D** 는 Trail·`coursePresence` 로 검증 가능. **1-B는 1차 달성 후** 또는 UGC Phase 2와 일정 조율.
@@ -263,3 +264,4 @@ flowchart TD
 |------|------|
 | 2026-05-11 | 최초 작성 — 자문 13장 + 4개 architecture 문서 결정을 5개 Phase로 분해. |
 | 2026-05-26 | §0.1 실제 반영 표, 1C-2 Trail 이전 반영, 상단 상태 갱신 |
+| 2026-06-24 | §0.1 Trailhead MENU listing·`livePublicationRides` 반영 |

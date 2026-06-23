@@ -141,3 +141,4 @@
 | 2026-05-26 | 신뢰도 열·tier 계층·(cycle) 머리글 정합 — [현재 단계](260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md) §2.1 진행 표 |
 | 2026-05-26 | `260526-World-Activity-Presence-자문단-정렬-보고` 추가 |
 | 2026-06-15 | `260615-Activity-World-Adaptive-Polling-C-적용-계획` 추가 |
+| 2026-06-24 | Trail 목록·Route Dock·지명 검색·`openTrailListings` 정책 — UX IA·스키마·스모크·용어집 갱신 |

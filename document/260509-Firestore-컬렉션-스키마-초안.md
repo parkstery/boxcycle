@@ -92,7 +92,7 @@
 
 설명:
 - `displayNumber`: UI 3자리 (`035`). 문서 ID는 Firestore auto-id.
-- open 목록: `status==open` && `visibility==open`.
+- open 목록(MENU): **`openTrailListings` + 활성 `livePublicationRides`** — `status==open` && `visibility==open` && **활성 라이더 ≥ 1** ([용어집 §1-c](260517-제품-용어-Trailhead-Trail.md)).
 - `closed` 24h 후 CF `archived`, 7d 후 서브컬렉션·문서 purge (`trailInstanceLifecycle`).
 
 ### 3.2.1 `trails/{trailId}/members/{userId}`
@@ -110,19 +110,61 @@ Trailhead(`default`)·Trail 인스턴스 presence·heartbeat.
 }
 ```
 
-### 3.2.2 `trails/{trailId}/liveCourseRides/{userId}`
+### 3.2.2 `trails/{trailId}/livePublicationRides/{userId}`
 
 ```json
 {
   "userId": "uid",
-  "courseId": "string",
+  "publicationId": "string",
   "progressRatio": 0.0,
-  "updatedAt": "Timestamp"
+  "distMeters": 0.0,
+  "lastSeenAt": "Timestamp",
+  "ridePhase": "live|paused|completed",
+  "speedMps": 0.0,
+  "displayName": "string|null"
 }
 ```
 
 설명:
-- Trail 내 코스 주행·관전. Rules: `trails/…/liveCourseRides` 및 레거시 `rooms/…` read-only 병행.
+- Trail 내 **출판 경로** 주행·관전. 레거시 서브컬렉션명 `liveCourseRides` → **`livePublicationRides`** ([Phase7 terminology](260616-Phase7-Firestore-필드-terminology-체크리스트.md)).
+- **Trailhead MENU·지도** — collection group `livePublicationRides` 로 **지금 주행 중인 Trail ID** 스캔 (`useActiveLiveRideTrailIds`, `useOpenTrails` 보강).
+- Rules: `trails/…/livePublicationRides` 및 레거시 `rooms/…` read-only 병행.
+
+### 3.2.3 `openTrailListings/{trailId}` (2026-06)
+
+Trailhead MENU용 **주행 중 Trail** projection. authoritative 소스는 `trails` + `members` + `livePublicationRides`.
+
+```json
+{
+  "trailId": "string",
+  "hostUid": "uid",
+  "displayNumber": 35,
+  "regionLabel": "string|null",
+  "distanceKm": 12.3,
+  "publicationId": "string",
+  "riderCount": 1,
+  "createdAt": "Timestamp",
+  "updatedAt": "Timestamp"
+}
+```
+
+**표시 정책 (제품):**
+
+| 조건 | MENU 목록 |
+|------|-----------|
+| `riderCount > 0` (최근 `lastSeenAt` 기준 활성) | ✅ 표시 |
+| open trail이지만 주행자 0명 | ❌ 미표시 |
+| 호스트 주행 종료 → `closeTrailInstance` | listing 삭제·목록에서 제거 |
+
+**쓰기:**
+
+| 주체 | 동작 |
+|------|------|
+| CF `openTrailListingProjection` | `trails`·`members`·`livePublicationRides` 변경 시 `recomputeOpenTrailListing` |
+| CF `openTrailListingsSweep` | stale `updatedAt` 정리 |
+| 클라이언트 (전환 중) | 호스트 `refreshOpenTrailListingFromTrail`, 비호스트 `riderCount`/`updatedAt` patch — [Write Owner](260519-Firestore-Write-Owner-표.md) |
+
+**클라이언트 구독:** `subscribeOpenTrailListings` + `subscribeTrailIdsWithActiveLiveRides` → `mergeActiveOpenTrailRows` (`useOpenTrails`).
 
 ### 3.2-legacy `rooms/{roomId}` · `rooms/…/members` · `rooms/…/liveCourseRides`
 
@@ -336,3 +378,4 @@ Trailhead(`default`)·Trail 인스턴스 presence·heartbeat.
 | 2026-05-09 | 최초 작성 |
 | 2026-05-11 | v2 — `sessions`/`presence`/`coursePresenceConfig`/`courseLifecycleEvents`/`activities`/`rankings`/`events` 컬렉션 추가, `courses` 수명·visibility·geometryRef 필드 추가, v1→v2 마이그레이션 표 |
 | 2026-05-26 | §2 `trails` 중심 구조, `liveCourseRides`·Activity·출판 컬렉션, `rooms` 레거시 블록 축소 |
+| 2026-06-24 | §3.2.2 `livePublicationRides`, §3.2.3 `openTrailListings`·MENU 표시 정책 |

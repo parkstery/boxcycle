@@ -25,10 +25,24 @@
 | 개념 | Firestore | UI |
 |------|-----------|-----|
 | Trailhead | `trailId=default` (문서 없음·멤버만) | MENU TrailHub, 코스 선택 |
-| Trail (라이브 판) | `trails/{id}` 메타 + members + liveCourseRides | `Trail 035` (3자리 `displayNumber`) |
+| Trail (라이브 판) | `trails/{id}` 메타 + members + livePublicationRides | `Trail 035` (3자리 `displayNumber`) |
 | Ride 기록 | `rides.roomId` = Trail ID | 주행 종료 후 Trailhead 복귀 |
 
 **표시 번호:** 내부 ID = Firestore auto-id. 사람에게는 `001`–`999` 랜덤 `displayNumber` (일일 순번·날짜코드는 미사용).
+
+### 1-c. Trailhead MENU 목록 (2026-06)
+
+**단일 진실(제품):** MENU **Trail list** = **지금 주행 중인 Trail만**.
+
+| 표시 | 미표시 |
+|------|--------|
+| 활성 라이더 ≥ 1 (`livePublicationRides` 최근 heartbeat 또는 listing `riderCount > 0`) | open trail이지만 주행자 0명 |
+| A·B가 서로 다른 Trail 주행 시 — Trailhead(C)에서 **둘 다** 목록에 표시 | 완주 여부·과거 closed trail |
+| 호스트 **주행 종료** → listing 삭제 → 목록에서 즉시 제거 | `status==open` 만으로 목록 유지 |
+
+**데이터 소스:** `openTrailListings` (CF projection) + `livePublicationRides` collection group 보강 (`useOpenTrails`). 지도 관전 카탈로그와 동일 CG 기준.
+
+**완주/미완주는 목록 기준이 아님.** 호스트가 `closeTrailInstance`로 Trail을 닫을 때 사라지는 것은 의도된 동작.
 
 ---
 
@@ -157,6 +171,7 @@
 | 2026-05-17 | [Activity World 지도 LOD](260517-Activity-World-지도-LOD-설계.md) — 전역 라이브 코스 점/라인 |
 | 2026-05-17 | §2 시청 컨텍스트 — 「어느 Trail」에 Trailhead(`default`) 포함, Activity World vs 관전 구분 |
 | 2026-05-19 | §1 Trailhead=허브·▶ 자동 Trail·3자리 displayNumber·§1-b living world 분리·TrailHubPanel |
+| 2026-06-24 | §1-c Trailhead MENU 목록 — 주행 중 Trail만, listing+CG 병합 |
 
 ### 9. `rooms` → `trails` 배포 순서
 

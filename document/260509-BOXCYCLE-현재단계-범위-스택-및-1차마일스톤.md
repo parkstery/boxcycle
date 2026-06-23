@@ -27,12 +27,12 @@
 
 아래를 만족하면 1차 마일스톤 **달성**으로 본다. 세부 수치는 실행 문서·이슈에서 조정 가능하나, **범위 축소 시 본 문서를 갱신**한다.
 
-| # | 항목 | 설명 | 진행 (2026-05-26) |
+| # | 항목 | 설명 | 진행 (2026-06-24) |
 |---|------|------|-------------------|
 | A | 인증 | **Google(Gmail) 로그인** 하나로 빠른 검증. 다른 제공자·이메일 비밀번호는 1차 범위 밖으로 둘 수 있다. | ✅ 코드 — 게스트·익명 자동 진입은 [tier·진입](260519-사용자-tier-및-진입-정책.md) 정책 따름 |
 | B | 사용자 식별 | 로그인 사용자마다 **서버(Firebase) 기준 고유 ID**가 있고, 클라이언트가 이를 기준으로 동작한다. | ✅ `users/{uid}` merge |
-| C | 동시 접속·공유 상태 | 동일 **Trail/코스**에 **2명 이상**이 동시에 참여할 때, Firebase 기준으로 상대 존재·진행이 반영된다. | 🔄 코드 — `trails/…/members`, `coursePresence`, `liveCourseRides` 동작. RTW `sessions/`·`presence/` 루트 컬렉션은 **미착수** ([Phase 1-B](260511-Phase별-실행-체크리스트-Course-Session-Presence.md)) |
-| D | 영속화 | Trail 멤버·하트비트·주행 메타 등 최소 데이터가 Firebase에 저장·동기된다. **`sessions/{sessionId}` 는 1차 직후 후순위** | ✅ `trails`·`rides`·`courses` 등. `sessions/` 도입은 후순위 유지 |
+| C | 동시 접속·공유 상태 | 동일 **Trail/코스**에 **2명 이상**이 동시에 참여할 때, Firebase 기준으로 상대 존재·진행이 반영된다. | 🔄 코드 — `trails/…/members`, `livePublicationRides`, Trailhead **활성 Trail 목록**·관전. RTW `sessions/`·`presence/` 루트 컬렉션은 **미착수** |
+| D | 영속화 | Trail 멤버·하트비트·주행 메타 등 최소 데이터가 Firebase에 저장·동기된다. **`sessions/{sessionId}` 는 1차 직후 후순위** | ✅ `trails`·`rides`·`courses`·`openTrailListings` 등. `sessions/` 도입은 후순위 유지 |
 | E | 재현 가능 | 스테이징·Hosting URL에서 PM이 계정 2개 데모를 재현한다. | ⬜ **PM 확인** — 배포 URL·시나리오 체크리스트: [수동 스모크](260516-수동-스모크-체크리스트.md) |
 
 ### 2.2 1차에서 의도적으로 미포함 (명시적 후순위)
@@ -80,12 +80,13 @@
 | `users/{uid}` | 프로필·tier 필드 |
 | `trails/{trailId}` | Trail 메타(`default`는 Trailhead 허브, 루트 문서 없을 수 있음) |
 | `trails/{trailId}/members/{uid}` | Trailhead·Trail presence·하트비트 |
-| `trails/{trailId}/liveCourseRides/{uid}` | 같은 Trail 내 코스 주행 진행·관전 |
+| `trails/{trailId}/livePublicationRides/{uid}` | 같은 Trail 내 출판 경로 주행 진행·관전(구 `liveCourseRides`) |
 | `coursePresence/{courseId}/members/{uid}` | 입문 허브 등 **코스 단위** 동행(`presenceEnabled`) |
 | `courseActivity/{courseId}` | Activity World 집계(저빈도 읽기) |
 | `routePublications/{id}` · `publicationPresence/{id}` | 경로 출판·월드 dot([World Presence](260523-World-Activity-Presence-설계.md)) |
 | `rides/{id}` · `courses/{id}` · `savedRoutes/{id}` | 주행 기록·코스·저장 경로 |
-| `openTrailListings/{trailId}` · `livePresence/{uid}` | 공개 Trail 목록·글로벌 라이브(설계 범위 내) |
+| `openTrailListings/{trailId}` | Trailhead MENU **주행 중 Trail** projection (`riderCount` > 0). CF `openTrailListingProjection` + 클라이언트 fallback |
+| `livePresence/{uid}` | 글로벌 라이브(설계 범위 내) |
 | `rooms/…` | **레거시 read-only** — 신규 쓰기는 `trails/` ([용어집 §8](260517-제품-용어-Trailhead-Trail.md)) |
 
 Rules: `coursePresence` 는 `courses/{courseId}.presenceEnabled == true` 게이트. 시드는 `firestoreCourses.ts` `ensureBasicCoursesSeeded`.
@@ -94,7 +95,9 @@ Rules: `coursePresence` 는 `courses/{courseId}.presenceEnabled == true` 게이�
 
 | 영역 | 상태 | 참고 |
 |------|------|------|
-| Trail·liveCourseRides 관전 | ✅ | `useTrail*` 훅·`firestoreTrail*` |
+| Trail·livePublicationRides 관전 | ✅ | `useTrail*`·`firestoreTrail*`·Trailhead idle 관전 |
+| Trailhead MENU 목록 | ✅ | `useOpenTrails` — listing + CG, **활성 라이더만** (2026-06) |
+| Route Dock·지명 검색 UI | ✅ | 좌하단 Route Dock, HUD 「지명」 — [UX IA](260515-ux-주행-여정-및-패널-IA.md) |
 | Activity World LOD | ✅ | [LOD 설계](260517-Activity-World-지도-LOD-설계.md) |
 | Firestore 부하 1차 저감 | ✅ | [(cycle) 종합보고](260515-(cycle)Firestore-부하-경감-조치-종합보고서.md) |
 | App 도메인·훅 분리 | ✅ 1차 | [결과 보고](260516-App-도메인-훅-분리-결과-보고서.md) |
@@ -129,3 +132,4 @@ Rules: `coursePresence` 는 `courses/{courseId}.presenceEnabled == true` 게이�
 | 2026-05-11 | Directions Callable·§4·상단 메타 반영(Geocoding 프록시는 후속) |
 | 2026-05-16 | 루트 정적 POC 제거; npm **workspaces**(`apps/web` → `boxcycle-web`): 루트 단일 `npm install`·잠금 파일, 루트 스크립트가 워크스페이스 위임 |
 | 2026-05-26 | §2.1 인수 조건 진행 열, §4 진행 대시보드·Firestore 경로표·다음 2주, tier·World Presence 연결 |
+| 2026-06-24 | §2.1·§4.2 `livePublicationRides`·`openTrailListings` 정책, Trail 목록·Route Dock·지명 검색 §4.3 반영 |
