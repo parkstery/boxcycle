@@ -6,7 +6,9 @@ import {
   type TrailInstance,
   type TrailVisibility,
 } from "../../lib/firestoreTrailInstance";
+import { compareOpenTrailsForListing } from "../../lib/firestoreOpenTrailListings";
 import { formatTrailDisplayNumber } from "../../lib/trailDisplayNumber";
+import { readTrailDisplayNumberCache } from "../../lib/trailDisplayNumberCache";
 import { TRAILHEAD_LABEL, TRAIL_LABEL } from "../../lib/productTerms";
 import "./TrailHubPanel.css";
 
@@ -21,6 +23,8 @@ export type TrailHubPanelProps = {
   onJoinTrail: (trailId: string, listingPublicationId?: string | null) => void;
   onSetVisibility: (visibility: TrailVisibility) => void;
   visibilityBusy?: boolean;
+  /** running·paused — Trailhead 이동 비활성 */
+  rideSessionActive?: boolean;
 };
 
 function formatTrailRow(t: TrailInstance): string {
@@ -43,15 +47,25 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
     ? formatTrailDisplayNumber(props.currentTrail.displayNumber)
     : onTrailhead
       ? TRAILHEAD_LABEL
-      : active.slice(0, 8);
+      : formatTrailDisplayNumber(readTrailDisplayNumberCache(active));
 
-  const joinable = useMemo(
-    () =>
-      props.openTrails.filter(
-        (t) => t.id !== active && t.status === "open" && t.visibility === "open",
-      ),
-    [props.openTrails, active],
-  );
+  /** 주행 중: 공개 Trail 전체(현재 Trail 포함). 대기 중: 합류 가능 Trail만(현재 제외) */
+  const listedTrails = useMemo(() => {
+    const open = props.openTrails
+      .filter((t) => t.status === "open" && t.visibility === "open")
+      .sort(compareOpenTrailsForListing);
+    if (props.rideSessionActive) {
+      if (
+        !onTrailhead &&
+        props.currentTrail?.id === active &&
+        !open.some((t) => t.id === active)
+      ) {
+        return [props.currentTrail, ...open];
+      }
+      return open;
+    }
+    return open.filter((t) => t.id !== active);
+  }, [props.openTrails, props.rideSessionActive, onTrailhead, active, props.currentTrail]);
 
   const canToggleVisibility = canUserManageTrail(props.currentTrail, props.user);
 
@@ -64,7 +78,7 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
         </strong>
         {!onTrailhead && props.currentTrail ? (
           <span className="trail-hub__current-meta">
-            {props.currentTrail.regionLabel ?? "—"} ·{" "}
+            {props.currentTrail.regionLabel?.trim() || "—"} ·{" "}
             {props.currentTrail.visibility === "private" ? "비공개" : "공개"}
           </span>
         ) : null}
@@ -74,7 +88,7 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
         <button
           type="button"
           className="trail-hub__trailhead-btn"
-          disabled={onTrailhead}
+          disabled={onTrailhead || Boolean(props.rideSessionActive)}
           onClick={props.onGoTrailhead}
         >
           {TRAILHEAD_LABEL}로
@@ -118,19 +132,32 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
           {props.openTrailsError}
         </p>
       ) : null}
-      {joinable.length > 0 ? (
+      {props.openTrailsLoading && listedTrails.length === 0 ? (
+        <p className="trail-hub__empty">불러오는 중…</p>
+      ) : listedTrails.length > 0 ? (
         <ul className="trail-hub__list">
-          {joinable.map((t) => (
-            <li key={t.id}>
-              <button
-                type="button"
-                className="trail-hub__join-btn"
-                onClick={() => props.onJoinTrail(t.id, t.publicationId)}
-              >
-                {formatTrailRow(t)}
-              </button>
-            </li>
-          ))}
+          {listedTrails.map((t) => {
+            const isCurrent = t.id === active;
+            const showActiveRow = isCurrent && props.rideSessionActive;
+            return (
+              <li key={t.id}>
+                {showActiveRow ? (
+                  <div className="trail-hub__active-row" aria-current="true">
+                    {formatTrailRow(t)}
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="trail-hub__join-btn"
+                    disabled={props.rideSessionActive}
+                    onClick={() => props.onJoinTrail(t.id, t.publicationId)}
+                  >
+                    {formatTrailRow(t)}
+                  </button>
+                )}
+              </li>
+            );
+          })}
         </ul>
       ) : (
         <p className="trail-hub__empty">없음</p>

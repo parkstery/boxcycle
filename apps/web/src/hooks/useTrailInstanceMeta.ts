@@ -1,6 +1,7 @@
 import { startTransition, useCallback, useEffect, useState } from "react";
 import { fetchTrailInstance, type TrailInstance } from "../lib/firestoreTrailInstance";
 import { DEFAULT_TRAIL_ID } from "../lib/firestoreTrail";
+import { rememberTrailDisplayNumber } from "../lib/trailDisplayNumberCache";
 
 export function useTrailInstanceMeta(
   trailId: string,
@@ -27,7 +28,10 @@ export function useTrailInstanceMeta(
     setLoading(true);
     void fetchTrailInstance(trailId)
       .then((next) => {
-        if (!cancelled) startTransition(() => setMeta(next));
+        if (!cancelled) {
+          if (next) rememberTrailDisplayNumber(next.id, next.displayNumber);
+          startTransition(() => setMeta(next));
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

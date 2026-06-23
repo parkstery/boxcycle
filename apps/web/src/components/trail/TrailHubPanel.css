@@ -115,6 +115,26 @@
   border-color: rgba(120, 200, 255, 0.35);
 }
 
+.trail-hub__active-row {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(120, 200, 255, 0.35);
+  background: rgba(80, 160, 255, 0.12);
+  color: inherit;
+  font-size: 0.76rem;
+  font-family: ui-monospace, monospace;
+}
+
+.trail-hub__join-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.trail-hub__join-btn:disabled:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
 .trail-hub__empty,
 .trail-hub__err {
   margin: 0;

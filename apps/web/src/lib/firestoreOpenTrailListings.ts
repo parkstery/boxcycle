@@ -6,10 +6,10 @@ import {
   getFirestore,
   limit,
   onSnapshot,
-  orderBy,
   query,
   serverTimestamp,
   setDoc,
+  Timestamp,
   type FirestoreError,
   type Unsubscribe,
 } from "firebase/firestore";
@@ -34,8 +34,18 @@ type OpenTrailListingDoc = {
   distanceKm: number | null;
   publicationId: string;
   riderCount: number;
+  /** Trail 생성 시각 — 목록 정렬용(불변) */
+  createdAt: Timestamp | ReturnType<typeof serverTimestamp>;
   updatedAt: ReturnType<typeof serverTimestamp>;
 };
+
+/** 공개 Trail 목록 — 최신 생성 우선, 동률 시 id 로 고정 */
+export function compareOpenTrailsForListing(a: TrailInstance, b: TrailInstance): number {
+  const aMs = a.createdAtMs ?? 0;
+  const bMs = b.createdAtMs ?? 0;
+  if (bMs !== aMs) return bMs - aMs;
+  return a.id.localeCompare(b.id);
+}
 
 function resolveListingPublicationId(data: Record<string, unknown>): string | null {
   return resolvePublicationIdFromDoc(data);
@@ -77,8 +87,8 @@ async function loadTrailForListing(trailId: string): Promise<TrailInstance | nul
     visibility: data.visibility === "private" ? "private" : "open",
     status:
       data.status === "archived" ? "archived" : data.status === "closed" ? "closed" : "open",
-    createdAtMs: null,
-    lastActivityAtMs: null,
+    createdAtMs: timestampToMs(data.createdAt),
+    lastActivityAtMs: timestampToMs(data.lastActivityAt),
     liveRiderCount:
       typeof data.liveRiderCount === "number" && Number.isFinite(data.liveRiderCount)
         ? Math.max(0, Math.floor(data.liveRiderCount))
@@ -116,7 +126,7 @@ function listingToTrailInstance(
         : null,
     visibility: "open",
     status: "open",
-    createdAtMs: null,
+    createdAtMs: timestampToMs(data.createdAt),
     lastActivityAtMs: null,
     liveRiderCount:
       typeof data.riderCount === "number" && Number.isFinite(data.riderCount)
@@ -156,6 +166,16 @@ export async function refreshOpenTrailListingFromTrail(trailId: string): Promise
     return;
   }
   const riderCount = await countTrailActiveParticipantsForTrail(trail).catch(() => 0);
+  const existingSnap = await getDoc(listingRef(trailId)).catch(() => null);
+  const existingCreated = existingSnap?.exists()
+    ? existingSnap.data()?.createdAt
+    : undefined;
+  const createdAt =
+    existingCreated != null
+      ? (existingCreated as Timestamp)
+      : trail.createdAtMs != null
+        ? Timestamp.fromMillis(trail.createdAtMs)
+        : Timestamp.now();
   const payload: OpenTrailListingDoc = {
     trailId: trail.id,
     hostUid: trail.hostUid,
@@ -164,12 +184,14 @@ export async function refreshOpenTrailListingFromTrail(trailId: string): Promise
     distanceKm: trail.distanceKm,
     publicationId: trail.publicationId!,
     riderCount,
+    createdAt,
     updatedAt: serverTimestamp(),
   };
   await setDoc(listingRef(trailId), payload, { merge: true });
 }
 
 const refreshScheduled = new Map<string, ReturnType<typeof setTimeout>>();
+const createdAtBackfillScheduled = new Set<string>();
 
 /** presence·liveCourseRides 갱신 시 listing debounce 동기화 */
 export function scheduleOpenTrailListingRefresh(trailId: string, debounceMs = 2_500): void {
@@ -191,11 +213,7 @@ export function subscribeOpenTrailListings(
   onError?: (e: FirestoreError) => void,
 ): Unsubscribe {
   const db = getFirestore(getFirebaseApp());
-  const q = query(
-    collection(db, OPEN_TRAIL_LISTINGS_COLLECTION),
-    orderBy("updatedAt", "desc"),
-    limit(OPEN_TRAIL_LISTINGS_LIMIT),
-  );
+  const q = query(collection(db, OPEN_TRAIL_LISTINGS_COLLECTION), limit(OPEN_TRAIL_LISTINGS_LIMIT));
   return onSnapshot(
     q,
     (snap) => {
@@ -204,10 +222,17 @@ export function subscribeOpenTrailListings(
         .map((d) => ({
           row: listingToTrailInstance(d.id, d.data() as Record<string, unknown>),
           updatedMs: timestampToMs(d.data().updatedAt),
+          createdMs: timestampToMs(d.data().createdAt),
         }))
         .filter(({ updatedMs }) => updatedMs == null || updatedMs >= cutoff)
-        .map(({ row }) => row)
-        .sort((a, b) => (b.liveRiderCount ?? 0) - (a.liveRiderCount ?? 0));
+        .map(({ row, createdMs }) => {
+          if (createdMs == null && !createdAtBackfillScheduled.has(row.id)) {
+            createdAtBackfillScheduled.add(row.id);
+            scheduleOpenTrailListingRefresh(row.id, 500);
+          }
+          return row;
+        })
+        .sort(compareOpenTrailsForListing);
       onChange(rows);
     },
     (err) => onError?.(err),

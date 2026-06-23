@@ -1,5 +1,6 @@
 import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "./firestoreTrail";
 import { TRAILHEAD_LABEL } from "./productTerms";
+import { readTrailDisplayNumberCache } from "./trailDisplayNumberCache";
 
 /** UI 표시용 Trail 번호 (1–999 → `001` … `999`) */
 export function formatTrailDisplayNumber(displayNumber: number | null | undefined): string {
@@ -14,12 +15,20 @@ export type TrailDisplayMeta = { displayNumber: number } | null | undefined;
 export function resolveTrailDisplayLabel(
   trailId: string,
   meta: TrailDisplayMeta,
+  cachedDisplayNumber?: number | null,
 ): { short: string; label: string } {
   const tid = sanitizeTrailId(trailId);
   if (tid === DEFAULT_TRAIL_ID) {
     return { short: TRAILHEAD_LABEL, label: TRAILHEAD_LABEL };
   }
-  const short = meta ? formatTrailDisplayNumber(meta.displayNumber) : tid.slice(0, 8);
+  const resolved =
+    meta?.displayNumber ??
+    cachedDisplayNumber ??
+    readTrailDisplayNumberCache(tid);
+  const short =
+    resolved != null && Number.isFinite(resolved)
+      ? formatTrailDisplayNumber(resolved)
+      : "???";
   return { short, label: `Trail ${short}` };
 }
 

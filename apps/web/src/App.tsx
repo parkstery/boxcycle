@@ -13,6 +13,7 @@ import {
   invalidateLiveRouteActivityIdsCache,
 } from "./lib/firestoreRouteActivity";
 import { AppMapStage, useAppMapOverlays } from "./features/map-overlays";
+import { RouteDock, useRouteDockStops, type RouteDockStop, type RouteDockStopId } from "./components/route-dock";
 import { DebugMapStage } from "./features/map-overlays/DebugMapStage";
 import type { MapViewportBounds } from "./lib/activityWorldLod";
 import { MAP_ZOOM_WORLD_ACTIVITY_MAX } from "./lib/rideSyncPolicy";
@@ -48,6 +49,10 @@ import {
 } from "./lib/firestoreTrailInstance";
 import { fetchOpenTrailListingPublicationId } from "./lib/firestoreOpenTrailListings";
 import { formatTrailDisplayNumber, resolveTrailDisplayLabel } from "./lib/trailDisplayNumber";
+import {
+  readTrailDisplayNumberCache,
+  rememberTrailDisplayNumber,
+} from "./lib/trailDisplayNumberCache";
 import { RotateOverlay } from "./components/RotateOverlay";
 import { MapViewSheet } from "./components/MapViewSheet";
 import { UserInfoSheet } from "./components/UserInfoSheet";
@@ -244,6 +249,8 @@ export default function App() {
   const hostTrailIdRef = useRef<string | null>(null);
   /** Trail 생성·MENU 합류 직후 `displayNumber` 즉시 표시 — `useTrailInstanceMeta` fetch 전 */
   const [trailMetaSeed, setTrailMetaSeed] = useState<TrailInstance | null>(null);
+  /** 주행 세션 동안 MENU·표시용 Trail id (Trailhead UI 전환과 무관하게 유지) */
+  const [ridingTrailId, setRidingTrailId] = useState<string | null>(null);
 
   const trailSession = useTrailSession({
     user: user ?? undefined,
@@ -256,10 +263,19 @@ export default function App() {
   const onDedicatedTrail = sanitizedTrailId !== DEFAULT_TRAIL_ID;
 
   useEffect(() => {
+    if (trailMetaSeed) {
+      rememberTrailDisplayNumber(trailMetaSeed.id, trailMetaSeed.displayNumber);
+    }
+  }, [trailMetaSeed]);
+
+  useEffect(() => {
     if (trailMetaSeed && trailMetaSeed.id !== sanitizedTrailId) {
+      if (ridingTrailId && trailMetaSeed.id === ridingTrailId) {
+        return;
+      }
       setTrailMetaSeed(null);
     }
-  }, [sanitizedTrailId, trailMetaSeed]);
+  }, [sanitizedTrailId, trailMetaSeed, ridingTrailId]);
 
   const { meta: currentTrailMetaRaw, reload: reloadCurrentTrailMeta } = useTrailInstanceMeta(
     sanitizedTrailId,
@@ -291,9 +307,6 @@ export default function App() {
     return withResolvedTrailPublicationId(currentTrailMetaRaw, trailListingPublicationId);
   }, [currentTrailMetaRaw, trailListingPublicationId]);
 
-  const openTrailsQuery = useOpenTrails({
-    enabled: Boolean(configured && user && trailheadSessionActive && menuOpen),
-  });
   /** leaveBasicHub 등에서 최신 주행 종료 로직을 호출하기 위한 ref */
   const handleEndRideRef = useRef<() => void>(() => {});
   /** 주행 종료 시 `rides.courseId` — `useOfficialCoursesHub` 이후 매 렌더 갱신 */
@@ -554,9 +567,91 @@ export default function App() {
   const trackedPublicationId = basicActiveHubCourseId ?? activeOfficialCourseId;
   const isRideSessionActive = rideStatus === "running" || rideStatus === "paused";
 
+  useEffect(() => {
+    if (!isRideSessionActive || ridingTrailId) return;
+    const tid = sanitizeTrailId(trailId);
+    if (tid !== DEFAULT_TRAIL_ID) {
+      setRidingTrailId(tid);
+    }
+  }, [isRideSessionActive, ridingTrailId, trailId]);
+
+  const openTrailsQuery = useOpenTrails({
+    /** MENU·주행 중 Trailhead — 공개 Trail 목록 유지 */
+    enabled: Boolean(
+      configured &&
+        user &&
+        trailheadSessionActive &&
+        (menuOpen || onDedicatedTrail || isRideSessionActive),
+    ),
+  });
+
+  /** HUD·네임태그·TrailHub — fetch 전 seed·공개 목록으로 `displayNumber` 보강 */
+  const trailMetaForDisplay = useMemo((): TrailInstance | null => {
+    if (currentTrailMeta) return currentTrailMeta;
+    if (trailMetaSeed?.id === sanitizedTrailId) return trailMetaSeed;
+    const fromListing = openTrailsQuery.rows.find((t) => t.id === sanitizedTrailId);
+    return fromListing ?? null;
+  }, [currentTrailMeta, trailMetaSeed, sanitizedTrailId, openTrailsQuery.rows]);
+
+  useEffect(() => {
+    for (const t of openTrailsQuery.rows) {
+      rememberTrailDisplayNumber(t.id, t.displayNumber);
+    }
+  }, [openTrailsQuery.rows]);
+
+  const menuTrailSanitizedId = useMemo(() => {
+    if (isRideSessionActive && ridingTrailId) {
+      return sanitizeTrailId(ridingTrailId);
+    }
+    return sanitizedTrailId;
+  }, [isRideSessionActive, ridingTrailId, sanitizedTrailId]);
+
+  const menuTrailIdForFetch =
+    menuTrailSanitizedId !== DEFAULT_TRAIL_ID ? menuTrailSanitizedId : DEFAULT_TRAIL_ID;
+  const { meta: menuTrailFetchedMeta } = useTrailInstanceMeta(
+    menuTrailIdForFetch,
+    Boolean(
+      configured &&
+        user &&
+        menuTrailIdForFetch !== DEFAULT_TRAIL_ID &&
+        (menuOpen || isRideSessionActive),
+    ),
+    trailMetaSeed?.id === menuTrailIdForFetch ? trailMetaSeed : null,
+  );
+
+  const menuTrailMetaForDisplay = useMemo((): TrailInstance | null => {
+    const tid = menuTrailSanitizedId;
+    if (tid === DEFAULT_TRAIL_ID) return null;
+    if (menuTrailFetchedMeta?.id === tid) return menuTrailFetchedMeta;
+    if (currentTrailMeta?.id === tid) return currentTrailMeta;
+    if (trailMetaSeed?.id === tid) return trailMetaSeed;
+    const fromListing = openTrailsQuery.rows.find((t) => t.id === tid);
+    if (fromListing) return fromListing;
+    const cached = readTrailDisplayNumberCache(tid);
+    if (cached == null) return null;
+    return {
+      id: tid,
+      hostUid: "",
+      displayNumber: cached,
+      publicationId: null,
+      regionLabel: null,
+      distanceKm: null,
+      visibility: "open",
+      status: "open",
+      createdAtMs: null,
+      lastActivityAtMs: null,
+    };
+  }, [
+    menuTrailSanitizedId,
+    menuTrailFetchedMeta,
+    currentTrailMeta,
+    trailMetaSeed,
+    openTrailsQuery.rows,
+  ]);
+
   const trailDisplayLabels = useMemo(
-    () => resolveTrailDisplayLabel(sanitizedTrailId, currentTrailMeta),
-    [sanitizedTrailId, currentTrailMeta],
+    () => resolveTrailDisplayLabel(sanitizedTrailId, trailMetaForDisplay),
+    [sanitizedTrailId, trailMetaForDisplay],
   );
   const debugMapPhase = getMapDebugPhase();
   const debugMapIsolationActive =
@@ -761,9 +856,10 @@ export default function App() {
   }, [setTrailDraft, setTrailId]);
 
   const goTrailheadAndCloseMenu = useCallback(() => {
+    if (rideStatus === "running" || rideStatus === "paused") return;
     returnToTrailhead();
     setMenuOpen(false);
-  }, [returnToTrailhead]);
+  }, [returnToTrailhead, rideStatus]);
 
   const loadCourseRouteForTrailJoin = useCallback(
     async (courseId: string) => {
@@ -837,6 +933,7 @@ export default function App() {
           await loadCourseRouteForTrailJoin(resolvedMeta.publicationId);
         }
         hostTrailIdRef.current = null;
+        rememberTrailDisplayNumber(resolvedMeta.id, resolvedMeta.displayNumber);
         setTrailMetaSeed(resolvedMeta);
         setTrailDraft(next);
         setTrailId(next);
@@ -931,6 +1028,7 @@ export default function App() {
             return;
           }
           hostTrailIdRef.current = existing.hostUid === user.uid ? existing.id : null;
+          rememberTrailDisplayNumber(existing.id, existing.displayNumber);
           setTrailMetaSeed(existing);
           void touchTrailInstanceActivity(currentTid);
           const num = formatTrailDisplayNumber(existing.displayNumber);
@@ -939,6 +1037,7 @@ export default function App() {
           );
           resetArrivalGate();
           resetRide();
+          setRidingTrailId(currentTid);
           setRideStatus("running");
           return;
         }
@@ -952,6 +1051,7 @@ export default function App() {
           visibility,
         });
         hostTrailIdRef.current = trail.id;
+        rememberTrailDisplayNumber(trail.id, trail.displayNumber);
         setTrailMetaSeed(trail);
         const prev = sanitizeTrailId(trailId);
         if (prev !== trail.id) {
@@ -967,6 +1067,7 @@ export default function App() {
         reloadCurrentTrailMeta();
         resetArrivalGate();
         resetRide();
+        setRidingTrailId(trail.id);
         setRideStatus("running");
       } catch (e: unknown) {
         const message = e instanceof Error ? e.message : String(e);
@@ -978,9 +1079,14 @@ export default function App() {
   }
 
   const handleEndRideWithTrailCleanup = useCallback(() => {
-    const endedTrailId = sanitizeTrailId(trailId);
+    const endedTrailId = sanitizeTrailId(
+      ridingTrailId && (rideStatus === "running" || rideStatus === "paused")
+        ? ridingTrailId
+        : trailId,
+    );
     const uid = user?.uid ?? null;
     const wasHostTrail = hostTrailIdRef.current === endedTrailId;
+    setRidingTrailId(null);
     handleEndRide();
     void (async () => {
       if (uid && wasHostTrail && endedTrailId !== DEFAULT_TRAIL_ID) {
@@ -988,7 +1094,7 @@ export default function App() {
       }
       returnToTrailhead();
     })();
-  }, [trailId, user?.uid, handleEndRide, returnToTrailhead]);
+  }, [trailId, ridingTrailId, rideStatus, user?.uid, handleEndRide, returnToTrailhead]);
 
   useEffect(() => {
     handleEndRideRef.current = handleEndRideWithTrailCleanup;
@@ -1174,6 +1280,70 @@ export default function App() {
   const handleMapRouteProfile = useCallback(
     (p: RouteProfile) => applyRouteProfileForMapLocked(routeMenuLockedForProd, p),
     [applyRouteProfileForMapLocked, routeMenuLockedForProd],
+  );
+
+  const routeDockStops = useRouteDockStops({
+    startLngLat,
+    endLngLat,
+    routeWaypoints,
+    startLabel,
+    endLabel,
+    waypointLabels: waypointLabelsForPanel,
+  });
+
+  const handleRemoveRouteDockStop = useCallback(
+    (id: RouteDockStopId) => {
+      if (routeMenuLockedForProd) return;
+      if (id === "start") setStartLngLat(null);
+      else if (id === "end") setEndLngLat(null);
+      else {
+        const idx = Number(id.replace("wp-", ""));
+        if (Number.isFinite(idx)) {
+          setRouteWaypoints((prev) => prev.filter((_, i) => i !== idx));
+        }
+      }
+    },
+    [routeMenuLockedForProd, setStartLngLat, setEndLngLat, setRouteWaypoints],
+  );
+
+  const handleFocusRouteDockStop = useCallback(
+    (stop: RouteDockStop) => {
+      setFollowMode("free");
+      cameraJumpSeqRef.current += 1;
+      setExternalCameraJump({
+        lngLat: stop.lngLat,
+        zoom: Math.max(mapZoom, 15),
+        requestId: cameraJumpSeqRef.current,
+      });
+    },
+    [mapZoom],
+  );
+
+  const routeDockPanel = (
+    <RouteDock
+      stage={stage}
+      stops={routeDockStops}
+      routeDistanceMeters={routeDistanceMeters}
+      hasRoute={Boolean(routeGeometry) && routeDistanceMeters > 0}
+      routeLoading={routeLoading}
+      speedKmh={speedKmh}
+      onSpeedKmh={setSpeedKmh}
+      canStartRide={Boolean(routeGeometry) && !routeLoading}
+      canSaveRoute={
+        Boolean(user) &&
+        configured &&
+        Boolean(routeGeometry) &&
+        routeDistanceMeters > 0 &&
+        !routeLoading &&
+        !routeMenuLockedForProd
+      }
+      onSaveCurrentRoute={handleSaveCurrentRoute}
+      onStartRide={handleStartRide}
+      onClearRoute={handleClearPins}
+      onRemoveStop={handleRemoveRouteDockStop}
+      onFocusStop={handleFocusRouteDockStop}
+      editLocked={routeMenuLockedForProd}
+    />
   );
 
   const dismissBJourneyHint = useCallback(() => {
@@ -1387,6 +1557,7 @@ export default function App() {
           </DebugMapStage>
         ) : (
           <AppMapStage
+            routeDock={routeDockPanel}
             mapView={{
               accessToken: MAPBOX_TOKEN || undefined,
               routeElevationProfile: rideElevationProfile,
@@ -1528,8 +1699,8 @@ export default function App() {
       >
         <TrailHubPanel
           user={user}
-          activeTrailId={sanitizedTrailId}
-          currentTrail={currentTrailMeta}
+          activeTrailId={menuTrailSanitizedId}
+          currentTrail={menuTrailMetaForDisplay}
           openTrails={openTrailsQuery.rows}
           openTrailsLoading={openTrailsQuery.loading}
           openTrailsError={openTrailsQuery.error}
@@ -1537,6 +1708,7 @@ export default function App() {
           onJoinTrail={joinTrailAndCloseMenu}
           onSetVisibility={handleSetTrailVisibility}
           visibilityBusy={trailVisibilityBusy}
+          rideSessionActive={isRideSessionActive}
         />
         <MenuPlaceSearch
           accessToken={MAPBOX_TOKEN}

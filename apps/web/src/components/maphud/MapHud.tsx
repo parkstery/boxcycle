@@ -170,7 +170,7 @@ export function MapHud(props: MapHudProps) {
     (pinState.start || pinState.end || pinState.waypointCount > 0) &&
     !routeBrief;
   const showBlBrief = !riding && !paused && !isSummary && routeBrief !== null;
-  const showMainFab = riding || stage === "ready-to-start";
+  const showMainFab = riding;
   const showMc = paused || (stage === "setup" && Boolean(routeError));
 
   return (
