@@ -75,7 +75,6 @@ import {
   sanitizeTrailId,
 } from "./lib/firestoreTrail";
 import { canUserJoinTrail, resolveNewTrailVisibility } from "./lib/trailAccessPolicy";
-import { TRAILHEAD_NAV_ENABLED } from "./lib/productTerms";
 import { replaceTrailInUrl } from "./lib/trailUrl";
 import type { LngLat } from "./lib/geo";
 import { getPointOnRouteByDistance, lineStringLengthMeters } from "./lib/geo";
@@ -753,7 +752,6 @@ export default function App() {
   }, [rideMetrics.accumulatedMs, rideMetrics.virtualDistanceMeters]);
 
   const returnToTrailhead = useCallback(() => {
-    if (!TRAILHEAD_NAV_ENABLED) return;
     const tid = DEFAULT_TRAIL_ID;
     setTrailDraft(tid);
     setTrailId(tid);
@@ -763,7 +761,6 @@ export default function App() {
   }, [setTrailDraft, setTrailId]);
 
   const goTrailheadAndCloseMenu = useCallback(() => {
-    if (!TRAILHEAD_NAV_ENABLED) return;
     returnToTrailhead();
     setMenuOpen(false);
   }, [returnToTrailhead]);
@@ -876,7 +873,7 @@ export default function App() {
       if (cancelled) return;
       if (!meta) {
         setRouteSummary("Trail을 찾을 수 없습니다.");
-        if (TRAILHEAD_NAV_ENABLED) returnToTrailhead();
+        returnToTrailhead();
         return;
       }
       const listingPub = await fetchOpenTrailListingPublicationId(tid).catch(() => null);
@@ -884,7 +881,7 @@ export default function App() {
       const gate = canUserJoinTrail(resolvedMeta, user);
       if (!gate.ok) {
         setRouteSummary(gate.message);
-        if (TRAILHEAD_NAV_ENABLED) returnToTrailhead();
+        returnToTrailhead();
         return;
       }
       if (resolvedMeta.publicationId) {
@@ -989,7 +986,7 @@ export default function App() {
       if (uid && wasHostTrail && endedTrailId !== DEFAULT_TRAIL_ID) {
         await closeTrailInstance(endedTrailId).catch(() => {});
       }
-      if (TRAILHEAD_NAV_ENABLED) returnToTrailhead();
+      returnToTrailhead();
     })();
   }, [trailId, user?.uid, handleEndRide, returnToTrailhead]);
 
@@ -1283,9 +1280,8 @@ export default function App() {
     const trailError = trailSession.error;
     const courseActivityHudLine = formatRouteActivityHudLine(courseActivity);
     const tid = sanitizeTrailId(trailId);
-    const showTrailPresenceHud = TRAILHEAD_NAV_ENABLED || tid !== DEFAULT_TRAIL_ID;
     return {
-      trailheadEnabled: showTrailPresenceHud,
+      trailheadEnabled: true,
       trailId: tid,
       trailDisplayLabel: trailDisplayLabels.short,
       trailLabel: trailDisplayLabels.label,
