@@ -7,7 +7,7 @@ import {
   type TrailVisibility,
 } from "../../lib/firestoreTrailInstance";
 import { formatTrailDisplayNumber } from "../../lib/trailDisplayNumber";
-import { TRAILHEAD_LABEL, TRAIL_LABEL } from "../../lib/productTerms";
+import { TRAILHEAD_LABEL, TRAIL_LABEL, TRAILHEAD_NAV_ENABLED } from "../../lib/productTerms";
 import "./TrailHubPanel.css";
 
 export type TrailHubPanelProps = {
@@ -54,23 +54,29 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
   );
 
   const canToggleVisibility = canUserManageTrail(props.currentTrail, props.user);
+  const showTrailheadNav = TRAILHEAD_NAV_ENABLED;
+  const showCurrentTrail = !onTrailhead || showTrailheadNav;
 
   return (
-    <section className="trail-hub" aria-label={`${TRAILHEAD_LABEL} · ${TRAIL_LABEL}`}>
-      <div className="trail-hub__current">
-        <span className="trail-hub__kicker">지금</span>
-        <strong className="trail-hub__current-id">
-          {onTrailhead ? TRAILHEAD_LABEL : `Trail ${currentLabel}`}
-        </strong>
-        {!onTrailhead && props.currentTrail ? (
-          <span className="trail-hub__current-meta">
-            {props.currentTrail.regionLabel ?? "—"} ·{" "}
-            {props.currentTrail.visibility === "private" ? "비공개" : "공개"}
-          </span>
-        ) : null}
-      </div>
+    <section className="trail-hub" aria-label={`${TRAIL_LABEL}${showTrailheadNav ? ` · ${TRAILHEAD_LABEL}` : ""}`}>
+      {showCurrentTrail ? (
+        <div className="trail-hub__current">
+          <span className="trail-hub__kicker">지금</span>
+          <strong className="trail-hub__current-id">
+            {onTrailhead ? TRAILHEAD_LABEL : `Trail ${currentLabel}`}
+          </strong>
+          {!onTrailhead && props.currentTrail ? (
+            <span className="trail-hub__current-meta">
+              {props.currentTrail.regionLabel ?? "—"} ·{" "}
+              {props.currentTrail.visibility === "private" ? "비공개" : "공개"}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
 
+      {showTrailheadNav || canToggleVisibility ? (
       <div className="trail-hub__row">
+        {showTrailheadNav ? (
         <button
           type="button"
           className="trail-hub__trailhead-btn"
@@ -79,6 +85,7 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
         >
           {TRAILHEAD_LABEL}로
         </button>
+        ) : null}
         {canToggleVisibility ? (
           <div className="trail-hub__visibility" role="group" aria-label="Trail 공개 설정">
             <button
@@ -108,6 +115,7 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
           </div>
         ) : null}
       </div>
+      ) : null}
 
       <div className="trail-hub__list-head">
         <span className="trail-hub__kicker">Trail</span>
