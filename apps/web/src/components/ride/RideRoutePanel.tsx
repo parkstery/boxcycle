@@ -4,7 +4,6 @@ import type { RouteProfile } from "../../services/mapboxDirections";
 import type { PublishedPublicCourseSummary } from "../../lib/firestoreCourses";
 import type { RouteActivitySnapshot } from "../../lib/firestoreRouteActivity";
 import type { BleCrankRpmUiState } from "../../hooks/useBleCrankRpm";
-import type { RideSessionStatus } from "../../hooks/useVirtualRideSession";
 import type { SavedRoute } from "../../lib/firestoreSavedRoutes";
 import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/firestoreSavedRoutes";
 import { SavedRoutesPanel } from "./SavedRoutesPanel";
@@ -14,14 +13,6 @@ import {
 } from "./OfficialCourseListModal";
 import { AdminPublicRouteQueue } from "../AdminPublicRouteQueue";
 import "./RideRoutePanel.css";
-
-const SESSION_SPEED_MIN_KMH = 5;
-const SESSION_SPEED_MAX_KMH = 50;
-
-function clampSessionSpeedKmh(n: number): number {
-  if (!Number.isFinite(n)) return SESSION_SPEED_MIN_KMH;
-  return Math.round(Math.min(SESSION_SPEED_MAX_KMH, Math.max(SESSION_SPEED_MIN_KMH, n)));
-}
 
 export type FollowMode =
   | "free"
@@ -45,12 +36,6 @@ type RideRoutePanelProps = {
   /** 공식 코스를 불러온 뒤에는 출발·도착 맞춤 「경로 생성」을 막음 */
   officialCourseActive?: boolean;
   hasRoute: boolean;
-  /** 경로가 준비되었을 때 메뉴·맵 FAB 공통 */
-  canStartRide: boolean;
-  onStartRide: () => void;
-  speedKmh: number;
-  onSpeedKmh: (n: number) => void;
-  sessionStatus: RideSessionStatus;
   basicSharedHubs: PublishedPublicCourseSummary[];
   basicActiveHubCourseId: string | null;
   basicStartLoading: boolean;
@@ -137,10 +122,8 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
   const [adhocSaveBusy, setAdhocSaveBusy] = useState(false);
   const [adhocSaveError, setAdhocSaveError] = useState<string | null>(null);
   const [officialListModal, setOfficialListModal] = useState<OfficialCourseSegment | null>(null);
-  const [speedInputEditing, setSpeedInputEditing] = useState(false);
-  const [speedInputDraft, setSpeedInputDraft] = useState("");
 
-  /** 주행 중에도 MENU(경로·코스·속도·시작)는 사용 가능 — 맵 핀 편집만 App 쪽에서 별도 잠금 */
+  /** 주행 중에도 MENU(경로·코스)는 사용 가능 — 속도·시작은 RouteDock, 맵 핀은 App 잠금 */
   const routeLocksAsIdle = true;
 
   useEffect(() => {
@@ -217,15 +200,6 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
     } finally {
       setAdhocSaveBusy(false);
     }
-  }
-
-  function commitSpeedInput(raw: string) {
-    const trimmed = raw.trim();
-    if (!trimmed) {
-      props.onSpeedKmh(SESSION_SPEED_MIN_KMH);
-      return;
-    }
-    props.onSpeedKmh(clampSessionSpeedKmh(Number(trimmed)));
   }
 
   return (
@@ -632,70 +606,6 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               )}
             </div>
           ) : null}
-
-          <div className="ride-panel__session-block">
-            <label className="ride-panel__speed-label" htmlFor="ride-panel-speed-range">
-              <span className="ride-panel__kicker">세션</span> 속도 (km/h)
-            </label>
-            <div className="ride-panel__session-controls">
-              <input
-                id="ride-panel-speed-range"
-                type="range"
-                min={SESSION_SPEED_MIN_KMH}
-                max={SESSION_SPEED_MAX_KMH}
-                step={1}
-                value={props.speedKmh}
-                title="Session speed"
-                onChange={(e) => props.onSpeedKmh(clampSessionSpeedKmh(Number(e.target.value)))}
-                className="ride-panel__range ride-panel__range--session"
-              />
-              <input
-                id="ride-panel-speed-number"
-                type="number"
-                min={SESSION_SPEED_MIN_KMH}
-                max={SESSION_SPEED_MAX_KMH}
-                step={1}
-                inputMode="numeric"
-                className="ride-panel__speed-input"
-                aria-label="속도 km/h"
-                title="속도 km/h"
-                value={speedInputEditing ? speedInputDraft : props.speedKmh}
-                onFocus={() => {
-                  setSpeedInputEditing(true);
-                  setSpeedInputDraft(String(props.speedKmh));
-                }}
-                onChange={(e) => setSpeedInputDraft(e.target.value)}
-                onBlur={() => {
-                  commitSpeedInput(speedInputDraft);
-                  setSpeedInputEditing(false);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.currentTarget.blur();
-                  }
-                }}
-              />
-              {props.sessionStatus === "idle" ? (
-                <button
-                  type="button"
-                  className="ride-panel__btn-primary ride-panel__start-ride ride-panel__start-ride--compact"
-                  disabled={!props.canStartRide}
-                  title="주행 시작"
-                  aria-label="주행 시작"
-                  onClick={props.onStartRide}
-                >
-                  ▶ 시작
-                </button>
-              ) : null}
-            </div>
-            {props.sessionStatus === "idle" && !props.canStartRide ? (
-              <p className="ride-panel__start-ride-hint">
-                {props.routeLoading
-                  ? "경로를 계산하는 중입니다…"
-                  : "출발·도착 후 경로 생성 또는 불러오기"}
-              </p>
-            ) : null}
-          </div>
 
         </>
       )}

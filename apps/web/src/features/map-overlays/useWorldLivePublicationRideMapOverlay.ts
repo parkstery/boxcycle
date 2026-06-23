@@ -11,8 +11,12 @@ import {
   type TrailLivePublicationRideRow,
 } from "../../lib/firestoreTrailLivePublicationRides";
 import { acquireTrailLivePublicationRidesSubscription } from "../../lib/livePublicationRidesSubscriptionHub";
-import { sanitizeTrailId } from "../../lib/firestoreTrail";
-import type { LineStringGeometry } from "../../lib/geo";
+import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "../../lib/firestoreTrail";
+import type { LineStringGeometry, LngLat } from "../../lib/geo";
+import { getPointOnRouteByDistance, lineStringLengthMeters } from "../../lib/geo";
+import { progressRatioToRouteDistanceMeters } from "../../lib/liveLocationSnapshot";
+import { PEER_EXTRAP_DEFAULT_SPEED_KMH } from "../../lib/rideSyncPolicy";
+import type { TrailSpectatorDot } from "../../hooks/useTrailLivePublicationRideSpectatorOverlay";
 import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../../lib/geoDecimate";
 import type { RouteActivityMapOverlay } from "../../hooks/useRouteActivityMapOverlay";
 
@@ -75,7 +79,12 @@ export function useWorldLivePublicationRideMapOverlay(opts: {
   excludePublicationId: string | null;
   /** 현재 Trail + openTrailListings */
   trailIds: readonly string[];
-}): RouteActivityMapOverlay & { livePublicationCount: number; liveRideRowCount: number } {
+}): RouteActivityMapOverlay & {
+  livePublicationCount: number;
+  liveRideRowCount: number;
+  lobbySpectatorDots: TrailSpectatorDot[];
+  lobbySpectatorRoutes: LineStringGeometry[];
+} {
   const { enabled, mapZoom, myUid, excludePublicationId, trailIds } = opts;
   const [rows, setRows] = useState<TrailLivePublicationRideRow[]>([]);
   const [geomEpoch, setGeomEpoch] = useState(0);
@@ -85,7 +94,7 @@ export function useWorldLivePublicationRideMapOverlay(opts: {
     const ids = new Set<string>();
     for (const raw of trailIds) {
       const tid = sanitizeTrailId(raw);
-      if (tid) ids.add(tid);
+      if (tid && tid !== DEFAULT_TRAIL_ID) ids.add(tid);
     }
     return [...ids].sort().join(",");
   }, [trailIds]);
@@ -212,9 +221,59 @@ export function useWorldLivePublicationRideMapOverlay(opts: {
     };
   }, [aggregates, mapZoom, geomEpoch]);
 
+  const lobbySpectator = useMemo(() => {
+    const exclude = excludePublicationId?.trim() ?? "";
+    const activeRows = rows.filter((r) => {
+      if (!isTrailLivePublicationRideRowFresh(r)) return false;
+      if (exclude && r.publicationId.trim() === exclude) return false;
+      if (myUid && r.uid === myUid) return false;
+      return true;
+    });
+    if (activeRows.length === 0) {
+      return { lobbySpectatorDots: [] as TrailSpectatorDot[], lobbySpectatorRoutes: [] as LineStringGeometry[] };
+    }
+
+    const geomMap = geomByPublicationRef.current;
+    const maxV = maxLineStringVerticesForMapZoom(mapZoom);
+    const seenPublications = new Set<string>();
+    const lobbySpectatorRoutes: LineStringGeometry[] = [];
+    const lobbySpectatorDots: TrailSpectatorDot[] = [];
+
+    for (const r of activeRows) {
+      const g = geomMap.get(r.publicationId);
+      if (!g || g.status !== "ready") continue;
+      if (!seenPublications.has(r.publicationId)) {
+        seenPublications.add(r.publicationId);
+        lobbySpectatorRoutes.push(decimateLineStringVertices(g.geometry, maxV));
+      }
+      const len = lineStringLengthMeters(g.geometry);
+      if (len <= 0) continue;
+      const anchorDistM =
+        typeof r.distMeters === "number" && Number.isFinite(r.distMeters)
+          ? Math.max(0, Math.min(len, r.distMeters))
+          : progressRatioToRouteDistanceMeters(r.progressRatio, len);
+      const sampleAtMs = r.lastSeenAtMs ?? Date.now();
+      const elapsedSec = Math.max(0, (Date.now() - sampleAtMs) / 1000);
+      const distM = Math.min(len, anchorDistM + (PEER_EXTRAP_DEFAULT_SPEED_KMH / 3.6) * elapsedSec);
+      const p = getPointOnRouteByDistance(g.geometry, distM);
+      if (p) {
+        const who = r.displayName?.trim() || r.uid.slice(0, 6);
+        lobbySpectatorDots.push({
+          id: r.uid,
+          lngLat: p as LngLat,
+          label: who,
+        });
+      }
+    }
+
+    return { lobbySpectatorDots, lobbySpectatorRoutes };
+  }, [rows, excludePublicationId, myUid, mapZoom, geomEpoch]);
+
   return {
     ...overlay,
     livePublicationCount: aggregates.length,
     liveRideRowCount: rows.length,
+    lobbySpectatorDots: lobbySpectator.lobbySpectatorDots,
+    lobbySpectatorRoutes: lobbySpectator.lobbySpectatorRoutes,
   };
 }

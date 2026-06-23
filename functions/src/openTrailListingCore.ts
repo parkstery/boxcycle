@@ -44,6 +44,20 @@ function presenceCutoff(): Timestamp {
   return Timestamp.fromMillis(Date.now() - TRAIL_PRESENCE_STALE_MS);
 }
 
+function timestampMs(raw: unknown): number | null {
+  if (raw == null) return null;
+  if (raw instanceof Timestamp) return raw.toMillis();
+  if (
+    typeof raw === "object" &&
+    raw !== null &&
+    typeof (raw as { toMillis?: () => number }).toMillis === "function"
+  ) {
+    const ms = (raw as { toMillis: () => number }).toMillis();
+    return Number.isFinite(ms) ? ms : null;
+  }
+  return null;
+}
+
 function parseTrailMeta(trailId: string, data: DocumentData | undefined): TrailMeta | null {
   if (!data) return null;
   return {
@@ -107,10 +121,16 @@ export async function recomputeOpenTrailListing(
   }
 
   const riderCount = await countActiveParticipants(trailId);
-  if (riderCount <= 0) {
-    await listingRef.delete().catch(() => {});
-    return "removed";
-  }
+
+  const existingSnap = await listingRef.get();
+  const existingCreated = existingSnap.exists ? existingSnap.data()?.createdAt : undefined;
+  const trailCreatedMs = timestampMs(trailSnap.data()?.createdAt);
+  const createdAt =
+    existingCreated != null
+      ? existingCreated
+      : trailCreatedMs != null
+        ? Timestamp.fromMillis(trailCreatedMs)
+        : Timestamp.now();
 
   await listingRef.set(
     {
@@ -121,6 +141,7 @@ export async function recomputeOpenTrailListing(
       distanceKm: trail.distanceKm,
       publicationId: trail.publicationId,
       riderCount,
+      createdAt,
       updatedAt: FieldValue.serverTimestamp(),
     },
     { merge: true },

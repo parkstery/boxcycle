@@ -33,6 +33,7 @@ import { readGuestEntryAccepted } from "./lib/appSessionKeys";
 import { useUserTier } from "./hooks/useUserTier";
 import { RideSummarySheet } from "./components/RideSummarySheet";
 import { MenuPanel } from "./components/MenuPanel";
+import { PlaceSearchPanel } from "./components/PlaceSearchPanel";
 import { MenuPlaceSearch } from "./components/MenuPlaceSearch";
 import { TrailHubPanel } from "./components/TrailHubPanel";
 import { useOpenTrails } from "./hooks/useOpenTrails";
@@ -47,7 +48,7 @@ import {
   withResolvedTrailPublicationId,
   type TrailInstance,
 } from "./lib/firestoreTrailInstance";
-import { fetchOpenTrailListingPublicationId } from "./lib/firestoreOpenTrailListings";
+import { fetchOpenTrailListingPublicationId, scheduleOpenTrailListingsBootstrap } from "./lib/firestoreOpenTrailListings";
 import { formatTrailDisplayNumber, resolveTrailDisplayLabel } from "./lib/trailDisplayNumber";
 import {
   readTrailDisplayNumberCache,
@@ -192,14 +193,17 @@ export default function App() {
   } = useRideFeedbackPreferences();
   const {
     menuOpen,
+    placeSearchOpen,
     mapViewSheetOpen,
     userInfoSheetOpen,
     rideSettingsSheetOpen,
     setMenuOpen,
+    setPlaceSearchOpen,
     setMapViewSheetOpen,
     setUserInfoSheetOpen,
     setRideSettingsSheetOpen,
     openMenuPanel,
+    openPlaceSearchPanel,
     openMapViewPanel,
     openUserInfoPanel,
     openRideSettingsPanel,
@@ -575,14 +579,14 @@ export default function App() {
     }
   }, [isRideSessionActive, ridingTrailId, trailId]);
 
+  useEffect(() => {
+    if (!configured || !menuOpen || !user) return;
+    scheduleOpenTrailListingsBootstrap();
+  }, [configured, menuOpen, user?.uid]);
+
   const openTrailsQuery = useOpenTrails({
-    /** MENU·주행 중 Trailhead — 공개 Trail 목록 유지 */
-    enabled: Boolean(
-      configured &&
-        user &&
-        trailheadSessionActive &&
-        (menuOpen || onDedicatedTrail || isRideSessionActive),
-    ),
+    /** Trailhead 세션 — 지도·MENU 공개 Trail 목록 */
+    enabled: Boolean(configured && user && trailheadSessionActive),
   });
 
   /** HUD·네임태그·TrailHub — fetch 전 seed·공개 목록으로 `displayNumber` 보강 */
@@ -1368,7 +1372,7 @@ export default function App() {
       requestId: cameraJumpSeqRef.current,
     });
     setPlaceSearchMarkerLngLat(lngLat);
-    setMenuOpen(false);
+    setPlaceSearchOpen(false);
   }
 
   function handleCloseSummary() {
@@ -1491,6 +1495,8 @@ export default function App() {
               stage,
               onOpenMenu: openMenuPanel,
               menuOpen,
+              onOpenPlaceSearch: openPlaceSearchPanel,
+              placeSearchOpen,
               account: accountChip,
               onOpenUserInfo: openUserInfoPanel,
               userInfoOpen: userInfoSheetOpen,
@@ -1622,6 +1628,8 @@ export default function App() {
               stage,
               onOpenMenu: openMenuPanel,
               menuOpen,
+              onOpenPlaceSearch: openPlaceSearchPanel,
+              placeSearchOpen,
               account: accountChip,
               onOpenUserInfo: openUserInfoPanel,
               userInfoOpen: userInfoSheetOpen,
@@ -1710,11 +1718,6 @@ export default function App() {
           visibilityBusy={trailVisibilityBusy}
           rideSessionActive={isRideSessionActive}
         />
-        <MenuPlaceSearch
-          accessToken={MAPBOX_TOKEN}
-          menuOpen={menuOpen}
-          onPickPlace={handleMenuPlacePick}
-        />
         <RideRoutePanel
           startLabel={startLabel}
           endLabel={endLabel}
@@ -1726,14 +1729,6 @@ export default function App() {
           onGenerateRoute={() => void generateRoute()}
           officialCourseActive={activeOfficialCourseId !== null}
           hasRoute={Boolean(routeGeometry)}
-          canStartRide={Boolean(routeGeometry) && !routeLoading}
-          onStartRide={() => {
-            handleStartRide();
-            setMenuOpen(false);
-          }}
-          speedKmh={speedKmh}
-          onSpeedKmh={setSpeedKmh}
-          sessionStatus={rideStatus}
           basicSharedHubs={BASIC_SHARED_HUB_SUMMARIES}
           basicActiveHubCourseId={basicActiveHubCourseId}
           basicStartLoading={basicStartLoading}
@@ -1784,6 +1779,17 @@ export default function App() {
           routeTokenLoading={routeTokenLoading}
         />
       </MenuPanel>
+
+      <PlaceSearchPanel
+        open={placeSearchOpen}
+        onClose={() => setPlaceSearchOpen(false)}
+      >
+        <MenuPlaceSearch
+          accessToken={MAPBOX_TOKEN}
+          open={placeSearchOpen}
+          onPickPlace={handleMenuPlacePick}
+        />
+      </PlaceSearchPanel>
 
       <RideSettingsSheet
         open={rideSettingsSheetOpen}

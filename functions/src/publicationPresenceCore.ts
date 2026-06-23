@@ -4,8 +4,11 @@ import { scanAllLiveRideDocs } from "./liveRideScan.js";
 
 export const PUBLICATION_PRESENCE_COLLECTION = "publicationPresence";
 
-/** `apps/web` `BASIC_SHARED_HUB_IDS` 와 동기 — 재생성 전까지 비어 있음 */
-const BASIC_SHARED_HUB_IDS = new Set<string>([]);
+/** `apps/web` `BASIC_SHARED_HUB_IDS` 와 동기 */
+const BASIC_SHARED_HUB_IDS = new Set<string>([
+  "basic-intro-nyc-0_5km",
+  "basic-intro-rome-0_5km",
+]);
 
 type PublicationVisibility = "public" | "private";
 

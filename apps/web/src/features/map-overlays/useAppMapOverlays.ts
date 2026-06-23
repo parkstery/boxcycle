@@ -19,7 +19,8 @@ import { runActivityWorldPollPolicyChecks } from "../../lib/activityWorldPollPol
 import { BASIC_SHARED_HUB_IDS } from "../../lib/firestoreCourses";
 import type { PublishedPublicCourseSummary } from "../../lib/firestoreCourses";
 import type { TrailInstance } from "../../lib/firestoreTrailInstance";
-import { sanitizeTrailId } from "../../lib/firestoreTrail";
+import { sanitizeTrailId, DEFAULT_TRAIL_ID } from "../../lib/firestoreTrail";
+import { useActiveLiveRideTrailIds } from "../../hooks/useActiveLiveRideTrailIds";
 import { debugTrailLivePublicationRidesSubscriptionCount } from "../../lib/livePublicationRidesSubscriptionHub";
 import type { LineStringGeometry } from "../../lib/geo";
 import type { ActivityWorldLodDebugPanelProps } from "./ActivityWorldLodDebugPanel";
@@ -135,15 +136,29 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     mapZoom,
   });
 
+  const atTrailheadIdle = sanitizedTrailId === DEFAULT_TRAIL_ID && !isRideSessionActive;
+
+  const activeLiveRideTrailIdsQuery = useActiveLiveRideTrailIds({
+    enabled: Boolean(configured && user && pageVisible && trailheadSessionActive),
+  });
+
   const liveRideTrailIds = useMemo(() => {
-    const ids = new Set<string>([sanitizedTrailId]);
+    const ids = new Set<string>();
+    if (sanitizedTrailId !== DEFAULT_TRAIL_ID) {
+      ids.add(sanitizeTrailId(sanitizedTrailId));
+    }
     for (const t of openTrails) {
-      if (t.id?.trim()) ids.add(sanitizeTrailId(t.id));
+      const tid = sanitizeTrailId(t.id);
+      if (tid !== DEFAULT_TRAIL_ID) ids.add(tid);
+    }
+    for (const id of activeLiveRideTrailIdsQuery.trailIds) {
+      const tid = sanitizeTrailId(id);
+      if (tid !== DEFAULT_TRAIL_ID) ids.add(tid);
     }
     return [...ids];
-  }, [sanitizedTrailId, openTrails]);
+  }, [sanitizedTrailId, openTrails, activeLiveRideTrailIdsQuery.trailIds]);
 
-  /** AC-7: Trailhead idle = publication만 — L3 spectator는 주행·일시정지(관전 세션)에서만 */
+  /** AC-7: Trailhead idle = publication + 주행 Trail 관전 라인 — L3 동행 spectator 는 주행·일시정지에서만 */
   const mapDebugPhaseEnv = getMapDebugPhase();
   const mapDebugPhase = getEffectiveMapDebugPhase();
   const isPhaseA = mapDebugPhase === "A";
@@ -561,13 +576,29 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
         }
       : null;
 
+  const mapTrailSpectatorDots = useMemo(() => {
+    if (spectatorDots.length > 0) return spectatorDots;
+    if (atTrailheadIdle) return livePublicationRideOverlay.lobbySpectatorDots;
+    return spectatorDots;
+  }, [spectatorDots, atTrailheadIdle, livePublicationRideOverlay.lobbySpectatorDots]);
+
+  const mapTrailSpectatorRoutes = useMemo(() => {
+    if (spectatorRouteGeometries.length > 0) return spectatorRouteGeometries;
+    if (atTrailheadIdle) return livePublicationRideOverlay.lobbySpectatorRoutes;
+    return spectatorRouteGeometries;
+  }, [
+    spectatorRouteGeometries,
+    atTrailheadIdle,
+    livePublicationRideOverlay.lobbySpectatorRoutes,
+  ]);
+
   return {
     activityWorldRaw,
     activityWorldRender,
     activityWorldLodDebug,
     getActivityWorldPinLabel,
-    trailSpectatorDots: spectatorDots,
-    trailSpectatorRoutes: spectatorRouteGeometries,
+    trailSpectatorDots: mapTrailSpectatorDots,
+    trailSpectatorRoutes: mapTrailSpectatorRoutes,
     courseActivity,
     reloadCourseActivity,
     applyRideCompletedOptimistic,

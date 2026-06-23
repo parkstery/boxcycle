@@ -11,12 +11,13 @@ import "./MenuPlaceSearch.css";
 
 type MenuPlaceSearchProps = {
   accessToken: string;
-  /** 메뉴가 닫히면 목록·로딩만 정리; 검색어는 유지 */
-  menuOpen: boolean;
+  /** 패널이 닫히면 목록·로딩만 정리; 검색어는 유지 */
+  open: boolean;
   onPickPlace: (lngLat: LngLat, placeName: string, bbox: MapboxGeocodeBbox | null) => void;
 };
 
-export function MenuPlaceSearch({ accessToken, menuOpen, onPickPlace }: MenuPlaceSearchProps) {
+export function MenuPlaceSearch({ accessToken, open, onPickPlace }: MenuPlaceSearchProps) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
   const [suggestions, setSuggestions] = useState<MapboxGeocodeSuggestion[]>([]);
@@ -27,22 +28,25 @@ export function MenuPlaceSearch({ accessToken, menuOpen, onPickPlace }: MenuPlac
   const wasMenuOpenRef = useRef(false);
 
   useEffect(() => {
-    if (!menuOpen) {
+    if (!open) {
       setSuggestions([]);
       setFetchError(null);
       setLoading(false);
       abortRef.current?.abort();
       abortRef.current = null;
+      return;
     }
-  }, [menuOpen]);
+    const t = window.setTimeout(() => inputRef.current?.focus(), 0);
+    return () => window.clearTimeout(t);
+  }, [open]);
 
   /** 메뉴를 막 연 직후: 직전 검색어로 debounced 를 맞춰 자동완성이 바로 동작하게 함 */
   useEffect(() => {
-    if (menuOpen && !wasMenuOpenRef.current) {
+    if (open && !wasMenuOpenRef.current) {
       setDebounced(query.trim());
     }
-    wasMenuOpenRef.current = menuOpen;
-  }, [menuOpen, query]);
+    wasMenuOpenRef.current = open;
+  }, [open, query]);
 
   useEffect(() => {
     const t = window.setTimeout(() => setDebounced(query.trim()), 320);
@@ -51,7 +55,7 @@ export function MenuPlaceSearch({ accessToken, menuOpen, onPickPlace }: MenuPlac
 
   useEffect(() => {
     const token = accessToken.trim();
-    if (!menuOpen || debounced.length < 2 || !token) {
+    if (!open || debounced.length < 2 || !token) {
       setSuggestions([]);
       setFetchError(null);
       setLoading(false);
@@ -80,7 +84,7 @@ export function MenuPlaceSearch({ accessToken, menuOpen, onPickPlace }: MenuPlac
     })();
 
     return () => ac.abort();
-  }, [debounced, accessToken, menuOpen]);
+  }, [debounced, accessToken, open]);
 
   const handlePick = useCallback(
     async (s: MapboxGeocodeSuggestion) => {
@@ -107,19 +111,17 @@ export function MenuPlaceSearch({ accessToken, menuOpen, onPickPlace }: MenuPlac
 
   const tokenOk = accessToken.trim().length > 0;
   const showList = Boolean(
-    menuOpen &&
+    open &&
       tokenOk &&
       debounced.length >= 2 &&
       (suggestions.length > 0 || loading || fetchError),
   );
 
   return (
-    <div className="menu-place-search">
-      <label className="menu-place-search__label" htmlFor="menu-place-search-input">
-        지명 검색
-      </label>
+    <div className="menu-place-search menu-place-search--panel">
       <div className="menu-place-search__input-wrap">
         <input
+          ref={inputRef}
           id="menu-place-search-input"
           type="search"
           enterKeyHint="search"
@@ -128,7 +130,7 @@ export function MenuPlaceSearch({ accessToken, menuOpen, onPickPlace }: MenuPlac
           className="menu-place-search__input"
           placeholder="예: Rome, 강남역"
           value={query}
-          disabled={!menuOpen || !tokenOk}
+          disabled={!open || !tokenOk}
           onChange={(e) => setQuery(e.target.value)}
           aria-autocomplete="list"
           aria-expanded={showList}

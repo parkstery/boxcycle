@@ -14,6 +14,7 @@ import {
   Timestamp,
   where,
   type FirestoreError,
+  type QueryDocumentSnapshot,
   type Unsubscribe,
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
@@ -199,6 +200,18 @@ export async function countTrailLiveRiders(trailId: string): Promise<number> {
 
 const ACTIVE_LIVE_RIDE_TRAIL_SCAN_LIMIT = 80;
 
+function parseActiveLiveRideTrailIds(docs: readonly QueryDocumentSnapshot[]): string[] {
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  for (const d of docs) {
+    const trailId = d.ref.parent?.parent?.id;
+    if (!trailId || trailId === DEFAULT_TRAIL_ID || seen.has(trailId)) continue;
+    seen.add(trailId);
+    ids.push(trailId);
+  }
+  return ids;
+}
+
 /**
  * 지금 주행 중인 Trail ID — `livePublicationRides` collection group 기준(최근 lastSeenAt).
  */
@@ -211,15 +224,26 @@ export async function fetchTrailIdsWithActiveLiveRides(): Promise<string[]> {
     limit(ACTIVE_LIVE_RIDE_TRAIL_SCAN_LIMIT),
   );
   const snap = await getDocs(q);
-  const ids: string[] = [];
-  const seen = new Set<string>();
-  for (const d of snap.docs) {
-    const trailId = d.ref.parent.parent?.id;
-    if (!trailId || trailId === DEFAULT_TRAIL_ID || seen.has(trailId)) continue;
-    seen.add(trailId);
-    ids.push(trailId);
-  }
-  return ids;
+  return parseActiveLiveRideTrailIds(snap.docs);
+}
+
+/** realtime — Trailhead·월드 맵이 주행 중 Trail 을 구독할 때 사용 */
+export function subscribeTrailIdsWithActiveLiveRides(
+  onChange: (trailIds: string[]) => void,
+  onError?: (e: FirestoreError) => void,
+): Unsubscribe {
+  const db = getFirestore(getFirebaseApp());
+  const q = query(
+    collectionGroup(db, TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION),
+    where("lastSeenAt", ">", liveRideFreshnessCutoff()),
+    orderBy("lastSeenAt", "desc"),
+    limit(ACTIVE_LIVE_RIDE_TRAIL_SCAN_LIMIT),
+  );
+  return onSnapshot(
+    q,
+    (snap) => onChange(parseActiveLiveRideTrailIds(snap.docs)),
+    (err) => onError?.(err),
+  );
 }
 
 /** 멤버·카운트용 — TRAIL_PRESENCE_STALE_MS(240s) */

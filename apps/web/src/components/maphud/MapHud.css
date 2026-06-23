@@ -148,6 +148,52 @@
   width: 100%;
 }
 
+.map-hud__tl-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.hud-place-search-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  height: 2.1rem;
+  padding: 0 0.65rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(248, 250, 252, 0.18);
+  color: #f8fafc;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.hud-place-search-btn:hover {
+  background: rgba(15, 23, 42, 0.66);
+}
+
+.hud-place-search-btn.is-active {
+  background: rgba(56, 189, 248, 0.32);
+  border-color: rgba(56, 189, 248, 0.55);
+  color: #f0f9ff;
+}
+
+.hud-place-search-btn__icon {
+  font-size: 0.95rem;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.hud-place-search-btn__label {
+  font-size: 0.72rem;
+}
+
 /* 좌상단: 로비 방 + 동행 코스 요약 */
 .hud-ride-presence {
   width: 100%;

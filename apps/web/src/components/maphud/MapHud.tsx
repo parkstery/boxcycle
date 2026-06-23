@@ -29,6 +29,8 @@ export type MapHudProps = {
   // TL — 브랜드 마크 = 좌측 메뉴(경로 주행) 트리거
   onOpenMenu: () => void;
   menuOpen: boolean;
+  onOpenPlaceSearch: () => void;
+  placeSearchOpen: boolean;
 
   // TR — 사용자 정보 시트 트리거(아바타)
   account: AccountChipState | null;
@@ -111,6 +113,8 @@ export function MapHud(props: MapHudProps) {
     stage,
     onOpenMenu,
     menuOpen,
+    onOpenPlaceSearch,
+    placeSearchOpen,
     account,
     onOpenUserInfo,
     userInfoOpen,
@@ -180,17 +184,32 @@ export function MapHud(props: MapHudProps) {
       {showMenuTrigger ? (
         <div className="map-hud__tl">
           <div className="map-hud__tl-stack">
-            <button
-              type="button"
-              className={`hud-brand ${menuOpen ? "hud-brand--muted" : ""}`}
-              onClick={onOpenMenu}
-              aria-label="경로 메뉴"
-              aria-expanded={menuOpen}
-              title="Route menu"
-            >
-              <span className="hud-brand__dot" aria-hidden />
-              BOXCYCLE
-            </button>
+            <div className="map-hud__tl-actions">
+              <button
+                type="button"
+                className={`hud-brand ${menuOpen ? "hud-brand--muted" : ""}`}
+                onClick={onOpenMenu}
+                aria-label="경로 메뉴"
+                aria-expanded={menuOpen}
+                title="Route menu"
+              >
+                <span className="hud-brand__dot" aria-hidden />
+                BOXCYCLE
+              </button>
+              <button
+                type="button"
+                className={`hud-place-search-btn ${placeSearchOpen ? "is-active" : ""}`}
+                onClick={onOpenPlaceSearch}
+                aria-label="지명 검색"
+                aria-expanded={placeSearchOpen}
+                title="Place search"
+              >
+                <span className="hud-place-search-btn__icon" aria-hidden>
+                  ⌕
+                </span>
+                <span className="hud-place-search-btn__label">지명</span>
+              </button>
+            </div>
             {worldActivityHint ? (
               <p className="hud-world-hint" role="status">
                 {worldActivityHint}
