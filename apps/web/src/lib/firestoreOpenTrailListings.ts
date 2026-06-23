@@ -229,6 +229,35 @@ export function scheduleOpenTrailListingRefresh(trailId: string, debounceMs = 2_
   refreshScheduled.set(trailId, id);
 }
 
+/** listing + `livePublicationRides` CG 보강 행 병합 — 주행 중 Trail MENU */
+export function mergeActiveOpenTrailRows(
+  fromListings: TrailInstance[],
+  fromActiveRides: TrailInstance[],
+): TrailInstance[] {
+  const byId = new Map<string, TrailInstance>();
+  for (const t of fromActiveRides) {
+    if (t.status !== "open" || t.visibility !== "open") continue;
+    if (!isActiveOpenTrailListing(t)) continue;
+    byId.set(t.id, t);
+  }
+  for (const t of fromListings) {
+    if (!isActiveOpenTrailListing(t)) continue;
+    const base = byId.get(t.id);
+    byId.set(
+      t.id,
+      base
+        ? {
+            ...base,
+            ...t,
+            id: t.id,
+            liveRiderCount: Math.max(t.liveRiderCount ?? 0, base.liveRiderCount ?? 0),
+          }
+        : t,
+    );
+  }
+  return [...byId.values()].sort(compareOpenTrailsForListing);
+}
+
 /**
  * Trailhead MENU — `openTrailListings` realtime (활성 라이더 1명 이상만).
  */

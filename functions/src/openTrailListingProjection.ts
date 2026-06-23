@@ -57,7 +57,6 @@ export const openTrailListingOnLiveCourseRideWritten = onDocumentWritten(
   },
   async (event) => {
     const trailId = trailIdFromParams(event.params as Record<string, string>);
-    if (!isSubcollectionCreateOrDelete(event.data?.before, event.data?.after)) return;
     await runRecompute(trailId);
   },
 );
