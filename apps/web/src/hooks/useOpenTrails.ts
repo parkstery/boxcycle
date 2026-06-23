@@ -4,7 +4,7 @@ import { subscribeOpenTrailListings } from "../lib/firestoreOpenTrailListings";
 import type { TrailInstance } from "../lib/firestoreTrailInstance";
 
 /**
- * Trailhead 공개 Trail 목록 — `openTrailListings` onSnapshot (polling 없음).
+ * Trailhead MENU — `openTrailListings` onSnapshot (활성 라이더 1명 이상만).
  * loading 은 구독 최초 1회만 true.
  */
 export function useOpenTrails(opts: { enabled: boolean }) {

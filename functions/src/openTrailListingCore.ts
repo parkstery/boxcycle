@@ -121,6 +121,10 @@ export async function recomputeOpenTrailListing(
   }
 
   const riderCount = await countActiveParticipants(trailId);
+  if (riderCount <= 0) {
+    await listingRef.delete().catch(() => {});
+    return "removed";
+  }
 
   const existingSnap = await listingRef.get();
   const existingCreated = existingSnap.exists ? existingSnap.data()?.createdAt : undefined;

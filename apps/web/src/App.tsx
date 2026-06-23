@@ -48,7 +48,7 @@ import {
   withResolvedTrailPublicationId,
   type TrailInstance,
 } from "./lib/firestoreTrailInstance";
-import { fetchOpenTrailListingPublicationId, scheduleOpenTrailListingsBootstrap } from "./lib/firestoreOpenTrailListings";
+import { fetchOpenTrailListingPublicationId } from "./lib/firestoreOpenTrailListings";
 import { formatTrailDisplayNumber, resolveTrailDisplayLabel } from "./lib/trailDisplayNumber";
 import {
   readTrailDisplayNumberCache,
@@ -579,13 +579,8 @@ export default function App() {
     }
   }, [isRideSessionActive, ridingTrailId, trailId]);
 
-  useEffect(() => {
-    if (!configured || !menuOpen || !user) return;
-    scheduleOpenTrailListingsBootstrap();
-  }, [configured, menuOpen, user?.uid]);
-
   const openTrailsQuery = useOpenTrails({
-    /** Trailhead 세션 — 지도·MENU 공개 Trail 목록 */
+    /** Trailhead 세션 — 주행 중 Trail listing 만 */
     enabled: Boolean(configured && user && trailheadSessionActive),
   });
 

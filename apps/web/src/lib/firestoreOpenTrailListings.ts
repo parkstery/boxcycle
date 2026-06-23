@@ -3,7 +3,6 @@ import {
   deleteDoc,
   doc,
   getDoc,
-  getDocs,
   getFirestore,
   limit,
   onSnapshot,
@@ -13,7 +12,6 @@ import {
   setDoc,
   Timestamp,
   updateDoc,
-  where,
   type FirestoreError,
   type Unsubscribe,
 } from "firebase/firestore";
@@ -101,64 +99,17 @@ async function loadTrailForListing(trailId: string): Promise<TrailInstance | nul
   };
 }
 
+/** MENU·Trailhead — 활성 라이더가 1명 이상인 listing 만 */
+export function isActiveOpenTrailListing(trail: TrailInstance): boolean {
+  return (trail.liveRiderCount ?? 0) > 0;
+}
+
 function isListableTrail(trail: TrailInstance): boolean {
   return (
     trail.status === "open" &&
     trail.visibility === "open" &&
     trailHasConfiguredRoute(trail)
   );
-}
-
-function trailDocToInstance(id: string, data: Record<string, unknown>): TrailInstance | null {
-  const trail: TrailInstance = {
-    id,
-    hostUid: typeof data.hostUid === "string" ? data.hostUid : "",
-    displayNumber:
-      typeof data.displayNumber === "number" && Number.isFinite(data.displayNumber)
-        ? Math.max(1, Math.min(999, Math.floor(data.displayNumber)))
-        : 1,
-    publicationId: resolveListingPublicationId(data),
-    regionLabel:
-      typeof data.regionLabel === "string" && data.regionLabel.trim() ? data.regionLabel.trim() : null,
-    distanceKm:
-      typeof data.distanceKm === "number" && Number.isFinite(data.distanceKm) ? data.distanceKm : null,
-    visibility: data.visibility === "private" ? "private" : "open",
-    status:
-      data.status === "archived" ? "archived" : data.status === "closed" ? "closed" : "open",
-    createdAtMs: timestampToMs(data.createdAt),
-    lastActivityAtMs: timestampToMs(data.lastActivityAt),
-    liveRiderCount:
-      typeof data.liveRiderCount === "number" && Number.isFinite(data.liveRiderCount)
-        ? Math.max(0, Math.floor(data.liveRiderCount))
-        : undefined,
-  };
-  return isListableTrail(trail) ? trail : null;
-}
-
-function mergeOpenTrailCatalog(
-  fromTrails: TrailInstance[],
-  fromListings: TrailInstance[],
-): TrailInstance[] {
-  const byId = new Map<string, TrailInstance>();
-  for (const t of fromTrails) byId.set(t.id, t);
-  for (const l of fromListings) {
-    const base = byId.get(l.id);
-    byId.set(l.id, {
-      ...(base ?? l),
-      ...l,
-      id: l.id,
-      hostUid: l.hostUid || base?.hostUid || "",
-      publicationId: l.publicationId ?? base?.publicationId ?? null,
-      regionLabel: l.regionLabel ?? base?.regionLabel ?? null,
-      distanceKm: l.distanceKm ?? base?.distanceKm ?? null,
-      visibility: "open",
-      status: "open",
-      createdAtMs: l.createdAtMs ?? base?.createdAtMs ?? null,
-      lastActivityAtMs: base?.lastActivityAtMs ?? l.lastActivityAtMs ?? null,
-      liveRiderCount: l.liveRiderCount ?? base?.liveRiderCount,
-    });
-  }
-  return [...byId.values()].sort(compareOpenTrailsForListing);
 }
 
 function listingToTrailInstance(
@@ -223,6 +174,10 @@ export async function refreshOpenTrailListingFromTrail(trailId: string): Promise
     return;
   }
   const riderCount = await countTrailActiveParticipantsForTrail(trail).catch(() => 0);
+  if (riderCount <= 0) {
+    await removeOpenTrailListing(trailId);
+    return;
+  }
   const authUid = getAuth(getFirebaseApp()).currentUser?.uid ?? null;
   const existingSnap = await getDoc(listingRef(trailId)).catch(() => null);
   const listingExists = existingSnap?.exists() ?? false;
@@ -262,32 +217,6 @@ export async function refreshOpenTrailListingFromTrail(trailId: string): Promise
 
 const refreshScheduled = new Map<string, ReturnType<typeof setTimeout>>();
 const createdAtBackfillScheduled = new Set<string>();
-let bootstrapScheduled: ReturnType<typeof setTimeout> | null = null;
-
-/** MENU 열릴 때 공개 `trails` 메타로 listing upsert — CF 미배포·라이더 0명 삭제 보완 */
-async function bootstrapOpenTrailListingsFromTrails(): Promise<void> {
-  const db = getFirestore(getFirebaseApp());
-  const q = query(
-    collection(db, TRAILS_COLLECTION),
-    where("status", "==", "open"),
-    where("visibility", "==", "open"),
-    orderBy("lastActivityAt", "desc"),
-    limit(OPEN_TRAIL_LISTINGS_LIMIT),
-  );
-  const snap = await getDocs(q).catch(() => null);
-  if (!snap) return;
-  await Promise.all(
-    snap.docs.map((d) => refreshOpenTrailListingFromTrail(d.id).catch(() => {})),
-  );
-}
-
-export function scheduleOpenTrailListingsBootstrap(debounceMs = 500): void {
-  if (bootstrapScheduled != null) window.clearTimeout(bootstrapScheduled);
-  bootstrapScheduled = window.setTimeout(() => {
-    bootstrapScheduled = null;
-    void bootstrapOpenTrailListingsFromTrails().catch(() => {});
-  }, debounceMs);
-}
 
 /** presence·liveCourseRides 갱신 시 listing debounce 동기화 */
 export function scheduleOpenTrailListingRefresh(trailId: string, debounceMs = 2_500): void {
@@ -301,64 +230,38 @@ export function scheduleOpenTrailListingRefresh(trailId: string, debounceMs = 2_
 }
 
 /**
- * 공개 Trail 목록 realtime — `openTrailListings` + 공개 `trails` 병합.
- * listing 이 CF 에서 삭제돼도 trails 메타로 MENU 목록을 유지한다.
+ * Trailhead MENU — `openTrailListings` realtime (활성 라이더 1명 이상만).
  */
 export function subscribeOpenTrailListings(
   onChange: (rows: TrailInstance[]) => void,
   onError?: (e: FirestoreError) => void,
 ): Unsubscribe {
   const db = getFirestore(getFirebaseApp());
-  let listingRows: TrailInstance[] = [];
-  let trailRows: TrailInstance[] = [];
-  const emit = () => onChange(mergeOpenTrailCatalog(trailRows, listingRows));
-
   const listingsQuery = query(
     collection(db, OPEN_TRAIL_LISTINGS_COLLECTION),
     orderBy("updatedAt", "desc"),
     limit(OPEN_TRAIL_LISTINGS_LIMIT),
   );
-  const trailsQuery = query(
-    collection(db, TRAILS_COLLECTION),
-    where("status", "==", "open"),
-    where("visibility", "==", "open"),
-    orderBy("lastActivityAt", "desc"),
-    limit(OPEN_TRAIL_LISTINGS_LIMIT),
-  );
 
-  const unsubListings = onSnapshot(
+  return onSnapshot(
     listingsQuery,
     (snap) => {
-      listingRows = snap.docs
+      const rows = snap.docs
         .map((d) => ({
           row: listingToTrailInstance(d.id, d.data() as Record<string, unknown>),
           createdMs: timestampToMs(d.data().createdAt),
         }))
+        .filter(({ row }) => isActiveOpenTrailListing(row))
         .map(({ row, createdMs }) => {
           if (createdMs == null && !createdAtBackfillScheduled.has(row.id)) {
             createdAtBackfillScheduled.add(row.id);
             scheduleOpenTrailListingRefresh(row.id, 500);
           }
           return row;
-        });
-      emit();
+        })
+        .sort(compareOpenTrailsForListing);
+      onChange(rows);
     },
     (err) => onError?.(err),
   );
-
-  const unsubTrails = onSnapshot(
-    trailsQuery,
-    (snap) => {
-      trailRows = snap.docs
-        .map((d) => trailDocToInstance(d.id, d.data() as Record<string, unknown>))
-        .filter((t): t is TrailInstance => t != null);
-      emit();
-    },
-    (err) => onError?.(err),
-  );
-
-  return () => {
-    unsubListings();
-    unsubTrails();
-  };
 }

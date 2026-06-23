@@ -6,7 +6,7 @@ import {
   type TrailInstance,
   type TrailVisibility,
 } from "../../lib/firestoreTrailInstance";
-import { compareOpenTrailsForListing } from "../../lib/firestoreOpenTrailListings";
+import { compareOpenTrailsForListing, isActiveOpenTrailListing } from "../../lib/firestoreOpenTrailListings";
 import { formatTrailDisplayNumber } from "../../lib/trailDisplayNumber";
 import { readTrailDisplayNumberCache } from "../../lib/trailDisplayNumberCache";
 import { TRAILHEAD_LABEL, TRAIL_LABEL } from "../../lib/productTerms";
@@ -49,10 +49,15 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
       ? TRAILHEAD_LABEL
       : formatTrailDisplayNumber(readTrailDisplayNumberCache(active));
 
-  /** 주행 중: 공개 Trail 전체(현재 Trail 포함). 대기 중: 합류 가능 Trail만(현재 제외) */
+  /** 주행 중 Trail만 — openTrailListings 활성 라이더 기준 */
   const listedTrails = useMemo(() => {
     const open = props.openTrails
-      .filter((t) => t.status === "open" && t.visibility === "open")
+      .filter(
+        (t) =>
+          t.status === "open" &&
+          t.visibility === "open" &&
+          isActiveOpenTrailListing(t),
+      )
       .sort(compareOpenTrailsForListing);
     if (props.rideSessionActive) {
       if (
