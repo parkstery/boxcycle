@@ -196,7 +196,7 @@ export async function bumpPublicationLiveSessionEnded(publicationId: string): Pr
   });
 }
 
-/** `liveCourseRides` collection group 기준 publication presence 재집계 */
+/** `livePublicationRides` collection group 기준 publication presence 재집계 */
 export async function reconcilePublicationPresenceFromLiveRides(): Promise<void> {
   const db = getFirestore();
   const now = Date.now();

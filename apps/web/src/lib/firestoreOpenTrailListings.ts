@@ -218,7 +218,7 @@ export async function refreshOpenTrailListingFromTrail(trailId: string): Promise
 const refreshScheduled = new Map<string, ReturnType<typeof setTimeout>>();
 const createdAtBackfillScheduled = new Set<string>();
 
-/** presence·liveCourseRides 갱신 시 listing debounce 동기화 */
+/** presence·livePublicationRides 갱신 시 listing debounce 동기화 */
 export function scheduleOpenTrailListingRefresh(trailId: string, debounceMs = 2_500): void {
   const prev = refreshScheduled.get(trailId);
   if (prev) window.clearTimeout(prev);

@@ -9,7 +9,7 @@ export type LiveRideScanRow = {
   lastSeenAt: unknown;
 };
 
-/** Phase 5 전환 — `livePublicationRides` 우선, 레거시 `liveCourseRides` 포함 */
+/** Phase 7c C3 — `livePublicationRides` 단일 스캔(레거시 `liveCourseRides` 컷오버 완료) */
 export async function scanAllLiveRideDocs(): Promise<LiveRideScanRow[]> {
   const db = getFirestore();
   const out: LiveRideScanRow[] = [];

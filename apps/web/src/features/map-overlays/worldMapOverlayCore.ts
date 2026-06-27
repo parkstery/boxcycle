@@ -57,8 +57,6 @@ export type ResolveWorldMapOverlayInput = {
   publication: WorldMapOverlaySlice;
   /** `livePublicationRides` 직접 합성 — routeActivity 지연 시 **line** gap-fill (dot 은 global livePresence) */
   livePublicationRides?: WorldMapOverlaySlice;
-  /** @deprecated {@link livePublicationRides} */
-  liveCourseRides?: WorldMapOverlaySlice;
   /** true면 publication 우선 + catalog gap-fill (전면 0 덮어쓰기 금지) */
   publicationPresenceWorldMapEnabled: boolean;
 };
@@ -87,7 +85,7 @@ export function resolveWorldMapOverlay(input: ResolveWorldMapOverlayInput): Acti
     active,
     catalog,
     publication,
-    livePublicationRides = input.liveCourseRides ?? {
+    livePublicationRides = {
       pulseRoutes: [],
       heatRoutes: [],
       pulseDots: [],

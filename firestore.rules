@@ -294,24 +294,8 @@ service cloud.firestore {
       allow delete: if isSelf(userId);
     }
 
-    /** @deprecated Phase 5 — `livePublicationRides` 로 이전, read-only */
-    match /{path=**}/liveCourseRides/{userId} {
-      allow read: if isSignedIn();
-    }
-
-    /** @deprecated Phase 5 — read-only */
-    match /trails/{trailId}/liveCourseRides/{userId} {
-      allow read: if isSignedIn();
-      allow write: if false;
-    }
-
     /** @deprecated `rooms/` — 마이그레이션 후 read-only(클라이언트 write 금지) */
     match /rooms/{roomId}/members/{userId} {
-      allow read: if isSignedIn();
-      allow write: if false;
-    }
-
-    match /rooms/{roomId}/liveCourseRides/{userId} {
       allow read: if isSignedIn();
       allow write: if false;
     }
