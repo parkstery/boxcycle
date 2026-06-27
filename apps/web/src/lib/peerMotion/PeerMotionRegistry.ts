@@ -14,7 +14,6 @@ import {
   createPeerMotionEntity,
   stepPeerMotionEntity,
 } from "./integrator";
-import { applyDisplayCatchUpOnIngest, applyReconciliationOnIngest } from "./reconciliation";
 import type { PeerMotionEntity, PeerMotionPacket } from "./types";
 
 const PEER_MAX = 30;
@@ -57,8 +56,6 @@ export class PeerMotionRegistry {
         ) {
           cur.authDistM = packet.distM;
           cur.lastIngestLocalMs = Date.now();
-          applyDisplayCatchUpOnIngest(cur);
-          applyReconciliationOnIngest(cur);
           if (!speedClose) {
             cur.speedMps = capSpeedMps(packet.speedMps);
           }
@@ -103,11 +100,11 @@ export class PeerMotionRegistry {
     }
   }
 
-  step(dtSec: number, routeGeometry: LineStringGeometry | null): void {
+  step(dtSec: number, routeGeometry: LineStringGeometry | null, nowMs: number = Date.now()): void {
     const routeLenM = routeGeometry ? lineStringLengthMeters(routeGeometry) : 0;
     const clampedDt = Math.min(0.12, Math.max(0, dtSec));
     for (const entity of this.entities.values()) {
-      stepPeerMotionEntity(entity, clampedDt, routeLenM);
+      stepPeerMotionEntity(entity, clampedDt, routeLenM, nowMs);
     }
   }
 

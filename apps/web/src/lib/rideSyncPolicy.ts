@@ -57,6 +57,15 @@ export const PEER_RECONCILE_SOFT_PULL_MPS = 2.2;
 /** R2 — hard 구간 pull 속도 (m/s) */
 export const PEER_RECONCILE_HARD_PULL_MPS = 9;
 
+/** P1 — 추정 현재 위치 외삽: 패킷 전송 지연 가정(ms). authDistM + speed×(수신경과+이 값) */
+export const PEER_EXTRAP_LATENCY_MS = 150;
+
+/** P1 — 외삽 age 상한(ms). 패킷 끊김 시 runaway 방지 (이후 stale 처리로 제거) */
+export const PEER_EXTRAP_MAX_AGE_MS = 2_500;
+
+/** P1 — display 가 추정 위치 뒤에 있을 때 peer 속도 위에 더하는 따라잡기 여유(m/s) */
+export const PEER_RECONCILE_CATCHUP_MPS = 6;
+
 /** 완주 final burst 후 peer 가 최종 위치를 유지하는 시간 */
 export const PEER_LIVE_RIDE_COMPLETED_VISIBLE_MS = 15_000;
 

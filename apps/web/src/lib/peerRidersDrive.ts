@@ -28,7 +28,7 @@ export function stepPeerDriveAndBuildGeoJson(
 } {
   const registry = getPeerMotionRegistry();
   registry.pruneInactive(nowMs);
-  registry.step(dtSec, routeGeometry);
+  registry.step(dtSec, routeGeometry, nowMs);
   peerDriveDevLog(registry, nowMs);
   const features = registry.buildRenderFeatures(routeGeometry).map((f) => ({
     type: "Feature" as const,

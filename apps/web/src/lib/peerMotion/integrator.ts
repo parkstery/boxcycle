@@ -1,5 +1,10 @@
 import type { PeerMotionEntity, PeerMotionPacket } from "./types";
-import { applyReconciliationOnIngest, applyReconciliationStep, applyDisplayCatchUpOnIngest } from "./reconciliation";
+import {
+  PEER_EXTRAP_LATENCY_MS,
+  PEER_EXTRAP_MAX_AGE_MS,
+  PEER_RECONCILE_CATCHUP_MPS,
+  PEER_RECONCILE_SOFT_PULL_MPS,
+} from "../rideSyncPolicy";
 
 const DIST_EPS_M = 0.2;
 const MAX_SPEED_MPS = 85 / 3.6;
@@ -64,11 +69,8 @@ export function applyPeerMotionIngest(
   if (packet.phase === "paused" || packet.phase === "completed") {
     entity.displayDistM = packet.distM;
     entity.speedMps = packet.phase === "completed" ? 0 : entity.speedMps;
-    entity.reconcilePullMps = 0;
-  } else {
-    applyDisplayCatchUpOnIngest(entity);
-    applyReconciliationOnIngest(entity);
   }
+  // live: displayDistM 은 rAF step 이 추정 현재 위치(authDistM + speed×age)로 chase (P1)
 }
 
 export function createPeerMotionEntity(
@@ -93,21 +95,40 @@ export function createPeerMotionEntity(
   };
 }
 
-/** rAF — displayDistM += speed × dt (패킷은 위치를 덮어쓰지 않음) */
+/**
+ * rAF — display 를 **추정 현재 위치**로 chase (P1).
+ * target = authDistM + speed × (수신 후 경과 + 지연상수). 샘플 당시 위치가 아니라
+ * "지금쯤 peer 가 있을 위치"를 따라가므로, 가속한 peer 의 추월이 stale 갱신이어도 즉시 반영된다.
+ * 시계 skew 와 무관(수신 측 lastIngestLocalMs 만 사용).
+ */
 export function stepPeerMotionEntity(
   entity: PeerMotionEntity,
   dtSec: number,
   routeLenM: number,
+  nowMs: number = Date.now(),
 ): void {
-  if (entity.phase === "live" && entity.speedMps > 0.02) {
-    entity.displayDistM = clampRouteDist(
-      entity.displayDistM + entity.speedMps * dtSec,
-      routeLenM,
-    );
-    applyReconciliationStep(entity, dtSec, routeLenM);
-  } else if (entity.phase === "live") {
-    applyReconciliationStep(entity, dtSec, routeLenM);
-  } else if (entity.phase === "paused" || entity.phase === "completed") {
+  if (entity.phase === "paused" || entity.phase === "completed") {
     entity.displayDistM = clampRouteDist(entity.authDistM, routeLenM);
+    return;
+  }
+  if (entity.phase !== "live") return;
+
+  const ageSec = Math.min(
+    PEER_EXTRAP_MAX_AGE_MS / 1000,
+    Math.max(0, (nowMs - entity.lastIngestLocalMs) / 1000 + PEER_EXTRAP_LATENCY_MS / 1000),
+  );
+  const target = clampRouteDist(entity.authDistM + entity.speedMps * ageSec, routeLenM);
+  const err = target - entity.displayDistM;
+
+  if (err > DIST_EPS_M) {
+    // 뒤처짐(추월 등) — peer 속도 + 따라잡기 여유로 빠르게, slew 제한으로 매끄럽게
+    const maxStep = (entity.speedMps + PEER_RECONCILE_CATCHUP_MPS) * dtSec;
+    entity.displayDistM = clampRouteDist(entity.displayDistM + Math.min(err, maxStep), routeLenM);
+  } else if (err < -DIST_EPS_M) {
+    // 앞섬(감속/정지) — 완만히 뒤로 정렬 (급격한 역주행 방지)
+    const maxBack = PEER_RECONCILE_SOFT_PULL_MPS * dtSec;
+    entity.displayDistM = clampRouteDist(entity.displayDistM + Math.max(err, -maxBack), routeLenM);
+  } else {
+    entity.displayDistM = clampRouteDist(target, routeLenM);
   }
 }
