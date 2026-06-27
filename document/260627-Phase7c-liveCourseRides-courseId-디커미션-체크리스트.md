@@ -4,7 +4,7 @@
 |------|------|
 | 문서 유형 | **execution** — Phase 7(필드 purge)·7b(코드 rename) 이후 잔여 데이터 결합 폐기 |
 | 작성 | 2026-06-27 |
-| 상태 | **거의 완료** — 트랙 1 배포 완료. 트랙 2 F3 purge 완료·F5 완료, **F4 rules deploy만 잔여** |
+| 상태 | **완료** — 양 트랙 배포·purge 완료(사후 audit courseId 0). F3.1 backfill writer 수정은 deploy functions 권장(현재 무해) |
 | 선행 | Phase 7 (`courseId` write 중단·purge) · Phase 7b-3a/3b/3c (`liveCourseRide` 코드 정리) **완료** |
 | 연결 | [Phase 7 체크리스트](260616-Phase7-Firestore-필드-terminology-체크리스트.md), [Route·Publication 통합](260518-Route-Publication-통합-모델-및-마이그레이션.md), [World Activity Presence](260523-World-Activity-Presence-설계.md) |
 
@@ -63,7 +63,8 @@ Phase 7b까지 **코드 식별자**의 `course*` 를 정리했다. 남은 것은
 |---|------|------|--------|------|
 | F1 | **Audit** | `auditTerminologyWithAdminSdk` (이미 구현됨) | — | ✅ 완료 — `routePublicationsWithCourseIdField=2`, trails/listings courseId-only=0 (§7) |
 | F2 | **Backfill** | `trailsWithCourseIdOnly=0`·`openTrailListingsWithCourseIdOnly=0` → trail/listing **불필요**. routePublications 2건은 `courseId == doc.id` 이므로 backfill 불필요 | 가역 | ⏭️ 불필요 |
-| F3 | **Purge** | `admin:phase7-terminology-purge` 실행 — routePublications 2건 `courseId` 제거 | **비가역** | ✅ **완료** — `routePublications.courseIdRemoved=2` (2026-06-27) |
+| F3 | **Purge** | `admin:phase7-terminology-purge` 실행 — routePublications 2건 `courseId` 제거 | **비가역** | ✅ **완료** — `routePublications.courseIdRemoved=2`, 사후 audit `routePublicationsWithCourseIdField=0` (2026-06-27) |
+| F3.1 | **재유입 벡터 차단** | backfill payload 의 `courseId` write 제거 ([backfillRoutePublications.ts:106](../functions/src/backfillRoutePublications.ts)·[Core:42](../functions/src/backfillRoutePublicationsCore.ts)). doc.id=publicationId 라 불필요. 현재 `courses` 컬렉션 0건이라 무해하나 latent 부활 위험 차단 | 가역 | ✅ 구현 — **deploy functions 권장** |
 | F4 | **Rules** | `trailHasPublicationId` 의 `courseId` 분기 제거 → `publicationId` 단일 ([firestore.rules](../firestore.rules)) | 가역 | ✅ 구현 — **deploy rules 대기** |
 | F5 | **Client 폴백 제거** | `resolvePublicationIdFromDoc` 의 `data.courseId` 폴백 삭제 ([resolvePublicationIdFromDoc.ts](../apps/web/src/lib/resolvePublicationIdFromDoc.ts)). trails/listings/liveRides courseId-only=0 → 안전 | 가역 | ✅ 완료 |
 
@@ -107,3 +108,4 @@ liveRides:   legacyTotal 0, legacyFreshUnder180s 0,
 | 2026-06-27 | 최초 작성 — 두 트랙 분리, C1 audit 착수 |
 | 2026-06-27 | C1 실측(legacyTotal=0) — 트랙 1 C3·C4·C6 구현, C2·C5 생략. 트랙 2 F1 실측(routePublications 2건)·별도 open-trail 5건 이슈 |
 | 2026-06-27 | 트랙 1 배포(functions·rules). 트랙 2 F3 purge 적용(routePublications 2건 제거)·F4 구현·F5 완료. F4 rules deploy 잔여 |
+| 2026-06-27 | F4 rules deploy 완료(사후 audit courseId 필드 0). F3.1 — backfill payload 의 courseId write 제거(재유입 벡터 차단), deploy functions 권장 |

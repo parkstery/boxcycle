@@ -103,7 +103,6 @@ export const backfillRoutePublicationsHttp = onRequest(
 
         const payload = {
           routeId,
-          courseId: courseDoc.id,
           publicTitle: typeof data.title === "string" ? data.title : "Untitled",
           publicSummary:
             typeof data.description === "string" && data.description.length > 0

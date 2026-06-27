@@ -39,7 +39,6 @@ function buildPublicationPayload(courseId: string, data: Record<string, unknown>
 
   return {
     routeId,
-    courseId,
     publicTitle: trimOrNull(data.title) ?? "Untitled",
     publicSummary: trimOrNull(data.description),
     status: "published",
