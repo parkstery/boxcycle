@@ -9,7 +9,6 @@ import { estimateCrankRpmFromSpeedKmh } from "../riderPedalMotion";
 import { PEER_RIDER_PEDAL_FRAME_COUNT } from "../registerPeerRiderPedalSprites";
 import {
   applyPeerMotionIngest,
-  capSpeedMps,
   clampRouteDist,
   createPeerMotionEntity,
   stepPeerMotionEntity,
@@ -17,7 +16,6 @@ import {
 import type { PeerMotionEntity, PeerMotionPacket } from "./types";
 
 const PEER_MAX = 30;
-const DIST_EPS_M = 0.2;
 
 export type PeerMotionRenderFeature = {
   id: string;
@@ -37,37 +35,9 @@ export class PeerMotionRegistry {
     if (!packet.uid || !packet.publicationId.trim()) return;
     if (packet.distM < 0 || !Number.isFinite(packet.distM)) return;
 
+    // 보간 모델 — 정렬·dedup·단조 처리는 applyPeerMotionIngest 가 버퍼에 담당.
     const cur = this.entities.get(packet.uid);
     if (cur) {
-      if (packet.serverAtMs > 0 && packet.serverAtMs <= cur.lastServerAtMs) {
-        const distClose = Math.abs(packet.distM - cur.authDistM) <= DIST_EPS_M;
-        const speedClose = Math.abs(packet.speedMps - cur.speedMps) <= 0.02;
-        if (distClose && speedClose) return;
-        if (distClose && !speedClose) {
-          cur.speedMps = capSpeedMps(packet.speedMps);
-          cur.lastIngestLocalMs = Date.now();
-          if (packet.serverAtMs > 0) cur.lastServerAtMs = packet.serverAtMs;
-          return;
-        }
-        if (
-          !distClose &&
-          packet.phase === "live" &&
-          packet.distM > cur.authDistM + DIST_EPS_M
-        ) {
-          cur.authDistM = packet.distM;
-          cur.lastIngestLocalMs = Date.now();
-          if (!speedClose) {
-            cur.speedMps = capSpeedMps(packet.speedMps);
-          }
-          return;
-        }
-      }
-      if (
-        packet.phase === "live" &&
-        packet.distM < cur.authDistM - DIST_EPS_M
-      ) {
-        return;
-      }
       applyPeerMotionIngest(cur, packet, label);
     } else {
       this.entities.set(packet.uid, createPeerMotionEntity(packet, label));
@@ -165,28 +135,27 @@ export class PeerMotionRegistry {
     return this.entities.size;
   }
 
-  /** DEV 진단 — peer 별 auth vs display 오차·샘플 age (구조적 지연 측정용) */
+  /** DEV 진단 — 보간 상태(버퍼·렌더 지연·newest 거리) */
   debugSnapshot(nowMs = Date.now()): Array<{
     uid: string;
     phase: PeerMotionEntity["phase"];
-    authDistM: number;
+    buf: number;
     displayDistM: number;
-    errM: number;
+    newestDistM: number;
     speedMps: number;
-    ingestAgeMs: number;
-    pullMps: number;
+    newestAgeMs: number;
   }> {
     const out = [];
     for (const e of this.entities.values()) {
+      const newest = e.buffer[e.buffer.length - 1];
       out.push({
         uid: e.uid.slice(0, 6),
         phase: e.phase,
-        authDistM: Math.round(e.authDistM * 10) / 10,
+        buf: e.buffer.length,
         displayDistM: Math.round(e.displayDistM * 10) / 10,
-        errM: Math.round((e.authDistM - e.displayDistM) * 10) / 10,
+        newestDistM: newest ? Math.round(newest.distM * 10) / 10 : 0,
         speedMps: Math.round(e.speedMps * 100) / 100,
-        ingestAgeMs: nowMs - e.lastIngestLocalMs,
-        pullMps: Math.round(e.reconcilePullMps * 100) / 100,
+        newestAgeMs: newest ? nowMs - newest.recvAtMs : -1,
       });
     }
     return out;

@@ -57,14 +57,18 @@ export const PEER_RECONCILE_SOFT_PULL_MPS = 2.2;
 /** R2 — hard 구간 pull 속도 (m/s) */
 export const PEER_RECONCILE_HARD_PULL_MPS = 9;
 
-/** P1 — 추정 현재 위치 외삽: 패킷 전송 지연 가정(ms). authDistM + speed×(수신경과+이 값) */
-export const PEER_EXTRAP_LATENCY_MS = 150;
+/**
+ * Entity interpolation — peer 를 "지금"이 아니라 `now - DELAY` 시점으로 렌더한다.
+ * 받은 스냅샷 사이를 보간(추측 없음)하므로 가속/감속 고무줄·지연이 없다.
+ * DELAY 는 publish 간격(RTDB 200ms)+지터를 덮을 만큼: 한 스냅샷 앞을 항상 확보.
+ */
+export const PEER_INTERP_DELAY_MS = 300;
 
-/** P1 — 외삽 age 상한(ms). 패킷 끊김 시 runaway 방지 (이후 stale 처리로 제거) */
-export const PEER_EXTRAP_MAX_AGE_MS = 2_500;
+/** 보간 버퍼 최대 스냅샷 수 (uid 당) */
+export const PEER_INTERP_BUFFER_MAX = 16;
 
-/** P1 — display 가 추정 위치 뒤에 있을 때 peer 속도 위에 더하는 따라잡기 여유(m/s) */
-export const PEER_RECONCILE_CATCHUP_MPS = 6;
+/** 스트림 stall 시 newest 속도로 외삽 허용 상한(ms) — 이후엔 hold (지터·Firestore 폴백 완충) */
+export const PEER_INTERP_MAX_EXTRAP_MS = 1_200;
 
 /** 완주 final burst 후 peer 가 최종 위치를 유지하는 시간 */
 export const PEER_LIVE_RIDE_COMPLETED_VISIBLE_MS = 15_000;

@@ -1,9 +1,8 @@
-import type { PeerMotionEntity, PeerMotionPacket } from "./types";
+import type { PeerMotionEntity, PeerMotionPacket, PeerMotionSnapshot } from "./types";
 import {
-  PEER_EXTRAP_LATENCY_MS,
-  PEER_EXTRAP_MAX_AGE_MS,
-  PEER_RECONCILE_CATCHUP_MPS,
-  PEER_RECONCILE_SOFT_PULL_MPS,
+  PEER_INTERP_BUFFER_MAX,
+  PEER_INTERP_DELAY_MS,
+  PEER_INTERP_MAX_EXTRAP_MS,
 } from "../rideSyncPolicy";
 
 const DIST_EPS_M = 0.2;
@@ -21,74 +20,87 @@ export function capSpeedMps(v: number): number {
   return Math.max(0, Math.min(MAX_SPEED_MPS, v));
 }
 
-export function resolvePacketSpeedMps(
+/** 패킷 속도 — 미발행(0)이면 직전 스냅샷과의 거리/시간으로 유도 */
+function resolveSpeedMps(
   packet: PeerMotionPacket,
-  prev: PeerMotionEntity | undefined,
+  newest: PeerMotionSnapshot | undefined,
+  recvAtMs: number,
 ): number {
-  if (packet.speedMps > 0.02) return capSpeedMps(packet.speedMps);
-  if (prev && packet.serverAtMs > prev.lastServerAtMs && prev.lastServerAtMs > 0) {
-    const dtSec = (packet.serverAtMs - prev.lastServerAtMs) / 1000;
-    if (dtSec > 0.04 && packet.distM >= prev.authDistM - DIST_EPS_M) {
-      return capSpeedMps((packet.distM - prev.authDistM) / dtSec);
-    }
+  const published = capSpeedMps(packet.speedMps);
+  if (published > 0.02) return published;
+  if (newest && recvAtMs > newest.recvAtMs && packet.distM >= newest.distM - DIST_EPS_M) {
+    const dtSec = (recvAtMs - newest.recvAtMs) / 1000;
+    if (dtSec > 0.04) return capSpeedMps((packet.distM - newest.distM) / dtSec);
   }
-  if (prev && prev.speedMps > 0.02) return prev.speedMps;
-  return 0;
+  return newest?.speedMps ?? 0;
 }
 
-/** ingest: displayDistM 은 create 시에만 authDistM — 이후 패킷은 velocity 만 갱신 */
+/** ingest — 위치 스냅샷을 버퍼에 push (보간 타임라인). 동일 송신 패킷 재수신은 dedup. */
 export function applyPeerMotionIngest(
   entity: PeerMotionEntity,
   packet: PeerMotionPacket,
   label: string,
 ): void {
-  const speed = resolvePacketSpeedMps(packet, entity);
+  const now = Date.now();
   entity.label = label.slice(0, 48);
   entity.publicationId = packet.publicationId;
   entity.phase = packet.phase;
-  entity.authDistM = packet.distM;
-  entity.lastIngestLocalMs = Date.now();
-  if (packet.serverAtMs > 0) entity.lastServerAtMs = packet.serverAtMs;
+  entity.lastIngestLocalMs = now;
 
-  const publishedSpeed = capSpeedMps(packet.speedMps);
-  if (packet.phase === "live") {
-    if (publishedSpeed > 0.02) {
-      entity.speedMps = publishedSpeed;
-    } else if (speed > 0.02) {
-      entity.speedMps = speed;
-    }
-  } else if (packet.phase === "paused") {
-    if (publishedSpeed > 0.02) entity.speedMps = publishedSpeed;
+  const newest = entity.buffer[entity.buffer.length - 1];
+
+  // 같은(또는 더 오래된) 송신 패킷이 다시 온 경우 — 위치 스냅샷 추가 안 함
+  if (newest && packet.serverAtMs > 0 && packet.serverAtMs <= newest.serverAtMs) {
+    return;
   }
 
-  const spdForPedal =
-    entity.speedMps > 0.02 ? entity.speedMps * 3.6 : speed > 0.02 ? speed * 3.6 : 0;
+  // 전진 단조성 — live 에서 역주행 노이즈는 직전 위치로 클램프
+  let distM = packet.distM;
+  if (newest && packet.phase === "live" && distM < newest.distM) {
+    distM = newest.distM;
+  }
+
+  const speed = resolveSpeedMps(packet, newest, now);
+  entity.speedMps = packet.phase === "completed" ? 0 : speed;
+
+  const spdForPedal = entity.speedMps > 0.02 ? entity.speedMps * 3.6 : 0;
   if (spdForPedal > 0.38) {
     entity.pedalSpeedKmh = entity.pedalSpeedKmh * (1 - PEDAL_SPEED_EMA) + spdForPedal * PEDAL_SPEED_EMA;
   }
-  if (packet.phase === "paused" || packet.phase === "completed") {
-    entity.displayDistM = packet.distM;
-    entity.speedMps = packet.phase === "completed" ? 0 : entity.speedMps;
-  }
-  // live: displayDistM 은 rAF step 이 추정 현재 위치(authDistM + speed×age)로 chase (P1)
+
+  entity.buffer.push({
+    distM,
+    recvAtMs: now,
+    serverAtMs: packet.serverAtMs,
+    speedMps: entity.speedMps,
+    phase: packet.phase,
+  });
+  if (entity.buffer.length > PEER_INTERP_BUFFER_MAX) entity.buffer.shift();
 }
 
 export function createPeerMotionEntity(
   packet: PeerMotionPacket,
   label: string,
 ): PeerMotionEntity {
-  const speed = capSpeedMps(packet.speedMps);
+  const now = Date.now();
+  const speed = packet.phase === "completed" ? 0 : capSpeedMps(packet.speedMps);
   return {
     uid: packet.uid,
     label: label.slice(0, 48),
     publicationId: packet.publicationId,
     phase: packet.phase,
-    authDistM: packet.distM,
     speedMps: speed,
+    buffer: [
+      {
+        distM: packet.distM,
+        recvAtMs: now,
+        serverAtMs: packet.serverAtMs,
+        speedMps: speed,
+        phase: packet.phase,
+      },
+    ],
     displayDistM: packet.distM,
-    lastServerAtMs: packet.serverAtMs,
-    lastIngestLocalMs: Date.now(),
-    reconcilePullMps: 0,
+    lastIngestLocalMs: now,
     hdg: 0,
     phaseRev: 0,
     pedalSpeedKmh: speed * 3.6,
@@ -96,39 +108,54 @@ export function createPeerMotionEntity(
 }
 
 /**
- * rAF — display 를 **추정 현재 위치**로 chase (P1).
- * target = authDistM + speed × (수신 후 경과 + 지연상수). 샘플 당시 위치가 아니라
- * "지금쯤 peer 가 있을 위치"를 따라가므로, 가속한 peer 의 추월이 stale 갱신이어도 즉시 반영된다.
- * 시계 skew 와 무관(수신 측 lastIngestLocalMs 만 사용).
+ * rAF — entity interpolation.
+ * peer 를 `now - DELAY` 시점으로 렌더한다: 그 시점을 감싸는 두 스냅샷 사이를 **보간**한다.
+ * 외삽(미래 추측)이 아니라 받은 위치들 사이만 그리므로 가속/감속에 고무줄·지연이 없고,
+ * 추월이 정확히(약 DELAY 만큼 뒤지지만 정확하게) 재생된다. recvAtMs(수신 측 시계)만 써서 clock skew 무관.
+ * 스트림이 DELAY 보다 더 끊기면 newest 속도로 짧게 외삽 후 hold (지터·Firestore 폴백 완충).
  */
 export function stepPeerMotionEntity(
   entity: PeerMotionEntity,
-  dtSec: number,
+  _dtSec: number,
   routeLenM: number,
   nowMs: number = Date.now(),
 ): void {
+  const buf = entity.buffer;
+  if (buf.length === 0) return;
+
+  const newest = buf[buf.length - 1]!;
+
   if (entity.phase === "paused" || entity.phase === "completed") {
-    entity.displayDistM = clampRouteDist(entity.authDistM, routeLenM);
+    entity.displayDistM = clampRouteDist(newest.distM, routeLenM);
     return;
   }
-  if (entity.phase !== "live") return;
 
-  const ageSec = Math.min(
-    PEER_EXTRAP_MAX_AGE_MS / 1000,
-    Math.max(0, (nowMs - entity.lastIngestLocalMs) / 1000 + PEER_EXTRAP_LATENCY_MS / 1000),
-  );
-  const target = clampRouteDist(entity.authDistM + entity.speedMps * ageSec, routeLenM);
-  const err = target - entity.displayDistM;
+  const renderTime = nowMs - PEER_INTERP_DELAY_MS;
+  const oldest = buf[0]!;
 
-  if (err > DIST_EPS_M) {
-    // 뒤처짐(추월 등) — peer 속도 + 따라잡기 여유로 빠르게, slew 제한으로 매끄럽게
-    const maxStep = (entity.speedMps + PEER_RECONCILE_CATCHUP_MPS) * dtSec;
-    entity.displayDistM = clampRouteDist(entity.displayDistM + Math.min(err, maxStep), routeLenM);
-  } else if (err < -DIST_EPS_M) {
-    // 앞섬(감속/정지) — 완만히 뒤로 정렬 (급격한 역주행 방지)
-    const maxBack = PEER_RECONCILE_SOFT_PULL_MPS * dtSec;
-    entity.displayDistM = clampRouteDist(entity.displayDistM + Math.max(err, -maxBack), routeLenM);
+  let dist: number;
+  if (renderTime <= oldest.recvAtMs) {
+    // 버퍼보다 과거 — 가장 오래된 위치 (방금 나타난 peer)
+    dist = oldest.distM;
+  } else if (renderTime >= newest.recvAtMs) {
+    // 스트림 stall — newest 속도로 제한 외삽 후 hold
+    const aheadMs = Math.min(renderTime - newest.recvAtMs, PEER_INTERP_MAX_EXTRAP_MS);
+    dist = newest.distM + newest.speedMps * (aheadMs / 1000);
   } else {
-    entity.displayDistM = clampRouteDist(target, routeLenM);
+    // renderTime 을 감싸는 두 스냅샷 보간
+    let s0 = oldest;
+    let s1 = newest;
+    for (let i = 1; i < buf.length; i += 1) {
+      if (buf[i]!.recvAtMs >= renderTime) {
+        s1 = buf[i]!;
+        s0 = buf[i - 1]!;
+        break;
+      }
+    }
+    const span = s1.recvAtMs - s0.recvAtMs;
+    const t = span > 0 ? (renderTime - s0.recvAtMs) / span : 0;
+    dist = s0.distM + (s1.distM - s0.distM) * t;
   }
+
+  entity.displayDistM = clampRouteDist(dist, routeLenM);
 }
