@@ -93,6 +93,7 @@
 | [260615-Activity-World-Adaptive-Polling-C-적용-계획](260615-Activity-World-Adaptive-Polling-C-적용-계획.md) | idle 5분 / active 30s 폴링 WO-A | 반영중 | `+architecture` |
 | [260518-Activity-World-경로표시-우선순위-백로그](260518-Activity-World-경로표시-우선순위-백로그.md) | 경로 표시 백로그 | 반영중 | |
 | [260516-수동-스모크-체크리스트](260516-수동-스모크-체크리스트.md) | 수동 QA·스모크 | 반영중 | 1차 마일스톤 E |
+| [260627-Phase7c-liveCourseRides-courseId-디커미션-체크리스트](260627-Phase7c-liveCourseRides-courseId-디커미션-체크리스트.md) | 레거시 경로·필드 폐기 시퀀스 | 반영중 | Phase 7/7b 후속 |
 | [260523-Firebase-비용-운영-체크리스트](260523-Firebase-비용-운영-체크리스트.md) | 비용 관측·대응 | 반영중 | `+architecture` |
 
 ---
@@ -142,3 +143,4 @@
 | 2026-05-26 | `260526-World-Activity-Presence-자문단-정렬-보고` 추가 |
 | 2026-06-15 | `260615-Activity-World-Adaptive-Polling-C-적용-계획` 추가 |
 | 2026-06-24 | Trail 목록·Route Dock·지명 검색·`openTrailListings` 정책 — UX IA·스키마·스모크·용어집 갱신 |
+| 2026-06-27 | `260627-Phase7c-liveCourseRides-courseId-디커미션-체크리스트` 추가 (execution) |
