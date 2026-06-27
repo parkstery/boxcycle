@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
 import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/firestoreSavedRoutes";
-import { SESSION_SPEED_MIN_KMH } from "../../lib/sessionSpeedKmh";
 import { SessionSpeedControl } from "./SessionSpeedControl";
 import type { RouteDockStop, RouteDockStopId } from "./useRouteDockStops";
 import "./RouteDock.css";
@@ -45,7 +44,7 @@ export function RouteDock(props: RouteDockProps) {
     editLocked = false,
   } = props;
 
-  const visible = stage === "setup" || stage === "ready-to-start";
+  const visible = stage === "setup" || stage === "ready-to-start" || stage === "riding" || stage === "paused";
   const [expanded, setExpanded] = useState(true);
   const [saveOpen, setSaveOpen] = useState(false);
   const [saveDraft, setSaveDraft] = useState("");
@@ -93,6 +92,9 @@ export function RouteDock(props: RouteDockProps) {
           title={expanded ? "접기" : "펼치기"}
           onClick={() => setExpanded((v) => !v)}
         >
+          <span className="route-dock__caret-name" aria-hidden>
+            경로
+          </span>
           <svg
             className="route-dock__caret-icon"
             viewBox="0 0 24 24"
@@ -128,7 +130,18 @@ export function RouteDock(props: RouteDockProps) {
           aria-hidden={!expanded}
         >
         <header className="route-dock__head">
-          <h2 className="route-dock__title">경로</h2>
+          {stage === "ready-to-start" ? (
+            <button
+              type="button"
+              className="route-dock__go"
+              disabled={!canStartRide || routeLoading || editLocked}
+              aria-label="주행 시작"
+              title="Start ride"
+              onClick={onStartRide}
+            >
+              Go
+            </button>
+          ) : null}
           <div className="route-dock__head-actions">
             {!saveOpen ? (
               <button
@@ -191,6 +204,7 @@ export function RouteDock(props: RouteDockProps) {
                 type="button"
                 className="route-dock__save-commit"
                 disabled={saveBusy}
+                title="경로 저장"
                 onClick={() => void commitSave()}
               >
                 {saveBusy ? "저장 중…" : "저장"}
@@ -199,6 +213,7 @@ export function RouteDock(props: RouteDockProps) {
                 type="button"
                 className="route-dock__save-cancel"
                 disabled={saveBusy}
+                title="저장 취소"
                 onClick={() => {
                   setSaveOpen(false);
                   setSaveDraft("");
@@ -243,6 +258,7 @@ export function RouteDock(props: RouteDockProps) {
                   className="route-dock__stop-remove"
                   disabled={editLocked}
                   aria-label={`${stop.kind === "start" ? "출발" : stop.kind === "end" ? "도착" : "경유"} 삭제`}
+                  title={`${stop.kind === "start" ? "출발" : stop.kind === "end" ? "도착" : "경유"} 삭제`}
                   onClick={() => onRemoveStop(stop.id)}
                 >
                   ✕
@@ -253,33 +269,6 @@ export function RouteDock(props: RouteDockProps) {
         </ul>
 
         <SessionSpeedControl speedKmh={speedKmh} onSpeedKmh={onSpeedKmh} disabled={editLocked} />
-
-        <footer className="route-dock__foot">
-          <div className="route-dock__foot-actions">
-            <button
-              type="button"
-              className="route-dock__reset-speed"
-              disabled={editLocked || speedKmh === SESSION_SPEED_MIN_KMH}
-              aria-label="속도 기본값"
-              title={`속도 ${SESSION_SPEED_MIN_KMH} km/h`}
-              onClick={() => onSpeedKmh(SESSION_SPEED_MIN_KMH)}
-            >
-              ↺
-            </button>
-            {stage === "ready-to-start" ? (
-              <button
-                type="button"
-                className="route-dock__go"
-                disabled={!canStartRide || routeLoading || editLocked}
-                aria-label="주행 시작"
-                title="Start ride"
-                onClick={onStartRide}
-              >
-                Go
-              </button>
-            ) : null}
-          </div>
-        </footer>
         </div>
       </div>
     </div>

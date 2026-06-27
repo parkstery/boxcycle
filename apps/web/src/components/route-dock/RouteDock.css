@@ -23,36 +23,54 @@
 .route-dock__caret {
   flex: 0 0 auto;
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 0.3rem;
   width: 1.55rem;
   min-height: 2.75rem;
-  padding: 0;
-  border: 1px solid rgba(248, 250, 252, 0.2);
+  padding: 0.4rem 0;
+  border: 1px solid var(--rtw-glass-border, rgba(248, 250, 252, 0.2));
   border-right: none;
-  border-radius: 10px 0 0 10px;
-  background: rgba(15, 23, 42, 0.52);
-  color: #f8fafc;
+  border-radius: var(--rtw-radius, 14px) 0 0 var(--rtw-radius, 14px);
+  background: var(--rtw-glass-bg-strong, rgba(10, 16, 26, 0.64));
+  -webkit-backdrop-filter: blur(var(--rtw-glass-blur, 12px));
+  backdrop-filter: blur(var(--rtw-glass-blur, 12px));
+  color: var(--rtw-text, #f8fafc);
   cursor: pointer;
-  box-shadow: -2px 4px 16px rgba(0, 0, 0, 0.22);
+  box-shadow: var(--rtw-glass-shadow, -2px 4px 16px rgba(2, 8, 20, 0.3));
+}
+
+/* 접힌 상태에서 패널 이름을 캐럿 탭에 세로로 노출 (펼치면 헤더 제목이 대신함) */
+.route-dock__caret-name {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  opacity: 0.9;
+}
+
+.route-dock-anchor--open .route-dock__caret-name {
+  display: none;
 }
 
 .route-dock-anchor:not(.route-dock-anchor--open) .route-dock__caret {
-  border-right: 1px solid rgba(248, 250, 252, 0.2);
-  border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
+  border-right: 1px solid var(--rtw-glass-border, rgba(248, 250, 252, 0.2));
+  border-radius: var(--rtw-radius-pill, 999px);
+  box-shadow: var(--rtw-glass-shadow, 0 4px 16px rgba(2, 8, 20, 0.3));
 }
 
 .route-dock-anchor--open .route-dock__caret {
   align-self: stretch;
   min-height: 0;
-  border-radius: 10px 0 0 0;
+  border-radius: var(--rtw-radius, 14px) 0 0 var(--rtw-radius, 14px);
 }
 
 .route-dock__caret:hover {
-  border-color: rgba(56, 189, 248, 0.45);
-  background: rgba(15, 23, 42, 0.72);
-  color: #bae6fd;
+  border-color: var(--rtw-accent-line, rgba(107, 165, 255, 0.45));
+  background: rgba(47, 107, 255, 0.22);
+  color: #eaf2ff;
 }
 
 .route-dock__caret-icon {
@@ -68,10 +86,15 @@
   flex-direction: column;
   gap: 0.45rem;
   padding: 0.5rem 0.55rem 0.55rem;
-  border-radius: 0 12px 12px 0;
-  border: 1px solid rgba(248, 250, 252, 0.18);
+  border-radius: 0 var(--rtw-radius, 12px) var(--rtw-radius, 12px) 0;
+  border: 1px solid var(--rtw-glass-border, rgba(248, 250, 252, 0.18));
   border-left: none;
-  box-shadow: 4px 8px 28px rgba(0, 0, 0, 0.38);
+  background: var(--rtw-glass-bg-strong, rgba(10, 16, 26, 0.64));
+  -webkit-backdrop-filter: blur(var(--rtw-glass-blur, 12px));
+  backdrop-filter: blur(var(--rtw-glass-blur, 12px));
+  color: var(--rtw-text, #f8fafc);
+  font-family: var(--rtw-font, inherit);
+  box-shadow: var(--rtw-glass-shadow, 4px 8px 28px rgba(2, 8, 20, 0.4));
   max-height: min(40vh, 16.5rem);
   overflow: hidden;
   animation: route-dock-panel-in 0.2s ease;
@@ -114,9 +137,9 @@
   min-width: 0;
   max-width: 100%;
   appearance: none;
-  border: 1px solid rgba(56, 189, 248, 0.35);
+  border: 1px solid rgba(107, 165, 255, 0.35);
   border-radius: 999px;
-  background: rgba(56, 189, 248, 0.14);
+  background: rgba(107, 165, 255, 0.14);
   color: #f0f9ff;
   font: inherit;
   font-size: 0.62rem;
@@ -128,8 +151,8 @@
 }
 
 .route-dock__save-trigger:hover:not(:disabled) {
-  background: rgba(56, 189, 248, 0.24);
-  border-color: rgba(56, 189, 248, 0.5);
+  background: rgba(107, 165, 255, 0.24);
+  border-color: rgba(107, 165, 255, 0.5);
 }
 
 .route-dock__save-trigger:disabled {
@@ -163,12 +186,12 @@
   font-size: 0.72rem;
   border-radius: 6px;
   border: 1px solid rgba(248, 250, 252, 0.18);
-  background: rgba(15, 23, 42, 0.55);
+  background: rgba(10, 16, 26, 0.55);
   color: #f8fafc;
 }
 
 .route-dock__save-input:focus-visible {
-  outline: 2px solid rgba(56, 189, 248, 0.65);
+  outline: 2px solid rgba(107, 165, 255, 0.65);
   outline-offset: 1px;
 }
 
@@ -188,7 +211,7 @@
   flex: 1 1 auto;
   border: 0;
   border-radius: 6px;
-  background: rgba(56, 189, 248, 0.85);
+  background: rgba(107, 165, 255, 0.85);
   color: #0f172a;
   font: inherit;
   font-size: 0.68rem;
@@ -215,21 +238,11 @@
   opacity: 0.85;
 }
 
-.route-dock__title {
-  margin: 0;
-  flex: 0 0 auto;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  opacity: 0.88;
-}
-
 .route-dock__icon-btn {
   appearance: none;
   border: 1px solid rgba(248, 250, 252, 0.14);
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.35);
+  background: rgba(10, 16, 26, 0.35);
   color: inherit;
   cursor: pointer;
   font: inherit;
@@ -285,7 +298,7 @@
   gap: 0.38rem;
   border: 1px solid rgba(248, 250, 252, 0.1);
   border-radius: 7px;
-  background: rgba(15, 23, 42, 0.35);
+  background: rgba(10, 16, 26, 0.35);
   color: inherit;
   font: inherit;
   text-align: left;
@@ -295,7 +308,7 @@
 
 .route-dock__stop:hover {
   border-color: rgba(248, 250, 252, 0.22);
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(10, 16, 26, 0.5);
 }
 
 .route-dock__stop-dot {
@@ -348,7 +361,7 @@
   width: 1.5rem;
   border: 1px solid rgba(248, 250, 252, 0.12);
   border-radius: 7px;
-  background: rgba(15, 23, 42, 0.4);
+  background: rgba(10, 16, 26, 0.4);
   color: #f8fafc;
   cursor: pointer;
   font-size: 0.68rem;
@@ -392,7 +405,7 @@
   height: 1.5rem;
   border-radius: 6px;
   border: 1px solid rgba(248, 250, 252, 0.16);
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(10, 16, 26, 0.5);
   color: #f8fafc;
   font: inherit;
   font-size: 0.9rem;
@@ -402,7 +415,7 @@
 }
 
 .route-dock__speed-step:hover:not(:disabled) {
-  border-color: rgba(56, 189, 248, 0.45);
+  border-color: rgba(107, 165, 255, 0.45);
 }
 
 .route-dock__speed-step:disabled {
@@ -414,7 +427,7 @@
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
-  accent-color: #38bdf8;
+  accent-color: #6ba5ff;
 }
 
 .route-dock__speed-number {
@@ -427,47 +440,8 @@
   text-align: center;
   border-radius: 6px;
   border: 1px solid rgba(248, 250, 252, 0.16);
-  background: rgba(15, 23, 42, 0.65);
+  background: rgba(10, 16, 26, 0.65);
   color: #f8fafc;
-}
-
-.route-dock__foot {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.4rem;
-  padding-top: 0.12rem;
-  border-top: 1px solid rgba(248, 250, 252, 0.1);
-  flex: 0 0 auto;
-}
-
-.route-dock__foot-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  flex: 0 0 auto;
-}
-
-.route-dock__reset-speed {
-  width: 1.7rem;
-  height: 1.7rem;
-  border-radius: 7px;
-  border: 1px solid rgba(248, 250, 252, 0.16);
-  background: rgba(15, 23, 42, 0.45);
-  color: #f8fafc;
-  cursor: pointer;
-  font-size: 0.85rem;
-  line-height: 1;
-  padding: 0;
-}
-
-.route-dock__reset-speed:hover:not(:disabled) {
-  border-color: rgba(56, 189, 248, 0.4);
-}
-
-.route-dock__reset-speed:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
 }
 
 .route-dock__go {
@@ -475,7 +449,7 @@
   padding: 0.32rem 0.7rem;
   border: 0;
   border-radius: 999px;
-  background: linear-gradient(135deg, #0ea5e9, #2563eb);
+  background: linear-gradient(135deg, #2f6bff, #1f5af0);
   color: #f8fafc;
   font: inherit;
   font-size: 0.78rem;

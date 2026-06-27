@@ -26,7 +26,7 @@ export type MapHudRidePresence = {
 export type MapHudProps = {
   stage: RideUiStage;
 
-  // TL — 브랜드 마크 = 좌측 메뉴(경로 주행) 트리거
+  // TL — 브랜드 마크 = 좌측 Trail 메뉴(Trail·경로 주행) 트리거
   onOpenMenu: () => void;
   menuOpen: boolean;
   onOpenPlaceSearch: () => void;
@@ -65,9 +65,7 @@ export type MapHudProps = {
       })
     | null;
 
-  // BL — 핀 진행 칩 / 경로 요약
-  pinState: { start: boolean; end: boolean; waypointCount: number };
-  routeBrief: { distanceKm: string; durationLabel: string } | null;
+  // BL — 핀 초기화 (setup 오류 액션 등에서 사용)
   onClearPins: () => void;
 
   // MC — 액션 카드 (일시정지 / 설정 단계 오류 안내)
@@ -95,18 +93,13 @@ export type MapHudProps = {
   worldActivityHint?: string | null;
   /** idle 단계 첫 진입 안내 문구 */
   idleHintMessage?: string;
-  /** setup 단계(B 여정)·세션당 1회 안내 표시 여부(App 이 sessionStorage 와 상태로 제어) */
-  showSetupRouteHint?: boolean;
-  onDismissSetupRouteHint?: () => void;
-  /** B 여정 안내 문구 (setup 단계) */
-  setupRouteHintMessage?: string;
 };
 
 /**
  * 8슬롯 글래스 HUD.
  *
  * - 슬롯 자체는 pointer-events: none, 내부 위젯만 다시 활성화 → 빈 영역은 항상 맵 조작 가능.
- * - 메뉴는 3개로 분리: TL 경로 주행, BC 맵 뷰, TR 사용자 정보. HUD 는 트리거만 들고 시트 자체는 외부에서 렌더.
+ * - 메뉴는 3개로 분리: TL Trail 메뉴(Trail·경로 주행), BC 맵 뷰, TR 사용자 정보. HUD 는 트리거만 들고 시트 자체는 외부에서 렌더.
  */
 export function MapHud(props: MapHudProps) {
   const {
@@ -125,8 +118,6 @@ export function MapHud(props: MapHudProps) {
     coachData,
     coachLineEnabled,
     metrics,
-    pinState,
-    routeBrief,
     onClearPins,
     routeError,
     canStartRide,
@@ -142,9 +133,6 @@ export function MapHud(props: MapHudProps) {
     ridePresence,
     worldActivityHint,
     idleHintMessage = "MENU → 입문 경로",
-    showSetupRouteHint = false,
-    onDismissSetupRouteHint,
-    setupRouteHintMessage = "내 경로: 출발·도착까지 찍은 뒤 MENU → 「경로 생성」",
   } = props;
 
   const riding = stage === "riding";
@@ -167,13 +155,6 @@ export function MapHud(props: MapHudProps) {
     !isSummary &&
     (riding || paused || metrics.mode === "route-preview");
   const showCoach = coachLineEnabled && coachData !== null && (riding || paused);
-  const showBlPins =
-    !riding &&
-    !paused &&
-    !isSummary &&
-    (pinState.start || pinState.end || pinState.waypointCount > 0) &&
-    !routeBrief;
-  const showBlBrief = !riding && !paused && !isSummary && routeBrief !== null;
   const showMainFab = riding;
   const showMc = paused || (stage === "setup" && Boolean(routeError));
 
@@ -189,9 +170,9 @@ export function MapHud(props: MapHudProps) {
                 type="button"
                 className={`hud-brand ${menuOpen ? "hud-brand--muted" : ""}`}
                 onClick={onOpenMenu}
-                aria-label="경로 메뉴"
+                aria-label="Trail 메뉴"
                 aria-expanded={menuOpen}
-                title="Route menu"
+                title="Trail menu"
               >
                 <span className="hud-brand__dot" aria-hidden />
                 BOXCYCLE
@@ -333,66 +314,6 @@ export function MapHud(props: MapHudProps) {
           >
             로그인
           </button>
-        </div>
-      ) : null}
-
-      {showBlPins ? (
-        <div className="map-hud__bl">
-          <div className="hud-pin-chip" aria-label="출발·도착·경과 진행">
-            <span className="hud-pin-chip__dots" aria-hidden>
-              <span className={`hud-pin-chip__dot ${pinState.start ? "is-on" : ""}`} />
-              <span className={`hud-pin-chip__dot ${pinState.end ? "is-on" : ""}`} />
-            </span>
-            <span className="hud-pin-chip__label">
-              {pinState.start && pinState.end ? "준비" : pinState.start ? "도착?" : "출발?"}
-              {pinState.waypointCount > 0 ? (
-                <span className="hud-pin-chip__via"> · 경과 {pinState.waypointCount}</span>
-              ) : null}
-            </span>
-            {(pinState.start || pinState.end || pinState.waypointCount > 0) && (
-              <button
-                type="button"
-                className="hud-pin-chip__clear"
-                onClick={onClearPins}
-                aria-label="핀 초기화"
-                title="Clear pins"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-          {stage === "setup" &&
-          showSetupRouteHint &&
-          typeof onDismissSetupRouteHint === "function" ? (
-            <button
-              type="button"
-              className="hud-setup-route-hint"
-              onClick={onDismissSetupRouteHint}
-              title="안내 닫기(이 브라우저 탭에서는 다시 안 띄움)"
-            >
-              {setupRouteHintMessage}
-            </button>
-          ) : null}
-        </div>
-      ) : null}
-
-      {showBlBrief && routeBrief ? (
-        <div className="map-hud__bl">
-          <div className="hud-brief" aria-label="경로 요약">
-            <strong>{routeBrief.distanceKm} km</strong>
-            <small>{routeBrief.durationLabel}</small>
-          </div>
-          {!riding && !paused ? (
-            <button
-              type="button"
-              className="hud-pin-chip__clear hud-chip hud-chip--mute"
-              onClick={onClearPins}
-              aria-label="경로 초기화"
-              title="Reset route"
-            >
-              ↺ 변경
-            </button>
-          ) : null}
         </div>
       ) : null}
 

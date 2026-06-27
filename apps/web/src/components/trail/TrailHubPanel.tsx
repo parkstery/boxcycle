@@ -27,17 +27,57 @@ export type TrailHubPanelProps = {
   rideSessionActive?: boolean;
 };
 
-function formatTrailRow(t: TrailInstance): string {
-  const num = formatTrailDisplayNumber(t.displayNumber);
-  const region = t.regionLabel?.trim() || "—";
-  const riders =
-    t.liveRiderCount != null && Number.isFinite(t.liveRiderCount)
-      ? `${t.liveRiderCount}명`
-      : "—";
-  const km =
-    t.distanceKm != null && Number.isFinite(t.distanceKm) ? `${t.distanceKm.toFixed(1)} km` : "—";
-  const vis = t.visibility === "private" ? "비공개" : "공개";
-  return `${num} / ${region} / ${riders} / ${km} / ${vis}`;
+type TrailRowParts = {
+  num: string;
+  region: string;
+  km: string | null;
+  riders: number | null;
+  isPrivate: boolean;
+};
+
+function trailRowParts(t: TrailInstance): TrailRowParts {
+  return {
+    num: formatTrailDisplayNumber(t.displayNumber),
+    region: t.regionLabel?.trim() || "—",
+    km:
+      t.distanceKm != null && Number.isFinite(t.distanceKm) ? `${t.distanceKm.toFixed(1)}km` : null,
+    riders:
+      t.liveRiderCount != null && Number.isFinite(t.liveRiderCount) ? t.liveRiderCount : null,
+    isPrivate: t.visibility === "private",
+  };
+}
+
+/** 컴팩트 라인: ● 번호 · 지명 … 거리 · LIVE 인원 */
+function TrailRowContent({ t }: { t: TrailInstance }) {
+  const { num, region, km, riders, isPrivate } = trailRowParts(t);
+  return (
+    <>
+      <span
+        className={`trail-hub__dot${isPrivate ? " trail-hub__dot--private" : ""}`}
+        aria-hidden
+      />
+      <span className="trail-hub__num">{num}</span>
+      <span className="trail-hub__region" title={region}>
+        {region}
+      </span>
+      {km ? <span className="trail-hub__km">{km}</span> : null}
+      {riders != null ? (
+        <span className="trail-hub__riders" title={`주행 중 ${riders}명`}>
+          <span className="trail-hub__riders-pulse" aria-hidden />
+          {riders}
+        </span>
+      ) : null}
+    </>
+  );
+}
+
+function trailRowLabel(t: TrailInstance): string {
+  const { num, region, km, riders, isPrivate } = trailRowParts(t);
+  const parts = [`Trail ${num}`, region];
+  if (km) parts.push(km);
+  if (riders != null) parts.push(`주행 중 ${riders}명`);
+  parts.push(isPrivate ? "비공개" : "공개");
+  return parts.join(", ");
 }
 
 export function TrailHubPanel(props: TrailHubPanelProps) {
@@ -76,24 +116,22 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
 
   return (
     <section className="trail-hub" aria-label={`${TRAILHEAD_LABEL} · ${TRAIL_LABEL}`}>
-      <div className="trail-hub__current">
-        <span className="trail-hub__kicker">지금</span>
-        <strong className="trail-hub__current-id">
-          {onTrailhead ? TRAILHEAD_LABEL : `Trail ${currentLabel}`}
-        </strong>
-        {!onTrailhead && props.currentTrail ? (
-          <span className="trail-hub__current-meta">
-            {props.currentTrail.regionLabel?.trim() || "—"} ·{" "}
-            {props.currentTrail.visibility === "private" ? "비공개" : "공개"}
-          </span>
-        ) : null}
-      </div>
-
       <div className="trail-hub__row">
+        <span
+          className="trail-hub__current-id--compact"
+          title={
+            onTrailhead
+              ? TRAILHEAD_LABEL
+              : props.currentTrail?.regionLabel?.trim() || active
+          }
+        >
+          {onTrailhead ? TRAILHEAD_LABEL : `Trail ${currentLabel}`}
+        </span>
         <button
           type="button"
           className="trail-hub__trailhead-btn"
           disabled={onTrailhead || Boolean(props.rideSessionActive)}
+          title={`${TRAILHEAD_LABEL}로 이동`}
           onClick={props.onGoTrailhead}
         >
           {TRAILHEAD_LABEL}로
@@ -108,6 +146,7 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
                   : "trail-hub__vis-btn"
               }
               disabled={props.visibilityBusy}
+              title="이 Trail을 공개로 전환"
               onClick={() => props.onSetVisibility("open")}
             >
               공개
@@ -120,6 +159,7 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
                   : "trail-hub__vis-btn"
               }
               disabled={props.visibilityBusy}
+              title="이 Trail을 비공개로 전환"
               onClick={() => props.onSetVisibility("private")}
             >
               비공개
@@ -147,17 +187,23 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
             return (
               <li key={t.id}>
                 {showActiveRow ? (
-                  <div className="trail-hub__active-row" aria-current="true">
-                    {formatTrailRow(t)}
+                  <div
+                    className="trail-hub__row-card trail-hub__row-card--active"
+                    aria-current="true"
+                    aria-label={trailRowLabel(t)}
+                  >
+                    <TrailRowContent t={t} />
                   </div>
                 ) : (
                   <button
                     type="button"
-                    className="trail-hub__join-btn"
+                    className="trail-hub__row-card trail-hub__row-card--join"
                     disabled={props.rideSessionActive}
+                    title="이 Trail에 합류"
+                    aria-label={`${trailRowLabel(t)} — 합류`}
                     onClick={() => props.onJoinTrail(t.id, t.publicationId)}
                   >
-                    {formatTrailRow(t)}
+                    <TrailRowContent t={t} />
                   </button>
                 )}
               </li>

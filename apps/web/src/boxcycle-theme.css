@@ -1,0 +1,340 @@
+/* =====================================================================
+   BOXCYCLE — Ride the World "맵 포워드" 테마
+   ---------------------------------------------------------------------
+   드롭인 방식: 기존 App.css / MapHud.css 등을 그대로 두고, 이 파일을
+   "가장 마지막에" import 하세요. (예: src/main.tsx 에서 다른 css 다음 줄)
+
+       import './App.css';
+       import './components/maphud/MapHud.css';
+       import './boxcycle-theme.css';   // ← 맨 마지막
+
+   기존 클래스 구조(슬롯 HUD / 글래스 시트)는 유지하고 토큰·폰트·
+   색·글래스 레시피만 갈아끼웁니다. DOM 변경 없이 전체 톤이 통일됩니다.
+   ===================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap');
+
+:root {
+  /* ---- Type ---- */
+  --rtw-font: 'Barlow', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --rtw-font-num: 'Barlow Semi Condensed', 'Barlow', sans-serif; /* 속도/거리 등 수치 */
+
+  /* ---- Brand / accent (쿨 블루) ---- */
+  --rtw-accent: #2f6bff;          /* 솔리드·라이트 배경용 */
+  --rtw-accent-strong: #1f5af0;
+  --rtw-accent-on-dark: #6ba5ff;  /* 다크 글래스 위 텍스트/수치 강조 */
+  --rtw-accent-soft: rgba(47, 107, 255, 0.20);
+  --rtw-accent-line: rgba(99, 160, 255, 0.55);
+
+  /* ---- Glass (다크 시네마틱) ---- */
+  --rtw-glass-bg: rgba(10, 16, 26, 0.50);
+  --rtw-glass-bg-strong: rgba(10, 16, 26, 0.64);
+  --rtw-glass-border: rgba(255, 255, 255, 0.16);
+  --rtw-glass-blur: 12px;
+  --rtw-glass-shadow: 0 10px 28px rgba(2, 8, 20, 0.40);
+
+  /* ---- Text on dark ---- */
+  --rtw-text: #f4f8ff;
+  --rtw-text-dim: rgba(244, 248, 255, 0.70);
+  --rtw-text-mute: rgba(244, 248, 255, 0.55);
+
+  /* ---- Shell / surfaces ---- */
+  --rtw-shell-bg: #0b0f18;
+  --rtw-ink: #0e1626;             /* 라이트 카드 위 본문 */
+  --rtw-card: #ffffff;
+  --rtw-card-border: #e6ecf3;
+
+  /* ---- Status ---- */
+  --rtw-danger: #ff5a5a;
+  --rtw-warn: #facc15;
+  --rtw-ok: #3fd27e;
+
+  /* ---- Shape ---- */
+  --rtw-radius: 14px;
+  --rtw-radius-pill: 999px;
+}
+
+/* =====================================================================
+   1) 전역 — 폰트 + 셸 톤
+   ===================================================================== */
+body {
+  font-family: var(--rtw-font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.app-shell--map-first {
+  background: var(--rtw-shell-bg);
+  color: var(--rtw-text);
+}
+
+.title {
+  font-family: var(--rtw-font-num);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* =====================================================================
+   2) 글래스 기본 톤
+   ===================================================================== */
+.map-hud {
+  color: var(--rtw-text);
+}
+
+.hud-glass,
+.hud-chip,
+.hud-brand,
+.hud-place-search-btn,
+.hud-bc-trigger,
+.hud-idle-hint,
+.hud-coach,
+.hud-avatar,
+.hud-signin-pill,
+.hud-icon-btn,
+.hud-metrics__chip {
+  background: var(--rtw-glass-bg);
+  border-color: var(--rtw-glass-border);
+  -webkit-backdrop-filter: blur(var(--rtw-glass-blur));
+  backdrop-filter: blur(var(--rtw-glass-blur));
+}
+
+.hud-glass {
+  border-radius: var(--rtw-radius);
+  box-shadow: var(--rtw-glass-shadow);
+}
+
+/* =====================================================================
+   3) TL — 브랜드 / 장소 검색
+   ===================================================================== */
+.hud-brand {
+  font-family: var(--rtw-font);
+  font-weight: 700;
+  letter-spacing: 0.10em;
+}
+
+.hud-brand__dot {
+  background: var(--rtw-accent-on-dark);
+  box-shadow: 0 0 0 3px var(--rtw-accent-soft);
+}
+
+.hud-place-search-btn.is-active {
+  background: var(--rtw-accent-soft);
+  border-color: var(--rtw-accent-line);
+  color: #eaf2ff;
+}
+
+/* =====================================================================
+   4) TR — 사용자 아바타 / 로그인
+   ===================================================================== */
+.hud-avatar {
+  font-weight: 700;
+}
+
+.hud-signin-pill:hover {
+  border-color: var(--rtw-accent-line);
+  color: #eaf2ff;
+}
+
+/* =====================================================================
+   5) TC — 라이딩 지표 칩 (수치 강조 = Barlow Semi Condensed)
+   작은 칩을 유지하되 수치 가독성을 키워 "맵 포워드" HUD 느낌을 줍니다.
+   ===================================================================== */
+.hud-metrics__chip {
+  font-family: var(--rtw-font-num);
+  font-weight: 700;
+  font-size: 0.98rem;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  padding: 0.26rem 0.62rem;
+  color: var(--rtw-text);
+}
+
+.hud-metrics__unit {
+  font-family: var(--rtw-font);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  opacity: 0.72;
+}
+
+/* 경로 미리보기(주행 전) — 액센트 블루 */
+.hud-metrics--route-preview .hud-metrics__chip {
+  color: var(--rtw-accent-on-dark);
+}
+.hud-metrics--route-preview .hud-metrics__unit {
+  color: #bcd4ff;
+  opacity: 0.9;
+}
+
+/* 동행/트레일 칩은 경고 레드 톤 유지(약간 정제) */
+.hud-metrics__chip--trail {
+  background: rgba(255, 90, 90, 0.20);
+  border-color: rgba(255, 120, 120, 0.50);
+}
+
+/* =====================================================================
+   6) BC — 코칭 한 줄
+   ===================================================================== */
+.hud-coach {
+  font-family: var(--rtw-font);
+  font-weight: 600;
+}
+
+.hud-coach__r {
+  background: var(--rtw-accent-soft);
+  border-color: var(--rtw-accent-line);
+  color: #eaf2ff;
+}
+
+.hud-bc-trigger.is-active {
+  background: var(--rtw-accent-soft);
+  border-color: var(--rtw-accent-line);
+  color: #eaf2ff;
+}
+
+/* =====================================================================
+   7) MC — 액션 센터 카드
+   ===================================================================== */
+.hud-action {
+  background: var(--rtw-glass-bg-strong);
+  border-color: var(--rtw-glass-border);
+  border-radius: var(--rtw-radius);
+  box-shadow: var(--rtw-glass-shadow);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.hud-action__title {
+  font-family: var(--rtw-font);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.66rem;
+  opacity: 0.7;
+}
+
+.hud-action__btn--primary {
+  background: var(--rtw-accent-soft);
+  border-color: var(--rtw-accent-line);
+  color: #eaf2ff;
+}
+.hud-action__btn--primary:hover {
+  background: rgba(47, 107, 255, 0.34);
+}
+
+.hud-action__btn--danger {
+  background: rgba(255, 90, 90, 0.30);
+  border-color: rgba(255, 120, 120, 0.55);
+}
+
+/* =====================================================================
+   8) BR — 메인 FAB (시작 / 일시정지)
+   ===================================================================== */
+.hud-icon-btn--primary {
+  background: var(--rtw-accent-soft);
+  border-color: var(--rtw-accent-line);
+  color: #eaf2ff;
+}
+.hud-icon-btn--primary:hover {
+  background: rgba(47, 107, 255, 0.36);
+}
+
+.hud-icon-btn--danger {
+  background: rgba(255, 90, 90, 0.26);
+  border-color: rgba(255, 120, 120, 0.50);
+}
+
+.hud-icon-btn:focus-visible {
+  outline-color: var(--rtw-accent-on-dark);
+}
+
+.hud-main-fab {
+  background: rgba(47, 107, 255, 0.42);
+  border-color: rgba(255, 255, 255, 0.34);
+  color: #eaf2ff;
+  font-family: var(--rtw-font-num);
+  box-shadow: 0 12px 30px rgba(2, 8, 20, 0.42), 0 0 0 1px rgba(47, 107, 255, 0.18);
+}
+.hud-main-fab:hover {
+  background: rgba(47, 107, 255, 0.58);
+}
+
+.hud-main-fab--pause {
+  background: rgba(250, 204, 21, 0.34);
+  border-color: rgba(250, 204, 21, 0.55);
+  color: #fefce8;
+}
+.hud-main-fab--pause:hover {
+  background: rgba(250, 204, 21, 0.5);
+}
+
+.hud-main-fab__caption {
+  font-family: var(--rtw-font);
+  letter-spacing: 0.10em;
+  font-weight: 700;
+}
+
+/* =====================================================================
+   9) 일반 버튼 (.btn) — 인증/폼 등 라이트 카드 내부
+   ===================================================================== */
+.btn {
+  font-family: var(--rtw-font);
+  font-weight: 600;
+  border-radius: 10px;
+}
+
+.btn.primary {
+  background: var(--rtw-accent);
+}
+.btn.primary:hover:not(:disabled) {
+  background: var(--rtw-accent-strong);
+}
+
+/* =====================================================================
+   10) Mapillary 거리뷰 플로팅 — "있을 때만" 인셋
+   다크 글래스 헤더 + 라운드 + 액센트 라벨로 정제.
+   ===================================================================== */
+.mapillary-street-floating {
+  border-radius: var(--rtw-radius);
+  border-color: var(--rtw-glass-border);
+  background: var(--rtw-glass-bg-strong);
+  color: var(--rtw-text);
+  box-shadow: 0 12px 30px rgba(2, 8, 20, 0.5);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.mapillary-street-floating__head {
+  font-family: var(--rtw-font);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.66rem;
+  background: transparent;
+  border-bottom-color: rgba(255, 255, 255, 0.10);
+  color: var(--rtw-text-dim);
+}
+
+.mapillary-street-floating__close {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--rtw-glass-border);
+  color: var(--rtw-text);
+  border-radius: 8px;
+}
+
+/* =====================================================================
+   11) 토스트 / 힌트
+   ===================================================================== */
+.hud-idle-hint,
+.hud-world-hint {
+  font-family: var(--rtw-font);
+}
+
+/* =====================================================================
+   12) Mapbox 기본 컨트롤 톤 맞춤(선택) — 어트리뷰션/스케일 흐리게
+   ===================================================================== */
+.app-shell--map-first .mapboxgl-ctrl-attrib,
+.app-shell--map-first .mapboxgl-ctrl-scale {
+  font-family: var(--rtw-font);
+  opacity: 0.7;
+}

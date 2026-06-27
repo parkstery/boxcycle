@@ -59,18 +59,6 @@ export function clearUserSignedOutSessionFlag(): void {
   }
 }
 
-/** B 여정 setup 안내 탭 닫힘 — 탭 세션 동안 유지. */
-export const B_JOURNEY_HINT_SESSION_KEY = "boxcycle_b_journey_hint_dismissed_v1";
-
-export function readBJourneyHintDismissedSession(): boolean {
-  if (typeof sessionStorage === "undefined") return false;
-  try {
-    return sessionStorage.getItem(B_JOURNEY_HINT_SESSION_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
 export const MAP_STYLE_OPTIONS = [
   { value: "mapbox://styles/mapbox/streets-v12", label: "Streets" },
   { value: "mapbox://styles/mapbox/outdoors-v12", label: "Outdoors" },

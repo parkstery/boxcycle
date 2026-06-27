@@ -1,13 +1,14 @@
 /* MapViewSheet 와 맞춘 다크 글래스 톤 · 모바일용 콤팩트 밀도 */
 .ride-panel {
-  --rp-fg: #f1f5f9;
-  --rp-fg-muted: rgba(226, 232, 240, 0.78);
-  --rp-border: rgba(248, 250, 252, 0.14);
+  --rp-fg: var(--rtw-text, #f1f5f9);
+  --rp-fg-muted: var(--rtw-text-dim, rgba(226, 232, 240, 0.78));
+  --rp-border: var(--rtw-glass-border, rgba(248, 250, 252, 0.14));
   --rp-surface: rgba(2, 6, 23, 0.38);
-  --rp-chip: rgba(248, 250, 252, 0.08);
-  --rp-accent: #38bdf8;
-  --rp-accent-strong: #0ea5e9;
-  --rp-btn-fg: #f8fafc;
+  --rp-chip: rgba(255, 255, 255, 0.08);
+  --rp-accent: var(--rtw-accent-on-dark, #6ba5ff);
+  --rp-accent-strong: var(--rtw-accent, #2f6bff);
+  --rp-btn-fg: var(--rtw-text, #f8fafc);
+  font-family: var(--rtw-font, inherit);
   /* 세션 블록 컴팩트화로 확보한 높이 → 코스·내 경로 리스트에 재배분 */
   --rp-route-list-base-height: 5.5rem;
   --rp-session-compact-delta: 1.85rem;
@@ -189,8 +190,8 @@
 }
 
 .ride-panel__mode.is-active {
-  border-color: rgba(56, 189, 248, 0.55);
-  background: rgba(56, 189, 248, 0.22);
+  border-color: rgba(107, 165, 255, 0.55);
+  background: rgba(107, 165, 255, 0.22);
   color: #f0f9ff;
 }
 
@@ -203,7 +204,7 @@
   padding: 0.45rem;
   border-radius: 8px;
   border: none;
-  background: linear-gradient(180deg, #0ea5e9 0%, #0284c7 100%);
+  background: linear-gradient(180deg, #2f6bff 0%, #1f5af0 100%);
   color: #fff;
   cursor: pointer;
 }
@@ -267,7 +268,7 @@
 }
 
 .ride-panel__tab.is-active {
-  background: rgba(56, 189, 248, 0.14);
+  background: rgba(107, 165, 255, 0.14);
   border-color: var(--rp-border);
   color: var(--rp-fg);
   font-weight: 650;
@@ -297,8 +298,8 @@
   gap: 0.28rem;
   padding: 0.4rem 0.45rem;
   border-radius: 8px;
-  border: 1px dashed rgba(56, 189, 248, 0.35);
-  background: rgba(56, 189, 248, 0.08);
+  border: 1px dashed rgba(107, 165, 255, 0.35);
+  background: rgba(107, 165, 255, 0.08);
 }
 
 .ride-panel__save-route-actions {
@@ -476,8 +477,8 @@
 }
 
 .ride-panel__official-seg.is-active {
-  border-color: rgba(56, 189, 248, 0.55);
-  background: rgba(56, 189, 248, 0.18);
+  border-color: rgba(107, 165, 255, 0.55);
+  background: rgba(107, 165, 255, 0.18);
 }
 
 .ride-panel__official-seg-badge {
@@ -599,20 +600,20 @@
 }
 
 .ride-panel__public-courses-item:hover:not(:disabled) {
-  background: rgba(56, 189, 248, 0.1);
-  border-color: rgba(56, 189, 248, 0.42);
-  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.12);
+  background: rgba(107, 165, 255, 0.1);
+  border-color: rgba(107, 165, 255, 0.42);
+  box-shadow: 0 0 0 1px rgba(107, 165, 255, 0.12);
 }
 
 .ride-panel__public-courses-item:focus-visible {
-  outline: 2px solid rgba(56, 189, 248, 0.75);
+  outline: 2px solid rgba(107, 165, 255, 0.75);
   outline-offset: 2px;
 }
 
 .ride-panel__public-courses-item.is-selected {
-  background: rgba(56, 189, 248, 0.16);
-  border-color: rgba(56, 189, 248, 0.55);
-  box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.2);
+  background: rgba(107, 165, 255, 0.16);
+  border-color: rgba(107, 165, 255, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(107, 165, 255, 0.2);
 }
 
 .ride-panel__public-courses-item:active:not(:disabled) {
@@ -823,8 +824,8 @@
 
 /* SavedRoutesPanel — 다크 패널 안 대비 */
 .ride-panel .saved-routes__notice {
-  background: rgba(56, 189, 248, 0.1);
-  border-color: rgba(56, 189, 248, 0.28);
+  background: rgba(107, 165, 255, 0.1);
+  border-color: rgba(107, 165, 255, 0.28);
   color: var(--rp-fg-muted);
 }
 
@@ -876,8 +877,8 @@
 }
 
 .ride-panel .saved-routes__filter-btn.is-active {
-  background: rgba(56, 189, 248, 0.2);
-  border-color: rgba(56, 189, 248, 0.45);
+  background: rgba(107, 165, 255, 0.2);
+  border-color: rgba(107, 165, 255, 0.45);
   color: #f0f9ff;
 }
 

@@ -104,17 +104,15 @@ import { usePublicRouteReviewMeta } from "./hooks/usePublicRouteReviewMeta";
 import { useSavedRoutesWorkspace } from "./hooks/useSavedRoutesWorkspace";
 import { useRideEndAndPersistence } from "./hooks/useRideEndAndPersistence";
 import {
-  B_JOURNEY_HINT_SESSION_KEY,
   DEFAULT_MAP_STYLE,
   MAP_STYLE_OPTIONS,
-  readBJourneyHintDismissedSession,
 } from "./lib/appSessionKeys";
 import { formatElapsedFromMs } from "./lib/rideFormat";
 import { useBleCrankRpm } from "./hooks/useBleCrankRpm";
 import { useRideMapillaryStreet } from "./hooks/useRideMapillaryStreet";
 import { MAPILLARY_CLIENT_TOKEN, mapillaryTokenConfigured } from "./lib/mapillaryToken";
 import type { CoverageOverlayMode } from "./lib/coverageOverlayMode";
-import { formatDuration, type RouteProfile } from "./services/mapboxDirections";
+import { type RouteProfile } from "./services/mapboxDirections";
 import { FUNCTIONS_REGION, MAPBOX_TOKEN } from "./app/env";
 import { useAppSheetNavigation } from "./app/useAppSheetNavigation";
 import { getMapDebugPhase } from "./lib/mapDebugPhase";
@@ -222,8 +220,6 @@ export default function App() {
   const menuFirestorePrimedUidRef = useRef<string | null>(null);
   const [subscriptionFlash, setSubscriptionFlash] = useState<string | null>(null);
   const [idleHintDismissed, setIdleHintDismissed] = useState(false);
-  /** B 여정(커스텀 경로): setup 안내 세션 플래그 */
-  const [bJourneyHintDismissedSession, setBJourneyHintDismissedSession] = useState(readBJourneyHintDismissedSession);
   const [summarySheetVisible, setSummarySheetVisible] = useState(false);
   const [coverageOverlayMode, setCoverageOverlayMode] = useState<CoverageOverlayMode>("off");
 
@@ -1343,15 +1339,6 @@ export default function App() {
     />
   );
 
-  const dismissBJourneyHint = useCallback(() => {
-    try {
-      sessionStorage.setItem(B_JOURNEY_HINT_SESSION_KEY, "1");
-    } catch {
-      /* noop */
-    }
-    setBJourneyHintDismissedSession(true);
-  }, []);
-
   // ===== Map-first 핸들러 =====
   function handleMenuPlacePick(lngLat: LngLat, _placeName: string, _bbox: [number, number, number, number] | null) {
     /** `liveForMap` 추적 jumpTo 가 flyTo 를 덮어쓰지 않도록 */
@@ -1416,13 +1403,6 @@ export default function App() {
       ? {
           initial: accountInitial,
           isGuest: user.isAnonymous,
-        }
-      : null;
-  const routeBrief =
-    routeGeometry && routeDistanceMeters > 0
-      ? {
-          distanceKm: (routeDistanceMeters / 1000).toFixed(2),
-          durationLabel: formatDuration(routeDurationSec),
         }
       : null;
   const caloriesEstimate = Math.round((rideMetrics.virtualDistanceMeters / 1000) * 30);
@@ -1500,12 +1480,6 @@ export default function App() {
               coachData,
               coachLineEnabled: rideCoachingBannerVisible,
               metrics: hudMetrics,
-              pinState: {
-                start: Boolean(startLngLat),
-                end: Boolean(endLngLat),
-                waypointCount: routeWaypoints.length,
-              },
-              routeBrief,
               onClearPins: handleClearPins,
               routeError: null,
               canStartRide: Boolean(routeGeometry) && !routeLoading,
@@ -1518,8 +1492,6 @@ export default function App() {
               onModifyFromPause: handleModifyFromPause,
               showIdleHint: stage === "idle" && !idleHintDismissed,
               onDismissIdleHint: () => setIdleHintDismissed(true),
-              showSetupRouteHint: stage === "setup" && !bJourneyHintDismissedSession,
-              onDismissSetupRouteHint: dismissBJourneyHint,
               ridePresence: mapHudRidePresence,
               worldActivityHint,
             }}
@@ -1633,12 +1605,6 @@ export default function App() {
               coachData,
               coachLineEnabled: rideCoachingBannerVisible,
               metrics: hudMetrics,
-              pinState: {
-                start: Boolean(startLngLat),
-                end: Boolean(endLngLat),
-                waypointCount: routeWaypoints.length,
-              },
-              routeBrief,
               onClearPins: handleClearPins,
               routeError: null,
               canStartRide: Boolean(routeGeometry) && !routeLoading,
@@ -1651,8 +1617,6 @@ export default function App() {
               onModifyFromPause: handleModifyFromPause,
               showIdleHint: stage === "idle" && !idleHintDismissed,
               onDismissIdleHint: () => setIdleHintDismissed(true),
-              showSetupRouteHint: stage === "setup" && !bJourneyHintDismissedSession,
-              onDismissSetupRouteHint: dismissBJourneyHint,
               ridePresence: mapHudRidePresence,
               worldActivityHint,
             }}
@@ -1698,6 +1662,10 @@ export default function App() {
         }}
         onOpenSettings={openRideSettingsPanel}
       >
+        <div className="menu-panel__section menu-panel__section--trail">
+          <span className="menu-panel__section-label">Trail</span>
+          <span className="menu-panel__section-hint">접속 · 동행</span>
+        </div>
         <TrailHubPanel
           user={user}
           activeTrailId={menuTrailSanitizedId}
@@ -1711,6 +1679,10 @@ export default function App() {
           visibilityBusy={trailVisibilityBusy}
           rideSessionActive={isRideSessionActive}
         />
+        <div className="menu-panel__section menu-panel__section--route">
+          <span className="menu-panel__section-label">경로</span>
+          <span className="menu-panel__section-hint">공식 코스 · 내 경로</span>
+        </div>
         <RideRoutePanel
           startLabel={startLabel}
           endLabel={endLabel}

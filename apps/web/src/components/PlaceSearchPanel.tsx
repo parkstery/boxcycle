@@ -7,7 +7,7 @@ type PlaceSearchPanelProps = {
   children: ReactNode;
 };
 
-/** 좌상단 Route menu 옆 버튼 — 지명 검색 전용 플로팅 패널 */
+/** 좌상단 Trail menu 옆 버튼 — 지명 검색 전용 플로팅 패널 */
 export function PlaceSearchPanel({ open, onClose, children }: PlaceSearchPanelProps) {
   useEffect(() => {
     if (!open) return;
