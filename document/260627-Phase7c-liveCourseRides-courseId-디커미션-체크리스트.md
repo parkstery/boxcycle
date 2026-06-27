@@ -42,8 +42,8 @@ Phase 7b까지 **코드 식별자**의 `course*` 를 정리했다. 남은 것은
 |---|------|------|--------|------|
 | C1 | **Audit** | `auditTerminologyWithAdminSdk` 에 `liveRides` 섹션 추가. 실행: `npm run admin:audit-terminology` | — | ✅ 완료 — **legacyTotal=0** (§7) |
 | C2 | (선택) 데이터 보존 복사 | C1 fresh=0 이면 생략 | 가역 | ⏭️ 생략 (legacyTotal=0) |
-| C3 | **읽기 컷오버** | `LIVE_RIDE_SUBCOLLECTIONS` → `[livePublicationRides]` 단일 ([trailPaths.ts](../functions/src/trailPaths.ts)). 영향: `publicationPresenceCore`·`routeActivityScheduledReconcile` | 가역(revert) | ✅ 구현 — **deploy functions 대기** |
-| C4 | **Rules 축소** | `liveCourseRides` match 3블록 제거 ([firestore.rules](../firestore.rules)). client 미사용 → 영향 없음 | 가역 | ✅ 구현 — **deploy rules 대기** |
+| C3 | **읽기 컷오버** | `LIVE_RIDE_SUBCOLLECTIONS` → `[livePublicationRides]` 단일 ([trailPaths.ts](../functions/src/trailPaths.ts)). 영향: `publicationPresenceCore`·`routeActivityScheduledReconcile` | 가역(revert) | ✅ **배포 완료** (2026-06-27) |
+| C4 | **Rules 축소** | `liveCourseRides` match 3블록 제거 ([firestore.rules](../firestore.rules)). client 미사용 → 영향 없음 | 가역 | ✅ **배포 완료** (rules compiled·released) |
 | C5 | **데이터 삭제** | 레거시 문서 제거 | **비가역** | ⏭️ 불필요 (legacyTotal=0) |
 | C6 | **코드 정리** | client `TRAIL_LIVE_COURSE_RIDES_SUBCOLLECTION`(dead)·`worldMapOverlayCore` `liveCourseRides?` alias 제거. functions 상수·migration CLI는 이력 보존 | 가역 | ✅ 완료 |
 
@@ -66,6 +66,8 @@ Phase 7b까지 **코드 식별자**의 `course*` 를 정리했다. 남은 것은
 | F3 | **Purge** | `purgePhase7CourseIdFieldsCore` 로 routePublications 2건의 `courseId` 필드 제거 | **비가역** | ⬜ **Admin 실행 대기** |
 | F4 | **Rules** | `trailHasPublicationId` 의 `courseId` 분기 제거(L129-131) → `publicationId` 단일. deploy rules | 가역 | ⬜ (F3 이후) |
 | F5 | **Client 폴백 제거** | `resolvePublicationIdFromDoc` 의 `data.courseId` 폴백 삭제. trails/listings/liveRides 모두 courseId-only=0 → 안전 | 가역 | ⬜ (F3 이후) |
+
+> **C6 후속(미용·무위험):** CF export `openTrailListingOnLiveCourseRideWritten` 는 이름만 레거시 — 트리거 경로는 이미 `…/livePublicationRides/{uid}` ([openTrailListingProjection.ts:55](../functions/src/openTrailListingProjection.ts)). rename 시 함수 삭제+생성 재배포 필요 → 별도 처리.
 
 > **별도 데이터 이슈(terminology 무관):** `trailsOpenMissingPublicationId=5` — 공개 Trail 5건이 `publicationId`·`courseId` 둘 다 없음. Trail 생성 시 publicationId 미부여(레거시·오류) 추정. Phase 7c 범위 밖이나, F4(Rules에서 courseId 수락 제거) 전에 이 5건이 write 규칙을 어떻게 통과/실패하는지 조사 필요 → 별 이슈로 트래킹.
 
