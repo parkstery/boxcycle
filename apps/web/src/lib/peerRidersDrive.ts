@@ -1,7 +1,8 @@
 import type { LineStringGeometry, LngLat } from "./geo";
 import { getPeerMotionRegistry, type PeerMotionRegistry } from "./peerMotion";
+import { getPeerSyncSelfDistM } from "./peerMotion/peerSyncDebug";
 
-/** DEV 전용 — peer auth vs display 오차를 1초 간격 콘솔 로그 (구조적 지연 측정) */
+/** DEV 전용 — self distM 과 peer distM 을 같은 줄에 (데이터 vs 렌더 판별) */
 let peerDriveDevLogAt = 0;
 function peerDriveDevLog(registry: PeerMotionRegistry, nowMs: number): void {
   if (!import.meta.env.DEV) return;
@@ -9,7 +10,7 @@ function peerDriveDevLog(registry: PeerMotionRegistry, nowMs: number): void {
   const snap = registry.debugSnapshot(nowMs);
   if (snap.length === 0) return;
   peerDriveDevLogAt = nowMs;
-  console.debug("[peerSync] render", snap);
+  console.debug("[peerSync] render", { selfDistM: Math.round(getPeerSyncSelfDistM() * 10) / 10, peers: snap });
 }
 
 export function stepPeerDriveAndBuildGeoJson(

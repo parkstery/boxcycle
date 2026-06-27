@@ -15,6 +15,7 @@ import {
 import { isFirebaseDatabaseConfigured } from "../lib/firebase";
 import { cleanupLiveLocationPublish, publishLiveLocationFanout } from "../lib/publishLiveLocationFanout";
 import { mergeGlobalLivePresence } from "../lib/firestoreGlobalLivePresence";
+import { setPeerSyncSelfDistM } from "../lib/peerMotion/peerSyncDebug";
 import {
   finalizeAndDeleteTrailLivePublicationRide,
   deleteTrailLivePublicationRide,
@@ -205,6 +206,7 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
 
       const snapshot = buildLiveLocationSnapshot(inputRef.current);
       if (!snapshot) return;
+      if (import.meta.env.DEV) setPeerSyncSelfDistM(snapshot.distMetersAlongRoute);
 
       const now = Date.now();
       const publishGlobal = ge && shouldPublishGlobalPresence(now, throttle, snapshot.lngLat);
