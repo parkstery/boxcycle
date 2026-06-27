@@ -1210,7 +1210,9 @@ export default function App() {
     ),
     pageVisible,
     lngLat: globalPresencePublishLngLat,
-    trailId,
+    // peer 동기화는 메뉴 네비(trailId)가 아니라 실제 주행 trail(ridingTrailId)에 publish해야
+    // 같은 trail의 motion 노드를 공유한다. 주행 중 메뉴가 Trailhead("default")로 가도 어긋나지 않음.
+    trailId: menuTrailSanitizedId,
     publicationId: basicActiveHubCourseId ?? activeOfficialCourseId ?? currentTrailMeta?.publicationId ?? null,
     routeGeometry,
     routeDistanceMeters,
@@ -1907,7 +1909,7 @@ export default function App() {
         <PublicationSharedPresence
           user={user}
           publicationId={sharedPresenceCourseId}
-          trailId={trailId}
+          trailId={menuTrailSanitizedId}
           title={sharedPresenceCourseTitle}
           routeLenM={
             routeGeometry?.coordinates?.length
