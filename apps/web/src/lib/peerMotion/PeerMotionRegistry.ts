@@ -167,6 +167,33 @@ export class PeerMotionRegistry {
   getEntityCount(): number {
     return this.entities.size;
   }
+
+  /** DEV 진단 — peer 별 auth vs display 오차·샘플 age (구조적 지연 측정용) */
+  debugSnapshot(nowMs = Date.now()): Array<{
+    uid: string;
+    phase: PeerMotionEntity["phase"];
+    authDistM: number;
+    displayDistM: number;
+    errM: number;
+    speedMps: number;
+    ingestAgeMs: number;
+    pullMps: number;
+  }> {
+    const out = [];
+    for (const e of this.entities.values()) {
+      out.push({
+        uid: e.uid.slice(0, 6),
+        phase: e.phase,
+        authDistM: Math.round(e.authDistM * 10) / 10,
+        displayDistM: Math.round(e.displayDistM * 10) / 10,
+        errM: Math.round((e.authDistM - e.displayDistM) * 10) / 10,
+        speedMps: Math.round(e.speedMps * 100) / 100,
+        ingestAgeMs: nowMs - e.lastIngestLocalMs,
+        pullMps: Math.round(e.reconcilePullMps * 100) / 100,
+      });
+    }
+    return out;
+  }
 }
 
 export function getPeerMotionRegistry(): PeerMotionRegistry {

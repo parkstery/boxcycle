@@ -1,5 +1,6 @@
 export type { PeerMotionEntity, PeerMotionPacket, PeerMotionPhase } from "./types";
 export {
+  PeerMotionRegistry,
   getPeerMotionRegistry,
   resetPeerMotionRegistry,
   type PeerMotionRenderFeature,

@@ -33,6 +33,18 @@ import { peerHudStableKey, type PeerHudEntry } from "../lib/peerHud";
 import { useDocumentVisibility } from "../hooks/useDocumentVisibility";
 import "./trail/TrailheadPresence.css";
 
+/** DEV 전용 — peer 동기화 진단 (RTDB 5Hz 수신/막힘 판별). throttle 로그. */
+const peerSyncDevLog = (() => {
+  let lastAt = 0;
+  return (tag: string, payload: Record<string, unknown>): void => {
+    if (!import.meta.env.DEV) return;
+    const now = Date.now();
+    if (now - lastAt < 1_000) return;
+    lastAt = now;
+    console.debug(`[peerSync] ${tag}`, payload);
+  };
+})();
+
 function motionRowsEqual(a: RtdbTrailMotionRow[], b: RtdbTrailMotionRow[]): boolean {
   if (a.length !== b.length) return false;
   for (let i = 0; i < a.length; i += 1) {
@@ -204,6 +216,10 @@ export function PublicationSharedPresence({
 
   useEffect(() => {
     if (!pageVisible || !isFirebaseDatabaseConfigured()) {
+      peerSyncDevLog("rtdb-off", {
+        pageVisible,
+        dbConfigured: isFirebaseDatabaseConfigured(),
+      });
       startTransition(() => setMotionRows([]));
       return;
     }
@@ -214,6 +230,22 @@ export function PublicationSharedPresence({
       tid,
       (next) => {
         if (cancelled) return;
+        const pid = publicationIdRef.current.trim();
+        const peers = next.filter((r) => r.uid !== userRef.current.uid && r.publicationId.trim() === pid);
+        const now = Date.now();
+        peerSyncDevLog("rtdb-rx", {
+          trailId: tid,
+          rows: next.length,
+          peers: peers.length,
+          sample: peers[0]
+            ? {
+                uid: peers[0].uid.slice(0, 6),
+                distM: peers[0].distM,
+                speedMps: peers[0].speedMps,
+                ageMs: peers[0].serverAtMs > 0 ? now - peers[0].serverAtMs : null,
+              }
+            : null,
+        });
         setMotionRows((prev) => (motionRowsEqual(prev, next) ? prev : next));
         syncPeerMotionFromPresence({
           publicationId: publicationIdRef.current,
@@ -225,8 +257,11 @@ export function PublicationSharedPresence({
           routeLenM: routeLenMRef.current,
         });
       },
-      () => {
-        /* RTDB motion 오류 — Firestore fallback ingest */
+      (err) => {
+        // RTDB motion 오류 — Firestore fallback. DEV 에선 permission_denied 등 표면화.
+        if (import.meta.env.DEV) {
+          console.warn("[peerSync] RTDB motion subscribe error:", err?.message ?? err);
+        }
       },
     );
 
