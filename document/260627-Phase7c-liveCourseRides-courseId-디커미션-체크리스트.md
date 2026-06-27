@@ -4,7 +4,7 @@
 |------|------|
 | 문서 유형 | **execution** — Phase 7(필드 purge)·7b(코드 rename) 이후 잔여 데이터 결합 폐기 |
 | 작성 | 2026-06-27 |
-| 상태 | **착수** — 트랙 1 C1(audit) 구현 중 |
+| 상태 | **착수** — 트랙 1 C1(audit) 구현 완료, Admin 실행 대기 |
 | 선행 | Phase 7 (`courseId` write 중단·purge) · Phase 7b-3a/3b/3c (`liveCourseRide` 코드 정리) **완료** |
 | 연결 | [Phase 7 체크리스트](260616-Phase7-Firestore-필드-terminology-체크리스트.md), [Route·Publication 통합](260518-Route-Publication-통합-모델-및-마이그레이션.md), [World Activity Presence](260523-World-Activity-Presence-설계.md) |
 
@@ -40,7 +40,7 @@ Phase 7b까지 **코드 식별자**의 `course*` 를 정리했다. 남은 것은
 
 | # | 단계 | 내용 | 비가역 | 상태 |
 |---|------|------|--------|------|
-| C1 | **Audit** | `collectionGroup('liveCourseRides')` 스캔 — 총수 / `publicationId` 결측 / fresh(<180s) 수. `auditTerminologyWithAdminSdk` 에 `liveCourseRides` 섹션 추가 | — | 🔄 구현 중 |
+| C1 | **Audit** | `auditTerminologyWithAdminSdk` 에 `liveRides` 섹션 추가 — `legacyTotal`·`legacyPublicationIdMissing`·`legacyCourseIdOnly`·`legacyFreshUnder180s`·`publicationTotal`. 실행: `npm run admin:audit-terminology` | — | ✅ 구현 (Admin 실행 대기) |
 | C2 | (선택) 데이터 보존 복사 | `migrate…({dryRun:true})` → `{dryRun:false, deleteLegacy:false}`. C1 fresh=0 이면 생략 | 가역 | ⬜ |
 | C3 | **읽기 컷오버** | `LIVE_RIDE_SUBCOLLECTIONS` → `[livePublicationRides]` 단일. 영향: `publicationPresenceCore`·`routeActivityScheduledReconcile`. deploy functions | 가역(revert) | ⬜ |
 | C4 | **Rules 축소** | `liveCourseRides` match 3블록 제거. client 미사용 → 영향 없음. deploy rules | 가역 | ⬜ |

@@ -76,7 +76,29 @@ export type AuditTerminologyResult = {
     trailsOpenMissingPublicationId: number;
     openTrailListingsWithCourseIdOnly: number;
   };
+  /** Phase 7c 트랙 1 — 레거시 `liveCourseRides` 서브컬렉션 폐기 게이트 */
+  liveRides: {
+    /** 레거시 `liveCourseRides` collection group 전체 문서 수 */
+    legacyTotal: number;
+    /** `publicationId`·`courseId` 둘 다 없는 문서(복구 불가) */
+    legacyPublicationIdMissing: number;
+    /** `courseId` 만 있고 `publicationId` 없는 문서 — C2 복사 시 보존 */
+    legacyCourseIdOnly: number;
+    /** `lastSeenAt` 이 180s 이내 — 컷오버 시 presence 유실 위험(C1 Gate: 0) */
+    legacyFreshUnder180s: number;
+    /** 신규 `livePublicationRides` collection group 전체 수(참고) */
+    publicationTotal: number;
+  };
 };
+
+/** Firestore Timestamp/숫자에서 epoch ms 추출 (없으면 null) */
+function toMillis(v: unknown): number | null {
+  if (typeof v === "number") return v;
+  if (v && typeof (v as { toMillis?: () => number }).toMillis === "function") {
+    return (v as { toMillis: () => number }).toMillis();
+  }
+  return null;
+}
 
 export async function auditTerminologyWithAdminSdk(): Promise<AuditTerminologyResult> {
   const db = getFirestore();
@@ -218,6 +240,33 @@ export async function auditTerminologyWithAdminSdk(): Promise<AuditTerminologyRe
     if (snap.size < PAGE_SIZE) break;
   }
 
+  // Phase 7c 트랙 1 — 레거시 `liveCourseRides` collection group 스캔.
+  // 휘발성·소량(또는 0)이므로 단일 get (migrateLivePublicationRides 와 동일 패턴).
+  const liveRides = {
+    legacyTotal: 0,
+    legacyPublicationIdMissing: 0,
+    legacyCourseIdOnly: 0,
+    legacyFreshUnder180s: 0,
+    publicationTotal: 0,
+  };
+  const FRESH_MS = 180_000;
+  const nowMs = Date.now();
+
+  const legacyLiveSnap = await db.collectionGroup("liveCourseRides").get();
+  for (const doc of legacyLiveSnap.docs) {
+    const data = doc.data() as Record<string, unknown>;
+    liveRides.legacyTotal += 1;
+    const publicationId = strField(data, "publicationId");
+    const courseId = strField(data, "courseId");
+    if (!publicationId && !courseId) liveRides.legacyPublicationIdMissing += 1;
+    if (!publicationId && courseId) liveRides.legacyCourseIdOnly += 1;
+    const seenMs = toMillis(data.lastSeenAt);
+    if (seenMs != null && nowMs - seenMs <= FRESH_MS) liveRides.legacyFreshUnder180s += 1;
+  }
+
+  const publicationLiveSnap = await db.collectionGroup("livePublicationRides").get();
+  liveRides.publicationTotal = publicationLiveSnap.size;
+
   return {
     collections: {
       rooms,
@@ -235,5 +284,6 @@ export async function auditTerminologyWithAdminSdk(): Promise<AuditTerminologyRe
     },
     ridesFields,
     coursesVsPublications: publicationLegacy,
+    liveRides,
   };
 }
