@@ -12,12 +12,20 @@
   pointer-events: none;
 }
 
+/* 단일 글래스 틀 — caret + 패널을 한 덩어리로 감싸 일체화 */
 .route-dock__shell {
   display: flex;
   flex-direction: row;
-  align-items: flex-end;
+  align-items: stretch;
   gap: 0;
   pointer-events: auto;
+  border: 1px solid var(--rtw-glass-border, rgba(248, 250, 252, 0.18));
+  border-radius: var(--rtw-radius, 14px);
+  background: var(--rtw-glass-bg-strong, rgba(10, 16, 26, 0.64));
+  -webkit-backdrop-filter: blur(var(--rtw-glass-blur, 12px));
+  backdrop-filter: blur(var(--rtw-glass-blur, 12px));
+  box-shadow: var(--rtw-glass-shadow, 4px 8px 28px rgba(2, 8, 20, 0.4));
+  overflow: hidden;
 }
 
 .route-dock__caret {
@@ -30,15 +38,11 @@
   width: 1.55rem;
   min-height: 2.75rem;
   padding: 0.4rem 0;
-  border: 1px solid var(--rtw-glass-border, rgba(248, 250, 252, 0.2));
-  border-right: none;
-  border-radius: var(--rtw-radius, 14px) 0 0 var(--rtw-radius, 14px);
-  background: var(--rtw-glass-bg-strong, rgba(10, 16, 26, 0.64));
-  -webkit-backdrop-filter: blur(var(--rtw-glass-blur, 12px));
-  backdrop-filter: blur(var(--rtw-glass-blur, 12px));
+  border: none;
+  background: transparent;
   color: var(--rtw-text, #f8fafc);
   cursor: pointer;
-  box-shadow: var(--rtw-glass-shadow, -2px 4px 16px rgba(2, 8, 20, 0.3));
+  transition: background 0.14s ease, color 0.14s ease;
 }
 
 /* 접힌 상태에서 패널 이름을 캐럿 탭에 세로로 노출 (펼치면 헤더 제목이 대신함) */
@@ -55,20 +59,12 @@
   display: none;
 }
 
-.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__caret {
-  border-right: 1px solid var(--rtw-glass-border, rgba(248, 250, 252, 0.2));
-  border-radius: var(--rtw-radius-pill, 999px);
-  box-shadow: var(--rtw-glass-shadow, 0 4px 16px rgba(2, 8, 20, 0.3));
-}
-
+/* 펼침 시 구분선 없음 — caret 는 hover 로만 구분 (틀은 shell 단일) */
 .route-dock-anchor--open .route-dock__caret {
-  align-self: stretch;
   min-height: 0;
-  border-radius: var(--rtw-radius, 14px) 0 0 var(--rtw-radius, 14px);
 }
 
 .route-dock__caret:hover {
-  border-color: var(--rtw-accent-line, rgba(107, 165, 255, 0.45));
   background: rgba(47, 107, 255, 0.22);
   color: #eaf2ff;
 }
@@ -86,15 +82,9 @@
   flex-direction: column;
   gap: 0.45rem;
   padding: 0.5rem 0.55rem 0.55rem;
-  border-radius: 0 var(--rtw-radius, 12px) var(--rtw-radius, 12px) 0;
-  border: 1px solid var(--rtw-glass-border, rgba(248, 250, 252, 0.18));
-  border-left: none;
-  background: var(--rtw-glass-bg-strong, rgba(10, 16, 26, 0.64));
-  -webkit-backdrop-filter: blur(var(--rtw-glass-blur, 12px));
-  backdrop-filter: blur(var(--rtw-glass-blur, 12px));
+  background: transparent;
   color: var(--rtw-text, #f8fafc);
   font-family: var(--rtw-font, inherit);
-  box-shadow: var(--rtw-glass-shadow, 4px 8px 28px rgba(2, 8, 20, 0.4));
   max-height: min(40vh, 16.5rem);
   overflow: hidden;
   animation: route-dock-panel-in 0.2s ease;
