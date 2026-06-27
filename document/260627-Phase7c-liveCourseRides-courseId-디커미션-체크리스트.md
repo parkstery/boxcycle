@@ -4,7 +4,7 @@
 |------|------|
 | 문서 유형 | **execution** — Phase 7(필드 purge)·7b(코드 rename) 이후 잔여 데이터 결합 폐기 |
 | 작성 | 2026-06-27 |
-| 상태 | **진행 중** — 트랙 1 C3·C4·C6 구현(배포 대기), 트랙 2 F3 Admin 실행 대기 |
+| 상태 | **거의 완료** — 트랙 1 배포 완료. 트랙 2 F3 purge 완료·F5 완료, **F4 rules deploy만 잔여** |
 | 선행 | Phase 7 (`courseId` write 중단·purge) · Phase 7b-3a/3b/3c (`liveCourseRide` 코드 정리) **완료** |
 | 연결 | [Phase 7 체크리스트](260616-Phase7-Firestore-필드-terminology-체크리스트.md), [Route·Publication 통합](260518-Route-Publication-통합-모델-및-마이그레이션.md), [World Activity Presence](260523-World-Activity-Presence-설계.md) |
 
@@ -63,13 +63,13 @@ Phase 7b까지 **코드 식별자**의 `course*` 를 정리했다. 남은 것은
 |---|------|------|--------|------|
 | F1 | **Audit** | `auditTerminologyWithAdminSdk` (이미 구현됨) | — | ✅ 완료 — `routePublicationsWithCourseIdField=2`, trails/listings courseId-only=0 (§7) |
 | F2 | **Backfill** | `trailsWithCourseIdOnly=0`·`openTrailListingsWithCourseIdOnly=0` → trail/listing **불필요**. routePublications 2건은 `courseId == doc.id` 이므로 backfill 불필요 | 가역 | ⏭️ 불필요 |
-| F3 | **Purge** | `purgePhase7CourseIdFieldsCore` 로 routePublications 2건의 `courseId` 필드 제거 | **비가역** | ⬜ **Admin 실행 대기** |
-| F4 | **Rules** | `trailHasPublicationId` 의 `courseId` 분기 제거(L129-131) → `publicationId` 단일. deploy rules | 가역 | ⬜ (F3 이후) |
-| F5 | **Client 폴백 제거** | `resolvePublicationIdFromDoc` 의 `data.courseId` 폴백 삭제. trails/listings/liveRides 모두 courseId-only=0 → 안전 | 가역 | ⬜ (F3 이후) |
+| F3 | **Purge** | `admin:phase7-terminology-purge` 실행 — routePublications 2건 `courseId` 제거 | **비가역** | ✅ **완료** — `routePublications.courseIdRemoved=2` (2026-06-27) |
+| F4 | **Rules** | `trailHasPublicationId` 의 `courseId` 분기 제거 → `publicationId` 단일 ([firestore.rules](../firestore.rules)) | 가역 | ✅ 구현 — **deploy rules 대기** |
+| F5 | **Client 폴백 제거** | `resolvePublicationIdFromDoc` 의 `data.courseId` 폴백 삭제 ([resolvePublicationIdFromDoc.ts](../apps/web/src/lib/resolvePublicationIdFromDoc.ts)). trails/listings/liveRides courseId-only=0 → 안전 | 가역 | ✅ 완료 |
 
 > **C6 후속(미용·무위험):** CF export `openTrailListingOnLiveCourseRideWritten` 는 이름만 레거시 — 트리거 경로는 이미 `…/livePublicationRides/{uid}` ([openTrailListingProjection.ts:55](../functions/src/openTrailListingProjection.ts)). rename 시 함수 삭제+생성 재배포 필요 → 별도 처리.
 
-> **별도 데이터 이슈(terminology 무관):** `trailsOpenMissingPublicationId=5` — 공개 Trail 5건이 `publicationId`·`courseId` 둘 다 없음. Trail 생성 시 publicationId 미부여(레거시·오류) 추정. Phase 7c 범위 밖이나, F4(Rules에서 courseId 수락 제거) 전에 이 5건이 write 규칙을 어떻게 통과/실패하는지 조사 필요 → 별 이슈로 트래킹.
+> **별도 데이터 이슈(terminology 무관):** `trailsOpenMissingPublicationId=5` — 공개 Trail 5건이 `publicationId`·`courseId` 둘 다 없음. F3 backfill 도 `publicationIdSet=0` (파생 소스 ID 없음)으로 미해결. 이 5건은 courseId 도 없으므로 **F4 전후 모두 `trailHasPublicationId` 실패**(F4 가 악화시키지 않음). Phase 7c 범위 밖 — 별 이슈로 트래킹(원인: stale 공개 Trail 추정 → 조사·정리 또는 visibility 강등 필요).
 
 ---
 
@@ -106,3 +106,4 @@ liveRides:   legacyTotal 0, legacyFreshUnder180s 0,
 |------|------|
 | 2026-06-27 | 최초 작성 — 두 트랙 분리, C1 audit 착수 |
 | 2026-06-27 | C1 실측(legacyTotal=0) — 트랙 1 C3·C4·C6 구현, C2·C5 생략. 트랙 2 F1 실측(routePublications 2건)·별도 open-trail 5건 이슈 |
+| 2026-06-27 | 트랙 1 배포(functions·rules). 트랙 2 F3 purge 적용(routePublications 2건 제거)·F4 구현·F5 완료. F4 rules deploy 잔여 |

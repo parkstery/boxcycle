@@ -123,12 +123,9 @@ service cloud.firestore {
     }
 
     function trailHasPublicationId(data) {
-      return (data.keys().hasAny(['publicationId'])
+      return data.keys().hasAny(['publicationId'])
           && data.publicationId is string
-          && data.publicationId.size() > 0)
-        || (data.keys().hasAny(['courseId'])
-          && data.courseId is string
-          && data.courseId.size() > 0);
+          && data.publicationId.size() > 0;
     }
 
     /** 공개 Trail 은 publicationId 필수 — 비공개는 경로 없이 개설 가능(개설자 전용) */
