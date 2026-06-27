@@ -13,8 +13,6 @@ export type RouteRideEntry = "owner_library" | "public_catalog";
 /** 주행·Activity 연동용 — routeId + publication 키 */
 export type PublishedRouteLink = {
   routeId: string;
-  /** @deprecated Phase 5 — {@link publicationId} 와 동일 값 유지(호환) */
-  courseId: string;
   publicationId: string;
   publicTitle: string;
 };
@@ -28,7 +26,6 @@ function linkFromCatalog(
   const publicationId = row.publicationId ?? row.id;
   return {
     routeId: row.sourceSavedRouteId,
-    courseId: publicationId,
     publicationId,
     publicTitle: row.title,
   };
@@ -41,7 +38,6 @@ function linkFromPublicationRow(row: {
 }): PublishedRouteLink {
   return {
     routeId: row.routeId,
-    courseId: row.publicationId,
     publicationId: row.publicationId,
     publicTitle: row.publicTitle,
   };
@@ -86,11 +82,4 @@ export async function resolvePublishedRouteLinkByPublicationId(
   if (pub) return linkFromPublicationRow(pub);
 
   return null;
-}
-
-/** @deprecated {@link resolvePublishedRouteLinkByPublicationId} */
-export async function resolvePublishedRouteLinkByCourseId(
-  courseId: string,
-): Promise<PublishedRouteLink | null> {
-  return resolvePublishedRouteLinkByPublicationId(courseId);
 }

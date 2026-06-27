@@ -28,11 +28,11 @@ export type UseRideEndAndPersistenceOptions = {
   user: User | null;
   trailId: string;
   /** 주행 종료 시점 publication ID — `rides.publicationId`·CF aggregate용 */
-  courseIdRef: RefObject<string | null>;
+  publicationIdRef: RefObject<string | null>;
   /** 종료 직후 heat 낙관 표시(서버 `liveNow` 지연 대비) */
-  onRideEndedWithCourse?: (courseId: string) => void;
+  onRideEndedWithPublication?: (publicationId: string) => void;
   /** aggregate 캐시 무효화 직후 UI 갱신(heat 반영) */
-  onRidePersistedToFirestore?: (courseId: string | null) => void;
+  onRidePersistedToFirestore?: (publicationId: string | null) => void;
   profile: RouteProfile;
   rideStatus: RideSessionStatus;
   setRideStatus: Dispatch<SetStateAction<RideSessionStatus>>;
@@ -65,8 +65,8 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     configured,
     user,
     trailId,
-    courseIdRef,
-    onRideEndedWithCourse,
+    publicationIdRef,
+    onRideEndedWithPublication,
     onRidePersistedToFirestore,
     profile,
     rideStatus,
@@ -178,7 +178,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
               /* noop */
             }
           }
-          let persistedPublicationId = courseIdRef.current?.trim() || null;
+          let persistedPublicationId = publicationIdRef.current?.trim() || null;
           let canonicalRouteId = savedRouteIdAtEnd;
           let publicationId: string | null = persistedPublicationId;
           let publicTitleSnap: string | null = null;
@@ -242,10 +242,10 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
           // aggregate 재조회는 onRidePersisted에서 수행 — 여기서 invalidate 하면
           // CF `recentRideCount7d` 반영 전 서버 0이 낙관 heat를 지워 버린다.
           onRidePersistedToFirestore?.(persistedPublicationId);
-          const publicationIdBeforeAsync = courseIdRef.current?.trim() || null;
+          const publicationIdBeforeAsync = publicationIdRef.current?.trim() || null;
           if (persistedPublicationId && persistedPublicationId !== publicationIdBeforeAsync) {
             markRouteActivityRideCompletedOptimistic(persistedPublicationId);
-            onRideEndedWithCourse?.(persistedPublicationId);
+            onRideEndedWithPublication?.(persistedPublicationId);
           }
           if (savedRouteIdAtEnd && !savedRouteIdAtEnd.startsWith("local-")) {
             try {
@@ -355,10 +355,10 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     loadedSavedRouteNameRef.current = null;
     if (rideEntryRef) rideEntryRef.current = null;
 
-    const courseIdAtEnd = courseIdRef.current?.trim() || null;
-    if (courseIdAtEnd && !discardRecord) {
-      markRouteActivityRideCompletedOptimistic(courseIdAtEnd);
-      onRideEndedWithCourse?.(courseIdAtEnd);
+    const publicationIdAtEnd = publicationIdRef.current?.trim() || null;
+    if (publicationIdAtEnd && !discardRecord) {
+      markRouteActivityRideCompletedOptimistic(publicationIdAtEnd);
+      onRideEndedWithPublication?.(publicationIdAtEnd);
     }
 
     setRideStatus("idle");
@@ -384,7 +384,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     setSavedRoutes,
     setLastEndedWasAdhoc,
     setRecentSessions,
-    onRideEndedWithCourse,
+    onRideEndedWithPublication,
     onRidePersistedToFirestore,
   ]);
 

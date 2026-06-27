@@ -313,8 +313,8 @@ export default function App() {
 
   /** leaveBasicHub 등에서 최신 주행 종료 로직을 호출하기 위한 ref */
   const handleEndRideRef = useRef<() => void>(() => {});
-  /** 주행 종료 시 `rides.courseId` — `useOfficialCoursesHub` 이후 매 렌더 갱신 */
-  const activeCourseIdRef = useRef<string | null>(null);
+  /** 주행 종료 시 `rides.publicationId` — `useOfficialCoursesHub` 이후 매 렌더 갱신 */
+  const activePublicationIdRef = useRef<string | null>(null);
   /** `useSavedRoutesWorkspace` 가 주입 — `useRoutePlanning` 보다 아래에서 대입 */
   const clearSavedRouteArtifactsRef = useRef<() => void>(() => {});
   const rideEntryRef = useRef<RouteRideEntry | null>(null);
@@ -461,15 +461,15 @@ export default function App() {
   >(() => {});
   const applyRideCompletedOptimisticRef = useRef<() => void>(() => {});
   const [activityMapRefreshNonce, setActivityMapRefreshNonce] = useState(0);
-  const onRideEndedWithCourse = useCallback((_courseId: string) => {
+  const onRideEndedWithPublication = useCallback((_publicationId: string) => {
     armPostRideActivityWatch();
     applyRideCompletedOptimisticRef.current();
     invalidateLiveRouteActivityIdsCache();
     reloadCourseActivityRef.current({ forceInvalidate: true });
     setActivityMapRefreshNonce((n) => n + 1);
   }, []);
-  const onRidePersistedToFirestore = useCallback((courseId: string | null) => {
-    if (courseId?.trim()) {
+  const onRidePersistedToFirestore = useCallback((publicationId: string | null) => {
+    if (publicationId?.trim()) {
       armPostRideActivityWatch();
       applyRideCompletedOptimisticRef.current();
       invalidateLiveRouteActivityIdsCache();
@@ -492,7 +492,7 @@ export default function App() {
     configured,
     user,
     trailId,
-    courseIdRef: activeCourseIdRef,
+    publicationIdRef: activePublicationIdRef,
     profile,
     rideStatus,
     setRideStatus,
@@ -512,7 +512,7 @@ export default function App() {
     setSavedRoutes,
     setLastEndedWasAdhoc,
     setRecentSessions,
-    onRideEndedWithCourse,
+    onRideEndedWithPublication,
     onRidePersistedToFirestore,
   });
 
@@ -566,7 +566,7 @@ export default function App() {
     });
   };
 
-  activeCourseIdRef.current = basicActiveHubCourseId ?? activeOfficialCourseId;
+  activePublicationIdRef.current = basicActiveHubCourseId ?? activeOfficialCourseId;
 
   const trackedPublicationId = basicActiveHubCourseId ?? activeOfficialCourseId;
   const isRideSessionActive = rideStatus === "running" || rideStatus === "paused";
