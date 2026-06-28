@@ -19,11 +19,14 @@ export const DEFAULT_FOLLOW_MODE: FollowMode = "leftFlat";
 /** 앱 진입 시 3D terrain·건물 */
 export const DEFAULT_MAP_ENABLE_3D = false;
 
-/** 주행 중 후방 추적 카메라 줌 — 캐릭터가 화면에 들어오도록 21.5 고정 */
+/** 후방(rear30) 추적 카메라 줌 — 캐릭터가 화면에 들어오도록 21.5 고정 (수동 선택 시) */
 export const RIDE_FOLLOW_CAMERA_ZOOM = 21.5;
 
-/** 주행 시작 시 자동 적용할 팔로우 모드 */
-export const RIDE_FOLLOW_CAMERA_MODE = "rear30" as const;
+/** 주행 시작 시 자동 적용할 팔로우 모드 — 좌측(leftFlat) */
+export const RIDE_FOLLOW_CAMERA_MODE: FollowMode = "leftFlat";
+
+/** 주행 시작 시 자동 적용할 줌 */
+export const RIDE_START_ZOOM = 16;
 
 /** 지구 전체가 한 화면에 보이도록 카메라를 맞춘다(극지 왜곡 완화용 위도 클램프). */
 export function applyMapGlobeView(map: MapboxMap): void {

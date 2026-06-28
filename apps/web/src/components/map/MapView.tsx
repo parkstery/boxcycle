@@ -50,7 +50,13 @@ import {
 import { clearRiderGlbModels, ensureRiderGlbLayer, syncRiderGlbModels } from "../../lib/riderPrototype/glbModelLayer";
 import { PEER_RIDER_PEDAL_FRAME_COUNT } from "../../lib/registerPeerRiderPedalSprites";
 import { MapZoomGlobeControl } from "./MapZoomGlobeControl";
-import { MAP_GLOBE_MIN_ZOOM, DEFAULT_MAP_ZOOM, RIDE_FOLLOW_CAMERA_ZOOM } from "../../lib/mapGlobeView";
+import {
+  MAP_GLOBE_MIN_ZOOM,
+  DEFAULT_MAP_ZOOM,
+  RIDE_FOLLOW_CAMERA_ZOOM,
+  RIDE_FOLLOW_CAMERA_MODE,
+  RIDE_START_ZOOM,
+} from "../../lib/mapGlobeView";
 import "./MapView.css";
 
 const RIDER_PROTOTYPE_MODE = getRiderPrototypeMode();
@@ -2138,9 +2144,11 @@ export function MapView({
     const target = liveLngLatRef.current ?? startLngLatRef.current;
     if (!target) return;
 
-    mapZoomRef.current = RIDE_FOLLOW_CAMERA_ZOOM;
+    const rideMode = RIDE_FOLLOW_CAMERA_MODE;
+    const rideZoom = rideMode === "rear30" ? RIDE_FOLLOW_CAMERA_ZOOM : RIDE_START_ZOOM;
+    mapZoomRef.current = rideZoom;
     suppressCameraFollowUntilRef.current = 0;
-    cameraSmoothRef.current.zoom = RIDE_FOLLOW_CAMERA_ZOOM;
+    cameraSmoothRef.current.zoom = rideZoom;
 
     const headingFromRoute = getAverageHeadingAheadFromPoint(
       routeGeometryRef.current,
@@ -2150,16 +2158,20 @@ export function MapView({
     );
     const baseHeading = headingFromRoute ?? map.getBearing();
     const nextCamera = getCameraForFollowMode({
-      mode: "rear30",
+      mode: rideMode,
       baseHeading,
       currentPitch: map.getPitch(),
       enable3D: enable3DRef.current,
     });
-    const center = offsetLngLatByBearingMeters(
-      target,
-      nextCamera.bearing + 180,
-      rearFollowOffsetMeters(RIDE_FOLLOW_CAMERA_ZOOM),
-    );
+    // 후방 모드만 라이더 뒤로 카메라를 빼고, 좌측 등은 라이더 중심
+    const center =
+      rideMode === "rear30"
+        ? offsetLngLatByBearingMeters(
+            target,
+            nextCamera.bearing + 180,
+            rearFollowOffsetMeters(rideZoom),
+          )
+        : target;
 
     const applySnap = () => {
       const live = mapRef.current;
@@ -2167,7 +2179,7 @@ export function MapView({
       live.stop();
       live.jumpTo({
         center,
-        zoom: RIDE_FOLLOW_CAMERA_ZOOM,
+        zoom: rideZoom,
         bearing: nextCamera.bearing,
         pitch: nextCamera.pitch,
       });
@@ -2176,7 +2188,7 @@ export function MapView({
       smooth.bearing = nextCamera.bearing;
       smooth.bearingPrimary = nextCamera.bearing;
       smooth.pitch = nextCamera.pitch;
-      smooth.zoom = RIDE_FOLLOW_CAMERA_ZOOM;
+      smooth.zoom = rideZoom;
       smooth.lastTs = null;
     };
 

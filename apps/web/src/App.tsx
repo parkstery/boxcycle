@@ -23,7 +23,7 @@ import {
   DEFAULT_MAP_ENABLE_3D,
   DEFAULT_MAP_ZOOM,
   RIDE_FOLLOW_CAMERA_MODE,
-  RIDE_FOLLOW_CAMERA_ZOOM,
+  RIDE_START_ZOOM,
 } from "./lib/mapGlobeView";
 import { rideDistanceAlongRoute } from "./lib/liveLocationSnapshot";
 import { AuthGateCard, AuthGoogleMark } from "./components/AuthGateCard";
@@ -385,8 +385,9 @@ export default function App() {
           zoom: mapZoomSnapshotRef.current,
         };
         setFollowMode(RIDE_FOLLOW_CAMERA_MODE);
-        setEnable3D(true);
-        setMapZoom(RIDE_FOLLOW_CAMERA_ZOOM);
+        setEnable3D(false);
+        setMapZoom(RIDE_START_ZOOM);
+        setMapStyle(DEFAULT_MAP_STYLE);
         setRideFollowCameraNonce((n) => n + 1);
         setRideJoinBurstNonce((n) => n + 1);
       }
