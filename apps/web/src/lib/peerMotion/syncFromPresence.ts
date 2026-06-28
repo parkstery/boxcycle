@@ -3,7 +3,6 @@ import type { TrailLivePublicationRideRow } from "../firestoreTrailLivePublicati
 import type { RtdbTrailMotionRow } from "../rtdbTrailMotion";
 import { mapNametagForMember } from "../guestNametag";
 import { getPeerMotionRegistry } from "./PeerMotionRegistry";
-import { mergePeerMotionPackets } from "./mergePackets";
 import { rtdbMotionRowToPeerMotionPacket } from "./rtdbToPacket";
 import { trailLiveRowToPeerMotionPacket } from "./rowToPacket";
 
@@ -48,8 +47,7 @@ export function syncPeerMotionFromPresence(input: SyncPeerMotionFromPresenceInpu
     const rtdbPacket = rtdbRow != null ? rtdbMotionRowToPeerMotionPacket(rtdbRow, pid) : null;
     const liveRow = liveByUid.get(uid);
     const fsPacket = liveRow ? trailLiveRowToPeerMotionPacket(liveRow, pid, routeLenM) : null;
-    const packet = mergePeerMotionPackets(rtdbPacket, fsPacket);
-    if (!packet) continue;
+    if (!rtdbPacket && !fsPacket) continue;
 
     const member = sessionByUid.get(uid);
     const label = member
@@ -57,7 +55,12 @@ export function syncPeerMotionFromPresence(input: SyncPeerMotionFromPresenceInpu
       : liveRow?.displayName?.trim() ||
         motionByUid.get(uid)?.uid.slice(0, 6) ||
         uid.slice(0, 6);
-    registry.ingest(packet, label);
+
+    // 병합하지 않고 각 소스를 그대로 ingest — 버퍼의 distM-전진 dedup 이 더 앞선 소스를
+    // 자동 채택한다(clock 비교 없음). FS 먼저·RTDB 나중 → RTDB(5Hz·raw distM·speed)가
+    // 최신값을 결정하고, RTDB stall 시 Firestore 가 distM 전진으로 자연 fallback.
+    if (fsPacket) registry.ingest(fsPacket, label);
+    if (rtdbPacket) registry.ingest(rtdbPacket, label);
     activeUids.push(uid);
   }
 
