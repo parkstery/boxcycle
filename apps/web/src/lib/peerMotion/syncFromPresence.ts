@@ -56,11 +56,11 @@ export function syncPeerMotionFromPresence(input: SyncPeerMotionFromPresenceInpu
         motionByUid.get(uid)?.uid.slice(0, 6) ||
         uid.slice(0, 6);
 
-    // 병합하지 않고 각 소스를 그대로 ingest — 버퍼의 distM-전진 dedup 이 더 앞선 소스를
-    // 자동 채택한다(clock 비교 없음). FS 먼저·RTDB 나중 → RTDB(5Hz·raw distM·speed)가
-    // 최신값을 결정하고, RTDB stall 시 Firestore 가 distM 전진으로 자연 fallback.
-    if (fsPacket) registry.ingest(fsPacket, label);
+    // RTDB(10Hz·raw distM·speed)가 있으면 그것만 ingest. 두 소스를 같은 사이클에 모두
+    // 넣으면 거의 같은 recvAtMs 에 distM 이 미세하게 다른 스냅샷 2개가 생겨 보간 jitter.
+    // RTDB 없을 때만 Firestore 폴백.
     if (rtdbPacket) registry.ingest(rtdbPacket, label);
+    else if (fsPacket) registry.ingest(fsPacket, label);
     activeUids.push(uid);
   }
 

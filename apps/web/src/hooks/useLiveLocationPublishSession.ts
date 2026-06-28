@@ -23,7 +23,7 @@ import {
 import { flushRideJoinPresenceBurst } from "../lib/rideJoinPresenceBurst";
 import { sanitizeTrailId } from "../lib/firestoreTrail";
 
-const PUBLISH_TICK_MS = 200;
+const PUBLISH_TICK_MS = 100;
 
 export type UseLiveLocationPublishSessionOpts = {
   user: User | null | undefined;
