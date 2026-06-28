@@ -49,17 +49,7 @@ export function applyPeerMotionIngest(
 
   const newest = entity.buffer[entity.buffer.length - 1];
 
-  // 같은(또는 더 오래된) 송신 패킷이 다시 온 경우 — 위치 스냅샷 추가 안 함
-  if (newest && packet.serverAtMs > 0 && packet.serverAtMs <= newest.serverAtMs) {
-    return;
-  }
-
-  // 전진 단조성 — live 에서 역주행 노이즈는 직전 위치로 클램프
-  let distM = packet.distM;
-  if (newest && packet.phase === "live" && distM < newest.distM) {
-    distM = newest.distM;
-  }
-
+  // 속도는 항상 최신화 (외삽·페달 애니메이션). dedup 으로 스킵돼도 갱신.
   const speed = resolveSpeedMps(packet, newest, now);
   entity.speedMps = packet.phase === "completed" ? 0 : speed;
 
@@ -68,8 +58,15 @@ export function applyPeerMotionIngest(
     entity.pedalSpeedKmh = entity.pedalSpeedKmh * (1 - PEDAL_SPEED_EMA) + spdForPedal * PEDAL_SPEED_EMA;
   }
 
+  // dedup 은 **distM 전진** 기준 — RTDB t 와 Firestore lastSeenAt 의 clock 혼용을 피한다.
+  // (serverAtMs 로 dedup 하면 Firestore 시각이 앞설 때 5Hz RTDB 위치가 통째로 버려져
+  //  버퍼가 듬성해지고 보간이 외삽으로 빠져 peer 가 느려 보이는 rate 오류 발생.)
+  if (newest && packet.phase === "live" && packet.distM <= newest.distM + 0.05) {
+    return;
+  }
+
   entity.buffer.push({
-    distM,
+    distM: packet.distM,
     recvAtMs: now,
     serverAtMs: packet.serverAtMs,
     speedMps: entity.speedMps,
