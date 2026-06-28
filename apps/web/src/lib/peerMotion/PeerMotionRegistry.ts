@@ -14,6 +14,7 @@ import {
   stepPeerMotionEntity,
 } from "./integrator";
 import type { PeerMotionEntity, PeerMotionPacket } from "./types";
+import { getPeerSyncSelfDistM } from "./peerSyncDebug";
 
 const PEER_MAX = 30;
 
@@ -114,10 +115,20 @@ export class PeerMotionRegistry {
         entity.phase === "live" && entity.speedMps > 0.02
           ? Math.round(entity.speedMps * 3.6)
           : null;
-      const mapLabel =
+      let mapLabel =
         speedKmhLive != null && speedKmhLive > 0
           ? `${entity.label} · ${speedKmhLive} km/h`.slice(0, 56)
           : entity.label;
+
+      if (import.meta.env.DEV) {
+        const newest = entity.buffer[entity.buffer.length - 1];
+        const ageMs = newest ? Date.now() - newest.recvAtMs : -1;
+        const self = getPeerSyncSelfDistM();
+        mapLabel =
+          `${entity.label} ▸d${Math.round(entity.displayDistM)} n${newest ? Math.round(newest.distM) : 0}` +
+          ` s${Math.round(self)} gap${Math.round((newest ? newest.distM : 0) - self)}` +
+          ` b${entity.buffer.length} a${Math.round(ageMs / 100) / 10}s`;
+      }
 
       out.push({
         id: entity.uid,
