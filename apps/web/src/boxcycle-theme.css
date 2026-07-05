@@ -13,11 +13,14 @@
    ===================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap');
+/* 한글 UI 가독성 — Pretendard(가변, 동적 subset: 필요한 글자만 로드) */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css');
 
 :root {
   /* ---- Type ---- */
-  --rtw-font: 'Barlow', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --rtw-font-num: 'Barlow Semi Condensed', 'Barlow', sans-serif; /* 속도/거리 등 수치 */
+  /* 한글=Pretendard, 라틴도 Pretendard로 통일 톤. Barlow는 폴백. */
+  --rtw-font: 'Pretendard Variable', Pretendard, 'Barlow', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
+  --rtw-font-num: 'Barlow Semi Condensed', 'Pretendard Variable', Pretendard, 'Barlow', sans-serif; /* 속도/거리 등 수치(라틴은 Barlow 유지) */
 
   /* ---- Brand / accent (쿨 블루) ---- */
   --rtw-accent: #2f6bff;          /* 솔리드·라이트 배경용 */
@@ -26,9 +29,9 @@
   --rtw-accent-soft: rgba(47, 107, 255, 0.20);
   --rtw-accent-line: rgba(99, 160, 255, 0.55);
 
-  /* ---- Glass (다크 시네마틱) ---- */
-  --rtw-glass-bg: rgba(10, 16, 26, 0.50);
-  --rtw-glass-bg-strong: rgba(10, 16, 26, 0.64);
+  /* ---- Glass (다크 시네마틱) — 라이트 베이스맵 위 흰 글자 대비 확보를 위해 진하게(2026-07-03) ---- */
+  --rtw-glass-bg: rgba(10, 16, 26, 0.74);
+  --rtw-glass-bg-strong: rgba(10, 16, 26, 0.84);
   --rtw-glass-border: rgba(255, 255, 255, 0.16);
   --rtw-glass-blur: 12px;
   --rtw-glass-shadow: 0 10px 28px rgba(2, 8, 20, 0.40);

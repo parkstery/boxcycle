@@ -154,6 +154,32 @@
   opacity: 0.85;
 }
 
+/* Conquest 정복 통계 — 테마(다크·라이트) 중립: currentColor + 은은한 보더 */
+.user-info-sheet__conquest {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid rgba(47, 107, 255, 0.32);
+  background: rgba(47, 107, 255, 0.08);
+}
+
+.user-info-sheet__conquest-k {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.user-info-sheet__conquest-v {
+  font-size: 0.72rem;
+}
+
+.user-info-sheet__conquest-v strong {
+  font-weight: 800;
+}
+
 .user-info-sheet__subscription {
   display: flex;
   flex-direction: column;

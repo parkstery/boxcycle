@@ -18,7 +18,7 @@ export function GuestEntryCard({ busy, error, onStartGuest, onGoogleSignIn }: Gu
       <div className="guest-entry__card">
         <div className="guest-entry__brand">
           <span className="guest-entry__brand-dot" aria-hidden />
-          BOXCYCLE
+          RTW
         </div>
         <h2 className="guest-entry__title">세계에 참가하기</h2>
         <p className="guest-entry__lead">지도에서 입문·퍼블릭 경로를 주행합니다.</p>

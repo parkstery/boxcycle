@@ -1,0 +1,538 @@
+/* =====================================================================
+   RTW — 패널·메뉴 라이트 테마 (흰 배경 + 대비 글자)
+   ---------------------------------------------------------------------
+   boxcycle-theme.css(다크) 다음, 가장 마지막에 import.
+   지도 위 HUD 칩(브랜드·지표·FAB)은 대상 아님 — 컨테이너형 "메뉴·패널"만
+   흰 배경으로 뒤집는다. DOM 변경 없이 스코프 변수 재정의 + 하드코딩 표면
+   정리로 처리.
+   ===================================================================== */
+
+:root {
+  --rtw-panel-bg: #ffffff;
+  --rtw-panel-surface: #f1f5f9;      /* 입력·리스트 아이템 등 2차면 */
+  --rtw-panel-surface-2: #e2e8f0;    /* 칩 */
+  --rtw-panel-ink: #0f172a;          /* 본문 */
+  --rtw-panel-ink-dim: #475569;
+  --rtw-panel-ink-mute: #64748b;
+  --rtw-panel-border: #e2e8f0;
+  --rtw-panel-border-strong: #cbd5e1;
+  --rtw-panel-accent: #1f5af0;
+  --rtw-panel-accent-soft: rgba(47, 107, 255, 0.12);
+  --rtw-panel-accent-line: rgba(47, 107, 255, 0.42);
+  --rtw-panel-shadow: 0 10px 28px rgba(15, 23, 42, 0.14);
+}
+
+/* ---------------------------------------------------------------------
+   1) 변수 백본 — 패널 루트에 라이트 값을 재정의하면 var(--rtw-*) 기반
+      색이 하위까지 자동 전환된다.
+   --------------------------------------------------------------------- */
+.menu-panel,
+.route-dock__shell,
+.ride-panel,
+.trail-hub,
+.map-view__pick-popup .mapboxgl-popup-content,
+.place-search-panel,
+.menu-place-search,
+.oc-modal,
+.admin-prq,
+.user-info-sheet,
+.map-view-sheet__panel {
+  --rtw-text: var(--rtw-panel-ink);
+  --rtw-text-dim: var(--rtw-panel-ink-dim);
+  --rtw-text-mute: var(--rtw-panel-ink-mute);
+  --rtw-glass-bg: var(--rtw-panel-bg);
+  --rtw-glass-bg-strong: var(--rtw-panel-bg);
+  --rtw-glass-border: var(--rtw-panel-border);
+  --rtw-accent-on-dark: var(--rtw-panel-accent);
+  --rtw-accent-soft: var(--rtw-panel-accent-soft);
+  --rtw-accent-line: var(--rtw-panel-accent-line);
+  color: var(--rtw-panel-ink);
+}
+
+/* ---------------------------------------------------------------------
+   2) MENU 드로어
+   --------------------------------------------------------------------- */
+.menu-panel {
+  background: var(--rtw-panel-bg);
+  border-right-color: var(--rtw-panel-border);
+  box-shadow: 8px 0 30px rgba(15, 23, 42, 0.16);
+}
+
+.menu-panel__body {
+  background: var(--rtw-panel-bg);
+  color: var(--rtw-panel-ink);
+}
+
+.menu-panel__section {
+  background: #f8fafc;
+}
+
+.menu-panel__title {
+  color: var(--rtw-panel-accent);
+}
+
+.menu-panel__settings,
+.menu-panel__close {
+  background: var(--rtw-panel-surface);
+  color: var(--rtw-panel-ink);
+}
+
+.menu-panel__settings:hover,
+.menu-panel__close:hover {
+  background: var(--rtw-panel-accent-soft);
+  border-color: var(--rtw-panel-accent-line);
+}
+
+/* ---------------------------------------------------------------------
+   3) RouteDock (하단 작업대)
+   --------------------------------------------------------------------- */
+.route-dock__shell {
+  background: var(--rtw-panel-bg);
+  border-color: var(--rtw-panel-border);
+  box-shadow: 4px 8px 28px rgba(15, 23, 42, 0.14);
+}
+
+.route-dock__caret {
+  color: var(--rtw-panel-ink);
+}
+
+.route-dock__caret:hover {
+  background: var(--rtw-panel-accent-soft);
+  color: var(--rtw-panel-accent);
+}
+
+.route-dock__panel {
+  color: var(--rtw-panel-ink);
+}
+
+.route-dock__save-trigger {
+  background: var(--rtw-panel-accent-soft);
+  border-color: var(--rtw-panel-accent-line);
+  color: var(--rtw-panel-accent);
+}
+
+.route-dock__save-trigger:hover:not(:disabled) {
+  background: rgba(47, 107, 255, 0.2);
+}
+
+.route-dock__save-form {
+  background: var(--rtw-panel-surface);
+  border-color: var(--rtw-panel-border);
+}
+
+.route-dock__save-input,
+.route-dock__speed-number {
+  background: #ffffff;
+  border-color: var(--rtw-panel-border-strong);
+  color: var(--rtw-panel-ink);
+}
+
+.route-dock__stop,
+.route-dock__stop-remove,
+.route-dock__speed-step,
+.route-dock__icon-btn,
+.route-dock__save-cancel {
+  background: var(--rtw-panel-surface);
+  border-color: var(--rtw-panel-border);
+  color: var(--rtw-panel-ink);
+}
+
+.route-dock__save-cancel {
+  border-color: var(--rtw-panel-border-strong);
+}
+
+.route-dock__save-cancel:hover:not(:disabled) {
+  background: var(--rtw-panel-surface-2);
+  border-color: var(--rtw-panel-border-strong);
+}
+
+.route-dock__stop:hover {
+  background: var(--rtw-panel-surface-2);
+  border-color: var(--rtw-panel-border-strong);
+}
+
+.route-dock__stops-empty {
+  color: var(--rtw-panel-ink-dim);
+}
+
+/* ---------------------------------------------------------------------
+   4) RideRoutePanel (MENU 경로 카탈로그)
+   --------------------------------------------------------------------- */
+.ride-panel {
+  --rp-surface: var(--rtw-panel-surface);
+  --rp-chip: var(--rtw-panel-surface-2);
+  --rp-btn-fg: var(--rtw-panel-ink);
+  color-scheme: light;
+}
+
+.ride-panel input,
+.ride-panel select,
+.ride-panel textarea,
+.ride-panel .saved-routes__rename-input {
+  background: #ffffff;
+  color: var(--rtw-panel-ink);
+}
+
+.ride-panel__official-active,
+.ride-panel__public-courses-item,
+.ride-panel .saved-routes__item {
+  background: var(--rtw-panel-surface);
+}
+
+/* ---------------------------------------------------------------------
+   5) TrailHubPanel
+   --------------------------------------------------------------------- */
+.trail-hub {
+  background: var(--rtw-panel-bg);
+  border-color: var(--rtw-panel-border);
+}
+
+.trail-hub__trailhead-btn,
+.trail-hub__row-card {
+  background: var(--rtw-panel-surface);
+}
+
+.trail-hub__vis-btn--on {
+  color: var(--rtw-panel-accent);
+}
+
+/* ---------------------------------------------------------------------
+   6) 지도 핀 설정 팝업 (하드코딩 다크 → 라이트)
+   --------------------------------------------------------------------- */
+.map-view .map-view__pick-popup .mapboxgl-popup-content {
+  background: #ffffff;
+  border-color: var(--rtw-panel-border);
+  box-shadow: 0 10px 32px rgba(15, 23, 42, 0.2);
+}
+
+.map-view .map-view__pick-popup.mapboxgl-popup-anchor-top .mapboxgl-popup-tip {
+  border-bottom-color: #ffffff;
+}
+.map-view .map-view__pick-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
+  border-top-color: #ffffff;
+}
+.map-view .map-view__pick-popup.mapboxgl-popup-anchor-left .mapboxgl-popup-tip {
+  border-right-color: #ffffff;
+}
+.map-view .map-view__pick-popup.mapboxgl-popup-anchor-right .mapboxgl-popup-tip {
+  border-left-color: #ffffff;
+}
+
+.map-view .map-view__pick-popup .mapboxgl-popup-close-button {
+  color: var(--rtw-panel-ink);
+  background: var(--rtw-panel-surface);
+  border-color: var(--rtw-panel-border);
+}
+.map-view .map-view__pick-popup .mapboxgl-popup-close-button:hover {
+  color: var(--rtw-panel-ink);
+  background: var(--rtw-panel-surface-2);
+}
+
+.map-view__pick {
+  color: var(--rtw-panel-ink);
+}
+
+.map-view__pick-address {
+  color: var(--rtw-panel-ink);
+}
+
+.map-view__pick-meta,
+.map-view__pick-profile-label {
+  color: var(--rtw-panel-ink-dim);
+}
+
+/* 핀 지정 버튼 — 컬러 틴트는 유지하되 밝은 배경에서 읽히도록 글자 진하게 */
+.map-view__pick-btn--start {
+  background: rgba(56, 189, 248, 0.16);
+  border-color: rgba(56, 189, 248, 0.5);
+  color: #075985;
+}
+.map-view__pick-btn--start:hover:not(:disabled) {
+  background: rgba(56, 189, 248, 0.26);
+}
+.map-view__pick-btn--wp {
+  background: rgba(251, 146, 60, 0.16);
+  border-color: rgba(251, 146, 60, 0.5);
+  color: #9a3412;
+}
+.map-view__pick-btn--wp:hover:not(:disabled) {
+  background: rgba(251, 146, 60, 0.26);
+}
+/* end 버튼은 채도 높은 파랑 + 흰 글자 유지(흰 배경 위에서도 대비 충분) */
+
+.map-view__pick-btn--clear-route,
+.map-view__pick-btn--profile {
+  background: var(--rtw-panel-surface);
+  border-color: var(--rtw-panel-border-strong);
+  color: var(--rtw-panel-ink);
+}
+.map-view__pick-btn--clear-route:hover,
+.map-view__pick-btn--profile:hover:not(:disabled) {
+  background: var(--rtw-panel-surface-2);
+  border-color: var(--rtw-panel-border-strong);
+}
+.map-view__pick-btn--profile.is-active {
+  background: rgba(56, 189, 248, 0.24);
+  border-color: rgba(56, 189, 248, 0.6);
+  color: #075985;
+}
+
+/* ---------------------------------------------------------------------
+   7) MENU 하위 컨테이너 — 장소검색·공식코스 모달·심사 큐
+   --------------------------------------------------------------------- */
+.place-search-panel,
+.menu-place-search,
+.oc-modal,
+.admin-prq {
+  background: var(--rtw-panel-bg);
+  color: var(--rtw-panel-ink);
+  border-color: var(--rtw-panel-border);
+}
+
+/* ---------------------------------------------------------------------
+   8) account(사용자 정보 시트) — 하드코딩 다크 → 라이트
+   --------------------------------------------------------------------- */
+.user-info-sheet {
+  background: var(--rtw-panel-bg);
+  color: var(--rtw-panel-ink);
+  border-left-color: var(--rtw-panel-border);
+  box-shadow: -6px 0 28px rgba(15, 23, 42, 0.14);
+}
+
+.user-info-sheet__avatar {
+  background: var(--rtw-panel-surface-2);
+}
+.user-info-sheet__avatar.is-guest {
+  background: #cbd5e1;
+}
+
+.user-info-sheet__close {
+  background: var(--rtw-panel-surface);
+  border-color: var(--rtw-panel-border-strong);
+  color: var(--rtw-panel-ink);
+}
+.user-info-sheet__close:hover {
+  background: var(--rtw-panel-surface-2);
+}
+
+.user-info-sheet__plan {
+  background: var(--rtw-panel-accent-soft);
+  border-color: var(--rtw-panel-accent-line);
+}
+
+.user-info-sheet__subscription-note {
+  color: #b45309;
+}
+.user-info-sheet__subscription-note.is-ok {
+  color: #16a34a;
+}
+
+.user-info-sheet__stats-tab,
+.user-info-sheet__h-toggle,
+.user-info-sheet__item {
+  background: var(--rtw-panel-surface);
+  border-color: var(--rtw-panel-border);
+  color: var(--rtw-panel-ink);
+}
+.user-info-sheet__stats-tab:hover,
+.user-info-sheet__h-toggle:hover {
+  background: var(--rtw-panel-surface-2);
+}
+.user-info-sheet__stats-tab.is-active,
+.user-info-sheet__btn--upgrade {
+  background: var(--rtw-panel-accent-soft);
+  border-color: var(--rtw-panel-accent-line);
+  color: var(--rtw-panel-accent);
+}
+
+.user-info-sheet__stats > div {
+  background: var(--rtw-panel-surface);
+  border-color: var(--rtw-panel-border);
+}
+
+.user-info-sheet__stats-note {
+  color: #b45309;
+}
+.user-info-sheet__stats-cal strong {
+  color: #b45309;
+}
+
+.user-info-sheet__item-completion.is-unknown {
+  color: var(--rtw-panel-ink-mute);
+}
+.user-info-sheet__item-completion.is-completed {
+  color: #16a34a;
+}
+.user-info-sheet__item-completion.is-partial {
+  color: #b45309;
+}
+
+.user-info-sheet__btn {
+  background: var(--rtw-panel-surface);
+  border-color: var(--rtw-panel-border-strong);
+  color: var(--rtw-panel-ink);
+}
+.user-info-sheet__btn:hover:not(:disabled) {
+  background: var(--rtw-panel-surface-2);
+}
+
+.user-info-sheet__btn--danger {
+  background: rgba(220, 38, 38, 0.1);
+  border-color: rgba(220, 38, 38, 0.4);
+  color: #b91c1c;
+}
+.user-info-sheet__btn--danger:hover {
+  background: rgba(220, 38, 38, 0.16);
+}
+
+/* Google 버튼은 원래 흰 배경(#f8fafc) + 진한 글자 → 그대로 유지, 테두리만 또렷하게 */
+.user-info-sheet__btn--google {
+  border-color: var(--rtw-panel-border-strong);
+}
+
+/* ---------------------------------------------------------------------
+   8.5) 지도 위 HUD 칩 — 라이트 베이스맵 위 흰 글자 대비 확보(배경 진하게).
+        하드코딩(rgba(15,23,42,0.42~0.45))이 옅어 글자가 묻히는 문제 보정.
+   --------------------------------------------------------------------- */
+.hud-chip,
+.hud-metrics__chip {
+  background: rgba(10, 16, 26, 0.76);
+  border-color: rgba(248, 250, 252, 0.28);
+}
+
+.hud-world-hint {
+  background: rgba(10, 16, 26, 0.78);
+  border-color: rgba(148, 163, 184, 0.35);
+  color: #f1f5f9;
+}
+
+.hud-metrics__unit {
+  opacity: 0.85;
+}
+
+/* ---------------------------------------------------------------------
+   9) mapview(맵 뷰 시트) — 하드코딩 다크 → 라이트
+   --------------------------------------------------------------------- */
+.map-view-sheet__panel {
+  background: var(--rtw-panel-bg);
+  color: var(--rtw-panel-ink);
+  border-color: var(--rtw-panel-border);
+  box-shadow: 0 -12px 36px rgba(15, 23, 42, 0.16);
+}
+
+.map-view-sheet__handle {
+  background: #cbd5e1;
+}
+
+.map-view-sheet__advanced-toggle {
+  background: var(--rtw-panel-surface);
+  border-color: var(--rtw-panel-border);
+  color: var(--rtw-panel-ink);
+}
+.map-view-sheet__advanced-toggle:hover {
+  background: var(--rtw-panel-surface-2);
+}
+
+.map-view-sheet__advanced-pill {
+  background: var(--rtw-panel-accent-soft);
+  border-color: var(--rtw-panel-accent-line);
+  color: var(--rtw-panel-accent);
+}
+
+.map-view-sheet__chip,
+.map-view-sheet__zoom-step {
+  background: var(--rtw-panel-surface);
+  border-color: var(--rtw-panel-border-strong);
+  color: var(--rtw-panel-ink);
+}
+.map-view-sheet__chip:hover,
+.map-view-sheet__zoom-step:hover {
+  background: var(--rtw-panel-surface-2);
+}
+.map-view-sheet__chip.is-active {
+  background: var(--rtw-panel-accent-soft);
+  border-color: var(--rtw-panel-accent-line);
+  color: var(--rtw-panel-accent);
+}
+
+/* 7-1) 지명 검색 입력 — placeholder 가 흰 배경에서 보이도록 */
+.menu-place-search {
+  color-scheme: light;
+  color: var(--rtw-panel-ink);
+}
+
+.menu-place-search__input {
+  background: #ffffff;
+  border-color: var(--rtw-panel-border-strong);
+  color: var(--rtw-panel-ink);
+}
+
+.menu-place-search__input::placeholder {
+  color: var(--rtw-panel-ink-mute);
+  opacity: 1;
+}
+
+.menu-place-search__list {
+  background: #ffffff;
+  border-color: var(--rtw-panel-border);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+}
+
+.menu-place-search__item {
+  background: transparent;
+  color: var(--rtw-panel-ink);
+  border-bottom-color: var(--rtw-panel-border);
+}
+
+.menu-place-search__item:hover,
+.menu-place-search__item:focus-visible {
+  background: var(--rtw-panel-accent-soft);
+}
+
+/* 7-2) 공식코스 목록 모달 — 기본=밝게 / 선택=강조(액센트)로 반전 */
+.oc-modal__close,
+.oc-modal__leave {
+  background: var(--rtw-panel-surface);
+  border-color: var(--rtw-panel-border-strong);
+  color: var(--rtw-panel-ink);
+}
+
+.oc-modal__error {
+  color: #dc2626;
+}
+
+.oc-modal__item {
+  background: #f8fafc;            /* 기본: 밝은 중립 */
+  border-color: var(--rtw-panel-border-strong);
+  color: var(--rtw-panel-ink);
+}
+
+.oc-modal__item:hover:not(:disabled) {
+  background: #eef2f7;
+  border-color: var(--rtw-panel-accent-line);
+  box-shadow: 0 0 0 1px var(--rtw-panel-accent-soft);
+}
+
+.oc-modal__item.is-selected {
+  background: var(--rtw-panel-accent);   /* 선택: 솔리드 액센트로 강조 */
+  border-color: var(--rtw-panel-accent);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.oc-modal__item-publisher {
+  color: var(--rtw-panel-ink-mute);
+}
+
+.oc-modal__item-activity {
+  color: #16a34a;
+}
+
+/* 선택 항목 내부 보조 텍스트는 액센트 배경 위에서 밝게 */
+.oc-modal__item.is-selected .oc-modal__item-sub,
+.oc-modal__item.is-selected .oc-modal__item-publisher {
+  color: rgba(255, 255, 255, 0.86);
+}
+.oc-modal__item.is-selected .oc-modal__item-activity {
+  color: #bbf7d0;
+}

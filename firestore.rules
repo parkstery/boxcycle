@@ -454,6 +454,28 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    /** Conquest(정복) 요약·청크·궤적 — 본인 읽기, 쓰기는 Functions 전용. */
+    match /conquest/{userId} {
+      allow read: if isSelf(userId);
+      allow write: if false;
+
+      match /chunks/{chunkId} {
+        allow read: if isSelf(userId);
+        allow write: if false;
+      }
+
+      match /traces/{traceId} {
+        allow read: if isSelf(userId);
+        allow write: if false;
+      }
+    }
+
+    /** 개척자(pioneer) 전역 레이어 — 로그인 읽기, 쓰기는 Functions 전용(write-once 는 CF 가 보장). */
+    match /pioneerChunks/{chunkId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
     /** Route Token 원장 — Functions 전용 쓰기. 본인 ledger 읽기만 허용. */
     match /routeTokenLedger/{entryId} {
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;

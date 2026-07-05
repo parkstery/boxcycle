@@ -75,6 +75,8 @@ export type AppMapOverlaysResult = {
   getActivityWorldPinLabel: (publicationId: string, kind: "pulse" | "heat") => string | null;
   trailSpectatorDots: ReturnType<typeof useTrailLivePublicationRideSpectatorOverlay>["spectatorDots"];
   trailSpectatorRoutes: ReturnType<typeof useTrailLivePublicationRideSpectatorOverlay>["spectatorRouteGeometries"];
+  /** 현재 라이브 중인 peer publication — 이탈(완주) 감지용 */
+  trailLivePublicationIds: ReturnType<typeof useTrailLivePublicationRideSpectatorOverlay>["livePublicationIds"];
   courseActivity: RouteActivitySnapshot | null;
   reloadCourseActivity: ReturnType<typeof useRouteActivity>["reload"];
   applyRideCompletedOptimistic: ReturnType<typeof useRouteActivity>["applyRideCompletedOptimistic"];
@@ -599,6 +601,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     getActivityWorldPinLabel,
     trailSpectatorDots: mapTrailSpectatorDots,
     trailSpectatorRoutes: mapTrailSpectatorRoutes,
+    trailLivePublicationIds,
     courseActivity,
     reloadCourseActivity,
     applyRideCompletedOptimistic,

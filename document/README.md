@@ -41,6 +41,7 @@
 | 제품 용어 Trailhead / Trail | [260517-제품-용어-Trailhead-Trail](260517-제품-용어-Trailhead-Trail.md) |
 | tier·진입·Firestore identity | [260519-사용자-tier-및-진입-정책](260519-사용자-tier-및-진입-정책.md) |
 | 월드 맵 activity presence · publication dot | [260523-World-Activity-Presence-설계](260523-World-Activity-Presence-설계.md) |
+| Conquest(정복) 레이어 — 핵심 판타지·메커닉·데이터 모델 | [260703-Conquest-정복-레이어-설계](260703-Conquest-정복-레이어-설계.md) |
 
 ---
 
@@ -58,6 +59,7 @@
 | [260519-tier-quota-정책](260519-tier-quota-정책.md) | tier별 한도 | 초안 | tier 부록 |
 | [260518-Route-Token-경제-설계](260518-Route-Token-경제-설계.md) | Route Token 경제 | 초안 | `+architecture` |
 | [260523-World-Activity-Presence-설계](260523-World-Activity-Presence-설계.md) | publication dot·heartbeat | SoT | `+architecture` |
+| [260703-Conquest-정복-레이어-설계](260703-Conquest-정복-레이어-설계.md) | 「Ride = Claim」 정복 게임 — 전략·메커닉·데이터·비용 | SoT | `+architecture` · 초안, 마스터 §1.4 연동 |
 | [260526-World-Activity-Presence-자문단-정렬-보고](260526-World-Activity-Presence-자문단-정렬-보고.md) | 자문 검토·코드 갭·P0 로드맵 | 초안 | presence SoT 보조 |
 | [260517-Activity-World-지도-LOD-설계](260517-Activity-World-지도-LOD-설계.md) | 지도 LOD | 반영중 | presence는 위 SoT |
 | [260514-맵퍼스트-HUD-시트-화면구성-디자인-분석](260514-맵퍼스트-HUD-시트-화면구성-디자인-분석.md) | HUD·시트 구현 분석 | 기록 | 2026-05-14 스냅샷 |
@@ -111,6 +113,7 @@
 | [260514-(cycle)음악_메시지_TTS_분석_보고서](260514-(cycle)음악_메시지_TTS_분석_보고서.md) | BGM·TTS | 기록 | |
 | [260512-(cycle)주행_마커_라이더_애니메이션_작업_과정_및_로직_보고서](260512-(cycle)주행_마커_라이더_애니메이션_작업_과정_및_로직_보고서.md) | 라이더 마커 | 기록 | |
 | [260515-(cycle)Firestore-부하-경감-조치-종합보고서](260515-(cycle)Firestore-부하-경감-조치-종합보고서.md) | Firestore 부하 1차 | 기록 | |
+| [260702-프로젝트-진행-종합-검토-보고서](260702-프로젝트-진행-종합-검토-보고서.md) | 진행 종합 검토(브랜드 RTW·경로 UI 재설계·라이트 테마·미결) | 기록 | 2026-07-02 스냅샷 |
 
 ---
 
@@ -144,3 +147,5 @@
 | 2026-06-15 | `260615-Activity-World-Adaptive-Polling-C-적용-계획` 추가 |
 | 2026-06-24 | Trail 목록·Route Dock·지명 검색·`openTrailListings` 정책 — UX IA·스키마·스모크·용어집 갱신 |
 | 2026-06-27 | `260627-Phase7c-liveCourseRides-courseId-디커미션-체크리스트` 추가 (execution) |
+| 2026-07-02 | `260702-프로젝트-진행-종합-검토-보고서` 추가 (record) |
+| 2026-07-03 | `260703-Conquest-정복-레이어-설계` 추가 (product+architecture SoT) — 마스터 비전 §1.4·§2.6·§7 동시 개정 |

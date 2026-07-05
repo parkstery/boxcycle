@@ -11,6 +11,7 @@ import {
   where,
 } from "firebase/firestore";
 import { getFirebaseApp } from "./firebase";
+import type { ConquestRidePayload } from "./conquestTiles";
 import { buildRideCanonicalWriteFields, resolveRideRouteId } from "./rideDocFields";
 import type { RouteRideEntry } from "./routePublicationResolve";
 import type { StoredRideSession } from "./rideSessionsStorage";
@@ -46,6 +47,8 @@ type RideDoc = {
   completionRatio?: number;
   startPlaceLabel?: string | null;
   endPlaceLabel?: string | null;
+  /** Conquest(정복) 페이로드 — CF `conquestOnRideCreated` 가 한도 적용 후 집계. null = 미계산 */
+  conquest?: ConquestRidePayload | null;
 };
 
 /**
@@ -60,6 +63,8 @@ export async function saveRideSessionToFirestore(input: {
   publicTitleSnap?: string | null;
   profile: "cycling" | "driving" | "walking";
   session: StoredRideSession;
+  /** 정복 페이로드(진행 구간 타일 + pedalSec). 계산 실패·경로 없음 시 null */
+  conquest?: ConquestRidePayload | null;
 }): Promise<string | null> {
   if (isDiscardableRideRecord(input.session.distanceMeters, input.session.elapsedSec)) {
     return null;
@@ -118,6 +123,7 @@ export async function saveRideSessionToFirestore(input: {
       typeof input.session.endPlaceLabel === "string" && input.session.endPlaceLabel.trim().length > 0
         ? input.session.endPlaceLabel.trim()
         : null,
+    conquest: input.conquest ?? null,
   };
 
   const ref = await addDoc(collection(db, RIDES_COLLECTION), docData);

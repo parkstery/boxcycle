@@ -11,6 +11,8 @@ export type AccountChipState = {
 export type MapHudRidePresence = {
   trailheadEnabled: boolean;
   trailId: string;
+  /** 현재 Trailhead에 있는지 — true면 「Trailhead로」 버튼 숨김 */
+  onTrailhead: boolean;
   /** UI용 3자리 번호 또는 Trailhead */
   trailDisplayLabel: string;
   /** `Trail 042` / `Trailhead` — 주행 중 배지·네임태그 */
@@ -29,6 +31,8 @@ export type MapHudProps = {
   // TL — 브랜드 마크 = 좌측 Trail 메뉴(Trail·경로 주행) 트리거
   onOpenMenu: () => void;
   menuOpen: boolean;
+  /** HUD 접속 패널에서 Trailhead로 복귀(주행 중이 아닐 때만). Trail 안에 있을 때만 노출. */
+  onGoTrailhead?: () => void;
   onOpenPlaceSearch: () => void;
   placeSearchOpen: boolean;
 
@@ -91,6 +95,10 @@ export type MapHudProps = {
   ridePresence?: MapHudRidePresence | null;
   /** 줌 축소 시 월드 레이어 한 줄(집계 문서 기반, 저빈도 갱신) */
   worldActivityHint?: string | null;
+  /** 라이브 어스 — 주행 지역 현재 날씨·밤낮 한 줄(Open-Meteo, 세션 중만) */
+  weatherHint?: string | null;
+  /** Conquest — 이번 주행에서 실시간으로 획득한 신규 도로 미터(낙관). 0/null=비표시 */
+  conquestLiveMeters?: number | null;
   /** idle 단계 첫 진입 안내 문구 */
   idleHintMessage?: string;
 };
@@ -106,6 +114,7 @@ export function MapHud(props: MapHudProps) {
     stage,
     onOpenMenu,
     menuOpen,
+    onGoTrailhead,
     onOpenPlaceSearch,
     placeSearchOpen,
     account,
@@ -132,6 +141,8 @@ export function MapHud(props: MapHudProps) {
     onDismissIdleHint,
     ridePresence,
     worldActivityHint,
+    weatherHint,
+    conquestLiveMeters,
     idleHintMessage = "MENU → 입문 경로",
   } = props;
 
@@ -144,7 +155,9 @@ export function MapHud(props: MapHudProps) {
 
   // 트리거 노출 정책: gate/summary 가 아닌 동안 항상 보임.
   const showMenuTrigger = !isGate && !isSummary;
-  const showRidePresence = ridePresence != null;
+  // 접속·동행 현황은 HUD 가 단독으로 소유. MENU(Trail 섹션=참가·공개 설정 행동) 열린 동안은
+  // 가림·중복을 피하려 숨긴다.
+  const showRidePresence = ridePresence != null && !menuOpen;
   const showAccount = account !== null && !isGate && !isSummary;
   const showSignedOutAuth =
     !isGate && !isSummary && account === null && typeof onOpenSignedOutAuth === "function";
@@ -175,7 +188,7 @@ export function MapHud(props: MapHudProps) {
                 title="Trail menu"
               >
                 <span className="hud-brand__dot" aria-hidden />
-                BOXCYCLE
+                RTW
               </button>
               <button
                 type="button"
@@ -196,6 +209,11 @@ export function MapHud(props: MapHudProps) {
                 {worldActivityHint}
               </p>
             ) : null}
+            {weatherHint ? (
+              <p className="hud-world-hint hud-weather-hint" role="status" title="주행 지역의 현재 날씨(Open-Meteo)">
+                {weatherHint}
+              </p>
+            ) : null}
             {showRidePresence && ridePresence ? (
               <aside className="hud-ride-presence hud-glass" aria-label="Trail·동행">
                 {ridePresence.trailheadEnabled ? (
@@ -205,6 +223,17 @@ export function MapHud(props: MapHudProps) {
                       <span className="hud-ride-presence__room" title={ridePresence.trailId}>
                         {ridePresence.trailLabel}
                       </span>
+                      {!ridePresence.onTrailhead && typeof onGoTrailhead === "function" ? (
+                        <button
+                          type="button"
+                          className="hud-ride-presence__trailhead-btn"
+                          disabled={riding || paused}
+                          title="Trailhead로 이동"
+                          onClick={onGoTrailhead}
+                        >
+                          Trailhead로
+                        </button>
+                      ) : null}
                     </div>
                     {ridePresence.trailError ? (
                       <p className="hud-ride-presence__err" title={ridePresence.trailError}>
@@ -284,6 +313,18 @@ export function MapHud(props: MapHudProps) {
               {metrics.speedKmh}
               <span className="hud-metrics__unit">km/h</span>
             </span>
+            {(riding || paused) && (conquestLiveMeters ?? 0) > 0 ? (
+              <span
+                key={conquestLiveMeters}
+                className="hud-metrics__chip hud-metrics__chip--conquest"
+                title="이번 주행에서 획득한 새 도로"
+                role="status"
+                aria-live="polite"
+              >
+                🏴 +{((conquestLiveMeters ?? 0) / 1000).toFixed(1)}
+                <span className="hud-metrics__unit">km</span>
+              </span>
+            ) : null}
           </div>
         </div>
       ) : null}

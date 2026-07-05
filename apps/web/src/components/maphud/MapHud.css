@@ -236,6 +236,36 @@
   color: #f8fafc;
 }
 
+/* HUD 접속 패널에서 Trailhead로 원탭 복귀 — 현재 트레일 컨텍스트 옆 주 액션 */
+.hud-ride-presence__trailhead-btn {
+  flex-shrink: 0;
+  margin-left: auto;
+  align-self: center;
+  appearance: none;
+  border: 1px solid rgba(107, 165, 255, 0.5);
+  background: rgba(107, 165, 255, 0.16);
+  color: #eaf2ff;
+  font: inherit;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 0.22rem 0.45rem;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.hud-ride-presence__trailhead-btn:hover:not(:disabled) {
+  background: rgba(107, 165, 255, 0.26);
+  border-color: rgba(107, 165, 255, 0.65);
+}
+
+.hud-ride-presence__trailhead-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .hud-ride-presence__list {
   margin: 0;
   padding: 0 0 0 0.85rem;
@@ -461,6 +491,33 @@
   border-color: rgba(248, 113, 113, 0.55);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
+}
+
+/* Conquest — 주행 중 실시간 신규 영토 카운터(도파민 지점) */
+.hud-metrics__chip--conquest {
+  background: rgba(47, 107, 255, 0.28);
+  border-color: rgba(107, 165, 255, 0.6);
+  color: #eaf2ff;
+  font-variant-numeric: tabular-nums;
+  animation: hud-conquest-pop 0.35s ease;
+}
+
+@keyframes hud-conquest-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.16);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-metrics__chip--conquest {
+    animation: none;
+  }
 }
 
 .hud-metrics {

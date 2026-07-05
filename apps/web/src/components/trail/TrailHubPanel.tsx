@@ -8,7 +8,6 @@ import {
 } from "../../lib/firestoreTrailInstance";
 import { compareOpenTrailsForListing, isActiveOpenTrailListing } from "../../lib/firestoreOpenTrailListings";
 import { formatTrailDisplayNumber } from "../../lib/trailDisplayNumber";
-import { readTrailDisplayNumberCache } from "../../lib/trailDisplayNumberCache";
 import { TRAILHEAD_LABEL, TRAIL_LABEL } from "../../lib/productTerms";
 import "./TrailHubPanel.css";
 
@@ -19,11 +18,10 @@ export type TrailHubPanelProps = {
   openTrails: TrailInstance[];
   openTrailsLoading: boolean;
   openTrailsError: string | null;
-  onGoTrailhead: () => void;
   onJoinTrail: (trailId: string, listingPublicationId?: string | null) => void;
   onSetVisibility: (visibility: TrailVisibility) => void;
   visibilityBusy?: boolean;
-  /** running·paused — Trailhead 이동 비활성 */
+  /** running·paused — Trail 합류 비활성 */
   rideSessionActive?: boolean;
 };
 
@@ -83,11 +81,6 @@ function trailRowLabel(t: TrailInstance): string {
 export function TrailHubPanel(props: TrailHubPanelProps) {
   const active = sanitizeTrailId(props.activeTrailId);
   const onTrailhead = active === DEFAULT_TRAIL_ID;
-  const currentLabel = props.currentTrail
-    ? formatTrailDisplayNumber(props.currentTrail.displayNumber)
-    : onTrailhead
-      ? TRAILHEAD_LABEL
-      : formatTrailDisplayNumber(readTrailDisplayNumberCache(active));
 
   /** 주행 중 Trail만 — openTrailListings 활성 라이더 기준 */
   const listedTrails = useMemo(() => {
@@ -116,27 +109,10 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
 
   return (
     <section className="trail-hub" aria-label={`${TRAILHEAD_LABEL} · ${TRAIL_LABEL}`}>
-      <div className="trail-hub__row">
-        <span
-          className="trail-hub__current-id--compact"
-          title={
-            onTrailhead
-              ? TRAILHEAD_LABEL
-              : props.currentTrail?.regionLabel?.trim() || active
-          }
-        >
-          {onTrailhead ? TRAILHEAD_LABEL : `Trail ${currentLabel}`}
-        </span>
-        <button
-          type="button"
-          className="trail-hub__trailhead-btn"
-          disabled={onTrailhead || Boolean(props.rideSessionActive)}
-          title={`${TRAILHEAD_LABEL}로 이동`}
-          onClick={props.onGoTrailhead}
-        >
-          {TRAILHEAD_LABEL}로
-        </button>
-        {canToggleVisibility ? (
+      {/* 현재 위치 표시·Trailhead 복귀는 HUD 접속 패널이 소유(중복 제거). 여기선 소유자 공개 설정만. */}
+      {canToggleVisibility ? (
+        <div className="trail-hub__row trail-hub__row--visibility">
+          <span className="trail-hub__vis-label">이 Trail 공개</span>
           <div className="trail-hub__visibility" role="group" aria-label="Trail 공개 설정">
             <button
               type="button"
@@ -165,8 +141,8 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
               비공개
             </button>
           </div>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       <div className="trail-hub__list-head">
         <span className="trail-hub__kicker">Trail</span>

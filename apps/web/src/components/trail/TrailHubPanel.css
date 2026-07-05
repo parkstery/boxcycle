@@ -39,6 +39,17 @@
   align-items: center;
 }
 
+/* 소유자 공개 설정 전용 행 — 현재 위치 표시는 HUD가 소유(중복 제거) */
+.trail-hub__row--visibility {
+  justify-content: space-between;
+}
+
+.trail-hub__vis-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--rtw-text-dim, rgba(244, 248, 255, 0.7));
+}
+
 .trail-hub__trailhead-btn {
   padding: 0.32rem 0.6rem;
   border-radius: var(--rtw-radius-pill, 999px);

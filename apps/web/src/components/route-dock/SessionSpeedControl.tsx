@@ -26,8 +26,8 @@ export function SessionSpeedControl({ speedKmh, onSpeedKmh, disabled = false }: 
 
   return (
     <div className="route-dock__speed">
-      <span className="route-dock__speed-kicker">SPEED</span>
       <div className="route-dock__speed-row">
+        <span className="route-dock__speed-kicker">SPD(km/h)</span>
         <button
           type="button"
           className="route-dock__speed-step"

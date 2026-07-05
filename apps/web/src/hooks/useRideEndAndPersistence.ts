@@ -4,6 +4,13 @@ import { useCallback } from "react";
 import { promoteSavedRouteInFirestore, type SavedRoute } from "../lib/firestoreSavedRoutes";
 import { markRouteActivityRideCompletedOptimistic } from "../lib/firestoreRouteActivity";
 import { saveRideSessionToFirestore } from "../lib/firestoreRides";
+import {
+  buildConquestCellsFromRoute,
+  buildTraveledPathForTrace,
+  CONQUEST_CELL_ZOOM,
+  CONQUEST_PAYLOAD_VERSION,
+  type ConquestRidePayload,
+} from "../lib/conquestTiles";
 import type { LineStringGeometry, LngLat } from "../lib/geo";
 import { formatLngLat } from "../lib/geo";
 import { MAX_ROUTE_WAYPOINTS } from "../lib/routeWaypoints";
@@ -49,6 +56,11 @@ export type UseRideEndAndPersistenceOptions = {
   loadedSavedRouteNameRef: MutableRefObject<string | null>;
   /** 주행 입구 — 내 경로 vs 퍼블릭 탭 */
   rideEntryRef?: RefObject<RouteRideEntry | null>;
+  /**
+   * Conquest — 이번 세션의 케이던스>0 누적 초. null = BLE 센서 미연결(T0 no-sensor).
+   * App 이 주행 중 1초 간격으로 누적(§3.2 Trust Tier).
+   */
+  pedalActiveSecRef?: RefObject<number | null>;
   /** `resolvePublishedRouteLink` 카탈로그 1차 힌트 */
   publishedCatalogRef?: RefObject<readonly PublishedPublicCourseSummary[]>;
   setSavedRoutes: Dispatch<SetStateAction<SavedRoute[]>>;
@@ -83,6 +95,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     loadedSavedRouteIdRef,
     loadedSavedRouteNameRef,
     rideEntryRef,
+    pedalActiveSecRef,
     publishedCatalogRef,
     setSavedRoutes,
     setLastEndedWasAdhoc,
@@ -142,6 +155,32 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
       record.distanceMeters,
       record.elapsedSec,
     );
+
+    /** Conquest 페이로드 — 진행 구간(0..virtualDistance) 도로 셀 + 궤적 + 검증된 페달링 초 */
+    let conquestPayload: ConquestRidePayload | null = null;
+    if (!discardRecord && routeGeometry && routeGeometry.coordinates.length >= 2) {
+      try {
+        const cells = buildConquestCellsFromRoute(
+          routeGeometry,
+          rideMetrics.virtualDistanceMeters,
+        );
+        if (cells.length > 0) {
+          const rawPedalSec = pedalActiveSecRef?.current ?? null;
+          conquestPayload = {
+            v: CONQUEST_PAYLOAD_VERSION,
+            z: CONQUEST_CELL_ZOOM,
+            cells,
+            path: buildTraveledPathForTrace(routeGeometry, rideMetrics.virtualDistanceMeters),
+            pedalSec:
+              rawPedalSec == null
+                ? null
+                : Math.max(0, Math.min(Math.round(rawPedalSec), elapsedSec)),
+          };
+        }
+      } catch {
+        /* 정복 계산 실패는 주행 저장을 막지 않는다 */
+      }
+    }
 
     if (!discardRecord) {
       const next = [record, ...loadRideSessions()].slice(0, 50);
@@ -237,6 +276,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
             publicTitleSnap,
             profile,
             session: sessionForPersist,
+            conquest: conquestPayload,
           });
           if (!rideId) return;
           // aggregate 재조회는 onRidePersisted에서 수행 — 여기서 invalidate 하면
@@ -381,6 +421,10 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     endPlaceLabel,
     loadedSavedRouteIdRef,
     loadedSavedRouteNameRef,
+    rideEntryRef,
+    pedalActiveSecRef,
+    publicationIdRef,
+    publishedCatalogRef,
     setSavedRoutes,
     setLastEndedWasAdhoc,
     setRecentSessions,

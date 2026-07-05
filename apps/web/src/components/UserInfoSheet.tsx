@@ -30,6 +30,8 @@ type UserInfoSheetProps = {
   isPaid: boolean;
   busy: boolean;
   subscriptionFlash?: string | null;
+  /** Conquest 정복 통계 — null=미로그인/데이터 없음 */
+  conquest?: { totalMeters: number; totalCells: number } | null;
   onLinkGoogle?: () => void;
   onServiceExit: () => void;
 };
@@ -293,6 +295,14 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
               {subscriptionStatusLabelKo(props.subscriptionStatus)}
             </span>
           </div>
+          {props.conquest && props.conquest.totalMeters > 0 ? (
+            <div className="user-info-sheet__conquest" aria-label="정복">
+              <span className="user-info-sheet__conquest-k">🏴 내 도로망</span>
+              <span className="user-info-sheet__conquest-v">
+                <strong>{(props.conquest.totalMeters / 1000).toFixed(1)}</strong> km
+              </span>
+            </div>
+          ) : null}
           {!props.isGuest ? (
             <div className="user-info-sheet__subscription">
               {props.isPaid ? (

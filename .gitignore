@@ -39,3 +39,10 @@ build/
 # 임시
 tmp/
 temp/
+
+# 작업 부산물 (커밋 대상 아님)
+.firebase/
+npm
+filelist.txt
+screenshot.mjs
+.claude/
