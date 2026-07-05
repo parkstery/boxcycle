@@ -162,7 +162,7 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
   }, [user]);
 
   const handleSaveCurrentRoute = useCallback(
-    async (name: string) => {
+    async (name: string, confirmUpdate = false) => {
       if (!routeGeometry || routeGeometry.coordinates.length < 2) {
         throw new Error("저장할 경로가 없습니다. 경로 생성 후 다시 시도하세요.");
       }
@@ -184,10 +184,20 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
       if (!configured) {
         throw new Error("Firebase 설정이 필요합니다.");
       }
-      const saved = await saveRouteToFirestore({ ...baseInput, userId: uid }, user!);
-      setSavedRoutes((prev) => [saved, ...prev]);
+      const saved = await saveRouteToFirestore({ ...baseInput, userId: uid, confirmUpdate }, user!);
+      // 갱신(중복)이면 목록에 새 항목을 추가하지 않고 기존 항목을 최신 데이터로 교체한다.
+      setSavedRoutes((prev) =>
+        saved.deduped
+          ? prev.map((r) => (r.id === saved.id ? { ...r, ...saved } : r))
+          : [saved, ...prev],
+      );
       loadedSavedRouteIdRef.current = saved.id;
       loadedSavedRouteNameRef.current = saved.name;
+      setRouteSummary(
+        saved.deduped
+          ? "이미 저장된 경로입니다 — 기존 항목의 주행 기록을 갱신했어요."
+          : "내 경로에 저장했습니다.",
+      );
       setLastEndedWasAdhoc(null);
     },
     [
@@ -200,11 +210,13 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
       profile,
       routeDistanceMeters,
       routeDurationSec,
+      setRouteSummary,
+      setSavedRoutes,
     ],
   );
 
   const handleSaveAdhocAsUserRoute = useCallback(
-    async (name: string) => {
+    async (name: string, confirmUpdate = false) => {
       if (!lastEndedWasAdhoc) {
         throw new Error("저장 대상 경로 정보가 없습니다.");
       }
@@ -217,6 +229,7 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
         geometry: lastEndedWasAdhoc.geometry,
         distanceMeters: lastEndedWasAdhoc.distanceMeters,
         durationSec: lastEndedWasAdhoc.durationSec,
+        confirmUpdate,
       };
       const rideId = lastEndedWasAdhoc.rideId;
       assertCanPersistAppData(user);
@@ -247,10 +260,20 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
             updatedAtIso: nowIso,
           }
         : saved;
-      setSavedRoutes((prev) => [promoted, ...prev]);
+      // 갱신(중복)이면 기존 항목을 교체, 신규면 앞에 추가.
+      setSavedRoutes((prev) =>
+        saved.deduped
+          ? prev.map((r) => (r.id === promoted.id ? { ...r, ...promoted } : r))
+          : [promoted, ...prev],
+      );
+      setRouteSummary(
+        saved.deduped
+          ? "이미 저장된 경로입니다 — 기존 항목의 주행 기록을 갱신했어요."
+          : "내 경로에 저장했습니다.",
+      );
       setLastEndedWasAdhoc(null);
     },
-    [configured, user, lastEndedWasAdhoc],
+    [configured, user, lastEndedWasAdhoc, setRouteSummary, setSavedRoutes],
   );
 
   const handleLoadSavedRoute = useCallback(

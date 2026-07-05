@@ -1,22 +1,38 @@
-import type { LineStringGeometry } from "./geo";
+import { getDistanceMeters, type LineStringGeometry, type LngLat } from "./geo";
 import type { RouteProfile } from "../services/mapboxDirections";
 
 /** GeoJSON 좌표 반올림 자릿수 — 동일 루트·다른 부동소수 노이즈는 같은 지문으로 취급 */
 const PRECISION = 5;
+/** 거리 버킷 크기(m). 재라우팅 미세차로 총거리가 흔들려도 같은 버킷이면 같은 경로로 본다. */
+const DISTANCE_BUCKET_METERS = 100;
 
 /**
- * LineString 전 구간 + 이동 수단을 문자열로 정규화한다.
- * 시·종점만 같고 꼭짓점(경과)이 다르면 다른 문자열이 된다.
- * 같은 꼭짓점이라도 프로필(주행 방법)이 다르면 `|profile` 으로 구분된다.
+ * "같은 경로" 판정 지문 — 출발·도착 좌표 + 거리 버킷 + 이동 수단의 조합.
+ *
+ * 좌표열 전체를 해싱하던 옛 방식은 주행마다 Directions 재라우팅으로 꼭짓점이
+ * 미세하게 흔들려(부동소수·좌표 개수 변화) 사실상 어떤 두 주행도 같은 지문이
+ * 되지 않아 중복 저장을 못 막았다. 사용자가 체감하는 "같은 길"은 시·종점과
+ * 대략적 길이·수단이 같은 것이므로, 그 세 요소만 정규화한다.
+ *
+ * 거리는 저장된 distanceMeters 대신 geometry 좌표열에서 직접 계산한다 —
+ * 도메인마다(저장 경로·퍼블릭 신청·발행) 거리 소스가 달라도 같은 경로면
+ * 같은 지문이 나오도록 매칭 일관성을 보장하기 위함.
  */
 export function encodeCanonicalRouteGeometryProfile(
   geometry: LineStringGeometry,
   profile: RouteProfile,
 ): string {
-  const parts = geometry.coordinates.map(
-    ([lng, lat]) => `${lng.toFixed(PRECISION)},${lat.toFixed(PRECISION)}`,
-  );
-  return `${parts.join(";")}|${profile}`;
+  const coords = geometry.coordinates as LngLat[];
+  const first = coords[0] ?? [0, 0];
+  const last = coords[coords.length - 1] ?? [0, 0];
+  const at = ([lng, lat]: LngLat | number[]) =>
+    `${Number(lng).toFixed(PRECISION)},${Number(lat).toFixed(PRECISION)}`;
+  let meters = 0;
+  for (let i = 0; i < coords.length - 1; i += 1) {
+    meters += getDistanceMeters(coords[i], coords[i + 1]);
+  }
+  const distBucket = Math.round(meters / DISTANCE_BUCKET_METERS);
+  return `${at(first)}>${at(last)}|${distBucket}|${profile}`;
 }
 
 /**

@@ -11,6 +11,7 @@ import { useDocumentVisibility } from "./hooks/useDocumentVisibility";
 import {
   formatRouteActivityHudLine,
   invalidateLiveRouteActivityIdsCache,
+  invalidateRouteActivityCache,
 } from "./lib/firestoreRouteActivity";
 import { AppMapStage, useAppMapOverlays } from "./features/map-overlays";
 import { RouteDock, useRouteDockStops, type RouteDockStop, type RouteDockStopId } from "./components/route-dock";
@@ -109,6 +110,10 @@ import {
 } from "./lib/appSessionKeys";
 import { formatElapsedFromMs } from "./lib/rideFormat";
 import { useBleCrankRpm } from "./hooks/useBleCrankRpm";
+import { useConquest } from "./hooks/useConquest";
+import { useLiveConquestPaint } from "./hooks/useLiveConquestPaint";
+import { conquestCellIdsAround } from "./lib/conquestTiles";
+import { fetchOpenMeteoCurrentWeather, formatLiveWeatherHudLine } from "./lib/openMeteoWeather";
 import { useRideMapillaryStreet } from "./hooks/useRideMapillaryStreet";
 import { MAPILLARY_CLIENT_TOKEN, mapillaryTokenConfigured } from "./lib/mapillaryToken";
 import type { CoverageOverlayMode } from "./lib/coverageOverlayMode";
@@ -148,7 +153,15 @@ export default function App() {
 
   const userTier = useUserTier(user, configured);
 
-  const { routeTokenBalance, routeTokenLoading } = useRouteTokenBalance(user, configured);
+  const { routeTokenBalance } = useRouteTokenBalance(user, configured);
+  /** Conquest(정복) — 요약 구독 + 내 도로 셀 + 「내 도로망」 궤적. 쓰기는 CF 전용. */
+  const {
+    summary: conquestSummary,
+    cellIds: conquestCellIds,
+    traces: conquestTraces,
+  } = useConquest(user, configured);
+  /** 주행 시작 시점 정복 스냅샷 — 주행 요약 「새 도로 +N km」 델타 계산용 */
+  const [conquestBaseline, setConquestBaseline] = useState<{ meters: number } | null>(null);
 
   const [mapStyle, setMapStyle] = useState(DEFAULT_MAP_STYLE);
   const [mapZoom, setMapZoom] = useState(DEFAULT_MAP_ZOOM);
@@ -364,7 +377,6 @@ export default function App() {
     startPlaceLabel,
     endPlaceLabel,
     waypointLabelsForPanel,
-    generateRoute,
     clearRoutePins,
     applyRouteProfileFromMapPopup: applyRouteProfileForMapLocked,
   } = useRoutePlanning({
@@ -484,6 +496,20 @@ export default function App() {
     );
   }, [setRouteSummary]);
 
+  /**
+   * Conquest Trust Tier — 세션 중 케이던스>0 누적 초.
+   * null = 센서 신호를 한 번도 못 봄(T0 no-sensor). 주행 시작 시 리셋.
+   */
+  const pedalActiveSecRef = useRef<number | null>(null);
+
+  /** Conquest — 주행 중 실시간 「새 도로」 카운터(낙관) */
+  const { liveNewMeters: conquestLiveMeters } = useLiveConquestPaint({
+    riding: rideStatus === "running" || rideStatus === "paused",
+    routeGeometry,
+    traveledMeters: rideMetrics.virtualDistanceMeters,
+    serverCellIds: conquestCellIds,
+  });
+
   const { handleEndRide } = useRideEndAndPersistence({
     mapboxAccessToken: MAPBOX_TOKEN,
     configured,
@@ -505,6 +531,7 @@ export default function App() {
     loadedSavedRouteIdRef,
     loadedSavedRouteNameRef,
     rideEntryRef,
+    pedalActiveSecRef,
     publishedCatalogRef,
     setSavedRoutes,
     setLastEndedWasAdhoc,
@@ -686,6 +713,7 @@ export default function App() {
     getActivityWorldPinLabel,
     trailSpectatorDots: spectatorDots,
     trailSpectatorRoutes: spectatorRouteGeometries,
+    trailLivePublicationIds,
     courseActivity,
     reloadCourseActivity,
     applyRideCompletedOptimistic,
@@ -698,6 +726,32 @@ export default function App() {
     void reloadCourseActivity(options);
   };
   applyRideCompletedOptimisticRef.current = applyRideCompletedOptimistic;
+
+  /**
+   * peer 완주 갭 해소 — 라이브 spectator 라인은 완주 즉시 사라지는데 heat(red dot) 폴링은
+   * 최대 수 분 뒤라 경로가 잠깐 증발한다. peer publication 이탈을 감지해 CF 반영 시차(2.5s·7s)를
+   * 두고 heat 를 재조회한다(본인 주행의 onRideEndedWithPublication 대응).
+   */
+  const prevTrailLivePublicationIdsRef = useRef<ReadonlySet<string>>(new Set());
+  useEffect(() => {
+    const prev = prevTrailLivePublicationIdsRef.current;
+    const next = new Set(trailLivePublicationIds);
+    const departed: string[] = [];
+    for (const id of prev) {
+      if (!next.has(id)) departed.push(id);
+    }
+    prevTrailLivePublicationIdsRef.current = next;
+    if (departed.length === 0) return;
+    invalidateRouteActivityCache(departed);
+    const bump = () => {
+      invalidateLiveRouteActivityIdsCache();
+      reloadCourseActivityRef.current({ forceInvalidate: false });
+      setActivityMapRefreshNonce((n) => n + 1);
+    };
+    // 타이머는 취소하지 않는다 — 새 이탈로 effect 가 재실행돼도 예약된 재조회는 유효(멱등)
+    window.setTimeout(bump, 2_500);
+    window.setTimeout(bump, 7_000);
+  }, [trailLivePublicationIds]);
 
   /** 퍼블릭 코스 ID — 로그인 없이도 published 목록 로드(Rules: status=published 공개 읽기) */
   useEffect(() => {
@@ -759,6 +813,88 @@ export default function App() {
   }, [liveRiderNametag, selfRiderNametagFallback, rideStatus, trailDisplayLabels.label]);
 
   const bleCrankRpm = useBleCrankRpm({ sessionActive: rideStatus !== "idle" });
+
+  /** Conquest — 주행(running) 중 1초 간격으로 케이던스>0 시간 누적(§3.2 검증된 페달링) */
+  const crankRpmForConquestRef = useRef<number | null>(null);
+  useEffect(() => {
+    crankRpmForConquestRef.current = bleCrankRpm.crankRpm;
+  }, [bleCrankRpm.crankRpm]);
+  const conquestSummaryRef = useRef(conquestSummary);
+  useEffect(() => {
+    conquestSummaryRef.current = conquestSummary;
+  }, [conquestSummary]);
+  const prevRideStatusRef = useRef(rideStatus);
+  useEffect(() => {
+    if (prevRideStatusRef.current === "idle" && rideStatus === "running") {
+      // 새 세션 시작 — 센서 신호를 보기 전까지는 null(T0) 유지
+      pedalActiveSecRef.current = null;
+      // 주행 요약 「새 도로 +N km」 델타 기준점
+      setConquestBaseline({
+        meters: conquestSummaryRef.current?.totalMeters ?? 0,
+      });
+    }
+    prevRideStatusRef.current = rideStatus;
+    if (rideStatus !== "running") return;
+    const timer = setInterval(() => {
+      const rpm = crankRpmForConquestRef.current;
+      if (rpm == null) return;
+      if (pedalActiveSecRef.current == null) pedalActiveSecRef.current = 0;
+      if (rpm > 0) pedalActiveSecRef.current += 1;
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [rideStatus]);
+
+  /** Conquest — 핀 팝업 도로 상태 한 줄(내가 달린 도로인지, 로컬 판정 — 서버 읽기 없음) */
+  const conquestCellIdSetRef = useRef<ReadonlySet<string>>(new Set());
+  useEffect(() => {
+    conquestCellIdSetRef.current = new Set(conquestCellIds ?? []);
+  }, [conquestCellIds]);
+  const handleLookupPioneer = useCallback(
+    async (lngLat: LngLat): Promise<string | null> => {
+      if (!configured || !user) return null;
+      const owned = conquestCellIdSetRef.current;
+      // 클릭 오차·도로 폭 관용 — 셀 + 8방 이웃 중 하나라도 내 도로면 인정
+      const mine = conquestCellIdsAround(lngLat).some((id) => owned.has(id));
+      return mine ? "🏴 내가 달린 도로" : null;
+    },
+    [configured, user],
+  );
+
+  /** 「내 도로망」 렌더용 geometry 배열 */
+  const conquestTraceGeometries = useMemo(
+    () => (conquestTraces ? conquestTraces.map((t) => t.geometry) : null),
+    [conquestTraces],
+  );
+
+  /** 주행 요약 「새 도로 +N km」 — CF 집계 완료 시 반응형 갱신 */
+  const conquestSummaryLine = useMemo(() => {
+    if (!conquestSummary || !conquestBaseline) return null;
+    const newMeters = Math.max(0, conquestSummary.totalMeters - conquestBaseline.meters);
+    if (newMeters <= 0) return null;
+    return `새 도로 +${(newMeters / 1000).toFixed(newMeters < 10000 ? 1 : 0)}km`;
+  }, [conquestSummary, conquestBaseline]);
+
+  /** 라이브 어스 — 주행 지역의 현재 날씨·밤낮(Open-Meteo). 세션 중 30분 간격 갱신. */
+  const [liveWeatherHint, setLiveWeatherHint] = useState<string | null>(null);
+  useEffect(() => {
+    if (rideStatus === "idle") {
+      setLiveWeatherHint(null);
+      return;
+    }
+    const at = startLngLat ?? endLngLat;
+    if (!at) return;
+    const ac = new AbortController();
+    const load = async () => {
+      const w = await fetchOpenMeteoCurrentWeather(at, ac.signal);
+      if (w && !ac.signal.aborted) setLiveWeatherHint(formatLiveWeatherHudLine(w));
+    };
+    void load();
+    const timer = setInterval(() => void load(), 30 * 60 * 1000);
+    return () => {
+      ac.abort();
+      clearInterval(timer);
+    };
+  }, [rideStatus, startLngLat, endLngLat]);
 
   const bleCadencePanel = useMemo(() => {
     if (!bleCrankRpm.capable) return undefined;
@@ -1276,8 +1412,12 @@ export default function App() {
   }, [clearRoutePins, routeMenuLockedForProd]);
 
   const handleMapRouteProfile = useCallback(
-    (p: RouteProfile) => applyRouteProfileForMapLocked(routeMenuLockedForProd, p),
-    [applyRouteProfileForMapLocked, routeMenuLockedForProd],
+    (p: RouteProfile) => {
+      // 토큰 부족(잔액<1)이면 RouteDock·지도 핀 팝업 어느 쪽에서도 생성을 막는다(정책 통일).
+      if (routeTokenBalance != null && routeTokenBalance < 1) return;
+      applyRouteProfileForMapLocked(routeMenuLockedForProd, p);
+    },
+    [applyRouteProfileForMapLocked, routeMenuLockedForProd, routeTokenBalance],
   );
 
   const routeDockStops = useRouteDockStops({
@@ -1433,6 +1573,8 @@ export default function App() {
     return {
       trailheadEnabled: true,
       trailId: tid,
+      /** 현재 Trailhead에 있는지 — HUD 「Trailhead로」 버튼 노출 판단 */
+      onTrailhead: tid === DEFAULT_TRAIL_ID,
       trailDisplayLabel: trailDisplayLabels.short,
       trailLabel: trailDisplayLabels.label,
       trailMembers,
@@ -1496,7 +1638,10 @@ export default function App() {
               showIdleHint: stage === "idle" && !idleHintDismissed,
               onDismissIdleHint: () => setIdleHintDismissed(true),
               ridePresence: mapHudRidePresence,
+              onGoTrailhead: goTrailheadAndCloseMenu,
               worldActivityHint,
+              weatherHint: liveWeatherHint,
+              conquestLiveMeters,
             }}
           >
             {rideMapillaryStreet && mapillaryRideSync && mapillaryTokenConfigured ? (
@@ -1562,6 +1707,13 @@ export default function App() {
               mapillaryClientToken: mapillaryTokenConfigured ? MAPILLARY_CLIENT_TOKEN : null,
               routeProfile: profile,
               onRouteProfile: handleMapRouteProfile,
+              routeTokenInsufficient: routeTokenBalance != null && routeTokenBalance < 1,
+              conquestTraces: conquestTraceGeometries,
+              conquestLiveTraveledMeters:
+                rideStatus === "running" || rideStatus === "paused"
+                  ? rideMetrics.virtualDistanceMeters
+                  : null,
+              onLookupPioneer: handleLookupPioneer,
               onClearRoute: handleClearPins,
               onSelectPoint: (type, lngLat, waypointSlot) => {
                 if (!user || routeMenuLockedForProd) return;
@@ -1621,7 +1773,10 @@ export default function App() {
               showIdleHint: stage === "idle" && !idleHintDismissed,
               onDismissIdleHint: () => setIdleHintDismissed(true),
               ridePresence: mapHudRidePresence,
+              onGoTrailhead: goTrailheadAndCloseMenu,
               worldActivityHint,
+              weatherHint: liveWeatherHint,
+              conquestLiveMeters,
             }}
           >
             {rideMapillaryStreet && mapillaryRideSync && mapillaryTokenConfigured ? (
@@ -1667,7 +1822,7 @@ export default function App() {
       >
         <div className="menu-panel__section menu-panel__section--trail">
           <span className="menu-panel__section-label">Trail</span>
-          <span className="menu-panel__section-hint">접속 · 동행</span>
+          <span className="menu-panel__section-hint">참가 · 공개 설정</span>
         </div>
         <TrailHubPanel
           user={user}
@@ -1676,7 +1831,6 @@ export default function App() {
           openTrails={openTrailsQuery.rows}
           openTrailsLoading={openTrailsQuery.loading}
           openTrailsError={openTrailsQuery.error}
-          onGoTrailhead={goTrailheadAndCloseMenu}
           onJoinTrail={joinTrailAndCloseMenu}
           onSetVisibility={handleSetTrailVisibility}
           visibilityBusy={trailVisibilityBusy}
@@ -1687,16 +1841,8 @@ export default function App() {
           <span className="menu-panel__section-hint">공식 코스 · 내 경로</span>
         </div>
         <RideRoutePanel
-          startLabel={startLabel}
-          endLabel={endLabel}
-          waypointLabels={waypointLabelsForPanel}
-          profile={profile}
-          onProfile={setProfile}
           routeSummary={routeSummary}
           routeLoading={routeLoading}
-          onGenerateRoute={() => void generateRoute()}
-          officialCourseActive={activeOfficialCourseId !== null}
-          hasRoute={Boolean(routeGeometry)}
           basicSharedHubs={BASIC_SHARED_HUB_SUMMARIES}
           basicActiveHubCourseId={basicActiveHubCourseId}
           basicStartLoading={basicStartLoading}
@@ -1715,7 +1861,6 @@ export default function App() {
           onLeaveBasicHub={() => void leaveBasicHub()}
           savedRoutes={savedRoutes}
           savedRoutesLoading={savedRoutesLoading}
-          onSaveCurrentRoute={handleSaveCurrentRoute}
           onLoadSavedRoute={(route) => {
             handleLoadSavedRoute(route);
             setMenuOpen(false);
@@ -1743,8 +1888,6 @@ export default function App() {
           rideElevationProfileLoading={rideElevationProfileLoading}
           rideBgmCatalogConfigured={rideBgmCatalogConfigured}
           bleCadence={bleCadencePanel}
-          routeTokenBalance={routeTokenBalance}
-          routeTokenLoading={routeTokenLoading}
         />
       </MenuPanel>
 
@@ -1804,6 +1947,7 @@ export default function App() {
         isPaid={userTier.isPaid}
         busy={busy}
         subscriptionFlash={subscriptionFlash}
+        conquest={conquestSummary}
         onLinkGoogle={user?.isAnonymous ? () => void handleGoogleSignIn() : undefined}
         onServiceExit={() => void handleServiceExit()}
       />
@@ -1815,10 +1959,11 @@ export default function App() {
         distanceKm={distanceKmLabel}
         avgKmh={avgSpeedLabel}
         caloriesEstimate={caloriesEstimate}
+        conquestLine={conquestSummaryLine}
         adhocSaveAvailable={lastEndedWasAdhoc !== null}
         maxNameLength={SAVED_ROUTE_NAME_MAX}
-        onSaveAdhoc={async (name) => {
-          await handleSaveAdhocAsUserRoute(name);
+        onSaveAdhoc={async (name, confirmUpdate) => {
+          await handleSaveAdhocAsUserRoute(name, confirmUpdate);
           setSummarySheetVisible(false);
           resetArrivalToast();
         }}

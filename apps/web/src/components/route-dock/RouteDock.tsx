@@ -13,7 +13,7 @@ export type RouteDockProps = {
   onSpeedKmh: (n: number) => void;
   canStartRide: boolean;
   canSaveRoute: boolean;
-  onSaveCurrentRoute: (name: string) => Promise<void> | void;
+  onSaveCurrentRoute: (name: string, confirmUpdate?: boolean) => Promise<void> | void;
   onStartRide: () => void;
   onClearRoute: () => void;
   onRemoveStop: (id: RouteDockStopId) => void;
@@ -50,12 +50,14 @@ export function RouteDock(props: RouteDockProps) {
   const [saveDraft, setSaveDraft] = useState("");
   const [saveBusy, setSaveBusy] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  /** 같은 경로가 이미 있어 "업데이트하시겠습니까?" 확인을 기다리는 중. */
+  const [saveConfirmUpdate, setSaveConfirmUpdate] = useState(false);
 
   useEffect(() => {
     if (visible && stops.length > 0) setExpanded(true);
   }, [visible, stops.length]);
 
-  async function commitSave() {
+  async function commitSave(confirmUpdate = false) {
     if (saveBusy) return;
     let normalizedName: string;
     try {
@@ -67,11 +69,17 @@ export function RouteDock(props: RouteDockProps) {
     setSaveBusy(true);
     setSaveError(null);
     try {
-      await onSaveCurrentRoute(normalizedName);
+      await onSaveCurrentRoute(normalizedName, confirmUpdate);
       setSaveOpen(false);
       setSaveDraft("");
+      setSaveConfirmUpdate(false);
     } catch (e) {
-      setSaveError(e instanceof Error ? e.message : String(e));
+      // 같은 경로가 이미 있으면 "업데이트하시겠습니까?" 확인을 띄운다.
+      if (e && typeof e === "object" && (e as { code?: string }).code === "saved-route-duplicate") {
+        setSaveConfirmUpdate(true);
+      } else {
+        setSaveError(e instanceof Error ? e.message : String(e));
+      }
     } finally {
       setSaveBusy(false);
     }
@@ -173,9 +181,35 @@ export function RouteDock(props: RouteDockProps) {
 
         {saveOpen ? (
           <div className="route-dock__save-form">
-            <label className="route-dock__save-label" htmlFor="route-dock-save-name">
-              경로 이름
-            </label>
+            <div className="route-dock__save-head">
+              <label className="route-dock__save-label" htmlFor="route-dock-save-name">
+                경로 이름
+              </label>
+              <div className="route-dock__save-actions">
+                <button
+                  type="button"
+                  className="route-dock__save-commit"
+                  disabled={saveBusy}
+                  title="경로 저장"
+                  onClick={() => void commitSave()}
+                >
+                  {saveBusy ? "저장 중…" : "저장"}
+                </button>
+                <button
+                  type="button"
+                  className="route-dock__save-cancel"
+                  disabled={saveBusy}
+                  title="저장 취소"
+                  onClick={() => {
+                    setSaveOpen(false);
+                    setSaveDraft("");
+                    setSaveError(null);
+                  }}
+                >
+                  취소
+                </button>
+              </div>
+            </div>
             <input
               id="route-dock-save-name"
               className="route-dock__save-input"
@@ -199,30 +233,33 @@ export function RouteDock(props: RouteDockProps) {
                 {saveError}
               </p>
             ) : null}
-            <div className="route-dock__save-actions">
-              <button
-                type="button"
-                className="route-dock__save-commit"
-                disabled={saveBusy}
-                title="경로 저장"
-                onClick={() => void commitSave()}
-              >
-                {saveBusy ? "저장 중…" : "저장"}
-              </button>
-              <button
-                type="button"
-                className="route-dock__save-cancel"
-                disabled={saveBusy}
-                title="저장 취소"
-                onClick={() => {
-                  setSaveOpen(false);
-                  setSaveDraft("");
-                  setSaveError(null);
-                }}
-              >
-                취소
-              </button>
-            </div>
+            {saveConfirmUpdate ? (
+              <div className="route-dock__save-confirm" role="alertdialog">
+                <p className="route-dock__save-confirm-msg">
+                  이미 저장된 경로입니다. 업데이트하시겠습니까?
+                </p>
+                <div className="route-dock__save-actions">
+                  <button
+                    type="button"
+                    className="route-dock__save-commit"
+                    disabled={saveBusy}
+                    title="Update existing"
+                    onClick={() => void commitSave(true)}
+                  >
+                    {saveBusy ? "업데이트 중…" : "예 · 업데이트"}
+                  </button>
+                  <button
+                    type="button"
+                    className="route-dock__save-cancel"
+                    disabled={saveBusy}
+                    title="Keep previous"
+                    onClick={() => setSaveConfirmUpdate(false)}
+                  >
+                    아니오 · 유지
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </div>
         ) : null}
 

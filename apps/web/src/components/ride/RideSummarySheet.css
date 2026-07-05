@@ -224,8 +224,41 @@
   color: #fecaca;
 }
 
+/* 미저장 상태에서 닫기 시도 시 저장 기회를 한 번 더 보장하는 경고 */
+.ride-summary__confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 9px;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  animation: ride-summary-up 140ms ease-out;
+}
+
+.ride-summary__confirm-msg {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  font-weight: 600;
+  color: #fde68a;
+}
+
 @media (max-width: 380px) {
   .ride-summary__stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+/* Conquest — 「새 영토 +N · 개척 M」 (도파민 지점) */
+.ride-summary__conquest {
+  margin: 0;
+  padding: 0.4rem 0.55rem;
+  border-radius: 8px;
+  background: rgba(47, 107, 255, 0.12);
+  border: 1px solid rgba(47, 107, 255, 0.35);
+  color: #1f5af0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
 }

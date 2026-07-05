@@ -161,7 +161,15 @@
   border: 1px solid rgba(248, 250, 252, 0.1);
 }
 
+.route-dock__save-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
 .route-dock__save-label {
+  flex: 0 0 auto;
   font-size: 0.62rem;
   font-weight: 600;
   opacity: 0.8;
@@ -192,21 +200,41 @@
   line-height: 1.3;
 }
 
+.route-dock__save-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.35rem 0.45rem;
+  border-radius: 8px;
+  background: rgba(251, 191, 36, 0.14);
+  border: 1px solid rgba(251, 191, 36, 0.5);
+}
+
+.route-dock__save-confirm-msg {
+  margin: 0;
+  font-size: 0.66rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #b45309;
+}
+
 .route-dock__save-actions {
   display: flex;
-  gap: 0.28rem;
+  align-items: center;
+  gap: 0.32rem;
+  flex: 0 0 auto;
 }
 
 .route-dock__save-commit {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   border: 0;
   border-radius: 6px;
   background: rgba(107, 165, 255, 0.85);
   color: #0f172a;
   font: inherit;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  padding: 0.28rem 0.45rem;
+  padding: 0.32rem 0.7rem;
   cursor: pointer;
 }
 
@@ -217,15 +245,21 @@
 
 .route-dock__save-cancel {
   flex: 0 0 auto;
-  border: 1px solid rgba(248, 250, 252, 0.16);
+  border: 1px solid rgba(248, 250, 252, 0.28);
   border-radius: 6px;
-  background: transparent;
+  background: rgba(248, 250, 252, 0.06);
   color: inherit;
   font: inherit;
-  font-size: 0.66rem;
-  padding: 0.28rem 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.32rem 0.7rem;
   cursor: pointer;
-  opacity: 0.85;
+  opacity: 1;
+}
+
+.route-dock__save-cancel:hover:not(:disabled) {
+  background: rgba(248, 250, 252, 0.12);
+  border-color: rgba(248, 250, 252, 0.4);
 }
 
 .route-dock__icon-btn {
@@ -377,10 +411,13 @@
 }
 
 .route-dock__speed-kicker {
+  flex: 0 0 auto;
   font-size: 0.58rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.06em;
   opacity: 0.72;
+  white-space: nowrap;
+  margin-right: 0.1rem;
 }
 
 .route-dock__speed-row {
@@ -458,3 +495,4 @@
   cursor: not-allowed;
   box-shadow: none;
 }
+

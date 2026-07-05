@@ -5,6 +5,7 @@ import {
   doc,
   getDocs,
   getFirestore,
+  increment,
   limit,
   query,
   serverTimestamp,
@@ -72,6 +73,22 @@ export class SavedRouteValidationError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "SavedRouteValidationError";
+  }
+}
+
+/**
+ * 같은 경로가 이미 저장돼 있어 사용자 확인이 필요할 때 던진다.
+ * UI 는 이 에러를 잡아 "업데이트하시겠습니까?" 프롬프트를 띄우고,
+ * 「예」면 confirmUpdate=true 로 재저장한다.
+ */
+export class SavedRouteDuplicateError extends Error {
+  readonly code = "saved-route-duplicate" as const;
+  /** 갱신 대상 기존 문서 id */
+  readonly existingId: string;
+  constructor(existingId: string, message = "이미 저장된 경로입니다. 업데이트하시겠습니까?") {
+    super(message);
+    this.name = "SavedRouteDuplicateError";
+    this.existingId = existingId;
   }
 }
 
@@ -282,37 +299,32 @@ export type SaveRouteInput = {
   geometry: LineStringGeometry;
   distanceMeters: number;
   durationSec: number;
+  /** true 면 같은 경로가 있어도 확인 없이 기존 문서를 갱신한다(프롬프트 「예」 이후 재호출). */
+  confirmUpdate?: boolean;
 };
 
-async function assertNoDuplicateSavedRouteForUser(
+/**
+ * 같은 사용자·같은 경로의 기존 사용자 경로 문서 id 를 찾는다(없으면 null).
+ * 중복을 차단하지 않고 "기존 문서 갱신" 대상을 찾는 용도.
+ *
+ * ⚠️ 저장된 routeFingerprint 값에 의존하지 않고 **모든 문서의 geometry 로
+ * 지금 규칙으로 재계산**해 대조한다. 과거 문서는 옛 지문 규칙(좌표열 해시)으로
+ * 저장돼 있어, 저장값을 그대로 비교하면 규칙이 달라 절대 일치하지 않는다
+ * (인덱스 쿼리도, "지문 있으면 skip" 폴백도 이 옛 문서를 놓쳤다 → 32건 중복의 원인).
+ */
+async function findExistingSavedRouteIdByFingerprint(
   db: ReturnType<typeof getFirestore>,
   userId: string,
   routeFingerprint: string,
-): Promise<void> {
-  const qIndexed = query(
+): Promise<string | null> {
+  const qByUser = query(
     collection(db, SAVED_ROUTES_COLLECTION),
     where("userId", "==", userId),
-    where("routeFingerprint", "==", routeFingerprint),
-    limit(1),
+    limit(200),
   );
-  const hitIndexed = await getDocs(qIndexed);
-  if (!hitIndexed.empty) {
-    throw new SavedRouteValidationError(
-      "이미 동일한 경로와 이동 수단으로 저장된 코스가 있습니다. 이름만 다른 중복 저장은 할 수 없습니다.",
-    );
-  }
-
-  const qLegacy = query(
-    collection(db, SAVED_ROUTES_COLLECTION),
-    where("userId", "==", userId),
-    limit(80),
-  );
-  const legacySnap = await getDocs(qLegacy);
-  for (const d of legacySnap.docs) {
+  const snap = await getDocs(qByUser);
+  for (const d of snap.docs) {
     const data = d.data() as Record<string, unknown>;
-    if (typeof data.routeFingerprint === "string" && data.routeFingerprint.length > 0) {
-      continue;
-    }
     const g = decodeGeometryFromFirestore(data);
     if (!g) continue;
     const prof = (data.profile === "driving" || data.profile === "walking" || data.profile === "cycling"
@@ -320,26 +332,64 @@ async function assertNoDuplicateSavedRouteForUser(
       : "cycling") as RouteProfile;
     const fp = await computeRouteFingerprint(g, prof);
     if (fp === routeFingerprint) {
-      throw new SavedRouteValidationError(
-        "이미 동일한 경로와 이동 수단으로 저장된 코스가 있습니다. 이름만 다른 중복 저장은 할 수 없습니다.",
-      );
+      return d.id;
     }
   }
+  return null;
 }
+
+/** 저장 결과 — `deduped=true` 면 새 문서를 만들지 않고 같은 경로의 기존 문서를 갱신했다는 뜻. */
+export type SaveRouteResult = SavedRoute & { deduped: boolean };
 
 export async function saveRouteToFirestore(
   input: SaveRouteInput,
   authUser: User,
-): Promise<SavedRoute> {
+): Promise<SaveRouteResult> {
   const name = validateSavedRouteName(input.name);
   validateGeometry(input.geometry);
   const waypoints = validateWaypointsForSave(input.waypoints);
 
-  await assertTierQuotaClient(authUser, "save_route");
-
   const db = getFirestore(getFirebaseApp());
   const routeFingerprint = await computeRouteFingerprint(input.geometry, input.profile);
-  await assertNoDuplicateSavedRouteForUser(db, input.userId, routeFingerprint);
+
+  // 같은 경로가 이미 있으면 새로 만들지 않고 기존 문서를 갱신한다(중복 저장 방지).
+  // "같은 길 반복은 새 자산이 아니다" — 정복 철학과 일치. 갱신은 quota 슬롯을 쓰지 않는다.
+  const existingId = await findExistingSavedRouteIdByFingerprint(db, input.userId, routeFingerprint);
+  if (existingId) {
+    // 확인 전이면 저장하지 않고 프롬프트를 유도한다.
+    if (!input.confirmUpdate) {
+      throw new SavedRouteDuplicateError(existingId);
+    }
+    const nowIso = new Date().toISOString();
+    await updateDoc(doc(db, SAVED_ROUTES_COLLECTION, existingId), {
+      updatedAt: serverTimestamp(),
+      lastSavedAt: serverTimestamp(),
+      saveCount: increment(1),
+      // 옛 지문 규칙으로 저장된 문서를 새 규칙 값으로 백필(다음 조회 정확도).
+      routeFingerprint,
+    });
+    return {
+      id: existingId,
+      name,
+      profile: input.profile,
+      startLngLat: input.startLngLat,
+      endLngLat: input.endLngLat,
+      waypoints,
+      geometry: input.geometry,
+      distanceMeters: input.distanceMeters,
+      durationSec: input.durationSec,
+      createdAtIso: nowIso,
+      updatedAtIso: nowIso,
+      completed: 0,
+      completedAtIso: null,
+      expiresAtIso: new Date(Date.now() + SAVED_ROUTE_EXPIRY_MS).toISOString(),
+      lastRideId: null,
+      deduped: true,
+    };
+  }
+
+  // 신규 경로만 quota 슬롯을 소모한다.
+  await assertTierQuotaClient(authUser, "save_route");
 
   const expiresAtDate = new Date(Date.now() + SAVED_ROUTE_EXPIRY_MS);
   const payload = {
@@ -379,6 +429,7 @@ export async function saveRouteToFirestore(
     completedAtIso: null,
     expiresAtIso: expiresAtDate.toISOString(),
     lastRideId: null,
+    deduped: false,
   };
 }
 

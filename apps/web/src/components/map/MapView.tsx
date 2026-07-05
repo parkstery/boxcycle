@@ -109,6 +109,13 @@ const EMPTY_ACTIVITY_WORLD_RAW: ActivityWorldRawOverlay = {
   heatDots: [],
 };
 
+/** Conquest — 「내 도로망」(과거 주행 궤적, 경로선 아래) */
+const CONQUEST_TRACES_SRC = "boxcycle-conquest-traces";
+const CONQUEST_TRACES_LAYER = "boxcycle-conquest-traces-line";
+/** Conquest — 이번 주행에서 지금까지 달린 구간(실시간 칠하기) */
+const CONQUEST_LIVE_SRC = "boxcycle-conquest-live";
+const CONQUEST_LIVE_LAYER = "boxcycle-conquest-live-line";
+
 const ACTIVITY_PULSE_SRC = "boxcycle-activity-pulse-routes";
 const ACTIVITY_PULSE_GLOW = "boxcycle-activity-pulse-routes-glow";
 const ACTIVITY_PULSE_LINE = "boxcycle-activity-pulse-routes-line";
@@ -1148,6 +1155,14 @@ export type MapViewProps = {
   /** Directions 프로필. 지도 팝업에서 호출 시 부모가 프로필 반영 후 즉시 경로 계산까지 수행할 수 있음. */
   routeProfile: RouteProfile;
   onRouteProfile: (p: RouteProfile) => void;
+  /** Route Token 부족(잔액<1) — 팝업 수단 버튼을 비활성해 생성을 막음(RouteDock와 동일 정책) */
+  routeTokenInsufficient?: boolean;
+  /** Conquest — 「내 도로망」 궤적(과거 주행). null=미로그인/로딩 전 */
+  conquestTraces?: readonly LineStringGeometry[] | null;
+  /** Conquest — 이번 주행 진행 거리(m). 진행 구간을 실시간으로 칠한다. null=비주행 */
+  conquestLiveTraveledMeters?: number | null;
+  /** 핀 팝업 도로 상태 한 줄(「내가 달린 도로」 등). null=비표시 */
+  onLookupPioneer?: (lngLat: LngLat) => Promise<string | null>;
   /** 지도 지점 선택 팝업에서 출발·도착·경유·계산 경로 전체 초기화 */
   onClearRoute?: () => void;
   /** OSRM(Mapbox Streets)·Mapillary 촬영 시퀀스 커버리지 */
@@ -1203,6 +1218,10 @@ export function MapView({
   onSelectPoint,
   routeProfile,
   onRouteProfile,
+  routeTokenInsufficient = false,
+  conquestTraces = null,
+  conquestLiveTraveledMeters = null,
+  onLookupPioneer,
   onClearRoute,
   coverageOverlayMode,
   mapillaryClientToken,
@@ -1277,6 +1296,8 @@ export function MapView({
   const endLngLatRef = useRef(endLngLat);
   const routeProfileRef = useRef(routeProfile);
   const onRouteProfileRef = useRef(onRouteProfile);
+  const routeTokenInsufficientRef = useRef(routeTokenInsufficient);
+  const onLookupPioneerRef = useRef(onLookupPioneer);
   const onClearRouteRef = useRef(onClearRoute);
   const onMapZoomRef = useRef(onMapZoom);
   const onMapViewportRef = useRef(onMapViewport);
@@ -1368,6 +1389,14 @@ export function MapView({
   useEffect(() => {
     routeProfileRef.current = routeProfile;
   }, [routeProfile]);
+
+  useEffect(() => {
+    routeTokenInsufficientRef.current = routeTokenInsufficient;
+  }, [routeTokenInsufficient]);
+
+  useEffect(() => {
+    onLookupPioneerRef.current = onLookupPioneer;
+  }, [onLookupPioneer]);
 
   useEffect(() => {
     onRouteProfileRef.current = onRouteProfile;
@@ -1597,6 +1626,8 @@ export function MapView({
             onSelectPoint: (type, lngLat, slot) => onSelectPointRef.current(type, lngLat, slot),
             routeProfile: routeProfileRef.current,
             onRouteProfile: (p) => onRouteProfileRef.current(p),
+            getRouteTokenInsufficient: () => routeTokenInsufficientRef.current,
+            lookupPioneer: (ll) => onLookupPioneerRef.current?.(ll) ?? Promise.resolve(null),
             onClearRoute:
               typeof onClearRouteRef.current === "function"
                 ? () => {
@@ -1686,7 +1717,11 @@ export function MapView({
       if (map.getSource("route")) map.removeSource("route");
       if (map.isStyleLoaded()) {
         try {
-          applyCoverageOverlayMode(map, coverageOverlayMode, mapillaryClientToken ?? undefined);
+          applyCoverageOverlayMode(
+            map,
+            coverageOverlayModeRef.current,
+            mapillaryClientTokenRef.current ?? undefined,
+          );
         } catch {
           /* noop */
         }
@@ -1729,7 +1764,11 @@ export function MapView({
     if (session === "running" || session === "paused") {
       if (map.isStyleLoaded()) {
         try {
-          applyCoverageOverlayMode(map, coverageOverlayMode, mapillaryClientToken ?? undefined);
+          applyCoverageOverlayMode(
+            map,
+            coverageOverlayModeRef.current,
+            mapillaryClientTokenRef.current ?? undefined,
+          );
         } catch {
           /* noop */
         }
@@ -1769,7 +1808,11 @@ export function MapView({
 
     if (map.isStyleLoaded()) {
       try {
-        applyCoverageOverlayMode(map, coverageOverlayMode, mapillaryClientToken ?? undefined);
+        applyCoverageOverlayMode(
+          map,
+          coverageOverlayModeRef.current,
+          mapillaryClientTokenRef.current ?? undefined,
+        );
       } catch {
         /* noop */
       }
@@ -1782,13 +1825,164 @@ export function MapView({
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoaded || !map.isStyleLoaded()) return;
+    if (!map || !mapLoaded) return;
+
+    const apply = () => {
+      // 스타일 로딩 중에는 addSource/addLayer 가 throw → 준비된 뒤에만 적용
+      if (!map.isStyleLoaded()) return;
+      try {
+        applyCoverageOverlayMode(
+          map,
+          coverageOverlayModeRef.current,
+          mapillaryClientTokenRef.current ?? undefined,
+        );
+      } catch {
+        /* noop */
+      }
+    };
+
+    apply();
+    // 클릭 시점에 스타일이 아직 준비 전이면 재시도
+    if (!map.isStyleLoaded()) map.once("idle", apply);
+    // 베이스맵 스타일 전환 시 커스텀 커버리지 레이어가 폐기되므로 재적용
+    map.on("style.load", apply);
+    return () => {
+      map.off("style.load", apply);
+      map.off("idle", apply);
+    };
+  }, [mapLoaded, coverageOverlayMode, mapillaryClientToken]);
+
+  /**
+   * Conquest — 「내 도로망」(과거 주행 궤적) 영구 렌더. 경로선 아래.
+   * 스타일 전환 시 재적용.
+   */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+
+    const apply = () => {
+      if (!map.isStyleLoaded()) return;
+      try {
+        const features = (conquestTraces ?? [])
+          .filter((g) => g?.coordinates?.length >= 2)
+          .map((g) => ({
+            type: "Feature" as const,
+            properties: {},
+            geometry: g,
+          }));
+        const fc = { type: "FeatureCollection" as const, features };
+        const src = map.getSource(CONQUEST_TRACES_SRC) as mapboxgl.GeoJSONSource | undefined;
+        if (src) {
+          src.setData(fc);
+        } else {
+          map.addSource(CONQUEST_TRACES_SRC, { type: "geojson", data: fc });
+        }
+        if (!map.getLayer(CONQUEST_TRACES_LAYER)) {
+          map.addLayer(
+            {
+              id: CONQUEST_TRACES_LAYER,
+              type: "line",
+              source: CONQUEST_TRACES_SRC,
+              layout: { "line-cap": "round", "line-join": "round" },
+              paint: {
+                "line-color": "#2f6bff",
+                "line-opacity": 0.55,
+                "line-width": ["interpolate", ["linear"], ["zoom"], 8, 1.6, 12, 3, 16, 6],
+              },
+            },
+            map.getLayer("route") ? "route" : undefined,
+          );
+        }
+      } catch {
+        /* noop */
+      }
+    };
+
+    apply();
+    if (!map.isStyleLoaded()) map.once("idle", apply);
+    map.on("style.load", apply);
+    return () => {
+      map.off("style.load", apply);
+      map.off("idle", apply);
+    };
+  }, [mapLoaded, conquestTraces]);
+
+  /**
+   * Conquest — 이번 주행의 진행 구간 실시간 칠하기(경로선 위, 라이더가 지나온 길이 파랗게 물든다).
+   */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+    const apply = () => {
+      if (!map.isStyleLoaded()) return;
+      const traveled = conquestLiveTraveledMeters ?? 0;
+      let coordinates: [number, number][] = [];
+      if (routeGeometry && routeGeometry.coordinates.length >= 2 && traveled > 0) {
+        const coords = routeGeometry.coordinates as [number, number][];
+        const out: [number, number][] = [coords[0]];
+        let walked = 0;
+        for (let i = 0; i < coords.length - 1 && walked < traveled; i += 1) {
+          const segLen = getDistanceMeters(coords[i], coords[i + 1]);
+          if (segLen <= 0) continue;
+          if (walked + segLen >= traveled) {
+            const t = (traveled - walked) / segLen;
+            out.push([
+              coords[i][0] + (coords[i + 1][0] - coords[i][0]) * t,
+              coords[i][1] + (coords[i + 1][1] - coords[i][1]) * t,
+            ]);
+            break;
+          }
+          walked += segLen;
+          out.push(coords[i + 1]);
+        }
+        if (out.length >= 2) coordinates = out;
+      }
+      const fc = {
+        type: "FeatureCollection" as const,
+        features:
+          coordinates.length >= 2
+            ? [
+                {
+                  type: "Feature" as const,
+                  properties: {},
+                  geometry: { type: "LineString" as const, coordinates },
+                },
+              ]
+            : [],
+      };
+      const src = map.getSource(CONQUEST_LIVE_SRC) as mapboxgl.GeoJSONSource | undefined;
+      if (src) {
+        src.setData(fc);
+      } else {
+        map.addSource(CONQUEST_LIVE_SRC, { type: "geojson", data: fc });
+      }
+      if (!map.getLayer(CONQUEST_LIVE_LAYER)) {
+        map.addLayer({
+          id: CONQUEST_LIVE_LAYER,
+          type: "line",
+          source: CONQUEST_LIVE_SRC,
+          layout: { "line-cap": "round", "line-join": "round" },
+          paint: {
+            "line-color": "#2f6bff",
+            "line-opacity": 0.85,
+            "line-width": ["interpolate", ["linear"], ["zoom"], 8, 3.2, 12, 6, 16, 12],
+          },
+        });
+      }
+    };
+
     try {
-      applyCoverageOverlayMode(map, coverageOverlayMode, mapillaryClientToken ?? undefined);
+      apply();
     } catch {
       /* noop */
     }
-  }, [mapLoaded, coverageOverlayMode, mapillaryClientToken]);
+    if (!map.isStyleLoaded()) map.once("idle", apply);
+    map.on("style.load", apply);
+    return () => {
+      map.off("style.load", apply);
+      map.off("idle", apply);
+    };
+  }, [mapLoaded, routeGeometry, conquestLiveTraveledMeters]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -2626,6 +2820,10 @@ function buildPickPopup(deps: {
   ) => void;
   routeProfile: RouteProfile;
   onRouteProfile: (p: RouteProfile) => void;
+  /** 호출 시점의 Route Token 부족 여부(잔액<1) — true면 수단 버튼 비활성 */
+  getRouteTokenInsufficient?: () => boolean;
+  /** Conquest — 이 지점 영토의 개척자 한 줄(null=미개척) */
+  lookupPioneer?: (lngLat: LngLat) => Promise<string | null>;
   onClearRoute?: (() => void) | undefined;
   initialHasStart: boolean;
   initialHasEnd: boolean;
@@ -2639,6 +2837,8 @@ function buildPickPopup(deps: {
     onSelectPoint,
     routeProfile,
     onRouteProfile,
+    getRouteTokenInsufficient,
+    lookupPioneer,
     onClearRoute,
     initialHasStart,
     initialHasEnd,
@@ -2764,6 +2964,7 @@ function buildPickPopup(deps: {
     pb.setAttribute("aria-label", ariaLabelKo);
     pb.onclick = () => {
       if (!pins.start || !pins.end) return;
+      if (getRouteTokenInsufficient?.()) return;
       onRouteProfile(profile);
       closePopup();
     };
@@ -2782,11 +2983,18 @@ function buildPickPopup(deps: {
     }
     wrap.classList.toggle("map-view__pick--awaiting-profile", ready);
     if (!ready) return;
+    const tokenInsufficient = Boolean(getRouteTokenInsufficient?.());
+    profileLabel.textContent = tokenInsufficient
+      ? "경로 토큰 부족 · 주행 완료 시 획득"
+      : "경로 탐색 유형 선택";
     profileSpecs.forEach((spec, i) => {
       const pb = profileButtons[i];
       if (!pb) return;
-      pb.title =
-        spec.profile === "driving"
+      pb.disabled = tokenInsufficient;
+      pb.classList.toggle("is-disabled", tokenInsufficient);
+      pb.title = tokenInsufficient
+        ? "경로 토큰이 부족합니다. 주행을 완료하면 토큰을 받을 수 있습니다."
+        : spec.profile === "driving"
           ? "Route by car"
           : spec.profile === "walking"
             ? "Route on foot"
@@ -2797,7 +3005,25 @@ function buildPickPopup(deps: {
   profileSection.append(profileHeader, rowProfile);
   syncProfileUi();
 
-  wrap.append(addressEl, metaEl, pinRow, profileSection);
+  /** Conquest — 이 지점 영토의 개척자(있을 때만 노출, §3.4 Phase A 유일 노출 지점) */
+  const pioneerEl = document.createElement("div");
+  pioneerEl.className = "map-view__pick-pioneer";
+  pioneerEl.hidden = true;
+  if (typeof lookupPioneer === "function") {
+    void lookupPioneer(lngLat)
+      .then((line) => {
+        if (signal.aborted) return;
+        if (line) {
+          pioneerEl.textContent = line;
+          pioneerEl.hidden = false;
+        }
+      })
+      .catch(() => {
+        /* noop */
+      });
+  }
+
+  wrap.append(addressEl, metaEl, pioneerEl, pinRow, profileSection);
 
   const token = accessToken.trim();
   if (token.length > 0) {

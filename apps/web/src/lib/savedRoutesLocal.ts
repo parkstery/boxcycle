@@ -117,16 +117,18 @@ export async function saveRouteToLocal(input: {
   const name = validateSavedRouteName(input.name);
   validateGeometryLocal(input.geometry);
   const fp = await computeRouteFingerprint(input.geometry, input.profile);
-  for (const existing of readAll()) {
-    const efp = await computeRouteFingerprint(existing.geometry, existing.profile);
-    if (efp === fp) {
-      throw new SavedRouteValidationError(
-        "이미 동일한 경로와 이동 수단으로 저장된 코스가 있습니다. 이름만 다른 중복 저장은 할 수 없습니다.",
-      );
-    }
-  }
   const now = new Date();
   const nowIso = now.toISOString();
+  // 같은 경로가 이미 있으면 새로 만들지 않고 기존 항목의 갱신 시각만 올린다(중복 저장 방지).
+  const existingList = readAll();
+  for (const existing of existingList) {
+    const efp = await computeRouteFingerprint(existing.geometry, existing.profile);
+    if (efp === fp) {
+      const updated: SavedRoute = { ...existing, updatedAtIso: nowIso };
+      writeAll(existingList.map((r) => (r.id === existing.id ? updated : r)));
+      return updated;
+    }
+  }
   const item: SavedRoute = {
     id: genId(),
     name,

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import type { User } from "firebase/auth";
-import type { RouteProfile } from "../../services/mapboxDirections";
 import type { PublishedPublicCourseSummary } from "../../lib/firestoreCourses";
 import type { RouteActivitySnapshot } from "../../lib/firestoreRouteActivity";
 import type { BleCrankRpmUiState } from "../../hooks/useBleCrankRpm";
@@ -24,18 +23,9 @@ export type FollowMode =
   | "leftFlat";
 
 type RideRoutePanelProps = {
-  startLabel: string;
-  endLabel: string;
-  /** 경과지 좌표 라벨(순서대로, 최대 3) */
-  waypointLabels: string[];
-  profile: RouteProfile;
-  onProfile: (p: RouteProfile) => void;
+  /** 경로 계산 결과 요약(거리·시간 등) — 생성은 RouteDock 소유, 여기선 표시만 */
   routeSummary: string;
   routeLoading: boolean;
-  onGenerateRoute: () => void;
-  /** 공식 코스를 불러온 뒤에는 출발·도착 맞춤 「경로 생성」을 막음 */
-  officialCourseActive?: boolean;
-  hasRoute: boolean;
   basicSharedHubs: PublishedPublicCourseSummary[];
   basicActiveHubCourseId: string | null;
   basicStartLoading: boolean;
@@ -57,8 +47,6 @@ type RideRoutePanelProps = {
   /** 사용자 경로 관련 (= 기존 「저장된 경로」 라벨 변경) */
   savedRoutes: SavedRoute[];
   savedRoutesLoading: boolean;
-  /** 「내 경로로 저장」에서 이름 확정·저장 시에만 DB·로컬 목록에 반영 */
-  onSaveCurrentRoute: (name: string) => Promise<void> | void;
   onLoadSavedRoute: (route: SavedRoute) => void;
   onRenameSavedRoute: (route: SavedRoute, newName: string) => Promise<void> | void;
   onDeleteSavedRoute: (route: SavedRoute) => Promise<void> | void;
@@ -67,7 +55,7 @@ type RideRoutePanelProps = {
   /** ad-hoc(저장 안 한 채) 주행이 직전에 종료되어 「사용자 경로로 저장」 액션이 가능한 상태인지 */
   adhocSaveAvailable: boolean;
   /** ad-hoc 경로를 새 사용자 경로로 저장하면서 즉시 완주 격상 */
-  onSaveAdhocAsUserRoute: (name: string) => Promise<void> | void;
+  onSaveAdhocAsUserRoute: (name: string, confirmUpdate?: boolean) => Promise<void> | void;
   /** ad-hoc 저장 안내(토스트 액션) 닫기 */
   onDismissAdhocSave: () => void;
   /** 공개 경로 심사자 — 설정 시 「심사」 탭 표시 */
@@ -76,9 +64,6 @@ type RideRoutePanelProps = {
   publicRouteReviewQueueCount?: number;
   onPublicRouteReviewQueueChanged?: () => void;
   pendingPublicRouteIds?: ReadonlySet<string>;
-  /** Route Token 잔액(null=로딩 전) */
-  routeTokenBalance?: number | null;
-  routeTokenLoading?: boolean;
   /** 퍼블릭 코스로 이미 등록된 원본 savedRouteId */
   publishedPublicSavedRouteIds?: ReadonlySet<string>;
   /** 퍼블릭 게시 코스와 동일한 경로 지문(DB 조회) */
@@ -112,15 +97,13 @@ type Tab = "route" | "saved" | "publicReview";
 
 export function RideRoutePanel(props: RideRoutePanelProps) {
   const [tab, setTab] = useState<Tab>("route");
-  const [saveOpen, setSaveOpen] = useState(false);
-  const [saveDraft, setSaveDraft] = useState("");
-  const [saveBusy, setSaveBusy] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
   /** ad-hoc 저장 인라인 입력 폼 상태 — 토스트 액션이 열어줌 */
   const [adhocSaveOpen, setAdhocSaveOpen] = useState(false);
   const [adhocSaveDraft, setAdhocSaveDraft] = useState("");
   const [adhocSaveBusy, setAdhocSaveBusy] = useState(false);
   const [adhocSaveError, setAdhocSaveError] = useState<string | null>(null);
+  /** 같은 경로가 이미 있어 "업데이트하시겠습니까?" 확인을 기다리는 중. */
+  const [adhocConfirmUpdate, setAdhocConfirmUpdate] = useState(false);
   const [officialListModal, setOfficialListModal] = useState<OfficialCourseSegment | null>(null);
 
   /** 주행 중에도 MENU(경로·코스)는 사용 가능 — 속도·시작은 RouteDock, 맵 핀은 App 잠금 */
@@ -146,41 +129,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
         props.basicActiveHubCourseId)
       : null;
 
-  const canSaveRoute = routeLocksAsIdle && props.hasRoute && !props.routeLoading;
-
-  function openSave() {
-    setSaveError(null);
-    setSaveDraft("");
-    setSaveOpen(true);
-  }
-  function cancelSave() {
-    setSaveOpen(false);
-    setSaveDraft("");
-    setSaveError(null);
-  }
-  async function commitSave() {
-    if (saveBusy) return;
-    let normalizedName: string;
-    try {
-      normalizedName = validateSavedRouteName(saveDraft);
-    } catch (e) {
-      setSaveError(e instanceof Error ? e.message : String(e));
-      return;
-    }
-    setSaveBusy(true);
-    setSaveError(null);
-    try {
-      await props.onSaveCurrentRoute(normalizedName);
-      setSaveOpen(false);
-      setSaveDraft("");
-    } catch (e) {
-      setSaveError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setSaveBusy(false);
-    }
-  }
-
-  async function commitAdhocSave() {
+  async function commitAdhocSave(confirmUpdate = false) {
     if (adhocSaveBusy) return;
     let normalizedName: string;
     try {
@@ -192,11 +141,17 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
     setAdhocSaveBusy(true);
     setAdhocSaveError(null);
     try {
-      await props.onSaveAdhocAsUserRoute(normalizedName);
+      await props.onSaveAdhocAsUserRoute(normalizedName, confirmUpdate);
       setAdhocSaveOpen(false);
       setAdhocSaveDraft("");
+      setAdhocConfirmUpdate(false);
     } catch (e) {
-      setAdhocSaveError(e instanceof Error ? e.message : String(e));
+      // 같은 경로가 이미 있으면 "업데이트하시겠습니까?" 확인을 띄운다.
+      if (e && typeof e === "object" && (e as { code?: string }).code === "saved-route-duplicate") {
+        setAdhocConfirmUpdate(true);
+      } else {
+        setAdhocSaveError(e instanceof Error ? e.message : String(e));
+      }
     } finally {
       setAdhocSaveBusy(false);
     }
@@ -228,22 +183,25 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             <span className="ride-panel__tab-badge">{props.savedRoutes.length}</span>
           ) : null}
         </button>
-        {props.isPublicRouteReviewer && props.publicRouteReviewUser ? (
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === "publicReview"}
-            className={`ride-panel__tab ${tab === "publicReview" ? "is-active" : ""}`}
-            title="Review queue"
-            onClick={() => setTab("publicReview")}
-          >
-            심사
-            {(props.publicRouteReviewQueueCount ?? 0) > 0 ? (
-              <span className="ride-panel__tab-badge">{props.publicRouteReviewQueueCount}</span>
-            ) : null}
-          </button>
-        ) : null}
       </div>
+
+      {/* 관리자 전용 — 일반 탭 바와 분리된 별도 진입점(리뷰어에게만 노출) */}
+      {props.isPublicRouteReviewer && props.publicRouteReviewUser && tab !== "publicReview" ? (
+        <button
+          type="button"
+          className="ride-panel__reviewer-entry"
+          title="Open public route review queue"
+          onClick={() => setTab("publicReview")}
+        >
+          <span className="ride-panel__reviewer-entry-tag">관리자</span>
+          <span className="ride-panel__reviewer-entry-label">공개 경로 심사</span>
+          {(props.publicRouteReviewQueueCount ?? 0) > 0 ? (
+            <span className="ride-panel__reviewer-entry-badge">
+              {props.publicRouteReviewQueueCount}
+            </span>
+          ) : null}
+        </button>
+      ) : null}
 
       {tab === "publicReview" && props.publicRouteReviewUser ? (
         <>
@@ -373,146 +331,10 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             ) : null}
           </div>
 
-          <div className="ride-panel__point-box">
-            <div className="ride-panel__point-item">
-              <p className="ride-panel__point-label">출발</p>
-              <p className="ride-panel__point-value">{props.startLabel}</p>
-            </div>
-            {props.waypointLabels.map((label, i) => (
-              <div key={`wp-${i}-${label}`} className="ride-panel__point-item">
-                <p className="ride-panel__point-label">경유 {i + 1}</p>
-                <p className="ride-panel__point-value">{label}</p>
-              </div>
-            ))}
-            <div className="ride-panel__point-item">
-              <p className="ride-panel__point-label">도착</p>
-              <p className="ride-panel__point-value">{props.endLabel}</p>
-            </div>
-          </div>
-
-          <div className="ride-panel__modes ride-panel__modes--inline">
-            <span className="ride-panel__label-inline">수단</span>
-            <div className="ride-panel__mode-btns ride-panel__mode-btns--tight">
-              <button
-                type="button"
-                className={`ride-panel__mode ${props.profile === "driving" ? "is-active" : ""}`}
-                title="Driving"
-                onClick={() => props.onProfile("driving")}
-              >
-                차
-              </button>
-              <button
-                type="button"
-                className={`ride-panel__mode ${props.profile === "cycling" ? "is-active" : ""}`}
-                title="Cycling"
-                onClick={() => props.onProfile("cycling")}
-              >
-                자전거
-              </button>
-              <button
-                type="button"
-                className={`ride-panel__mode ${props.profile === "walking" ? "is-active" : ""}`}
-                title="Walking"
-                onClick={() => props.onProfile("walking")}
-              >
-                도보
-              </button>
-            </div>
-          </div>
-
-          <p className="ride-panel__route-token" role="status">
-            {props.routeTokenLoading ? (
-              "경로 토큰 불러오는 중…"
-            ) : props.routeTokenBalance != null ? (
-              <>
-                경로 토큰 <strong>{props.routeTokenBalance}</strong>
-                {props.routeTokenBalance === 0 ? " · 주행 완료 시 획득" : ""}
-              </>
-            ) : null}
-          </p>
-
-          <div className="ride-panel__route-action-row">
-            <button
-              type="button"
-              className="ride-panel__btn-primary"
-              disabled={
-                props.routeLoading ||
-                Boolean(props.officialCourseActive) ||
-                (props.routeTokenBalance != null && props.routeTokenBalance < 1)
-              }
-              title={
-                props.officialCourseActive
-                  ? "Official course loaded — change pins on map to build a custom route."
-                  : props.routeTokenBalance != null && props.routeTokenBalance < 1
-                    ? "경로 토큰이 부족합니다. 주행을 완료하면 토큰을 받을 수 있습니다."
-                    : "Build route"
-              }
-              onClick={() => void props.onGenerateRoute()}
-            >
-              {props.routeLoading ? "경로 계산 중…" : "경로 생성"}
-            </button>
-            {!saveOpen ? (
-              <button
-                type="button"
-                className="ride-panel__btn-secondary ride-panel__btn-secondary--save-inline"
-                disabled={!canSaveRoute}
-                title="Save as my route"
-                onClick={openSave}
-              >
-                내 경로로 저장
-              </button>
-            ) : null}
-          </div>
-
           {props.routeSummary.trim() ? (
             <p className="ride-panel__summary" role="status">
               {props.routeSummary}
             </p>
-          ) : null}
-
-          {saveOpen ? (
-            <div className="ride-panel__save-route">
-              <div className="ride-panel__save-route-form">
-                <label className="ride-panel__label" htmlFor="ride-panel-save-name">
-                  경로 이름
-                </label>
-                <input
-                  id="ride-panel-save-name"
-                  className="ride-panel__input"
-                  type="text"
-                  maxLength={SAVED_ROUTE_NAME_MAX}
-                  value={saveDraft}
-                  placeholder="예: 한강"
-                  onChange={(e) => setSaveDraft(e.target.value)}
-                  autoFocus
-                />
-                {saveError ? (
-                  <p className="ride-panel__save-route-error" role="alert">
-                    {saveError}
-                  </p>
-                ) : null}
-                <div className="ride-panel__save-route-actions">
-                  <button
-                    type="button"
-                    className="ride-panel__btn-primary ride-panel__btn-primary--small"
-                    disabled={saveBusy}
-                    title="Save"
-                    onClick={() => void commitSave()}
-                  >
-                    {saveBusy ? "저장 중…" : "저장"}
-                  </button>
-                  <button
-                    type="button"
-                    className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet"
-                    disabled={saveBusy}
-                    title="Cancel"
-                    onClick={cancelSave}
-                  >
-                    취소
-                  </button>
-                </div>
-              </div>
-            </div>
           ) : null}
 
           {props.arrivalToastVisible ? (
@@ -546,6 +368,33 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                     <p className="ride-panel__save-route-error" role="alert">
                       {adhocSaveError}
                     </p>
+                  ) : null}
+                  {adhocConfirmUpdate ? (
+                    <div className="ride-panel__save-route-confirm" role="alertdialog">
+                      <p className="ride-panel__save-route-confirm-msg">
+                        이미 저장된 경로입니다. 업데이트하시겠습니까?
+                      </p>
+                      <div className="ride-panel__save-route-actions">
+                        <button
+                          type="button"
+                          className="ride-panel__btn-primary ride-panel__btn-primary--small"
+                          disabled={adhocSaveBusy}
+                          title="Update existing"
+                          onClick={() => void commitAdhocSave(true)}
+                        >
+                          {adhocSaveBusy ? "업데이트 중…" : "예 · 업데이트"}
+                        </button>
+                        <button
+                          type="button"
+                          className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet"
+                          disabled={adhocSaveBusy}
+                          title="Keep previous"
+                          onClick={() => setAdhocConfirmUpdate(false)}
+                        >
+                          아니오 · 유지
+                        </button>
+                      </div>
+                    </div>
                   ) : null}
                   <div className="ride-panel__save-route-actions">
                     <button
