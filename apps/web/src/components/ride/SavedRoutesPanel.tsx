@@ -9,6 +9,12 @@ import "./SavedRoutesPanel.css";
 
 type CompletionFilter = "all" | "completed" | "pending";
 
+/** 진행률(0~1)을 방어적으로 클램프. 로컬·옛 데이터가 범위를 벗어나도 안전. */
+function clamp01(n: number): number {
+  if (!Number.isFinite(n)) return 0;
+  return n < 0 ? 0 : n > 1 ? 1 : n;
+}
+
 /** 만료까지 남은 일수(올림). null 이면 만료 정보 없음(완주 또는 옛 데이터). */
 function daysUntilExpiry(expiresAtIso: string | null, now: number = Date.now()): number | null {
   if (!expiresAtIso) return null;
@@ -278,6 +284,32 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                         {new Date(route.updatedAtIso).toLocaleString()}
                       </span>
                     </p>
+                    {route.completed !== 1
+                      ? (() => {
+                          const pct = Math.round(clamp01(route.lastProgressRatio) * 100);
+                          return (
+                            <div
+                              className="saved-routes__progress"
+                              title={`주행 진행률 ${pct}% · 98% 이상 주행 시 완주`}
+                            >
+                              <div
+                                className="saved-routes__progress-track"
+                                role="progressbar"
+                                aria-label="주행 진행률"
+                                aria-valuenow={pct}
+                                aria-valuemin={0}
+                                aria-valuemax={100}
+                              >
+                                <div
+                                  className="saved-routes__progress-fill"
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                              <span className="saved-routes__progress-label">{pct}%</span>
+                            </div>
+                          );
+                        })()
+                      : null}
                     <div className="saved-routes__row-actions">
                       {route.completed === 1 ? (
                         props.guestNotice ? (
