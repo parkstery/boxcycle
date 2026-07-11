@@ -1,0 +1,84 @@
+/* 지도 위 날씨 비주얼 — 코어 루프 방해 금지(pointer-events 없음), HUD 아래 레이어 */
+.weather-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 12; /* 지도 위, HUD 패널(20+)·시트 아래 */
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.weather-overlay__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 대기 틴트 — 독립 레이어로 쌓여 조합(비 오는 밤 등)을 표현 */
+.weather-tint {
+  position: absolute;
+  inset: 0;
+}
+
+/* 밤 — 은은한 남색 틴트 + 가장자리 비네팅 */
+.weather-tint--night {
+  background:
+    radial-gradient(120% 90% at 50% 30%, rgba(10, 18, 45, 0) 45%, rgba(6, 11, 30, 0.42) 100%),
+    rgba(12, 20, 48, 0.28);
+  mix-blend-mode: multiply;
+}
+
+/* 비 — 서늘한 청회색 대기(라이트 지도에서도 '비 오는 분위기'가 확실히 느껴지게) */
+.weather-tint--rain {
+  background: linear-gradient(180deg, rgba(70, 92, 120, 0.24) 0%, rgba(90, 110, 138, 0.15) 100%);
+  mix-blend-mode: multiply;
+}
+
+/* 눈 — 서늘하고 밝은 대기 */
+.weather-tint--snow {
+  background: rgba(214, 226, 240, 0.2);
+}
+
+/* 흐림·안개 — 뿌연 회백 대기 */
+.weather-tint--fog {
+  background: radial-gradient(140% 100% at 50% 60%, rgba(220, 226, 235, 0.06) 40%, rgba(200, 208, 220, 0.3) 100%);
+  backdrop-filter: blur(1.4px);
+  -webkit-backdrop-filter: blur(1.4px);
+}
+
+/* 태풍 — 더 어둡고 청록빛 도는 폭풍 대기 */
+.weather-tint--typhoon {
+  background: rgba(18, 32, 44, 0.36);
+  mix-blend-mode: multiply;
+}
+
+/* 눈보라 — 화이트아웃(흰 안개) */
+.weather-tint--blizzard {
+  background: rgba(238, 244, 250, 0.34);
+}
+
+/* 번개 섬광 — 간헐적 흰 플래시 */
+.weather-overlay__flash {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.9);
+  opacity: 0;
+  animation: weather-lightning 9s infinite;
+}
+
+@keyframes weather-lightning {
+  0%, 100% { opacity: 0; }
+  2% { opacity: 0.7; }
+  4% { opacity: 0.1; }
+  6% { opacity: 0.55; }
+  8% { opacity: 0; }
+  48% { opacity: 0; }
+  50% { opacity: 0.5; }
+  52% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .weather-overlay__flash {
+    animation: none;
+  }
+}

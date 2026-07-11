@@ -113,7 +113,8 @@ import { useBleCrankRpm } from "./hooks/useBleCrankRpm";
 import { useConquest } from "./hooks/useConquest";
 import { useLiveConquestPaint } from "./hooks/useLiveConquestPaint";
 import { conquestCellIdsAround } from "./lib/conquestTiles";
-import { fetchOpenMeteoCurrentWeather, formatLiveWeatherHudLine } from "./lib/openMeteoWeather";
+import { fetchOpenMeteoCurrentWeather, formatLiveWeatherHudLine, parseWeatherOverride, type LiveWeather } from "./lib/openMeteoWeather";
+import { WeatherOverlay } from "./components/weather/WeatherOverlay";
 import { useRideMapillaryStreet } from "./hooks/useRideMapillaryStreet";
 import { MAPILLARY_CLIENT_TOKEN, mapillaryTokenConfigured } from "./lib/mapillaryToken";
 import type { CoverageOverlayMode } from "./lib/coverageOverlayMode";
@@ -893,9 +894,17 @@ export default function App() {
 
   /** 라이브 어스 — 주행 지역의 현재 날씨·밤낮(Open-Meteo). 세션 중 30분 간격 갱신. */
   const [liveWeatherHint, setLiveWeatherHint] = useState<string | null>(null);
+  /** 화면 날씨 비주얼(밤 틴트·비·눈·안개…) 용 원본 데이터. */
+  const [liveWeather, setLiveWeather] = useState<LiveWeather | null>(null);
+  /** 개발용 — URL `?weather=rain` 등으로 비주얼 강제(실제 데이터 무관). 출시 전 무해(파라미터 없으면 null). */
+  const weatherOverride = useMemo(
+    () => parseWeatherOverride(typeof window !== "undefined" ? window.location.search : ""),
+    [],
+  );
   useEffect(() => {
     if (rideStatus === "idle") {
       setLiveWeatherHint(null);
+      setLiveWeather(null);
       return;
     }
     const at = startLngLat ?? endLngLat;
@@ -903,7 +912,10 @@ export default function App() {
     const ac = new AbortController();
     const load = async () => {
       const w = await fetchOpenMeteoCurrentWeather(at, ac.signal);
-      if (w && !ac.signal.aborted) setLiveWeatherHint(formatLiveWeatherHudLine(w));
+      if (w && !ac.signal.aborted) {
+        setLiveWeatherHint(formatLiveWeatherHudLine(w));
+        setLiveWeather(w);
+      }
     };
     void load();
     const timer = setInterval(() => void load(), 30 * 60 * 1000);
@@ -1695,6 +1707,7 @@ export default function App() {
         ) : (
           <AppMapStage
             routeDock={routeDockPanel}
+            weatherOverlay={<WeatherOverlay weather={weatherOverride ?? liveWeather} />}
             mapView={{
               accessToken: MAPBOX_TOKEN || undefined,
               routeElevationProfile: rideElevationProfile,
