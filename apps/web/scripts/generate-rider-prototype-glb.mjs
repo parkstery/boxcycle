@@ -146,9 +146,12 @@ root.add(tube([barCenter[0] - 0.12, barCenter[1], 0], [barCenter[0] + 0.12, barC
 root.add(tube([barCenter[0], barCenter[1], -0.1], [barCenter[0], barCenter[1], 0.1], 0.016, COL.bar));
 root.add(tube(headTube, barCenter, 0.018, COL.frameDark));
 
+/** ⚠️ pelvis 는 riderGlbPedalPose.ts PELVIS 와 동기 — 다리 IK 기준이므로 변경 금지 */
 const pelvis = [-0.12, 0.8, 0];
-const shoulder = [0.02, 1.02, 0];
-const headC = [0.1, 1.2, 0];
+/** 에어로 자세 — 상체 전경사(수평 대비 ~32°). 직립(0.02,1.02)은 산책 자세로 보였음. */
+const shoulder = [0.14, 0.96, 0];
+/** 머리를 낮추고 앞으로 — 전방 주시. */
+const headC = [0.28, 1.07, 0];
 
 /** Mapbox nodeOverride — Z축 회전(페달) */
 function crankAssembly() {
@@ -186,6 +189,15 @@ function legAssembly(side) {
 }
 
 root.add(tube(pelvis, shoulder, 0.09, COL.jersey));
+/**
+ * 골반 덮개(빕숏) — 상체를 앞으로 눕히면 몸통 튜브 하단이 힙에서 들려
+ * 다리가 몸에서 분리돼 보인다(07-07 1차 시도 롤백 원인). 양쪽 고관절(z±0.068)을
+ * 덮는 타원구로 상체·허벅지를 시각적으로 잇는다. 다리 IK 는 무관(정적 메시).
+ */
+const hipCover = new THREE.Mesh(new THREE.SphereGeometry(0.088, 12, 10), mat(COL.short));
+hipCover.position.set(pelvis[0], pelvis[1] - 0.045, 0);
+hipCover.scale.set(1.0, 0.85, 1.25);
+root.add(hipCover);
 root.add(legAssembly("l"));
 root.add(legAssembly("r"));
 
