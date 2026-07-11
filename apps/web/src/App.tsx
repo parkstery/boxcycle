@@ -1909,6 +1909,9 @@ export default function App() {
           signedIn={Boolean(user)}
           onEnterBasicHub={(courseId) => {
             void enterBasicHub(courseId);
+            // 코스(퍼블릭·입문) 선택 즉시 MENU 를 닫아 바로 주행을 시작할 수 있게 한다.
+            setMenuOpen(false);
+            setPlaceSearchMarkerLngLat(null);
           }}
           onLeaveBasicHub={() => void leaveBasicHub()}
           savedRoutes={savedRoutes}
