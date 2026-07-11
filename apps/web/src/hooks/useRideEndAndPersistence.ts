@@ -1,7 +1,11 @@
 import type { User } from "firebase/auth";
 import type { Dispatch, MutableRefObject, RefObject, SetStateAction } from "react";
 import { useCallback } from "react";
-import { promoteSavedRouteInFirestore, type SavedRoute } from "../lib/firestoreSavedRoutes";
+import {
+  promoteSavedRouteInFirestore,
+  updateSavedRouteProgressInFirestore,
+  type SavedRoute,
+} from "../lib/firestoreSavedRoutes";
 import { markRouteActivityRideCompletedOptimistic } from "../lib/firestoreRouteActivity";
 import { saveRideSessionToFirestore } from "../lib/firestoreRides";
 import {
@@ -16,7 +20,7 @@ import { formatLngLat } from "../lib/geo";
 import { MAX_ROUTE_WAYPOINTS } from "../lib/routeWaypoints";
 import { safeRideSpeechCancel } from "../lib/rideSpeech";
 import { loadRideSessions, saveRideSessions, type StoredRideSession } from "../lib/rideSessionsStorage";
-import { isDiscardableRideRecord } from "../lib/rideRecordPolicy";
+import { isDiscardableRideRecord, isRouteCompletion } from "../lib/rideRecordPolicy";
 import { loadSavedRoutesFromLocal, promoteSavedRouteInLocal } from "../lib/savedRoutesLocal";
 import { fetchMapboxReverseGeocodePlaceName } from "../services/mapboxReverseGeocode";
 import type { RouteProfile } from "../services/mapboxDirections";
@@ -287,31 +291,51 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
             markRouteActivityRideCompletedOptimistic(persistedPublicationId);
             onRideEndedWithPublication?.(persistedPublicationId);
           }
+          // 완주(≥98%)만 completed=1 로 격상. 미완주는 진행률만 저장해 「이어 달리기」로 남긴다(§9.5).
+          const rideCompletedRoute = isRouteCompletion(completionRatio);
           if (savedRouteIdAtEnd && !savedRouteIdAtEnd.startsWith("local-")) {
             try {
-              await promoteSavedRouteInFirestore({
-                userId: user.uid,
-                routeId: savedRouteIdAtEnd,
-                rideId,
-              });
+              if (rideCompletedRoute) {
+                await promoteSavedRouteInFirestore({
+                  userId: user.uid,
+                  routeId: savedRouteIdAtEnd,
+                  rideId,
+                });
+              } else {
+                await updateSavedRouteProgressInFirestore({
+                  userId: user.uid,
+                  routeId: savedRouteIdAtEnd,
+                  rideId,
+                  progressRatio: completionRatio,
+                });
+              }
+              const nowIso = new Date().toISOString();
               setSavedRoutes((prev) =>
                 prev.map((r) =>
                   r.id === savedRouteIdAtEnd
-                    ? {
-                        ...r,
-                        completed: 1,
-                        completedAtIso: new Date().toISOString(),
-                        expiresAtIso: null,
-                        lastRideId: rideId,
-                        updatedAtIso: new Date().toISOString(),
-                      }
+                    ? rideCompletedRoute
+                      ? {
+                          ...r,
+                          completed: 1,
+                          completedAtIso: nowIso,
+                          expiresAtIso: null,
+                          lastRideId: rideId,
+                          lastProgressRatio: 1,
+                          updatedAtIso: nowIso,
+                        }
+                      : {
+                          ...r,
+                          lastRideId: rideId,
+                          lastProgressRatio: completionRatio,
+                          updatedAtIso: nowIso,
+                        }
                     : r,
                 ),
               );
             } catch (e) {
-              console.warn("[savedRoutes] 격상 실패", e);
+              console.warn("[savedRoutes] 진행/격상 갱신 실패", e);
             }
-          } else if (savedRouteIdAtEnd) {
+          } else if (savedRouteIdAtEnd && rideCompletedRoute) {
             promoteSavedRouteInLocal({ routeId: savedRouteIdAtEnd, rideId });
             setSavedRoutes(loadSavedRoutesFromLocal());
           } else if (

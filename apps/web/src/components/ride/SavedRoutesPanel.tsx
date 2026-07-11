@@ -43,6 +43,11 @@ export type SavedRoutesPanelProps = {
   onLoadRoute: (route: SavedRoute) => void;
   onRenameRoute: (route: SavedRoute, newName: string) => Promise<void> | void;
   onDeleteRoute: (route: SavedRoute) => Promise<void> | void;
+  /** 미완료 쿼터 초과로 유도됐을 때 상단에 표시할 안내(없으면 미표시) */
+  quotaNotice?: string | null;
+  onDismissQuotaNotice?: () => void;
+  /** 값이 바뀔 때마다 완주 필터를 「대기」로 전환(미완료 초과 유도용). 0=무동작 */
+  focusPendingSignal?: number;
 };
 
 export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
@@ -51,6 +56,15 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<CompletionFilter>("all");
+
+  // 미완료 쿼터 초과 유도 시 「대기」 필터로 전환해 정리 대상 경로만 보여준다.
+  // effect 대신 이전 신호값과 비교(React 권장) — cascading render·set-state-in-effect 회피.
+  const focusPendingSignal = props.focusPendingSignal ?? 0;
+  const [prevFocusPendingSignal, setPrevFocusPendingSignal] = useState(focusPendingSignal);
+  if (focusPendingSignal !== prevFocusPendingSignal) {
+    setPrevFocusPendingSignal(focusPendingSignal);
+    if (focusPendingSignal > 0) setFilter("pending");
+  }
 
   const filtered = useMemo(() => {
     if (filter === "completed") return props.routes.filter((r) => r.completed === 1);
@@ -103,6 +117,26 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
 
   return (
     <section className="saved-routes" aria-label="사용자 경로">
+      {props.quotaNotice ? (
+        <div className="saved-routes__quota-notice" role="alert">
+          <p className="saved-routes__quota-notice-msg">{props.quotaNotice}</p>
+          <p className="saved-routes__quota-notice-hint">
+            아래 진행 중 경로 중 하나를 완주하거나 삭제하면 새 경로를 저장할 수 있어요.
+          </p>
+          {props.onDismissQuotaNotice ? (
+            <button
+              type="button"
+              className="saved-routes__quota-notice-close"
+              aria-label="안내 닫기"
+              title="Dismiss"
+              onClick={props.onDismissQuotaNotice}
+            >
+              확인
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
       {props.guestNotice ? (
         <p className="saved-routes__notice">
           게스트는 이 브라우저에만 저장됩니다. Google 계정으로 로그인하면 클라우드로 옮겨져 다른

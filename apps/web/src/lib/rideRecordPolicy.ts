@@ -20,3 +20,15 @@ export function isDiscardableRideRecord(distanceMeters: number, elapsedSec: numb
   if (!Number.isFinite(d) || !Number.isFinite(t)) return true;
   return d <= MIN_MEANINGFUL_RIDE_DISTANCE_METERS || t <= MIN_MEANINGFUL_RIDE_DURATION_SEC;
 }
+
+/**
+ * Route 완주 인정 임계(진행률). 부동소수·마지막 셀 오차 여유로 100%가 아닌 98%.
+ * 이 이상이면 「완주」(saved route completed=1), 미만이면 「진행 중」으로 남긴다.
+ * 결정: Conquest §9.5 (2026-07-07).
+ */
+export const ROUTE_COMPLETION_RATIO_THRESHOLD = 0.98;
+
+/** completionRatio(0..1) 가 완주 임계 이상인가 */
+export function isRouteCompletion(completionRatio: number): boolean {
+  return Number.isFinite(completionRatio) && completionRatio >= ROUTE_COMPLETION_RATIO_THRESHOLD;
+}

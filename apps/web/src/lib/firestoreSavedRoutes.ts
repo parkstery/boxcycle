@@ -25,11 +25,11 @@ export const SAVED_ROUTES_COLLECTION = "savedRoutes";
 
 /**
  * 사용자 경로 TTL 정책.
- * - 신규 저장 시 expiresAt = createdAt + 7일
+ * - 신규 저장 시 expiresAt = createdAt + 90일 (미완료 장기 프로젝트 보관 — §9.5, 2026-07-07 7일→90일)
  * - 주행 완료(격상) 시 expiresAt = null 로 비워 영구 보존
  * - 실제 삭제는 Firebase Console 의 TTL 정책(컬렉션 `savedRoutes` · 필드 `expiresAt`) 이 수행
  */
-export const SAVED_ROUTE_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
+export const SAVED_ROUTE_EXPIRY_MS = 90 * 24 * 60 * 60 * 1000;
 
 /**
  * 사용자에게 노출하는 사용자 경로 모델(클라이언트). createdAt 등은 ISO 문자열로 정규화.
@@ -61,6 +61,8 @@ export type SavedRoute = {
   expiresAtIso: string | null;
   /** 가장 최근 격상을 일으킨 rides 문서 ID. 추적·역참조용. */
   lastRideId: string | null;
+  /** 마지막 주행의 진행률(0..1). 미완료 「이어 달리기」·진행률 바용. 옛 문서·미주행은 0. */
+  lastProgressRatio: number;
 };
 
 /** Firestore 문서 한도(1MB) 의 안전 가드. 일반 자전거 경로는 ~수만 좌표 미만. */
@@ -285,7 +287,15 @@ function fromDoc(id: string, data: Partial<SavedRouteDoc>): SavedRoute | null {
     completedAtIso: toOptionalIso(data.completedAt),
     expiresAtIso: toOptionalIso(data.expiresAt),
     lastRideId: typeof data.lastRideId === "string" ? data.lastRideId : null,
+    lastProgressRatio: clamp01Number((data as Record<string, unknown>).lastProgressRatio),
   };
+}
+
+/** 임의 값 → 0..1 숫자(범위 밖·비유한은 0) */
+function clamp01Number(v: unknown): number {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(1, n));
 }
 
 export type SaveRouteInput = {
@@ -384,6 +394,7 @@ export async function saveRouteToFirestore(
       completedAtIso: null,
       expiresAtIso: new Date(Date.now() + SAVED_ROUTE_EXPIRY_MS).toISOString(),
       lastRideId: null,
+      lastProgressRatio: 0,
       deduped: true,
     };
   }
@@ -429,14 +440,16 @@ export async function saveRouteToFirestore(
     completedAtIso: null,
     expiresAtIso: expiresAtDate.toISOString(),
     lastRideId: null,
+    lastProgressRatio: 0,
     deduped: false,
   };
 }
 
 /**
- * 사용자 경로 격상 — 주행 완료 시 호출.
+ * 사용자 경로 완주 격상 — 주행 **완주(≥98%)** 시에만 호출.
  * completed=1 로 전환하고 expiresAt 을 null 로 비워 TTL 자동 삭제 대상에서 제외한다.
  * 동일 경로를 다시 주행할 때마다 lastRideId 만 최신 rideId 로 갱신.
+ * 미완주 진행은 {@link updateSavedRouteProgressInFirestore} 로 처리한다(§9.5).
  */
 export async function promoteSavedRouteInFirestore(input: {
   userId: string;
@@ -450,6 +463,28 @@ export async function promoteSavedRouteInFirestore(input: {
     completedAt: serverTimestamp(),
     expiresAt: null,
     lastRideId: input.rideId,
+    lastProgressRatio: 1,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/**
+ * 미완주 주행의 진행률 저장 — 완주 임계 미만일 때 호출.
+ * completed 는 건드리지 않고(0 유지) lastProgressRatio·lastRideId 만 갱신해
+ * 「이어 달리기」·진행률 바의 근거로 남긴다. TTL(미완료 90일)도 유지된다.
+ */
+export async function updateSavedRouteProgressInFirestore(input: {
+  userId: string;
+  routeId: string;
+  rideId: string;
+  progressRatio: number;
+}): Promise<void> {
+  const db = getFirestore(getFirebaseApp());
+  const ratio = Math.max(0, Math.min(1, Number(input.progressRatio) || 0));
+  await updateDoc(doc(db, SAVED_ROUTES_COLLECTION, input.routeId), {
+    userId: input.userId,
+    lastRideId: input.rideId,
+    lastProgressRatio: ratio,
     updatedAt: serverTimestamp(),
   });
 }

@@ -38,6 +38,10 @@ function hydrateLegacy(r: Stored): Stored {
     completedAtIso: r.completedAtIso ?? null,
     expiresAtIso: r.expiresAtIso ?? null,
     lastRideId: r.lastRideId ?? null,
+    lastProgressRatio:
+      typeof r.lastProgressRatio === "number" && Number.isFinite(r.lastProgressRatio)
+        ? Math.max(0, Math.min(1, r.lastProgressRatio))
+        : 0,
   };
 }
 
@@ -145,6 +149,7 @@ export async function saveRouteToLocal(input: {
     completedAtIso: null,
     expiresAtIso: new Date(now.getTime() + SAVED_ROUTE_EXPIRY_MS).toISOString(),
     lastRideId: null,
+    lastProgressRatio: 0,
   };
   const items = readAll();
   items.unshift(item);
@@ -170,6 +175,7 @@ export function promoteSavedRouteInLocal(input: {
     completedAtIso: now,
     expiresAtIso: null,
     lastRideId: input.rideId,
+    lastProgressRatio: 1,
     updatedAtIso: now,
   };
   writeAll(items);

@@ -235,6 +235,9 @@ export default function App() {
   const [idleHintDismissed, setIdleHintDismissed] = useState(false);
   const [summarySheetVisible, setSummarySheetVisible] = useState(false);
   const [coverageOverlayMode, setCoverageOverlayMode] = useState<CoverageOverlayMode>("off");
+  /** 미완료 쿼터 초과 유도 — 안내 배너 문구와 「내 경로」 탭 오픈 신호(nonce) */
+  const [savedQuotaNotice, setSavedQuotaNotice] = useState<string | null>(null);
+  const [openSavedTabNonce, setOpenSavedTabNonce] = useState(0);
 
   const {
     publicRouteRequestModalRoute,
@@ -464,6 +467,20 @@ export default function App() {
     handleRenameSavedRoute,
     handleDeleteSavedRoute,
   } = savedRoutesWorkspace;
+
+  /**
+   * 미완료(진행 중) 경로 슬롯이 가득 차 저장이 막혔을 때 공통 처리 —
+   * 저장 UI 대신 MENU 를 열고 「내 경로」 대기 탭으로 유도하며 안내 배너를 띄운다.
+   */
+  const handleIncompleteQuotaBlocked = useCallback(
+    (message: string) => {
+      setSummarySheetVisible(false);
+      setSavedQuotaNotice(message);
+      setMenuOpen(true);
+      setOpenSavedTabNonce((n) => n + 1);
+    },
+    [setMenuOpen],
+  );
 
   const reloadCourseActivityRef = useRef<
     (options?: { forceInvalidate?: boolean }) => void
@@ -1479,6 +1496,7 @@ export default function App() {
       onRemoveStop={handleRemoveRouteDockStop}
       onFocusStop={handleFocusRouteDockStop}
       editLocked={routeMenuLockedForProd}
+      onIncompleteQuotaBlocked={handleIncompleteQuotaBlocked}
     />
   );
 
@@ -1871,6 +1889,10 @@ export default function App() {
           adhocSaveAvailable={false}
           onSaveAdhocAsUserRoute={handleSaveAdhocAsUserRoute}
           onDismissAdhocSave={() => setLastEndedWasAdhoc(null)}
+          openSavedTabSignal={openSavedTabNonce}
+          savedQuotaNotice={savedQuotaNotice}
+          onDismissSavedQuotaNotice={() => setSavedQuotaNotice(null)}
+          onIncompleteQuotaBlocked={handleIncompleteQuotaBlocked}
           isPublicRouteReviewer={Boolean(configured && user && isPublicRouteReviewer)}
           publicRouteReviewUser={user}
           publicRouteReviewQueueCount={publicRouteReviewQueueCount}
@@ -1969,6 +1991,7 @@ export default function App() {
         }}
         onDismissAdhoc={() => setLastEndedWasAdhoc(null)}
         onClose={handleCloseSummary}
+        onIncompleteQuotaBlocked={handleIncompleteQuotaBlocked}
       />
 
       {publicRouteRequestModalRoute && user ? (

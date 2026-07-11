@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
 import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/firestoreSavedRoutes";
+import { isIncompleteQuotaError } from "../../lib/tierQuota";
 import { SessionSpeedControl } from "./SessionSpeedControl";
 import type { RouteDockStop, RouteDockStopId } from "./useRouteDockStops";
 import "./RouteDock.css";
@@ -19,6 +20,8 @@ export type RouteDockProps = {
   onRemoveStop: (id: RouteDockStopId) => void;
   onFocusStop: (stop: RouteDockStop) => void;
   editLocked?: boolean;
+  /** 미완료 쿼터 초과로 저장이 막혔을 때 상위에 알림(→「내 경로」 대기 탭 유도) */
+  onIncompleteQuotaBlocked?: (message: string) => void;
 };
 
 const STOP_KIND_LABEL: Record<RouteDockStop["kind"], string> = {
@@ -42,6 +45,7 @@ export function RouteDock(props: RouteDockProps) {
     onRemoveStop,
     onFocusStop,
     editLocked = false,
+    onIncompleteQuotaBlocked,
   } = props;
 
   const visible = stage === "setup" || stage === "ready-to-start" || stage === "riding" || stage === "paused";
@@ -74,8 +78,17 @@ export function RouteDock(props: RouteDockProps) {
       setSaveDraft("");
       setSaveConfirmUpdate(false);
     } catch (e) {
-      // 같은 경로가 이미 있으면 "업데이트하시겠습니까?" 확인을 띄운다.
-      if (e && typeof e === "object" && (e as { code?: string }).code === "saved-route-duplicate") {
+      // 미완료 쿼터 초과: 인라인 에러 대신 저장 폼을 닫고 「내 경로」 대기 탭으로 유도한다.
+      if (isIncompleteQuotaError(e)) {
+        setSaveOpen(false);
+        setSaveDraft("");
+        setSaveConfirmUpdate(false);
+        setSaveError(null);
+        onIncompleteQuotaBlocked?.(e.message);
+      } else if (
+        // 같은 경로가 이미 있으면 "업데이트하시겠습니까?" 확인을 띄운다.
+        e && typeof e === "object" && (e as { code?: string }).code === "saved-route-duplicate"
+      ) {
         setSaveConfirmUpdate(true);
       } else {
         setSaveError(e instanceof Error ? e.message : String(e));

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { validateSavedRouteName } from "../../lib/firestoreSavedRoutes";
+import { isIncompleteQuotaError } from "../../lib/tierQuota";
 import "./RideSummarySheet.css";
 
 type RideSummarySheetProps = {
@@ -18,6 +19,8 @@ type RideSummarySheetProps = {
   onSaveAdhoc: (name: string, confirmUpdate?: boolean) => Promise<void> | void;
   onDismissAdhoc: () => void;
   onClose: () => void;
+  /** 미완료 쿼터 초과로 저장이 막혔을 때 상위에 알림(→ 시트 닫고 「내 경로」 대기 탭 유도) */
+  onIncompleteQuotaBlocked?: (message: string) => void;
 };
 
 /**
@@ -62,8 +65,16 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
       setName("");
       setConfirmingUpdate(false);
     } catch (e) {
-      // 같은 경로가 이미 있으면 "업데이트하시겠습니까?" 확인을 띄운다.
-      if (e && typeof e === "object" && (e as { code?: string }).code === "saved-route-duplicate") {
+      // 미완료 쿼터 초과: 시트를 닫고 「내 경로」 대기 탭으로 유도(상위에서 처리).
+      if (isIncompleteQuotaError(e)) {
+        setName("");
+        setConfirmingUpdate(false);
+        setError(null);
+        props.onIncompleteQuotaBlocked?.(e.message);
+      } else if (
+        // 같은 경로가 이미 있으면 "업데이트하시겠습니까?" 확인을 띄운다.
+        e && typeof e === "object" && (e as { code?: string }).code === "saved-route-duplicate"
+      ) {
         setConfirmingUpdate(true);
       } else {
         setError(e instanceof Error ? e.message : String(e));

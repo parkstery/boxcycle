@@ -8,6 +8,8 @@ export type TierQuotaAction = "save_route" | "public_route_request" | "create_ev
 export type TierQuotaLimits = {
   saveRoutePerMonth: number | null;
   saveRouteMaxActive: number | null;
+  /** 미완료(completed=0) Route 동시 보유 상한 — 보유 총량 범위 내 하위 제약(§9.5). null=무제한 */
+  saveRouteMaxIncomplete: number | null;
   publicRouteRequestPerDay: number | null;
   publicRouteRequestPerMonth: number | null;
   createEventPerMonth: number | null;
@@ -16,6 +18,8 @@ export type TierQuotaLimits = {
 export type TierQuotaUsage = {
   saveRouteCreatedThisMonth: number;
   saveRouteActiveTotal: number;
+  /** 현재 미완료(completed=0) Route 수 */
+  saveRouteIncompleteTotal: number;
   publicRouteRequestToday: number;
   publicRouteRequestThisMonth: number;
   createEventThisMonth: number;
@@ -25,13 +29,15 @@ const QUOTA_BY_TIER: Record<ServerUserTier, TierQuotaLimits> = {
   anonymous: {
     saveRoutePerMonth: 3,
     saveRouteMaxActive: 5,
+    saveRouteMaxIncomplete: 5,
     publicRouteRequestPerDay: 0,
     publicRouteRequestPerMonth: 0,
     createEventPerMonth: 0,
   },
   registered_free: {
-    saveRoutePerMonth: 5,
+    saveRoutePerMonth: 10,
     saveRouteMaxActive: 30,
+    saveRouteMaxIncomplete: 5,
     publicRouteRequestPerDay: 5,
     publicRouteRequestPerMonth: null,
     createEventPerMonth: 0,
@@ -39,6 +45,7 @@ const QUOTA_BY_TIER: Record<ServerUserTier, TierQuotaLimits> = {
   registered_paid: {
     saveRoutePerMonth: 50,
     saveRouteMaxActive: 100,
+    saveRouteMaxIncomplete: 10,
     publicRouteRequestPerDay: 10,
     publicRouteRequestPerMonth: null,
     createEventPerMonth: 5,
@@ -46,6 +53,7 @@ const QUOTA_BY_TIER: Record<ServerUserTier, TierQuotaLimits> = {
   admin: {
     saveRoutePerMonth: null,
     saveRouteMaxActive: null,
+    saveRouteMaxIncomplete: null,
     publicRouteRequestPerDay: null,
     publicRouteRequestPerMonth: null,
     createEventPerMonth: null,
@@ -123,31 +131,42 @@ export async function loadTierQuotaUsage(uid: string, monthKey = kstMonthKey()):
   const monthStart = Timestamp.fromDate(kstMonthStartUtc(monthKey));
   const dayStart = Timestamp.fromDate(kstDayStartUtc(kstDayKey()));
 
-  const [savedMonthSnap, savedTotalSnap, publicMonthSnap, publicDaySnap] = await Promise.all([
-    db
-      .collection("savedRoutes")
-      .where("userId", "==", uid)
-      .where("createdAt", ">=", monthStart)
-      .count()
-      .get(),
-    db.collection("savedRoutes").where("userId", "==", uid).count().get(),
-    db
-      .collection("publicRouteRequests")
-      .where("applicantUid", "==", uid)
-      .where("createdAt", ">=", monthStart)
-      .count()
-      .get(),
-    db
-      .collection("publicRouteRequests")
-      .where("applicantUid", "==", uid)
-      .where("createdAt", ">=", dayStart)
-      .count()
-      .get(),
-  ]);
+  const [savedMonthSnap, savedTotalSnap, savedCompletedSnap, publicMonthSnap, publicDaySnap] =
+    await Promise.all([
+      db
+        .collection("savedRoutes")
+        .where("userId", "==", uid)
+        .where("createdAt", ">=", monthStart)
+        .count()
+        .get(),
+      db.collection("savedRoutes").where("userId", "==", uid).count().get(),
+      // 완주(completed=1) 수 — 미완료 = 전체 − 완주. 옛 문서(completed 필드 없음)는 미완료로 집계됨.
+      db
+        .collection("savedRoutes")
+        .where("userId", "==", uid)
+        .where("completed", "==", 1)
+        .count()
+        .get(),
+      db
+        .collection("publicRouteRequests")
+        .where("applicantUid", "==", uid)
+        .where("createdAt", ">=", monthStart)
+        .count()
+        .get(),
+      db
+        .collection("publicRouteRequests")
+        .where("applicantUid", "==", uid)
+        .where("createdAt", ">=", dayStart)
+        .count()
+        .get(),
+    ]);
 
+  const activeTotal = savedTotalSnap.data().count;
+  const completedTotal = savedCompletedSnap.data().count;
   return {
     saveRouteCreatedThisMonth: savedMonthSnap.data().count,
-    saveRouteActiveTotal: savedTotalSnap.data().count,
+    saveRouteActiveTotal: activeTotal,
+    saveRouteIncompleteTotal: Math.max(0, activeTotal - completedTotal),
     publicRouteRequestToday: publicDaySnap.data().count,
     publicRouteRequestThisMonth: publicMonthSnap.data().count,
     createEventThisMonth: 0,
@@ -167,6 +186,12 @@ function quotaMessage(
     return "이벤트 생성은 준비 중입니다. 유료 플랜에서 제공될 예정입니다.";
   }
   if (action === "save_route") {
+    if (
+      limits.saveRouteMaxIncomplete != null &&
+      usage.saveRouteIncompleteTotal >= limits.saveRouteMaxIncomplete
+    ) {
+      return `진행 중인(미완주) 경로가 최대 ${limits.saveRouteMaxIncomplete}개입니다. 기존 경로를 완주하거나 삭제한 뒤 새 경로를 만들 수 있습니다.`;
+    }
     if (
       limits.saveRouteMaxActive != null &&
       usage.saveRouteActiveTotal >= limits.saveRouteMaxActive
@@ -234,16 +259,31 @@ export async function assertTierQuota(
 
   if (action === "save_route") {
     if (
+      !isUnlimited(limits.saveRouteMaxIncomplete) &&
+      usage.saveRouteIncompleteTotal >= (limits.saveRouteMaxIncomplete as number)
+    ) {
+      throw new HttpsError("resource-exhausted", quotaMessage(tier, action, usage, limits), {
+        reason: "save_route_incomplete_over",
+        limit: limits.saveRouteMaxIncomplete,
+      });
+    }
+    if (
       !isUnlimited(limits.saveRouteMaxActive) &&
       usage.saveRouteActiveTotal >= (limits.saveRouteMaxActive as number)
     ) {
-      throw new HttpsError("resource-exhausted", quotaMessage(tier, action, usage, limits));
+      throw new HttpsError("resource-exhausted", quotaMessage(tier, action, usage, limits), {
+        reason: "save_route_active_over",
+        limit: limits.saveRouteMaxActive,
+      });
     }
     if (
       !isUnlimited(limits.saveRoutePerMonth) &&
       usage.saveRouteCreatedThisMonth >= (limits.saveRoutePerMonth as number)
     ) {
-      throw new HttpsError("resource-exhausted", quotaMessage(tier, action, usage, limits));
+      throw new HttpsError("resource-exhausted", quotaMessage(tier, action, usage, limits), {
+        reason: "save_route_monthly_over",
+        limit: limits.saveRoutePerMonth,
+      });
     }
     return { allowed: true, tier, action, usage, limits };
   }

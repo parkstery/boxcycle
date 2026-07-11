@@ -5,6 +5,7 @@ import type { RouteActivitySnapshot } from "../../lib/firestoreRouteActivity";
 import type { BleCrankRpmUiState } from "../../hooks/useBleCrankRpm";
 import type { SavedRoute } from "../../lib/firestoreSavedRoutes";
 import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/firestoreSavedRoutes";
+import { isIncompleteQuotaError } from "../../lib/tierQuota";
 import { SavedRoutesPanel } from "./SavedRoutesPanel";
 import {
   OfficialCourseListModal,
@@ -50,6 +51,13 @@ type RideRoutePanelProps = {
   onLoadSavedRoute: (route: SavedRoute) => void;
   onRenameSavedRoute: (route: SavedRoute, newName: string) => Promise<void> | void;
   onDeleteSavedRoute: (route: SavedRoute) => Promise<void> | void;
+  /** 값이 바뀌면 「내 경로」 탭을 열고 대기 필터로 전환(미완료 쿼터 초과 유도). 0=무동작 */
+  openSavedTabSignal?: number;
+  /** 미완료 쿼터 초과 안내 배너 문구(내 경로 탭 상단) */
+  savedQuotaNotice?: string | null;
+  onDismissSavedQuotaNotice?: () => void;
+  /** 미완료 쿼터 초과로 저장이 막혔을 때(ad-hoc 저장 경로) 상위에 알림 */
+  onIncompleteQuotaBlocked?: (message: string) => void;
   /** 목적지 도달 시 3초간 표시되는 토스트. App.tsx 에서 자동으로 false 로 돌아옴. */
   arrivalToastVisible: boolean;
   /** ad-hoc(저장 안 한 채) 주행이 직전에 종료되어 「사용자 경로로 저장」 액션이 가능한 상태인지 */
@@ -115,6 +123,15 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
     }
   }, [tab, props.isPublicRouteReviewer]);
 
+  // 미완료 쿼터 초과 유도 — 신호가 오르면 「내 경로」 탭을 연다(대기 필터 전환은 SavedRoutesPanel 이 처리).
+  // effect 대신 이전 신호값과 비교(React 권장) — cascading render·set-state-in-effect 회피.
+  const openSavedTabSignal = props.openSavedTabSignal ?? 0;
+  const [prevOpenSavedTabSignal, setPrevOpenSavedTabSignal] = useState(openSavedTabSignal);
+  if (openSavedTabSignal !== prevOpenSavedTabSignal) {
+    setPrevOpenSavedTabSignal(openSavedTabSignal);
+    if (openSavedTabSignal > 0) setTab("saved");
+  }
+
   function openOfficialList(segment: OfficialCourseSegment) {
     setOfficialListModal(segment);
     if (segment === "public") {
@@ -146,8 +163,17 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
       setAdhocSaveDraft("");
       setAdhocConfirmUpdate(false);
     } catch (e) {
-      // 같은 경로가 이미 있으면 "업데이트하시겠습니까?" 확인을 띄운다.
-      if (e && typeof e === "object" && (e as { code?: string }).code === "saved-route-duplicate") {
+      // 미완료 쿼터 초과: 인라인 에러 대신 「내 경로」 대기 탭으로 유도한다.
+      if (isIncompleteQuotaError(e)) {
+        setAdhocSaveOpen(false);
+        setAdhocSaveDraft("");
+        setAdhocConfirmUpdate(false);
+        setAdhocSaveError(null);
+        props.onIncompleteQuotaBlocked?.(e.message);
+      } else if (
+        // 같은 경로가 이미 있으면 "업데이트하시겠습니까?" 확인을 띄운다.
+        e && typeof e === "object" && (e as { code?: string }).code === "saved-route-duplicate"
+      ) {
         setAdhocConfirmUpdate(true);
       } else {
         setAdhocSaveError(e instanceof Error ? e.message : String(e));
@@ -259,6 +285,9 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             }}
             onRenameRoute={props.onRenameSavedRoute}
             onDeleteRoute={props.onDeleteSavedRoute}
+            quotaNotice={props.savedQuotaNotice}
+            onDismissQuotaNotice={props.onDismissSavedQuotaNotice}
+            focusPendingSignal={openSavedTabSignal}
           />
           <button
             type="button"
