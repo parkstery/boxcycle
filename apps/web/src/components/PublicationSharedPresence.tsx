@@ -68,6 +68,9 @@ type PublicationSharedPresenceProps = {
   user: User;
   publicationId: string;
   trailId: string;
+  /** true 면 세션(참여자 명단) 을 Trail 단위로 격리한다. 개인 주행처럼 같은 publicationId 를
+   *  공유해도 동행이 아닌 경우에 켠다. 입문 허브·공식 코스(명시적 동행) 는 false 로 순수 코스 단위 공유. */
+  isolateByTrail?: boolean;
   title?: string;
   /** geometry 길이(m) — Firestore progressRatio → distM fallback */
   routeLenM?: number;
@@ -84,6 +87,7 @@ export function PublicationSharedPresence({
   user,
   publicationId,
   trailId,
+  isolateByTrail = false,
   title,
   routeLenM = 0,
   isRiding,
@@ -93,6 +97,12 @@ export function PublicationSharedPresence({
   showPanel = false,
 }: PublicationSharedPresenceProps) {
   const pageVisible = useDocumentVisibility();
+  // 세션(참여자 명단) 격리 키. isolateByTrail 이면 Trail 단위로 격리 → 같은 publication 이라도
+  // 서로 다른 Trail(각자 개인 주행)이면 세션이 갈려, 참여하지도 않은 남의 개인 주행자가 접속자로
+  // 뜨지 않는다. 입문 허브·공식 코스(명시적 동행) 는 순수 publicationId 로 공유(개인 Trail 무관 동행).
+  const sessionScopeId = isolateByTrail
+    ? `${publicationId.trim()}::${sanitizeTrailId(trailId)}`
+    : publicationId.trim();
   const [rows, setRows] = useState<PublicationSessionMemberRow[]>([]);
   const [liveRideRows, setLiveRideRows] = useState<TrailLivePublicationRideRow[]>([]);
   const [motionRows, setMotionRows] = useState<RtdbTrailMotionRow[]>([]);
@@ -102,6 +112,7 @@ export function PublicationSharedPresence({
   const onLiveTagRef = useRef(onLiveRiderNametagChange);
   const userRef = useRef(user);
   const publicationIdRef = useRef(publicationId);
+  const sessionScopeIdRef = useRef(sessionScopeId);
   const routeLenMRef = useRef(routeLenM);
   const liveRideRowsRef = useRef(liveRideRows);
   const motionRowsRef = useRef(motionRows);
@@ -109,6 +120,7 @@ export function PublicationSharedPresence({
   const guestUidsRef = useRef<string[]>([]);
   userRef.current = user;
   publicationIdRef.current = publicationId;
+  sessionScopeIdRef.current = sessionScopeId;
   routeLenMRef.current = routeLenM;
   liveRideRowsRef.current = liveRideRows;
   motionRowsRef.current = motionRows;
@@ -157,7 +169,7 @@ export function PublicationSharedPresence({
       }
       if (cancelled) return;
       try {
-        await upsertPublicationSessionMember(userRef.current, publicationId);
+        await upsertPublicationSessionMember(userRef.current, sessionScopeId);
       } catch (e: unknown) {
         const message = e instanceof Error ? e.message : String(e);
         if (!cancelled) setPresenceError(message);
@@ -165,7 +177,7 @@ export function PublicationSharedPresence({
       if (cancelled) return;
 
       unsub = subscribePublicationSessionMembers(
-        publicationId,
+        sessionScopeId,
         (next) => {
           startTransition(() => setRows(next));
         },
@@ -179,7 +191,7 @@ export function PublicationSharedPresence({
       cancelled = true;
       unsub?.();
     };
-  }, [user.uid, publicationId, pageVisible]);
+  }, [user.uid, publicationId, sessionScopeId, pageVisible]);
 
   useEffect(() => {
     if (!pageVisible) {
@@ -280,11 +292,11 @@ export function PublicationSharedPresence({
 
   useEffect(() => {
     const uid = user.uid;
-    const pid = publicationId;
+    const scope = sessionScopeId;
     return () => {
-      void deletePublicationSessionMember(uid, pid).catch(() => {});
+      void deletePublicationSessionMember(uid, scope).catch(() => {});
     };
-  }, [user.uid, publicationId]);
+  }, [user.uid, sessionScopeId]);
 
   useEffect(() => {
     if (!pageVisible) return;
@@ -293,7 +305,7 @@ export function PublicationSharedPresence({
         ? COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS
         : COURSE_PRESENCE_HEARTBEAT_PAUSED_MS;
     const id = window.setInterval(() => {
-      void touchPublicationSessionMember(userRef.current, publicationId)
+      void touchPublicationSessionMember(userRef.current, sessionScopeIdRef.current)
         .then(() => {
           setPresenceError(null);
         })
@@ -303,7 +315,7 @@ export function PublicationSharedPresence({
         });
     }, ms);
     return () => window.clearInterval(id);
-  }, [pageVisible, rideSessionActive, isRiding, publicationId, user.uid]);
+  }, [pageVisible, rideSessionActive, isRiding, sessionScopeId, user.uid]);
 
   const active = useMemo(
     () => rows.filter((r) => isPublicationSessionMemberActive(r.lastSeenAtMs)),

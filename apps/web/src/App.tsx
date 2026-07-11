@@ -269,13 +269,6 @@ export default function App() {
   /** 주행 세션 동안 MENU·표시용 Trail id (Trailhead UI 전환과 무관하게 유지) */
   const [ridingTrailId, setRidingTrailId] = useState<string | null>(null);
 
-  const trailSession = useTrailSession({
-    user: user ?? undefined,
-    trailId,
-    enabled: trailheadSessionActive,
-    pageVisible,
-  });
-
   const sanitizedTrailId = sanitizeTrailId(trailId);
   const onDedicatedTrail = sanitizedTrailId !== DEFAULT_TRAIL_ID;
 
@@ -647,6 +640,17 @@ export default function App() {
     return sanitizedTrailId;
   }, [isRideSessionActive, ridingTrailId, sanitizedTrailId]);
 
+  // presence(접속자) 는 실제 주행 중인 Trail 기준으로 upsert·구독해야 한다.
+  // 주행 중 네비(trailId)가 다른 Trail 을 가리켜도, 나는 menuTrailSanitizedId 에만 접속으로 표시돼야
+  // "참여하지도 않은 Trail 에 접속자로 뜨는" 오염이 사라진다.
+  const presenceTrailId = menuTrailSanitizedId;
+  const trailSession = useTrailSession({
+    user: user ?? undefined,
+    trailId: presenceTrailId,
+    enabled: trailheadSessionActive,
+    pageVisible,
+  });
+
   const menuTrailIdForFetch =
     menuTrailSanitizedId !== DEFAULT_TRAIL_ID ? menuTrailSanitizedId : DEFAULT_TRAIL_ID;
   const { meta: menuTrailFetchedMeta } = useTrailInstanceMeta(
@@ -801,9 +805,17 @@ export default function App() {
     setCoursePeerHud(next);
   }, []);
 
-  /** 입문 허브·퍼블릭 등 공식 코스 동행 presence — publish·필터 publicationId 와 동일 기준 */
-  const sharedPresenceCourseId =
+  const sharedRidePublicationId =
     basicActiveHubCourseId ?? activeOfficialCourseId ?? currentTrailMeta?.publicationId ?? null;
+
+  // 동행 세션은 오직 입문 허브(basicActiveHubCourseId) 만 cross-Trail 커뮤니티로 공유한다.
+  // 그 외(퍼블릭·공식 코스, 개인 주행) 는 모두 Trail 단위로 격리 → 같은 Trail 의 호스트·합류자는
+  // 동일 scope 로 서로 보이고, 서로 다른 Trail(각자 개인 주행) 은 섞이지 않는다.
+  // (activeOfficialCourseId 는 호스트만 갖고 합류자는 없어 scope 가 어긋나므로 기준에서 제외.)
+  const sharedRideIsExplicitCourse = basicActiveHubCourseId != null;
+
+  /** 입문 허브·퍼블릭 등 공식 코스 동행 presence — publish·필터 publicationId 와 동일 기준 */
+  const sharedPresenceCourseId = sharedRidePublicationId;
 
   const sharedPresenceCourseTitle = useMemo(() => {
     if (!sharedPresenceCourseId) return undefined;
@@ -1371,7 +1383,7 @@ export default function App() {
     routeEnabled: Boolean(
       trailheadSessionActive &&
         isRideSessionActive &&
-        (basicActiveHubCourseId ?? activeOfficialCourseId ?? currentTrailMeta?.publicationId) &&
+        sharedRidePublicationId &&
         Boolean(routeGeometry?.coordinates?.length),
     ),
     pageVisible,
@@ -1379,7 +1391,7 @@ export default function App() {
     // peer 동기화는 메뉴 네비(trailId)가 아니라 실제 주행 trail(ridingTrailId)에 publish해야
     // 같은 trail의 motion 노드를 공유한다. 주행 중 메뉴가 Trailhead("default")로 가도 어긋나지 않음.
     trailId: menuTrailSanitizedId,
-    publicationId: basicActiveHubCourseId ?? activeOfficialCourseId ?? currentTrailMeta?.publicationId ?? null,
+    publicationId: sharedRidePublicationId,
     routeGeometry,
     routeDistanceMeters,
     virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
@@ -1590,16 +1602,24 @@ export default function App() {
     const courseTitle = sharedPresenceCourseId
       ? (sharedPresenceCourseTitle?.trim() || "공식 경로")
       : null;
-    const coursePeerNames = peerHudLabels(coursePeerHud);
     const trailMembers = trailSession.rows.map((r) => ({
       key: r.uid,
       display: r.displayName?.trim() || r.uid.slice(0, 8),
       isSelf: r.uid === user.uid,
       active: isTrailMemberActive(r.lastSeenAtMs),
     }));
+    // 동행 블록은 접속(Trail) 블록에 이미 뜬 사람을 다시 보여주지 않는다 — 같은 Trail 에서 코스를
+    // 함께 타면 접속·동행 소스가 같은 사람을 잡아 이름이 두 번 나오던 중복 표시를 제거한다.
+    const activeTrailMemberUids = new Set(
+      trailMembers.filter((m) => m.active).map((m) => m.key),
+    );
+    const coursePeerNames = peerHudLabels(
+      coursePeerHud.filter((p) => !activeTrailMemberUids.has(p.id)),
+    );
     const trailError = trailSession.error;
     const courseActivityHudLine = formatRouteActivityHudLine(courseActivity);
-    const tid = sanitizeTrailId(trailId);
+    // presence 와 동일한 Trail 기준으로 라벨·Trailhead 판정(주행 중 네비 trailId 와 어긋남 방지).
+    const tid = presenceTrailId;
     return {
       trailheadEnabled: true,
       trailId: tid,
@@ -1617,6 +1637,7 @@ export default function App() {
     configured,
     user,
     trailId,
+    presenceTrailId,
     trailDisplayLabels,
     currentTrailMeta,
     trailSession.rows,
@@ -2091,6 +2112,7 @@ export default function App() {
         <PublicationSharedPresence
           user={user}
           publicationId={sharedPresenceCourseId}
+          isolateByTrail={!sharedRideIsExplicitCourse}
           trailId={menuTrailSanitizedId}
           title={sharedPresenceCourseTitle}
           routeLenM={
