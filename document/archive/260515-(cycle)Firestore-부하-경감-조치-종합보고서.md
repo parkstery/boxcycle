@@ -1,6 +1,6 @@
 # Firestore 부하 경감 조치 — 종합 보고서
 
-> **(cycle) 스냅샷:** **2026-05-15** 조치 기준. 본문 `rooms/`·`useLobby*` 표기는 당시·레거시 — 현재는 `trails/`·`useTrail*` ([용어집](260517-제품-용어-Trailhead-Trail.md)). 후속: [트래픽 저감 계획](260516-Firestore-트래픽-저감-상세-수정-계획.md), [Firebase 비용 체크리스트](260523-Firebase-비용-운영-체크리스트.md).
+> **(cycle) 스냅샷:** **2026-05-15** 조치 기준. 본문 `rooms/`·`useLobby*` 표기는 당시·레거시 — 현재는 `trails/`·`useTrail*` ([용어집](../260517-제품-용어-Trailhead-Trail.md)). 후속: [트래픽 저감 계획](260516-Firestore-트래픽-저감-상세-수정-계획.md), [Firebase 비용 체크리스트](../260523-Firebase-비용-운영-체크리스트.md).
 
 **작성일:** 2026-05-15  
 **범위:** 웹 앱(`apps/web`) 클라이언트 + `firestore.rules`  

@@ -5,7 +5,7 @@
 | 문서 유형 | **execution** + **architecture** — Mapbox 표현 계층 원인 분리·단계 복구 |
 | 작성일 | 2026-05-27 |
 | 상태 | **초안** — Builder 작업지시 SoT (Phase 순서 엄수) |
-| 연결 문서 | [World Activity Presence 설계](260523-World-Activity-Presence-설계.md), [Activity World LOD](260517-Activity-World-지도-LOD-설계.md), [자문단 정렬 보고](260526-World-Activity-Presence-자문단-정렬-보고.md), [Trail 관전 보고](260514-(cycle)로비_코스주행자_맵관전_구현_보고서.md) |
+| 연결 문서 | [World Activity Presence 설계](../260523-World-Activity-Presence-설계.md), [Activity World LOD](260517-Activity-World-지도-LOD-설계.md), [자문단 정렬 보고](260526-World-Activity-Presence-자문단-정렬-보고.md), [Trail 관전 보고](260514-(cycle)로비_코스주행자_맵관전_구현_보고서.md) |
 
 ---
 
@@ -27,7 +27,7 @@ dot/trail 표시 문제가 **정책·데이터·렌더링·realtime**에 동시�
 | W2 | Trail 내부 | **같은 trail 참가자끼리만** rider live position 표시 |
 | Z1 | Zoom | **저축척:** dot/light 중심 · **고축척:** route polyline 표시 가능 |
 
-설계 SoT: [260523](260523-World-Activity-Presence-설계.md) (publication 1 dot, heartbeat 분리). 본 문서는 **디버그·복구 절차** SoT.
+설계 SoT: [260523](../260523-World-Activity-Presence-설계.md) (publication 1 dot, heartbeat 분리). 본 문서는 **디버그·복구 절차** SoT.
 
 ---
 

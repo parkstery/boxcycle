@@ -5,7 +5,7 @@
 | 문서 유형 | **product + architecture** — 정복 레이어(핵심 판타지·메커닉·데이터 모델·비용)의 **단일 진실** |
 | 최초 작성 | 2026-07-03 |
 | 상태 | **초안** — PM 합의본. 타일 줌 레벨 등 세부 수치는 Phase A 체감 테스트 후 확정 |
-| 연결 문서 | [마스터 비전](260511-RTW-마스터-비전-및-종합계획.md), [World Activity Presence(red dot)](260523-World-Activity-Presence-설계.md), [Route Token 경제](260518-Route-Token-경제-설계.md), [코스 수명·UGC 정책](260511-코스-수명-UGC-품질-정책.md), [tier·진입 정책](260519-사용자-tier-및-진입-정책.md), [Firebase 비용 체크리스트](260523-Firebase-비용-운영-체크리스트.md), [진행 종합 검토(2026-07-02)](260702-프로젝트-진행-종합-검토-보고서.md) |
+| 연결 문서 | [마스터 비전](260511-RTW-마스터-비전-및-종합계획.md), [World Activity Presence(red dot)](260523-World-Activity-Presence-설계.md), [Route Token 경제](260518-Route-Token-경제-설계.md), [코스 수명·UGC 정책](archive/260511-코스-수명-UGC-품질-정책.md), [tier·진입 정책](260519-사용자-tier-및-진입-정책.md), [Firebase 비용 체크리스트](260523-Firebase-비용-운영-체크리스트.md), [진행 종합 검토(2026-07-02)](archive/260702-프로젝트-진행-종합-검토-보고서.md) |
 
 ---
 
@@ -204,6 +204,49 @@ Firestore 무료 한도(write 2만/일·read 5만/일) 대비 **한 자릿수 %*
 
 계측 인프라는 미비 — Phase A에선 Firestore 카운터 수준의 경량 로깅으로 시작(OQ-5).
 
+## 9.5 주행 인정·Route 진행률·미완료 쿼터 (2026-07-07 자문 3연속 → 확정)
+
+**핵심 원칙:** "달린 것은 모두 축적된다"와 정합. **운동·Claim·Pioneer는 실제 달린 만큼 즉시 인정**(변경 없음). 제한은 오직 **미완료 Route 저장 슬롯 개수**에만 둔다(최소 인정 거리 임계는 **폐기** — 철학과 충돌하고, 개수 쿼터가 행동을 더 잘 유도).
+
+### 9.5.1 인정 분리 (무엇을 언제 인정하나)
+
+| 대상 | 인정 시점·기준 | 현재 코드 |
+|---|---|---|
+| 운동 거리·칼로리·누적 | 즉시. `isDiscardableRideRecord`(100m·5초 폐기 필터)만 | ✅ 이미 일치 |
+| Conquest(Claim)·Pioneer | 즉시, **실제 주행 구간(0..virtualDistance)만** | ✅ 이미 일치 |
+| **Route 완주 격상(`completed:1`)** | **완주율 ≥ 98%** 일 때만 | ⚠️ 現버그: 완주율 무관하게 격상 → **게이트 추가** |
+| Route 진행률(이어 달리기) | `lastProgressRatio` 저장. 미완료도 저장 | ❌ 신규 |
+| "이 Route 최초 완주" 타이틀·뱃지 | 100% 완주에만 | ❌ 신규(미션 붙일 때) |
+
+### 9.5.2 미완료 Route 쿼터 (악용 차단의 본체)
+
+- **미완료(`completed=0`) 슬롯 상한**: **무료 5 / 유료 10**. 이 상한은 기존 **보유 총량(`saveRouteMaxActive`: 무료 30·유료 100) 범위 내**의 하위 제약이다(별도 +알파 아님).
+- 새 Route 생성 시 미완료가 꽉 차면 → **"이어서 주행 / 삭제" 선택 강제**(둘 중 하나 없이는 새 Route 불가).
+- 최소 인정 거리 임계는 두지 않는다 — 개수 쿼터로 대체.
+
+### 9.5.3 미완료 자동 정리
+
+- **미완료 TTL 7일 → 90일 연장**([firestoreSavedRoutes.ts](../apps/web/src/lib/firestoreSavedRoutes.ts) `SAVED_ROUTE_EXPIRY_MS`). 장거리 프로젝트를 몇 달 보관 가능.
+- ⚠️ **불변 원칙**: Route 삭제·만료돼도 **누적 거리·Claim·Pioneer·칼로리는 유지**. 사라지는 것은 Route 문서뿐.
+
+### 9.5.4 UI (장기 프로젝트화)
+
+- 저장 목록에 진행률 바(`████████░░ 80%`) + ⭐프로젝트 표기("서울 한 바퀴 42%").
+- 재로드 시 "80% 지점부터 이어가기" 옵션.
+
+### 9.5.5 구현 단위 (다음 세션 착수)
+
+1. 완주 게이트 — `completionRatio >= 0.98` 일 때만 `promoteSavedRouteInFirestore` 호출(現 [useRideEndAndPersistence.ts:292](../apps/web/src/hooks/useRideEndAndPersistence.ts) 무조건 호출 수정)
+2. `lastProgressRatio`(또는 미터) 필드를 `savedRoutes`에 추가·저장
+3. 미완료 쿼터(무료5/유료10) 검사 — 클라 선검사 + 서버 가드(기존 `tierQuotaCore` 패턴 재사용)
+4. 새 Route 생성 게이트 UI("이어서/삭제")
+5. `SAVED_ROUTE_EXPIRY_MS` 7일 → 90일
+6. 진행률 바 UI(SavedRoutesPanel)
+
+> Claim·Pioneer·운동기록 코드는 **손대지 않는다**(이미 실주행 구간 기준으로 맞음).
+
+---
+
 ## 10. Open Questions
 
 | # | 질문 | 결정 시기 |
@@ -233,3 +276,4 @@ Firestore 무료 한도(write 2만/일·read 5만/일) 대비 **한 자릿수 %*
 | 2026-07-03 | **§3.4 신설(외부 자문 반영)** — Claim 관대(터치)·Pioneer 엄격(타일 내 자기 경로 길이 ≥ P_MIN — 도로 그래프 불필요, 탐험도·비율 판정 도입 금지), 등기 철학(공정 제도 아닌 역사 기록)·무주지 허용, **pioneer 기록의 비가역성 → Phase A 첫날부터 기록·노출은 팝업만**. 사용자 노출 용어 「영토」 확정(z16·블록·타일 비노출, §6). OQ-1 보상 단위 프레임 보강, OQ-10~11 추가 |
 | 2026-07-03 | **Phase A 구현 1차 완료(코드 반영 중)** — 클라 `conquestTiles.ts`(단일 패스 타일 변환)·`rides.conquest` 페이로드·pedalSec 누적, CF `conquestOnRideCreated`(Trust Tier 한도·청크·pioneer write-once·`conquestResult` 회신), rules(`conquest/*`·`pioneerChunks` 읽기 전용), UI 4종(지도 오버레이·요약 「새 영토 +N」·account 정복 통계·핀 팝업 개척자). §7 Phase C 의 **라이브 날씨(Open-Meteo)를 선행 도입**(세션 중 HUD 한 줄, 30분 갱신). 배포(functions·rules) 후 유효 |
 | 2026-07-03 | **v2 도로 전환(PM 결정)** — §3.1 정복 단위를 z16 타일(면)→**z20 도로 셀(~30m, 선)**로 교체(근거: 자산 언어=도로, 노력 비례, 시뮬레이터라 맵매칭 불요). 자산=「내 도로망」 궤적 영구 렌더, 지표=신규 도로 km, 라이브 카운터=「🏴 +N km」+진행 구간 실시간 파란 칠. §3.4 **셀 pioneer 폐기 → 구간 챌린지**(교차로·IC~JC 완주+정지시간 규칙, Phase B, OSM 그래프 필요). §4 v2 스키마(chunks z12·traces). SEC_PER_BLOCK 폐지(m 예산이 유일 한도). 실주행 검증 후 개편 |
+| 2026-07-07 | **§9.5 신설(자문 3연속 → PM 확정)** — 주행 인정 분리(운동·Claim·Pioneer 즉시 인정 유지, Route 완주만 **≥98% 게이트**), **Route 진행률·이어 달리기** 도입, **미완료 쿼터 무료5/유료10**(보유 30/100 범위 내), 미완료 TTL **7→90일**, 최소 인정 거리 임계 **폐기**. Claim·Pioneer·운동기록 코드 불변. 구현은 §9.5.5 단위로 다음 세션 |

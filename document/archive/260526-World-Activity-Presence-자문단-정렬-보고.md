@@ -5,7 +5,7 @@
 | 문서 유형 | **product** + **architecture** — 자문 검토·문서 대비 코드 갭·정렬 로드맵 |
 | 작성일 | 2026-05-26 |
 | 상태 | **반영 중** — P0·P0-B 맵·구독 경계 (2026-05-26) |
-| 연결 문서 | [World Activity Presence 설계](260523-World-Activity-Presence-설계.md), [Activity World LOD](260517-Activity-World-지도-LOD-설계.md), [Firestore 트래픽 계획](260516-Firestore-트래픽-저감-상세-수정-계획.md) |
+| 연결 문서 | [World Activity Presence 설계](../260523-World-Activity-Presence-설계.md), [Activity World LOD](260517-Activity-World-지도-LOD-설계.md), [Firestore 트래픽 계획](260516-Firestore-트래픽-저감-상세-수정-계획.md) |
 
 ---
 
@@ -85,7 +85,7 @@ flowchart TB
 
 **지금:** Layer 0 CF 스켈레톤만. 클라이언트는 bbox + limit 쿼리.
 
-**문서 패치:** [260523](260523-World-Activity-Presence-설계.md)에 § Layer 0 Regional Aggregate 추가.
+**문서 패치:** [260523](../260523-World-Activity-Presence-설계.md)에 § Layer 0 Regional Aggregate 추가.
 
 ---
 
@@ -214,7 +214,7 @@ flowchart LR
 
 | 문서 | 추가 |
 |------|------|
-| [260523-World-Activity-Presence-설계](260523-World-Activity-Presence-설계.md) | Map 렌더 계약, 데이터 수명, Layer 0, representativeMode |
+| [260523-World-Activity-Presence-설계](../260523-World-Activity-Presence-설계.md) | Map 렌더 계약, 데이터 수명, Layer 0, representativeMode |
 | [260517-Activity-World-지도-LOD-설계](260517-Activity-World-지도-LOD-설계.md) | A층 = publication; livePresence 범위 밖 |
 | [260516-Firestore-트래픽-...](260516-Firestore-트래픽-저감-상세-수정-계획.md) | livePresence 월드 구독 금지 |
 | `.cursor/rules/hook-layers.mdc` | MapView props ↔ Layer 매핑 |

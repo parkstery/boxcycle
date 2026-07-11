@@ -1,6 +1,6 @@
 # (cycle) 음악 · 메시지 · TTS 상세 분석 보고서
 
-> **(cycle) 스냅샷:** **2026-05-14** 코드 기준 기록. 현재 제품·Firestore 용어는 [제품 용어 Trailhead·Trail](260517-제품-용어-Trailhead-Trail.md) 우선.
+> **(cycle) 스냅샷:** **2026-05-14** 코드 기준 기록. 현재 제품·Firestore 용어는 [제품 용어 Trailhead·Trail](../260517-제품-용어-Trailhead-Trail.md) 우선.
 
 **작성 기준일:** 2026-05-14  
 **대상 앱:** `apps/web` (BOXCYCLE 가상 주행)  

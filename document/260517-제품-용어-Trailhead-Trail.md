@@ -5,7 +5,7 @@
 | 문서 유형 | **제품·범위** (`product`) — 용어·브랜딩의 **단일 진실(source of truth)** |
 | 작성일 | 2026-05-17 |
 | 상태 | **채택** — UI·카피·신규 문서는 본 문서를 따른다. 코드·Firestore 경로는 단계적 반영 |
-| 연결 | [주행 여정·패널 IA](260515-ux-주행-여정-및-패널-IA.md), [Firestore 스키마 초안](260509-Firestore-컬렉션-스키마-초안.md), [로비·코스주행자 맵관전](260514-(cycle)로비_코스주행자_맵관전_구현_보고서.md) |
+| 연결 | [주행 여정·패널 IA](archive/260515-ux-주행-여정-및-패널-IA.md), [Firestore 스키마 초안](archive/260509-Firestore-컬렉션-스키마-초안.md), [로비·코스주행자 맵관전](archive/260514-(cycle)로비_코스주행자_맵관전_구현_보고서.md) |
 
 ---
 
@@ -153,11 +153,11 @@
 
 갱신 시 본 문서를 링크하고, 본문의 「로비」「방」「room」「lobby」 사용자 표현을 Trailhead/Trail로 맞춘다.
 
-- [x] [260515-ux-주행-여정-및-패널-IA.md](260515-ux-주행-여정-및-패널-IA.md)
-- [x] [260514-(cycle)로비_코스주행자_맵관전_구현_보고서.md](260514-(cycle)로비_코스주행자_맵관전_구현_보고서.md)
-- [x] [260515-(cycle)Firestore-부하-경감-조치-종합보고서.md](260515-(cycle)Firestore-부하-경감-조치-종합보고서.md) — 상단 용어 안내
-- [x] [260516-Firestore-트래픽-저감-상세-수정-계획.md](260516-Firestore-트래픽-저감-상세-수정-계획.md) — 상단 용어 안내
-- [x] [260516-수동-스모크-체크리스트.md](260516-수동-스모크-체크리스트.md)
+- [x] [260515-ux-주행-여정-및-패널-IA.md](archive/260515-ux-주행-여정-및-패널-IA.md)
+- [x] [260514-(cycle)로비_코스주행자_맵관전_구현_보고서.md](archive/260514-(cycle)로비_코스주행자_맵관전_구현_보고서.md)
+- [x] [260515-(cycle)Firestore-부하-경감-조치-종합보고서.md](archive/260515-(cycle)Firestore-부하-경감-조치-종합보고서.md) — 상단 용어 안내
+- [x] [260516-Firestore-트래픽-저감-상세-수정-계획.md](archive/260516-Firestore-트래픽-저감-상세-수정-계획.md) — 상단 용어 안내
+- [x] [260516-수동-스모크-체크리스트.md](archive/260516-수동-스모크-체크리스트.md)
 - [x] [260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md](260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md) — Trail 병기
 
 ---
@@ -168,7 +168,7 @@
 |------|------|
 | 2026-05-17 | 최초 채택 — Lobby→Trailhead, Room→Trail (자문·시니어 합의) |
 | 2026-05-17 | Firestore `trails/` 전환·마이그레이션 CLI (`admin:migrate-rooms-to-trails`) |
-| 2026-05-17 | [Activity World 지도 LOD](260517-Activity-World-지도-LOD-설계.md) — 전역 라이브 코스 점/라인 |
+| 2026-05-17 | [Activity World 지도 LOD](archive/260517-Activity-World-지도-LOD-설계.md) — 전역 라이브 코스 점/라인 |
 | 2026-05-17 | §2 시청 컨텍스트 — 「어느 Trail」에 Trailhead(`default`) 포함, Activity World vs 관전 구분 |
 | 2026-05-19 | §1 Trailhead=허브·▶ 자동 Trail·3자리 displayNumber·§1-b living world 분리·TrailHubPanel |
 | 2026-06-24 | §1-c Trailhead MENU 목록 — 주행 중 Trail만, listing+CG 병합 |

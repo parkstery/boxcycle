@@ -5,9 +5,9 @@
 대상: `apps/web` 클라이언트, Firestore 스키마(신규 aggregate), Rules·Functions(2단계 이후)  
 관련 철학: **길(route) 중심 · 실제 세계 탐험 · 살아 있는 활동 세계 · 좁은 realtime 동행**
 
-> **제품 용어(2026-05-17):** Lobby → **Trailhead**, Room(방) → **Trail**. 본문의 「방」「로비」는 맥락상 Trail·Trailhead를 가리킨다. Firestore `rooms/`·`roomId` 는 유지 — [용어집](260517-제품-용어-Trailhead-Trail.md).
+> **제품 용어(2026-05-17):** Lobby → **Trailhead**, Room(방) → **Trail**. 본문의 「방」「로비」는 맥락상 Trail·Trailhead를 가리킨다. Firestore `rooms/`·`roomId` 는 유지 — [용어집](../260517-제품-용어-Trailhead-Trail.md).
 
-> **Route Token:** 제품 정의(운동 보상 포인트·마일리지 분리) — [Route Token 경제·온보딩 설계](260518-Route-Token-경제-설계.md) §0. 본 문서 §1.5의 「경로 생성 권한」은 **기술 쿼터** 관점이며, 제품 소비처는 해당 문서 §3.4를 우선한다.
+> **Route Token:** 제품 정의(운동 보상 포인트·마일리지 분리) — [Route Token 경제·온보딩 설계](../260518-Route-Token-경제-설계.md) §0. 본 문서 §1.5의 「경로 생성 권한」은 **기술 쿼터** 관점이며, 제품 소비처는 해당 문서 §3.4를 우선한다.
 
 ---
 
@@ -58,9 +58,9 @@ BOXCYCLE 세계관·자문 정리 이후, 본 문서의 중심축은 아래로 �
 
 ### 1.5 토큰·창작 루프 (Firestore와 분리하되 정렬)
 
-- 토큰 = **운동 보상 포인트**(제품) · 경로 생성은 **서버 쿼터**(M1). 1차: 운동 → 마일리지·토큰 → 동기 보상 → 재운동. 2차(부가): 경로·발견 — [260518 §2](260518-Route-Token-경제-설계.md).
+- 토큰 = **운동 보상 포인트**(제품) · 경로 생성은 **서버 쿼터**(M1). 1차: 운동 → 마일리지·토큰 → 동기 보상 → 재운동. 2차(부가): 경로·발견 — [260518 §2](../260518-Route-Token-경제-설계.md).
 - aggregate에 유리한 **저비용 고가치 데이터**: 최근 30일 활동, 좋아요, 월간 인기, 탐험 이벤트, 토큰 드롭 위치.
-- 상세 제품 스펙 — [Route Token 경제·온보딩 설계](260518-Route-Token-경제-설계.md) (단일 진실). 본 계획은 **읽기 패턴**만 정렬한다.
+- 상세 제품 스펙 — [Route Token 경제·온보딩 설계](../260518-Route-Token-경제-설계.md) (단일 진실). 본 계획은 **읽기 패턴**만 정렬한다.
 
 ---
 
@@ -259,7 +259,7 @@ courseActivity/{courseId}
 
 ### 4.5 저비용 고가치 데이터 (토큰·이벤트와 연동)
 
-Firestore에 **aggregate·저빈도**로 적합한 항목 ([Route Token 설계](260518-Route-Token-경제-설계.md) §6.3 토큰 드롭과 연동):
+Firestore에 **aggregate·저빈도**로 적합한 항목 ([Route Token 설계](../260518-Route-Token-경제-설계.md) §6.3 토큰 드롭과 연동):
 
 - 최근 30일 코스/타일 활동 heat  
 - 월간 인기·좋아요 집계  
@@ -298,7 +298,7 @@ Firestore에 **aggregate·저빈도**로 적합한 항목 ([Route Token 설계](
 
 - §4.4 방 통합 재평가.  
 - §5 세션 채널 분리.  
-- [Route Token·첫 경로 생성 온보딩](260518-Route-Token-경제-설계.md) (M1 스프린트).
+- [Route Token·첫 경로 생성 온보딩](../260518-Route-Token-경제-설계.md) (M1 스프린트).
 
 ---
 

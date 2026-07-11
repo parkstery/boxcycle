@@ -5,8 +5,8 @@
 | 문서 유형 | **product** + **architecture** (경제 루프·Firestore·Functions 경계) |
 | 작성일 | 2026-05-18 |
 | 상태 | **검토 중** — M1 인프라 코드 반영됨. **제품 정의는 자문(2026-05-18) 기준으로 보완** · 소비처·마일리지 분리는 후속 스프린트 |
-| 상위 | [Firestore 트래픽·Activity World](260516-Firestore-트래픽-저감-상세-수정-계획.md) §1.5, [RTW 마스터 비전](260511-RTW-마스터-비전-및-종합계획.md) §3 |
-| 연결 | [Activity World 지도 LOD](260517-Activity-World-지도-LOD-설계.md), [기능 추가 계획(원전)](260509-기능-추가-계획-제품-및-아키텍처.md), [아키텍처·DB 장기안](260509-아키텍쳐-DB설계.md), [코스 수명·UGC](260511-코스-수명-UGC-품질-정책.md), [보안 분석](260516-보안-분석-보고서.md), [제품 용어 Trailhead·Trail](260517-제품-용어-Trailhead-Trail.md) |
+| 상위 | [Firestore 트래픽·Activity World](archive/260516-Firestore-트래픽-저감-상세-수정-계획.md) §1.5, [RTW 마스터 비전](260511-RTW-마스터-비전-및-종합계획.md) §3 |
+| 연결 | [Activity World 지도 LOD](archive/260517-Activity-World-지도-LOD-설계.md), [기능 추가 계획(원전)](archive/260509-기능-추가-계획-제품-및-아키텍처.md), [아키텍처·DB 장기안](archive/260509-아키텍쳐-DB설계.md), [코스 수명·UGC](archive/260511-코스-수명-UGC-품질-정책.md), [보안 분석](archive/260516-보안-분석-보고서.md), [제품 용어 Trailhead·Trail](260517-제품-용어-Trailhead-Trail.md) |
 
 > **용어:** 본 문서의 **Route Token(경로 토큰)** 은 Mapbox/Firebase **API 토큰**과 무관하다.
 
@@ -120,7 +120,7 @@ flowchart LR
   Discover --> Ride2
 ```
 
-- **공개·승격**은 토큰이 아니라 [코스 수명 정책](260511-코스-수명-UGC-품질-정책.md).
+- **공개·승격**은 토큰이 아니라 [코스 수명 정책](archive/260511-코스-수명-UGC-품질-정책.md).
 - Activity World는 **「다른 사람도 탄다」** 느낌 — MMO가 아닌 **발견·동기**.
 
 ### 2.3 행동 유도 우선순위 (자문)
@@ -189,7 +189,7 @@ flowchart LR
 | 10km 달성 시 **배지** (고정) | 강화 시스템 |
 | 주말·새벽 **소보너스** (운영 config) | 드랍률 farm |
 
-v2 `tokenDrops`는 **고정 메타 + 완주 1회 클레임** — 지도에 파밍 POI를 깔지 않는다 ([260517 LOD](260517-Activity-World-지도-LOD-설계.md)와 동일 철학).
+v2 `tokenDrops`는 **고정 메타 + 완주 1회 클레임** — 지도에 파밍 POI를 깔지 않는다 ([260517 LOD](archive/260517-Activity-World-지도-LOD-설계.md)와 동일 철학).
 
 ### 3.6 M1 기술 소비 (현재 코드 — 유지·조정 가능)
 
@@ -212,7 +212,7 @@ v2 `tokenDrops`는 **고정 메타 + 완주 1회 클레임** — 지도에 파�
 | 감소 | **없음** (통계만) | 소비 시 감소 |
 | UI | 프로필·리포트·성장 피드백 **중심** | MENU 소량 표시 + 상점(후속) |
 
-**데이터(권장):** `mileage_ledger` 또는 `users` 집계 캐시 + `rides` 파생 — [기능 추가 계획 §9.2](260509-기능-추가-계획-제품-및-아키텍처.md), [DB 장기안](260509-아키텍쳐-DB설계.md).  
+**데이터(권장):** `mileage_ledger` 또는 `users` 집계 캐시 + `rides` 파생 — [기능 추가 계획 §9.2](archive/260509-기능-추가-계획-제품-및-아키텍처.md), [DB 장기안](archive/260509-아키텍쳐-DB설계.md).  
 **M1 범위 밖.** 토큰 원장(`routeTokenLedger`)과 **혼합하지 않는다.**
 
 ---
@@ -277,7 +277,7 @@ M1 스키마는 **유지** (`routeTokenLedger`, `users.routeTokenBalance`, `conf
 | **M5** | 고정 `tokenDrops`/배지 — **파밍 없음** |
 | **보류** | MMO·경매·강화·전투 |
 
-[260516](260516-Firestore-트래픽-저감-상세-수정-계획.md) Activity World·aggregate는 **운동 맥락** 유지, 토큰 드롭은 §3.5 수준.
+[260516](archive/260516-Firestore-트래픽-저감-상세-수정-계획.md) Activity World·aggregate는 **운동 맥락** 유지, 토큰 드롭은 §3.5 수준.
 
 ### 7.3 M1 스모크 (기술)
 
@@ -306,8 +306,8 @@ M1 스키마는 **유지** (`routeTokenLedger`, `users.routeTokenBalance`, `conf
 |------|-----------|
 | **제품 원칙·토큰/마일리지 역할** | **본 문서 §0~§4** |
 | 원장·CF·M1 API | 본 문서 §5~§6 + 코드 |
-| Activity World 표현 | [260517 LOD](260517-Activity-World-지도-LOD-설계.md) |
-| 260516 토큰 한 줄 | [260516 §1.5](260516-Firestore-트래픽-저감-상세-수정-계획.md) — **본 문서가 제품 정의 우선** |
+| Activity World 표현 | [260517 LOD](archive/260517-Activity-World-지도-LOD-설계.md) |
+| 260516 토큰 한 줄 | [260516 §1.5](archive/260516-Firestore-트래픽-저감-상세-수정-계획.md) — **본 문서가 제품 정의 우선** |
 
 ---
 

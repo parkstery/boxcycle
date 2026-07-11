@@ -4,8 +4,8 @@
 |------|------|
 | 문서 유형 | **architecture** — 경로 데이터 저장·캐시·재계산의 단일 진실 |
 | 최초 작성 | 2026-05-11 |
-| 상태 | **초안** — 자문 4·5단계 결론 종합. Object Storage 선택은 [RTW 마스터 §7 Q5](260511-RTW-마스터-비전-및-종합계획.md). |
-| 연결 문서 | [RTW 마스터](260511-RTW-마스터-비전-및-종합계획.md), [코스 수명·UGC 품질 정책](260511-코스-수명-UGC-품질-정책.md), [Firestore Rules 일반화](260511-Firestore-Rules-일반화-방안.md), [Phase별 실행 체크리스트](260511-Phase별-실행-체크리스트-Course-Session-Presence.md), [Firestore 스키마 초안](260509-Firestore-컬렉션-스키마-초안.md), [Firestore→Postgres 체크리스트](260509-Firestore-Postgres-이전-체크리스트.md) |
+| 상태 | **초안** — 자문 4·5단계 결론 종합. Object Storage 선택은 [RTW 마스터 §7 Q5](../260511-RTW-마스터-비전-및-종합계획.md). |
+| 연결 문서 | [RTW 마스터](../260511-RTW-마스터-비전-및-종합계획.md), [코스 수명·UGC 품질 정책](260511-코스-수명-UGC-품질-정책.md), [Firestore Rules 일반화](260511-Firestore-Rules-일반화-방안.md), [Phase별 실행 체크리스트](260511-Phase별-실행-체크리스트-Course-Session-Presence.md), [Firestore 스키마 초안](260509-Firestore-컬렉션-스키마-초안.md), [Firestore→Postgres 체크리스트](260509-Firestore-Postgres-이전-체크리스트.md) |
 
 ---
 

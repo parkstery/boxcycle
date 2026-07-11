@@ -5,7 +5,7 @@
 | 문서 유형 | **architecture** — Rules 데이터 기반 일반화의 단일 진실 |
 | 최초 작성 | 2026-05-11 |
 | 상태 | **초안** — 자문 1단계(2.2 운영형 플랫폼) 결론. 단계적 마이그레이션 권장. |
-| 연결 문서 | [RTW 마스터](260511-RTW-마스터-비전-및-종합계획.md), [코스 수명·UGC 품질 정책](260511-코스-수명-UGC-품질-정책.md), [경로 저장 계층화](260511-경로저장-계층화-Frozen-Route-Segment.md), [Phase별 실행 체크리스트](260511-Phase별-실행-체크리스트-Course-Session-Presence.md), [Firestore 스키마 초안](260509-Firestore-컬렉션-스키마-초안.md) |
+| 연결 문서 | [RTW 마스터](../260511-RTW-마스터-비전-및-종합계획.md), [코스 수명·UGC 품질 정책](260511-코스-수명-UGC-품질-정책.md), [경로 저장 계층화](260511-경로저장-계층화-Frozen-Route-Segment.md), [Phase별 실행 체크리스트](260511-Phase별-실행-체크리스트-Course-Session-Presence.md), [Firestore 스키마 초안](260509-Firestore-컬렉션-스키마-초안.md) |
 
 ---
 
@@ -45,7 +45,7 @@ match /coursePresence/{courseId}/members/{userId} {
 | 1 | 새 입문 허브 코스를 추가할 때마다 **Rules 수정 + 배포** 필요 |
 | 2 | `BASIC_HUB_COURSE_2_ID = "basic-iceland-ring-road-5km"` 가 코드에는 등록됐지만 Rules에는 누락 — **불일치 위험** |
 | 3 | Public 코스 검색 등을 추가하면 `||` 조건이 무한 증식 |
-| 4 | [RTW 마스터 §2.2](260511-RTW-마스터-비전-및-종합계획.md) "데이터 등록만으로 운영" 원칙 위배 |
+| 4 | [RTW 마스터 §2.2](../260511-RTW-마스터-비전-및-종합계획.md) "데이터 등록만으로 운영" 원칙 위배 |
 
 ### 1.3 코드와 Rules의 실제 불일치 사례
 
@@ -231,7 +231,7 @@ presence 쓰기 1초마다 = `get(courses)` 1초마다 = 비용 폭증.
 
 ### 5.2 Phase 1-Rules-B — sessions/presence 신설
 
-**목적:** Course/Session/Presence 3분할 ([RTW 마스터 §2.1](260511-RTW-마스터-비전-및-종합계획.md)) 정착.
+**목적:** Course/Session/Presence 3분할 ([RTW 마스터 §2.1](../260511-RTW-마스터-비전-및-종합계획.md)) 정착.
 
 - [ ] `sessions/{sessionId}` 매칭 추가
 - [ ] `presence/{sessionId}/members/{userId}` 매칭 추가 (위 §2.2 설계 적용)

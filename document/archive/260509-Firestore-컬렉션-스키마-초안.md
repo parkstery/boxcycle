@@ -5,9 +5,9 @@
 | 문서 유형 | architecture (실행 스키마 초안) |
 | 최초 작성 | 2026-05-09 |
 | 상태 | **채택(참고)** — 코드·Rules와 동기 유지, RTW·현재 단계 문서가 우선 |
-| 연결 문서 | [RTW 마스터 비전](260511-RTW-마스터-비전-및-종합계획.md), [코스 수명·UGC 품질 정책](260511-코스-수명-UGC-품질-정책.md), [경로 저장 계층화](260511-경로저장-계층화-Frozen-Route-Segment.md), [Firestore Rules 일반화](260511-Firestore-Rules-일반화-방안.md), [현재 단계·1차 마일스톤](260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md), [Firestore→Postgres 체크리스트](260509-Firestore-Postgres-이전-체크리스트.md), [아키텍처·DB 장기안](260509-아키텍쳐-DB설계.md), [제품 용어 Trailhead·Trail](260517-제품-용어-Trailhead-Trail.md) |
+| 연결 문서 | [RTW 마스터 비전](../260511-RTW-마스터-비전-및-종합계획.md), [코스 수명·UGC 품질 정책](260511-코스-수명-UGC-품질-정책.md), [경로 저장 계층화](260511-경로저장-계층화-Frozen-Route-Segment.md), [Firestore Rules 일반화](260511-Firestore-Rules-일반화-방안.md), [현재 단계·1차 마일스톤](../260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md), [Firestore→Postgres 체크리스트](260509-Firestore-Postgres-이전-체크리스트.md), [아키텍처·DB 장기안](260509-아키텍쳐-DB설계.md), [제품 용어 Trailhead·Trail](../260517-제품-용어-Trailhead-Trail.md) |
 
-> **제품 용어:** **`trails/{trailId}`** = Trail 인스턴스(단일 진실). `rooms/` = 마이그레이션 완료 **레거시 read-only** — [용어집 §8](260517-제품-용어-Trailhead-Trail.md).
+> **제품 용어:** **`trails/{trailId}`** = Trail 인스턴스(단일 진실). `rooms/` = 마이그레이션 완료 **레거시 read-only** — [용어집 §8](../260517-제품-용어-Trailhead-Trail.md).
 
 ---
 
@@ -46,7 +46,7 @@
 }
 ```
 
-도메인 정의의 단일 진실은 [RTW 마스터 §5](260511-RTW-마스터-비전-및-종합계획.md). 이 문서는 그 도메인의 **Firestore 필드 형태**만 다룬다.
+도메인 정의의 단일 진실은 [RTW 마스터 §5](../260511-RTW-마스터-비전-및-종합계획.md). 이 문서는 그 도메인의 **Firestore 필드 형태**만 다룬다.
 
 ---
 
@@ -92,7 +92,7 @@
 
 설명:
 - `displayNumber`: UI 3자리 (`035`). 문서 ID는 Firestore auto-id.
-- open 목록(MENU): **`openTrailListings` + 활성 `livePublicationRides`** — `status==open` && `visibility==open` && **활성 라이더 ≥ 1** ([용어집 §1-c](260517-제품-용어-Trailhead-Trail.md)).
+- open 목록(MENU): **`openTrailListings` + 활성 `livePublicationRides`** — `status==open` && `visibility==open` && **활성 라이더 ≥ 1** ([용어집 §1-c](../260517-제품-용어-Trailhead-Trail.md)).
 - `closed` 24h 후 CF `archived`, 7d 후 서브컬렉션·문서 purge (`trailInstanceLifecycle`).
 
 ### 3.2.1 `trails/{trailId}/members/{userId}`
@@ -282,7 +282,7 @@ Trailhead MENU용 **주행 중 Trail** projection. authoritative 소스는 `trai
 ```
 
 설명:
-- `linkedCourseId`로 정적 코스에 연결. 같은 코스에서 여러 세션이 동시 가능 ([RTW 마스터 §2.1](260511-RTW-마스터-비전-및-종합계획.md)).
+- `linkedCourseId`로 정적 코스에 연결. 같은 코스에서 여러 세션이 동시 가능 ([RTW 마스터 §2.1](../260511-RTW-마스터-비전-및-종합계획.md)).
 - `presenceEnabled`는 코스 문서에서 복제 — Rules `get()` 비용 절감 ([Rules 일반화 §4.3](260511-Firestore-Rules-일반화-방안.md)). 세션 시작 시 1회 복사.
 - `mode`/`visibility`는 독립 — 예: 친구 비공개 세션(`mode: private`, `visibility: unlisted`).
 

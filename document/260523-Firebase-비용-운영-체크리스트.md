@@ -5,7 +5,7 @@
 | 문서 유형 | **execution** — Blaze 비용 관측·예산·Functions/Firestore/Storage 대응 체크리스트 |
 | 최초 작성 | 2026-05-23 |
 | 상태 | **검토됨** |
-| 연결 문서 | [World Activity Presence](260523-World-Activity-Presence-설계.md), [보안 분석 보고서](260516-보안-분석-보고서.md), [Firestore 트래픽 저감 계획](260516-Firestore-트래픽-저감-상세-수정-계획.md), [Firestore 부하 1차 조치 종합](260515-(cycle)Firestore-부하-경감-조치-종합보고서.md), [Activity World LOD](260517-Activity-World-지도-LOD-설계.md), [문서 생성·수정 지침](260509-BOXCYCLE-문서-생성-및-수정-지침.md) |
+| 연결 문서 | [World Activity Presence](260523-World-Activity-Presence-설계.md), [보안 분석 보고서](archive/260516-보안-분석-보고서.md), [Firestore 트래픽 저감 계획](archive/260516-Firestore-트래픽-저감-상세-수정-계획.md), [Firestore 부하 1차 조치 종합](archive/260515-(cycle)Firestore-부하-경감-조치-종합보고서.md), [Activity World LOD](archive/260517-Activity-World-지도-LOD-설계.md), [문서 생성·수정 지침](260509-BOXCYCLE-문서-생성-및-수정-지침.md) |
 
 ---
 
@@ -86,7 +86,7 @@ flowchart TB
 | 위험 | 트리거·코드 | 스케일 시 |
 |------|-------------|-----------|
 | **높음** | `trails/.../liveCourseRides` 쓰기 → `courseActivityOnLiveCourseRideWritten` → `touchCourseLiveProgress`(매번 `courses` 읽기) | 동시 주행 N명 ≈ CF·FS 읽기/쓰기 **N배** |
-| **높음** | `getMapboxDirections` — 토큰 ledger·Mapbox 외부 호출, `invoker: public` | 봇·익명 남용 → CF + Mapbox 동시 증가 ([보안 H1·H5](260516-보안-분석-보고서.md)) |
+| **높음** | `getMapboxDirections` — 토큰 ledger·Mapbox 외부 호출, `invoker: public` | 봇·익명 남용 → CF + Mapbox 동시 증가 ([보안 H1·H5](archive/260516-보안-분석-보고서.md)) |
 | **중** | Gen2 함수 **약 19개** — 함수마다 Cloud Run 서비스 | cold start·기본 256MiB 누적 |
 | **중** | `rides` 생성 시 `routeTokenOnRideCreated` + `courseActivityOnRideCreated` **2트리거** | 완주 1건당 CF 2회 |
 | **중~높** | `courseActivityScheduledReconcile` — `collectionGroup(liveCourseRides).get()` 6시간마다 | live 문서 수만 건 시 **읽기 폭증** |
@@ -178,7 +178,7 @@ flowchart TB
 ### P0 — 즉시 (비용·보안)
 
 - [ ] **`minInstances` 추가 금지** — 코드 리뷰·배포 전 grep: `minInstances`
-- [ ] `getMapboxDirections`: **App Check** + UID/IP **레이트 리밋** ([보안 보고서](260516-보안-분석-보고서.md) H1·H5)
+- [ ] `getMapboxDirections`: **App Check** + UID/IP **레이트 리밋** ([보안 보고서](archive/260516-보안-분석-보고서.md) H1·H5)
 - [ ] GCP **Budget 알림** 활성화 (§4.3)
 - [ ] 프로덕션에서 **`subscriptionDevApplyHttp`**, **`backfillRoutePublicationsHttp`** 미배포 또는 invoker 제한
 
@@ -198,8 +198,8 @@ flowchart TB
 
 ### P3 — 장기
 
-- [ ] 라이브 presence: Firestore heartbeat 대안 검토 (RTDB / Pub-Sub + 배치) — [트래픽 저감 계획](260516-Firestore-트래픽-저감-상세-수정-계획.md) §1.3
-- [ ] Postgres 이전 시 읽기 패턴 재설계 — [이전 체크리스트](260509-Firestore-Postgres-이전-체크리스트.md)
+- [ ] 라이브 presence: Firestore heartbeat 대안 검토 (RTDB / Pub-Sub + 배치) — [트래픽 저감 계획](archive/260516-Firestore-트래픽-저감-상세-수정-계획.md) §1.3
+- [ ] Postgres 이전 시 읽기 패턴 재설계 — [이전 체크리스트](archive/260509-Firestore-Postgres-이전-체크리스트.md)
 
 ---
 

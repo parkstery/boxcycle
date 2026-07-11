@@ -6,7 +6,7 @@
 | 최초 작성 | 2026-06-15 |
 | 상태 | **반영중** — WO-A (2026-06-15) |
 | 결정 | **C안 WO-A** 채택 (Probe 없음). E·F는 사용자 증가 시 재검토 |
-| 연결 문서 | [Activity World LOD](260517-Activity-World-지도-LOD-설계.md), [Firebase 비용 체크리스트](260523-Firebase-비용-운영-체크리스트.md), [Red dot 해결 보고서](260614-Red-dot-문제-해결-보고서.md), [World Activity Presence](260523-World-Activity-Presence-설계.md) |
+| 연결 문서 | [Activity World LOD](260517-Activity-World-지도-LOD-설계.md), [Firebase 비용 체크리스트](../260523-Firebase-비용-운영-체크리스트.md), [Red dot 해결 보고서](260614-Red-dot-문제-해결-보고서.md), [World Activity Presence](../260523-World-Activity-Presence-설계.md) |
 
 ---
 

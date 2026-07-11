@@ -6,7 +6,7 @@
 | 작성 | 2026-06-27 |
 | 상태 | **완료** — 양 트랙 배포·purge 완료(사후 audit courseId 0). F3.1 backfill writer 수정은 deploy functions 권장(현재 무해) |
 | 선행 | Phase 7 (`courseId` write 중단·purge) · Phase 7b-3a/3b/3c (`liveCourseRide` 코드 정리) **완료** |
-| 연결 | [Phase 7 체크리스트](260616-Phase7-Firestore-필드-terminology-체크리스트.md), [Route·Publication 통합](260518-Route-Publication-통합-모델-및-마이그레이션.md), [World Activity Presence](260523-World-Activity-Presence-설계.md) |
+| 연결 | [Phase 7 체크리스트](260616-Phase7-Firestore-필드-terminology-체크리스트.md), [Route·Publication 통합](260518-Route-Publication-통합-모델-및-마이그레이션.md), [World Activity Presence](../260523-World-Activity-Presence-설계.md) |
 
 ---
 
