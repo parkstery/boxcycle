@@ -234,16 +234,24 @@ Firestore 무료 한도(write 2만/일·read 5만/일) 대비 **한 자릿수 %*
 - 저장 목록에 진행률 바(`████████░░ 80%`) + ⭐프로젝트 표기("서울 한 바퀴 42%").
 - 재로드 시 "80% 지점부터 이어가기" 옵션.
 
-### 9.5.5 구현 단위 (다음 세션 착수)
+### 9.5.5 구현 단위
 
-1. 완주 게이트 — `completionRatio >= 0.98` 일 때만 `promoteSavedRouteInFirestore` 호출(現 [useRideEndAndPersistence.ts:292](../apps/web/src/hooks/useRideEndAndPersistence.ts) 무조건 호출 수정)
-2. `lastProgressRatio`(또는 미터) 필드를 `savedRoutes`에 추가·저장
-3. 미완료 쿼터(무료5/유료10) 검사 — 클라 선검사 + 서버 가드(기존 `tierQuotaCore` 패턴 재사용)
-4. 새 Route 생성 게이트 UI("이어서/삭제")
-5. `SAVED_ROUTE_EXPIRY_MS` 7일 → 90일
-6. 진행률 바 UI(SavedRoutesPanel)
+1. ✅ 완주 게이트 — `completionRatio >= 0.98` 일 때만 격상, 미완주는 `updateSavedRouteProgressInFirestore`로 진행률만 (07-12 `ce3d006`)
+2. ✅ `lastProgressRatio` 필드 — Firestore 파서(clamp01)·로컬 3곳 (07-12 `ce3d006`)
+3. ✅ 미완료 쿼터(무료5/유료10) 검사 — `tierQuotaCore` 서버검사 + `details.reason` (07-12 배포)
+4. ✅ 초과 유도 UI — 저장 진입점 3곳 → 「내 경로」 대기 탭 유도 배너 (07-12 `ce3d006`)
+5. ✅ `SAVED_ROUTE_EXPIRY_MS` 7일 → 90일 (07-12 `ce3d006`)
+6. ✅ 진행률 바 UI(SavedRoutesPanel) (07-12 `957159e`)
+7. **이어 달리기 재개** — 설계 확정(07-13, [자문 요약](archive/260712-자문-문답-홀로-함께-역할분담-이어달리기.md) 후속). **원칙: 위치는 누적, 인정은 세션.**
+   - `useVirtualRideSession.resetDistances(startOffsetMeters)` — virtualDistance를 offset(= `min(lastProgressRatio, 0.97) × routeDistance`)으로 시드. 위치·도착판정·completionRatio(누적)는 무수정 작동
+   - **운동 인정 분리**: `record.distanceMeters`·칼로리·평속 = `virtualDistance − offset`(이번 세션만). completionRatio는 누적 유지
+   - **Claim 분리**: `buildConquestCellsFromRoute`/`buildTraveledPathForTrace`에 `fromMeters` 추가 → **[offset, virtualDistance] 구간만** 페이로드. (순진한 offset 시드는 0..offset 셀·trace·크레딧 예산을 오염 — §9.5 인정 분리 원칙 위반)
+   - HUD = **누적 위치**(예: 338.4km/540km — 여정 몰입), 종료 요약·기록 = 「오늘 N km」 병기
+   - 진행률 저장 = **max(기존, 신규)** — "처음부터 다시" 후 중간 종료해도 최대 도달점 유지
+   - UI = 미완료 경로 로드 시 RouteDock Go 영역에서 「N%부터 이어달리기(기본) / 처음부터」 선택
+   - 수정 지점 5곳: `useVirtualRideSession.ts` · `useSavedRoutesWorkspace.ts`(로드 시 offset 후보) · `conquestTiles.ts`(from-to) · `useRideEndAndPersistence.ts`(세션 거리) · `RouteDock.tsx`(선택 UI)
 
-> Claim·Pioneer·운동기록 코드는 **손대지 않는다**(이미 실주행 구간 기준으로 맞음).
+> Claim·Pioneer·운동기록의 **원칙(실주행 구간 기준)은 불변**. 단위7에서 conquest 페이로드 유틸에 구간 시작점만 추가한다(원칙을 지키기 위한 확장).
 
 ---
 
@@ -277,3 +285,4 @@ Firestore 무료 한도(write 2만/일·read 5만/일) 대비 **한 자릿수 %*
 | 2026-07-03 | **Phase A 구현 1차 완료(코드 반영 중)** — 클라 `conquestTiles.ts`(단일 패스 타일 변환)·`rides.conquest` 페이로드·pedalSec 누적, CF `conquestOnRideCreated`(Trust Tier 한도·청크·pioneer write-once·`conquestResult` 회신), rules(`conquest/*`·`pioneerChunks` 읽기 전용), UI 4종(지도 오버레이·요약 「새 영토 +N」·account 정복 통계·핀 팝업 개척자). §7 Phase C 의 **라이브 날씨(Open-Meteo)를 선행 도입**(세션 중 HUD 한 줄, 30분 갱신). 배포(functions·rules) 후 유효 |
 | 2026-07-03 | **v2 도로 전환(PM 결정)** — §3.1 정복 단위를 z16 타일(면)→**z20 도로 셀(~30m, 선)**로 교체(근거: 자산 언어=도로, 노력 비례, 시뮬레이터라 맵매칭 불요). 자산=「내 도로망」 궤적 영구 렌더, 지표=신규 도로 km, 라이브 카운터=「🏴 +N km」+진행 구간 실시간 파란 칠. §3.4 **셀 pioneer 폐기 → 구간 챌린지**(교차로·IC~JC 완주+정지시간 규칙, Phase B, OSM 그래프 필요). §4 v2 스키마(chunks z12·traces). SEC_PER_BLOCK 폐지(m 예산이 유일 한도). 실주행 검증 후 개편 |
 | 2026-07-07 | **§9.5 신설(자문 3연속 → PM 확정)** — 주행 인정 분리(운동·Claim·Pioneer 즉시 인정 유지, Route 완주만 **≥98% 게이트**), **Route 진행률·이어 달리기** 도입, **미완료 쿼터 무료5/유료10**(보유 30/100 범위 내), 미완료 TTL **7→90일**, 최소 인정 거리 임계 **폐기**. Claim·Pioneer·운동기록 코드 불변. 구현은 §9.5.5 단위로 다음 세션 |
+| 2026-07-13 | **§9.5.5 단위 1~6 구현·배포 완료 표기 + 단위7(이어 달리기 재개) 설계 확정(PM 결정 3건)** — 「위치는 누적, 인정은 세션」: virtualDistance offset 시드 + 운동기록·Claim 페이로드는 [offset..virtual] 구간 분리(`fromMeters`), HUD 누적 표시·진행률 max 유지·Go 영역 선택 UI. 배경: [07-12 자문](archive/260712-자문-문답-홀로-함께-역할분담-이어달리기.md)·[결정 로그](260707-RTW-결정-로그.md) "홀로 vs 함께" 역할 분담 |
