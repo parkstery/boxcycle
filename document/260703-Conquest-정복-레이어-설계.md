@@ -242,7 +242,7 @@ Firestore 무료 한도(write 2만/일·read 5만/일) 대비 **한 자릿수 %*
 4. ✅ 초과 유도 UI — 저장 진입점 3곳 → 「내 경로」 대기 탭 유도 배너 (07-12 `ce3d006`)
 5. ✅ `SAVED_ROUTE_EXPIRY_MS` 7일 → 90일 (07-12 `ce3d006`)
 6. ✅ 진행률 바 UI(SavedRoutesPanel) (07-12 `957159e`)
-7. **이어 달리기 재개** — 설계 확정(07-13, [자문 요약](archive/260712-자문-문답-홀로-함께-역할분담-이어달리기.md) 후속). **원칙: 위치는 누적, 인정은 세션.**
+7. ✅ **이어 달리기 재개** — 설계 확정·구현 완료(07-13 `6e5647a`, Playwright 실주행 E2E 검증: 20% 저장→재개 UI→누적 HUD→37% 갱신→처음부터 probe max 유지). **원칙: 위치는 누적, 인정은 세션.**
    - `useVirtualRideSession.resetDistances(startOffsetMeters)` — virtualDistance를 offset(= `min(lastProgressRatio, 0.97) × routeDistance`)으로 시드. 위치·도착판정·completionRatio(누적)는 무수정 작동
    - **운동 인정 분리**: `record.distanceMeters`·칼로리·평속 = `virtualDistance − offset`(이번 세션만). completionRatio는 누적 유지
    - **Claim 분리**: `buildConquestCellsFromRoute`/`buildTraveledPathForTrace`에 `fromMeters` 추가 → **[offset, virtualDistance] 구간만** 페이로드. (순진한 offset 시드는 0..offset 셀·trace·크레딧 예산을 오염 — §9.5 인정 분리 원칙 위반)
@@ -286,3 +286,4 @@ Firestore 무료 한도(write 2만/일·read 5만/일) 대비 **한 자릿수 %*
 | 2026-07-03 | **v2 도로 전환(PM 결정)** — §3.1 정복 단위를 z16 타일(면)→**z20 도로 셀(~30m, 선)**로 교체(근거: 자산 언어=도로, 노력 비례, 시뮬레이터라 맵매칭 불요). 자산=「내 도로망」 궤적 영구 렌더, 지표=신규 도로 km, 라이브 카운터=「🏴 +N km」+진행 구간 실시간 파란 칠. §3.4 **셀 pioneer 폐기 → 구간 챌린지**(교차로·IC~JC 완주+정지시간 규칙, Phase B, OSM 그래프 필요). §4 v2 스키마(chunks z12·traces). SEC_PER_BLOCK 폐지(m 예산이 유일 한도). 실주행 검증 후 개편 |
 | 2026-07-07 | **§9.5 신설(자문 3연속 → PM 확정)** — 주행 인정 분리(운동·Claim·Pioneer 즉시 인정 유지, Route 완주만 **≥98% 게이트**), **Route 진행률·이어 달리기** 도입, **미완료 쿼터 무료5/유료10**(보유 30/100 범위 내), 미완료 TTL **7→90일**, 최소 인정 거리 임계 **폐기**. Claim·Pioneer·운동기록 코드 불변. 구현은 §9.5.5 단위로 다음 세션 |
 | 2026-07-13 | **§9.5.5 단위 1~6 구현·배포 완료 표기 + 단위7(이어 달리기 재개) 설계 확정(PM 결정 3건)** — 「위치는 누적, 인정은 세션」: virtualDistance offset 시드 + 운동기록·Claim 페이로드는 [offset..virtual] 구간 분리(`fromMeters`), HUD 누적 표시·진행률 max 유지·Go 영역 선택 UI. 배경: [07-12 자문](archive/260712-자문-문답-홀로-함께-역할분담-이어달리기.md)·[결정 로그](260707-RTW-결정-로그.md) "홀로 vs 함께" 역할 분담 |
+| 2026-07-13 | **단위7 구현 완료(`6e5647a`)** — §9.5 전 단위 종결. 검증 중 발견한 HUD 평속·칼로리·요약 거리의 누적 기준 왜곡을 세션 기준으로 분리 수정(HUD 거리만 누적 유지). 게스트 로컬 진행률 저장 + Firebase 미구성 분기 무조건 격상(기존 결함)도 완주 게이트로 수정. Playwright 실주행 E2E로 재개 UI·누적 HUD·진행률 max·Claim 중복 없음(🏴 +0.0km) 확인 |
