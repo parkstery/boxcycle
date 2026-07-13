@@ -172,8 +172,27 @@
 }
 
 .route-dock__resume-option input {
+  appearance: none;
   margin: 0;
-  accent-color: #6ba5ff;
+  width: 0.85rem;
+  height: 0.85rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  border: 1px solid rgba(248, 250, 252, 0.45);
+  background: transparent;
+  cursor: pointer;
+}
+
+/* 선택됨 — 링 색 + 안쪽 채움 점 */
+.route-dock__resume-option input:checked {
+  border-color: #6ba5ff;
+  background:
+    radial-gradient(circle, #6ba5ff 0 35%, transparent 38%);
+}
+
+/* 선택 안 됨(hover 시 살짝 밝게) */
+.route-dock__resume-option input:not(:checked):hover {
+  border-color: rgba(248, 250, 252, 0.7);
 }
 
 .route-dock__resume-option strong {
@@ -214,7 +233,8 @@
   font-size: 0.72rem;
   border-radius: 6px;
   border: 1px solid rgba(248, 250, 252, 0.18);
-  background: rgba(10, 16, 26, 0.55);
+  background: rgb(247, 246, 246);
+  /* background: rgba(10, 16, 26, 0.55); */
   color: #f8fafc;
 }
 
