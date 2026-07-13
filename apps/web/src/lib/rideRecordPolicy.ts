@@ -32,3 +32,21 @@ export const ROUTE_COMPLETION_RATIO_THRESHOLD = 0.98;
 export function isRouteCompletion(completionRatio: number): boolean {
   return Number.isFinite(completionRatio) && completionRatio >= ROUTE_COMPLETION_RATIO_THRESHOLD;
 }
+
+/**
+ * 이어 달리기(§9.5.5 단위7) 시작 오프셋의 진행률 상한.
+ * 완주 임계(0.98) 직전에서 재개해 몇 m 만 달리고 완주 처리되는 퇴화를 막는다.
+ */
+export const ROUTE_RESUME_MAX_RATIO = 0.97;
+
+/** 저장 진행률 → 재개 시작 오프셋(m). 진행률은 상한 클램프, 비유한 입력은 0 */
+export function resumeOffsetMetersFrom(
+  progressRatio: number,
+  routeDistanceMeters: number,
+): number {
+  const ratio = Number.isFinite(progressRatio)
+    ? Math.max(0, Math.min(progressRatio, ROUTE_RESUME_MAX_RATIO))
+    : 0;
+  const dist = Number.isFinite(routeDistanceMeters) ? Math.max(0, routeDistanceMeters) : 0;
+  return ratio * dist;
+}

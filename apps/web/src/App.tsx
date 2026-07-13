@@ -113,6 +113,7 @@ import { useBleCrankRpm } from "./hooks/useBleCrankRpm";
 import { useConquest } from "./hooks/useConquest";
 import { useLiveConquestPaint } from "./hooks/useLiveConquestPaint";
 import { conquestCellIdsAround } from "./lib/conquestTiles";
+import { ROUTE_COMPLETION_RATIO_THRESHOLD, resumeOffsetMetersFrom } from "./lib/rideRecordPolicy";
 import { fetchOpenMeteoCurrentWeather, formatLiveWeatherHudLine, parseWeatherOverride, type LiveWeather } from "./lib/openMeteoWeather";
 import { WeatherOverlay } from "./components/weather/WeatherOverlay";
 import { useRideMapillaryStreet } from "./hooks/useRideMapillaryStreet";
@@ -239,6 +240,13 @@ export default function App() {
   /** 미완료 쿼터 초과 유도 — 안내 배너 문구와 「내 경로」 탭 오픈 신호(nonce) */
   const [savedQuotaNotice, setSavedQuotaNotice] = useState<string | null>(null);
   const [openSavedTabNonce, setOpenSavedTabNonce] = useState(0);
+  /** 이어 달리기(§9.5.5 단위7) — 마지막으로 로드한 저장 경로 id(재개 후보). 렌더 중 ref 읽기 회피용 state */
+  const [resumeCandidateId, setResumeCandidateId] = useState<string | null>(null);
+  /**
+   * 이번 세션의 경로상 시작 오프셋(m) — HUD 거리는 누적(virtualDistance)으로 두고
+   * 평속·칼로리·종료 요약 거리는 세션 실주행(누적 − offset) 기준으로 파생하기 위한 state.
+   */
+  const [sessionStartOffsetMeters, setSessionStartOffsetMeters] = useState(0);
 
   const {
     publicRouteRequestModalRoute,
@@ -369,6 +377,7 @@ export default function App() {
     resetRide,
     syncLiveFromDistance,
     sampleLiveLngLat,
+    startOffsetMetersRef,
     startLabel,
     endLabel,
     startPlaceLabel,
@@ -441,11 +450,15 @@ export default function App() {
     setActiveOfficialCourseId,
     setPlaceSearchMarkerLngLat,
     resolvePublishedLinkForSavedRouteRef,
-    onSavedRouteRideEntry: () => {
+    onSavedRouteRideEntry: (route) => {
       rideEntryRef.current = "owner_library";
+      setResumeCandidateId(route.id);
     },
   });
-  clearSavedRouteArtifactsRef.current = savedRoutesWorkspace.clearLoadedRouteAndAdhoc;
+  clearSavedRouteArtifactsRef.current = () => {
+    savedRoutesWorkspace.clearLoadedRouteAndAdhoc();
+    setResumeCandidateId(null);
+  };
 
   const {
     savedRoutes,
@@ -453,6 +466,7 @@ export default function App() {
     savedRoutesLoading,
     loadedSavedRouteIdRef,
     loadedSavedRouteNameRef,
+    loadedSavedRouteProgressRef,
     lastEndedWasAdhoc,
     setLastEndedWasAdhoc,
     handleSaveCurrentRoute,
@@ -541,6 +555,8 @@ export default function App() {
     endPlaceLabel,
     loadedSavedRouteIdRef,
     loadedSavedRouteNameRef,
+    startOffsetMetersRef,
+    loadedSavedRouteProgressRef,
     rideEntryRef,
     pedalActiveSecRef,
     publishedCatalogRef,
@@ -1014,10 +1030,14 @@ export default function App() {
   const avgSpeedLabel = useMemo(() => {
     const elapsedSec = Math.floor(rideMetrics.accumulatedMs / 1000);
     if (elapsedSec <= 0) return "0.0";
-    const avg =
-      (rideMetrics.virtualDistanceMeters / 1000) / (elapsedSec / 3600);
+    // 이어 달리기 시 평속은 이번 세션 실주행(누적 − offset) 기준 — 누적으로 나누면 왜곡(§9.5.5 단위7)
+    const sessionMeters = Math.max(
+      0,
+      rideMetrics.virtualDistanceMeters - sessionStartOffsetMeters,
+    );
+    const avg = (sessionMeters / 1000) / (elapsedSec / 3600);
     return avg.toFixed(1);
-  }, [rideMetrics.accumulatedMs, rideMetrics.virtualDistanceMeters]);
+  }, [rideMetrics.accumulatedMs, rideMetrics.virtualDistanceMeters, sessionStartOffsetMeters]);
 
   const returnToTrailhead = useCallback(() => {
     const tid = DEFAULT_TRAIL_ID;
@@ -1164,8 +1184,33 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- trailId 전환 시 1회만 검증·경로 로드
   }, [sanitizedTrailId, user?.uid, configured, rideStatus]);
 
-  function handleStartRide() {
+  /**
+   * 이어 달리기(§9.5.5 단위7) — 로드된 미완주 저장 경로의 재개 후보 진행률(0..1).
+   * 후보 id 는 로드 시 state 로 받고(렌더 중 ref 읽기 금지 준수), 진행률·완주 여부는
+   * savedRoutes state 에서 파생 — 삭제·완주 격상 시 UI 가 자동 무효화된다.
+   */
+  const resumeRatio = (() => {
+    if (rideStatus !== "idle" || !routeGeometry || !resumeCandidateId) return null;
+    const route = savedRoutes.find((r) => r.id === resumeCandidateId);
+    if (!route || route.completed === 1) return null;
+    const ratio = route.lastProgressRatio;
+    return Number.isFinite(ratio) && ratio > 0 && ratio < ROUTE_COMPLETION_RATIO_THRESHOLD
+      ? ratio
+      : null;
+  })();
+
+  function handleStartRide(fromStart?: boolean) {
     if (!routeGeometry || rideStatus !== "idle" || !user || !configured || trailStartBusy) return;
+    // MapHud FAB 등 onClick 직결 호출은 이벤트 객체가 첫 인자로 올 수 있어 `=== true` 로만 판정
+    const restart = fromStart === true;
+    /**
+     * 재개 시작 오프셋(m) — 「위치는 누적, 인정은 세션」의 위치 시드(§9.5.5 단위7).
+     * 이벤트 핸들러 내부라 ref 검증 허용 — 실제 로드된 경로와 후보가 일치할 때만 시드.
+     */
+    const rideStartOffsetMeters =
+      !restart && resumeRatio != null && loadedSavedRouteIdRef.current === resumeCandidateId
+        ? resumeOffsetMetersFrom(resumeRatio, routeDistanceMeters)
+        : 0;
     setTrailStartBusy(true);
     const courseId = basicActiveHubCourseId ?? activeOfficialCourseId;
     const courseTitle = courseId
@@ -1209,7 +1254,9 @@ export default function App() {
             `Trail ${num} 합류 · ${existing.regionLabel?.trim() || "같은 Trail에서 주행"}`,
           );
           resetArrivalGate();
-          resetRide();
+          resetRide(rideStartOffsetMeters);
+          setSessionStartOffsetMeters(rideStartOffsetMeters);
+          setResumeCandidateId(null); // 재개 후보 소비 — 종료 후 재로드 전까지 재개 UI 미표시
           setRidingTrailId(currentTid);
           setRideStatus("running");
           return;
@@ -1239,7 +1286,9 @@ export default function App() {
         );
         reloadCurrentTrailMeta();
         resetArrivalGate();
-        resetRide();
+        resetRide(rideStartOffsetMeters);
+        setSessionStartOffsetMeters(rideStartOffsetMeters);
+        setResumeCandidateId(null); // 재개 후보 소비 — 종료 후 재로드 전까지 재개 UI 미표시
         setRidingTrailId(trail.id);
         setRideStatus("running");
       } catch (e: unknown) {
@@ -1516,6 +1565,7 @@ export default function App() {
       }
       onSaveCurrentRoute={handleSaveCurrentRoute}
       onStartRide={handleStartRide}
+      resumeRatio={resumeRatio}
       onClearRoute={handleClearPins}
       onRemoveStop={handleRemoveRouteDockStop}
       onFocusStop={handleFocusRouteDockStop}
@@ -1552,7 +1602,14 @@ export default function App() {
   }
 
   const elapsedLabel = formatElapsedFromMs(rideMetrics.accumulatedMs);
+  /** HUD 거리 — 경로상 누적 위치(재개 시 offset부터 카운트업, 여정 몰입 §9.5.5) */
   const distanceKmLabel = (rideMetrics.virtualDistanceMeters / 1000).toFixed(2);
+  /** 종료 요약·기록용 — 이번 세션 실주행 거리(오늘 N km) */
+  const sessionDistanceMeters = Math.max(
+    0,
+    rideMetrics.virtualDistanceMeters - sessionStartOffsetMeters,
+  );
+  const sessionDistanceKmLabel = (sessionDistanceMeters / 1000).toFixed(2);
   const hudRoutePreview =
     rideStatus === "idle" &&
     Boolean(routeGeometry) &&
@@ -1590,7 +1647,7 @@ export default function App() {
           isGuest: user.isAnonymous,
         }
       : null;
-  const caloriesEstimate = Math.round((rideMetrics.virtualDistanceMeters / 1000) * 30);
+  const caloriesEstimate = Math.round((sessionDistanceMeters / 1000) * 30);
 
   const worldActivityHint = useMemo(() => {
     if (mapZoom > MAP_ZOOM_WORLD_ACTIVITY_MAX || !worldHudLines) return null;
@@ -2015,7 +2072,7 @@ export default function App() {
         open={summaryVisible}
         arrivalCompleted={arrivalToastTick > 0}
         elapsedLabel={elapsedLabel}
-        distanceKm={distanceKmLabel}
+        distanceKm={sessionDistanceKmLabel}
         avgKmh={avgSpeedLabel}
         caloriesEstimate={caloriesEstimate}
         conquestLine={conquestSummaryLine}

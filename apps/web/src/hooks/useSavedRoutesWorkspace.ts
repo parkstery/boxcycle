@@ -63,7 +63,8 @@ export type UseSavedRoutesWorkspaceOptions = {
   resolvePublishedLinkForSavedRouteRef?: MutableRefObject<
     ((route: SavedRoute) => Promise<PublishedRouteLink | null>) | null
   >;
-  onSavedRouteRideEntry?: () => void;
+  /** 저장 경로 로드 직후 호출 — 주행 입구 마킹·이어 달리기 재개 후보 세팅용 */
+  onSavedRouteRideEntry?: (route: SavedRoute) => void;
 };
 
 /**
@@ -100,11 +101,17 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
   const [savedRoutesLoading, setSavedRoutesLoading] = useState(false);
   const loadedSavedRouteIdRef = useRef<string | null>(null);
   const loadedSavedRouteNameRef = useRef<string | null>(null);
+  /**
+   * 로드 시점의 저장 진행률(0..1) — 종료 시 진행률 저장의 max(기존, 신규) 기준(§9.5.5 단위7).
+   * "처음부터 다시" 주행을 중간 종료해도 최대 도달점을 잃지 않게 한다.
+   */
+  const loadedSavedRouteProgressRef = useRef(0);
   const [lastEndedWasAdhoc, setLastEndedWasAdhoc] = useState<LastEndedAdhocState | null>(null);
 
   const clearLoadedRouteAndAdhoc = useCallback(() => {
     loadedSavedRouteIdRef.current = null;
     loadedSavedRouteNameRef.current = null;
+    loadedSavedRouteProgressRef.current = 0;
     setLastEndedWasAdhoc(null);
   }, []);
 
@@ -193,6 +200,7 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
       );
       loadedSavedRouteIdRef.current = saved.id;
       loadedSavedRouteNameRef.current = saved.name;
+      loadedSavedRouteProgressRef.current = 0;
       setRouteSummary(
         saved.deduped
           ? "이미 저장된 경로입니다 — 기존 항목의 주행 기록을 갱신했어요."
@@ -292,9 +300,14 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
       resetRide();
       loadedSavedRouteIdRef.current = route.id;
       loadedSavedRouteNameRef.current = route.name;
+      // 미완주 경로의 저장 진행률 — 재개 오프셋·max(기존,신규) 저장의 기준값
+      loadedSavedRouteProgressRef.current =
+        route.completed !== 1 && Number.isFinite(route.lastProgressRatio)
+          ? Math.max(0, Math.min(1, route.lastProgressRatio))
+          : 0;
       setLastEndedWasAdhoc(null);
       setActiveOfficialCourseId(null);
-      onSavedRouteRideEntry?.();
+      onSavedRouteRideEntry?.(route);
       setPlaceSearchMarkerLngLat(null);
       const summaryBase = `「${route.name}」 불러옴 · 거리 ${(route.distanceMeters / 1000).toFixed(2)} km / 예상 ${formatDuration(route.durationSec)}`;
       setRouteSummary(summaryBase);
@@ -377,6 +390,7 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
       if (loadedSavedRouteIdRef.current === route.id) {
         loadedSavedRouteIdRef.current = null;
         loadedSavedRouteNameRef.current = null;
+        loadedSavedRouteProgressRef.current = 0;
         setLastEndedWasAdhoc(null);
       }
     },
@@ -389,6 +403,7 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
     savedRoutesLoading,
     loadedSavedRouteIdRef,
     loadedSavedRouteNameRef,
+    loadedSavedRouteProgressRef,
     lastEndedWasAdhoc,
     setLastEndedWasAdhoc,
     clearLoadedRouteAndAdhoc,

@@ -21,7 +21,11 @@ import { MAX_ROUTE_WAYPOINTS } from "../lib/routeWaypoints";
 import { safeRideSpeechCancel } from "../lib/rideSpeech";
 import { loadRideSessions, saveRideSessions, type StoredRideSession } from "../lib/rideSessionsStorage";
 import { isDiscardableRideRecord, isRouteCompletion } from "../lib/rideRecordPolicy";
-import { loadSavedRoutesFromLocal, promoteSavedRouteInLocal } from "../lib/savedRoutesLocal";
+import {
+  loadSavedRoutesFromLocal,
+  promoteSavedRouteInLocal,
+  updateSavedRouteProgressInLocal,
+} from "../lib/savedRoutesLocal";
 import { fetchMapboxReverseGeocodePlaceName } from "../services/mapboxReverseGeocode";
 import type { RouteProfile } from "../services/mapboxDirections";
 import type { PublishedPublicCourseSummary } from "../lib/firestoreCourses";
@@ -58,6 +62,13 @@ export type UseRideEndAndPersistenceOptions = {
   endPlaceLabel: string | null;
   loadedSavedRouteIdRef: MutableRefObject<string | null>;
   loadedSavedRouteNameRef: MutableRefObject<string | null>;
+  /**
+   * 이어 달리기(§9.5.5 단위7) — 이번 세션의 경로상 시작 오프셋(m). virtualDistance 는
+   * 「경로상 위치(누적)」이므로 운동 인정·Claim 페이로드는 (virtualDistance − offset) 세션 구간만.
+   */
+  startOffsetMetersRef?: RefObject<number>;
+  /** 로드 시점 저장 진행률(0..1) — 진행률 저장은 max(기존, 신규)로 최대 도달점 유지 */
+  loadedSavedRouteProgressRef?: MutableRefObject<number>;
   /** 주행 입구 — 내 경로 vs 퍼블릭 탭 */
   rideEntryRef?: RefObject<RouteRideEntry | null>;
   /**
@@ -98,6 +109,8 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     endPlaceLabel,
     loadedSavedRouteIdRef,
     loadedSavedRouteNameRef,
+    startOffsetMetersRef,
+    loadedSavedRouteProgressRef,
     rideEntryRef,
     pedalActiveSecRef,
     publishedCatalogRef,
@@ -111,7 +124,16 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     safeRideSpeechCancel();
 
     const elapsedSec = Math.floor(rideMetrics.accumulatedMs / 1000);
-    const caloriesEstimate = Math.round((rideMetrics.virtualDistanceMeters / 1000) * 30);
+    /**
+     * 이어 달리기(§9.5.5 단위7) — virtualDistance 는 경로상 위치(누적).
+     * 운동 인정(거리·칼로리·평속)·Claim 페이로드는 이번 세션 실주행 구간만.
+     */
+    const startOffsetMeters = Math.max(
+      0,
+      Math.min(startOffsetMetersRef?.current ?? 0, rideMetrics.virtualDistanceMeters),
+    );
+    const sessionDistanceMeters = rideMetrics.virtualDistanceMeters - startOffsetMeters;
+    const caloriesEstimate = Math.round((sessionDistanceMeters / 1000) * 30);
     const savedRouteIdAtEnd = loadedSavedRouteIdRef.current;
     const savedRouteNameAtEnd = loadedSavedRouteNameRef.current;
     const completionRatio =
@@ -136,10 +158,10 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
       id: crypto.randomUUID(),
       endedAt: new Date().toISOString(),
       elapsedSec,
-      distanceMeters: rideMetrics.virtualDistanceMeters,
+      distanceMeters: sessionDistanceMeters,
       avgSpeedKmh:
         elapsedSec > 0
-          ? (rideMetrics.virtualDistanceMeters / 1000) / (elapsedSec / 3600)
+          ? (sessionDistanceMeters / 1000) / (elapsedSec / 3600)
           : 0,
       caloriesEstimate,
       routeDistanceMeters,
@@ -160,13 +182,14 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
       record.elapsedSec,
     );
 
-    /** Conquest 페이로드 — 진행 구간(0..virtualDistance) 도로 셀 + 궤적 + 검증된 페달링 초 */
+    /** Conquest 페이로드 — 이번 세션 실주행 구간(offset..virtualDistance) 도로 셀 + 궤적 + 검증된 페달링 초 */
     let conquestPayload: ConquestRidePayload | null = null;
     if (!discardRecord && routeGeometry && routeGeometry.coordinates.length >= 2) {
       try {
         const cells = buildConquestCellsFromRoute(
           routeGeometry,
           rideMetrics.virtualDistanceMeters,
+          startOffsetMeters,
         );
         if (cells.length > 0) {
           const rawPedalSec = pedalActiveSecRef?.current ?? null;
@@ -174,7 +197,11 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
             v: CONQUEST_PAYLOAD_VERSION,
             z: CONQUEST_CELL_ZOOM,
             cells,
-            path: buildTraveledPathForTrace(routeGeometry, rideMetrics.virtualDistanceMeters),
+            path: buildTraveledPathForTrace(
+              routeGeometry,
+              rideMetrics.virtualDistanceMeters,
+              startOffsetMeters,
+            ),
             pedalSec:
               rawPedalSec == null
                 ? null
@@ -293,6 +320,11 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
           }
           // 완주(≥98%)만 completed=1 로 격상. 미완주는 진행률만 저장해 「이어 달리기」로 남긴다(§9.5).
           const rideCompletedRoute = isRouteCompletion(completionRatio);
+          // 진행률은 최대 도달점 유지 — "처음부터 다시" 중간 종료가 기존 재개 지점을 지우지 않게(§9.5.5 단위7)
+          const progressToSave = Math.max(
+            completionRatio,
+            Math.max(0, Math.min(1, loadedSavedRouteProgressRef?.current ?? 0)),
+          );
           if (savedRouteIdAtEnd && !savedRouteIdAtEnd.startsWith("local-")) {
             try {
               if (rideCompletedRoute) {
@@ -306,7 +338,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
                   userId: user.uid,
                   routeId: savedRouteIdAtEnd,
                   rideId,
-                  progressRatio: completionRatio,
+                  progressRatio: progressToSave,
                 });
               }
               const nowIso = new Date().toISOString();
@@ -326,7 +358,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
                       : {
                           ...r,
                           lastRideId: rideId,
-                          lastProgressRatio: completionRatio,
+                          lastProgressRatio: progressToSave,
                           updatedAtIso: nowIso,
                         }
                     : r,
@@ -337,6 +369,14 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
             }
           } else if (savedRouteIdAtEnd && rideCompletedRoute) {
             promoteSavedRouteInLocal({ routeId: savedRouteIdAtEnd, rideId });
+            setSavedRoutes(loadSavedRoutesFromLocal());
+          } else if (savedRouteIdAtEnd) {
+            // 로컬(게스트) 미완주 — 진행률만 갱신(내부에서 max 유지)
+            updateSavedRouteProgressInLocal({
+              routeId: savedRouteIdAtEnd,
+              rideId,
+              progressRatio: completionRatio,
+            });
             setSavedRoutes(loadSavedRoutesFromLocal());
           } else if (
             routeGeometry &&
@@ -361,10 +401,19 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
         }
       })();
     } else if (!discardRecord && savedRouteIdAtEnd) {
-      promoteSavedRouteInLocal({
-        routeId: savedRouteIdAtEnd,
-        rideId: record.id,
-      });
+      // Firebase 미구성(로컬 전용) — 완주 게이트·진행률 저장 동일 적용(§9.5)
+      if (isRouteCompletion(completionRatio)) {
+        promoteSavedRouteInLocal({
+          routeId: savedRouteIdAtEnd,
+          rideId: record.id,
+        });
+      } else {
+        updateSavedRouteProgressInLocal({
+          routeId: savedRouteIdAtEnd,
+          rideId: record.id,
+          progressRatio: completionRatio,
+        });
+      }
       setSavedRoutes(loadSavedRoutesFromLocal());
     } else if (
       !discardRecord &&
@@ -417,6 +466,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
 
     loadedSavedRouteIdRef.current = null;
     loadedSavedRouteNameRef.current = null;
+    if (loadedSavedRouteProgressRef) loadedSavedRouteProgressRef.current = 0;
     if (rideEntryRef) rideEntryRef.current = null;
 
     const publicationIdAtEnd = publicationIdRef.current?.trim() || null;
@@ -445,6 +495,8 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     endPlaceLabel,
     loadedSavedRouteIdRef,
     loadedSavedRouteNameRef,
+    startOffsetMetersRef,
+    loadedSavedRouteProgressRef,
     rideEntryRef,
     pedalActiveSecRef,
     publicationIdRef,

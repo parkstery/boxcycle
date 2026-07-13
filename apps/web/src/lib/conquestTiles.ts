@@ -101,17 +101,21 @@ export function chunkIdOfConquestCellId(cellId: string): string | null {
 }
 
 /**
- * 주행 경로의 실제 진행 구간(0..traveledMeters)을 도로 셀 목록으로 변환.
+ * 주행 경로의 실제 진행 구간(fromMeters..traveledMeters)을 도로 셀 목록으로 변환.
  * 단일 패스(세그먼트 세분) — 첫 진입 순서 유지, 셀별 내부 이동 거리 합산.
+ * `fromMeters` 는 이어 달리기(§9.5.5 단위7)의 세션 시작 오프셋 — 이번 세션에 실제로
+ * 달린 구간만 Claim 페이로드에 싣기 위한 하한(운동·Claim 인정 분리 원칙).
  */
 export function buildConquestCellsFromRoute(
   geometry: LineStringGeometry,
   traveledMeters: number,
+  fromMeters = 0,
 ): ConquestPayloadCell[] {
   const coords = geometry.coordinates as LngLat[];
   if (coords.length < 2) return [];
   const total = Math.min(Math.max(0, traveledMeters), lineStringLengthMeters(geometry));
-  if (total <= 0) return [];
+  const from = Math.min(Math.max(0, fromMeters), total);
+  if (total - from <= 0) return [];
 
   const metersByCell = new Map<string, number>();
   const order: string[] = [];
@@ -137,14 +141,14 @@ export function buildConquestCellsFromRoute(
     for (let p = 0; p < pieces; p += 1) {
       const t0 = p / pieces;
       const t1 = (p + 1) / pieces;
-      let pieceLen = segLen / pieces;
-      if (walked + pieceLen > total) {
-        pieceLen = total - walked;
-        if (pieceLen <= 0) break outer;
+      const pieceLen = segLen / pieces;
+      // 조각과 [from, total] 구간의 겹치는 길이만 인정(경계 조각은 부분 산입)
+      const effLen = Math.min(walked + pieceLen, total) - Math.max(walked, from);
+      if (effLen > 0) {
+        const tm = (t0 + t1) / 2;
+        const mid: LngLat = [a[0] + (b[0] - a[0]) * tm, a[1] + (b[1] - a[1]) * tm];
+        addMeters(conquestCellIdAt(mid), effLen);
       }
-      const tm = (t0 + t1) / 2;
-      const mid: LngLat = [a[0] + (b[0] - a[0]) * tm, a[1] + (b[1] - a[1]) * tm];
-      addMeters(conquestCellIdAt(mid), pieceLen);
       walked += pieceLen;
       if (walked >= total) break outer;
     }
@@ -154,33 +158,47 @@ export function buildConquestCellsFromRoute(
 }
 
 /**
- * 진행 구간(0..traveledMeters) 궤적 — 정점 절단·소수 5자리 반올림(저장용).
+ * 진행 구간(fromMeters..traveledMeters) 궤적 — 정점 절단·소수 5자리 반올림(저장용).
  * 반환은 **평탄 배열** [lng0,lat0,lng1,lat1,...] (Firestore 중첩 배열 금지).
+ * `fromMeters` 는 이어 달리기 세션 시작 오프셋 — 이번 세션 실주행 궤적만 남긴다.
  */
 export function buildTraveledPathForTrace(
   geometry: LineStringGeometry,
   traveledMeters: number,
+  fromMeters = 0,
 ): number[] {
   const coords = geometry.coordinates as LngLat[];
   if (coords.length < 2) return [];
   const total = Math.min(Math.max(0, traveledMeters), lineStringLengthMeters(geometry));
-  if (total <= 0) return [];
+  const from = Math.min(Math.max(0, fromMeters), total);
+  if (total - from <= 0) return [];
 
-  const out: LngLat[] = [coords[0]];
+  const out: LngLat[] = [];
   let walked = 0;
   for (let i = 0; i < coords.length - 1; i += 1) {
     const a = coords[i];
     const b = coords[i + 1];
     const segLen = getDistanceMeters(a, b);
     if (segLen <= 0) continue;
-    if (walked + segLen >= total) {
+    const segEnd = walked + segLen;
+    if (segEnd <= from) {
+      walked = segEnd;
+      continue;
+    }
+    if (out.length === 0) {
+      // 시작점 — from 지점을 세그먼트 위에 보간
+      const t0 = Math.max(0, (from - walked) / segLen);
+      out.push([a[0] + (b[0] - a[0]) * t0, a[1] + (b[1] - a[1]) * t0]);
+    }
+    if (segEnd >= total) {
       const t = (total - walked) / segLen;
       out.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
       break;
     }
-    walked += segLen;
+    walked = segEnd;
     out.push(b);
   }
+  if (out.length < 2) return [];
 
   const decimated = decimateLineStringVertices(
     { type: "LineString", coordinates: out },

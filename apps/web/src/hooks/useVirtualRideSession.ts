@@ -41,6 +41,12 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
   }, [options.speedKmh]);
 
   const virtualDistanceRef = useRef(0);
+  /**
+   * 이어 달리기(§9.5.5 단위7) — 이번 세션의 경로상 시작 오프셋(m).
+   * virtualDistance 는 「경로상 위치(누적)」, 이번 세션 실주행은 virtualDistance − startOffset.
+   * 운동 인정·Claim 페이로드 분리는 종료 측(useRideEndAndPersistence)이 이 값을 읽어 수행한다.
+   */
+  const startOffsetMetersRef = useRef(0);
   const accumulatedMsRef = useRef(0);
   const lastAnimTsRef = useRef<number | null>(null);
   const lastUiTsRef = useRef<number | null>(null);
@@ -130,13 +136,19 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
     };
   }, [status, flushUi]);
 
-  const resetDistances = useCallback(() => {
-    virtualDistanceRef.current = 0;
+  /**
+   * 거리 리셋. `startOffsetMeters` 를 주면 이어 달리기 — 경로상 offset 지점에서 시작한다.
+   * 위치·도착판정·completionRatio(누적)는 시드된 virtualDistance 로 그대로 작동.
+   */
+  const resetDistances = useCallback((startOffsetMeters = 0) => {
+    const offset = Math.max(0, startOffsetMeters);
+    startOffsetMetersRef.current = offset;
+    virtualDistanceRef.current = offset;
     accumulatedMsRef.current = 0;
     lastAnimTsRef.current = null;
     lastUiTsRef.current = null;
     setMetricsUi({
-      virtualDistanceMeters: 0,
+      virtualDistanceMeters: offset,
       accumulatedMs: 0,
       liveLngLat: null,
     });
@@ -172,5 +184,6 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
     resetDistances,
     syncLiveFromDistance,
     sampleLiveLngLat,
+    startOffsetMetersRef,
   };
 }

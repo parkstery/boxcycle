@@ -15,7 +15,10 @@ export type RouteDockProps = {
   canStartRide: boolean;
   canSaveRoute: boolean;
   onSaveCurrentRoute: (name: string, confirmUpdate?: boolean) => Promise<void> | void;
-  onStartRide: () => void;
+  /** 주행 시작. `fromStart=true` 면 재개 후보를 무시하고 처음부터(§9.5.5 단위7) */
+  onStartRide: (fromStart?: boolean) => void;
+  /** 로드된 미완주 저장 경로의 재개 후보 진행률(0..1). null=재개 불가(선택 UI 미표시) */
+  resumeRatio?: number | null;
   onClearRoute: () => void;
   onRemoveStop: (id: RouteDockStopId) => void;
   onFocusStop: (stop: RouteDockStop) => void;
@@ -41,6 +44,7 @@ export function RouteDock(props: RouteDockProps) {
     canSaveRoute,
     onSaveCurrentRoute,
     onStartRide,
+    resumeRatio = null,
     onClearRoute,
     onRemoveStop,
     onFocusStop,
@@ -56,6 +60,15 @@ export function RouteDock(props: RouteDockProps) {
   const [saveError, setSaveError] = useState<string | null>(null);
   /** 같은 경로가 이미 있어 "업데이트하시겠습니까?" 확인을 기다리는 중. */
   const [saveConfirmUpdate, setSaveConfirmUpdate] = useState(false);
+  /** 이어 달리기 — true 면 처음부터 다시(기본은 저장 지점부터 재개). */
+  const [restartFromZero, setRestartFromZero] = useState(false);
+  // 재개 후보가 바뀌면(다른 경로 로드 등) 선택을 기본값(이어달리기)으로 리셋.
+  // effect 대신 이전값 비교(React 권장) — set-state-in-effect 회피.
+  const [prevResumeRatio, setPrevResumeRatio] = useState(resumeRatio);
+  if (resumeRatio !== prevResumeRatio) {
+    setPrevResumeRatio(resumeRatio);
+    setRestartFromZero(false);
+  }
 
   useEffect(() => {
     if (visible && stops.length > 0) setExpanded(true);
@@ -158,7 +171,7 @@ export function RouteDock(props: RouteDockProps) {
               disabled={!canStartRide || routeLoading || editLocked}
               aria-label="주행 시작"
               title="Start ride"
-              onClick={onStartRide}
+              onClick={() => onStartRide(restartFromZero)}
             >
               Go
             </button>
@@ -191,6 +204,31 @@ export function RouteDock(props: RouteDockProps) {
             </button>
           </div>
         </header>
+
+        {stage === "ready-to-start" && resumeRatio != null ? (
+          <div className="route-dock__resume" role="radiogroup" aria-label="이어 달리기">
+            <label className="route-dock__resume-option">
+              <input
+                type="radio"
+                name="route-dock-resume"
+                checked={!restartFromZero}
+                onChange={() => setRestartFromZero(false)}
+              />
+              <span>
+                {Math.round(resumeRatio * 100)}% 지점부터 <strong>이어달리기</strong>
+              </span>
+            </label>
+            <label className="route-dock__resume-option">
+              <input
+                type="radio"
+                name="route-dock-resume"
+                checked={restartFromZero}
+                onChange={() => setRestartFromZero(true)}
+              />
+              <span>처음부터</span>
+            </label>
+          </div>
+        ) : null}
 
         {saveOpen ? (
           <div className="route-dock__save-form">

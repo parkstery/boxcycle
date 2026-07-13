@@ -181,6 +181,32 @@ export function promoteSavedRouteInLocal(input: {
   writeAll(items);
 }
 
+/**
+ * 게스트(로컬) 미완주 진행률 갱신 — 완주 임계 미만 종료 시 호출(§9.5.5 단위7).
+ * completed 는 건드리지 않고 진행률·lastRideId 만. 진행률은 **최대 도달점 유지**(max) —
+ * "처음부터 다시" 주행을 중간 종료해도 기존 재개 지점을 잃지 않는다.
+ */
+export function updateSavedRouteProgressInLocal(input: {
+  routeId: string;
+  rideId: string;
+  progressRatio: number;
+}): void {
+  const items = readAll();
+  const idx = items.findIndex((r) => r.id === input.routeId);
+  if (idx < 0) return;
+  const prev = items[idx];
+  const next = Number.isFinite(input.progressRatio)
+    ? Math.max(0, Math.min(1, input.progressRatio))
+    : 0;
+  items[idx] = {
+    ...prev,
+    lastRideId: input.rideId,
+    lastProgressRatio: Math.max(prev.lastProgressRatio ?? 0, next),
+    updatedAtIso: new Date().toISOString(),
+  };
+  writeAll(items);
+}
+
 export function renameSavedRouteInLocal(routeId: string, newName: string): string {
   const name = validateSavedRouteName(newName);
   const items = readAll();
