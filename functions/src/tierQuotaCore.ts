@@ -37,7 +37,7 @@ const QUOTA_BY_TIER: Record<ServerUserTier, TierQuotaLimits> = {
   registered_free: {
     saveRoutePerMonth: 10,
     saveRouteMaxActive: 30,
-    saveRouteMaxIncomplete: 5,
+    saveRouteMaxIncomplete: 23,
     publicRouteRequestPerDay: 5,
     publicRouteRequestPerMonth: null,
     createEventPerMonth: 0,

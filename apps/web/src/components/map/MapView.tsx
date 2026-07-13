@@ -1885,7 +1885,7 @@ export function MapView({
               source: CONQUEST_TRACES_SRC,
               layout: { "line-cap": "round", "line-join": "round" },
               paint: {
-                "line-color": "#2f6bff",
+                "line-color": "#322fff",
                 "line-opacity": 0.55,
                 "line-width": ["interpolate", ["linear"], ["zoom"], 8, 1.6, 12, 3, 16, 6],
               },
@@ -1963,7 +1963,7 @@ export function MapView({
           source: CONQUEST_LIVE_SRC,
           layout: { "line-cap": "round", "line-join": "round" },
           paint: {
-            "line-color": "#2f6bff",
+            "line-color": "#2fff52",
             "line-opacity": 0.85,
             "line-width": ["interpolate", ["linear"], ["zoom"], 8, 3.2, 12, 6, 16, 12],
           },
