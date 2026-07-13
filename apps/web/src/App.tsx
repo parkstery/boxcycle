@@ -1619,7 +1619,7 @@ export default function App() {
           elapsed: elapsedLabel,
           distanceKm: distanceKmLabel,
           avgKmh: avgSpeedLabel,
-          speedKmh,
+          speedKmh: rideMetrics.appliedSpeedKmh,
         }
       : hudRoutePreview
         ? {
@@ -1797,7 +1797,7 @@ export default function App() {
                   ? null
                   : {
                       sessionStatus: rideStatus,
-                      speedKmh,
+                      speedKmh: rideMetrics.appliedSpeedKmh,
                       crankRpmFromSensor: bleCrankRpm.crankRpm,
                     },
               liveRiderNametag: resolvedLiveRiderNametag,

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { LineStringGeometry, LngLat } from "../lib/geo";
 import { getPointOnRouteByDistance, lineStringLengthMeters } from "../lib/geo";
 import { rideDistanceAlongRoute } from "../lib/liveLocationSnapshot";
+import { stepRideSpeedKmh } from "../lib/rideSpeedRamp";
 
 export type RideSessionStatus = "idle" | "running" | "paused";
 
@@ -15,6 +16,7 @@ export type RideMetricsUi = {
   virtualDistanceMeters: number;
   accumulatedMs: number;
   liveLngLat: LngLat | null;
+  appliedSpeedKmh: number;
 };
 
 const METRICS_UI_MS = 200;
@@ -25,10 +27,12 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
     virtualDistanceMeters: 0,
     accumulatedMs: 0,
     liveLngLat: null,
+    appliedSpeedKmh: 0,
   });
 
   const statusRef = useRef(status);
   const speedRef = useRef(options.speedKmh);
+  const appliedSpeedRef = useRef(0);
   const routeGeometryRef = useRef(options.routeGeometry);
   const routeDistanceRef = useRef(options.routeDistanceMeters);
 
@@ -69,6 +73,7 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
       virtualDistanceMeters: virtualDistanceRef.current,
       accumulatedMs: accumulatedMsRef.current,
       liveLngLat: live,
+      appliedSpeedKmh: appliedSpeedRef.current,
     });
   }, []);
 
@@ -80,6 +85,7 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
       }
       lastAnimTsRef.current = null;
       lastUiTsRef.current = null;
+      appliedSpeedRef.current = 0;
       return;
     }
 
@@ -97,7 +103,8 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
       const deltaMs = Math.max(0, ts - lastAnimTsRef.current);
       lastAnimTsRef.current = ts;
 
-      const virtualSpeedMetersPerSec = (speedRef.current * 1000) / 3600;
+      appliedSpeedRef.current = stepRideSpeedKmh(appliedSpeedRef.current, speedRef.current, deltaMs);
+      const virtualSpeedMetersPerSec = (appliedSpeedRef.current * 1000) / 3600;
       accumulatedMsRef.current += deltaMs;
       virtualDistanceRef.current += virtualSpeedMetersPerSec * (deltaMs / 1000);
 
@@ -147,10 +154,12 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
     accumulatedMsRef.current = 0;
     lastAnimTsRef.current = null;
     lastUiTsRef.current = null;
+    appliedSpeedRef.current = 0;
     setMetricsUi({
       virtualDistanceMeters: offset,
       accumulatedMs: 0,
       liveLngLat: null,
+      appliedSpeedKmh: 0,
     });
   }, []);
 
