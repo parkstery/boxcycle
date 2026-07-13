@@ -851,12 +851,8 @@ export default function App() {
   }, [user, sharedPresenceCourseId]);
 
   const resolvedLiveRiderNametag = useMemo(() => {
-    const base = (liveRiderNametag ?? selfRiderNametagFallback)?.trim();
-    const riding = rideStatus === "running" || rideStatus === "paused";
-    if (!riding) return base || null;
-    const label = trailDisplayLabels.label;
-    return base ? `${label} · ${base}` : label;
-  }, [liveRiderNametag, selfRiderNametagFallback, rideStatus, trailDisplayLabels.label]);
+    return (liveRiderNametag ?? selfRiderNametagFallback)?.trim() || null;
+  }, [liveRiderNametag, selfRiderNametagFallback]);
 
   const bleCrankRpm = useBleCrankRpm({ sessionActive: rideStatus !== "idle" });
 
