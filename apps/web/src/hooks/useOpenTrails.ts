@@ -136,8 +136,15 @@ export function useOpenTrails(opts: { enabled: boolean }) {
       },
     );
 
+    // 메뉴 열린 동안 유령 listing 재검사 — 라이더 비정상 종료 시 스냅샷이 다시 오지
+    // 않아 화면에 남는 행을 재계산(삭제)으로 걷어낸다. 실행 빈도는 스케줄러 쿨다운이 제한.
+    const staleSweep = window.setInterval(() => {
+      for (const t of listingRows) scheduleOpenTrailListingRefresh(t.id);
+    }, 60_000);
+
     return () => {
       cancelled = true;
+      window.clearInterval(staleSweep);
       unsubListings();
       unsubActive();
     };

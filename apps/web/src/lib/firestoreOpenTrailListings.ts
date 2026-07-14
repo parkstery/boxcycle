@@ -17,7 +17,7 @@ import {
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getFirebaseApp } from "./firebase";
-import { countTrailMembersFresh } from "./firestoreTrail";
+import { countTrailMembersFresh, TRAIL_PRESENCE_STALE_MS } from "./firestoreTrail";
 import { countTrailLiveRidersFresh } from "./firestoreTrailLivePublicationRides";
 import { trailHasConfiguredRoute } from "./trailAccessPolicy";
 import { TRAILS_COLLECTION } from "./firestoreTrailPaths";
@@ -28,6 +28,14 @@ import { resolvePublicationIdFromDoc } from "./resolvePublicationIdFromDoc";
 export const OPEN_TRAIL_LISTINGS_COLLECTION = "openTrailListings";
 
 const OPEN_TRAIL_LISTINGS_LIMIT = 40;
+
+/**
+ * updatedAt 이 이보다 오래된 listing 은 stale(유령) 취급 — 표시 제외 + 재계산 예약.
+ * 삭제는 클라이언트 주도(refreshOpenTrailListingFromTrail)라 마지막 라이더가 탭을
+ * 닫으면 riderCount≥1 인 채 영원히 남을 수 있다. 실제 활성 Trail 이면 재계산이
+ * updatedAt 을 갱신해 스스로 목록에 복귀한다.
+ */
+export const OPEN_TRAIL_LISTING_STALE_MS = TRAIL_PRESENCE_STALE_MS;
 
 type OpenTrailListingDoc = {
   trailId: string;
@@ -60,8 +68,12 @@ function listingRef(trailId: string) {
 
 /** listing riderCount — RunAggregationQuery 없이 trail 메타·소량 scan */
 async function countTrailActiveParticipantsForTrail(trail: TrailInstance): Promise<number> {
+  // liveRiderCount 메타는 lastActivityAt 이 신선할 때만 신뢰 — stale 메타가 정리를 막지 않게
+  const metaFresh =
+    trail.lastActivityAtMs != null &&
+    Date.now() - trail.lastActivityAtMs <= TRAIL_PRESENCE_STALE_MS;
   const metaCount =
-    typeof trail.liveRiderCount === "number" && Number.isFinite(trail.liveRiderCount)
+    metaFresh && typeof trail.liveRiderCount === "number" && Number.isFinite(trail.liveRiderCount)
       ? Math.max(0, Math.floor(trail.liveRiderCount))
       : 0;
   const [live, members] = await Promise.all([
@@ -216,16 +228,26 @@ export async function refreshOpenTrailListingFromTrail(trailId: string): Promise
 }
 
 const refreshScheduled = new Map<string, ReturnType<typeof setTimeout>>();
+const refreshLastRunAt = new Map<string, number>();
 const createdAtBackfillScheduled = new Set<string>();
 
-/** presence·livePublicationRides 갱신 시 listing debounce 동기화 */
+/** 같은 Trail 재계산 실행 간 최소 간격 — 읽기 비용 상한 */
+const REFRESH_MIN_INTERVAL_MS = 30_000;
+
+/**
+ * presence·livePublicationRides 갱신 시 listing 동기화 예약.
+ * 기존 예약은 유지한다(타이머 리셋 방식은 1Hz 하트비트 스트림에서 실행이 영원히
+ * 밀리는 기아를 일으켰음). 실행 후 REFRESH_MIN_INTERVAL_MS 안의 재예약은 그만큼 미룬다.
+ */
 export function scheduleOpenTrailListingRefresh(trailId: string, debounceMs = 2_500): void {
-  const prev = refreshScheduled.get(trailId);
-  if (prev) window.clearTimeout(prev);
+  if (refreshScheduled.has(trailId)) return;
+  const lastRun = refreshLastRunAt.get(trailId) ?? 0;
+  const wait = Math.max(debounceMs, lastRun + REFRESH_MIN_INTERVAL_MS - Date.now());
   const id = window.setTimeout(() => {
     refreshScheduled.delete(trailId);
+    refreshLastRunAt.set(trailId, Date.now());
     void refreshOpenTrailListingFromTrail(trailId).catch(() => {});
-  }, debounceMs);
+  }, wait);
   refreshScheduled.set(trailId, id);
 }
 
@@ -275,12 +297,26 @@ export function subscribeOpenTrailListings(
   return onSnapshot(
     listingsQuery,
     (snap) => {
+      const nowMs = Date.now();
       const rows = snap.docs
-        .map((d) => ({
-          row: listingToTrailInstance(d.id, d.data() as Record<string, unknown>),
-          createdMs: timestampToMs(d.data().createdAt),
-        }))
-        .filter(({ row }) => isActiveOpenTrailListing(row))
+        .map((d) => {
+          const data = d.data({ serverTimestamps: "estimate" }) as Record<string, unknown>;
+          return {
+            row: listingToTrailInstance(d.id, data),
+            createdMs: timestampToMs(data.createdAt),
+            updatedMs: timestampToMs(data.updatedAt),
+          };
+        })
+        .filter(({ row, updatedMs }) => {
+          const stale =
+            updatedMs == null || nowMs - updatedMs > OPEN_TRAIL_LISTING_STALE_MS;
+          if (stale) {
+            // 유령 listing — 숨기고 재계산 예약(비활성이면 삭제, 활성이면 updatedAt 갱신 후 복귀)
+            scheduleOpenTrailListingRefresh(row.id);
+            return false;
+          }
+          return isActiveOpenTrailListing(row);
+        })
         .map(({ row, createdMs }) => {
           if (createdMs == null && !createdAtBackfillScheduled.has(row.id)) {
             createdAtBackfillScheduled.add(row.id);
