@@ -2,10 +2,10 @@
 
 | 항목 | 내용 |
 |------|------|
-| 문서 유형 | **제품·범위** (`product`) — 용어·브랜딩의 **단일 진실(source of truth)** |
+| 문서 유형 | **제품·범위** (`product`) — Trailhead·Trail **도메인 상세**(시청 컨텍스트·MENU 목록·레이어 매핑·마이그레이션 기록)의 단일 진실 |
 | 작성일 | 2026-05-17 |
-| 상태 | **채택** — UI·카피·신규 문서는 본 문서를 따른다. 코드·Firestore 경로는 단계적 반영 |
-| 연결 | [주행 여정·패널 IA](archive/260515-ux-주행-여정-및-패널-IA.md), [Firestore 스키마 초안](archive/260509-Firestore-컬렉션-스키마-초안.md), [로비·코스주행자 맵관전](archive/260514-(cycle)로비_코스주행자_맵관전_구현_보고서.md) |
+| 상태 | **채택** — 단, **용어 정의·금지어의 SoT는 [RTW Ontology](260714-RTW-Ontology.md)로 이관**(2026-07-14). 본 문서는 Trail·Trailhead의 동작·매핑 상세를 담당 |
+| 연결 | [RTW Ontology(용어 SoT)](260714-RTW-Ontology.md), [주행 여정·패널 IA](archive/260515-ux-주행-여정-및-패널-IA.md), [Firestore 스키마 초안](archive/260509-Firestore-컬렉션-스키마-초안.md), [로비·코스주행자 맵관전](archive/260514-(cycle)로비_코스주행자_맵관전_구현_보고서.md) |
 
 ---
 
@@ -172,6 +172,7 @@
 | 2026-05-17 | §2 시청 컨텍스트 — 「어느 Trail」에 Trailhead(`default`) 포함, Activity World vs 관전 구분 |
 | 2026-05-19 | §1 Trailhead=허브·▶ 자동 Trail·3자리 displayNumber·§1-b living world 분리·TrailHubPanel |
 | 2026-06-24 | §1-c Trailhead MENU 목록 — 주행 중 Trail만, listing+CG 병합 |
+| 2026-07-14 | **역할 축소** — 용어 정의·금지어의 SoT를 [RTW Ontology](260714-RTW-Ontology.md)로 이관. 본 문서는 Trail·Trailhead 도메인 상세(§1-c·§2 시청 컨텍스트·§3 레이어 매핑·마이그레이션 기록) 담당 |
 
 ### 9. `rooms` → `trails` 배포 순서
 
