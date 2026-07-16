@@ -5,6 +5,10 @@ import "./MapHud.css";
 export type AccountChipState = {
   initial: string;
   isGuest: boolean;
+  /** 버튼에 노출할 표시 이름(게스트/닉네임/이메일 등) */
+  label: string;
+  /** 누적 운동 거리 km(정수 반올림), 데이터 없으면 null → 거리 미표시 */
+  mileageKm: number | null;
 };
 
 /** 좌상단: Trail + 접속자 / 입문 코스 동행 이름 */
@@ -59,6 +63,8 @@ export type MapHudProps = {
         distanceKm: string;
         avgKmh: string;
         speedKmh: number;
+        /** 주행경로 전체거리 km(정수 아님, 소수 2자리 문자열). null=경로 미확정 → 진행/전체 병기 생략 */
+        routeTotalKm: string | null;
       })
     | ({
         mode: "route-preview";
@@ -93,17 +99,39 @@ export type MapHudProps = {
 
   /** Trailhead·코스 동행 요약(없으면 미표시) */
   ridePresence?: MapHudRidePresence | null;
-  /** 줌 축소 시 월드 레이어 한 줄(집계 문서 기반, 저빈도 갱신) */
-  worldActivityHint?: string | null;
   /** 라이브 어스 — 주행 지역 현재 날씨·밤낮 한 줄(Open-Meteo, 세션 중만) */
   weatherHint?: string | null;
-  /** 마일리지(누적 운동 이력) — idle 단계 한 줄(서버 집계, users/{uid}.mileageTotalMeters) */
-  mileageHint?: string | null;
   /** Conquest — 이번 주행에서 실시간으로 획득한 신규 도로 미터(낙관). 0/null=비표시 */
   conquestLiveMeters?: number | null;
   /** idle 단계 첫 진입 안내 문구 */
   idleHintMessage?: string;
 };
+
+/** TC 지표 캡슐 셀 — 라벨 위·값 아래 (참조 TopHud) */
+function HudMetricCell({
+  label,
+  value,
+  unit,
+  hero = false,
+}: {
+  label: string;
+  value: string;
+  unit?: string;
+  hero?: boolean;
+}) {
+  return (
+    <span
+      className={`hud-metrics__cell${hero ? " hud-metrics__cell--hero" : ""}`}
+      title={label}
+    >
+      <span className="hud-metrics__label">{label}</span>
+      <span className="hud-metrics__value">
+        {value}
+        {unit ? <span className="hud-metrics__cell-unit">{unit}</span> : null}
+      </span>
+    </span>
+  );
+}
 
 /**
  * 8슬롯 글래스 HUD.
@@ -142,9 +170,7 @@ export function MapHud(props: MapHudProps) {
     showIdleHint,
     onDismissIdleHint,
     ridePresence,
-    worldActivityHint,
     weatherHint,
-    mileageHint,
     conquestLiveMeters,
     idleHintMessage = "MENU → 입문 경로",
   } = props;
@@ -207,19 +233,9 @@ export function MapHud(props: MapHudProps) {
                 <span className="hud-place-search-btn__label">지명</span>
               </button>
             </div>
-            {worldActivityHint ? (
-              <p className="hud-world-hint" role="status">
-                {worldActivityHint}
-              </p>
-            ) : null}
             {weatherHint ? (
               <p className="hud-world-hint hud-weather-hint" role="status" title="주행 지역의 현재 날씨(Open-Meteo)">
                 {weatherHint}
-              </p>
-            ) : null}
-            {mileageHint ? (
-              <p className="hud-world-hint hud-mileage-hint" role="status">
-                {mileageHint}
               </p>
             ) : null}
             {showRidePresence && ridePresence ? (
@@ -306,34 +322,52 @@ export function MapHud(props: MapHudProps) {
                 {ridePresence.trailLabel}
               </span>
             ) : null}
-            <span className="hud-metrics__chip hud-metrics__chip--hero" title="Distance">
-              {metrics.distanceKm}
-              <span className="hud-metrics__unit">km</span>
-            </span>
-            <span className="hud-metrics__chip" title="Elapsed time">
-              {metrics.elapsed}
-            </span>
-            <span className="hud-metrics__chip" title="Average speed">
-              {metrics.avgKmh}
-              <span className="hud-metrics__unit">avg</span>
-            </span>
-            <span className="hud-metrics__chip" title="Current speed">
-              {metrics.speedKmh}
-              <span className="hud-metrics__unit">km/h</span>
-            </span>
-            {/* 50m 미만은 「+0.0km」로 보여 미표시 — 정복 축은 발생 시에만(0 미표시 원칙) */}
-            {(riding || paused) && (conquestLiveMeters ?? 0) >= 50 ? (
-              <span
-                key={conquestLiveMeters}
-                className="hud-metrics__chip hud-metrics__chip--conquest"
-                title="이번 주행에서 획득한 새 도로"
-                role="status"
-                aria-live="polite"
-              >
-                🏴 +{((conquestLiveMeters ?? 0) / 1000).toFixed(1)}
-                <span className="hud-metrics__unit">km</span>
-              </span>
-            ) : null}
+            <div className="hud-metrics__capsule" role="group" aria-label="주행 지표">
+              {/* 주행 중엔 「진행 / 주행경로 전체거리」 병기 — 경로 확정 시에만(값 있을 때) */}
+              {metrics.mode === "ride" && metrics.routeTotalKm ? (
+                <span
+                  className="hud-metrics__cell hud-metrics__cell--hero"
+                  title="달린 거리 / 주행경로 전체거리"
+                >
+                  <span className="hud-metrics__label">거리</span>
+                  <span className="hud-metrics__value">
+                    {metrics.distanceKm}
+                    <span className="hud-metrics__value-total">
+                      {" / "}
+                      {metrics.routeTotalKm}
+                    </span>
+                    <span className="hud-metrics__cell-unit">km</span>
+                  </span>
+                </span>
+              ) : (
+                <HudMetricCell label="거리" value={metrics.distanceKm} unit="km" hero />
+              )}
+              <span className="hud-metrics__divider" aria-hidden />
+              <HudMetricCell label="시간" value={metrics.elapsed} />
+              <span className="hud-metrics__divider" aria-hidden />
+              <HudMetricCell label="평균" value={metrics.avgKmh} unit="km/h" />
+              <span className="hud-metrics__divider" aria-hidden />
+              <HudMetricCell label="속도" value={String(metrics.speedKmh)} unit="km/h" />
+              {/* 50m 미만은 「+0.0km」로 보여 미표시 — 정복 축은 발생 시에만(0 미표시 원칙) */}
+              {(riding || paused) && (conquestLiveMeters ?? 0) >= 50 ? (
+                <>
+                  <span className="hud-metrics__divider" aria-hidden />
+                  <span
+                    key={conquestLiveMeters}
+                    className="hud-metrics__cell hud-metrics__cell--conquest"
+                    title="이번 주행에서 획득한 새 도로"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    <span className="hud-metrics__label">새 도로</span>
+                    <span className="hud-metrics__value">
+                      +{((conquestLiveMeters ?? 0) / 1000).toFixed(1)}
+                      <span className="hud-metrics__cell-unit">km</span>
+                    </span>
+                  </span>
+                </>
+              ) : null}
+            </div>
           </div>
         </div>
       ) : null}
@@ -342,13 +376,23 @@ export function MapHud(props: MapHudProps) {
         <div className="map-hud__tr">
           <button
             type="button"
-            className={`hud-avatar ${account.isGuest ? "hud-avatar--guest" : ""}`}
+            className={`hud-account ${account.isGuest ? "hud-account--guest" : ""}`}
             aria-label="사용자 정보"
             aria-expanded={userInfoOpen}
             title="Account"
             onClick={onOpenUserInfo}
           >
-            {account.initial}
+            <span className="hud-account__avatar" aria-hidden>
+              {account.initial}
+            </span>
+            <span className="hud-account__text">
+              <span className="hud-account__name">{account.label}</span>
+              {account.mileageKm != null ? (
+                <span className="hud-account__mileage">
+                  {account.mileageKm.toLocaleString("ko-KR")} km
+                </span>
+              ) : null}
+            </span>
           </button>
         </div>
       ) : null}

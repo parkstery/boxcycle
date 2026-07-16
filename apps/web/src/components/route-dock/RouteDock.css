@@ -65,8 +65,8 @@
 }
 
 .route-dock__caret:hover {
-  background: rgba(47, 107, 255, 0.22);
-  color: #eaf2ff;
+  background: rgba(232, 163, 61, 0.22);
+  color: var(--rtw-text-primary);
 }
 
 .route-dock__caret-icon {
@@ -127,10 +127,10 @@
   min-width: 0;
   max-width: 100%;
   appearance: none;
-  border: 1px solid rgba(107, 165, 255, 0.35);
+  border: 1px solid rgba(232, 163, 61, 0.35);
   border-radius: 999px;
-  background: rgba(107, 165, 255, 0.14);
-  color: #f0f9ff;
+  background: rgba(232, 163, 61, 0.14);
+  color: var(--rtw-text-primary);
   font: inherit;
   font-size: 0.62rem;
   font-weight: 650;
@@ -141,8 +141,8 @@
 }
 
 .route-dock__save-trigger:hover:not(:disabled) {
-  background: rgba(107, 165, 255, 0.24);
-  border-color: rgba(107, 165, 255, 0.5);
+  background: rgba(232, 163, 61, 0.24);
+  border-color: rgba(232, 163, 61, 0.5);
 }
 
 .route-dock__save-trigger:disabled {
@@ -158,8 +158,8 @@
   flex: 0 0 auto;
   padding: 0.32rem 0.4rem;
   border-radius: 8px;
-  background: rgba(47, 107, 255, 0.16);
-  border: 1px solid rgba(107, 165, 255, 0.35);
+  background: rgba(232, 163, 61, 0.16);
+  border: 1px solid rgba(232, 163, 61, 0.35);
 }
 
 .route-dock__resume-option {
@@ -185,9 +185,9 @@
 
 /* 선택됨 — 링 색 + 안쪽 채움 점 */
 .route-dock__resume-option input:checked {
-  border-color: #6ba5ff;
+  border-color: #E8A33D;
   background:
-    radial-gradient(circle, #6ba5ff 0 35%, transparent 38%);
+    radial-gradient(circle, #E8A33D 0 35%, transparent 38%);
 }
 
 /* 선택 안 됨(hover 시 살짝 밝게) */
@@ -233,13 +233,13 @@
   font-size: 0.72rem;
   border-radius: 6px;
   border: 1px solid rgba(248, 250, 252, 0.18);
-  background: rgb(247, 246, 246);
+  background: rgba(255, 255, 255, 0.06);
   /* background: rgba(10, 16, 26, 0.55); */
   color: #f8fafc;
 }
 
 .route-dock__save-input:focus-visible {
-  outline: 2px solid rgba(107, 165, 255, 0.65);
+  outline: 2px solid rgba(232, 163, 61, 0.65);
   outline-offset: 1px;
 }
 
@@ -279,7 +279,7 @@
   flex: 0 0 auto;
   border: 0;
   border-radius: 6px;
-  background: rgba(107, 165, 255, 0.85);
+  background: rgba(232, 163, 61, 0.85);
   color: #0f172a;
   font: inherit;
   font-size: 0.72rem;
@@ -492,7 +492,7 @@
 }
 
 .route-dock__speed-step:hover:not(:disabled) {
-  border-color: rgba(107, 165, 255, 0.45);
+  border-color: rgba(232, 163, 61, 0.45);
 }
 
 .route-dock__speed-step:disabled {
@@ -504,7 +504,7 @@
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
-  accent-color: #6ba5ff;
+  accent-color: #E8A33D;
 }
 
 .route-dock__speed-number {
@@ -526,14 +526,14 @@
   padding: 0.32rem 0.7rem;
   border: 0;
   border-radius: 999px;
-  background: linear-gradient(135deg, #2f6bff, #1f5af0);
-  color: #f8fafc;
+  background: var(--rtw-trace);
+  color: var(--rtw-bg);
   font: inherit;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.03em;
   cursor: pointer;
-  box-shadow: 0 3px 12px rgba(37, 99, 235, 0.32);
+  box-shadow: 0 3px 12px rgba(232, 163, 61, 0.35);
 }
 
 .route-dock__go:hover:not(:disabled) {

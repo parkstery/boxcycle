@@ -11,6 +11,13 @@ import {
 } from "../../lib/activityWorldLod";
 import { ACTIVITY_TRACE_RED } from "../../lib/activityWorldTraceStyle";
 import {
+  applyRtwLayerStyle,
+  RTW_MAP_STYLE_URL,
+  RTW_TRACE_ACCUMULATED_PAINT,
+  RTW_TRACE_LIVE_GLOW_PAINT,
+  RTW_TRACE_LIVE_PAINT,
+} from "../../lib/rtwMapConfig";
+import {
   shouldMoveActivityWorldLayersToTop,
   shouldSkipLiveOverlaysOnMap,
 } from "../../lib/mapDebugPhase";
@@ -115,6 +122,7 @@ const CONQUEST_TRACES_LAYER = "boxcycle-conquest-traces-line";
 /** Conquest — 이번 주행에서 지금까지 달린 구간(실시간 칠하기) */
 const CONQUEST_LIVE_SRC = "boxcycle-conquest-live";
 const CONQUEST_LIVE_LAYER = "boxcycle-conquest-live-line";
+const CONQUEST_LIVE_GLOW_LAYER = "boxcycle-conquest-live-glow";
 
 const ACTIVITY_PULSE_SRC = "boxcycle-activity-pulse-routes";
 const ACTIVITY_PULSE_GLOW = "boxcycle-activity-pulse-routes-glow";
@@ -1884,11 +1892,7 @@ export function MapView({
               type: "line",
               source: CONQUEST_TRACES_SRC,
               layout: { "line-cap": "round", "line-join": "round" },
-              paint: {
-                "line-color": "#322fff",
-                "line-opacity": 0.55,
-                "line-width": ["interpolate", ["linear"], ["zoom"], 8, 1.6, 12, 3, 16, 6],
-              },
+              paint: { ...RTW_TRACE_ACCUMULATED_PAINT },
             },
             map.getLayer("route") ? "route" : undefined,
           );
@@ -1908,7 +1912,7 @@ export function MapView({
   }, [mapLoaded, conquestTraces]);
 
   /**
-   * Conquest — 이번 주행의 진행 구간 실시간 칠하기(경로선 위, 라이더가 지나온 길이 파랗게 물든다).
+   * Conquest — 이번 주행의 진행 구간 실시간 칠하기(경로선 위, 라이더가 지나온 길이 골드로 물든다).
    */
   useEffect(() => {
     const map = mapRef.current;
@@ -1956,17 +1960,23 @@ export function MapView({
       } else {
         map.addSource(CONQUEST_LIVE_SRC, { type: "geojson", data: fc });
       }
+      if (!map.getLayer(CONQUEST_LIVE_GLOW_LAYER)) {
+        // glow 를 본선보다 먼저(아래) 추가 — Mapbox drop-shadow 대체
+        map.addLayer({
+          id: CONQUEST_LIVE_GLOW_LAYER,
+          type: "line",
+          source: CONQUEST_LIVE_SRC,
+          layout: { "line-cap": "round", "line-join": "round" },
+          paint: { ...RTW_TRACE_LIVE_GLOW_PAINT },
+        });
+      }
       if (!map.getLayer(CONQUEST_LIVE_LAYER)) {
         map.addLayer({
           id: CONQUEST_LIVE_LAYER,
           type: "line",
           source: CONQUEST_LIVE_SRC,
           layout: { "line-cap": "round", "line-join": "round" },
-          paint: {
-            "line-color": "#2fff52",
-            "line-opacity": 0.85,
-            "line-width": ["interpolate", ["linear"], ["zoom"], 8, 3.2, 12, 6, 16, 12],
-          },
+          paint: { ...RTW_TRACE_LIVE_PAINT },
         });
       }
     };
@@ -1991,6 +2001,28 @@ export function MapView({
     currentStyleRef.current = mapStyle;
     map.setStyle(mapStyle);
   }, [mapStyle, mapLoaded]);
+
+  /** RTW 다크 스타일 한정 — POI/건물 숨김 + 도로 존재감 다이어트 */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+    const apply = () => {
+      if (mapStyle !== RTW_MAP_STYLE_URL) return;
+      if (!map.isStyleLoaded()) return;
+      try {
+        applyRtwLayerStyle(map);
+      } catch {
+        /* noop */
+      }
+    };
+    apply();
+    if (!map.isStyleLoaded()) map.once("idle", apply);
+    map.on("style.load", apply);
+    return () => {
+      map.off("style.load", apply);
+      map.off("idle", apply);
+    };
+  }, [mapLoaded, mapStyle]);
 
   /** 출발/도착 마커 */
   useEffect(() => {

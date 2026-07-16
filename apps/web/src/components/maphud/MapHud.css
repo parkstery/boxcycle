@@ -57,9 +57,9 @@
 }
 
 .hud-chip--accent {
-  background: rgba(56, 189, 248, 0.18);
-  border-color: rgba(56, 189, 248, 0.45);
-  color: #f0f9ff;
+  background: rgba(232, 163, 61, 0.18);
+  border-color: rgba(232, 163, 61, 0.45);
+  color: var(--rtw-text-primary);
 }
 
 .hud-icon-btn {
@@ -87,7 +87,7 @@
 }
 
 .hud-icon-btn:focus-visible {
-  outline: 2px solid #38bdf8;
+  outline: 2px solid #E8A33D;
   outline-offset: 2px;
 }
 
@@ -110,13 +110,13 @@
 }
 
 .hud-icon-btn--primary {
-  background: rgba(56, 189, 248, 0.32);
-  border-color: rgba(56, 189, 248, 0.55);
-  color: #f0f9ff;
+  background: rgba(232, 163, 61, 0.32);
+  border-color: rgba(232, 163, 61, 0.55);
+  color: var(--rtw-text-primary);
 }
 
 .hud-icon-btn--primary:hover {
-  background: rgba(56, 189, 248, 0.48);
+  background: rgba(232, 163, 61, 0.48);
 }
 
 .hud-icon-btn--danger {
@@ -179,9 +179,9 @@
 }
 
 .hud-place-search-btn.is-active {
-  background: rgba(56, 189, 248, 0.32);
-  border-color: rgba(56, 189, 248, 0.55);
-  color: #f0f9ff;
+  background: rgba(232, 163, 61, 0.32);
+  border-color: rgba(232, 163, 61, 0.55);
+  color: var(--rtw-text-primary);
 }
 
 .hud-place-search-btn__icon {
@@ -227,7 +227,7 @@
   font-weight: 750;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: red;
+  color: var(--rtw-trace);
 }
 
 .hud-ride-presence__room {
@@ -242,9 +242,9 @@
   margin-left: auto;
   align-self: center;
   appearance: none;
-  border: 1px solid rgba(107, 165, 255, 0.5);
-  background: rgba(107, 165, 255, 0.16);
-  color: #eaf2ff;
+  border: 1px solid rgba(232, 163, 61, 0.5);
+  background: rgba(232, 163, 61, 0.16);
+  color: var(--rtw-text-primary);
   font: inherit;
   font-size: 0.6rem;
   font-weight: 700;
@@ -257,8 +257,8 @@
 }
 
 .hud-ride-presence__trailhead-btn:hover:not(:disabled) {
-  background: rgba(107, 165, 255, 0.26);
-  border-color: rgba(107, 165, 255, 0.65);
+  background: rgba(232, 163, 61, 0.26);
+  border-color: rgba(232, 163, 61, 0.65);
 }
 
 .hud-ride-presence__trailhead-btn:disabled {
@@ -412,8 +412,8 @@
   width: 0.55rem;
   height: 0.55rem;
   border-radius: 50%;
-  background: #38bdf8;
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+  background: #E8A33D;
+  box-shadow: 0 0 0 3px rgba(232, 163, 61, 0.25);
 }
 
 .hud-brand--muted {
@@ -436,30 +436,62 @@
 }
 
 /* ---------- TR: AccountChip ---------- */
-.hud-avatar {
-  width: 2.2rem;
+.hud-account {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   height: 2.2rem;
-  border-radius: 50%;
+  padding: 0 0.7rem 0 0.35rem;
+  border-radius: 999px;
   background: rgba(15, 23, 42, 0.55);
   border: 1px solid rgba(248, 250, 252, 0.25);
   color: #f8fafc;
-  font-weight: 700;
-  font-size: 0.85rem;
-  letter-spacing: 0.04em;
   cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  max-width: min(60vw, 15rem);
+}
+
+.hud-account__avatar {
+  flex: 0 0 auto;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  background: rgba(248, 250, 252, 0.14);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
 }
 
-.hud-avatar--guest {
+.hud-account--guest .hud-account__avatar {
   background: rgba(148, 163, 184, 0.32);
 }
 
-.hud-avatar--muted {
-  opacity: 0.62;
+.hud-account__text {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.05;
+  min-width: 0;
+}
+
+.hud-account__name {
+  font-weight: 600;
+  font-size: 0.8rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hud-account__mileage {
+  font-size: 0.68rem;
+  font-weight: 500;
+  opacity: 0.72;
+  letter-spacing: 0.01em;
 }
 
 .hud-signin-pill {
@@ -481,26 +513,126 @@
 }
 
 .hud-signin-pill:hover {
-  border-color: rgba(56, 189, 248, 0.45);
-  color: #e0f2fe;
+  border-color: var(--rtw-accent-line);
+  color: var(--rtw-text-primary);
 }
 
-/* ---------- TC: MetricChips ---------- */
+/* ---------- TC: 지표 캡슐 (참조 TopHud — 라벨 위·값 아래, 디바이더 구분) ---------- */
+.hud-metrics {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.hud-metrics__capsule {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.32rem 0.55rem;
+  border-radius: var(--rtw-radius-pill);
+  background: var(--rtw-panel);
+  border: 1px solid var(--rtw-divider);
+  box-shadow: var(--rtw-shadow-panel);
+  backdrop-filter: var(--rtw-blur-panel);
+  -webkit-backdrop-filter: var(--rtw-blur-panel);
+}
+
+.hud-metrics__cell {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.14rem;
+  min-width: 3.2rem;
+  padding: 0 0.5rem;
+  text-align: center;
+}
+
+.hud-metrics__label {
+  font-size: var(--rtw-text-xs);
+  line-height: 1;
+  font-weight: var(--rtw-weight-label);
+  color: var(--rtw-text-secondary);
+}
+
+.hud-metrics__value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.15rem;
+  font-family: var(--rtw-font-num);
+  font-size: 0.95rem;
+  line-height: 1;
+  font-weight: var(--rtw-weight-value);
+  color: var(--rtw-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-metrics__cell-unit {
+  font-size: 0.55rem;
+  font-weight: 500;
+  color: var(--rtw-text-secondary);
+}
+
+/* 거리 = 오늘 운동의 핵심 숫자 — 골드는 핵심 강조 숫자에만(운동=본체 위계) */
+.hud-metrics__cell--hero .hud-metrics__value {
+  font-size: 1.25rem;
+  color: var(--rtw-trace);
+}
+
+/* 「/ 주행경로 전체거리」 — 진행 숫자(골드 히어로)를 넘지 않게 작고 흐리게 */
+.hud-metrics__value-total {
+  font-size: 0.72em;
+  font-weight: 500;
+  color: var(--rtw-text-secondary);
+}
+
+.hud-metrics__divider {
+  width: 1px;
+  height: 1.5rem;
+  background: var(--rtw-divider);
+  flex-shrink: 0;
+}
+
+/* Trail 배지 칩(캡슐 밖 컨텍스트 배지) */
+.hud-metrics__chip {
+  min-width: 3.4rem;
+  text-align: center;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: var(--rtw-radius-pill);
+  background: var(--rtw-panel);
+  border: 1px solid var(--rtw-divider);
+  color: var(--rtw-text-primary);
+  backdrop-filter: var(--rtw-blur-panel);
+  -webkit-backdrop-filter: var(--rtw-blur-panel);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
 .hud-metrics__chip--trail {
-  background: rgba(220, 38, 38, 0.22);
-  border-color: rgba(248, 113, 113, 0.55);
+  background: var(--rtw-danger-bg);
+  border-color: var(--rtw-danger-border);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
 }
 
-/* Conquest — 주행 중 실시간 새 도로 카운터(도파민 지점) */
-.hud-metrics__chip--conquest {
-  background: rgba(47, 107, 255, 0.28);
-  border-color: rgba(107, 165, 255, 0.6);
-  color: #eaf2ff;
-  font-variant-numeric: tabular-nums;
+/* Conquest — 주행 중 실시간 새 도로 카운터(도파민 지점): 골드 */
+.hud-metrics__cell--conquest {
   animation: hud-conquest-pop 0.35s ease;
-  margin-left: 0.4rem;
+}
+
+.hud-metrics__cell--conquest .hud-metrics__label {
+  color: var(--rtw-trace);
+  opacity: 0.8;
+}
+
+.hud-metrics__cell--conquest .hud-metrics__value {
+  color: var(--rtw-trace);
 }
 
 @keyframes hud-conquest-pop {
@@ -516,52 +648,15 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hud-metrics__chip--conquest {
+  .hud-metrics__cell--conquest {
     animation: none;
   }
 }
 
-.hud-metrics {
-  display: flex;
-  gap: 0.3rem;
-  flex-wrap: nowrap;
-  overflow: hidden;
-}
-
-.hud-metrics__chip {
-  min-width: 3.4rem;
-  text-align: center;
-  display: inline-flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 0.2rem;
-  padding: 0.18rem 0.55rem;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.44);
-  border: 1px solid rgba(248, 250, 252, 0.16);
-  color: #f8fafc;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  font-weight: 700;
-  font-size: 0.78rem;
-  letter-spacing: 0.02em;
-}
-
-.hud-metrics__unit {
-  font-size: 0.6rem;
-  opacity: 0.78;
-  font-weight: 600;
-  margin-left: 0.05rem;
-}
-
-/* 경로만 선택·주행 전: 동일 칩 UI, 글자색만 구분 */
-.hud-metrics--route-preview .hud-metrics__chip {
-  color: #a5b4fc;
-}
-
-.hud-metrics--route-preview .hud-metrics__unit {
-  color: #c7d2fe;
-  opacity: 0.9;
+/* 경로만 선택·주행 전: 동일 캡슐, 값 색만 구분(골드 톤 다운) */
+.hud-metrics--route-preview .hud-metrics__value {
+  color: var(--rtw-trace);
+  opacity: 0.85;
 }
 
 /* ---------- BC: CoachLine ---------- */
@@ -593,8 +688,8 @@
 .hud-coach__r {
   font-weight: 700;
   font-size: 0.7rem;
-  background: rgba(56, 189, 248, 0.25);
-  border: 1px solid rgba(56, 189, 248, 0.45);
+  background: rgba(232, 163, 61, 0.25);
+  border: 1px solid rgba(232, 163, 61, 0.45);
   border-radius: 999px;
   padding: 0.05rem 0.45rem;
   flex: 0 0 auto;
@@ -657,13 +752,13 @@
 }
 
 .hud-action__btn--primary {
-  background: rgba(56, 189, 248, 0.4);
-  border-color: rgba(56, 189, 248, 0.6);
-  color: #f0f9ff;
+  background: rgba(232, 163, 61, 0.4);
+  border-color: rgba(232, 163, 61, 0.6);
+  color: var(--rtw-text-primary);
 }
 
 .hud-action__btn--primary:hover {
-  background: rgba(56, 189, 248, 0.55);
+  background: rgba(232, 163, 61, 0.55);
 }
 
 .hud-action__btn--danger {
@@ -684,8 +779,8 @@
   height: var(--hud-main-fab-size);
   border-radius: 50%;
   border: 1.5px solid rgba(248, 250, 252, 0.35);
-  background: rgba(56, 189, 248, 0.4);
-  color: #f0f9ff;
+  background: rgba(232, 163, 61, 0.4);
+  color: var(--rtw-text-primary);
   font-size: 1.55rem;
   font-weight: 700;
   cursor: pointer;
@@ -695,7 +790,7 @@
 }
 
 .hud-main-fab:hover {
-  background: rgba(56, 189, 248, 0.55);
+  background: rgba(232, 163, 61, 0.55);
 }
 
 .hud-main-fab:disabled {
@@ -763,9 +858,9 @@
 }
 
 .hud-bc-trigger.is-active {
-  background: rgba(56, 189, 248, 0.32);
-  border-color: rgba(56, 189, 248, 0.55);
-  color: #f0f9ff;
+  background: rgba(232, 163, 61, 0.32);
+  border-color: rgba(232, 163, 61, 0.55);
+  color: var(--rtw-text-primary);
 }
 
 .hud-bc-trigger__icon {
@@ -801,6 +896,19 @@
     min-width: 2.8rem;
     font-size: 0.72rem;
     padding: 0.16rem 0.45rem;
+  }
+
+  .hud-metrics__cell {
+    min-width: 2.6rem;
+    padding: 0 0.35rem;
+  }
+
+  .hud-metrics__value {
+    font-size: 0.82rem;
+  }
+
+  .hud-metrics__cell--hero .hud-metrics__value {
+    font-size: 1.05rem;
   }
 
   .hud-action {

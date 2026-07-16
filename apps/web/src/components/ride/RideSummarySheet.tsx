@@ -123,7 +123,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
 
         {props.conquestLine ? (
           <p className="ride-summary__conquest" role="status" aria-live="polite">
-            🏴 {props.conquestLine}
+            ⚑ {props.conquestLine}
           </p>
         ) : null}
 

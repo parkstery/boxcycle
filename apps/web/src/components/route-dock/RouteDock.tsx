@@ -112,8 +112,11 @@ export function RouteDock(props: RouteDockProps) {
   }
   if (!visible) return null;
 
-  /** 주행 중(일시정지 제외)에는 경유지 목록·저장/삭제를 숨기고 caret + 속도 슬라이더만 남긴다(운동 축 다이어트). */
-  const ridingDiet = stage === "riding";
+  /**
+   * 주행이 시작돼도 패널을 자동 축소하지 않는다 — 출발·도착 주소를 계속 보여준다.
+   * (이전엔 주행 중 헤더·경유지 목록을 숨기고 속도 슬라이더만 남겼음: "운동 축 다이어트")
+   */
+  const ridingDiet = false;
 
   return (
     <div

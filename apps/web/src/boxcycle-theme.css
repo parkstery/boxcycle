@@ -19,42 +19,39 @@
 :root {
   /* ---- Type ---- */
   /* 한글=Pretendard, 라틴도 Pretendard로 통일 톤. Barlow는 폴백. */
-  --rtw-font: 'Pretendard Variable', Pretendard, 'Barlow', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
+  --rtw-font: var(--rtw-font-family);
   --rtw-font-num: 'Barlow Semi Condensed', 'Pretendard Variable', Pretendard, 'Barlow', sans-serif; /* 속도/거리 등 수치(라틴은 Barlow 유지) */
 
-  /* ---- Brand / accent (쿨 블루) ---- */
-  --rtw-accent: #2f6bff;          /* 솔리드·라이트 배경용 */
-  --rtw-accent-strong: #1f5af0;
-  --rtw-accent-on-dark: #6ba5ff;  /* 다크 글래스 위 텍스트/수치 강조 */
-  --rtw-accent-soft: rgba(47, 107, 255, 0.20);
-  --rtw-accent-line: rgba(99, 160, 255, 0.55);
+  /* ---- Brand / accent — 골드(--rtw-trace) 단일 시그니처 (tokens.css 참조) ---- */
+  --rtw-accent: var(--rtw-trace);
+  --rtw-accent-strong: #d08f2d;
+  --rtw-accent-on-dark: var(--rtw-trace);
+  --rtw-accent-soft: rgba(232, 163, 61, 0.14);
+  --rtw-accent-line: rgba(232, 163, 61, 0.45);
 
-  /* ---- Glass (다크 시네마틱) — 라이트 베이스맵 위 흰 글자 대비 확보를 위해 진하게(2026-07-03) ---- */
-  --rtw-glass-bg: rgba(10, 16, 26, 0.74);
-  --rtw-glass-bg-strong: rgba(10, 16, 26, 0.84);
-  --rtw-glass-border: rgba(255, 255, 255, 0.16);
+  /* ---- Glass — tokens.css 패널 토큰 별칭 ---- */
+  --rtw-glass-bg: var(--rtw-panel);
+  --rtw-glass-bg-strong: var(--rtw-panel-solid);
+  --rtw-glass-border: var(--rtw-divider);
   --rtw-glass-blur: 12px;
-  --rtw-glass-shadow: 0 10px 28px rgba(2, 8, 20, 0.40);
+  --rtw-glass-shadow: var(--rtw-shadow-panel);
 
-  /* ---- Text on dark ---- */
-  --rtw-text: #f4f8ff;
-  --rtw-text-dim: rgba(244, 248, 255, 0.70);
-  --rtw-text-mute: rgba(244, 248, 255, 0.55);
+  /* ---- Text on dark — tokens.css 텍스트 토큰 별칭 ---- */
+  --rtw-text: var(--rtw-text-primary);
+  --rtw-text-dim: var(--rtw-text-secondary);
+  --rtw-text-mute: var(--rtw-text-secondary);
 
   /* ---- Shell / surfaces ---- */
-  --rtw-shell-bg: #0b0f18;
-  --rtw-ink: #0e1626;             /* 라이트 카드 위 본문 */
-  --rtw-card: #ffffff;
-  --rtw-card-border: #e6ecf3;
+  --rtw-shell-bg: var(--rtw-bg);
+  --rtw-ink: var(--rtw-text-primary);   /* 다크 단일 — 라이트 카드 퇴역 */
+  --rtw-card: var(--rtw-panel-solid);
+  --rtw-card-border: var(--rtw-divider);
 
-  /* ---- Status ---- */
-  --rtw-danger: #ff5a5a;
+  /* ---- Status (danger·ok 는 tokens.css 가 정의) ---- */
   --rtw-warn: #facc15;
-  --rtw-ok: #3fd27e;
 
   /* ---- Shape ---- */
-  --rtw-radius: 14px;
-  --rtw-radius-pill: 999px;
+  --rtw-radius: var(--rtw-radius-md);
 }
 
 /* =====================================================================
@@ -91,7 +88,7 @@ body {
 .hud-bc-trigger,
 .hud-idle-hint,
 .hud-coach,
-.hud-avatar,
+.hud-account,
 .hud-signin-pill,
 .hud-icon-btn,
 .hud-metrics__chip {
@@ -123,29 +120,31 @@ body {
 .hud-place-search-btn.is-active {
   background: var(--rtw-accent-soft);
   border-color: var(--rtw-accent-line);
-  color: #eaf2ff;
+  color: var(--rtw-text-primary);
 }
 
 /* =====================================================================
    4) TR — 사용자 아바타 / 로그인
    ===================================================================== */
-.hud-avatar {
+.hud-account {
   font-weight: 700;
 }
 
 .hud-signin-pill:hover {
   border-color: var(--rtw-accent-line);
-  color: #eaf2ff;
+  color: var(--rtw-text-primary);
 }
 
 /* =====================================================================
    5) TC — 라이딩 지표 칩 (수치 강조 = Barlow Semi Condensed)
    작은 칩을 유지하되 수치 가독성을 키워 "맵 포워드" HUD 느낌을 줍니다.
    ===================================================================== */
+/* 지표 캡슐·셀 스타일은 MapHud.css 가 소유(참조 TopHud 구조).
+   여기서는 Trail 배지 칩 폰트만 수치 서체로 통일. */
 .hud-metrics__chip {
   font-family: var(--rtw-font-num);
   font-weight: 700;
-  font-size: 0.98rem;
+  font-size: 0.82rem;
   line-height: 1;
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
@@ -153,34 +152,8 @@ body {
   color: var(--rtw-text);
 }
 
-.hud-metrics__unit {
-  font-family: var(--rtw-font);
-  font-size: 0.58rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  opacity: 0.72;
-}
-
-/* 경로 미리보기(주행 전) — 액센트 블루 */
-.hud-metrics--route-preview .hud-metrics__chip {
-  color: var(--rtw-accent-on-dark);
-}
-.hud-metrics--route-preview .hud-metrics__unit {
-  color: #bcd4ff;
-  opacity: 0.9;
-}
-
-/* 동행/트레일 칩은 경고 레드 톤 유지(약간 정제) */
-.hud-metrics__chip--trail {
-  background: rgba(255, 90, 90, 0.20);
-  border-color: rgba(255, 120, 120, 0.50);
-}
-
-/* 거리 칩 히어로 승격 — 운동(오늘 거리)이 주인공, 나머지 칩은 보조(§9.5.6 단위2) */
-.hud-metrics__chip--hero {
-  font-size: 1.35rem;
-  font-weight: 700;
-  padding: 0.3rem 0.75rem;
+.hud-metrics__value {
+  font-family: var(--rtw-font-num);
 }
 
 /* =====================================================================
@@ -194,13 +167,13 @@ body {
 .hud-coach__r {
   background: var(--rtw-accent-soft);
   border-color: var(--rtw-accent-line);
-  color: #eaf2ff;
+  color: var(--rtw-text-primary);
 }
 
 .hud-bc-trigger.is-active {
   background: var(--rtw-accent-soft);
   border-color: var(--rtw-accent-line);
-  color: #eaf2ff;
+  color: var(--rtw-text-primary);
 }
 
 /* =====================================================================
@@ -226,15 +199,15 @@ body {
 .hud-action__btn--primary {
   background: var(--rtw-accent-soft);
   border-color: var(--rtw-accent-line);
-  color: #eaf2ff;
+  color: var(--rtw-text-primary);
 }
 .hud-action__btn--primary:hover {
-  background: rgba(47, 107, 255, 0.34);
+  background: rgba(232, 163, 61, 0.28);
 }
 
 .hud-action__btn--danger {
-  background: rgba(255, 90, 90, 0.30);
-  border-color: rgba(255, 120, 120, 0.55);
+  background: var(--rtw-danger-bg);
+  border-color: var(--rtw-danger-border);
 }
 
 /* =====================================================================
@@ -243,15 +216,15 @@ body {
 .hud-icon-btn--primary {
   background: var(--rtw-accent-soft);
   border-color: var(--rtw-accent-line);
-  color: #eaf2ff;
+  color: var(--rtw-text-primary);
 }
 .hud-icon-btn--primary:hover {
-  background: rgba(47, 107, 255, 0.36);
+  background: rgba(232, 163, 61, 0.28);
 }
 
 .hud-icon-btn--danger {
-  background: rgba(255, 90, 90, 0.26);
-  border-color: rgba(255, 120, 120, 0.50);
+  background: var(--rtw-danger-bg);
+  border-color: var(--rtw-danger-border);
 }
 
 .hud-icon-btn:focus-visible {
@@ -259,23 +232,24 @@ body {
 }
 
 .hud-main-fab {
-  background: rgba(47, 107, 255, 0.42);
-  border-color: rgba(255, 255, 255, 0.34);
-  color: #eaf2ff;
+  /* 행동 유도는 항상 골드 — 솔리드 골드 + 다크 텍스트 */
+  background: var(--rtw-trace);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--rtw-bg);
   font-family: var(--rtw-font-num);
-  box-shadow: 0 12px 30px rgba(2, 8, 20, 0.42), 0 0 0 1px rgba(47, 107, 255, 0.18);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.42), 0 0 16px var(--rtw-trace-glow);
 }
 .hud-main-fab:hover {
-  background: rgba(47, 107, 255, 0.58);
+  background: #f0b254;
 }
 
 .hud-main-fab--pause {
-  background: rgba(250, 204, 21, 0.34);
-  border-color: rgba(250, 204, 21, 0.55);
-  color: #fefce8;
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: var(--rtw-text-primary);
 }
 .hud-main-fab--pause:hover {
-  background: rgba(250, 204, 21, 0.5);
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .hud-main-fab__caption {

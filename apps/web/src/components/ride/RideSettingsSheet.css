@@ -30,9 +30,9 @@
   margin-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
   padding: 0.55rem 0.85rem 1rem;
   border-radius: 14px 14px 12px 12px;
-  background: rgba(15, 23, 42, 0.88);
-  border: 1px solid rgba(248, 250, 252, 0.18);
-  color: #f8fafc;
+  background: var(--rtw-glass-bg-strong, #0D1319);
+  border: 1px solid var(--rtw-glass-border, rgba(255, 255, 255, 0.08));
+  color: var(--rtw-text, #EDEFF2);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   pointer-events: auto;
@@ -58,7 +58,7 @@
   width: 2.4rem;
   height: 0.22rem;
   border-radius: 99px;
-  background: rgba(248, 250, 252, 0.28);
+  background: var(--rtw-text-secondary, rgba(124, 138, 153, 0.9));
   align-self: center;
   margin-bottom: 0.15rem;
 }
@@ -81,7 +81,7 @@
   font-weight: 750;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(148, 163, 184, 0.95);
+  color: var(--rtw-text-secondary, #7C8A99);
 }
 
 .ride-settings-sheet__toggles {
@@ -99,13 +99,13 @@
 }
 
 .ride-settings-sheet__toggle input {
-  accent-color: #38bdf8;
+  accent-color: var(--rtw-trace, #E8A33D);
 }
 
 .ride-settings-sheet__help {
   margin: 0;
   font-size: 0.68rem;
-  color: rgba(248, 250, 252, 0.72);
+  color: var(--rtw-text-secondary, #7C8A99);
   line-height: 1.35;
 }
 
@@ -126,19 +126,20 @@
   font-weight: 650;
   padding: 0.4rem 0.75rem;
   border-radius: 8px;
-  border: 1px solid rgba(248, 250, 252, 0.22);
-  background: rgba(15, 23, 42, 0.55);
-  color: #f8fafc;
+  border: 1px solid var(--rtw-glass-border, rgba(255, 255, 255, 0.08));
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--rtw-text, #EDEFF2);
   cursor: pointer;
 }
 
 .ride-settings-sheet__btn--primary {
-  background: rgba(56, 189, 248, 0.28);
-  border-color: rgba(56, 189, 248, 0.5);
+  background: var(--rtw-accent-soft, rgba(232, 163, 61, 0.14));
+  border-color: var(--rtw-accent-line, rgba(232, 163, 61, 0.45));
+  color: var(--rtw-trace, #E8A33D);
 }
 
 .ride-settings-sheet__error {
   margin: 0;
   font-size: 0.68rem;
-  color: #fecaca;
+  color: var(--rtw-danger, #E07A5F);
 }

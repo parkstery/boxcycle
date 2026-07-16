@@ -2,6 +2,7 @@
  * 앱 부트스트랩용 sessionStorage 키·리더 및 맵 스타일 프리셋.
  * (Phase 1: App.tsx 에서 분리)
  */
+import { RTW_MAP_STYLE_URL } from "./rtwMapConfig";
 
 /** 명시적 로그아웃 후 자동 익명 진입을 막는 플래그(같은 탭). */
 export const USER_SIGNED_OUT_SESSION_KEY = "boxcycle_user_signed_out_v1";
@@ -60,11 +61,12 @@ export function clearUserSignedOutSessionFlag(): void {
 }
 
 export const MAP_STYLE_OPTIONS = [
+  { value: RTW_MAP_STYLE_URL, label: "RTW Dark" },
   { value: "mapbox://styles/mapbox/streets-v12", label: "Streets" },
   { value: "mapbox://styles/mapbox/outdoors-v12", label: "Outdoors" },
   { value: "mapbox://styles/mapbox/light-v11", label: "Light" },
   { value: "mapbox://styles/mapbox/satellite-streets-v12", label: "Satellite" },
 ];
 
-/** 앱 진입 시 기본 맵 스타일 — Light */
-export const DEFAULT_MAP_STYLE = MAP_STYLE_OPTIONS[2]!.value;
+/** 앱 진입 시 기본 맵 스타일 — RTW Dark (2026-07 리디자인) */
+export const DEFAULT_MAP_STYLE = MAP_STYLE_OPTIONS[0]!.value;

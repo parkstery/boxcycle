@@ -17,7 +17,6 @@ import { AppMapStage, useAppMapOverlays } from "./features/map-overlays";
 import { RouteDock, useRouteDockStops, type RouteDockStop, type RouteDockStopId } from "./components/route-dock";
 import { DebugMapStage } from "./features/map-overlays/DebugMapStage";
 import type { MapViewportBounds } from "./lib/activityWorldLod";
-import { MAP_ZOOM_WORLD_ACTIVITY_MAX } from "./lib/rideSyncPolicy";
 import { armPostRideActivityWatch } from "./lib/activityWorldPollSignals";
 import {
   DEFAULT_FOLLOW_MODE,
@@ -756,7 +755,6 @@ export default function App() {
     reloadCourseActivity,
     applyRideCompletedOptimistic,
     publicationActivityByPublicationId,
-    worldHudLines,
     lodDebugPanelProps,
   } = mapOverlays;
 
@@ -915,14 +913,6 @@ export default function App() {
     if (newMeters < 50) return null; // 50m 미만은 「+0.0km」 — 미표시(0 미표시 원칙)
     return `새 도로 +${(newMeters / 1000).toFixed(newMeters < 10000 ? 1 : 0)}km`;
   }, [conquestSummary, conquestBaseline]);
-
-  /** 마일리지(누적 운동 이력) HUD 한 줄 — idle 단계에서만, 서버 집계(users/{uid}.mileageTotalMeters) */
-  const mileageHint = useMemo(() => {
-    if (rideStatus !== "idle") return null;
-    const totalMeters = userTier.mileageTotalMeters;
-    if (totalMeters == null || totalMeters <= 0) return null;
-    return `누적 ${(totalMeters / 1000).toFixed(1)} km`;
-  }, [rideStatus, userTier.mileageTotalMeters]);
 
   /** 라이브 어스 — 주행 지역의 현재 날씨·밤낮(Open-Meteo). 세션 중 30분 간격 갱신. */
   const [liveWeatherHint, setLiveWeatherHint] = useState<string | null>(null);
@@ -1627,6 +1617,9 @@ export default function App() {
           avgKmh: avgSpeedLabel,
           /* 램핑 적용속도는 소수 꼬리가 길다 — HUD 칩엔 정수만 */
           speedKmh: Math.round(rideMetrics.appliedSpeedKmh),
+          /* 주행경로 전체거리 — 경로 확정 시에만(0=미확정 → 병기 생략) */
+          routeTotalKm:
+            routeDistanceMeters > 0 ? (routeDistanceMeters / 1000).toFixed(2) : null,
         }
       : hudRoutePreview
         ? {
@@ -1643,19 +1636,26 @@ export default function App() {
     const src = user.displayName?.trim() || user.email?.trim() || "U";
     return src.slice(0, 1).toUpperCase();
   })();
+  const accountLabel = (() => {
+    if (!user) return "";
+    if (user.isAnonymous) return "게스트";
+    return user.displayName?.trim() || user.email?.trim() || "Rider";
+  })();
+  const accountMileageKm = (() => {
+    const m = userTier.mileageTotalMeters;
+    if (m == null || m <= 0) return null;
+    return Math.round(m / 1000);
+  })();
   const accountChip =
     user && accountInitial !== null
       ? {
           initial: accountInitial,
           isGuest: user.isAnonymous,
+          label: accountLabel,
+          mileageKm: accountMileageKm,
         }
       : null;
   const caloriesEstimate = Math.round((sessionDistanceMeters / 1000) * 30);
-
-  const worldActivityHint = useMemo(() => {
-    if (mapZoom > MAP_ZOOM_WORLD_ACTIVITY_MAX || !worldHudLines) return null;
-    return worldHudLines;
-  }, [mapZoom, worldHudLines]);
 
   const mapHudRidePresence = useMemo(() => {
     if (!configured || !user) return null;
@@ -1750,9 +1750,7 @@ export default function App() {
               onDismissIdleHint: () => setIdleHintDismissed(true),
               ridePresence: mapHudRidePresence,
               onGoTrailhead: goTrailheadAndCloseMenu,
-              worldActivityHint,
               weatherHint: liveWeatherHint,
-              mileageHint,
               conquestLiveMeters,
             }}
           >
@@ -1887,9 +1885,7 @@ export default function App() {
               onDismissIdleHint: () => setIdleHintDismissed(true),
               ridePresence: mapHudRidePresence,
               onGoTrailhead: goTrailheadAndCloseMenu,
-              worldActivityHint,
               weatherHint: liveWeatherHint,
-              mileageHint,
               conquestLiveMeters,
             }}
           >

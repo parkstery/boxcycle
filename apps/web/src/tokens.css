@@ -1,0 +1,140 @@
+/* =====================================================================
+   RTW Design Tokens — 단일 진실 (2026-07 리디자인 핸드오프)
+   ---------------------------------------------------------------------
+   main.tsx 에서 "가장 먼저" import. 다른 전역/컴포넌트 CSS 는 이 변수를
+   참조한다. boxcycle-theme.css 의 레거시 --rtw-* 별칭은 이 값을 가리킨다.
+
+   원칙:
+   - 골드(--rtw-trace)는 오직 궤적·핵심 강조 숫자·Primary 액션에만
+   - 활성/선택 상태만 골드, 나머지는 중립 키(반투명 흰색/회색 계열)
+   - danger 는 로그아웃/삭제/종료 등 파괴적 액션 전용
+   - 숫자 데이터(속도/거리/시간)는 .rtw-numeric(tabular-nums) 적용
+   ===================================================================== */
+
+:root {
+  /* ---- 배경 ---- */
+  --rtw-bg: #0A0E12;
+  --rtw-bg-deep: #060809;
+  --rtw-panel: rgba(10, 14, 18, 0.9);
+  --rtw-panel-solid: #0D1319;
+
+  /* ---- 지도 ---- */
+  --rtw-map-land: #0B1116;
+  --rtw-map-water: #08151F;
+  --rtw-map-road-ghost: rgba(28, 37, 48, 0.6);
+
+  /* ---- Trace (시그니처 컬러 — 이 색은 오직 궤적과 핵심 강조 숫자에만) ---- */
+  --rtw-trace: #E8A33D;
+  --rtw-trace-glow: rgba(232, 163, 61, 0.35);
+  --rtw-trace-accumulated: rgba(232, 163, 61, 0.4);
+  --rtw-trace-warn-bg: rgba(232, 163, 61, 0.08);
+  --rtw-trace-warn-border: rgba(232, 163, 61, 0.25);
+
+  /* ---- 텍스트 ---- */
+  --rtw-text-primary: #EDEFF2;
+  --rtw-text-secondary: #7C8A99;
+  --rtw-text-faint: #3E4750;
+
+  /* ---- 상태 ---- */
+  --rtw-ok: #6FCF97;
+  --rtw-danger: #E07A5F;
+  --rtw-danger-bg: rgba(217, 84, 61, 0.12);
+  --rtw-danger-border: rgba(217, 84, 61, 0.3);
+
+  /* ---- 구분선 / 보더 ---- */
+  --rtw-divider: rgba(255, 255, 255, 0.08);
+
+  /* ---- 타이포그래피 (기존 Pretendard 스택과 정합) ---- */
+  --rtw-font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', 'Malgun Gothic', sans-serif;
+
+  --rtw-text-xs: 10px;
+  --rtw-text-sm: 12px;
+  --rtw-text-base: 14px;
+  --rtw-text-lg: 17px;
+  --rtw-text-xl: 22px;
+  --rtw-text-2xl: 34px;
+
+  --rtw-weight-label: 600;
+  --rtw-weight-value: 700;
+
+  /* ---- 간격 ---- */
+  --rtw-space-1: 4px;
+  --rtw-space-2: 8px;
+  --rtw-space-3: 12px;
+  --rtw-space-4: 16px;
+  --rtw-space-5: 20px;
+
+  /* ---- 라운딩 ---- */
+  --rtw-radius-sm: 10px;
+  --rtw-radius-md: 14px;
+  --rtw-radius-lg: 18px;
+  --rtw-radius-pill: 999px;
+
+  /* ---- 그림자 / 블러 ---- */
+  --rtw-shadow-panel: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --rtw-shadow-trace: 0 0 8px var(--rtw-trace-glow), 0 0 16px var(--rtw-trace-glow);
+  --rtw-blur-panel: blur(12px);
+}
+
+/* 숫자 데이터(속도/거리/시간)는 항상 이 클래스를 붙여 흔들림 없이 표시 */
+.rtw-numeric {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Trace 라인 공통 스타일 (SVG path 용 — Mapbox 는 rtwMapConfig 상응 값 적용) */
+.rtw-trace-line {
+  stroke: var(--rtw-trace);
+  stroke-width: 5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 8px var(--rtw-trace-glow)) drop-shadow(0 0 16px var(--rtw-trace-glow));
+}
+
+.rtw-trace-line--accumulated {
+  stroke: var(--rtw-trace-accumulated);
+  stroke-width: 4px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: none;
+}
+
+/* 반투명 다크 패널 공통 (HUD, 사이드 메뉴, 바텀시트 전부 동일 톤) */
+.rtw-panel {
+  background: var(--rtw-panel);
+  -webkit-backdrop-filter: var(--rtw-blur-panel);
+  backdrop-filter: var(--rtw-blur-panel);
+  border: 1px solid var(--rtw-divider);
+  border-radius: var(--rtw-radius-md);
+  box-shadow: var(--rtw-shadow-panel);
+}
+
+/* Primary 액션 버튼 (Go, 저장, START 등 — RTW에서 행동 유도는 항상 골드) */
+.rtw-btn-primary {
+  background: var(--rtw-trace);
+  color: var(--rtw-bg);
+  border: none;
+  border-radius: var(--rtw-radius-md);
+  font-weight: var(--rtw-weight-value);
+  cursor: pointer;
+}
+
+/* Secondary 버튼 (중립 톤) */
+.rtw-btn-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--rtw-text-primary);
+  border: 1px solid var(--rtw-divider);
+  border-radius: var(--rtw-radius-md);
+  font-weight: var(--rtw-weight-label);
+  cursor: pointer;
+}
+
+/* Danger 버튼 (로그아웃, 삭제, 종료 등 위험/파괴적 액션 전용) */
+.rtw-btn-danger {
+  background: var(--rtw-danger-bg);
+  color: var(--rtw-danger);
+  border: 1px solid var(--rtw-danger-border);
+  border-radius: var(--rtw-radius-md);
+  font-weight: var(--rtw-weight-label);
+  cursor: pointer;
+}

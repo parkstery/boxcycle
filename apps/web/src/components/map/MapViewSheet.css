@@ -93,7 +93,7 @@
 }
 
 .map-view-sheet__advanced-toggle:focus-visible {
-  outline: 2px solid #38bdf8;
+  outline: 2px solid var(--rtw-trace);
   outline-offset: 2px;
 }
 
@@ -123,9 +123,9 @@
   border-radius: 999px;
   font-size: 0.62rem;
   font-weight: 700;
-  background: rgba(56, 189, 248, 0.28);
-  border: 1px solid rgba(56, 189, 248, 0.45);
-  color: #f0f9ff;
+  background: var(--rtw-trace);
+  border: 1px solid transparent;
+  color: var(--rtw-bg);
 }
 
 .map-view-sheet__advanced-chevron {
@@ -220,9 +220,9 @@
 }
 
 .map-view-sheet__chip.is-active {
-  background: rgba(56, 189, 248, 0.4);
-  border-color: rgba(56, 189, 248, 0.6);
-  color: #f0f9ff;
+  background: var(--rtw-trace);
+  border-color: transparent;
+  color: var(--rtw-bg);
 }
 
 .map-view-sheet__chip:disabled {
@@ -248,7 +248,7 @@
 }
 
 .map-view-sheet__check input {
-  accent-color: #38bdf8;
+  accent-color: var(--rtw-trace);
 }
 
 .map-view-sheet__row-body--zoom {
@@ -295,5 +295,5 @@
   min-width: 5rem;
   width: auto;
   max-width: 100%;
-  accent-color: #38bdf8;
+  accent-color: var(--rtw-trace);
 }

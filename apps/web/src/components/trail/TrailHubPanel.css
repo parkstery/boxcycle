@@ -90,7 +90,7 @@
 .trail-hub__vis-btn--on {
   border-color: var(--rtw-accent-line, rgba(120, 200, 255, 0.55));
   background: var(--rtw-accent-soft, rgba(80, 160, 255, 0.15));
-  color: #eaf2ff;
+  color: var(--rtw-trace);
 }
 
 .trail-hub__list-head {
@@ -215,15 +215,15 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--rtw-accent-on-dark, #6ba5ff);
-  box-shadow: 0 0 0 0 rgba(107, 165, 255, 0.6);
+  background: var(--rtw-trace);
+  box-shadow: 0 0 0 0 var(--rtw-trace-glow);
   animation: trail-hub-pulse 1.8s ease-out infinite;
 }
 
 @keyframes trail-hub-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(107, 165, 255, 0.55); }
-  70% { box-shadow: 0 0 0 5px rgba(107, 165, 255, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(107, 165, 255, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(232, 163, 61, 0.55); }
+  70% { box-shadow: 0 0 0 5px rgba(232, 163, 61, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(232, 163, 61, 0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
