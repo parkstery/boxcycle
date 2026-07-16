@@ -8,6 +8,7 @@ import { formatDuration } from "../../services/mapboxDirections";
 import "./SavedRoutesPanel.css";
 
 type CompletionFilter = "all" | "completed" | "pending";
+type SortKey = "recent" | "distance" | "name";
 
 /** 진행률(0~1)을 방어적으로 클램프. 로컬·옛 데이터가 범위를 벗어나도 안전. */
 function clamp01(n: number): number {
@@ -23,6 +24,11 @@ function daysUntilExpiry(expiresAtIso: string | null, now: number = Date.now()):
   const ms = t - now;
   if (ms <= 0) return 0;
   return Math.ceil(ms / (24 * 60 * 60 * 1000));
+}
+
+/** 검색어·이름 정규화(소문자·트림). 부분일치 판정에 공통 사용. */
+function normalizeForSearch(s: string): string {
+  return s.trim().toLowerCase();
 }
 
 export type SavedRoutesPanelProps = {
@@ -50,12 +56,23 @@ export type SavedRoutesPanelProps = {
   focusPendingSignal?: number;
 };
 
+/** 선택된 경로에 대해 「공개」 툴바 버튼의 활성 여부·안내를 판정. */
+type PublicActionState =
+  | { kind: "unavailable"; title: string } // 게스트·핸들러 없음: 비활성
+  | { kind: "not-completed"; title: string } // 미완주: 비활성
+  | { kind: "in-review"; title: string } // 심사 중: 비활성
+  | { kind: "already-public"; title: string } // 이미 퍼블릭: 비활성
+  | { kind: "ready"; title: string }; // 신청 가능: 활성
+
 export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameDraft, setRenameDraft] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<CompletionFilter>("all");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [queryText, setQueryText] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("recent");
 
   // 미완료 쿼터 초과 유도 시 「대기」 필터로 전환해 정리 대상 경로만 보여준다.
   // effect 대신 이전 신호값과 비교(React 권장) — cascading render·set-state-in-effect 회피.
@@ -67,10 +84,22 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
   }
 
   const filtered = useMemo(() => {
-    if (filter === "completed") return props.routes.filter((r) => r.completed === 1);
-    if (filter === "pending") return props.routes.filter((r) => r.completed !== 1);
-    return props.routes;
-  }, [props.routes, filter]);
+    const q = normalizeForSearch(queryText);
+    const base = props.routes.filter((r) => {
+      if (filter === "completed" && r.completed !== 1) return false;
+      if (filter === "pending" && r.completed === 1) return false;
+      if (q && !normalizeForSearch(r.name).includes(q)) return false;
+      return true;
+    });
+    const sorted = [...base];
+    sorted.sort((a, b) => {
+      if (sortKey === "distance") return b.distanceMeters - a.distanceMeters;
+      if (sortKey === "name") return a.name.localeCompare(b.name, "ko");
+      // recent: updatedAt 내림차순(최근이 위)
+      return Date.parse(b.updatedAtIso) - Date.parse(a.updatedAtIso);
+    });
+    return sorted;
+  }, [props.routes, filter, queryText, sortKey]);
 
   const completedCount = useMemo(
     () => props.routes.filter((r) => r.completed === 1).length,
@@ -78,8 +107,57 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
   );
   const pendingCount = props.routes.length - completedCount;
 
+  // 선택된 경로 — 목록에서 사라졌으면(필터·검색·삭제) 선택 없음으로 취급.
+  const selectedRoute = useMemo(
+    () => (selectedId ? (filtered.find((r) => r.id === selectedId) ?? null) : null),
+    [filtered, selectedId],
+  );
+
+  // 선택 경로에 대한 「공개」 툴바 버튼 판정(기존 카드별 분기 로직을 선택 기반으로 이관).
+  const publicActionState: PublicActionState = useMemo(() => {
+    if (!selectedRoute) return { kind: "unavailable", title: "경로를 선택하세요" };
+    if (selectedRoute.completed !== 1)
+      return { kind: "not-completed", title: "완주한 경로만 공개 신청할 수 있어요" };
+    if (props.guestNotice || !props.onOpenPublicRequest)
+      return { kind: "unavailable", title: "로그인을 하면 공개 신청 기능을 쓸 수 있습니다." };
+    if (props.pendingPublicRouteIds?.has(selectedRoute.id))
+      return { kind: "in-review", title: "관리자 심사 대기 중" };
+    const routeFp = fingerprintFromCanonicalSync(
+      encodeCanonicalRouteGeometryProfile(selectedRoute.geometry, selectedRoute.profile),
+    );
+    const alreadyPublishedPublic =
+      (props.publishedPublicSavedRouteIds?.has(selectedRoute.id) ?? false) ||
+      (props.publishedPublicRouteFingerprints?.has(routeFp) ?? false);
+    if (alreadyPublishedPublic)
+      return { kind: "already-public", title: "이미 퍼블릭 경로입니다" };
+    if (!props.sessionIdle)
+      return { kind: "ready", title: "주행 종료 후 사용 가능" };
+    return { kind: "ready", title: "공개 등록 신청" };
+  }, [
+    selectedRoute,
+    props.guestNotice,
+    props.onOpenPublicRequest,
+    props.pendingPublicRouteIds,
+    props.publishedPublicSavedRouteIds,
+    props.publishedPublicRouteFingerprints,
+    props.sessionIdle,
+  ]);
+
+  // 툴바 버튼 활성 조건 — 선택 있음 + (해당 액션은 idle 필요).
+  const hasSelection = selectedRoute !== null;
+  const actionsEnabled = hasSelection && props.sessionIdle && busyId === null;
+  const publicEnabled = actionsEnabled && publicActionState.kind === "ready";
+
+  function toggleSelect(route: SavedRoute) {
+    // 다른 카드를 rename 중이었다면 접는다.
+    if (renamingId && renamingId !== route.id) cancelRename();
+    setError(null);
+    setSelectedId((prev) => (prev === route.id ? null : route.id));
+  }
+
   function startRename(route: SavedRoute) {
     setError(null);
+    setSelectedId(route.id);
     setRenamingId(route.id);
     setRenameDraft(route.name);
   }
@@ -108,12 +186,33 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
     setError(null);
     try {
       await props.onDeleteRoute(route);
+      setSelectedId(null);
+      if (renamingId === route.id) cancelRename();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setBusyId(null);
     }
   }
+
+  function onToolbarPublic() {
+    if (!selectedRoute || !publicEnabled) return;
+    props.onOpenPublicRequest?.(selectedRoute);
+  }
+  function onToolbarOpen() {
+    if (!selectedRoute || !actionsEnabled) return;
+    props.onLoadRoute(selectedRoute);
+  }
+  function onToolbarRename() {
+    if (!selectedRoute || !actionsEnabled) return;
+    startRename(selectedRoute);
+  }
+  function onToolbarDelete() {
+    if (!selectedRoute || !actionsEnabled) return;
+    void commitDelete(selectedRoute);
+  }
+
+  const hasRoutes = props.routes.length > 0;
 
   return (
     <section className="saved-routes" aria-label="사용자 경로">
@@ -143,42 +242,114 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
         </p>
       ) : null}
 
-      {props.routes.length > 0 ? (
-        <div
-          className="saved-routes__filter"
-          role="tablist"
-          aria-label="사용자 경로 완주 여부 필터"
-        >
-          <button
-            type="button"
-            role="tab"
-            aria-selected={filter === "all"}
-            className={`saved-routes__filter-btn ${filter === "all" ? "is-active" : ""}`}
-            title="Show all"
-            onClick={() => setFilter("all")}
-          >
-            전체 ({props.routes.length})
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={filter === "completed"}
-            className={`saved-routes__filter-btn ${filter === "completed" ? "is-active" : ""}`}
-            title="Completed only"
-            onClick={() => setFilter("completed")}
-          >
-            완주 ({completedCount})
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={filter === "pending"}
-            className={`saved-routes__filter-btn ${filter === "pending" ? "is-active" : ""}`}
-            title="Pending only"
-            onClick={() => setFilter("pending")}
-          >
-            대기 ({pendingCount})
-          </button>
+      {hasRoutes ? (
+        <div className="saved-routes__controls">
+          <input
+            type="search"
+            className="saved-routes__search"
+            value={queryText}
+            placeholder="경로 이름 검색"
+            aria-label="경로 이름 검색"
+            onChange={(e) => setQueryText(e.target.value)}
+          />
+
+          <div className="saved-routes__control-row">
+            <div
+              className="saved-routes__filter"
+              role="tablist"
+              aria-label="사용자 경로 완주 여부 필터"
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={filter === "all"}
+                className={`saved-routes__filter-btn ${filter === "all" ? "is-active" : ""}`}
+                title="Show all"
+                onClick={() => setFilter("all")}
+              >
+                전체 ({props.routes.length})
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={filter === "completed"}
+                className={`saved-routes__filter-btn ${filter === "completed" ? "is-active" : ""}`}
+                title="Completed only"
+                onClick={() => setFilter("completed")}
+              >
+                완주 ({completedCount})
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={filter === "pending"}
+                className={`saved-routes__filter-btn ${filter === "pending" ? "is-active" : ""}`}
+                title="Pending only"
+                onClick={() => setFilter("pending")}
+              >
+                대기 ({pendingCount})
+              </button>
+            </div>
+
+            <label className="saved-routes__sort-label">
+              <span className="saved-routes__sort-caption">정렬</span>
+              <select
+                className="saved-routes__sort"
+                value={sortKey}
+                aria-label="정렬 기준"
+                onChange={(e) => setSortKey(e.target.value as SortKey)}
+              >
+                <option value="recent">최근순</option>
+                <option value="distance">거리순</option>
+                <option value="name">이름순</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="saved-routes__toolbar" role="toolbar" aria-label="선택한 경로 작업">
+            <button
+              type="button"
+              className="saved-routes__tool saved-routes__tool--accent"
+              disabled={!publicEnabled}
+              title={publicActionState.title}
+              onClick={onToolbarPublic}
+            >
+              공개
+            </button>
+            <button
+              type="button"
+              className="saved-routes__tool saved-routes__tool--primary"
+              disabled={!actionsEnabled}
+              title={
+                !hasSelection
+                  ? "경로를 선택하세요"
+                  : props.sessionIdle
+                    ? "지도에 경로 불러오기"
+                    : "주행 종료 후 사용 가능"
+              }
+              onClick={onToolbarOpen}
+            >
+              열기
+            </button>
+            <button
+              type="button"
+              className="saved-routes__tool"
+              disabled={!actionsEnabled}
+              title={!hasSelection ? "경로를 선택하세요" : "이름 변경"}
+              onClick={onToolbarRename}
+            >
+              이름
+            </button>
+            <button
+              type="button"
+              className="saved-routes__tool saved-routes__tool--danger"
+              disabled={!actionsEnabled}
+              title={!hasSelection ? "경로를 선택하세요" : "경로 삭제"}
+              onClick={onToolbarDelete}
+            >
+              삭제
+            </button>
+          </div>
         </div>
       ) : null}
 
@@ -197,23 +368,23 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
         </p>
       ) : filtered.length === 0 ? (
         <p className="saved-routes__empty">
-          {filter === "completed"
-            ? "아직 완주한 사용자 경로가 없습니다."
-            : "대기 중인 사용자 경로가 없습니다."}
+          {normalizeForSearch(queryText)
+            ? "검색 결과가 없습니다."
+            : filter === "completed"
+              ? "아직 완주한 사용자 경로가 없습니다."
+              : "대기 중인 사용자 경로가 없습니다."}
         </p>
       ) : (
-        <ul className="saved-routes__list">
+        <ul className="saved-routes__list" role="listbox" aria-label="사용자 경로 목록">
           {filtered.map((route) => {
             const isRenaming = renamingId === route.id;
             const isBusy = busyId === route.id;
-            const routeFp = fingerprintFromCanonicalSync(
-              encodeCanonicalRouteGeometryProfile(route.geometry, route.profile),
-            );
-            const alreadyPublishedPublic =
-              (props.publishedPublicSavedRouteIds?.has(route.id) ?? false) ||
-              (props.publishedPublicRouteFingerprints?.has(routeFp) ?? false);
+            const isSelected = selectedId === route.id;
             return (
-              <li key={route.id} className="saved-routes__item">
+              <li
+                key={route.id}
+                className={`saved-routes__item ${isSelected ? "is-selected" : ""}`}
+              >
                 {isRenaming ? (
                   <div className="saved-routes__rename">
                     <input
@@ -246,7 +417,13 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                     </div>
                   </div>
                 ) : (
-                  <>
+                  <button
+                    type="button"
+                    className="saved-routes__row"
+                    role="option"
+                    aria-selected={isSelected}
+                    onClick={() => toggleSelect(route)}
+                  >
                     <div className="saved-routes__head">
                       <strong className="saved-routes__name" title={route.name}>
                         {route.name}
@@ -317,7 +494,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                         {new Date(route.updatedAtIso).toLocaleString()}
                       </span>
                     </p>
-                    {route.completed !== 1
+                    {isSelected && route.completed !== 1
                       ? (() => {
                           const pct = Math.round(clamp01(route.lastProgressRatio) * 100);
                           return (
@@ -343,91 +520,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                           );
                         })()
                       : null}
-                    <div className="saved-routes__row-actions">
-                      {route.completed === 1 ? (
-                        props.guestNotice ? (
-                          <button
-                            type="button"
-                            className="saved-routes__btn saved-routes__btn--accent"
-                            disabled
-                            title="로그인을 하면 퍼블릭 신청 기능을 쓸 수 있습니다."
-                          >
-                            퍼블릭신청
-                          </button>
-                        ) : props.onOpenPublicRequest ? (
-                          props.pendingPublicRouteIds?.has(route.id) ? (
-                            <span
-                              className="saved-routes__badge saved-routes__badge--pending"
-                              title="관리자 심사 대기 중"
-                            >
-                              공개 심사 중
-                            </span>
-                          ) : alreadyPublishedPublic ? (
-                            <button
-                              type="button"
-                              className="saved-routes__btn saved-routes__btn--accent"
-                              disabled
-                              title="이미 퍼블릭 경로입니다"
-                            >
-                              퍼블릭신청
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              className="saved-routes__btn saved-routes__btn--accent"
-                              disabled={isBusy || !props.sessionIdle}
-                              title={
-                                props.sessionIdle
-                                  ? "퍼블릭 등록 신청"
-                                  : "주행 종료 후 사용 가능"
-                              }
-                              onClick={() => props.onOpenPublicRequest?.(route)}
-                            >
-                              퍼블릭신청
-                            </button>
-                          )
-                        ) : (
-                          <button
-                            type="button"
-                            className="saved-routes__btn saved-routes__btn--accent"
-                            disabled
-                            title="퍼블릭 신청을 사용할 수 없습니다"
-                          >
-                            퍼블릭신청
-                          </button>
-                        )
-                      ) : null}
-                      <button
-                        type="button"
-                        className="saved-routes__btn saved-routes__btn--primary"
-                        disabled={isBusy || !props.sessionIdle}
-                        title={
-                          props.sessionIdle ? "Load route on map" : "Available when idle"
-                        }
-                        onClick={() => props.onLoadRoute(route)}
-                      >
-                        불러오기
-                      </button>
-                      <button
-                        type="button"
-                        className="saved-routes__btn"
-                        disabled={isBusy || !props.sessionIdle}
-                        title={props.sessionIdle ? "Rename" : "Available when idle"}
-                        onClick={() => startRename(route)}
-                      >
-                        이름 변경
-                      </button>
-                      <button
-                        type="button"
-                        className="saved-routes__btn saved-routes__btn--danger"
-                        disabled={isBusy || !props.sessionIdle}
-                        title={props.sessionIdle ? "Delete route" : "Available when idle"}
-                        onClick={() => void commitDelete(route)}
-                      >
-                        삭제
-                      </button>
-                    </div>
-                  </>
+                  </button>
                 )}
               </li>
             );

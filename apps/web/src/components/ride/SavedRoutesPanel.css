@@ -76,8 +76,36 @@
 .saved-routes__item {
   border: 1px solid color-mix(in srgb, CanvasText 14%, transparent);
   border-radius: 10px;
-  padding: 0.5rem 0.55rem;
   background: color-mix(in srgb, Canvas 96%, CanvasText 4%);
+  overflow: hidden;
+}
+
+.saved-routes__item.is-selected {
+  border-color: color-mix(in srgb, #3b82f6 60%, transparent);
+  background: color-mix(in srgb, #3b82f6 12%, Canvas);
+  box-shadow: 0 0 0 1px color-mix(in srgb, #3b82f6 45%, transparent);
+}
+
+/* 카드 전체가 선택 토글 버튼 — 조밀 행. 액션 버튼은 상단 툴바로 이관됨. */
+.saved-routes__row {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  padding: 0.45rem 0.55rem;
+  cursor: pointer;
+}
+
+.saved-routes__row:hover {
+  background: color-mix(in srgb, CanvasText 5%, transparent);
+}
+
+.saved-routes__item.is-selected .saved-routes__row:hover {
+  background: transparent;
 }
 
 .saved-routes__head {
@@ -88,6 +116,8 @@
 }
 
 .saved-routes__name {
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: 0.88rem;
   font-weight: 650;
   overflow: hidden;
@@ -104,9 +134,14 @@
 }
 
 .saved-routes__meta {
-  margin: 0.25rem 0 0.4rem;
-  font-size: 0.76rem;
-  opacity: 0.85;
+  margin: 0.2rem 0 0;
+  font-size: 0.74rem;
+  opacity: 0.82;
+}
+
+/* 선택된 카드에서만 진행률 바가 뜰 때, 위 meta 와 간격을 준다 */
+.saved-routes__meta + .saved-routes__progress {
+  margin-top: 0.4rem;
 }
 
 .saved-routes__date {
@@ -117,7 +152,7 @@
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  margin: 0 0 0.45rem;
+  margin: 0;
 }
 
 .saved-routes__progress-track {
@@ -186,6 +221,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  padding: 0.45rem 0.55rem;
 }
 
 .saved-routes__rename-input {
@@ -200,10 +236,99 @@
   color: CanvasText;
 }
 
+/* 상단 고정 컨트롤 묶음: 검색 → 필터·정렬 → 액션 툴바 */
+.saved-routes__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0 0 0.55rem;
+}
+
+.saved-routes__search {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, CanvasText 22%, transparent);
+  background: Canvas;
+  color: CanvasText;
+}
+
+.saved-routes__control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.saved-routes__sort-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 0 0 auto;
+}
+
+.saved-routes__sort-caption {
+  font-size: 0.68rem;
+  opacity: 0.7;
+}
+
+.saved-routes__sort {
+  font: inherit;
+  font-size: 0.72rem;
+  padding: 0.15rem 0.3rem;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, CanvasText 18%, transparent);
+  background: Canvas;
+  color: CanvasText;
+  cursor: pointer;
+}
+
+/* 선택한 경로에 작용하는 공용 액션 툴바(선택 전 전체 비활성) */
+.saved-routes__toolbar {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.saved-routes__tool {
+  flex: 1 1 0;
+  min-width: 0;
+  font: inherit;
+  font-size: 0.74rem;
+  padding: 0.3rem 0.2rem;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, CanvasText 22%, transparent);
+  background: Canvas;
+  color: CanvasText;
+  cursor: pointer;
+}
+
+.saved-routes__tool:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.saved-routes__tool--primary:not(:disabled) {
+  background: color-mix(in srgb, #3b82f6 18%, Canvas);
+  border-color: color-mix(in srgb, #3b82f6 50%, transparent);
+}
+
+.saved-routes__tool--accent:not(:disabled) {
+  background: color-mix(in srgb, #8b5cf6 16%, Canvas);
+  border-color: color-mix(in srgb, #8b5cf6 45%, transparent);
+}
+
+.saved-routes__tool--danger:not(:disabled) {
+  color: #b91c1c;
+  border-color: color-mix(in srgb, #fca5a5 60%, transparent);
+}
+
 .saved-routes__filter {
   display: flex;
   gap: 0.3rem;
-  margin: 0 0 0.5rem;
   flex-wrap: wrap;
 }
 
