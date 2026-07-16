@@ -4,11 +4,67 @@ import {
   encodeCanonicalRouteGeometryProfile,
   fingerprintFromCanonicalSync,
 } from "../../lib/routeFingerprint";
-import { formatDuration } from "../../services/mapboxDirections";
+import type { RouteProfile } from "../../services/mapboxDirections";
 import "./SavedRoutesPanel.css";
 
 type CompletionFilter = "all" | "completed" | "pending";
 type SortKey = "recent" | "distance" | "name";
+
+const PROFILE_LABEL: Record<RouteProfile, string> = {
+  cycling: "자전거",
+  driving: "자동차",
+  walking: "보행",
+};
+
+/**
+ * 이동 수단(프로필) 아이콘 — currentColor 단색 라인. 의미 보완을 위해 title/aria-label 동반.
+ * 24x24 뷰박스, 1.8 stroke. 자전거·자동차·보행 3종.
+ */
+function RouteProfileIcon({ profile }: { profile: RouteProfile }) {
+  const label = PROFILE_LABEL[profile];
+  const common = {
+    className: "saved-routes__profile-icon",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.8,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    role: "img" as const,
+    "aria-label": label,
+  };
+  if (profile === "cycling") {
+    return (
+      <svg {...common}>
+        <title>{label}</title>
+        <circle cx="5.5" cy="17" r="3.5" />
+        <circle cx="18.5" cy="17" r="3.5" />
+        <path d="M5.5 17l4-8h5l-3 8m0 0h-2m8-8h-3l-1.5 3" />
+        <circle cx="14.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+      </svg>
+    );
+  }
+  if (profile === "driving") {
+    return (
+      <svg {...common}>
+        <title>{label}</title>
+        <path d="M3 13l1.6-4.2A2 2 0 016.5 7.5h11a2 2 0 011.9 1.3L21 13v5a1 1 0 01-1 1h-1a1 1 0 01-1-1v-1H6v1a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
+        <path d="M3 13h18" />
+        <circle cx="7" cy="16" r="0.6" fill="currentColor" stroke="none" />
+        <circle cx="17" cy="16" r="0.6" fill="currentColor" stroke="none" />
+      </svg>
+    );
+  }
+  return (
+    <svg {...common}>
+      <title>{label}</title>
+      <circle cx="13" cy="4" r="1.7" fill="currentColor" stroke="none" />
+      <path d="M13 7.5l-1 4 2.5 2.5 1 5" />
+      <path d="M12 11.5l-3 1M13 11.5l1.5 2.5" />
+      <path d="M12 11.5L10 20" />
+    </svg>
+  );
+}
 
 /** 진행률(0~1)을 방어적으로 클램프. 로컬·옛 데이터가 범위를 벗어나도 안전. */
 function clamp01(n: number): number {
@@ -29,6 +85,17 @@ function daysUntilExpiry(expiresAtIso: string | null, now: number = Date.now()):
 /** 검색어·이름 정규화(소문자·트림). 부분일치 판정에 공통 사용. */
 function normalizeForSearch(s: string): string {
   return s.trim().toLowerCase();
+}
+
+/** ISO 시각 → "2026. 7. 17 07:12" (초·오전/오후 없이 한 줄). 파싱 실패 시 빈 문자열. */
+function formatSavedDateTime(iso: string): string {
+  const t = Date.parse(iso);
+  if (!Number.isFinite(t)) return "";
+  const d = new Date(t);
+  const date = `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}`;
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${date} ${hh}:${mm}`;
 }
 
 export type SavedRoutesPanelProps = {
@@ -486,20 +553,18 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                             </span>
                           );
                         })()}
-                        <span className="saved-routes__profile">
-                          {route.profile === "cycling"
-                            ? "자전거"
-                            : route.profile === "driving"
-                              ? "자동차"
-                              : "보행"}
+                        <span
+                          className="saved-routes__profile"
+                          title={PROFILE_LABEL[route.profile]}
+                        >
+                          <RouteProfileIcon profile={route.profile} />
                         </span>
                       </div>
                     </div>
                     <p className="saved-routes__meta">
                       {(route.distanceMeters / 1000).toFixed(2)} km ·{" "}
-                      {formatDuration(route.durationSec)} ·{" "}
                       <span className="saved-routes__date">
-                        {new Date(route.updatedAtIso).toLocaleString()}
+                        {formatSavedDateTime(route.updatedAtIso)}
                       </span>
                     </p>
                     {isSelected && route.completed !== 1

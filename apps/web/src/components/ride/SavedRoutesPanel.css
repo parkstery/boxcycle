@@ -136,10 +136,20 @@
 
 .saved-routes__profile {
   flex: 0 0 auto;
-  font-size: 0.7rem;
-  padding: 0.1rem 0.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
   border-radius: 999px;
   background: color-mix(in srgb, CanvasText 10%, transparent);
+  opacity: 0.9;
+}
+
+.saved-routes__profile-icon {
+  width: 0.92rem;
+  height: 0.92rem;
+  display: block;
 }
 
 .saved-routes__meta {
