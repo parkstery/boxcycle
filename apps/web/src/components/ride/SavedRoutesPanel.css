@@ -74,6 +74,9 @@
 }
 
 .saved-routes__item {
+  /* 리스트가 flex-column 이라 아이템이 많으면 shrink 로 눌려 내용이 잘린다.
+     축소를 막아 각 카드가 콘텐츠 높이를 유지하고 리스트는 스크롤되게 한다. */
+  flex: 0 0 auto;
   border: 1px solid color-mix(in srgb, CanvasText 14%, transparent);
   border-radius: 10px;
   background: color-mix(in srgb, Canvas 96%, CanvasText 4%);
@@ -86,7 +89,8 @@
   box-shadow: 0 0 0 1px color-mix(in srgb, #3b82f6 45%, transparent);
 }
 
-/* 카드 전체가 선택 토글 버튼 — 조밀 행. 액션 버튼은 상단 툴바로 이관됨. */
+/* 카드 전체가 선택 토글 행 — 조밀 행. 액션 버튼은 상단 툴바로 이관됨.
+   div[role=option] 사용(내부에 블록 콘텐츠를 담기 위함). */
 .saved-routes__row {
   display: block;
   width: 100%;
@@ -98,6 +102,11 @@
   border: none;
   padding: 0.45rem 0.55rem;
   cursor: pointer;
+}
+
+.saved-routes__row:focus-visible {
+  outline: 2px solid color-mix(in srgb, #3b82f6 70%, transparent);
+  outline-offset: -2px;
 }
 
 .saved-routes__row:hover {

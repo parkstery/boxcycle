@@ -417,12 +417,20 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                     </div>
                   </div>
                 ) : (
-                  <button
-                    type="button"
+                  // 버튼 대신 div: 행 내부에 블록 요소(head/meta/progress)를 담기 때문.
+                  // <button> 안에 블록 콘텐츠를 넣으면 브라우저가 DOM 을 재구성해 레이아웃이 깨진다.
+                  <div
                     className="saved-routes__row"
                     role="option"
+                    tabIndex={0}
                     aria-selected={isSelected}
                     onClick={() => toggleSelect(route)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        toggleSelect(route);
+                      }
+                    }}
                   >
                     <div className="saved-routes__head">
                       <strong className="saved-routes__name" title={route.name}>
@@ -520,7 +528,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                           );
                         })()
                       : null}
-                  </button>
+                  </div>
                 )}
               </li>
             );
