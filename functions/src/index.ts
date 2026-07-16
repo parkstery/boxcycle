@@ -237,6 +237,7 @@ export { routeActivityScheduledReconcile } from "./routeActivityScheduledReconci
 export { routeActivityHeatReconcile } from "./routeActivityHeatReconcile.js";
 export { routeTokenOnRideCreated } from "./routeTokenOnRideCreated.js";
 export { conquestOnRideCreated } from "./conquestOnRideCreated.js";
+export { mileageOnRideCreated } from "./mileageOnRideCreated.js";
 export { ensureRouteTokenOnboardingHttp } from "./routeTokenEnsureOnboarding.js";
 export { assertTierQuotaHttp } from "./tierQuotaHttp.js";
 export {
