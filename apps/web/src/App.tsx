@@ -93,7 +93,7 @@ import {
   type RouteRideEntry,
 } from "./lib/routePublicationResolve";
 import type { SavedRoute } from "./lib/firestoreSavedRoutes";
-import { SAVED_ROUTE_NAME_MAX } from "./lib/firestoreSavedRoutes";
+import { SAVED_ROUTE_NAME_MAX, buildSuggestedRouteName } from "./lib/firestoreSavedRoutes";
 import { useAppAuth } from "./hooks/useAppAuth";
 import { useRouteTokenBalance } from "./hooks/useRouteTokenBalance";
 import { useAppTrail } from "./hooks/useAppTrail";
@@ -1602,6 +1602,13 @@ export default function App() {
     rideMetrics.virtualDistanceMeters - sessionStartOffsetMeters,
   );
   const sessionDistanceKmLabel = (sessionDistanceMeters / 1000).toFixed(2);
+  // 저장 폼 기본 이름 제안 — "출발지 → 도착지 · 거리"(역지오코딩된 지명 + 저장될 경로 거리).
+  // 거리는 세션 주행 거리가 아니라 저장 대상 경로 거리를 써서 이름이 경로를 안정적으로 식별하게 한다.
+  const suggestedRouteName = buildSuggestedRouteName({
+    startPlaceLabel,
+    endPlaceLabel,
+    distanceMeters: lastEndedWasAdhoc?.distanceMeters ?? routeDistanceMeters,
+  });
   const hudRoutePreview =
     rideStatus === "idle" &&
     Boolean(routeGeometry) &&
@@ -1983,6 +1990,7 @@ export default function App() {
           arrivalToastVisible={false}
           adhocSaveAvailable={false}
           onSaveAdhocAsUserRoute={handleSaveAdhocAsUserRoute}
+          adhocSuggestedName={suggestedRouteName}
           onDismissAdhocSave={() => setLastEndedWasAdhoc(null)}
           openSavedTabSignal={openSavedTabNonce}
           savedQuotaNotice={savedQuotaNotice}
@@ -2088,6 +2096,7 @@ export default function App() {
         conquestLine={conquestSummaryLine}
         adhocSaveAvailable={lastEndedWasAdhoc !== null}
         maxNameLength={SAVED_ROUTE_NAME_MAX}
+        suggestedName={suggestedRouteName}
         onSaveAdhoc={async (name, confirmUpdate) => {
           await handleSaveAdhocAsUserRoute(name, confirmUpdate);
           setSummarySheetVisible(false);

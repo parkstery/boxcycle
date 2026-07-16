@@ -16,6 +16,8 @@ type RideSummarySheetProps = {
   adhocSaveAvailable: boolean;
   /** 저장 길이 제한 */
   maxNameLength: number;
+  /** 자동 제안 이름(출발→도착·거리) — 입력란 초기값으로 미리 채운다. 지명 비동기 도착 시 갱신될 수 있음 */
+  suggestedName?: string;
   onSaveAdhoc: (name: string, confirmUpdate?: boolean) => Promise<void> | void;
   onDismissAdhoc: () => void;
   onClose: () => void;
@@ -29,13 +31,22 @@ type RideSummarySheetProps = {
  * - 닫기는 스크림 탭 또는 「닫기」 버튼.
  */
 export function RideSummarySheet(props: RideSummarySheetProps) {
-  const [name, setName] = useState("");
+  const suggested = props.suggestedName ?? "";
+  const [name, setName] = useState(suggested);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   /** ad-hoc 미저장 상태에서 닫기를 시도하면 곧바로 닫지 않고 확인을 한 번 더 받는다. */
   const [confirmingClose, setConfirmingClose] = useState(false);
   /** 같은 경로가 이미 있어 "업데이트하시겠습니까?" 확인을 기다리는 중. */
   const [confirmingUpdate, setConfirmingUpdate] = useState(false);
+
+  // 제안 이름이 갱신되면(지명 비동기 도착 등), 사용자가 아직 손대지 않은 경우에만 따라간다.
+  // effect 대신 이전 값과 비교(React 권장) — 편집 중 덮어쓰기·불필요 리렌더 회피.
+  const [prevSuggested, setPrevSuggested] = useState(suggested);
+  if (suggested !== prevSuggested) {
+    setPrevSuggested(suggested);
+    if (name === prevSuggested) setName(suggested);
+  }
 
   if (!props.open) return null;
 

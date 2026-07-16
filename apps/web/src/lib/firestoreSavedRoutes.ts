@@ -111,6 +111,46 @@ export function validateSavedRouteName(name: string): string {
   return normalized;
 }
 
+/**
+ * 역지오코딩 place_name 을 경로 이름용 짧은 지명으로 축약.
+ * - Mapbox place_name(language=ko) 은 "망원동, 마포구, 서울특별시, 대한민국" 처럼
+ *   가장 구체적인 조각이 앞에 온다 → 첫 콤마 조각만 취한다.
+ * - 지명을 못 구해 `formatLngLat`(좌표) 로 폴백된 라벨은 이름에 쓰지 않는다(null 반환).
+ */
+export function shortPlaceLabel(label: string | null | undefined): string | null {
+  const raw = label?.trim();
+  if (!raw) return null;
+  // "127.030000,37.520000" 같은 좌표 폴백은 지명이 아니다.
+  if (/^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(raw)) return null;
+  const head = raw.split(",")[0]?.trim();
+  return head && head.length > 0 ? head : null;
+}
+
+/**
+ * 저장 폼 기본 이름 제안 — "출발지 → 도착지 · 거리".
+ * 지명이 하나라도 없으면 있는 쪽만, 둘 다 없으면 거리만("N.Nkm"). 항상 이름 길이 한도 내로 자른다.
+ * 사용자는 이 값을 그대로 저장하거나 입력란에서 자유롭게 수정한다.
+ */
+export function buildSuggestedRouteName(input: {
+  startPlaceLabel?: string | null;
+  endPlaceLabel?: string | null;
+  distanceMeters: number;
+}): string {
+  const start = shortPlaceLabel(input.startPlaceLabel);
+  const end = shortPlaceLabel(input.endPlaceLabel);
+  const km =
+    Number.isFinite(input.distanceMeters) && input.distanceMeters > 0
+      ? `${(input.distanceMeters / 1000).toFixed(1)}km`
+      : null;
+
+  const places =
+    start && end ? (start === end ? start : `${start} → ${end}`) : (start ?? end ?? null);
+
+  const parts = [places, km].filter((p): p is string => Boolean(p));
+  const name = parts.join(" · ");
+  return name.length > SAVED_ROUTE_NAME_MAX ? name.slice(0, SAVED_ROUTE_NAME_MAX).trim() : name;
+}
+
 function validateGeometry(geometry: LineStringGeometry): void {
   if (
     !geometry ||

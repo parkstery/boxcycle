@@ -64,6 +64,8 @@ type RideRoutePanelProps = {
   adhocSaveAvailable: boolean;
   /** ad-hoc 경로를 새 사용자 경로로 저장하면서 즉시 완주 격상 */
   onSaveAdhocAsUserRoute: (name: string, confirmUpdate?: boolean) => Promise<void> | void;
+  /** 자동 제안 이름(출발→도착·거리) — 저장 폼 열 때 입력란 초기값으로 채운다 */
+  adhocSuggestedName?: string;
   /** ad-hoc 저장 안내(토스트 액션) 닫기 */
   onDismissAdhocSave: () => void;
   /** 공개 경로 심사자 — 설정 시 「심사」 탭 표시 */
@@ -465,7 +467,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                       title="Save to my routes"
                       onClick={() => {
                         setAdhocSaveError(null);
-                        setAdhocSaveDraft("");
+                        setAdhocSaveDraft(props.adhocSuggestedName ?? "");
                         setAdhocSaveOpen(true);
                       }}
                     >
