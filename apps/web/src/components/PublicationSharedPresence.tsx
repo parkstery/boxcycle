@@ -468,7 +468,7 @@ export function PublicationSharedPresence({
         <p className="trailhead-presence__empty">아직 표시할 접속자가 없습니다.</p>
       ) : null}
       {presenceError && rows.length === 0 ? (
-        <p className="trailhead-presence__empty">목록을 불러오지 못했습니다. 위 오류를 해결한 뒤 새로고침하세요.</p>
+        <p className="trailhead-presence__empty">목록을 불러오지 못했습니다 — 새로고침해 주세요</p>
       ) : null}
     </section>
   );

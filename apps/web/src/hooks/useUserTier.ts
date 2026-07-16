@@ -17,14 +17,28 @@ function normalizeSubscriptionStatus(raw: unknown): SubscriptionStatus {
   return "none";
 }
 
+/** users 문서의 마일리지 숫자 필드 — 없거나 유효하지 않으면 null */
+function normalizeMileageNumber(raw: unknown): number | null {
+  if (raw == null) return null;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : null;
+}
+
 export function useUserTier(user: User | null, configured: boolean) {
   const [firestoreTier, setFirestoreTier] = useState<UserTier | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus>("none");
+  /** 마일리지(누적 운동 이력) — 서버 집계, users/{uid}.mileage* */
+  const [mileageTotalMeters, setMileageTotalMeters] = useState<number | null>(null);
+  const [mileageTotalSec, setMileageTotalSec] = useState<number | null>(null);
+  const [mileageRideCount, setMileageRideCount] = useState<number | null>(null);
 
   useEffect(() => {
     if (!configured || !user?.uid) {
       setFirestoreTier(null);
       setSubscriptionStatus("none");
+      setMileageTotalMeters(null);
+      setMileageTotalSec(null);
+      setMileageRideCount(null);
       return;
     }
     const ref = doc(getFirestore(getFirebaseApp()), "users", user.uid);
@@ -35,10 +49,16 @@ export function useUserTier(user: User | null, configured: boolean) {
         const raw = data?.tier;
         setFirestoreTier(isUserTier(raw) ? raw : null);
         setSubscriptionStatus(normalizeSubscriptionStatus(data?.subscriptionStatus));
+        setMileageTotalMeters(normalizeMileageNumber(data?.mileageTotalMeters));
+        setMileageTotalSec(normalizeMileageNumber(data?.mileageTotalSec));
+        setMileageRideCount(normalizeMileageNumber(data?.mileageRideCount));
       },
       () => {
         setFirestoreTier(null);
         setSubscriptionStatus("none");
+        setMileageTotalMeters(null);
+        setMileageTotalSec(null);
+        setMileageRideCount(null);
       },
     );
   }, [configured, user?.uid]);
@@ -52,6 +72,16 @@ export function useUserTier(user: User | null, configured: boolean) {
       isGuest: isGuestTier(firestoreTier, user),
       isPaid: isPaidTier(tier),
       canSubmitPublicRoute: canSubmitPublicRoute(firestoreTier, user),
+      mileageTotalMeters,
+      mileageTotalSec,
+      mileageRideCount,
     };
-  }, [user, firestoreTier, subscriptionStatus]);
+  }, [
+    user,
+    firestoreTier,
+    subscriptionStatus,
+    mileageTotalMeters,
+    mileageTotalSec,
+    mileageRideCount,
+  ]);
 }

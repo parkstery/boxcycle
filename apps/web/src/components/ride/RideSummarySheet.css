@@ -107,36 +107,44 @@
   background: rgba(248, 250, 252, 0.14);
 }
 
-.ride-summary__stats {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.3rem 0.35rem;
-  padding: 0.38rem 0.48rem;
-  border-radius: 10px;
-  background: rgba(248, 250, 252, 0.04);
-  border: 1px solid rgba(248, 250, 252, 0.1);
-}
-
-.ride-summary__stat {
-  min-width: 0;
+/* 히어로 — 「오늘 N km」, 운동 축 주인공(§9.5.6 단위3) */
+.ride-summary__hero {
   display: flex;
-  flex-direction: column;
-  gap: 0.06rem;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.48rem 0.1rem;
 }
 
-.ride-summary__k {
-  font-size: 0.58rem;
+.ride-summary__hero-k {
+  font-size: 0.72rem;
   font-weight: 650;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: rgba(148, 163, 184, 0.95);
 }
 
-.ride-summary__v {
-  font-size: 0.78rem;
+.ride-summary__hero-v {
+  font-size: 2.2rem;
   font-weight: 700;
-  line-height: 1.15;
-  word-break: break-all;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 보조 지표 — 시간·평속·칼로리 한 줄(작게) */
+.ride-summary__substats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0 0.48rem 0.1rem;
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: rgba(248, 250, 252, 0.78);
+}
+
+.ride-summary__substat:not(:last-child)::after {
+  content: "·";
+  margin-left: 0.4rem;
+  color: rgba(148, 163, 184, 0.7);
 }
 
 .ride-summary__policy {
@@ -245,12 +253,16 @@
 }
 
 @media (max-width: 380px) {
-  .ride-summary__stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .ride-summary__hero-v {
+    font-size: 1.8rem;
+  }
+
+  .ride-summary__substats {
+    flex-wrap: wrap;
   }
 }
 
-/* Conquest — 「새 영토 +N · 개척 M」 (도파민 지점) */
+/* Conquest — 「새 도로 +N km」 (도파민 지점) */
 .ride-summary__conquest {
   margin: 0;
   padding: 0.4rem 0.55rem;

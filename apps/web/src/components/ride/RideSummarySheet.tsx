@@ -10,7 +10,7 @@ type RideSummarySheetProps = {
   distanceKm: string;
   avgKmh: string;
   caloriesEstimate: number;
-  /** Conquest — 「새 영토 +N · 개척 M」 한 줄. CF 집계 완료 시 반응형 갱신, null=없음/집계 전 */
+  /** Conquest — 「새 도로 +N km」 한 줄. CF 집계 완료 시 반응형 갱신, null=없음/집계 전 */
   conquestLine?: string | null;
   /** ad-hoc(저장 안 한 채) 주행이 직전에 종료되어 「사용자 경로로 저장」 액션이 가능한 상태인지 */
   adhocSaveAvailable: boolean;
@@ -110,23 +110,15 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
             닫기
           </button>
         </div>
-        <div className="ride-summary__stats">
-          <div className="ride-summary__stat">
-            <span className="ride-summary__k">시간</span>
-            <strong className="ride-summary__v">{props.elapsedLabel}</strong>
-          </div>
-          <div className="ride-summary__stat">
-            <span className="ride-summary__k">거리</span>
-            <strong className="ride-summary__v">{props.distanceKm} km</strong>
-          </div>
-          <div className="ride-summary__stat">
-            <span className="ride-summary__k">평속</span>
-            <strong className="ride-summary__v">{props.avgKmh} km/h</strong>
-          </div>
-          <div className="ride-summary__stat">
-            <span className="ride-summary__k">칼로리</span>
-            <strong className="ride-summary__v">{props.caloriesEstimate} kcal</strong>
-          </div>
+        <div className="ride-summary__hero">
+          <span className="ride-summary__hero-k">오늘</span>
+          <strong className="ride-summary__hero-v">{props.distanceKm} km</strong>
+        </div>
+
+        <div className="ride-summary__substats">
+          <span className="ride-summary__substat">{props.elapsedLabel}</span>
+          <span className="ride-summary__substat">{props.avgKmh} km/h</span>
+          <span className="ride-summary__substat">{props.caloriesEstimate} kcal</span>
         </div>
 
         {props.conquestLine ? (
@@ -137,9 +129,6 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
 
         {props.adhocSaveAvailable ? (
           <>
-            <p className="ride-summary__policy">
-              자동 저장은 없습니다. 목록에 남기려면 이름을 입력한 뒤 저장하세요.
-            </p>
             <div className="ride-summary__form">
               <input
                 type="text"
@@ -181,7 +170,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
             {confirmingUpdate ? (
               <div className="ride-summary__confirm" role="alertdialog" aria-live="assertive">
                 <p className="ride-summary__confirm-msg">
-                  이미 저장된 경로입니다. 업데이트하시겠습니까?
+                  저장된 경로 — 업데이트할까요?
                 </p>
                 <div className="ride-summary__form-btns">
                   <button

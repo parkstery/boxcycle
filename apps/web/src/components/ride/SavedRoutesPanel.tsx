@@ -139,8 +139,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
 
       {props.guestNotice ? (
         <p className="saved-routes__notice">
-          게스트는 이 브라우저에만 저장됩니다. Google 계정으로 로그인하면 클라우드로 옮겨져 다른
-          기기에서도 보입니다.
+          Google 로그인 시 다른 기기에서도 사용할 수 있습니다
         </p>
       ) : null}
 
@@ -194,7 +193,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
       ) : props.routes.length === 0 ? (
         <p className="saved-routes__empty">
           사용자 경로가 없습니다. 「경로」 탭에서 경로를 만든 뒤 「내 경로로 저장」으로 목록에 올려 보세요.
-          저장된 경로는 7일 안에 주행하지 않으면 자동 삭제됩니다(주행 완료 시 영구 보존).
+          미주행 7일 후 자동 삭제 · 완주 시 영구 보존
         </p>
       ) : filtered.length === 0 ? (
         <p className="saved-routes__empty">
@@ -380,7 +379,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                               title={
                                 props.sessionIdle
                                   ? "퍼블릭 등록 신청"
-                                  : "주행 종료 후 사용할 수 있습니다"
+                                  : "주행 종료 후 사용 가능"
                               }
                               onClick={() => props.onOpenPublicRequest?.(route)}
                             >

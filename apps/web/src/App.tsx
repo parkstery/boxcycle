@@ -912,9 +912,17 @@ export default function App() {
   const conquestSummaryLine = useMemo(() => {
     if (!conquestSummary || !conquestBaseline) return null;
     const newMeters = Math.max(0, conquestSummary.totalMeters - conquestBaseline.meters);
-    if (newMeters <= 0) return null;
+    if (newMeters < 50) return null; // 50m 미만은 「+0.0km」 — 미표시(0 미표시 원칙)
     return `새 도로 +${(newMeters / 1000).toFixed(newMeters < 10000 ? 1 : 0)}km`;
   }, [conquestSummary, conquestBaseline]);
+
+  /** 마일리지(누적 운동 이력) HUD 한 줄 — idle 단계에서만, 서버 집계(users/{uid}.mileageTotalMeters) */
+  const mileageHint = useMemo(() => {
+    if (rideStatus !== "idle") return null;
+    const totalMeters = userTier.mileageTotalMeters;
+    if (totalMeters == null || totalMeters <= 0) return null;
+    return `누적 ${(totalMeters / 1000).toFixed(1)} km`;
+  }, [rideStatus, userTier.mileageTotalMeters]);
 
   /** 라이브 어스 — 주행 지역의 현재 날씨·밤낮(Open-Meteo). 세션 중 30분 간격 갱신. */
   const [liveWeatherHint, setLiveWeatherHint] = useState<string | null>(null);
@@ -996,7 +1004,7 @@ export default function App() {
     const sub = params.get("subscription");
     if (!sub) return;
     if (sub === "success") {
-      setSubscriptionFlash("구독이 완료되었습니다. 플랜이 곧 반영됩니다.");
+      setSubscriptionFlash("구독 완료 — 곧 반영됩니다");
       setUserInfoSheetOpen(true);
     } else if (sub === "cancel") {
       setSubscriptionFlash("결제가 취소되었습니다.");
@@ -1598,9 +1606,7 @@ export default function App() {
   }
 
   const elapsedLabel = formatElapsedFromMs(rideMetrics.accumulatedMs);
-  /** HUD 거리 — 경로상 누적 위치(재개 시 offset부터 카운트업, 여정 몰입 §9.5.5) */
-  const distanceKmLabel = (rideMetrics.virtualDistanceMeters / 1000).toFixed(2);
-  /** 종료 요약·기록용 — 이번 세션 실주행 거리(오늘 N km) */
+  /** HUD 거리·종료 요약·기록용 — 이번 세션 실주행 거리(오늘 N km, 재개 시 offset 차감) */
   const sessionDistanceMeters = Math.max(
     0,
     rideMetrics.virtualDistanceMeters - sessionStartOffsetMeters,
@@ -1617,9 +1623,10 @@ export default function App() {
       ? {
           mode: "ride" as const,
           elapsed: elapsedLabel,
-          distanceKm: distanceKmLabel,
+          distanceKm: sessionDistanceKmLabel,
           avgKmh: avgSpeedLabel,
-          speedKmh: rideMetrics.appliedSpeedKmh,
+          /* 램핑 적용속도는 소수 꼬리가 길다 — HUD 칩엔 정수만 */
+          speedKmh: Math.round(rideMetrics.appliedSpeedKmh),
         }
       : hudRoutePreview
         ? {
@@ -1745,6 +1752,7 @@ export default function App() {
               onGoTrailhead: goTrailheadAndCloseMenu,
               worldActivityHint,
               weatherHint: liveWeatherHint,
+              mileageHint,
               conquestLiveMeters,
             }}
           >
@@ -1881,6 +1889,7 @@ export default function App() {
               onGoTrailhead: goTrailheadAndCloseMenu,
               worldActivityHint,
               weatherHint: liveWeatherHint,
+              mileageHint,
               conquestLiveMeters,
             }}
           >
@@ -2060,6 +2069,15 @@ export default function App() {
         busy={busy}
         subscriptionFlash={subscriptionFlash}
         conquest={conquestSummary}
+        mileage={
+          userTier.mileageTotalMeters != null
+            ? {
+                totalMeters: userTier.mileageTotalMeters,
+                totalSec: userTier.mileageTotalSec ?? 0,
+                rideCount: userTier.mileageRideCount ?? 0,
+              }
+            : null
+        }
         onLinkGoogle={user?.isAnonymous ? () => void handleGoogleSignIn() : undefined}
         onServiceExit={() => void handleServiceExit()}
       />

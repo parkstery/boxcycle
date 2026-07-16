@@ -32,6 +32,8 @@ type UserInfoSheetProps = {
   subscriptionFlash?: string | null;
   /** Conquest 정복 통계 — null=미로그인/데이터 없음 */
   conquest?: { totalMeters: number; totalCells: number } | null;
+  /** 마일리지(누적 운동 이력) — 서버 집계, null=미로그인/데이터 없음 */
+  mileage?: { totalMeters: number; totalSec: number; rideCount: number } | null;
   onLinkGoogle?: () => void;
   onServiceExit: () => void;
 };
@@ -42,6 +44,13 @@ function formatElapsedFromSec(sec: number): string {
   const m = totalMin % 60;
   if (h > 0) return `${h}h ${m}m`;
   return `${m}m`;
+}
+
+/** 마일리지 블록 전용 — 한국어 "H시간 M분" 포맷(formatElapsedFromSec 은 영문 "Xh Ym" 이라 별도 함수) */
+function formatMileageElapsedKo(sec: number): string {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  return `${h}시간 ${m}분`;
 }
 
 /** 출발·도착 한 줄(전체 주소는 title 로 노출, 한 줄은 CSS 말줄임). */
@@ -211,7 +220,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
           setStatsSessions(rows);
           setStatsLoadNote(
             rows.length >= 400
-              ? "최근 400건까지 반영됩니다. 그 이전 기록은 통계에 포함되지 않을 수 있습니다."
+              ? "최근 400건 기준"
               : null,
           );
         }
@@ -295,6 +304,15 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
               {subscriptionStatusLabelKo(props.subscriptionStatus)}
             </span>
           </div>
+          {props.mileage && props.mileage.totalMeters > 0 ? (
+            <div className="user-info-sheet__mileage" aria-label="마일리지">
+              <span className="user-info-sheet__mileage-k">누적</span>
+              <span className="user-info-sheet__mileage-v">
+                {(props.mileage.totalMeters / 1000).toFixed(1)} km ·{" "}
+                {formatMileageElapsedKo(props.mileage.totalSec)} · {props.mileage.rideCount}회
+              </span>
+            </div>
+          ) : null}
           {props.conquest && props.conquest.totalMeters > 0 ? (
             <div className="user-info-sheet__conquest" aria-label="정복">
               <span className="user-info-sheet__conquest-k">🏴 내 도로망</span>
@@ -306,13 +324,9 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
           {!props.isGuest ? (
             <div className="user-info-sheet__subscription">
               {props.isPaid ? (
-                <p className="user-info-sheet__subscription-copy">
-                  유료 플랜 — 경로·공개 신청 한도가 확장됩니다.
-                </p>
+                <p className="user-info-sheet__subscription-copy">유료 플랜</p>
               ) : (
-                <p className="user-info-sheet__subscription-copy">
-                  Free 플랜 — Google·닉네임 등록 후 유료로 업그레이드할 수 있습니다.
-                </p>
+                <p className="user-info-sheet__subscription-copy">Free 플랜</p>
               )}
               {canCheckout ? (
                 <button

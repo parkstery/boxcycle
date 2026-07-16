@@ -493,13 +493,14 @@
   letter-spacing: 0.04em;
 }
 
-/* Conquest — 주행 중 실시간 신규 영토 카운터(도파민 지점) */
+/* Conquest — 주행 중 실시간 새 도로 카운터(도파민 지점) */
 .hud-metrics__chip--conquest {
   background: rgba(47, 107, 255, 0.28);
   border-color: rgba(107, 165, 255, 0.6);
   color: #eaf2ff;
   font-variant-numeric: tabular-nums;
   animation: hud-conquest-pop 0.35s ease;
+  margin-left: 0.4rem;
 }
 
 @keyframes hud-conquest-pop {

@@ -26,7 +26,7 @@ export function SignUpNicknameCard({ busy, onSubmit }: SignUpNicknameCardProps) 
     <section className="signup-nickname" aria-label="닉네임 설정">
       <h2 className="signup-nickname__title">회원가입 마무리</h2>
       <p className="signup-nickname__lead">
-        Gmail 인증이 완료되었습니다. 서비스에서 사용할 <strong>닉네임</strong>을 입력해 주세요.
+        사용할 <strong>닉네임</strong>을 입력해 주세요.
       </p>
       <p className="signup-nickname__rules">{NICKNAME_RULES_SUMMARY_KO}</p>
       <p className="signup-nickname__rules signup-nickname__rules--meta">{NICKNAME_CASE_FOLD_HINT_KO}</p>

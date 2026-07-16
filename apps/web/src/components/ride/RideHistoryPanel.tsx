@@ -86,8 +86,7 @@ export function RideHistoryPanel(props: RideHistoryPanelProps) {
 
       {props.guestNotice ? (
         <p className="ride-history__notice">
-          게스트는 이 브라우저의 최근 기록만 표시됩니다. Google 계정으로 로그인하면 클라우드에서 모든
-          기기의 기록이 누적됩니다.
+          Google 로그인 시 모든 기기의 기록이 유지됩니다
         </p>
       ) : null}
 
@@ -100,9 +99,7 @@ export function RideHistoryPanel(props: RideHistoryPanelProps) {
       {loading ? (
         <p className="ride-history__empty">불러오는 중…</p>
       ) : rides.length === 0 ? (
-        <p className="ride-history__empty">
-          아직 주행 기록이 없습니다. 경로를 완주하면 자동으로 여기에 누적됩니다.
-        </p>
+        <p className="ride-history__empty">아직 주행 기록이 없습니다</p>
       ) : (
         <ul className="ride-history__list">
           {rides.map((r) => {

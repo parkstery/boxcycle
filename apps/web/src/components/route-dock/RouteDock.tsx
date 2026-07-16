@@ -112,6 +112,9 @@ export function RouteDock(props: RouteDockProps) {
   }
   if (!visible) return null;
 
+  /** 주행 중(일시정지 제외)에는 경유지 목록·저장/삭제를 숨기고 caret + 속도 슬라이더만 남긴다(운동 축 다이어트). */
+  const ridingDiet = stage === "riding";
+
   return (
     <div
       className={`route-dock-anchor${expanded ? " route-dock-anchor--open" : ""}`}
@@ -163,7 +166,8 @@ export function RouteDock(props: RouteDockProps) {
           hidden={!expanded}
           aria-hidden={!expanded}
         >
-        <header className="route-dock__head">
+        {!ridingDiet ? (
+          <header className="route-dock__head">
           {stage === "ready-to-start" ? (
             <button
               type="button"
@@ -203,9 +207,10 @@ export function RouteDock(props: RouteDockProps) {
               삭제
             </button>
           </div>
-        </header>
+          </header>
+        ) : null}
 
-        {stage === "ready-to-start" && resumeRatio != null ? (
+        {!ridingDiet && stage === "ready-to-start" && resumeRatio != null ? (
           <div className="route-dock__resume" role="radiogroup" aria-label="이어 달리기">
             <label className="route-dock__resume-option">
               <input
@@ -230,7 +235,7 @@ export function RouteDock(props: RouteDockProps) {
           </div>
         ) : null}
 
-        {saveOpen ? (
+        {!ridingDiet && saveOpen ? (
           <div className="route-dock__save-form">
             <div className="route-dock__save-head">
               <label className="route-dock__save-label" htmlFor="route-dock-save-name">
@@ -287,7 +292,7 @@ export function RouteDock(props: RouteDockProps) {
             {saveConfirmUpdate ? (
               <div className="route-dock__save-confirm" role="alertdialog">
                 <p className="route-dock__save-confirm-msg">
-                  이미 저장된 경로입니다. 업데이트하시겠습니까?
+                  저장된 경로 — 업데이트할까요?
                 </p>
                 <div className="route-dock__save-actions">
                   <button
@@ -314,47 +319,49 @@ export function RouteDock(props: RouteDockProps) {
           </div>
         ) : null}
 
-        <ul className="route-dock__stops" role="list">
-          {stops.length === 0 ? (
-            <li className="route-dock__stops-empty">지도를 탭해 출발·도착을 설정하세요</li>
-          ) : (
-            stops.map((stop, index) => (
-              <li key={stop.id}>
-                <button
-                  type="button"
-                  className="route-dock__stop"
-                  onClick={() => onFocusStop(stop)}
-                  title="지도에서 보기"
-                >
-                  <span
-                    className={`route-dock__stop-dot route-dock__stop-dot--${stop.kind}`}
-                    aria-hidden
+        {!ridingDiet ? (
+          <ul className="route-dock__stops" role="list">
+            {stops.length === 0 ? (
+              <li className="route-dock__stops-empty">지도를 탭해 출발·도착 설정</li>
+            ) : (
+              stops.map((stop, index) => (
+                <li key={stop.id}>
+                  <button
+                    type="button"
+                    className="route-dock__stop"
+                    onClick={() => onFocusStop(stop)}
+                    title="지도에서 보기"
                   >
-                    {stop.kind === "waypoint"
-                      ? String((stop.waypointIndex ?? index) + 1)
-                      : STOP_KIND_LABEL[stop.kind]}
-                  </span>
-                  <span
-                    className="route-dock__stop-label"
-                    title={stop.loading ? undefined : stop.label}
+                    <span
+                      className={`route-dock__stop-dot route-dock__stop-dot--${stop.kind}`}
+                      aria-hidden
+                    >
+                      {stop.kind === "waypoint"
+                        ? String((stop.waypointIndex ?? index) + 1)
+                        : STOP_KIND_LABEL[stop.kind]}
+                    </span>
+                    <span
+                      className="route-dock__stop-label"
+                      title={stop.loading ? undefined : stop.label}
+                    >
+                      {stop.loading ? "주소 불러오는 중…" : stop.label}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className="route-dock__stop-remove"
+                    disabled={editLocked}
+                    aria-label={`${stop.kind === "start" ? "출발" : stop.kind === "end" ? "도착" : "경유"} 삭제`}
+                    title={`${stop.kind === "start" ? "출발" : stop.kind === "end" ? "도착" : "경유"} 삭제`}
+                    onClick={() => onRemoveStop(stop.id)}
                   >
-                    {stop.loading ? "주소 불러오는 중…" : stop.label}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  className="route-dock__stop-remove"
-                  disabled={editLocked}
-                  aria-label={`${stop.kind === "start" ? "출발" : stop.kind === "end" ? "도착" : "경유"} 삭제`}
-                  title={`${stop.kind === "start" ? "출발" : stop.kind === "end" ? "도착" : "경유"} 삭제`}
-                  onClick={() => onRemoveStop(stop.id)}
-                >
-                  ✕
-                </button>
-              </li>
-            ))
-          )}
-        </ul>
+                    ✕
+                  </button>
+                </li>
+              ))
+            )}
+          </ul>
+        ) : null}
 
         <SessionSpeedControl speedKmh={speedKmh} onSpeedKmh={onSpeedKmh} disabled={editLocked} />
         </div>

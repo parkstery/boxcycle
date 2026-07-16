@@ -97,6 +97,8 @@ export type MapHudProps = {
   worldActivityHint?: string | null;
   /** 라이브 어스 — 주행 지역 현재 날씨·밤낮 한 줄(Open-Meteo, 세션 중만) */
   weatherHint?: string | null;
+  /** 마일리지(누적 운동 이력) — idle 단계 한 줄(서버 집계, users/{uid}.mileageTotalMeters) */
+  mileageHint?: string | null;
   /** Conquest — 이번 주행에서 실시간으로 획득한 신규 도로 미터(낙관). 0/null=비표시 */
   conquestLiveMeters?: number | null;
   /** idle 단계 첫 진입 안내 문구 */
@@ -142,6 +144,7 @@ export function MapHud(props: MapHudProps) {
     ridePresence,
     worldActivityHint,
     weatherHint,
+    mileageHint,
     conquestLiveMeters,
     idleHintMessage = "MENU → 입문 경로",
   } = props;
@@ -212,6 +215,11 @@ export function MapHud(props: MapHudProps) {
             {weatherHint ? (
               <p className="hud-world-hint hud-weather-hint" role="status" title="주행 지역의 현재 날씨(Open-Meteo)">
                 {weatherHint}
+              </p>
+            ) : null}
+            {mileageHint ? (
+              <p className="hud-world-hint hud-mileage-hint" role="status">
+                {mileageHint}
               </p>
             ) : null}
             {showRidePresence && ridePresence ? (
@@ -298,12 +306,12 @@ export function MapHud(props: MapHudProps) {
                 {ridePresence.trailLabel}
               </span>
             ) : null}
-            <span className="hud-metrics__chip" title="Elapsed time">
-              {metrics.elapsed}
-            </span>
-            <span className="hud-metrics__chip" title="Distance">
+            <span className="hud-metrics__chip hud-metrics__chip--hero" title="Distance">
               {metrics.distanceKm}
               <span className="hud-metrics__unit">km</span>
+            </span>
+            <span className="hud-metrics__chip" title="Elapsed time">
+              {metrics.elapsed}
             </span>
             <span className="hud-metrics__chip" title="Average speed">
               {metrics.avgKmh}
@@ -313,7 +321,8 @@ export function MapHud(props: MapHudProps) {
               {metrics.speedKmh}
               <span className="hud-metrics__unit">km/h</span>
             </span>
-            {(riding || paused) && (conquestLiveMeters ?? 0) > 0 ? (
+            {/* 50m 미만은 「+0.0km」로 보여 미표시 — 정복 축은 발생 시에만(0 미표시 원칙) */}
+            {(riding || paused) && (conquestLiveMeters ?? 0) >= 50 ? (
               <span
                 key={conquestLiveMeters}
                 className="hud-metrics__chip hud-metrics__chip--conquest"
