@@ -7,7 +7,12 @@ export type RiderGlbPedalPose = {
   legRRotationDeg: GlbNodeRotationDeg;
   legLShinRotationDeg: GlbNodeRotationDeg;
   legRShinRotationDeg: GlbNodeRotationDeg;
+  /** 상체 스웨이 — 페달 1회전당 좌우 1회 록킹(로컬 X축 롤) */
+  torsoRotationDeg: GlbNodeRotationDeg;
 };
+
+/** 상체 록킹 진폭(°) — 과하면 우스꽝스러움, 2~3° 권장 */
+const TORSO_SWAY_AMP_DEG = 2.2;
 
 /**
  * `generate-rider-prototype-glb.mjs` legAssembly() 와 동기.
@@ -144,6 +149,7 @@ export function resolveGlbPedalPose(phaseRev: number): RiderGlbPedalPose {
     legRRotationDeg: [0, 0, right.thighZ],
     legLShinRotationDeg: [0, 0, left.shinZ],
     legRShinRotationDeg: [0, 0, right.shinZ],
+    torsoRotationDeg: [TORSO_SWAY_AMP_DEG * Math.sin(phase * Math.PI * 2), 0, 0],
   };
 }
 

@@ -17,6 +17,8 @@ export const RIDER_GLB_MODEL_SOURCE_ID = "boxcycle-rider-prototype-source";
 export const RIDER_GLB_MODEL_LAYER_ID = "boxcycle-rider-prototype-layer";
 /** Mapbox model-rotation feature-state — GLB 노드 `crank` */
 export const RIDER_GLB_CRANK_STATE_KEY = "crank-rotation";
+/** 상체 스웨이(페달 록킹) — GLB 노드 `torso`, 로컬 X축 롤 */
+export const RIDER_GLB_TORSO_STATE_KEY = "torso-rotation";
 export const RIDER_GLB_LEG_L_STATE_KEY = "leg-l-rotation";
 export const RIDER_GLB_LEG_L_SHIN_STATE_KEY = "leg-l-shin-rotation";
 export const RIDER_GLB_LEG_R_STATE_KEY = "leg-r-rotation";
@@ -28,6 +30,7 @@ export const RIDER_GLB_NODE_OVERRIDE_NAMES = [
   "leg_l_shin",
   "leg_r",
   "leg_r_shin",
+  "torso",
 ] as const;
 
 /** Mapbox model orientation 3번째 값(요) — 모델 +X(동) 기준 */
