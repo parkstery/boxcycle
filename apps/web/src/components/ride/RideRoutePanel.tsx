@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import type { User } from "firebase/auth";
+import { useState } from "react";
 import type { PublishedPublicCourseSummary } from "../../lib/firestoreCourses";
 import type { RouteActivitySnapshot } from "../../lib/firestoreRouteActivity";
 import type { BleCrankRpmUiState } from "../../hooks/useBleCrankRpm";
@@ -11,7 +10,6 @@ import {
   OfficialCourseListModal,
   type OfficialCourseSegment,
 } from "./OfficialCourseListModal";
-import { AdminPublicRouteQueue } from "../AdminPublicRouteQueue";
 import "./RideRoutePanel.css";
 
 export type FollowMode =
@@ -68,11 +66,6 @@ type RideRoutePanelProps = {
   adhocSuggestedName?: string;
   /** ad-hoc 저장 안내(토스트 액션) 닫기 */
   onDismissAdhocSave: () => void;
-  /** 공개 경로 심사자 — 설정 시 「심사」 탭 표시 */
-  isPublicRouteReviewer?: boolean;
-  publicRouteReviewUser?: User | null;
-  publicRouteReviewQueueCount?: number;
-  onPublicRouteReviewQueueChanged?: () => void;
   pendingPublicRouteIds?: ReadonlySet<string>;
   /** 퍼블릭 코스로 이미 등록된 원본 savedRouteId */
   publishedPublicSavedRouteIds?: ReadonlySet<string>;
@@ -103,7 +96,7 @@ type RideRoutePanelProps = {
   };
 };
 
-type Tab = "route" | "saved" | "publicReview";
+type Tab = "route" | "saved";
 
 export function RideRoutePanel(props: RideRoutePanelProps) {
   const [tab, setTab] = useState<Tab>("route");
@@ -118,12 +111,6 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
 
   /** 주행 중에도 MENU(경로·코스)는 사용 가능 — 속도·시작은 RouteDock, 맵 핀은 App 잠금 */
   const routeLocksAsIdle = true;
-
-  useEffect(() => {
-    if (tab === "publicReview" && !props.isPublicRouteReviewer) {
-      setTab("route");
-    }
-  }, [tab, props.isPublicRouteReviewer]);
 
   // 미완료 쿼터 초과 유도 — 신호가 오르면 「내 경로」 탭을 연다(대기 필터 전환은 SavedRoutesPanel 이 처리).
   // effect 대신 이전 신호값과 비교(React 권장) — cascading render·set-state-in-effect 회피.
@@ -213,52 +200,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
         </button>
       </div>
 
-      {/* 관리자 전용 — 일반 탭 바와 분리된 별도 진입점(리뷰어에게만 노출) */}
-      {props.isPublicRouteReviewer && props.publicRouteReviewUser && tab !== "publicReview" ? (
-        <button
-          type="button"
-          className="ride-panel__reviewer-entry"
-          title="Open public route review queue"
-          onClick={() => setTab("publicReview")}
-        >
-          <span className="ride-panel__reviewer-entry-tag">관리자</span>
-          <span className="ride-panel__reviewer-entry-label">공개 경로 심사</span>
-          {(props.publicRouteReviewQueueCount ?? 0) > 0 ? (
-            <span className="ride-panel__reviewer-entry-badge">
-              {props.publicRouteReviewQueueCount}
-            </span>
-          ) : null}
-        </button>
-      ) : null}
-
-      {tab === "publicReview" && props.publicRouteReviewUser ? (
-        <>
-          <div className="ride-panel__saved-head">
-            <h2 className="ride-panel__h ride-panel__h--inline">공개 심사</h2>
-            <button
-              type="button"
-              className="ride-panel__saved-close"
-              aria-label="심사 닫고 경로 화면으로"
-              title="Back to route"
-              onClick={() => setTab("route")}
-            >
-              닫기
-            </button>
-          </div>
-          <AdminPublicRouteQueue
-            reviewer={props.publicRouteReviewUser}
-            onQueueChanged={() => props.onPublicRouteReviewQueueChanged?.()}
-          />
-          <button
-            type="button"
-            className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet ride-panel__saved-back"
-            title="Back to route"
-            onClick={() => setTab("route")}
-          >
-            경로로
-          </button>
-        </>
-      ) : tab === "saved" ? (
+      {tab === "saved" ? (
         <>
           <div className="ride-panel__saved-head">
             <h2 className="ride-panel__h ride-panel__h--inline">내 경로</h2>

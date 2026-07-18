@@ -86,15 +86,11 @@ const REJECTION_REASON_MAX = 500;
 
 const ALLOWED_TAG_SET = new Set<string>(EXPERIENCE_TAG_OPTIONS.map((o) => o.id));
 
-function isSavedRouteCompletedInFirestore(data: Record<string, unknown>): boolean {
-  return data.completed === 1 || data.completed === true;
-}
-
 function formatPublicRouteFirestoreError(err: unknown): Error {
   if (err instanceof FirebaseError) {
     if (err.code === "permission-denied") {
       return new Error(
-        "퍼블릭 신청 권한이 없습니다. Google 로그인·닉네임 설정·경로 완주(클라우드 저장) 상태를 확인한 뒤 새로고침해 보세요.",
+        "퍼블릭 신청 권한이 없습니다. Google 로그인·닉네임 설정·경로 클라우드 저장 상태를 확인한 뒤 새로고침해 보세요.",
       );
     }
     if (err.code === "failed-precondition" && err.message.includes("index")) {
@@ -113,11 +109,6 @@ async function assertPublicRouteRequestPreflight(user: User, route: SavedRoute):
   const routeData = routeSnap.data() as Record<string, unknown>;
   if (routeData.userId !== user.uid) {
     throw new Error("본인 경로만 신청할 수 있습니다.");
-  }
-  if (!isSavedRouteCompletedInFirestore(routeData)) {
-    throw new Error(
-      "서버에 완주 기록이 없습니다. 해당 경로를 다시 완주하거나 목록을 새로고침한 뒤 신청하세요.",
-    );
   }
 
   const userSnap = await getDoc(doc(db, "users", user.uid));
@@ -269,6 +260,83 @@ function fromRequestDoc(id: string, data: Record<string, unknown>): PublicRouteR
   };
 }
 
+type AutoReviewCfResult =
+  | { result: { status: "approved"; publicationId: string } }
+  | { result: { status: "rejected"; reason: string } }
+  | { error: { message?: string } };
+
+/**
+ * 자동 검수 CF 연결·서버 오류. 신청 문서는 pending 인 채 남으므로 호출부가 정리(withdraw)한다.
+ * 정상 거절(rejected)과 구분하기 위한 별도 타입.
+ */
+class AutoReviewUnavailableError extends Error {
+  constructor() {
+    super("자동 검수 서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+    this.name = "AutoReviewUnavailableError";
+  }
+}
+
+/**
+ * `publicRouteRequests` 문서 생성 직후 자동 검수 CF 를 호출한다.
+ * 승인 시 생성된 `publicationId` 를 반환, 정상 거절 시 사유로 throw.
+ * 연결·서버 오류는 `AutoReviewUnavailableError` 로 throw — 이때 pending 문서는 호출부가 회수한다.
+ */
+async function callAutoReviewPublicRouteRequest(user: User, requestId: string): Promise<string> {
+  const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID?.trim();
+  const region = import.meta.env.VITE_FUNCTIONS_REGION?.trim() || "asia-northeast3";
+  if (!projectId) {
+    throw new AutoReviewUnavailableError();
+  }
+
+  const url = `https://${region}-${projectId}.cloudfunctions.net/autoReviewPublicRouteRequest`;
+  let res: Response;
+  try {
+    const idToken = await user.getIdToken();
+    res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ data: { requestId } }),
+    });
+  } catch {
+    throw new AutoReviewUnavailableError();
+  }
+
+  let json: AutoReviewCfResult;
+  try {
+    json = (await res.json()) as AutoReviewCfResult;
+  } catch {
+    throw new AutoReviewUnavailableError();
+  }
+
+  if (!res.ok || "error" in json) {
+    throw new AutoReviewUnavailableError();
+  }
+  if (json.result.status === "rejected") {
+    throw new Error(json.result.reason);
+  }
+  return json.result.publicationId;
+}
+
+/**
+ * 자동 검수 CF 에 도달하지 못해 pending 으로 남은 신청을 회수한다(best-effort).
+ * 이 정리에 실패해도 사용자에게는 재시도 안내가 우선이므로 예외를 삼킨다.
+ * 회수해야 같은 savedRoute 재신청 차단(§중복)에 걸리지 않고 곧바로 다시 시도할 수 있다.
+ */
+async function discardUnreviewedRequest(user: User, requestId: string): Promise<void> {
+  try {
+    await withdrawPublicRouteRequest(user, requestId);
+  } catch {
+    // 정리 실패는 무시 — pending 이 잠시 남더라도 다음 자동 검수·재시도로 해소된다.
+  }
+}
+
+/**
+ * 퍼블릭 신청을 생성하고 자동 검수 CF(`autoReviewPublicRouteRequest`)를 호출한다.
+ * 반환값은 신청 id 가 아니라 승인 시 생성된 **publicationId**.
+ */
 export async function createPublicRouteRequest(
   user: User,
   route: SavedRoute,
@@ -286,9 +354,6 @@ export async function createPublicRouteRequest(
   }
   if (!input.namingPolicyAcknowledged) {
     throw new Error("공개 제목 정책에 동의한 뒤 신청할 수 있습니다.");
-  }
-  if (route.completed !== 1) {
-    throw new Error("완주한 사용자 경로만 공개 등록을 신청할 수 있습니다.");
   }
   if (route.id.startsWith("local-")) {
     throw new Error("클라우드에 저장된 경로만 신청할 수 있습니다.");
@@ -357,12 +422,26 @@ export async function createPublicRouteRequest(
   };
 
   const ref = await addDoc(collection(db, PUBLIC_ROUTE_REQUESTS_COLLECTION), payload);
-  return ref.id;
+  try {
+    return await callAutoReviewPublicRouteRequest(user, ref.id);
+  } catch (err) {
+    // 자동 검수에 도달하지 못했으면(연결·서버 오류) pending 이 갇히지 않도록 회수해
+    // 사용자가 곧바로 다시 시도할 수 있게 한다. 정상 거절(rejected)은 그대로 사유를 던진다.
+    if (err instanceof AutoReviewUnavailableError) {
+      await discardUnreviewedRequest(user, ref.id);
+    }
+    throw err;
+  }
   } catch (err) {
     throw formatPublicRouteFirestoreError(err);
   }
 }
 
+/**
+ * 안전망 전용(콘솔). 퍼블릭 등록은 자동 심사(CF)로 처리되어 관리자 심사 UI 는 제거됐다.
+ * 자동 검수 CF 장애로 pending 이 남는 예외 상황을 리뷰어가 콘솔에서 조회·처리할 때만 쓴다.
+ * 관련: `isRouteReviewer` · `approvePublicRouteRequest` · `rejectPublicRouteRequest`.
+ */
 export async function loadPendingPublicRouteRequests(): Promise<PublicRouteRequest[]> {
   const db = getFirestore(getFirebaseApp());
   const q = query(

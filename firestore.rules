@@ -40,16 +40,10 @@ service cloud.firestore {
         && t.hasOnly(['mountain_trail', 'coastal_road', 'water_route', 'urban', 'countryside']);
     }
 
-    function savedRouteCompleted(data) {
-      return data.keys().hasAny(['completed'])
-        && (data.completed == 1 || data.completed == true);
-    }
-
-    function savedRouteOwnedAndCompletedForRequest(savedRouteId) {
+    function savedRouteOwnedForRequest(savedRouteId) {
       let routeDoc = get(/databases/$(database)/documents/savedRoutes/$(savedRouteId));
       return exists(/databases/$(database)/documents/savedRoutes/$(savedRouteId))
-        && routeDoc.data.userId == request.auth.uid
-        && savedRouteCompleted(routeDoc.data);
+        && routeDoc.data.userId == request.auth.uid;
     }
 
     /**
@@ -338,7 +332,7 @@ service cloud.firestore {
         && request.resource.data.applicantUid == request.auth.uid
         && request.resource.data.status == 'pending'
         && request.resource.data.savedRouteId is string
-        && savedRouteOwnedAndCompletedForRequest(request.resource.data.savedRouteId)
+        && savedRouteOwnedForRequest(request.resource.data.savedRouteId)
         && request.resource.data.savedRouteNameSnapshot is string
         && request.resource.data.savedRouteNameSnapshot.size() >= 1
         && request.resource.data.savedRouteNameSnapshot.size() <= 40

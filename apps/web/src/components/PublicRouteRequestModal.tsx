@@ -55,6 +55,7 @@ function NamingHelpPanel(props: { onClose: () => void }) {
 
 export function PublicRouteRequestModal(props: PublicRouteRequestModalProps) {
   const [publicTitle, setPublicTitle] = useState(props.route.name);
+  const [publicSummary, setPublicSummary] = useState("");
   const [tags, setTags] = useState<ExperienceTagId[]>([]);
   const [policyAck, setPolicyAck] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -94,7 +95,7 @@ export function PublicRouteRequestModal(props: PublicRouteRequestModalProps) {
     try {
       await props.onSubmit({
         publicTitle,
-        publicSummary: "",
+        publicSummary,
         experienceTags: tags,
         namingPolicyAcknowledged: true,
       });
@@ -119,7 +120,7 @@ export function PublicRouteRequestModal(props: PublicRouteRequestModalProps) {
         onMouseDown={(e) => e.stopPropagation()}
       >
         <h2 id="pr-modal-title" className="pr-modal__title">
-          퍼블릭 신청
+          퍼블릭 등록
         </h2>
 
         <form onSubmit={(e) => void handleSubmit(e)} className="pr-modal__form">
@@ -146,6 +147,21 @@ export function PublicRouteRequestModal(props: PublicRouteRequestModalProps) {
               required
               placeholder="닉네임 · 지역 · 특성"
               onChange={(e) => setPublicTitle(e.target.value)}
+            />
+          </div>
+
+          <div className="pr-modal__field">
+            <label className="pr-modal__label" htmlFor="pr-public-summary">
+              소개 (선택)
+            </label>
+            <textarea
+              id="pr-public-summary"
+              className="pr-modal__textarea"
+              value={publicSummary}
+              maxLength={500}
+              rows={3}
+              placeholder="이 코스의 특징이나 볼거리를 소개해 주세요"
+              onChange={(e) => setPublicSummary(e.target.value)}
             />
           </div>
 
@@ -199,7 +215,7 @@ export function PublicRouteRequestModal(props: PublicRouteRequestModalProps) {
               className="pr-modal__btn pr-modal__btn--primary"
               disabled={busy || !policyAck}
             >
-              {busy ? "제출 중…" : "신청"}
+              {busy ? "검수 중…" : "등록"}
             </button>
           </div>
         </form>

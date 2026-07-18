@@ -9,6 +9,12 @@ const INVISIBLE_OR_CONTROL = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F\u200B-\u200D\uFEFF
 /** 동일 문자·이모지 등 과도 반복(스팸 패턴) */
 const EXCESSIVE_REPEAT = /(.)\1{49,}/u;
 
+/** 휴대폰 번호(010-1234-5678 등) + 지역 유선 번호(02-123-4567 등) */
+const PHONE_NUMBER = /01[016789][-.\s]?\d{3,4}[-.\s]?\d{4}|0\d{1,2}[-.\s]\d{3,4}[-.\s]\d{4}/;
+
+/** 표준 이메일 패턴 */
+const EMAIL_ADDRESS = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+
 function countHttpUrls(s: string): number {
   return (s.match(/https?:\/\//gi) ?? []).length;
 }
@@ -26,9 +32,17 @@ export function validatePublicRouteTitleAndSummary(title: string, summary: strin
   if (EXCESSIVE_REPEAT.test(title) || EXCESSIVE_REPEAT.test(summary)) {
     throw new Error("제목·소개에 과도하게 반복되는 문자가 있습니다.");
   }
+  if (
+    PHONE_NUMBER.test(title) ||
+    PHONE_NUMBER.test(summary) ||
+    EMAIL_ADDRESS.test(title) ||
+    EMAIL_ADDRESS.test(summary)
+  ) {
+    throw new Error("제목·소개에 전화번호·이메일 등 개인정보를 넣을 수 없습니다.");
+  }
   const links = countHttpUrls(title) + countHttpUrls(summary);
-  if (links > 8) {
-    throw new Error("제목·소개에 포함할 수 있는 링크 개수를 초과했습니다.");
+  if (links > 2) {
+    throw new Error("제목·소개에 포함할 수 있는 링크는 2개까지입니다.");
   }
 }
 

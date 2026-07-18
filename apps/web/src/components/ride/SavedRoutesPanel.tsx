@@ -126,7 +126,6 @@ export type SavedRoutesPanelProps = {
 /** 선택된 경로에 대해 「공개」 툴바 버튼의 활성 여부·안내를 판정. */
 type PublicActionState =
   | { kind: "unavailable"; title: string } // 게스트·핸들러 없음: 비활성
-  | { kind: "not-completed"; title: string } // 미완주: 비활성
   | { kind: "in-review"; title: string } // 심사 중: 비활성
   | { kind: "already-public"; title: string } // 이미 퍼블릭: 비활성
   | { kind: "ready"; title: string }; // 신청 가능: 활성
@@ -183,8 +182,6 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
   // 선택 경로에 대한 「공개」 툴바 버튼 판정(기존 카드별 분기 로직을 선택 기반으로 이관).
   const publicActionState: PublicActionState = useMemo(() => {
     if (!selectedRoute) return { kind: "unavailable", title: "경로를 선택하세요" };
-    if (selectedRoute.completed !== 1)
-      return { kind: "not-completed", title: "완주한 경로만 공개 신청할 수 있어요" };
     if (props.guestNotice || !props.onOpenPublicRequest)
       return { kind: "unavailable", title: "로그인을 하면 공개 신청 기능을 쓸 수 있습니다." };
     if (props.pendingPublicRouteIds?.has(selectedRoute.id))

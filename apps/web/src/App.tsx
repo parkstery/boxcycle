@@ -254,9 +254,7 @@ export default function App() {
   const {
     publicRouteRequestModalRoute,
     setPublicRouteRequestModalRoute,
-    isPublicRouteReviewer,
     pendingPublicRouteIds,
-    publicRouteReviewQueueCount,
     refreshPublicRouteMeta,
     handleSubmitPublicRouteRequest,
   } = usePublicRouteReviewMeta({ configured, user });
@@ -809,11 +807,6 @@ export default function App() {
     menuFirestorePrimedUidRef.current = user.uid;
     void refreshPublicRouteMeta();
   }, [configured, menuOpen, user, refreshPublicRouteMeta, refreshPublishedPublicCourseCatalog]);
-
-  const onPublicRouteReviewQueueChanged = useCallback(() => {
-    void refreshPublicRouteMeta();
-    void refreshPublishedPublicCourseCatalog();
-  }, [refreshPublicRouteMeta, refreshPublishedPublicCourseCatalog]);
 
   const onRefreshPublishedPublicCourses = useCallback(() => {
     void refreshPublishedPublicCourseCatalog();
@@ -2003,10 +1996,6 @@ export default function App() {
           savedQuotaNotice={savedQuotaNotice}
           onDismissSavedQuotaNotice={() => setSavedQuotaNotice(null)}
           onIncompleteQuotaBlocked={handleIncompleteQuotaBlocked}
-          isPublicRouteReviewer={Boolean(configured && user && isPublicRouteReviewer)}
-          publicRouteReviewUser={user}
-          publicRouteReviewQueueCount={publicRouteReviewQueueCount}
-          onPublicRouteReviewQueueChanged={onPublicRouteReviewQueueChanged}
           pendingPublicRouteIds={pendingPublicRouteIds}
           publishedPublicSavedRouteIds={publishedPublicSavedRouteIds}
           publishedPublicRouteFingerprints={publishedPublicRouteFingerprints}

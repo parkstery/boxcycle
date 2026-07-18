@@ -2,6 +2,7 @@ import { initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { mergeUserAuthMeta } from "./userTierCore.js";
 import { adminPromoteSavedRoute } from "./adminPromoteSavedRoute.js";
+import { autoReviewPublicRouteRequest } from "./autoReviewPublicRouteRequest.js";
 import {
   ensureRouteTokenOnboarding,
   loadRouteTokenEconomy,
@@ -231,6 +232,7 @@ export const getMapboxDirections = onRequest(
 );
 
 export { adminPromoteSavedRoute };
+export { autoReviewPublicRouteRequest };
 export { routeActivityOnRideCreated } from "./routeActivityOnRideCreated.js";
 export { routeActivityOnLivePublicationRideWritten } from "./routeActivityOnLivePublicationRideWritten.js";
 export { routeActivityScheduledReconcile } from "./routeActivityScheduledReconcile.js";
