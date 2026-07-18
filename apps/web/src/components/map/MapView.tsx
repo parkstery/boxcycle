@@ -12,6 +12,7 @@ import {
 import { ACTIVITY_TRACE_RED } from "../../lib/activityWorldTraceStyle";
 import {
   applyRtwLayerStyle,
+  resetRtwStyleSnapshot,
   RTW_MAP_STYLE_URL,
   RTW_TRACE_ACCUMULATED_PAINT,
   RTW_TRACE_LIVE_GLOW_PAINT,
@@ -60,9 +61,10 @@ import { MapZoomGlobeControl } from "./MapZoomGlobeControl";
 import {
   MAP_GLOBE_MIN_ZOOM,
   DEFAULT_MAP_ZOOM,
-  RIDE_FOLLOW_CAMERA_ZOOM,
   RIDE_FOLLOW_CAMERA_MODE,
-  RIDE_START_ZOOM,
+  RIDE_CAMERA_DISTANCE_DEFAULT_M,
+  RIDE_CAMERA_PITCH_CLOSE,
+  zoomForRiderDistanceMeters,
 } from "../../lib/mapGlobeView";
 import "./MapView.css";
 
@@ -814,9 +816,6 @@ const CAMERA_BEARING_MAX_DPS_SECONDARY = 170;
 const CAMERA_MAX_DT_MS = 50;
 const CAMERA_BEARING_WINDOW_METERS = 60;
 const CAMERA_BEARING_WINDOW_SAMPLES = 60;
-/** 후방 추적 — 카메라 pivot 을 캐릭터 뒤로 (줌 21.5 근처에서 캐릭터가 화면에 보이도록) */
-const REAR_FOLLOW_OFFSET_M_MIN = 16;
-const REAR_FOLLOW_OFFSET_M_MAX = 58;
 
 /**
  * 출발/도착/경유·라이더: 3D 피치에서도 빌보드(세움). `map` 정렬은 스프라이트가 지면에 눕는 문제가 있어 라이더도 viewport 유지.
@@ -1204,6 +1203,12 @@ export type MapViewProps = {
   onMapLodViewport?: (spanKm: number, zoom: number) => void;
   /** 주행 시작 시 후방·줌 21.5 즉시 적용 — `requestId` 증가마다 1회 */
   rideFollowCameraNonce?: number;
+  /** RTW Dark 한정 — 주행 중 도로 유령화·건물 숨김 해제 */
+  rideActive?: boolean;
+  /** 주행 카메라 라이더~카메라 거리(m) — 개발용 거리 슬라이더, 최적값 확정 후 제거 예정 */
+  rideCameraDistanceM?: number;
+  /** 임시 — RTW Dark POI 라벨 표시 비교용 토글 */
+  showRtwPoi?: boolean;
 };
 
 export function MapView({
@@ -1243,6 +1248,9 @@ export function MapView({
   onMapViewport,
   onMapLodViewport,
   rideFollowCameraNonce = 0,
+  rideActive = false,
+  rideCameraDistanceM = RIDE_CAMERA_DISTANCE_DEFAULT_M,
+  showRtwPoi = false,
 }: MapViewProps) {
   const trailSpectatorDataRef = useRef<{ dots: TrailSpectatorDot[]; routes: LineStringGeometry[] }>({
     dots: [],
@@ -1294,8 +1302,13 @@ export function MapView({
   const liveRiderMotionRef = useRef(liveRiderMotion);
   const followModeRef = useRef(followMode);
   const mapZoomRef = useRef(mapZoom);
+  /** 주행 카메라 거리(m) — 개발용 거리 슬라이더 최신값, rAF 루프에서 참조 */
+  const rideCameraDistanceMRef = useRef(rideCameraDistanceM);
   const prefersReducedMotionRef = useRef(false);
   const enable3DRef = useRef(enable3D);
+  /** GLB 코너링 린 — 직전 heading·지수 감쇠 린(°) */
+  const glbPrevBearingRef = useRef<number | null>(null);
+  const glbLeanDegRef = useRef(0);
   const initialMapStyleRef = useRef(mapStyle);
   const currentStyleRef = useRef(mapStyle);
   const onSelectPointRef = useRef(onSelectPoint);
@@ -1369,6 +1382,10 @@ export function MapView({
   useEffect(() => {
     mapZoomRef.current = mapZoom;
   }, [mapZoom]);
+
+  useEffect(() => {
+    rideCameraDistanceMRef.current = rideCameraDistanceM;
+  }, [rideCameraDistanceM]);
 
   useEffect(() => {
     prefersReducedMotionRef.current = prefersReducedMotion;
@@ -1469,6 +1486,8 @@ export function MapView({
       center: DEFAULT_CENTER,
       zoom: DEFAULT_ZOOM,
       minZoom: MAP_GLOBE_MIN_ZOOM,
+      // 주행 밀착 카메라(거리 1~3m)가 zoom 22+를 요구 — 기본 maxZoom 22 클램프 해제
+      maxZoom: 24,
     });
     map.addControl(new MapZoomGlobeControl(), "top-right");
     map.addControl(
@@ -1835,9 +1854,9 @@ export function MapView({
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
 
+    let disposed = false;
     const apply = () => {
-      // 스타일 로딩 중에는 addSource/addLayer 가 throw → 준비된 뒤에만 적용
-      if (!map.isStyleLoaded()) return;
+      if (disposed) return;
       try {
         applyCoverageOverlayMode(
           map,
@@ -1845,16 +1864,16 @@ export function MapView({
           mapillaryClientTokenRef.current ?? undefined,
         );
       } catch {
-        /* noop */
+        // 스타일시트 준비 전 addSource/addLayer throw — 다음 idle에 재시도
+        map.once("idle", apply);
       }
     };
 
     apply();
-    // 클릭 시점에 스타일이 아직 준비 전이면 재시도
-    if (!map.isStyleLoaded()) map.once("idle", apply);
     // 베이스맵 스타일 전환 시 커스텀 커버리지 레이어가 폐기되므로 재적용
     map.on("style.load", apply);
     return () => {
+      disposed = true;
       map.off("style.load", apply);
       map.off("idle", apply);
     };
@@ -2000,29 +2019,35 @@ export function MapView({
     if (currentStyleRef.current === mapStyle) return;
     currentStyleRef.current = mapStyle;
     map.setStyle(mapStyle);
+    resetRtwStyleSnapshot(map);
   }, [mapStyle, mapLoaded]);
 
   /** RTW 다크 스타일 한정 — POI/건물 숨김 + 도로 존재감 다이어트 */
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
+    let disposed = false;
     const apply = () => {
+      if (disposed) return;
       if (mapStyle !== RTW_MAP_STYLE_URL) return;
-      if (!map.isStyleLoaded()) return;
+      // isStyleLoaded()는 traffic 등 라이브 소스 타일 갱신 중 false — 게이트로 쓰면 영영 미적용
+      // (본 파일 red dot 사례와 동일 교훈). 스타일시트 준비 전이면 다음 idle에 재시도.
+      let applied = false;
       try {
-        applyRtwLayerStyle(map);
+        applied = applyRtwLayerStyle(map, { rideActive, showPoi: showRtwPoi });
       } catch {
-        /* noop */
+        applied = false;
       }
+      if (!applied) map.once("idle", apply);
     };
     apply();
-    if (!map.isStyleLoaded()) map.once("idle", apply);
     map.on("style.load", apply);
     return () => {
+      disposed = true;
       map.off("style.load", apply);
       map.off("idle", apply);
     };
-  }, [mapLoaded, mapStyle]);
+  }, [mapLoaded, mapStyle, rideActive, showRtwPoi]);
 
   /** 출발/도착 마커 */
   useEffect(() => {
@@ -2195,13 +2220,10 @@ export function MapView({
   useEffect(() => {
     if (!mapLoaded) return;
     let lastTs = performance.now();
-    const tick = (now: number) => {
+    const tickBody = (now: number) => {
       const map = mapRef.current;
       // isStyleLoaded() 는 위성+3D terrain 에서 영구 false 가능 → 동행 스프라이트 영영 차단.
-      if (!map?.style) {
-        peerRidersRafRef.current = requestAnimationFrame(tick);
-        return;
-      }
+      if (!map?.style) return;
       const dt = Math.min(0.1, (now - lastTs) / 1000);
       lastTs = now;
 
@@ -2225,8 +2247,8 @@ export function MapView({
         );
         tickRideCameraFollow(map, sampled, {
           followMode: followModeRef.current,
-          enable3D: enable3DRef.current,
           mapZoom: mapZoomRef.current,
+          rideCameraDistanceM: rideCameraDistanceMRef.current,
           sessionStatus: liveRiderMotionRef.current?.sessionStatus,
           routeGeometry: routeGeometryRef.current,
           prevLiveRef: prevLiveRef,
@@ -2272,11 +2294,24 @@ export function MapView({
             });
             liveCrankPhaseRevRef.current += (rpm / 60) * dt;
           }
+          // 코너링 린 — heading 변화율(°/s)에 비례, 지수 감쇠로 부드럽게
+          const prevB = glbPrevBearingRef.current;
+          glbPrevBearingRef.current = bearingDeg;
+          let leanTarget = 0;
+          if (prevB != null && dt > 0) {
+            let dB = bearingDeg - prevB;
+            if (dB > 180) dB -= 360;
+            if (dB < -180) dB += 360;
+            leanTarget = Math.max(-10, Math.min(10, (dB / dt) * 0.22));
+          }
+          const leanAlpha = 1 - Math.exp(-dt / 0.35);
+          glbLeanDegRef.current += (leanTarget - glbLeanDegRef.current) * leanAlpha;
           specs.push({
             id: "live-self",
             lngLat: live,
             bearingDeg,
             pedalPose: resolveGlbPedalPose(liveCrankPhaseRevRef.current),
+            leanDeg: glbLeanDegRef.current,
           });
         }
         for (const f of fc.features as PeerDomGJFeature[]) {
@@ -2301,7 +2336,19 @@ export function MapView({
           glbLiveNametagElRef,
         );
       }
-      peerRidersRafRef.current = requestAnimationFrame(tick);
+    };
+    /**
+     * 프레임 예외가 rAF 체인을 끊으면 카메라 팔로우·GLB 라이더 갱신이 영구 정지한다
+     * (스타일을 되돌려도 복구 불가). 예외는 프레임 단위로 격리하고 재예약은 무조건 보장.
+     */
+    const tick = (now: number) => {
+      try {
+        tickBody(now);
+      } catch {
+        /* noop — 다음 프레임 재시도 */
+      } finally {
+        peerRidersRafRef.current = requestAnimationFrame(tick);
+      }
     };
     peerRidersRafRef.current = requestAnimationFrame(tick);
     return () => {
@@ -2371,10 +2418,7 @@ export function MapView({
     if (!target) return;
 
     const rideMode = RIDE_FOLLOW_CAMERA_MODE;
-    const rideZoom = rideMode === "rear30" ? RIDE_FOLLOW_CAMERA_ZOOM : RIDE_START_ZOOM;
-    mapZoomRef.current = rideZoom;
     suppressCameraFollowUntilRef.current = 0;
-    cameraSmoothRef.current.zoom = rideZoom;
 
     const headingFromRoute = getAverageHeadingAheadFromPoint(
       routeGeometryRef.current,
@@ -2387,17 +2431,18 @@ export function MapView({
       mode: rideMode,
       baseHeading,
       currentPitch: map.getPitch(),
-      enable3D: enable3DRef.current,
+      distanceM: rideCameraDistanceMRef.current,
     });
-    // 후방 모드만 라이더 뒤로 카메라를 빼고, 좌측 등은 라이더 중심
     const center =
-      rideMode === "rear30"
-        ? offsetLngLatByBearingMeters(
-            target,
-            nextCamera.bearing + 180,
-            rearFollowOffsetMeters(rideZoom),
-          )
+      nextCamera.distanceM > 0 && nextCamera.offsetBearing != null
+        ? offsetLngLatByBearingMeters(target, nextCamera.offsetBearing, nextCamera.distanceM)
         : target;
+    const rideZoom =
+      nextCamera.distanceM > 0
+        ? zoomForRiderDistanceMeters(nextCamera.distanceM, target[1], nextCamera.pitch)
+        : mapZoomRef.current;
+    mapZoomRef.current = rideZoom;
+    cameraSmoothRef.current.zoom = rideZoom;
 
     const applySnap = () => {
       const live = mapRef.current;
@@ -3095,46 +3140,54 @@ function buildPickPopup(deps: {
   return wrap;
 }
 
+/**
+ * 팔로우 모드별 카메라 목표값 — 라이더 밀착(레이싱 게임) 프리셋.
+ * bearing: 카메라가 바라보는 방향. offsetBearing: 카메라를 라이더로부터 미는 방향
+ * (= bearing 의 반대쪽 — 라이더가 화면에 잡히도록). distanceM: 라이더~카메라 거리(m).
+ * pitch 는 enable3D 에 재종속 — 3D(terrain) 에선 밀착 고정값(72/78), 2D(탑다운 평면)에선
+ * RIDE_CAMERA_PITCH_FLAT(30, 약간 기울인 추적뷰) 로 완전히 다르게 준다. 2D 에서 72~78° 를 강제하면
+ * terrain 없이 지도만 눕게 되어 거리감이 깨진다(회귀 원인) — enable3D=false 일 때 절대 밀착 pitch 쓰지 말 것.
+ * north 는 거리 개념이 없어 distanceM=0(라이더 중앙, 기존 pitch 유지, enable3D 무관). free 는 호출부에서 early return.
+ */
 function getCameraForFollowMode(input: {
   mode: FollowMode;
   baseHeading: number;
   currentPitch: number;
-  enable3D: boolean;
-}) {
-  const pitch3DRear = 70;
-  const pitch3DFront = 60;
-  const pitch3DSide = 85;
-  const sidePitch = input.enable3D ? pitch3DSide : input.currentPitch;
-  const frontPitch = input.enable3D ? pitch3DFront : input.currentPitch;
-  const rearPitch = input.enable3D ? pitch3DRear : input.currentPitch;
+  distanceM: number;
+}): { bearing: number; offsetBearing: number | null; pitch: number; distanceM: number } {
+  // 밀착 4방향은 3D(terrain) 유무와 무관하게 준수평 추적 — GoPro/레이싱 뷰.
+  // 2D 에선 terrain 이 없어 지도가 눕지만, 이는 라이더 밀착 체험을 위해 의도된 것.
+  // maxPitch(85) 아래로 안정적인 RIDE_CAMERA_PITCH_CLOSE(80) 사용.
+  const pitchRear = RIDE_CAMERA_PITCH_CLOSE;
+  const pitchFront = RIDE_CAMERA_PITCH_CLOSE;
+  const pitchSide = RIDE_CAMERA_PITCH_CLOSE;
 
   if (input.mode === "north") {
-    return { bearing: 0, pitch: input.currentPitch };
+    return { bearing: 0, offsetBearing: null, pitch: input.currentPitch, distanceM: 0 };
   }
   if (input.mode === "rear30") {
-    return { bearing: normalizeCompass(input.baseHeading), pitch: rearPitch };
+    const bearing = normalizeCompass(input.baseHeading);
+    return { bearing, offsetBearing: normalizeCompass(bearing + 180), pitch: pitchRear, distanceM: input.distanceM };
   }
   if (input.mode === "front30") {
-    return { bearing: normalizeCompass(input.baseHeading + 180), pitch: frontPitch };
+    const bearing = normalizeCompass(input.baseHeading + 180);
+    return { bearing, offsetBearing: normalizeCompass(bearing + 180), pitch: pitchFront, distanceM: input.distanceM };
   }
   if (input.mode === "rightFlat") {
-    return { bearing: normalizeCompass(input.baseHeading + 90), pitch: sidePitch };
+    const bearing = normalizeCompass(input.baseHeading + 270);
+    return { bearing, offsetBearing: normalizeCompass(bearing + 180), pitch: pitchSide, distanceM: input.distanceM };
   }
   if (input.mode === "leftFlat") {
-    return { bearing: normalizeCompass(input.baseHeading + 270), pitch: sidePitch };
+    const bearing = normalizeCompass(input.baseHeading + 90);
+    return { bearing, offsetBearing: normalizeCompass(bearing + 180), pitch: pitchSide, distanceM: input.distanceM };
   }
-  return { bearing: normalizeCompass(input.baseHeading), pitch: input.currentPitch };
+  return { bearing: normalizeCompass(input.baseHeading), offsetBearing: null, pitch: input.currentPitch, distanceM: 0 };
 }
 
 function normalizeCompass(deg: number) {
   let x = deg % 360;
   if (x < 0) x += 360;
   return x;
-}
-
-function rearFollowOffsetMeters(zoom: number): number {
-  const t = clamp((zoom - 12) / 10, 0, 1);
-  return lerp(REAR_FOLLOW_OFFSET_M_MAX, REAR_FOLLOW_OFFSET_M_MIN, t);
 }
 
 /** bearing 방향으로 distanceM 이동한 좌표 (구면 근사) */
@@ -3269,8 +3322,9 @@ function tickRideCameraFollow(
   targetLngLat: LngLat,
   opts: {
     followMode: FollowMode;
-    enable3D: boolean;
     mapZoom: number;
+    /** 주행 카메라 라이더~카메라 거리(m) — 개발용 거리 슬라이더, 최적값 확정 후 제거 예정 */
+    rideCameraDistanceM: number;
     sessionStatus?: LiveRiderMotion["sessionStatus"];
     routeGeometry: LineStringGeometry | null;
     prevLiveRef: { current: LngLat | null };
@@ -3293,12 +3347,6 @@ function tickRideCameraFollow(
     return;
   }
 
-  const rideActive = opts.sessionStatus === "running" || opts.sessionStatus === "paused";
-  const followZoom =
-    rideActive && opts.followMode === "rear30"
-      ? RIDE_FOLLOW_CAMERA_ZOOM
-      : opts.mapZoom;
-
   const prev = opts.prevLiveRef.current;
   const headingFromMove =
     prev && getDistanceMeters(prev, targetLngLat) >= 2 ? getBearing(prev, targetLngLat) : null;
@@ -3313,17 +3361,17 @@ function tickRideCameraFollow(
     mode: opts.followMode,
     baseHeading,
     currentPitch: map.getPitch(),
-    enable3D: opts.enable3D,
+    distanceM: opts.rideCameraDistanceM,
   });
 
   const cameraCenterTarget =
-    opts.followMode === "rear30"
-      ? offsetLngLatByBearingMeters(
-          targetLngLat,
-          nextCamera.bearing + 180,
-          rearFollowOffsetMeters(followZoom),
-        )
+    nextCamera.distanceM > 0 && nextCamera.offsetBearing != null
+      ? offsetLngLatByBearingMeters(targetLngLat, nextCamera.offsetBearing, nextCamera.distanceM)
       : targetLngLat;
+  const followZoom =
+    nextCamera.distanceM > 0
+      ? zoomForRiderDistanceMeters(nextCamera.distanceM, targetLngLat[1], nextCamera.pitch)
+      : opts.mapZoom;
 
   opts.prevLiveRef.current = targetLngLat;
   const smooth = opts.smooth;

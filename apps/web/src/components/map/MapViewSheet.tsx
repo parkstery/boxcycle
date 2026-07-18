@@ -1,7 +1,12 @@
 import { useEffect } from "react";
 import type { CoverageOverlayMode } from "../../lib/coverageOverlayMode";
 import { COVERAGE_OVERLAY_OPTIONS } from "../../lib/coverageOverlayMode";
-import { MAP_GLOBE_MIN_ZOOM, MAP_ZOOM_SLIDER_MAX } from "../../lib/mapGlobeView";
+import {
+  MAP_GLOBE_MIN_ZOOM,
+  MAP_ZOOM_SLIDER_MAX,
+  RIDE_CAMERA_DISTANCE_MIN_M,
+  RIDE_CAMERA_DISTANCE_MAX_M,
+} from "../../lib/mapGlobeView";
 import type { FollowMode } from "../ride/RideRoutePanel";
 import "./MapViewSheet.css";
 
@@ -20,6 +25,12 @@ type MapViewSheetProps = {
   onFollowMode: (m: FollowMode) => void;
   mapZoom: number;
   onMapZoom: (n: number) => void;
+  showRtwPoi: boolean;
+  onShowRtwPoi: (v: boolean) => void;
+  /** 주행 중이면 "줌" 그룹이 "거리" 슬라이더로 바뀐다(개발용, 최적값 확정 후 제거 예정) */
+  rideActive: boolean;
+  rideCameraDistanceM: number;
+  onRideCameraDistanceM: (m: number) => void;
 };
 
 const FOLLOW_OPTIONS: { value: FollowMode; label: string }[] = [
@@ -127,6 +138,17 @@ export function MapViewSheet(props: MapViewSheetProps) {
               />
               3D 뷰
             </label>
+            <label
+              className="map-view-sheet__check map-view-sheet__check--inline-3d"
+              title="임시 — RTW Dark에서 POI 라벨 표시(비교용, 다른 스타일에는 효과 없음)"
+            >
+              <input
+                type="checkbox"
+                checked={props.showRtwPoi}
+                onChange={(e) => props.onShowRtwPoi(e.target.checked)}
+              />
+              POI
+            </label>
             <div className="map-view-sheet__chips map-view-sheet__chips--inline">
               {props.mapStyleOptions.map((opt) => (
                 <button
@@ -162,48 +184,97 @@ export function MapViewSheet(props: MapViewSheetProps) {
           </div>
         </div>
 
-        <div className="map-view-sheet__group">
-          <span className="map-view-sheet__label-title">줌</span>
-          <div className="map-view-sheet__row-body map-view-sheet__row-body--zoom">
-            <button
-              type="button"
-              className="map-view-sheet__zoom-step"
-              title="한 단계 축소"
-              aria-label="줌 한 단계 축소"
-              onClick={() => {
-                const z = Math.round((props.mapZoom - 1) * 10) / 10;
-                props.onMapZoom(Math.max(MAP_GLOBE_MIN_ZOOM, z));
-              }}
-            >
-              −
-            </button>
-            <span className="map-view-sheet__zoom-readout" aria-live="polite">
-              {props.mapZoom.toFixed(1)}
-            </span>
-            <button
-              type="button"
-              className="map-view-sheet__zoom-step"
-              title="한 단계 확대"
-              aria-label="줌 한 단계 확대"
-              onClick={() => {
-                const z = Math.round((props.mapZoom + 1) * 10) / 10;
-                props.onMapZoom(Math.min(MAP_ZOOM_SLIDER_MAX, z));
-              }}
-            >
-              +
-            </button>
-            <input
-              type="range"
-              className="map-view-sheet__range"
-              min={MAP_GLOBE_MIN_ZOOM}
-              max={MAP_ZOOM_SLIDER_MAX}
-              step={0.1}
-              value={Math.min(MAP_ZOOM_SLIDER_MAX, Math.max(MAP_GLOBE_MIN_ZOOM, props.mapZoom))}
-              onChange={(e) => props.onMapZoom(Number(e.target.value))}
-              aria-label={`줌 ${props.mapZoom.toFixed(1)}`}
-            />
+        {props.rideActive ? (
+          // 개발용 거리 튜닝 슬라이더 — 최적값 확정 후 제거 예정
+          <div className="map-view-sheet__group">
+            <span className="map-view-sheet__label-title">거리</span>
+            <div className="map-view-sheet__row-body map-view-sheet__row-body--zoom">
+              <button
+                type="button"
+                className="map-view-sheet__zoom-step"
+                title="0.5m 가깝게"
+                aria-label="거리 0.5m 가깝게"
+                onClick={() => {
+                  const m = Math.round((props.rideCameraDistanceM - 0.5) * 10) / 10;
+                  props.onRideCameraDistanceM(Math.max(RIDE_CAMERA_DISTANCE_MIN_M, m));
+                }}
+              >
+                −
+              </button>
+              <span className="map-view-sheet__zoom-readout" aria-live="polite">
+                {props.rideCameraDistanceM.toFixed(1)}m
+              </span>
+              <button
+                type="button"
+                className="map-view-sheet__zoom-step"
+                title="0.5m 멀게"
+                aria-label="거리 0.5m 멀게"
+                onClick={() => {
+                  const m = Math.round((props.rideCameraDistanceM + 0.5) * 10) / 10;
+                  props.onRideCameraDistanceM(Math.min(RIDE_CAMERA_DISTANCE_MAX_M, m));
+                }}
+              >
+                +
+              </button>
+              <input
+                type="range"
+                className="map-view-sheet__range"
+                min={RIDE_CAMERA_DISTANCE_MIN_M}
+                max={RIDE_CAMERA_DISTANCE_MAX_M}
+                step={0.5}
+                value={Math.min(
+                  RIDE_CAMERA_DISTANCE_MAX_M,
+                  Math.max(RIDE_CAMERA_DISTANCE_MIN_M, props.rideCameraDistanceM),
+                )}
+                onChange={(e) => props.onRideCameraDistanceM(Number(e.target.value))}
+                aria-label={`거리 ${props.rideCameraDistanceM.toFixed(1)}m`}
+              />
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="map-view-sheet__group">
+            <span className="map-view-sheet__label-title">줌</span>
+            <div className="map-view-sheet__row-body map-view-sheet__row-body--zoom">
+              <button
+                type="button"
+                className="map-view-sheet__zoom-step"
+                title="한 단계 축소"
+                aria-label="줌 한 단계 축소"
+                onClick={() => {
+                  const z = Math.round((props.mapZoom - 1) * 10) / 10;
+                  props.onMapZoom(Math.max(MAP_GLOBE_MIN_ZOOM, z));
+                }}
+              >
+                −
+              </button>
+              <span className="map-view-sheet__zoom-readout" aria-live="polite">
+                {props.mapZoom.toFixed(1)}
+              </span>
+              <button
+                type="button"
+                className="map-view-sheet__zoom-step"
+                title="한 단계 확대"
+                aria-label="줌 한 단계 확대"
+                onClick={() => {
+                  const z = Math.round((props.mapZoom + 1) * 10) / 10;
+                  props.onMapZoom(Math.min(MAP_ZOOM_SLIDER_MAX, z));
+                }}
+              >
+                +
+              </button>
+              <input
+                type="range"
+                className="map-view-sheet__range"
+                min={MAP_GLOBE_MIN_ZOOM}
+                max={MAP_ZOOM_SLIDER_MAX}
+                step={0.1}
+                value={Math.min(MAP_ZOOM_SLIDER_MAX, Math.max(MAP_GLOBE_MIN_ZOOM, props.mapZoom))}
+                onChange={(e) => props.onMapZoom(Number(e.target.value))}
+                aria-label={`줌 ${props.mapZoom.toFixed(1)}`}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

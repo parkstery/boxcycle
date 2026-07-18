@@ -24,6 +24,7 @@ import {
   DEFAULT_MAP_ZOOM,
   RIDE_FOLLOW_CAMERA_MODE,
   RIDE_START_ZOOM,
+  RIDE_CAMERA_DISTANCE_DEFAULT_M,
 } from "./lib/mapGlobeView";
 import { rideDistanceAlongRoute } from "./lib/liveLocationSnapshot";
 import { AuthGateCard, AuthGoogleMark } from "./components/AuthGateCard";
@@ -165,7 +166,10 @@ export default function App() {
   const [conquestBaseline, setConquestBaseline] = useState<{ meters: number } | null>(null);
 
   const [mapStyle, setMapStyle] = useState(DEFAULT_MAP_STYLE);
+  const [showRtwPoi, setShowRtwPoi] = useState(false);
   const [mapZoom, setMapZoom] = useState(DEFAULT_MAP_ZOOM);
+  /** 주행 카메라 라이더~카메라 거리(m) — 개발용 거리 슬라이더, 최적값 확정 후 제거 예정 */
+  const [rideCameraDistanceM, setRideCameraDistanceM] = useState(RIDE_CAMERA_DISTANCE_DEFAULT_M);
   const [rideFollowCameraNonce, setRideFollowCameraNonce] = useState(0);
   const [rideJoinBurstNonce, setRideJoinBurstNonce] = useState(0);
   const [mapViewportSpanKm, setMapViewportSpanKm] = useState<number | null>(null);
@@ -1831,6 +1835,9 @@ export default function App() {
                 rideStatus === "running" || rideStatus === "paused"
                   ? rideMetrics.virtualDistanceMeters
                   : null,
+              rideActive: rideStatus === "running" || rideStatus === "paused",
+              rideCameraDistanceM,
+              showRtwPoi,
               onLookupPioneer: handleLookupPioneer,
               onClearRoute: handleClearPins,
               onSelectPoint: (type, lngLat, waypointSlot) => {
@@ -2056,6 +2063,11 @@ export default function App() {
         onFollowMode={setFollowMode}
         mapZoom={mapZoom}
         onMapZoom={setMapZoom}
+        showRtwPoi={showRtwPoi}
+        onShowRtwPoi={setShowRtwPoi}
+        rideActive={rideStatus === "running" || rideStatus === "paused"}
+        rideCameraDistanceM={rideCameraDistanceM}
+        onRideCameraDistanceM={setRideCameraDistanceM}
       />
 
       <UserInfoSheet
