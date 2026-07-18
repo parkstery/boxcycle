@@ -1,4 +1,10 @@
-import type { LinePaint, Map as MapboxMap } from "mapbox-gl";
+import type {
+  FilterSpecification,
+  LayoutSpecification,
+  LinePaint,
+  Map as MapboxMap,
+  PaintSpecification,
+} from "mapbox-gl";
 
 /**
  * RTW Mapbox 다크 스타일 설정 — 2026-07 리디자인 핸드오프.
@@ -49,11 +55,16 @@ export const RTW_TRACE_ACCUMULATED_PAINT: LinePaint = {
   "line-width": ["interpolate", ["linear"], ["zoom"], 8, 1.6, 12, 3, 16, 6],
 };
 
+/**
+ * getter 반환값을 담았다가 동일 setter로 되돌리는 스냅샷.
+ * 필드 타입을 각 setter 파라미터 타입에 맞춰, 복원 시 캐스팅 없이 통과하게 한다
+ * (담을 때만 getter의 넓은 반환 타입을 캐스팅 — 아래 buildLayerSnapshot).
+ */
 type RtwLayerSnapshot = {
-  visibility: unknown;
-  lineColor?: unknown;
-  lineOpacity?: unknown;
-  filter?: unknown;
+  visibility: LayoutSpecification["visibility"];
+  lineColor?: PaintSpecification["line-color"];
+  lineOpacity?: PaintSpecification["line-opacity"];
+  filter?: FilterSpecification | null;
 };
 const rtwStyleSnapshots = new WeakMap<MapboxMap, Map<string, RtwLayerSnapshot>>();
 
@@ -111,14 +122,14 @@ export function applyRtwLayerStyle(
 
     if (!snapshots.has(layer.id)) {
       const snapshot: RtwLayerSnapshot = {
-        visibility: map.getLayoutProperty(layer.id, "visibility"),
+        visibility: map.getLayoutProperty(layer.id, "visibility") as RtwLayerSnapshot["visibility"],
       };
       if (isRoad) {
-        snapshot.lineColor = map.getPaintProperty(layer.id, "line-color");
-        snapshot.lineOpacity = map.getPaintProperty(layer.id, "line-opacity");
+        snapshot.lineColor = map.getPaintProperty(layer.id, "line-color") as RtwLayerSnapshot["lineColor"];
+        snapshot.lineOpacity = map.getPaintProperty(layer.id, "line-opacity") as RtwLayerSnapshot["lineOpacity"];
       }
       if (isPoi && layer.id === "poi-label") {
-        snapshot.filter = map.getFilter(layer.id);
+        snapshot.filter = map.getFilter(layer.id) as RtwLayerSnapshot["filter"];
       }
       snapshots.set(layer.id, snapshot);
     }
@@ -141,7 +152,7 @@ export function applyRtwLayerStyle(
           }
         } else if (snapshot.filter !== undefined) {
           try {
-            map.setFilter(layer.id, snapshot.filter as Parameters<typeof map.setFilter>[1]);
+            map.setFilter(layer.id, snapshot.filter);
           } catch {
             /* noop */
           }

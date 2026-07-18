@@ -54,6 +54,7 @@ import { getRiderPrototypeMode } from "../../lib/riderPrototype/config";
 import {
   applyIso2dRiderBearing,
   createIso2dRiderMarkerRoot,
+  type RiderGlbModelSpec,
 } from "../../lib/riderPrototype/iso2dMarker";
 import { clearRiderGlbModels, ensureRiderGlbLayer, syncRiderGlbModels } from "../../lib/riderPrototype/glbModelLayer";
 import { PEER_RIDER_PEDAL_FRAME_COUNT } from "../../lib/registerPeerRiderPedalSprites";
@@ -2270,12 +2271,7 @@ export function MapView({
         : EMPTY_GEOJSON_FC;
       syncPeerDomMarkers(map, fc.features as PeerDomGJFeature[], peerDomMarkersRef);
       if (RIDER_PROTOTYPE_MODE === "glb" && ensureRiderGlbLayer(map)) {
-        const specs: {
-          id: string;
-          lngLat: LngLat;
-          bearingDeg: number;
-          pedalPose?: ReturnType<typeof resolveGlbPedalPose>;
-        }[] = [];
+        const specs: RiderGlbModelSpec[] = [];
         const live = liveLngLatRef.current;
         if (live) {
           const bearingDeg = resolveRiderBearingDeg(
