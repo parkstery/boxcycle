@@ -4,6 +4,8 @@
  * `VITE_PUBLIC_ROUTE_MODERATION_URL` 이 설정되면 동일 본문을 POST 로 위임해 `allowed: false` 시 거절한다.
  */
 
+// \uC81C\uC5B4\u00B7\uC228\uAE40 \uBB38\uC790 \uD0D0\uC9C0\uAC00 \uC774 \uC815\uADDC\uC2DD\uC758 \uBAA9\uC801 \u2014 \uC81C\uC5B4\uBB38\uC790 \uD3EC\uD568\uC774 \uACE7 \uAE30\uB2A5\uC774\uBBC0\uB85C \uADDC\uCE59\uC744 \uC5B5\uC81C\uD55C\uB2E4.
+// eslint-disable-next-line no-control-regex
 const INVISIBLE_OR_CONTROL = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F\u200B-\u200D\uFEFF]/;
 
 /** 동일 문자·이모지 등 과도 반복(스팸 패턴) */

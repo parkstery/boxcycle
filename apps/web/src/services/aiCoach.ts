@@ -42,7 +42,7 @@ export async function getAdvancedCoaching(
   const lowConfidence = distance < 15;
   if (lowConfidence) slope = 0;
 
-  let targetRes = 3;
+  let targetRes: number;
   if (slope >= 10) targetRes = 8;
   else if (slope >= 7) targetRes = 7;
   else if (slope >= 5) targetRes = 6;

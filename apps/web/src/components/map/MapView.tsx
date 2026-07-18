@@ -2033,7 +2033,7 @@ export function MapView({
       if (mapStyle !== RTW_MAP_STYLE_URL) return;
       // isStyleLoaded()는 traffic 등 라이브 소스 타일 갱신 중 false — 게이트로 쓰면 영영 미적용
       // (본 파일 red dot 사례와 동일 교훈). 스타일시트 준비 전이면 다음 idle에 재시도.
-      let applied = false;
+      let applied: boolean;
       try {
         applied = applyRtwLayerStyle(map, { rideActive, showPoi: showRtwPoi });
       } catch {

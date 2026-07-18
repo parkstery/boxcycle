@@ -54,7 +54,7 @@ function buildRoadSamples(points: CoachElevationPoint[]): RoadSample[] {
   for (let i = 1; i < points.length; i++) {
     const prev = points[i - 1];
     const curr = points[i];
-    let segmentM = 0;
+    let segmentM: number;
     try {
       segmentM = computeDistanceBetween(prev.location, curr.location);
     } catch {
@@ -416,7 +416,7 @@ export function applyRoadElevationModel(points: CoachElevationPoint[]): CoachEle
    * 전장이 짧을 때는 국소 교량 복원을 생략한다.
    */
   const skipLocalBridgeReconstruct = totalDist < 1400;
-  let outElev = skipLocalBridgeReconstruct ? roadLike.slice() : reconstructLocalBridgeDecks(samples, roadLike);
+  const outElev = skipLocalBridgeReconstruct ? roadLike.slice() : reconstructLocalBridgeDecks(samples, roadLike);
   if (longBridgeLike && totalDist > 1e-6) {
     for (let i = 0; i < outElev.length; i++) {
       const t = samples[i].cumulativeDistM / totalDist;

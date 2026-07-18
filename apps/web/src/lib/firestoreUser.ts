@@ -161,7 +161,7 @@ export async function claimNicknameTransaction(user: User, nickname: string): Pr
   const nickRef = doc(db, "nicknames", key);
   const userRef = doc(db, "users", user.uid);
 
-  let claimedNewInTxn = false;
+  let claimedNewInTxn: boolean;
   try {
     claimedNewInTxn = await runTransaction(db, async (transaction) => {
       const nickSnap = await transaction.get(nickRef);
@@ -182,7 +182,7 @@ export async function claimNicknameTransaction(user: User, nickname: string): Pr
     throw formatClaimFirestoreError("[예약]", e);
   }
 
-  let nickVerified = false;
+  let nickVerified: boolean;
   try {
     const nickSnap = await getDocFromServer(nickRef);
     nickVerified = nickSnap.exists() && nickSnap.data()?.ownerUid === user.uid;
