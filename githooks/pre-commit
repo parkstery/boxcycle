@@ -1,0 +1,39 @@
+#!/bin/sh
+# RTW pre-commit 게이트 — 스테이징된 소스 파일에 lint만 (빠름).
+# 타입체크는 무겁다(≈12s) → pre-push 로 미룬다.
+# 우회: git commit --no-verify (예외 상황 한정, 문서 §자동화 참고)
+#
+# 활성화: git config core.hooksPath githooks  (README/문서에 안내, clone 후 1회)
+
+set -e
+
+# 스테이징된(추가·수정) JS/TS 파일만 — 워크스페이스별로 나눔
+staged=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx|js|jsx|mjs)$' || true)
+
+if [ -z "$staged" ]; then
+  exit 0
+fi
+
+web_files=$(echo "$staged" | grep '^apps/web/' | sed 's|^apps/web/||' || true)
+fn_files=$(echo "$staged" | grep '^functions/' | sed 's|^functions/||' || true)
+
+fail=0
+
+if [ -n "$web_files" ]; then
+  echo "[pre-commit] eslint apps/web ($(echo "$web_files" | wc -l | tr -d ' ') files)"
+  ( cd apps/web && echo "$web_files" | xargs npx eslint ) || fail=1
+fi
+
+if [ -n "$fn_files" ]; then
+  echo "[pre-commit] eslint functions ($(echo "$fn_files" | wc -l | tr -d ' ') files)"
+  ( cd functions && echo "$fn_files" | xargs npx eslint ) || fail=1
+fi
+
+if [ "$fail" -ne 0 ]; then
+  echo ""
+  echo "[pre-commit] lint 실패 — 고치고 다시 커밋하세요."
+  echo "             정말 급하면: git commit --no-verify (예외)"
+  exit 1
+fi
+
+exit 0

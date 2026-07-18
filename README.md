@@ -23,12 +23,15 @@ Mapbox 기반 **실내 사이클** 서비스입니다. Mapbox 시뮬 검증은 �
 ```powershell
 cd C:\20.HDev\boxcycle
 npm install
+git config core.hooksPath githooks   # 커밋/푸시 품질 게이트 활성화 (clone 후 1회)
 Copy-Item apps\web\.env.example apps\web\.env
 # apps\web\.env 에 Firebase 웹 앱 설정값 + VITE_MAPBOX_ACCESS_TOKEN(pk.) 입력 후 저장
 npm run dev
 ```
 
 `apps/web`만 열어 두었다면, 위와 동일하게 **먼저 루트에서 `npm install`** 한 뒤 `apps/web`에서 `npm run dev`를 써도 같은 워크스페이스를 가리킨다. **`apps/web`에 별도 `package-lock.json`은 두지 않는다.**
+
+> **품질 게이트**: `git config core.hooksPath githooks`를 1회 실행하면 [githooks/pre-commit](githooks/pre-commit)(변경 파일 eslint)·[githooks/pre-push](githooks/pre-push)(변경 워크스페이스 typecheck)가 켜진다. 브랜치·커밋·푸시 운영 규칙은 [document/260719-개발-워크플로-브랜치-커밋-게이트](document/260719-개발-워크플로-브랜치-커밋-게이트.md).
 
 **Firebase CLI:** 프로젝트 연결은 저장소 **루트**의 `.firebaserc`(기본 프로젝트 ID)와 `firebase.json`을 쓴다. 명령은 루트에서 실행한다.
 

@@ -1,0 +1,43 @@
+#!/bin/sh
+# RTW pre-push 게이트 — 타입체크(무거움, ≈12s)를 여기서.
+# 커밋은 가볍게 자주, 푸시 직전에만 tsc 로 타입 안전성 확인.
+# 우회: git push --no-verify (예외 상황 한정)
+#
+# 활성화: git config core.hooksPath githooks  (clone 후 1회)
+
+set -e
+
+# 이번 push 로 원격에 새로 나가는 커밋의 변경 파일 범위를 본다.
+# upstream 이 있으면 @{u}..HEAD, 없으면 최근 커밋으로 폴백.
+range=""
+if git rev-parse --abbrev-ref '@{u}' >/dev/null 2>&1; then
+  range="@{u}..HEAD"
+else
+  range="HEAD~1..HEAD"
+fi
+
+changed=$(git diff --name-only "$range" 2>/dev/null || true)
+
+touch_web=$(echo "$changed" | grep -E '^apps/web/.*\.(ts|tsx)$' || true)
+touch_fn=$(echo "$changed" | grep -E '^functions/.*\.ts$' || true)
+
+fail=0
+
+if [ -n "$touch_web" ]; then
+  echo "[pre-push] typecheck apps/web (tsc -b --noEmit)…"
+  ( cd apps/web && npx tsc -b --noEmit ) || fail=1
+fi
+
+if [ -n "$touch_fn" ]; then
+  echo "[pre-push] typecheck functions (tsc --noEmit)…"
+  ( cd functions && npx tsc --noEmit ) || fail=1
+fi
+
+if [ "$fail" -ne 0 ]; then
+  echo ""
+  echo "[pre-push] 타입 에러 — 원격에 올리기 전에 고치세요."
+  echo "           정말 급하면: git push --no-verify (예외)"
+  exit 1
+fi
+
+exit 0
