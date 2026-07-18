@@ -10,7 +10,11 @@ import {
 } from "react";
 import { getFirebaseApp } from "../lib/firebase";
 import type { LineStringGeometry, LngLat } from "../lib/geo";
-import { formatLngLat } from "../lib/geo";
+import { formatLngLat, getDistanceMeters } from "../lib/geo";
+import {
+  MAX_ROUTE_DISTANCE_KM,
+  MAX_ROUTE_STRAIGHT_LINE_METERS,
+} from "../lib/routeLimits";
 import { MAX_ROUTE_WAYPOINTS } from "../lib/routeWaypoints";
 import { lockRouteWorkspaceDuringRide } from "../lib/routeWorkspaceLock";
 import { fetchRouteByProfile, formatDuration, type RouteProfile } from "../services/mapboxDirections";
@@ -195,6 +199,19 @@ export function useRoutePlanning(options: UseRoutePlanningOptions) {
       const end = endLngLat;
       if (!start || !end) {
         setRouteSummary("");
+        return;
+      }
+
+      // 사전 차단: start→경유→end 직선거리 합이 상한을 넘으면 실제 경로는 반드시 초과한다.
+      // Mapbox 호출·토큰 소진 전에 막는다(최종 강제는 서버가 실제 거리로 수행).
+      const wpsForCheck = routeWaypoints.slice(0, MAX_ROUTE_WAYPOINTS);
+      const pathPoints: LngLat[] = [start, ...wpsForCheck, end];
+      let straightLineMeters = 0;
+      for (let i = 1; i < pathPoints.length; i++) {
+        straightLineMeters += getDistanceMeters(pathPoints[i - 1], pathPoints[i]);
+      }
+      if (straightLineMeters > MAX_ROUTE_STRAIGHT_LINE_METERS) {
+        setRouteSummary(`경로가 너무 깁니다. 최대 ${MAX_ROUTE_DISTANCE_KM}km까지 생성할 수 있습니다.`);
         return;
       }
 
