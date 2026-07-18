@@ -108,6 +108,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
   const [subscriptionNote, setSubscriptionNote] = useState<string | null>(null);
   const [canCheckout, setCanCheckout] = useState(false);
   const [canManagePortal, setCanManagePortal] = useState(false);
+  const [confirmingLogout, setConfirmingLogout] = useState(false);
 
   useEffect(() => {
     if (!props.open) return;
@@ -121,6 +122,11 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
   /** 시트가 닫힐 때마다 「최근 주행」 펼침을 default(닫힘) 으로 리셋 */
   useEffect(() => {
     if (!props.open) setHistoryOpen(false);
+  }, [props.open]);
+
+  /** 시트가 닫힐 때마다 로그아웃 확인 상태도 리셋 */
+  useEffect(() => {
+    if (!props.open) setConfirmingLogout(false);
   }, [props.open]);
 
   useEffect(() => {
@@ -482,15 +488,40 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
               </button>
             ) : null}
             {showLogout ? (
-              <button
-                type="button"
-                className="user-info-sheet__btn user-info-sheet__btn--danger"
-                disabled={props.busy}
-                title="Sign out"
-                onClick={props.onServiceExit}
-              >
-                로그아웃
-              </button>
+              confirmingLogout ? (
+                <div className="user-info-sheet__logout-confirm" role="group" aria-label="로그아웃 확인">
+                  <p className="user-info-sheet__logout-confirm-copy">로그아웃하시겠습니까?</p>
+                  <div className="user-info-sheet__logout-confirm-row">
+                    <button
+                      type="button"
+                      className="user-info-sheet__btn"
+                      disabled={props.busy}
+                      onClick={() => setConfirmingLogout(false)}
+                    >
+                      취소
+                    </button>
+                    <button
+                      type="button"
+                      className="user-info-sheet__btn user-info-sheet__btn--danger"
+                      disabled={props.busy}
+                      title="Sign out"
+                      onClick={props.onServiceExit}
+                    >
+                      로그아웃
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="user-info-sheet__btn user-info-sheet__btn--danger"
+                  disabled={props.busy}
+                  title="Sign out"
+                  onClick={() => setConfirmingLogout(true)}
+                >
+                  로그아웃
+                </button>
+              )
             ) : null}
           </div>
         ) : null}
