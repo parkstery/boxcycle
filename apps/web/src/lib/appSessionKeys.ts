@@ -62,9 +62,7 @@ export function clearUserSignedOutSessionFlag(): void {
 
 export const MAP_STYLE_OPTIONS = [
   { value: RTW_MAP_STYLE_URL, label: "RTW Dark" },
-  { value: "mapbox://styles/mapbox/streets-v12", label: "Streets" },
   { value: "mapbox://styles/mapbox/outdoors-v12", label: "Outdoors" },
-  { value: "mapbox://styles/mapbox/light-v11", label: "Light" },
   { value: "mapbox://styles/mapbox/satellite-streets-v12", label: "Satellite" },
 ];
 
