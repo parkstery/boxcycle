@@ -75,8 +75,12 @@ const COL = {
 };
 
 const WHEEL_R = 0.26;
-const REAR_X = -0.5;
-const FRONT_X = 0.52;
+/**
+ * 휠베이스 — 레퍼런스 로드바이크 비율. 뒷바퀴는 **안장(엉덩이) 바로 아래**:
+ * 뒷허브가 BB 뒤 0.30(체인스테이 실제 비율), 멀리 떨어뜨리지 말 것.
+ */
+const REAR_X = -0.34;
+const FRONT_X = 0.48;
 const HUB_Y = WHEEL_R;
 
 /** 재질 캐시 — 동일 (색·roughness·metalness·opacity) 조합은 1개 인스턴스 재사용(파일 크기↓) */
@@ -243,8 +247,9 @@ const bb = [-0.04, 0.4, 0]; // 크랭크축(BB) — 변경 금지
 // 시트튜브 상단(안장 클램프) — BB에서 후상방. 안장이 골반(y0.8) 바로 아래 오도록 낮춤.
 const seatTop = [-0.15, 0.66, 0];
 // 헤드튜브: 앞쪽, 탑튜브·다운튜브가 만나는 짧은 튜브(상단/하단). 안장과 비슷한 높이(탑튜브 수평).
-const headTop = [0.38, 0.66, 0];
-const headBot = [0.44, 0.52, 0];
+// 앞바퀴가 안으로 들어왔으므로 하단을 올려 타이어와 간섭 방지.
+const headTop = [0.38, 0.67, 0];
+const headBot = [0.45, 0.56, 0];
 // 스템·드롭바 — 헤드튜브 위. 후드(브레이크레버)를 손이 잡는다. 몸에 맞게 당김.
 const stemEnd = [0.42, 0.7, 0];
 const barHood = [0.5, 0.7, 0]; // 드롭바 후드(손 위치)
@@ -474,10 +479,13 @@ function armAssembly(side) {
   const shoulderPt = [shoulder[0] - 0.01, shoulder[1] - 0.005, 0.095 * sign];
   // 손: 드롭바 후드(barHood)를 쥔다. 좌우로 살짝 벌어짐(dz).
   const handPt = [barHood[0] - 0.005, barHood[1] + 0.015, 0.11 * sign];
-  // 반팔 소매 끝(상완 중간) — 어깨→손 방향으로
-  const sleeve = [0.26, 0.9, 0.1 * sign];
-  // 팔꿈치: 어깨~손 사이, 살짝 바깥·아래로 굽음
-  const elbow = [0.36, 0.855, 0.1 * sign];
+  /**
+   * ⚠ 팔꿈치는 어깨→손 직선보다 **아래**(하향 굽힘)가 자연스러운 라이딩 자세.
+   * 이전 값(0.36, 0.855)은 직선 위(chord y≈0.80)라 팔이 위로 꺾여 보였음 — 금지.
+   */
+  const elbow = [0.33, 0.79, 0.105 * sign];
+  // 반팔 소매 끝(상완 중간) — 어깨→팔꿈치 중간
+  const sleeve = [0.23, 0.875, 0.1 * sign];
 
   const g = new THREE.Group();
   // 상완 저지 소매: 어깨(0.045)→소매끝(0.036)
@@ -523,51 +531,41 @@ function helmetAssembly() {
   const hz = headC[2];
 
   const shellOpts = { roughness: 0.32, metalness: 0.05 };
-  // 메인 쉘 — 설계서: 낮고, 머리에 밀착. 앞뒤 길이는 과하지 않게(오리부리 방지).
-  const shell = blob(0.082, COL.helmetShell, [1.3, 0.74, 1.02], { segments: 30, ...shellOpts });
-  shell.position.set(hx + 0.008, hy + 0.048, hz);
-  shell.rotation.z = -0.26;
+  /**
+   * 메인 쉘 — 머리(r0.071)를 **감싸는** 밀착 돔(r0.083). 머리 중심 거의 그대로 덮어
+   * 이마 위~후두부~귀 위까지 내려온다. 위로 띄우지 말 것(베레모/공중부양 금지).
+   * 노즈·챙 밴드 등 부속 blob 금지 — 레퍼런스 헬멧은 쉘 하나가 실루엣의 전부다.
+   */
+  const shell = blob(0.083, COL.helmetShell, [1.18, 0.95, 1.08], { segments: 30, ...shellOpts });
+  shell.position.set(hx - 0.002, hy + 0.018, hz);
+  shell.rotation.z = -0.2; // 앞이 살짝 낮은 전경사
   g.add(shell);
 
-  // 앞 살짝 뾰족 — 이마 위를 덮으며 앞으로 살짝 좁아짐(설계서 "앞 살짝 뾰족")
-  const nose = blob(0.058, COL.helmetShell, [1.1, 0.66, 0.86], { segments: 18, ...shellOpts });
-  nose.position.set(hx + 0.058, hy + 0.03, hz);
-  nose.rotation.z = -0.34;
-  g.add(nose);
-
-  // 뒤 길게 빠짐 — 후두부에서 뒤로 뻗는 에어로 테일(설계서 "뒤 길게 빠짐", 적당히)
-  const tail = blob(0.05, COL.helmetShell, [1.7, 0.6, 0.84], { segments: 18, ...shellOpts });
-  tail.position.set(hx - 0.075, hy + 0.042, hz);
-  tail.rotation.z = 0.12;
+  // 뒤 테이퍼 — 후두부에서 뒤·아래로 살짝 빠지는 꼬리(과장 금지, 쉘에 파묻혀 이어짐)
+  const tail = blob(0.05, COL.helmetShell, [1.45, 0.75, 0.85], { segments: 18, ...shellOpts });
+  tail.position.set(hx - 0.062, hy + 0.012, hz);
+  tail.rotation.z = 0.35;
   g.add(tail);
 
-  // 하단 밴드(귀 위 수평 마감 라인) — 공처럼 둥근 것 방지
-  const rimBand = blob(0.08, COL.helmetVisor, [1.28, 0.2, 1.0], { segments: 24, roughness: 0.5 });
-  rimBand.position.set(hx + 0.006, hy + 0.008, hz);
-  rimBand.rotation.z = -0.26;
-  g.add(rimBand);
-
   /**
-   * 벤트 13개 (설계서 12~14) — shell 표면에 **얕게 박힌** 어두운 홈(양각 돌기 금지).
-   * shell 반경(0.082·스케일)보다 살짝 안쪽(0.9배)에 얇은 어두운 타원을 배치해 파인 것처럼.
-   * 앞→뒤 3열 × 4개 + 앞 센터 1개.
+   * 벤트 13개 (설계서 12~14) — 쉘 표면에 얕게 박힌 어두운 홈(양각 돌기 금지).
+   * 3열(dz) × 4개(dx) + 앞 센터 1. 쉘이 낮아졌으므로 기준 y도 함께 하향.
    */
   const ventLayout = [];
-  for (const dz of [-0.03, 0, 0.03]) {
-    for (const dx of [0.045, 0.005, -0.035, -0.075]) ventLayout.push([dx, dz]);
+  for (const dz of [-0.032, 0, 0.032]) {
+    for (const dx of [0.048, 0.012, -0.024, -0.06]) ventLayout.push([dx, dz]);
   }
-  ventLayout.push([0.075, 0]); // 앞 센터 = 총 13
+  ventLayout.push([0.072, 0]); // 앞 센터 = 총 13
   for (const [dx, dz] of ventLayout) {
-    // 헬멧 상면 곡률 따라 y 낮아짐, shell 표면에 얕게 박힘
-    const vy = hy + 0.092 - Math.abs(dx) * 0.28 - Math.abs(dz) * 0.5;
-    const vent = blob(0.014, COL.helmetVisor, [1.6, 0.35, 0.9], { segments: 8, roughness: 0.6 });
+    const vy = hy + 0.08 - Math.abs(dx - 0.01) * 0.35 - Math.abs(dz) * 0.7;
+    const vent = blob(0.013, COL.helmetVisor, [1.7, 0.32, 0.85], { segments: 8, roughness: 0.6 });
     vent.position.set(hx + dx, vy, hz + dz);
-    vent.rotation.z = -0.26;
+    vent.rotation.z = -0.2;
     g.add(vent);
   }
 
-  /** 브랜드 블루 스트라이프 — 쉘 측면 하단 센터라인 */
-  const stripe = box(0.18, 0.012, 0.007, COL.helmetStripe, hx - 0.005, hy + 0.04, hz, 0, 0, -0.26);
+  /** 브랜드 블루 스트라이프 — 쉘 측면 하단 라인 */
+  const stripe = box(0.16, 0.012, 0.007, COL.helmetStripe, hx - 0.008, hy + 0.026, hz, 0, 0, -0.2);
   g.add(stripe);
 
   /** 자식들은 절대좌표 — torso(pivot=pelvis) 로컬로 상대화 */
