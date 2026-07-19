@@ -519,9 +519,13 @@ head.position.set(...rel(headC));
 torso.add(head);
 
 /**
- * 로드 사이클 헬멧 — 실제 형태: 머리에 밀착해 **낮고**, 앞뒤로 길며, 하단이 귀 위에서
- * 수평 마감(공처럼 안 둥굶). 벤트 슬롯 + 뒤 에어로 테이퍼. "우주인/풍선" 회피가 목표.
- * 낮게(y 0.62) 눌러 정수리만 덮고, Lathe 대신 눌린 blob + 하단 클리핑용 밴드로 각진 라인.
+ * 로드 사이클 헬멧 — 레퍼런스(LOW POLY AERO VENT) 정합 재설계.
+ * 원칙: 머리(r0.071) **상단 절반만** 덮는 얇은 쉘. 하단은 **눈 높이(headC.y) 위에서 끊어**
+ * 얼굴(이마 아래·눈·코) 완전 노출. "헬멧 인간"·"베레모" 금지.
+ * 형태: 앞 낮음→정수리→뒤 테일 아래로. 앞→뒤 **세로 리브 5줄** + 리브 사이 어두운 벤트 골.
+ *
+ * 구현: 상반구 쉘(아래 열림)을 머리 상단에 씌우고, 리브(밝은 스트립)를 표면에 덧대,
+ * 리브 사이 노출부가 어두운 벤트로 보이게 한다. 저폴리 각진 느낌으로 세그먼트 낮춤.
  */
 function helmetAssembly() {
   const g = new THREE.Group();
@@ -530,43 +534,44 @@ function helmetAssembly() {
   const hy = headC[1];
   const hz = headC[2];
 
-  const shellOpts = { roughness: 0.32, metalness: 0.05 };
+  const shellOpts = { roughness: 0.42, metalness: 0.0 };
+  const tilt = -0.16; // 앞이 살짝 낮은 전경사
+
   /**
-   * 메인 쉘 — 머리(r0.071)를 **감싸는** 밀착 돔(r0.083). 머리 중심 거의 그대로 덮어
-   * 이마 위~후두부~귀 위까지 내려온다. 위로 띄우지 말 것(베레모/공중부양 금지).
-   * 노즈·챙 밴드 등 부속 blob 금지 — 레퍼런스 헬멧은 쉘 하나가 실루엣의 전부다.
+   * 메인 쉘 — 매끈한 흰색 반구(아래 열림). 머리(r0.071) **상단만** 덮는다.
+   * phiLength로 위 60%만 만들어 하단(귀 아래·얼굴)은 뚫려 노출. 앞뒤로 살짝 김(에어로).
+   * SphereGeometry 세그먼트 낮춰 저폴리 각진 면.
    */
-  const shell = blob(0.083, COL.helmetShell, [1.18, 0.95, 1.08], { segments: 30, ...shellOpts });
-  shell.position.set(hx - 0.002, hy + 0.018, hz);
-  shell.rotation.z = -0.2; // 앞이 살짝 낮은 전경사
+  const shell = new THREE.Mesh(
+    new THREE.SphereGeometry(0.086, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.64),
+    mat(COL.helmetShell, 1, shellOpts),
+  );
+  shell.scale.set(1.28, 1.08, 1.06); // 앞뒤(x)로 김
+  // 위·뒤로 올려 이마를 덜 덮고 후두부를 더 덮음(비니 방지, 눈 노출)
+  shell.position.set(hx - 0.022, hy + 0.045, hz);
+  shell.rotation.z = tilt;
   g.add(shell);
 
-  // 뒤 테이퍼 — 후두부에서 뒤·아래로 살짝 빠지는 꼬리(과장 금지, 쉘에 파묻혀 이어짐)
-  const tail = blob(0.05, COL.helmetShell, [1.45, 0.75, 0.85], { segments: 18, ...shellOpts });
-  tail.position.set(hx - 0.062, hy + 0.012, hz);
-  tail.rotation.z = 0.35;
+  // 뒤 테일 — 후두부에서 뒤로 살짝 빠지는 매끈한 꼬리
+  const tail = blob(0.052, COL.helmetShell, [1.5, 0.72, 0.86], { segments: 14, ...shellOpts });
+  tail.position.set(hx - 0.098, hy + 0.03, hz);
+  tail.rotation.z = 0.18;
   g.add(tail);
 
   /**
-   * 벤트 13개 (설계서 12~14) — 쉘 표면에 얕게 박힌 어두운 홈(양각 돌기 금지).
-   * 3열(dz) × 4개(dx) + 앞 센터 1. 쉘이 낮아졌으므로 기준 y도 함께 하향.
+   * 벤트 홈 4개 — 쉘 상면에 앞→뒤로 파인 어두운 골. shell이 위로 올라갔으니 함께 상향.
+   * 쉘 표면보다 살짝 바깥에 얇게 얹어 확실히 보이게.
    */
-  const ventLayout = [];
-  for (const dz of [-0.032, 0, 0.032]) {
-    for (const dx of [0.048, 0.012, -0.024, -0.06]) ventLayout.push([dx, dz]);
-  }
-  ventLayout.push([0.072, 0]); // 앞 센터 = 총 13
-  for (const [dx, dz] of ventLayout) {
-    const vy = hy + 0.08 - Math.abs(dx - 0.01) * 0.35 - Math.abs(dz) * 0.7;
-    const vent = blob(0.013, COL.helmetVisor, [1.7, 0.32, 0.85], { segments: 8, roughness: 0.6 });
-    vent.position.set(hx + dx, vy, hz + dz);
-    vent.rotation.z = -0.2;
+  for (const dz of [-0.038, -0.013, 0.013, 0.038]) {
+    const edge = Math.abs(dz) / 0.038;
+    const vy = hy + 0.115 - edge * 0.014;
+    const vent = box(0.12 - edge * 0.025, 0.007, 0.013, COL.helmetVisor, hx - 0.024, vy, hz + dz, 0, 0, tilt);
     g.add(vent);
   }
 
-  /** 브랜드 블루 스트라이프 — 쉘 측면 하단 라인 */
-  const stripe = box(0.16, 0.012, 0.007, COL.helmetStripe, hx - 0.008, hy + 0.026, hz, 0, 0, -0.2);
-  g.add(stripe);
+  /** 브랜드 블루 악센트 — 앞 테두리 얇은 밴드(이마선 위) */
+  const accent = box(0.018, 0.01, 0.115, COL.helmetStripe, hx + 0.05, hy + 0.058, hz, 0, 0, tilt);
+  g.add(accent);
 
   /** 자식들은 절대좌표 — torso(pivot=pelvis) 로컬로 상대화 */
   g.position.set(-pelvis[0], -pelvis[1], -pelvis[2]);
@@ -575,28 +580,31 @@ function helmetAssembly() {
 torso.add(helmetAssembly());
 
 /**
- * 선글라스 — 얼굴 눈 높이에 어두운 렌즈. 라이딩 필수템. 헬멧 아래·이마 앞에 붙는다.
- * 좌우 렌즈를 하나의 랩어라운드(가로로 넓은 눌린 렌즈)로 근사 + 프레임 상단바.
+ * 선글라스 — 레퍼런스(각진 랩어라운드) 정합. 눈 부위에 **작고 얇게** 걸침.
+ * 이전엔 거대한 콧수염처럼 하관을 덮었음 — 세로 얇게·눈 높이 정확히·크기 축소.
+ * 좌우 렌즈 2장(살짝 벌어짐) + 얇은 브릿지 + 관자(temple).
  */
 function sunglassesAssembly() {
   const g = new THREE.Group();
-  // 눈 위치: headC보다 앞·아래(얼굴 정면). headC=[0.28,1.07]
-  const ex = headC[0] + 0.06;
-  const ey = headC[1] - 0.02;
+  const lensOpts = { roughness: 0.16, metalness: 0.25 };
+  // 눈 위치 — 얼굴 정면, headC 앞·눈 높이(살짝 아래). 헬멧 이마선 아래.
+  const ex = headC[0] + 0.058;
+  const ey = headC[1] - 0.028;
   const ez = headC[2];
-  // 랩어라운드 렌즈 — 가로로 넓고 세로 얇게, 얼굴 곡면 따라 살짝 감김
-  const lens = blob(0.045, COL.sunglass, [0.5, 0.62, 1.5], { segments: 18, roughness: 0.18, metalness: 0.3 });
-  lens.position.set(ex, ey, ez);
-  g.add(lens);
-  // 렌즈 좌우 끝을 살짝 뒤로 감아 랩어라운드 느낌
-  for (const dz of [0.062, -0.062]) {
-    const wrap = blob(0.028, COL.sunglass, [0.5, 0.62, 0.7], { segments: 12, roughness: 0.18, metalness: 0.3 });
-    wrap.position.set(ex - 0.018, ey, ez + dz);
-    g.add(wrap);
+  // 좌우 렌즈 — 각진 랩어라운드. 간격 좁혀(±0.022) 하나의 안경처럼, 세로 얇게.
+  for (const side of [1, -1]) {
+    const lens = blob(0.023, COL.sunglass, [0.72, 0.6, 1.1], { segments: 10, ...lensOpts });
+    lens.position.set(ex, ey, ez + side * 0.022);
+    g.add(lens);
   }
-  // 상단 프레임바(헬멧과 렌즈 사이)
-  const browBar = box(0.012, 0.01, 0.12, COL.sunglass, ex, ey + 0.03, ez);
-  g.add(browBar);
+  // 브릿지 — 두 렌즈 사이 얇은 코걸이
+  const bridge = box(0.015, 0.007, 0.016, COL.sunglass, ex + 0.001, ey + 0.003, ez);
+  g.add(bridge);
+  // 관자(temple) — 렌즈 바깥에서 귀(뒤·위)로 가는 짧은 다리
+  for (const side of [1, -1]) {
+    const temple = tube([ex - 0.004, ey + 0.006, ez + side * 0.043], [ex - 0.055, ey + 0.02, ez + side * 0.05], 0.004, COL.sunglass, { radial: 6 });
+    g.add(temple);
+  }
   g.position.set(-pelvis[0], -pelvis[1], -pelvis[2]);
   return g;
 }
