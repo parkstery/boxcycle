@@ -45,22 +45,33 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.join(__dirname, "..", "public", "rider", "prototype");
 const outFile = path.join(outDir, "rider-lowpoly.glb");
 
+/**
+ * LiveOnSoft Cycle Rider v1.0 색상 — 설계서 Material Spec(5슬롯).
+ * Jersey #2563EB · Bib #1E293B · Helmet White · Bike Matte Black · Glass Smoke Black · Skin Neutral.
+ */
 const COL = {
-  tire: 0x1e293b,
-  rim: 0x64748b,
-  frame: 0x334155,
-  frameDark: 0x1e293b,
-  bar: 0x0f172a,
-  jersey: 0x1d4ed8,
-  jerseyDark: 0x1e40af,
-  skin: 0xfde68a,
+  // Bike — Matte Black (프레임/바퀴/핸들 통일 톤)
+  tire: 0x141417,
+  rim: 0x2a2a30,
+  frame: 0x1a1a1d,
+  frameDark: 0x101013,
+  bar: 0x0d0d10,
+  // Jersey — 블루 #2563EB, 그늘용 다크
+  jersey: 0x2563eb,
+  jerseyDark: 0x1d4ed8,
+  // Skin — 중립 톤(기존 노랑기 제거)
+  skin: 0xe8b98f,
+  skinDark: 0xd9a878,
+  // Helmet — White
   helmetShell: 0xf1f5f9,
   helmetVisor: 0x334155,
-  helmetStripe: 0xe8a33d,
-  short: 0x1e3a8a,
+  helmetStripe: 0x2563eb, // 헬멧 악센트도 브랜드 블루
+  // Bib — 다크 네이비 #1E293B
+  short: 0x1e293b,
   shadow: 0x000000,
-  gold: 0xe8a33d,
-  shoe: 0x0f172a,
+  gold: 0x2563eb, // 물통 등 악센트 블루
+  shoe: 0x111114, // Shoes Black
+  sunglass: 0x18181b, // Glass Smoke Black
 };
 
 const WHEEL_R = 0.26;
@@ -68,53 +79,113 @@ const REAR_X = -0.5;
 const FRONT_X = 0.52;
 const HUB_Y = WHEEL_R;
 
+/** 재질 캐시 — 동일 (색·roughness·metalness·opacity) 조합은 1개 인스턴스 재사용(파일 크기↓) */
+const _matCache = new Map();
 function mat(color, opacity = 1, opts = {}) {
-  return new THREE.MeshStandardMaterial({
-    color,
-    roughness: opts.roughness ?? 0.85,
-    metalness: opts.metalness ?? 0,
-    transparent: opacity < 1,
-    opacity,
-  });
+  const roughness = opts.roughness ?? 0.85;
+  const metalness = opts.metalness ?? 0;
+  const key = `${color}|${roughness}|${metalness}|${opacity}`;
+  let m = _matCache.get(key);
+  if (!m) {
+    m = new THREE.MeshStandardMaterial({
+      color,
+      roughness,
+      metalness,
+      transparent: opacity < 1,
+      opacity,
+      // 인체·저지의 은은한 명암 연속성 — flatShading 금지(각짐)
+      flatShading: false,
+    });
+    _matCache.set(key, m);
+  }
+  return m;
 }
 
 /** Y축 실린더를 from→to 방향으로 배치 */
 function tube(from, to, radius, color, opts = {}) {
+  return taperTube(from, to, radius, radius, color, opts);
+}
+
+/**
+ * 테이퍼 튜브 — from(반경 rFrom)→to(반경 rTo). 근육·프레임 볼륨의 핵심 레버.
+ * capped 옵션이면 양끝을 반구로 덮어 관절 연결이 매끄럽다(원기둥 끊김 제거).
+ */
+function taperTube(from, to, rFrom, rTo, color, opts = {}) {
   const a = new THREE.Vector3(...from);
   const b = new THREE.Vector3(...to);
   const dir = b.clone().sub(a);
   const len = dir.length();
   if (len < 1e-4) return new THREE.Group();
-  const geo = new THREE.CylinderGeometry(radius, radius, len, 16);
+  const radial = opts.radial ?? 18;
+  const g = new THREE.Group();
+  const m = mat(color, opts.opacity ?? 1, opts);
+  const geo = new THREE.CylinderGeometry(rTo, rFrom, len, radial, 1, false);
   geo.translate(0, len / 2, 0);
-  const mesh = new THREE.Mesh(geo, mat(color, 1, opts));
-  mesh.position.copy(a);
-  mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize());
-  return mesh;
+  const shaft = new THREE.Mesh(geo, m);
+  g.add(shaft);
+  const capSeg = Math.max(8, radial - 4);
+  if (opts.capStart !== false) {
+    const capA = new THREE.Mesh(new THREE.SphereGeometry(rFrom, capSeg, Math.max(6, capSeg >> 1)), m);
+    g.add(capA);
+  }
+  if (opts.capEnd !== false) {
+    const capB = new THREE.Mesh(new THREE.SphereGeometry(rTo, capSeg, Math.max(6, capSeg >> 1)), m);
+    capB.position.y = len;
+    g.add(capB);
+  }
+  g.position.copy(a);
+  g.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize());
+  return g;
 }
 
-/** 바퀴 — XY 평면 원(축 Z), 허브 y=바닥+반경 */
+/**
+ * Lathe 회전체 — [ [y, r], ... ] 프로파일(로컬 y축 중심 회전). 몸통·헬멧 등
+ * 연속 곡면 실루엣용. profile은 아래→위로 정렬, r은 해당 높이의 반경.
+ */
+function lathe(profile, color, opts = {}) {
+  const pts = profile.map(([y, r]) => new THREE.Vector2(Math.max(1e-4, r), y));
+  const geo = new THREE.LatheGeometry(pts, opts.segments ?? 24);
+  geo.computeVertexNormals();
+  return new THREE.Mesh(geo, mat(color, opts.opacity ?? 1, opts));
+}
+
+/** 부드러운 타원체 — scale로 방향별 볼륨. 근육·어깨·엉덩이 볼륨 채움용 */
+function blob(r, color, scale, opts = {}) {
+  const seg = opts.segments ?? 16;
+  const m = new THREE.Mesh(new THREE.SphereGeometry(r, seg, Math.max(8, seg - 4)), mat(color, opts.opacity ?? 1, opts));
+  if (scale) m.scale.set(...scale);
+  return m;
+}
+
+/**
+ * 700C 로드 휠 — 설계서: 25C(얇은 타이어), 스포크 16개, Matte Black.
+ * XY 평면 원(축 Z), 허브 y=바닥+반경.
+ */
 function wheel(hubX) {
   const g = new THREE.Group();
+  // 25C 얇은 타이어
   const tire = new THREE.Mesh(
-    new THREE.TorusGeometry(WHEEL_R, WHEEL_R * 0.11, 14, 36),
-    mat(COL.tire, 1, { roughness: 1.0 }),
+    new THREE.TorusGeometry(WHEEL_R, WHEEL_R * 0.075, 12, 40),
+    mat(COL.tire, 1, { roughness: 0.85 }),
   );
   tire.position.set(hubX, HUB_Y, 0);
+  // 딥림(로드 휠 특유의 두꺼운 림)
+  const rimR = WHEEL_R * 0.86;
   const rim = new THREE.Mesh(
-    new THREE.TorusGeometry(WHEEL_R * 0.62, WHEEL_R * 0.04, 12, 30),
-    mat(COL.rim, 1, { metalness: 0.5, roughness: 0.35 }),
+    new THREE.TorusGeometry(rimR, WHEEL_R * 0.05, 10, 40),
+    mat(COL.rim, 1, { metalness: 0.4, roughness: 0.4 }),
   );
   rim.position.set(hubX, HUB_Y, 0);
   g.add(tire, rim);
 
-  const rimMat = mat(COL.rim, 1, { metalness: 0.5, roughness: 0.35 });
-  const spokeR = WHEEL_R * 0.62;
-  for (let i = 0; i < 8; i++) {
-    const angle = (Math.PI * 2 * i) / 8;
+  const spokeMat = mat(0x3a3a42, 1, { metalness: 0.6, roughness: 0.35 });
+  const spokeR = rimR;
+  // 스포크 16개 (설계서)
+  for (let i = 0; i < 16; i++) {
+    const angle = (Math.PI * 2 * i) / 16;
     const spoke = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.004, 0.004, spokeR, 6),
-      rimMat,
+      new THREE.CylinderGeometry(0.0028, 0.0028, spokeR, 5),
+      spokeMat,
     );
     spoke.position.set(hubX, HUB_Y + (Math.sin(angle) * spokeR) / 2, (Math.cos(angle) * spokeR) / 2);
     spoke.quaternion.setFromUnitVectors(
@@ -125,15 +196,16 @@ function wheel(hubX) {
   }
 
   const hub = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.02, 0.02, 0.06, 12),
-    mat(COL.frameDark, 1, { metalness: 0.5, roughness: 0.35 }),
+    new THREE.CylinderGeometry(0.022, 0.022, 0.055, 12),
+    mat(COL.frame, 1, { metalness: 0.5, roughness: 0.35 }),
   );
   hub.position.set(hubX, HUB_Y, 0);
   hub.rotation.x = Math.PI / 2;
   g.add(hub);
 
-  const disc = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.006, 6, 16), rimMat);
-  disc.position.set(hubX, HUB_Y, 0.03);
+  // 디스크 브레이크 로터
+  const disc = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.005, 5, 20), mat(COL.rim, 1, { metalness: 0.6, roughness: 0.3 }));
+  disc.position.set(hubX, HUB_Y, 0.032);
   g.add(disc);
 
   return g;
@@ -160,35 +232,88 @@ root.add(shadow);
 root.add(wheel(REAR_X));
 root.add(wheel(FRONT_X));
 
-const rear = [REAR_X, HUB_Y, 0];
-const front = [FRONT_X, HUB_Y, 0];
-const bb = [-0.04, 0.4, 0];
-const seat = [-0.14, 0.74, 0];
-const headTube = [0.36, 0.66, 0];
-const barCenter = [0.4, 0.84, 0];
+/**
+ * 실제 로드바이크 다이아몬드 프레임. bb(크랭크축)는 IK 기준이라 고정.
+ * 지오메트리(BB 기준): 시트튜브 후경 ~73°, 헤드튜브 전경 ~73°, 탑튜브 거의 수평.
+ * 뒷삼각(체인스테이+시트스테이)이 뒷바퀴를, 포크가 앞바퀴를 잡는다.
+ */
+const rear = [REAR_X, HUB_Y, 0]; // 뒷허브
+const front = [FRONT_X, HUB_Y, 0]; // 앞허브
+const bb = [-0.04, 0.4, 0]; // 크랭크축(BB) — 변경 금지
+// 시트튜브 상단(안장 클램프) — BB에서 후상방. 안장이 골반(y0.8) 바로 아래 오도록 낮춤.
+const seatTop = [-0.15, 0.66, 0];
+// 헤드튜브: 앞쪽, 탑튜브·다운튜브가 만나는 짧은 튜브(상단/하단). 안장과 비슷한 높이(탑튜브 수평).
+const headTop = [0.38, 0.66, 0];
+const headBot = [0.44, 0.52, 0];
+// 스템·드롭바 — 헤드튜브 위. 후드(브레이크레버)를 손이 잡는다. 몸에 맞게 당김.
+const stemEnd = [0.42, 0.7, 0];
+const barHood = [0.5, 0.7, 0]; // 드롭바 후드(손 위치)
 
-const frameOpts = { metalness: 0.5, roughness: 0.35 };
-root.add(tube(rear, bb, 0.025, COL.frame, frameOpts));
-root.add(tube(rear, seat, 0.022, COL.frame, frameOpts));
-root.add(tube(bb, headTube, 0.028, COL.frame, frameOpts));
-root.add(tube(seat, headTube, 0.024, COL.frameDark, frameOpts));
-root.add(tube(front, headTube, 0.022, COL.frameDark, frameOpts));
-root.add(tube(seat, bb, 0.02, COL.frame, frameOpts));
+// 프레임 튜브는 얇아 radial 낮춰도 무방(파일 크기↓). blob cap도 이 radial 따름.
+const frameOpts = { metalness: 0.55, roughness: 0.32, radial: 10 };
+// 다운튜브: BB → 헤드튜브 하단 (가장 굵음)
+root.add(tube(bb, headBot, 0.026, COL.frame, frameOpts));
+// 시트튜브: BB → 시트튜브 상단
+root.add(tube(bb, seatTop, 0.023, COL.frame, frameOpts));
+// 탑튜브: 시트튜브 상단 → 헤드튜브 상단 (거의 수평)
+root.add(tube(seatTop, headTop, 0.022, COL.frameDark, frameOpts));
+// 헤드튜브: 상단→하단 (짧고 굵음)
+root.add(tube(headTop, headBot, 0.026, COL.frameDark, frameOpts));
+// 체인스테이: BB → 뒷허브 (좌우 2개)
+for (const dz of [0.03, -0.03]) {
+  root.add(tube([bb[0], bb[1], bb[2] + dz], [rear[0], rear[1], rear[2] + dz], 0.015, COL.frameDark, frameOpts));
+}
+// 시트스테이: 시트튜브 상단 → 뒷허브 (좌우 2개)
+for (const dz of [0.03, -0.03]) {
+  root.add(tube([seatTop[0], seatTop[1], seatTop[2] + dz], [rear[0], rear[1], rear[2] + dz], 0.013, COL.frame, frameOpts));
+}
+// 앞포크: 헤드튜브 하단 → 앞허브 (좌우 2개, 살짝 전경)
+for (const dz of [0.03, -0.03]) {
+  root.add(tube([headBot[0], headBot[1], headBot[2] + dz], [front[0], front[1], front[2] + dz], 0.014, COL.frameDark, frameOpts));
+}
 
-/** 물통 — 다운튜브(bb→headTube) 중간점 부근, 튜브에 대략 수직으로 세워 배치 */
-const downTubeMid = [(bb[0] + headTube[0]) / 2, (bb[1] + headTube[1]) / 2 + 0.05, 0];
-const bottle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.09, 10), mat(COL.gold));
-bottle.position.set(downTubeMid[0], downTubeMid[1], downTubeMid[2]);
-bottle.rotation.z = -0.55;
+/** 물통 — 다운튜브에 붙여 세움 */
+const dtMid = [(bb[0] + headBot[0]) / 2, (bb[1] + headBot[1]) / 2 + 0.04, 0];
+const bottle = new THREE.Mesh(new THREE.CylinderGeometry(0.019, 0.021, 0.085, 12), mat(COL.gold));
+bottle.position.set(dtMid[0], dtMid[1], dtMid[2]);
+bottle.rotation.z = -0.5;
 root.add(bottle);
 
-const saddle = new THREE.Mesh(new THREE.SphereGeometry(0.05, 16, 12), mat(COL.frameDark, 1, frameOpts));
-saddle.scale.set(1.9, 0.45, 1.0);
-saddle.position.set(seat[0], seat[1] + 0.02, 0);
+/** 안장 — 시트튜브 상단에 시트포스트로 올림. 뒤로 살짝 긴 로드 새들 */
+root.add(tube(seatTop, [seatTop[0] - 0.01, seatTop[1] + 0.05, 0], 0.011, COL.bar, frameOpts));
+const saddle = blob(0.05, COL.frameDark, [2.4, 0.32, 0.95], { segments: 16, ...frameOpts });
+saddle.position.set(seatTop[0] - 0.03, seatTop[1] + 0.075, 0);
+saddle.rotation.z = -0.06;
 root.add(saddle);
-root.add(tube([barCenter[0] - 0.12, barCenter[1], 0], [barCenter[0] + 0.12, barCenter[1], 0], 0.018, COL.bar, frameOpts));
-root.add(tube([barCenter[0], barCenter[1], -0.1], [barCenter[0], barCenter[1], 0.1], 0.016, COL.bar, frameOpts));
-root.add(tube(headTube, barCenter, 0.018, COL.frameDark, frameOpts));
+
+/** 스템 — 헤드튜브 상단 → 스템 끝(핸들 클램프) */
+root.add(tube(headTop, stemEnd, 0.014, COL.bar, frameOpts));
+
+/**
+ * 드롭바 — 로드바이크 굽은 핸들바. 중앙(스템)에서 좌우로 뻗은 뒤 앞→아래로 감기는 드롭.
+ * 손은 후드(brakehood, barHood 근처)를 잡는다. 좌우 대칭.
+ */
+function dropBar() {
+  const g = new THREE.Group();
+  const cz = 0.0;
+  const barR = 0.014;
+  // 탑바: 스템끝에서 좌우로
+  g.add(tube([stemEnd[0], stemEnd[1], cz - 0.12], [stemEnd[0], stemEnd[1], cz + 0.12], barR, COL.bar, frameOpts));
+  // 좌우 후드로 앞으로 뻗음 + 드롭(아래로 감김)
+  for (const dz of [0.12, -0.12]) {
+    // 탑바 끝 → 후드(앞·약간 아래)
+    g.add(tube([stemEnd[0], stemEnd[1], cz + dz], [barHood[0], barHood[1], cz + dz], barR, COL.bar, frameOpts));
+    // 후드 → 드롭(아래로 감기는 곡선 근사: 2세그먼트)
+    g.add(tube([barHood[0], barHood[1], cz + dz], [barHood[0] + 0.04, barHood[1] - 0.08, cz + dz], barR, COL.bar, frameOpts));
+    g.add(tube([barHood[0] + 0.04, barHood[1] - 0.08, cz + dz], [barHood[0] - 0.01, barHood[1] - 0.14, cz + dz], barR, COL.bar, frameOpts));
+    // 브레이크 후드(손 얹는 곳) 살짝 볼륨
+    const hood = blob(0.022, COL.bar, [1.6, 1.0, 1.0], { segments: 10, ...frameOpts });
+    hood.position.set(barHood[0] + 0.01, barHood[1] + 0.005, cz + dz);
+    g.add(hood);
+  }
+  return g;
+}
+root.add(dropBar());
 
 /** ⚠️ pelvis 는 riderGlbPedalPose.ts PELVIS 와 동기 — 다리 IK 기준이므로 변경 금지 */
 const pelvis = [-0.12, 0.8, 0];
@@ -211,7 +336,11 @@ function crankAssembly() {
 }
 root.add(crankAssembly());
 
-/** 허벅지·정강이 — hip/knee pivot (riderGlbPedalPose.ts 상수와 동기) */
+/**
+ * 허벅지·정강이 — hip/knee pivot (riderGlbPedalPose.ts 상수와 동기, 좌표 변경 금지).
+ * 메시는 테이퍼 튜브 — 허벅지: 엉덩이(굵음)→무릎(가늘음), 종아리: 무릎→발목(가장 가늘),
+ * 실측 레퍼런스의 근육진 허벅지 실루엣 반영. 관절 구체로 무릎을 매끄럽게 잇는다.
+ */
 function legAssembly(side) {
   const sign = side === "l" ? 1 : -1;
   const hipZ = 0.068 * sign;
@@ -220,9 +349,14 @@ function legAssembly(side) {
   leg.position.set(pelvis[0] + 0.02, pelvis[1] - 0.08, hipZ);
 
   const knee = [0.04, -0.208, -0.022 * sign];
-  leg.add(tube([0, 0, 0], knee, 0.05, COL.short));
+  // 허벅지: 상단 0.062(허벅지 볼륨) → 무릎 0.044. 저지 아닌 빕숏(short)색.
+  leg.add(taperTube([0, 0, 0], knee, 0.062, 0.044, COL.short, { radial: 18 }));
+  // 대퇴사두 볼륨 — 허벅지 앞면 살짝 부풀림
+  const thighBulge = blob(0.05, COL.short, [1.1, 1.35, 0.95], { segments: 16 });
+  thighBulge.position.set(knee[0] * 0.42 + 0.012, knee[1] * 0.42, knee[2] * 0.42);
+  leg.add(thighBulge);
 
-  const kneeJoint = new THREE.Mesh(new THREE.SphereGeometry(0.046, 12, 12), mat(COL.short));
+  const kneeJoint = blob(0.043, COL.skin, [1.0, 0.95, 1.0], { segments: 14 });
   kneeJoint.position.set(knee[0], knee[1], knee[2]);
   leg.add(kneeJoint);
 
@@ -230,11 +364,40 @@ function legAssembly(side) {
   shin.name = `leg_${side}_shin`;
   shin.position.set(knee[0], knee[1], knee[2]);
   const ankle = [0.065, -0.22, 0.012 * sign];
-  shin.add(tube([0, 0, 0], ankle, 0.038, COL.short));
-  shin.add(box(0.095, 0.032, 0.05, COL.shoe, ankle[0] + 0.015, ankle[1] - 0.014, ankle[2]));
-  shin.add(box(0.095, 0.008, 0.05, 0xf1f5f9, ankle[0] + 0.015, ankle[1] - 0.014 - 0.02, ankle[2]));
+  // 종아리: 무릎쪽 0.044(장딴지) → 발목 0.026. 맨살(skin).
+  shin.add(taperTube([0, 0, 0], ankle, 0.044, 0.026, COL.skin, { radial: 16 }));
+  // 장딴지 볼륨 — 종아리 상단 뒤쪽
+  const calf = blob(0.036, COL.skin, [1.0, 1.4, 0.9], { segments: 14 });
+  calf.position.set(ankle[0] * 0.32 - 0.01, ankle[1] * 0.32, ankle[2] * 0.32);
+  shin.add(calf);
+  // 발목
+  const ankleJoint = blob(0.026, COL.skin, [1, 1, 1], { segments: 12 });
+  ankleJoint.position.set(ankle[0], ankle[1], ankle[2]);
+  shin.add(ankleJoint);
+  // 사이클링 슈즈 — 앞코 낮고 뒤꿈치 있는 형태(단순 box보다 실루엣 좋게 테이퍼)
+  shin.add(shoeAssembly(ankle));
   leg.add(shin);
   return leg;
+}
+
+/** 사이클링 슈즈 — 발등(shoe색)+밑창(밝은색). 발끝이 앞으로 살짝 뾰족 */
+function shoeAssembly(ankle) {
+  const g = new THREE.Group();
+  const fx = ankle[0] + 0.02;
+  const fy = ankle[1] - 0.016;
+  const fz = ankle[2];
+  // 발등: 뒤(발목) 낮고 앞(발끝) 길게 — 얇은 타원체
+  const upper = blob(0.055, COL.shoe, [1.7, 0.5, 0.82], { segments: 16 });
+  upper.position.set(fx, fy, fz);
+  g.add(upper);
+  // 발끝 테이퍼
+  const toe = blob(0.03, COL.shoe, [1.4, 0.5, 0.75], { segments: 12 });
+  toe.position.set(fx + 0.05, fy - 0.004, fz);
+  g.add(toe);
+  // 밑창
+  const sole = box(0.13, 0.012, 0.05, 0xf1f5f9, fx + 0.006, fy - 0.028, fz);
+  g.add(sole);
+  return g;
 }
 
 /** 저지(천) — 프레임 금속과 달리 부드러운 광 */
@@ -251,13 +414,43 @@ torso.position.set(pelvis[0], pelvis[1], pelvis[2]);
 /** 절대좌표 → torso 로컬(pelvis 기준) */
 const rel = (p) => [p[0] - pelvis[0], p[1] - pelvis[1], p[2] - pelvis[2]];
 
-torso.add(tube([0, 0, 0], rel([0.06, 0.92, 0]), 0.082, COL.jersey, jerseyOpts));
-const chestVolume = new THREE.Mesh(new THREE.SphereGeometry(0.095, 20, 16), mat(COL.jersey, 1, jerseyOpts));
-chestVolume.position.set(...rel(shoulder));
-chestVolume.scale.set(1.15, 0.9, 1.5);
-torso.add(chestVolume);
-/** 등 골드 스트라이프 — 몸통 전경사(rz≈-0.55)에 맞춰 등면을 따라 배치 */
-torso.add(box(0.02, 0.22, 0.035, COL.gold, 0.12, 0.12, 0, 0, 0, -0.55));
+/**
+ * 상체(몸통) — 에어로 로드 자세. torso 로컬: 원점=pelvis, +X(전진)로 눕고 +Y 상승.
+ * 등은 앞뒤로 납작(에어로), 좌우로 어깨 넓고 허리 좁은 역삼각형.
+ * 핵심 척추 라인은 가는 테이퍼 튜브, 볼륨은 앞뒤로 눌린(z납작) blob 로 덧입힌다.
+ * 몸통 로컬은 전경사축(척추방향)을 따라 배치하기 위해, 골반→어깨 방향벡터 기준으로 blob 를 놓는다.
+ */
+const shoulderL = rel(shoulder); // [0.26, 0.16, 0]
+/**
+ * 몸통 — 골반→어깨를 잇는 하나의 매끄러운 lathe 회전체(계단·뭉침 제거).
+ * 프로파일: [축길이 t(0=골반, 1=어깨선), 반경]. 골반 넓음→허리 좁음→등 중간→어깨 넓음.
+ * lathe 는 로컬 y축 중심 회전체이므로, 만든 뒤 몸통 방향(pelvis→shoulder)으로 정렬·전경사 적용.
+ * 단면을 앞뒤로 납작하게(z-scale 축소) → 에어로 등판.
+ */
+const torsoAxisLen = Math.hypot(shoulderL[0], shoulderL[1]); // 골반→어깨 거리
+const torsoProfile = [
+  [0.0,  0.052], // 골반 하단(빕숏 경계)
+  [0.10, 0.082], // 골반/엉치
+  [0.28, 0.07],  // 허리(잘록)
+  [0.5,  0.084], // 명치·등 중앙
+  [0.72, 0.10],  // 흉곽 상부
+  [0.9,  0.11],  // 어깨선(가장 넓음)
+  [1.0,  0.075], // 어깨 상단 마감
+].map(([t, r]) => [t * torsoAxisLen, r]);
+const torsoMesh = lathe(torsoProfile, COL.jersey, { segments: 40, ...jerseyOpts });
+// lathe 축(+y)을 몸통 방향(pelvis→shoulder)에 정렬. 단면은 원형 유지(각짐 방지).
+const torsoDir = new THREE.Vector3(shoulderL[0], shoulderL[1], shoulderL[2]).normalize();
+torsoMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), torsoDir);
+torso.add(torsoMesh);
+
+// 어깨 캡 — 목/팔이 붙는 어깨 상단을 좌우로 살짝 넓힌 볼륨(팔 연결 매끄럽게)
+const shoulderCap = blob(0.088, COL.jersey, [1.0, 0.85, 1.5], { segments: 18, ...jerseyOpts });
+shoulderCap.position.set(...shoulderL);
+torso.add(shoulderCap);
+
+/** 등 골드 스트라이프 — 척추 라인을 따라 */
+const stripe = box(0.016, 0.34, 0.024, COL.gold, shoulderL[0] * 0.5 + 0.03, shoulderL[1] * 0.5 + 0.02, 0, 0, 0, -0.62);
+torso.add(stripe);
 /**
  * 골반 덮개(빕숏) — 상체를 앞으로 눕히면 몸통 튜브 하단이 힙에서 들려
  * 다리가 몸에서 분리돼 보인다(07-07 1차 시도 롤백 원인). 양쪽 고관절(z±0.068)을
@@ -270,23 +463,36 @@ root.add(hipCover);
 root.add(legAssembly("l"));
 root.add(legAssembly("r"));
 
-/** 팔 — 어깨→팔꿈치(상완, jersey색) → 손(전완, 맨살) 양쪽 */
+/**
+ * 팔 — 어깨(삼각근, 굵음)→팔꿈치(상완)→손(전완, 맨살). 테이퍼로 근육 실루엣.
+ * 반팔 저지 → 상완 상부만 저지색, 팔꿈치 아래는 맨살.
+ */
 function armAssembly(side) {
   const sign = side === "l" ? 1 : -1;
   const upperColor = side === "l" ? COL.jersey : COL.jerseyDark;
-  const shoulderPt = [shoulder[0], shoulder[1], 0.1 * sign];
-  const elbow = [0.29, 0.86, 0.09 * sign];
-  const handPt = [barCenter[0] - 0.04, barCenter[1] - 0.02, 0.07 * sign];
+  // 어깨 관절을 몸통 어깨 볼륨에 살짝 파묻어 연결 끊김 제거
+  const shoulderPt = [shoulder[0] - 0.01, shoulder[1] - 0.005, 0.095 * sign];
+  // 손: 드롭바 후드(barHood)를 쥔다. 좌우로 살짝 벌어짐(dz).
+  const handPt = [barHood[0] - 0.005, barHood[1] + 0.015, 0.11 * sign];
+  // 반팔 소매 끝(상완 중간) — 어깨→손 방향으로
+  const sleeve = [0.26, 0.9, 0.1 * sign];
+  // 팔꿈치: 어깨~손 사이, 살짝 바깥·아래로 굽음
+  const elbow = [0.36, 0.855, 0.1 * sign];
 
   const g = new THREE.Group();
-  g.add(tube(shoulderPt, elbow, 0.034, upperColor, jerseyOpts));
-  g.add(tube(elbow, handPt, 0.028, COL.skin));
+  // 상완 저지 소매: 어깨(0.045)→소매끝(0.036)
+  g.add(taperTube(shoulderPt, sleeve, 0.045, 0.036, upperColor, { ...jerseyOpts, radial: 14 }));
+  // 상완 맨살: 소매끝→팔꿈치(0.032)
+  g.add(taperTube(sleeve, elbow, 0.035, 0.03, COL.skin, { radial: 14, capStart: false }));
+  // 전완: 팔꿈치(0.03)→손목(0.022), 살짝 가늘게
+  g.add(taperTube(elbow, handPt, 0.03, 0.022, COL.skin, { radial: 14, capStart: false }));
 
-  const elbowJoint = new THREE.Mesh(new THREE.SphereGeometry(0.034, 12, 12), mat(upperColor, 1, jerseyOpts));
+  const elbowJoint = blob(0.03, COL.skin, [1, 1, 1], { segments: 12 });
   elbowJoint.position.set(elbow[0], elbow[1], elbow[2]);
   g.add(elbowJoint);
 
-  const hand = new THREE.Mesh(new THREE.SphereGeometry(0.03, 12, 12), mat(COL.skin));
+  // 손 — Fingerless 장갑(설계서). 손등은 검은 장갑, 후드를 쥔 주먹 형태.
+  const hand = blob(0.03, COL.shoe, [1.0, 1.15, 0.95], { segments: 12 });
   hand.position.set(handPt[0], handPt[1], handPt[2]);
   g.add(hand);
 
@@ -297,11 +503,18 @@ function armAssembly(side) {
 torso.add(armAssembly("l"));
 torso.add(armAssembly("r"));
 
-const head = new THREE.Mesh(new THREE.SphereGeometry(0.1, 24, 18), mat(COL.skin));
+// 목 — 어깨에서 머리로, 전경사라 앞으로 비스듬. (머리보다 먼저 그려 머리에 가리게)
+torso.add(taperTube(rel([shoulder[0] - 0.02, shoulder[1] + 0.02, 0]), rel([headC[0] - 0.05, headC[1] - 0.07, 0]), 0.05, 0.04, COL.skin, { radial: 14 }));
+// 머리 — 설계서 7.5head 비율(1head≈0.142, 반경 ≈0.071). 얼굴만 노출, 뒤·위는 헬멧이 덮음.
+const head = blob(0.071, COL.skin, [1.06, 1.14, 0.98], { segments: 20 });
 head.position.set(...rel(headC));
 torso.add(head);
 
-/** 로드 헬멧 — 쉘·바이저·스트라이프 */
+/**
+ * 로드 사이클 헬멧 — 실제 형태: 머리에 밀착해 **낮고**, 앞뒤로 길며, 하단이 귀 위에서
+ * 수평 마감(공처럼 안 둥굶). 벤트 슬롯 + 뒤 에어로 테이퍼. "우주인/풍선" 회피가 목표.
+ * 낮게(y 0.62) 눌러 정수리만 덮고, Lathe 대신 눌린 blob + 하단 클리핑용 밴드로 각진 라인.
+ */
 function helmetAssembly() {
   const g = new THREE.Group();
   g.name = "helmet";
@@ -309,27 +522,53 @@ function helmetAssembly() {
   const hy = headC[1];
   const hz = headC[2];
 
-  const shell = new THREE.Mesh(
-    new THREE.SphereGeometry(0.122, 24, 18, 0, Math.PI * 2, 0, Math.PI * 0.62),
-    mat(COL.helmetShell, 1, { roughness: 0.4 }),
-  );
-  shell.scale.set(1.08, 0.92, 1.12);
-  shell.position.set(hx, hy + 0.04, hz);
-  shell.rotation.x = -0.12;
+  const shellOpts = { roughness: 0.32, metalness: 0.05 };
+  // 메인 쉘 — 설계서: 낮고, 머리에 밀착. 앞뒤 길이는 과하지 않게(오리부리 방지).
+  const shell = blob(0.082, COL.helmetShell, [1.3, 0.74, 1.02], { segments: 30, ...shellOpts });
+  shell.position.set(hx + 0.008, hy + 0.048, hz);
+  shell.rotation.z = -0.26;
   g.add(shell);
 
-  const visor = box(0.14, 0.025, 0.07, COL.helmetVisor, hx + 0.09, hy + 0.08, hz, -0.42);
-  g.add(visor);
+  // 앞 살짝 뾰족 — 이마 위를 덮으며 앞으로 살짝 좁아짐(설계서 "앞 살짝 뾰족")
+  const nose = blob(0.058, COL.helmetShell, [1.1, 0.66, 0.86], { segments: 18, ...shellOpts });
+  nose.position.set(hx + 0.058, hy + 0.03, hz);
+  nose.rotation.z = -0.34;
+  g.add(nose);
 
-  /** 벤트 3개 — 쉘 상면, 진행방향(X) 등간격, 전경사에 맞춰 표면 근처에 파묻히게 */
-  for (const dx of [-0.05, 0, 0.05]) {
-    g.add(box(0.02, 0.012, 0.1, COL.helmetVisor, hx + dx, hy + 0.135, hz, -0.12));
+  // 뒤 길게 빠짐 — 후두부에서 뒤로 뻗는 에어로 테일(설계서 "뒤 길게 빠짐", 적당히)
+  const tail = blob(0.05, COL.helmetShell, [1.7, 0.6, 0.84], { segments: 18, ...shellOpts });
+  tail.position.set(hx - 0.075, hy + 0.042, hz);
+  tail.rotation.z = 0.12;
+  g.add(tail);
+
+  // 하단 밴드(귀 위 수평 마감 라인) — 공처럼 둥근 것 방지
+  const rimBand = blob(0.08, COL.helmetVisor, [1.28, 0.2, 1.0], { segments: 24, roughness: 0.5 });
+  rimBand.position.set(hx + 0.006, hy + 0.008, hz);
+  rimBand.rotation.z = -0.26;
+  g.add(rimBand);
+
+  /**
+   * 벤트 13개 (설계서 12~14) — shell 표면에 **얕게 박힌** 어두운 홈(양각 돌기 금지).
+   * shell 반경(0.082·스케일)보다 살짝 안쪽(0.9배)에 얇은 어두운 타원을 배치해 파인 것처럼.
+   * 앞→뒤 3열 × 4개 + 앞 센터 1개.
+   */
+  const ventLayout = [];
+  for (const dz of [-0.03, 0, 0.03]) {
+    for (const dx of [0.045, 0.005, -0.035, -0.075]) ventLayout.push([dx, dz]);
+  }
+  ventLayout.push([0.075, 0]); // 앞 센터 = 총 13
+  for (const [dx, dz] of ventLayout) {
+    // 헬멧 상면 곡률 따라 y 낮아짐, shell 표면에 얕게 박힘
+    const vy = hy + 0.092 - Math.abs(dx) * 0.28 - Math.abs(dz) * 0.5;
+    const vent = blob(0.014, COL.helmetVisor, [1.6, 0.35, 0.9], { segments: 8, roughness: 0.6 });
+    vent.position.set(hx + dx, vy, hz + dz);
+    vent.rotation.z = -0.26;
+    g.add(vent);
   }
 
-  g.add(box(0.16, 0.018, 0.09, COL.helmetStripe, hx - 0.01, hy + 0.1, hz, -0.08));
-
-  const rear = box(0.08, 0.04, 0.06, COL.helmetShell, hx - 0.1, hy + 0.06, hz, 0.15);
-  g.add(rear);
+  /** 브랜드 블루 스트라이프 — 쉘 측면 하단 센터라인 */
+  const stripe = box(0.18, 0.012, 0.007, COL.helmetStripe, hx - 0.005, hy + 0.04, hz, 0, 0, -0.26);
+  g.add(stripe);
 
   /** 자식들은 절대좌표 — torso(pivot=pelvis) 로컬로 상대화 */
   g.position.set(-pelvis[0], -pelvis[1], -pelvis[2]);
@@ -337,7 +576,36 @@ function helmetAssembly() {
 }
 torso.add(helmetAssembly());
 
-torso.add(tube(rel(shoulder), rel(headC), 0.045, COL.jersey, jerseyOpts));
+/**
+ * 선글라스 — 얼굴 눈 높이에 어두운 렌즈. 라이딩 필수템. 헬멧 아래·이마 앞에 붙는다.
+ * 좌우 렌즈를 하나의 랩어라운드(가로로 넓은 눌린 렌즈)로 근사 + 프레임 상단바.
+ */
+function sunglassesAssembly() {
+  const g = new THREE.Group();
+  // 눈 위치: headC보다 앞·아래(얼굴 정면). headC=[0.28,1.07]
+  const ex = headC[0] + 0.06;
+  const ey = headC[1] - 0.02;
+  const ez = headC[2];
+  // 랩어라운드 렌즈 — 가로로 넓고 세로 얇게, 얼굴 곡면 따라 살짝 감김
+  const lens = blob(0.045, COL.sunglass, [0.5, 0.62, 1.5], { segments: 18, roughness: 0.18, metalness: 0.3 });
+  lens.position.set(ex, ey, ez);
+  g.add(lens);
+  // 렌즈 좌우 끝을 살짝 뒤로 감아 랩어라운드 느낌
+  for (const dz of [0.062, -0.062]) {
+    const wrap = blob(0.028, COL.sunglass, [0.5, 0.62, 0.7], { segments: 12, roughness: 0.18, metalness: 0.3 });
+    wrap.position.set(ex - 0.018, ey, ez + dz);
+    g.add(wrap);
+  }
+  // 상단 프레임바(헬멧과 렌즈 사이)
+  const browBar = box(0.012, 0.01, 0.12, COL.sunglass, ex, ey + 0.03, ez);
+  g.add(browBar);
+  g.position.set(-pelvis[0], -pelvis[1], -pelvis[2]);
+  return g;
+}
+torso.add(sunglassesAssembly());
+
+// 목→어깨 저지 칼라(승모근에서 목으로) — 어깨 볼륨과 목을 잇는 테이퍼
+torso.add(taperTube(rel(shoulder), rel([headC[0] - 0.04, headC[1] - 0.06, 0]), 0.07, 0.048, COL.jersey, { ...jerseyOpts, radial: 16, capEnd: false }));
 root.add(torso);
 
 const exporter = new GLTFExporter();

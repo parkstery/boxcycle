@@ -97,7 +97,16 @@ function evaluateIkSolution(hip: Vec2, pedal: Vec2, thighDir: number): IkSolutio
   const flexPenalty =
     kneeDeg < 95 ? (95 - kneeDeg) * 0.28 : kneeDeg > 172 ? (kneeDeg - 172) * 0.18 : 0;
 
-  const score = kneeForward * 6 + kneeBelow * 1.4 + flexMid * 2.5 - flexPenalty;
+  /**
+   * 해부학 제약(강함) — 실제 라이딩에서 무릎은 항상 hip보다 아래·앞. 이를 어기면
+   * "정강이가 허리 위로 솟는" 괴상한 해(상사점 근처 knee-up-back 분기)가 나온다.
+   * 무릎이 hip보다 위(kneeBelow<0)이거나 몸통 뒤(kneeForward<0)로 가면 큰 penalty.
+   */
+  const kneeAboveHipPenalty = kneeBelow < 0 ? -kneeBelow * 120 : 0;
+  const kneeBehindPenalty = kneeForward < 0 ? -kneeForward * 40 : 0;
+  const anatomyPenalty = kneeAboveHipPenalty + kneeBehindPenalty;
+
+  const score = kneeForward * 6 + kneeBelow * 1.4 + flexMid * 2.5 - flexPenalty - anatomyPenalty;
 
   return { thighDir, shinDir, kneeDeg, score };
 }
@@ -110,9 +119,14 @@ function solveLegIk(hip: Vec2, pedal: Vec2): { thighZ: number; shinZ: number; kn
   const maxReach = THIGH_LEN_M + SHIN_LEN_M - 0.004;
 
   const toPedal = Math.atan2(dy, dx);
+  /**
+   * ⚠ 다리가 거의 다 펴진 상태(d ≥ maxReach): 허벅지는 페달 방향으로 **직선**(hipOffset=0).
+   * 과거 cosHip=-1(hipOffset=π)로 두어 허벅지가 페달 정반대로 뻗어 무릎이 몸 위로 솟았다
+   * (정강이가 허리 위로 튀어오르는 괴상한 자세의 근본 원인). cosHip=+1 이 정답.
+   */
   const cosHip =
     d >= maxReach
-      ? -1
+      ? 1
       : (THIGH_LEN_M * THIGH_LEN_M + d * d - SHIN_LEN_M * SHIN_LEN_M) / (2 * THIGH_LEN_M * d);
   const hipOffset = Math.acos(clamp(cosHip, -1, 1));
 
