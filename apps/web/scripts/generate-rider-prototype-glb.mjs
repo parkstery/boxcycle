@@ -555,33 +555,45 @@ function helmetAssembly() {
   const ox = headC[0] + 0.024, oy = headC[1] - 0.002, oz = headC[2];
   const shellOpts = { roughness: 0.8, metalness: 0.0 };
 
-  // 물방울 쉘 — 프로파일 링 로프트
+  /**
+   * 물방울 쉘 — 프로파일 링 로프트.
+   * ⚠ Mapbox model 레이어는 primitive에 **indices(인덱스 버퍼)와 UV(TEXCOORD_0)를 요구**한다.
+   * non-indexed geometry면 "Cannot read properties of undefined (reading 'count')"로
+   * 모델 전체 렌더 실패(2026-07-21). → 정점 격자 + 인덱스 삼각형으로 구성.
+   */
   {
-    const ringPts = HELMET_RINGS.map(([x, zHalf, yTop, yBot]) => {
-      const pts = [];
-      for (let i = 0; i <= HELMET_RING_SEG; i++) {
+    const nRings = HELMET_RINGS.length;
+    const cols = HELMET_RING_SEG + 1;
+    const pos = [];
+    const uv = [];
+    // 정점 격자: 링(r) × 아치둘레(i)
+    for (let r = 0; r < nRings; r++) {
+      const [x, zHalf, yTop, yBot] = HELMET_RINGS[r];
+      for (let i = 0; i < cols; i++) {
         const ang = (Math.PI * i) / HELMET_RING_SEG;
         const z = -Math.cos(ang) * zHalf;
         const yArch = yBot + (yTop - yBot) * Math.sin(ang);
-        pts.push(new THREE.Vector3(ox + x, oy + yArch, oz + z));
+        pos.push(ox + x, oy + yArch, oz + z);
+        uv.push(r / (nRings - 1), i / HELMET_RING_SEG);
       }
-      return pts;
-    });
-    const pos = [];
-    for (let r = 0; r < ringPts.length - 1; r++) {
-      const a = ringPts[r], b = ringPts[r + 1];
+    }
+    const idx = [];
+    for (let r = 0; r < nRings - 1; r++) {
       for (let i = 0; i < HELMET_RING_SEG; i++) {
-        const p0 = a[i], p1 = a[i + 1], p2 = b[i], p3 = b[i + 1];
-        pos.push(p0.x, p0.y, p0.z, p2.x, p2.y, p2.z, p1.x, p1.y, p1.z);
-        pos.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z, p3.x, p3.y, p3.z);
+        const a = r * cols + i, b = a + 1, c = (r + 1) * cols + i, d = c + 1;
+        idx.push(a, c, b, b, c, d);
       }
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    geo.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+    geo.setIndex(idx);
     geo.computeVertexNormals();
-    const shell = new THREE.Mesh(geo, mat(COL.helmetShell, 1, shellOpts));
-    shell.material.side = THREE.DoubleSide;
-    g.add(shell);
+    // DoubleSide 전용 material(캐시 공유 금지). 얇은 쉘 안쪽도 보이게.
+    const shellMat = new THREE.MeshStandardMaterial({
+      color: COL.helmetShell, roughness: 0.8, metalness: 0.0, side: THREE.DoubleSide,
+    });
+    g.add(new THREE.Mesh(geo, shellMat));
   }
 
   // 세로 벤트 5줄 — 앞→뒤 검은 골
