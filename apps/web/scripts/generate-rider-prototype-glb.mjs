@@ -519,59 +519,89 @@ head.position.set(...rel(headC));
 torso.add(head);
 
 /**
- * 로드 사이클 헬멧 — 레퍼런스(LOW POLY AERO VENT) 정합 재설계.
- * 원칙: 머리(r0.071) **상단 절반만** 덮는 얇은 쉘. 하단은 **눈 높이(headC.y) 위에서 끊어**
- * 얼굴(이마 아래·눈·코) 완전 노출. "헬멧 인간"·"베레모" 금지.
- * 형태: 앞 낮음→정수리→뒤 테일 아래로. 앞→뒤 **세로 리브 5줄** + 리브 사이 어두운 벤트 골.
- *
- * 구현: 상반구 쉘(아래 열림)을 머리 상단에 씌우고, 리브(밝은 스트립)를 표면에 덧대,
- * 리브 사이 노출부가 어두운 벤트로 보이게 한다. 저폴리 각진 느낌으로 세그먼트 낮춤.
+ * 로드 사이클 헬멧 — 레퍼런스(LOW POLY AERO VENT) 정합 (2026-07-21 승인 프리뷰 이식).
+ * ★ 사이클 헬멧: 머리 **위쪽에 얹힌 얕은 껍질**. 귀·뺨 안 덮음(하단이 관자놀이 위에서 끝).
+ * 세로로 얇음(투구 아님), 앞뒤로 낮고 긴 물방울. 세로 벤트 5줄(TOP-DOWN). 뒤통수 챙 절대 금지.
+ * 프로파일 로프트(단면 링 앞→뒤). 머리 중심(headC) 로컬 기준으로 배치 후 pelvis 상대화.
  */
+const HELMET_RING_SEG = 12;
+/** [x(앞뒤), zHalf(좌우 반폭), yTop(정수리), yBottom(하단-관자놀이 위)] — 머리중심 로컬 */
+const HELMET_RINGS = [
+  [0.072, 0.052, 0.045, 0.03],
+  [0.05, 0.072, 0.072, 0.025],
+  [0.022, 0.082, 0.09, 0.015],
+  [-0.008, 0.086, 0.098, 0.01],
+  [-0.04, 0.086, 0.1, 0.008],
+  [-0.072, 0.082, 0.096, 0.01],
+  [-0.104, 0.073, 0.085, 0.015],
+  [-0.135, 0.06, 0.068, 0.022],
+  [-0.162, 0.043, 0.048, 0.03],
+  [-0.183, 0.025, 0.028, 0.02],
+];
+function helmetInterpAt(x) {
+  for (let i = 0; i < HELMET_RINGS.length - 1; i++) {
+    const [x0, z0, yt0] = HELMET_RINGS[i], [x1, z1, yt1] = HELMET_RINGS[i + 1];
+    if (x <= x0 && x >= x1) {
+      const f = (x - x1) / (x0 - x1);
+      return { yTop: yt1 + (yt0 - yt1) * f, zHalf: z1 + (z0 - z1) * f };
+    }
+  }
+  return { yTop: 0.03, zHalf: 0.05 };
+}
 function helmetAssembly() {
   const g = new THREE.Group();
   g.name = "helmet";
-  const hx = headC[0];
-  const hy = headC[1];
-  const hz = headC[2];
+  // 헬멧 로컬 오프셋(프리뷰 helmet.position) — 머리 위에 얹고 앞단이 눈썹 위
+  const ox = headC[0] + 0.024, oy = headC[1] - 0.002, oz = headC[2];
+  const shellOpts = { roughness: 0.8, metalness: 0.0 };
 
-  const shellOpts = { roughness: 0.42, metalness: 0.0 };
-  const tilt = -0.16; // 앞이 살짝 낮은 전경사
-
-  /**
-   * 메인 쉘 — 매끈한 흰색 반구(아래 열림). 머리(r0.071) **상단만** 덮는다.
-   * phiLength로 위 60%만 만들어 하단(귀 아래·얼굴)은 뚫려 노출. 앞뒤로 살짝 김(에어로).
-   * SphereGeometry 세그먼트 낮춰 저폴리 각진 면.
-   */
-  const shell = new THREE.Mesh(
-    new THREE.SphereGeometry(0.086, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.64),
-    mat(COL.helmetShell, 1, shellOpts),
-  );
-  shell.scale.set(1.28, 1.08, 1.06); // 앞뒤(x)로 김
-  // 위·뒤로 올려 이마를 덜 덮고 후두부를 더 덮음(비니 방지, 눈 노출)
-  shell.position.set(hx - 0.022, hy + 0.045, hz);
-  shell.rotation.z = tilt;
-  g.add(shell);
-
-  // 뒤 테일 — 후두부에서 뒤로 살짝 빠지는 매끈한 꼬리
-  const tail = blob(0.052, COL.helmetShell, [1.5, 0.72, 0.86], { segments: 14, ...shellOpts });
-  tail.position.set(hx - 0.098, hy + 0.03, hz);
-  tail.rotation.z = 0.18;
-  g.add(tail);
-
-  /**
-   * 벤트 홈 4개 — 쉘 상면에 앞→뒤로 파인 어두운 골. shell이 위로 올라갔으니 함께 상향.
-   * 쉘 표면보다 살짝 바깥에 얇게 얹어 확실히 보이게.
-   */
-  for (const dz of [-0.038, -0.013, 0.013, 0.038]) {
-    const edge = Math.abs(dz) / 0.038;
-    const vy = hy + 0.115 - edge * 0.014;
-    const vent = box(0.12 - edge * 0.025, 0.007, 0.013, COL.helmetVisor, hx - 0.024, vy, hz + dz, 0, 0, tilt);
-    g.add(vent);
+  // 물방울 쉘 — 프로파일 링 로프트
+  {
+    const ringPts = HELMET_RINGS.map(([x, zHalf, yTop, yBot]) => {
+      const pts = [];
+      for (let i = 0; i <= HELMET_RING_SEG; i++) {
+        const ang = (Math.PI * i) / HELMET_RING_SEG;
+        const z = -Math.cos(ang) * zHalf;
+        const yArch = yBot + (yTop - yBot) * Math.sin(ang);
+        pts.push(new THREE.Vector3(ox + x, oy + yArch, oz + z));
+      }
+      return pts;
+    });
+    const pos = [];
+    for (let r = 0; r < ringPts.length - 1; r++) {
+      const a = ringPts[r], b = ringPts[r + 1];
+      for (let i = 0; i < HELMET_RING_SEG; i++) {
+        const p0 = a[i], p1 = a[i + 1], p2 = b[i], p3 = b[i + 1];
+        pos.push(p0.x, p0.y, p0.z, p2.x, p2.y, p2.z, p1.x, p1.y, p1.z);
+        pos.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z, p3.x, p3.y, p3.z);
+      }
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    geo.computeVertexNormals();
+    const shell = new THREE.Mesh(geo, mat(COL.helmetShell, 1, shellOpts));
+    shell.material.side = THREE.DoubleSide;
+    g.add(shell);
   }
 
-  /** 브랜드 블루 악센트 — 앞 테두리 얇은 밴드(이마선 위) */
-  const accent = box(0.018, 0.01, 0.115, COL.helmetStripe, hx + 0.05, hy + 0.058, hz, 0, 0, tilt);
-  g.add(accent);
+  // 세로 벤트 5줄 — 앞→뒤 검은 골
+  const YBOT = 0.015;
+  for (const zf of [-0.58, -0.29, 0, 0.29, 0.58]) {
+    const edge = Math.abs(zf);
+    const yFac = Math.sin(Math.acos(-zf));
+    const ventXs = [-0.005, -0.035, -0.065, -0.095, -0.13];
+    for (let s = 0; s < ventXs.length - 1; s++) {
+      const xa = ventXs[s], xb = ventXs[s + 1];
+      const ia = helmetInterpAt(xa), ib = helmetInterpAt(xb);
+      const yA = YBOT + (ia.yTop - YBOT) * yFac - 0.006;
+      const yB = YBOT + (ib.yTop - YBOT) * yFac - 0.006;
+      g.add(tube(
+        [ox + xa, oy + yA, oz + zf * ia.zHalf],
+        [ox + xb, oy + yB, oz + zf * ib.zHalf],
+        0.0072 - edge * 0.002, COL.helmetVisor, { radial: 5, roughness: 0.7 },
+      ));
+    }
+  }
 
   /** 자식들은 절대좌표 — torso(pivot=pelvis) 로컬로 상대화 */
   g.position.set(-pelvis[0], -pelvis[1], -pelvis[2]);
@@ -580,30 +610,29 @@ function helmetAssembly() {
 torso.add(helmetAssembly());
 
 /**
- * 선글라스 — 레퍼런스(각진 랩어라운드) 정합. 눈 부위에 **작고 얇게** 걸침.
- * 이전엔 거대한 콧수염처럼 하관을 덮었음 — 세로 얇게·눈 높이 정확히·크기 축소.
- * 좌우 렌즈 2장(살짝 벌어짐) + 얇은 브릿지 + 관자(temple).
+ * 선글라스 — 레퍼런스 정합 가로 SHIELD (2026-07-21 승인 프리뷰 이식).
+ * 눈 위치의 가로로 넓은 얇은 렌즈. 중앙 렌즈 + 좌우 wing(랩어라운드) + 상단 프레임 + 브릿지 + 관자.
+ * frame색은 sunglass보다 약간 어두운데 저폴리라 sunglass로 통일.
  */
 function sunglassesAssembly() {
   const g = new THREE.Group();
-  const lensOpts = { roughness: 0.16, metalness: 0.25 };
-  // 눈 위치 — 얼굴 정면, headC 앞·눈 높이(살짝 아래). 헬멧 이마선 아래.
-  const ex = headC[0] + 0.058;
-  const ey = headC[1] - 0.028;
-  const ez = headC[2];
-  // 좌우 렌즈 — 각진 랩어라운드. 간격 좁혀(±0.022) 하나의 안경처럼, 세로 얇게.
+  const lensOpts = { roughness: 0.2, metalness: 0.3 };
+  const gx = headC[0] + 0.072; // 얼굴 표면 바로 앞
+  const gy = headC[1] + 0.006; // 눈 높이(헬멧 앞단 바로 아래)
+  const gz = headC[2];
+  // 중앙 렌즈 — 눈 부위만(축소: 폭 0.05, 세로 0.019)
+  g.add(box(0.018, 0.019, 0.05, COL.sunglass, gx, gy, gz, 0, 0, 0, lensOpts));
+  // 좌우 렌즈 wing — 바깥으로 뒤로 꺾여(랩어라운드), 간격 축소
   for (const side of [1, -1]) {
-    const lens = blob(0.023, COL.sunglass, [0.72, 0.6, 1.1], { segments: 10, ...lensOpts });
-    lens.position.set(ex, ey, ez + side * 0.022);
-    g.add(lens);
+    g.add(box(0.016, 0.018, 0.024, COL.sunglass, gx - 0.006, gy, gz + side * 0.036, 0, side * -0.5, 0, lensOpts));
   }
-  // 브릿지 — 두 렌즈 사이 얇은 코걸이
-  const bridge = box(0.015, 0.007, 0.016, COL.sunglass, ex + 0.001, ey + 0.003, ez);
-  g.add(bridge);
-  // 관자(temple) — 렌즈 바깥에서 귀(뒤·위)로 가는 짧은 다리
+  // 상단 프레임(가로 얇은 테)
+  g.add(box(0.01, 0.005, 0.062, COL.sunglass, gx + 0.002, gy + 0.012, gz, 0, 0, 0, { roughness: 0.5 }));
+  // 브릿지(코)
+  g.add(box(0.012, 0.006, 0.01, COL.sunglass, gx + 0.003, gy - 0.002, gz, 0, 0, 0, { roughness: 0.5 }));
+  // 관자(temple)
   for (const side of [1, -1]) {
-    const temple = tube([ex - 0.004, ey + 0.006, ez + side * 0.043], [ex - 0.055, ey + 0.02, ez + side * 0.05], 0.004, COL.sunglass, { radial: 6 });
-    g.add(temple);
+    g.add(tube([gx - 0.01, gy + 0.005, gz + side * 0.042], [gx - 0.05, gy + 0.014, gz + side * 0.045], 0.0035, COL.sunglass, { radial: 6 }));
   }
   g.position.set(-pelvis[0], -pelvis[1], -pelvis[2]);
   return g;
