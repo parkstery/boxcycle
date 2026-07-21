@@ -18,6 +18,9 @@ dist-ssr
 /blob-report/
 /playwright/.cache/
 
+# rider-preview 렌더 출력물(휘발성 검토용 — 커밋 안 함)
+/scripts/rider-preview/.out/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

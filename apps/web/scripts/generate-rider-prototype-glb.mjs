@@ -229,6 +229,7 @@ const shadow = new THREE.Mesh(
   new THREE.CircleGeometry(0.62, 28),
   mat(COL.shadow, 0.26),
 );
+shadow.name = "groundShadow"; // AABB 검증에서 제외되는 지면 원판(라이더 전고 아님)
 shadow.rotation.x = -Math.PI / 2;
 shadow.position.set(0, 0.015, 0);
 root.add(shadow);
