@@ -1,0 +1,118 @@
+<!doctype html>
+<!--
+  라이더 GLB 멀티뷰 뷰어 — render-views.mjs 가 vite dev 서버로 서빙 후 Playwright 로 스크린샷.
+  URL 파라미터:
+    ?glb=/rider/prototype/rider-lowpoly.glb  (기본)
+    ?mode=body   → 전신 6뷰 (front/back/left/right/top/q34)
+    ?mode=head   → 머리 4방향 클로즈업 (front/left/right/top) — 얼굴 노출·헬멧 얹힘 확인
+  three 는 앱과 동일 버전을 vite 가 번들(별도 CDN 불필요).
+-->
+<meta charset="utf-8" />
+<title>Rider GLB Viewer</title>
+<style>
+  html, body { margin: 0; background: #1a1d24; }
+  #grid { display: grid; gap: 2px; }
+  .cell { position: relative; background: #2a2e38; }
+  .label {
+    position: absolute; top: 4px; left: 6px; z-index: 2;
+    font: 600 11px system-ui; color: #cbd5e1; letter-spacing: .04em;
+    background: rgba(0,0,0,.4); padding: 1px 5px; border-radius: 3px;
+  }
+  canvas { display: block; }
+</style>
+<div id="grid"></div>
+<!-- three 를 vite 가 서빙하는 node_modules 실경로로 매핑(bare specifier 해석용) -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "/node_modules/three/build/three.module.js",
+    "three/examples/jsm/loaders/GLTFLoader.js": "/node_modules/three/examples/jsm/loaders/GLTFLoader.js"
+  }
+}
+</script>
+<script type="module">
+  import * as THREE from "three";
+  import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+
+  const params = new URLSearchParams(location.search);
+  const glbUrl = params.get("glb") ?? "/rider/prototype/rider-lowpoly.glb";
+  const mode = params.get("mode") ?? "body";
+
+  const CELL = 320;
+
+  // 각 뷰: camera 방향(구면). target 은 모델 중심.
+  const BODY_VIEWS = [
+    { name: "FRONT", dir: [1, 0, 0] },   // +X 전진 → 앞에서
+    { name: "BACK",  dir: [-1, 0, 0] },
+    { name: "LEFT",  dir: [0, 0, 1] },
+    { name: "RIGHT", dir: [0, 0, -1] },
+    { name: "TOP",   dir: [0, 1, 0.001] },
+    { name: "Q34",   dir: [1, 0.5, 0.9] },
+  ];
+  const HEAD_VIEWS = [
+    { name: "HEAD-FRONT", dir: [1, 0.15, 0] },
+    { name: "HEAD-LEFT",  dir: [0.2, 0.15, 1] },
+    { name: "HEAD-RIGHT", dir: [0.2, 0.15, -1] },
+    { name: "HEAD-TOP",   dir: [0.3, 1, 0.001] },
+  ];
+  const views = mode === "head" ? HEAD_VIEWS : BODY_VIEWS;
+
+  const grid = document.getElementById("grid");
+  grid.style.gridTemplateColumns = `repeat(${mode === "head" ? 2 : 3}, ${CELL}px)`;
+
+  const loader = new GLTFLoader();
+  loader.load(glbUrl, (gltf) => {
+    const model = gltf.scene;
+    const shadow = model.getObjectByName("groundShadow");
+    if (shadow) shadow.visible = false;
+
+    // 전체 / 머리 바운딩
+    const fullBox = new THREE.Box3().setFromObject(model);
+    let box = fullBox;
+    if (mode === "head") {
+      // 머리 근처만: 전고의 상단 ~28% 영역으로 크롭
+      const h = fullBox.max.y - fullBox.min.y;
+      box = fullBox.clone();
+      box.min.y = fullBox.max.y - h * 0.30;
+    }
+    const center = box.getCenter(new THREE.Vector3());
+    const radius = box.getSize(new THREE.Vector3()).length() / 2;
+
+    for (const view of views) {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      const label = document.createElement("div");
+      label.className = "label";
+      label.textContent = view.name;
+      cell.appendChild(label);
+      grid.appendChild(cell);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+      renderer.setSize(CELL, CELL);
+      renderer.setClearColor(0x2a2e38, 1);
+      cell.appendChild(renderer.domElement);
+
+      const scene = new THREE.Scene();
+      scene.add(model.clone(true));
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x404050, 1.1));
+      const key = new THREE.DirectionalLight(0xffffff, 1.4);
+      key.position.set(3, 5, 2);
+      scene.add(key);
+      const fill = new THREE.DirectionalLight(0xcfe0ff, 0.5);
+      fill.position.set(-3, 1, -2);
+      scene.add(fill);
+
+      const cam = new THREE.PerspectiveCamera(35, 1, 0.01, 100);
+      const dir = new THREE.Vector3(...view.dir).normalize();
+      const dist = radius / Math.sin((35 * Math.PI) / 180 / 2) * 0.62;
+      cam.position.copy(center).add(dir.multiplyScalar(dist));
+      cam.lookAt(center);
+
+      renderer.render(scene, cam);
+    }
+
+    // Playwright 가 기다릴 신호
+    document.title = "READY " + document.title;
+    window.__RIDER_VIEWER_READY__ = true;
+  });
+</script>
