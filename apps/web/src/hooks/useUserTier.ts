@@ -1,7 +1,7 @@
 import type { User } from "firebase/auth";
-import { doc, getFirestore, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
-import { getFirebaseApp } from "../lib/firebase";
+import { getFirebaseFirestore } from "../lib/firebase";
 import type { UserTier } from "../lib/firestoreUser";
 import type { SubscriptionStatus } from "../lib/subscription";
 import {
@@ -41,7 +41,7 @@ export function useUserTier(user: User | null, configured: boolean) {
       setMileageRideCount(null);
       return;
     }
-    const ref = doc(getFirestore(getFirebaseApp()), "users", user.uid);
+    const ref = doc(getFirebaseFirestore(), "users", user.uid);
     return onSnapshot(
       ref,
       (snap) => {

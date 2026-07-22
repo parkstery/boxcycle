@@ -12,11 +12,10 @@ import {
   updateDoc,
   where,
   writeBatch,
-  getFirestore,
 } from "firebase/firestore";
 import { FirebaseError } from "firebase/app";
 import type { User } from "firebase/auth";
-import { getFirebaseApp } from "./firebase";
+import { getFirebaseFirestore } from "./firebase";
 import { type LineStringGeometry, type LngLat } from "./geo";
 import type { RouteProfile } from "../services/mapboxDirections";
 import type { SavedRoute } from "./firestoreSavedRoutes";
@@ -101,7 +100,7 @@ function formatPublicRouteFirestoreError(err: unknown): Error {
 }
 
 async function assertPublicRouteRequestPreflight(user: User, route: SavedRoute): Promise<void> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const routeSnap = await getDoc(doc(db, SAVED_ROUTES_COLLECTION, route.id));
   if (!routeSnap.exists()) {
     throw new Error("클라우드에 저장된 경로를 찾을 수 없습니다. 새로고침 후 다시 시도하세요.");
@@ -139,7 +138,7 @@ async function resolvePublicRequestFingerprint(req: PublicRouteRequest): Promise
 }
 
 async function assertNoDuplicatePublicCatalogRoute(
-  db: ReturnType<typeof getFirestore>,
+  db: ReturnType<typeof getFirebaseFirestore>,
   fingerprint: string,
   options?: {
     excludePublicRouteRequestId?: string;
@@ -202,7 +201,7 @@ export function validateExperienceTags(tags: string[]): ExperienceTagId[] {
 export async function isRouteReviewer(user: User | null): Promise<boolean> {
   if (!user) return false;
   try {
-    const db = getFirestore(getFirebaseApp());
+    const db = getFirebaseFirestore();
     const ref = doc(db, ROUTE_REVIEWERS_DOC_PATH[0], ROUTE_REVIEWERS_DOC_PATH[1]);
     const snap = await getDoc(ref);
     if (!snap.exists()) return false;
@@ -373,7 +372,7 @@ export async function createPublicRouteRequest(
     throw new Error("경로 좌표가 너무 많아 공개 신청을 할 수 없습니다.");
   }
 
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   await assertPublicRouteRequestPreflight(user, route);
   const existing = await getDocs(
     query(
@@ -443,7 +442,7 @@ export async function createPublicRouteRequest(
  * 관련: `isRouteReviewer` · `approvePublicRouteRequest` · `rejectPublicRouteRequest`.
  */
 export async function loadPendingPublicRouteRequests(): Promise<PublicRouteRequest[]> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const q = query(
     collection(db, PUBLIC_ROUTE_REQUESTS_COLLECTION),
     where("status", "==", "pending"),
@@ -460,7 +459,7 @@ export async function loadPendingPublicRouteRequests(): Promise<PublicRouteReque
 }
 
 export async function loadMyPendingRequestRouteIds(userId: string): Promise<Set<string>> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const q = query(
     collection(db, PUBLIC_ROUTE_REQUESTS_COLLECTION),
     where("applicantUid", "==", userId),
@@ -477,7 +476,7 @@ export async function loadMyPendingRequestRouteIds(userId: string): Promise<Set<
 }
 
 export async function withdrawPublicRouteRequest(user: User, requestId: string): Promise<void> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const ref = doc(db, PUBLIC_ROUTE_REQUESTS_COLLECTION, requestId);
   const snap = await getDoc(ref);
   if (!snap.exists()) throw new Error("신청을 찾을 수 없습니다.");
@@ -503,7 +502,7 @@ export async function approvePublicRouteRequest(
   }
   validatePublicRouteTitleAndSummary(request.publicTitle, request.publicSummary);
   await maybeModeratePublicRouteCopyRemote(request.publicTitle, request.publicSummary);
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const geom = decodeLineStringCoordsJson(request.geometryCoordsJson);
   if (!geom) {
     throw new Error("신청에 포함된 경로 geometry 가 올바르지 않습니다.");
@@ -565,7 +564,7 @@ export async function rejectPublicRouteRequest(
   if (trimmed.length < 1 || trimmed.length > REJECTION_REASON_MAX) {
     throw new Error(`거절 사유는 1~${REJECTION_REASON_MAX}자로 입력하세요.`);
   }
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   await updateDoc(doc(db, PUBLIC_ROUTE_REQUESTS_COLLECTION, request.id), {
     status: "rejected",
     reviewerUid: reviewer.uid,

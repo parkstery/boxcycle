@@ -3,7 +3,6 @@ import {
   doc,
   getDoc,
   getDocs,
-  getFirestore,
   limit,
   query,
   serverTimestamp,
@@ -11,7 +10,7 @@ import {
   where,
   writeBatch,
 } from "firebase/firestore";
-import { getFirebaseApp } from "./firebase";
+import { getFirebaseFirestore } from "./firebase";
 import type { RouteProfile } from "../services/mapboxDirections";
 
 export const ROUTE_PUBLICATIONS_COLLECTION = "routePublications";
@@ -91,7 +90,7 @@ export function writeRoutePublicationOnApprove(
     sourcePublicRouteRequestId: string;
   },
 ): void {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const ref = doc(db, ROUTE_PUBLICATIONS_COLLECTION, input.publicationId);
   batch.set(ref, {
     routeId: input.routeId,
@@ -114,7 +113,7 @@ export function writeRoutePublicationOnApprove(
 export async function findPublishedRoutePublicationByRouteId(
   routeId: string,
 ): Promise<RoutePublicationRow | null> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const qy = query(
     collection(db, ROUTE_PUBLICATIONS_COLLECTION),
     where("routeId", "==", routeId),
@@ -131,7 +130,7 @@ export async function findPublishedRoutePublicationByFingerprint(
   routeFingerprint: string,
 ): Promise<RoutePublicationRow | null> {
   if (routeFingerprint.length !== 64) return null;
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const qy = query(
     collection(db, ROUTE_PUBLICATIONS_COLLECTION),
     where("routeFingerprint", "==", routeFingerprint),
@@ -146,7 +145,7 @@ export async function findPublishedRoutePublicationByFingerprint(
 
 /** 퍼블릭 탭 카탈로그 — `routePublications` 우선(Phase C) */
 export async function listPublishedRoutePublications(max = 50): Promise<RoutePublicationRow[]> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const qy = query(
     collection(db, ROUTE_PUBLICATIONS_COLLECTION),
     where("status", "==", "published"),
@@ -174,7 +173,7 @@ export async function findPublishedRoutePublicationById(
 ): Promise<RoutePublicationRow | null> {
   const id = publicationId.trim();
   if (!id) return null;
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const snap = await getDoc(doc(db, ROUTE_PUBLICATIONS_COLLECTION, id));
   if (!snap.exists()) return null;
   const row = parsePublicationRow(snap.id, snap.data() as Record<string, unknown>);
@@ -185,7 +184,7 @@ export async function findPublishedRoutePublicationById(
 export async function mergePublicationPresenceEnabled(publicationId: string): Promise<void> {
   const id = publicationId.trim();
   if (!id) return;
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const ref = doc(db, ROUTE_PUBLICATIONS_COLLECTION, id);
   const snap = await getDoc(ref);
   if (!snap.exists()) return;

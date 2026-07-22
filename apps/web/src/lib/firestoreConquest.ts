@@ -2,11 +2,10 @@ import {
   collection,
   doc,
   getDocs,
-  getFirestore,
   onSnapshot,
   type Unsubscribe,
 } from "firebase/firestore";
-import { getFirebaseApp } from "./firebase";
+import { getFirebaseFirestore } from "./firebase";
 import type { LineStringGeometry } from "./geo";
 
 /**
@@ -30,7 +29,7 @@ export function subscribeConquestSummary(
   userId: string,
   onChange: (summary: ConquestSummary | null) => void,
 ): Unsubscribe {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   return onSnapshot(
     doc(db, "conquest", userId),
     (snap) => {
@@ -50,7 +49,7 @@ export function subscribeConquestSummary(
 
 /** 내 도로 셀 전체(청크 병합) — 라이브 중복 판정·팝업 소유 판정용. v1(타일) 잔재는 걸러냄. */
 export async function loadConquestCellIds(userId: string): Promise<string[]> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const snap = await getDocs(collection(db, "conquest", userId, "chunks"));
   const out: string[] = [];
   snap.forEach((chunkDoc) => {
@@ -66,7 +65,7 @@ export async function loadConquestCellIds(userId: string): Promise<string[]> {
 
 /** 「내 도로망」 궤적 전체 — 지도 영구 렌더용. path 는 평탄 배열 [lng0,lat0,...] */
 export async function loadConquestTraces(userId: string): Promise<ConquestTrace[]> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const snap = await getDocs(collection(db, "conquest", userId, "traces"));
   const out: ConquestTrace[] = [];
   snap.forEach((traceDoc) => {

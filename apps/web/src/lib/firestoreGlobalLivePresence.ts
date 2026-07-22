@@ -2,7 +2,6 @@ import {
   collection,
   deleteDoc,
   doc,
-  getFirestore,
   onSnapshot,
   serverTimestamp,
   setDoc,
@@ -11,7 +10,7 @@ import {
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
 import { getPresenceDisplayName } from "./authDisplay";
-import { getFirebaseApp } from "./firebase";
+import { getFirebaseFirestore } from "./firebase";
 import type { LngLat } from "./geo";
 import { lastSeenAtToMillis, TRAIL_PRESENCE_STALE_MS } from "./firestoreTrail";
 
@@ -33,7 +32,7 @@ export type GlobalLivePresenceDot = {
 };
 
 function livePresenceCollectionRef() {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   return collection(db, GLOBAL_LIVE_PRESENCE_COLLECTION);
 }
 
@@ -76,7 +75,7 @@ export function subscribeGlobalLivePresence(
 }
 
 export async function mergeGlobalLivePresence(user: User, lngLat: LngLat): Promise<void> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const ref = doc(db, GLOBAL_LIVE_PRESENCE_COLLECTION, user.uid);
   const [lng, lat] = lngLat;
   await setDoc(
@@ -92,7 +91,7 @@ export async function mergeGlobalLivePresence(user: User, lngLat: LngLat): Promi
 }
 
 export async function deleteGlobalLivePresence(uid: string): Promise<void> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   await deleteDoc(doc(db, GLOBAL_LIVE_PRESENCE_COLLECTION, uid));
 }
 

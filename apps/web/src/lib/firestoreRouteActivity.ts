@@ -3,13 +3,12 @@ import {
   doc,
   getDoc,
   getDocs,
-  getFirestore,
   limit,
   orderBy,
   query,
   where,
 } from "firebase/firestore";
-import { getFirebaseApp } from "./firebase";
+import { getFirebaseFirestore } from "./firebase";
 import { isActivityLodDebugPanelEnabled } from "./mapDebugPhase";
 import type { LngLat } from "./geo";
 import { isWithinActivityTraceHeatWindow } from "./activityWorldTraceStyle";
@@ -101,7 +100,7 @@ export async function fetchRouteActivity(publicationId: string): Promise<RouteAc
   let pending = inflight.get(id);
   if (!pending) {
     pending = (async () => {
-      const db = getFirestore(getFirebaseApp());
+      const db = getFirebaseFirestore();
       const routeSnap = await getDoc(doc(db, ROUTE_ACTIVITY_COLLECTION, id));
       const parsed = routeSnap.exists()
         ? parseRouteActivityDoc(id, routeSnap.data() as Record<string, unknown>)
@@ -189,7 +188,7 @@ export async function fetchLiveRouteActivityIds(
     return liveRouteIdsCache.ids;
   }
 
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
 
   const runQuery = async (collectionId: string, ordered: boolean) => {
     const col = collection(db, collectionId);

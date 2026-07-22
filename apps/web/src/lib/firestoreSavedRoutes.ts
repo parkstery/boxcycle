@@ -4,7 +4,6 @@ import {
   deleteDoc,
   doc,
   getDocs,
-  getFirestore,
   increment,
   limit,
   query,
@@ -13,7 +12,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { getFirebaseApp } from "./firebase";
+import { getFirebaseFirestore } from "./firebase";
 import type { LineStringGeometry, LngLat } from "./geo";
 import type { User } from "firebase/auth";
 import type { RouteProfile } from "../services/mapboxDirections";
@@ -363,7 +362,7 @@ export type SaveRouteInput = {
  * (인덱스 쿼리도, "지문 있으면 skip" 폴백도 이 옛 문서를 놓쳤다 → 32건 중복의 원인).
  */
 async function findExistingSavedRouteIdByFingerprint(
-  db: ReturnType<typeof getFirestore>,
+  db: ReturnType<typeof getFirebaseFirestore>,
   userId: string,
   routeFingerprint: string,
 ): Promise<string | null> {
@@ -399,7 +398,7 @@ export async function saveRouteToFirestore(
   validateGeometry(input.geometry);
   const waypoints = validateWaypointsForSave(input.waypoints);
 
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const routeFingerprint = await computeRouteFingerprint(input.geometry, input.profile);
 
   // 같은 경로가 이미 있으면 새로 만들지 않고 기존 문서를 갱신한다(중복 저장 방지).
@@ -496,7 +495,7 @@ export async function promoteSavedRouteInFirestore(input: {
   routeId: string;
   rideId: string;
 }): Promise<void> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   await updateDoc(doc(db, SAVED_ROUTES_COLLECTION, input.routeId), {
     userId: input.userId,
     completed: 1,
@@ -519,7 +518,7 @@ export async function updateSavedRouteProgressInFirestore(input: {
   rideId: string;
   progressRatio: number;
 }): Promise<void> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const ratio = Math.max(0, Math.min(1, Number(input.progressRatio) || 0));
   await updateDoc(doc(db, SAVED_ROUTES_COLLECTION, input.routeId), {
     userId: input.userId,
@@ -540,7 +539,7 @@ export async function loadSavedRoutesFromFirestore(
   userId: string,
   limitCount = 50,
 ): Promise<SavedRoute[]> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const q = query(
     collection(db, SAVED_ROUTES_COLLECTION),
     where("userId", "==", userId),
@@ -566,7 +565,7 @@ export async function renameSavedRouteInFirestore(
   newName: string,
 ): Promise<string> {
   const name = validateSavedRouteName(newName);
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   await updateDoc(doc(db, SAVED_ROUTES_COLLECTION, routeId), {
     userId,
     name,
@@ -576,7 +575,7 @@ export async function renameSavedRouteInFirestore(
 }
 
 export async function deleteSavedRouteFromFirestore(routeId: string): Promise<void> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   await deleteDoc(doc(db, SAVED_ROUTES_COLLECTION, routeId));
 }
 
@@ -593,7 +592,7 @@ export async function deleteSavedRouteFromFirestore(routeId: string): Promise<vo
 export async function backfillSavedRoutesExpiresAt(input: {
   userId: string;
 }): Promise<{ scanned: number; updated: number; skipped: number; failed: number }> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const q = query(
     collection(db, SAVED_ROUTES_COLLECTION),
     where("userId", "==", input.userId),

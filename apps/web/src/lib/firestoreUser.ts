@@ -4,14 +4,13 @@ import {
   doc,
   getDoc,
   getDocFromServer,
-  getFirestore,
   runTransaction,
   serverTimestamp,
   setDoc,
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
 import { getPresenceDisplayName } from "./authDisplay";
-import { getFirebaseApp } from "./firebase";
+import { getFirebaseFirestore } from "./firebase";
 import {
   isValidNickname,
   isValidNicknameKeyNormalized,
@@ -38,7 +37,7 @@ function formatClaimFirestoreError(stageKo: string, err: unknown): Error {
 }
 
 export async function getUserProfileNickname(uid: string): Promise<string | null> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const snap = await getDoc(doc(db, "users", uid));
   if (!snap.exists()) return null;
   const n = snap.data().nickname;
@@ -46,7 +45,7 @@ export async function getUserProfileNickname(uid: string): Promise<string | null
 }
 
 export async function getUserProfileTier(uid: string): Promise<UserTier | null> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const snap = await getDoc(doc(db, "users", uid));
   if (!snap.exists()) return null;
   const t = snap.data().tier;
@@ -81,7 +80,7 @@ export async function getUserPublicLabelsByUid(uids: readonly string[]): Promise
   const map = new Map<string, string>();
   if (uniq.length === 0) return map;
 
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   await Promise.all(
     uniq.map(async (uid) => {
       try {
@@ -123,7 +122,7 @@ function buildUserProfileWrite(user: User, nicknameTrimmed: string, keyLower: st
 /** Guest tier — 문서 없거나 tier 미설정 시 1회 merge */
 export async function ensureAnonymousUserTier(user: User): Promise<void> {
   if (!user.isAnonymous) return;
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const userRef = doc(db, "users", user.uid);
   const snap = await getDoc(userRef);
   const tier = snap.data()?.tier;
@@ -157,7 +156,7 @@ export async function claimNicknameTransaction(user: User, nickname: string): Pr
     throw new Error("닉네임 형식이 올바르지 않습니다.");
   }
 
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const nickRef = doc(db, "nicknames", key);
   const userRef = doc(db, "users", user.uid);
 
@@ -213,7 +212,7 @@ export async function syncUserProfileToFirestore(
   user: User,
   options?: { nickname?: string },
 ): Promise<void> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const nickname = options?.nickname;
   const key =
     nickname != null && nickname !== "" ? normalizeNicknameKey(nickname) : null;

@@ -3,7 +3,6 @@ import {
   deleteDoc,
   doc,
   getDoc,
-  getFirestore,
   limit,
   onSnapshot,
   orderBy,
@@ -16,7 +15,7 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import { getFirebaseApp } from "./firebase";
+import { getFirebaseApp, getFirebaseFirestore } from "./firebase";
 import { countTrailMembersFresh, TRAIL_PRESENCE_STALE_MS } from "./firestoreTrail";
 import { countTrailLiveRidersFresh } from "./firestoreTrailLivePublicationRides";
 import { trailHasConfiguredRoute } from "./trailAccessPolicy";
@@ -63,7 +62,7 @@ function resolveListingPublicationId(data: Record<string, unknown>): string | nu
 }
 
 function listingRef(trailId: string) {
-  return doc(getFirestore(getFirebaseApp()), OPEN_TRAIL_LISTINGS_COLLECTION, trailId);
+  return doc(getFirebaseFirestore(), OPEN_TRAIL_LISTINGS_COLLECTION, trailId);
 }
 
 /** listing riderCount — RunAggregationQuery 없이 trail 메타·소량 scan */
@@ -84,7 +83,7 @@ async function countTrailActiveParticipantsForTrail(trail: TrailInstance): Promi
 }
 
 async function loadTrailForListing(trailId: string): Promise<TrailInstance | null> {
-  const snap = await getDoc(doc(getFirestore(getFirebaseApp()), TRAILS_COLLECTION, trailId));
+  const snap = await getDoc(doc(getFirebaseFirestore(), TRAILS_COLLECTION, trailId));
   if (!snap.exists()) return null;
   const data = snap.data() as Record<string, unknown>;
   return {
@@ -287,7 +286,7 @@ export function subscribeOpenTrailListings(
   onChange: (rows: TrailInstance[]) => void,
   onError?: (e: FirestoreError) => void,
 ): Unsubscribe {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const listingsQuery = query(
     collection(db, OPEN_TRAIL_LISTINGS_COLLECTION),
     orderBy("updatedAt", "desc"),

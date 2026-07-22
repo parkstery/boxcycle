@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:ride": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test ride-entry\""
   },
   "dependencies": {
     "firebase": "^12.13.0",

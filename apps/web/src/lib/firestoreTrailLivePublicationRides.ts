@@ -4,7 +4,6 @@ import {
   deleteDoc,
   doc,
   getDocs,
-  getFirestore,
   limit,
   onSnapshot,
   orderBy,
@@ -19,7 +18,7 @@ import {
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
 import { getPresenceDisplayName } from "./authDisplay";
-import { getFirebaseApp } from "./firebase";
+import { getFirebaseFirestore } from "./firebase";
 import {
   DEFAULT_TRAIL_ID,
   isMemberRecentlySeen,
@@ -69,7 +68,7 @@ function readRidePhase(data: Record<string, unknown>): TrailLiveRidePhase | null
 }
 
 function liveRidesCollectionRef(trailId: string) {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const rid = sanitizeTrailId(trailId);
   return collection(db, TRAILS_COLLECTION, rid, TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION);
 }
@@ -128,7 +127,7 @@ export async function mergeTrailLivePublicationRideSnapshot(
   input: TrailLivePublicationRideSnapshotInput,
 ): Promise<void> {
   const rid = sanitizeTrailId(trailId);
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const ref = doc(db, TRAILS_COLLECTION, rid, TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION, user.uid);
   const payload: Record<string, unknown> = {
     publicationId: input.publicationId.trim(),
@@ -149,7 +148,7 @@ export async function mergeTrailLivePublicationRideSnapshot(
 
 export async function deleteTrailLivePublicationRide(uid: string, trailId: string): Promise<void> {
   const rid = sanitizeTrailId(trailId);
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   await deleteDoc(doc(db, TRAILS_COLLECTION, rid, TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION, uid));
 }
 
@@ -216,7 +215,7 @@ function parseActiveLiveRideTrailIds(docs: readonly QueryDocumentSnapshot[]): st
  * 지금 주행 중인 Trail ID — `livePublicationRides` collection group 기준(최근 lastSeenAt).
  */
 export async function fetchTrailIdsWithActiveLiveRides(): Promise<string[]> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const q = query(
     collectionGroup(db, TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION),
     where("lastSeenAt", ">", liveRideFreshnessCutoff()),
@@ -232,7 +231,7 @@ export function subscribeTrailIdsWithActiveLiveRides(
   onChange: (trailIds: string[]) => void,
   onError?: (e: FirestoreError) => void,
 ): Unsubscribe {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const q = query(
     collectionGroup(db, TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION),
     where("lastSeenAt", ">", liveRideFreshnessCutoff()),

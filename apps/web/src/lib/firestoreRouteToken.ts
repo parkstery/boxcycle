@@ -1,12 +1,12 @@
 import type { User } from "firebase/auth";
-import { doc, getFirestore, onSnapshot, type Unsubscribe } from "firebase/firestore";
-import { getFirebaseApp } from "./firebase";
+import { doc, onSnapshot, type Unsubscribe } from "firebase/firestore";
+import { getFirebaseFirestore } from "./firebase";
 
 export function subscribeRouteTokenBalance(
   userId: string,
   onValue: (balance: number | null) => void,
 ): Unsubscribe {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   return onSnapshot(
     doc(db, "users", userId),
     (snap) => {

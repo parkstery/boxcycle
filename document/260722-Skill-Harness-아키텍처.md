@@ -85,7 +85,7 @@ rider-preview에서 나온 규칙을 프로젝트 전체로 확장한다. 반복
 | 영역 | Skill | Harness | 상태 | 비고 |
 |---|:---:|:---:|---|---|
 | Rider Preview | ✅ | ✅ | **완료** | verify-rider-glb·render-views. 8위상 페달 렌더는 미구현 |
-| Ride Verify (실주행) | ✅ | 🔶 | **부분완료** | 셀렉터 계약 검증(verify-selectors, Firebase 불필요) 완비 · e2e 진입 spec(ride-entry)은 **Firebase 배선 대기**(RIDE_VERIFY_LIVE 게이트) |
+| Ride Verify (실주행) | ✅ | 🔶 | **부분완료** | 셀렉터 계약 검증(verify-selectors) 완비 · **에뮬레이터 배선 완료**(2026-07-22, `test:e2e:ride`) — 게스트 인증·Firestore 붙음 확인 · e2e spec 3→4단계 셀렉터 known-issue 로 아직 red(HARNESS.md 참고) |
 | Peer Sync | ✅ | ✅ | **완료** | replay 하네스(재생·불변식·그래프). 정지 오버슛은 known-fail 고정 · merge 이중스트림·reconcile 재생은 미구현 |
 | Camera | ❌ | ❌ | 필요 | 프리셋 프리뷰 없음 |
 | Ontology (용어) | 🔶 | 🔶 | 필요 | 금지어 정의(Ontology)·audit CLI는 있으나 신규 diff 검사 스킬 없음 |
@@ -99,7 +99,8 @@ rider-preview에서 나온 규칙을 프로젝트 전체로 확장한다. 반복
 
 ## 6. 다음 우선순위 (철학 §4 기준)
 
-1. ~~**ride-verify** — 실주행 진입 시퀀스를 하네스화.~~ ✅ 셀렉터 계약 완비, e2e 진입 spec 은 **Firebase 배선 대기**(다음 항목).
+1. ~~**ride-verify** — 실주행 진입 시퀀스를 하네스화.~~ ✅ 셀렉터 계약 완비.
 2. ~~**peer-sync Replay** — 패킷 로그→재생→보간→그래프.~~ ✅ 완료. 정지 오버슛 버그를 known-fail 로 노출·고정.
-3. **Firebase 배선(에뮬레이터 or 테스트 프로젝트)** — ride-verify e2e(`RIDE_VERIFY_LIVE=1`)를 실제로 돌리려면 필요. 현재 배선 없음(ride-verify HARNESS.md 참고).
-4. 그 후 deploy-check·config-seed·ontology-audit·camera 를 **같은 3계층 패턴**으로 확장.
+3. ~~**Firebase 배선(에뮬레이터)**~~ ✅ **완료**(2026-07-22, 경로 (b)). `test:e2e:ride` 로 에뮬레이터 자동 기동, 게스트 인증·Firestore 붙음 확인. **단 spec 3→4단계 셀렉터 known-issue 로 아직 red** — 다음 항목.
+4. **ride-entry spec 3→4단계 수정** — 입문 코스 모달 클릭→`주행 시작` 노출 흐름을 실제 UI 에 맞춰 green 확보(배선은 됐으나 spec 이 코스 로드까지 못 감).
+5. 그 후 deploy-check·config-seed·ontology-audit·camera 를 **같은 3계층 패턴**으로 확장.
