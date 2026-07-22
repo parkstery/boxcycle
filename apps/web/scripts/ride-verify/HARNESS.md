@@ -55,16 +55,22 @@ cd apps/web && npm run test:e2e:ride
 빈 에뮬레이터 DB 에서도 목록이 뜬다. `routePublications` seed 는 rules 상 리뷰어 전용이라 게스트가
 막히지만(`.catch` 로 무시), 진입 시퀀스 자체엔 지장 없다(presence/동행에만 영향).
 
-## Known-issue — spec 4단계(주행 시작)에서 멈춤 (2026-07-22)
+## 해결됨 — spec 4단계 red 근본 원인 (2026-07-22)
 
-에뮬레이터 배선 후 첫 실행 결과: 게스트 익명 인증·MENU·입문 탭까지 통과(= **배선은 정상 동작**)하나
-**4단계 `주행 시작` 버튼 미출현**으로 실패. DOM 스냅샷상 실패 시점에 입문 코스 **모달이 열려 있지 않고**
-MENU 인라인 패널에 머물러 있다 — spec 3단계(`#oc-modal-title` dialog 첫 코스 클릭)가 실제 UI 와
-어긋난 것으로 보인다(셀렉터 계약 정적 검증은 통과하므로 문자열이 아니라 **흐름/타이밍** 문제).
-배선 범위 밖의 후속 과제로 남긴다 — spec 3→4단계 셀렉터를 실제 진입 흐름에 맞춰 수정해야 green.
+증상: 게스트 인증·MENU·입문 탭까지 통과하나 4단계 `주행 시작` 미출현. **red 는 3겹이었다:**
+1. Firebase 배선 부재 → 에뮬레이터 배선(위).
+2. 입문 경로 빈 배열(`BASIC_SHARED_HUB_IDS`) → Basic 1/2/3 활성화.
+3. **spec 셀렉터 결함** — 3단계가 `modal.getByRole('button').first()` 로 첫 텍스트 버튼을 집었는데,
+   모달 헤더 **'닫기' 버튼이 DOM 상 코스 리스트보다 앞**이라 닫기를 클릭 → 모달만 닫히고 코스 미로드
+   → `hasRoute=false` → stage 가 `ready-to-start` 로 안 감 → Go 버튼 미출현. (지난 스냅샷의 "모달 없고
+   MENU 에 머묾"이 정확히 이것.) → 코스 항목만 겨냥하도록 `modal.locator('button.oc-modal__item').first()` 로 수정.
+
+**현재 `npm run test:e2e:ride` = 1 passed(green).** 6단계 진입 시퀀스 전체가 에뮬레이터에서 결정적으로 검증된다.
+교훈: 이 red 를 배선/인증 회귀로 의심하지 마라 — 코스 로드가 안 되면 stage 전환이 막힌다. stage 는
+`useRideUiStage` 가 `hasRoute(=routeGeometry && distance>0)` 로 파생하므로, 4단계 red 는 대개 3단계 클릭이
+실제 코스 아이템을 못 눌렀다는 신호다.
 
 ## 미구현 (하네스 확장 TODO)
 
-- **spec 3→4단계 수정**: 위 known-issue. green 확보가 최우선 후속.
 - **peer 동행 진입**: 현재 spec 은 단독 주행만. 2인 진입(peer-sync 하네스와 연계)은 미구현.
 - **주행 종료·저장 검증**: running 확정까지만. 종료→요약→영속화(`useRideEndAndPersistence`)는 범위 밖.
