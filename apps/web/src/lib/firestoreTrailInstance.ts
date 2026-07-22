@@ -2,14 +2,13 @@ import {
   collection,
   doc,
   getDoc,
-  getFirestore,
   serverTimestamp,
   setDoc,
   updateDoc,
   type FieldValue,
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
-import { getFirebaseApp } from "./firebase";
+import { getFirebaseFirestore } from "./firebase";
 import { pickRandomTrailDisplayNumber } from "./trailDisplayNumber";
 import { TRAILS_COLLECTION } from "./firestoreTrailPaths";
 import {
@@ -113,7 +112,7 @@ export async function createTrailInstance(input: {
   if (visibility === "open") {
     assertPublicTrailHasRoute(input.publicationId);
   }
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const ref = doc(collection(db, TRAILS_COLLECTION));
   const displayNumber = pickRandomTrailDisplayNumber();
   const publicationId = input.publicationId?.trim() || null;
@@ -155,14 +154,14 @@ export function withResolvedTrailPublicationId(
 }
 
 export async function fetchTrailInstance(trailId: string): Promise<TrailInstance | null> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const snap = await getDoc(doc(db, TRAILS_COLLECTION, trailId));
   if (!snap.exists()) return null;
   return parseTrailInstance(snap.id, snap.data() as Record<string, unknown>);
 }
 
 export async function closeTrailInstance(trailId: string): Promise<void> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   await updateDoc(doc(db, TRAILS_COLLECTION, trailId), {
     status: "closed",
     closedAt: serverTimestamp(),
@@ -172,7 +171,7 @@ export async function closeTrailInstance(trailId: string): Promise<void> {
 }
 
 export async function touchTrailInstanceActivity(trailId: string): Promise<void> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   await updateDoc(doc(db, TRAILS_COLLECTION, trailId), {
     lastActivityAt: serverTimestamp(),
   }).catch(() => {});
@@ -189,7 +188,7 @@ export async function setTrailVisibility(
       throw new Error("공개 Trail은 경로(코스)가 설정된 후에만 가능합니다.");
     }
   }
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   await updateDoc(doc(db, TRAILS_COLLECTION, trailId), {
     visibility,
     lastActivityAt: serverTimestamp(),

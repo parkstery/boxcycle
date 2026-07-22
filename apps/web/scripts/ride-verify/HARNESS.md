@@ -30,28 +30,41 @@ tsc·lint 처럼 커밋 전 게이트로 쓴다.
 ## 2. 진입 e2e `ride-entry.spec.ts`
 
 ```bash
-cd apps/web && RIDE_VERIFY_LIVE=1 npm run test:e2e -- ride-entry
+cd apps/web && npm run test:e2e:ride
 ```
-`RIDE_VERIFY_LIVE=1` 없으면 **skip**(기본). Playwright config 의 webServer 가 `dev:localhost`(포트 5000)를
-자동 기동한다. 진입 6단계를 클릭하고 마지막에 `주행 지표` 그룹 + `주행 종료` 버튼으로 running 을 확정한다.
+이 스크립트가 **에뮬레이터를 자동 기동**하고(`firebase emulators:exec`) 그 안에서 spec 을 돌린다.
+직접 `RIDE_VERIFY_LIVE=1 playwright test ride-entry` 로 켜지 마라 — 그러면 실 Firebase 에 붙는다.
 
-## Firebase 전제 (중요 — 아직 미배선)
+동작 원리: `emulators:exec` 가 자식 프로세스에 `FIRESTORE_EMULATOR_HOST` 등을 주입한다.
+`playwright.config.ts` 가 그 env 존재를 감지(`underEmulator`)해 ① `RIDE_VERIFY_LIVE=1` 로 skip 해제,
+② webServer(vite)에 `VITE_USE_EMULATOR=1` 주입 → 앱이 `connect*Emulator` 로 에뮬레이터에 붙는다.
+`RIDE_VERIFY_LIVE=1` 없으면 spec 은 **skip**(기본).
 
-진입 spec 은 실제 Firebase 에 붙는다:
-- 게스트 진입 = 실제 `signInAnonymously`(`src/hooks/useAppAuth.ts`)
-- 코스 로드 = 실제 Firestore(`ensureBasicCoursesSeeded`·`fetchCourseRoutePayload`)
+## Firebase 에뮬레이터 배선 (2026-07-22 완료 — 경로 (b))
 
-**에뮬레이터 배선이 없다** — 루트 `firebase.json` 에 emulators 블록 없고, 코드에 `connectAuthEmulator`/
-`connectFirestoreEmulator` 미사용. `RIDE_VERIFY_LIVE=1` 로 켜려면 아래 중 하나가 선행돼야 한다:
-- (a) 테스트용 Firebase 프로젝트 + 익명 인증 허용, 또는
-- (b) 에뮬레이터 신규 배선(firebase.json + connect* 배선), 또는
-- (c) Playwright route mock 으로 `firebase/auth`·`firestore` 네트워크 가로채기.
+진입 spec 은 실제 Firebase API 를 쓴다(게스트 = `signInAnonymously`, 코스 = Firestore). 이를 로컬
+에뮬레이터로 결정적·무비용·오프라인으로 돌리도록 배선했다:
 
-`VITE_ALLOW_UNAUTH_MAP=1` 은 인증 카드만 완화할 뿐 `handleStartRide` 가 `!user` 면 return 하므로
-주행 시작은 여전히 실제 익명 로그인이 필요하다(우회 불가).
+- `firebase.json` `emulators` 블록: auth 9099 · firestore 8080 · database 9000.
+- `src/lib/firebase.ts`: `getFirebaseFirestore()` 싱글턴 신설(흩어진 `getFirestore(getFirebaseApp())`
+  64곳 통합) + `VITE_USE_EMULATOR=1` 일 때 `connectAuthEmulator`/`connectFirestoreEmulator`/
+  `connectDatabaseEmulator` 배선. **신규 Firestore 접근은 반드시 `getFirebaseFirestore()` 를 쓴다.**
+- 전제: 로컬에 Java(JDK 11+)·firebase-tools 필요(둘 다 설치 확인됨). `.firebaserc` = `boxcycle-dc2df`.
+
+입문 코스 모달은 로컬 상수(`BASIC_COURSES` → `getBasicSharedHubSummaries()`)로 채워지므로
+빈 에뮬레이터 DB 에서도 목록이 뜬다. `routePublications` seed 는 rules 상 리뷰어 전용이라 게스트가
+막히지만(`.catch` 로 무시), 진입 시퀀스 자체엔 지장 없다(presence/동행에만 영향).
+
+## Known-issue — spec 4단계(주행 시작)에서 멈춤 (2026-07-22)
+
+에뮬레이터 배선 후 첫 실행 결과: 게스트 익명 인증·MENU·입문 탭까지 통과(= **배선은 정상 동작**)하나
+**4단계 `주행 시작` 버튼 미출현**으로 실패. DOM 스냅샷상 실패 시점에 입문 코스 **모달이 열려 있지 않고**
+MENU 인라인 패널에 머물러 있다 — spec 3단계(`#oc-modal-title` dialog 첫 코스 클릭)가 실제 UI 와
+어긋난 것으로 보인다(셀렉터 계약 정적 검증은 통과하므로 문자열이 아니라 **흐름/타이밍** 문제).
+배선 범위 밖의 후속 과제로 남긴다 — spec 3→4단계 셀렉터를 실제 진입 흐름에 맞춰 수정해야 green.
 
 ## 미구현 (하네스 확장 TODO)
 
-- **Firebase 배선**: 위 (a)/(b)/(c) 중 하나. 이게 되기 전엔 진입 spec 은 계약(1번)만큼의 회귀 방어력이 없다.
+- **spec 3→4단계 수정**: 위 known-issue. green 확보가 최우선 후속.
 - **peer 동행 진입**: 현재 spec 은 단독 주행만. 2인 진입(peer-sync 하네스와 연계)은 미구현.
 - **주행 종료·저장 검증**: running 확정까지만. 종료→요약→영속화(`useRideEndAndPersistence`)는 범위 밖.

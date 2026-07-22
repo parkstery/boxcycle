@@ -3,7 +3,6 @@ import {
   deleteDoc,
   deleteField,
   doc,
-  getFirestore,
   onSnapshot,
   serverTimestamp,
   setDoc,
@@ -13,7 +12,7 @@ import {
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
 import { getPresenceDisplayName, getPresenceMemberType, type PresenceMemberType } from "./authDisplay";
-import { getFirebaseApp } from "./firebase";
+import { getFirebaseFirestore } from "./firebase";
 import type { LngLat } from "./geo";
 import { isMemberRecentlySeen, lastSeenAtToMillis } from "./firestoreTrail";
 
@@ -34,7 +33,7 @@ export const isPublicationSessionMemberActive = isMemberRecentlySeen;
 export const PUBLICATION_SESSION_LIVE_SHARE_INTERVAL_MS = 2000;
 
 function membersCollectionRef(publicationId: string) {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   return collection(
     db,
     PUBLICATION_SESSIONS_COLLECTION,
@@ -59,7 +58,7 @@ function parseLiveLngLat(data: Record<string, unknown>): LngLat | null {
 export async function upsertPublicationSessionMember(user: User, publicationId: string): Promise<void> {
   const id = publicationId.trim();
   if (!id) return;
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const ref = doc(db, PUBLICATION_SESSIONS_COLLECTION, id, PUBLICATION_SESSION_MEMBERS_SUBCOLLECTION, user.uid);
   await setDoc(
     ref,
@@ -84,7 +83,7 @@ export async function mergePublicationSessionMemberLiveLocation(
 ): Promise<void> {
   const id = publicationId.trim();
   if (!id) return;
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const ref = doc(db, PUBLICATION_SESSIONS_COLLECTION, id, PUBLICATION_SESSION_MEMBERS_SUBCOLLECTION, user.uid);
   if (lngLat) {
     await setDoc(
@@ -118,7 +117,7 @@ export async function mergePublicationSessionMemberLiveLocation(
 export async function deletePublicationSessionMember(uid: string, publicationId: string): Promise<void> {
   const id = publicationId.trim();
   if (!id) return;
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   await deleteDoc(doc(db, PUBLICATION_SESSIONS_COLLECTION, id, PUBLICATION_SESSION_MEMBERS_SUBCOLLECTION, uid));
 }
 

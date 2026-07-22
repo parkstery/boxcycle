@@ -1,6 +1,7 @@
 import { initializeApp, type FirebaseApp } from "firebase/app";
-import { getAuth, type Auth } from "firebase/auth";
-import { getDatabase, type Database } from "firebase/database";
+import { getAuth, connectAuthEmulator, type Auth } from "firebase/auth";
+import { getDatabase, connectDatabaseEmulator, type Database } from "firebase/database";
+import { getFirestore, connectFirestoreEmulator, type Firestore } from "firebase/firestore";
 
 function readConfig() {
   return {
@@ -34,9 +35,22 @@ export function isFirebaseConfigured(): boolean {
   return Boolean(c.apiKey && c.authDomain && c.projectId && c.appId);
 }
 
+/**
+ * 로컬 에뮬레이터 사용 여부. `VITE_USE_EMULATOR=1` 일 때만 켠다(dev·e2e 전용).
+ * 프로덕션 빌드엔 이 플래그가 없으므로 실 Firebase 로 붙는다.
+ * 포트는 firebase.json emulators 블록과 일치시킨다.
+ */
+function shouldUseEmulator(): boolean {
+  return import.meta.env.VITE_USE_EMULATOR === "1";
+}
+
+const EMULATOR_HOST = "127.0.0.1";
+const EMULATOR_PORTS = { auth: 9099, firestore: 8080, database: 9000 } as const;
+
 let app: FirebaseApp | undefined;
 let auth: Auth | undefined;
 let database: Database | undefined;
+let firestore: Firestore | undefined;
 
 export function getFirebaseApp(): FirebaseApp {
   if (!isFirebaseConfigured()) {
@@ -63,6 +77,11 @@ export function getFirebaseApp(): FirebaseApp {
 export function getFirebaseAuth(): Auth {
   if (!auth) {
     auth = getAuth(getFirebaseApp());
+    if (shouldUseEmulator()) {
+      connectAuthEmulator(auth, `http://${EMULATOR_HOST}:${EMULATOR_PORTS.auth}`, {
+        disableWarnings: true,
+      });
+    }
   }
   return auth;
 }
@@ -73,6 +92,24 @@ export function getFirebaseDatabase(): Database {
   }
   if (!database) {
     database = getDatabase(getFirebaseApp());
+    if (shouldUseEmulator()) {
+      connectDatabaseEmulator(database, EMULATOR_HOST, EMULATOR_PORTS.database);
+    }
   }
   return database;
+}
+
+/**
+ * Firestore 싱글턴. 전까지 각 `firestore*.ts` 가 `getFirestore(getFirebaseApp())` 를
+ * 직접 호출했으나, 에뮬레이터 배선(`connectFirestoreEmulator` 는 인스턴스당 1회만 허용)을
+ * 한 곳에 모으기 위해 이 getter 로 통합한다. 신규 코드는 반드시 이 함수를 쓴다.
+ */
+export function getFirebaseFirestore(): Firestore {
+  if (!firestore) {
+    firestore = getFirestore(getFirebaseApp());
+    if (shouldUseEmulator()) {
+      connectFirestoreEmulator(firestore, EMULATOR_HOST, EMULATOR_PORTS.firestore);
+    }
+  }
+  return firestore;
 }

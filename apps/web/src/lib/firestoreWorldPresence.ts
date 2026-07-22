@@ -1,5 +1,5 @@
-import { doc, getDoc, getFirestore, type Timestamp } from "firebase/firestore";
-import { getFirebaseApp } from "./firebase";
+import { doc, getDoc, type Timestamp } from "firebase/firestore";
+import { getFirebaseFirestore } from "./firebase";
 
 export type WorldRegionRow = {
   id: string;
@@ -42,7 +42,7 @@ export type WorldPresenceFetchResult = {
  */
 export async function fetchWorldPresenceSummary(): Promise<WorldPresenceFetchResult> {
   try {
-    const db = getFirestore(getFirebaseApp());
+    const db = getFirebaseFirestore();
     const snap = await getDoc(doc(db, "appMeta", "worldPresence"));
     if (!snap.exists()) {
       return { regions: WORLD_PRESENCE_DEFAULT_REGIONS, fromServer: false, updatedAtMs: null };

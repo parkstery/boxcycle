@@ -1,5 +1,5 @@
-import { doc, getDoc, getFirestore } from "firebase/firestore";
-import { getFirebaseApp } from "./firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { getFirebaseFirestore } from "./firebase";
 import { lastSeenAtToMillis } from "./firestoreTrail";
 
 /** `worldActivity/global` — 줌 아웃 시 월드 레이어 힌트(저빈도 getDoc) */
@@ -42,7 +42,7 @@ function parseWorldActivityDoc(data: Record<string, unknown>): WorldActivitySnap
 }
 
 export async function fetchWorldActivityGlobal(): Promise<WorldActivitySnapshot | null> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const snap = await getDoc(doc(db, COLLECTION, GLOBAL_DOC_ID));
   if (!snap.exists()) return null;
   return parseWorldActivityDoc(snap.data() as Record<string, unknown>);

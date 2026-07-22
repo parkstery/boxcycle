@@ -3,7 +3,6 @@ import {
   deleteDoc,
   doc,
   getDocs,
-  getFirestore,
   limit,
   onSnapshot,
   query,
@@ -14,7 +13,7 @@ import {
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
 import { getPresenceDisplayName, getPresenceMemberType } from "./authDisplay";
-import { getFirebaseApp } from "./firebase";
+import { getFirebaseFirestore } from "./firebase";
 import {
   TRAIL_MEMBERS_SUBCOLLECTION,
   TRAILS_COLLECTION,
@@ -71,7 +70,7 @@ export function isMemberRecentlySeen(lastSeenAtMs: number | null): boolean {
 }
 
 function membersCollectionRef(trailId: string) {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   return collection(db, TRAILS_COLLECTION, trailId, TRAIL_MEMBERS_SUBCOLLECTION);
 }
 
@@ -79,7 +78,7 @@ export const isTrailMemberActive = isMemberRecentlySeen;
 
 export async function upsertTrailPresence(user: User, trailId: string): Promise<void> {
   const rid = sanitizeTrailId(trailId);
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const ref = doc(db, TRAILS_COLLECTION, rid, TRAIL_MEMBERS_SUBCOLLECTION, user.uid);
   await setDoc(
     ref,
@@ -99,7 +98,7 @@ export async function touchTrailPresence(user: User, trailId: string): Promise<v
 
 export async function deleteTrailPresence(uid: string, trailId: string): Promise<void> {
   const rid = sanitizeTrailId(trailId);
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   await deleteDoc(doc(db, TRAILS_COLLECTION, rid, TRAIL_MEMBERS_SUBCOLLECTION, uid));
 }
 

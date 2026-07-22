@@ -2,7 +2,6 @@ import {
   collection,
   GeoPoint,
   getDocs,
-  getFirestore,
   limit,
   orderBy,
   query,
@@ -10,7 +9,7 @@ import {
   where,
   type QueryConstraint,
 } from "firebase/firestore";
-import { getFirebaseApp } from "./firebase";
+import { getFirebaseFirestore } from "./firebase";
 import type { LngLat } from "./geo";
 import { lastSeenAtToMillis } from "./firestoreTrail";
 import { COURSE_ACTIVITY_POLL_MS } from "./rideSyncPolicy";
@@ -96,7 +95,7 @@ function parseDoc(id: string, data: Record<string, unknown>): PublicationPresenc
 }
 
 async function runPresenceQuery(constraints: QueryConstraint[]): Promise<PublicationPresenceSnapshot[]> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const q = query(collection(db, COLLECTION), ...constraints);
   const snap = await getDocs(q);
   const out: PublicationPresenceSnapshot[] = [];

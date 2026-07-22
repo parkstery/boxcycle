@@ -2,7 +2,6 @@ import {
   addDoc,
   collection,
   getDocs,
-  getFirestore,
   limit,
   orderBy,
   query,
@@ -10,7 +9,7 @@ import {
   Timestamp,
   where,
 } from "firebase/firestore";
-import { getFirebaseApp } from "./firebase";
+import { getFirebaseFirestore } from "./firebase";
 import type { ConquestRidePayload } from "./conquestTiles";
 import { buildRideCanonicalWriteFields, resolveRideRouteId } from "./rideDocFields";
 import type { RouteRideEntry } from "./routePublicationResolve";
@@ -69,7 +68,7 @@ export async function saveRideSessionToFirestore(input: {
   if (isDiscardableRideRecord(input.session.distanceMeters, input.session.elapsedSec)) {
     return null;
   }
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const endedAtDate = new Date(input.session.endedAt);
   const endedAt = Number.isNaN(endedAtDate.getTime())
     ? Timestamp.now()
@@ -155,7 +154,7 @@ export async function loadRideSessionsForStatsFromFirestore(
   userId: string,
   limitCount = 400,
 ): Promise<StoredRideSession[]> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const q = query(
     collection(db, RIDES_COLLECTION),
     where("userId", "==", userId),

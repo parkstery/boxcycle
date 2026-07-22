@@ -3,14 +3,13 @@ import {
   doc,
   getDoc,
   getDocs,
-  getFirestore,
   limit,
   query,
   serverTimestamp,
   setDoc,
   where,
 } from "firebase/firestore";
-import { getFirebaseApp } from "./firebase";
+import { getFirebaseFirestore } from "./firebase";
 import {
   findPublishedRoutePublicationById,
   listPublishedRoutePublications,
@@ -71,8 +70,16 @@ export type CourseDoc = {
   updatedAt: unknown;
 };
 
-/** 동시 주행 presence 가 분리되는 입문 허브 코스 — 재생성 전까지 비어 있음 */
-export const BASIC_SHARED_HUB_IDS: readonly string[] = [];
+/**
+ * 동시 주행 presence 가 분리되는 입문 허브 코스.
+ * `BASIC_COURSES` 의 Basic 1/2/3(starter) id — 입문 경로 목록·동행 presence 의 원천.
+ * summaries(`BASIC_SHARED_HUB_SUMMARIES`)는 이 id 로 `BASIC_COURSES` 에서 파생한다(단일 진실).
+ */
+export const BASIC_SHARED_HUB_IDS: readonly string[] = [
+  "basic-mountain-0_5km", // Basic 1 · Mountain Intro (0.5km)
+  "basic-coastal-1_0km", // Basic 2 · Coastal Tempo (1.0km)
+  "basic-mountain-1_5km", // Basic 3 · Ridge Climb (1.5km)
+];
 
 export type BasicSharedHubCourseId = string;
 
@@ -229,7 +236,7 @@ export async function findPublishedPublicFingerprintsAmong(
   const out = new Set<string>();
   const uniq = [...new Set(candidates.filter((f) => typeof f === "string" && f.length === 64))];
   if (uniq.length === 0) return out;
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
   const chunkSize = 30;
   for (let i = 0; i < uniq.length; i += chunkSize) {
     const chunk = uniq.slice(i, i + chunkSize);
@@ -490,7 +497,25 @@ export async function fetchCourseBounds(publicationId: string): Promise<CourseBo
   return pending;
 }
 
-export const BASIC_SHARED_HUB_SUMMARIES: PublishedPublicCourseSummary[] = [];
+/**
+ * 입문 경로 목록(패널·모달)용 요약 — `BASIC_SHARED_HUB_IDS` 를 `BASIC_COURSES` 에서 파생한다.
+ * 하드코딩하지 않아 제목·거리·시간이 코스 정의와 항상 일치한다. seed 는 `routePublications/{id}`
+ * 에 `id === course.id` 로 심으므로 publicationId 도 동일하다.
+ */
+export const BASIC_SHARED_HUB_SUMMARIES: PublishedPublicCourseSummary[] = BASIC_SHARED_HUB_IDS.map(
+  (id): PublishedPublicCourseSummary => {
+    const payload = getBasicHubCoursePayload(id);
+    return {
+      id: payload.id,
+      title: payload.title,
+      profile: payload.profile,
+      distanceMeters: payload.distanceMeters,
+      durationSec: payload.durationSec,
+      routeId: payload.id,
+      publicationId: payload.id,
+    };
+  },
+);
 
 export function getBasicSharedHubSummaries(): PublishedPublicCourseSummary[] {
   return BASIC_SHARED_HUB_SUMMARIES;
@@ -520,7 +545,7 @@ export async function ensurePublicationPresenceFlagsMerged(publicationId: string
 }
 
 export async function ensureBasicCoursesSeeded(_currentUserId?: string): Promise<void> {
-  const db = getFirestore(getFirebaseApp());
+  const db = getFirebaseFirestore();
 
   for (const course of BASIC_COURSES) {
     const pubRef = doc(db, ROUTE_PUBLICATIONS_COLLECTION, course.id);
