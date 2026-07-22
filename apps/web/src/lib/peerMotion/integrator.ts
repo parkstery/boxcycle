@@ -135,9 +135,13 @@ export function stepPeerMotionEntity(
     // 버퍼보다 과거 — 가장 오래된 위치 (방금 나타난 peer)
     dist = oldest.distM;
   } else if (renderTime >= newest.recvAtMs) {
-    // 스트림 stall — newest 속도로 제한 외삽 후 hold
+    // 스트림 stall — **entity.speedMps**(항상 최신) 로 제한 외삽 후 hold.
+    // newest.speedMps(버퍼 스냅샷) 를 쓰면 안 된다: 정지 패킷(distM 불변)은 dedup 으로 버퍼에
+    // 안 쌓여 newest 가 정지 직전 전진 스냅샷에 고정되고, 그 옛 속도로 외삽해 멈춘 peer 가
+    // ~7m 미끄러진다(신호대기 오버슛). entity.speedMps 는 dedup 되어도 매 ingest 갱신되므로
+    // 정지가 즉시 반영된다.
     const aheadMs = Math.min(renderTime - newest.recvAtMs, PEER_INTERP_MAX_EXTRAP_MS);
-    dist = newest.distM + newest.speedMps * (aheadMs / 1000);
+    dist = newest.distM + entity.speedMps * (aheadMs / 1000);
   } else {
     // renderTime 을 감싸는 두 스냅샷 보간
     let s0 = oldest;

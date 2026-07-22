@@ -86,7 +86,7 @@ rider-preview에서 나온 규칙을 프로젝트 전체로 확장한다. 반복
 |---|:---:|:---:|---|---|
 | Rider Preview | ✅ | ✅ | **완료** | verify-rider-glb·render-views. 8위상 페달 렌더는 미구현 |
 | Ride Verify (실주행) | ✅ | ✅ | **완료** | 셀렉터 계약 검증(verify-selectors) + 에뮬레이터 배선(`test:e2e:ride`) · **e2e green(1 passed, 2026-07-22)** — 6단계 진입 전체 검증 · peer 2인 진입·종료 저장은 미구현 |
-| Peer Sync | ✅ | ✅ | **완료** | replay 하네스(재생·불변식·그래프). 정지 오버슛은 known-fail 고정 · merge 이중스트림·reconcile 재생은 미구현 |
+| Peer Sync | ✅ | ✅ | **완료** | replay 하네스(재생·불변식·그래프). **정지 오버슛(~7m) 수정됨**(2026-07-22, 외삽이 entity.speedMps 사용) · merge 이중스트림·reconcile 재생은 미구현 |
 | Camera | ❌ | ❌ | 필요 | 프리셋 프리뷰 없음 |
 | Ontology (용어) | 🔶 | 🔶 | 필요 | 금지어 정의(Ontology)·audit CLI는 있으나 신규 diff 검사 스킬 없음 |
 | Firestore Cost | ❌ | ❌ | 필요 | write 전 mock/cost 검증 없음 |
