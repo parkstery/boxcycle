@@ -33,16 +33,23 @@ export function useUserTier(user: User | null, configured: boolean) {
   const [mileageRideCount, setMileageRideCount] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!configured || !user?.uid) {
+    // 구독 불가(미설정·비로그인)면 구독을 걸지 않는다. 값 초기화는 아래 cleanup 이 맡는다 —
+    // effect 본문에서 직접 setState 하면 cascading render(react-hooks/set-state-in-effect)라,
+    // 리셋을 cleanup 한 곳으로 모아 로그아웃·user 전환·미설정 진입을 모두 여기서 처리한다.
+    const reset = () => {
       setFirestoreTier(null);
       setSubscriptionStatus("none");
       setMileageTotalMeters(null);
       setMileageTotalSec(null);
       setMileageRideCount(null);
-      return;
+    };
+
+    if (!configured || !user?.uid) {
+      return reset;
     }
+
     const ref = doc(getFirebaseFirestore(), "users", user.uid);
-    return onSnapshot(
+    const unsubscribe = onSnapshot(
       ref,
       (snap) => {
         const data = snap.data();
@@ -53,14 +60,12 @@ export function useUserTier(user: User | null, configured: boolean) {
         setMileageTotalSec(normalizeMileageNumber(data?.mileageTotalSec));
         setMileageRideCount(normalizeMileageNumber(data?.mileageRideCount));
       },
-      () => {
-        setFirestoreTier(null);
-        setSubscriptionStatus("none");
-        setMileageTotalMeters(null);
-        setMileageTotalSec(null);
-        setMileageRideCount(null);
-      },
+      reset,
     );
+    return () => {
+      unsubscribe();
+      reset();
+    };
   }, [configured, user?.uid]);
 
   return useMemo(() => {
