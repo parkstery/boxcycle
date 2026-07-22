@@ -27,9 +27,11 @@ test.describe('실주행 진입 시퀀스', () => {
     await page.getByRole('button', { name: '입문' }).click()
 
     // 3) 코스 모달에서 첫 코스 로드 (제목은 런타임 카탈로그라 첫 항목을 집는다)
+    // 헤더 '닫기' 버튼이 DOM 상 리스트보다 앞이라 `.first()` 로 아무 버튼이나 집으면 모달만 닫힌다 —
+    // 반드시 코스 항목(.oc-modal__item) 만 겨냥한다.
     const modal = page.getByRole('dialog').filter({ has: page.locator('#oc-modal-title') })
     await expect(modal).toBeVisible()
-    await modal.getByRole('button').filter({ hasText: /.+/ }).first().click()
+    await modal.locator('button.oc-modal__item').first().click()
 
     // 4) 주행 시작 (RouteDock 'Go' = aria '주행 시작')
     const start = page.getByRole('button', { name: '주행 시작' })
