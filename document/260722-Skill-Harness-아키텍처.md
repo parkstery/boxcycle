@@ -85,8 +85,8 @@ rider-preview에서 나온 규칙을 프로젝트 전체로 확장한다. 반복
 | 영역 | Skill | Harness | 상태 | 비고 |
 |---|:---:|:---:|---|---|
 | Rider Preview | ✅ | ✅ | **완료** | verify-rider-glb·render-views. 8위상 페달 렌더는 미구현 |
-| Ride Verify (실주행) | ❌ | 🔶 | **1순위** | `/verify` 스킬·Playwright MCP로 수동 반복 중 — 시퀀스 하네스화 필요 |
-| Peer Sync | ❌ | ❌ | **1순위** | Replay Harness 부재가 알고리즘 3회 교체의 원인 |
+| Ride Verify (실주행) | ✅ | 🔶 | **부분완료** | 셀렉터 계약 검증(verify-selectors, Firebase 불필요) 완비 · e2e 진입 spec(ride-entry)은 **Firebase 배선 대기**(RIDE_VERIFY_LIVE 게이트) |
+| Peer Sync | ✅ | ✅ | **완료** | replay 하네스(재생·불변식·그래프). 정지 오버슛은 known-fail 고정 · merge 이중스트림·reconcile 재생은 미구현 |
 | Camera | ❌ | ❌ | 필요 | 프리셋 프리뷰 없음 |
 | Ontology (용어) | 🔶 | 🔶 | 필요 | 금지어 정의(Ontology)·audit CLI는 있으나 신규 diff 검사 스킬 없음 |
 | Firestore Cost | ❌ | ❌ | 필요 | write 전 mock/cost 검증 없음 |
@@ -99,6 +99,7 @@ rider-preview에서 나온 규칙을 프로젝트 전체로 확장한다. 반복
 
 ## 6. 다음 우선순위 (철학 §4 기준)
 
-1. **ride-verify** — 실주행 진입 시퀀스(게스트→경로 로드→주행 시작)를 하네스화. camera·peer 검증에 재사용.
-2. **peer-sync Replay** — 패킷 로그→재생→보간→그래프. 실주행 없이 알고리즘 검증.
-3. 그 후 deploy-check·config-seed·ontology-audit를 **같은 3계층 패턴**으로 확장.
+1. ~~**ride-verify** — 실주행 진입 시퀀스를 하네스화.~~ ✅ 셀렉터 계약 완비, e2e 진입 spec 은 **Firebase 배선 대기**(다음 항목).
+2. ~~**peer-sync Replay** — 패킷 로그→재생→보간→그래프.~~ ✅ 완료. 정지 오버슛 버그를 known-fail 로 노출·고정.
+3. **Firebase 배선(에뮬레이터 or 테스트 프로젝트)** — ride-verify e2e(`RIDE_VERIFY_LIVE=1`)를 실제로 돌리려면 필요. 현재 배선 없음(ride-verify HARNESS.md 참고).
+4. 그 후 deploy-check·config-seed·ontology-audit·camera 를 **같은 3계층 패턴**으로 확장.

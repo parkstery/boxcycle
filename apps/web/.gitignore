@@ -18,8 +18,8 @@ dist-ssr
 /blob-report/
 /playwright/.cache/
 
-# rider-preview 렌더 출력물(휘발성 검토용 — 커밋 안 함)
-/scripts/rider-preview/.out/
+# 하네스 산출물(휘발성 검토용 — 커밋 안 함): rider-preview·peer-sync 등
+/scripts/*/.out/
 
 # Editor directories and files
 .vscode/*
