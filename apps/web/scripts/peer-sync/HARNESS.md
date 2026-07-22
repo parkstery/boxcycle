@@ -49,4 +49,4 @@ cd apps/web && node scripts/peer-sync/replay.mjs [--check] [--graph] [--scenario
 
 - **mergePackets 재생 미포함**: 현재 시나리오는 이미 병합된 단일 패킷 스트림만 넣는다. RTDB(10Hz)+Firestore(1Hz) **이중 스트림 병합**(`mergePeerMotionPackets`)의 clock 혼용 버그는 아직 재생 안 한다 — 두 소스 이벤트를 각각 넣고 merge 를 태우는 시나리오 타입 추가 필요.
 - **R2 reconcile(soft/hard pull) 미검증**: 자기 위치 보정(`PEER_RECONCILE_*`)은 이 하네스 범위 밖.
-- **알려진 미해결 버그**: `stationary-dedup`(정지 peer ~7m 오버슛)은 `expectFail` 로 고정만 됨. 근본 수정은 별도 작업.
+- ~~**알려진 미해결 버그**: `stationary-dedup`(정지 peer ~7m 오버슛)~~ ✅ **수정됨(2026-07-22)** — stall 외삽이 `newest.speedMps`(버퍼 낡은 값) 대신 `entity.speedMps`(매 ingest 갱신)를 쓰게 함. 오버슛 7.2m→0m, `expectFail` 제거해 이제 정상 회귀 방어.

@@ -82,14 +82,14 @@ const stall = {
 
 // 4) 정체 패킷(dedup) — distM 안 늘고 같은 위치 반복. peer 가 멈추면 그 자리에 머물러야.
 //
-// KNOWN-FAIL(2026-07-22): 멈춘 peer 가 ~7m 미끄러진다. 정지 패킷은 dedup 으로 버퍼에
-// 안 쌓여 buffer 최신 스냅샷의 speedMps 가 예전 주행값으로 남고, stall 외삽이 그 옛 속도로
-// PEER_INTERP_MAX_EXTRAP_MS 만큼 전진시킨다(신호대기 교차로 오버슛). 근본 수정은 별도 작업.
-// 이 시나리오는 그 회귀를 고정한다 — 고쳐지면(위반이 사라지면) 하네스가 "이제 통과"로 알린다.
+// FIXED(2026-07-22): 과거엔 멈춘 peer 가 ~7m 미끄러졌다(신호대기 오버슛). 원인 — 정지 패킷은
+// dedup 으로 버퍼에 안 쌓여 newest 스냅샷 speedMps 가 정지 직전 주행값으로 남고, stall 외삽이
+// 그 옛 속도로 PEER_INTERP_MAX_EXTRAP_MS 만큼 전진. 수정 — stepPeerMotionEntity 외삽이
+// newest.speedMps 대신 entity.speedMps(dedup 되어도 매 ingest 갱신)를 쓰게 함(integrator.ts).
+// 이 시나리오는 이제 그 회귀를 방어한다 — 오버슛이 다시 생기면 외삽상한 불변식이 잡는다.
 const stationary = {
   name: "stationary-dedup",
   routeLenM: 2000,
-  expectFail: true,
   events: (() => {
     const a = steady({ startMs: 10_000, count: 15, intervalMs: 100, startDistM: 0, speedMps: 6 });
     const last = a[a.length - 1];
