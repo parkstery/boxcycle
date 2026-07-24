@@ -1,0 +1,57 @@
+{
+  "$schema": "RTW Road Bike Geometry — Phase 1 SSoT",
+  "$note": "단위 mm, 각도 deg. 좌표는 BB 원점(+x 진행, +y 위). Rider GLB·IK·Verify가 공유하는 Single Source of Truth. 승인일 2026-07-24.",
+  "rider": { "heightCm": 175, "inseamCm": 82, "position": "relaxed-race" },
+
+  "wheelRadius": 342.5,
+  "wheelDiameter": 685,
+  "hubRadius": 17,
+  "tireWidth": 28,
+
+  "bbPosition": [0, 0],
+  "bbDrop": 72,
+  "bbHeight": 270.5,
+
+  "seatTubeLength": 560,
+  "topTubeLength": 547,
+  "headTubeLength": 165,
+  "chainStay": 410,
+  "seatStay": 525.3,
+  "forkLength": 376.2,
+  "wheelBase": 993.9,
+  "frontCenter": 590.3,
+
+  "seatTubeAngle": 73.5,
+  "headTubeAngle": 73,
+  "topTubeSlope": -3.8,
+  "downTubeAngle": 43.6,
+  "forkRake": 47,
+  "stack": 573,
+  "reach": 388,
+
+  "stemLength": 100,
+  "stemAngle": -6,
+  "handlebarWidth": 420,
+  "handlebarReach": 80,
+  "handlebarDrop": 128,
+
+  "saddleHeight": 725,
+  "saddleSetback": 20,
+
+  "crankLength": 172.5,
+  "pedalRadius": 45,
+  "pedalOffset": 54,
+
+  "coords": {
+    "$note": "mm, BB 원점. GLB 이식용.",
+    "bb": [0, 0],
+    "rearHub": [-403.6, 72],
+    "frontHub": [590.3, 72],
+    "seatTop": [-159, 536.9],
+    "headTop": [388, 573],
+    "headBot": [436.2, 415.2],
+    "saddle": [-225.9, 695.1],
+    "stemClamp": [487.5, 562.5],
+    "barDrop": [527.5, 434.5]
+  }
+}

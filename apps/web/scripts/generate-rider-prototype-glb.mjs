@@ -50,12 +50,16 @@ const outFile = path.join(outDir, "rider-lowpoly.glb");
  * Jersey #2563EB · Bib #1E293B · Helmet White · Bike Matte Black · Glass Smoke Black · Skin Neutral.
  */
 const COL = {
-  // Bike — Matte Black (프레임/바퀴/핸들 통일 톤)
+  // Bike — 프레임 오렌지(RIDEWORLD #FF8C00), 컴포넌트(바퀴/핸들/안장)는 블랙 유지
   tire: 0x141417,
   rim: 0x2a2a30,
-  frame: 0x1a1a1d,
-  frameDark: 0x101013,
-  bar: 0x0d0d10,
+  frame: 0xff8c00, // 프레임 메인 오렌지
+  frameDark: 0xd97406, // 프레임 그늘(탑튜브·헤드튜브 등) — 오렌지 셰이드
+  bar: 0x0d0d10, // 드롭바·스템·안장은 블랙
+  spacer: 0x3d4148, // 헤드셋 스페이서/컵 — 스템과 구분되는 실버-그레이(눈에 식별)
+  bottle: 0xe8ecf0, // 물통 몸체 — 흰색(반투명 회색기)
+  bottleCap: 0x2563eb, // 물통 캡 — 팀 컬러 블루
+  cage: 0x14141a, // 보틀 케이지 — 블랙
   // Jersey — 블루 #2563EB, 그늘용 다크
   jersey: 0x2563eb,
   jerseyDark: 0x1d4ed8,
@@ -74,14 +78,15 @@ const COL = {
   sunglass: 0x18181b, // Glass Smoke Black
 };
 
-const WHEEL_R = 0.26;
-/**
- * 휠베이스 — 레퍼런스 로드바이크 비율. 뒷바퀴는 **안장(엉덩이) 바로 아래**:
- * 뒷허브가 BB 뒤 0.30(체인스테이 실제 비율), 멀리 떨어뜨리지 말 것.
- */
-const REAR_X = -0.34;
-const FRONT_X = 0.48;
-const HUB_Y = WHEEL_R;
+// ══════════════════════════════════════════════════════════════════════════
+// RTW Road Geometry (Phase 1 확정, SSoT=src/lib/riderPrototype/geometry.json).
+// 좌표계: m, 지면 y=0, +x 진행. 원본 mm(BB원점)에서 변환: x=mm/1000, y=(mm+bbHeight)/1000.
+// 700x28C 실측(wheelRadius 342.5mm), BB드롭 72mm → BB가 허브보다 아래(정상 로드).
+// ══════════════════════════════════════════════════════════════════════════
+const WHEEL_R = 0.3225; // 700×28C 실측 반경(322.5mm, 직경 645mm) — 이전 342.5에서 -20mm
+const HUB_Y = WHEEL_R; // 허브 y = 반경(지면 접촉). 바퀴 축소분만큼 허브도 내려가 지면 유지.
+const REAR_X = -0.4036; // 뒷허브 x (체인스테이 410mm 결과)
+const FRONT_X = 0.5903; // 앞허브 x (프론트센터 590mm)
 
 /** 재질 캐시 — 동일 (색·roughness·metalness·opacity) 조합은 1개 인스턴스 재사용(파일 크기↓) */
 const _matCache = new Map();
@@ -162,55 +167,62 @@ function blob(r, color, scale, opts = {}) {
 }
 
 /**
- * 700C 로드 휠 — 설계서: 25C(얇은 타이어), 스포크 16개, Matte Black.
- * XY 평면 원(축 Z), 허브 y=바닥+반경.
+ * 700×28C 슬림 로드 휠. 휠은 XY 평면(회전축 = Z, 좌우). 허브 y = 반경(지면 접촉).
+ * ⚠ 스포크는 반드시 휠 평면(z≈0) 안에서 허브 플랜지 → 림 니플로 직선 연결.
+ *   3D 구면 방사(성게) 금지 — 정면/후면에선 스포크가 거의 안 보여야 한다.
  */
+const TIRE_SECTION_R = 0.014; // 타이어 단면 반경 14mm → 폭 28mm (700×28C)
+const RIM_SECTION_R = 0.008; // 림 단면 반경 8mm → 로드 알루미늄/카본 림 비례
+const RIM_R = WHEEL_R * 0.86; // 림(니플) 반경
+const HUB_FLANGE_R = 0.021; // 허브 플랜지 반경 — 스포크 시작점
+const SPOKE_COUNT = 24; // 로드 표준 스포크 수
 function wheel(hubX) {
   const g = new THREE.Group();
-  // 25C 얇은 타이어
+  // 타이어(28C) — 얇은 토러스. 회전축 Z(TorusGeometry는 기본 XY평면 → 축 Z, 그대로 OK).
   const tire = new THREE.Mesh(
-    new THREE.TorusGeometry(WHEEL_R, WHEEL_R * 0.075, 12, 40),
+    new THREE.TorusGeometry(WHEEL_R - TIRE_SECTION_R, TIRE_SECTION_R, 12, 44),
     mat(COL.tire, 1, { roughness: 0.85 }),
   );
   tire.position.set(hubX, HUB_Y, 0);
-  // 딥림(로드 휠 특유의 두꺼운 림)
-  const rimR = WHEEL_R * 0.86;
+  // 림 — 타이어 안쪽, 슬림한 단면.
   const rim = new THREE.Mesh(
-    new THREE.TorusGeometry(rimR, WHEEL_R * 0.05, 10, 40),
-    mat(COL.rim, 1, { metalness: 0.4, roughness: 0.4 }),
+    new THREE.TorusGeometry(RIM_R, RIM_SECTION_R, 10, 44),
+    mat(COL.rim, 1, { metalness: 0.45, roughness: 0.4 }),
   );
   rim.position.set(hubX, HUB_Y, 0);
   g.add(tire, rim);
 
-  const spokeMat = mat(0x3a3a42, 1, { metalness: 0.6, roughness: 0.35 });
-  const spokeR = rimR;
-  // 스포크 16개 (설계서)
-  for (let i = 0; i < 16; i++) {
-    const angle = (Math.PI * 2 * i) / 16;
+  // ── 스포크 — 휠 평면(z=0) 안에서만. 허브 플랜지(반경 HUB_FLANGE_R) → 림 니플(반경 RIM_R).
+  //    각 스포크는 XY 평면의 한 반경선. z 성분 0 → 정면에서 거의 선으로만 보인다(성게 아님).
+  const spokeMat = mat(0x8890a0, 1, { metalness: 0.7, roughness: 0.3 });
+  const spokeLen = RIM_R - HUB_FLANGE_R;
+  for (let i = 0; i < SPOKE_COUNT; i++) {
+    const a = (Math.PI * 2 * i) / SPOKE_COUNT;
+    const dirX = Math.cos(a), dirY = Math.sin(a); // 휠 평면 내 반경 방향
     const spoke = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.0028, 0.0028, spokeR, 5),
+      new THREE.CylinderGeometry(0.0016, 0.0016, spokeLen, 4),
       spokeMat,
     );
-    spoke.position.set(hubX, HUB_Y + (Math.sin(angle) * spokeR) / 2, (Math.cos(angle) * spokeR) / 2);
+    // 플랜지에서 살짝 좌우 오프셋(실제 스포크 lacing) — 아주 작게(±3mm)만.
+    const zOff = (i % 2 === 0 ? 1 : -1) * 0.003;
+    const midR = (HUB_FLANGE_R + RIM_R) / 2;
+    spoke.position.set(hubX + dirX * midR, HUB_Y + dirY * midR, zOff);
+    // 스포크 축(Y) → 반경 방향(dirX, dirY, 0)으로 회전. z=0 평면 유지.
     spoke.quaternion.setFromUnitVectors(
       new THREE.Vector3(0, 1, 0),
-      new THREE.Vector3(0, Math.sin(angle), Math.cos(angle)).normalize(),
+      new THREE.Vector3(dirX, dirY, 0),
     );
     g.add(spoke);
   }
 
+  // 허브 — 회전축 Z 방향 짧은 원통.
   const hub = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.022, 0.022, 0.055, 12),
-    mat(COL.frame, 1, { metalness: 0.5, roughness: 0.35 }),
+    new THREE.CylinderGeometry(HUB_FLANGE_R, HUB_FLANGE_R, 0.045, 14),
+    mat(COL.rim, 1, { metalness: 0.5, roughness: 0.35 }),
   );
   hub.position.set(hubX, HUB_Y, 0);
-  hub.rotation.x = Math.PI / 2;
+  hub.rotation.x = Math.PI / 2; // 축을 Z로
   g.add(hub);
-
-  // 디스크 브레이크 로터
-  const disc = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.005, 5, 20), mat(COL.rim, 1, { metalness: 0.6, roughness: 0.3 }));
-  disc.position.set(hubX, HUB_Y, 0.032);
-  g.add(disc);
 
   return g;
 }
@@ -225,6 +237,12 @@ function box(w, h, d, color, x, y, z, rx = 0, ry = 0, rz = 0, opts = {}) {
 const root = new THREE.Group();
 root.name = "RiderBike";
 
+/**
+ * Phase 1: 자전거 지오메트리만 검토(라이더 임시 숨김). env RTW_RIDER=1 이면 라이더 포함.
+ * 라이더 IK 재정렬(새 BB·안장 기준)은 Phase 2에서. 숨김 상태로는 verify 노드검사(leg/torso) skip.
+ */
+const INCLUDE_RIDER = process.env.RTW_RIDER === "1";
+
 const shadow = new THREE.Mesh(
   new THREE.CircleGeometry(0.62, 28),
   mat(COL.shadow, 0.26),
@@ -238,88 +256,205 @@ root.add(wheel(REAR_X));
 root.add(wheel(FRONT_X));
 
 /**
- * 실제 로드바이크 다이아몬드 프레임. bb(크랭크축)는 IK 기준이라 고정.
- * 지오메트리(BB 기준): 시트튜브 후경 ~73°, 헤드튜브 전경 ~73°, 탑튜브 거의 수평.
+ * RTW Road Geometry (Phase 1 확정, geometry.json coords → m·지면원점 변환).
+ * 시트튜브 73.5° ∥ 헤드튜브 73°(평행), 다운튜브 43.6°(전체의 결과), 탑튜브 수평.
  * 뒷삼각(체인스테이+시트스테이)이 뒷바퀴를, 포크가 앞바퀴를 잡는다.
  */
-const rear = [REAR_X, HUB_Y, 0]; // 뒷허브
-const front = [FRONT_X, HUB_Y, 0]; // 앞허브
-const bb = [-0.04, 0.4, 0]; // 크랭크축(BB) — 변경 금지
-// 시트튜브 상단(안장 클램프) — BB에서 후상방. 안장이 골반(y0.8) 바로 아래 오도록 낮춤.
-const seatTop = [-0.15, 0.66, 0];
-// 헤드튜브: 앞쪽, 탑튜브·다운튜브가 만나는 짧은 튜브(상단/하단). 안장과 비슷한 높이(탑튜브 수평).
-// 앞바퀴가 안으로 들어왔으므로 하단을 올려 타이어와 간섭 방지.
-const headTop = [0.38, 0.67, 0];
-const headBot = [0.45, 0.56, 0];
-// 스템·드롭바 — 헤드튜브 위. 후드(브레이크레버)를 손이 잡는다. 몸에 맞게 당김.
-const stemEnd = [0.42, 0.7, 0];
-const barHood = [0.5, 0.7, 0]; // 드롭바 후드(손 위치)
+const rear = [REAR_X, HUB_Y, 0]; // 뒷허브 [-0.4036, 0.3425]
+const front = [FRONT_X, HUB_Y, 0]; // 앞허브 [0.5903, 0.3425]
+const bb = [0.0, 0.2705, 0]; // 크랭크축(BB) — 지면에서 bbHeight 270.5mm, 허브보다 아래(BB드롭 72mm)
+// 시트튜브 상단(안장 클램프) — BB에서 73.5° 후상방
+const seatTop = [-0.159, 0.8074, 0];
+// 헤드튜브: 상단 → 하단(다운튜브·포크 접합). 헤드각 73°. 탑튜브는 헤드튜브 옆에 용접될 뿐.
+const headTop = [0.388, 0.8435, 0];
+const headBot = [0.4362, 0.6857, 0];
 
-// 프레임 튜브는 얇아 radial 낮춰도 무방(파일 크기↓). blob cap도 이 radial 따름.
-const frameOpts = { metalness: 0.55, roughness: 0.32, radial: 10 };
+// ── Cockpit Assembly (조립 계층: HeadTube → Headset → Stem → Handlebar) ──
+//    steering axis = 헤드튜브 축(headBot→headTop) = 포크와 동일 축. 콕핏 전체가 이 축에 속한다.
+//    탑튜브는 headTop 에 용접만 될 뿐 스템을 지지하지 않는다(부모-자식 아님).
+const _v = (a, b) => [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+const _norm = (v) => { const L = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / L, v[1] / L, v[2] / L]; };
+const _addv = (p, v, s) => [p[0] + v[0] * s, p[1] + v[1] * s, p[2] + v[2] * s];
+const STEER_UP = _norm(_v(headBot, headTop)); // 헤드튜브 위 방향(steering axis)
+// ── 스페이서 스택: 설계값=메쉬길이 정확히 일치. 엔듀런스(편안) 자세 → 35mm(50mm 미만).
+const SPACER_STACK = 0.035; // 헤드셋 스페이서 스택 35mm — 메쉬 원통 실길이와 정확히 일치
+const STEM_CLAMP_H = 0.040; // 스템 클램프 몸통(스티어러 무는 부분) 높이 40mm
+const STEM_LENGTH = 0.105; // 105mm (현대 로드 100~110 중간)
+const STEM_ANGLE = 6 * Math.PI / 180; // stemAngle +6° (수평 전방 기준 약간 상승 — 완성차 기본)
+const BAR_HALF = 0.210; // handlebarWidth 420mm / 2
+const BAR_REACH = 0.080; // handlebarReach
+const BAR_DROP = 0.128; // handlebarDrop
+// 계층: HeadTube Top → (스페이서 35mm) → Stem Bottom → (스템 클램프 40mm) → Stem Top → 스템암 앞으로.
+const headTubeTop = headTop; // 헤드튜브 상단(steering axis 하단 기준점)
+const spacerTop = _addv(headTubeTop, STEER_UP, SPACER_STACK); // 스페이서 상단 = 스템 하단
+const stemBottom = spacerTop;
+const stemTop = _addv(stemBottom, STEER_UP, STEM_CLAMP_H); // 스템 클램프 상단
+const stemMid = _addv(stemBottom, STEER_UP, STEM_CLAMP_H * 0.5); // 스템암 시작(클램프 중간)
+// 스템 암: 스템 클램프 중간에서 +6° 상승하며 앞으로 → 핸들바 클램프.
+const stemDir = [Math.cos(STEM_ANGLE), Math.sin(STEM_ANGLE), 0];
+const stemEnd = _addv(stemMid, stemDir, STEM_LENGTH); // 핸들바 클램프
+const barHood = _addv(stemEnd, stemDir, BAR_REACH * 0.6); // 드롭바 후드(손 위치) — 클램프 앞
+
+// ── 다이아몬드 프레임 튜브 배선 (도면 두께 비율: 다운튜브 최대 → 탑/시트 중간 → 스테이 최소).
+//    프레임 메인 삼각(다운·시트·탑·헤드)은 중앙 평면(z=0) 단일 튜브. 스테이·포크만 좌우 2개.
+const frameOpts = { metalness: 0.55, roughness: 0.32, radial: 12 };
+// 튜브 반경(도면 상대 두께). 다운튜브가 가장 굵고, 스테이가 가장 얇다.
+const R_DOWN = 0.028, R_SEAT = 0.024, R_TOP = 0.022, R_HEAD = 0.026;
+const R_CHAINSTAY = 0.014, R_SEATSTAY = 0.012, R_FORK = 0.015;
+
+// 메인 삼각 — 프레임 오렌지. cap 으로 접합부를 둥글게 이어 튜브 끊김 제거.
 // 다운튜브: BB → 헤드튜브 하단 (가장 굵음)
-root.add(tube(bb, headBot, 0.026, COL.frame, frameOpts));
+root.add(tube(bb, headBot, R_DOWN, COL.frame, frameOpts));
 // 시트튜브: BB → 시트튜브 상단
-root.add(tube(bb, seatTop, 0.023, COL.frame, frameOpts));
-// 탑튜브: 시트튜브 상단 → 헤드튜브 상단 (거의 수평)
-root.add(tube(seatTop, headTop, 0.022, COL.frameDark, frameOpts));
-// 헤드튜브: 상단→하단 (짧고 굵음)
-root.add(tube(headTop, headBot, 0.026, COL.frameDark, frameOpts));
-// 체인스테이: BB → 뒷허브 (좌우 2개)
-for (const dz of [0.03, -0.03]) {
-  root.add(tube([bb[0], bb[1], bb[2] + dz], [rear[0], rear[1], rear[2] + dz], 0.015, COL.frameDark, frameOpts));
-}
-// 시트스테이: 시트튜브 상단 → 뒷허브 (좌우 2개)
-for (const dz of [0.03, -0.03]) {
-  root.add(tube([seatTop[0], seatTop[1], seatTop[2] + dz], [rear[0], rear[1], rear[2] + dz], 0.013, COL.frame, frameOpts));
-}
-// 앞포크: 헤드튜브 하단 → 앞허브 (좌우 2개, 살짝 전경)
-for (const dz of [0.03, -0.03]) {
-  root.add(tube([headBot[0], headBot[1], headBot[2] + dz], [front[0], front[1], front[2] + dz], 0.014, COL.frameDark, frameOpts));
+root.add(tube(bb, seatTop, R_SEAT, COL.frame, frameOpts));
+// 탑튜브: 시트튜브 상단 → 헤드튜브 상단 (535mm·1.8° 앞하강)
+root.add(tube(seatTop, headTop, R_TOP, COL.frame, frameOpts));
+// 헤드튜브: 상단 → 하단 (128mm, 헤드각 73°)
+root.add(tube(headTop, headBot, R_HEAD, COL.frame, frameOpts));
+
+// 뒷삼각 — 체인스테이/시트스테이 좌우 2개 (뒷허브를 감싼다). 그늘색.
+const STAY_DZ = 0.028;
+for (const dz of [STAY_DZ, -STAY_DZ]) {
+  // 체인스테이: BB → 뒷허브
+  root.add(tube([bb[0], bb[1], dz], [rear[0], rear[1], dz], R_CHAINSTAY, COL.frameDark, frameOpts));
+  // 시트스테이: 시트튜브 상단 → 뒷허브
+  root.add(tube([seatTop[0], seatTop[1], dz], [rear[0], rear[1], dz], R_SEATSTAY, COL.frameDark, frameOpts));
 }
 
-/** 물통 — 다운튜브에 붙여 세움 */
-const dtMid = [(bb[0] + headBot[0]) / 2, (bb[1] + headBot[1]) / 2 + 0.04, 0];
-const bottle = new THREE.Mesh(new THREE.CylinderGeometry(0.019, 0.021, 0.085, 12), mat(COL.gold));
-bottle.position.set(dtMid[0], dtMid[1], dtMid[2]);
-bottle.rotation.z = -0.5;
-root.add(bottle);
+// 앞포크 — 헤드튜브 하단 → 앞허브 좌우 2개 (도면처럼 앞으로 뻗어 앞바퀴를 잡음). 그늘색.
+const FORK_DZ = 0.026;
+for (const dz of [FORK_DZ, -FORK_DZ]) {
+  root.add(tube([headBot[0], headBot[1], dz], [front[0], front[1], dz], R_FORK, COL.frameDark, frameOpts));
+}
 
-/** 안장 — 시트튜브 상단에 시트포스트로 올림. 뒤로 살짝 긴 로드 새들 */
-root.add(tube(seatTop, [seatTop[0] - 0.01, seatTop[1] + 0.05, 0], 0.011, COL.bar, frameOpts));
-const saddle = blob(0.05, COL.frameDark, [2.4, 0.32, 0.95], { segments: 16, ...frameOpts });
-saddle.position.set(seatTop[0] - 0.03, seatTop[1] + 0.075, 0);
+/**
+ * 물통 + 보틀 케이지 — 다운튜브에 평행 장착(저폴리). 케이지에 끼워진 형태.
+ * 물통: 원통 몸체(위로 가늘어짐) + 둥근 어깨 + 캡. 케이지: U자 프레임 2개.
+ */
+function waterBottleAssembly() {
+  const g = new THREE.Group();
+  g.name = "waterBottle";
+  const _n = (v) => { const L = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / L, v[1] / L, v[2] / L]; };
+  const _a = (p, v, s) => [p[0] + v[0] * s, p[1] + v[1] * s, p[2] + v[2] * s];
+  const dtDir = _n([headBot[0] - bb[0], headBot[1] - bb[1], 0]); // 다운튜브 방향(축)
+  const perpUp = _n([dtDir[1], -dtDir[0], 0]); // 다운튜브 바깥(위앞) 수직
+  const up = perpUp[1] > 0 ? perpUp : [-perpUp[0], -perpUp[1], 0];
+  const dtMid = [(bb[0] + headBot[0]) / 2, (bb[1] + headBot[1]) / 2, 0];
+  const bottleR = 0.026;
+  const off = 0.028 + bottleR + 0.003; // 다운튜브 반경 + 물통 반경 + 간격
+  const bottleBottom = _a(dtMid, up, off);
+  const bodyLen = 0.10;
+  const shoulderAt = _a(bottleBottom, dtDir, bodyLen);
+  // 몸체 — 아래 굵고 위로 살짝 가늘어짐(테이퍼). 흰색. capEnd 제거(어깨 blob이 덮음).
+  g.add(taperTube(bottleBottom, shoulderAt, bottleR, bottleR * 0.86, COL.bottle, { radial: 8, roughness: 0.5, capEnd: false }));
+  // 둥근 어깨 — 몸체 상단을 덮는 반구 느낌(저폴리).
+  const shoulder = blob(bottleR * 0.86, COL.bottle, [1.0, 0.7, 1.0], { segments: 8, roughness: 0.5 });
+  shoulder.position.set(shoulderAt[0], shoulderAt[1], shoulderAt[2]);
+  g.add(shoulder);
+  // 캡(노즐) — 어깨 위 짧고 가는 실린더. 팀 컬러.
+  const capBot = _a(shoulderAt, dtDir, 0.004);
+  const capTop = _a(capBot, dtDir, 0.022);
+  g.add(taperTube(capBot, capTop, bottleR * 0.42, bottleR * 0.32, COL.bottleCap, { radial: 8, roughness: 0.6, capStart: false }));
+
+  // ── 보틀 케이지 — 저폴리. 측면 실루엣이 명확한 C자 프레임 2개(좌우, z 대칭).
+  //    각 C자는 물통 바깥면(반경 cageOut)을 따라 바닥→앞→상단으로 감싸는 폴리라인.
+  //    물통을 관통하지 않도록 항상 bottleR 바깥에만 그린다. z는 살짝 안쪽(물통 옆).
+  const cageR = 0.0034;
+  // 저폴리: 캡(반구) 제거 + radial 4 → 케이지 폴리곤 최소화(요구 100~300 유지).
+  const cageOpts = { radial: 4, metalness: 0.3, roughness: 0.5, capStart: false, capEnd: false };
+  const cageOut = bottleR + 0.005; // 물통 바깥 반경(케이지가 지나는 거리)
+  // 케이지 C자 프로파일: 축방향 t(0=바닥,1=상단), up방향 반경계수 f(다운튜브쪽 -1 ~ 앞 +1).
+  //  바닥(뒤에서 앞으로 감싸 올림) → 앞면 세로로 상승 → 상단 후크.
+  // 저폴리: 4점(3세그먼트) — 바닥받침 → 앞면 상승 → 상단 후크.
+  const profile = [
+    [0.02, -0.9], // 바닥(다운튜브 쪽 아래)
+    [0.2, 1.0], // 앞 하단(바깥)
+    [0.86, 1.0], // 앞 상단(바깥)
+    [0.96, 0.35], // 상단 후크
+  ];
+  for (const zc of [0.014, -0.014]) { // 좌우 C자 2개
+    const pts = profile.map(([t, f]) => {
+      const axisPt = _a(bottleBottom, dtDir, bodyLen * t);
+      return _a(axisPt, up, cageOut * f);
+    });
+    for (let i = 0; i < pts.length - 1; i++) {
+      g.add(tube([pts[i][0], pts[i][1], zc], [pts[i + 1][0], pts[i + 1][1], zc], cageR, COL.cage, cageOpts));
+    }
+  }
+  // 좌우 C자를 잇는 가로 밴드 2개(앞면) — 케이지 강성·고정 표현.
+  for (const t of [0.3, 0.82]) {
+    const axisPt = _a(bottleBottom, dtDir, bodyLen * t);
+    const front = _a(axisPt, up, cageOut);
+    g.add(tube([front[0], front[1], 0.014], [front[0], front[1], -0.014], cageR, COL.cage, cageOpts));
+  }
+  return g;
+}
+root.add(waterBottleAssembly());
+
+/** 안장·시트포스트 — 시트튜브 상단(seatTop)에서 새들 좌표(geometry.json saddle, setback 20mm)로. */
+const saddlePos = [-0.2259, 0.9656, 0]; // saddleHeight 725mm · setback 20mm
+root.add(tube(seatTop, [saddlePos[0], saddlePos[1] - 0.01, 0], 0.011, COL.bar, frameOpts));
+const saddle = blob(0.05, COL.bar, [2.4, 0.32, 0.95], { segments: 16, ...frameOpts });
+saddle.position.set(saddlePos[0], saddlePos[1], 0);
 saddle.rotation.z = -0.06;
 root.add(saddle);
 
-/** 스템 — 헤드튜브 상단 → 스템 끝(핸들 클램프) */
-root.add(tube(headTop, stemEnd, 0.014, COL.bar, frameOpts));
-
 /**
- * 드롭바 — 로드바이크 굽은 핸들바. 중앙(스템)에서 좌우로 뻗은 뒤 앞→아래로 감기는 드롭.
- * 손은 후드(brakehood, barHood 근처)를 잡는다. 좌우 대칭.
+ * Cockpit Assembly — 조립 계층 HeadTube → Headset → Stem → Handlebar.
+ * 전체가 steering axis(포크와 동일 축)에 속한다. 탑튜브와는 부모-자식 관계 없음.
+ * (Mapbox 조향 노드로 쓰려면 이 그룹을 headTop 피벗으로 회전시키면 된다.)
  */
-function dropBar() {
+function cockpitAssembly() {
   const g = new THREE.Group();
-  const cz = 0.0;
-  const barR = 0.014;
-  // 탑바: 스템끝에서 좌우로
-  g.add(tube([stemEnd[0], stemEnd[1], cz - 0.12], [stemEnd[0], stemEnd[1], cz + 0.12], barR, COL.bar, frameOpts));
-  // 좌우 후드로 앞으로 뻗음 + 드롭(아래로 감김)
-  for (const dz of [0.12, -0.12]) {
-    // 탑바 끝 → 후드(앞·약간 아래)
-    g.add(tube([stemEnd[0], stemEnd[1], cz + dz], [barHood[0], barHood[1], cz + dz], barR, COL.bar, frameOpts));
-    // 후드 → 드롭(아래로 감기는 곡선 근사: 2세그먼트)
-    g.add(tube([barHood[0], barHood[1], cz + dz], [barHood[0] + 0.04, barHood[1] - 0.08, cz + dz], barR, COL.bar, frameOpts));
-    g.add(tube([barHood[0] + 0.04, barHood[1] - 0.08, cz + dz], [barHood[0] - 0.01, barHood[1] - 0.14, cz + dz], barR, COL.bar, frameOpts));
-    // 브레이크 후드(손 얹는 곳) 살짝 볼륨
-    const hood = blob(0.022, COL.bar, [1.6, 1.0, 1.0], { segments: 10, ...frameOpts });
-    hood.position.set(barHood[0] + 0.01, barHood[1] + 0.005, cz + dz);
+  g.name = "cockpit";
+  const barR = 0.013;
+  const spacerOpts = { metalness: 0.62, roughness: 0.38, radial: 16 };
+  // ── 1) 헤드셋 스페이서 스택 — 캡 없는 순수 원통. 실메쉬 길이 = headTubeTop→spacerTop = 정확히 35mm.
+  //    스템(블랙)과 대비되는 실버, 헤드튜브(오렌지)보다 살짝 굵게 → 세 요소가 확연히 구분된다.
+  //    capStart/capEnd:false 로 반구캡 제거 → 끝이 깔끔하고 축길이가 설계값과 정확히 일치.
+  const spacerMesh = tube(headTubeTop, spacerTop, 0.024, COL.spacer, { ...spacerOpts, capStart: false, capEnd: false });
+  spacerMesh.name = "headsetSpacer"; // 감사용 — 실메쉬 길이 검증(캡 없어 shaft=총길이=35mm)
+  g.add(spacerMesh);
+  // ── 2) 스템 클램프(스티어러 무는 세로 몸통) — 스페이서 위(stemBottom) → stemTop, 40mm. 블랙.
+  g.add(tube(stemBottom, stemTop, 0.020, COL.bar, frameOpts));
+  // ── 2b) 스템 암 — 클램프 중간(stemMid)에서 +6° 상승하며 앞으로 → 핸들바 클램프(stemEnd).
+  g.add(tube(stemMid, stemEnd, 0.016, COL.bar, frameOpts));
+  // 핸들바 클램프 볼륨(핸들바를 무는 앞부분).
+  const clampV = blob(0.022, COL.bar, [0.9, 1.3, 1.3], { segments: 12, ...frameOpts });
+  clampV.position.set(stemEnd[0], stemEnd[1], 0);
+  g.add(clampV);
+  // 3) 핸들바(드롭바) — 실제 로드 드롭바 프로파일(측면): 탑바(좌우) → 후드로 앞 → 리치 커브로
+  //    앞·아래 반원 → 드롭 끝은 뒤·아래를 향한다. 부드러운 다세그먼트 폴리라인.
+  const cx = stemEnd[0], cy = stemEnd[1]; // 클램프 중심
+  // 탑바 — 클램프에서 좌우로 (z 대칭). 살짝 뒤로 스윕(back sweep) 없이 직선.
+  g.add(tube([cx, cy, -BAR_HALF], [cx, cy, BAR_HALF], barR, COL.bar, frameOpts));
+  // 측면 프로파일 폴리라인(로컬 x=앞, y=위). 클램프(0,0) 기준.
+  //  후드까지 앞으로 → 반원 드롭(앞아래 최전방 → 아래 → 뒤아래 드롭끝).
+  const reach = BAR_REACH, drop = BAR_DROP;
+  const profile2d = [
+    [0.0, 0.0], // 탑바(클램프)
+    [reach * 0.75, -0.010], // 후드 접합(앞·약간 아래)
+    [reach * 1.00, -drop * 0.28], // 리치 최전방(후드 앞)
+    [reach * 0.95, -drop * 0.62], // 커브 앞아래
+    [reach * 0.62, -drop * 0.92], // 커브 아래
+    [reach * 0.28, -drop * 1.00], // 드롭 끝(뒤·아래를 향함)
+  ];
+  const hoodIdx = 1; // 후드 볼륨 위치
+  for (const dz of [BAR_HALF, -BAR_HALF]) {
+    for (let i = 0; i < profile2d.length - 1; i++) {
+      const a = [cx + profile2d[i][0], cy + profile2d[i][1], dz];
+      const b = [cx + profile2d[i + 1][0], cy + profile2d[i + 1][1], dz];
+      g.add(tube(a, b, barR, COL.bar, frameOpts));
+    }
+    // 브레이크 후드(손 얹는 곳) 볼륨 — 후드 접합점 위
+    const hp = profile2d[hoodIdx];
+    const hood = blob(0.020, COL.bar, [1.7, 1.0, 1.0], { segments: 10, ...frameOpts });
+    hood.position.set(cx + hp[0] + 0.006, cy + hp[1] + 0.010, dz);
     g.add(hood);
   }
   return g;
 }
-root.add(dropBar());
+root.add(cockpitAssembly());
 
 /** ⚠️ pelvis 는 riderGlbPedalPose.ts PELVIS 와 동기 — 다리 IK 기준이므로 변경 금지 */
 const pelvis = [-0.12, 0.8, 0];
@@ -333,11 +468,14 @@ function crankAssembly() {
   const crank = new THREE.Group();
   crank.name = "crank";
   crank.position.set(bb[0], bb[1], bb[2]);
-  const armLen = 0.14;
-  crank.add(tube([0, 0, 0], [0, armLen, 0], 0.012, COL.frameDark, frameOpts));
-  crank.add(tube([0, 0, 0], [0, -armLen, 0], 0.012, COL.frameDark, frameOpts));
+  const armLen = 0.1725; // crankLength 172.5mm (geometry.json)
+  crank.add(tube([0, 0, 0], [0, armLen, 0], 0.012, COL.bar, frameOpts));
+  crank.add(tube([0, 0, 0], [0, -armLen, 0], 0.012, COL.bar, frameOpts));
   crank.add(box(0.07, 0.02, 0.05, COL.rim, 0, armLen, 0, 0, 0, 0, frameOpts));
   crank.add(box(0.07, 0.02, 0.05, COL.rim, 0, -armLen, 0, 0, 0, 0, frameOpts));
+  // Phase 1 프리뷰(라이더 숨김): 정지각을 수평(3시)으로 두어 페달이 지면에 닿지 않게.
+  // 주행 시엔 Mapbox feature-state 가 절대각으로 덮어쓰므로 영향 없음.
+  if (!INCLUDE_RIDER) crank.rotation.z = Math.PI / 2;
   return crank;
 }
 root.add(crankAssembly());
@@ -465,9 +603,11 @@ torso.add(stripe);
 const hipCover = new THREE.Mesh(new THREE.SphereGeometry(0.088, 18, 14), mat(COL.short));
 hipCover.position.set(pelvis[0], pelvis[1] - 0.045, 0);
 hipCover.scale.set(1.0, 0.85, 1.25);
-root.add(hipCover);
-root.add(legAssembly("l"));
-root.add(legAssembly("r"));
+if (INCLUDE_RIDER) {
+  root.add(hipCover);
+  root.add(legAssembly("l"));
+  root.add(legAssembly("r"));
+}
 
 /**
  * 팔 — 어깨(삼각근, 굵음)→팔꿈치(상완)→손(전완, 맨살). 테이퍼로 근육 실루엣.
@@ -654,7 +794,7 @@ torso.add(sunglassesAssembly());
 
 // 목→어깨 저지 칼라(승모근에서 목으로) — 어깨 볼륨과 목을 잇는 테이퍼
 torso.add(taperTube(rel(shoulder), rel([headC[0] - 0.04, headC[1] - 0.06, 0]), 0.07, 0.048, COL.jersey, { ...jerseyOpts, radial: 16, capEnd: false }));
-root.add(torso);
+if (INCLUDE_RIDER) root.add(torso);
 
 const exporter = new GLTFExporter();
 const data = await exporter.parseAsync(root, { binary: true });
