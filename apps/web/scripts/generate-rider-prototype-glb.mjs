@@ -26,6 +26,7 @@ import {
   SHIN_LEN,
   UPPER_ARM_LEN,
   FOREARM_LEN,
+  PEDAL_HALF_Z,
 } from "../src/lib/riderPrototype/riderRig.geometry.mjs";
 // Static Fit 초기 포즈(rest→IK 방향 회전)를 GLB 노드에 직접 구워 프리뷰 정지자세로 쓴다.
 // (주행 시엔 feature-state 가 위상별로 덮어쓴다.)
@@ -65,7 +66,10 @@ globalThis.FileReader = class FileReaderPoly {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.join(__dirname, "..", "public", "rider", "prototype");
-const outFile = path.join(outDir, "rider-lowpoly.glb");
+// RTW_GLB_OUT 로 출력 경로 오버라이드 가능(cycle-only·후보 산출 등, 제품 GLB 보호).
+const outFile = process.env.RTW_GLB_OUT
+  ? path.resolve(process.env.RTW_GLB_OUT)
+  : path.join(outDir, "rider-lowpoly.glb");
 
 /**
  * LiveOnSoft Cycle Rider v1.0 색상 — 설계서 Material Spec(5슬롯).
@@ -501,10 +505,17 @@ function crankAssembly() {
   crank.name = "crank";
   crank.position.set(bb[0], bb[1], bb[2]);
   const armLen = 0.1725; // crankLength 172.5mm (geometry.json)
+  // 크랭크암(회전면 y). 왼쪽 +y, 오른쪽 -y.
   crank.add(tube([0, 0, 0], [0, armLen, 0], 0.012, COL.bar, frameOpts));
   crank.add(tube([0, 0, 0], [0, -armLen, 0], 0.012, COL.bar, frameOpts));
-  crank.add(box(0.07, 0.02, 0.05, COL.rim, 0, armLen, 0, 0, 0, 0, frameOpts));
-  crank.add(box(0.07, 0.02, 0.05, COL.rim, 0, -armLen, 0, 0, 0, 0, frameOpts));
+  // 페달축(spindle) — 크랭크 끝에서 좌우(z)로 pedalOffset 만큼. Q-factor = 2·PEDAL_HALF_Z.
+  // 왼발(+y 크랭크)=+z(왼쪽), 오른발(-y 크랭크)=-z(오른쪽). pedalWorld() 규약과 일치.
+  const pz = PEDAL_HALF_Z; // 0.074 (geometry.json pedalOffset)
+  crank.add(tube([0, armLen, 0], [0, armLen, +pz], 0.010, COL.bar, frameOpts));
+  crank.add(tube([0, -armLen, 0], [0, -armLen, -pz], 0.010, COL.bar, frameOpts));
+  // 페달 — 축 끝(좌우 오프셋 위치)에 배치.
+  crank.add(box(0.07, 0.02, 0.05, COL.rim, 0, armLen, +pz, 0, 0, 0, frameOpts));
+  crank.add(box(0.07, 0.02, 0.05, COL.rim, 0, -armLen, -pz, 0, 0, 0, frameOpts));
   // 라이더 있으면 Static Fit(crank 0°) 각을 굽고, 없으면 수평(3시)로 두어 페달이 지면에 안 닿게.
   // 주행 시엔 Mapbox feature-state 가 절대각으로 덮어쓴다.
   if (INCLUDE_RIDER) bakeRotation(crank, [0, STATIC_POSE.crankRotationDeg, 0]);

@@ -40,7 +40,7 @@
 
   "crankLength": 172.5,
   "pedalRadius": 45,
-  "pedalOffset": 54,
+  "pedalOffset": 74,
 
   "coords": {
     "$note": "mm, BB 원점. GLB 이식용.",
