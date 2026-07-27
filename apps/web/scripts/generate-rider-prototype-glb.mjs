@@ -8,6 +8,28 @@ import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+// ⚠ 라이더 IK 앵커의 단일 진실 — geometry.json 파생(riderRig). 하드코딩 복제 금지.
+// 3D 앵커(좌우 z 포함): HIP_L/R·SHOULDER_L/R·HOOD_L/R. Static Fit 회전은 rest(-Y)에서 IK 로.
+import {
+  PELVIS_ROOT as RIG_PELVIS_ROOT,
+  SADDLE_CONTACT as RIG_SADDLE,
+  HIP_L as RIG_HIP_L,
+  HIP_R as RIG_HIP_R,
+  SHOULDER_L as RIG_SHOULDER_L,
+  SHOULDER_R as RIG_SHOULDER_R,
+  SHOULDER as RIG_SHOULDER_C,
+  HOOD_L as RIG_HOOD_L,
+  HOOD_R as RIG_HOOD_R,
+  HEAD_C as RIG_HEAD_C,
+  NECK_BASE as RIG_NECK_BASE,
+  THIGH_LEN,
+  SHIN_LEN,
+  UPPER_ARM_LEN,
+  FOREARM_LEN,
+} from "../src/lib/riderPrototype/riderRig.geometry.mjs";
+// Static Fit 초기 포즈(rest→IK 방향 회전)를 GLB 노드에 직접 구워 프리뷰 정지자세로 쓴다.
+// (주행 시엔 feature-state 가 위상별로 덮어쓴다.)
+import { resolveGlbPedalPose } from "../src/lib/riderGlbPedalPose.pose.mjs";
 
 globalThis.window = globalThis;
 globalThis.FileReader = class FileReaderPoly {
@@ -238,10 +260,10 @@ const root = new THREE.Group();
 root.name = "RiderBike";
 
 /**
- * Phase 1: 자전거 지오메트리만 검토(라이더 임시 숨김). env RTW_RIDER=1 이면 라이더 포함.
- * 라이더 IK 재정렬(새 BB·안장 기준)은 Phase 2에서. 숨김 상태로는 verify 노드검사(leg/torso) skip.
+ * Phase 2: 라이더 IK 재정렬 완료 → 기본 포함. env RTW_RIDER=0 이면 자전거만(지오메트리 검토용).
+ * 라이더 좌표는 riderRig(geometry.json 파생)에서 온다 — 자전거가 바뀌면 자세가 자동 재계산.
  */
-const INCLUDE_RIDER = process.env.RTW_RIDER === "1";
+const INCLUDE_RIDER = process.env.RTW_RIDER !== "0";
 
 const shadow = new THREE.Mesh(
   new THREE.CircleGeometry(0.62, 28),
@@ -456,12 +478,22 @@ function cockpitAssembly() {
 }
 root.add(cockpitAssembly());
 
-/** ⚠️ pelvis 는 riderGlbPedalPose.ts PELVIS 와 동기 — 다리 IK 기준이므로 변경 금지 */
-const pelvis = [-0.12, 0.8, 0];
-/** 에어로 자세 — 상체 전경사(수평 대비 ~32°). 직립(0.02,1.02)은 산책 자세로 보였음. */
-const shoulder = [0.14, 0.96, 0];
-/** 머리를 낮추고 앞으로 — 전방 주시. */
-const headC = [0.28, 1.07, 0];
+/**
+ * ⚠️ 라이더 앵커는 riderRig(geometry.json 파생)에서 온다 — 하드코딩 금지.
+ * pelvisRoot=골반중심(몸통 root), shoulder=견봉 중앙(목·몸통 상단), headC=머리중심.
+ * 좌우 팔·다리 root 는 HIP_L/R·SHOULDER_L/R(실제 z 폭). relaxed race, 등 전경사 ~42°.
+ */
+const pelvis = RIG_PELVIS_ROOT; // [x, y, 0] 골반 중심(몸통 하단)
+const shoulder = [RIG_SHOULDER_C[0], RIG_SHOULDER_C[1], 0]; // 견봉 중앙
+const headC = [RIG_HEAD_C[0], RIG_HEAD_C[1], 0];
+
+/** Static Fit(crank 0°) 초기 포즈 — 각 노드에 구워 프리뷰 정지자세로. 주행 시 feature-state 로 덮임. */
+const STATIC_POSE = resolveGlbPedalPose(0);
+/** Mapbox model-rotation [pitch(x), roll(z), yaw(y)] deg → three 노드 rotation.set(x,y,z) rad. */
+function bakeRotation(node, rotDeg) {
+  const [px, rz, yy] = rotDeg;
+  node.rotation.set((px * Math.PI) / 180, (yy * Math.PI) / 180, (rz * Math.PI) / 180);
+}
 
 /** Mapbox nodeOverride — Z축 회전(페달) */
 function crankAssembly() {
@@ -473,31 +505,38 @@ function crankAssembly() {
   crank.add(tube([0, 0, 0], [0, -armLen, 0], 0.012, COL.bar, frameOpts));
   crank.add(box(0.07, 0.02, 0.05, COL.rim, 0, armLen, 0, 0, 0, 0, frameOpts));
   crank.add(box(0.07, 0.02, 0.05, COL.rim, 0, -armLen, 0, 0, 0, 0, frameOpts));
-  // Phase 1 프리뷰(라이더 숨김): 정지각을 수평(3시)으로 두어 페달이 지면에 닿지 않게.
-  // 주행 시엔 Mapbox feature-state 가 절대각으로 덮어쓰므로 영향 없음.
-  if (!INCLUDE_RIDER) crank.rotation.z = Math.PI / 2;
+  // 라이더 있으면 Static Fit(crank 0°) 각을 굽고, 없으면 수평(3시)로 두어 페달이 지면에 안 닿게.
+  // 주행 시엔 Mapbox feature-state 가 절대각으로 덮어쓴다.
+  if (INCLUDE_RIDER) bakeRotation(crank, [0, STATIC_POSE.crankRotationDeg, 0]);
+  else crank.rotation.z = Math.PI / 2;
   return crank;
 }
 root.add(crankAssembly());
 
 /**
- * 허벅지·정강이 — hip/knee pivot (riderGlbPedalPose.ts 상수와 동기, 좌표 변경 금지).
- * 메시는 테이퍼 튜브 — 허벅지: 엉덩이(굵음)→무릎(가늘음), 종아리: 무릎→발목(가장 가늘),
- * 실측 레퍼런스의 근육진 허벅지 실루엣 반영. 관절 구체로 무릎을 매끄럽게 잇는다.
+ * 허벅지·정강이 — rest pose = 두 뼈 모두 **-Y(수직 아래)**. 3D IK(riderIk.mjs)가 rest 를
+ * 계산된 뼈 방향으로 돌리는 3D 오일러 회전(feature-state)을 건다. pole vector 로 무릎이 아래·전방.
+ * ⚠ 반드시 지킬 것(안 지키면 발이 페달에서 벗어남):
+ *   - leg.position = 실제 고관절 HIP_L/HIP_R (좌우 z=±PELVIS_HALF_Z) — IK root 와 동일.
+ *   - knee(shin pivot) = [0, -THIGH_LEN, 0]  ·  발바닥(페달 접촉) = shin 로컬 [0, -SHIN_LEN, 0]
+ *   - pivot 체인은 로컬 -Y 직선(z=0). 좌우 벌림은 leg.position 의 z + IK 3D 회전이 만든다.
+ * Static Fit 초기 회전을 구워 프리뷰 정지자세로 쓴다(주행 시 feature-state 가 덮음).
  */
 function legAssembly(side) {
   const sign = side === "l" ? 1 : -1;
-  const hipZ = 0.068 * sign;
+  const hip = side === "l" ? RIG_HIP_L : RIG_HIP_R;
   const leg = new THREE.Group();
   leg.name = `leg_${side}`;
-  leg.position.set(pelvis[0] + 0.02, pelvis[1] - 0.08, hipZ);
+  leg.position.set(hip[0], hip[1], hip[2]);
+  bakeRotation(leg, side === "l" ? STATIC_POSE.legLRotationDeg : STATIC_POSE.legRRotationDeg);
 
-  const knee = [0.04, -0.208, -0.022 * sign];
-  // 허벅지: 상단 0.062(허벅지 볼륨) → 무릎 0.044. 저지 아닌 빕숏(short)색.
+  // 무릎 = 수직 아래 THIGH_LEN, z=0 (IK pivot). 좌우 벌림은 3D 회전이 만든다.
+  const knee = [0, -THIGH_LEN, 0];
+  // 허벅지: 상단 0.062(허벅지 볼륨) → 무릎 0.044. 빕숏(short)색.
   leg.add(taperTube([0, 0, 0], knee, 0.062, 0.044, COL.short, { radial: 18 }));
-  // 대퇴사두 볼륨 — 허벅지 앞면 살짝 부풀림
+  // 대퇴사두 볼륨 — 허벅지 앞면 살짝 부풀림(앞=+X)
   const thighBulge = blob(0.05, COL.short, [1.1, 1.35, 0.95], { segments: 16 });
-  thighBulge.position.set(knee[0] * 0.42 + 0.012, knee[1] * 0.42, knee[2] * 0.42);
+  thighBulge.position.set(0.02, knee[1] * 0.42, 0);
   leg.add(thighBulge);
 
   const kneeJoint = blob(0.043, COL.skin, [1.0, 0.95, 1.0], { segments: 14 });
@@ -507,29 +546,35 @@ function legAssembly(side) {
   const shin = new THREE.Group();
   shin.name = `leg_${side}_shin`;
   shin.position.set(knee[0], knee[1], knee[2]);
-  const ankle = [0.065, -0.22, 0.012 * sign];
+  bakeRotation(shin, side === "l" ? STATIC_POSE.legLShinRotationDeg : STATIC_POSE.legRShinRotationDeg);
+  // 발바닥(페달 접촉점) = 수직 아래 SHIN_LEN, z=0 (IK target). 발목은 그보다 살짝 위.
+  const foot = [0, -SHIN_LEN, 0]; // 클릿=페달 접촉(IK target)
+  const ankle = [0, -SHIN_LEN + 0.05, 0]; // 발목 관절(발등 시작)
   // 종아리: 무릎쪽 0.044(장딴지) → 발목 0.026. 맨살(skin).
   shin.add(taperTube([0, 0, 0], ankle, 0.044, 0.026, COL.skin, { radial: 16 }));
-  // 장딴지 볼륨 — 종아리 상단 뒤쪽
+  // 장딴지 볼륨 — 종아리 상단 뒤쪽(뒤=-X)
   const calf = blob(0.036, COL.skin, [1.0, 1.4, 0.9], { segments: 14 });
-  calf.position.set(ankle[0] * 0.32 - 0.01, ankle[1] * 0.32, ankle[2] * 0.32);
+  calf.position.set(-0.01, ankle[1] * 0.32, 0);
   shin.add(calf);
   // 발목
   const ankleJoint = blob(0.026, COL.skin, [1, 1, 1], { segments: 12 });
   ankleJoint.position.set(ankle[0], ankle[1], ankle[2]);
   shin.add(ankleJoint);
-  // 사이클링 슈즈 — 앞코 낮고 뒤꿈치 있는 형태(단순 box보다 실루엣 좋게 테이퍼)
-  shin.add(shoeAssembly(ankle));
+  // 사이클링 슈즈 — 발바닥(foot=페달 접촉)을 기준으로 앞으로 뻗는 신발.
+  shin.add(shoeAssembly(foot));
   leg.add(shin);
   return leg;
 }
 
-/** 사이클링 슈즈 — 발등(shoe색)+밑창(밝은색). 발끝이 앞으로 살짝 뾰족 */
-function shoeAssembly(ankle) {
+/**
+ * 사이클링 슈즈 — 발등(shoe색)+밑창(밝은색). foot=페달 접촉점(IK target)을 밑창이 지나도록.
+ * 발등은 접촉점 위·앞으로, 밑창은 접촉점 높이(발끝이 앞으로 살짝 뾰족).
+ */
+function shoeAssembly(foot) {
   const g = new THREE.Group();
-  const fx = ankle[0] + 0.02;
-  const fy = ankle[1] - 0.016;
-  const fz = ankle[2];
+  const fx = foot[0] + 0.02;
+  const fy = foot[1] + 0.026; // 발등은 접촉점보다 위
+  const fz = foot[2];
   // 발등: 뒤(발목) 낮고 앞(발끝) 길게 — 얇은 타원체
   const upper = blob(0.055, COL.shoe, [1.7, 0.5, 0.82], { segments: 16 });
   upper.position.set(fx, fy, fz);
@@ -538,8 +583,8 @@ function shoeAssembly(ankle) {
   const toe = blob(0.03, COL.shoe, [1.4, 0.5, 0.75], { segments: 12 });
   toe.position.set(fx + 0.05, fy - 0.004, fz);
   g.add(toe);
-  // 밑창
-  const sole = box(0.13, 0.012, 0.05, 0xf1f5f9, fx + 0.006, fy - 0.028, fz);
+  // 밑창 — 페달 접촉점(foot) 높이를 지난다
+  const sole = box(0.13, 0.012, 0.05, 0xf1f5f9, fx + 0.006, foot[1], fz);
   g.add(sole);
   return g;
 }
@@ -610,47 +655,61 @@ if (INCLUDE_RIDER) {
 }
 
 /**
- * 팔 — 어깨(삼각근, 굵음)→팔꿈치(상완)→손(전완, 맨살). 테이퍼로 근육 실루엣.
+ * 팔 — Hand@Hood 3D 2-Bone IK 계층 노드. rest = 두 뼈 모두 **-Y(수직 아래)**.
+ * riderIk 가 arm_l/arm_r(상완)·arm_l_fore/arm_r_fore(전완)에 3D 오일러 회전을 걸어 손끝을
+ * HOOD_L/HOOD_R 에 고정하고, pole vector 로 팔꿈치를 어깨 아래·바깥으로 벌린다.
+ * ⚠ 반드시 지킬 것(안 지키면 손이 후드에서 벗어남):
+ *   - arm.position = 실제 어깨 SHOULDER_L/SHOULDER_R (좌우 z=±SHOULDER_HALF_Z) — IK root 와 동일.
+ *   - elbow(fore pivot) = [0, -UPPER_ARM_LEN, 0]  ·  손끝(후드) = fore 로컬 [0, -FOREARM_LEN, 0]
+ *   - pivot 체인은 로컬 -Y 직선(z=0). 좌우 벌림은 arm.position 의 z + IK 3D 회전이 만든다.
  * 반팔 저지 → 상완 상부만 저지색, 팔꿈치 아래는 맨살.
  */
 function armAssembly(side) {
-  const sign = side === "l" ? 1 : -1;
   const upperColor = side === "l" ? COL.jersey : COL.jerseyDark;
-  // 어깨 관절을 몸통 어깨 볼륨에 살짝 파묻어 연결 끊김 제거
-  const shoulderPt = [shoulder[0] - 0.01, shoulder[1] - 0.005, 0.095 * sign];
-  // 손: 드롭바 후드(barHood)를 쥔다. 좌우로 살짝 벌어짐(dz).
-  const handPt = [barHood[0] - 0.005, barHood[1] + 0.015, 0.11 * sign];
-  /**
-   * ⚠ 팔꿈치는 어깨→손 직선보다 **아래**(하향 굽힘)가 자연스러운 라이딩 자세.
-   * 이전 값(0.36, 0.855)은 직선 위(chord y≈0.80)라 팔이 위로 꺾여 보였음 — 금지.
-   */
-  const elbow = [0.33, 0.79, 0.105 * sign];
-  // 반팔 소매 끝(상완 중간) — 어깨→팔꿈치 중간
-  const sleeve = [0.23, 0.875, 0.1 * sign];
+  const shoulderPt = side === "l" ? RIG_SHOULDER_L : RIG_SHOULDER_R;
 
-  const g = new THREE.Group();
+  const arm = new THREE.Group();
+  arm.name = `arm_${side}`;
+  arm.position.set(shoulderPt[0], shoulderPt[1], shoulderPt[2]);
+  bakeRotation(arm, side === "l" ? STATIC_POSE.armLRotationDeg : STATIC_POSE.armRRotationDeg);
+
+  // ⚠ IK pivot 체인(팔꿈치·손끝)은 로컬 -Y 직선(z=0). 좌우 벌림은 3D 회전이 만든다.
+  const elbow = [0, -UPPER_ARM_LEN, 0];
+  const sleeve = [0, -UPPER_ARM_LEN * 0.5, 0]; // 반팔 소매 끝(상완 중간)
   // 상완 저지 소매: 어깨(0.045)→소매끝(0.036)
-  g.add(taperTube(shoulderPt, sleeve, 0.045, 0.036, upperColor, { ...jerseyOpts, radial: 14 }));
-  // 상완 맨살: 소매끝→팔꿈치(0.032)
-  g.add(taperTube(sleeve, elbow, 0.035, 0.03, COL.skin, { radial: 14, capStart: false }));
-  // 전완: 팔꿈치(0.03)→손목(0.022), 살짝 가늘게
-  g.add(taperTube(elbow, handPt, 0.03, 0.022, COL.skin, { radial: 14, capStart: false }));
+  arm.add(taperTube([0, 0, 0], sleeve, 0.045, 0.036, upperColor, { ...jerseyOpts, radial: 14 }));
+  // 상완 맨살: 소매끝→팔꿈치(0.03)
+  arm.add(taperTube(sleeve, elbow, 0.035, 0.03, COL.skin, { radial: 14, capStart: false }));
 
   const elbowJoint = blob(0.03, COL.skin, [1, 1, 1], { segments: 12 });
   elbowJoint.position.set(elbow[0], elbow[1], elbow[2]);
-  g.add(elbowJoint);
+  arm.add(elbowJoint);
 
-  // 손 — Fingerless 장갑(설계서). 손등은 검은 장갑, 후드를 쥔 주먹 형태.
-  const hand = blob(0.03, COL.shoe, [1.0, 1.15, 0.95], { segments: 12 });
-  hand.position.set(handPt[0], handPt[1], handPt[2]);
-  g.add(hand);
+  const fore = new THREE.Group();
+  fore.name = `arm_${side}_fore`;
+  fore.position.set(elbow[0], elbow[1], elbow[2]);
+  bakeRotation(fore, side === "l" ? STATIC_POSE.armLForeRotationDeg : STATIC_POSE.armRForeRotationDeg);
+  // 손끝(후드 접촉점) = 수직 아래 FOREARM_LEN, z=0 (IK target). 손목은 그보다 살짝 위.
+  const hand = [0, -FOREARM_LEN, 0];
+  const wrist = [0, -FOREARM_LEN + 0.03, 0];
+  // 전완: 팔꿈치(0.03)→손목(0.022)
+  fore.add(taperTube([0, 0, 0], wrist, 0.03, 0.022, COL.skin, { radial: 14, capStart: false }));
+  // 손 — Fingerless 장갑. 후드를 쥔 주먹.
+  const handBlob = blob(0.03, COL.shoe, [1.0, 1.15, 0.95], { segments: 12 });
+  handBlob.position.set(hand[0], hand[1], hand[2]);
+  fore.add(handBlob);
+  arm.add(fore);
 
-  /** 자식들은 절대좌표 — torso(pivot=pelvis) 로컬로 상대화 */
-  g.position.set(-pelvis[0], -pelvis[1], -pelvis[2]);
-  return g;
+  return arm;
 }
-torso.add(armAssembly("l"));
-torso.add(armAssembly("r"));
+/**
+ * ⚠ 팔은 torso 자식이 아니라 root 직속 — torso 스웨이(X롤)와 arm IK(Z회전)의 이중 적용을 피한다.
+ * 스웨이에 따른 어깨 미세 이동은 armPose(swayX)가 IK 어깨 앵커에 이미 반영한다.
+ */
+if (INCLUDE_RIDER) {
+  root.add(armAssembly("l"));
+  root.add(armAssembly("r"));
+}
 
 // 목 — 어깨에서 머리로, 전경사라 앞으로 비스듬. (머리보다 먼저 그려 머리에 가리게)
 torso.add(taperTube(rel([shoulder[0] - 0.02, shoulder[1] + 0.02, 0]), rel([headC[0] - 0.05, headC[1] - 0.07, 0]), 0.05, 0.04, COL.skin, { radial: 14 }));

@@ -23,6 +23,11 @@ export const RIDER_GLB_LEG_L_STATE_KEY = "leg-l-rotation";
 export const RIDER_GLB_LEG_L_SHIN_STATE_KEY = "leg-l-shin-rotation";
 export const RIDER_GLB_LEG_R_STATE_KEY = "leg-r-rotation";
 export const RIDER_GLB_LEG_R_SHIN_STATE_KEY = "leg-r-shin-rotation";
+/** 팔 — 어깨(상완)·팔꿈치(전완) Z축 회전. Hand@Hood 2-Bone IK. */
+export const RIDER_GLB_ARM_L_STATE_KEY = "arm-l-rotation";
+export const RIDER_GLB_ARM_L_FORE_STATE_KEY = "arm-l-fore-rotation";
+export const RIDER_GLB_ARM_R_STATE_KEY = "arm-r-rotation";
+export const RIDER_GLB_ARM_R_FORE_STATE_KEY = "arm-r-fore-rotation";
 
 export const RIDER_GLB_NODE_OVERRIDE_NAMES = [
   "crank",
@@ -30,6 +35,10 @@ export const RIDER_GLB_NODE_OVERRIDE_NAMES = [
   "leg_l_shin",
   "leg_r",
   "leg_r_shin",
+  "arm_l",
+  "arm_l_fore",
+  "arm_r",
+  "arm_r_fore",
   "torso",
 ] as const;
 

@@ -1,0 +1,54 @@
+{
+  "$schema": "RTW Rider Anthropometry — 인체 치수 SSoT (자전거와 독립)",
+  "$note": "단위 cm. 175cm/inseam 82cm relaxed road adult. 자전거 geometry.json 과 완전 분리 — 이 값은 자전거 접촉점에서 역산하지 않는다. 파생공식·근거는 riderBody.mjs 주석. 이 값은 첫 시각 후보값이며 단독 실루엣 프리뷰에서 육안 확정 전까지 미확정.",
+  "$status": "candidate-v1-unapproved",
+
+  "heightCm": 175,
+  "inseamCm": 82,
+
+  "segments": {
+    "$note": "뼈/부위 길이(cm). 관절 중심 간 거리. 신장 비율(Drillis-Contini 인체공학) + 인심 실측 교차검증.",
+    "headHeight": 23.5,
+    "neckLength": 9.0,
+    "torsoHip2Shoulder": 52.0,
+    "upperArm": 32.0,
+    "forearm": 25.0,
+    "handLength": 18.0,
+    "thigh": 41.5,
+    "shank": 40.5,
+    "footLength": 26.0,
+    "footHeight": 7.0
+  },
+
+  "widths": {
+    "$note": "좌우/앞뒤 폭(cm). 좌우 IK anchor(HIP_L/R, SHOULDER_L/R)의 z 오프셋은 여기 half 값에서.",
+    "shoulderWidth": 42.0,
+    "hipWidth": 24.0,
+    "chestWidth": 30.0,
+    "chestDepth": 24.0,
+    "pelvisWidth": 32.0,
+    "pelvisDepth": 22.0
+  },
+
+  "girths": {
+    "$note": "부위 메시 반경(cm). 외형 메시가 골격 위에 살을 붙일 때 쓰는 테이퍼 프로파일. IK 뼈 길이와 직접 동일시하지 않는다(외형 전용).",
+    "neckTop": 5.2,
+    "neckBot": 6.6,
+    "chest": 13.5,
+    "waist": 10.5,
+    "pelvis": 12.5,
+    "shoulderDeltoid": 6.2,
+    "upperArmTop": 5.4,
+    "upperArmBot": 4.2,
+    "forearmTop": 4.6,
+    "forearmBot": 3.0,
+    "wrist": 2.8,
+    "thighTop": 9.0,
+    "thighBot": 5.6,
+    "knee": 4.8,
+    "shankTop": 6.2,
+    "shankBot": 3.2,
+    "ankle": 3.0,
+    "headR": 9.2
+  }
+}
