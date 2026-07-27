@@ -43,16 +43,40 @@ cd apps/web && node scripts/rider-preview/render-views.mjs [--body|--head|--both
 - 동작: `rider-viewer.html`을 `public/`에 임시 복사 → 일회용 vite dev(임의 포트) → chromium 오프스크린 → PNG → 임시파일·서버 자동 정리.
 - 산출 PNG를 Read 툴로 열어 눈으로 확인하고 사용자에게 보여 승인받는다.
 
-## 재생성
+## 후보 워크플로 (제품 GLB 게이트 — auto 모드여도 강제)
 
-모델 변경은 스크립트 `apps/web/scripts/generate-rider-prototype-glb.mjs`를 고친 뒤:
+게이트 대상은 gen 실행이 아니라 **제품 파일** `public/rider/prototype/rider-lowpoly.glb`(앱 로드).
+판정 기준·단계 게이트·승인 문구는 [SKILL.md](../../../../.claude/skills/rider-preview/SKILL.md) 「제품 GLB 게이트」.
+
+**추적 체계는 `riderCandidate.mjs` 공용 모듈**(candidateId·source hash·경로)로 단일화한다.
+
 ```bash
-cd apps/web && npm run gen:rider-glb   # → public/rider/prototype/rider-lowpoly.glb
+cd apps/web
+# 1) 후보 생성 — .out/candidates/<candidateId>/ 에만. 제품 파일 미변경.
+node scripts/build-rider-candidate.mjs
+#    → candidateId = YYYYMMDD-HHmmss-<sourceHash8> (KST). GLB·meta 를 후보 디렉토리에.
+
+# 2) 후보 프리뷰 렌더 — candidateId 파일명 + 이미지 내부 메타(UNAPPROVED) 오버레이.
+node scripts/rider-preview/render-views.mjs --candidate <candidateId> --rider-only --silhouette --stage RIDER_ONLY
+#    산출: rider-only-body-<id>.png · rider-only-silhouette-<id>.png (후보 디렉토리)
+
+# 3) Read 로 PNG 열어 사용자 화면에 표시 → 승인/거부 요청 → 명시 승인 전 중단.
+
+# 4) 승인 후에만 — 후보 GLB 를 제품 경로로 byte-for-byte 복사 + SHA-256 대조.
+node scripts/rider-preview/promote-candidate.mjs <candidateId>
+#    → Match: YES 여야 확정. 불일치면 실패·commit 금지. (재생성 아님 — 사용자가 본 그 파일.)
 ```
-GLB는 정적 자산이라 브라우저가 캐시한다 — 실주행 확인 시 **강력 새로고침(Ctrl+Shift+R)**.
 
-## 미구현 (하네스 확장 TODO)
+- **source hash 대상**: rig·IK·pose·viewer·renderer 포함(§SKILL 3). 관련 소스가 한 줄이라도 바뀌면 새 candidateId.
+- **스킬 사본 동기화**: `node scripts/rider-preview/sync-skill.mjs [--check]` — `.claude`(원본)→`.agents`. `--check` 불일치면 exit 1.
+- 구 `npm run gen:rider-glb` 는 제품 경로를 직접 덮어쓰므로(구 파이프라인) **후보 단계에서 쓰지 않는다.**
+- GLB 캐시 — 실주행 확인 시 **강력 새로고침(Ctrl+Shift+R)**.
 
-- **8위상 페달 렌더(`--pedal`)**: 현재 render-views 는 **정지 포즈만** 렌더한다. 페달링 포즈
-  (정강이 솟음 등 IK 궤적)는 검증 못 한다. 필요하면 인수인계 §3(페달 위상)·§4.1b(`cosHip=+1` 버그)를
-  참고해 8위상 렌더를 추가하라. 그 전까지 페달링은 실주행으로 확인.
+## 3. 페달 5위상 렌더 `render-views.mjs --pedal`
+
+```bash
+cd apps/web && node scripts/rider-preview/render-views.mjs --pedal
+```
+- 크랭크 0/90/180/270/360° 5장을 측면(LEFT)으로 → `.out/rider-pedal.png`. 페달링 IK 궤적 확인.
+- 뷰어(`rider-viewer.html`)가 앱과 **동일한** `riderGlbPedalPose.pose.mjs` 를 import 해 각 위상 포즈를
+  노드에 적용한다 — 프리뷰=실주행 규약 일치. `--body`/`--head` 와 함께 지정 가능(예: `--body --pedal`).

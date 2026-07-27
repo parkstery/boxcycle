@@ -20,6 +20,12 @@ import { chromium } from "playwright";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  candidateDir,
+  readCandidateMeta,
+  kstNow,
+  overlayMeta,
+} from "./riderCandidate.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.join(__dirname, "..", "..");
@@ -31,10 +37,43 @@ function argVal(flag, def) {
   const i = args.indexOf(flag);
   return i >= 0 && args[i + 1] ? args[i + 1] : def;
 }
-const outDir = path.resolve(webRoot, argVal("--out", path.join("scripts", "rider-preview", ".out")));
-const glbPublicPath = argVal("--glb", "/rider/prototype/rider-lowpoly.glb");
-const doBody = args.includes("--body") || args.includes("--both") || (!args.includes("--head"));
-const doHead = args.includes("--head") || args.includes("--both") || (!args.includes("--body"));
+const doPedal = args.includes("--pedal");
+const doRiderOnly = args.includes("--rider-only");
+const doSilhouette = args.includes("--silhouette");
+const doHead = args.includes("--head") || args.includes("--both");
+const doBody = args.includes("--body") || args.includes("--both");
+// 부위 확대 모드
+const doShoulder = args.includes("--shoulder");
+const doPants = args.includes("--pants");
+const doHand = args.includes("--hand");
+
+/**
+ * 후보 모드: --candidate <id>. 후보 디렉토리에서 GLB 를 vite 경로로 서빙하고, 출력·메타를
+ * candidateId 로 각인. stage 는 --stage(기본 RIDER_ONLY).
+ */
+const candidateId = argVal("--candidate", "");
+let candMeta = null, outDir, glbPublicPath, stage, overlay;
+if (candidateId) {
+  candMeta = readCandidateMeta(candidateId);
+  outDir = candidateDir(candidateId);
+  const glbRel = path.relative(webRoot, path.join(outDir, candMeta.glbFile)).split(path.sep).join("/");
+  glbPublicPath = "/" + glbRel; // vite root=webRoot 이므로 그대로 서빙
+  stage = argVal("--stage", candMeta.stage ?? "RIDER_ONLY");
+  overlay = overlayMeta({
+    candidateId,
+    sourceHash: candMeta.sourceHash,
+    renderedHuman: kstNow().human,
+    glbHash: candMeta.glbHash,
+    stage,
+    status: candMeta.status ?? "UNAPPROVED",
+  });
+} else {
+  // 레거시(제품 GLB 직접) 모드 — 후보 아님. 각인 없음.
+  outDir = path.resolve(webRoot, argVal("--out", path.join("scripts", "rider-preview", ".out")));
+  glbPublicPath = argVal("--glb", "/rider/prototype/rider-lowpoly.glb");
+  stage = argVal("--stage", "LEGACY");
+  overlay = null;
+}
 
 const VIEWER_SRC = path.join(__dirname, "rider-viewer.html");
 const VIEWER_TMP = path.join(publicDir, "__rider_viewer_tmp.html"); // vite 가 서빙하도록 public 에 임시 배치
@@ -64,20 +103,31 @@ try {
   browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1024, height: 768 }, deviceScaleFactor: 2 });
 
-  async function shoot(mode, file) {
-    const url = `${base}/__rider_viewer_tmp.html?mode=${mode}&glb=${encodeURIComponent(glbPublicPath)}`;
+  async function shoot(mode, kind) {
+    const metaParam = overlay ? `&meta=${encodeURIComponent(JSON.stringify(overlay))}` : "";
+    const q = `mode=${mode}&glb=${encodeURIComponent(glbPublicPath)}${metaParam}`;
+    const url = `${base}/__rider_viewer_tmp.html?${q}`;
     await page.goto(url, { waitUntil: "load" });
     await page.waitForFunction(() => window.__RIDER_VIEWER_READY__ === true, { timeout: 15000 });
     await page.waitForTimeout(200); // GL 프레임 안착
-    const grid = page.locator("#grid");
+    // 메타 오버레이(#metabar)+그리드를 함께 담는다(#shot). 오버레이는 카메라 프레이밍에 영향 없음.
+    const shot = page.locator("#shot");
+    // 후보 모드는 파일명에 candidateId 삽입, 레거시는 기존 이름.
+    const file = candidateId ? `${kind}-${candidateId}.png` : `${kind}.png`;
     const out = path.join(outDir, file);
-    await grid.screenshot({ path: out });
+    await shot.screenshot({ path: out });
     console.log(`  ✓ ${mode}: ${path.relative(webRoot, out)}`);
   }
 
-  console.log(`\n라이더 GLB 렌더 → ${path.relative(webRoot, outDir)}`);
-  if (doBody) await shoot("body", "rider-body.png");
-  if (doHead) await shoot("head", "rider-head.png");
+  console.log(`\n라이더 렌더 → ${path.relative(webRoot, outDir)}${candidateId ? ` (candidate ${candidateId}, ${stage}, ${overlay.status})` : ""}`);
+  if (doRiderOnly) await shoot("body", "rider-only-body");
+  if (doSilhouette) await shoot("silhouette", "rider-only-silhouette");
+  if (doBody) await shoot("body", "rider-body");
+  if (doHead) await shoot("head", "rider-head");
+  if (doPedal) await shoot("pedal", "rider-pedal");
+  if (doShoulder) await shoot("shoulder", "rider-shoulder");
+  if (doPants) await shoot("pants", "rider-pants");
+  if (doHand) await shoot("hand", "rider-hand");
   console.log("");
 } catch (err) {
   console.error("렌더 실패:", err.message);

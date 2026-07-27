@@ -5,12 +5,30 @@
     ?glb=/rider/prototype/rider-lowpoly.glb  (기본)
     ?mode=body   → 전신 6뷰 (front/back/left/right/top/q34)
     ?mode=head   → 머리 4방향 클로즈업 (front/left/right/top) — 얼굴 노출·헬멧 얹힘 확인
+    ?mode=pedal  → 페달 5위상 측면 (0/90/180/270/360°) — 페달링 IK 궤적·관절 자연스러움 확인
   three 는 앱과 동일 버전을 vite 가 번들(별도 CDN 불필요).
 -->
 <meta charset="utf-8" />
 <title>Rider GLB Viewer</title>
 <style>
   html, body { margin: 0; background: #1a1d24; }
+  #shot { display: inline-block; }
+  /* 메타 오버레이 바 — 축소에도 판독되도록 굵고 큼. UNAPPROVED 강조. */
+  #metabar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px;
+    font: 700 13px ui-monospace, monospace; color: #e2e8f0; background: #0b0e14;
+    padding: 8px 12px; letter-spacing: .02em; border-bottom: 2px solid #2b3444;
+  }
+  #metabar:empty { display: none; }
+  #metabar .kv { white-space: nowrap; }
+  #metabar .kv b { color: #94a3b8; font-weight: 700; }
+  #metabar .status-unapproved {
+    color: #fff; background: #b3261e; padding: 2px 10px; border-radius: 4px;
+    font-weight: 800; letter-spacing: .08em;
+  }
+  #metabar .status-approved {
+    color: #06210f; background: #34d399; padding: 2px 10px; border-radius: 4px; font-weight: 800;
+  }
   #grid { display: grid; gap: 2px; }
   .cell { position: relative; background: #2a2e38; }
   .label {
@@ -18,9 +36,16 @@
     font: 600 11px system-ui; color: #cbd5e1; letter-spacing: .04em;
     background: rgba(0,0,0,.4); padding: 1px 5px; border-radius: 3px;
   }
+  /* 셀 모서리 워터마크 — 크롭·축소 시에도 미승인 식별(모델 안 가리게 모서리, 반투명). */
+  .wm {
+    position: absolute; right: 5px; bottom: 4px; z-index: 2;
+    font: 800 10px ui-monospace, monospace; letter-spacing: .06em;
+    color: rgba(255,120,110,.92); text-shadow: 0 1px 2px rgba(0,0,0,.8);
+    pointer-events: none;
+  }
   canvas { display: block; }
 </style>
-<div id="grid"></div>
+<div id="shot"><div id="metabar"></div><div id="grid"></div></div>
 <!-- three 를 vite 가 서빙하는 node_modules 실경로로 매핑(bare specifier 해석용) -->
 <script type="importmap">
 {
@@ -33,12 +58,40 @@
 <script type="module">
   import * as THREE from "three";
   import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+  // 앱과 **동일한** IK 계산을 재사용(순수 mjs) — 프리뷰가 실주행 포즈와 일치해야 한다.
+  import { resolveGlbPedalPose } from "/src/lib/riderGlbPedalPose.pose.mjs";
 
   const params = new URLSearchParams(location.search);
   const glbUrl = params.get("glb") ?? "/rider/prototype/rider-lowpoly.glb";
   const mode = params.get("mode") ?? "body";
+  const isSilhouette = mode === "silhouette";
+  // 메타 오버레이(오래된 이미지 혼동 방지) — render-views 가 JSON 으로 넘긴다.
+  // { candidate, rendered, source, glb, stage, status }
+  let meta = null;
+  try { meta = JSON.parse(params.get("meta") ?? "null"); } catch { meta = null; }
 
   const CELL = 320;
+
+  /** 페달 포즈를 GLB 노드에 Z 회전으로 적용 — glbModelLayer.ts feature-state 규약과 동일. */
+  function applyPedalPose(model, phase) {
+    const p = resolveGlbPedalPose(phase);
+    const setZ = (name, deg) => {
+      const n = model.getObjectByName(name);
+      if (n) n.rotation.z = (deg * Math.PI) / 180;
+    };
+    setZ("crank", p.crankRotationDeg);
+    setZ("leg_l", p.legLRotationDeg[2]);
+    setZ("leg_l_shin", p.legLShinRotationDeg[2]);
+    setZ("leg_r", p.legRRotationDeg[2]);
+    setZ("leg_r_shin", p.legRShinRotationDeg[2]);
+    setZ("arm_l", p.armLRotationDeg[2]);
+    setZ("arm_l_fore", p.armLForeRotationDeg[2]);
+    setZ("arm_r", p.armRRotationDeg[2]);
+    setZ("arm_r_fore", p.armRForeRotationDeg[2]);
+    // 상체 스웨이(X롤)는 시각효과 — 측면 프리뷰엔 영향 거의 없으나 규약대로 적용.
+    const torso = model.getObjectByName("torso");
+    if (torso) torso.rotation.x = (p.torsoRotationDeg[0] * Math.PI) / 180;
+  }
 
   // 각 뷰: camera 방향(구면). target 은 모델 중심.
   const BODY_VIEWS = [
@@ -55,10 +108,61 @@
     { name: "HEAD-RIGHT", dir: [0.2, 0.15, -1] },
     { name: "HEAD-TOP",   dir: [0.3, 1, 0.001] },
   ];
-  const views = mode === "head" ? HEAD_VIEWS : BODY_VIEWS;
+  // 페달 5위상 — 모두 LEFT 측면(진행 왼쪽에서), phase 0/0.25/0.5/0.75/1.0.
+  const PEDAL_VIEWS = [0, 0.25, 0.5, 0.75, 1.0].map((phase) => ({
+    name: `${Math.round(phase * 360)}°`,
+    dir: [0, 0, 1],
+    phase,
+  }));
+  // 실루엣 3뷰 — 검은 단색 FRONT/LEFT/Q34.
+  const SILHOUETTE_VIEWS = [
+    { name: "SIL-FRONT", dir: [1, 0, 0] },
+    { name: "SIL-LEFT", dir: [0, 0, 1] },
+    { name: "SIL-Q34", dir: [1, 0.4, 0.9] },
+  ];
+  // ── 부위 확대 뷰 — target(월드 중심)·zoomR(프레임 반경)을 지정해 크롭. riderBody 앵커 기준. ──
+  //   어깨 y≈1.41, 골반 y≈0.89, 손 y≈0.5(고관절0.89-팔0.9). z 좌우 ±0.21.
+  const SHOULDER_VIEWS = [
+    { name: "SHOULDER-FRONT", dir: [1, 0.25, 0], target: [0, 1.35, 0], zoomR: 0.34 },
+    { name: "SHOULDER-BACK", dir: [-1, 0.25, 0], target: [0, 1.35, 0], zoomR: 0.34 },
+    { name: "SHOULDER-Q34", dir: [1, 0.45, 0.8], target: [0, 1.35, 0.1], zoomR: 0.34 },
+  ];
+  const PANTS_VIEWS = [
+    { name: "PANTS-FRONT", dir: [1, 0.1, 0], target: [0, 0.78, 0], zoomR: 0.3 },
+    { name: "PANTS-BACK", dir: [-1, 0.1, 0], target: [0, 0.78, 0], zoomR: 0.3 },
+    { name: "PANTS-LEFT", dir: [0, 0.1, 1], target: [0, 0.78, 0], zoomR: 0.3 },
+  ];
+  const HAND_VIEWS = [
+    { name: "HAND-L-Q34", dir: [1, 0.15, 0.8], target: [0.06, 0.77, 0.21], zoomR: 0.12 },
+    { name: "HAND-R-Q34", dir: [1, 0.15, -0.8], target: [0.06, 0.77, -0.21], zoomR: 0.12 },
+  ];
+  // rider-only 는 자전거 없는 6뷰(BODY_VIEWS 재사용).
+  const views =
+    mode === "head" ? HEAD_VIEWS :
+    mode === "pedal" ? PEDAL_VIEWS :
+    isSilhouette ? SILHOUETTE_VIEWS :
+    mode === "shoulder" ? SHOULDER_VIEWS :
+    mode === "pants" ? PANTS_VIEWS :
+    mode === "hand" ? HAND_VIEWS :
+    BODY_VIEWS;
 
   const grid = document.getElementById("grid");
-  grid.style.gridTemplateColumns = `repeat(${mode === "head" ? 2 : 3}, ${CELL}px)`;
+  const cols = mode === "head" ? 2 : mode === "pedal" ? 5 : mode === "hand" ? 2 : 3;
+  grid.style.gridTemplateColumns = `repeat(${cols}, ${CELL}px)`;
+
+  // 메타 오버레이 바 — 그리드 위(별도, 카메라 무관). 축소에도 판독되게 굵게. UNAPPROVED 강조.
+  if (meta) {
+    const bar = document.getElementById("metabar");
+    const kv = (k, v) => `<span class="kv"><b>${k}:</b> ${v}</span>`;
+    const statusClass = meta.status === "APPROVED" ? "status-approved" : "status-unapproved";
+    bar.innerHTML =
+      kv("Candidate", meta.candidate ?? "?") +
+      kv("Rendered", meta.rendered ?? "?") +
+      kv("Source", meta.source ?? "?") +
+      kv("GLB", meta.glb ?? "?") +
+      kv("Stage", meta.stage ?? "?") +
+      `<span class="${statusClass}">${meta.status ?? "UNAPPROVED"}</span>`;
+  }
 
   const loader = new GLTFLoader();
   loader.load(glbUrl, (gltf) => {
@@ -84,29 +188,50 @@
       const label = document.createElement("div");
       label.className = "label";
       label.textContent = view.name;
+      // 셀 모서리 워터마크 — 크롭·축소 시에도 미승인 식별(모델 안 가리게 우하단).
+      if (meta && meta.status !== "APPROVED") {
+        const wm = document.createElement("div");
+        wm.className = "wm";
+        wm.textContent = `UNAPPROVED · ${meta.candidate ?? ""}`;
+        cell.appendChild(wm);
+      }
       cell.appendChild(label);
       grid.appendChild(cell);
 
       const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
       renderer.setSize(CELL, CELL);
-      renderer.setClearColor(0x2a2e38, 1);
+      // 실루엣: 흰 배경 + 검은 단색(외곽선만). 그 외: 뷰어 톤.
+      renderer.setClearColor(isSilhouette ? 0xffffff : 0x2a2e38, 1);
       cell.appendChild(renderer.domElement);
 
       const scene = new THREE.Scene();
-      scene.add(model.clone(true));
-      scene.add(new THREE.HemisphereLight(0xffffff, 0x404050, 1.1));
-      const key = new THREE.DirectionalLight(0xffffff, 1.4);
-      key.position.set(3, 5, 2);
-      scene.add(key);
-      const fill = new THREE.DirectionalLight(0xcfe0ff, 0.5);
-      fill.position.set(-3, 1, -2);
-      scene.add(fill);
+      const posed = model.clone(true);
+      if (mode === "pedal") applyPedalPose(posed, view.phase);
+      if (isSilhouette) {
+        // 색·조명 제거 — 형태만 검정 실루엣으로. MeshBasic 검정(조명 무관).
+        const black = new THREE.MeshBasicMaterial({ color: 0x111111 });
+        posed.traverse((o) => { if (o.isMesh) o.material = black; });
+      }
+      scene.add(posed);
+      if (!isSilhouette) {
+        scene.add(new THREE.HemisphereLight(0xffffff, 0x404050, 1.1));
+        const key = new THREE.DirectionalLight(0xffffff, 1.4);
+        key.position.set(3, 5, 2);
+        scene.add(key);
+        const fill = new THREE.DirectionalLight(0xcfe0ff, 0.5);
+        fill.position.set(-3, 1, -2);
+        scene.add(fill);
+      }
 
       const cam = new THREE.PerspectiveCamera(35, 1, 0.01, 100);
       const dir = new THREE.Vector3(...view.dir).normalize();
-      const dist = radius / Math.sin((35 * Math.PI) / 180 / 2) * 0.62;
-      cam.position.copy(center).add(dir.multiplyScalar(dist));
-      cam.lookAt(center);
+      // 부위 확대 뷰(view.target/zoomR)면 그 중심·반경으로, 아니면 전체 bounding.
+      const camTarget = view.target ? new THREE.Vector3(...view.target) : center;
+      const camRadius = view.zoomR ?? radius;
+      const framing = view.zoomR ? 1.0 : (mode === "body" || isSilhouette) ? 0.92 : 0.62;
+      const dist = camRadius / Math.sin((35 * Math.PI) / 180 / 2) * framing;
+      cam.position.copy(camTarget).add(dir.multiplyScalar(dist));
+      cam.lookAt(camTarget);
 
       renderer.render(scene, cam);
     }
