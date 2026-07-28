@@ -15,8 +15,9 @@ import { solveIk3D } from "../../src/lib/riderPrototype/riderIk.mjs";
 
 const argv = process.argv.slice(2);
 const SCALE = Number(argv[0] ?? 1.10);
-const HIP_DROP = Number(argv[1] ?? 166) / 1000; // 안장 966→고관절 800(reachscan 최적: 발·손 동시 도달)
-const phaseArg = argv.slice(2).map(Number).filter((x) => !Number.isNaN(x));
+const HIP_DROP = Number(argv[1] ?? 166) / 1000; // 안장 966→고관절 하강
+const HIP_XOFF = Number(argv[2] ?? 15) / 1000; // 안장 setback 기준 고관절 전방 이동(+x)
+const phaseArg = argv.slice(3).map(Number).filter((x) => !Number.isNaN(x));
 const phases = phaseArg.length ? phaseArg : [0, 0.25, 0.5, 0.75];
 
 // ── V2 본 길이(m, 스케일 반영). Blender 실측(reachscan): 다리858 팔609 몸통(시상)607 ──
@@ -37,7 +38,7 @@ const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 // HIP: 안장 착좌점(SADDLE_CONTACT) 아래 HIP_DROP, 좌우 ±hipHalfZ.
 const saddle = SADDLE_CONTACT; // [-0.226, 0.966, 0]
 const hipY = saddle[1] - HIP_DROP;
-const hipX = saddle[0] + 0.015; // 골반 살짝 앞
+const hipX = saddle[0] + HIP_XOFF; // 안장 setback 기준 고관절 전방(Hip Hinge 시 어깨 도달 위해)
 const hipOfV2 = (side) => [hipX, hipY, side === "l" ? +V2.hipHalfZ : -V2.hipHalfZ];
 
 // SHOULDER: 전경사 42°로 HIP 에서 몸통 세움. V2 실측 시상 몸통(고관절→어깨).
@@ -49,7 +50,10 @@ const shoulderOfV2 = (side) => [shoulderXY[0], shoulderXY[1], side === "l" ? +V2
 function legJoint(side, crankRad) {
   const hip = hipOfV2(side);
   const pedal = pedalWorld(side, crankRad);
-  const pole = [hip[0] + 0.35, hip[1] - 0.5, hip[2]];
+  // 무릎 pole: 다리평면(hip~pedal 의 z 중간) 앞쪽(+x 진행). z를 다리평면에 두면 무릎이
+  //   주행방향과 평행하게 굽는다(옆으로 안 벌어짐). 무릎 z벌어짐 <7mm 확인.
+  const midZ = (hip[2] + pedal[2]) / 2;
+  const pole = [Math.max(hip[0], pedal[0]) + 0.4, (hip[1] + pedal[1]) / 2, midZ];
   const ik = solveIk3D(hip, pedal, pole, V2.thigh, V2.shin);
   const foot = [
     ik.joint[0] + ik.boneBDir[0] * V2.shin,
@@ -62,7 +66,9 @@ function legJoint(side, crankRad) {
 function armJoint(side) {
   const shoulder = shoulderOfV2(side);
   const hood = hoodOf(side);
-  const pole = [shoulder[0] + 0.12, shoulder[1] - 0.6, shoulder[2] + (side === "l" ? 0.06 : -0.06)];
+  // 팔꿈치 pole: 어깨·후드 아래(y 낮게) → 팔꿈치가 아래로 접혀 어깨-팔꿈치-손이 'ㄴ'자.
+  //   z는 팔 평면(어깨~후드 중간)에 두어 팔이 옆으로 안 벌어지게.
+  const pole = [(shoulder[0] + hood[0]) / 2, Math.min(shoulder[1], hood[1]) - 0.4, (shoulder[2] + hood[2]) / 2];
   const ik = solveIk3D(shoulder, hood, pole, V2.upper, V2.fore);
   const hand = [
     ik.joint[0] + ik.boneBDir[0] * V2.fore,
