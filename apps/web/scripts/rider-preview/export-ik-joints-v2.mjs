@@ -15,18 +15,19 @@ import { solveIk3D } from "../../src/lib/riderPrototype/riderIk.mjs";
 
 const argv = process.argv.slice(2);
 const SCALE = Number(argv[0] ?? 1.10);
-const HIP_DROP = Number(argv[1] ?? 160) / 1000; // 안장 착좌점→고관절 수직 하강(m)
+const HIP_DROP = Number(argv[1] ?? 166) / 1000; // 안장 966→고관절 800(reachscan 최적: 발·손 동시 도달)
 const phaseArg = argv.slice(2).map(Number).filter((x) => !Number.isNaN(x));
 const phases = phaseArg.length ? phaseArg : [0, 0.25, 0.5, 0.75];
 
-// ── V2 본 길이(m, 스케일 반영). bone_diag 실측: THIGH430 SHIN350 UPPER312 FORE242 ──
+// ── V2 본 길이(m, 스케일 반영). Blender 실측(reachscan): 다리858 팔609 몸통(시상)607 ──
 const V2 = {
   thigh: 0.430 * SCALE,
   shin: 0.350 * SCALE,
   upper: 0.312 * SCALE,
   fore: 0.242 * SCALE,
-  hipHalfZ: 0.0925 * SCALE, // ±92.5mm
-  shoulderHalfZ: 0.205 * SCALE, // CLAVICLE 끝 ±205
+  hipHalfZ: 0.0925 * SCALE, // ±92.5mm (rest THIGH head 좌우)
+  shoulderHalfZ: 0.205 * SCALE, // rest UPPER_ARM head 좌우 ±205
+  torsoSagittal: 0.5518 * SCALE, // rest 고관절→어깨 시상면 607mm/1.1 (스케일 곱해 복원)
 };
 
 const crankRadFromPhase = (p) => -p * Math.PI * 2;
@@ -39,8 +40,8 @@ const hipY = saddle[1] - HIP_DROP;
 const hipX = saddle[0] + 0.015; // 골반 살짝 앞
 const hipOfV2 = (side) => [hipX, hipY, side === "l" ? +V2.hipHalfZ : -V2.hipHalfZ];
 
-// SHOULDER: 전경사 42°로 HIP 에서 몸통 세움. V2 몸통 길이(PELVIS~CHEST 실측 ≈ 0.58*SCALE).
-const TORSO_LEN = 0.58 * SCALE;
+// SHOULDER: 전경사 42°로 HIP 에서 몸통 세움. V2 실측 시상 몸통(고관절→어깨).
+const TORSO_LEN = V2.torsoSagittal;
 const TA = (42 * Math.PI) / 180;
 const shoulderXY = [hipX + TORSO_LEN * Math.cos(TA), hipY + TORSO_LEN * Math.sin(TA)];
 const shoulderOfV2 = (side) => [shoulderXY[0], shoulderXY[1], side === "l" ? +V2.shoulderHalfZ : -V2.shoulderHalfZ];
