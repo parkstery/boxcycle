@@ -41,6 +41,9 @@
   "crankLength": 172.5,
   "pedalRadius": 45,
   "pedalOffset": 74,
+  "$note_pedalOffset": "BB 중심→페달축 총 좌우 거리(편도, mm). Q-factor = 2·pedalOffset. 구조 분해: bbSpindleHalf(크랭크암 시작 z) + pedalAxleOffset(크랭크 끝→페달) = pedalOffset.",
+  "bbSpindleHalf": 58,
+  "pedalAxleOffset": 16,
 
   "coords": {
     "$note": "mm, BB 원점. GLB 이식용.",

@@ -31,7 +31,11 @@ export const SEAT_TOP = coordM("seatTop");
 /** 크랭크암 길이(m) — 페달 원 반경 */
 export const CRANK_ARM_M = toM(geometry.crankLength); // 0.1725
 /** 페달 좌우 오프셋(Q-factor/2) — 왼발 +z, 오른발 -z */
-export const PEDAL_HALF_Z = toM(geometry.pedalOffset); // 0.054
+export const PEDAL_HALF_Z = toM(geometry.pedalOffset); // 0.074
+/** BB 스핀들 반폭 — 크랭크암이 BB 밖으로 드러나 시작하는 z. 크랭크 간 거리의 근본. */
+export const BB_SPINDLE_HALF = toM(geometry.bbSpindleHalf ?? geometry.pedalOffset); // 0.058
+/** 페달축 오프셋 — 크랭크 끝 → 페달(부수적). BB_SPINDLE_HALF + PEDAL_AXLE = PEDAL_HALF_Z. */
+export const PEDAL_AXLE_OFFSET = toM(geometry.pedalAxleOffset ?? 0); // 0.016
 
 // 드롭바 후드(손 고정점) — gen cockpitAssembly 와 동일 계산.
 const STEER = (() => {

@@ -27,6 +27,8 @@ import {
   UPPER_ARM_LEN,
   FOREARM_LEN,
   PEDAL_HALF_Z,
+  BB_SPINDLE_HALF,
+  PEDAL_AXLE_OFFSET,
 } from "../src/lib/riderPrototype/riderRig.geometry.mjs";
 // Static Fit 초기 포즈(rest→IK 방향 회전)를 GLB 노드에 직접 구워 프리뷰 정지자세로 쓴다.
 // (주행 시엔 feature-state 가 위상별로 덮어쓴다.)
@@ -505,15 +507,21 @@ function crankAssembly() {
   crank.name = "crank";
   crank.position.set(bb[0], bb[1], bb[2]);
   const armLen = 0.1725; // crankLength 172.5mm (geometry.json)
-  // 크랭크암(회전면 y). 왼쪽 +y, 오른쪽 -y.
-  crank.add(tube([0, 0, 0], [0, armLen, 0], 0.012, COL.bar, frameOpts));
-  crank.add(tube([0, 0, 0], [0, -armLen, 0], 0.012, COL.bar, frameOpts));
-  // 페달축(spindle) — 크랭크 끝에서 좌우(z)로 pedalOffset 만큼. Q-factor = 2·PEDAL_HALF_Z.
-  // 왼발(+y 크랭크)=+z(왼쪽), 오른발(-y 크랭크)=-z(오른쪽). pedalWorld() 규약과 일치.
-  const pz = PEDAL_HALF_Z; // 0.074 (geometry.json pedalOffset)
-  crank.add(tube([0, armLen, 0], [0, armLen, +pz], 0.010, COL.bar, frameOpts));
-  crank.add(tube([0, -armLen, 0], [0, -armLen, -pz], 0.010, COL.bar, frameOpts));
-  // 페달 — 축 끝(좌우 오프셋 위치)에 배치.
+  // BB 구조: 크랭크 간 거리는 '스핀들'이 만든다(물리적 진실). 크랭크암은 스핀들 끝(BB 밖으로
+  // 드러난 z=±spindleHalf)에서 시작해 회전반경만큼 뻗고, 페달은 크랭크 끝에서 소폭 추가 오프셋.
+  //   spindleHalf(58) + pedalAxle(16) = pedalOffset(74) = 페달 최종 z. Q-factor = 2·74 = 148mm.
+  const sh = BB_SPINDLE_HALF; // 0.058 — 크랭크가 시작하는 좌우 z (BB 밖)
+  const pz = PEDAL_HALF_Z; // 0.074 — 페달 최종 z (pedalWorld 규약과 일치)
+  const axle = PEDAL_AXLE_OFFSET; // 0.016 — 크랭크 끝→페달축(부수)
+  // 1) 스핀들 — BB 를 관통해 좌우 크랭크를 연결(크랭크 간 거리의 근본). z:-sh↔+sh.
+  crank.add(tube([0, 0, -sh], [0, 0, +sh], 0.016, COL.rim, frameOpts));
+  // 2) 좌우 크랭크암 — 스핀들 끝(z=±sh, BB 밖으로 드러남)에서 회전반경만큼. 왼쪽 +y, 오른쪽 -y.
+  crank.add(tube([0, 0, +sh], [0, armLen, +sh], 0.012, COL.bar, frameOpts));
+  crank.add(tube([0, 0, -sh], [0, -armLen, -sh], 0.012, COL.bar, frameOpts));
+  // 3) 페달축 — 크랭크 끝에서 바깥으로 소폭(sh→pz).
+  crank.add(tube([0, armLen, +sh], [0, armLen, +pz], 0.010, COL.bar, frameOpts));
+  crank.add(tube([0, -armLen, -sh], [0, -armLen, -pz], 0.010, COL.bar, frameOpts));
+  // 4) 페달 — 페달축 끝(z=±pz).
   crank.add(box(0.07, 0.02, 0.05, COL.rim, 0, armLen, +pz, 0, 0, 0, frameOpts));
   crank.add(box(0.07, 0.02, 0.05, COL.rim, 0, -armLen, -pz, 0, 0, 0, frameOpts));
   // 라이더 있으면 Static Fit(crank 0°) 각을 굽고, 없으면 수평(3시)로 두어 페달이 지면에 안 닿게.
