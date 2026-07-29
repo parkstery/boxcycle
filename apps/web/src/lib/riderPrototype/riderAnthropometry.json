@@ -8,14 +8,15 @@
 
   "segments": {
     "$note": "뼈/부위 길이(cm). 관절 중심 간 거리. 신장 비율(Drillis-Contini 인체공학) + 인심 실측 교차검증.",
+    "$note_leg": "thigh/shank 는 Drillis-Contini 표준 비율 파생: thigh=0.245·H, shank=0.246·H (H=175cm) → 42.9+43.0=85.9cm. 2026-07-30 교정(구 41.5/40.5=82.0 은 인심 82cm 를 관절중심합으로 오인한 값 — 인심은 외부 치수라 관절중심합과 다르다). 주의: 이 값은 인체 SSoT 이며 IK rig 다리와 별개다. export-ik-joints-v2.mjs 의 thigh 430/shin 350 은 stylized_cyclist_v2 GLB 뼈 실측치이고 scale 이 곱해진다 — 두 층은 의도적으로 다르며, 여기 값을 바꿔도 IK 는 따라오지 않는다(GLB 뼈 변경은 fit_ik.py extend_shin 필요).",
     "headHeight": 23.5,
     "neckLength": 9.0,
     "torsoHip2Shoulder": 52.0,
     "upperArm": 32.0,
     "forearm": 25.0,
     "handLength": 18.0,
-    "thigh": 41.5,
-    "shank": 40.5,
+    "thigh": 42.9,
+    "shank": 43.0,
     "footLength": 26.0,
     "footHeight": 7.0
   },
