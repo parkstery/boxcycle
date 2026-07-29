@@ -49,9 +49,16 @@ const TA = (42 * Math.PI) / 180;
 const shoulderXY = [hipX + TORSO_LEN * Math.cos(TA), hipY + TORSO_LEN * Math.sin(TA)];
 const shoulderOfV2 = (side) => [shoulderXY[0], shoulderXY[1], side === "l" ? +V2.shoulderHalfZ : -V2.shoulderHalfZ];
 
+// 발목 = 페달축 바로 위가 아니다. 발바닥이 페달 상면에 얹히려면 발목이 페달축보다 위에 있어야 한다.
+//   페달축 → 페달 상면 34.5mm(페달 두께 70의 절반) + 발바닥 → 발목 66mm(발 메시 실측 75×0.88)
+//   = 100.5mm. 이 오프셋 없이 발목을 페달축에 맞추면 발 메시가 페달을 관통한다(렌더에서 발이
+//   페달에 파묻혀 안 보임). scale 에 비례하는 건 발 부분(66)뿐이라 페달 절반(34.5)은 상수.
+const ANKLE_ABOVE_AXLE = (0.0345 + 0.075 * SCALE); // m
 function legJoint(side, crankRad) {
   const hip = hipOfV2(side);
-  const pedal = pedalWorld(side, crankRad);
+  const pedalAxle = pedalWorld(side, crankRad);
+  // IK 가 겨냥할 발목 목표 = 페달축 위 ANKLE_ABOVE_AXLE.
+  const pedal = [pedalAxle[0], pedalAxle[1] + ANKLE_ABOVE_AXLE, pedalAxle[2]];
   // 무릎 pole: 다리평면(hip~pedal 의 z 중간) 앞쪽(+x 진행). z를 다리평면에 두면 무릎이
   //   주행방향과 평행하게 굽는다(옆으로 안 벌어짐). 무릎 z벌어짐 <7mm 확인.
   const midZ = (hip[2] + pedal[2]) / 2;
@@ -62,7 +69,8 @@ function legJoint(side, crankRad) {
     ik.joint[1] + ik.boneBDir[1] * V2.shin,
     ik.joint[2] + ik.boneBDir[2] * V2.shin,
   ];
-  return { hip, pedal, knee: ik.joint, foot, kneeDeg: ik.jointDeg, err: dist(foot, pedal) };
+  // err 는 '발목이 발목 목표에 닿았나'(IK 도달). 접점 판정은 렌더로(→ fit_ik.py measure 의 클릿).
+  return { hip, pedal: pedalAxle, ankleTarget: pedal, knee: ik.joint, foot, kneeDeg: ik.jointDeg, err: dist(foot, pedal) };
 }
 
 function armJoint(side) {
@@ -103,7 +111,10 @@ for (const p of phases) {
   worstHand = Math.max(worstHand, aL.err, aR.err);
   out.phases[p.toFixed(3)] = {
     crankDeg: -p * 360,
-    footL: mm(lL.pedal), footR: mm(lR.pedal),
+    // foot* = **발목** 목표(페달축 위 ANKLE_ABOVE_AXLE). pedalAxle* = 페달축 자체(클릿 목표).
+    //   둘을 섞지 말 것 — 발목을 페달축에 맞추면 발 메시가 페달을 관통한다.
+    footL: mm(lL.ankleTarget), footR: mm(lR.ankleTarget),
+    pedalAxleL: mm(lL.pedal), pedalAxleR: mm(lR.pedal),
     kneeL: mm(lL.knee), kneeR: mm(lR.knee),
     handL: mm(aL.hood), handR: mm(aR.hood),
     elbowL: mm(aL.elbow), elbowR: mm(aR.elbow),
