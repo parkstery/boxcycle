@@ -17,13 +17,15 @@ const argv = process.argv.slice(2);
 const SCALE = Number(argv[0] ?? 1.10);
 const HIP_DROP = Number(argv[1] ?? 166) / 1000; // 안장 966→고관절 하강
 const HIP_XOFF = Number(argv[2] ?? 15) / 1000; // 안장 setback 기준 고관절 전방 이동(+x)
-const phaseArg = argv.slice(3).map(Number).filter((x) => !Number.isNaN(x));
+// SHIN_REST(4번째 인자, mm): 정강이 rest 길이. 미지정 시 350(실측). 20%↑ 실험 = 420.
+const SHIN_REST = (Number(argv[3]) || 350) / 1000;
+const phaseArg = argv.slice(4).map(Number).filter((x) => !Number.isNaN(x));
 const phases = phaseArg.length ? phaseArg : [0, 0.25, 0.5, 0.75];
 
 // ── V2 본 길이(m, 스케일 반영). Blender 실측(reachscan): 다리858 팔609 몸통(시상)607 ──
 const V2 = {
   thigh: 0.430 * SCALE,
-  shin: 0.350 * SCALE,
+  shin: SHIN_REST * SCALE,
   upper: 0.312 * SCALE,
   fore: 0.242 * SCALE,
   hipHalfZ: 0.0925 * SCALE, // ±92.5mm (rest THIGH head 좌우)
