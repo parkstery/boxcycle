@@ -29,6 +29,7 @@ import {
   PEDAL_HALF_Z,
   BB_SPINDLE_HALF,
   PEDAL_AXLE_OFFSET,
+  SADDLE_CONTACT,
 } from "../src/lib/riderPrototype/riderRig.geometry.mjs";
 // Static Fit 초기 포즈(rest→IK 방향 회전)를 GLB 노드에 직접 구워 프리뷰 정지자세로 쓴다.
 // (주행 시엔 feature-state 가 위상별로 덮어쓴다.)
@@ -420,7 +421,8 @@ function waterBottleAssembly() {
 root.add(waterBottleAssembly());
 
 /** 안장·시트포스트 — 시트튜브 상단(seatTop)에서 새들 좌표(geometry.json saddle, setback 20mm)로. */
-const saddlePos = [-0.2259, 0.9656, 0]; // saddleHeight 725mm · setback 20mm
+// 안장 = geometry.json 파생(SADDLE_CONTACT). 하드코딩 금지 — saddleHeight/각도/setback 에서 재파생.
+const saddlePos = [SADDLE_CONTACT[0], SADDLE_CONTACT[1], 0]; // ≈[-0.226, 0.9655] (saddleHeight 725·setback 20)
 root.add(tube(seatTop, [saddlePos[0], saddlePos[1] - 0.01, 0], 0.011, COL.bar, frameOpts));
 const saddle = blob(0.05, COL.bar, [2.4, 0.32, 0.95], { segments: 16, ...frameOpts });
 saddle.position.set(saddlePos[0], saddlePos[1], 0);

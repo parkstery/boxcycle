@@ -47,13 +47,14 @@
 
   "coords": {
     "$note": "mm, BB 원점. GLB 이식용.",
+    "$note_saddle": "saddle 은 파생값: saddleX=-(saddleHeight·cos(seatTubeAngle))-saddleSetback, saddleY=saddleHeight·sin(seatTubeAngle). 725·73.5°·20 → [-226, 695]. 하드코딩 금지 — 값 바꾸려면 saddleHeight/각도/setback 를 바꿔 재파생. (2026-07-29 혼합좌표 [-180,532] 교정.)",
     "bb": [0, 0],
     "rearHub": [-403.6, 72],
     "frontHub": [590.3, 72],
     "seatTop": [-159, 536.9],
     "headTop": [388, 573],
     "headBot": [436.2, 415.2],
-    "saddle": [-180, 532],
+    "saddle": [-226, 695],
     "stemClamp": [487.5, 562.5],
     "barDrop": [527.5, 434.5]
   }
