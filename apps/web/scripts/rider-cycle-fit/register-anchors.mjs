@@ -49,10 +49,12 @@ function main() {
     extractedAt: t.human,
     ...anchors,
     reconcile: {
-      $note: "실측 GLB 본길이 vs 앱 정본 대조(anti-pattern #3 근원). 셋 다 다르면 정본 결정 필요.",
+      $note: "실측 GLB 본길이 vs 앱 정본 대조(anti-pattern #3 근원). 결합 정본 = GLB 실측(사용자 결정 2026-07-29).",
+      chosen: { source: "GLB 실측", thigh: anchors.rider?.boneLengths_mm?.thigh ?? null, shin: anchors.rider?.boneLengths_mm?.shin ?? null,
+        why: "결합 대상은 실제 GLB 라이더. 그 뼈로 IK 를 풀어야 발-페달 도달 0mm. fit_ik.py V2 thigh 430 과 일치." },
       glbBoneLengths: anchors.rider?.boneLengths_mm ?? null,
-      appRig: { thigh: 493, shin: 493, source: "riderRig.geometry.mjs" },
-      anthropometry: { thigh: 415, shin: 405, source: "riderAnthropometry.json" },
+      appRig: { thigh: 493, shin: 493, source: "riderRig.geometry.mjs", use: "절차생성 라이더용(별개)" },
+      anthropometry: { thigh: 415, shin: 405, source: "riderAnthropometry.json", use: "절차생성 라이더용(별개)" },
     },
   };
   const outPath = path.join(INPUTS_ROOT, `anchors-${inputHash}.json`);
