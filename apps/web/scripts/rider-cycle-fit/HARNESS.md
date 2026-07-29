@@ -9,13 +9,15 @@
 
 | 파일 | 역할 | 상태 |
 |---|---|---|
-| `register-inputs.mjs` | **단계 0** — rider·cycle·fit_ik·joints·geometry·exporter를 입력 해시·경로와 함께 manifest 등록 | ✅ |
+| `register-inputs.mjs` | **단계 0** — 입력 6종 해시·경로 + Blender 메타(AABB·노드/본·프리뷰) manifest 등록 | ✅ |
+| `register-anchors.mjs` | **단계 A** — extract-anchors.py로 두 GLB 실제 접점 앵커 추출·저장 + 다리 정본(reconcile) | ✅ |
 | `verify-fit.mjs` | 결합 피팅 **불변식 정적 검사**(안장 파생식·페달 위상 대칭·ETT≠reach·IK오차 필드) | ✅ |
-| `extract-glb-meta.py` | (Blender) rider/cycle GLB의 AABB·노드/본·단위·축·원점 추출 → manifest 채움 | ⬜ 미구현 |
-| `verify-inputs.mjs` | manifest 입력 해시가 현재 파일과 일치하는지(입력이 바뀌었는지) 검사 | ⬜ 미구현 |
-| `render-fit.py` | (Blender) 결합 후보 Static/Pedal 렌더. **위치는 apps/web 밖**(Blender는 three 의존 없음) | ⬜ 미구현 · 현재는 OneDrive `fit_ik.py` |
+| `../../../../blender/rider-cycle-fit/extract-glb-meta.py` | (Blender) GLB AABB·노드/본·단위·축·프리뷰 추출 → register-inputs가 호출 | ✅ |
+| `../../../../blender/rider-cycle-fit/extract-anchors.py` | (Blender) rider 본 rest world·cycle 메시 클러스터에서 앵커 추출 → register-anchors가 호출 | ✅ |
+| `verify-inputs.mjs` | manifest 입력 해시가 현재 파일과 일치하는지(입력 drift) 검사 | ⬜ 미구현 |
+| `render-fit.py` | (Blender) 결합 후보 Static/Pedal 렌더. apps/web 밖(`blender/rider-cycle-fit/`). **승인 요청 전제조건** | ⬜ 미구현 · 현재는 OneDrive `fit_ik.py` |
 | `promote-candidate.mjs` | 승인된 결합 GLB를 제품 경로로 byte-for-byte 복사 | ⬜ 미구현 |
-| `.out/inputs/` | manifest 산출물(gitignore) | — |
+| `.out/inputs/manifest-<hash>.json` `anchors-<hash>.json` `preview-<hash>/` | 단계 0·A 산출물(gitignore) | ✅ |
 | `.out/candidates/<id>/` | 후보 산출물(gitignore) | — |
 
 ## CLI
@@ -25,10 +27,18 @@
 node scripts/rider-cycle-fit/register-inputs.mjs [--blender 5.2.0] \
   [--rider <path>] [--cycle <path>] [--fitik <path>] [--joints <path>] [--geometry <path>] [--exporter <path>]
 ```
-- 기본 입력 경로는 `DEFAULT_INPUTS`(memory `v24-cyclefit-handoff` 기준). 없는 파일이면 오류.
-- 산출: `.out/inputs/manifest-<inputHash>.json` + `manifest-latest.json`.
-- `--blender` 로 버전 기록(재현성). AABB·노드는 `extract-glb-meta.py`(미구현)가 채운다.
+- 기본 입력 경로는 `DEFAULT_INPUTS`. `--blenderExe <path>` 로 Blender 실행파일(기본 5.2). `--skipMeta` 로 메타 추출 생략(빠른 해시만).
+- 산출: `manifest-<inputHash>.json` + `manifest-latest.json` + `preview-<inputHash>/{rider,cycle}-preview.png`.
+- `--blender <version>` 로 버전 기록(재현성·해시 반영). AABB·노드/본은 `extract-glb-meta.py`가 채운다.
 - **입력 중 하나라도 바뀌면 inputHash가 바뀐다 = 새 결합 후보로 취급.**
+
+### register-anchors (단계 A)
+```
+node scripts/rider-cycle-fit/register-anchors.mjs [--blenderExe <path>] [--inputHash <hash>]
+```
+- `manifest-latest.json` 의 inputHash 사용(또는 `--inputHash`). extract-anchors.py 로 두 GLB 실제 앵커 추출.
+- 산출: `anchors-<inputHash>.json` — rider 본 rest world 앵커·본길이·cycle 메시 클러스터·reconcile(다리 정본).
+- **결합 다리 정본 = GLB 실측 430/350**(reconcile.chosen, 2026-07-29 결정).
 
 ### verify-fit (불변식)
 ```
@@ -48,15 +58,16 @@ node scripts/rider-cycle-fit/verify-fit.mjs [--geometry <path>] [--joints <path>
 
 ## 재생성
 
-1. 입력 등록: `register-inputs.mjs --blender 5.2.0`
-2. 불변식: `verify-fit.mjs` (FAIL 없어야 결합 진행)
-3. (미구현) 결합 렌더 → 사용자 승인 → promote
+1. 입력 등록(단계 0): `register-inputs.mjs --blender 5.2.0`  → manifest + 프리뷰
+2. 앵커 추출(단계 A): `register-anchors.mjs`  → anchors + 다리 정본
+3. 불변식: `verify-fit.mjs` (FAIL 없어야 결합 진행)
+4. (미구현) 결합 렌더(render-fit.py) → 사용자 승인 → promote
 
 ## 미구현 (확장 TODO)
 
-- `extract-glb-meta.py` — 단계 0 완결(AABB·노드/본). 현재 manifest의 riderMeta/cycleMeta는 null.
-- `render-fit.py` — OneDrive `fit_ik.py`를 리포 내로 이관(경로를 manifest에 등록). apps/web 밖 별도 경로 권장.
-- `verify-inputs.mjs` — 입력 drift 검사.
-- `promote-candidate.mjs` — 결합 GLB 제품 승격(노드 계약 확정 후).
+- `render-fit.py` — **다음 우선순위**(승인 요청 전제조건). OneDrive `fit_ik.py`를 `blender/rider-cycle-fit/`로 이관. 결합 다리 정본 430/350 사용, 크랭크-발 위상 일치(anti#1·#2), Static(crank 고정)·Pedal(0/90/180/270°) 렌더. 후보 경로 `.out/candidates/<candidateId>/` + UNAPPROVED 오버레이.
+- `verify-inputs.mjs` — 입력 drift 검사(manifest 해시 vs 현재).
+- `promote-candidate.mjs` — 결합 GLB 제품 승격(노드 계약 확정 후, byte-for-byte).
 - 단계 B/C/D/E 자동화 — Static/Pedal 렌더·결합 GLB 노드 검증.
-- verify-fit 확장: 크랭크-발 위상 실제 각도 대조(현재는 좌우 대칭만), 발목-클릿 적용값 코드 스캔.
+- verify-fit 확장: 크랭크-발 위상 실제 각도 대조(현재는 좌우 대칭만), 발목-클릿 적용값 코드 스캔, anchors 다리 정본과 ik-joints 대조.
+- extract 카메라 개선: 현재 AABB 프리뷰 카메라가 정면 원근으로 전고 과대 표기(rider z_up 2778mm) — 직교/측면 뷰로.
