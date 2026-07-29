@@ -85,6 +85,7 @@ rider-preview에서 나온 규칙을 프로젝트 전체로 확장한다. 반복
 | 영역 | Skill | Harness | 상태 | 비고 |
 |---|:---:|:---:|---|---|
 | Rider Preview | ✅ | ✅ | **완료** | verify-rider-glb·render-views. 8위상 페달 렌더는 미구현 |
+| Rider-Cycle Fit (결합) | ✅ | 🔶 | 진행 | 별도 rider GLB + 독립 cycle GLB 결합·피팅. register-inputs·verify-fit 완비(안장 혼합좌표·위상·ETT 불변식). 단계 B~E 렌더·promote·extract-glb-meta 미구현 |
 | Ride Verify (실주행) | ✅ | ✅ | **완료** | 셀렉터 계약 검증(verify-selectors) + 에뮬레이터 배선(`test:e2e:ride`) · **e2e green(1 passed, 2026-07-22)** — 6단계 진입 전체 검증 · peer 2인 진입·종료 저장은 미구현 |
 | Peer Sync | ✅ | ✅ | **완료** | replay 하네스(재생·불변식·그래프). **정지 오버슛(~7m) 수정됨**(2026-07-22, 외삽이 entity.speedMps 사용) · merge 이중스트림·reconcile 재생은 미구현 |
 | Camera | ❌ | ❌ | 필요 | 프리셋 프리뷰 없음 |
