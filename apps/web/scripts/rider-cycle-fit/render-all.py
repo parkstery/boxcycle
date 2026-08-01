@@ -172,6 +172,85 @@ def _assert_frame(tol_mm=1.0):
 _assert_frame()
 
 
+# ── joints 신선도 검사 (F9 §3-3) ──────────────────────────────────────────
+# F9 에서 드러난 사고: OneDrive `ik-joints-v2.json` 이 7/30 자로 낡아 shin 420·hipDrop 65
+# 를 들고 있는데도 렌더는 성공했다. 구프레임 GLB 와 **같은 종류의 사고**다.
+# 입력이 낡으면 렌더 자체를 막는다.
+_JOINTS_FRESH = {}
+
+
+def _assert_joints_fresh(tol_mm=1.0):
+    g = _load_geometry()
+    bb_up = g["bbHeight"]
+    saddle = g["coords"]["saddle"]
+    # joints 의 saddleContact 는 지면좌표(mm). geometry 는 BB원점 → bbHeight 를 더해 비교.
+    want_saddle_y = saddle[1] + bb_up
+    got_saddle = JD.get("saddleContact")
+    got_saddle_y = None if not got_saddle else float(got_saddle[1])
+    shin_mm = JD.get("v2Bones", {}).get("shin")
+    shin_mm = None if shin_mm is None else shin_mm * 1000.0
+    scale = JD.get("scale")
+    rec = {
+        "jointsPath": os.path.abspath(JOINTS_PATH) if JOINTS_PATH else None,
+        "saddleContactYExpectedMm": round(want_saddle_y, 2),
+        "saddleContactYMeasuredMm": None if got_saddle_y is None else round(got_saddle_y, 2),
+        "shinAppliedMm": None if shin_mm is None else round(shin_mm, 2),
+        "shinRestMm": None if (shin_mm is None or not scale) else round(shin_mm / scale, 1),
+        "scale": scale,
+        "hipDropMm": JD.get("hipDropMm"),
+        "toleranceMm": tol_mm,
+    }
+    bad = []
+    if got_saddle_y is None or abs(got_saddle_y - want_saddle_y) > tol_mm:
+        bad.append("saddleContact.y %s ≠ geometry 파생 %.2f"
+                   % (got_saddle_y, want_saddle_y))
+    rec["pass"] = not bad
+    _JOINTS_FRESH.update(rec)
+    print("  [joints신선도] saddleContact.y %s / %.1f  shin %s(rest %s)  hipDrop %s  %s" % (
+        rec["saddleContactYMeasuredMm"], want_saddle_y, rec["shinAppliedMm"],
+        rec["shinRestMm"], rec["hipDropMm"], "OK" if rec["pass"] else "FAIL"))
+    if bad:
+        raise RuntimeError(
+            "낡은 joints 감지: %s. 현재 geometry.json 으로 재생성하라(F9 §2)." % "; ".join(bad))
+
+
+_assert_joints_fresh()
+
+
+# ── 발–페달 접촉 assert (F9 §3-3, 이번 지시의 핵심) ────────────────────────
+# "발이 안 닿는데 렌더는 성공"이 F6·F8 두 번 반복됐다. 닿지 않으면 실패로 처리한다.
+_FOOT_CONTACT = {}
+
+
+def _assert_foot_contact(pkey, tol_mm=5.0):
+    """실제 발목(SHIN tail) 위치와 joints 의 발목 목표를 대조한다."""
+    d = JD["phases"][pkey]
+    bpy.context.view_layer.update()
+    bpy.context.evaluated_depsgraph_get().update()
+    rec = {"phase": pkey, "toleranceMm": tol_mm, "sides": {}}
+    bad = []
+    for side in ("L", "R"):
+        actual = eval_tail("SHIN_" + side)
+        target = g2b(d["foot" + side])
+        err = (actual - target).length * 1000.0
+        rec["sides"][side] = {
+            "ankleActualMm": vec_mm(actual),
+            "ankleTargetMm": vec_mm(target),
+            "errorMm": round(err, 2),
+        }
+        if err > tol_mm:
+            bad.append("%s %.1fmm" % (side, err))
+    rec["pass"] = not bad
+    _FOOT_CONTACT[pkey] = rec
+    print("  [발접촉] %s  좌 %.1fmm  우 %.1fmm  (허용 %.1f)  %s" % (
+        pkey, rec["sides"]["L"]["errorMm"], rec["sides"]["R"]["errorMm"],
+        tol_mm, "OK" if rec["pass"] else "FAIL"))
+    if bad:
+        raise RuntimeError(
+            "발이 페달 목표에 닿지 않았다(%s): %s > 허용 %.1fmm. "
+            "안장 높이·다리 길이·가정값 정합을 확인하라(F9 §3-3)." % (pkey, ", ".join(bad), tol_mm))
+
+
 def _file_meta(path):
     """GLB 출처 기록용(F7-A §1-2) — 경로·해시·수정시각."""
     import hashlib
@@ -447,6 +526,7 @@ for p in VIEWS["phases"]:
     apply_phase(pkey)
     rotate_cranks(crank_rot(JD["phases"][pkey]["crankDeg"]))
     _assert_crank_phase(pkey)
+    _assert_foot_contact(pkey)
     _measures["phase_%d" % deg] = {k: round(v, 1) for k, v in measure(pkey)}
     _measures["phase_%d_points" % deg] = point_measures(pkey)
     print("[%3d°] " % deg + "  ".join("%s=%.0fmm" % (k, v) for k, v in measure(pkey)))
@@ -568,6 +648,10 @@ manifest = {
     "crankPhaseAssertions": _PHASE_ASSERT,
     # F7-A §1-3: 렌더에 쓰인 GLB 가 SSoT 수치로 구워졌는지 실측 증명.
     "frameAssertions": _FRAME_ASSERT,
+    # F9 §3-3: 발이 실제로 페달 목표에 닿았는가 — 닿지 않으면 렌더가 중단된다.
+    "footContactAssertions": _FOOT_CONTACT,
+    # F9 §2: joints 가 현재 geometry 로 재생성된 것인가(낡은 입력 재사용 차단).
+    "jointsFreshness": _JOINTS_FRESH,
     # F7-A §1-2: 어떤 자전거·라이더로 렌더했는지 사후 감리가 가능하도록 출처를 남긴다.
     #   F6 은 이 기록이 없어 구프레임 렌더를 사후에 특정하기 어려웠다.
     "inputAssets": {
