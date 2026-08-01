@@ -12,6 +12,11 @@
 | `register-inputs.mjs` | **단계 0** — 입력 6종 해시·경로 + Blender 메타(AABB·노드/본·프리뷰) manifest 등록 | ✅ |
 | `register-anchors.mjs` | **단계 A** — extract-anchors.py로 두 GLB 실제 접점 앵커 추출·저장 + 다리 정본(reconcile) | ✅ |
 | `verify-fit.mjs` | 결합 피팅 **불변식 정적 검사**(안장 파생식·페달 위상 대칭·ETT≠reach·IK오차 필드) | ✅ |
+| `render-all.py` | Rider Only 4장 + 결합/접점/4위상 29장, 변환행렬·AABB·접점 좌표 manifest | ✅ |
+| `render-saddle-evidence.py` | 0.88 안장 게이트: HIP/좌골 메시점/안장 표면 분리 계측 + 일반/반투명 표식 6장 | ✅ |
+| `make-saddle-contact-sheet.py` | 안장 증거 6장 전수 contact sheet | ✅ |
+| `verify-renders.mjs` | 필수 렌더 해시·해상도·중복 및 동일 inputHash Before/After 검사 | ✅ |
+| `verify-saddle-evidence.mjs` | 좌골 정의·3D 오차 성분·BDC/TDC 무릎/고관절각·증거 6장 검사 | ✅ |
 | `../../../../blender/rider-cycle-fit/extract-glb-meta.py` | (Blender) GLB AABB·노드/본·단위·축·프리뷰 추출 → register-inputs가 호출 | ✅ |
 | `../../../../blender/rider-cycle-fit/extract-anchors.py` | (Blender) rider 본 rest world·cycle 메시 클러스터에서 앵커 추출 → register-anchors가 호출 | ✅ |
 | `verify-inputs.mjs` | manifest 입력 해시가 현재 파일과 일치하는지(입력 drift) 검사 | ⬜ 미구현 |
@@ -47,6 +52,24 @@ node scripts/rider-cycle-fit/verify-fit.mjs [--geometry <path>] [--joints <path>
 - 위반 있으면 **종료코드 1**(파이프라인 차단). 경고(⚠)는 렌더로 확인할 항목.
 - 검사 항목 ↔ SKILL anti-pattern: 안장 파생식(#4)·페달 위상 대칭(#1·#2)·ETT≠reach(#6)·발/손 0mm 의미(#8·#10).
 - **정적 검사만** — 형상·비율·관통은 실제 Blender 렌더로 사람이 판정.
+
+### 안장 접촉 증거 게이트
+```
+node scripts/rider-cycle-fit/run-saddle-gate.mjs
+node scripts/rider-cycle-fit/verify-renders.mjs <afterDir> \
+  --before <sameInputBeforeDir> --require-before
+node scripts/rider-cycle-fit/verify-saddle-evidence.mjs <afterDir>
+```
+- `HIP_MID`는 배치/IK 기준이며 `SADDLE_CONTACT`가 아니다.
+- GLB에 `SADDLE_CONTACT` 본이 없으므로, cycle/안장을 읽기 전에 평가된
+  `RTW_RIDER_LOD0`의 `PELVIS` vertex-group을 rider local 좌표에서 좌우 분리하고,
+  후방 percentile·하부 percentile 지지 밴드의 좌표별 median을 좌골점으로 확정한다.
+  확정 뒤에만 각 좌골점에서 cycle 안장 표면 최근접점을 구한다.
+- weight threshold 3종 × 하부 percentile 3종 민감도를 기록하며, 허용 이동을 넘으면
+  게이트 PASS를 금지한다. 반려된 안장-최근접 우선 정의는 `legacy.circularNearest`에만 둔다.
+- 일반 좌/우/후방 3장과 반투명 표식 좌/우/후방 3장이 모두 필수다.
+- 표식: 좌골 적색, 안장 표면 녹색, HIP 황색, 오차 벡터 청록색.
+- 안장 위치를 움직이지 않으며, 이 게이트는 제품 승격을 수행하지 않는다.
 
 ## 현재 결합 파이프라인 (OneDrive, 하네스화 전)
 

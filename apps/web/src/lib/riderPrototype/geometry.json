@@ -1,62 +1,90 @@
 {
   "$schema": "RTW Road Bike Geometry — Phase 1 SSoT",
   "$note": "단위 mm, 각도 deg. 좌표는 BB 원점(+x 진행, +y 위). Rider GLB·IK·Verify가 공유하는 Single Source of Truth. 승인일 2026-07-24.",
-  "$note_frameB": "2026-07-30 프레임 B 적용(렌더 육안 승인 대기 — 미확정). 방법론: 사람 고정·자전거 역설계. headTubeLength 165→130, headBot·HTA·forkRake·wheelRadius 고정 → trail 55.57mm·wheelBase·frontCenter 불변. 파생: headTop [388,573]→[398.2,539.5] (헤드튜브 축 방향으로 35mm 단축), stack 573→539.5(-33.5), reach 388→398.2(+10.2 — 축이 기울어 headTop 하강 시 전방 이동), ETT 557.7→558.0(사실상 불변). stemClamp·barDrop 은 headTop 고정 오프셋 유지로 동일 델타 적용. 후드 y 641.6→약 608(목표 606). 상체 과굽음 완화는 ETT 가 아니라 후드 하강 33.5mm 가 담당.",
-  "rider": { "heightCm": 175, "inseamCm": 82, "position": "relaxed-race" },
-
+  "$note_saddleF5": "2026-08-01 F7 — saddleHeight 를 725 로 복원(현재 값). 이력: F5 에서 725→625 로 낮춰 \"안장 이동 시 엉덩이가 따라오는가\"를 관측했고(F5 §2-2), F6 에서 무릎 10° 역계산으로 999.3 을 탐색했으나 **구프레임 GLB 로 렌더된 것이 밝혀져 F6 전체가 반려**되었다(F7 §0). 725 는 LeMond 기준(inseam 82cm×0.883=724.1)과 ±1mm 이며 F4 시점 값이다. coords.saddle 은 파생값: saddleX=-(725·cos73.5°)-20=-225.9≈-226, saddleY=725·sin73.5°=695.1≈695. 최종 안장 높이는 F8 에서 **신프레임 기준으로** 재역산한다.",
+  "$note_frameC": "2026-07-31 프레임 C(F3) 적용 — headTubeLength 130→85(사용자 확정값). 목적 사슬: 탑튜브 하강 = 시트·핸들 하강 = 페달 도달. 사용자가 F1 결과를 '아직 사각형'으로 판정해 헤드튜브를 최소화한다. headBot [436.2,415.2]·HTA 73°·forkRake·wheelRadius 고정 → trail·wheelBase·frontCenter 불변. 파생식 headTop = headBot + L·(−cos73°, +sin73°) → [411.3, 496.5](검산: L=130 을 같은 식에 넣으면 구값 [398.2,539.5] 재현). stack 539.5→496.5(−43.0), reach 398.2→411.3(+13.1 — 축이 73° 로 기울어 headTop 하강 시 전방 이동, 정상). stemClamp·barDrop 은 headTop 고정 오프셋 유지 규칙으로 동일 델타 [+13.1,−43.0] 적용. 후드 BB z 608.1→565.1. 물리 하한: 탑튜브(R22)·다운튜브(R28)가 헤드튜브 축상에서 겹치지 않는 최소가 81.9mm 이며 85 는 여유 3mm.",
+  "$note_frameB": "2026-07-30 프레임 B 적용(F3 에서 headTubeLength 130→85 로 대체됨 — 이 항목은 이력). 방법론: 사람 고정·자전거 역설계. headTubeLength 165→130, headBot·HTA·forkRake·wheelRadius 고정 → trail 55.57mm·wheelBase·frontCenter 불변. 파생: headTop [388,573]→[398.2,539.5] (헤드튜브 축 방향으로 35mm 단축), stack 573→539.5(-33.5), reach 388→398.2(+10.2 — 축이 기울어 headTop 하강 시 전방 이동), ETT 557.7→558.0(사실상 불변). stemClamp·barDrop 은 headTop 고정 오프셋 유지로 동일 델타 적용. 후드 y 641.6→약 608(목표 606). 상체 과굽음 완화는 ETT 가 아니라 후드 하강 33.5mm 가 담당.",
+  "rider": {
+    "heightCm": 175,
+    "inseamCm": 82,
+    "position": "relaxed-race"
+  },
   "wheelRadius": 342.5,
   "wheelDiameter": 685,
   "hubRadius": 17,
   "tireWidth": 28,
-
-  "bbPosition": [0, 0],
+  "bbPosition": [
+    0,
+    0
+  ],
   "bbDrop": 72,
   "bbHeight": 270.5,
-
   "seatTubeLength": 560,
   "topTubeLength": 547,
-  "headTubeLength": 130,
+  "headTubeLength": 85,
   "chainStay": 410,
   "seatStay": 525.3,
   "forkLength": 376.2,
   "wheelBase": 993.9,
   "frontCenter": 590.3,
-
   "seatTubeAngle": 73.5,
   "headTubeAngle": 73,
   "topTubeSlope": -3.8,
   "downTubeAngle": 43.6,
   "forkRake": 47,
-  "stack": 539.5,
-  "reach": 398.2,
-
+  "stack": 496.5,
+  "reach": 411.3,
   "stemLength": 100,
   "stemAngle": -6,
   "handlebarWidth": 420,
   "handlebarReach": 80,
   "handlebarDrop": 128,
-
   "saddleHeight": 725,
   "saddleSetback": 20,
-
   "crankLength": 172.5,
   "pedalRadius": 45,
   "pedalOffset": 74,
   "$note_pedalOffset": "BB 중심→페달축 총 좌우 거리(편도, mm). Q-factor = 2·pedalOffset. 구조 분해: bbSpindleHalf(크랭크암 시작 z) + pedalAxleOffset(크랭크 끝→페달) = pedalOffset.",
   "bbSpindleHalf": 58,
   "pedalAxleOffset": 16,
-
   "coords": {
     "$note": "mm, BB 원점. GLB 이식용.",
     "$note_saddle": "saddle 은 파생값: saddleX=-(saddleHeight·cos(seatTubeAngle))-saddleSetback, saddleY=saddleHeight·sin(seatTubeAngle). 725·73.5°·20 → [-226, 695]. 하드코딩 금지 — 값 바꾸려면 saddleHeight/각도/setback 를 바꿔 재파생. (2026-07-29 혼합좌표 [-180,532] 교정.)",
-    "bb": [0, 0],
-    "rearHub": [-403.6, 72],
-    "frontHub": [590.3, 72],
-    "seatTop": [-159, 536.9],
-    "headTop": [398.2, 539.5],
-    "headBot": [436.2, 415.2],
-    "saddle": [-226, 695],
-    "stemClamp": [497.7, 529],
-    "barDrop": [537.7, 401]
+    "bb": [
+      0,
+      0
+    ],
+    "rearHub": [
+      -403.6,
+      72
+    ],
+    "frontHub": [
+      590.3,
+      72
+    ],
+    "seatTop": [
+      -159,
+      536.9
+    ],
+    "headTop": [
+      411.3,
+      496.5
+    ],
+    "headBot": [
+      436.2,
+      415.2
+    ],
+    "saddle": [
+      -226,
+      695
+    ],
+    "stemClamp": [
+      510.8,
+      486
+    ],
+    "barDrop": [
+      550.8,
+      358
+    ]
   }
 }

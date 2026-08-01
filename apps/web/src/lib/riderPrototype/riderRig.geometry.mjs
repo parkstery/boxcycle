@@ -23,11 +23,17 @@ const coordM = (key) => {
   const c = geometry.coords[key];
   return [toM(c[0]), yM(c[1])];
 };
+/** 시트튜브 축 각도(deg, 수평 기준 후상방) — geometry.json SSoT */
+export const SEAT_TUBE_ANGLE_DEG = geometry.seatTubeAngle;
+/** 시트튜브 길이(mm, BB→시트튜브 상단=안장 클램프) — geometry.json SSoT */
+export const SEAT_TUBE_LENGTH_MM = geometry.seatTubeLength;
 
 // ── 자전거 고정 앵커 (geometry.json 파생) ────────────────────────────────
 /** 크랭크축(페달 회전 중심), z=0 */
 export const BB = [...coordM("bb"), 0]; // [0, 0.2705, 0]
 export const SEAT_TOP = coordM("seatTop");
+export const HEAD_TOP = coordM("headTop");
+export const HEAD_BOT = coordM("headBot");
 /** 크랭크암 길이(m) — 페달 원 반경 */
 export const CRANK_ARM_M = toM(geometry.crankLength); // 0.1725
 /** 페달 좌우 오프셋(Q-factor/2) — 왼발 +z, 오른발 -z */

@@ -30,6 +30,11 @@ import {
   BB_SPINDLE_HALF,
   PEDAL_AXLE_OFFSET,
   SADDLE_CONTACT,
+  SEAT_TOP as RIG_SEAT_TOP,
+  HEAD_TOP as RIG_HEAD_TOP,
+  HEAD_BOT as RIG_HEAD_BOT,
+  SEAT_TUBE_ANGLE_DEG,
+  SEAT_TUBE_LENGTH_MM,
 } from "../src/lib/riderPrototype/riderRig.geometry.mjs";
 // Static Fit 초기 포즈(rest→IK 방향 회전)를 GLB 노드에 직접 구워 프리뷰 정지자세로 쓴다.
 // (주행 시엔 feature-state 가 위상별로 덮어쓴다.)
@@ -292,11 +297,44 @@ root.add(wheel(FRONT_X));
 const rear = [REAR_X, HUB_Y, 0]; // 뒷허브 [-0.4036, 0.3425]
 const front = [FRONT_X, HUB_Y, 0]; // 앞허브 [0.5903, 0.3425]
 const bb = [0.0, 0.2705, 0]; // 크랭크축(BB) — 지면에서 bbHeight 270.5mm, 허브보다 아래(BB드롭 72mm)
-// 시트튜브 상단(안장 클램프) — BB에서 73.5° 후상방
-const seatTop = [-0.159, 0.8074, 0];
-// 헤드튜브: 상단 → 하단(다운튜브·포크 접합). 헤드각 73°. 탑튜브는 헤드튜브 옆에 용접될 뿐.
-const headTop = [0.388, 0.8435, 0];
-const headBot = [0.4362, 0.6857, 0];
+// 시트튜브 상단(안장 클램프 기준점) — geometry.json coords.seatTop 파생(riderRig). 하드코딩 금지.
+// F4-2 이후 **메시로는 그리지 않는다**(시트튜브가 junction 에서 끝나므로). seatTubeLength 560 의
+// 기준점으로서 SSoT 에 남아 있고 junction 파생에 쓰인다. 좌표 자체는 불변이다.
+const seatTop = [...RIG_SEAT_TOP, 0];
+void seatTop; // 메시 미사용 — SSoT 대조·디버깅용으로 보존
+// 헤드튜브: 상단 → 하단(다운튜브·포크 접합). geometry.json coords.headTop/headBot 파생(riderRig).
+// 탑튜브는 헤드튜브 옆에 용접될 뿐.
+const headTop = [...RIG_HEAD_TOP, 0];
+const headBot = [...RIG_HEAD_BOT, 0];
+// 시트튜브 접합점 — 탑튜브·시트스테이가 붙는 지점이자 **시트튜브의 끝**이다.
+// 여기서부터 위는 전부 노출 시트포스트다(F4-2, 2026-07-31 사용자 지시).
+//   F1 에서는 시트튜브를 seatTop(560mm)까지 그리고 junction 위를 시트포스트로 "겹쳐" 표현했으나,
+//   실제 로드바이크는 시트튜브가 접합부에서 끝나고 그 위는 전부 시트포스트다. 사용자가
+//   "시트튜브 길이는 연결부위까지, 그 이후는 모두 시트포스트"로 확정했다.
+// SEAT_TUBE_SHORTENING 은 감리 확정값(변경 금지) — 시트튜브를 seatTubeLength 에서 얼마나
+// 줄여 junction 을 잡는가. (F1~F3 의 SEATPOST_EXPOSED 와 같은 수치이나 의미가 바뀌었다:
+//  과거 "노출 시트포스트 길이" → 현재 "시트튜브 단축량". 실제 노출 시트포스트는 이보다 길다.)
+const SEAT_TUBE_SHORTENING = 150; // mm
+const _seatTubeJunctionLenM = (SEAT_TUBE_LENGTH_MM - SEAT_TUBE_SHORTENING) / 1000;
+const _seatTubeAngleRad = (SEAT_TUBE_ANGLE_DEG * Math.PI) / 180;
+// 시트튜브 축(BB→seatTop) 방향의 단위벡터를 따라 BB에서 위 길이만큼 이동.
+const seatTubeJunction = [
+  bb[0] - _seatTubeJunctionLenM * Math.cos(_seatTubeAngleRad),
+  bb[1] + _seatTubeJunctionLenM * Math.sin(_seatTubeAngleRad),
+  0,
+];
+// 시트포스트 상단 — 시트튜브 축(73.5°)의 **연장선** 위에서 안장과 같은 높이가 되는 지점(F4-3).
+//   시트포스트는 시트튜브에 꽂히는 부품이므로 축이 같아야 한다. 과거처럼 seatTop→saddle 로
+//   이으면 saddle 이 setback 만큼 뒤로 물린 점이라 6.47° 어긋난 채 꺾여 보였다.
+//   안장의 setback 은 시트포스트 각도가 아니라 **안장 레일 오프셋**으로 표현한다
+//   (시트포스트 상단이 안장보다 saddleSetback 만큼 앞에 서고, 안장이 뒤로 물린다).
+const _postRiseM = SADDLE_CONTACT[1] - seatTubeJunction[1]; // 안장 높이까지의 수직 상승
+const _postLenM = _postRiseM / Math.sin(_seatTubeAngleRad);
+const seatPostTop = [
+  seatTubeJunction[0] - _postLenM * Math.cos(_seatTubeAngleRad),
+  seatTubeJunction[1] + _postLenM * Math.sin(_seatTubeAngleRad),
+  0,
+];
 
 // ── Cockpit Assembly (조립 계층: HeadTube → Headset → Stem → Handlebar) ──
 //    steering axis = 헤드튜브 축(headBot→headTop) = 포크와 동일 축. 콕핏 전체가 이 축에 속한다.
@@ -334,10 +372,10 @@ const R_CHAINSTAY = 0.014, R_SEATSTAY = 0.012, R_FORK = 0.015;
 // 메인 삼각 — 프레임 오렌지. cap 으로 접합부를 둥글게 이어 튜브 끊김 제거.
 // 다운튜브: BB → 헤드튜브 하단 (가장 굵음)
 root.add(tube(bb, headBot, R_DOWN, COL.frame, frameOpts));
-// 시트튜브: BB → 시트튜브 상단
-root.add(tube(bb, seatTop, R_SEAT, COL.frame, frameOpts));
-// 탑튜브: 시트튜브 상단 → 헤드튜브 상단 (535mm·1.8° 앞하강)
-root.add(tube(seatTop, headTop, R_TOP, COL.frame, frameOpts));
+// 시트튜브: BB → 접합점(junction). **여기서 끝난다** — 그 위는 전부 시트포스트다(F4-2).
+root.add(tube(bb, seatTubeJunction, R_SEAT, COL.frame, frameOpts));
+// 탑튜브: 시트튜브 접합점(junction) → 헤드튜브 상단. 시트튜브 최상단이 아니라 중간에 붙는다.
+root.add(tube(seatTubeJunction, headTop, R_TOP, COL.frame, frameOpts));
 // 헤드튜브: 상단 → 하단 (128mm, 헤드각 73°)
 root.add(tube(headTop, headBot, R_HEAD, COL.frame, frameOpts));
 
@@ -346,8 +384,8 @@ const STAY_DZ = 0.028;
 for (const dz of [STAY_DZ, -STAY_DZ]) {
   // 체인스테이: BB → 뒷허브
   root.add(tube([bb[0], bb[1], dz], [rear[0], rear[1], dz], R_CHAINSTAY, COL.frameDark, frameOpts));
-  // 시트스테이: 시트튜브 상단 → 뒷허브
-  root.add(tube([seatTop[0], seatTop[1], dz], [rear[0], rear[1], dz], R_SEATSTAY, COL.frameDark, frameOpts));
+  // 시트스테이: 시트튜브 접합점(junction) → 뒷허브. 탑튜브와 같은 점에서 만난다.
+  root.add(tube([seatTubeJunction[0], seatTubeJunction[1], dz], [rear[0], rear[1], dz], R_SEATSTAY, COL.frameDark, frameOpts));
 }
 
 // 앞포크 — 헤드튜브 하단 → 앞허브 좌우 2개 (도면처럼 앞으로 뻗어 앞바퀴를 잡음). 그늘색.
@@ -420,10 +458,12 @@ function waterBottleAssembly() {
 }
 root.add(waterBottleAssembly());
 
-/** 안장·시트포스트 — 시트튜브 상단(seatTop)에서 새들 좌표(geometry.json saddle, setback 20mm)로. */
+/** 안장·시트포스트 — 시트튜브 접합점(junction)에서 시트튜브 축을 그대로 연장(F4-2·F4-3). */
 // 안장 = geometry.json 파생(SADDLE_CONTACT). 하드코딩 금지 — saddleHeight/각도/setback 에서 재파생.
 const saddlePos = [SADDLE_CONTACT[0], SADDLE_CONTACT[1], 0]; // ≈[-0.226, 0.9655] (saddleHeight 725·setback 20)
-root.add(tube(seatTop, [saddlePos[0], saddlePos[1] - 0.01, 0], 0.011, COL.bar, frameOpts));
+// 시트포스트는 junction → seatPostTop 으로 **시트튜브와 완전히 평행**(동일 축, 73.5°)하다.
+// 안장은 그 상단에서 setback 만큼 뒤에 놓인다(레일 오프셋) — 안장 좌표는 SSoT 그대로다.
+root.add(tube(seatTubeJunction, seatPostTop, 0.011, COL.bar, frameOpts));
 const saddle = blob(0.05, COL.bar, [2.4, 0.32, 0.95], { segments: 16, ...frameOpts });
 saddle.position.set(saddlePos[0], saddlePos[1], 0);
 saddle.rotation.z = -0.06;
@@ -440,9 +480,11 @@ function cockpitAssembly() {
   const barR = 0.013;
   const spacerOpts = { metalness: 0.62, roughness: 0.38, radial: 16 };
   // ── 1) 헤드셋 스페이서 스택 — 캡 없는 순수 원통. 실메쉬 길이 = headTubeTop→spacerTop = 정확히 35mm.
-  //    스템(블랙)과 대비되는 실버, 헤드튜브(오렌지)보다 살짝 굵게 → 세 요소가 확연히 구분된다.
+  //    색은 **프레임 색으로 통일**한다(F4-1, 2026-07-31 사용자 지시). 과거 COL.spacer(실버-그레이)를
+  //    쓰던 시절엔 헤드튜브 상단 바로 위 35mm 가 "페인트가 벗겨진 회색 띠"로 보였다.
+  //    스템·핸들바(블랙)는 그대로 두므로 헤드셋과 스템의 구분은 색이 아니라 굵기(0.024 vs 0.020)가 맡는다.
   //    capStart/capEnd:false 로 반구캡 제거 → 끝이 깔끔하고 축길이가 설계값과 정확히 일치.
-  const spacerMesh = tube(headTubeTop, spacerTop, 0.024, COL.spacer, { ...spacerOpts, capStart: false, capEnd: false });
+  const spacerMesh = tube(headTubeTop, spacerTop, 0.024, COL.frame, { ...spacerOpts, capStart: false, capEnd: false });
   spacerMesh.name = "headsetSpacer"; // 감사용 — 실메쉬 길이 검증(캡 없어 shaft=총길이=35mm)
   g.add(spacerMesh);
   // ── 2) 스템 클램프(스티어러 무는 세로 몸통) — 스페이서 위(stemBottom) → stemTop, 40mm. 블랙.
