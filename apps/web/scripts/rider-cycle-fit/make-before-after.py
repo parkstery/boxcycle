@@ -4,6 +4,8 @@ import bpy, sys, os, json
 argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 before, after = argv[0], argv[1]
 ids = [
+    # 다리 비율(허벅지·정강이 길이) 변화를 사용자가 직접 볼 수 있도록 맨 위에 둔다(F10-R1 §5-4).
+    "RIDER_ONLY_SIDE_L",
     "STATIC_SIDE_L", "STATIC_FRONT", "STATIC_REAR", "STATIC_Q_FRONT",
     "PHASE_0_FULL", "PHASE_90_FULL", "PHASE_180_FULL", "PHASE_270_FULL",
 ]
