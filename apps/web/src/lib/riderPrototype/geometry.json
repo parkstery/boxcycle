@@ -39,7 +39,7 @@
   "handlebarWidth": 420,
   "handlebarReach": 80,
   "handlebarDrop": 128,
-  "saddleHeight": 725,
+  "saddleHeight": 709.2,
   "saddleSetback": 20,
   "crankLength": 172.5,
   "pedalRadius": 45,
@@ -75,8 +75,8 @@
       415.2
     ],
     "saddle": [
-      -226,
-      695
+      -221.4,
+      680
     ],
     "stemClamp": [
       510.8,
@@ -86,5 +86,6 @@
       550.8,
       358
     ]
-  }
+  },
+  "$note_saddleF9": "2026-08-01 F9 — saddleHeight 709.2 (감리 F9 §1 역계산, 개발팀장 독립 검산 일치). 전부 지면좌표로 수렴: 안장 y(지면) 950.5 → HIP y 862.5(−hipDrop 88) → 발목 목표 y 135(BDC 98 + ANKLE_UP 37) → hip~발목 727.62 = 다리합 730.4 의 99.6% → BDC 무릎 10.00°. F6/F8 의 999.3·988.2 는 감리가 발목(지면좌표)과 안장(BB원점)을 섞어 270.5mm 어긋난 채 수렴시킨 결과이며 철회됐다(안티패턴 #4 혼합좌표). coords.saddle 은 파생값 — 직접 수정 금지."
 }
