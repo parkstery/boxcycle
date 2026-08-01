@@ -24,6 +24,14 @@ INPUT_HASH = _ARGV[5] if len(_ARGV) > 5 else "unknown"
 JOINTS_PATH = _ARGV[6] if len(_ARGV) > 6 else None
 # cycle GLB 오버라이드 — 프레임 후보(신프레임)를 결합 렌더에 쓰기 위함. 미지정 시 fit_ik.py 기본.
 CYCLE_PATH = _ARGV[7] if len(_ARGV) > 7 else None
+# F12: 골반 후방 경사(deg). 라이더를 강체로 뒤로 세운다. 0 = F11 이전과 동일 동작.
+PELVIS_TILT_DEG = float(_ARGV[8]) if len(_ARGV) > 8 else 0.0
+# F13: 상완 rest 길이(mm, 0 = 원본 유지). 팔꿈치 굽힘을 만들기 위해 늘린다.
+# ⚠ F14 에서 신발 축소(F13-A)를 전면 취소하며 `SHOE_SCALE` 인자를 제거했다. 사용자가
+#   "지시한 바 없는 신발 각도 변화"를 지적했고, 축소를 되돌리면 각도도 함께 되돌아간다
+#   (발이 짧아지면 발 중심이 발목 쪽으로 당겨져 발목→접점 축이 가팔라지는 필연).
+#   신발 관련 인자·함수를 되살리지 마라 — "취소"이지 "재설계"가 아니다.
+UPPER_ARM_REST_MM = float(_ARGV[9]) if len(_ARGV) > 9 else 0.0
 
 WF = r"C:\Users\kdrea\OneDrive\Documents\img\v2_4_cyclefit"
 REPO = r"C:\20.HDev\boxcycle\apps\web"
@@ -77,7 +85,7 @@ print("크랭크 회전 필터 교정 적용(BB 반경 기준) — BB쪽 크랭�
 # 정본을 그대로 쓰므로 치환하지 않는다. 대신 아래 _assert_crank_phase() 로 매 렌더 검증한다.
 print("crank_rot: fit_ik.py 정본(-crankDeg-90) 사용 — F5 부호 치환 철회(F6 §1)")
 
-# ── 좌/우 라벨 반전 교정 + 발볼 목표 교정 (F10-B) ──────────────────────────
+# ── 좌/우 라벨 반전 교정 + 접점 목표 교정 (F10-B) ──────────────────────────
 # **F9 "무릎 32mm 어긋남"의 진짜 원인.** 두 층의 좌/우 라벨이 서로 반대다.
 #   실측(Blender world mm, 배치 후 rest):
 #     rider 본 THIGH_L head  y = +81.4   |  joints hipL(g2b) y = -81.4
@@ -100,7 +108,7 @@ _SUBS = [
      '        bs = BONE_OF[side]   # ⚠ side 는 joints 규약, 본 이름은 반대일 수 있다(F10-B)\n'
      '        aim_bone("THIGH_" + bs, g2b(d["knee" + side]))\n'
      '        aim_bone("SHIN_" + bs, g2b(d["foot" + side]))\n'),
-    ("발 aim: 발볼을 페달축 **위 BALL_LIFT** 로 조준",
+    ("발 aim: 접점을 페달축 **위 CONTACT_LIFT** 로 조준",
      '    for side in ("L", "R"):\n'
      '        # 발볼(FOOT tail)이 페달축에 오도록 조준. json 의 pedalAxle* 가 페달축 정본이다.\n'
      '        akey = "pedalAxle" + side\n'
@@ -110,18 +118,37 @@ _SUBS = [
      '        aim_bone("TOE_" + side, cleat + Vector((TOE_AIM_FWD, 0.0, -TOE_AIM_DOWN)))\n',
      '    for side in ("L", "R"):\n'
      '        bs = BONE_OF[side]\n'
-     '        # 발볼(FOOT tail)은 **페달축 위 BALL_LIFT**. 발볼을 페달축에 직접 두면\n'
-     '        # 밑창·클릿 두께만큼 발이 페달을 관통한다(ball_target 는 JD 에서 역산).\n'
-     '        tgt = ball_target(d, side)\n'
+     '        # 접점(FOOT tail)은 **페달축 위 CONTACT_LIFT**. 접점을 페달축에 직접 두면\n'
+     '        # 밑창·클릿 두께만큼 발이 페달을 관통한다(contact_target 는 JD 에서 역산).\n'
+     '        tgt = contact_target(d, side)\n'
      '        aim_bone("FOOT_" + bs, tgt)\n'
      '        aim_bone("TOE_" + bs, tgt + Vector((TOE_AIM_FWD, 0.0, -TOE_AIM_DOWN)))\n'),
+    ("골반 후방 경사(F12) — 라이더를 강체로 뒤로 세운다",
+     '    lean = math.radians(LEAN_DEG)\n'
+     '    for bn, fr in zip(("SPINE_01", "SPINE_02", "CHEST"), SPINE_FR):\n',
+     '    # ── F12: 골반을 뒤로 눕혀 상체 전체를 강체로 세운다 ──────────────────\n'
+     '    #   사용자 지시: "BDC 에 접한 발바닥을 중심축으로 오른쪽(주행 반대)으로 10도 회전".\n'
+     '    #   PELVIS 는 SPINE·THIGH 의 부모라 여기서 돌리면 몸통·목·머리가 함께 강체로 돈다.\n'
+     '    #   다리는 아래에서 페달 목표로 다시 aim 되므로 **발은 페달에 그대로 남는다**.\n'
+     '    #   엉덩이 위치는 joints 의 hip 이 정하고 realign_saddle 이 맞춘다(회전과 독립).\n'
+     '    #   부호: 로컬 X **음수** 가 뒤로 세우는 쪽(F12 실측 −10° → 몸통각 +10.00°).\n'
+     '    if PELVIS_TILT_DEG:\n'
+     '        _pp = arm.pose.bones["PELVIS"]; _pp.rotation_mode = "XYZ"\n'
+     '        _pp.rotation_euler.x = math.radians(-PELVIS_TILT_DEG)\n'
+     '        bpy.context.view_layer.update()\n'
+     '        # ⚠ 필수: 골반이 돌면 그 자식인 THIGH head(고관절)가 HIP_MID 에서 벗어난다.\n'
+     '        #   그 자리에서 무릎을 조준하면 본이 목표에 못 미쳐 발이 페달에서 떨어진다\n'
+     '        #   (F12 실측: 이 재정렬이 없으면 발접촉 R 6.6mm FAIL). 다리 aim 전에 되돌린다.\n'
+     '        realign_saddle()\n'
+     '    lean = math.radians(LEAN_DEG)\n'
+     '    for bn, fr in zip(("SPINE_01", "SPINE_02", "CHEST"), SPINE_FR):\n'),
     ("measure 발목: 본 side 변환",
      '    for side, key in (("L", "footL"), ("R", "footR")):\n'
      '        out.append(("발목"+side, (eval_tail("SHIN_" + side) - g2b(d[key])).length * 1000))\n',
      '    for side in ("L", "R"):\n'
      '        out.append(("발목"+side, (eval_tail("SHIN_" + BONE_OF[side])\n'
      '                                 - g2b(d["foot" + side])).length * 1000))\n'),
-    ("measure 클릿 → 발볼(실제 접점): 본 side 변환 + BALL_LIFT 목표",
+    ("measure 클릿 → 접점(실제 접점): 본 side 변환 + CONTACT_LIFT 목표",
      '    for side, key in (("L", "pedalAxleL"), ("R", "pedalAxleR")):\n'
      '        if key not in d:\n'
      '            continue\n'
@@ -129,8 +156,8 @@ _SUBS = [
      '    for side in ("L", "R"):\n'
      '        if ("pedalAxle" + side) not in d:\n'
      '            continue\n'
-     '        out.append(("발볼"+side, (eval_tail("FOOT_" + BONE_OF[side])\n'
-     '                                 - ball_target(d, side)).length * 1000))\n'),
+     '        out.append(("접점"+side, (eval_tail("FOOT_" + BONE_OF[side])\n'
+     '                                 - contact_target(d, side)).length * 1000))\n'),
 ]
 for _label, _old, _new in _SUBS:
     if _old not in _src:
@@ -160,8 +187,8 @@ if os.environ.get("RTW_RECOLOR_SHORTS", "1") != "0":
 # 씬을 프레임 평가하는데, 그때 애니메이션 시스템이 **우리가 세운 IK 포즈를 덮어쓴다.**
 #
 # 실측(F10-B, diag-when):
-#   apply_phase("0.500") 직후 : 발볼 본 tail (  0.37, 74.00, 117.87)  발 최저 z 103.12  ← 정확
-#   렌더 1회 뒤              : 발볼 본 tail (181.77, 67.36, 325.84)  발 최저 z 271.47  ← 뒤바뀜
+#   apply_phase("0.500") 직후 : 접점 본 tail (  0.37, 74.00, 117.87)  발 최저 z 103.12  ← 정확
+#   렌더 1회 뒤              : 접점 본 tail (181.77, 67.36, 325.84)  발 최저 z 271.47  ← 뒤바뀜
 #   렌더 2회 뒤              : 동일(한 번 덮이면 그대로 남는다)
 # 즉 **계측은 우리 포즈를, 이미지는 GLB 애니메이션을 보고 있었다.** assert 가 PASS 인데
 # 그림에서 발이 페달에 없던 이유가 이것이다. 포즈를 세우기 전에 반드시 끊는다.
@@ -199,21 +226,38 @@ def _resolve_bone_of():
 BONE_OF = _resolve_bone_of()
 
 
-# ── 발 뼈를 **메시 발볼 실측**에 맞춘다 (F10-B) ────────────────────────────
+# ── 발 뼈를 **메시 접점 실측**에 맞춘다 (F10-B) ────────────────────────────
 # fit_ik.py 의 `resize_feet` 는 FOOT rest 169.8mm(=world 149.4)로 줄이는데, joints 가
-# 요구하는 발목→페달축 거리는 **221.06mm** 다. 71.6mm 가 구조적으로 모자라 발볼이
+# 요구하는 발목→페달축 거리는 **221.06mm** 다. 71.6mm 가 구조적으로 모자라 접점이
 # 페달에 영영 닿지 못한다(F9 로그 "클릿L=76mm 클릿R=81mm" 의 정체).
 #
-# 원인은 길이만이 아니다. FOOT 본의 rest **방향**도 메시 발볼 방향과 12.7° 어긋나 있어
-# 본을 조준해도 메시는 다른 곳을 본다. 그래서 본 tail 을 **메시 발볼 위치 그 자체**로
-# 재정의한다 — 그러면 본 축 = 발목→발볼이 되어 조준한 곳에 메시 발볼이 정확히 간다.
+# 원인은 길이만이 아니다. FOOT 본의 rest **방향**도 메시 접점 방향과 12.7° 어긋나 있어
+# 본을 조준해도 메시는 다른 곳을 본다. 그래서 본 tail 을 **메시 접점 위치 그 자체**로
+# 재정의한다 — 그러면 본 축 = 발목→접점이 되어 조준한 곳에 메시 접점이 정확히 간다.
 # rest 상태에서 edit_bone 을 옮기는 것은 메시를 변형하지 않는다(rest 에서 deform = I).
-_BALL_DROP = {}   # 본 side → rest 에서 발목 대비 발볼 하강량(m)
-_BALL_VIDX = {}   # 본 side → rest 에서 발볼로 판정된 정점 index 목록(포즈 추적용)
+_CONTACT_DROP = {}   # 본 side → rest 에서 발목 대비 접점 하강량(m)
+_CONTACT_VIDX = {}   # 본 side → rest 에서 접점로 판정된 정점 index 목록(포즈 추적용)
 
 
-def _mesh_ball_world(rider, me, bone_side):
-    """rest 발 메시의 발볼 지점 = 전방 밴드(x 상위 25% 중 z 하위 25%)의 **중심(centroid)**.
+# ── 접점 위치는 JD 의 ANKLE_BACK 이 정한다 (F11) ───────────────────────────
+# F10-R1 까지는 밴드를 "전방 x 상위 25%"로 **고정**했다. 그건 ANKLE_BACK 217.94(발끝)에
+# 우연히 맞았을 뿐이고, F11 에서 접점이 발 중심(93.03)으로 옮겨지면 곧바로 어긋난다 —
+# 218mm 짜리 본을 94mm 앞 목표로 조준하면 tail 이 124mm 지나쳐 발이 앞으로 삐져나오는데
+# **발목 기준 assert 는 그래도 0.0mm 로 PASS 한다**(감리 §3-3 이 경고한 함정).
+# 그래서 밴드를 **ANKLE_BACK 이 가리키는 x 위치**에서 잡는다. 상수 하드코딩이 아니라
+# JD 역산이므로, ANKLE_BACK 을 바꾸면 접점·본 길이·CONTACT_LIFT 가 전부 따라온다.
+_d0 = JD["phases"]["0.000"]
+ANKLE_UP_MM = round(float(_d0["footL"][1]) - float(_d0["pedalAxleL"][1]), 2)
+ANKLE_BACK_MM = round(float(_d0["pedalAxleL"][0]) - float(_d0["footL"][0]), 2)
+_HEEL_VIDX = {}    # 본 side → 뒤꿈치 정점 index (포즈에서 발 중심·비율 산출용)
+_TOE_VIDX = {}     # 본 side → 발끝 정점 index
+_FOOT_LEN = {}     # 본 side → rest 발 길이(m, scale 후)
+_HEEL_BACK = {}    # 본 side → 발목에서 뒤꿈치까지(m, rest)
+_ANKLE_TO_SOLE = {}  # 본 side → 발목에서 밑창까지 수직(m, rest). 축 기울기 판정용.
+
+
+def _mesh_contact_world(rider, me, bone_side, ankle):
+    """rest 발 메시의 접점 = **발목에서 ANKLE_BACK 앞** 밴드 중 하부 25% 의 centroid.
 
     ⚠ measure-assumptions.py(F8)는 같은 밴드의 **좌표별 median** 을 쓴다. 그 값은 x·y·z 를
       따로 중앙값 내는 합성점이라 실제 메시 위의 점도, 밴드의 중심도 아니다 —
@@ -234,14 +278,26 @@ def _mesh_ball_world(rider, me, bone_side):
     if not pts:
         return None, None
     ipts = list(zip(idx, pts))
-    xs = sorted(p.x for p in pts)
-    fwd = [(i, p) for i, p in ipts if p.x >= xs[int(len(xs) * 0.75)]]
-    zs = sorted(p.z for _, p in fwd)
-    band = [(i, p) for i, p in fwd if p.z <= zs[int(len(zs) * 0.25)]] or fwd
+    heel_x = min(p.x for p in pts)
+    toe_x = max(p.x for p in pts)
+    flen = toe_x - heel_x
+    _FOOT_LEN[bone_side] = flen
+    _HEEL_BACK[bone_side] = ankle.x - heel_x   # 발목 뒤 뒤꿈치까지(rest)
+    _ANKLE_TO_SOLE[bone_side] = ankle.z - min(p.z for p in pts)   # 발목→밑창(rest)
+    # 뒤꿈치·발끝 끝단(각 5%)을 추적해 포즈에서 발 중심·페달축 비율을 낸다(F11 §3-5).
+    _HEEL_VIDX[bone_side] = [i for i, p in ipts if p.x <= heel_x + flen * 0.05]
+    _TOE_VIDX[bone_side] = [i for i, p in ipts if p.x >= toe_x - flen * 0.05]
+    # 접점 밴드 = ANKLE_BACK 이 가리키는 x 위치 ±8% 중 하부 25%(밑창쪽).
+    target_x = ankle.x + ANKLE_BACK_MM / 1000.0
+    near = [(i, p) for i, p in ipts if abs(p.x - target_x) <= flen * 0.08]
+    if not near:
+        near = ipts
+    zs = sorted(p.z for _, p in near)
+    band = [(i, p) for i, p in near if p.z <= zs[int(len(zs) * 0.25)]] or near
     bp = [p for _, p in band]
     ball = sum(bp, Vector((0.0, 0.0, 0.0))) / len(bp)
     # 같은 정점을 포즈에서도 추적해 "메시가 본을 따라왔는가"를 판정한다(F10-B).
-    _BALL_VIDX[bone_side] = [i for i, _ in band]
+    _CONTACT_VIDX[bone_side] = [i for i, _ in band]
     tip = max(pts, key=lambda p: p.x)          # 발끝 = 최전방 정점
     gi_toe = vgi.get("TOE_" + bone_side)
     if gi_toe is not None:
@@ -251,6 +307,53 @@ def _mesh_ball_world(rider, me, bone_side):
         if tpts:
             tip = max(tpts, key=lambda p: p.x)
     return ball, tip
+
+
+_ARM_REST0 = {}   # 연장 **전** 상완·전완 rest 길이(mm). 비교안 배율의 기준.
+
+
+def resize_arm_bones(u_rest_mm, f_rest_mm=None):
+    """상완(·전완) rest 길이를 바꾸고 자식을 delta 만큼 재부착한다(F13-B).
+
+    `extend_shin()` 과 같은 계열 — 검증된 패턴을 그대로 쓴다. 팔은 `solve_elbow()` 가
+    본 길이를 읽어 팔꿈치를 배치하므로, 길이만 바꾸면 굽힘각이 따라온다.
+    """
+    if not u_rest_mm:
+        return
+    if not _ARM_REST0:      # 원본 rest 길이 1회 캡처 — 비교안(§5-3) 배율의 기준이 된다
+        for s in ("L", "R"):
+            _ARM_REST0["U" + s] = arm.pose.bones["UPPER_ARM_" + s].bone.length * 1000
+            _ARM_REST0["F" + s] = arm.pose.bones["FOREARM_" + s].bone.length * 1000
+    bpy.context.view_layer.objects.active = arm
+    bpy.ops.object.mode_set(mode="EDIT")
+    for side in ("L", "R"):
+        for bname, target in (("UPPER_ARM_" + side, u_rest_mm),
+                              ("FOREARM_" + side, f_rest_mm)):
+            if not target:
+                continue
+            b = arm.data.edit_bones.get(bname)
+            if b is None:
+                continue
+            d = b.tail - b.head
+            if d.length < 1e-6:
+                continue
+            new_tail = b.head + d.normalized() * (target / 1000.0)
+            delta = new_tail - b.tail
+            b.tail = new_tail
+            for ch in b.children:            # FOREARM / HAND 를 끝에 다시 붙인다
+                ch.head = ch.head + delta
+                ch.tail = ch.tail + delta
+                for gch in ch.children:
+                    gch.head = gch.head + delta
+                    gch.tail = gch.tail + delta
+    bpy.ops.object.mode_set(mode="OBJECT")
+    bpy.context.view_layer.update()
+    print("  [팔길이] 상완 rest %.2fmm (world %.2f) / 전완 %s"
+          % (u_rest_mm, u_rest_mm * SCALE,
+             ("rest %.2fmm" % f_rest_mm) if f_rest_mm else "불변"))
+
+
+resize_arm_bones(UPPER_ARM_REST_MM)
 
 
 def refit_foot_bones():
@@ -266,11 +369,11 @@ def refit_foot_bones():
     plan = {}
     for bs in ("L", "R"):
         ankle = eval_tail("SHIN_" + bs)
-        ball, tip = _mesh_ball_world(rider, me, bs)
+        ball, tip = _mesh_contact_world(rider, me, bs, ankle)
         if ball is None:
             continue
         plan[bs] = (ball.copy(), tip.copy())
-        _BALL_DROP[bs] = ankle.z - ball.z
+        _CONTACT_DROP[bs] = ankle.z - ball.z
 
     w2a = arm.matrix_world.inverted()
     bpy.context.view_layer.objects.active = arm
@@ -288,32 +391,41 @@ def refit_foot_bones():
     arm.data.pose_position = "POSE"
     bpy.context.view_layer.update()
     for bs in plan:
-        print("  [발뼈재정의] FOOT_%s world %.2fmm (구 149.42) / TOE_%s %.2fmm / 발볼하강 %.2fmm"
+        pct = (_HEEL_BACK[bs] * 1000 + ANKLE_BACK_MM) / (_FOOT_LEN[bs] * 1000) * 100
+        print("  [발뼈재정의] FOOT_%s world %.2fmm / TOE_%s %.2fmm / 접점하강 %.2fmm"
               % (bs, arm.pose.bones["FOOT_" + bs].bone.length * SCALE * 1000,
                  bs, arm.pose.bones["TOE_" + bs].bone.length * SCALE * 1000,
-                 _BALL_DROP[bs] * 1000))
+                 _CONTACT_DROP[bs] * 1000))
+        print("  [접점위치] %s 발길이 %.2fmm (뒤꿈치 %.2f ~ 발끝 %.2f) — 접점은 발목앞 %.2f "
+              "= **발길이의 %.1f%%** (F10-R1 99%% 발끝 → F11 목표 50%% 발중심)"
+              % (bs, _FOOT_LEN[bs] * 1000, _HEEL_BACK[bs] * 1000,
+                 _FOOT_LEN[bs] * 1000 - _HEEL_BACK[bs] * 1000, ANKLE_BACK_MM, pct))
+        # 발목→밑창 축 기울기 — 사용자가 F13 에서 "지시한 바 없는 각도 변화"로 지적한 값.
+        # 발이 짧아지면 ANKLE_BACK 이 당겨져 이 각이 커지고 뒤꿈치가 들린다(F14 §1).
+        import math as _m3
+        _tilt = _m3.degrees(_m3.atan2(_ANKLE_TO_SOLE[bs] * 1000, ANKLE_BACK_MM))
+        print("  [발기울기] %s 발목→밑창 %.2fmm / 발목앞 %.2fmm → **축 기울기 %.2f°** "
+              "(F12=F14 기준 13.31° · F13 축소 시 15.34°)"
+              % (bs, _ANKLE_TO_SOLE[bs] * 1000, ANKLE_BACK_MM, _tilt))
 
 
 refit_foot_bones()
 
 
-# ── 발볼 목표 = 페달축 위 BALL_LIFT ───────────────────────────────────────
+# ── 접점 목표 = 페달축 위 CONTACT_LIFT ───────────────────────────────────────
 # joints 는 발목을 페달축 뒤 ANKLE_BACK · **위 ANKLE_UP** 에 둔다. ANKLE_UP 은
-# "발바닥 22.0 + 밑창·클릿 15.0". 발볼(뼈)은 발목보다 _BALL_DROP 만큼 아래이므로,
-# 발볼이 놓일 곳은 **페달축 위 (ANKLE_UP - BALL_DROP)** 이다.
+# "발바닥 22.0 + 밑창·클릿 15.0". 접점(뼈)은 발목보다 _CONTACT_DROP 만큼 아래이므로,
+# 접점이 놓일 곳은 **페달축 위 (ANKLE_UP − CONTACT_DROP)** 이다.
 # 상수로 박지 않고 JD·메시에서 매번 역산한다 — 선언값과 적용값이 갈라진 것이 anti#8 의 사고였다.
-_d0 = JD["phases"]["0.000"]
-ANKLE_UP_MM = round(float(_d0["footL"][1]) - float(_d0["pedalAxleL"][1]), 2)
-ANKLE_BACK_MM = round(float(_d0["pedalAxleL"][0]) - float(_d0["footL"][0]), 2)
-BALL_LIFT = {s: (ANKLE_UP_MM / 1000.0) - _BALL_DROP.get(BONE_OF[s], 0.0) for s in ("L", "R")}
-print("  [발볼목표] ANKLE_BACK %.2f / ANKLE_UP %.2f (JD 역산)  →  페달축 위 L %.2f · R %.2f mm"
-      % (ANKLE_BACK_MM, ANKLE_UP_MM, BALL_LIFT["L"] * 1000, BALL_LIFT["R"] * 1000))
+CONTACT_LIFT = {s: (ANKLE_UP_MM / 1000.0) - _CONTACT_DROP.get(BONE_OF[s], 0.0) for s in ("L", "R")}
+print("  [접점목표] ANKLE_BACK %.2f / ANKLE_UP %.2f (JD 역산)  →  페달축 위 L %.2f · R %.2f mm"
+      % (ANKLE_BACK_MM, ANKLE_UP_MM, CONTACT_LIFT["L"] * 1000, CONTACT_LIFT["R"] * 1000))
 
 
-def ball_target(d, side):
-    """발볼(FOOT tail)이 놓여야 할 world — 페달축 바로 위 BALL_LIFT."""
+def contact_target(d, side):
+    """접점(FOOT tail)이 놓여야 할 world — 페달축 바로 위 CONTACT_LIFT."""
     p = g2b(d["pedalAxle" + side])
-    return Vector((p.x, p.y, p.z + BALL_LIFT[side]))
+    return Vector((p.x, p.y, p.z + CONTACT_LIFT[side]))
 
 
 setup_render()
@@ -461,43 +573,64 @@ def _assert_foot_contact(pkey, tol_mm=5.0):
         target = g2b(d["foot" + side])
         err = (actual - target).length * 1000.0
         # ⚠ 위 발목 오차는 **IK 도달**이지 접점이 아니다. 실제 발-페달 접점은
-        #   발볼(FOOT tail)이 페달축 위 BALL_LIFT 에 왔는가로 판정한다(memory: fit-ik-measure-not-contact).
+        #   접점(FOOT tail)이 페달축 위 CONTACT_LIFT 에 왔는가로 판정한다(memory: fit-ik-measure-not-contact).
         ball = eval_tail("FOOT_" + bs)
-        btgt = ball_target(d, side)
+        btgt = contact_target(d, side)
         ped = g2b(d["pedalAxle" + side])
         rec["sides"][side] = {
             "boneSide": bs,
             "ankleActualMm": vec_mm(actual),
             "ankleTargetMm": vec_mm(target),
             "errorMm": round(err, 2),
-            "ballActualMm": vec_mm(ball),
-            "ballTargetMm": vec_mm(btgt),
-            "ballErrorMm": round((ball - btgt).length * 1000.0, 2),
-            "ballAbovePedalAxleMm": round((ball.z - ped.z) * 1000.0, 2),
-            "ballLiftExpectedMm": round(BALL_LIFT[side] * 1000.0, 2),
+            "contactActualMm": vec_mm(ball),
+            "contactTargetMm": vec_mm(btgt),
+            "contactErrorMm": round((ball - btgt).length * 1000.0, 2),
+            "contactAbovePedalAxleMm": round((ball.z - ped.z) * 1000.0, 2),
+            "contactLiftExpectedMm": round(CONTACT_LIFT[side] * 1000.0, 2),
         }
-        mb = mesh_ball_posed(bs)
+        mb = mesh_contact_posed(bs)
         if mb is not None:
-            rec["sides"][side]["meshBallMm"] = vec_mm(mb)
-            rec["sides"][side]["meshBallVsBoneTailMm"] = round((mb - ball).length * 1000.0, 2)
-            rec["sides"][side]["meshBallToPedalMm"] = round((mb - ped).length * 1000.0, 2)
+            rec["sides"][side]["meshContactMm"] = vec_mm(mb)
+            rec["sides"][side]["meshContactVsBoneTailMm"] = round((mb - ball).length * 1000.0, 2)
+            rec["sides"][side]["meshContactToPedalMm"] = round((mb - ped).length * 1000.0, 2)
+        # F11 새 판정 지표 — 페달축이 발의 어느 지점 아래인가(발끝 99% → 발 중심 50%).
+        ax = foot_axis_posed(bs)
+        if ax is not None:
+            heel, toe, center = ax
+            v = toe - heel
+            t = (ped - heel).dot(v) / max(1e-9, v.length_squared)
+            rec["sides"][side].update({
+                "footHeelMm": vec_mm(heel),
+                "footToeMm": vec_mm(toe),
+                "footCenterMm": vec_mm(center),
+                "footLengthMm": round(v.length * 1000.0, 2),
+                "pedalAxlePercentOfFoot": round(t * 100.0, 1),
+                "pedalAxleToFootCenterHorizMm": round(
+                    (((center.x - ped.x) ** 2 + (center.y - ped.y) ** 2) ** 0.5) * 1000.0, 2),
+            })
         if err > tol_mm:
             bad.append("%s %.1fmm" % (side, err))
     rec["pass"] = not bad
     _FOOT_CONTACT[pkey] = rec
-    print("  [발접촉] %s  발목 좌 %.1f / 우 %.1fmm (허용 %.1f)  %s   |  발볼(본) 좌 %.1f / 우 %.1f"
-          "   |  발볼(메시)→페달 좌 %s / 우 %s   메시↔본 좌 %s / 우 %s" % (
+    print("  [발접촉] %s  발목 좌 %.1f / 우 %.1fmm (허용 %.1f)  %s   |  접점(본) 좌 %.1f / 우 %.1f"
+          "   |  접점(메시)→페달 좌 %s / 우 %s   메시↔본 좌 %s / 우 %s" % (
               pkey, rec["sides"]["L"]["errorMm"], rec["sides"]["R"]["errorMm"],
               tol_mm, "OK" if rec["pass"] else "FAIL",
-              rec["sides"]["L"]["ballErrorMm"], rec["sides"]["R"]["ballErrorMm"],
-              rec["sides"]["L"].get("meshBallToPedalMm"), rec["sides"]["R"].get("meshBallToPedalMm"),
-              rec["sides"]["L"].get("meshBallVsBoneTailMm"), rec["sides"]["R"].get("meshBallVsBoneTailMm")))
-    # 발볼 오차는 이번 지시에서 **차단 조건이 아니다**(합격 기준 §3-3 은 발목 기준).
+              rec["sides"]["L"]["contactErrorMm"], rec["sides"]["R"]["contactErrorMm"],
+              rec["sides"]["L"].get("meshContactToPedalMm"), rec["sides"]["R"].get("meshContactToPedalMm"),
+              rec["sides"]["L"].get("meshContactVsBoneTailMm"), rec["sides"]["R"].get("meshContactVsBoneTailMm")))
+    _sL, _sR = rec["sides"]["L"], rec["sides"]["R"]
+    if "pedalAxlePercentOfFoot" in _sL:
+        print("  [발중심] %s  페달축↔발중심 수평 좌 %.1f / 우 %.1fmm   "
+              "페달축 위치 좌 %.1f%% / 우 %.1f%% of 발길이 (목표 50%%)" % (
+                  pkey, _sL["pedalAxleToFootCenterHorizMm"], _sR["pedalAxleToFootCenterHorizMm"],
+                  _sL["pedalAxlePercentOfFoot"], _sR["pedalAxlePercentOfFoot"]))
+    # 접점 오차는 이번 지시에서 **차단 조건이 아니다**(합격 기준 §3-3 은 발목 기준).
     # 다만 실제 접점이므로 크게 어긋나면 눈에 띄게 남긴다 — 차단 승격은 감리 판단.
     for side in ("L", "R"):
-        if rec["sides"][side]["ballErrorMm"] > 10.0:
-            print("  ⚠ [발볼경고] %s %s 발볼이 목표에서 %.1fmm — 접점 판정은 렌더로 확인하라"
-                  % (pkey, side, rec["sides"][side]["ballErrorMm"]))
+        if rec["sides"][side]["contactErrorMm"] > 10.0:
+            print("  ⚠ [접점경고] %s %s 접점이 목표에서 %.1fmm — 접점 판정은 렌더로 확인하라"
+                  % (pkey, side, rec["sides"][side]["contactErrorMm"]))
     if bad:
         raise RuntimeError(
             "발이 페달 목표에 닿지 않았다(%s): %s > 허용 %.1fmm. "
@@ -520,7 +653,7 @@ def _file_meta(path):
     }
 
 
-def shoot(name, loc, look):
+def shoot(name, loc, look, note=None):
     cd = bpy.data.cameras.new(name)
     cam = bpy.data.objects.new(name, cd)
     bpy.context.collection.objects.link(cam)
@@ -542,8 +675,11 @@ def shoot(name, loc, look):
     sc.render.use_stamp_scene = False
     sc.render.use_stamp_marker = False
     sc.render.use_stamp_filename = False
-    sc.render.stamp_note_text = "%s | SCALE %s | %s" % (
-        CANDIDATE_ID, SCALE_S, name.replace("_", " "))
+    # note = 판정 수치를 그림에 **직접 박는다**(지시 §4-2·§4-3). 별도 표를 봐야만 읽히는
+    # 그림은 사용자 판정 재료로 부족하다.
+    sc.render.stamp_note_text = "%s | SCALE %s | %s%s" % (
+        CANDIDATE_ID, SCALE_S, name.replace("_", " "),
+        ("   ||  " + note) if note else "")
     # ⚠ 필수: 새 카메라의 matrix_world 는 즉시 반영되지 않는다. 갱신 없이 렌더하면
     #   카메라가 엉뚱한 방향을 본다(실측: 주시 대상이 화면좌표 (1.41,0.88,-0.34) =
     #   화면 밖·depth 음수 → 갱신 후 (0.50,0.50,0.60) 정중앙). 확대 뷰에서 대상이
@@ -618,19 +754,174 @@ def foot_center(side):
     return list(acc)
 
 
-def mesh_ball_posed(bone_side):
-    """rest 에서 발볼로 판정된 **바로 그 정점들**의 현재 포즈 centroid(world).
+def mesh_contact_posed(bone_side):
+    """rest 에서 접점로 판정된 **바로 그 정점들**의 현재 포즈 centroid(world).
 
     본 tail 과 이 값이 벌어지면 = 메시가 본을 따라오지 않는다는 뜻이다.
     본 좌표만 보고 "발이 닿았다"고 판정하는 것이 F6~F9 에서 반복된 오판의 형태다
     (memory: fit-ik-measure-not-contact). 접점 판정은 반드시 **메시**로 한다.
     """
-    idx = _BALL_VIDX.get(bone_side)
+    idx = _CONTACT_VIDX.get(bone_side)
     if not idx or _RIDER_MESH is None:
         return None
     me = _RIDER_MESH.evaluated_get(_fresh_dg()).data
     pts = [_RIDER_MESH.matrix_world @ me.vertices[i].co for i in idx]
     return sum(pts, Vector((0.0, 0.0, 0.0))) / len(pts)   # centroid — rest 정의와 동일해야 한다
+
+
+def foot_axis_posed(bone_side):
+    """포즈 상태의 (뒤꿈치, 발끝, 발 중심) — 전부 centroid 라 강체변환 equivariant.
+
+    F11 의 새 판정 지표(페달축이 발길이의 몇 % 지점인가 · 페달축↔발 중심 수평거리)를
+    **메시에서 직접** 내기 위한 것이다. AABB 는 회전에 민감해 쓰지 않는다.
+    """
+    hi, ti = _HEEL_VIDX.get(bone_side), _TOE_VIDX.get(bone_side)
+    if not hi or not ti or _RIDER_MESH is None:
+        return None
+    me = _RIDER_MESH.evaluated_get(_fresh_dg()).data
+
+    def _c(ii):
+        return sum((_RIDER_MESH.matrix_world @ me.vertices[i].co for i in ii),
+                   Vector((0.0, 0.0, 0.0))) / len(ii)
+
+    heel, toe = _c(hi), _c(ti)
+    return heel, toe, (heel + toe) / 2
+
+
+def torso_angle_measured():
+    """실제 몸통각 = (어깨중점 − 엉덩이중점) 의 시상면 수평 기준 각도(deg) — **본에서 실측**.
+
+    ⚠ joints 의 `torsoAngleDeg`(TA) 와 다르다. joints 는 hip 에서 TA 방향으로 어깨를
+      **가상 배치**할 뿐이고, `fit_ik.py` 는 그 값을 쓰지 않는다(어깨는 GLB 본 계층 +
+      LEAN_DEG 스파인 굽힘의 결과). F12 실측: joints 42° vs 렌더 34.66° — 7.3° 차이가
+      그동안 아무도 모르게 남아 있었다. **사용자가 보는 각도는 이쪽이다.**
+    """
+    import math as _m
+    hip = (eval_head("THIGH_L") + eval_head("THIGH_R")) / 2
+    sho = (eval_head("UPPER_ARM_L") + eval_head("UPPER_ARM_R")) / 2
+    d = sho - hip
+    return _m.degrees(_m.atan2(d.z, d.x)), hip, sho
+
+
+def ischial_points():
+    """좌골 = PELVIS 정점군의 후하방 지지 밴드 **centroid**(median 금지, F12 §4-1).
+
+    안장을 읽기 전에 rider 메시만으로 확정한다(순환 정의 금지 — HARNESS 안장 게이트 규약).
+    F12-B 는 이 높이에 안장 상면을 맞춘다.
+    """
+    if _RIDER_MESH is None:
+        return None
+    gi = _VGI.get("PELVIS")
+    if gi is None:
+        return None
+    idx = [v.index for v in _RIDER_MESH.data.vertices
+           if any(g.group == gi and g.weight >= 0.25 for g in v.groups)]
+    me = _RIDER_MESH.evaluated_get(_fresh_dg()).data
+    pts = [(i, _RIDER_MESH.matrix_world @ me.vertices[i].co) for i in idx]
+    out = {}
+    for side, sign in (("L", 1), ("R", -1)):
+        half = [(i, p) for i, p in pts if p.y * sign > 0]
+        if not half:
+            continue
+        xs = sorted(p.x for _, p in half)
+        post = [(i, p) for i, p in half if p.x <= xs[int(len(xs) * 0.45)]]   # 후방 45%
+        zs = sorted(p.z for _, p in post)
+        band = [(i, p) for i, p in post if p.z <= zs[int(len(zs) * 0.20)]] or post  # 하부 20%
+        c = sum((p for _, p in band), Vector((0.0, 0.0, 0.0))) / len(band)
+        out[side] = {"centroidMm": vec_mm(c), "verts": len(band)}
+    if "L" in out and "R" in out:
+        out["midZMm"] = round((out["L"]["centroidMm"][2] + out["R"]["centroidMm"][2]) / 2, 2)
+        out["midXMm"] = round((out["L"]["centroidMm"][0] + out["R"]["centroidMm"][0]) / 2, 2)
+    return out
+
+
+def elbow_measure():
+    """팔꿈치 굽힘각·손 오차를 **본에서 실측**한다(F13-B). 굽힘 0° = 완전 신전."""
+    import math as _m
+    hood = {"L": g2b(JD["phases"]["0.500"]["handL"]),
+            "R": g2b(JD["phases"]["0.500"]["handR"])}
+    out = {}
+    for s in ("L", "R"):
+        sh = eval_head("UPPER_ARM_" + s)
+        el = eval_tail("UPPER_ARM_" + s)
+        hd = eval_tail("FOREARM_" + s)
+        tgt = hood["L"] if (sh.y * hood["L"].y) > 0 else hood["R"]
+        v1 = (sh - el).normalized()
+        v2 = (hd - el).normalized()
+        inner = _m.degrees(_m.acos(max(-1.0, min(1.0, v1.dot(v2)))))
+        out[s] = {
+            "shoulderMm": vec_mm(sh), "elbowMm": vec_mm(el), "handMm": vec_mm(hd),
+            "hoodMm": vec_mm(tgt),
+            "upperArmWorldMm": round(arm.pose.bones["UPPER_ARM_" + s].bone.length * SCALE * 1000, 2),
+            "forearmWorldMm": round(arm.pose.bones["FOREARM_" + s].bone.length * SCALE * 1000, 2),
+            "shoulderToHoodMm": round((tgt - sh).length * 1000, 2),
+            "elbowBendDeg": round(180.0 - inner, 2),
+            "handToHoodMm": round((hd - tgt).length * 1000, 2),
+        }
+    return out
+
+
+def draw_arm_guides(em, side="L"):
+    """팔꿈치 각도선(상완=주황, 전완=자홍)을 씬에 얹는다 — 그림으로 판정하기 위함.
+
+    ⚠ 기본은 **L**(파이프라인 좌 = Blender +y). 렌더 카메라가 +y 에 있으므로 R 로 그리면
+      선이 라이더 뒤에 숨어 보이지 않는다(F13 1차 렌더에서 실제로 그랬다).
+    """
+    d = em[side]
+    y = -0.34 if side == "R" else 0.34
+    sh = Vector((d["shoulderMm"][0] / 1000, y, d["shoulderMm"][2] / 1000))
+    el = Vector((d["elbowMm"][0] / 1000, y, d["elbowMm"][2] / 1000))
+    hd = Vector((d["handMm"][0] / 1000, y, d["handMm"][2] / 1000))
+    return _bars([("ARM_UPPER", sh, el, (1.0, 0.45, 0.0)),
+                  ("ARM_FORE", el, hd, (1.0, 0.2, 0.8))])
+
+
+def _bars(specs, rad=0.008):
+    made = []
+    for name, p0, p1, rgb in specs:
+        v = p1 - p0
+        if v.length < 1e-6:
+            continue
+        bpy.ops.mesh.primitive_cylinder_add(radius=rad, depth=v.length,
+                                            location=(p0 + p1) / 2)
+        o = bpy.context.object
+        o.name = name
+        o.rotation_mode = "QUATERNION"
+        o.rotation_quaternion = v.to_track_quat("Z", "Y")
+        m = bpy.data.materials.new(name + "_M")
+        m.use_nodes = True
+        b = m.node_tree.nodes["Principled BSDF"]
+        b.inputs["Base Color"].default_value = (*rgb, 1)
+        b.inputs["Emission Color"].default_value = (*rgb, 1)
+        b.inputs["Emission Strength"].default_value = 2.0
+        o.data.materials.append(m)
+        made.append(o)
+    return made
+
+
+def draw_posture_guides(hip, sho):
+    """몸통각을 **그림에서 눈으로 판정**할 수 있도록 각도선을 씬에 그린다(F12 §7-2).
+
+    수치표만 내면 "숫자만 보고 그림을 안 본다"는 지적이 반복된다. 몸통선(청록)과
+    수평 기준선(노랑)을 실제 메시로 얹어 렌더에 남긴다.
+    """
+    y = 0.30                      # 라이더 바깥(카메라 쪽)으로 빼서 몸에 가리지 않게
+    h = Vector((hip.x, y, hip.z))
+    s = Vector((sho.x, y, sho.z))
+    return _bars([("POSTURE_TORSO", h, s, (0.0, 0.85, 0.85)),                 # 몸통선(청록)
+                  ("POSTURE_HORIZ", h, h + Vector((0.45, 0.0, 0.0)),
+                   (1.0, 0.85, 0.0))])                                        # 수평기준(노랑)
+
+
+def hip_saddle_gap():
+    """엉덩이(THIGH head 중점)와 안장 접촉점의 **수평 간격**(mm, +면 엉덩이가 앞).
+
+    F11 은 라이더만 앞으로 옮기므로 엉덩이가 안장 앞으로 나간다. **버그가 아니라
+    의도된 중간 상태**이며(지시 §3-4), 사용자가 이 수치로 자전거를 결정한다.
+    """
+    hip = (eval_head("THIGH_L") + eval_head("THIGH_R")) / 2
+    saddle_x = _load_geometry()["coords"]["saddle"][0] / 1000.0
+    return hip, saddle_x, (hip.x - saddle_x) * 1000.0
 
 
 def anchors_for(pkey):
@@ -677,15 +968,15 @@ def point_measures(pkey):
         ankle = eval_tail("SHIN_" + bs)
         ball = eval_tail("FOOT_" + bs)
         pedal = g2b(d["pedalAxle" + side])
-        # 클릿 접촉면 = 발볼 바로 아래 BALL_LIFT(=발바닥+클릿 두께). 이상적으로 페달축과 일치.
-        cleat_contact = Vector((ball.x, ball.y, ball.z - BALL_LIFT[side]))
+        # 클릿 접촉면 = 접점 바로 아래 CONTACT_LIFT(=발바닥+클릿 두께). 이상적으로 페달축과 일치.
+        cleat_contact = Vector((ball.x, ball.y, ball.z - CONTACT_LIFT[side]))
         result[side] = {
             "boneSide": bs,
             "ANKLE_CENTER_mm": vec_mm(ankle),
-            "BALL_CENTER_mm": vec_mm(ball),
+            "CONTACT_BONE_mm": vec_mm(ball),
             "CLEAT_CONTACT_mm": vec_mm(cleat_contact),
             "PEDAL_AXLE_mm": vec_mm(pedal),
-            "ballToPedalErrorMm": round((ball - pedal).length * 1000, 3),
+            "contactBoneToPedalErrorMm": round((ball - pedal).length * 1000, 3),
             "cleatContactToPedalErrorMm": round((cleat_contact - pedal).length * 1000, 3),
         }
         # 무릎 내각 **실측**(계산값 재인용 금지) — 목표 BDC 10°.
@@ -698,11 +989,11 @@ def point_measures(pkey):
             180.0 - _mt.degrees(_mt.acos(max(-1.0, min(1.0, a1.dot(a2))))), 2)
         result[side]["KNEE_mm"] = vec_mm(knee)
         # ⚠ 위는 전부 **본** 좌표다. 실제로 페달에 닿는 것은 메시이므로 같이 잰다.
-        mb = mesh_ball_posed(bs)
+        mb = mesh_contact_posed(bs)
         if mb is not None:
-            result[side]["MESH_BALL_mm"] = vec_mm(mb)
-            result[side]["meshBallVsBoneTailMm"] = round((mb - ball).length * 1000, 3)
-            result[side]["meshBallToPedalErrorMm"] = round((mb - pedal).length * 1000, 3)
+            result[side]["MESH_CONTACT_mm"] = vec_mm(mb)
+            result[side]["meshContactVsBoneTailMm"] = round((mb - ball).length * 1000, 3)
+            result[side]["meshContactToPedalErrorMm"] = round((mb - pedal).length * 1000, 3)
     return result
 
 
@@ -756,13 +1047,13 @@ def bdc_lowpoint_measure(side):
         pts = [_RIDER_MESH.matrix_world @ me.vertices[i].co for i in idx]
         lo = min(pts, key=lambda p: p.z)
         out["footLowestMm"] = vec_mm(lo)
-        # 같은 함수 안에서 발볼 centroid 와 AABB 를 같이 남긴다 — 두 계측이 어긋나면
+        # 같은 함수 안에서 접점 centroid 와 AABB 를 같이 남긴다 — 두 계측이 어긋나면
         # 계측 자체를 의심해야 한다(F10-B 에서 실제로 어긋났다).
         out["footAabbMinMm"] = [round(min(p[i] for p in pts) * 1000, 2) for i in range(3)]
         out["footAabbMaxMm"] = [round(max(p[i] for p in pts) * 1000, 2) for i in range(3)]
-        mb = mesh_ball_posed(BONE_OF[side])
+        mb = mesh_contact_posed(BONE_OF[side])
         if mb is not None:
-            out["meshBallMm"] = vec_mm(mb)
+            out["meshContactMm"] = vec_mm(mb)
     ped = []
     for o in bpy.data.objects:
         if o.type != "MESH" or o.parent is None or o.parent.name != "CRANK_PIVOT":
@@ -855,15 +1146,153 @@ for p in VIEWS["phases"]:
         shoot("FULL_BDC_R_SIDE_L", [0, -FULL_SIDE_DIST, 0.72], [0, 0, 0.72])
         _measures["bdcRight"] = bdc_lowpoint_measure("R")
         lp = _measures["bdcRight"]
+        _fc = _FOOT_CONTACT["0.500"]["sides"]["R"]
         # 발/페달 최저점을 한 화면에. 두 최저점 중간을 겨냥해 둘 다 보이게 한다.
         if lp.get("footLowestMm") and lp.get("pedalLowestMm"):
             mid_z = (lp["footLowestMm"][2] + lp["pedalLowestMm"][2]) / 2000.0
             mid_x = (lp["footLowestMm"][0] + lp["pedalLowestMm"][0]) / 2000.0
             # 오른발이므로 우측(+y)에서. 좌측에서 보면 왼쪽 페달·크랭크가 앞을 가린다.
             shoot("BDC_R_LOWPOINT",
-                  [mid_x + 0.30, 0.95, mid_z + 0.26], [mid_x, 0.074, mid_z])
+                  [mid_x + 0.30, 0.95, mid_z + 0.26], [mid_x, 0.074, mid_z],
+                  note="수직거리 %.1fmm | 페달축 = 발길이의 %.1f%% 지점 (목표 50%%)"
+                       % (lp.get("verticalGapMm", 0.0),
+                          _fc.get("pedalAxlePercentOfFoot", 0.0)))
         print("  [BDC우] 발최저 %s / 페달최저 %s / 수직거리 %s mm" % (
             lp.get("footLowestMm"), lp.get("pedalLowestMm"), lp.get("verticalGapMm")))
+
+        # ── POSTURE_ANGLE (F12 §7-2) — 몸통각을 눈으로 판정하는 그림 ──
+        _ta, _hip, _sho = torso_angle_measured()
+        _isch = ischial_points()
+        _measures["posture"] = {
+            "pelvisTiltDeg": PELVIS_TILT_DEG,
+            "torsoAngleMeasuredDeg": round(_ta, 2),
+            "torsoAngleJointsTA": JD.get("torsoAngleDeg"),
+            "hipMidMm": vec_mm(_hip),
+            "shoulderMidMm": vec_mm(_sho),
+            "ischial": _isch,
+            "note": "torsoAngleMeasuredDeg 가 사용자가 보는 각도. joints TA 와 다르다.",
+        }
+        _g = draw_posture_guides(_hip, _sho)
+        shoot("POSTURE_ANGLE", [0, FULL_SIDE_DIST, 0.72], [0, 0, 0.72],
+              note="몸통각 실측 %.1f° (청록=몸통선, 노랑=수평기준) | 골반 후방경사 %.0f°"
+                   % (_ta, PELVIS_TILT_DEG))
+        for _o in _g:
+            bpy.data.objects.remove(_o, do_unlink=True)
+        print("  [자세] 몸통각 실측 %.2f° (joints TA %s) / 골반경사 %.0f° / 엉덩이 %s"
+              % (_ta, JD.get("torsoAngleDeg"), PELVIS_TILT_DEG, vec_mm(_hip)))
+        if _isch and "midZMm" in _isch:
+            print("  [좌골] 중점 높이 %.2f · x %.2f  (L %s / R %s)"
+                  % (_isch["midZMm"], _isch["midXMm"],
+                     _isch["L"]["centroidMm"], _isch["R"]["centroidMm"]))
+
+        # ── ARM_ELBOW (F13-B §8-3) — 팔꿈치 굽힘을 눈으로 판정하는 그림 ──
+        _em = elbow_measure()
+        _measures["elbow"] = _em
+        _ag = draw_arm_guides(_em, "L")
+        _sx0 = _em["L"]["shoulderMm"][0] / 1000.0
+        _hx0 = _em["L"]["hoodMm"][0] / 1000.0
+        _cxa, _cza = (_sx0 + _hx0) / 2.0, 0.98
+        shoot("ARM_ELBOW", [_cxa + 0.10, 1.75, _cza + 0.22], [_cxa, 0.0, _cza],
+              note="팔꿈치 굽힘 실측 %.1f° (주황=상완 %.0fmm, 자홍=전완 %.0fmm) | 손-후드 %.1fmm"
+                   % (_em["R"]["elbowBendDeg"], _em["R"]["upperArmWorldMm"],
+                      _em["R"]["forearmWorldMm"], _em["R"]["handToHoodMm"]))
+        for _o in _ag:
+            bpy.data.objects.remove(_o, do_unlink=True)
+        print("  [팔꿈치] 굽힘 좌 %.2f° / 우 %.2f°  손-후드 좌 %.1f / 우 %.1fmm  "
+              "어깨→후드 %.2fmm  상완 %.2f / 전완 %.2f"
+              % (_em["L"]["elbowBendDeg"], _em["R"]["elbowBendDeg"],
+                 _em["L"]["handToHoodMm"], _em["R"]["handToHoodMm"],
+                 _em["R"]["shoulderToHoodMm"], _em["R"]["upperArmWorldMm"],
+                 _em["R"]["forearmWorldMm"]))
+
+        # ── SADDLE_GAP (F11 §4-2) — 사용자가 자전거를 결정하는 그림 ──
+        # 라이더만 앞으로 옮겼으므로 엉덩이가 안장 앞에 놓인다. **보정 금지**(지시 §3-4).
+        # 안장·엉덩이·시트포스트가 한 화면에 들어오도록 두 x 의 중간을 겨냥한다.
+        _hip, _sx, _gap = hip_saddle_gap()
+        _geo = _load_geometry()
+        _saddle_z = (_geo["coords"]["saddle"][1] + _geo["bbHeight"])          # 안장 상면(지면 mm)
+        _rec = {
+            "hipMidMm": vec_mm(_hip),
+            "saddleContactXMm": round(_sx * 1000, 2),
+            "saddleTopZMm": round(_saddle_z, 2),
+            "saddleHeightMm": _geo["saddleHeight"],
+            "seatTubeAngleDeg": _geo["seatTubeAngle"],
+            "saddleSetbackMm": _geo["saddleSetback"],
+            "hipToSaddleHorizontalMm": round(_gap, 2),
+            "note": "양수 = 엉덩이가 안장보다 앞.",
+        }
+        if _isch and "midZMm" in _isch:
+            # F12-B 판정: 안장 상면이 **좌골 높이**에 왔는가 / 좌골이 안장보다 얼마나 뒤인가
+            _rec["ischialMidZMm"] = _isch["midZMm"]
+            _rec["ischialMidXMm"] = _isch["midXMm"]
+            _rec["saddleTopVsIschialZMm"] = round(_saddle_z - _isch["midZMm"], 2)
+            _rec["ischialVsSaddleXMm"] = round(_isch["midXMm"] - _sx * 1000, 2)
+        _measures["hipSaddleGap"] = _rec
+        # 프레이밍은 **좌골–안장 구간**에 맞춘다. 엉덩이·몸통에 맞추면 안장이 화면 밖으로
+        # 나가 판정이 불가능하다(F12 1차 렌더에서 실제로 그랬다). 시트포스트도 들어와야 한다.
+        if "ischialMidZMm" in _rec:
+            _cx = (_rec["ischialMidXMm"] + _sx * 1000) / 2000.0
+            _cz = (_rec["ischialMidZMm"] + _saddle_z) / 2000.0
+        else:
+            _cx, _cz = (_hip.x + _sx) / 2.0, 0.93
+        _n = "엉덩이-안장 수평 %.1fmm" % _gap
+        if "saddleTopVsIschialZMm" in _rec:
+            _n = ("안장상면-좌골 높이차 %.1fmm | 좌골이 안장보다 %.1fmm 뒤 | %s"
+                  % (_rec["saddleTopVsIschialZMm"], -_rec["ischialVsSaddleXMm"], _n))
+        shoot("SADDLE_GAP", [_cx + 0.18, 2.25, _cz + 0.42], [_cx, 0.0, _cz], note=_n)
+        print("  [안장간격] 엉덩이 x %.1f / 안장 x %.1f → 수평간격 %.1fmm"
+              % (_hip.x * 1000, _sx * 1000, _gap))
+        if "saddleTopVsIschialZMm" in _rec:
+            print("  [안장-좌골] 안장상면 %.1f / 좌골 %.1f → **높이차 %.1fmm** · "
+                  "좌골 x %.1f / 안장 x %.1f → **앞뒤 어긋남 %.1fmm(좌골이 뒤)**"
+                  % (_saddle_z, _rec["ischialMidZMm"], _rec["saddleTopVsIschialZMm"],
+                     _rec["ischialMidXMm"], _sx * 1000, -_rec["ischialVsSaddleXMm"]))
+
+# ── ARM_ALT_PROPORTIONAL (F13 §5-3) — 사용자 선택용 비교 1장 ───────────────
+# 정본은 "상완만 연장"이지만 그러면 상완/전완 비가 1.29 → 1.57 이 되어 사람 비율
+# (대략 1.0~1.3)에서 벗어난다. 상완·전완을 **같은 비율로** 늘려 같은 도달을 만드는 안을
+# 나란히 낸다. **정본은 바꾸지 않는다** — 이 렌더 뒤에 나오는 산출물은 없다.
+if UPPER_ARM_REST_MM:
+    _e0 = _measures.get("elbow", {}).get("R", {})
+    # ⚠ 기준은 **연장 전** 원본 길이다. 이미 늘어난 상완을 기준으로 잡으면 배율이 1.0 이 되어
+    #   비교안이 정본과 같아진다(F13 1차 렌더에서 실제로 그랬다).
+    _u0 = _ARM_REST0.get("UR", 0.0)
+    _f0 = _ARM_REST0.get("FR", 0.0)
+    _D = _e0.get("shoulderToHoodMm", 0.0)
+    if _u0 and _f0 and _D:
+        import math as _mm2
+        _c = _mm2.cos(_mm2.radians(170.0))
+        _base = _mm2.sqrt((_u0 * SCALE) ** 2 + (_f0 * SCALE) ** 2
+                          - 2 * (_u0 * SCALE) * (_f0 * SCALE) * _c)
+        _k = _D / _base
+        resize_arm_bones(_u0 * _k, _f0 * _k)
+        apply_phase("0.500")
+        rotate_cranks(crank_rot(JD["phases"]["0.500"]["crankDeg"]))
+        _ea = elbow_measure()
+        _measures["elbowAltProportional"] = {
+            "scaleFactor": round(_k, 4),
+            "upperArmWorldMm": _ea["R"]["upperArmWorldMm"],
+            "forearmWorldMm": _ea["R"]["forearmWorldMm"],
+            "ratioUtoF": round(_ea["R"]["upperArmWorldMm"] / _ea["R"]["forearmWorldMm"], 3),
+            "elbowBendDeg": _ea["R"]["elbowBendDeg"],
+            "handToHoodMm": _ea["R"]["handToHoodMm"],
+        }
+        _ag2 = draw_arm_guides(_ea, "L")
+        _sx1 = _ea["L"]["shoulderMm"][0] / 1000.0
+        _hx1 = _ea["L"]["hoodMm"][0] / 1000.0
+        _cxb = (_sx1 + _hx1) / 2.0
+        shoot("ARM_ALT_PROPORTIONAL", [_cxb + 0.10, 1.75, 1.20], [_cxb, 0.0, 0.98],
+              note="[비교안] 상완·전완 동시 ×%.4f — 상완 %.0f / 전완 %.0f (비 %.2f) "
+                   "| 굽힘 %.1f° | 손-후드 %.1fmm"
+                   % (_k, _ea["R"]["upperArmWorldMm"], _ea["R"]["forearmWorldMm"],
+                      _ea["R"]["upperArmWorldMm"] / _ea["R"]["forearmWorldMm"],
+                      _ea["R"]["elbowBendDeg"], _ea["R"]["handToHoodMm"]))
+        for _o in _ag2:
+            bpy.data.objects.remove(_o, do_unlink=True)
+        print("  [비교안] 동시배율 %.4f — 상완 %.2f / 전완 %.2f (비 %.3f) 굽힘 %.2f° 손 %.1fmm"
+              % (_k, _ea["R"]["upperArmWorldMm"], _ea["R"]["forearmWorldMm"],
+                 _ea["R"]["upperArmWorldMm"] / _ea["R"]["forearmWorldMm"],
+                 _ea["R"]["elbowBendDeg"], _ea["R"]["handToHoodMm"]))
 
 # ── render-manifest.json (§5) ──
 import hashlib
@@ -927,8 +1356,8 @@ manifest = {
             "jointsToRiderBone": BONE_OF,
             "note": "joints·페달메시·앵커·카메라는 'L'=Blender -y 로 일치. rider 본 이름만 반대.",
         },
-        # 발볼(FOOT tail)이 놓일 페달축 위 높이 = ANKLE_UP - 발목대비 발볼 하강(메시 실측).
-        "ballLiftMm": {s: round(BALL_LIFT[s] * 1000, 2) for s in ("L", "R")},
+        # 접점(FOOT tail)이 놓일 페달축 위 높이 = ANKLE_UP - 발목대비 접점 하강(메시 실측).
+        "contactLiftMm": {s: round(CONTACT_LIFT[s] * 1000, 2) for s in ("L", "R")},
         "footBoneWorldMm": {
             bs: round(arm.pose.bones["FOOT_" + bs].bone.length * SCALE * 1000, 2)
             for bs in ("L", "R")

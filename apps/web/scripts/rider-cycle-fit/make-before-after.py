@@ -4,9 +4,10 @@ import bpy, sys, os, json
 argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 before, after = argv[0], argv[1]
 ids = [
-    # 다리 비율(허벅지·정강이 길이) 변화를 사용자가 직접 볼 수 있도록 맨 위에 둔다(F10-R1 §5-4).
-    "RIDER_ONLY_SIDE_L",
-    "STATIC_SIDE_L", "STATIC_FRONT", "STATIC_REAR", "STATIC_Q_FRONT",
+    # 맨 윗줄은 **전신 측면** — 몸이 앞으로 간 것(F11 §4-4)·다리 비율(F10-R1 §5-4)을
+    # 사용자가 한눈에 대조할 수 있어야 한다.
+    "STATIC_SIDE_L", "RIDER_ONLY_SIDE_L",
+    "STATIC_FRONT", "STATIC_REAR", "STATIC_Q_FRONT",
     "PHASE_0_FULL", "PHASE_90_FULL", "PHASE_180_FULL", "PHASE_270_FULL",
 ]
 cell_w, cell_h = 450, 350

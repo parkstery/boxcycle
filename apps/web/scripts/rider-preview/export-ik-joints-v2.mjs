@@ -45,7 +45,12 @@ const hipOfV2 = (side) => [hipX, hipY, side === "l" ? +V2.hipHalfZ : -V2.hipHalf
 
 // SHOULDER: 전경사 42°로 HIP 에서 몸통 세움. V2 실측 시상 몸통(고관절→어깨).
 const TORSO_LEN = V2.torsoSagittal;
-const TA = (42 * Math.PI) / 180;
+// F12: 라이더를 BDC 발바닥 기준으로 10° 뒤로 회전 → 몸통각 42° → 52°(사용자 지시).
+// ⚠ 이 값은 **joints 가 어깨를 놓는 각도**일 뿐이며, Blender 렌더의 실제 몸통각은
+//   `fit_ik.py` 의 스파인 굽힘(LEAN_DEG)이 정한다. 두 층이 다른 방식으로 상체를 만들고
+//   fit_ik.py 는 이 shoulder 값을 쓰지 않아 그동안 불일치가 드러나지 않았다
+//   (F12 실측: joints 42° vs 렌더 34.66°). 실제 회전은 PELVIS 를 10° 뒤로 눕혀 만든다.
+const TA = (52 * Math.PI) / 180;
 const shoulderXY = [hipX + TORSO_LEN * Math.cos(TA), hipY + TORSO_LEN * Math.sin(TA)];
 const shoulderOfV2 = (side) => [shoulderXY[0], shoulderXY[1], side === "l" ? +V2.shoulderHalfZ : -V2.shoulderHalfZ];
 
@@ -66,7 +71,22 @@ const shoulderOfV2 = (side) => [shoulderXY[0], shoulderXY[1], side === "l" ? +V2
 //        ⚠ 15mm 는 여전히 가정이다 — GLB 에 클릿·밑창 메시가 없어 실측 불가.
 //        실물 로드 클릿(3~5mm)+밑창(10~12mm) 근거값.
 //   구값 149.4 / 81.0 은 근거 없는 가정이었고 F9 에서 폐기했다.
-const ANKLE_BACK = 0.21794;                   // m, F8 실측(×0.88 적용값)
+// ── F11: 페달축을 발끝 밑에서 **발 중심** 밑으로 (사용자 확정) ─────────────
+// F10-R1 까지의 217.94 는 F8 정의(전방 25% 중 하부 25% median)로 잰 값인데, 실측하면
+// 그 지점은 발볼이 아니라 **발끝 바로 뒤**였다 — 페달축이 발길이의 99% 지점에 있었다.
+//   rest 발 메시 실측(scale 0.88 후, 발목 기준): 뒤 35.20 ~ 앞 221.25, 길이 256.45
+//   발 중심 = (−35.20 + 221.25) / 2 = **발목 앞 93.03mm**  (감리 예측 93.0 과 일치)
+// 사용자 지시: "페달은 발끝 아래가 아닌 발 중심부 아래에 놓여야 한다."
+// 이 값을 바꾸면 라이더 전체가 +x 로 124.9mm 평행이동한다(HIP_XOFF 로 hip 을 같이 옮긴다).
+// ⚠ hip 과 발목이 같은 거리만큼 이동하므로 hip~발목 거리·무릎각은 보존된다.
+// ── 접점 = 발 중심 (F11 확정, F14 에서 복원) ────────────────────────────────
+//   rest 발 메시 실측(scale 0.88 후, 발목 기준): 뒤 35.20 ~ 앞 221.25, 길이 256.45
+//   발 중심 = (−35.20 + 221.25) / 2 = **발목 앞 93.03mm**
+// ⚠ F13 에서 신발을 −10% 축소하며 80.20 으로 내렸다가 **F14 에서 전면 취소**했다.
+//   발이 짧아지면 발 중심이 발목 쪽으로 당겨져 발목→접점 축이 13.31° → 15.34° 로
+//   가팔라지고, 뒤꿈치가 들려 **사용자가 지시하지 않은 신발 각도 변화**가 생긴다.
+//   이 값을 다시 내리려면 그 각도 변화까지 함께 결정해야 한다.
+const ANKLE_BACK = 0.09303;                   // m, F11 실측(발 중심) — F14 복원값
 const ANKLE_UP = 0.037;                       // m, F8 실측(발바닥 22.0 + 클릿 15.0)
 function legJoint(side, crankRad) {
   const hip = hipOfV2(side);
@@ -112,7 +132,7 @@ const out = {
   hipR: mm(hipOfV2("r")),
   shoulderL: mm(shoulderOfV2("l")),
   shoulderR: mm(shoulderOfV2("r")),
-  torsoAngleDeg: 42,
+  torsoAngleDeg: +((TA * 180) / Math.PI).toFixed(2), // TA 파생 — 하드코딩 금지(F12 에서 42 가 박혀 있었다)
   phases: {},
 };
 
