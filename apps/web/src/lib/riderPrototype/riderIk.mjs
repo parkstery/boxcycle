@@ -135,6 +135,41 @@ export function restToDirRotationDeg(dir) {
   return [ex * RAD2DEG, ey * RAD2DEG, ez * RAD2DEG];
 }
 
+// ── 행렬 ↔ Mapbox 오일러 (F26: 발목 상쇄 계산에 필요) ─────────────────────
+// Mapbox `rotationYZX` 규약: **R = Ry(e[1]) · Rz(e[2]) · Rx(e[0])**, 배열은 [x, y, z].
+// 아래 두 함수는 서로의 역이며, `restToDirRotationDeg` 와 같은 규약을 쓴다.
+
+/** 3×3 회전행렬(행 우선, v' = R·v) → Mapbox 오일러 [x, y, z] (도) */
+export function mat3ToMapboxEulerDeg(R) {
+  const ez = Math.asin(clamp(R[1][0], -1, 1));
+  let ex, ey;
+  if (Math.abs(R[1][0]) < 0.9999999) {
+    ex = Math.atan2(-R[1][2], R[1][1]);
+    ey = Math.atan2(-R[2][0], R[0][0]);
+  } else {
+    // 짐벌: cos c ≈ 0 → a·b 축퇴. b=0 고정.
+    ex = Math.atan2(R[2][1], R[2][2]);
+    ey = 0;
+  }
+  return [ex * RAD2DEG, ey * RAD2DEG, ez * RAD2DEG];
+}
+
+const _mul3 = (A, B) => A.map((r) => [0, 1, 2].map((j) => r[0] * B[0][j] + r[1] * B[1][j] + r[2] * B[2][j]));
+const _Rx = (t) => [[1, 0, 0], [0, Math.cos(t), -Math.sin(t)], [0, Math.sin(t), Math.cos(t)]];
+const _Ry = (t) => [[Math.cos(t), 0, Math.sin(t)], [0, 1, 0], [-Math.sin(t), 0, Math.cos(t)]];
+const _Rz = (t) => [[Math.cos(t), -Math.sin(t), 0], [Math.sin(t), Math.cos(t), 0], [0, 0, 1]];
+const D2R = Math.PI / 180;
+
+/** Mapbox 오일러 [x, y, z](도) → 3×3 회전행렬. `rotationYZX` 와 동일 순서로 조립. */
+export function mapboxEulerDegToMat3(e) {
+  return _mul3(_mul3(_Ry(e[1] * D2R), _Rz(e[2] * D2R)), _Rx(e[0] * D2R));
+}
+
+/** 회전행렬 곱 A·B */
+export const mat3Mul = _mul3;
+/** 회전행렬 전치(= 역행렬, 직교행렬이므로) */
+export const mat3Transpose = (A) => [0, 1, 2].map((i) => [0, 1, 2].map((j) => A[j][i]));
+
 /**
  * 자식 뼈(관절) 로컬 회전 — 부모(상단뼈)가 이미 boneADir 로 회전한 좌표계에서,
  * 자식 rest(-Y)를 boneBDir 로 돌리는 로컬 회전. 부모 회전의 역을 boneBDir 에 적용 후 restToDir.

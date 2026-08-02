@@ -13,7 +13,9 @@
  * | 4 | 팔 도달 | 어깨→후드 ≤ UPPER+FORE | 손이 후드에서 뜸 |
  * | 5 | GLB 노드 ↔ riderRig | `HIP_L`==`leg_l`.T · `SHOULDER_L`==`arm_l`.T | 앱 IK root 와 렌더 노드 불일치(F20) |
  * | 6 | 노드 rest | 라이더 9노드 rotation·scale 없음 | rest 가 오버라이드에 겹침(F19~F21) |
- * | 7 | 정점 수 | **본체** 5,521 불변(캡 별도) | exporter 정점 복제(F16) |
+ * | 7 | 정점 수 | **본체** 불변(캡 별도) | exporter 정점 복제(F16) |
+ * | 8 | 발바닥 법선 | 월드 수직에서 **≤ 2°** | 발이 페달면과 어긋남(F25 §4-2) |
+ * | 9 | 발바닥 최저점 vs 페달 상면 | **±3mm** | 발이 페달에서 뜨거나 파고듦 |
  *
  * ⚠ 허용치를 늘려 통과시키지 마라. 실패는 FAIL 로 보고하는 것이 옳다.
  *
@@ -29,6 +31,7 @@ import {
   shoulderOf,
   hoodOf,
   ankleTargetWorld,
+  pedalWorld,
   THIGH_LEN,
   SHIN_LEN,
   UPPER_ARM_LEN,
@@ -37,7 +40,8 @@ import {
 } from "../../src/lib/riderPrototype/riderRig.geometry.mjs";
 import { solveIk3D, restToDirRotationDeg, childRotationDeg } from "../../src/lib/riderPrototype/riderIk.mjs";
 // ⚠ pole 을 재현하지 않는다 — pose.mjs 의 것을 그대로 쓴다(복제하면 거짓 PASS).
-import { _poles } from "../../src/lib/riderGlbPedalPose.pose.mjs";
+import { _poles, resolveGlbPedalPose } from "../../src/lib/riderGlbPedalPose.pose.mjs";
+import { mapboxEulerDegToMat3, mat3Mul } from "../../src/lib/riderPrototype/riderIk.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_GLB = path.resolve(HERE, "../../public/rider/prototype/rider-lowpoly.glb");
@@ -47,7 +51,7 @@ const D2R = Math.PI / 180;
 const REST = [0, -1, 0];
 const RIDER_NODES = ["torso", "leg_l", "leg_l_shin", "leg_r", "leg_r_shin", "arm_l", "arm_l_fore", "arm_r", "arm_r_fore"];
 /** 라이더 **본체** 정점(관절 캡 제외). 캡은 별도로 센다 — F25 */
-const EXPECT_BODY_VERTS = 5521;
+const EXPECT_BODY_VERTS = 5513;
 
 const mm = (v) => +(v * 1000).toFixed(2);
 const mul = (A, B) => A.map((r) => [0, 1, 2].map((j) => r[0] * B[0][j] + r[1] * B[1][j] + r[2] * B[2][j]));
@@ -62,10 +66,86 @@ const applyM = (M, v) => [
 ];
 const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 const { kneePole, elbowPole } = _poles;
+/** 밑창 법선(발 로컬) — GLB NORMAL 실측(F27). pose.mjs 와 같은 값을 쓴다. */
+const SOLE_N = { l: [-0.4011, -0.9136, -0.0672], r: [-0.1087, -0.9897, -0.093] };
 
 function arg(name, def) {
   const i = process.argv.indexOf(`--${name}`);
   return i >= 0 ? process.argv[i + 1] : def;
+}
+
+// ── 노드 계층 합성 (F27 게이트 10) — Mapbox 규칙: global = parent × local, 뒤에 override ──
+const m4mul = (a, b) => {
+  const r = new Array(16).fill(0);
+  for (let c = 0; c < 4; c++)
+    for (let rw = 0; rw < 4; rw++) {
+      let s = 0;
+      for (let k = 0; k < 4; k++) s += a[k * 4 + rw] * b[c * 4 + k];
+      r[c * 4 + rw] = s;
+    }
+  return r;
+};
+const m4ident = () => [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+/** TRS → 열우선 4×4 */
+function m4fromTRS(t, q, s) {
+  const [x, y, z, w] = q ?? [0, 0, 0, 1];
+  const sc = s ?? [1, 1, 1];
+  const tt = t ?? [0, 0, 0];
+  return [
+    (1 - 2 * (y * y + z * z)) * sc[0], 2 * (x * y + z * w) * sc[0], 2 * (x * z - y * w) * sc[0], 0,
+    2 * (x * y - z * w) * sc[1], (1 - 2 * (x * x + z * z)) * sc[1], 2 * (y * z + x * w) * sc[1], 0,
+    2 * (x * z + y * w) * sc[2], 2 * (y * z - x * w) * sc[2], (1 - 2 * (x * x + y * y)) * sc[2], 0,
+    tt[0], tt[1], tt[2], 1,
+  ];
+}
+/** Mapbox 오일러 → 열우선 4×4 (rotationYZX) */
+function m4fromEuler(e) {
+  const R = mapboxEulerDegToMat3(e);
+  return [R[0][0], R[1][0], R[2][0], 0, R[0][1], R[1][1], R[2][1], 0, R[0][2], R[1][2], R[2][2], 0, 0, 0, 0, 1];
+}
+/** 노드 world 원점(m) — overrides = { 노드명: [x,y,z]deg } */
+function nodeWorldOrigin(g, byName, name, overrides) {
+  const parent = new Map();
+  g.nodes.forEach((n, i) => (n.children ?? []).forEach((c) => parent.set(c, i)));
+  const chain = [];
+  let i = byName.get(name);
+  while (i !== undefined) {
+    chain.unshift(i);
+    i = parent.get(i);
+  }
+  let m = m4ident();
+  for (const idx of chain) {
+    const n = g.nodes[idx];
+    m = m4mul(m, n.matrix ? n.matrix : m4fromTRS(n.translation, n.rotation, n.scale));
+    const ov = overrides[n.name];
+    if (ov) m = m4mul(m, m4fromEuler(ov));
+  }
+  return [m[12], m[13], m[14]];
+}
+
+/** 메시 정점(로컬, m)을 읽는다 — 발바닥 판정용 */
+function readMeshVerts(p, meshIdx) {
+  const buf = fs.readFileSync(p);
+  let off = 12;
+  let json = null;
+  let bin = null;
+  while (off + 8 <= buf.length) {
+    const len = buf.readUInt32LE(off);
+    const type = buf.readUInt32LE(off + 4);
+    if (type === 0x4e4f534a) json = JSON.parse(buf.subarray(off + 8, off + 8 + len).toString("utf8").replace(/\0+$/, ""));
+    else if (type === 0x004e4942) bin = buf.subarray(off + 8, off + 8 + len);
+    off += 8 + len;
+  }
+  const a = json.accessors[json.meshes[meshIdx].primitives[0].attributes.POSITION];
+  const bv = json.bufferViews[a.bufferView];
+  const st = bv.byteStride ?? 12;
+  const base = (bv.byteOffset ?? 0) + (a.byteOffset ?? 0);
+  const out = [];
+  for (let i = 0; i < a.count; i++) {
+    const o = base + i * st;
+    out.push([bin.readFloatLE(o), bin.readFloatLE(o + 4), bin.readFloatLE(o + 8)]);
+  }
+  return out;
 }
 
 function parseGlbJson(p) {
@@ -204,7 +284,95 @@ function main() {
     `본체 ${bodyVerts} (기대 ${EXPECT_BODY_VERTS}) + 캡 ${capVerts} = ${bodyVerts + capVerts}`,
   );
 
-  console.log(`\n  ${7 - fails.length}/7 통과`);
+  // ── 8·9 발–페달 접지 (F26) ───────────────────────────────────────────────
+  // ⚠ `pose.mjs` 의 값을 **import 해서** 판정한다. 재현하면 거짓 PASS 가 난다(F23 §1-1).
+  //   world 회전 = R_leg · R_shin · R_ankle (라이더 노드는 rest 가 없어 순수 translation).
+  const soleRows = [];
+  let worstTiltDeg = 0;
+  let worstGapMm = 0;
+  const ankleMesh = {};
+  for (const side of ["l", "r"]) {
+    const ni = byName.get(`ankle_${side}`);
+    if (ni !== undefined && g.nodes[ni].mesh !== undefined) {
+      ankleMesh[side] = readMeshVerts(glbPath, g.nodes[ni].mesh);
+    }
+  }
+  if (ankleMesh.l && ankleMesh.r) {
+    for (const phase of PHASES) {
+      for (const side of ["l", "r"]) {
+        const p = resolveGlbPedalPose(phase);
+        const legE = side === "l" ? p.legLRotationDeg : p.legRRotationDeg;
+        const shinE = side === "l" ? p.legLShinRotationDeg : p.legRShinRotationDeg;
+        const ankE = side === "l" ? p.ankleLRotationDeg : p.ankleRRotationDeg;
+        const R = mat3Mul(
+          mat3Mul(mapboxEulerDegToMat3(legE), mapboxEulerDegToMat3(shinE)),
+          mapboxEulerDegToMat3(ankE),
+        );
+        // 발바닥 법선 — 발 로컬 −Y 를 world 로 보내 수직에서 벗어난 각을 잰다
+        const nWorld = applyM(R, SOLE_N[side]);
+        const tilt = (Math.acos(Math.max(-1, Math.min(1, -nWorld[1]))) * 180) / Math.PI;
+        worstTiltDeg = Math.max(worstTiltDeg, tilt);
+        // 밑창 최저점(world y) vs 페달 상면
+        const target = ankleTargetWorld(side, -phase * Math.PI * 2);
+        let lowest = Infinity;
+        for (const v of ankleMesh[side]) {
+          const y = target[1] + applyM(R, v)[1];
+          if (y < lowest) lowest = y;
+        }
+        const pedalTopY = target[1] - 0.037 + 0.01; // 페달축(발목 아래 ANKLE_UP) + 플랫폼 반두께
+        const gap = (lowest - pedalTopY) * 1000;
+        worstGapMm = Math.max(worstGapMm, Math.abs(gap));
+        soleRows.push({ phase, side, tilt, gap });
+      }
+    }
+    if (verbose) {
+      console.log("      발바닥 (기울기 = 월드 수직에서 벗어난 각 · gap = 밑창 − 페달면)");
+      for (const r of soleRows)
+        console.log(
+          `        phase ${String(r.phase).padEnd(5)} ${r.side}  기울기 ${r.tilt.toFixed(2).padStart(6)}°   gap ${r.gap.toFixed(1).padStart(7)}mm`,
+        );
+    }
+    note(worstTiltDeg <= 2, "8 발바닥법선", `최악 기울기 ${worstTiltDeg.toFixed(2)}° ≤ 2°`);
+    note(worstGapMm <= 3, "9 발접지", `최악 |밑창−페달면| ${worstGapMm.toFixed(1)}mm ≤ 3mm`);
+  } else {
+    note(false, "8·9 발접지", "ankle_l/ankle_r 노드 또는 메시가 없다");
+  }
+
+  // ── 10 페달 정합 (F27) ───────────────────────────────────────────────────
+  // **렌더되는 페달**(GLB 노드 계층을 실제로 합성)과 **IK 가 겨냥하는 페달**(`pedalWorld`)을
+  // 대조한다. 이 둘을 아무도 맞춰보지 않아 F18 이후 아홉 단계가 90° 어긋난 채 통과했다.
+  // ⚠ `pedalWorld` 를 재현하지 마라 — import 한 값과 GLB 실물을 비교한다.
+  let worstPedalMm = 0;
+  const pedalRows = [];
+  if (byName.has("pedal_l") && byName.has("pedal_r") && byName.has("crank")) {
+    for (const phase of PHASES) {
+      const p = resolveGlbPedalPose(phase);
+      const ov = {
+        crank: [0, 0, p.crankRotationDeg],
+        pedal_l: p.pedalLRotationDeg,
+        pedal_r: p.pedalRRotationDeg,
+      };
+      for (const side of ["l", "r"]) {
+        const got = nodeWorldOrigin(g, byName, `pedal_${side}`, ov).map((v) => v * 1000);
+        const want = pedalWorld(side, -phase * Math.PI * 2).map((v) => v * 1000);
+        const d = Math.hypot(got[0] - want[0], got[1] - want[1], got[2] - want[2]);
+        worstPedalMm = Math.max(worstPedalMm, d);
+        pedalRows.push({ phase, side, got, want, d });
+      }
+    }
+    if (verbose) {
+      console.log("      페달 world (GLB 노드 합성) vs pedalWorld()");
+      for (const r of pedalRows)
+        console.log(
+          `        phase ${String(r.phase).padEnd(5)} ${r.side}  GLB [${r.got.map((v) => v.toFixed(1)).join(", ")}]  앱 [${r.want.map((v) => v.toFixed(1)).join(", ")}]  차 ${r.d.toFixed(2)}mm`,
+        );
+    }
+    note(worstPedalMm <= 1, "10 페달정합", `최악 차 ${worstPedalMm.toFixed(2)}mm ≤ 1mm`);
+  } else {
+    note(false, "10 페달정합", "pedal_l/pedal_r/crank 노드가 없다");
+  }
+
+  console.log(`\n  ${10 - fails.length}/10 통과`);
   if (fails.length) {
     console.error(`\n✘ FAIL — [${fails.join("] [")}]  앱에 올리지 말고 보고하라.`);
     process.exit(1);
