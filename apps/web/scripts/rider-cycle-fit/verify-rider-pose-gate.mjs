@@ -103,8 +103,25 @@ function m4fromEuler(e) {
   const R = mapboxEulerDegToMat3(e);
   return [R[0][0], R[1][0], R[2][0], 0, R[0][1], R[1][1], R[2][1], 0, R[0][2], R[1][2], R[2][2], 0, 0, 0, 0, 1];
 }
+/** 노드 world 회전(3×3, 행 우선) — 계층을 실제로 합성한다(crank matrix rest 포함) */
+function nodeWorldRot(g, byName, name, overrides) {
+  const m = nodeWorldMatrix(g, byName, name, overrides);
+  // 열우선 4×4 에서 회전부 추출 → 행 우선 3×3 (스케일 없음 가정)
+  return [
+    [m[0], m[4], m[8]],
+    [m[1], m[5], m[9]],
+    [m[2], m[6], m[10]],
+  ];
+}
+
 /** 노드 world 원점(m) — overrides = { 노드명: [x,y,z]deg } */
 function nodeWorldOrigin(g, byName, name, overrides) {
+  const m = nodeWorldMatrix(g, byName, name, overrides);
+  return [m[12], m[13], m[14]];
+}
+
+/** 노드 world 4×4(열우선) */
+function nodeWorldMatrix(g, byName, name, overrides) {
   const parent = new Map();
   g.nodes.forEach((n, i) => (n.children ?? []).forEach((c) => parent.set(c, i)));
   const chain = [];
@@ -120,7 +137,7 @@ function nodeWorldOrigin(g, byName, name, overrides) {
     const ov = overrides[n.name];
     if (ov) m = m4mul(m, m4fromEuler(ov));
   }
-  return [m[12], m[13], m[14]];
+  return m;
 }
 
 /** 메시 정점(로컬, m)을 읽는다 — 발바닥 판정용 */
@@ -372,7 +389,32 @@ function main() {
     note(false, "10 페달정합", "pedal_l/pedal_r/crank 노드가 없다");
   }
 
-  console.log(`\n  ${10 - fails.length}/10 통과`);
+  // ── 11 페달 판 자세 (F29) ────────────────────────────────────────────────
+  // ⚠ 게이트 10 은 **위치만** 봤다. 그래서 판이 다섯 단계 동안 수직으로 서 있었다.
+  //   위치를 재는 게이트를 만들 때는 **자세도 함께 재라** — 그 교훈이 이 항목이다.
+  //   판 로컬 법선은 실측값(0,1,0): 메시 70×20×50 에서 얇은 축 y, 최대 면적 면 3500mm².
+  let worstPedalTilt = 0;
+  if (byName.has("pedal_l") && byName.has("crank")) {
+    for (const phase of PHASES) {
+      const p = resolveGlbPedalPose(phase);
+      const ov = {
+        crank: [0, 0, p.crankRotationDeg],
+        pedal_l: p.pedalLRotationDeg,
+        pedal_r: p.pedalRRotationDeg,
+      };
+      for (const side of ["l", "r"]) {
+        const R = nodeWorldRot(g, byName, `pedal_${side}`, ov);
+        const n = applyM(R, [0, 1, 0]);
+        const tilt = (Math.acos(Math.max(-1, Math.min(1, n[1]))) * 180) / Math.PI;
+        worstPedalTilt = Math.max(worstPedalTilt, tilt);
+      }
+    }
+    note(worstPedalTilt <= 2, "11 페달판자세", `최악 법선 기울기 ${worstPedalTilt.toFixed(2)}° ≤ 2°`);
+  } else {
+    note(false, "11 페달판자세", "pedal_*/crank 노드가 없다");
+  }
+
+  console.log(`\n  ${11 - fails.length}/11 통과`);
   if (fails.length) {
     console.error(`\n✘ FAIL — [${fails.join("] [")}]  앱에 올리지 말고 보고하라.`);
     process.exit(1);

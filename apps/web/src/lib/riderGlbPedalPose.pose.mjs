@@ -238,8 +238,15 @@ export function resolveGlbPedalPose(phaseRev) {
     // 회전을 주면 정확히 상쇄된다. crank 는 `[0, 0, crankRotationDeg]` 로 돌므로
     // 페달은 `[0, 0, −crankRotationDeg]` 다. 좌·우 크랭크암은 180° 위상차가 있지만
     // **같은 `crank` 노드 하나가 둘을 함께 돌리므로** 상쇄값도 동일하다.
-    pedalLRotationDeg: [0, 0, -crankRotationDeg],
-    pedalRRotationDeg: [0, 0, -crankRotationDeg],
+    // ⚠ **−90 이 crank 노드의 rest 를 상쇄한다** (F29). `−crankRotationDeg` 만으로는
+    //   override 만 지워지고 `crank` matrix 의 `Rz(+90°)` rest 가 남아 **판이 서 버린다**:
+    //     판 월드 법선 = Rz(90 + crankDeg + pedalDeg) · (0,1,0)   ← 판 로컬 법선 실측값
+    //     현행 pedalDeg = −crankDeg → 합계 90° → (−1,0,0) **수직** ✘
+    //     수정 pedalDeg = −crankDeg − 90 → 합계 0° → (0,1,0) **수평** ✔
+    //   F25 가 "페달면이 지면과 평행"이라 판정한 것은 작은 스크린샷에서의 오독이었고,
+    //   게이트 10 은 **위치만** 재고 자세를 안 봤다 → 게이트 11 신설.
+    pedalLRotationDeg: [0, 0, -crankRotationDeg - 90],
+    pedalRRotationDeg: [0, 0, -crankRotationDeg - 90],
     // 발목 — 발바닥을 세계 수평으로(위 ankleRotation 주석에 유도 과정)
     ankleLRotationDeg: ankleRotation("l", crankRad),
     ankleRRotationDeg: ankleRotation("r", crankRad),
