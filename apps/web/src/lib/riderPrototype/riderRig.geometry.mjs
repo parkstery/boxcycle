@@ -86,19 +86,41 @@ export const HOOD_R = [BAR_HOOD_XY[0], BAR_HOOD_XY[1], -HOOD_HALF_Z];
 export const BAR_HOOD = [BAR_HOOD_XY[0], BAR_HOOD_XY[1]];
 
 // ── 라이더 인체 측정 (175cm · inseam 82cm, relaxed race) ─────────────────
-/** 고관절 반폭(HIP_L/R.z = ±) */
-export const PELVIS_HALF_Z = 0.09;
+/** 고관절 반폭(HIP_L/R.z = ±) — **V2 본 실측**(THIGH head 좌우 ±81.4mm, scale 0.88 후). */
+export const PELVIS_HALF_Z = 0.0814;
 /** 견봉 반폭(SHOULDER_L/R.z = ±) — 어깨너비 ~0.40 */
 export const SHOULDER_HALF_Z = 0.2;
 
-// 다리: BDC 에서 무릎 ~30° 굽힘으로 닿도록 역산. HIP_L→BDC 3D 거리 0.952m 기준(고관절이
-// 안장접촉점보다 6cm 위). 다리길이 = 거리/0.966 ≈ 0.986, 대퇴=정강=0.493.
-export const THIGH_LEN = 0.493;
-export const SHIN_LEN = 0.493;
+// ── 사지 길이 — **V2 라이더 본 실측**(scale 0.88 적용 후, F18 정합) ─────────
+// 예전 값(대퇴=정강=0.493 / 상완 0.304 · 전완 0.281)은 **옛 절차적 라이더**의 것이었다.
+// 앱에 올리는 모델이 V2 로 바뀌었으므로 여기를 맞춰야 앱 IK 가 F14 렌더를 재현한다.
+// 안 맞추면 **앱에서 발이 페달에서 떨어지고 손이 후드에서 뜬다**(F16 §5-1).
+//
+// ⚠ `riderGlbPedalPose.pose.mjs` 가 이 파일을 import 하므로 **여기 한 곳만** 고친다.
+//   하드코딩 복제 금지.
+//
+//   허벅지 430 rest × 0.88 = 378.40      정강이 400 rest × 0.88 = 352.00
+//   상완 380.49 rest × 0.88 = 334.83     전완 241.86 rest × 0.88 = 212.84
+//   (상완은 F13-B 에서 팔꿈치 10° 굽힘을 만들려고 연장한 값이다)
+export const THIGH_LEN = 0.37840;
+export const SHIN_LEN = 0.35200;
+export const UPPER_ARM_LEN = 0.33483;
+export const FOREARM_LEN = 0.21284;
 
-// 팔: 어깨→후드 3D 거리(≈0.579)에서 elbow 150~165° 목표 → 팔길이 ≈0.585. 상완:전완 = 0.52:0.48.
-export const UPPER_ARM_LEN = 0.585 * 0.52; // 0.304
-export const FOREARM_LEN = 0.585 * 0.48; // 0.281
+// ── 발목 오프셋 — **V2 는 정강이 끝이 발목이고 발이 별도 세그먼트다** (F18) ──
+// 옛 절차적 라이더는 정강이 끝이 곧 페달 접점이라 IK 가 페달축을 직접 겨냥했다.
+// V2 는 다르다: 정강이 끝 = 발목, 그 앞·아래에 발이 붙는다. 그래서 다리 IK 는
+// **발목 목표**(페달축 뒤 ANKLE_BACK · 위 ANKLE_UP)를 겨냥해야 한다.
+// 안 고치면 hip→페달축 768.5mm > 다리합 730.4mm 라 **다리가 물리적으로 안 닿는다**(F18 실측).
+/** 발목 → 발 중심(페달축 위) 전방 거리(m). F13 실측 = 발길이 256.45 의 50% 지점. */
+export const ANKLE_BACK = 0.09303;
+/** 발목 → 페달축 수직 거리(m). 발바닥 22.0 + 밑창·클릿 15.0. */
+export const ANKLE_UP = 0.037;
+/** 페달축 → **발목 IK 목표**. 다리 IK 는 페달축이 아니라 이 점을 겨냥한다. */
+export function ankleTargetWorld(side, crankRad) {
+  const p = pedalWorld(side, crankRad);
+  return [p[0] - ANKLE_BACK, p[1] + ANKLE_UP, p[2]];
+}
 
 // ── PELVIS 3분리 · 【F17-R1】 파생 방향을 뒤집었다 ─────────────────────────
 //

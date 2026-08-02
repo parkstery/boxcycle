@@ -14,6 +14,7 @@ import {
   shoulderOf,
   hoodOf,
   pedalWorld,
+  ankleTargetWorld,
   THIGH_LEN,
   SHIN_LEN,
   UPPER_ARM_LEN,
@@ -50,7 +51,10 @@ function elbowPole(side, shoulder) {
 /** 한쪽 다리 IK → { thigh:rotDeg[3], shin:rotDeg[3], kneeDeg, footErr, knee } */
 function legPose(side, crankRad) {
   const hip = hipOf(side);
-  const pedal = pedalWorld(side, crankRad);
+  // ⚠ **페달축이 아니라 발목**을 겨냥한다(F18). V2 라이더는 정강이 끝이 발목이고
+  //   발이 별도 세그먼트로 붙는다. 페달축을 직접 겨냥하면 hip→페달축 768.5mm 가
+  //   다리합 730.4mm 를 넘어 **다리가 물리적으로 안 닿는다.**
+  const pedal = ankleTargetWorld(side, crankRad);
   const pole = kneePole(side, hip);
   const ik = solveIk3D(hip, pedal, pole, THIGH_LEN, SHIN_LEN);
   const thigh = restToDirRotationDeg(ik.boneADir);

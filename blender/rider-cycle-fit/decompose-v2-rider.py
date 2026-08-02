@@ -111,56 +111,71 @@ for node, (pb_name, dir_bone) in PIVOT.items():
         rot = d.normalized().rotation_difference(DOWN_BLENDER).to_matrix()
     XF[node] = {"origin": origin_w, "rot": rot, "lenM": length}
 
-# ── 부위별 메시 생성 ──────────────────────────────────────────────────────
+# ── 부위별 메시 생성 — **원본 메시를 복제해 잘라낸다** (F19) ──────────────
+# ⚠ `from_pydata` 로 새 메시를 만들면 **커스텀 노멀·셰이딩 정보가 없어** exporter 가
+#   face 마다 정점을 쪼갠다. F18 실측: 5,477 → **16,983 (3.10배)**. 그 과정에서 UV 가
+#   재생성돼 128×16 팔레트에서 6px 단위 색이 뭉개졌다(전신 살색 단색).
+#   → 원본 메시를 **복제한 뒤 불필요한 정점만 지운다.** UV·노멀·인덱스 공유가 보존된다.
+import bmesh
+
+# 1) 포즈를 구운 베이스 사본 1개 (Armature modifier apply)
+bpy.ops.object.select_all(action="DESELECT")
+rider.select_set(True)
+bpy.context.view_layer.objects.active = rider
+bpy.ops.object.duplicate()
+base = bpy.context.object
+base.name = "RIDER_BAKED"
+for mod in list(base.modifiers):
+    if mod.type == "ARMATURE":
+        bpy.ops.object.modifier_apply(modifier=mod.name)
+    else:
+        base.modifiers.remove(mod)
+BASE_MW = base.matrix_world.copy()
+report["bakedVerts"] = len(base.data.vertices)
+
 made = {}
 for node in GROUPS:
-    idx = [i for i, b in owner.items() if bone2node.get(b) == node]
+    idx = set(i for i, b in owner.items() if bone2node.get(b) == node)
     if not idx:
         report["nodes"][node] = {"verts": 0, "warn": "정점 없음"}
         continue
-    remap = {vi: k for k, vi in enumerate(idx)}
+    bpy.ops.object.select_all(action="DESELECT")
+    base.select_set(True)
+    bpy.context.view_layer.objects.active = base
+    bpy.ops.object.duplicate()
+    o = bpy.context.object
+    o.name = node
+
+    bm = bmesh.new()
+    bm.from_mesh(o.data)
+    bm.verts.ensure_lookup_table()
+    kill = [v for v in bm.verts if v.index not in idx]
+    if kill:
+        bmesh.ops.delete(bm, geom=kill, context="VERTS")
+    bm.to_mesh(o.data)
+    bm.free()
+
+    # 2) 메시를 노드 로컬 좌표로: R · (world − origin)
     xf = XF[node]
-    verts = []
-    for vi in idx:
-        w = MW @ me_ev.vertices[vi].co
-        local = xf["rot"] @ (w - xf["origin"])
-        verts.append(local)
-    faces, mats = [], []
-    for p in me_ev.polygons:
-        vs = [v for v in p.vertices]
-        if all(v in remap for v in vs):
-            faces.append([remap[v] for v in vs])
-            mats.append(p.material_index)
-    m = bpy.data.meshes.new(node + "_mesh")
-    m.from_pydata([tuple(v) for v in verts], [], faces)
-    m.update()
-    for ms in rider.data.materials:
-        m.materials.append(ms)
-    for k, p in enumerate(m.polygons):
-        if k < len(mats):
-            p.material_index = mats[k]
-    # UV 복사(텍스처 팔레트 유지)
-    if me_ev.uv_layers.active and m.polygons:
-        src = me_ev.uv_layers.active.data
-        dst = m.uv_layers.new(name="UVMap").data
-        li = 0
-        for p, sp in zip(m.polygons, [q for q in me_ev.polygons
-                                      if all(v in remap for v in q.vertices)]):
-            for k in range(len(p.vertices)):
-                dst[p.loop_start + k].uv = src[sp.loop_start + k].uv
-            li += 1
-    o = bpy.data.objects.new(node, m)
-    bpy.context.collection.objects.link(o)
+    M = xf["rot"].to_4x4() @ Matrix.Translation(-xf["origin"]) @ BASE_MW
+    o.data.transform(M)
+    o.matrix_world = Matrix.Identity(4)
+    o.data.update()
+
     made[node] = o
     report["nodes"][node] = {
-        "verts": len(idx), "faces": len(faces),
-        "bones": GROUPS[node],
+        "verts": len(o.data.vertices), "faces": len(o.data.polygons),
+        "srcVerts": len(idx), "bones": GROUPS[node],
         "pivotWorldMm": [round(c * 1000, 2) for c in xf["origin"]],
         "segmentLenMm": round(xf["lenM"] * 1000, 2),
     }
 
-report["unassigned"] = len(rider.data.vertices) - sum(
-    r.get("verts", 0) for r in report["nodes"].values())
+bpy.data.objects.remove(base, do_unlink=True)
+
+report["vertexSum"] = sum(r.get("verts", 0) for r in report["nodes"].values())
+report["srcVertexSum"] = sum(r.get("srcVerts", 0) for r in report["nodes"].values())
+report["origVerts"] = len(rider.data.vertices)
+report["inflation"] = round(report["vertexSum"] / max(1, report["origVerts"]), 3)
 
 # ── 계층 + 원점 배치 (앱 계약) ────────────────────────────────────────────
 root = bpy.data.objects.new("RiderBike", None)
