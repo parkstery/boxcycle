@@ -455,6 +455,23 @@ F10-R1·F11에서 발접촉 0.0mm · 손 0mm · 페달축 49.1%를 맞추며 양
 | `C:/Users/kdrea/OneDrive/Documents/img/v2_4_cyclefit/cycle-only.glb` | 자전거 정본 (MD5 `95ae074a…` = 신프레임) |
 | `.claude/skills/rider-cycle-fit/SKILL.md` | 왜·언제·PASS/FAIL |
 | `apps/web/scripts/rider-cycle-fit/HARNESS.md` | 도구 사용법 |
+| **`blender/rider-cycle-fit/decompose-v2-rider.py`** | **V2 스킨드 → 앱 10노드 강체 분해**(F16, `14cc134`) |
+| `apps/web/src/lib/riderPrototype/riderGlbPedalPose.pose.mjs` | 앱 IK — `riderRig` 에서 사지 길이 **import**(SSoT) |
+| `apps/web/src/lib/riderPrototype/glbModelLayer.ts` | Mapbox model layer · `setFeatureState` 노드 10개 회전 |
+| `apps/web/src/lib/riderPrototype/config.ts` | `RIDER_GLB_NODE_OVERRIDE_NAMES` — 앱 노드 계약 정본 |
+| `apps/web/scripts/rider-preview/verify-rider-glb.mjs` | 앱 GLB 정적 검증 — **노후, 기대범위가 옛 자세 기준** |
+
+### 5-1. `riderRig.geometry.mjs` 신설 export (F17-R1 `d296372`)
+
+| 이름 | 뜻 |
+|---|---|
+| `HIP_GROUND` | **1차 입력** — 고관절 (−211.28, 836.88). 안장과 독립 |
+| `HIP_TO_ISCHIAL_M` | 고관절→좌골 0.10636 (메시 실측) |
+| `ISCHIAL_Y_M` | 좌골 높이 = 안장 상면 높이 |
+| `SADDLE_HEIGHT_DERIVED_MM` | 좌골에서 **역산**한 시트포스트 길이(479.78) |
+| `SEAT_TUBE_JUNCTION_Y_MM` | 시트튜브가 **실제로 끝나는** 지점(BB y 393.12) |
+| `SEATPOST_EXPOSED_MM` | 노출 시트포스트(66.9). **음수여야 진짜 불가능** |
+| `SEAT_TOP` | ⚠ **유물 — 판정에 쓰지 마라**(F12~F16 오판 5회의 원인) |
 
 산출물은 `.out/candidates/<id>/` (gitignore).
 
@@ -471,21 +488,104 @@ F10-R1·F11에서 발접촉 0.0mm · 손 0mm · 페달축 49.1%를 맞추며 양
 
 ### 개발팀장
 
-1. 이 문서의 §2 확정값 · §4 규율을 읽는다
-2. `INSTRUCTION.md`를 읽고 수행한다
-3. 감리 수치도 **검산하라.** 감리가 F6~F8에서 큰 계산 실수를 했다.
-   근거 있는 이견은 지금까지 여러 번 수용됐다
+1. 이 문서의 **§2 확정값 · §4 규율 · §8 작업 프로세스**를 읽는다
+2. **§7 첫 작업**(현재 F18)과 **§7-2 재현 명령**을 확인한다
+3. `INSTRUCTION.md`를 읽고 수행한다
+4. 감리 수치를 **먼저 검산하라.** 감리 오진이 지금까지 **4건**이었고 전부 실측으로 반증됐다:
+   F6~F8 혼합좌표 · F10-R1 "THIGH 29mm 부족" · F12 좌골 높이 188.5mm 착오 ·
+   F17 "시트튜브 단축" (유물 필드). **근거 있는 이견은 모두 수용됐다.**
+5. 새 창에서 `rider-cycle-fit` 스킬을 먼저 로드하면 규율·PASS/FAIL 기준이 함께 들어온다
 
 ---
 
-## 7. 첫 작업 (인수인계 직후)
+## 7. 첫 작업 — **F18 (2026-08-02 기준, 개발팀장용)**
 
-1. ~~**커밋** — F9 미커밋 8건~~ → **완료.** `8af8525` · `f1f63bb` · `eb00711`. 워킹트리 깨끗
-2. ~~**§3-1 리치 부족 해결 (THIGH 연장)**~~ → **완료.** 원인은 THIGH 가 아니었다(§3 상단).
-   F10-R1 `345fdd8`·`5d75760`. 사용자 승인 완료
-3. **F11 진행 중** — 라이더 +124.9mm 전진(페달을 발끝→발 중심). 지시서 = `INSTRUCTION.md`
-4. 그 다음(사용자 결정 대기): **자전거를 어떻게 맞출 것인가** — F11 렌더에서 엉덩이가
-   안장보다 124.9mm 앞에 뜬다. 안장 전진/시트각 변경 여부는 사용자가 그림을 보고 정한다
-5. 이후: 손–후드 접점 · 안장–좌골 접촉(반투명 게이트) · `fit_ik.py` 이관 · 제품 GLB 승격
-3. 발이 닿으면 사용자에게 **오른발 BDC 전신 렌더**로 보고 → 승인
-4. 그 다음: 손–후드 접점, 안장–좌골 접촉, 제품 GLB 승격
+F1~F17-R1 은 **전부 완료·커밋됨**(최신 `81fa263`). 워킹트리는 `.pre-F15.bak` 하나만
+untracked 다. 다음 창은 **`INSTRUCTION.md` 의 F18 부터** 시작한다.
+
+### 7-1. F18 이 요구하는 것 (요약 — 정본은 `INSTRUCTION.md`)
+
+> 사용자: *"문제가 모두 해결되지 않을 것을 안다. 하지만 **이 상태의 모델을 glb로 구워서
+> 앱에서 돌려보자.**"* → **미해결 항목을 고치려 하지 마라.**
+
+1. `decompose-v2-rider.py` 를 **현 SSoT 로 재실행**(F16 산출물은 `d296372` 이전 것)
+2. 자전거는 `RTW_RIDER=0` 로 굽고 거기서 **`crank` 노드**를 가져와 병합 → 노드 **10개**
+3. **`riderRig.geometry.mjs` 사지 길이 5개를 V2 실측으로 정합**(§7-3) ← 빠뜨리면 발이 뜬다
+4. 제품 이식(`.pre-F18.bak` 백업 필수) → 앱 구동 → 스크린샷 4장 + 콘솔 전문
+
+### 7-2. 재현 명령 (그대로 복사해 쓸 것)
+
+```bash
+# 0) joints — F17-R1 확정 인자. 순서: scale hipDrop hipXoff shinRest
+node apps/web/scripts/rider-preview/export-ik-joints-v2.mjs 0.88 -106.38 -54.98 400 \
+  > <후보>/input-ik-joints-v2.json
+
+# 1) Blender 렌더 + assert 4종. 인자 순서 주의(9=골반경사, 10=상완 rest)
+"C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" --background \
+  --python apps/web/scripts/rider-cycle-fit/render-all.py -- \
+  0.88 78 hip <candidateId> <후보디렉토리> <inputHash> <joints> \
+  "C:/Users/kdrea/OneDrive/Documents/img/v2_4_cyclefit/cycle-only.glb" 10 380.49
+
+# 2) V2 강체 분해 (앱 10노드 계약으로 변환)
+"…/blender.exe" --background --python blender/rider-cycle-fit/decompose-v2-rider.py -- \
+  0.88 <joints> <cycle-only.glb> 10 380.49 <후보>/v2-rider-nodes.glb
+
+# 3) 자전거 전용 GLB (crank 노드 출처)
+RTW_RIDER=0 RTW_GLB_OUT=<후보>/cycle-only.glb node apps/web/scripts/generate-rider-prototype-glb.mjs
+
+# 4) 검증
+node apps/web/scripts/rider-cycle-fit/verify-renders.mjs <후보디렉토리>
+node apps/web/scripts/rider-cycle-fit/verify-fit.mjs --joints <joints>
+```
+
+**F17-R1 기준 후보**: `.out/candidates/20260802-F17R1-CENTROID/` (41장, assert 4종 PASS)
+
+### 7-3. F18 §2-4 사지 길이 정합 — SSoT 한 곳
+
+`riderGlbPedalPose.pose.mjs` 는 `riderRig.geometry.mjs` 에서 **import** 한다(F16 §5-1 확인).
+따라서 **`riderRig.geometry.mjs` 만 고치면** 앱 IK·GLB 생성기가 함께 따라온다.
+
+| 상수 | 현재(옛 절차적 라이더) | **V2 실측** |
+|---|---|---|
+| `THIGH_LEN` | 0.493 | **0.37840** |
+| `SHIN_LEN` | 0.493 | **0.35200** |
+| `UPPER_ARM_LEN` | 0.304 | **0.33483** |
+| `FOREARM_LEN` | 0.281 | **0.21284** |
+| `PELVIS_HALF_Z` | 0.09 | **0.0814** |
+
+### 7-4. 그 다음 (F18 이후)
+
+1. **좌골–안장 앞뒤 어긋남 121.6mm** ← 최우선. `saddleSetback` 20 → ~142 안을 올려뒀다
+   (F17-R1 §9-2). 프레임 튜브가 아니라 안장 레일·시트포스트 오프셋 영역이라 가장 국소적
+2. 팔 비율 결정(상완만 +21.9% vs 동시 +12.4%) · 손가락 그립(본 없음 — 메시 작업 필요)
+3. 강체 분해 이음매 664 정점 벌어짐 렌더 확인
+4. `접점(본)` 밴드 윈도우 ±8%→±3% · `ANKLE_BACK`→`ANKLE_TO_CONTACT` 개명 ·
+   `verify-fit` 경고 문구가 옛 값 · **`fit_ik.py` 이관**(소스 치환 5건, 요청 4회째)
+5. `verify-rider-glb.mjs` 노후 — 전고 기대범위가 옛 자세 기준, IK 파싱이 `.pose.mjs` 미추종
+
+---
+
+## 8. 개발팀장 작업 프로세스 — **이 순서를 유지하라**
+
+지금까지 F9~F17-R1 열 단계가 이 순서로 굴러갔다. 다음 창도 그대로 하면 된다.
+
+```
+1. INSTRUCTION.md 를 읽는다            ← 사용자가 "읽고 그대로 수행해"라고만 입력한다
+2. 감리 수치를 **먼저 검산**한다        ← 감리가 F6~F8·F12·F16 에서 오진 4건을 냈다
+3. 실측이 감리와 다르면 **반증을 먼저 보고**한다(코드 고치기 전에)
+4. 구현 → 렌더 → **그림을 직접 열어 본다**  ← §4-5b 사용자 질책의 핵심
+5. REPORT.md 를 쓴다:
+     §0 「그림에서 보이는 것」  ← 반드시 수치보다 먼저. 이상하면 이상하다고 쓴다
+     감리 예상값 검산 결과 · 실측 전수 · 미완/실패 전수 · 이견
+6. 기존 REPORT.md → REPORT-<이전지시번호>.md 로 보존
+7. INSTRUCTION.md 의 `상태:` 를 `보고완료` 로 변경
+8. 커밋·push 는 **하지 않는다** — 사용자 승인 후 감리가 별도 지시
+```
+
+**보고 시 렌더 이미지는 폴더 경로를 통째로 준다.** 개별 파일 링크는 `.out` 이
+gitignore 라 클릭해도 열리지 않는다(2026-08-02 사용자 지적, `file:///` 도 실패).
+
+### 8-1. 사용자에게 직접 물어보지 않는다
+
+선택이 필요하면 **REPORT.md 에 선택지와 권고안을 적어** 감리를 거친다.
+F12 안장 3안 · F13 팔 비율 2안 · F17-R1 앞뒤 어긋남 4안이 그렇게 올라갔다.
