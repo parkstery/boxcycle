@@ -39,7 +39,7 @@
   "handlebarWidth": 420,
   "handlebarReach": 80,
   "handlebarDrop": 128,
-  "saddleHeight": 479.8,
+  "saddleHeight": 487.75,
   "saddleSetback": 20,
   "crankLength": 172.5,
   "pedalRadius": 45,
@@ -75,8 +75,8 @@
       415.2
     ],
     "saddle": [
-      -156.3,
-      460
+      -158.5,
+      467.7
     ],
     "stemClamp": [
       510.8,

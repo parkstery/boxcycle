@@ -52,3 +52,6 @@ screenshot.mjs
 !.claude/settings.json
 # settings.local.json(개인 권한 캐시)은 계속 무시 — 위 예외에 안 걸리게 명시
 .claude/settings.local.json
+
+# 라이더 제품 GLB 스냅샷 백업 (F20~ 작업 이력, 추적하지 않는다)
+apps/web/public/rider/prototype/*.bak

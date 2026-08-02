@@ -75,8 +75,12 @@ const _stemBottom = _add2(STEER.headTop, STEER.up, SPACER_STACK);
 const _stemMid = _add2(_stemBottom, STEER.up, STEM_CLAMP_H * 0.5);
 const _stemDir = [Math.cos(STEM_ANGLE), Math.sin(STEM_ANGLE)];
 const _stemEnd = _add2(_stemMid, _stemDir, STEM_LENGTH);
-/** 브레이크 후드 중앙(xy) — 좌우 z 는 HOOD_L/HOOD_R 에서 */
-const BAR_HOOD_XY = _add2(_stemEnd, _stemDir, BAR_REACH * 0.6); // ≈[0.524, 0.912]
+/** 브레이크 후드 중앙(xy) — 좌우 z 는 HOOD_L/HOOD_R 에서.
+ *  ⚠ 실제 파생값은 **[0.54736, 0.83558]**(headTube 85 기준). 이전 주석의 `≈[0.524, 0.912]`
+ *  는 headTube 를 줄이기 전(F3)의 낡은 값이었고, 그걸 그대로 인용한 F20 감리 진단이
+ *  어깨→후드 거리를 486.6mm 로 오산했다(실측 545.69mm). 값이 필요하면 주석이 아니라
+ *  이 모듈을 import 해서 읽어라. */
+const BAR_HOOD_XY = _add2(_stemEnd, _stemDir, BAR_REACH * 0.6);
 /** 후드 좌우 반폭 — 드롭바 폭보다 살짝 안쪽(후드는 바 끝이 아님) */
 export const HOOD_HALF_Z = (toM(geometry.handlebarWidth) / 2) * 0.9; // 0.189
 /** 왼손/오른손 고정점 (3D) */
@@ -88,8 +92,9 @@ export const BAR_HOOD = [BAR_HOOD_XY[0], BAR_HOOD_XY[1]];
 // ── 라이더 인체 측정 (175cm · inseam 82cm, relaxed race) ─────────────────
 /** 고관절 반폭(HIP_L/R.z = ±) — **V2 본 실측**(THIGH head 좌우 ±81.4mm, scale 0.88 후). */
 export const PELVIS_HALF_Z = 0.0814;
-/** 견봉 반폭(SHOULDER_L/R.z = ±) — 어깨너비 ~0.40 */
-export const SHOULDER_HALF_Z = 0.2;
+/** 견봉 반폭(SHOULDER_L/R.z = ±) — **V2 본 실측**(`arm_l`/`arm_r` 노드 z = ±180.40mm).
+ *  옛 값 0.2 는 절차적 라이더의 어깨너비 가정이었다. F20 정합. */
+export const SHOULDER_HALF_Z = 0.18040;
 
 // ── 사지 길이 — **V2 라이더 본 실측**(scale 0.88 적용 후, F18 정합) ─────────
 // 예전 값(대퇴=정강=0.493 / 상완 0.304 · 전완 0.281)은 **옛 절차적 라이더**의 것이었다.
@@ -136,7 +141,7 @@ export function ankleTargetWorld(side, crankRad) {
 
 /** 【1차 입력】 고관절 world(지면, m). 라이더 자세가 정한다 — **안장과 독립**.
  *  F12 확정: BDC 발바닥 피벗 기준 10° 후방 회전의 결과 (−211.28, 836.88). */
-export const HIP_GROUND = [-0.21128, 0.83688];
+export const HIP_GROUND = [-0.14966, 0.84452];
 /** 고관절 → 좌골 수직 하강(m). **메시 실측**(F12: PELVIS 후방 45%·하부 20% 밴드 centroid).
  *  836.88 − 730.52 = 106.36mm. 가정값 아님 — 자세가 바뀌면 다시 재야 한다. */
 export const HIP_TO_ISCHIAL_M = 0.10636;
@@ -164,16 +169,41 @@ export const SEATPOST_EXPOSED_MM =
 export const HIP_L = [PELVIS_ROOT[0], PELVIS_ROOT[1], +PELVIS_HALF_Z];
 export const HIP_R = [PELVIS_ROOT[0], PELVIS_ROOT[1], -PELVIS_HALF_Z];
 
-// ── Torso: PELVIS_ROOT 에서 전경사로 SHOULDER 를 세운다(팔길이 역산 금지) ──
-/** 등 수평 대비 전경사(요구 40~45°) */
+// ── Torso: 어깨는 **V2 실측 상수**다. 합성하지 마라 (F20) ──────────────────
+//
+// ⚠ **계약**: `SHOULDER_L/R` 은 GLB 의 `arm_l`/`arm_r` **노드 피벗과 반드시 동일**해야 한다.
+//   `riderGlbPedalPose.pose.mjs:10` 이 요구하는 그 계약이다 — 앱 IK 는 이 점을 root 로
+//   회전각을 풀고, Mapbox 는 그 회전을 GLB 노드에 그대로 적용한다. 둘이 어긋나면
+//   **각도가 맞아도 팔 전체가 통째로 밀려 몸에서 떨어진다.**
+//
+//   V2 실측(제품 GLB 파싱): `arm_l` t = [92.78, 1137.35, +180.40] mm (지면원점)
+//                          `arm_r` t = [92.78, 1137.35, −180.40] mm
+//
+// F18 이 사지 길이 5개를 V2 로 정합하면서 **체인 root 인 어깨를 빠뜨렸고**, 그것이
+// "앱에서 팔이 떠 있다"의 원인이었다(합성값과 106.70mm 차이). 길이를 맞췄으면 root 도 맞춘다.
+//
+// 예전에는 `PELVIS_ROOT + TORSO_LEN(0.53) × [cos42°, sin42°]` 로 합성했다. 그것은
+// **옛 절차적 라이더의 몸통 가정**이고 V2 아마추어의 UPPER_ARM head 와 무관하다.
+//
+// 정방향 검산: 이 어깨 → HOOD_L(547.36, 835.58, 189.0) 거리 545.69mm,
+//   팔 합 334.83 + 212.84 = 547.67mm → 도달 가능, 팔꿈치 내각 170.0°(굽힘 10°).
+//   상완 334.83 은 F13-B 가 **바로 이 굽힘 10°를 만들려고** 역산한 값이라 서로 일치한다.
+/** 견봉 중앙(xy) — **V2 실측**. GLB `arm_l`/`arm_r` 노드 피벗과 동일해야 한다. */
+const SHOULDER_XY = [0.12860, 1.16910];
+
+/** 등 수평 대비 전경사(deg). ⚠ 어깨는 더 이상 이 값에서 파생되지 않는다 —
+ *  자세 기술·검증 리포트용으로만 남는다(`export-ik-joints.mjs` 등이 기록한다). */
 export const TORSO_ANGLE_DEG = 42;
-const TORSO_LEN = 0.53; // 고관절→견봉선
-const _ta = (TORSO_ANGLE_DEG * Math.PI) / 180;
-/** 견봉 중앙(xy) */
-const SHOULDER_XY = [
-  PELVIS_ROOT[0] + TORSO_LEN * Math.cos(_ta),
-  PELVIS_ROOT[1] + TORSO_LEN * Math.sin(_ta),
-];
+
+/** 몸통 노드(`torso`) 회전 오버라이드 — Mapbox model-rotation `[x, y, z]`.
+ *
+ *  몸통 메시는 GLB 에 **44.66° 전경사**로 구워져 있다. 라이더 전체를 발목 피벗으로
+ *  회전시키면(F23) 그 각도가 달라져야 하므로 여기서 보정한다.
+ *
+ *  ⚠ **부호 규약**: 시상면 회전은 **z 성분**이고, `Rz(θ)·[0,1,0] = [−sinθ, cosθ, 0]`
+ *  이므로 **z 가 음수일 때 상단이 +x(전방)로 숙는다.** 즉 앞으로 더 숙이려면 음수다.
+ *  (F22 에서 확정한 `R = Ry(e[1])·Rz(e[2])·Rx(e[0])` 규약을 따른다.) */
+export const TORSO_ROTATION_DEG = [0, 0, 4.73];
 /** 좌우 어깨(상완 root) */
 export const SHOULDER_L = [SHOULDER_XY[0], SHOULDER_XY[1], +SHOULDER_HALF_Z];
 export const SHOULDER_R = [SHOULDER_XY[0], SHOULDER_XY[1], -SHOULDER_HALF_Z];

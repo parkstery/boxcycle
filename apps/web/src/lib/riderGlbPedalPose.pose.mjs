@@ -22,6 +22,7 @@ import {
   CRANK_ARM_M,
   PELVIS_HALF_Z,
   SHOULDER_HALF_Z,
+  TORSO_ROTATION_DEG,
 } from "./riderPrototype/riderRig.geometry.mjs";
 import { solveIk3D, restToDirRotationDeg, childRotationDeg, _vec } from "./riderPrototype/riderIk.mjs";
 
@@ -30,12 +31,17 @@ const { add, scale } = _vec;
 const crankRadFromPhase = (phase) => -phase * Math.PI * 2;
 
 /**
- * 다리 pole — 무릎이 향할 방향점. hip 아래·전방(+x), 좌우 pedal plane 을 따라(같은 z).
- * 반대쪽 다리와 겹치지 않도록 각자 자기 z 를 유지.
+ * 다리 pole — 무릎이 향할 방향점. hip 아래·전방(+x), 좌우로는 **안쪽**(−zSign).
+ *
+ * ⚠ 무릎은 고관절–발목선보다 **안쪽**으로 track 한다(인체 가동범위).
+ *   **바깥으로 꺾이면 해부학적으로 불가능한 자세**이고, 정면·후방 렌더에서 즉시 보인다.
+ *   F22 까지 `+0.02`(바깥)이라 무릎이 고관절보다 최대 74.8mm 바깥으로 끌렸다 —
+ *   `HIP_L.z 81.4` · 페달 `z 74.0` 인데 pole 이 `101.4` 였으니 발보다도 바깥이다.
+ *   부호만 뒤집으면 4위상 전부 고관절 안쪽으로 들어온다(최대 −8.3mm). 크기는 유지한다.
  */
 function kneePole(side, hip) {
   const zSign = side === "l" ? +1 : -1;
-  return [hip[0] + 0.35, hip[1] - 0.5, hip[2] + 0.02 * zSign];
+  return [hip[0] + 0.35, hip[1] - 0.5, hip[2] - 0.02 * zSign];
 }
 
 /**
@@ -47,6 +53,12 @@ function elbowPole(side, shoulder) {
   const zSign = side === "l" ? +1 : -1;
   return [shoulder[0] + 0.12, shoulder[1] - 0.6, shoulder[2] + 0.06 * zSign];
 }
+
+/** ⚠ **검증 하네스 전용 export.** 게이트는 pole 을 재현하지 말고 **이것을 import** 하라 —
+ *  복제하면 pose 와 게이트가 갈라져 **거짓 PASS** 를 준다. F22 교훈("계측이 보는 장면과
+ *  렌더가 보는 장면이 다르다")이 검증 코드에서 그대로 재발한다.
+ *  `verify-rider-pose-gate.mjs` 가 이 값을 쓴다. */
+export const _poles = { kneePole, elbowPole };
 
 /** 한쪽 다리 IK → { thigh:rotDeg[3], shin:rotDeg[3], kneeDeg, footErr, knee } */
 function legPose(side, crankRad) {
@@ -97,8 +109,8 @@ export function resolveGlbPedalPose(phaseRev) {
     armRRotationDeg: armR.upper,
     armLForeRotationDeg: armL.fore,
     armRForeRotationDeg: armR.fore,
-    // Static Fit: torso sway OFF.
-    torsoRotationDeg: [0, 0, 0],
+    // Static Fit: torso sway OFF. 값은 riderRig 의 상수(라이더 전체 회전 보정).
+    torsoRotationDeg: [...TORSO_ROTATION_DEG],
   };
 }
 
