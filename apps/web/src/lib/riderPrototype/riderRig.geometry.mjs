@@ -119,8 +119,12 @@ export const FOREARM_LEN = 0.21284;
 // 안 고치면 hip→페달축 768.5mm > 다리합 730.4mm 라 **다리가 물리적으로 안 닿는다**(F18 실측).
 /** 발목 → 발 중심(페달축 위) 전방 거리(m). F13 실측 = 발길이 256.45 의 50% 지점. */
 export const ANKLE_BACK = 0.09303;
-/** 발목 → 페달축 수직 거리(m). 발바닥 22.0 + 밑창·클릿 15.0. */
-export const ANKLE_UP = 0.037;
+/** 발목 → 페달축 수직 거리(m).
+ *  **밑창 평면 실측 파생**(F31~F32): ankle 노드 원점 → 밑창 평면 수직거리 S = 19.69mm
+ *  (좌우 편차 0.00mm · 밑창 면적 42,910mm² 좌우 동일 · 법선 정확히 (0,−1,0))에
+ *  페달 플랫폼 반두께 10mm 를 더한 값이다. 예전 37.0 은 **기울어진 자세의 뒤꿈치 최저점**
+ *  28.3mm 에서 온 추정치였다 — 수평 정렬된 밑창 평면까지의 거리가 아니다. */
+export const ANKLE_UP = 0.02969;
 /** 페달축 → **발목 IK 목표**. 다리 IK 는 페달축이 아니라 이 점을 겨냥한다. */
 export function ankleTargetWorld(side, crankRad) {
   const p = pedalWorld(side, crankRad);

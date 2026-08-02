@@ -159,6 +159,11 @@ function main() {
   }
 
   // 4) 검증 로그 — 세트 0 의 고유 텍셀 분포가 실제로 늘어났는가
+  // 판정 기준: **교체 후 UV(0,1) 을 가리키지 않을 것.**
+  // ⚠ "고유 텍셀 ≥ 2" 를 기준으로 삼으면 안 된다 — 정강이·신발처럼 **한 색으로 칠해진
+  //   파트는 텍셀 1개가 정상**이다(F26 에서 발이 분리되며 정강이가 맨살 단색이 됐다).
+  //   원래 잡으려던 결함은 "팔레트가 아닌 세트 0 의 (0,1) 한 점에 전부 몰림"이다.
+  const BAD_UV = "0.000000,1.000000";
   console.log("\n=== TEXCOORD_0 고유 텍셀 분포 (교체 전 → 교체 후) ===");
   let degenerate = 0;
   before.forEach((b, i) => {
@@ -166,7 +171,7 @@ function main() {
     const topB = [...b.hist.entries()].sort((x, y) => y[1] - x[1])[0];
     const topA = [...a.hist.entries()].sort((x, y) => y[1] - x[1])[0];
     const n = [...b.hist.values()].reduce((s, v) => s + v, 0);
-    if (a.hist.size < 2) degenerate += 1;
+    if (a.hist.has(BAD_UV)) degenerate += 1;
     console.log(
       `  ${b.label.padEnd(46)} unique ${String(b.hist.size).padStart(4)} → ${String(a.hist.size).padStart(3)}` +
         `   최다 (${topB[0]})×${topB[1]}/${n} → (${topA[0]})×${topA[1]}/${n}`,
@@ -194,10 +199,10 @@ function main() {
       `\n${inPath} (${buf.length}B) → ${outPath} (${outBuf.length}B)`,
   );
   if (degenerate > 0) {
-    console.error(`✘ FAIL — 교체 후에도 고유 텍셀이 1개뿐인 primitive 가 ${degenerate}개 있다.`);
+    console.error(`✘ FAIL — 교체 후에도 UV(0,1)(팔레트 밖 한 점)을 가리키는 primitive 가 ${degenerate}개 있다.`);
     process.exit(1);
   }
-  console.log("✔ 모든 대상 primitive 가 2개 이상의 팔레트 텍셀을 참조한다.");
+  console.log("✔ 모든 대상 primitive 가 팔레트 텍셀을 가리킨다(UV(0,1) 잔존 없음).");
 }
 
 main();

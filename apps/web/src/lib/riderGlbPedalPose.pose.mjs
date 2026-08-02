@@ -113,12 +113,11 @@ function legPose(side, crankRad) {
  * ⚠ 부호를 추측하지 마라 — `verify-rider-pose-gate` 8·9 항이 발바닥 법선과 접지를
  *   수치로 판정한다. 그 게이트가 정오의 기준이다.
  */
-/** 밑창 법선(발 로컬) — **GLB 메시 NORMAL 실측**(F27). −Y 가정은 틀렸다:
- *  좌 24.00° · 우 8.23° 벗어나 있다(분해가 좌 BDC·우 TDC 한 시점에서 이뤄져 좌우가 다르다). */
-const SOLE_NORMAL = {
-  l: [-0.4011, -0.9136, -0.0672],
-  r: [-0.1087, -0.9897, -0.093],
-};
+/** 밑창 법선(발 로컬) — **F31 부터 (0,−1,0) 로 고정**이다.
+ *  분해가 밑창 법선을 로컬 −Y 로 정렬하므로(decompose-v2-rider.py )
+ *  좌우 모두 정확히 (0,−1,0) 이다. 예전에는 발이 SHIN 축으로 정렬돼 좌우가 24.00°/8.23°
+ *  로 달랐고, 그래서 side 별 실측 상수를 하드코딩해야 했다. 이제 필요 없다. */
+const SOLE_NORMAL_LOCAL = [0, -1, 0];
 
 /** 정규직교 기저 [f s n] 을 열로 갖는 회전행렬(행 우선) */
 function basisMat(f, s, n) {
@@ -168,7 +167,7 @@ function ankleRotation(side, crankRad) {
   const cur = legPose(side, crankRad);
   const Rcur = mat3Mul(mapboxEulerDegToMat3(cur.thigh), mapboxEulerDegToMat3(cur.shin));
   // 밑창 "바깥쪽"(지면을 향하는) 법선의 반대 = 위를 향해야 할 방향
-  const up = _n3(SOLE_NORMAL[side]).map((v) => -v);
+  const up = [0, 1, 0]; // = −SOLE_NORMAL_LOCAL (밑창 반대 = 위)
   const nWorld = _n3([
     Rcur[0][0] * up[0] + Rcur[0][1] * up[1] + Rcur[0][2] * up[2],
     Rcur[1][0] * up[0] + Rcur[1][1] * up[1] + Rcur[1][2] * up[2],

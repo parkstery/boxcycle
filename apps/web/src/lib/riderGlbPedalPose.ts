@@ -26,6 +26,9 @@ export type RiderGlbPedalPose = {
   /** 페달 플랫폼 — `crank` 회전을 상쇄해 페달면을 항상 수평으로 유지한다(F25). */
   pedalLRotationDeg: GlbNodeRotationDeg;
   pedalRRotationDeg: GlbNodeRotationDeg;
+  /** 발목 — 발바닥을 세계 수평으로 유지한다(F26). */
+  ankleLRotationDeg: GlbNodeRotationDeg;
+  ankleRRotationDeg: GlbNodeRotationDeg;
 };
 
 /** phaseRev 0~1 — 크랭크 → 페달/후드 IK → GLB 노드 회전각 */

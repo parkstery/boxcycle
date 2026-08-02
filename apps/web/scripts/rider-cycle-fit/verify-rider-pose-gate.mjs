@@ -32,6 +32,7 @@ import {
   hoodOf,
   ankleTargetWorld,
   pedalWorld,
+  ANKLE_UP,
   THIGH_LEN,
   SHIN_LEN,
   UPPER_ARM_LEN,
@@ -66,8 +67,8 @@ const applyM = (M, v) => [
 ];
 const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 const { kneePole, elbowPole } = _poles;
-/** 밑창 법선(발 로컬) — GLB NORMAL 실측(F27). pose.mjs 와 같은 값을 쓴다. */
-const SOLE_N = { l: [-0.4011, -0.9136, -0.0672], r: [-0.1087, -0.9897, -0.093] };
+/** 밑창 법선(발 로컬) — F31 부터 (0,−1,0) 고정(분해가 −Y 로 정렬한다). */
+const SOLE_N = { l: [0, -1, 0], r: [0, -1, 0] };
 
 function arg(name, def) {
   const i = process.argv.indexOf(`--${name}`);
@@ -336,7 +337,9 @@ function main() {
           const y = target[1] + applyM(R, v)[1];
           if (y < lowest) lowest = y;
         }
-        const pedalTopY = target[1] - 0.037 + 0.01; // 페달축(발목 아래 ANKLE_UP) + 플랫폼 반두께
+        const pedalTopY = target[1] - ANKLE_UP + 0.01; // 페달축(발목 아래 ANKLE_UP) + 플랫폼 반두께
+        // ⚠ ANKLE_UP 을 하드코딩하지 마라 — F32 에서 37.0→29.69 로 바뀌었는데 게이트가
+        //   옛 값을 써서 gap 을 3.5mm 과대평가했다. SSoT 를 import 한다.
         const gap = (lowest - pedalTopY) * 1000;
         worstGapMm = Math.max(worstGapMm, Math.abs(gap));
         soleRows.push({ phase, side, tilt, gap });

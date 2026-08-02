@@ -56,6 +56,9 @@ const TARGET_NODES = [
   "arm_l_fore",
   "arm_r",
   "arm_r_fore",
+  // 발목 — F26 신설. 발이 정강이에서 분리돼 별도 노드가 됐다.
+  "ankle_l",
+  "ankle_r",
 ];
 
 function parseGlb(buf) {

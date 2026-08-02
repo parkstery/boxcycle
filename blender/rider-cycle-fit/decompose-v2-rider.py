@@ -49,9 +49,14 @@ GROUPS = {
     "torso":      ["PELVIS", "SPINE_01", "SPINE_02", "CHEST", "NECK", "HEAD",
                    "CLAVICLE_L", "CLAVICLE_R"],
     "leg_l":      ["THIGH_" + BL],
-    "leg_l_shin": ["SHIN_" + BL, "FOOT_" + BL, "TOE_" + BL],
+    "leg_l_shin": ["SHIN_" + BL],
+    # ⚠ 발은 **별도 노드**다(F26). 예전에는 `leg_*_shin` 에 흡수돼 발목 관절이 없었고,
+    #   정강이가 기울면 발도 통째로 기울어 페달면과 어긋났다(F25 §4-2 실측: 접점
+    #   오프셋은 2.8mm·1.3mm 로 맞는데 **발바닥 기울기**만 틀렸다).
+    "ankle_l":    ["FOOT_" + BL, "TOE_" + BL],
     "leg_r":      ["THIGH_" + BR],
-    "leg_r_shin": ["SHIN_" + BR, "FOOT_" + BR, "TOE_" + BR],
+    "leg_r_shin": ["SHIN_" + BR],
+    "ankle_r":    ["FOOT_" + BR, "TOE_" + BR],
     "arm_l":      ["UPPER_ARM_" + BL],
     "arm_l_fore": ["FOREARM_" + BL, "HAND_" + BL],
     "arm_r":      ["UPPER_ARM_" + BR],
@@ -68,6 +73,13 @@ PIVOT = {
     "arm_r":      ("UPPER_ARM_" + BR, "UPPER_ARM_" + BR),
     "arm_r_fore": ("FOREARM_" + BR, "FOREARM_" + BR),
     "torso":      ("PELVIS", None),      # 몸통은 회전 정렬 없음(앱은 롤만 준다)
+    # 발목 — **피벗은 FOOT head, 정렬은 부모(SHIN) 방향**이다.
+    #   발은 "뻗는 방향"이 아니라 **발바닥 면**이 중요하므로 FOOT 축으로 −Y 정렬하면
+    #   발이 아래를 향해 rest 가 쓸모없어진다. 부모와 같은 회전으로 맞추면 ankle 노드가
+    #   **부모 로컬에서 identity** 가 되고, rest 에서 발이 원래 world 자세를 유지한다
+    #   (부모 회전이 정확히 상쇄). 그래야 앱이 "부모 누적 회전의 역"만 주면 수평이 된다.
+    "ankle_l":    ("FOOT_" + BL, "SHIN_" + BL),
+    "ankle_r":    ("FOOT_" + BR, "SHIN_" + BR),
 }
 
 
@@ -98,11 +110,57 @@ me_ev = rider.evaluated_get(_fresh_dg()).data
 MW = rider.matrix_world
 report = {"phase": PHASE, "boneOf": BONE_OF, "nodes": {}, "unassigned": 0}
 
+# ── 밑창 면 특정 (F31) ────────────────────────────────────────────────────
+# ⚠ 발을 **정강이 축으로 정렬하면 좌우가 비대칭이 된다.** 분해는 한 위상(phase 0.000)에서
+#   이뤄지는데 그때 좌 BDC · 우 TDC 라 발–정강이 상대각이 46.3° 벌어져 있고, 그 차이가
+#   그대로 로컬 자세로 구워졌다(F30 실측: ankle_l 251×92 vs ankle_r 198×243mm).
+#   `ankle_*` 은 앱이 **절대 회전**(밑창을 세계 수평으로)을 걸므로 부모 정렬을 물려받을
+#   이유가 없다. **밑창 법선을 로컬 −Z(Blender) = −Y(glTF) 로 정렬**하면 좌우가 대칭이 된다.
+#
+#   법선은 **면(폴리곤) 단위 법선·면적 집계**로 구한다 — 정점 법선 평균은 밑창을 못 잡는다
+#   (F30 에서 오른발이 45° 기운 면을 잡아 S 가 −22mm 로 나왔다).
+def sole_normal_world(node_name):
+    """해당 노드에 귀속된 정점들이 이루는 면 중 **아래쪽 최대 면적 군집**의 법선(world)."""
+    idx = set(i for i, b in owner.items() if bone2node.get(b) == node_name)
+    buckets = {}
+    for poly in me_ev.polygons:
+        vs = [v for v in poly.vertices]
+        if not all(v in idx for v in vs):
+            continue
+        n = (MW.to_3x3() @ poly.normal).normalized()
+        if n.z >= 0:                      # 아래를 향하는 면만(Blender −Z 가 아래)
+            continue
+        key = (round(n.x / 0.15), round(n.y / 0.15), round(n.z / 0.15))
+        e = buckets.setdefault(key, [0.0, Vector((0, 0, 0))])
+        e[0] += poly.area
+        e[1] += n * poly.area
+    if not buckets:
+        return None, 0.0
+    best = max(buckets.values(), key=lambda e: e[0])
+    return best[1].normalized(), best[0]
+
+
 # ── 노드별 변환행렬(포즈 world → 노드 로컬) ──────────────────────────────
 XF = {}
 for node, (pb_name, dir_bone) in PIVOT.items():
     origin_w = eval_head(pb_name)
-    if dir_bone is None:
+    if node.startswith("ankle_"):
+        # 1) 밑창 법선 → −Z 정렬
+        n_sole, area = sole_normal_world(node)
+        if n_sole is None:
+            raise RuntimeError("%s: 밑창 면을 찾지 못했다" % node)
+        rot1 = n_sole.rotation_difference(DOWN_BLENDER).to_matrix()
+        # 2) 발끝(FOOT head → TOE tail)을 로컬 +X 로 — 좌우 거울 대칭을 만든다
+        toe = GROUPS[node][1]                        # "TOE_*"
+        fwd = rot1 @ (eval_tail(toe) - eval_head(pb_name))
+        ang = math.atan2(fwd.y, fwd.x)
+        rot = Matrix.Rotation(-ang, 3, "Z") @ rot1
+        length = 0.0
+        report.setdefault("sole", {})[node] = {
+            "normalWorld": [round(c, 4) for c in n_sole],
+            "areaMm2": round(area * 1e6, 1),
+        }
+    elif dir_bone is None:
         rot = Matrix.Identity(3)                       # torso: 정렬 없음
         length = 0.0
     else:
@@ -197,7 +255,9 @@ for node in ("torso", "leg_l", "leg_r", "arm_l", "arm_r"):
         place(node, root, XF[node]["origin"])
 # 자식: 부모 로컬 [0, -부모길이, 0]
 for child, parent in (("leg_l_shin", "leg_l"), ("leg_r_shin", "leg_r"),
-                      ("arm_l_fore", "arm_l"), ("arm_r_fore", "arm_r")):
+                      ("arm_l_fore", "arm_l"), ("arm_r_fore", "arm_r"),
+                      # 발목 = 정강이 끝. 부모 로컬 [0,0,−SHIN_LEN](Blender z-down)
+                      ("ankle_l", "leg_l_shin"), ("ankle_r", "leg_r_shin")):
     if child in made and parent in made:
         place(child, made[parent], Vector((0.0, 0.0, -XF[parent]["lenM"])))
 

@@ -55,6 +55,11 @@ const CAPS = [
   ["leg_r_shin", "joint_cap_knee_r", [48, 48, 46]],
   ["arm_l_fore", "joint_cap_elbow_l", [26, 40, 46]],
   ["arm_r_fore", "joint_cap_elbow_r", [26, 40, 46]],
+  // 발목 — F26 에서 발이 별도 노드가 되며 이음매가 생겼다.
+  //   정강이 메시는 발목에서 48.4mm 위에서 끝난다(로컬 y −303.6 vs 발목 −352).
+  //   정강이 하단 단면 반경 평균 30.4 / 최대 34.7 → [32, 32, 32]
+  ["ankle_l", "joint_cap_ankle_l", [32, 32, 32]],
+  ["ankle_r", "joint_cap_ankle_r", [32, 32, 32]],
 ];
 
 function parseGlb(buf) {

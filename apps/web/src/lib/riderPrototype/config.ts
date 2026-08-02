@@ -33,6 +33,9 @@ export const RIDER_GLB_ARM_R_FORE_STATE_KEY = "arm-r-fore-rotation";
  *  이용해 `−crankRotationDeg` 를 주어 상쇄한다(F25). */
 export const RIDER_GLB_PEDAL_L_STATE_KEY = "pedal-l-rotation";
 export const RIDER_GLB_PEDAL_R_STATE_KEY = "pedal-r-rotation";
+/** 발목 — 발바닥을 항상 세계 수평으로 유지한다(F26). 정강이 누적 회전을 상쇄한다. */
+export const RIDER_GLB_ANKLE_L_STATE_KEY = "ankle-l-rotation";
+export const RIDER_GLB_ANKLE_R_STATE_KEY = "ankle-r-rotation";
 
 export const RIDER_GLB_NODE_OVERRIDE_NAMES = [
   "crank",
@@ -47,6 +50,8 @@ export const RIDER_GLB_NODE_OVERRIDE_NAMES = [
   "torso",
   "pedal_l",
   "pedal_r",
+  "ankle_l",
+  "ankle_r",
 ] as const;
 
 /** Mapbox model orientation 3번째 값(요) — 모델 +X(동) 기준 */
