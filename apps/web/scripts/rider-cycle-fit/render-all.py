@@ -1221,6 +1221,19 @@ for p in VIEWS["phases"]:
             "hipToSaddleHorizontalMm": round(_gap, 2),
             "note": "양수 = 엉덩이가 안장보다 앞.",
         }
+        # ⚠ 시트튜브는 `coords.seatTop`(560×sinSTA=536.9)이 아니라 **junction 에서 끝난다**
+        #   (F4-2 사용자 확정. `generate-rider-prototype-glb.mjs:304` 의 `void seatTop`).
+        #   F12~F16 이 유물 필드 seatTop 과 안장을 비교해 "물리적 불가능"이라 오판했다.
+        #   실제 판정값은 **junction 위로 노출된 시트포스트 길이**다.
+        import math as _m4
+        _junc_y = ((_geo["seatTubeLength"] - 150.0)
+                   * _m4.sin(_m4.radians(_geo["seatTubeAngle"])) + _geo["bbHeight"])
+        _rec["seatTubeJunctionZMm"] = round(_junc_y, 2)
+        _rec["seatpostExposedMm"] = round(_saddle_z - _junc_y, 2)
+        _rec["legacySeatTopZMm"] = round(
+            _geo["seatTubeLength"] * _m4.sin(_m4.radians(_geo["seatTubeAngle"]))
+            + _geo["bbHeight"], 2)
+        _rec["$note_seatTop"] = "legacySeatTopZMm 은 메시에 안 그려지는 유물. 판정에 쓰지 말 것."
         if _isch and "midZMm" in _isch:
             # F12-B 판정: 안장 상면이 **좌골 높이**에 왔는가 / 좌골이 안장보다 얼마나 뒤인가
             _rec["ischialMidZMm"] = _isch["midZMm"]
@@ -1237,9 +1250,15 @@ for p in VIEWS["phases"]:
             _cx, _cz = (_hip.x + _sx) / 2.0, 0.93
         _n = "엉덩이-안장 수평 %.1fmm" % _gap
         if "saddleTopVsIschialZMm" in _rec:
-            _n = ("안장상면-좌골 높이차 %.1fmm | 좌골이 안장보다 %.1fmm 뒤 | %s"
-                  % (_rec["saddleTopVsIschialZMm"], -_rec["ischialVsSaddleXMm"], _n))
+            _n = ("안장상면 %.1f · 좌골 %.1f (차 %.1fmm) | 노출 시트포스트 %.1fmm | "
+                  "좌골이 안장보다 %.1fmm 뒤"
+                  % (_rec["saddleTopZMm"], _rec["ischialMidZMm"],
+                     _rec["saddleTopVsIschialZMm"], _rec["seatpostExposedMm"],
+                     -_rec["ischialVsSaddleXMm"]))
         shoot("SADDLE_GAP", [_cx + 0.18, 2.25, _cz + 0.42], [_cx, 0.0, _cz], note=_n)
+        # 시트포스트가 화면에 들어오도록 junction 까지 포함해 한 번 더(§4-1 SADDLE_SEAT).
+        _cz2 = (_rec["seatTubeJunctionZMm"] + _rec["ischialMidZMm"]) / 2000.0
+        shoot("SADDLE_SEAT", [_cx + 0.20, 1.95, _cz2 + 0.38], [_cx, 0.0, _cz2], note=_n)
         print("  [안장간격] 엉덩이 x %.1f / 안장 x %.1f → 수평간격 %.1fmm"
               % (_hip.x * 1000, _sx * 1000, _gap))
         if "saddleTopVsIschialZMm" in _rec:

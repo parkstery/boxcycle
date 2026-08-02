@@ -31,7 +31,21 @@ export const SEAT_TUBE_LENGTH_MM = geometry.seatTubeLength;
 // ── 자전거 고정 앵커 (geometry.json 파생) ────────────────────────────────
 /** 크랭크축(페달 회전 중심), z=0 */
 export const BB = [...coordM("bb"), 0]; // [0, 0.2705, 0]
+/** ⚠ **유물 — 판정에 쓰지 마라.** `coords.seatTop`(560×sin STA = BB y 536.9)은 F4-2 이전
+ *  시트튜브를 560 까지 그리던 시절의 기준점이다. **지금 시트튜브는 junction 에서 끝나고**
+ *  그 위는 전부 노출 시트포스트다(`generate-rider-prototype-glb.mjs` 의 `void seatTop`).
+ *
+ *  F12~F16 이 이 유물과 안장을 비교해 "안장이 시트튜브보다 76.9mm 아래라 물리적으로
+ *  불가능하다"고 **다섯 단계에 걸쳐 오판**했다. 실제 시트튜브 끝은
+ *  `(seatTubeLength − 150) × sin STA` = BB y **393.1** 이고, 안장(460.0)은 그보다
+ *  **66.9mm 위**다 — 처음부터 정상이었다.
+ *
+ *  높이 판정에는 아래 `SEAT_TUBE_JUNCTION_Y_MM` 을 써라. */
 export const SEAT_TOP = coordM("seatTop");
+/** 시트튜브가 **실제로 끝나는** 지점(BB 원점 y, mm). 탑튜브·시트스테이 접합부.
+ *  단축량 150 은 감리 확정값(F4-2). 이 위로 노출된 것이 시트포스트다. */
+export const SEAT_TUBE_JUNCTION_Y_MM =
+  (SEAT_TUBE_LENGTH_MM - 150) * Math.sin((SEAT_TUBE_ANGLE_DEG * Math.PI) / 180);
 export const HEAD_TOP = coordM("headTop");
 export const HEAD_BOT = coordM("headBot");
 /** 크랭크암 길이(m) — 페달 원 반경 */
@@ -86,15 +100,44 @@ export const SHIN_LEN = 0.493;
 export const UPPER_ARM_LEN = 0.585 * 0.52; // 0.304
 export const FOREARM_LEN = 0.585 * 0.48; // 0.281
 
-// ── PELVIS 3분리 ─────────────────────────────────────────────────────────
-/** 엉덩이가 안장에 닿는 지점(안장 좌표) */
-export const SADDLE_CONTACT = [...coordM("saddle"), 0]; // [-0.226, 0.966, 0]
-/** 골반 중심 — 안장 접촉점보다 위(6cm)·살짝 앞. 다리·몸통 IK 의 공통 root. */
-export const PELVIS_ROOT = [
-  SADDLE_CONTACT[0] + 0.015,
-  SADDLE_CONTACT[1] + 0.06,
+// ── PELVIS 3분리 · 【F17-R1】 파생 방향을 뒤집었다 ─────────────────────────
+//
+//   예전:  안장(geometry.json) → PELVIS_ROOT → HIP      ← 사람이 자전거에 맞춰졌다
+//   지금:  HIP → 좌골 → 안장 접촉점 → saddleHeight       ← 자전거가 사람에 맞춰진다
+//
+// 사용자 지시(F17): "힙 높이를 정하고 그 높이에 맞춰서 안장이 놓이도록 시트포스트 길이를
+// 조절하는 게 기본적인 자전거 높이 조절 컨셉인데 그걸 사람이 자전거에 맞춘다는 게 말이 되나!"
+//
+// ⚠ 이 전환은 **값을 바꾸지 않는다** — 역방향 파생이 현재 geometry.json 과 일치함을
+//   아래 SADDLE_HEIGHT_DERIVED_MM 로 검산할 수 있다(479.78 ≈ 저장값 479.8).
+//   F16 §5-2 의 "hip 이 안장 파생이라 F14 와 70mm 어긋난다"는 충돌도 이걸로 해소된다.
+
+/** 【1차 입력】 고관절 world(지면, m). 라이더 자세가 정한다 — **안장과 독립**.
+ *  F12 확정: BDC 발바닥 피벗 기준 10° 후방 회전의 결과 (−211.28, 836.88). */
+export const HIP_GROUND = [-0.21128, 0.83688];
+/** 고관절 → 좌골 수직 하강(m). **메시 실측**(F12: PELVIS 후방 45%·하부 20% 밴드 centroid).
+ *  836.88 − 730.52 = 106.36mm. 가정값 아님 — 자세가 바뀌면 다시 재야 한다. */
+export const HIP_TO_ISCHIAL_M = 0.10636;
+/** 골반 중심 = 고관절 높이. 다리·몸통 IK 의 공통 root. */
+export const PELVIS_ROOT = [HIP_GROUND[0], HIP_GROUND[1], 0];
+/** 좌골 높이(지면, m) = **안장 상면이 와야 할 높이**. */
+export const ISCHIAL_Y_M = HIP_GROUND[1] - HIP_TO_ISCHIAL_M;
+const _staRad = (SEAT_TUBE_ANGLE_DEG * Math.PI) / 180;
+/** 시트포스트 길이(= `saddleHeight`, mm) — 좌골 높이에서 **역산**한 파생값.
+ *  `geometry.json.saddleHeight` 는 이 값의 기록이며, 어긋나면 verify-fit 이 잡는다. */
+export const SADDLE_HEIGHT_DERIVED_MM =
+  (ISCHIAL_Y_M * 1000 - BB_HEIGHT_MM) / Math.sin(_staRad);
+/** 엉덩이(좌골)가 안장에 닿는 지점 — HIP 에서 파생. seatTubeAngle·setback 은 불변 입력. */
+export const SADDLE_CONTACT = [
+  -(SADDLE_HEIGHT_DERIVED_MM * Math.cos(_staRad)) / 1000 - toM(geometry.saddleSetback),
+  ISCHIAL_Y_M,
   0,
 ];
+/** 노출 시트포스트 길이(mm) — 안장 상면 − 시트튜브 junction.
+ *  **음수면** 시트포스트를 다 넣어도 도달 불가 = 진짜 물리적 불가능이다.
+ *  유물 `SEAT_TOP` 과 비교하지 마라(F12~F16 오판의 원인). */
+export const SEATPOST_EXPOSED_MM =
+  ISCHIAL_Y_M * 1000 - BB_HEIGHT_MM - SEAT_TUBE_JUNCTION_Y_MM;
 /** 좌우 고관절 pivot — PELVIS_ROOT 에서 ±PELVIS_HALF_Z. 다리 root. */
 export const HIP_L = [PELVIS_ROOT[0], PELVIS_ROOT[1], +PELVIS_HALF_Z];
 export const HIP_R = [PELVIS_ROOT[0], PELVIS_ROOT[1], -PELVIS_HALF_Z];
