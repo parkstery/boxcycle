@@ -28,6 +28,11 @@ export const RIDER_GLB_ARM_L_STATE_KEY = "arm-l-rotation";
 export const RIDER_GLB_ARM_L_FORE_STATE_KEY = "arm-l-fore-rotation";
 export const RIDER_GLB_ARM_R_STATE_KEY = "arm-r-rotation";
 export const RIDER_GLB_ARM_R_FORE_STATE_KEY = "arm-r-fore-rotation";
+/** 페달 플랫폼 — 실제 페달은 스핀들 베어링으로 자유회전해 **항상 수평**이다.
+ *  `crank` 의 자식이라 부모 회전을 물려받으므로, Mapbox 가 회전을 **누적**하는 성질을
+ *  이용해 `−crankRotationDeg` 를 주어 상쇄한다(F25). */
+export const RIDER_GLB_PEDAL_L_STATE_KEY = "pedal-l-rotation";
+export const RIDER_GLB_PEDAL_R_STATE_KEY = "pedal-r-rotation";
 
 export const RIDER_GLB_NODE_OVERRIDE_NAMES = [
   "crank",
@@ -40,6 +45,8 @@ export const RIDER_GLB_NODE_OVERRIDE_NAMES = [
   "arm_r",
   "arm_r_fore",
   "torso",
+  "pedal_l",
+  "pedal_r",
 ] as const;
 
 /** Mapbox model orientation 3번째 값(요) — 모델 +X(동) 기준 */

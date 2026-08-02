@@ -565,9 +565,17 @@ function crankAssembly() {
   // 3) 페달축 — 크랭크 끝에서 바깥으로 소폭(sh→pz).
   crank.add(tube([0, armLen, +sh], [0, armLen, +pz], 0.010, COL.bar, frameOpts));
   crank.add(tube([0, -armLen, -sh], [0, -armLen, -pz], 0.010, COL.bar, frameOpts));
-  // 4) 페달 — 페달축 끝(z=±pz).
-  crank.add(box(0.07, 0.02, 0.05, COL.rim, 0, armLen, +pz, 0, 0, 0, frameOpts));
-  crank.add(box(0.07, 0.02, 0.05, COL.rim, 0, -armLen, -pz, 0, 0, 0, frameOpts));
+  // 4) 페달 — 페달축 끝(z=±pz). **명명 노드**: 앱이 `−crankRotationDeg` 를 걸어
+  //    부모 crank 회전을 상쇄하고 페달면을 항상 수평으로 유지한다(실제 스핀들 베어링).
+  //    ⚠ 노드 원점이 스핀들이어야 상쇄가 성립한다 — box() 가 position 을 노드
+  //    translation 으로 쓰고 정점은 원점 기준이라 이미 충족된다. 정점에 오프셋을
+  //    굽지 마라(그러면 제자리에서 돌지 않고 궤도가 틀어진다).
+  const pedalL = box(0.07, 0.02, 0.05, COL.rim, 0, armLen, +pz, 0, 0, 0, frameOpts);
+  pedalL.name = "pedal_l";
+  crank.add(pedalL);
+  const pedalR = box(0.07, 0.02, 0.05, COL.rim, 0, -armLen, -pz, 0, 0, 0, frameOpts);
+  pedalR.name = "pedal_r";
+  crank.add(pedalR);
   // 라이더 있으면 Static Fit(crank 0°) 각을 굽고, 없으면 수평(3시)로 두어 페달이 지면에 안 닿게.
   // 주행 시엔 Mapbox feature-state 가 절대각으로 덮어쓴다.
   if (INCLUDE_RIDER) bakeRotation(crank, [0, STATIC_POSE.crankRotationDeg, 0]);

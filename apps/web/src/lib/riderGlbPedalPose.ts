@@ -23,6 +23,9 @@ export type RiderGlbPedalPose = {
   armRForeRotationDeg: GlbNodeRotationDeg;
   /** 상체 스웨이 — 페달 1회전당 좌우 1회 록킹(로컬 X축 롤) */
   torsoRotationDeg: GlbNodeRotationDeg;
+  /** 페달 플랫폼 — `crank` 회전을 상쇄해 페달면을 항상 수평으로 유지한다(F25). */
+  pedalLRotationDeg: GlbNodeRotationDeg;
+  pedalRRotationDeg: GlbNodeRotationDeg;
 };
 
 /** phaseRev 0~1 — 크랭크 → 페달/후드 IK → GLB 노드 회전각 */

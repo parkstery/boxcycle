@@ -111,6 +111,14 @@ export function resolveGlbPedalPose(phaseRev) {
     armRForeRotationDeg: armR.fore,
     // Static Fit: torso sway OFF. 값은 riderRig 의 상수(라이더 전체 회전 보정).
     torsoRotationDeg: [...TORSO_ROTATION_DEG],
+    // 페달은 스핀들 베어링으로 자유회전해 **항상 수평**이다. `pedal_*` 는 `crank` 의
+    // 자식이라 부모 회전을 물려받는데, Mapbox 는 노드 override 를 **누적**하므로
+    // (globalMatrix = parent × local × R_override) 부모와 같은 축에 부호만 반대인
+    // 회전을 주면 정확히 상쇄된다. crank 는 `[0, 0, crankRotationDeg]` 로 돌므로
+    // 페달은 `[0, 0, −crankRotationDeg]` 다. 좌·우 크랭크암은 180° 위상차가 있지만
+    // **같은 `crank` 노드 하나가 둘을 함께 돌리므로** 상쇄값도 동일하다.
+    pedalLRotationDeg: [0, 0, -crankRotationDeg],
+    pedalRRotationDeg: [0, 0, -crankRotationDeg],
   };
 }
 

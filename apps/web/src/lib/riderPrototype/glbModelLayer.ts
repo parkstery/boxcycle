@@ -3,6 +3,8 @@ import {
   RIDER_GLB_ARM_L_FORE_STATE_KEY,
   RIDER_GLB_ARM_L_STATE_KEY,
   RIDER_GLB_ARM_R_FORE_STATE_KEY,
+  RIDER_GLB_PEDAL_L_STATE_KEY,
+  RIDER_GLB_PEDAL_R_STATE_KEY,
   RIDER_GLB_ARM_R_STATE_KEY,
   RIDER_GLB_CRANK_STATE_KEY,
   RIDER_GLB_LEG_L_SHIN_STATE_KEY,
@@ -54,6 +56,10 @@ const RIDER_GLB_LAYER_PAINT = {
     ["feature-state", RIDER_GLB_ARM_R_STATE_KEY],
     "arm_r_fore",
     ["feature-state", RIDER_GLB_ARM_R_FORE_STATE_KEY],
+    "pedal_l",
+    ["feature-state", RIDER_GLB_PEDAL_L_STATE_KEY],
+    "pedal_r",
+    ["feature-state", RIDER_GLB_PEDAL_R_STATE_KEY],
     [0, 0, 0],
   ],
 } as Record<string, unknown>;
@@ -106,6 +112,8 @@ export function syncRiderGlbPedalFeatureState(
         [RIDER_GLB_ARM_L_FORE_STATE_KEY]: pose.armLForeRotationDeg,
         [RIDER_GLB_ARM_R_STATE_KEY]: pose.armRRotationDeg,
         [RIDER_GLB_ARM_R_FORE_STATE_KEY]: pose.armRForeRotationDeg,
+        [RIDER_GLB_PEDAL_L_STATE_KEY]: pose.pedalLRotationDeg,
+        [RIDER_GLB_PEDAL_R_STATE_KEY]: pose.pedalRRotationDeg,
       },
     );
   } catch (e) {

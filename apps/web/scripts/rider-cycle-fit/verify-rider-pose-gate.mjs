@@ -13,7 +13,7 @@
  * | 4 | 팔 도달 | 어깨→후드 ≤ UPPER+FORE | 손이 후드에서 뜸 |
  * | 5 | GLB 노드 ↔ riderRig | `HIP_L`==`leg_l`.T · `SHOULDER_L`==`arm_l`.T | 앱 IK root 와 렌더 노드 불일치(F20) |
  * | 6 | 노드 rest | 라이더 9노드 rotation·scale 없음 | rest 가 오버라이드에 겹침(F19~F21) |
- * | 7 | 정점 수 | 라이더 5,521 불변 | exporter 정점 복제(F16) |
+ * | 7 | 정점 수 | **본체** 5,521 불변(캡 별도) | exporter 정점 복제(F16) |
  *
  * ⚠ 허용치를 늘려 통과시키지 마라. 실패는 FAIL 로 보고하는 것이 옳다.
  *
@@ -46,7 +46,8 @@ const TOL = 1e-6;
 const D2R = Math.PI / 180;
 const REST = [0, -1, 0];
 const RIDER_NODES = ["torso", "leg_l", "leg_l_shin", "leg_r", "leg_r_shin", "arm_l", "arm_l_fore", "arm_r", "arm_r_fore"];
-const EXPECT_RIDER_VERTS = 5521;
+/** 라이더 **본체** 정점(관절 캡 제외). 캡은 별도로 센다 — F25 */
+const EXPECT_BODY_VERTS = 5521;
 
 const mm = (v) => +(v * 1000).toFixed(2);
 const mul = (A, B) => A.map((r) => [0, 1, 2].map((j) => r[0] * B[0][j] + r[1] * B[1][j] + r[2] * B[2][j]));
@@ -181,17 +182,27 @@ function main() {
   });
   note(withRest.length === 0, "6 노드rest", withRest.length ? `rest 가 남은 노드: ${withRest.join(", ")}` : "라이더 9노드 전부 순수 translation");
 
+  // ⚠ **본체와 캡을 분리해 센다**(F25). 관절 캡(`joint_cap_*`)이 붙으면 총합은 늘지만
+  //   **본체 5,521 은 그대로여야 한다** — 캡 추가가 본체 메시를 건드리지 않았다는 증거다.
   const paletteMats = new Set();
   (g.materials ?? []).forEach((m, i) => {
     if (m.pbrMetallicRoughness?.baseColorTexture) paletteMats.add(i);
   });
-  let riderVerts = 0;
+  let bodyVerts = 0;
+  let capVerts = 0;
   (g.meshes ?? []).forEach((m) =>
     m.primitives.forEach((p) => {
-      if (paletteMats.has(p.material)) riderVerts += g.accessors[p.attributes.POSITION].count;
+      if (!paletteMats.has(p.material)) return;
+      const n = g.accessors[p.attributes.POSITION].count;
+      if (m.name?.startsWith("joint_cap_")) capVerts += n;
+      else bodyVerts += n;
     }),
   );
-  note(riderVerts === EXPECT_RIDER_VERTS, "7 정점수", `라이더 정점 ${riderVerts} (기대 ${EXPECT_RIDER_VERTS})`);
+  note(
+    bodyVerts === EXPECT_BODY_VERTS,
+    "7 정점수",
+    `본체 ${bodyVerts} (기대 ${EXPECT_BODY_VERTS}) + 캡 ${capVerts} = ${bodyVerts + capVerts}`,
+  );
 
   console.log(`\n  ${7 - fails.length}/7 통과`);
   if (fails.length) {
