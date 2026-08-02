@@ -66,8 +66,32 @@ export function solveIk3D(root, target, pole, boneA, boneB) {
 }
 
 /**
- * 뼈 rest 방향(-Y)을 dir 로 돌리는 회전을 Mapbox model-rotation [pitch(x),roll(z),yaw(y)] deg 로.
- * three 의 Euler('XYZ') 와 동일 규약이 되도록, rest→dir quaternion 을 XYZ 오일러로 분해한다.
+ * 뼈 rest 방향(-Y)을 dir 로 돌리는 회전을 **Mapbox model-rotation** 오일러(도)로.
+ *
+ * ⚠ **규약 (mapbox-gl 3.23.1 번들 `rotationYZX` :36044 실측)**
+ * ```js
+ * identity(out); rotateY(out, out, r[1]); rotateZ(out, out, r[2]); rotateX(out, out, r[0]);
+ * //  →  R = Ry(r[1]) · Rz(r[2]) · Rx(r[0])
+ * ```
+ * 즉 배열은 **`[x, y, z]` 순서**이고 **적용 순서는 Y→Z→X** 다.
+ * 예전 주석의 *"[pitch(x), roll(z), yaw(y)]"* 는 **틀렸고**, 그 전제로 `[ex, ez, ey]` 를
+ * 반환해 **y·z 성분이 맞바뀌어 있었다.** 그 결과 팔·다리가 자기 rest 축(−Y) 둘레로
+ * 헛돌아 **화면상 전혀 움직이지 않았다**(F15~F21 이 전부 이것이다).
+ *
+ * 그래서 XYZ 오일러를 뽑아 재배열하지 않고, **Mapbox 가 실제로 조립하는
+ * `R = Ry(b)·Rz(c)·Rx(a)` 에서 직접 추출**한다:
+ * ```
+ * R[1][0] = sin c            → c = asin(R[1][0])
+ * R[1][1] = cos c · cos a    → a = atan2(−R[1][2], R[1][1])
+ * R[1][2] = −cos c · sin a
+ * R[0][0] = cos b · cos c    → b = atan2(−R[2][0], R[0][0])
+ * R[2][0] = −sin b · cos c
+ * ```
+ * 짐벌(|R[1][0]|≈1, cos c≈0)에서는 a·b 를 분리할 수 없으므로 b=0 으로 두고
+ * `a = atan2(R[2][1], R[2][2])` 를 쓴다.
+ *
+ * 반환값은 반드시 **왕복 검산**하라 — `verify-node-rotation.mjs` 가 상시 게이트다.
+ * IK 해의 `footErr/handErr 0mm` 는 **해의 오차**이지 전달된 회전각의 검산이 아니다.
  */
 export function restToDirRotationDeg(dir) {
   const REST = [0, -1, 0];
@@ -76,7 +100,7 @@ export function restToDirRotationDeg(dir) {
   let axis = cross(REST, to);
   const s = len(axis);
   if (s < 1e-8) {
-    // 평행(같은 방향) 또는 반대. 같으면 회전 0, 반대면 Z축 180°.
+    // 평행(같은 방향) 또는 반대. 같으면 회전 0, 반대면 Z축 180°(Rz(180)·[0,−1,0] = [0,1,0]).
     return c > 0 ? [0, 0, 0] : [0, 0, 180];
   }
   axis = scale(axis, 1 / s);
@@ -88,25 +112,27 @@ export function restToDirRotationDeg(dir) {
   const qy = axis[1] * sinH;
   const qz = axis[2] * sinH;
   const qw = Math.cos(half);
-  // quaternion → Euler XYZ (three.js Euler.setFromQuaternion, order 'XYZ')
-  const m11 = 1 - 2 * (qy * qy + qz * qz);
-  const m12 = 2 * (qx * qy - qz * qw);
-  const m13 = 2 * (qx * qz + qy * qw);
-  const m22 = 1 - 2 * (qx * qx + qz * qz);
-  const m23 = 2 * (qy * qz - qx * qw);
-  const m32 = 2 * (qy * qz + qx * qw);
-  const m33 = 1 - 2 * (qx * qx + qy * qy);
-  let ex, ey, ez;
-  ey = Math.asin(clamp(m13, -1, 1));
-  if (Math.abs(m13) < 0.9999999) {
-    ex = Math.atan2(-m23, m33);
-    ez = Math.atan2(-m12, m11);
+  // quaternion → 회전행렬 R[행][열] (열벡터 규약: v' = R·v)
+  const r00 = 1 - 2 * (qy * qy + qz * qz);
+  const r10 = 2 * (qx * qy + qz * qw);
+  const r20 = 2 * (qx * qz - qy * qw);
+  const r11 = 1 - 2 * (qx * qx + qz * qz);
+  const r12 = 2 * (qy * qz - qx * qw);
+  const r21 = 2 * (qy * qz + qx * qw);
+  const r22 = 1 - 2 * (qx * qx + qy * qy);
+  // R = Ry(b)·Rz(c)·Rx(a) 에서 a(x)·b(y)·c(z) 추출
+  const ez = Math.asin(clamp(r10, -1, 1));
+  let ex, ey;
+  if (Math.abs(r10) < 0.9999999) {
+    ex = Math.atan2(-r12, r11);
+    ey = Math.atan2(-r20, r00);
   } else {
-    ex = Math.atan2(m32, m22);
-    ez = 0;
+    // 짐벌: cos c ≈ 0 이라 a·b 가 축퇴한다. b=0 으로 고정하고 a 를 나머지에서 얻는다.
+    ex = Math.atan2(r21, r22);
+    ey = 0;
   }
-  // Mapbox model-rotation = [pitch(x), roll(z), yaw(y)]
-  return [ex * RAD2DEG, ez * RAD2DEG, ey * RAD2DEG];
+  // Mapbox model-rotation = [x, y, z] (적용 순서 Y→Z→X). **성분을 뒤바꾸지 마라.**
+  return [ex * RAD2DEG, ey * RAD2DEG, ez * RAD2DEG];
 }
 
 /**
