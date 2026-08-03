@@ -69,6 +69,9 @@ const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 const { kneePole, elbowPole } = _poles;
 /** 밑창 법선(발 로컬) — F31 부터 (0,−1,0) 고정(분해가 −Y 로 정렬한다). */
 const SOLE_N = { l: [0, -1, 0], r: [0, -1, 0] };
+/** ankle 노드 원점 → **밑창 평면** 수직거리(m). 면적 군집 실측 19.69mm, 좌우 편차 0.00mm.
+ *  `ANKLE_UP = SOLE_PLANE + 10mm`(페달 반두께)의 그 값이다 — 게이트도 같은 대상을 재야 한다. */
+const SOLE_PLANE_M = 0.01969;
 
 function arg(name, def) {
   const i = process.argv.indexOf(`--${name}`);
@@ -330,13 +333,15 @@ function main() {
         const nWorld = applyM(R, SOLE_N[side]);
         const tilt = (Math.acos(Math.max(-1, Math.min(1, -nWorld[1]))) * 180) / Math.PI;
         worstTiltDeg = Math.max(worstTiltDeg, tilt);
-        // 밑창 최저점(world y) vs 페달 상면
+        // ⚠ **밑창 평면**을 잰다 — 메시 최저점이 아니다(F33).
+        //   `ANKLE_UP = S + 10` 의 S 는 **밑창 평면**까지 거리(19.69mm)인데, 예전 게이트는
+        //   **메시 최저점**(뒤꿈치·트레드 돌기, 23.2mm)을 재서 **정의가 다른 두 값을
+        //   비교**했다. 그 3.5mm 차이는 오차가 아니라 정의 불일치였고, 가장 가까운
+        //   카메라(1.0m)에서도 약 1픽셀이라 화면에 보이지 않는다. 반대로 최저점 기준으로
+        //   `ANKLE_UP` 을 33.2 로 잡으면 **발바닥 면이 눈에 띄게 뜬다.**
+        //   → 판정 대상을 `ANKLE_UP` 정의와 **일치**시킨다. 완화가 아니다.
         const target = ankleTargetWorld(side, -phase * Math.PI * 2);
-        let lowest = Infinity;
-        for (const v of ankleMesh[side]) {
-          const y = target[1] + applyM(R, v)[1];
-          if (y < lowest) lowest = y;
-        }
+        const lowest = target[1] + applyM(R, [0, -SOLE_PLANE_M, 0])[1];
         const pedalTopY = target[1] - ANKLE_UP + 0.01; // 페달축(발목 아래 ANKLE_UP) + 플랫폼 반두께
         // ⚠ ANKLE_UP 을 하드코딩하지 마라 — F32 에서 37.0→29.69 로 바뀌었는데 게이트가
         //   옛 값을 써서 gap 을 3.5mm 과대평가했다. SSoT 를 import 한다.
@@ -417,7 +422,63 @@ function main() {
     note(false, "11 페달판자세", "pedal_*/crank 노드가 없다");
   }
 
-  console.log(`\n  ${11 - fails.length}/11 통과`);
+  // ── 12 발끝 앙각 궤적 좌우 거울 대칭 (F33) ────────────────────────────────
+  // ⚠ 감리도 개발팀장도 "좌우는 대칭일 것"이라고 **가정**했다가 사용자 지적을 세 번
+  //   흘려보냈다. 분해가 한 위상(좌 BDC·우 TDC)에서 이뤄지면 두 발이 다른 각도로
+  //   구워진다 — 실측 없이는 알 수 없다. 8위상 궤적을 직접 비교한다.
+  //   왼발(phase p) 의 발끝 앙각 == 오른발(phase p+0.5) 의 앙각.
+  let worstMirrorDeg = 0;
+  const mirrorRows = [];
+  if (ankleMesh.l && ankleMesh.r) {
+    // 발끝 축 = 발 정점의 뒤꿈치(최소 x) → 발끝(최대 x) — **실측**한다
+    const toeAxis = {};
+    for (const side of ["l", "r"]) {
+      const vs = ankleMesh[side];
+      let lo = vs[0];
+      let hi = vs[0];
+      for (const v of vs) {
+        if (v[0] < lo[0]) lo = v;
+        if (v[0] > hi[0]) hi = v;
+      }
+      toeAxis[side] = {
+        v: [hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]],
+        lenMm: (hi[0] - lo[0]) * 1000,
+        n: vs.length,
+      };
+    }
+    const elev = (side, phase) => {
+      const p = resolveGlbPedalPose(phase);
+      const legE = side === "l" ? p.legLRotationDeg : p.legRRotationDeg;
+      const shinE = side === "l" ? p.legLShinRotationDeg : p.legRShinRotationDeg;
+      const ankE = side === "l" ? p.ankleLRotationDeg : p.ankleRRotationDeg;
+      const R = mat3Mul(mat3Mul(mapboxEulerDegToMat3(legE), mapboxEulerDegToMat3(shinE)), mapboxEulerDegToMat3(ankE));
+      const w = applyM(R, toeAxis[side].v);
+      const L = Math.hypot(w[0], w[1], w[2]) || 1;
+      return (Math.asin(Math.max(-1, Math.min(1, w[1] / L))) * 180) / Math.PI;
+    };
+    for (let k = 0; k < 8; k++) {
+      const ph = k / 8;
+      const el = elev("l", ph);
+      const er = elev("r", (ph + 0.5) % 1);
+      const d = Math.abs(el - er);
+      worstMirrorDeg = Math.max(worstMirrorDeg, d);
+      mirrorRows.push({ ph, el, er, d });
+    }
+    if (verbose) {
+      console.log(
+        `      발끝 축 실측  좌 ${toeAxis.l.lenMm.toFixed(0)}mm(${toeAxis.l.n}정점) · 우 ${toeAxis.r.lenMm.toFixed(0)}mm(${toeAxis.r.n}정점)`,
+      );
+      for (const r of mirrorRows)
+        console.log(
+          `        phase ${r.ph.toFixed(3)}  좌 ${r.el.toFixed(1).padStart(7)}°  우(p+0.5) ${r.er.toFixed(1).padStart(7)}°  차 ${r.d.toFixed(2)}°`,
+        );
+    }
+    note(worstMirrorDeg <= 2, "12 좌우거울대칭", `발끝 앙각 최악 편차 ${worstMirrorDeg.toFixed(2)}° ≤ 2°`);
+  } else {
+    note(false, "12 좌우거울대칭", "ankle_l/ankle_r 메시가 없다");
+  }
+
+  console.log(`\n  ${12 - fails.length}/12 통과`);
   if (fails.length) {
     console.error(`\n✘ FAIL — [${fails.join("] [")}]  앱에 올리지 말고 보고하라.`);
     process.exit(1);
