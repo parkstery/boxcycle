@@ -52,7 +52,7 @@ const D2R = Math.PI / 180;
 const REST = [0, -1, 0];
 const RIDER_NODES = ["torso", "leg_l", "leg_l_shin", "leg_r", "leg_r_shin", "arm_l", "arm_l_fore", "arm_r", "arm_r_fore"];
 /** 라이더 **본체** 정점(관절 캡 제외). 캡은 별도로 센다 — F25 */
-const EXPECT_BODY_VERTS = 5513;
+const EXPECT_BODY_VERTS = 6949; // F34: 허벅지 +788 · torso 반바지 영역 +648 (5,513 → 6,949)
 
 const mm = (v) => +(v * 1000).toFixed(2);
 const mul = (A, B) => A.map((r) => [0, 1, 2].map((j) => r[0] * B[0][j] + r[1] * B[1][j] + r[2] * B[2][j]));
