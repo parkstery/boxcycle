@@ -16,6 +16,7 @@
  * | 7 | 정점 수 | **본체** 불변(캡 별도) | exporter 정점 복제(F16) |
  * | 8 | 발바닥 법선 | 월드 수직에서 **≤ 2°** | 발이 페달면과 어긋남(F25 §4-2) |
  * | 9 | 발바닥 최저점 vs 페달 상면 | **±3mm** | 발이 페달에서 뜨거나 파고듦 |
+ * | 13 | 세그먼트 관통(픽셀) | 다리 스텁 **0px** | 허벅지가 엉덩이를 뚫고 나옴(F35) |
  *
  * ⚠ 허용치를 늘려 통과시키지 마라. 실패는 FAIL 로 보고하는 것이 옳다.
  *
@@ -43,6 +44,12 @@ import { solveIk3D, restToDirRotationDeg, childRotationDeg } from "../../src/lib
 // ⚠ pole 을 재현하지 않는다 — pose.mjs 의 것을 그대로 쓴다(복제하면 거짓 PASS).
 import { _poles, resolveGlbPedalPose } from "../../src/lib/riderGlbPedalPose.pose.mjs";
 import { mapboxEulerDegToMat3, mat3Mul } from "../../src/lib/riderPrototype/riderIk.mjs";
+import {
+  runSegmentPenetration,
+  LEG_STUB_MAX_PX,
+  LEG_CAP_MAX_PX,
+  ARM_STUB_MAX_PX,
+} from "./segment-penetration.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_GLB = path.resolve(HERE, "../../public/rider/prototype/rider-lowpoly.glb");
@@ -52,7 +59,7 @@ const D2R = Math.PI / 180;
 const REST = [0, -1, 0];
 const RIDER_NODES = ["torso", "leg_l", "leg_l_shin", "leg_r", "leg_r_shin", "arm_l", "arm_l_fore", "arm_r", "arm_r_fore"];
 /** 라이더 **본체** 정점(관절 캡 제외). 캡은 별도로 센다 — F25 */
-const EXPECT_BODY_VERTS = 6949; // F34: 허벅지 +788 · torso 반바지 영역 +648 (5,513 → 6,949)
+const EXPECT_BODY_VERTS = 7729; // F35: 허벅지 스텁 절단 −12 · 저지 세분화 +792 (6,949 → 7,729)
 
 const mm = (v) => +(v * 1000).toFixed(2);
 const mul = (A, B) => A.map((r) => [0, 1, 2].map((j) => r[0] * B[0][j] + r[1] * B[1][j] + r[2] * B[2][j]));
@@ -182,7 +189,7 @@ function parseGlbJson(p) {
   return json;
 }
 
-function main() {
+async function main() {
   const glbPath = arg("glb", DEFAULT_GLB);
   const expectElbow = arg("expect-elbow", null);
   const verbose = process.argv.includes("--verbose");
@@ -478,7 +485,19 @@ function main() {
     note(false, "12 좌우거울대칭", "ankle_l/ankle_r 메시가 없다");
   }
 
-  console.log(`\n  ${12 - fails.length}/12 통과`);
+  // ── 13 세그먼트 관통 (F35) ───────────────────────────────────────────────
+  // ⚠ 「보이는가」를 광선·거리 같은 **대리 지표로 재지 마라** — F35 에서 세 번 어긋났다.
+  //   실제 게임 카메라 배율(3.9mm/px)·고도각으로 래스터해 **픽셀을 센다**.
+  //   `segment-penetration.mjs` 머리말에 실패 3건이 기록돼 있다.
+  const sp = await runSegmentPenetration(glbPath, { phases: 8, verbose });
+  note(
+    sp.leg.stubPx <= LEG_STUB_MAX_PX && sp.leg.capPx <= LEG_CAP_MAX_PX && sp.arm.stubPx <= ARM_STUB_MAX_PX,
+    "13 세그먼트관통",
+    `다리 스텁 ${sp.leg.stubPx}/${LEG_STUB_MAX_PX}px · 절단뚜껑 ${sp.leg.capPx}/${LEG_CAP_MAX_PX}px · ` +
+      `팔 스텁 ${sp.arm.stubPx}/${ARM_STUB_MAX_PX}px (F36 이월) · 스텁 상단 leg ${sp.stubTopMm.leg_l?.toFixed(1)}mm`,
+  );
+
+  console.log(`\n  ${13 - fails.length}/13 통과`);
   if (fails.length) {
     console.error(`\n✘ FAIL — [${fails.join("] [")}]  앱에 올리지 말고 보고하라.`);
     process.exit(1);
@@ -486,4 +505,4 @@ function main() {
   console.log("✔ PASS — 앱 확인으로 진행해도 된다 (그림 판정은 별개다).");
 }
 
-main();
+await main();
