@@ -298,4 +298,9 @@ T-junction 검산: torso **경계 edge 108 → 108 (불변)** · 비매니폴드
 
 ## 8. 커밋
 
-(커밋 해시는 아래에 기록)
+```
+54997f2  feat(rider): 허벅지 스텁 절단 + 저지 세분화 + 게이트 13 신설 (F35)
+   7271093..54997f2  feat/frame-b-cyclefit -> feat/frame-b-cyclefit
+```
+
+pre-commit eslint 통과(`--no-verify` 없음) · `main`·PR 없음.
