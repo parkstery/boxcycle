@@ -175,8 +175,18 @@ B 는 캡 반경·겹침 설계가 필요해 한 단계를 온전히 쓴다.
 
 ## 6. 커밋·push
 
-지시 §3 검증란이 커밋·push 를 명시해 수행했다. `--no-verify` 없음 · `main`·PR 없음.
+지시 §3 검증란이 커밋·push 를 명시해 수행했다.
+
+```
+2ee46a6  feat(rider): 엉덩이·허벅지 갑옷 해소 — 패브릭 광택 + 부분 Loop 세분화 (F34)
+   7053b3d..2ee46a6  feat/frame-b-cyclefit -> feat/frame-b-cyclefit
+```
+
+`--no-verify` 없음(pre-commit eslint 통과) · `main`·PR 없음.
 백업 `.pre-F34.bak`(F33 상태) 보존. typecheck·lint·콘솔 에러 0.
+
+⚠ 커밋 메시지 **첫 줄에 `@` 한 글자**가 들어갔다(here-string 문법 오용).
+정정하려 했으나 force push 가 차단돼 그대로 뒀다. 본문·변경 내용은 정확하다.
 
 ## 7. 모델 사용 내역
 
