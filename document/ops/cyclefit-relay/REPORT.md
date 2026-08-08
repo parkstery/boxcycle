@@ -207,4 +207,9 @@ leg_l_shin   정점  81 · 삼각형 140 · y링 **4개 × 각 20정점** (107�
 
 ## 8. 커밋
 
-(아래 기록)
+```
+5b637ef  feat(rider): 관절 양단 캡 도구 + 게이트 14(관절 연속성) — F36 반증 단계 (F36)
+   54997f2..5b637ef  feat/frame-b-cyclefit -> feat/frame-b-cyclefit
+```
+
+pre-commit eslint 통과 · `--no-verify` 없음 · `main`·PR 없음. **제품 GLB 미변경.**
