@@ -40,6 +40,26 @@ trailId당 구독 1개로 refcount 관리한다. **consumer 중복 구독은 이
 **추정 (미확인)** — D-6 RTDB row staleness 미검사(`syncFromPresence.ts:62`),
 D-7 송수신 geometry 불일치 가능성.
 
+### D-0 · D-1 실측 확정 (S1 실패킷 91건 — `s2-z15-cruise-scenario.json`)
+
+```
+연속 중복 distM      38 / 90 = 42%                      ← D-0 현장 확정
+첫 6 s 실제 진행속도  6.23 m/s  vs 발행 speedMps 8.05    ← D-1 (+29% 과대)
+depart 구간 발행 spd  1.39 m/s 고정(=5km/h 초기 슬라이더) ← D-1 (A 는 8 m/s 로 가속 중)
+```
+
+### 체인 진단 전에 알아둘 것 (감리 확인 완료 — 재조사 금지)
+
+- **S1 의 `self` 로그는 ① 이 아니라 ② 다.** `useLiveLocationPublishSession.ts:209` 가
+  `setPeerSyncSelfDistM(snapshot.distMetersAlongRoute)` 이다.
+  → **① authoritative(rAF 원본)는 아직 한 번도 계측된 적이 없다.**
+  ①→② 변환은 `rideDistanceAlongRoute`(`liveLocationSnapshot.ts:42-52`)이고
+  `min(routeDistanceMeters, geometryLengthMeters)` 로 **clamp** 한다 — 항등이 아니다.
+- **발행 게이트는 속도를 억제하지 않는다.** `shouldPublishPeerMotion`
+  (`liveLocationSnapshot.ts:179-195`)은 시간 기반 100 ms + 속도 델타 우회다.
+  "속도가 낮아서 발행이 막혔다"는 가설은 **이미 반증됐다.**
+- 따라서 최초 이탈 지점은 **② 스냅샷 → ③ RTDB 기록 → ④ B 수신·ingest** 사이에 있다.
+
 ---
 
 ## 3. 단계 계획
@@ -48,22 +68,49 @@ D-7 송수신 geometry 불일치 가능성.
 |---|---|---|
 | **S1** | 증상 정량화 (`D_eff` / `residual`, 8케이스) | **보고완료 — ⚠ 절반만 유효** (아래) |
 | **S2** | S1 재분석 + replay 하네스(`truth(t)` · 지연 모델 · 시나리오 5종 · 불변식) | **보고완료** (`REPORT.md`) |
-| **S3** | **정확도 1차** — 적용속도 발행(D-1) → 저줌 실제속도(D-2) → 저줌 시 registry 적분 유지 | 대기 |
+| **S3-DIAG** | **패킷 단위 체인 진단** — A authoritative → snapshot → RTDB payload → B 수신 payload 중 최초로 값이 벌어지는 구간 확정 | **배포** |
+| **S3** | 정확도 1차 — 적용속도 발행(D-1) → 저줌 실제속도(D-2) → 저줌 시 registry 적분 유지 | **보류** (S3-DIAG 결과 대기) |
 | **S4** | **안정성 2차** (in-flight 방지·stale·시계 정리) + **비용 3차** (heartbeat·Trail touch·RTDB child listener·전역 목록) | 대기 |
 
-### ⚠ S1 결과를 인용하기 전에 읽어라 (감리0810 판정)
+### ⚠⚠ 기준선 무효 — 인용 금지 (감리0811 판정)
 
 ```
-z13 4케이스 = 합성 데이터   extrapolateSpectator() 가 5km/h 로 표본을 찍어냈다
-                            증거: 창 ~6s 인 z13-decel 의 n 이 643 (z15-decel 은 29)
-                            → 「최대 residual 392.80m」은 **관측이 아니다. 인용 금지**
-D_eff 800ms = 탐색 상한값   maxDelayMs 가 800 인데 4케이스가 정확히 800 = 경계 히트.
-                            참 지연 미상이고 그 D 의 residual 도 과대. S2 §1-0 에서 재산출
+[무효 1] z13 4케이스 = 합성       extrapolateSpectator() 가 5km/h 로 표본을 찍어냈다
+                                  「최대 residual 392.80m」은 관측이 아니다
+[무효 2] D_eff 7140ms · residual 54.9m  ← S2 가 "S3 목표 기준선"으로 올린 값. **무효**
+[무효 3] z15-depart D_eff ≥10000ms                                          **무효**
 ```
 
-**S2 §1-0 확정 기준선 (z15만)**: cruise **D_eff=7140 ms · residual max≈54.9 m**.  
-depart는 D_eff **≥10 s**(탐색 천장). decel/pause는 예산 안(움직일 때가 문제).
-원본 S1 보고는 `REPORT-S1.md`에 보존.
+**무효 사유** — `D_eff`는 *하나의 전역 시간 이동*을 가정한다. depart·cruise 는 그 가정이 성립하지 않는다.
+
+| case | A.self 이동 | B.newest 이동 | 같은 창 | 판정 |
+|---|---:|---:|---:|---|
+| z15-depart | **89.8 m** | **14.0 m** | 16.5 s | 스트림 사실상 정지 — `age` 중앙 2,741 · 최대 15,121 ms, 외삽캡 초과 59%, `disp` 정지 55% |
+| z15-cruise | 178.7 m | **264.4 m** | 22.1 s | 81 m 뒤에서 시작해 따라잡는 구간 — 정상 주행 아님 |
+| z15-decel | 26.8 m | 29.3 m | 7.1 s | 정확도 예산 PASS · **스케일 판정 유보**(저속·짧은 창) |
+| z15-pause | 8.0 m | 8.0 m | 12.5 s | 정확도 예산 PASS · **스케일 판정 유보**(저속·짧은 창) |
+
+교차 증거: cruise 의 `age` 중앙값은 **171 ms** 다. 실제 파이프라인 지연은 ~330 ms 이지 7.1 초가 아니다.
+40배 어긋나는 것 자체가 적합 실패의 증거다. 옵티마이저가 **거리 오프셋을 시간으로 환산**했다
+(81 m ÷ 8.33 m/s ≈ 9.7 s).
+
+> **현재 「상당한 차이」는 미터 단위로 정량화되지 않았다.** 유효 케이스 2건은 모두 PASS,
+> 나머지 6건은 무효다. 이 상태에서 정확도 수정에 착수하면 목표 없이 코드를 고치는 것이다.
+
+**유효성 게이트 — `newest − self` 중앙값 0 을 쓰지 마라.**
+정상 파이프라인도 샘플링·전송 지연만큼 **음수**여야 하고, 저속에서는 그 값이 0 으로 수렴해
+스케일 오류를 가린다. 올바른 게이트는 **구간 이동량 일치**다(시간 이동에 불변).
+
+```
+판정 전제   Δ(A.self) ≥ 100 m   AND   창 ≥ 20 s      ← 미달이면 「판정 유보」, PASS 아님
+게이트      |Δ(A.self) − Δ(B.newest)| / Δ(A.self) ≤ 0.1
+```
+
+**이 전제를 적용하면 위 표 4건 중 판정 가능한 것은 z15-cruise 뿐이고, 48% 이탈로 FAIL 이다.**
+z15-decel(7.1 s · 26.8 m)·z15-pause(12.5 s · 8.0 m)는 **정확도 예산은 통과했으나 저속·짧은 창이라
+스케일 검증에는 쓸 수 없다** — 「PASS」로 인용하지 마라.
+
+원본 S1 보고는 `REPORT-S1.md`, S2 보고는 `REPORT-S2.md` 에 보존.
 
 **순서 의존 2건 (위반 금지)**
 
