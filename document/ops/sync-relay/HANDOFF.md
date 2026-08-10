@@ -68,7 +68,7 @@ depart 구간 발행 spd  1.39 m/s 고정(=5km/h 초기 슬라이더) ← D-1 (A
 |---|---|---|
 | **S1** | 증상 정량화 (`D_eff` / `residual`, 8케이스) | **보고완료 — ⚠ 절반만 유효** (아래) |
 | **S2** | S1 재분석 + replay 하네스(`truth(t)` · 지연 모델 · 시나리오 5종 · 불변식) | **보고완료** (`REPORT.md`) |
-| **S3-DIAG** | **패킷 단위 체인 진단** — A authoritative → snapshot → RTDB payload → B 수신 payload 중 최초로 값이 벌어지는 구간 확정 | **배포** |
+| **S3-DIAG** | **패킷 단위 체인 진단** — A authoritative → snapshot → RTDB payload → B 수신 payload 중 최초로 값이 벌어지는 구간 확정 | **보고완료** (`REPORT.md`) |
 | **S3** | 정확도 1차 — 적용속도 발행(D-1) → 저줌 실제속도(D-2) → 저줌 시 registry 적분 유지 | **보류** (S3-DIAG 결과 대기) |
 | **S4** | **안정성 2차** (in-flight 방지·stale·시계 정리) + **비용 3차** (heartbeat·Trail touch·RTDB child listener·전역 목록) | 대기 |
 

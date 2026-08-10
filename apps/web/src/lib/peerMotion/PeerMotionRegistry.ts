@@ -15,6 +15,7 @@ import {
 } from "./integrator";
 import type { PeerMotionEntity, PeerMotionPacket } from "./types";
 import { getPeerSyncSelfDistM } from "./peerSyncDebug";
+import { peerSyncChainLog, peerSyncChainShouldEmit } from "./peerSyncChainLog";
 
 const PEER_MAX = 30;
 
@@ -38,10 +39,23 @@ export class PeerMotionRegistry {
 
     // 보간 모델 — 정렬·dedup·단조 처리는 applyPeerMotionIngest 가 버퍼에 담당.
     const cur = this.entities.get(packet.uid);
+    let result: "accepted" | "dup-same-dist" | "discard-forward" | "discard-retrograde" =
+      "accepted";
+    let newestDist = packet.distM;
     if (cur) {
-      applyPeerMotionIngest(cur, packet, label);
+      const newest = cur.buffer[cur.buffer.length - 1];
+      newestDist = newest?.distM ?? packet.distM;
+      result = applyPeerMotionIngest(cur, packet, label);
     } else {
       this.entities.set(packet.uid, createPeerMotionEntity(packet, label));
+    }
+    if (import.meta.env.DEV) {
+      peerSyncChainLog(5, packet.seq, {
+        result,
+        newest: newestDist,
+        d: packet.distM,
+        uid: packet.uid.slice(0, 6),
+      });
     }
     this.activeUids.add(packet.uid);
   }
@@ -84,9 +98,13 @@ export class PeerMotionRegistry {
     const routeLenM = lineStringLengthMeters(routeGeometry);
     const out: PeerMotionRenderFeature[] = [];
     let n = 0;
+    const nowMs = Date.now();
+    const emitChain = peerSyncChainShouldEmit(nowMs);
     for (const entity of this.entities.values()) {
       if (n >= PEER_MAX) break;
+      const beforeClamp = entity.displayDistM;
       const distM = clampRouteDist(entity.displayDistM, routeLenM);
+      const clamped = distM !== beforeClamp && routeLenM > 0;
       const lngLat = getPointOnRouteByDistance(routeGeometry, distM);
       if (!lngLat) continue;
       const h = headingAtRouteDistanceMeters(routeGeometry, distM) ?? 0;
@@ -122,12 +140,27 @@ export class PeerMotionRegistry {
 
       if (import.meta.env.DEV) {
         const newest = entity.buffer[entity.buffer.length - 1];
-        const ageMs = newest ? Date.now() - newest.recvAtMs : -1;
+        const ageMs = newest ? nowMs - newest.recvAtMs : -1;
         const self = getPeerSyncSelfDistM();
         mapLabel =
           `${entity.label} ▸d${Math.round(entity.displayDistM)} n${newest ? Math.round(newest.distM) : 0}` +
           ` s${Math.round(self)} gap${Math.round((newest ? newest.distM : 0) - self)}` +
           ` b${entity.buffer.length} a${Math.round(ageMs / 100) / 10}s`;
+        if (emitChain) {
+          const seq = newest?.seq;
+          peerSyncChainLog(6, seq, {
+            displayDistM: entity.displayDistM,
+            buf: entity.buffer.length,
+            age: ageMs,
+          });
+          peerSyncChainLog(7, seq, {
+            lng: lngLat[0],
+            lat: lngLat[1],
+            routeLen: routeLenM,
+            clamped: clamped ? 1 : 0,
+            displayDistM: distM,
+          });
+        }
       }
 
       out.push({

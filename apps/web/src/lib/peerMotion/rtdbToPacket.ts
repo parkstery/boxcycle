@@ -14,5 +14,6 @@ export function rtdbMotionRowToPeerMotionPacket(
     speedMps: row.speedMps,
     phase: row.ridePhase,
     serverAtMs: row.serverAtMs,
+    ...(row.seq != null ? { seq: row.seq } : {}),
   };
 }

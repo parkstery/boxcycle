@@ -52,8 +52,8 @@ export function alignSeries(aSelfRows, bPeerRows, clockSkewMs = 0) {
 
 function interpolateSelf(rows, t) {
   if (rows.length === 0) return null;
-  if (t <= rows[0].t) return rows[0].self;
-  if (t >= rows[rows.length - 1].t) return rows[rows.length - 1].self;
+  // S3-DIAG §2: 범위 밖 양끝 클램프 금지 → null (경계에서 D_eff 가 이기지 못하게)
+  if (t < rows[0].t || t > rows[rows.length - 1].t) return null;
   for (let i = 1; i < rows.length; i++) {
     const a = rows[i - 1];
     const b = rows[i];
@@ -78,20 +78,71 @@ function percentile(sorted, p) {
   return sorted[i];
 }
 
+/** 구간 이동량 스케일 게이트 (INSTRUCTION §3-2). 전제 미달이면 판정 유보. */
+export function computeScaleGate(aSelfRows, bPeerRows, { minDeltaSelfM = 100, minWindowMs = 20_000 } = {}) {
+  if (!aSelfRows.length || !bPeerRows.length) {
+    return { status: "판정 유보", reason: "empty", deltaSelfM: 0, deltaNewestM: 0, windowMs: 0 };
+  }
+  const t0 = Math.max(aSelfRows[0].t, bPeerRows[0].t);
+  const t1 = Math.min(aSelfRows[aSelfRows.length - 1].t, bPeerRows[bPeerRows.length - 1].t);
+  const windowMs = Math.max(0, t1 - t0);
+  const self0 = interpolateSelf(aSelfRows, t0);
+  const self1 = interpolateSelf(aSelfRows, t1);
+  const b0 = bPeerRows.find((r) => r.t >= t0) ?? bPeerRows[0];
+  const b1 = [...bPeerRows].reverse().find((r) => r.t <= t1) ?? bPeerRows[bPeerRows.length - 1];
+  const deltaSelfM =
+    self0 != null && self1 != null ? self1 - self0 : aSelfRows[aSelfRows.length - 1].self - aSelfRows[0].self;
+  const deltaNewestM = b1.newest - b0.newest;
+  if (deltaSelfM < minDeltaSelfM || windowMs < minWindowMs) {
+    return {
+      status: "판정 유보",
+      reason: `Δself=${deltaSelfM.toFixed(1)}m window=${(windowMs / 1000).toFixed(1)}s (need ≥${minDeltaSelfM}m · ≥${minWindowMs / 1000}s)`,
+      deltaSelfM,
+      deltaNewestM,
+      windowMs,
+      ratio: deltaSelfM > 0 ? Math.abs(deltaSelfM - deltaNewestM) / deltaSelfM : NaN,
+    };
+  }
+  const ratio = Math.abs(deltaSelfM - deltaNewestM) / deltaSelfM;
+  return {
+    status: ratio <= 0.1 ? "PASS" : "FAIL",
+    reason: `|Δself−Δnewest|/Δself=${ratio.toFixed(3)}`,
+    deltaSelfM,
+    deltaNewestM,
+    windowMs,
+    ratio,
+  };
+}
+
+/** 특정 D 에서의 겹침 비율 — §2 정정 검증용 */
+export function overlapAtDelay(aSelfRows, bPeerRows, D, { clockSkewMs = 0 } = {}) {
+  let looked = 0;
+  let hit = 0;
+  for (const b of bPeerRows) {
+    looked += 1;
+    const self = interpolateSelf(aSelfRows, b.t - clockSkewMs - D);
+    if (self != null) hit += 1;
+  }
+  return { looked, hit, overlap: looked > 0 ? hit / looked : 0 };
+}
+
 export function computeDeffResidualFromSeries(
   aSelfRows,
   bPeerRows,
-  { clockSkewMs = 0, maxDelayMs = 800, delayStepMs = 20 } = {},
+  { clockSkewMs = 0, maxDelayMs = 800, delayStepMs = 20, minOverlapRatio = 0.7 } = {},
 ) {
   let bestD = 0;
   let bestRmse = Infinity;
   let bestErrs = [];
   let bestAligned = [];
+  let bestOverlap = 0;
 
   for (let D = 0; D <= maxDelayMs; D += delayStepMs) {
     const errs = [];
     const aligned = [];
+    let looked = 0;
     for (const b of bPeerRows) {
+      looked += 1;
       const tTruth = b.t - clockSkewMs - D;
       const self = interpolateSelf(aSelfRows, tTruth);
       if (self == null) continue;
@@ -108,6 +159,9 @@ export function computeDeffResidualFromSeries(
         err: e,
       });
     }
+    const overlap = looked > 0 ? errs.length / looked : 0;
+    // S3-DIAG §2: 최소 겹침 비율 미달 D 는 후보 제외
+    if (overlap < minOverlapRatio) continue;
     if (errs.length < 5) continue;
     const r = rmse(errs);
     if (r < bestRmse) {
@@ -115,16 +169,20 @@ export function computeDeffResidualFromSeries(
       bestD = D;
       bestErrs = errs;
       bestAligned = aligned;
+      bestOverlap = overlap;
     }
   }
 
   const abs = bestErrs.map((e) => Math.abs(e)).sort((a, b) => a - b);
+  const insufficient = bestErrs.length < 5;
   return {
-    D_eff: bestD,
-    residualRmse: bestErrs.length ? bestRmse : NaN,
+    D_eff: insufficient ? null : bestD,
+    residualRmse: insufficient ? NaN : bestRmse,
     residualP95: percentile(abs, 0.95),
     residualMax: abs.length ? abs[abs.length - 1] : NaN,
     n: bestErrs.length,
+    overlap: bestOverlap,
+    status: insufficient ? "D_eff 산출 불가" : "ok",
     aligned: bestAligned,
   };
 }
@@ -146,6 +204,9 @@ export const S1_LIMITS = {
 };
 
 export function judgeCase(metrics) {
+  if (metrics.status === "D_eff 산출 불가" || metrics.D_eff == null) {
+    return { pass: false, fail: ["D_eff 산출 불가"], status: "D_eff 산출 불가" };
+  }
   const fail = [];
   if (!(metrics.D_eff <= S1_LIMITS.D_eff_ms)) fail.push(`D_eff ${metrics.D_eff} > ${S1_LIMITS.D_eff_ms}`);
   if (!(metrics.residualRmse <= S1_LIMITS.residualRmse_m))
