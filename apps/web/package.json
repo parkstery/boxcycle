@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:ride": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test ride-entry\""
+    "test:e2e:ride": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test ride-entry\"",
+    "test:e2e:peer-s1": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s1 --workers=1\""
   },
   "dependencies": {
     "firebase": "^12.13.0",

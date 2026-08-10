@@ -1,0 +1,1024 @@
+{
+  "name": "s1-z15-cruise-real",
+  "routeLenM": 2000,
+  "stepIntervalMs": 100,
+  "events": [
+    {
+      "atMs": 1786368923495,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 153.9,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1786368923465
+      }
+    },
+    {
+      "atMs": 1786368923843,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 154.9,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368923565
+      }
+    },
+    {
+      "atMs": 1786368924101,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 154.9,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368923565
+      }
+    },
+    {
+      "atMs": 1786368924318,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 156.3,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368924187
+      }
+    },
+    {
+      "atMs": 1786368924528,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 156.3,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368924187
+      }
+    },
+    {
+      "atMs": 1786368924770,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 157.5,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368924699
+      }
+    },
+    {
+      "atMs": 1786368925030,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 157.5,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368924699
+      }
+    },
+    {
+      "atMs": 1786368925259,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 160.2,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368925230
+      }
+    },
+    {
+      "atMs": 1786368925492,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 160.2,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368925230
+      }
+    },
+    {
+      "atMs": 1786368925750,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 161,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368925702
+      }
+    },
+    {
+      "atMs": 1786368925997,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 162.9,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368925826
+      }
+    },
+    {
+      "atMs": 1786368926215,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 163.9,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368926182
+      }
+    },
+    {
+      "atMs": 1786368926474,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 164.9,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368926300
+      }
+    },
+    {
+      "atMs": 1786368926701,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 164.9,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368926300
+      }
+    },
+    {
+      "atMs": 1786368926915,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 168.1,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368926876
+      }
+    },
+    {
+      "atMs": 1786368927148,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 170.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368926994
+      }
+    },
+    {
+      "atMs": 1786368927376,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 170.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368926994
+      }
+    },
+    {
+      "atMs": 1786368927661,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 170.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368926994
+      }
+    },
+    {
+      "atMs": 1786368927936,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 174.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368927783
+      }
+    },
+    {
+      "atMs": 1786368928166,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 180.3,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368928119
+      }
+    },
+    {
+      "atMs": 1786368928374,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 180.3,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368928119
+      }
+    },
+    {
+      "atMs": 1786368928583,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 181.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368928545
+      }
+    },
+    {
+      "atMs": 1786368928790,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 184.6,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368928645
+      }
+    },
+    {
+      "atMs": 1786368929107,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 190.5,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368929026
+      }
+    },
+    {
+      "atMs": 1786368929370,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 190.5,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368929026
+      }
+    },
+    {
+      "atMs": 1786368929620,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 194.2,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368929422
+      }
+    },
+    {
+      "atMs": 1786368929830,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 194.2,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368929422
+      }
+    },
+    {
+      "atMs": 1786368930061,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 199.1,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368929905
+      }
+    },
+    {
+      "atMs": 1786368930278,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 199.1,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368929905
+      }
+    },
+    {
+      "atMs": 1786368930491,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 201.6,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368930350
+      }
+    },
+    {
+      "atMs": 1786368930713,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 203.4,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368930657
+      }
+    },
+    {
+      "atMs": 1786368930924,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 205.5,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368930777
+      }
+    },
+    {
+      "atMs": 1786368931140,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 209.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368931107
+      }
+    },
+    {
+      "atMs": 1786368931384,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 209.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368931107
+      }
+    },
+    {
+      "atMs": 1786368931624,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 220,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368931551
+      }
+    },
+    {
+      "atMs": 1786368931840,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 220,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368931551
+      }
+    },
+    {
+      "atMs": 1786368932074,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 223.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368931989
+      }
+    },
+    {
+      "atMs": 1786368932295,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 225.5,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368932230
+      }
+    },
+    {
+      "atMs": 1786368932533,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 225.5,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368932230
+      }
+    },
+    {
+      "atMs": 1786368932764,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 225.5,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368932230
+      }
+    },
+    {
+      "atMs": 1786368932992,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 229.4,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368932914
+      }
+    },
+    {
+      "atMs": 1786368933214,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 237.2,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368933173
+      }
+    },
+    {
+      "atMs": 1786368933459,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 241.5,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368933302
+      }
+    },
+    {
+      "atMs": 1786368933759,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 241.5,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368933302
+      }
+    },
+    {
+      "atMs": 1786368933967,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 288.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368933826
+      }
+    },
+    {
+      "atMs": 1786368934284,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 291.4,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368934208
+      }
+    },
+    {
+      "atMs": 1786368934546,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 293.3,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368934329
+      }
+    },
+    {
+      "atMs": 1786368934764,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 295.1,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368934621
+      }
+    },
+    {
+      "atMs": 1786368934974,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 295.1,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368934621
+      }
+    },
+    {
+      "atMs": 1786368935187,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 298.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368935155
+      }
+    },
+    {
+      "atMs": 1786368935415,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 298.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368935155
+      }
+    },
+    {
+      "atMs": 1786368935635,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 298.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368935155
+      }
+    },
+    {
+      "atMs": 1786368935946,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 298.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368935155
+      }
+    },
+    {
+      "atMs": 1786368936182,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 298.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368935155
+      }
+    },
+    {
+      "atMs": 1786368936412,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 298.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368935155
+      }
+    },
+    {
+      "atMs": 1786368936620,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 298.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368935155
+      }
+    },
+    {
+      "atMs": 1786368936826,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 298.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368935155
+      }
+    },
+    {
+      "atMs": 1786368937051,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 298.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368935155
+      }
+    },
+    {
+      "atMs": 1786368937279,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 298.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368935155
+      }
+    },
+    {
+      "atMs": 1786368937482,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 298.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368935155
+      }
+    },
+    {
+      "atMs": 1786368937699,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 298.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368935155
+      }
+    },
+    {
+      "atMs": 1786368937943,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 298.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368935155
+      }
+    },
+    {
+      "atMs": 1786368938158,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 306.2,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368938105
+      }
+    },
+    {
+      "atMs": 1786368938428,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 308.2,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368938390
+      }
+    },
+    {
+      "atMs": 1786368938681,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 308.2,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368938390
+      }
+    },
+    {
+      "atMs": 1786368938888,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 317.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368938821
+      }
+    },
+    {
+      "atMs": 1786368939192,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 323.6,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368939166
+      }
+    },
+    {
+      "atMs": 1786368939456,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 323.6,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368939166
+      }
+    },
+    {
+      "atMs": 1786368939688,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 325.9,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368939648
+      }
+    },
+    {
+      "atMs": 1786368939999,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 333.4,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368939740
+      }
+    },
+    {
+      "atMs": 1786368940285,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 360.9,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368940077
+      }
+    },
+    {
+      "atMs": 1786368940595,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 362.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368940457
+      }
+    },
+    {
+      "atMs": 1786368940838,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 362.7,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368940457
+      }
+    },
+    {
+      "atMs": 1786368941061,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 366.8,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368940989
+      }
+    },
+    {
+      "atMs": 1786368941360,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 366.8,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368940989
+      }
+    },
+    {
+      "atMs": 1786368941584,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 370.2,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368941501
+      }
+    },
+    {
+      "atMs": 1786368941798,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 370.2,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368941501
+      }
+    },
+    {
+      "atMs": 1786368942031,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 372.5,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368941970
+      }
+    },
+    {
+      "atMs": 1786368942249,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 372.5,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368941970
+      }
+    },
+    {
+      "atMs": 1786368942529,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 374.4,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368942461
+      }
+    },
+    {
+      "atMs": 1786368942813,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 380.2,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368942573
+      }
+    },
+    {
+      "atMs": 1786368943095,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 380.2,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368942573
+      }
+    },
+    {
+      "atMs": 1786368943398,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 380.2,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368942573
+      }
+    },
+    {
+      "atMs": 1786368943731,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 385.9,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368943645
+      }
+    },
+    {
+      "atMs": 1786368944080,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 389.3,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368944050
+      }
+    },
+    {
+      "atMs": 1786368944360,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 397,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368944321
+      }
+    },
+    {
+      "atMs": 1786368944639,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 404.5,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368944617
+      }
+    },
+    {
+      "atMs": 1786368944839,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 404.5,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368944617
+      }
+    },
+    {
+      "atMs": 1786368945050,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 406.2,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368944988
+      }
+    },
+    {
+      "atMs": 1786368945305,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 411.8,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368945287
+      }
+    },
+    {
+      "atMs": 1786368945590,
+      "packet": {
+        "uid": "peer-A",
+        "publicationId": "s1-cruise",
+        "distM": 418.3,
+        "speedMps": 8.33,
+        "phase": "live",
+        "serverAtMs": 1786368945519
+      }
+    }
+  ],
+  "meta": {
+    "t0": 1786368923495,
+    "t1": 1786368945590,
+    "windowMs": 22095,
+    "confirmed": {
+      "D_eff": 7140,
+      "residualRmse": 32.10394489337602,
+      "residualP95": 45.066346153846155,
+      "residualMax": 54.900000000000034,
+      "n": 91,
+      "hitCeiling": false,
+      "searchMaxMs": 10000
+    },
+    "skewBefore": 14,
+    "aSelfN": 142
+  }
+}

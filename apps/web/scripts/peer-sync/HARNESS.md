@@ -13,7 +13,10 @@
 | 파일 | 역할 |
 |---|---|
 | `replay.mjs` | 오케스트레이터 — 시나리오를 재생 → `--check`(불변식, exit 0/1) + `--graph`(PNG) |
-| `scenarios.mjs` | 내장 시나리오(패킷 이벤트 시퀀스). `expectFail` 로 known-fail 회귀 고정 |
+| `scenarios.mjs` | 내장 시나리오(+ S2 5종: 출발램프·정속30·감속·일시정지·저줌) |
+| `s1-metrics.mjs` | D_eff / residual 산출 |
+| `s2-recompute.mjs` | S1 원시로그 재계산(maxDelay 5k/10k, z13 제외) |
+| `s2-accuracy-gate.mjs` | z15-cruise 실로그 → integrator 재현 ±20% 수용 게이트 |
 | `invariants.mjs` | 재생 타임라인의 기계적 PASS/FAIL 판정(clamp·역행·순간이동·외삽상한) |
 | `graph.mjs` | distM-vs-time SVG 생성 + chromium PNG 렌더 |
 | `.out/` | 그래프 산출물 PNG/SVG(gitignore — 휘발성 검토용) |

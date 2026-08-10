@@ -46,10 +46,24 @@ D-7 송수신 geometry 불일치 가능성.
 
 | 단계 | 내용 | 상태 |
 |---|---|---|
-| **S1** | 증상 정량화 (`D_eff` / `residual`, 8케이스) | **배포됨** |
-| **S2** | replay 하네스 확장 — `truth(t)` + 지연 모델 + 시나리오 5종 + 정확도 불변식 | 대기 (S1 실측 필요) |
+| **S1** | 증상 정량화 (`D_eff` / `residual`, 8케이스) | **보고완료 — ⚠ 절반만 유효** (아래) |
+| **S2** | S1 재분석 + replay 하네스(`truth(t)` · 지연 모델 · 시나리오 5종 · 불변식) | **보고완료** (`REPORT.md`) |
 | **S3** | **정확도 1차** — 적용속도 발행(D-1) → 저줌 실제속도(D-2) → 저줌 시 registry 적분 유지 | 대기 |
 | **S4** | **안정성 2차** (in-flight 방지·stale·시계 정리) + **비용 3차** (heartbeat·Trail touch·RTDB child listener·전역 목록) | 대기 |
+
+### ⚠ S1 결과를 인용하기 전에 읽어라 (감리0810 판정)
+
+```
+z13 4케이스 = 합성 데이터   extrapolateSpectator() 가 5km/h 로 표본을 찍어냈다
+                            증거: 창 ~6s 인 z13-decel 의 n 이 643 (z15-decel 은 29)
+                            → 「최대 residual 392.80m」은 **관측이 아니다. 인용 금지**
+D_eff 800ms = 탐색 상한값   maxDelayMs 가 800 인데 4케이스가 정확히 800 = 경계 히트.
+                            참 지연 미상이고 그 D 의 residual 도 과대. S2 §1-0 에서 재산출
+```
+
+**S2 §1-0 확정 기준선 (z15만)**: cruise **D_eff=7140 ms · residual max≈54.9 m**.  
+depart는 D_eff **≥10 s**(탐색 천장). decel/pause는 예산 안(움직일 때가 문제).
+원본 S1 보고는 `REPORT-S1.md`에 보존.
 
 **순서 의존 2건 (위반 금지)**
 

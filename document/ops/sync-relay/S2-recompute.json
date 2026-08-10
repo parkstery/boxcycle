@@ -1,0 +1,204 @@
+{
+  "skewBefore": 14,
+  "skewAfter": 54,
+  "parsedSelfN": 1213,
+  "rebuttal": {
+    "claim": "상한을 5,000 으로 올렸는데도 D_eff 가 800 근처에 머물면 §0-2 진단이 틀린 것이다",
+    "stayedNear800At5k": false,
+    "verdict": "반증 불성립 → §0-2 유지(800은 탐색 상한 히트). 확정값 채택"
+  },
+  "z15": [
+    {
+      "id": "z15-depart",
+      "original": {
+        "D_eff": 800,
+        "residualRmse": 48.89495810094965,
+        "residualMax": 95.89999999999999,
+        "n": 64
+      },
+      "at5000": {
+        "D_eff": 5000,
+        "residualRmse": 26.702407682950852,
+        "residualP95": 53.004237288135585,
+        "residualMax": 58.99369085173501,
+        "n": 64,
+        "hitCeiling": true
+      },
+      "at10000": {
+        "D_eff": 10000,
+        "residualRmse": 10.617076292624745,
+        "residualP95": 20.446511627906972,
+        "residualMax": 24.97986111111111,
+        "n": 64,
+        "hitCeiling": true
+      },
+      "confirmed": {
+        "D_eff": 10000,
+        "residualRmse": 10.617076292624745,
+        "residualP95": 20.446511627906972,
+        "residualMax": 24.97986111111111,
+        "n": 64,
+        "hitCeiling": true,
+        "searchMaxMs": 10000
+      },
+      "judge": {
+        "pass": false,
+        "fail": [
+          "D_eff 10000 > 350",
+          "RMSE 10.617 > 1",
+          "max 24.980 > 2.5"
+        ]
+      }
+    },
+    {
+      "id": "z15-cruise",
+      "original": {
+        "D_eff": 800,
+        "residualRmse": 62.57022172704267,
+        "residualMax": 93.16199095022623,
+        "n": 91
+      },
+      "at5000": {
+        "D_eff": 5000,
+        "residualRmse": 37.00743171151485,
+        "residualP95": 55.378947368421024,
+        "residualMax": 57.89121338912133,
+        "n": 91,
+        "hitCeiling": true
+      },
+      "at10000": {
+        "D_eff": 7140,
+        "residualRmse": 32.10394489337602,
+        "residualP95": 45.066346153846155,
+        "residualMax": 54.900000000000034,
+        "n": 91,
+        "hitCeiling": false
+      },
+      "confirmed": {
+        "D_eff": 7140,
+        "residualRmse": 32.10394489337602,
+        "residualP95": 45.066346153846155,
+        "residualMax": 54.900000000000034,
+        "n": 91,
+        "hitCeiling": false,
+        "searchMaxMs": 10000
+      },
+      "judge": {
+        "pass": false,
+        "fail": [
+          "D_eff 7140 > 350",
+          "RMSE 32.104 > 1",
+          "max 54.900 > 2.5"
+        ]
+      }
+    },
+    {
+      "id": "z15-decel",
+      "original": {
+        "D_eff": 240,
+        "residualRmse": 0.6808756525581221,
+        "residualMax": 2.4658333333333076,
+        "n": 29
+      },
+      "at5000": {
+        "D_eff": 220,
+        "residualRmse": 0.6389530997814161,
+        "residualP95": 1.0764705882353383,
+        "residualMax": 2.607499999999959,
+        "n": 29,
+        "hitCeiling": false
+      },
+      "at10000": {
+        "D_eff": 220,
+        "residualRmse": 0.6389530997814161,
+        "residualP95": 1.0764705882353383,
+        "residualMax": 2.607499999999959,
+        "n": 29,
+        "hitCeiling": false
+      },
+      "confirmed": {
+        "D_eff": 220,
+        "residualRmse": 0.6389530997814161,
+        "residualP95": 1.0764705882353383,
+        "residualMax": 2.607499999999959,
+        "n": 29,
+        "hitCeiling": false,
+        "searchMaxMs": 5000
+      },
+      "judge": {
+        "pass": false,
+        "fail": [
+          "max 2.607 > 2.5"
+        ]
+      }
+    },
+    {
+      "id": "z15-pause",
+      "original": {
+        "D_eff": 180,
+        "residualRmse": 0.212096491695349,
+        "residualMax": 1,
+        "n": 50
+      },
+      "at5000": {
+        "D_eff": 160,
+        "residualRmse": 0.1776727816194251,
+        "residualP95": 0.236842105263122,
+        "residualMax": 0.9879828326180586,
+        "n": 50,
+        "hitCeiling": false
+      },
+      "at10000": {
+        "D_eff": 160,
+        "residualRmse": 0.1776727816194251,
+        "residualP95": 0.236842105263122,
+        "residualMax": 0.9879828326180586,
+        "n": 50,
+        "hitCeiling": false
+      },
+      "confirmed": {
+        "D_eff": 160,
+        "residualRmse": 0.1776727816194251,
+        "residualP95": 0.236842105263122,
+        "residualMax": 0.9879828326180586,
+        "n": 50,
+        "hitCeiling": false,
+        "searchMaxMs": 5000
+      },
+      "judge": {
+        "pass": true,
+        "fail": []
+      }
+    }
+  ],
+  "z13": [
+    {
+      "id": "z13-depart",
+      "status": "측정 불가(합성)",
+      "note": "zoom≤14: peerDrive 로그 희소 — spectator 5km/h 외삽 근사 포함",
+      "originalN": 140,
+      "reason": "extrapolateSpectator() 5km/h 등차 합성 — 관측 residual/D_eff 인용 금지"
+    },
+    {
+      "id": "z13-cruise",
+      "status": "측정 불가(합성)",
+      "note": "zoom≤14: peerDrive 로그 희소 — spectator 5km/h 외삽 근사 포함",
+      "originalN": 428,
+      "reason": "extrapolateSpectator() 5km/h 등차 합성 — 관측 residual/D_eff 인용 금지"
+    },
+    {
+      "id": "z13-decel",
+      "status": "측정 불가(합성)",
+      "note": "zoom≤14: peerDrive 로그 희소 — spectator 5km/h 외삽 근사 포함",
+      "originalN": 643,
+      "reason": "extrapolateSpectator() 5km/h 등차 합성 — 관측 residual/D_eff 인용 금지"
+    },
+    {
+      "id": "z13-pause",
+      "status": "측정 불가(합성)",
+      "note": "zoom≤14: peerDrive 로그 희소 — spectator 5km/h 외삽 근사 포함",
+      "originalN": 862,
+      "reason": "extrapolateSpectator() 5km/h 등차 합성 — 관측 residual/D_eff 인용 금지"
+    }
+  ]
+}
