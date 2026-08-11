@@ -1,168 +1,152 @@
 # 감리 → 개발팀장 지시서 (활성) — 멀티라이더 위치 동기화
 
-> S2 보고서는 **감리가 이미 `REPORT-S2.md` 로 보존**했다. 너는 **새 `REPORT.md` 만 작성**하고
-> 기존 보고서를 옮기거나 덮지 마라. 마치면 이 파일 `상태` → `보고완료`.
-> 보고 형식은 `../cyclefit-relay/SUPERVISOR-PROTOCOL.md` §1-3 **UAG**.
+> S3-DIAG 보고서는 **감리가 이미 `REPORT-S3D.md` 로 보존**했다. 너는 **새 `REPORT.md` 만 작성**하고
+> 기존 보고서(`REPORT-S1.md` · `REPORT-S2.md` · `REPORT-S3D.md`)를 옮기거나 덮지 마라.
+> 마치면 이 파일 `상태` → `보고완료`. 보고 형식은 `../cyclefit-relay/SUPERVISOR-PROTOCOL.md` §1-3 **UAG**
+> (rider 전용 규율 — §4 그림 확인 · `rider-cycle-fit` 로드 · `.out/candidates` — 는 이 작업선에 해당 없음).
 
-- **지시번호**: S3-DIAG (패킷 단위 체인 진단)
-- **발신**: 클로드감리0811 · **일시**: 2026-08-11 · **상태**: 보고완료
+- **지시번호**: S3-DIAG-R (체인 재판정)
+- **발신**: 클로드감리0811 · **일시**: 2026-08-11 · **상태**: 배포
 - **브랜치**: `fix/multiplayer-position-sync` (base `main2`)
-- ⚠ **S2 가 올린 `D_eff=7140 ms · residual 54.9 m` 기준선은 무효 처리됐다.** 사유는 `HANDOFF.md` §3.
-  **S3(정확도 1차 구현)은 보류다.** 이번 지시는 구현이 아니라 진단이다.
 
 ---
 
-## 0. S2 판정 — 방법은 채택, 결론은 반려
+## 0. S3-DIAG 판정 — 계측은 채택, 결론은 기각
 
-**잘한 것**: 앱 미구동 재계산 · z13 합성 판정 · 원시 로그 보존 · 수용 게이트 구성.
-수용 게이트는 **하네스 배선이 옳다는 증거**로 유효하니 fixture 로 유지하라.
+**잘한 것**: `sampleVirtualDistanceM` 을 `sampleLiveLngLat` 패턴대로 추가 · 폐기 3분류 · **전진 폐기 0**
+게이트 PASS · `s1-metrics.mjs` §2 정정으로 depart·cruise 가 「D_eff 산출 불가」로 나온 것 ·
+known-fail 2 건 · seq 오염을 스스로 발견해 재측정하고 그 사실을 보고에 남긴 것. **이 배선은 그대로 쓴다.**
 
-**반려**: `D_eff` 는 *하나의 전역 시간 이동* 을 가정하는데 depart·cruise 는 그 가정이 깨진 구간이다.
-같은 창에서 A 는 89.8 m 갔는데 B.newest 는 14.0 m 갔다(depart). cruise 는 81 m 뒤에서 출발해
-따라잡는다. 옵티마이저가 **거리 오프셋을 시간으로 환산**했을 뿐이다 — cruise 의 `age` 중앙값은
-**171 ms** 이고, 이는 7,140 ms 와 40 배 어긋난다.
+**기각 — 「최초 이탈 = ①→②」**. 근거가 `dist 0.573 m` 지점의 Δ 0.45 m 이고 분포는 p50 **0.25 m**,
+max **0.79 m** 다. 0.25 m ÷ 0.2 s = 1.25 m/s = 출발 속도 5 km/h — `METRICS_UI_MS = 200` 이
+**설계대로 동작한 결과**이고 D-0 로 이미 기록된 동작이다. **수십 m 증상을 설명할 수 없다.**
 
-→ **현재 「상당한 차이」는 미터로 정량화되지 않았다.** 목표 없이 코드를 고치지 마라.
-
----
-
-## 1. 지시 — 최초로 값이 벌어지는 구간을 찾는다
-
-체인을 **동일 패킷 단위로** 연결한다. 시계열 통계가 아니라 **1:1 조인**이다.
-**사용자가 실제로 보는 지도 위 좌표(⑦)까지 간다.** ⑤에서 끝내지 마라.
-
-```
-① A authoritative   virtualDistanceRef.current      useVirtualRideSession.ts:47  ★ rAF 원본
-       ↓ rideDistanceAlongRoute()  ← liveLocationSnapshot.ts:42-52  min(routeDist, geoLen) 로 clamp
-② A snapshot        snapshot.distMetersAlongRoute   liveLocationSnapshot.ts:88
-③ RTDB payload      encodePayload() 의 d            rtdbTrailMotion.ts:58
-④ B 수신 payload    decodeRow() 의 distM            rtdbTrailMotion.ts:68
-⑤ B ingest          buffer 수용 / 폐기               integrator.ts:64
-⑥ B displayDistM    stepPeerMotionEntity() 결과      integrator.ts
-       ↓ clampRouteDist() + getPointOnRouteByDistance()  ← **B 의** routeGeometry
-⑦ 지도 위 좌표      buildRenderFeatures()           PeerMotionRegistry.ts:82-91
-```
-
-**①과 ②는 반드시 분리 계측한다.** ①은 rAF 원본이고 ②는 clamp 를 거친 값이다. 항등이 아니다.
-**⑥→⑦은 수신 측 geometry 를 쓴다.** A 와 B 의 `lineStringLengthMeters` 가 다르면 같은 `distM`
-이 다른 좌표로 떨어지고 수신 측 길이로 다시 clamp 된다 — D-7 이 여기서 드러난다.
-**A 와 B 각각의 `routeLen` 을 1 회씩 기록하라.**
-
-### 1-1. 상관 ID — DEV 전용 `s` 필드
-
-`encodePayload` 에 단조 증가 seq `s` 를 추가한다. `decodeRow` 는 **없어도 동작해야 한다**(하위 호환).
-이 seq 로 ①~⑤ 를 조인한다. seq 없이 시각으로 맞추려 하지 마라 — 두 기기 시계가 다르다.
-
-### 1-2. ① 계측 — DEV 전용 sampler
-
-`virtualDistanceRef.current` 는 훅 내부 ref 다. React 상태(`metrics.virtualDistanceMeters`)를 쓰면
-**200 ms 낡은 값**이라 ①이 아니다. `sampleLiveLngLat`(`useVirtualRideSession.ts:180-187`)과 **같은 패턴**으로
-`sampleVirtualDistanceM()` 를 추가해 rAF 원본을 그대로 반환하라. 새 상태·새 훅 만들지 마라.
-
-### 1-3. 각 지점 로그 (DEV·`?peerSyncLogMs` 와 동일한 게이트)
-
-| 지점 | 남길 값 |
-|---|---|
-| ① | `seq` · `sampleVirtualDistanceM()` · `appliedSpeedKmh` · `speedKmh(target)` |
-| ② | `seq` · `distMetersAlongRoute` · `routeReady` · A `routeLen` · A `geoLen` |
-| ③ | `seq` · `d` · `v` · set() **성공/실패 · 왕복 소요 ms** |
-| ④ | `seq` · `d` · `t` · 수신 시각 |
-| ⑤ | `seq` · **수용 / 동일거리중복 폐기 / 전진 폐기** · `newest.distM` |
-| ⑥ | `seq` 로 조인된 시점의 `displayDistM` · `buf` · `age` |
-| ⑦ | 그 시점 지도 좌표 · B `routeLen` · clamp 발생 여부 |
-
-### 1-4. 산출 — 최초 이탈 지점 1개
-
-seq 조인 표에서 **①→②→③→④→⑤→⑥→⑦ 중 값이 처음 벌어지는 링크**를 지목하고 근거를 표로 제시한다.
-가설 나열 금지. **링크 하나를 지목**하라.
-
-### 1-5. 이미 확인된 것 (재조사 금지 — 여기서 시간 쓰지 마라)
-
-- **S1 로그의 `self` 는 ② 다.** `useLiveLocationPublishSession.ts:209` 가
-  `setPeerSyncSelfDistM(snapshot.distMetersAlongRoute)` 이다.
-  → **① 은 이번에 처음 계측된다.** S1·S2 의 어떤 수치도 ① 을 담고 있지 않다.
-- **발행 게이트는 속도를 억제하지 않는다.** `shouldPublishPeerMotion`
-  (`liveLocationSnapshot.ts:179-195`)은 시간 100 ms + 속도 델타 우회. "느려서 안 나갔다" 가설은 반증됨.
-
-**반증 조건**: *"seq 조인에서 ②③④ 의 `d` 가 전부 일치하고 전진 packet 폐기도 0 이면, 문제는 전송이
-아니라 ①→② clamp 또는 ⑥⑦ 렌더 쪽이다."* → 그 경우 즉시 보고하고 멈춰라.
+**감리 자책 1건** — §1-5 반증 조건(「②③④ `d` 가 일치하면 전송이 아니다」)은 **잘못 쓴 것**이다.
+같은 seq 의 ②③④ 는 같은 값을 복사한 것이라 언제나 일치하며, 전송의 실제 실패 양식인
+**지연·순서 뒤바뀜**은 원리적으로 탐지하지 못한다. 245/245 일치는 전송 건전성의 증거가 아니다.
+네가 문구를 정확히 따른 것이 맞다.
 
 ---
 
-## 2. 정정 — `s1-metrics.mjs`
+## 1. 판정 기준을 바꾼다 — 순번이 아니라 **초과량**
 
-```
-interpolateSelf : 범위 밖에서 양끝값 클램프 → null 반환
-computeDeff…    : 최소 겹침 비율(기본 0.7) 미달 D 는 후보에서 제외
-```
+각 링크마다 **설계상 예상 괴리**를 먼저 명시하고, 실측이 그 예상을 **얼마나 초과했는지**로 순위를 매긴다.
 
-⚠ **이 수정으로 기존 무효 로그에서 새 기준 수치를 만들지 마라.** depart·cruise 는 겹침을 채워도
-무효다(가정 자체가 깨진 구간). 재계산 결과를 `REPORT.md` 지표표에 올리지 말 것.
-정정의 목적은 **앞으로의 측정이 경계에서 이기지 못하게** 하는 것뿐이다.
-
----
-
-## 3. Fixture 고정
-
-| fixture | 성격 | 기대 |
+| 링크 | 설계상 예상 괴리 | 판정 = 실측 − 예상 |
 |---|---|---|
-| `s1-z15-depart` · `s1-z15-cruise` | **무효 fixture** | 「D_eff 산출 불가」로 표시되어야 한다. 숫자가 나오면 §2 정정이 덜 된 것 |
-| `s1-z15-decel` · `s1-z15-pause` | 정확도 예산 회귀 고정 | 예산은 PASS 유지. 단 §3-2 전제 미달이라 **스케일은 「판정 유보」로 출력** |
-| **known-fail** `d0-duplicate-distm` | D-0 | 연속 중복 `distM` 비율 ≥ 40% 를 **현재 동작으로 고정**. 고쳐지면 이 테스트가 깨지고, 그때 기대값을 뒤집는다 |
-| **known-fail** `d1-target-vs-applied` | D-1 | 발행 `speedMps` 가 실제 진행속도와 ≥ 20% 어긋남을 고정 |
+| ①→② | 샘플링 200 ms × 현재 속도 | 초과량(m) |
+| ②→③ | 0 (같은 값 복사) + 반올림 0.05 m | 초과량(m) |
+| ③→④ | 네트워크 왕복 — **예상값을 이번에 측정한다** | §2 참조 |
+| ④→⑤ | 0 (수용 시) | 폐기로 잃은 거리(m) |
+| ⑤→⑥ | 보간 지연 160 ms × 속도 | 초과량(m) |
+| ⑥→⑦ | 0 (같은 geometry 일 때) | 초과량(m) |
 
-known-fail 은 **skip 이 아니라 "현재값을 단언하는 통과 테스트"** 로 만들어라. 수정이 들어오면 즉시 붉어져야 한다.
-
-### 3-1. ⑤ dedup — 전체 폐기율을 합격 기준으로 쓰지 마라
-
-`integrator.ts:64` 의 폐기를 **두 종류로 분리해 집계**한다.
-
-| 종류 | 조건 | 성격 |
-|---|---|---|
-| **동일거리 중복 폐기** | `packet.distM ≈ newest.distM` (≤ 0.05 m) | **정상** — D-0 의 결과일 뿐. 비율이 높아도 합격 |
-| **전진 packet 폐기** | `packet.distM > newest.distM` 인데 버려짐 | **유해** — 위치 정보 손실 |
-
-```
-게이트   전진 packet 폐기 = 0        ← 1건이라도 나오면 FAIL, seq 와 사유를 그대로 보고
-```
-
-역행 packet(`distM < newest.distM`)은 별도 3번째 항목으로 세되 게이트에 넣지 않는다 — 원인 규명 대상이다.
-
-### 3-2. 유효성 게이트 — 저속·짧은 창에서는 판정하지 않는다
-
-**`newest − self` 중앙값 0 을 쓰지 마라.** 정상 파이프라인도 샘플링·전송 지연만큼 음수이고,
-저속에서는 0 으로 수렴해 스케일 오류를 가린다. 대신 **구간 이동량 일치**를 쓰되 전제를 반드시 검사한다.
-
-```
-판정 전제   Δ(A.self) ≥ 100 m   AND   창 ≥ 20 s
-            미달이면 결과는 「판정 유보」 — PASS 로 기록하지 마라
-게이트      |Δ(A.self) − Δ(B.newest)| / Δ(A.self) ≤ 0.1     (시간 이동에 불변)
-```
-
-이 전제를 S1 에 적용하면 판정 가능한 것은 z15-cruise 뿐이고 48% 이탈로 FAIL 이다.
-z15-decel·z15-pause 의 기존 「PASS」는 **스케일 판정 유보**로 내려간다.
+**「최초 이탈」이라는 표현을 쓰지 마라. 「초과량 최대 링크」로 보고하라.**
 
 ---
 
-## 4. 금지
+## 2. 구간별 시각 계측 — `recvAt − t` 를 그대로 쓰지 마라
 
-- **최초 이탈 구간이 확정되기 전까지** 보간 상수(`rideSyncPolicy.ts`) · 발행 주기 · 비용 최적화 코드 수정
-- 적용속도 발행(D-1) · 저줌(D-2) 수정 — **S3 사안이며 현재 보류**
-- 알고리즘 반복을 2-브라우저 e2e 로 검증 — replay 로만. e2e 는 증상 계측에만
+⚠ `recvAt` 은 **B 시계**, `t` 는 **A 시계**다. 두 시계를 섞은 값이라 시계 오차가 그대로 실린다.
+S3-DIAG 가 관측한 **4 초는 확정이 아니라 가설**이다. 다음 4 개를 새로 기록해 구간을 쪼갠다.
+
+```
+snapshotCapturedAt    A  buildLiveLocationSnapshot 시점
+motionWriteStartAt    A  RTDB set() 호출 직전
+motionWriteDoneAt     A  set() await 반환 직후
+firstSeenAt           B  해당 (uid, seq) 를 **처음** 관측한 시각
+```
+
+**시계에 불변인 A 내부 구간을 먼저 판정한다.**
+
+```
+publishQueueMs = motionWriteStartAt − snapshotCapturedAt     ← 발행 대기(in-flight 적체)
+writeRttMs     = motionWriteDoneAt  − motionWriteStartAt     ← RTDB 쓰기 왕복
+deliveryMs     = firstSeenAt        − motionWriteDoneAt      ← ★ 시계 혼합. skew 보정 필수
+```
+
+`deliveryMs` 를 보고하려면 **S1 방식으로 두 기기 시계 오차를 측정 직전·직후 각 1 회 기록**하고
+보정값을 명시하라. 보정 없이 밀리초를 주장하지 마라.
+
+각 항목 **p50 · p95 · max · 1 s 초과 비율**을 낸다.
+
+### 2-1. 발행 tick 동시 in-flight 수
+
+publish tick 의 await 진입 시 +1, 반환 시 −1 하는 카운터를 두고 **최대 동시 in-flight 수**와
+그 시각의 `publishQueueMs` 를 함께 남겨라. 적체가 있으면 여기서 보인다.
+
+---
+
+## 3. 전 이벤트 보존 — `rawTail` 금지
+
+`rawTail` 30 줄로는 분포를 말할 수 없다. **pt1~pt5 전 이벤트를 파일로 보존**한다.
+
+```
+document/ops/sync-relay/S3R-chain-events.json     ← pt1~pt5 전량 (A·B 양쪽)
+document/ops/sync-relay/S3R-summary.json          ← 집계·판정
+```
+
+`S3-chain-join.json` 처럼 요약만 남기지 마라. 감리가 원본을 재계산할 수 있어야 한다.
+
+---
+
+## 4. (uid, seq) 최초 수신과 반복 관측 분리
+
+RTDB 부모 노드 `onValue` 는 자식 1 건 변경마다 **노드 전체를 재전달**한다.
+S3-DIAG tail 에서 동일 seq `46844634` 가 **6 회** 반복 관측됐다.
+
+```
+(uid, seq) 별로
+  firstSeenAt        최초 관측 시각
+  repeatSeenCount    이후 반복 관측 횟수
+```
+
+**최초 수신만 지연·순서 판정에 쓴다.** 반복 관측을 지연으로 세지 마라.
+
+### 4-1. 역행 폐기 149 건 분해 (필수)
+
+```
+A. 최초 수신 역행     (uid,seq) 최초 관측인데 distM < newest        ← 진짜 순서 뒤바뀜
+B. 동일 seq 재관측     repeatSeenCount ≥ 1 인 재전달                ← onValue 부작용
+C. 그 외              A·B 어디에도 안 들어가는 것 — 전수 나열
+```
+
+건수·비율과 **C 의 원문 로그 전수**를 보고하라. C 가 0 이 아니면 그것이 다음 조사 대상이다.
+
+---
+
+## 5. 범위 밖으로 분리 — `routeLen ≠ geoLen` (D-8)
+
+```
+A_routeLen 1500   A_geoLen 1029.633   B_routeLen 1029.633
+```
+
+**경로·완주 계열 결함으로 분리 기록만 하고, 현재 peer 위치 증상의 원인으로 단정하지 마라.**
+이번 지시 범위 밖이다. 1029.6 m 를 넘기는 주행 실험도 하지 마라.
+
+---
+
+## 6. 금지
+
+- **계측 완료 전** 발행 주기 · throttle · integrator 상수(`rideSyncPolicy.ts`) · **RTDB 구독 방식** 수정
+- 적용속도 발행(D-1) · 저줌(D-2) 수정 — **S3 사안이며 보류**
+- **cyclefit 자산·코드·스킬 일체 수정** — `document/ops/cyclefit-relay/` · `blender/` ·
+  `rider-cycle-fit`·`rider-preview` 스킬 · rider GLB. **이 작업선은 cyclefit 을 더 건드리지 않는다**
+- 알고리즘 반복을 2-브라우저 e2e 로 검증 — replay 로만. e2e 는 계측에만
 - `main2` 병합 · PR · `--no-verify`
 
 ---
 
-## 5. 보고
+## 7. 보고
 
-**새 `REPORT.md` 만 작성한다.** `REPORT-S1.md` · `REPORT-S2.md` 는 감리가 보존해 둔 것이니 손대지 마라.
+**새 `REPORT.md` 만 작성한다.**
 
 ```
-반증  §1-5 반증 조건 해당 여부   ← 먼저
-UAG   **최초 이탈 링크 1개** (①~⑦ 중) + seq 조인 표 근거
-기술  ① vs ② 비교(clamp 발생 여부) · A/B `routeLen` 대조 · ⑥ displayDistM · ⑦ 좌표 이탈
-      ⑤ 폐기 3분류(동일거리중복 / **전진** / 역행) · fixture 4 + known-fail 2 결과
-      실패·미완 전수 · 이견 · 커밋
+UAG   **초과량 최대 링크 1개** + 링크별 (실측 − 예상) 표
+기술  publishQueueMs · writeRttMs · deliveryMs 각 p50/p95/max/1s초과율 · 시계 보정값
+      최대 동시 in-flight 수 · 역행 149건 A/B/C 분해(C 는 원문 전수)
+      repeatSeenCount 분포 · 보존 파일 경로 · 실패·미완 전수 · 이견 · 커밋
 ```
 
-**e2e 를 돌렸다면 실행 시간을 분 단위로 적어라.**
+**`deliveryMs` 는 시계 보정을 명시하지 않으면 무효로 처리한다.**
+**e2e 실행 시간을 분 단위로 적어라.**
