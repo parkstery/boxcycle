@@ -5,7 +5,7 @@
 > 마치면 이 파일 `상태` → `보고완료`. 보고 형식은 `../cyclefit-relay/SUPERVISOR-PROTOCOL.md` §1-3 **UAG**
 > (rider 전용 규율 — §4 그림 확인 · `rider-cycle-fit` 로드 · `.out/candidates` — 는 이 작업선에 해당 없음).
 
-- **지시번호**: S3-DIAG-R1 (체인 재판정 — 개정1)
+- **지시번호**: S3-DIAG-R2 (체인 재판정 — 개정2)
 - **발신**: 클로드감리0811 · **일시**: 2026-08-11 · **상태**: 배포
 - **브랜치**: `fix/multiplayer-position-sync` (base `main2`)
 
@@ -47,7 +47,7 @@ speedMps 는 그 구간의 실제 진행속도(①의 미분 또는 appliedSpeed
 | ②→③ | 0 (같은 값 복사) + 반올림 0.05 m | m (직접) |
 | ③→④ | 네트워크 — **예상값을 이번에 측정한다** | ms → m 환산 (§2) |
 | ④→⑤ | 0 (수용 시) | 폐기로 잃은 거리 m |
-| ⑤→⑥ | 보간 지연 160 ms × 속도 | ms → m 환산 |
+| ⑤→⑥ | **고정 160 ms 아님 — §5 의 모드별 동적 기대값** | ms → m 환산 |
 | ⑥→⑦ | 0 (같은 geometry 일 때) | m (직접) |
 
 **「최초 이탈」이라는 표현을 쓰지 마라. 「초과량 최대 링크」로 보고하라.**
@@ -122,12 +122,15 @@ try { await set(...); } finally { inFlight -= 1; }
 
 ## 3. 전 이벤트 보존 — `rawTail` 금지
 
-`rawTail` 30 줄로는 분포를 말할 수 없다. **pt1~pt5 전 이벤트를 파일로 보존**한다.
+`rawTail` 30 줄로는 분포를 말할 수 없다. **pt1~pt7 의 모든 방출 이벤트를 파일로 보존**한다.
 
 ```
-document/ops/sync-relay/S3R-chain-events.json     ← pt1~pt5 전량 (A·B 양쪽)
+document/ops/sync-relay/S3R-chain-events.json     ← pt1~pt7 전량 (A·B 양쪽) · 표본 추출 금지
 document/ops/sync-relay/S3R-summary.json          ← 집계·판정
 ```
+
+⑥(§5-1)·⑦ 도 포함이다. ⑥ 은 rAF 마다 발생하므로 양이 크다 — `?peerSyncLogMs` 로 방출 주기를
+조절하되, **방출한 것은 전부 보존**하라. 콘솔 tail 로 대체하지 마라.
 
 `S3-chain-join.json` 처럼 요약만 남기지 마라. 감리가 원본을 재계산할 수 있어야 한다.
 
@@ -158,7 +161,66 @@ C. 그 외              A·B 어디에도 안 들어가는 것 — 전수 나열
 
 ---
 
-## 5. 범위 밖으로 분리 — `routeLen ≠ geoLen` (D-8)
+## 5. ⑤→⑥ — 고정 160 ms 로 계산하지 마라
+
+`stepPeerMotionEntity`(`integrator.ts:129-174`)는 **네 갈래**로 갈리고 각각 기대 지연이 다르다.
+`PEER_INTERP_DELAY_MS(160) × 속도`를 예상 괴리로 쓰면 세 갈래를 전부 오판한다.
+
+### 5-1. 매 step 기록 (⑥ 이벤트)
+
+```
+renderTime      = nowMs − PEER_INTERP_DELAY_MS
+newestAgeMs     = nowMs − newest.recvAtMs
+mode            oldest | interpolate | extrapolate | paused
+buffer          buf.length
+displayDistM    실제 결과
+entitySpeedMps  외삽에 쓰인 entity.speedMps
+```
+
+모드별 추가 기록 — **⑥·⑦ 을 `newest.seq` 하나에 귀속시키지 마라.**
+
+| mode | 조건 | 귀속 seq · 추가 기록 |
+|---|---|---|
+| `paused` | `phase` = paused/completed | `newestSeq` · `newest.distM` |
+| `oldest` | `renderTime ≤ oldest.recvAtMs` | `oldestSeq` · `oldest.recvAtMs` · `oldest.distM` |
+| `interpolate` | 그 사이 | **`s0Seq` · `s1Seq` 양쪽** · 각 `recvAtMs` · 각 `distM` · 보간 `t` |
+| `extrapolate` | `renderTime ≥ newest.recvAtMs` | `newestSeq` · **`aheadMs`** · `newest.recvAtMs` · `newest.distM` |
+
+`aheadMs = min(renderTime − newest.recvAtMs, PEER_INTERP_MAX_EXTRAP_MS)` 를 **cap 적용 전후 둘 다** 남겨라.
+cap 에 걸렸는지가 stall 판별의 핵심이다.
+
+### 5-2. 두 가지를 분리해 판정한다
+
+**(a) 계약 준수 오차** — 기록된 입력으로 `stepPeerMotionEntity` 공식을 그대로 재계산해 비교한다.
+
+```
+paused/completed  expected = clampRouteDist(newest.distM, routeLenM)
+oldest            expected = oldest.distM
+interpolate       t = (renderTime − s0.recvAtMs) / (s1.recvAtMs − s0.recvAtMs)   ※ span ≤ 0 이면 t = 0
+                  expected = s0.distM + (s1.distM − s0.distM) × t
+extrapolate       expected = newest.distM + entitySpeedMps × aheadMs / 1000
+
+계약 준수 오차 = displayDistM − expected      ← 0 이어야 한다. 0 이 아니면 구현 결함
+```
+
+**(b) 모드별 기대 지연** — 이것이 ⑤→⑥ 의 예상 괴리다.
+
+| mode | 기대 지연 | 초과량 |
+|---|---|---|
+| `interpolate` | 160 ms + `(s1.recvAtMs − s0.recvAtMs)` 만큼의 격자 오차 | 실측 − 기대 |
+| `extrapolate` | 160 ms + `aheadMs` — **이 구간은 지연이 아니라 추측**이다 | `aheadMs` 전체를 초과량으로 본다 |
+| `oldest` | `nowMs − oldest.recvAtMs` — 버퍼가 얕아 임의로 크다 | 그 값 전체 |
+| `paused` | 정의 없음 | **판정 제외** — 건수만 센다 |
+
+**`extrapolate` 는 별도 집계한다.** 외삽 거리 `entitySpeedMps × aheadMs / 1000` 와, 그 구간 A 의
+실제 이동거리를 대조해 **외삽 오차(m)** 를 낸다. 여기가 D-1(틀린 속도)이 위치 오차로 바뀌는 지점이다.
+
+모드별 **점유 비율**(전체 step 대비)을 반드시 보고하라. `extrapolate`·`oldest` 비율이 높으면
+그 자체가 stall 의 직접 증거다.
+
+---
+
+## 6. 범위 밖으로 분리 — `routeLen ≠ geoLen` (D-8)
 
 ```
 A_routeLen 1500   A_geoLen 1029.633   B_routeLen 1029.633
@@ -169,9 +231,12 @@ A_routeLen 1500   A_geoLen 1029.633   B_routeLen 1029.633
 
 ---
 
-## 6. 금지
+## 7. 금지
 
-- **계측 완료 전** 발행 주기 · throttle · integrator 상수(`rideSyncPolicy.ts`) · **RTDB 구독 방식** 수정
+- **계측 완료 전** 보간 상수 · 발행 주기 · throttle · integrator 상수(`rideSyncPolicy.ts`) ·
+  **RTDB 구독 방식** 수정
+- **제품 동작 변경 일체** — 이번은 계측 추가만이다. `stepPeerMotionEntity` 의 분기·공식을
+  「개선」하지 마라. 계약 준수 오차가 0 이 아니면 **고치지 말고 그대로 보고**하라
 - 적용속도 발행(D-1) · 저줌(D-2) 수정 — **S3 사안이며 보류**
 - **cyclefit 자산·코드·스킬 일체 수정** — `document/ops/cyclefit-relay/` · `blender/` ·
   `rider-cycle-fit`·`rider-preview` 스킬 · rider GLB. **이 작업선은 cyclefit 을 더 건드리지 않는다**
@@ -180,7 +245,7 @@ A_routeLen 1500   A_geoLen 1029.633   B_routeLen 1029.633
 
 ---
 
-## 7. 보고
+## 8. 보고
 
 **새 `REPORT.md` 만 작성한다.**
 
@@ -189,8 +254,10 @@ UAG   **초과량 최대 링크 1개** + 링크별 (실측 − 예상) 표 — *
 기술  publishQueueMs · writeRttMs · endToEndMs 각 p50/p95/max/1s초과율 + m 환산 · 시계 보정값
       receiveVsAckMs (참고값 표기)
       §2-2 동기 레코드 기반 ①→② 초과량 · 최대 동시 in-flight 수(finally 처리 확인)
+      §5 모드 점유 비율(oldest/interpolate/extrapolate/paused) · 계약 준수 오차 ·
+        extrapolate 의 aheadMs 분포와 cap 히트율 · 외삽 오차(m)
       역행 149건 A/B/C 분해(C 는 원문 전수) · repeatSeenCount 분포
-      보존 파일 경로 · 실패·미완 전수 · 이견 · 커밋
+      보존 파일 경로(pt1~pt7 전량) · 실패·미완 전수 · 이견 · 커밋
 ```
 
 **`endToEndMs` 는 시계 보정값을 명시하지 않으면 무효로 처리한다.**
