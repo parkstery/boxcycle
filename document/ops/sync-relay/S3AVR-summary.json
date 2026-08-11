@@ -1,0 +1,285 @@
+{
+  "instruction": "S3A-VR",
+  "sourceEvents": "S3AV-chain-events.json",
+  "sourceWindows": "S3AV-summary.json cases.*.window",
+  "newE2e": false,
+  "skew": {
+    "used": 0,
+    "reason": "Playwright 한 프로세스 · 두 브라우저 컨텍스트 · 동일 머신 OS 시계. skew 존재 여지 없음",
+    "handshakeObserved": {
+      "clockSkewBefore": 6,
+      "clockSkewAfter": 320,
+      "note": "실행 지연 포함, 판정 미사용"
+    }
+  },
+  "gates": {
+    "reproduce_4_2": "PASS",
+    "chainCross_4_3": "PASS",
+    "budget": {
+      "D_eff_ms": 350,
+      "residualRmse_m": 1,
+      "residualMax_m": 2.5
+    }
+  },
+  "uag": "z15 스케일 PASS · 정확도 미종결",
+  "cases": {
+    "z15-depart": {
+      "id": "z15-depart",
+      "window": {
+        "a0": 1786464597838,
+        "a1": 1786464618232,
+        "b0": 1786464598065,
+        "b1": 1786464618314
+      },
+      "skewUsed": 0,
+      "D_eff": 560,
+      "residualRmse": 0.6393270045708169,
+      "residualMax": 2.117038759689919,
+      "residualP95": 1.4050360824742256,
+      "overlap": 1,
+      "n": 80,
+      "hitCeiling": false,
+      "deffStatus": "ok",
+      "verdict": "미종결",
+      "chain": {
+        "s1_sampleAge": {
+          "n": 92,
+          "p50": 230.6564741114348,
+          "p95": 392.418686604123,
+          "max": 433.4400000000002,
+          "speedMpsUsed": 8.16638888888889,
+          "p50_m": 1.8836304673339088,
+          "p95_m": 3.204643602076281
+        },
+        "s1_gapM": {
+          "n": 92,
+          "p50": 1.527000000000001,
+          "p95": 2.915999999999997,
+          "max": 3.611000000000004
+        },
+        "s2_publishQueue": {
+          "n": 92,
+          "p50": 7,
+          "p95": 136,
+          "max": 168,
+          "speedMpsUsed": 8.16638888888889,
+          "p50_m": 0.05716472222222222,
+          "p95_m": 1.1106288888888889
+        },
+        "s3_transport": {
+          "n": 92,
+          "p50": 155,
+          "p95": 241,
+          "max": 333,
+          "speedMpsUsed": 8.16638888888889,
+          "p50_m": 1.2657902777777779,
+          "p95_m": 1.9680997222222223
+        },
+        "s4_interpDelay": {
+          "n": null,
+          "p50": 160,
+          "p95": 160,
+          "max": 160,
+          "speedMpsUsed": 8.16638888888889,
+          "p50_m": 1.3066222222222224,
+          "p95_m": 1.3066222222222224
+        },
+        "sumP50": 552.6564741114348,
+        "vsDeff": 7.343525888565182,
+        "chainPass": true,
+        "writeRttMs": {
+          "n": 92,
+          "p50": 207,
+          "p95": 277,
+          "max": 303
+        },
+        "receiveVsAckMs": {
+          "n": 92,
+          "p50": -55,
+          "p95": 68,
+          "max": 126
+        },
+        "note": "합계=①+②+③+④. writeRtt·receiveVsAck 는 별도 관측(③과 겹침, 합산 제외)"
+      },
+      "reproduce": {
+        "D_eff": {
+          "exp": 560,
+          "got": 560,
+          "ok": true
+        },
+        "RMSE": {
+          "exp": 0.639,
+          "got": 0.6393270045708169,
+          "ok": true
+        },
+        "max": {
+          "exp": 2.117,
+          "got": 2.117038759689919,
+          "ok": true
+        },
+        "overlap": {
+          "exp": 1,
+          "got": 1,
+          "ok": true
+        }
+      },
+      "reproducePass": true,
+      "chainPass": true,
+      "speedMpsUsed": 8.16638888888889
+    },
+    "z15-cruise": {
+      "id": "z15-cruise",
+      "window": {
+        "a0": 1786464620404,
+        "a1": 1786464642597,
+        "b0": 1786464620507,
+        "b1": 1786464642770
+      },
+      "skewUsed": 0,
+      "D_eff": 540,
+      "residualRmse": 0.7506988142947703,
+      "residualMax": 2.7461470588235386,
+      "residualP95": 1.4615128205128372,
+      "overlap": 1,
+      "n": 86,
+      "hitCeiling": false,
+      "deffStatus": "ok",
+      "verdict": "미종결",
+      "chain": {
+        "s1_sampleAge": {
+          "n": 107,
+          "p50": 216.84000000000194,
+          "p95": 400.0799999999969,
+          "max": 466.6799999999943,
+          "speedMpsUsed": 8.333333333333334,
+          "p50_m": 1.8070000000000164,
+          "p95_m": 3.3339999999999743
+        },
+        "s1_gapM": {
+          "n": 107,
+          "p50": 1.8070000000000164,
+          "p95": 3.3339999999999748,
+          "max": 3.888999999999953
+        },
+        "s2_publishQueue": {
+          "n": 107,
+          "p50": 3,
+          "p95": 110,
+          "max": 148,
+          "speedMpsUsed": 8.333333333333334,
+          "p50_m": 0.025,
+          "p95_m": 0.9166666666666667
+        },
+        "s3_transport": {
+          "n": 107,
+          "p50": 151,
+          "p95": 235,
+          "max": 374,
+          "speedMpsUsed": 8.333333333333334,
+          "p50_m": 1.2583333333333335,
+          "p95_m": 1.9583333333333335
+        },
+        "s4_interpDelay": {
+          "n": null,
+          "p50": 160,
+          "p95": 160,
+          "max": 160,
+          "speedMpsUsed": 8.333333333333334,
+          "p50_m": 1.3333333333333335,
+          "p95_m": 1.3333333333333335
+        },
+        "sumP50": 530.840000000002,
+        "vsDeff": 9.159999999998035,
+        "chainPass": true,
+        "writeRttMs": {
+          "n": 107,
+          "p50": 189,
+          "p95": 252,
+          "max": 499
+        },
+        "receiveVsAckMs": {
+          "n": 107,
+          "p50": -35,
+          "p95": 62,
+          "max": 91
+        },
+        "note": "합계=①+②+③+④. writeRtt·receiveVsAck 는 별도 관측(③과 겹침, 합산 제외)"
+      },
+      "reproduce": {
+        "D_eff": {
+          "exp": 540,
+          "got": 540,
+          "ok": true
+        },
+        "RMSE": {
+          "exp": 0.751,
+          "got": 0.7506988142947703,
+          "ok": true
+        },
+        "max": {
+          "exp": 2.746,
+          "got": 2.7461470588235386,
+          "ok": true
+        },
+        "overlap": {
+          "exp": 1,
+          "got": 1,
+          "ok": true
+        }
+      },
+      "reproducePass": true,
+      "chainPass": true,
+      "speedMpsUsed": 8.333333333333334
+    }
+  },
+  "transportAsymmetry": {
+    "A_to_B": {
+      "n": 348,
+      "p50": 166,
+      "p95": 358,
+      "max": 569
+    },
+    "B_to_A": {
+      "n": 311,
+      "p50": 155,
+      "p95": 237,
+      "max": 463
+    },
+    "p50_diff": 11,
+    "note": "전송 경로 비대칭 참고값. skew 추정에 쓰지 않음"
+  },
+  "targets": {
+    "reproduce": {
+      "z15-depart": {
+        "D_eff": 560,
+        "residualRmse": 0.639,
+        "residualMax": 2.117,
+        "overlap": 1
+      },
+      "z15-cruise": {
+        "D_eff": 540,
+        "residualRmse": 0.751,
+        "residualMax": 2.746,
+        "overlap": 1
+      }
+    },
+    "chain": {
+      "z15-depart": {
+        "s1": 231,
+        "s2": 7,
+        "s3": 155,
+        "s4": 160,
+        "sum": 553,
+        "D_eff": 560
+      },
+      "z15-cruise": {
+        "s1": 217,
+        "s2": 3,
+        "s3": 151,
+        "s4": 160,
+        "sum": 531,
+        "D_eff": 540
+      }
+    }
+  }
+}

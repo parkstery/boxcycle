@@ -1,6 +1,10 @@
 /**
  * S3A-V — S3AV-chain-events.json → S3AV-summary.json
  * 제품 코드 변경 없음. 판정은 A_auth 대 B_disp + 승인된 스케일 게이트.
+ *
+ * S3A-VR: 핸드셰이크 선형 skew 는 무효(동일 머신 시계). 재검산은
+ *   node scripts/peer-sync/s3avr-summarize.mjs
+ * (이 파일의 램프 보정은 역사적 S3AV-summary 재현용으로만 남긴다.)
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -16,6 +20,10 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const DIR = resolve(HERE, "../../../../document/ops/sync-relay");
 const EVENTS = resolve(DIR, process.argv[2] || "S3AV-chain-events.json");
 const OUT = resolve(DIR, process.argv[3] || "S3AV-summary.json");
+if (OUT.includes("S3AVR")) {
+  await import("./s3avr-summarize.mjs");
+  process.exit(0);
+}
 
 const INTERP_DELAY_MS = 160;
 const DISCARD_MS = 2_000;
