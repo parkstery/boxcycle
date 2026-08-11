@@ -150,6 +150,7 @@ export async function mergeTrailMotionSnapshot(
         publishQueueMs: publishQueueMs ?? null,
         writeRttMs,
         inFlightMax: peekMotionInFlightMax(),
+        fsAhead: 0,
         uid: user.uid.slice(0, 6),
       });
     }

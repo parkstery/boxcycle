@@ -69,9 +69,7 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
   } = opts;
 
   const userRef = useRef(user);
-  userRef.current = user ?? null;
   const onErrorRef = useRef(onError);
-  onErrorRef.current = onError;
 
   const inputRef = useRef<LiveLocationPublishInput>({
     lngLat: null,
@@ -83,7 +81,26 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
     speedKmh,
     routeRidePhase,
   });
-  inputRef.current = {
+
+  const flagsRef = useRef({ globalEnabled, routeEnabled, pageVisible });
+
+  useEffect(() => {
+    userRef.current = user ?? null;
+    onErrorRef.current = onError;
+    inputRef.current = {
+      lngLat,
+      trailId,
+      publicationId,
+      routeGeometry,
+      routeDistanceMeters,
+      virtualDistanceMeters,
+      speedKmh,
+      routeRidePhase,
+    };
+    flagsRef.current = { globalEnabled, routeEnabled, pageVisible };
+  }, [
+    user,
+    onError,
     lngLat,
     trailId,
     publicationId,
@@ -92,10 +109,10 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
     virtualDistanceMeters,
     speedKmh,
     routeRidePhase,
-  };
-
-  const flagsRef = useRef({ globalEnabled, routeEnabled, pageVisible });
-  flagsRef.current = { globalEnabled, routeEnabled, pageVisible };
+    globalEnabled,
+    routeEnabled,
+    pageVisible,
+  ]);
 
   const throttleRef = useRef(createLiveLocationPublishThrottleState());
   const joinBurstDoneNonceRef = useRef(0);
@@ -233,6 +250,7 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
           publishGlobal,
           publishRoute,
           publishMotion,
+          motionThrottle: throttle,
         });
         if (publishGlobal) markGlobalPresencePublished(throttle, now, snapshot.lngLat);
         if (publishRoute) {
@@ -245,7 +263,7 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
           );
           routeDocActive = true;
         }
-        if (publishMotion) markPeerMotionPublished(throttle, now, snapshot.speedMps);
+        // motion mark 는 single-flight 가 실제 set() 을 시작할 때만 (S3A)
         if (import.meta.env.DEV && (result.global || result.route || result.motion)) {
           console.debug("[LiveLocationPublish]", {
             global: result.global,

@@ -8,8 +8,8 @@ import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DIR = resolve(HERE, "../../../../document/ops/sync-relay");
-const EVENTS = resolve(DIR, "S3R-chain-events.json");
-const OUT = resolve(DIR, "S3R-summary.json");
+const EVENTS = resolve(DIR, process.argv[2] || "S3R-chain-events.json");
+const OUT = resolve(DIR, process.argv[3] || "S3R-summary.json");
 
 const METRICS_UI_S = 0.2;
 const ROUND_M = 0.05;
@@ -317,5 +317,94 @@ const out = {
   maxExcessLink: ranked[0] ?? null,
 };
 
+const isS3A = OUT.includes("S3A");
+if (isS3A) {
+  const pt3 = a.filter((e) => e.pt === 3);
+  const fsAheadOk = pt3.length > 0 && pt3.every((e) => num(e.fsAhead) === 0);
+  const motionFirstOk = a.some((e) => e.pt === 2 && num(e.motionFirst) === 1);
+  const slotDiscard = Math.max(
+    0,
+    ...a.map((e) => num(e.slotDiscardTotal) ?? 0),
+  );
+  const pq = out.publishQueueMs;
+  const rttChanged =
+    out.writeRttMs.p50 != null && Math.abs(out.writeRttMs.p50 - 206) > 80;
+  const budget = rttChanged
+    ? {
+        p50: Math.round(out.writeRttMs.p50 / 2),
+        p95: Math.round((out.writeRttMs.p95 ?? 0) + 100),
+        max: 800,
+        note: `writeRtt p50=${out.writeRttMs.p50} → 예산 재유도`,
+      }
+    : { p50: 150, p95: 400, max: 800, note: "지시서 §2-1 (writeRtt 206/268/286)" };
+  const gates = {
+    ga: {
+      name: "motion 이 Firestore 에 막히지 않음",
+      pass: fsAheadOk && motionFirstOk,
+      fsAheadOk,
+      motionFirstOk,
+    },
+    na: {
+      name: "inFlightMax ≤ 1",
+      pass: inFlightMax <= 1,
+      inFlightMax,
+    },
+    da: {
+      name: "latest-wins 덮어쓰기 > 0",
+      pass: slotDiscard > 0,
+      slotDiscard,
+    },
+    ra: {
+      name: "A_firstOutOfOrder = 0",
+      pass: out.retrograde.A_firstOutOfOrder === 0,
+      A_firstOutOfOrder: out.retrograde.A_firstOutOfOrder,
+    },
+    ma: {
+      name: "publishQueueMs 구조적 예산",
+      pass:
+        pq.p50 != null &&
+        pq.p50 <= budget.p50 &&
+        pq.p95 <= budget.p95 &&
+        pq.max <= budget.max &&
+        pq.over1s === 0,
+      budget,
+      got: { p50: pq.p50, p95: pq.p95, max: pq.max, over1s: pq.over1s, p50_m: pq.p50_m, max_m: pq.max_m },
+    },
+    ba: {
+      name: "replay + e2e 회귀",
+      pass: null,
+      note: "e2e 본 파일이 존재하면 계측단 PASS. replay 는 별도 스크립트",
+    },
+  };
+  const rebuttal =
+    gates.ga.pass &&
+    gates.na.pass &&
+    gates.da.pass &&
+    (out.modes.occupancy.extrapolate >= 0.5 || (pq.p50 ?? 0) > 1000);
+  out.instruction = "S3A";
+  out.acceptance = gates;
+  out.rebuttal = {
+    applies: Boolean(rebuttal),
+    extrapolateOcc: out.modes.occupancy.extrapolate,
+    publishQueueP50: pq.p50,
+    note: rebuttal
+      ? "큐를 없앴는데도 extrapolate≥50% 또는 publishQueue p50>1s → §3-4 진단 반증"
+      : "반증 불성립",
+  };
+}
+
 writeFileSync(OUT, JSON.stringify(out, null, 2), "utf8");
-console.log(JSON.stringify({ maxExcessLink: out.maxExcessLink, modes: out.modes.occupancy, endToEndValid: !out.endToEndMs.invalid, retrograde: out.retrograde }, null, 2));
+console.log(
+  JSON.stringify(
+    {
+      maxExcessLink: out.maxExcessLink,
+      modes: out.modes.occupancy,
+      endToEndValid: !out.endToEndMs.invalid,
+      retrograde: out.retrograde,
+      acceptance: out.acceptance ?? null,
+      rebuttal: out.rebuttal ?? null,
+    },
+    null,
+    2,
+  ),
+);

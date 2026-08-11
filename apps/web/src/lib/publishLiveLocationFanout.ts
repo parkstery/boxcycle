@@ -8,12 +8,10 @@ import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "./firestoreTrail";
 import { touchTrailInstanceActivity } from "./firestoreTrailInstance";
 import type { LiveLocationSnapshot } from "./liveLocationSnapshot";
 import { isFirebaseDatabaseConfigured } from "./firebase";
-import {
-  deleteTrailMotion,
-  mergeTrailMotionSnapshot,
-  snapshotToRtdbTrailMotionSnapshot,
-} from "./rtdbTrailMotion";
-import { nextPeerSyncChainSeq, peerSyncChainLog } from "./peerMotion/peerSyncChainLog";
+import { deleteTrailMotion } from "./rtdbTrailMotion";
+import { enqueueMotionPublish } from "./peerMotion/motionPublishFlight";
+import type { LiveLocationPublishThrottleState } from "./liveLocationSnapshot";
+import { markPeerMotionPublished } from "./liveLocationSnapshot";
 
 export type LiveLocationFanoutResult = {
   global: boolean;
@@ -27,9 +25,34 @@ export type LiveLocationFanoutResult = {
 export async function publishLiveLocationFanout(
   user: User,
   snapshot: LiveLocationSnapshot,
-  opts: { publishGlobal: boolean; publishRoute: boolean; publishMotion?: boolean },
+  opts: {
+    publishGlobal: boolean;
+    publishRoute: boolean;
+    publishMotion?: boolean;
+    motionThrottle?: LiveLocationPublishThrottleState;
+  },
 ): Promise<LiveLocationFanoutResult> {
   const result: LiveLocationFanoutResult = { global: false, route: false, motion: false };
+
+  // S3A: motion 은 Firestore await 앞에 독립 kick. fan-out 은 motion write 를 기다리지 않는다.
+  if (
+    opts.publishMotion &&
+    isFirebaseDatabaseConfigured() &&
+    snapshot.routeReady &&
+    snapshot.publicationId
+  ) {
+    enqueueMotionPublish({
+      user,
+      trailId: snapshot.trailId,
+      snapshot,
+      onWriteStart: () => {
+        if (opts.motionThrottle) {
+          markPeerMotionPublished(opts.motionThrottle, Date.now(), snapshot.speedMps);
+        }
+      },
+    });
+    result.motion = true;
+  }
 
   if (opts.publishGlobal) {
     await mergeGlobalLivePresence(user, snapshot.lngLat);
@@ -48,48 +71,6 @@ export async function publishLiveLocationFanout(
       void touchTrailInstanceActivity(snapshot.trailId);
     }
     result.route = true;
-  }
-
-  if (
-    opts.publishMotion &&
-    isFirebaseDatabaseConfigured() &&
-    snapshot.routeReady &&
-    snapshot.publicationId
-  ) {
-    let seq: number | undefined;
-    let snapshotCapturedAt: number | undefined;
-    if (import.meta.env.DEV) {
-      seq = nextPeerSyncChainSeq();
-      const cap = snapshot.diagCapture;
-      snapshotCapturedAt = cap?.snapshotCapturedAt;
-      // §2-2: ①② 는 스냅샷 생성 순간의 동기 레코드만 쓴다 (fanout 시점 peek 금지)
-      peerSyncChainLog(1, seq, {
-        capturedAt: cap?.snapshotCapturedAt ?? null,
-        authDist: cap?.authDistAtCapture ?? null,
-        snapshotDist: cap?.snapshotDistAtCapture ?? null,
-        appliedKmh: cap?.appliedKmh ?? null,
-        targetKmh: cap?.targetKmh ?? null,
-        uid: user.uid.slice(0, 6),
-      });
-      peerSyncChainLog(2, seq, {
-        capturedAt: cap?.snapshotCapturedAt ?? null,
-        dist: cap?.snapshotDistAtCapture ?? snapshot.distMetersAlongRoute,
-        authDist: cap?.authDistAtCapture ?? null,
-        routeReady: snapshot.routeReady,
-        routeLen: cap?.routeLen ?? null,
-        geoLen: cap?.geoLen ?? null,
-        uid: user.uid.slice(0, 6),
-      });
-    }
-    const motion = await mergeTrailMotionSnapshot(
-      user,
-      snapshot.trailId,
-      snapshotToRtdbTrailMotionSnapshot(snapshot),
-      { seq, snapshotCapturedAt },
-    );
-    result.motion = true;
-    result.motionOk = motion.ok;
-    result.motionRttMs = motion.rttMs;
   }
 
   return result;

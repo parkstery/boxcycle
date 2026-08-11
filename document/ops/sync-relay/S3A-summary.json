@@ -1,0 +1,296 @@
+{
+  "instruction": "S3A",
+  "elapsedMin": 1,
+  "clockSkewMs": 143,
+  "clockSkewBefore": 14,
+  "clockSkewAfter": 272,
+  "publisherUid": "QaIlUQ",
+  "eventCounts": {
+    "A": 2376,
+    "B": 2475,
+    "total": 4851,
+    "pt": {
+      "1": 330,
+      "2": 351,
+      "3": 328,
+      "4": 1622,
+      "5": 1628,
+      "6": 296,
+      "7": 296
+    }
+  },
+  "speedMpsUsed": 8.333333333333334,
+  "cruiseKmhApprox": 30,
+  "inFlightMax": 1,
+  "publishQueueMs": {
+    "n": 183,
+    "p50": 22,
+    "p95": 150,
+    "max": 464,
+    "over1s": 0,
+    "speedMpsUsed": 8.333333333333334,
+    "p50_m": 0.18333333333333335,
+    "p95_m": 1.25,
+    "max_m": 3.866666666666667
+  },
+  "writeRttMs": {
+    "n": 183,
+    "p50": 224,
+    "p95": 322,
+    "max": 950,
+    "over1s": 0,
+    "speedMpsUsed": 8.333333333333334,
+    "p50_m": 1.8666666666666667,
+    "p95_m": 2.6833333333333336,
+    "max_m": 7.916666666666667
+  },
+  "endToEndMs": {
+    "n": 160,
+    "p50": 43,
+    "p95": 189,
+    "max": 552,
+    "over1s": 0,
+    "speedMpsUsed": 8.333333333333334,
+    "p50_m": 0.3583333333333334,
+    "p95_m": 1.575,
+    "max_m": 4.6
+  },
+  "receiveVsAckMs": {
+    "referenceOnly": true,
+    "n": 160,
+    "p50": -177,
+    "p95": -40,
+    "max": 89,
+    "over1s": 0,
+    "speedMpsUsed": 8.333333333333334,
+    "p50_m": -1.475,
+    "p95_m": -0.33333333333333337,
+    "max_m": 0.7416666666666667
+  },
+  "link12": {
+    "n": 184,
+    "measured": {
+      "n": 184,
+      "p50": 0.8329999999999984,
+      "p95": 2.221999999999994,
+      "max": 3.6119999999999948,
+      "over1s": 0
+    },
+    "expectedP50": 1.666666666666667,
+    "excess": {
+      "n": 184,
+      "p50": -0.18622222222222473,
+      "p95": 0.5553333333333415,
+      "max": 1.9453333333333278,
+      "over1s": 0
+    }
+  },
+  "link23": {
+    "n": 183,
+    "excess": {
+      "n": 183,
+      "p50": 0,
+      "p95": 0,
+      "max": 0,
+      "over1s": 0
+    }
+  },
+  "discard": {
+    "sameDist": 722,
+    "forward": 0,
+    "retrograde": 1,
+    "accepted": 140
+  },
+  "retrograde": {
+    "A_firstOutOfOrder": 0,
+    "B_onValueRepeat": 1,
+    "C_other": 0,
+    "C_raw": []
+  },
+  "repeatSeen": {
+    "n": 696,
+    "p50": 3,
+    "p95": 10,
+    "max": 17,
+    "over1s": 0
+  },
+  "modes": {
+    "counts": {
+      "oldest": 0,
+      "interpolate": 75,
+      "extrapolate": 79,
+      "paused": 0
+    },
+    "occupancy": {
+      "oldest": 0,
+      "interpolate": 0.487012987012987,
+      "extrapolate": 0.512987012987013,
+      "paused": 0
+    }
+  },
+  "contractErrorM": {
+    "n": 154,
+    "p50": -0.0002899999999996794,
+    "p95": 0.0005999999999986017,
+    "max": 0.0012000000000398359,
+    "over1s": 0
+  },
+  "extrapolate": {
+    "aheadMsRaw": {
+      "n": 79,
+      "p50": 60,
+      "p95": 378,
+      "max": 840,
+      "over1s": 0
+    },
+    "aheadMsCapped": {
+      "n": 79,
+      "p50": 60,
+      "p95": 378,
+      "max": 840,
+      "over1s": 0
+    },
+    "capHitRate": 0,
+    "errorVsA_m": {
+      "n": 79,
+      "p50": 0.04611084507042307,
+      "p95": 0.8300278267842813,
+      "max": 1.4475177838290723,
+      "over1s": 0
+    }
+  },
+  "linkTable": [
+    {
+      "link": "①→②",
+      "n": 184,
+      "p50_m": -0.18622222222222473,
+      "p95_m": 0.5553333333333415,
+      "max_m": 1.9453333333333278,
+      "unit": "m 직접",
+      "note": "§2-2 동기 레코드 − 200ms×applied"
+    },
+    {
+      "link": "②→③",
+      "n": 183,
+      "p50_m": 0,
+      "p95_m": 0,
+      "max_m": 0,
+      "unit": "m 직접",
+      "note": "복사+반올림 0.05"
+    },
+    {
+      "link": "③→④",
+      "n": 160,
+      "p50_m": 0.3583333333333334,
+      "p95_m": 1.575,
+      "max_m": 4.6,
+      "unit": "ms→m",
+      "endToEndMs": {
+        "n": 160,
+        "p50": 43,
+        "p95": 189,
+        "max": 552,
+        "over1s": 0
+      },
+      "note": "clockSkewMs=143"
+    },
+    {
+      "link": "④→⑤",
+      "n": 0,
+      "p50_m": null,
+      "p95_m": null,
+      "max_m": null,
+      "unit": "m 폐기",
+      "forward": 0,
+      "retrogradeFirst": 0
+    },
+    {
+      "link": "⑤→⑥ extrapolate ahead",
+      "n": 79,
+      "p50_m": 0.5000000000000001,
+      "p95_m": 3.15,
+      "max_m": 7.000000000000001,
+      "unit": "ms→m",
+      "occupancy": 0.512987012987013
+    },
+    {
+      "link": "⑤→⑥ oldest",
+      "n": 0,
+      "p50_m": null,
+      "p95_m": null,
+      "max_m": null,
+      "unit": "ms→m",
+      "occupancy": 0
+    },
+    {
+      "link": "⑥→⑦",
+      "n": 154,
+      "p50_m": 0,
+      "p95_m": 0,
+      "max_m": 0,
+      "unit": "m 직접",
+      "note": "같은 geometry 이면 0"
+    }
+  ],
+  "maxExcessLink": {
+    "link": "⑤→⑥ extrapolate ahead",
+    "n": 79,
+    "p50_m": 0.5000000000000001,
+    "p95_m": 3.15,
+    "max_m": 7.000000000000001,
+    "unit": "ms→m",
+    "occupancy": 0.512987012987013
+  },
+  "acceptance": {
+    "ga": {
+      "name": "motion 이 Firestore 에 막히지 않음",
+      "pass": true,
+      "fsAheadOk": true,
+      "motionFirstOk": true
+    },
+    "na": {
+      "name": "inFlightMax ≤ 1",
+      "pass": true,
+      "inFlightMax": 1
+    },
+    "da": {
+      "name": "latest-wins 덮어쓰기 > 0",
+      "pass": true,
+      "slotDiscard": 11
+    },
+    "ra": {
+      "name": "A_firstOutOfOrder = 0",
+      "pass": true,
+      "A_firstOutOfOrder": 0
+    },
+    "ma": {
+      "name": "publishQueueMs 구조적 예산",
+      "pass": true,
+      "budget": {
+        "p50": 150,
+        "p95": 400,
+        "max": 800,
+        "note": "지시서 §2-1 (writeRtt 206/268/286)"
+      },
+      "got": {
+        "p50": 22,
+        "p95": 150,
+        "max": 464,
+        "over1s": 0,
+        "p50_m": 0.18333333333333335,
+        "max_m": 3.866666666666667
+      }
+    },
+    "ba": {
+      "name": "replay + e2e 회귀",
+      "pass": null,
+      "note": "e2e 본 파일이 존재하면 계측단 PASS. replay 는 별도 스크립트"
+    }
+  },
+  "rebuttal": {
+    "applies": true,
+    "extrapolateOcc": 0.512987012987013,
+    "publishQueueP50": 22,
+    "note": "큐를 없앴는데도 extrapolate≥50% 또는 publishQueue p50>1s → §3-4 진단 반증"
+  }
+}

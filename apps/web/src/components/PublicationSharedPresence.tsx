@@ -106,7 +106,6 @@ export function PublicationSharedPresence({
   const [rows, setRows] = useState<PublicationSessionMemberRow[]>([]);
   const [liveRideRows, setLiveRideRows] = useState<TrailLivePublicationRideRow[]>([]);
   const [motionRows, setMotionRows] = useState<RtdbTrailMotionRow[]>([]);
-  const [peerVisibilityTick, setPeerVisibilityTick] = useState(0);
   const [presenceError, setPresenceError] = useState<string | null>(null);
   const onPeerHudChangeRef = useRef(onPeerHudChange);
   const onLiveTagRef = useRef(onLiveRiderNametagChange);
@@ -118,14 +117,7 @@ export function PublicationSharedPresence({
   const motionRowsRef = useRef(motionRows);
   const sessionRowsRef = useRef(rows);
   const guestUidsRef = useRef<string[]>([]);
-  userRef.current = user;
-  publicationIdRef.current = publicationId;
-  sessionScopeIdRef.current = sessionScopeId;
-  routeLenMRef.current = routeLenM;
-  liveRideRowsRef.current = liveRideRows;
-  motionRowsRef.current = motionRows;
-  sessionRowsRef.current = rows;
-  onLiveTagRef.current = onLiveRiderNametagChange;
+  const [visibilityNowMs, setVisibilityNowMs] = useState(0);
 
   useEffect(() => {
     return () => {
@@ -136,6 +128,16 @@ export function PublicationSharedPresence({
   useEffect(() => {
     onPeerHudChangeRef.current = onPeerHudChange;
   }, [onPeerHudChange]);
+
+  useEffect(() => {
+    userRef.current = user;
+    publicationIdRef.current = publicationId;
+    sessionScopeIdRef.current = sessionScopeId;
+    routeLenMRef.current = routeLenM;
+    liveRideRowsRef.current = liveRideRows;
+    sessionRowsRef.current = rows;
+    onLiveTagRef.current = onLiveRiderNametagChange;
+  }, [user, publicationId, sessionScopeId, routeLenM, liveRideRows, rows, onLiveRiderNametagChange]);
 
   useEffect(() => {
     return () => {
@@ -205,6 +207,7 @@ export function PublicationSharedPresence({
       tid,
       (next) => {
         if (!cancelled) startTransition(() => setLiveRideRows(next));
+        liveRideRowsRef.current = next;
         syncPeerMotionFromPresence({
           publicationId: publicationIdRef.current,
           myUid: userRef.current.uid,
@@ -233,6 +236,7 @@ export function PublicationSharedPresence({
         dbConfigured: isFirebaseDatabaseConfigured(),
       });
       startTransition(() => setMotionRows([]));
+      motionRowsRef.current = [];
       return;
     }
 
@@ -258,6 +262,7 @@ export function PublicationSharedPresence({
               }
             : null,
         });
+        motionRowsRef.current = next;
         setMotionRows((prev) => (motionRowsEqual(prev, next) ? prev : next));
         syncPeerMotionFromPresence({
           publicationId: publicationIdRef.current,
@@ -279,6 +284,7 @@ export function PublicationSharedPresence({
 
     return () => {
       cancelled = true;
+      motionRowsRef.current = [];
       release();
     };
   }, [pageVisible, trailId]);
@@ -286,7 +292,7 @@ export function PublicationSharedPresence({
   useEffect(() => {
     if (!pageVisible) return;
     if (liveRideRows.length === 0 && motionRows.length === 0) return;
-    const id = window.setInterval(() => setPeerVisibilityTick((n) => n + 1), 1_000);
+    const id = window.setInterval(() => setVisibilityNowMs(Date.now()), 1_000);
     return () => window.clearInterval(id);
   }, [pageVisible, liveRideRows.length, motionRows.length]);
 
@@ -346,7 +352,7 @@ export function PublicationSharedPresence({
   }, [motionRows, publicationId, user.uid]);
 
   const peerVisibleByUid = useMemo(() => {
-    const now = Date.now();
+    const now = visibilityNowMs;
     const m = new Map<string, boolean>();
     for (const [uid, row] of liveRidesByUid) {
       m.set(uid, isTrailLivePublicationRideRowPeerVisible(row, now));
@@ -357,7 +363,7 @@ export function PublicationSharedPresence({
       m.set(uid, age <= PEER_LIVE_RIDE_STALE_MS);
     }
     return m;
-  }, [liveRidesByUid, motionRowsByUid, peerVisibilityTick]);
+  }, [liveRidesByUid, motionRowsByUid, visibilityNowMs]);
 
   const guestUidsSorted = useMemo(() => {
     const picks = active.map((r) => ({ uid: r.uid, memberType: r.memberType }));
@@ -368,7 +374,9 @@ export function PublicationSharedPresence({
     return ids;
   }, [active, user.isAnonymous, user.uid]);
 
-  guestUidsRef.current = guestUidsSorted;
+  useEffect(() => {
+    guestUidsRef.current = guestUidsSorted;
+  }, [guestUidsSorted]);
 
   const myMapNametag = useMemo(() => {
     if (user.isAnonymous) {
@@ -393,7 +401,7 @@ export function PublicationSharedPresence({
     syncPeerMotionFromPresence({
       publicationId,
       myUid: user.uid,
-      motionRows,
+      motionRows: motionRowsRef.current,
       liveRideRows,
       sessionMembers: rows,
       guestUidsSorted,
