@@ -35,10 +35,13 @@ trailId당 구독 1개로 refcount 관리한다. **consumer 중복 구독은 이
 | **D-2** | zoom ≤ 14에서 peer 적분 중단, spectator는 **고정 5km/h** 외삽 | `MapView.tsx:2258` · `useTrailLivePublicationRideSpectatorOverlay.ts:151-161` |
 | **D-3** | 구조적 지연 예산 ≈ 326ms 평균 / 476ms 최악 (네트워크 제외) | 위 경로 합산 |
 | **D-4** | dedup **이전에** `speed`·`phase`를 갱신 → 폐기될 패킷도 상태 오염 | `integrator.ts:46-54` |
-| **D-5** | publish in-flight 미방지 + Trail 활동 갱신 1Hz | `useLiveLocationPublishSession.ts:237-248` · `publishLiveLocationFanout.ts:45` |
+| **D-5** ★ | **지배 원인** — publish in-flight 미방지 + motion 이 Firestore 뒤 순차 await | `useLiveLocationPublishSession.ts:232·248·273` · `publishLiveLocationFanout.ts:34·39·52` |
+
+**★ D-5 가 이 결함의 지배 원인이다** (S3-DIAG-R2 실측, §3-4). 나머지 D 는 부차적이다.
 
 **추정 (미확인)** — D-6 RTDB row staleness 미검사(`syncFromPresence.ts:62`),
 D-7 송수신 geometry 불일치 가능성.
+**D-8** `routeLen ≠ geoLen` — 경로·완주 계열 별건(§3-3).
 
 ### D-0 · D-1 실측 확정 (S1 실패킷 91건 — `s2-z15-cruise-scenario.json`)
 
@@ -58,9 +61,7 @@ depart 구간 발행 spd  1.39 m/s 고정(=5km/h 초기 슬라이더) ← D-1 (A
 - **발행 게이트는 속도를 억제하지 않는다.** `shouldPublishPeerMotion`
   (`liveLocationSnapshot.ts:179-195`)은 시간 기반 100 ms + 속도 델타 우회다.
   "속도가 낮아서 발행이 막혔다"는 가설은 **이미 반증됐다.**
-- ⚠ **지배 링크는 미확정이다.** 초과량 기반 재판정(S3-DIAG-R2) 전까지 어느 구간이라고
-  좁혀 말하지 마라. 이전 판(「최초 이탈은 ②→③→④ 사이」)은 **철회**했다 — 순번 기준의
-  ①→② 판정을 기각하면서 그 반대편을 근거 없이 지목한 것이었다.
+- ✅ **지배 링크 확정 = ②→③ (발행 큐)**. S3-DIAG-R2 실측. §3-4 참조.
 
 ---
 
@@ -71,9 +72,20 @@ depart 구간 발행 spd  1.39 m/s 고정(=5km/h 초기 슬라이더) ← D-1 (A
 | **S1** | 증상 정량화 (`D_eff` / `residual`, 8케이스) | **보고완료 — ⚠ 절반만 유효** (아래) |
 | **S2** | S1 재분석 + replay 하네스(`truth(t)` · 지연 모델 · 시나리오 5종 · 불변식) | **보고완료** (`REPORT.md`) |
 | **S3-DIAG** | 패킷 단위 체인 진단 | **보고완료 — ⚠ 최초 이탈 판정 기각** (`REPORT-S3D.md`, 아래 §3-1) |
-| **S3-DIAG-R2** | 체인 재판정 — 초과량 판정(m 환산) · pt1~pt7 전량 보존 · `endToEndMs` · ⑤→⑥ 모드별 동적 기대값 | **보고완료** (`REPORT.md`) |
-| **S3** | 정확도 1차 — 적용속도 발행(D-1) → 저줌 실제속도(D-2) → 저줌 시 registry 적분 유지 | **보류** (S3-DIAG 결과 대기) |
-| **S4** | **안정성 2차** (in-flight 방지·stale·시계 정리) + **비용 3차** (heartbeat·Trail touch·RTDB child listener·전역 목록) | 대기 |
+| **S3-DIAG-R2** | 체인 재판정 | **보고완료 — 진단 종결** (`REPORT-S3DR2.md`, §3-4) |
+| **S3A** ★ | **발행 큐 제거** — motion 을 Firestore 선행 await 에서 분리 · 동시 발행 제한 · 대기 중 최신값만 | **배포** |
+| **S3B** | 정확도 2차 — 적용속도 발행(D-1) → 저줌 실제속도(D-2) → 저줌 시 registry 적분 유지 | 대기 (**S3A 뒤**) |
+| **S4** | 비용 3차 (heartbeat · Trail touch · RTDB child listener · 전역 목록) | 대기 |
+
+### ⚠ S3 재정의 (감리0811)
+
+기존 S3(적용속도 발행 D-1 → 저줌 D-2)를 **S3B 로 미루고, 발행 큐 제거(S3A)를 앞으로 당긴다.**
+
+**사유** — D-1 이 위치 오차로 바뀌는 지점은 외삽 구간인데, S3-DIAG-R2 실측 외삽 오차는
+**p50 0.15 m · max 3.85 m** 로 작다. 반면 발행 큐는 **p50 37.7 m · max 115.9 m** 다.
+D-1 을 먼저 고쳐도 지배 원인이 남아 증상이 그대로다. **순서를 뒤집는다.**
+
+「안정성 2차」의 in-flight 방지는 **S3A 로 흡수**됐다(더 이상 2차가 아니라 1차다).
 
 ### ⚠⚠ 기준선 무효 — 인용 금지 (감리0811 판정)
 
@@ -150,6 +162,58 @@ clamp cap = min(1500, 1029.633) = 1029.633
 
 A 는 1500 m 를 목표로 달리지만 ② 는 1029.633 m 에서 clamp 된다. **경로·완주 계열 결함**으로
 분리해 기록하며, 현재 peer 위치 어긋남의 원인으로 지목하지 않는다. S3-DIAG-R2 범위 밖이다.
+
+### 3-4. ✅ 진단 종결 — 지배 링크 **②→③ (발행 큐)** (S3-DIAG-R2, 감리0811 검산)
+
+**측정** (`S3R-summary.json` · pt1~pt7 전량 4,671건 · `clockSkewMs=77` 명시)
+
+| 구간 | p50 | p95 | max | 1 s 초과 | m 환산 @8.33 m/s |
+|---|---:|---:|---:|---:|---|
+| **`publishQueueMs`** | **4,520 ms** | 9,737 | **13,904** | **69.4 %** | **37.7 / 81.1 / 115.9 m** |
+| `writeRttMs` | 206 ms | 268 | 286 | 0 % | 1.7 / 2.2 / 2.4 m |
+| `endToEndMs` | 93 ms | 160 | 1,013 | 0.4 % | 0.78 / 1.33 / 8.44 m |
+
+⚠ **전송은 결백하다** (`endToEndMs` p50 93 ms). 「③→④ 4 초」 가설은 **반증됐다.**
+
+**감리 자책 2건째** — 지시서 §1 링크 표에서 ②→③ 예상을 「0 m (같은 값 복사)」로만 적어
+**시간 비용이 순위에 들어갈 자리가 없었다.** 개발팀장은 `publishQueueMs` 를 정확히 측정해
+보고했으나(§기술 A 내부) 링크 순위에는 올리지 못했다. 최대 링크 지목이 ④→⑤(23.2 m)로 간 것은
+표의 결함이다. **정정 — ②→③ 예상 = 0 m 값 변화 + `publishQueueMs`.**
+
+**기전 (전부 코드 근거)**
+
+```
+useLiveLocationPublishSession.ts:273   setInterval(tick, PUBLISH_TICK_MS = 100)
+                              :232   await publishLiveLocationFanout(...)
+                              :248   markPeerMotionPublished(...)   ← await 뒤에서 갱신
+   → 대기 중 motionWriteAt 이 옛 값이라 100 ms tick 이 전부 게이트를 통과. in-flight 가드 없음
+
+publishLiveLocationFanout.ts:34   await mergeGlobalLivePresence()               Firestore
+                           :39   await mergeTrailLivePublicationRideSnapshot()  Firestore
+                           :52   → 그 뒤에야 RTDB motion set()
+   → 10 Hz 지연 민감 경로가 1 Hz Firestore 쓰기 두 건 뒤에 줄을 선다
+
+writeRttMs 206 ms > PUBLISH_TICK_MS 100 ms  →  적체는 구조적으로 필연
+```
+
+**관측된 인과 사슬 — 모든 수치가 이 하나에 들어맞는다**
+
+```
+in-flight 최대 10  →  publishQueueMs p50 4.5 s
+  →  옛 스냅샷이 뒤늦게 도착  →  최초 수신 역행 77 건 폐기(전진 폐기는 0)
+  →  newest 정체  →  extrapolate 점유 58.9 % · cap(1.2 s) 히트 22.8 %
+  →  화면 위치 어긋남 37.7 m (p50) / 115.9 m (max)
+```
+
+**부수 확정**
+
+- **`stepPeerMotionEntity` 는 결백하다** — 계약 준수 오차 max **0.009 m**. 보간 상수를 건드릴 이유가 없다
+- 외삽 알고리즘도 결백 — 외삽 vs A 실제 이동 오차 p50 0.15 m · max 3.85 m. **먹이는 데이터가 늦을 뿐이다**
+- 역행 212 = 최초 역행 77 + `onValue` 재관측 135, **C = 0**. `repeatSeenCount` p50 4 · max 32
+- ①→② 초과 max 1.39 m · ②→③ 값 초과 0 · ⑥→⑦ 0
+
+> **이 규모(37.7 m / 115.9 m)가 신고된 「상당한 차이」와 처음으로 일치한다.**
+> S1~S3-DIAG 의 0.25 m · 0.79 m · 23.2 m 는 전부 증상을 설명하지 못했다.
 
 **순서 의존 2건 (위반 금지)**
 
