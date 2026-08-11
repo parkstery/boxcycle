@@ -5,7 +5,7 @@ import { mapNametagForMember } from "../guestNametag";
 import { getPeerMotionRegistry } from "./PeerMotionRegistry";
 import { rtdbMotionRowToPeerMotionPacket } from "./rtdbToPacket";
 import { trailLiveRowToPeerMotionPacket } from "./rowToPacket";
-import { peerSyncChainLog } from "./peerSyncChainLog";
+import { notePeerSeqSeen, peerSyncChainLog } from "./peerSyncChainLog";
 
 export type SyncPeerMotionFromPresenceInput = {
   publicationId: string;
@@ -52,10 +52,14 @@ export function syncPeerMotionFromPresence(input: SyncPeerMotionFromPresenceInpu
     if (!rtdbPacket && !fsPacket) continue;
 
     if (import.meta.env.DEV && rtdbRow) {
+      const seen = notePeerSeqSeen(rtdbRow.uid, rtdbRow.seq, recvAt);
       peerSyncChainLog(4, rtdbRow.seq, {
         d: rtdbRow.distM,
         t: rtdbRow.serverAtMs,
         recvAt,
+        first: seen.first ? 1 : 0,
+        firstSeenAt: seen.firstSeenAt,
+        repeatSeenCount: seen.repeatSeenCount,
         uid: rtdbRow.uid.slice(0, 6),
       });
     }

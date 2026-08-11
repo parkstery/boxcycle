@@ -11,7 +11,12 @@ import type { User } from "firebase/auth";
 import { getFirebaseApp, getFirebaseDatabase, isFirebaseDatabaseConfigured } from "./firebase";
 import { sanitizeTrailId } from "./firestoreTrail";
 import type { TrailLiveRidePhase } from "./firestoreTrailLivePublicationRides";
-import { peerSyncChainLog } from "./peerMotion/peerSyncChainLog";
+import {
+  beginMotionInFlight,
+  endMotionInFlight,
+  peerSyncChainLog,
+  peekMotionInFlightMax,
+} from "./peerMotion/peerSyncChainLog";
 
 /** RTDB `/trails/{trailId}/motion/{uid}` */
 export const RTDB_TRAIL_MOTION_SEGMENT = "motion";
@@ -112,7 +117,7 @@ export async function mergeTrailMotionSnapshot(
   user: User,
   trailId: string,
   input: RtdbTrailMotionSnapshot,
-  opts?: { seq?: number },
+  opts?: { seq?: number; snapshotCapturedAt?: number },
 ): Promise<{ ok: boolean; rttMs: number; d: number; v: number; seq?: number }> {
   const seq = opts?.seq;
   const payload = encodePayload(input, seq);
@@ -122,23 +127,45 @@ export async function mergeTrailMotionSnapshot(
   if (!input.publicationId.trim()) {
     return { ok: false, rttMs: 0, d: payload.d, v: payload.v, seq };
   }
-  const t0 = Date.now();
+  beginMotionInFlight();
   try {
     getFirebaseApp();
     await ensureMotionOnDisconnect(trailId, user.uid);
     const db = getFirebaseDatabase();
+    const motionWriteStartAt = Date.now();
     await set(motionRef(db, trailId, user.uid), payload);
-    const rttMs = Date.now() - t0;
+    const motionWriteDoneAt = Date.now();
+    const writeRttMs = motionWriteDoneAt - motionWriteStartAt;
+    const capturedAt = opts?.snapshotCapturedAt;
+    const publishQueueMs =
+      typeof capturedAt === "number" ? motionWriteStartAt - capturedAt : undefined;
     if (import.meta.env.DEV && seq != null) {
-      peerSyncChainLog(3, seq, { d: payload.d, v: payload.v, ok: 1, rttMs, uid: user.uid.slice(0, 6) });
+      peerSyncChainLog(3, seq, {
+        d: payload.d,
+        v: payload.v,
+        ok: 1,
+        capturedAt: capturedAt ?? null,
+        writeStart: motionWriteStartAt,
+        writeDone: motionWriteDoneAt,
+        publishQueueMs: publishQueueMs ?? null,
+        writeRttMs,
+        inFlightMax: peekMotionInFlightMax(),
+        uid: user.uid.slice(0, 6),
+      });
     }
-    return { ok: true, rttMs, d: payload.d, v: payload.v, seq };
+    return { ok: true, rttMs: writeRttMs, d: payload.d, v: payload.v, seq };
   } catch (e) {
-    const rttMs = Date.now() - t0;
     if (import.meta.env.DEV && seq != null) {
-      peerSyncChainLog(3, seq, { d: payload.d, v: payload.v, ok: 0, rttMs, uid: user.uid.slice(0, 6) });
+      peerSyncChainLog(3, seq, {
+        d: payload.d,
+        v: payload.v,
+        ok: 0,
+        uid: user.uid.slice(0, 6),
+      });
     }
     throw e;
+  } finally {
+    endMotionInFlight();
   }
 }
 

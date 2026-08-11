@@ -14,12 +14,6 @@ import {
   snapshotToRtdbTrailMotionSnapshot,
 } from "./rtdbTrailMotion";
 import { nextPeerSyncChainSeq, peerSyncChainLog } from "./peerMotion/peerSyncChainLog";
-import {
-  peekSampleAppliedSpeedKmh,
-  peekSampleRouteLens,
-  peekSampleTargetSpeedKmh,
-  peekSampleVirtualDistanceM,
-} from "./peerMotion/peerSyncDistanceSamplers";
 
 export type LiveLocationFanoutResult = {
   global: boolean;
@@ -63,20 +57,27 @@ export async function publishLiveLocationFanout(
     snapshot.publicationId
   ) {
     let seq: number | undefined;
+    let snapshotCapturedAt: number | undefined;
     if (import.meta.env.DEV) {
       seq = nextPeerSyncChainSeq();
-      const lenses = peekSampleRouteLens();
+      const cap = snapshot.diagCapture;
+      snapshotCapturedAt = cap?.snapshotCapturedAt;
+      // §2-2: ①② 는 스냅샷 생성 순간의 동기 레코드만 쓴다 (fanout 시점 peek 금지)
       peerSyncChainLog(1, seq, {
-        authDist: peekSampleVirtualDistanceM(),
-        appliedKmh: peekSampleAppliedSpeedKmh(),
-        targetKmh: peekSampleTargetSpeedKmh(),
+        capturedAt: cap?.snapshotCapturedAt ?? null,
+        authDist: cap?.authDistAtCapture ?? null,
+        snapshotDist: cap?.snapshotDistAtCapture ?? null,
+        appliedKmh: cap?.appliedKmh ?? null,
+        targetKmh: cap?.targetKmh ?? null,
         uid: user.uid.slice(0, 6),
       });
       peerSyncChainLog(2, seq, {
-        dist: snapshot.distMetersAlongRoute,
+        capturedAt: cap?.snapshotCapturedAt ?? null,
+        dist: cap?.snapshotDistAtCapture ?? snapshot.distMetersAlongRoute,
+        authDist: cap?.authDistAtCapture ?? null,
         routeReady: snapshot.routeReady,
-        routeLen: lenses.routeLen,
-        geoLen: lenses.geoLen,
+        routeLen: cap?.routeLen ?? null,
+        geoLen: cap?.geoLen ?? null,
         uid: user.uid.slice(0, 6),
       });
     }
@@ -84,7 +85,7 @@ export async function publishLiveLocationFanout(
       user,
       snapshot.trailId,
       snapshotToRtdbTrailMotionSnapshot(snapshot),
-      { seq },
+      { seq, snapshotCapturedAt },
     );
     result.motion = true;
     result.motionOk = motion.ok;

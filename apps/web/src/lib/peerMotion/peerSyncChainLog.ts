@@ -29,6 +29,46 @@ export function peerSyncChainShouldEmit(nowMs = Date.now(), force = false): bool
 
 export type PeerSyncChainPoint = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
+/** DEV — 동시 motion write in-flight (§2-3). 감소는 호출측 finally. */
+let motionInFlight = 0;
+let motionInFlightMax = 0;
+
+export function beginMotionInFlight(): number {
+  motionInFlight += 1;
+  if (motionInFlight > motionInFlightMax) motionInFlightMax = motionInFlight;
+  return motionInFlight;
+}
+
+export function endMotionInFlight(): number {
+  motionInFlight = Math.max(0, motionInFlight - 1);
+  return motionInFlight;
+}
+
+export function peekMotionInFlight(): number {
+  return motionInFlight;
+}
+
+export function peekMotionInFlightMax(): number {
+  return motionInFlightMax;
+}
+
+const firstSeen = new Map<string, { at: number; repeats: number }>();
+
+export function notePeerSeqSeen(
+  uid: string,
+  seq: number | undefined,
+  nowMs: number,
+): { first: boolean; firstSeenAt: number; repeatSeenCount: number } {
+  const key = `${uid}:${seq ?? "none"}`;
+  const prev = firstSeen.get(key);
+  if (!prev) {
+    firstSeen.set(key, { at: nowMs, repeats: 0 });
+    return { first: true, firstSeenAt: nowMs, repeatSeenCount: 0 };
+  }
+  prev.repeats += 1;
+  return { first: false, firstSeenAt: prev.at, repeatSeenCount: prev.repeats };
+}
+
 /** 파싱 친화 한 줄: `[peerSyncChain] pt=N seq=… k=v …` */
 export function peerSyncChainLog(
   pt: PeerSyncChainPoint,

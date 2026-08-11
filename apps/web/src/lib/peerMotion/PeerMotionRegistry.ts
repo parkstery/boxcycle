@@ -4,7 +4,11 @@ import {
   headingAtRouteDistanceMeters,
   lineStringLengthMeters,
 } from "../geo";
-import { PEER_DRIVE_SIM_GRACE_MS } from "../rideSyncPolicy";
+import {
+  PEER_DRIVE_SIM_GRACE_MS,
+  PEER_INTERP_DELAY_MS,
+  PEER_INTERP_MAX_EXTRAP_MS,
+} from "../rideSyncPolicy";
 import { estimateCrankRpmFromSpeedKmh } from "../riderPedalMotion";
 import { PEER_RIDER_PEDAL_FRAME_COUNT } from "../registerPeerRiderPedalSprites";
 import {
@@ -147,18 +151,14 @@ export class PeerMotionRegistry {
           ` s${Math.round(self)} gap${Math.round((newest ? newest.distM : 0) - self)}` +
           ` b${entity.buffer.length} a${Math.round(ageMs / 100) / 10}s`;
         if (emitChain) {
-          const seq = newest?.seq;
-          peerSyncChainLog(6, seq, {
-            displayDistM: entity.displayDistM,
-            buf: entity.buffer.length,
-            age: ageMs,
-          });
-          peerSyncChainLog(7, seq, {
+          logStepModeDiag(entity, nowMs, routeLenM);
+          peerSyncChainLog(7, newest?.seq, {
             lng: lngLat[0],
             lat: lngLat[1],
             routeLen: routeLenM,
             clamped: clamped ? 1 : 0,
             displayDistM: distM,
+            uid: entity.uid.slice(0, 6),
           });
         }
       }
@@ -204,6 +204,71 @@ export class PeerMotionRegistry {
     }
     return out;
   }
+}
+
+/** DEV — step 분기 관찰만. integrator 공식은 건드리지 않는다. */
+function logStepModeDiag(entity: PeerMotionEntity, nowMs: number, routeLenM: number): void {
+  const buf = entity.buffer;
+  if (buf.length === 0) return;
+  const newest = buf[buf.length - 1]!;
+  const oldest = buf[0]!;
+  const renderTime = nowMs - PEER_INTERP_DELAY_MS;
+  const newestAgeMs = nowMs - newest.recvAtMs;
+  let mode: "paused" | "oldest" | "interpolate" | "extrapolate";
+  const extra: Record<string, string | number | boolean | null> = {};
+
+  if (entity.phase === "paused" || entity.phase === "completed") {
+    mode = "paused";
+    extra.newestSeq = newest.seq ?? null;
+    extra.newestDist = newest.distM;
+  } else if (renderTime <= oldest.recvAtMs) {
+    mode = "oldest";
+    extra.oldestSeq = oldest.seq ?? null;
+    extra.oldestRecv = oldest.recvAtMs;
+    extra.oldestDist = oldest.distM;
+  } else if (renderTime >= newest.recvAtMs) {
+    mode = "extrapolate";
+    const aheadRaw = renderTime - newest.recvAtMs;
+    const aheadCap = Math.min(aheadRaw, PEER_INTERP_MAX_EXTRAP_MS);
+    extra.newestSeq = newest.seq ?? null;
+    extra.newestRecv = newest.recvAtMs;
+    extra.newestDist = newest.distM;
+    extra.aheadMsRaw = aheadRaw;
+    extra.aheadMs = aheadCap;
+    extra.capHit = aheadRaw > PEER_INTERP_MAX_EXTRAP_MS ? 1 : 0;
+  } else {
+    mode = "interpolate";
+    let s0 = oldest;
+    let s1 = newest;
+    for (let i = 1; i < buf.length; i += 1) {
+      if (buf[i]!.recvAtMs >= renderTime) {
+        s1 = buf[i]!;
+        s0 = buf[i - 1]!;
+        break;
+      }
+    }
+    const span = s1.recvAtMs - s0.recvAtMs;
+    const t = span > 0 ? (renderTime - s0.recvAtMs) / span : 0;
+    extra.s0Seq = s0.seq ?? null;
+    extra.s1Seq = s1.seq ?? null;
+    extra.s0Recv = s0.recvAtMs;
+    extra.s1Recv = s1.recvAtMs;
+    extra.s0Dist = s0.distM;
+    extra.s1Dist = s1.distM;
+    extra.t = t;
+  }
+
+  peerSyncChainLog(6, null, {
+    mode,
+    renderTime,
+    newestAgeMs,
+    buf: buf.length,
+    displayDistM: entity.displayDistM,
+    entitySpeedMps: entity.speedMps,
+    routeLen: routeLenM,
+    uid: entity.uid.slice(0, 6),
+    ...extra,
+  });
 }
 
 export function getPeerMotionRegistry(): PeerMotionRegistry {

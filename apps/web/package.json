@@ -15,6 +15,7 @@
     "test:e2e:ride": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test ride-entry\"",
     "test:e2e:peer-s1": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s1 --workers=1\"",
     "test:e2e:peer-s3-diag": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s3-diag --workers=1\"",
+    "test:e2e:peer-s3r2": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s3-diag-r2 --workers=1\"",
     "test:peer-s3-fixtures": "node scripts/peer-sync/s3-fixture-gate.mjs"
   },
   "dependencies": {

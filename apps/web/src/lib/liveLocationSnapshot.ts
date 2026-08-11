@@ -10,6 +10,12 @@ import {
   haversineMeters,
   roundLngLatForLiveShare,
 } from "./rideSyncPolicy";
+import type { PeerSyncSnapshotCapture } from "./peerMotion/peerSyncSnapshotCapture";
+import {
+  peekSampleAppliedSpeedKmh,
+  peekSampleTargetSpeedKmh,
+  peekSampleVirtualDistanceM,
+} from "./peerMotion/peerSyncDistanceSamplers";
 
 /** compute-once → fan-out publish 입력 */
 export type LiveLocationPublishInput = {
@@ -36,6 +42,8 @@ export type LiveLocationSnapshot = {
   routeReady: boolean;
   speedMps: number;
   routeRidePhase: "live" | "paused";
+  /** DEV S3-DIAG-R2 — 스냅샷 생성 순간 동기 캡처. publish 페이로드에 넣지 않음 */
+  diagCapture?: PeerSyncSnapshotCapture;
 };
 
 /** 본인·동행 공통 — geometry 위 주행 거리(m). `liveForMap`·rAF 샘플과 동일 */
@@ -110,6 +118,19 @@ export function buildLiveLocationSnapshot(input: LiveLocationPublishInput): Live
     routeReady,
     speedMps,
     routeRidePhase: input.routeRidePhase ?? "live",
+    ...(import.meta.env.DEV
+      ? {
+          diagCapture: {
+            snapshotCapturedAt: Date.now(),
+            authDistAtCapture: peekSampleVirtualDistanceM(),
+            snapshotDistAtCapture: distMetersAlongRoute,
+            appliedKmh: peekSampleAppliedSpeedKmh(),
+            targetKmh: peekSampleTargetSpeedKmh(),
+            routeLen: input.routeDistanceMeters,
+            geoLen,
+          },
+        }
+      : {}),
   };
 }
 

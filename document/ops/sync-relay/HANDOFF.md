@@ -71,7 +71,7 @@ depart 구간 발행 spd  1.39 m/s 고정(=5km/h 초기 슬라이더) ← D-1 (A
 | **S1** | 증상 정량화 (`D_eff` / `residual`, 8케이스) | **보고완료 — ⚠ 절반만 유효** (아래) |
 | **S2** | S1 재분석 + replay 하네스(`truth(t)` · 지연 모델 · 시나리오 5종 · 불변식) | **보고완료** (`REPORT.md`) |
 | **S3-DIAG** | 패킷 단위 체인 진단 | **보고완료 — ⚠ 최초 이탈 판정 기각** (`REPORT-S3D.md`, 아래 §3-1) |
-| **S3-DIAG-R2** | 체인 재판정 — 초과량 판정(m 환산) · pt1~pt7 전량 보존 · `endToEndMs` · ⑤→⑥ 모드별 동적 기대값 | **배포 (미착수)** |
+| **S3-DIAG-R2** | 체인 재판정 — 초과량 판정(m 환산) · pt1~pt7 전량 보존 · `endToEndMs` · ⑤→⑥ 모드별 동적 기대값 | **보고완료** (`REPORT.md`) |
 | **S3** | 정확도 1차 — 적용속도 발행(D-1) → 저줌 실제속도(D-2) → 저줌 시 registry 적분 유지 | **보류** (S3-DIAG 결과 대기) |
 | **S4** | **안정성 2차** (in-flight 방지·stale·시계 정리) + **비용 3차** (heartbeat·Trail touch·RTDB child listener·전역 목록) | 대기 |
 
