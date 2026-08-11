@@ -73,8 +73,9 @@ depart 구간 발행 spd  1.39 m/s 고정(=5km/h 초기 슬라이더) ← D-1 (A
 | **S2** | S1 재분석 + replay 하네스(`truth(t)` · 지연 모델 · 시나리오 5종 · 불변식) | **보고완료** (`REPORT.md`) |
 | **S3-DIAG** | 패킷 단위 체인 진단 | **보고완료 — ⚠ 최초 이탈 판정 기각** (`REPORT-S3D.md`, 아래 §3-1) |
 | **S3-DIAG-R2** | 체인 재판정 | **보고완료 — 진단 종결** (`REPORT-S3DR2.md`, §3-4) |
-| **S3A** ★ | **발행 큐 제거** — motion 을 Firestore 선행 await 에서 분리 · 동시 발행 제한 · 대기 중 최신값만 | **배포** |
-| **S3B** | 정확도 2차 — 적용속도 발행(D-1) → 저줌 실제속도(D-2) → 저줌 시 registry 적분 유지 | 대기 (**S3A 뒤**) |
+| **S3A** ★ | 발행 큐 제거 — motion 을 Firestore 선행 await 에서 분리 · single-flight · latest-wins | **보고완료 — 수용 6/6 PASS** (`REPORT-S3A.md`) |
+| **S3A-V** | **증상 종결 검증(측정 전용)** — A rAF 원본 대 B 화면 거리, 승인된 종단 기준 2 개 | **배포** |
+| **S3B** | 정확도 2차 — 적용속도 발행(D-1) → 저줌 실제속도(D-2) → 저줌 시 registry 적분 유지 | 보류 (**S3A-V 뒤**) |
 | **S4** | 비용 3차 (heartbeat · Trail touch · RTDB child listener · 전역 목록) | 대기 |
 
 ### ⚠ S3 재정의 (감리0811)
@@ -202,8 +203,12 @@ writeRttMs 206 ms > PUBLISH_TICK_MS 100 ms  →  적체는 구조적으로 필�
 in-flight 최대 10  →  publishQueueMs p50 4.5 s
   →  옛 스냅샷이 뒤늦게 도착  →  최초 수신 역행 77 건 폐기(전진 폐기는 0)
   →  newest 정체  →  extrapolate 점유 58.9 % · cap(1.2 s) 히트 22.8 %
-  →  화면 위치 어긋남 37.7 m (p50) / 115.9 m (max)
 ```
+
+⚠ **`publishQueueMs × 속도`(37.7 m / 115.9 m)를 화면 위치 오차와 동일시하지 마라.**
+그것은 **발행되는 스냅샷이 얼마나 낡았는가**이지 사용자가 보는 어긋남이 아니다.
+수신 측이 외삽으로 일부를 보상하므로 화면 오차는 그보다 작다. 이 두 값은 별개이며,
+**화면 오차는 S3A-V 의 종단 측정으로만 확정된다.**
 
 **부수 확정**
 
@@ -212,8 +217,9 @@ in-flight 최대 10  →  publishQueueMs p50 4.5 s
 - 역행 212 = 최초 역행 77 + `onValue` 재관측 135, **C = 0**. `repeatSeenCount` p50 4 · max 32
 - ①→② 초과 max 1.39 m · ②→③ 값 초과 0 · ⑥→⑦ 0
 
-> **이 규모(37.7 m / 115.9 m)가 신고된 「상당한 차이」와 처음으로 일치한다.**
-> S1~S3-DIAG 의 0.25 m · 0.79 m · 23.2 m 는 전부 증상을 설명하지 못했다.
+> **스냅샷 낡음 규모(37.7 m / 115.9 m)는 신고된 「상당한 차이」와 처음으로 자릿수가 맞는 값이다.**
+> S1~S3-DIAG 의 0.25 m · 0.79 m · 23.2 m 는 자릿수부터 맞지 않았다.
+> 다만 위 ⚠ 대로 이는 화면 오차가 아니다 — **증상 종결 판정은 S3A-V 종단 측정에 맡긴다.**
 
 **순서 의존 2건 (위반 금지)**
 
@@ -231,7 +237,40 @@ in-flight 최대 10  →  publishQueueMs p50 4.5 s
 
 ---
 
-## 5. 알려진 정리 대상 (별건, 지금 손대지 말 것)
+## 5. S3A 후속 항목 (보존 — S3A-V 결과 뒤 처리 순서 재판단)
+
+**F-1. peer visibility 초기 시각 0** — `PublicationSharedPresence.tsx:120·295·355·362`
+
+```ts
+const [visibilityNowMs, setVisibilityNowMs] = useState(0);          // 초기 0
+window.setInterval(() => setVisibilityNowMs(Date.now()), 1_000);    // 첫 발화도 1초 뒤
+const age = row.serverAtMs > 0 ? now - row.serverAtMs : 0;          // now = 0 → age 음수
+```
+
+마운트 후 최소 1 초 동안 `now = 0` 으로 판정되어 **모든 age 가 음수 → stale peer 까지 전부 「신선」**
+으로 보인다. 또 `liveRideRows.length === 0 && motionRows.length === 0` 이면 인터벌을 아예 걸지 않아
+행이 사라진 뒤 마지막 값에 고정된다. → **측정에서는 앞 2 초를 폐기해 회피**(S3A-V §2-3).
+
+**F-2. RTDB 쓰기 오류가 조용히 삼켜짐** — `lib/peerMotion/motionPublishFlight.ts:45·49·85·89`
+
+```ts
+void runMotionJob(job);                    // fire-and-forget
+async function runMotionJob(...) { try { ... await mergeTrailMotionSnapshot(...) } finally { ... } }
+                                           // catch 없음 → reject 시 unhandled rejection
+```
+
+S3A 이전에는 fanout 이 await 했으므로 오류가 호출부 try/catch 로 표면화됐다. 지금은 **앱이 쓰기 실패에
+반응할 수 없다** — 재시도·경고·텔레메트리 어느 것도 못 한다. `finally` 로 `writing` 은 풀리므로 정지는 없다.
+
+**계측은 눈이 멀지 않았다.** `rtdbTrailMotion.ts:158-166` 의 catch 가 pt3 `ok=0` 을 방출한 뒤 rethrow 한다.
+→ **S3A-V 는 pt3 `ok=0` 으로 실패를 판정**하고, `pt2 − pt3` 는 **측정 종료 시점 미완료·로그 누락 후보**로만
+따로 센다(실패로 세지 않는다). 코드 변경 없이 관측 가능하다.
+
+⚠ **둘 다 이번(S3A-V)에 고치지 않는다.** 종결 판단 뒤 순서를 다시 정한다.
+
+---
+
+## 6. 알려진 정리 대상 (별건, 지금 손대지 말 것)
 
 - `hooks/useTrailLivePublicationRidePublisher.ts` — 호출처 없음
 - `lib/peerMotion/mergePackets.ts` `mergePeerMotionPackets` — `syncFromPresence`가 쓰지 않음
