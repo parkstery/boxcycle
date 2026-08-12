@@ -76,7 +76,7 @@ depart 구간 발행 spd  1.39 m/s 고정(=5km/h 초기 슬라이더) ← D-1 (A
 | **S3A** ★ | 발행 큐 제거 — motion 을 Firestore 선행 await 에서 분리 · single-flight · latest-wins | **보고완료 — 수용 6/6 PASS** (`REPORT-S3A.md`) |
 | **S3A-V** | 증상 종결 검증(측정 전용) | **보고완료 — 스케일 PASS · 시계 보정 무효** (`REPORT-S3AV.md`, §3-5) |
 | **S3A-VR** | 정확도 재검산 고정 — skew=0 · 중복 없는 지연 사슬 · 교차검산 게이트 | **보고완료 — 게이트 2/2 PASS** (`REPORT-S3AVR.md`) |
-| **S3B-1** ★ | **D-0 제거** — 발행 스냅샷을 rAF 원본에서 (`distMetersAlongRoute`·`progressRatio` 동일 원천) | **배포** |
+| **S3B-1** | D-0 제거 — 발행 스냅샷을 rAF 원본에서 | **보고완료 — PASS 채택** (`REPORT-S3B1.md`, §3-7) |
 | S3B-2 | D-1 — 적용속도 발행 + **Firestore 쓰기량 계측** | 대기 (S3B-1 뒤) |
 | S3B-3 | D-2 — registry 적분 유지 + spectator 실제속도 **+ 시간 기준 정리** | 대기 (S3B-2 뒤) |
 | **S4** | 비용 3차 (heartbeat · Trail touch · RTDB child listener · 전역 목록) | 대기 |
@@ -304,6 +304,58 @@ S3B-3  D-2  registry 적분 유지 + spectator 실제속도 + 시간 기준
    `lastSeenAtMs`(Firestore **serverTimestamp** = 서버 시계)와 `Date.now()`(로컬 시계)를 뺀다.
    지금은 5 km/h 외삽이라 오차가 눌려 있지만 실제 속도(30 km/h)로 바꾸면 **같은 시계 오차가 6 배**가 된다.
    → S3B-3 은 속도 교체와 **시간 기준 정리를 함께** 한다.
+
+### 3-7. ✅ S3B-1 채택 — **D-0 제거 · z15 정확도 종결** (감리0812)
+
+**게이트 4/4 PASS.** 감리가 저장 이벤트로 독립 재계산한 값이 보고서와 **완전히 일치**했다.
+
+| case | `D_eff` | RMSE | max | 겹침 | 스케일 | 판정 |
+|---|---:|---:|---:|---:|---:|---|
+| z15-depart | **340** ✔ | 0.394 ✔ | 1.245 ✔ | 1.000 | 0.57 % | **PASS** |
+| z15-cruise | **300** ✔ | 0.322 ✔ | 1.303 ✔ | 1.000 | 0.12 % | **PASS** |
+
+예산 `D_eff ≤ 350 · RMSE ≤ 1.0 · max ≤ 2.5` — **변경 없이 그대로 적용**했다.
+
+**before / after**
+
+```
+D_eff        560 / 540   →   340 / 300      (−220 / −240 ms)
+① 샘플링 낡음  231 / 217   →     0 /   0
+cruise max     2.746     →   1.303
+```
+
+제거된 ①(231/217)과 `D_eff` 감소분(220/240)이 **10~25 ms 안에서 일치**한다. 인과가 닫혔다.
+사슬 교차검산 |합계 − `D_eff`| = 14 / 7 ms.
+
+**변경 범위** — `src/` 는 `liveLocationSnapshot.ts` **7 줄**뿐. `peekSampleVirtualDistanceM()` 이
+유한이면 그 값, 아니면 `input.virtualDistanceMeters` 폴백. `distMetersAlongRoute` 와 `progressRatio`
+동일 원천. `speedKmh` 미변경. `App.tsx` 의 `rideMetrics` 소비처 미변경.
+
+**회귀 가드 유지** — `inFlightMax` 1 · `A_firstOutOfOrder` 0 · 전진 폐기 0 · `pt3 ok=0` 0 ·
+`publishQueueMs` 3 / 110 / 446 · 1 s 초과 0 %. RTDB 쓰기 1.06 배(게이트 1.3).
+
+> ⚠ **범위 한정** — 종결된 것은 **「z15 정확도(D-0)」** 뿐이다.
+> **「멀티라이더 위치 동기화 결함 종결」로 확대하지 마라.** S3B-2(D-1)·S3B-3(D-2)이 남아 있다.
+
+**주의 2건 (앞으로 인용할 때)**
+
+- **① 지표는 이제 자기참조다.** `authDistAtCapture` 와 발행 거리가 같은 샘플러에서 나오므로
+  ① = 0 은 정의상 0 이다. **「낡음이 없다」의 증거로 쓰지 마라.**
+  실제 증거는 **`D_eff` 감소**와 **발행 중복 0 / 294**(`d0-duplicate-distm` 기대값 뒤집힘) 두 개다.
+- **§3-4 Firestore 대조는 성립하지 못했다** — S3AV 에 기준선이 없었다. 다만
+  `shouldPublishRouteProgress`(`liveLocationSnapshot.ts:182-199`)는 `_progressRatio`·
+  `_distMetersAlongRoute` 를 **쓰지 않으므로** D-0 이 Firestore 쓰기량을 바꿀 수 없다. 공백은 무해하다.
+
+**참고 관측 (불안정 · 판정 미사용)**
+
+```
+Firestore route 쓰기 ≈ 4.2 /s   ← 텍스트 파싱 기반. 개발팀장이 불안정하다고 명시했다.
+                                  1 Hz heartbeat 기대와 어긋나지만 확정치가 아니다.
+미검증 가설  markRouteProgressPublished(:256)가 await(:249) 뒤라 대기 중 tick 이 게이트를
+             통과할 수 있다 — S3A 가 motion 에서 없앤 것과 같은 구조. **미확인이며 S4 사안.**
+             이 수치·가설을 근거로 결론을 세우지 마라. 별도 계측이 필요하다.
+수신 측 sameDist 1044 / 발행 중복 0 → 전부 부모 `onValue` 재전달. S4 사안.
+```
 
 **순서 의존 2건 (위반 금지)**
 
