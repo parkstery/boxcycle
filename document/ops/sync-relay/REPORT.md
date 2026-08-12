@@ -81,4 +81,4 @@ Firestore `LiveLocationPublish` 텍스트 파싱은 불안정(세션 4.2 /s로 �
 
 ### 커밋
 
-보고와 같은 브랜치에 푸시.
+`529c2e0`
