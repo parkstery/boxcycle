@@ -11,7 +11,7 @@
 // INSTRUCTION 상태 변경·후속 actor 실행은 구현하지 않는다.
 // 무변경은 선언이 아니라 감리 전후 지문 대조(assertUnchanged)로 기계 확인한다.
 
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { execFile, execFileSync, spawn } from 'node:child_process';
 import { mkdir, open, readFile, rename, stat, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -23,6 +23,14 @@ const execFileAsync = promisify(execFile);
 const DEFAULT_RELAY = 'sync-relay';
 const DEFAULT_INTERVAL_MS = 2_000;
 const DEFAULT_RETRY_MS = 60_000;
+// 실측 근거: 건강한 감리 4분 37초(격리 E2E) vs 병리적 실행 216.8분(S4-1R 실제). 약 10배로 자른다.
+const DEFAULT_CLAUDE_TIMEOUT_MS = 45 * 60_000;
+const MIN_CLAUDE_TIMEOUT_MS = 60_000;
+// 상한 안에 끝나지 못한 소유자는 이 유예 뒤 확실히 사라졌다고 본다(lease = 상한 + 유예).
+const LOCK_LEASE_GRACE_MS = 60_000;
+const KILL_GRACE_MS = 5_000;
+// SIGKILL 이후에도 close 가 오지 않으면 이만큼 더 기다렸다가 대기를 포기한다.
+const FORCE_SETTLE_MS = 2_000;
 const REPO_ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const DEFAULT_RUNTIME_DIR = path.join(REPO_ROOT, '.orchestrator');
 
@@ -337,7 +345,7 @@ export function validateAuditResult(result) {
   return result;
 }
 
-async function invokeClaudeAudit({ targetRoot, prompt }) {
+async function invokeClaudeAudit({ targetRoot, prompt, claudeTimeoutMs = DEFAULT_CLAUDE_TIMEOUT_MS }) {
   const executable = process.env.RTW_CLAUDE_BIN || 'claude';
   const args = [
     '-p', prompt,
@@ -348,21 +356,78 @@ async function invokeClaudeAudit({ targetRoot, prompt }) {
     '--allowedTools', 'Read,Grep,Glob,Bash(git status:*),Bash(git diff:*),Bash(git show:*),Bash(git log:*)',
     '--disallowedTools', 'Edit,Write,NotebookEdit,WebFetch,WebSearch',
   ];
-  return await new Promise((resolve, reject) => {
-    const child = spawn(executable, args, {
-      cwd: targetRoot,
-      shell: false,
-      windowsHide: true,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
+  const child = spawn(executable, args, {
+    cwd: targetRoot,
+    shell: false,
+    windowsHide: true,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  return await awaitClaudeChild(child, claudeTimeoutMs);
+}
+
+/**
+ * 자식 프로세스를 상한과 함께 기다린다.
+ *
+ * 상한을 넘기면 SIGTERM → 유예 뒤 SIGKILL 로 종료하고 **실패로 거부한다.**
+ * 부분 출력이 남아 있어도 파싱해서 성공으로 만들지 않는다.
+ */
+export function awaitClaudeChild(child, claudeTimeoutMs = DEFAULT_CLAUDE_TIMEOUT_MS, {
+  killGraceMs = KILL_GRACE_MS,
+  forceSettleMs = FORCE_SETTLE_MS,
+} = {}) {
+  return new Promise((resolve, reject) => {
     let stdout = '';
     let stderr = '';
     child.stdout.setEncoding('utf8');
     child.stderr.setEncoding('utf8');
     child.stdout.on('data', (chunk) => { stdout += chunk; });
     child.stderr.on('data', (chunk) => { stderr += chunk; });
-    child.on('error', reject);
+
+    // 실행 시간 상한. 초과분은 실패다 — 부분 출력을 파싱해 성공으로 기록하지 않는다.
+    const startedAt = Date.now();
+    let timedOut = false;
+    let settled = false;
+    let killTimer = null;
+    let giveUpTimer = null;
+
+    const clearTimers = () => {
+      clearTimeout(timeoutTimer);
+      if (killTimer) clearTimeout(killTimer);
+      if (giveUpTimer) clearTimeout(giveUpTimer);
+    };
+    const settle = (action) => {
+      if (settled) return;
+      settled = true;
+      clearTimers();
+      action();
+    };
+    const failTimeout = (note) => settle(() => reject(new Error(
+      `Claude 실행 시간 상한 초과 — 한도 ${(claudeTimeoutMs / 60_000).toFixed(1)}분, `
+      + `경과 ${((Date.now() - startedAt) / 60_000).toFixed(1)}분. ${note}`,
+    )));
+
+    const timeoutTimer = setTimeout(() => {
+      timedOut = true;
+      child.kill('SIGTERM');
+      killTimer = setTimeout(() => child.kill('SIGKILL'), killGraceMs);
+      killTimer.unref?.();
+      // close 가 끝내 오지 않아도 여기서 반드시 끝낸다. 자식이 신호를 무시하거나
+      // 파이프가 열린 채 남아도 감리 호출이 영원히 매달리면 안 된다.
+      giveUpTimer = setTimeout(
+        () => failTimeout('자식 프로세스가 종료 신호에 응답하지 않아 대기를 포기했습니다(고아 프로세스 가능).'),
+        killGraceMs + forceSettleMs,
+      );
+      giveUpTimer.unref?.();
+    }, claudeTimeoutMs);
+    timeoutTimer.unref?.();
+
+    child.on('error', (error) => settle(() => reject(error)));
     child.on('close', (code) => {
+      if (timedOut) {
+        failTimeout('자식 프로세스를 종료했습니다.');
+        return;
+      }
+      settle(() => {
       if (code !== 0) {
         const detail = stderr.trim() || stdout.trim() || '오류 메시지 없음';
         reject(new Error(`Claude 종료 코드 ${code}: ${detail.slice(0, 4_000)}`));
@@ -373,6 +438,7 @@ async function invokeClaudeAudit({ targetRoot, prompt }) {
       } catch (error) {
         reject(error);
       }
+      });
     });
   });
 }
@@ -437,16 +503,138 @@ ${error}
 `;
 }
 
-async function acquireLock(lockPath) {
+/** 소유자 프로세스 생존 확인. ESRCH=죽음, EPERM=살아 있음(권한만 없음). */
+export function isProcessAlive(pid, kill = process.kill.bind(process)) {
+  if (!Number.isInteger(pid) || pid <= 0) return false;
+  if (pid === process.pid) return true;
+  try {
+    kill(pid, 0);
+    return true;
+  } catch (error) {
+    return error.code === 'EPERM';
+  }
+}
+
+/**
+ * stale lock 회수 판정.
+ *
+ * 회수 조건은 「소유자가 확실히 사라졌다」로 한정한다. 살아 있고 lease 이내인 lock 은
+ * 절대 회수하지 않는다 — 그래야 같은 보고서를 동시에 두 번 감리하지 않는다.
+ * lease 만료는 실행 시간 상한이 있기 때문에 성립한다(정상 소유자는 상한 안에 lock 을 놓는다).
+ */
+export function evaluateLock(raw, { now, leaseMs, alive = isProcessAlive }) {
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return { reclaim: true, reason: '내용 파싱 불가' };
+  }
+  const pid = parsed?.pid;
+  const startedAt = Date.parse(parsed?.startedAt ?? '');
+  if (!Number.isInteger(pid) || Number.isNaN(startedAt)) {
+    return { reclaim: true, reason: '내용 파싱 불가(pid·startedAt 누락)' };
+  }
+  const ageMs = now - startedAt;
+  if (!alive(pid)) return { reclaim: true, reason: `소유자 종료(pid ${pid})` };
+  if (ageMs > leaseMs) {
+    return {
+      reclaim: true,
+      reason: `lease 만료(경과 ${(ageMs / 60_000).toFixed(1)}분 > 한도 ${(leaseMs / 60_000).toFixed(1)}분, pid ${pid})`,
+    };
+  }
+  return { reclaim: false, reason: `실행 중(pid ${pid}, 경과 ${(ageMs / 1_000).toFixed(0)}초)` };
+}
+
+/**
+ * 「내가 판정한 바로 그 lock 파일」만 제거한다.
+ *
+ * unlink 를 바로 쓰면 판정과 삭제 사이에 다른 watcher 가 새 lock 을 만들었을 때
+ * 남의 lock 을 지운다. 그래서 rename 으로 먼저 원자적으로 집어 든다 —
+ * lockPath 를 옆으로 옮기는 데 성공하는 프로세스는 하나뿐이다.
+ * 집어 든 내용이 판정 대상과 다르면 새 소유자 것이므로 **되돌려 놓는다.**
+ */
+export async function removeLockIfSame(lockPath, expectedRaw, tag) {
+  const asidePath = `${lockPath}.${tag}.taken`;
+  try {
+    await rename(lockPath, asidePath);
+  } catch (error) {
+    if (error.code === 'ENOENT') return { removed: false, reason: 'lock 이 이미 없음' };
+    throw error;
+  }
+  const raw = await readFile(asidePath, 'utf8').catch(() => null);
+  if (raw !== expectedRaw) {
+    // 내가 본 그 lock 이 아니다. 원위치시키고 물러난다.
+    try {
+      await rename(asidePath, lockPath);
+    } catch {
+      // 그 사이 또 다른 소유자가 자리를 차지했다. 그쪽이 정당한 소유자다.
+      await unlink(asidePath).catch(() => {});
+    }
+    return { removed: false, reason: '다른 소유자의 lock — 삭제하지 않음' };
+  }
+  await unlink(asidePath).catch(() => {});
+  return { removed: true };
+}
+
+async function writeLock(lockPath) {
+  const token = randomUUID();
+  const payload = JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString(), token });
+  const handle = await open(lockPath, 'wx');
+  await handle.writeFile(payload);
+  await handle.close();
+  // release 는 내 토큰이 그대로 있을 때만 지운다. 늦게 도착한 이전 소유자의
+  // release 가 새 소유자의 lock 을 지우는 일을 막는다.
+  const release = async () => {
+    const current = await readOptional(lockPath);
+    if (current === null) return { released: false, reason: 'lock 이 이미 없음' };
+    if (current !== payload) return { released: false, reason: '다른 소유자의 lock — 삭제하지 않음' };
+    const outcome = await removeLockIfSame(lockPath, payload, `release-${token.slice(0, 8)}`);
+    return { released: outcome.removed, reason: outcome.reason };
+  };
+  return { token, payload, release };
+}
+
+export async function acquireLock(lockPath, {
+  leaseMs,
+  now = () => new Date(),
+  alive = isProcessAlive,
+  onBeforeReclaim = null,
+} = {}) {
   await mkdir(path.dirname(lockPath), { recursive: true });
   try {
-    const handle = await open(lockPath, 'wx');
-    await handle.writeFile(JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }));
-    await handle.close();
-    return async () => { await unlink(lockPath).catch(() => {}); };
+    const held = await writeLock(lockPath);
+    return { release: held.release, token: held.token };
   } catch (error) {
-    if (error.code === 'EEXIST') return null;
-    throw error;
+    if (error.code !== 'EEXIST') throw error;
+  }
+
+  const raw = await readOptional(lockPath);
+  if (raw === null) {
+    // 판정하는 사이에 소유자가 놓았다. 다시 잡아 본다.
+    try {
+      const held = await writeLock(lockPath);
+      return { release: held.release, token: held.token };
+    } catch {
+      return { release: null, reason: '경합' };
+    }
+  }
+
+  const verdict = evaluateLock(raw, { now: now().getTime(), leaseMs, alive });
+  if (!verdict.reclaim) return { release: null, reason: verdict.reason };
+
+  // 시험이 판정↔삭제 사이 경합을 결정적으로 끼워 넣는 지점.
+  if (onBeforeReclaim) await onBeforeReclaim();
+
+  const removal = await removeLockIfSame(lockPath, raw, `reclaim-${process.pid}`);
+  if (!removal.removed) {
+    return { release: null, reason: `회수 취소 — ${removal.reason}` };
+  }
+  try {
+    const held = await writeLock(lockPath);
+    return { release: held.release, token: held.token, reclaimed: verdict.reason };
+  } catch {
+    // 회수 직후 다른 실행이 먼저 잡았다. 경합은 한쪽만 이긴다.
+    return { release: null, reason: `회수 후 경합(${verdict.reason})` };
   }
 }
 
@@ -465,6 +653,9 @@ export async function runAuditOnce({
   verifyTarget = assertGitWorktree,
   now = () => new Date(),
   retryMs = DEFAULT_RETRY_MS,
+  claudeTimeoutMs = DEFAULT_CLAUDE_TIMEOUT_MS,
+  alive = isProcessAlive,
+  onBeforeReclaim = null,
 } = {}) {
   if (!shadow) {
     throw new Error('shadow mode 외의 실행 경로는 구현되지 않았습니다(--no-shadow 사용 불가).');
@@ -499,8 +690,19 @@ export async function runAuditOnce({
     return { status: 'cooldown', reason: '이전 실패 재시도 대기', relay: paths.relay, triggerKey };
   }
 
-  const releaseLock = await acquireLock(paths.lockPath);
-  if (!releaseLock) return { status: 'busy', reason: '감리 실행 중', relay: paths.relay, triggerKey };
+  const lock = await acquireLock(paths.lockPath, {
+    leaseMs: claudeTimeoutMs + LOCK_LEASE_GRACE_MS,
+    now,
+    alive,
+    onBeforeReclaim,
+  });
+  if (!lock.release) {
+    return { status: 'busy', reason: `감리 실행 중 — ${lock.reason}`, relay: paths.relay, triggerKey };
+  }
+  const releaseLock = lock.release;
+  if (lock.reclaimed) {
+    console.warn(`[orchestrator] ${paths.relay}: stale lock 회수 — ${lock.reclaimed}`);
+  }
 
   const startedAt = now().toISOString();
   try {
@@ -520,7 +722,7 @@ export async function runAuditOnce({
 
     const prompt = buildPrompt({ paths, instructionMeta, instructionHash, reportHash, git });
     const beforeFingerprint = await fingerprint(paths.targetRoot);
-    const response = await invokeAudit({ targetRoot: paths.targetRoot, prompt, paths, git });
+    const response = await invokeAudit({ targetRoot: paths.targetRoot, prompt, paths, git, claudeTimeoutMs });
     const afterFingerprint = await fingerprint(paths.targetRoot);
     assertUnchanged(beforeFingerprint, afterFingerprint);
     const audit = validateAuditResult(response.result ?? response);
@@ -618,7 +820,7 @@ function printResult(result) {
   console.log(`[orchestrator] ${result.relay}: ${result.status}${verdict}${key}${tail}`);
 }
 
-async function doctor({ target, relay, runtimeDir }) {
+async function doctor({ target, relay, runtimeDir, claudeTimeoutMs = DEFAULT_CLAUDE_TIMEOUT_MS }) {
   const paths = resolvePaths({ target, relay, runtimeDir });
   await assertGitWorktree(paths.targetRoot);
   let claudeVersion;
@@ -642,6 +844,7 @@ async function doctor({ target, relay, runtimeDir }) {
   console.log(`[orchestrator] branch/HEAD: ${git.branch} / ${git.head}${git.dirty ? ' (dirty)' : ''}`);
   console.log(`[orchestrator] runtime: ${toPosix(paths.runtimeRoot)}`);
   console.log(`[orchestrator] 대상 지문: ${fingerprint.digest}`);
+  console.log(`[orchestrator] Claude 실행 상한: ${(claudeTimeoutMs / 60_000).toFixed(1)}분 (lock lease ${((claudeTimeoutMs + LOCK_LEASE_GRACE_MS) / 60_000).toFixed(1)}분)`);
   console.log(`[orchestrator] Claude CLI: ${claudeVersion}`);
   console.log(`[orchestrator] relay: ${paths.relay}`);
   console.log(`[orchestrator] INSTRUCTION: ${instruction === null ? '없음' : `있음 (상태=${meta.status || '미상'}, 지시번호=${meta.instructionId})`}`);
@@ -651,7 +854,15 @@ async function doctor({ target, relay, runtimeDir }) {
 
 export function parseCli(argv) {
   const [command = 'help', ...rest] = argv;
-  const options = { command, relay: DEFAULT_RELAY, intervalMs: DEFAULT_INTERVAL_MS, runtimeDir: DEFAULT_RUNTIME_DIR, target: null, shadow: true };
+  const options = {
+    command,
+    relay: DEFAULT_RELAY,
+    intervalMs: DEFAULT_INTERVAL_MS,
+    runtimeDir: DEFAULT_RUNTIME_DIR,
+    target: null,
+    shadow: true,
+    claudeTimeoutMs: DEFAULT_CLAUDE_TIMEOUT_MS,
+  };
   for (let index = 0; index < rest.length; index += 1) {
     const token = rest[index];
     const value = rest[index + 1];
@@ -659,6 +870,7 @@ export function parseCli(argv) {
     if (token === '--relay') { options.relay = value; index += 1; continue; }
     if (token === '--runtime-dir') { options.runtimeDir = value; index += 1; continue; }
     if (token === '--interval-ms') { options.intervalMs = Number(value); index += 1; continue; }
+    if (token === '--claude-timeout-ms') { options.claudeTimeoutMs = Number(value); index += 1; continue; }
     if (token === '--shadow') { options.shadow = true; continue; }
     if (token === '--no-shadow') { options.shadow = false; continue; }
     throw new Error(`알 수 없는 인자: ${token}`);
@@ -669,6 +881,9 @@ export function parseCli(argv) {
     options.relay = normalizeRelayName(options.relay);
     if (!Number.isFinite(options.intervalMs) || options.intervalMs < 500) {
       throw new Error('--interval-ms는 500 이상이어야 합니다.');
+    }
+    if (!Number.isFinite(options.claudeTimeoutMs) || options.claudeTimeoutMs < MIN_CLAUDE_TIMEOUT_MS) {
+      throw new Error(`--claude-timeout-ms는 ${MIN_CLAUDE_TIMEOUT_MS} 이상이어야 합니다.`);
     }
   }
   return options;
@@ -685,6 +900,8 @@ function printHelp() {
 동작:
   대상 저장소의 INSTRUCTION.md 상태가 보고완료이고 REPORT.md 가 있으면 Claude 를 읽기 전용으로 호출한다.
   실행 키 = sha256(대상 HEAD : INSTRUCTION 해시 : REPORT 해시) — 같은 조합은 다시 감리하지 않는다.
+  Claude 실행에는 상한(기본 45분, --claude-timeout-ms)이 있고, 초과는 실패로 남는다.
+  소유자가 죽었거나 lease(상한+60초)를 넘긴 lock 은 회수한다. 살아 있는 lock 은 회수하지 않는다.
   산출물은 전부 런타임 루트(.orchestrator/) 아래에 쓴다. 대상 저장소에는 아무것도 쓰지 않는다.
   감리 전후 대상 지문(HEAD·status·diff·미추적 파일 해시)을 대조해 무변경을 기계 확인한다.
 
