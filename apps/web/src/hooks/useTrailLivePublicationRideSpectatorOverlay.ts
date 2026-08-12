@@ -14,9 +14,7 @@ import {
   isTrailLivePublicationRideRowFresh,
   type TrailLivePublicationRideRow,
 } from "../lib/firestoreTrailLivePublicationRides";
-import { PEER_EXTRAP_DEFAULT_SPEED_KMH } from "../lib/rideSyncPolicy";
-import { getPointOnRouteByDistance, lineStringLengthMeters } from "../lib/geo";
-import { progressRatioToRouteDistanceMeters } from "../lib/liveLocationSnapshot";
+import { spectatorPointOnRoute } from "../lib/spectatorRideExtrap";
 
 export type TrailSpectatorDot = { id: string; lngLat: LngLat; label: string };
 
@@ -48,6 +46,7 @@ export function useTrailLivePublicationRideSpectatorOverlay(opts: UseTrailLivePu
   const [rows, setRows] = useState<TrailLivePublicationRideRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [geomEpoch, setGeomEpoch] = useState(0);
+  const [spectatorTickMs, setSpectatorTickMs] = useState(() => Date.now());
   const geomByPublicationRef = useRef<Map<string, PublicationGeomState>>(new Map());
 
   const myUid = user?.uid ?? null;
@@ -141,24 +140,19 @@ export function useTrailLivePublicationRideSpectatorOverlay(opts: UseTrailLivePu
     if (scheduled) setGeomEpoch((n) => n + 1);
   }, [enabled, activeRowsKey]);
 
+  useEffect(() => {
+    if (!enabled || activeRows.length === 0) return;
+    const id = window.setInterval(() => setSpectatorTickMs(Date.now()), 1_000);
+    return () => window.clearInterval(id);
+  }, [enabled, activeRowsKey]);
+
   const spectatorDots = useMemo((): TrailSpectatorDot[] => {
     const map = geomByPublicationRef.current;
     const out: TrailSpectatorDot[] = [];
     for (const r of activeRows) {
       const g = map.get(r.publicationId);
       if (!g || g.status !== "ready") continue;
-      const len = lineStringLengthMeters(g.geometry);
-      if (len <= 0) continue;
-      const anchorDistM =
-        typeof r.distMeters === "number" && Number.isFinite(r.distMeters)
-          ? Math.max(0, Math.min(len, r.distMeters))
-          : progressRatioToRouteDistanceMeters(r.progressRatio, len);
-      const elapsedSec = Math.max(0, (Date.now() - r.receivedAtLocalMs) / 1000);
-      const distM = Math.min(
-        len,
-        anchorDistM + (PEER_EXTRAP_DEFAULT_SPEED_KMH / 3.6) * elapsedSec,
-      );
-      const p = getPointOnRouteByDistance(g.geometry, distM);
+      const p = spectatorPointOnRoute(r, g.geometry, spectatorTickMs, { logPt10: true });
       if (p) {
         const who = r.displayName?.trim() || r.uid.slice(0, 6);
         out.push({
@@ -169,7 +163,7 @@ export function useTrailLivePublicationRideSpectatorOverlay(opts: UseTrailLivePu
       }
     }
     return out;
-  }, [activeRows, geomEpoch, trailLabel]);
+  }, [activeRows, geomEpoch, trailLabel, spectatorTickMs]);
 
   const livePublicationIds = useMemo(
     () => [...new Set(activeRows.map((r) => r.publicationId.trim()).filter(Boolean))],

@@ -88,6 +88,9 @@ export const TRAIL_LIVE_PROGRESS_MIN_DIST_DELTA_M = 0;
 /** 동행 peer 외삽 — 샘플 간격 속도 미상일 때 가정 km/h (가상 주행 기본) */
 export const PEER_EXTRAP_DEFAULT_SPEED_KMH = 5;
 
+/** spectator dot 외삽 상한 — Firestore 1 Hz + 실측 write RTT(≈2.4–3.0 s) 덮음 */
+export const SPECTATOR_MAX_EXTRAP_MS = 3_000;
+
 /** 입문 코스 동행 DOM 스프라이트 — 고줌에서만 (dot 은 global livePresence) */
 export const MAP_PEER_SPRITE_MIN_ZOOM = 14;
 /** 전역 livePresence: 최소 쓰기 간격(ms) */

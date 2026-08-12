@@ -27,7 +27,7 @@ export function peerSyncChainShouldEmit(nowMs = Date.now(), force = false): bool
   return true;
 }
 
-export type PeerSyncChainPoint = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 9;
+export type PeerSyncChainPoint = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 9 | 10;
 
 /** DEV — 동시 motion write in-flight (§2-3). 감소는 호출측 finally. */
 let motionInFlight = 0;

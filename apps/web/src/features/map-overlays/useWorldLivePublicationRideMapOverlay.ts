@@ -14,9 +14,7 @@ import {
 import { acquireTrailLivePublicationRidesSubscription } from "../../lib/livePublicationRidesSubscriptionHub";
 import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "../../lib/firestoreTrail";
 import type { LineStringGeometry, LngLat } from "../../lib/geo";
-import { getPointOnRouteByDistance, lineStringLengthMeters } from "../../lib/geo";
-import { progressRatioToRouteDistanceMeters } from "../../lib/liveLocationSnapshot";
-import { PEER_EXTRAP_DEFAULT_SPEED_KMH } from "../../lib/rideSyncPolicy";
+import { spectatorPointOnRoute } from "../../lib/spectatorRideExtrap";
 import type { TrailSpectatorDot } from "../../hooks/useTrailLivePublicationRideSpectatorOverlay";
 import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../../lib/geoDecimate";
 import type { RouteActivityMapOverlay } from "../../hooks/useRouteActivityMapOverlay";
@@ -89,6 +87,7 @@ export function useWorldLivePublicationRideMapOverlay(opts: {
   const { enabled, mapZoom, myUid, excludePublicationId, trailIds } = opts;
   const [rows, setRows] = useState<TrailLivePublicationRideRow[]>([]);
   const [geomEpoch, setGeomEpoch] = useState(0);
+  const [spectatorTickMs, setSpectatorTickMs] = useState(() => Date.now());
   const geomByPublicationRef = useRef<Map<string, PublicationGeomState>>(new Map());
 
   const trailIdsKey = useMemo(() => {
@@ -196,6 +195,26 @@ export function useWorldLivePublicationRideMapOverlay(opts: {
     if (scheduled) setGeomEpoch((n) => n + 1);
   }, [enabled, aggregates]);
 
+  const lobbyActiveRowsKey = useMemo(() => {
+    const exclude = excludePublicationId?.trim() ?? "";
+    return rows
+      .filter((r) => {
+        if (!isTrailLivePublicationRideRowFresh(r)) return false;
+        if (exclude && r.publicationId.trim() === exclude) return false;
+        if (myUid && r.uid === myUid) return false;
+        return true;
+      })
+      .map((r) => r.uid)
+      .sort()
+      .join("|");
+  }, [rows, excludePublicationId, myUid]);
+
+  useEffect(() => {
+    if (!enabled || lobbyActiveRowsKey.length === 0) return;
+    const id = window.setInterval(() => setSpectatorTickMs(Date.now()), 1_000);
+    return () => window.clearInterval(id);
+  }, [enabled, lobbyActiveRowsKey]);
+
   const overlay = useMemo((): RouteActivityMapOverlay => {
     if (aggregates.length === 0) return EMPTY_LIVE_OVERLAY;
 
@@ -247,15 +266,7 @@ export function useWorldLivePublicationRideMapOverlay(opts: {
         seenPublications.add(r.publicationId);
         lobbySpectatorRoutes.push(decimateLineStringVertices(g.geometry, maxV));
       }
-      const len = lineStringLengthMeters(g.geometry);
-      if (len <= 0) continue;
-      const anchorDistM =
-        typeof r.distMeters === "number" && Number.isFinite(r.distMeters)
-          ? Math.max(0, Math.min(len, r.distMeters))
-          : progressRatioToRouteDistanceMeters(r.progressRatio, len);
-      const elapsedSec = Math.max(0, (Date.now() - r.receivedAtLocalMs) / 1000);
-      const distM = Math.min(len, anchorDistM + (PEER_EXTRAP_DEFAULT_SPEED_KMH / 3.6) * elapsedSec);
-      const p = getPointOnRouteByDistance(g.geometry, distM);
+      const p = spectatorPointOnRoute(r, g.geometry, spectatorTickMs, { logPt10: true });
       if (p) {
         const who = r.displayName?.trim() || r.uid.slice(0, 6);
         lobbySpectatorDots.push({
@@ -267,7 +278,7 @@ export function useWorldLivePublicationRideMapOverlay(opts: {
     }
 
     return { lobbySpectatorDots, lobbySpectatorRoutes };
-  }, [rows, excludePublicationId, myUid, mapZoom, geomEpoch]);
+  }, [rows, excludePublicationId, myUid, mapZoom, geomEpoch, spectatorTickMs]);
 
   return {
     ...overlay,
