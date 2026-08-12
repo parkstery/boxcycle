@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -2256,15 +2257,14 @@ export function MapView({
       }
 
       const showPeerSprites = mapZoomRef.current > MAP_PEER_SPRITE_MIN_ZOOM;
-      const fc = showPeerSprites
-        ? stepPeerDriveAndBuildGeoJson(
-            null,
-            dt,
-            getBearing,
-            routeGeometryRef.current,
-            Date.now(),
-          )
-        : EMPTY_GEOJSON_FC;
+      const peerFc = stepPeerDriveAndBuildGeoJson(
+        null,
+        dt,
+        getBearing,
+        routeGeometryRef.current,
+        Date.now(),
+      );
+      const fc = showPeerSprites ? peerFc : EMPTY_GEOJSON_FC;
       syncPeerDomMarkers(map, fc.features as PeerDomGJFeature[], peerDomMarkersRef);
       if (RIDER_PROTOTYPE_MODE === "glb" && ensureRiderGlbLayer(map)) {
         const specs: RiderGlbModelSpec[] = [];
