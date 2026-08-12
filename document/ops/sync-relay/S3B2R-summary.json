@@ -1,0 +1,954 @@
+{
+  "instruction": "S3B-2R",
+  "head": "aca3750",
+  "uag": "S3B-2R — 귀속 A 로 판정",
+  "attribution": {
+    "code": "A",
+    "note": "3 런 depart D_eff 340~400 ms — 런 변동이 340↔360 스팬을 설명",
+    "criteria": {
+      "span340to360": true,
+      "spread20": true,
+      "cluster360": false,
+      "curveDistinguishes": false
+    }
+  },
+  "acceptance": {
+    "fitcurveSubmitted": true,
+    "threeRunsComplete": true,
+    "mechanicsTable": true,
+    "attributionDeclared": true,
+    "guardsAllRuns": true,
+    "all": true
+  },
+  "section1_1": {
+    "instruction": "S3B-2R",
+    "section": "1-1",
+    "grid": {
+      "stepMs": 20,
+      "range": [
+        240,
+        480
+      ],
+      "note": "공식 D_eff 적합은 0..3000 step 20. 350 은 격자 밖(off-grid spotlight 만)",
+      "budgetMs": 350
+    },
+    "base": {
+      "D_eff": 340,
+      "residualRmse": 0.3856858500970258,
+      "residualMax": 1.5112978723404353,
+      "overlap": 1,
+      "n": 97,
+      "residualMeanAtDeff": -0.06052033716308241,
+      "sweep": [
+        {
+          "D": 240,
+          "residualRmse": 0.8718276054172063,
+          "residualMax": 2.3161153846153866,
+          "residualMean": -0.7394831738456893,
+          "n": 97,
+          "overlap": 1
+        },
+        {
+          "D": 260,
+          "residualRmse": 0.7448676863970577,
+          "residualMax": 2.1634780219780225,
+          "residualMean": -0.6043840968685895,
+          "n": 97,
+          "overlap": 1
+        },
+        {
+          "D": 280,
+          "residualRmse": 0.624259325494343,
+          "residualMax": 2.0076382978723473,
+          "residualMean": -0.4676918878228928,
+          "n": 97,
+          "overlap": 1
+        },
+        {
+          "D": 300,
+          "residualRmse": 0.5163929130076467,
+          "residualMax": 1.84219148936171,
+          "residualMean": -0.33115825911840385,
+          "n": 97,
+          "overlap": 1
+        },
+        {
+          "D": 320,
+          "residualRmse": 0.4319241225795282,
+          "residualMax": 1.6767446808510726,
+          "residualMean": -0.19507477563022912,
+          "n": 97,
+          "overlap": 1
+        },
+        {
+          "D": 340,
+          "residualRmse": 0.3856858500970258,
+          "residualMax": 1.5112978723404353,
+          "residualMean": -0.06052033716308241,
+          "n": 97,
+          "overlap": 1
+        },
+        {
+          "D": 360,
+          "residualRmse": 0.3905870574681426,
+          "residualMax": 1.345851063829798,
+          "residualMean": 0.07344875874597105,
+          "n": 97,
+          "overlap": 1
+        },
+        {
+          "D": 380,
+          "residualRmse": 0.4421752774018719,
+          "residualMax": 1.1804042553191607,
+          "residualMean": 0.20731982471361285,
+          "n": 97,
+          "overlap": 1
+        },
+        {
+          "D": 400,
+          "residualRmse": 0.5274373144284232,
+          "residualMax": 1.232085106382982,
+          "residualMean": 0.3398115306981975,
+          "n": 97,
+          "overlap": 1
+        },
+        {
+          "D": 420,
+          "residualRmse": 0.6337812500196246,
+          "residualMax": 1.4388936170212787,
+          "residualMean": 0.472719011811893,
+          "n": 97,
+          "overlap": 1
+        },
+        {
+          "D": 440,
+          "residualRmse": 0.7521463290397024,
+          "residualMax": 1.6457021276595754,
+          "residualMean": 0.6057199474747126,
+          "n": 97,
+          "overlap": 1
+        },
+        {
+          "D": 460,
+          "residualRmse": 0.8766681207216178,
+          "residualMax": 1.852510638297872,
+          "residualMean": 0.737933118677789,
+          "n": 97,
+          "overlap": 1
+        },
+        {
+          "D": 480,
+          "residualRmse": 1.0060671837011055,
+          "residualMax": 2.0593191489361686,
+          "residualMean": 0.8705943207606044,
+          "n": 97,
+          "overlap": 1
+        }
+      ],
+      "spotlight": {
+        "300": {
+          "D": 300,
+          "residualRmse": 0.5163929130076467,
+          "residualMax": 1.84219148936171,
+          "residualMean": -0.33115825911840385,
+          "n": 97,
+          "overlap": 1
+        },
+        "320": {
+          "D": 320,
+          "residualRmse": 0.4319241225795282,
+          "residualMax": 1.6767446808510726,
+          "residualMean": -0.19507477563022912,
+          "n": 97,
+          "overlap": 1
+        },
+        "340": {
+          "D": 340,
+          "residualRmse": 0.3856858500970258,
+          "residualMax": 1.5112978723404353,
+          "residualMean": -0.06052033716308241,
+          "n": 97,
+          "overlap": 1
+        },
+        "350": {
+          "D": 350,
+          "residualRmse": 0.3818362015743004,
+          "residualMax": 1.4285744680851167,
+          "residualMean": 0.006415990417450055,
+          "n": 97,
+          "overlap": 1
+        },
+        "360": {
+          "D": 360,
+          "residualRmse": 0.3905870574681426,
+          "residualMax": 1.345851063829798,
+          "residualMean": 0.07344875874597105,
+          "n": 97,
+          "overlap": 1
+        },
+        "380": {
+          "D": 380,
+          "residualRmse": 0.4421752774018719,
+          "residualMax": 1.1804042553191607,
+          "residualMean": 0.20731982471361285,
+          "n": 97,
+          "overlap": 1
+        }
+      },
+      "distinguish350vs360": {
+        "rmse350": 0.3818362015743004,
+        "rmse360": 0.3905870574681426,
+        "delta": 0.008750855893842169,
+        "localSpread": 0.008750855893842169,
+        "distinguishable": false,
+        "note": "350 은 20ms 격자 밖 — off-grid 평가. delta>localSpread 이면 구별"
+      },
+      "grid": {
+        "stepMs": 20,
+        "min": 240,
+        "max": 480,
+        "budgetMs": 350
+      }
+    },
+    "post": {
+      "D_eff": 360,
+      "residualRmse": 0.45466606755971967,
+      "residualMax": 1.3527608069164216,
+      "overlap": 1,
+      "n": 99,
+      "residualMeanAtDeff": 0.06437351460357295,
+      "sweep": [
+        {
+          "D": 240,
+          "residualRmse": 0.9139188678923381,
+          "residualMax": 2.4092449567723264,
+          "residualMean": -0.7358543233954871,
+          "n": 99,
+          "overlap": 1
+        },
+        {
+          "D": 260,
+          "residualRmse": 0.7918351303510862,
+          "residualMax": 2.2331642651296733,
+          "residualMean": -0.6026481635338432,
+          "n": 99,
+          "overlap": 1
+        },
+        {
+          "D": 280,
+          "residualRmse": 0.6780925718205267,
+          "residualMax": 2.05708357348702,
+          "residualMean": -0.469662660182245,
+          "n": 99,
+          "overlap": 1
+        },
+        {
+          "D": 300,
+          "residualRmse": 0.5777549800542974,
+          "residualMax": 1.8810028818443811,
+          "residualMean": -0.3360252357284147,
+          "n": 99,
+          "overlap": 1
+        },
+        {
+          "D": 320,
+          "residualRmse": 0.5000364799674109,
+          "residualMax": 1.704922190201728,
+          "residualMean": -0.20353774436571964,
+          "n": 99,
+          "overlap": 1
+        },
+        {
+          "D": 340,
+          "residualRmse": 0.45568751175799066,
+          "residualMax": 1.5288414985590748,
+          "residualMean": -0.07034735726734385,
+          "n": 99,
+          "overlap": 1
+        },
+        {
+          "D": 360,
+          "residualRmse": 0.45466606755971967,
+          "residualMax": 1.3527608069164216,
+          "residualMean": 0.06437351460357295,
+          "n": 99,
+          "overlap": 1
+        },
+        {
+          "D": 380,
+          "residualRmse": 0.49794194713331247,
+          "residualMax": 1.3404104046242935,
+          "residualMean": 0.1994137279487578,
+          "n": 99,
+          "overlap": 1
+        },
+        {
+          "D": 400,
+          "residualRmse": 0.5753144955336903,
+          "residualMax": 1.5170578034682194,
+          "residualMean": 0.33438004442209796,
+          "n": 99,
+          "overlap": 1
+        },
+        {
+          "D": 420,
+          "residualRmse": 0.67309240590779,
+          "residualMax": 1.6937052023121737,
+          "residualMean": 0.4678618654784009,
+          "n": 99,
+          "overlap": 1
+        },
+        {
+          "D": 440,
+          "residualRmse": 0.7834895216006935,
+          "residualMax": 1.8703526011560996,
+          "residualMean": 0.5990646984126436,
+          "n": 99,
+          "overlap": 1
+        },
+        {
+          "D": 460,
+          "residualRmse": 0.9036106298563247,
+          "residualMax": 2.0470000000000255,
+          "residualMean": 0.7302980339250298,
+          "n": 99,
+          "overlap": 1
+        },
+        {
+          "D": 480,
+          "residualRmse": 1.030685996845003,
+          "residualMax": 2.2363636363636488,
+          "residualMean": 0.8630967474487814,
+          "n": 99,
+          "overlap": 1
+        }
+      ],
+      "spotlight": {
+        "300": {
+          "D": 300,
+          "residualRmse": 0.5777549800542974,
+          "residualMax": 1.8810028818443811,
+          "residualMean": -0.3360252357284147,
+          "n": 99,
+          "overlap": 1
+        },
+        "320": {
+          "D": 320,
+          "residualRmse": 0.5000364799674109,
+          "residualMax": 1.704922190201728,
+          "residualMean": -0.20353774436571964,
+          "n": 99,
+          "overlap": 1
+        },
+        "340": {
+          "D": 340,
+          "residualRmse": 0.45568751175799066,
+          "residualMax": 1.5288414985590748,
+          "residualMean": -0.07034735726734385,
+          "n": 99,
+          "overlap": 1
+        },
+        "350": {
+          "D": 350,
+          "residualRmse": 0.44936064896592864,
+          "residualMax": 1.4408011527377482,
+          "residualMean": -0.0030629734571940423,
+          "n": 99,
+          "overlap": 1
+        },
+        "360": {
+          "D": 360,
+          "residualRmse": 0.45466606755971967,
+          "residualMax": 1.3527608069164216,
+          "residualMean": 0.06437351460357295,
+          "n": 99,
+          "overlap": 1
+        },
+        "380": {
+          "D": 380,
+          "residualRmse": 0.49794194713331247,
+          "residualMax": 1.3404104046242935,
+          "residualMean": 0.1994137279487578,
+          "n": 99,
+          "overlap": 1
+        }
+      },
+      "distinguish350vs360": {
+        "rmse350": 0.44936064896592864,
+        "rmse360": 0.45466606755971967,
+        "delta": 0.0053054185937910225,
+        "localSpread": 0.006326862792062016,
+        "distinguishable": false,
+        "note": "350 은 20ms 격자 밖 — off-grid 평가. delta>localSpread 이면 구별"
+      },
+      "grid": {
+        "stepMs": 20,
+        "min": 240,
+        "max": 480,
+        "budgetMs": 350
+      }
+    },
+    "generatedAt": "2026-08-12T07:19:04.438Z"
+  },
+  "section1_2": {
+    "runs": [
+      {
+        "run": 1,
+        "elapsedMin": 1.3,
+        "depart": {
+          "id": "z15-depart",
+          "windowS": 23.744,
+          "deltaA_auth": 160.6816626506024,
+          "scalePct": 0.6731711837923984,
+          "scaleStatus": "PASS",
+          "D_eff": 400,
+          "residualRmse": 0.5321035952489519,
+          "residualMax": 1.6546225680934015,
+          "overlap": 1,
+          "n": 95,
+          "hitCeiling": false,
+          "accPass": false
+        },
+        "cruise": {
+          "id": "z15-cruise",
+          "windowS": 22.053,
+          "deltaA_auth": 184.08391410054242,
+          "scalePct": 0.04558470029955109,
+          "scaleStatus": "PASS",
+          "D_eff": 340,
+          "residualRmse": 0.5116063763878436,
+          "residualMax": 1.32620055710305,
+          "overlap": 1,
+          "n": 87,
+          "hitCeiling": false,
+          "accPass": true
+        },
+        "guardsPass": true
+      },
+      {
+        "run": 2,
+        "elapsedMin": 1.3,
+        "depart": {
+          "id": "z15-depart",
+          "windowS": 23.492,
+          "deltaA_auth": 159.15486046511626,
+          "scalePct": 0.851284378721947,
+          "scaleStatus": "PASS",
+          "D_eff": 340,
+          "residualRmse": 0.3985293322430433,
+          "residualMax": 1.446426934097424,
+          "overlap": 1,
+          "n": 96,
+          "hitCeiling": false,
+          "accPass": true
+        },
+        "cruise": {
+          "id": "z15-cruise",
+          "windowS": 21.811,
+          "deltaA_auth": 181.659,
+          "scalePct": 0.7481049658976483,
+          "scaleStatus": "PASS",
+          "D_eff": 280,
+          "residualRmse": 0.35999977346552403,
+          "residualMax": 1.5678648648648732,
+          "overlap": 1,
+          "n": 88,
+          "hitCeiling": false,
+          "accPass": true
+        },
+        "guardsPass": true
+      },
+      {
+        "run": 3,
+        "elapsedMin": 1.3,
+        "depart": {
+          "id": "z15-depart",
+          "windowS": 24.121,
+          "deltaA_auth": 163.53329302325582,
+          "scalePct": 0.5707052099312316,
+          "scaleStatus": "PASS",
+          "D_eff": 340,
+          "residualRmse": 0.3086948500492709,
+          "residualMax": 1.031714285714287,
+          "overlap": 1,
+          "n": 98,
+          "hitCeiling": false,
+          "accPass": true
+        },
+        "cruise": {
+          "id": "z15-cruise",
+          "windowS": 21.779,
+          "deltaA_auth": 181.4090316455696,
+          "scalePct": 0.11522670270243666,
+          "scaleStatus": "PASS",
+          "D_eff": 300,
+          "residualRmse": 0.34026779603579493,
+          "residualMax": 1.109913043478258,
+          "overlap": 1,
+          "n": 89,
+          "hitCeiling": false,
+          "accPass": true
+        },
+        "guardsPass": true
+      }
+    ],
+    "distribution": {
+      "depart": {
+        "D_eff": {
+          "n": 3,
+          "min": 340,
+          "p50": 340,
+          "p95": 400,
+          "max": 400
+        },
+        "RMSE": {
+          "n": 3,
+          "min": 0.3086948500492709,
+          "p50": 0.3985293322430433,
+          "p95": 0.5321035952489519,
+          "max": 0.5321035952489519
+        },
+        "max": {
+          "n": 3,
+          "min": 1.031714285714287,
+          "p50": 1.446426934097424,
+          "p95": 1.6546225680934015,
+          "max": 1.6546225680934015
+        },
+        "overlap": {
+          "n": 3,
+          "min": 1,
+          "p50": 1,
+          "p95": 1,
+          "max": 1
+        },
+        "n": {
+          "n": 3,
+          "min": 95,
+          "p50": 96,
+          "p95": 98,
+          "max": 98
+        },
+        "scalePct": {
+          "n": 3,
+          "min": 0.5707052099312316,
+          "p50": 0.6731711837923984,
+          "p95": 0.851284378721947,
+          "max": 0.851284378721947
+        },
+        "perRun": [
+          {
+            "id": "z15-depart",
+            "windowS": 23.744,
+            "deltaA_auth": 160.6816626506024,
+            "scalePct": 0.6731711837923984,
+            "scaleStatus": "PASS",
+            "D_eff": 400,
+            "residualRmse": 0.5321035952489519,
+            "residualMax": 1.6546225680934015,
+            "overlap": 1,
+            "n": 95,
+            "hitCeiling": false,
+            "accPass": false
+          },
+          {
+            "id": "z15-depart",
+            "windowS": 23.492,
+            "deltaA_auth": 159.15486046511626,
+            "scalePct": 0.851284378721947,
+            "scaleStatus": "PASS",
+            "D_eff": 340,
+            "residualRmse": 0.3985293322430433,
+            "residualMax": 1.446426934097424,
+            "overlap": 1,
+            "n": 96,
+            "hitCeiling": false,
+            "accPass": true
+          },
+          {
+            "id": "z15-depart",
+            "windowS": 24.121,
+            "deltaA_auth": 163.53329302325582,
+            "scalePct": 0.5707052099312316,
+            "scaleStatus": "PASS",
+            "D_eff": 340,
+            "residualRmse": 0.3086948500492709,
+            "residualMax": 1.031714285714287,
+            "overlap": 1,
+            "n": 98,
+            "hitCeiling": false,
+            "accPass": true
+          }
+        ]
+      },
+      "cruise": {
+        "D_eff": {
+          "n": 3,
+          "min": 280,
+          "p50": 300,
+          "p95": 340,
+          "max": 340
+        },
+        "RMSE": {
+          "n": 3,
+          "min": 0.34026779603579493,
+          "p50": 0.35999977346552403,
+          "p95": 0.5116063763878436,
+          "max": 0.5116063763878436
+        },
+        "max": {
+          "n": 3,
+          "min": 1.109913043478258,
+          "p50": 1.32620055710305,
+          "p95": 1.5678648648648732,
+          "max": 1.5678648648648732
+        },
+        "overlap": {
+          "n": 3,
+          "min": 1,
+          "p50": 1,
+          "p95": 1,
+          "max": 1
+        },
+        "n": {
+          "n": 3,
+          "min": 87,
+          "p50": 88,
+          "p95": 89,
+          "max": 89
+        },
+        "scalePct": {
+          "n": 3,
+          "min": 0.04558470029955109,
+          "p50": 0.11522670270243666,
+          "p95": 0.7481049658976483,
+          "max": 0.7481049658976483
+        },
+        "perRun": [
+          {
+            "id": "z15-cruise",
+            "windowS": 22.053,
+            "deltaA_auth": 184.08391410054242,
+            "scalePct": 0.04558470029955109,
+            "scaleStatus": "PASS",
+            "D_eff": 340,
+            "residualRmse": 0.5116063763878436,
+            "residualMax": 1.32620055710305,
+            "overlap": 1,
+            "n": 87,
+            "hitCeiling": false,
+            "accPass": true
+          },
+          {
+            "id": "z15-cruise",
+            "windowS": 21.811,
+            "deltaA_auth": 181.659,
+            "scalePct": 0.7481049658976483,
+            "scaleStatus": "PASS",
+            "D_eff": 280,
+            "residualRmse": 0.35999977346552403,
+            "residualMax": 1.5678648648648732,
+            "overlap": 1,
+            "n": 88,
+            "hitCeiling": false,
+            "accPass": true
+          },
+          {
+            "id": "z15-cruise",
+            "windowS": 21.779,
+            "deltaA_auth": 181.4090316455696,
+            "scalePct": 0.11522670270243666,
+            "scaleStatus": "PASS",
+            "D_eff": 300,
+            "residualRmse": 0.34026779603579493,
+            "residualMax": 1.109913043478258,
+            "overlap": 1,
+            "n": 89,
+            "hitCeiling": false,
+            "accPass": true
+          }
+        ]
+      }
+    },
+    "worstCase": {
+      "depart": {
+        "worst": {
+          "id": "z15-depart",
+          "windowS": 23.744,
+          "deltaA_auth": 160.6816626506024,
+          "scalePct": 0.6731711837923984,
+          "scaleStatus": "PASS",
+          "D_eff": 400,
+          "residualRmse": 0.5321035952489519,
+          "residualMax": 1.6546225680934015,
+          "overlap": 1,
+          "n": 95,
+          "hitCeiling": false,
+          "accPass": false
+        },
+        "pass": false
+      },
+      "cruise": {
+        "worst": {
+          "id": "z15-cruise",
+          "windowS": 22.053,
+          "deltaA_auth": 184.08391410054242,
+          "scalePct": 0.04558470029955109,
+          "scaleStatus": "PASS",
+          "D_eff": 340,
+          "residualRmse": 0.5116063763878436,
+          "residualMax": 1.32620055710305,
+          "overlap": 1,
+          "n": 87,
+          "hitCeiling": false,
+          "accPass": true
+        },
+        "pass": true
+      }
+    }
+  },
+  "section1_3": {
+    "comparison": {
+      "base": {
+        "publishedSpeedMpsP50": 8.33,
+        "actualProgressMpsP50": 7.66129032258064,
+        "publishOverActual": 1.0872842105263165,
+        "extrapolateShare": 0.10309278350515463,
+        "capHitRate": 0,
+        "aheadMs": {
+          "n": 10,
+          "min": 1,
+          "p50": 34,
+          "p95": 162,
+          "max": 162
+        },
+        "residualMeanAtDeff": -0.06052033716308241,
+        "pt3n": 114,
+        "pt6n": 97
+      },
+      "post": {
+        "publishedSpeedMpsP50": 8.33,
+        "actualProgressMpsP50": 7.142857142857143,
+        "publishOverActual": 1.1662,
+        "extrapolateShare": 0.29292929292929293,
+        "capHitRate": 0,
+        "aheadMs": {
+          "n": 29,
+          "min": 0,
+          "p50": 28,
+          "p95": 101,
+          "max": 138
+        },
+        "residualMeanAtDeff": 0.06437351460357295,
+        "pt3n": 113,
+        "pt6n": 99
+      }
+    },
+    "hypothesis": {
+      "base": {
+        "publishedSpeedMpsP50": 8.33,
+        "actualProgressMpsP50": 7.66129032258064,
+        "publishOverActual": 1.0872842105263165,
+        "extrapolateShare": 0.10309278350515463,
+        "capHitRate": 0,
+        "aheadMs": {
+          "n": 10,
+          "min": 1,
+          "p50": 34,
+          "p95": 162,
+          "max": 162
+        },
+        "residualMeanAtDeff": -0.06052033716308241,
+        "pt3n": 114,
+        "pt6n": 97
+      },
+      "post": {
+        "publishedSpeedMpsP50": 8.33,
+        "actualProgressMpsP50": 7.142857142857143,
+        "publishOverActual": 1.1662,
+        "extrapolateShare": 0.29292929292929293,
+        "capHitRate": 0,
+        "aheadMs": {
+          "n": 29,
+          "min": 0,
+          "p50": 28,
+          "p95": 101,
+          "max": 138
+        },
+        "residualMeanAtDeff": 0.06437351460357295,
+        "pt3n": 113,
+        "pt6n": 99
+      },
+      "deltaPublishOverActual": 0.07891578947368338,
+      "deltaResidualMean": 0.12489385176665535,
+      "deltaExtrapShare": 0.1898365094241383
+    },
+    "hypothesisVerdict": "불일치",
+    "note": "가설 확정 아님 — 재료 수집"
+  },
+  "guards": [
+    {
+      "run": 1,
+      "guards": {
+        "inFlightMax": {
+          "pass": true,
+          "got": 1
+        },
+        "A_firstOutOfOrder": {
+          "pass": true,
+          "got": 0
+        },
+        "forwardDiscard": {
+          "pass": true,
+          "got": 0
+        },
+        "pt3_ok0": {
+          "pass": true,
+          "got": 0
+        },
+        "pt9_ok0": {
+          "pass": true,
+          "got": 0
+        },
+        "publishQueueMs": {
+          "pass": true,
+          "got": {
+            "n": 284,
+            "min": 0,
+            "p50": 18,
+            "p95": 130,
+            "max": 498,
+            "over1s": 0
+          }
+        },
+        "cruiseAcc": {
+          "pass": true,
+          "got": {
+            "id": "z15-cruise",
+            "windowS": 22.053,
+            "deltaA_auth": 184.08391410054242,
+            "scalePct": 0.04558470029955109,
+            "scaleStatus": "PASS",
+            "D_eff": 340,
+            "residualRmse": 0.5116063763878436,
+            "residualMax": 1.32620055710305,
+            "overlap": 1,
+            "n": 87,
+            "hitCeiling": false,
+            "accPass": true
+          }
+        }
+      },
+      "pass": true
+    },
+    {
+      "run": 2,
+      "guards": {
+        "inFlightMax": {
+          "pass": true,
+          "got": 1
+        },
+        "A_firstOutOfOrder": {
+          "pass": true,
+          "got": 0
+        },
+        "forwardDiscard": {
+          "pass": true,
+          "got": 0
+        },
+        "pt3_ok0": {
+          "pass": true,
+          "got": 0
+        },
+        "pt9_ok0": {
+          "pass": true,
+          "got": 0
+        },
+        "publishQueueMs": {
+          "pass": true,
+          "got": {
+            "n": 307,
+            "min": 0,
+            "p50": 2,
+            "p95": 90,
+            "max": 420,
+            "over1s": 0
+          }
+        },
+        "cruiseAcc": {
+          "pass": true,
+          "got": {
+            "id": "z15-cruise",
+            "windowS": 21.811,
+            "deltaA_auth": 181.659,
+            "scalePct": 0.7481049658976483,
+            "scaleStatus": "PASS",
+            "D_eff": 280,
+            "residualRmse": 0.35999977346552403,
+            "residualMax": 1.5678648648648732,
+            "overlap": 1,
+            "n": 88,
+            "hitCeiling": false,
+            "accPass": true
+          }
+        }
+      },
+      "pass": true
+    },
+    {
+      "run": 3,
+      "guards": {
+        "inFlightMax": {
+          "pass": true,
+          "got": 1
+        },
+        "A_firstOutOfOrder": {
+          "pass": true,
+          "got": 0
+        },
+        "forwardDiscard": {
+          "pass": true,
+          "got": 0
+        },
+        "pt3_ok0": {
+          "pass": true,
+          "got": 0
+        },
+        "pt9_ok0": {
+          "pass": true,
+          "got": 0
+        },
+        "publishQueueMs": {
+          "pass": true,
+          "got": {
+            "n": 311,
+            "min": 0,
+            "p50": 2,
+            "p95": 101,
+            "max": 443,
+            "over1s": 0
+          }
+        },
+        "cruiseAcc": {
+          "pass": true,
+          "got": {
+            "id": "z15-cruise",
+            "windowS": 21.779,
+            "deltaA_auth": 181.4090316455696,
+            "scalePct": 0.11522670270243666,
+            "scaleStatus": "PASS",
+            "D_eff": 300,
+            "residualRmse": 0.34026779603579493,
+            "residualMax": 1.109913043478258,
+            "overlap": 1,
+            "n": 89,
+            "hitCeiling": false,
+            "accPass": true
+          }
+        }
+      },
+      "pass": true
+    }
+  ],
+  "generatedAt": "2026-08-12T07:24:58.531Z"
+}

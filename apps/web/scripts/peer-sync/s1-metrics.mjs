@@ -65,6 +65,37 @@ function interpolateSelf(rows, t) {
   return null;
 }
 
+export function evaluateResidualAtD(
+  aSelfRows,
+  bPeerRows,
+  D,
+  { clockSkewMs = 0, minOverlapRatio = 0.7 } = {},
+) {
+  const errs = [];
+  let looked = 0;
+  for (const b of bPeerRows) {
+    looked += 1;
+    const self = interpolateSelf(aSelfRows, b.t - clockSkewMs - D);
+    if (self == null) continue;
+    errs.push(b.disp - self);
+  }
+  const overlap = looked > 0 ? errs.length / looked : 0;
+  if (overlap < minOverlapRatio || errs.length < 5) {
+    return { D, residualRmse: null, residualMax: null, residualMean: null, n: errs.length, overlap };
+  }
+  const abs = errs.map((e) => Math.abs(e)).sort((a, b) => a - b);
+  return {
+    D,
+    residualRmse: rmse(errs),
+    residualMax: abs[abs.length - 1],
+    residualMean: errs.reduce((s, e) => s + e, 0) / errs.length,
+    n: errs.length,
+    overlap,
+  };
+}
+
+export { interpolateSelf };
+
 function rmse(pairs) {
   if (pairs.length === 0) return Infinity;
   let s = 0;
