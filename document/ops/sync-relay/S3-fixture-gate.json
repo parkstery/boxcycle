@@ -84,12 +84,13 @@
   "knownFails": [
     {
       "id": "d0-duplicate-distm",
-      "kind": "known-fail-assert-current",
+      "kind": "flipped-after-S3B-1",
       "pass": true,
-      "ratio": 0.4222222222222222,
-      "dup": 38,
-      "n": 90,
-      "expect": "연속 중복 distM ≥ 40%"
+      "ratio": 0,
+      "dup": 0,
+      "n": 294,
+      "expect": "연속 중복 distM < 40% (구 expect ≥40% 를 뒤집음)",
+      "source": "S3B1-chain-events.json pt3"
     },
     {
       "id": "d1-target-vs-applied",
@@ -102,5 +103,5 @@
       "expect": "발행 speedMps 가 실제 진행속도와 ≥ 20% 어긋남"
     }
   ],
-  "generatedAt": "2026-08-10T22:01:33.471Z"
+  "generatedAt": "2026-08-12T02:55:02.754Z"
 }

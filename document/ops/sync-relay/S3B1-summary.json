@@ -1,0 +1,280 @@
+{
+  "instruction": "S3B-1",
+  "elapsedMin": 1.3,
+  "publisherUid": "9QO5WL",
+  "newE2e": true,
+  "skew": {
+    "used": 0,
+    "handshakeObserved": {
+      "before": 9,
+      "after": 49,
+      "note": "실행 지연 포함, 판정 미사용"
+    }
+  },
+  "eventCounts": {
+    "A": 3963,
+    "B": 3840,
+    "total": 7803,
+    "pt": {
+      "1": 551,
+      "2": 559,
+      "3": 549,
+      "4": 2639,
+      "5": 2645,
+      "6": 430,
+      "7": 430
+    }
+  },
+  "rebuttal": {
+    "applies": false,
+    "note": "반증 불성립"
+  },
+  "uag": "S3B-1 PASS — z15 정확도 종결 (D-0)",
+  "gates": {
+    "accuracy_3_1": true,
+    "chain_3_2": true,
+    "regression_3_3": true,
+    "writes_3_4": true,
+    "all": true
+  },
+  "cases": {
+    "z15-depart": {
+      "id": "z15-depart",
+      "judged": true,
+      "window": {
+        "a0": 1786503238325,
+        "a1": 1786503262687,
+        "b0": 1786503238502,
+        "b1": 1786503262780
+      },
+      "skewUsed": 0,
+      "deltaA_auth": 162.8360630088823,
+      "windowS": 23.743,
+      "scalePct": 0.574849939003533,
+      "scaleStatus": "PASS",
+      "D_eff": 340,
+      "residualRmse": 0.3935343925641824,
+      "residualMax": 1.244704000000013,
+      "overlap": 1,
+      "n": 98,
+      "hitCeiling": false,
+      "verdict": "PASS",
+      "accPass": true,
+      "s1Pass": true,
+      "chainPass": true,
+      "chain": {
+        "s1_sampleAge": {
+          "n": 113,
+          "p50": 0,
+          "p95": 0,
+          "max": 0,
+          "speedMpsUsed": 8.333333333333334,
+          "p50_m": 0,
+          "p95_m": 0
+        },
+        "s1_gapM": {
+          "n": 113,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "s2_publishQueue": {
+          "n": 113,
+          "p50": 2,
+          "p95": 116,
+          "max": 127,
+          "speedMpsUsed": 8.333333333333334,
+          "p50_m": 0.016666666666666666,
+          "p95_m": 0.9666666666666668
+        },
+        "s3_transport": {
+          "n": 113,
+          "p50": 164,
+          "p95": 222,
+          "max": 334,
+          "speedMpsUsed": 8.333333333333334,
+          "p50_m": 1.3666666666666667,
+          "p95_m": 1.8500000000000003
+        },
+        "s4_interpDelay": {
+          "n": null,
+          "p50": 160,
+          "p95": 160,
+          "max": 160,
+          "speedMpsUsed": 8.333333333333334,
+          "p50_m": 1.3333333333333335,
+          "p95_m": 1.3333333333333335
+        },
+        "sumP50": 326,
+        "vsDeff": 14,
+        "writeRttMs": {
+          "n": 113,
+          "p50": 199,
+          "p95": 263,
+          "max": 341
+        },
+        "receiveVsAckMs": {
+          "n": 113,
+          "p50": -36,
+          "p95": 62,
+          "max": 124
+        }
+      },
+      "rtdb": {
+        "n": 113,
+        "perSec": 4.638371233888844,
+        "windowS": 24.362
+      },
+      "speedMpsUsed": 8.333333333333334
+    },
+    "z15-cruise": {
+      "id": "z15-cruise",
+      "judged": true,
+      "window": {
+        "a0": 1786503264887,
+        "a1": 1786503287058,
+        "b0": 1786503264978,
+        "b1": 1786503287143
+      },
+      "skewUsed": 0,
+      "deltaA_auth": 182.47631185807657,
+      "windowS": 21.893,
+      "scalePct": 0.12258475615037337,
+      "scaleStatus": "PASS",
+      "D_eff": 300,
+      "residualRmse": 0.32224294034754386,
+      "residualMax": 1.3027978723404203,
+      "overlap": 1,
+      "n": 87,
+      "hitCeiling": false,
+      "verdict": "PASS",
+      "accPass": true,
+      "s1Pass": true,
+      "chainPass": true,
+      "chain": {
+        "s1_sampleAge": {
+          "n": 118,
+          "p50": 0,
+          "p95": 0,
+          "max": 0,
+          "speedMpsUsed": 8.333333333333334,
+          "p50_m": 0,
+          "p95_m": 0
+        },
+        "s1_gapM": {
+          "n": 118,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "s2_publishQueue": {
+          "n": 118,
+          "p50": 1,
+          "p95": 30,
+          "max": 110,
+          "speedMpsUsed": 8.333333333333334,
+          "p50_m": 0.008333333333333333,
+          "p95_m": 0.25000000000000006
+        },
+        "s3_transport": {
+          "n": 118,
+          "p50": 132,
+          "p95": 204,
+          "max": 308,
+          "speedMpsUsed": 8.333333333333334,
+          "p50_m": 1.1,
+          "p95_m": 1.7000000000000002
+        },
+        "s4_interpDelay": {
+          "n": null,
+          "p50": 160,
+          "p95": 160,
+          "max": 160,
+          "speedMpsUsed": 8.333333333333334,
+          "p50_m": 1.3333333333333335,
+          "p95_m": 1.3333333333333335
+        },
+        "sumP50": 293,
+        "vsDeff": 7,
+        "writeRttMs": {
+          "n": 118,
+          "p50": 170,
+          "p95": 216,
+          "max": 231
+        },
+        "receiveVsAckMs": {
+          "n": 118,
+          "p50": -36,
+          "p95": 57,
+          "max": 100
+        }
+      },
+      "rtdb": {
+        "n": 118,
+        "perSec": 5.322267827342023,
+        "windowS": 22.171
+      },
+      "speedMpsUsed": 8.333333333333334
+    }
+  },
+  "regression": {
+    "inFlightMax": {
+      "pass": true,
+      "got": 1
+    },
+    "A_firstOutOfOrder": {
+      "pass": true,
+      "got": 0
+    },
+    "forwardDiscard": {
+      "pass": true,
+      "got": 0
+    },
+    "pt3_ok0": {
+      "pass": true,
+      "got": 0
+    },
+    "publishQueueMs": {
+      "pass": true,
+      "got": {
+        "n": 295,
+        "p50": 3,
+        "p95": 110,
+        "max": 446,
+        "over1s": 0
+      }
+    }
+  },
+  "writes": {
+    "rtdb": {
+      "now": {
+        "n": 231,
+        "perSec": 4.964218941396428,
+        "windowS": 46.533
+      },
+      "s3av": {
+        "n": 199,
+        "perSec": 4.672787470354803,
+        "windowS": 42.587
+      },
+      "ratio": 1.062367799282662,
+      "pass": true
+    },
+    "discard": {
+      "sameDist": 1044,
+      "forward": 0,
+      "retrograde": 0,
+      "accepted": 274
+    },
+    "firestore": {
+      "routeWrites": 194,
+      "perSec": 4.169084305761502,
+      "note": "S3AV 는 LiveLocationPublish 미캡처. 1 Hz heartbeat 기대. 속도 델타 미변경이면 유지가 정상"
+    }
+  },
+  "limits": {
+    "D_eff_ms": 350,
+    "residualRmse_m": 1,
+    "residualMax_m": 2.5
+  }
+}

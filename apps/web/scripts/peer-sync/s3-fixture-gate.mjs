@@ -21,6 +21,7 @@ import {
 const HERE = dirname(fileURLToPath(import.meta.url));
 const RAW = resolve(HERE, "../../../../document/ops/sync-relay/REPORT-S1-raw-logs.json");
 const SCENARIO = resolve(HERE, "../../../../document/ops/sync-relay/s2-z15-cruise-scenario.json");
+const S3B1_EVENTS = resolve(HERE, "../../../../document/ops/sync-relay/S3B1-chain-events.json");
 const OUT = resolve(HERE, "../../../../document/ops/sync-relay/S3-fixture-gate.json");
 
 const INVALID_OLD_D = {
@@ -154,28 +155,44 @@ for (const c of raw.reportCases.filter((x) => String(x.id).startsWith("z15-"))) 
   });
 }
 
-// known-fail d0 / d1 — cruise 실로그 시나리오 (현재 동작 단언)
+// d0 — S3B-1 에서 기대값 뒤집음: 연속 중복 < 40% (살아 있는 발행 스트림)
+// d1 — 그대로 (D-1 미수정). 역사 S1 시나리오 유지.
 let knownFails = [];
 try {
   const scenario = JSON.parse(readFileSync(SCENARIO, "utf8"));
-  const d0 = consecutiveDuplicateDistRatio(scenario.events);
-  const d0Pass = d0.ratio >= 0.4;
-  if (!d0Pass) failures.push(`d0-duplicate-distm: ratio ${d0.ratio} < 0.4 (버그 사라짐 → 기대값 뒤집기)`);
-  knownFails.push({
-    id: "d0-duplicate-distm",
-    kind: "known-fail-assert-current",
-    pass: d0Pass,
-    ratio: d0.ratio,
-    dup: d0.dup,
-    n: d0.n,
-    expect: "연속 중복 distM ≥ 40%",
-  });
+  try {
+    const b1 = JSON.parse(readFileSync(S3B1_EVENTS, "utf8"));
+    const pub = b1.publisherUid;
+    const pts = [];
+    for (const e of b1.events ?? []) {
+      if (e.side !== "A" || e.pt !== 3) continue;
+      if (pub && e.uid && e.uid !== pub) continue;
+      const distM = Number(e.d);
+      if (!Number.isFinite(distM)) continue;
+      pts.push({ packet: { distM } });
+    }
+    const d0 = consecutiveDuplicateDistRatio(pts);
+    const d0Pass = d0.ratio < 0.4;
+    if (!d0Pass) failures.push(`d0-duplicate-distm: ratio ${d0.ratio} ≥ 0.4 (D-0 제거 후 뒤집힌 기대 미달)`);
+    knownFails.push({
+      id: "d0-duplicate-distm",
+      kind: "flipped-after-S3B-1",
+      pass: d0Pass,
+      ratio: d0.ratio,
+      dup: d0.dup,
+      n: d0.n,
+      expect: "연속 중복 distM < 40% (구 expect ≥40% 를 뒤집음)",
+      source: "S3B1-chain-events.json pt3",
+    });
+  } catch (e) {
+    failures.push(`d0-duplicate-distm: S3B1-chain-events.json 없음 (${e.message})`);
+  }
 
   const d1 = targetVsApplied(scenario.events, 6);
   const d1Pass = d1 != null && d1.rel >= 0.2;
   if (!d1Pass) {
     failures.push(
-      `d1-target-vs-applied: rel=${d1?.rel} (버그 사라짐 → 기대값 뒤집기)`,
+      `d1-target-vs-applied: rel=${d1?.rel} (버그 사라짐 → 범위 초과 — D-1 은 S3B-2)`,
     );
   }
   knownFails.push({

@@ -93,8 +93,11 @@ export function buildLiveLocationSnapshot(input: LiveLocationPublishInput): Live
   const routeReady = Boolean(publicationId && hasGeometry);
   const geoLen =
     hasGeometry && input.routeGeometry ? lineStringLengthMeters(input.routeGeometry) : 0;
+  // S3B-1 D-0: 발행 거리는 rAF 원본. 미등록·idle(NaN) 만 React 200 ms 상태에 폴백.
+  const sampled = peekSampleVirtualDistanceM();
+  const virtualDistanceMeters = Number.isFinite(sampled) ? sampled : input.virtualDistanceMeters;
   const distMetersAlongRoute = rideDistanceAlongRoute(
-    input.virtualDistanceMeters,
+    virtualDistanceMeters,
     input.routeDistanceMeters,
     geoLen,
   );
@@ -110,7 +113,7 @@ export function buildLiveLocationSnapshot(input: LiveLocationPublishInput): Live
     trailId: sanitizeTrailId(input.trailId),
     publicationId,
     progressRatio: computeRouteProgressRatio(
-      input.virtualDistanceMeters,
+      virtualDistanceMeters,
       input.routeDistanceMeters,
       geoLen,
     ),
