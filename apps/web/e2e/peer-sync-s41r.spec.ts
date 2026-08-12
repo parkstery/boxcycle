@@ -167,6 +167,10 @@ async function waitInFlightAndSlot(page: import('@playwright/test').Page) {
 }
 
 async function waitFlightIdle(page: import('@playwright/test').Page, timeoutMs = POST_END_DRAIN_MS) {
+  // 관측 전에 지연 주입을 끄면, 이미 들어간 job 만 배수된다.
+  await page.evaluate(() => {
+    ;(window as Window).__rtwRouteWriteDelayMs = 0
+  })
   await expect
     .poll(
       async () =>
@@ -296,13 +300,17 @@ test.describe('S4-1R route flight lifecycle', () => {
       await waitInFlightAndSlot(page)
       const uid = await resolveUid(page)
       await endRide(page)
+      await waitFlightIdle(page)
 
+      // 새 trail 에서는 지연 주입을 끈다 (idle 대기 방해 금지)
+      await page.evaluate(() => {
+        ;(window as Window).__rtwRouteWriteDelayMs = 0
+      })
       await loadIntroCourse(page)
       await ensureRiding(page)
       const trailB = new URL(page.url()).searchParams.get('trail')!
       expect(trailB).not.toBe(trailA)
 
-      await waitFlightIdle(page)
       const obsA = await observeDocGone(page, trailA, uid)
 
       const pt9 = cap.lines.map(parseChainLine).filter((e): e is Ev => !!e && e.pt === 9)
