@@ -133,13 +133,14 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
   /** S4-1R — cancel → settle → delete. 삭제가 정착보다 앞서지 않는다. */
   async function drainRouteFlightThen(
     epoch: number,
-    afterSettled: (settled: boolean) => Promise<void>,
+    afterSettled: () => Promise<void>,
+    safetyDelete?: () => Promise<void>,
   ): Promise<void> {
     cancelRoutePublish(epoch);
     const settled = await awaitRouteFlightSettled(ROUTE_FLIGHT_DRAIN_TIMEOUT_MS);
-    await afterSettled(settled);
-    if (!settled) {
-      await afterSettled(true);
+    await afterSettled();
+    if (!settled && safetyDelete) {
+      await safetyDelete();
     }
   }
 
