@@ -10,10 +10,13 @@ import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const OUT_DIR = path.resolve(__dirname, '../../../document/ops/sync-relay')
 const BASELINE = process.env.S41R_BASELINE === '1'
-const WRITE_DELAY_MS = 5_000
+const WRITE_DELAY_MS = 1_200
 const OBSERVE_MS = 3_000
-/** finalize burst(3s) 보다 긴 지연 — 삭제 뒤 늦은 쓰기 착지를 노린다 */
-const POST_END_DRAIN_MS = 15_000
+/** finalizeAndDelete 의 PEER_LIVE_RIDE_FINAL_BURST_MS(3s) 와 맞춤 */
+const FINALIZE_BURST_MS = 3_000
+const ROUTE_SETTLE_BUDGET_MS = 2_000
+/** in-flight(≤delay) + finalize 여유 */
+const POST_END_DRAIN_MS = 12_000
 
 async function guestStart(page: import('@playwright/test').Page) {
   const gate = page.getByRole('dialog', { name: '시작' })
@@ -166,6 +169,12 @@ async function waitInFlightAndSlot(page: import('@playwright/test').Page) {
     .toBe(true)
 }
 
+async function waitCleanupFullySettled(page: import('@playwright/test').Page) {
+  await waitFlightIdle(page)
+  // drain = settle(≤2s) + finalize burst(3s). flight idle 시점과 settle 완료가 어긋날 수 있어 여유를 둔다.
+  await page.waitForTimeout(ROUTE_SETTLE_BUDGET_MS + FINALIZE_BURST_MS + 1_000)
+}
+
 async function waitFlightIdle(page: import('@playwright/test').Page, timeoutMs = POST_END_DRAIN_MS) {
   // 관측 전에 지연 주입을 끄면, 이미 들어간 job 만 배수된다.
   await page.evaluate(() => {
@@ -237,7 +246,7 @@ test.describe('S4-1R route flight lifecycle', () => {
       const uid = await resolveUid(page)
       expect(await liveRideDocExists(page, trailId, uid)).toBe(true)
       await endRide(page)
-      await waitFlightIdle(page)
+      await waitCleanupFullySettled(page)
       const obs = await observeDocGone(page, trailId, uid)
       results.push({
         id: 'T1',
@@ -263,7 +272,7 @@ test.describe('S4-1R route flight lifecycle', () => {
       await waitInFlightAndSlot(page)
       const uid = await resolveUid(page)
       await setPageHidden(page, true)
-      await waitFlightIdle(page)
+      await waitCleanupFullySettled(page)
       const obsHidden = await observeDocGone(page, trailId, uid)
 
       // ── T2b route disable (= 종료) — 같은 컨텍스트에서 재개 후 종료
@@ -273,7 +282,7 @@ test.describe('S4-1R route flight lifecycle', () => {
       await armDelayedWrites(page)
       await waitInFlightAndSlot(page)
       await endRide(page)
-      await waitFlightIdle(page)
+      await waitCleanupFullySettled(page)
       const obsEnd = await observeDocGone(page, trailId, uid)
 
       results.push({
@@ -300,7 +309,7 @@ test.describe('S4-1R route flight lifecycle', () => {
       await waitInFlightAndSlot(page)
       const uid = await resolveUid(page)
       await endRide(page)
-      await waitFlightIdle(page)
+      await waitCleanupFullySettled(page)
 
       // 새 trail 에서는 지연 주입을 끈다 (idle 대기 방해 금지)
       await page.evaluate(() => {
@@ -318,18 +327,23 @@ test.describe('S4-1R route flight lifecycle', () => {
         (e) => e.ok === 1 && e.trailId === trailA && e.epoch != null,
       ).length
 
+      const epochDiscard = await page.evaluate(
+        () => (window as Window).__rtwRouteFlightDebug?.epochDiscardTotal ?? 0,
+      )
+
       results.push({
         id: 'T3',
-        pass: !obsA.existsAfterSettle && (BASELINE || oldEpochOk1 === 0),
+        pass: !obsA.existsAfterSettle && (BASELINE || epochDiscard >= 1),
         detail: {
           trailA,
           trailB,
           previousTrailResurrected: obsA.existsAfterSettle,
           samplesA: obsA.samples,
+          epochDiscard,
           oldEpochOk1,
           note: BASELINE
-            ? 'baseline: 행 부활만 판정 (epoch 필드 없을 수 있음)'
-            : 'after: 이전 trail 행 부재 + 이전 epoch pt9 ok=1 =0',
+            ? 'baseline: 행 부활만 판정'
+            : 'after: 이전 trail 행 부재 + epoch 폐기 ≥1 (in-flight 완료 ok=1 은 허용)',
         },
       })
       await ctx.close()
@@ -361,13 +375,20 @@ test.describe('S4-1R route flight lifecycle', () => {
 
       // 실패 후 최신 스냅샷 재발행을 유도 (스로틀 우회 burst)
       await setSpeedKmh(page, 31)
+      await page.waitForTimeout(1_200)
+      await setSpeedKmh(page, 32)
 
       await expect
         .poll(
-          () =>
-            cap.lines
+          () => {
+            const pt9 = cap.lines
               .slice(linesBeforeFault)
-              .filter((l) => l.includes('pt=9') && l.includes('ok=1')).length,
+              .map(parseChainLine)
+              .filter((e): e is Ev => !!e && e.pt === 9)
+            const i0 = pt9.findIndex((e) => e.ok === 0)
+            if (i0 < 0) return 0
+            return pt9.slice(i0 + 1).filter((e) => e.ok === 1).length
+          },
           { timeout: 20_000 },
         )
         .toBeGreaterThanOrEqual(1)

@@ -1,162 +1,199 @@
 # 감리 → 개발팀장 지시서 (활성) — 멀티라이더 위치 동기화
 
-> S3B-3 보고서는 **감리가 `REPORT-S3B3.md` 로 보존**했다. 너는 **새 `REPORT.md` 만 작성**하고
+> S4-1 보고서는 **감리가 `REPORT-S41.md` 로 보존**했다. 너는 **새 `REPORT.md` 만 작성**하고
 > 기존 보고서를 옮기거나 덮지 마라. 마치면 이 파일 `상태` → `보고완료`.
 > 보고 형식은 `../cyclefit-relay/SUPERVISOR-PROTOCOL.md` §1-3 **UAG** (rider 전용 규율은 해당 없음).
 
-- **지시번호**: S4-1 (route 발행 in-flight 제거 — Firestore 쓰기 폭주)
+- **지시번호**: S4-1R (route flight 수명주기 — 종료·전환·실패 안전성 종결)
 - **발신**: 클로드감리0812 · **일시**: 2026-08-12 · **상태**: 보고완료
-- **브랜치**: `fix/multiplayer-position-sync` (base `main2`) · 기준 HEAD `d2586e8`
+- **브랜치**: `fix/multiplayer-position-sync` (base `main2`) · 기준 HEAD `507bd68`
 
 ---
 
-## 0. 출발점 — D 계열은 끝났다 (재조사 금지)
+## 0. 목적 — S4-1 의 성능은 지키고, 안전성만 닫는다
 
 ```
-D-0  S3B-1 채택   D-1  S3B-2 채택   D-2  S3B-3 채택
-판정 규칙   동일 빌드 3 런 중앙값 (Chief 결정)
-회귀 기준선  z15 depart 300 · cruise 300   (3 런 중앙값 · S3B-3 실측)
-경로 B 기준선 spectator dot 오차 p50 57.0 m · max 87.0 m   (3 런 중앙값 · S3B-3 실측)
+지킬 것   FS route 쓰기 1.03 /s · RTT p50 159 ms · in-flight 1 · z15 예산 · spectator 개선
+닫을 것   종료·전환·실패 시 route 큐가 무엇을 하는지에 대한 계약이 없다
 ```
 
-**이번은 비용 단계다.** 위치 정확도를 더 좋게 만드는 것이 목표가 아니라 **나빠지지 않게 두고
-쓰기를 줄이는 것**이 목표다.
+**S4-2 는 중단됐다. S4-1R 이 PASS 로 채택된 뒤에 재개한다.**
 
-### 0-1. S4 는 3 단계로 나눈다 — 이번은 첫째뿐
+### 0-1. 확정 사실 (Chief 판단 · 재조사 금지)
 
 ```
-S4-1  route 발행 in-flight 제거          ← 이번
-S4-2  읽기 증폭 (컬렉션 전체 구독 N² · RTDB 부모 onValue · 전역 collectionGroup)
-S4-3  touchTrailInstanceActivity · heartbeat 상수 재검토
+① routePublishFlight.ts 에는 진행 중 작업·대기 슬롯을 user / Trail / session 전환 시
+   폐기하거나 drain 하는 계약이 없다. writing·slot 은 모듈 전역이라 세션을 넘어 살아남는다
+
+② cleanup 은 route flight 와 순서를 맞추지 않는다
+   useLiveLocationPublishSession.ts:289-308   effect cleanup 이 interval 만 끄고 곧바로
+                                              finalize / delete 를 호출한다
+                              :206-208        pageVisible=false 경로도 같다
+   → 삭제 뒤에 늦은 쓰기가 착지하면 행이 되살아난다
+
+③ 정상 E2E 의 pt9 ok=0 = 0 은 「실패가 없었다」일 뿐 실패 복구의 증거가 아니다
 ```
 
-**S4-2·S4-3 을 이번에 손대지 마라.** 발견해도 고치지 말고 보고에 적기만 해라.
+**②의 행 되살아남은 「유령 Trail 목록」으로 표면화된다.** 정책이 아니라 결함이다.
 
 ---
 
-## 1. 고칠 것 — 하나
+## 1. 만들 계약 — 셋
 
-### 1-1. 확정된 사실 (감리 코드 확인 · 재조사 금지)
-
-```
-useLiveLocationPublishSession.ts:249    await publishLiveLocationFanout(...)
-                              :256-263  markRouteProgressPublished(...)   ← await 뒤에서 갱신
-publishLiveLocationFanout.ts:67         await mergeTrailLivePublicationRideSnapshot(...)
-```
-
-await 가 도는 동안 `throttle` 의 route 타임스탬프가 **옛 값**이다. 100 ms tick 이 1 s heartbeat
-게이트를 한 번 지나면 **그 뒤 tick 이 전부 통과**한다. **S3A 가 motion 에서 없앤 구조가 route 에
-그대로 남아 있다.**
-
-pt9 실측이 이와 맞물린다 — depart **3.95~5.05 writes/s**(1 Hz 기대) · **write RTT p50 2.4~3.0 s**.
-같은 런의 RTDB write RTT 는 **~200 ms** 다.
-
-### 1-2. 요구사항
+### 1-가. 세대(epoch) — 이전 세션의 작업은 실행되지 않는다
 
 ```
-가. route 발행에 in-flight 가드를 넣는다
-    쓰기가 진행 중이면 새 route 발행을 시작하지 않는다
-
-나. 게이트 갱신을 await 앞으로 옮긴다
-    markRouteProgressPublished 를 「쓰기를 시작할 때」 호출한다
-    ← S3A 가 motion 에서 쓴 관용구와 같다 (motionPublishFlight 의 onWriteStart)
-
-다. latest-wins 를 유지한다
-    대기 중 새 스냅샷이 오면 최신 것으로 덮는다. 큐를 쌓지 마라
-
-라. 실패 처리를 삼키지 마라
-    F-2 의 재발 금지 — 쓰기 실패는 pt9 ok=0 으로 반드시 방출되어야 한다
-    catch 없이 void 로 던지지 마라
+발행 세션마다 epoch 를 하나 부여한다   (user.uid + trailId + publicationId 가 바뀌면 새 epoch)
+enqueueRoutePublish 는 job 에 epoch 를 싣는다
+runRouteJob 은 쓰기를 시작하기 전과 다음 슬롯으로 넘어가기 전에 epoch 를 확인한다
+   현재 epoch 가 아니면 쓰지 않고 폐기한다 — 폐기는 세어서 보고한다
 ```
 
-**motion 의 `motionPublishFlight.ts` 를 참고하되 그 파일을 수정하지 마라.** route 는 별도 경로다.
+**모듈 전역 상태를 지우는 것만으로는 부족하다.** 이미 `await` 에 들어간 쓰기는 되돌릴 수 없고,
+그 완료 콜백이 다음 슬롯을 이어 실행하는 경로(`runRouteJob` `finally`)를 막아야 한다.
 
-### 1-3. 건드리지 말 것
+### 1-나. 취소·배수(drain) API
 
 ```
-발행 내용     스냅샷 필드·값·산식 일체. 이번은 「언제 쓰는가」만 바꾼다
-상수          TRAIL_LIVE_PROGRESS_HEARTBEAT_MS · SPEED_PUBLISH_DELTA_MPS 값
-              ← 쓰기를 줄이려고 heartbeat 를 늘리는 것은 이번 수정이 아니다. S4-3 이다
-motion 경로   S3A 결과물. 손대지 마라
+cancelRoutePublish(epoch) →  { hadInFlight: boolean, droppedSlot: boolean }
+   대기 슬롯을 버린다(카운트) · epoch 를 무효화한다 · 진행 중 쓰기는 취소하지 않는다(불가능)
+
+awaitRouteFlightSettled(timeoutMs) →  boolean   // true = 정착 완료, false = 시간 초과
+   진행 중 쓰기가 끝날 때까지 기다린다
 ```
+
+**새 상수 1 개 추가를 허용한다.**
+
+```
+ROUTE_FLIGHT_DRAIN_TIMEOUT_MS = 2000
+   근거: S4-1 실측 FS write RTT max 785 ms · p95 413 ms. 최댓값의 2 배 이상을 덮되
+         무한정 기다리지 않는다. 이 값을 늘려 시험을 통과시키지 마라
+```
+
+### 1-다. 정리 순서 — 삭제는 **정착 뒤에**
+
+`useLiveLocationPublishSession` 의 **두 경로 모두**(`:206-208` · `:289-308`)에 적용한다.
+
+```
+1  interval 정지
+2  cancelRoutePublish(epoch)                 ← 대기 슬롯을 먼저 버린다
+3  await awaitRouteFlightSettled(2000)       ← 진행 중 쓰기가 착지하기를 기다린다
+4  finalize / delete 실행
+5  안전망: 3 이 시간 초과였다면 삭제를 한 번 더 시도한다 (1 회만. 루프 금지)
+```
+
+**React effect cleanup 은 동기다.** 위 순서는 cleanup 이 시작하는 비동기 작업 안에서 돌되,
+**4 가 3 보다 먼저 실행되어서는 안 된다.** 언마운트 후에도 이 순서가 지켜져야 한다.
+
+⚠ **motion 경로에 같은 구조가 있으나 이번에 손대지 마라.** route 만이다.
+
+### 1-라. 추가 — **finalize 경로도 계약에 넣어라** (감리 보강 · ① 반례 확인 후)
+
+`finalizeAndDeleteTrailLivePublicationRide`(`firestoreTrailLivePublicationRides.ts:159-176`)는
+**flight 를 거치지 않고 직접 merge** 한 뒤 `PEER_LIVE_RIDE_FINAL_BURST_MS` 를 기다렸다가 삭제한다.
+
+```
+① 그 대기 창 동안 flight 의 진행·대기 쓰기가 착지할 수 있다
+② 삭제 뒤에 착지하면 행이 남는다
+```
+
+**①의 baseline 관측이 이것과 일치한다** — `pageVisibleGone: true`(숨김 경로는 정상 삭제)인데
+`routeDisableGone: false`(route disable 경로만 행이 남는다). 숨김 경로(`:206-208`)는 finalize 를
+거치지 않고 곧장 삭제하고, 실패한 쪽은 finalize 를 거치는 경로다.
+
+```
+따라서 §1-다 의 2~3(취소·정착 대기)은 finalize 「앞」에도 와야 한다
+   interval 정지 → cancel → settle → finalize(merge+burst+delete) → 안전망 재삭제 1회
+finalize 의 merge 자체는 바꾸지 마라 — 순서만 맞춘다
+PEER_LIVE_RIDE_FINAL_BURST_MS 값을 바꾸지 마라
+```
+
+**epoch·drain 만 넣고 finalize 순서를 그대로 두면 T2 는 계속 FAIL 한다.**
 
 ---
 
-## 2. 측정
+## 2. 집중 시험 — 4 건. **전부 실패를 실제로 일으켜서 증명한다**
 
-### 2-1. before / after 각 3 런 · 중앙값
+기존 Playwright 하네스를 쓴다(`peer-sync-s41r.spec.ts`). **새 테스트 러너를 도입하지 마라.**
 
-**S3B-3 과 같은 하네스·같은 조건.** before 는 현재 빌드(`d2586e8`) 그대로다.
-
-```
-조건 고정   skew=0 · 앞 2 s 폐기 · maxDelayMs=3000 · 겹침 ≥0.7 · workers=1
-            전제 Δ(A.self) ≥100 m · 창 ≥20 s
-```
-
-### 2-2. 낼 수치
+실패를 강제하려면 **DEV 전용 주입점**을 만든다.
 
 ```
-쓰기량   pt9 건수/초 — 전체 · depart · cruise 구간별
-RTT      pt9 fsWriteRttMs p50/p95/max
-대조군   같은 런의 RTDB write RTT (pt3)      ← 이게 핵심 대조다
-겹침     route 발행 동시 진행 최대치 (in-flight max) — before 에서 몇까지 올라가는지
-정확도   z15 depart/cruise D_eff·RMSE·max·스케일
-경로 B   spectator dot 오차 p50/max          ← 악화 감시용
+import.meta.env.DEV 게이트 필수 — 운영 번들에 남으면 안 된다
+예: window.__rtwRouteWriteFaultOnce = 1  이면 다음 route 쓰기 1 회를 강제 실패시킨다
+주입점은 route flight 안에만 둔다. merge 함수·Firestore 래퍼를 바꾸지 마라
 ```
 
-**`touchTrailInstanceActivity`(`publishLiveLocationFanout.ts:98`)도 Firestore 쓰기다.**
-pt9 에 섞이지 않으므로 **pt11 로 따로 센다**(pt9 와 같은 형태 · `import.meta.env.DEV` 게이트).
-**이번에 고치지는 마라 — 세기만 해라.** S4-3 이다.
+### 2-1. 시험 4 건 (전부 PASS 여야 한다)
+
+```
+T1  종료 중 지연 쓰기
+    route 쓰기가 진행 중이고 슬롯에도 대기가 있는 상태에서 주행을 종료한다
+    → cleanup 이후 Firestore 행이 존재하지 않는다 (정착 뒤 재확인 · 최소 3 s 관찰)
+
+T2  route disable · pageVisible=false 전환
+    같은 상태에서 각각 전환한다  →  T1 과 같은 결과
+
+T3  Trail / user 전환
+    같은 상태에서 다른 Trail(또는 다른 user)로 넘어간다
+    → 이전 Trail 행이 되살아나지 않는다
+    → 새 세션에서 이전 epoch 의 쓰기가 실행되지 않는다 (pt9 에 이전 epoch 방출 0 건)
+
+T4  첫 쓰기 강제 실패
+    주입점으로 첫 route 쓰기를 실패시킨다
+    → pt9 ok=0 이 정확히 1 건 방출된다
+    → 사용자 오류 경로(onRouteError → reportError)로 전달된다   ← 관측으로 보여라
+    → 그 다음 「최신」 스냅샷 쓰기가 정상 수행된다 (ok=1) — 큐가 잠기지 않는다
+    → 실패한 옛 스냅샷이 뒤늦게 쓰이지 않는다 (latest-wins 유지)
+```
+
+**「행이 없다」는 삭제 직후가 아니라 정착 뒤에 확인해야 의미가 있다.** 최소 3 s 관찰하라.
+
+### 2-2. 반례 확인 — 시험이 진짜로 잡는지 보여라
+
+**수정 전 코드(HEAD `507bd68`)에서 T1~T4 를 돌려 최소 1 건이 FAIL 하는 것을 먼저 보여라.**
+전부 PASS 하면 **시험이 결함을 못 잡는 것**이므로 시험을 고쳐야 한다. **이 절차를 건너뛰지 마라.**
 
 ---
 
 ## 3. 수용 조건 — 전부 충족해야 PASS
 
 ```
-가.  Firestore route 쓰기   after/before ≤ 0.5        ← 절반 이하로 줄어야 의미가 있다
-     그리고 cruise 구간 실측이 1 Hz heartbeat 기대(≈1.0 /s)에 수렴한다
-
-나.  route in-flight max ≤ 1  (after 3 런 전부)
-
-다.  pt9 ok=0 = 0 · pt3 ok=0 = 0   (실패가 조용히 사라지지 않았다는 증거)
-
-라.  정확도 회귀 금지 (3 런 중앙값)
+가.  §1-가 epoch 가 동작한다 — 이전 세션 작업 폐기 건수가 관측된다
+나.  §1-나 API 2 개가 있고, §1-다 순서가 두 정리 경로 모두에 적용됐다
+다.  §2-1 T1~T4 전부 PASS
+라.  §2-2 반례 — 수정 전 코드에서 FAIL 하는 항목이 최소 1 건 제시됐다
+마.  성능 회귀 금지 (3 런 중앙값 · S4-1 after 기준선)
+     FS route 쓰기 /s ≤ 1.3 × 1.03 · RTDB 쓰기 /s ≤ 1.3 × 5.03
+     route in-flight ≤1 · motion inFlightMax ≤1 · pt3/pt9/pt11 ok=0 = 0 (정상 런에서)
+바.  정확도 회귀 금지 (3 런 중앙값)
      z15-depart · z15-cruise   D_eff ≤350 · RMSE ≤1.0 · max ≤2.5 · 스케일 ≤10 %
-
-마.  경로 B 악화 금지 (3 런 중앙값)
-     spectator dot 오차 p50 ≤ 57.0 m · max ≤ 87.0 m    ← S3B-3 기준선
-     ⚠ 쓰기를 줄이면 갱신이 드물어져 여기가 나빠질 수 있다. 나빠지면 FAIL 이다
-
-바.  회귀 가드 (after 3 런 전부)
-     inFlightMax(motion) ≤1 · A_firstOutOfOrder =0 · 전진 폐기 =0
-     publishQueueMs p50 ≤150 · p95 ≤400 · max ≤800 · 1 s 초과 0 %
      d0-duplicate-distm PASS 유지 · d1-target-vs-applied 뒤집힌 상태 유지
-
-사.  RTDB 쓰기량   after/before ≤ 1.3   (route 를 고쳤는데 motion 이 늘면 이상 신호다)
+사.  spectator 악화 금지 — 오차 p50 ≤ 57.0 m · max ≤ 87.0 m (S3B-3 상한)
+     S4-1 after(1.65 / 13.9)와의 대조도 함께 적어라
 ```
 
-**상수를 조정해 「가」를 통과시키지 마라.** heartbeat 를 늘려서 줄인 쓰기는 이번 성과가 아니다.
+**시험을 통과시키려고 `ROUTE_FLIGHT_DRAIN_TIMEOUT_MS` 를 늘리지 마라.**
+2000 ms 로 부족하다면 그 사실이 결과다 — 값을 바꾸지 말고 보고하라.
 
 ---
 
 ## 4. 반증 조건 (해당하면 즉시 보고하고 멈춰라)
 
-> *"in-flight 가드를 넣었는데 **write RTT 가 그대로 2.4~3.0 s** 라면, RTT 는 겹친 쓰기 때문이
-> 아니라 에뮬레이터·Firestore 자체 특성이다. 「겹침이 RTT 를 키운다」는 감리의 예측이 틀린 것이다."*
+> *"수정 전 코드에서 T1~T4 가 전부 PASS 라면, 「삭제 뒤 늦은 쓰기가 행을 되살린다」는 판단이
+> 이 조건에서는 재현되지 않는 것이다."*
 
-**대조군은 같은 런의 RTDB RTT(~200 ms)다.** 쓰기 건수는 줄었는데 RTT 가 안 줄었다면
-그 사실을 그대로 올려라 — **쓰기 건수 감소만으로도 「가」는 성립한다.** RTT 는 별개 관측이다.
-
-**원인을 찾으러 가지 마라.** 감리 예측이 이 작업선에서 이미 두 번 틀렸다(외삽 점유 · Firestore 증폭).
+그때는 **고치지 말고 멈춰라.** 재현 조건이 무엇이어야 하는지 적어 올려라. 다음 판단은 Chief 가 한다.
+**재현이 안 된다고 시험을 느슨하게 만들어 PASS 를 만들지 마라.**
 
 ---
 
 ## 5. 보존
 
 ```
-document/ops/sync-relay/S41-before-run{1,2,3}-events.json
-document/ops/sync-relay/S41-after-run{1,2,3}-events.json
-document/ops/sync-relay/S41-summary.json     §3 가~사 판정 · 구간별 쓰기량 · RTT 대조 · 중앙값
+document/ops/sync-relay/S41R-lifecycle.json      T1~T4 결과 · 반례(수정 전) 결과 · epoch 폐기 건수
+document/ops/sync-relay/S41R-run{1,2,3}-events.json   정상 3 런 pt1~pt11 전량
+document/ops/sync-relay/S41R-summary.json        §3 가~사 판정 · 3 런 중앙값 **및 최댓값**
 ```
 
 표본 추출 금지. 방출한 것은 전부 보존한다.
@@ -166,27 +203,30 @@ document/ops/sync-relay/S41-summary.json     §3 가~사 판정 · 구간별 쓰
 ## 6. 커밋 분할
 
 ```
-① pt11 계측 추가 (touch 쓰기 세기) — 동작 변경 없음
-② route in-flight 가드 + 게이트 갱신 앞당기기
-③ 측정 산출물·보고
+① 집중 시험 spec + DEV 주입점 (수정 없음) — 이 상태로 §2-2 반례를 찍는다
+② epoch + cancel/settle API + 정리 순서
+③ 정상 3 런 측정 산출물 · 보고
 ```
 
-**① 을 먼저 넣고 before 를 측정하라.** 계측기를 바꾸고 before/after 를 비교하면 무효다.
+**① 을 먼저 커밋하고 반례를 관측하라.** 고친 뒤에 시험을 쓰면 반례를 만들 수 없다.
 
 ---
 
 ## 7. 금지
 
-- **예산·판정 규칙 변경** (예산 4 종 · 3 런 중앙값 규칙)
-- `TRAIL_LIVE_PROGRESS_HEARTBEAT_MS` · `SPEED_PUBLISH_DELTA_MPS` · `METRICS_UI_MS` ·
-  `PEER_INTERP_*` · `SPECTATOR_MAX_EXTRAP_MS` · `MAP_PEER_SPRITE_MIN_ZOOM` **값 변경**
-- **발행 내용 변경** — 스냅샷 필드·값·산식. 이번은 「언제 쓰는가」만이다
-- **motion 경로 수정** (`motionPublishFlight.ts` · `rtdbTrailMotion.ts` · single-flight 구조)
+- **S4-2 · S4-3** — 읽기 증폭 계측 · `touchTrailInstanceActivity` · heartbeat 재검토.
+  **S4-2 는 S4-1R 채택 뒤 재개한다**
+- **motion 경로 수정** (`motionPublishFlight.ts` · `rtdbTrailMotion.ts` · S3A single-flight 구조)
+  — 같은 결함 구조가 보여도 이번엔 **보고만** 해라
 - **D-0 · D-1 · D-2 배선 되돌리기** · `integrator.ts` · `spectatorRideExtrap.ts` 산식 변경
-- **S4-2 · S4-3** — 읽기 증폭 · `touchTrailInstanceActivity` 수정 · heartbeat 재검토. **세기만 해라**
-- F-1 수정 · Orchestrator · 새 로깅 프레임워크 신설 · 표본 추출
-- **`MapView.tsx` 의 파일 전역 `eslint-disable` 확대·다른 파일에 같은 수법 적용**
-  — 이미 부채로 기록됐다. 늘리지 마라. 훅이 막으면 고치지 말고 보고하라
+- **기존 상수 값 변경** — `TRAIL_LIVE_PROGRESS_HEARTBEAT_MS` · `SPEED_PUBLISH_DELTA_MPS` ·
+  `METRICS_UI_MS` · `PEER_INTERP_*` · `SPECTATOR_MAX_EXTRAP_MS` · `MAP_PEER_SPRITE_MIN_ZOOM`
+  (신규 `ROUTE_FLIGHT_DRAIN_TIMEOUT_MS` 1 개 추가만 허용 · 값 2000 고정)
+- **발행 내용 변경** — 스냅샷 필드·값·산식. 이번은 「언제 멈추고 언제 지우는가」만이다
+- **예산·판정 규칙 변경** (예산 4 종 · 3 런 중앙값 규칙)
+- 새 테스트 러너·새 로깅 프레임워크 도입 · 표본 추출 · F-1 수정 · Orchestrator
+- **파일 전역 `eslint-disable` 추가** — `MapView.tsx` 건은 이미 부채다. 늘리지 마라.
+  훅이 막으면 고치지 말고 보고하라
 - 작업공간의 **오케스트레이션 관련 미커밋 파일**(`document/260812-AI-오케스트레이션-*`,
   `scripts/claude-report-audit.mjs`, `document/ops/sync-relay/AUDIT.md`) **읽기·수정·삭제·커밋**
 - cyclefit 자산·코드·스킬 일체 수정 · `main2` 병합 · PR · `--no-verify`
@@ -199,24 +239,25 @@ document/ops/sync-relay/S41-summary.json     §3 가~사 판정 · 구간별 쓰
 
 ### 8-1. 첫머리는 평문이다
 
-**「무엇이 어떻게 달라졌는가」를 지표 없이 3~5 줄로 먼저 써라.** 이번은 화면이 아니라 **비용**이므로,
-「초당 몇 번 쓰던 것이 몇 번이 됐고, 화면에서 보이는 것은 그대로다」처럼 **사용자·운영자가 알아들을
-말**로 써라. 개선되지 않았으면 그렇게 써라. 과장 금지.
+**「무엇이 안전해졌는가」를 지표 없이 3~5 줄로 먼저 써라.** 운영자·사용자가 알아들을 말로.
+예: 「주행을 끝냈는데 목록에 내가 계속 달리는 것처럼 남는 경우가 생길 수 있었다.
+이제 종료할 때 남은 쓰기를 정리한 뒤 지우므로 그런 행이 남지 않는다.」 **과장 금지.**
 
 ### 8-2. 그 다음
 
 ```
-반증  §4 해당 여부 (RTT 가 줄었는지 그대로인지 — 양방향) — 평문 다음, 표보다 먼저
+반증  §4 해당 여부 — 평문 다음, 표보다 먼저
 
 UAG   §3 가~사 판정표
-      한 줄 결론은 「S4-1 PASS(route 쓰기 폭주 제거) · 정확도 유지」 형태로
-      「비용 종결」·「멀티라이더 위치 동기화 결함 종결」이라고 쓰지 마라 — S4-2·S4-3·F-1·F-2 가 남았다
+      한 줄 결론은 「S4-1R PASS(route 큐 수명주기 종결) · S4-1 성능 유지」 형태로
+      「비용 종결」·「멀티라이더 위치 동기화 결함 종결」이라고 쓰지 마라
 
-기술  구현 요약 (가드 구조 · 게이트 갱신 시점 · 실패 방출 경로)
-      쓰기량 before/after 구간별 · RTT before/after · RTDB 대조군
-      in-flight max before/after (before 가 몇까지 올라갔는지 반드시 적어라)
-      z15 3 런 분포 · 경로 B 3 런 분포 · 가드
-      pt11 관측치 (touch 쓰기 /s — 판정 미사용, S4-3 이월)
+기술  계약 요약 (epoch · cancel/settle · 정리 순서 5 단계 · 안전망 1 회)
+      §2-1 T1~T4 결과와 관측 근거 (행 부재는 정착 뒤 3 s 확인임을 명시)
+      §2-2 반례 — 수정 전 코드에서 무엇이 어떻게 FAIL 했는지
+      epoch 폐기 건수 · 슬롯 폐기 건수
+      정상 3 런: 쓰기량·RTT·z15·spectator — **중앙값과 최댓값을 함께**
+      DEV 주입점이 운영 번들에 없다는 근거
       보존 파일 경로 · 실패·미완 전수 · 이견 · 커밋 3 개
 ```
 

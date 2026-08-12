@@ -1,0 +1,93 @@
+{
+  "instruction": "S4-1R",
+  "mode": "after-fix",
+  "headHint": "post-lifecycle",
+  "elapsedMin": 1.4,
+  "results": [
+    {
+      "id": "T1",
+      "pass": true,
+      "detail": {
+        "trailId": "54mBWWkC44xkwUJ4JLr9",
+        "uidPrefix": "wNLPbX",
+        "existsAfterSettle": false,
+        "samples": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "expect": "doc absent after settle+3s observe"
+      }
+    },
+    {
+      "id": "T2",
+      "pass": true,
+      "detail": {
+        "trailId": "o8mYISfpGU6MQ4sf6FQk",
+        "pageVisibleGone": true,
+        "routeDisableGone": true,
+        "samplesHidden": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "samplesEnd": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "id": "T3",
+      "pass": true,
+      "detail": {
+        "trailA": "Grxp3pa90wJuINQsxnzB",
+        "trailB": "y1WJkjpN5xnccxOjcQT7",
+        "previousTrailResurrected": false,
+        "samplesA": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "epochDiscard": 1,
+        "oldEpochOk1": 1,
+        "note": "after: 이전 trail 행 부재 + epoch 폐기 ≥1 (in-flight 완료 ok=1 은 허용)"
+      }
+    },
+    {
+      "id": "T4",
+      "pass": true,
+      "detail": {
+        "pt9_ok0": 1,
+        "pt9_ok1": 2,
+        "routeErrorEvents": [
+          {
+            "at": 1786543280582,
+            "message": "rtw-route-write-fault-once"
+          }
+        ],
+        "routeErrorLogs": 1,
+        "laterOk1": true,
+        "note": "ok=0 은 fault 1회; 이후 ok=1 로 큐 잠김 없음"
+      }
+    }
+  ],
+  "allPass": true,
+  "baselineExpectAtLeastOneFail": false,
+  "baselineHasFail": null
+}

@@ -81,7 +81,8 @@ depart 구간 발행 spd  1.39 m/s 고정(=5km/h 초기 슬라이더) ← D-1 (A
 | **S3B-2R** | depart `D_eff` 360 의 귀속 규명 — **측정 전용** (적합 해상도 · 반복 3 런 · 기전 재료) | **보고완료 — 귀속 A(런 변동) · 감리 검산 통과** (`REPORT.md`, §3-9) |
 | **S3B-3** | D-2 — registry 적분 유지 + spectator 실제속도 **+ 시간 기준 정리** | **PASS 채택** (`REPORT-S3B3.md`, §3-10) |
 | **S4-1** ★ | **route 발행 in-flight 제거** — Firestore 쓰기 폭주(3.95~5.05 /s vs 1 Hz 기대) | **PASS 채택** (`REPORT.md` · FS 비 0.24 · cruise 0.95/s · inFlight 64→1) |
-| S4-2 | 읽기 증폭 (컬렉션 전체 구독 N² · RTDB 부모 `onValue` · 전역 collectionGroup) | 대기 (S4-1 뒤) |
+| **S4-1R** ★ | route flight 수명주기 — 종료·전환·실패 안전성 (epoch · drain · 정리 순서) | **PASS 채택** (`REPORT.md` · T1~T4 · FS 0.95/s) |
+| S4-2 | 읽기 증폭 (컬렉션 전체 구독 N² · RTDB 부모 `onValue` · 전역 collectionGroup) | **중단 — S4-1R 채택 뒤 재개** |
 | S4-3 | `touchTrailInstanceActivity` · heartbeat 상수 재검토 | 대기 (S4-2 뒤) |
 
 ### ⚠ S3 재정의 (감리0811)
@@ -482,7 +483,8 @@ z15 회귀 3 런 중앙값 depart **300** · cruise **300** — 예산 내(기�
    receivedAtLocalMs 기준이라 외삽은 도착 후 경과만 덮는다. 발행→Firestore→배달 사이의 낡음은
    구조상 보상되지 않는다. 57 m ÷ 8.33 m/s ≈ 6.8 s — pt9 write RTT 2.4~3.0 s 와 같은 계열이다
    ⚠ 이걸 「Date.now() − serverTimestamp 로 되돌리면 된다」로 읽지 마라. 그건 S3B-3 이 없앤 혼합 시계다
-     보상하려면 측정된 skew 가 있어야 하고, 그 전에 write RTT 자체를 줄이는 게 먼저다
+     ❌ **아래 「보상하려면 측정된 skew 가 필요하다」는 감리 해석은 폐기됐다 — §3-12 ① 참조.**
+        실제 원인은 route write 적체였고 S4-1 가드로 1.65 m 가 됐다. skew 도입은 필요 없다
 
 ③ z15 depart run1 의 residual max 2.51 이 예산 2.5 를 1 cm 넘었다
    Chief 의 3 런 중앙값 규칙으로 PASS. 규칙을 적용한 첫 사례이므로 기록해 둔다
@@ -518,6 +520,61 @@ publishLiveLocationFanout.ts:67        await mergeTrailLivePublicationRideSnapsh
 
 ⚠ **아직 확정이 아니다.** RTT 가 에뮬레이터 특성일 가능성이 남아 있고, 그 경우 가드를 넣어도
 RTT 는 안 준다. **S4-1 이 이것을 가른다.** 대조군은 같은 런의 RTDB RTT 다.
+
+### 3-12. ✅ S4-1 채택 — **route 쓰기 폭주 제거 · §3-11 예측 성립** (감리0812 검산)
+
+**가~사 7/7 PASS.** `S41-summary.json` 원본과 대조해 보고서 수치가 **전부 일치**함을 확인했다.
+
+| 지표 (3 런 중앙값) | before | after | 비 |
+|---|---:|---:|---:|
+| Firestore route 쓰기 /s | 4.24 | **1.03** | **0.24** |
+| — cruise 구간 | 1.31 | **0.95** | 1 Hz 기대에 수렴 |
+| **route in-flight max** | **45 · 59 · 64** | **1 · 1 · 1** | — |
+| FS write RTT p50 / p95 | 2,380 / 6,723 ms | **159 / 413 ms** | — |
+| RTDB write RTT p50 (대조군) | 170 | 179 ms | 불변 |
+
+**§3-11 의 자기강화 고리 예측이 성립했다.** 대조군 RTDB RTT 가 그대로인데 Firestore RTT 만
+**15 배** 줄었으므로, 2.4 s 는 에뮬레이터 특성이 아니라 **겹친 쓰기가 만든 것**이다.
+in-flight 가 **최대 64** 까지 쌓여 있었다 — 1 Hz heartbeat 문서에 초당 4~6 회를 겹쳐 쓰고 있었다.
+
+**구현 검산** — `routePublishFlight.ts` 는 슬롯 1 칸 + latest-wins 이고 `markRouteProgressPublished`
+는 write start 에서 호출된다. 실패는 pt9 `ok=0` 방출 후 `onRouteError → reportError` 로 표면화된다
+(**F-2 재발 없음**). motion 경로·heartbeat 상수·발행 산식 미변경.
+
+**감리가 추가로 확인한 것 3 건 (보고서에 없음)**
+
+```
+① §3-10 ② 의 감리 해석은 틀렸다 — 정정한다
+   spectator 57 m 잔차를 「도착 이전 지연이라 skew 없이는 못 메운다」고 적었으나,
+   실제 지배 원인은 write 적체와 순서 뒤바뀜이었다. 가드 하나로 25.7 → 1.65 m 가 됐다.
+   → skew 도입은 필요 없다. §3-10 ② 의 「측정된 skew 가 필요하다」는 문장은 폐기한다
+
+② 경로 B 기준선 57.0 m 는 런 변동이 컸다
+   같은 빌드인데 S3B-3 after 57.0 m vs S4-1 before 25.7 m 다.
+   정직한 대조는 같은 세션의 25.7 → 1.65 m(중앙값)이며, 그래도 15 배 개선이다.
+   ⚠ 「57 → 1.65」로 인용하지 마라 — 두 세션을 가로지른 비교다
+
+③ 「나」 게이트는 이제 동어반복이다
+   single-flight 를 넣으면 in-flight ≤1 은 구조상 보장된다. after 의 1 은 가드의 존재 증명일 뿐
+   부하 내성의 증거가 아니다. 실질 증거는 before 45~64 와 쓰기량 0.24 다
+```
+
+**⚠ 승격됨 → S4-1R (Chief 판단 2026-08-12)** — 종료 정리가 슬롯에 남은 route write **뒤에** 돌면
+삭제한 행을 뒤늦은 write 가 되살린다. `routePublishFlight.ts` 에는 user/Trail/session 전환 시
+진행 작업·대기 슬롯을 폐기하거나 drain 하는 계약이 **없고**(`writing`·`slot` 이 모듈 전역),
+cleanup(`useLiveLocationPublishSession.ts:206-208` · `:289-308`)은 flight 와 순서를 맞추지 않는다.
+**정상 E2E 의 pt9 ok=0 = 0 은 실패 복구의 증거가 아니다.** motion 도 같은 구조지만 S4-1R 범위 밖이다.
+**S4-2 는 중단하고 S4-1R 채택 뒤 재개한다.**
+
+**추세 관찰** — 단일 런 residual max 초과가 2 단계 연속 나왔다(S3B-3 run1 **2.51**, S4-1 run1 **4.93**).
+중앙값 규칙으로 둘 다 PASS 지만 **초과폭이 커지고 있다.** 다음 단계부터 **3 런 최댓값도 함께 보고**하게
+하고, 추세가 이어지면 꼬리 문제로 별도 조사한다.
+
+**pt11 (판정 미사용 · S4-3 이월)** — touch 쓰기 5.03 → 1.04 /s. route 가드에 종속돼 함께 줄었다.
+`touchTrailInstanceActivity` 자체는 아직 손대지 않았다.
+
+> ⚠ **범위 한정** — 종결된 것은 **route 쓰기 폭주**다.
+> **「비용 종결」·「멀티라이더 위치 동기화 결함 종결」이라고 쓰지 마라.** S4-2·S4-3·F-1·F-2 가 남았다.
 
 ---
 
