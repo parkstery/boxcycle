@@ -12,7 +12,13 @@ import { deleteTrailMotion } from "./rtdbTrailMotion";
 import { enqueueMotionPublish } from "./peerMotion/motionPublishFlight";
 import type { LiveLocationPublishThrottleState } from "./liveLocationSnapshot";
 import { markPeerMotionPublished } from "./liveLocationSnapshot";
-import { peerSyncChainLog } from "./peerMotion/peerSyncChainLog";
+import {
+  beginRouteInFlight,
+  endRouteInFlight,
+  peerSyncChainLog,
+  peekRouteInFlight,
+  peekRouteInFlightMax,
+} from "./peerMotion/peerSyncChainLog";
 
 export type LiveLocationFanoutResult = {
   global: boolean;
@@ -63,6 +69,7 @@ export async function publishLiveLocationFanout(
   if (opts.publishRoute && snapshot.routeReady && snapshot.publicationId) {
     // S3B-2: Firestore 쓰기량 계측 (pt9). 텍스트 파싱 금지 — 방출 건수로 센다.
     const fsWriteStartAt = Date.now();
+    beginRouteInFlight();
     try {
       await mergeTrailLivePublicationRideSnapshot(user, snapshot.trailId, {
         publicationId: snapshot.publicationId,
@@ -78,6 +85,8 @@ export async function publishLiveLocationFanout(
           fsWriteDoneAt,
           fsWriteRttMs: fsWriteDoneAt - fsWriteStartAt,
           ok: 1,
+          inFlight: peekRouteInFlight(),
+          inFlightMax: peekRouteInFlightMax(),
           uid: user.uid.slice(0, 6),
         });
       }
@@ -89,13 +98,42 @@ export async function publishLiveLocationFanout(
           fsWriteDoneAt,
           fsWriteRttMs: fsWriteDoneAt - fsWriteStartAt,
           ok: 0,
+          inFlight: peekRouteInFlight(),
+          inFlightMax: peekRouteInFlightMax(),
           uid: user.uid.slice(0, 6),
         });
       }
       throw e;
+    } finally {
+      endRouteInFlight();
     }
     if (snapshot.trailId !== DEFAULT_TRAIL_ID) {
-      void touchTrailInstanceActivity(snapshot.trailId);
+      // S4-1: pt11 세기만 — touch 동작은 그대로 (S4-3).
+      const touchStartAt = Date.now();
+      void touchTrailInstanceActivity(snapshot.trailId).then(
+        () => {
+          if (!import.meta.env.DEV) return;
+          const touchDoneAt = Date.now();
+          peerSyncChainLog(11, null, {
+            fsWriteStartAt: touchStartAt,
+            fsWriteDoneAt: touchDoneAt,
+            fsWriteRttMs: touchDoneAt - touchStartAt,
+            ok: 1,
+            uid: user.uid.slice(0, 6),
+          });
+        },
+        () => {
+          if (!import.meta.env.DEV) return;
+          const touchDoneAt = Date.now();
+          peerSyncChainLog(11, null, {
+            fsWriteStartAt: touchStartAt,
+            fsWriteDoneAt: touchDoneAt,
+            fsWriteRttMs: touchDoneAt - touchStartAt,
+            ok: 0,
+            uid: user.uid.slice(0, 6),
+          });
+        },
+      );
     }
     result.route = true;
   }

@@ -27,7 +27,7 @@ export function peerSyncChainShouldEmit(nowMs = Date.now(), force = false): bool
   return true;
 }
 
-export type PeerSyncChainPoint = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 9 | 10;
+export type PeerSyncChainPoint = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 9 | 10 | 11;
 
 /** DEV — 동시 motion write in-flight (§2-3). 감소는 호출측 finally. */
 let motionInFlight = 0;
@@ -50,6 +50,29 @@ export function peekMotionInFlight(): number {
 
 export function peekMotionInFlightMax(): number {
   return motionInFlightMax;
+}
+
+/** DEV — Firestore route 쓰기 동시 진행 (S4-1 계측). 감소는 호출측 finally. */
+let routeInFlight = 0;
+let routeInFlightMax = 0;
+
+export function beginRouteInFlight(): number {
+  routeInFlight += 1;
+  if (routeInFlight > routeInFlightMax) routeInFlightMax = routeInFlight;
+  return routeInFlight;
+}
+
+export function endRouteInFlight(): number {
+  routeInFlight = Math.max(0, routeInFlight - 1);
+  return routeInFlight;
+}
+
+export function peekRouteInFlight(): number {
+  return routeInFlight;
+}
+
+export function peekRouteInFlightMax(): number {
+  return routeInFlightMax;
 }
 
 const firstSeen = new Map<string, { at: number; repeats: number }>();
