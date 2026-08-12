@@ -178,34 +178,8 @@ async function setPageHidden(page: import('@playwright/test').Page, hidden: bool
 }
 
 async function resolveUid(page: import('@playwright/test').Page): Promise<string> {
-  const full = await page.evaluate(() => {
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i)
-      if (!k || !k.includes('firebase:authUser')) continue
-      try {
-        const raw = localStorage.getItem(k)
-        if (!raw) continue
-        const j = JSON.parse(raw) as { uid?: string }
-        if (j.uid) return j.uid
-      } catch {
-        /* ignore */
-      }
-    }
-    for (let i = 0; i < sessionStorage.length; i++) {
-      const k = sessionStorage.key(i)
-      if (!k || !k.includes('firebase:authUser')) continue
-      try {
-        const raw = sessionStorage.getItem(k)
-        if (!raw) continue
-        const j = JSON.parse(raw) as { uid?: string }
-        if (j.uid) return j.uid
-      } catch {
-        /* ignore */
-      }
-    }
-    return null
-  })
-  if (!full) throw new Error('uid not found in auth storage')
+  const full = await page.evaluate(() => (window as Window).__rtwLastRouteUid ?? null)
+  if (!full) throw new Error('uid not found (__rtwLastRouteUid)')
   return full
 }
 

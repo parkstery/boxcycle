@@ -43,6 +43,8 @@ declare global {
     __rtwRouteErrorEvents?: Array<{ at: number; message: string }>;
     /** DEV — livePublicationRides 행 존재 여부 */
     __rtwLiveRideExists?: (trailId: string, uid: string) => Promise<boolean>;
+    /** DEV — 최근 route 발행 uid */
+    __rtwLastRouteUid?: string;
   }
 }
 
@@ -107,6 +109,9 @@ function consumeDevFaultOnce(): boolean {
 }
 
 export function enqueueRoutePublish(job: RouteFlightJob): { accepted: "write" | "slot"; overwrite: boolean } {
+  if (import.meta.env.DEV && typeof window !== "undefined") {
+    window.__rtwLastRouteUid = job.user.uid;
+  }
   if (writing) {
     const overwrite = slot != null;
     if (overwrite) {
