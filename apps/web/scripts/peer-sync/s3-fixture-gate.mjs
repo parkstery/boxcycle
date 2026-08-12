@@ -22,6 +22,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const RAW = resolve(HERE, "../../../../document/ops/sync-relay/REPORT-S1-raw-logs.json");
 const SCENARIO = resolve(HERE, "../../../../document/ops/sync-relay/s2-z15-cruise-scenario.json");
 const S3B1_EVENTS = resolve(HERE, "../../../../document/ops/sync-relay/S3B1-chain-events.json");
+const S3B2_EVENTS = resolve(HERE, "../../../../document/ops/sync-relay/S3B2-chain-events.json");
 const OUT = resolve(HERE, "../../../../document/ops/sync-relay/S3-fixture-gate.json");
 
 const INVALID_OLD_D = {
@@ -189,18 +190,19 @@ try {
   }
 
   const d1 = targetVsApplied(scenario.events, 6);
-  const d1Pass = d1 != null && d1.rel >= 0.2;
+  // S3B-2 D-1: 기대 뒤집기 — 발행 speedMps 와 실제 진행속도 상대오차 < 20%
+  const d1Pass = d1 != null && d1.rel < 0.2;
   if (!d1Pass) {
     failures.push(
-      `d1-target-vs-applied: rel=${d1?.rel} (버그 사라짐 → 범위 초과 — D-1 은 S3B-2)`,
+      `d1-target-vs-applied: rel=${d1?.rel} (D-1 후 <20% 기대 미달)`,
     );
   }
   knownFails.push({
     id: "d1-target-vs-applied",
-    kind: "known-fail-assert-current",
+    kind: "flipped-after-S3B-2",
     pass: d1Pass,
     ...d1,
-    expect: "발행 speedMps 가 실제 진행속도와 ≥ 20% 어긋남",
+    expect: "발행 speedMps 가 실제 진행속도와 < 20% 어긋남 (구 ≥20% 를 뒤집음)",
   });
 } catch (e) {
   failures.push(`known-fail: scenario 로드 실패 ${e.message}`);

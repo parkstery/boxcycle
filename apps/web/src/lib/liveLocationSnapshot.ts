@@ -101,7 +101,9 @@ export function buildLiveLocationSnapshot(input: LiveLocationPublishInput): Live
     input.routeDistanceMeters,
     geoLen,
   );
-  const speedKmh = input.speedKmh ?? 0;
+  // S3B-2 D-1: 발행 속도는 rAF 적용속도. 미등록·idle(NaN) 만 슬라이더 목표에 폴백.
+  const sampledSpeed = peekSampleAppliedSpeedKmh();
+  const speedKmh = Number.isFinite(sampledSpeed) ? sampledSpeed : (input.speedKmh ?? 0);
   const speedMps =
     input.routeRidePhase === "paused"
       ? 0
