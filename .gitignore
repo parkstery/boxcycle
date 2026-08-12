@@ -50,6 +50,8 @@ screenshot.mjs
 !.claude/agents/
 !.claude/skills/
 !.claude/settings.json
+# Orchestrator 런타임 산출물(상태·lock·run 기록·inbox) — 추적하지 않는다
+.orchestrator/
 # settings.local.json(개인 권한 캐시)은 계속 무시 — 위 예외에 안 걸리게 명시
 .claude/settings.local.json
 

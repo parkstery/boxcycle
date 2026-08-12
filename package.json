@@ -7,6 +7,10 @@
     "apps/web"
   ],
   "scripts": {
+    "orchestrator:doctor": "node scripts/orchestrator/audit.mjs doctor",
+    "orchestrator:once": "node scripts/orchestrator/audit.mjs once",
+    "orchestrator:watch": "node scripts/orchestrator/audit.mjs watch",
+    "test:orchestrator": "node --test scripts/orchestrator/audit.test.mjs",
     "dev": "npm run dev -w boxcycle-web --",
     "dev:localhost": "npm run dev:localhost -w boxcycle-web --",
     "build": "npm run build -w boxcycle-web",
