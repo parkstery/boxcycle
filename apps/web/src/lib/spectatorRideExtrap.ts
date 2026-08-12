@@ -61,6 +61,7 @@ export function extrapSpectatorDistM(
       capHit: capHit ? 1 : 0,
       speedMps,
       recvLocalMs: row.receivedAtLocalMs,
+      nowMs,
       errM: Number.isFinite(errM) ? errM : null,
     });
   }

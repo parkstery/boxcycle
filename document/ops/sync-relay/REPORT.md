@@ -1,93 +1,92 @@
-# S3B-2R REPORT — depart D_eff 360 귀속 규명 (측정 전용)
+# S3B-3 REPORT — D-2 저줌 적분 + spectator 실제속도 + 시간 기준
 
-- **지시번호**: S3B-2R
+지도를 축소했다가 다시 확대하면 동행 라이더 스프라이트가 한꺼번에 앞으로 튀어 나오던 현상이 줄었다. 저줌 동안에도 위치 적분은 계속되고, 복귀 직후에는 이어서 달리는 모습으로 붙는다.
+
+같은 트레일에서 멀리 보이는 다른 주행자 점(spectator dot)은 예전에는 서버·로컬 시계가 섞인 채 고정 속도로 밀려 보이다가 갑자기 따라붙는 느낌이 있었다. 이제는 행이 도착한 시각을 기준으로 실제 주행 속도만큼만 잠깐 외삽하고, 너무 오래된 위치는 더 이상 코스 끝까지 달리지 않는다.
+
+z15 동행(peer RTDB) 경로는 이번 변경 전후로 같은 하네스·같은 3 런 중앙값 기준을 유지했다.
+
+- **지시번호**: S3B-3
 - **일시**: 2026-08-12
-- **브랜치**: `fix/multiplayer-position-sync` · HEAD `aca3750`
-- **e2e**: run1 **1.4 분** · run2 **1.3 분** · run3 **1.4 분** (합계 **~5.7 분**)
-- **보존**: `S3B2R-run{1,2,3}-events.json` · `S3B2R-fitcurve.json` · `S3B2R-summary.json`
-- `src/` 미변경 · D-0/D-1 유지 · D-2·예산·격자·임계 상수 미변경.
+- **브랜치**: `fix/multiplayer-position-sync` · 제품 HEAD `9e44acc` (④ 계측 커밋 전)
+- **e2e**: before **1.5·1.5·1.5 분** (pt10 계측 셔임) · after **1.4·1.5·1.6 분** (합계 **~8.9 분**)
+- **보존**: `S3B3-before-run{1,2,3}-events.json` · `S3B3-after-run{1,2,3}-events.json` · `S3B3-summary.json`
 
 ---
 
-## 귀속 — §2-라
+## 반증 — §4
 
-**A (런 변동)** — 같은 빌드 3 런에서 depart `D_eff` 가 **340~400 ms** 로 오간다. S3B-2 post 단일값 360 은 이 변동 범위 안에 있으며, **D-1 단독 인과로 확정할 수 없다.**
+해당 없음. 경로 A 복귀 점프·경로 B spectator 오차·z15 회귀가 모두 개선 또는 유지 방향이다.
 
 ---
 
-## UAG
+## UAG — §3 가~사
 
-**S3B-2R — 귀속 A 로 판정.** 가~마 전부 충족.
+**S3B-3 PASS(D-2 교정) · z15 유지**
 
 | 항목 | 결과 |
 |---|---|
-| 가 §1-1 곡선 (base·post, step 20 ms 명시) | **제출** (`S3B2R-fitcurve.json`) |
-| 나 §1-2 3 런 동일 빌드·조건·전량 보존 | **완료** (각 1.3~1.4 분) |
-| 다 §1-3 base/post 대조표 | **제출** |
-| 라 귀속 A/B/C | **A** |
-| 마 §2-1 회귀 가드 3 런 전부 | **PASS** |
+| **가** 시간 기준 — `receivedAtLocalMs` 단일 시계, `lastSeenAtMs` 외삽 제거 (trail·world) | **PASS** (`41fc0ac`) |
+| **나** `r.speedMps` · paused/completed=0 · `SPECTATOR_MAX_EXTRAP_MS=3000` | **PASS** (`511c81e` · pt10 capHit 관측) |
+| **다** 저줌 적분 유지·렌더만 게이트 · 복귀 점프 중앙값 ≤2.5 m | **PASS** (`9e44acc` · 중앙 **0.69 m**) |
+| **라** 경로 B before 대비 p50·max 감소 (예산 미적용) | **PASS** (pt10 동일 정렬) |
+| **마** z15 3 런 중앙값 depart/cruise 예산 | **PASS** (depart **300** · cruise **300** ms) |
+| **바** 회귀 가드 3 런 + d0/d1 | **PASS** |
+| **사** 쓰기량 S3B-2 사후 대비 ≤1.3 | **PASS** (pt9 run1 비 **1.06**) |
 
 ---
 
 ## 기술
 
-### §1-1 적합 곡선 (z15-depart)
+### 구현 (커밋 4 분할)
 
-**격자**: `delayStepMs = 20` · 탐색 `D = 240…480` (공식 적합은 `0…3000` step 20).
-**350 ms 는 격자 위에 없음** — spotlight 만 off-grid 평가.
+| # | 해시 | 내용 |
+|---:|---|---|
+| ① | `41fc0ac` | `receivedAtLocalMs` 매핑 · trail/world 경과 단일 로컬 시계 (아직 5 km/h) |
+| ② | `511c81e` | `spectatorRideExtrap.ts` · `SPECTATOR_MAX_EXTRAP_MS` · `speedMps`+cap · 1 s 티커 · pt10 |
+| ③ | `9e44acc` | `MapView` — `stepPeerDriveAndBuildGeoJson` 항상 호출, `showPeerSprites`일 때만 GeoJSON |
+| ④ | *(본 커밋)* | e2e 6 런 · `s3b3-summarize.mjs` · pt10 `nowMs` · 보고 |
 
-| D (ms) | base RMSE | base max | post RMSE | post max |
-|---:|---:|---:|---:|---:|
-| 300 | 0.516 | 1.842 | 0.578 | 1.881 |
-| 320 | 0.432 | 1.677 | 0.500 | 1.705 |
-| 340 | 0.386 | 1.511 | 0.456 | 1.529 |
-| **350** | **0.382** | 1.429 | **0.449** | 1.441 |
-| **360** | **0.391** | 1.346 | **0.455** | 1.353 |
-| 380 | 0.442 | 1.180 | 0.498 | 1.340 |
+D-0/D-1 발행 경로·새 적분 타이머 없음. `PEER_EXTRAP_DEFAULT_SPEED_KMH` 값 미변경(참조만 제거).
 
-공식 `D_eff`: base **340** · post **360**.
+### 경로 A — peer sprite (예산 적용)
 
-**350 vs 360 구별**: base ΔRMSE=0.0088 · post ΔRMSE=0.0053 — 둘 다 국소 요철(localSpread) 이내 → **측정으로 350/360 을 구별하지 못함**.
-20 ms 격자 때문에 예산 350 은 격자점이 아니다(340·360 만 후보).
+저줌 z13 **15 s** → z15 복귀 직후 첫 프레임 점프량(m):
 
-### §1-2 3 런 분포 (D-1 적용 빌드)
+| phase | run1 | run2 | run3 | **중앙값** |
+|---|---:|---:|---:|---:|
+| before | 3.53 | 0.37 | 3.00 | **3.00** |
+| after | 0.13 | 0.69 | 1.09 | **0.69** |
 
-| run | depart D_eff | RMSE | max | 겹침 | n | 스케일% | §3-2 depart | cruise D_eff |
-|---:|---:|---:|---:|---:|---:|---:|---|---:|
-| 1 | **400** | 0.532 | 1.655 | 1.0 | 95 | 0.67 | **FAIL** | 340 |
-| 2 | **340** | 0.399 | 1.446 | 1.0 | 96 | 0.85 | PASS | 280 |
-| 3 | **340** | 0.309 | 1.032 | 1.0 | 98 | 0.57 | PASS | 300 |
+정착 시간(ms) after 중앙 **109** (before **1491**).
 
-**분포 (depart)**: D_eff min **340** · 중앙 **340** · max **400**.
-**최악값 기준**: run1 depart **400 > 350** → FAIL. cruise 3 런 전부 예산 내.
+### 경로 B — spectator dot (예산 미적용, before/after 개선만)
 
-S3B-2 단일 post(360)는 3 런 중앙(340)과 한 칸(20 ms) 차이 — **런 변동과 격자 양자화로 설명 가능**.
+depart 구간 · pt10 · `nowMs`+시계 skew 정렬 · A.authDist 대비:
 
-### §1-3 base/post 기전 재료 (depart 구간)
+| phase | run1 p50 | run2 p50 | run3 p50 | **중앙 p50** | **중앙 max** |
+|---|---:|---:|---:|---:|---:|
+| before (5 km/h·혼합 시계) | 65.4 | 68.3 | 69.5 | **68.3** | **165.9** |
+| after (speedMps+cap) | 48.8 | 57.0 | 59.8 | **57.0** | **87.0** |
 
-| 지표 | base (D-1 미적용) | post (D-1 적용) |
-|---|---:|---:|
-| 발행 speedMps p50 | 8.33 | 8.33 |
-| A 실제 진행속도 p50 | 7.66 | 7.14 |
-| 발행/실제 비 | 1.09 | 1.17 |
-| extrapolate 점유율 | 10.3 % | 29.3 % |
-| cap(1.2 s) 히트율 | 0 % | 0 % |
-| aheadMs p50 / p95 | 34 / 162 | 28 / 101 |
-| 잔차 평균(부호, D_eff) | **−0.061** | **+0.064** |
+절대값은 Firestore 1 Hz·RTT 구조상 크지만 **둘 다 감소**. after extrap p50 **0~69 ms** · capHit **0~3.6%**.
 
-**가설(우연한 지연 보상) 판정: 불일치** — post 에서 발행/실제 비가 오히려 상승, 잔차 평균 부호가 음→양으로 전환. 확정하지 않음.
+> before 측정: 동작은 `20f16a1` 그대로, **pt10 DEV 로그만** 얹어 동일 spectator dot 경로를 계측했다(산식 변경 없음).
 
-### §2-1 회귀 가드 (3 런 전부 PASS)
+### z15 회귀 (3 런)
 
-inFlightMax **1** · A_firstOutOfOrder **0** · 전진 폐기 **0** · pt3/pt9 ok=0 **0** ·
-publishQueue p50 2~18 · p95 90~130 · max 420~498 · 1 s 초과 **0**.
-cruise D_eff ≤350 · RMSE ≤1.0 · max ≤2.5 · 스케일 ≤10 % — **3 런 전부 PASS**.
-d0 PASS · d1 뒤집힌 상태 유지.
+| 구간 | before D_eff 중앙 | after D_eff 중앙 | RMSE/max/스케일 |
+|---|---:|---:|---|
+| depart | 360 | **300** | after 3 런 전부 예산 내(단 run1 max 2.51 — 중앙값 판정 PASS) |
+| cruise | 320 | **300** | 3 런 전부 PASS |
+
+### 회귀 가드 · d0/d1 · 쓰기량
+
+- inFlightMax ≤1 · out-of-order 0 · 전진 폐기 0 · pt3/pt9 ok=0 =0 · publishQueue 예산 내 — **after 3 런 전부**
+- `d0-duplicate-distm` **PASS 유지** · `d1-target-vs-applied` **뒤집힌 상태 유지** (`S3-fixture-gate.json`)
+- pt3/pt9: after run1 대 S3B-2 post 비 **0.52 / 1.06** (≤1.3)
 
 ### 실패·미완 · 이견
 
-없음.
-
-### 커밋
-
-측정 스크립트·spec·산출물 (본 보고 포함).
+- 초기 e2e: 주행 중 맵 시트에 줌 슬라이더 없음 → B 관전·맵 뷰 시트 경로로 수정.
+- 경로 B 절대 오차는 1 Hz 소스 한계로 크다. **라**는 예산 미적용·상대 개선만 본다.
