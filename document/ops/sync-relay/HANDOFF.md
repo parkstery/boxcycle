@@ -77,7 +77,7 @@ depart 구간 발행 spd  1.39 m/s 고정(=5km/h 초기 슬라이더) ← D-1 (A
 | **S3A-V** | 증상 종결 검증(측정 전용) | **보고완료 — 스케일 PASS · 시계 보정 무효** (`REPORT-S3AV.md`, §3-5) |
 | **S3A-VR** | 정확도 재검산 고정 — skew=0 · 중복 없는 지연 사슬 · 교차검산 게이트 | **보고완료 — 게이트 2/2 PASS** (`REPORT-S3AVR.md`) |
 | **S3B-1** | D-0 제거 — 발행 스냅샷을 rAF 원본에서 | **보고완료 — PASS 채택** (`REPORT-S3B1.md`, §3-7) |
-| S3B-2 | D-1 — 적용속도 발행 + **Firestore 쓰기량 계측** | 대기 (S3B-1 뒤) |
+| **S3B-2** ★ | D-1 — 적용속도 발행 + **Firestore 쓰기량 신규 계측(pt9)·기준선 재취득** | **배포** |
 | S3B-3 | D-2 — registry 적분 유지 + spectator 실제속도 **+ 시간 기준 정리** | 대기 (S3B-2 뒤) |
 | **S4** | 비용 3차 (heartbeat · Trail touch · RTDB child listener · 전역 목록) | 대기 |
 
