@@ -133,7 +133,6 @@ async function runRouteJob(job: RouteFlightJob): Promise<void> {
   beginRouteInFlight();
   syncRouteFlightDebug();
   try {
-    job.onWriteStart?.();
     const delayMs = readDevDelayMs();
     if (delayMs > 0) {
       await new Promise((r) => setTimeout(r, delayMs));
@@ -141,6 +140,7 @@ async function runRouteJob(job: RouteFlightJob): Promise<void> {
     if (consumeDevFaultOnce()) {
       throw new Error("rtw-route-write-fault-once");
     }
+    job.onWriteStart?.();
     await mergeTrailLivePublicationRideSnapshot(user, snapshot.trailId, {
       publicationId: snapshot.publicationId!,
       progressRatio: snapshot.progressRatio,

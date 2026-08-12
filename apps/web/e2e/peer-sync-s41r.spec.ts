@@ -10,10 +10,10 @@ import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const OUT_DIR = path.resolve(__dirname, '../../../document/ops/sync-relay')
 const BASELINE = process.env.S41R_BASELINE === '1'
-const WRITE_DELAY_MS = 4_000
+const WRITE_DELAY_MS = 5_000
 const OBSERVE_MS = 3_000
-/** finalize burst(3s) + delay 여유 — 늦은 쓰기 착지 후 관찰 */
-const SETTLE_WAIT_MS = WRITE_DELAY_MS + 3_500
+/** finalize burst(3s) 보다 긴 지연 — 삭제 뒤 늦은 쓰기 착지를 노린다 */
+const POST_END_DRAIN_MS = 15_000
 
 async function guestStart(page: import('@playwright/test').Page) {
   const gate = page.getByRole('dialog', { name: '시작' })
@@ -166,6 +166,19 @@ async function waitInFlightAndSlot(page: import('@playwright/test').Page) {
     .toBe(true)
 }
 
+async function waitFlightIdle(page: import('@playwright/test').Page, timeoutMs = POST_END_DRAIN_MS) {
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(() => {
+          const d = (window as Window).__rtwRouteFlightDebug
+          return !d?.writing && !d?.hasSlot
+        }),
+      { timeout: timeoutMs, intervals: [200] },
+    )
+    .toBe(true)
+}
+
 async function setPageHidden(page: import('@playwright/test').Page, hidden: boolean) {
   await page.evaluate((h) => {
     Object.defineProperty(document, 'hidden', { configurable: true, get: () => h })
@@ -220,7 +233,7 @@ test.describe('S4-1R route flight lifecycle', () => {
       const uid = await resolveUid(page)
       expect(await liveRideDocExists(page, trailId, uid)).toBe(true)
       await endRide(page)
-      await page.waitForTimeout(SETTLE_WAIT_MS)
+      await waitFlightIdle(page)
       const obs = await observeDocGone(page, trailId, uid)
       results.push({
         id: 'T1',
@@ -246,27 +259,17 @@ test.describe('S4-1R route flight lifecycle', () => {
       await waitInFlightAndSlot(page)
       const uid = await resolveUid(page)
       await setPageHidden(page, true)
-      await page.waitForTimeout(SETTLE_WAIT_MS)
+      await waitFlightIdle(page)
       const obsHidden = await observeDocGone(page, trailId, uid)
 
       // ── T2b route disable (= 종료) — 같은 컨텍스트에서 재개 후 종료
       await setPageHidden(page, false)
-      // 이전 delayed writes 가 끝날 때까지
-      await expect
-        .poll(
-          async () =>
-            page.evaluate(() => {
-              const d = (window as Window).__rtwRouteFlightDebug
-              return !d?.writing && !d?.hasSlot
-            }),
-          { timeout: 30_000 },
-        )
-        .toBe(true)
+      await waitFlightIdle(page)
       await ensureRiding(page)
       await armDelayedWrites(page)
       await waitInFlightAndSlot(page)
       await endRide(page)
-      await page.waitForTimeout(SETTLE_WAIT_MS)
+      await waitFlightIdle(page)
       const obsEnd = await observeDocGone(page, trailId, uid)
 
       results.push({
@@ -299,7 +302,7 @@ test.describe('S4-1R route flight lifecycle', () => {
       const trailB = new URL(page.url()).searchParams.get('trail')!
       expect(trailB).not.toBe(trailA)
 
-      await page.waitForTimeout(SETTLE_WAIT_MS)
+      await waitFlightIdle(page)
       const obsA = await observeDocGone(page, trailA, uid)
 
       const pt9 = cap.lines.map(parseChainLine).filter((e): e is Ev => !!e && e.pt === 9)
@@ -336,11 +339,14 @@ test.describe('S4-1R route flight lifecycle', () => {
         ;(window as Window).__rtwRouteWriteFaultOnce = 1
         ;(window as Window).__rtwRouteErrorEvents = []
       })
+      const linesBeforeFault = cap.lines.length
 
       await expect
         .poll(
           () =>
-            cap.lines.filter((l) => l.includes('pt=9') && l.includes('ok=0')).length,
+            cap.lines
+              .slice(linesBeforeFault)
+              .filter((l) => l.includes('pt=9') && l.includes('ok=0')).length,
           { timeout: 15_000 },
         )
         .toBeGreaterThanOrEqual(1)
@@ -348,14 +354,21 @@ test.describe('S4-1R route flight lifecycle', () => {
       await expect
         .poll(
           () =>
-            cap.lines.filter((l) => l.includes('pt=9') && l.includes('ok=1')).length,
-          { timeout: 15_000 },
+            cap.lines
+              .slice(linesBeforeFault)
+              .filter((l) => l.includes('pt=9') && l.includes('ok=1')).length,
+          { timeout: 20_000 },
         )
         .toBeGreaterThanOrEqual(1)
 
       const errEvents = await page.evaluate(() => (window as Window).__rtwRouteErrorEvents ?? [])
-      const routeErrorLogs = cap.lines.filter((l) => l.includes('[LiveLocationPublish] routeError'))
-      const pt9 = cap.lines.map(parseChainLine).filter((e): e is Ev => !!e && e.pt === 9)
+      const routeErrorLogs = cap.lines
+        .slice(linesBeforeFault)
+        .filter((l) => l.includes('[LiveLocationPublish] routeError'))
+      const pt9 = cap.lines
+        .slice(linesBeforeFault)
+        .map(parseChainLine)
+        .filter((e): e is Ev => !!e && e.pt === 9)
       const ok0 = pt9.filter((e) => e.ok === 0)
       const ok1 = pt9.filter((e) => e.ok === 1)
       const firstOk0Idx = pt9.findIndex((e) => e.ok === 0)
