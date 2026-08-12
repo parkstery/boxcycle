@@ -76,7 +76,9 @@ depart 구간 발행 spd  1.39 m/s 고정(=5km/h 초기 슬라이더) ← D-1 (A
 | **S3A** ★ | 발행 큐 제거 — motion 을 Firestore 선행 await 에서 분리 · single-flight · latest-wins | **보고완료 — 수용 6/6 PASS** (`REPORT-S3A.md`) |
 | **S3A-V** | 증상 종결 검증(측정 전용) | **보고완료 — 스케일 PASS · 시계 보정 무효** (`REPORT-S3AV.md`, §3-5) |
 | **S3A-VR** | 정확도 재검산 고정 — skew=0 · 중복 없는 지연 사슬 · 교차검산 게이트 | **보고완료 — 게이트 2/2 PASS** (`REPORT-S3AVR.md`) |
-| **S3B** | 정확도 2차 — 적용속도 발행(D-1) → 저줌 실제속도(D-2) → 저줌 시 registry 적분 유지 | 보류 (**S3A-V 뒤**) |
+| **S3B-1** ★ | **D-0 제거** — 발행 스냅샷을 rAF 원본에서 (`distMetersAlongRoute`·`progressRatio` 동일 원천) | **배포** |
+| S3B-2 | D-1 — 적용속도 발행 + **Firestore 쓰기량 계측** | 대기 (S3B-1 뒤) |
+| S3B-3 | D-2 — registry 적분 유지 + spectator 실제속도 **+ 시간 기준 정리** | 대기 (S3B-2 뒤) |
 | **S4** | 비용 3차 (heartbeat · Trail touch · RTDB child listener · 전역 목록) | 대기 |
 
 ### ⚠ S3 재정의 (감리0811)
@@ -267,6 +269,41 @@ z15-cruise 이탈   S1 48 %  →  0.94 %          z15-depart  1.15 %
 **최대 단계는 ① 샘플링 낡음(217~231 ms)** 이고, 이는 D-0 다(`App.tsx:1437` 이 200 ms 낡은 React
 상태를 발행에 먹인다 — `sampleVirtualDistanceM()` 은 만들어졌으나 배선되지 않았다).
 **S3B 사안이며 지금 고치지 않는다.**
+
+### 3-6. S3B 계획 — 3 단계 분할 (감리0812 · Chief 승인)
+
+**한 번에 셋을 넣지 않는다.** 이 작업선에서 원인 귀속이 흐려진 사고가 반복됐다.
+각 단계를 **단독 착지 → 측정 → 다음** 순으로 간다.
+
+```
+S3B-1  D-0  발행 스냅샷을 rAF 원본에서            ← ① 217~231 ms, 사슬 최대 단계
+S3B-2  D-1  적용속도 발행 + Firestore 쓰기량 계측  ← S3B-3 의 선행 조건
+S3B-3  D-2  registry 적분 유지 + spectator 실제속도 + 시간 기준
+```
+
+**S3B-1 단독으로 z15 정확도가 닫힐 수 있다** — `560−231 = 329`, `540−217 = 323` 으로 예산 350 안이다.
+닫히면 S3B-2 의 성격이 「z15 정확도」에서 「저줌 선행 조건」으로 바뀐다. **확인 후 다음을 정한다.**
+
+**조사에서 확인된 사실 3 건 (S3B 착수 전 필독)**
+
+1. **샘플러는 이미 스냅샷 함수 안에서 호출된다.** `liveLocationSnapshot.ts:125` 가
+   `peekSampleVirtualDistanceM()` 를 **DEV `diagCapture` 용으로만** 쓰고 있고, 실제 발행값은
+   `:97` `:112` 가 `input.virtualDistanceMeters`(React 200 ms) 를 쓴다.
+   등록부 `useVirtualRideSession.ts:197` 에 **DEV 게이트가 없어** 운영에서도 사용 가능하다.
+   → D-0 은 배선 한 곳. 단 `distMetersAlongRoute` 와 `progressRatio` 를 **같은 원천**에서 유도해야
+   RTDB `d` 와 Firestore `progressRatio` 가 어긋나지 않는다.
+
+2. **D-1 에 Firestore 쓰기 증폭 위험.** `SPEED_PUBLISH_DELTA_MPS = 0.28`(≈1 km/h)
+   (`liveLocationSnapshot.ts:176`)의 속도 델타 우회가 `shouldPublishRouteProgress`(`:192`) 에도 걸려 있다.
+   지금은 발행 속도가 **슬라이더 목표값**이라 사용자가 만질 때만 바뀌지만, 적용속도로 바꾸면
+   램프 구간에서 **연속 발화**한다. RTDB 는 single-flight 가 막지만 **Firestore 1 Hz 경로엔 상한이 없다.**
+   → S3B-2 는 Firestore 쓰기량을 반드시 계측한다. **임계 상수를 올려 회피하지 마라.**
+
+3. **D-2 는 속도만 고치면 악화될 수 있다.**
+   `useTrailLivePublicationRideSpectatorOverlay.ts:155-156` 이
+   `lastSeenAtMs`(Firestore **serverTimestamp** = 서버 시계)와 `Date.now()`(로컬 시계)를 뺀다.
+   지금은 5 km/h 외삽이라 오차가 눌려 있지만 실제 속도(30 km/h)로 바꾸면 **같은 시계 오차가 6 배**가 된다.
+   → S3B-3 은 속도 교체와 **시간 기준 정리를 함께** 한다.
 
 **순서 의존 2건 (위반 금지)**
 
