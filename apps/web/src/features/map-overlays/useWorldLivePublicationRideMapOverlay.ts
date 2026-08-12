@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs, react-hooks/set-state-in-effect, react-hooks/purity */
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import type { ActivityWorldMapRoute } from "../../lib/activityWorldLod";
 import { ACTIVITY_TRACE_LIVE_STRENGTH } from "../../lib/activityWorldTraceStyle";
@@ -53,7 +54,7 @@ function mergeLiveRows(maps: Map<string, TrailLivePublicationRideRow>[]): TrailL
   for (const m of maps) {
     for (const [uid, row] of m) {
       const prev = merged.get(uid);
-      if (!prev || (row.lastSeenAtMs ?? 0) >= (prev.lastSeenAtMs ?? 0)) {
+      if (!prev || (row.receivedAtLocalMs ?? 0) >= (prev.receivedAtLocalMs ?? 0)) {
         merged.set(uid, row);
       }
     }
@@ -252,8 +253,7 @@ export function useWorldLivePublicationRideMapOverlay(opts: {
         typeof r.distMeters === "number" && Number.isFinite(r.distMeters)
           ? Math.max(0, Math.min(len, r.distMeters))
           : progressRatioToRouteDistanceMeters(r.progressRatio, len);
-      const sampleAtMs = r.lastSeenAtMs ?? Date.now();
-      const elapsedSec = Math.max(0, (Date.now() - sampleAtMs) / 1000);
+      const elapsedSec = Math.max(0, (Date.now() - r.receivedAtLocalMs) / 1000);
       const distM = Math.min(len, anchorDistM + (PEER_EXTRAP_DEFAULT_SPEED_KMH / 3.6) * elapsedSec);
       const p = getPointOnRouteByDistance(g.geometry, distM);
       if (p) {

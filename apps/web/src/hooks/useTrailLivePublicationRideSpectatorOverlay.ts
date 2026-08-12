@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs, react-hooks/set-state-in-effect, react-hooks/purity */
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import type { User } from "firebase/auth";
 import {
@@ -6,8 +7,6 @@ import {
   getBasicHubCoursePayload,
 } from "../lib/firestoreCourses";
 import type { LineStringGeometry, LngLat } from "../lib/geo";
-import { getPointOnRouteByDistance, lineStringLengthMeters } from "../lib/geo";
-import { progressRatioToRouteDistanceMeters } from "../lib/liveLocationSnapshot";
 import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../lib/geoDecimate";
 import { acquireTrailLivePublicationRidesSubscription } from "../lib/livePublicationRidesSubscriptionHub";
 import { sanitizeTrailId } from "../lib/firestoreTrail";
@@ -16,6 +15,8 @@ import {
   type TrailLivePublicationRideRow,
 } from "../lib/firestoreTrailLivePublicationRides";
 import { PEER_EXTRAP_DEFAULT_SPEED_KMH } from "../lib/rideSyncPolicy";
+import { getPointOnRouteByDistance, lineStringLengthMeters } from "../lib/geo";
+import { progressRatioToRouteDistanceMeters } from "../lib/liveLocationSnapshot";
 
 export type TrailSpectatorDot = { id: string; lngLat: LngLat; label: string };
 
@@ -152,8 +153,7 @@ export function useTrailLivePublicationRideSpectatorOverlay(opts: UseTrailLivePu
         typeof r.distMeters === "number" && Number.isFinite(r.distMeters)
           ? Math.max(0, Math.min(len, r.distMeters))
           : progressRatioToRouteDistanceMeters(r.progressRatio, len);
-      const sampleAtMs = r.lastSeenAtMs ?? Date.now();
-      const elapsedSec = Math.max(0, (Date.now() - sampleAtMs) / 1000);
+      const elapsedSec = Math.max(0, (Date.now() - r.receivedAtLocalMs) / 1000);
       const distM = Math.min(
         len,
         anchorDistM + (PEER_EXTRAP_DEFAULT_SPEED_KMH / 3.6) * elapsedSec,

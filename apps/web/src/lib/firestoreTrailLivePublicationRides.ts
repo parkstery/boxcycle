@@ -51,6 +51,8 @@ export type TrailLivePublicationRideRow = {
   /** geometry 위 주행 거리(m) — progressRatio 변환 오차 제거 */
   distMeters: number | null;
   lastSeenAtMs: number | null;
+  /** 클라이언트 수신 시각 — spectator 외삽 경과 계산용 (단일 로컬 시계) */
+  receivedAtLocalMs: number;
   displayName: string | null;
   /** m/s — 송신 측 속도(없으면 수신 측 delta 추정) */
   speedMps: number | null;
@@ -102,6 +104,7 @@ export function subscribeTrailLivePublicationRides(
           progressRatio,
           distMeters,
           lastSeenAtMs: lastSeenAtToMillis(data.lastSeenAt),
+          receivedAtLocalMs: Date.now(),
           displayName: typeof data.displayName === "string" ? data.displayName : null,
           speedMps,
           ridePhase: readRidePhase(data),
