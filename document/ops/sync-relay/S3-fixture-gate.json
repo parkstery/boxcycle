@@ -94,14 +94,15 @@
     },
     {
       "id": "d1-target-vs-applied",
-      "kind": "known-fail-assert-current",
+      "kind": "flipped-after-S3B-2",
       "pass": true,
-      "actualMps": 6.229787234042552,
-      "publishedMps": 8.33,
-      "rel": 0.2521263824678809,
+      "actualMps": 2.8975388374934545,
+      "publishedMps": 3.02,
+      "rel": 0.0405500538101144,
       "windowSec": 6,
-      "expect": "발행 speedMps 가 실제 진행속도와 ≥ 20% 어긋남"
+      "expect": "발행 speedMps 가 실제 진행속도와 < 20% 어긋남 (구 ≥20% 를 뒤집음)",
+      "source": "S3B2-chain-events.json pt3"
     }
   ],
-  "generatedAt": "2026-08-12T02:55:02.754Z"
+  "generatedAt": "2026-08-12T05:08:55.657Z"
 }

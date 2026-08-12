@@ -20,7 +20,6 @@ import {
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const RAW = resolve(HERE, "../../../../document/ops/sync-relay/REPORT-S1-raw-logs.json");
-const SCENARIO = resolve(HERE, "../../../../document/ops/sync-relay/s2-z15-cruise-scenario.json");
 const S3B1_EVENTS = resolve(HERE, "../../../../document/ops/sync-relay/S3B1-chain-events.json");
 const S3B2_EVENTS = resolve(HERE, "../../../../document/ops/sync-relay/S3B2-chain-events.json");
 const OUT = resolve(HERE, "../../../../document/ops/sync-relay/S3-fixture-gate.json");
@@ -64,25 +63,6 @@ function consecutiveDuplicateDistRatio(events) {
   }
   const n = events.length - 1;
   return { dup, n, ratio: n > 0 ? dup / n : 0 };
-}
-
-/** 첫 windowSec 동안 실제 진행속도 vs 발행 speedMps 중앙값 */
-function targetVsApplied(events, windowSec = 6) {
-  if (events.length < 2) return null;
-  const t0 = events[0].atMs;
-  const t1 = t0 + windowSec * 1000;
-  const inWin = events.filter((e) => e.atMs <= t1);
-  if (inWin.length < 2) return null;
-  const first = inWin[0];
-  const last = inWin[inWin.length - 1];
-  const dt = (last.atMs - first.atMs) / 1000;
-  if (dt < 1) return null;
-  const actualMps = (last.packet.distM - first.packet.distM) / dt;
-  const published = inWin.map((e) => e.packet.speedMps).filter((v) => v > 0.02);
-  published.sort((a, b) => a - b);
-  const pubMed = published[Math.floor(published.length / 2)] ?? 0;
-  const rel = pubMed > 0 ? Math.abs(actualMps - pubMed) / pubMed : Infinity;
-  return { actualMps, publishedMps: pubMed, rel, windowSec };
 }
 
 const raw = JSON.parse(readFileSync(RAW, "utf8"));
@@ -157,10 +137,9 @@ for (const c of raw.reportCases.filter((x) => String(x.id).startsWith("z15-"))) 
 }
 
 // d0 — S3B-1 에서 기대값 뒤집음: 연속 중복 < 40% (살아 있는 발행 스트림)
-// d1 — 그대로 (D-1 미수정). 역사 S1 시나리오 유지.
+// d1 — S3B-2 에서 기대값 뒤집음: 발행 speed vs 실제 진행 < 20% (S3B2-chain)
 let knownFails = [];
 try {
-  const scenario = JSON.parse(readFileSync(SCENARIO, "utf8"));
   try {
     const b1 = JSON.parse(readFileSync(S3B1_EVENTS, "utf8"));
     const pub = b1.publisherUid;
@@ -189,23 +168,60 @@ try {
     failures.push(`d0-duplicate-distm: S3B1-chain-events.json 없음 (${e.message})`);
   }
 
-  const d1 = targetVsApplied(scenario.events, 6);
-  // S3B-2 D-1: 기대 뒤집기 — 발행 speedMps 와 실제 진행속도 상대오차 < 20%
-  const d1Pass = d1 != null && d1.rel < 0.2;
-  if (!d1Pass) {
-    failures.push(
-      `d1-target-vs-applied: rel=${d1?.rel} (D-1 후 <20% 기대 미달)`,
+  try {
+    const s3b2 = JSON.parse(readFileSync(S3B2_EVENTS, "utf8"));
+    const pub = s3b2.publisherUid;
+    const a = (s3b2.events ?? []).filter(
+      (e) => e.side === "A" && e.pt === 3 && (!pub || !e.uid || e.uid === pub),
     );
+    const mark = s3b2.cases?.["z15-depart"];
+    const t0 = (mark?.start?.a ?? 0) + 2_000;
+    const t1 = t0 + 6_000;
+    const inWin = a
+      .map((e) => ({
+        atMs: Number(e.writeStart ?? e.capturedAt),
+        distM: Number(e.d),
+        speedMps: Number(e.v),
+      }))
+      .filter(
+        (e) =>
+          Number.isFinite(e.atMs) &&
+          Number.isFinite(e.distM) &&
+          e.atMs >= t0 &&
+          e.atMs <= t1,
+      )
+      .sort((x, y) => x.atMs - y.atMs);
+    let d1 = null;
+    if (inWin.length >= 2) {
+      const first = inWin[0];
+      const last = inWin[inWin.length - 1];
+      const dt = (last.atMs - first.atMs) / 1000;
+      if (dt >= 1) {
+        const actualMps = (last.distM - first.distM) / dt;
+        const published = inWin.map((e) => e.speedMps).filter((v) => v > 0.02);
+        published.sort((x, y) => x - y);
+        const pubMed = published[Math.floor(published.length / 2)] ?? 0;
+        const rel = pubMed > 0 ? Math.abs(actualMps - pubMed) / pubMed : Infinity;
+        d1 = { actualMps, publishedMps: pubMed, rel, windowSec: 6 };
+      }
+    }
+    const d1Pass = d1 != null && d1.rel < 0.2;
+    if (!d1Pass) {
+      failures.push(`d1-target-vs-applied: rel=${d1?.rel} (D-1 후 <20% 기대 미달)`);
+    }
+    knownFails.push({
+      id: "d1-target-vs-applied",
+      kind: "flipped-after-S3B-2",
+      pass: d1Pass,
+      ...d1,
+      expect: "발행 speedMps 가 실제 진행속도와 < 20% 어긋남 (구 ≥20% 를 뒤집음)",
+      source: "S3B2-chain-events.json pt3",
+    });
+  } catch (e) {
+    failures.push(`d1-target-vs-applied: S3B2-chain-events.json 없음 (${e.message})`);
   }
-  knownFails.push({
-    id: "d1-target-vs-applied",
-    kind: "flipped-after-S3B-2",
-    pass: d1Pass,
-    ...d1,
-    expect: "발행 speedMps 가 실제 진행속도와 < 20% 어긋남 (구 ≥20% 를 뒤집음)",
-  });
 } catch (e) {
-  failures.push(`known-fail: scenario 로드 실패 ${e.message}`);
+  failures.push(`known-fail: ${e.message}`);
 }
 
 const out = {

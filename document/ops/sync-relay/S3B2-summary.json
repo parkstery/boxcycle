@@ -1,0 +1,555 @@
+{
+  "instruction": "S3B-2",
+  "newE2e": true,
+  "skew": {
+    "used": 0
+  },
+  "rebuttal": {
+    "applies": true,
+    "kind": "no_fs_increase",
+    "note": "적용속도인데 FS 증가 없음 → 증폭 예측 반증. 수치 보고",
+    "fsRatio": 0.8121173863705782,
+    "rtdbRatio": 0.9763159836149027
+  },
+  "uag": "FAIL",
+  "gates": {
+    "d1_3_1": true,
+    "accuracy_3_2": false,
+    "regression_3_3": true,
+    "writes_3_4": true,
+    "all": false
+  },
+  "g31": {
+    "d1Flipped": true,
+    "departNotStuck": true,
+    "d1": {
+      "actualMps": 2.8975388374934545,
+      "publishedMps": 3.02,
+      "rel": 0.0405500538101144,
+      "pass": true
+    }
+  },
+  "base": {
+    "phase": "base",
+    "elapsedMin": 1.2,
+    "publisherUid": "0VIenP",
+    "eventCounts": {
+      "A": 4246,
+      "B": 3998,
+      "total": 8244,
+      "pt": {
+        "1": 556,
+        "2": 565,
+        "3": 555,
+        "4": 2696,
+        "5": 2703,
+        "6": 430,
+        "7": 430,
+        "9": 309
+      }
+    },
+    "cases": {
+      "z15-depart": {
+        "id": "z15-depart",
+        "window": {
+          "a0": 1786511023222,
+          "a1": 1786511047567,
+          "b0": 1786511023440,
+          "b1": 1786511047741
+        },
+        "deltaA_auth": 162.82399999999998,
+        "windowS": 23.864,
+        "scalePct": 1.9186360733061263,
+        "scaleStatus": "PASS",
+        "D_eff": 340,
+        "residualRmse": 0.3856858500970258,
+        "residualMax": 1.5112978723404353,
+        "overlap": 1,
+        "hitCeiling": false,
+        "accPass": true,
+        "rtdb": {
+          "n": 114,
+          "perSec": 4.682686383240912,
+          "windowS": 24.345
+        },
+        "firestore": {
+          "n": 123,
+          "perSec": 5.052372150338879,
+          "windowS": 24.345,
+          "ok0": 0,
+          "rtt": {
+            "n": 123,
+            "p50": 3056,
+            "p95": 3927,
+            "max": 7880
+          }
+        },
+        "departSpeed": {
+          "n": 114,
+          "p50": 8.33,
+          "max": 8.33,
+          "near139Ratio": 0.043859649122807015,
+          "stuckAt5kmh": false
+        }
+      },
+      "z15-cruise": {
+        "id": "z15-cruise",
+        "window": {
+          "a0": 1786511049836,
+          "a1": 1786511071967,
+          "b0": 1786511049910,
+          "b1": 1786511071986
+        },
+        "deltaA_auth": 182.62778115501519,
+        "windowS": 21.915,
+        "scalePct": 1.0008231734818844,
+        "scaleStatus": "PASS",
+        "D_eff": 300,
+        "residualRmse": 0.323428283545967,
+        "residualMax": 0.881493023255814,
+        "overlap": 1,
+        "hitCeiling": false,
+        "accPass": true,
+        "rtdb": {
+          "n": 119,
+          "perSec": 5.377072884189598,
+          "windowS": 22.131
+        },
+        "firestore": {
+          "n": 28,
+          "perSec": 1.2651936198093172,
+          "windowS": 22.131,
+          "ok0": 0,
+          "rtt": {
+            "n": 28,
+            "p50": 132,
+            "p95": 545,
+            "max": 734
+          }
+        },
+        "departSpeed": null
+      }
+    },
+    "regression": {
+      "inFlightMax": {
+        "pass": true,
+        "got": 1
+      },
+      "A_firstOutOfOrder": {
+        "pass": true,
+        "got": 0
+      },
+      "forwardDiscard": {
+        "pass": true,
+        "got": 0
+      },
+      "pt3_ok0": {
+        "pass": true,
+        "got": 0
+      },
+      "pt9_ok0": {
+        "pass": true,
+        "got": 0
+      },
+      "publishQueueMs": {
+        "pass": true,
+        "got": {
+          "n": 296,
+          "p50": 2,
+          "p95": 108,
+          "max": 421,
+          "over1s": 0
+        }
+      }
+    },
+    "writes": {
+      "rtdb": {
+        "n": 244,
+        "perSec": 5.005641604267105,
+        "windowS": 48.745
+      },
+      "firestore": {
+        "n": 154,
+        "perSec": 3.1592983895784186,
+        "windowS": 48.745,
+        "ok0": 0,
+        "rtt": {
+          "n": 154,
+          "p50": 1708,
+          "p95": 3815,
+          "max": 7880
+        }
+      },
+      "discard": {
+        "sameDist": 1067,
+        "forward": 0,
+        "retrograde": 1,
+        "accepted": 279
+      },
+      "byCase": {
+        "depart": {
+          "rtdb": {
+            "n": 114,
+            "perSec": 4.682686383240912,
+            "windowS": 24.345
+          },
+          "firestore": {
+            "n": 123,
+            "perSec": 5.052372150338879,
+            "windowS": 24.345,
+            "ok0": 0,
+            "rtt": {
+              "n": 123,
+              "p50": 3056,
+              "p95": 3927,
+              "max": 7880
+            }
+          }
+        },
+        "cruise": {
+          "rtdb": {
+            "n": 119,
+            "perSec": 5.377072884189598,
+            "windowS": 22.131
+          },
+          "firestore": {
+            "n": 28,
+            "perSec": 1.2651936198093172,
+            "windowS": 22.131,
+            "ok0": 0,
+            "rtt": {
+              "n": 28,
+              "p50": 132,
+              "p95": 545,
+              "max": 734
+            }
+          }
+        }
+      }
+    },
+    "accuracyPass": true
+  },
+  "post": {
+    "phase": "post",
+    "elapsedMin": 1.3,
+    "publisherUid": "uUROcs",
+    "eventCounts": {
+      "A": 4082,
+      "B": 3907,
+      "total": 7989,
+      "pt": {
+        "1": 551,
+        "2": 558,
+        "3": 549,
+        "4": 2585,
+        "5": 2591,
+        "6": 435,
+        "7": 435,
+        "9": 285
+      }
+    },
+    "cases": {
+      "z15-depart": {
+        "id": "z15-depart",
+        "window": {
+          "a0": 1786511247300,
+          "a1": 1786511271858,
+          "b0": 1786511247457,
+          "b1": 1786511271980
+        },
+        "deltaA_auth": 164.3803618998451,
+        "windowS": 24.078,
+        "scalePct": 0.5355639138825429,
+        "scaleStatus": "PASS",
+        "D_eff": 360,
+        "residualRmse": 0.45466606755971967,
+        "residualMax": 1.3527608069164216,
+        "overlap": 1,
+        "hitCeiling": false,
+        "accPass": false,
+        "rtdb": {
+          "n": 113,
+          "perSec": 4.601351901620653,
+          "windowS": 24.558
+        },
+        "firestore": {
+          "n": 97,
+          "perSec": 3.949833048293835,
+          "windowS": 24.558,
+          "ok0": 0,
+          "rtt": {
+            "n": 97,
+            "p50": 2434,
+            "p95": 3270,
+            "max": 3338
+          }
+        },
+        "departSpeed": {
+          "n": 113,
+          "p50": 8.33,
+          "max": 8.33,
+          "near139Ratio": 0.04424778761061947,
+          "stuckAt5kmh": false
+        }
+      },
+      "z15-cruise": {
+        "id": "z15-cruise",
+        "window": {
+          "a0": 1786511274103,
+          "a1": 1786511296409,
+          "b0": 1786511274320,
+          "b1": 1786511296469
+        },
+        "deltaA_auth": 182.46392086330934,
+        "windowS": 21.906,
+        "scalePct": 0.3090588323659672,
+        "scaleStatus": "PASS",
+        "D_eff": 300,
+        "residualRmse": 0.3722106867418995,
+        "residualMax": 0.9379999999999882,
+        "overlap": 1,
+        "hitCeiling": false,
+        "accPass": true,
+        "rtdb": {
+          "n": 115,
+          "perSec": 5.155563525508832,
+          "windowS": 22.306
+        },
+        "firestore": {
+          "n": 27,
+          "perSec": 1.210436653815117,
+          "windowS": 22.306,
+          "ok0": 0,
+          "rtt": {
+            "n": 27,
+            "p50": 136,
+            "p95": 490,
+            "max": 674
+          }
+        },
+        "departSpeed": null
+      }
+    },
+    "regression": {
+      "inFlightMax": {
+        "pass": true,
+        "got": 1
+      },
+      "A_firstOutOfOrder": {
+        "pass": true,
+        "got": 0
+      },
+      "forwardDiscard": {
+        "pass": true,
+        "got": 0
+      },
+      "pt3_ok0": {
+        "pass": true,
+        "got": 0
+      },
+      "pt9_ok0": {
+        "pass": true,
+        "got": 0
+      },
+      "publishQueueMs": {
+        "pass": true,
+        "got": {
+          "n": 299,
+          "p50": 5,
+          "p95": 105,
+          "max": 413,
+          "over1s": 0
+        }
+      }
+    },
+    "writes": {
+      "rtdb": {
+        "n": 240,
+        "perSec": 4.887087906493718,
+        "windowS": 49.109
+      },
+      "firestore": {
+        "n": 126,
+        "perSec": 2.565721150909202,
+        "windowS": 49.109,
+        "ok0": 0,
+        "rtt": {
+          "n": 126,
+          "p50": 2092,
+          "p95": 3237,
+          "max": 3338
+        }
+      },
+      "discard": {
+        "sameDist": 1037,
+        "forward": 0,
+        "retrograde": 1,
+        "accepted": 275
+      },
+      "byCase": {
+        "depart": {
+          "rtdb": {
+            "n": 113,
+            "perSec": 4.601351901620653,
+            "windowS": 24.558
+          },
+          "firestore": {
+            "n": 97,
+            "perSec": 3.949833048293835,
+            "windowS": 24.558,
+            "ok0": 0,
+            "rtt": {
+              "n": 97,
+              "p50": 2434,
+              "p95": 3270,
+              "max": 3338
+            }
+          }
+        },
+        "cruise": {
+          "rtdb": {
+            "n": 115,
+            "perSec": 5.155563525508832,
+            "windowS": 22.306
+          },
+          "firestore": {
+            "n": 27,
+            "perSec": 1.210436653815117,
+            "windowS": 22.306,
+            "ok0": 0,
+            "rtt": {
+              "n": 27,
+              "p50": 136,
+              "p95": 490,
+              "max": 674
+            }
+          }
+        }
+      }
+    },
+    "accuracyPass": false
+  },
+  "writesCompare": {
+    "rtdb": {
+      "base": {
+        "n": 244,
+        "perSec": 5.005641604267105,
+        "windowS": 48.745
+      },
+      "post": {
+        "n": 240,
+        "perSec": 4.887087906493718,
+        "windowS": 49.109
+      },
+      "ratio": 0.9763159836149027,
+      "pass": true
+    },
+    "firestore": {
+      "base": {
+        "n": 154,
+        "perSec": 3.1592983895784186,
+        "windowS": 48.745,
+        "ok0": 0,
+        "rtt": {
+          "n": 154,
+          "p50": 1708,
+          "p95": 3815,
+          "max": 7880
+        }
+      },
+      "post": {
+        "n": 126,
+        "perSec": 2.565721150909202,
+        "windowS": 49.109,
+        "ok0": 0,
+        "rtt": {
+          "n": 126,
+          "p50": 2092,
+          "p95": 3237,
+          "max": 3338
+        }
+      },
+      "ratio": 0.8121173863705782,
+      "pass": true,
+      "byCase": {
+        "depart": {
+          "base": {
+            "n": 123,
+            "perSec": 5.052372150338879,
+            "windowS": 24.345,
+            "ok0": 0,
+            "rtt": {
+              "n": 123,
+              "p50": 3056,
+              "p95": 3927,
+              "max": 7880
+            }
+          },
+          "post": {
+            "n": 97,
+            "perSec": 3.949833048293835,
+            "windowS": 24.558,
+            "ok0": 0,
+            "rtt": {
+              "n": 97,
+              "p50": 2434,
+              "p95": 3270,
+              "max": 3338
+            }
+          },
+          "ratio": 0.7817779313879138
+        },
+        "cruise": {
+          "base": {
+            "n": 28,
+            "perSec": 1.2651936198093172,
+            "windowS": 22.131,
+            "ok0": 0,
+            "rtt": {
+              "n": 28,
+              "p50": 132,
+              "p95": 545,
+              "max": 734
+            }
+          },
+          "post": {
+            "n": 27,
+            "perSec": 1.210436653815117,
+            "windowS": 22.306,
+            "ok0": 0,
+            "rtt": {
+              "n": 27,
+              "p50": 136,
+              "p95": 490,
+              "max": 674
+            }
+          },
+          "ratio": 0.9567204851993698
+        }
+      }
+    }
+  },
+  "s3b1Contrast": {
+    "depart": {
+      "before": 340,
+      "after": 360,
+      "rmseBefore": 0.3935343925641824,
+      "rmseAfter": 0.45466606755971967,
+      "maxBefore": 1.244704000000013,
+      "maxAfter": 1.3527608069164216
+    },
+    "cruise": {
+      "before": 300,
+      "after": 300,
+      "rmseBefore": 0.32224294034754386,
+      "rmseAfter": 0.3722106867418995,
+      "maxBefore": 1.3027978723404203,
+      "maxAfter": 0.9379999999999882
+    }
+  },
+  "limits": {
+    "D_eff_ms": 350,
+    "residualRmse_m": 1,
+    "residualMax_m": 2.5
+  }
+}
