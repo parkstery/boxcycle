@@ -40,7 +40,7 @@
 |---:|---|---|
 | ① | `bdcad6d` | pt11 touch 쓰기 계측 · pt9 route in-flight 계수 (동작 변경 없음) |
 | ② | `54810f4` | `routePublishFlight.ts` single-flight + latest-wins · `markRouteProgressPublished`를 write start로 · 실패는 pt9 ok=0 + `onRouteError` |
-| ③ | *(본 커밋)* | e2e 6런 · `s41-summarize.mjs` · 보고 |
+| ③ | `b84bbf4` | e2e 6런 · `s41-summarize.mjs` · 보고 |
 
 motion 경로·heartbeat 상수·발행 스냅샷 산식 미변경. F-2(삼킴) 재발 없음 — route catch에서 pt9 ok=0 방출 후 `onRouteError`로 표면화.
 
