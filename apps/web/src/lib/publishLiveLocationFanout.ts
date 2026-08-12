@@ -12,6 +12,7 @@ import { deleteTrailMotion } from "./rtdbTrailMotion";
 import { enqueueMotionPublish } from "./peerMotion/motionPublishFlight";
 import type { LiveLocationPublishThrottleState } from "./liveLocationSnapshot";
 import { markPeerMotionPublished } from "./liveLocationSnapshot";
+import { peerSyncChainLog } from "./peerMotion/peerSyncChainLog";
 
 export type LiveLocationFanoutResult = {
   global: boolean;
@@ -60,13 +61,39 @@ export async function publishLiveLocationFanout(
   }
 
   if (opts.publishRoute && snapshot.routeReady && snapshot.publicationId) {
-    await mergeTrailLivePublicationRideSnapshot(user, snapshot.trailId, {
-      publicationId: snapshot.publicationId,
-      progressRatio: snapshot.progressRatio,
-      distMeters: snapshot.distMetersAlongRoute,
-      speedMps: snapshot.speedMps,
-      ridePhase: snapshot.routeRidePhase,
-    });
+    // S3B-2: Firestore 쓰기량 계측 (pt9). 텍스트 파싱 금지 — 방출 건수로 센다.
+    const fsWriteStartAt = Date.now();
+    try {
+      await mergeTrailLivePublicationRideSnapshot(user, snapshot.trailId, {
+        publicationId: snapshot.publicationId,
+        progressRatio: snapshot.progressRatio,
+        distMeters: snapshot.distMetersAlongRoute,
+        speedMps: snapshot.speedMps,
+        ridePhase: snapshot.routeRidePhase,
+      });
+      if (import.meta.env.DEV) {
+        const fsWriteDoneAt = Date.now();
+        peerSyncChainLog(9, null, {
+          fsWriteStartAt,
+          fsWriteDoneAt,
+          fsWriteRttMs: fsWriteDoneAt - fsWriteStartAt,
+          ok: 1,
+          uid: user.uid.slice(0, 6),
+        });
+      }
+    } catch (e) {
+      if (import.meta.env.DEV) {
+        const fsWriteDoneAt = Date.now();
+        peerSyncChainLog(9, null, {
+          fsWriteStartAt,
+          fsWriteDoneAt,
+          fsWriteRttMs: fsWriteDoneAt - fsWriteStartAt,
+          ok: 0,
+          uid: user.uid.slice(0, 6),
+        });
+      }
+      throw e;
+    }
     if (snapshot.trailId !== DEFAULT_TRAIL_ID) {
       void touchTrailInstanceActivity(snapshot.trailId);
     }
