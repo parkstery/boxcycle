@@ -251,16 +251,12 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
           publishRoute,
           publishMotion,
           motionThrottle: throttle,
+          routeThrottle: throttle,
+          onRouteError: reportError,
         });
         if (publishGlobal) markGlobalPresencePublished(throttle, now, snapshot.lngLat);
+        // route mark 는 single-flight 가 실제 write 를 시작할 때만 (S4-1)
         if (publishRoute) {
-          markRouteProgressPublished(
-            throttle,
-            now,
-            snapshot.progressRatio,
-            snapshot.distMetersAlongRoute,
-            snapshot.speedMps,
-          );
           routeDocActive = true;
         }
         // motion mark 는 single-flight 가 실제 set() 을 시작할 때만 (S3A)
