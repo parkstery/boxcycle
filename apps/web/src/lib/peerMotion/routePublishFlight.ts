@@ -1,14 +1,13 @@
 /**
- * S4-1 — Firestore route 단일 슬롯(single-flight) + latest-wins.
+ * S4-1 / S4-1R — Firestore route single-flight + latest-wins + epoch 수명주기.
  * motionPublishFlight 와 같은 관용구. motion 파일은 수정하지 않는다.
- *
- * S4-1R ① — DEV 주입점만 추가 (수명주기 계약은 아직 없음).
  */
 import type { User } from "firebase/auth";
 import type { LiveLocationSnapshot } from "../liveLocationSnapshot";
 import { DEFAULT_TRAIL_ID } from "../firestoreTrail";
 import { mergeTrailLivePublicationRideSnapshot } from "../firestoreTrailLivePublicationRides";
 import { touchTrailInstanceActivity } from "../firestoreTrailInstance";
+import { ROUTE_FLIGHT_DRAIN_TIMEOUT_MS } from "../rideSyncPolicy";
 import {
   beginRouteInFlight,
   endRouteInFlight,
@@ -21,29 +20,26 @@ export type RouteFlightJob = {
   user: User;
   trailId: string;
   snapshot: LiveLocationSnapshot;
+  epoch: number;
   onWriteStart?: () => void;
   onError?: (e: unknown) => void;
 };
 
 declare global {
   interface Window {
-    /** DEV — 다음 route 쓰기 1회를 강제 실패 (소모성) */
     __rtwRouteWriteFaultOnce?: number;
-    /** DEV — route 쓰기 앞에 강제 지연(ms). in-flight+slot 상태를 만들기. */
     __rtwRouteWriteDelayMs?: number;
-    /** DEV — flight 관측 스냅샷 */
     __rtwRouteFlightDebug?: {
       writing: boolean;
       hasSlot: boolean;
       inFlight: number;
       slotDiscardTotal: number;
+      epochDiscardTotal: number;
+      currentEpoch: number;
       routeErrorCount: number;
     };
-    /** DEV — onError 경로 호출 기록 */
     __rtwRouteErrorEvents?: Array<{ at: number; message: string }>;
-    /** DEV — livePublicationRides 행 존재 여부 */
     __rtwLiveRideExists?: (trailId: string, uid: string) => Promise<boolean>;
-    /** DEV — 최근 route 발행 uid */
     __rtwLastRouteUid?: string;
   }
 }
@@ -51,10 +47,84 @@ declare global {
 let writing = false;
 let slot: RouteFlightJob | null = null;
 let slotDiscardCount = 0;
+let epochDiscardCount = 0;
 let routeErrorCount = 0;
+let currentEpoch = 0;
+const cancelledEpochs = new Set<number>();
+const settleWaiters = new Set<() => void>();
+
+export { ROUTE_FLIGHT_DRAIN_TIMEOUT_MS };
 
 export function peekRouteSlotDiscardCount(): number {
   return slotDiscardCount;
+}
+
+export function peekRouteEpochDiscardCount(): number {
+  return epochDiscardCount;
+}
+
+export function peekRoutePublishEpoch(): number {
+  return currentEpoch;
+}
+
+/** 새 발행 세션 epoch. user/trail/publication 전환 시 호출. */
+export function nextRoutePublishEpoch(): number {
+  currentEpoch += 1;
+  return currentEpoch;
+}
+
+export function cancelRoutePublish(epoch: number): { hadInFlight: boolean; droppedSlot: boolean } {
+  cancelledEpochs.add(epoch);
+  let droppedSlot = false;
+  if (slot && slot.epoch === epoch) {
+    slot = null;
+    droppedSlot = true;
+    slotDiscardCount += 1;
+  }
+  syncRouteFlightDebug();
+  return { hadInFlight: writing, droppedSlot };
+}
+
+export function awaitRouteFlightSettled(timeoutMs = ROUTE_FLIGHT_DRAIN_TIMEOUT_MS): Promise<boolean> {
+  if (!writing) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = (ok: boolean) => {
+      if (done) return;
+      done = true;
+      settleWaiters.delete(onSettle);
+      clearTimeout(timer);
+      resolve(ok);
+    };
+    const onSettle = () => finish(true);
+    const timer = setTimeout(() => finish(false), timeoutMs);
+    settleWaiters.add(onSettle);
+  });
+}
+
+function notifySettled(): void {
+  for (const w of [...settleWaiters]) w();
+  settleWaiters.clear();
+}
+
+function isEpochLive(epoch: number): boolean {
+  return epoch === currentEpoch && !cancelledEpochs.has(epoch);
+}
+
+function discardEpochJob(reason: string, job: RouteFlightJob): void {
+  epochDiscardCount += 1;
+  if (import.meta.env.DEV) {
+    peerSyncChainLog(9, null, {
+      ok: 0,
+      epochDiscard: 1,
+      epochDiscardTotal: epochDiscardCount,
+      epoch: job.epoch,
+      reason,
+      uid: job.user.uid.slice(0, 6),
+      trailId: job.trailId,
+    });
+  }
+  syncRouteFlightDebug();
 }
 
 function syncRouteFlightDebug(): void {
@@ -64,11 +134,12 @@ function syncRouteFlightDebug(): void {
     hasSlot: slot != null,
     inFlight: peekRouteInFlight(),
     slotDiscardTotal: slotDiscardCount,
+    epochDiscardTotal: epochDiscardCount,
+    currentEpoch,
     routeErrorCount,
   };
 }
 
-/** DEV — e2e 가 인증된 클라이언트로 행 존재 여부를 확인 */
 async function installDevLiveRideProbe(): Promise<void> {
   if (!import.meta.env.DEV || typeof window === "undefined") return;
   if (window.__rtwLiveRideExists) return;
@@ -108,9 +179,13 @@ function consumeDevFaultOnce(): boolean {
   return true;
 }
 
-export function enqueueRoutePublish(job: RouteFlightJob): { accepted: "write" | "slot"; overwrite: boolean } {
+export function enqueueRoutePublish(job: RouteFlightJob): { accepted: "write" | "slot" | "reject"; overwrite: boolean } {
   if (import.meta.env.DEV && typeof window !== "undefined") {
     window.__rtwLastRouteUid = job.user.uid;
+  }
+  if (!isEpochLive(job.epoch)) {
+    discardEpochJob("enqueue-stale", job);
+    return { accepted: "reject", overwrite: false };
   }
   if (writing) {
     const overwrite = slot != null;
@@ -133,9 +208,17 @@ async function runRouteJob(job: RouteFlightJob): Promise<void> {
   beginRouteInFlight();
   syncRouteFlightDebug();
   try {
+    if (!isEpochLive(job.epoch)) {
+      discardEpochJob("before-write", job);
+      return;
+    }
     const delayMs = readDevDelayMs();
     if (delayMs > 0) {
       await new Promise((r) => setTimeout(r, delayMs));
+    }
+    if (!isEpochLive(job.epoch)) {
+      discardEpochJob("after-delay", job);
+      return;
     }
     if (consumeDevFaultOnce()) {
       throw new Error("rtw-route-write-fault-once");
@@ -157,6 +240,7 @@ async function runRouteJob(job: RouteFlightJob): Promise<void> {
         ok: 1,
         inFlight: peekRouteInFlight(),
         inFlightMax: peekRouteInFlightMax(),
+        epoch: job.epoch,
         uid: user.uid.slice(0, 6),
         trailId: snapshot.trailId,
         distM: snapshot.distMetersAlongRoute,
@@ -199,6 +283,7 @@ async function runRouteJob(job: RouteFlightJob): Promise<void> {
         ok: 0,
         inFlight: peekRouteInFlight(),
         inFlightMax: peekRouteInFlightMax(),
+        epoch: job.epoch,
         uid: user.uid.slice(0, 6),
         trailId: snapshot.trailId,
         distM: snapshot.distMetersAlongRoute,
@@ -217,12 +302,16 @@ async function runRouteJob(job: RouteFlightJob): Promise<void> {
     endRouteInFlight();
     const next = slot;
     slot = null;
-    if (next) {
+    if (next && isEpochLive(next.epoch)) {
       syncRouteFlightDebug();
       void runRouteJob(next);
     } else {
+      if (next && !isEpochLive(next.epoch)) {
+        discardEpochJob("slot-stale", next);
+      }
       writing = false;
       syncRouteFlightDebug();
+      notifySettled();
     }
   }
 }

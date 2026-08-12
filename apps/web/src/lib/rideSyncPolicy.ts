@@ -27,6 +27,9 @@ export const TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS = 30_000;
 /** Trail `livePublicationRides` — 1Hz 절대 dist+speed 하트비트 (수신 측 보간용) */
 export const TRAIL_LIVE_PROGRESS_HEARTBEAT_MS = 1_000;
 
+/** S4-1R — route flight 정착 대기 상한. S4-1 실측 FS RTT max 785ms 의 2배 이상. */
+export const ROUTE_FLIGHT_DRAIN_TIMEOUT_MS = 2_000;
+
 /** RTDB `/trails/{trailId}/motion/{uid}` — 10Hz motion publish (지연↓: 보간 delay 를 낮추려면 틱레이트↑) */
 export const PEER_MOTION_PUBLISH_INTERVAL_MS = 100;
 

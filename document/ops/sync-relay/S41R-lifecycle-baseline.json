@@ -1,0 +1,92 @@
+{
+  "instruction": "S4-1R",
+  "mode": "baseline-pre-fix",
+  "headHint": "507bd68+dev-inject",
+  "elapsedMin": 1.4,
+  "results": [
+    {
+      "id": "T1",
+      "pass": false,
+      "detail": {
+        "trailId": "Ncx9XnejCZ4FNADMrQSW",
+        "uidPrefix": "Jfmfbd",
+        "existsAfterSettle": true,
+        "samples": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "expect": "doc absent after settle+3s observe"
+      }
+    },
+    {
+      "id": "T2",
+      "pass": false,
+      "detail": {
+        "trailId": "edNku41UnBZhqErjLGXI",
+        "pageVisibleGone": false,
+        "routeDisableGone": false,
+        "samplesHidden": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "samplesEnd": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      }
+    },
+    {
+      "id": "T3",
+      "pass": false,
+      "detail": {
+        "trailA": "zdYJmCr2MzlXFVUAypzz",
+        "trailB": "55nyNlQRhYFw4LTZBk3F",
+        "previousTrailResurrected": true,
+        "samplesA": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "oldEpochOk1": 0,
+        "note": "baseline: 행 부활만 판정 (epoch 필드 없을 수 있음)"
+      }
+    },
+    {
+      "id": "T4",
+      "pass": false,
+      "detail": {
+        "pt9_ok0": 1,
+        "pt9_ok1": 1,
+        "routeErrorEvents": [
+          {
+            "at": 1786541242567,
+            "message": "rtw-route-write-fault-once"
+          }
+        ],
+        "routeErrorLogs": 1,
+        "laterOk1": false,
+        "note": "ok=0 은 fault 1회; 이후 ok=1 로 큐 잠김 없음"
+      }
+    }
+  ],
+  "allPass": false,
+  "baselineExpectAtLeastOneFail": true,
+  "baselineHasFail": true
+}

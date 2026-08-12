@@ -359,6 +359,9 @@ test.describe('S4-1R route flight lifecycle', () => {
         )
         .toBeGreaterThanOrEqual(1)
 
+      // 실패 후 최신 스냅샷 재발행을 유도 (스로틀 우회 burst)
+      await setSpeedKmh(page, 31)
+
       await expect
         .poll(
           () =>

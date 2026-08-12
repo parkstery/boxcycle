@@ -22,6 +22,12 @@ import {
 } from "../lib/firestoreTrailLivePublicationRides";
 import { flushRideJoinPresenceBurst } from "../lib/rideJoinPresenceBurst";
 import { sanitizeTrailId } from "../lib/firestoreTrail";
+import {
+  awaitRouteFlightSettled,
+  cancelRoutePublish,
+  nextRoutePublishEpoch,
+} from "../lib/peerMotion/routePublishFlight";
+import { ROUTE_FLIGHT_DRAIN_TIMEOUT_MS } from "../lib/rideSyncPolicy";
 
 const PUBLISH_TICK_MS = 100;
 
@@ -117,11 +123,25 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
   const throttleRef = useRef(createLiveLocationPublishThrottleState());
   const joinBurstDoneNonceRef = useRef(0);
   const publishBurstRef = useRef<(() => void) | null>(null);
+  const routeEpochRef = useRef(0);
 
   const reportErrorRef = useRef((e: unknown) => {
     const message = e instanceof Error ? e.message : String(e);
     onErrorRef.current?.(message);
   });
+
+  /** S4-1R — cancel → settle → delete. 삭제가 정착보다 앞서지 않는다. */
+  async function drainRouteFlightThen(
+    epoch: number,
+    afterSettled: (settled: boolean) => Promise<void>,
+  ): Promise<void> {
+    cancelRoutePublish(epoch);
+    const settled = await awaitRouteFlightSettled(ROUTE_FLIGHT_DRAIN_TIMEOUT_MS);
+    await afterSettled(settled);
+    if (!settled) {
+      await afterSettled(true);
+    }
+  }
 
   /** idle→running — 스로틀·ensure 대기 없이 세션+progress 즉시 1회 기록 */
   useEffect(() => {
@@ -204,10 +224,21 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
     if (!globalEnabled && !routeEnabled) return;
 
     if (!pageVisible) {
-      void cleanupLiveLocationPublish(u.uid, trailId).catch(() => {});
+      const epoch = routeEpochRef.current;
+      void drainRouteFlightThen(
+        epoch,
+        async () => {
+          await cleanupLiveLocationPublish(u.uid, trailId).catch(() => {});
+        },
+        async () => {
+          await deleteTrailLivePublicationRide(u.uid, sanitizeTrailId(trailId)).catch(() => {});
+        },
+      );
       return;
     }
 
+    const epoch = nextRoutePublishEpoch();
+    routeEpochRef.current = epoch;
     const throttle = throttleRef.current;
     let routeDocActive = false;
 
@@ -252,14 +283,13 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
           publishMotion,
           motionThrottle: throttle,
           routeThrottle: throttle,
+          routeEpoch: epoch,
           onRouteError: reportError,
         });
         if (publishGlobal) markGlobalPresencePublished(throttle, now, snapshot.lngLat);
-        // route mark 는 single-flight 가 실제 write 를 시작할 때만 (S4-1)
         if (publishRoute) {
           routeDocActive = true;
         }
-        // motion mark 는 single-flight 가 실제 set() 을 시작할 때만 (S3A)
         if (import.meta.env.DEV && (result.global || result.route || result.motion)) {
           console.debug("[LiveLocationPublish]", {
             global: result.global,
@@ -271,6 +301,7 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
             speedMps: snapshot.speedMps,
             publicationId: snapshot.publicationId || null,
             trailId: snapshot.trailId,
+            epoch,
           });
         }
       } catch (e) {
@@ -292,21 +323,30 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
       const tid = sanitizeTrailId(trailId);
       const snap = buildLiveLocationSnapshot(inputRef.current);
       const hadRoute = routeDocActive || flagsRef.current.routeEnabled;
-      if (hadRoute && snap?.routeReady && snap.publicationId) {
-        void finalizeAndDeleteTrailLivePublicationRide(u, tid, {
-          publicationId: snap.publicationId,
-          progressRatio: snap.progressRatio,
-          distMeters: snap.distMetersAlongRoute,
-        });
-        void cleanupLiveLocationPublish(u.uid, trailId, { skipRouteDelete: true }).catch(() => {});
-      } else {
-        if (hadRoute) {
-          void deleteTrailLivePublicationRide(u.uid, tid).catch(() => {});
-        }
-        void cleanupLiveLocationPublish(u.uid, trailId).catch(() => {});
-      }
+      const sessionEpoch = epoch;
+      void drainRouteFlightThen(
+        sessionEpoch,
+        async () => {
+          if (hadRoute && snap?.routeReady && snap.publicationId) {
+            await finalizeAndDeleteTrailLivePublicationRide(u, tid, {
+              publicationId: snap.publicationId,
+              progressRatio: snap.progressRatio,
+              distMeters: snap.distMetersAlongRoute,
+            });
+            await cleanupLiveLocationPublish(u.uid, trailId, { skipRouteDelete: true }).catch(() => {});
+          } else {
+            if (hadRoute) {
+              await deleteTrailLivePublicationRide(u.uid, tid).catch(() => {});
+            }
+            await cleanupLiveLocationPublish(u.uid, trailId).catch(() => {});
+          }
+        },
+        async () => {
+          await deleteTrailLivePublicationRide(u.uid, tid).catch(() => {});
+        },
+      );
     };
-  }, [globalEnabled, pageVisible, routeEnabled, trailId, user?.uid]);
+  }, [globalEnabled, pageVisible, routeEnabled, trailId, publicationId, user?.uid]);
 
   /** 슬라이더·숫자 입력 속도 변경 — 스로틀 우회 즉시 fan-out */
   const speedBurstInitRef = useRef(false);

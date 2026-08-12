@@ -28,12 +28,12 @@ export async function publishLiveLocationFanout(
     publishMotion?: boolean;
     motionThrottle?: LiveLocationPublishThrottleState;
     routeThrottle?: LiveLocationPublishThrottleState;
+    routeEpoch?: number;
     onRouteError?: (e: unknown) => void;
   },
 ): Promise<LiveLocationFanoutResult> {
   const result: LiveLocationFanoutResult = { global: false, route: false, motion: false };
 
-  // S3A: motion 은 Firestore await 앞에 독립 kick. fan-out 은 motion write 를 기다리지 않는다.
   if (
     opts.publishMotion &&
     isFirebaseDatabaseConfigured() &&
@@ -58,26 +58,29 @@ export async function publishLiveLocationFanout(
     result.global = true;
   }
 
-  // S4-1: route 도 motion 과 같이 single-flight + latest-wins. fan-out 은 route write 를 기다리지 않는다.
   if (opts.publishRoute && snapshot.routeReady && snapshot.publicationId) {
-    enqueueRoutePublish({
-      user,
-      trailId: snapshot.trailId,
-      snapshot,
-      onWriteStart: () => {
-        if (opts.routeThrottle) {
-          markRouteProgressPublished(
-            opts.routeThrottle,
-            Date.now(),
-            snapshot.progressRatio,
-            snapshot.distMetersAlongRoute,
-            snapshot.speedMps,
-          );
-        }
-      },
-      onError: opts.onRouteError,
-    });
-    result.route = true;
+    const epoch = opts.routeEpoch;
+    if (typeof epoch === "number" && Number.isFinite(epoch)) {
+      enqueueRoutePublish({
+        user,
+        trailId: snapshot.trailId,
+        snapshot,
+        epoch,
+        onWriteStart: () => {
+          if (opts.routeThrottle) {
+            markRouteProgressPublished(
+              opts.routeThrottle,
+              Date.now(),
+              snapshot.progressRatio,
+              snapshot.distMetersAlongRoute,
+              snapshot.speedMps,
+            );
+          }
+        },
+        onError: opts.onRouteError,
+      });
+      result.route = true;
+    }
   }
 
   return result;
