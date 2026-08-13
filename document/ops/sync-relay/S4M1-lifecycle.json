@@ -1,0 +1,155 @@
+{
+  "instruction": "S4-M1R",
+  "mode": "after-fix",
+  "elapsedMin": 2.4,
+  "results": [
+    {
+      "id": "M1",
+      "pass": true,
+      "detail": {
+        "trailId": "0lShiSZEkpDDA4lzvP2A",
+        "uidPrefix": "oVQA7h",
+        "existsAfterSettle": false,
+        "samples": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "deferredRunTotal": 1,
+        "routeDeferredRunTotal": 1,
+        "expect": "node absent + deferredRunTotal≥1"
+      }
+    },
+    {
+      "id": "M2",
+      "pass": true,
+      "detail": {
+        "trailId": "WzcfFuw12p4Q7m3P6rlb",
+        "pageVisibleGone": true,
+        "routeDisableGone": true,
+        "samplesHidden": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "samplesEnd": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "id": "M3",
+      "pass": true,
+      "detail": {
+        "trailA": "w3PTb1uAldGFIerIsQDS",
+        "trailB": "5NF4JbVXzlpVx2uauaA8",
+        "previousTrailResurrected": false,
+        "samplesA": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "newEpoch": {
+          "epoch": 2,
+          "sessionKey": "rUvFtBrpqrIaUMGzdqtXvwQmvvub|5NF4JbVXzlpVx2uauaA8",
+          "at": 1786658778160
+        },
+        "oldEpochOk1AfterNew": 0,
+        "note": "after: 노드 부재 + 새 epoch 이후 옛 epoch ok=1 = 0"
+      }
+    },
+    {
+      "id": "M5",
+      "pass": true,
+      "detail": {
+        "pt3_ok0": 1,
+        "pt3_ok1": 14,
+        "motionErrorEvents": [
+          {
+            "at": 1786658790470,
+            "message": "rtw-motion-write-fault-once"
+          }
+        ],
+        "motionErrorLogs": 1,
+        "laterOk1": true,
+        "note": "ok=0 1회 + onMotionError 도달 + 이후 ok=1"
+      }
+    },
+    {
+      "id": "M4",
+      "pass": true,
+      "detail": {
+        "trailId": "hF76GoDHBf2sXAlm4P5s",
+        "trailAfter": "hF76GoDHBf2sXAlm4P5s",
+        "sameTrail": true,
+        "uidPrefix": "KBoMKs",
+        "dip": false,
+        "watchN": 1,
+        "pollN": 18,
+        "watchExists": [
+          true
+        ],
+        "pollExists": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "deferredSkipTotal": 2,
+        "expect": "딥 0회 + deferredSkipTotal≥1"
+      }
+    },
+    {
+      "id": "M6",
+      "pass": true,
+      "detail": {
+        "trailId": "Cvcwp5VvfoNGSwaXR1ml",
+        "motionW2": {
+          "lateWriteDoneAt": 1786658824472,
+          "deleteDoneAt": 1786658824509
+        },
+        "routeW2": null,
+        "motionOk": true,
+        "routeOk": false,
+        "expect": "lateWriteDoneAt < deleteDoneAt 표본 ≥1 (motion)"
+      }
+    }
+  ],
+  "allPass": true,
+  "baselineExpectM1M3Fail": false,
+  "baselineM1Fail": null,
+  "baselineM3Fail": null,
+  "baselineM4Dip": null,
+  "baselineM5ok0": null
+}

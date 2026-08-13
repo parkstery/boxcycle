@@ -1,0 +1,141 @@
+{
+  "instruction": "S4-M1R",
+  "mode": "baseline-pre-fix-r",
+  "elapsedMin": 3,
+  "results": [
+    {
+      "id": "M1",
+      "pass": false,
+      "detail": {
+        "trailId": "94CILz5vP9NxqnVzuv7q",
+        "uidPrefix": "zdYZd9",
+        "existsAfterSettle": true,
+        "samples": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "expect": "node absent (반례=잔존)"
+      }
+    },
+    {
+      "id": "M2",
+      "pass": false,
+      "detail": {
+        "trailId": "qdHkzM5nKKMos8aY7eYA",
+        "pageVisibleGone": false,
+        "routeDisableGone": false,
+        "samplesHidden": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "samplesEnd": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      }
+    },
+    {
+      "id": "M3",
+      "pass": false,
+      "detail": {
+        "trailA": "QOsLrUJKcGFZ70icUoQ7",
+        "trailB": "aqYGnNNd0yt43JfL5THi",
+        "previousTrailResurrected": true,
+        "samplesA": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "newEpoch": null,
+        "oldEpochOk1AfterNew": null,
+        "note": "baseline: 이전 Trail 노드 부활이면 FAIL"
+      }
+    },
+    {
+      "id": "M5",
+      "pass": false,
+      "detail": {
+        "pt3_ok0": 1,
+        "pt3_ok1": 13,
+        "motionErrorEvents": [],
+        "motionErrorLogs": 0,
+        "laterOk1": true,
+        "note": "ok=0 1회 + onMotionError 도달 + 이후 ok=1"
+      }
+    },
+    {
+      "id": "M4",
+      "pass": true,
+      "detail": {
+        "trailId": "hUZz5oU2EtzIWWgnTc5R",
+        "trailAfter": "hUZz5oU2EtzIWWgnTc5R",
+        "sameTrail": true,
+        "uidPrefix": "MNwjAV",
+        "dip": false,
+        "watchN": 2,
+        "pollN": 18,
+        "watchExists": [
+          true,
+          false
+        ],
+        "pollExists": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "expect": "딥 관측 = 반례 성립 (pass=false)"
+      }
+    },
+    {
+      "id": "M6",
+      "pass": false,
+      "detail": {
+        "trailId": "J0Tdmqu8LRfizEJAFCRF",
+        "motionW2": null,
+        "routeW2": null,
+        "motionOk": false,
+        "routeOk": false,
+        "expect": "lateWriteDoneAt < deleteDoneAt 표본 ≥1 (motion)"
+      }
+    }
+  ],
+  "allPass": false,
+  "baselineExpectM1M3Fail": true,
+  "baselineM1Fail": true,
+  "baselineM3Fail": true,
+  "baselineM4Dip": false,
+  "baselineM5ok0": 1
+}
