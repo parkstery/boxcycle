@@ -37,7 +37,11 @@ declare global {
       epochDiscardTotal: number;
       currentEpoch: number;
       routeErrorCount: number;
+      deferredPending: number;
+      deferredRunTotal: number;
+      deferredSkipTotal: number;
     };
+    __rtwRouteEpochStarts?: Array<{ epoch: number; sessionKey: string; at: number }>;
     __rtwRouteErrorEvents?: Array<{ at: number; message: string }>;
     __rtwLiveRideExists?: (trailId: string, uid: string) => Promise<boolean>;
     __rtwLastRouteUid?: string;
@@ -52,6 +56,15 @@ let routeErrorCount = 0;
 let currentEpoch = 0;
 const cancelledEpochs = new Set<number>();
 const settleWaiters = new Set<() => void>();
+
+/** S4-1R2 — epoch → 세션 키(uid|trailId). 같은 키의 새 세션이 살아 있으면 옛 정리를 하지 않는다. */
+const sessionKeyByEpoch = new Map<number, string>();
+
+/** S4-1R2 — 2 s 배수 시간 초과 뒤에도 「늦은 쓰기가 실제로 끝난 시점」에 실행할 정리 */
+type DeferredRouteCleanup = { epoch: number; sessionKey: string; run: () => Promise<void> };
+const deferredCleanups: DeferredRouteCleanup[] = [];
+let deferredCleanupRunCount = 0;
+let deferredCleanupSkipCount = 0;
 
 export { ROUTE_FLIGHT_DRAIN_TIMEOUT_MS };
 
@@ -68,9 +81,73 @@ export function peekRoutePublishEpoch(): number {
 }
 
 /** 새 발행 세션 epoch. user/trail/publication 전환 시 호출. */
-export function nextRoutePublishEpoch(): number {
+export function nextRoutePublishEpoch(sessionKey = ""): number {
   currentEpoch += 1;
+  sessionKeyByEpoch.set(currentEpoch, sessionKey);
+  if (import.meta.env.DEV && typeof window !== "undefined") {
+    const prev = window.__rtwRouteEpochStarts ?? [];
+    prev.push({ epoch: currentEpoch, sessionKey, at: Date.now() });
+    window.__rtwRouteEpochStarts = prev;
+  }
+  syncRouteFlightDebug();
   return currentEpoch;
+}
+
+/** 같은 세션 키(uid|trailId)의 세션이 지금 살아 있는가 — 살아 있으면 옛 정리는 건너뛴다. */
+export function isRouteSessionLive(sessionKey: string): boolean {
+  if (!sessionKey) return false;
+  if (cancelledEpochs.has(currentEpoch)) return false;
+  return sessionKeyByEpoch.get(currentEpoch) === sessionKey;
+}
+
+export function peekRouteDeferredCleanupCounts(): { run: number; skipped: number; pending: number } {
+  return { run: deferredCleanupRunCount, skipped: deferredCleanupSkipCount, pending: deferredCleanups.length };
+}
+
+/**
+ * S4-1R2 — 배수 시간 초과 뒤의 안전 삭제.
+ * 시간에 매달지 않고 **늦은 쓰기가 실제로 끝난 시점**에 실행하며,
+ * 같은 세션 키의 새 세션이 살아 있으면 실행하지 않는다.
+ */
+export function requestRouteRowCleanup(req: DeferredRouteCleanup): void {
+  if (!writing) {
+    void runDeferredCleanup(req);
+    return;
+  }
+  deferredCleanups.push(req);
+  syncRouteFlightDebug();
+}
+
+async function runDeferredCleanup(req: DeferredRouteCleanup): Promise<void> {
+  if (isRouteSessionLive(req.sessionKey)) {
+    deferredCleanupSkipCount += 1;
+    emitCleanupLog("skip-live-session", req);
+    syncRouteFlightDebug();
+    return;
+  }
+  await req.run().catch(() => {});
+  deferredCleanupRunCount += 1;
+  emitCleanupLog("run", req);
+  syncRouteFlightDebug();
+}
+
+function emitCleanupLog(reason: string, req: DeferredRouteCleanup): void {
+  if (!import.meta.env.DEV) return;
+  peerSyncChainLog(9, null, {
+    ok: 1,
+    deferredCleanup: 1,
+    reason,
+    epoch: req.epoch,
+    sessionKey: req.sessionKey,
+    deferredRunTotal: deferredCleanupRunCount,
+    deferredSkipTotal: deferredCleanupSkipCount,
+  });
+}
+
+function drainDeferredCleanups(): void {
+  if (deferredCleanups.length === 0) return;
+  const pending = deferredCleanups.splice(0, deferredCleanups.length);
+  for (const req of pending) void runDeferredCleanup(req);
 }
 
 export function cancelRoutePublish(epoch: number): { hadInFlight: boolean; droppedSlot: boolean } {
@@ -137,6 +214,9 @@ function syncRouteFlightDebug(): void {
     epochDiscardTotal: epochDiscardCount,
     currentEpoch,
     routeErrorCount,
+    deferredPending: deferredCleanups.length,
+    deferredRunTotal: deferredCleanupRunCount,
+    deferredSkipTotal: deferredCleanupSkipCount,
   };
 }
 
@@ -312,6 +392,8 @@ async function runRouteJob(job: RouteFlightJob): Promise<void> {
       writing = false;
       syncRouteFlightDebug();
       notifySettled();
+      // S4-1R2 — 늦은 쓰기가 「실제로」 끝난 지금이 안전 삭제 시점이다
+      drainDeferredCleanups();
     }
   }
 }

@@ -25,7 +25,9 @@ import { sanitizeTrailId } from "../lib/firestoreTrail";
 import {
   awaitRouteFlightSettled,
   cancelRoutePublish,
+  isRouteSessionLive,
   nextRoutePublishEpoch,
+  requestRouteRowCleanup,
 } from "../lib/peerMotion/routePublishFlight";
 import { ROUTE_FLIGHT_DRAIN_TIMEOUT_MS } from "../lib/rideSyncPolicy";
 
@@ -130,17 +132,23 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
     onErrorRef.current?.(message);
   });
 
-  /** S4-1R — cancel → settle → delete. 삭제가 정착보다 앞서지 않는다. */
+  /**
+   * S4-1R / S4-1R2 — cancel → settle → (세션 소유권 확인) → delete.
+   * 삭제가 정착보다 앞서지 않고, 시간 초과 시 안전 삭제는 **늦은 쓰기가 실제로 끝난 뒤**에 돈다.
+   * 같은 세션 키의 새 세션이 이미 시작됐으면 옛 정리는 아무것도 하지 않는다.
+   */
   async function drainRouteFlightThen(
     epoch: number,
+    sessionKey: string,
     afterSettled: () => Promise<void>,
     safetyDelete?: () => Promise<void>,
   ): Promise<void> {
     cancelRoutePublish(epoch);
     const settled = await awaitRouteFlightSettled(ROUTE_FLIGHT_DRAIN_TIMEOUT_MS);
+    if (isRouteSessionLive(sessionKey)) return; // 새 세션이 이 행의 주인이다
     await afterSettled();
     if (!settled && safetyDelete) {
-      await safetyDelete();
+      requestRouteRowCleanup({ epoch, sessionKey, run: safetyDelete });
     }
   }
 
@@ -228,6 +236,7 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
       const epoch = routeEpochRef.current;
       void drainRouteFlightThen(
         epoch,
+        `${u.uid}|${sanitizeTrailId(trailId)}`,
         async () => {
           await cleanupLiveLocationPublish(u.uid, trailId).catch(() => {});
         },
@@ -238,7 +247,8 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
       return;
     }
 
-    const epoch = nextRoutePublishEpoch();
+    const sessionKey = `${u.uid}|${sanitizeTrailId(trailId)}`;
+    const epoch = nextRoutePublishEpoch(sessionKey);
     routeEpochRef.current = epoch;
     const throttle = throttleRef.current;
     let routeDocActive = false;
@@ -327,6 +337,7 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
       const sessionEpoch = epoch;
       void drainRouteFlightThen(
         sessionEpoch,
+        sessionKey,
         async () => {
           if (hadRoute && snap?.routeReady && snap.publicationId) {
             await finalizeAndDeleteTrailLivePublicationRide(u, tid, {
