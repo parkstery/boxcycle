@@ -81,7 +81,9 @@ depart 구간 발행 spd  1.39 m/s 고정(=5km/h 초기 슬라이더) ← D-1 (A
 | **S3B-2R** | depart `D_eff` 360 의 귀속 규명 — **측정 전용** (적합 해상도 · 반복 3 런 · 기전 재료) | **보고완료 — 귀속 A(런 변동) · 감리 검산 통과** (`REPORT.md`, §3-9) |
 | **S3B-3** | D-2 — registry 적분 유지 + spectator 실제속도 **+ 시간 기준 정리** | **PASS 채택** (`REPORT-S3B3.md`, §3-10) |
 | **S4-1** ★ | **route 발행 in-flight 제거** — Firestore 쓰기 폭주(3.95~5.05 /s vs 1 Hz 기대) | **PASS 채택** (`REPORT.md` · FS 비 0.24 · cruise 0.95/s · inFlight 64→1) |
-| **S4-1R** ★ | route flight 수명주기 — 종료·전환·실패 안전성 (epoch · drain · 정리 순서) | **PASS 채택** (`REPORT.md` · T1~T4 · FS 0.95/s) |
+| **S4-1R** | route flight 수명주기 — 종료·전환·실패 안전성 (epoch · drain · 정리 순서) | **⚠ 채택 보류 — 증거 불충분** (§3-13) |
+| **S4-1R2** | 2 s 초과 지연·같은 Trail 재시작 경쟁 종결 (지연 정리 · 세션 소유권) | **WARNING 채택** — T1~T5 PASS · 증거 정밀도 부채 2 건 (§3-14 · §3-15) |
+| **S4-1R2-C** ★ | 귀속 분류 · 검증 · **커밋 고정** (재현 가능한 Git 기준점) | **배포** |
 | S4-2 | 읽기 증폭 (컬렉션 전체 구독 N² · RTDB 부모 `onValue` · 전역 collectionGroup) | **중단 — S4-1R 채택 뒤 재개** |
 | S4-3 | `touchTrailInstanceActivity` · heartbeat 상수 재검토 | 대기 (S4-2 뒤) |
 
@@ -575,6 +577,112 @@ cleanup(`useLiveLocationPublishSession.ts:206-208` · `:289-308`)은 flight 와 
 
 > ⚠ **범위 한정** — 종결된 것은 **route 쓰기 폭주**다.
 > **「비용 종결」·「멀티라이더 위치 동기화 결함 종결」이라고 쓰지 마라.** S4-2·S4-3·F-1·F-2 가 남았다.
+
+### 3-13. ⚠ S4-1R 채택 보류 — 증거가 결함을 밟지 못했다 (Chief 판단 2026-08-13)
+
+**성능·구현 방향은 유지한다. 보류 사유는 「시험이 timeout 경로를 한 번도 지나지 않았다」이다.**
+
+```
+① 강제 지연이 1,200 ms 였다 — 배수 예산 2,000 ms 보다 작다
+   → awaitRouteFlightSettled 는 항상 true 로 끝났고 안전 삭제 경로는 실행된 적이 없다
+   ⚠ 정상 3 런 실측 FS route RTT max 는 640 / 6,184 / 4,173 ms 로 2 s 를 넘는다.
+     실제로 밟히는 경로를 시험이 비껴갔다
+
+② 안전 삭제가 「늦은 쓰기가 실제로 끝난 시점」과 연결돼 있지 않았다
+   시간 초과 직후 삭제 → 그 뒤 늦은 쓰기 착지 → 행 부활
+
+③ T3 의 oldEpochOk1=1 은 새 세션 시작 전후를 구분하지 않는다
+   전환 전에 끝난 쓰기까지 세므로 「이전 epoch 성공 쓰기 0」을 증명하지 못한다
+
+④ 기존 T1~T4·정상 3 런 증거는 전부 HEAD cc64279 **이전**에 생성됐다
+```
+
+**S4-1R2 가 닫는 것** — 지연 정리(`requestRouteRowCleanup`)를 flight 가 실제로 idle 이 되는
+시점에 실행하고, **세션 소유권**(`uid|trailId`)으로 보호한다. 같은 Trail 의 새 세션이 살아 있으면
+옛 정리는 **아무것도 하지 않는다**. `ROUTE_FLIGHT_DRAIN_TIMEOUT_MS = 2000` 은 그대로다 —
+**시간을 늘려 회피하지 않고 완료 시점에 연결**하는 것이 이번 수정의 요지다.
+
+### 3-14. S4-1R2 — **route 큐 수명주기 종결 (보고완료 · 미커밋)** 2026-08-13
+
+§3-13 보류 사유 4 건이 전부 해소됐다. **`ROUTE_FLIGHT_DRAIN_TIMEOUT_MS = 2000` 은 그대로다** —
+시간을 늘려 피한 것이 아니라 **완료 시점에 연결**했다.
+
+```
+지연 정리   requestRouteRowCleanup — flight 가 idle 로 전이하는 시점(= 늦은 쓰기가 실제로 끝난 때)에 실행
+세션 소유권 sessionKey = uid|trailId. 같은 키의 세션이 살아 있으면 옛 cleanup 은 전부 건너뛴다
+            (안전 삭제뿐 아니라 finalize·cleanupLiveLocationPublish 까지)
+```
+
+| 시험 | 결과 |
+|---|---|
+| T1 종료 중 지연 쓰기 (3,500 ms) | PASS — 행 부재 |
+| T2 숨김·종료 두 경로 | PASS — 둘 다 행 부재 |
+| T3 Trail 전환 | PASS — 부활 0 · **새 epoch 이후 옛 epoch ok=1 = 0** |
+| T4 첫 쓰기 강제 실패 | PASS — ok=0 1 건 · 오류 전달 · 이후 최신 쓰기 ok=1 |
+| **T5 같은 Trail 빠른 재시작** (신설) | PASS — **새 세션 행 유지** · `deferredSkipTotal` 2 |
+
+**정상 3 런** — FS route 0.96 /s(비 0.226) · route in-flight 1 · FS RTT p50 154 ms ·
+z15 중앙값 depart/cruise 240/240 · **3 런 최댓값 max 2.317**(예산 2.5 안) · 경로 B p50 2.55 m.
+**S3B-3 → S4-1 로 이어지던 단일 런 max 초과 추세는 재현되지 않았다.**
+
+**주의 3 건**
+
+```
+① 커밋하지 않았다 — Codex 독립 검토 대기. 산출물은 S41R2-* 와 REPORT.md 에 있다
+② S41R-lifecycle.json 은 같은 spec 이 쓰므로 S4-1R2 결과로 갱신됐다.
+   수정 전 반례는 S41R-lifecycle-baseline.json 에 보존
+③ 미커밋 S41-* 산출물은 읽기만 했다 — 다른 작업선 파일이라 수정·덮어쓰기 없음
+```
+
+**남은 것 (범위 밖)** — `motionPublishFlight.ts` 에 **같은 수명주기 공백**이 남아 있다.
+epoch·세션 소유권·지연 정리가 route 에만 있다. **별도 지시 대상이며 S4-2 착수 전 순서를 정해야 한다.**
+
+> ⚠ 종결된 것은 **route 큐 수명주기**다. 「비용 종결」·「위치 동기화 결함 종결」이 아니다.
+
+### 3-15. ⚠ S4-1R2 **WARNING 채택** — 후속 부채 2 건 (Chief 판단 2026-08-13)
+
+**채택한다. 재개발하지 않는다.** 아래는 다음 단계로 넘기는 부채이며 S4-1R2 를 되돌릴 사유가 아니다.
+
+```
+[W-1] deferred 실행 횟수의 증거가 한쪽만 있다
+      T5 는 skip 경로를 카운터로 직접 증명했다 (deferredSkipTotal=2, run=0).
+      그러나 deferred 가 **실제로 실행되어 행을 지우는** 경로(run>0)는 카운터로 확인하지 않았고
+      T1·T2 의 「행 부재」로 간접 확인했을 뿐이다.
+      또 T5 의 skip 이 2 회인 이유(정리 경로 2 개가 각각 등록)를 산출물이 설명하지 않는다
+
+[W-2] 「순간 삭제」와 「완료 후 삭제」를 관측이 구분하지 못한다
+      T1·T2 는 최종 상태(행 부재)만 본다. 시간 초과 직후 삭제해도, 늦은 쓰기 완료 후 삭제해도
+      최종 관측은 같다. 삭제 시각과 늦은 쓰기 완료 시각의 **선후**를 기록하지 않았다
+      ⚠ 계약이 틀렸다는 뜻이 아니다 — 계약은 코드로 확인됐고 T5 가 간접 반례를 준다.
+        부족한 것은 **증거의 정밀도**다
+
+[W-3] 무관 변경 혼입 위험 — 커밋 시 다른 작업선 파일이 섞이면 안 된다 (§3-16 귀속표)
+```
+
+**후속 처리** — W-1·W-2 는 다음 수명주기 작업(motion 경로 이식이 유력)에서 **같은 하네스에
+삭제 시각·deferred run/skip 카운터를 함께 기록**하는 방식으로 닫는다. **지금 다시 시험하지 않는다.**
+
+### 3-16. S4-1R2 변경 귀속 (커밋 범위 확정 · 2026-08-13)
+
+**S4-1R2 관련 — 커밋한다**
+
+| 분류 | 파일 |
+|---|---|
+| 제품 | `apps/web/src/lib/peerMotion/routePublishFlight.ts` · `apps/web/src/hooks/useLiveLocationPublishSession.ts` |
+| 시험·도구 | `apps/web/e2e/peer-sync-s41r.spec.ts` · `apps/web/e2e/peer-sync-s41.spec.ts` · `apps/web/scripts/peer-sync/s41-summarize.mjs` |
+| 증거 | `S41R-lifecycle.json` · `S41R2-after-run{1,2,3}-events.json` · `S41R2-summary.json` · `S3-fixture-gate.json`(`generatedAt` 만 갱신 — replay 재실행 산물) |
+| 문서 | `HANDOFF.md` · `INSTRUCTION.md` · `REPORT.md` · `REPORT-S41R.md` |
+
+**무관 — 다른 작업선. 스테이징·커밋·수정 금지**
+
+```
+CLAUDE.md                                   「감리용 Git 조회」 절 추가 — 역할·오케스트레이션 작업선
+document/260707-RTW-결정-로그.md             오케스트레이터 책임 일원화 결정 1 줄 — 같은 작업선
+document/ops/sync-relay/S41-after-run{1,2,3}-events.json
+document/ops/sync-relay/S41-summary.json     ← S4-1 산출물. 파일 시각 8/12 22:53~23:02 로
+                                               S4-1R2 세션(8/13 05:5x~06:2x) 이전이다.
+                                               이번 세션은 읽기만 했다. 그대로 둔다
+```
 
 ---
 
