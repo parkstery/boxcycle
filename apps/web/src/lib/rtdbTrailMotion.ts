@@ -117,7 +117,7 @@ export async function mergeTrailMotionSnapshot(
   user: User,
   trailId: string,
   input: RtdbTrailMotionSnapshot,
-  opts?: { seq?: number; snapshotCapturedAt?: number },
+  opts?: { seq?: number; snapshotCapturedAt?: number; epoch?: number },
 ): Promise<{ ok: boolean; rttMs: number; d: number; v: number; seq?: number }> {
   const seq = opts?.seq;
   const payload = encodePayload(input, seq);
@@ -133,6 +133,13 @@ export async function mergeTrailMotionSnapshot(
     await ensureMotionOnDisconnect(trailId, user.uid);
     const db = getFirebaseDatabase();
     const motionWriteStartAt = Date.now();
+    if (import.meta.env.DEV && typeof window !== "undefined") {
+      const n = Number(window.__rtwMotionWriteFaultOnce);
+      if (Number.isFinite(n) && n > 0) {
+        window.__rtwMotionWriteFaultOnce = n - 1;
+        throw new Error("rtw-motion-write-fault-once");
+      }
+    }
     await set(motionRef(db, trailId, user.uid), payload);
     const motionWriteDoneAt = Date.now();
     const writeRttMs = motionWriteDoneAt - motionWriteStartAt;
@@ -152,6 +159,7 @@ export async function mergeTrailMotionSnapshot(
         inFlightMax: peekMotionInFlightMax(),
         fsAhead: 0,
         uid: user.uid.slice(0, 6),
+        ...(typeof opts?.epoch === "number" ? { epoch: opts.epoch } : {}),
       });
     }
     return { ok: true, rttMs: writeRttMs, d: payload.d, v: payload.v, seq };
@@ -162,6 +170,7 @@ export async function mergeTrailMotionSnapshot(
         v: payload.v,
         ok: 0,
         uid: user.uid.slice(0, 6),
+        ...(typeof opts?.epoch === "number" ? { epoch: opts.epoch } : {}),
       });
     }
     throw e;
@@ -174,7 +183,12 @@ export async function deleteTrailMotion(uid: string, trailId: string): Promise<v
   if (!isFirebaseDatabaseConfigured()) return;
   onDisconnectArmed.delete(disconnectKey(trailId, uid));
   const db = getFirebaseDatabase();
-  await remove(motionRef(db, trailId, uid)).catch(() => {});
+  await remove(motionRef(db, trailId, uid)).catch((e) => {
+    if (import.meta.env.DEV) {
+      const message = e instanceof Error ? e.message : String(e);
+      console.debug("[deleteTrailMotion] failed", message);
+    }
+  });
 }
 
 export function subscribeTrailMotion(

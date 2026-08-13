@@ -22,6 +22,7 @@ import {
 } from "../lib/firestoreTrailLivePublicationRides";
 import { flushRideJoinPresenceBurst } from "../lib/rideJoinPresenceBurst";
 import { sanitizeTrailId } from "../lib/firestoreTrail";
+import { deleteTrailMotion } from "../lib/rtdbTrailMotion";
 import {
   awaitRouteFlightSettled,
   cancelRoutePublish,
@@ -29,7 +30,14 @@ import {
   nextRoutePublishEpoch,
   requestRouteRowCleanup,
 } from "../lib/peerMotion/routePublishFlight";
-import { ROUTE_FLIGHT_DRAIN_TIMEOUT_MS } from "../lib/rideSyncPolicy";
+import {
+  awaitMotionFlightSettled,
+  cancelMotionPublish,
+  isMotionSessionLive,
+  nextMotionPublishEpoch,
+  requestMotionNodeCleanup,
+} from "../lib/peerMotion/motionPublishFlight";
+import { MOTION_FLIGHT_DRAIN_TIMEOUT_MS, ROUTE_FLIGHT_DRAIN_TIMEOUT_MS } from "../lib/rideSyncPolicy";
 
 const PUBLISH_TICK_MS = 100;
 
@@ -126,6 +134,7 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
   const joinBurstDoneNonceRef = useRef(0);
   const publishBurstRef = useRef<(() => void) | null>(null);
   const routeEpochRef = useRef(0);
+  const motionEpochRef = useRef(0);
 
   const reportErrorRef = useRef((e: unknown) => {
     const message = e instanceof Error ? e.message : String(e);
@@ -150,6 +159,21 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
     if (!settled && safetyDelete) {
       requestRouteRowCleanup({ epoch, sessionKey, run: safetyDelete });
     }
+  }
+
+  async function drainMotionFlightThen(
+    epoch: number,
+    sessionKey: string,
+    afterSettled: () => Promise<void>,
+    safetyDelete?: () => Promise<void>,
+  ): Promise<void> {
+    cancelMotionPublish(epoch);
+    const settled = await awaitMotionFlightSettled(MOTION_FLIGHT_DRAIN_TIMEOUT_MS);
+    if (!settled && safetyDelete) {
+      requestMotionNodeCleanup({ epoch, sessionKey, run: safetyDelete });
+    }
+    if (isMotionSessionLive(sessionKey)) return;
+    await afterSettled();
   }
 
   /** idle→running — 스로틀·ensure 대기 없이 세션+progress 즉시 1회 기록 */
@@ -234,22 +258,39 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
 
     if (!pageVisible) {
       const epoch = routeEpochRef.current;
-      void drainRouteFlightThen(
-        epoch,
-        `${u.uid}|${sanitizeTrailId(trailId)}`,
-        async () => {
-          await cleanupLiveLocationPublish(u.uid, trailId).catch(() => {});
-        },
-        async () => {
-          await deleteTrailLivePublicationRide(u.uid, sanitizeTrailId(trailId)).catch(() => {});
-        },
-      );
+      const motionEpoch = motionEpochRef.current;
+      const sessionKey = `${u.uid}|${sanitizeTrailId(trailId)}`;
+      const tid = sanitizeTrailId(trailId);
+      void Promise.all([
+        drainRouteFlightThen(
+          epoch,
+          sessionKey,
+          async () => {
+            await cleanupLiveLocationPublish(u.uid, trailId, { skipMotionDelete: true }).catch(() => {});
+          },
+          async () => {
+            await deleteTrailLivePublicationRide(u.uid, tid).catch(() => {});
+          },
+        ),
+        drainMotionFlightThen(
+          motionEpoch,
+          sessionKey,
+          async () => {
+            await deleteTrailMotion(u.uid, tid);
+          },
+          async () => {
+            await deleteTrailMotion(u.uid, tid);
+          },
+        ),
+      ]);
       return;
     }
 
     const sessionKey = `${u.uid}|${sanitizeTrailId(trailId)}`;
     const epoch = nextRoutePublishEpoch(sessionKey);
+    const motionEpoch = nextMotionPublishEpoch(sessionKey);
     routeEpochRef.current = epoch;
+    motionEpochRef.current = motionEpoch;
     const throttle = throttleRef.current;
     let routeDocActive = false;
 
@@ -295,7 +336,9 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
           motionThrottle: throttle,
           routeThrottle: throttle,
           routeEpoch: epoch,
+          motionEpoch,
           onRouteError: reportError,
+          onMotionError: reportError,
         });
         if (publishGlobal) markGlobalPresencePublished(throttle, now, snapshot.lngLat);
         if (publishRoute) {
@@ -335,28 +378,46 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
       const snap = buildLiveLocationSnapshot(inputRef.current);
       const hadRoute = routeDocActive || flagsRef.current.routeEnabled;
       const sessionEpoch = epoch;
-      void drainRouteFlightThen(
-        sessionEpoch,
-        sessionKey,
-        async () => {
-          if (hadRoute && snap?.routeReady && snap.publicationId) {
-            await finalizeAndDeleteTrailLivePublicationRide(u, tid, {
-              publicationId: snap.publicationId,
-              progressRatio: snap.progressRatio,
-              distMeters: snap.distMetersAlongRoute,
-            });
-            await cleanupLiveLocationPublish(u.uid, trailId, { skipRouteDelete: true }).catch(() => {});
-          } else {
-            if (hadRoute) {
-              await deleteTrailLivePublicationRide(u.uid, tid).catch(() => {});
+      const sessionMotionEpoch = motionEpoch;
+      void Promise.all([
+        drainRouteFlightThen(
+          sessionEpoch,
+          sessionKey,
+          async () => {
+            if (hadRoute && snap?.routeReady && snap.publicationId) {
+              await finalizeAndDeleteTrailLivePublicationRide(u, tid, {
+                publicationId: snap.publicationId,
+                progressRatio: snap.progressRatio,
+                distMeters: snap.distMetersAlongRoute,
+              });
+              await cleanupLiveLocationPublish(u.uid, trailId, {
+                skipRouteDelete: true,
+                skipMotionDelete: true,
+              }).catch(() => {});
+            } else {
+              if (hadRoute) {
+                await deleteTrailLivePublicationRide(u.uid, tid).catch(() => {});
+              }
+              await cleanupLiveLocationPublish(u.uid, trailId, { skipMotionDelete: true }).catch(
+                () => {},
+              );
             }
-            await cleanupLiveLocationPublish(u.uid, trailId).catch(() => {});
-          }
-        },
-        async () => {
-          await deleteTrailLivePublicationRide(u.uid, tid).catch(() => {});
-        },
-      );
+          },
+          async () => {
+            await deleteTrailLivePublicationRide(u.uid, tid).catch(() => {});
+          },
+        ),
+        drainMotionFlightThen(
+          sessionMotionEpoch,
+          sessionKey,
+          async () => {
+            await deleteTrailMotion(u.uid, tid);
+          },
+          async () => {
+            await deleteTrailMotion(u.uid, tid);
+          },
+        ),
+      ]);
     };
   }, [globalEnabled, pageVisible, routeEnabled, trailId, publicationId, user?.uid]);
 

@@ -5,7 +5,7 @@ import { sanitizeTrailId } from "./firestoreTrail";
 import type { LiveLocationSnapshot } from "./liveLocationSnapshot";
 import { isFirebaseDatabaseConfigured } from "./firebase";
 import { deleteTrailMotion } from "./rtdbTrailMotion";
-import { enqueueMotionPublish } from "./peerMotion/motionPublishFlight";
+import { enqueueMotionPublish, peekMotionPublishEpoch } from "./peerMotion/motionPublishFlight";
 import { enqueueRoutePublish } from "./peerMotion/routePublishFlight";
 import type { LiveLocationPublishThrottleState } from "./liveLocationSnapshot";
 import { markPeerMotionPublished, markRouteProgressPublished } from "./liveLocationSnapshot";
@@ -29,7 +29,9 @@ export async function publishLiveLocationFanout(
     motionThrottle?: LiveLocationPublishThrottleState;
     routeThrottle?: LiveLocationPublishThrottleState;
     routeEpoch?: number;
+    motionEpoch?: number;
     onRouteError?: (e: unknown) => void;
+    onMotionError?: (e: unknown) => void;
   },
 ): Promise<LiveLocationFanoutResult> {
   const result: LiveLocationFanoutResult = { global: false, route: false, motion: false };
@@ -40,15 +42,21 @@ export async function publishLiveLocationFanout(
     snapshot.routeReady &&
     snapshot.publicationId
   ) {
+    const motionEpoch =
+      typeof opts.motionEpoch === "number" && Number.isFinite(opts.motionEpoch)
+        ? opts.motionEpoch
+        : peekMotionPublishEpoch();
     enqueueMotionPublish({
       user,
       trailId: snapshot.trailId,
       snapshot,
+      epoch: motionEpoch,
       onWriteStart: () => {
         if (opts.motionThrottle) {
           markPeerMotionPublished(opts.motionThrottle, Date.now(), snapshot.speedMps);
         }
       },
+      onError: opts.onMotionError,
     });
     result.motion = true;
   }
@@ -89,13 +97,15 @@ export async function publishLiveLocationFanout(
 export async function cleanupLiveLocationPublish(
   uid: string,
   trailId: string,
-  opts?: { skipRouteDelete?: boolean },
+  opts?: { skipRouteDelete?: boolean; skipMotionDelete?: boolean },
 ): Promise<void> {
   const tid = sanitizeTrailId(trailId);
   const tasks: Promise<void>[] = [deleteGlobalLivePresence(uid).catch(() => {})];
   if (!opts?.skipRouteDelete) {
     tasks.push(deleteTrailLivePublicationRide(uid, tid).catch(() => {}));
   }
-  tasks.push(deleteTrailMotion(uid, tid));
+  if (!opts?.skipMotionDelete) {
+    tasks.push(deleteTrailMotion(uid, tid));
+  }
   await Promise.all(tasks);
 }
