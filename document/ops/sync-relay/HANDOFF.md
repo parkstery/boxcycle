@@ -708,6 +708,57 @@ document/ops/sync-relay/S41-summary.json     ← S4-1 산출물. 파일 시각 8
 
 ---
 
+### 3-17. S4-M 착수 근거 — **motion 발행에 수명주기가 통째로 없다** (감리0814 코드 확인)
+
+route 는 S4-1R2 로 종결했지만 `motionPublishFlight.ts` 에는 **같은 결함 구조가 그대로 남아 있다.**
+아래는 추정이 아니라 코드에서 확인한 사실이다.
+
+| 계약 | route (종결) | motion (현재) |
+|---|---|---|
+| epoch · 취소 | `nextRoutePublishEpoch` · `cancelRoutePublish` | **없음** — 죽은 세션의 job 도 그대로 쓴다 |
+| 배수(drain) 후 삭제 | `drainRouteFlightThen` | **없음** — `cleanupLiveLocationPublish` 가 즉시 `deleteTrailMotion` |
+| 세션 소유권 | `isRouteSessionLive` | **없음** — 옛 정리가 새 세션 노드를 지운다 |
+| 지연 삭제 | `requestRouteRowCleanup` | **없음** |
+| 오류 전달 | `onRouteError` → `reportError` | **없음** (F-2) |
+
+```
+motionPublishFlight.ts:47-93   runMotionJob 은 try/finally 만 있고 catch 가 없다
+                               → mergeTrailMotionSnapshot reject 시 unhandled rejection
+                               → enqueueMotionPublish 는 즉시 반환하므로 tick 의 try/catch 에 안 잡힌다
+publishLiveLocationFanout.ts   cleanupLiveLocationPublish 가 deleteTrailMotion 을 곧바로 호출
+                               ← route 와 달리 flight 정착을 기다리지 않는다
+motionPublishFlight.ts:88-91   finally 의 slot 연쇄 — 정리 시점에 대기 슬롯이 비워지지 않는다
+rtdbTrailMotion.ts:176         deleteTrailMotion 이 자기 실패를 .catch(()=>{}) 로 삼킨다
+```
+
+**계측은 눈이 멀지 않았다** — `rtdbTrailMotion.ts:157-166` catch 가 pt3 `ok=0` 을 방출한 뒤 rethrow 한다.
+F-2 의 결함은 로그 부재가 아니라 **앱이 실패에 반응하지 못하는 것**이다. 중복 로깅을 새로 넣을 일이 아니다.
+
+⚠ **범위 정직성** — motion 에는 `onDisconnect().remove()` 가 걸려 있어(`ensureMotionOnDisconnect`)
+탭이 닫히면 서버가 지운다. 따라서 부활 노출은 **탭이 살아 있는 동안**으로 한정된다 —
+종료·숨김·Trail 전환·같은 Trail 재시작이 정확히 그 구간이다. route 만큼 오래 남지는 않는다.
+
+### 3-18. 채널 자동감리 1 호 — S4-1R2-D **WARNING** (2026-08-14)
+
+`<channel source="rtw">` 수신 → ack → 읽기 전용 감리 → verdict 를 Chief 입력 없이 완결했다.
+event `sync-relay-2026-08-13T20-29-34.988Z-7d15cc48083f`.
+
+```
+검증  INSTRUCTION sha256 868e5ea… = HEAD 블롭 일치 · b6aa635 는 document/ 4 파일뿐(제품·시험 0)
+      이전 REPORT 블롭 a6bd1af = REPORT-S41R2.md 동일 → 덮어써도 소실 없음
+      S41-summary.json 9a3611e 복원 · S41R-summary-s41fmt.json 6e211cd 보존 · stash 2 건 생존
+      수치 일치: FS 0.9584 · in-flight [1,1,1] · D_eff 240/240 · afterMax 2.3174 · pathB 2.549/19.625
+WARNING ① 보고 대상 REPORT.md 가 미커밋(HEAD 블롭 444b42b… ≠ 보고 cbf1554…) → S4-M0 로 해소
+        ② 채널 instruction_id=S4-1R2-D vs 문서 자칭 S4-STATUS — 귀속 불일치
+        ③ D §0 「새 REPORT.md 금지」와 반대로 전면 교체 (D 본체는 이미 이행됨)
+관측    pathB after 런2 errMax 45.4 가 중앙값 19.6 뒤에 가려져 있다 (상한 87 이내)
+```
+
+**Chief 결정** — 현재 REPORT 가 상태와 일치하고 HEAD 의 것은 낡았으므로 **내용 수정 없이** 커밋한다.
+②③ 은 그 결정에 따라 정정하지 않는다. ① 만 S4-M0 커밋으로 해소한다.
+
+---
+
 ## 4. 승인된 판정 예산
 
 `D_eff ≤ 350ms` · `residual RMSE ≤ 1.0m` @30km/h · `residual max ≤ 2.5m` (zoom 13 동일)
