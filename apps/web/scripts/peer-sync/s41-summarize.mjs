@@ -13,7 +13,12 @@ import {
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DIR = resolve(HERE, "../../../../document/ops/sync-relay");
-const OUT = resolve(DIR, "S41-summary.json");
+/**
+ * S4-1R2 — S41_OUT_TAG 를 주면 **after 런과 출력 파일만** 태그 이름을 쓴다.
+ * before 런(S41-before-run 파일)은 그대로 읽기만 한다. 미커밋 S41 after·summary 산출물은 건드리지 않는다.
+ */
+const OUT_TAG = (process.env.S41_OUT_TAG || "").replace(/[^A-Za-z0-9]/g, "");
+const OUT = resolve(DIR, `S41${OUT_TAG}-summary.json`);
 const FIXTURE = resolve(DIR, "S3-fixture-gate.json");
 
 const INTERP_DELAY_MS = 160;
@@ -320,7 +325,8 @@ function pathBFromRun(raw) {
 
 function loadRuns(phase) {
   return [1, 2, 3].map((n) => {
-    const p = resolve(DIR, `S41-${phase}-run${n}-events.json`);
+    const tag = phase === "after" ? OUT_TAG : "";
+    const p = resolve(DIR, `S41${tag}-${phase}-run${n}-events.json`);
     if (!existsSync(p)) throw new Error(`missing ${p}`);
     return JSON.parse(readFileSync(p, "utf8"));
   });
@@ -495,6 +501,19 @@ const out = {
     afterMedian: {
       depart: { D_eff: departDeffAfter, RMSE: departRmseAfter, max: departMaxAfter, scalePct: departScaleAfter },
       cruise: { D_eff: cruiseDeffAfter, RMSE: cruiseRmseAfter, max: cruiseMaxAfter, scalePct: cruiseScaleAfter },
+    },
+    // S4-1R2 — 판정은 중앙값이지만 꼬리 추세를 보려고 3 런 최댓값도 함께 낸다 (관측용)
+    afterMax: {
+      depart: {
+        D_eff: Math.max(...after.map((r) => r.cases["z15-depart"].D_eff)),
+        RMSE: Math.max(...after.map((r) => r.cases["z15-depart"].residualRmse)),
+        max: Math.max(...after.map((r) => r.cases["z15-depart"].residualMax)),
+      },
+      cruise: {
+        D_eff: Math.max(...after.map((r) => r.cases["z15-cruise"].D_eff)),
+        RMSE: Math.max(...after.map((r) => r.cases["z15-cruise"].residualRmse)),
+        max: Math.max(...after.map((r) => r.cases["z15-cruise"].residualMax)),
+      },
     },
     beforePerRun: before.map((r) => r.cases),
     afterPerRun: after.map((r) => r.cases),

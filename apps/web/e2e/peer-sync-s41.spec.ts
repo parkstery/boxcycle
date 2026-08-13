@@ -14,7 +14,9 @@ const WEB_ROOT = path.resolve(__dirname, '..')
 const GEO_STOP_M = 900
 const PHASE = (process.env.S41_PHASE || 'after').toLowerCase() === 'before' ? 'before' : 'after'
 const RUN = Math.min(3, Math.max(1, Number(process.env.S41_RUN || '1')))
-const EVENTS_NAME = `S41-${PHASE}-run${RUN}-events.json`
+/** S4-1R2 — 다른 작업선의 미커밋 S41-* 산출물을 덮지 않기 위한 출력 태그 (예: R2) */
+const OUT_TAG = (process.env.S41_OUT_TAG || '').replace(/[^A-Za-z0-9]/g, '')
+const EVENTS_NAME = `S41${OUT_TAG}-${PHASE}-run${RUN}-events.json`
 
 async function guestStart(page: import('@playwright/test').Page) {
   const gate = page.getByRole('dialog', { name: '시작' })
@@ -254,7 +256,7 @@ test.describe('S4-1 route in-flight', () => {
       'utf8',
     )
 
-    if (PHASE === 'after' && RUN === 3) {
+    if (PHASE === 'after' && RUN === 3 && !OUT_TAG) {
       const sum = spawnSync(process.execPath, ['scripts/peer-sync/s41-summarize.mjs'], {
         cwd: WEB_ROOT,
         encoding: 'utf8',

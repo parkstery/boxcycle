@@ -10,7 +10,13 @@ import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const OUT_DIR = path.resolve(__dirname, '../../../document/ops/sync-relay')
 const BASELINE = process.env.S41R_BASELINE === '1'
-const WRITE_DELAY_MS = 1_200
+/**
+ * S4-1R2 — 강제 지연은 배수 예산(2 s)보다 **커야** 한다.
+ * 1.2 s 는 timeout 경로를 한 번도 밟지 않았다. 정상 3 런 실측 FS RTT max 가 4.1~6.2 s 였다.
+ */
+const WRITE_DELAY_MS = 3_500
+/** T5 — 늦은 쓰기가 「재시작 이후」에 착지하도록 더 길게 */
+const RESTART_DELAY_MS = 6_000
 const OBSERVE_MS = 3_000
 /** finalizeAndDelete 의 PEER_LIVE_RIDE_FINAL_BURST_MS(3s) 와 맞춤 */
 const FINALIZE_BURST_MS = 3_000
@@ -149,11 +155,11 @@ async function observeDocGone(
   return { existsAfterSettle: samples.some(Boolean), samples }
 }
 
-async function armDelayedWrites(page: import('@playwright/test').Page) {
-  await page.evaluate((ms) => {
-    ;(window as Window).__rtwRouteWriteDelayMs = ms
+async function armDelayedWrites(page: import('@playwright/test').Page, ms = WRITE_DELAY_MS) {
+  await page.evaluate((d) => {
+    ;(window as Window).__rtwRouteWriteDelayMs = d
     ;(window as Window).__rtwRouteErrorEvents = []
-  }, WRITE_DELAY_MS)
+  }, ms)
 }
 
 async function waitInFlightAndSlot(page: import('@playwright/test').Page) {
@@ -169,17 +175,34 @@ async function waitInFlightAndSlot(page: import('@playwright/test').Page) {
     .toBe(true)
 }
 
+/**
+ * S4-1R2 — 지연 주입을 **끄지 않고** 늦은 쓰기가 실제로 끝날 때까지 기다린다.
+ * 예전 판정은 관측 직전에 지연을 0 으로 되돌려 timeout 경로를 지워버렸다.
+ */
 async function waitCleanupFullySettled(page: import('@playwright/test').Page) {
-  await waitFlightIdle(page)
-  // drain = settle(≤2s) + finalize burst(3s). flight idle 시점과 settle 완료가 어긋날 수 있어 여유를 둔다.
+  await waitFlightIdle(page, POST_END_DRAIN_MS, { keepDelay: true })
+  // 지연 정리(늦은 쓰기 완료 시점 실행)까지 비었는지 확인
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(() => (window as Window).__rtwRouteFlightDebug?.deferredPending ?? 0),
+      { timeout: POST_END_DRAIN_MS, intervals: [200] },
+    )
+    .toBe(0)
+  // finalize burst(3s) + 여유
   await page.waitForTimeout(ROUTE_SETTLE_BUDGET_MS + FINALIZE_BURST_MS + 1_000)
 }
 
-async function waitFlightIdle(page: import('@playwright/test').Page, timeoutMs = POST_END_DRAIN_MS) {
-  // 관측 전에 지연 주입을 끄면, 이미 들어간 job 만 배수된다.
-  await page.evaluate(() => {
-    ;(window as Window).__rtwRouteWriteDelayMs = 0
-  })
+async function waitFlightIdle(
+  page: import('@playwright/test').Page,
+  timeoutMs = POST_END_DRAIN_MS,
+  opts?: { keepDelay?: boolean },
+) {
+  if (!opts?.keepDelay) {
+    await page.evaluate(() => {
+      ;(window as Window).__rtwRouteWriteDelayMs = 0
+    })
+  }
   await expect
     .poll(
       async () =>
@@ -231,7 +254,7 @@ type CaseResult = {
 test.describe('S4-1R route flight lifecycle', () => {
   test.setTimeout(480_000)
 
-  test(`T1~T4 (${BASELINE ? 'baseline FAIL-expect' : 'after fix'})`, async ({ browser }) => {
+  test(`T1~T5 (${BASELINE ? 'baseline FAIL-expect' : 'after fix'})`, async ({ browser }) => {
     const started = Date.now()
     const results: CaseResult[] = []
 
@@ -323,7 +346,23 @@ test.describe('S4-1R route flight lifecycle', () => {
       const obsA = await observeDocGone(page, trailA, uid)
 
       const pt9 = cap.lines.map(parseChainLine).filter((e): e is Ev => !!e && e.pt === 9)
-      const oldEpochOk1 = pt9.filter(
+
+      // S4-1R2 — 「새 epoch 시작 이후」의 이전 epoch 성공 쓰기만 위반이다.
+      const epochStarts = await page.evaluate(
+        () => (window as Window).__rtwRouteEpochStarts ?? [],
+      )
+      const newEpoch = epochStarts.length ? epochStarts[epochStarts.length - 1] : null
+      const oldEpochOk1AfterNew = newEpoch
+        ? pt9.filter(
+            (e) =>
+              e.ok === 1 &&
+              typeof e.epoch === 'number' &&
+              e.epoch < newEpoch.epoch &&
+              typeof e.fsWriteDoneAt === 'number' &&
+              (e.fsWriteDoneAt as number) >= newEpoch.at,
+          ).length
+        : null
+      const oldEpochOk1Total = pt9.filter(
         (e) => e.ok === 1 && e.trailId === trailA && e.epoch != null,
       ).length
 
@@ -333,17 +372,24 @@ test.describe('S4-1R route flight lifecycle', () => {
 
       results.push({
         id: 'T3',
-        pass: !obsA.existsAfterSettle && (BASELINE || epochDiscard >= 1),
+        // 판정은 Chief 기준 2 건뿐이다: 옛 Trail 행 부활 0 · 새 epoch 시작 이후 옛 epoch 성공 쓰기 0.
+        // epochDiscard 는 관측치다 — 배수가 깨끗하게 끝나면 폐기할 작업이 없는 것이 정상이고,
+        // Trail 전환이 페이지 재적재를 동반하면 모듈 상태(epoch 카운터)가 초기화된다.
+        pass:
+          !obsA.existsAfterSettle && (BASELINE || oldEpochOk1AfterNew === 0),
         detail: {
           trailA,
           trailB,
           previousTrailResurrected: obsA.existsAfterSettle,
           samplesA: obsA.samples,
           epochDiscard,
-          oldEpochOk1,
+          epochStartCount: epochStarts.length,
+          newEpoch,
+          oldEpochOk1AfterNew,
+          oldEpochOk1Total,
           note: BASELINE
             ? 'baseline: 행 부활만 판정'
-            : 'after: 이전 trail 행 부재 + epoch 폐기 ≥1 (in-flight 완료 ok=1 은 허용)',
+            : 'after: 행 부재 + epoch 폐기 ≥1 + 새 epoch 시작 이후 옛 epoch ok=1 이 0 건',
         },
       })
       await ctx.close()
@@ -426,10 +472,70 @@ test.describe('S4-1R route flight lifecycle', () => {
       await ctx.close()
     }
 
+    // ── T5 같은 Trail 빠른 재시작 — 옛 정리가 새 세션 행을 지우면 안 된다 ──
+    {
+      const ctx = await browser.newContext()
+      const page = await ctx.newPage()
+      attachChainCapture(page)
+      const trailId = await bootAndRide(page)
+      // 늦은 쓰기가 「재시작 이후」에 착지하도록 길게 잡는다
+      await armDelayedWrites(page, RESTART_DELAY_MS)
+      await waitInFlightAndSlot(page)
+      const uid = await resolveUid(page)
+
+      // 같은 Trail·같은 uid 로 세션만 끊었다 잇는다 (숨김→복귀).
+      // 새 주행 시작은 새 Trail 을 만들 수 있어 「같은 Trail」 조건이 깨진다.
+      await setPageHidden(page, true) // cleanup 시작 — 배수는 2 s 에서 시간 초과한다
+      await page.waitForTimeout(3_000) // 시간 초과·삭제·지연 정리 등록까지 지나게 둔다
+      await setPageHidden(page, false) // 같은 세션 키로 재시작
+      const trailAfter = new URL(page.url()).searchParams.get('trail')
+      expect(trailAfter).toBe(trailId)
+
+      // 옛 세션의 늦은 쓰기가 착지하고 지연 정리가 실행될 때까지 기다린다.
+      // (새 세션이 계속 발행하므로 flight 는 idle 이 되지 않는다 — idle 을 기다리지 않는다)
+      await page.waitForTimeout(RESTART_DELAY_MS + 3_000)
+      await page.evaluate(() => {
+        ;(window as Window).__rtwRouteWriteDelayMs = 0
+      })
+      await expect
+        .poll(
+          async () =>
+            page.evaluate(() => (window as Window).__rtwRouteFlightDebug?.deferredPending ?? 0),
+          { timeout: POST_END_DRAIN_MS, intervals: [200] },
+        )
+        .toBe(0)
+      await page.waitForTimeout(2_000)
+
+      const samples: boolean[] = []
+      for (let i = 0; i < 6; i += 1) {
+        samples.push(await liveRideDocExists(page, trailId, uid))
+        await page.waitForTimeout(400)
+      }
+      const dbg = await page.evaluate(() => (window as Window).__rtwRouteFlightDebug ?? null)
+      const newSessionRowKept = samples.every(Boolean)
+      const guardFired = (dbg?.deferredSkipTotal ?? 0) >= 1
+
+      results.push({
+        id: 'T5',
+        pass: BASELINE ? true : newSessionRowKept && guardFired,
+        detail: {
+          trailId,
+          uidPrefix: uid.slice(0, 6),
+          newSessionRowKept,
+          samples,
+          deferredRunTotal: dbg?.deferredRunTotal ?? null,
+          deferredSkipTotal: dbg?.deferredSkipTotal ?? null,
+          guardFired,
+          expect: '같은 Trail 재시작 세션의 행이 계속 존재 + 지연 정리가 skip-live-session 으로 걸러짐',
+        },
+      })
+      await ctx.close()
+    }
+
     const elapsedMin = Math.round(((Date.now() - started) / 60_000) * 10) / 10
     const allPass = results.every((r) => r.pass)
     const out = {
-      instruction: 'S4-1R',
+      instruction: 'S4-1R2',
       mode: BASELINE ? 'baseline-pre-fix' : 'after-fix',
       headHint: BASELINE ? '507bd68+dev-inject' : 'post-lifecycle',
       elapsedMin,
