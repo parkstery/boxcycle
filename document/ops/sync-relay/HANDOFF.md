@@ -83,7 +83,7 @@ depart 구간 발행 spd  1.39 m/s 고정(=5km/h 초기 슬라이더) ← D-1 (A
 | **S4-1** ★ | **route 발행 in-flight 제거** — Firestore 쓰기 폭주(3.95~5.05 /s vs 1 Hz 기대) | **PASS 채택** (`REPORT.md` · FS 비 0.24 · cruise 0.95/s · inFlight 64→1) |
 | **S4-1R** | route flight 수명주기 — 종료·전환·실패 안전성 (epoch · drain · 정리 순서) | **⚠ 채택 보류 — 증거 불충분** (§3-13) |
 | **S4-1R2** | 2 s 초과 지연·같은 Trail 재시작 경쟁 종결 (지연 정리 · 세션 소유권) | **WARNING 채택** — T1~T5 PASS · 증거 정밀도 부채 2 건 (§3-14 · §3-15) |
-| **S4-1R2-C** ★ | 귀속 분류 · 검증 · **커밋 고정** (재현 가능한 Git 기준점) | **배포** |
+| **S4-1R2-C** | 귀속 분류 · 검증 · **커밋 고정** (재현 가능한 Git 기준점) | **완료 — `b3336ed` · `8b238a8` · `e14b38f` (미푸시)** |
 | S4-2 | 읽기 증폭 (컬렉션 전체 구독 N² · RTDB 부모 `onValue` · 전역 collectionGroup) | **중단 — S4-1R 채택 뒤 재개** |
 | S4-3 | `touchTrailInstanceActivity` · heartbeat 상수 재검토 | 대기 (S4-2 뒤) |
 
@@ -672,6 +672,28 @@ epoch·세션 소유권·지연 정리가 route 에만 있다. **별도 지시 �
 | 시험·도구 | `apps/web/e2e/peer-sync-s41r.spec.ts` · `apps/web/e2e/peer-sync-s41.spec.ts` · `apps/web/scripts/peer-sync/s41-summarize.mjs` |
 | 증거 | `S41R-lifecycle.json` · `S41R2-after-run{1,2,3}-events.json` · `S41R2-summary.json` · `S3-fixture-gate.json`(`generatedAt` 만 갱신 — replay 재실행 산물) |
 | 문서 | `HANDOFF.md` · `INSTRUCTION.md` · `REPORT.md` · `REPORT-S41R.md` |
+
+**✅ 커밋 고정 완료 (감리 검산 2026-08-13)** — `b3336ed`(제품 2) · `8b238a8`(시험·도구 3) ·
+`e14b38f`(증거 6 + 문서 6). 총 17 파일이 귀속표와 **정확히 일치**한다. `S3-fixture-gate.json` 은
+`generatedAt` 한 줄만 바뀌었음을 커밋 diff 로 확인했다. **미푸시**(`ahead 3`) — Codex 검토 대기.
+
+**워킹트리 정리 (S4-1R2-D · 2026-08-13)**
+
+```
+S41-after-run{1,2,3}-events.json   커밋된 S41R-run{1,2,3}-events.json 과 해시 동일 — 중복.
+                                   git checkout 으로 S4-1 원본 복원 (내용 소실 없음)
+S41-summary.json                   ⚠ 중복이 아니다. S4-1R 3 런을 S4-1 요약기로 돌린 결과이고
+                                   S41R-summary.json 과 형식·수치가 다르다
+                                   (FS after 0.9476 /s · in-flight [1,1,1] · depart D_eff 280
+                                    ← REPORT-S41R.md 가 인용한 「FS 0.95 /s」의 근거)
+                                   → S41R-summary-s41fmt.json 으로 보존한 뒤 원본을 복원한다
+CLAUDE.md · 260707 결정 로그        Orchestrator 귀속. main2·feat/orchestrator-shadow 어디에도
+                                   없는 유일본이므로 **폐기 금지** — stash + patch 백업으로 보관
+```
+
+> ⚠ **산출물 라벨 주의** — `S41R2-summary.json` 의 최상위 `instruction` 필드는 `"S4-1"` 이다
+> (요약기가 문자열을 고정으로 쓴다). **S4-1 의 요약이 아니다** — after 런은 `S41R2-*` 3 런이다.
+> 인용할 때 파일명으로 판단하라. 라벨 정정은 다음 요약기 수정 때 함께 처리한다.
 
 **무관 — 다른 작업선. 스테이징·커밋·수정 금지**
 

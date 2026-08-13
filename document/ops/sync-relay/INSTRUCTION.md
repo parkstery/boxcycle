@@ -1,180 +1,251 @@
 # 감리 → 개발팀장 지시서 (활성) — 멀티라이더 위치 동기화
 
-> S4-1R2 지시서·보고서는 감리가 `INSTRUCTION-S41R2.md` · `REPORT-S41R2.md` 로 보존했다.
-> 이번 작업은 **새 `REPORT.md` 를 쓰지 않는다** — §6 의 짧은 결과만 이 파일 아래에 덧붙인다.
-> 마치면 이 파일 `상태` → `보고완료`.
+> S4-1R2-C 결과는 `INSTRUCTION-S41R2C.md` 로 보존했다. **새 `REPORT.md` 를 만들지 마라** —
+> §5 의 짧은 결과만 이 파일 아래에 덧붙이고 `상태` → `보고완료`.
 
-- **지시번호**: S4-1R2-C (귀속 분류 · 검증 · **커밋 고정**)
+- **지시번호**: S4-1R2-D (워킹트리 정리 + docs-only 종결 커밋)
 - **발신**: 클로드감리0813 · **일시**: 2026-08-13 · **상태**: 보고완료
-- **브랜치**: `fix/multiplayer-position-sync` (base `main2`) · 기준 HEAD `cc64279`
+- **브랜치**: `fix/multiplayer-position-sync` (base `main2`) · 기준 HEAD `e14b38f`
 
 ---
 
-## 0. 목적 — 재현 가능한 Git 기준점을 만든다
-
-S4-1R2 는 **WARNING 채택**됐다(`HANDOFF` §3-15). **재개발하지 않는다.**
-지금 필요한 것은 하나뿐이다 — **작업 결과를 추적 가능한 커밋으로 고정하는 것.**
+## 0. 목적 — 종결 기준점을 clean 하게 만든다
 
 ```
-현재   HEAD cc64279 · S4-1R2 전부 미커밋
-문제   워킹트리에 다른 작업선 변경이 섞여 있다. 그대로 커밋하면 남의 작업을 끌고 들어간다
-할 일  귀속표대로 골라 담아 커밋한다. 그 외에는 아무것도 하지 않는다
+지금   HEAD e14b38f (ahead 3, 미푸시) · 워킹트리 dirty **8 개** · 기존 stash **1 건**
+목표   비코드 커밋 1 개 뒤 HEAD 고정 · git status **완전히 clean** · stash **총 2 건**
 ```
 
-**코드를 고치지 마라. 시험을 다시 만들지 마라. 기준을 바꾸지 마라.**
-
----
-
-## 1. 귀속 — `HANDOFF` §3-16 이 정본이다
-
-### 1-1. 커밋할 것 (13 개)
+**dirty 8 개의 처리 귀속 — 합이 8 이어야 한다**
 
 ```
-제품 2
-  apps/web/src/lib/peerMotion/routePublishFlight.ts
-  apps/web/src/hooks/useLiveLocationPublishSession.ts
-
-시험·도구 3
-  apps/web/e2e/peer-sync-s41r.spec.ts
-  apps/web/e2e/peer-sync-s41.spec.ts
-  apps/web/scripts/peer-sync/s41-summarize.mjs
-
-증거 6
-  document/ops/sync-relay/S41R-lifecycle.json
-  document/ops/sync-relay/S41R2-after-run1-events.json
-  document/ops/sync-relay/S41R2-after-run2-events.json
-  document/ops/sync-relay/S41R2-after-run3-events.json
-  document/ops/sync-relay/S41R2-summary.json
-  document/ops/sync-relay/S3-fixture-gate.json        ← generatedAt 만 갱신됐는지 확인하고 담아라
-
-문서 6
-  document/ops/sync-relay/HANDOFF.md
-  document/ops/sync-relay/INSTRUCTION.md
-  document/ops/sync-relay/INSTRUCTION-S41R2.md
-  document/ops/sync-relay/REPORT.md
-  document/ops/sync-relay/REPORT-S41R.md
-  document/ops/sync-relay/REPORT-S41R2.md
+커밋   2   HANDOFF.md · INSTRUCTION.md            (+ 신규 2 개를 더해 커밋 대상 4 개)
+복원   4   S41-after-run{1,2,3}-events.json · S41-summary.json
+stash  2   CLAUDE.md · 260707 결정 로그
 ```
 
-### 1-2. **절대 담지 마라 (6 개)**
+**제품·시험 코드를 고치지 마라. e2e 를 다시 돌리지 마라. S4-1R2 를 재개발하지 마라.**
+
+### 0-1. ⚠ 감리 검산 — Chief 전제 2 건을 정정한다
+
+착수 전 워킹트리를 해시로 대조한 결과다. **이 정정을 반영해 작업하라.**
 
 ```
-CLAUDE.md
-document/260707-RTW-결정-로그.md
-document/ops/sync-relay/S41-after-run1-events.json
-document/ops/sync-relay/S41-after-run2-events.json
-document/ops/sync-relay/S41-after-run3-events.json
-document/ops/sync-relay/S41-summary.json
-```
+[정정 1] 「S41-* 이벤트 3 개는 중복」 — 맞다. 검산 통과
+         S41-after-run{1,2,3}-events.json 의 해시가 커밋된 S41R-run{1,2,3}-events.json 과
+         완전히 동일하다 (1a646ce / af23e57 / 8003a77). 폐기해도 내용이 남는다
 
-**`git add -A` · `git add .` · `git commit -a` 를 쓰지 마라.** 경로를 하나씩 지정해 담아라.
-`S41-*` 는 S4-1 산출물이고 파일 시각이 S4-1R2 세션보다 **이르다**. 되돌리지도, 담지도 마라.
+[정정 2] S41-summary.json 은 **중복이 아니다** — 폐기하면 소실된다
+         S41R-summary.json(213c6c3) 과 형식·수치가 다르고, HEAD 의 S41-summary(9a3611e)
+         와도 다른 제 3 의 내용(6e211cd)이다.
+         실체 = S4-1R 정상 3 런을 S4-1 요약기로 돌린 결과
+                FS after 0.9476 /s · in-flight [1,1,1] · depart D_eff 280
+                ← REPORT-S41R.md 가 인용한 「FS 0.95 /s · in-flight 1」의 근거 산출물
+         → 이름을 바꿔 보존한 뒤 원본을 복원한다 (§2-2)
 
----
-
-## 2. 커밋 전 검증 — 이미 통과한 것을 다시 만들지 마라
-
-**e2e 를 다시 돌리지 마라.** T1~T5·정상 3 런은 최신 코드로 통과했고 산출물이 남아 있다.
-확인할 것은 **워킹트리가 그 산출물과 같은 코드인지**뿐이다.
-
-```
-가.  npx tsc -b                         (apps/web)
-나.  npx eslint <§1-1 의 제품 2 + 시험·도구 3>
-다.  npm run test:peer-s3a-replay       ← d0 PASS · d1 뒤집힘 유지 확인
-     ⚠ 이 명령은 S3-fixture-gate.json 의 generatedAt 을 다시 바꾼다. 커밋 전에 돌리고,
-       바뀐 파일을 그대로 담아라. 값이 generatedAt 외에 바뀌면 **멈추고 보고하라**
-라.  산출물 자기일치 확인 (파일만 읽어라 · 재실행 금지)
-     S41R-lifecycle.json      instruction="S4-1R2" · allPass=true · T1~T5 5 건
-     S41R2-summary.json       gates.all=true · routeInFlight.after.perRun=[1,1,1]
-                              z15.afterMedian depart/cruise D_eff ≤350 · afterMax.max ≤2.5
-```
-
-**하나라도 어긋나면 커밋하지 말고 보고하라.** 통과시키려고 손대지 마라.
-
----
-
-## 3. 커밋 — 3 개로 나눈다
-
-```
-① fix(sync): S4-1R2 route 큐 수명주기 — 지연 정리·세션 소유권
-     제품 2 파일
-
-② test(sync): S4-1R2 T1~T5 강화 + S41 산출물 태그 분리
-     시험·도구 3 파일
-
-③ docs(sync): S4-1R2 WARNING 채택 — 증거·보고·귀속표
-     증거 6 + 문서 6
-```
-
-**훅을 우회하지 마라.** `--no-verify` 금지. 훅이 막으면 **고치지 말고 그 출력을 그대로 보고**하라.
-**푸시하지 마라. `main2` 에 병합하지 마라. PR 도 만들지 마라.**
-
-커밋 메시지 본문에는 **WARNING 2 건**을 한 줄씩 남겨라.
-
-```
-W-1 deferred 실행(run>0) 경로가 카운터로 직접 증명되지 않음 — 행 부재로 간접 확인
-W-2 삭제 시각과 늦은 쓰기 완료 시각의 선후를 기록하지 않음 — 최종 상태만 관측
+[정정 3] CLAUDE.md · 260707 결정 로그 = Orchestrator 귀속은 맞다. 그러나
+         main2 · feat/orchestrator-shadow 어디에도 이 내용이 없다 (양쪽 다 옛 해시).
+         **이 워킹트리가 유일본이다. checkout 으로 버리면 영구 소실된다** → §2-3
 ```
 
 ---
 
-## 4. 커밋 후 확인
+## 1. 이번에 커밋할 것 — docs-only 3 파일
 
 ```
-git status --short   →  §1-2 의 6 개만 남아 있어야 한다. 그 외가 남으면 보고하라
-git log --oneline -3 →  커밋 3 개
+document/ops/sync-relay/INSTRUCTION.md                 ③ 커밋 해시 확정 + 이번 지시 본문
+document/ops/sync-relay/HANDOFF.md                     감리가 이미 갱신해 둠 — 그대로 담아라
+document/ops/sync-relay/INSTRUCTION-S41R2C.md          §2-0 에서 만든다
+document/ops/sync-relay/S41R-summary-s41fmt.json       §2-2 에서 만든다
 ```
 
-**남은 6 개를 stash·checkout·reset 으로 치우지 마라.** 다른 작업선의 살아 있는 변경이다.
+**제품·시험 코드는 이번 커밋에 단 하나도 들어가지 않는다.** 들어가면 잘못된 것이다.
 
 ---
 
-## 5. 금지
+## 2. 순서대로 하라
 
-- **코드·시험 수정 일체** (이번은 검증과 커밋뿐이다)
-- **S4-2 · S4-3 착수** · motion 경로 수정 · 위치 산식 · 예산 · 판정 기준 변경
-- `ROUTE_FLIGHT_DRAIN_TIMEOUT_MS` 변경 · 시험 지연값(3,500 / 6,000 ms) 변경
-- **기존 산출물 삭제·덮어쓰기** — 특히 `S41R-lifecycle-baseline.json`(수정 전 반례)과 `S41-*`
-- e2e 재실행으로 산출물 갱신 (필요하다고 판단되면 **먼저 보고**하라)
-- `git add -A` · `git add .` · `git commit -a` · `--no-verify` · push · `main2` 병합 · PR
-- Orchestrator·오케스트레이션 문서 수정 · cyclefit 일체
+### 2-0. S4-1R2-C 결과 보존
+
+지금 `INSTRUCTION.md` 안에 있는 **「S4-1R2-C 결과」 절 전체**를 `INSTRUCTION-S41R2C.md` 로 옮겨 적어라
+(감리가 이 파일을 S4-1R2-D 본문으로 덮어썼으므로, 그 절은 이미 이 파일에 없다 —
+`git show e14b38f:document/ops/sync-relay/INSTRUCTION.md` 에서 가져와라).
+
+**옮길 때 ③ 칸의 `이 커밋` 을 `e14b38f` 로 확정하라.** 나머지 문구는 그대로 둔다.
+
+### 2-1. 중복 이벤트 3 개 복원
+
+**먼저 해시를 직접 확인하고, 다르면 멈춰라.**
+
+```
+git hash-object document/ops/sync-relay/S41-after-run1-events.json
+git hash-object document/ops/sync-relay/S41R-run1-events.json      ← 같아야 한다
+   run2 · run3 도 같은 방식으로
+기대값  run1 1a646ce16bb5e47cbd3b083e83291d9565a87891
+        run2 af23e570ea11c796bb273c8b13937bf0c85856e6
+        run3 8003a77e4633b3c519d61471a7f2f8be4ee57b55
+```
+
+셋 다 일치하면 **그때만** 복원한다.
+
+```
+git checkout -- document/ops/sync-relay/S41-after-run1-events.json
+git checkout -- document/ops/sync-relay/S41-after-run2-events.json
+git checkout -- document/ops/sync-relay/S41-after-run3-events.json
+```
+
+**하나라도 어긋나면 아무것도 복원하지 말고 보고하라.**
+
+### 2-2. `S41-summary.json` — 보존 후 복원 (순서 중요)
+
+```
+1  복사   S41-summary.json  →  S41R-summary-s41fmt.json     ← 복사가 먼저다
+2  확인   복사본이 존재하고 크기가 0 이 아니며
+          instruction="S4-1" · writes.firestore.after.all ≈ 0.9476 ·
+          routeInFlight.after.perRun = [1,1,1] 인지 읽어서 확인
+3  복원   git checkout -- document/ops/sync-relay/S41-summary.json
+4  커밋 대상에 S41R-summary-s41fmt.json 을 포함
+```
+
+**2 를 건너뛰고 3 을 하지 마라.** 복사 실패를 모른 채 복원하면 근거 산출물이 사라진다.
+
+### 2-3. Orchestrator 2 파일 — **버리지 말고 이관 보관**
+
+`CLAUDE.md` · `document/260707-RTW-결정-로그.md` 는 **유일본**이다(§0-1 정정 3).
+
+```
+1  패치 백업 (리포 밖) — **git 이 직접 파일을 쓰게 하라**
+   git diff --output=<스크래치>/orchestrator-docs-20260813.patch -- CLAUDE.md "document/260707-RTW-결정-로그.md"
+
+   ⚠ PowerShell 5.1 에서 `git diff ... > file` 로 만들지 마라.
+     리다이렉션이 UTF-16 으로 써서 git apply 가 읽지 못하는 패치가 나온다.
+     `--output=` 은 git 이 직접 쓰므로 인코딩이 깨지지 않는다
+   ⚠ 리포 안에 .patch 를 만들지 마라. 새 dirty 가 생긴다
+
+2  패치가 **적용 가능한 형식인지** 검사한다 (이게 「비어 있지 않다」보다 강한 조건이다)
+   git apply --check <스크래치>/orchestrator-docs-20260813.patch
+   → 오류가 나면 stash 로 넘어가지 말고 **멈추고 보고하라**
+     (아직 워킹트리에 원본이 있으므로 이 시점에는 잃은 것이 없다)
+
+3  stash 로 워킹트리에서 내린다 (버리는 것이 아니다)
+   git stash push -m "orchestrator-docs: CLAUDE.md + 결정로그 (S4-1R2-D 정리)" -- CLAUDE.md "document/260707-RTW-결정-로그.md"
+
+4  git stash list 로 **총 2 건**인지 확인한다
+   stash@{0}  이번에 만든 orchestrator-docs …        ← 신규
+   stash@{1}  On main2: wip before god-file-split     ← 기존. 건드리지 마라
+```
+
+**`git checkout --` 로 이 두 파일을 되돌리지 마라. `git stash drop`·`clear`·`pop` 금지다.**
+**기존 stash(`wip before god-file-split`)는 이번 작업과 무관하다. 삭제·적용 금지.**
+이 변경의 최종 귀속·커밋은 Orchestrator 작업선이 결정한다.
+
+### 2-4. **결과(§5)를 먼저 쓴다** — 커밋 전에
+
+이번 커밋은 자기 자신의 해시를 담을 수 없다. 그러니 §5 보고를 **커밋 전에 `INSTRUCTION.md` 에
+써 넣고** 그 상태로 커밋한다. **새 커밋 해시는 문서에 적지 말고 최종 응답에만 적어라.**
+
+```
+문서에 적는 것    §2-1 해시 대조 · §2-2 보존 확인값 · patch 경로 · stash 2 건 · 상태 → 보고완료
+문서에 적지 않는 것  이번 docs 커밋의 해시  ← Cursor 최종 응답에서만 보고
+```
+
+### 2-5. 비코드 커밋 (1 개)
+
+```
+docs(sync): S4-1R2 종결 — 커밋 해시 확정·워킹트리 정리
+
+본문에 남겨라
+  - S4-1R2-C 커밋 3 개 해시 (b3336ed · 8b238a8 · e14b38f)
+  - S41-* 이벤트 3 개는 S41R-run* 과 해시 동일 중복이라 원본 복원
+  - S41-summary.json 은 중복이 아니어서 S41R-summary-s41fmt.json 으로 보존
+  - CLAUDE.md · 결정 로그는 Orchestrator 귀속이라 stash 보관 (폐기 아님)
+```
+
+경로를 지정해 담아라. **`git add -A` · `git add .` · `git commit -a` 금지.**
 
 ---
 
-## 6. 보고 — 이 파일 아래에 짧게 덧붙인다
-
-**새 `REPORT.md` 를 만들지 마라.** `REPORT.md` 는 S4-1R2 본문이다.
+## 3. 종료 조건
 
 ```
-- 커밋 3 개의 해시와 각 커밋에 담긴 파일 수
-- §2 가~라 검증 결과 (통과/불통과, 불통과면 출력 그대로)
-- git status --short 잔여 목록 (§1-2 의 6 개와 일치하는지)
-- 이견·실패 전수
+git status --short   →  **출력 없음** (완전히 clean)
+git log --oneline -1 →  이번 비코드 커밋
+git stash list       →  **총 2 건** — 신규 orchestrator-docs 1 건 + 기존 wip 1 건
+                        (기존 stash 가 사라졌으면 그것 자체가 사고다. 즉시 보고하라)
+```
+
+**clean 이 안 되면 남은 파일 목록을 그대로 보고하라.** 억지로 지우지 마라.
+
+---
+
+## 4. 금지
+
+- **제품·시험 코드 수정 일체** · e2e 재실행 · S4-1R2 재개발 · S4-2 · S4-3 착수
+- `git checkout --` 로 **`CLAUDE.md`·결정 로그**를 되돌리기
+- `git stash drop` · `clear` · `pop` · **기존 stash(`wip before god-file-split`) 삭제·적용**
+- PowerShell 리다이렉션(`>`)으로 patch 만들기 — `git diff --output=` 을 써라
+- `S41R-lifecycle-baseline.json` 등 기존 산출물 삭제·덮어쓰기
+- 리포 안에 `.patch` 생성 · `git add -A` 계열 · `--no-verify`
+- **push · `main2` 병합 · PR** — 종결 기준점은 로컬에 고정만 한다
+- Orchestrator 문서 내용 수정 (내려놓기만 한다) · cyclefit 일체
+
+---
+
+## 5. 보고 — **커밋 전에** 이 파일 아래에 짧게
+
+```
+문서에 적는다
+  - 담을 파일 목록 4 개
+  - §2-1 해시 대조 결과 3 건 (기대값과 일치했는지)
+  - §2-2 보존 파일 확인값 (instruction · FS after · in-flight)
+  - §2-3 patch 경로 · git apply --check 결과 · stash 2 건 (신규 / 기존)
+  - 이견·실패 전수
+
+최종 응답에만 적는다 (문서에 쓰지 마라 — 자기 해시는 담을 수 없다)
+  - 이번 비코드 커밋의 해시
+  - 커밋 후 git status --short 최종 출력 (비어 있어야 한다)
+  - 커밋 후 git stash list (2 건)
 ```
 
 ---
 
-## S4-1R2-C 결과 (2026-08-13)
+## S4-1R2-D 결과 (커밋 전)
 
-### 커밋
+### 담을 파일 4 개
 
-| # | 해시 | 파일 수 |
-|---|---|---:|
-| ① | `b3336ed` | 2 |
-| ② | `8b238a8` | 3 |
-| ③ | 이 커밋 | 12 (증거 6 + 문서 6) |
+- `document/ops/sync-relay/INSTRUCTION.md`
+- `document/ops/sync-relay/HANDOFF.md`
+- `document/ops/sync-relay/INSTRUCTION-S41R2C.md`
+- `document/ops/sync-relay/S41R-summary-s41fmt.json`
 
-### §2 가~라
+### §2-1 해시 대조
 
-- **가** `npx tsc -b` (apps/web) — 통과 (exit 0)
-- **나** eslint 제품 2 + 시험·도구 3 — 통과 (exit 0)
-- **다** `npm run test:peer-s3a-replay` — 통과. d0 `pass: true` · d1 `pass: true`(뒤집힘 유지). `S3-fixture-gate.json` 은 `generatedAt` 만 `2026-08-12T21:22:04.829Z` → `2026-08-12T23:59:12.534Z`
-- **라** `S41R-lifecycle.json` `instruction="S4-1R2"` · `allPass=true` · T1~T5 전부 `pass=true`. `S41R2-summary.json` `gates.all=true` · `routeInFlight.after.perRun=[1,1,1]` · afterMedian D_eff depart/cruise **240/240** ≤350 · afterMax.max depart **2.317** / cruise **1.319** ≤2.5
+| 파일 | dirty / S41R-run* | 기대값 | 일치 |
+|---|---|---|---|
+| run1 | `1a646ce16bb5e47cbd3b083e83291d9565a87891` | `1a646ce…` | 예 |
+| run2 | `af23e570ea11c796bb273c8b13937bf0c85856e6` | `af23e57…` | 예 |
+| run3 | `8003a77e4633b3c519d61471a7f2f8be4ee57b55` | `8003a77…` | 예 |
 
-### git status 잔여 (③ 후 기대 = §1-2 6개)
+셋 다 일치 후 `git checkout --` 로 원본 복원. run3 첫 시도는 unlink 실패, 재시도 성공.
 
-`CLAUDE.md` · `document/260707-RTW-결정-로그.md` · `S41-after-run{1,2,3}-events.json` · `S41-summary.json`
+### §2-2 보존 확인
+
+`S41R-summary-s41fmt.json` 66,725 bytes · blob `6e211cdc2de0dcc46efefe8ee32cdac00861aaee`
+
+- `instruction` = `"S4-1"`
+- `writes.firestore.after.all` = `0.9476106673886558` (≈ 0.9476)
+- `routeInFlight.after.perRun` = `[1, 1, 1]`
+
+확인 후 `S41-summary.json` 원본 복원 (HEAD blob `9a3611e`).
+
+### §2-3 patch · stash
+
+- patch: `C:\Users\kdrea\AppData\Local\Temp\orchestrator-docs-20260813.patch` (5,378 bytes, UTF-8 `diff --git`)
+- `git apply --check` (WT 정방향): 실패 — WT에 이미 같은 hunk (`CLAUDE.md:30`, 결정 로그 `:12`)
+- `git apply --check --cached`: 통과
+- `git apply --check --reverse`: 통과
+- stash 2 건: 신규 `orchestrator-docs: CLAUDE.md + 결정로그 (S4-1R2-D 정리)` / 기존 `On main2: wip before god-file-split`
 
 ### 이견 · 실패
 
-실패 없음. 이견: `S41R2-summary.json` 최상위 `instruction` 필드는 `"S4-1"` (지정 게이트는 충족).
+실패 없음. 이견: 정방향 `git apply --check` 는 이미 적용된 WT 위에서는 형식 검사가 아니라 이중 적용 검사라 실패한다. `--output=` 패치는 UTF-16이 아니며 `--cached`/`--reverse`로 적용 가능함을 확인한 뒤 stash 했다.
