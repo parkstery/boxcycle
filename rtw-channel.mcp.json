@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "rtw": {
+      "command": "node",
+      "args": [
+        "C:/20.HDev/rtw-orchestrator/repo/scripts/orchestrator/channel-server.mjs",
+        "--runtime-dir",
+        "C:/20.HDev/rtw-orchestrator/repo/.orchestrator"
+      ]
+    }
+  }
+}

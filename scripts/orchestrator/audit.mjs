@@ -13,11 +13,14 @@
 
 import { createHash, randomUUID } from 'node:crypto';
 import { execFile, execFileSync, spawn } from 'node:child_process';
-import { mkdir, open, readFile, rename, stat, unlink, writeFile } from 'node:fs/promises';
+import { mkdir, open, readdir, readFile, rename, stat, unlink, writeFile } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
+
+import { enqueueEvent, listDone, listLiveServers, listPending } from './channel-queue.mjs';
 
 const execFileAsync = promisify(execFile);
 const DEFAULT_RELAY = 'sync-relay';
@@ -31,6 +34,9 @@ const LOCK_LEASE_GRACE_MS = 60_000;
 const KILL_GRACE_MS = 5_000;
 // SIGKILL 이후에도 close 가 오지 않으면 이만큼 더 기다렸다가 대기를 포기한다.
 const FORCE_SETTLE_MS = 2_000;
+// 완료 이벤트 안정화 — 대상 지문이 이만큼 연속 동일해야 감리를 시작한다(최종 HEAD 고정).
+const DEFAULT_SETTLE_MS = 90_000;
+const DEFAULT_PROJECTS_DIR = path.join(os.homedir(), '.claude', 'projects');
 const REPO_ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const DEFAULT_RUNTIME_DIR = path.join(REPO_ROOT, '.orchestrator');
 
@@ -300,6 +306,36 @@ ${git.recentLog}${dirtyNote}
 반드시 제공된 JSON 스키마 하나로만 답하라.`;
 }
 
+/**
+ * Claude Sync 감리 세션에 보낼 요청.
+ *
+ * 그 세션은 이미 감리자다 — 정체성·규칙·프로토콜을 다시 주입하지 않는다.
+ * 무엇이 새로 보고완료됐는지와 기준점만 주고, 마지막 줄에 기계 판독 판정을 요구한다.
+ */
+export function buildResumePrompt({ paths, instructionMeta, instructionHash, reportHash, git }) {
+  const relative = (filePath) => toPosix(path.relative(paths.targetRoot, filePath));
+  return `[orchestrator 자동 기동] ${paths.relay} 의 개발 REPORT 가 보고완료로 바뀌었다. Chief 의 추가 지시 없이 네 감리 차례가 왔다.
+
+- 지시번호: ${instructionMeta.instructionId}
+- ${relative(paths.instructionPath)} sha256 ${compactHash(instructionHash)}
+- ${relative(paths.reportPath)} sha256 ${compactHash(reportHash)}
+- 기준 커밋: ${git.head} (${git.branch})${git.dirty ? ' — 워킹트리 dirty. HEAD 기준으로 감리하고 미커밋분은 미검증으로 다뤄라.' : ''}
+
+평소 감리 규율대로 INSTRUCTION·REPORT·Git·저장 증거를 대조해 판정하라. 이 실행은 읽기 전용이다 — 파일을 고치거나 커밋하지 말고, 테스트를 새로 실행하지 마라. 재현하지 못한 사실은 그렇게 밝혀라.
+
+응답 **마지막 줄**에 다음 형식을 정확히 한 줄 넣어라. 이 줄이 없으면 실행은 실패로 기록된다.
+VERDICT: BLOCK|WARNING|PASS`;
+}
+
+/** resume 응답에서 기계 판독 판정을 회수한다. 없으면 성공으로 치지 않는다. */
+export function parseResumeVerdict(text) {
+  const matches = [...String(text ?? '').matchAll(/^\s*VERDICT\s*:\s*(BLOCK|WARNING|PASS)\s*$/gim)];
+  if (matches.length === 0) {
+    throw new Error('Claude Sync 응답에서 `VERDICT:` 줄을 찾지 못했습니다(자유 서술만으로는 성공 처리하지 않습니다).');
+  }
+  return matches.at(-1)[1].toUpperCase();
+}
+
 function parseStructuredResult(stdout) {
   let outer;
   try {
@@ -365,6 +401,47 @@ async function invokeClaudeAudit({ targetRoot, prompt, claudeTimeoutMs = DEFAULT
   return await awaitClaudeChild(child, claudeTimeoutMs);
 }
 
+/** Claude Sync 세션 JSONL 의 위치·크기·mtime. resume 으로 턴이 실제로 진행됐는지 증명한다. */
+export async function sessionTranscript(sessionId, projectsDir = DEFAULT_PROJECTS_DIR) {
+  const roots = await readdir(projectsDir, { withFileTypes: true }).catch(() => []);
+  for (const entry of roots) {
+    if (!entry.isDirectory()) continue;
+    const candidate = path.join(projectsDir, entry.name, `${sessionId}.jsonl`);
+    const info = await stat(candidate).catch(() => null);
+    if (info) return { path: toPosix(candidate), bytes: info.size, mtime: info.mtime.toISOString() };
+  }
+  return null;
+}
+
+/**
+ * 기존 Claude Sync 감리 세션을 깨워 그 대화 안에서 한 턴을 진행시킨다.
+ *
+ * headless 신규 호출과 다르다 — 같은 세션 파일에 이어붙고 문맥이 유지된다.
+ * 실패하면 **실패로 남긴다.** headless 로 조용히 대체하지 않는다(그러면 연결의 목적이 사라진다).
+ */
+async function invokeSyncSessionAudit({ targetRoot, resumePrompt, sessionId, claudeTimeoutMs, projectsDir }) {
+  const before = await sessionTranscript(sessionId, projectsDir);
+  if (!before) {
+    throw new Error(`Claude Sync 세션을 찾지 못했습니다: ${sessionId} (${toPosix(projectsDir)} 아래에 <sessionId>.jsonl 이 없습니다)`);
+  }
+  const child = spawn(process.env.RTW_CLAUDE_BIN || 'claude', [
+    '--resume', sessionId,
+    '-p', resumePrompt,
+    '--permission-mode', 'dontAsk',
+    '--allowedTools', 'Read,Grep,Glob,Bash(git status:*),Bash(git diff:*),Bash(git show:*),Bash(git log:*)',
+    '--disallowedTools', 'Edit,Write,NotebookEdit,WebFetch,WebSearch',
+  ], { cwd: targetRoot, shell: false, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+
+  const response = await awaitClaudeChild(child, claudeTimeoutMs, { parse: false });
+  const after = await sessionTranscript(sessionId, projectsDir);
+  return {
+    verdict: parseResumeVerdict(response.stdout),
+    text: response.stdout,
+    stderr: response.stderr,
+    session: { id: sessionId, before, after, grew: Boolean(after && before && after.bytes > before.bytes) },
+  };
+}
+
 /**
  * 자식 프로세스를 상한과 함께 기다린다.
  *
@@ -374,6 +451,7 @@ async function invokeClaudeAudit({ targetRoot, prompt, claudeTimeoutMs = DEFAULT
 export function awaitClaudeChild(child, claudeTimeoutMs = DEFAULT_CLAUDE_TIMEOUT_MS, {
   killGraceMs = KILL_GRACE_MS,
   forceSettleMs = FORCE_SETTLE_MS,
+  parse = true,
 } = {}) {
   return new Promise((resolve, reject) => {
     let stdout = '';
@@ -433,6 +511,10 @@ export function awaitClaudeChild(child, claudeTimeoutMs = DEFAULT_CLAUDE_TIMEOUT
         reject(new Error(`Claude 종료 코드 ${code}: ${detail.slice(0, 4_000)}`));
         return;
       }
+      if (!parse) {
+        resolve({ stdout, stderr });
+        return;
+      }
       try {
         resolve({ result: validateAuditResult(parseStructuredResult(stdout)), stdout, stderr });
       } catch (error) {
@@ -482,6 +564,30 @@ ${findings}
 ${next}
 
 > shadow mode 산출물이다. 대상 저장소에는 아무것도 쓰지 않았다. 제품 코드 수정·커밋·지시서 변경·후속 실행은 이 러너의 범위가 아니다.
+`;
+}
+
+/** Claude Sync 세션이 수행한 감리의 Chief 열람용 사본. 정본은 그 대화 이력이다. */
+export function renderSyncSessionMarkdown({ audit, instructionMeta, instructionHash, reportHash, git, completedAt, triggerKey, readonlyGate, session }) {
+  return `# Claude Sync 감리 (세션 기동) — ${instructionMeta.instructionId}
+
+- **VERDICT**: ${audit.verdict}
+- **완료 시각**: ${completedAt}
+- **대상 브랜치**: ${git.branch}
+- **기준 커밋**: \`${git.head}\`${git.dirty ? ' (대상 트리 dirty — HEAD 기준으로 감리함)' : ''}
+- **실행 키**: \`${compactHash(triggerKey)}\`
+- **INSTRUCTION SHA-256**: \`${compactHash(instructionHash)}\`
+- **REPORT SHA-256**: \`${compactHash(reportHash)}\`
+- **대상 무변경 게이트**: ${readonlyGate ? `통과 (지문 \`${compactHash(readonlyGate.before.digest)}\` → \`${compactHash(readonlyGate.after.digest)}\`)` : '미기록'}
+- **Claude Sync 세션**: \`${session?.id ?? '미상'}\`
+- **세션 이력 증가**: ${session?.grew ? `예 (${session.before.bytes} → ${session.after.bytes} B)` : '아니오 — 확인 필요'}
+
+## 감리 응답 (사본)
+
+${audit.text ?? '(없음)'}
+
+> **정본은 Claude Sync 대화 이력이다.** 이 파일은 Chief 열람용 사본이며, 감리는 새 headless 세션이 아니라 기존 Claude Sync 세션 안에서 수행됐다.
+> 대상 저장소에는 아무것도 쓰지 않았다. 판정을 Sync 작업선에 자동 반영하지 않는다.
 `;
 }
 
@@ -638,6 +744,32 @@ export async function acquireLock(lockPath, {
   }
 }
 
+/**
+ * 완료 이벤트 안정화 판정.
+ *
+ * 보고완료를 본 즉시 감리하면 아직 커밋이 들어오는 중일 수 있다(S4-1R 에서 실제로
+ * 감리 도중 커밋이 들어와 실행이 폐기됐다). 지문이 settleMs 동안 연속 동일할 때만 시작한다.
+ */
+export function evaluateSettle(previous, { digest, nowMs, settleMs, dirty, requireClean }) {
+  if (requireClean && dirty) {
+    return { ready: false, reason: '워킹트리 dirty — --require-clean', firstSeenAt: nowMs, digest };
+  }
+  if (settleMs <= 0) return { ready: true, reason: '안정화 대기 없음', firstSeenAt: nowMs, digest, heldMs: 0 };
+  if (!previous || previous.digest !== digest) {
+    return { ready: false, reason: `안정화 대기 0/${Math.round(settleMs / 1000)}초 (지문 변동)`, firstSeenAt: nowMs, digest };
+  }
+  const heldMs = nowMs - previous.firstSeenAt;
+  if (heldMs < settleMs) {
+    return {
+      ready: false,
+      reason: `안정화 대기 ${Math.round(heldMs / 1000)}/${Math.round(settleMs / 1000)}초`,
+      firstSeenAt: previous.firstSeenAt,
+      digest,
+    };
+  }
+  return { ready: true, reason: `안정화 완료(${Math.round(heldMs / 1000)}초)`, firstSeenAt: previous.firstSeenAt, digest, heldMs };
+}
+
 export function computeTriggerKey({ head, instructionHash, reportHash }) {
   return sha256(`${head}:${instructionHash}:${reportHash}`);
 }
@@ -656,6 +788,14 @@ export async function runAuditOnce({
   claudeTimeoutMs = DEFAULT_CLAUDE_TIMEOUT_MS,
   alive = isProcessAlive,
   onBeforeReclaim = null,
+  syncSession = null,
+  projectsDir = DEFAULT_PROJECTS_DIR,
+  settleMs = DEFAULT_SETTLE_MS,
+  requireClean = false,
+  settleState = null,
+  invokeSyncAudit = invokeSyncSessionAudit,
+  emitChannel = false,
+  enqueue = enqueueEvent,
 } = {}) {
   if (!shadow) {
     throw new Error('shadow mode 외의 실행 경로는 구현되지 않았습니다(--no-shadow 사용 불가).');
@@ -690,6 +830,45 @@ export async function runAuditOnce({
     return { status: 'cooldown', reason: '이전 실패 재시도 대기', relay: paths.relay, triggerKey };
   }
 
+  // 완료 이벤트 안정화 — 최종 HEAD 가 고정된 뒤에만 감리를 시작한다.
+  const settleFingerprint = await fingerprint(paths.targetRoot);
+  const settle = evaluateSettle(settleState, {
+    digest: settleFingerprint.digest,
+    nowMs: now().getTime(),
+    settleMs,
+    dirty: git.dirty,
+    requireClean,
+  });
+  if (!settle.ready) {
+    return { status: 'settling', reason: settle.reason, relay: paths.relay, triggerKey, settleState: settle };
+  }
+
+  // 채널 모드 — 감리를 별도 프로세스로 돌리지 않고, 실행 중인 Claude Sync 세션에
+  // 완료 이벤트를 밀어 넣는다. 감리는 그 세션 자신이 수행한다.
+  if (emitChannel) {
+    const eventId = `${paths.relay}-${now().toISOString().replaceAll(':', '-')}-${compactHash(triggerKey)}`;
+    const outcome = await enqueue(paths.runtimeRoot, {
+      eventId,
+      createdAt: now().toISOString(),
+      relay: paths.relay,
+      target: toPosix(paths.targetRoot),
+      instructionId: instructionMeta.instructionId,
+      triggerKey,
+      head: git.head,
+      branch: git.branch,
+      dirty: git.dirty,
+      instructionHash,
+      reportHash,
+    });
+    return {
+      status: outcome.enqueued ? 'queued' : 'queued-skip',
+      reason: outcome.enqueued ? `채널 이벤트 대기열 등록 ${eventId}` : outcome.reason,
+      relay: paths.relay,
+      triggerKey,
+      eventId: outcome.event.eventId,
+    };
+  }
+
   const lock = await acquireLock(paths.lockPath, {
     leaseMs: claudeTimeoutMs + LOCK_LEASE_GRACE_MS,
     now,
@@ -720,12 +899,29 @@ export async function runAuditOnce({
       lastAttemptAt: startedAt,
     }, null, 2)}\n`);
 
-    const prompt = buildPrompt({ paths, instructionMeta, instructionHash, reportHash, git });
     const beforeFingerprint = await fingerprint(paths.targetRoot);
-    const response = await invokeAudit({ targetRoot: paths.targetRoot, prompt, paths, git, claudeTimeoutMs });
+    let audit;
+    let response;
+    let sessionRecord = null;
+    if (syncSession) {
+      // 기존 Claude Sync 감리 흐름을 깨운다. 실패해도 headless 로 대체하지 않는다.
+      const resumed = await invokeSyncAudit({
+        targetRoot: paths.targetRoot,
+        resumePrompt: buildResumePrompt({ paths, instructionMeta, instructionHash, reportHash, git }),
+        sessionId: syncSession,
+        claudeTimeoutMs,
+        projectsDir,
+      });
+      sessionRecord = resumed.session;
+      response = { stdout: resumed.text, stderr: resumed.stderr };
+      audit = { verdict: resumed.verdict, text: resumed.text, mode: 'sync-session' };
+    } else {
+      const prompt = buildPrompt({ paths, instructionMeta, instructionHash, reportHash, git });
+      response = await invokeAudit({ targetRoot: paths.targetRoot, prompt, paths, git, claudeTimeoutMs });
+      audit = validateAuditResult(response.result ?? response);
+    }
     const afterFingerprint = await fingerprint(paths.targetRoot);
     assertUnchanged(beforeFingerprint, afterFingerprint);
-    const audit = validateAuditResult(response.result ?? response);
     const completedAt = now().toISOString();
     const slug = `${paths.relay}-${completedAt.replaceAll(':', '-')}-${compactHash(triggerKey)}`;
     const runPath = path.join(paths.runsDir, `${slug}.json`);
@@ -744,11 +940,13 @@ export async function runAuditOnce({
       completedAt,
       git,
       readonlyGate: { unchanged: true, before: beforeFingerprint, after: afterFingerprint },
+      syncSession: sessionRecord,
       audit,
       rawStdout: response.stdout ?? null,
       rawStderr: response.stderr ?? null,
     }, null, 2)}\n`);
-    await atomicWrite(inboxPath, renderAuditMarkdown({
+    const render = sessionRecord ? renderSyncSessionMarkdown : renderAuditMarkdown;
+    await atomicWrite(inboxPath, render({
       audit,
       instructionMeta,
       instructionHash,
@@ -757,6 +955,7 @@ export async function runAuditOnce({
       completedAt,
       triggerKey,
       readonlyGate: { unchanged: true, before: beforeFingerprint, after: afterFingerprint },
+      session: sessionRecord,
     }));
     await atomicWrite(paths.statePath, `${JSON.stringify({
       schemaVersion: 2,
@@ -813,14 +1012,22 @@ export async function runAuditOnce({
   }
 }
 
+/** 감리 경로를 한 문장으로. 표시가 실제 동작과 어긋나면 운영자가 잘못된 상태를 믿게 된다. */
+export function describeRouting({ emitChannel = false, syncSession = null } = {}) {
+  if (emitChannel) return 'RTW Channel — 실행 중 Claude Sync 세션에 이벤트 전달';
+  if (syncSession) return `Claude Sync 세션 ${syncSession.slice(0, 8)} 기동(--resume)`;
+  return 'headless 신규 호출';
+}
+
 function printResult(result) {
   const verdict = result.verdict ? ` verdict=${result.verdict}` : '';
   const key = result.triggerKey ? ` key=${compactHash(result.triggerKey)}` : '';
+  const event = result.eventId ? ` event=${result.eventId}` : '';
   const tail = result.inboxPath ? ` → ${toPosix(result.inboxPath)}` : ` — ${result.reason ?? ''}`;
-  console.log(`[orchestrator] ${result.relay}: ${result.status}${verdict}${key}${tail}`);
+  console.log(`[orchestrator] ${result.relay}: ${result.status}${verdict}${key}${event}${tail}`);
 }
 
-async function doctor({ target, relay, runtimeDir, claudeTimeoutMs = DEFAULT_CLAUDE_TIMEOUT_MS }) {
+async function doctor({ target, relay, runtimeDir, claudeTimeoutMs = DEFAULT_CLAUDE_TIMEOUT_MS, syncSession = null, settleMs = DEFAULT_SETTLE_MS, projectsDir = DEFAULT_PROJECTS_DIR, emitChannel = false }) {
   const paths = resolvePaths({ target, relay, runtimeDir });
   await assertGitWorktree(paths.targetRoot);
   let claudeVersion;
@@ -845,6 +1052,31 @@ async function doctor({ target, relay, runtimeDir, claudeTimeoutMs = DEFAULT_CLA
   console.log(`[orchestrator] runtime: ${toPosix(paths.runtimeRoot)}`);
   console.log(`[orchestrator] 대상 지문: ${fingerprint.digest}`);
   console.log(`[orchestrator] Claude 실행 상한: ${(claudeTimeoutMs / 60_000).toFixed(1)}분 (lock lease ${((claudeTimeoutMs + LOCK_LEASE_GRACE_MS) / 60_000).toFixed(1)}분)`);
+  console.log(`[orchestrator] 완료 안정화: ${Math.round(settleMs / 1000)}초`);
+  if (syncSession) {
+    const transcript = await sessionTranscript(syncSession, projectsDir);
+    console.log(`[orchestrator] 감리 경로: Claude Sync 세션 ${syncSession}`);
+    console.log(`[orchestrator] 세션 이력: ${transcript ? `${transcript.path} (${transcript.bytes} B, ${transcript.mtime})` : '찾지 못함 — resume 불가'}`);
+  } else if (emitChannel) {
+    const [pending, done] = await Promise.all([listPending(runtimeDir), listDone(runtimeDir)]);
+    const unacked = pending.filter((event) => !event.ackedAt);
+    console.log(`[orchestrator] 감리 경로: ${describeRouting({ emitChannel })}`);
+    console.log(`[orchestrator] 채널 큐: pending ${pending.length}건(미ACK ${unacked.length}) · done ${done.length}건`);
+    for (const event of pending.slice(0, 3)) {
+      console.log(`[orchestrator]   - ${event.eventId} ${event.ackedAt ? 'ACK됨' : '미ACK'} 전달 ${event.deliveries ?? 0}회`);
+    }
+    const servers = await listLiveServers(runtimeDir);
+    if (servers.length === 0) {
+      console.log('[orchestrator] ⚠ 채널 서버 heartbeat 없음 — 세션이 없거나, heartbeat 이전 빌드로 떠 있다(세션 재시작 시 갱신).');
+    } else if (servers.length > 1) {
+      console.log(`[orchestrator] ⚠ 채널 서버 ${servers.length}개 — 같은 이벤트가 여러 세션에 전달돼 중복 감리된다. 하나만 남겨라.`);
+      for (const server of servers) console.log(`[orchestrator]   - pid ${server.pid} (부모 ${server.ppid}) cwd ${server.cwd}`);
+    } else {
+      console.log(`[orchestrator] 채널 서버: pid ${servers[0].pid} (부모 ${servers[0].ppid}) — 정상`);
+    }
+  } else {
+    console.log('[orchestrator] 감리 경로: headless 신규 호출 (--sync-session·--emit-channel 미지정)');
+  }
   console.log(`[orchestrator] Claude CLI: ${claudeVersion}`);
   console.log(`[orchestrator] relay: ${paths.relay}`);
   console.log(`[orchestrator] INSTRUCTION: ${instruction === null ? '없음' : `있음 (상태=${meta.status || '미상'}, 지시번호=${meta.instructionId})`}`);
@@ -862,6 +1094,10 @@ export function parseCli(argv) {
     target: null,
     shadow: true,
     claudeTimeoutMs: DEFAULT_CLAUDE_TIMEOUT_MS,
+    syncSession: null,
+    settleMs: DEFAULT_SETTLE_MS,
+    requireClean: false,
+    emitChannel: false,
   };
   for (let index = 0; index < rest.length; index += 1) {
     const token = rest[index];
@@ -871,6 +1107,10 @@ export function parseCli(argv) {
     if (token === '--runtime-dir') { options.runtimeDir = value; index += 1; continue; }
     if (token === '--interval-ms') { options.intervalMs = Number(value); index += 1; continue; }
     if (token === '--claude-timeout-ms') { options.claudeTimeoutMs = Number(value); index += 1; continue; }
+    if (token === '--sync-session') { options.syncSession = value; index += 1; continue; }
+    if (token === '--settle-ms') { options.settleMs = Number(value); index += 1; continue; }
+    if (token === '--require-clean') { options.requireClean = true; continue; }
+    if (token === '--emit-channel') { options.emitChannel = true; continue; }
     if (token === '--shadow') { options.shadow = true; continue; }
     if (token === '--no-shadow') { options.shadow = false; continue; }
     throw new Error(`알 수 없는 인자: ${token}`);
@@ -884,6 +1124,15 @@ export function parseCli(argv) {
     }
     if (!Number.isFinite(options.claudeTimeoutMs) || options.claudeTimeoutMs < MIN_CLAUDE_TIMEOUT_MS) {
       throw new Error(`--claude-timeout-ms는 ${MIN_CLAUDE_TIMEOUT_MS} 이상이어야 합니다.`);
+    }
+    if (!Number.isFinite(options.settleMs) || options.settleMs < 0) {
+      throw new Error('--settle-ms는 0 이상이어야 합니다.');
+    }
+    if (options.syncSession !== null && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(options.syncSession)) {
+      throw new Error('--sync-session은 세션 UUID 여야 합니다.');
+    }
+    if (options.emitChannel && options.syncSession) {
+      throw new Error('--emit-channel 과 --sync-session 은 함께 쓸 수 없습니다. 실행 중 세션에 이벤트를 넣는 방식과 별도 프로세스를 띄우는 방식은 양립하지 않습니다.');
     }
   }
   return options;
@@ -900,6 +1149,11 @@ function printHelp() {
 동작:
   대상 저장소의 INSTRUCTION.md 상태가 보고완료이고 REPORT.md 가 있으면 Claude 를 읽기 전용으로 호출한다.
   실행 키 = sha256(대상 HEAD : INSTRUCTION 해시 : REPORT 해시) — 같은 조합은 다시 감리하지 않는다.
+  --sync-session <uuid> 를 주면 새 headless 세션 대신 **기존 Claude Sync 감리 세션**을 깨운다
+  (claude --resume). 감리는 그 대화 안에서 수행되고 판정이 그 이력에 남는다. 실패해도 headless 로
+  대체하지 않는다. 응답 마지막 줄의 "VERDICT: …" 를 회수하며, 없으면 실패다.
+  --settle-ms(기본 90초) 동안 대상 지문이 연속 동일해야 감리를 시작한다(최종 HEAD 고정).
+  --require-clean 을 주면 워킹트리가 clean 일 때만 시작한다(기본 off).
   Claude 실행에는 상한(기본 45분, --claude-timeout-ms)이 있고, 초과는 실패로 남는다.
   소유자가 죽었거나 lease(상한+60초)를 넘긴 lock 은 회수한다. 살아 있는 lock 은 회수하지 않는다.
   산출물은 전부 런타임 루트(.orchestrator/) 아래에 쓴다. 대상 저장소에는 아무것도 쓰지 않는다.
@@ -926,11 +1180,15 @@ async function main() {
   }
   if (options.command !== 'watch') throw new Error(`알 수 없는 명령: ${options.command}`);
 
-  console.log(`[orchestrator] ${options.relay} 감시 시작 (shadow, 간격 ${options.intervalMs}ms, Ctrl+C 종료)`);
+  const routing = describeRouting(options);
+  console.log(`[orchestrator] ${options.relay} 감시 시작 (shadow, 간격 ${options.intervalMs}ms, ${routing}, 안정화 ${Math.round(options.settleMs / 1000)}초, Ctrl+C 종료)`);
   let lastLine = '';
+  let settleState = null;
   while (true) {
     try {
-      const result = await runAuditOnce(options);
+      const result = await runAuditOnce({ ...options, settleState });
+      // 안정화 타이머는 tick 사이에 이어져야 한다.
+      settleState = result.status === 'settling' ? result.settleState : null;
       const line = `${result.status}:${result.reason ?? result.verdict ?? ''}`;
       if (line !== lastLine) {
         printResult(result);

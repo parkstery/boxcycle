@@ -12,6 +12,8 @@ import {
   assertUnchanged,
   awaitClaudeChild,
   computeTriggerKey,
+  evaluateSettle,
+  parseResumeVerdict,
   removeLockIfSame,
   evaluateLock,
   isProcessAlive,
@@ -81,6 +83,7 @@ function baseOptions(fx, overrides = {}) {
     snapshot: async () => GIT,
     fingerprint: async () => FINGERPRINT,
     verifyTarget: async () => {},
+    settleMs: 0, // 안정화 게이트는 전용 시험에서만 켠다.
     ...overrides,
   };
 }
@@ -247,10 +250,11 @@ test('감리 중 대상이 바뀌면 성공으로 기록하지 않는다', async
   let call = 0;
   await assert.rejects(
     () => runAuditOnce(baseOptions(fx, {
-      // 감리 전/후 지문을 다르게 돌려준다 = actor 가 대상에 쓴 상황.
+      // 호출 순서: ① 안정화 게이트 ② 감리 직전 ③ 감리 직후.
+      // ③ 만 다르게 돌려준다 = actor 가 감리 중에 대상에 쓴 상황.
       fingerprint: async () => {
         call += 1;
-        return call === 1 ? FINGERPRINT : { ...FINGERPRINT, digest: '0'.repeat(64), diffHash: '1'.repeat(64) };
+        return call <= 2 ? FINGERPRINT : { ...FINGERPRINT, digest: '0'.repeat(64), diffHash: '1'.repeat(64) };
       },
       invokeAudit: async () => ({ result: PASS_RESULT }),
     })),
@@ -586,6 +590,146 @@ test('상한 초과는 state=failed 와 FAILED.md 를 남긴다', async () => {
   // 부분 결과를 성공으로 채택하지 않았다.
   assert.equal(existsSync(path.join(fx.runtimeDir, 'runs')), false);
   assert.equal(existsSync(path.join(fx.runtimeDir, 'locks', 'sync-relay.lock')), false, 'lock 을 놓아야 한다');
+});
+
+// ── O-2: Claude Sync 감리 세션 기동 ─────────────────────────────────────
+
+const SETTLED = { settleMs: 0 };
+
+test('--sync-session 이 있으면 headless 가 아니라 resume 경로를 탄다', async () => {
+  const fx = await fixture();
+  let headless = 0;
+  let resumed = 0;
+  const result = await runAuditOnce(baseOptions(fx, {
+    ...SETTLED,
+    syncSession: '8041b959-6fca-45b0-bdf9-1a3aa869bfb8',
+    invokeAudit: async () => { headless += 1; return { result: PASS_RESULT }; },
+    invokeSyncAudit: async ({ sessionId }) => {
+      resumed += 1;
+      return {
+        verdict: 'WARNING',
+        text: `감리 결과 …\nVERDICT: WARNING`,
+        stderr: '',
+        session: { id: sessionId, before: { bytes: 100 }, after: { bytes: 400 }, grew: true },
+      };
+    },
+  }));
+
+  assert.equal(result.status, 'audited');
+  assert.equal(result.verdict, 'WARNING');
+  assert.equal(resumed, 1);
+  assert.equal(headless, 0, 'headless 신규 세션을 띄우면 안 된다');
+
+  const inbox = await readFile(result.inboxPath, 'utf8');
+  assert.match(inbox, /Claude Sync 감리 \(세션 기동\)/);
+  assert.match(inbox, /정본은 Claude Sync 대화 이력이다/);
+  assert.match(inbox, /세션 이력 증가.*예 \(100 → 400 B\)/);
+});
+
+test('resume 실패는 headless 로 대체되지 않고 실패로 남는다', async () => {
+  const fx = await fixture();
+  let headless = 0;
+  await assert.rejects(
+    () => runAuditOnce(baseOptions(fx, {
+      ...SETTLED,
+      syncSession: '8041b959-6fca-45b0-bdf9-1a3aa869bfb8',
+      invokeAudit: async () => { headless += 1; return { result: PASS_RESULT }; },
+      invokeSyncAudit: async () => { throw new Error('Claude Sync 세션을 찾지 못했습니다'); },
+    })),
+    /세션을 찾지 못했습니다/,
+  );
+  assert.equal(headless, 0, '조용한 headless 대체 경로가 있으면 안 된다');
+
+  const state = JSON.parse(await readFile(path.join(fx.runtimeDir, 'state', 'sync-relay.json'), 'utf8'));
+  assert.equal(state.status, 'failed');
+  assert.equal(existsSync(path.join(fx.runtimeDir, 'runs')), false);
+});
+
+test('VERDICT 줄 회수 — 없으면 거부, 마지막 줄을 채택', () => {
+  assert.equal(parseResumeVerdict('요약…\nVERDICT: BLOCK'), 'BLOCK');
+  assert.equal(parseResumeVerdict('  verdict :  warning  '), 'WARNING');
+  assert.equal(parseResumeVerdict('VERDICT: PASS\n'), 'PASS');
+  // 본문에서 형식을 설명한 뒤 마지막에 실제 판정을 쓰는 경우 → 마지막 것을 쓴다.
+  assert.equal(parseResumeVerdict('형식은 VERDICT: PASS 이다\n결론\nVERDICT: BLOCK'), 'BLOCK');
+  assert.throws(() => parseResumeVerdict('판정을 서술로만 적었다'), /VERDICT/);
+  assert.throws(() => parseResumeVerdict(''), /VERDICT/);
+});
+
+// ── O-2: 완료 이벤트 안정화 ─────────────────────────────────────────────
+
+test('지문이 흔들리는 동안에는 감리가 시작되지 않는다', async () => {
+  const fx = await fixture();
+  let calls = 0;
+  let digest = 'a'.repeat(64);
+  const options = baseOptions(fx, {
+    settleMs: 60_000,
+    fingerprint: async () => ({ ...FINGERPRINT, digest }),
+    invokeAudit: async () => { calls += 1; return { result: PASS_RESULT }; },
+  });
+
+  const first = await runAuditOnce(options);
+  assert.equal(first.status, 'settling');
+  assert.match(first.reason, /안정화 대기 0\/60초/);
+
+  digest = 'b'.repeat(64); // 커밋이 더 들어왔다 — 타이머가 다시 시작된다.
+  const second = await runAuditOnce({ ...options, settleState: first.settleState });
+  assert.equal(second.status, 'settling');
+  assert.match(second.reason, /지문 변동/);
+  assert.equal(calls, 0);
+});
+
+test('지문이 settle-ms 동안 고정되면 감리가 시작된다', async () => {
+  const fx = await fixture();
+  const held = { digest: 'c'.repeat(64), firstSeenAt: Date.now() - 120_000 };
+  const result = await runAuditOnce(baseOptions(fx, {
+    settleMs: 60_000,
+    settleState: held,
+    fingerprint: async () => ({ ...FINGERPRINT, digest: held.digest }),
+    invokeAudit: async () => ({ result: PASS_RESULT }),
+  }));
+  assert.equal(result.status, 'audited');
+});
+
+test('--require-clean 이면 dirty 트리는 시작하지 않는다', async () => {
+  const fx = await fixture();
+  let calls = 0;
+  const result = await runAuditOnce(baseOptions(fx, {
+    ...SETTLED,
+    requireClean: true,
+    snapshot: async () => ({ ...GIT, status: ' M a.ts', dirty: true }),
+    invokeAudit: async () => { calls += 1; return { result: PASS_RESULT }; },
+  }));
+  assert.equal(result.status, 'settling');
+  assert.match(result.reason, /require-clean/);
+  assert.equal(calls, 0);
+});
+
+test('evaluateSettle — 유지 시간 경과에 따라 ready 가 바뀐다', () => {
+  const base = { digest: 'x', settleMs: 10_000, dirty: false, requireClean: false };
+  const t0 = 1_000_000;
+  const first = evaluateSettle(null, { ...base, nowMs: t0 });
+  assert.equal(first.ready, false);
+  assert.equal(first.firstSeenAt, t0);
+
+  const mid = evaluateSettle(first, { ...base, nowMs: t0 + 5_000 });
+  assert.equal(mid.ready, false);
+  assert.match(mid.reason, /5\/10초/);
+
+  const done = evaluateSettle(mid, { ...base, nowMs: t0 + 10_001 });
+  assert.equal(done.ready, true);
+  assert.equal(done.heldMs, 10_001);
+});
+
+test('--sync-session·--settle-ms 파싱과 검증', () => {
+  const parsed = parseCli(['watch', '--target', 'C:/tmp/x', '--sync-session', '8041b959-6fca-45b0-bdf9-1a3aa869bfb8', '--settle-ms', '30000', '--require-clean']);
+  assert.equal(parsed.syncSession, '8041b959-6fca-45b0-bdf9-1a3aa869bfb8');
+  assert.equal(parsed.settleMs, 30_000);
+  assert.equal(parsed.requireClean, true);
+  assert.throws(() => parseCli(['watch', '--target', 'C:/tmp/x', '--sync-session', 'not-a-uuid']), /세션 UUID/);
+  assert.throws(() => parseCli(['watch', '--target', 'C:/tmp/x', '--settle-ms', '-1']), /0 이상/);
+  // 기본값
+  assert.equal(parseCli(['watch', '--target', 'C:/tmp/x']).syncSession, null);
+  assert.equal(parseCli(['watch', '--target', 'C:/tmp/x']).settleMs, 90_000);
 });
 
 test('사유 없는 WARNING·BLOCK 판정을 거부한다', async () => {
