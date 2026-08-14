@@ -34,6 +34,7 @@ import {
   isFollowCameraJump,
 } from "../../lib/mapTickProbe";
 import { installCameraRenderPhaseHook } from "../../lib/cameraRenderPhase";
+import { applyTickTestToMap, getTickTestOffList, installTickTestMapHooks, subscribeTickTest } from "../../lib/tickTestSwitches";
 import type { LngLat, LineStringGeometry } from "../../lib/geo";
 import {
   getDistanceMeters,
@@ -97,6 +98,7 @@ import {
   CAMERA_BEARING_WINDOW_SAMPLES,
 } from "./rideCameraFollow";
 import { buildElevationUi, getProgressRatioOnRoute } from "./mapElevationUi";
+import { TickTestOffBadge } from "./TickTestOffBadge";
 import "./MapView.css";
 
 const RIDER_PROTOTYPE_MODE = getRiderPrototypeMode();
@@ -1498,6 +1500,16 @@ export function MapView({
   }, [getActivityWorldPinLabel]);
 
   useEffect(() => {
+    if (!import.meta.env.DEV || !mapLoaded) return;
+    const apply = () => {
+      const map = mapRef.current;
+      if (map) applyTickTestToMap(map);
+    };
+    apply();
+    return subscribeTickTest(apply);
+  }, [mapLoaded]);
+
+  useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
     resetCameraSmoothing(cameraSmoothRef.current, map);
@@ -1547,6 +1559,8 @@ export function MapView({
       (window as Window & { __RTW_MAP__?: mapboxgl.Map }).__RTW_MAP__ = map;
     }
     installCameraRenderPhaseHook(map);
+    installTickTestMapHooks(map);
+    applyTickTestToMap(map);
 
     const reportMapViewport = () => {
       const bounds = map.getBounds();
@@ -1648,6 +1662,7 @@ export function MapView({
       apply3DState(map, enable3DRef.current, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID);
       clearRiderGlbModels(map);
       ensureRiderGlbLayer(map);
+      if (import.meta.env.DEV) applyTickTestToMap(map);
       try {
         applyCoverageOverlayMode(
           map,
@@ -2399,6 +2414,7 @@ export function MapView({
           });
         }
         syncRiderGlbModels(map, specs);
+        if (import.meta.env.DEV && getTickTestOffList().length > 0) applyTickTestToMap(map);
         const liveLabel = liveRiderNametagRef.current?.trim() ?? "";
         syncGlbLiveNametagMarker(
           map,
@@ -2735,6 +2751,7 @@ export function MapView({
   return (
     <div className="map-view-shell">
       <div ref={containerRef} className="map-view" role="presentation" />
+      <TickTestOffBadge />
       {isLoadingElevation ? (
         <div className="elevation-overlay">
           <div className="elevation-overlay__empty">고도 계산 중…</div>

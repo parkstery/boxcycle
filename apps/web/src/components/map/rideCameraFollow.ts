@@ -15,6 +15,7 @@ import {
 } from "../../lib/mapTickProbe";
 import { noteFollowJumpToValues } from "../../lib/cameraFollowTrace";
 import { noteCameraWrite } from "../../lib/cameraRenderPhase";
+import { isTickTestFollowOn, isTickTestMapStopOn } from "../../lib/tickTestSwitches";
 import { type LiveRiderMotion } from "./mapViewTypes";
 
 const CAMERA_POSITION_TAU_SEC = 0.1;
@@ -209,7 +210,7 @@ export function tickRideCameraFollow(
 ): void {
   if (opts.nowMs < opts.suppressUntilMs) return;
 
-  if (opts.followMode === "free") {
+  if (opts.followMode === "free" || !isTickTestFollowOn()) {
     opts.prevLiveRef.current = targetLngLat;
     return;
   }
@@ -304,7 +305,7 @@ export function tickRideCameraFollow(
     zoom: nextZoom,
     riderLngLat: targetLngLat,
     t: opts.nowMs,
-    stopFirst: true,
+    stopFirst: isTickTestMapStopOn(),
   });
 }
 
