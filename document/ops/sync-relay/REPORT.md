@@ -12,7 +12,7 @@
 - **일시**: 2026-08-14
 - **브랜치**: `fix/multiplayer-position-sync` (base `main2`) · HEAD `a2b58ff`
 - **활성 지시**: **S4-M2 진행 중** (`INSTRUCTION.md`)
-- **원격**: origin보다 **ahead 8** (미푸시 · §4-2 에서 push 뒤 ahead 0)
+- **원격**: origin과 **ahead 0 (원격 반영 완료)**
 - **워킹트리**: 문서만 갱신 (제품·시험 코드 무수정 · e2e 미재실행)
 - **보존**: `INSTRUCTION-S4M1R.md` · `S4M1-lifecycle.json` · `S41M1-summary.json` · `REPORT-S41R2.md` · `S41R-lifecycle.json`
 
