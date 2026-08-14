@@ -23,6 +23,16 @@ import {
   shouldMoveActivityWorldLayersToTop,
   shouldSkipLiveOverlaysOnMap,
 } from "../../lib/mapDebugPhase";
+import {
+  noteLodScheduleEmit,
+  noteLodScheduleEnter,
+  noteMapEvent,
+  noteMoveToTopMs,
+  notePathBInterval,
+  noteRafFrame,
+  noteSyncActivityMs,
+  isFollowCameraJump,
+} from "../../lib/mapTickProbe";
 import type { LngLat, LineStringGeometry } from "../../lib/geo";
 import {
   getDistanceMeters,
@@ -152,6 +162,25 @@ const ACTIVITY_PULSE_DOTS_GLOW = "boxcycle-activity-pulse-dots-glow";
 const ACTIVITY_PULSE_DOTS_LAYER = "boxcycle-activity-pulse-dots-layer";
 const ACTIVITY_HEAT_DOTS_LAYER = "boxcycle-activity-heat-dots-layer";
 
+const ACTIVITY_WORLD_LAYER_IDS = [
+  ACTIVITY_PULSE_GLOW,
+  ACTIVITY_PULSE_LINE,
+  ACTIVITY_HEAT_GLOW,
+  ACTIVITY_HEAT_LINE,
+  ACTIVITY_PULSE_DOTS_GLOW,
+  ACTIVITY_PULSE_DOTS_LAYER,
+  ACTIVITY_HEAT_DOTS_GLOW,
+  ACTIVITY_HEAT_DOTS_LAYER,
+] as const;
+
+function activityWorldLayerSignature(map: mapboxgl.Map): string {
+  let s = "";
+  for (const id of ACTIVITY_WORLD_LAYER_IDS) s += map.getLayer(id) ? "1" : "0";
+  return s;
+}
+
+let lastActivityWorldLayerSig = "";
+
 type ActivityWorldDotFeature = {
   publicationId: string;
   lngLat: LngLat;
@@ -185,16 +214,11 @@ function traceLineOpacityByZoom(
 
 /** Activity World dot·line — `route`·coverage 위로 (route effect 가 dot 뒤에 addLayer 되는 회귀 방지) */
 function moveActivityWorldLayersToTop(map: mapboxgl.Map): void {
-  for (const id of [
-    ACTIVITY_PULSE_GLOW,
-    ACTIVITY_PULSE_LINE,
-    ACTIVITY_HEAT_GLOW,
-    ACTIVITY_HEAT_LINE,
-    ACTIVITY_PULSE_DOTS_GLOW,
-    ACTIVITY_PULSE_DOTS_LAYER,
-    ACTIVITY_HEAT_DOTS_GLOW,
-    ACTIVITY_HEAT_DOTS_LAYER,
-  ]) {
+  const sig = activityWorldLayerSignature(map);
+  if (sig === lastActivityWorldLayerSig) return;
+  lastActivityWorldLayerSig = sig;
+  const t0 = performance.now();
+  for (const id of ACTIVITY_WORLD_LAYER_IDS) {
     if (map.getLayer(id)) {
       try {
         map.moveLayer(id);
@@ -203,6 +227,7 @@ function moveActivityWorldLayersToTop(map: mapboxgl.Map): void {
       }
     }
   }
+  noteMoveToTopMs(performance.now() - t0);
 }
 
 function routeLayerInsertBefore(map: mapboxgl.Map): string | undefined {
@@ -1265,11 +1290,13 @@ export function MapView({
   const syncActivityWorldLayersOnMapRef = useRef<(map: mapboxgl.Map) => void>(() => {});
   syncActivityWorldLayersOnMapRef.current = (map) => {
     if (!map.style) return;
+    const t0 = performance.now();
     const raw = activityWorldRawRef.current;
     syncCourseActivityLayers(map, raw.pulseRoutes, raw.heatRoutes);
     syncWorldHeatDots(map, raw.heatDots);
     syncWorldRedDots(map, raw.pulseDots);
     moveActivityWorldLayersToTop(map);
+    noteSyncActivityMs(performance.now() - t0);
   };
 
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -1526,6 +1553,8 @@ export function MapView({
     let lodLastEmit = 0;
     const LOD_VIEWPORT_THROTTLE_MS = 100;
     const scheduleLodViewportReport = () => {
+      if (isFollowCameraJump()) return;
+      noteLodScheduleEnter();
       if (lodRaf) return;
       lodRaf = requestAnimationFrame(() => {
         lodRaf = 0;
@@ -1535,6 +1564,7 @@ export function MapView({
           return;
         }
         lodLastEmit = now;
+        noteLodScheduleEmit();
         if (onMapLodViewportRef.current) reportMapLodViewport();
         syncActivityWorldLayersOnMapRef.current(map);
       });
@@ -1554,8 +1584,19 @@ export function MapView({
     map.on("idle", reportMapViewport);
     map.on("move", scheduleLodViewportReport);
     map.on("zoom", scheduleLodViewportReport);
+    const onMoveCount = () => noteMapEvent("move");
+    const onZoomCount = () => noteMapEvent("zoom");
+    const onMoveEndCount = () => noteMapEvent("moveend");
+    const onZoomEndCount = () => noteMapEvent("zoomend");
+    const onIdleCount = () => noteMapEvent("idle");
+    map.on("move", onMoveCount);
+    map.on("zoom", onZoomCount);
+    map.on("moveend", onMoveEndCount);
+    map.on("zoomend", onZoomEndCount);
+    map.on("idle", onIdleCount);
 
     map.on("style.load", () => {
+      lastActivityWorldLayerSig = "";
       const latestRoute = routeGeometryRef.current;
       if (latestRoute?.coordinates?.length) {
         const routeFeature = {
@@ -1687,6 +1728,11 @@ export function MapView({
       map.off("idle", reportMapViewport);
       map.off("move", scheduleLodViewportReport);
       map.off("zoom", scheduleLodViewportReport);
+      map.off("move", onMoveCount);
+      map.off("zoom", onZoomCount);
+      map.off("moveend", onMoveEndCount);
+      map.off("zoomend", onZoomEndCount);
+      map.off("idle", onIdleCount);
       if (lodRaf) cancelAnimationFrame(lodRaf);
       window.removeEventListener("resize", onResize);
       startMarkerRef.current?.remove();
@@ -2219,6 +2265,7 @@ export function MapView({
     if (!mapLoaded) return;
     let lastTs = performance.now();
     const tickBody = (now: number) => {
+      noteRafFrame(now);
       const map = mapRef.current;
       // isStyleLoaded() 는 위성+3D terrain 에서 영구 false 가능 → 동행 스프라이트 영영 차단.
       if (!map?.style) return;
@@ -2520,7 +2567,15 @@ export function MapView({
     const map = mapRef.current;
     if (!map) return;
 
-    const run = () => syncActivityWorldLayersOnMapRef.current(map);
+    const run = () => {
+      notePathBInterval();
+      if (!map.style) return;
+      const needPulse =
+        (activityWorldRaw?.pulseDots.length ?? 0) > 0 && !map.getLayer(ACTIVITY_PULSE_DOTS_LAYER);
+      const needHeat =
+        (activityWorldRaw?.heatDots.length ?? 0) > 0 && !map.getLayer(ACTIVITY_HEAT_DOTS_LAYER);
+      if (needPulse || needHeat) syncActivityWorldLayersOnMapRef.current(map);
+    };
     run();
     const onStyle = () => run();
     const onIdle = () => run();
@@ -2533,7 +2588,7 @@ export function MapView({
       map.off("style.load", onStyle);
       map.off("idle", onIdle);
     };
-  }, [mapLoaded, activityWorldRaw]);
+  }, [mapLoaded, hasDots]);
 
   useEffect(() => {
     const map = mapRef.current;

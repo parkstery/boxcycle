@@ -6,6 +6,12 @@ import {
 } from "../../lib/geo";
 import type { FollowMode } from "../ride/RideRoutePanel";
 import { RIDE_CAMERA_PITCH_CLOSE, zoomForRiderDistanceMeters } from "../../lib/mapGlobeView";
+import {
+  beginFollowCameraJump,
+  endFollowCameraJump,
+  noteFollowJumpTo,
+  noteHeadingFromMove,
+} from "../../lib/mapTickProbe";
 import { type LiveRiderMotion } from "./mapViewTypes";
 
 const CAMERA_POSITION_TAU_SEC = 0.1;
@@ -225,8 +231,9 @@ export function tickRideCameraFollow(
   }
 
   const prev = opts.prevLiveRef.current;
-  const headingFromMove =
-    prev && getDistanceMeters(prev, targetLngLat) >= 2 ? getBearing(prev, targetLngLat) : null;
+  const stepM = prev ? getDistanceMeters(prev, targetLngLat) : 0;
+  const headingFromMove = prev && stepM >= 2 ? getBearing(prev, targetLngLat) : null;
+  noteHeadingFromMove(stepM, headingFromMove != null);
   const headingFromRoute = getAverageHeadingAheadFromPoint(
     opts.routeGeometry,
     targetLngLat,
@@ -303,12 +310,18 @@ export function tickRideCameraFollow(
   smooth.bearing = nextBearing;
 
   map.stop();
-  map.jumpTo({
-    center: nextCenter,
-    bearing: nextBearing,
-    pitch: nextPitch,
-    zoom: nextZoom,
-  });
+  beginFollowCameraJump();
+  noteFollowJumpTo();
+  try {
+    map.jumpTo({
+      center: nextCenter,
+      bearing: nextBearing,
+      pitch: nextPitch,
+      zoom: nextZoom,
+    });
+  } finally {
+    endFollowCameraJump();
+  }
 }
 
 function clamp(v: number, min: number, max: number) {
