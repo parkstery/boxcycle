@@ -31,6 +31,23 @@ export type PeerMotionRenderFeature = {
   pframe: number;
 };
 
+/** DEV — 라벨에서 뺀 ▸d·n·s·gap·b·a */
+export type PeerStepDiag = {
+  uid: string;
+  d: number;
+  n: number;
+  s: number;
+  gap: number;
+  b: number;
+  a: number;
+};
+
+function publishPeerStepDiag(rows: PeerStepDiag[]): void {
+  if (!import.meta.env.DEV || typeof window === "undefined") return;
+  const w = window as Window & { __RTW_PEER_STEP_DIAG__?: PeerStepDiag[] };
+  w.__RTW_PEER_STEP_DIAG__ = rows;
+}
+
 let singleton: PeerMotionRegistry | null = null;
 
 export class PeerMotionRegistry {
@@ -98,9 +115,13 @@ export class PeerMotionRegistry {
   }
 
   buildRenderFeatures(routeGeometry: LineStringGeometry | null): PeerMotionRenderFeature[] {
-    if (!routeGeometry) return [];
+    if (!routeGeometry) {
+      publishPeerStepDiag([]);
+      return [];
+    }
     const routeLenM = lineStringLengthMeters(routeGeometry);
     const out: PeerMotionRenderFeature[] = [];
+    const peerStepDiagOut: PeerStepDiag[] = [];
     let n = 0;
     const nowMs = Date.now();
     const emitChain = peerSyncChainShouldEmit(nowMs);
@@ -133,23 +154,26 @@ export class PeerMotionRegistry {
             PEER_RIDER_PEDAL_FRAME_COUNT
           : 0;
 
-      const speedKmhLive =
-        entity.phase === "live" && entity.speedMps > 0.02
-          ? Math.round(entity.speedMps * 3.6)
-          : null;
-      let mapLabel =
-        speedKmhLive != null && speedKmhLive > 0
-          ? `${entity.label} · ${speedKmhLive} km/h`.slice(0, 56)
-          : entity.label;
-
+      const mapLabel = entity.label;
       if (import.meta.env.DEV) {
         const newest = entity.buffer[entity.buffer.length - 1];
         const ageMs = newest ? nowMs - newest.recvAtMs : -1;
         const self = getPeerSyncSelfDistM();
-        mapLabel =
-          `${entity.label} ▸d${Math.round(entity.displayDistM)} n${newest ? Math.round(newest.distM) : 0}` +
-          ` s${Math.round(self)} gap${Math.round((newest ? newest.distM : 0) - self)}` +
-          ` b${entity.buffer.length} a${Math.round(ageMs / 100) / 10}s`;
+        const d = Math.round(entity.displayDistM);
+        const newestDist = newest ? Math.round(newest.distM) : 0;
+        const s = Math.round(self);
+        const gap = Math.round((newest ? newest.distM : 0) - self);
+        const b = entity.buffer.length;
+        const a = Math.round(ageMs / 100) / 10;
+        peerStepDiagOut.push({
+          uid: entity.uid.slice(0, 6),
+          d,
+          n: newestDist,
+          s,
+          gap,
+          b,
+          a,
+        });
         if (emitChain) {
           logStepModeDiag(entity, nowMs, routeLenM);
           peerSyncChainLog(7, newest?.seq, {
@@ -172,6 +196,7 @@ export class PeerMotionRegistry {
       });
       n += 1;
     }
+    publishPeerStepDiag(peerStepDiagOut);
     return out;
   }
 
@@ -188,10 +213,19 @@ export class PeerMotionRegistry {
     newestDistM: number;
     speedMps: number;
     newestAgeMs: number;
+    d: number;
+    n: number;
+    s: number;
+    gap: number;
+    b: number;
+    a: number;
   }> {
     const out = [];
+    const self = getPeerSyncSelfDistM();
     for (const e of this.entities.values()) {
       const newest = e.buffer[e.buffer.length - 1];
+      const newestDistM = newest ? newest.distM : 0;
+      const newestAgeMs = newest ? nowMs - newest.recvAtMs : -1;
       out.push({
         uid: e.uid.slice(0, 6),
         phase: e.phase,
@@ -199,7 +233,13 @@ export class PeerMotionRegistry {
         displayDistM: Math.round(e.displayDistM * 10) / 10,
         newestDistM: newest ? Math.round(newest.distM * 10) / 10 : 0,
         speedMps: Math.round(e.speedMps * 100) / 100,
-        newestAgeMs: newest ? nowMs - newest.recvAtMs : -1,
+        newestAgeMs,
+        d: Math.round(e.displayDistM),
+        n: Math.round(newestDistM),
+        s: Math.round(self),
+        gap: Math.round(newestDistM - self),
+        b: e.buffer.length,
+        a: Math.round(newestAgeMs / 100) / 10,
       });
     }
     return out;

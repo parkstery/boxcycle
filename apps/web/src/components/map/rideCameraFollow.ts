@@ -5,7 +5,8 @@ import {
   type LineStringGeometry as RouteLineStringGeometry,
 } from "../../lib/geo";
 import type { FollowMode } from "../ride/RideRoutePanel";
-import { RIDE_CAMERA_PITCH_CLOSE, zoomForRiderDistanceMeters } from "../../lib/mapGlobeView";
+import { RIDE_CAMERA_PITCH_CLOSE } from "../../lib/mapGlobeView";
+import { computeRideFollowFraming, viewportPxFromMap } from "../../lib/rideCameraFraming";
 import {
   beginFollowCameraJump,
   endFollowCameraJump,
@@ -74,26 +75,7 @@ function normalizeCompass(deg: number) {
   return x;
 }
 
-/** bearing 방향으로 distanceM 이동한 좌표 (구면 근사) */
-export function offsetLngLatByBearingMeters(origin: LngLat, bearingDeg: number, distanceMeters: number): LngLat {
-  if (distanceMeters <= 0) return origin;
-  const earthRadiusM = 6378137;
-  const bearingRad = (normalizeCompass(bearingDeg) * Math.PI) / 180;
-  const latRad = (origin[1] * Math.PI) / 180;
-  const lngRad = (origin[0] * Math.PI) / 180;
-  const angDist = distanceMeters / earthRadiusM;
-  const lat2 = Math.asin(
-    Math.sin(latRad) * Math.cos(angDist) +
-      Math.cos(latRad) * Math.sin(angDist) * Math.cos(bearingRad),
-  );
-  const lng2 =
-    lngRad +
-    Math.atan2(
-      Math.sin(bearingRad) * Math.sin(angDist) * Math.cos(latRad),
-      Math.cos(angDist) - Math.sin(latRad) * Math.sin(lat2),
-    );
-  return [(lng2 * 180) / Math.PI, (lat2 * 180) / Math.PI];
-}
+export { offsetLngLatByBearingMeters } from "../../lib/geo";
 
 export function getAverageHeadingAheadFromPoint(
   geometry: RouteLineStringGeometry | null,
@@ -249,14 +231,18 @@ export function tickRideCameraFollow(
     distanceM: opts.rideCameraDistanceM,
   });
 
-  const cameraCenterTarget =
-    nextCamera.distanceM > 0 && nextCamera.offsetBearing != null
-      ? offsetLngLatByBearingMeters(targetLngLat, nextCamera.offsetBearing, nextCamera.distanceM)
-      : targetLngLat;
-  const followZoom =
-    nextCamera.distanceM > 0
-      ? zoomForRiderDistanceMeters(nextCamera.distanceM, targetLngLat[1], nextCamera.pitch)
-      : opts.mapZoom;
+  const vp = viewportPxFromMap(map);
+  const framing = computeRideFollowFraming({
+    riderLngLat: targetLngLat,
+    offsetBearing: nextCamera.offsetBearing,
+    distanceM: nextCamera.distanceM,
+    pitchDeg: nextCamera.pitch,
+    viewportWidthPx: vp.width,
+    viewportHeightPx: vp.height,
+    fallbackZoom: opts.mapZoom,
+  });
+  const cameraCenterTarget = framing.center;
+  const followZoom = framing.zoom;
 
   opts.prevLiveRef.current = targetLngLat;
   const smooth = opts.smooth;

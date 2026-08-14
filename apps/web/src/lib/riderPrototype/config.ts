@@ -54,6 +54,12 @@ export const RIDER_GLB_NODE_OVERRIDE_NAMES = [
   "ankle_r",
 ] as const;
 
+/**
+ * Mapbox `model-scale` — `glbModelLayer` paint 와 동일.
+ * rider-lowpoly.glb AABB 전고 1.263m → 라이딩 자세 실측 보정(×1.15).
+ */
+export const RIDER_GLB_MODEL_SCALE = 1.15;
+
 /** Mapbox model orientation 3번째 값(요) — 모델 +X(동) 기준 */
 export function bearingToModelYawDeg(bearing: number): number {
   const b = ((bearing % 360) + 360) % 360;

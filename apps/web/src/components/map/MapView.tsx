@@ -75,8 +75,14 @@ import {
   RIDE_CAMERA_DISTANCE_DEFAULT_M,
   RIDE_CAMERA_DISTANCE_MIN_M,
   RIDE_CAMERA_DISTANCE_MAX_M,
-  zoomForRiderDistanceMeters,
 } from "../../lib/mapGlobeView";
+import {
+  computeRideFollowFraming,
+  measureRiderScreenDiag,
+  publishRiderScreenDiag,
+  RIDE_HUD_SAFE_PADDING,
+  viewportPxFromMap,
+} from "../../lib/rideCameraFraming";
 import { type LiveRiderMotion } from "./mapViewTypes";
 import {
   tickRideCameraFollow,
@@ -84,7 +90,6 @@ import {
   resetCameraSmoothing,
   shouldSyncMapZoomToApp,
   getBearing,
-  offsetLngLatByBearingMeters,
   apply3DState,
   getAverageHeadingAheadFromPoint,
   CAMERA_BEARING_WINDOW_METERS,
@@ -1889,7 +1894,7 @@ export function MapView({
     };
     map.once("moveend", onMoveEnd);
     map.fitBounds(bounds, {
-      padding: { top: 52, bottom: 120, left: 44, right: 44 },
+      padding: RIDE_HUD_SAFE_PADDING,
       maxZoom: 16,
       duration: prefersReducedMotion ? 0 : 1100,
       essential: true,
@@ -2319,6 +2324,14 @@ export function MapView({
           suppressUntilMs: suppressCameraFollowUntilRef.current,
           nowMs: now,
         });
+        if (import.meta.env.DEV) {
+          const headingDeg = resolveRiderBearingDeg(
+            routeGeometryRef.current,
+            sampled,
+            prevForBearing,
+          );
+          publishRiderScreenDiag(measureRiderScreenDiag(map, sampled, headingDeg));
+        }
       }
 
       const showPeerSprites = mapZoomRef.current > MAP_PEER_SPRITE_MIN_ZOOM;
@@ -2490,14 +2503,18 @@ export function MapView({
       currentPitch: map.getPitch(),
       distanceM: rideCameraDistanceMRef.current,
     });
-    const center =
-      nextCamera.distanceM > 0 && nextCamera.offsetBearing != null
-        ? offsetLngLatByBearingMeters(target, nextCamera.offsetBearing, nextCamera.distanceM)
-        : target;
-    const rideZoom =
-      nextCamera.distanceM > 0
-        ? zoomForRiderDistanceMeters(nextCamera.distanceM, target[1], nextCamera.pitch)
-        : mapZoomRef.current;
+    const vp = viewportPxFromMap(map);
+    const framing = computeRideFollowFraming({
+      riderLngLat: target,
+      offsetBearing: nextCamera.offsetBearing,
+      distanceM: nextCamera.distanceM,
+      pitchDeg: nextCamera.pitch,
+      viewportWidthPx: vp.width,
+      viewportHeightPx: vp.height,
+      fallbackZoom: mapZoomRef.current,
+    });
+    const center = framing.center;
+    const rideZoom = framing.zoom;
     mapZoomRef.current = rideZoom;
     cameraSmoothRef.current.zoom = rideZoom;
 
@@ -2643,7 +2660,7 @@ export function MapView({
           [bbox[2], bbox[3]],
         ],
         {
-          padding: { top: 52, bottom: 120, left: 44, right: 44 },
+          padding: RIDE_HUD_SAFE_PADDING,
           maxZoom: 16,
           duration: prefersReducedMotion ? 0 : 1100,
           essential: true,

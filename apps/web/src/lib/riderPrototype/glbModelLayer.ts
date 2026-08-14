@@ -17,6 +17,7 @@ import {
   RIDER_GLB_MODEL_SOURCE_ID,
   RIDER_GLB_NODE_OVERRIDE_NAMES,
   RIDER_GLB_TORSO_STATE_KEY,
+  RIDER_GLB_MODEL_SCALE,
   bearingToModelYawDeg,
   riderPrototypeGlbUrl,
 } from "./config";
@@ -34,7 +35,7 @@ const RIDER_GLB_LAYER_PAINT = {
    * 라이딩 자세 실제치(~1.45m)보다 저스케일. 1.15배로 보정(전고 ≈1.45m, 길이 ≈1.84m).
    * 모델 교체 시 재실측 후 조정할 것.
    */
-  "model-scale": [1.15, 1.15, 1.15],
+  "model-scale": [RIDER_GLB_MODEL_SCALE, RIDER_GLB_MODEL_SCALE, RIDER_GLB_MODEL_SCALE],
   "model-rotation": [
     "match",
     ["get", "part"],

@@ -6,6 +6,10 @@ let selfDistM = 0;
 
 export function setPeerSyncSelfDistM(d: number): void {
   if (Number.isFinite(d)) selfDistM = d;
+  if (import.meta.env.DEV && typeof window !== "undefined") {
+    (window as Window & { __RTW_PEER_SYNC_SELF_DIST_M?: number }).__RTW_PEER_SYNC_SELF_DIST_M =
+      selfDistM;
+  }
 }
 
 export function getPeerSyncSelfDistM(): number {

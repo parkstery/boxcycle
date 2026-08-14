@@ -40,29 +40,6 @@ export const RIDE_CAMERA_DISTANCE_MAX_M = 40;
  */
 export const RIDE_CAMERA_PITCH_CLOSE = 80;
 
-/**
- * 라이더에서 distanceM 떨어져 pitch 로 내려다볼 때, 그 라이더가 화면 중앙 부근에
- * 잡히도록 하는 대략적 zoom. Web Mercator 해상도(적도 기준 156543.03 m/px at z0)
- * 기반 근사. pitch 가 클수록(수평에 가까울수록) 같은 화면 점유를 위해 zoom 을 조금 높인다.
- * 정밀 투영이 아니라 "거리 슬라이더" 체감 일관성용 근사 — 프리셋 튜닝 후 상수화 예정.
- * 체감 보정: viewportHalfPx 는 실측 튜닝 상수(클수록 밀착).
- */
-export function zoomForRiderDistanceMeters(
-  distanceM: number,
-  latitudeDeg: number,
-  pitchDeg: number,
-): number {
-  const d = Math.max(0.5, distanceM);
-  const latRad = (latitudeDeg * Math.PI) / 180;
-  // 화면 세로 절반이 대략 distanceM 를 담도록: metersPerPixel = d*2 / viewportHalfPx(가정 700px)
-  const targetMetersPerPixel = (d * 2) / 700;
-  const mppAtZ0 = 156543.03392 * Math.cos(latRad);
-  let zoom = Math.log2(mppAtZ0 / targetMetersPerPixel);
-  // pitch 보정: 수평에 가까울수록 near plane 이 가까워져 체감 확대 → 살짝 낮춰 보정
-  zoom -= (pitchDeg / 90) * 0.6;
-  return zoom;
-}
-
 /** 지구 전체가 한 화면에 보이도록 카메라를 맞춘다(극지 왜곡 완화용 위도 클램프). */
 export function applyMapGlobeView(map: MapboxMap): void {
   map.stop();

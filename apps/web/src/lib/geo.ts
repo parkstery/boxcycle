@@ -49,6 +49,33 @@ export function getDistanceMeters(a: LngLat, b: LngLat): number {
   return 2 * earthRadius * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
 }
 
+/** bearing 방향으로 distanceM 이동한 좌표 (구면 근사) */
+export function offsetLngLatByBearingMeters(
+  origin: LngLat,
+  bearingDeg: number,
+  distanceMeters: number,
+): LngLat {
+  if (distanceMeters <= 0) return origin;
+  const earthRadiusM = 6378137;
+  let bearing = bearingDeg % 360;
+  if (bearing < 0) bearing += 360;
+  const bearingRad = (bearing * Math.PI) / 180;
+  const latRad = (origin[1] * Math.PI) / 180;
+  const lngRad = (origin[0] * Math.PI) / 180;
+  const angDist = distanceMeters / earthRadiusM;
+  const lat2 = Math.asin(
+    Math.sin(latRad) * Math.cos(angDist) +
+      Math.cos(latRad) * Math.sin(angDist) * Math.cos(bearingRad),
+  );
+  const lng2 =
+    lngRad +
+    Math.atan2(
+      Math.sin(bearingRad) * Math.sin(angDist) * Math.cos(latRad),
+      Math.cos(angDist) - Math.sin(latRad) * Math.sin(lat2),
+    );
+  return [(lng2 * 180) / Math.PI, (lat2 * 180) / Math.PI];
+}
+
 export function interpolatePoint(a: LngLat, b: LngLat, ratio: number): LngLat {
   return [a[0] + (b[0] - a[0]) * ratio, a[1] + (b[1] - a[1]) * ratio];
 }
