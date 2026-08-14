@@ -14,6 +14,7 @@ import {
   noteHeadingFromMove,
 } from "../../lib/mapTickProbe";
 import { noteFollowJumpToValues } from "../../lib/cameraFollowTrace";
+import { noteCameraWrite } from "../../lib/cameraRenderPhase";
 import { type LiveRiderMotion } from "./mapViewTypes";
 
 const CAMERA_POSITION_TAU_SEC = 0.1;
@@ -320,6 +321,12 @@ export type FollowCameraJump = {
 /** jumpTo 직전 계측 + 적용. */
 export function applyFollowCameraJumpTo(map: mapboxgl.Map, jump: FollowCameraJump): void {
   noteFollowJumpToValues(jump);
+  noteCameraWrite({
+    t: jump.t,
+    center: jump.center,
+    zoom: jump.zoom,
+    bearing: jump.bearing,
+  });
   if (jump.stopFirst) map.stop();
   beginFollowCameraJump();
   noteFollowJumpTo();

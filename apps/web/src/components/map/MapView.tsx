@@ -33,6 +33,7 @@ import {
   noteSyncActivityMs,
   isFollowCameraJump,
 } from "../../lib/mapTickProbe";
+import { installCameraRenderPhaseHook } from "../../lib/cameraRenderPhase";
 import type { LngLat, LineStringGeometry } from "../../lib/geo";
 import {
   getDistanceMeters,
@@ -1545,6 +1546,7 @@ export function MapView({
     if (import.meta.env.DEV && typeof window !== "undefined") {
       (window as Window & { __RTW_MAP__?: mapboxgl.Map }).__RTW_MAP__ = map;
     }
+    installCameraRenderPhaseHook(map);
 
     const reportMapViewport = () => {
       const bounds = map.getBounds();
