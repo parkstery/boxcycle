@@ -22,8 +22,8 @@ const listeners = new Set<() => void>();
 let offCacheKey = "";
 let offCache: TickTestKey[] = [];
 
-const symbolVisByMap = new WeakMap<mapboxgl.Map, Map<string, string>>();
-const riderVisByMap = new WeakMap<mapboxgl.Map, string>();
+const symbolVisByMap = new WeakMap<mapboxgl.Map, Map<string, "visible" | "none">>();
+const riderVisByMap = new WeakMap<mapboxgl.Map, "visible" | "none">;
 const hooked = new WeakSet<mapboxgl.Map>();
 
 function notify(): void {
@@ -93,10 +93,10 @@ export function resetTickTest(): TickTestState {
   return state;
 }
 
-function readLayerVisibility(map: mapboxgl.Map, layerId: string): string {
+function readLayerVisibility(map: mapboxgl.Map, layerId: string): "visible" | "none" {
   try {
     const raw = map.getLayoutProperty(layerId, "visibility");
-    return typeof raw === "string" && raw.length > 0 ? raw : "visible";
+    return raw === "none" ? "none" : "visible";
   } catch {
     return "visible";
   }
