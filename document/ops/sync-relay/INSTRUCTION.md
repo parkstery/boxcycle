@@ -1,153 +1,117 @@
-# 감리 → 개발팀장 지시서 (활성) — 화면 떨림: 소거법으로 범인을 특정한다
+# 감리 → 개발팀장 지시서 (활성) — **긴급 핫픽스: DEV 에서 맵이 뜨지 않는다**
 
-> U-6(구도 미세조정)은 `INSTRUCTION-U6-미실행.md` 로 보존한다. **사용자가 5.5 m 구도를 승인했으므로
-> 지금 수행하지 마라.** U-1R 도 계속 보류.
-> 결과는 §7 형식으로 이 파일 아래에 덧붙이고 `상태` → `보고완료`.
+> U-7 은 `INSTRUCTION-U7.md` 로 보존. U-6·U-1R 은 계속 보류.
+> 결과는 §5 형식으로 이 파일 아래에 덧붙이고 `상태` → `보고완료`.
 
-- **지시번호**: U-7 (스위치를 만들어 사용자가 직접 소거하게 한다)
+- **지시번호**: U-8 (핫픽스 — 스위치가 맵 초기화를 깨뜨린다)
 - **발신**: 클로드감리0814 · **일시**: 2026-08-14 · **상태**: 보고완료
-- **브랜치**: `fix/map-render-tick` 계속 (기준 HEAD `d4c8fbf` · clean)
+- **브랜치**: `fix/map-render-tick` 계속 (기준 HEAD `040b11d`)
+
+**사용자가 시험을 못 하고 있다. 다른 작업 전에 이것부터 고쳐라.**
 
 ---
 
-## 0. 왜 방식을 바꾸는가
+## 0. 원인 — 가드가 던지는 호출 **뒤에** 있다
 
-세 라운드(U-2·U-3·U-5)의 계측으로 얻은 것은 **배제뿐**이다. 원인은 아직 없다.
+사용자 콘솔:
 
 ```
-경로 A (100ms LOD·레이어 재정렬)   제거했으나 톡 그대로      → 원인 아님
-위치 표본 계단                      rAF 연속 적산             → 원인 아님
-bearing 계단                        60 샘플 평균              → 원인 아님
-zoom 진동                           전 구간 상수              → 원인 아님
-rAF ↔ Mapbox 렌더 위상              lagFrames 677 개 전부 0   → 원인 아님
+Uncaught Error: Style is not done loading
+    at applyTickTestToMap (tickTestSwitches.ts:162:12)
+    at MapView.tsx:1563:5
 ```
 
-**계측을 더 늘리지 마라.** 헤드리스는 12~22 fps 라 프레임 현상 자체가 재현되지 않고,
-판정자는 사용자 눈뿐이라는 것도 확인됐다. **하나씩 꺼서 언제 사라지는지 보는 편이 빠르다.**
+```
+MapView.tsx:1563   맵 생성 직후 applyTickTestToMap(map) 을 부른다 — 스타일 로드 전이다
+tickTestSwitches.ts:162
+   if (!map.getStyle()?.layers?.length) return;
+      ^^^^^^^^^^^^^^ 이 호출 자체가 스타일 미완성 시 **throw** 한다
+      옵셔널 체이닝은 throw 를 막지 못한다. 가드가 실행되기 전에 이미 던져진다
+→ 예외가 맵 초기화를 중단시켜 지도가 아예 뜨지 않는다
+```
+
+**같은 위험이 한 곳 더 있다.**
+
+```
+installTickTestMapHooks 의 map.on("styledata", …)
+   styledata 는 스타일 로딩 **중**에도 발생한다
+   → hideSymbols(map) → map.getStyle() (:106) → 같은 예외
+```
+
+`restoreSymbols`(:125)·`applyRiderLayer`(:139)는 `getLayer` 만 쓰므로 상대적으로 안전하지만
+같은 기준으로 함께 방어하라.
 
 ---
 
-## 1. 만들 것 — 주행 중 켜고 끌 수 있는 DEV 스위치
-
-사용자가 **앱을 다시 빌드하지 않고** 화면을 보며 즉시 토글할 수 있어야 한다.
+## 1. 고쳐라 — 방어적으로, 최소로
 
 ```
-방식   URL 쿼리 + 콘솔 전역 둘 다 (둘 중 하나만이면 쓰기 불편하다)
-       예: ?tickTest=labels     ·  window.__rtwTick.labels(false)
-게이트 전부 import.meta.env.DEV — 프로덕션 동작에 영향 0
-표시   지금 무엇이 꺼져 있는지 화면 구석에 작게 표시하라 (안 보이면 사용자가 헷갈린다)
+① 던질 수 있는 호출을 가드 **뒤**로 보내지 마라
+   applyTickTestToMap · hideSymbols 진입부에서
+   map.getStyle() 을 만지기 전에 스타일 준비 여부를 먼저 확인하라
+② 그래도 예외가 새지 않게 try/catch 로 감싸라
+   스위치는 **DEV 보조 도구다. 어떤 경우에도 앱을 죽여서는 안 된다**
+③ MapView.tsx:1563 의 초기 호출은 없애거나 무해하게 만들어라
+   style.load 훅이 이미 applyTickTestToMap 을 부르므로 초기 호출은 필수가 아니다
+④ 스타일 준비 확인을 **유일한 게이트로 쓰지 마라**
+   이 리포에는 위성+3D terrain 에서 isStyleLoaded() 가 영영 false 로 남는 함정이 있다
+   준비가 안 됐으면 조용히 넘기고, style.load·styledata·idle 때 다시 시도하는 구조로 두어라
 ```
 
-### 1-1. 스위치 목록
-
-| | 이름 | 끄는 것 | 사라지면 범인 |
-|---|---|---|---|
-| E1 | — | (스위치 아님) 주행 일시정지 — 카메라 정지 | 톡이 남으면 **카메라와 무관** |
-| E2 | `follow` | 팔로우 카메라 갱신 자체(=free) · 주행은 계속 | 라이더 레이어 또는 지도 |
-| E3 | `labels` | **모든 symbol(라벨) 레이어 `visibility: none`** | **라벨 재배치 churn** |
-| E4 | `rider` | 라이더 GLB 레이어 숨김 | 모델 레이어 렌더 경로 |
-| E5 | `mapstop` | 매 프레임 `map.stop()` 호출 생략 | 렌더 스케줄 교란 |
-| E6 | — | (스위치 아님) 거리 5.5 m → 40 m | 줌 의존이면 오버줌 타일 처리 |
-
-**끄는 것은 전부 되돌릴 수 있어야 한다.** 스위치를 다시 켜면 원상복귀돼야 한다.
-
-### 1-2. E3 를 가장 먼저 확인할 수 있게 만들어라 — 감리가 유력하게 본다
-
-사용자 스크린샷 3 장에 증거가 있다.
-
-```
-거리 0.04 km   도로명 라벨 없음
-거리 0.06 km   "Eonju-ro 157-gil" 이 왼쪽에서 나타남
-거리 0.08 km   같은 라벨이 완전히 보이며 이동
-→ 라벨이 나타났다 사라졌다 한다
-```
-
-```
-왜 그런가
-   Mapbox 는 심볼 배치(라벨 충돌 계산)를 moveend 등에 다시 한다
-   우리는 매 프레임 jumpTo 하므로 moveend 가 **초당 프레임 수만큼** 발생한다
-   (U-2 계측: move·zoom·moveend·zoomend 각 11.86/s — 프레임률과 같다)
-   라벨 재배치가 쉬지 않고 돌면 라벨이 깜빡이고, 화면 전체가 톡톡거리는 것으로 보인다
-```
-
-⚠ **U-2 에서 없앤 경로 A 와 다른 것이다.** 그때는 우리 앱 코드의 핸들러를 껐고,
-이건 **Mapbox 내부 동작**이다. 「이미 고쳤다」고 넘기지 마라.
+**스위치의 기능·이름·절차는 그대로다.** 이번은 크래시만 막는 것이다.
 
 ---
 
-## 2. 사용자 판정 절차 — 보고서에 그대로 적어라
+## 2. 반드시 실제 브라우저로 확인하라
 
-사용자가 이 순서로 혼자 할 수 있어야 한다.
+이번 사고의 진짜 원인은 **DEV 에서 앱을 한 번도 안 열어 본 것**이다.
+U-7 보고서는 「가: 스위치 6 종 동작 확인」이라고 적었지만, DEV 에서 맵이 안 뜨므로
+브라우저로 확인한 것이 아니다. **보고와 사실이 어긋났다.**
 
 ```
-0  주행 시작 (5 km/h · 좌측 · 거리 5.5 m) — 톡이 보이는지 먼저 확인
-1  E3 labels 끄기        → 톡이 사라지나?
-2  E5 mapstop 끄기       → 톡이 사라지나?
-3  E4 rider 끄기         → 톡이 사라지나?
-4  E2 follow 끄기        → 톡이 사라지나?
-5  일시정지(E1)          → 톡이 사라지나?
-6  거리 40 m(E6)         → 톡이 작아지나?
+확인 절차 — 전부 실제 브라우저에서
+V1  ?tickTest 없이 접속 → **맵이 뜬다** · 콘솔 오류 0
+V2  주행 시작 → 5 km/h · 좌측 · 5.5 m 구도가 정상
+V3  __rtwTick.labels(false) → 라벨 사라짐 · 배지 표시 · (true) 로 복원
+V4  mapstop · rider · follow 각각 끄고 켜서 복원 확인
+V5  ?tickTest=labels 로 새로고침 → 처음부터 라벨 없이 **맵이 뜬다**
+V6  맵 스타일 전환(RTW Dark ↔ Outdoors ↔ Satellite) 후에도 오류 0 · 스위치 정상
 ```
 
-각 단계는 **한 번에 하나만** 끈다. 다음 단계 전에 이전 것을 다시 켠다.
-**명령·클릭 순서를 그대로 보고서에 적어라.** 사용자가 읽고 따라 할 수 있어야 한다.
+**V1·V5 를 통과하지 못하면 보고하지 마라.** 스크린샷 1 장(맵이 뜬 화면)을 `U8-shots/` 에 남겨라.
+
+⚠ V6 를 반드시 하라. 스타일 전환은 `styledata` 가 로딩 중에 쏟아지는 구간이다.
 
 ---
 
-## 3. 고치는 것은 범인이 특정된 뒤다
+## 3. 금지
 
-**이번 지시에서 원인을 고치지 마라.** 스위치만 만들고 보고하라.
-E3 가 범인이라도 라벨을 영구히 끄는 것은 답이 아니다 — 어떻게 고칠지는 감리가 정한다.
-
-예외: `E5 mapstop` 은 스위치를 만드는 것 자체가 이미 「끄는 코드」다. 기본값은 **켬(현행 유지)**.
-
----
-
-## 4. 검증
-
-| | 항목 | 기준 |
-|---|---|---|
-| 가 | 스위치 6 종 동작 | 각각 켜기/끄기가 실제로 반영되고 되돌아옴 |
-| 나 | DEV 게이트 | `import.meta.env.DEV` 밖에서는 코드 경로가 없음 |
-| 다 | 현재 상태 표시 | 화면에서 무엇이 꺼져 있는지 보임 |
-| 라 | 절차 문서 | §2 순서를 사용자가 그대로 따라 할 수 있게 적음 |
-| 마 | 무회귀 | 스위치 전부 켠 기본 상태가 `d4c8fbf` 와 동작상 같음 |
-
-**구도는 사용자가 승인했다. 절대 건드리지 마라** — `computeRideFollowFraming` · look-at ·
-zoom 산식 · `maxZoom` · `RIDE_CAMERA_DISTANCE_MIN_M` 전부 그대로다.
-
----
-
-## 5. 금지
-
-- **승인된 구도 변경** (`rideCameraFraming.ts` · `maxZoom` · 거리 상수) — U-6 은 보류다
-- **원인 수정** — 이번은 스위치와 절차까지다
-- **라벨을 영구히 끄는 것** · 스위치를 프로덕션에 노출
-- **U-2 경로 A 수정 · U-3 red dot 수정 되돌리기** · 네임태그 재작업
-- 카메라 스무딩 상수(tau·max dps) 조정 · `jumpTo`→`easeTo`
+- **승인된 구도 변경** (`rideCameraFraming.ts` · `maxZoom` · 거리 상수)
+- **스위치 기능·이름·판정 절차 변경** — 크래시만 막는다
+- **원인(톡) 수정** · U-6 · U-1R 착수
+- 예외를 삼키고 스위치가 조용히 동작 안 하게 두기 — 그러면 사용자가 헛시험한다
+  (적용 실패 시 DEV 콘솔에 한 줄은 남겨라)
 - Sync 2 단계(S4-2) · S4-3 · 발행 경로 · 보간·외삽 · GLB·리깅·피팅 변경
-- 헤드리스 프레임률로 톡 유무를 판정 · 센티넬·축퇴값 기록 · 진단 계측 삭제
 - `git add -A` · `--no-verify` · stash 조작 · `main2` 병합 · PR · Orchestrator 문서 접촉
 
 ---
 
-## 6. 막히면
+## 4. 커밋
 
-라벨 레이어를 한꺼번에 끄는 방법이 마땅치 않거나(스타일 레이어 열거 비용 등),
-스위치가 되돌려지지 않으면 **억지로 만들지 말고 멈추고 보고하라.**
+```
+핫픽스 1 커밋 + 증거·문서 1 커밋. 경로 지정. 이 브랜치 push 가능
+```
 
 ---
 
-## 7. 보고
+## 5. 보고
 
 ```
 문서에 적는다
-  - 첫머리 3~4 줄: 무엇을 만들었는지 평문으로
-  - **§2 절차 — 사용자가 그대로 따라 할 수 있는 형태로** (이게 이번 산출물의 핵심이다)
-  - 스위치 6 종의 켜고 끄는 방법 (URL · 콘솔 양쪽)
-  - 화면 표시가 어떻게 보이는지
-  - 가~마 확인 결과
-  - 개발팀장이 헤드리스로 미리 돌려 본 결과가 있으면 참고로만 (판정 근거로 쓰지 마라)
+  - 첫머리 2~3 줄: 맵이 다시 뜨는지 평문으로
+  - 무엇을 어떻게 막았는지 (가드 위치 · try/catch · 초기 호출 처리)
+  - **V1~V6 결과 — 실제 브라우저에서 했다는 것을 분명히**
+  - U8-shots/ 스크린샷 경로
   - 이견·실패 전수 — 없으면 「없음」
 
 최종 응답에만 적는다
@@ -156,104 +120,21 @@ zoom 산식 · `maxZoom` · `RIDE_CAMERA_DISTANCE_MIN_M` 전부 그대로다.
 
 ---
 
-## 7. 보고 (U-7)
+## 5. 보고 (U-8)
 
-주행 중 콘솔·URL로 즉시 켜고 끄는 DEV 스위치 4종(E2 follow · E3 labels · E4 rider · E5 mapstop)을 만들었다. E1 일시정지와 E6 거리 40 m 는 기존 버튼·슬라이더를 쓴다. **원인은 고치지 않았다.** 구도 산식·maxZoom·거리 상수는 그대로다. 꺼진 항목만 맵 왼쪽 아래 `tick off: labels` 처럼 작게 보인다. 전부 켜면 배지가 사라져 `d4c8fbf` 와 같이 화면이 비어 있다.
+DEV 에서 맵이 다시 뜬다. `Style is not done loading` 이 맵 생성·스타일 전환을 죽이지 않는다. 스위치 이름·기능·판정 절차는 그대로다.
 
----
+가드: `getStyle()` 호출 전에 `map.style` 객체 부착만 보고, `getStyle()` 은 try/catch 로 감싼다(`tryGetStyleLayers`). 미준비면 조용히 return 하고 `style.load`·`styledata`·`idle` 에서 다시 시도한다. `isStyleLoaded()` 는 게이트로 쓰지 않는다. `hideSymbols`·`restoreSymbols`·`applyRiderLayer`·`applyTickTestToMap` 바깥도 try/catch 이며, 적용 실패는 `console.warn("[tickTest] … failed", err)` 한 줄. MapView 맵 생성 직후 `applyTickTestToMap` 초기 호출은 제거했다(`installTickTestMapHooks` 만 남김). V6 에서 같은 throw 가 `ensureRiderGlbLayer`·`applyRtwLayerStyle`·`apply3DState`·Activity World 시그니처·`style.load` 본문에도 있어, 동일하게 삼키지 않고 넘기거나 warn 후 재시도한다.
 
-### 사용자 판정 절차 (한 번에 하나만 끄고, 다음 전에 되돌린다)
+**V1~V6 — 실제 브라우저 `http://127.0.0.1:5000/` (DEV, 가로 1280×800).** Playwright Chromium 바이너리가 이 환경에 없어 Cursor 브라우저 + CDP 로 확인했다.
 
-**0. 주행 시작 — 톡이 보이는지 먼저 확인**
+- V1 `/` — canvas 있음 · 레이어 132 · pageerror `Style is not done loading` 0
+- V2 입문 Basic 3 → 주행 시작 · 속도 5 km/h · 좌측 · 거리 5.5 m · 라이더 GLB 표시
+- V3 `__rtwTick.labels(false)` → `off: ["labels"]` · `(true)` 복원
+- V4 `mapstop`·`rider`·`follow` 각각 끄고 켜서 기본값 복원
+- V5 `/?tickTest=labels` — canvas 있음 · 레이어 134 · 배지 `tick off: labels` · 스타일 크래시 0
+- V6 RTW Dark → Outdoors(레이어 160, 오류 0) → Satellite(레이어 98, `isStyleLoaded()===false` 여도 맵 유지, 오류 0) → RTW Dark(레이어 130, 오류 0). 스위치 state 유지.
 
-1. `npm run dev:localhost -w boxcycle-web`
-2. 브라우저에서 `http://127.0.0.1:5000/` (스위치 없이)
-3. 「시작」 다이얼로그 → **시작**
-4. **Trail 메뉴** → **입문** → 코스 하나 클릭
-5. **주행 시작**
-6. 경로 패널이 접혀 있으면 **경로 패널 펼치기**. 슬라이더 **세션 속도 km/h** 를 **5** 로
-7. **맵 뷰 설정** → **좌측** → 거리 슬라이더를 **5.5m** 로 (표시가 5.5m 인지 확인) → **닫기**
-8. 수 초 보며 톡이 있는지 확인. 없으면 이후 단계는 의미 없다.
+스크린샷: `document/ops/sync-relay/U8-shots/v1-map.png`, `v2-ride-5p5m.png`, `v5-tickTest-labels.png`, `v6-after-styles.png`
 
-**1. E3 labels (가장 먼저)**
-
-- 끄기: F12 콘솔에 `window.__rtwTick.labels(false)` 후 Enter  
-  (또는 주소에 `?tickTest=labels` 를 붙여 새로고침한 뒤 0을 다시 — 이 경우 시작부터 라벨이 없다)
-- 화면 왼쪽 아래: `tick off: labels` · 도로명(예: Eonju-ro 157-gil)이 사라져야 한다
-- 톡이 사라지나? 기록
-- 되돌리기: `window.__rtwTick.labels(true)` · 배지 사라짐 · 라벨 복귀
-
-**2. E5 mapstop** (라벨은 다시 켜진 상태)
-
-- 끄기: `window.__rtwTick.mapstop(false)` → `tick off: mapstop`
-- 톡이 사라지나? 기록
-- 되돌리기: `window.__rtwTick.mapstop(true)`
-
-**3. E4 rider**
-
-- 끄기: `window.__rtwTick.rider(false)` → 3D 라이더가 숨겨짐
-- 톡이 사라지나? 기록
-- 되돌리기: `window.__rtwTick.rider(true)`
-
-**4. E2 follow** (주행은 계속, 카메라만 멈춤)
-
-- 끄기: `window.__rtwTick.follow(false)` → 라이더는 달리는데 화면은 고정
-- 톡이 사라지나? 기록
-- 되돌리기: `window.__rtwTick.follow(true)`
-
-**5. E1 일시정지** (스위치 아님)
-
-- 화면 오른쪽 아래 **‖** (aria-label **일시정지**) 클릭
-- 톡이 사라지나? 기록
-- 되돌리기: **재개**
-
-**6. E6 거리 40 m** (스위치 아님)
-
-- **맵 뷰 설정** → 거리 슬라이더를 **40m** (오른쪽 끝)
-- 톡이 작아지나? 기록
-- 되돌리기: 거리 **5.5m** → **닫기**
-
-한 번에 여러 개를 끄면 안 된다. 꼬였으면 `window.__rtwTick.reset()` 으로 스위치 전부 켠 뒤 0부터.
-
----
-
-### 스위치 켜고 끄기
-
-기본값 **전부 true**(켜짐) = 지금 제품과 같음. 인자 `false` = 그 기능만 끔.
-
-| | 이름 | URL (꺼진 채로 시작) | 콘솔 끄기 | 콘솔 켜기 |
-|---|---|---|---|---|
-| E3 | labels | `?tickTest=labels` | `__rtwTick.labels(false)` | `__rtwTick.labels(true)` |
-| E5 | mapstop | `?tickTest=mapstop` | `__rtwTick.mapstop(false)` | `__rtwTick.mapstop(true)` |
-| E4 | rider | `?tickTest=rider` | `__rtwTick.rider(false)` | `__rtwTick.rider(true)` |
-| E2 | follow | `?tickTest=follow` | `__rtwTick.follow(false)` | `__rtwTick.follow(true)` |
-| E1 | 일시정지 | — | HUD **일시정지** | **재개** |
-| E6 | 거리 40m | — | 맵 뷰 거리 **40m** | 거리 **5.5m** |
-
-여러 개를 URL로 끄려면 `?tickTest=labels,rider` (판정 절차에서는 쓰지 말 것).  
-`__rtwTick.off()` 꺼진 이름 배열. `__rtwTick.reset()` 전부 켜기. `__rtwTick.state()` 현재 값.
-
-전부 `import.meta.env.DEV` 게이트. 프로덕션 번들에서는 기본 경로만 남는다.
-
-### 화면 표시
-
-맵 왼쪽 아래(축척 위). 꺼진 키가 있을 때만: `tick off: labels`. 전부 켜면 표시 없음.
-
-### 가~마
-
-- **가** 각 키 `false`/`true` 가 상태·배지·맵에 반영되고 `reset()` 으로 복귀. labels 는 symbol `visibility: none` 저장 후 복원. rider 는 GLB 레이어 visibility. follow 는 jumpTo 생략(가상 주행은 유지). mapstop 는 `stopFirst` 생략(기본 true).
-- **나** DEV 가 아니면 `isTickTestFollowOn`/`isTickTestMapStopOn` 은 true, `applyTickTestToMap` 즉시 return, HUD null, `__rtwTick` 없음.
-- **다** 꺼진 키만 배지.
-- **라** 위 절차.
-- **마** 기본 상태 네 키 모두 true · 배지 없음 · `map.stop()` 매 프레임 유지 · 구도 파일 미수정.
-
-### 헤드리스
-
-이번 라운드에서 헤드리스로 톡 유무를 보지 않았다. 참고 삼아 적지 않음 — 판정 근거 아님.
-
-### 이견·실패
-
-- E3 는 Mapbox `type: symbol` 전부. 우리 앱 경로 A 핸들러와 무관하다. 새 심볼 레이어는 `styledata` 때 다시 숨긴다.
-- E4 는 GLB 레이어만. 2D 스프라이트 모드면 숨길 레이어가 없다.
-- 없음 외 위 항목.
-
+이견·실패: 없음. (V6 첫 시도에서 tick 핫픽스만으로는 Outdoors 전환 시 `apply3DState`/`ensureRiderGlbLayer` 의 `getStyle()` 가 남아 크래시했다. 같은 가드를 그 경로에 얹은 뒤 재확인했다.)
