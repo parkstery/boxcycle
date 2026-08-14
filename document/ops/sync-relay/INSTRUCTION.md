@@ -1,165 +1,164 @@
-# 감리 → 개발팀장 지시서 (활성) — **U-1 카메라 구도 복구 최우선** + 틱 렌더 계측
+# 감리 → 개발팀장 지시서 (활성) — 1 m 구도를 실제로 맞춘다
 
-> U-3 은 `INSTRUCTION-U3.md`, U-4 초안은 `INSTRUCTION-U4-초안.md` 로 보존한다.
-> U-1R 은 계속 보류(`INSTRUCTION-U1R-보류.md`).
+> U-5 는 `INSTRUCTION-U5.md` 로 보존. U-1R 은 이 지시로 **흡수·종료**한다
+> (`INSTRUCTION-U1R-보류.md` 는 이력으로만 남긴다).
 > 결과는 §6 형식으로 이 파일 아래에 덧붙이고 `상태` → `보고완료`.
 
-- **지시번호**: U-5 (① U-1 구도 복구 — 최우선 · ② 틱 렌더 계측)
-- **발신**: 클로드감리0814 · **일시**: 2026-08-14 · **상태**: 보고완료
-- **브랜치**: `fix/map-render-tick` 계속 (기준 HEAD `01221a5`)
+- **지시번호**: U-6 (look-at 부호 + maxZoom 클램프 — 두 개를 같이 잡는다)
+- **발신**: 클로드감리0814 · **일시**: 2026-08-14 · **상태**: 착수대기
+- **브랜치**: `fix/map-render-tick` 계속 (기준 HEAD `6a72d3a`)
 
 ---
 
-## 0. 감리 착오 — U-1 을 브랜치에서 뺀 것은 내 판단 착오다
+## 0. U-5 판정 — 복구는 됐고, 결과는 더 나쁘다
 
-사용자 화면이 **머리 잘리던 예전 구도로 되돌아갔다.** 원인은 폐기가 아니라 브랜치 구성이다.
+### 0-1. 두 스크린샷을 감리가 직접 열어 봤다
 
 ```
-fix/map-render-tick 은 64c3e5c 에서 갈라졌다 — 감리가 그렇게 지시했다
-그래서 U-1 커밋 293b54d 가 미포함이고, rideCameraFraming.ts 가 워킹트리에 없다
+before-1m.png    라이더가 크게 보인다. 머리만 상단에서 잘린다
+restored-1m.png  **라이더가 아예 없다. 빈 지도다**
+                 같은 코스(Basic 3 · Ridge Climb 1.5km) · 5 km/h · 1 m · 좌측
 ```
 
-**U-1 을 BLOCK 한 이유는 계측(bbox 높이 0)이지 구도가 나빠서가 아니었다.**
-그런데 「BLOCK 된 변경이 섞이면 채택이 얽힌다」는 이유로 코드까지 통째로 뺐다.
-**판정과 코드 보존을 분리했어야 했다. 감리 잘못이다.**
+보고서는 이를 「GLB 전신이 before 만큼 크게 안 보일 수 있다」로 적었다.
+**본문만 읽으면 라이더가 사라졌다는 사실을 알 수 없다 — 축소 서술이다.**
+판정을 사용자 육안에 맡긴 것은 지시대로다. 그러나 **관측한 사실은 문장으로도 정확히 적어라.**
 
-코드는 `293b54d` 에 그대로 있다. **되살린다.**
+### 0-2. 잘한 것 — 결정적 성과 2 건
+
+```
+① 위상 가설 반증   headed 30.1s · lagHist {0:677} · alt01Frac 0 · render:write = 1
+                   앱 rAF ↔ Mapbox 렌더의 위상 어긋남은 **원인이 아니다**
+                   지시대로 카메라 루프를 고치지 않은 판단도 옳다
+② maxZoom 클램프   getZoom 전 구간 **24** · writeZoom 최대 **25.0578**
+                   프레이밍이 요구한 zoom 이 **한 번도 적용된 적이 없다**
+                   약 2.08 배 넓게 그려진다 → 안전영역 맞춤 산식은 지금까지 무효였다
+```
+
+병합도 무손실이다 — 경로 A emit 0, red dot route130 < heat133 < pulse134, 스냅·틱 양쪽이
+`computeRideFollowFraming` 을 부른다.
 
 ---
 
-## 1. 최우선 — U-1 카메라 구도를 이 브랜치로 복구하라
+## 1. 원인 — 산식 두 곳
 
-### 1-1. 무엇을 되살리나
+### 1-1. look-at 오프셋 **부호가 반대다**
 
-`293b54d` 의 10 파일이다. 그중 **8 개는 이 브랜치가 건드린 적이 없어 그대로 들어온다.**
-
-```
-그대로 들어옴   geo.ts · mapGlobeView.ts · rideCameraFraming.ts(신규)
-                peerMotion/PeerMotionRegistry.ts · peerMotion/peerSyncDebug.ts
-                riderPrototype/config.ts · glbModelLayer.ts · riderRig.ts
-충돌 예상       MapView.tsx · rideCameraFollow.ts
-```
+`rideCameraFraming.ts` `computeRideFollowFraming`:
 
 ```
-git cherry-pick 293b54d      (또는 동등한 방법)
+depression = 90 − 80 = 10°          tan = 0.1763
+RIDER_LOOK_AT_HEIGHT_M ≈ 0.971 m
+lookAtAlongViewM = 0.971 / 0.1763 ≈ **5.5 m**
+
+center = offsetLngLatByBearingMeters(rider, offsetBearing + 180, 5.5)
+                                            ^^^^^^^^^^^^^^^^^^ 카메라 **반대쪽**
 ```
 
-### 1-2. 충돌 해소 원칙 — **둘 다 살려라**
+카메라는 라이더에서 **1 m** 거리인데, 지도 중심을 라이더 너머 **5.5 m** 로 민다.
 
 ```
-MapView.tsx · rideCameraFollow.ts 에서
-   U-1 쪽    computeRideFollowFraming 호출 · 안전영역 기반 zoom · 허리(PELVIS) look-at
-   U-2/U-3   경로 A 억제(beginFollowCameraJump) · mapTickProbe · cameraFollowTrace
-             red dot 레이어 순서 수정(3521155)
-→ **어느 쪽도 버리지 마라.** 하나라도 빠지면 이번 작업이 무의미하다
+지면 위 높이 h 인 점을 화면 중앙에 두려면
+   지도 중심을 **카메라 쪽으로** h / tan(δ) 옮겨야 한다
+지금은 반대 방향이다 → 라이더가 프레임 밖으로 나간다
+빈 화면이 정확히 이 산식의 결과다
 ```
 
-### 1-3. 복구 확인 — 눈으로 볼 수 있게
+**직접 검산하고 부호를 바로잡아라.** 내 말을 믿지 말고 숫자로 확인한 뒤 고쳐라.
+
+### 1-2. `maxZoom` 24 클램프를 푼다
+
+이전 지시에서 「`maxZoom` 관측만」이라고 금지했다. **실측으로 클램프가 확인됐으므로 해제한다.**
 
 ```
-가  rideCameraFraming.ts 가 존재하고 computeRideFollowFraming 을
-    MapView 의 스냅과 rideCameraFollow 의 틱이 **둘 다** 부른다 (grep 결과를 보고서에)
-나  거리 1 m · 좌측 팔로우 스크린샷 1 장  → U5-shots/restored-1m.png
-    복구 전(현재 HEAD) 스크린샷도 1 장 → U5-shots/before-1m.png
-    **두 장을 나란히 보고서에 경로로 적어라. 사용자가 눈으로 판정한다**
-다  U-2 이득 유지: 경로 A emit 0
-라  red dot: 활동 레이어가 route 위 (레이어 인덱스)
+현재    MapView.tsx:1493  maxZoom: 24
+요구    writeZoom 최대 25.0578 (1 m 구도)
+조치    프레이밍이 요구하는 값을 담을 수 있는 상한으로 올려라
+        여유를 두되 근거를 적어라 — 「26 으로 올렸다, 1 m 에서 요구가 25.06 이라서」 식으로
+확인    getZoom() 이 더 이상 상한에 붙지 않는지 실측으로 보여라
 ```
-
-⚠ **이번에 구도 수치를 새로 튜닝하지 마라.** `293b54d` 그대로 복구가 목적이다.
-머리 맞춤은 보류 중인 U-1R 에서 한다. 지금 손대면 무엇이 원래 값인지 알 수 없게 된다.
-
-⚠ `RIDE_CAMERA_DISTANCE_MIN_M` 은 1 그대로. GLB·리깅·피팅 무수정.
-
-### 1-4. 커밋
-
-```
-커밋 1  U-1 구도 복구 (cherry-pick 결과)
-        메시지에 「293b54d 복구 — 감리 착오로 브랜치에서 빠졌던 것」을 남겨라
-커밋 2  §1-3 증거 (U5-shots/ · 문서)
-경로 지정. git add -A · --no-verify 금지
-```
-
-**§1 을 끝내고 나서 §2 로 가라. §1 이 막히면 거기서 멈추고 보고하라.**
 
 ---
 
-## 2. 화면 틱 — Mapbox 가 **실제로 그린** 카메라를 재라
-
-증상은 그대로다. U-3 의 계측은 「`jumpTo` 에 넣는 값」만 찍어서 위상 가설을 볼 수 없었다
-(감리 설계 착오). 트레이스 zoom 24.8372 인데 맵 `maxZoom` 은 24 라는 것이 그 증거다 —
-그 값은 Mapbox 가 채택한 값이 아니었다.
-
-### 2-1. 무엇을 재는가
+## 2. 목표 — 사용자가 원한 구도
 
 ```
-쓰기   jumpTo 직전:  writeSeq++ · writeT · writeCenter · writeZoom · writeBearing
-그리기 map.on("render", …) 안:
-       renderT · map.getCenter() · map.getZoom() · map.getBearing()
-       그 프레임이 반영한 writeSeq (가장 최근 일치)
-파생   lagFrames = 최신 writeSeq − 렌더가 반영한 writeSeq
-       renderCount : writeCount 비
+가  거리 1 m 에서 **라이더 전신이 화면에 있다** (사라지지 않는다)
+나  머리(헬멧 top)가 상단 HUD 에 잘리지 않는다
+다  before-1m.png 보다 **작아지지 않는다** — 사용자는 「더 확대」를 원했다
+라  스냅과 추적 구도가 같다 (공유 헬퍼 유지)
 ```
 
-### 2-2. 판정
-
-```
-①-a  lagFrames 가 0 과 1 을 **번갈아** → 위상 어긋남 확정
-①-b  renderCount ≠ writeCount → 프레임 드롭·중복. 비율을 적어라
-①-c  항상 0 이고 1:1 → **위상 문제 아님.** 고치지 말고 보고하라
-      (다음 후보는 라이더 GLB 레이어의 렌더 경로다. 감리가 정한다)
-```
-
-`getZoom()` 이 24 로 잘리는지도 실측해 적어라 (요청은 24.837).
-
-### 2-3. 조건을 사용자와 맞춰라
-
-```
-속도 5 km/h · 거리 1 m · 좌측 팔로우 · **실제 브라우저 창**
-   U-3 트레이스는 약 20 km/h · 12 fps 였다 — 프레임당 이동이 26 배 어긋났다
-헤드리스로만 가능하면 그 사실과 fps 를 명시하고, 그 결과로 ①을 부정하지 마라
-headed 로 주행 화면에 바로 들어가는 방법을 **명령 한 줄**로 보고하라
-```
-
-### 2-4. 고치는 것은 ①이 확정된 뒤다
-
-확정되면 카메라 갱신을 Mapbox 의 render 시점에 맞춰 위상을 묶고, 매 프레임 `map.stop()` 을 없애라.
-**`jumpTo`→`easeTo` 전환 금지. 스무딩 상수(tau·max dps) 조정 금지.**
+**「다」를 잊지 마라.** 안전영역에 넣겠다고 축소해 버리면 요구를 거스르는 것이다.
+안 들어가면 축소하지 말고 §5 로 가라.
 
 ---
 
-## 3. 검증
+## 3. 검증 — 사람이 보는 것으로
 
-| | 항목 | 기준 |
-|---|---|---|
-| **가** | **U-1 복구** | `rideCameraFraming.ts` 존재 · 스냅/틱 양쪽 호출 · before/after 스크린샷 2 장 |
-| 나 | 병합 무손실 | 경로 A emit 0 · red dot 이 route 위 (둘 다 실측) |
-| 다 | 원본 유지 | 구도 수치를 새로 튜닝하지 않음 |
-| Q0 | 틱 계측 유효성 | write·render 표본 각 ≥ 500 · 센티넬 0 · seq 단조 |
-| Q2 | ① 판정 | lagFrames 분포 + render:write 비 |
-| Q3 | 조건 | 5 km/h · 1 m · 실브라우저(불가하면 사유·fps 명시) |
+### 3-1. 스크린샷 3 장 (같은 코스·5 km/h·1 m·좌측)
 
-**가가 미달이면 나머지는 의미가 없다. 가부터 끝내라.**
+```
+U6-shots/before-1m.png     U-5 의 restored 상태 (빈 화면) — 비교 기준
+U6-shots/fixed-1m.png      이번 수정 후
+U6-shots/u1-before.png     U-5 의 before-1m.png 를 복사 (머리 잘리던 원래 상태)
+→ 세 장 경로를 보고서에 적어라. 사용자가 나란히 보고 판정한다
+```
+
+### 3-2. 좌표 판정은 **U-1 의 실패를 반복하지 마라**
+
+U-1 은 `headTopPx == wheelBottomPx` 로 bbox 높이가 0 이라 게이트가 자동 통과했다.
+
+```
+S0  bbox 자가 검산:  wheelBottomPx − headTopPx > 0   ← 이게 깨지면 좌표 판정을 쓰지 마라
+S1  전신이 화면 안:  0 ≤ headTopPx  AND  wheelBottomPx ≤ viewportH
+S2  안전영역:        headTopPx ≥ 52  AND  wheelBottomPx ≤ viewportH − 120
+S3  크기:            (wheelBottomPx − headTopPx) 가 u1-before 대비 **줄지 않음**
+S4  클램프 해소:     getZoom() 이 상한에 붙지 않음
+```
+
+S0 이 안 되면 스크린샷만으로 보고하고 좌표 게이트는 「측정 불가」로 적어라. **거짓 통과보다 낫다.**
 
 ---
 
-## 4. 금지
+## 4. 화면 틱 — 이번엔 손대지 마라
 
-- **U-1 구도 수치 재튜닝** · U-1R 착수 · 네임태그 재작업
-- **U-2 경로 A 수정 · U-3 red dot 수정 되돌리기** (충돌 해소에서 버리는 것 포함)
-- **①이 확정되기 전 카메라 루프 수정** · `jumpTo`→`easeTo` · 스무딩 상수 조정
-- **헤드리스 결과만으로 ①을 부정** · 주기 상향·상수 완화로 증상 흐리기
-- `RIDE_CAMERA_DISTANCE_MIN_M` 변경 · `maxZoom` 변경(관측만) · GLB·리깅·피팅 변경
-- Sync 2 단계(S4-2) · S4-3 · 발행 경로 · 보간·외삽 변경
-- 센티넬·축퇴값을 정상 관측치처럼 기록 · 진단 계측 삭제 · 기존 산출물 덮어쓰기
-- `git add -A` · `--no-verify` · stash 조작 · `main2` 병합 · PR · Orchestrator 문서 접촉
+위상은 반증됐다. 남은 후보는 라이더 GLB 레이어의 렌더 경로와 극단 오버줌의 타일 처리다.
+**구도가 확정된 뒤에 별도로 잡는다.** 이번에 섞지 마라.
+다만 수정 후에도 틱이 그대로인지 한 줄로만 적어라(관측).
 
 ---
 
 ## 5. 막히면
 
-cherry-pick 충돌이 두 파일 밖으로 번지거나, 둘 다 살릴 수 없는 지점이 나오면
-**어느 한쪽을 버리지 말고 멈추고 그 지점을 그대로 보고하라.**
+```
+1 m 에서 전신이 안전영역에 안 들어가면 **축소하지 말고** 멈추고 아래를 보고하라
+   ① 1 m 에서 라이더의 실제 세로 픽셀
+   ② 안전영역 높이 (viewportH − 172)
+   ③ 둘의 비 — 몇 배 모자란지
+그때 안전영역을 줄일지 pitch 를 예외로 둘지 감리가 정한다. 네가 임의로 정하지 마라
+```
+
+---
+
+## 6. 금지
+
+- **축소로 안전영역 맞추기** · `RIDE_CAMERA_DISTANCE_MIN_M` 상향으로 은폐
+- **카메라 루프(rAF·`map.stop()`·jumpTo) 수정** — 위상은 반증됐다. 이번 범위 아님
+- `jumpTo`→`easeTo` · 스무딩 상수(tau·max dps) 조정
+- **U-2 경로 A 수정 · U-3 red dot 수정 되돌리기** · 네임태그 재작업
+- **GLB 크기·리깅·피팅 변경** · rider GLB 재생성 (치수를 **읽는** 것은 허용)
+- 0 높이 bbox 같은 축퇴값으로 게이트 통과 · 진단 계측 삭제 · 기존 산출물 덮어쓰기
+- Sync 2 단계(S4-2) · S4-3 · 발행 경로 · 보간·외삽 변경
+- `git add -A` · `--no-verify` · stash 조작 · `main2` 병합 · PR · Orchestrator 문서 접촉
+
+---
+
+## 7. 커밋
+
+```
+제품 / 시험·증거 2 개로 나눠라. 경로 지정. 이 브랜치 push 가능
+```
 
 ---
 
@@ -167,77 +166,14 @@ cherry-pick 충돌이 두 파일 밖으로 번지거나, 둘 다 살릴 수 없�
 
 ```
 문서에 적는다
-  - 첫머리 3~4 줄: 화면 구도가 어떻게 돌아왔는지 평문으로
-  - §1 복구 방법 · 충돌 두 파일을 어떻게 둘 다 살렸는지
-  - grep 근거 (computeRideFollowFraming 호출 지점 2 곳)
-  - **U5-shots/before-1m.png · restored-1m.png 경로** (열리는 경로로)
-  - 나·다 실측 (경로 A emit · 레이어 인덱스 · 수치 무변경 확인)
-  - Q0·Q2·Q3 틱 계측 결과 — lagFrames 분포와 render:write 비
-  - 실브라우저 주행 화면 명령 한 줄
+  - 첫머리 3~4 줄: 화면이 어떻게 보이는지 **있는 그대로** (라이더가 보이는지/잘리는지)
+  - §1-1 부호 검산 — 네가 직접 계산한 숫자와 고친 방향
+  - §1-2 maxZoom 을 얼마로 왜 올렸는지 · getZoom() 실측
+  - S0~S4 결과 (S0 이 깨지면 「측정 불가」로 명시)
+  - **U6-shots 3 장 경로** (열리는 경로로)
+  - 틱이 그대로인지 한 줄 관측
   - 이견·실패 전수 — 없으면 「없음」
 
 최종 응답에만 적는다
   - 커밋 해시 · 브랜치명 · 최종 git status --short · git stash list (2 건)
 ```
-
----
-
-## 6. 보고 (U-5)
-
-U-1 구도를 이 브랜치에 되돌렸다. 스냅과 틱이 다시 `computeRideFollowFraming`(안전영역 zoom · 허리 PELVIS look-at)을 쓴다. 복구 전 1 m 좌측은 라이더가 크게 잡히고 머리가 잘린다. 복구 후는 같은 거리·속도에서 look-at이 허리로 옮겨 프레이밍이 달라진다. **두 장 비교는 사용자 육안.** 카메라 rAF/`map.stop()` 루프는 바꾸지 않았다 — lagFrames 가 항상 0 이고 render:write 가 1:1 이라 ①-c.
-
-### §1 복구
-
-`git cherry-pick 293b54d`. 충돌은 `MapView.tsx` · `rideCameraFollow.ts` **두 파일뿐**, 둘 다 임포트 hunk. 본문은 git가 자동 병합했다.
-
-- U-1: `computeRideFollowFraming` · `RIDE_HUD_SAFE_PADDING` · `publishRiderScreenDiag` · `offsetLngLatByBearingMeters` 를 `geo.ts` 로 이동 후 re-export
-- U-2/U-3: `beginFollowCameraJump` / `mapTickProbe` / `cameraFollowTrace` / `lastActivityWorldLayerSigByMap`(위에 얹힌 id) / `?rideCam=` 거리 오버라이드(`MIN`/`MAX` 임포트 유지)
-
-구도 상수(`RIDE_HUD_SAFE_PADDING`, `RIDER_HEIGHT_SPAN_MARGIN`, look-at 산식)는 293b54d 그대로. `RIDE_CAMERA_DISTANCE_MIN_M = 1`.
-
-### grep
-
-```
-apps/web/src/components/map/rideCameraFollow.ts:236  computeRideFollowFraming({   // 틱
-apps/web/src/components/map/MapView.tsx:2509        computeRideFollowFraming({   // 스냅
-apps/web/src/lib/rideCameraFraming.ts               존재
-```
-
-### 스크린샷 (사용자 판정)
-
-- 복구 전: `document/ops/sync-relay/U5-shots/before-1m.png`
-- 복구 후: `document/ops/sync-relay/U5-shots/restored-1m.png`
-
-조건 공통: 5 km/h · 거리 1 m · 좌측 팔로우 · Playwright 1280×900.
-
-### 나 · 다
-
-- 경로 A emit **0** (before-1m.json · restored-1m.json)
-- red dot: route **130** · heat **133** · pulse **134** (pulse가 route 위) — 복구 전/후 동일
-- 수치 재튜닝 없음
-
-### Q0 · Q2 · Q3
-
-파일 `document/ops/sync-relay/U5-render-phase.json`. Playwright **headed**, 5 km/h · 1 m · 좌측, 30.1 s.
-
-- Q0: write **677** · render **677** · 센티넬 **0** · seq 단조
-- Q2: `lagFrames` 분포 **{0: 677}** · alt01Frac **0** · always0 **true** · render:write **1**
-- ①-a 아님. **①-c → 위상 문제로 확정하지 않음. 카메라 루프 미수정.**
-- `map.getZoom()` **항상 24**. writeZoom **≈ 25.058** (프레이밍 요구). maxZoom 24 클램프 실측. 고치지 않음.
-- 일치 판정은 center·bearing만 사용(줌을 넣으면 클램프 때문에 전부 불일치).
-
-Q3: headed 창은 떴으나 표본 ≈ **22.5 fps**(677/30s). 실사용자 60 fps와 다를 수 있다. 이 표본만으로 60 fps 위상을 단정하지 않는다. **지시 기준(항상 0 · 1:1)으로는 고치지 않는다.**
-
-### 실브라우저 한 줄
-
-`npm run dev:localhost -w boxcycle-web` 후 `http://127.0.0.1:5000/?rideCam=1` → 시작 → 입문 마지막 코스 → 주행 시작. 맵 뷰에서 거리 1 m·좌측, 경로 패널 속도 5 km/h.
-
-headed 계측만: `npm run test:e2e:u5q -w boxcycle-web`
-
-### 이견·실패
-
-- 복구 후 샷에서 GLB 전신이 before만큼 크게 안 보일 수 있다(PELVIS look-at). 수치는 안 만졌다. 판정은 두 PNG.
-- render 훅은 채택값 계측만. jumpTo 시점·`map.stop()` 은 그대로.
-- `INSTRUCTION-U3.md` 는 보존 파일로 문서 커밋에 담는다.
-- 없음 외 위 항목.
-
