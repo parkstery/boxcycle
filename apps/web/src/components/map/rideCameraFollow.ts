@@ -408,13 +408,13 @@ export function apply3DState(
   }
   map.setTerrain({ source: terrainSourceId, exaggeration: 1.3 });
   if (!map.getLayer(buildingLayerId)) {
-    let layers: { id: string; type?: string; layout?: { ["text-field"]?: unknown } }[];
+    let symbolLayer: { id: string } | undefined;
     try {
-      layers = map.getStyle()?.layers ?? [];
+      const layers = map.getStyle()?.layers ?? [];
+      symbolLayer = layers.find((layer) => layer.type === "symbol" && layer.layout?.["text-field"]);
     } catch {
       return;
     }
-    const symbolLayer = layers.find((layer) => layer.type === "symbol" && layer.layout?.["text-field"]);
     map.addLayer(
       {
         id: buildingLayerId,

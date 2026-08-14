@@ -84,7 +84,7 @@ export function applyRtwLayerStyle(
   opts: { rideActive: boolean; showPoi: boolean },
 ): boolean {
   const { rideActive, showPoi } = opts;
-  let layers: { id: string }[];
+  let layers: NonNullable<ReturnType<MapboxMap["getStyle"]>>["layers"];
   try {
     layers = map.getStyle()?.layers ?? [];
   } catch {
