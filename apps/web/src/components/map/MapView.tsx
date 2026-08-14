@@ -185,7 +185,12 @@ const ACTIVITY_WORLD_LAYER_IDS = [
 
 /** 존재 여부 + 최상위 활동 레이어 **위에** 얹힌 id. route 가 위에 오면 시그니처가 바뀐다. */
 function activityWorldLayerSignature(map: mapboxgl.Map): string {
-  const ids = (map.getStyle()?.layers ?? []).map((l) => l.id);
+  let ids: string[];
+  try {
+    ids = (map.getStyle()?.layers ?? []).map((l) => l.id);
+  } catch {
+    return "";
+  }
   let presence = "";
   let maxIdx = -1;
   for (const id of ACTIVITY_WORLD_LAYER_IDS) {
@@ -1560,7 +1565,6 @@ export function MapView({
     }
     installCameraRenderPhaseHook(map);
     installTickTestMapHooks(map);
-    applyTickTestToMap(map);
 
     const reportMapViewport = () => {
       const bounds = map.getBounds();
@@ -1635,6 +1639,7 @@ export function MapView({
     map.on("idle", onIdleCount);
 
     map.on("style.load", () => {
+      try {
       lastActivityWorldLayerSigByMap.delete(map);
       const latestRoute = routeGeometryRef.current;
       if (latestRoute?.coordinates?.length) {
@@ -1694,6 +1699,9 @@ export function MapView({
         syncActivityWorldLayersOnMapRef.current(map);
       } catch {
         /* noop */
+      }
+      } catch (err) {
+        console.warn("[MapView] style.load failed", err);
       }
     });
 
@@ -2721,7 +2729,11 @@ export function MapView({
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
-    apply3DState(map, enable3D, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID);
+    try {
+      apply3DState(map, enable3D, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID);
+    } catch (err) {
+      console.warn("[MapView] apply3DState failed", err);
+    }
   }, [enable3D, mapLoaded]);
 
   if (!accessToken?.trim()) {

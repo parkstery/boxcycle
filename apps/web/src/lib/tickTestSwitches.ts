@@ -1,6 +1,10 @@
 /**
  * U-7 DEV — 주행 중 톡 소거용 스위치. 프로덕션 경로는 전부 early-return.
  * true = 기능 켜짐(d4c8fbf 와 동일). false = 해당 요소만 끔.
+ *
+ * getStyle() 는 스타일 미완성 시 throw 한다. isStyleLoaded() 는 위성+3D 에서
+ * 영구 false 일 수 있어 유일한 게이트로 쓰지 않는다. 시트 미준비면 넘기고
+ * style.load / styledata / idle 에서 다시 시도한다.
  */
 
 import { RIDER_GLB_MODEL_LAYER_ID } from "./riderPrototype/config";
@@ -25,6 +29,8 @@ let offCache: TickTestKey[] = [];
 const symbolVisByMap = new WeakMap<mapboxgl.Map, Map<string, "visible" | "none">>();
 const riderVisByMap = new WeakMap<mapboxgl.Map, "visible" | "none">;
 const hooked = new WeakSet<mapboxgl.Map>();
+
+type MapWithStyleObj = mapboxgl.Map & { style?: unknown };
 
 function notify(): void {
   offCacheKey = "";
@@ -93,53 +99,83 @@ export function resetTickTest(): TickTestState {
   return state;
 }
 
+function warnTickTest(scope: string, err: unknown): void {
+  console.warn(`[tickTest] ${scope} failed`, err);
+}
+
+/** getStyle() 호출 전 — Style 객체 부착만 본다. isStyleLoaded() 와 무관. */
+function styleObjectPresent(map: mapboxgl.Map): boolean {
+  return Boolean((map as MapWithStyleObj).style);
+}
+
+function tryGetStyleLayers(map: mapboxgl.Map): { id: string; type?: string }[] | null {
+  if (!styleObjectPresent(map)) return null;
+  try {
+    return map.getStyle()?.layers ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function readLayerVisibility(map: mapboxgl.Map, layerId: string): "visible" | "none" {
   try {
     const raw = map.getLayoutProperty(layerId, "visibility");
     return raw === "none" ? "none" : "visible";
-  } catch {
+  } catch (err) {
+    warnTickTest("readLayerVisibility", err);
     return "visible";
   }
 }
 
 function hideSymbols(map: mapboxgl.Map): void {
-  const layers = map.getStyle()?.layers ?? [];
-  let saved = symbolVisByMap.get(map);
-  if (!saved) {
-    saved = new Map();
-    symbolVisByMap.set(map, saved);
-  }
-  for (const layer of layers) {
-    if (layer.type !== "symbol") continue;
-    if (!saved.has(layer.id)) {
-      saved.set(layer.id, readLayerVisibility(map, layer.id));
+  try {
+    const layers = tryGetStyleLayers(map);
+    if (!layers?.length) return;
+    let saved = symbolVisByMap.get(map);
+    if (!saved) {
+      saved = new Map();
+      symbolVisByMap.set(map, saved);
     }
-    try {
-      map.setLayoutProperty(layer.id, "visibility", "none");
-    } catch {
-      /* style switching */
+    for (const layer of layers) {
+      if (layer.type !== "symbol") continue;
+      if (!saved.has(layer.id)) {
+        saved.set(layer.id, readLayerVisibility(map, layer.id));
+      }
+      try {
+        map.setLayoutProperty(layer.id, "visibility", "none");
+      } catch (err) {
+        warnTickTest(`hideSymbols ${layer.id}`, err);
+      }
     }
+  } catch (err) {
+    warnTickTest("hideSymbols", err);
   }
 }
 
 function restoreSymbols(map: mapboxgl.Map): void {
   const saved = symbolVisByMap.get(map);
   if (!saved) return;
-  for (const [id, vis] of saved) {
-    if (!map.getLayer(id)) continue;
-    try {
-      map.setLayoutProperty(id, "visibility", vis);
-    } catch {
-      /* style switching */
+  try {
+    if (!tryGetStyleLayers(map)) return;
+    for (const [id, vis] of saved) {
+      try {
+        if (!map.getLayer(id)) continue;
+        map.setLayoutProperty(id, "visibility", vis);
+      } catch (err) {
+        warnTickTest(`restoreSymbols ${id}`, err);
+      }
     }
+    symbolVisByMap.delete(map);
+  } catch (err) {
+    warnTickTest("restoreSymbols", err);
   }
-  symbolVisByMap.delete(map);
 }
 
 function applyRiderLayer(map: mapboxgl.Map): void {
-  if (!map.getLayer(RIDER_GLB_MODEL_LAYER_ID)) return;
-  if (state.rider && !riderVisByMap.has(map)) return;
   try {
+    if (!tryGetStyleLayers(map)) return;
+    if (!map.getLayer(RIDER_GLB_MODEL_LAYER_ID)) return;
+    if (state.rider && !riderVisByMap.has(map)) return;
     if (!state.rider) {
       if (!riderVisByMap.has(map)) {
         riderVisByMap.set(map, readLayerVisibility(map, RIDER_GLB_MODEL_LAYER_ID));
@@ -152,31 +188,37 @@ function applyRiderLayer(map: mapboxgl.Map): void {
       map.setLayoutProperty(RIDER_GLB_MODEL_LAYER_ID, "visibility", prev);
       riderVisByMap.delete(map);
     }
-  } catch {
-    /* style switching */
+  } catch (err) {
+    warnTickTest("applyRiderLayer", err);
   }
 }
 
 export function applyTickTestToMap(map: mapboxgl.Map): void {
   if (!import.meta.env.DEV) return;
-  if (!map.getStyle()?.layers?.length) return;
-  if (state.labels) restoreSymbols(map);
-  else hideSymbols(map);
-  applyRiderLayer(map);
+  try {
+    const layers = tryGetStyleLayers(map);
+    if (!layers?.length) return;
+    if (state.labels) restoreSymbols(map);
+    else hideSymbols(map);
+    applyRiderLayer(map);
+  } catch (err) {
+    warnTickTest("applyTickTestToMap", err);
+  }
 }
 
 export function installTickTestMapHooks(map: mapboxgl.Map): void {
   if (!import.meta.env.DEV || hooked.has(map)) return;
   hooked.add(map);
+  const retry = () => {
+    applyTickTestToMap(map);
+  };
   map.on("style.load", () => {
     symbolVisByMap.delete(map);
     riderVisByMap.delete(map);
-    applyTickTestToMap(map);
+    retry();
   });
-  map.on("styledata", () => {
-    if (!state.labels) hideSymbols(map);
-    if (!state.rider) applyRiderLayer(map);
-  });
+  map.on("styledata", retry);
+  map.on("idle", retry);
 }
 
 function publishApi(): void {

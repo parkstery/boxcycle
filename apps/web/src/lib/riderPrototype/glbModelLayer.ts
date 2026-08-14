@@ -74,8 +74,12 @@ const RIDER_GLB_LAYER_PAINT = {
 export function ensureRiderGlbLayer(map: MapboxMap): boolean {
   // 스타일시트 파싱 전엔 addSource/addLayer가 "Style is not done loading"으로 throw —
   // 조용히 false 반환(호출부가 주기 재시도). isStyleLoaded()는 라이브 소스 타일 갱신 중
-  // false라 게이트로 부적합(applyRtwLayerStyle과 동일 기준: getStyle().layers 존재만 확인).
-  if (!map.getStyle()?.layers?.length) return false;
+  // false라 게이트로 부적합. getStyle() 호출 자체가 throw 하므로 옵셔널 체이닝만으로 막지 못한다.
+  try {
+    if (!map.getStyle()?.layers?.length) return false;
+  } catch {
+    return false;
+  }
   try {
     if (!map.getSource(RIDER_GLB_MODEL_SOURCE_ID)) {
       map.addSource(RIDER_GLB_MODEL_SOURCE_ID, {

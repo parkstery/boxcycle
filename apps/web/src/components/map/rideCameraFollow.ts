@@ -390,6 +390,7 @@ export function apply3DState(
   buildingLayerId: string,
   terrainSourceId: string,
 ) {
+  try {
   if (!enabled) {
     map.setTerrain(null);
     if (map.getLayer(buildingLayerId)) map.removeLayer(buildingLayerId);
@@ -407,7 +408,12 @@ export function apply3DState(
   }
   map.setTerrain({ source: terrainSourceId, exaggeration: 1.3 });
   if (!map.getLayer(buildingLayerId)) {
-    const layers = map.getStyle().layers ?? [];
+    let layers: { id: string; type?: string; layout?: { ["text-field"]?: unknown } }[];
+    try {
+      layers = map.getStyle()?.layers ?? [];
+    } catch {
+      return;
+    }
     const symbolLayer = layers.find((layer) => layer.type === "symbol" && layer.layout?.["text-field"]);
     map.addLayer(
       {
@@ -429,5 +435,8 @@ export function apply3DState(
   }
   if (map.getPitch() < 35) {
     map.easeTo({ pitch: 60, bearing: map.getBearing(), duration: 450 });
+  }
+  } catch (err) {
+    console.warn("[map] apply3DState failed", err);
   }
 }
