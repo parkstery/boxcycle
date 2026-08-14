@@ -2558,12 +2558,13 @@ export function MapView({
     activityWorldRaw?.heatRoutes.length ?? 0,
   ]);
 
+  const hasActivityDots =
+    (activityWorldRaw?.pulseDots.length ?? 0) > 0 ||
+    (activityWorldRaw?.heatDots.length ?? 0) > 0;
+
   /** style.reload 후 dot layer 유실 시 주기적 재동기화 */
   useEffect(() => {
-    const hasDots =
-      (activityWorldRaw?.pulseDots.length ?? 0) > 0 ||
-      (activityWorldRaw?.heatDots.length ?? 0) > 0;
-    if (!mapLoaded || !hasDots) return;
+    if (!mapLoaded || !hasActivityDots) return;
     const map = mapRef.current;
     if (!map) return;
 
@@ -2588,7 +2589,7 @@ export function MapView({
       map.off("style.load", onStyle);
       map.off("idle", onIdle);
     };
-  }, [mapLoaded, hasDots]);
+  }, [mapLoaded, hasActivityDots]);
 
   useEffect(() => {
     const map = mapRef.current;
