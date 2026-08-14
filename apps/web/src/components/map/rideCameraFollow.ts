@@ -12,6 +12,7 @@ import {
   noteFollowJumpTo,
   noteHeadingFromMove,
 } from "../../lib/mapTickProbe";
+import { noteFollowJumpToValues } from "../../lib/cameraFollowTrace";
 import { type LiveRiderMotion } from "./mapViewTypes";
 
 const CAMERA_POSITION_TAU_SEC = 0.1;
@@ -309,15 +310,39 @@ export function tickRideCameraFollow(
   smooth.bearingPrimary = nextBearingPrimary;
   smooth.bearing = nextBearing;
 
-  map.stop();
+  applyFollowCameraJumpTo(map, {
+    center: nextCenter,
+    bearing: nextBearing,
+    pitch: nextPitch,
+    zoom: nextZoom,
+    riderLngLat: targetLngLat,
+    t: opts.nowMs,
+    stopFirst: true,
+  });
+}
+
+export type FollowCameraJump = {
+  center: LngLat;
+  bearing: number;
+  pitch: number;
+  zoom: number;
+  riderLngLat: LngLat;
+  t: number;
+  stopFirst?: boolean;
+};
+
+/** jumpTo 직전 계측 + 적용. */
+export function applyFollowCameraJumpTo(map: mapboxgl.Map, jump: FollowCameraJump): void {
+  noteFollowJumpToValues(jump);
+  if (jump.stopFirst) map.stop();
   beginFollowCameraJump();
   noteFollowJumpTo();
   try {
     map.jumpTo({
-      center: nextCenter,
-      bearing: nextBearing,
-      pitch: nextPitch,
-      zoom: nextZoom,
+      center: jump.center,
+      bearing: jump.bearing,
+      pitch: jump.pitch,
+      zoom: jump.zoom,
     });
   } finally {
     endFollowCameraJump();

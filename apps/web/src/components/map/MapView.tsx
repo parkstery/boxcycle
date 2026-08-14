@@ -73,6 +73,8 @@ import {
   DEFAULT_MAP_ZOOM,
   RIDE_FOLLOW_CAMERA_MODE,
   RIDE_CAMERA_DISTANCE_DEFAULT_M,
+  RIDE_CAMERA_DISTANCE_MIN_M,
+  RIDE_CAMERA_DISTANCE_MAX_M,
   zoomForRiderDistanceMeters,
 } from "../../lib/mapGlobeView";
 import { type LiveRiderMotion } from "./mapViewTypes";
@@ -173,13 +175,21 @@ const ACTIVITY_WORLD_LAYER_IDS = [
   ACTIVITY_HEAT_DOTS_LAYER,
 ] as const;
 
+/** 존재 여부 + 최상위 활동 레이어 **위에** 얹힌 id. route 가 위에 오면 시그니처가 바뀐다. */
 function activityWorldLayerSignature(map: mapboxgl.Map): string {
-  let s = "";
-  for (const id of ACTIVITY_WORLD_LAYER_IDS) s += map.getLayer(id) ? "1" : "0";
-  return s;
+  const ids = (map.getStyle()?.layers ?? []).map((l) => l.id);
+  let presence = "";
+  let maxIdx = -1;
+  for (const id of ACTIVITY_WORLD_LAYER_IDS) {
+    const i = ids.indexOf(id);
+    presence += i >= 0 ? "1" : "0";
+    if (i > maxIdx) maxIdx = i;
+  }
+  const above = maxIdx >= 0 ? ids.slice(maxIdx + 1).join(",") : "";
+  return `${presence}|above:${above}`;
 }
 
-let lastActivityWorldLayerSig = "";
+const lastActivityWorldLayerSigByMap = new WeakMap<mapboxgl.Map, string>();
 
 type ActivityWorldDotFeature = {
   publicationId: string;
@@ -215,8 +225,7 @@ function traceLineOpacityByZoom(
 /** Activity World dot·line — `route`·coverage 위로 (route effect 가 dot 뒤에 addLayer 되는 회귀 방지) */
 function moveActivityWorldLayersToTop(map: mapboxgl.Map): void {
   const sig = activityWorldLayerSignature(map);
-  if (sig === lastActivityWorldLayerSig) return;
-  lastActivityWorldLayerSig = sig;
+  if (sig === lastActivityWorldLayerSigByMap.get(map)) return;
   const t0 = performance.now();
   for (const id of ACTIVITY_WORLD_LAYER_IDS) {
     if (map.getLayer(id)) {
@@ -227,6 +236,7 @@ function moveActivityWorldLayersToTop(map: mapboxgl.Map): void {
       }
     }
   }
+  lastActivityWorldLayerSigByMap.set(map, activityWorldLayerSignature(map));
   noteMoveToTopMs(performance.now() - t0);
 }
 
@@ -1409,7 +1419,12 @@ export function MapView({
   }, [mapZoom]);
 
   useEffect(() => {
-    rideCameraDistanceMRef.current = rideCameraDistanceM;
+    const q = Number(new URLSearchParams(window.location.search).get("rideCam"));
+    const fromQuery =
+      Number.isFinite(q) && q >= RIDE_CAMERA_DISTANCE_MIN_M && q <= RIDE_CAMERA_DISTANCE_MAX_M
+        ? q
+        : null;
+    rideCameraDistanceMRef.current = fromQuery ?? rideCameraDistanceM;
   }, [rideCameraDistanceM]);
 
   useEffect(() => {
@@ -1522,6 +1537,9 @@ export function MapView({
     /** 축척: Mapbox 기본 우하단(bottom-right) */
     map.addControl(new mapboxgl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-right");
     mapRef.current = map;
+    if (import.meta.env.DEV && typeof window !== "undefined") {
+      (window as Window & { __RTW_MAP__?: mapboxgl.Map }).__RTW_MAP__ = map;
+    }
 
     const reportMapViewport = () => {
       const bounds = map.getBounds();
@@ -1596,7 +1614,7 @@ export function MapView({
     map.on("idle", onIdleCount);
 
     map.on("style.load", () => {
-      lastActivityWorldLayerSig = "";
+      lastActivityWorldLayerSigByMap.delete(map);
       const latestRoute = routeGeometryRef.current;
       if (latestRoute?.coordinates?.length) {
         const routeFeature = {
