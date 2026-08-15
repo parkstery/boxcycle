@@ -1,0 +1,121 @@
+{
+  "instruction": "S4-1R2",
+  "mode": "after-fix",
+  "headHint": "post-lifecycle",
+  "elapsedMin": 1.9,
+  "results": [
+    {
+      "id": "T1",
+      "pass": true,
+      "detail": {
+        "trailId": "9NHruIWTOnB6p54qTDqN",
+        "uidPrefix": "UkUxw2",
+        "existsAfterSettle": false,
+        "samples": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "expect": "doc absent after settle+3s observe"
+      }
+    },
+    {
+      "id": "T2",
+      "pass": true,
+      "detail": {
+        "trailId": "mw2vpjVAbHD1jrV5VNJw",
+        "pageVisibleGone": true,
+        "routeDisableGone": true,
+        "samplesHidden": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "samplesEnd": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "id": "T3",
+      "pass": true,
+      "detail": {
+        "trailA": "wfegOVohtoVsBSf3gmAZ",
+        "trailB": "Taq8qd0umOx9YJB4MwTz",
+        "previousTrailResurrected": false,
+        "samplesA": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "epochDiscard": 1,
+        "epochStartCount": 2,
+        "newEpoch": {
+          "epoch": 2,
+          "sessionKey": "yhh8AFgtUcg1N40YRNOcQagYlDfZ|Taq8qd0umOx9YJB4MwTz",
+          "at": 1786569548185
+        },
+        "oldEpochOk1AfterNew": 0,
+        "oldEpochOk1Total": 1,
+        "note": "after: 행 부재 + epoch 폐기 ≥1 + 새 epoch 시작 이후 옛 epoch ok=1 이 0 건"
+      }
+    },
+    {
+      "id": "T4",
+      "pass": true,
+      "detail": {
+        "pt9_ok0": 1,
+        "pt9_ok1": 2,
+        "routeErrorEvents": [
+          {
+            "at": 1786569559645,
+            "message": "rtw-route-write-fault-once"
+          }
+        ],
+        "routeErrorLogs": 1,
+        "laterOk1": true,
+        "note": "ok=0 은 fault 1회; 이후 ok=1 로 큐 잠김 없음"
+      }
+    },
+    {
+      "id": "T5",
+      "pass": true,
+      "detail": {
+        "trailId": "EBHQ1nW4fj7ynS9bRoVA",
+        "uidPrefix": "GgUN5V",
+        "newSessionRowKept": true,
+        "samples": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "deferredRunTotal": 0,
+        "deferredSkipTotal": 2,
+        "guardFired": true,
+        "expect": "같은 Trail 재시작 세션의 행이 계속 존재 + 지연 정리가 skip-live-session 으로 걸러짐"
+      }
+    }
+  ],
+  "allPass": true,
+  "baselineExpectAtLeastOneFail": false,
+  "baselineHasFail": null
+}

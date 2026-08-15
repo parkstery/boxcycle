@@ -1,0 +1,127 @@
+{
+  "instruction": "S4-M1",
+  "mode": "baseline-pre-fix",
+  "elapsedMin": 3.3,
+  "results": [
+    {
+      "id": "M1",
+      "pass": false,
+      "detail": {
+        "trailId": "5Wt31W5y6yFFf6T6YTjG",
+        "uidPrefix": "UyPOZp",
+        "existsAfterSettle": true,
+        "samples": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "deferredRunTotal": 0,
+        "routeDeferredRunTotal": 0,
+        "expect": "node absent + deferredRunTotal≥1"
+      }
+    },
+    {
+      "id": "M2",
+      "pass": false,
+      "detail": {
+        "trailId": "vOdBVXcuaT9gGaUCjLPv",
+        "pageVisibleGone": false,
+        "routeDisableGone": false,
+        "samplesHidden": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "samplesEnd": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      }
+    },
+    {
+      "id": "M3",
+      "pass": false,
+      "detail": {
+        "trailA": "7TQQMk9PPVFGso2wBpMp",
+        "trailB": "7kPvkVHBZRoCRsMDCIlx",
+        "previousTrailResurrected": true,
+        "samplesA": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "newEpoch": null,
+        "oldEpochOk1AfterNew": null,
+        "note": "baseline: 이전 Trail 노드 부활이면 FAIL"
+      }
+    },
+    {
+      "id": "M5",
+      "pass": false,
+      "detail": {
+        "pt3_ok0": 0,
+        "pt3_ok1": 32,
+        "motionErrorEvents": [],
+        "motionErrorLogs": 0,
+        "laterOk1": false,
+        "note": "ok=0 1회 + onMotionError 도달 + 이후 ok=1"
+      }
+    },
+    {
+      "id": "M4",
+      "pass": true,
+      "detail": {
+        "trailId": "avvYpdp9eijgmIKfjEtt",
+        "trailAfter": "avvYpdp9eijgmIKfjEtt",
+        "sameTrail": true,
+        "uidPrefix": "Bzjq7D",
+        "newSessionNodeKept": true,
+        "samples": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "deferredRunTotal": 0,
+        "deferredSkipTotal": 0,
+        "guardFired": false,
+        "expect": "같은 trailId 재시작 노드 유지 + skip-live-session"
+      }
+    },
+    {
+      "id": "M6",
+      "pass": false,
+      "detail": {
+        "trailId": "s0QLHLRtaYTpPAN4ZMqZ",
+        "motionW2": null,
+        "routeW2": null,
+        "motionOk": false,
+        "routeOk": false,
+        "expect": "lateWriteDoneAt < deleteDoneAt 표본 ≥1 (motion)"
+      }
+    }
+  ],
+  "allPass": false,
+  "baselineExpectM1M3M4Fail": true,
+  "baselineM1Fail": true,
+  "baselineM3Fail": true,
+  "baselineM4Fail": false
+}

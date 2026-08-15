@@ -10,6 +10,8 @@ export type PeerMotionPacket = {
   speedMps: number;
   phase: PeerMotionPhase;
   serverAtMs: number;
+  /** DEV S3-DIAG 상관 ID */
+  seq?: number;
 };
 
 /** 보간 타임라인용 위치 스냅샷 — recvAtMs(수신 측 시계)로 정렬 */
@@ -21,6 +23,7 @@ export type PeerMotionSnapshot = {
   serverAtMs: number;
   speedMps: number;
   phase: PeerMotionPhase;
+  seq?: number;
 };
 
 /** Registry 내부 — entity interpolation. render 는 rAF step 에서만 갱신 */

@@ -1,0 +1,494 @@
+{
+  "instruction": "S3A-V",
+  "elapsedMin": 1.7,
+  "publisherUid": "5akPp5",
+  "clockSkewBefore": 6,
+  "clockSkewAfter": 320,
+  "clockSkewInterpolated": true,
+  "clockSkewMs": "linear(before→after)",
+  "eventCounts": {
+    "A": 4856,
+    "B": 4513,
+    "total": 9369,
+    "pt": {
+      "1": 683,
+      "2": 700,
+      "3": 681,
+      "4": 3115,
+      "5": 3124,
+      "6": 533,
+      "7": 533
+    }
+  },
+  "rebuttal": {
+    "applies": false,
+    "note": "반증 불성립"
+  },
+  "uag": "미종결",
+  "cases": {
+    "z15-depart": {
+      "id": "z15-depart",
+      "judged": true,
+      "discardMs": 2000,
+      "window": {
+        "a0": 1786464597838,
+        "a1": 1786464618232,
+        "b0": 1786464598065,
+        "b1": 1786464618314
+      },
+      "deltaA_auth": 126.15118800341584,
+      "windowS": 20.06423974609375,
+      "scaleRatio": 0.011503561927427448,
+      "scalePct": 1.1503561927427448,
+      "scaleStatus": "PASS",
+      "D_eff": 400,
+      "residualRmse": 0.6656067763763067,
+      "residualMax": 1.9446739076126391,
+      "residualP95": 1.394520968967015,
+      "deffN": 78,
+      "deffOverlap": 0.975,
+      "hitCeiling": false,
+      "guards": {
+        "g1_discard2s": {
+          "pass": true,
+          "discardedMs": 2000,
+          "note": "F-1 visibilityNowMs=0 회피. 케이스 시작 후 2 s 폐기"
+        },
+        "g2_premise": {
+          "pass": true,
+          "deltaSelfM": 126.15118800341584,
+          "windowMs": 20064.23974609375,
+          "reason": "|Δself−Δnewest|/Δself=0.012"
+        },
+        "g3_overlap": {
+          "pass": true,
+          "overlap": 0.975,
+          "looked": 80,
+          "hit": 78
+        },
+        "g4_ceiling": {
+          "pass": true,
+          "maxDelayMs": 3000,
+          "hitCeiling": false,
+          "D_eff": 400,
+          "status": "ok"
+        },
+        "g5_clock": {
+          "pass": true,
+          "before": 6,
+          "after": 320,
+          "interpolated": true,
+          "skewUsed": 134.21574606153004
+        }
+      },
+      "guardFails": [],
+      "verdict": "미종결",
+      "maxAuth": 145.596,
+      "clampRisk": false,
+      "link12": {
+        "n": 92,
+        "p50": 1.527000000000001,
+        "p95": 2.915999999999997,
+        "max": 3.611000000000004
+      },
+      "modes": {
+        "counts": {
+          "interpolate": 52,
+          "extrapolate": 28,
+          "oldest": 0,
+          "paused": 0
+        },
+        "occupancy": {
+          "interpolate": 0.65,
+          "extrapolate": 0.35,
+          "oldest": 0,
+          "paused": 0
+        }
+      },
+      "extrapErr": {
+        "n": 28,
+        "capHitRate": 0,
+        "aheadMs": {
+          "n": 28,
+          "p50": 68,
+          "p95": 220,
+          "max": 329
+        },
+        "errorVsA_m": {
+          "n": 28,
+          "p50": 0.0768722913844957,
+          "p95": 0.7468755356648074,
+          "max": 0.9828116476135538
+        }
+      },
+      "nAuth": 92,
+      "nDisp": 80,
+      "nNewest": 78
+    },
+    "z15-cruise": {
+      "id": "z15-cruise",
+      "judged": true,
+      "discardMs": 2000,
+      "window": {
+        "a0": 1786464620404,
+        "a1": 1786464642597,
+        "b0": 1786464620507,
+        "b1": 1786464642770
+      },
+      "deltaA_auth": 181.6946379254352,
+      "windowS": 21.83877734375,
+      "scaleRatio": 0.009385869027486901,
+      "scalePct": 0.9385869027486902,
+      "scaleStatus": "PASS",
+      "D_eff": 320,
+      "residualRmse": 0.756579014906315,
+      "residualMax": 3.0228167772480106,
+      "residualP95": 1.362239163912193,
+      "deffN": 84,
+      "deffOverlap": 0.9767441860465116,
+      "hitCeiling": false,
+      "guards": {
+        "g1_discard2s": {
+          "pass": true,
+          "discardedMs": 2000,
+          "note": "F-1 visibilityNowMs=0 회피. 케이스 시작 후 2 s 폐기"
+        },
+        "g2_premise": {
+          "pass": true,
+          "deltaSelfM": 181.6946379254352,
+          "windowMs": 21838.77734375,
+          "reason": "|Δself−Δnewest|/Δself=0.009"
+        },
+        "g3_overlap": {
+          "pass": true,
+          "overlap": 0.9767441860465116,
+          "looked": 86,
+          "hit": 84
+        },
+        "g4_ceiling": {
+          "pass": true,
+          "maxDelayMs": 3000,
+          "hitCeiling": false,
+          "D_eff": 320,
+          "status": "ok"
+        },
+        "g5_clock": {
+          "pass": true,
+          "before": 6,
+          "after": 320,
+          "interpolated": true,
+          "skewUsed": 204.31368984793403
+        }
+      },
+      "guardFails": [],
+      "verdict": "미종결",
+      "maxAuth": 348.365,
+      "clampRisk": false,
+      "link12": {
+        "n": 107,
+        "p50": 1.8070000000000164,
+        "p95": 3.3339999999999748,
+        "max": 3.888999999999953
+      },
+      "modes": {
+        "counts": {
+          "interpolate": 53,
+          "extrapolate": 33,
+          "oldest": 0,
+          "paused": 0
+        },
+        "occupancy": {
+          "interpolate": 0.6162790697674418,
+          "extrapolate": 0.38372093023255816,
+          "oldest": 0,
+          "paused": 0
+        }
+      },
+      "extrapErr": {
+        "n": 33,
+        "capHitRate": 0,
+        "aheadMs": {
+          "n": 33,
+          "p50": 96,
+          "p95": 261,
+          "max": 358
+        },
+        "errorVsA_m": {
+          "n": 33,
+          "p50": 0.033390543344270496,
+          "p95": 0.313184191631384,
+          "max": 0.316371530059681
+        }
+      },
+      "nAuth": 107,
+      "nDisp": 86,
+      "nNewest": 79
+    },
+    "z13": {
+      "id": "z13",
+      "judged": false,
+      "discardMs": 2000,
+      "window": {
+        "a0": 1786464644899,
+        "a1": 1786464668505,
+        "b0": 1786464645025,
+        "b1": 1786464668674
+      },
+      "deltaA_auth": 193.33130560152398,
+      "windowS": 23.309104736328123,
+      "scaleRatio": 0.01723107176646367,
+      "scalePct": 1.723107176646367,
+      "scaleStatus": "PASS",
+      "D_eff": 340,
+      "residualRmse": 1.1351552695498859,
+      "residualMax": 3.219935101792885,
+      "residualP95": 2.1346804715288386,
+      "deffN": 32,
+      "deffOverlap": 0.9411764705882353,
+      "hitCeiling": false,
+      "guards": {
+        "g1_discard2s": {
+          "pass": true,
+          "discardedMs": 2000,
+          "note": "F-1 visibilityNowMs=0 회피. 케이스 시작 후 2 s 폐기"
+        },
+        "g2_premise": {
+          "pass": true,
+          "deltaSelfM": 193.33130560152398,
+          "windowMs": 23309.104736328125,
+          "reason": "|Δself−Δnewest|/Δself=0.017"
+        },
+        "g3_overlap": {
+          "pass": true,
+          "overlap": 0.9411764705882353,
+          "looked": 34,
+          "hit": 32
+        },
+        "g4_ceiling": {
+          "pass": true,
+          "maxDelayMs": 3000,
+          "hitCeiling": false,
+          "D_eff": 340,
+          "status": "ok"
+        },
+        "g5_clock": {
+          "pass": true,
+          "before": 6,
+          "after": 320,
+          "interpolated": true,
+          "skewUsed": 260.38774871975295
+        }
+      },
+      "guardFails": [],
+      "verdict": "기록만 (판정 제외)",
+      "maxAuth": 563.496,
+      "clampRisk": false,
+      "link12": {
+        "n": 93,
+        "p50": 1.9440000000000737,
+        "p95": 4.30600000000004,
+        "max": 4.584000000000003
+      },
+      "modes": {
+        "counts": {
+          "interpolate": 23,
+          "extrapolate": 11,
+          "oldest": 0,
+          "paused": 0
+        },
+        "occupancy": {
+          "interpolate": 0.6764705882352942,
+          "extrapolate": 0.3235294117647059,
+          "oldest": 0,
+          "paused": 0
+        }
+      },
+      "extrapErr": {
+        "n": 11,
+        "capHitRate": 0,
+        "aheadMs": {
+          "n": 11,
+          "p50": 96,
+          "p95": 243,
+          "max": 243
+        },
+        "errorVsA_m": {
+          "n": 11,
+          "p50": 0.047580226676356085,
+          "p95": 0.5087054739749659,
+          "max": 0.5087054739749659
+        }
+      },
+      "nAuth": 93,
+      "nDisp": 34,
+      "nNewest": 75
+    }
+  },
+  "observe": {
+    "ga_acceptedIntervalMs": {
+      "n": 276,
+      "p50": 249,
+      "p95": 554,
+      "max": 1136,
+      "histogram": [
+        {
+          "lo": 0,
+          "hi": 100,
+          "n": 9
+        },
+        {
+          "lo": 100,
+          "hi": 200,
+          "n": 75
+        },
+        {
+          "lo": 200,
+          "hi": 400,
+          "n": 146
+        },
+        {
+          "lo": 400,
+          "hi": 800,
+          "n": 45
+        },
+        {
+          "lo": 800,
+          "hi": 1600,
+          "n": 1
+        },
+        {
+          "lo": 1600,
+          "hi": null,
+          "n": 0
+        }
+      ],
+      "note": "연속 accepted recvAt 차. 점유율 역산 아님"
+    },
+    "na_modes": {
+      "depart": {
+        "counts": {
+          "interpolate": 52,
+          "extrapolate": 28,
+          "oldest": 0,
+          "paused": 0
+        },
+        "occupancy": {
+          "interpolate": 0.65,
+          "extrapolate": 0.35,
+          "oldest": 0,
+          "paused": 0
+        }
+      },
+      "cruise": {
+        "counts": {
+          "interpolate": 53,
+          "extrapolate": 33,
+          "oldest": 0,
+          "paused": 0
+        },
+        "occupancy": {
+          "interpolate": 0.6162790697674418,
+          "extrapolate": 0.38372093023255816,
+          "oldest": 0,
+          "paused": 0
+        }
+      },
+      "z13": {
+        "counts": {
+          "interpolate": 23,
+          "extrapolate": 11,
+          "oldest": 0,
+          "paused": 0
+        },
+        "occupancy": {
+          "interpolate": 0.6764705882352942,
+          "extrapolate": 0.3235294117647059,
+          "oldest": 0,
+          "paused": 0
+        }
+      }
+    },
+    "da_extrapErr": {
+      "depart": {
+        "n": 28,
+        "capHitRate": 0,
+        "aheadMs": {
+          "n": 28,
+          "p50": 68,
+          "p95": 220,
+          "max": 329
+        },
+        "errorVsA_m": {
+          "n": 28,
+          "p50": 0.0768722913844957,
+          "p95": 0.7468755356648074,
+          "max": 0.9828116476135538
+        }
+      },
+      "cruise": {
+        "n": 33,
+        "capHitRate": 0,
+        "aheadMs": {
+          "n": 33,
+          "p50": 96,
+          "p95": 261,
+          "max": 358
+        },
+        "errorVsA_m": {
+          "n": 33,
+          "p50": 0.033390543344270496,
+          "p95": 0.313184191631384,
+          "max": 0.316371530059681
+        }
+      }
+    },
+    "ra_rtdbWrite": {
+      "pt3_ok0": 0,
+      "pt3_ok1": 370,
+      "failRate": 0,
+      "note": "실패 판정은 pt3 ok=0 만. F-2 수정 금지"
+    },
+    "ra_incomplete": {
+      "pt2": 379,
+      "pt3": 370,
+      "pt2_minus_pt3": 9,
+      "note": "미완료·로그 누락 후보. 실패로 세지 않음"
+    },
+    "ma_link12": {
+      "depart": {
+        "n": 92,
+        "p50": 1.527000000000001,
+        "p95": 2.915999999999997,
+        "max": 3.611000000000004
+      },
+      "cruise": {
+        "n": 107,
+        "p50": 1.8070000000000164,
+        "p95": 3.3339999999999748,
+        "max": 3.888999999999953
+      },
+      "note": "A_auth − A_snap. clamp 미발화 확인"
+    },
+    "ba_internal": {
+      "publishQueueMs": {
+        "n": 370,
+        "p50": 19,
+        "p95": 159,
+        "max": 510
+      },
+      "inFlightMax": 1,
+      "A_firstOutOfOrder": 0,
+      "note": "S3A 대비 유지 확인용. 이번 판정 근거 아님"
+    }
+  },
+  "f1_f2": {
+    "F1": "visibilityNowMs 초기 0 — 측정에서 앞 2s 폐기로 회피. 미수정",
+    "F2": "motionPublishFlight fire-and-forget. pt3 ok=0 으로만 관측. 미수정"
+  },
+  "geoSafeM": 1029,
+  "limits": {
+    "D_eff_ms": 350,
+    "residualRmse_m": 1,
+    "residualMax_m": 2.5
+  }
+}

@@ -3,6 +3,7 @@ import type { LineStringGeometry, LngLat } from "../lib/geo";
 import { getPointOnRouteByDistance, lineStringLengthMeters } from "../lib/geo";
 import { rideDistanceAlongRoute } from "../lib/liveLocationSnapshot";
 import { stepRideSpeedKmh } from "../lib/rideSpeedRamp";
+import { registerPeerSyncDistanceSamplers } from "../lib/peerMotion/peerSyncDistanceSamplers";
 
 export type RideSessionStatus = "idle" | "running" | "paused";
 
@@ -186,6 +187,34 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
     return geom ? getPointOnRouteByDistance(geom, dist) : null;
   }, []);
 
+  /** rAF 원본 거리(m) — METRICS_UI_MS 상태와 무관. S3-DIAG ① */
+  const sampleVirtualDistanceM = useCallback((): number => virtualDistanceRef.current, []);
+
+  /** rAF 적용속도(km/h) — ① 로그용 */
+  const sampleAppliedSpeedKmh = useCallback((): number => appliedSpeedRef.current, []);
+
+  useEffect(() => {
+    registerPeerSyncDistanceSamplers({
+      sampleVirtualDistanceM,
+      sampleAppliedSpeedKmh,
+      sampleTargetSpeedKmh: () => speedRef.current,
+      sampleRouteLens: () => {
+        const geom = routeGeometryRef.current;
+        return {
+          routeLen: routeDistanceRef.current,
+          geoLen: geom ? lineStringLengthMeters(geom) : 0,
+        };
+      },
+    });
+    return () =>
+      registerPeerSyncDistanceSamplers({
+        sampleVirtualDistanceM: null,
+        sampleAppliedSpeedKmh: null,
+        sampleTargetSpeedKmh: null,
+        sampleRouteLens: null,
+      });
+  }, [sampleVirtualDistanceM, sampleAppliedSpeedKmh]);
+
   return {
     status,
     setStatus,
@@ -193,6 +222,8 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
     resetDistances,
     syncLiveFromDistance,
     sampleLiveLngLat,
+    sampleVirtualDistanceM,
+    sampleAppliedSpeedKmh,
     startOffsetMetersRef,
   };
 }

@@ -1,0 +1,370 @@
+{
+  "instruction": "S3B-2R",
+  "section": "1-1",
+  "grid": {
+    "stepMs": 20,
+    "range": [
+      240,
+      480
+    ],
+    "note": "공식 D_eff 적합은 0..3000 step 20. 350 은 격자 밖(off-grid spotlight 만)",
+    "budgetMs": 350
+  },
+  "base": {
+    "D_eff": 340,
+    "residualRmse": 0.3856858500970258,
+    "residualMax": 1.5112978723404353,
+    "overlap": 1,
+    "n": 97,
+    "residualMeanAtDeff": -0.06052033716308241,
+    "sweep": [
+      {
+        "D": 240,
+        "residualRmse": 0.8718276054172063,
+        "residualMax": 2.3161153846153866,
+        "residualMean": -0.7394831738456893,
+        "n": 97,
+        "overlap": 1
+      },
+      {
+        "D": 260,
+        "residualRmse": 0.7448676863970577,
+        "residualMax": 2.1634780219780225,
+        "residualMean": -0.6043840968685895,
+        "n": 97,
+        "overlap": 1
+      },
+      {
+        "D": 280,
+        "residualRmse": 0.624259325494343,
+        "residualMax": 2.0076382978723473,
+        "residualMean": -0.4676918878228928,
+        "n": 97,
+        "overlap": 1
+      },
+      {
+        "D": 300,
+        "residualRmse": 0.5163929130076467,
+        "residualMax": 1.84219148936171,
+        "residualMean": -0.33115825911840385,
+        "n": 97,
+        "overlap": 1
+      },
+      {
+        "D": 320,
+        "residualRmse": 0.4319241225795282,
+        "residualMax": 1.6767446808510726,
+        "residualMean": -0.19507477563022912,
+        "n": 97,
+        "overlap": 1
+      },
+      {
+        "D": 340,
+        "residualRmse": 0.3856858500970258,
+        "residualMax": 1.5112978723404353,
+        "residualMean": -0.06052033716308241,
+        "n": 97,
+        "overlap": 1
+      },
+      {
+        "D": 360,
+        "residualRmse": 0.3905870574681426,
+        "residualMax": 1.345851063829798,
+        "residualMean": 0.07344875874597105,
+        "n": 97,
+        "overlap": 1
+      },
+      {
+        "D": 380,
+        "residualRmse": 0.4421752774018719,
+        "residualMax": 1.1804042553191607,
+        "residualMean": 0.20731982471361285,
+        "n": 97,
+        "overlap": 1
+      },
+      {
+        "D": 400,
+        "residualRmse": 0.5274373144284232,
+        "residualMax": 1.232085106382982,
+        "residualMean": 0.3398115306981975,
+        "n": 97,
+        "overlap": 1
+      },
+      {
+        "D": 420,
+        "residualRmse": 0.6337812500196246,
+        "residualMax": 1.4388936170212787,
+        "residualMean": 0.472719011811893,
+        "n": 97,
+        "overlap": 1
+      },
+      {
+        "D": 440,
+        "residualRmse": 0.7521463290397024,
+        "residualMax": 1.6457021276595754,
+        "residualMean": 0.6057199474747126,
+        "n": 97,
+        "overlap": 1
+      },
+      {
+        "D": 460,
+        "residualRmse": 0.8766681207216178,
+        "residualMax": 1.852510638297872,
+        "residualMean": 0.737933118677789,
+        "n": 97,
+        "overlap": 1
+      },
+      {
+        "D": 480,
+        "residualRmse": 1.0060671837011055,
+        "residualMax": 2.0593191489361686,
+        "residualMean": 0.8705943207606044,
+        "n": 97,
+        "overlap": 1
+      }
+    ],
+    "spotlight": {
+      "300": {
+        "D": 300,
+        "residualRmse": 0.5163929130076467,
+        "residualMax": 1.84219148936171,
+        "residualMean": -0.33115825911840385,
+        "n": 97,
+        "overlap": 1
+      },
+      "320": {
+        "D": 320,
+        "residualRmse": 0.4319241225795282,
+        "residualMax": 1.6767446808510726,
+        "residualMean": -0.19507477563022912,
+        "n": 97,
+        "overlap": 1
+      },
+      "340": {
+        "D": 340,
+        "residualRmse": 0.3856858500970258,
+        "residualMax": 1.5112978723404353,
+        "residualMean": -0.06052033716308241,
+        "n": 97,
+        "overlap": 1
+      },
+      "350": {
+        "D": 350,
+        "residualRmse": 0.3818362015743004,
+        "residualMax": 1.4285744680851167,
+        "residualMean": 0.006415990417450055,
+        "n": 97,
+        "overlap": 1
+      },
+      "360": {
+        "D": 360,
+        "residualRmse": 0.3905870574681426,
+        "residualMax": 1.345851063829798,
+        "residualMean": 0.07344875874597105,
+        "n": 97,
+        "overlap": 1
+      },
+      "380": {
+        "D": 380,
+        "residualRmse": 0.4421752774018719,
+        "residualMax": 1.1804042553191607,
+        "residualMean": 0.20731982471361285,
+        "n": 97,
+        "overlap": 1
+      }
+    },
+    "distinguish350vs360": {
+      "rmse350": 0.3818362015743004,
+      "rmse360": 0.3905870574681426,
+      "delta": 0.008750855893842169,
+      "localSpread": 0.008750855893842169,
+      "distinguishable": false,
+      "note": "350 은 20ms 격자 밖 — off-grid 평가. delta>localSpread 이면 구별"
+    },
+    "grid": {
+      "stepMs": 20,
+      "min": 240,
+      "max": 480,
+      "budgetMs": 350
+    }
+  },
+  "post": {
+    "D_eff": 360,
+    "residualRmse": 0.45466606755971967,
+    "residualMax": 1.3527608069164216,
+    "overlap": 1,
+    "n": 99,
+    "residualMeanAtDeff": 0.06437351460357295,
+    "sweep": [
+      {
+        "D": 240,
+        "residualRmse": 0.9139188678923381,
+        "residualMax": 2.4092449567723264,
+        "residualMean": -0.7358543233954871,
+        "n": 99,
+        "overlap": 1
+      },
+      {
+        "D": 260,
+        "residualRmse": 0.7918351303510862,
+        "residualMax": 2.2331642651296733,
+        "residualMean": -0.6026481635338432,
+        "n": 99,
+        "overlap": 1
+      },
+      {
+        "D": 280,
+        "residualRmse": 0.6780925718205267,
+        "residualMax": 2.05708357348702,
+        "residualMean": -0.469662660182245,
+        "n": 99,
+        "overlap": 1
+      },
+      {
+        "D": 300,
+        "residualRmse": 0.5777549800542974,
+        "residualMax": 1.8810028818443811,
+        "residualMean": -0.3360252357284147,
+        "n": 99,
+        "overlap": 1
+      },
+      {
+        "D": 320,
+        "residualRmse": 0.5000364799674109,
+        "residualMax": 1.704922190201728,
+        "residualMean": -0.20353774436571964,
+        "n": 99,
+        "overlap": 1
+      },
+      {
+        "D": 340,
+        "residualRmse": 0.45568751175799066,
+        "residualMax": 1.5288414985590748,
+        "residualMean": -0.07034735726734385,
+        "n": 99,
+        "overlap": 1
+      },
+      {
+        "D": 360,
+        "residualRmse": 0.45466606755971967,
+        "residualMax": 1.3527608069164216,
+        "residualMean": 0.06437351460357295,
+        "n": 99,
+        "overlap": 1
+      },
+      {
+        "D": 380,
+        "residualRmse": 0.49794194713331247,
+        "residualMax": 1.3404104046242935,
+        "residualMean": 0.1994137279487578,
+        "n": 99,
+        "overlap": 1
+      },
+      {
+        "D": 400,
+        "residualRmse": 0.5753144955336903,
+        "residualMax": 1.5170578034682194,
+        "residualMean": 0.33438004442209796,
+        "n": 99,
+        "overlap": 1
+      },
+      {
+        "D": 420,
+        "residualRmse": 0.67309240590779,
+        "residualMax": 1.6937052023121737,
+        "residualMean": 0.4678618654784009,
+        "n": 99,
+        "overlap": 1
+      },
+      {
+        "D": 440,
+        "residualRmse": 0.7834895216006935,
+        "residualMax": 1.8703526011560996,
+        "residualMean": 0.5990646984126436,
+        "n": 99,
+        "overlap": 1
+      },
+      {
+        "D": 460,
+        "residualRmse": 0.9036106298563247,
+        "residualMax": 2.0470000000000255,
+        "residualMean": 0.7302980339250298,
+        "n": 99,
+        "overlap": 1
+      },
+      {
+        "D": 480,
+        "residualRmse": 1.030685996845003,
+        "residualMax": 2.2363636363636488,
+        "residualMean": 0.8630967474487814,
+        "n": 99,
+        "overlap": 1
+      }
+    ],
+    "spotlight": {
+      "300": {
+        "D": 300,
+        "residualRmse": 0.5777549800542974,
+        "residualMax": 1.8810028818443811,
+        "residualMean": -0.3360252357284147,
+        "n": 99,
+        "overlap": 1
+      },
+      "320": {
+        "D": 320,
+        "residualRmse": 0.5000364799674109,
+        "residualMax": 1.704922190201728,
+        "residualMean": -0.20353774436571964,
+        "n": 99,
+        "overlap": 1
+      },
+      "340": {
+        "D": 340,
+        "residualRmse": 0.45568751175799066,
+        "residualMax": 1.5288414985590748,
+        "residualMean": -0.07034735726734385,
+        "n": 99,
+        "overlap": 1
+      },
+      "350": {
+        "D": 350,
+        "residualRmse": 0.44936064896592864,
+        "residualMax": 1.4408011527377482,
+        "residualMean": -0.0030629734571940423,
+        "n": 99,
+        "overlap": 1
+      },
+      "360": {
+        "D": 360,
+        "residualRmse": 0.45466606755971967,
+        "residualMax": 1.3527608069164216,
+        "residualMean": 0.06437351460357295,
+        "n": 99,
+        "overlap": 1
+      },
+      "380": {
+        "D": 380,
+        "residualRmse": 0.49794194713331247,
+        "residualMax": 1.3404104046242935,
+        "residualMean": 0.1994137279487578,
+        "n": 99,
+        "overlap": 1
+      }
+    },
+    "distinguish350vs360": {
+      "rmse350": 0.44936064896592864,
+      "rmse360": 0.45466606755971967,
+      "delta": 0.0053054185937910225,
+      "localSpread": 0.006326862792062016,
+      "distinguishable": false,
+      "note": "350 은 20ms 격자 밖 — off-grid 평가. delta>localSpread 이면 구별"
+    },
+    "grid": {
+      "stepMs": 20,
+      "min": 240,
+      "max": 480,
+      "budgetMs": 350
+    }
+  },
+  "generatedAt": "2026-08-12T07:19:04.438Z"
+}

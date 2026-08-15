@@ -1,0 +1,39 @@
+{
+  "pass": true,
+  "tol": 0.2,
+  "confirmed": {
+    "D_eff": 7140,
+    "residualRmse": 32.10394489337602,
+    "residualP95": 45.066346153846155,
+    "residualMax": 54.900000000000034,
+    "n": 91,
+    "hitCeiling": false,
+    "searchMaxMs": 10000
+  },
+  "replay": {
+    "D_eff": 7160,
+    "residualRmse": 31.89794101200026,
+    "residualP95": 43.05192340425526,
+    "residualMax": 49.78296303317535,
+    "n": 221,
+    "events": 91,
+    "peerRows": 221
+  },
+  "checks": {
+    "D_eff": {
+      "expected": 7140,
+      "got": 7160,
+      "ok": true
+    },
+    "residualRmse": {
+      "expected": 32.10394489337602,
+      "got": 31.89794101200026,
+      "ok": true
+    },
+    "residualMax": {
+      "expected": 54.900000000000034,
+      "got": 49.78296303317535,
+      "ok": true
+    }
+  }
+}

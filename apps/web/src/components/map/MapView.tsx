@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -22,6 +23,18 @@ import {
   shouldMoveActivityWorldLayersToTop,
   shouldSkipLiveOverlaysOnMap,
 } from "../../lib/mapDebugPhase";
+import {
+  noteLodScheduleEmit,
+  noteLodScheduleEnter,
+  noteMapEvent,
+  noteMoveToTopMs,
+  notePathBInterval,
+  noteRafFrame,
+  noteSyncActivityMs,
+  isFollowCameraJump,
+} from "../../lib/mapTickProbe";
+import { installCameraRenderPhaseHook } from "../../lib/cameraRenderPhase";
+import { applyTickTestToMap, getTickTestOffList, installTickTestMapHooks, subscribeTickTest } from "../../lib/tickTestSwitches";
 import type { LngLat, LineStringGeometry } from "../../lib/geo";
 import {
   getDistanceMeters,
@@ -62,8 +75,16 @@ import {
   DEFAULT_MAP_ZOOM,
   RIDE_FOLLOW_CAMERA_MODE,
   RIDE_CAMERA_DISTANCE_DEFAULT_M,
-  zoomForRiderDistanceMeters,
+  RIDE_CAMERA_DISTANCE_MIN_M,
+  RIDE_CAMERA_DISTANCE_MAX_M,
 } from "../../lib/mapGlobeView";
+import {
+  computeRideFollowFraming,
+  measureRiderScreenDiag,
+  publishRiderScreenDiag,
+  RIDE_HUD_SAFE_PADDING,
+  viewportPxFromMap,
+} from "../../lib/rideCameraFraming";
 import { type LiveRiderMotion } from "./mapViewTypes";
 import {
   tickRideCameraFollow,
@@ -71,13 +92,13 @@ import {
   resetCameraSmoothing,
   shouldSyncMapZoomToApp,
   getBearing,
-  offsetLngLatByBearingMeters,
   apply3DState,
   getAverageHeadingAheadFromPoint,
   CAMERA_BEARING_WINDOW_METERS,
   CAMERA_BEARING_WINDOW_SAMPLES,
 } from "./rideCameraFollow";
 import { buildElevationUi, getProgressRatioOnRoute } from "./mapElevationUi";
+import { TickTestOffBadge } from "./TickTestOffBadge";
 import "./MapView.css";
 
 const RIDER_PROTOTYPE_MODE = getRiderPrototypeMode();
@@ -151,6 +172,38 @@ const ACTIVITY_PULSE_DOTS_GLOW = "boxcycle-activity-pulse-dots-glow";
 const ACTIVITY_PULSE_DOTS_LAYER = "boxcycle-activity-pulse-dots-layer";
 const ACTIVITY_HEAT_DOTS_LAYER = "boxcycle-activity-heat-dots-layer";
 
+const ACTIVITY_WORLD_LAYER_IDS = [
+  ACTIVITY_PULSE_GLOW,
+  ACTIVITY_PULSE_LINE,
+  ACTIVITY_HEAT_GLOW,
+  ACTIVITY_HEAT_LINE,
+  ACTIVITY_PULSE_DOTS_GLOW,
+  ACTIVITY_PULSE_DOTS_LAYER,
+  ACTIVITY_HEAT_DOTS_GLOW,
+  ACTIVITY_HEAT_DOTS_LAYER,
+] as const;
+
+/** 존재 여부 + 최상위 활동 레이어 **위에** 얹힌 id. route 가 위에 오면 시그니처가 바뀐다. */
+function activityWorldLayerSignature(map: mapboxgl.Map): string {
+  let ids: string[];
+  try {
+    ids = (map.getStyle()?.layers ?? []).map((l) => l.id);
+  } catch {
+    return "";
+  }
+  let presence = "";
+  let maxIdx = -1;
+  for (const id of ACTIVITY_WORLD_LAYER_IDS) {
+    const i = ids.indexOf(id);
+    presence += i >= 0 ? "1" : "0";
+    if (i > maxIdx) maxIdx = i;
+  }
+  const above = maxIdx >= 0 ? ids.slice(maxIdx + 1).join(",") : "";
+  return `${presence}|above:${above}`;
+}
+
+const lastActivityWorldLayerSigByMap = new WeakMap<mapboxgl.Map, string>();
+
 type ActivityWorldDotFeature = {
   publicationId: string;
   lngLat: LngLat;
@@ -184,16 +237,10 @@ function traceLineOpacityByZoom(
 
 /** Activity World dot·line — `route`·coverage 위로 (route effect 가 dot 뒤에 addLayer 되는 회귀 방지) */
 function moveActivityWorldLayersToTop(map: mapboxgl.Map): void {
-  for (const id of [
-    ACTIVITY_PULSE_GLOW,
-    ACTIVITY_PULSE_LINE,
-    ACTIVITY_HEAT_GLOW,
-    ACTIVITY_HEAT_LINE,
-    ACTIVITY_PULSE_DOTS_GLOW,
-    ACTIVITY_PULSE_DOTS_LAYER,
-    ACTIVITY_HEAT_DOTS_GLOW,
-    ACTIVITY_HEAT_DOTS_LAYER,
-  ]) {
+  const sig = activityWorldLayerSignature(map);
+  if (sig === lastActivityWorldLayerSigByMap.get(map)) return;
+  const t0 = performance.now();
+  for (const id of ACTIVITY_WORLD_LAYER_IDS) {
     if (map.getLayer(id)) {
       try {
         map.moveLayer(id);
@@ -202,6 +249,8 @@ function moveActivityWorldLayersToTop(map: mapboxgl.Map): void {
       }
     }
   }
+  lastActivityWorldLayerSigByMap.set(map, activityWorldLayerSignature(map));
+  noteMoveToTopMs(performance.now() - t0);
 }
 
 function routeLayerInsertBefore(map: mapboxgl.Map): string | undefined {
@@ -1264,11 +1313,13 @@ export function MapView({
   const syncActivityWorldLayersOnMapRef = useRef<(map: mapboxgl.Map) => void>(() => {});
   syncActivityWorldLayersOnMapRef.current = (map) => {
     if (!map.style) return;
+    const t0 = performance.now();
     const raw = activityWorldRawRef.current;
     syncCourseActivityLayers(map, raw.pulseRoutes, raw.heatRoutes);
     syncWorldHeatDots(map, raw.heatDots);
     syncWorldRedDots(map, raw.pulseDots);
     moveActivityWorldLayersToTop(map);
+    noteSyncActivityMs(performance.now() - t0);
   };
 
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -1381,7 +1432,12 @@ export function MapView({
   }, [mapZoom]);
 
   useEffect(() => {
-    rideCameraDistanceMRef.current = rideCameraDistanceM;
+    const q = Number(new URLSearchParams(window.location.search).get("rideCam"));
+    const fromQuery =
+      Number.isFinite(q) && q >= RIDE_CAMERA_DISTANCE_MIN_M && q <= RIDE_CAMERA_DISTANCE_MAX_M
+        ? q
+        : null;
+    rideCameraDistanceMRef.current = fromQuery ?? rideCameraDistanceM;
   }, [rideCameraDistanceM]);
 
   useEffect(() => {
@@ -1449,6 +1505,16 @@ export function MapView({
   }, [getActivityWorldPinLabel]);
 
   useEffect(() => {
+    if (!import.meta.env.DEV || !mapLoaded) return;
+    const apply = () => {
+      const map = mapRef.current;
+      if (map) applyTickTestToMap(map);
+    };
+    apply();
+    return subscribeTickTest(apply);
+  }, [mapLoaded]);
+
+  useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
     resetCameraSmoothing(cameraSmoothRef.current, map);
@@ -1494,6 +1560,11 @@ export function MapView({
     /** 축척: Mapbox 기본 우하단(bottom-right) */
     map.addControl(new mapboxgl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-right");
     mapRef.current = map;
+    if (import.meta.env.DEV && typeof window !== "undefined") {
+      (window as Window & { __RTW_MAP__?: mapboxgl.Map }).__RTW_MAP__ = map;
+    }
+    installCameraRenderPhaseHook(map);
+    installTickTestMapHooks(map);
 
     const reportMapViewport = () => {
       const bounds = map.getBounds();
@@ -1525,6 +1596,8 @@ export function MapView({
     let lodLastEmit = 0;
     const LOD_VIEWPORT_THROTTLE_MS = 100;
     const scheduleLodViewportReport = () => {
+      if (isFollowCameraJump()) return;
+      noteLodScheduleEnter();
       if (lodRaf) return;
       lodRaf = requestAnimationFrame(() => {
         lodRaf = 0;
@@ -1534,6 +1607,7 @@ export function MapView({
           return;
         }
         lodLastEmit = now;
+        noteLodScheduleEmit();
         if (onMapLodViewportRef.current) reportMapLodViewport();
         syncActivityWorldLayersOnMapRef.current(map);
       });
@@ -1553,8 +1627,20 @@ export function MapView({
     map.on("idle", reportMapViewport);
     map.on("move", scheduleLodViewportReport);
     map.on("zoom", scheduleLodViewportReport);
+    const onMoveCount = () => noteMapEvent("move");
+    const onZoomCount = () => noteMapEvent("zoom");
+    const onMoveEndCount = () => noteMapEvent("moveend");
+    const onZoomEndCount = () => noteMapEvent("zoomend");
+    const onIdleCount = () => noteMapEvent("idle");
+    map.on("move", onMoveCount);
+    map.on("zoom", onZoomCount);
+    map.on("moveend", onMoveEndCount);
+    map.on("zoomend", onZoomEndCount);
+    map.on("idle", onIdleCount);
 
     map.on("style.load", () => {
+      try {
+      lastActivityWorldLayerSigByMap.delete(map);
       const latestRoute = routeGeometryRef.current;
       if (latestRoute?.coordinates?.length) {
         const routeFeature = {
@@ -1581,6 +1667,7 @@ export function MapView({
       apply3DState(map, enable3DRef.current, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID);
       clearRiderGlbModels(map);
       ensureRiderGlbLayer(map);
+      if (import.meta.env.DEV) applyTickTestToMap(map);
       try {
         applyCoverageOverlayMode(
           map,
@@ -1612,6 +1699,9 @@ export function MapView({
         syncActivityWorldLayersOnMapRef.current(map);
       } catch {
         /* noop */
+      }
+      } catch (err) {
+        console.warn("[MapView] style.load failed", err);
       }
     });
 
@@ -1686,6 +1776,11 @@ export function MapView({
       map.off("idle", reportMapViewport);
       map.off("move", scheduleLodViewportReport);
       map.off("zoom", scheduleLodViewportReport);
+      map.off("move", onMoveCount);
+      map.off("zoom", onZoomCount);
+      map.off("moveend", onMoveEndCount);
+      map.off("zoomend", onZoomEndCount);
+      map.off("idle", onIdleCount);
       if (lodRaf) cancelAnimationFrame(lodRaf);
       window.removeEventListener("resize", onResize);
       startMarkerRef.current?.remove();
@@ -1824,7 +1919,7 @@ export function MapView({
     };
     map.once("moveend", onMoveEnd);
     map.fitBounds(bounds, {
-      padding: { top: 52, bottom: 120, left: 44, right: 44 },
+      padding: RIDE_HUD_SAFE_PADDING,
       maxZoom: 16,
       duration: prefersReducedMotion ? 0 : 1100,
       essential: true,
@@ -2218,6 +2313,7 @@ export function MapView({
     if (!mapLoaded) return;
     let lastTs = performance.now();
     const tickBody = (now: number) => {
+      noteRafFrame(now);
       const map = mapRef.current;
       // isStyleLoaded() 는 위성+3D terrain 에서 영구 false 가능 → 동행 스프라이트 영영 차단.
       if (!map?.style) return;
@@ -2253,18 +2349,25 @@ export function MapView({
           suppressUntilMs: suppressCameraFollowUntilRef.current,
           nowMs: now,
         });
+        if (import.meta.env.DEV) {
+          const headingDeg = resolveRiderBearingDeg(
+            routeGeometryRef.current,
+            sampled,
+            prevForBearing,
+          );
+          publishRiderScreenDiag(measureRiderScreenDiag(map, sampled, headingDeg));
+        }
       }
 
       const showPeerSprites = mapZoomRef.current > MAP_PEER_SPRITE_MIN_ZOOM;
-      const fc = showPeerSprites
-        ? stepPeerDriveAndBuildGeoJson(
-            null,
-            dt,
-            getBearing,
-            routeGeometryRef.current,
-            Date.now(),
-          )
-        : EMPTY_GEOJSON_FC;
+      const peerFc = stepPeerDriveAndBuildGeoJson(
+        null,
+        dt,
+        getBearing,
+        routeGeometryRef.current,
+        Date.now(),
+      );
+      const fc = showPeerSprites ? peerFc : EMPTY_GEOJSON_FC;
       syncPeerDomMarkers(map, fc.features as PeerDomGJFeature[], peerDomMarkersRef);
       if (RIDER_PROTOTYPE_MODE === "glb" && ensureRiderGlbLayer(map)) {
         const specs: RiderGlbModelSpec[] = [];
@@ -2319,6 +2422,7 @@ export function MapView({
           });
         }
         syncRiderGlbModels(map, specs);
+        if (import.meta.env.DEV && getTickTestOffList().length > 0) applyTickTestToMap(map);
         const liveLabel = liveRiderNametagRef.current?.trim() ?? "";
         syncGlbLiveNametagMarker(
           map,
@@ -2425,14 +2529,18 @@ export function MapView({
       currentPitch: map.getPitch(),
       distanceM: rideCameraDistanceMRef.current,
     });
-    const center =
-      nextCamera.distanceM > 0 && nextCamera.offsetBearing != null
-        ? offsetLngLatByBearingMeters(target, nextCamera.offsetBearing, nextCamera.distanceM)
-        : target;
-    const rideZoom =
-      nextCamera.distanceM > 0
-        ? zoomForRiderDistanceMeters(nextCamera.distanceM, target[1], nextCamera.pitch)
-        : mapZoomRef.current;
+    const vp = viewportPxFromMap(map);
+    const framing = computeRideFollowFraming({
+      riderLngLat: target,
+      offsetBearing: nextCamera.offsetBearing,
+      distanceM: nextCamera.distanceM,
+      pitchDeg: nextCamera.pitch,
+      viewportWidthPx: vp.width,
+      viewportHeightPx: vp.height,
+      fallbackZoom: mapZoomRef.current,
+    });
+    const center = framing.center;
+    const rideZoom = framing.zoom;
     mapZoomRef.current = rideZoom;
     cameraSmoothRef.current.zoom = rideZoom;
 
@@ -2511,16 +2619,25 @@ export function MapView({
     activityWorldRaw?.heatRoutes.length ?? 0,
   ]);
 
+  const hasActivityDots =
+    (activityWorldRaw?.pulseDots.length ?? 0) > 0 ||
+    (activityWorldRaw?.heatDots.length ?? 0) > 0;
+
   /** style.reload 후 dot layer 유실 시 주기적 재동기화 */
   useEffect(() => {
-    const hasDots =
-      (activityWorldRaw?.pulseDots.length ?? 0) > 0 ||
-      (activityWorldRaw?.heatDots.length ?? 0) > 0;
-    if (!mapLoaded || !hasDots) return;
+    if (!mapLoaded || !hasActivityDots) return;
     const map = mapRef.current;
     if (!map) return;
 
-    const run = () => syncActivityWorldLayersOnMapRef.current(map);
+    const run = () => {
+      notePathBInterval();
+      if (!map.style) return;
+      const needPulse =
+        (activityWorldRaw?.pulseDots.length ?? 0) > 0 && !map.getLayer(ACTIVITY_PULSE_DOTS_LAYER);
+      const needHeat =
+        (activityWorldRaw?.heatDots.length ?? 0) > 0 && !map.getLayer(ACTIVITY_HEAT_DOTS_LAYER);
+      if (needPulse || needHeat) syncActivityWorldLayersOnMapRef.current(map);
+    };
     run();
     const onStyle = () => run();
     const onIdle = () => run();
@@ -2533,7 +2650,7 @@ export function MapView({
       map.off("style.load", onStyle);
       map.off("idle", onIdle);
     };
-  }, [mapLoaded, activityWorldRaw]);
+  }, [mapLoaded, hasActivityDots]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -2569,7 +2686,7 @@ export function MapView({
           [bbox[2], bbox[3]],
         ],
         {
-          padding: { top: 52, bottom: 120, left: 44, right: 44 },
+          padding: RIDE_HUD_SAFE_PADDING,
           maxZoom: 16,
           duration: prefersReducedMotion ? 0 : 1100,
           essential: true,
@@ -2612,7 +2729,11 @@ export function MapView({
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
-    apply3DState(map, enable3D, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID);
+    try {
+      apply3DState(map, enable3D, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID);
+    } catch (err) {
+      console.warn("[MapView] apply3DState failed", err);
+    }
   }, [enable3D, mapLoaded]);
 
   if (!accessToken?.trim()) {
@@ -2642,6 +2763,7 @@ export function MapView({
   return (
     <div className="map-view-shell">
       <div ref={containerRef} className="map-view" role="presentation" />
+      <TickTestOffBadge />
       {isLoadingElevation ? (
         <div className="elevation-overlay">
           <div className="elevation-overlay__empty">고도 계산 중…</div>

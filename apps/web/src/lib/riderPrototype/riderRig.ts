@@ -15,6 +15,8 @@ export const BAR_HOOD: Vec2 = rig.BAR_HOOD;
 export const PELVIS: Vec2 = rig.PELVIS;
 export const SHOULDER: Vec2 = rig.SHOULDER;
 export const HEAD_C: Vec2 = rig.HEAD_C;
+export const PELVIS_ROOT: readonly [number, number, number] = rig.PELVIS_ROOT;
+export const SHOULDER_HALF_Z: number = rig.SHOULDER_HALF_Z;
 
 export const CRANK_ARM_M: number = rig.CRANK_ARM_M;
 export const THIGH_LEN: number = rig.THIGH_LEN;

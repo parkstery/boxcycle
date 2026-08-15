@@ -1,0 +1,108 @@
+{
+  "pass": true,
+  "failures": [],
+  "fixtures": [
+    {
+      "id": "s1-z15-depart",
+      "kind": "invalid",
+      "status": "D_eff 산출 불가",
+      "scale": {
+        "status": "판정 유보",
+        "reason": "Δself=94.4m window=16.3s (need ≥100m · ≥20s)",
+        "deltaSelfM": 94.4,
+        "deltaNewestM": 12.200000000000001
+      },
+      "section2": {
+        "oldClaimedD_ms": 10000,
+        "overlapAtOldD": 0.390625,
+        "pass": true
+      },
+      "_computeRefOnly": "ok"
+    },
+    {
+      "id": "s1-z15-cruise",
+      "kind": "invalid",
+      "status": "D_eff 산출 불가",
+      "scale": {
+        "status": "FAIL",
+        "reason": "|Δself−Δnewest|/Δself=0.419",
+        "deltaSelfM": 181.10000000000002,
+        "deltaNewestM": 256.9
+      },
+      "section2": {
+        "oldClaimedD_ms": 7140,
+        "overlapAtOldD": 0.6593406593406593,
+        "pass": true
+      },
+      "_computeRefOnly": "ok"
+    },
+    {
+      "id": "s1-z15-decel",
+      "kind": "accuracy-budget",
+      "accuracy": {
+        "pass": true,
+        "D_eff": 240,
+        "residualRmse": 0.6346231886702911,
+        "residualMax": 2.4658333333333076,
+        "limits": {
+          "D_eff_ms": 350,
+          "residualRmse_m": 1,
+          "residualMax_m": 2.5
+        },
+        "fail": []
+      },
+      "scale": {
+        "status": "판정 유보",
+        "reason": "Δself=27.4m window=7.0s (need ≥100m · ≥20s)",
+        "deltaSelfM": 27.40000000000009,
+        "windowMs": 7034
+      }
+    },
+    {
+      "id": "s1-z15-pause",
+      "kind": "accuracy-budget",
+      "accuracy": {
+        "pass": true,
+        "D_eff": 180,
+        "residualRmse": 0.1361101032156301,
+        "residualMax": 0.8420600858369198,
+        "limits": {
+          "D_eff_ms": 350,
+          "residualRmse_m": 1,
+          "residualMax_m": 2.5
+        },
+        "fail": []
+      },
+      "scale": {
+        "status": "판정 유보",
+        "reason": "Δself=8.0m window=12.3s (need ≥100m · ≥20s)",
+        "deltaSelfM": 8,
+        "windowMs": 12260
+      }
+    }
+  ],
+  "knownFails": [
+    {
+      "id": "d0-duplicate-distm",
+      "kind": "flipped-after-S3B-1",
+      "pass": true,
+      "ratio": 0,
+      "dup": 0,
+      "n": 294,
+      "expect": "연속 중복 distM < 40% (구 expect ≥40% 를 뒤집음)",
+      "source": "S3B1-chain-events.json pt3"
+    },
+    {
+      "id": "d1-target-vs-applied",
+      "kind": "flipped-after-S3B-2",
+      "pass": true,
+      "actualMps": 2.8975388374934545,
+      "publishedMps": 3.02,
+      "rel": 0.0405500538101144,
+      "windowSec": 6,
+      "expect": "발행 speedMps 가 실제 진행속도와 < 20% 어긋남 (구 ≥20% 를 뒤집음)",
+      "source": "S3B2-chain-events.json pt3"
+    }
+  ],
+  "generatedAt": "2026-08-12T23:59:12.534Z"
+}

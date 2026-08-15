@@ -11,6 +11,12 @@ import type { User } from "firebase/auth";
 import { getFirebaseApp, getFirebaseDatabase, isFirebaseDatabaseConfigured } from "./firebase";
 import { sanitizeTrailId } from "./firestoreTrail";
 import type { TrailLiveRidePhase } from "./firestoreTrailLivePublicationRides";
+import {
+  beginMotionInFlight,
+  endMotionInFlight,
+  peerSyncChainLog,
+  peekMotionInFlightMax,
+} from "./peerMotion/peerSyncChainLog";
 
 /** RTDB `/trails/{trailId}/motion/{uid}` */
 export const RTDB_TRAIL_MOTION_SEGMENT = "motion";
@@ -29,6 +35,8 @@ export type RtdbTrailMotionRow = {
   speedMps: number;
   ridePhase: TrailLiveRidePhase;
   serverAtMs: number;
+  /** DEV S3-DIAG — encodePayload `s` (없을 수 있음) */
+  seq?: number;
 };
 
 type RtdbMotionPayload = {
@@ -37,6 +45,8 @@ type RtdbMotionPayload = {
   v: number;
   ph: TrailLiveRidePhase;
   t: number;
+  /** DEV S3-DIAG 상관 ID — 없어도 decode 됨 */
+  s?: number;
 };
 
 const onDisconnectArmed = new Set<string>();
@@ -55,14 +65,18 @@ function disconnectKey(trailId: string, uid: string): string {
   return `${sanitizeTrailId(trailId)}:${uid}`;
 }
 
-function encodePayload(input: RtdbTrailMotionSnapshot): RtdbMotionPayload {
-  return {
+function encodePayload(input: RtdbTrailMotionSnapshot, seq?: number): RtdbMotionPayload {
+  const payload: RtdbMotionPayload = {
     p: input.publicationId.trim(),
     d: Math.round(Math.max(0, input.distM) * 10) / 10,
     v: Math.round(Math.max(0, input.speedMps) * 100) / 100,
     ph: input.ridePhase,
     t: Date.now(),
   };
+  if (import.meta.env.DEV && typeof seq === "number" && Number.isFinite(seq)) {
+    payload.s = Math.floor(seq);
+  }
+  return payload;
 }
 
 function decodeRow(uid: string, val: unknown): RtdbTrailMotionRow | null {
@@ -73,6 +87,9 @@ function decodeRow(uid: string, val: unknown): RtdbTrailMotionRow | null {
   const speedMps = typeof o.v === "number" ? o.v : 0;
   const ridePhase = o.ph;
   const serverAtMs = typeof o.t === "number" ? o.t : 0;
+  const seqRaw = o.s;
+  const seq =
+    typeof seqRaw === "number" && Number.isFinite(seqRaw) ? Math.floor(seqRaw) : undefined;
   if (!publicationId || !Number.isFinite(distM)) return null;
   if (ridePhase !== "live" && ridePhase !== "paused" && ridePhase !== "completed") return null;
   return {
@@ -82,6 +99,7 @@ function decodeRow(uid: string, val: unknown): RtdbTrailMotionRow | null {
     speedMps: Math.max(0, speedMps),
     ridePhase,
     serverAtMs,
+    ...(seq != null ? { seq } : {}),
   };
 }
 
@@ -99,20 +117,78 @@ export async function mergeTrailMotionSnapshot(
   user: User,
   trailId: string,
   input: RtdbTrailMotionSnapshot,
-): Promise<void> {
-  if (!isFirebaseDatabaseConfigured()) return;
-  if (!input.publicationId.trim()) return;
-  getFirebaseApp();
-  await ensureMotionOnDisconnect(trailId, user.uid);
-  const db = getFirebaseDatabase();
-  await set(motionRef(db, trailId, user.uid), encodePayload(input));
+  opts?: { seq?: number; snapshotCapturedAt?: number; epoch?: number },
+): Promise<{ ok: boolean; rttMs: number; d: number; v: number; seq?: number }> {
+  const seq = opts?.seq;
+  const payload = encodePayload(input, seq);
+  if (!isFirebaseDatabaseConfigured()) {
+    return { ok: false, rttMs: 0, d: payload.d, v: payload.v, seq };
+  }
+  if (!input.publicationId.trim()) {
+    return { ok: false, rttMs: 0, d: payload.d, v: payload.v, seq };
+  }
+  beginMotionInFlight();
+  try {
+    getFirebaseApp();
+    await ensureMotionOnDisconnect(trailId, user.uid);
+    const db = getFirebaseDatabase();
+    const motionWriteStartAt = Date.now();
+    if (import.meta.env.DEV && typeof window !== "undefined") {
+      const n = Number(window.__rtwMotionWriteFaultOnce);
+      if (Number.isFinite(n) && n > 0) {
+        window.__rtwMotionWriteFaultOnce = n - 1;
+        throw new Error("rtw-motion-write-fault-once");
+      }
+    }
+    await set(motionRef(db, trailId, user.uid), payload);
+    const motionWriteDoneAt = Date.now();
+    const writeRttMs = motionWriteDoneAt - motionWriteStartAt;
+    const capturedAt = opts?.snapshotCapturedAt;
+    const publishQueueMs =
+      typeof capturedAt === "number" ? motionWriteStartAt - capturedAt : undefined;
+    if (import.meta.env.DEV && seq != null) {
+      peerSyncChainLog(3, seq, {
+        d: payload.d,
+        v: payload.v,
+        ok: 1,
+        capturedAt: capturedAt ?? null,
+        writeStart: motionWriteStartAt,
+        writeDone: motionWriteDoneAt,
+        publishQueueMs: publishQueueMs ?? null,
+        writeRttMs,
+        inFlightMax: peekMotionInFlightMax(),
+        fsAhead: 0,
+        uid: user.uid.slice(0, 6),
+        ...(typeof opts?.epoch === "number" ? { epoch: opts.epoch } : {}),
+      });
+    }
+    return { ok: true, rttMs: writeRttMs, d: payload.d, v: payload.v, seq };
+  } catch (e) {
+    if (import.meta.env.DEV && seq != null) {
+      peerSyncChainLog(3, seq, {
+        d: payload.d,
+        v: payload.v,
+        ok: 0,
+        uid: user.uid.slice(0, 6),
+        ...(typeof opts?.epoch === "number" ? { epoch: opts.epoch } : {}),
+      });
+    }
+    throw e;
+  } finally {
+    endMotionInFlight();
+  }
 }
 
 export async function deleteTrailMotion(uid: string, trailId: string): Promise<void> {
   if (!isFirebaseDatabaseConfigured()) return;
   onDisconnectArmed.delete(disconnectKey(trailId, uid));
   const db = getFirebaseDatabase();
-  await remove(motionRef(db, trailId, uid)).catch(() => {});
+  await remove(motionRef(db, trailId, uid)).catch((e) => {
+    if (import.meta.env.DEV) {
+      const message = e instanceof Error ? e.message : String(e);
+      console.debug("[deleteTrailMotion] failed", message);
+    }
+  });
 }
 
 export function subscribeTrailMotion(

@@ -17,6 +17,7 @@ import {
   RIDER_GLB_MODEL_SOURCE_ID,
   RIDER_GLB_NODE_OVERRIDE_NAMES,
   RIDER_GLB_TORSO_STATE_KEY,
+  RIDER_GLB_MODEL_SCALE,
   bearingToModelYawDeg,
   riderPrototypeGlbUrl,
 } from "./config";
@@ -34,7 +35,7 @@ const RIDER_GLB_LAYER_PAINT = {
    * 라이딩 자세 실제치(~1.45m)보다 저스케일. 1.15배로 보정(전고 ≈1.45m, 길이 ≈1.84m).
    * 모델 교체 시 재실측 후 조정할 것.
    */
-  "model-scale": [1.15, 1.15, 1.15],
+  "model-scale": [RIDER_GLB_MODEL_SCALE, RIDER_GLB_MODEL_SCALE, RIDER_GLB_MODEL_SCALE],
   "model-rotation": [
     "match",
     ["get", "part"],
@@ -73,8 +74,12 @@ const RIDER_GLB_LAYER_PAINT = {
 export function ensureRiderGlbLayer(map: MapboxMap): boolean {
   // 스타일시트 파싱 전엔 addSource/addLayer가 "Style is not done loading"으로 throw —
   // 조용히 false 반환(호출부가 주기 재시도). isStyleLoaded()는 라이브 소스 타일 갱신 중
-  // false라 게이트로 부적합(applyRtwLayerStyle과 동일 기준: getStyle().layers 존재만 확인).
-  if (!map.getStyle()?.layers?.length) return false;
+  // false라 게이트로 부적합. getStyle() 호출 자체가 throw 하므로 옵셔널 체이닝만으로 막지 못한다.
+  try {
+    if (!map.getStyle()?.layers?.length) return false;
+  } catch {
+    return false;
+  }
   try {
     if (!map.getSource(RIDER_GLB_MODEL_SOURCE_ID)) {
       map.addSource(RIDER_GLB_MODEL_SOURCE_ID, {

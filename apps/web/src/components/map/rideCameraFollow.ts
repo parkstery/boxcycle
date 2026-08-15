@@ -5,7 +5,17 @@ import {
   type LineStringGeometry as RouteLineStringGeometry,
 } from "../../lib/geo";
 import type { FollowMode } from "../ride/RideRoutePanel";
-import { RIDE_CAMERA_PITCH_CLOSE, zoomForRiderDistanceMeters } from "../../lib/mapGlobeView";
+import { RIDE_CAMERA_PITCH_CLOSE } from "../../lib/mapGlobeView";
+import { computeRideFollowFraming, viewportPxFromMap } from "../../lib/rideCameraFraming";
+import {
+  beginFollowCameraJump,
+  endFollowCameraJump,
+  noteFollowJumpTo,
+  noteHeadingFromMove,
+} from "../../lib/mapTickProbe";
+import { noteFollowJumpToValues } from "../../lib/cameraFollowTrace";
+import { noteCameraWrite } from "../../lib/cameraRenderPhase";
+import { isTickTestAlignCamOn, isTickTestFollowOn, isTickTestMapStopOn } from "../../lib/tickTestSwitches";
 import { type LiveRiderMotion } from "./mapViewTypes";
 
 const CAMERA_POSITION_TAU_SEC = 0.1;
@@ -67,26 +77,7 @@ function normalizeCompass(deg: number) {
   return x;
 }
 
-/** bearing 방향으로 distanceM 이동한 좌표 (구면 근사) */
-export function offsetLngLatByBearingMeters(origin: LngLat, bearingDeg: number, distanceMeters: number): LngLat {
-  if (distanceMeters <= 0) return origin;
-  const earthRadiusM = 6378137;
-  const bearingRad = (normalizeCompass(bearingDeg) * Math.PI) / 180;
-  const latRad = (origin[1] * Math.PI) / 180;
-  const lngRad = (origin[0] * Math.PI) / 180;
-  const angDist = distanceMeters / earthRadiusM;
-  const lat2 = Math.asin(
-    Math.sin(latRad) * Math.cos(angDist) +
-      Math.cos(latRad) * Math.sin(angDist) * Math.cos(bearingRad),
-  );
-  const lng2 =
-    lngRad +
-    Math.atan2(
-      Math.sin(bearingRad) * Math.sin(angDist) * Math.cos(latRad),
-      Math.cos(angDist) - Math.sin(latRad) * Math.sin(lat2),
-    );
-  return [(lng2 * 180) / Math.PI, (lat2 * 180) / Math.PI];
-}
+export { offsetLngLatByBearingMeters } from "../../lib/geo";
 
 export function getAverageHeadingAheadFromPoint(
   geometry: RouteLineStringGeometry | null,
@@ -219,14 +210,15 @@ export function tickRideCameraFollow(
 ): void {
   if (opts.nowMs < opts.suppressUntilMs) return;
 
-  if (opts.followMode === "free") {
+  if (opts.followMode === "free" || !isTickTestFollowOn()) {
     opts.prevLiveRef.current = targetLngLat;
     return;
   }
 
   const prev = opts.prevLiveRef.current;
-  const headingFromMove =
-    prev && getDistanceMeters(prev, targetLngLat) >= 2 ? getBearing(prev, targetLngLat) : null;
+  const stepM = prev ? getDistanceMeters(prev, targetLngLat) : 0;
+  const headingFromMove = prev && stepM >= 2 ? getBearing(prev, targetLngLat) : null;
+  noteHeadingFromMove(stepM, headingFromMove != null);
   const headingFromRoute = getAverageHeadingAheadFromPoint(
     opts.routeGeometry,
     targetLngLat,
@@ -240,15 +232,6 @@ export function tickRideCameraFollow(
     currentPitch: map.getPitch(),
     distanceM: opts.rideCameraDistanceM,
   });
-
-  const cameraCenterTarget =
-    nextCamera.distanceM > 0 && nextCamera.offsetBearing != null
-      ? offsetLngLatByBearingMeters(targetLngLat, nextCamera.offsetBearing, nextCamera.distanceM)
-      : targetLngLat;
-  const followZoom =
-    nextCamera.distanceM > 0
-      ? zoomForRiderDistanceMeters(nextCamera.distanceM, targetLngLat[1], nextCamera.pitch)
-      : opts.mapZoom;
 
   opts.prevLiveRef.current = targetLngLat;
   const smooth = opts.smooth;
@@ -266,23 +249,18 @@ export function tickRideCameraFollow(
   smooth.lastTs = opts.nowMs;
   const dtSec = clamp(dtMs, 0, CAMERA_MAX_DT_MS) / 1000;
   const alphaPos = dampAlpha(dtSec, CAMERA_POSITION_TAU_SEC);
+  const alignCam = isTickTestAlignCamOn();
+  const alphaCenter = alignCam ? 1 : alphaPos;
   const alphaBearingPrimary = dampAlpha(dtSec, CAMERA_BEARING_TAU_PRIMARY_SEC);
   const alphaBearingSecondary = dampAlpha(dtSec, CAMERA_BEARING_TAU_SECONDARY_SEC);
   const maxStepPrimary = CAMERA_BEARING_MAX_DPS_PRIMARY * dtSec;
   const maxStepSecondary = CAMERA_BEARING_MAX_DPS_SECONDARY * dtSec;
 
-  const curCenter = smooth.center ?? cameraCenterTarget;
   const curPitch = smooth.pitch ?? map.getPitch();
   const curZoom = smooth.zoom ?? map.getZoom();
   const curBearingPrimary = smooth.bearingPrimary ?? map.getBearing();
   const curBearing = smooth.bearing ?? map.getBearing();
 
-  const nextCenter: LngLat = [
-    lerp(curCenter[0], cameraCenterTarget[0], alphaPos),
-    lerp(curCenter[1], cameraCenterTarget[1], alphaPos),
-  ];
-  const nextPitch = lerp(curPitch, nextCamera.pitch, alphaPos);
-  const nextZoom = lerp(curZoom, followZoom, alphaPos);
   const nextBearingPrimary = lerpAngle(
     curBearingPrimary,
     nextCamera.bearing,
@@ -296,19 +274,83 @@ export function tickRideCameraFollow(
     maxStepSecondary,
   );
 
+  const offsetForFraming =
+    nextCamera.offsetBearing == null
+      ? null
+      : alignCam
+        ? normalizeCompass(nextBearing + 180)
+        : nextCamera.offsetBearing;
+
+  const vp = viewportPxFromMap(map);
+  const framing = computeRideFollowFraming({
+    riderLngLat: targetLngLat,
+    offsetBearing: offsetForFraming,
+    distanceM: nextCamera.distanceM,
+    pitchDeg: nextCamera.pitch,
+    viewportWidthPx: vp.width,
+    viewportHeightPx: vp.height,
+    fallbackZoom: opts.mapZoom,
+  });
+  const cameraCenterTarget = framing.center;
+  const followZoom = framing.zoom;
+
+  const curCenter = smooth.center ?? cameraCenterTarget;
+  const nextCenter: LngLat = [
+    lerp(curCenter[0], cameraCenterTarget[0], alphaCenter),
+    lerp(curCenter[1], cameraCenterTarget[1], alphaCenter),
+  ];
+  const nextPitch = lerp(curPitch, nextCamera.pitch, alphaPos);
+  const nextZoom = lerp(curZoom, followZoom, alphaPos);
+
   smooth.center = nextCenter;
   smooth.pitch = nextPitch;
   smooth.zoom = nextZoom;
   smooth.bearingPrimary = nextBearingPrimary;
   smooth.bearing = nextBearing;
 
-  map.stop();
-  map.jumpTo({
+  applyFollowCameraJumpTo(map, {
     center: nextCenter,
     bearing: nextBearing,
     pitch: nextPitch,
     zoom: nextZoom,
+    riderLngLat: targetLngLat,
+    t: opts.nowMs,
+    stopFirst: isTickTestMapStopOn(),
   });
+}
+
+export type FollowCameraJump = {
+  center: LngLat;
+  bearing: number;
+  pitch: number;
+  zoom: number;
+  riderLngLat: LngLat;
+  t: number;
+  stopFirst?: boolean;
+};
+
+/** jumpTo 직전 계측 + 적용. */
+export function applyFollowCameraJumpTo(map: mapboxgl.Map, jump: FollowCameraJump): void {
+  noteFollowJumpToValues(jump);
+  noteCameraWrite({
+    t: jump.t,
+    center: jump.center,
+    zoom: jump.zoom,
+    bearing: jump.bearing,
+  });
+  if (jump.stopFirst) map.stop();
+  beginFollowCameraJump();
+  noteFollowJumpTo();
+  try {
+    map.jumpTo({
+      center: jump.center,
+      bearing: jump.bearing,
+      pitch: jump.pitch,
+      zoom: jump.zoom,
+    });
+  } finally {
+    endFollowCameraJump();
+  }
 }
 
 function clamp(v: number, min: number, max: number) {
@@ -358,6 +400,7 @@ export function apply3DState(
   buildingLayerId: string,
   terrainSourceId: string,
 ) {
+  try {
   if (!enabled) {
     map.setTerrain(null);
     if (map.getLayer(buildingLayerId)) map.removeLayer(buildingLayerId);
@@ -375,8 +418,13 @@ export function apply3DState(
   }
   map.setTerrain({ source: terrainSourceId, exaggeration: 1.3 });
   if (!map.getLayer(buildingLayerId)) {
-    const layers = map.getStyle().layers ?? [];
-    const symbolLayer = layers.find((layer) => layer.type === "symbol" && layer.layout?.["text-field"]);
+    let symbolLayer: { id: string } | undefined;
+    try {
+      const layers = map.getStyle()?.layers ?? [];
+      symbolLayer = layers.find((layer) => layer.type === "symbol" && layer.layout?.["text-field"]);
+    } catch {
+      return;
+    }
     map.addLayer(
       {
         id: buildingLayerId,
@@ -397,5 +445,8 @@ export function apply3DState(
   }
   if (map.getPitch() < 35) {
     map.easeTo({ pitch: 60, bearing: map.getBearing(), duration: 450 });
+  }
+  } catch (err) {
+    console.warn("[map] apply3DState failed", err);
   }
 }

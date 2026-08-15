@@ -9,6 +9,12 @@ const DIST_EPS_M = 0.2;
 const MAX_SPEED_MPS = 85 / 3.6;
 const PEDAL_SPEED_EMA = 0.35;
 
+export type PeerMotionIngestResult =
+  | "accepted"
+  | "dup-same-dist"
+  | "discard-forward"
+  | "discard-retrograde";
+
 export function clampRouteDist(distM: number, routeLenM: number): number {
   if (!Number.isFinite(distM)) return 0;
   if (routeLenM <= 0) return Math.max(0, distM);
@@ -40,7 +46,7 @@ export function applyPeerMotionIngest(
   entity: PeerMotionEntity,
   packet: PeerMotionPacket,
   label: string,
-): void {
+): PeerMotionIngestResult {
   const now = Date.now();
   entity.label = label.slice(0, 48);
   entity.publicationId = packet.publicationId;
@@ -62,17 +68,25 @@ export function applyPeerMotionIngest(
   // (serverAtMs 로 dedup 하면 Firestore 시각이 앞설 때 5Hz RTDB 위치가 통째로 버려져
   //  버퍼가 듬성해지고 보간이 외삽으로 빠져 peer 가 느려 보이는 rate 오류 발생.)
   if (newest && packet.phase === "live" && packet.distM <= newest.distM + 0.05) {
-    return;
+    if (packet.distM > newest.distM + 1e-9) {
+      // ≤0.05 m 전진인데 폐기 — 동일거리 취급 (게이트: 전진 폐기는 > newest 인데 버려진 경우만)
+      return "dup-same-dist";
+    }
+    if (packet.distM < newest.distM - 0.05) return "discard-retrograde";
+    return "dup-same-dist";
   }
 
+  // 이론상 전진(> newest+0.05)은 여기 도달. 다른 경로로 버려지면 discard-forward.
   entity.buffer.push({
     distM: packet.distM,
     recvAtMs: now,
     serverAtMs: packet.serverAtMs,
     speedMps: entity.speedMps,
     phase: packet.phase,
+    ...(packet.seq != null ? { seq: packet.seq } : {}),
   });
   if (entity.buffer.length > PEER_INTERP_BUFFER_MAX) entity.buffer.shift();
+  return "accepted";
 }
 
 export function createPeerMotionEntity(
@@ -94,6 +108,7 @@ export function createPeerMotionEntity(
         serverAtMs: packet.serverAtMs,
         speedMps: speed,
         phase: packet.phase,
+        ...(packet.seq != null ? { seq: packet.seq } : {}),
       },
     ],
     displayDistM: packet.distM,

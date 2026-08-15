@@ -1,0 +1,707 @@
+{
+  "instruction": "S3-DIAG",
+  "elapsedMin": 1,
+  "trailId": "vgcv3D6iFd0ZlcASbBCK",
+  "publisherUid": "FcVoSD",
+  "counts": {
+    "chainA": 2103,
+    "chainB": 1919,
+    "joinN": 318,
+    "joinWith4": 309
+  },
+  "discard": {
+    "sameDist": 530,
+    "forward": 0,
+    "retrograde": 149,
+    "accepted": 163
+  },
+  "forwardDiscardGate": "PASS",
+  "rebuttal": {
+    "applies": true,
+    "matched234": 245,
+    "mismatch234": 0,
+    "note": "②③④ d 일치 · 전진 폐기 0 → 전송 아닌 ①→② clamp 또는 ⑥⑦"
+  },
+  "firstBreak": {
+    "link": "①→②",
+    "evidence": {
+      "seq": 644805247,
+      "authDist": 0.573,
+      "distMetersAlongRoute": 0.125,
+      "delta": -0.44799999999999995
+    }
+  },
+  "routeLen": {
+    "A_routeLen": 1500,
+    "A_geoLen": 1029.633,
+    "B_routeLen": 1029.633
+  },
+  "clamp12": {
+    "paired": 254,
+    "diverge": 187
+  },
+  "sampleJoin": [
+    {
+      "seq": 644805245,
+      "pt1": {
+        "pt": "1",
+        "seq": "644805245",
+        "authDist": "0.087",
+        "appliedKmh": "1.111",
+        "targetKmh": "5",
+        "uid": "FcVoSD"
+      },
+      "pt2": {
+        "pt": "2",
+        "seq": "644805245",
+        "dist": "0.056",
+        "routeReady": "1",
+        "routeLen": "1500",
+        "geoLen": "1029.633",
+        "uid": "FcVoSD"
+      },
+      "pt3": {
+        "pt": "3",
+        "seq": "644805245",
+        "d": "0.1",
+        "v": "1.39",
+        "ok": "1",
+        "rttMs": "226",
+        "uid": "FcVoSD"
+      },
+      "pt4": {
+        "pt": "4",
+        "seq": "644805245",
+        "d": "0.1",
+        "t": "1786399573053",
+        "recvAt": "1786399573126",
+        "uid": "FcVoSD"
+      },
+      "pt5": {
+        "pt": "5",
+        "seq": "644805245",
+        "result": "discard-retrograde",
+        "newest": "1.2",
+        "d": "0.1",
+        "uid": "FcVoSD"
+      }
+    },
+    {
+      "seq": 644805246,
+      "pt1": {
+        "pt": "1",
+        "seq": "644805246",
+        "authDist": "0.171",
+        "appliedKmh": "1.645",
+        "targetKmh": "5",
+        "uid": "FcVoSD"
+      },
+      "pt2": {
+        "pt": "2",
+        "seq": "644805246",
+        "dist": "0.125",
+        "routeReady": "1",
+        "routeLen": "1500",
+        "geoLen": "1029.633",
+        "uid": "FcVoSD"
+      },
+      "pt3": {
+        "pt": "3",
+        "seq": "644805246",
+        "d": "0.1",
+        "v": "1.39",
+        "ok": "1",
+        "rttMs": "223",
+        "uid": "FcVoSD"
+      },
+      "pt4": {
+        "pt": "4",
+        "seq": "644805246",
+        "d": "0.1",
+        "t": "1786399573057",
+        "recvAt": "1786399573180",
+        "uid": "FcVoSD"
+      },
+      "pt5": {
+        "pt": "5",
+        "seq": "644805246",
+        "result": "discard-retrograde",
+        "newest": "1.2",
+        "d": "0.1",
+        "uid": "FcVoSD"
+      }
+    },
+    {
+      "seq": 644805247,
+      "pt1": {
+        "pt": "1",
+        "seq": "644805247",
+        "authDist": "0.573",
+        "appliedKmh": "3.022",
+        "targetKmh": "5",
+        "uid": "FcVoSD"
+      },
+      "pt2": {
+        "pt": "2",
+        "seq": "644805247",
+        "dist": "0.125",
+        "routeReady": "1",
+        "routeLen": "1500",
+        "geoLen": "1029.633",
+        "uid": "FcVoSD"
+      },
+      "pt3": {
+        "pt": "3",
+        "seq": "644805247",
+        "d": "0.1",
+        "v": "1.39",
+        "ok": "1",
+        "rttMs": "158",
+        "uid": "FcVoSD"
+      },
+      "pt4": {
+        "pt": "4",
+        "seq": "644805247",
+        "d": "0.1",
+        "t": "1786399577524",
+        "recvAt": "1786399577733",
+        "uid": "FcVoSD"
+      },
+      "pt5": {
+        "pt": "5",
+        "seq": "644805247",
+        "result": "discard-retrograde",
+        "newest": "3.3",
+        "d": "0.1",
+        "uid": "FcVoSD"
+      }
+    },
+    {
+      "seq": 644805253,
+      "pt1": {
+        "pt": "1",
+        "seq": "644805253",
+        "authDist": "1.328",
+        "appliedKmh": "4.8",
+        "targetKmh": "5",
+        "uid": "FcVoSD"
+      },
+      "pt2": {
+        "pt": "2",
+        "seq": "644805253",
+        "dist": "1.173",
+        "routeReady": "1",
+        "routeLen": "1500",
+        "geoLen": "1029.633",
+        "uid": "FcVoSD"
+      },
+      "pt3": {
+        "pt": "3",
+        "seq": "644805253",
+        "d": "1.2",
+        "v": "1.39",
+        "ok": "1",
+        "rttMs": "262",
+        "uid": "FcVoSD"
+      },
+      "pt4": {
+        "pt": "4",
+        "seq": "644805253",
+        "d": "1.2",
+        "t": "1786399571657",
+        "recvAt": "1786399572519",
+        "uid": "FcVoSD"
+      },
+      "pt5": {
+        "pt": "5",
+        "seq": "644805253",
+        "result": "dup-same-dist",
+        "newest": "1.2",
+        "d": "1.2",
+        "uid": "FcVoSD"
+      }
+    },
+    {
+      "seq": 644805254,
+      "pt1": {
+        "pt": "1",
+        "seq": "644805254",
+        "authDist": "1.421",
+        "appliedKmh": "4.978",
+        "targetKmh": "5",
+        "uid": "FcVoSD"
+      },
+      "pt2": {
+        "pt": "2",
+        "seq": "644805254",
+        "dist": "1.173",
+        "routeReady": "1",
+        "routeLen": "1500",
+        "geoLen": "1029.633",
+        "uid": "FcVoSD"
+      },
+      "pt3": {
+        "pt": "3",
+        "seq": "644805254",
+        "d": "1.2",
+        "v": "1.39",
+        "ok": "1",
+        "rttMs": "219",
+        "uid": "FcVoSD"
+      },
+      "pt4": {
+        "pt": "4",
+        "seq": "644805254",
+        "d": "1.2",
+        "t": "1786399573061",
+        "recvAt": "1786399573181",
+        "uid": "FcVoSD"
+      },
+      "pt5": {
+        "pt": "5",
+        "seq": "644805254",
+        "result": "dup-same-dist",
+        "newest": "1.2",
+        "d": "1.2",
+        "uid": "FcVoSD"
+      }
+    },
+    {
+      "seq": 644805255,
+      "pt1": {
+        "pt": "1",
+        "seq": "644805255",
+        "authDist": "1.629",
+        "appliedKmh": "5",
+        "targetKmh": "5",
+        "uid": "FcVoSD"
+      },
+      "pt2": {
+        "pt": "2",
+        "seq": "644805255",
+        "dist": "1.173",
+        "routeReady": "1",
+        "routeLen": "1500",
+        "geoLen": "1029.633",
+        "uid": "FcVoSD"
+      },
+      "pt3": {
+        "pt": "3",
+        "seq": "644805255",
+        "d": "1.2",
+        "v": "1.39",
+        "ok": "1",
+        "rttMs": "215",
+        "uid": "FcVoSD"
+      },
+      "pt4": {
+        "pt": "4",
+        "seq": "644805255",
+        "d": "1.2",
+        "t": "1786399573065",
+        "recvAt": "1786399573182",
+        "uid": "FcVoSD"
+      },
+      "pt5": {
+        "pt": "5",
+        "seq": "644805255",
+        "result": "dup-same-dist",
+        "newest": "1.2",
+        "d": "1.2",
+        "uid": "FcVoSD"
+      }
+    },
+    {
+      "seq": 644805256,
+      "pt1": {
+        "pt": "1",
+        "seq": "644805256",
+        "authDist": "1.722",
+        "appliedKmh": "5",
+        "targetKmh": "5",
+        "uid": "FcVoSD"
+      },
+      "pt2": {
+        "pt": "2",
+        "seq": "644805256",
+        "dist": "1.173",
+        "routeReady": "1",
+        "routeLen": "1500",
+        "geoLen": "1029.633",
+        "uid": "FcVoSD"
+      },
+      "pt3": {
+        "pt": "3",
+        "seq": "644805256",
+        "d": "1.2",
+        "v": "1.39",
+        "ok": "1",
+        "rttMs": "212",
+        "uid": "FcVoSD"
+      },
+      "pt4": {
+        "pt": "4",
+        "seq": "644805256",
+        "d": "1.2",
+        "t": "1786399573069",
+        "recvAt": "1786399573183",
+        "uid": "FcVoSD"
+      },
+      "pt5": {
+        "pt": "5",
+        "seq": "644805256",
+        "result": "discard-retrograde",
+        "newest": "1.6",
+        "d": "1.2",
+        "uid": "FcVoSD"
+      }
+    },
+    {
+      "seq": 644805257,
+      "pt1": {
+        "pt": "1",
+        "seq": "644805257",
+        "authDist": "1.884",
+        "appliedKmh": "5",
+        "targetKmh": "5",
+        "uid": "FcVoSD"
+      },
+      "pt2": {
+        "pt": "2",
+        "seq": "644805257",
+        "dist": "1.629",
+        "routeReady": "1",
+        "routeLen": "1500",
+        "geoLen": "1029.633",
+        "uid": "FcVoSD"
+      },
+      "pt3": {
+        "pt": "3",
+        "seq": "644805257",
+        "d": "1.6",
+        "v": "1.39",
+        "ok": "1",
+        "rttMs": "362",
+        "uid": "FcVoSD"
+      },
+      "pt4": {
+        "pt": "4",
+        "seq": "644805257",
+        "d": "1.6",
+        "t": "1786399574245",
+        "recvAt": "1786399574568",
+        "uid": "FcVoSD"
+      },
+      "pt5": {
+        "pt": "5",
+        "seq": "644805257",
+        "result": "accepted",
+        "newest": "1.2",
+        "d": "1.6",
+        "uid": "FcVoSD"
+      },
+      "pt6": {
+        "pt": "6",
+        "seq": "644805257",
+        "displayDistM": "3.268",
+        "buf": "2",
+        "age": "2011"
+      },
+      "pt7": {
+        "pt": "7",
+        "seq": "644805257",
+        "lng": "127.007",
+        "lat": "37.647",
+        "routeLen": "1029.633",
+        "clamped": "0",
+        "displayDistM": "3.268"
+      }
+    },
+    {
+      "seq": 644805258,
+      "pt1": {
+        "pt": "1",
+        "seq": "644805258",
+        "authDist": "2.138",
+        "appliedKmh": "5",
+        "targetKmh": "5",
+        "uid": "FcVoSD"
+      },
+      "pt2": {
+        "pt": "2",
+        "seq": "644805258",
+        "dist": "1.629",
+        "routeReady": "1",
+        "routeLen": "1500",
+        "geoLen": "1029.633",
+        "uid": "FcVoSD"
+      },
+      "pt3": {
+        "pt": "3",
+        "seq": "644805258",
+        "d": "1.6",
+        "v": "1.39",
+        "ok": "1",
+        "rttMs": "361",
+        "uid": "FcVoSD"
+      },
+      "pt4": {
+        "pt": "4",
+        "seq": "644805258",
+        "d": "1.6",
+        "t": "1786399574250",
+        "recvAt": "1786399574664",
+        "uid": "FcVoSD"
+      },
+      "pt5": {
+        "pt": "5",
+        "seq": "644805258",
+        "result": "dup-same-dist",
+        "newest": "1.6",
+        "d": "1.6",
+        "uid": "FcVoSD"
+      }
+    },
+    {
+      "seq": 644805259,
+      "pt1": {
+        "pt": "1",
+        "seq": "644805259",
+        "authDist": "2.416",
+        "appliedKmh": "5",
+        "targetKmh": "5",
+        "uid": "FcVoSD"
+      },
+      "pt2": {
+        "pt": "2",
+        "seq": "644805259",
+        "dist": "1.629",
+        "routeReady": "1",
+        "routeLen": "1500",
+        "geoLen": "1029.633",
+        "uid": "FcVoSD"
+      },
+      "pt3": {
+        "pt": "3",
+        "seq": "644805259",
+        "d": "1.6",
+        "v": "1.39",
+        "ok": "1",
+        "rttMs": "281",
+        "uid": "FcVoSD"
+      },
+      "pt4": {
+        "pt": "4",
+        "seq": "644805259",
+        "d": "1.6",
+        "t": "1786399576368",
+        "recvAt": "1786399576525",
+        "uid": "FcVoSD"
+      },
+      "pt5": {
+        "pt": "5",
+        "seq": "644805259",
+        "result": "dup-same-dist",
+        "newest": "1.6",
+        "d": "1.6",
+        "uid": "FcVoSD"
+      }
+    },
+    {
+      "seq": 644805260,
+      "pt1": {
+        "pt": "1",
+        "seq": "644805260",
+        "authDist": "2.601",
+        "appliedKmh": "5",
+        "targetKmh": "5",
+        "uid": "FcVoSD"
+      },
+      "pt2": {
+        "pt": "2",
+        "seq": "644805260",
+        "dist": "2.416",
+        "routeReady": "1",
+        "routeLen": "1500",
+        "geoLen": "1029.633",
+        "uid": "FcVoSD"
+      },
+      "pt3": {
+        "pt": "3",
+        "seq": "644805260",
+        "d": "2.4",
+        "v": "1.39",
+        "ok": "1",
+        "rttMs": "276",
+        "uid": "FcVoSD"
+      },
+      "pt4": {
+        "pt": "4",
+        "seq": "644805260",
+        "d": "2.4",
+        "t": "1786399576374",
+        "recvAt": "1786399576680",
+        "uid": "FcVoSD"
+      },
+      "pt5": {
+        "pt": "5",
+        "seq": "644805260",
+        "result": "dup-same-dist",
+        "newest": "2.4",
+        "d": "2.4",
+        "uid": "FcVoSD"
+      },
+      "pt6": {
+        "pt": "6",
+        "seq": "644805260",
+        "displayDistM": "3.306",
+        "buf": "3",
+        "age": "813"
+      },
+      "pt7": {
+        "pt": "7",
+        "seq": "644805260",
+        "lng": "127.007",
+        "lat": "37.647",
+        "routeLen": "1029.633",
+        "clamped": "0",
+        "displayDistM": "3.306"
+      }
+    },
+    {
+      "seq": 644805261,
+      "pt1": {
+        "pt": "1",
+        "seq": "644805261",
+        "authDist": "2.879",
+        "appliedKmh": "5",
+        "targetKmh": "5",
+        "uid": "FcVoSD"
+      },
+      "pt2": {
+        "pt": "2",
+        "seq": "644805261",
+        "dist": "2.74",
+        "routeReady": "1",
+        "routeLen": "1500",
+        "geoLen": "1029.633",
+        "uid": "FcVoSD"
+      },
+      "pt3": {
+        "pt": "3",
+        "seq": "644805261",
+        "d": "2.7",
+        "v": "1.39",
+        "ok": "1",
+        "rttMs": "161",
+        "uid": "FcVoSD"
+      },
+      "pt4": {
+        "pt": "4",
+        "seq": "644805261",
+        "d": "2.7",
+        "t": "1786399577519",
+        "recvAt": "1786399577732",
+        "uid": "FcVoSD"
+      },
+      "pt5": {
+        "pt": "5",
+        "seq": "644805261",
+        "result": "accepted",
+        "newest": "2.4",
+        "d": "2.7",
+        "uid": "FcVoSD"
+      },
+      "pt6": {
+        "pt": "6",
+        "seq": "644805261",
+        "displayDistM": "3.717",
+        "buf": "4",
+        "age": "892"
+      },
+      "pt7": {
+        "pt": "7",
+        "seq": "644805261",
+        "lng": "127.007",
+        "lat": "37.647",
+        "routeLen": "1029.633",
+        "clamped": "0",
+        "displayDistM": "3.717"
+      }
+    }
+  ],
+  "rawTailA": [
+    "[peerSyncChain] pt=5 seq=46844634 result=discard-retrograde newest=57.8 d=24.7 uid=WMHn0p",
+    "[peerSyncChain] pt=3 seq=644805491 d=263.2 v=8.33 ok=1 rttMs=243 uid=FcVoSD",
+    "[peerSyncChain] pt=6 seq=46844655 displayDistM=67.796 buf=16 age=13032",
+    "[peerSyncChain] pt=7 seq=46844655 lng=127.007 lat=37.647 routeLen=1029.633 clamped=0 displayDistM=67.796",
+    "[peerSyncChain] pt=5 seq=46844634 result=discard-retrograde newest=57.8 d=24.7 uid=WMHn0p",
+    "[peerSyncChain] pt=3 seq=644805490 d=263.2 v=8.33 ok=1 rttMs=217 uid=FcVoSD",
+    "[peerSyncChain] pt=3 seq=644805492 d=265 v=8.33 ok=1 rttMs=125 uid=FcVoSD",
+    "[peerSyncChain] pt=1 seq=644805493 authDist=269.434 appliedKmh=30 targetKmh=30 uid=FcVoSD",
+    "[peerSyncChain] pt=2 seq=644805493 dist=268.601 routeReady=1 routeLen=1500 geoLen=1029.633 uid=FcVoSD",
+    "[peerSyncChain] pt=4 seq=46844634 d=24.7 t=1786399607774 recvAt=1786399611732 uid=WMHn0p",
+    "[peerSyncChain] pt=5 seq=46844634 result=discard-retrograde newest=57.8 d=24.7 uid=WMHn0p",
+    "[peerSyncChain] pt=6 seq=46844655 displayDistM=67.796 buf=16 age=13350",
+    "[peerSyncChain] pt=7 seq=46844655 lng=127.007 lat=37.647 routeLen=1029.633 clamped=0 displayDistM=67.796",
+    "[peerSyncChain] pt=1 seq=644805494 authDist=271.102 appliedKmh=30 targetKmh=30 uid=FcVoSD",
+    "[peerSyncChain] pt=2 seq=644805494 dist=270.269 routeReady=1 routeLen=1500 geoLen=1029.633 uid=FcVoSD",
+    "[peerSyncChain] pt=4 seq=46844634 d=24.7 t=1786399607774 recvAt=1786399611934 uid=WMHn0p",
+    "[peerSyncChain] pt=5 seq=46844634 result=discard-retrograde newest=57.8 d=24.7 uid=WMHn0p",
+    "[peerSyncChain] pt=5 seq=46844634 result=discard-retrograde newest=57.8 d=24.7 uid=WMHn0p",
+    "[peerSyncChain] pt=3 seq=644805493 d=268.6 v=8.33 ok=1 rttMs=224 uid=FcVoSD",
+    "[peerSyncChain] pt=5 seq=46844634 result=discard-retrograde newest=57.8 d=24.7 uid=WMHn0p",
+    "[peerSyncChain] pt=3 seq=644805494 d=270.3 v=8.33 ok=1 rttMs=128 uid=FcVoSD",
+    "[peerSyncChain] pt=6 seq=46844655 displayDistM=67.796 buf=16 age=13568",
+    "[peerSyncChain] pt=7 seq=46844655 lng=127.007 lat=37.647 routeLen=1029.633 clamped=0 displayDistM=67.796",
+    "[peerSyncChain] pt=1 seq=644805495 authDist=272.907 appliedKmh=30 targetKmh=30 uid=FcVoSD",
+    "[peerSyncChain] pt=2 seq=644805495 dist=272.074 routeReady=1 routeLen=1500 geoLen=1029.633 uid=FcVoSD",
+    "[peerSyncChain] pt=5 seq=46844634 result=discard-retrograde newest=57.8 d=24.7 uid=WMHn0p",
+    "[peerSyncChain] pt=1 seq=644805496 authDist=273.879 appliedKmh=30 targetKmh=30 uid=FcVoSD",
+    "[peerSyncChain] pt=2 seq=644805496 dist=272.074 routeReady=1 routeLen=1500 geoLen=1029.633 uid=FcVoSD",
+    "[peerSyncChain] pt=4 seq=46844634 d=24.7 t=1786399607774 recvAt=1786399612270 uid=WMHn0p",
+    "[peerSyncChain] pt=5 seq=46844634 result=discard-retrograde newest=57.8 d=24.7 uid=WMHn0p"
+  ],
+  "rawTailB": [
+    "[peerSyncChain] pt=5 seq=644805489 result=dup-same-dist newest=261.5 d=261.5 uid=FcVoSD",
+    "[peerSyncChain] pt=6 seq=644805488 displayDistM=262.425 buf=16 age=272",
+    "[peerSyncChain] pt=7 seq=644805488 lng=127.009 lat=37.648 routeLen=1029.633 clamped=0 displayDistM=262.425",
+    "[peerSyncChain] pt=1 seq=46844774 authDist=241.131 appliedKmh=30 targetKmh=30 uid=WMHn0p",
+    "[peerSyncChain] pt=2 seq=46844774 dist=239.326 routeReady=1 routeLen=1500 geoLen=1029.633 uid=WMHn0p",
+    "[peerSyncChain] pt=6 seq=644805488 displayDistM=264.232 buf=16 age=489",
+    "[peerSyncChain] pt=7 seq=644805488 lng=127.009 lat=37.648 routeLen=1029.633 clamped=0 displayDistM=264.232",
+    "[peerSyncChain] pt=1 seq=46844775 authDist=242.659 appliedKmh=30 targetKmh=30 uid=WMHn0p",
+    "[peerSyncChain] pt=2 seq=46844775 dist=241.131 routeReady=1 routeLen=1500 geoLen=1029.633 uid=WMHn0p",
+    "[peerSyncChain] pt=5 seq=644805489 result=dup-same-dist newest=261.5 d=261.5 uid=FcVoSD",
+    "[peerSyncChain] pt=4 seq=644805491 d=263.2 t=1786399611297 recvAt=1786399611491 uid=FcVoSD",
+    "[peerSyncChain] pt=5 seq=644805491 result=accepted newest=261.5 d=263.2 uid=FcVoSD",
+    "[peerSyncChain] pt=5 seq=644805489 result=discard-retrograde newest=263.2 d=261.5 uid=FcVoSD",
+    "[peerSyncChain] pt=4 seq=644805490 d=263.2 t=1786399611425 recvAt=1786399611599 uid=FcVoSD",
+    "[peerSyncChain] pt=5 seq=644805490 result=dup-same-dist newest=263.2 d=263.2 uid=FcVoSD",
+    "[peerSyncChain] pt=6 seq=644805491 displayDistM=263.133 buf=16 age=138",
+    "[peerSyncChain] pt=7 seq=644805491 lng=127.009 lat=37.648 routeLen=1029.633 clamped=0 displayDistM=263.133",
+    "[peerSyncChain] pt=1 seq=46844776 authDist=244.604 appliedKmh=30 targetKmh=30 uid=WMHn0p",
+    "[peerSyncChain] pt=2 seq=46844776 dist=243.769 routeReady=1 routeLen=1500 geoLen=1029.633 uid=WMHn0p",
+    "[peerSyncChain] pt=5 seq=644805491 result=dup-same-dist newest=263.2 d=263.2 uid=FcVoSD",
+    "[peerSyncChain] pt=4 seq=644805492 d=265 t=1786399611517 recvAt=1786399611702 uid=FcVoSD",
+    "[peerSyncChain] pt=5 seq=644805492 result=accepted newest=263.2 d=265 uid=FcVoSD",
+    "[peerSyncChain] pt=5 seq=644805490 result=discard-retrograde newest=265 d=263.2 uid=FcVoSD",
+    "[peerSyncChain] pt=4 seq=644805493 d=268.6 t=1786399611732 recvAt=1786399611824 uid=FcVoSD",
+    "[peerSyncChain] pt=5 seq=644805493 result=accepted newest=265 d=268.6 uid=FcVoSD",
+    "[peerSyncChain] pt=1 seq=46844777 authDist=245.436 appliedKmh=30 targetKmh=30 uid=WMHn0p",
+    "[peerSyncChain] pt=2 seq=46844777 dist=245.436 routeReady=1 routeLen=1500 geoLen=1029.633 uid=WMHn0p",
+    "[peerSyncChain] pt=6 seq=644805493 displayDistM=264.872 buf=16 age=22",
+    "[peerSyncChain] pt=7 seq=644805493 lng=127.009 lat=37.648 routeLen=1029.633 clamped=0 displayDistM=264.872",
+    "[peerSyncChain] pt=5 seq=644805492 result=discard-retrograde newest=268.6 d=265 uid=FcVoSD",
+    "[peerSyncChain] pt=1 seq=46844778 authDist=247.38 appliedKmh=30 targetKmh=30 uid=WMHn0p",
+    "[peerSyncChain] pt=2 seq=46844778 dist=245.436 routeReady=1 routeLen=1500 geoLen=1029.633 uid=WMHn0p",
+    "[peerSyncChain] pt=5 seq=644805493 result=dup-same-dist newest=268.6 d=268.6 uid=FcVoSD",
+    "[peerSyncChain] pt=4 seq=644805494 d=270.3 t=1786399611934 recvAt=1786399612043 uid=FcVoSD",
+    "[peerSyncChain] pt=5 seq=644805494 result=accepted newest=268.6 d=270.3 uid=FcVoSD",
+    "[peerSyncChain] pt=6 seq=644805494 displayDistM=269.221 buf=16 age=21",
+    "[peerSyncChain] pt=7 seq=644805494 lng=127.009 lat=37.648 routeLen=1029.633 clamped=0 displayDistM=269.221",
+    "[peerSyncChain] pt=1 seq=46844779 authDist=249.047 appliedKmh=30 targetKmh=30 uid=WMHn0p",
+    "[peerSyncChain] pt=2 seq=46844779 dist=247.38 routeReady=1 routeLen=1500 geoLen=1029.633 uid=WMHn0p",
+    "[peerSyncChain] pt=5 seq=644805494 result=dup-same-dist newest=270.3 d=270.3 uid=FcVoSD"
+  ]
+}

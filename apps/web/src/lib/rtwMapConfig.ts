@@ -84,8 +84,13 @@ export function applyRtwLayerStyle(
   opts: { rideActive: boolean; showPoi: boolean },
 ): boolean {
   const { rideActive, showPoi } = opts;
-  const layers = map.getStyle()?.layers ?? [];
-  // 스타일시트 파싱 전(getStyle undefined/빈 배열) — 아직 적용 불가, 호출부가 재시도
+  let layers: NonNullable<ReturnType<MapboxMap["getStyle"]>>["layers"];
+  try {
+    layers = map.getStyle()?.layers ?? [];
+  } catch {
+    return false;
+  }
+  // 스타일시트 파싱 전(getStyle throw/undefined/빈 배열) — 아직 적용 불가, 호출부가 재시도
   if (layers.length === 0) return false;
 
   let snapshots = rtwStyleSnapshots.get(map);

@@ -5,6 +5,7 @@ import { mapNametagForMember } from "../guestNametag";
 import { getPeerMotionRegistry } from "./PeerMotionRegistry";
 import { rtdbMotionRowToPeerMotionPacket } from "./rtdbToPacket";
 import { trailLiveRowToPeerMotionPacket } from "./rowToPacket";
+import { notePeerSeqSeen, peerSyncChainLog } from "./peerSyncChainLog";
 
 export type SyncPeerMotionFromPresenceInput = {
   publicationId: string;
@@ -41,6 +42,7 @@ export function syncPeerMotionFromPresence(input: SyncPeerMotionFromPresenceInpu
 
   const activeUids: string[] = [];
   const allUids = new Set<string>([...liveByUid.keys(), ...motionByUid.keys()]);
+  const recvAt = Date.now();
 
   for (const uid of allUids) {
     const rtdbRow = motionByUid.get(uid);
@@ -48,6 +50,19 @@ export function syncPeerMotionFromPresence(input: SyncPeerMotionFromPresenceInpu
     const liveRow = liveByUid.get(uid);
     const fsPacket = liveRow ? trailLiveRowToPeerMotionPacket(liveRow, pid, routeLenM) : null;
     if (!rtdbPacket && !fsPacket) continue;
+
+    if (import.meta.env.DEV && rtdbRow) {
+      const seen = notePeerSeqSeen(rtdbRow.uid, rtdbRow.seq, recvAt);
+      peerSyncChainLog(4, rtdbRow.seq, {
+        d: rtdbRow.distM,
+        t: rtdbRow.serverAtMs,
+        recvAt,
+        first: seen.first ? 1 : 0,
+        firstSeenAt: seen.firstSeenAt,
+        repeatSeenCount: seen.repeatSeenCount,
+        uid: rtdbRow.uid.slice(0, 6),
+      });
+    }
 
     const member = sessionByUid.get(uid);
     const label = member

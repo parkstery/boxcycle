@@ -1,0 +1,315 @@
+{
+  "instruction": "S3B-3",
+  "uag": "S3B-3 PASS(D-2 교정) · z15 유지",
+  "gates": {
+    "timeBasis": true,
+    "spectatorSpeed": true,
+    "lowZoomIntegration": true,
+    "pathBImproved": true,
+    "z15DepartMedian": true,
+    "z15CruiseMedian": true,
+    "guards": true,
+    "all": true
+  },
+  "z15": {
+    "before": {
+      "departDeff": {
+        "n": 3,
+        "min": 320,
+        "p50": 360,
+        "p95": 360,
+        "max": 360
+      },
+      "perRun": [
+        {
+          "z15-depart": {
+            "id": "z15-depart",
+            "D_eff": 360,
+            "residualRmse": 0.5961600188803328,
+            "residualMax": 1.8975503211991338,
+            "overlap": 0.9647058823529412,
+            "n": 82,
+            "scalePct": 0.6303252252983592,
+            "scaleStatus": "PASS",
+            "accPass": false
+          },
+          "z15-cruise": {
+            "id": "z15-cruise",
+            "D_eff": 300,
+            "residualRmse": 0.46897449013427406,
+            "residualMax": 1.3183094555873822,
+            "overlap": 1,
+            "n": 93,
+            "scalePct": 0.37538726548306983,
+            "scaleStatus": "PASS",
+            "accPass": true
+          }
+        },
+        {
+          "z15-depart": {
+            "id": "z15-depart",
+            "D_eff": 320,
+            "residualRmse": 0.4627898186699094,
+            "residualMax": 1.4126820512820757,
+            "overlap": 1,
+            "n": 78,
+            "scalePct": 0.29895603865285564,
+            "scaleStatus": "PASS",
+            "accPass": true
+          },
+          "z15-cruise": {
+            "id": "z15-cruise",
+            "D_eff": 320,
+            "residualRmse": 0.5430789614755893,
+            "residualMax": 1.7599407744874611,
+            "overlap": 1,
+            "n": 92,
+            "scalePct": 0.5889766760949808,
+            "scaleStatus": "PASS",
+            "accPass": true
+          }
+        },
+        {
+          "z15-depart": {
+            "id": "z15-depart",
+            "D_eff": 360,
+            "residualRmse": 0.5778510125557593,
+            "residualMax": 1.9047188940092212,
+            "overlap": 1,
+            "n": 72,
+            "scalePct": 2.1960023112854983,
+            "scaleStatus": "PASS",
+            "accPass": false
+          },
+          "z15-cruise": {
+            "id": "z15-cruise",
+            "D_eff": 320,
+            "residualRmse": 0.5624748743858999,
+            "residualMax": 1.539990654205667,
+            "overlap": 1,
+            "n": 91,
+            "scalePct": 1.085261099760539,
+            "scaleStatus": "PASS",
+            "accPass": true
+          }
+        }
+      ]
+    },
+    "after": {
+      "departDeff": {
+        "n": 3,
+        "min": 280,
+        "p50": 300,
+        "p95": 340,
+        "max": 340
+      },
+      "cruiseDeff": {
+        "n": 3,
+        "min": 260,
+        "p50": 300,
+        "p95": 300,
+        "max": 300
+      },
+      "perRun": [
+        {
+          "z15-depart": {
+            "id": "z15-depart",
+            "D_eff": 340,
+            "residualRmse": 0.5403951014518813,
+            "residualMax": 2.5060924214417923,
+            "overlap": 1,
+            "n": 140,
+            "scalePct": 0.25725769631609285,
+            "scaleStatus": "PASS",
+            "accPass": false
+          },
+          "z15-cruise": {
+            "id": "z15-cruise",
+            "D_eff": 300,
+            "residualRmse": 0.442718121840031,
+            "residualMax": 1.066404977375555,
+            "overlap": 1,
+            "n": 91,
+            "scalePct": 0.9137166931115697,
+            "scaleStatus": "PASS",
+            "accPass": true
+          }
+        },
+        {
+          "z15-depart": {
+            "id": "z15-depart",
+            "D_eff": 300,
+            "residualRmse": 0.47939830365373914,
+            "residualMax": 1.135521951219502,
+            "overlap": 1,
+            "n": 135,
+            "scalePct": 0.4706586785185792,
+            "scaleStatus": "PASS",
+            "accPass": true
+          },
+          "z15-cruise": {
+            "id": "z15-cruise",
+            "D_eff": 260,
+            "residualRmse": 0.4019643379985195,
+            "residualMax": 1.367433333333281,
+            "overlap": 1,
+            "n": 89,
+            "scalePct": 0.7629425507195314,
+            "scaleStatus": "PASS",
+            "accPass": true
+          }
+        },
+        {
+          "z15-depart": {
+            "id": "z15-depart",
+            "D_eff": 280,
+            "residualRmse": 0.3854591223704656,
+            "residualMax": 1.3425447470816891,
+            "overlap": 1,
+            "n": 138,
+            "scalePct": 0.4593036684175427,
+            "scaleStatus": "PASS",
+            "accPass": true
+          },
+          "z15-cruise": {
+            "id": "z15-cruise",
+            "D_eff": 300,
+            "residualRmse": 0.9120715448817838,
+            "residualMax": 3.680552667578695,
+            "overlap": 0.9886363636363636,
+            "n": 87,
+            "scalePct": 0.8658010774913735,
+            "scaleStatus": "PASS",
+            "accPass": false
+          }
+        }
+      ]
+    }
+  },
+  "pathA": {
+    "before": {
+      "perRun": [
+        {
+          "jumpM": 3.531000000000006,
+          "settleMs": 1263,
+          "errP50": 1.8760000000000048,
+          "errMax": 3.531000000000006,
+          "n": 16
+        },
+        {
+          "jumpM": 0.37299999999999045,
+          "settleMs": 1774,
+          "errP50": 1.5039999999999907,
+          "errMax": 3.0730000000000075,
+          "n": 14
+        },
+        {
+          "jumpM": 2.9960000000000093,
+          "settleMs": 1491,
+          "errP50": 1.9019999999999868,
+          "errMax": 3.3429999999999893,
+          "n": 12
+        }
+      ],
+      "medianJumpM": 2.9960000000000093
+    },
+    "after": {
+      "perRun": [
+        {
+          "jumpM": 0.125,
+          "settleMs": 175,
+          "errP50": 1.9000000000000057,
+          "errMax": 3.7539999999999907,
+          "n": 17
+        },
+        {
+          "jumpM": 0.688999999999993,
+          "settleMs": 8,
+          "errP50": 0.9339999999999975,
+          "errMax": 2.4539999999999793,
+          "n": 16
+        },
+        {
+          "jumpM": 1.0889999999999986,
+          "settleMs": 109,
+          "errP50": 1.5270000000000152,
+          "errMax": 2.650999999999982,
+          "n": 16
+        }
+      ],
+      "medianJumpM": 0.688999999999993,
+      "medianSettleMs": 109
+    },
+    "budgetMaxM": 2.5
+  },
+  "pathB": {
+    "before": {
+      "perRun": [
+        {
+          "source": "pt10",
+          "errP50": 65.392,
+          "errMax": 165.916,
+          "extrapP50": 406,
+          "extrapP95": 1073,
+          "capHitRate": 0,
+          "n": 172
+        },
+        {
+          "source": "pt10",
+          "errP50": 68.328,
+          "errMax": 221.44,
+          "extrapP50": 428,
+          "extrapP95": 913,
+          "capHitRate": 0,
+          "n": 164
+        },
+        {
+          "source": "pt10",
+          "errP50": 69.54899999999999,
+          "errMax": 142.29,
+          "extrapP50": 416,
+          "extrapP95": 922,
+          "capHitRate": 0,
+          "n": 170
+        }
+      ],
+      "medianErrP50": 68.328,
+      "medianErrMax": 165.916
+    },
+    "after": {
+      "perRun": [
+        {
+          "source": "pt10",
+          "errP50": 48.797,
+          "errMax": 65.225,
+          "extrapP50": 69,
+          "extrapP95": 1128,
+          "capHitRate": 0,
+          "n": 300
+        },
+        {
+          "source": "pt10",
+          "errP50": 57.04399999999998,
+          "errMax": 89.094,
+          "extrapP50": 0,
+          "extrapP95": 1453,
+          "capHitRate": 0.012422360248447204,
+          "n": 322
+        },
+        {
+          "source": "pt10",
+          "errP50": 59.84100000000001,
+          "errMax": 87.009,
+          "extrapP50": 0,
+          "extrapP95": 2346,
+          "capHitRate": 0.03614457831325301,
+          "n": 332
+        }
+      ],
+      "medianErrP50": 57.04399999999998,
+      "medianErrMax": 87.009
+    },
+    "note": "예산 미적용 — before/after 개선만"
+  },
+  "generatedAt": "2026-08-12T08:45:41.195Z"
+}
