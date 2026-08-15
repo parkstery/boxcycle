@@ -1,147 +1,151 @@
-# 감리 → 개발팀장 지시서 (활성) — 진동의 정체: **카메라 위치 지연 추종**
+# 감리 → 개발팀장 지시서 (활성) — **C안 채택: 진동 종결**
 
-> U-8 은 `INSTRUCTION-U8.md` 로 보존. U-6·U-1R 은 계속 보류.
+> U-9 는 `INSTRUCTION-U9.md` 로 보존. U-6·U-1R 은 계속 보류.
 > 결과는 §6 형식으로 이 파일 아래에 덧붙이고 `상태` → `보고완료`.
 
-- **지시번호**: U-9 (위치 축 지연을 없애 라이더를 고정한다)
-- **발신**: 클로드감리0814 · **일시**: 2026-08-15 · **상태**: 보고완료
-- **브랜치**: `fix/map-render-tick` 계속 (기준 HEAD `6f6dc7b`)
+- **지시번호**: U-10 (위치 지연 제거 + 중심 방향을 스무딩 방향에 맞춘다)
+- **발신**: 클로드감리0815 · **일시**: 2026-08-15 · **상태**: 보고완료
+- **브랜치**: `fix/map-render-tick` 계속 (기준 HEAD `00960cd`)
 
 ---
 
-## 0. 증상이 재정의됐다 — 화면이 아니라 **라이더**다
-
-사용자 정정(실측 관찰):
+## 0. 원인 확정 — 사용자 실측으로 두 번 갈라 확인했다
 
 ```
-맵과 맵의 지명은 앞뒤로 움직이지 않는다
-라이더와 네임태그만 전후로 왔다갔다 한다
-U-7 스위치 6 종 어느 것을 꺼도 사라지지 않았다
+poslag(true)  = 현행     직선·코너 **모두** 톡      ← 위치 지연이 dt 에 따라 변동
+poslag(false) = 지연 0   직선 톡 없음 · **코너만 톡** ← 남은 원인이 하나 더 있다
 ```
 
-**지금까지 카메라·레이어·렌더 위상을 판 것은 전제가 틀린 상태에서 한 것이다.**
-증상은 「화면 흔들림」이 아니라 **「라이더와 카메라의 상대 위치가 프레임마다 흔들림」**이다.
+**두 번째 원인이 코드 순서에 있다.** `rideCameraFollow.ts:229-247`
+
+```
+① baseHeading                                   원본 방향
+② nextCamera = getCameraForFollowMode(...)      offsetBearing = 원본 방향 + 180
+③ framing = computeRideFollowFraming({
+       offsetBearing: nextCamera.offsetBearing   ← **원본** 을 써서 중심을 잡는다
+   })
+④ 그 뒤에 nextBearingPrimary → nextBearing 스무딩 → **지도에는 이 값이 적용**된다
+```
+
+```
+직선   원본 방향 == 스무딩 방향 → 어긋날 것이 없다 → 톡 없음  ✔ 사용자 관측과 일치
+코너   원본 방향이 즉시 꺾여 중심이 옆으로 훅 이동하는데
+       화면 회전은 천천히 따라간다 → 그 차이만큼 라이더가 화면에서 튄다
+```
+
+**C안 = ③과 ④의 순서를 뒤집어, 중심도 스무딩된 방향으로 잡는다.**
 
 ---
 
-## 1. 원인 — 감리가 코드에서 확인했다
+## 1. 할 일
 
-`rideCameraFollow.ts:276-279`
+### 1-0. 보존
 
-```
-alphaPos  = dampAlpha(dtSec, CAMERA_POSITION_TAU_SEC)      τ = 0.1s
-nextCenter = lerp(curCenter, cameraCenterTarget, alphaPos)
+`INSTRUCTION-U9.md` 는 감리가 이미 복사해 뒀다. 문서 커밋에 담아라.
 
-dampAlpha(dt, τ) = 1 − exp(−dt/τ)      ← **dt 에 의존한다**
-```
+### 1-1. 계산 순서를 바꿔라
 
 ```
-① 카메라 중심이 라이더를 즉시 따라가지 않고 뒤처진다
-   정상 상태 지연 ≈ v × τ = 1.389 m/s × 0.1 s ≈ **0.139 m** (5 km/h)
-
-② 그 지연이 프레임 간격에 따라 달라진다
-   dt 8ms  → alpha 0.077  덜 따라잡음 → 라이더가 화면에서 앞으로
-   dt 25ms → alpha 0.221  많이 따라잡음 → 라이더가 화면에서 뒤로
-   브라우저 프레임 간격은 늘 흔들린다 → **지연이 오르내린다 → 라이더가 앞뒤로 톡톡**
-
-③ 맵은 카메라 변환으로 그려지므로 카메라 기준에서 항상 자기 자신과 일치한다
-   라이더·네임태그는 **실제 좌표**에 그려진다 → 어긋나는 것은 이 둘의 상대 위치뿐
+바꾼 뒤 순서
+   ① baseHeading · nextCamera (지금과 같다)
+   ② 스무딩 상태 초기화(resetCameraSmoothing) · dt · alpha 계산
+   ③ **bearing 스무딩을 먼저** — nextBearingPrimary → nextBearing
+   ④ 중심 방향을 스무딩 값에서 뽑는다
+        offsetBearingSmoothed = normalizeCompass(nextBearing + 180)
+        ← 지금 getCameraForFollowMode 가 모든 모드에서 offsetBearing = bearing + 180 을
+          쓰고 있으므로 이 치환이 성립한다. **직접 확인하고 진행하라**
+   ⑤ computeRideFollowFraming 에 ④ 값을 넘겨 center·zoom 을 얻는다
+   ⑥ center lerp (지연은 §1-2 대로 0)
 ```
 
-### 1-1. 모든 관측과 맞는다
+⚠ **주의점**
 
 ```
-맵·지명 안 흔들림          맵은 카메라 변환으로 그려진다
-라이더·네임태그만 흔들림    둘 다 실제 라이더 좌표에 그려진다
-확대에서만 보임             0.139 m 가 40 m 구도에선 1px 미만, 1~5.5 m 구도에선 수십 px
-스위치 6 종 무효            labels·mapstop·rider·follow 어느 것도 이 lerp 를 건드리지 않는다
-위상·경로 A 계측이 깨끗했던 것  카메라 **입력값**은 매끄럽다. 어긋나는 건 **상대 위치**다
+nextCamera.offsetBearing 이 null 인 경우(free 등 distanceM 0)는 지금 동작 그대로 두어라
+curCenter 의 `?? cameraCenterTarget` 폴백이 순서 변경으로 깨지지 않게 하라
+첫 프레임(smooth.bearing == null)에서 resetCameraSmoothing 이 먼저 돌아야 한다
 ```
+
+**스무딩 상수는 하나도 바꾸지 마라.** `CAMERA_BEARING_TAU_*` · `CAMERA_BEARING_MAX_DPS_*` ·
+`CAMERA_POSITION_TAU_SEC` 전부 그대로다. 이번 변경은 **어떤 값을 쓰느냐**이지 세기 조정이 아니다.
+
+### 1-2. 위치 지연 0 을 기본으로
+
+사용자가 A(지연 0)를 포함한 C 를 승인했다.
+
+```
+기본 동작   중심 lerp 계수 = 1 (지연 없음)
+```
+
+### 1-3. 스위치 정리 — **기본 상태에서 배지가 뜨면 안 된다**
+
+지금 `poslag` 는 「true = 지연 추종(현행)」이다. 기본을 지연 0 으로 바꾸면서 이 스위치를
+그대로 두면 **기본 상태에서 배지에 계속 `tick off: poslag` 가 뜬다. 그건 안 된다.**
+
+```
+요구   기본 상태(제품 동작)에서 배지에 아무것도 안 뜬다
+       옛 동작(지연 추종 + 원본 방향 중심)으로 되돌리는 비교용 스위치는 **남긴다**
+       이름·형태는 네가 정해라. 위 두 조건만 만족하면 된다
+```
+
+비교 스위치를 남기는 이유는, 이번 변경이 코너 감각을 해치지 않았는지 사용자가
+바로 옛 동작과 견줘 볼 수 있어야 하기 때문이다.
 
 ---
 
-## 2. 할 일
+## 2. 검증
 
-### 2-0. 보존
-
-```
-현재 INSTRUCTION.md → INSTRUCTION-U8.md (감리가 이미 복사해 뒀다. 문서 커밋에 담아라)
-```
-
-### 2-1. 스위치를 하나 더 추가하라 — `poslag`
-
-기존 `__rtwTick` 체계에 붙여라. **기본값은 켬(현행 유지)**.
+### 2-1. 사용자 판정 절차 (보고서에 그대로)
 
 ```
-__rtwTick.poslag(false)   위치 축 지연 제거 — alphaPos 를 1 로 (카메라 중심이 라이더를 정확히 물음)
-__rtwTick.poslag(true)    현행 복귀
+0  주행 시작 — 5 km/h · 좌측 · 5.5 m
+1  **직선 구간** — 톡이 없는가
+2  **코너 구간** — 톡이 없는가            ← 이번 변경의 핵심
+3  코너에서 지도가 옆으로 훅 밀리거나 어색하지 않은가 (감각 확인)
+4  비교 스위치로 옛 동작 → 코너 톡이 돌아오는가 → 다시 기본으로
 ```
 
-```
-바꾸는 것   nextCenter 의 lerp 계수만
-그대로 두는 것
-   bearing 스무딩 (alphaBearingPrimary · Secondary · max dps) — 코너링 감각이 여기서 나온다
-   pitch · zoom 은 상수라 영향 없지만 **위치 축과 분리해서** 다뤄라
-   (지금은 alphaPos 하나를 center·pitch·zoom 이 같이 쓴다 — 위치만 떼어내라)
-```
-
-⚠ **τ 값을 조정해 「덜 보이게」 만들지 마라.** 그건 은폐다. 0 아니면 현행, 둘 중 하나로 비교한다.
-
-### 2-2. 사용자 확인 절차
-
-```
-0  주행 시작 (5 km/h · 좌측 · 5.5 m) — 톡이 보이는지 확인
-1  __rtwTick.poslag(false)   → 라이더가 화면에 고정되나? 톡이 사라지나?
-2  __rtwTick.poslag(true)    → 톡이 돌아오나?
-3  1↔2 를 두어 번 반복해 재현되는지 확인
-```
-
-**1 에서 사라지고 2 에서 돌아오면 원인 확정이다.**
-
-### 2-3. 사라지지 않으면
-
-원인이 다른 곳이다. **고치지 말고** 아래를 관측해 보고하라.
-
-```
-매 프레임   riderScreenPx   라이더의 화면 x/y (기존 measureRiderScreenDiag 재사용)
-            cameraCenter 와 riderLngLat 의 거리(m)
-            dt
-→ 「라이더 화면 좌표」가 dt 와 함께 오르내리는지 시계열로 보여라
-```
-
----
-
-## 3. 검증
+### 2-2. 개발팀장 확인
 
 | | 항목 | 기준 |
 |---|---|---|
-| 가 | 스위치 동작 | `poslag` 끄고 켜기가 반영되고 배지에 표시 · 기본값 켬 |
-| 나 | 축 분리 | 위치 축만 바뀌고 bearing 스무딩은 그대로 |
-| 다 | 무회귀 | 기본 상태(전부 켬)가 `6f6dc7b` 와 동작상 같음 |
-| 라 | 실브라우저 | 맵이 뜨고 콘솔 오류 0 — **U-8 의 사고를 반복하지 마라** |
-| 마 | 절차 | §2-2 를 사용자가 그대로 따라 할 수 있게 |
+| 가 | 순서 변경 | 중심 방향이 `nextBearing` 에서 파생 · 지도 적용 bearing 과 **같은 값** |
+| 나 | 상수 불변 | bearing·position tau · max dps 전부 그대로 |
+| 다 | 배지 | 기본 상태에서 배지 없음 · 비교 스위치는 동작 |
+| 라 | 무회귀 | free 모드·distanceM 0 경로 정상 · 첫 프레임 초기화 정상 |
+| 마 | 실브라우저 | 맵이 뜨고 콘솔 오류 0 · 스크린샷 해시 서로 다름 |
 
-**스크린샷은 서로 다른 파일이어야 한다.** U-8 에서 v1 과 v5 가 바이트 단위로 같았다.
-찍은 뒤 해시를 비교해 확인하고, 같으면 다시 찍어라.
+**직선/코너 스크린샷을 각각 남겨라** → `U10-shots/`.
+
+⚠ 톡의 유무는 정지 화면으로 증명되지 않는다. **판정은 사용자 육안이다.**
+개발팀장은 「맵이 뜨고 주행이 되고 오류가 없다」까지만 확인하고, 톡 유무를 단정하지 마라.
 
 ---
 
-## 4. 금지
+## 3. 금지
 
-- **τ 등 스무딩 상수를 조정해 증상 흐리기** — 위치 축은 0 아니면 현행, 이분법으로만
-- **bearing 스무딩 변경** · 승인된 구도 변경(`rideCameraFraming.ts` · `maxZoom` · 거리 상수)
-- **원인이 확정되기 전 기본값 변경** — `poslag` 기본은 켬(현행)이다
-- U-6 · U-1R 착수 · 네임태그 재작업 · U-2/U-3/U-8 수정 되돌리기
+- **스무딩 상수 조정** (tau · max dps) — 이번은 값이 아니라 **어느 값을 쓰느냐**의 문제다
+- 승인된 구도 변경(`rideCameraFraming.ts` 산식 · `maxZoom` · 거리 상수)
+- **기본 상태에서 배지가 뜨게 두기** · 비교 스위치를 아예 없애기
+- U-6 · U-1R 착수 · 네임태그 재작업 · U-2/U-3/U-8/U-9 수정 되돌리기
 - Sync 2 단계(S4-2) · S4-3 · 발행 경로 · 보간·외삽 · GLB·리깅·피팅 변경
 - 스크린샷 중복 저장 · 센티넬·축퇴값 기록 · 진단 계측 삭제
 - `git add -A` · `--no-verify` · stash 조작 · `main2` 병합 · PR · Orchestrator 문서 접촉
 
 ---
 
-## 5. 막히면
+## 4. 막히면
 
-위치 축을 pitch·zoom 에서 떼어내기 어렵거나, `poslag(false)` 로도 톡이 그대로면
-**상수를 만지지 말고 멈추고 §2-3 관측을 보고하라.**
+`offsetBearing = bearing + 180` 관계가 어느 모드에서 성립하지 않거나, 순서를 바꿨더니
+첫 프레임·free 모드가 깨지면 **억지로 맞추지 말고 멈추고 그 지점을 보고하라.**
+
+---
+
+## 5. 커밋
+
+```
+제품 / 문서·증거 2 개로 나눠라. 경로 지정. 이 브랜치 push 가능
+```
 
 ---
 
@@ -149,11 +153,12 @@ __rtwTick.poslag(true)    현행 복귀
 
 ```
 문서에 적는다
-  - 첫머리 2~3 줄: 무엇을 만들었는지 평문으로
-  - 위치 축을 어떻게 분리했는지 (bearing 이 안 바뀌었다는 근거)
-  - §2-2 사용자 절차 (그대로 따라 할 수 있게)
+  - 첫머리 2~3 줄: 무엇이 달라졌는지 평문으로
+  - 순서를 어떻게 바꿨는지 · 중심 방향이 지도 bearing 과 같은 값임을 보이는 근거
+  - offsetBearing = bearing + 180 관계를 어디서 확인했는지
+  - 스위치 구성 (기본 배지 없음 · 비교 스위치 사용법)
+  - §2-1 사용자 절차
   - 가~마 확인 결과 · 스크린샷 해시가 서로 다름을 확인했다는 한 줄
-  - 개발팀장이 직접 본 인상이 있으면 참고로만 (판정은 사용자 육안)
   - 이견·실패 전수 — 없으면 「없음」
 
 최종 응답에만 적는다
@@ -162,28 +167,28 @@ __rtwTick.poslag(true)    현행 복귀
 
 ---
 
-## 6. 보고 (U-9)
+## 6. 보고 (U-10)
 
-`__rtwTick.poslag` 스위치를 추가했다. 기본값은 켬(카메라 중심이 τ=0.1s 로 라이더를 지연 추종하는 현행). `poslag(false)` 는 위치 lerp 계수만 1 로 만들어 지연을 없앤다. τ 는 건드리지 않았다.
+기본 주행 카메라는 위치 지연 없이, 중심도 스무딩된 지도 방향과 같은 값을 쓴다. 옛 동작(지연 추종 + 원본 방향 중심)은 `aligncam(false)` 로만 되돌린다. 톡 유무는 정지 화면으로 단정하지 않는다.
 
-검산: `dampAlpha(dt,0.1)=1−exp(−dt/0.1)`. dt 8ms → 0.077, 25ms → 0.221. 5 km/h에서 정상 지연 ≈ 1.389 m/s × 0.1 s ≈ 0.139 m. 맵은 카메라 변환, 라이더·네임태그는 실좌표라 이 지연이 dt 에 따라 오르내리면 라이더만 앞뒤로 보인다.
+순서: `nextCamera` → `resetCameraSmoothing`(첫 프레임) → dt·alpha → **bearing 스무딩(`nextBearingPrimary`→`nextBearing`)** → `offsetForFraming = normalizeCompass(nextBearing + 180)` (offset 이 null 이면 그대로 null) → `computeRideFollowFraming` → 중심 lerp 계수 1. `applyFollowCameraJumpTo` 의 bearing 은 그 `nextBearing` 과 동일하다. `rideCameraFraming` 의 `viewBearing = offsetBearing + 180` 이므로 화면 시선도 `nextBearing` 이다.
 
-분리: `alphaPos` 는 pitch·zoom 전용으로 남기고, `nextCenter` 만 `alphaCenter = isTickTestPosLagOn() ? alphaPos : 1` 을 쓴다. `alphaBearingPrimary`·`alphaBearingSecondary`·`CAMERA_BEARING_MAX_DPS_*` 와 `lerpAngle` 호출은 한 줄도 바꾸지 않았다.
+`getCameraForFollowMode`: rear30·front30·rightFlat·leftFlat 전부 `offsetBearing = normalizeCompass(bearing + 180)`. north 와 기본 분기는 `offsetBearing: null`, `distanceM: 0` — 이 경로는 치환하지 않고 기존처럼 라이더 중심에 둔다. free 는 함수 진입 즉시 return.
 
-**사용자 절차** (판정은 육안)
+상수 불변: `CAMERA_POSITION_TAU_SEC=0.1`, `CAMERA_BEARING_TAU_PRIMARY_SEC=0.2`, `CAMERA_BEARING_TAU_SECONDARY_SEC=0.45`, `CAMERA_BEARING_MAX_DPS_PRIMARY=280`, `CAMERA_BEARING_MAX_DPS_SECONDARY=170`.
 
-0. 주행 시작 — 5 km/h · 좌측 · 5.5 m. 라이더가 앞뒤로 톡 하는지 본다.
-1. 콘솔: `window.__rtwTick.poslag(false)` → 배지 `tick off: poslag`. 라이더가 화면에 고정되나?
-2. `window.__rtwTick.poslag(true)` → 배지 사라짐. 톡이 돌아오나?
-3. 1↔2 를 두어 번 반복. 1에서 사라지고 2에서 돌아오면 원인 확정.
-   되돌리기: `window.__rtwTick.reset()` 또는 `poslag(true)`.
+스위치: `poslag` 제거. `aligncam` 기본 true(C안) → 배지 없음. `__rtwTick.aligncam(false)` → 배지 `tick off: aligncam` = 옛 동작. `aligncam(true)` 또는 `reset()` 으로 복귀.
 
-가~마: 가 `poslag` 끄고 켜기·배지·기본값 켬 확인. 나 위치만 분리, bearing 상수·호출 불변. 다 기본 전부 켬은 6f6dc7b 와 동일 경로(`alphaCenter===alphaPos`). 라 실제 브라우저 `http://127.0.0.1:5000/` 가로 1280×800 — canvas·레이어 130, `Style is not done loading` 0, 주행 중 오류 0. 마 위 절차.
+**사용자 절차** (5 km/h · 좌측 · 5.5 m)
 
-스크린샷 SHA-256 서로 다름을 확인:  
-`u9-map.png` BB5B1387…CAF597 · `u9-poslag-on.png` 1061CB7E…2446F1 · `u9-poslag-off.png` 8B4AC36C…8E0181  
-경로 `document/ops/sync-relay/U9-shots/`.
+0. 주행 시작.
+1. 직선 — 톡이 없는가.
+2. 코너 — 톡이 없는가.
+3. 코너에서 지도가 옆으로 훅 밀리거나 어색하지 않은가.
+4. `window.__rtwTick.aligncam(false)` → 옛 동작, 코너 톡이 돌아오는가. 다시 `aligncam(true)`.
 
-참고(판정 아님): 스위치·배지·맵 기동은 확인했다. 라이더 톡이 꺼지는지는 사용자가 5.5 m 에서 봐야 한다.
+가 중심 방향 = `nextBearing + 180` = jumpTo bearing 과 쌍. 나 상수 불변. 다 기본 배지 없음 · 비교 스위치 동작. 라 free 조기 return · distanceM 0/null offset 유지 · reset 을 framing 앞으로. 마 실제 브라우저 canvas·레이어 132, 주행 중 오류 0.
+
+스크린샷 SHA-256 서로 다름: `u10-map` 29BDF94E… · `u10-straight` 03DA2811… · `u10-corner` 05C8E26C… (`document/ops/sync-relay/U10-shots/`). 코너 샷은 bearing 이 ~90° 변한 뒤이며 경로가 끝나 결과 패널이 겹쳤다. 톡 판정은 사용자 육안.
 
 이견·실패: 없음.
