@@ -12,13 +12,25 @@
 // 로컬 전용: 네트워크 포트를 열지 않는다. 입력은 같은 머신의 파일 큐뿐이다.
 // 대상(Sync) 저장소에는 아무것도 쓰지 않는다.
 
+import { randomUUID } from 'node:crypto';
 import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import readline from 'node:readline';
 import { fileURLToPath } from 'node:url';
 
-import { ackEvent, channelPaths, clearHeartbeat, listPending, markDelivered, recordVerdict, writeHeartbeat } from './channel-queue.mjs';
+import {
+  ackEvent,
+  channelPaths,
+  claimDelivery,
+  classifyEvent,
+  clearHeartbeat,
+  escalateEvent,
+  listPending,
+  markDelivered,
+  recordVerdict,
+  writeHeartbeat,
+} from './channel-queue.mjs';
 
 const PROTOCOL_VERSION = '2025-06-18';
 const SERVER_NAME = 'rtw';
@@ -126,23 +138,47 @@ export async function handleToolCall(runtimeDir, name, args = {}) {
 }
 
 /**
- * 아직 ACK 되지 않은 이벤트를 세션으로 민다.
+ * 아직 판정이 없는 이벤트를 세션으로 민다.
  *
- * 재시작·crash 이후에도 pending 이 파일로 남아 있으므로 여기서 다시 발견된다(catch-up).
- * 이미 이 프로세스가 민 이벤트는 다시 밀지 않는다 — 같은 요청을 두 번 세션에 넣지 않기 위해서다.
+ * 재전달 여부는 **프로세스 기억이 아니라 시간과 상태**로 정한다(classifyEvent).
+ * 그래야 ACK 뒤 세션이 끊긴 경우 — ACK 는 있는데 verdict 가 영영 안 오는 경우 —
+ * 를 자동으로 되살릴 수 있다. 재시작·crash 이후 catch-up 도 같은 규칙으로 동작한다.
+ * 선점(claimDelivery)은 CAS 라서 서버가 둘이어도 한 번만 나간다.
  */
-export async function pumpOnce(runtimeDir, sent, emit) {
+export async function pumpOnce(runtimeDir, serverId, emit, policy = {}) {
   const pending = await listPending(runtimeDir);
   let pushed = 0;
   for (const event of pending) {
-    if (event.ackedAt) continue;
-    if (sent.has(event.eventId)) continue;
-    const { content, meta } = renderChannelEvent(event);
-    await emit({ method: 'notifications/claude/channel', params: { content, meta } });
-    sent.add(event.eventId);
+    const verdict = classifyEvent(event, policy);
+
+    if (verdict.action === 'escalate') {
+      const escalated = await escalateEvent(runtimeDir, event, verdict.reason);
+      if (escalated.ok) log(`★ 에스컬레이션: ${event.eventId} — ${verdict.reason}`);
+      continue;
+    }
+    if (verdict.action !== 'deliver') continue;
+
+    // 재전달은 선점한 쪽만 한다. 서버가 둘이어도 한 번만 나간다.
+    const claim = await claimDelivery(runtimeDir, event, { serverId });
+    if (!claim.ok) {
+      log(`전달 선점 실패(${event.eventId}) — ${claim.reason}`);
+      continue;
+    }
+
+    const { content, meta } = renderChannelEvent(claim.event);
+    const retry = (claim.event.attempts ?? 1) > 1;
+    await emit({
+      method: 'notifications/claude/channel',
+      params: {
+        content: retry
+          ? `${content}\n\n※ 재전달 ${claim.event.attempts}회차다. 이전 시도는 ACK 뒤 판정 없이 끊겼다(${verdict.reason}). 처음부터 다시 감리하고 반드시 rtw_verdict 로 마무리하라.`
+          : content,
+        meta: { ...meta, attempt: String(claim.event.attempts ?? 1) },
+      },
+    });
     await markDelivered(runtimeDir, event.eventId);
     pushed += 1;
-    log(`이벤트 전달: ${event.eventId} (${event.instructionId})`);
+    log(`이벤트 전달(${claim.event.attempts}회차): ${event.eventId} — ${verdict.reason}`);
   }
   return pushed;
 }
@@ -156,9 +192,9 @@ async function main() {
   log(`pending ${pendingDir}`);
   log(`done    ${doneDir}`);
 
-  const sent = new Set();
+  const serverId = `${process.pid}-${randomUUID().slice(0, 8)}`;
   let initialized = false;
-  const beat = () => writeHeartbeat(runtimeDir, { cwd: process.cwd(), initialized }).catch(() => {});
+  const beat = () => writeHeartbeat(runtimeDir, { serverId, cwd: process.cwd(), initialized }).catch(() => {});
   await beat();
 
   const emit = async (message) => writeMessage({ jsonrpc: '2.0', ...message });
@@ -183,7 +219,7 @@ async function main() {
       if (method === 'notifications/initialized') {
         initialized = true;
         // 세션이 준비된 직후 미처리분을 먼저 흘려보낸다.
-        await pumpOnce(runtimeDir, sent, emit);
+        await pumpOnce(runtimeDir, serverId, emit);
         return;
       }
       if (method === 'tools/list') {
@@ -214,7 +250,7 @@ async function main() {
   const timer = setInterval(() => {
     beat();
     if (!initialized) return;
-    pumpOnce(runtimeDir, sent, emit).catch((error) => log(`전달 실패: ${error.message}`));
+    pumpOnce(runtimeDir, serverId, emit).catch((error) => log(`전달 실패: ${error.message}`));
   }, POLL_MS);
   timer.unref?.();
 

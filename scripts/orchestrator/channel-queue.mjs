@@ -72,6 +72,104 @@ export async function findEvent(runtimeDir, eventId) {
   return null;
 }
 
+// ACK 는 「받았다」일 뿐 「끝냈다」가 아니다. 세션이 감리 도중 끊기면(API 단절 등)
+// 이벤트는 ACK된 채 verdict 없이 영원히 남는다. 그래서 ACK 에도 lease 를 건다.
+export const DEFAULT_ACK_LEASE_MS = 20 * 60_000;   // ACK 후 이 시간 안에 verdict 가 없으면 중단으로 본다
+export const DEFAULT_ACK_WAIT_MS = 3 * 60_000;     // 전달했는데 ACK 조차 없을 때 재전달까지 기다리는 시간
+export const DEFAULT_MAX_ATTEMPTS = 3;             // 이만큼 시도하고도 안 되면 사람을 부른다
+
+/**
+ * 이벤트가 지금 무엇을 기다리는 상태인가.
+ *
+ * 실측 근거: 세션 감리는 2~5분에 끝난다(2분24초·3분2초). ACK 후 20분이 지나도록
+ * verdict 가 없으면 정상 지연이 아니라 중단이다.
+ */
+export function classifyEvent(event, {
+  now = Date.now(),
+  ackLeaseMs = DEFAULT_ACK_LEASE_MS,
+  ackWaitMs = DEFAULT_ACK_WAIT_MS,
+  maxAttempts = DEFAULT_MAX_ATTEMPTS,
+} = {}) {
+  if (event.verdict) return { action: 'done', reason: '판정 완료' };
+  if (event.escalated) return { action: 'escalated', reason: `${event.attempts ?? 0}회 시도 후 중단 — Chief 확인 필요` };
+
+  const attempts = event.attempts ?? event.deliveries ?? 0;
+  const ackedAt = event.ackedAt ? Date.parse(event.ackedAt) : null;
+  const deliveredAt = event.lastDeliveredAt ? Date.parse(event.lastDeliveredAt) : null;
+
+  if (ackedAt !== null) {
+    const sinceAck = now - ackedAt;
+    if (sinceAck <= ackLeaseMs) {
+      return { action: 'in-progress', reason: `감리 중(ACK 후 ${Math.round(sinceAck / 60_000)}분)` };
+    }
+    if (attempts >= maxAttempts) {
+      return { action: 'escalate', reason: `ACK 후 ${Math.round(sinceAck / 60_000)}분째 판정 없음 — ${attempts}회 시도 소진` };
+    }
+    return { action: 'deliver', reason: `ACK 후 ${Math.round(sinceAck / 60_000)}분째 판정 없음 — 중단으로 보고 재전달` };
+  }
+
+  if (deliveredAt === null) return { action: 'deliver', reason: '첫 전달' };
+  const sinceDelivery = now - deliveredAt;
+  if (sinceDelivery <= ackWaitMs) {
+    return { action: 'wait-ack', reason: `ACK 대기(${Math.round(sinceDelivery / 1_000)}초)` };
+  }
+  if (attempts >= maxAttempts) {
+    return { action: 'escalate', reason: `ACK 없이 ${attempts}회 전달 — 세션이 이벤트를 받지 못하고 있다` };
+  }
+  return { action: 'deliver', reason: `ACK 없이 ${Math.round(sinceDelivery / 60_000)}분 경과 — 재전달` };
+}
+
+/**
+ * 이벤트 파일을 「내가 읽은 그 내용일 때만」 갱신한다(CAS).
+ *
+ * 서버가 둘 이상이면 같은 이벤트를 동시에 재전달하려 들 수 있다. rename 으로 원자적으로
+ * 집어 든 뒤 내용이 그대로일 때만 쓰므로, 경합에서 한쪽만 이긴다.
+ */
+export async function casUpdateEvent(runtimeDir, eventId, expectedRaw, patch, tag = String(process.pid)) {
+  const { pendingDir } = channelPaths(runtimeDir);
+  const filePath = path.join(pendingDir, `${eventId}.json`);
+  const asidePath = `${filePath}.${tag}.cas`;
+  try {
+    await rename(filePath, asidePath);
+  } catch (error) {
+    if (error.code === 'ENOENT') return { ok: false, reason: '이벤트가 이미 없다(종결됐거나 다른 쪽이 가져갔다)' };
+    throw error;
+  }
+  const raw = await readFile(asidePath, 'utf8').catch(() => null);
+  if (raw !== expectedRaw) {
+    // 내가 본 그 이벤트가 아니다. 원위치시키고 물러난다.
+    await rename(asidePath, filePath).catch(async () => { await unlink(asidePath).catch(() => {}); });
+    return { ok: false, reason: '다른 쪽이 먼저 갱신했다' };
+  }
+  const updated = { ...JSON.parse(raw), ...patch };
+  await atomicWriteJson(filePath, updated);
+  await unlink(asidePath).catch(() => {});
+  return { ok: true, event: updated };
+}
+
+/** 재전달을 선점한다. ACK 는 지워 새 ACK 를 요구하고, 시도 횟수를 올린다. */
+export async function claimDelivery(runtimeDir, event, { serverId, at = new Date().toISOString() }) {
+  const { pendingDir } = channelPaths(runtimeDir);
+  const raw = await readFile(path.join(pendingDir, `${event.eventId}.json`), 'utf8').catch(() => null);
+  if (raw === null) return { ok: false, reason: '이벤트가 이미 없다' };
+  const attempts = (event.attempts ?? event.deliveries ?? 0) + 1;
+  return await casUpdateEvent(runtimeDir, event.eventId, raw, {
+    attempts,
+    ackedAt: null,                 // 이전 ACK 는 무효다 — 그 세션은 끝내지 못했다
+    previousAckedAt: event.ackedAt ?? null,
+    deliveryOwner: serverId,
+    claimedAt: at,
+  });
+}
+
+/** 시도를 소진했다. 조용히 버리지 않고 사람을 부를 수 있게 표시한다. */
+export async function escalateEvent(runtimeDir, event, reason, at = new Date().toISOString()) {
+  const { pendingDir } = channelPaths(runtimeDir);
+  const raw = await readFile(path.join(pendingDir, `${event.eventId}.json`), 'utf8').catch(() => null);
+  if (raw === null) return { ok: false, reason: '이벤트가 이미 없다' };
+  return await casUpdateEvent(runtimeDir, event.eventId, raw, { escalated: true, escalatedAt: at, escalationReason: reason });
+}
+
 /**
  * 채널 서버 heartbeat.
  *

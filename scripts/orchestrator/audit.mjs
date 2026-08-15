@@ -20,7 +20,7 @@ import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 
-import { enqueueEvent, listDone, listLiveServers, listPending } from './channel-queue.mjs';
+import { classifyEvent, enqueueEvent, listDone, listLiveServers, listPending } from './channel-queue.mjs';
 
 const execFileAsync = promisify(execFile);
 const DEFAULT_RELAY = 'sync-relay';
@@ -1063,7 +1063,9 @@ async function doctor({ target, relay, runtimeDir, claudeTimeoutMs = DEFAULT_CLA
     console.log(`[orchestrator] 감리 경로: ${describeRouting({ emitChannel })}`);
     console.log(`[orchestrator] 채널 큐: pending ${pending.length}건(미ACK ${unacked.length}) · done ${done.length}건`);
     for (const event of pending.slice(0, 3)) {
-      console.log(`[orchestrator]   - ${event.eventId} ${event.ackedAt ? 'ACK됨' : '미ACK'} 전달 ${event.deliveries ?? 0}회`);
+      const verdict = classifyEvent(event);
+      const mark = verdict.action === 'deliver' || verdict.action === 'escalate' || verdict.action === 'escalated' ? '★ ' : '';
+      console.log(`[orchestrator]   - ${mark}${event.eventId} 시도 ${event.attempts ?? event.deliveries ?? 0}회 → ${verdict.action}: ${verdict.reason}`);
     }
     const servers = await listLiveServers(runtimeDir);
     if (servers.length === 0) {

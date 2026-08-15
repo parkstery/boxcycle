@@ -5,7 +5,18 @@ import path from 'node:path';
 import test from 'node:test';
 
 import { buildInitializeResult, pumpOnce, renderChannelEvent, handleToolCall } from './channel-server.mjs';
-import { ackEvent, channelPaths, enqueueEvent, findEvent, listDone, listLiveServers, listPending, recordVerdict } from './channel-queue.mjs';
+import {
+  ackEvent,
+  casUpdateEvent,
+  channelPaths,
+  classifyEvent,
+  enqueueEvent,
+  findEvent,
+  listDone,
+  listLiveServers,
+  listPending,
+  recordVerdict,
+} from './channel-queue.mjs';
 import { describeRouting, runAuditOnce } from './audit.mjs';
 
 const EVENT = {
@@ -97,35 +108,143 @@ test('종결된 이벤트는 다시 ACK·판정되지 않는다', async () => {
   assert.match((await recordVerdict(dir, EVENT.eventId, { verdict: 'BLOCK' })).reason, /이미 종결/);
 });
 
-test('미ACK 이벤트만 전달하고, 같은 프로세스는 중복 전달하지 않는다', async () => {
+test('첫 전달 뒤 ACK 대기 중에는 다시 밀지 않는다', async () => {
   const dir = await queueDir();
   await enqueueEvent(dir, EVENT);
-  const sent = new Set();
   const emitted = [];
   const emit = async (message) => { emitted.push(message); };
 
-  assert.equal(await pumpOnce(dir, sent, emit), 1);
+  assert.equal(await pumpOnce(dir, 'srv-1', emit), 1);
   assert.equal(emitted[0].method, 'notifications/claude/channel');
-  assert.equal(await pumpOnce(dir, sent, emit), 0, '같은 프로세스가 다시 밀면 안 된다');
+  assert.equal(await pumpOnce(dir, 'srv-1', emit), 0, 'ACK 대기 창 안에서는 재전달 금지');
+  assert.equal(await pumpOnce(dir, 'srv-2', emit), 0, '다른 서버가 와도 마찬가지다');
+  assert.equal((await listPending(dir))[0].attempts, 1);
 
-  // 전달 횟수는 기록된다.
-  assert.equal((await listPending(dir))[0].deliveries, 1);
-
-  // ACK 된 이벤트는 새 프로세스(빈 sent)에서도 전달 대상이 아니다.
+  // ACK 가 오면 감리 중이므로 역시 밀지 않는다.
   await ackEvent(dir, EVENT.eventId);
-  assert.equal(await pumpOnce(dir, new Set(), emit), 0);
+  assert.equal(await pumpOnce(dir, 'srv-1', emit), 0);
 });
 
-test('재시작 뒤에도 미ACK 이벤트는 다시 발견된다 (catch-up)', async () => {
+test('ACK 가 오지 않으면 대기 창이 지난 뒤 재전달한다', async () => {
   const dir = await queueDir();
   await enqueueEvent(dir, EVENT);
   const emitted = [];
   const emit = async (message) => { emitted.push(message); };
 
-  await pumpOnce(dir, new Set(), emit);          // 1차 프로세스
-  await pumpOnce(dir, new Set(), emit);          // 재시작 = sent 가 비어 있다
-  assert.equal(emitted.length, 2, '미ACK 이면 재시작 후 다시 밀어야 한다');
-  assert.equal((await listPending(dir))[0].deliveries, 2);
+  await pumpOnce(dir, 'srv-1', emit, { ackWaitMs: 0 });
+  const again = await pumpOnce(dir, 'srv-1', emit, { ackWaitMs: 0 });
+  assert.equal(again, 1, 'ACK 없이 창이 지나면 다시 밀어야 한다');
+  assert.equal((await listPending(dir))[0].attempts, 2);
+  assert.match(emitted[1].params.content, /재전달 2회차/);
+  assert.equal(emitted[1].params.meta.attempt, '2');
+});
+
+// ── ACK 후 단절 복구 ──────────────────────────────────────────────────────
+
+test('classifyEvent — ACK 후 판정 없이 lease 를 넘기면 재전달 대상이다', () => {
+  const t0 = Date.parse('2026-08-14T00:00:00.000Z');
+  const base = { deliveries: 1, attempts: 1, lastDeliveredAt: '2026-08-13T23:59:00.000Z' };
+
+  // 감리 중 — 건드리지 않는다
+  const busy = classifyEvent({ ...base, ackedAt: '2026-08-13T23:55:00.000Z' }, { now: t0 });
+  assert.equal(busy.action, 'in-progress');
+
+  // ACK 후 lease 초과 — 중단으로 본다
+  const stuck = classifyEvent({ ...base, ackedAt: '2026-08-13T23:20:00.000Z' }, { now: t0 });
+  assert.equal(stuck.action, 'deliver');
+  assert.match(stuck.reason, /ACK 후 40분째 판정 없음/);
+
+  // 시도 소진 — 사람을 부른다
+  const spent = classifyEvent({ ...base, attempts: 3, ackedAt: '2026-08-13T23:20:00.000Z' }, { now: t0 });
+  assert.equal(spent.action, 'escalate');
+
+  // 판정이 있으면 끝
+  assert.equal(classifyEvent({ ...base, verdict: 'PASS' }, { now: t0 }).action, 'done');
+  // 이미 에스컬레이션된 것은 자동으로 다시 돌지 않는다
+  assert.equal(classifyEvent({ ...base, escalated: true }, { now: t0 }).action, 'escalated');
+});
+
+test('ACK 후 세션이 끊기면 자동으로 재전달되고 이전 ACK 는 무효가 된다', async () => {
+  const dir = await queueDir();
+  await enqueueEvent(dir, EVENT);
+  const emitted = [];
+  const emit = async (message) => { emitted.push(message); };
+
+  await pumpOnce(dir, 'srv-1', emit);
+  await ackEvent(dir, EVENT.eventId);
+  // 여기서 세션이 끊겼다 — verdict 가 오지 않는다.
+
+  // lease 안에서는 기다린다.
+  assert.equal(await pumpOnce(dir, 'srv-1', emit), 0);
+
+  // lease 를 넘기면 되살린다.
+  assert.equal(await pumpOnce(dir, 'srv-1', emit, { ackLeaseMs: 0 }), 1);
+  const revived = (await listPending(dir))[0];
+  assert.equal(revived.ackedAt, null, '이전 ACK 는 무효 — 새 ACK 를 요구한다');
+  assert.equal(revived.previousAckedAt !== null, true, '이전 ACK 시각은 증거로 남긴다');
+  assert.equal(revived.attempts, 2);
+  assert.match(emitted[1].params.content, /이전 시도는 ACK 뒤 판정 없이 끊겼다/);
+
+  // 되살아난 이벤트는 새 ACK 로 정상 종결된다.
+  assert.equal((await ackEvent(dir, EVENT.eventId)).ok, true);
+  const saved = await recordVerdict(dir, EVENT.eventId, { verdict: 'PASS', summary: '재시도 성공' });
+  assert.equal(saved.ok, true);
+  assert.equal((await listDone(dir))[0].attempts, 2);
+});
+
+test('시도를 소진하면 에스컬레이션하고 더는 자동 재전달하지 않는다', async () => {
+  const dir = await queueDir();
+  await enqueueEvent(dir, EVENT);
+  const emitted = [];
+  const emit = async (message) => { emitted.push(message); };
+  const aggressive = { ackWaitMs: 0, maxAttempts: 2 };
+
+  await pumpOnce(dir, 'srv-1', emit, aggressive);   // 1회차
+  await pumpOnce(dir, 'srv-1', emit, aggressive);   // 2회차
+  assert.equal(emitted.length, 2);
+
+  await pumpOnce(dir, 'srv-1', emit, aggressive);   // 소진 → 에스컬레이션
+  const escalated = (await listPending(dir))[0];
+  assert.equal(escalated.escalated, true);
+  assert.match(escalated.escalationReason, /ACK 없이 2회 전달/);
+
+  await pumpOnce(dir, 'srv-1', emit, aggressive);
+  assert.equal(emitted.length, 2, '에스컬레이션 뒤에는 더 밀지 않는다');
+  assert.equal((await listPending(dir)).length, 1, '증거는 pending 에 그대로 남는다');
+});
+
+test('서버가 둘이어도 재전달은 한 번만 나간다 (CAS 선점)', async () => {
+  const dir = await queueDir();
+  await enqueueEvent(dir, EVENT);
+  const emitted = [];
+  const emit = async (message) => { emitted.push(message); };
+
+  const [a, b] = await Promise.all([
+    pumpOnce(dir, 'srv-1', emit),
+    pumpOnce(dir, 'srv-2', emit),
+  ]);
+  assert.equal(a + b, 1, '동시에 두 서버가 밀면 안 된다');
+  assert.equal(emitted.length, 1);
+  assert.equal((await listPending(dir))[0].attempts, 1);
+});
+
+test('casUpdateEvent — 내가 읽은 내용이 아니면 갱신하지 않는다', async () => {
+  const dir = await queueDir();
+  await enqueueEvent(dir, EVENT);
+  const { pendingDir } = channelPaths(dir);
+  const filePath = path.join(pendingDir, `${EVENT.eventId}.json`);
+  const raw = await readFile(filePath, 'utf8');
+
+  // 그 사이 다른 쪽이 바꿨다.
+  await writeFile(filePath, JSON.stringify({ ...JSON.parse(raw), attempts: 9 }, null, 2), 'utf8');
+
+  const stale = await casUpdateEvent(dir, EVENT.eventId, raw, { attempts: 1 });
+  assert.equal(stale.ok, false);
+  assert.match(stale.reason, /다른 쪽이 먼저/);
+  assert.equal(JSON.parse(await readFile(filePath, 'utf8')).attempts, 9, '남의 갱신을 덮으면 안 된다');
+
+  const fresh = await readFile(filePath, 'utf8');
+  assert.equal((await casUpdateEvent(dir, EVENT.eventId, fresh, { attempts: 10 })).ok, true);
 });
 
 test('도구 호출은 큐 상태를 바꾸고 실패를 isError 로 알린다', async () => {
