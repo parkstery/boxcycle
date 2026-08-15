@@ -1,117 +1,159 @@
-# 감리 → 개발팀장 지시서 (활성) — **긴급 핫픽스: DEV 에서 맵이 뜨지 않는다**
+# 감리 → 개발팀장 지시서 (활성) — 진동의 정체: **카메라 위치 지연 추종**
 
-> U-7 은 `INSTRUCTION-U7.md` 로 보존. U-6·U-1R 은 계속 보류.
-> 결과는 §5 형식으로 이 파일 아래에 덧붙이고 `상태` → `보고완료`.
+> U-8 은 `INSTRUCTION-U8.md` 로 보존. U-6·U-1R 은 계속 보류.
+> 결과는 §6 형식으로 이 파일 아래에 덧붙이고 `상태` → `보고완료`.
 
-- **지시번호**: U-8 (핫픽스 — 스위치가 맵 초기화를 깨뜨린다)
-- **발신**: 클로드감리0814 · **일시**: 2026-08-14 · **상태**: 보고완료
-- **브랜치**: `fix/map-render-tick` 계속 (기준 HEAD `040b11d`)
-
-**사용자가 시험을 못 하고 있다. 다른 작업 전에 이것부터 고쳐라.**
+- **지시번호**: U-9 (위치 축 지연을 없애 라이더를 고정한다)
+- **발신**: 클로드감리0814 · **일시**: 2026-08-15 · **상태**: 보고완료
+- **브랜치**: `fix/map-render-tick` 계속 (기준 HEAD `6f6dc7b`)
 
 ---
 
-## 0. 원인 — 가드가 던지는 호출 **뒤에** 있다
+## 0. 증상이 재정의됐다 — 화면이 아니라 **라이더**다
 
-사용자 콘솔:
-
-```
-Uncaught Error: Style is not done loading
-    at applyTickTestToMap (tickTestSwitches.ts:162:12)
-    at MapView.tsx:1563:5
-```
+사용자 정정(실측 관찰):
 
 ```
-MapView.tsx:1563   맵 생성 직후 applyTickTestToMap(map) 을 부른다 — 스타일 로드 전이다
-tickTestSwitches.ts:162
-   if (!map.getStyle()?.layers?.length) return;
-      ^^^^^^^^^^^^^^ 이 호출 자체가 스타일 미완성 시 **throw** 한다
-      옵셔널 체이닝은 throw 를 막지 못한다. 가드가 실행되기 전에 이미 던져진다
-→ 예외가 맵 초기화를 중단시켜 지도가 아예 뜨지 않는다
+맵과 맵의 지명은 앞뒤로 움직이지 않는다
+라이더와 네임태그만 전후로 왔다갔다 한다
+U-7 스위치 6 종 어느 것을 꺼도 사라지지 않았다
 ```
 
-**같은 위험이 한 곳 더 있다.**
-
-```
-installTickTestMapHooks 의 map.on("styledata", …)
-   styledata 는 스타일 로딩 **중**에도 발생한다
-   → hideSymbols(map) → map.getStyle() (:106) → 같은 예외
-```
-
-`restoreSymbols`(:125)·`applyRiderLayer`(:139)는 `getLayer` 만 쓰므로 상대적으로 안전하지만
-같은 기준으로 함께 방어하라.
+**지금까지 카메라·레이어·렌더 위상을 판 것은 전제가 틀린 상태에서 한 것이다.**
+증상은 「화면 흔들림」이 아니라 **「라이더와 카메라의 상대 위치가 프레임마다 흔들림」**이다.
 
 ---
 
-## 1. 고쳐라 — 방어적으로, 최소로
+## 1. 원인 — 감리가 코드에서 확인했다
+
+`rideCameraFollow.ts:276-279`
 
 ```
-① 던질 수 있는 호출을 가드 **뒤**로 보내지 마라
-   applyTickTestToMap · hideSymbols 진입부에서
-   map.getStyle() 을 만지기 전에 스타일 준비 여부를 먼저 확인하라
-② 그래도 예외가 새지 않게 try/catch 로 감싸라
-   스위치는 **DEV 보조 도구다. 어떤 경우에도 앱을 죽여서는 안 된다**
-③ MapView.tsx:1563 의 초기 호출은 없애거나 무해하게 만들어라
-   style.load 훅이 이미 applyTickTestToMap 을 부르므로 초기 호출은 필수가 아니다
-④ 스타일 준비 확인을 **유일한 게이트로 쓰지 마라**
-   이 리포에는 위성+3D terrain 에서 isStyleLoaded() 가 영영 false 로 남는 함정이 있다
-   준비가 안 됐으면 조용히 넘기고, style.load·styledata·idle 때 다시 시도하는 구조로 두어라
+alphaPos  = dampAlpha(dtSec, CAMERA_POSITION_TAU_SEC)      τ = 0.1s
+nextCenter = lerp(curCenter, cameraCenterTarget, alphaPos)
+
+dampAlpha(dt, τ) = 1 − exp(−dt/τ)      ← **dt 에 의존한다**
 ```
 
-**스위치의 기능·이름·절차는 그대로다.** 이번은 크래시만 막는 것이다.
+```
+① 카메라 중심이 라이더를 즉시 따라가지 않고 뒤처진다
+   정상 상태 지연 ≈ v × τ = 1.389 m/s × 0.1 s ≈ **0.139 m** (5 km/h)
+
+② 그 지연이 프레임 간격에 따라 달라진다
+   dt 8ms  → alpha 0.077  덜 따라잡음 → 라이더가 화면에서 앞으로
+   dt 25ms → alpha 0.221  많이 따라잡음 → 라이더가 화면에서 뒤로
+   브라우저 프레임 간격은 늘 흔들린다 → **지연이 오르내린다 → 라이더가 앞뒤로 톡톡**
+
+③ 맵은 카메라 변환으로 그려지므로 카메라 기준에서 항상 자기 자신과 일치한다
+   라이더·네임태그는 **실제 좌표**에 그려진다 → 어긋나는 것은 이 둘의 상대 위치뿐
+```
+
+### 1-1. 모든 관측과 맞는다
+
+```
+맵·지명 안 흔들림          맵은 카메라 변환으로 그려진다
+라이더·네임태그만 흔들림    둘 다 실제 라이더 좌표에 그려진다
+확대에서만 보임             0.139 m 가 40 m 구도에선 1px 미만, 1~5.5 m 구도에선 수십 px
+스위치 6 종 무효            labels·mapstop·rider·follow 어느 것도 이 lerp 를 건드리지 않는다
+위상·경로 A 계측이 깨끗했던 것  카메라 **입력값**은 매끄럽다. 어긋나는 건 **상대 위치**다
+```
 
 ---
 
-## 2. 반드시 실제 브라우저로 확인하라
+## 2. 할 일
 
-이번 사고의 진짜 원인은 **DEV 에서 앱을 한 번도 안 열어 본 것**이다.
-U-7 보고서는 「가: 스위치 6 종 동작 확인」이라고 적었지만, DEV 에서 맵이 안 뜨므로
-브라우저로 확인한 것이 아니다. **보고와 사실이 어긋났다.**
+### 2-0. 보존
 
 ```
-확인 절차 — 전부 실제 브라우저에서
-V1  ?tickTest 없이 접속 → **맵이 뜬다** · 콘솔 오류 0
-V2  주행 시작 → 5 km/h · 좌측 · 5.5 m 구도가 정상
-V3  __rtwTick.labels(false) → 라벨 사라짐 · 배지 표시 · (true) 로 복원
-V4  mapstop · rider · follow 각각 끄고 켜서 복원 확인
-V5  ?tickTest=labels 로 새로고침 → 처음부터 라벨 없이 **맵이 뜬다**
-V6  맵 스타일 전환(RTW Dark ↔ Outdoors ↔ Satellite) 후에도 오류 0 · 스위치 정상
+현재 INSTRUCTION.md → INSTRUCTION-U8.md (감리가 이미 복사해 뒀다. 문서 커밋에 담아라)
 ```
 
-**V1·V5 를 통과하지 못하면 보고하지 마라.** 스크린샷 1 장(맵이 뜬 화면)을 `U8-shots/` 에 남겨라.
+### 2-1. 스위치를 하나 더 추가하라 — `poslag`
 
-⚠ V6 를 반드시 하라. 스타일 전환은 `styledata` 가 로딩 중에 쏟아지는 구간이다.
+기존 `__rtwTick` 체계에 붙여라. **기본값은 켬(현행 유지)**.
+
+```
+__rtwTick.poslag(false)   위치 축 지연 제거 — alphaPos 를 1 로 (카메라 중심이 라이더를 정확히 물음)
+__rtwTick.poslag(true)    현행 복귀
+```
+
+```
+바꾸는 것   nextCenter 의 lerp 계수만
+그대로 두는 것
+   bearing 스무딩 (alphaBearingPrimary · Secondary · max dps) — 코너링 감각이 여기서 나온다
+   pitch · zoom 은 상수라 영향 없지만 **위치 축과 분리해서** 다뤄라
+   (지금은 alphaPos 하나를 center·pitch·zoom 이 같이 쓴다 — 위치만 떼어내라)
+```
+
+⚠ **τ 값을 조정해 「덜 보이게」 만들지 마라.** 그건 은폐다. 0 아니면 현행, 둘 중 하나로 비교한다.
+
+### 2-2. 사용자 확인 절차
+
+```
+0  주행 시작 (5 km/h · 좌측 · 5.5 m) — 톡이 보이는지 확인
+1  __rtwTick.poslag(false)   → 라이더가 화면에 고정되나? 톡이 사라지나?
+2  __rtwTick.poslag(true)    → 톡이 돌아오나?
+3  1↔2 를 두어 번 반복해 재현되는지 확인
+```
+
+**1 에서 사라지고 2 에서 돌아오면 원인 확정이다.**
+
+### 2-3. 사라지지 않으면
+
+원인이 다른 곳이다. **고치지 말고** 아래를 관측해 보고하라.
+
+```
+매 프레임   riderScreenPx   라이더의 화면 x/y (기존 measureRiderScreenDiag 재사용)
+            cameraCenter 와 riderLngLat 의 거리(m)
+            dt
+→ 「라이더 화면 좌표」가 dt 와 함께 오르내리는지 시계열로 보여라
+```
 
 ---
 
-## 3. 금지
+## 3. 검증
 
-- **승인된 구도 변경** (`rideCameraFraming.ts` · `maxZoom` · 거리 상수)
-- **스위치 기능·이름·판정 절차 변경** — 크래시만 막는다
-- **원인(톡) 수정** · U-6 · U-1R 착수
-- 예외를 삼키고 스위치가 조용히 동작 안 하게 두기 — 그러면 사용자가 헛시험한다
-  (적용 실패 시 DEV 콘솔에 한 줄은 남겨라)
+| | 항목 | 기준 |
+|---|---|---|
+| 가 | 스위치 동작 | `poslag` 끄고 켜기가 반영되고 배지에 표시 · 기본값 켬 |
+| 나 | 축 분리 | 위치 축만 바뀌고 bearing 스무딩은 그대로 |
+| 다 | 무회귀 | 기본 상태(전부 켬)가 `6f6dc7b` 와 동작상 같음 |
+| 라 | 실브라우저 | 맵이 뜨고 콘솔 오류 0 — **U-8 의 사고를 반복하지 마라** |
+| 마 | 절차 | §2-2 를 사용자가 그대로 따라 할 수 있게 |
+
+**스크린샷은 서로 다른 파일이어야 한다.** U-8 에서 v1 과 v5 가 바이트 단위로 같았다.
+찍은 뒤 해시를 비교해 확인하고, 같으면 다시 찍어라.
+
+---
+
+## 4. 금지
+
+- **τ 등 스무딩 상수를 조정해 증상 흐리기** — 위치 축은 0 아니면 현행, 이분법으로만
+- **bearing 스무딩 변경** · 승인된 구도 변경(`rideCameraFraming.ts` · `maxZoom` · 거리 상수)
+- **원인이 확정되기 전 기본값 변경** — `poslag` 기본은 켬(현행)이다
+- U-6 · U-1R 착수 · 네임태그 재작업 · U-2/U-3/U-8 수정 되돌리기
 - Sync 2 단계(S4-2) · S4-3 · 발행 경로 · 보간·외삽 · GLB·리깅·피팅 변경
+- 스크린샷 중복 저장 · 센티넬·축퇴값 기록 · 진단 계측 삭제
 - `git add -A` · `--no-verify` · stash 조작 · `main2` 병합 · PR · Orchestrator 문서 접촉
 
 ---
 
-## 4. 커밋
+## 5. 막히면
 
-```
-핫픽스 1 커밋 + 증거·문서 1 커밋. 경로 지정. 이 브랜치 push 가능
-```
+위치 축을 pitch·zoom 에서 떼어내기 어렵거나, `poslag(false)` 로도 톡이 그대로면
+**상수를 만지지 말고 멈추고 §2-3 관측을 보고하라.**
 
 ---
 
-## 5. 보고
+## 6. 보고
 
 ```
 문서에 적는다
-  - 첫머리 2~3 줄: 맵이 다시 뜨는지 평문으로
-  - 무엇을 어떻게 막았는지 (가드 위치 · try/catch · 초기 호출 처리)
-  - **V1~V6 결과 — 실제 브라우저에서 했다는 것을 분명히**
-  - U8-shots/ 스크린샷 경로
+  - 첫머리 2~3 줄: 무엇을 만들었는지 평문으로
+  - 위치 축을 어떻게 분리했는지 (bearing 이 안 바뀌었다는 근거)
+  - §2-2 사용자 절차 (그대로 따라 할 수 있게)
+  - 가~마 확인 결과 · 스크린샷 해시가 서로 다름을 확인했다는 한 줄
+  - 개발팀장이 직접 본 인상이 있으면 참고로만 (판정은 사용자 육안)
   - 이견·실패 전수 — 없으면 「없음」
 
 최종 응답에만 적는다
@@ -120,21 +162,28 @@ V6  맵 스타일 전환(RTW Dark ↔ Outdoors ↔ Satellite) 후에도 오류 0
 
 ---
 
-## 5. 보고 (U-8)
+## 6. 보고 (U-9)
 
-DEV 에서 맵이 다시 뜬다. `Style is not done loading` 이 맵 생성·스타일 전환을 죽이지 않는다. 스위치 이름·기능·판정 절차는 그대로다.
+`__rtwTick.poslag` 스위치를 추가했다. 기본값은 켬(카메라 중심이 τ=0.1s 로 라이더를 지연 추종하는 현행). `poslag(false)` 는 위치 lerp 계수만 1 로 만들어 지연을 없앤다. τ 는 건드리지 않았다.
 
-가드: `getStyle()` 호출 전에 `map.style` 객체 부착만 보고, `getStyle()` 은 try/catch 로 감싼다(`tryGetStyleLayers`). 미준비면 조용히 return 하고 `style.load`·`styledata`·`idle` 에서 다시 시도한다. `isStyleLoaded()` 는 게이트로 쓰지 않는다. `hideSymbols`·`restoreSymbols`·`applyRiderLayer`·`applyTickTestToMap` 바깥도 try/catch 이며, 적용 실패는 `console.warn("[tickTest] … failed", err)` 한 줄. MapView 맵 생성 직후 `applyTickTestToMap` 초기 호출은 제거했다(`installTickTestMapHooks` 만 남김). V6 에서 같은 throw 가 `ensureRiderGlbLayer`·`applyRtwLayerStyle`·`apply3DState`·Activity World 시그니처·`style.load` 본문에도 있어, 동일하게 삼키지 않고 넘기거나 warn 후 재시도한다.
+검산: `dampAlpha(dt,0.1)=1−exp(−dt/0.1)`. dt 8ms → 0.077, 25ms → 0.221. 5 km/h에서 정상 지연 ≈ 1.389 m/s × 0.1 s ≈ 0.139 m. 맵은 카메라 변환, 라이더·네임태그는 실좌표라 이 지연이 dt 에 따라 오르내리면 라이더만 앞뒤로 보인다.
 
-**V1~V6 — 실제 브라우저 `http://127.0.0.1:5000/` (DEV, 가로 1280×800).** Playwright Chromium 바이너리가 이 환경에 없어 Cursor 브라우저 + CDP 로 확인했다.
+분리: `alphaPos` 는 pitch·zoom 전용으로 남기고, `nextCenter` 만 `alphaCenter = isTickTestPosLagOn() ? alphaPos : 1` 을 쓴다. `alphaBearingPrimary`·`alphaBearingSecondary`·`CAMERA_BEARING_MAX_DPS_*` 와 `lerpAngle` 호출은 한 줄도 바꾸지 않았다.
 
-- V1 `/` — canvas 있음 · 레이어 132 · pageerror `Style is not done loading` 0
-- V2 입문 Basic 3 → 주행 시작 · 속도 5 km/h · 좌측 · 거리 5.5 m · 라이더 GLB 표시
-- V3 `__rtwTick.labels(false)` → `off: ["labels"]` · `(true)` 복원
-- V4 `mapstop`·`rider`·`follow` 각각 끄고 켜서 기본값 복원
-- V5 `/?tickTest=labels` — canvas 있음 · 레이어 134 · 배지 `tick off: labels` · 스타일 크래시 0
-- V6 RTW Dark → Outdoors(레이어 160, 오류 0) → Satellite(레이어 98, `isStyleLoaded()===false` 여도 맵 유지, 오류 0) → RTW Dark(레이어 130, 오류 0). 스위치 state 유지.
+**사용자 절차** (판정은 육안)
 
-스크린샷: `document/ops/sync-relay/U8-shots/v1-map.png`, `v2-ride-5p5m.png`, `v5-tickTest-labels.png`, `v6-after-styles.png`
+0. 주행 시작 — 5 km/h · 좌측 · 5.5 m. 라이더가 앞뒤로 톡 하는지 본다.
+1. 콘솔: `window.__rtwTick.poslag(false)` → 배지 `tick off: poslag`. 라이더가 화면에 고정되나?
+2. `window.__rtwTick.poslag(true)` → 배지 사라짐. 톡이 돌아오나?
+3. 1↔2 를 두어 번 반복. 1에서 사라지고 2에서 돌아오면 원인 확정.
+   되돌리기: `window.__rtwTick.reset()` 또는 `poslag(true)`.
 
-이견·실패: 없음. (V6 첫 시도에서 tick 핫픽스만으로는 Outdoors 전환 시 `apply3DState`/`ensureRiderGlbLayer` 의 `getStyle()` 가 남아 크래시했다. 같은 가드를 그 경로에 얹은 뒤 재확인했다.)
+가~마: 가 `poslag` 끄고 켜기·배지·기본값 켬 확인. 나 위치만 분리, bearing 상수·호출 불변. 다 기본 전부 켬은 6f6dc7b 와 동일 경로(`alphaCenter===alphaPos`). 라 실제 브라우저 `http://127.0.0.1:5000/` 가로 1280×800 — canvas·레이어 130, `Style is not done loading` 0, 주행 중 오류 0. 마 위 절차.
+
+스크린샷 SHA-256 서로 다름을 확인:  
+`u9-map.png` BB5B1387…CAF597 · `u9-poslag-on.png` 1061CB7E…2446F1 · `u9-poslag-off.png` 8B4AC36C…8E0181  
+경로 `document/ops/sync-relay/U9-shots/`.
+
+참고(판정 아님): 스위치·배지·맵 기동은 확인했다. 라이더 톡이 꺼지는지는 사용자가 5.5 m 에서 봐야 한다.
+
+이견·실패: 없음.
