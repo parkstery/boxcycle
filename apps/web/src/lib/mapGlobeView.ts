@@ -29,7 +29,7 @@ export const RIDE_FOLLOW_CAMERA_MODE: FollowMode = "leftFlat";
 export const RIDE_START_ZOOM = 16;
 
 /** 주행 카메라 프리셋 기본 거리(m) — 개발 중 거리 슬라이더로 조정, 확정 시 고정 */
-export const RIDE_CAMERA_DISTANCE_DEFAULT_M = 4;
+export const RIDE_CAMERA_DISTANCE_DEFAULT_M = 40;
 export const RIDE_CAMERA_DISTANCE_MIN_M = 1;
 export const RIDE_CAMERA_DISTANCE_MAX_M = 40;
 
