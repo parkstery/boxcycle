@@ -9,7 +9,7 @@
 
 import { RIDER_GLB_MODEL_LAYER_ID } from "./riderPrototype/config";
 
-export const TICK_TEST_KEYS = ["follow", "labels", "rider", "mapstop", "poslag"] as const;
+export const TICK_TEST_KEYS = ["follow", "labels", "rider", "mapstop", "aligncam"] as const;
 export type TickTestKey = (typeof TICK_TEST_KEYS)[number];
 
 export type TickTestState = Record<TickTestKey, boolean>;
@@ -19,7 +19,7 @@ const DEFAULT_STATE: TickTestState = {
   labels: true,
   rider: true,
   mapstop: true,
-  poslag: true,
+  aligncam: true,
 };
 
 let state: TickTestState = { ...DEFAULT_STATE };
@@ -85,10 +85,13 @@ export function isTickTestMapStopOn(): boolean {
   return state.mapstop;
 }
 
-/** true = 카메라 중심이 τ=0.1s 로 라이더를 지연 추종(현행). false = 위치 lerp 계수 1. */
-export function isTickTestPosLagOn(): boolean {
+/**
+ * true(기본) = C안: 중심 lerp 1 + 스무딩 bearing 으로 중심.
+ * false = 옛 동작: τ 지연 추종 + 원본 offsetBearing 중심.
+ */
+export function isTickTestAlignCamOn(): boolean {
   if (!import.meta.env.DEV) return true;
-  return state.poslag;
+  return state.aligncam;
 }
 
 export function setTickTestKey(key: TickTestKey, on: boolean): TickTestState {
@@ -235,7 +238,7 @@ function publishApi(): void {
     labels: (on: boolean) => setTickTestKey("labels", on),
     rider: (on: boolean) => setTickTestKey("rider", on),
     mapstop: (on: boolean) => setTickTestKey("mapstop", on),
-    poslag: (on: boolean) => setTickTestKey("poslag", on),
+    aligncam: (on: boolean) => setTickTestKey("aligncam", on),
     reset: () => resetTickTest(),
     off: () => getTickTestOffList(),
     state: () => ({ ...state }),

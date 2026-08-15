@@ -15,7 +15,7 @@ import {
 } from "../../lib/mapTickProbe";
 import { noteFollowJumpToValues } from "../../lib/cameraFollowTrace";
 import { noteCameraWrite } from "../../lib/cameraRenderPhase";
-import { isTickTestFollowOn, isTickTestMapStopOn, isTickTestPosLagOn } from "../../lib/tickTestSwitches";
+import { isTickTestAlignCamOn, isTickTestFollowOn, isTickTestMapStopOn } from "../../lib/tickTestSwitches";
 import { type LiveRiderMotion } from "./mapViewTypes";
 
 const CAMERA_POSITION_TAU_SEC = 0.1;
@@ -233,19 +233,6 @@ export function tickRideCameraFollow(
     distanceM: opts.rideCameraDistanceM,
   });
 
-  const vp = viewportPxFromMap(map);
-  const framing = computeRideFollowFraming({
-    riderLngLat: targetLngLat,
-    offsetBearing: nextCamera.offsetBearing,
-    distanceM: nextCamera.distanceM,
-    pitchDeg: nextCamera.pitch,
-    viewportWidthPx: vp.width,
-    viewportHeightPx: vp.height,
-    fallbackZoom: opts.mapZoom,
-  });
-  const cameraCenterTarget = framing.center;
-  const followZoom = framing.zoom;
-
   opts.prevLiveRef.current = targetLngLat;
   const smooth = opts.smooth;
   if (
@@ -262,25 +249,18 @@ export function tickRideCameraFollow(
   smooth.lastTs = opts.nowMs;
   const dtSec = clamp(dtMs, 0, CAMERA_MAX_DT_MS) / 1000;
   const alphaPos = dampAlpha(dtSec, CAMERA_POSITION_TAU_SEC);
-  /** 위치만 분리 — pitch·zoom 은 현행 alphaPos. poslag(false) 는 중심 lerp 만 1. */
-  const alphaCenter = isTickTestPosLagOn() ? alphaPos : 1;
+  const alignCam = isTickTestAlignCamOn();
+  const alphaCenter = alignCam ? 1 : alphaPos;
   const alphaBearingPrimary = dampAlpha(dtSec, CAMERA_BEARING_TAU_PRIMARY_SEC);
   const alphaBearingSecondary = dampAlpha(dtSec, CAMERA_BEARING_TAU_SECONDARY_SEC);
   const maxStepPrimary = CAMERA_BEARING_MAX_DPS_PRIMARY * dtSec;
   const maxStepSecondary = CAMERA_BEARING_MAX_DPS_SECONDARY * dtSec;
 
-  const curCenter = smooth.center ?? cameraCenterTarget;
   const curPitch = smooth.pitch ?? map.getPitch();
   const curZoom = smooth.zoom ?? map.getZoom();
   const curBearingPrimary = smooth.bearingPrimary ?? map.getBearing();
   const curBearing = smooth.bearing ?? map.getBearing();
 
-  const nextCenter: LngLat = [
-    lerp(curCenter[0], cameraCenterTarget[0], alphaCenter),
-    lerp(curCenter[1], cameraCenterTarget[1], alphaCenter),
-  ];
-  const nextPitch = lerp(curPitch, nextCamera.pitch, alphaPos);
-  const nextZoom = lerp(curZoom, followZoom, alphaPos);
   const nextBearingPrimary = lerpAngle(
     curBearingPrimary,
     nextCamera.bearing,
@@ -293,6 +273,34 @@ export function tickRideCameraFollow(
     alphaBearingSecondary,
     maxStepSecondary,
   );
+
+  const offsetForFraming =
+    nextCamera.offsetBearing == null
+      ? null
+      : alignCam
+        ? normalizeCompass(nextBearing + 180)
+        : nextCamera.offsetBearing;
+
+  const vp = viewportPxFromMap(map);
+  const framing = computeRideFollowFraming({
+    riderLngLat: targetLngLat,
+    offsetBearing: offsetForFraming,
+    distanceM: nextCamera.distanceM,
+    pitchDeg: nextCamera.pitch,
+    viewportWidthPx: vp.width,
+    viewportHeightPx: vp.height,
+    fallbackZoom: opts.mapZoom,
+  });
+  const cameraCenterTarget = framing.center;
+  const followZoom = framing.zoom;
+
+  const curCenter = smooth.center ?? cameraCenterTarget;
+  const nextCenter: LngLat = [
+    lerp(curCenter[0], cameraCenterTarget[0], alphaCenter),
+    lerp(curCenter[1], cameraCenterTarget[1], alphaCenter),
+  ];
+  const nextPitch = lerp(curPitch, nextCamera.pitch, alphaPos);
+  const nextZoom = lerp(curZoom, followZoom, alphaPos);
 
   smooth.center = nextCenter;
   smooth.pitch = nextPitch;
