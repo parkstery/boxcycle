@@ -12,13 +12,24 @@ import {
 export const ROUTE_PUBLICATIONS_COLLECTION = "routePublications";
 
 /**
- * 이번 교체로 물러난 허구 직선 입문 경로.
+ * 이번 교체로 물러난 입문 publication.
+ *
+ * 앞의 3건: 허구 직선 4점 geometry(Basic 1/2/3). nominal 거리조차 실측과 어긋났다
+ *           (500→505.8m · 1000→786.1m · 1500→1029.6m).
+ * 뒤의 2건: 앱에서 쓰인 적 없는 고아 seed 이지만 프로덕션에는 `published` 로 살아 있었다.
+ *           `profile: walking` 이라 cycling 조건에도, 524m·543m 라 500m 조건에도 미달이며
+ *           제목이 "입문 · …" 이라 퍼블릭 카탈로그에서 입문 경로로 오인된다.
+ *
  * 자동 삭제하지 않는다 — `--archive-legacy` 를 줄 때만 `status: "archived"` 로 내린다.
+ * 부수 문서(`publicationPresence`·`routeActivity`·`publicationSessions`)도 삭제하지 않는다.
+ * `resolvePublicationVisibility` 가 archived 를 private 으로 판정하므로 노출은 닫힌다.
  */
 export const LEGACY_FICTIONAL_PUBLICATION_IDS = [
   "basic-mountain-0_5km",
   "basic-coastal-1_0km",
   "basic-mountain-1_5km",
+  "basic-intro-nyc-0_5km",
+  "basic-intro-rome-0_5km",
 ] as const;
 
 const MAX_DISTANCE_METERS = 500;
