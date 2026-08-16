@@ -6,7 +6,8 @@ import {
   subscribeOpenTrailListings,
 } from "../lib/firestoreOpenTrailListings";
 import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "../lib/firestoreTrail";
-import { countTrailLiveRidersFresh, subscribeTrailIdsWithActiveLiveRides } from "../lib/firestoreTrailLivePublicationRides";
+import { countTrailLiveRidersFresh } from "../lib/firestoreTrailLivePublicationRides";
+import { acquireActiveLiveRideTrailIdsSubscription } from "../lib/activeLiveRideTrailIdsSubscriptionHub";
 import { fetchTrailInstance, type TrailInstance } from "../lib/firestoreTrailInstance";
 import { trailHasConfiguredRoute } from "../lib/trailAccessPolicy";
 
@@ -119,7 +120,7 @@ export function useOpenTrails(opts: { enabled: boolean }) {
       },
     );
 
-    const unsubActive = subscribeTrailIdsWithActiveLiveRides(
+    const unsubActive = acquireActiveLiveRideTrailIdsSubscription(
       (ids) => {
         activeTrailIds = ids.map(sanitizeTrailId).filter((id) => id !== DEFAULT_TRAIL_ID);
         void syncEnrichedFromActiveRides();

@@ -3,6 +3,10 @@ import {
   snapshotUnderlyingReadSubscriptions,
 } from "./readSubscriptionMeters";
 import {
+  debugInjectActiveLiveRideTrailIdsHubError,
+  debugActiveLiveRideTrailIdsSubscriptionHub,
+} from "./activeLiveRideTrailIdsSubscriptionHub";
+import {
   debugInjectRtdbMotionHubError,
   debugRtdbMotionSubscriptionHub,
 } from "./rtdbMotionSubscriptionHub";
@@ -15,10 +19,13 @@ export function snapshotReadSubscriptions() {
   const underlying = snapshotUnderlyingReadSubscriptions();
   const motionHub = debugRtdbMotionSubscriptionHub();
   const ridesHub = debugTrailLivePublicationRidesSubscriptionHub();
+  const activeLiveRideTrailIdsHub = debugActiveLiveRideTrailIdsSubscriptionHub();
   const motionUnsubMatchesRtdbClose =
     motionHub.unsubCallTotal === underlying.rtdbOnValue.closeTotal;
   const ridesUnsubMatchesTrailClose =
     ridesHub.unsubCallTotal === underlying.trailOnSnapshot.closeTotal;
+  const cgUnsubMatchesCollectionGroupClose =
+    activeLiveRideTrailIdsHub.unsubCallTotal === underlying.collectionGroup.closeTotal;
   return {
     atMs: Date.now(),
     source: "snapshotReadSubscriptions" as const,
@@ -27,10 +34,15 @@ export function snapshotReadSubscriptions() {
     underlying,
     motionHub,
     ridesHub,
+    activeLiveRideTrailIdsHub,
     crossCheck: {
       motionUnsubCallTotalEqualsRtdbOnValueCloseTotal: motionUnsubMatchesRtdbClose,
       ridesUnsubCallTotalEqualsTrailOnSnapshotCloseTotal: ridesUnsubMatchesTrailClose,
-      ok: motionUnsubMatchesRtdbClose && ridesUnsubMatchesTrailClose,
+      cgUnsubCallTotalEqualsCollectionGroupCloseTotal: cgUnsubMatchesCollectionGroupClose,
+      ok:
+        motionUnsubMatchesRtdbClose &&
+        ridesUnsubMatchesTrailClose &&
+        cgUnsubMatchesCollectionGroupClose,
     },
   };
 }
@@ -43,6 +55,7 @@ export function installReadSubscriptionDebug(): void {
     resetMeters: resetUnderlyingReadMeters,
     injectMotionError: debugInjectRtdbMotionHubError,
     injectRidesError: debugInjectTrailLivePublicationRidesHubError,
+    injectCgError: debugInjectActiveLiveRideTrailIdsHubError,
   };
   (
     window as Window & {

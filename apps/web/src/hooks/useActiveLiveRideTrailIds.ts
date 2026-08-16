@@ -1,6 +1,6 @@
 import { startTransition, useEffect, useState } from "react";
 import type { FirestoreError } from "firebase/firestore";
-import { subscribeTrailIdsWithActiveLiveRides } from "../lib/firestoreTrailLivePublicationRides";
+import { acquireActiveLiveRideTrailIdsSubscription } from "../lib/activeLiveRideTrailIdsSubscriptionHub";
 
 /** `livePublicationRides` collection group — 지금 주행 중인 Trail id 목록 */
 export function useActiveLiveRideTrailIds(opts: { enabled: boolean }) {
@@ -17,7 +17,7 @@ export function useActiveLiveRideTrailIds(opts: { enabled: boolean }) {
     }
 
     startTransition(() => setError(null));
-    const unsub = subscribeTrailIdsWithActiveLiveRides(
+    const unsub = acquireActiveLiveRideTrailIdsSubscription(
       (ids) => {
         startTransition(() => {
           setTrailIds(ids);
