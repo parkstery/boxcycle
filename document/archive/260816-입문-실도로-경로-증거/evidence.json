@@ -1,0 +1,122 @@
+{
+  "generatedAt": "2026-08-16T03:04:49.070Z",
+  "maxDistanceMeters": 500,
+  "routes": [
+    {
+      "id": "basic-intro-seoul-namsan",
+      "title": "Basic 1 · 서울 남산공원길",
+      "provider": "Mapbox Directions API v5",
+      "profile": "cycling",
+      "overview": "full",
+      "geometries": "geojson",
+      "requestUrl": "https://api.mapbox.com/directions/v5/mapbox/cycling/126.988622,37.5486;126.984975,37.549777?geometries=geojson&overview=full&steps=true&access_token=<REDACTED_MAPBOX_TOKEN>",
+      "requestedAt": "2026-08-16T03:04:48.737Z",
+      "responseSha256": "ce4079506f55a1226ddc40f064ca003617a3663c7c43834de587fbbbe2359dc9",
+      "startLngLat": [
+        126.988622,
+        37.5486
+      ],
+      "endLngLat": [
+        126.984975,
+        37.549777
+      ],
+      "waypointSnapDistanceMeters": [
+        0.029,
+        0.003
+      ],
+      "apiDistanceMeters": 413.668,
+      "apiDurationSec": 120.178,
+      "recomputedPolylineMeters": 413.2,
+      "recomputedVsApiDeltaMeters": -0.46,
+      "coordinateCount": 42,
+      "bounds": {
+        "minLng": 126.984975,
+        "minLat": 37.548219,
+        "maxLng": 126.988622,
+        "maxLat": 37.549777
+      },
+      "roadNames": [
+        "남산공원길"
+      ],
+      "screenshot": "basic-intro-seoul-namsan.png"
+    },
+    {
+      "id": "basic-intro-paris-pont-neuf",
+      "title": "Basic 2 · 파리 퐁뇌프",
+      "provider": "Mapbox Directions API v5",
+      "profile": "cycling",
+      "overview": "full",
+      "geometries": "geojson",
+      "requestUrl": "https://api.mapbox.com/directions/v5/mapbox/cycling/2.33996,48.856046;2.343945,48.854744?geometries=geojson&overview=full&steps=true&access_token=<REDACTED_MAPBOX_TOKEN>",
+      "requestedAt": "2026-08-16T03:04:48.999Z",
+      "responseSha256": "18b180826258c9f01e4b94d867a524a83367d1fbffc5587ef47be437496d377d",
+      "startLngLat": [
+        2.33996,
+        48.856046
+      ],
+      "endLngLat": [
+        2.343945,
+        48.854744
+      ],
+      "waypointSnapDistanceMeters": [
+        0.04,
+        0.02
+      ],
+      "apiDistanceMeters": 448.315,
+      "apiDurationSec": 123.967,
+      "recomputedPolylineMeters": 447.81,
+      "recomputedVsApiDeltaMeters": -0.5,
+      "coordinateCount": 28,
+      "bounds": {
+        "minLng": 2.33996,
+        "minLat": 48.854744,
+        "maxLng": 2.343945,
+        "maxLat": 48.856861
+      },
+      "roadNames": [
+        "Rue de Nevers",
+        "Pont Neuf",
+        "Quai des Orfèvres"
+      ],
+      "screenshot": "basic-intro-paris-pont-neuf.png"
+    },
+    {
+      "id": "basic-intro-nyc-central-park",
+      "title": "Basic 3 · 뉴욕 센트럴파크",
+      "provider": "Mapbox Directions API v5",
+      "profile": "cycling",
+      "overview": "full",
+      "geometries": "geojson",
+      "requestUrl": "https://api.mapbox.com/directions/v5/mapbox/cycling/-73.969407,40.781743;-73.972581,40.778609?geometries=geojson&overview=full&steps=true&access_token=<REDACTED_MAPBOX_TOKEN>",
+      "requestedAt": "2026-08-16T03:04:49.041Z",
+      "responseSha256": "242bbbb6cb9a867c3fbb2b7848d021b790a40734a4bbd5b59a9f0080cc0b55be",
+      "startLngLat": [
+        -73.969407,
+        40.781743
+      ],
+      "endLngLat": [
+        -73.972581,
+        40.778609
+      ],
+      "waypointSnapDistanceMeters": [
+        0.563,
+        0.002
+      ],
+      "apiDistanceMeters": 453.43,
+      "apiDurationSec": 80.331,
+      "recomputedPolylineMeters": 452.92,
+      "recomputedVsApiDeltaMeters": -0.51,
+      "coordinateCount": 36,
+      "bounds": {
+        "minLng": -73.972581,
+        "minLat": 40.778609,
+        "maxLng": -73.969396,
+        "maxLat": 40.781748
+      },
+      "roadNames": [
+        "West Drive"
+      ],
+      "screenshot": "basic-intro-nyc-central-park.png"
+    }
+  ]
+}

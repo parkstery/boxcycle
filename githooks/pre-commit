@@ -19,14 +19,29 @@ fn_files=$(echo "$staged" | grep '^functions/' | sed 's|^functions/||' || true)
 
 fail=0
 
+# eslint 설정이 있는 워크스페이스만 검사한다.
+# `functions/` 는 eslint 설정을 둔 적이 없어, 설정 유무를 안 보면 functions/*.ts 를
+# 건드리는 모든 커밋이 "couldn't find an eslint.config" 로 막힌다(타입체크는 pre-push 담당).
+has_eslint_config() {
+  [ -f "$1/eslint.config.js" ] || [ -f "$1/eslint.config.mjs" ] || [ -f "$1/eslint.config.cjs" ]
+}
+
 if [ -n "$web_files" ]; then
-  echo "[pre-commit] eslint apps/web ($(echo "$web_files" | wc -l | tr -d ' ') files)"
-  ( cd apps/web && echo "$web_files" | xargs npx eslint ) || fail=1
+  if has_eslint_config apps/web; then
+    echo "[pre-commit] eslint apps/web ($(echo "$web_files" | wc -l | tr -d ' ') files)"
+    ( cd apps/web && echo "$web_files" | xargs npx eslint ) || fail=1
+  else
+    echo "[pre-commit] apps/web — eslint 설정 없음, 건너뜀"
+  fi
 fi
 
 if [ -n "$fn_files" ]; then
-  echo "[pre-commit] eslint functions ($(echo "$fn_files" | wc -l | tr -d ' ') files)"
-  ( cd functions && echo "$fn_files" | xargs npx eslint ) || fail=1
+  if has_eslint_config functions; then
+    echo "[pre-commit] eslint functions ($(echo "$fn_files" | wc -l | tr -d ' ') files)"
+    ( cd functions && echo "$fn_files" | xargs npx eslint ) || fail=1
+  else
+    echo "[pre-commit] functions — eslint 설정 없음, 건너뜀"
+  fi
 fi
 
 if [ "$fail" -ne 0 ]; then

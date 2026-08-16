@@ -1,14 +1,16 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { distanceMidpointLngLat, type LngLat } from "./routeGeometryMidpoint.js";
 import { scanAllLiveRideDocs } from "./liveRideScan.js";
+import { BASIC_INTRO_HUB_PUBLICATION_IDS } from "./basicIntroHubSeeds.js";
 
 export const PUBLICATION_PRESENCE_COLLECTION = "publicationPresence";
 
-/** `apps/web` `BASIC_SHARED_HUB_IDS` 와 동기 */
-const BASIC_SHARED_HUB_IDS = new Set<string>([
-  "basic-intro-nyc-0_5km",
-  "basic-intro-rome-0_5km",
-]);
+/**
+ * `apps/web` `BASIC_SHARED_HUB_IDS` 와 동일해야 한다.
+ * 두 파일 모두 `node scripts/gen-basic-intro-routes.mjs` 가 생성하고,
+ * `apps/web/scripts/basic-routes-verify/verify-basic-routes.mjs` 가 집합 일치를 검사한다.
+ */
+const BASIC_SHARED_HUB_IDS = new Set<string>(BASIC_INTRO_HUB_PUBLICATION_IDS);
 
 type PublicationVisibility = "public" | "private";
 

@@ -9,6 +9,10 @@ import {
   setDoc,
   where,
 } from "firebase/firestore";
+import {
+  BASIC_INTRO_HUB_ROUTE_SEEDS,
+  BASIC_INTRO_HUB_ROUTE_REVISION,
+} from "./basicIntroHubRouteGeometries";
 import { getFirebaseFirestore } from "./firebase";
 import {
   findPublishedRoutePublicationById,
@@ -71,15 +75,16 @@ export type CourseDoc = {
 };
 
 /**
- * 동시 주행 presence 가 분리되는 입문 허브 코스.
- * `BASIC_COURSES` 의 Basic 1/2/3(starter) id — 입문 경로 목록·동행 presence 의 원천.
- * summaries(`BASIC_SHARED_HUB_SUMMARIES`)는 이 id 로 `BASIC_COURSES` 에서 파생한다(단일 진실).
+ * 동시 주행 presence 가 분리되는 입문 허브 publication id.
+ *
+ * 단일 진실은 `basicIntroHubRouteGeometries.ts`(Mapbox Directions cycling 실도로 seed)이며
+ * `BASIC_COURSES`·`BASIC_SHARED_HUB_SUMMARIES` 도 모두 같은 seed 에서 파생한다.
+ * Functions 쪽 사본은 `functions/src/basicIntroHubSeeds.ts` — 두 파일의 ID 집합 일치는
+ * `apps/web/scripts/basic-routes-verify/verify-basic-routes.mjs` 가 검사한다.
  */
-export const BASIC_SHARED_HUB_IDS: readonly string[] = [
-  "basic-mountain-0_5km", // Basic 1 · Mountain Intro (0.5km)
-  "basic-coastal-1_0km", // Basic 2 · Coastal Tempo (1.0km)
-  "basic-mountain-1_5km", // Basic 3 · Ridge Climb (1.5km)
-];
+export const BASIC_SHARED_HUB_IDS: readonly string[] = BASIC_INTRO_HUB_ROUTE_SEEDS.map(
+  (seed) => seed.id,
+);
 
 export type BasicSharedHubCourseId = string;
 
@@ -337,98 +342,34 @@ export async function fetchCourseRoutePayload(publicationId: string): Promise<Co
   return inflight;
 }
 
-const BASIC_COURSES: Omit<CourseDoc, "createdAt" | "updatedAt">[] = [
-  {
-    id: "basic-mountain-0_5km",
-    title: "Basic 1 · Mountain Intro (0.5km)",
-    description: "완만한 산악 입문 코스. 조향과 카메라 적응을 위한 0.5km.",
-    category: "basic",
-    type: "starter",
-    profile: "cycling",
+/**
+ * 입문(Basic) 1/2/3 — 전부 `basicIntroHubRouteGeometries.ts` 의 실도로 seed 에서 파생한다.
+ * 좌표를 여기서 손으로 고치지 말 것(허구 직선이 다시 들어온다). geometry 를 바꾸려면
+ * `node scripts/gen-basic-intro-routes.mjs` 로 재생성한다.
+ */
+const BASIC_COURSES: Omit<CourseDoc, "createdAt" | "updatedAt">[] =
+  BASIC_INTRO_HUB_ROUTE_SEEDS.map((seed) => ({
+    id: seed.id,
+    title: seed.title,
+    description: seed.description,
+    category: "basic" as const,
+    type: "starter" as const,
+    profile: seed.profile,
     isPublic: false,
-    status: "published",
+    status: "published" as const,
     isRequired: true,
-    requiredOrder: 1,
-    distanceMeters: 500,
-    durationSec: 120,
-    bounds: {
-      minLng: 127.0836,
-      minLat: 37.5378,
-      maxLng: 127.0882,
-      maxLat: 37.5408,
-    },
+    requiredOrder: seed.order,
+    distanceMeters: seed.distanceMeters,
+    durationSec: seed.durationSec,
+    bounds: seed.bounds,
     geometry: {
-      type: "LineString",
-      coordinates: [
-        [127.0836, 37.5382],
-        [127.0846, 37.5391],
-        [127.0862, 37.5401],
-        [127.0882, 37.5408],
-      ],
+      type: "LineString" as const,
+      coordinates: seed.coordinates.map(([lng, lat]): LngLat => [lng, lat]),
     },
+    isSharedStartHub: true,
+    presenceEnabled: true,
     createdBy: "system",
-  },
-  {
-    id: "basic-coastal-1_0km",
-    title: "Basic 2 · Coastal Tempo (1.0km)",
-    description: "해안선 느낌의 중간 길이 코스. 리듬 유지 훈련용 1.0km.",
-    category: "basic",
-    type: "starter",
-    profile: "cycling",
-    isPublic: false,
-    status: "published",
-    isRequired: true,
-    requiredOrder: 2,
-    distanceMeters: 1000,
-    durationSec: 240,
-    bounds: {
-      minLng: 126.5571,
-      minLat: 37.3738,
-      maxLng: 126.5649,
-      maxLat: 37.3772,
-    },
-    geometry: {
-      type: "LineString",
-      coordinates: [
-        [126.5571, 37.3738],
-        [126.5597, 37.3749],
-        [126.5624, 37.3761],
-        [126.5649, 37.3772],
-      ],
-    },
-    createdBy: "system",
-  },
-  {
-    id: "basic-mountain-1_5km",
-    title: "Basic 3 · Ridge Climb (1.5km)",
-    description: "능선 구간을 모사한 1.5km 기본 코스. 초반 인증용 최종 단계.",
-    category: "basic",
-    type: "starter",
-    profile: "cycling",
-    isPublic: false,
-    status: "published",
-    isRequired: true,
-    requiredOrder: 3,
-    distanceMeters: 1500,
-    durationSec: 360,
-    bounds: {
-      minLng: 127.0068,
-      minLat: 37.6468,
-      maxLng: 127.0159,
-      maxLat: 37.6526,
-    },
-    geometry: {
-      type: "LineString",
-      coordinates: [
-        [127.0068, 37.6468],
-        [127.0096, 37.6486],
-        [127.0128, 37.6504],
-        [127.0159, 37.6526],
-      ],
-    },
-    createdBy: "system",
-  },
-];
+  }));
 
 export type CourseBounds = CourseDoc["bounds"];
 
@@ -544,13 +485,28 @@ export async function ensurePublicationPresenceFlagsMerged(publicationId: string
   await mergePublicationPresenceEnabled(publicationId);
 }
 
+/**
+ * 입문 허브 publication 시드.
+ *
+ * ⚠ 문서가 있으면 무조건 건너뛰던 예전 동작은 geometry 를 바꿔도 Firestore 에 옛 좌표가
+ * 남는 함정이었다. 이제 `basicSeedRevision` 이 현재 seed 리비전과 다르면 다시 쓴다.
+ *
+ * ⚠ 프로덕션 `firestore.rules` 는 `routePublications` create 를 `isRouteReviewer()` 로,
+ * update 를 `presenceEnabled`/`updatedAt` 로만 허용한다. 즉 일반 사용자·Guest 세션에서는
+ * 이 함수가 geometry 를 만들거나 고칠 수 없고, 실패해도 앱은 로컬 `BASIC_COURSES` 로 주행한다.
+ * 프로덕션 Firestore 를 실제로 맞추는 것은 Admin SDK 마이그레이션의 몫이다:
+ *   npm run admin:seed-basic-intro-publications -- --dry-run
+ */
 export async function ensureBasicCoursesSeeded(_currentUserId?: string): Promise<void> {
   const db = getFirebaseFirestore();
 
   for (const course of BASIC_COURSES) {
     const pubRef = doc(db, ROUTE_PUBLICATIONS_COLLECTION, course.id);
     const snap = await getDoc(pubRef);
-    if (snap.exists()) continue;
+    if (snap.exists()) {
+      const seeded = (snap.data() as { basicSeedRevision?: unknown }).basicSeedRevision;
+      if (seeded === BASIC_INTRO_HUB_ROUTE_REVISION) continue;
+    }
     const geometry = course.geometry;
     if (!geometry) continue;
     const profile = course.profile ?? "cycling";
@@ -558,24 +514,29 @@ export async function ensureBasicCoursesSeeded(_currentUserId?: string): Promise
       { type: "LineString", coordinates: geometry.coordinates },
       profile,
     );
-    await setDoc(pubRef, {
-      routeId: course.id,
-      courseId: course.id,
-      publicTitle: course.title,
-      publicSummary: course.description ?? null,
-      status: "published",
-      revision: 1,
-      routeFingerprint,
-      geometryCoordsJson: JSON.stringify(geometry.coordinates),
-      snapshotProfile: profile,
-      snapshotDistanceMeters: course.distanceMeters,
-      snapshotDurationSec: course.durationSec,
-      applicantUid: "",
-      sourcePublicRouteRequestId: "",
-      presenceEnabled: course.presenceEnabled === true || course.isSharedStartHub === true,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
+    await setDoc(
+      pubRef,
+      {
+        routeId: course.id,
+        courseId: course.id,
+        publicTitle: course.title,
+        publicSummary: course.description ?? null,
+        status: "published",
+        revision: 1,
+        basicSeedRevision: BASIC_INTRO_HUB_ROUTE_REVISION,
+        routeFingerprint,
+        geometryCoordsJson: JSON.stringify(geometry.coordinates),
+        snapshotProfile: profile,
+        snapshotDistanceMeters: course.distanceMeters,
+        snapshotDurationSec: course.durationSec,
+        applicantUid: "",
+        sourcePublicRouteRequestId: "",
+        presenceEnabled: course.presenceEnabled === true || course.isSharedStartHub === true,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true },
+    );
   }
 
   for (const hubId of BASIC_SHARED_HUB_IDS) {
