@@ -1,7 +1,11 @@
 import type { CoachingData } from "../../lib/coachTypes";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { reportHudCompanionTrailDedup } from "../../lib/hudCompanionDiag";
+import {
+  getHasOtherLiveRiders,
+  subscribeHasOtherLiveRiders,
+} from "../../lib/liveRideHudSignal";
 import "./MapHud.css";
 
 export type AccountChipState = {
@@ -189,6 +193,11 @@ export function MapHud(props: MapHudProps) {
   // 접속·동행 현황은 HUD 가 단독으로 소유. MENU(Trail 섹션=참가·공개 설정 행동) 열린 동안은
   // 가림·중복을 피하려 숨긴다.
   const showRidePresence = ridePresence != null && !menuOpen;
+  const hasOtherLiveRiders = useSyncExternalStore(
+    subscribeHasOtherLiveRiders,
+    getHasOtherLiveRiders,
+    getHasOtherLiveRiders,
+  );
 
   useEffect(() => {
     if (!ridePresence) return;
@@ -291,8 +300,12 @@ export function MapHud(props: MapHudProps) {
                 ) : null}
                 {ridePresence.courseTitle != null ||
                 ridePresence.coursePeerNames.length > 0 ||
+                hasOtherLiveRiders ||
                 ridePresence.courseActivityHudLine ? (
-                  <div className="hud-ride-presence__block">
+                  <div
+                    className="hud-ride-presence__block"
+                    data-has-other-live={hasOtherLiveRiders ? "1" : "0"}
+                  >
                     <div className="hud-ride-presence__head">
                       <span className="hud-ride-presence__tag">동행</span>
                       <span className="hud-ride-presence__room" title={ridePresence.courseTitle ?? ""}>
@@ -308,7 +321,7 @@ export function MapHud(props: MapHudProps) {
                           <li key={`${name}-${i}`}>{name}</li>
                         ))}
                       </ul>
-                    ) : (
+                    ) : hasOtherLiveRiders ? null : (
                       <p className="hud-ride-presence__empty">다른 라이더 없음</p>
                     )}
                   </div>

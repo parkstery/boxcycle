@@ -16,6 +16,20 @@ export function peerHudLabels(peers: PeerHudEntry[]): string[] {
   return peers.map((p) => p.label.trim()).filter((n) => n.length > 0);
 }
 
+/**
+ * HUD 「다른 라이더 없음」 근거.
+ * 구독 중인 live ride 행에서 나를 제외한 행이 하나라도 있으면 true.
+ * coursePeerHud(가시성 필터)나 Trail 접속자(안 달릴 수 있음)를 쓰지 않는다.
+ */
+export function hasOtherLiveRidePeer(
+  rows: readonly { uid: string }[],
+  selfUid: string,
+): boolean {
+  const me = selfUid.trim();
+  if (!me) return false;
+  return rows.some((r) => r.uid.trim() !== me);
+}
+
 export function peerHudIdsKey(ids: readonly string[]): string {
   if (!ids.length) return "";
   return [...ids].sort().join("|");

@@ -29,7 +29,8 @@ import {
   syncPeerMotionFromPresence,
 } from "../lib/peerMotion";
 import type { RtdbTrailMotionRow } from "../lib/rtdbTrailMotion";
-import { peerHudStableKey, type PeerHudEntry } from "../lib/peerHud";
+import { hasOtherLiveRidePeer, peerHudStableKey, type PeerHudEntry } from "../lib/peerHud";
+import { publishHasOtherLiveRiders } from "../lib/liveRideHudSignal";
 import {
   reportHudCompanionCoursePeers,
   reportHudCompanionPresenceSlice,
@@ -146,6 +147,7 @@ export function PublicationSharedPresence({
   useEffect(() => {
     return () => {
       onPeerHudChangeRef.current?.([]);
+      publishHasOtherLiveRiders(false);
       resetPeerMotionRegistry();
     };
   }, []);
@@ -202,6 +204,7 @@ export function PublicationSharedPresence({
   useEffect(() => {
     if (!pageVisible) {
       startTransition(() => setLiveRideRows([]));
+      publishHasOtherLiveRiders(false);
       return;
     }
 
@@ -210,8 +213,9 @@ export function PublicationSharedPresence({
     const release = acquireTrailLivePublicationRidesSubscription(
       tid,
       (next) => {
-        if (!cancelled) startTransition(() => setLiveRideRows(next));
         liveRideRowsRef.current = next;
+        publishHasOtherLiveRiders(hasOtherLiveRidePeer(next, userRef.current.uid));
+        if (!cancelled) startTransition(() => setLiveRideRows(next));
         syncPeerMotionFromPresence({
           publicationId: publicationIdRef.current,
           myUid: userRef.current.uid,
@@ -358,15 +362,17 @@ export function PublicationSharedPresence({
     const peers = motionRows.filter(
       (r) => r.uid !== user.uid && r.publicationId.trim() === pid,
     );
+    const liveRows = liveRideRows.map((r) => ({
+      uid: r.uid,
+      publicationId: r.publicationId,
+    }));
     reportHudCompanionPresenceSlice({
       publicationId: pid,
-      liveRideRows: liveRideRows.map((r) => ({
-        uid: r.uid,
-        publicationId: r.publicationId,
-      })),
+      liveRideRows: liveRows,
       motionRowsLength: motionRows.length,
       motionPeersAfterPidFilter: peers.length,
     });
+    publishHasOtherLiveRiders(hasOtherLiveRidePeer(liveRows, user.uid));
   }, [liveRideRows, motionRows, publicationId, user.uid]);
 
   const motionRowsByUid = useMemo(() => {

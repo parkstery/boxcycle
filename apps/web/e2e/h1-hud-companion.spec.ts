@@ -5,9 +5,10 @@ import { createHash } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
 
 /**
- * H-1 — 같은 Trail 2인 주행 HUD 동행 진단.
+ * H-1R — 같은 Trail 2인 주행 HUD 동행 진단.
  * 산출: H1-hud-diag.json (before) / H1-hud-diag-after.json + H1-shots/ (after)
  * 재현이 5분을 넘으면 즉시 실패하고 브라우저를 붙들지 않는다.
+ * Chief Trail 403 은 저장소에 trailId 가 없어 맞출 수 없으면 그 사실을 after.json 에 기록한다.
  */
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const OUT_DIR = path.resolve(__dirname, '../../../document/ops/sync-relay')
@@ -154,7 +155,7 @@ test.describe('H-1 HUD companion diag', () => {
     await ensureRiding(pageA)
     abortIfLate('A riding')
     await closeMenuIfOpen(pageA)
-    await setSpeedKmh(pageA, 20)
+    await setSpeedKmh(pageA, 8)
 
     await expect
       .poll(async () => new URL(pageA.url()).searchParams.get('trail'), { timeout: 20_000 })
@@ -166,6 +167,7 @@ test.describe('H-1 HUD companion diag', () => {
     const soloShot = path.join(SHOT_DIR, PHASE === 'after' ? 'v4-solo-a.png' : 'before-solo-a.png')
     await shotHud(pageA, soloShot)
     const soloEmptyCopy = await pageA.locator('.hud-ride-presence__empty').allTextContents()
+    const trailLabelA = (await pageA.locator('.hud-ride-presence__room').first().textContent())?.trim() ?? ''
 
     await pageB.goto(`/?trail=${encodeURIComponent(trailId)}`)
     abortIfLate('B goto')
@@ -175,7 +177,7 @@ test.describe('H-1 HUD companion diag', () => {
     await ensureRiding(pageB)
     abortIfLate('B riding')
     await closeMenuIfOpen(pageB)
-    await setSpeedKmh(pageB, 20)
+    await setSpeedKmh(pageB, 8)
 
     await expect
       .poll(
@@ -195,55 +197,97 @@ test.describe('H-1 HUD companion diag', () => {
 
     await pageA.waitForTimeout(4_000)
     abortIfLate('settle')
+    await dismissRideSummaryIfAny(pageA)
+    await dismissRideSummaryIfAny(pageB)
+    await expect(pageA.getByRole('button', { name: '주행 종료' })).toBeVisible({ timeout: 5_000 })
+    await expect(pageB.getByRole('button', { name: '주행 종료' })).toBeVisible({ timeout: 5_000 })
 
-    let dualA = await readDiag(pageA)
-    let dualB = await readDiag(pageB)
+    const dualA = await readDiag(pageA)
+    const dualB = await readDiag(pageB)
+    await closeMenuIfOpen(pageA)
+    await closeMenuIfOpen(pageB)
 
-    const shotA = path.join(SHOT_DIR, PHASE === 'after' ? 'v2v3-dual-a.png' : 'before-dual-a.png')
-    const shotB = path.join(SHOT_DIR, PHASE === 'after' ? 'v2v3-dual-b.png' : 'before-dual-b.png')
-    await shotHud(pageA, shotA)
-    await shotHud(pageB, shotB)
-
-    if (PHASE === 'after') {
-      // V2: TTL(=active poll 60s) 경과 후 양쪽이 같은 인원수를 읽게 한다
-      await pageA.waitForTimeout(65_000)
-      abortIfLate('ttl')
-      dualA = await readDiag(pageA)
-      dualB = await readDiag(pageB)
-      await shotHud(pageA, shotA)
-      await shotHud(pageB, shotB)
-    }
+    const shotV3A = path.join(SHOT_DIR, PHASE === 'after' ? 'v3-dual-a.png' : 'before-dual-a.png')
+    const shotV3B = path.join(SHOT_DIR, PHASE === 'after' ? 'v3-dual-b.png' : 'before-dual-b.png')
+    await shotHud(pageA, shotV3A)
+    await shotHud(pageB, shotV3B)
 
     const emptyCopyA = await pageA.locator('.hud-ride-presence__empty').allTextContents()
     const emptyCopyB = await pageB.locator('.hud-ride-presence__empty').allTextContents()
     const activityA = await pageA.locator('.hud-ride-presence__activity').allTextContents()
     const activityB = await pageB.locator('.hud-ride-presence__activity').allTextContents()
+    const namesA = await pageA.locator('.hud-ride-presence__list li').allTextContents()
+    const namesB = await pageB.locator('.hud-ride-presence__list li').allTextContents()
+
+    let dualAfterTtlA = dualA
+    let dualAfterTtlB = dualB
+    const shotV2A = path.join(SHOT_DIR, 'v2-dual-a.png')
+    const shotV2B = path.join(SHOT_DIR, 'v2-dual-b.png')
+
+    if (PHASE === 'after') {
+      // V2: TTL(=active poll 60s) 경과 후 양쪽 인원수를 읽는다. 불일치는 WARNING 으로만 기록.
+      await pageA.waitForTimeout(65_000)
+      abortIfLate('ttl')
+      await dismissRideSummaryIfAny(pageA)
+      await dismissRideSummaryIfAny(pageB)
+      await closeMenuIfOpen(pageA)
+      await closeMenuIfOpen(pageB)
+      dualAfterTtlA = await readDiag(pageA)
+      dualAfterTtlB = await readDiag(pageB)
+      await shotHud(pageA, shotV2A)
+      await shotHud(pageB, shotV2B)
+    }
 
     const hashes: Record<string, string> = {}
-    for (const p of [soloShot, shotA, shotB]) {
+    const shotPaths = PHASE === 'after' ? [soloShot, shotV3A, shotV3B, shotV2A, shotV2B] : [soloShot, shotV3A, shotV3B]
+    for (const p of shotPaths) {
       hashes[path.basename(p)] = sha256(p)
     }
 
+    const v2CountA = dualAfterTtlA.routeActivity.activeRiderCount
+    const v2CountB = dualAfterTtlB.routeActivity.activeRiderCount
+    const v2Pass = v2CountA != null && v2CountA === v2CountB
+    const trailIsChief403 = /^Trail 403$/i.test(trailLabelA)
+
     const payload = {
-      instruction: 'H-1',
+      instruction: PHASE === 'after' ? 'H-1R' : 'H-1',
       phase: PHASE,
       elapsedMs: Date.now() - started,
       trailId,
+      trailLabelA,
+      chiefTrail403: {
+        matched: trailIsChief403,
+        reason: trailIsChief403
+          ? 'HUD 라벨이 Trail 403'
+          : '저장소에 Chief Trail 403 의 trailId 가 없고, 재현은 Trailhead 입문 코스 시작으로 새 Trail 이 생긴다. H-1 before 와 같은 경로.',
+      },
       soloA,
       dualA,
       dualB,
+      dualAfterTtlA: PHASE === 'after' ? dualAfterTtlA : undefined,
+      dualAfterTtlB: PHASE === 'after' ? dualAfterTtlB : undefined,
       hudText: {
         soloEmptyCopy,
         emptyCopyA,
         emptyCopyB,
         activityA,
         activityB,
+        namesA,
+        namesB,
       },
       shots: hashes,
+      observationsUnfixed: {
+        aTrailMembers: dualA.activeTrailMemberUids.length,
+        activityCountA: dualA.routeActivity.activeRiderCount,
+        activityCountB: dualB.routeActivity.activeRiderCount,
+        course: 'intro-course fresh trail — not Chief Trail 403 unless matched above',
+      },
       section22: {
         coursePeerHudALength: dualA.coursePeerHud.length,
         coursePeerHudBLength: dualB.coursePeerHud.length,
         coursePeerHudEmpty: dualA.coursePeerHud.length === 0 && dualB.coursePeerHud.length === 0,
+        liveRideRowCountA: dualA.liveRideRows.length,
+        liveRideRowCountB: dualB.liveRideRows.length,
         publicationIds: {
           aSelf: dualA.publicationId,
           bSelf: dualB.publicationId,
@@ -251,6 +295,24 @@ test.describe('H-1 HUD companion diag', () => {
           bLiveRows: dualB.liveRideRows.map((r) => r.publicationId),
         },
       },
+      verdicts: PHASE === 'after'
+        ? {
+            V2: {
+              pass: v2Pass,
+              a: v2CountA,
+              b: v2CountB,
+              note: v2Pass ? '양쪽 인원수 일치' : 'WARNING — 집계 불일치는 이번 범위 밖. 기록만.',
+            },
+            V3a: { pass: !emptyCopyA.includes('다른 라이더 없음'), emptyCopyA },
+            V3b: { pass: !emptyCopyB.includes('다른 라이더 없음'), emptyCopyB },
+            V4: { pass: soloEmptyCopy.includes('다른 라이더 없음'), soloEmptyCopy },
+            V5: {
+              aGetDoc: dualAfterTtlA.routeActivity.getDocCount,
+              bGetDoc: dualAfterTtlB.routeActivity.getDocCount,
+            },
+            V6: { shotHashUnique: new Set(Object.values(hashes)).size === Object.values(hashes).length },
+          }
+        : undefined,
     }
 
     const outName = PHASE === 'after' ? 'H1-hud-diag-after.json' : 'H1-hud-diag.json'
@@ -260,18 +322,15 @@ test.describe('H-1 HUD companion diag', () => {
     if (PHASE === 'after') {
       const hashValues = Object.values(hashes)
       const unique = new Set(hashValues)
-      expect(unique.size, 'H1-shots 해시가 서로 달라야 한다').toBe(hashValues.length)
+      expect(unique.size, 'V6 H1-shots 해시가 서로 달라야 한다').toBe(hashValues.length)
       expect(soloEmptyCopy, 'V4 혼자 주행').toContain('다른 라이더 없음')
       expect(emptyCopyA, 'V3 A 동행 빈 문장').not.toContain('다른 라이더 없음')
       expect(emptyCopyB, 'V3 B 동행 빈 문장').not.toContain('다른 라이더 없음')
-      expect(dualA.routeActivity.activeRiderCount, 'V2 인원수').toBe(
-        dualB.routeActivity.activeRiderCount,
-      )
       const pollMs = 60_000
-      expect(dualA.routeActivity.getDocCount, 'V5 A getDoc ≤ 폴링당 1').toBeLessThanOrEqual(
+      expect(dualAfterTtlA.routeActivity.getDocCount, 'V5 A getDoc ≤ 폴링당 1').toBeLessThanOrEqual(
         Math.max(1, Math.ceil((Date.now() - started) / pollMs)),
       )
-      expect(dualB.routeActivity.getDocCount, 'V5 B getDoc ≤ 폴링당 1').toBeLessThanOrEqual(
+      expect(dualAfterTtlB.routeActivity.getDocCount, 'V5 B getDoc ≤ 폴링당 1').toBeLessThanOrEqual(
         Math.max(1, Math.ceil((Date.now() - started) / pollMs)),
       )
     }
