@@ -18,10 +18,19 @@ type TrailSlot = {
 
 const slots = new Map<string, TrailSlot>();
 
+type UnderlyingSubscribe = (
+  trailId: string,
+  onRows: RowsListener,
+  onError?: ErrorListener,
+) => () => void;
+
+let underlyingSubscribe: UnderlyingSubscribe = subscribeTrailLivePublicationRides;
+
 let acquireTotal = 0;
 let releaseTotal = 0;
 let unsubCallTotal = 0;
 let errorFanoutHits = 0;
+let injectedFanoutHits = 0;
 
 function getOrCreateSlot(tid: string): TrailSlot {
   let slot = slots.get(tid);
@@ -40,7 +49,7 @@ function getOrCreateSlot(tid: string): TrailSlot {
 
 function ensureFirestoreSubscription(tid: string, slot: TrailSlot): void {
   if (slot.unsub) return;
-  slot.unsub = subscribeTrailLivePublicationRides(
+  slot.unsub = underlyingSubscribe(
     tid,
     (rows) => {
       slot.rows = rows;
@@ -101,6 +110,7 @@ export function debugTrailLivePublicationRidesSubscriptionHub(): {
   releaseTotal: number;
   unsubCallTotal: number;
   errorFanoutHits: number;
+  injectedFanoutHits: number;
 } {
   return {
     slotCount: slots.size,
@@ -114,6 +124,7 @@ export function debugTrailLivePublicationRidesSubscriptionHub(): {
     releaseTotal,
     unsubCallTotal,
     errorFanoutHits,
+    injectedFanoutHits,
   };
 }
 
@@ -121,9 +132,25 @@ export function debugInjectTrailLivePublicationRidesHubError(message = "s42-inje
   let hits = 0;
   const err = { code: "internal", message, name: "FirebaseError" } as FirestoreError;
   for (const slot of slots.values()) {
-    errorFanoutHits += slot.errorListeners.size;
+    injectedFanoutHits += slot.errorListeners.size;
     hits += slot.errorListeners.size;
     for (const listener of slot.errorListeners) listener(err);
   }
   return hits;
+}
+
+/** DEV·단위시험용. 제품 수명주기에서 호출하지 마라. */
+export function resetTrailLivePublicationRidesSubscriptionHubForTests(
+  subscribe?: UnderlyingSubscribe,
+): void {
+  for (const slot of slots.values()) {
+    slot.unsub?.();
+  }
+  slots.clear();
+  acquireTotal = 0;
+  releaseTotal = 0;
+  unsubCallTotal = 0;
+  errorFanoutHits = 0;
+  injectedFanoutHits = 0;
+  underlyingSubscribe = subscribe ?? subscribeTrailLivePublicationRides;
 }

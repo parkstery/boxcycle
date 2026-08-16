@@ -1,4 +1,7 @@
-import { snapshotUnderlyingReadSubscriptions } from "./readSubscriptionMeters";
+import {
+  resetUnderlyingReadMeters,
+  snapshotUnderlyingReadSubscriptions,
+} from "./readSubscriptionMeters";
 import {
   debugInjectRtdbMotionHubError,
   debugRtdbMotionSubscriptionHub,
@@ -9,12 +12,26 @@ import {
 } from "./livePublicationRidesSubscriptionHub";
 
 export function snapshotReadSubscriptions() {
+  const underlying = snapshotUnderlyingReadSubscriptions();
+  const motionHub = debugRtdbMotionSubscriptionHub();
+  const ridesHub = debugTrailLivePublicationRidesSubscriptionHub();
+  const motionUnsubMatchesRtdbClose =
+    motionHub.unsubCallTotal === underlying.rtdbOnValue.closeTotal;
+  const ridesUnsubMatchesTrailClose =
+    ridesHub.unsubCallTotal === underlying.trailOnSnapshot.closeTotal;
   return {
     atMs: Date.now(),
     source: "snapshotReadSubscriptions" as const,
-    underlying: snapshotUnderlyingReadSubscriptions(),
-    motionHub: debugRtdbMotionSubscriptionHub(),
-    ridesHub: debugTrailLivePublicationRidesSubscriptionHub(),
+    totalsAreCumulative: true as const,
+    compareStatesUsing: "open" as const,
+    underlying,
+    motionHub,
+    ridesHub,
+    crossCheck: {
+      motionUnsubCallTotalEqualsRtdbOnValueCloseTotal: motionUnsubMatchesRtdbClose,
+      ridesUnsubCallTotalEqualsTrailOnSnapshotCloseTotal: ridesUnsubMatchesTrailClose,
+      ok: motionUnsubMatchesRtdbClose && ridesUnsubMatchesTrailClose,
+    },
   };
 }
 
@@ -23,6 +40,7 @@ export function installReadSubscriptionDebug(): void {
   if (typeof window === "undefined") return;
   const api = {
     snapshot: snapshotReadSubscriptions,
+    resetMeters: resetUnderlyingReadMeters,
     injectMotionError: debugInjectRtdbMotionHubError,
     injectRidesError: debugInjectTrailLivePublicationRidesHubError,
   };
