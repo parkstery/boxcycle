@@ -8,12 +8,12 @@
 발행 수명주기(route + motion)다.** 목록·저줌 구독이 만드는 읽기 비용은 아직 남아 있다.
 「멀티라이더 위치 동기화 결함 종결」이 아니다.
 
-- **지시번호**: S4-M2 (문서화 · 원격 기준점 · 2 단계 브랜치)
-- **일시**: 2026-08-14
-- **브랜치**: `fix/multiplayer-position-sync` (base `main2`) · HEAD `a2b58ff`
-- **활성 지시**: **S4-M2 진행 중** (`INSTRUCTION.md`)
-- **원격**: origin과 **ahead 0 (원격 반영 완료)**
-- **워킹트리**: 문서만 갱신 (제품·시험 코드 무수정 · e2e 미재실행)
+- **지시번호**: S4-2 (읽기 증폭 — 계측 먼저, 증명된 중복만 정리)
+- **일시**: 2026-08-16
+- **브랜치**: `fix/multiplayer-read-amplification` (base `main2@4249809`) · HEAD `407b56a`
+- **활성 지시**: **S4-2 보고완료** (`INSTRUCTION.md`)
+- **원격**: origin 첫 push `fix/multiplayer-read-amplification`
+- **워킹트리**: `C:/20.HDev/rtw-sync-s4-2/repo`
 - **보존**: `INSTRUCTION-S4M1R.md` · `S4M1-lifecycle.json` · `S41M1-summary.json` · `REPORT-S41R2.md` · `S41R-lifecycle.json`
 
 ---
@@ -46,7 +46,7 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 | S4-M0 | 기준점 고정 · REPORT 커밋 | **완료** `4089e2c` |
 | S4-M1 | motion 수명주기 — §2-1에서 정지 (과대 결론, 구현 없음) | **정정됨** → S4-M1R |
 | S4-M1R | motion epoch·배수·소유권·지연삭제·오류전달 · F-2 | **WARNING 채택** `71669a1` · `41c2ea2` · `a2b58ff` |
-| S4-2 | 읽기 증폭 N² · RTDB `onValue` · collectionGroup | **대기** (착수 금지 · 별도 지시) |
+| S4-2 | 읽기 증폭 — collectionGroup 중복 1건 정리 | **보고완료** `407b56a` |
 | S4-3 | `touchTrailInstanceActivity` · heartbeat | **대기** (S4-2 뒤) |
 
 ---
@@ -57,7 +57,7 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 
 | 항목 | 값 |
 |---|---|
-| HEAD | `a2b58ff` `docs(sync): S4-M1R 보고완료 — 반례 재취득·after·S41M1 3런` |
+| HEAD | `407b56a` (S4-2 제품; 증거·문서는 후속 커밋) |
 | S4-1R2 제품 | `b3336ed` |
 | S4-M1R 제품 | `71669a1` (motion 수명주기 · F-2) |
 | S4-M1R 시험·도구 | `41c2ea2` |
@@ -95,7 +95,7 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 ### 남은 것 (다음 지시 대기)
 
 ```
-S4-2   읽기 증폭 — 대기. 착수는 별도 지시. 이 문서화 라운드에서 시작하지 않음
+S4-2   읽기 증폭 — 보고완료. collectionGroup consumer 2 → underlying 1
 S4-3   touch · heartbeat (S4-2 뒤)
 F-1    peer visibility 초기 시각 0
 ```
@@ -107,4 +107,4 @@ F-2 는 종결(`onMotionError`). motion 발행 수명주기 공백은 해소(`71
 실패 없음. 이견: `S41R2-summary.json` · `S41M1-summary.json` 최상위 `instruction` 필드는 `"S4-1"`
 (요약기 고정 문자열). 인용은 파일명으로 한다.
 
-신규 구현·e2e 재실행·S4-2 착수 없음.
+S4-2 는 collectionGroup 중복 1건을 정리하고 보고완료. S4-M2 문서화 라운드의 제품 무수정 기록은 위에 그대로 둔다.

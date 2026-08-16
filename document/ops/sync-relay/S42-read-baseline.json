@@ -1,0 +1,55 @@
+{
+  "instruction": "S4-2",
+  "mode": "baseline-pre-fix",
+  "capturedAt": "2026-08-16T10:31:00Z",
+  "totalsAreCumulative": true,
+  "compareStatesUsing": "open",
+  "note": "*Total is cumulative from page load. Compare states using open gauge. 0 is not evidence of no duplication.",
+  "instrumentationAlive": {
+    "collectionGroupOpenAtA": 2,
+    "rtdbOnValueOpenAtC": 1,
+    "metersLive": true
+  },
+  "crossCheckAtCapture": { "ok": true },
+  "notes": [
+    "A: Trailhead idle after guest login, Trail menu collapsed. collectionGroup.open=2.",
+    "B: Trail menu expanded. collectionGroup.open=2.",
+    "C: riding. collectionGroup.open=2, rtdbOnValue.open=1, trailOnSnapshot.open=1. motion hub 1 slot 1 consumer; rides hub 1 slot 3 consumers 1 underlying.",
+    "D: spectator overlay during ride — rides hub consumers=3, underlyingOpen=1 (existing hub absorbs).",
+    "E: globe fitBounds zoom~0.89. collectionGroup.open=2.",
+    "F: tab hide/restore unmeasurable — browser visibility spoof was blocked. Code: useActiveLiveRideTrailIds adds pageVisible; useOpenTrails does not."
+  ],
+  "states": {
+    "A": {
+      "collectionGroup": { "open": 2, "openTotal": 2, "closeTotal": 0 },
+      "rtdbOnValue": { "open": 0, "openTotal": 0, "closeTotal": 0 },
+      "trailOnSnapshot": { "open": 0, "openTotal": 0, "closeTotal": 0 }
+    },
+    "B": {
+      "collectionGroup": { "open": 2, "openTotal": 2, "closeTotal": 0 },
+      "rtdbOnValue": { "open": 0, "openTotal": 0, "closeTotal": 0 },
+      "trailOnSnapshot": { "open": 0, "openTotal": 0, "closeTotal": 0 }
+    },
+    "C": {
+      "collectionGroup": { "open": 2, "openTotal": 2, "closeTotal": 0 },
+      "rtdbOnValue": { "open": 1, "openTotal": 3, "closeTotal": 2 },
+      "trailOnSnapshot": { "open": 1, "openTotal": 3, "closeTotal": 2 },
+      "motionHub": { "slotCount": 1, "consumers": 1, "underlyingOpen": true, "unsubCallTotal": 2 },
+      "ridesHub": { "slotCount": 1, "consumers": 3, "underlyingOpen": true, "unsubCallTotal": 2 }
+    },
+    "D": {
+      "note": "during C; rides hub 3 consumers / 1 underlying (spectator overlay)",
+      "collectionGroup": { "open": 2 }
+    },
+    "E": {
+      "zoom": 0.8948177428499527,
+      "collectionGroup": { "open": 2, "openTotal": 2, "closeTotal": 0 }
+    },
+    "F": { "unmeasurable": "visibility spoof blocked; not a sentinel 0" }
+  },
+  "hubProofExisting": {
+    "motion": "1 consumer -> 1 underlying (C)",
+    "rides": "3 consumers -> 1 underlying (C/D)",
+    "collectionGroup": "2 consumers -> 2 underlying (A-E) — this is the duplicate to fix"
+  }
+}

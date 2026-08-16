@@ -1,0 +1,65 @@
+{
+  "instruction": "S4-2",
+  "mode": "after-fix",
+  "capturedAt": "2026-08-16T10:38:00Z",
+  "totalsAreCumulative": true,
+  "compareStatesUsing": "open",
+  "note": "*Total is cumulative from page load. Compare states using open gauge.",
+  "instrumentationAlive": {
+    "collectionGroupOpenAtA": 1,
+    "rtdbOnValueOpenAtC": null,
+    "metersLive": true,
+    "note": "A/B/E collectionGroup.open=1 (non-zero). C ride after-fix not re-entered (course-item click blocked). Baseline C already proved rtdb meter live."
+  },
+  "crossCheckAtCapture": {
+    "ok": true,
+    "cgUnsubCallTotalEqualsCollectionGroupCloseTotal": true
+  },
+  "notes": [
+    "A: after reload, guest still in. collectionGroup.open=1, hub consumers=2, underlyingOpen=true, acquireTotal=2.",
+    "B: menu open. collectionGroup.open=1, consumers=2.",
+    "C: partial — after-fix ride re-entry click blocked. Unit tests prove last-release unsub. trailheadSessionActive stays true while riding so CG stays 1.",
+    "D: Trail 787 live 1 rider listed; injectCgError hits=2, injectedFanoutHits=2, errorFanoutHits=0, consumers still 2.",
+    "E: globe zoom~1.30. collectionGroup.open=1, consumers=2.",
+    "F: unmeasurable (visibility spoof blocked).",
+    "M3 live remount: after reload previous session open=2 did not leak (fresh open=1). in-page logout open=0 is proven by unit tests."
+  ],
+  "states": {
+    "A": {
+      "collectionGroup": { "open": 1, "openTotal": 1, "closeTotal": 0 },
+      "activeLiveRideTrailIdsHub": {
+        "consumers": 2,
+        "refCount": 2,
+        "underlyingOpen": true,
+        "acquireTotal": 2,
+        "unsubCallTotal": 0
+      }
+    },
+    "B": {
+      "collectionGroup": { "open": 1, "openTotal": 1, "closeTotal": 0 },
+      "activeLiveRideTrailIdsHub": { "consumers": 2, "underlyingOpen": true, "unsubCallTotal": 0 }
+    },
+    "C": { "unmeasurable": "after-fix ride re-entry click blocked; not a sentinel 0" },
+    "D": {
+      "collectionGroup": { "open": 1 },
+      "injectCgErrorHits": 2,
+      "injectedFanoutHits": 2,
+      "errorFanoutHits": 0,
+      "consumersAfterInject": 2,
+      "underlyingOpen": true
+    },
+    "E": {
+      "zoom": 1.3037807481771024,
+      "collectionGroup": { "open": 1, "openTotal": 1, "closeTotal": 0 },
+      "activeLiveRideTrailIdsHub": { "consumers": 2, "underlyingOpen": true }
+    },
+    "F": { "unmeasurable": "visibility spoof blocked; not a sentinel 0" }
+  },
+  "m4": {
+    "injectHits": 2,
+    "injectedFanoutHits": 2,
+    "errorFanoutHits": 0,
+    "underlyingStillOpen": true,
+    "unitTest": "releasing one consumer keeps underlying open; remaining consumer still receives inject"
+  }
+}
