@@ -34,6 +34,7 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 
 | 단계 | 한 줄 | 판정 |
 |---|---|---|
+| H-1R | HUD 「다른 라이더 없음」을 live ride 행(나 제외) 기준으로 | **보고완료** |
 | S3A | motion 발행 큐 제거 (single-flight · latest-wins) | **PASS 채택** |
 | S3B-1 | D-0 샘플링 낡음 제거 | **PASS 채택** |
 | S3B-2 | D-1 적용속도 발행 | **PASS 채택** |
