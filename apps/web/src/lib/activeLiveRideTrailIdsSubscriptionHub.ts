@@ -13,6 +13,7 @@ let underlyingSubscribe: UnderlyingSubscribe = subscribeTrailIdsWithActiveLiveRi
 
 let refCount = 0;
 let trailIds: string[] = [];
+let hasSnapshot = false;
 const idsListeners = new Set<IdsListener>();
 const errorListeners = new Set<ErrorListener>();
 let unsub: (() => void) | null = null;
@@ -28,6 +29,7 @@ function ensureCollectionGroupSubscription(): void {
   unsub = underlyingSubscribe(
     (ids) => {
       trailIds = ids;
+      hasSnapshot = true;
       for (const listener of idsListeners) listener(ids);
     },
     (err) => {
@@ -45,6 +47,7 @@ function releaseIfIdle(): void {
     unsubCallTotal += 1;
   }
   trailIds = [];
+  hasSnapshot = false;
 }
 
 /**
@@ -61,7 +64,7 @@ export function acquireActiveLiveRideTrailIdsSubscription(
   idsListeners.add(onIds);
   if (onError) errorListeners.add(onError);
   ensureCollectionGroupSubscription();
-  onIds(trailIds);
+  if (hasSnapshot) onIds(trailIds);
 
   return () => {
     idsListeners.delete(onIds);
@@ -110,6 +113,7 @@ export function resetActiveLiveRideTrailIdsSubscriptionHubForTests(
   unsub = null;
   refCount = 0;
   trailIds = [];
+  hasSnapshot = false;
   idsListeners.clear();
   errorListeners.clear();
   acquireTotal = 0;
