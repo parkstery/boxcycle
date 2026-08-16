@@ -47,6 +47,7 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 | S4-M1 | motion 수명주기 — §2-1에서 정지 (과대 결론, 구현 없음) | **정정됨** → S4-M1R |
 | S4-M1R | motion epoch·배수·소유권·지연삭제·오류전달 · F-2 | **WARNING 채택** `71669a1` · `41c2ea2` · `a2b58ff` |
 | S4-2 | 읽기 증폭 — collectionGroup 중복 1건 정리 | **보고완료** `407b56a` |
+| S4-2R | 첫 스냅샷 전 빈 목록 유출 차단 (hasSnapshot) | **보고완료** `88c3d14` |
 | S4-3 | `touchTrailInstanceActivity` · heartbeat | **대기** (S4-2 뒤) |
 
 ---
@@ -96,6 +97,7 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 
 ```
 S4-2   읽기 증폭 — 보고완료. collectionGroup consumer 2 → underlying 1
+S4-2R  첫 스냅샷 전 [] 유출 차단 — 보고완료. 로딩 조기 종료·빈 목록 선노출 제거. 2→1 유지
 S4-3   touch · heartbeat (S4-2 뒤)
 F-1    peer visibility 초기 시각 0
 ```

@@ -248,6 +248,26 @@ function trackedCgSubscribe() {
   };
 }
 
+function deferredCgSubscribe() {
+  let emitIds: ((ids: string[]) => void) | null = null;
+  const subscribe = (
+    onIds: (ids: string[]) => void,
+    _onError?: (err: FirestoreError) => void,
+  ) => {
+    emitIds = onIds;
+    return trackUnderlyingReadSubscription("collectionGroup", () => {
+      emitIds = null;
+    });
+  };
+  return {
+    subscribe,
+    fire(ids: string[]) {
+      if (!emitIds) throw new Error("underlying 구독이 아직 없다");
+      emitIds(ids);
+    },
+  };
+}
+
 describe("activeLiveRideTrailIdsSubscriptionHub", () => {
   beforeEach(() => {
     resetUnderlyingReadMeters();
@@ -259,7 +279,7 @@ describe("activeLiveRideTrailIdsSubscriptionHub", () => {
     resetUnderlyingReadMeters();
   });
 
-  it("consumer 2??? underlyingOpen 1, ??? release ??? unsubCallTotal +1", () => {
+  it("consumer 2개여도 underlyingOpen 1, 마지막 release 에서만 unsubCallTotal +1", () => {
     const a = acquireActiveLiveRideTrailIdsSubscription(() => {}, () => {});
     const b = acquireActiveLiveRideTrailIdsSubscription(() => {}, () => {});
     const mid = debugActiveLiveRideTrailIdsSubscriptionHub();
@@ -278,7 +298,7 @@ describe("activeLiveRideTrailIdsSubscriptionHub", () => {
     assert.equal(afterAll.unsubCallTotal, snapshotUnderlyingReadSubscriptions().collectionGroup.closeTotal);
   });
 
-  it("?? ??? injectedFanoutHits ? ??? ? consumer ??? ?? consumer ? ?? ???", () => {
+  it("주입 오류는 injectedFanoutHits 로 세고 한 consumer 해제 후 남은 consumer 에만 다시 간다", () => {
     const hitsA: string[] = [];
     const hitsB: string[] = [];
     const a = acquireActiveLiveRideTrailIdsSubscription(() => {}, (err) => { hitsA.push(err.message); });
@@ -293,6 +313,75 @@ describe("activeLiveRideTrailIdsSubscriptionHub", () => {
     const n2 = debugInjectActiveLiveRideTrailIdsHubError("inject-cg-2");
     assert.equal(n2, 1);
     assert.deepEqual(hitsB, ["inject-cg", "inject-cg-2"]);
+    b();
+  });
+
+  it("T1 스냅샷 전 acquire 하면 consumer 콜백이 한 번도 불리지 않는다", () => {
+    const { subscribe } = deferredCgSubscribe();
+    resetActiveLiveRideTrailIdsSubscriptionHubForTests(subscribe);
+    let calls = 0;
+    const release = acquireActiveLiveRideTrailIdsSubscription(() => {
+      calls += 1;
+    });
+    assert.equal(calls, 0);
+    assert.equal(debugActiveLiveRideTrailIdsSubscriptionHub().consumers, 1);
+    assert.equal(debugActiveLiveRideTrailIdsSubscriptionHub().underlyingOpen, true);
+    assert.equal(snapshotUnderlyingReadSubscriptions().collectionGroup.open, 1);
+    release();
+  });
+
+  it("T2 첫 스냅샷이 도착하면 그때 콜백이 불린다", () => {
+    const { subscribe, fire } = deferredCgSubscribe();
+    resetActiveLiveRideTrailIdsSubscriptionHubForTests(subscribe);
+    const received: string[][] = [];
+    const release = acquireActiveLiveRideTrailIdsSubscription((ids) => {
+      received.push(ids);
+    });
+    assert.equal(received.length, 0);
+    fire(["trail-open-1"]);
+    assert.deepEqual(received, [["trail-open-1"]]);
+    release();
+  });
+
+  it("T3 스냅샷 이후 두 번째 acquire 는 즉시 캐시(비어 있지 않은 목록)를 받는다", () => {
+    const { subscribe, fire } = deferredCgSubscribe();
+    resetActiveLiveRideTrailIdsSubscriptionHubForTests(subscribe);
+    const receivedA: string[][] = [];
+    const receivedB: string[][] = [];
+    const a = acquireActiveLiveRideTrailIdsSubscription((ids) => {
+      receivedA.push(ids);
+    });
+    fire(["trail-open-1", "trail-open-2"]);
+    assert.deepEqual(receivedA, [["trail-open-1", "trail-open-2"]]);
+    const b = acquireActiveLiveRideTrailIdsSubscription((ids) => {
+      receivedB.push(ids);
+    });
+    assert.deepEqual(receivedB, [["trail-open-1", "trail-open-2"]]);
+    assert.equal(debugActiveLiveRideTrailIdsSubscriptionHub().consumers, 2);
+    assert.equal(debugActiveLiveRideTrailIdsSubscriptionHub().underlyingOpen, true);
+    assert.equal(snapshotUnderlyingReadSubscriptions().collectionGroup.open, 1);
+    a();
+    b();
+  });
+
+  it("T4 전원 release 후 재acquire 하면 콜백이 다시 불리지 않는다", () => {
+    const { subscribe, fire } = deferredCgSubscribe();
+    resetActiveLiveRideTrailIdsSubscriptionHubForTests(subscribe);
+    const first: string[][] = [];
+    const a = acquireActiveLiveRideTrailIdsSubscription((ids) => {
+      first.push(ids);
+    });
+    fire(["trail-open-1"]);
+    assert.deepEqual(first, [["trail-open-1"]]);
+    a();
+    assert.equal(debugActiveLiveRideTrailIdsSubscriptionHub().consumers, 0);
+    assert.equal(debugActiveLiveRideTrailIdsSubscriptionHub().underlyingOpen, false);
+    const second: string[][] = [];
+    const b = acquireActiveLiveRideTrailIdsSubscription((ids) => {
+      second.push(ids);
+    });
+    assert.equal(second.length, 0);
+    assert.equal(debugActiveLiveRideTrailIdsSubscriptionHub().underlyingOpen, true);
     b();
   });
 });
