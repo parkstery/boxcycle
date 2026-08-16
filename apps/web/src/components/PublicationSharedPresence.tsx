@@ -30,6 +30,10 @@ import {
 } from "../lib/peerMotion";
 import type { RtdbTrailMotionRow } from "../lib/rtdbTrailMotion";
 import { peerHudStableKey, type PeerHudEntry } from "../lib/peerHud";
+import {
+  reportHudCompanionCoursePeers,
+  reportHudCompanionPresenceSlice,
+} from "../lib/hudCompanionDiag";
 import { useDocumentVisibility } from "../hooks/useDocumentVisibility";
 import "./trail/TrailheadPresence.css";
 
@@ -249,6 +253,15 @@ export function PublicationSharedPresence({
         const pid = publicationIdRef.current.trim();
         const peers = next.filter((r) => r.uid !== userRef.current.uid && r.publicationId.trim() === pid);
         const now = Date.now();
+        reportHudCompanionPresenceSlice({
+          publicationId: pid,
+          liveRideRows: liveRideRowsRef.current.map((r) => ({
+            uid: r.uid,
+            publicationId: r.publicationId,
+          })),
+          motionRowsLength: next.length,
+          motionPeersAfterPidFilter: peers.length,
+        });
         peerSyncDevLog("rtdb-rx", {
           trailId: tid,
           rows: next.length,
@@ -340,6 +353,22 @@ export function PublicationSharedPresence({
     return m;
   }, [liveRideRows, publicationId, user.uid]);
 
+  useEffect(() => {
+    const pid = publicationId.trim();
+    const peers = motionRows.filter(
+      (r) => r.uid !== user.uid && r.publicationId.trim() === pid,
+    );
+    reportHudCompanionPresenceSlice({
+      publicationId: pid,
+      liveRideRows: liveRideRows.map((r) => ({
+        uid: r.uid,
+        publicationId: r.publicationId,
+      })),
+      motionRowsLength: motionRows.length,
+      motionPeersAfterPidFilter: peers.length,
+    });
+  }, [liveRideRows, motionRows, publicationId, user.uid]);
+
   const motionRowsByUid = useMemo(() => {
     const m = new Map<string, RtdbTrailMotionRow>();
     const pid = publicationId.trim();
@@ -425,6 +454,7 @@ export function PublicationSharedPresence({
   const lastPeerHudKeyRef = useRef<string>("__init__");
 
   useEffect(() => {
+    reportHudCompanionCoursePeers(peerHudEntries);
     const cb = onPeerHudChangeRef.current;
     if (!cb) return;
     const nextKey = peerHudStableKey(peerHudEntries);

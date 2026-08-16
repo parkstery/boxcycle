@@ -13,6 +13,7 @@ import { isActivityLodDebugPanelEnabled } from "./mapDebugPhase";
 import type { LngLat } from "./geo";
 import { isWithinActivityTraceHeatWindow } from "./activityWorldTraceStyle";
 import { lastSeenAtToMillis } from "./firestoreTrail";
+import { recordRouteActivityAccess } from "./hudCompanionDiag";
 
 /**
  * Activity World invariant
@@ -95,7 +96,16 @@ const inflight = new Map<string, Promise<RouteActivitySnapshot | null>>();
 export async function fetchRouteActivity(publicationId: string): Promise<RouteActivitySnapshot | null> {
   const id = publicationId.trim();
   if (!id) return null;
-  if (memoryCache.has(id)) return memoryCache.get(id)!;
+  if (memoryCache.has(id)) {
+    const cached = memoryCache.get(id)!;
+    recordRouteActivityAccess({
+      kind: "cache",
+      publicationId: id,
+      activeRiderCount: cached?.activeRiderCount ?? null,
+      liveNow: cached?.liveNow ?? null,
+    });
+    return cached;
+  }
 
   let pending = inflight.get(id);
   if (!pending) {
@@ -105,6 +115,12 @@ export async function fetchRouteActivity(publicationId: string): Promise<RouteAc
       const parsed = routeSnap.exists()
         ? parseRouteActivityDoc(id, routeSnap.data() as Record<string, unknown>)
         : null;
+      recordRouteActivityAccess({
+        kind: "getDoc",
+        publicationId: id,
+        activeRiderCount: parsed?.activeRiderCount ?? null,
+        liveNow: parsed?.liveNow ?? null,
+      });
       memoryCache.set(id, parsed);
       inflight.delete(id);
       return parsed;
@@ -113,6 +129,8 @@ export async function fetchRouteActivity(publicationId: string): Promise<RouteAc
       throw e;
     });
     inflight.set(id, pending);
+  } else {
+    recordRouteActivityAccess({ kind: "inflight", publicationId: id });
   }
   return pending;
 }

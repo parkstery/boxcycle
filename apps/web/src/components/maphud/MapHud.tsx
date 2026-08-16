@@ -1,5 +1,7 @@
 import type { CoachingData } from "../../lib/coachTypes";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
+import { useEffect } from "react";
+import { reportHudCompanionTrailDedup } from "../../lib/hudCompanionDiag";
 import "./MapHud.css";
 
 export type AccountChipState = {
@@ -187,6 +189,14 @@ export function MapHud(props: MapHudProps) {
   // 접속·동행 현황은 HUD 가 단독으로 소유. MENU(Trail 섹션=참가·공개 설정 행동) 열린 동안은
   // 가림·중복을 피하려 숨긴다.
   const showRidePresence = ridePresence != null && !menuOpen;
+
+  useEffect(() => {
+    if (!ridePresence) return;
+    reportHudCompanionTrailDedup({
+      activeTrailMemberUids: ridePresence.trailMembers.filter((m) => m.active).map((m) => m.key),
+      coursePeerNamesLength: ridePresence.coursePeerNames.length,
+    });
+  }, [ridePresence]);
   const showAccount = account !== null && !isGate && !isSummary;
   const showSignedOutAuth =
     !isGate && !isSummary && account === null && typeof onOpenSignedOutAuth === "function";
