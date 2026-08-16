@@ -37,6 +37,7 @@ import {
   PEER_LIVE_RIDE_STALE_MS,
 } from "./rideSyncPolicy";
 import { deleteTrailMotion } from "./rtdbTrailMotion";
+import { trackUnderlyingReadSubscription } from "./readSubscriptionMeters";
 
 /** publication 진행률만 주기적으로 올려 부담을 줄임 (좌표·geometry 미전송). */
 export const TRAIL_LIVE_PUBLICATION_RIDE_WRITE_INTERVAL_MS = 4_000;
@@ -81,38 +82,41 @@ export function subscribeTrailLivePublicationRides(
   onError?: (e: FirestoreError) => void,
 ): Unsubscribe {
   const rid = sanitizeTrailId(trailId);
-  return onSnapshot(
-    liveRidesCollectionRef(rid),
-    (snap) => {
-      const rows: TrailLivePublicationRideRow[] = [];
-      for (const d of snap.docs) {
-        const data = d.data() as Record<string, unknown>;
-        const publicationId = readPublicationIdFromDoc(data);
-        const pr = data.progressRatio;
-        const progressRatio =
-          typeof pr === "number" && Number.isFinite(pr) ? Math.max(0, Math.min(1, pr)) : Number.NaN;
-        const dm = data.distMeters;
-        const distMeters =
-          typeof dm === "number" && Number.isFinite(dm) ? Math.max(0, dm) : null;
-        const sm = data.speedMps;
-        const speedMps =
-          typeof sm === "number" && Number.isFinite(sm) ? Math.max(0, sm) : null;
-        if (!publicationId || Number.isNaN(progressRatio)) continue;
-        rows.push({
-          uid: d.id,
-          publicationId,
-          progressRatio,
-          distMeters,
-          lastSeenAtMs: lastSeenAtToMillis(data.lastSeenAt),
-          receivedAtLocalMs: Date.now(),
-          displayName: typeof data.displayName === "string" ? data.displayName : null,
-          speedMps,
-          ridePhase: readRidePhase(data),
-        });
-      }
-      onChange(rows);
-    },
-    (err) => onError?.(err),
+  return trackUnderlyingReadSubscription(
+    "trailOnSnapshot",
+    onSnapshot(
+      liveRidesCollectionRef(rid),
+      (snap) => {
+        const rows: TrailLivePublicationRideRow[] = [];
+        for (const d of snap.docs) {
+          const data = d.data() as Record<string, unknown>;
+          const publicationId = readPublicationIdFromDoc(data);
+          const pr = data.progressRatio;
+          const progressRatio =
+            typeof pr === "number" && Number.isFinite(pr) ? Math.max(0, Math.min(1, pr)) : Number.NaN;
+          const dm = data.distMeters;
+          const distMeters =
+            typeof dm === "number" && Number.isFinite(dm) ? Math.max(0, dm) : null;
+          const sm = data.speedMps;
+          const speedMps =
+            typeof sm === "number" && Number.isFinite(sm) ? Math.max(0, sm) : null;
+          if (!publicationId || Number.isNaN(progressRatio)) continue;
+          rows.push({
+            uid: d.id,
+            publicationId,
+            progressRatio,
+            distMeters,
+            lastSeenAtMs: lastSeenAtToMillis(data.lastSeenAt),
+            receivedAtLocalMs: Date.now(),
+            displayName: typeof data.displayName === "string" ? data.displayName : null,
+            speedMps,
+            ridePhase: readRidePhase(data),
+          });
+        }
+        onChange(rows);
+      },
+      (err) => onError?.(err),
+    ),
   );
 }
 
@@ -241,10 +245,13 @@ export function subscribeTrailIdsWithActiveLiveRides(
     orderBy("lastSeenAt", "desc"),
     limit(ACTIVE_LIVE_RIDE_TRAIL_SCAN_LIMIT),
   );
-  return onSnapshot(
-    q,
-    (snap) => onChange(parseActiveLiveRideTrailIds(snap.docs)),
-    (err) => onError?.(err),
+  return trackUnderlyingReadSubscription(
+    "collectionGroup",
+    onSnapshot(
+      q,
+      (snap) => onChange(parseActiveLiveRideTrailIds(snap.docs)),
+      (err) => onError?.(err),
+    ),
   );
 }
 

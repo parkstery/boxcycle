@@ -17,6 +17,7 @@ import {
   peerSyncChainLog,
   peekMotionInFlightMax,
 } from "./peerMotion/peerSyncChainLog";
+import { trackUnderlyingReadSubscription } from "./readSubscriptionMeters";
 
 /** RTDB `/trails/{trailId}/motion/{uid}` */
 export const RTDB_TRAIL_MOTION_SEGMENT = "motion";
@@ -202,20 +203,23 @@ export function subscribeTrailMotion(
   }
   getFirebaseApp();
   const db = getFirebaseDatabase();
-  return onValue(
-    trailMotionCollectionRef(db, trailId),
-    (snap) => {
-      const rows: RtdbTrailMotionRow[] = [];
-      const val = snap.val();
-      if (val && typeof val === "object") {
-        for (const [uid, node] of Object.entries(val as Record<string, unknown>)) {
-          const row = decodeRow(uid, node);
-          if (row) rows.push(row);
+  return trackUnderlyingReadSubscription(
+    "rtdbOnValue",
+    onValue(
+      trailMotionCollectionRef(db, trailId),
+      (snap) => {
+        const rows: RtdbTrailMotionRow[] = [];
+        const val = snap.val();
+        if (val && typeof val === "object") {
+          for (const [uid, node] of Object.entries(val as Record<string, unknown>)) {
+            const row = decodeRow(uid, node);
+            if (row) rows.push(row);
+          }
         }
-      }
-      onChange(rows);
-    },
-    (err) => onError?.(new Error(String(err))),
+        onChange(rows);
+      },
+      (err) => onError?.(new Error(String(err))),
+    ),
   );
 }
 

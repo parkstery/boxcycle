@@ -14,6 +14,11 @@ type TrailSlot = {
 
 const slots = new Map<string, TrailSlot>();
 
+let acquireTotal = 0;
+let releaseTotal = 0;
+let unsubCallTotal = 0;
+let errorFanoutHits = 0;
+
 function getOrCreateSlot(tid: string): TrailSlot {
   let slot = slots.get(tid);
   if (!slot) {
@@ -38,6 +43,7 @@ function ensureRtdbSubscription(tid: string, slot: TrailSlot): void {
       for (const listener of slot.rowsListeners) listener(rows);
     },
     (err) => {
+      errorFanoutHits += slot.errorListeners.size;
       for (const listener of slot.errorListeners) listener(err);
     },
   );
@@ -45,7 +51,10 @@ function ensureRtdbSubscription(tid: string, slot: TrailSlot): void {
 
 function releaseSlot(tid: string, slot: TrailSlot): void {
   if (slot.refCount > 0) return;
-  slot.unsub?.();
+  if (slot.unsub) {
+    slot.unsub();
+    unsubCallTotal += 1;
+  }
   slots.delete(tid);
 }
 
@@ -58,6 +67,7 @@ export function acquireTrailMotionSubscription(
   const tid = sanitizeTrailId(trailId);
   const slot = getOrCreateSlot(tid);
   slot.refCount += 1;
+  acquireTotal += 1;
   slot.rowsListeners.add(onRows);
   if (onError) slot.errorListeners.add(onError);
   ensureRtdbSubscription(tid, slot);
@@ -67,6 +77,41 @@ export function acquireTrailMotionSubscription(
     slot.rowsListeners.delete(onRows);
     if (onError) slot.errorListeners.delete(onError);
     slot.refCount = Math.max(0, slot.refCount - 1);
+    releaseTotal += 1;
     releaseSlot(tid, slot);
   };
+}
+
+export function debugRtdbMotionSubscriptionHub(): {
+  slotCount: number;
+  slots: Array<{ trailId: string; refCount: number; underlyingOpen: boolean; consumers: number }>;
+  acquireTotal: number;
+  releaseTotal: number;
+  unsubCallTotal: number;
+  errorFanoutHits: number;
+} {
+  return {
+    slotCount: slots.size,
+    slots: [...slots.entries()].map(([trailId, slot]) => ({
+      trailId,
+      refCount: slot.refCount,
+      underlyingOpen: Boolean(slot.unsub),
+      consumers: slot.rowsListeners.size,
+    })),
+    acquireTotal,
+    releaseTotal,
+    unsubCallTotal,
+    errorFanoutHits,
+  };
+}
+
+export function debugInjectRtdbMotionHubError(message = "s42-inject"): number {
+  let hits = 0;
+  const err = new Error(message);
+  for (const slot of slots.values()) {
+    errorFanoutHits += slot.errorListeners.size;
+    hits += slot.errorListeners.size;
+    for (const listener of slot.errorListeners) listener(err);
+  }
+  return hits;
 }
