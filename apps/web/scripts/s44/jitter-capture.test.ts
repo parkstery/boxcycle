@@ -5,6 +5,8 @@ import {
   beginPeerJitterCapture,
   endPeerJitterCapture,
   estimateAlongTrackUnit,
+  LOCAL_SOLO_UID,
+  measureCaptureSurvival,
   noteJitterDisplay,
   noteJitterIngest,
   resetPeerJitterCaptureForTests,
@@ -280,6 +282,99 @@ describe("K1 세 계열 자가 검산", () => {
     assert.equal(j.cameraSplit.hasLocalScreen, false);
     assert.equal(j.cameraSplit.verdict, null);
     assert.equal(j.cameraSplit.k1Pass, false);
+  });
+});
+
+describe("L0 계측 생존 · 로컬 단독", () => {
+  function soloFrames(
+    rows: Array<{ t: number; d: number; x: number; y: number; ax?: number; ay?: number }>,
+  ): JitterDisplayEvent[] {
+    return rows.map((f) => ({
+      kind: "display" as const,
+      atMs: f.t,
+      uid: LOCAL_SOLO_UID,
+      conditionId: "S-A",
+      displayDistM: f.d,
+      lng: 127,
+      lat: 37,
+      screenX: f.x,
+      screenY: f.y,
+      localDistM: f.d,
+      localScreenX: f.x,
+      localScreenY: f.y,
+      aheadScreenX: f.ax ?? f.x + 40,
+      aheadScreenY: f.ay ?? f.y,
+      soloLocal: true,
+      camBearing: null,
+      camPitch: null,
+      camLng: null,
+      camLat: null,
+    }));
+  }
+
+  it("3-1~3-4 통과: 로컬 거리 회귀로 û 가 나오고 화면이 움직인다", () => {
+    const events = soloFrames(
+      [0, 40, -40, 40, -40, 40, -40, 40, -40, 40].map((j, i) => ({
+        t: i * 16,
+        d: 10 + i * 0.5,
+        x: 120 + i * 14 + j,
+        y: 400,
+      })),
+    );
+    const s = measureCaptureSurvival(events);
+    assert.equal(s.displayFrames, 10);
+    assert.equal(s.hasLocalScreen, true);
+    assert.equal(s.uhatFromLocalDist, true);
+    assert.ok(s.localScreenTravelPx > 0);
+    assert.equal(s.pass, true);
+    const j = analyzeJitterAxis(events);
+    assert.ok(j.cameraSplit.localAlong.reverseCount >= 2);
+    assert.ok(j.survival.pass);
+  });
+
+  it("팔로우 잠금처럼 회귀가 죽어도 ahead 접선으로 û 가 산다", () => {
+    const events = soloFrames(
+      [0, 4, -4, 4, -4, 4, -4, 4, -4, 4].map((j, i) => ({
+        t: i * 16,
+        d: 10 + i * 0.5,
+        x: 640 + j,
+        y: 440,
+        ax: 640 + j + 50,
+        ay: 440,
+      })),
+    );
+    const uReg = estimateAlongTrackUnit(events, 4, "local");
+    assert.equal(uReg, null);
+    const s = measureCaptureSurvival(events);
+    assert.equal(s.pass, true);
+    assert.equal(s.uhatSource, "local-path-tangent");
+    const j = analyzeJitterAxis(events);
+    assert.ok(j.cameraSplit.localAlong.reverseCount >= 2);
+  });
+
+  it("화면 총 변위 0 이면 3-4 실패 — 흔들림 없음으로 읽지 않는다", () => {
+    const events = soloFrames(
+      Array.from({ length: 10 }, (_, i) => ({
+        t: i * 16,
+        d: 10 + i * 0.5,
+        x: 640,
+        y: 440,
+        ax: 690,
+        ay: 440,
+      })),
+    );
+    const s = measureCaptureSurvival(events);
+    assert.equal(s.uhatFromLocalDist, true);
+    assert.equal(s.localScreenTravelPx, 0);
+    assert.equal(s.pass, false);
+    assert.ok(s.failReasons.some((r) => r.startsWith("3-4")));
+  });
+
+  it("display 가 없으면 3-1 실패", () => {
+    const s = measureCaptureSurvival([]);
+    assert.equal(s.displayFrames, 0);
+    assert.equal(s.pass, false);
+    assert.ok(s.failReasons.some((r) => r.startsWith("3-1")));
   });
 });
 

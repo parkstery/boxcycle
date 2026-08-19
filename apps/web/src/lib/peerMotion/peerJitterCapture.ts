@@ -18,6 +18,9 @@ export const BAND_LABEL_PX = 8;
 export const S44_CLASS_PX = 20;
 /** ① − ② − ③ = 0 대수 항등. 이보다 크면 계측 모순이라 판정을 쓰지 않는다. */
 export const K1_RESIDUAL_EPS_PX = 1e-3;
+/** 단독 캡처 uid. peer 엔티티가 없을 때 로컬 자신만 남긴다. */
+export const LOCAL_SOLO_UID = "__local__";
+const LOCAL_AHEAD_M = 5;
 const MAX_EVENTS = 16_000;
 const UHAT_HALF_WINDOW = 12;
 const UHAT_MIN_DIST_SPAN_M = 2;
@@ -70,6 +73,9 @@ export type JitterDisplayEvent = {
   localDistM: number | null;
   localScreenX: number | null;
   localScreenY: number | null;
+  aheadScreenX?: number | null;
+  aheadScreenY?: number | null;
+  soloLocal?: boolean;
   camBearing: number | null;
   camPitch: number | null;
   camLng: number | null;
@@ -153,6 +159,17 @@ export type CameraSplitJudgment = {
   samples: CameraSplitSample[];
 };
 
+export type CaptureSurvival = {
+  displayFrames: number;
+  hasLocalScreen: boolean;
+  uhatFromLocalDist: boolean;
+  uhatFrameCount: number;
+  uhatSource: "local-dist-regression" | "local-path-tangent" | "peer-dist-regression" | "none";
+  localScreenTravelPx: number;
+  pass: boolean;
+  failReasons: string[];
+};
+
 export type JitterAxisJudgment = {
   /** @deprecated S4-4. dominantSignal 을 쓴다. none 을 합격으로 쓰지 마라. */
   axis: DominantSignal;
@@ -180,6 +197,8 @@ export type JitterAxisJudgment = {
   peerUids: string[];
   reason: string;
   cameraSplit: CameraSplitJudgment;
+  survival: CaptureSurvival;
+  routeLenM: number | null;
 };
 
 export type JitterCaptureDump = {
@@ -187,6 +206,7 @@ export type JitterCaptureDump = {
   windowEndedAt: number | null;
   recording: boolean;
   conditionId: string | null;
+  routeLenM: number | null;
   events: JitterEvent[];
   judgment: JitterAxisJudgment;
 };
@@ -202,6 +222,7 @@ let recording = false;
 let windowStartedAt: number | null = null;
 let windowEndedAt: number | null = null;
 let conditionId: string | null = null;
+let captureRouteLenM: number | null = null;
 const events: JitterEvent[] = [];
 
 export function isPeerJitterCapturing(): boolean {
@@ -213,6 +234,7 @@ export function resetPeerJitterCaptureForTests(): void {
   windowStartedAt = null;
   windowEndedAt = null;
   conditionId = null;
+  captureRouteLenM = null;
   events.length = 0;
 }
 
@@ -225,6 +247,7 @@ export function beginPeerJitterCapture(
   windowStartedAt = nowMs;
   windowEndedAt = null;
   conditionId = nextConditionId;
+  captureRouteLenM = null;
 }
 
 export function snapshotPeerJitterCapture(nowMs = Date.now()): JitterCaptureDump {
@@ -233,6 +256,7 @@ export function snapshotPeerJitterCapture(nowMs = Date.now()): JitterCaptureDump
     windowEndedAt: recording ? nowMs : windowEndedAt,
     recording,
     conditionId,
+    routeLenM: captureRouteLenM,
     events: events.slice(),
     judgment: analyzeJitterAxis(events),
   };
@@ -320,11 +344,19 @@ export function noteJitterDisplay(input: {
   localDistM?: number | null;
   localLng?: number | null;
   localLat?: number | null;
+  aheadLng?: number | null;
+  aheadLat?: number | null;
+  soloLocal?: boolean;
+  routeLenM?: number | null;
 }): void {
   if (!recording) return;
+  if (input.routeLenM != null && Number.isFinite(input.routeLenM)) {
+    captureRouteLenM = input.routeLenM;
+  }
   const map = readMap();
   const peer = projectLngLat(map, input.lng, input.lat);
   const local = projectLngLat(map, input.localLng, input.localLat);
+  const ahead = projectLngLat(map, input.aheadLng, input.aheadLat);
   let camBearing: number | null = null;
   let camPitch: number | null = null;
   let camLng: number | null = null;
@@ -351,6 +383,9 @@ export function noteJitterDisplay(input: {
     localDistM: input.localDistM ?? null,
     localScreenX: local?.x ?? null,
     localScreenY: local?.y ?? null,
+    aheadScreenX: ahead?.x ?? null,
+    aheadScreenY: ahead?.y ?? null,
+    soloLocal: input.soloLocal === true,
     camBearing,
     camPitch,
     camLng,
@@ -521,10 +556,11 @@ export function concludeCameraSplit(input: {
   };
 }
 
-/** displayDistM 전진 창에서 screen~dist 회귀. 튐이 û 를 한 프레임으로 뒤집지 않게 창을 쓴다. */
+/** displayDistM(또는 로컬 거리) 전진 창에서 screen~dist 회귀. */
 export function estimateAlongTrackUnit(
   series: readonly JitterDisplayEvent[],
   index: number,
+  coords: "peer" | "local" = "peer",
 ): AlongUnit | null {
   const lo = Math.max(0, index - UHAT_HALF_WINDOW);
   const hi = Math.min(series.length - 1, index + UHAT_HALF_WINDOW);
@@ -533,10 +569,17 @@ export function estimateAlongTrackUnit(
   const ys: number[] = [];
   for (let i = lo; i <= hi; i += 1) {
     const ev = series[i]!;
-    if (ev.screenX == null || ev.screenY == null) continue;
-    dist.push(ev.displayDistM);
-    xs.push(ev.screenX);
-    ys.push(ev.screenY);
+    if (coords === "local") {
+      if (ev.localScreenX == null || ev.localScreenY == null || ev.localDistM == null) continue;
+      dist.push(ev.localDistM);
+      xs.push(ev.localScreenX);
+      ys.push(ev.localScreenY);
+    } else {
+      if (ev.screenX == null || ev.screenY == null) continue;
+      dist.push(ev.displayDistM);
+      xs.push(ev.screenX);
+      ys.push(ev.screenY);
+    }
   }
   if (dist.length < 4) return null;
   const span = Math.max(...dist) - Math.min(...dist);
@@ -547,6 +590,94 @@ export function estimateAlongTrackUnit(
   const mag = Math.hypot(sx, sy);
   if (mag < UHAT_MIN_PX_PER_M) return null;
   return { ux: sx / mag, uy: sy / mag, pxPerM: mag };
+}
+
+/** 같은 프레임에서 로컬 거리 + ahead 투영. 팔로우 잠금으로 회귀가 죽을 때 쓴다. */
+export function estimateLocalPathTangent(ev: JitterDisplayEvent): AlongUnit | null {
+  const x0 = ev.localScreenX ?? ev.screenX;
+  const y0 = ev.localScreenY ?? ev.screenY;
+  if (x0 == null || y0 == null || ev.aheadScreenX == null || ev.aheadScreenY == null) return null;
+  const dx = ev.aheadScreenX - x0;
+  const dy = ev.aheadScreenY - y0;
+  const mag = Math.hypot(dx, dy);
+  if (mag < 1e-6) return null;
+  return { ux: dx / mag, uy: dy / mag, pxPerM: mag / LOCAL_AHEAD_M };
+}
+
+export function isSoloLocalSeries(series: readonly JitterDisplayEvent[]): boolean {
+  return series.length > 0 && (series[0]!.soloLocal === true || series[0]!.uid === LOCAL_SOLO_UID);
+}
+
+export function measureCaptureSurvival(log: readonly JitterEvent[]): CaptureSurvival {
+  const display = log.filter((e): e is JitterDisplayEvent => e.kind === "display");
+  const failReasons: string[] = [];
+  const hasLocalScreen = display.some((e) => e.localScreenX != null && e.localScreenY != null);
+  let localScreenTravelPx = 0;
+  let prev: JitterDisplayEvent | null = null;
+  for (const ev of display) {
+    const x = ev.localScreenX ?? (ev.soloLocal ? ev.screenX : null);
+    const y = ev.localScreenY ?? (ev.soloLocal ? ev.screenY : null);
+    const px = prev ? (prev.localScreenX ?? (prev.soloLocal ? prev.screenX : null)) : null;
+    const py = prev ? (prev.localScreenY ?? (prev.soloLocal ? prev.screenY : null)) : null;
+    if (x != null && y != null && px != null && py != null) {
+      localScreenTravelPx += Math.hypot(x - px, y - py);
+    }
+    prev = ev;
+  }
+
+  const byUid = new Map<string, JitterDisplayEvent[]>();
+  for (const ev of display) {
+    const list = byUid.get(ev.uid) ?? [];
+    list.push(ev);
+    byUid.set(ev.uid, list);
+  }
+  let uhatFrameCount = 0;
+  let usedRegression = false;
+  let usedTangent = false;
+  let usedPeer = false;
+  for (const series of byUid.values()) {
+    const solo = isSoloLocalSeries(series);
+    for (let i = 0; i < series.length; i += 1) {
+      if (solo) {
+        const reg = estimateAlongTrackUnit(series, i, "local");
+        const tan = estimateLocalPathTangent(series[i]!);
+        if (reg) {
+          uhatFrameCount += 1;
+          usedRegression = true;
+        } else if (tan) {
+          uhatFrameCount += 1;
+          usedTangent = true;
+        }
+      } else if (estimateAlongTrackUnit(series, i, "peer")) {
+        uhatFrameCount += 1;
+        usedPeer = true;
+      }
+    }
+  }
+  const uhatFromLocalDist = usedRegression || usedTangent;
+  const uhatSource: CaptureSurvival["uhatSource"] = usedRegression
+    ? "local-dist-regression"
+    : usedTangent
+      ? "local-path-tangent"
+      : usedPeer
+        ? "peer-dist-regression"
+        : "none";
+
+  if (display.length === 0) failReasons.push("3-1 displayFrames=0");
+  if (!hasLocalScreen) failReasons.push("3-2 hasLocalScreen=false");
+  if (!uhatFromLocalDist) failReasons.push("3-3 û 가 로컬 거리에서 안 나옴");
+  if (!(localScreenTravelPx > 0)) failReasons.push("3-4 localScreenTravelPx=0");
+
+  return {
+    displayFrames: display.length,
+    hasLocalScreen,
+    uhatFromLocalDist,
+    uhatFrameCount,
+    uhatSource,
+    localScreenTravelPx,
+    pass: failReasons.length === 0,
+    failReasons,
+  };
 }
 
 function median(values: readonly number[]): number | null {
@@ -584,6 +715,19 @@ function emptyJudgment(
     ingestEvents: 0,
     peerUids: [],
     cameraSplit: extra.cameraSplit ?? emptyCameraSplit(extra.reason),
+    survival:
+      extra.survival ??
+      ({
+        displayFrames: 0,
+        hasLocalScreen: false,
+        uhatFromLocalDist: false,
+        uhatFrameCount: 0,
+        uhatSource: "none",
+        localScreenTravelPx: 0,
+        pass: false,
+        failReasons: ["undetermined"],
+      } satisfies CaptureSurvival),
+    routeLenM: extra.routeLenM ?? captureRouteLenM,
     ...extra,
     dominantSignal,
   };
@@ -600,6 +744,8 @@ export function analyzeJitterAxis(log: readonly JitterEvent[]): JitterAxisJudgme
       displayFrames: display.length,
       ingestEvents,
       peerUids,
+      survival: measureCaptureSurvival(log),
+      routeLenM: captureRouteLenM,
       reason: "display 프레임이 부족하다 (3 미만).",
     });
   }
@@ -646,6 +792,7 @@ export function analyzeJitterAxis(log: readonly JitterEvent[]): JitterAxisJudgme
   }
 
   for (const series of byUid.values()) {
+    const solo = isSoloLocalSeries(series);
     let prev: JitterDisplayEvent | null = null;
     let prevDx = 0;
     let prevDy = 0;
@@ -655,7 +802,9 @@ export function analyzeJitterAxis(log: readonly JitterEvent[]): JitterAxisJudgme
     let lockedU: AlongUnit | null = null;
     for (let i = 0; i < series.length; i += 1) {
       const ev = series[i]!;
-      const rawU = estimateAlongTrackUnit(series, i);
+      const rawU = solo
+        ? (estimateAlongTrackUnit(series, i, "local") ?? estimateLocalPathTangent(ev))
+        : estimateAlongTrackUnit(series, i, "peer");
       let u = rawU;
       if (u && lockedU && u.ux * lockedU.ux + u.uy * lockedU.uy < 0) {
         u = { ux: -u.ux, uy: -u.uy, pxPerM: u.pxPerM };
@@ -854,5 +1003,7 @@ export function analyzeJitterAxis(log: readonly JitterEvent[]): JitterAxisJudgme
     peerUids,
     reason,
     cameraSplit,
+    survival: measureCaptureSurvival(log),
+    routeLenM: captureRouteLenM,
   };
 }

@@ -20,7 +20,7 @@ import {
 } from "./integrator";
 import type { PeerMotionEntity, PeerMotionPacket } from "./types";
 import { getPeerSyncSelfDistM } from "./peerSyncDebug";
-import { noteJitterDisplay } from "./peerJitterCapture";
+import { isPeerJitterCapturing, LOCAL_SOLO_UID, noteJitterDisplay } from "./peerJitterCapture";
 import { peerSyncChainLog, peerSyncChainShouldEmit } from "./peerSyncChainLog";
 
 const PEER_MAX = 30;
@@ -225,6 +225,32 @@ export class PeerMotionRegistry {
         pframe: Number.isFinite(pframeRaw) ? pframeRaw : 0,
       });
       n += 1;
+    }
+    if (isPeerJitterCapturing() && this.entities.size === 0) {
+      const selfDist = getPeerSyncSelfDistM();
+      if (Number.isFinite(selfDist)) {
+        const distM = clampRouteDist(selfDist, routeLenM);
+        const selfLl = getPointOnRouteByDistance(routeGeometry, distM);
+        const aheadDist =
+          distM + 5 <= routeLenM && routeLenM > 0 ? distM + 5 : Math.max(0, distM - 5);
+        const aheadLl = getPointOnRouteByDistance(routeGeometry, aheadDist);
+        if (selfLl) {
+          noteJitterDisplay({
+            atMs: nowMs,
+            uid: LOCAL_SOLO_UID,
+            displayDistM: distM,
+            lng: selfLl[0],
+            lat: selfLl[1],
+            localDistM: distM,
+            localLng: selfLl[0],
+            localLat: selfLl[1],
+            aheadLng: aheadLl?.[0] ?? null,
+            aheadLat: aheadLl?.[1] ?? null,
+            soloLocal: true,
+            routeLenM,
+          });
+        }
+      }
     }
     publishPeerStepDiag(peerStepDiagOut);
     return out;
