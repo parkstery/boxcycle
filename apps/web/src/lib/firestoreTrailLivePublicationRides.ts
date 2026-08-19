@@ -38,6 +38,7 @@ import {
 } from "./rideSyncPolicy";
 import { deleteTrailMotion } from "./rtdbTrailMotion";
 import { trackUnderlyingReadSubscription } from "./readSubscriptionMeters";
+import { noteListingRefreshRead } from "./touchActivityMeters";
 
 /** publication 진행률만 주기적으로 올려 부담을 줄임 (좌표·geometry 미전송). */
 export const TRAIL_LIVE_PUBLICATION_RIDE_WRITE_INTERVAL_MS = 4_000;
@@ -190,6 +191,7 @@ export async function countTrailLiveRidersFresh(trailId: string): Promise<number
   const coll = liveRidesCollectionRef(trailId);
   const cutoffMs = Date.now() - TRAIL_PRESENCE_STALE_MS;
   const snap = await getDocs(query(coll, limit(LIVE_RIDES_COUNT_SCAN_LIMIT)));
+  noteListingRefreshRead();
   let n = 0;
   for (const d of snap.docs) {
     const ms = lastSeenAtToMillis((d.data() as Record<string, unknown>).lastSeenAt);

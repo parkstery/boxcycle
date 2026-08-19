@@ -22,6 +22,13 @@ import { trailHasConfiguredRoute } from "./trailAccessPolicy";
 import { TRAILS_COLLECTION } from "./firestoreTrailPaths";
 import type { TrailInstance } from "./firestoreTrailInstance";
 import { resolvePublicationIdFromDoc } from "./resolvePublicationIdFromDoc";
+import {
+  enterListingRefreshReadScope,
+  leaveListingRefreshReadScope,
+  noteListingRefreshRead,
+  noteListingRefreshRun,
+  noteListingRefreshSchedule,
+} from "./touchActivityMeters";
 
 /** Trailhead 공개 목록 — realtime 단일 진실 (자문: openTrailInstances) */
 export const OPEN_TRAIL_LISTINGS_COLLECTION = "openTrailListings";
@@ -84,6 +91,7 @@ async function countTrailActiveParticipantsForTrail(trail: TrailInstance): Promi
 
 async function loadTrailForListing(trailId: string): Promise<TrailInstance | null> {
   const snap = await getDoc(doc(getFirebaseFirestore(), TRAILS_COLLECTION, trailId));
+  noteListingRefreshRead();
   if (!snap.exists()) return null;
   const data = snap.data() as Record<string, unknown>;
   return {
@@ -177,8 +185,7 @@ export async function removeOpenTrailListing(trailId: string): Promise<void> {
   await deleteDoc(listingRef(trailId)).catch(() => {});
 }
 
-/** `trails/{id}` 메타·활성 인원 기준으로 listing upsert 또는 제거 */
-export async function refreshOpenTrailListingFromTrail(trailId: string): Promise<void> {
+async function refreshOpenTrailListingFromTrailBody(trailId: string): Promise<void> {
   const trail = await loadTrailForListing(trailId);
   if (!trail || !isListableTrail(trail)) {
     await removeOpenTrailListing(trailId);
@@ -191,6 +198,7 @@ export async function refreshOpenTrailListingFromTrail(trailId: string): Promise
   }
   const authUid = getAuth(getFirebaseApp()).currentUser?.uid ?? null;
   const existingSnap = await getDoc(listingRef(trailId)).catch(() => null);
+  noteListingRefreshRead();
   const listingExists = existingSnap?.exists() ?? false;
   const existingCreated = listingExists ? existingSnap?.data()?.createdAt : undefined;
   const createdAt =
@@ -226,12 +234,58 @@ export async function refreshOpenTrailListingFromTrail(trailId: string): Promise
   }).catch(() => {});
 }
 
-const refreshScheduled = new Map<string, ReturnType<typeof setTimeout>>();
+type ListingRefreshClock = {
+  now: () => number;
+  setTimeout: (fn: () => void, ms: number) => unknown;
+  clearTimeout: (id: unknown) => void;
+};
+
+const defaultListingClock: ListingRefreshClock = {
+  now: () => Date.now(),
+  setTimeout: (fn, ms) =>
+    typeof window !== "undefined" ? window.setTimeout(fn, ms) : setTimeout(fn, ms),
+  clearTimeout: (id) => {
+    if (typeof window !== "undefined") window.clearTimeout(id as number);
+    else clearTimeout(id as ReturnType<typeof setTimeout>);
+  },
+};
+
+let listingClock: ListingRefreshClock = defaultListingClock;
+let listingRefreshBody = refreshOpenTrailListingFromTrailBody;
+
+/** `trails/{id}` 메타·활성 인원 기준으로 listing upsert 또는 제거 */
+export async function refreshOpenTrailListingFromTrail(trailId: string): Promise<void> {
+  noteListingRefreshRun();
+  enterListingRefreshReadScope();
+  try {
+    await listingRefreshBody(trailId);
+  } finally {
+    leaveListingRefreshReadScope();
+  }
+}
+
+const refreshScheduled = new Map<string, unknown>();
 const refreshLastRunAt = new Map<string, number>();
 const createdAtBackfillScheduled = new Set<string>();
 
 /** 같은 Trail 재계산 실행 간 최소 간격 — 읽기 비용 상한 */
 const REFRESH_MIN_INTERVAL_MS = 30_000;
+
+/** DEV·단위시험용. debounce·최소 간격 값은 바꾸지 않는다. */
+export function resetOpenTrailListingRefreshForTests(opts?: {
+  clock?: Partial<ListingRefreshClock>;
+  refreshBody?: (trailId: string) => Promise<void>;
+}): void {
+  for (const id of refreshScheduled.values()) listingClock.clearTimeout(id);
+  refreshScheduled.clear();
+  refreshLastRunAt.clear();
+  listingClock = {
+    now: opts?.clock?.now ?? defaultListingClock.now,
+    setTimeout: opts?.clock?.setTimeout ?? defaultListingClock.setTimeout,
+    clearTimeout: opts?.clock?.clearTimeout ?? defaultListingClock.clearTimeout,
+  };
+  listingRefreshBody = opts?.refreshBody ?? refreshOpenTrailListingFromTrailBody;
+}
 
 /**
  * presence·livePublicationRides 갱신 시 listing 동기화 예약.
@@ -239,12 +293,13 @@ const REFRESH_MIN_INTERVAL_MS = 30_000;
  * 밀리는 기아를 일으켰음). 실행 후 REFRESH_MIN_INTERVAL_MS 안의 재예약은 그만큼 미룬다.
  */
 export function scheduleOpenTrailListingRefresh(trailId: string, debounceMs = 2_500): void {
+  noteListingRefreshSchedule();
   if (refreshScheduled.has(trailId)) return;
   const lastRun = refreshLastRunAt.get(trailId) ?? 0;
-  const wait = Math.max(debounceMs, lastRun + REFRESH_MIN_INTERVAL_MS - Date.now());
-  const id = window.setTimeout(() => {
+  const wait = Math.max(debounceMs, lastRun + REFRESH_MIN_INTERVAL_MS - listingClock.now());
+  const id = listingClock.setTimeout(() => {
     refreshScheduled.delete(trailId);
-    refreshLastRunAt.set(trailId, Date.now());
+    refreshLastRunAt.set(trailId, listingClock.now());
     void refreshOpenTrailListingFromTrail(trailId).catch(() => {});
   }, wait);
   refreshScheduled.set(trailId, id);

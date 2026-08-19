@@ -35,6 +35,6 @@ export async function flushRideJoinPresenceBurst(
   }
 
   if (snapshot.trailId !== DEFAULT_TRAIL_ID) {
-    void touchTrailInstanceActivity(snapshot.trailId);
+    void touchTrailInstanceActivity(snapshot.trailId, "joinBurst");
   }
 }

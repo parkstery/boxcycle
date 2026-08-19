@@ -18,6 +18,11 @@ import {
 } from "./firestoreOpenTrailListings";
 import { assertPublicTrailHasRoute, trailHasConfiguredRoute } from "./trailAccessPolicy";
 import { resolvePublicationIdFromDoc } from "./resolvePublicationIdFromDoc";
+import {
+  noteTouchActivityCall,
+  noteTrailDocUpdateDoc,
+  type TouchActivitySource,
+} from "./touchActivityMeters";
 
 export type TrailVisibility = "open" | "private";
 export type TrailStatus = "open" | "closed" | "archived";
@@ -170,11 +175,29 @@ export async function closeTrailInstance(trailId: string): Promise<void> {
   void removeOpenTrailListing(trailId);
 }
 
-export async function touchTrailInstanceActivity(trailId: string): Promise<void> {
+async function defaultTouchTrailDoc(trailId: string): Promise<void> {
   const db = getFirebaseFirestore();
   await updateDoc(doc(db, TRAILS_COLLECTION, trailId), {
     lastActivityAt: serverTimestamp(),
   }).catch(() => {});
+}
+
+let touchTrailDocWriter = defaultTouchTrailDoc;
+
+/** DEV·단위시험용. 제품 수명주기에서 호출하지 마라. */
+export function resetTouchTrailDocWriterForTests(
+  writer?: (trailId: string) => Promise<void>,
+): void {
+  touchTrailDocWriter = writer ?? defaultTouchTrailDoc;
+}
+
+export async function touchTrailInstanceActivity(
+  trailId: string,
+  source: TouchActivitySource = "unspecified",
+): Promise<void> {
+  noteTouchActivityCall(source);
+  noteTrailDocUpdateDoc();
+  await touchTrailDocWriter(trailId);
   scheduleOpenTrailListingRefresh(trailId);
 }
 

@@ -328,7 +328,7 @@ async function runRouteJob(job: RouteFlightJob): Promise<void> {
     }
     if (snapshot.trailId !== DEFAULT_TRAIL_ID) {
       const touchStartAt = Date.now();
-      void touchTrailInstanceActivity(snapshot.trailId).then(
+      void touchTrailInstanceActivity(snapshot.trailId, "routePublish").then(
         () => {
           if (!import.meta.env.DEV) return;
           const touchDoneAt = Date.now();

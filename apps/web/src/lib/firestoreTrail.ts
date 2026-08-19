@@ -18,6 +18,7 @@ import {
   TRAIL_MEMBERS_SUBCOLLECTION,
   TRAILS_COLLECTION,
 } from "./firestoreTrailPaths";
+import { noteListingRefreshRead, notePresenceHeartbeatWrite } from "./touchActivityMeters";
 
 /** URL·입장 시 기본 Trail ID (Firestore: `trails/default`) */
 export const DEFAULT_TRAIL_ID = "default";
@@ -76,7 +77,7 @@ function membersCollectionRef(trailId: string) {
 
 export const isTrailMemberActive = isMemberRecentlySeen;
 
-export async function upsertTrailPresence(user: User, trailId: string): Promise<void> {
+async function defaultPresenceUpsert(user: User, trailId: string): Promise<void> {
   const rid = sanitizeTrailId(trailId);
   const db = getFirebaseFirestore();
   const ref = doc(db, TRAILS_COLLECTION, rid, TRAIL_MEMBERS_SUBCOLLECTION, user.uid);
@@ -90,6 +91,20 @@ export async function upsertTrailPresence(user: User, trailId: string): Promise<
     },
     { merge: true },
   );
+}
+
+let presenceUpsertWriter = defaultPresenceUpsert;
+
+/** DEV·단위시험용. 제품 수명주기에서 호출하지 마라. */
+export function resetPresenceUpsertWriterForTests(
+  writer?: (user: User, trailId: string) => Promise<void>,
+): void {
+  presenceUpsertWriter = writer ?? defaultPresenceUpsert;
+}
+
+export async function upsertTrailPresence(user: User, trailId: string): Promise<void> {
+  notePresenceHeartbeatWrite();
+  await presenceUpsertWriter(user, trailId);
 }
 
 export async function touchTrailPresence(user: User, trailId: string): Promise<void> {
@@ -111,6 +126,7 @@ export async function countTrailMembersFresh(trailId: string): Promise<number> {
   const coll = membersCollectionRef(rid);
   const cutoffMs = Date.now() - TRAIL_PRESENCE_STALE_MS;
   const snap = await getDocs(query(coll, limit(MEMBERS_COUNT_SCAN_LIMIT)));
+  noteListingRefreshRead();
   let n = 0;
   for (const d of snap.docs) {
     const ms = lastSeenAtToMillis((d.data() as Record<string, unknown>).lastSeenAt);
