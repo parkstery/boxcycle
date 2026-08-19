@@ -1,0 +1,43 @@
+{
+  "instruction": "S4-4",
+  "trailId": "3mzRUyc1EKS1BWdsVhV1",
+  "judgment": {
+    "axis": "none",
+    "maxDistBacktrackM": 0.25683684210527247,
+    "distBacktrackCount": 3,
+    "maxScreenReversePx": 42.62859937890532,
+    "screenReverseCount": 6,
+    "maxAlongScreenReversePx": 0,
+    "alongScreenReverseCount": 0,
+    "displayFrames": 198,
+    "ingestEvents": 425,
+    "peerUids": [
+      "7Y9KNm7ZUHrL7rhilKn8tc7Hn480"
+    ],
+    "reason": "거리축 역행 최대 0.257 m. 화면 2D 반전은 있으나 앞뒤(Y)는 0 회(최대 0.0 px) — 좌우(곡률·카메라 요)로 본다. 이 창에서 앞뒤 튐은 재현되지 않음."
+  },
+  "ingestChoices": {
+    "rtdb-only": 425
+  },
+  "eventCount": 623,
+  "conditions": [
+    {
+      "riders": 2,
+      "speedKmh": [
+        25,
+        25
+      ],
+      "durationMs": 8000,
+      "note": "same speed, close — shots close-00..02"
+    },
+    {
+      "riders": 2,
+      "speedKmh": [
+        32,
+        10
+      ],
+      "durationMs": 8000,
+      "note": "speed diff, overtake — shot far-00"
+    }
+  ]
+}

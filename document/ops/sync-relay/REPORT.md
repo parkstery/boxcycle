@@ -1,5 +1,9 @@
 # S4 진행 상황 REPORT — route·motion 발행 수명주기 종결 · 위치 동기화는 미종결
 
+S4-4: 상대 라이더 앞뒤 튐을 에뮬레이터 2인 슬라이더로 다섯 축 동시에 남겼다.
+displayDistM 역행은 최대 0.257 m 이고 화면 앞뒤(Y) 반전은 0회다. 이 조건에서
+앞뒤 튐은 재현되지 않았고, merge·보간·카메라는 건드리지 않았다.
+
 공유 Trail 문서 `lastActivityAt` 쓰기를 60초 창에서 셌다. `trails/{id}`
 구독은 **코드 검사로 부재**(③ N/A 미배선, 관측치 아님). 라이더 1→2 의 updateDoc 은
 2배(선형)였다. 한 명이 route 1Hz 로 같은 필드를 중복으로 치는 것만 heartbeat 간격으로 합쳤다.
@@ -12,13 +16,13 @@
 발행 수명주기(route + motion)다.** 목록·저줌 구독이 만드는 읽기 비용은 아직 남아 있다.
 「멀티라이더 위치 동기화 결함 종결」이 아니다.
 
-- **지시번호**: S4-3 (`touchTrailInstanceActivity` · presence heartbeat)
+- **지시번호**: S4-4 (상대 라이더 앞뒤 튐 — 재현·축 분리. 제품 미수정)
 - **일시**: 2026-08-20
-- **브랜치**: `fix/multiplayer-read-amplification` (origin/main2 결합 완료 `66ebe7b`) · HEAD 는 아래 S4-3 커밋
-- **활성 지시**: **S4-3 보고완료** (`INSTRUCTION.md`)
+- **브랜치**: `fix/multiplayer-read-amplification` (origin/main2 결합 완료 `66ebe7b`) · 잔무 `d879588` · 캡처 `9f3d5e9`
+- **활성 지시**: **S4-4 보고완료** (`INSTRUCTION.md`)
 - **원격**: origin `fix/multiplayer-read-amplification`
 - **워킹트리**: `C:/20.HDev/rtw-sync-s4-2/repo`
-- **보존**: `INSTRUCTION-S42R.md` · `INSTRUCTION-S42.md` · `S43-touch-baseline.json` · `S43-touch-after.json`
+- **보존**: `INSTRUCTION-S43.md` · `INSTRUCTION-S42R.md` · `S44-jitter-capture.json` · `S44-jitter-shots/`
 
 ---
 
@@ -53,6 +57,7 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 | S4-2 | 읽기 증폭 — collectionGroup 중복 1건 정리 | **보고완료** `407b56a` |
 | S4-2R | 첫 스냅샷 전 빈 목록 유출 차단 (hasSnapshot) | **보고완료** `88c3d14` |
 | S4-3 | `touchTrailInstanceActivity` · heartbeat | **보고완료** `cb5f1c2` · 계측 `6294600`. N×M 스냅샷 없음. ② 선형. 1Hz touch 합침. M3 실화면 미완 |
+| S4-4 | 상대 라이더 앞뒤 튐 | **보고완료** 캡처 `9f3d5e9`. 에뮬레이터 2인에서 앞뒤 미재현. merge 미호출. 제품 미수정 |
 
 ---
 
@@ -62,12 +67,31 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 
 | 항목 | 값 |
 |---|---|
-| HEAD | `cb5f1c2` (S4-3 제품) · 계측 `6294600` · merge `66ebe7b` |
+| HEAD | 캡처 `9f3d5e9` · S4-3 제품 `cb5f1c2` · 계측 `6294600` · merge `66ebe7b` |
 | S4-1R2 제품 | `b3336ed` |
 | S4-M1R 제품 | `71669a1` (motion 수명주기 · F-2) |
 | S4-M1R 시험·도구 | `41c2ea2` |
 | S4-M1R 증거·문서 | `a2b58ff` |
 | stash | 2 건 — `orchestrator-docs: CLAUDE.md + 결정로그 (S4-1R2-D 정리)` · `wip before god-file-split` |
+
+### S4-4 수용 요약 (2026-08-20)
+
+에뮬레이터 2인(슬라이더 25/25 근접 → 32/10 추월)에서 다섯 축을 같은 시계로 남겼다.
+앞뒤 튐은 재현되지 않았다. 거리축 역행 최대 0.257 m. 화면 앞뒤(Y) 반전 0회.
+ingest 425회 전부 `rtdb-only` — `mergePeerMotionPackets` 제품 미호출.
+하네스 확장·제품 수정 없음. 증거: `S44-jitter-capture.json` · `S44-jitter-shots/`.
+
+| | 항목 | 결과 |
+|---|---|---|
+| J0 | 재현 확보 | 로그·근접 샷 있음. **앞뒤 튐이 보이는 샷은 실패** |
+| J1 | 축 판정 | 이 창에서 none. 거리축 아님. 화면 앞뒤(Y) 0회. 좌우(X)만 |
+| J2 | 하네스 | N/A (거리축 아님). merge 재생 안 넓힘 |
+| J3 | 재현 고정 | 없음 |
+| J4 | 수정 후 | 판정하지 않음 (J3 없음). 제품 미수정 |
+| J5 | 순간이동 없음 | displayDistM 최대 역행 0.257 m |
+| J6 | 1 단계 무훼손 | `test:peer-s3a-replay` d0·d1 pass |
+| J7 | S4 비용 무훼손 | `test:s42-meters` 15 · CG 2→1 · `test:s43-meters` 11 |
+| J8 | 회귀 | `tsc -b` 0 · 변경 파일 eslint 0 |
 
 ### S4-3 수용 요약 (2026-08-20)
 
@@ -146,7 +170,7 @@ A ① 는 전후 62 (routePublish 60 + heartbeat 2). 예약 62, 실행 2. B/A �
 S4-2   읽기 증폭 — 보고완료. collectionGroup consumer 2 → underlying 1
 S4-2R  첫 스냅샷 전 [] 유출 차단 — 보고완료. 로딩 조기 종료·빈 목록 선노출 제거. 2→1 유지
 S4-3   touch · heartbeat — 보고완료. N×M 스냅샷 없음. ② 선형. 1Hz lastActivityAt 합침. M3 실화면 미완
-상대 라이더 앞뒤 튐   신규 미해결(INSTRUCTION §11-1). S4-3 과 섞지 않음. 다음 독립 지시
+S4-4   상대 라이더 앞뒤 튐 — 보고완료. 에뮬레이터 2인 슬라이더에서 앞뒤 미재현. 제품 미수정. Chief 실기기 조건은 미확보
 F-1    peer visibility 초기 시각 0
 ```
 
@@ -155,6 +179,7 @@ F-2 는 종결(`onMotionError`). motion 발행 수명주기 공백은 해소(`71
 ### 이견 · 실패
 
 - M3: F1~F5 실제 화면 미촬영. `S43-shots/` 없음. 성공으로 포장하지 않음.
+- S4-4 J0: 근접 2인 샷은 있으나 앞뒤 튐 자체는 이 조건에서 안 보임. 실기기 Chief 관찰은 미재현.
 - App.tsx·useTrailSession·useTrailLivePublicationRidePublisher 호출 태그 미커밋 (pre-commit 이 파일 전체 eslint 선행 오류로 거부).
 - 이견: `S41R2-summary.json` · `S41M1-summary.json` 최상위 `instruction` 필드는 `"S4-1"`
 (요약기 고정 문자열). 인용은 파일명으로 한다.
