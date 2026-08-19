@@ -1,5 +1,10 @@
 # S4 진행 상황 REPORT — route·motion 발행 수명주기 종결 · 위치 동기화는 미종결
 
+S4-4R2: S44 의 진행축 반전 38회·최대 46.7px 가 카메라인지 peer인지만 갈랐다.
+로컬 좌표를 켠 채 S44 조건 C-A 25/25 · C-B 32/10 을 다시 찍었다. 수십 px 급이
+다시 나왔고(C-A 35.4 · C-B 65.0) K1(①−②=③) 은 통과했다. 판정은 **혼합**.
+제품 보간·merge·카메라는 그대로다.
+
 S4-4R: S4-4 의 「재현되지 않음」은 판정기가 앞뒤를 화면 Y 로 고정해서 BLOCK 됐다.
 기존 캡처를 진행축 투영으로 다시 읽으면 42.6px 반전 6회는 전부 진행축 부호 반전이다.
 제품 보간·merge·카메라는 그대로다. 앞뒤 튐은 아직 못 고쳤다.
@@ -20,13 +25,13 @@ displayDistM 역행은 최대 0.257 m 이고 화면 앞뒤(Y) 반전은 0회다.
 발행 수명주기(route + motion)다.** 목록·저줌 구독이 만드는 읽기 비용은 아직 남아 있다.
 「멀티라이더 위치 동기화 결함 종결」이 아니다.
 
-- **지시번호**: S4-4R (판정기 진행축 보완 · 기존 캡처 재판정)
+- **지시번호**: S4-4R2 (46.7px 반전 — 카메라인가 peer인가)
 - **일시**: 2026-08-20
-- **브랜치**: `fix/multiplayer-read-amplification` (origin/main2 결합 완료 `66ebe7b`) · 판정기 `cd640d3` · 재판정 `ea39f6e`
-- **활성 지시**: **S4-4R 보고완료** (`INSTRUCTION.md`)
+- **브랜치**: `fix/multiplayer-read-amplification` (origin/main2 결합 완료 `66ebe7b`) · 판정 `e45e9ec` · 캡처 `9b6c309`
+- **활성 지시**: **S4-4R2 보고완료** (`INSTRUCTION.md`)
 - **원격**: origin `fix/multiplayer-read-amplification`
 - **워킹트리**: `C:/20.HDev/rtw-sync-s4-2/repo`
-- **보존**: `INSTRUCTION-S44.md` · `S44-jitter-capture.json` · `S44R-rejudge.json` · `S44R-C1-left-5kmh.json`
+- **보존**: `INSTRUCTION-S44.md` · `INSTRUCTION-S44R.md` · `S44-jitter-capture.json` · `S44R-rejudge.json` · `S44R-C1-left-5kmh.json` · `S44R2-A-25-25.json` · `S44R2-B-32-10.json`
 
 ---
 
@@ -62,7 +67,8 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 | S4-2R | 첫 스냅샷 전 빈 목록 유출 차단 (hasSnapshot) | **보고완료** `88c3d14` |
 | S4-3 | `touchTrailInstanceActivity` · heartbeat | **보고완료** `cb5f1c2` · 계측 `6294600`. N×M 스냅샷 없음. ② 선형. 1Hz touch 합침. M3 실화면 미완 |
 | S4-4 | 상대 라이더 앞뒤 튐 | **BLOCK** `b545ffa` — Y 고정 판정. 캡처 `9f3d5e9` 는 유지 |
-| S4-4R | 진행축 판정 · 재판정 | **보고완료** 판정기 `cd640d3`. 42.6px 6회=진행축. 제품 미수정 |
+| S4-4R | 진행축 판정 · 재판정 | **WARNING 채택** 판정기 `cd640d3`. 42.6px 6회=진행축. 제품 미수정 |
+| S4-4R2 | 카메라 vs peer | **보고완료** 판정 `e45e9ec`. 46.7급 재현. K1 통과. **혼합**. 제품 미수정 |
 
 ---
 
@@ -72,12 +78,29 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 
 | 항목 | 값 |
 |---|---|
-| HEAD | 판정기 `cd640d3` · 재판정 `ea39f6e` · S4-4 캡처 `9f3d5e9` · S4-3 제품 `cb5f1c2` |
+| HEAD | 판정 `e45e9ec` · S4-4R 판정기 `cd640d3` · 재판정 `ea39f6e` · S4-4 캡처 `9f3d5e9` · S4-3 제품 `cb5f1c2` |
 | S4-1R2 제품 | `b3336ed` |
 | S4-M1R 제품 | `71669a1` (motion 수명주기 · F-2) |
 | S4-M1R 시험·도구 | `41c2ea2` |
 | S4-M1R 증거·문서 | `a2b58ff` |
 | stash | 2 건 — `orchestrator-docs: CLAUDE.md + 결정로그 (S4-1R2-D 정리)` · `wip before god-file-split` |
+
+### S4-4R2 수용 요약 (2026-08-20)
+
+S44 조건을 로컬 화면 좌표 켠 채로 다시 찍었다. ① peer 절대 · ② local 절대 ·
+③ (peer−local) 을 같은 û 에 투영. K1 잔차 ≈ 0.
+C-A 35.4 px · C-B 65.0 px 로 S44급 재현. 판정 **혼합** — 카메라만도 peer만도 아님.
+제품 미수정. 증거: `S44R2-A-25-25.json` · `S44R2-B-32-10.json` · `S44R2-shots/`.
+
+| | 항목 | 결과 |
+|---|---|---|
+| K0 | 계열 3종 | 같은 프레임 ①②③ · hasLocalScreen true |
+| K1 | 검산 | ①−②−③ 최대 1.42e-14 px |
+| K2 | 반전 재현 | C-A 35.4 · C-B 65.0 |
+| K3 | 판정 | 혼합 |
+| K4 | 원시 보고 | px 횟수·최대·진폭. 미터 환산 없음 |
+| K5 | 제품 무변경 | integrator·merge·카메라 diff 없음 |
+| K6 | 무훼손 | s42 15 · s43 11 · peer-s3a d0·d1 · tsc · eslint 0 |
 
 ### S4-4R 수용 요약 (2026-08-20)
 
@@ -194,7 +217,8 @@ S4-2   읽기 증폭 — 보고완료. collectionGroup consumer 2 → underlying
 S4-2R  첫 스냅샷 전 [] 유출 차단 — 보고완료. 로딩 조기 종료·빈 목록 선노출 제거. 2→1 유지
 S4-3   touch · heartbeat — 보고완료. N×M 스냅샷 없음. ② 선형. 1Hz lastActivityAt 합침. M3 실화면 미완
 S4-4   상대 라이더 앞뒤 튐 — BLOCK (Y 고정 판정). 캡처 `9f3d5e9` 유지
-S4-4R  진행축 판정 — 보고완료. 42.6px=진행축. 제품 미수정. 튐 자체는 미해결
+S4-4R  진행축 판정 — WARNING 채택. 42.6px=진행축. 제품 미수정. 튐 자체는 미해결
+S4-4R2 카메라 vs peer — 보고완료. 혼합. 제품 미수정
 F-1    peer visibility 초기 시각 0
 ```
 
@@ -205,6 +229,7 @@ F-2 는 종결(`onMotionError`). motion 발행 수명주기 공백은 해소(`71
 - M3: F1~F5 실제 화면 미촬영. `S43-shots/` 없음. 성공으로 포장하지 않음.
 - S4-4 J0: 근접 2인 샷은 있으나 Y 고정 판정으로 앞뒤를 놓침. S4-4R 에서 진행축으로 재확인.
 - S4-4R: C1 |gap|≤5m 나란히 미달(7.8m). 제품 앞뒤 튐은 못 고침.
+- S4-4R2: C-A startGap 21.8 m. 「근접」단정 안 함. 판정은 혼합이라 카메라/peer 단독 수정 금지.
 - App.tsx·useTrailSession·useTrailLivePublicationRidePublisher 호출 태그 미커밋 (pre-commit 이 파일 전체 eslint 선행 오류로 거부).
 - App.tsx·useTrailSession·useTrailLivePublicationRidePublisher 호출 태그 미커밋 (pre-commit 이 파일 전체 eslint 선행 오류로 거부).
 - 이견: `S41R2-summary.json` · `S41M1-summary.json` 최상위 `instruction` 필드는 `"S4-1"`
