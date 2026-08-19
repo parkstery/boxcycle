@@ -16,9 +16,11 @@ import {
   clampRouteDist,
   createPeerMotionEntity,
   stepPeerMotionEntity,
+  type PeerMotionIngestResult,
 } from "./integrator";
 import type { PeerMotionEntity, PeerMotionPacket } from "./types";
 import { getPeerSyncSelfDistM } from "./peerSyncDebug";
+import { noteJitterDisplay } from "./peerJitterCapture";
 import { peerSyncChainLog, peerSyncChainShouldEmit } from "./peerSyncChainLog";
 
 const PEER_MAX = 30;
@@ -54,14 +56,21 @@ export class PeerMotionRegistry {
   private readonly entities = new Map<string, PeerMotionEntity>();
   private activeUids = new Set<string>();
 
-  ingest(packet: PeerMotionPacket, label: string): void {
-    if (!packet.uid || !packet.publicationId.trim()) return;
-    if (packet.distM < 0 || !Number.isFinite(packet.distM)) return;
+  ingest(packet: PeerMotionPacket, label: string): {
+    result: PeerMotionIngestResult | "dropped";
+    newestDistM: number;
+    displayDistM: number;
+  } {
+    if (!packet.uid || !packet.publicationId.trim()) {
+      return { result: "dropped", newestDistM: 0, displayDistM: 0 };
+    }
+    if (packet.distM < 0 || !Number.isFinite(packet.distM)) {
+      return { result: "dropped", newestDistM: 0, displayDistM: 0 };
+    }
 
     // 보간 모델 — 정렬·dedup·단조 처리는 applyPeerMotionIngest 가 버퍼에 담당.
     const cur = this.entities.get(packet.uid);
-    let result: "accepted" | "dup-same-dist" | "discard-forward" | "discard-retrograde" =
-      "accepted";
+    let result: PeerMotionIngestResult = "accepted";
     let newestDist = packet.distM;
     if (cur) {
       const newest = cur.buffer[cur.buffer.length - 1];
@@ -79,6 +88,13 @@ export class PeerMotionRegistry {
       });
     }
     this.activeUids.add(packet.uid);
+    const after = this.entities.get(packet.uid);
+    const afterNewest = after?.buffer[after.buffer.length - 1]?.distM ?? packet.distM;
+    return {
+      result,
+      newestDistM: afterNewest,
+      displayDistM: after?.displayDistM ?? packet.distM,
+    };
   }
 
   /** ingest 배치 후 호출 — 목록에 없는 uid 는 grace 후 제거 */
@@ -132,6 +148,13 @@ export class PeerMotionRegistry {
       const clamped = distM !== beforeClamp && routeLenM > 0;
       const lngLat = getPointOnRouteByDistance(routeGeometry, distM);
       if (!lngLat) continue;
+      noteJitterDisplay({
+        atMs: nowMs,
+        uid: entity.uid,
+        displayDistM: distM,
+        lng: lngLat[0],
+        lat: lngLat[1],
+      });
       const h = headingAtRouteDistanceMeters(routeGeometry, distM) ?? 0;
       const moving = entity.phase === "live" && entity.speedMps > 0.02;
       if (h !== 0 || moving) entity.hdg = h;

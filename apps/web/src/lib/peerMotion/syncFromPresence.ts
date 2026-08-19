@@ -3,6 +3,12 @@ import type { TrailLivePublicationRideRow } from "../firestoreTrailLivePublicati
 import type { RtdbTrailMotionRow } from "../rtdbTrailMotion";
 import { mapNametagForMember } from "../guestNametag";
 import { getPeerMotionRegistry } from "./PeerMotionRegistry";
+import { mergePeerMotionPackets } from "./mergePackets";
+import {
+  isPeerJitterCapturing,
+  noteJitterIngest,
+  packetToJitterSource,
+} from "./peerJitterCapture";
 import { rtdbMotionRowToPeerMotionPacket } from "./rtdbToPacket";
 import { trailLiveRowToPeerMotionPacket } from "./rowToPacket";
 import { notePeerSeqSeen, peerSyncChainLog } from "./peerSyncChainLog";
@@ -74,8 +80,33 @@ export function syncPeerMotionFromPresence(input: SyncPeerMotionFromPresenceInpu
     // RTDB(10Hz·raw distM·speed)가 있으면 그것만 ingest. 두 소스를 같은 사이클에 모두
     // 넣으면 거의 같은 recvAtMs 에 distM 이 미세하게 다른 스냅샷 2개가 생겨 보간 jitter.
     // RTDB 없을 때만 Firestore 폴백.
-    if (rtdbPacket) registry.ingest(rtdbPacket, label);
-    else if (fsPacket) registry.ingest(fsPacket, label);
+    const ingested = rtdbPacket ?? fsPacket;
+    const ingestNote = ingested
+      ? registry.ingest(ingested, label)
+      : { result: "dropped" as const, newestDistM: 0, displayDistM: 0 };
+    if (isPeerJitterCapturing() && ingested && ingestNote.result !== "dropped") {
+      const merged = mergePeerMotionPackets(rtdbPacket, fsPacket);
+      noteJitterIngest({
+        atMs: recvAt,
+        uid,
+        rtdb: packetToJitterSource(rtdbPacket, recvAt),
+        fs: packetToJitterSource(fsPacket, recvAt),
+        merge: {
+          invoked: false,
+          choice: rtdbPacket ? "rtdb-only" : "fs-fallback",
+          reason: rtdbPacket
+            ? "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only"
+            : "product skips mergePeerMotionPackets; no RTDB so ingest Firestore fallback",
+          wouldDistM: merged?.distM ?? null,
+          wouldSpeedMps: merged?.speedMps ?? null,
+          wouldPhase: merged?.phase ?? null,
+          wouldServerAtMs: merged?.serverAtMs ?? null,
+        },
+        result: ingestNote.result,
+        newestDistM: ingestNote.newestDistM,
+        packetDistM: ingested.distM,
+      });
+    }
     activeUids.push(uid);
   }
 
