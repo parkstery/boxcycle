@@ -14,6 +14,11 @@ if (underEmulator) {
   process.env.RIDE_VERIFY_LIVE = '1'
 }
 
+// 다른 worktree 의 dev 서버가 5000 을 잡고 있으면 `RTW_DEV_PORT=5001 npm run test:e2e:ride`.
+// vite.config.ts 가 같은 env 를 읽으므로 둘이 어긋나지 않는다.
+const DEV_PORT = Number(process.env.RTW_DEV_PORT ?? 5000)
+const DEV_URL = `http://127.0.0.1:${DEV_PORT}`
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -22,7 +27,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: [['line'], ['html', { open: 'never' }]],
   use: {
-    baseURL: 'http://127.0.0.1:5000',
+    baseURL: DEV_URL,
     trace: 'on-first-retry',
   },
   projects: [
@@ -33,7 +38,7 @@ export default defineConfig({
   ],
   webServer: {
     command: 'npm run dev:localhost',
-    url: 'http://127.0.0.1:5000',
+    url: DEV_URL,
     // 에뮬레이터 컨텍스트에서만 vite 에 플래그를 넘겨 앱이 에뮬레이터에 붙게 한다.
     // (일반 test:e2e 는 이 env 없이 돌아 실 Firebase 설정을 그대로 쓴다 — smoke 는 Firebase 불필요)
     env: underEmulator ? { VITE_USE_EMULATOR: '1' } : {},
