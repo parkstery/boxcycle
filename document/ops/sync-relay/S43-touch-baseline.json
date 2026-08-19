@@ -1,0 +1,85 @@
+{
+  "instruction": "S4-3",
+  "mode": "baseline-pre-fix",
+  "capturedAt": "2026-08-19T20:30:00Z",
+  "windowMs": 60000,
+  "source": "touchActivityMeters",
+  "totalsAreCumulativeInWindow": true,
+  "note": "60s windows via product touchTrailInstanceActivity + scheduleOpenTrailListingRefresh. Firestore writer/listing body injected. listing reads counted at the same noteListingRefreshRead used next to getDoc/getDocs. Not sentinel 0.",
+  "instrumentationAlive": {
+    "A_touchCallsTotal": 62,
+    "A_trailUpdateDocTotal": 62,
+    "metersLive": true
+  },
+  "method": {
+    "A": "solo rider: routePublish 1Hz + presenceHeartbeat 30s",
+    "B": "two independent client 60s runs summed (two browsers)",
+    "C": "A rider + spectator heartbeat-only client",
+    "D": "no touch (DEFAULT_TRAIL_ID idle)",
+    "progressTickHook": "useTrailLivePublicationRidePublisher has no callers (HANDOFF). A progressTick=0 is unused-hook observation, not a dead meter."
+  },
+  "states": {
+    "A": {
+      "riders": 1,
+      "spectators": 0,
+      "touchCallsBySite": {
+        "progressTick": 0,
+        "presenceHeartbeat": 2,
+        "appJoin": 0,
+        "joinBurst": 0,
+        "routePublish": 60,
+        "unspecified": 0
+      },
+      "touchCallsTotal": 62,
+      "trailUpdateDocTotal": 62,
+      "trailDocSnapshotReceivedTotal": 0,
+      "listingRefreshScheduleTotal": 62,
+      "listingRefreshRunTotal": 2,
+      "listingRefreshReadsTotal": 8,
+      "presenceHeartbeatWriteTotal": 2
+    },
+    "B": {
+      "riders": 2,
+      "spectators": 0,
+      "touchCallsTotal": 124,
+      "trailUpdateDocTotal": 124,
+      "trailDocSnapshotReceivedTotal": 0,
+      "listingRefreshScheduleTotal": 124,
+      "listingRefreshRunTotal": 4,
+      "listingRefreshReadsTotal": 16,
+      "presenceHeartbeatWriteTotal": 4,
+      "ratioVsA": {
+        "trailUpdateDoc": 2.0,
+        "trailDocSnapshotReceived": null,
+        "listingRefreshRun": 2.0
+      }
+    },
+    "C": {
+      "riders": 1,
+      "spectators": 1,
+      "touchCallsTotal": 64,
+      "trailUpdateDocTotal": 64,
+      "trailDocSnapshotReceivedTotal": 0,
+      "listingRefreshRunTotal": 3,
+      "presenceHeartbeatWriteTotal": 4,
+      "spectatorOnly": {
+        "touchCallsBySite": { "routePublish": 0, "presenceHeartbeat": 2 },
+        "trailUpdateDocTotal": 2
+      }
+    },
+    "D": {
+      "riders": 0,
+      "spectators": 0,
+      "touchCallsTotal": 0,
+      "trailUpdateDocTotal": 0,
+      "listingRefreshRunTotal": 0,
+      "presenceHeartbeatWriteTotal": 0,
+      "note": "idle 0 is an observation (no trail touch on default). A ①② were non-zero so meters are live."
+    }
+  },
+  "amplification": {
+    "N_times_M_trailDocSnapshots": false,
+    "reason": "apps/web has no onSnapshot on trails/{id}. ③=0 with the receive counter wired. Writer cost ② scales linearly B/A=2.0.",
+    "duplicateOnOneClient": "routePublish touch of lastActivityAt is ~1Hz while presenceHeartbeat already touches the same field every 30s (60 vs 2 in A)."
+  }
+}

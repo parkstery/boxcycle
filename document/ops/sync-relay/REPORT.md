@@ -1,5 +1,9 @@
 # S4 진행 상황 REPORT — route·motion 발행 수명주기 종결 · 위치 동기화는 미종결
 
+S4-3: 공유 Trail 문서 `lastActivityAt` 쓰기와 listing 재계산을 60초 창에서 셌다. `trails/{id}`
+를 구독하는 클라이언트가 없어 N×M 스냅샷은 나오지 않았고, 라이더 1→2 의 updateDoc 은
+2배(선형)였다. 한 명이 route 1Hz 로 같은 필드를 중복으로 치는 것만 heartbeat 간격으로 합쳤다.
+
 주행을 끝내거나 탭을 숨기거나 Trail을 바꿔도, 늦게 도착하는 진행률·위치 쓰기가 지워진 행과
 노드를 다시 살리지 않는다. 같은 Trail을 곧바로 다시 시작해도 앞 세션의 뒤늦은 정리가
 새 행을 지워버리지 않는다.
@@ -8,13 +12,13 @@
 발행 수명주기(route + motion)다.** 목록·저줌 구독이 만드는 읽기 비용은 아직 남아 있다.
 「멀티라이더 위치 동기화 결함 종결」이 아니다.
 
-- **지시번호**: S4-2 (읽기 증폭 — 계측 먼저, 증명된 중복만 정리)
-- **일시**: 2026-08-16
-- **브랜치**: `fix/multiplayer-read-amplification` (base `main2@4249809`) · HEAD `407b56a`
-- **활성 지시**: **S4-2 보고완료** (`INSTRUCTION.md`)
-- **원격**: origin 첫 push `fix/multiplayer-read-amplification`
+- **지시번호**: S4-3 (`touchTrailInstanceActivity` · presence heartbeat)
+- **일시**: 2026-08-20
+- **브랜치**: `fix/multiplayer-read-amplification` (base `main2@d0ab0e8` 결합 `66ebe7b`) · HEAD 는 아래 S4-3 커밋
+- **활성 지시**: **S4-3 보고완료** (`INSTRUCTION.md`)
+- **원격**: origin `fix/multiplayer-read-amplification`
 - **워킹트리**: `C:/20.HDev/rtw-sync-s4-2/repo`
-- **보존**: `INSTRUCTION-S4M1R.md` · `S4M1-lifecycle.json` · `S41M1-summary.json` · `REPORT-S41R2.md` · `S41R-lifecycle.json`
+- **보존**: `INSTRUCTION-S42R.md` · `INSTRUCTION-S42.md` · `S43-touch-baseline.json` · `S43-touch-after.json`
 
 ---
 
@@ -48,7 +52,7 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 | S4-M1R | motion epoch·배수·소유권·지연삭제·오류전달 · F-2 | **WARNING 채택** `71669a1` · `41c2ea2` · `a2b58ff` |
 | S4-2 | 읽기 증폭 — collectionGroup 중복 1건 정리 | **보고완료** `407b56a` |
 | S4-2R | 첫 스냅샷 전 빈 목록 유출 차단 (hasSnapshot) | **보고완료** `88c3d14` |
-| S4-3 | `touchTrailInstanceActivity` · heartbeat | **대기** (S4-2 뒤) |
+| S4-3 | `touchTrailInstanceActivity` · heartbeat | **보고완료** `cb5f1c2` · 계측 `6294600`. N×M 스냅샷 없음. ② 선형. 1Hz touch 합침. M3 실화면 미완 |
 
 ---
 
@@ -58,12 +62,55 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 
 | 항목 | 값 |
 |---|---|
-| HEAD | `407b56a` (S4-2 제품; 증거·문서는 후속 커밋) |
+| HEAD | `cb5f1c2` (S4-3 제품) · 계측 `6294600` · merge `66ebe7b` |
 | S4-1R2 제품 | `b3336ed` |
 | S4-M1R 제품 | `71669a1` (motion 수명주기 · F-2) |
 | S4-M1R 시험·도구 | `41c2ea2` |
 | S4-M1R 증거·문서 | `a2b58ff` |
 | stash | 2 건 — `orchestrator-docs: CLAUDE.md + 결정로그 (S4-1R2-D 정리)` · `wip before god-file-split` |
+
+### S4-3 수용 요약 (2026-08-20)
+
+공유 Trail 문서 `lastActivityAt` 쓰기를 60초 창에서 셌다. 제품에 `trails/{id}` onSnapshot 이 없어 N×M 스냅샷 증폭은 나오지 않았다. 라이더 1→2 에서 ②는 2.0배(선형)다. 한 클라이언트 route 1Hz touch 가 30s heartbeat 와 같은 필드를 중복으로 쳐, 호출은 남기고 updateDoc 만 heartbeat 간격으로 합쳤다. A ② 62→3. heartbeat·진행률 주기 불변.
+
+#### §0 게이트
+
+```
+pwd                     C:/20.HDev/rtw-sync-s4-2/repo
+git rev-parse --abbrev-ref HEAD     fix/multiplayer-read-amplification
+git rev-parse --short HEAD          66ebe7b
+활성 INSTRUCTION 의 지시번호        S4-3
+```
+
+`rtw.code-workspace` 폴더: boxcycle · rtw-hud-h1 · rtw-sync-s4-2. 현재 창은 단일 폴더 rtw-sync-s4-2/repo.
+`apps/web/src/lib/boxcycle.code-workspace` 없음. merge `66ebe7b`.
+
+#### A~D (수정 전/후) — 예약과 실행을 나눔
+
+증거: `S43-touch-baseline.json` · `S43-touch-after.json`
+
+| 구간 | 전 ② | 후 ② | 전 ③ | 후 ③ | listing 실행 전/후 | ⑤ 전/후 |
+|---|---|---|---|---|---|---|
+| A 라이더1 | 62 | 3 | 0 | 0 | 2 / 2 | 2 / 2 |
+| B 라이더2 | 124 | 6 | 0 | 0 | 4 / 4 | 4 / 4 |
+| C 주행1+관전1 | 64 | 5 | 0 | 0 | | 4 / 4 |
+| D idle | 0 | 0 | 0 | 0 | 0 / 0 | 0 / 0 |
+
+A ① 는 전후 62 (routePublish 60 + heartbeat 2). 예약 62, 실행 2. B/A ② = 2.0 선형.
+
+#### M0~M6
+
+| | 항목 | 결과 |
+|---|---|---|
+| M0 | 계측 유효성 | PASS. 실제 수행 지점. A ①② 비-0. 예약/실행 분리 |
+| M1 | 증폭 확인 | PASS. 60s 표. ② 선형 2.0. ③=0 |
+| M2 | 수정 후 | PASS. 감소 지점=`touchTrailInstanceActivity` 의 Trail updateDoc |
+| M3 | 기능 회귀 없음 | 미완. F1~F5 실화면·`S43-shots/` 없음 |
+| M4 | 예산 무변화 | PASS. heartbeat 30s · 진행률 1Hz 무변경 |
+| M5 | S4-2 유지 | PASS. `test:s42-meters` 15. CG 2→1 유지 |
+| M6 | 회귀 | PASS. `tsc -b` 0 · 변경 파일 eslint 0 · `test:peer-s3a-replay` d0·d1 유지 |
+
+고치지 않음: listing hub, presence 주기, 진행률 주기, `touchTrailInstanceActivity` 제거, Trail 구독.
 
 ### S4-1R2 수용 요약 (재시험 없음 · 기존 산출물)
 
@@ -98,7 +145,8 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 ```
 S4-2   읽기 증폭 — 보고완료. collectionGroup consumer 2 → underlying 1
 S4-2R  첫 스냅샷 전 [] 유출 차단 — 보고완료. 로딩 조기 종료·빈 목록 선노출 제거. 2→1 유지
-S4-3   touch · heartbeat (S4-2 뒤)
+S4-3   touch · heartbeat — 보고완료. N×M 스냅샷 없음. ② 선형. 1Hz lastActivityAt 합침. M3 실화면 미완
+상대 라이더 앞뒤 튐   신규 미해결(INSTRUCTION §11-1). S4-3 과 섞지 않음. 다음 독립 지시
 F-1    peer visibility 초기 시각 0
 ```
 
@@ -106,7 +154,9 @@ F-2 는 종결(`onMotionError`). motion 발행 수명주기 공백은 해소(`71
 
 ### 이견 · 실패
 
-실패 없음. 이견: `S41R2-summary.json` · `S41M1-summary.json` 최상위 `instruction` 필드는 `"S4-1"`
+- M3: F1~F5 실제 화면 미촬영. `S43-shots/` 없음. 성공으로 포장하지 않음.
+- App.tsx·useTrailSession·useTrailLivePublicationRidePublisher 호출 태그 미커밋 (pre-commit 이 파일 전체 eslint 선행 오류로 거부).
+- 이견: `S41R2-summary.json` · `S41M1-summary.json` 최상위 `instruction` 필드는 `"S4-1"`
 (요약기 고정 문자열). 인용은 파일명으로 한다.
 
 S4-2 는 collectionGroup 중복 1건을 정리하고 보고완료. S4-M2 문서화 라운드의 제품 무수정 기록은 위에 그대로 둔다.

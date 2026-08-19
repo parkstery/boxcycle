@@ -1,0 +1,86 @@
+{
+  "instruction": "S4-3",
+  "mode": "after-fix",
+  "capturedAt": "2026-08-19T20:45:00Z",
+  "windowMs": 60000,
+  "source": "touchActivityMeters",
+  "totalsAreCumulativeInWindow": true,
+  "fix": {
+    "what": "touchTrailInstanceActivity coalesces lastActivityAt writes per trail to TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS (30s, latest-wins). Calls still counted in ①; ② is actual updateDoc.",
+    "didNotChange": [
+      "TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS",
+      "TRAIL_LIVE_PROGRESS_HEARTBEAT_MS",
+      "scheduleOpenTrailListingRefresh debounce 2500 / min interval 30000"
+    ]
+  },
+  "instrumentationAlive": {
+    "A_touchCallsTotal": 62,
+    "A_trailUpdateDocTotal": 3,
+    "metersLive": true
+  },
+  "states": {
+    "A": {
+      "riders": 1,
+      "spectators": 0,
+      "touchCallsBySite": {
+        "progressTick": 0,
+        "presenceHeartbeat": 2,
+        "appJoin": 0,
+        "joinBurst": 0,
+        "routePublish": 60,
+        "unspecified": 0
+      },
+      "touchCallsTotal": 62,
+      "trailUpdateDocTotal": 3,
+      "trailDocSnapshotReceivedTotal": 0,
+      "listingRefreshScheduleTotal": 62,
+      "listingRefreshRunTotal": 2,
+      "listingRefreshReadsTotal": 8,
+      "presenceHeartbeatWriteTotal": 2
+    },
+    "B": {
+      "riders": 2,
+      "spectators": 0,
+      "touchCallsTotal": 124,
+      "trailUpdateDocTotal": 6,
+      "trailDocSnapshotReceivedTotal": 0,
+      "listingRefreshScheduleTotal": 124,
+      "listingRefreshRunTotal": 4,
+      "listingRefreshReadsTotal": 16,
+      "presenceHeartbeatWriteTotal": 4,
+      "ratioVsA": {
+        "trailUpdateDoc": 2.0,
+        "trailDocSnapshotReceived": null,
+        "listingRefreshRun": 2.0
+      }
+    },
+    "C": {
+      "riders": 1,
+      "spectators": 1,
+      "touchCallsTotal": 64,
+      "trailUpdateDocTotal": 5,
+      "trailDocSnapshotReceivedTotal": 0,
+      "presenceHeartbeatWriteTotal": 4,
+      "spectatorOnly": {
+        "touchCallsBySite": { "routePublish": 0, "presenceHeartbeat": 2 },
+        "trailUpdateDocTotal": 2
+      }
+    },
+    "D": {
+      "riders": 0,
+      "spectators": 0,
+      "touchCallsTotal": 0,
+      "trailUpdateDocTotal": 0,
+      "listingRefreshRunTotal": 0,
+      "presenceHeartbeatWriteTotal": 0,
+      "note": "idle 0 unchanged. meters still live because A ①② are non-zero."
+    }
+  },
+  "deltaVsBaseline": {
+    "A_trailUpdateDoc": { "before": 62, "after": 3, "point": "touchTrailInstanceActivity updateDoc" },
+    "B_trailUpdateDoc": { "before": 124, "after": 6 },
+    "A_listingRefreshRun": { "before": 2, "after": 2, "point": "unchanged — already 30s min interval" },
+    "A_presenceHeartbeatWrite": { "before": 2, "after": 2, "point": "unchanged — heartbeat period not extended" },
+    "trailDocSnapshots": { "before": 0, "after": 0, "point": "no trails/{id} onSnapshot in product" }
+  }
+}
