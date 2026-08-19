@@ -6,6 +6,7 @@ import {
   scheduleOpenTrailListingRefresh,
 } from "../../src/lib/firestoreOpenTrailListings.ts";
 import {
+  resetTouchActivityCoalesceForTests,
   resetTouchTrailDocWriterForTests,
   touchTrailInstanceActivity,
 } from "../../src/lib/firestoreTrailInstance.ts";
@@ -72,6 +73,7 @@ function listingFullPathReads(): Promise<void> {
 function installSeams(clock: FakeClock): void {
   resetTouchTrailDocWriterForTests(async () => {});
   resetPresenceUpsertWriterForTests(async () => {});
+  resetTouchActivityCoalesceForTests(() => clock.now());
   resetOpenTrailListingRefreshForTests({
     clock,
     refreshBody: listingFullPathReads,
@@ -99,11 +101,25 @@ async function runSoloRideWindowMs(windowMs: number) {
   return endTouchMeterWindow();
 }
 
+async function runSpectatorWindowMs(windowMs: number) {
+  const clock = new FakeClock();
+  installSeams(clock);
+  beginTouchMeterWindow({ riders: 0, spectators: 1 });
+  for (let elapsed = 30_000; elapsed <= windowMs; elapsed += 30_000) {
+    await clock.advanceTo(clock.originMs + elapsed);
+    await touchTrailInstanceActivity("trail-a", "presenceHeartbeat");
+    await upsertTrailPresence(fakeUser, "trail-a");
+  }
+  await clock.advanceTo(clock.originMs + windowMs);
+  return endTouchMeterWindow();
+}
+
 describe("touchActivityMeters", () => {
   beforeEach(() => {
     resetTouchActivityMeters();
     resetTouchTrailDocWriterForTests(async () => {});
     resetPresenceUpsertWriterForTests(async () => {});
+    resetTouchActivityCoalesceForTests();
     resetOpenTrailListingRefreshForTests({ refreshBody: listingFullPathReads });
   });
 
@@ -111,10 +127,16 @@ describe("touchActivityMeters", () => {
     resetOpenTrailListingRefreshForTests();
     resetTouchTrailDocWriterForTests();
     resetPresenceUpsertWriterForTests();
+    resetTouchActivityCoalesceForTests();
     resetTouchActivityMeters();
   });
 
   it("호출 지점별로 ①을 나누고 ②는 updateDoc 수행 지점에서 센다", async () => {
+    let now = 0;
+    resetTouchActivityCoalesceForTests(() => {
+      now += 60_000;
+      return now;
+    });
     await touchTrailInstanceActivity("t1", "routePublish");
     await touchTrailInstanceActivity("t1", "presenceHeartbeat");
     await touchTrailInstanceActivity("t1", "appJoin");
@@ -127,6 +149,17 @@ describe("touchActivityMeters", () => {
     assert.equal(snap.trailUpdateDocTotal, 3);
     assert.ok(snap.touchCallsTotal >= 1, "계측이 살아 있음 — ① 비-0");
     assert.ok(snap.trailUpdateDocTotal >= 1, "계측이 살아 있음 — ② 비-0");
+  });
+
+  it("같은 Trail touch 는 heartbeat 간격 안으로 합친다 — ①은 남고 ②만 줄어든다", async () => {
+    resetTouchActivityCoalesceForTests(() => 1_700_000_000_000);
+    await touchTrailInstanceActivity("t1", "routePublish");
+    await touchTrailInstanceActivity("t1", "routePublish");
+    await touchTrailInstanceActivity("t1", "presenceHeartbeat");
+    const snap = snapshotTouchActivityMeters();
+    assert.equal(snap.touchCallsTotal, 3);
+    assert.equal(snap.trailUpdateDocTotal, 1);
+    assert.ok(snap.listingRefreshScheduleTotal >= 3);
   });
 
   it("source 생략은 unspecified 로 센다 (eslint 선행 오류 파일은 태그를 못 단다)", async () => {
@@ -187,7 +220,7 @@ describe("touchActivityMeters", () => {
     assert.equal(a.touchCallsBySite.presenceHeartbeat, 2);
     assert.equal(a.touchCallsBySite.progressTick, 0);
     assert.equal(a.touchCallsTotal, 62);
-    assert.equal(a.trailUpdateDocTotal, 62);
+    assert.equal(a.trailUpdateDocTotal, 3);
     assert.equal(a.presenceHeartbeatWriteTotal, 2);
     assert.equal(a.trailDocSnapshotReceivedTotal, 0);
     assert.ok(a.listingRefreshScheduleTotal >= 62);
@@ -205,9 +238,33 @@ describe("touchActivityMeters", () => {
     const combinedUpdate = b1.trailUpdateDocTotal + b2.trailUpdateDocTotal;
     const combinedSnap = b1.trailDocSnapshotReceivedTotal + b2.trailDocSnapshotReceivedTotal;
     const ratio2 = combinedUpdate / a.trailUpdateDocTotal;
-    assert.equal(a.trailUpdateDocTotal, 62);
-    assert.equal(combinedUpdate, 124);
+    assert.equal(a.trailUpdateDocTotal, 3);
+    assert.equal(combinedUpdate, 6);
     assert.ok(ratio2 > 1.8 && ratio2 < 2.2, `② B/A=${ratio2} 는 선형 근처여야 한다`);
     assert.equal(combinedSnap, 0, "trails/{id} onSnapshot 이 없어 ③ 제곱 항은 0");
+  });
+
+  it("C 주행1+관전1 — 관전자는 heartbeat 만 더한다", async () => {
+    const rider = await runSoloRideWindowMs(60_000);
+    resetTouchActivityMeters();
+    const spec = await runSpectatorWindowMs(60_000);
+    assert.equal(spec.touchCallsBySite.routePublish, 0);
+    assert.equal(spec.touchCallsBySite.presenceHeartbeat, 2);
+    assert.equal(spec.trailUpdateDocTotal, 2);
+    assert.equal(spec.presenceHeartbeatWriteTotal, 2);
+    const combined2 = rider.trailUpdateDocTotal + spec.trailUpdateDocTotal;
+    assert.equal(combined2, 5);
+  });
+
+  it("D Trailhead idle — touch 없음. 0 은 배선 실패가 아니라 idle 관측이다", async () => {
+    const clock = new FakeClock();
+    installSeams(clock);
+    beginTouchMeterWindow({ riders: 0, spectators: 0 });
+    await clock.advanceTo(clock.originMs + 60_000);
+    const d = endTouchMeterWindow();
+    assert.equal(d.touchCallsTotal, 0);
+    assert.equal(d.trailUpdateDocTotal, 0);
+    assert.equal(d.listingRefreshRunTotal, 0);
+    assert.equal(d.presenceHeartbeatWriteTotal, 0);
   });
 });

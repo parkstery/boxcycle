@@ -18,6 +18,7 @@ import {
 } from "./firestoreOpenTrailListings";
 import { assertPublicTrailHasRoute, trailHasConfiguredRoute } from "./trailAccessPolicy";
 import { resolvePublicationIdFromDoc } from "./resolvePublicationIdFromDoc";
+import { TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS } from "./rideSyncPolicy";
 import {
   noteTouchActivityCall,
   noteTrailDocUpdateDoc,
@@ -183,6 +184,8 @@ async function defaultTouchTrailDoc(trailId: string): Promise<void> {
 }
 
 let touchTrailDocWriter = defaultTouchTrailDoc;
+let touchNow = (): number => Date.now();
+const lastTouchWriteAt = new Map<string, number>();
 
 /** DEV·단위시험용. 제품 수명주기에서 호출하지 마라. */
 export function resetTouchTrailDocWriterForTests(
@@ -191,11 +194,24 @@ export function resetTouchTrailDocWriterForTests(
   touchTrailDocWriter = writer ?? defaultTouchTrailDoc;
 }
 
+/** DEV·단위시험용. 제품 수명주기에서 호출하지 마라. */
+export function resetTouchActivityCoalesceForTests(now?: () => number): void {
+  lastTouchWriteAt.clear();
+  touchNow = now ?? (() => Date.now());
+}
+
 export async function touchTrailInstanceActivity(
   trailId: string,
   source: TouchActivitySource = "unspecified",
 ): Promise<void> {
   noteTouchActivityCall(source);
+  const now = touchNow();
+  const last = lastTouchWriteAt.get(trailId) ?? 0;
+  if (last > 0 && now - last < TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS) {
+    scheduleOpenTrailListingRefresh(trailId);
+    return;
+  }
+  lastTouchWriteAt.set(trailId, now);
   noteTrailDocUpdateDoc();
   await touchTrailDocWriter(trailId);
   scheduleOpenTrailListingRefresh(trailId);
