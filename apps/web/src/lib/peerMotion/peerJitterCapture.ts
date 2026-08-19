@@ -1,15 +1,23 @@
 /**
- * S4-4 / S4-4R — 상대 라이더 튐 DEV 링 버퍼.
+ * S4-4 / S4-4R / S4-4R2 — 상대 라이더 튐 DEV 링 버퍼.
  * 제품 ingest 경로는 바꾸지 않는다. begin() 전에는 no-op.
  *
  * S4-4R: 앞뒤는 화면 X/Y 고정이 아니라, displayDistM 전진 구간에서
  * 화면 좌표를 회귀해 구한 진행축 û 에 Δscreen 을 투영한 부호로 판정한다.
+ *
+ * S4-4R2: 같은 û 에 ① peer 절대 · ② local 절대 · ③ (peer−local) 을
+ * 나란히 투영한다. ② 가 없으면 카메라를 증명할 수 없다.
+ * 판정은 px 원시값·부호·횟수·진폭만 쓴다. px/m 은 근거가 아니다.
  */
 
 import type { PeerMotionPacket } from "./types";
 
-/** 라벨 밴드일 뿐 합격 기준이 아니다. px/m 근거가 있을 때만 구간에 표시. */
+/** 라벨 밴드일 뿐 합격 기준이 아니다. S4-4R2 판정 근거로 쓰지 마라. */
 export const BAND_LABEL_PX = 8;
+/** S44 급 = 수십 px (재현 46.7). C1 3.1 은 해당 없음. 제품 합격선이 아니다. */
+export const S44_CLASS_PX = 20;
+/** ① − ② − ③ = 0 대수 항등. 이보다 크면 계측 모순이라 판정을 쓰지 않는다. */
+export const K1_RESIDUAL_EPS_PX = 1e-3;
 const MAX_EVENTS = 16_000;
 const UHAT_HALF_WINDOW = 12;
 const UHAT_MIN_DIST_SPAN_M = 2;
@@ -98,8 +106,51 @@ export type AlongReverseHit = {
   distDeltaM: number;
   absDx: number;
   absDy: number;
+  localSPx: number | null;
   relSPx: number | null;
+  residualPx: number | null;
   source: "absolute" | "relative";
+};
+
+export type AlongSeriesStats = {
+  reverseCount: number;
+  maxReversePx: number;
+  peakToPeakPx: number;
+  negativeCount: number;
+};
+
+export type CameraVsPeerVerdict = "camera" | "peer" | "mixed";
+
+export type CameraSplitSample = {
+  atMs: number;
+  uid: string;
+  peerSPx: number;
+  localSPx: number;
+  relSPx: number;
+  residualPx: number;
+  peerReversed: boolean;
+  localReversed: boolean;
+  relReversed: boolean;
+  vote: CameraVsPeerVerdict;
+};
+
+export type CameraSplitJudgment = {
+  hasLocalScreen: boolean;
+  k1MaxAbsResidualPx: number;
+  k1MedianAbsResidualPx: number | null;
+  k1FrameCount: number;
+  k1Pass: boolean;
+  s44ClassReproduced: boolean;
+  verdict: CameraVsPeerVerdict | null;
+  verdictReason: string;
+  largePeerReverseCount: number;
+  cameraVotes: number;
+  peerVotes: number;
+  mixedVotes: number;
+  peerAlong: AlongSeriesStats;
+  localAlong: AlongSeriesStats;
+  relativeAlong: AlongSeriesStats;
+  samples: CameraSplitSample[];
 };
 
 export type JitterAxisJudgment = {
@@ -128,6 +179,7 @@ export type JitterAxisJudgment = {
   ingestEvents: number;
   peerUids: string[];
   reason: string;
+  cameraSplit: CameraSplitJudgment;
 };
 
 export type JitterCaptureDump = {
@@ -330,6 +382,145 @@ function olsSlope(xs: readonly number[], ys: readonly number[]): number | null {
 
 export type AlongUnit = { ux: number; uy: number; pxPerM: number };
 
+function emptySeries(): AlongSeriesStats {
+  return { reverseCount: 0, maxReversePx: 0, peakToPeakPx: 0, negativeCount: 0 };
+}
+
+function finishSeries(
+  reverseCount: number,
+  maxReversePx: number,
+  negativeCount: number,
+  sMin: number,
+  sMax: number,
+): AlongSeriesStats {
+  return {
+    reverseCount,
+    maxReversePx,
+    peakToPeakPx: Number.isFinite(sMin) && Number.isFinite(sMax) ? sMax - sMin : 0,
+    negativeCount,
+  };
+}
+
+function projectDelta(dx: number, dy: number, u: AlongUnit): number {
+  return dx * u.ux + dy * u.uy;
+}
+
+/** ①=②+③ 분해로 한 프레임을 표 §3-1 에 넣는다. 비율은 분류 힌트일 뿐 합격선이 아니다. */
+export function voteCameraVsPeerFrame(sample: {
+  peerSPx: number;
+  localSPx: number;
+  relSPx: number;
+  peerReversed: boolean;
+  localReversed: boolean;
+  relReversed: boolean;
+}): CameraVsPeerVerdict {
+  const a = sample.peerSPx;
+  const b = sample.localSPx;
+  const c = sample.relSPx;
+  const mag = Math.abs(a);
+  if (!sample.peerReversed || mag < 1e-9) return "mixed";
+  const sameDirLocal = a * b > 0;
+  const sameDirRel = a * c > 0;
+  const localShare = Math.abs(b);
+  const relShare = Math.abs(c);
+  const sameSize = Math.abs(a - b) <= 0.25 * mag;
+  const localSmall = localShare <= 0.25 * mag;
+  const relSmall = relShare <= 0.25 * mag;
+  if (sample.localReversed && sameDirLocal && sameSize && !sample.relReversed && relSmall) {
+    return "camera";
+  }
+  if (sample.relReversed && sameDirRel && (localSmall || !sample.localReversed)) {
+    return "peer";
+  }
+  return "mixed";
+}
+
+export function emptyCameraSplit(reason: string, hasLocalScreen = false): CameraSplitJudgment {
+  return {
+    hasLocalScreen,
+    k1MaxAbsResidualPx: 0,
+    k1MedianAbsResidualPx: null,
+    k1FrameCount: 0,
+    k1Pass: false,
+    s44ClassReproduced: false,
+    verdict: null,
+    verdictReason: reason,
+    largePeerReverseCount: 0,
+    cameraVotes: 0,
+    peerVotes: 0,
+    mixedVotes: 0,
+    peerAlong: emptySeries(),
+    localAlong: emptySeries(),
+    relativeAlong: emptySeries(),
+    samples: [],
+  };
+}
+
+export function concludeCameraSplit(input: {
+  hasLocalScreen: boolean;
+  peerAlong: AlongSeriesStats;
+  localAlong: AlongSeriesStats;
+  relativeAlong: AlongSeriesStats;
+  residuals: readonly number[];
+  samples: CameraSplitSample[];
+}): CameraSplitJudgment {
+  const absRes = input.residuals.map((r) => Math.abs(r));
+  const k1MaxAbsResidualPx = absRes.length ? Math.max(...absRes) : 0;
+  const k1MedianAbsResidualPx = median(absRes);
+  const k1FrameCount = absRes.length;
+  const k1Pass = k1FrameCount > 0 && k1MaxAbsResidualPx <= K1_RESIDUAL_EPS_PX;
+  const s44ClassReproduced = input.peerAlong.maxReversePx >= S44_CLASS_PX;
+  const large = input.samples.filter((s) => s.peerReversed && Math.abs(s.peerSPx) >= S44_CLASS_PX);
+  let cameraVotes = 0;
+  let peerVotes = 0;
+  let mixedVotes = 0;
+  for (const s of large) {
+    if (s.vote === "camera") cameraVotes += 1;
+    else if (s.vote === "peer") peerVotes += 1;
+    else mixedVotes += 1;
+  }
+
+  let verdict: CameraVsPeerVerdict | null = null;
+  let verdictReason: string;
+  if (!input.hasLocalScreen) {
+    verdictReason = "hasLocalScreen=false. ② 가 없어 카메라를 증명할 수 없다. §3 생략.";
+  } else if (!k1Pass) {
+    verdictReason = `K1 검산 실패 (max |①−②−③|=${k1MaxAbsResidualPx.toFixed(6)} px, n=${k1FrameCount}). 판정을 쓰지 않는다.`;
+  } else if (!s44ClassReproduced) {
+    verdictReason = `S44급 진행축 반전 미재현 (① 최대 ${input.peerAlong.maxReversePx.toFixed(1)} px < ${S44_CLASS_PX} px). §3 판정 생략.`;
+  } else if (large.length === 0) {
+    verdictReason = "S44급 ① 반전 프레임이 없다. §3 판정 생략.";
+  } else if (cameraVotes === large.length) {
+    verdict = "camera";
+    verdictReason = `① 반전 ${large.length} 프레임이 모두 ② 와 같은 방향·크기이고 ③ 은 반전 없음.`;
+  } else if (peerVotes === large.length) {
+    verdict = "peer";
+    verdictReason = `① 반전 ${large.length} 프레임이 ② 와 무관하고 ③ 이 같이 반전.`;
+  } else {
+    verdict = "mixed";
+    verdictReason = `① 반전 ${large.length} 프레임: 카메라 ${cameraVotes} · peer ${peerVotes} · 혼합 ${mixedVotes}. 두 성분을 각각 제시.`;
+  }
+
+  return {
+    hasLocalScreen: input.hasLocalScreen,
+    k1MaxAbsResidualPx,
+    k1MedianAbsResidualPx,
+    k1FrameCount,
+    k1Pass,
+    s44ClassReproduced,
+    verdict,
+    verdictReason,
+    largePeerReverseCount: large.length,
+    cameraVotes,
+    peerVotes,
+    mixedVotes,
+    peerAlong: input.peerAlong,
+    localAlong: input.localAlong,
+    relativeAlong: input.relativeAlong,
+    samples: input.samples,
+  };
+}
+
 /** displayDistM 전진 창에서 screen~dist 회귀. 튐이 û 를 한 프레임으로 뒤집지 않게 창을 쓴다. */
 export function estimateAlongTrackUnit(
   series: readonly JitterDisplayEvent[],
@@ -392,6 +583,7 @@ function emptyJudgment(
     displayFrames: 0,
     ingestEvents: 0,
     peerUids: [],
+    cameraSplit: extra.cameraSplit ?? emptyCameraSplit(extra.reason),
     ...extra,
     dominantSignal,
   };
@@ -420,7 +612,19 @@ export function analyzeJitterAxis(log: readonly JitterEvent[]): JitterAxisJudgme
   let alongNegativeCount = 0;
   let sMin = Infinity;
   let sMax = -Infinity;
+  let localNeg = 0;
+  let localMin = Infinity;
+  let localMax = -Infinity;
+  let localRevCount = 0;
+  let localMaxRev = 0;
+  let relNeg = 0;
+  let relMin = Infinity;
+  let relMax = -Infinity;
+  let relRevCount = 0;
+  let relMaxRev = 0;
   let hasLocalScreen = false;
+  const residuals: number[] = [];
+  const splitSamples: CameraSplitSample[] = [];
 
   const first = display[0]!;
   const startGapDistM =
@@ -446,6 +650,8 @@ export function analyzeJitterAxis(log: readonly JitterEvent[]): JitterAxisJudgme
     let prevDx = 0;
     let prevDy = 0;
     let prevS: number | null = null;
+    let prevLocalS: number | null = null;
+    let prevRelS: number | null = null;
     let lockedU: AlongUnit | null = null;
     for (let i = 0; i < series.length; i += 1) {
       const ev = series[i]!;
@@ -487,29 +693,69 @@ export function analyzeJitterAxis(log: readonly JitterEvent[]): JitterAxisJudgme
             if (mag > maxScreenReversePx) maxScreenReversePx = mag;
           }
           if (u) {
-            const s = dx * u.ux + dy * u.uy;
+            const s = projectDelta(dx, dy, u);
             if (s < 0) alongNegativeCount += 1;
             if (s < sMin) sMin = s;
             if (s > sMax) sMax = s;
+            const peerReversed = prevS != null && s * prevS < 0;
+            let localS: number | null = null;
             let relS: number | null = null;
+            let residual: number | null = null;
             if (
               prev.localScreenX != null &&
               prev.localScreenY != null &&
               ev.localScreenX != null &&
               ev.localScreenY != null
             ) {
-              const rdx =
-                ev.screenX - ev.localScreenX - (prev.screenX - prev.localScreenX);
-              const rdy =
-                ev.screenY - ev.localScreenY - (prev.screenY - prev.localScreenY);
-              relS = rdx * u.ux + rdy * u.uy;
+              const ldx = ev.localScreenX - prev.localScreenX;
+              const ldy = ev.localScreenY - prev.localScreenY;
+              localS = projectDelta(ldx, ldy, u);
+              relS = projectDelta(dx - ldx, dy - ldy, u);
+              residual = s - localS - relS;
+              residuals.push(residual);
+              if (localS < 0) localNeg += 1;
+              if (localS < localMin) localMin = localS;
+              if (localS > localMax) localMax = localS;
+              if (relS < 0) relNeg += 1;
+              if (relS < relMin) relMin = relS;
+              if (relS > relMax) relMax = relS;
+              const localReversed = prevLocalS != null && localS * prevLocalS < 0;
+              const relReversed = prevRelS != null && relS * prevRelS < 0;
+              if (localReversed) {
+                localRevCount += 1;
+                if (Math.abs(localS) > localMaxRev) localMaxRev = Math.abs(localS);
+              }
+              if (relReversed) {
+                relRevCount += 1;
+                if (Math.abs(relS) > relMaxRev) relMaxRev = Math.abs(relS);
+              }
+              const voteSample = {
+                peerSPx: s,
+                localSPx: localS,
+                relSPx: relS,
+                peerReversed,
+                localReversed,
+                relReversed,
+              };
+              splitSamples.push({
+                atMs: ev.atMs,
+                uid: ev.uid,
+                ...voteSample,
+                residualPx: residual,
+                vote: voteCameraVsPeerFrame(voteSample),
+              });
+              prevLocalS = localS;
+              prevRelS = relS;
+            } else {
+              prevLocalS = null;
+              prevRelS = null;
             }
-            if (prevS != null && s * prevS < 0) {
+            if (peerReversed) {
               alongReverses.push({
                 atMs: ev.atMs,
                 uid: ev.uid,
                 sPx: s,
-                prevSPx: prevS,
+                prevSPx: prevS!,
                 magPx: Math.abs(s),
                 ux: u.ux,
                 uy: u.uy,
@@ -517,13 +763,17 @@ export function analyzeJitterAxis(log: readonly JitterEvent[]): JitterAxisJudgme
                 distDeltaM: ev.displayDistM - prev.displayDistM,
                 absDx: dx,
                 absDy: dy,
+                localSPx: localS,
                 relSPx: relS,
+                residualPx: residual,
                 source: relS != null ? "relative" : "absolute",
               });
             }
             prevS = s;
           } else {
             prevS = null;
+            prevLocalS = null;
+            prevRelS = null;
           }
           prevDx = dx;
           prevDy = dy;
@@ -550,16 +800,32 @@ export function analyzeJitterAxis(log: readonly JitterEvent[]): JitterAxisJudgme
   else if (distBacktracks.length > 0) dominantSignal = "distance";
   else if (screenReverseCount > 0) dominantSignal = "screen-2d-unprojected";
 
+  const cameraSplit = concludeCameraSplit({
+    hasLocalScreen,
+    peerAlong: finishSeries(
+      alongReverses.length,
+      maxAlongReversePx,
+      alongNegativeCount,
+      sMin,
+      sMax,
+    ),
+    localAlong: finishSeries(localRevCount, localMaxRev, localNeg, localMin, localMax),
+    relativeAlong: finishSeries(relRevCount, relMaxRev, relNeg, relMin, relMax),
+    residuals,
+    samples: splitSamples,
+  });
+
   const reason = [
     `진행축=displayDistM 창 회귀. û 는 X/Y 고정이 아니다.`,
     `거리 역행 ${distBacktracks.length} 회 최대 ${maxDistBacktrackM.toFixed(3)} m (임계로 버리지 않음).`,
-    `진행축 부호 반전 ${alongReverses.length} 회 최대 ${maxAlongReversePx.toFixed(1)} px, 음수 투영 ${alongNegativeCount} 스텝, peak-to-peak ${alongPeakToPeakPx.toFixed(1)} px.`,
+    `① peer절대 반전 ${alongReverses.length} 회 최대 ${maxAlongReversePx.toFixed(1)} px, 음수 ${alongNegativeCount} 스텝, peak-to-peak ${alongPeakToPeakPx.toFixed(1)} px.`,
+    `② local절대 반전 ${cameraSplit.localAlong.reverseCount} 회 최대 ${cameraSplit.localAlong.maxReversePx.toFixed(1)} px.`,
+    `③ 상대 반전 ${cameraSplit.relativeAlong.reverseCount} 회 최대 ${cameraSplit.relativeAlong.maxReversePx.toFixed(1)} px.`,
+    `K1 max|①−②−③|=${cameraSplit.k1MaxAbsResidualPx.toExponential(2)} px n=${cameraSplit.k1FrameCount} pass=${cameraSplit.k1Pass}.`,
     `2D 반전 ${screenReverseCount} 회 최대 ${maxScreenReversePx.toFixed(1)} px.`,
-    `밴드 ${BAND_LABEL_PX}px 미만 진행축 반전 ${subThresholdAlongReverseCount} 회.`,
-    pxPerMMedian != null
-      ? `화면 스케일 중앙값 ${pxPerMMedian.toFixed(2)} px/m → ${BAND_LABEL_PX}px ≈ ${bandPxEqualsM?.toFixed(3)} m (라벨일 뿐 합격선 아님).`
-      : `화면 스케일 미산출.`,
-    hasLocalScreen ? `로컬 화면 좌표 있음.` : `로컬 화면 좌표 없음(기존 로그는 절대 좌표 투영).`,
+    `밴드 ${BAND_LABEL_PX}px 미만 진행축 반전 ${subThresholdAlongReverseCount} 회 (라벨. 판정 근거 아님).`,
+    hasLocalScreen ? `로컬 화면 좌표 있음.` : `로컬 화면 좌표 없음.`,
+    cameraSplit.verdictReason,
   ].join(" ");
 
   return {
@@ -587,5 +853,6 @@ export function analyzeJitterAxis(log: readonly JitterEvent[]): JitterAxisJudgme
     ingestEvents,
     peerUids,
     reason,
+    cameraSplit,
   };
 }

@@ -140,6 +140,149 @@ describe("R0 진행축 자가 검산", () => {
   });
 });
 
+function displayFramesWithLocal(
+  rows: Array<{ t: number; d: number; x: number; y: number; lx: number; ly: number }>,
+): JitterDisplayEvent[] {
+  return rows.map((f) => ({
+    kind: "display" as const,
+    atMs: f.t,
+    uid: "peer",
+    conditionId: "t",
+    displayDistM: f.d,
+    lng: 127,
+    lat: 37,
+    screenX: f.x,
+    screenY: f.y,
+    localDistM: f.d - 2,
+    localScreenX: f.lx,
+    localScreenY: f.ly,
+    camBearing: null,
+    camPitch: null,
+    camLng: null,
+    camLat: null,
+  }));
+}
+
+describe("K1 세 계열 자가 검산", () => {
+  it("① − ② 잔차가 ③ 과 같다", () => {
+    const events = displayFramesWithLocal(
+      Array.from({ length: 10 }, (_, i) => {
+        const jitter = i % 2 === 0 ? 0 : 40;
+        return {
+          t: i * 16,
+          d: 10 + i * 0.4,
+          x: 100 + i * 12 + jitter,
+          y: 400,
+          lx: 200 + jitter,
+          ly: 400,
+        };
+      }),
+    );
+    const j = analyzeJitterAxis(events);
+    assert.equal(j.cameraSplit.hasLocalScreen, true);
+    assert.equal(j.cameraSplit.k1Pass, true);
+    assert.ok(j.cameraSplit.k1FrameCount >= 8);
+    assert.ok(j.cameraSplit.k1MaxAbsResidualPx < 1e-6);
+  });
+
+  it("카메라: ①② 가 같이 수십 px 반전하고 ③ 은 반전 없다", () => {
+    // 진행은 +X, 공통 지터만 부호가 뒤집힌다.
+    const events = displayFramesWithLocal(
+      [0, 50, -50, 50, -50, 50, -50, 50, -50, 50].map((j, i) => ({
+        t: i * 16,
+        d: 10 + i * 0.5,
+        x: 120 + i * 14 + j,
+        y: 400,
+        lx: 220 + j,
+        ly: 400,
+      })),
+    );
+    const j = analyzeJitterAxis(events);
+    assert.equal(j.cameraSplit.k1Pass, true);
+    assert.equal(j.cameraSplit.s44ClassReproduced, true);
+    assert.equal(j.cameraSplit.verdict, "camera");
+    assert.ok(j.cameraSplit.peerAlong.maxReversePx >= 20);
+    assert.ok(j.cameraSplit.localAlong.maxReversePx >= 20);
+    assert.ok(j.cameraSplit.relativeAlong.maxReversePx < 20);
+  });
+
+  it("peer: ② 는 가만히 있고 ①③ 이 같이 수십 px 반전한다", () => {
+    const events = displayFramesWithLocal(
+      [0, 50, -50, 50, -50, 50, -50, 50, -50, 50].map((j, i) => ({
+        t: i * 16,
+        d: 10 + i * 0.5,
+        x: 120 + i * 14 + j,
+        y: 400,
+        lx: 220,
+        ly: 400,
+      })),
+    );
+    const j = analyzeJitterAxis(events);
+    assert.equal(j.cameraSplit.k1Pass, true);
+    assert.equal(j.cameraSplit.s44ClassReproduced, true);
+    assert.equal(j.cameraSplit.verdict, "peer");
+    assert.ok(j.cameraSplit.peerAlong.maxReversePx >= 20);
+    assert.ok(j.cameraSplit.relativeAlong.maxReversePx >= 20);
+    assert.ok(j.cameraSplit.localAlong.maxReversePx < 20);
+  });
+
+  it("혼합: ① 반전이 ② 와 ③ 으로 나뉜다", () => {
+    const events = displayFramesWithLocal(
+      [0, 40, -30, 40, -30, 40, -30, 40, -30, 40].map((j, i) => {
+        const localJ = j * 0.5;
+        return {
+          t: i * 16,
+          d: 10 + i * 0.5,
+          x: 120 + i * 14 + j,
+          y: 400,
+          lx: 220 + localJ,
+          ly: 400,
+        };
+      }),
+    );
+    const j = analyzeJitterAxis(events);
+    assert.equal(j.cameraSplit.k1Pass, true);
+    assert.equal(j.cameraSplit.s44ClassReproduced, true);
+    assert.equal(j.cameraSplit.verdict, "mixed");
+    assert.ok(j.cameraSplit.localAlong.maxReversePx > 0);
+    assert.ok(j.cameraSplit.relativeAlong.maxReversePx > 0);
+  });
+
+  it("수 px 반전은 S44급이 아니므로 카메라/peer 판정을 쓰지 않는다", () => {
+    const events = displayFramesWithLocal(
+      [0, 2, -2, 2, -2, 2, -2, 2, -2, 2].map((j, i) => ({
+        t: i * 16,
+        d: 10 + i * 0.5,
+        x: 120 + i * 14 + j,
+        y: 400,
+        lx: 220 + j,
+        ly: 400,
+      })),
+    );
+    const j = analyzeJitterAxis(events);
+    assert.equal(j.cameraSplit.k1Pass, true);
+    assert.equal(j.cameraSplit.s44ClassReproduced, false);
+    assert.equal(j.cameraSplit.verdict, null);
+  });
+
+  it("로컬 좌표가 없으면 판정을 쓰지 않는다", () => {
+    const events = displayFrames([
+      { t: 0, d: 10.0, x: 100, y: 400 },
+      { t: 16, d: 10.5, x: 150, y: 400 },
+      { t: 32, d: 11.0, x: 100, y: 400 },
+      { t: 48, d: 11.5, x: 160, y: 400 },
+      { t: 64, d: 12.0, x: 110, y: 400 },
+      { t: 80, d: 12.5, x: 170, y: 400 },
+      { t: 96, d: 13.0, x: 120, y: 400 },
+      { t: 112, d: 13.5, x: 180, y: 400 },
+    ]);
+    const j = analyzeJitterAxis(events);
+    assert.equal(j.cameraSplit.hasLocalScreen, false);
+    assert.equal(j.cameraSplit.verdict, null);
+    assert.equal(j.cameraSplit.k1Pass, false);
+  });
+});
+
 describe("캡처 창", () => {
   it("conditionId 를 ingest 이벤트에 남긴다", () => {
     beginPeerJitterCapture(0, "C1");
