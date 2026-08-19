@@ -81,6 +81,6 @@
     "B_trailUpdateDoc": { "before": 124, "after": 6 },
     "A_listingRefreshRun": { "before": 2, "after": 2, "point": "unchanged — already 30s min interval" },
     "A_presenceHeartbeatWrite": { "before": 2, "after": 2, "point": "unchanged — heartbeat period not extended" },
-    "trailDocSnapshots": { "before": 0, "after": 0, "point": "no trails/{id} onSnapshot in product" }
+    "trailDocSnapshots": { "before": "N/A(미배선)", "after": "N/A(미배선)", "point": "제품 미배선 — trails/{id} onSnapshot 부재를 코드 검사로 확인. 관측치 아님. noteTrailDocSnapshotReceived 제품 호출처 0건" }
   }
 }

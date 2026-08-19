@@ -1,7 +1,7 @@
 # S4 진행 상황 REPORT — route·motion 발행 수명주기 종결 · 위치 동기화는 미종결
 
-S4-3: 공유 Trail 문서 `lastActivityAt` 쓰기와 listing 재계산을 60초 창에서 셌다. `trails/{id}`
-를 구독하는 클라이언트가 없어 N×M 스냅샷은 나오지 않았고, 라이더 1→2 의 updateDoc 은
+공유 Trail 문서 `lastActivityAt` 쓰기를 60초 창에서 셌다. `trails/{id}`
+구독은 **코드 검사로 부재**(③ N/A 미배선, 관측치 아님). 라이더 1→2 의 updateDoc 은
 2배(선형)였다. 한 명이 route 1Hz 로 같은 필드를 중복으로 치는 것만 heartbeat 간격으로 합쳤다.
 
 주행을 끝내거나 탭을 숨기거나 Trail을 바꿔도, 늦게 도착하는 진행률·위치 쓰기가 지워진 행과
@@ -14,7 +14,7 @@ S4-3: 공유 Trail 문서 `lastActivityAt` 쓰기와 listing 재계산을 60초 
 
 - **지시번호**: S4-3 (`touchTrailInstanceActivity` · presence heartbeat)
 - **일시**: 2026-08-20
-- **브랜치**: `fix/multiplayer-read-amplification` (base `main2@d0ab0e8` 결합 `66ebe7b`) · HEAD 는 아래 S4-3 커밋
+- **브랜치**: `fix/multiplayer-read-amplification` (origin/main2 결합 완료 `66ebe7b`) · HEAD 는 아래 S4-3 커밋
 - **활성 지시**: **S4-3 보고완료** (`INSTRUCTION.md`)
 - **원격**: origin `fix/multiplayer-read-amplification`
 - **워킹트리**: `C:/20.HDev/rtw-sync-s4-2/repo`
@@ -71,7 +71,7 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 
 ### S4-3 수용 요약 (2026-08-20)
 
-공유 Trail 문서 `lastActivityAt` 쓰기를 60초 창에서 셌다. 제품에 `trails/{id}` onSnapshot 이 없어 N×M 스냅샷 증폭은 나오지 않았다. 라이더 1→2 에서 ②는 2.0배(선형)다. 한 클라이언트 route 1Hz touch 가 30s heartbeat 와 같은 필드를 중복으로 쳐, 호출은 남기고 updateDoc 만 heartbeat 간격으로 합쳤다. A ② 62→3. heartbeat·진행률 주기 불변.
+공유 Trail 문서 `lastActivityAt` 쓰기를 60초 창에서 셌다. `trails/{id}` onSnapshot 은 **코드 검사로 부재**(③ N/A 미배선, 관측치 아님). 라이더 1→2 에서 ②는 2.0배(선형)다. 한 클라이언트 route 1Hz touch 가 30s heartbeat 와 같은 필드를 중복으로 쳐, 호출은 남기고 updateDoc 만 heartbeat 간격으로 합쳤다. A ② 62→3. heartbeat·진행률 주기 불변.
 
 #### §0 게이트
 
@@ -91,10 +91,10 @@ git rev-parse --short HEAD          66ebe7b
 
 | 구간 | 전 ② | 후 ② | 전 ③ | 후 ③ | listing 실행 전/후 | ⑤ 전/후 |
 |---|---|---|---|---|---|---|
-| A 라이더1 | 62 | 3 | 0 | 0 | 2 / 2 | 2 / 2 |
-| B 라이더2 | 124 | 6 | 0 | 0 | 4 / 4 | 4 / 4 |
-| C 주행1+관전1 | 64 | 5 | 0 | 0 | | 4 / 4 |
-| D idle | 0 | 0 | 0 | 0 | 0 / 0 | 0 / 0 |
+| A 라이더1 | 62 | 3 | N/A(미배선) | N/A(미배선) | 2 / 2 | 2 / 2 |
+| B 라이더2 | 124 | 6 | N/A(미배선) | N/A(미배선) | 4 / 4 | 4 / 4 |
+| C 주행1+관전1 | 64 | 5 | N/A(미배선) | N/A(미배선) | | 4 / 4 |
+| D idle | 0 | 0 | N/A(미배선) | N/A(미배선) | 0 / 0 | 0 / 0 |
 
 A ① 는 전후 62 (routePublish 60 + heartbeat 2). 예약 62, 실행 2. B/A ② = 2.0 선형.
 
@@ -102,8 +102,8 @@ A ① 는 전후 62 (routePublish 60 + heartbeat 2). 예약 62, 실행 2. B/A �
 
 | | 항목 | 결과 |
 |---|---|---|
-| M0 | 계측 유효성 | PASS. 실제 수행 지점. A ①② 비-0. 예약/실행 분리 |
-| M1 | 증폭 확인 | PASS. 60s 표. ② 선형 2.0. ③=0 |
+| M0 | 계측 유효성 | PASS(①②④⑤). ③ N/A(미배선) — 제품 호출처 0건. A ①② 비-0. 예약/실행 분리 |
+| M1 | 증폭 확인 | PASS. 60s 표. ② 선형 2.0. ③ N/A(미배선, 관측치 아님) |
 | M2 | 수정 후 | PASS. 감소 지점=`touchTrailInstanceActivity` 의 Trail updateDoc |
 | M3 | 기능 회귀 없음 | 미완. F1~F5 실화면·`S43-shots/` 없음 |
 | M4 | 예산 무변화 | PASS. heartbeat 30s · 진행률 1Hz 무변경 |

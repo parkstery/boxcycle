@@ -79,7 +79,8 @@
   },
   "amplification": {
     "N_times_M_trailDocSnapshots": false,
-    "reason": "apps/web has no onSnapshot on trails/{id}. ③=0 with the receive counter wired. Writer cost ② scales linearly B/A=2.0.",
+    "reason": "제품 미배선 — trails/{id} onSnapshot 부재를 코드 검사로 확인. 관측치 아님. noteTrailDocSnapshotReceived 제품 호출처 0건(시험 파일에만 있음). Writer cost ② scales linearly B/A=2.0.",
+    "trailDocSnapshot": "③ N/A(미배선)",
     "duplicateOnOneClient": "routePublish touch of lastActivityAt is ~1Hz while presenceHeartbeat already touches the same field every 30s (60 vs 2 in A)."
   }
 }
