@@ -148,12 +148,19 @@ export class PeerMotionRegistry {
       const clamped = distM !== beforeClamp && routeLenM > 0;
       const lngLat = getPointOnRouteByDistance(routeGeometry, distM);
       if (!lngLat) continue;
+      const selfDist = getPeerSyncSelfDistM();
+      const selfLl = Number.isFinite(selfDist)
+        ? getPointOnRouteByDistance(routeGeometry, clampRouteDist(selfDist, routeLenM))
+        : null;
       noteJitterDisplay({
         atMs: nowMs,
         uid: entity.uid,
         displayDistM: distM,
         lng: lngLat[0],
         lat: lngLat[1],
+        localDistM: Number.isFinite(selfDist) ? selfDist : null,
+        localLng: selfLl?.[0] ?? null,
+        localLat: selfLl?.[1] ?? null,
       });
       const h = headingAtRouteDistanceMeters(routeGeometry, distM) ?? 0;
       const moving = entity.phase === "live" && entity.speedMps > 0.02;

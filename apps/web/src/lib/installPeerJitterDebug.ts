@@ -9,7 +9,7 @@ export function installPeerJitterDebug(): void {
   if (!import.meta.env.DEV) return;
   if (typeof window === "undefined") return;
   const api = {
-    begin: beginPeerJitterCapture,
+    begin: (conditionId?: string) => beginPeerJitterCapture(Date.now(), conditionId ?? null),
     end: endPeerJitterCapture,
     snapshot: snapshotPeerJitterCapture,
     reset: resetPeerJitterCaptureForTests,

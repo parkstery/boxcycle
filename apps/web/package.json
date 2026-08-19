@@ -28,6 +28,8 @@
     "test:e2e:peer-s4m1": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s4m1 --workers=1\"",
     "test:e2e:peer-s44": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s44 --workers=1\"",
     "test:s44-jitter": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/s44/jitter-capture.test.ts",
+    "test:s44r-rejudge": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs scripts/s44/rejudge-s44.mjs",
+    "test:e2e:peer-s44r": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s44r --workers=1\"",
     "test:peer-s3-fixtures": "node scripts/peer-sync/s3-fixture-gate.mjs",
     "test:peer-s3a-replay": "node scripts/peer-sync/s3r-to-scenario.mjs && node scripts/peer-sync/replay.mjs --check && node scripts/peer-sync/replay.mjs --check --scenario ../../document/ops/sync-relay/s3r-z15-cruise-scenario.json && node scripts/peer-sync/s3-fixture-gate.mjs",
     "test:s42-meters": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/s42/read-meters-and-hubs.test.ts",

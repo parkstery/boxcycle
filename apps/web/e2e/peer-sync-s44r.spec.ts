@@ -4,27 +4,30 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 /**
- * S4-4 — 상대 라이더 앞뒤 튐. 다섯 축을 같은 시계로 남기고 축 판정한다.
- * 수정 게이트가 아니다. 증상 구간 캡처가 목적.
+ * S4-4R — Chief 조건 재현. S44-jitter-* 는 읽기만 하고 덮지 않는다.
  */
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = path.resolve(__dirname, "../../../document/ops/sync-relay");
-const SHOT_DIR = path.join(OUT_DIR, "S44-jitter-shots");
+const SHOT_DIR = path.join(OUT_DIR, "S44R-shots");
+const CONDITION_ID = "C1-left-5kmh-abreast";
 
 type JitterDump = {
   windowStartedAt: number | null;
   windowEndedAt: number | null;
   recording: boolean;
+  conditionId: string | null;
   events: unknown[];
   judgment: {
-    axis: string;
-    maxDistBacktrackM: number;
-    distBacktrackCount: number;
-    maxScreenReversePx: number;
-    screenReverseCount: number;
+    dominantSignal: string;
+    startGapDistM: number | null;
+    startGapScreenPx: number | null;
     displayFrames: number;
     ingestEvents: number;
-    peerUids: string[];
+    alongReverseCount: number;
+    maxAlongReversePx: number;
+    distBacktrackCount: number;
+    maxDistBacktrackM: number;
+    hasLocalScreen: boolean;
     reason: string;
   };
 };
@@ -83,12 +86,42 @@ async function setSpeedKmh(page: import("@playwright/test").Page, kmh: number) {
   await page.getByRole("slider", { name: "세션 속도 km/h" }).fill(String(kmh));
 }
 
-test.describe("S4-4 peer jitter capture", () => {
-  test.skip(true, "S4-4 증거 동결 — S44-jitter-* 를 덮지 않는다. S4-4R 은 peer-sync-s44r");
+async function openMapSheet(page: import("@playwright/test").Page) {
+  const sheet = page.getByRole("dialog", { name: "맵 뷰" });
+  if (await sheet.isVisible().catch(() => false)) return;
+  await page.getByRole("button", { name: "맵 뷰 설정" }).click();
+  await expect(sheet).toBeVisible({ timeout: 10_000 });
+}
 
+async function closeMapSheet(page: import("@playwright/test").Page) {
+  const sheet = page.getByRole("dialog", { name: "맵 뷰" });
+  if (!(await sheet.isVisible().catch(() => false))) return;
+  await sheet.getByRole("button", { name: "닫기" }).click();
+  await expect(sheet).toBeHidden({ timeout: 10_000 });
+}
+
+async function setFollowLeft(page: import("@playwright/test").Page) {
+  await openMapSheet(page);
+  await page
+    .getByRole("dialog", { name: "맵 뷰" })
+    .getByRole("button", { name: "좌측", exact: true })
+    .click({ force: true });
+  await closeMapSheet(page);
+}
+
+async function peerGapM(page: import("@playwright/test").Page): Promise<number | null> {
+  return page.evaluate(() => {
+    const rows = (window as Window & { __RTW_PEER_STEP_DIAG__?: Array<{ gap: number }> })
+      .__RTW_PEER_STEP_DIAG__;
+    if (!rows || rows.length === 0) return null;
+    return rows[0]!.gap;
+  });
+}
+
+test.describe("S4-4R Chief condition capture", () => {
   test.setTimeout(180_000);
 
-  test("2인 주행에서 다섯 축을 남긴다", async ({ browser }) => {
+  test("C1 좌측 5km/h 나란히", async ({ browser }) => {
     const ctxA = await browser.newContext();
     const ctxB = await browser.newContext();
     const pageA = await ctxA.newPage();
@@ -100,6 +133,8 @@ test.describe("S4-4 peer jitter capture", () => {
     await guestStart(pageA);
     await loadIntroCourse(pageA);
     await ensureRiding(pageA);
+    await setSpeedKmh(pageA, 5);
+    await setFollowLeft(pageA);
 
     await expect
       .poll(async () => new URL(pageA.url()).searchParams.get("trail"), { timeout: 20_000 })
@@ -110,82 +145,86 @@ test.describe("S4-4 peer jitter capture", () => {
     await guestStart(pageB);
     await expect(pageB.getByRole("button", { name: "주행 시작" })).toBeVisible({ timeout: 45_000 });
     await ensureRiding(pageB);
+    await setSpeedKmh(pageB, 5);
+    await setFollowLeft(pageB);
 
     await expect
-      .poll(
-        async () =>
-          pageB.evaluate(() => Boolean((window as Window & { __rtwPeerJitterApi?: unknown }).__rtwPeerJitterApi)),
-        { timeout: 20_000 },
-      )
-      .toBe(true);
+      .poll(async () => peerGapM(pageB), { timeout: 30_000 })
+      .not.toBeNull();
 
-    await pageB.evaluate(() => {
-      (window as Window & { __rtwPeerJitterApi: { begin: () => void } }).__rtwPeerJitterApi.begin();
-    });
+    const alignDeadline = Date.now() + 45_000;
+    while (Date.now() < alignDeadline) {
+      const gap = await peerGapM(pageB);
+      if (gap != null && Math.abs(gap) <= 5) break;
+      if (gap != null && gap > 5) {
+        await setSpeedKmh(pageA, 0);
+        await setSpeedKmh(pageB, 12);
+      } else if (gap != null && gap < -5) {
+        await setSpeedKmh(pageA, 12);
+        await setSpeedKmh(pageB, 0);
+      }
+      await pageA.waitForTimeout(800);
+    }
+
+    await setSpeedKmh(pageA, 5);
+    await setSpeedKmh(pageB, 5);
+    await pageA.waitForTimeout(1_000);
+
+    const gapBefore = await peerGapM(pageB);
+    await pageB.evaluate((id) => {
+      (
+        window as Window & { __rtwPeerJitterApi: { begin: (c?: string) => void } }
+      ).__rtwPeerJitterApi.begin(id);
+    }, CONDITION_ID);
 
     fs.mkdirSync(SHOT_DIR, { recursive: true });
-
-    // 조건 1: 같은 속도(근접). 샷은 피어가 화면에 있는 이 구간에서 찍는다.
-    await setSpeedKmh(pageA, 25);
-    await setSpeedKmh(pageB, 25);
+    await pageA.waitForTimeout(6_000);
+    await pageB.screenshot({ path: path.join(SHOT_DIR, "C1-00.png"), fullPage: false });
+    await pageA.waitForTimeout(6_000);
+    await pageB.screenshot({ path: path.join(SHOT_DIR, "C1-01.png"), fullPage: false });
+    await pageA.waitForTimeout(6_000);
+    await pageB.screenshot({ path: path.join(SHOT_DIR, "C1-02.png"), fullPage: false });
     await pageA.waitForTimeout(4_000);
-    await pageB.screenshot({ path: path.join(SHOT_DIR, "close-00.png"), fullPage: false });
-    await pageA.waitForTimeout(180);
-    await pageB.screenshot({ path: path.join(SHOT_DIR, "close-01.png"), fullPage: false });
-    await pageA.waitForTimeout(180);
-    await pageB.screenshot({ path: path.join(SHOT_DIR, "close-02.png"), fullPage: false });
-    await pageA.waitForTimeout(3_000);
-
-    // 조건 2: 속도차(추월). 피어가 화면 밖으로 나가는지 확인용.
-    await setSpeedKmh(pageA, 32);
-    await setSpeedKmh(pageB, 10);
-    await pageA.waitForTimeout(8_000);
-    await pageB.screenshot({ path: path.join(SHOT_DIR, "far-00.png"), fullPage: false });
 
     const dump = (await pageB.evaluate(() => {
-      const api = (
-        window as Window & {
-          __rtwPeerJitterApi: { end: () => JitterDump };
-        }
-      ).__rtwPeerJitterApi;
-      return api.end();
+      return (
+        window as Window & { __rtwPeerJitterApi: { end: () => JitterDump } }
+      ).__rtwPeerJitterApi.end();
     })) as JitterDump;
 
-    const ingestChoices = (dump.events as Array<{ kind?: string; merge?: { choice?: string } }>)
-      .filter((e) => e.kind === "ingest")
-      .reduce<Record<string, number>>((acc, e) => {
-        const c = e.merge?.choice ?? "unknown";
-        acc[c] = (acc[c] ?? 0) + 1;
-        return acc;
-      }, {});
-
     const out = {
-      instruction: "S4-4",
+      instruction: "S4-4R",
+      conditionId: CONDITION_ID,
       trailId,
-      conditions: [
-        { riders: 2, speedKmh: [25, 25], durationMs: 8000, note: "same speed, close — shots close-00..02" },
-        { riders: 2, speedKmh: [32, 10], durationMs: 8000, note: "speed diff, overtake — shot far-00" },
-      ],
+      camera: "leftFlat",
+      speedKmh: [5, 5],
       tabState: "both visible",
+      alignGapM: gapBefore,
+      startGapDistM: dump.judgment.startGapDistM,
+      startGapScreenPx: dump.judgment.startGapScreenPx,
       judgment: dump.judgment,
-      ingestChoices,
       windowStartedAt: dump.windowStartedAt,
       windowEndedAt: dump.windowEndedAt,
       eventCount: dump.events.length,
       events: dump.events,
     };
 
-    fs.writeFileSync(path.join(OUT_DIR, "S44-jitter-capture.json"), JSON.stringify(out, null, 2), "utf8");
+    fs.writeFileSync(path.join(OUT_DIR, "S44R-C1-left-5kmh.json"), JSON.stringify(out, null, 2), "utf8");
     fs.writeFileSync(
-      path.join(OUT_DIR, "S44-jitter-summary.json"),
+      path.join(OUT_DIR, "S44R-C1-summary.json"),
       JSON.stringify(
         {
-          instruction: "S4-4",
+          instruction: "S4-4R",
+          conditionId: CONDITION_ID,
           trailId,
+          camera: "leftFlat",
+          speedKmh: [5, 5],
+          tabState: "both visible",
+          alignGapM: gapBefore,
+          startGapDistM: dump.judgment.startGapDistM,
+          startGapScreenPx: dump.judgment.startGapScreenPx,
           judgment: dump.judgment,
-          ingestChoices,
           eventCount: dump.events.length,
-          conditions: out.conditions,
         },
         null,
         2,
@@ -193,7 +232,8 @@ test.describe("S4-4 peer jitter capture", () => {
       "utf8",
     );
 
-    expect(dump.judgment.displayFrames, "peer display 프레임").toBeGreaterThan(10);
-    expect(dump.judgment.ingestEvents, "RTDB/FS ingest 이벤트").toBeGreaterThan(0);
+    expect(dump.conditionId).toBe(CONDITION_ID);
+    expect(dump.judgment.displayFrames).toBeGreaterThan(10);
+    expect(dump.judgment.ingestEvents).toBeGreaterThan(0);
   });
 });
