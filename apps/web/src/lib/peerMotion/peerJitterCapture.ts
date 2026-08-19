@@ -368,9 +368,9 @@ function median(values: readonly number[]): number | null {
 function emptyJudgment(
   extra: Partial<JitterAxisJudgment> & Pick<JitterAxisJudgment, "dominantSignal" | "reason">,
 ): JitterAxisJudgment {
+  const dominantSignal = extra.dominantSignal;
   return {
-    axis: extra.dominantSignal,
-    dominantSignal: extra.dominantSignal,
+    axis: dominantSignal,
     alongTrackMethod: "forward-regression-window",
     maxDistBacktrackM: 0,
     distBacktrackCount: 0,
@@ -393,6 +393,7 @@ function emptyJudgment(
     ingestEvents: 0,
     peerUids: [],
     ...extra,
+    dominantSignal,
   };
 }
 

@@ -157,11 +157,11 @@ test.describe("S4-4R Chief condition capture", () => {
       const gap = await peerGapM(pageB);
       if (gap != null && Math.abs(gap) <= 5) break;
       if (gap != null && gap > 5) {
-        await setSpeedKmh(pageA, 0);
-        await setSpeedKmh(pageB, 12);
+        await setSpeedKmh(pageA, 5);
+        await setSpeedKmh(pageB, 15);
       } else if (gap != null && gap < -5) {
-        await setSpeedKmh(pageA, 12);
-        await setSpeedKmh(pageB, 0);
+        await setSpeedKmh(pageA, 15);
+        await setSpeedKmh(pageB, 5);
       }
       await pageA.waitForTimeout(800);
     }
