@@ -1,0 +1,136 @@
+{
+  "instruction": "S4-4R2",
+  "conditionId": "C-B-32-10-overtake",
+  "trailId": "lktTNjvtfTO3kjkxGL9f",
+  "camera": "leftFlat",
+  "speedKmh": [
+    32,
+    10
+  ],
+  "tabState": "both visible",
+  "note": "S44 far-00 과 같음. 속도차 추월.",
+  "startGapDistM": 27.12062764074072,
+  "startGapScreenPx": 766.4627509848748,
+  "judgment": {
+    "axis": "both",
+    "dominantSignal": "both",
+    "alongTrackMethod": "forward-regression-window",
+    "maxDistBacktrackM": 0.011072644376895369,
+    "distBacktrackCount": 1,
+    "distBacktracks": [
+      {
+        "atMs": 1787181771204,
+        "uid": "WKitHs5tgKB1SCVdbx7onmq6mFfv",
+        "fromM": 105.1901,
+        "toM": 105.1790273556231,
+        "backM": 0.011072644376895369
+      }
+    ],
+    "maxScreenReversePx": 64.97829346043594,
+    "screenReverseCount": 3,
+    "alongReverseCount": 3,
+    "maxAlongReversePx": 64.95083028174722,
+    "alongPeakToPeakPx": 97.93589877181275,
+    "alongNegativeCount": 3,
+    "alongReverses": [
+      {
+        "atMs": 1787181771472,
+        "uid": "WKitHs5tgKB1SCVdbx7onmq6mFfv",
+        "sPx": 64.95083028174722,
+        "prevSPx": -11.824491981959712,
+        "magPx": 64.95083028174722,
+        "ux": -0.9997880323480086,
+        "uy": 0.020588598147929297,
+        "pxPerM": 13.346229080963068,
+        "distDeltaM": 3.141018996960483,
+        "absDx": -64.97595437297439,
+        "absDy": -0.5513386905356015,
+        "localSPx": -21.93306363247845,
+        "relSPx": 86.88389391422565,
+        "residualPx": 1.4210854715202004e-14,
+        "source": "relative"
+      },
+      {
+        "atMs": 1787181772100,
+        "uid": "WKitHs5tgKB1SCVdbx7onmq6mFfv",
+        "sPx": -8.661567824824047,
+        "prevSPx": 12.544295160791997,
+        "magPx": 8.661567824824047,
+        "ux": -0.9998496686194817,
+        "uy": 0.017338978098852452,
+        "pxPerM": 15.480864703134062,
+        "distDeltaM": 0.35430790697674297,
+        "absDx": 8.670100503832373,
+        "absDy": 0.4169386909157424,
+        "localSPx": 18.4796096028582,
+        "relSPx": -27.141177427682248,
+        "residualPx": 0,
+        "source": "relative"
+      },
+      {
+        "atMs": 1787181772241,
+        "uid": "WKitHs5tgKB1SCVdbx7onmq6mFfv",
+        "sPx": 3.6977105184586856,
+        "prevSPx": -8.661567824824047,
+        "magPx": 3.6977105184586856,
+        "ux": -0.9998756353611575,
+        "uy": 0.01577066298928215,
+        "pxPerM": 15.843769367967596,
+        "distDeltaM": 0.6054120930232614,
+        "absDx": -3.691089021681222,
+        "absDy": 0.4489689327197084,
+        "localSPx": 1.259908678919836e-7,
+        "relSPx": 3.6977103924678176,
+        "residualPx": 0,
+        "source": "relative"
+      }
+    ],
+    "subThresholdAlongReverseCount": 1,
+    "pxPerMMedian": 17.13502993580179,
+    "bandLabelPx": 8,
+    "bandPxEqualsM": 0.4668798379677684,
+    "startGapDistM": 27.12062764074072,
+    "startGapScreenPx": 766.4627509848748,
+    "hasLocalScreen": true,
+    "displayFrames": 73,
+    "ingestEvents": 165,
+    "peerUids": [
+      "WKitHs5tgKB1SCVdbx7onmq6mFfv"
+    ],
+    "reason": "진행축=displayDistM 창 회귀. û 는 X/Y 고정이 아니다. 거리 역행 1 회 최대 0.011 m (임계로 버리지 않음). ① peer절대 반전 3 회 최대 65.0 px, 음수 3 스텝, peak-to-peak 97.9 px. ② local절대 반전 57 회 최대 32.5 px. ③ 상대 반전 13 회 최대 86.9 px. K1 max|①−②−③|=1.42e-14 px n=72 pass=true. 2D 반전 3 회 최대 65.0 px. 밴드 8px 미만 진행축 반전 1 회 (라벨. 판정 근거 아님). 로컬 화면 좌표 있음. ① 반전 1 프레임: 카메라 0 · peer 0 · 혼합 1. 두 성분을 각각 제시.",
+    "cameraSplit": {
+      "hasLocalScreen": true,
+      "k1MaxAbsResidualPx": 1.4210854715202004e-14,
+      "k1MedianAbsResidualPx": 6.38378239159465e-16,
+      "k1FrameCount": 72,
+      "k1Pass": true,
+      "s44ClassReproduced": true,
+      "verdict": "mixed",
+      "verdictReason": "① 반전 1 프레임: 카메라 0 · peer 0 · 혼합 1. 두 성분을 각각 제시.",
+      "largePeerReverseCount": 1,
+      "cameraVotes": 0,
+      "peerVotes": 0,
+      "mixedVotes": 1,
+      "peerAlong": {
+        "reverseCount": 3,
+        "maxReversePx": 64.95083028174722,
+        "peakToPeakPx": 97.93589877181275,
+        "negativeCount": 3
+      },
+      "localAlong": {
+        "reverseCount": 57,
+        "maxReversePx": 32.53366452602368,
+        "peakToPeakPx": 65.06731116373513,
+        "negativeCount": 29
+      },
+      "relativeAlong": {
+        "reverseCount": 13,
+        "maxReversePx": 86.88389391422565,
+        "peakToPeakPx": 131.24205042220905,
+        "negativeCount": 8
+      }
+    }
+  },
+  "eventCount": 238,
+  "fullEvents": "S44R2-B-32-10.json"
+}
