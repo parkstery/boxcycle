@@ -23,6 +23,9 @@
 | `s410-absorb-eval.mjs` | S4-10 — S4-9 적응 발행에 수신 측 가속도 흡수·60 fps 점프 지표. 제품 미수정 · s49 미수정 |
 | `s411-lead-eval.mjs` | S4-11 — S4-10 추종기 유지, τ 세분·선보상. 제품 미수정 · s410 미수정 |
 | `s412-rejudge.mjs` | S4-12 — S4-11 120조합 재판정 + BASE(10Hz·160ms) · 역행 크기. 제품·s411·S411-* 미수정 |
+| `s413-zero-decel-reach.test.ts` | S4-13 B0 — 램프 0 감속 live 경로 유무. 제품 속도 하한·pause 홀드 |
+| `s413-peer-disp-knob.test.ts` | S4-13 B1·B3·B4 — OFF=보간, 프로덕션 off, 발행 파일은 노브 미import |
+| `s413-delay-eval.mjs` | S4-13 B5 — S412 조합 E=0.3·τ=0.25/0.30·lead=0 을 지연 100/300 에서 재판정. G2=불변식 0.5 m |
 | `invariants.mjs` | 재생 타임라인의 기계적 PASS/FAIL 판정(clamp·역행·순간이동·외삽상한) |
 | `graph.mjs` | distM-vs-time SVG 생성 + chromium PNG 렌더 |
 | `.out/` | 그래프 산출물 PNG/SVG(gitignore — 휘발성 검토용) |
@@ -37,6 +40,9 @@ cd apps/web && node scripts/peer-sync/s49-ramp-eval.mjs
 cd apps/web && node scripts/peer-sync/s410-absorb-eval.mjs
 cd apps/web && node scripts/peer-sync/s411-lead-eval.mjs
 cd apps/web && node scripts/peer-sync/s412-rejudge.mjs
+cd apps/web && npm run test:s413-reach
+cd apps/web && npm run test:s413-knob
+cd apps/web && node scripts/peer-sync/s413-delay-eval.mjs
 ```
 - 무옵션 = `--check --graph` 둘 다.
 - `--check`: 전 시나리오 불변식 판정. known-fail 외 위반이 있으면 exit 1. 커밋 전 게이트로 쓴다.
