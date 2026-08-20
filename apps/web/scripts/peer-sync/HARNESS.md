@@ -17,6 +17,7 @@
 | `s1-metrics.mjs` | D_eff / residual 산출 |
 | `s2-recompute.mjs` | S1 원시로그 재계산(maxDelay 5k/10k, z13 제외) |
 | `s2-accuracy-gate.mjs` | z15-cruise 실로그 → integrator 재현 ±20% 수용 게이트 |
+| `s47-experiment.mjs` | S4-7 후처리 — 기존 캡처를 T=1/2/4/8s 솎아 (a) 보간+D / (b) 예측 재구성. 제품 integrator 미사용 |
 | `invariants.mjs` | 재생 타임라인의 기계적 PASS/FAIL 판정(clamp·역행·순간이동·외삽상한) |
 | `graph.mjs` | distM-vs-time SVG 생성 + chromium PNG 렌더 |
 | `.out/` | 그래프 산출물 PNG/SVG(gitignore — 휘발성 검토용) |
@@ -25,6 +26,7 @@
 
 ```bash
 cd apps/web && node scripts/peer-sync/replay.mjs [--check] [--graph] [--scenario <name|path>] [--out <dir>]
+cd apps/web && node scripts/peer-sync/s47-experiment.mjs
 ```
 - 무옵션 = `--check --graph` 둘 다.
 - `--check`: 전 시나리오 불변식 판정. known-fail 외 위반이 있으면 exit 1. 커밋 전 게이트로 쓴다.
