@@ -57,6 +57,7 @@ import { estimateCrankRpmFromSpeedKmh, resolvePedalCrankRpm } from "../../lib/ri
 import { resolveGlbPedalPose } from "../../lib/riderGlbPedalPose";
 import { stepPeerDriveAndBuildGeoJson } from "../../lib/peerRidersDrive";
 import { resetPeerMotionRegistry } from "../../lib/peerMotion";
+import { notePeerChainFromMapTick } from "../../lib/peerMotion/peerChainCapture";
 import { MAP_PEER_SPRITE_MIN_ZOOM } from "../../lib/rideSyncPolicy";
 import { applyCoverageOverlayMode } from "../../services/coverageOverlaySync";
 import type { GlobalLivePresenceDot } from "../../hooks/useGlobalLivePresence";
@@ -2369,6 +2370,20 @@ export function MapView({
       );
       const fc = showPeerSprites ? peerFc : EMPTY_GEOJSON_FC;
       syncPeerDomMarkers(map, fc.features as PeerDomGJFeature[], peerDomMarkersRef);
+      if (import.meta.env.DEV) {
+        const peerEls = new Map<string, HTMLElement>();
+        for (const [id, mk] of peerDomMarkersRef.current) {
+          const el = mk.getElement();
+          if (el) peerEls.set(id, el);
+        }
+        const selfMk = liveMarkerRef.current ?? glbLiveNametagMarkerRef.current;
+        notePeerChainFromMapTick({
+          perfNowMs: now,
+          map,
+          selfEl: selfMk?.getElement() ?? null,
+          peerEls,
+        });
+      }
       if (RIDER_PROTOTYPE_MODE === "glb" && ensureRiderGlbLayer(map)) {
         const specs: RiderGlbModelSpec[] = [];
         const live = liveLngLatRef.current;

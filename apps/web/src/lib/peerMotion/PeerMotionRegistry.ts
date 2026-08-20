@@ -281,6 +281,45 @@ export class PeerMotionRegistry {
     return this.entities.get(uid)?.displayDistM;
   }
 
+  /** S4-14 계측 — 보간 수학은 안 바꾼다. 한 rAF 에서 버퍼·displayDistM 을 읽기만 한다. */
+  peekChainEntities(nowMs: number): Array<{
+    uid: string;
+    phase: PeerMotionEntity["phase"];
+    displayDistM: number;
+    bufLen: number;
+    usedServerAxis: boolean;
+    newest: {
+      distM: number;
+      speedMps: number;
+      serverAtMs: number;
+      recvAtMs: number;
+      seq?: number;
+    } | null;
+  }> {
+    const out = [];
+    for (const e of this.entities.values()) {
+      const newest = e.buffer[e.buffer.length - 1] ?? null;
+      const plan = e.buffer.length > 0 ? planPeerMotionStep(e, nowMs) : null;
+      out.push({
+        uid: e.uid,
+        phase: e.phase,
+        displayDistM: e.displayDistM,
+        bufLen: e.buffer.length,
+        usedServerAxis: plan?.usedServerAxis === true,
+        newest: newest
+          ? {
+              distM: newest.distM,
+              speedMps: newest.speedMps,
+              serverAtMs: newest.serverAtMs,
+              recvAtMs: newest.recvAtMs,
+              ...(newest.seq != null ? { seq: newest.seq } : {}),
+            }
+          : null,
+      });
+    }
+    return out;
+  }
+
   /** DEV 진단 — 보간 상태(버퍼·렌더 지연·newest 거리) */
   debugSnapshot(nowMs = Date.now()): Array<{
     uid: string;
