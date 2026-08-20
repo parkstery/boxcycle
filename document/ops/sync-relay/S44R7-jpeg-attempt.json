@@ -1,0 +1,551 @@
+{
+  "instruction": "S4-4R7",
+  "shotDir": "S44R5-shots",
+  "jpeg": true,
+  "shotCount": 28,
+  "completeCount": 0,
+  "s0": {
+    "requiredRange": [
+      635.7,
+      636.4
+    ],
+    "applicable": true,
+    "pass": true,
+    "frames": [
+      {
+        "file": "F000.png",
+        "ok": true,
+        "selfX": 635.7037037037037,
+        "known": 635.7,
+        "failReasons": []
+      },
+      {
+        "file": "F003.png",
+        "ok": true,
+        "selfX": 636.1818181818181,
+        "known": 636.2,
+        "failReasons": []
+      },
+      {
+        "file": "F006.png",
+        "ok": true,
+        "selfX": 636.3529411764706,
+        "known": 636.4,
+        "failReasons": []
+      }
+    ],
+    "note": "추출기가 R4 PNG 알려진 self 정답을 재현했다."
+  },
+  "discrimination": "self = .map-view__rider-nametag--live 글자색 #1d4ed8. peer = --peer 글자색 #0f766e. 위치로 고르지 않음.",
+  "precision": {
+    "method": "주황 자전거 픽셀 군집 무게중심",
+    "medianSelfN": 0,
+    "centroidErrPxEstimate": null,
+    "jpeg": true,
+    "jpegImpact": "S44R5 JPEG 는 480×270 맵 캔버스만이며 HTML 네임태그가 없다. 주황 경계가 압축으로 무너져 라이더를 놓친다."
+  },
+  "selfStats": {
+    "n": 0,
+    "minX": 0,
+    "maxX": 0,
+    "peakToPeakPx": 0,
+    "reverseCount": 0,
+    "maxAbsDeltaPx": 0,
+    "deltas": []
+  },
+  "peerStats": null,
+  "projectionCompare": {
+    "source": "S44R5-capture.json",
+    "citedR5PeerAlong": {
+      "reverseCount": 16,
+      "maxReversePx": 5.6,
+      "peakToPeakPx": 9.3
+    },
+    "project": {
+      "reverseCount": 6,
+      "maxReversePx": 3.558532052943999,
+      "peakToPeakPx": 7.000154798310273,
+      "negativeCount": 4
+    },
+    "pixel": null,
+    "note": "픽셀 추출이 불완전해 투영 대조를 하지 않는다."
+  },
+  "shots": [
+    {
+      "file": "F000.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 1
+    },
+    {
+      "file": "F001.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 1
+    },
+    {
+      "file": "F002.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 1
+    },
+    {
+      "file": "F003.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 1
+    },
+    {
+      "file": "F004.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 0
+    },
+    {
+      "file": "F005.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 0
+    },
+    {
+      "file": "F006.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 0
+    },
+    {
+      "file": "F007.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 1
+    },
+    {
+      "file": "F008.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 0
+    },
+    {
+      "file": "F009.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 1
+    },
+    {
+      "file": "F010.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 0
+    },
+    {
+      "file": "F011.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 1
+    },
+    {
+      "file": "F012.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 0
+    },
+    {
+      "file": "F013.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 1
+    },
+    {
+      "file": "F014.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 0
+    },
+    {
+      "file": "F015.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 0
+    },
+    {
+      "file": "F016.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 0
+    },
+    {
+      "file": "F017.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 0
+    },
+    {
+      "file": "F018.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 1
+    },
+    {
+      "file": "F019.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 0
+    },
+    {
+      "file": "F020.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 0
+    },
+    {
+      "file": "F021.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 0
+    },
+    {
+      "file": "F022.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 0
+    },
+    {
+      "file": "F023.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 0
+    },
+    {
+      "file": "F024.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 0
+    },
+    {
+      "file": "F025.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 1
+    },
+    {
+      "file": "F026.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 0
+    },
+    {
+      "file": "F027.jpg",
+      "width": 480,
+      "height": 270,
+      "selfX": null,
+      "selfY": null,
+      "selfN": null,
+      "peerX": null,
+      "peerY": null,
+      "peerN": null,
+      "selfReason": null,
+      "peerReason": null,
+      "failReasons": [
+        "self 네임태그(#1d4ed8 파랑) 없음"
+      ],
+      "riderClusterCount": 0
+    }
+  ]
+}

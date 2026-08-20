@@ -1,0 +1,44 @@
+{
+  "instruction": "S4-4R7",
+  "shotDir": "S44R5-shots",
+  "jpeg": true,
+  "s0Pass": true,
+  "completeCount": 0,
+  "shotCount": 28,
+  "usable": false,
+  "precision": {
+    "method": "주황 자전거 픽셀 군집 무게중심",
+    "medianSelfN": 0,
+    "centroidErrPxEstimate": null,
+    "jpeg": true,
+    "jpegImpact": "S44R5 JPEG 는 480×270 맵 캔버스만이며 HTML 네임태그가 없다. 주황 경계가 압축으로 무너져 라이더를 놓친다."
+  },
+  "discrimination": "self = .map-view__rider-nametag--live 글자색 #1d4ed8. peer = --peer 글자색 #0f766e. 위치로 고르지 않음.",
+  "selfStats": {
+    "n": 0,
+    "minX": 0,
+    "maxX": 0,
+    "peakToPeakPx": 0,
+    "reverseCount": 0,
+    "maxAbsDeltaPx": 0,
+    "deltas": []
+  },
+  "peerStats": null,
+  "projectionCompare": {
+    "source": "S44R5-capture.json",
+    "citedR5PeerAlong": {
+      "reverseCount": 16,
+      "maxReversePx": 5.6,
+      "peakToPeakPx": 9.3
+    },
+    "project": {
+      "reverseCount": 6,
+      "maxReversePx": 3.558532052943999,
+      "peakToPeakPx": 7.000154798310273,
+      "negativeCount": 4
+    },
+    "pixel": null,
+    "note": "픽셀 추출이 불완전해 투영 대조를 하지 않는다."
+  },
+  "note": "S0 추출기는 통과했으나 이 JPEG 샷은 네임태그·주황 군집이 부족하다. S3~S6 숫자를 결론으로 쓰지 않는다."
+}
