@@ -150,17 +150,27 @@ function bundleFromRange(
   };
 }
 
-function centerStart(shotIndices: readonly number[], bundleLen: number, shotCount: number): number {
-  if (shotIndices.length === 0) return 0;
-  const s = [...shotIndices].sort((a, b) => a - b);
-  const mid = s[Math.floor(s.length / 2)]!;
-  const half = Math.floor(bundleLen / 2);
-  return Math.max(0, Math.min(shotCount - bundleLen, mid - half));
+function windowScore(
+  start: number,
+  len: number,
+  manifest: readonly ShotManifestEntry[],
+  reverses: readonly ReverseStamp[],
+): { magSum: number; magMean: number; count: number } {
+  const t0 = manifest[start]!.shotAtMs;
+  const t1 = manifest[start + len - 1]!.shotAtMs;
+  const inWin = reverses.filter((r) => r.atMs >= t0 && r.atMs <= t1);
+  const magSum = inWin.reduce((a, r) => a + r.magPx, 0);
+  return { magSum, magMean: inWin.length ? magSum / inWin.length : Infinity, count: inWin.length };
+}
+
+function rangesOverlap(a0: number, aLen: number, b0: number, bLen: number): boolean {
+  return !(a0 + aLen <= b0 || b0 + bLen <= a0);
 }
 
 /**
- * ③ 반전 크기 상위 10% / 하위 10% 의 시각을 중심으로
- * 같은 길이·같은 샷 간격의 연속 묶음을 뽑는다.
+ * ③ 반전 크기 상위 10% / 하위 10% 시각을 담는
+ * 같은 길이·같은 샷 간격의 연속 묶음.
+ * 창을 밀어 보며 상위는 mag 합이 큰 곳, 하위는 mag 평균이 작은 곳을 고른다.
  */
 export function pickMagnitudeBundles(
   manifest: readonly ShotManifestEntry[],
@@ -179,23 +189,37 @@ export function pickMagnitudeBundles(
   const topRevs = sorted.slice(0, decile);
   const botRevs = sorted.slice(-decile);
 
-  const shotOf = (atMs: number) => {
-    const i = nearestIndex(atMs, manifest.map((m) => ({ atMs: m.shotAtMs })));
-    return i ?? 0;
-  };
-  const topStart = centerStart(
-    topRevs.map((r) => shotOf(r.atMs)),
-    len,
-    manifest.length,
-  );
-  let botStart = centerStart(
-    botRevs.map((r) => shotOf(r.atMs)),
-    len,
-    manifest.length,
-  );
-  const overlap = !(botStart + len <= topStart || topStart + len <= botStart);
-  if (overlap) {
-    if (topStart + len + len <= manifest.length) botStart = topStart + len;
+  let topStart = 0;
+  let topBest = -1;
+  let botStart = 0;
+  let botBest = Infinity;
+  for (let s = 0; s <= manifest.length - len; s += 1) {
+    const t = windowScore(s, len, manifest, topRevs);
+    const b = windowScore(s, len, manifest, botRevs);
+    if (t.magSum > topBest) {
+      topBest = t.magSum;
+      topStart = s;
+    }
+    if (b.count > 0 && b.magMean < botBest) {
+      botBest = b.magMean;
+      botStart = s;
+    }
+  }
+  if (rangesOverlap(topStart, len, botStart, len)) {
+    let shifted = false;
+    let altBest = Infinity;
+    let altStart = botStart;
+    for (let s = 0; s <= manifest.length - len; s += 1) {
+      if (rangesOverlap(topStart, len, s, len)) continue;
+      const b = windowScore(s, len, manifest, botRevs);
+      if (b.count > 0 && b.magMean < altBest) {
+        altBest = b.magMean;
+        altStart = s;
+        shifted = true;
+      }
+    }
+    if (shifted) botStart = altStart;
+    else if (topStart + len + len <= manifest.length) botStart = topStart + len;
     else if (topStart - len >= 0) botStart = topStart - len;
   }
   return {

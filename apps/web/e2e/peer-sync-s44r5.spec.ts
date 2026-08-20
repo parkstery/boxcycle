@@ -17,7 +17,7 @@ const OUT_DIR = path.resolve(__dirname, "../../../document/ops/sync-relay");
 const SHOT_DIR = path.join(OUT_DIR, "S44R5-shots");
 const CONDITION_ID = "chief-left-5kmh-abreast";
 const ALIGN_MS = 9 * 60 * 1000;
-const SHOT_TARGET_DT_MS = 70;
+const SHOT_TARGET_DT_MS = 50;
 const SHOT_WINDOW_MS = 4000;
 const SCOUT_MS = 5000;
 
@@ -329,21 +329,49 @@ test.describe("S4-4R5 dense peak capture", () => {
     const waitToAimMs = Math.max(0, Math.min(8_000, scoutOffsetMs - SHOT_WINDOW_MS / 2));
     await pageA.waitForTimeout(waitToAimMs);
 
-    await pageB.evaluate((id) => {
-      (window as Window & { __rtwPeerJitterApi: JitterApi }).__rtwPeerJitterApi.begin(id);
-    }, CONDITION_ID);
+    await pageB.evaluate(
+      ({ id, windowMs, minDt }) => {
+        const w = window as Window & {
+          __rtwPeerJitterApi: JitterApi;
+          __RTW_MAP__?: { getCanvas?: () => HTMLCanvasElement };
+          __rtwS44r5Shots?: Array<{ atMs: number; url: string }>;
+        };
+        w.__rtwPeerJitterApi.begin(id);
+        const src =
+          (typeof w.__RTW_MAP__?.getCanvas === "function" ? w.__RTW_MAP__.getCanvas() : null) ??
+          document.querySelector("canvas.mapboxgl-canvas");
+        w.__rtwS44r5Shots = [];
+        const tEnd = Date.now() + windowMs;
+        let last = 0;
+        const off = document.createElement("canvas");
+        off.width = 480;
+        off.height = 270;
+        const ctx = off.getContext("2d");
+        const tick = () => {
+          const atMs = Date.now();
+          if (src && ctx && atMs - last >= minDt) {
+            last = atMs;
+            ctx.drawImage(src, 0, 0, off.width, off.height);
+            w.__rtwS44r5Shots!.push({ atMs, url: off.toDataURL("image/jpeg", 0.55) });
+          }
+          if (atMs < tEnd) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      },
+      { id: CONDITION_ID, windowMs: SHOT_WINDOW_MS, minDt: SHOT_TARGET_DT_MS },
+    );
+    await pageA.waitForTimeout(SHOT_WINDOW_MS + 80);
+    const rawShots = (await pageB.evaluate(() => {
+      return (window as Window & { __rtwS44r5Shots?: Array<{ atMs: number; url: string }> }).__rtwS44r5Shots ?? [];
+    })) as Array<{ atMs: number; url: string }>;
 
     const shots: Array<{ i: number; atMs: number; file: string }> = [];
-    const shootUntil = Date.now() + SHOT_WINDOW_MS;
-    let i = 0;
-    while (Date.now() < shootUntil) {
-      const file = `F${String(i).padStart(3, "0")}.png`;
-      const atMs = Date.now();
-      await pageB.screenshot({ path: path.join(SHOT_DIR, file), fullPage: false });
-      shots.push({ i, atMs, file });
-      i += 1;
-      const elapsed = Date.now() - atMs;
-      if (elapsed < SHOT_TARGET_DT_MS) await pageA.waitForTimeout(SHOT_TARGET_DT_MS - elapsed);
+    for (let si = 0; si < rawShots.length; si += 1) {
+      const file = `F${String(si).padStart(3, "0")}.jpg`;
+      const row = rawShots[si]!;
+      const comma = row.url.indexOf(",");
+      fs.writeFileSync(path.join(SHOT_DIR, file), Buffer.from(row.url.slice(comma + 1), "base64"));
+      shots.push({ i: si, atMs: row.atMs, file });
     }
 
     const dump = (await pageB.evaluate(() => {

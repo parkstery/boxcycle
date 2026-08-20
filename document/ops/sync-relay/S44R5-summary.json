@@ -1,0 +1,96 @@
+{
+  "instruction": "S4-4R5",
+  "conditionId": "chief-left-5kmh-abreast",
+  "trailId": "AWMPEp701GDRIliCSZZh",
+  "camera": "leftFlat",
+  "cameraDistanceM": 40,
+  "speedKmh": [
+    5,
+    5
+  ],
+  "tabState": "both visible",
+  "aligned": true,
+  "gapAtOpen": 3.3073065147214393,
+  "n0": true,
+  "p1": true,
+  "p2": true,
+  "gapWindow": {
+    "frameCount": 29,
+    "minGapDistM": 3.1565186043191744,
+    "maxGapDistM": 3.7781111925925757,
+    "minAbsGapDistM": 3.1565186043191744,
+    "maxAbsGapDistM": 3.7781111925925757,
+    "medianAbsGapDistM": 3.5033359879142054,
+    "allAbsLe5m": true
+  },
+  "timing": {
+    "windowMs": 4346,
+    "displayFrames": 29,
+    "medianFrameDtMs": 150.5
+  },
+  "shotMedianDtMs": 148,
+  "frameMedianDtMs": 150.5,
+  "shotCount": 28,
+  "peak": {
+    "atMs": 1787199284740,
+    "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+    "relSPx": -9.916858346050487,
+    "prevRelSPx": 6.850047243529869,
+    "magPx": 9.916858346050487,
+    "gapDistM": 3.4212391380852267,
+    "gapScreenPx": 95.46827780517395,
+    "displayIndex": 10
+  },
+  "peakShotSeparationMs": 12,
+  "scoutOffsetMs": 2000,
+  "waitToAimMs": 0,
+  "relativeAlong": {
+    "reverseCount": 10,
+    "maxReversePx": 9.916858346050487,
+    "peakToPeakPx": 19.017850510142836,
+    "negativeCount": 6
+  },
+  "startGapDistM": 3.1565186043191744,
+  "startGapScreenPx": 87.71119475256259,
+  "displayFrames": 29,
+  "hasLocalScreen": true,
+  "alignHeldMs": 2000,
+  "topBundle": {
+    "kind": "top",
+    "startShotIndex": 3,
+    "endShotIndexExclusive": 11,
+    "files": [
+      "F003.jpg",
+      "F004.jpg",
+      "F005.jpg",
+      "F006.jpg",
+      "F007.jpg",
+      "F008.jpg",
+      "F009.jpg",
+      "F010.jpg"
+    ],
+    "meanAbsRelSPx": 5.259761227704579,
+    "maxAbsRelSPx": 9.916858346050487,
+    "reverseCount": 7,
+    "localScreenXRangePx": 6.353723988002002
+  },
+  "bottomBundle": {
+    "kind": "bottom",
+    "startShotIndex": 11,
+    "endShotIndexExclusive": 19,
+    "files": [
+      "F011.jpg",
+      "F012.jpg",
+      "F013.jpg",
+      "F014.jpg",
+      "F015.jpg",
+      "F016.jpg",
+      "F017.jpg",
+      "F018.jpg"
+    ],
+    "meanAbsRelSPx": 6.947423465330441,
+    "maxAbsRelSPx": 7.7428304876505285,
+    "reverseCount": 1,
+    "localScreenXRangePx": 6.360352942213694
+  }
+}

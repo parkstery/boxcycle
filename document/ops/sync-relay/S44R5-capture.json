@@ -1,0 +1,4013 @@
+{
+  "instruction": "S4-4R5",
+  "conditionId": "chief-left-5kmh-abreast",
+  "trailId": "AWMPEp701GDRIliCSZZh",
+  "camera": "leftFlat",
+  "cameraDistanceM": 40,
+  "speedKmh": [
+    5,
+    5
+  ],
+  "tabState": "both visible",
+  "aligned": true,
+  "gapAtOpen": 3.3073065147214393,
+  "n0": true,
+  "p1": true,
+  "p2": true,
+  "gapWindow": {
+    "frameCount": 29,
+    "minGapDistM": 3.1565186043191744,
+    "maxGapDistM": 3.7781111925925757,
+    "minAbsGapDistM": 3.1565186043191744,
+    "maxAbsGapDistM": 3.7781111925925757,
+    "medianAbsGapDistM": 3.5033359879142054,
+    "allAbsLe5m": true
+  },
+  "timing": {
+    "windowMs": 4346,
+    "displayFrames": 29,
+    "medianFrameDtMs": 150.5
+  },
+  "shotMedianDtMs": 148,
+  "frameMedianDtMs": 150.5,
+  "shotCount": 28,
+  "peak": {
+    "atMs": 1787199284740,
+    "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+    "relSPx": -9.916858346050487,
+    "prevRelSPx": 6.850047243529869,
+    "magPx": 9.916858346050487,
+    "gapDistM": 3.4212391380852267,
+    "gapScreenPx": 95.46827780517395,
+    "displayIndex": 10
+  },
+  "peakShotSeparationMs": 12,
+  "scoutOffsetMs": 2000,
+  "waitToAimMs": 0,
+  "relativeAlong": {
+    "reverseCount": 10,
+    "maxReversePx": 9.916858346050487,
+    "peakToPeakPx": 19.017850510142836,
+    "negativeCount": 6
+  },
+  "startGapDistM": 3.1565186043191744,
+  "startGapScreenPx": 87.71119475256259,
+  "displayFrames": 29,
+  "hasLocalScreen": true,
+  "alignHeldMs": 2000,
+  "topBundle": {
+    "kind": "top",
+    "startShotIndex": 3,
+    "endShotIndexExclusive": 11,
+    "files": [
+      "F003.jpg",
+      "F004.jpg",
+      "F005.jpg",
+      "F006.jpg",
+      "F007.jpg",
+      "F008.jpg",
+      "F009.jpg",
+      "F010.jpg"
+    ],
+    "meanAbsRelSPx": 5.259761227704579,
+    "maxAbsRelSPx": 9.916858346050487,
+    "reverseCount": 7,
+    "localScreenXRangePx": 6.353723988002002
+  },
+  "bottomBundle": {
+    "kind": "bottom",
+    "startShotIndex": 11,
+    "endShotIndexExclusive": 19,
+    "files": [
+      "F011.jpg",
+      "F012.jpg",
+      "F013.jpg",
+      "F014.jpg",
+      "F015.jpg",
+      "F016.jpg",
+      "F017.jpg",
+      "F018.jpg"
+    ],
+    "meanAbsRelSPx": 6.947423465330441,
+    "maxAbsRelSPx": 7.7428304876505285,
+    "reverseCount": 1,
+    "localScreenXRangePx": 6.360352942213694
+  },
+  "alignLog": [
+    {
+      "t": 1787199259113,
+      "gap": 15.741535940394598,
+      "speedA": 5,
+      "speedB": 5
+    },
+    {
+      "t": 1787199260558,
+      "gap": 15.437018661761487,
+      "speedA": 5,
+      "speedB": 18
+    },
+    {
+      "t": 1787199261053,
+      "gap": 14.793846069433693,
+      "speedA": 5,
+      "speedB": 18
+    },
+    {
+      "t": 1787199262662,
+      "gap": 13.494945340740736,
+      "speedA": 5,
+      "speedB": 10
+    },
+    {
+      "t": 1787199263128,
+      "gap": 12.735497529795456,
+      "speedA": 5,
+      "speedB": 10
+    },
+    {
+      "t": 1787199263591,
+      "gap": 12.182028066560079,
+      "speedA": 5,
+      "speedB": 10
+    },
+    {
+      "t": 1787199264038,
+      "gap": 11.698284229629625,
+      "speedA": 5,
+      "speedB": 10
+    },
+    {
+      "t": 1787199264448,
+      "gap": 10.744472744481111,
+      "speedA": 5,
+      "speedB": 10
+    },
+    {
+      "t": 1787199264912,
+      "gap": 10.730919785185176,
+      "speedA": 5,
+      "speedB": 10
+    },
+    {
+      "t": 1787199265397,
+      "gap": 9.862754928369593,
+      "speedA": 5,
+      "speedB": 10
+    },
+    {
+      "t": 1787199265886,
+      "gap": 9.134998832804222,
+      "speedA": 5,
+      "speedB": 10
+    },
+    {
+      "t": 1787199266377,
+      "gap": 8.751495340740728,
+      "speedA": 5,
+      "speedB": 10
+    },
+    {
+      "t": 1787199266862,
+      "gap": 7.459309609746576,
+      "speedA": 5,
+      "speedB": 10
+    },
+    {
+      "t": 1787199267387,
+      "gap": 6.8812675673896955,
+      "speedA": 5,
+      "speedB": 10
+    },
+    {
+      "t": 1787199267863,
+      "gap": 6.230854229629614,
+      "speedA": 5,
+      "speedB": 10
+    },
+    {
+      "t": 1787199268337,
+      "gap": 5.434410809716194,
+      "speedA": 5,
+      "speedB": 10
+    },
+    {
+      "t": 1787199269948,
+      "gap": 3.2616740259259203,
+      "speedA": 5,
+      "speedB": 5
+    },
+    {
+      "t": 1787199270464,
+      "gap": 3.3149196513739483,
+      "speedA": 5,
+      "speedB": 5
+    },
+    {
+      "t": 1787199270938,
+      "gap": 3.569627036047379,
+      "speedA": 5,
+      "speedB": 5
+    },
+    {
+      "t": 1787199271466,
+      "gap": 3.2873181860566376,
+      "speedA": 5,
+      "speedB": 5
+    },
+    {
+      "t": 1787199271957,
+      "gap": 3.6704011925925784,
+      "speedA": 5,
+      "speedB": 5
+    }
+  ],
+  "scoutPeak": {
+    "atMs": 1787199279696,
+    "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+    "relSPx": -7.646037507938993,
+    "prevRelSPx": 1.3086660918796449,
+    "magPx": 7.646037507938993,
+    "gapDistM": 3.1703130506691437,
+    "gapScreenPx": 88.17518216692484,
+    "displayIndex": 16
+  },
+  "judgment": {
+    "axis": "along-track-screen",
+    "dominantSignal": "along-track-screen",
+    "alongTrackMethod": "forward-regression-window",
+    "maxDistBacktrackM": 0,
+    "distBacktrackCount": 0,
+    "distBacktracks": [],
+    "maxScreenReversePx": 5.583917898622853,
+    "screenReverseCount": 16,
+    "alongReverseCount": 6,
+    "maxAlongReversePx": 3.558532052943999,
+    "alongPeakToPeakPx": 7.000154798310273,
+    "alongNegativeCount": 4,
+    "alongReverses": [
+      {
+        "atMs": 1787199284123,
+        "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+        "sPx": -2.1808455206696586,
+        "prevSPx": 0.8511273939188644,
+        "magPx": 2.1808455206696586,
+        "ux": -0.9999419662199138,
+        "uy": -0.01077330925263228,
+        "pxPerM": 0.9019415327097399,
+        "distDeltaM": 0.1299132835820913,
+        "absDx": 2.18231091658231,
+        "absDy": -0.12426526793626635,
+        "localSPx": 7.531168163170095e-8,
+        "relSPx": -2.18084559598134,
+        "residualPx": -4.440892098500626e-16,
+        "source": "relative"
+      },
+      {
+        "atMs": 1787199284321,
+        "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+        "sPx": 2.7701131754298656,
+        "prevSPx": -2.1808455206696586,
+        "magPx": 2.7701131754298656,
+        "ux": -0.9999990052610647,
+        "uy": 0.0014104881712571923,
+        "pxPerM": 0.8688768484153665,
+        "distDeltaM": 0.28197032588536075,
+        "absDx": -2.770032069799413,
+        "absDy": 0.05945536510932925,
+        "localSPx": -5.0280372429995825,
+        "relSPx": 7.798150418429448,
+        "residualPx": 0,
+        "source": "relative"
+      },
+      {
+        "atMs": 1787199284437,
+        "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+        "sPx": -0.4687856404872334,
+        "prevSPx": 2.7701131754298656,
+        "magPx": 0.4687856404872334,
+        "ux": -0.9999345184637866,
+        "uy": 0.011443722497299415,
+        "pxPerM": 0.7957356782501745,
+        "distDeltaM": 0.1904794939808241,
+        "absDx": 0.4680961956092915,
+        "absDy": -0.06292502602155992,
+        "localSPx": 5.030136854160745,
+        "relSPx": -5.498922494647979,
+        "residualPx": 0,
+        "source": "relative"
+      },
+      {
+        "atMs": 1787199284617,
+        "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+        "sPx": 0.49231739698894605,
+        "prevSPx": -0.4687856404872334,
+        "magPx": 0.49231739698894605,
+        "ux": -0.9997121492580866,
+        "uy": 0.02399205338809298,
+        "pxPerM": 0.823347671789757,
+        "distDeltaM": 0.24906689655172443,
+        "absDx": -0.49176865713729967,
+        "absDy": 0.02877185263332649,
+        "localSPx": -6.357729846540923,
+        "relSPx": 6.850047243529869,
+        "residualPx": -8.881784197001252e-16,
+        "source": "relative"
+      },
+      {
+        "atMs": 1787199284740,
+        "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+        "sPx": -3.558532052943999,
+        "prevSPx": 0.49231739698894605,
+        "magPx": 3.558532052943999,
+        "ux": -0.999413194825257,
+        "uy": 0.03425297080798544,
+        "pxPerM": 0.8004883652172144,
+        "distDeltaM": 0.08298905660377187,
+        "absDx": 3.5570221137331828,
+        "absDy": -0.10501915918462146,
+        "localSPx": 6.3583262931064874,
+        "relSPx": -9.916858346050487,
+        "residualPx": 1.7763568394002505e-15,
+        "source": "relative"
+      },
+      {
+        "atMs": 1787199285025,
+        "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+        "sPx": 1.3789420014628089,
+        "prevSPx": -1.3795746089192809,
+        "magPx": 1.3789420014628089,
+        "ux": -0.99861395255229,
+        "uy": 0.052632440261619964,
+        "pxPerM": 0.8179878021975506,
+        "distDeltaM": 0.2806567328918277,
+        "absDx": -1.3769168806057905,
+        "absDy": 0.0747370436471897,
+        "localSPx": -6.36388848618772,
+        "relSPx": 7.7428304876505285,
+        "residualPx": 0,
+        "source": "relative"
+      }
+    ],
+    "subThresholdAlongReverseCount": 6,
+    "pxPerMMedian": 0.9231948933854514,
+    "bandLabelPx": 8,
+    "bandPxEqualsM": 8.665559198083484,
+    "startGapDistM": 3.1565186043191744,
+    "startGapScreenPx": 87.71119475256259,
+    "hasLocalScreen": true,
+    "displayFrames": 29,
+    "ingestEvents": 76,
+    "peerUids": [
+      "1aTnRptyCzDlDu2sqQcsGmIlOVL0"
+    ],
+    "reason": "진행축=displayDistM 창 회귀. û 는 X/Y 고정이 아니다. 거리 역행 0 회 최대 0.000 m (임계로 버리지 않음). ① peer절대 반전 6 회 최대 3.6 px, 음수 4 스텝, peak-to-peak 7.0 px. ② local절대 반전 8 회 최대 6.4 px. ③ 상대 반전 10 회 최대 9.9 px. K1 max|①−②−③|=1.78e-15 px n=13 pass=true. 2D 반전 16 회 최대 5.6 px. 밴드 8px 미만 진행축 반전 6 회 (라벨. 판정 근거 아님). 로컬 화면 좌표 있음. S44급 진행축 반전 미재현 (① 최대 3.6 px < 20 px). §3 판정 생략.",
+    "cameraSplit": {
+      "hasLocalScreen": true,
+      "k1MaxAbsResidualPx": 1.7763568394002505e-15,
+      "k1MedianAbsResidualPx": 0,
+      "k1FrameCount": 13,
+      "k1Pass": true,
+      "s44ClassReproduced": false,
+      "verdict": null,
+      "verdictReason": "S44급 진행축 반전 미재현 (① 최대 3.6 px < 20 px). §3 판정 생략.",
+      "largePeerReverseCount": 0,
+      "cameraVotes": 0,
+      "peerVotes": 0,
+      "mixedVotes": 0,
+      "peerAlong": {
+        "reverseCount": 6,
+        "maxReversePx": 3.558532052943999,
+        "peakToPeakPx": 7.000154798310273,
+        "negativeCount": 4
+      },
+      "localAlong": {
+        "reverseCount": 8,
+        "maxReversePx": 6.3583262931064874,
+        "peakToPeakPx": 12.722214779294207,
+        "negativeCount": 7
+      },
+      "relativeAlong": {
+        "reverseCount": 10,
+        "maxReversePx": 9.916858346050487,
+        "peakToPeakPx": 19.017850510142836,
+        "negativeCount": 6
+      },
+      "samples": [
+        {
+          "atMs": 1787199283396,
+          "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+          "peerSPx": 3.441622745366274,
+          "localSPx": -5.659369418726077,
+          "relSPx": 9.10099216409235,
+          "peerReversed": false,
+          "localReversed": false,
+          "relReversed": false,
+          "residualPx": 0,
+          "vote": "mixed"
+        },
+        {
+          "atMs": 1787199283526,
+          "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+          "peerSPx": 3.1725443753789992,
+          "localSPx": 5.663077947085379,
+          "relSPx": -2.49053357170638,
+          "peerReversed": false,
+          "localReversed": true,
+          "relReversed": true,
+          "residualPx": 0,
+          "vote": "mixed"
+        },
+        {
+          "atMs": 1787199283686,
+          "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+          "peerSPx": 1.0768518069109507,
+          "localSPx": -5.035520818655122,
+          "relSPx": 6.112372625566073,
+          "peerReversed": false,
+          "localReversed": true,
+          "relReversed": true,
+          "residualPx": 0,
+          "vote": "mixed"
+        },
+        {
+          "atMs": 1787199283860,
+          "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+          "peerSPx": 2.1662939469576603,
+          "localSPx": 5.036059907387363,
+          "relSPx": -2.869765960429703,
+          "peerReversed": false,
+          "localReversed": true,
+          "relReversed": true,
+          "residualPx": 0,
+          "vote": "mixed"
+        },
+        {
+          "atMs": 1787199283998,
+          "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+          "peerSPx": 0.8511273939188644,
+          "localSPx": 2.5691713565212853e-7,
+          "relSPx": 0.8511271370017287,
+          "peerReversed": false,
+          "localReversed": false,
+          "relReversed": true,
+          "residualPx": 0,
+          "vote": "mixed"
+        },
+        {
+          "atMs": 1787199284123,
+          "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+          "peerSPx": -2.1808455206696586,
+          "localSPx": 7.531168163170095e-8,
+          "relSPx": -2.18084559598134,
+          "peerReversed": true,
+          "localReversed": false,
+          "relReversed": true,
+          "residualPx": -4.440892098500626e-16,
+          "vote": "peer"
+        },
+        {
+          "atMs": 1787199284321,
+          "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+          "peerSPx": 2.7701131754298656,
+          "localSPx": -5.0280372429995825,
+          "relSPx": 7.798150418429448,
+          "peerReversed": true,
+          "localReversed": true,
+          "relReversed": true,
+          "residualPx": 0,
+          "vote": "mixed"
+        },
+        {
+          "atMs": 1787199284437,
+          "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+          "peerSPx": -0.4687856404872334,
+          "localSPx": 5.030136854160745,
+          "relSPx": -5.498922494647979,
+          "peerReversed": true,
+          "localReversed": true,
+          "relReversed": true,
+          "residualPx": 0,
+          "vote": "mixed"
+        },
+        {
+          "atMs": 1787199284617,
+          "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+          "peerSPx": 0.49231739698894605,
+          "localSPx": -6.357729846540923,
+          "relSPx": 6.850047243529869,
+          "peerReversed": true,
+          "localReversed": true,
+          "relReversed": true,
+          "residualPx": -8.881784197001252e-16,
+          "vote": "mixed"
+        },
+        {
+          "atMs": 1787199284740,
+          "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+          "peerSPx": -3.558532052943999,
+          "localSPx": 6.3583262931064874,
+          "relSPx": -9.916858346050487,
+          "peerReversed": true,
+          "localReversed": true,
+          "relReversed": true,
+          "residualPx": 1.7763568394002505e-15,
+          "vote": "mixed"
+        },
+        {
+          "atMs": 1787199284883,
+          "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+          "peerSPx": -1.3795746089192809,
+          "localSPx": -2.9982945154194685e-7,
+          "relSPx": -1.3795743090898294,
+          "peerReversed": false,
+          "localReversed": true,
+          "relReversed": false,
+          "residualPx": 0,
+          "vote": "mixed"
+        },
+        {
+          "atMs": 1787199285025,
+          "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+          "peerSPx": 1.3789420014628089,
+          "localSPx": -6.36388848618772,
+          "relSPx": 7.7428304876505285,
+          "peerReversed": true,
+          "localReversed": false,
+          "relReversed": true,
+          "residualPx": 0,
+          "vote": "peer"
+        },
+        {
+          "atMs": 1787199287378,
+          "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+          "peerSPx": 1.0159395177086463,
+          "localSPx": -6.26053947487831,
+          "relSPx": 7.276478992586957,
+          "peerReversed": false,
+          "localReversed": false,
+          "relReversed": false,
+          "residualPx": -8.881784197001252e-16,
+          "vote": "mixed"
+        }
+      ]
+    },
+    "survival": {
+      "displayFrames": 29,
+      "hasLocalScreen": true,
+      "uhatFromLocalDist": false,
+      "uhatFrameCount": 14,
+      "uhatSource": "peer-dist-regression",
+      "localScreenTravelPx": 126.83250935867208,
+      "pass": false,
+      "failReasons": [
+        "3-3 û 가 로컬 거리에서 안 나옴"
+      ]
+    },
+    "routeLenM": null,
+    "gapWindow": {
+      "frameCount": 29,
+      "minGapDistM": 3.1565186043191744,
+      "maxGapDistM": 3.7781111925925757,
+      "minAbsGapDistM": 3.1565186043191744,
+      "maxAbsGapDistM": 3.7781111925925757,
+      "medianAbsGapDistM": 3.5033359879142054,
+      "allAbsLe5m": true
+    },
+    "relativeReverses": [
+      {
+        "atMs": 1787199283526,
+        "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+        "relSPx": -2.49053357170638,
+        "prevRelSPx": 9.10099216409235,
+        "magPx": 2.49053357170638,
+        "gapDistM": 3.3877511925925816,
+        "gapScreenPx": 94.32846722605409,
+        "displayIndex": 2
+      },
+      {
+        "atMs": 1787199283686,
+        "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+        "relSPx": 6.112372625566073,
+        "prevRelSPx": -2.49053357170638,
+        "magPx": 6.112372625566073,
+        "gapDistM": 3.6100411925925755,
+        "gapScreenPx": 100.4475071573993,
+        "displayIndex": 3
+      },
+      {
+        "atMs": 1787199283860,
+        "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+        "relSPx": -2.869765960429703,
+        "prevRelSPx": 6.112372625566073,
+        "magPx": 2.869765960429703,
+        "gapDistM": 3.499675795767182,
+        "gapScreenPx": 97.56971685223978,
+        "displayIndex": 4
+      },
+      {
+        "atMs": 1787199283998,
+        "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+        "relSPx": 0.8511271370017287,
+        "prevRelSPx": -2.869765960429703,
+        "magPx": 0.8511271370017287,
+        "gapDistM": 3.528486748148133,
+        "gapScreenPx": 98.41942422354401,
+        "displayIndex": 5
+      },
+      {
+        "atMs": 1787199284123,
+        "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+        "relSPx": -2.18084559598134,
+        "prevRelSPx": 0.8511271370017287,
+        "magPx": 2.18084559598134,
+        "gapDistM": 3.4500666983968884,
+        "gapScreenPx": 96.23400398874725,
+        "displayIndex": 6
+      },
+      {
+        "atMs": 1787199284321,
+        "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+        "relSPx": 7.798150418429448,
+        "prevRelSPx": -2.18084559598134,
+        "magPx": 7.798150418429448,
+        "gapDistM": 3.732037024282249,
+        "gapScreenPx": 104.03753640767354,
+        "displayIndex": 7
+      },
+      {
+        "atMs": 1787199284437,
+        "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+        "relSPx": -5.498922494647979,
+        "prevRelSPx": 7.798150418429448,
+        "magPx": 5.498922494647979,
+        "gapDistM": 3.5290442960408512,
+        "gapScreenPx": 98.53428303202489,
+        "displayIndex": 8
+      },
+      {
+        "atMs": 1787199284617,
+        "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+        "relSPx": 6.850047243529869,
+        "prevRelSPx": -5.498922494647979,
+        "magPx": 6.850047243529869,
+        "gapDistM": 3.7781111925925757,
+        "gapScreenPx": 105.38513274937362,
+        "displayIndex": 9
+      },
+      {
+        "atMs": 1787199284740,
+        "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+        "relSPx": -9.916858346050487,
+        "prevRelSPx": 6.850047243529869,
+        "magPx": 9.916858346050487,
+        "gapDistM": 3.4212391380852267,
+        "gapScreenPx": 95.46827780517395,
+        "displayIndex": 10
+      },
+      {
+        "atMs": 1787199285025,
+        "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+        "relSPx": 7.7428304876505285,
+        "prevRelSPx": -1.3795743090898294,
+        "magPx": 7.7428304876505285,
+        "gapDistM": 3.6535468143732786,
+        "gapScreenPx": 101.83191507096308,
+        "displayIndex": 12
+      }
+    ],
+    "timing": {
+      "windowMs": 4346,
+      "displayFrames": 29,
+      "medianFrameDtMs": 150.5
+    }
+  },
+  "events": [
+    {
+      "kind": "ingest",
+      "atMs": 1787199283144,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199283144,
+        "serverAtMs": 1787199282582,
+        "distM": 56.8,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942138
+      },
+      "fs": {
+        "recvAtMs": 1787199283144,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 56.8,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199282582
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 56.8,
+        "packetDistM": 56.8
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199283169,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199283169,
+        "serverAtMs": 1787199282850,
+        "distM": 57.1,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942139
+      },
+      "fs": {
+        "recvAtMs": 1787199283169,
+        "serverAtMs": 1787199282552,
+        "distM": 56.8,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 57.1,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199282850
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 57.1,
+        "packetDistM": 57.1
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199283205,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 56.99154518950437,
+      "lng": -73.96947167782464,
+      "lat": 40.7812419117331,
+      "screenX": 552.3613447331072,
+      "screenY": 446.3247737920806,
+      "localDistM": 53.8350265851852,
+      "localScreenX": 640.0000499981896,
+      "localScreenY": 442.75952143327385,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.1565186043191744,
+      "gapScreenPx": 87.71119475256259,
+      "camBearing": -60.455070478811024,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96951716172336,
+      "camLat": 40.78129334795366
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199283302,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199283302,
+        "serverAtMs": 1787199282850,
+        "distM": 57.1,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942139
+      },
+      "fs": {
+        "recvAtMs": 1787199283302,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 57.1,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199282850
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 57.1,
+        "packetDistM": 57.1
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199283321,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199283321,
+        "serverAtMs": 1787199283086,
+        "distM": 57.6,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942140
+      },
+      "fs": {
+        "recvAtMs": 1787199283321,
+        "serverAtMs": 1787199282552,
+        "distM": 56.8,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 57.6,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199283086
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 57.6,
+        "packetDistM": 57.6
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199283396,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 57.320394736842104,
+      "lng": -73.9694729866019,
+      "lat": 40.78123912530489,
+      "screenX": 548.9171311828542,
+      "screenY": 446.39174445543864,
+      "localDistM": 53.8350265851852,
+      "localScreenX": 645.6673596196088,
+      "localScreenY": 442.4957431968843,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.485368151656907,
+      "gapScreenPx": 96.82864002128117,
+      "camBearing": -60.388984147031636,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.9695178091899,
+      "camLat": 40.781291597155736
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199283433,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199283433,
+        "serverAtMs": 1787199283086,
+        "distM": 57.6,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942140
+      },
+      "fs": {
+        "recvAtMs": 1787199283433,
+        "serverAtMs": 1787199282552,
+        "distM": 56.8,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 57.6,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199283086
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 57.6,
+        "packetDistM": 57.6
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199283436,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199283436,
+        "serverAtMs": 1787199283086,
+        "distM": 57.6,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942140
+      },
+      "fs": {
+        "recvAtMs": 1787199283436,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 57.6,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199283086
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 57.6,
+        "packetDistM": 57.6
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199283464,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199283464,
+        "serverAtMs": 1787199283323,
+        "distM": 57.8,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942141
+      },
+      "fs": {
+        "recvAtMs": 1787199283464,
+        "serverAtMs": 1787199282552,
+        "distM": 56.8,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 57.8,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199283323
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 57.8,
+        "packetDistM": 57.8
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199283526,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 57.6625,
+      "lng": -73.96947434813515,
+      "lat": 40.78123622655744,
+      "screenX": 545.7435538986387,
+      "screenY": 446.443637272143,
+      "localDistM": 54.27474880740742,
+      "localScreenX": 640.0000498033017,
+      "localScreenY": 442.75952150428407,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.3877511925925816,
+      "gapScreenPx": 94.32846722605409,
+      "camBearing": -60.32105662746994,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96951853131124,
+      "camLat": 40.78128964845896
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199283626,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199283626,
+        "serverAtMs": 1787199283323,
+        "distM": 57.8,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942141
+      },
+      "fs": {
+        "recvAtMs": 1787199283626,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 57.8,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199283323
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 57.8,
+        "packetDistM": 57.8
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199283651,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199283651,
+        "serverAtMs": 1787199283323,
+        "distM": 57.8,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942141
+      },
+      "fs": {
+        "recvAtMs": 1787199283651,
+        "serverAtMs": 1787199282552,
+        "distM": 56.8,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 57.8,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199283323
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 57.8,
+        "packetDistM": 57.8
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199283686,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 57.884789999999995,
+      "lng": -73.96947523281966,
+      "lat": 40.781234343036004,
+      "screenX": 544.6666883668073,
+      "screenY": 446.4407222952737,
+      "localDistM": 54.27474880740742,
+      "localScreenX": 645.0377486893993,
+      "localScreenY": 442.52256662527066,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.6100411925925755,
+      "gapScreenPx": 100.4475071573993,
+      "camBearing": -60.25099422746018,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.9695191006046,
+      "camLat": 40.78128809982371
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199283770,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199283770,
+        "serverAtMs": 1787199283323,
+        "distM": 57.8,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942141
+      },
+      "fs": {
+        "recvAtMs": 1787199283770,
+        "serverAtMs": 1787199282552,
+        "distM": 56.8,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 57.8,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199283323
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 57.8,
+        "packetDistM": 57.8
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199283773,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199283773,
+        "serverAtMs": 1787199283323,
+        "distM": 57.8,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942141
+      },
+      "fs": {
+        "recvAtMs": 1787199283773,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 57.8,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199283323
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 57.8,
+        "packetDistM": 57.8
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199283801,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199283801,
+        "serverAtMs": 1787199283627,
+        "distM": 58.4,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942142
+      },
+      "fs": {
+        "recvAtMs": 1787199283801,
+        "serverAtMs": 1787199282552,
+        "distM": 56.8,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 58.4,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199283627
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 58.4,
+        "packetDistM": 58.4
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199283803,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199283803,
+        "serverAtMs": 1787199283627,
+        "distM": 58.4,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942142
+      },
+      "fs": {
+        "recvAtMs": 1787199283803,
+        "serverAtMs": 1787199283638,
+        "distM": 58.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 58.4,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199283638
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 58.4,
+        "packetDistM": 58.4
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199283860,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 58.214285714285715,
+      "lng": -73.96947654416857,
+      "lat": 40.78123155113233,
+      "screenX": 542.500269101081,
+      "screenY": 446.4530794785171,
+      "localDistM": 54.71460991851853,
+      "localScreenX": 640.0000500044764,
+      "localScreenY": 442.7595215168575,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.499675795767182,
+      "gapScreenPx": 97.56971685223978,
+      "camBearing": -60.179738272661325,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96951989690285,
+      "camLat": 40.78128595310261
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199283927,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199283927,
+        "serverAtMs": 1787199283627,
+        "distM": 58.4,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942142
+      },
+      "fs": {
+        "recvAtMs": 1787199283927,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 58.4,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199283627
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 58.4,
+        "packetDistM": 58.4
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199283947,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199283947,
+        "serverAtMs": 1787199283627,
+        "distM": 58.4,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942142
+      },
+      "fs": {
+        "recvAtMs": 1787199283947,
+        "serverAtMs": 1787199283638,
+        "distM": 58.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 58.4,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199283638
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 58.4,
+        "packetDistM": 58.4
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199283998,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 58.45143,
+      "lng": -73.96947748797116,
+      "lat": 40.781229541746484,
+      "screenX": 541.6493075616977,
+      "screenY": 446.43573921119463,
+      "localDistM": 54.92294325185187,
+      "localScreenX": 640.0000497467213,
+      "localScreenY": 442.75952156952235,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.528486748148133,
+      "gapScreenPx": 98.41942422354401,
+      "camBearing": -60.10930804526453,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96952054158618,
+      "camLat": 40.781284205420846
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199284049,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199284049,
+        "serverAtMs": 1787199283627,
+        "distM": 58.4,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942142
+      },
+      "fs": {
+        "recvAtMs": 1787199284049,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 58.4,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199283627
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 58.4,
+        "packetDistM": 58.4
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199284069,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199284069,
+        "serverAtMs": 1787199283836,
+        "distM": 58.7,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942143
+      },
+      "fs": {
+        "recvAtMs": 1787199284069,
+        "serverAtMs": 1787199283638,
+        "distM": 58.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 58.7,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199283836
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 58.7,
+        "packetDistM": 58.7
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199284123,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 58.58134328358209,
+      "lng": -73.96947800500867,
+      "lat": 40.781228440957086,
+      "screenX": 543.83161847828,
+      "screenY": 446.31147394325836,
+      "localDistM": 55.131276585185205,
+      "localScreenX": 640.0000496712809,
+      "localScreenY": 442.7595215810662,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.4500666983968884,
+      "gapScreenPx": 96.23400398874725,
+      "camBearing": -60.038625524774716,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.9695211860402,
+      "camLat": 40.781282457890526
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199284212,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199284212,
+        "serverAtMs": 1787199283836,
+        "distM": 58.7,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942143
+      },
+      "fs": {
+        "recvAtMs": 1787199284212,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 58.7,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199283836
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 58.7,
+        "packetDistM": 58.7
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199284237,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199284237,
+        "serverAtMs": 1787199283836,
+        "distM": 58.7,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942143
+      },
+      "fs": {
+        "recvAtMs": 1787199284237,
+        "serverAtMs": 1787199283638,
+        "distM": 58.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 58.7,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199283836
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 58.7,
+        "packetDistM": 58.7
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199284238,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199284238,
+        "serverAtMs": 1787199284016,
+        "distM": 59,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942144
+      },
+      "fs": {
+        "recvAtMs": 1787199284238,
+        "serverAtMs": 1787199283638,
+        "distM": 58.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 59,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284016
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 59,
+        "packetDistM": 59
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199284321,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 58.863313609467454,
+      "lng": -73.96947912721289,
+      "lat": 40.781226051748305,
+      "screenX": 541.0615864084806,
+      "screenY": 446.3709293083677,
+      "localDistM": 55.131276585185205,
+      "localScreenX": 645.0277511598708,
+      "localScreenY": 442.5179345426324,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.732037024282249,
+      "gapScreenPx": 104.03753640767354,
+      "camBearing": -59.96717224795208,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96952175374166,
+      "camLat": 40.781280911346784
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199284359,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199284359,
+        "serverAtMs": 1787199284016,
+        "distM": 59,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942144
+      },
+      "fs": {
+        "recvAtMs": 1787199284359,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 59,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284016
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 59,
+        "packetDistM": 59
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199284383,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199284383,
+        "serverAtMs": 1787199284214,
+        "distM": 59.2,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942145
+      },
+      "fs": {
+        "recvAtMs": 1787199284383,
+        "serverAtMs": 1787199283638,
+        "distM": 58.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 59.2,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284214
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 59.2,
+        "packetDistM": 59.2
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199284437,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 59.05379310344828,
+      "lng": -73.96947988529584,
+      "lat": 40.78122443776538,
+      "screenX": 541.5296826040899,
+      "screenY": 446.30800428234613,
+      "localDistM": 55.52474880740743,
+      "localScreenX": 640.0000497404346,
+      "localScreenY": 442.7595216955686,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.5290442960408512,
+      "gapScreenPx": 98.53428303202489,
+      "camBearing": -59.89441529410067,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96952239683586,
+      "camLat": 40.78127916529046
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199284533,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199284533,
+        "serverAtMs": 1787199284214,
+        "distM": 59.2,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942145
+      },
+      "fs": {
+        "recvAtMs": 1787199284533,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 59.2,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284214
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 59.2,
+        "packetDistM": 59.2
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199284553,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199284553,
+        "serverAtMs": 1787199284214,
+        "distM": 59.2,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942145
+      },
+      "fs": {
+        "recvAtMs": 1787199284553,
+        "serverAtMs": 1787199283638,
+        "distM": 58.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 59.2,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284214
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 59.2,
+        "packetDistM": 59.2
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199284558,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199284558,
+        "serverAtMs": 1787199284214,
+        "distM": 59.2,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942145
+      },
+      "fs": {
+        "recvAtMs": 1787199284558,
+        "serverAtMs": 1787199283638,
+        "distM": 58.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 59.2,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284214
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 59.2,
+        "packetDistM": 59.2
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199284617,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 59.30286,
+      "lng": -73.96948087654881,
+      "lat": 40.7812223273559,
+      "screenX": 541.0379139469526,
+      "screenY": 446.33677613497946,
+      "localDistM": 55.52474880740743,
+      "localScreenX": 646.353773376381,
+      "localScreenY": 442.5163105555018,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.7781111925925757,
+      "gapScreenPx": 105.38513274937362,
+      "camBearing": -59.82244223872135,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96952324921877,
+      "camLat": 40.781277250465635
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199284678,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199284678,
+        "serverAtMs": 1787199284214,
+        "distM": 59.2,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942145
+      },
+      "fs": {
+        "recvAtMs": 1787199284678,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 59.2,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284214
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 59.2,
+        "packetDistM": 59.2
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199284701,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199284701,
+        "serverAtMs": 1787199284428,
+        "distM": 59.5,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942146
+      },
+      "fs": {
+        "recvAtMs": 1787199284701,
+        "serverAtMs": 1787199283638,
+        "distM": 58.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 59.5,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284428
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 59.5,
+        "packetDistM": 59.5
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199284740,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 59.385849056603774,
+      "lng": -73.96948120683417,
+      "lat": 40.78122162416773,
+      "screenX": 544.5949360606858,
+      "screenY": 446.23175697579484,
+      "localDistM": 55.96460991851855,
+      "localScreenX": 640.000049388379,
+      "localScreenY": 442.7595216704218,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.4212391380852267,
+      "gapScreenPx": 95.46827780517395,
+      "camBearing": -59.75169283441846,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96952403775333,
+      "camLat": 40.7812755380006
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199284821,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199284821,
+        "serverAtMs": 1787199284428,
+        "distM": 59.5,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942146
+      },
+      "fs": {
+        "recvAtMs": 1787199284821,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 59.5,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284428
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 59.5,
+        "packetDistM": 59.5
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199284841,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199284841,
+        "serverAtMs": 1787199284428,
+        "distM": 59.5,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942146
+      },
+      "fs": {
+        "recvAtMs": 1787199284841,
+        "serverAtMs": 1787199283638,
+        "distM": 58.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 59.5,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284428
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 59.5,
+        "packetDistM": 59.5
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199284844,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199284844,
+        "serverAtMs": 1787199284428,
+        "distM": 59.5,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942146
+      },
+      "fs": {
+        "recvAtMs": 1787199284844,
+        "serverAtMs": 1787199283638,
+        "distM": 58.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 59.5,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284428
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 59.5,
+        "packetDistM": 59.5
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199284845,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199284845,
+        "serverAtMs": 1787199284620,
+        "distM": 59.8,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942147
+      },
+      "fs": {
+        "recvAtMs": 1787199284845,
+        "serverAtMs": 1787199283638,
+        "distM": 58.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 59.8,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284620
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 59.8,
+        "packetDistM": 59.8
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199284883,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 59.545833333333334,
+      "lng": -73.96948184355021,
+      "lat": 40.78122026857871,
+      "screenX": 545.974649289715,
+      "screenY": 446.2048304543205,
+      "localDistM": 56.17294325185188,
+      "localScreenX": 640.0000496901409,
+      "localScreenY": 442.759521708142,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.372890081481451,
+      "gapScreenPx": 94.08850127840763,
+      "camBearing": -59.68076546721966,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96952482609937,
+      "camLat": 40.78127382563012
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199284972,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199284972,
+        "serverAtMs": 1787199284620,
+        "distM": 59.8,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942147
+      },
+      "fs": {
+        "recvAtMs": 1787199284972,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 59.8,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284620
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 59.8,
+        "packetDistM": 59.8
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199284995,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199284995,
+        "serverAtMs": 1787199284805,
+        "distM": 60,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942148
+      },
+      "fs": {
+        "recvAtMs": 1787199284995,
+        "serverAtMs": 1787199283638,
+        "distM": 58.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 60,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284805
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 60,
+        "packetDistM": 60
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199284998,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199284998,
+        "serverAtMs": 1787199284805,
+        "distM": 60,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942148
+      },
+      "fs": {
+        "recvAtMs": 1787199284998,
+        "serverAtMs": 1787199283638,
+        "distM": 58.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 60,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284805
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 60,
+        "packetDistM": 60
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199285002,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199285002,
+        "serverAtMs": 1787199284805,
+        "distM": 60,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942148
+      },
+      "fs": {
+        "recvAtMs": 1787199285002,
+        "serverAtMs": 1787199284809,
+        "distM": 60,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 60,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284809
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 60,
+        "packetDistM": 60
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199285025,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 59.82649006622516,
+      "lng": -73.96948296052653,
+      "lat": 40.78121789050006,
+      "screenX": 544.5977324091092,
+      "screenY": 446.27956749796766,
+      "localDistM": 56.17294325185188,
+      "localScreenX": 646.3604022991592,
+      "localScreenY": 442.52484462290096,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.6535468143732786,
+      "gapScreenPx": 101.83191507096308,
+      "camBearing": -59.60790644386293,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96952570500238,
+      "camLat": 40.781271919304494
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199285121,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199285121,
+        "serverAtMs": 1787199284805,
+        "distM": 60,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942148
+      },
+      "fs": {
+        "recvAtMs": 1787199285121,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 60,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284805
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 60,
+        "packetDistM": 60
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199285146,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199285146,
+        "serverAtMs": 1787199284805,
+        "distM": 60,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942148
+      },
+      "fs": {
+        "recvAtMs": 1787199285146,
+        "serverAtMs": 1787199284809,
+        "distM": 60,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 60,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284809
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 60,
+        "packetDistM": 60
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199285147,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199285147,
+        "serverAtMs": 1787199284991,
+        "distM": 60.3,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942149
+      },
+      "fs": {
+        "recvAtMs": 1787199285147,
+        "serverAtMs": 1787199284809,
+        "distM": 60,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 60.3,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284991
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 60.3,
+        "packetDistM": 60.3
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199285185,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 60.057615894039735,
+      "lng": -73.96948388037643,
+      "lat": 40.781215932109795,
+      "screenX": 543.3171866446809,
+      "screenY": 446.35131944678267,
+      "localDistM": 56.58960991851855,
+      "localScreenX": 640.000049476393,
+      "localScreenY": 442.7595217506047,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.468005975521187,
+      "gapScreenPx": 96.7495580146283,
+      "camBearing": -59.535396053628745,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96952640050009,
+      "camLat": 40.78127040339031
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199285273,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199285273,
+        "serverAtMs": 1787199284991,
+        "distM": 60.3,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942149
+      },
+      "fs": {
+        "recvAtMs": 1787199285273,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 60.3,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284991
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 60.3,
+        "packetDistM": 60.3
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199285335,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 60.338919999999995,
+      "lng": -73.96948499992921,
+      "lat": 40.78121354854564,
+      "screenX": 541.2654671980432,
+      "screenY": 446.45191090793213,
+      "localDistM": 56.58960991851855,
+      "localScreenX": 645.7205409183675,
+      "localScreenY": 442.54559185592535,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.749310081481447,
+      "gapScreenPx": 104.5280907433713,
+      "camBearing": -59.46481532395978,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96952718823086,
+      "camLat": 40.781268691821715
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199285409,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199285409,
+        "serverAtMs": 1787199284991,
+        "distM": 60.3,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942149
+      },
+      "fs": {
+        "recvAtMs": 1787199285409,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 60.3,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284991
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 60.3,
+        "packetDistM": 60.3
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199285431,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199285431,
+        "serverAtMs": 1787199284991,
+        "distM": 60.3,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942149
+      },
+      "fs": {
+        "recvAtMs": 1787199285431,
+        "serverAtMs": 1787199284809,
+        "distM": 60,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 60.3,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199284991
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 60.3,
+        "packetDistM": 60.3
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199285432,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199285432,
+        "serverAtMs": 1787199285213,
+        "distM": 60.6,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942150
+      },
+      "fs": {
+        "recvAtMs": 1787199285432,
+        "serverAtMs": 1787199284809,
+        "distM": 60,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 60.6,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199285213
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 60.6,
+        "packetDistM": 60.6
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199285506,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 60.509473684210526,
+      "lng": -73.96948567871009,
+      "lat": 40.781212103399056,
+      "screenX": 542.347756542879,
+      "screenY": 446.4348703296861,
+      "localDistM": 57.00613769629632,
+      "localScreenX": 640.0000493569455,
+      "localScreenY": 442.7595217974976,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.5033359879142054,
+      "gapScreenPx": 97.72143305681334,
+      "camBearing": -59.396224407085526,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96952797758428,
+      "camLat": 40.781266977559156
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199285607,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199285607,
+        "serverAtMs": 1787199285316,
+        "distM": 60.7,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942151
+      },
+      "fs": {
+        "recvAtMs": 1787199285607,
+        "serverAtMs": 1787199284809,
+        "distM": 60,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 60.7,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199285316
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 60.7,
+        "packetDistM": 60.7
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199285666,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 60.63771428571429,
+      "lng": -73.96948618909053,
+      "lat": 40.78121101678245,
+      "screenX": 543.9697454712525,
+      "screenY": 446.3967760054792,
+      "localDistM": 57.00613769629632,
+      "localScreenX": 645.0850937115282,
+      "localScreenY": 442.56692017874286,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.6315765894179677,
+      "gapScreenPx": 101.18785226204682,
+      "camBearing": -59.32793935520624,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96952867472443,
+      "camLat": 40.78126545956586
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199285715,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199285715,
+        "serverAtMs": 1787199285316,
+        "distM": 60.7,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942151
+      },
+      "fs": {
+        "recvAtMs": 1787199285715,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 60.7,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199285316
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 60.7,
+        "packetDistM": 60.7
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199285751,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199285751,
+        "serverAtMs": 1787199285316,
+        "distM": 60.7,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942151
+      },
+      "fs": {
+        "recvAtMs": 1787199285751,
+        "serverAtMs": 1787199284809,
+        "distM": 60,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 60.7,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199285316
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 60.7,
+        "packetDistM": 60.7
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199285752,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199285752,
+        "serverAtMs": 1787199285527,
+        "distM": 61,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942152
+      },
+      "fs": {
+        "recvAtMs": 1787199285752,
+        "serverAtMs": 1787199284809,
+        "distM": 60,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 61,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199285527
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 61,
+        "packetDistM": 61
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199285776,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 60.718620689655175,
+      "lng": -73.96948651108721,
+      "lat": 40.78121033124101,
+      "screenX": 548.2362340605403,
+      "screenY": 446.2576522529793,
+      "localDistM": 57.422804362962985,
+      "localScreenX": 640.0000493758056,
+      "localScreenY": 442.7595217757515,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.29581632669219,
+      "gapScreenPx": 91.83046726468201,
+      "camBearing": -59.2580015973715,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96952955544255,
+      "camLat": 40.78126354969813
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199285864,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199285864,
+        "serverAtMs": 1787199285527,
+        "distM": 61,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942152
+      },
+      "fs": {
+        "recvAtMs": 1787199285864,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 61,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199285527
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 61,
+        "packetDistM": 61
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199285882,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199285882,
+        "serverAtMs": 1787199285527,
+        "distM": 61,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942152
+      },
+      "fs": {
+        "recvAtMs": 1787199285882,
+        "serverAtMs": 1787199284809,
+        "distM": 60,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 61,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199285527
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 61,
+        "packetDistM": 61
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199285885,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199285885,
+        "serverAtMs": 1787199285699,
+        "distM": 61.3,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942153
+      },
+      "fs": {
+        "recvAtMs": 1787199285885,
+        "serverAtMs": 1787199284809,
+        "distM": 60,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 61.3,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199285699
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 61.3,
+        "packetDistM": 61.3
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199285927,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 61.03383458646616,
+      "lng": -73.96948776559641,
+      "lat": 40.781207660349985,
+      "screenX": 544.5836312625819,
+      "screenY": 446.4201145339808,
+      "localDistM": 57.422804362962985,
+      "localScreenX": 645.086417188543,
+      "localScreenY": 442.5643864562176,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.611030223503178,
+      "gapScreenPx": 100.57672005931204,
+      "camBearing": -59.18853892058746,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96953025228602,
+      "camLat": 40.78126203132867
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199285984,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199285984,
+        "serverAtMs": 1787199285699,
+        "distM": 61.3,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942153
+      },
+      "fs": {
+        "recvAtMs": 1787199285984,
+        "serverAtMs": 1787199284809,
+        "distM": 60,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 61.3,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199285699
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 61.3,
+        "packetDistM": 61.3
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199285986,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199285986,
+        "serverAtMs": 1787199285699,
+        "distM": 61.3,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942153
+      },
+      "fs": {
+        "recvAtMs": 1787199285986,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 61.3,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199285699
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 61.3,
+        "packetDistM": 61.3
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199286008,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199286008,
+        "serverAtMs": 1787199285699,
+        "distM": 61.3,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942153
+      },
+      "fs": {
+        "recvAtMs": 1787199286008,
+        "serverAtMs": 1787199284809,
+        "distM": 60,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 61.3,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199285699
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 61.3,
+        "packetDistM": 61.3
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199286009,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199286009,
+        "serverAtMs": 1787199285879,
+        "distM": 61.5,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942154
+      },
+      "fs": {
+        "recvAtMs": 1787199286009,
+        "serverAtMs": 1787199284809,
+        "distM": 60,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 61.5,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199285879
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 61.5,
+        "packetDistM": 61.5
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199286046,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 61.3016129032258,
+      "lng": -73.96948883131836,
+      "lat": 40.781205391393115,
+      "screenX": 542.9154003311357,
+      "screenY": 446.50709114023846,
+      "localDistM": 57.81627658518521,
+      "localScreenX": 640.0000492123512,
+      "localScreenY": 442.759521843361,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.485336318040595,
+      "gapScreenPx": 97.15695201077372,
+      "camBearing": -59.12102313186017,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96953104139169,
+      "camLat": 40.78126031730008
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199286110,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199286110,
+        "serverAtMs": 1787199285879,
+        "distM": 61.5,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942154
+      },
+      "fs": {
+        "recvAtMs": 1787199286110,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 61.5,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199285879
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 61.5,
+        "packetDistM": 61.5
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199286137,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199286137,
+        "serverAtMs": 1787199285879,
+        "distM": 61.5,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942154
+      },
+      "fs": {
+        "recvAtMs": 1787199286137,
+        "serverAtMs": 1787199285882,
+        "distM": 61.5,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 61.5,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199285882
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 61.5,
+        "packetDistM": 61.5
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199286162,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 61.487096774193546,
+      "lng": -73.96948956951937,
+      "lat": 40.78120381973894,
+      "screenX": 543.5791024773346,
+      "screenY": 446.5036482026792,
+      "localDistM": 58.02474880740743,
+      "localScreenX": 640.0000492123512,
+      "localScreenY": 442.7595218559344,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.462347966786119,
+      "gapScreenPx": 96.49361352637439,
+      "camBearing": -59.055437989710754,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96953183265724,
+      "camLat": 40.781258599452556
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199286251,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199286251,
+        "serverAtMs": 1787199285879,
+        "distM": 61.5,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942154
+      },
+      "fs": {
+        "recvAtMs": 1787199286251,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 61.5,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199285879
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 61.5,
+        "packetDistM": 61.5
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199286271,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199286271,
+        "serverAtMs": 1787199285879,
+        "distM": 61.5,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942154
+      },
+      "fs": {
+        "recvAtMs": 1787199286271,
+        "serverAtMs": 1787199285882,
+        "distM": 61.5,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 61.5,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199285882
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 61.5,
+        "packetDistM": 61.5
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199286272,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199286272,
+        "serverAtMs": 1787199286098,
+        "distM": 61.8,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942155
+      },
+      "fs": {
+        "recvAtMs": 1787199286272,
+        "serverAtMs": 1787199285882,
+        "distM": 61.5,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 61.8,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199286098
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 61.8,
+        "packetDistM": 61.8
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199286333,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 61.68636363636364,
+      "lng": -73.96949036257487,
+      "lat": 40.781202131297746,
+      "screenX": 541.8880352892419,
+      "screenY": 446.59182317309967,
+      "localDistM": 58.02474880740743,
+      "localScreenX": 643.8109390714186,
+      "localScreenY": 442.61066687856265,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.6616148289562105,
+      "gapScreenPx": 102.00062706097637,
+      "camBearing": -58.99004781228041,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96953234703204,
+      "camLat": 40.781257471025235
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199286407,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199286407,
+        "serverAtMs": 1787199286265,
+        "distM": 62.1,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942156
+      },
+      "fs": {
+        "recvAtMs": 1787199286407,
+        "serverAtMs": 1787199285882,
+        "distM": 61.5,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 62.1,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199286265
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 62.1,
+        "packetDistM": 62.1
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199286464,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 61.86888888888889,
+      "lng": -73.96949108900098,
+      "lat": 40.78120058471266,
+      "screenX": 542.6282674789791,
+      "screenY": 446.5858718702238,
+      "localDistM": 58.37183214074076,
+      "localScreenX": 640.000049130624,
+      "localScreenY": 442.75952193271655,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.4970567481481325,
+      "gapScreenPx": 97.44693333224951,
+      "camBearing": -58.92286373177848,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96953313610422,
+      "camLat": 40.78125575664728
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199286560,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199286560,
+        "serverAtMs": 1787199286265,
+        "distM": 62.1,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942156
+      },
+      "fs": {
+        "recvAtMs": 1787199286560,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 62.1,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199286265
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 62.1,
+        "packetDistM": 62.1
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199286578,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199286578,
+        "serverAtMs": 1787199286265,
+        "distM": 62.1,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942156
+      },
+      "fs": {
+        "recvAtMs": 1787199286578,
+        "serverAtMs": 1787199285882,
+        "distM": 61.5,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 62.1,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199286265
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 62.1,
+        "packetDistM": 62.1
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199286629,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 62.18479,
+      "lng": -73.9694923462452,
+      "lat": 40.78119790799827,
+      "screenX": 538.9523078968423,
+      "screenY": 446.7544936373961,
+      "localDistM": 58.557109918518535,
+      "localScreenX": 640.0000491557709,
+      "localScreenY": 442.7595220071275,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.627680081481465,
+      "gapScreenPx": 101.12668199767074,
+      "camBearing": -58.85475195939159,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96953383334714,
+      "camLat": 40.78125423709879
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199286684,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199286684,
+        "serverAtMs": 1787199286265,
+        "distM": 62.1,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942156
+      },
+      "fs": {
+        "recvAtMs": 1787199286684,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 62.1,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199286265
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 62.1,
+        "packetDistM": 62.1
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199286705,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199286705,
+        "serverAtMs": 1787199286472,
+        "distM": 62.3,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942157
+      },
+      "fs": {
+        "recvAtMs": 1787199286705,
+        "serverAtMs": 1787199285882,
+        "distM": 61.5,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 62.3,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199286472
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 62.3,
+        "packetDistM": 62.3
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199286746,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 62.21919191919192,
+      "lng": -73.96949248316024,
+      "lat": 40.78119761650162,
+      "screenX": 544.5327109795018,
+      "screenY": 446.55640140230014,
+      "localDistM": 58.557109918518535,
+      "localScreenX": 646.3419378715313,
+      "localScreenY": 442.5072954540437,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.6620820006733865,
+      "gapScreenPx": 101.88971459049708,
+      "camBearing": -58.78757805640373,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96953471458104,
+      "camLat": 40.781252326109836
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199286834,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199286834,
+        "serverAtMs": 1787199286472,
+        "distM": 62.3,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942157
+      },
+      "fs": {
+        "recvAtMs": 1787199286834,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 62.3,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199286472
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 62.3,
+        "packetDistM": 62.3
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199286859,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199286859,
+        "serverAtMs": 1787199286472,
+        "distM": 62.3,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942157
+      },
+      "fs": {
+        "recvAtMs": 1787199286859,
+        "serverAtMs": 1787199285882,
+        "distM": 61.5,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 62.3,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199286472
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 62.3,
+        "packetDistM": 62.3
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199286860,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199286860,
+        "serverAtMs": 1787199286675,
+        "distM": 62.6,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942158
+      },
+      "fs": {
+        "recvAtMs": 1787199286860,
+        "serverAtMs": 1787199285882,
+        "distM": 61.5,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 62.6,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199286675
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 62.6,
+        "packetDistM": 62.6
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199286901,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 62.369677419354836,
+      "lng": -73.96949308207243,
+      "lat": 40.781196341397816,
+      "screenX": 544.8750709690751,
+      "screenY": 446.5648392648944,
+      "localDistM": 58.95058214074075,
+      "localScreenX": 640.0000490866171,
+      "localScreenY": 442.7595220037268,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.419095278614087,
+      "gapScreenPx": 95.2010604001919,
+      "camBearing": -58.721623701917565,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96953532063391,
+      "camLat": 40.78125100142973
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199286967,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199286967,
+        "serverAtMs": 1787199286675,
+        "distM": 62.6,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942158
+      },
+      "fs": {
+        "recvAtMs": 1787199286967,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 62.6,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199286675
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 62.6,
+        "packetDistM": 62.6
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199286984,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199286984,
+        "serverAtMs": 1787199286675,
+        "distM": 62.6,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942158
+      },
+      "fs": {
+        "recvAtMs": 1787199286984,
+        "serverAtMs": 1787199285882,
+        "distM": 61.5,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 62.6,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199286675
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 62.6,
+        "packetDistM": 62.6
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199287019,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 62.598064516129035,
+      "lng": -73.96949399102256,
+      "lat": 40.781194406212904,
+      "screenX": 544.3204087655371,
+      "screenY": 446.6093190042062,
+      "localDistM": 58.95058214074075,
+      "localScreenX": 645.7039903131961,
+      "localScreenY": 442.5300163622552,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.647482375388286,
+      "gapScreenPx": 101.46561642978102,
+      "camBearing": -58.65537735406156,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96953610995531,
+      "camLat": 40.7812492862193
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199287121,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199287121,
+        "serverAtMs": 1787199286675,
+        "distM": 62.6,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942158
+      },
+      "fs": {
+        "recvAtMs": 1787199287121,
+        "serverAtMs": 1787199285882,
+        "distM": 61.5,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 62.6,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199286675
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 62.6,
+        "packetDistM": 62.6
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199287123,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199287123,
+        "serverAtMs": 1787199286675,
+        "distM": 62.6,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942158
+      },
+      "fs": {
+        "recvAtMs": 1787199287123,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 62.6,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199286675
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 62.6,
+        "packetDistM": 62.6
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199287150,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199287150,
+        "serverAtMs": 1787199286675,
+        "distM": 62.6,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942158
+      },
+      "fs": {
+        "recvAtMs": 1787199287150,
+        "serverAtMs": 1787199285882,
+        "distM": 61.5,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 62.6,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199286675
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 62.6,
+        "packetDistM": 62.6
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199287151,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199287151,
+        "serverAtMs": 1787199286864,
+        "distM": 62.9,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942159
+      },
+      "fs": {
+        "recvAtMs": 1787199287151,
+        "serverAtMs": 1787199285882,
+        "distM": 61.5,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 62.9,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199286864
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 62.9,
+        "packetDistM": 62.9
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199287192,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 62.774226804123714,
+      "lng": -73.96949469212494,
+      "lat": 40.781192913542725,
+      "screenX": 544.5968872723346,
+      "screenY": 446.62032870777784,
+      "localDistM": 59.34419325185186,
+      "localScreenX": 640.0000489357361,
+      "localScreenY": 442.75952199115335,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.4300335522718512,
+      "gapScreenPx": 95.48124990738371,
+      "camBearing": -58.58943926769979,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96953680873294,
+      "camLat": 40.78124776374936
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199287290,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199287290,
+        "serverAtMs": 1787199287060,
+        "distM": 63.2,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942160
+      },
+      "fs": {
+        "recvAtMs": 1787199287290,
+        "serverAtMs": 1787199285882,
+        "distM": 61.5,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 63.2,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199287060
+      },
+      "ingest": {
+        "result": "accepted",
+        "newestDistM": 63.2,
+        "packetDistM": 63.2
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199287295,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199287295,
+        "serverAtMs": 1787199287060,
+        "distM": 63.2,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942160
+      },
+      "fs": {
+        "recvAtMs": 1787199287295,
+        "serverAtMs": 1787199287076,
+        "distM": 63.2,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 63.2,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199287076
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 63.2,
+        "packetDistM": 63.2
+      }
+    },
+    {
+      "kind": "display",
+      "atMs": 1787199287378,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "displayDistM": 63.04244604316547,
+      "lng": -73.96949575960168,
+      "lat": 40.78119064084931,
+      "screenX": 543.573345381772,
+      "screenY": 446.68478078193874,
+      "localDistM": 59.34419325185186,
+      "localScreenX": 646.3356722476871,
+      "localScreenY": 442.501616588486,
+      "aheadScreenX": null,
+      "aheadScreenY": null,
+      "soloLocal": false,
+      "gapDistM": 3.6982527913136067,
+      "gapScreenPx": 102.84743402519359,
+      "camBearing": -58.52159078661191,
+      "camPitch": 79.99999999999999,
+      "camLng": -73.96953768926207,
+      "camLat": 40.781245853117426
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199287403,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199287403,
+        "serverAtMs": 1787199287060,
+        "distM": 63.2,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942160
+      },
+      "fs": {
+        "recvAtMs": 1787199287403,
+        "serverAtMs": 1787199272956,
+        "distM": 43.4,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 63.2,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199287060
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 63.2,
+        "packetDistM": 63.2
+      }
+    },
+    {
+      "kind": "ingest",
+      "atMs": 1787199287480,
+      "uid": "1aTnRptyCzDlDu2sqQcsGmIlOVL0",
+      "conditionId": "chief-left-5kmh-abreast",
+      "rtdb": {
+        "recvAtMs": 1787199287480,
+        "serverAtMs": 1787199287060,
+        "distM": 63.2,
+        "speedMps": 1.39,
+        "phase": "live",
+        "seq": 249942160
+      },
+      "fs": {
+        "recvAtMs": 1787199287480,
+        "serverAtMs": 1787199287076,
+        "distM": 63.2,
+        "speedMps": 1.39,
+        "phase": "live"
+      },
+      "merge": {
+        "invoked": false,
+        "choice": "rtdb-only",
+        "reason": "product skips mergePeerMotionPackets; RTDB present so ingest RTDB only",
+        "wouldDistM": 63.2,
+        "wouldSpeedMps": 1.39,
+        "wouldPhase": "live",
+        "wouldServerAtMs": 1787199287076
+      },
+      "ingest": {
+        "result": "dup-same-dist",
+        "newestDistM": 63.2,
+        "packetDistM": 63.2
+      }
+    }
+  ]
+}
