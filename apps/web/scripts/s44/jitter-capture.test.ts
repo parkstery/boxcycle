@@ -15,6 +15,12 @@ import {
   type JitterDisplayEvent,
   type JitterMergeNote,
 } from "../../src/lib/peerMotion/peerJitterCapture.ts";
+import {
+  buildShotManifest,
+  medianShotIntervalMs,
+  peakShotSeparationMs,
+  pickMagnitudeBundles,
+} from "./shot-manifest.ts";
 
 const mergeNone: JitterMergeNote = {
   invoked: false,
@@ -455,5 +461,77 @@ describe("N0 창 전체 gap", () => {
     const g = lastPeerDisplayGap();
     assert.equal(g.gapDistM, 2);
     assert.equal(g.atMs, 10);
+  });
+});
+
+describe("S4-4R5 샷 매니페스트 · 상위/하위 묶음", () => {
+  it("샷 간격 중앙값을 낸다", () => {
+    const shots = [
+      { i: 0, atMs: 0, file: "F000.png" },
+      { i: 1, atMs: 80, file: "F001.png" },
+      { i: 2, atMs: 160, file: "F002.png" },
+      { i: 3, atMs: 300, file: "F003.png" },
+    ];
+    assert.equal(medianShotIntervalMs(shots), 80);
+  });
+
+  it("피크와 최근접 샷 이격을 낸다", () => {
+    const shots = [
+      { i: 0, atMs: 1000, file: "F000.png" },
+      { i: 1, atMs: 1080, file: "F001.png" },
+    ];
+    assert.equal(peakShotSeparationMs(1070, shots), 10);
+  });
+
+  it("샷마다 frameIndex · atMs · relSPx · gapDistM 을 붙인다", () => {
+    const shots = [{ i: 0, atMs: 105, file: "F000.png" }];
+    const display = [
+      { atMs: 90, gapDistM: 3.2, screenX: 540, localScreenX: 640 },
+      { atMs: 110, gapDistM: 3.4, screenX: 538, localScreenX: 640 },
+    ];
+    const samples = [
+      { atMs: 90, relSPx: 1.2, localSPx: 0.1, peerSPx: 1.3 },
+      { atMs: 110, relSPx: 8.5, localSPx: 0.2, peerSPx: 8.7 },
+    ];
+    const m = buildShotManifest(shots, display, samples);
+    assert.equal(m[0]!.frameIndex, 1);
+    assert.equal(m[0]!.atMs, 110);
+    assert.equal(m[0]!.relSPx, 8.5);
+    assert.equal(m[0]!.gapDistM, 3.4);
+    assert.equal(m[0]!.dtMs, 5);
+  });
+
+  it("상위/하위 10% 묶음은 같은 길이고 상위가 더 큰 반전을 담는다", () => {
+    const shots = Array.from({ length: 20 }, (_, i) => ({
+      i,
+      atMs: i * 80,
+      file: `F${String(i).padStart(3, "0")}.png`,
+    }));
+    const display = shots.map((s) => ({
+      atMs: s.atMs,
+      gapDistM: 3.2,
+      screenX: 540,
+      localScreenX: 640,
+    }));
+    const samples = shots.map((s, i) => ({
+      atMs: s.atMs,
+      relSPx: i < 8 ? 9 : 1,
+      localSPx: 0.2,
+      peerSPx: i < 8 ? 9.2 : 1.2,
+    }));
+    const reverses = shots.map((s, i) => ({
+      atMs: s.atMs,
+      magPx: i < 8 ? 9 : 1,
+      relSPx: i < 8 ? 9 : 1,
+      gapDistM: 3.2,
+      displayIndex: i,
+    }));
+    const manifest = buildShotManifest(shots, display, samples);
+    const b = pickMagnitudeBundles(manifest, reverses, 8);
+    assert.ok(b.top && b.bottom);
+    assert.equal(b.top.files.length, b.bottom.files.length);
+    assert.equal(b.top.files.length, 8);
+    assert.ok((b.top.maxAbsRelSPx ?? 0) > (b.bottom.maxAbsRelSPx ?? 0));
+    assert.equal(b.top.localScreenXRangePx, 0);
   });
 });
