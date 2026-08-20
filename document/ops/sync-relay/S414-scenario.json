@@ -1,0 +1,439 @@
+{
+  "name": "s414-pair-chain",
+  "routeLenM": 2000,
+  "events": [
+    {
+      "atMs": 1787256365176,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 237.1,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256365042,
+        "seq": 543053310
+      }
+    },
+    {
+      "atMs": 1787256365395,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 237.6,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256365254,
+        "seq": 543053311
+      }
+    },
+    {
+      "atMs": 1787256365635,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 237.9,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256365459,
+        "seq": 543053312
+      }
+    },
+    {
+      "atMs": 1787256365872,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 238,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256365695,
+        "seq": 543053313
+      }
+    },
+    {
+      "atMs": 1787256366181,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 238.7,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256366010,
+        "seq": 543053314
+      }
+    },
+    {
+      "atMs": 1787256366291,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 238.8,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256366143,
+        "seq": 543053315
+      }
+    },
+    {
+      "atMs": 1787256366410,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 239.1,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256366351,
+        "seq": 543053316
+      }
+    },
+    {
+      "atMs": 1787256366728,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 239.4,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256366562,
+        "seq": 543053317
+      }
+    },
+    {
+      "atMs": 1787256366969,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 239.8,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256366800,
+        "seq": 543053318
+      }
+    },
+    {
+      "atMs": 1787256367182,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 240.1,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256367035,
+        "seq": 543053319
+      }
+    },
+    {
+      "atMs": 1787256367409,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 240.2,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256367270,
+        "seq": 543053320
+      }
+    },
+    {
+      "atMs": 1787256367894,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 241.1,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256367756,
+        "seq": 543053322
+      }
+    },
+    {
+      "atMs": 1787256368132,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 241.4,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256367978,
+        "seq": 543053323
+      }
+    },
+    {
+      "atMs": 1787256368341,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 241.5,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256368189,
+        "seq": 543053324
+      }
+    },
+    {
+      "atMs": 1787256368650,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 242.1,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256368481,
+        "seq": 543053325
+      }
+    },
+    {
+      "atMs": 1787256368879,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 242.4,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256368679,
+        "seq": 543053326
+      }
+    },
+    {
+      "atMs": 1787256369100,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 242.7,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256368920,
+        "seq": 543053327
+      }
+    },
+    {
+      "atMs": 1787256369190,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 242.9,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256369059,
+        "seq": 543053328
+      }
+    },
+    {
+      "atMs": 1787256369304,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 243.2,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256369258,
+        "seq": 543053329
+      }
+    },
+    {
+      "atMs": 1787256369525,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 243.5,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256369475,
+        "seq": 543053330
+      }
+    },
+    {
+      "atMs": 1787256369834,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 243.6,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256369691,
+        "seq": 543053331
+      }
+    },
+    {
+      "atMs": 1787256370165,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 244.2,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256369972,
+        "seq": 543053332
+      }
+    },
+    {
+      "atMs": 1787256370369,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 244.5,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256370193,
+        "seq": 543053333
+      }
+    },
+    {
+      "atMs": 1787256370611,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 244.8,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256370405,
+        "seq": 543053334
+      }
+    },
+    {
+      "atMs": 1787256370850,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 245.1,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256370670,
+        "seq": 543053335
+      }
+    },
+    {
+      "atMs": 1787256371060,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 245.4,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256370897,
+        "seq": 543053336
+      }
+    },
+    {
+      "atMs": 1787256371286,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 245.7,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256371122,
+        "seq": 543053337
+      }
+    },
+    {
+      "atMs": 1787256371499,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 246.1,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256371342,
+        "seq": 543053338
+      }
+    },
+    {
+      "atMs": 1787256371770,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 246.2,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256371550,
+        "seq": 543053339
+      }
+    },
+    {
+      "atMs": 1787256372008,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 246.8,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256371841,
+        "seq": 543053340
+      }
+    },
+    {
+      "atMs": 1787256372224,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 247,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256372044,
+        "seq": 543053341
+      }
+    },
+    {
+      "atMs": 1787256372423,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 247.3,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256372254,
+        "seq": 543053342
+      }
+    },
+    {
+      "atMs": 1787256372680,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 247.6,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256372501,
+        "seq": 543053343
+      }
+    },
+    {
+      "atMs": 1787256372890,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 248,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256372726,
+        "seq": 543053344
+      }
+    },
+    {
+      "atMs": 1787256372997,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 248.3,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256372948,
+        "seq": 543053345
+      }
+    },
+    {
+      "atMs": 1787256373209,
+      "packet": {
+        "uid": "spomIJja82xAjxruikfbPC6JBkCO",
+        "publicationId": "s414-capture",
+        "distM": 248.4,
+        "speedMps": 1.39,
+        "phase": "live",
+        "serverAtMs": 1787256373156,
+        "seq": 543053346
+      }
+    }
+  ],
+  "expectFail": false
+}
