@@ -206,7 +206,7 @@ test.describe("S4-8 real-jerk capture", () => {
     mark("peer-pause 5→0");
     await waitOffset(13_000);
 
-    await pageA.getByRole("button", { name: "재개" }).click();
+    await pageA.getByRole("region", { name: "일시정지" }).getByRole("button", { name: "재개" }).click();
     mark("peer-resume 0→5");
     await waitOffset(20_000);
 
