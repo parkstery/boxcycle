@@ -44,7 +44,8 @@ export const S0_KNOWN: Record<(typeof S0_FILES)[number], number> = {
 };
 
 export function isOrangeBikePixel(r: number, g: number, b: number): boolean {
-  return r >= 150 && g >= 70 && b <= 90 && r > b + 40;
+  // 노란 경로선(g 높음)을 빼고 주황 자전거만.
+  return r >= 150 && g >= 70 && g <= 135 && b <= 90 && r > g + 40 && r > b + 40;
 }
 
 /** JPEG 축소본용 — 채도가 내려가도 주황 자전거를 남긴다. */
@@ -111,6 +112,17 @@ function collect(
   return out;
 }
 
+function centroidOf(points: readonly Pt[]): { x: number; y: number; n: number } | null {
+  if (points.length < 8) return null;
+  let sx = 0;
+  let sy = 0;
+  for (const p of points) {
+    sx += p.x;
+    sy += p.y;
+  }
+  return { x: sx / points.length, y: sy / points.length, n: points.length };
+}
+
 function nearest(of: { x: number; y: number }, items: Array<{ x: number; y: number; n: number }>) {
   if (items.length === 0) return null;
   let best = items[0]!;
@@ -125,27 +137,53 @@ function nearest(of: { x: number; y: number }, items: Array<{ x: number; y: numb
   return { hit: best, dist: bestD };
 }
 
+function bikeUnderTag(
+  img: RgbaImage,
+  tag: { x: number; y: number },
+  pred: (r: number, g: number, b: number) => boolean,
+) {
+  return centroidOf(
+    collect(img, pred, {
+      x0: tag.x - 28,
+      x1: tag.x + 28,
+      y0: tag.y - 2,
+      y1: tag.y + 70,
+    }),
+  );
+}
+
 export function extractMarkers(
   img: RgbaImage,
-  opts: { bikePred?: (r: number, g: number, b: number) => boolean; jpeg?: boolean } = {},
+  opts: {
+    bikePred?: (r: number, g: number, b: number) => boolean;
+    jpeg?: boolean;
+    fullFrame?: boolean;
+    originX?: number;
+    originY?: number;
+  } = {},
 ): ExtractResult {
   const failReasons: string[] = [];
   const bikePred = opts.bikePred ?? (opts.jpeg ? isOrangeBikePixelLoose : isOrangeBikePixel);
   const w = img.width;
   const h = img.height;
-  const mapBand = {
-    x0: Math.floor(w * 0.35),
-    x1: Math.floor(w * 0.58),
-    y0: Math.floor(h * 0.38),
-    y1: Math.floor(h * 0.56),
-  };
-  const tagBand = {
-    x0: Math.floor(w * 0.32),
-    x1: Math.floor(w * 0.62),
-    y0: Math.floor(h * 0.32),
-    y1: Math.floor(h * 0.5),
-  };
-  const riders = cluster(collect(img, bikePred, mapBand), opts.jpeg ? 18 : 28, opts.jpeg ? 4 : 8);
+  const mapBand = opts.fullFrame
+    ? { x0: 0, x1: w - 1, y0: 0, y1: h - 1 }
+    : {
+        x0: Math.floor(w * 0.35),
+        x1: Math.floor(w * 0.58),
+        y0: Math.floor(h * 0.38),
+        y1: Math.floor(h * 0.56),
+      };
+  const tagBand = opts.fullFrame
+    ? { x0: 0, x1: w - 1, y0: 0, y1: h - 1 }
+    : {
+        x0: Math.floor(w * 0.32),
+        x1: Math.floor(w * 0.62),
+        y0: Math.floor(h * 0.32),
+        y1: Math.floor(h * 0.5),
+      };
+  const riders = cluster(collect(img, bikePred, mapBand), opts.jpeg ? 18 : 28, opts.jpeg ? 4 : 8)
+    .filter((r) => (opts.jpeg ? true : r.n <= 44));
   const selfTags = cluster(collect(img, isSelfNametagPixel, tagBand), 22, 6);
   const peerTags = cluster(collect(img, isPeerNametagPixel, tagBand), 22, 6);
 
@@ -163,16 +201,18 @@ export function extractMarkers(
   }
 
   if (selfTag) {
-    const below = riders.filter((r) => r.y > selfTag.y - 4);
-    const n = nearest(selfTag, below.length ? below : riders);
-    if (n && n.dist < (opts.jpeg ? 80 : 120)) {
+    const aligned = riders.filter((r) => Math.abs(r.x - selfTag.x) < 36);
+    const below = aligned.filter((r) => r.y > selfTag.y - 4);
+    const n = nearest(selfTag, below.length ? below : aligned);
+    const hit = n && n.dist < (opts.jpeg ? 80 : 120) ? n.hit : bikeUnderTag(img, selfTag, bikePred);
+    if (hit) {
       self = {
         role: "self",
-        x: n.hit.x,
-        y: n.hit.y,
-        n: n.hit.n,
-        nametagX: selfTag.x,
-        nametagY: selfTag.y,
+        x: hit.x + (opts.originX ?? 0),
+        y: hit.y + (opts.originY ?? 0),
+        n: hit.n,
+        nametagX: selfTag.x + (opts.originX ?? 0),
+        nametagY: selfTag.y + (opts.originY ?? 0),
         nametagN: selfTag.n,
         reason: "네임태그 글자색 #1d4ed8(live 파랑). 그 아래 주황 자전거 무게중심.",
       };
@@ -181,16 +221,18 @@ export function extractMarkers(
     }
   }
   if (peerTag) {
-    const below = riders.filter((r) => r.y > peerTag.y - 4);
-    const n = nearest(peerTag, below.length ? below : riders);
-    if (n && n.dist < (opts.jpeg ? 80 : 120)) {
+    const aligned = riders.filter((r) => Math.abs(r.x - peerTag.x) < 36);
+    const below = aligned.filter((r) => r.y > peerTag.y - 4);
+    const n = nearest(peerTag, below.length ? below : aligned);
+    const hit = n && n.dist < (opts.jpeg ? 80 : 120) ? n.hit : bikeUnderTag(img, peerTag, bikePred);
+    if (hit) {
       peer = {
         role: "peer",
-        x: n.hit.x,
-        y: n.hit.y,
-        n: n.hit.n,
-        nametagX: peerTag.x,
-        nametagY: peerTag.y,
+        x: hit.x + (opts.originX ?? 0),
+        y: hit.y + (opts.originY ?? 0),
+        n: hit.n,
+        nametagX: peerTag.x + (opts.originX ?? 0),
+        nametagY: peerTag.y + (opts.originY ?? 0),
         nametagN: peerTag.n,
         reason: "네임태그 글자색 #0f766e(peer 틸). 그 아래 주황 자전거 무게중심.",
       };

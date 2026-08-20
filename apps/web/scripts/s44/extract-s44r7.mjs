@@ -42,10 +42,23 @@ const files = readdirSync(shotDir)
   .sort();
 
 const jpeg = files.some((f) => /\.jpe?g$/i.test(f));
+let clipOrigin = { originX: 0, originY: 0 };
+try {
+  const raw = JSON.parse(readFileSync(resolve(shotDir, "clip.json"), "utf8"));
+  clipOrigin = { originX: Number(raw.originX) || 0, originY: Number(raw.originY) || 0 };
+} catch {
+  clipOrigin = { originX: 0, originY: 0 };
+}
 const shots = files.map((file) => {
   const path = resolve(shotDir, file);
   const img = jpeg ? loadRaster(path) : decodePngRgba(readFileSync(path));
-  const extracted = extractMarkers(img, { jpeg });
+  const clip = img.width < 900;
+  const extracted = extractMarkers(img, {
+    jpeg,
+    fullFrame: clip,
+    originX: clip ? clipOrigin.originX : 0,
+    originY: clip ? clipOrigin.originY : 0,
+  });
   return {
     file,
     width: img.width,
@@ -87,6 +100,11 @@ if (capturePath) {
     note: usable
       ? "같은 창이면 계열(반전·최대|Δ|·진폭)을 비교한다. 절대 X 오프셋은 뷰포트 vs 캔버스라 기대한다."
       : "픽셀 추출이 불완전해 투영 대조를 하지 않는다.",
+    seriesMatch:
+      usable && peerAlong
+        ? Math.abs((pixelSeriesStats(peerXs).peakToPeakPx) - (peerAlong.peakToPeakPx ?? 0)) < 2 &&
+          Math.abs((pixelSeriesStats(peerXs).reverseCount) - (peerAlong.reverseCount ?? 0)) <= 2
+        : null,
   };
 }
 
