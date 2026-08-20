@@ -1,0 +1,236 @@
+{
+  "id": "realjerk",
+  "source": "S48-realjerk-capture.json",
+  "truth": "정답 = 솎기 전 ingest 궤적을 비교 시각에 선형 보간한 값. 재구성은 솎은 샘플만 본다.",
+  "fitness": {
+    "n": 799,
+    "durationSec": 39.94,
+    "speedMps": {
+      "min": 0,
+      "max": 3.33,
+      "mean": 1.5953942428035268,
+      "stdev": 0.8353388780128058
+    },
+    "accelHiSec": 0.235,
+    "accelHiFrac": 0.0058838257386079115,
+    "stopRestart": true,
+    "hasJerk": false
+  },
+  "currentReverse": {
+    "abreast": 260,
+    "reverse": 3,
+    "reverseRatio": 0.011538461538461539
+  },
+  "pxPerM": 83.44269102366391,
+  "abreastDef": "|actualGap| <= 5 m",
+  "rows": [
+    {
+      "tSec": 1,
+      "thinnedN": 39,
+      "windowShorterThanT": false,
+      "expectedABiasM": -1.5953942428035268,
+      "a": {
+        "delayMs": 1000,
+        "n": 414,
+        "p50m": 1.488689915174362,
+        "p90m": 3.168030839354131,
+        "maxM": 3.973937153419584,
+        "p50px": 124.22029262193873,
+        "p90px": 264.3490184816654,
+        "maxPx": 331.5960100402488,
+        "meanSignedM": -1.6203446390826217,
+        "rankBiasM": -1.6203446390826217,
+        "abreastFrames": 260,
+        "reverseFrames": 20,
+        "reverseRatio": 0.07692307692307693,
+        "jerkFrames": 81,
+        "jerkMaxAbsM": 2.515686274509804
+      },
+      "b": {
+        "delayMs": 0,
+        "n": 414,
+        "p50m": 0.11889999999999645,
+        "p90m": 0.3726300000000009,
+        "maxM": 0.9645482758620574,
+        "p50px": 9.921335962713343,
+        "p90px": 31.093249956147957,
+        "maxPx": 80.4845037601654,
+        "meanSignedM": -0.0555676923454427,
+        "rankBiasM": -0.0555676923454427,
+        "abreastFrames": 260,
+        "reverseFrames": 2,
+        "reverseRatio": 0.007692307692307693,
+        "jerkFrames": 81,
+        "jerkMaxAbsM": 0.6822000000000088
+      },
+      "gates": {
+        "g1_bias": true,
+        "g2_reverse": true,
+        "g3_jerkMax": "unverified",
+        "passG12": true,
+        "passAll": false
+      }
+    },
+    {
+      "tSec": 2,
+      "thinnedN": 20,
+      "windowShorterThanT": false,
+      "expectedABiasM": -3.1907884856070536,
+      "a": {
+        "delayMs": 2000,
+        "n": 414,
+        "p50m": 2.8390632544664456,
+        "p90m": 6.553486104339342,
+        "maxM": 7.387174541947928,
+        "p50px": 236.89907793908134,
+        "p90px": 546.8405161322626,
+        "maxPx": 616.4057228416369,
+        "meanSignedM": -3.1882099043337946,
+        "rankBiasM": -3.1882099043337946,
+        "abreastFrames": 260,
+        "reverseFrames": 28,
+        "reverseRatio": 0.1076923076923077,
+        "jerkFrames": 91,
+        "jerkMaxAbsM": 5.036500000000004
+      },
+      "b": {
+        "delayMs": 0,
+        "n": 414,
+        "p50m": 0.15332999999999686,
+        "p90m": 0.6737199999999888,
+        "maxM": 2,
+        "p50px": 12.794267814658125,
+        "p90px": 56.217009796461916,
+        "maxPx": 166.88538204732782,
+        "meanSignedM": -0.0856348421038969,
+        "rankBiasM": -0.0856348421038969,
+        "abreastFrames": 260,
+        "reverseFrames": 3,
+        "reverseRatio": 0.011538461538461539,
+        "jerkFrames": 91,
+        "jerkMaxAbsM": 2
+      },
+      "gates": {
+        "g1_bias": true,
+        "g2_reverse": true,
+        "g3_jerkMax": "unverified",
+        "passG12": true,
+        "passAll": false
+      }
+    },
+    {
+      "tSec": 4,
+      "thinnedN": 10,
+      "windowShorterThanT": false,
+      "expectedABiasM": -6.381576971214107,
+      "a": {
+        "delayMs": 4000,
+        "n": 414,
+        "p50m": 5.674313052011776,
+        "p90m": 11.921050049067702,
+        "maxM": 14.027866437515343,
+        "p50px": 473.47995077056197,
+        "p90px": 994.7244959219897,
+        "maxPx": 1170.5229248668177,
+        "meanSignedM": -6.31247488890659,
+        "rankBiasM": -6.31247488890659,
+        "abreastFrames": 260,
+        "reverseFrames": 137,
+        "reverseRatio": 0.5269230769230769,
+        "jerkFrames": 113,
+        "jerkMaxAbsM": 11.622669283611387
+      },
+      "b": {
+        "delayMs": 0,
+        "n": 414,
+        "p50m": 0.18013000000000545,
+        "p90m": 1.513220000000004,
+        "maxM": 4.030090000000001,
+        "p50px": 15.030531934093036,
+        "p90px": 126.26714891082904,
+        "maxPx": 336.2815546675578,
+        "meanSignedM": -0.10855332036476562,
+        "rankBiasM": -0.10855332036476562,
+        "abreastFrames": 260,
+        "reverseFrames": 2,
+        "reverseRatio": 0.007692307692307693,
+        "jerkFrames": 113,
+        "jerkMaxAbsM": 1.9542799999999971
+      },
+      "gates": {
+        "g1_bias": true,
+        "g2_reverse": true,
+        "g3_jerkMax": "unverified",
+        "passG12": true,
+        "passAll": false
+      }
+    },
+    {
+      "tSec": 8,
+      "thinnedN": 5,
+      "windowShorterThanT": false,
+      "expectedABiasM": -12.763153942428215,
+      "a": {
+        "delayMs": 8000,
+        "n": 414,
+        "p50m": 11.085427509293687,
+        "p90m": 21.808632286995504,
+        "maxM": 23.09209018435476,
+        "p50px": 924.9979025232174,
+        "p90px": 1819.7709655724668,
+        "maxPx": 1926.8661463436965,
+        "meanSignedM": -12.27169643745599,
+        "rankBiasM": -12.27169643745599,
+        "abreastFrames": 260,
+        "reverseFrames": 137,
+        "reverseRatio": 0.5269230769230769,
+        "jerkFrames": 157,
+        "jerkMaxAbsM": 23.09209018435476
+      },
+      "b": {
+        "delayMs": 0,
+        "n": 414,
+        "p50m": 0.20820000000000505,
+        "p90m": 3.591399999999993,
+        "maxM": 5.405699999999996,
+        "p50px": 17.37276827112725,
+        "p90px": 299.676080542386,
+        "maxPx": 451.0661548666197,
+        "meanSignedM": -0.11863730587201278,
+        "rankBiasM": -0.11863730587201278,
+        "abreastFrames": 260,
+        "reverseFrames": 23,
+        "reverseRatio": 0.08846153846153847,
+        "jerkFrames": 157,
+        "jerkMaxAbsM": 5.405699999999996
+      },
+      "gates": {
+        "g1_bias": true,
+        "g2_reverse": false,
+        "g3_jerkMax": "unverified",
+        "passG12": false,
+        "passAll": false
+      }
+    }
+  ],
+  "adapt": {
+    "0.1": {
+      "n": 435,
+      "vsOriginal": 0.5444305381727159,
+      "originalN": 799,
+      "originalHz": 20.0050075112669
+    },
+    "0.3": {
+      "n": 97,
+      "vsOriginal": 0.1214017521902378,
+      "originalN": 799,
+      "originalHz": 20.0050075112669
+    },
+    "0.5": {
+      "n": 43,
+      "vsOriginal": 0.05381727158948686,
+      "originalN": 799,
+      "originalHz": 20.0050075112669
+    }
+  }
+}

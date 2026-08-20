@@ -1,0 +1,344 @@
+{
+  "instruction": "S4-8",
+  "pxPerM": 83.44269102366391,
+  "capture": {
+    "camera": "leftFlat",
+    "cameraDistanceM": 16,
+    "tabState": "both visible",
+    "aligned": true,
+    "gapAtOpen": 3.7333546048792314,
+    "stopVia": "일시정지 — 슬라이더 최솟값 5 km/h 이라 0 을 넣을 수 없음",
+    "marks": [
+      {
+        "atMs": 1787221373040,
+        "offsetMs": 0,
+        "action": "profile-start both 5km/h"
+      },
+      {
+        "atMs": 1787221384113,
+        "offsetMs": 11073,
+        "action": "peer-pause 5→0"
+      },
+      {
+        "atMs": 1787221387145,
+        "offsetMs": 14105,
+        "action": "peer-resume 0→5"
+      },
+      {
+        "atMs": 1787221396816,
+        "offsetMs": 23776,
+        "action": "peer-slider 5→12"
+      },
+      {
+        "atMs": 1787221403890,
+        "offsetMs": 30850,
+        "action": "peer-slider 12→5"
+      },
+      {
+        "atMs": 1787221413053,
+        "offsetMs": 40013,
+        "action": "profile-end"
+      }
+    ],
+    "displayFrames": 414
+  },
+  "accel": {
+    "n": 799,
+    "durationSec": 39.94,
+    "speedMps": {
+      "min": 0,
+      "max": 3.33,
+      "mean": 1.5953942428035268,
+      "stdev": 0.8353388780128058
+    },
+    "accelAbsMps2": {
+      "p50": 0,
+      "p90": 0,
+      "max": 1389.9999999999998,
+      "movingP50": 8.66666666666666,
+      "movingP90": 160.00000000000003,
+      "movingN": 26
+    },
+    "accelHiSec": 0.5930000000000002,
+    "stopRestart": true,
+    "hasJerk": true,
+    "brake5to0": {
+      "fromMps": 1.39,
+      "toMps": 0,
+      "durationSec": 0.001,
+      "impliedAbsA": 1389.9999999999998,
+      "startT": 1787221384166,
+      "endT": 1787221384167
+    },
+    "vsSyntheticA": 1.39,
+    "vsSynthetic": "합성 1.39 m/s² 보다 급함 — 슬라이더/일시정지 점프. 이 로그로 T 상한을 정하지 않는다.",
+    "tooAggressive": true
+  },
+  "s47experimentUnchanged": true,
+  "prediction": {
+    "fitness": {
+      "n": 799,
+      "durationSec": 39.94,
+      "speedMps": {
+        "min": 0,
+        "max": 3.33,
+        "mean": 1.5953942428035268,
+        "stdev": 0.8353388780128058
+      },
+      "accelHiSec": 0.235,
+      "accelHiFrac": 0.0058838257386079115,
+      "stopRestart": true,
+      "hasJerk": false
+    },
+    "currentReverse": {
+      "abreast": 260,
+      "reverse": 3,
+      "reverseRatio": 0.011538461538461539
+    },
+    "rows": [
+      {
+        "tSec": 1,
+        "a_biasM": -1.6203446390826217,
+        "a_maxM": 3.973937153419584,
+        "a_reverseRatio": 0.07692307692307693,
+        "b_biasM": -0.0555676923454427,
+        "b_p50m": 0.11889999999999645,
+        "b_p90m": 0.3726300000000009,
+        "b_maxM": 0.9645482758620574,
+        "b_p50px": 9.921335962713343,
+        "b_p90px": 31.093249956147957,
+        "b_maxPx": 80.4845037601654,
+        "b_reverseRatio": 0.007692307692307693,
+        "b_jerkMaxAbsM": 0.6822000000000088,
+        "gates": {
+          "g1_bias": true,
+          "g2_reverse": true,
+          "g3_jerkMax": "unverified",
+          "passG12": true,
+          "passAll": false
+        }
+      },
+      {
+        "tSec": 2,
+        "a_biasM": -3.1882099043337946,
+        "a_maxM": 7.387174541947928,
+        "a_reverseRatio": 0.1076923076923077,
+        "b_biasM": -0.0856348421038969,
+        "b_p50m": 0.15332999999999686,
+        "b_p90m": 0.6737199999999888,
+        "b_maxM": 2,
+        "b_p50px": 12.794267814658125,
+        "b_p90px": 56.217009796461916,
+        "b_maxPx": 166.88538204732782,
+        "b_reverseRatio": 0.011538461538461539,
+        "b_jerkMaxAbsM": 2,
+        "gates": {
+          "g1_bias": true,
+          "g2_reverse": true,
+          "g3_jerkMax": "unverified",
+          "passG12": true,
+          "passAll": false
+        }
+      },
+      {
+        "tSec": 4,
+        "a_biasM": -6.31247488890659,
+        "a_maxM": 14.027866437515343,
+        "a_reverseRatio": 0.5269230769230769,
+        "b_biasM": -0.10855332036476562,
+        "b_p50m": 0.18013000000000545,
+        "b_p90m": 1.513220000000004,
+        "b_maxM": 4.030090000000001,
+        "b_p50px": 15.030531934093036,
+        "b_p90px": 126.26714891082904,
+        "b_maxPx": 336.2815546675578,
+        "b_reverseRatio": 0.007692307692307693,
+        "b_jerkMaxAbsM": 1.9542799999999971,
+        "gates": {
+          "g1_bias": true,
+          "g2_reverse": true,
+          "g3_jerkMax": "unverified",
+          "passG12": true,
+          "passAll": false
+        }
+      },
+      {
+        "tSec": 8,
+        "a_biasM": -12.27169643745599,
+        "a_maxM": 23.09209018435476,
+        "a_reverseRatio": 0.5269230769230769,
+        "b_biasM": -0.11863730587201278,
+        "b_p50m": 0.20820000000000505,
+        "b_p90m": 3.591399999999993,
+        "b_maxM": 5.405699999999996,
+        "b_p50px": 17.37276827112725,
+        "b_p90px": 299.676080542386,
+        "b_maxPx": 451.0661548666197,
+        "b_reverseRatio": 0.08846153846153847,
+        "b_jerkMaxAbsM": 5.405699999999996,
+        "gates": {
+          "g1_bias": true,
+          "g2_reverse": false,
+          "g3_jerkMax": "unverified",
+          "passG12": false,
+          "passAll": false
+        }
+      }
+    ],
+    "adapt": {
+      "0.1": {
+        "n": 435,
+        "vsOriginal": 0.5444305381727159,
+        "originalN": 799,
+        "originalHz": 20.0050075112669
+      },
+      "0.3": {
+        "n": 97,
+        "vsOriginal": 0.1214017521902378,
+        "originalN": 799,
+        "originalHz": 20.0050075112669
+      },
+      "0.5": {
+        "n": 43,
+        "vsOriginal": 0.05381727158948686,
+        "originalN": 799,
+        "originalHz": 20.0050075112669
+      }
+    }
+  },
+  "s47synthetic": {
+    "fitness": {
+      "n": 130,
+      "durationSec": 12.9,
+      "speedMps": {
+        "min": 0,
+        "max": 1.3888888888888888,
+        "mean": 1.0683760683760668,
+        "stdev": 0.5438424840045978
+      },
+      "accelHiSec": 2.0000000000000004,
+      "accelHiFrac": 0.1550387596899225,
+      "stopRestart": true,
+      "hasJerk": true
+    },
+    "currentReverse": {
+      "abreast": 130,
+      "reverse": 0,
+      "reverseRatio": 0
+    },
+    "rows": [
+      {
+        "tSec": 1,
+        "a_biasM": -1.0096153846153846,
+        "a_maxM": 1.3888888888888928,
+        "a_reverseRatio": 0,
+        "b_biasM": 2.7328566760003855e-16,
+        "b_p50m": 0,
+        "b_p90m": 0.06254999999999811,
+        "b_maxM": 0.5628944444444457,
+        "b_p50px": 0,
+        "b_p90px": 5.2193403235300195,
+        "b_maxPx": 46.96942720671483,
+        "b_reverseRatio": 0,
+        "b_jerkMaxAbsM": 0.5628944444444457,
+        "gates": {
+          "g1_bias": true,
+          "g2_reverse": true,
+          "g3_jerkMax": true,
+          "passG12": true,
+          "passAll": true
+        }
+      },
+      {
+        "tSec": 2,
+        "a_biasM": -1.9220461538461564,
+        "a_maxM": 2.7777777777777857,
+        "a_reverseRatio": 0,
+        "b_biasM": -0.09083333333333446,
+        "b_p50m": 3.552713678800501e-15,
+        "b_p90m": 0.44480000000000075,
+        "b_maxM": 1.8127833333333392,
+        "b_p50px": 2.9644798979569455e-13,
+        "b_p90px": 37.115308967325774,
+        "b_maxPx": 151.26351957618138,
+        "b_reverseRatio": 0,
+        "b_jerkMaxAbsM": 1.8127833333333392,
+        "gates": {
+          "g1_bias": true,
+          "g2_reverse": true,
+          "g3_jerkMax": false,
+          "passG12": true,
+          "passAll": false
+        }
+      },
+      {
+        "tSec": 4,
+        "a_biasM": -3.563113530982913,
+        "a_maxM": 5.555555555555571,
+        "a_reverseRatio": 0.5846153846153846,
+        "b_biasM": -0.2403547008547047,
+        "b_p50m": 0.02779999999999916,
+        "b_p90m": 3.0626722222222327,
+        "b_maxM": 4.312561111111112,
+        "b_p50px": 2.3197068104577867,
+        "b_p90px": 255.5576119456479,
+        "b_maxPx": 359.85170431511324,
+        "b_reverseRatio": 0.06923076923076923,
+        "b_jerkMaxAbsM": 4.312561111111112,
+        "gates": {
+          "g1_bias": false,
+          "g2_reverse": false,
+          "g3_jerkMax": false,
+          "passG12": false,
+          "passAll": false
+        }
+      },
+      {
+        "tSec": 8,
+        "a_biasM": -6.1349421875000125,
+        "a_maxM": 9.152299374999977,
+        "a_reverseRatio": 0.8153846153846154,
+        "b_biasM": -0.624970085470094,
+        "b_p50m": 0.34055000000000035,
+        "b_p90m": 3.937594444444457,
+        "b_maxM": 5.56244999999997,
+        "b_p50px": 28.416408428108774,
+        "b_p90px": 328.5634766042744,
+        "b_maxPx": 464.1457966845768,
+        "b_reverseRatio": 0.14615384615384616,
+        "b_jerkMaxAbsM": 5.56244999999997,
+        "gates": {
+          "g1_bias": false,
+          "g2_reverse": false,
+          "g3_jerkMax": false,
+          "passG12": false,
+          "passAll": false
+        }
+      }
+    ],
+    "adapt": {
+      "0.1": {
+        "n": 7,
+        "vsOriginal": 0.05384615384615385,
+        "originalN": 130,
+        "originalHz": 10.077519379844961
+      },
+      "0.3": {
+        "n": 5,
+        "vsOriginal": 0.038461538461538464,
+        "originalN": 130,
+        "originalHz": 10.077519379844961
+      },
+      "0.5": {
+        "n": 3,
+        "vsOriginal": 0.023076923076923078,
+        "originalN": 130,
+        "originalHz": 10.077519379844961
+      }
+    }
+  },
+  "tooAggressive": true,
+  "maxPassTSec": null,
+  "verdict": "슬라이더/일시정지가 합성보다 급함. T 상한은 이 로그로 갱신하지 않는다. S4-7 합성 T=1 s 유지. Chief 실주행 절차는 지시서 §4.",
+  "s47syntheticVerdict": "S4-7 합성 T=1 통과 · T=2 부터 실패 (급변 max 1.81 m)"
+}

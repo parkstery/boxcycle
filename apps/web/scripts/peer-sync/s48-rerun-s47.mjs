@@ -60,7 +60,7 @@ function accelReport(samples) {
   let stopRestart = false;
   for (let i = 1; i < samples.length; i += 1) {
     const dt = (samples[i].t - samples[i - 1].t) / 1000;
-    if (dt < 0.04) continue;
+    if (dt < 0.0005) continue;
     const a = (samples[i].speedMps - samples[i - 1].speedMps) / dt;
     accels.push({ t: samples[i].t, dt, a, absA: Math.abs(a), v0: samples[i - 1].speedMps, v1: samples[i].speedMps });
     if (Math.abs(a) > 0.3) accelHiSec += dt;
@@ -68,28 +68,28 @@ function accelReport(samples) {
     if (sawStop && !stopped) stopRestart = true;
     if (stopped) sawStop = true;
   }
-  const absSorted = accels.map((x) => x.absA).sort((a, b) => a - b);
+  const absAll = accels.map((x) => x.absA).sort((a, b) => a - b);
+  const absMove = accels.filter((x) => x.absA > 0.05).map((x) => x.absA).sort((a, b) => a - b);
   const speeds = samples.map((s) => s.speedMps);
   let brake5to0 = null;
   for (let i = 1; i < samples.length; i += 1) {
     if (samples[i - 1].speedMps >= CRUISE_MPS && samples[i].speedMps <= STOP_MPS) {
-      let j = i - 1;
-      while (j > 0 && samples[j].speedMps >= CRUISE_MPS) j -= 1;
-      const start = samples[j + 1] ?? samples[i - 1];
-      const dur = (samples[i].t - start.t) / 1000;
-      const dv = samples[i].speedMps - start.speedMps;
+      const dur = (samples[i].t - samples[i - 1].t) / 1000;
+      const dv = samples[i].speedMps - samples[i - 1].speedMps;
       brake5to0 = {
-        fromMps: start.speedMps,
+        fromMps: samples[i - 1].speedMps,
         toMps: samples[i].speedMps,
         durationSec: dur,
         impliedAbsA: dur > 0 ? Math.abs(dv / dur) : null,
-        startT: start.t,
+        startT: samples[i - 1].t,
         endT: samples[i].t,
       };
       break;
     }
   }
-  const maxAbs = absSorted.length ? absSorted[absSorted.length - 1] : null;
+  const maxAbs = absAll.length ? absAll[absAll.length - 1] : null;
+  const hasJerk =
+    accelHiSec >= 0.5 || (maxAbs != null && maxAbs > 0.3 && stdev(speeds) > 0.01);
   const vsSynthetic =
     maxAbs == null
       ? null
@@ -106,13 +106,16 @@ function accelReport(samples) {
       stdev: stdev(speeds),
     },
     accelAbsMps2: {
-      p50: percentile(absSorted, 50),
-      p90: percentile(absSorted, 90),
+      p50: percentile(absAll, 50),
+      p90: percentile(absAll, 90),
       max: maxAbs,
+      movingP50: percentile(absMove, 50),
+      movingP90: percentile(absMove, 90),
+      movingN: absMove.length,
     },
     accelHiSec,
     stopRestart,
-    hasJerk: accelHiSec >= 0.5,
+    hasJerk,
     brake5to0,
     vsSyntheticA: SYNTHETIC_A,
     vsSynthetic: vsSynthetic,
@@ -121,19 +124,16 @@ function accelReport(samples) {
 }
 
 function patchS47(src) {
-  let out = src;
-  const logsFrom = `const LOGS = [
-  { id: "S44R4", file: "S44R4-chief-5kmh.json" },
-  { id: "S44R7", file: "S44R7-capture.json" },
-  { id: "S45", file: "S45-after-capture.json" },
-];`;
-  const logsTo = `const LOGS = [
-  { id: "realjerk", file: "S48-realjerk-capture.json" },
-];`;
-  if (!out.includes(logsFrom)) {
+  let out = src.replace(/\r\n/g, "\n");
+  if (!/const LOGS = \[[\s\S]*?\];/.test(out)) {
     throw new Error("s47-experiment.mjs LOGS 블록이 예상과 다름 — 원본을 수정하지 말고 이 드라이버를 고쳐라.");
   }
-  out = out.replace(logsFrom, logsTo);
+  out = out.replace(
+    /const LOGS = \[[\s\S]*?\];/,
+    `const LOGS = [
+  { id: "realjerk", file: "S48-realjerk-capture.json" },
+];`,
+  );
   out = out.replace(
     "writeFileSync(resolve(RELAY, `S47-prediction-${log.id}.json`), JSON.stringify(r, null, 2));",
     "writeFileSync(resolve(RELAY, \"S48-prediction-realjerk.json\"), JSON.stringify(r, null, 2));",
@@ -146,7 +146,7 @@ function patchS47(src) {
     "writeFileSync(resolve(RELAY, \"S47-prediction-summary.json\"), JSON.stringify(summary, null, 2));",
     "writeFileSync(resolve(tmpdir(), \"S48-discard-s47-summary.json\"), JSON.stringify(summary, null, 2));",
   );
-  if (!out.includes("tmpdir()")) {
+  if (!out.includes('from "node:os"')) {
     out = out.replace(
       'import { dirname, resolve } from "node:path";',
       'import { dirname, resolve } from "node:path";\nimport { tmpdir } from "node:os";',
