@@ -410,6 +410,7 @@ export function noteJitterDisplay(input: {
   }
   const map = readMap();
   const peer = projectLngLat(map, input.lng, input.lat);
+  // localLng/Lat 는 호출측 입력. 그려지는 self 마커(rAF sampled)와 같은 값이라는 보장은 없다.
   const local = projectLngLat(map, input.localLng, input.localLat);
   const ahead = projectLngLat(map, input.aheadLng, input.aheadLat);
   let camBearing: number | null = null;
@@ -926,6 +927,10 @@ export function analyzeJitterAxis(log: readonly JitterEvent[]): JitterAxisJudgme
       if (u) {
         lockedU = u;
         pxPerMAll.push(u.pxPerM);
+      } else if (lockedU) {
+        // 회귀가 죽어도 이미 잠근 û 로 매 프레임 투영한다.
+        // 안 쓰면 샘플이 희소해지고 매니페스트가 최근접 값을 여러 샷에 재사용한다.
+        u = lockedU;
       }
       if (prev) {
         const back = prev.displayDistM - ev.displayDistM;

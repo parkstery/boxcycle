@@ -534,4 +534,77 @@ describe("S4-4R5 샷 매니페스트 · 상위/하위 묶음", () => {
     assert.ok((b.top.maxAbsRelSPx ?? 0) > (b.bottom.maxAbsRelSPx ?? 0));
     assert.equal(b.top.localScreenXRangePx, 0);
   });
+
+  it("샷 relSPx 는 그 display 프레임의 샘플만 쓰고 최근접을 훔치지 않는다", () => {
+    const shots = [
+      { i: 0, atMs: 100, file: "F000.png" },
+      { i: 1, atMs: 200, file: "F001.png" },
+      { i: 2, atMs: 300, file: "F002.png" },
+    ];
+    const display = [
+      { atMs: 100, gapDistM: 3, screenX: 540, localScreenX: 640 },
+      { atMs: 200, gapDistM: 3, screenX: 538, localScreenX: 645 },
+      { atMs: 300, gapDistM: 3, screenX: 536, localScreenX: 640 },
+    ];
+    const samples = [{ atMs: 200, relSPx: 7.74, localSPx: 1, peerSPx: 8.74 }];
+    const m = buildShotManifest(shots, display, samples);
+    assert.equal(m[0]!.relSPx, null);
+    assert.equal(m[1]!.relSPx, 7.74);
+    assert.equal(m[2]!.relSPx, null);
+  });
+});
+
+describe("S4-4R6 진행축 자가 검산", () => {
+  it("상대 화면 변위가 프레임마다 다르면 relSPx 도 달라야 한다", () => {
+    const events = displayFramesWithLocal(
+      Array.from({ length: 16 }, (_, i) => ({
+        t: i * 16,
+        d: 10 + i * 0.5,
+        x: 120 + i * 3 + i * i * 0.13,
+        y: 400,
+        lx: 220,
+        ly: 400,
+      })),
+    );
+    const j = analyzeJitterAxis(events);
+    const rel = j.cameraSplit.samples.map((s) => s.relSPx);
+    assert.equal(rel.length, 15);
+    for (let i = 1; i < events.length; i += 1) {
+      const dIn =
+        events[i]!.screenX! -
+        events[i]!.localScreenX! -
+        (events[i - 1]!.screenX! - events[i - 1]!.localScreenX!);
+      const out = rel[i - 1]!;
+      const prevOut = i >= 2 ? rel[i - 2]! : null;
+      if (Math.abs(dIn) > 1e-6 && prevOut != null) {
+        assert.notEqual(out, prevOut, `input ΔrelX=${dIn} but relSPx froze at ${out}`);
+      }
+    }
+    assert.equal(new Set(rel.map((v) => v.toFixed(12))).size, rel.length);
+  });
+
+  it("û 회귀가 죽어도 lockedU 로 샘플이 이어지고 입력이 변하면 출력도 변한다", () => {
+    const events = displayFramesWithLocal(
+      Array.from({ length: 36 }, (_, i) => {
+        const lock = i < 14;
+        const x = lock ? 100 + i * 8 : 212 + (i % 2) * 6 + i * 0.35;
+        const lx = lock ? 200 : 200 + (i % 2) * -4;
+        return { t: i * 16, d: 10 + i * 0.5, x, y: 400, lx, ly: 400 };
+      }),
+    );
+    const j = analyzeJitterAxis(events);
+    const rel = j.cameraSplit.samples.map((s) => s.relSPx);
+    assert.equal(rel.length, 35);
+    const tail = rel.slice(13);
+    for (let i = 1; i < tail.length; i += 1) {
+      const evI = 14 + i;
+      const dIn =
+        events[evI]!.screenX! -
+        events[evI]!.localScreenX! -
+        (events[evI - 1]!.screenX! - events[evI - 1]!.localScreenX!);
+      if (Math.abs(dIn) > 1e-6) {
+        assert.notEqual(tail[i], tail[i - 1], `û-dead tail froze at ${tail[i]} while ΔrelX=${dIn}`);
+      }
+    }
+  });
 });

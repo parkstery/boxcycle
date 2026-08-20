@@ -148,6 +148,8 @@ export class PeerMotionRegistry {
       const clamped = distM !== beforeClamp && routeLenM > 0;
       const lngLat = getPointOnRouteByDistance(routeGeometry, distM);
       if (!lngLat) continue;
+      // 계측 한계(고치지 않음): 카메라는 rAF sampleLiveLngLat 를 추종하고,
+      // 여기 local 투영은 publish 100ms 의 getPeerSyncSelfDistM 이다. 소스·시점이 다르다.
       const selfDist = getPeerSyncSelfDistM();
       const selfLl = Number.isFinite(selfDist)
         ? getPointOnRouteByDistance(routeGeometry, clampRouteDist(selfDist, routeLenM))

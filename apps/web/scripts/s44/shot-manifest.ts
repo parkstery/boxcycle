@@ -78,6 +78,18 @@ function nearestIndex(atMs: number, items: readonly { atMs: number }[]): number 
   return best;
 }
 
+/** display 프레임과 같은 atMs 의 샘플만. 최근접 훔치기 금지. */
+export function sampleIndexAtDisplayAtMs(
+  displayAtMs: number | null | undefined,
+  samples: readonly { atMs: number }[],
+): number | null {
+  if (displayAtMs == null || samples.length === 0) return null;
+  for (let i = 0; i < samples.length; i += 1) {
+    if (samples[i]!.atMs === displayAtMs) return i;
+  }
+  return null;
+}
+
 export function medianShotIntervalMs(shots: readonly ShotStamp[]): number | null {
   const dts: number[] = [];
   const ordered = [...shots].sort((a, b) => a.atMs - b.atMs);
@@ -104,8 +116,8 @@ export function buildShotManifest(
 ): ShotManifestEntry[] {
   return shots.map((shot) => {
     const di = nearestIndex(shot.atMs, display);
-    const si = nearestIndex(shot.atMs, samples);
     const ev = di != null ? display[di]! : null;
+    const si = sampleIndexAtDisplayAtMs(ev?.atMs, samples);
     const sm = si != null ? samples[si]! : null;
     return {
       file: shot.file,
