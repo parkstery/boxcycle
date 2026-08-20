@@ -1,6 +1,8 @@
 # S4 진행 상황 REPORT — route·motion 발행 수명주기 종결 · 위치 동기화는 미종결
 
-S4-8: 구현 없음. 2인 캡처로 peer 급변 프로파일(정지=일시정지). 시작 간격 3.73 m · 16 m 좌측. 속도 0–3.33 m/s · 정지·재출발 있음. **5→0 이 1 ms 점프(|a|≈1390 m/s²)라 합성 1.39 보다 급함.** T 상한 미갱신(S4-7 합성 T=1 s 유지). Chief 실주행 절차만 지시서에 적고 요청하지 않음. S4-7 예측=순위 편향 제거 결론은 유지. S4-4 미해결.
+S4-9: 구현 없음. 캡처 없음. 프로파일을 `stepRideSpeedKmh`(가속 0.741 / 제동 1.852 m/s²)로 생성. S4-7 합성 1.39 m/s² 와 T=1 s 상한 폐기. paused 는 예측 오차 집계에서 제외. 고정 T 는 원리적으로 답이 아님(20 km/h·T=1 → vT=5.56 m > 1.5 m). 적응 임계는 오차가 구성상 E 로 상한. **통과 최대 E=0.5 m**(등속 추가 발행 없음 · 변속 1.2–2.5 s). E=1.0 은 최대 오차 ≤ E 이나 게이트1·2 탈락. S4-4 미해결.
+
+S4-8: 구현 없음. 2인 캡처로 peer 급변 프로파일(정지=일시정지). 시작 간격 3.73 m · 16 m 좌측. 속도 0–3.33 m/s · 정지·재출발 있음. **5→0 이 1 ms 점프(|a|≈1390 m/s²)라 합성 1.39 보다 급함.** T 상한 미갱신(tooAggressive 판단은 옳았으나 그 캡처는 S4-9 기준으로 불필요). S4-7 예측=순위 편향 제거 결론은 유지. S4-4 미해결.
 
 S4-7: 구현 없음. 기존 로그를 T=1/2/4/8 s 로 솎아 (a) 보간+D / (b) 예측을 재구성. 실측 3로그는 1.39 m/s 등속만 — **급변 미검증**. (a) 는 T=1 부터 편향 −1.45 m, T=4 에서 역전 94% — 옛 실패 재현. (b) 합성 급정거에서 통과 최대 T=1 s. T=2 급변 오차 1.81 m > 1.5 m 탈락. 16 m 축척 실측 83.44 px/m. S4-6 노브 보류. S4-4 미해결.
 
@@ -47,13 +49,13 @@ displayDistM 역행은 최대 0.257 m 이고 화면 앞뒤(Y) 반전은 0회다.
 발행 수명주기(route + motion)다.** 목록·저줌 구독이 만드는 읽기 비용은 아직 남아 있다.
 「멀티라이더 위치 동기화 결함 종결」이 아니다.
 
-- **지시번호**: S4-8 (실측 급변 로그로 T 상한 확정 시도 · 구현 없음)
+- **지시번호**: S4-9 (rideSpeedRamp 실측 상수로 재평가 · 고정 T 대신 적응 임계)
 - **일시**: 2026-08-20
 - **브랜치**: `fix/multiplayer-read-amplification`
-- **활성 지시**: **S4-8 보고완료** (`INSTRUCTION.md`)
+- **활성 지시**: **S4-9 보고완료** (`INSTRUCTION.md`)
 - **원격**: origin `fix/multiplayer-read-amplification`
 - **워킹트리**: `C:/20.HDev/rtw-sync-s4-2/repo`
-- **보존**: `INSTRUCTION-S44.md` · `INSTRUCTION-S44R.md` · `INSTRUCTION-S44R2.md` · `INSTRUCTION-S44R3.md` · `INSTRUCTION-S44R4.md` · `INSTRUCTION-S44R5.md` · `INSTRUCTION-S44R6.md` · `INSTRUCTION-S44R7.md` · `INSTRUCTION-S45.md` · `INSTRUCTION-S46.md` · `INSTRUCTION-S47.md` · `S44R7-pixels.json` · `S45-after-pixels.json` · `S47-scale-16m.json` · `S47-prediction-summary.json` · `S48-realjerk-capture.json`
+- **보존**: `INSTRUCTION-S44.md` · `INSTRUCTION-S44R.md` · `INSTRUCTION-S44R2.md` · `INSTRUCTION-S44R3.md` · `INSTRUCTION-S44R4.md` · `INSTRUCTION-S44R5.md` · `INSTRUCTION-S44R6.md` · `INSTRUCTION-S44R7.md` · `INSTRUCTION-S45.md` · `INSTRUCTION-S46.md` · `INSTRUCTION-S47.md` · `INSTRUCTION-S48.md` · `S44R7-pixels.json` · `S45-after-pixels.json` · `S47-scale-16m.json` · `S47-prediction-summary.json` · `S48-realjerk-capture.json` · `S49-summary.json`
 
 ---
 
