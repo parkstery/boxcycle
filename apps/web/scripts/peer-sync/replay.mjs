@@ -15,6 +15,7 @@ import { createServer } from "vite";
 import { SCENARIOS } from "./scenarios.mjs";
 import { checkInvariants } from "./invariants.mjs";
 import { renderTimelineSvg, svgToPng } from "./graph.mjs";
+import { checkRecvJitter, measureGapPx } from "./s45-gates.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const WEB_ROOT = resolve(HERE, "../..");
@@ -75,6 +76,8 @@ async function replayScenario(mod, scenario) {
         bufferLen: entity.buffer.length,
         phase: entity.phase,
         speedMps: entity.speedMps,
+        clockOffsetMs: entity.clockOffsetMs ?? null,
+        serverAxisFallbackCount: entity.serverAxisFallbackCount ?? 0,
       });
     }
   } finally {
@@ -131,6 +134,22 @@ async function main() {
 
       if (args.check) {
         const violations = checkInvariants(result, mod.policy);
+        if (scenario.recvJitter) {
+          violations.push(...checkRecvJitter(result, scenario.recvJitter));
+        }
+        if (scenario.gapPx) {
+          const gap = measureGapPx(result, scenario.gapPx);
+          result.gapPx = gap;
+          const last = result.timeline[result.timeline.length - 1];
+          console.log(
+            `  gap_px 대리 ${gap.pxPerM} px/m — 반전 ${gap.reverseCount} · 최대|Δ| ${gap.maxAbsDeltaPx.toFixed(3)} · 진폭 ${gap.peakToPeakPx.toFixed(3)}` +
+              ` · fallback=${last?.serverAxisFallbackCount ?? 0}`,
+          );
+          writeFileSync(
+            resolve(args.out, `gap-px-${result.name}.json`),
+            JSON.stringify(gap, null, 2),
+          );
+        }
         const expectFail = scenario.expectFail === true;
         if (violations.length && !expectFail) {
           failed += 1;

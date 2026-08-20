@@ -266,6 +266,51 @@ const s2LowZoom = {
   })(),
 };
 
+/**
+ * S4-5 ② — 송신은 100 ms 격자 등속, 도착만 50·150 ms 로 흔든다.
+ * 기존 시나리오·불변식은 그대로. 시나리오 전용 게이트(구간 속도)가 수정 전 fail 이어야 한다.
+ */
+const recvJitter50150 = {
+  name: "recv-jitter-50-150",
+  routeLenM: 2000,
+  stepIntervalMs: 10,
+  recvJitter: {
+    sendSpeedMps: 5 / 3.6,
+    maxRelSpeedErr: 0.15,
+  },
+  gapPx: {
+    pxPerM: 29.2,
+    sendSpeedMps: 5 / 3.6,
+    selfStartDistM: 0,
+  },
+  events: (() => {
+    const startMs = 10_000;
+    const count = 80;
+    const sendIntervalMs = 100;
+    const speedMps = 5 / 3.6;
+    const arrivals = [50, 150];
+    const events = [];
+    let recvAt = startMs;
+    for (let i = 0; i < count; i += 1) {
+      if (i > 0) recvAt += arrivals[(i - 1) % 2];
+      const serverAtMs = startMs + i * sendIntervalMs;
+      events.push({
+        atMs: recvAt,
+        packet: {
+          uid: UID,
+          publicationId: PUB,
+          distM: speedMps * ((i * sendIntervalMs) / 1000),
+          speedMps,
+          phase: "live",
+          serverAtMs,
+          seq: i + 1,
+        },
+      });
+    }
+    return events;
+  })(),
+};
+
 export const SCENARIOS = [
   cruise,
   accelDecel,
@@ -277,4 +322,5 @@ export const SCENARIOS = [
   s2Decel,
   s2Pause,
   s2LowZoom,
+  recvJitter50150,
 ];

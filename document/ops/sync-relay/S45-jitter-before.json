@@ -1,0 +1,17 @@
+{
+  "phase": "before-axis-swap",
+  "scenario": "recv-jitter-50-150",
+  "existingInvariants": "pass (10/10 built-in scenarios)",
+  "recvJitterGate": {
+    "pass": false,
+    "violation": "recv-jitter 구간속도 10.00km/h (송신 5.00km/h 대비 rel=1.000 > 0.15) @ t=3190ms"
+  },
+  "gapPxProxy": {
+    "note": "대리값. 지도 투영이 아니다. 출처: S4-5 INSTRUCTION §3, R7 창 94 px / 3.22 m = 29.2 px/m.",
+    "pxPerM": 29.2,
+    "reverseCount": 69,
+    "maxAbsDeltaPx": 0.406,
+    "peakToPeakPx": 2.028,
+    "passLine": null
+  }
+}

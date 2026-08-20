@@ -48,6 +48,13 @@ cd apps/web && node scripts/peer-sync/replay.mjs [--check] [--graph] [--scenario
 `replay.mjs` 가 재생 중 전역 `Date.now` 를 이벤트 시각으로 스텁하고 끝나면 복원한다(소스 무수정).
 `stepPeerMotionEntity` 는 `nowMs` 파라미터로 직접 주입한다.
 
+## S4-5 추가 게이트 (기존 불변식과 별개)
+
+- `recv-jitter-50-150` — 송신 100 ms 등속, 도착 50/150 ms. `s45-gates.mjs` 의 구간 속도 게이트(rel>15%)가 수정 전 fail / 축 교체 후 pass.
+- `gap_px` — `(peer_dist − self_dist) × 29.2`. **대리 축척** (R7 창 94 px / 3.22 m). 지도 투영 아님. 합격선 없음, `.out/gap-px-*.json` 에 수치만.
+
+기존 `invariants.mjs` 네 항목은 그대로다.
+
 ## 미구현 (하네스 확장 TODO)
 
 - **mergePackets 재생 미포함**: 현재 시나리오는 이미 병합된 단일 패킷 스트림만 넣는다. RTDB(10Hz)+Firestore(1Hz) **이중 스트림 병합**(`mergePeerMotionPackets`)의 clock 혼용 버그는 아직 재생 안 한다 — 두 소스 이벤트를 각각 넣고 merge 를 태우는 시나리오 타입 추가 필요.
