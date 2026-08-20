@@ -1,5 +1,7 @@
 # S4 진행 상황 REPORT — route·motion 발행 수명주기 종결 · 위치 동기화는 미종결
 
+S4-7: 구현 없음. 기존 로그를 T=1/2/4/8 s 로 솎아 (a) 보간+D / (b) 예측을 재구성. 실측 3로그는 1.39 m/s 등속만 — **급변 미검증**. (a) 는 T=1 부터 편향 −1.45 m, T=4 에서 역전 94% — 옛 실패 재현. (b) 합성 급정거에서 통과 최대 T=1 s. T=2 급변 오차 1.81 m > 1.5 m 탈락. 16 m 축척 실측 83.44 px/m. S4-6 노브 보류. S4-4 미해결.
+
 S4-4R3   계측값은 존재하지만 Chief 증상과 **의미 정합 실패**. 결론 미채택.
 
 S4-4R7: 화면 픽셀로 peer 를 쟀다. R5 JPEG 는 네임태그 없어 불가. PNG 36장(110 ms ≤ 117 ms)에서 peer 왕복 16회 · 10.8 px. 같은 창 투영 ①과 일치(픽셀 ≈ 투영). 제품 미수정. S4-4 미해결.
@@ -43,13 +45,13 @@ displayDistM 역행은 최대 0.257 m 이고 화면 앞뒤(Y) 반전은 0회다.
 발행 수명주기(route + motion)다.** 목록·저줌 구독이 만드는 읽기 비용은 아직 남아 있다.
 「멀티라이더 위치 동기화 결함 종결」이 아니다.
 
-- **지시번호**: S4-5 (보간 축 교체 · 지터 시나리오 · gap_px 게이트)
+- **지시번호**: S4-7 (오프라인 예측 실험 · 구현 없음)
 - **일시**: 2026-08-20
 - **브랜치**: `fix/multiplayer-read-amplification`
-- **활성 지시**: **S4-5 보고완료** (`INSTRUCTION.md`)
+- **활성 지시**: **S4-7 보고완료** (`INSTRUCTION.md`)
 - **원격**: origin `fix/multiplayer-read-amplification`
 - **워킹트리**: `C:/20.HDev/rtw-sync-s4-2/repo`
-- **보존**: `INSTRUCTION-S44.md` · `INSTRUCTION-S44R.md` · `INSTRUCTION-S44R2.md` · `INSTRUCTION-S44R3.md` · `INSTRUCTION-S44R4.md` · `INSTRUCTION-S44R5.md` · `INSTRUCTION-S44R6.md` · `INSTRUCTION-S44R7.md` · `S44R7-pixels.json` · `S45-after-pixels.json`
+- **보존**: `INSTRUCTION-S44.md` · `INSTRUCTION-S44R.md` · `INSTRUCTION-S44R2.md` · `INSTRUCTION-S44R3.md` · `INSTRUCTION-S44R4.md` · `INSTRUCTION-S44R5.md` · `INSTRUCTION-S44R6.md` · `INSTRUCTION-S44R7.md` · `INSTRUCTION-S45.md` · `INSTRUCTION-S46.md` · `S44R7-pixels.json` · `S45-after-pixels.json` · `S47-scale-16m.json` · `S47-prediction-summary.json`
 
 ---
 
