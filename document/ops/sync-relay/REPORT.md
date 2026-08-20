@@ -1,6 +1,8 @@
 # S4 진행 상황 REPORT — route·motion 발행 수명주기 종결 · 위치 동기화는 미종결
 
-S4-11: 구현 없음. 캡처 없음. S4-10 측정은 유지(흡수 off 43.7 px · E=0.3 τ=0.3 편향 −0.244 · 점프 1.51 px). τ_abs 0.1–0.3 × 선보상 0–1.5τ × E 0.3/0.5 × 지연 0/100/300 = 120 조합. 네 게이트 동시 통과 0. 게이트1을 0.25·0.30으로 완화해도 0 — P3 역전이 전 격자에서 늘고, 짧은 τ·선보상은 게이트3을 깬다. **「불가」.** accelOk = 흡수기 |a| ≤ 램프(원본·스냅과 분리). S4-9 E=0.5·고정 T 폐기 유지. S4-4 미해결.
+S4-12: 구현 없음. 재실험 없음. S4-11 120조합 측정은 그대로(A0 비트 일치). BASE=제품 10Hz+보간 160ms를 같은 P1–P4에서 돌림. P3 5 km/h 등속 편향 **−0.224 m**. 게이트1을 |BASE 편향|로, 게이트2를 연속 역행 누적량으로 바꿔 재판정. **네 게이트 동시 통과 0 — 「불가」.** 막은 것은 게이트2: 흡수가 P1 제동 오버슛을 0.18 m 되돌리는데 BASE 보간은 0.07 px. P3는 τ=0.25에서 크기 게이트 통과. 선보상 재탐색 없음. S4-4 미해결.
+
+S4-11: 구현 없음. 캡처 없음. S4-10 측정은 유지. τ 세분·선보상 120 조합. 당시 게이트(편향 0.22 상수·역전 개수)로 네 게이트 동시 통과 0. **측정은 유지. 「불가」 판정은 S4-12가 게이트를 정정한 뒤 대체.** 선보상은 편향만 뒤집음. S4-4 미해결.
 
 S4-10: 구현 없음. 캡처 없음. S4-9 적응 E는 유지하고 수신 측만 위치 잔차를 제품 램프로 흡수. Y0: 흡수 off·E=0.5 점프 max **43.7 px**(기대 41.7). 흡수 on이면 점프 18–20배 감소. 당시 격자(τ≥0.3, 선보상 없음)에서 네 게이트 동시 통과 없음. **측정은 유지. 「불가」 판정은 S4-11이 τ<0.3·선보상까지 본 뒤 대체.** 발행 횟수는 흡수와 무관. S4-9 E=0.5·고정 T 폐기 유지. S4-4 미해결.
 
@@ -53,13 +55,13 @@ displayDistM 역행은 최대 0.257 m 이고 화면 앞뒤(Y) 반전은 0회다.
 발행 수명주기(route + motion)다.** 목록·저줌 구독이 만드는 읽기 비용은 아직 남아 있다.
 「멀티라이더 위치 동기화 결함 종결」이 아니다.
 
-- **지시번호**: S4-11 (τ_abs 세분 격자 + 선보상 — 「불가」 판정 전 마지막 확인)
+- **지시번호**: S4-12 (게이트 1·2 정정 · 기존 120 조합 재판정)
 - **일시**: 2026-08-20
 - **브랜치**: `fix/multiplayer-read-amplification`
-- **활성 지시**: **S4-11 보고완료** (`INSTRUCTION.md`)
+- **활성 지시**: **S4-12 보고완료** (`INSTRUCTION.md`)
 - **원격**: origin `fix/multiplayer-read-amplification`
 - **워킹트리**: `C:/20.HDev/rtw-sync-s4-2/repo`
-- **보존**: `INSTRUCTION-S44.md` · `INSTRUCTION-S44R.md` · `INSTRUCTION-S44R2.md` · `INSTRUCTION-S44R3.md` · `INSTRUCTION-S44R4.md` · `INSTRUCTION-S44R5.md` · `INSTRUCTION-S44R6.md` · `INSTRUCTION-S44R7.md` · `INSTRUCTION-S45.md` · `INSTRUCTION-S46.md` · `INSTRUCTION-S47.md` · `INSTRUCTION-S48.md` · `INSTRUCTION-S49.md` · `INSTRUCTION-S410.md` · `S44R7-pixels.json` · `S45-after-pixels.json` · `S47-scale-16m.json` · `S47-prediction-summary.json` · `S48-realjerk-capture.json` · `S49-summary.json` · `S410-summary.json` · `S411-summary.json`
+- **보존**: `INSTRUCTION-S44.md` · `INSTRUCTION-S44R.md` · `INSTRUCTION-S44R2.md` · `INSTRUCTION-S44R3.md` · `INSTRUCTION-S44R4.md` · `INSTRUCTION-S44R5.md` · `INSTRUCTION-S44R6.md` · `INSTRUCTION-S44R7.md` · `INSTRUCTION-S45.md` · `INSTRUCTION-S46.md` · `INSTRUCTION-S47.md` · `INSTRUCTION-S48.md` · `INSTRUCTION-S49.md` · `INSTRUCTION-S410.md` · `INSTRUCTION-S411.md` · `S44R7-pixels.json` · `S45-after-pixels.json` · `S47-scale-16m.json` · `S47-prediction-summary.json` · `S48-realjerk-capture.json` · `S49-summary.json` · `S410-summary.json` · `S411-summary.json` · `S412-summary.json`
 
 ---
 
