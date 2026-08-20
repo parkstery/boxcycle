@@ -2,9 +2,12 @@
 
 S4-4R3   계측값은 존재하지만 Chief 증상과 **의미 정합 실패**. 결론 미채택.
 
+S4-4R5: R4 조건을 유지한 채 샷 밀도만 고쳤다. P1 샷 148 ms ≤ 프레임 150.5 ms · P2 피크 이격 12 ms.
+상위/하위 8장 대조. 상위에서 상대 왕복이 더 크다고 단정하지 못함 (F009→F010 Δ9.9 px, 하위 F016→F017 Δ9.4 px).
+제품 그대로. S4-4 미해결.
+
 S4-4R4: Chief 조건(2인 · leftFlat · 5 km/h · |gap| 3.08–3.76 m)을 맞췄다.
-연속 프레임에서 상대 톡톡은 미단정. ③ 184회 · 최대 9.82 px 이나 화면과 짝이 안 맞아 N4 판정 보류.
-제품은 그대로다. S4-4 미해결.
+당시 N2 「미단정」은 **표본 부족**이다. 현상 부재로 인용하지 마라.
 
 S4-4R3: 혼자 달려도 ② local 진행축 반전이 2인과 같은 진폭으로 남는다.
 S-A 25.2 px · S-B 32.9 px (2인은 29.3 · 32.5). 그 결론(투영·카메라 · peer 무관)은 **철회 · 미채택**.
@@ -35,13 +38,13 @@ displayDistM 역행은 최대 0.257 m 이고 화면 앞뒤(Y) 반전은 0회다.
 발행 수명주기(route + motion)다.** 목록·저줌 구독이 만드는 읽기 비용은 아직 남아 있다.
 「멀티라이더 위치 동기화 결함 종결」이 아니다.
 
-- **지시번호**: S4-4R4 (Chief 조건 정확 재현 · 상대 진행축)
+- **지시번호**: S4-4R5 (같은 조건 재촬영 — 샷 밀도·대조)
 - **일시**: 2026-08-20
-- **브랜치**: `fix/multiplayer-read-amplification` (origin/main2 결합 완료 `66ebe7b`) · 계측 `e4c7955` · 캡처 `27f9cfd`
-- **활성 지시**: **S4-4R4 보고완료** (`INSTRUCTION.md`)
+- **브랜치**: `fix/multiplayer-read-amplification` (origin/main2 결합 완료 `66ebe7b`) · 계측 `c969c21` · 캡처 `78f208d`
+- **활성 지시**: **S4-4R5 보고완료** (`INSTRUCTION.md`)
 - **원격**: origin `fix/multiplayer-read-amplification`
 - **워킹트리**: `C:/20.HDev/rtw-sync-s4-2/repo`
-- **보존**: `INSTRUCTION-S44.md` · `INSTRUCTION-S44R.md` · `INSTRUCTION-S44R2.md` · `INSTRUCTION-S44R3.md` · `S44R2-A-25-25.json` · `S44R3-S-A-solo-25.json` · `S44R4-chief-5kmh.json`
+- **보존**: `INSTRUCTION-S44.md` · `INSTRUCTION-S44R.md` · `INSTRUCTION-S44R2.md` · `INSTRUCTION-S44R3.md` · `INSTRUCTION-S44R4.md` · `S44R4-chief-5kmh.json` · `S44R5-capture.json`
 
 ---
 
@@ -80,7 +83,8 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 | S4-4R | 진행축 판정 · 재판정 | **WARNING 채택** 판정기 `cd640d3`. 42.6px 6회=진행축. 제품 미수정 |
 | S4-4R2 | 카메라 vs peer | **WARNING 채택** 판정 `e45e9ec`. 46.7급 재현. K1 통과. 프레임 투표는 혼합 |
 | S4-4R3 | 단독 대조군 | **결론 미채택** 계측 `7c3b1be` 유지. Chief 증상과 의미 정합 실패 |
-| S4-4R4 | Chief 나란히 5 km/h | **보고완료** N0 PASS. 톡톡 미단정. N4 판정 보류. 제품 미수정 |
+| S4-4R4 | Chief 나란히 5 km/h | **보고완료** N0 PASS. N2 미단정=**표본 부족**. 제품 미수정 |
+| S4-4R5 | 같은 조건 재촬영 | **보고완료** P1·P2 PASS. 상위 왕복이 더 크다고 단정 못 함. 제품 미수정 |
 
 ---
 
@@ -90,19 +94,37 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 
 | 항목 | 값 |
 |---|---|
-| HEAD | S4-4R4 계측 `e4c7955` · S4-4R3 캡처 `be7a5c5`(미채택) · S4-4R2 `e45e9ec` · S4-4R 판정기 `cd640d3` · S4-4 캡처 `9f3d5e9` · S4-3 제품 `cb5f1c2` |
+| HEAD | S4-4R5 캡처 `78f208d` · 계측 `c969c21` · S4-4R4 `e4c7955` · S4-4R3 `be7a5c5`(미채택) · S4-4R2 `e45e9ec` |
 | S4-1R2 제품 | `b3336ed` |
 | S4-M1R 제품 | `71669a1` (motion 수명주기 · F-2) |
 | S4-M1R 시험·도구 | `41c2ea2` |
 | S4-M1R 증거·문서 | `a2b58ff` |
 | stash | 2 건 — `orchestrator-docs: CLAUDE.md + 결정로그 (S4-1R2-D 정리)` · `wip before god-file-split` |
 
+### S4-4R5 수용 요약 (2026-08-20)
+
+R4 조건 유지. 샷 중앙 148 ms ≤ 프레임 150.5 ms. 피크 이격 12 ms.
+상위 F003–F010 / 하위 F011–F018. 상위에서 상대 왕복이 더 크다고 단정하지 못함.
+로컬 폭 6.35 px. 제품 미수정. 증거: `S44R5-capture.json` · `S44R5-manifest.json` · `S44R5-shots/`.
+
+| | 항목 | 결과 |
+|---|---|---|
+| P0 | 조건 유지 | PASS. 3.16–3.78 m |
+| P1 | 샷 밀도 | PASS. 148 ≤ 150.5. 목표 100 ms 미달 |
+| P2 | 피크 촬영 | PASS. 12 ms |
+| P3 | 매니페스트 | PASS |
+| P4 | 상위/하위 | PASS. 각 8장 |
+| P5 | 시각 판정 | 안 보인다 (P1·P2 후) |
+| P6 | 로컬 안정 | 6.35 px |
+| P7 | 원시 보고 | ③ 10 · 9.92 · 19.02 |
+| P8 | 제품 무변경 | 계측만 |
+| P9 | 무훼손 | s42 15 · s43 11 · d0·d1 · tsc · eslint 0 |
+
 ### S4-4R4 수용 요약 (2026-08-20)
 
-Chief 조건 2인 · leftFlat · 5 km/h · 창 전체 |gap| 3.08–3.76 m. 정렬은 display `gapDistM`.
-연속 프레임 F000–F039. 상대 톡톡은 눈으로 분리하지 못함. ③ 184회 · 9.82 px · p2p 19.39 px
-이나 화면과 짝이 없어 N4 **판정 보류**. 제품 미수정. S4-4 **미해결**.
-증거: `S44R4-chief-5kmh.json` · `S44R4-meaning.json` · `S44R4-shots/`.
+Chief 조건 2인 · leftFlat · 5 km/h · 창 전체 |gap| 3.08–3.76 m.
+N2 「미단정」은 샷이 창의 17 %·피크 이격 407 ms 인 **표본 부족**. 현상 부재가 아니다.
+증거: `S44R4-chief-5kmh.json` · `S44R4-shots/`.
 
 | | 항목 | 결과 |
 |---|---|---|
@@ -266,7 +288,8 @@ S4-4   상대 라이더 앞뒤 튐 — BLOCK (Y 고정 판정). 캡처 `9f3d5e9`
 S4-4R  진행축 판정 — WARNING 채택. 42.6px=진행축. 제품 미수정. 튐 자체는 미해결
 S4-4R2 카메라 vs peer — WARNING 채택. 프레임 투표는 혼합으로만 기록. S4-4R3 대체 결론은 미채택
 S4-4R3 단독 대조군 — 계측 유지. 의미 정합 실패. 결론 미채택
-S4-4R4 Chief 나란히 — N0 PASS. 톡톡 미단정. N4 판정 보류. 제품 미수정
+S4-4R4 Chief 나란히 — N0 PASS. N2 미단정=표본 부족(R5 가 밀도만 고침)
+S4-4R5 같은 조건 재촬영 — P1·P2 PASS. 상위 왕복이 더 크다고 단정 못 함. 제품 미수정
 F-1    peer visibility 초기 시각 0
 ```
 
@@ -279,7 +302,8 @@ F-2 는 종결(`onMotionError`). motion 발행 수명주기 공백은 해소(`71
 - S4-4R: C1 |gap|≤5m 나란히 미달(7.8m). 제품 앞뒤 튐은 못 고침.
 - S4-4R2: C-A startGap 21.8 m. 「근접」단정 안 함. 프레임 투표(혼합)는 원인 확정에 쓰지 않음.
 - S4-4R3: 계측값은 존재하지만 Chief 증상과 **의미 정합 실패**. 결론 미채택.
-- S4-4R4: |gap|≤5 m 은 맞췄다. 연속 프레임에서 상대 톡톡은 미단정. ③을 대리값으로 쓰지 않음. 제품 미수정.
+- S4-4R4: |gap|≤5 m 은 맞췄다. N2 미단정은 표본 부족. 현상 부재로 쓰지 않음.
+- S4-4R5: P1·P2 통과. 상위 F009→F010 과 하위 F016→F017 의 상대 X 변화가 비슷해 ③을 대리값으로 채택하지 않음. 제품 미수정.
 - App.tsx·useTrailSession·useTrailLivePublicationRidePublisher 호출 태그 미커밋 (pre-commit 이 파일 전체 eslint 선행 오류로 거부).
 - App.tsx·useTrailSession·useTrailLivePublicationRidePublisher 호출 태그 미커밋 (pre-commit 이 파일 전체 eslint 선행 오류로 거부).
 - 이견: `S41R2-summary.json` · `S41M1-summary.json` 최상위 `instruction` 필드는 `"S4-1"`
