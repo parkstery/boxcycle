@@ -1,0 +1,53 @@
+{
+  "instruction": "S4-4R4",
+  "n0": true,
+  "productCriterion": "relative-along-track (peer-self)",
+  "gapWindow": {
+    "minGapDistM": 3.082739718518482,
+    "maxGapDistM": 3.757777020105877,
+    "medianAbsGapDistM": 3.386203051851851,
+    "allAbsLe5m": true,
+    "frameCount": 349
+  },
+  "timing": {
+    "windowMs": 43418,
+    "displayFrames": 349,
+    "medianFrameDtMs": 122
+  },
+  "relativeAlong": {
+    "reverseCount": 184,
+    "maxReversePx": 9.817069616386364,
+    "peakToPeakPx": 19.38925024848254,
+    "negativeCount": 127
+  },
+  "relativeReverseMags": {
+    "lt2": 25,
+    "from2to5": 101,
+    "from5to8": 49,
+    "ge8": 9,
+    "p50": 4.14,
+    "p90": 7.0
+  },
+  "peak": {
+    "atMs": 1787195595826,
+    "relSPx": 9.817069616386364,
+    "prevRelSPx": -3.197423458099897,
+    "magPx": 9.817069616386364,
+    "gapDistM": 3.7341619407407904,
+    "displayIndex": 309,
+    "shot": { "i": 36, "file": "F036.png", "dtMs": 407 }
+  },
+  "consecutiveFrames": "S44R4-shots/F000.png … F039.png (180 ms)",
+  "largestShotToShotRelXPx": [
+    { "from": "F023", "to": "F024", "dxFrom": -99.5, "dxTo": -91.6, "deltaPx": 7.9 },
+    { "from": "F006", "to": "F007", "dxFrom": -98.7, "dxTo": -91.2, "deltaPx": 7.5 },
+    { "from": "F007", "to": "F008", "dxFrom": -91.2, "dxTo": -98.5, "deltaPx": -7.3 },
+    { "from": "F035", "to": "F036", "dxFrom": -94.5, "dxTo": -100.5, "deltaPx": -6.0 }
+  ],
+  "relXRangePx": { "min": -104.5, "max": -89.3 },
+  "localScreenXPx": { "min": 640.0, "max": 645.8, "note": "팔로우 중앙. 연속 프레임에서 경로 위에 붙어 보인다." },
+  "n2Visual": "미단정. F000–F039 에서 양쪽 visible·나란히이지만, 상대가 내 기준으로 앞뒤로 톡톡 튀는 장면을 연속 프레임으로 분리하지 못했다. 샷 간 상대 X 최대 7.9 px.",
+  "n3Visual": "같은 연속 프레임에서 내 라이더(guest1)는 화면 중앙 경로 위에 안정적. ② 횟수로 흔들린다고 하지 않음.",
+  "n4": "판정 보류. ③ 은 창 전체에서 184회 반전하나, 눈이 가리키는 증상 구간이 없고 조용한 대조 구간도 없다(반전이 창에 퍼짐). 숫자가 반전하는데 화면은 나란히 유지된다.",
+  "note": "N0 충족. Chief 톡톡을 연속 프레임으로 주장하지 않는다. 원인 미확정. 제품 미수정."
+}

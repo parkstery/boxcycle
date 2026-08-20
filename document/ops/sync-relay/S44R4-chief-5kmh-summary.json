@@ -1,0 +1,68 @@
+{
+  "instruction": "S4-4R4",
+  "conditionId": "chief-left-5kmh-abreast",
+  "trailId": "hASMd3BDNoN641vaxHwB",
+  "camera": "leftFlat",
+  "cameraDistanceM": 40,
+  "speedKmh": [
+    5,
+    5
+  ],
+  "tabState": "both visible",
+  "aligned": true,
+  "gapAtOpen": 3.4733928567712766,
+  "n0": true,
+  "gapWindow": {
+    "frameCount": 349,
+    "minGapDistM": 3.082739718518482,
+    "maxGapDistM": 3.757777020105877,
+    "minAbsGapDistM": 3.082739718518482,
+    "maxAbsGapDistM": 3.757777020105877,
+    "medianAbsGapDistM": 3.386203051851851,
+    "allAbsLe5m": true
+  },
+  "timing": {
+    "windowMs": 43418,
+    "displayFrames": 349,
+    "medianFrameDtMs": 122
+  },
+  "relativeAlong": {
+    "reverseCount": 184,
+    "maxReversePx": 9.817069616386364,
+    "peakToPeakPx": 19.38925024848254,
+    "negativeCount": 127
+  },
+  "relativeReverseCount": 184,
+  "peakRelativeReverse": {
+    "atMs": 1787195595826,
+    "uid": "8KanR8g1qE2QbHHyuDJZM2lhPGgK",
+    "relSPx": 9.817069616386364,
+    "prevRelSPx": -3.197423458099897,
+    "magPx": 9.817069616386364,
+    "gapDistM": 3.7341619407407904,
+    "gapScreenPx": 104.79817659382842,
+    "displayIndex": 309,
+    "shot": {
+      "i": 36,
+      "atMs": 1787195596233,
+      "file": "F036.png",
+      "dtMs": 407
+    }
+  },
+  "symptomShotFiles": [
+    "F034.png",
+    "F035.png",
+    "F036.png",
+    "F037.png",
+    "F038.png"
+  ],
+  "quietShotFiles": [
+    "F007.png",
+    "F008.png"
+  ],
+  "startGapDistM": 3.2934119407407394,
+  "startGapScreenPx": 91.64111292062572,
+  "displayFrames": 349,
+  "hasLocalScreen": true,
+  "alignHeldMs": 2000
+}
