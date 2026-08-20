@@ -3,6 +3,8 @@
 S4-4R3   계측값은 존재하지만 Chief 증상과 **의미 정합 실패**. 결론 미채택.
 
 S4-4R7: 화면 픽셀로 peer 를 쟀다. R5 JPEG 는 네임태그 없어 불가. PNG 36장(110 ms ≤ 117 ms)에서 peer 왕복 16회 · 10.8 px. 같은 창 투영 ①과 일치(픽셀 ≈ 투영). 제품 미수정. S4-4 미해결.
+
+S4-5: 보간 축을 recvAtMs → serverAtMs. 지터 시나리오 수정 전 fail → 후 pass. 픽셀 진폭 10.8→6.06. 반전 16→25. 카메라·publish vs rAF 미수정. S4-4 미해결.
 매니페스트 동결은 A(최근접 샘플 재사용). relSPx 13/28 → 28/28. R5 반전 10→24 · R4 184→286.
 스크린샷 마커와 `map.project` 는 불일치 — ③으로 원인 판정 안 함. S4-4 미해결.
 
@@ -41,21 +43,22 @@ displayDistM 역행은 최대 0.257 m 이고 화면 앞뒤(Y) 반전은 0회다.
 발행 수명주기(route + motion)다.** 목록·저줌 구독이 만드는 읽기 비용은 아직 남아 있다.
 「멀티라이더 위치 동기화 결함 종결」이 아니다.
 
-- **지시번호**: S4-4R7 (화면 픽셀로 peer 왕복 — `map.project` 우회)
+- **지시번호**: S4-5 (보간 축 교체 · 지터 시나리오 · gap_px 게이트)
 - **일시**: 2026-08-20
 - **브랜치**: `fix/multiplayer-read-amplification`
-- **활성 지시**: **S4-4R7 보고완료** (`INSTRUCTION.md`)
+- **활성 지시**: **S4-5 보고완료** (`INSTRUCTION.md`)
 - **원격**: origin `fix/multiplayer-read-amplification`
 - **워킹트리**: `C:/20.HDev/rtw-sync-s4-2/repo`
-- **보존**: `INSTRUCTION-S44.md` · `INSTRUCTION-S44R.md` · `INSTRUCTION-S44R2.md` · `INSTRUCTION-S44R3.md` · `INSTRUCTION-S44R4.md` · `INSTRUCTION-S44R5.md` · `INSTRUCTION-S44R6.md` · `S44R4-chief-5kmh.json` · `S44R5-capture.json` · `S44R7-pixels.json`
+- **보존**: `INSTRUCTION-S44.md` · `INSTRUCTION-S44R.md` · `INSTRUCTION-S44R2.md` · `INSTRUCTION-S44R3.md` · `INSTRUCTION-S44R4.md` · `INSTRUCTION-S44R5.md` · `INSTRUCTION-S44R6.md` · `INSTRUCTION-S44R7.md` · `S44R7-pixels.json` · `S45-after-pixels.json`
 
 ---
 
 ## 반증
 
-해당 없음. 이번 문서는 신규 수정·재시험이 아니다. route 반례는 `S41R-lifecycle-baseline.json`,
+해당 없음. route 반례는 `S41R-lifecycle-baseline.json`,
 motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.json` 에 남아 있다.
 수정 후 T1~T5 는 `S41R-lifecycle.json` `allPass=true`, M1~M6 는 `S4M1-lifecycle.json` `allPass=true` 다.
+S4-5 지터 시나리오는 축 교체 전 fail · 후 pass 로 고정했다.
 
 ---
 
@@ -90,6 +93,7 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 | S4-4R5 | 같은 조건 재촬영 | **보고완료** P1·P2 PASS. 상위/하위 대조는 R6 에서 철회. 제품 미수정 |
 | S4-4R6 | 계측 수리 · 기존 로그 재계산 | **보고완료** Q2=A. Q1 불성립. 제품 미수정. S4-4 미해결 |
 | S4-4R7 | 화면 픽셀 직접 계측 | **보고완료** peer 왕복 16·10.8 px. 픽셀≈투영. 제품 미수정. S4-4 미해결 |
+| S4-5 | 송신 격자 보간 · 지터 하네스 · gap_px | **보고완료** 축 교체. 지터 전 fail→후 pass. 픽셀 10.8→6.06. 반전 16→25. S4-4 미해결 |
 
 ---
 
@@ -99,12 +103,19 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 
 | 항목 | 값 |
 |---|---|
-| HEAD | S4-4R7 픽셀 `1d44e75` · S4-4R6 계측 `896c6ab` · 재계산 `55d94df` · S4-4R5 `abbf810` |
+| HEAD | S4-5 문서 (이 커밋) · 재측정 `3dfa1f3` · 축 교체 `781c106` · 하네스 `b5e1f2f` |
 | S4-1R2 제품 | `b3336ed` |
 | S4-M1R 제품 | `71669a1` (motion 수명주기 · F-2) |
 | S4-M1R 시험·도구 | `41c2ea2` |
 | S4-M1R 증거·문서 | `a2b58ff` |
 | stash | 2 건 — `orchestrator-docs: CLAUDE.md + 결정로그 (S4-1R2-D 정리)` · `wip before god-file-split` |
+
+### S4-5 수용 요약 (2026-08-20)
+
+보간 축을 `recvAtMs` → `serverAtMs` + offset EMA. 상수 160·16·1200 불변. stall 은 `entity.speedMps`.
+지터 시나리오 수정 전 rel=0.333 fail → 후 pass. gap_px 대리 진폭 2.028→0.377 (합격선 없음).
+픽셀 S0 PASS. peer 25 · 4.29 · 6.06 (R7 16 · 6.4 · 10.8). 진폭은 예측 6~7 구간. 반전은 증가.
+카메라·publish vs rAF 미수정. ④⑤ 보류. S4-4 미해결. 증거: `S45-after-pixels.json` · `S45-shots/` · `S45-jitter-before.json`.
 
 ### S4-4R7 수용 요약 (2026-08-20)
 
