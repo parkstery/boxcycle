@@ -1,0 +1,72 @@
+{
+  "instruction": "S4-5",
+  "conditionId": "chief-left-5kmh-abreast",
+  "trailId": "CE3PGGC6q81i1PIsiY8h",
+  "camera": "leftFlat",
+  "cameraDistanceM": 40,
+  "speedKmh": [
+    5,
+    5
+  ],
+  "tabState": "both visible",
+  "aligned": true,
+  "gapAtOpen": 4.063034782118159,
+  "n0": true,
+  "p1": false,
+  "p2": true,
+  "gapWindow": {
+    "frameCount": 42,
+    "minGapDistM": 3.8365679490743005,
+    "maxGapDistM": 4.140391799558273,
+    "minAbsGapDistM": 3.8365679490743005,
+    "maxAbsGapDistM": 4.140391799558273,
+    "medianAbsGapDistM": 3.9611108652609666,
+    "allAbsLe5m": true
+  },
+  "timing": {
+    "windowMs": 4497,
+    "displayFrames": 42,
+    "medianFrameDtMs": 103
+  },
+  "shotMedianDtMs": 107,
+  "frameMedianDtMs": 103,
+  "shotCount": 40,
+  "peak": {
+    "atMs": 1787214142316,
+    "uid": "MIem1OVIwLvbPMUZsKCo4zbDtEn0",
+    "relSPx": -5.484929945669899,
+    "prevRelSPx": 1.6688489235145607,
+    "magPx": 5.484929945669899,
+    "gapDistM": 3.8545062176651186,
+    "gapScreenPx": 107.58126316685289,
+    "displayIndex": 14
+  },
+  "peakShotSeparationMs": 11,
+  "scoutOffsetMs": 560,
+  "waitToAimMs": 0,
+  "relativeAlong": {
+    "reverseCount": 35,
+    "maxReversePx": 5.484929945669899,
+    "peakToPeakPx": 10.534443666864801,
+    "negativeCount": 18
+  },
+  "peerAlong": {
+    "reverseCount": 19,
+    "maxReversePx": 1.9325083905392515,
+    "peakToPeakPx": 4.78151588845408,
+    "negativeCount": 17
+  },
+  "localAlong": {
+    "reverseCount": 35,
+    "maxReversePx": 4.799062952245021,
+    "peakToPeakPx": 9.42962599536365,
+    "negativeCount": 21
+  },
+  "startGapDistM": 3.871947503608638,
+  "startGapScreenPx": 108.01411944258089,
+  "displayFrames": 42,
+  "hasLocalScreen": true,
+  "alignHeldMs": 2000,
+  "shotFormat": "png",
+  "note": "조건은 R5 와 같다. PNG 무손실·네임태그 포함 페이지만 바꿨다."
+}

@@ -17,6 +17,7 @@ import { loadRaster } from "./load-raster.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = resolve(HERE, "../../../../document/ops/sync-relay");
+const instruction = process.argv[5] ?? "S4-4R7";
 
 const shotDir = resolve(process.argv[2] ?? resolve(OUT_DIR, "S44R5-shots"));
 const outName = process.argv[3] ?? "S44R7-pixels.json";
@@ -119,7 +120,7 @@ const precision = {
 };
 
 const out = {
-  instruction: "S4-4R7",
+  instruction,
   shotDir: basename(shotDir),
   jpeg,
   shotCount: shots.length,
@@ -152,7 +153,7 @@ const summaryDest = resolve(
     : outName.replace(/\.json$/i, "-summary.json"),
 );
 const summary = {
-  instruction: "S4-4R7",
+  instruction,
   shotDir: basename(shotDir),
   jpeg,
   s0Pass,
