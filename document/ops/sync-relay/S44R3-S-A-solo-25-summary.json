@@ -1,0 +1,45 @@
+{
+  "instruction": "S4-4R3",
+  "conditionId": "S-A-solo-25",
+  "trailId": "ZCgExuG9lMqIWTxUIWme",
+  "riders": 1,
+  "speedKmh": [
+    25
+  ],
+  "camera": "leftFlat",
+  "cameraDistanceM": 40,
+  "routeLenM": 452.9210879876287,
+  "windowMs": 8907,
+  "displayFrames": 128,
+  "medianFrameDtMs": 68,
+  "survival": {
+    "displayFrames": 128,
+    "hasLocalScreen": true,
+    "uhatFromLocalDist": true,
+    "uhatFrameCount": 128,
+    "uhatSource": "local-dist-regression",
+    "localScreenTravelPx": 1062.0771964981004,
+    "pass": true,
+    "failReasons": []
+  },
+  "localAlong": {
+    "reverseCount": 102,
+    "maxReversePx": 25.229059346407922,
+    "peakToPeakPx": 41.10216733229696,
+    "negativeCount": 69
+  },
+  "duoCitation": {
+    "file": "S44R2-A-25-25-summary.json",
+    "windowMs": 10066,
+    "displayFrames": 71,
+    "medianFrameDtMs": 137.5,
+    "camera": "leftFlat",
+    "cameraDistanceM": 40,
+    "localAlong": {
+      "reverseCount": 51,
+      "maxReversePx": 29.268742689704172,
+      "peakToPeakPx": 58.269187342619546,
+      "negativeCount": 33
+    }
+  }
+}

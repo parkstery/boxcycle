@@ -1,0 +1,62 @@
+{
+  "instruction": "S4-4R3",
+  "note": "2인 ② 는 S44R2 산출물 인용. 다시 찍지 않음. 판정은 계열 비교. 프레임 투표 없음.",
+  "camera": "leftFlat",
+  "cameraDistanceM": 40,
+  "table": {
+    "② reverseCount": {
+      "C-A": 51,
+      "S-A": 102,
+      "C-B": 57,
+      "S-B": 98
+    },
+    "② maxReversePx": {
+      "C-A": 29.268742689704172,
+      "S-A": 25.229059346407922,
+      "C-B": 32.53366452602368,
+      "S-B": 32.90774383017353
+    },
+    "② peakToPeakPx": {
+      "C-A": 58.269187342619546,
+      "S-A": 41.10216733229696,
+      "C-B": 65.06731116373513,
+      "S-B": 53.52143222715102
+    },
+    "② negativeCount": {
+      "C-A": 33,
+      "S-A": 69,
+      "C-B": 29,
+      "S-B": 67
+    }
+  },
+  "ratioSoloOverDuo": {
+    "A": {
+      "reverseCount": 2,
+      "maxReversePx": 0.8619796078662004,
+      "peakToPeakPx": 0.7053842555005706
+    },
+    "B": {
+      "reverseCount": 1.719298245614035,
+      "maxReversePx": 1.0114982222138127,
+      "peakToPeakPx": 0.82255484774021
+    }
+  },
+  "conditionMatch": {
+    "A": {
+      "soloWindowMs": 8907,
+      "duoWindowMs": 10066,
+      "soloMedianDtMs": 68,
+      "duoMedianDtMs": 137.5,
+      "soloFrames": 128,
+      "duoFrames": 71
+    },
+    "B": {
+      "soloWindowMs": 8469,
+      "duoWindowMs": 8713,
+      "soloMedianDtMs": 62,
+      "duoMedianDtMs": 118.5,
+      "soloFrames": 135,
+      "duoFrames": 73
+    }
+  }
+}
