@@ -6,7 +6,6 @@ import {
 } from "../geo";
 import {
   PEER_DRIVE_SIM_GRACE_MS,
-  PEER_INTERP_DELAY_MS,
   PEER_INTERP_MAX_EXTRAP_MS,
 } from "../rideSyncPolicy";
 import { estimateCrankRpmFromSpeedKmh } from "../riderPedalMotion";
@@ -15,6 +14,7 @@ import {
   applyPeerMotionIngest,
   clampRouteDist,
   createPeerMotionEntity,
+  planPeerMotionStep,
   stepPeerMotionEntity,
   type PeerMotionIngestResult,
 } from "./integrator";
@@ -277,6 +277,8 @@ export class PeerMotionRegistry {
     gap: number;
     b: number;
     a: number;
+    clockOffsetMs: number;
+    serverAxisFallbackCount: number;
   }> {
     const out = [];
     const self = getPeerSyncSelfDistM();
@@ -298,67 +300,56 @@ export class PeerMotionRegistry {
         gap: Math.round(newestDistM - self),
         b: e.buffer.length,
         a: Math.round(newestAgeMs / 100) / 10,
+        clockOffsetMs: Math.round(e.clockOffsetMs),
+        serverAxisFallbackCount: e.serverAxisFallbackCount,
       });
     }
     return out;
   }
 }
 
-/** DEV — step 분기 관찰만. integrator 공식은 건드리지 않는다. */
+/** DEV — step 분기 관찰. 공식은 planPeerMotionStep 과 같다. */
 function logStepModeDiag(entity: PeerMotionEntity, nowMs: number, routeLenM: number): void {
   const buf = entity.buffer;
   if (buf.length === 0) return;
   const newest = buf[buf.length - 1]!;
-  const oldest = buf[0]!;
-  const renderTime = nowMs - PEER_INTERP_DELAY_MS;
+  const plan = planPeerMotionStep(entity, nowMs);
   const newestAgeMs = nowMs - newest.recvAtMs;
-  let mode: "paused" | "oldest" | "interpolate" | "extrapolate";
-  const extra: Record<string, string | number | boolean | null> = {};
+  const extra: Record<string, string | number | boolean | null> = {
+    usedServerAxis: plan.usedServerAxis ? 1 : 0,
+    fallbackCount: entity.serverAxisFallbackCount,
+  };
 
-  if (entity.phase === "paused" || entity.phase === "completed") {
-    mode = "paused";
+  if (plan.mode === "paused") {
     extra.newestSeq = newest.seq ?? null;
     extra.newestDist = newest.distM;
-  } else if (renderTime <= oldest.recvAtMs) {
-    mode = "oldest";
-    extra.oldestSeq = oldest.seq ?? null;
-    extra.oldestRecv = oldest.recvAtMs;
-    extra.oldestDist = oldest.distM;
-  } else if (renderTime >= newest.recvAtMs) {
-    mode = "extrapolate";
-    const aheadRaw = renderTime - newest.recvAtMs;
-    const aheadCap = Math.min(aheadRaw, PEER_INTERP_MAX_EXTRAP_MS);
+  } else if (plan.mode === "oldest") {
+    extra.oldestSeq = plan.s0?.seq ?? null;
+    extra.oldestRecv = plan.s0?.recvAtMs ?? null;
+    extra.oldestServer = plan.s0?.serverAtMs ?? null;
+    extra.oldestDist = plan.s0?.distM ?? null;
+  } else if (plan.mode === "extrapolate") {
     extra.newestSeq = newest.seq ?? null;
     extra.newestRecv = newest.recvAtMs;
+    extra.newestServer = newest.serverAtMs;
     extra.newestDist = newest.distM;
-    extra.aheadMsRaw = aheadRaw;
-    extra.aheadMs = aheadCap;
-    extra.capHit = aheadRaw > PEER_INTERP_MAX_EXTRAP_MS ? 1 : 0;
+    extra.aheadMs = plan.aheadMs;
+    extra.capHit = (plan.aheadMs ?? 0) >= PEER_INTERP_MAX_EXTRAP_MS ? 1 : 0;
   } else {
-    mode = "interpolate";
-    let s0 = oldest;
-    let s1 = newest;
-    for (let i = 1; i < buf.length; i += 1) {
-      if (buf[i]!.recvAtMs >= renderTime) {
-        s1 = buf[i]!;
-        s0 = buf[i - 1]!;
-        break;
-      }
-    }
-    const span = s1.recvAtMs - s0.recvAtMs;
-    const t = span > 0 ? (renderTime - s0.recvAtMs) / span : 0;
-    extra.s0Seq = s0.seq ?? null;
-    extra.s1Seq = s1.seq ?? null;
-    extra.s0Recv = s0.recvAtMs;
-    extra.s1Recv = s1.recvAtMs;
-    extra.s0Dist = s0.distM;
-    extra.s1Dist = s1.distM;
-    extra.t = t;
+    extra.s0Seq = plan.s0?.seq ?? null;
+    extra.s1Seq = plan.s1?.seq ?? null;
+    extra.s0Recv = plan.s0?.recvAtMs ?? null;
+    extra.s1Recv = plan.s1?.recvAtMs ?? null;
+    extra.s0Server = plan.s0?.serverAtMs ?? null;
+    extra.s1Server = plan.s1?.serverAtMs ?? null;
+    extra.s0Dist = plan.s0?.distM ?? null;
+    extra.s1Dist = plan.s1?.distM ?? null;
+    extra.t = plan.t;
   }
 
   peerSyncChainLog(6, null, {
-    mode,
-    renderTime,
+    mode: plan.mode,
+    renderTime: plan.renderTime,
     newestAgeMs,
     buf: buf.length,
     displayDistM: entity.displayDistM,

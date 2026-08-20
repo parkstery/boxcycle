@@ -56,10 +56,14 @@ export function checkRecvJitter(result, spec) {
   }
   let maxRelSeen = 0;
   let worst = null;
+  const spanMs = spec.speedSpanMs ?? 100;
   for (let i = 1; i < live.length; i += 1) {
-    const dtSec = (live[i].tMs - live[i - 1].tMs) / 1000;
-    if (dtSec < 0.005) continue;
-    const speed = (live[i].displayDistM - live[i - 1].displayDistM) / dtSec;
+    let j = i - 1;
+    while (j > 0 && live[i].tMs - live[j].tMs < spanMs - 5) j -= 1;
+    const dtMs = live[i].tMs - live[j].tMs;
+    if (dtMs < spanMs - 15 || dtMs > spanMs + 15) continue;
+    const dtSec = dtMs / 1000;
+    const speed = (live[i].displayDistM - live[j].displayDistM) / dtSec;
     const rel = sendSpeed > 0.02 ? Math.abs(speed - sendSpeed) / sendSpeed : 0;
     if (rel > maxRelSeen) {
       maxRelSeen = rel;
