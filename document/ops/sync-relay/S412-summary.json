@@ -1,0 +1,21 @@
+{
+  "instruction": "S4-12",
+  "retroDef": "역행 크기 = 표시 거리(displayDist)가 연속으로 감소한 구간의 누적 감소량. 개수가 아니라 크기. 단위 m와 px.",
+  "pxPerM": 83.44269102366391,
+  "a0ok": true,
+  "a1ok": true,
+  "nCombos": 120,
+  "passN": 0,
+  "passLead0N": 0,
+  "pass": [],
+  "passLead0": [],
+  "recommended": null,
+  "delayHold": {},
+  "failCounts": {
+    "g1_bias": 109,
+    "g2_retrograde": 120,
+    "g3_maxErr": 115,
+    "g4_jumpP99": 0
+  },
+  "verdict": "불가"
+}
