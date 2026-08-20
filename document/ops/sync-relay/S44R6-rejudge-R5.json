@@ -1,0 +1,86 @@
+{
+  "instruction": "S4-4R6",
+  "source": "S44R5-capture.json",
+  "sourceNotModified": true,
+  "sourceInstruction": "S4-4R5",
+  "freezeCause": "A — 매니페스트가 display 와 다른 atMs 의 최근접 샘플을 재사용. 계산기 샘플 자체는 고유(R5 13/13). B(û 창 정체로 같은 값)는 기각. û 회귀 null 시 lockedU 미사용이 샘플을 희소하게 만들어 A 를 키웠다.",
+  "old": {
+    "relativeAlong": {
+      "reverseCount": 10,
+      "maxReversePx": 9.916858346050487,
+      "peakToPeakPx": 19.017850510142836,
+      "negativeCount": 6
+    },
+    "samples": {
+      "sampleCount": 13,
+      "uniqueRelSPx": 13,
+      "longestIdenticalRun": {
+        "len": 1,
+        "value": 9.10099216409235,
+        "start": 0
+      }
+    }
+  },
+  "new": {
+    "relativeAlong": {
+      "reverseCount": 24,
+      "maxReversePx": 9.916858346050487,
+      "peakToPeakPx": 19.017850510142836,
+      "negativeCount": 14
+    },
+    "samples": {
+      "sampleCount": 28,
+      "uniqueRelSPx": 28,
+      "longestIdenticalRun": {
+        "len": 1,
+        "value": 9.10099216409235,
+        "start": 0
+      }
+    },
+    "k1Pass": true,
+    "k1MaxAbsResidualPx": 1.7763568394002505e-15,
+    "displayFrames": 29,
+    "reason": "진행축=displayDistM 창 회귀. û 는 X/Y 고정이 아니다. 거리 역행 0 회 최대 0.000 m (임계로 버리지 않음). ① peer절대 반전 16 회 최대 5.6 px, 음수 12 스텝, peak-to-peak 9.3 px. ② local절대 반전 22 회 최대 6.4 px. ③ 상대 반전 24 회 최대 9.9 px. K1 max|①−②−③|=1.78e-15 px n=28 pass=true. 2D 반전 16 회 최대 5.6 px. 밴드 8px 미만 진행축 반전 16 회 (라벨. 판정 근거 아님). 로컬 화면 좌표 있음. S44급 진행축 반전 미재현 (① 최대 5.6 px < 20 px). §3 판정 생략."
+  },
+  "localHeldAt640": {
+    "note": "로컬 X 를 640 으로 고정한 산술. Q1 미성립이므로 판정에 쓰지 않는다.",
+    "relativeAlong": {
+      "reverseCount": 16,
+      "maxReversePx": 5.569819157951961,
+      "peakToPeakPx": 9.249558656863114,
+      "negativeCount": 12
+    },
+    "samples": {
+      "sampleCount": 28,
+      "uniqueRelSPx": 28,
+      "longestIdenticalRun": {
+        "len": 1,
+        "value": 3.435307178318546,
+        "start": 0
+      }
+    },
+    "judgmentForbidden": true
+  },
+  "comparison": {
+    "reverseCount": {
+      "before": 10,
+      "after": 24
+    },
+    "maxReversePx": {
+      "before": 9.916858346050487,
+      "after": 9.916858346050487
+    },
+    "peakToPeakPx": {
+      "before": 19.017850510142836,
+      "after": 19.017850510142836
+    },
+    "uniqueRelSPx": {
+      "before": 13,
+      "after": 28,
+      "sampleCountAfter": 28
+    }
+  },
+  "manifestUniqueRelSPx": 0,
+  "manifestShotCount": 0,
+  "manifestNonNullRelSPx": 0
+}

@@ -29,6 +29,7 @@
     "test:e2e:peer-s44": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s44 --workers=1\"",
     "test:s44-jitter": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/s44/jitter-capture.test.ts",
     "test:s44r-rejudge": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs scripts/s44/rejudge-s44.mjs",
+    "test:s44r6-rejudge": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs scripts/s44/rejudge-s44r6.mjs",
     "test:e2e:peer-s44r": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s44r --workers=1\"",
     "test:e2e:peer-s44r2": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s44r2 --workers=1\"",
     "test:e2e:peer-s44r3": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s44r3 --workers=1\"",

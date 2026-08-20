@@ -1,0 +1,122 @@
+{
+  "instruction": "S4-4R6",
+  "source": "S44R4-chief-5kmh.json",
+  "sourceNotModified": true,
+  "sourceInstruction": "S4-4R4",
+  "freezeCause": "A — 매니페스트가 display 와 다른 atMs 의 최근접 샘플을 재사용. 계산기 샘플 자체는 고유(R5 13/13). B(û 창 정체로 같은 값)는 기각. û 회귀 null 시 lockedU 미사용이 샘플을 희소하게 만들어 A 를 키웠다.",
+  "old": {
+    "relativeAlong": {
+      "reverseCount": 184,
+      "maxReversePx": 9.817069616386364,
+      "peakToPeakPx": 19.38925024848254,
+      "negativeCount": 127
+    },
+    "samples": {
+      "sampleCount": 249,
+      "uniqueRelSPx": 249,
+      "longestIdenticalRun": {
+        "len": 1,
+        "value": -5.676799134973519,
+        "start": 0
+      }
+    }
+  },
+  "new": {
+    "relativeAlong": {
+      "reverseCount": 286,
+      "maxReversePx": 11.005172579558552,
+      "peakToPeakPx": 20.822242195944916,
+      "negativeCount": 175
+    },
+    "samples": {
+      "sampleCount": 348,
+      "uniqueRelSPx": 348,
+      "longestIdenticalRun": {
+        "len": 1,
+        "value": -5.676799134973519,
+        "start": 0
+      }
+    },
+    "k1Pass": true,
+    "k1MaxAbsResidualPx": 1.7763568394002505e-15,
+    "displayFrames": 349,
+    "reason": "진행축=displayDistM 창 회귀. û 는 X/Y 고정이 아니다. 거리 역행 3 회 최대 0.012 m (임계로 버리지 않음). ① peer절대 반전 146 회 최대 6.6 px, 음수 187 스텝, peak-to-peak 13.1 px. ② local절대 반전 287 회 최대 8.3 px. ③ 상대 반전 286 회 최대 11.0 px. K1 max|①−②−③|=1.78e-15 px n=348 pass=true. 2D 반전 145 회 최대 6.7 px. 밴드 8px 미만 진행축 반전 146 회 (라벨. 판정 근거 아님). 로컬 화면 좌표 있음. S44급 진행축 반전 미재현 (① 최대 6.6 px < 20 px). §3 판정 생략."
+  },
+  "localHeldAt640": {
+    "note": "로컬 X 를 640 으로 고정한 산술. Q1 미성립이므로 판정에 쓰지 않는다.",
+    "relativeAlong": {
+      "reverseCount": 146,
+      "maxReversePx": 6.5738688556393114,
+      "peakToPeakPx": 13.112864727111809,
+      "negativeCount": 186
+    },
+    "samples": {
+      "sampleCount": 348,
+      "uniqueRelSPx": 348,
+      "longestIdenticalRun": {
+        "len": 1,
+        "value": -5.6767993486885135,
+        "start": 0
+      }
+    },
+    "judgmentForbidden": true
+  },
+  "comparison": {
+    "reverseCount": {
+      "before": 184,
+      "after": 286
+    },
+    "maxReversePx": {
+      "before": 9.817069616386364,
+      "after": 11.005172579558552
+    },
+    "peakToPeakPx": {
+      "before": 19.38925024848254,
+      "after": 20.822242195944916
+    },
+    "uniqueRelSPx": {
+      "before": 249,
+      "after": 348,
+      "sampleCountAfter": 348
+    }
+  },
+  "manifestUniqueRelSPx": 39,
+  "manifestShotCount": 40,
+  "manifestNonNullRelSPx": 39,
+  "pixelContrast": {
+    "method": "S44R4-shots 1280×900 PNG 에서 맵 밴드(y≈400–450, x≈500–680)의 주황 자전거 픽셀 군집 무게중심 vs 최근접 display 의 localScreenX·peerScreenX. 새 샷 없음.",
+    "frames": [
+      {
+        "file": "F000.png",
+        "dtMs": 26,
+        "localScreenX": 640.0000513309717,
+        "peerScreenX": 548.4306130155378,
+        "markerLocalPx": 635.7,
+        "markerPeerPx": 542.5,
+        "dLocalPx": 4.3,
+        "dPeerPx": 5.9
+      },
+      {
+        "file": "F003.png",
+        "dtMs": 1,
+        "localScreenX": 645.0626827395105,
+        "peerScreenX": 553.1608485858097,
+        "markerLocalPx": 636.2,
+        "markerPeerPx": 545.2,
+        "dLocalPx": 8.9,
+        "dPeerPx": 8
+      },
+      {
+        "file": "F006.png",
+        "dtMs": 50,
+        "localScreenX": 645.6566263231944,
+        "peerScreenX": 546.9139999087265,
+        "markerLocalPx": 636.4,
+        "markerPeerPx": 546.2,
+        "dLocalPx": 9.3,
+        "dPeerPx": 0.7
+      }
+    ],
+    "reading": "그려진 local 은 635.7–636.4 로 0.7px 만 움직이는데 계측 localScreenX 는 640.00↔645.06 으로 토글한다. 대조 불성립. peer 도 0.7–8.0px 어긋남. Q5·Q6 판정 금지."
+  }
+}
