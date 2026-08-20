@@ -1,0 +1,424 @@
+{
+  "instruction": "S4-13",
+  "g2Def": "live 역행 ≤ 0.5 m. 근거: apps/web/scripts/peer-sync/invariants.mjs checkNoBacktrack — 원본이 단조 전진이면 displayDistM 이 한 스텝에 0.5 m 넘게 뒤로 가면 위반(back = prev.displayDistM − cur.displayDistM, back > 0.5). S4-12 누적 maxRetrogradeM 이 아니다.",
+  "liveBacktrackMaxM": 0.5,
+  "g2WhyPass": "한 스텝 0.5 m 은 16 ms 에 31 m/s 역행이 필요하다. 표시 흡수의 catchVel 은 제품 램프(≤1.852 m/s²)로 막혀 프레임 역행이 그 값에 못 미친다. P3 jumpP99 0.04 px(0.0005 m)·reverseRatio ~8% 는 느린 되돌림이다. 누적 0.55–1.11 m 는 여러 프레임의 합이라 불변식 위반이 아니다.",
+  "n": 4,
+  "pass": [],
+  "rows": [
+    {
+      "eM": 0.3,
+      "tauAbs": 0.25,
+      "tauLeadRatio": 0,
+      "delayMs": 100,
+      "passAll": false,
+      "failGates": [
+        "g1_bias",
+        "g3_maxErr"
+      ],
+      "failWhere": [
+        {
+          "id": "P4-5-12-x3",
+          "fail": [
+            "g1_bias",
+            "g3_maxErr"
+          ]
+        }
+      ],
+      "perProfile": [
+        {
+          "id": "P1-brake-20-0",
+          "rankBiasM": 0.1498208048410456,
+          "baseRankBiasM": -0.46421526970415955,
+          "maxRetrogradeM": 0.20465936899953618,
+          "maxRetrogradePx": 17.07732849252632,
+          "maxM": 0.5401234567898072,
+          "jumpP99px": 1.5108964629797417,
+          "jumpMaxPx": 1.5108964629809274,
+          "reverseRatio": 0,
+          "stepBackLimitM": 0.5,
+          "jumpP99m": 0.018106995884771493,
+          "gates": {
+            "g1_bias": true,
+            "g2_backtrack05": true,
+            "g3_maxErr": true,
+            "g4_jumpP99": true,
+            "pass": true
+          }
+        },
+        {
+          "id": "P2-accel-0-20",
+          "rankBiasM": -0.3054889886357432,
+          "baseRankBiasM": -0.48709602771680843,
+          "maxRetrogradeM": 0,
+          "maxRetrogradePx": 0,
+          "maxM": 0.4627037037036992,
+          "jumpP99px": 0.9443102893624127,
+          "jumpMaxPx": 0.9443102893630055,
+          "reverseRatio": 0,
+          "stepBackLimitM": 0.5,
+          "jumpP99m": 0.011316872427983071,
+          "gates": {
+            "g1_bias": true,
+            "g2_backtrack05": true,
+            "g3_maxErr": true,
+            "g4_jumpP99": true,
+            "pass": true
+          }
+        },
+        {
+          "id": "P3-chief-5-0-5",
+          "rankBiasM": -0.07313836197948675,
+          "baseRankBiasM": -0.17035647577295568,
+          "maxRetrogradeM": 0.55349794238683,
+          "maxRetrogradePx": 46.18535778881799,
+          "maxM": 0.47497119341576877,
+          "jumpP99px": 0.04292319497144995,
+          "jumpMaxPx": 1.5108964629797417,
+          "reverseRatio": 0.07923930269413629,
+          "stepBackLimitM": 0.5,
+          "jumpP99m": 0.0005144032921862163,
+          "gates": {
+            "g1_bias": true,
+            "g2_backtrack05": true,
+            "g3_maxErr": true,
+            "g4_jumpP99": true,
+            "pass": true
+          }
+        },
+        {
+          "id": "P4-5-12-x3",
+          "rankBiasM": -0.4312842504960262,
+          "baseRankBiasM": -0.3693686090364001,
+          "maxRetrogradeM": 0,
+          "maxRetrogradePx": 0,
+          "maxM": 1.8487855581983794,
+          "jumpP99px": 0.9443102893624127,
+          "jumpMaxPx": 1.510896462980038,
+          "reverseRatio": 0,
+          "stepBackLimitM": 0.5,
+          "jumpP99m": 0.011316872427983071,
+          "gates": {
+            "g1_bias": false,
+            "g2_backtrack05": true,
+            "g3_maxErr": false,
+            "g4_jumpP99": true,
+            "pass": false
+          }
+        }
+      ]
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.25,
+      "tauLeadRatio": 0,
+      "delayMs": 300,
+      "passAll": false,
+      "failGates": [
+        "g1_bias",
+        "g3_maxErr"
+      ],
+      "failWhere": [
+        {
+          "id": "P3-chief-5-0-5",
+          "fail": [
+            "g1_bias"
+          ]
+        },
+        {
+          "id": "P4-5-12-x3",
+          "fail": [
+            "g1_bias",
+            "g3_maxErr"
+          ]
+        }
+      ],
+      "perProfile": [
+        {
+          "id": "P1-brake-20-0",
+          "rankBiasM": 0.22653139651607157,
+          "baseRankBiasM": -0.46421526970415994,
+          "maxRetrogradeM": 0.48243621399028314,
+          "maxRetrogradePx": 40.2557759426174,
+          "maxM": 1.0200617283947366,
+          "jumpP99px": 1.4508039900194745,
+          "jumpMaxPx": 1.5108964629797417,
+          "reverseRatio": 0,
+          "stepBackLimitM": 0.5,
+          "jumpP99m": 0.017386831275707948,
+          "gates": {
+            "g1_bias": true,
+            "g2_backtrack05": true,
+            "g3_maxErr": true,
+            "g4_jumpP99": true,
+            "pass": true
+          }
+        },
+        {
+          "id": "P2-accel-0-20",
+          "rankBiasM": -0.4423555391089248,
+          "baseRankBiasM": -0.4870960277168086,
+          "maxRetrogradeM": 0,
+          "maxRetrogradePx": 0,
+          "maxM": 0.7398683127571921,
+          "jumpP99px": 0.9443102893618197,
+          "jumpMaxPx": 0.9443102893630055,
+          "reverseRatio": 0.15193370165745856,
+          "stepBackLimitM": 0.5,
+          "jumpP99m": 0.011316872427975966,
+          "gates": {
+            "g1_bias": true,
+            "g2_backtrack05": true,
+            "g3_maxErr": true,
+            "g4_jumpP99": true,
+            "pass": true
+          }
+        },
+        {
+          "id": "P3-chief-5-0-5",
+          "rankBiasM": -0.19380875485887,
+          "baseRankBiasM": -0.17035647577295582,
+          "maxRetrogradeM": 1.1056584362139859,
+          "maxRetrogradePx": 92.25911527071104,
+          "maxM": 1.3045432098767122,
+          "jumpP99px": 0.0429231949717464,
+          "jumpMaxPx": 1.5108964629797417,
+          "reverseRatio": 0.09531502423263329,
+          "stepBackLimitM": 0.5,
+          "jumpP99m": 0.000514403292189769,
+          "gates": {
+            "g1_bias": false,
+            "g2_backtrack05": true,
+            "g3_maxErr": true,
+            "g4_jumpP99": true,
+            "pass": false
+          }
+        },
+        {
+          "id": "P4-5-12-x3",
+          "rankBiasM": -0.5444590024964744,
+          "baseRankBiasM": -0.36936860903640023,
+          "maxRetrogradeM": 0.17998391898220234,
+          "maxRetrogradePx": 15.018342540860068,
+          "maxM": 2.996584837513822,
+          "jumpP99px": 0.9443102893624127,
+          "jumpMaxPx": 1.5108964629803345,
+          "reverseRatio": 0,
+          "stepBackLimitM": 0.5,
+          "jumpP99m": 0.011316872427983071,
+          "gates": {
+            "g1_bias": false,
+            "g2_backtrack05": true,
+            "g3_maxErr": false,
+            "g4_jumpP99": true,
+            "pass": false
+          }
+        }
+      ]
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.3,
+      "tauLeadRatio": 0,
+      "delayMs": 100,
+      "passAll": false,
+      "failGates": [
+        "g1_bias",
+        "g3_maxErr"
+      ],
+      "failWhere": [
+        {
+          "id": "P4-5-12-x3",
+          "fail": [
+            "g1_bias",
+            "g3_maxErr"
+          ]
+        }
+      ],
+      "perProfile": [
+        {
+          "id": "P1-brake-20-0",
+          "rankBiasM": 0.16930970413816118,
+          "baseRankBiasM": -0.46421526970415955,
+          "maxRetrogradeM": 0.25836419753515116,
+          "maxRetrogradePx": 21.558603906502487,
+          "maxM": 0.551810699588323,
+          "jumpP99px": 1.5108964629797417,
+          "jumpMaxPx": 1.5108964629809274,
+          "reverseRatio": 0,
+          "stepBackLimitM": 0.5,
+          "jumpP99m": 0.018106995884771493,
+          "gates": {
+            "g1_bias": true,
+            "g2_backtrack05": true,
+            "g3_maxErr": true,
+            "g4_jumpP99": true,
+            "pass": true
+          }
+        },
+        {
+          "id": "P2-accel-0-20",
+          "rankBiasM": -0.3135434576700951,
+          "baseRankBiasM": -0.48709602771680843,
+          "maxRetrogradeM": 0,
+          "maxRetrogradePx": 0,
+          "maxM": 0.47346202772060053,
+          "jumpP99px": 0.9443102893624127,
+          "jumpMaxPx": 0.9443102893627091,
+          "reverseRatio": 0,
+          "stepBackLimitM": 0.5,
+          "jumpP99m": 0.011316872427983071,
+          "gates": {
+            "g1_bias": true,
+            "g2_backtrack05": true,
+            "g3_maxErr": true,
+            "g4_jumpP99": true,
+            "pass": true
+          }
+        },
+        {
+          "id": "P3-chief-5-0-5",
+          "rankBiasM": -0.07102334053104291,
+          "baseRankBiasM": -0.17035647577295568,
+          "maxRetrogradeM": 0.5241358024692921,
+          "maxRetrogradePx": 43.73530181988529,
+          "maxM": 0.47580959344209717,
+          "jumpP99px": 0.04292319497144995,
+          "jumpMaxPx": 1.5108964629797417,
+          "reverseRatio": 0.07765451664025357,
+          "stepBackLimitM": 0.5,
+          "jumpP99m": 0.0005144032921862163,
+          "gates": {
+            "g1_bias": true,
+            "g2_backtrack05": true,
+            "g3_maxErr": true,
+            "g4_jumpP99": true,
+            "pass": true
+          }
+        },
+        {
+          "id": "P4-5-12-x3",
+          "rankBiasM": -0.3820272135371032,
+          "baseRankBiasM": -0.3693686090364001,
+          "maxRetrogradeM": 0,
+          "maxRetrogradePx": 0,
+          "maxM": 1.8858127137936833,
+          "jumpP99px": 0.9443102893621161,
+          "jumpMaxPx": 1.510896462980038,
+          "reverseRatio": 0,
+          "stepBackLimitM": 0.5,
+          "jumpP99m": 0.011316872427979519,
+          "gates": {
+            "g1_bias": false,
+            "g2_backtrack05": true,
+            "g3_maxErr": false,
+            "g4_jumpP99": true,
+            "pass": false
+          }
+        }
+      ]
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.3,
+      "tauLeadRatio": 0,
+      "delayMs": 300,
+      "passAll": false,
+      "failGates": [
+        "g1_bias",
+        "g3_maxErr"
+      ],
+      "failWhere": [
+        {
+          "id": "P4-5-12-x3",
+          "fail": [
+            "g1_bias",
+            "g3_maxErr"
+          ]
+        }
+      ],
+      "perProfile": [
+        {
+          "id": "P1-brake-20-0",
+          "rankBiasM": 0.26603682263091655,
+          "baseRankBiasM": -0.46421526970415994,
+          "maxRetrogradeM": 0.5884270690451601,
+          "maxRetrogradePx": 49.09993811229544,
+          "maxM": 1.0200617283947366,
+          "jumpP99px": 1.490388714273413,
+          "jumpMaxPx": 1.5108964629797417,
+          "reverseRatio": 0,
+          "stepBackLimitM": 0.5,
+          "jumpP99m": 0.01786122542297619,
+          "gates": {
+            "g1_bias": true,
+            "g2_backtrack05": true,
+            "g3_maxErr": true,
+            "g4_jumpP99": true,
+            "pass": true
+          }
+        },
+        {
+          "id": "P2-accel-0-20",
+          "rankBiasM": -0.46743654485240504,
+          "baseRankBiasM": -0.4870960277168086,
+          "maxRetrogradeM": 0,
+          "maxRetrogradePx": 0,
+          "maxM": 0.7398683127571921,
+          "jumpP99px": 0.9443102893624127,
+          "jumpMaxPx": 0.9443102893630055,
+          "reverseRatio": 0.15193370165745856,
+          "stepBackLimitM": 0.5,
+          "jumpP99m": 0.011316872427983071,
+          "gates": {
+            "g1_bias": true,
+            "g2_backtrack05": true,
+            "g3_maxErr": true,
+            "g4_jumpP99": true,
+            "pass": true
+          }
+        },
+        {
+          "id": "P3-chief-5-0-5",
+          "rankBiasM": -0.15781151893764336,
+          "baseRankBiasM": -0.17035647577295582,
+          "maxRetrogradeM": 1.0053536046335232,
+          "maxRetrogradePx": 83.88941020096185,
+          "maxM": 1.1531066910537149,
+          "jumpP99px": 0.0429231949717464,
+          "jumpMaxPx": 1.5108964629797417,
+          "reverseRatio": 0.08562197092084006,
+          "stepBackLimitM": 0.5,
+          "jumpP99m": 0.000514403292189769,
+          "gates": {
+            "g1_bias": true,
+            "g2_backtrack05": true,
+            "g3_maxErr": true,
+            "g4_jumpP99": true,
+            "pass": true
+          }
+        },
+        {
+          "id": "P4-5-12-x3",
+          "rankBiasM": -0.4785010955543688,
+          "baseRankBiasM": -0.36936860903640023,
+          "maxRetrogradeM": 0.10404016370561919,
+          "maxRetrogradePx": 8.681391234139394,
+          "maxM": 2.6829114902318523,
+          "jumpP99px": 0.9443102893624127,
+          "jumpMaxPx": 1.5108964629809274,
+          "reverseRatio": 0,
+          "stepBackLimitM": 0.5,
+          "jumpP99m": 0.011316872427983071,
+          "gates": {
+            "g1_bias": false,
+            "g2_backtrack05": true,
+            "g3_maxErr": false,
+            "g4_jumpP99": true,
+            "pass": false
+          }
+        }
+      ]
+    }
+  ]
+}
