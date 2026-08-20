@@ -19,6 +19,7 @@
 | `s2-accuracy-gate.mjs` | z15-cruise 실로그 → integrator 재현 ±20% 수용 게이트 |
 | `s47-experiment.mjs` | S4-7 후처리 — 기존 캡처를 T=1/2/4/8s 솎아 (a) 보간+D / (b) 예측 재구성. 제품 integrator 미사용 |
 | `s48-rerun-s47.mjs` | S4-8 — s47-experiment.mjs 를 복사·경로만 바꿔 S48-realjerk-capture.json 재실행. 원본·S47 산출물 미변경 |
+| `s49-ramp-eval.mjs` | S4-9 — `stepRideSpeedKmh` 로 P1–P4 생성 후 고정 T / 적응 E 평가. 제품 미수정 · s47-experiment.mjs 미수정 |
 | `invariants.mjs` | 재생 타임라인의 기계적 PASS/FAIL 판정(clamp·역행·순간이동·외삽상한) |
 | `graph.mjs` | distM-vs-time SVG 생성 + chromium PNG 렌더 |
 | `.out/` | 그래프 산출물 PNG/SVG(gitignore — 휘발성 검토용) |
@@ -29,6 +30,7 @@
 cd apps/web && node scripts/peer-sync/replay.mjs [--check] [--graph] [--scenario <name|path>] [--out <dir>]
 cd apps/web && node scripts/peer-sync/s47-experiment.mjs
 cd apps/web && node scripts/peer-sync/s48-rerun-s47.mjs
+cd apps/web && node scripts/peer-sync/s49-ramp-eval.mjs
 ```
 - 무옵션 = `--check --graph` 둘 다.
 - `--check`: 전 시나리오 불변식 판정. known-fail 외 위반이 있으면 exit 1. 커밋 전 게이트로 쓴다.

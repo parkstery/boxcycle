@@ -37,6 +37,7 @@
     "test:e2e:peer-s48": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s48 --workers=1\"",
     "test:s47-experiment": "node scripts/peer-sync/s47-experiment.mjs",
     "test:s48-rerun-s47": "node scripts/peer-sync/s48-rerun-s47.mjs",
+    "test:s49-ramp": "node scripts/peer-sync/s49-ramp-eval.mjs",
     "test:e2e:peer-s44r": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s44r --workers=1\"",
     "test:e2e:peer-s44r2": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s44r2 --workers=1\"",
     "test:e2e:peer-s44r3": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s44r3 --workers=1\"",
