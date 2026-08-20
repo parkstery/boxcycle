@@ -1,0 +1,769 @@
+{
+  "instruction": "S4-11",
+  "pxPerM": 83.44269102366391,
+  "jumpDef": "60 fps(16.7 ms) 프레임 간 표시 변위에서 직전 표시속도×dt(등속 진행분)를 뺀 절대값. 등속으로 나아가는 몫은 튐이 아니다.",
+  "accelOkDef": "accelOk = 흡수기(catchVel)가 만드는 |a| ≤ 제품 램프 0.741/1.852. 원본 속도열 가속도와 흡수 off 스냅 가속도는 포함하지 않는다.",
+  "rampMps2": {
+    "accel": 0.7407407407407407,
+    "decel": 1.8518518518518519
+  },
+  "z0ok": true,
+  "z1ok": true,
+  "nCombos": 120,
+  "y6ok": true,
+  "z0": {
+    "y0MaxPx": 43.65597975556248,
+    "expectedY0Px": 41.721345511831956,
+    "anchorP2Bias": -0.24446303753324364,
+    "anchorJumpMaxPx": 1.5108964629809274
+  },
+  "pass022": [],
+  "recommended": null,
+  "passByBias": {
+    "0.22": [],
+    "0.25": [],
+    "0.3": []
+  },
+  "overshoot": [
+    {
+      "eM": 0.3,
+      "tauAbs": 0.1,
+      "delayMs": 0,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.3945693772551152
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": -0.4006658494584844
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 0.31539629466308017
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 0.3885510973934108
+        }
+      ],
+      "firstPositiveWorst": 1,
+      "p2PositiveAt": 1
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.1,
+      "delayMs": 100,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.4811043069320502
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": -0.3843404143853081
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": -0.4564904921910114
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": -0.44147696807009235
+        }
+      ],
+      "firstPositiveWorst": null,
+      "p2PositiveAt": 1.5
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.15,
+      "delayMs": 0,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.41201493072306483
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": 0.307882691555381
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 0.5020118802864911
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 0.6319461591218084
+        }
+      ],
+      "firstPositiveWorst": 0.5,
+      "p2PositiveAt": 1
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.15,
+      "delayMs": 100,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.4396318506129818
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": -0.3737000087779376
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 0.3919752423757332
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 0.5658314447040713
+        }
+      ],
+      "firstPositiveWorst": 1,
+      "p2PositiveAt": 1
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.15,
+      "delayMs": 300,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.6938629719312779
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": -0.7808183949336212
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": -0.5977326268019534
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": -0.6679172686601074
+        }
+      ],
+      "firstPositiveWorst": null,
+      "p2PositiveAt": 1.5
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.2,
+      "delayMs": 0,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.3690446182089935
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": 0.3978495492845207
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 0.6871602631875523
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 0.879655349793964
+        }
+      ],
+      "firstPositiveWorst": 0.5,
+      "p2PositiveAt": 0.5
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.2,
+      "delayMs": 100,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.5208153961613462
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": 0.42121679335505247
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 0.625258444165832
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 0.8440571050464358
+        }
+      ],
+      "firstPositiveWorst": 0.5,
+      "p2PositiveAt": 1
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.2,
+      "delayMs": 300,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.6037795361589829
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": -0.610324146092338
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 0.6075736287701793
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 0.9361848166571596
+        }
+      ],
+      "firstPositiveWorst": 1,
+      "p2PositiveAt": 1
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.25,
+      "delayMs": 0,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.23830347854831296
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": 0.4968768894377413
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 0.876102841904236
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 1.1383350480106955
+        }
+      ],
+      "firstPositiveWorst": 0.5,
+      "p2PositiveAt": 0.5
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.25,
+      "delayMs": 100,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.4312842504960262
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": 0.5359551571710713
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 0.8500892328190116
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 1.100285282598473
+        }
+      ],
+      "firstPositiveWorst": 0.5,
+      "p2PositiveAt": 0.5
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.25,
+      "delayMs": 300,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.5444590024964744
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": 0.5217752236763331
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 0.8635195933907773
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 1.2815030557094937
+        }
+      ],
+      "firstPositiveWorst": 0.5,
+      "p2PositiveAt": 1
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.3,
+      "delayMs": 0,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.24446303753324364
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": 0.59487173163439
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 1.0425034510068314
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 1.3912037037034226
+        }
+      ],
+      "firstPositiveWorst": 0.5,
+      "p2PositiveAt": 0.5
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.3,
+      "delayMs": 100,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.3820272135371032
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": 0.6398813244469489
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 1.0344660145924414
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 1.3900351136163032
+        }
+      ],
+      "firstPositiveWorst": 0.5,
+      "p2PositiveAt": 0.5
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.3,
+      "delayMs": 300,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.4785010955543688
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": 0.6787466986054438
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 1.1002533628152589
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 1.6261719523097935
+        }
+      ],
+      "firstPositiveWorst": 0.5,
+      "p2PositiveAt": 1
+    },
+    {
+      "eM": 0.5,
+      "tauAbs": 0.1,
+      "delayMs": 0,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.9244046597536255
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": -0.7181119804347128
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": -0.3999658023439261
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": -0.28310559399463103
+        }
+      ],
+      "firstPositiveWorst": null,
+      "p2PositiveAt": 1.5
+    },
+    {
+      "eM": 0.5,
+      "tauAbs": 0.15,
+      "delayMs": 0,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.7320167209172114
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": -0.5148271153277445
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 0.3293302469148426
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 0.4697388790904511
+        }
+      ],
+      "firstPositiveWorst": 1,
+      "p2PositiveAt": 1
+    },
+    {
+      "eM": 0.5,
+      "tauAbs": 0.15,
+      "delayMs": 100,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.6934253533290994
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": -0.3810858229081913
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": -0.3713317990316393
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 0.4947210294027131
+        }
+      ],
+      "firstPositiveWorst": 1.5,
+      "p2PositiveAt": 1.5
+    },
+    {
+      "eM": 0.5,
+      "tauAbs": 0.2,
+      "delayMs": 0,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.5926075694041966
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": -0.4421809030144171
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 0.5298554771700159
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 0.759802322163149
+        }
+      ],
+      "firstPositiveWorst": 1,
+      "p2PositiveAt": 1
+    },
+    {
+      "eM": 0.5,
+      "tauAbs": 0.2,
+      "delayMs": 100,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.6658532431776596
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": -0.4943221327153043
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 0.525084739865729
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 0.8196623824573245
+        }
+      ],
+      "firstPositiveWorst": 1,
+      "p2PositiveAt": 1
+    },
+    {
+      "eM": 0.5,
+      "tauAbs": 0.2,
+      "delayMs": 300,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.5954293305853443
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": -0.6225683832280846
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 0.7337376901497775
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 1.1061098826850475
+        }
+      ],
+      "firstPositiveWorst": 1,
+      "p2PositiveAt": 1.5
+    },
+    {
+      "eM": 0.5,
+      "tauAbs": 0.25,
+      "delayMs": 0,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.3765045252419032
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": 0.4656339408188482
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 0.7298383303936187
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 1.0536123358805758
+        }
+      ],
+      "firstPositiveWorst": 0.5,
+      "p2PositiveAt": 1
+    },
+    {
+      "eM": 0.5,
+      "tauAbs": 0.25,
+      "delayMs": 100,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.6446117881615369
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": 0.41767804483549864
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 0.7616078706185878
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 1.1532057016756267
+        }
+      ],
+      "firstPositiveWorst": 0.5,
+      "p2PositiveAt": 1
+    },
+    {
+      "eM": 0.5,
+      "tauAbs": 0.25,
+      "delayMs": 300,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.7328383684314753
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": 0.5536440943435295
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 0.985439059844511
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 1.4756971316255276
+        }
+      ],
+      "firstPositiveWorst": 0.5,
+      "p2PositiveAt": 1.5
+    },
+    {
+      "eM": 0.5,
+      "tauAbs": 0.3,
+      "delayMs": 0,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.3841194355489388
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": 0.5982371480824575
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 0.952401430531399
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 1.3920568783072862
+        }
+      ],
+      "firstPositiveWorst": 0.5,
+      "p2PositiveAt": 1
+    },
+    {
+      "eM": 0.5,
+      "tauAbs": 0.3,
+      "delayMs": 100,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.5129266767606495
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": 0.5686995536874702
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 0.9917556311004917
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 1.473092334148481
+        }
+      ],
+      "firstPositiveWorst": 0.5,
+      "p2PositiveAt": 1
+    },
+    {
+      "eM": 0.5,
+      "tauAbs": 0.3,
+      "delayMs": 300,
+      "worstBiasByRatio": [
+        {
+          "ratio": 0,
+          "worstBiasM": -0.6354323674350338
+        },
+        {
+          "ratio": 0.5,
+          "worstBiasM": 0.7234033536026833
+        },
+        {
+          "ratio": 1,
+          "worstBiasM": 1.2275991441964205
+        },
+        {
+          "ratio": 1.5,
+          "worstBiasM": 1.8382135106358226
+        }
+      ],
+      "firstPositiveWorst": 0.5,
+      "p2PositiveAt": 1
+    }
+  ],
+  "jumpGrewN": 0,
+  "jumpP99GrewN": 18,
+  "g3failN": 115,
+  "g3failSample": [
+    {
+      "eM": 0.3,
+      "tauAbs": 0.1,
+      "tauLeadRatio": 0,
+      "delayMs": 0,
+      "worstErrM": 1.8690203475469218
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.1,
+      "tauLeadRatio": 0,
+      "delayMs": 100,
+      "worstErrM": 2.3542304526725957
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.1,
+      "tauLeadRatio": 0,
+      "delayMs": 300,
+      "worstErrM": 4.190444444444388
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.1,
+      "tauLeadRatio": 0.5,
+      "delayMs": 0,
+      "worstErrM": 1.9676255144033163
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.1,
+      "tauLeadRatio": 0.5,
+      "delayMs": 100,
+      "worstErrM": 2.5282222222196538
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.1,
+      "tauLeadRatio": 0.5,
+      "delayMs": 300,
+      "worstErrM": 4.422543209876473
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.1,
+      "tauLeadRatio": 1,
+      "delayMs": 0,
+      "worstErrM": 2.0208971193394163
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.1,
+      "tauLeadRatio": 1,
+      "delayMs": 100,
+      "worstErrM": 2.882646090534969
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.1,
+      "tauLeadRatio": 1,
+      "delayMs": 300,
+      "worstErrM": 4.615753086419687
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.1,
+      "tauLeadRatio": 1.5,
+      "delayMs": 0,
+      "worstErrM": 2.1948888888864957
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.1,
+      "tauLeadRatio": 1.5,
+      "delayMs": 100,
+      "worstErrM": 3.265444444441954
+    },
+    {
+      "eM": 0.3,
+      "tauAbs": 0.1,
+      "tauLeadRatio": 1.5,
+      "delayMs": 300,
+      "worstErrM": 4.773991769544715
+    }
+  ],
+  "verdict": "불가"
+}
