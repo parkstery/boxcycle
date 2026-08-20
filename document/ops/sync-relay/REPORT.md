@@ -1,13 +1,19 @@
 # S4 진행 상황 REPORT — route·motion 발행 수명주기 종결 · 위치 동기화는 미종결
 
+S4-4R3   계측값은 존재하지만 Chief 증상과 **의미 정합 실패**. 결론 미채택.
+
+S4-4R4: Chief 조건(2인 · leftFlat · 5 km/h · |gap| 3.08–3.76 m)을 맞췄다.
+연속 프레임에서 상대 톡톡은 미단정. ③ 184회 · 최대 9.82 px 이나 화면과 짝이 안 맞아 N4 판정 보류.
+제품은 그대로다. S4-4 미해결.
+
 S4-4R3: 혼자 달려도 ② local 진행축 반전이 2인과 같은 진폭으로 남는다.
-S-A 25.2 px · S-B 32.9 px (2인은 29.3 · 32.5). 원인은 peer 동기화 밖 — 투영·카메라.
-제품은 그대로다.
+S-A 25.2 px · S-B 32.9 px (2인은 29.3 · 32.5). 그 결론(투영·카메라 · peer 무관)은 **철회 · 미채택**.
+산출물 `S44R3-*` 는 유지한다.
 
 S4-4R2: S44 의 진행축 반전 38회·최대 46.7px 가 카메라인지 peer인지만 갈랐다.
 로컬 좌표를 켠 채 S44 조건 C-A 25/25 · C-B 32/10 을 다시 찍었다. 수십 px 급이
 다시 나왔고(C-A 35.4 · C-B 65.0) K1(①−②=③) 은 통과했다. 프레임 투표는 혼합이었으나
-S4-4R3 단독 대조군이 그 투표를 대체한다.
+S4-4R3 단독 대조군이 그 투표를 대체한다고 적었으나, S4-4R4 에서 그 대체 결론은 미채택이다.
 
 S4-4R: S4-4 의 「재현되지 않음」은 판정기가 앞뒤를 화면 Y 로 고정해서 BLOCK 됐다.
 기존 캡처를 진행축 투영으로 다시 읽으면 42.6px 반전 6회는 전부 진행축 부호 반전이다.
@@ -29,13 +35,13 @@ displayDistM 역행은 최대 0.257 m 이고 화면 앞뒤(Y) 반전은 0회다.
 발행 수명주기(route + motion)다.** 목록·저줌 구독이 만드는 읽기 비용은 아직 남아 있다.
 「멀티라이더 위치 동기화 결함 종결」이 아니다.
 
-- **지시번호**: S4-4R3 (단독 주행 대조군)
+- **지시번호**: S4-4R4 (Chief 조건 정확 재현 · 상대 진행축)
 - **일시**: 2026-08-20
-- **브랜치**: `fix/multiplayer-read-amplification` (origin/main2 결합 완료 `66ebe7b`) · 판정 `7c3b1be` · 캡처 `be7a5c5`
-- **활성 지시**: **S4-4R3 보고완료** (`INSTRUCTION.md`)
+- **브랜치**: `fix/multiplayer-read-amplification` (origin/main2 결합 완료 `66ebe7b`) · 계측 `e4c7955` · 캡처 `27f9cfd`
+- **활성 지시**: **S4-4R4 보고완료** (`INSTRUCTION.md`)
 - **원격**: origin `fix/multiplayer-read-amplification`
 - **워킹트리**: `C:/20.HDev/rtw-sync-s4-2/repo`
-- **보존**: `INSTRUCTION-S44.md` · `INSTRUCTION-S44R.md` · `INSTRUCTION-S44R2.md` · `S44R2-A-25-25.json` · `S44R3-S-A-solo-25.json` · `S44R3-S-B-solo-32.json`
+- **보존**: `INSTRUCTION-S44.md` · `INSTRUCTION-S44R.md` · `INSTRUCTION-S44R2.md` · `INSTRUCTION-S44R3.md` · `S44R2-A-25-25.json` · `S44R3-S-A-solo-25.json` · `S44R4-chief-5kmh.json`
 
 ---
 
@@ -72,8 +78,9 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 | S4-3 | `touchTrailInstanceActivity` · heartbeat | **보고완료** `cb5f1c2` · 계측 `6294600`. N×M 스냅샷 없음. ② 선형. 1Hz touch 합침. M3 실화면 미완 |
 | S4-4 | 상대 라이더 앞뒤 튐 | **BLOCK** `b545ffa` — Y 고정 판정. 캡처 `9f3d5e9` 는 유지 |
 | S4-4R | 진행축 판정 · 재판정 | **WARNING 채택** 판정기 `cd640d3`. 42.6px 6회=진행축. 제품 미수정 |
-| S4-4R2 | 카메라 vs peer | **WARNING 채택** 판정 `e45e9ec`. 46.7급 재현. K1 통과. 프레임 투표는 혼합 — S4-4R3 가 대체 |
-| S4-4R3 | 단독 대조군 | **보고완료** 판정 `7c3b1be`. ② 단독≈2인 진폭. **투영·카메라**. 제품 미수정 |
+| S4-4R2 | 카메라 vs peer | **WARNING 채택** 판정 `e45e9ec`. 46.7급 재현. K1 통과. 프레임 투표는 혼합 |
+| S4-4R3 | 단독 대조군 | **결론 미채택** 계측 `7c3b1be` 유지. Chief 증상과 의미 정합 실패 |
+| S4-4R4 | Chief 나란히 5 km/h | **보고완료** N0 PASS. 톡톡 미단정. N4 판정 보류. 제품 미수정 |
 
 ---
 
@@ -83,19 +90,36 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 
 | 항목 | 값 |
 |---|---|
-| HEAD | 판정 `7c3b1be` · 캡처 `be7a5c5` · S4-4R2 `e45e9ec` · S4-4R 판정기 `cd640d3` · S4-4 캡처 `9f3d5e9` · S4-3 제품 `cb5f1c2` |
+| HEAD | S4-4R4 계측 `e4c7955` · S4-4R3 캡처 `be7a5c5`(미채택) · S4-4R2 `e45e9ec` · S4-4R 판정기 `cd640d3` · S4-4 캡처 `9f3d5e9` · S4-3 제품 `cb5f1c2` |
 | S4-1R2 제품 | `b3336ed` |
 | S4-M1R 제품 | `71669a1` (motion 수명주기 · F-2) |
 | S4-M1R 시험·도구 | `41c2ea2` |
 | S4-M1R 증거·문서 | `a2b58ff` |
 | stash | 2 건 — `orchestrator-docs: CLAUDE.md + 결정로그 (S4-1R2-D 정리)` · `wip before god-file-split` |
 
-### S4-4R3 수용 요약 (2026-08-20)
+### S4-4R4 수용 요약 (2026-08-20)
 
-혼자 25·32 km/h · leftFlat. 계측 생존 3-1~3-4 통과 후 ② 를 2인 인용값과 비교.
-최대 px 비율 0.86 / 1.01, 진폭 0.71 / 0.82. 횟수 비는 프레임 밀도 비와 같다.
-판정 **투영·카메라**. 프레임 투표 없음. 제품 미수정.
-증거: `S44R3-S-A-solo-25.json` · `S44R3-S-B-solo-32.json` · `S44R3-comparison.json`.
+Chief 조건 2인 · leftFlat · 5 km/h · 창 전체 |gap| 3.08–3.76 m. 정렬은 display `gapDistM`.
+연속 프레임 F000–F039. 상대 톡톡은 눈으로 분리하지 못함. ③ 184회 · 9.82 px · p2p 19.39 px
+이나 화면과 짝이 없어 N4 **판정 보류**. 제품 미수정. S4-4 **미해결**.
+증거: `S44R4-chief-5kmh.json` · `S44R4-meaning.json` · `S44R4-shots/`.
+
+| | 항목 | 결과 |
+|---|---|---|
+| N0 | 조건 충족 | PASS. 창 전체 ≤5 m |
+| N1 | 조건 정합 | 43.4 s · 349 프레임 · 122 ms |
+| N2 | 증상 재현 | 미단정. 연속 프레임은 있음 |
+| N3 | 로컬 안정 | 연속 프레임에서 내 라이더 안정 |
+| N4 | 의미 정합 | 판정 보류 |
+| N5 | 원시 보고 | ③ 184 · 9.82 · 19.39. 미터 없음 |
+| N6 | 제품 무변경 | integrator·merge·카메라 없음 |
+| N7 | 무훼손 | s42 15 · s43 11 · peer-s3a d0·d1 · tsc · eslint 0 |
+
+### S4-4R3 수용 요약 (2026-08-20) — 결론 미채택
+
+혼자 25·32 km/h · leftFlat. 계측값은 `S44R3-*` 에 남아 있다.
+당시 판정(투영·카메라)은 S4-4R4 §0 에서 **철회**. L1 프레임 간격 실패 · 증상 정의 불일치.
+증거는 지우지 않는다. 인용하지 마라.
 
 | | 항목 | 결과 |
 |---|---|---|
@@ -240,8 +264,9 @@ S4-2R  첫 스냅샷 전 [] 유출 차단 — 보고완료. 로딩 조기 종료
 S4-3   touch · heartbeat — 보고완료. N×M 스냅샷 없음. ② 선형. 1Hz lastActivityAt 합침. M3 실화면 미완
 S4-4   상대 라이더 앞뒤 튐 — BLOCK (Y 고정 판정). 캡처 `9f3d5e9` 유지
 S4-4R  진행축 판정 — WARNING 채택. 42.6px=진행축. 제품 미수정. 튐 자체는 미해결
-S4-4R2 카메라 vs peer — WARNING 채택. 프레임 투표는 S4-4R3 가 대체
-S4-4R3 단독 대조군 — 보고완료. 투영·카메라. 제품 미수정
+S4-4R2 카메라 vs peer — WARNING 채택. 프레임 투표는 혼합으로만 기록. S4-4R3 대체 결론은 미채택
+S4-4R3 단독 대조군 — 계측 유지. 의미 정합 실패. 결론 미채택
+S4-4R4 Chief 나란히 — N0 PASS. 톡톡 미단정. N4 판정 보류. 제품 미수정
 F-1    peer visibility 초기 시각 0
 ```
 
@@ -252,8 +277,9 @@ F-2 는 종결(`onMotionError`). motion 발행 수명주기 공백은 해소(`71
 - M3: F1~F5 실제 화면 미촬영. `S43-shots/` 없음. 성공으로 포장하지 않음.
 - S4-4 J0: 근접 2인 샷은 있으나 Y 고정 판정으로 앞뒤를 놓침. S4-4R 에서 진행축으로 재확인.
 - S4-4R: C1 |gap|≤5m 나란히 미달(7.8m). 제품 앞뒤 튐은 못 고침.
-- S4-4R2: C-A startGap 21.8 m. 「근접」단정 안 함. 프레임 투표(혼합)는 S4-4R3 단독 대조군이 대체.
-- S4-4R3: 단독 프레임 간격이 2인보다 촘촘. 횟수 비는 프레임 비와 같고 진폭은 비슷. 제품 미수정.
+- S4-4R2: C-A startGap 21.8 m. 「근접」단정 안 함. 프레임 투표(혼합)는 원인 확정에 쓰지 않음.
+- S4-4R3: 계측값은 존재하지만 Chief 증상과 **의미 정합 실패**. 결론 미채택.
+- S4-4R4: |gap|≤5 m 은 맞췄다. 연속 프레임에서 상대 톡톡은 미단정. ③을 대리값으로 쓰지 않음. 제품 미수정.
 - App.tsx·useTrailSession·useTrailLivePublicationRidePublisher 호출 태그 미커밋 (pre-commit 이 파일 전체 eslint 선행 오류로 거부).
 - App.tsx·useTrailSession·useTrailLivePublicationRidePublisher 호출 태그 미커밋 (pre-commit 이 파일 전체 eslint 선행 오류로 거부).
 - 이견: `S41R2-summary.json` · `S41M1-summary.json` 최상위 `instruction` 필드는 `"S4-1"`
