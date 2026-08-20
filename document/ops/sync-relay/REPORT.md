@@ -2,7 +2,7 @@
 
 S4-4R3   계측값은 존재하지만 Chief 증상과 **의미 정합 실패**. 결론 미채택.
 
-S4-4R6: 재촬영 없이 계측 결함 2건을 고쳤다. localScreenX 640 스냅은 rAF sampled vs publish `getPeerSyncSelfDistM` (제품 미수정).
+S4-4R7: 화면 픽셀로 peer 를 쟀다. R5 JPEG 는 네임태그 없어 불가. PNG 36장(110 ms ≤ 117 ms)에서 peer 왕복 16회 · 10.8 px. 같은 창 투영 ①과 일치(픽셀 ≈ 투영). 제품 미수정. S4-4 미해결.
 매니페스트 동결은 A(최근접 샘플 재사용). relSPx 13/28 → 28/28. R5 반전 10→24 · R4 184→286.
 스크린샷 마커와 `map.project` 는 불일치 — ③으로 원인 판정 안 함. S4-4 미해결.
 
@@ -41,13 +41,13 @@ displayDistM 역행은 최대 0.257 m 이고 화면 앞뒤(Y) 반전은 0회다.
 발행 수명주기(route + motion)다.** 목록·저줌 구독이 만드는 읽기 비용은 아직 남아 있다.
 「멀티라이더 위치 동기화 결함 종결」이 아니다.
 
-- **지시번호**: S4-4R6 (계측 결함 2건 — 재촬영 없이 수리·재계산)
+- **지시번호**: S4-4R7 (화면 픽셀로 peer 왕복 — `map.project` 우회)
 - **일시**: 2026-08-20
 - **브랜치**: `fix/multiplayer-read-amplification`
-- **활성 지시**: **S4-4R6 보고완료** (`INSTRUCTION.md`)
+- **활성 지시**: **S4-4R7 보고완료** (`INSTRUCTION.md`)
 - **원격**: origin `fix/multiplayer-read-amplification`
 - **워킹트리**: `C:/20.HDev/rtw-sync-s4-2/repo`
-- **보존**: `INSTRUCTION-S44.md` · `INSTRUCTION-S44R.md` · `INSTRUCTION-S44R2.md` · `INSTRUCTION-S44R3.md` · `INSTRUCTION-S44R4.md` · `INSTRUCTION-S44R5.md` · `S44R4-chief-5kmh.json` · `S44R5-capture.json`
+- **보존**: `INSTRUCTION-S44.md` · `INSTRUCTION-S44R.md` · `INSTRUCTION-S44R2.md` · `INSTRUCTION-S44R3.md` · `INSTRUCTION-S44R4.md` · `INSTRUCTION-S44R5.md` · `INSTRUCTION-S44R6.md` · `S44R4-chief-5kmh.json` · `S44R5-capture.json` · `S44R7-pixels.json`
 
 ---
 
@@ -89,6 +89,7 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 | S4-4R4 | Chief 나란히 5 km/h | **보고완료** N0 PASS. N2 미단정=**표본 부족**. 제품 미수정 |
 | S4-4R5 | 같은 조건 재촬영 | **보고완료** P1·P2 PASS. 상위/하위 대조는 R6 에서 철회. 제품 미수정 |
 | S4-4R6 | 계측 수리 · 기존 로그 재계산 | **보고완료** Q2=A. Q1 불성립. 제품 미수정. S4-4 미해결 |
+| S4-4R7 | 화면 픽셀 직접 계측 | **보고완료** peer 왕복 16·10.8 px. 픽셀≈투영. 제품 미수정. S4-4 미해결 |
 
 ---
 
@@ -98,12 +99,18 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 
 | 항목 | 값 |
 |---|---|
-| HEAD | S4-4R6 계측 `896c6ab` · 재계산 `55d94df` · S4-4R5 `abbf810` · S4-4R4 `e4c7955` · S4-4R3 `be7a5c5`(미채택) · S4-4R2 `e45e9ec` |
+| HEAD | S4-4R7 픽셀 `1d44e75` · S4-4R6 계측 `896c6ab` · 재계산 `55d94df` · S4-4R5 `abbf810` |
 | S4-1R2 제품 | `b3336ed` |
 | S4-M1R 제품 | `71669a1` (motion 수명주기 · F-2) |
 | S4-M1R 시험·도구 | `41c2ea2` |
 | S4-M1R 증거·문서 | `a2b58ff` |
 | stash | 2 건 — `orchestrator-docs: CLAUDE.md + 결정로그 (S4-1R2-D 정리)` · `wip before god-file-split` |
+
+### S4-4R7 수용 요약 (2026-08-20)
+
+R5 JPEG 는 네임태그 없어 판별 불가. PNG 36장 · 샷 110 ms ≤ 프레임 117 ms · gap 3.06–3.48 m.
+peer 픽셀 반전 16 · 최대 |Δ| 6.4 · 진폭 10.8. 같은 창 투영 ①(16 · 6.3 · 11.4)과 일치 → 픽셀 ≈ 투영.
+self 는 이 창에서 0.7 px 고정이 아님(이상치 제외 5.2 px). 제품 미수정. 증거: `S44R7-pixels.json` · `S44R7-shots/`.
 
 ### S4-4R6 수용 요약 (2026-08-20)
 
@@ -300,6 +307,7 @@ S4-4R3 단독 대조군 — 계측 유지. 의미 정합 실패. 결론 미채�
 S4-4R4 Chief 나란히 — N0 PASS. N2 미단정=표본 부족(R5 가 밀도만 고침)
 S4-4R5 같은 조건 재촬영 — P1·P2 PASS. 상위/하위 대조는 R6 에서 철회. 제품 미수정
 S4-4R6 계측 수리 · 재계산 — Q1 불성립. ③ 판정 안 함. 제품 미수정. S4-4 미해결
+S4-4R7 화면 픽셀 — peer 왕복 16·10.8 px. 픽셀≈투영. 제품 미수정. S4-4 미해결
 F-1    peer visibility 초기 시각 0
 ```
 
@@ -315,6 +323,7 @@ F-2 는 종결(`onMotionError`). motion 발행 수명주기 공백은 해소(`71
 - S4-4R4: |gap|≤5 m 은 맞췄다. N2 미단정은 표본 부족. 현상 부재로 쓰지 않음.
 - S4-4R5: P1·P2 통과. 상위/하위 대조는 S4-4R6 에서 철회. 제품 미수정.
 - S4-4R6: 스냅=publish self vs rAF 카메라(제품 미수정). 동결=매니페스트 최근접 재사용(A). 스크린샷 마커와 계측 불일치. ③으로 원인 판정 안 함.
+- S4-4R7: JPEG 판별 불가 → PNG 재촬영. peer 화면 왕복 10.8 px · 16회. 투영 ①과 일치. self 0.7 px 고정은 이 창에서 미재현. 원인 미확정.
 - App.tsx·useTrailSession·useTrailLivePublicationRidePublisher 호출 태그 미커밋 (pre-commit 이 파일 전체 eslint 선행 오류로 거부).
 - App.tsx·useTrailSession·useTrailLivePublicationRidePublisher 호출 태그 미커밋 (pre-commit 이 파일 전체 eslint 선행 오류로 거부).
 - 이견: `S41R2-summary.json` · `S41M1-summary.json` 최상위 `instruction` 필드는 `"S4-1"`
