@@ -1,0 +1,236 @@
+{
+  "id": "S44R7",
+  "source": "S44R7-capture.json",
+  "truth": "정답 = 솎기 전 ingest 궤적을 비교 시각에 선형 보간한 값. 재구성은 솎은 샘플만 본다.",
+  "fitness": {
+    "n": 75,
+    "durationSec": 4.439,
+    "speedMps": {
+      "min": 1.39,
+      "max": 1.39,
+      "mean": 1.3900000000000003,
+      "stdev": 4.470797433691216e-16
+    },
+    "accelHiSec": 0,
+    "accelHiFrac": 0,
+    "stopRestart": false,
+    "hasJerk": false
+  },
+  "currentReverse": {
+    "abreast": 39,
+    "reverse": 0,
+    "reverseRatio": 0
+  },
+  "pxPerM": 83.44269102366391,
+  "abreastDef": "|actualGap| <= 5 m",
+  "rows": [
+    {
+      "tSec": 1,
+      "thinnedN": 5,
+      "windowShorterThanT": false,
+      "expectedABiasM": -1.3900000000000003,
+      "a": {
+        "delayMs": 1000,
+        "n": 39,
+        "p50m": 1.6048850574712645,
+        "p90m": 1.762325581395345,
+        "maxM": 1.92431640625,
+        "p50px": 133.91592797906983,
+        "p90px": 147.05318897147063,
+        "maxPx": 160.57013931848607,
+        "meanSignedM": -1.4069079527880608,
+        "rankBiasM": -1.4069079527880608,
+        "abreastFrames": 39,
+        "reverseFrames": 0,
+        "reverseRatio": 0,
+        "jerkFrames": 0,
+        "jerkMaxAbsM": null
+      },
+      "b": {
+        "delayMs": 0,
+        "n": 39,
+        "p50m": 0.20869000000000426,
+        "p90m": 0.37016999999998745,
+        "maxM": 0.584069999999997,
+        "p50px": 17.41365518972878,
+        "p90px": 30.887980936228622,
+        "maxPx": 48.73637254619113,
+        "meanSignedM": -0.2194314604867057,
+        "rankBiasM": -0.2194314604867057,
+        "abreastFrames": 39,
+        "reverseFrames": 0,
+        "reverseRatio": 0,
+        "jerkFrames": 0,
+        "jerkMaxAbsM": null
+      },
+      "gates": {
+        "g1_bias": true,
+        "g2_reverse": true,
+        "g3_jerkMax": "unverified",
+        "passG12": true,
+        "passAll": false
+      }
+    },
+    {
+      "tSec": 2,
+      "thinnedN": 3,
+      "windowShorterThanT": false,
+      "expectedABiasM": -2.7800000000000007,
+      "a": {
+        "delayMs": 2000,
+        "n": 39,
+        "p50m": 2.763392857142854,
+        "p90m": 3.0191761262225896,
+        "maxM": 3.0363818090954453,
+        "p50px": 230.584936355571,
+        "p90px": 251.92818064641406,
+        "maxPx": 253.3638691262249,
+        "meanSignedM": -2.2074247764488613,
+        "rankBiasM": -2.2074247764488613,
+        "abreastFrames": 39,
+        "reverseFrames": 0,
+        "reverseRatio": 0,
+        "jerkFrames": 0,
+        "jerkMaxAbsM": null
+      },
+      "b": {
+        "delayMs": 0,
+        "n": 39,
+        "p50m": 0.11406267326732689,
+        "p90m": 0.25614000000000203,
+        "maxM": 0.46070999999999174,
+        "p50px": 9.517696402778688,
+        "p90px": 21.373010878801445,
+        "maxPx": 38.442882181511514,
+        "meanSignedM": -0.12262863997388451,
+        "rankBiasM": -0.12262863997388451,
+        "abreastFrames": 39,
+        "reverseFrames": 0,
+        "reverseRatio": 0,
+        "jerkFrames": 0,
+        "jerkMaxAbsM": null
+      },
+      "gates": {
+        "g1_bias": true,
+        "g2_reverse": true,
+        "g3_jerkMax": "unverified",
+        "passG12": true,
+        "passAll": false
+      }
+    },
+    {
+      "tSec": 4,
+      "thinnedN": 2,
+      "windowShorterThanT": false,
+      "expectedABiasM": -5.560000000000001,
+      "a": {
+        "delayMs": 4000,
+        "n": 39,
+        "p50m": 2.8000000000000043,
+        "p90m": 5.593456083602888,
+        "maxM": 5.800000000000004,
+        "p50px": 233.6395348662593,
+        "p90px": 466.733027738509,
+        "maxPx": 483.96760793725105,
+        "meanSignedM": -3.0137784183981657,
+        "rankBiasM": -3.0137784183981657,
+        "abreastFrames": 39,
+        "reverseFrames": 18,
+        "reverseRatio": 0.46153846153846156,
+        "jerkFrames": 0,
+        "jerkMaxAbsM": null
+      },
+      "b": {
+        "delayMs": 0,
+        "n": 39,
+        "p50m": 0.1264200000000102,
+        "p90m": 0.25952999999999804,
+        "maxM": 0.46070999999999174,
+        "p50px": 10.548824999212442,
+        "p90px": 21.65588160137133,
+        "maxPx": 38.442882181511514,
+        "meanSignedM": -0.13074069125593815,
+        "rankBiasM": -0.13074069125593815,
+        "abreastFrames": 39,
+        "reverseFrames": 0,
+        "reverseRatio": 0,
+        "jerkFrames": 0,
+        "jerkMaxAbsM": null
+      },
+      "gates": {
+        "g1_bias": true,
+        "g2_reverse": true,
+        "g3_jerkMax": "unverified",
+        "passG12": true,
+        "passAll": false
+      }
+    },
+    {
+      "tSec": 8,
+      "thinnedN": 1,
+      "windowShorterThanT": true,
+      "expectedABiasM": -11.120000000000003,
+      "a": {
+        "delayMs": 8000,
+        "n": 39,
+        "p50m": 2.8000000000000043,
+        "p90m": 5.800000000000004,
+        "maxM": 6.100000000000001,
+        "p50px": 233.6395348662593,
+        "p90px": 483.96760793725105,
+        "maxPx": 509.00041524435,
+        "meanSignedM": -3.038940947666194,
+        "rankBiasM": -3.038940947666194,
+        "abreastFrames": 39,
+        "reverseFrames": 18,
+        "reverseRatio": 0.46153846153846156,
+        "jerkFrames": 0,
+        "jerkMaxAbsM": null
+      },
+      "b": {
+        "delayMs": 0,
+        "n": 39,
+        "p50m": 0.1264200000000102,
+        "p90m": 0.25952999999999804,
+        "maxM": 0.46070999999999174,
+        "p50px": 10.548824999212442,
+        "p90px": 21.65588160137133,
+        "maxPx": 38.442882181511514,
+        "meanSignedM": -0.14717069125593824,
+        "rankBiasM": -0.14717069125593824,
+        "abreastFrames": 39,
+        "reverseFrames": 0,
+        "reverseRatio": 0,
+        "jerkFrames": 0,
+        "jerkMaxAbsM": null
+      },
+      "gates": {
+        "g1_bias": true,
+        "g2_reverse": true,
+        "g3_jerkMax": "unverified",
+        "passG12": true,
+        "passAll": false
+      }
+    }
+  ],
+  "adapt": {
+    "0.1": {
+      "n": 50,
+      "vsOriginal": 0.6666666666666666,
+      "originalN": 75,
+      "originalHz": 16.895697229105654
+    },
+    "0.3": {
+      "n": 8,
+      "vsOriginal": 0.10666666666666667,
+      "originalN": 75,
+      "originalHz": 16.895697229105654
+    },
+    "0.5": {
+      "n": 3,
+      "vsOriginal": 0.04,
+      "originalN": 75,
+      "originalHz": 16.895697229105654
+    }
+  }
+}

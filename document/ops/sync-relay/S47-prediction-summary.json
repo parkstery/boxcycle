@@ -1,0 +1,558 @@
+{
+  "instruction": "S4-7",
+  "pxPerM": 83.44269102366391,
+  "pxPerMNote": "S47-scale-16m.json 실측값으로 m→px 환산",
+  "realHasJerk": false,
+  "jerkNote": "실측 로그는 급변 조건 미검증. 게이트3 은 합성 시나리오로만 판정. 실측과 구분.",
+  "currentBiasLimitM": 0.22,
+  "gate3MaxErrM": 1.5,
+  "maxPassTSec": 1,
+  "verdict": "통과 최대 T = 1 s",
+  "logs": [
+    {
+      "id": "S44R4",
+      "fitness": {
+        "n": 712,
+        "durationSec": 43.301,
+        "speedMps": {
+          "min": 1.39,
+          "max": 1.39,
+          "mean": 1.3899999999999884,
+          "stdev": 1.1554436377635635e-14
+        },
+        "accelHiSec": 0,
+        "accelHiFrac": 0,
+        "stopRestart": false,
+        "hasJerk": false
+      },
+      "currentReverse": {
+        "abreast": 349,
+        "reverse": 0,
+        "reverseRatio": 0
+      },
+      "rows": [
+        {
+          "tSec": 1,
+          "thinnedN": 41,
+          "a_biasM": -1.4526691207106106,
+          "a_maxM": 2.041164856860803,
+          "a_reverseRatio": 0,
+          "b_biasM": -0.08451616113365182,
+          "b_p50m": 0.16552000000000078,
+          "b_p90m": 0.41563999999999623,
+          "b_maxM": 0.7073800000000006,
+          "b_p50px": 13.811434218236915,
+          "b_p90px": 34.682120097075355,
+          "b_maxPx": 59.02569077631942,
+          "b_reverseRatio": 0,
+          "b_jerkMaxAbsM": null,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_jerkMax": "unverified",
+            "passG12": true,
+            "passAll": false
+          }
+        },
+        {
+          "tSec": 2,
+          "thinnedN": 22,
+          "a_biasM": -2.772196000520005,
+          "a_maxM": 3.6251714005876607,
+          "a_reverseRatio": 0,
+          "b_biasM": -0.06411699207921173,
+          "b_p50m": 0.14240000000000919,
+          "b_p90m": 0.3794200000000032,
+          "b_maxM": 0.7255600000000015,
+          "b_p50px": 11.882239201770508,
+          "b_p90px": 31.65982582819883,
+          "b_maxPx": 60.54267889912972,
+          "b_reverseRatio": 0,
+          "b_jerkMaxAbsM": null,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_jerkMax": "unverified",
+            "passG12": true,
+            "passAll": false
+          }
+        },
+        {
+          "tSec": 4,
+          "thinnedN": 11,
+          "a_biasM": -5.383454744271594,
+          "a_maxM": 6.358349802371549,
+          "a_reverseRatio": 0.9398280802292264,
+          "b_biasM": -0.08908464250901132,
+          "b_p50m": 0.1752700000000118,
+          "b_p90m": 0.5177000000000049,
+          "b_maxM": 0.8922299999999979,
+          "b_p50px": 14.625000455718558,
+          "b_p90px": 43.19828114295122,
+          "b_maxPx": 74.45007221204348,
+          "b_reverseRatio": 0,
+          "b_jerkMaxAbsM": null,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_jerkMax": "unverified",
+            "passG12": true,
+            "passAll": false
+          }
+        },
+        {
+          "tSec": 8,
+          "thinnedN": 6,
+          "a_biasM": -10.19749661442604,
+          "a_maxM": 11.80118557344315,
+          "a_reverseRatio": 0.9398280802292264,
+          "b_biasM": -0.10050412674969607,
+          "b_p50m": 0.18778346456692674,
+          "b_p90m": 0.436869999999999,
+          "b_maxM": 0.6319799999999987,
+          "b_p50px": 15.669157613211208,
+          "b_p90px": 36.453608427507966,
+          "b_maxPx": 52.73411187313501,
+          "b_reverseRatio": 0,
+          "b_jerkMaxAbsM": null,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_jerkMax": "unverified",
+            "passG12": true,
+            "passAll": false
+          }
+        }
+      ],
+      "adapt": {
+        "0.1": {
+          "n": 450,
+          "vsOriginal": 0.6320224719101124,
+          "originalN": 712,
+          "originalHz": 16.443038267014618
+        },
+        "0.3": {
+          "n": 114,
+          "vsOriginal": 0.1601123595505618,
+          "originalN": 712,
+          "originalHz": 16.443038267014618
+        },
+        "0.5": {
+          "n": 33,
+          "vsOriginal": 0.046348314606741575,
+          "originalN": 712,
+          "originalHz": 16.443038267014618
+        }
+      }
+    },
+    {
+      "id": "S44R7",
+      "fitness": {
+        "n": 75,
+        "durationSec": 4.439,
+        "speedMps": {
+          "min": 1.39,
+          "max": 1.39,
+          "mean": 1.3900000000000003,
+          "stdev": 4.470797433691216e-16
+        },
+        "accelHiSec": 0,
+        "accelHiFrac": 0,
+        "stopRestart": false,
+        "hasJerk": false
+      },
+      "currentReverse": {
+        "abreast": 39,
+        "reverse": 0,
+        "reverseRatio": 0
+      },
+      "rows": [
+        {
+          "tSec": 1,
+          "thinnedN": 5,
+          "a_biasM": -1.4069079527880608,
+          "a_maxM": 1.92431640625,
+          "a_reverseRatio": 0,
+          "b_biasM": -0.2194314604867057,
+          "b_p50m": 0.20869000000000426,
+          "b_p90m": 0.37016999999998745,
+          "b_maxM": 0.584069999999997,
+          "b_p50px": 17.41365518972878,
+          "b_p90px": 30.887980936228622,
+          "b_maxPx": 48.73637254619113,
+          "b_reverseRatio": 0,
+          "b_jerkMaxAbsM": null,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_jerkMax": "unverified",
+            "passG12": true,
+            "passAll": false
+          }
+        },
+        {
+          "tSec": 2,
+          "thinnedN": 3,
+          "a_biasM": -2.2074247764488613,
+          "a_maxM": 3.0363818090954453,
+          "a_reverseRatio": 0,
+          "b_biasM": -0.12262863997388451,
+          "b_p50m": 0.11406267326732689,
+          "b_p90m": 0.25614000000000203,
+          "b_maxM": 0.46070999999999174,
+          "b_p50px": 9.517696402778688,
+          "b_p90px": 21.373010878801445,
+          "b_maxPx": 38.442882181511514,
+          "b_reverseRatio": 0,
+          "b_jerkMaxAbsM": null,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_jerkMax": "unverified",
+            "passG12": true,
+            "passAll": false
+          }
+        },
+        {
+          "tSec": 4,
+          "thinnedN": 2,
+          "a_biasM": -3.0137784183981657,
+          "a_maxM": 5.800000000000004,
+          "a_reverseRatio": 0.46153846153846156,
+          "b_biasM": -0.13074069125593815,
+          "b_p50m": 0.1264200000000102,
+          "b_p90m": 0.25952999999999804,
+          "b_maxM": 0.46070999999999174,
+          "b_p50px": 10.548824999212442,
+          "b_p90px": 21.65588160137133,
+          "b_maxPx": 38.442882181511514,
+          "b_reverseRatio": 0,
+          "b_jerkMaxAbsM": null,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_jerkMax": "unverified",
+            "passG12": true,
+            "passAll": false
+          }
+        },
+        {
+          "tSec": 8,
+          "thinnedN": 1,
+          "a_biasM": -3.038940947666194,
+          "a_maxM": 6.100000000000001,
+          "a_reverseRatio": 0.46153846153846156,
+          "b_biasM": -0.14717069125593824,
+          "b_p50m": 0.1264200000000102,
+          "b_p90m": 0.25952999999999804,
+          "b_maxM": 0.46070999999999174,
+          "b_p50px": 10.548824999212442,
+          "b_p90px": 21.65588160137133,
+          "b_maxPx": 38.442882181511514,
+          "b_reverseRatio": 0,
+          "b_jerkMaxAbsM": null,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_jerkMax": "unverified",
+            "passG12": true,
+            "passAll": false
+          }
+        }
+      ],
+      "adapt": {
+        "0.1": {
+          "n": 50,
+          "vsOriginal": 0.6666666666666666,
+          "originalN": 75,
+          "originalHz": 16.895697229105654
+        },
+        "0.3": {
+          "n": 8,
+          "vsOriginal": 0.10666666666666667,
+          "originalN": 75,
+          "originalHz": 16.895697229105654
+        },
+        "0.5": {
+          "n": 3,
+          "vsOriginal": 0.04,
+          "originalN": 75,
+          "originalHz": 16.895697229105654
+        }
+      }
+    },
+    {
+      "id": "S45",
+      "fitness": {
+        "n": 84,
+        "durationSec": 4.376,
+        "speedMps": {
+          "min": 1.39,
+          "max": 1.39,
+          "mean": 1.3900000000000003,
+          "stdev": 4.467564362929443e-16
+        },
+        "accelHiSec": 0,
+        "accelHiFrac": 0,
+        "stopRestart": false,
+        "hasJerk": false
+      },
+      "currentReverse": {
+        "abreast": 42,
+        "reverse": 0,
+        "reverseRatio": 0
+      },
+      "rows": [
+        {
+          "tSec": 1,
+          "thinnedN": 5,
+          "a_biasM": -1.2222317255873567,
+          "a_maxM": 1.6083333333333343,
+          "a_reverseRatio": 0,
+          "b_biasM": -0.049116099976521256,
+          "b_p50m": 0.07929826086956382,
+          "b_p90m": 0.20408999999999367,
+          "b_maxM": 0.2573100000000039,
+          "b_p50px": 6.616860280452912,
+          "b_p90px": 17.029818811019037,
+          "b_maxPx": 21.47063882729929,
+          "b_reverseRatio": 0,
+          "b_jerkMaxAbsM": null,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_jerkMax": "unverified",
+            "passG12": true,
+            "passAll": false
+          }
+        },
+        {
+          "tSec": 2,
+          "thinnedN": 3,
+          "a_biasM": -2.114269876459585,
+          "a_maxM": 2.9537165510406282,
+          "a_reverseRatio": 0,
+          "b_biasM": -0.04434205235747174,
+          "b_p50m": 0.0686500000000052,
+          "b_p90m": 0.14870000000000516,
+          "b_maxM": 0.20408999999999367,
+          "b_p50px": 5.728340738774962,
+          "b_p90px": 12.407928155219254,
+          "b_maxPx": 17.029818811019037,
+          "b_reverseRatio": 0,
+          "b_jerkMaxAbsM": null,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_jerkMax": "unverified",
+            "passG12": true,
+            "passAll": false
+          }
+        },
+        {
+          "tSec": 4,
+          "thinnedN": 2,
+          "a_biasM": -2.9402152370188355,
+          "a_maxM": 5.654804183896857,
+          "a_reverseRatio": 0.2857142857142857,
+          "b_biasM": -0.041951576166996726,
+          "b_p50m": 0.07109793814433374,
+          "b_p90m": 0.14870000000000516,
+          "b_maxM": 0.20408999999999367,
+          "b_p50px": 5.932603284997209,
+          "b_p90px": 12.407928155219254,
+          "b_maxPx": 17.029818811019037,
+          "b_reverseRatio": 0,
+          "b_jerkMaxAbsM": null,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_jerkMax": "unverified",
+            "passG12": true,
+            "passAll": false
+          }
+        },
+        {
+          "tSec": 8,
+          "thinnedN": 1,
+          "a_biasM": -2.957858957119379,
+          "a_maxM": 5.899999999999999,
+          "a_reverseRatio": 0.2857142857142857,
+          "b_biasM": -0.03650919521461592,
+          "b_p50m": 0.07195000000000107,
+          "b_p90m": 0.1454999999999984,
+          "b_maxM": 0.19478999999999047,
+          "b_p50px": 6.003701619152707,
+          "b_p90px": 12.140911543942966,
+          "b_maxPx": 16.253801784498698,
+          "b_reverseRatio": 0,
+          "b_jerkMaxAbsM": null,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_jerkMax": "unverified",
+            "passG12": true,
+            "passAll": false
+          }
+        }
+      ],
+      "adapt": {
+        "0.1": {
+          "n": 53,
+          "vsOriginal": 0.6309523809523809,
+          "originalN": 84,
+          "originalHz": 19.19561243144424
+        },
+        "0.3": {
+          "n": 1,
+          "vsOriginal": 0.011904761904761904,
+          "originalN": 84,
+          "originalHz": 19.19561243144424
+        },
+        "0.5": {
+          "n": 1,
+          "vsOriginal": 0.011904761904761904,
+          "originalN": 84,
+          "originalHz": 19.19561243144424
+        }
+      }
+    }
+  ],
+  "synthetic": {
+    "id": "synthetic-stop-restart",
+    "source": "synthetic: 5km/h 등속 → 1.39m/s² 1s 감속 → 정지 2s → 1.39m/s² 재가속. 실측 아님.",
+    "fitness": {
+      "n": 130,
+      "durationSec": 12.9,
+      "speedMps": {
+        "min": 0,
+        "max": 1.3888888888888888,
+        "mean": 1.0683760683760668,
+        "stdev": 0.5438424840045978
+      },
+      "accelHiSec": 2.0000000000000004,
+      "accelHiFrac": 0.1550387596899225,
+      "stopRestart": true,
+      "hasJerk": true
+    },
+    "currentReverse": {
+      "abreast": 130,
+      "reverse": 0,
+      "reverseRatio": 0
+    },
+    "rows": [
+      {
+        "tSec": 1,
+        "thinnedN": 13,
+        "a_biasM": -1.0096153846153846,
+        "a_maxM": 1.3888888888888928,
+        "a_reverseRatio": 0,
+        "b_biasM": 2.7328566760003855e-16,
+        "b_p50m": 0,
+        "b_p90m": 0.06254999999999811,
+        "b_maxM": 0.5628944444444457,
+        "b_p50px": 0,
+        "b_p90px": 5.2193403235300195,
+        "b_maxPx": 46.96942720671483,
+        "b_reverseRatio": 0,
+        "b_jerkMaxAbsM": 0.5628944444444457,
+        "gates": {
+          "g1_bias": true,
+          "g2_reverse": true,
+          "g3_jerkMax": true,
+          "passG12": true,
+          "passAll": true
+        }
+      },
+      {
+        "tSec": 2,
+        "thinnedN": 7,
+        "a_biasM": -1.9220461538461564,
+        "a_maxM": 2.7777777777777857,
+        "a_reverseRatio": 0,
+        "b_biasM": -0.09083333333333446,
+        "b_p50m": 3.552713678800501e-15,
+        "b_p90m": 0.44480000000000075,
+        "b_maxM": 1.8127833333333392,
+        "b_p50px": 2.9644798979569455e-13,
+        "b_p90px": 37.115308967325774,
+        "b_maxPx": 151.26351957618138,
+        "b_reverseRatio": 0,
+        "b_jerkMaxAbsM": 1.8127833333333392,
+        "gates": {
+          "g1_bias": true,
+          "g2_reverse": true,
+          "g3_jerkMax": false,
+          "passG12": true,
+          "passAll": false
+        }
+      },
+      {
+        "tSec": 4,
+        "thinnedN": 4,
+        "a_biasM": -3.563113530982913,
+        "a_maxM": 5.555555555555571,
+        "a_reverseRatio": 0.5846153846153846,
+        "b_biasM": -0.2403547008547047,
+        "b_p50m": 0.02779999999999916,
+        "b_p90m": 3.0626722222222327,
+        "b_maxM": 4.312561111111112,
+        "b_p50px": 2.3197068104577867,
+        "b_p90px": 255.5576119456479,
+        "b_maxPx": 359.85170431511324,
+        "b_reverseRatio": 0.06923076923076923,
+        "b_jerkMaxAbsM": 4.312561111111112,
+        "gates": {
+          "g1_bias": false,
+          "g2_reverse": false,
+          "g3_jerkMax": false,
+          "passG12": false,
+          "passAll": false
+        }
+      },
+      {
+        "tSec": 8,
+        "thinnedN": 2,
+        "a_biasM": -6.1349421875000125,
+        "a_maxM": 9.152299374999977,
+        "a_reverseRatio": 0.8153846153846154,
+        "b_biasM": -0.624970085470094,
+        "b_p50m": 0.34055000000000035,
+        "b_p90m": 3.937594444444457,
+        "b_maxM": 5.56244999999997,
+        "b_p50px": 28.416408428108774,
+        "b_p90px": 328.5634766042744,
+        "b_maxPx": 464.1457966845768,
+        "b_reverseRatio": 0.14615384615384616,
+        "b_jerkMaxAbsM": 5.56244999999997,
+        "gates": {
+          "g1_bias": false,
+          "g2_reverse": false,
+          "g3_jerkMax": false,
+          "passG12": false,
+          "passAll": false
+        }
+      }
+    ],
+    "adapt": {
+      "0.1": {
+        "n": 7,
+        "vsOriginal": 0.05384615384615385,
+        "originalN": 130,
+        "originalHz": 10.077519379844961
+      },
+      "0.3": {
+        "n": 5,
+        "vsOriginal": 0.038461538461538464,
+        "originalN": 130,
+        "originalHz": 10.077519379844961
+      },
+      "0.5": {
+        "n": 3,
+        "vsOriginal": 0.023076923076923078,
+        "originalN": 130,
+        "originalHz": 10.077519379844961
+      }
+    }
+  }
+}

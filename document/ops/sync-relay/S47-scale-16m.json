@@ -1,0 +1,50 @@
+{
+  "instruction": "S4-7",
+  "method": "leftFlat · rideCam=16 · 경로 LineString 위 selfDistM 과 +1 m 두 점을 map.project. 40/16 환산 아님.",
+  "ok": true,
+  "cameraDistanceM": 16,
+  "follow": "leftFlat",
+  "viewport": {
+    "width": 1280,
+    "height": 900
+  },
+  "selfDistM": 10.512366888888893,
+  "spanM": 1,
+  "aLngLat": [
+    -73.96939851637553,
+    40.78165374818018
+  ],
+  "bLngLat": [
+    -73.96939816153863,
+    40.781644758978665
+  ],
+  "aPx": {
+    "x": 640.0001155897137,
+    "y": 496.4674721019267
+  },
+  "bPx": {
+    "x": 556.6683917853326,
+    "y": 500.76938947223806
+  },
+  "pixelSep": 83.44269102366391,
+  "pxPerM": 83.44269102366391,
+  "span3M": 3.2,
+  "cPx": {
+    "x": 365.1723704914496,
+    "y": 510.65518130192123
+  },
+  "pxPerM_3_2": 85.99803581976406,
+  "map": {
+    "zoom": 21.82941546500828,
+    "pitch": 79.99999999999999,
+    "bearing": -79.18532980291036,
+    "center": {
+      "lng": -73.96946269968386,
+      "lat": 40.78166303198579
+    }
+  },
+  "coordN": 36,
+  "shot": "S47-scale-16m.png",
+  "auditorEyeballPxPerM": 91,
+  "auditorNote": "감리 눈대중 ~91 px/m 는 참고. 본 파일의 pxPerM 이 실측 정본."
+}
