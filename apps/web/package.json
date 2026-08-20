@@ -30,6 +30,8 @@
     "test:s44-jitter": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/s44/jitter-capture.test.ts",
     "test:s44r-rejudge": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs scripts/s44/rejudge-s44.mjs",
     "test:s44r6-rejudge": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs scripts/s44/rejudge-s44r6.mjs",
+    "test:s44r7-extract": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/s44/extract-marker-pixels.test.ts",
+    "test:e2e:peer-s44r7": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s44r7 --workers=1\"",
     "test:e2e:peer-s44r": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s44r --workers=1\"",
     "test:e2e:peer-s44r2": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s44r2 --workers=1\"",
     "test:e2e:peer-s44r3": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s44r3 --workers=1\"",
