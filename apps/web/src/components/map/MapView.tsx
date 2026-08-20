@@ -57,7 +57,11 @@ import { estimateCrankRpmFromSpeedKmh, resolvePedalCrankRpm } from "../../lib/ri
 import { resolveGlbPedalPose } from "../../lib/riderGlbPedalPose";
 import { stepPeerDriveAndBuildGeoJson } from "../../lib/peerRidersDrive";
 import { resetPeerMotionRegistry } from "../../lib/peerMotion";
-import { notePeerChainFromMapTick } from "../../lib/peerMotion/peerChainCapture";
+import {
+  isPeerChainCapturing,
+  noteMapboxRender,
+  notePeerChainFromMapTick,
+} from "../../lib/peerMotion/peerChainCapture";
 import { MAP_PEER_SPRITE_MIN_ZOOM } from "../../lib/rideSyncPolicy";
 import { applyCoverageOverlayMode } from "../../services/coverageOverlaySync";
 import type { GlobalLivePresenceDot } from "../../hooks/useGlobalLivePresence";
@@ -2350,7 +2354,7 @@ export function MapView({
           suppressUntilMs: suppressCameraFollowUntilRef.current,
           nowMs: now,
         });
-        if (import.meta.env.DEV) {
+        if (import.meta.env.DEV && !isPeerChainCapturing()) {
           const headingDeg = resolveRiderBearingDeg(
             routeGeometryRef.current,
             sampled,
@@ -2382,6 +2386,8 @@ export function MapView({
           map,
           selfEl: selfMk?.getElement() ?? null,
           peerEls,
+          selfLngLat: sampled ?? null,
+          peerFeatures: fc.features as PeerDomGJFeature[],
         });
       }
       if (RIDER_PROTOTYPE_MODE === "glb" && ensureRiderGlbLayer(map)) {
@@ -2467,6 +2473,20 @@ export function MapView({
         cancelAnimationFrame(peerRidersRafRef.current);
       }
       peerRidersRafRef.current = null;
+    };
+  }, [mapLoaded]);
+
+  /** S4-15 DEV — 카메라 수학 변경 없음. map.on("render") 시각만 스탬프. */
+  useEffect(() => {
+    if (!import.meta.env.DEV || !mapLoaded) return;
+    const map = mapRef.current;
+    if (!map) return;
+    const onRender = () => {
+      noteMapboxRender(performance.now());
+    };
+    map.on("render", onRender);
+    return () => {
+      map.off("render", onRender);
     };
   }, [mapLoaded]);
 
