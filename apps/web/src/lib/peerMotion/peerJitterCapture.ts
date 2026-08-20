@@ -8,6 +8,9 @@
  * S4-4R2: 같은 û 에 ① peer 절대 · ② local 절대 · ③ (peer−local) 을
  * 나란히 투영한다. ② 가 없으면 카메라를 증명할 수 없다.
  * 판정은 px 원시값·부호·횟수·진폭만 쓴다. px/m 은 근거가 아니다.
+ * S4-4R4: 제품 판정 기준은 ① 절대가 아니라 같은 프레임의
+ * ③ (peer − self) 진행축 이동. 매 프레임 gapDistM·gapScreenPx 를 남긴다.
+ * 단독 경로는 손대지 않는다.
  */
 
 import type { PeerMotionPacket } from "./types";
@@ -18,6 +21,8 @@ export const BAND_LABEL_PX = 8;
 export const S44_CLASS_PX = 20;
 /** ① − ② − ③ = 0 대수 항등. 이보다 크면 계측 모순이라 판정을 쓰지 않는다. */
 export const K1_RESIDUAL_EPS_PX = 1e-3;
+/** Chief 나란히. 창 전체에서 |gapDistM| 이 이하면 N0. */
+export const CHIEF_GAP_M = 5;
 /** 단독 캡처 uid. peer 엔티티가 없을 때 로컬 자신만 남긴다. */
 export const LOCAL_SOLO_UID = "__local__";
 const LOCAL_AHEAD_M = 5;
@@ -76,6 +81,8 @@ export type JitterDisplayEvent = {
   aheadScreenX?: number | null;
   aheadScreenY?: number | null;
   soloLocal?: boolean;
+  gapDistM?: number | null;
+  gapScreenPx?: number | null;
   camBearing: number | null;
   camPitch: number | null;
   camLng: number | null;
@@ -123,6 +130,33 @@ export type AlongSeriesStats = {
   maxReversePx: number;
   peakToPeakPx: number;
   negativeCount: number;
+};
+
+export type RelativeReverseHit = {
+  atMs: number;
+  uid: string;
+  relSPx: number;
+  prevRelSPx: number;
+  magPx: number;
+  gapDistM: number | null;
+  gapScreenPx: number | null;
+  displayIndex: number;
+};
+
+export type GapWindowStats = {
+  frameCount: number;
+  minGapDistM: number | null;
+  maxGapDistM: number | null;
+  minAbsGapDistM: number | null;
+  maxAbsGapDistM: number | null;
+  medianAbsGapDistM: number | null;
+  allAbsLe5m: boolean;
+};
+
+export type CaptureTiming = {
+  windowMs: number | null;
+  displayFrames: number;
+  medianFrameDtMs: number | null;
 };
 
 export type CameraVsPeerVerdict = "camera" | "peer" | "mixed";
@@ -199,6 +233,9 @@ export type JitterAxisJudgment = {
   cameraSplit: CameraSplitJudgment;
   survival: CaptureSurvival;
   routeLenM: number | null;
+  gapWindow: GapWindowStats;
+  relativeReverses: RelativeReverseHit[];
+  timing: CaptureTiming;
 };
 
 export type JitterCaptureDump = {
@@ -266,6 +303,24 @@ export function endPeerJitterCapture(nowMs = Date.now()): JitterCaptureDump {
   recording = false;
   windowEndedAt = nowMs;
   return snapshotPeerJitterCapture(nowMs);
+}
+
+/** 정렬용. 마지막 비-단독 display 의 gapDistM. snapshot 전체 판정은 돌리지 않는다. */
+export function lastPeerDisplayGap(): {
+  gapDistM: number | null;
+  gapScreenPx: number | null;
+  atMs: number | null;
+} {
+  for (let i = events.length - 1; i >= 0; i -= 1) {
+    const ev = events[i]!;
+    if (ev.kind !== "display" || ev.soloLocal) continue;
+    return {
+      gapDistM: ev.gapDistM ?? null,
+      gapScreenPx: ev.gapScreenPx ?? null,
+      atMs: ev.atMs,
+    };
+  }
+  return { gapDistM: null, gapScreenPx: null, atMs: null };
 }
 
 export function packetToJitterSource(
@@ -386,6 +441,12 @@ export function noteJitterDisplay(input: {
     aheadScreenX: ahead?.x ?? null,
     aheadScreenY: ahead?.y ?? null,
     soloLocal: input.soloLocal === true,
+    gapDistM:
+      input.localDistM != null && Number.isFinite(input.localDistM)
+        ? input.displayDistM - input.localDistM
+        : null,
+    gapScreenPx:
+      peer != null && local != null ? Math.hypot(peer.x - local.x, peer.y - local.y) : null,
     camBearing,
     camPitch,
     camLng,
@@ -687,6 +748,53 @@ function median(values: readonly number[]): number | null {
   return s.length % 2 === 1 ? s[mid]! : (s[mid - 1]! + s[mid]!) / 2;
 }
 
+export function measureGapWindow(display: readonly JitterDisplayEvent[]): GapWindowStats {
+  const gaps: number[] = [];
+  for (const ev of display) {
+    if (ev.soloLocal) continue;
+    const g = ev.gapDistM;
+    if (g != null && Number.isFinite(g)) gaps.push(g);
+  }
+  if (gaps.length === 0) {
+    return {
+      frameCount: 0,
+      minGapDistM: null,
+      maxGapDistM: null,
+      minAbsGapDistM: null,
+      maxAbsGapDistM: null,
+      medianAbsGapDistM: null,
+      allAbsLe5m: false,
+    };
+  }
+  const abs = gaps.map((g) => Math.abs(g));
+  return {
+    frameCount: gaps.length,
+    minGapDistM: Math.min(...gaps),
+    maxGapDistM: Math.max(...gaps),
+    minAbsGapDistM: Math.min(...abs),
+    maxAbsGapDistM: Math.max(...abs),
+    medianAbsGapDistM: median(abs),
+    allAbsLe5m: abs.every((a) => a <= CHIEF_GAP_M),
+  };
+}
+
+export function captureTiming(
+  display: readonly JitterDisplayEvent[],
+  windowStartedAt: number | null,
+  windowEndedAt: number | null,
+): CaptureTiming {
+  const dts: number[] = [];
+  for (let i = 1; i < display.length; i += 1) {
+    dts.push(display[i]!.atMs - display[i - 1]!.atMs);
+  }
+  return {
+    windowMs:
+      windowStartedAt != null && windowEndedAt != null ? windowEndedAt - windowStartedAt : null,
+    displayFrames: display.length,
+    medianFrameDtMs: median(dts),
+  };
+}
+
 function emptyJudgment(
   extra: Partial<JitterAxisJudgment> & Pick<JitterAxisJudgment, "dominantSignal" | "reason">,
 ): JitterAxisJudgment {
@@ -728,6 +836,9 @@ function emptyJudgment(
         failReasons: ["undetermined"],
       } satisfies CaptureSurvival),
     routeLenM: extra.routeLenM ?? captureRouteLenM,
+    gapWindow: extra.gapWindow ?? measureGapWindow([]),
+    relativeReverses: extra.relativeReverses ?? [],
+    timing: extra.timing ?? { windowMs: null, displayFrames: 0, medianFrameDtMs: null },
     ...extra,
     dominantSignal,
   };
@@ -746,6 +857,8 @@ export function analyzeJitterAxis(log: readonly JitterEvent[]): JitterAxisJudgme
       peerUids,
       survival: measureCaptureSurvival(log),
       routeLenM: captureRouteLenM,
+      gapWindow: measureGapWindow(display),
+      timing: captureTiming(display, windowStartedAt, windowEndedAt),
       reason: "display 프레임이 부족하다 (3 미만).",
     });
   }
@@ -771,6 +884,7 @@ export function analyzeJitterAxis(log: readonly JitterEvent[]): JitterAxisJudgme
   let hasLocalScreen = false;
   const residuals: number[] = [];
   const splitSamples: CameraSplitSample[] = [];
+  const relativeReverses: RelativeReverseHit[] = [];
 
   const first = display[0]!;
   const startGapDistM =
@@ -877,6 +991,16 @@ export function analyzeJitterAxis(log: readonly JitterEvent[]): JitterAxisJudgme
               if (relReversed) {
                 relRevCount += 1;
                 if (Math.abs(relS) > relMaxRev) relMaxRev = Math.abs(relS);
+                relativeReverses.push({
+                  atMs: ev.atMs,
+                  uid: ev.uid,
+                  relSPx: relS,
+                  prevRelSPx: prevRelS!,
+                  magPx: Math.abs(relS),
+                  gapDistM: ev.gapDistM ?? null,
+                  gapScreenPx: ev.gapScreenPx ?? null,
+                  displayIndex: i,
+                });
               }
               const voteSample = {
                 peerSPx: s,
@@ -1005,5 +1129,8 @@ export function analyzeJitterAxis(log: readonly JitterEvent[]): JitterAxisJudgme
     cameraSplit,
     survival: measureCaptureSurvival(log),
     routeLenM: captureRouteLenM,
+    gapWindow: measureGapWindow(display),
+    relativeReverses,
+    timing: captureTiming(display, windowStartedAt, windowEndedAt),
   };
 }

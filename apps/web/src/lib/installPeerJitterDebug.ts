@@ -1,6 +1,7 @@
 import {
   beginPeerJitterCapture,
   endPeerJitterCapture,
+  lastPeerDisplayGap,
   resetPeerJitterCaptureForTests,
   snapshotPeerJitterCapture,
 } from "./peerMotion/peerJitterCapture";
@@ -13,6 +14,7 @@ export function installPeerJitterDebug(): void {
     end: endPeerJitterCapture,
     snapshot: snapshotPeerJitterCapture,
     reset: resetPeerJitterCaptureForTests,
+    lastGap: lastPeerDisplayGap,
   };
   (window as Window & { __rtwPeerJitterApi?: typeof api }).__rtwPeerJitterApi = api;
 }

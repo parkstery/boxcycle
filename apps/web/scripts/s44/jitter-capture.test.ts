@@ -4,9 +4,11 @@ import {
   analyzeJitterAxis,
   beginPeerJitterCapture,
   endPeerJitterCapture,
+  lastPeerDisplayGap,
   estimateAlongTrackUnit,
   LOCAL_SOLO_UID,
   measureCaptureSurvival,
+  measureGapWindow,
   noteJitterDisplay,
   noteJitterIngest,
   resetPeerJitterCaptureForTests,
@@ -158,6 +160,8 @@ function displayFramesWithLocal(
     localDistM: f.d - 2,
     localScreenX: f.lx,
     localScreenY: f.ly,
+    gapDistM: 2,
+    gapScreenPx: Math.hypot(f.x - f.lx, f.y - f.ly),
     camBearing: null,
     camPitch: null,
     camLng: null,
@@ -400,5 +404,56 @@ describe("캡처 창", () => {
     const dump = endPeerJitterCapture(1);
     assert.equal(dump.conditionId, "C1");
     assert.equal(dump.events[0]?.conditionId, "C1");
+  });
+});
+
+describe("N0 창 전체 gap", () => {
+  it("|gap|≤5 m 이면 allAbsLe5m", () => {
+    const events = displayFramesWithLocal(
+      Array.from({ length: 8 }, (_, i) => ({
+        t: i * 16,
+        d: 10 + i * 0.4,
+        x: 100 + i * 10,
+        y: 400,
+        lx: 90 + i * 10,
+        ly: 400,
+      })),
+    );
+    for (const e of events) e.gapDistM = 3.2;
+    const g = measureGapWindow(events);
+    assert.equal(g.allAbsLe5m, true);
+    assert.equal(g.maxAbsGapDistM, 3.2);
+  });
+
+  it("한 프레임이라도 5 m 를 넘으면 allAbsLe5m 이 아니다", () => {
+    const events = displayFramesWithLocal(
+      Array.from({ length: 8 }, (_, i) => ({
+        t: i * 16,
+        d: 10 + i * 0.4,
+        x: 100 + i * 10,
+        y: 400,
+        lx: 90 + i * 10,
+        ly: 400,
+      })),
+    );
+    events[3]!.gapDistM = 7.8;
+    const g = measureGapWindow(events);
+    assert.equal(g.allAbsLe5m, false);
+    assert.ok((g.maxAbsGapDistM ?? 0) > 5);
+  });
+
+  it("lastPeerDisplayGap 은 마지막 비-단독 display 를 본다", () => {
+    beginPeerJitterCapture(0, "align");
+    noteJitterDisplay({
+      atMs: 10,
+      uid: "peer",
+      displayDistM: 12,
+      lng: 127,
+      lat: 37,
+      localDistM: 10,
+    });
+    const g = lastPeerDisplayGap();
+    assert.equal(g.gapDistM, 2);
+    assert.equal(g.atMs, 10);
   });
 });
