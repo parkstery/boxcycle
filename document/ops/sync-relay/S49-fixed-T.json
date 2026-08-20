@@ -1,0 +1,1053 @@
+{
+  "instruction": "S4-9",
+  "profiles": [
+    {
+      "id": "P1-brake-20-0",
+      "currentReverse": {
+        "reverseRatio": 0,
+        "rankBiasM": -0.4419083848470514,
+        "maxM": 0.8888888888889142
+      },
+      "fixed": [
+        {
+          "tSec": 0.5,
+          "publish": {
+            "n": 15,
+            "meanIntervalMs": 500,
+            "cruiseMeanMs": 500,
+            "cruiseN": 7,
+            "maneuverMeanMs": 500,
+            "maneuverN": 7,
+            "cruisePublishN": 9,
+            "maneuverPublishN": 6
+          },
+          "a": {
+            "n": 701,
+            "p50m": 1.4235185185185202,
+            "p90m": 2.7777777777778567,
+            "maxM": 2.7777777777778567,
+            "p50px": 118.78221590720467,
+            "p90px": 231.78525284351744,
+            "maxPx": 231.78525284351744,
+            "rankBiasM": -1.3974679029957409,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 2.7775925925926686,
+            "worst": {
+              "tMs": 2000,
+              "errM": -2.7775925925926686,
+              "absM": 2.7775925925926686,
+              "kmh": 19.933333333333334,
+              "distM": 31.166481481481796
+            }
+          },
+          "b": {
+            "n": 701,
+            "p50m": 5.684341886080802e-14,
+            "p90m": 0.13722222222222058,
+            "maxM": 0.22685185185185475,
+            "p50px": 4.743167836731113e-12,
+            "p90px": 11.4501914904693,
+            "maxPx": 18.929128982220295,
+            "rankBiasM": 0.03300840069740479,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 0.22685185185185475,
+            "worst": {
+              "tMs": 3490,
+              "errM": 0.22685185185185475,
+              "absM": 0.22685185185185475,
+              "kmh": 10.000000000000036,
+              "distM": 37.347222222222534
+            }
+          },
+          "gatesA": {
+            "g1_bias": false,
+            "g2_reverse": true,
+            "g3_maxErr": false,
+            "pass": false
+          },
+          "gatesB": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          }
+        },
+        {
+          "tSec": 1,
+          "publish": {
+            "n": 8,
+            "meanIntervalMs": 1000,
+            "cruiseMeanMs": 1000,
+            "cruiseN": 3,
+            "maneuverMeanMs": 1000,
+            "maneuverN": 4,
+            "cruisePublishN": 5,
+            "maneuverPublishN": 3
+          },
+          "a": {
+            "n": 701,
+            "p50m": 2.750000000000007,
+            "p90m": 5.5555555555557135,
+            "maxM": 5.5555555555557135,
+            "p50px": 229.46740031507636,
+            "p90px": 463.5705056870349,
+            "maxPx": 463.5705056870349,
+            "rankBiasM": -2.827964019654506,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 5.555370370370525,
+            "worst": {
+              "tMs": 2000,
+              "errM": -5.555370370370525,
+              "absM": 5.555370370370525,
+              "kmh": 19.933333333333334,
+              "distM": 31.166481481481796
+            }
+          },
+          "b": {
+            "n": 701,
+            "p50m": 1.1368683772161603e-13,
+            "p90m": 0.5418518518518525,
+            "maxM": 0.9166666666666714,
+            "p50px": 9.486335673462226e-12,
+            "p90px": 45.213576654674235,
+            "maxPx": 76.48913343835898,
+            "rankBiasM": 0.13207322872085228,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 0.9166666666666714,
+            "worst": {
+              "tMs": 2990,
+              "errM": 0.9166666666666714,
+              "absM": 0.9166666666666714,
+              "kmh": 13.333333333333357,
+              "distM": 35.731481481481794
+            }
+          },
+          "gatesA": {
+            "g1_bias": false,
+            "g2_reverse": true,
+            "g3_maxErr": false,
+            "pass": false
+          },
+          "gatesB": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          }
+        },
+        {
+          "tSec": 2,
+          "publish": {
+            "n": 4,
+            "meanIntervalMs": 2000,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 2000,
+            "maneuverN": 3,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 2
+          },
+          "a": {
+            "n": 701,
+            "p50m": 5.9662962962963135,
+            "p90m": 10.722222222222527,
+            "maxM": 11.110925925926239,
+            "p50px": 497.84381840748364,
+            "p90px": 894.6910759759774,
+            "maxPx": 927.12555902388,
+            "rankBiasM": -5.754349011993541,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 11.110925925926239,
+            "worst": {
+              "tMs": 2000,
+              "errM": -11.110925925926239,
+              "absM": 11.110925925926239,
+              "kmh": 19.933333333333334,
+              "distM": 31.166481481481796
+            }
+          },
+          "b": {
+            "n": 701,
+            "p50m": 0.05555555555556424,
+            "p90m": 2.2677777777777806,
+            "maxM": 3.6851851851851833,
+            "p50px": 4.635705056870942,
+            "p90px": 189.2294804214425,
+            "maxPx": 307.5017687723909,
+            "rankBiasM": 0.6590849051618928,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 3.6851851851851833,
+            "worst": {
+              "tMs": 3990,
+              "errM": 3.6851851851851833,
+              "absM": 3.6851851851851833,
+              "kmh": 6.666666666666714,
+              "distM": 38.50000000000032
+            }
+          },
+          "gatesA": {
+            "g1_bias": false,
+            "g2_reverse": true,
+            "g3_maxErr": false,
+            "pass": false
+          },
+          "gatesB": {
+            "g1_bias": false,
+            "g2_reverse": true,
+            "g3_maxErr": false,
+            "pass": false
+          }
+        },
+        {
+          "tSec": 4,
+          "publish": {
+            "n": 2,
+            "meanIntervalMs": 4000,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 4000,
+            "maneuverN": 1,
+            "cruisePublishN": 1,
+            "maneuverPublishN": 1
+          },
+          "a": {
+            "n": 701,
+            "p50m": 11.813888888889199,
+            "p90m": 17.55925925925957,
+            "maxM": 18.462777777778093,
+            "p50px": 985.7826803434776,
+            "p90px": 1465.191844974806,
+            "maxPx": 1540.5838615497057,
+            "rankBiasM": -11.264575837428245,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 18.462777777778093,
+            "worst": {
+              "tMs": 4000,
+              "errM": -18.462777777778093,
+              "absM": 18.462777777778093,
+              "kmh": 6.600000000000048,
+              "distM": 38.51833333333365
+            }
+          },
+          "b": {
+            "n": 701,
+            "p50m": 0.5277777777777644,
+            "p90m": 3.4650000000000105,
+            "maxM": 4.601666666666688,
+            "p50px": 44.039198040265944,
+            "p90px": 289.12892439699635,
+            "maxPx": 383.97544986056187,
+            "rankBiasM": 1.1953291594017803,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 3.722222222221909,
+            "worst": {
+              "tMs": 7000,
+              "errM": 4.601666666666688,
+              "absM": 4.601666666666688,
+              "kmh": 0,
+              "distM": 39.416666666667005
+            }
+          },
+          "gatesA": {
+            "g1_bias": false,
+            "g2_reverse": true,
+            "g3_maxErr": false,
+            "pass": false
+          },
+          "gatesB": {
+            "g1_bias": false,
+            "g2_reverse": true,
+            "g3_maxErr": false,
+            "pass": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "P2-accel-0-20",
+      "currentReverse": {
+        "reverseRatio": 0,
+        "rankBiasM": -0.48084656084656807,
+        "maxM": 0.8888888888889142
+      },
+      "fixed": [
+        {
+          "tSec": 0.5,
+          "publish": {
+            "n": 21,
+            "meanIntervalMs": 500,
+            "cruiseMeanMs": 500,
+            "cruiseN": 4,
+            "maneuverMeanMs": 500,
+            "maneuverN": 16,
+            "cruisePublishN": 6,
+            "maneuverPublishN": 15
+          },
+          "a": {
+            "n": 1050,
+            "p50m": 1.460222222222228,
+            "p90m": 2.7777777777778567,
+            "maxM": 2.7777777777778567,
+            "p50px": 121.84487171477728,
+            "p90px": 231.78525284351744,
+            "maxPx": 231.78525284351744,
+            "rankBiasM": -1.4466534391534556,
+            "reverseRatio": 0.20031545741324921,
+            "jerkMaxAbsM": 2.685222222222258,
+            "worst": {
+              "tMs": 9000,
+              "errM": -2.7777777777778567,
+              "absM": 2.7777777777778567,
+              "kmh": 20,
+              "distM": 43.69444444444466
+            }
+          },
+          "b": {
+            "n": 1050,
+            "p50m": 0.007777777777782546,
+            "p90m": 0.06688888888889721,
+            "maxM": 0.090740740740749,
+            "p50px": 0.6489987079622284,
+            "p90px": 5.5813888884724365,
+            "maxPx": 7.571651592888711,
+            "rankBiasM": -0.022037037037044845,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 0.090740740740749,
+            "worst": {
+              "tMs": 7990,
+              "errM": -0.090740740740749,
+              "absM": 0.090740740740749,
+              "kmh": 18.66666666666688,
+              "distM": 38.17407407407418
+            }
+          },
+          "gatesA": {
+            "g1_bias": false,
+            "g2_reverse": false,
+            "g3_maxErr": false,
+            "pass": false
+          },
+          "gatesB": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          }
+        },
+        {
+          "tSec": 1,
+          "publish": {
+            "n": 11,
+            "meanIntervalMs": 1000,
+            "cruiseMeanMs": 1000,
+            "cruiseN": 1,
+            "maneuverMeanMs": 1000,
+            "maneuverN": 9,
+            "cruisePublishN": 3,
+            "maneuverPublishN": 8
+          },
+          "a": {
+            "n": 1050,
+            "p50m": 2.713925925925931,
+            "p90m": 5.506773333333463,
+            "maxM": 5.5555555555557135,
+            "p50px": 226.45728249814846,
+            "p90px": 459.499985790696,
+            "maxPx": 463.5705056870349,
+            "rankBiasM": -2.739110229276926,
+            "reverseRatio": 0.45741324921135645,
+            "jerkMaxAbsM": 5.096333333333391,
+            "worst": {
+              "tMs": 10000,
+              "errM": -5.5555555555557135,
+              "absM": 5.5555555555557135,
+              "kmh": 20,
+              "distM": 49.25000000000038
+            }
+          },
+          "b": {
+            "n": 1050,
+            "p50m": 0.04407407407407504,
+            "p90m": 0.2707407407407345,
+            "maxM": 0.36666666666668135,
+            "p50px": 3.67765934511712,
+            "p90px": 22.591335977147004,
+            "maxPx": 30.59565337534466,
+            "rankBiasM": -0.09249382716050537,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 0.36666666666668135,
+            "worst": {
+              "tMs": 4990,
+              "errM": -0.36666666666668135,
+              "absM": 0.36666666666668135,
+              "kmh": 10.666666666666696,
+              "distM": 25.94074074074074
+            }
+          },
+          "gatesA": {
+            "g1_bias": false,
+            "g2_reverse": false,
+            "g3_maxErr": false,
+            "pass": false
+          },
+          "gatesB": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          }
+        },
+        {
+          "tSec": 2,
+          "publish": {
+            "n": 6,
+            "meanIntervalMs": 2000,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 2000,
+            "maneuverN": 5,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 4
+          },
+          "a": {
+            "n": 1050,
+            "p50m": 4.473185185185191,
+            "p90m": 10.408000000000207,
+            "maxM": 11.045342222222502,
+            "p50px": 373.2546092990387,
+            "p90px": 868.4715281743113,
+            "maxPx": 921.6530782995416,
+            "rankBiasM": -4.869645749559138,
+            "reverseRatio": 0.6277602523659306,
+            "jerkMaxAbsM": 9.363000000000103,
+            "worst": {
+              "tMs": 10490,
+              "errM": -11.045342222222502,
+              "absM": 11.045342222222502,
+              "kmh": 20,
+              "distM": 51.972222222222676
+            }
+          },
+          "b": {
+            "n": 1050,
+            "p50m": 0.20007407407408806,
+            "p90m": 1.002222222222251,
+            "maxM": 1.4740740740741174,
+            "p50px": 16.694719144809778,
+            "p90px": 83.62811922594112,
+            "maxPx": 123.00070750896005,
+            "rankBiasM": -0.3478730158730341,
+            "reverseRatio": 0.1167192429022082,
+            "jerkMaxAbsM": 1.4740740740741174,
+            "worst": {
+              "tMs": 7990,
+              "errM": -1.4740740740741174,
+              "absM": 1.4740740740741174,
+              "kmh": 18.66666666666688,
+              "distM": 38.17407407407418
+            }
+          },
+          "gatesA": {
+            "g1_bias": false,
+            "g2_reverse": false,
+            "g3_maxErr": false,
+            "pass": false
+          },
+          "gatesB": {
+            "g1_bias": false,
+            "g2_reverse": false,
+            "g3_maxErr": true,
+            "pass": false
+          }
+        },
+        {
+          "tSec": 4,
+          "publish": {
+            "n": 3,
+            "meanIntervalMs": 4000,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 4000,
+            "maneuverN": 2,
+            "cruisePublishN": 1,
+            "maneuverPublishN": 2
+          },
+          "a": {
+            "n": 1050,
+            "p50m": 5.661865925925927,
+            "p90m": 17.42281481481507,
+            "maxM": 19.355592592592984,
+            "p50px": 472.4413290744479,
+            "p90px": 1453.806553355128,
+            "maxPx": 1615.0827322836542,
+            "rankBiasM": -7.474750476190542,
+            "reverseRatio": 0.6356466876971609,
+            "jerkMaxAbsM": 15.674111111111241,
+            "worst": {
+              "tMs": 10490,
+              "errM": -19.355592592592984,
+              "absM": 19.355592592592984,
+              "kmh": 20,
+              "distM": 51.972222222222676
+            }
+          },
+          "b": {
+            "n": 1050,
+            "p50m": 0.562592592592722,
+            "p90m": 3.278000000000077,
+            "maxM": 5.9111111111112535,
+            "p50px": 46.94423987591653,
+            "p90px": 273.5251411755767,
+            "maxPx": 493.23901805100303,
+            "rankBiasM": -1.1613703703704072,
+            "reverseRatio": 0.2665615141955836,
+            "jerkMaxAbsM": 5.9111111111112535,
+            "worst": {
+              "tMs": 7990,
+              "errM": -5.9111111111112535,
+              "absM": 5.9111111111112535,
+              "kmh": 18.66666666666688,
+              "distM": 38.17407407407418
+            }
+          },
+          "gatesA": {
+            "g1_bias": false,
+            "g2_reverse": false,
+            "g3_maxErr": false,
+            "pass": false
+          },
+          "gatesB": {
+            "g1_bias": false,
+            "g2_reverse": false,
+            "g3_maxErr": false,
+            "pass": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "P3-chief-5-0-5",
+      "currentReverse": {
+        "reverseRatio": 0.043273753527751646,
+        "rankBiasM": -0.1721018779833498,
+        "maxM": 0.22222222222222854
+      },
+      "fixed": [
+        {
+          "tSec": 0.5,
+          "publish": {
+            "n": 22,
+            "meanIntervalMs": 500,
+            "cruiseMeanMs": 500,
+            "cruiseN": 13,
+            "maneuverMeanMs": 500,
+            "maneuverN": 8,
+            "cruisePublishN": 16,
+            "maneuverPublishN": 6
+          },
+          "a": {
+            "n": 1063,
+            "p50m": 0.6944444444444642,
+            "p90m": 0.6944444444444642,
+            "maxM": 0.6944444444444642,
+            "p50px": 57.94631321087936,
+            "p90px": 57.94631321087936,
+            "maxPx": 57.94631321087936,
+            "rankBiasM": -0.5266940698930438,
+            "reverseRatio": 0.06396989651928504,
+            "jerkMaxAbsM": 0.6942592592592796,
+            "worst": {
+              "tMs": 7500,
+              "errM": -0.6944444444444642,
+              "absM": 0.6944444444444642,
+              "kmh": 5,
+              "distM": 27.21874074074089
+            }
+          },
+          "b": {
+            "n": 1063,
+            "p50m": 1.4210854715202004e-14,
+            "p90m": 0.04155555555555779,
+            "maxM": 0.22685185185185475,
+            "p50px": 1.1857919591827782e-12,
+            "p90px": 3.4675073825391087,
+            "maxPx": 18.929128982220295,
+            "rankBiasM": 0.0014004390090877575,
+            "reverseRatio": 0.015051740357478834,
+            "jerkMaxAbsM": 0.22685185185185475,
+            "worst": {
+              "tMs": 3490,
+              "errM": 0.22685185185185475,
+              "absM": 0.22685185185185475,
+              "kmh": 1.6666666666666643,
+              "distM": 24.625000000000117
+            }
+          },
+          "gatesA": {
+            "g1_bias": false,
+            "g2_reverse": false,
+            "g3_maxErr": true,
+            "pass": false
+          },
+          "gatesB": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          }
+        },
+        {
+          "tSec": 1,
+          "publish": {
+            "n": 11,
+            "meanIntervalMs": 1000,
+            "cruiseMeanMs": 1000,
+            "cruiseN": 5,
+            "maneuverMeanMs": 1000,
+            "maneuverN": 5,
+            "cruisePublishN": 8,
+            "maneuverPublishN": 3
+          },
+          "a": {
+            "n": 1063,
+            "p50m": 1.3323848148148478,
+            "p90m": 1.3888888888889284,
+            "maxM": 1.3888888888889284,
+            "p50px": 111.177774427217,
+            "p90px": 115.89262642175872,
+            "maxPx": 115.89262642175872,
+            "rankBiasM": -1.0221088638026727,
+            "reverseRatio": 0.07149576669802446,
+            "jerkMaxAbsM": 1.3887037037037437,
+            "worst": {
+              "tMs": 8000,
+              "errM": -1.3888888888889284,
+              "absM": 1.3888888888889284,
+              "kmh": 5,
+              "distM": 27.913185185185355
+            }
+          },
+          "b": {
+            "n": 1063,
+            "p50m": 2.4868995751603507e-14,
+            "p90m": 0.1992962962963034,
+            "maxM": 0.8564814814814845,
+            "p50px": 2.075135928569862e-12,
+            "p90px": 16.62981927401302,
+            "maxPx": 71.46711962674944,
+            "rankBiasM": 0.005755687955111704,
+            "reverseRatio": 0.03386641580432737,
+            "jerkMaxAbsM": 0.5138888888888928,
+            "worst": {
+              "tMs": 3990,
+              "errM": 0.8564814814814845,
+              "absM": 0.8564814814814845,
+              "kmh": 0,
+              "distM": 24.68055555555567
+            }
+          },
+          "gatesA": {
+            "g1_bias": false,
+            "g2_reverse": false,
+            "g3_maxErr": true,
+            "pass": false
+          },
+          "gatesB": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          }
+        },
+        {
+          "tSec": 2,
+          "publish": {
+            "n": 6,
+            "meanIntervalMs": 2000,
+            "cruiseMeanMs": 2000,
+            "cruiseN": 3,
+            "maneuverMeanMs": 2000,
+            "maneuverN": 2,
+            "cruisePublishN": 5,
+            "maneuverPublishN": 1
+          },
+          "a": {
+            "n": 1063,
+            "p50m": 2.15923851851856,
+            "p90m": 2.7777777777778567,
+            "maxM": 2.7777777777778567,
+            "p50px": 180.172672547138,
+            "p90px": 231.78525284351744,
+            "maxPx": 231.78525284351744,
+            "rankBiasM": -1.922091442806913,
+            "reverseRatio": 0.13922859830667922,
+            "jerkMaxAbsM": 2.777592592592672,
+            "worst": {
+              "tMs": 10000,
+              "errM": -2.7777777777778567,
+              "absM": 2.7777777777778567,
+              "kmh": 5,
+              "distM": 30.690962962963212
+            }
+          },
+          "b": {
+            "n": 1063,
+            "p50m": 5.684341886080802e-14,
+            "p90m": 0.4771111111111104,
+            "maxM": 0.8749999999999645,
+            "p50px": 4.743167836731113e-12,
+            "p90px": 39.81143502840136,
+            "maxPx": 73.01235464570296,
+            "rankBiasM": -0.05588327932827091,
+            "reverseRatio": 0.04609595484477893,
+            "jerkMaxAbsM": 0.5833333333333286,
+            "worst": {
+              "tMs": 7990,
+              "errM": -0.768740740740796,
+              "absM": 0.768740740740796,
+              "kmh": 5,
+              "distM": 27.899296296296466
+            }
+          },
+          "gatesA": {
+            "g1_bias": false,
+            "g2_reverse": false,
+            "g3_maxErr": false,
+            "pass": false
+          },
+          "gatesB": {
+            "g1_bias": true,
+            "g2_reverse": false,
+            "g3_maxErr": true,
+            "pass": false
+          }
+        },
+        {
+          "tSec": 4,
+          "publish": {
+            "n": 3,
+            "meanIntervalMs": 4000,
+            "cruiseMeanMs": 4000,
+            "cruiseN": 2,
+            "maneuverMeanMs": null,
+            "maneuverN": 0,
+            "cruisePublishN": 3,
+            "maneuverPublishN": 0
+          },
+          "a": {
+            "n": 1063,
+            "p50m": 3.3197393518519114,
+            "p90m": 4.550890092592706,
+            "maxM": 4.754146111111233,
+            "p50px": 277.0079850156773,
+            "p90px": 379.7385158788664,
+            "maxPx": 396.69874503080797,
+            "rankBiasM": -3.252993040921992,
+            "reverseRatio": 0.3885230479774224,
+            "jerkMaxAbsM": 4.6666666666667815,
+            "worst": {
+              "tMs": 10620,
+              "errM": -4.754146111111233,
+              "absM": 4.754146111111233,
+              "kmh": 5,
+              "distM": 31.552074074074348
+            }
+          },
+          "b": {
+            "n": 1063,
+            "p50m": 8.881784197001252e-14,
+            "p90m": 1.7465185185185312,
+            "maxM": 3.2187407407407953,
+            "p50px": 7.411199744892365e-12,
+            "p90px": 145.73420510784905,
+            "maxPx": 268.5803891149133,
+            "rankBiasM": -0.34211720845967897,
+            "reverseRatio": 0.07243650047036689,
+            "jerkMaxAbsM": 1.3159629629629634,
+            "worst": {
+              "tMs": 7990,
+              "errM": -3.2187407407407953,
+              "absM": 3.2187407407407953,
+              "kmh": 5,
+              "distM": 27.899296296296466
+            }
+          },
+          "gatesA": {
+            "g1_bias": false,
+            "g2_reverse": false,
+            "g3_maxErr": false,
+            "pass": false
+          },
+          "gatesB": {
+            "g1_bias": false,
+            "g2_reverse": false,
+            "g3_maxErr": false,
+            "pass": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "P4-5-12-x3",
+      "currentReverse": {
+        "reverseRatio": 0,
+        "rankBiasM": -0.34815462456991764,
+        "maxM": 0.5333333333333599
+      },
+      "fixed": [
+        {
+          "tSec": 0.5,
+          "publish": {
+            "n": 33,
+            "meanIntervalMs": 500,
+            "cruiseMeanMs": 500,
+            "cruiseN": 4,
+            "maneuverMeanMs": 500,
+            "maneuverN": 28,
+            "cruisePublishN": 9,
+            "maneuverPublishN": 24
+          },
+          "a": {
+            "n": 1647,
+            "p50m": 1.0367037037037008,
+            "p90m": 1.5947844444444748,
+            "maxM": 1.6636666666665931,
+            "p50px": 86.50534683123593,
+            "p90px": 133.0731056471258,
+            "maxPx": 138.8208236330294,
+            "rankBiasM": -1.0807744158852046,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 1.6635414814814098,
+            "worst": {
+              "tMs": 13510,
+              "errM": -1.6635414814814098,
+              "absM": 1.6635414814814098,
+              "kmh": 11.933333333333334,
+              "distM": 50.867148148147876
+            }
+          },
+          "b": {
+            "n": 1647,
+            "p50m": 0.015962962962980498,
+            "p90m": 0.08055555555555571,
+            "maxM": 0.22685185185185475,
+            "p50px": 1.3319925863421722,
+            "p90px": 6.721772332461828,
+            "maxPx": 18.929128982220295,
+            "rankBiasM": 0.0004028424295697975,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 0.22685185185185475,
+            "worst": {
+              "tMs": 5490,
+              "errM": 0.22685185185185475,
+              "absM": 0.22685185185185475,
+              "kmh": 5.533333333333356,
+              "distM": 31.994111111111238
+            }
+          },
+          "gatesA": {
+            "g1_bias": false,
+            "g2_reverse": true,
+            "g3_maxErr": false,
+            "pass": false
+          },
+          "gatesB": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          }
+        },
+        {
+          "tSec": 1,
+          "publish": {
+            "n": 17,
+            "meanIntervalMs": 1000,
+            "cruiseMeanMs": 1000,
+            "cruiseN": 2,
+            "maneuverMeanMs": 1000,
+            "maneuverN": 14,
+            "cruisePublishN": 5,
+            "maneuverPublishN": 12
+          },
+          "a": {
+            "n": 1647,
+            "p50m": 2.1213888888888235,
+            "p90m": 3.0940740740740367,
+            "maxM": 3.205481481481428,
+            "p50px": 177.0143975965838,
+            "p90px": 258.1778669672888,
+            "maxPx": 267.47400084133125,
+            "rankBiasM": -2.1409747801839143,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 3.205481481481428,
+            "worst": {
+              "tMs": 9080,
+              "errM": -3.205481481481428,
+              "absM": 3.205481481481428,
+              "kmh": 11.533333333333335,
+              "distM": 40.465629629629554
+            }
+          },
+          "b": {
+            "n": 1647,
+            "p50m": 0.03848148148161812,
+            "p90m": 0.3168888888888972,
+            "maxM": 0.8983333333333192,
+            "p50px": 3.210998369403505,
+            "p90px": 26.442061644388414,
+            "maxPx": 74.95935076959023,
+            "rankBiasM": 0.001696440216800272,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 0.8983333333333192,
+            "worst": {
+              "tMs": 9990,
+              "errM": 0.8983333333333192,
+              "absM": 0.8983333333333192,
+              "kmh": 5.46666666666669,
+              "distM": 42.60581481481475
+            }
+          },
+          "gatesA": {
+            "g1_bias": false,
+            "g2_reverse": true,
+            "g3_maxErr": false,
+            "pass": false
+          },
+          "gatesB": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          }
+        },
+        {
+          "tSec": 2,
+          "publish": {
+            "n": 9,
+            "meanIntervalMs": 2000,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 2000,
+            "maneuverN": 8,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 7
+          },
+          "a": {
+            "n": 1647,
+            "p50m": 4.368722222222068,
+            "p90m": 5.617666666666736,
+            "maxM": 5.990518518518456,
+            "p50px": 364.53793855709046,
+            "p90px": 468.7532239406084,
+            "maxPx": 499.86498581227244,
+            "rankBiasM": -4.188853760484774,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 5.990518518518456,
+            "worst": {
+              "tMs": 14000,
+              "errM": -5.990518518518456,
+              "absM": 5.990518518518456,
+              "kmh": 8.666666666666679,
+              "distM": 52.26455555555528
+            }
+          },
+          "b": {
+            "n": 1647,
+            "p50m": 0.1624444444444464,
+            "p90m": 1.0592592592594912,
+            "maxM": 1.751851851852301,
+            "p50px": 13.554801586288677,
+            "p90px": 88.38744308434482,
+            "maxPx": 146.179232793345,
+            "rankBiasM": -0.06589783894394784,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 1.6821111111111975,
+            "worst": {
+              "tMs": 15990,
+              "errM": 1.751851851852301,
+              "absM": 1.751851851852301,
+              "kmh": 5,
+              "distM": 55.30344444444373
+            }
+          },
+          "gatesA": {
+            "g1_bias": false,
+            "g2_reverse": true,
+            "g3_maxErr": false,
+            "pass": false
+          },
+          "gatesB": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": false,
+            "pass": false
+          }
+        },
+        {
+          "tSec": 4,
+          "publish": {
+            "n": 5,
+            "meanIntervalMs": 4000,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 4000,
+            "maneuverN": 4,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 3
+          },
+          "a": {
+            "n": 1647,
+            "p50m": 9.076682962963073,
+            "p90m": 10.287597962962806,
+            "maxM": 10.627208518518366,
+            "p50px": 757.3828519982819,
+            "p90px": 858.4248581991797,
+            "maxPx": 886.7628768547771,
+            "rankBiasM": -7.9249606304953195,
+            "reverseRatio": 0.37398373983739835,
+            "jerkMaxAbsM": 10.627208518518366,
+            "worst": {
+              "tMs": 14040,
+              "errM": -10.627208518518366,
+              "absM": 10.627208518518366,
+              "kmh": 8.400000000000013,
+              "distM": 52.35899999999973
+            }
+          },
+          "b": {
+            "n": 1647,
+            "p50m": 0.4110370370369836,
+            "p90m": 2.3152222222223173,
+            "maxM": 3.8969259259260625,
+            "p50px": 34.29803648075932,
+            "p90px": 193.18837254001738,
+            "maxPx": 325.1699859791538,
+            "rankBiasM": 0.39090802581579265,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 3.8969259259260625,
+            "worst": {
+              "tMs": 7990,
+              "errM": 3.8969259259260625,
+              "absM": 3.8969259259260625,
+              "kmh": 10.360000000000024,
+              "distM": 36.97529629629628
+            }
+          },
+          "gatesA": {
+            "g1_bias": false,
+            "g2_reverse": false,
+            "g3_maxErr": false,
+            "pass": false
+          },
+          "gatesB": {
+            "g1_bias": false,
+            "g2_reverse": true,
+            "g3_maxErr": false,
+            "pass": false
+          }
+        }
+      ]
+    }
+  ]
+}

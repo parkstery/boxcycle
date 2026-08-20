@@ -1,0 +1,72 @@
+{
+  "instruction": "S4-9",
+  "source": "vite ssrLoadModule src/lib/rideSpeedRamp.ts — stepRideSpeedKmh 직접 호출",
+  "dtMs": 10,
+  "pxPerM": 83.44269102366391,
+  "ramp": {
+    "accelKmhPerSec": 2.6666666666666665,
+    "decelKmhPerSec": 6.666666666666667,
+    "accelMps2": 0.7407407407407407,
+    "decelMps2": 1.8518518518518519
+  },
+  "pausedPolicy": "paused 프레임은 예측 오차 집계에서 제외. 이번 프로파일은 램프로 0까지 감속하며 상태 전이 paused 를 넣지 않았다.",
+  "x0ok": true,
+  "profiles": [
+    {
+      "id": "P1-brake-20-0",
+      "label": "최대 제동 20→0",
+      "n": 701,
+      "durationSec": 7,
+      "pausedFrames": 0,
+      "accelCheck": {
+        "maxAccelMps2": 0,
+        "maxDecelMps2": 1.8518518518519045,
+        "rampAccelMps2": 0.7407407407407407,
+        "rampDecelMps2": 1.8518518518518519,
+        "match": true
+      }
+    },
+    {
+      "id": "P2-accel-0-20",
+      "label": "최대 가속 0→20",
+      "n": 1050,
+      "durationSec": 10.49,
+      "pausedFrames": 0,
+      "accelCheck": {
+        "maxAccelMps2": 0.7407407407407973,
+        "maxDecelMps2": 0,
+        "rampAccelMps2": 0.7407407407407407,
+        "rampDecelMps2": 1.8518518518518519,
+        "match": true
+      }
+    },
+    {
+      "id": "P3-chief-5-0-5",
+      "label": "Chief 저속 5→0→5 (램프 정지, paused 아님)",
+      "n": 1063,
+      "durationSec": 10.62,
+      "pausedFrames": 0,
+      "accelCheck": {
+        "maxAccelMps2": 0.7407407407407529,
+        "maxDecelMps2": 1.85185185185186,
+        "rampAccelMps2": 0.7407407407407407,
+        "rampDecelMps2": 1.8518518518518519,
+        "match": true
+      }
+    },
+    {
+      "id": "P4-5-12-x3",
+      "label": "5↔12 왕복 3회",
+      "n": 1647,
+      "durationSec": 16.46,
+      "pausedFrames": 0,
+      "accelCheck": {
+        "maxAccelMps2": 0.7407407407407973,
+        "maxDecelMps2": 1.85185185185186,
+        "rampAccelMps2": 0.7407407407407407,
+        "rampDecelMps2": 1.8518518518518519,
+        "match": true
+      }
+    }
+  ]
+}

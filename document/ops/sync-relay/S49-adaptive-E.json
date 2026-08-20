@@ -1,0 +1,1087 @@
+{
+  "instruction": "S4-9",
+  "adaptiveOverall": [
+    {
+      "eM": 0.15,
+      "passAll": true,
+      "x4all": true,
+      "usable": true,
+      "perProfile": [
+        {
+          "id": "P1-brake-20-0",
+          "maxM": 0.14629629629630614,
+          "rankBiasM": 0.02402652295656097,
+          "reverseRatio": 0,
+          "x4": true,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "publish": {
+            "n": 9,
+            "meanIntervalMs": 661.25,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 661.25,
+            "maneuverN": 8,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 7
+          }
+        },
+        {
+          "id": "P2-accel-0-20",
+          "maxM": 0.1493333333333453,
+          "rankBiasM": -0.03732317460319945,
+          "reverseRatio": 0,
+          "x4": true,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "publish": {
+            "n": 13,
+            "meanIntervalMs": 725,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 725,
+            "maneuverN": 12,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 11
+          }
+        },
+        {
+          "id": "P3-chief-5-0-5",
+          "maxM": 0.14933333333333465,
+          "rankBiasM": -0.0052794327724272816,
+          "reverseRatio": 0.017873941674506115,
+          "x4": true,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "publish": {
+            "n": 6,
+            "meanIntervalMs": 1332,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 1332,
+            "maneuverN": 5,
+            "cruisePublishN": 3,
+            "maneuverPublishN": 3
+          }
+        },
+        {
+          "id": "P4-5-12-x3",
+          "maxM": 0.1493333333333915,
+          "rankBiasM": -0.012157592929877385,
+          "reverseRatio": 0,
+          "x4": true,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "publish": {
+            "n": 22,
+            "meanIntervalMs": 708.5714285714286,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 708.5714285714286,
+            "maneuverN": 21,
+            "cruisePublishN": 4,
+            "maneuverPublishN": 18
+          }
+        }
+      ],
+      "worst": {
+        "profileId": "P4-5-12-x3",
+        "tMs": 2120,
+        "errM": -0.1493333333333915,
+        "absM": 0.1493333333333915,
+        "kmh": 6.679999999999983,
+        "distM": 23.107666666666727,
+        "maxM": 0.1493333333333915
+      }
+    },
+    {
+      "eM": 0.3,
+      "passAll": true,
+      "x4all": true,
+      "usable": true,
+      "perProfile": [
+        {
+          "id": "P1-brake-20-0",
+          "maxM": 0.2972222222222385,
+          "rankBiasM": 0.06368943836839974,
+          "reverseRatio": 0,
+          "x4": true,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "publish": {
+            "n": 7,
+            "meanIntervalMs": 998.3333333333334,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 998.3333333333334,
+            "maneuverN": 6,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 5
+          }
+        },
+        {
+          "id": "P2-accel-0-20",
+          "maxM": 0.2988888888890102,
+          "rankBiasM": -0.08792768959436915,
+          "reverseRatio": 0,
+          "x4": true,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "publish": {
+            "n": 10,
+            "meanIntervalMs": 1076.6666666666667,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 1076.6666666666667,
+            "maneuverN": 9,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 8
+          }
+        },
+        {
+          "id": "P3-chief-5-0-5",
+          "maxM": 0.298333333333332,
+          "rankBiasM": -0.041726734260182606,
+          "reverseRatio": 0.031044214487300093,
+          "x4": true,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "publish": {
+            "n": 5,
+            "meanIntervalMs": 1635,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 1635,
+            "maneuverN": 4,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 3
+          }
+        },
+        {
+          "id": "P4-5-12-x3",
+          "maxM": 0.2977777777778101,
+          "rankBiasM": -0.027846589759116695,
+          "reverseRatio": 0,
+          "x4": true,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "publish": {
+            "n": 16,
+            "meanIntervalMs": 976.6666666666666,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 976.6666666666666,
+            "maneuverN": 15,
+            "cruisePublishN": 7,
+            "maneuverPublishN": 9
+          }
+        }
+      ],
+      "worst": {
+        "profileId": "P2-accel-0-20",
+        "tMs": 9680,
+        "errM": -0.2988888888890102,
+        "absM": 0.2988888888890102,
+        "kmh": 20,
+        "distM": 47.47222222222255,
+        "maxM": 0.2988888888890102
+      }
+    },
+    {
+      "eM": 0.5,
+      "passAll": true,
+      "x4all": true,
+      "usable": true,
+      "perProfile": [
+        {
+          "id": "P1-brake-20-0",
+          "maxM": 0.4866666666666717,
+          "rankBiasM": 0.11334601363124835,
+          "reverseRatio": 0,
+          "x4": true,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "publish": {
+            "n": 5,
+            "meanIntervalMs": 1227.5,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 1227.5,
+            "maneuverN": 4,
+            "cruisePublishN": 1,
+            "maneuverPublishN": 4
+          }
+        },
+        {
+          "id": "P2-accel-0-20",
+          "maxM": 0.49800000000009703,
+          "rankBiasM": -0.14033206349207727,
+          "reverseRatio": 0,
+          "x4": true,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "publish": {
+            "n": 8,
+            "meanIntervalMs": 1352.857142857143,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 1352.857142857143,
+            "maneuverN": 7,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 6
+          }
+        },
+        {
+          "id": "P3-chief-5-0-5",
+          "maxM": 0.49996296296299647,
+          "rankBiasM": -0.029680673147322215,
+          "reverseRatio": 0.041392285983066796,
+          "x4": true,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "publish": {
+            "n": 4,
+            "meanIntervalMs": 2470,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 2470,
+            "maneuverN": 3,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 2
+          }
+        },
+        {
+          "id": "P4-5-12-x3",
+          "maxM": 0.4981481481482817,
+          "rankBiasM": -0.020163529649834595,
+          "reverseRatio": 0,
+          "x4": true,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "publish": {
+            "n": 12,
+            "meanIntervalMs": 1384.5454545454545,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 1384.5454545454545,
+            "maneuverN": 11,
+            "cruisePublishN": 4,
+            "maneuverPublishN": 8
+          }
+        }
+      ],
+      "worst": {
+        "profileId": "P3-chief-5-0-5",
+        "tMs": 7400,
+        "errM": -0.49996296296299647,
+        "absM": 0.49996296296299647,
+        "kmh": 5,
+        "distM": 27.079851851852,
+        "maxM": 0.49996296296299647
+      }
+    },
+    {
+      "eM": 1,
+      "passAll": false,
+      "x4all": true,
+      "usable": false,
+      "perProfile": [
+        {
+          "id": "P1-brake-20-0",
+          "maxM": 0.9966666666666555,
+          "rankBiasM": 0.14991176625974953,
+          "reverseRatio": 0,
+          "x4": true,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "publish": {
+            "n": 4,
+            "meanIntervalMs": 1706.6666666666667,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 1706.6666666666667,
+            "maneuverN": 3,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 2
+          }
+        },
+        {
+          "id": "P2-accel-0-20",
+          "maxM": 0.9991851851853042,
+          "rankBiasM": -0.2786387301587468,
+          "reverseRatio": 0.050473186119873815,
+          "x4": true,
+          "gates": {
+            "g1_bias": false,
+            "g2_reverse": false,
+            "g3_maxErr": true,
+            "pass": false
+          },
+          "publish": {
+            "n": 6,
+            "meanIntervalMs": 1892,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 1892,
+            "maneuverN": 5,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 4
+          }
+        },
+        {
+          "id": "P3-chief-5-0-5",
+          "maxM": 0.9999999999998863,
+          "rankBiasM": -0.1536909515348465,
+          "reverseRatio": 0.06773283160865474,
+          "x4": true,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": false,
+            "g3_maxErr": true,
+            "pass": false
+          },
+          "publish": {
+            "n": 3,
+            "meanIntervalMs": 3190,
+            "cruiseMeanMs": 4090,
+            "cruiseN": 1,
+            "maneuverMeanMs": 2290,
+            "maneuverN": 1,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 1
+          }
+        },
+        {
+          "id": "P4-5-12-x3",
+          "maxM": 0.9996666666667338,
+          "rankBiasM": -0.1407894488294863,
+          "reverseRatio": 0,
+          "x4": true,
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "publish": {
+            "n": 7,
+            "meanIntervalMs": 2606.6666666666665,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 2606.6666666666665,
+            "maneuverN": 6,
+            "cruisePublishN": 3,
+            "maneuverPublishN": 4
+          }
+        }
+      ],
+      "worst": {
+        "profileId": "P3-chief-5-0-5",
+        "tMs": 6370,
+        "errM": -0.990074074074073,
+        "absM": 0.990074074074073,
+        "kmh": 4.346666666666673,
+        "distM": 25.670629629629744,
+        "maxM": 0.9999999999998863
+      }
+    }
+  ],
+  "profiles": [
+    {
+      "id": "P1-brake-20-0",
+      "adaptive": [
+        {
+          "eM": 0.15,
+          "publish": {
+            "n": 9,
+            "meanIntervalMs": 661.25,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 661.25,
+            "maneuverN": 8,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 7
+          },
+          "b": {
+            "n": 701,
+            "p50m": 2.7000623958883807e-13,
+            "p90m": 0.09444444444444855,
+            "maxM": 0.14629629629630614,
+            "p50px": 2.2530047224472785e-11,
+            "p90px": 7.880698596679712,
+            "maxPx": 12.20735664975906,
+            "rankBiasM": 0.02402652295656097,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 0.1444444444444457,
+            "worst": {
+              "tMs": 5280,
+              "errM": 0.14629629629630614,
+              "absM": 0.14629629629630614,
+              "kmh": 0,
+              "distM": 39.416666666667005
+            }
+          },
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "x4_maxLeE": true
+        },
+        {
+          "eM": 0.3,
+          "publish": {
+            "n": 7,
+            "meanIntervalMs": 998.3333333333334,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 998.3333333333334,
+            "maneuverN": 6,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 5
+          },
+          "b": {
+            "n": 701,
+            "p50m": 0.006666666666667709,
+            "p90m": 0.2177777777777763,
+            "maxM": 0.2972222222222385,
+            "p50px": 0.5562846068245131,
+            "p90px": 18.17196382293113,
+            "maxPx": 24.801022054257018,
+            "rankBiasM": 0.06368943836839974,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 0.29555555555556623,
+            "worst": {
+              "tMs": 5980,
+              "errM": 0.2972222222222385,
+              "absM": 0.2972222222222385,
+              "kmh": 0,
+              "distM": 39.416666666667005
+            }
+          },
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "x4_maxLeE": true
+        },
+        {
+          "eM": 0.5,
+          "publish": {
+            "n": 5,
+            "meanIntervalMs": 1227.5,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 1227.5,
+            "maneuverN": 4,
+            "cruisePublishN": 1,
+            "maneuverPublishN": 4
+          },
+          "b": {
+            "n": 701,
+            "p50m": 0.06444444444445452,
+            "p90m": 0.29555555555558755,
+            "maxM": 0.4866666666666717,
+            "p50px": 5.377417865970292,
+            "p90px": 24.661950902552224,
+            "maxPx": 40.60877629818352,
+            "rankBiasM": 0.11334601363124835,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 0.4866666666666717,
+            "worst": {
+              "tMs": 3440,
+              "errM": 0.4866666666666717,
+              "absM": 0.4866666666666717,
+              "kmh": 10.333333333333368,
+              "distM": 37.206481481481795
+            }
+          },
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "x4_maxLeE": true
+        },
+        {
+          "eM": 1,
+          "publish": {
+            "n": 4,
+            "meanIntervalMs": 1706.6666666666667,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 1706.6666666666667,
+            "maneuverN": 3,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 2
+          },
+          "b": {
+            "n": 701,
+            "p50m": 2.4868995751603507e-13,
+            "p90m": 0.6000000000000085,
+            "maxM": 0.9966666666666555,
+            "p50px": 2.0751359285698618e-11,
+            "p90px": 50.065614614199056,
+            "maxPx": 83.16454872025076,
+            "rankBiasM": 0.14991176625974953,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 0.9918518518518553,
+            "worst": {
+              "tMs": 5110,
+              "errM": 0.9966666666666555,
+              "absM": 0.9966666666666555,
+              "kmh": 0,
+              "distM": 39.416666666667005
+            }
+          },
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "x4_maxLeE": true
+        }
+      ]
+    },
+    {
+      "id": "P2-accel-0-20",
+      "adaptive": [
+        {
+          "eM": 0.15,
+          "publish": {
+            "n": 13,
+            "meanIntervalMs": 725,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 725,
+            "maneuverN": 12,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 11
+          },
+          "b": {
+            "n": 1050,
+            "p50m": 0.015555555555554434,
+            "p90m": 0.11407407407407533,
+            "maxM": 0.1493333333333453,
+            "p50px": 1.2979974159235672,
+            "p90px": 9.518647716773618,
+            "maxPx": 12.460775192868143,
+            "rankBiasM": -0.03732317460319945,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 0.1493333333333453,
+            "worst": {
+              "tMs": 8020,
+              "errM": -0.1493333333333453,
+              "absM": 0.1493333333333453,
+              "kmh": 18.746666666666883,
+              "distM": 38.33007407407418
+            }
+          },
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "x4_maxLeE": true
+        },
+        {
+          "eM": 0.3,
+          "publish": {
+            "n": 10,
+            "meanIntervalMs": 1076.6666666666667,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 1076.6666666666667,
+            "maneuverN": 9,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 8
+          },
+          "b": {
+            "n": 1050,
+            "p50m": 0.05488888888888255,
+            "p90m": 0.23999999999999488,
+            "maxM": 0.2988888888890102,
+            "p50px": 4.580076596187245,
+            "p90px": 20.02624584567891,
+            "maxPx": 24.940093205971895,
+            "rankBiasM": -0.08792768959436915,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 0.29666666666668107,
+            "worst": {
+              "tMs": 9680,
+              "errM": -0.2988888888890102,
+              "absM": 0.2988888888890102,
+              "kmh": 20,
+              "distM": 47.47222222222255
+            }
+          },
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "x4_maxLeE": true
+        },
+        {
+          "eM": 0.5,
+          "publish": {
+            "n": 8,
+            "meanIntervalMs": 1352.857142857143,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 1352.857142857143,
+            "maneuverN": 7,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 6
+          },
+          "b": {
+            "n": 1050,
+            "p50m": 0.08007407407407285,
+            "p90m": 0.3900000000000716,
+            "maxM": 0.49800000000009703,
+            "p50px": 6.681596221968838,
+            "p90px": 32.542649499234905,
+            "maxPx": 41.55446012979272,
+            "rankBiasM": -0.14033206349207727,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 0.4940740740740921,
+            "worst": {
+              "tMs": 9460,
+              "errM": -0.49800000000009703,
+              "absM": 0.49800000000009703,
+              "kmh": 20,
+              "distM": 46.25000000000029
+            }
+          },
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "x4_maxLeE": true
+        },
+        {
+          "eM": 1,
+          "publish": {
+            "n": 6,
+            "meanIntervalMs": 1892,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 1892,
+            "maneuverN": 5,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 4
+          },
+          "b": {
+            "n": 1050,
+            "p50m": 0.15407407407407092,
+            "p90m": 0.7840740740740699,
+            "maxM": 0.9991851851853042,
+            "p50px": 12.856355357719806,
+            "p90px": 65.42525070262799,
+            "maxPx": 83.37470068283974,
+            "rankBiasM": -0.2786387301587468,
+            "reverseRatio": 0.050473186119873815,
+            "jerkMaxAbsM": 0.9900740740741014,
+            "worst": {
+              "tMs": 9450,
+              "errM": -0.9991851851853042,
+              "absM": 0.9991851851853042,
+              "kmh": 20,
+              "distM": 46.194444444444734
+            }
+          },
+          "gates": {
+            "g1_bias": false,
+            "g2_reverse": false,
+            "g3_maxErr": true,
+            "pass": false
+          },
+          "x4_maxLeE": true
+        }
+      ]
+    },
+    {
+      "id": "P3-chief-5-0-5",
+      "adaptive": [
+        {
+          "eM": 0.15,
+          "publish": {
+            "n": 6,
+            "meanIntervalMs": 1332,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 1332,
+            "maneuverN": 5,
+            "cruisePublishN": 3,
+            "maneuverPublishN": 3
+          },
+          "b": {
+            "n": 1063,
+            "p50m": 8.526512829121202e-14,
+            "p90m": 0.055555555555557135,
+            "maxM": 0.14933333333333465,
+            "p50px": 7.114751755096669e-12,
+            "p90px": 4.635705056870349,
+            "maxPx": 12.460775192867255,
+            "rankBiasM": -0.0052794327724272816,
+            "reverseRatio": 0.017873941674506115,
+            "jerkMaxAbsM": 0.14933333333333465,
+            "worst": {
+              "tMs": 6010,
+              "errM": -0.14933333333333465,
+              "absM": 0.14933333333333465,
+              "kmh": 3.386666666666673,
+              "distM": 25.282629629629742
+            }
+          },
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "x4_maxLeE": true
+        },
+        {
+          "eM": 0.3,
+          "publish": {
+            "n": 5,
+            "meanIntervalMs": 1635,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 1635,
+            "maneuverN": 4,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 3
+          },
+          "b": {
+            "n": 1063,
+            "p50m": 0.04933333333333323,
+            "p90m": 0.20500000000000185,
+            "maxM": 0.298333333333332,
+            "p50px": 4.116506090500744,
+            "p90px": 17.105751659851258,
+            "maxPx": 24.893736155392958,
+            "rankBiasM": -0.041726734260182606,
+            "reverseRatio": 0.031044214487300093,
+            "jerkMaxAbsM": 0.2966666666666704,
+            "worst": {
+              "tMs": 6530,
+              "errM": -0.2966666666666704,
+              "absM": 0.2966666666666704,
+              "kmh": 4.773333333333335,
+              "distM": 25.873888888889006
+            }
+          },
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "x4_maxLeE": true
+        },
+        {
+          "eM": 0.5,
+          "publish": {
+            "n": 4,
+            "meanIntervalMs": 2470,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 2470,
+            "maneuverN": 3,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 2
+          },
+          "b": {
+            "n": 1063,
+            "p50m": 1.0302869668521453e-13,
+            "p90m": 0.2551851851850664,
+            "maxM": 0.49996296296299647,
+            "p50px": 8.596991704075142e-12,
+            "p90px": 21.293338561213954,
+            "maxPx": 41.71825504179684,
+            "rankBiasM": -0.029680673147322215,
+            "reverseRatio": 0.041392285983066796,
+            "jerkMaxAbsM": 0.49944444444443903,
+            "worst": {
+              "tMs": 7400,
+              "errM": -0.49996296296299647,
+              "absM": 0.49996296296299647,
+              "kmh": 5,
+              "distM": 27.079851851852
+            }
+          },
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "x4_maxLeE": true
+        },
+        {
+          "eM": 1,
+          "publish": {
+            "n": 3,
+            "meanIntervalMs": 3190,
+            "cruiseMeanMs": 4090,
+            "cruiseN": 1,
+            "maneuverMeanMs": 2290,
+            "maneuverN": 1,
+            "cruisePublishN": 2,
+            "maneuverPublishN": 1
+          },
+          "b": {
+            "n": 1063,
+            "p50m": 0.11407407407407177,
+            "p90m": 0.6384074074075414,
+            "maxM": 0.9999999999998863,
+            "p50px": 9.518647716773321,
+            "p90px": 53.27043204352581,
+            "maxPx": 83.44269102365442,
+            "rankBiasM": -0.1536909515348465,
+            "reverseRatio": 0.06773283160865474,
+            "jerkMaxAbsM": 0.990074074074073,
+            "worst": {
+              "tMs": 6370,
+              "errM": -0.990074074074073,
+              "absM": 0.990074074074073,
+              "kmh": 4.346666666666673,
+              "distM": 25.670629629629744
+            }
+          },
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": false,
+            "g3_maxErr": true,
+            "pass": false
+          },
+          "x4_maxLeE": true
+        }
+      ]
+    },
+    {
+      "id": "P4-5-12-x3",
+      "adaptive": [
+        {
+          "eM": 0.15,
+          "publish": {
+            "n": 22,
+            "meanIntervalMs": 708.5714285714286,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 708.5714285714286,
+            "maneuverN": 21,
+            "cruisePublishN": 4,
+            "maneuverPublishN": 18
+          },
+          "b": {
+            "n": 1647,
+            "p50m": 0.017111111111113075,
+            "p90m": 0.11407407407406822,
+            "maxM": 0.1493333333333915,
+            "p50px": 1.4277971575161907,
+            "p90px": 9.518647716773025,
+            "maxPx": 12.460775192871997,
+            "rankBiasM": -0.012157592929877385,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 0.1493333333333915,
+            "worst": {
+              "tMs": 2120,
+              "errM": -0.1493333333333915,
+              "absM": 0.1493333333333915,
+              "kmh": 6.679999999999983,
+              "distM": 23.107666666666727
+            }
+          },
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "x4_maxLeE": true
+        },
+        {
+          "eM": 0.3,
+          "publish": {
+            "n": 16,
+            "meanIntervalMs": 976.6666666666666,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 976.6666666666666,
+            "maneuverN": 15,
+            "cruisePublishN": 7,
+            "maneuverPublishN": 9
+          },
+          "b": {
+            "n": 1647,
+            "p50m": 0.025185185185179648,
+            "p90m": 0.22244444444444866,
+            "maxM": 0.2977777777778101,
+            "p50px": 2.101519625780703,
+            "p90px": 18.561363047708703,
+            "maxPx": 24.847379104827063,
+            "rankBiasM": -0.027846589759116695,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 0.29666666666672725,
+            "worst": {
+              "tMs": 5660,
+              "errM": 0.2977777777778101,
+              "absM": 0.2977777777778101,
+              "kmh": 5,
+              "distM": 32.23540740740751
+            }
+          },
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "x4_maxLeE": true
+        },
+        {
+          "eM": 0.5,
+          "publish": {
+            "n": 12,
+            "meanIntervalMs": 1384.5454545454545,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 1384.5454545454545,
+            "maneuverN": 11,
+            "cruisePublishN": 4,
+            "maneuverPublishN": 8
+          },
+          "b": {
+            "n": 1647,
+            "p50m": 0.07074074074079917,
+            "p90m": 0.3747407407408687,
+            "maxM": 0.4981481481482817,
+            "p50px": 5.902797772419619,
+            "p90px": 31.26937584361925,
+            "maxPx": 41.56682200994742,
+            "rankBiasM": -0.020163529649834595,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 0.4981481481482817,
+            "worst": {
+              "tMs": 10810,
+              "errM": 0.4981481481482817,
+              "absM": 0.4981481481482817,
+              "kmh": 5.906666666666657,
+              "distM": 43.79266666666647
+            }
+          },
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "x4_maxLeE": true
+        },
+        {
+          "eM": 1,
+          "publish": {
+            "n": 7,
+            "meanIntervalMs": 2606.6666666666665,
+            "cruiseMeanMs": null,
+            "cruiseN": 0,
+            "maneuverMeanMs": 2606.6666666666665,
+            "maneuverN": 6,
+            "cruisePublishN": 3,
+            "maneuverPublishN": 4
+          },
+          "b": {
+            "n": 1647,
+            "p50m": 0.2327777777778337,
+            "p90m": 0.7745925925926649,
+            "maxM": 0.9996666666667338,
+            "p50px": 19.423604188290877,
+            "p90px": 64.63409037292851,
+            "maxPx": 83.41487679332829,
+            "rankBiasM": -0.1407894488294863,
+            "reverseRatio": 0,
+            "jerkMaxAbsM": 0.9996666666667338,
+            "worst": {
+              "tMs": 7110,
+              "errM": 0.9996666666667338,
+              "absM": 0.9996666666667338,
+              "kmh": 8.013333333333303,
+              "distM": 34.72640740740739
+            }
+          },
+          "gates": {
+            "g1_bias": true,
+            "g2_reverse": true,
+            "g3_maxErr": true,
+            "pass": true
+          },
+          "x4_maxLeE": true
+        }
+      ]
+    }
+  ]
+}
