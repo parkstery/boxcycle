@@ -1,0 +1,203 @@
+{
+  "instruction": "S4-15",
+  "source": "C:\\20.HDev\\rtw-sync-s4-2\\repo\\document\\ops\\sync-relay\\S415-chain.json",
+  "kind": "fail-trace-not-replay",
+  "d0": true,
+  "d1": true,
+  "d2": {
+    "ok": false,
+    "hz": 11.452757375824724,
+    "dtMs": 87.31521739130434,
+    "tickKind": "requestAnimationFrame",
+    "reason": "예약은 MapView requestAnimationFrame 이나 e2e 2-browser + Mapbox tickBody 비용으로 프레임 시간이 길다"
+  },
+  "d3": {
+    "ok": true,
+    "closeM": 4,
+    "gap": {
+      "n": 93,
+      "min": 2.033030227922552,
+      "max": 2.3357713657903503,
+      "median": 2.185418996510279
+    },
+    "absGap": {
+      "n": 93,
+      "min": 2.033030227922552,
+      "max": 2.3357713657903503,
+      "median": 2.185418996510279
+    },
+    "closeWholeWindow": true,
+    "sameSpeedWindow": true,
+    "localSpeedKmh": {
+      "n": 93,
+      "min": 5,
+      "max": 5,
+      "median": 5
+    },
+    "peerNewestSpeedMps": {
+      "n": 93,
+      "min": 1.39,
+      "max": 1.39,
+      "median": 1.39
+    },
+    "alignedFlag": true
+  },
+  "analyses": [
+    {
+      "conditionId": "pair-chief-left-16m-5kmh",
+      "n": 93,
+      "dtMs": 87.31521739130434,
+      "hz": 11.452757375824724,
+      "tickWorkMs": {
+        "n": 93,
+        "min": 35.899999994042446,
+        "max": 82.89999998807616,
+        "median": 55.099999988080526
+      },
+      "rafMinusRenderMs": {
+        "n": 93,
+        "min": -78.79999999106076,
+        "max": -33.899999994042446,
+        "median": -52.799999994036625
+      },
+      "displayMono": {
+        "back": 0,
+        "maxBack": 0
+      },
+      "lngLat": {
+        "peer": {
+          "lng": {
+            "n": 0,
+            "maxMag": 0.0000011735134108903367,
+            "peakToPeak": 0.00005980762466606393,
+            "firstIndex": null
+          },
+          "lat": {
+            "n": 0,
+            "maxMag": 0.0000016345361615321963,
+            "peakToPeak": 0.00008802011624453598,
+            "firstIndex": null
+          },
+          "vsDisplay": {
+            "n": 0,
+            "maxMag": 6.113405942587136e-8,
+            "firstIndex": null
+          },
+          "dirty": false
+        },
+        "self": {
+          "lng": {
+            "n": 0,
+            "maxMag": 8.408940601611903e-7,
+            "peakToPeak": 0.000059631587248532014,
+            "firstIndex": null
+          },
+          "lat": {
+            "n": 0,
+            "maxMag": 0.0000013126147706543634,
+            "peakToPeak": 0.0000898104422546453,
+            "firstIndex": null
+          },
+          "vsLocal": {
+            "n": 0,
+            "maxMag": 5.3099078453633375e-8,
+            "firstIndex": null
+          },
+          "dirty": false
+        }
+      },
+      "projected": {
+        "peer": {
+          "x": {
+            "n": 26,
+            "maxMag": 7.881675634507758,
+            "peakToPeak": 26.177666380718506,
+            "firstIndex": 8
+          },
+          "y": {
+            "n": 0,
+            "maxMag": 0.26338824979984565,
+            "peakToPeak": 1.7258725432080837,
+            "firstIndex": null
+          },
+          "dirty": true
+        },
+        "self": {
+          "x": {
+            "n": 0,
+            "maxMag": 8.015510957193328e-7,
+            "peakToPeak": 0.00000589820535878971,
+            "firstIndex": null
+          },
+          "y": {
+            "n": 0,
+            "maxMag": 4.6193281377782114e-7,
+            "peakToPeak": 0.0000024269823484246444,
+            "firstIndex": null
+          },
+          "dirty": false
+        }
+      },
+      "relProjected": {
+        "x": {
+          "n": 12,
+          "maxMag": 7.881675558889754,
+          "peakToPeak": 26.177670811934263,
+          "firstIndex": 8
+        },
+        "y": {
+          "n": 0,
+          "maxMag": 0.2633882782118917,
+          "peakToPeak": 1.725873730122487,
+          "firstIndex": null
+        },
+        "dirty": true
+      },
+      "relDom": {
+        "x": {
+          "n": 12,
+          "maxMag": 7.975999999999999,
+          "peakToPeak": 26.489000000000033,
+          "firstIndex": 9
+        },
+        "y": {
+          "n": 0,
+          "maxMag": 0.19399999999995998,
+          "peakToPeak": 1.2690000000000055,
+          "firstIndex": null
+        },
+        "dirty": true
+      },
+      "gapDistM": {
+        "n": 93,
+        "min": 2.033030227922552,
+        "max": 2.3357713657903503,
+        "median": 2.185418996510279
+      },
+      "absGapDistM": {
+        "n": 93,
+        "min": 2.033030227922552,
+        "max": 2.3357713657903503,
+        "median": 2.185418996510279
+      },
+      "closeWholeWindow": true,
+      "localSpeedKmh": {
+        "n": 93,
+        "min": 5,
+        "max": 5,
+        "median": 5
+      },
+      "peerNewestSpeedMps": {
+        "n": 93,
+        "min": 1.39,
+        "max": 1.39,
+        "median": 1.39
+      },
+      "sameSpeedWindow": true,
+      "branchPeer": "카메라·투영",
+      "branchSelf": "미분기"
+    }
+  ],
+  "branchPeer": "카메라·투영",
+  "branchSelf": "미분기"
+}
