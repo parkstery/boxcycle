@@ -22,6 +22,8 @@ import type { PeerMotionEntity, PeerMotionPacket } from "./types";
 import { getPeerSyncSelfDistM } from "./peerSyncDebug";
 import { isPeerJitterCapturing, LOCAL_SOLO_UID, noteJitterDisplay } from "./peerJitterCapture";
 import { peerSyncChainLog, peerSyncChainShouldEmit } from "./peerSyncChainLog";
+import { peerDispSpec, readPeerDispMode } from "./peerDisplayMode";
+import { resetPeerDisplayAbsorb, stepPeerDisplayAbsorb } from "./peerDisplayAbsorb";
 
 const PEER_MAX = 30;
 
@@ -103,11 +105,13 @@ export class PeerMotionRegistry {
   }
 
   remove(uid: string): void {
+    resetPeerDisplayAbsorb(uid);
     this.entities.delete(uid);
     this.activeUids.delete(uid);
   }
 
   clear(): void {
+    resetPeerDisplayAbsorb();
     this.entities.clear();
     this.activeUids.clear();
   }
@@ -117,6 +121,7 @@ export class PeerMotionRegistry {
       if (this.activeUids.has(uid)) continue;
       const e = this.entities.get(uid)!;
       if (nowMs - e.lastIngestLocalMs > PEER_DRIVE_SIM_GRACE_MS) {
+        resetPeerDisplayAbsorb(uid);
         this.entities.delete(uid);
       }
     }
@@ -125,8 +130,15 @@ export class PeerMotionRegistry {
   step(dtSec: number, routeGeometry: LineStringGeometry | null, nowMs: number = Date.now()): void {
     const routeLenM = routeGeometry ? lineStringLengthMeters(routeGeometry) : 0;
     const clampedDt = Math.min(0.12, Math.max(0, dtSec));
+    const spec = peerDispSpec(readPeerDispMode());
     for (const entity of this.entities.values()) {
-      stepPeerMotionEntity(entity, clampedDt, routeLenM, nowMs);
+      const absorbLive = spec && entity.phase === "live";
+      if (absorbLive) {
+        stepPeerDisplayAbsorb(entity, clampedDt, routeLenM, nowMs, spec.tauAbs);
+      } else {
+        resetPeerDisplayAbsorb(entity.uid);
+        stepPeerMotionEntity(entity, clampedDt, routeLenM, nowMs);
+      }
     }
   }
 
@@ -186,8 +198,10 @@ export class PeerMotionRegistry {
             PEER_RIDER_PEDAL_FRAME_COUNT
           : 0;
 
-      const mapLabel = entity.label;
+      let mapLabel = entity.label;
       if (import.meta.env.DEV) {
+        const dispMode = readPeerDispMode();
+        if (dispMode !== "off") mapLabel = `${entity.label} [${dispMode.toUpperCase()}]`;
         const newest = entity.buffer[entity.buffer.length - 1];
         const ageMs = newest ? nowMs - newest.recvAtMs : -1;
         const self = getPeerSyncSelfDistM();
@@ -260,6 +274,11 @@ export class PeerMotionRegistry {
 
   getEntityCount(): number {
     return this.entities.size;
+  }
+
+  /** 시험 — 반올림 없는 표시 거리. debugSnapshot 은 0.1 m 로 깎는다. */
+  peekDisplayDistM(uid: string): number | undefined {
+    return this.entities.get(uid)?.displayDistM;
   }
 
   /** DEV 진단 — 보간 상태(버퍼·렌더 지연·newest 거리) */
@@ -369,4 +388,5 @@ export function getPeerMotionRegistry(): PeerMotionRegistry {
 export function resetPeerMotionRegistry(): void {
   singleton?.clear();
   singleton = null;
+  resetPeerDisplayAbsorb();
 }
