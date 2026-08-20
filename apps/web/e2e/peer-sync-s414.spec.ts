@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
  */
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = path.resolve(__dirname, "../../../document/ops/sync-relay");
-const ALIGN_MS = 9 * 60 * 1000;
+const ALIGN_MS = 150_000;
 const RECORD_MS = 8_000;
 const QS = "rideCam=16";
 
@@ -53,9 +53,21 @@ async function dismissRideSummaryIfAny(page: import("@playwright/test").Page) {
   const summary = page.getByRole("dialog", { name: "주행 결과" });
   if (!(await summary.isVisible().catch(() => false))) return;
   const skip = summary.getByRole("button", { name: "저장 안 함" });
-  if (await skip.isVisible().catch(() => false)) await skip.click();
-  else await summary.getByRole("button", { name: "닫기" }).first().click();
-  await expect(summary).toBeHidden({ timeout: 10_000 });
+  if (await skip.isVisible().catch(() => false)) {
+    await skip.click();
+    if (await skip.isVisible().catch(() => false)) await skip.click();
+  } else {
+    await summary.getByRole("button", { name: "닫기" }).first().click();
+  }
+  await expect(summary).toBeHidden({ timeout: 15_000 });
+}
+
+async function keepRiding(page: import("@playwright/test").Page) {
+  const summary = page.getByRole("dialog", { name: "주행 결과" });
+  if (await summary.isVisible().catch(() => false)) {
+    await dismissRideSummaryIfAny(page);
+  }
+  await ensureRiding(page);
 }
 
 async function ensureRiding(page: import("@playwright/test").Page) {
@@ -183,6 +195,8 @@ test.describe("S4-14 same-rAF chain capture", () => {
     let speedB = 5;
 
     while (Date.now() < deadline) {
+      await keepRiding(pageA);
+      await keepRiding(pageB);
       const gap = await peerGapM(pageB);
       alignLog.push({ t: Date.now(), gap, speedA, speedB });
       if (gap == null) {
@@ -201,7 +215,7 @@ test.describe("S4-14 same-rAF chain capture", () => {
           speedB = 5;
         }
         if (holdStart == null) holdStart = Date.now();
-        if (Date.now() - holdStart >= 2000) {
+        if (Date.now() - holdStart >= 1000) {
           aligned = true;
           break;
         }
@@ -212,19 +226,11 @@ test.describe("S4-14 same-rAF chain capture", () => {
         if (abs <= 6) {
           nextA = 5;
           nextB = 5;
-        } else if (abs <= 15) {
-          if (gap > 0) {
-            nextA = 5;
-            nextB = 10;
-          } else {
-            nextA = 10;
-            nextB = 5;
-          }
         } else if (gap > 0) {
           nextA = 5;
-          nextB = 18;
+          nextB = 8;
         } else {
-          nextA = 18;
+          nextA = 8;
           nextB = 5;
         }
         if (nextA !== speedA) {
@@ -239,6 +245,8 @@ test.describe("S4-14 same-rAF chain capture", () => {
       await pageA.waitForTimeout(350);
     }
 
+    await keepRiding(pageA);
+    await keepRiding(pageB);
     await setSpeedKmh(pageA, 5);
     await setSpeedKmh(pageB, 5);
     await foldDock(pageA);

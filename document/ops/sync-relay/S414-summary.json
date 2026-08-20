@@ -1,0 +1,401 @@
+{
+  "instruction": "S4-14",
+  "source": "C:\\20.HDev\\rtw-sync-s4-2\\repo\\document\\ops\\sync-relay\\S414-chain.json",
+  "c0": true,
+  "c2": true,
+  "analyses": [
+    {
+      "conditionId": "pair-chief-left-16m-5kmh",
+      "n": 73,
+      "dtMs": 111.33888888888922,
+      "sentinelZero": false,
+      "local": {
+        "back": 0,
+        "maxBack": 0
+      },
+      "packetDist": {
+        "back": 0,
+        "maxBack": 0
+      },
+      "packetServer": {
+        "back": 0,
+        "maxBack": 0
+      },
+      "display": {
+        "n": 0,
+        "maxMag": 0.37146710709819786,
+        "peakToPeak": 11.212024639266275,
+        "firstIndex": null,
+        "back": 0,
+        "maxBack": 0
+      },
+      "camera": {
+        "bearing": {
+          "n": 0,
+          "maxMag": 0.024610473720201753,
+          "peakToPeak": 1.4262171811010944,
+          "firstIndex": null
+        },
+        "lng": {
+          "n": 0,
+          "maxMag": 0.0000019859760556073525,
+          "peakToPeak": 0.00009731968455639617,
+          "firstIndex": null
+        }
+      },
+      "peerDom": {
+        "x": {
+          "n": 19,
+          "maxMag": 19.091000000000008,
+          "peakToPeak": 37.28199999999998,
+          "firstIndex": 3
+        },
+        "y": {
+          "n": 0,
+          "maxMag": 0.13999999999998636,
+          "peakToPeak": 1.9669999999999845,
+          "firstIndex": null
+        }
+      },
+      "selfDom": {
+        "x": {
+          "n": 35,
+          "maxMag": 8,
+          "peakToPeak": 10,
+          "firstIndex": 3
+        },
+        "y": {
+          "n": 0,
+          "maxMag": 1,
+          "peakToPeak": 1,
+          "firstIndex": null
+        }
+      },
+      "relAnchor": {
+        "x": {
+          "n": 13,
+          "maxMag": 19.091000000000008,
+          "peakToPeak": 39.375,
+          "firstIndex": 3
+        },
+        "y": {
+          "n": 0,
+          "maxMag": 1.1050000000000182,
+          "peakToPeak": 1.9669999999999845,
+          "firstIndex": null
+        }
+      },
+      "firstDirty": "5-peerDom",
+      "stages": [
+        {
+          "id": "1-local",
+          "dirty": false,
+          "detail": {
+            "back": 0,
+            "maxBack": 0
+          }
+        },
+        {
+          "id": "2-packet",
+          "dirty": false,
+          "detail": {
+            "dist": {
+              "back": 0,
+              "maxBack": 0
+            },
+            "serverAt": {
+              "back": 0,
+              "maxBack": 0
+            }
+          }
+        },
+        {
+          "id": "3-displayDistM",
+          "dirty": false,
+          "detail": {
+            "rev": {
+              "n": 0,
+              "maxMag": 0.37146710709819786,
+              "peakToPeak": 11.212024639266275,
+              "firstIndex": null
+            },
+            "back": {
+              "back": 0,
+              "maxBack": 0
+            }
+          }
+        },
+        {
+          "id": "4-camera",
+          "dirty": false,
+          "detail": {
+            "bearing": {
+              "n": 0,
+              "maxMag": 0.024610473720201753,
+              "peakToPeak": 1.4262171811010944,
+              "firstIndex": null
+            },
+            "lng": {
+              "n": 0,
+              "maxMag": 0.0000019859760556073525,
+              "peakToPeak": 0.00009731968455639617,
+              "firstIndex": null
+            }
+          }
+        },
+        {
+          "id": "5-peerDom",
+          "dirty": true,
+          "detail": {
+            "x": {
+              "n": 19,
+              "maxMag": 19.091000000000008,
+              "peakToPeak": 37.28199999999998,
+              "firstIndex": 3
+            },
+            "y": {
+              "n": 0,
+              "maxMag": 0.13999999999998636,
+              "peakToPeak": 1.9669999999999845,
+              "firstIndex": null
+            }
+          }
+        },
+        {
+          "id": "6-selfDom",
+          "dirty": false,
+          "detail": {
+            "x": {
+              "n": 35,
+              "maxMag": 8,
+              "peakToPeak": 10,
+              "firstIndex": 3
+            },
+            "y": {
+              "n": 0,
+              "maxMag": 1,
+              "peakToPeak": 1,
+              "firstIndex": null
+            }
+          }
+        },
+        {
+          "id": "7-relAnchor",
+          "dirty": true,
+          "detail": {
+            "x": {
+              "n": 13,
+              "maxMag": 19.091000000000008,
+              "peakToPeak": 39.375,
+              "firstIndex": 3
+            },
+            "y": {
+              "n": 0,
+              "maxMag": 1.1050000000000182,
+              "peakToPeak": 1.9669999999999845,
+              "firstIndex": null
+            }
+          }
+        }
+      ]
+    },
+    {
+      "conditionId": "solo-left-16m-5kmh",
+      "n": 104,
+      "dtMs": 78.31456310679613,
+      "sentinelZero": false,
+      "local": {
+        "back": 0,
+        "maxBack": 0
+      },
+      "packetDist": {
+        "back": 0,
+        "maxBack": 0
+      },
+      "packetServer": {
+        "back": 0,
+        "maxBack": 0
+      },
+      "display": {
+        "n": 0,
+        "maxMag": 0,
+        "peakToPeak": 0,
+        "firstIndex": null,
+        "back": 0,
+        "maxBack": 0
+      },
+      "camera": {
+        "bearing": {
+          "n": 0,
+          "maxMag": 0.06252153248198056,
+          "peakToPeak": 5.2193457375280445,
+          "firstIndex": null
+        },
+        "lng": {
+          "n": 0,
+          "maxMag": 1.4595552499940823e-7,
+          "peakToPeak": 0.0000070834544345643735,
+          "firstIndex": null
+        }
+      },
+      "peerDom": {
+        "x": {
+          "n": 0,
+          "maxMag": 0,
+          "peakToPeak": 0,
+          "firstIndex": null
+        },
+        "y": {
+          "n": 0,
+          "maxMag": 0,
+          "peakToPeak": 0,
+          "firstIndex": null
+        }
+      },
+      "selfDom": {
+        "x": {
+          "n": 40,
+          "maxMag": 5,
+          "peakToPeak": 7,
+          "firstIndex": 2
+        },
+        "y": {
+          "n": 0,
+          "maxMag": 0,
+          "peakToPeak": 0,
+          "firstIndex": null
+        }
+      },
+      "relAnchor": {
+        "x": {
+          "n": 0,
+          "maxMag": 0,
+          "peakToPeak": 0,
+          "firstIndex": null
+        },
+        "y": {
+          "n": 0,
+          "maxMag": 0,
+          "peakToPeak": 0,
+          "firstIndex": null
+        }
+      },
+      "firstDirty": "4-camera",
+      "stages": [
+        {
+          "id": "1-local",
+          "dirty": false,
+          "detail": {
+            "back": 0,
+            "maxBack": 0
+          }
+        },
+        {
+          "id": "2-packet",
+          "dirty": false,
+          "detail": {
+            "dist": {
+              "back": 0,
+              "maxBack": 0
+            },
+            "serverAt": {
+              "back": 0,
+              "maxBack": 0
+            }
+          }
+        },
+        {
+          "id": "3-displayDistM",
+          "dirty": false,
+          "detail": {
+            "rev": {
+              "n": 0,
+              "maxMag": 0,
+              "peakToPeak": 0,
+              "firstIndex": null
+            },
+            "back": {
+              "back": 0,
+              "maxBack": 0
+            }
+          }
+        },
+        {
+          "id": "4-camera",
+          "dirty": true,
+          "detail": {
+            "bearing": {
+              "n": 0,
+              "maxMag": 0.06252153248198056,
+              "peakToPeak": 5.2193457375280445,
+              "firstIndex": null
+            },
+            "lng": {
+              "n": 0,
+              "maxMag": 1.4595552499940823e-7,
+              "peakToPeak": 0.0000070834544345643735,
+              "firstIndex": null
+            }
+          }
+        },
+        {
+          "id": "5-peerDom",
+          "dirty": false,
+          "detail": {
+            "x": {
+              "n": 0,
+              "maxMag": 0,
+              "peakToPeak": 0,
+              "firstIndex": null
+            },
+            "y": {
+              "n": 0,
+              "maxMag": 0,
+              "peakToPeak": 0,
+              "firstIndex": null
+            }
+          }
+        },
+        {
+          "id": "6-selfDom",
+          "dirty": false,
+          "detail": {
+            "x": {
+              "n": 40,
+              "maxMag": 5,
+              "peakToPeak": 7,
+              "firstIndex": 2
+            },
+            "y": {
+              "n": 0,
+              "maxMag": 0,
+              "peakToPeak": 0,
+              "firstIndex": null
+            }
+          }
+        },
+        {
+          "id": "7-relAnchor",
+          "dirty": false,
+          "detail": {
+            "x": {
+              "n": 0,
+              "maxMag": 0,
+              "peakToPeak": 0,
+              "firstIndex": null
+            },
+            "y": {
+              "n": 0,
+              "maxMag": 0,
+              "peakToPeak": 0,
+              "firstIndex": null
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "firstDirtyPair": "5-peerDom",
+  "soloLooksSmooth": true,
+  "relAnchorFail": true
+}
