@@ -1,5 +1,7 @@
 {
   "instruction": "S4-14",
+  "kind": "fail-trace",
+  "notReplay": true,
   "source": "C:\\20.HDev\\rtw-sync-s4-2\\repo\\document\\ops\\sync-relay\\S414-chain.json",
   "c0": true,
   "c2": true,

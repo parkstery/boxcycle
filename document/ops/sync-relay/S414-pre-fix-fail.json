@@ -1,5 +1,7 @@
 {
   "instruction": "S4-14",
+  "kind": "fail-trace",
+  "notReplay": true,
   "nEvents": 36,
   "nFrames": 73,
   "displayOnlyReplay": {

@@ -1,6 +1,7 @@
 /**
- * S4-14 C6·C7 — 캡처를 replay 시나리오로 고정하고, displayDistM 만으로
- * 통과하면 peerAnchor−selfAnchor 층을 검사한다. 수정 전 실패가 목적.
+ * S4-14 C6·C7 — 캡처의 relX/relY 를 재검사하는 **실패 trace**.
+ * 알고리즘을 다시 돌리는 회귀 replay 가 아니다.
+ * displayDistM 불변식은 참고로만 돌린다. 수정 전 실패가 목적.
  *
  *   cd apps/web && node scripts/peer-sync/s414-rel-anchor.mjs
  */
@@ -89,6 +90,8 @@ const replay = spawnSync(
 const displayOnlyPass = replay.status === 0;
 const log = {
   instruction: "S4-14",
+  kind: "fail-trace",
+  notReplay: true,
   nEvents: events.length,
   nFrames: pair.frames.length,
   displayOnlyReplay: {

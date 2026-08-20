@@ -28,7 +28,9 @@
 | `s413-delay-eval.mjs` | S4-13 B5 — S412 조합 E=0.3·τ=0.25/0.30·lead=0 을 지연 100/300 에서 재판정. G2=불변식 0.5 m |
 | `s414-chain.test.ts` | S4-14 C0·C2 — 한 rAF 구조 · DOM transform 파서. 픽셀 군집 아님 |
 | `s414-analyze.mjs` | S4-14 — S414-chain.json 단계 지목 |
-| `s414-rel-anchor.mjs` | S4-14 C6·C7 — 캡처→시나리오 + peer−self DOM 상대좌표 층. 수정 전 실패 |
+| `s414-rel-anchor.mjs` | S4-14 C6·C7 — **실패 trace**. 캡처 relX/relY 재검사. 알고리즘 재생(회귀 replay) 아님 |
+| `s415-coord.test.ts` | S4-15 D0·D1·D6 — 한 rAF · 렌더 lngLat · map.on(render) |
+| `s415-analyze.mjs` | S4-15 — S415-chain.json ②③⑤⑥ 분기 |
 | `invariants.mjs` | 재생 타임라인의 기계적 PASS/FAIL 판정(clamp·역행·순간이동·외삽상한) |
 | `graph.mjs` | distM-vs-time SVG 생성 + chromium PNG 렌더 |
 | `.out/` | 그래프 산출물 PNG/SVG(gitignore — 휘발성 검토용) |
@@ -49,6 +51,8 @@ cd apps/web && node scripts/peer-sync/s413-delay-eval.mjs
 cd apps/web && npm run test:s414-chain
 cd apps/web && node scripts/peer-sync/s414-analyze.mjs
 cd apps/web && node scripts/peer-sync/s414-rel-anchor.mjs
+cd apps/web && npm run test:s415-coord
+cd apps/web && node scripts/peer-sync/s415-analyze.mjs
 ```
 - 무옵션 = `--check --graph` 둘 다.
 - `--check`: 전 시나리오 불변식 판정. known-fail 외 위반이 있으면 exit 1. 커밋 전 게이트로 쓴다.

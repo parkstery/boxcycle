@@ -64,6 +64,7 @@ describe("S4-14 체인 계측", () => {
     assert.equal(dump.clockCanonical, "performance.now");
     assert.equal(dump.sameRaf, true);
     assert.equal(dump.pixelAnalysis, false);
+    assert.equal(dump.lngLatSource, "render-setLngLat");
     assert.equal(dump.frames.length, 1);
     const f = dump.frames[0]!;
     assert.equal(f.perfNowMs, 1234.5);
