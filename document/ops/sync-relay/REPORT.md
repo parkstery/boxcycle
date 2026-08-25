@@ -1,4 +1,6 @@
-# S4 진행 상황 REPORT — route·motion 발행 수명주기 종결 · 위치 동기화는 미종결
+# S4 진행 상황 REPORT — S4-1~S4-3 채택·main2 병합 · S4-4(동행 라이더 튐) 미해결 일단락
+
+**현재 활성 지시 없음.** S4-4 는 재개 보류 상태다. S4-5~S4-15 는 main2 에 병합하지 않는다.
 
 공유 Trail 문서 `lastActivityAt` 쓰기를 60초 창에서 셌다. `trails/{id}`
 구독은 **코드 검사로 부재**(③ N/A 미배선, 관측치 아님). 라이더 1→2 의 updateDoc 은
@@ -10,15 +12,34 @@
 
 평소 달릴 때 쓰기량과 동행 위치 감각은 S4-1에서 맞춘 수준을 유지한다. **종결된 것은
 발행 수명주기(route + motion)다.** 목록·저줌 구독이 만드는 읽기 비용은 아직 남아 있다.
-「멀티라이더 위치 동기화 결함 종결」이 아니다.
+「멀티라이더 위치 동기화 결함 종결」이 아니다. **동행 라이더 앞뒤 튐(S4-4)도 미해결이다.**
 
-- **지시번호**: S4-3 (`touchTrailInstanceActivity` · presence heartbeat)
-- **일시**: 2026-08-20
-- **브랜치**: `fix/multiplayer-read-amplification` (origin/main2 결합 완료 `66ebe7b`) · HEAD 는 아래 S4-3 커밋
-- **활성 지시**: **S4-3 보고완료** (`INSTRUCTION.md`)
-- **원격**: origin `fix/multiplayer-read-amplification`
-- **워킹트리**: `C:/20.HDev/rtw-sync-s4-2/repo`
-- **보존**: `INSTRUCTION-S42R.md` · `INSTRUCTION-S42.md` · `S43-touch-baseline.json` · `S43-touch-after.json`
+---
+
+## 현재 상태 (2026-08-25)
+
+| 항목 | 값 |
+|---|---|
+| 활성 지시 | **없음** — `INSTRUCTION.md` 는 작업 없음·재개 보류 표시 |
+| S4-4 (동행 라이더 튐) | **미해결 일단락**. 원인 구간 특정 진행 중 중단 |
+| main2 | `66c9a5d` — 제품 코드는 **S4-1 · S4-2 · S4-2R · S4-3 까지만** 병합(`d879588`). 이후는 문서 커밋뿐 |
+| feature HEAD | `fix/multiplayer-read-amplification` @ **`0f5d35a`** (origin 동기) |
+| S4-4 ~ S4-15 | **main2 병합 금지.** feature 브랜치에만 존재 |
+| 현황 보고서 | [260825-동행-라이더-튐-S4-4-현황-보고서](../../archive/260825-동행-라이더-튐-S4-4-현황-보고서.md) |
+| S4-15 결과 정본 | `INSTRUCTION-S415.md` |
+
+### feature 브랜치에 남은 것의 성격 — 「계측기 전용」이 아니다
+
+`main2..0f5d35a` 의 `apps/web/src` 변경 12 파일 2,064 줄에는 **채택되지 않은 제품 실험이 섞여 있다.**
+
+| 성격 | 파일 | 비고 |
+|---|---|---|
+| **채택되지 않은 제품 동작 변경** | `peerMotion/integrator.ts` · `syncFromPresence.ts` · `types.ts` · `PeerMotionRegistry.ts` 일부 | **S4-5** — 보간 시간축을 `recvAtMs` → `serverAtMs` + clock offset EMA 로 바꾼다. **DEV 게이트가 없어 상시 동작**한다. Chief 실주행에서 증상을 해결하지 못해 **미채택** |
+| **채택되지 않은 제품 실험 (DEV 전용)** | `peerMotion/peerDisplayMode.ts` · `peerDisplayAbsorb.ts` · `PeerMotionRegistry.ts` 배선 | **S4-13 A/B** — 적응 발행 임계 E + 흡수 τ. `readPeerDispMode()` 가 `import.meta.env.DEV` 아니면 `off` 를 돌려주므로 프로덕션은 항상 off. Chief 실주행에서 OFF 와 구분 불가 → **탈락** |
+| **계측기·판정기** | `peerMotion/peerJitterCapture.ts` · `peerChainCapture.ts` · `installPeerJitterDebug.ts` · `installPeerChainDebug.ts` · `MapView.tsx` DEV 호출 | S4-4~S4-15 캡처·판정 도구 |
+
+따라서 **「S4-4~S4-15 는 계측·판정기 전용」이라는 서술은 틀렸다.** 이 브랜치를 병합하면
+미채택 S4-5 시간축 변경이 제품에 상시로 들어간다. 병합 금지의 이유가 여기에 있다.
 
 ---
 
@@ -53,12 +74,20 @@ motion 반례는 `S4M1-lifecycle-baseline.json` · `S4M1-lifecycle-baseline-r.js
 | S4-2 | 읽기 증폭 — collectionGroup 중복 1건 정리 | **보고완료** `407b56a` |
 | S4-2R | 첫 스냅샷 전 빈 목록 유출 차단 (hasSnapshot) | **보고완료** `88c3d14` |
 | S4-3 | `touchTrailInstanceActivity` · heartbeat | **보고완료** `cb5f1c2` · 계측 `6294600`. N×M 스냅샷 없음. ② 선형. 1Hz touch 합침. M3 실화면 미완 |
+| S4-4 | 동행 라이더 앞뒤 튐 — 최초 재현 시도 | **BLOCK** — 판정기가 화면 앞뒤를 고정 Y축으로 가정해 X축 반전을 버렸다 |
+| S4-4R ~ R7 | 판정기를 진행축 투영으로 교정 · 재판정 반복 | 판정기 결함 수정. R3·R4·R5 감리 결론 **철회** |
+| S4-5 | 보간 시간축 `recvAtMs` → `serverAtMs` + offset EMA | **미채택** — 제품 동작 변경이나 Chief 실주행에서 증상 미해결. main2 병합 금지 |
+| S4-6 ~ S4-11 | 예측·스케일(pxPerM 83.44)·체인 계측 준비 | 도구 정비 |
+| S4-12 | 적응 발행 E × 흡수 τ 조합 120 개 탐색 | `passN: 0` · `verdict: "불가"` |
+| S4-13 | OFF / A / B 노브 Chief 실주행 | **탈락** — 셋 다 튐, 체감 차이 분간 불가. A/B 제품 실험 코드는 feature 에 남음(DEV 전용) |
+| S4-14 | 동일 프레임 전체 체인 계측 | **증상 재현 PASS**. 구간을 `displayDistM` 이후~최종 DOM 으로 좁힘 |
+| S4-15 | 좌표 변환 3분기 계측 | **미확정 일단락** — 11.45 Hz trace 에서 `projected` 단계 최초 관측. 원인 파라미터 미특정 |
 
 ---
 
 ## 기술
 
-### 지금 기준점
+### S4-3 시점 기준점 (2026-08-20 기록 · 현재 상태는 맨 위 표를 본다)
 
 | 항목 | 값 |
 |---|---|
@@ -146,7 +175,9 @@ A ① 는 전후 62 (routePublish 60 + heartbeat 2). 예약 62, 실행 2. B/A �
 S4-2   읽기 증폭 — 보고완료. collectionGroup consumer 2 → underlying 1
 S4-2R  첫 스냅샷 전 [] 유출 차단 — 보고완료. 로딩 조기 종료·빈 목록 선노출 제거. 2→1 유지
 S4-3   touch · heartbeat — 보고완료. N×M 스냅샷 없음. ② 선형. 1Hz lastActivityAt 합침. M3 실화면 미완
-상대 라이더 앞뒤 튐   신규 미해결(INSTRUCTION §11-1). S4-3 과 섞지 않음. 다음 독립 지시
+S4-4   동행 라이더 앞뒤 튐 — **미해결 일단락**. S4-15 까지 진행 후 재개 보류.
+       11.45 Hz trace 에서 projected 단계 최초 관측. 원인 파라미터 미확정.
+       재개 시 카메라 4파라미터 분기 + 60 fps 단일 브라우저 재검증부터
 F-1    peer visibility 초기 시각 0
 ```
 
