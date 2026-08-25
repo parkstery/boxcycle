@@ -1,0 +1,28 @@
+{
+  "phase": "before",
+  "g0": [1.15, 1.15, 1.15],
+  "position": [126.98858171292636, 37.54858440500464],
+  "camera": {
+    "center": { "lng": 126.98858171292636, "lat": 37.54858440500464 },
+    "zoom": 19.0,
+    "pitch": 50,
+    "bearing": 90,
+    "viewport": { "width": 1280, "height": 900 }
+  },
+  "silhouette": {
+    "h": 15,
+    "contactY": 419,
+    "headY": 405,
+    "wheelPx": 8,
+    "ratio": 1.875,
+    "overflow": false
+  },
+  "ui": {
+    "nametagPx": 17.109375,
+    "nametagText": "guest1",
+    "hudPx": 20.40625,
+    "routeWidthPx": 4,
+    "labelPx": 12,
+    "labelLayer": "road-intersection"
+  }
+}

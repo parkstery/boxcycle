@@ -1,0 +1,78 @@
+{
+  "phase": "after",
+  "models": {
+    "models": {
+      "live-self": [
+        126.98861070071784,
+        37.54859562608488
+      ],
+      "SqMnQQqEHxVXGQthT4QjW4IZoQ13": [
+        126.98858326641539,
+        37.54858500635524
+      ]
+    },
+    "sourceKeys": [
+      "id",
+      "type",
+      "models",
+      "_options",
+      "_modelsInfo",
+      "_abortController",
+      "load",
+      "serialize",
+      "scope",
+      "_eventedParent",
+      "_eventedParentData",
+      "_listeners",
+      "map"
+    ]
+  },
+  "pair": {
+    "assigned": {
+      "live-self": {
+        "h": 76,
+        "bbox": {
+          "x0": 590,
+          "y0": 399,
+          "x1": 678,
+          "y1": 474,
+          "count": 3656,
+          "cx": 636.4699124726477,
+          "cy": 442.30552516411376
+        },
+        "projected": {
+          "x": 642.935088556765,
+          "y": 448.9866908767286
+        }
+      },
+      "SqMnQQqEHxVXGQthT4QjW4IZoQ13": {
+        "h": 76,
+        "bbox": {
+          "x0": 590,
+          "y0": 399,
+          "x1": 678,
+          "y1": 474,
+          "count": 3656,
+          "cx": 636.4699124726477,
+          "cy": 442.30552516411376
+        },
+        "projected": {
+          "x": 637.0604986729152,
+          "y": 451.0148326065164
+        }
+      }
+    },
+    "components": [
+      {
+        "x0": 590,
+        "y0": 399,
+        "x1": 678,
+        "y1": 474,
+        "count": 3656,
+        "cx": 636.4699124726477,
+        "cy": 442.30552516411376
+      }
+    ]
+  },
+  "hash": "b60507ddb9c0bcca50549cadd4879330226453adb3765393d00696373cd932cd"
+}

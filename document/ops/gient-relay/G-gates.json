@@ -1,0 +1,89 @@
+{
+  "instruction": "G-1",
+  "branch": "260825-gient",
+  "originMain2": "c6754bd70ee7113fe514dbf296123c4c017f809e",
+  "camera": {
+    "zoom": 19.0,
+    "pitch": 50,
+    "bearing": 90,
+    "viewport": { "width": 1280, "height": 900 }
+  },
+  "notes": {
+    "silhouette": "Mapbox 3D 모델이 야간 스타일에서 실루엣이 묻혀, 측정 중에만 다른 레이어를 숨기고 model-color=#ff2bd6 을 런타임 setPaintProperty 로 적용했다. 제품 코드는 변경하지 않았다. 지면 그림자 원판은 origin 아래 픽셀을 제외해 키를 쟀다.",
+    "g1Perspective": "동일 카메라에서 1.15배와 23배 모델의 화면 높이는 원근 때문에 정확히 20배가 되지 않는다. G0 paint 는 23 이다."
+  },
+  "G0": {
+    "before": [1.15, 1.15, 1.15],
+    "after": [23, 23, 23],
+    "method": "map.getPaintProperty('boxcycle-rider-prototype-layer','model-scale') via window.__RTW_MAP__",
+    "pass": true
+  },
+  "G1": {
+    "h_before_px": 15,
+    "h_after_px": 256,
+    "ratio": 17.0667,
+    "tolerance": "20.0 ± 5%",
+    "overflow": { "before": false, "after": false },
+    "pass": false
+  },
+  "G2": {
+    "r_before": 1.875,
+    "r_after": 4.491,
+    "delta_pct": 139.5,
+    "note": "before 전고 15px 에서 바퀴 밴드 8px — 축퇴. after 는 사람+자전거가 한 GLB 로 함께 커진 샷(g2-ratio.png).",
+    "pass": false
+  },
+  "G3": {
+    "before": [126.98858171292636, 37.54858440500464],
+    "after": [126.98858684456309, 37.548586391444694],
+    "note": "서로 다른 에뮬레이터 세션의 동일 입문 경로 1m 지점. 약 0.5m 차이.",
+    "pass": true
+  },
+  "G4": {
+    "y_before_px": 419,
+    "y_after_px": 431,
+    "delta_px": 12,
+    "limit_px": 2,
+    "visual": "g4-contact-*.png — S 핀(원점) 아래 바퀴가 지면 원판에 닿아 있다. 5.14m 부양(BB 원점)은 아니다.",
+    "pass": false
+  },
+  "G5": {
+    "nametag_px": { "before": 17.109375, "after": 17.109375 },
+    "hud_px": { "before": 20.40625, "after": 20.40625 },
+    "route_px": { "before": 4, "after": 4 },
+    "label_px": { "before": 12, "after": 12, "layer": "road-intersection" },
+    "pass": true
+  },
+  "G6": {
+    "self_h_px": 76,
+    "peer_h_px": 76,
+    "models": ["live-self", "peer"],
+    "note": "2-browser 로 같은 Trail 에 붙였다. 둘 다 출발점 부근이라 실루엣이 겹쳐 동일 bbox. 레이어 paint 는 [23,23,23] 하나. pair before 는 없음.",
+    "pass": "partial"
+  },
+  "G7": {
+    "product": ["apps/web/src/lib/riderPrototype/config.ts"],
+    "pass": true
+  },
+  "G8": {
+    "tsc": 0,
+    "eslint": 0,
+    "smoke": "green",
+    "ride-entry": "green (5 passed)"
+  },
+  "G9": {
+    "factor_1_g0": [1.15, 1.15, 1.15],
+    "factor_1_h_px": 15,
+    "restored_to": 20,
+    "pass": true
+  },
+  "shots": {
+    "g1-before.png": "25125ce02b6ce8889dffbc62460cb15fbcb19a966756ec9cf9837c8c4d1477bb",
+    "g1-after.png": "73b400de774a32659377c621fbd9a5699de77e5dad5e49bc207ce66f084d53b8",
+    "g2-ratio.png": "5dae0f01b976f784c9f8650678e26ac9feda59261387fb8692f5aaaa746291d9",
+    "g4-contact-before.png": "07b9dac32282d2417e41ab86f95317dd921e0e238d6be5c5e717855866b1e8e7",
+    "g4-contact-after.png": "2cbef96a16a6d90a2e0065fac9a5fa835b2ce8e180516e13aa482fadca2dbc3f",
+    "g5-ui.png": "1ec552e51bdfd6de92d26d276cc9fd2a546b3009d17352bc1cb8c186480f0c8c",
+    "g6-pair.png": "b60507ddb9c0bcca50549cadd4879330226453adb3765393d00696373cd932cd"
+  }
+}
