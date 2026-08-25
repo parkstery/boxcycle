@@ -1,0 +1,14 @@
+{
+  "pairDistM": 90.38187734545369,
+  "separated": false,
+  "screenDxPx": 8.61,
+  "screenDyPx": 2.24,
+  "note": "분리 실패 · G6 미검증. 월드 90 m 이나 화면 투영이 9 px. 400배 모델 AABB 가 수백 m 라 입문 경로 안에서 실루엣이 겹친다.",
+  "assigned": {
+    "live-self": { "h": 46, "projected": { "x": 635.69, "y": 451.12 } },
+    "peer": { "h": 20, "projected": { "x": 644.30, "y": 448.88 } }
+  },
+  "Hself": null,
+  "Hpeer": null,
+  "hash": "e35908e08021866f47a1c79f88090f8781f6cf79f818ebe383832ce666f3d13c"
+}

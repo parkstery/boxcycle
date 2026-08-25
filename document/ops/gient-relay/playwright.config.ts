@@ -10,7 +10,7 @@ const DEV_URL = `http://127.0.0.1:${DEV_PORT}`;
 
 export default defineConfig({
   testDir: ".",
-  testMatch: /measure\.spec\.ts/,
+  testMatch: /measure-g2\.spec\.ts/,
   fullyParallel: false,
   retries: 0,
   workers: 1,

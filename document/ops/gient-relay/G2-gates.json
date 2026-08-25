@@ -1,0 +1,104 @@
+{
+  "instruction": "G-2",
+  "branch": "260825-gient",
+  "toggle": {
+    "method": "same-session map.setPaintProperty model-scale 23 ↔ 460",
+    "layer": "boxcycle-rider-prototype-layer",
+    "cameraLockedG4": { "zoom": 14, "pitch": 50, "bearing": 90 },
+    "restoredPaint": [460, 460, 460]
+  },
+  "followAt400x": {
+    "zoom": 16.415817267416696,
+    "pitch": 79.87972486456178,
+    "bearing": -18.791356840826325,
+    "note": "제품 follow(leftFlat). G4 토글 카메라는 zoom 14 pitch 50 로 별도 고정."
+  },
+  "G0": {
+    "before": [23, 23, 23],
+    "after": [460, 460, 460],
+    "ratio": 20,
+    "method": "map.getPaintProperty via window.__RTW_MAP__",
+    "pass": true
+  },
+  "G1prime": {
+    "H_before_m": 38.010097035992416,
+    "H_after_m": 704.2738024521951,
+    "ratio": 18.528597856125074,
+    "tolerance": "20.0 ± 5% → [19.0, 21.0]",
+    "converged": { "before": true, "after": true },
+    "selfCheck_HEAD_C_x23_m": 31.87852066699827,
+    "selfCheck_note": "H_before 38.0 m 는 실루엣 꼭대기(헬멧). HEAD_C 중심 31.88 m 와 다르다. 측정 zoom before 19 / after 13.8.",
+    "pass": false
+  },
+  "G2prime": {
+    "before": { "h_px": 303, "wheel_px": 67, "r": 4.522388059701493, "zoom": 19.2 },
+    "after": { "h_px": 387, "wheel_px": 86, "r": 4.5, "zoom": 15.2 },
+    "delta_pct": 0.495,
+    "min_h_px": 120,
+    "pass": true
+  },
+  "G3prime": {
+    "before": [126.98851950008259, 37.548554108155415],
+    "after": [126.98851950008259, 37.548554108155415],
+    "pass": true
+  },
+  "G4prime": {
+    "y_before_px": 417,
+    "y_after_px": 427,
+    "delta_px": 10,
+    "limit_px": 2,
+    "sameCamera": true,
+    "before_figure_px": 9,
+    "visual": "g2-contact-*.png — 23배는 9px 축퇴. 460배는 S핀(원점)에 바퀴가 닿아 있다. BB 원점 부양은 아니다.",
+    "numeric_pass": false,
+    "visual_contact": true
+  },
+  "G5": {
+    "nametag_px": { "before": 17.137500762939453, "after": 17.137500762939453 },
+    "hud_px": { "before": 20, "after": 20 },
+    "route_px": { "before": 4, "after": 4 },
+    "label_px": { "before": 12, "after": 12, "layer": "road-intersection" },
+    "pass": true
+  },
+  "G6prime": {
+    "pairDistM": 90.38187734545369,
+    "screenSeparationPx": 9,
+    "separated": false,
+    "note": "분리 실패 · G6 미검증. 월드 90 m 떨어졌으나 400배 모델이 화면에서 겹침. 겹친 H 를 통과로 쓰지 않음.",
+    "pass": "unverified"
+  },
+  "G7": {
+    "product": ["apps/web/src/lib/riderPrototype/config.ts"],
+    "pass": true
+  },
+  "G8": {
+    "tsc": 0,
+    "eslint": 0,
+    "smoke": "green (1 passed)",
+    "ride-entry": "green (5 passed)"
+  },
+  "G9": {
+    "factor_20_paint": [23, 23, 23],
+    "restored_to": 400,
+    "pass": true
+  },
+  "G10": {
+    "rendered": true,
+    "queriedCount": 1,
+    "consoleErrorUnique": ["404 resource", "401 resource"],
+    "consoleErrorCount": 27,
+    "consoleWarn": "ActivityWorld overlay-zero ×772 (기존 경고)",
+    "visual": "460배 라이더가 지도 위를 가린다. 컬링으로 사라지지 않음. WebGL 크래시 없음.",
+    "pass": true
+  },
+  "shots": {
+    "g2-h-before.png": "61b7aebbb6396c997e886da46f969ba7d3cc6d2620127fff7ee6b6db6db43eb9",
+    "g2-h-after.png": "ff4c092ac59f5cce62adb91e609ae627ff04a0a4c4b5a0fbd02f0041dc65f415",
+    "g2-ratio-after.png": "810a6bdf9b1656e1765753f4a3ba9313f24941a0df509a8b205f199fc829c3cf",
+    "g2-contact-before.png": "b39136fb790618859c62ef04eac729cd8b221e44c0242cb29f9ae184b41b8675",
+    "g2-contact-after.png": "91004db83a6c2dcf57255e50f15d07a42a51fab046647356fc5a40238d5127c4",
+    "g2-ui.png": "e8571d414f26cbadb051824a0fe1d6ad224cdeeabbfc97bd2835155615c4fd4c",
+    "g2-pair.png": "e35908e08021866f47a1c79f88090f8781f6cf79f818ebe383832ce666f3d13c",
+    "g2-wide.png": "5d41ba859e0dbf8efe51b2c66873c1454394854420b441907938443873c614fe"
+  }
+}
