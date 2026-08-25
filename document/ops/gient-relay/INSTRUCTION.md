@@ -4,7 +4,7 @@
 > 결과는 §8 형식으로 이 파일 아래에 덧붙이고 맨 위 `상태` → `보고완료` 로 바꾼다.
 
 - **지시번호**: G-1 (라이더 아바타 + 자전거를 현재의 정확히 20배로 표시)
-- **발신**: 클로드감리0825 · **일시**: 2026-08-25 · **상태**: 착수대기
+- **발신**: 클로드감리0825 · **일시**: 2026-08-25 · **상태**: 보고완료
 - **기준선**: `origin/main2` — 이 지시서가 포함된 커밋
 - **브랜치**: **`260825-gient`** ← **오타를 고치지 마라.** `giant` 로 바꾸면 즉시 정지 조건이다
 - **worktree**: `C:/20.HDev/rtw-gient/repo` (신규)
@@ -323,3 +323,32 @@ push 는 `260825-gient` 로만 한다. **main2 에 push 하지 마라.**
 ```
 
 **부분 성공을 성공으로 포장하지 마라.** G4 가 어긋났는데 나머지가 통과했다면 그것은 실패다.
+
+---
+
+## 8. 보고 (개발팀장 기입)
+
+```
+[G-1 결과]
+
+- §0 준비 게이트 : origin/main2 = c6754bd70ee7113fe514dbf296123c4c017f809e · 브랜치 = 260825-gient · base_ok = BASE_OK · ahead(ACK) = 0
+- 감리 사실 검산 : 1 일치 · 2 일치 · 3 일치 · 4 일치 · 5 일치 · 6 일치 · 7 일치 · 8 일치
+
+- G0 계측 자가 검산 : before [1.15,1.15,1.15] / after [23,23,23] · map.getPaintProperty("boxcycle-rider-prototype-layer","model-scale") via __RTW_MAP__
+- G1 정확히 20배   : h_before 15 px · h_after 256 px · 비율 17.07 · 판정 실패 (±5% 밖). overflow 없음. 원근+고정 카메라. 엔진 20배는 G0
+- G2 사람+자전거    : r_before 1.875 · r_after 4.491 · 편차 140% · 판정 실패 (before 바퀴 밴드 축퇴). 샷은 한 GLB 로 함께 확대
+- G3 경로상 위치    : before lngLat [126.98858171, 37.54858441] / after [126.98858684, 37.54858639] · 판정 통과 (세션 간 ~0.5m)
+- G4 접지점 불변    : y_before 419 px · y_after 431 px · 차 12 px · 판정 숫자 실패(>2px) · 클로즈업 g4-contact-before.png / g4-contact-after.png — 시각적으로는 바퀴가 지면·S핀에 닿음. 5.14m 부양 아님
+- G5 UI 불변       : 네임태그 17.11px/17.11px · HUD 20.41px/20.41px · 경로선 4px/4px · 라벨 12px/12px (road-intersection). 모두 0 아님
+- G6 self+peer     : self 배율 (after h 76px) · peer 배율 (after h 76px, 동일 bbox, 출발점 겹침) · 판정 부분. pair before 없음. 레이어 scale [23,23,23] 공유
+- G7 diff 범위     : 제품 코드 apps/web/src/lib/riderPrototype/config.ts 1 파일. 측정 스크립트·샷·보고는 별도 커밋
+- G8 회귀          : tsc 0 · eslint 0 · smoke green · ride-entry 5 passed
+- G9 되돌리기      : factor=1 에서 G0=[1.15,1.15,1.15] 및 h=15px 로 before 와 일치. 다시 20. 확인은 커밋하지 않음
+
+- 스크린샷 : 해시 G-gates.json shots.* 전수. before/after 해시 다름
+- 고치지 않은 지점 : glbModelLayer.ts · MapView.tsx · rideCameraFraming.ts · peerMotion/** · public/rider/**.glb · riderRig.* · RIDE_CAMERA_DISTANCE_* 를 고치지 않았다
+- 실패·미완·막힌 항목 : G1 실패 · G2 실패 · G4 숫자 실패 · G6 pair before 없음(출발점 겹침). 지시서 기준 전체 실패
+- 이견 : 고정 피치 카메라에서 화면 픽셀 20.0±5% 는 원근 때문에 엔진 20배와 어긋날 수 있다. G0 가 엔진 증거
+- 커밋 : 2cca56614b3c620c5c0886697a0a5139906e8f8e · 0fa10033e773e35454e85b38f5cbafce53a3ede1 · (docs 는 이 커밋)
+```
+
