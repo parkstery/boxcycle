@@ -62,11 +62,11 @@ export const RIDER_GLB_NODE_OVERRIDE_NAMES = [
 export const RIDER_GLB_MODEL_BASE_SCALE = 1.15;
 
 /**
- * 260825-gient 시각 실험 — 아바타와 자전거를 기준의 **정확히 20배**로 표시한다.
- * 되돌리려면 1 로 바꾼다. 이 계수는 라이더 GLB 모델에만 곱해진다 —
+ * 260825-gient 시각 실험 — 아바타와 자전거를 기준의 **400배**(20배를 두 번)로 표시한다.
+ * 되돌리려면 20(G-1) 또는 1(원본) 로 바꾼다. 이 계수는 라이더 GLB 모델에만 곱해진다 —
  * 네임태그·HUD·경로선·지도 UI 는 이 상수를 읽지 않는다.
  */
-export const RIDER_GIANT_SCALE_FACTOR = 20;
+export const RIDER_GIANT_SCALE_FACTOR = 400;
 
 export const RIDER_GLB_MODEL_SCALE = RIDER_GLB_MODEL_BASE_SCALE * RIDER_GIANT_SCALE_FACTOR;
 
