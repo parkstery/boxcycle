@@ -1,5 +1,6 @@
 {
   "permissions": {
+    "defaultMode": "auto",
     "allow": [
       "PowerShell(npx --prefix apps/web eslint \"apps/web/src/lib/conquestTiles.ts\" \"apps/web/src/lib/firestoreConquest.ts\" \"apps/web/src/hooks/useConquest.ts\" \"apps/web/src/lib/openMeteoWeather.ts\" \"apps/web/src/hooks/useRideEndAndPersistence.ts\" \"apps/web/src/components/ride/RideSummarySheet.tsx\" \"apps/web/src/components/UserInfoSheet.tsx\" \"apps/web/src/components/maphud/MapHud.tsx\" 2>&1)",
       "PowerShell(npx --prefix apps/web eslint \"apps/web/src/lib/conquestTiles.ts\" \"apps/web/src/lib/firestoreConquest.ts\" \"apps/web/src/hooks/useConquest.ts\" \"apps/web/src/hooks/useLiveConquestPaint.ts\" 2>&1)",
