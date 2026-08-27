@@ -1021,13 +1021,34 @@
     max-width: min(46vw, 11rem);
   }
 
+  /*
+   * 접속·동행 현황 패널 전체를 숨긴다. 폰 가로에서는 지도 잠식이 가장 큰 문제이고,
+   * 이 정보는 Trail 메뉴에서 볼 수 있다(첫 화면에 상주할 이유가 없다).
+   */
   .hud-ride-presence {
-    max-height: 4.5rem;
-    font-size: 0.62rem;
+    display: none;
   }
 
-  /* 「접속자 없음」·「다른 라이더 없음」 — 정보량 0인 줄이 주행 시작을 덮고 있었다 */
-  .hud-ride-presence__empty {
-    display: none;
+  /* 주행 지표 — 라벨·값·패딩을 조여 높이를 44px → 30px 대로 */
+  .hud-metrics__capsule {
+    padding: 0.16rem 0.35rem;
+  }
+
+  .hud-metrics__cell {
+    min-width: 2.5rem;
+    padding: 0 0.28rem;
+    gap: 0.05rem;
+  }
+
+  .hud-metrics__value {
+    font-size: 0.82rem;
+  }
+
+  .hud-metrics__cell--hero .hud-metrics__value {
+    font-size: 0.92rem;
+  }
+
+  .hud-metrics__label {
+    font-size: 0.52rem;
   }
 }
