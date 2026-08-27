@@ -5,6 +5,8 @@ import {
   createCscCadenceTracker,
   parseCscCrankSample,
 } from "../lib/bleCscCadence";
+import { bleReconnectDelayMs, selectGrantedCadenceDevice } from "../lib/bleAutoReconnect";
+import type { BleCrankRpmUiState } from "../lib/cadenceSensorUi";
 
 /** 정지(0rpm) 판정을 위한 폴링 주기 — stall 임계보다 충분히 짧게 */
 const STALL_POLL_MS = 400;
@@ -16,15 +18,14 @@ const NO_CRANK_MESSAGE =
 const NO_CSC_SERVICE_MESSAGE =
   "선택한 기기에 CSC 서비스가 없습니다 — 센서가 CSC 케이던스 모드인지 확인해 주세요.";
 const DISCONNECTED_MESSAGE = "센서 연결이 끊겼습니다.";
+const AUTO_RECONNECT_MESSAGE =
+  "센서를 기다리는 중입니다 — 페달을 돌리면 자동으로 다시 연결합니다.";
 
-/**
- * - `idle`: 연결한 적 없음(또는 사용자가 명시적으로 해제)
- * - `connecting`: chooser·GATT 진행 중
- * - `connected`: 알림 수신 중
- * - `disconnected`: 연결됐다가 끊김 — 「다시 연결」 유도
- * - `error`: 연결 실패
- */
-export type BleCrankRpmUiState = "idle" | "connecting" | "connected" | "disconnected" | "error";
+type ConnectionAttemptResult = "connected" | "missing-csc" | "retryable";
+
+class MissingCscServiceError extends Error {}
+
+export type { BleCrankRpmUiState };
 
 export type UseBleCrankRpmResult = {
   /** `navigator.bluetooth` 사용 가능(주로 Chromium·보안 출처) */
@@ -64,6 +65,17 @@ export function useBleCrankRpm(): UseBleCrankRpmResult {
   const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const noCrankCountRef = useRef(0);
   const connectingRef = useRef(false);
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reconnectAttemptRef = useRef(0);
+  const reconnectLoopTokenRef = useRef(0);
+  const reconnectInFlightRef = useRef(false);
+  const advertisementAbortRef = useRef<AbortController | null>(null);
+  const advertisementDeviceRef = useRef<BluetoothDevice | null>(null);
+  const advertisementHandlerRef = useRef<((event: BluetoothAdvertisingEvent) => void) | null>(null);
+  const autoReconnectAllowedRef = useRef(false);
+  const userDisconnectedRef = useRef(false);
+  const resumeAfterPageShowRef = useRef(false);
+  const onUnexpectedDisconnectRef = useRef<(device: BluetoothDevice) => void>(() => {});
 
   const onMeasurement = useCallback((ev: Event) => {
     const ch = ev.target as BluetoothRemoteGATTCharacteristic;
@@ -83,8 +95,8 @@ export function useBleCrankRpm(): UseBleCrankRpmResult {
     setCrankRpm(trackerRef.current.ingest(buf, Date.now()));
   }, []);
 
-  /** GATT·리스너·타이머만 정리한다(React 상태는 호출 측이 정한다) */
-  const releaseGatt = useCallback(() => {
+  /** GATT 세션 자원만 정리한다. 장치 권한/참조 보존 여부는 호출 측이 정한다. */
+  const releaseGatt = useCallback((options?: { disconnectServer?: boolean; clearDevice?: boolean }) => {
     if (pollTimerRef.current != null) {
       clearInterval(pollTimerRef.current);
       pollTimerRef.current = null;
@@ -112,7 +124,7 @@ export function useBleCrankRpm(): UseBleCrankRpmResult {
     charRef.current = null;
 
     const srv = serverRef.current;
-    if (srv?.connected) {
+    if (options?.disconnectServer && srv?.connected) {
       try {
         srv.disconnect();
       } catch {
@@ -120,30 +132,235 @@ export function useBleCrankRpm(): UseBleCrankRpmResult {
       }
     }
     serverRef.current = null;
-    deviceRef.current = null;
+    if (options?.clearDevice) deviceRef.current = null;
     trackerRef.current.reset(Date.now());
     noCrankCountRef.current = 0;
     connectingRef.current = false;
   }, [onMeasurement]);
 
-  /** 사용자의 명시적 연결 해제 */
+  /** 광고 감시·백오프 타이머를 멈춘다. 자동 재연결 허용 자체는 호출 측이 정한다. */
+  const stopAutoReconnect = useCallback(() => {
+    reconnectLoopTokenRef.current += 1;
+    if (reconnectTimerRef.current != null) {
+      clearTimeout(reconnectTimerRef.current);
+      reconnectTimerRef.current = null;
+    }
+    const watchedDevice = advertisementDeviceRef.current;
+    const handler = advertisementHandlerRef.current;
+    if (watchedDevice && handler) {
+      try {
+        watchedDevice.removeEventListener("advertisementreceived", handler);
+      } catch {
+        /* noop */
+      }
+    }
+    advertisementDeviceRef.current = null;
+    advertisementHandlerRef.current = null;
+    advertisementAbortRef.current?.abort();
+    advertisementAbortRef.current = null;
+    reconnectAttemptRef.current = 0;
+    reconnectInFlightRef.current = false;
+  }, []);
+
+  /** chooser 없이 이미 허용된 장치에 GATT/CSC/notifications를 다시 구성한다. */
+  const connectKnownDevice = useCallback(
+    async (device: BluetoothDevice, automatic: boolean): Promise<ConnectionAttemptResult> => {
+      if (connectingRef.current) return "retryable";
+
+      releaseGatt({ disconnectServer: true, clearDevice: false });
+      deviceRef.current = device;
+      connectingRef.current = true;
+      setDeviceLabel(device.name || "케이던스 센서");
+      setCrankRpm(null);
+      if (!automatic) {
+        setErrorMessage(null);
+        setUiState("connecting");
+      }
+
+      try {
+        if (!device.gatt) throw new Error("이 장치는 Web Bluetooth GATT 연결을 지원하지 않습니다.");
+        const server = await device.gatt.connect();
+        serverRef.current = server;
+
+        let characteristic: BluetoothRemoteGATTCharacteristic;
+        try {
+          const service = await server.getPrimaryService(CSC_SERVICE_UUID);
+          characteristic = await service.getCharacteristic(CSC_MEASUREMENT_UUID);
+        } catch {
+          throw new MissingCscServiceError(NO_CSC_SERVICE_MESSAGE);
+        }
+        charRef.current = characteristic;
+        characteristic.addEventListener("characteristicvaluechanged", onMeasurement);
+        await characteristic.startNotifications();
+
+        trackerRef.current.reset(Date.now());
+        noCrankCountRef.current = 0;
+        const onDisconnected = () => onUnexpectedDisconnectRef.current(device);
+        onGattDisconnectedRef.current = onDisconnected;
+        device.addEventListener("gattserverdisconnected", onDisconnected);
+
+        stopAutoReconnect();
+        setCrankRpm(null);
+        setErrorMessage(null);
+        setUiState("connected");
+        pollTimerRef.current = setInterval(() => {
+          setCrankRpm(trackerRef.current.pollStall(Date.now()));
+        }, STALL_POLL_MS);
+        return "connected";
+      } catch (error) {
+        const missingCsc = error instanceof MissingCscServiceError;
+        releaseGatt({ disconnectServer: true, clearDevice: false });
+        if (automatic) {
+          setErrorMessage(AUTO_RECONNECT_MESSAGE);
+          setUiState("disconnected");
+        } else {
+          setErrorMessage(
+            missingCsc
+              ? NO_CSC_SERVICE_MESSAGE
+              : error instanceof Error
+                ? error.message
+                : "BLE 연결에 실패했습니다.",
+          );
+          setUiState("error");
+        }
+        return missingCsc ? "missing-csc" : "retryable";
+      } finally {
+        connectingRef.current = false;
+      }
+    },
+    [onMeasurement, releaseGatt, stopAutoReconnect],
+  );
+
+  /**
+   * 센서가 잠든 동안 광고를 기다리며, 광고 감시 미지원/누락에 대비해 지수 백오프도 병행한다.
+   * 탭이 보이는 동안만 GATT 재시도를 수행한다.
+   */
+  const beginAutoReconnect = useCallback(
+    (device: BluetoothDevice) => {
+      stopAutoReconnect();
+      if (!autoReconnectAllowedRef.current || userDisconnectedRef.current) return;
+
+      deviceRef.current = device;
+      setDeviceLabel(device.name || "케이던스 센서");
+      setCrankRpm(null);
+      setErrorMessage(AUTO_RECONNECT_MESSAGE);
+      setUiState("disconnected");
+
+      // 백그라운드 탭에서는 광고 스캔과 GATT 재시도를 시작하지 않는다.
+      // 다시 보이는 순간 visibilitychange/pageshow가 같은 장치로 루프를 재개한다.
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+
+      const loopToken = reconnectLoopTokenRef.current;
+
+      const schedule = (delayMs: number, attempt: () => Promise<void>) => {
+        if (loopToken !== reconnectLoopTokenRef.current) return;
+        if (reconnectTimerRef.current != null) clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = setTimeout(() => void attempt(), delayMs);
+      };
+
+      const attempt = async () => {
+        if (
+          loopToken !== reconnectLoopTokenRef.current ||
+          !autoReconnectAllowedRef.current ||
+          userDisconnectedRef.current
+        ) {
+          return;
+        }
+        if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+          schedule(1_000, attempt);
+          return;
+        }
+        if (reconnectInFlightRef.current || connectingRef.current) {
+          schedule(250, attempt);
+          return;
+        }
+
+        if (reconnectTimerRef.current != null) {
+          clearTimeout(reconnectTimerRef.current);
+          reconnectTimerRef.current = null;
+        }
+        reconnectInFlightRef.current = true;
+        const result = await connectKnownDevice(device, true);
+        reconnectInFlightRef.current = false;
+        if (result === "connected") return;
+        if (result === "missing-csc") {
+          autoReconnectAllowedRef.current = false;
+          stopAutoReconnect();
+          setErrorMessage(NO_CSC_SERVICE_MESSAGE);
+          setUiState("error");
+          return;
+        }
+        const delay = bleReconnectDelayMs(reconnectAttemptRef.current);
+        reconnectAttemptRef.current += 1;
+        schedule(delay, attempt);
+      };
+
+      // 센서를 움직여 광고가 다시 나오면 타이머를 기다리지 않고 즉시 시도한다.
+      if (typeof device.watchAdvertisements === "function") {
+        const controller = new AbortController();
+        const onAdvertisement = () => void attempt();
+        advertisementAbortRef.current = controller;
+        advertisementDeviceRef.current = device;
+        advertisementHandlerRef.current = onAdvertisement;
+        device.addEventListener("advertisementreceived", onAdvertisement);
+        void device.watchAdvertisements({ signal: controller.signal }).catch((error) => {
+          if (!(error instanceof DOMException) || error.name !== "AbortError") {
+            // watchAdvertisements 미지원·스캔 실패여도 아래 백오프 연결은 계속된다.
+          }
+        });
+      }
+
+      schedule(bleReconnectDelayMs(0), attempt);
+    },
+    [connectKnownDevice, stopAutoReconnect],
+  );
+
+  useEffect(() => {
+    onUnexpectedDisconnectRef.current = (device) => {
+      releaseGatt({ disconnectServer: false, clearDevice: false });
+      setCrankRpm(null);
+      setErrorMessage(DISCONNECTED_MESSAGE);
+      setUiState("disconnected");
+      if (autoReconnectAllowedRef.current && !userDisconnectedRef.current) {
+        beginAutoReconnect(device);
+      }
+    };
+    return () => {
+      onUnexpectedDisconnectRef.current = () => {};
+    };
+  }, [beginAutoReconnect, releaseGatt]);
+
+  /** 사용자의 명시적 연결 해제 — 현재 앱 세션에서는 자동 재연결하지 않는다. */
   const disconnect = useCallback(() => {
-    releaseGatt();
+    userDisconnectedRef.current = true;
+    autoReconnectAllowedRef.current = false;
+    stopAutoReconnect();
+    releaseGatt({ disconnectServer: true, clearDevice: true });
     setCrankRpm(null);
     setDeviceLabel(null);
     setErrorMessage(null);
     setUiState("idle");
-  }, [releaseGatt]);
+  }, [releaseGatt, stopAutoReconnect]);
 
   const connect = useCallback(async () => {
     if (!capable || connectingRef.current) return;
-    // 다시 연결 — 이전 세션 잔여물이 남아 있으면 먼저 정리한다.
-    releaseGatt();
+
+    userDisconnectedRef.current = false;
+    autoReconnectAllowedRef.current = true;
+    stopAutoReconnect();
+
+    // 같은 탭에서 한 번 선택한 장치는 chooser 없이 직접 다시 연결한다.
+    const rememberedDevice = deviceRef.current;
+    if (rememberedDevice) {
+      const result = await connectKnownDevice(rememberedDevice, false);
+      if (result === "retryable") beginAutoReconnect(rememberedDevice);
+      return;
+    }
+
     connectingRef.current = true;
     setErrorMessage(null);
     setCrankRpm(null);
     setUiState("connecting");
-
     try {
       // CSC UUID 를 광고하지 않는 센서(CYCPLUS 등)까지 잡되, 주변 모든 기기를
       // 노출하는 acceptAllDevices 는 쓰지 않는다.
@@ -152,46 +369,14 @@ export function useBleCrankRpm(): UseBleCrankRpmResult {
         optionalServices: [CSC_SERVICE_UUID],
       });
       deviceRef.current = device;
-
-      const server = await device.gatt!.connect();
-      serverRef.current = server;
-
-      let characteristic: BluetoothRemoteGATTCharacteristic;
-      try {
-        const service = await server.getPrimaryService(CSC_SERVICE_UUID);
-        characteristic = await service.getCharacteristic(CSC_MEASUREMENT_UUID);
-      } catch {
-        releaseGatt();
-        setDeviceLabel(device.name || null);
-        setErrorMessage(NO_CSC_SERVICE_MESSAGE);
-        setUiState("error");
-        return;
-      }
-      charRef.current = characteristic;
-
-      characteristic.addEventListener("characteristicvaluechanged", onMeasurement);
-      await characteristic.startNotifications();
-
-      trackerRef.current.reset(Date.now());
-      noCrankCountRef.current = 0;
-      setCrankRpm(null);
       setDeviceLabel(device.name || "케이던스 센서");
-      setUiState("connected");
-
-      pollTimerRef.current = setInterval(() => {
-        setCrankRpm(trackerRef.current.pollStall(Date.now()));
-      }, STALL_POLL_MS);
-
-      const onDisconnected = () => {
-        releaseGatt();
-        setCrankRpm(null);
-        setErrorMessage(DISCONNECTED_MESSAGE);
-        setUiState("disconnected");
-      };
-      onGattDisconnectedRef.current = onDisconnected;
-      device.addEventListener("gattserverdisconnected", onDisconnected);
+      // chooser 진행 플래그를 내린 뒤 공통 GATT 연결 경로로 진입한다.
+      connectingRef.current = false;
+      const result = await connectKnownDevice(device, false);
+      if (result === "retryable") beginAutoReconnect(device);
     } catch (e) {
-      releaseGatt();
+      releaseGatt({ disconnectServer: true, clearDevice: true });
+      autoReconnectAllowedRef.current = false;
       const name = e instanceof DOMException ? e.name : "";
       if (name === "NotFoundError") {
         // chooser 취소 — 오류가 아니다.
@@ -207,17 +392,85 @@ export function useBleCrankRpm(): UseBleCrankRpmResult {
     } finally {
       connectingRef.current = false;
     }
-  }, [capable, onMeasurement, releaseGatt]);
+  }, [beginAutoReconnect, capable, connectKnownDevice, releaseGatt, stopAutoReconnect]);
 
-  /** 앱 생명주기에서만 정리 — 주행 상태(idle/running)는 연결을 끊지 않는다 */
+  /** 새 문서에서도 이 origin에 이미 허용된 장치를 chooser 없이 복원한다. */
+  const restoreGrantedDevice = useCallback(async () => {
+    if (!capable || userDisconnectedRef.current) return;
+    const bluetooth = navigator.bluetooth;
+    if (!bluetooth || typeof bluetooth.getDevices !== "function") return;
+    try {
+      const granted = await bluetooth.getDevices();
+      if (userDisconnectedRef.current || deviceRef.current) return;
+      const device = selectGrantedCadenceDevice(granted);
+      if (!device) return;
+      deviceRef.current = device;
+      autoReconnectAllowedRef.current = true;
+      setDeviceLabel(device.name || "케이던스 센서");
+      beginAutoReconnect(device);
+    } catch {
+      // getDevices 미지원·권한 정책 차단은 수동 chooser 경로를 막지 않는다.
+    }
+  }, [beginAutoReconnect, capable]);
+
+  /**
+   * 앱 생명주기에서만 정리 — 주행 상태(idle/running)는 연결을 끊지 않는다.
+   *
+   * `pagehide` 는 GATT 를 실제로 끊으므로 React 상태도 함께 되돌린다. 그러지 않으면
+   * BFCache 복귀 화면이 「연결됨 + 옛 RPM」으로 남아 실제 연결과 모순된다.
+   * unmount cleanup 은 이벤트 경로와 달리 setState 하지 않는다(정리 중 상태 갱신 회피).
+   */
   useEffect(() => {
-    const onPageHide = () => releaseGatt();
-    window.addEventListener("pagehide", onPageHide);
-    return () => {
-      window.removeEventListener("pagehide", onPageHide);
-      releaseGatt();
+    const onPageHide = () => {
+      resumeAfterPageShowRef.current = Boolean(
+        deviceRef.current && autoReconnectAllowedRef.current && !userDisconnectedRef.current,
+      );
+      stopAutoReconnect();
+      releaseGatt({ disconnectServer: true, clearDevice: false });
+      setCrankRpm(null);
+      setErrorMessage(null);
+      setUiState("idle");
     };
-  }, [releaseGatt]);
+    const onPageShow = () => {
+      if (userDisconnectedRef.current) return;
+      const device = deviceRef.current;
+      if (resumeAfterPageShowRef.current && device) {
+        autoReconnectAllowedRef.current = true;
+        beginAutoReconnect(device);
+      } else if (!device) {
+        void restoreGrantedDevice();
+      }
+      resumeAfterPageShowRef.current = false;
+    };
+    const onVisibilityChange = () => {
+      const device = deviceRef.current;
+      if (document.visibilityState === "hidden") {
+        if (device && !device.gatt?.connected) stopAutoReconnect();
+        return;
+      }
+      if (
+        device &&
+        !device.gatt?.connected &&
+        autoReconnectAllowedRef.current &&
+        !userDisconnectedRef.current
+      ) {
+        beginAutoReconnect(device);
+      }
+    };
+    window.addEventListener("pagehide", onPageHide);
+    window.addEventListener("pageshow", onPageShow);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    const restoreTimer = window.setTimeout(() => void restoreGrantedDevice(), 0);
+    return () => {
+      window.clearTimeout(restoreTimer);
+      window.removeEventListener("pagehide", onPageHide);
+      window.removeEventListener("pageshow", onPageShow);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      autoReconnectAllowedRef.current = false;
+      stopAutoReconnect();
+      releaseGatt({ disconnectServer: true, clearDevice: true });
+    };
+  }, [beginAutoReconnect, releaseGatt, restoreGrantedDevice, stopAutoReconnect]);
 
   return {
     capable,

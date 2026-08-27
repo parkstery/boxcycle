@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
 import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/firestoreSavedRoutes";
 import { isIncompleteQuotaError } from "../../lib/tierQuota";
-import { CadenceSensorControl, type CadenceSensorControlProps } from "./CadenceSensorControl";
-import { SessionSpeedControl } from "./SessionSpeedControl";
 import type { RouteDockStop, RouteDockStopId } from "./useRouteDockStops";
 import "./RouteDock.css";
 
@@ -11,11 +9,6 @@ export type RouteDockProps = {
   stage: RideUiStage;
   stops: RouteDockStop[];
   routeLoading: boolean;
-  /** 체험(manual) 모드 슬라이더 값 — cadence 모드에서는 목표 속도에 쓰이지 않는다 */
-  manualSpeedKmh: number;
-  onManualSpeedKmh: (n: number) => void;
-  /** 케이던스 센서 연결·입력 모드 전환 */
-  cadence: CadenceSensorControlProps;
   canStartRide: boolean;
   canSaveRoute: boolean;
   onSaveCurrentRoute: (name: string, confirmUpdate?: boolean) => Promise<void> | void;
@@ -42,9 +35,6 @@ export function RouteDock(props: RouteDockProps) {
     stage,
     stops,
     routeLoading,
-    manualSpeedKmh,
-    onManualSpeedKmh,
-    cadence,
     canStartRide,
     canSaveRoute,
     onSaveCurrentRoute,
@@ -371,15 +361,6 @@ export function RouteDock(props: RouteDockProps) {
           </ul>
         ) : null}
 
-        {/* cadence 모드에서는 슬라이더가 목표 속도를 만들지 않는다 — 숨겨 혼동을 없앤다 */}
-        {cadence.mode === "manual" ? (
-          <SessionSpeedControl
-            speedKmh={manualSpeedKmh}
-            onSpeedKmh={onManualSpeedKmh}
-            disabled={editLocked}
-          />
-        ) : null}
-        <CadenceSensorControl {...cadence} disabled={cadence.disabled || editLocked} />
         </div>
       </div>
     </div>

@@ -66,6 +66,7 @@
 
 | 문서 | 역할 | 신뢰도 |
 |------|------|--------|
+| [260827-BLE-케이던스-HUD-상태칩-작업지시서](ops/sensor-relay/260827-BLE-케이던스-HUD-상태칩-작업지시서.md) | **현재 후속 실행 작업 SENSOR-2** — 계정 옆 전역 센서 LED/RPM 칩 + Go 전 주행 입력 준비 게이트 | 코드 반영 완료·실물 검증 대기 |
 | [260827-BLE-케이던스-직결-작업지시서](ops/sensor-relay/260827-BLE-케이던스-직결-작업지시서.md) | **현재 실행 작업 SENSOR-1** — CYCPLUS CSC 연결→RPM 확인→케이던스 기반 가상 주행 수직 기능 | 검토됨·실행 대기 |
 | [260523-World-Activity-Presence-설계](260523-World-Activity-Presence-설계.md) | 월드 맵 presence·publication dot | SoT |
 | [260523-Firebase-비용-운영-체크리스트](260523-Firebase-비용-운영-체크리스트.md) | 비용 관측·대응 | 반영중 |

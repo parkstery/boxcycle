@@ -18,6 +18,28 @@ export const ENTRY_STEPS = [
     selector: `getByRole('dialog',{name:'시작'}) → getByRole('button',{name:'시작',exact:true})`,
   },
   {
+    step: "cadence-chip",
+    desc: "HUD 우상단 케이던스 센서 칩 — 계정 칩 왼쪽, 센서 상세 설정 트리거",
+    file: "src/components/maphud/CadenceHudChip.tsx",
+    anchors: [
+      { name: "칩 접근성 이름", re: /aria-label=\{view\.ariaLabel\}/ },
+      { name: "열림 상태 aria-expanded", re: /aria-expanded=\{open\}/ },
+    ],
+    selector: `getByRole('button',{name:/케이던스 센서/})`,
+  },
+  {
+    step: "input-readiness",
+    desc: "주행 입력 준비 — 센서 상세 설정에서 '체험 속도로 준비' (Go 사전조건)",
+    file: "src/components/sensor/CadenceSensorSheet.tsx",
+    anchors: [
+      { name: "센서 시트 dialog", re: /role="dialog"/ },
+      { name: "시트 aria-label", re: /aria-label="케이던스 센서"/ },
+      { name: "체험 속도로 준비 버튼", re: /체험 속도로 준비/ },
+      { name: "시트 닫기", re: /aria-label="닫기"/ },
+    ],
+    selector: `getByRole('dialog',{name:'케이던스 센서'}) → getByRole('button',{name:'체험 속도로 준비'})`,
+  },
+  {
     step: "open-menu",
     desc: "HUD 좌상단 Trail 메뉴 트리거",
     file: "src/components/maphud/MapHud.tsx",

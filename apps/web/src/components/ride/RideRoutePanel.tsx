@@ -1,7 +1,6 @@
 import { useState } from "react";
 import type { PublishedPublicCourseSummary } from "../../lib/firestoreCourses";
 import type { RouteActivitySnapshot } from "../../lib/firestoreRouteActivity";
-import type { BleCrankRpmUiState } from "../../hooks/useBleCrankRpm";
 import type { SavedRoute } from "../../lib/firestoreSavedRoutes";
 import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/firestoreSavedRoutes";
 import { isIncompleteQuotaError } from "../../lib/tierQuota";
@@ -85,15 +84,6 @@ type RideRoutePanelProps = {
   rideElevationProfileLoading: boolean;
   /** BGM 재생 URL 카탈로그 존재(내장·환경변수) */
   rideBgmCatalogConfigured: boolean;
-  /** Web Bluetooth CSC 케이던스 — Chromium 등에서만 표시 */
-  bleCadence?: {
-    uiState: BleCrankRpmUiState;
-    crankRpm: number | null;
-    deviceLabel: string | null;
-    errorMessage: string | null;
-    onConnect: () => void | Promise<void>;
-    onDisconnect: () => void;
-  };
 };
 
 type Tab = "route" | "saved";

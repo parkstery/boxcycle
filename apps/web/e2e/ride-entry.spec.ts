@@ -41,6 +41,20 @@ async function enterAsGuest(page: import('@playwright/test').Page) {
   await expect(gate).toBeHidden()
 }
 
+/**
+ * 주행 입력 준비 — Go 의 사전조건(SENSOR-2 §1.4).
+ * 자동 E2E 에는 BLE 장치가 없으므로 HUD 센서 칩 → 센서 상세 설정에서
+ * 「체험 속도로 준비」를 **명시적으로** 고른다. 기본 manual 초기값만으로는 Go 가 잠긴다.
+ */
+async function prepareManualRideInput(page: import('@playwright/test').Page) {
+  await page.getByRole('button', { name: /케이던스 센서/ }).click()
+  const sheet = page.getByRole('dialog', { name: '케이던스 센서' })
+  await expect(sheet).toBeVisible()
+  await sheet.getByRole('button', { name: '체험 속도로 준비' }).click()
+  await sheet.getByRole('button', { name: '닫기' }).click()
+  await expect(sheet).toBeHidden()
+}
+
 /** Trail 메뉴 → '입문' → 코스 모달 */
 async function openBasicCourseModal(page: import('@playwright/test').Page) {
   await page.getByRole('button', { name: 'Trail 메뉴' }).click()
@@ -53,8 +67,9 @@ async function openBasicCourseModal(page: import('@playwright/test').Page) {
 test.describe('실주행 진입 시퀀스', () => {
   test.skip(!LIVE, 'Firebase 준비 필요 — RIDE_VERIFY_LIVE=1 로 실행')
 
-  test('게스트 → 입문 코스 → 주행 시작 → running', async ({ page }) => {
+  test('게스트 → 주행 입력 준비 → 입문 코스 → 주행 시작 → running', async ({ page }) => {
     await enterAsGuest(page)
+    await prepareManualRideInput(page)
 
     // 코스 모달에서 첫 코스 로드 (제목은 런타임 카탈로그라 첫 항목을 집는다)
     // 헤더 '닫기' 버튼이 DOM 상 리스트보다 앞이라 `.first()` 로 아무 버튼이나 집으면 모달만 닫힌다 —
@@ -92,6 +107,20 @@ test.describe('실주행 진입 시퀀스', () => {
     }
   })
 
+  test('입력 준비 전에는 Go 가 잠긴다', async ({ page }) => {
+    await enterAsGuest(page)
+    const modal = await openBasicCourseModal(page)
+    await modal.locator('button.oc-modal__item').first().click()
+
+    // 기본 manual 초기값은 사용자의 선택이 아니다 — Go 는 disabled 여야 한다.
+    const start = page.getByRole('button', { name: '주행 시작' })
+    await expect(start).toBeVisible()
+    await expect(start).toBeDisabled()
+
+    await prepareManualRideInput(page)
+    await expect(start).toBeEnabled()
+  })
+
   for (const [index, title] of BASIC_INTRO_TITLES.entries()) {
     test(`입문 ${index + 1} '${title}' 로드 → 주행 시작 → running`, async ({ page }) => {
       // 스크립트 예외(pageerror)와 "리소스 로드 실패가 아닌" 콘솔 오류만 회귀로 본다.
@@ -113,6 +142,7 @@ test.describe('실주행 진입 시퀀스', () => {
       })
 
       await enterAsGuest(page)
+      await prepareManualRideInput(page)
       const modal = await openBasicCourseModal(page)
       await modal.locator('button.oc-modal__item').nth(index).click()
 

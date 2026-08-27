@@ -1,9 +1,6 @@
 import { useEffect } from "react";
 import { RideSettingsPanel } from "./RideSettingsPanel";
-import type { RideSettingsBle } from "./RideSettingsPanel";
 import "./RideSettingsSheet.css";
-
-export type { RideSettingsBle };
 
 type RideSettingsSheetProps = {
   open: boolean;
@@ -16,10 +13,9 @@ type RideSettingsSheetProps = {
   onRideCoachingBanner: (enabled: boolean) => void;
   rideBgmCatalogConfigured: boolean;
   rideElevationProfileLoading: boolean;
-  bleCadence?: RideSettingsBle;
 };
 
-/** 주행·표시·센서 설정 — MENU 와 분리된 하단 시트. */
+/** 주행·표시 설정 — MENU 와 분리된 하단 시트. 센서는 별도 케이던스 상세 설정이 소유. */
 export function RideSettingsSheet(props: RideSettingsSheetProps) {
   useEffect(() => {
     if (!props.open) return;
@@ -54,7 +50,6 @@ export function RideSettingsSheet(props: RideSettingsSheetProps) {
           onRideCoachingBanner={props.onRideCoachingBanner}
           rideBgmCatalogConfigured={props.rideBgmCatalogConfigured}
           rideElevationProfileLoading={props.rideElevationProfileLoading}
-          bleCadence={props.bleCadence}
         />
       </div>
     </div>

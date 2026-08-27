@@ -1,5 +1,7 @@
 import type { CoachingData } from "../../lib/coachTypes";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
+import type { CadenceHudState } from "../../lib/cadenceSensorUi";
+import { CadenceHudChip } from "./CadenceHudChip";
 import "./MapHud.css";
 
 export type AccountChipState = {
@@ -29,6 +31,13 @@ export type MapHudRidePresence = {
   courseActivityHudLine?: string | null;
 };
 
+/** HUD 칩이 필요한 최소 센서 상태 + 상세 설정 열기 */
+export type MapHudCadence = {
+  state: CadenceHudState;
+  open: boolean;
+  onOpen: () => void;
+};
+
 export type MapHudProps = {
   stage: RideUiStage;
 
@@ -40,7 +49,9 @@ export type MapHudProps = {
   onOpenPlaceSearch: () => void;
   placeSearchOpen: boolean;
 
-  // TR — 사용자 정보 시트 트리거(아바타)
+  // TR — 케이던스 센서 칩 + 사용자 정보 시트 트리거(아바타)
+  /** null 이면 칩 미표시. 상태 표시만 담고 액션은 상세 설정이 소유한다 */
+  cadence: MapHudCadence | null;
   account: AccountChipState | null;
   onOpenUserInfo: () => void;
   userInfoOpen: boolean;
@@ -147,6 +158,7 @@ export function MapHud(props: MapHudProps) {
     onGoTrailhead,
     onOpenPlaceSearch,
     placeSearchOpen,
+    cadence,
     account,
     onOpenUserInfo,
     userInfoOpen,
@@ -190,6 +202,9 @@ export function MapHud(props: MapHudProps) {
   const showAccount = account !== null && !isGate && !isSummary;
   const showSignedOutAuth =
     !isGate && !isSummary && account === null && typeof onOpenSignedOutAuth === "function";
+  // 센서 상태는 계정 데이터에 종속되지 않는다 — signed-out 맵 모드에서도 로그인 칩 왼쪽에 남는다.
+  const showCadenceChip = cadence !== null && !isGate && !isSummary;
+  const showTopRight = showCadenceChip || showAccount || showSignedOutAuth;
   const showMapViewTrigger = !isGate && !isSummary;
   const showMetrics =
     metrics !== null &&
@@ -372,42 +387,52 @@ export function MapHud(props: MapHudProps) {
         </div>
       ) : null}
 
-      {showAccount && account ? (
+      {/* 우상단은 하나의 액션 행 — 센서 칩이 계정/로그인 칩 왼쪽에 온다(절대 위치 겹침 금지) */}
+      {showTopRight ? (
         <div className="map-hud__tr">
-          <button
-            type="button"
-            className={`hud-account ${account.isGuest ? "hud-account--guest" : ""}`}
-            aria-label="사용자 정보"
-            aria-expanded={userInfoOpen}
-            title="Account"
-            onClick={onOpenUserInfo}
-          >
-            <span className="hud-account__avatar" aria-hidden>
-              {account.initial}
-            </span>
-            <span className="hud-account__text">
-              <span className="hud-account__name">{account.label}</span>
-              {account.mileageKm != null ? (
-                <span className="hud-account__mileage">
-                  {account.mileageKm.toLocaleString("ko-KR")} km
-                </span>
-              ) : null}
-            </span>
-          </button>
-        </div>
-      ) : null}
+          {showCadenceChip && cadence ? (
+            <CadenceHudChip
+              state={cadence.state}
+              riding={riding || paused}
+              open={cadence.open}
+              onOpen={cadence.onOpen}
+            />
+          ) : null}
 
-      {showSignedOutAuth ? (
-        <div className="map-hud__tr">
-          <button
-            type="button"
-            className="hud-signin-pill"
-            aria-label="로그인 또는 게스트로 시작"
-            title="Sign in"
-            onClick={onOpenSignedOutAuth}
-          >
-            로그인
-          </button>
+          {showAccount && account ? (
+            <button
+              type="button"
+              className={`hud-account ${account.isGuest ? "hud-account--guest" : ""}`}
+              aria-label="사용자 정보"
+              aria-expanded={userInfoOpen}
+              title="Account"
+              onClick={onOpenUserInfo}
+            >
+              <span className="hud-account__avatar" aria-hidden>
+                {account.initial}
+              </span>
+              <span className="hud-account__text">
+                <span className="hud-account__name">{account.label}</span>
+                {account.mileageKm != null ? (
+                  <span className="hud-account__mileage">
+                    {account.mileageKm.toLocaleString("ko-KR")} km
+                  </span>
+                ) : null}
+              </span>
+            </button>
+          ) : null}
+
+          {showSignedOutAuth ? (
+            <button
+              type="button"
+              className="hud-signin-pill"
+              aria-label="로그인 또는 게스트로 시작"
+              title="Sign in"
+              onClick={onOpenSignedOutAuth}
+            >
+              로그인
+            </button>
+          ) : null}
         </div>
       ) : null}
 

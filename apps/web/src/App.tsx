@@ -111,6 +111,8 @@ import {
 import { formatElapsedFromMs } from "./lib/rideFormat";
 import { useBleCrankRpm } from "./hooks/useBleCrankRpm";
 import { resolveRideTargetSpeedKmh, type RideInputMode } from "./lib/cadenceRideInput";
+import { isRideInputReady, resolveRideInputReadiness } from "./lib/cadenceSensorUi";
+import { CadenceSensorSheet } from "./components/sensor";
 import { useConquest } from "./hooks/useConquest";
 import { useLiveConquestPaint } from "./hooks/useLiveConquestPaint";
 import { conquestCellIdsAround } from "./lib/conquestTiles";
@@ -208,14 +210,37 @@ export default function App() {
   const [rideInputMode, setRideInputMode] = useState<RideInputMode>("manual");
   const bleCrankRpm = useBleCrankRpm();
   const bleSensorConnected = bleCrankRpm.uiState === "connected";
+  /**
+   * 「체험 속도로 준비」를 사용자가 명시적으로 골랐는가. 초기값 `manual` 은 선택이 아니다 —
+   * 이게 false 면 Go 가 잠긴다(선택하지 않은 체험 주행 금지).
+   */
+  const [manualInputChosen, setManualInputChosen] = useState(false);
+  /** 이번 연결에서 유효 크랭크 샘플을 한 번이라도 받았는가(이후 0rpm 이어도 유지) */
+  const [cadenceSampleSeen, setCadenceSampleSeen] = useState(false);
+  const switchRideInputToManual = useCallback(() => {
+    setManualInputChosen(true);
+    setRideInputMode("manual");
+  }, []);
+  const switchRideInputToCadence = useCallback(() => setRideInputMode("cadence"), []);
   // 센서 연결 성공 = cadence 전환. effect 대신 이전값 비교(React 권장) — set-state-in-effect 회피.
   const [prevBleUiState, setPrevBleUiState] = useState(bleCrankRpm.uiState);
   if (bleCrankRpm.uiState !== prevBleUiState) {
     setPrevBleUiState(bleCrankRpm.uiState);
     if (bleCrankRpm.uiState === "connected") setRideInputMode("cadence");
+    // 연결이 아닌 상태로 나가면 「이번 연결의 샘플 확인」은 무효 — 준비 완료도 풀린다.
+    if (bleCrankRpm.uiState !== "connected") setCadenceSampleSeen(false);
   }
-  const switchRideInputToManual = useCallback(() => setRideInputMode("manual"), []);
-  const switchRideInputToCadence = useCallback(() => setRideInputMode("cadence"), []);
+  // 유효 샘플 1회 = cadence 준비 완료. 0rpm(정지)도 crankRpm !== null 이라 유지된다.
+  if (bleSensorConnected && bleCrankRpm.crankRpm != null && !cadenceSampleSeen) {
+    setCadenceSampleSeen(true);
+  }
+  const rideInputReadiness = resolveRideInputReadiness({
+    mode: rideInputMode,
+    manualChosen: manualInputChosen,
+    uiState: bleCrankRpm.uiState,
+    cadenceSampleSeen,
+  });
+  const rideInputReady = isRideInputReady(rideInputReadiness);
   /** 현재 입력 모드가 만든 목표 속도 — 실제 적용 속도는 램핑 후 `rideMetrics.appliedSpeedKmh` */
   const rideTargetSpeedKmh = useMemo(
     () =>
@@ -241,16 +266,19 @@ export default function App() {
     mapViewSheetOpen,
     userInfoSheetOpen,
     rideSettingsSheetOpen,
+    cadenceSensorSheetOpen,
     setMenuOpen,
     setPlaceSearchOpen,
     setMapViewSheetOpen,
     setUserInfoSheetOpen,
     setRideSettingsSheetOpen,
+    setCadenceSensorSheetOpen,
     openMenuPanel,
     openPlaceSearchPanel,
     openMapViewPanel,
     openUserInfoPanel,
     openRideSettingsPanel,
+    openCadenceSensorPanel,
   } = useAppSheetNavigation();
   const [externalCameraJump, setExternalCameraJump] = useState<{
     lngLat: LngLat;
@@ -970,32 +998,6 @@ export default function App() {
     };
   }, [rideStatus, startLngLat, endLngLat]);
 
-  const bleCadencePanel = useMemo(() => {
-    if (!bleCrankRpm.capable) return undefined;
-    return {
-      uiState: bleCrankRpm.uiState,
-      crankRpm: bleCrankRpm.crankRpm,
-      deviceLabel: bleCrankRpm.deviceLabel,
-      errorMessage: bleCrankRpm.errorMessage,
-      mode: rideInputMode,
-      onConnect: () => void bleCrankRpm.connect(),
-      onDisconnect: bleCrankRpm.disconnect,
-      onSwitchToManual: switchRideInputToManual,
-      onSwitchToCadence: switchRideInputToCadence,
-    };
-  }, [
-    bleCrankRpm.capable,
-    bleCrankRpm.uiState,
-    bleCrankRpm.crankRpm,
-    bleCrankRpm.deviceLabel,
-    bleCrankRpm.errorMessage,
-    bleCrankRpm.connect,
-    bleCrankRpm.disconnect,
-    rideInputMode,
-    switchRideInputToManual,
-    switchRideInputToCadence,
-  ]);
-
   const { coachData, rideElevationProfile, rideBgmCatalogConfigured } = useRideCoachingMedia({
     routeGeometry,
     routeDistanceMeters,
@@ -1225,6 +1227,8 @@ export default function App() {
 
   function handleStartRide(fromStart?: boolean) {
     if (!routeGeometry || rideStatus !== "idle" || !user || !configured || trailStartBusy) return;
+    // 주행 입력 준비(센서 확인 또는 명시적 체험 속도 선택)가 끝나기 전에는 시작하지 않는다.
+    if (!rideInputReady) return;
     // MapHud FAB 등 onClick 직결 호출은 이벤트 객체가 첫 인자로 올 수 있어 `=== true` 로만 판정
     const restart = fromStart === true;
     /**
@@ -1572,25 +1576,38 @@ export default function App() {
     [mapZoom],
   );
 
+  /**
+   * Go 사전조건 = 경로 준비 **+ 주행 입력 준비**.
+   * 준비 미완료 상태로 주행 화면에 들어간 뒤 센서를 설정시키지 않는다(§1.4).
+   */
+  const canStartRideWithInput = Boolean(routeGeometry) && !routeLoading && rideInputReady;
+
+  /** HUD 칩용 최소 상태 — BLE 훅 객체 전체를 넘기지 않는다 */
+  const cadenceHud = useMemo(
+    () => ({
+      state: {
+        capable: bleCrankRpm.capable,
+        uiState: bleCrankRpm.uiState,
+        crankRpm: bleCrankRpm.crankRpm,
+      },
+      open: cadenceSensorSheetOpen,
+      onOpen: openCadenceSensorPanel,
+    }),
+    [
+      bleCrankRpm.capable,
+      bleCrankRpm.uiState,
+      bleCrankRpm.crankRpm,
+      cadenceSensorSheetOpen,
+      openCadenceSensorPanel,
+    ],
+  );
+
   const routeDockPanel = (
     <RouteDock
       stage={stage}
       stops={routeDockStops}
       routeLoading={routeLoading}
-      manualSpeedKmh={manualSpeedKmh}
-      onManualSpeedKmh={setManualSpeedKmh}
-      cadence={{
-        capable: bleCrankRpm.capable,
-        uiState: bleCrankRpm.uiState,
-        deviceLabel: bleCrankRpm.deviceLabel,
-        crankRpm: bleCrankRpm.crankRpm,
-        errorMessage: bleCrankRpm.errorMessage,
-        mode: rideInputMode,
-        onConnect: () => void bleCrankRpm.connect(),
-        onSwitchToManual: switchRideInputToManual,
-        onSwitchToCadence: switchRideInputToCadence,
-      }}
-      canStartRide={Boolean(routeGeometry) && !routeLoading}
+      canStartRide={canStartRideWithInput}
       canSaveRoute={
         Boolean(user) &&
         configured &&
@@ -1775,6 +1792,7 @@ export default function App() {
               menuOpen,
               onOpenPlaceSearch: openPlaceSearchPanel,
               placeSearchOpen,
+              cadence: cadenceHud,
               account: accountChip,
               onOpenUserInfo: openUserInfoPanel,
               userInfoOpen: userInfoSheetOpen,
@@ -1787,7 +1805,7 @@ export default function App() {
               metrics: hudMetrics,
               onClearPins: handleClearPins,
               routeError: null,
-              canStartRide: Boolean(routeGeometry) && !routeLoading,
+              canStartRide: canStartRideWithInput,
               onStartRide: handleStartRide,
               onPauseRide: handlePause,
               onResumeRide: handleResume,
@@ -1913,6 +1931,7 @@ export default function App() {
               menuOpen,
               onOpenPlaceSearch: openPlaceSearchPanel,
               placeSearchOpen,
+              cadence: cadenceHud,
               account: accountChip,
               onOpenUserInfo: openUserInfoPanel,
               userInfoOpen: userInfoSheetOpen,
@@ -1925,7 +1944,7 @@ export default function App() {
               metrics: hudMetrics,
               onClearPins: handleClearPins,
               routeError: null,
-              canStartRide: Boolean(routeGeometry) && !routeLoading,
+              canStartRide: canStartRideWithInput,
               onStartRide: handleStartRide,
               onPauseRide: handlePause,
               onResumeRide: handleResume,
@@ -2053,7 +2072,6 @@ export default function App() {
           onRideCoachingBanner={setRideCoachingBannerVisible}
           rideElevationProfileLoading={rideElevationProfileLoading}
           rideBgmCatalogConfigured={rideBgmCatalogConfigured}
-          bleCadence={bleCadencePanel}
         />
       </MenuPanel>
 
@@ -2079,7 +2097,25 @@ export default function App() {
         onRideCoachingBanner={setRideCoachingBannerVisible}
         rideBgmCatalogConfigured={rideBgmCatalogConfigured}
         rideElevationProfileLoading={rideElevationProfileLoading}
-        bleCadence={bleCadencePanel}
+      />
+
+      <CadenceSensorSheet
+        open={cadenceSensorSheetOpen}
+        onClose={() => setCadenceSensorSheetOpen(false)}
+        capable={bleCrankRpm.capable}
+        uiState={bleCrankRpm.uiState}
+        deviceLabel={bleCrankRpm.deviceLabel}
+        crankRpm={bleCrankRpm.crankRpm}
+        errorMessage={bleCrankRpm.errorMessage}
+        mode={rideInputMode}
+        readiness={rideInputReadiness}
+        riding={rideStatus !== "idle"}
+        manualSpeedKmh={manualSpeedKmh}
+        onManualSpeedKmh={setManualSpeedKmh}
+        onConnect={() => void bleCrankRpm.connect()}
+        onDisconnect={bleCrankRpm.disconnect}
+        onChooseManual={switchRideInputToManual}
+        onChooseCadence={switchRideInputToCadence}
       />
 
       <MapViewSheet
