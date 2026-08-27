@@ -51,7 +51,7 @@ async function prepareManualRideInput(page: import('@playwright/test').Page) {
   const sheet = page.getByRole('dialog', { name: '케이던스 센서' })
   await expect(sheet).toBeVisible()
   await sheet.getByRole('button', { name: '체험 속도로 준비' }).click()
-  await sheet.getByRole('button', { name: '닫기' }).click()
+  await sheet.getByRole('button', { name: '센서 설정 닫기' }).click()
   await expect(sheet).toBeHidden()
 }
 

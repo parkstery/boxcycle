@@ -84,7 +84,22 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
       />
       <div className="cadence-sheet__panel">
         <div className="cadence-sheet__handle" aria-hidden />
-        <h2 className="cadence-sheet__title">케이던스 센서</h2>
+        {/*
+         * 폰에는 Escape 키가 없고, 가로에서는 시트가 화면을 거의 채워 scrim 이 얇은 띠만
+         * 남는다 — 명시적 닫기 버튼이 없으면 빠져나갈 길이 사실상 없다.
+         */}
+        <div className="cadence-sheet__head">
+          <h2 className="cadence-sheet__title">케이던스 센서</h2>
+          <button
+            type="button"
+            className="cadence-sheet__close"
+            aria-label="센서 설정 닫기"
+            title="Close"
+            onClick={onClose}
+          >
+            닫기
+          </button>
+        </div>
 
         <p className="cadence-sheet__status">{cadenceSensorStatusLine(props)}</p>
         {props.deviceLabel ? (

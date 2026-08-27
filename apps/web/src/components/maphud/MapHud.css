@@ -1010,3 +1010,24 @@
     overflow: hidden;
   }
 }
+
+/*
+ * 폰 가로 — CSS 높이가 ~275px 뿐이라 좌상단 정보 패널과 하단 RouteDock 이 정면 충돌한다.
+ * 정보 패널을 먼저 양보시킨다(조작 우선). 겹쳐도 Go 가 위에 오도록 RouteDock 이
+ * z-index 6 을 갖지만, 시각적 침범 자체를 줄이는 편이 낫다.
+ */
+@media (max-height: 560px) {
+  .map-hud__tl {
+    max-width: min(46vw, 11rem);
+  }
+
+  .hud-ride-presence {
+    max-height: 4.5rem;
+    font-size: 0.62rem;
+  }
+
+  /* 「접속자 없음」·「다른 라이더 없음」 — 정보량 0인 줄이 주행 시작을 덮고 있었다 */
+  .hud-ride-presence__empty {
+    display: none;
+  }
+}

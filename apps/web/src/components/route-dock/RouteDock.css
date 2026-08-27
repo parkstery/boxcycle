@@ -7,7 +7,12 @@
   bottom: calc(
     max(var(--route-dock-pad), env(safe-area-inset-bottom, 0px)) + var(--mapbox-logo-clearance, 2.875rem)
   );
-  z-index: 4;
+  /*
+   * MapHud(z-index 5) 보다 위. 폰 가로처럼 세로가 짧으면 하단 앵커인 이 패널이 위로
+   * 올라와 좌상단 접속 패널과 겹치는데, 그때 「조작(Go)」이 「정보(접속 현황)」에
+   * 가려지면 안 된다. 실제로 「다른 라이더 없음」 문구가 Go 탭을 가로챘다.
+   */
+  z-index: 6;
   max-width: min(21.6rem, calc(100vw - 2rem));
   pointer-events: none;
 }

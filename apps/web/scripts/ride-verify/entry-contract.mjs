@@ -35,7 +35,7 @@ export const ENTRY_STEPS = [
       { name: "센서 시트 dialog", re: /role="dialog"/ },
       { name: "시트 aria-label", re: /aria-label="케이던스 센서"/ },
       { name: "체험 속도로 준비 버튼", re: /체험 속도로 준비/ },
-      { name: "시트 닫기", re: /aria-label="닫기"/ },
+      { name: "시트 닫기 버튼", re: /aria-label="센서 설정 닫기"/ },
     ],
     selector: `getByRole('dialog',{name:'케이던스 센서'}) → getByRole('button',{name:'체험 속도로 준비'})`,
   },
