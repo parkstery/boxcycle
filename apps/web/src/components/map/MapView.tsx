@@ -1980,7 +1980,12 @@ export function MapView({
     if (!map || !mapLoaded) return;
 
     const apply = () => {
-      if (!map.isStyleLoaded()) return;
+      // 「지나온 구간」과 같은 이유로 isStyleLoaded() 를 게이트로 쓰지 않는다.
+      try {
+        if (!map.getStyle()) return;
+      } catch {
+        return;
+      }
       try {
         const features = (conquestTraces ?? [])
           .filter((g) => g?.coordinates?.length >= 2)
@@ -2029,7 +2034,16 @@ export function MapView({
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
     const apply = () => {
-      if (!map.isStyleLoaded()) return;
+      /*
+       * isStyleLoaded() 를 게이트로 쓰지 않는다 — 베이스맵 타일이 계속 갱신되는 동안
+       * false 라서 「지나온 구간」이 영영 안 그려졌다(주행 중엔 카메라가 매 프레임 움직여
+       * idle 도 오지 않아 폴백조차 못 탄다). 스타일 접근 가능 여부만 확인한다.
+       */
+      try {
+        if (!map.getStyle()) return;
+      } catch {
+        return;
+      }
       const traveled = conquestLiveTraveledMeters ?? 0;
       let coordinates: [number, number][] = [];
       if (routeGeometry && routeGeometry.coordinates.length >= 2 && traveled > 0) {
@@ -2089,6 +2103,24 @@ export function MapView({
           layout: { "line-cap": "round", "line-join": "round" },
           paint: { ...RTW_TRACE_LIVE_PAINT },
         });
+      }
+      /*
+       * 「지나온 구간」은 반드시 경로선 **위**에 온다. 두 레이어의 추가 순서는 경로 로드
+       * 시점에 따라 뒤집힐 수 있어(실측: route 162 > live 161 로 빨강이 시안을 덮었다)
+       * 매번 경로선 바로 위로 옮겨 고정한다.
+       */
+      try {
+        const ids = (map.getStyle()?.layers ?? []).map((l) => l.id);
+        const routeIdx = ids.indexOf("route");
+        if (routeIdx >= 0) {
+          const afterRoute = ids
+            .slice(routeIdx + 1)
+            .find((id) => id !== CONQUEST_LIVE_GLOW_LAYER && id !== CONQUEST_LIVE_LAYER);
+          map.moveLayer(CONQUEST_LIVE_GLOW_LAYER, afterRoute);
+          map.moveLayer(CONQUEST_LIVE_LAYER, afterRoute);
+        }
+      } catch {
+        /* noop */
       }
     };
 

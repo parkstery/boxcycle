@@ -27,12 +27,27 @@ export const RTW_ROAD_PAINT = {
   "line-opacity": 0.35,
 } as const;
 
-/** Trace 시그니처 골드 — tokens.css --rtw-trace */
+/**
+ * 지도 위 선 3종의 역할을 색으로 분리한다(2026-08-27).
+ *
+ *   빨강  #ef4444 — 설정된 루트(아직 안 간 길). MapView ROUTE_LINE_COLOR
+ *   시안  #22D3EE — 이번 주행에서 지나온 구간
+ *   골드  #E8A33D — 내 도로망(이미 내 것인 길). RTW 시그니처
+ *
+ * 이전에는 「지나온 구간」과 「내 도로망」이 둘 다 골드였고 루트는 빨강이라,
+ * Outdoors 같은 밝은 베이스맵에서 빨강↔골드가 인접 색상이라 분간이 안 됐다.
+ * 시안은 빨강의 보색에 가까워 대비가 가장 크다.
+ */
+
+/** Trace 시그니처 골드 — tokens.css --rtw-trace. 「내 도로망」 전용 */
 export const RTW_TRACE_COLOR = "#E8A33D";
 
-/** 이번 주행 실시간 궤적 — 풀 골드 */
+/** 이번 주행에서 지나온 구간 — 시안 */
+export const RTW_TRACE_LIVE_COLOR = "#22D3EE";
+
+/** 이번 주행 실시간 궤적 — 풀 시안 */
 export const RTW_TRACE_LIVE_PAINT: LinePaint = {
-  "line-color": RTW_TRACE_COLOR,
+  "line-color": RTW_TRACE_LIVE_COLOR,
   "line-opacity": 1,
   "line-width": ["interpolate", ["linear"], ["zoom"], 8, 3.2, 12, 5, 16, 8],
 };
@@ -42,17 +57,21 @@ export const RTW_TRACE_LIVE_PAINT: LinePaint = {
  * 더 굵고 흐리게 한 겹 아래 깔아 발광을 흉내낸다. 본선보다 먼저(아래) 추가할 것.
  */
 export const RTW_TRACE_LIVE_GLOW_PAINT: LinePaint = {
-  "line-color": RTW_TRACE_COLOR,
+  "line-color": RTW_TRACE_LIVE_COLOR,
   "line-width": ["interpolate", ["linear"], ["zoom"], 8, 9, 12, 14, 16, 22],
   "line-blur": 8,
   "line-opacity": 0.35,
 };
 
-/** 누적된 세계(과거 주행 궤적) — 골드 40%, glow 없음 */
+/**
+ * 누적된 세계(내 도로망) — 골드.
+ * 이전 40% 불투명도는 밝은 베이스맵에서 사실상 안 보였다. 「영구 자산」이 핵심 판타지이므로
+ * 확실히 보이도록 올린다.
+ */
 export const RTW_TRACE_ACCUMULATED_PAINT: LinePaint = {
   "line-color": RTW_TRACE_COLOR,
-  "line-opacity": 0.4,
-  "line-width": ["interpolate", ["linear"], ["zoom"], 8, 1.6, 12, 3, 16, 6],
+  "line-opacity": 0.9,
+  "line-width": ["interpolate", ["linear"], ["zoom"], 8, 2.2, 12, 4, 16, 7],
 };
 
 /**
