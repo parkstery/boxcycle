@@ -523,9 +523,10 @@ function syncCourseActivityLayers(
           source: ACTIVITY_PULSE_SRC,
           paint: {
             "line-color": ACTIVITY_TRACE_RED,
-            "line-width": ["interpolate", ["linear"], ["zoom"], 8, 6, 12, 10, 16, 14],
+            "line-width": ["interpolate", ["linear"], ["zoom"], 8, 4, 12, 6, 16, 8],
             "line-blur": ["interpolate", ["linear"], ["zoom"], 8, 2.5, 14, 5],
-            "line-opacity": traceLineOpacityByZoom(0.45, 0.65),
+            // 배경 정보다 — 설정된 경로보다 확실히 약해야 한다
+            "line-opacity": traceLineOpacityByZoom(0.18, 0.26),
           },
           layout: { "line-join": "round", "line-cap": "round" },
         },
@@ -538,8 +539,8 @@ function syncCourseActivityLayers(
           source: ACTIVITY_PULSE_SRC,
           paint: {
             "line-color": ACTIVITY_TRACE_RED,
-            "line-width": ["interpolate", ["linear"], ["zoom"], 8, 2, 12, 3.5, 16, 5],
-            "line-opacity": ["*", 0.92, TRACE_STRENGTH_MULT],
+            "line-width": ["interpolate", ["linear"], ["zoom"], 8, 1.4, 12, 2.2, 16, 3],
+            "line-opacity": ["*", 0.45, TRACE_STRENGTH_MULT],
           },
           layout: { "line-join": "round", "line-cap": "round" },
         },
@@ -558,9 +559,9 @@ function syncCourseActivityLayers(
           source: ACTIVITY_HEAT_SRC,
           paint: {
             "line-color": ACTIVITY_TRACE_RED,
-            "line-width": ["interpolate", ["linear"], ["zoom"], 8, 5, 12, 8, 16, 11],
+            "line-width": ["interpolate", ["linear"], ["zoom"], 8, 3.5, 12, 5, 16, 7],
             "line-blur": ["interpolate", ["linear"], ["zoom"], 8, 2, 14, 4],
-            "line-opacity": traceLineOpacityByZoom(0.35, 0.5),
+            "line-opacity": traceLineOpacityByZoom(0.1, 0.15),
           },
           layout: { "line-join": "round", "line-cap": "round" },
         },
@@ -573,8 +574,8 @@ function syncCourseActivityLayers(
           source: ACTIVITY_HEAT_SRC,
           paint: {
             "line-color": ACTIVITY_TRACE_RED,
-            "line-width": ["interpolate", ["linear"], ["zoom"], 8, 2, 12, 3, 16, 4],
-            "line-opacity": ["*", 0.78, TRACE_STRENGTH_MULT],
+            "line-width": ["interpolate", ["linear"], ["zoom"], 8, 1.2, 12, 1.8, 16, 2.5],
+            "line-opacity": ["*", 0.28, TRACE_STRENGTH_MULT],
             "line-dasharray": [2, 1.5],
           },
           layout: { "line-join": "round", "line-cap": "round" },

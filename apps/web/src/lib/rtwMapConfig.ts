@@ -64,7 +64,7 @@ export const RTW_TRACE_COLOR = "#E8A33D";
  * 대안(이 상수 한 줄만 고치면 된다):
  *   `#A855F7`(280°) 퍼플 · `#C026D3`(292°) 자주 — 빨강에서 더 멀게
  */
-export const RTW_TRACE_OWNED_COLOR = "#EC4899";
+export const RTW_TRACE_OWNED_COLOR = "#8A2BE2";
 
 /** 이번 주행에서 지나온 구간 — 내 도로망과 같은 마젠타(glow·굵기로만 구별) */
 export const RTW_TRACE_LIVE_COLOR = RTW_TRACE_OWNED_COLOR;
