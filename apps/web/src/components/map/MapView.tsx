@@ -159,6 +159,30 @@ const CONQUEST_LIVE_SRC = "boxcycle-conquest-live";
 const CONQUEST_LIVE_LAYER = "boxcycle-conquest-live-line";
 const CONQUEST_LIVE_GLOW_LAYER = "boxcycle-conquest-live-glow";
 
+/**
+ * 궤적 레이어를 경로선 **위**로 올려 고정한다.
+ *
+ * 「내 도로망」을 경로선 아래에 두면(이전 동작) 이미 내 것인 도로 위를 다시 달릴 때
+ * 강한 빨강(#ef4444)에 덮여 어떤 색을 써도 드러나지 않는다. 레이어 추가 순서는
+ * 경로 로드 시점에 따라 뒤집히므로 매 적용마다 다시 세운다.
+ *
+ * 최종 순서: route < 누적(내 도로망) < live glow < live(이번 주행)
+ */
+function orderConquestLayersAboveRoute(map: mapboxgl.Map): void {
+  try {
+    const ids = (map.getStyle()?.layers ?? []).map((l) => l.id);
+    const routeIdx = ids.indexOf("route");
+    if (routeIdx < 0) return;
+    const ours = new Set([CONQUEST_TRACES_LAYER, CONQUEST_LIVE_GLOW_LAYER, CONQUEST_LIVE_LAYER]);
+    const afterRoute = ids.slice(routeIdx + 1).find((id) => !ours.has(id));
+    for (const id of [CONQUEST_TRACES_LAYER, CONQUEST_LIVE_GLOW_LAYER, CONQUEST_LIVE_LAYER]) {
+      if (map.getLayer(id)) map.moveLayer(id, afterRoute);
+    }
+  } catch {
+    /* noop */
+  }
+}
+
 const ACTIVITY_PULSE_SRC = "boxcycle-activity-pulse-routes";
 const ACTIVITY_PULSE_GLOW = "boxcycle-activity-pulse-routes-glow";
 const ACTIVITY_PULSE_LINE = "boxcycle-activity-pulse-routes-line";
@@ -2010,9 +2034,10 @@ export function MapView({
               layout: { "line-cap": "round", "line-join": "round" },
               paint: { ...RTW_TRACE_ACCUMULATED_PAINT },
             },
-            map.getLayer("route") ? "route" : undefined,
+            // beforeId 없음 — 경로선 아래로 넣지 않는다. 순서는 아래에서 세운다.
           );
         }
+        orderConquestLayersAboveRoute(map);
       } catch {
         /* noop */
       }
@@ -2104,24 +2129,7 @@ export function MapView({
           paint: { ...RTW_TRACE_LIVE_PAINT },
         });
       }
-      /*
-       * 「지나온 구간」은 반드시 경로선 **위**에 온다. 두 레이어의 추가 순서는 경로 로드
-       * 시점에 따라 뒤집힐 수 있어(실측: route 162 > live 161 로 빨강이 시안을 덮었다)
-       * 매번 경로선 바로 위로 옮겨 고정한다.
-       */
-      try {
-        const ids = (map.getStyle()?.layers ?? []).map((l) => l.id);
-        const routeIdx = ids.indexOf("route");
-        if (routeIdx >= 0) {
-          const afterRoute = ids
-            .slice(routeIdx + 1)
-            .find((id) => id !== CONQUEST_LIVE_GLOW_LAYER && id !== CONQUEST_LIVE_LAYER);
-          map.moveLayer(CONQUEST_LIVE_GLOW_LAYER, afterRoute);
-          map.moveLayer(CONQUEST_LIVE_LAYER, afterRoute);
-        }
-      } catch {
-        /* noop */
-      }
+      orderConquestLayersAboveRoute(map);
     };
 
     try {
