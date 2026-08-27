@@ -637,3 +637,26 @@
 .app-shell--map-first .map-view .mapboxgl-ctrl-bottom-right {
   margin-bottom: -0.25rem;
 }
+
+/*
+ * 폰 가로 — 지도 컨트롤(줌·지구·나침반) 4개가 세로 50% 를 먹고, 우하단 주행 FAB 과 겹쳤다.
+ * 버튼을 px 단위로 줄이고 상단 여백을 계정 칩 바로 아래까지만 둔다.
+ */
+@media (max-height: 560px) {
+  .app-shell--map-first .map-view .mapboxgl-ctrl-top-right {
+    margin-top: calc(max(0.45rem, env(safe-area-inset-top, 0px)) + 2.4rem);
+  }
+
+  .map-view .mapboxgl-ctrl-group button {
+    width: 24px;
+    height: 24px;
+  }
+
+  .map-view .mapboxgl-ctrl-group .mapboxgl-ctrl-icon {
+    background-size: 15px 15px;
+  }
+
+  .map-view .mapboxgl-ctrl-group {
+    margin: 0 0 4px 0;
+  }
+}

@@ -206,6 +206,8 @@ export default function App() {
    * 절대 `manual` 로 자동 복귀시키지 않는다 — 페달링 없이 전진하는 실패를 막는다.
    */
   const [rideInputMode, setRideInputMode] = useState<RideInputMode>("manual");
+  /** 주행 중 Mapillary 거리뷰 창 — 기본 꺼짐. 맵 뷰 시트에서 켠다(기능은 그대로 유지) */
+  const [rideStreetViewEnabled, setRideStreetViewEnabled] = useState(false);
   const bleCrankRpm = useBleCrankRpm();
   const bleSensorConnected = bleCrankRpm.uiState === "connected";
   /**
@@ -1458,6 +1460,7 @@ export default function App() {
       sessionStatus: rideStatus,
       speedKmh: rideMetrics.appliedSpeedKmh,
       riderLngLat: liveForMap,
+      enabled: rideStreetViewEnabled,
     });
 
   /** Firebase 미설정이거나 인증 준비 완료 후 — Trailhead·입문 코스 UI가 숨겨지지 않도록 메인 워크스페이스 표시 */
@@ -2088,6 +2091,8 @@ export default function App() {
         onMapStyle={setMapStyle}
         coverageOverlayMode={coverageOverlayMode}
         onCoverageOverlayMode={setCoverageOverlayMode}
+        rideStreetViewEnabled={rideStreetViewEnabled}
+        onRideStreetViewEnabled={setRideStreetViewEnabled}
         mapillaryTokenConfigured={mapillaryTokenConfigured}
         enable3D={enable3D}
         onEnable3D={setEnable3D}

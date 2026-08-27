@@ -1029,6 +1029,37 @@
     display: none;
   }
 
+  /* 주행 FAB — 지도 컨트롤과 세로로 부딪히지 않게 축소하고 위로 밀던 보정 제거 */
+  .map-hud {
+    --hud-main-fab-size: 2.9rem;
+  }
+
+  .map-hud__br-main {
+    transform: none;
+    gap: 0.25rem;
+  }
+
+  .hud-main-fab__caption {
+    font-size: 0.55rem;
+    margin-top: 0.1rem;
+  }
+
+  .hud-icon-btn--xl {
+    width: 2.4rem;
+    height: 2.4rem;
+    font-size: 1rem;
+  }
+
+  /* TC 지표가 TR 칩(CAD·계정) 밑으로 파고들지 않게 — 「새 도로」 칸이 잘리고 있었다 */
+  .map-hud__tc {
+    max-width: calc(100% - 15rem);
+  }
+
+  /* Trail 번호 배지 — MENU 의 TRAIL 행과 중복이고 주행 중 조작할 것도 아니다 */
+  .hud-metrics__chip--trail {
+    display: none;
+  }
+
   /* 주행 지표 — 라벨·값·패딩을 조여 높이를 44px → 30px 대로 */
   .hud-metrics__capsule {
     padding: 0.16rem 0.35rem;

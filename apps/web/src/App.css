@@ -427,3 +427,27 @@
   pointer-events: none;
   white-space: pre-wrap;
 }
+
+/*
+ * 폰 가로 — 거리뷰 창이 화면 위로 넘쳐 좌상단 RTW·지명 버튼을 덮었다
+ * (bottom 10rem + max-height 50dvh 가 275px 뷰포트를 넘어섬).
+ * 상단 버튼 행 아래에 붙여 세로로 가두고, 폭도 좌측 절반 이내로 제한한다.
+ */
+@media (max-height: 560px) {
+  .mapillary-street-floating {
+    top: calc(max(0.45rem, env(safe-area-inset-top, 0px)) + 2.5rem);
+    bottom: auto;
+    left: max(0.5rem, env(safe-area-inset-left, 0px));
+    right: auto;
+    width: min(42vw, 15rem);
+    max-height: 55%;
+  }
+
+  .mapillary-street-floating__video {
+    min-height: 0;
+  }
+
+  .mapillary-street-floating__attr {
+    font-size: 0.55rem;
+  }
+}

@@ -17,6 +17,9 @@ type MapViewSheetProps = {
   mapStyleOptions: { value: string; label: string }[];
   onMapStyle: (v: string) => void;
   coverageOverlayMode: CoverageOverlayMode;
+  /** 주행 중 Mapillary 거리뷰 창 — 기본 꺼짐, 필요할 때만 켠다 */
+  rideStreetViewEnabled: boolean;
+  onRideStreetViewEnabled: (enabled: boolean) => void;
   onCoverageOverlayMode: (m: CoverageOverlayMode) => void;
   mapillaryTokenConfigured: boolean;
   enable3D: boolean;
@@ -121,6 +124,21 @@ export function MapViewSheet(props: MapViewSheetProps) {
                 Mapillary 토큰 미설정
               </span>
             ) : null}
+          </div>
+        </div>
+
+        <div className="map-view-sheet__group">
+          <span className="map-view-sheet__label-title">거리뷰</span>
+          <div className="map-view-sheet__row-body">
+            <label className="map-view-sheet__toggle" title="Street view while riding">
+              <input
+                type="checkbox"
+                checked={props.rideStreetViewEnabled}
+                disabled={!props.mapillaryTokenConfigured}
+                onChange={(e) => props.onRideStreetViewEnabled(e.target.checked)}
+              />
+              주행 중 거리뷰 창
+            </label>
           </div>
         </div>
 

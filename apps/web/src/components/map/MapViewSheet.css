@@ -297,3 +297,20 @@
   max-width: 100%;
   accent-color: var(--rtw-trace);
 }
+
+/* 주행 중 거리뷰 창 on/off — 기본 꺼짐 */
+.map-view-sheet__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.map-view-sheet__toggle input {
+  accent-color: var(--rtw-trace, #E8A33D);
+}
+
+.map-view-sheet__toggle input:disabled {
+  cursor: not-allowed;
+}
