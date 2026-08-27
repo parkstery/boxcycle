@@ -28,11 +28,14 @@ export const RTW_ROAD_PAINT = {
 } as const;
 
 /**
- * 지도 위 선 3종의 역할을 색으로 분리한다(2026-08-27).
+ * 지도 위 선의 의미를 색으로 나눈다(2026-08-28).
  *
- *   빨강    #ef4444 — 설정된 루트(아직 안 간 길). MapView ROUTE_LINE_COLOR
- *   시안    #22D3EE — 이번 주행에서 지나온 구간(지금 칠해지는 중)
- *   마젠타  #EC4899 — 내 도로망(이미 내 것인 길)
+ *   빨강    #ef4444 — 아직 안 간 길(설정된 루트). MapView ROUTE_LINE_COLOR
+ *   마젠타  #EC4899 — **내가 달린 길** — 이번 주행 궤적과 내 도로망 모두
+ *
+ * 「이번에 달린」과 「예전에 달린」을 색으로 가르지 않는다 — 사용자에게 중요한 구분은
+ * 「내가 달렸나 / 아직 안 갔나」 하나뿐이다. 이번 주행 궤적은 glow 와 굵기로만 구별해
+ * 「지금 칠해지는 중」임을 알린다.
  *
  * 색 선택 근거 — Outdoors 스타일이 실제로 쓰는 색상환을 뽑아 비어 있는 대역을 골랐다.
  *   35°  road-steps      hsl(35,80%,48%)    주황
@@ -41,7 +44,7 @@ export const RTW_ROAD_PAINT = {
  *   194° wetland         hsl(194,38%,74%)   청록   ← 청록이 여기서 막힌다
  *   205° water           hsl(205,75%,70%)   강·바다 ← 시안이 여기에 섞였다
  *   224° water-shadow    hsl(224,79%,69%)   파랑
- * 앱 오브젝트는 0°(루트·도착핀) · 142°(출발핀) · 187°(이번 주행 시안)을 쓴다.
+ * 앱 오브젝트는 0°(루트·도착핀) · 142°(출발핀)를 쓴다.
  * 260°~340°(보라~마젠타)만 비어 있어, 넓은 맵에서 강·녹지·도로 어디에도 섞이지 않는다.
  *
  * 마젠타(330°)가 빨강(0°)과 30° 이웃인데도 쓰는 이유: 재주행 시 구분이 안 되던 진짜
@@ -56,9 +59,6 @@ export const RTW_ROAD_PAINT = {
 /** Trace 시그니처 골드 — tokens.css --rtw-trace. HUD 강조색(지도 궤적에는 쓰지 않는다) */
 export const RTW_TRACE_COLOR = "#E8A33D";
 
-/** 이번 주행에서 지나온 구간 — 밝은 시안 */
-export const RTW_TRACE_LIVE_COLOR = "#22D3EE";
-
 /**
  * 내 도로망(과거 누적) — 마젠타(330°).
  * 대안(이 상수 한 줄만 고치면 된다):
@@ -66,7 +66,11 @@ export const RTW_TRACE_LIVE_COLOR = "#22D3EE";
  */
 export const RTW_TRACE_OWNED_COLOR = "#EC4899";
 
-/** 이번 주행 실시간 궤적 — 풀 시안 */
+/** 이번 주행에서 지나온 구간 — 내 도로망과 같은 마젠타(glow·굵기로만 구별) */
+export const RTW_TRACE_LIVE_COLOR = RTW_TRACE_OWNED_COLOR;
+
+
+/** 이번 주행 실시간 궤적 — 마젠타 + glow */
 export const RTW_TRACE_LIVE_PAINT: LinePaint = {
   "line-color": RTW_TRACE_LIVE_COLOR,
   "line-opacity": 1,
