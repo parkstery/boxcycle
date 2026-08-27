@@ -30,20 +30,26 @@ export const RTW_ROAD_PAINT = {
 /**
  * 지도 위 선 3종의 역할을 색으로 분리한다(2026-08-27).
  *
- *   빨강  #ef4444 — 설정된 루트(아직 안 간 길). MapView ROUTE_LINE_COLOR
- *   시안  #22D3EE — 이번 주행에서 지나온 구간
- *   골드  #E8A33D — 내 도로망(이미 내 것인 길). RTW 시그니처
+ *   빨강    #ef4444 — 설정된 루트(아직 안 간 길). MapView ROUTE_LINE_COLOR
+ *   밝은시안 #22D3EE — 이번 주행에서 지나온 구간(지금 칠해지는 중)
+ *   짙은청록 #0891B2 — 내 도로망(이미 내 것인 길)
  *
- * 이전에는 「지나온 구간」과 「내 도로망」이 둘 다 골드였고 루트는 빨강이라,
- * Outdoors 같은 밝은 베이스맵에서 빨강↔골드가 인접 색상이라 분간이 안 됐다.
- * 시안은 빨강의 보색에 가까워 대비가 가장 크다.
+ * 「내 것」 두 종류는 같은 청록 계열로 묶고 밝기로만 구분한다 — 이번 주행분은 결국
+ * 내 도로망에 편입되므로 색 계열이 같은 편이 의미에 맞고, 밝기 차이가 「방금 vs 이전」을
+ * 말해 준다.
+ *
+ * 골드(#E8A33D)를 쓰지 않는 이유: Outdoors 베이스맵의 도로가 이미 주황·황토색이라
+ * 궤적이 도로망에 섞여 보이지 않았다. 청록은 베이스맵에 없는 색이라 항상 분리된다.
  */
 
-/** Trace 시그니처 골드 — tokens.css --rtw-trace. 「내 도로망」 전용 */
+/** Trace 시그니처 골드 — tokens.css --rtw-trace. HUD 강조색(지도 궤적에는 쓰지 않는다) */
 export const RTW_TRACE_COLOR = "#E8A33D";
 
-/** 이번 주행에서 지나온 구간 — 시안 */
+/** 이번 주행에서 지나온 구간 — 밝은 시안 */
 export const RTW_TRACE_LIVE_COLOR = "#22D3EE";
+
+/** 내 도로망(과거 누적) — 짙은 청록. live 와 같은 계열, 한 단계 어둡게 */
+export const RTW_TRACE_OWNED_COLOR = "#0891B2";
 
 /** 이번 주행 실시간 궤적 — 풀 시안 */
 export const RTW_TRACE_LIVE_PAINT: LinePaint = {
@@ -64,13 +70,13 @@ export const RTW_TRACE_LIVE_GLOW_PAINT: LinePaint = {
 };
 
 /**
- * 누적된 세계(내 도로망) — 골드.
- * 이전 40% 불투명도는 밝은 베이스맵에서 사실상 안 보였다. 「영구 자산」이 핵심 판타지이므로
- * 확실히 보이도록 올린다.
+ * 누적된 세계(내 도로망) — 짙은 청록.
+ * 「영구 자산」이 핵심 판타지이므로 확실히 보여야 한다(이전 골드 40% 는 사실상 안 보였고,
+ * 골드 90% 는 Outdoors 도로색에 섞였다).
  */
 export const RTW_TRACE_ACCUMULATED_PAINT: LinePaint = {
-  "line-color": RTW_TRACE_COLOR,
-  "line-opacity": 0.9,
+  "line-color": RTW_TRACE_OWNED_COLOR,
+  "line-opacity": 0.95,
   "line-width": ["interpolate", ["linear"], ["zoom"], 8, 2.2, 12, 4, 16, 7],
 };
 
