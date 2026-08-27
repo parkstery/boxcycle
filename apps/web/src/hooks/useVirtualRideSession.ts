@@ -8,7 +8,8 @@ import { registerPeerSyncDistanceSamplers } from "../lib/peerMotion/peerSyncDist
 export type RideSessionStatus = "idle" | "running" | "paused";
 
 type UseVirtualRideSessionOptions = {
-  speedKmh: number;
+  /** 목표 속도(km/h). BLE·슬라이더 등 입력 수단은 알지 않는다 — 램핑해 적용 속도를 만든다. */
+  targetSpeedKmh: number;
   routeGeometry: LineStringGeometry | null;
   routeDistanceMeters: number;
 };
@@ -32,7 +33,7 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
   });
 
   const statusRef = useRef(status);
-  const speedRef = useRef(options.speedKmh);
+  const speedRef = useRef(options.targetSpeedKmh);
   const appliedSpeedRef = useRef(0);
   const routeGeometryRef = useRef(options.routeGeometry);
   const routeDistanceRef = useRef(options.routeDistanceMeters);
@@ -42,8 +43,8 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
   }, [status]);
 
   useEffect(() => {
-    speedRef.current = options.speedKmh;
-  }, [options.speedKmh]);
+    speedRef.current = options.targetSpeedKmh;
+  }, [options.targetSpeedKmh]);
 
   const virtualDistanceRef = useRef(0);
   /**

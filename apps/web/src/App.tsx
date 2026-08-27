@@ -110,6 +110,7 @@ import {
 } from "./lib/appSessionKeys";
 import { formatElapsedFromMs } from "./lib/rideFormat";
 import { useBleCrankRpm } from "./hooks/useBleCrankRpm";
+import { resolveRideTargetSpeedKmh, type RideInputMode } from "./lib/cadenceRideInput";
 import { useConquest } from "./hooks/useConquest";
 import { useLiveConquestPaint } from "./hooks/useLiveConquestPaint";
 import { conquestCellIdsAround } from "./lib/conquestTiles";
@@ -198,7 +199,34 @@ export default function App() {
   followModeSnapshotRef.current = followMode;
   mapZoomSnapshotRef.current = mapZoom;
   const rideCameraRestoreRef = useRef<{ follow: FollowMode; zoom: number } | null>(null);
-  const [speedKmh, setSpeedKmh] = useState(5);
+  /** 체험(T0) 입력 — 슬라이더가 정한 값. cadence 모드에서는 목표 속도에 쓰이지 않는다. */
+  const [manualSpeedKmh, setManualSpeedKmh] = useState(5);
+  /**
+   * 주행 입력 모드. 센서 연결 성공은 `cadence` 로 전환하지만, 단절·정지는
+   * 절대 `manual` 로 자동 복귀시키지 않는다 — 페달링 없이 전진하는 실패를 막는다.
+   */
+  const [rideInputMode, setRideInputMode] = useState<RideInputMode>("manual");
+  const bleCrankRpm = useBleCrankRpm();
+  const bleSensorConnected = bleCrankRpm.uiState === "connected";
+  // 센서 연결 성공 = cadence 전환. effect 대신 이전값 비교(React 권장) — set-state-in-effect 회피.
+  const [prevBleUiState, setPrevBleUiState] = useState(bleCrankRpm.uiState);
+  if (bleCrankRpm.uiState !== prevBleUiState) {
+    setPrevBleUiState(bleCrankRpm.uiState);
+    if (bleCrankRpm.uiState === "connected") setRideInputMode("cadence");
+  }
+  const switchRideInputToManual = useCallback(() => setRideInputMode("manual"), []);
+  const switchRideInputToCadence = useCallback(() => setRideInputMode("cadence"), []);
+  /** 현재 입력 모드가 만든 목표 속도 — 실제 적용 속도는 램핑 후 `rideMetrics.appliedSpeedKmh` */
+  const rideTargetSpeedKmh = useMemo(
+    () =>
+      resolveRideTargetSpeedKmh({
+        mode: rideInputMode,
+        manualSpeedKmh,
+        crankRpm: bleCrankRpm.crankRpm,
+        sensorConnected: bleSensorConnected,
+      }),
+    [rideInputMode, manualSpeedKmh, bleCrankRpm.crankRpm, bleSensorConnected],
+  );
   const {
     rideTtsEnabled,
     setRideTtsEnabled,
@@ -388,7 +416,7 @@ export default function App() {
     applyRouteProfileFromMapPopup: applyRouteProfileForMapLocked,
   } = useRoutePlanning({
     user,
-    speedKmh,
+    rideTargetSpeedKmh,
     mapboxAccessToken: MAPBOX_TOKEN,
     functionsRegion: FUNCTIONS_REGION,
     clearRouteArtifactsRef,
@@ -849,8 +877,6 @@ export default function App() {
     return (liveRiderNametag ?? selfRiderNametagFallback)?.trim() || null;
   }, [liveRiderNametag, selfRiderNametagFallback]);
 
-  const bleCrankRpm = useBleCrankRpm({ sessionActive: rideStatus !== "idle" });
-
   /** Conquest — 주행(running) 중 1초 간격으로 케이던스>0 시간 누적(§3.2 검증된 페달링) */
   const crankRpmForConquestRef = useRef<number | null>(null);
   useEffect(() => {
@@ -951,8 +977,11 @@ export default function App() {
       crankRpm: bleCrankRpm.crankRpm,
       deviceLabel: bleCrankRpm.deviceLabel,
       errorMessage: bleCrankRpm.errorMessage,
+      mode: rideInputMode,
       onConnect: () => void bleCrankRpm.connect(),
       onDisconnect: bleCrankRpm.disconnect,
+      onSwitchToManual: switchRideInputToManual,
+      onSwitchToCadence: switchRideInputToCadence,
     };
   }, [
     bleCrankRpm.capable,
@@ -962,6 +991,9 @@ export default function App() {
     bleCrankRpm.errorMessage,
     bleCrankRpm.connect,
     bleCrankRpm.disconnect,
+    rideInputMode,
+    switchRideInputToManual,
+    switchRideInputToCadence,
   ]);
 
   const { coachData, rideElevationProfile, rideBgmCatalogConfigured } = useRideCoachingMedia({
@@ -969,7 +1001,8 @@ export default function App() {
     routeDistanceMeters,
     virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
     sessionStatus: rideStatus,
-    speedKmh,
+    // 코칭은 「현재 실제 움직임」이 기준 — 목표가 아니라 램핑 적용 속도
+    speedKmh: rideMetrics.appliedSpeedKmh,
     rideTtsEnabled,
     rideBgmEnabled,
   });
@@ -1435,7 +1468,8 @@ export default function App() {
     routeGeometry,
     routeDistanceMeters,
     virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
-    speedKmh,
+    // 발행 속도는 rAF 적용속도 샘플러가 만든다. 이 값은 idle fallback + 목표 변경 burst 용.
+    speedKmh: rideTargetSpeedKmh,
     routeRidePhase: rideStatus === "paused" ? "paused" : "live",
     joinBurstNonce: rideJoinBurstNonce,
   });
@@ -1453,7 +1487,7 @@ export default function App() {
       routeTotalMeters: routeDistanceMeters,
       virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
       sessionStatus: rideStatus,
-      speedKmh,
+      speedKmh: rideMetrics.appliedSpeedKmh,
       riderLngLat: liveForMap,
     });
 
@@ -1543,8 +1577,19 @@ export default function App() {
       stage={stage}
       stops={routeDockStops}
       routeLoading={routeLoading}
-      speedKmh={speedKmh}
-      onSpeedKmh={setSpeedKmh}
+      manualSpeedKmh={manualSpeedKmh}
+      onManualSpeedKmh={setManualSpeedKmh}
+      cadence={{
+        capable: bleCrankRpm.capable,
+        uiState: bleCrankRpm.uiState,
+        deviceLabel: bleCrankRpm.deviceLabel,
+        crankRpm: bleCrankRpm.crankRpm,
+        errorMessage: bleCrankRpm.errorMessage,
+        mode: rideInputMode,
+        onConnect: () => void bleCrankRpm.connect(),
+        onSwitchToManual: switchRideInputToManual,
+        onSwitchToCadence: switchRideInputToCadence,
+      }}
       canStartRide={Boolean(routeGeometry) && !routeLoading}
       canSaveRoute={
         Boolean(user) &&

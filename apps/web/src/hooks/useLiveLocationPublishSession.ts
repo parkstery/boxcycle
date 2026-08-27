@@ -421,13 +421,20 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
     };
   }, [globalEnabled, pageVisible, routeEnabled, trailId, publicationId, user?.uid]);
 
-  /** 슬라이더·숫자 입력 속도 변경 — 스로틀 우회 즉시 fan-out */
-  const speedBurstInitRef = useRef(false);
+  /**
+   * 목표 속도 변경 — 스로틀 우회 즉시 fan-out.
+   * 케이던스 입력은 샘플마다 미세하게 흔들리므로 정수 km/h 가 바뀔 때만 burst 한다
+   * (슬라이더 최소 단위가 1km/h 라 체험 모드 동작은 그대로다).
+   */
+  const speedBurstKmhRef = useRef<number | null>(null);
   useEffect(() => {
-    if (!speedBurstInitRef.current) {
-      speedBurstInitRef.current = true;
+    const rounded = Math.round(speedKmh);
+    if (speedBurstKmhRef.current == null) {
+      speedBurstKmhRef.current = rounded;
       return;
     }
+    if (speedBurstKmhRef.current === rounded) return;
+    speedBurstKmhRef.current = rounded;
     const throttle = throttleRef.current;
     throttle.motionWriteAt = 0;
     throttle.motionSpeedMps = -1;
