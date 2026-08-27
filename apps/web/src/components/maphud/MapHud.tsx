@@ -436,29 +436,36 @@ export function MapHud(props: MapHudProps) {
         </div>
       ) : null}
 
+      {/*
+       * 맵 뷰 트리거 — 우상단 칩 행 바로 아래(지도 컨트롤 열의 머리).
+       * 하단 중앙에 두면 폰에서 지도 한가운데를 잡아먹는다.
+       */}
+      {showMapViewTrigger ? (
+        <div className="map-hud__tr-under">
+          <button
+            type="button"
+            className={`hud-bc-trigger ${mapViewOpen ? "is-active" : ""}`}
+            onClick={onOpenMapView}
+            aria-label="맵 뷰 설정"
+            aria-expanded={mapViewOpen}
+            title="Map view"
+          >
+            <span className="hud-bc-trigger__icon" aria-hidden>
+              ◰
+            </span>
+            <span className="hud-bc-trigger__label">맵</span>
+          </button>
+        </div>
+      ) : null}
+
       {/* BC 슬롯: 코칭 라인(라이딩 중) + 맵 뷰 트리거(항상). 둘은 위·아래로 쌓임. */}
-      {(showCoach || showMapViewTrigger) ? (
+      {showCoach ? (
         <div className="map-hud__bc">
           {showCoach && coachData ? (
             <div className="hud-coach" role="status" aria-live="polite">
               <span className="hud-coach__tip">{coachData.tip.replace(/\s*\(R\d+\)\s*$/, "")}</span>
               <span className="hud-coach__r">{coachData.resistance.replace("Resistance ", "R")}</span>
             </div>
-          ) : null}
-          {showMapViewTrigger ? (
-            <button
-              type="button"
-              className={`hud-bc-trigger ${mapViewOpen ? "is-active" : ""}`}
-              onClick={onOpenMapView}
-              aria-label="맵 뷰 설정"
-              aria-expanded={mapViewOpen}
-              title="Map view"
-            >
-              <span className="hud-bc-trigger__icon" aria-hidden>
-                ◰
-              </span>
-              <span className="hud-bc-trigger__label">맵</span>
-            </button>
           ) : null}
         </div>
       ) : null}

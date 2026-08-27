@@ -18,7 +18,9 @@ export type FollowMode =
   | "rear30"
   | "front30"
   | "rightFlat"
-  | "leftFlat";
+  | "leftFlat"
+  /** 상공에서 수직으로 내려찍기(pitch 0, 진행 방향이 화면 위) */
+  | "topDown";
 
 type RideRoutePanelProps = {
   /** 경로 계산 결과 요약(거리·시간 등) — 생성은 RouteDock 소유, 여기선 표시만 */

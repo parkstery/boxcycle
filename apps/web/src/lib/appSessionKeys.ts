@@ -66,5 +66,9 @@ export const MAP_STYLE_OPTIONS = [
   { value: "mapbox://styles/mapbox/satellite-streets-v12", label: "Satellite" },
 ];
 
-/** 앱 진입 시 기본 맵 스타일 — RTW Dark (2026-07 리디자인) */
-export const DEFAULT_MAP_STYLE = MAP_STYLE_OPTIONS[0]!.value;
+/**
+ * 앱 진입 시 기본 맵 스타일 — Outdoors.
+ * (2026-08-27) 폰 실주행에서 RTW Dark 는 도로·지형 판독이 어려워 Outdoors 를 기본으로 바꿨다.
+ * RTW Dark 는 스타일 목록에 그대로 남아 있다.
+ */
+export const DEFAULT_MAP_STYLE = MAP_STYLE_OPTIONS[1]!.value;

@@ -49,6 +49,15 @@ export function getCameraForFollowMode(input: {
   const pitchFront = RIDE_CAMERA_PITCH_CLOSE;
   const pitchSide = RIDE_CAMERA_PITCH_CLOSE;
 
+  if (input.mode === "topDown") {
+    // 상공 수직 — 라이더를 화면 중앙에 두고 진행 방향을 위로. 거리 개념 없음(줌은 앱 상태).
+    return {
+      bearing: normalizeCompass(input.baseHeading),
+      offsetBearing: null,
+      pitch: 0,
+      distanceM: 0,
+    };
+  }
   if (input.mode === "north") {
     return { bearing: 0, offsetBearing: null, pitch: input.currentPitch, distanceM: 0 };
   }

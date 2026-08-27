@@ -644,7 +644,8 @@
  */
 @media (max-height: 560px) {
   .app-shell--map-first .map-view .mapboxgl-ctrl-top-right {
-    margin-top: calc(max(0.45rem, env(safe-area-inset-top, 0px)) + 2.4rem);
+    /* 계정 칩(2rem) + 맵 뷰 트리거 행 아래 */
+    margin-top: calc(max(0.45rem, env(safe-area-inset-top, 0px)) + 4.75rem);
   }
 
   .map-view .mapboxgl-ctrl-group button {

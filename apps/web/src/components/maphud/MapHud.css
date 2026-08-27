@@ -324,6 +324,15 @@
   max-width: calc(100vw - var(--hud-pad-right) - 10rem);
 }
 
+/* 맵 뷰 트리거 — 계정 칩 바로 아래, 지도 컨트롤 열과 같은 우측 라인 */
+.map-hud__tr-under {
+  position: absolute;
+  top: calc(var(--hud-pad-top) + 2.2rem + 0.35rem);
+  right: var(--hud-pad-right);
+  display: flex;
+  justify-content: flex-end;
+}
+
 .map-hud__rs {
   position: absolute;
   top: 50%;
@@ -1053,6 +1062,10 @@
   /* TC 지표가 TR 칩(CAD·계정) 밑으로 파고들지 않게 — 「새 도로」 칸이 잘리고 있었다 */
   .map-hud__tc {
     max-width: calc(100% - 15rem);
+  }
+
+  .map-hud__tr-under {
+    top: calc(var(--hud-pad-top) + 2rem + 0.3rem);
   }
 
   /* Trail 번호 배지 — MENU 의 TRAIL 행과 중복이고 주행 중 조작할 것도 아니다 */
