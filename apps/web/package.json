@@ -28,6 +28,7 @@
     "test:e2e:peer-s4m1": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s4m1 --workers=1\"",
     "test:peer-s3-fixtures": "node scripts/peer-sync/s3-fixture-gate.mjs",
     "test:peer-s3a-replay": "node scripts/peer-sync/s3r-to-scenario.mjs && node scripts/peer-sync/replay.mjs --check && node scripts/peer-sync/replay.mjs --check --scenario ../../document/ops/sync-relay/s3r-z15-cruise-scenario.json && node scripts/peer-sync/s3-fixture-gate.mjs",
+    "test:sensor-cadence": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/sensor-cadence/cadence-contract.test.ts scripts/sensor-cadence/sensor-ui-contract.test.ts scripts/sensor-cadence/auto-reconnect-contract.test.ts",
     "test:s42-meters": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/s42/read-meters-and-hubs.test.ts",
     "test:s43-meters": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/s43/touch-meters.test.ts",
     "test:e2e:u2": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test u2-map-render-tick --workers=1\"",

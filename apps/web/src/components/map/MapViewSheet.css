@@ -297,3 +297,83 @@
   max-width: 100%;
   accent-color: var(--rtw-trace);
 }
+
+/* 주행 중 거리뷰 창 on/off — 기본 꺼짐 */
+.map-view-sheet__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.map-view-sheet__toggle input {
+  accent-color: var(--rtw-trace, #E8A33D);
+}
+
+.map-view-sheet__toggle input:disabled {
+  cursor: not-allowed;
+}
+
+/*
+ * 폰 가로 — 하단 중앙에 크게 뜨면 지도 한가운데를 덮는다.
+ * 트리거(맵 버튼)가 우상단으로 갔으므로 시트도 우측에 붙는 좁은 패널로 낸다.
+ */
+@media (max-height: 560px) {
+  .map-view-sheet {
+    align-items: stretch;
+    justify-content: flex-end;
+  }
+
+  .map-view-sheet__panel {
+    width: min(17rem, calc(100vw - 1rem));
+    max-height: 100%;
+    margin-bottom: 0;
+    margin-right: max(0.4rem, env(safe-area-inset-right, 0px));
+    margin-top: max(0.4rem, env(safe-area-inset-top, 0px));
+    margin-bottom: max(0.4rem, env(safe-area-inset-bottom, 0px));
+    border-radius: 12px;
+    padding: 0.4rem 0.55rem 0.6rem;
+  }
+
+  .map-view-sheet__handle {
+    display: none;
+  }
+
+  /* 좁은 우측 패널에서는 칩을 가로 스크롤 대신 줄바꿈으로 — 잘려 보이지 않게 */
+  .map-view-sheet__row-body,
+  .map-view-sheet__chips--inline {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+
+  .map-view-sheet__chips--inline {
+    flex-shrink: 1;
+  }
+}
+
+.map-view-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.map-view-sheet__head-title {
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.map-view-sheet__close {
+  flex: 0 0 auto;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 650;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(248, 250, 252, 0.2);
+  background: rgba(248, 250, 252, 0.08);
+  color: #f8fafc;
+  cursor: pointer;
+}

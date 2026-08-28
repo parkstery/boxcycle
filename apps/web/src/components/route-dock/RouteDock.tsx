@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
 import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/firestoreSavedRoutes";
 import { isIncompleteQuotaError } from "../../lib/tierQuota";
-import { SessionSpeedControl } from "./SessionSpeedControl";
 import type { RouteDockStop, RouteDockStopId } from "./useRouteDockStops";
 import "./RouteDock.css";
 
@@ -10,8 +9,6 @@ export type RouteDockProps = {
   stage: RideUiStage;
   stops: RouteDockStop[];
   routeLoading: boolean;
-  speedKmh: number;
-  onSpeedKmh: (n: number) => void;
   canStartRide: boolean;
   canSaveRoute: boolean;
   onSaveCurrentRoute: (name: string, confirmUpdate?: boolean) => Promise<void> | void;
@@ -38,8 +35,6 @@ export function RouteDock(props: RouteDockProps) {
     stage,
     stops,
     routeLoading,
-    speedKmh,
-    onSpeedKmh,
     canStartRide,
     canSaveRoute,
     onSaveCurrentRoute,
@@ -366,7 +361,6 @@ export function RouteDock(props: RouteDockProps) {
           </ul>
         ) : null}
 
-        <SessionSpeedControl speedKmh={speedKmh} onSpeedKmh={onSpeedKmh} disabled={editLocked} />
         </div>
       </div>
     </div>

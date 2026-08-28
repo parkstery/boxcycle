@@ -27,12 +27,52 @@ export const RTW_ROAD_PAINT = {
   "line-opacity": 0.35,
 } as const;
 
-/** Trace 시그니처 골드 — tokens.css --rtw-trace */
+/**
+ * 지도 위 선의 의미를 색으로 나눈다(2026-08-28).
+ *
+ *   빨강    #ef4444 — 아직 안 간 길(설정된 루트). MapView ROUTE_LINE_COLOR
+ *   마젠타  #EC4899 — **내가 달린 길** — 이번 주행 궤적과 내 도로망 모두
+ *
+ * 「이번에 달린」과 「예전에 달린」을 색으로 가르지 않는다 — 사용자에게 중요한 구분은
+ * 「내가 달렸나 / 아직 안 갔나」 하나뿐이다. 이번 주행 궤적은 glow 와 굵기로만 구별해
+ * 「지금 칠해지는 중」임을 알린다.
+ *
+ * 색 선택 근거 — Outdoors 스타일이 실제로 쓰는 색상환을 뽑아 비어 있는 대역을 골랐다.
+ *   35°  road-steps      hsl(35,80%,48%)    주황
+ *   50°~60° land·building hsl(50~60,15~20%,75~85%) 베이지
+ *   98°  national-park   hsl(98,38%,68%)    녹지
+ *   194° wetland         hsl(194,38%,74%)   청록   ← 청록이 여기서 막힌다
+ *   205° water           hsl(205,75%,70%)   강·바다 ← 시안이 여기에 섞였다
+ *   224° water-shadow    hsl(224,79%,69%)   파랑
+ * 앱 오브젝트는 0°(루트·도착핀) · 142°(출발핀)를 쓴다.
+ * 260°~340°(보라~마젠타)만 비어 있어, 넓은 맵에서 강·녹지·도로 어디에도 섞이지 않는다.
+ *
+ * 마젠타(330°)가 빨강(0°)과 30° 이웃인데도 쓰는 이유: 재주행 시 구분이 안 되던 진짜
+ * 원인은 색이 아니라 **레이어 순서**였다 — 누적 궤적이 경로선 아래에 깔려 강한 빨강에
+ * 덮였다. 순서를 바로잡으면(route < 누적 < live) 마젠타가 그대로 드러난다.
+ * `MapView.orderConquestLayersAboveRoute` 참고.
+ *
+ * 골드(#E8A33D)·청록(#0891B2)을 쓰지 않는 이유: 골드는 Outdoors 도로(주황·황토)에,
+ * 청록은 강·바다(205°)와 습지(194°)에 섞여 넓은 맵에서 임팩트가 사라졌다.
+ */
+
+/** Trace 시그니처 골드 — tokens.css --rtw-trace. HUD 강조색(지도 궤적에는 쓰지 않는다) */
 export const RTW_TRACE_COLOR = "#E8A33D";
 
-/** 이번 주행 실시간 궤적 — 풀 골드 */
+/**
+ * 내 도로망(과거 누적) — 마젠타(330°).
+ * 대안(이 상수 한 줄만 고치면 된다):
+ *   `#A855F7`(280°) 퍼플 · `#C026D3`(292°) 자주 — 빨강에서 더 멀게
+ */
+export const RTW_TRACE_OWNED_COLOR = "#8A2BE2";
+
+/** 이번 주행에서 지나온 구간 — 내 도로망과 같은 마젠타(glow·굵기로만 구별) */
+export const RTW_TRACE_LIVE_COLOR = RTW_TRACE_OWNED_COLOR;
+
+
+/** 이번 주행 실시간 궤적 — 마젠타 + glow */
 export const RTW_TRACE_LIVE_PAINT: LinePaint = {
-  "line-color": RTW_TRACE_COLOR,
+  "line-color": RTW_TRACE_LIVE_COLOR,
   "line-opacity": 1,
   "line-width": ["interpolate", ["linear"], ["zoom"], 8, 3.2, 12, 5, 16, 8],
 };
@@ -42,17 +82,20 @@ export const RTW_TRACE_LIVE_PAINT: LinePaint = {
  * 더 굵고 흐리게 한 겹 아래 깔아 발광을 흉내낸다. 본선보다 먼저(아래) 추가할 것.
  */
 export const RTW_TRACE_LIVE_GLOW_PAINT: LinePaint = {
-  "line-color": RTW_TRACE_COLOR,
+  "line-color": RTW_TRACE_LIVE_COLOR,
   "line-width": ["interpolate", ["linear"], ["zoom"], 8, 9, 12, 14, 16, 22],
   "line-blur": 8,
   "line-opacity": 0.35,
 };
 
-/** 누적된 세계(과거 주행 궤적) — 골드 40%, glow 없음 */
+/**
+ * 누적된 세계(내 도로망) — 마젠타.
+ * 「영구 자산」이 핵심 판타지이므로 넓은 맵에서 한눈에 보여야 한다.
+ */
 export const RTW_TRACE_ACCUMULATED_PAINT: LinePaint = {
-  "line-color": RTW_TRACE_COLOR,
-  "line-opacity": 0.4,
-  "line-width": ["interpolate", ["linear"], ["zoom"], 8, 1.6, 12, 3, 16, 6],
+  "line-color": RTW_TRACE_OWNED_COLOR,
+  "line-opacity": 0.95,
+  "line-width": ["interpolate", ["linear"], ["zoom"], 8, 2.2, 12, 4, 16, 7],
 };
 
 /**

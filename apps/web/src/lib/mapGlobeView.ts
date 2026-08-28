@@ -22,11 +22,11 @@ export const DEFAULT_MAP_ENABLE_3D = false;
 /** 후방(rear30) 추적 카메라 줌 — 캐릭터가 화면에 들어오도록 21.5 고정 (수동 선택 시) */
 export const RIDE_FOLLOW_CAMERA_ZOOM = 21.5;
 
-/** 주행 시작 시 자동 적용할 팔로우 모드 — 좌측(leftFlat) */
-export const RIDE_FOLLOW_CAMERA_MODE: FollowMode = "leftFlat";
+/** 주행 시작 시 자동 적용할 팔로우 모드 — 상공 수직(topDown) */
+export const RIDE_FOLLOW_CAMERA_MODE: FollowMode = "topDown";
 
-/** 주행 시작 시 자동 적용할 줌 */
-export const RIDE_START_ZOOM = 16;
+/** 주행 시작 시 자동 적용할 줌 — 탑다운에서 라이더와 주변 도로가 함께 보이는 값 */
+export const RIDE_START_ZOOM = 17.5;
 
 /** 주행 카메라 프리셋 기본 거리(m) — 개발 중 거리 슬라이더로 조정, 확정 시 고정 */
 export const RIDE_CAMERA_DISTANCE_DEFAULT_M = 40;

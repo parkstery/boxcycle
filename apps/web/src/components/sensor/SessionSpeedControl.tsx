@@ -4,6 +4,7 @@ import {
   SESSION_SPEED_MIN_KMH,
   clampSessionSpeedKmh,
 } from "../../lib/sessionSpeedKmh";
+import "./SessionSpeedControl.css";
 
 type SessionSpeedControlProps = {
   speedKmh: number;
@@ -25,12 +26,12 @@ export function SessionSpeedControl({ speedKmh, onSpeedKmh, disabled = false }: 
   };
 
   return (
-    <div className="route-dock__speed">
-      <div className="route-dock__speed-row">
-        <span className="route-dock__speed-kicker">SPD(km/h)</span>
+    <div className="ride-speed">
+      <div className="ride-speed-row">
+        <span className="ride-speed-kicker">SPD(km/h)</span>
         <button
           type="button"
-          className="route-dock__speed-step"
+          className="ride-speed-step"
           disabled={disabled || speedKmh <= SESSION_SPEED_MIN_KMH}
           aria-label="속도 감소"
           onClick={() => step(-1)}
@@ -39,7 +40,7 @@ export function SessionSpeedControl({ speedKmh, onSpeedKmh, disabled = false }: 
         </button>
         <input
           type="range"
-          className="route-dock__speed-range"
+          className="ride-speed-range"
           min={SESSION_SPEED_MIN_KMH}
           max={SESSION_SPEED_MAX_KMH}
           step={1}
@@ -50,7 +51,7 @@ export function SessionSpeedControl({ speedKmh, onSpeedKmh, disabled = false }: 
         />
         <input
           type="number"
-          className="route-dock__speed-number"
+          className="ride-speed-number"
           min={SESSION_SPEED_MIN_KMH}
           max={SESSION_SPEED_MAX_KMH}
           step={1}
@@ -73,7 +74,7 @@ export function SessionSpeedControl({ speedKmh, onSpeedKmh, disabled = false }: 
         />
         <button
           type="button"
-          className="route-dock__speed-step"
+          className="ride-speed-step"
           disabled={disabled || speedKmh >= SESSION_SPEED_MAX_KMH}
           aria-label="속도 증가"
           onClick={() => step(1)}

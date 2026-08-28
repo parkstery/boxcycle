@@ -23,7 +23,8 @@ import { useVirtualRideSession } from "./useVirtualRideSession";
 
 export type UseRoutePlanningOptions = {
   user: User | null;
-  speedKmh: number;
+  /** 현재 입력 모드(체험 슬라이더 또는 케이던스 센서)가 만든 목표 속도 */
+  rideTargetSpeedKmh: number;
   mapboxAccessToken: string;
   functionsRegion: string;
   /** 경로 재계산·핀 클리어 직후 저장 경로 ref·공식 코스 id 등 App 쪽 정리 */
@@ -36,7 +37,7 @@ export type UseRoutePlanningOptions = {
  * 출발/도착/경유, OSRM(Mapbox Directions Callable) 경로, 역지오코딩 라벨, 가상 주행 세션.
  */
 export function useRoutePlanning(options: UseRoutePlanningOptions) {
-  const { user, speedKmh, mapboxAccessToken, functionsRegion, clearRouteArtifactsRef, onRouteDirectionsErrorRef } =
+  const { user, rideTargetSpeedKmh, mapboxAccessToken, functionsRegion, clearRouteArtifactsRef, onRouteDirectionsErrorRef } =
     options;
 
   const [startLngLat, setStartLngLat] = useState<LngLat | null>(null);
@@ -64,7 +65,7 @@ export function useRoutePlanning(options: UseRoutePlanningOptions) {
     sampleLiveLngLat,
     startOffsetMetersRef,
   } = useVirtualRideSession({
-    speedKmh,
+    targetSpeedKmh: rideTargetSpeedKmh,
     routeGeometry,
     routeDistanceMeters,
   });

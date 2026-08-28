@@ -110,12 +110,13 @@ import {
 } from "./lib/appSessionKeys";
 import { formatElapsedFromMs } from "./lib/rideFormat";
 import { useBleCrankRpm } from "./hooks/useBleCrankRpm";
+import { resolveRideTargetSpeedKmh, type RideInputMode } from "./lib/cadenceRideInput";
+import { isRideInputReady, resolveRideInputReadiness } from "./lib/cadenceSensorUi";
+import { CadenceSensorSheet } from "./components/sensor";
 import { useConquest } from "./hooks/useConquest";
 import { useLiveConquestPaint } from "./hooks/useLiveConquestPaint";
 import { conquestCellIdsAround } from "./lib/conquestTiles";
 import { ROUTE_COMPLETION_RATIO_THRESHOLD, resumeOffsetMetersFrom } from "./lib/rideRecordPolicy";
-import { fetchOpenMeteoCurrentWeather, formatLiveWeatherHudLine, parseWeatherOverride, type LiveWeather } from "./lib/openMeteoWeather";
-import { WeatherOverlay } from "./components/weather/WeatherOverlay";
 import { useRideMapillaryStreet } from "./hooks/useRideMapillaryStreet";
 import { MAPILLARY_CLIENT_TOKEN, mapillaryTokenConfigured } from "./lib/mapillaryToken";
 import type { CoverageOverlayMode } from "./lib/coverageOverlayMode";
@@ -198,7 +199,59 @@ export default function App() {
   followModeSnapshotRef.current = followMode;
   mapZoomSnapshotRef.current = mapZoom;
   const rideCameraRestoreRef = useRef<{ follow: FollowMode; zoom: number } | null>(null);
-  const [speedKmh, setSpeedKmh] = useState(5);
+  /** 체험(T0) 입력 — 슬라이더가 정한 값. cadence 모드에서는 목표 속도에 쓰이지 않는다. */
+  const [manualSpeedKmh, setManualSpeedKmh] = useState(5);
+  /**
+   * 주행 입력 모드. 센서 연결 성공은 `cadence` 로 전환하지만, 단절·정지는
+   * 절대 `manual` 로 자동 복귀시키지 않는다 — 페달링 없이 전진하는 실패를 막는다.
+   */
+  const [rideInputMode, setRideInputMode] = useState<RideInputMode>("manual");
+  /** 주행 중 Mapillary 거리뷰 창 — 기본 꺼짐. 맵 뷰 시트에서 켠다(기능은 그대로 유지) */
+  const [rideStreetViewEnabled, setRideStreetViewEnabled] = useState(false);
+  const bleCrankRpm = useBleCrankRpm();
+  const bleSensorConnected = bleCrankRpm.uiState === "connected";
+  /**
+   * 「체험 속도로 준비」를 사용자가 명시적으로 골랐는가. 초기값 `manual` 은 선택이 아니다 —
+   * 이게 false 면 Go 가 잠긴다(선택하지 않은 체험 주행 금지).
+   */
+  const [manualInputChosen, setManualInputChosen] = useState(false);
+  /** 이번 연결에서 유효 크랭크 샘플을 한 번이라도 받았는가(이후 0rpm 이어도 유지) */
+  const [cadenceSampleSeen, setCadenceSampleSeen] = useState(false);
+  const switchRideInputToManual = useCallback(() => {
+    setManualInputChosen(true);
+    setRideInputMode("manual");
+  }, []);
+  const switchRideInputToCadence = useCallback(() => setRideInputMode("cadence"), []);
+  // 센서 연결 성공 = cadence 전환. effect 대신 이전값 비교(React 권장) — set-state-in-effect 회피.
+  const [prevBleUiState, setPrevBleUiState] = useState(bleCrankRpm.uiState);
+  if (bleCrankRpm.uiState !== prevBleUiState) {
+    setPrevBleUiState(bleCrankRpm.uiState);
+    if (bleCrankRpm.uiState === "connected") setRideInputMode("cadence");
+    // 연결이 아닌 상태로 나가면 「이번 연결의 샘플 확인」은 무효 — 준비 완료도 풀린다.
+    if (bleCrankRpm.uiState !== "connected") setCadenceSampleSeen(false);
+  }
+  // 유효 샘플 1회 = cadence 준비 완료. 0rpm(정지)도 crankRpm !== null 이라 유지된다.
+  if (bleSensorConnected && bleCrankRpm.crankRpm != null && !cadenceSampleSeen) {
+    setCadenceSampleSeen(true);
+  }
+  const rideInputReadiness = resolveRideInputReadiness({
+    mode: rideInputMode,
+    manualChosen: manualInputChosen,
+    uiState: bleCrankRpm.uiState,
+    cadenceSampleSeen,
+  });
+  const rideInputReady = isRideInputReady(rideInputReadiness);
+  /** 현재 입력 모드가 만든 목표 속도 — 실제 적용 속도는 램핑 후 `rideMetrics.appliedSpeedKmh` */
+  const rideTargetSpeedKmh = useMemo(
+    () =>
+      resolveRideTargetSpeedKmh({
+        mode: rideInputMode,
+        manualSpeedKmh,
+        crankRpm: bleCrankRpm.crankRpm,
+        sensorConnected: bleSensorConnected,
+      }),
+    [rideInputMode, manualSpeedKmh, bleCrankRpm.crankRpm, bleSensorConnected],
+  );
   const {
     rideTtsEnabled,
     setRideTtsEnabled,
@@ -213,16 +266,19 @@ export default function App() {
     mapViewSheetOpen,
     userInfoSheetOpen,
     rideSettingsSheetOpen,
+    cadenceSensorSheetOpen,
     setMenuOpen,
     setPlaceSearchOpen,
     setMapViewSheetOpen,
     setUserInfoSheetOpen,
     setRideSettingsSheetOpen,
+    setCadenceSensorSheetOpen,
     openMenuPanel,
     openPlaceSearchPanel,
     openMapViewPanel,
     openUserInfoPanel,
     openRideSettingsPanel,
+    openCadenceSensorPanel,
   } = useAppSheetNavigation();
   const [externalCameraJump, setExternalCameraJump] = useState<{
     lngLat: LngLat;
@@ -388,7 +444,7 @@ export default function App() {
     applyRouteProfileFromMapPopup: applyRouteProfileForMapLocked,
   } = useRoutePlanning({
     user,
-    speedKmh,
+    rideTargetSpeedKmh,
     mapboxAccessToken: MAPBOX_TOKEN,
     functionsRegion: FUNCTIONS_REGION,
     clearRouteArtifactsRef,
@@ -849,8 +905,6 @@ export default function App() {
     return (liveRiderNametag ?? selfRiderNametagFallback)?.trim() || null;
   }, [liveRiderNametag, selfRiderNametagFallback]);
 
-  const bleCrankRpm = useBleCrankRpm({ sessionActive: rideStatus !== "idle" });
-
   /** Conquest — 주행(running) 중 1초 간격으로 케이던스>0 시간 누적(§3.2 검증된 페달링) */
   const crankRpmForConquestRef = useRef<number | null>(null);
   useEffect(() => {
@@ -911,65 +965,13 @@ export default function App() {
     return `새 도로 +${(newMeters / 1000).toFixed(newMeters < 10000 ? 1 : 0)}km`;
   }, [conquestSummary, conquestBaseline]);
 
-  /** 라이브 어스 — 주행 지역의 현재 날씨·밤낮(Open-Meteo). 세션 중 30분 간격 갱신. */
-  const [liveWeatherHint, setLiveWeatherHint] = useState<string | null>(null);
-  /** 화면 날씨 비주얼(밤 틴트·비·눈·안개…) 용 원본 데이터. */
-  const [liveWeather, setLiveWeather] = useState<LiveWeather | null>(null);
-  /** 개발용 — URL `?weather=rain` 등으로 비주얼 강제(실제 데이터 무관). 출시 전 무해(파라미터 없으면 null). */
-  const weatherOverride = useMemo(
-    () => parseWeatherOverride(typeof window !== "undefined" ? window.location.search : ""),
-    [],
-  );
-  useEffect(() => {
-    if (rideStatus === "idle") {
-      setLiveWeatherHint(null);
-      setLiveWeather(null);
-      return;
-    }
-    const at = startLngLat ?? endLngLat;
-    if (!at) return;
-    const ac = new AbortController();
-    const load = async () => {
-      const w = await fetchOpenMeteoCurrentWeather(at, ac.signal);
-      if (w && !ac.signal.aborted) {
-        setLiveWeatherHint(formatLiveWeatherHudLine(w));
-        setLiveWeather(w);
-      }
-    };
-    void load();
-    const timer = setInterval(() => void load(), 30 * 60 * 1000);
-    return () => {
-      ac.abort();
-      clearInterval(timer);
-    };
-  }, [rideStatus, startLngLat, endLngLat]);
-
-  const bleCadencePanel = useMemo(() => {
-    if (!bleCrankRpm.capable) return undefined;
-    return {
-      uiState: bleCrankRpm.uiState,
-      crankRpm: bleCrankRpm.crankRpm,
-      deviceLabel: bleCrankRpm.deviceLabel,
-      errorMessage: bleCrankRpm.errorMessage,
-      onConnect: () => void bleCrankRpm.connect(),
-      onDisconnect: bleCrankRpm.disconnect,
-    };
-  }, [
-    bleCrankRpm.capable,
-    bleCrankRpm.uiState,
-    bleCrankRpm.crankRpm,
-    bleCrankRpm.deviceLabel,
-    bleCrankRpm.errorMessage,
-    bleCrankRpm.connect,
-    bleCrankRpm.disconnect,
-  ]);
-
   const { coachData, rideElevationProfile, rideBgmCatalogConfigured } = useRideCoachingMedia({
     routeGeometry,
     routeDistanceMeters,
     virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
     sessionStatus: rideStatus,
-    speedKmh,
+    // 코칭은 「현재 실제 움직임」이 기준 — 목표가 아니라 램핑 적용 속도
+    speedKmh: rideMetrics.appliedSpeedKmh,
     rideTtsEnabled,
     rideBgmEnabled,
   });
@@ -1192,6 +1194,8 @@ export default function App() {
 
   function handleStartRide(fromStart?: boolean) {
     if (!routeGeometry || rideStatus !== "idle" || !user || !configured || trailStartBusy) return;
+    // 주행 입력 준비(센서 확인 또는 명시적 체험 속도 선택)가 끝나기 전에는 시작하지 않는다.
+    if (!rideInputReady) return;
     // MapHud FAB 등 onClick 직결 호출은 이벤트 객체가 첫 인자로 올 수 있어 `=== true` 로만 판정
     const restart = fromStart === true;
     /**
@@ -1435,7 +1439,8 @@ export default function App() {
     routeGeometry,
     routeDistanceMeters,
     virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
-    speedKmh,
+    // 발행 속도는 rAF 적용속도 샘플러가 만든다. 이 값은 idle fallback + 목표 변경 burst 용.
+    speedKmh: rideTargetSpeedKmh,
     routeRidePhase: rideStatus === "paused" ? "paused" : "live",
     joinBurstNonce: rideJoinBurstNonce,
   });
@@ -1453,8 +1458,9 @@ export default function App() {
       routeTotalMeters: routeDistanceMeters,
       virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
       sessionStatus: rideStatus,
-      speedKmh,
+      speedKmh: rideMetrics.appliedSpeedKmh,
       riderLngLat: liveForMap,
+      enabled: rideStreetViewEnabled,
     });
 
   /** Firebase 미설정이거나 인증 준비 완료 후 — Trailhead·입문 코스 UI가 숨겨지지 않도록 메인 워크스페이스 표시 */
@@ -1538,14 +1544,38 @@ export default function App() {
     [mapZoom],
   );
 
+  /**
+   * Go 사전조건 = 경로 준비 **+ 주행 입력 준비**.
+   * 준비 미완료 상태로 주행 화면에 들어간 뒤 센서를 설정시키지 않는다(§1.4).
+   */
+  const canStartRideWithInput = Boolean(routeGeometry) && !routeLoading && rideInputReady;
+
+  /** HUD 칩용 최소 상태 — BLE 훅 객체 전체를 넘기지 않는다 */
+  const cadenceHud = useMemo(
+    () => ({
+      state: {
+        capable: bleCrankRpm.capable,
+        uiState: bleCrankRpm.uiState,
+        crankRpm: bleCrankRpm.crankRpm,
+      },
+      open: cadenceSensorSheetOpen,
+      onOpen: openCadenceSensorPanel,
+    }),
+    [
+      bleCrankRpm.capable,
+      bleCrankRpm.uiState,
+      bleCrankRpm.crankRpm,
+      cadenceSensorSheetOpen,
+      openCadenceSensorPanel,
+    ],
+  );
+
   const routeDockPanel = (
     <RouteDock
       stage={stage}
       stops={routeDockStops}
       routeLoading={routeLoading}
-      speedKmh={speedKmh}
-      onSpeedKmh={setSpeedKmh}
-      canStartRide={Boolean(routeGeometry) && !routeLoading}
+      canStartRide={canStartRideWithInput}
       canSaveRoute={
         Boolean(user) &&
         configured &&
@@ -1730,6 +1760,7 @@ export default function App() {
               menuOpen,
               onOpenPlaceSearch: openPlaceSearchPanel,
               placeSearchOpen,
+              cadence: cadenceHud,
               account: accountChip,
               onOpenUserInfo: openUserInfoPanel,
               userInfoOpen: userInfoSheetOpen,
@@ -1742,7 +1773,7 @@ export default function App() {
               metrics: hudMetrics,
               onClearPins: handleClearPins,
               routeError: null,
-              canStartRide: Boolean(routeGeometry) && !routeLoading,
+              canStartRide: canStartRideWithInput,
               onStartRide: handleStartRide,
               onPauseRide: handlePause,
               onResumeRide: handleResume,
@@ -1754,7 +1785,6 @@ export default function App() {
               onDismissIdleHint: () => setIdleHintDismissed(true),
               ridePresence: mapHudRidePresence,
               onGoTrailhead: goTrailheadAndCloseMenu,
-              weatherHint: liveWeatherHint,
               conquestLiveMeters,
             }}
           >
@@ -1791,7 +1821,6 @@ export default function App() {
         ) : (
           <AppMapStage
             routeDock={routeDockPanel}
-            weatherOverlay={<WeatherOverlay weather={weatherOverride ?? liveWeather} />}
             mapView={{
               accessToken: MAPBOX_TOKEN || undefined,
               routeElevationProfile: rideElevationProfile,
@@ -1868,6 +1897,7 @@ export default function App() {
               menuOpen,
               onOpenPlaceSearch: openPlaceSearchPanel,
               placeSearchOpen,
+              cadence: cadenceHud,
               account: accountChip,
               onOpenUserInfo: openUserInfoPanel,
               userInfoOpen: userInfoSheetOpen,
@@ -1880,7 +1910,7 @@ export default function App() {
               metrics: hudMetrics,
               onClearPins: handleClearPins,
               routeError: null,
-              canStartRide: Boolean(routeGeometry) && !routeLoading,
+              canStartRide: canStartRideWithInput,
               onStartRide: handleStartRide,
               onPauseRide: handlePause,
               onResumeRide: handleResume,
@@ -1892,7 +1922,6 @@ export default function App() {
               onDismissIdleHint: () => setIdleHintDismissed(true),
               ridePresence: mapHudRidePresence,
               onGoTrailhead: goTrailheadAndCloseMenu,
-              weatherHint: liveWeatherHint,
               conquestLiveMeters,
             }}
           >
@@ -2008,7 +2037,6 @@ export default function App() {
           onRideCoachingBanner={setRideCoachingBannerVisible}
           rideElevationProfileLoading={rideElevationProfileLoading}
           rideBgmCatalogConfigured={rideBgmCatalogConfigured}
-          bleCadence={bleCadencePanel}
         />
       </MenuPanel>
 
@@ -2034,7 +2062,25 @@ export default function App() {
         onRideCoachingBanner={setRideCoachingBannerVisible}
         rideBgmCatalogConfigured={rideBgmCatalogConfigured}
         rideElevationProfileLoading={rideElevationProfileLoading}
-        bleCadence={bleCadencePanel}
+      />
+
+      <CadenceSensorSheet
+        open={cadenceSensorSheetOpen}
+        onClose={() => setCadenceSensorSheetOpen(false)}
+        capable={bleCrankRpm.capable}
+        uiState={bleCrankRpm.uiState}
+        deviceLabel={bleCrankRpm.deviceLabel}
+        crankRpm={bleCrankRpm.crankRpm}
+        errorMessage={bleCrankRpm.errorMessage}
+        mode={rideInputMode}
+        readiness={rideInputReadiness}
+        riding={rideStatus !== "idle"}
+        manualSpeedKmh={manualSpeedKmh}
+        onManualSpeedKmh={setManualSpeedKmh}
+        onConnect={() => void bleCrankRpm.connect()}
+        onDisconnect={bleCrankRpm.disconnect}
+        onChooseManual={switchRideInputToManual}
+        onChooseCadence={switchRideInputToCadence}
       />
 
       <MapViewSheet
@@ -2045,6 +2091,8 @@ export default function App() {
         onMapStyle={setMapStyle}
         coverageOverlayMode={coverageOverlayMode}
         onCoverageOverlayMode={setCoverageOverlayMode}
+        rideStreetViewEnabled={rideStreetViewEnabled}
+        onRideStreetViewEnabled={setRideStreetViewEnabled}
         mapillaryTokenConfigured={mapillaryTokenConfigured}
         enable3D={enable3D}
         onEnable3D={setEnable3D}

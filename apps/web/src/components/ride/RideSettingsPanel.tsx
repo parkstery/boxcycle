@@ -1,14 +1,4 @@
-import type { BleCrankRpmUiState } from "../../hooks/useBleCrankRpm";
 import "./RideSettingsSheet.css";
-
-export type RideSettingsBle = {
-  uiState: BleCrankRpmUiState;
-  crankRpm: number | null;
-  deviceLabel: string | null;
-  errorMessage: string | null;
-  onConnect: () => void | Promise<void>;
-  onDisconnect: () => void;
-};
 
 export type RideSettingsPanelProps = {
   rideTtsEnabled: boolean;
@@ -19,12 +9,11 @@ export type RideSettingsPanelProps = {
   onRideCoachingBanner: (enabled: boolean) => void;
   rideBgmCatalogConfigured: boolean;
   rideElevationProfileLoading: boolean;
-  bleCadence?: RideSettingsBle;
   /** 계정 시트 등에 임베드 */
   embedded?: boolean;
 };
 
-/** BLE·TTS·BGM 등 주행 설정 본문 */
+/** TTS·BGM·코칭 배너 등 주행 설정 본문. 케이던스 센서는 HUD 센서 칩 → 센서 상세 설정이 소유한다. */
 export function RideSettingsPanel(props: RideSettingsPanelProps) {
   const rootClass = props.embedded
     ? "ride-settings-panel ride-settings-panel--embedded"
@@ -69,50 +58,6 @@ export function RideSettingsPanel(props: RideSettingsPanelProps) {
         ) : null}
       </div>
 
-      {props.bleCadence ? (
-        <div className="ride-settings-sheet__group" aria-label="RPM 센서">
-          <span className="ride-settings-sheet__kicker">RPM (Bluetooth)</span>
-          {props.bleCadence.deviceLabel ? (
-            <p className="ride-settings-sheet__device">
-              <strong>{props.bleCadence.deviceLabel}</strong>
-              {props.bleCadence.crankRpm != null ? (
-                <> · {Math.round(props.bleCadence.crankRpm)} rpm</>
-              ) : null}
-            </p>
-          ) : null}
-          <p className="ride-settings-sheet__help">
-            Chrome/Edge · HTTPS 또는 localhost에서 CSC 센서를 연결합니다.
-          </p>
-          <div className="ride-settings-sheet__row">
-            {props.bleCadence.uiState === "connected" ? (
-              <button
-                type="button"
-                className="ride-settings-sheet__btn"
-                title="Disconnect sensor"
-                onClick={props.bleCadence.onDisconnect}
-              >
-                연결 해제
-              </button>
-            ) : props.bleCadence.uiState === "connecting" ? (
-              <span className="ride-settings-sheet__help">연결 중…</span>
-            ) : (
-              <button
-                type="button"
-                className="ride-settings-sheet__btn ride-settings-sheet__btn--primary"
-                title="Connect sensor"
-                onClick={() => void props.bleCadence?.onConnect()}
-              >
-                센서 연결
-              </button>
-            )}
-          </div>
-          {props.bleCadence.errorMessage ? (
-            <p className="ride-settings-sheet__error" role="alert">
-              {props.bleCadence.errorMessage}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
     </div>
   );
 }

@@ -48,12 +48,14 @@ export function useRideMapillaryStreet(options: {
   sessionStatus: "idle" | "running" | "paused";
   speedKmh: number;
   riderLngLat: LngLat | null;
+  /** false 면 조회·표시를 하지 않는다(기본 꺼짐 — 사용자가 맵 뷰 시트에서 켠다) */
+  enabled: boolean;
 }): {
   streetState: RideMapillaryStreetState | null;
   rideSync: MapillaryRideSync | null;
   dismissStreet: () => void;
 } {
-  const { user, accessToken, routeGeometry, routeTotalMeters, virtualDistanceMeters, sessionStatus, speedKmh, riderLngLat } =
+  const { user, accessToken, routeGeometry, routeTotalMeters, virtualDistanceMeters, sessionStatus, speedKmh, riderLngLat, enabled } =
     options;
 
   const [streetState, setStreetState] = useState<RideMapillaryStreetState | null>(null);
@@ -115,7 +117,8 @@ export function useRideMapillaryStreet(options: {
   }, [routeGeometry]);
 
   useEffect(() => {
-    if (!mapillaryTokenConfigured || !accessToken || !user) {
+    // 꺼져 있으면 조회 자체를 하지 않는다 — 기능은 유지하되 기본은 off.
+    if (!enabled || !mapillaryTokenConfigured || !accessToken || !user) {
       resetRefs();
       setStreetState(null);
       return;
@@ -229,7 +232,7 @@ export function useRideMapillaryStreet(options: {
       window.clearInterval(id);
       ac.abort();
     };
-  }, [user, accessToken, routeGeometry, densePack, routeTotalMeters, sessionStatus]);
+  }, [enabled, user, accessToken, routeGeometry, densePack, routeTotalMeters, sessionStatus]);
 
   const dismissStreet = useMemo(
     () => () => {

@@ -66,6 +66,9 @@
 
 | 문서 | 역할 | 신뢰도 |
 |------|------|--------|
+| [260829-다음 주행·이어 달리기 작업지시서](ops/ride-relay/260829-다음-주행-이어달리기-작업지시서.md) | **현재 실행 작업 RIDE-CONTINUE-1** — 실제 Ride 종료점을 다음 출발점으로 자동 연결 + 미완주 SavedRoute 재개를 지도 주 표면으로 승격 | 제품 결정 확정·실행 대기 |
+| [260828-Activity-World-줌-LOD-복구-작업지시서](ops/map-relay/260828-Activity-World-줌-LOD-복구-작업지시서.md) | **현재 실행 작업 MAP-LOD-1** — 비동기 흔적 dot/line 줌 전환이 2026-06-13부터 화면 미적용(회귀). 배선 복구 + 히스테리시스 복원 | 원인 확정·실행 대기 |
+| [260827-BLE-케이던스-HUD-상태칩-작업지시서](ops/sensor-relay/260827-BLE-케이던스-HUD-상태칩-작업지시서.md) | **현재 후속 실행 작업 SENSOR-2** — 계정 옆 전역 센서 LED/RPM 칩 + Go 전 주행 입력 준비 게이트 | 코드 반영 완료·실물 검증 대기 |
 | [260827-BLE-케이던스-직결-작업지시서](ops/sensor-relay/260827-BLE-케이던스-직결-작업지시서.md) | **현재 실행 작업 SENSOR-1** — CYCPLUS CSC 연결→RPM 확인→케이던스 기반 가상 주행 수직 기능 | 검토됨·실행 대기 |
 | [260523-World-Activity-Presence-설계](260523-World-Activity-Presence-설계.md) | 월드 맵 presence·publication dot | SoT |
 | [260523-Firebase-비용-운영-체크리스트](260523-Firebase-비용-운영-체크리스트.md) | 비용 관측·대응 | 반영중 |

@@ -7,7 +7,12 @@
   bottom: calc(
     max(var(--route-dock-pad), env(safe-area-inset-bottom, 0px)) + var(--mapbox-logo-clearance, 2.875rem)
   );
-  z-index: 4;
+  /*
+   * MapHud(z-index 5) 보다 위. 폰 가로처럼 세로가 짧으면 하단 앵커인 이 패널이 위로
+   * 올라와 좌상단 접속 패널과 겹치는데, 그때 「조작(Go)」이 「정보(접속 현황)」에
+   * 가려지면 안 된다. 실제로 「다른 라이더 없음」 문구가 Go 탭을 가로챘다.
+   */
+  z-index: 6;
   max-width: min(21.6rem, calc(100vw - 2rem));
   pointer-events: none;
 }
@@ -122,22 +127,33 @@
   min-width: 0;
 }
 
-.route-dock__save-trigger {
-  flex: 0 1 auto;
-  min-width: 0;
-  max-width: 100%;
-  appearance: none;
-  border: 1px solid rgba(232, 163, 61, 0.35);
-  border-radius: 999px;
-  background: rgba(232, 163, 61, 0.14);
-  color: var(--rtw-text-primary);
+/*
+ * 헤더 액션(내 경로로 저장 · 삭제)은 같은 높이·같은 글자 크기로 맞춘다.
+ * 이전엔 두 버튼의 font-size·line-height·padding 이 달라 높이가 17.7px vs 20.3px 로
+ * 어긋나고 글자가 알약에 꽉 차 찌그러져 보였다. 줄이지도(flex-shrink 0) 않는다.
+ */
+.route-dock__save-trigger,
+.route-dock__icon-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.5rem;
+  padding: 0.22rem 0.6rem;
   font: inherit;
-  font-size: 0.62rem;
+  font-size: 0.7rem;
   font-weight: 650;
   line-height: 1.2;
-  padding: 0.2rem 0.45rem;
   white-space: nowrap;
+  border-radius: 999px;
+  appearance: none;
   cursor: pointer;
+}
+
+.route-dock__save-trigger {
+  border: 1px solid rgba(232, 163, 61, 0.35);
+  background: rgba(232, 163, 61, 0.14);
+  color: var(--rtw-text-primary);
 }
 
 .route-dock__save-trigger:hover:not(:disabled) {
@@ -313,17 +329,9 @@
 }
 
 .route-dock__icon-btn {
-  appearance: none;
   border: 1px solid rgba(248, 250, 252, 0.14);
-  border-radius: 999px;
   background: rgba(10, 16, 26, 0.35);
   color: inherit;
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.62rem;
-  font-weight: 600;
-  line-height: 1;
-  padding: 0.18rem 0.42rem;
   opacity: 0.85;
 }
 
@@ -453,74 +461,6 @@
   cursor: not-allowed;
 }
 
-.route-dock__speed {
-  display: flex;
-  flex-direction: column;
-  gap: 0.22rem;
-  flex: 0 0 auto;
-}
-
-.route-dock__speed-kicker {
-  flex: 0 0 auto;
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  opacity: 0.72;
-  white-space: nowrap;
-  margin-right: 0.1rem;
-}
-
-.route-dock__speed-row {
-  display: flex;
-  align-items: center;
-  gap: 0.24rem;
-}
-
-.route-dock__speed-step {
-  flex: 0 0 1.5rem;
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 6px;
-  border: 1px solid rgba(248, 250, 252, 0.16);
-  background: rgba(10, 16, 26, 0.5);
-  color: #f8fafc;
-  font: inherit;
-  font-size: 0.9rem;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0;
-}
-
-.route-dock__speed-step:hover:not(:disabled) {
-  border-color: rgba(232, 163, 61, 0.45);
-}
-
-.route-dock__speed-step:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.route-dock__speed-range {
-  flex: 1 1 auto;
-  min-width: 0;
-  margin: 0;
-  accent-color: #E8A33D;
-}
-
-.route-dock__speed-number {
-  flex: 0 0 2.35rem;
-  width: 2.35rem;
-  margin: 0;
-  padding: 0.15rem 0.18rem;
-  font-size: 0.74rem;
-  font-variant-numeric: tabular-nums;
-  text-align: center;
-  border-radius: 6px;
-  border: 1px solid rgba(248, 250, 252, 0.16);
-  background: rgba(10, 16, 26, 0.65);
-  color: #f8fafc;
-}
-
 .route-dock__go {
   min-width: 2.75rem;
   padding: 0.32rem 0.7rem;
@@ -546,3 +486,57 @@
   box-shadow: none;
 }
 
+/*
+ * 폰 가로 — 지도 잠식을 줄인다. 계측(690x275)에서 RouteDock 이 지도의 20.4% 를 먹었다.
+ * 하단 여백(Mapbox 로고 확보용)도 이 크기에서는 로고가 이미 화면 밖이라 낭비였다.
+ */
+@media (max-height: 560px) {
+  .route-dock-anchor {
+    --mapbox-logo-clearance: 0.35rem;
+    max-width: min(18rem, calc(100vw - 2rem));
+  }
+
+  .route-dock__panel {
+    width: min(17.5rem, calc(100vw - 2.5rem));
+    gap: 0.3rem;
+    padding: 0.35rem 0.4rem 0.4rem;
+    max-height: min(52vh, 11rem);
+  }
+
+  .route-dock__stops {
+    gap: 0.18rem;
+    max-height: 5rem;
+  }
+
+  .route-dock__stop {
+    padding: 0.18rem 0.3rem;
+    gap: 0.28rem;
+  }
+
+  .route-dock__stop-label {
+    font-size: 0.6rem;
+  }
+
+  .route-dock__stop-dot {
+    width: 1rem;
+    height: 1rem;
+    font-size: 0.5rem;
+  }
+
+  .route-dock__stop-remove {
+    flex: 0 0 1.2rem;
+    width: 1.2rem;
+  }
+
+  .route-dock__go {
+    min-width: 2.4rem;
+    padding: 0.24rem 0.55rem;
+  }
+
+  .route-dock__save-trigger,
+  .route-dock__icon-btn {
+    min-height: 1.3rem;
+    padding: 0.16rem 0.45rem;
+    font-size: 0.64rem;
+  }
+}

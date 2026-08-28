@@ -17,6 +17,9 @@ type MapViewSheetProps = {
   mapStyleOptions: { value: string; label: string }[];
   onMapStyle: (v: string) => void;
   coverageOverlayMode: CoverageOverlayMode;
+  /** 주행 중 Mapillary 거리뷰 창 — 기본 꺼짐, 필요할 때만 켠다 */
+  rideStreetViewEnabled: boolean;
+  onRideStreetViewEnabled: (enabled: boolean) => void;
   onCoverageOverlayMode: (m: CoverageOverlayMode) => void;
   mapillaryTokenConfigured: boolean;
   enable3D: boolean;
@@ -36,6 +39,7 @@ type MapViewSheetProps = {
 const FOLLOW_OPTIONS: { value: FollowMode; label: string }[] = [
   { value: "free", label: "free" },
   { value: "keep", label: "유지" },
+  { value: "topDown", label: "상공" },
   { value: "north", label: "북향" },
   { value: "rear30", label: "후방" },
   { value: "front30", label: "전방" },
@@ -46,6 +50,7 @@ const FOLLOW_OPTIONS: { value: FollowMode; label: string }[] = [
 const FOLLOW_TITLES: Record<FollowMode, string> = {
   free: "Free camera",
   keep: "Follow, keep bearing",
+  topDown: "Top-down (overhead)",
   north: "North up",
   rear30: "Rear 30°",
   front30: "Front 30°",
@@ -80,6 +85,19 @@ export function MapViewSheet(props: MapViewSheetProps) {
       />
       <div className="map-view-sheet__panel">
         <div className="map-view-sheet__handle" aria-hidden />
+        {/* 우측 패널이 자기 트리거(맵 버튼)를 덮으므로 명시적 닫기가 필요하다 */}
+        <div className="map-view-sheet__head">
+          <span className="map-view-sheet__head-title">맵 뷰</span>
+          <button
+            type="button"
+            className="map-view-sheet__close"
+            aria-label="맵 뷰 닫기"
+            title="Close"
+            onClick={props.onClose}
+          >
+            닫기
+          </button>
+        </div>
 
         <div className="map-view-sheet__group">
           <span className="map-view-sheet__label-title">노선</span>
@@ -121,6 +139,21 @@ export function MapViewSheet(props: MapViewSheetProps) {
                 Mapillary 토큰 미설정
               </span>
             ) : null}
+          </div>
+        </div>
+
+        <div className="map-view-sheet__group">
+          <span className="map-view-sheet__label-title">거리뷰</span>
+          <div className="map-view-sheet__row-body">
+            <label className="map-view-sheet__toggle" title="Street view while riding">
+              <input
+                type="checkbox"
+                checked={props.rideStreetViewEnabled}
+                disabled={!props.mapillaryTokenConfigured}
+                onChange={(e) => props.onRideStreetViewEnabled(e.target.checked)}
+              />
+              주행 중 거리뷰 창
+            </label>
           </div>
         </div>
 
