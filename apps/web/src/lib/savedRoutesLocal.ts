@@ -10,6 +10,7 @@ import {
   type SaveRouteInput,
 } from "./firestoreSavedRoutes";
 import { computeRouteFingerprint } from "./routeFingerprint";
+import { clampProgressRatio, resolveSavedRouteProgressUpdate } from "./savedRouteProgressPolicy";
 
 const STORAGE_KEY = "boxcycle_web_saved_routes_v1";
 
@@ -183,28 +184,36 @@ export function promoteSavedRouteInLocal(input: {
 
 /**
  * 게스트(로컬) 미완주 진행률 갱신 — 완주 임계 미만 종료 시 호출(§9.5.5 단위7).
- * completed 는 건드리지 않고 진행률·lastRideId 만. 진행률은 **최대 도달점 유지**(max) —
- * "처음부터 다시" 주행을 중간 종료해도 기존 재개 지점을 잃지 않는다.
+ * completed 는 건드리지 않고 진행률·lastRideId 만. 규칙은 Firestore transaction 과 **동일**하다
+ * (`resolveSavedRouteProgressUpdate`) — 최대 도달점 유지, 완주 문서는 되돌리지 않음,
+ * stale(더 낮은) 갱신은 `lastRideId` 도 덮지 않음(§4.4).
  */
 export function updateSavedRouteProgressInLocal(input: {
   routeId: string;
   rideId: string;
   progressRatio: number;
-}): void {
+}): { progressRatio: number; completed: 0 | 1 } {
   const items = readAll();
   const idx = items.findIndex((r) => r.id === input.routeId);
-  if (idx < 0) return;
+  if (idx < 0) {
+    return { progressRatio: clampProgressRatio(input.progressRatio), completed: 0 };
+  }
   const prev = items[idx];
-  const next = Number.isFinite(input.progressRatio)
-    ? Math.max(0, Math.min(1, input.progressRatio))
-    : 0;
+  const decision = resolveSavedRouteProgressUpdate(
+    { completed: prev.completed === 1 ? 1 : 0, lastProgressRatio: prev.lastProgressRatio },
+    input.progressRatio,
+  );
+  if (!decision.shouldWrite) {
+    return { progressRatio: decision.nextProgressRatio, completed: decision.completed };
+  }
   items[idx] = {
     ...prev,
     lastRideId: input.rideId,
-    lastProgressRatio: Math.max(prev.lastProgressRatio ?? 0, next),
+    lastProgressRatio: decision.nextProgressRatio,
     updatedAtIso: new Date().toISOString(),
   };
   writeAll(items);
+  return { progressRatio: decision.nextProgressRatio, completed: decision.completed };
 }
 
 export function renameSavedRouteInLocal(routeId: string, newName: string): string {
