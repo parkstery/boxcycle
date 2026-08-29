@@ -12,9 +12,10 @@
 
 | 파일 | 역할 | Firebase |
 |---|---|:---:|
-| `entry-contract.mjs` | 진입 6단계 셀렉터 계약(앵커 정규식 + 셀렉터 문자열) | 불필요 |
+| `entry-contract.mjs` | 진입·다음 주행 셀렉터 계약(앵커 정규식 + 셀렉터 문자열) | 불필요 |
 | `verify-selectors.mjs` | 계약 앵커가 소스에 실재하는지 정적 검증(exit 0/1) | 불필요 |
 | `../../e2e/ride-entry.spec.ts` | Playwright 진입 시퀀스(게스트→코스→주행 시작→running) | **필요** |
+| `../../e2e/ride-continuation.spec.ts` | 종료→재진입→재개(다음 주행 카드·진행률 단조·끝점 연결·legacy) | **필요** |
 
 ## 1. 셀렉터 계약 검증 `verify-selectors.mjs`
 
@@ -70,7 +71,35 @@ cd apps/web && npm run test:e2e:ride
 `useRideUiStage` 가 `hasRoute(=routeGeometry && distance>0)` 로 파생하므로, 4단계 red 는 대개 3단계 클릭이
 실제 코스 아이템을 못 눌렀다는 신호다.
 
+## 3. 다음 주행·이어 달리기 e2e `ride-continuation.spec.ts` (2026-08-29 추가)
+
+```bash
+cd apps/web && npm run test:e2e:ride-continuation
+```
+`ride-entry` 와 같은 방식으로 에뮬레이터를 자동 기동한다. 다른 dev 서버가 5000 을 잡고 있으면
+`RTW_DEV_PORT=5001 npm run test:e2e:ride-continuation`.
+
+`ride-entry` 가 **running 확정까지**라면 이 spec 은 **종료 이후**를 본다:
+
+| 케이스 | 무엇을 고정하나 |
+|---|---|
+| C1 | 미완주 SavedRoute 20% 종료 → 결과 시트(전체 진행) → reload → 「다음 주행」 카드 → 재개 → 누적 진행률 상승 |
+| C2 | 로드 후 서버가 43% 로 올라간 뒤 31% 를 보내도 **43% 가 남는다**(transaction max) |
+| C3 | 완주 후 「끝점에서 새 경로」 — 이전 SavedRoute geometry 불변 |
+| C4 | ad-hoc(입문 코스) 주행은 저장하지 않아도 다음 출발점이 남는다 |
+| C5 | 좌표 필드가 없는 legacy Ride 는 기록만 보이고 CTA·Null Island 이동이 없다 |
+
+**시험 데이터는 에뮬레이터 REST(`Authorization: Bearer owner`)로 심는다** — 앱에 시험 전용
+훅을 만들지 않기 위해서다. 게스트 uid 는 Firebase v9 가 **IndexedDB**(`firebaseLocalStorageDb`)에
+저장하므로 localStorage 만 뒤지면 못 찾는다.
+
+주의 — **HUD 「거리」 셀은 주행 전과 주행 중의 의미가 다르다**. 주행 전에는 경로 전체 거리 한 값,
+주행 중에는 「오늘 / 전체」다. `/` 유무로 구분하지 않으면 주행이 시작되기도 전에 목표 거리에
+도달한 것으로 오판해 곧바로 종료를 눌러 버린다(실제로 겪은 red).
+
+또한 결과 시트는 **로컬 record 로 낙관 표시**되므로 Firestore 반영은 그보다 늦다 — 서버 값을
+단언하거나 reload 하기 전에는 `expect.poll` 로 서버 문서를 기다린다.
+
 ## 미구현 (하네스 확장 TODO)
 
 - **peer 동행 진입**: 현재 spec 은 단독 주행만. 2인 진입(peer-sync 하네스와 연계)은 미구현.
-- **주행 종료·저장 검증**: running 확정까지만. 종료→요약→영속화(`useRideEndAndPersistence`)는 범위 밖.
