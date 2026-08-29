@@ -58,6 +58,12 @@ const U4_HUD_EVIDENCE_PATH = path.resolve(
   '../../document/archive/ride-verify-evidence/u4-hud-resume-dual.png',
 )
 
+/** U6 증거 — 결과 시트를 닫은 직후(reload 없이) 「다음 주행」 카드가 뜬 화면 */
+const C1_CARD_NO_RELOAD_EVIDENCE_PATH = path.resolve(
+  process.cwd(),
+  '../../document/archive/ride-verify-evidence/c1-next-ride-card-no-reload.png',
+)
+
 /** 게스트 진입 카드 → 익명 인증 완료 */
 async function enterAsGuest(page: Page) {
   await page.goto('/')
@@ -354,6 +360,22 @@ test.describe('다음 주행 · 이어 달리기', () => {
     await expect(summary.getByLabel('전체 진행')).toContainText('전체 진행 0% →')
     await expect(summary.getByText('다음 출발점이 저장되었습니다')).toBeVisible()
     await summary.getByRole('button', { name: '닫기' }).first().click()
+
+    /*
+     * U6 — **reload 없이** 결과를 닫는 즉시 카드가 나타나야 한다.
+     * 실주행 수용 실패의 원인은 stage 충돌이었다: 방금 달린 Route 가 지도에 남아
+     * `ready-to-start` 로 머물면 RouteDock 이 Go 를 다시 띄우고 카드는 숨는다.
+     * 그래서 「Go 가 없다」까지 함께 단언해 회귀를 고정한다.
+     */
+    const cardNoReload = nextRideCard(page)
+    await expect(cardNoReload).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByRole('button', { name: '주행 시작' })).toHaveCount(0)
+    await expect(cardNoReload.getByRole('button', { name: /%에서 이어 달리기/ })).toBeVisible({
+      timeout: 15_000,
+    })
+    fs.mkdirSync(path.dirname(C1_CARD_NO_RELOAD_EVIDENCE_PATH), { recursive: true })
+    await page.screenshot({ path: C1_CARD_NO_RELOAD_EVIDENCE_PATH })
+    await page.screenshot({ path: testInfo.outputPath('c1-next-ride-card-no-reload.png') })
 
     // Firestore 진행률 반영을 기다린 뒤 재진입한다(결과 시트는 로컬 record 낙관 표시라 더 빠르다)
     await expect

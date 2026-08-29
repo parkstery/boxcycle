@@ -23,6 +23,7 @@ import { MAX_ROUTE_WAYPOINTS } from "../lib/routeWaypoints";
 import { safeRideSpeechCancel } from "../lib/rideSpeech";
 import { loadRideSessions, saveRideSessions, type StoredRideSession } from "../lib/rideSessionsStorage";
 import { isDiscardableRideRecord, isRouteCompletion } from "../lib/rideRecordPolicy";
+import { resolveSavedRouteProgressUpdate } from "../lib/savedRouteProgressPolicy";
 import {
   loadSavedRoutesFromLocal,
   promoteSavedRouteInLocal,
@@ -179,6 +180,17 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     );
 
     /**
+     * 완주(≥98%)만 `completed:1` 로 격상하고 미완주는 진행률만 남긴다(§9.5).
+     * 진행률은 최대 도달점 유지 — 「처음부터 다시」 중간 종료가 기존 재개 지점을 지우지 않게 한다.
+     *
+     * ⚠ **동기 구간에서 계산한다.** 아래 비동기 블록은 첫 `await` 뒤에 실행되는데, 그때는
+     * 이 함수 끝에서 `loadedSavedRouteProgressRef.current = 0` 이 이미 실행된 뒤라
+     * 거기서 ref 를 읽으면 언제나 0 이었다(= max 보호가 무력화).
+     */
+    const rideCompletedRoute = isRouteCompletion(completionRatio);
+    const progressToSave = Math.max(completionRatio, previousProgressRatio);
+
+    /**
      * anchor 가 계획 핀과 사실상 같은 지점이면(전 구간 주행) 이미 확보한 지명을 그대로 쓴다.
      * 다르면(부분 주행) 아래 비동기 블록에서 anchor 좌표를 따로 역지오코딩한다.
      */
@@ -283,6 +295,41 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
       });
     } else {
       setLastRideResult?.(null);
+    }
+
+    /**
+     * 진행률 낙관 반영(§3.5) — 결과 시트를 닫는 즉시 「다음 주행」 카드가 올바른 재개 후보를
+     * 보이려면, Firestore 왕복을 기다리지 않고 로컬 state 부터 올려야 한다.
+     * 규칙은 서버 transaction 과 동일한 순수 정책을 쓴다(낮은 값으로 되돌리지 않는다).
+     * 서버 판정이 오면 아래에서 그 값으로 정정한다.
+     */
+    if (!discardRecord && savedRouteIdAtEnd) {
+      const nowIso = new Date().toISOString();
+      setSavedRoutes((prev) =>
+        prev.map((r) => {
+          if (r.id !== savedRouteIdAtEnd) return r;
+          if (rideCompletedRoute) {
+            return {
+              ...r,
+              completed: 1,
+              completedAtIso: r.completedAtIso ?? nowIso,
+              expiresAtIso: null,
+              lastProgressRatio: 1,
+              updatedAtIso: nowIso,
+            };
+          }
+          const decision = resolveSavedRouteProgressUpdate(
+            { completed: r.completed, lastProgressRatio: r.lastProgressRatio },
+            progressToSave,
+          );
+          if (!decision.shouldWrite) return r;
+          return {
+            ...r,
+            lastProgressRatio: decision.nextProgressRatio,
+            updatedAtIso: nowIso,
+          };
+        }),
+      );
     }
 
     if (configured && !discardRecord) {
@@ -413,13 +460,6 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
             markRouteActivityRideCompletedOptimistic(persistedPublicationId);
             onRideEndedWithPublication?.(persistedPublicationId);
           }
-          // 완주(≥98%)만 completed=1 로 격상. 미완주는 진행률만 저장해 「이어 달리기」로 남긴다(§9.5).
-          const rideCompletedRoute = isRouteCompletion(completionRatio);
-          // 진행률은 최대 도달점 유지 — "처음부터 다시" 중간 종료가 기존 재개 지점을 지우지 않게(§9.5.5 단위7)
-          const progressToSave = Math.max(
-            completionRatio,
-            Math.max(0, Math.min(1, loadedSavedRouteProgressRef?.current ?? 0)),
-          );
           if (savedRouteIdAtEnd && !savedRouteIdAtEnd.startsWith("local-")) {
             try {
               /**

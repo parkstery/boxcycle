@@ -1767,12 +1767,25 @@ export default function App() {
     setPlaceSearchOpen(false);
   }
 
-  function handleCloseSummary() {
+  /**
+   * 결과 시트를 닫고 **지도를 idle 로 되돌린다**(§3.1·§3.5).
+   *
+   * ⚠ 방금 달린 Route 를 지도에 남겨 두면 stage 가 `ready-to-start` 로 머물러
+   * RouteDock 이 Go 를 다시 띄우고 「다음 주행」 카드는 숨는다 — 실주행에서 종료 직후
+   * 카드가 안 보이던 원인이 이 stage 충돌이었다. 카드는 「Route 가 없는 idle 화면」의
+   * 표면이므로, 결과를 닫는 순간 워크스페이스를 비워 카드가 즉시 나타나게 한다.
+   * 같은 경로를 다시 타려면 카드의 「이어 달리기」가 다시 불러온다(처음부터는 RouteDock 보조 선택).
+   */
+  function closeSummaryAndReturnToIdleMap() {
     setSummarySheetVisible(false);
     resetArrivalToast();
     setLastEndedWasAdhoc(null);
-    // 닫으면 지도 위 「다음 주행」 카드가 즉시 갱신된다(카드는 최근 Ride·SavedRoute 파생).
     setLastRideResult(null);
+    clearRoutePins(routeMenuLockedForProd);
+  }
+
+  function handleCloseSummary() {
+    closeSummaryAndReturnToIdleMap();
   }
 
   function handleModifyFromPause() {
@@ -2341,9 +2354,8 @@ export default function App() {
         suggestedName={suggestedRouteName}
         onSaveAdhoc={async (name, confirmUpdate) => {
           await handleSaveAdhocAsUserRoute(name, confirmUpdate);
-          setSummarySheetVisible(false);
-          resetArrivalToast();
-          setLastRideResult(null);
+          // 저장 후에도 같은 규칙 — 지도를 idle 로 되돌려야 카드가 다음 행동을 제시한다.
+          closeSummaryAndReturnToIdleMap();
         }}
         onDismissAdhoc={() => setLastEndedWasAdhoc(null)}
         onClose={handleCloseSummary}

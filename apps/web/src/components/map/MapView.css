@@ -669,8 +669,9 @@
 .map-view__resume-marker {
   padding: 0.2rem 0.45rem;
   border-radius: 999px;
-  background: var(--rtw-trace, #e93bd0);
-  color: #10151f;
+  /* 「달린 길」과 같은 색 — 골드(--rtw-trace)는 HUD 강조색이라 궤적 이야기와 어긋난다(2026-08-27 결정) */
+  background: var(--rtw-trace-owned, #8a2be2);
+  color: #f8fafc;
   font-size: 0.66rem;
   font-weight: 800;
   white-space: nowrap;
