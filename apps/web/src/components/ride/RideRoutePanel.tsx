@@ -86,6 +86,8 @@ type RideRoutePanelProps = {
   rideElevationProfileLoading: boolean;
   /** BGM 재생 URL 카탈로그 존재(내장·환경변수) */
   rideBgmCatalogConfigured: boolean;
+  /** 거리 기반 자동 경로 마법사 열기(MVP — next-ride 와 분리) */
+  onOpenDistanceAutoRoute?: () => void;
 };
 
 type Tab = "route" | "saved";
@@ -295,6 +297,21 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               </div>
             ) : null}
           </div>
+
+          {props.onOpenDistanceAutoRoute ? (
+            <div className="ride-panel__auto-route" aria-label="자동 경로 생성">
+              <button
+                type="button"
+                className="ride-panel__btn-secondary ride-panel__auto-route-btn"
+                onClick={props.onOpenDistanceAutoRoute}
+              >
+                거리 기반 자동 경로
+              </button>
+              <p className="ride-panel__auto-route-hint">
+                출발 → 이동수단 → 목표 거리 → 방향 탭으로 경로를 자동 생성합니다.
+              </p>
+            </div>
+          ) : null}
 
           {props.routeSummary.trim() ? (
             <p className="ride-panel__summary" role="status">

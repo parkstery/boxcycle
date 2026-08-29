@@ -1,0 +1,132 @@
+.distance-auto-route-sheet {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 5.5rem;
+  z-index: 12;
+  width: min(20rem, calc(100vw - 1.5rem));
+  padding: 0.85rem 0.9rem 1rem;
+  border-radius: var(--rtw-radius-lg, 0.75rem);
+  background: var(--rtw-panel);
+  border: 1px solid var(--rtw-divider);
+  box-shadow: var(--rtw-shadow-panel);
+  backdrop-filter: var(--rtw-blur-panel);
+  -webkit-backdrop-filter: var(--rtw-blur-panel);
+  color: var(--rtw-text-primary);
+  pointer-events: auto;
+}
+
+.distance-auto-route-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.distance-auto-route-sheet__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.distance-auto-route-sheet__close {
+  border: none;
+  background: transparent;
+  color: var(--rtw-text-secondary);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.15rem 0.35rem;
+}
+
+.distance-auto-route-sheet__steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  margin: 0 0 0.65rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.68rem;
+  color: var(--rtw-text-secondary);
+}
+
+.distance-auto-route-sheet__steps li[data-active="true"] {
+  color: var(--rtw-trace);
+  font-weight: 600;
+}
+
+.distance-auto-route-sheet__body p {
+  margin: 0 0 0.65rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--rtw-text-secondary);
+}
+
+.distance-auto-route-sheet__profiles,
+.distance-auto-route-sheet__presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.65rem;
+}
+
+.distance-auto-route-sheet__chip {
+  border: 1px solid var(--rtw-divider);
+  border-radius: var(--rtw-radius-pill, 999px);
+  background: transparent;
+  color: var(--rtw-text-primary);
+  font-size: 0.75rem;
+  padding: 0.28rem 0.65rem;
+  cursor: pointer;
+}
+
+.distance-auto-route-sheet__chip.is-active {
+  border-color: var(--rtw-trace);
+  color: var(--rtw-trace);
+  background: color-mix(in srgb, var(--rtw-trace) 12%, transparent);
+}
+
+.distance-auto-route-sheet__slider-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  margin-bottom: 0.65rem;
+}
+
+.distance-auto-route-sheet__km {
+  font-family: var(--rtw-font-num);
+  font-weight: 600;
+  color: var(--rtw-trace);
+}
+
+.distance-auto-route-sheet__primary {
+  width: 100%;
+  border: none;
+  border-radius: var(--rtw-radius-pill, 999px);
+  padding: 0.5rem 0.75rem;
+  background: var(--rtw-trace);
+  color: #111;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.distance-auto-route-sheet__primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.distance-auto-route-sheet__status {
+  margin: 0.5rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--rtw-text-secondary);
+}
+
+@media (max-width: 640px) {
+  .distance-auto-route-sheet {
+    bottom: 6.25rem;
+    right: 0.5rem;
+  }
+}

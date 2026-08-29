@@ -1280,6 +1280,11 @@ export type MapViewProps = {
   rideCameraDistanceM?: number;
   /** 임시 — RTW Dark POI 라벨 표시 비교용 토글 */
   showRtwPoi?: boolean;
+  /** 거리 기반 자동 경로 — 목표 거리 원(지도 stroke) */
+  distanceTargetCircle?: LineStringGeometry | null;
+  /** 자동 경로 마법사 중 지도 탭 가로채기 */
+  autoRouteMapPick?: "start" | "direction" | null;
+  onAutoRouteMapPick?: (lngLat: LngLat) => void;
 };
 
 export function MapView({
@@ -1322,6 +1327,9 @@ export function MapView({
   rideActive = false,
   rideCameraDistanceM = RIDE_CAMERA_DISTANCE_DEFAULT_M,
   showRtwPoi = false,
+  distanceTargetCircle = null,
+  autoRouteMapPick = null,
+  onAutoRouteMapPick,
 }: MapViewProps) {
   const trailSpectatorDataRef = useRef<{ dots: TrailSpectatorDot[]; routes: LineStringGeometry[] }>({
     dots: [],
@@ -1393,6 +1401,8 @@ export function MapView({
   const routeTokenInsufficientRef = useRef(routeTokenInsufficient);
   const onLookupPioneerRef = useRef(onLookupPioneer);
   const onClearRouteRef = useRef(onClearRoute);
+  const onAutoRouteMapPickRef = useRef(onAutoRouteMapPick);
+  const autoRouteMapPickRef = useRef(autoRouteMapPick);
   const onMapZoomRef = useRef(onMapZoom);
   const onMapViewportRef = useRef(onMapViewport);
   const onMapLodViewportRef = useRef(onMapLodViewport);
@@ -1508,6 +1518,14 @@ export function MapView({
   useEffect(() => {
     onClearRouteRef.current = onClearRoute;
   }, [onClearRoute]);
+
+  useEffect(() => {
+    onAutoRouteMapPickRef.current = onAutoRouteMapPick;
+  }, [onAutoRouteMapPick]);
+
+  useEffect(() => {
+    autoRouteMapPickRef.current = autoRouteMapPick;
+  }, [autoRouteMapPick]);
 
   const coverageOverlayModeRef = useRef(coverageOverlayMode);
   const mapillaryClientTokenRef = useRef(mapillaryClientToken);
@@ -1740,6 +1758,11 @@ export function MapView({
       }
 
       const picked: LngLat = [event.lngLat.lng, event.lngLat.lat];
+      if (autoRouteMapPickRef.current && onAutoRouteMapPickRef.current) {
+        popupRef.current?.remove();
+        onAutoRouteMapPickRef.current(picked);
+        return;
+      }
       popupRef.current?.remove();
       const ac = new AbortController();
       const closePopup = () => {
@@ -1966,6 +1989,45 @@ export function MapView({
       map.off("moveend", onMoveEnd);
     };
   }, [routeGeometry, mapLoaded, prefersReducedMotion]);
+
+  const DISTANCE_TARGET_CIRCLE_SRC = "distance-target-circle";
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+
+    if (!distanceTargetCircle?.coordinates?.length) {
+      if (map.getLayer("distance-target-circle-line")) map.removeLayer("distance-target-circle-line");
+      if (map.getSource(DISTANCE_TARGET_CIRCLE_SRC)) map.removeSource(DISTANCE_TARGET_CIRCLE_SRC);
+      return;
+    }
+
+    const feature = {
+      type: "Feature" as const,
+      properties: {} as Record<string, never>,
+      geometry: distanceTargetCircle,
+    };
+
+    if (map.getSource(DISTANCE_TARGET_CIRCLE_SRC)) {
+      (map.getSource(DISTANCE_TARGET_CIRCLE_SRC) as mapboxgl.GeoJSONSource).setData(feature);
+    } else {
+      map.addSource(DISTANCE_TARGET_CIRCLE_SRC, { type: "geojson", data: feature });
+      map.addLayer(
+        {
+          id: "distance-target-circle-line",
+          type: "line",
+          source: DISTANCE_TARGET_CIRCLE_SRC,
+          paint: {
+            "line-color": "#E8A33D",
+            "line-width": 2,
+            "line-dasharray": [2, 2],
+            "line-opacity": 0.85,
+          },
+        },
+        map.getLayer("route") ? "route" : undefined,
+      );
+    }
+  }, [mapLoaded, distanceTargetCircle]);
 
   useEffect(() => {
     const map = mapRef.current;
