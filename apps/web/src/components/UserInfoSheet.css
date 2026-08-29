@@ -531,3 +531,56 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/*
+ * 최근 주행 행 액션(§3.6) — 요약 자체가 「지도에서 보기」 버튼이 되고, 재개·새 경로는 형제 버튼이다.
+ * 중첩 button 을 만들지 않기 위한 구조이므로 버튼을 서로 감싸지 말 것.
+ */
+.user-info-sheet__item-summary--action {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.user-info-sheet__item-summary--action:hover .user-info-sheet__item-when {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.user-info-sheet__item-summary--action:focus-visible {
+  outline: 2px solid var(--rtw-accent, #e8a33d);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.user-info-sheet__item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.2rem;
+}
+
+.user-info-sheet__item-action {
+  padding: 0.22rem 0.45rem;
+  border-radius: 7px;
+  border: 1px solid var(--rtw-glass-border, rgba(248, 250, 252, 0.18));
+  background: rgba(248, 250, 252, 0.1);
+  color: inherit;
+  font-size: 0.62rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.user-info-sheet__item-action:hover {
+  background: rgba(248, 250, 252, 0.2);
+}
+
+.user-info-sheet__item-action:focus-visible {
+  outline: 2px solid var(--rtw-accent, #e8a33d);
+  outline-offset: 2px;
+}

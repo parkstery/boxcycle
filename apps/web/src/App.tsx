@@ -33,6 +33,10 @@ import { allowUnauthMapDev } from "./lib/authGatePolicy";
 import { readGuestEntryAccepted } from "./lib/appSessionKeys";
 import { useUserTier } from "./hooks/useUserTier";
 import { RideSummarySheet } from "./components/RideSummarySheet";
+import { NextRideCard } from "./components/ride";
+import { resolveNextRideView } from "./lib/nextRideTarget";
+import type { NextRideTarget } from "./lib/nextRideTarget";
+import type { RideEndResult } from "./lib/rideEndResult";
 import { MenuPanel } from "./components/MenuPanel";
 import { PlaceSearchPanel } from "./components/PlaceSearchPanel";
 import { MenuPlaceSearch } from "./components/MenuPlaceSearch";
@@ -306,6 +310,16 @@ export default function App() {
    * 평속·칼로리·종료 요약 거리는 세션 실주행(누적 − offset) 기준으로 파생하기 위한 state.
    */
   const [sessionStartOffsetMeters, setSessionStartOffsetMeters] = useState(0);
+  /**
+   * 종료 결과(RIDE-CONTINUE-1 §3.5) — 폐기되지 않은 모든 유효 Ride 가 채운다.
+   * 결과 시트 노출 조건이자 「다음 출발점」 안내의 근거.
+   */
+  const [lastRideResult, setLastRideResult] = useState<RideEndResult | null>(null);
+  /**
+   * 이번 앱 세션에서 숨긴 「다음 주행」 카드의 Ride id — 새 Ride 는 id 가 달라 자동으로 다시 뜬다(§4.3-6).
+   * Ride·SavedRoute 를 삭제하지 않는다.
+   */
+  const [nextRideDismissedRideId, setNextRideDismissedRideId] = useState<string | null>(null);
 
   const {
     publicRouteRequestModalRoute,
@@ -521,6 +535,7 @@ export default function App() {
     savedRoutes,
     setSavedRoutes,
     savedRoutesLoading,
+    savedRoutesLoaded,
     loadedSavedRouteIdRef,
     loadedSavedRouteNameRef,
     loadedSavedRouteProgressRef,
@@ -620,6 +635,7 @@ export default function App() {
     setSavedRoutes,
     setLastEndedWasAdhoc,
     setRecentSessions,
+    setLastRideResult,
     onRideEndedWithPublication,
     onRidePersistedToFirestore,
   });
@@ -1468,7 +1484,13 @@ export default function App() {
   void rideWorkspaceOpen;
 
   // ===== Map-first stage 머신 =====
-  const summaryVisible = summarySheetVisible && (arrivalToastTick > 0 || lastEndedWasAdhoc !== null);
+  /**
+   * 결과 시트 노출(§3.5) — 도착·ad-hoc 여부로 제한하지 않는다.
+   * 폐기되지 않은 모든 유효 Ride 가 `lastRideResult` 를 채우므로 그것만으로 열린다.
+   */
+  const summaryVisible =
+    lastRideResult !== null ||
+    (summarySheetVisible && (arrivalToastTick > 0 || lastEndedWasAdhoc !== null));
   const needsGuestEntry =
     configured &&
     authInitialized &&
@@ -1545,6 +1567,140 @@ export default function App() {
   );
 
   /**
+   * ===== 다음 주행·이어 달리기(RIDE-CONTINUE-1) =====
+   * 후보는 mutable pointer 문서가 아니라 최근 Ride + SavedRoute 에서 **파생**한다 —
+   * Route 가 삭제·완주되면 카드도 자동으로 무효화된다(§4.3).
+   */
+  const nextRideView = useMemo(
+    () => resolveNextRideView({ rides: recentSessions, savedRoutes }),
+    [recentSessions, savedRoutes],
+  );
+
+  /**
+   * 카드 노출 조건(§3.1) — Route 가 없는 idle 화면에서만, gate·summary·sheet/modal 이
+   * 주 화면을 점유하지 않을 때. 사용자가 다른 Route 를 명시적으로 불러오면 stage 가 바뀌어 사라진다.
+   */
+  const nextRideCardVisible = Boolean(
+    user &&
+      nextRideView &&
+      stage === "idle" &&
+      !savedRoutesLoading &&
+      // 첫 로드 전 빈 목록으로 후보를 잘못 해석하지 않는다(§3.1 「로딩이 끝났다」)
+      (!configured || savedRoutesLoaded) &&
+      nextRideDismissedRideId !== nextRideView.target.rideId &&
+      !menuOpen &&
+      !placeSearchOpen &&
+      !mapViewSheetOpen &&
+      !userInfoSheetOpen &&
+      !rideSettingsSheetOpen &&
+      !cadenceSensorSheetOpen &&
+      !publicRouteRequestModalRoute &&
+      !needsGuestEntry,
+  );
+
+  /**
+   * 재개 준비 상태의 지도 표현(§3.4) — 완료 구간은 마젠타(내 도로망과 같은 색),
+   * 남은 구간은 현행 빨강, 경계에 「N% · 여기서 계속」 마커 하나.
+   * 주행 중 진행 칠하기와 **같은 파이프라인**(conquestLiveTraveledMeters)을 재사용한다.
+   */
+  const resumePreview = useMemo(() => {
+    if (rideStatus !== "idle" || resumeRatio == null || !routeGeometry) return null;
+    const meters = resumeOffsetMetersFrom(resumeRatio, routeDistanceMeters);
+    if (!(meters > 0)) return null;
+    const lngLat = getPointOnRouteByDistance(routeGeometry, meters);
+    if (!lngLat) return null;
+    return {
+      meters,
+      lngLat,
+      label: `${Math.round(resumeRatio * 100)}% · 여기서 계속`,
+    };
+  }, [rideStatus, resumeRatio, routeGeometry, routeDistanceMeters]);
+
+  /** 지도 카메라를 한 지점으로 이동(마커 표시 포함) */
+  const focusAnchorOnMap = useCallback(
+    (lngLat: LngLat) => {
+      setFollowMode("free");
+      cameraJumpSeqRef.current += 1;
+      setExternalCameraJump({
+        lngLat,
+        zoom: Math.max(mapZoom, 14),
+        requestId: cameraJumpSeqRef.current,
+      });
+      setPlaceSearchMarkerLngLat(lngLat);
+    },
+    [mapZoom],
+  );
+
+  /**
+   * 「이어 달리기」(§3.2) — Route 를 불러와 `ready-to-start` 까지만 만든다.
+   * 실제 시작은 기존 Go·주행 입력 준비 게이트를 그대로 통과한다(카드가 Go 를 우회하지 않는다).
+   * 후보 해석 뒤 Route 가 삭제·완주됐으면 stale 상태를 시작하지 않고 CTA 만 거둔다.
+   */
+  const handleResumeSavedRouteById = useCallback(
+    (routeId: string, dismissRideId?: string) => {
+      const route = savedRoutes.find((r) => r.id === routeId);
+      if (!route || route.completed === 1) {
+        if (dismissRideId) setNextRideDismissedRideId(dismissRideId);
+        return;
+      }
+      setSummarySheetVisible(false);
+      setLastRideResult(null);
+      setUserInfoSheetOpen(false);
+      handleLoadSavedRoute(route);
+    },
+    [savedRoutes, handleLoadSavedRoute, setUserInfoSheetOpen],
+  );
+
+  const handleResumeNextRide = useCallback(
+    (target: Extract<NextRideTarget, { kind: "resume_route" }>) => {
+      handleResumeSavedRouteById(target.routeId, target.rideId);
+    },
+    [handleResumeSavedRouteById],
+  );
+
+  /**
+   * 「이 지점에서 새 경로」(§3.3) — 마지막 Ride 의 실제 종료 좌표를 새 Route 의 출발점(S)으로 고정한다.
+   * 이전 Publication·Trail·loaded SavedRoute 결합 상태를 정리하고, 사용자는 도착점만 고르면 된다.
+   * SavedRoute geometry 는 건드리지 않는다 — Directions 응답은 언제나 **새 Route** 다.
+   */
+  const handleStartRouteFromAnchor = useCallback(
+    (anchorLngLat: LngLat) => {
+      if (routeMenuLockedForProd) return;
+      setSummarySheetVisible(false);
+      resetArrivalToast();
+      setLastRideResult(null);
+      setUserInfoSheetOpen(false);
+      clearRoutePins(routeMenuLockedForProd);
+      setBasicActiveHubCourseId(null);
+      setStartLngLat(anchorLngLat);
+      setRouteSummary("마지막 종료 지점을 출발점(S)으로 고정했습니다 — 지도에서 도착지를 선택하세요.");
+      focusAnchorOnMap(anchorLngLat);
+      setPlaceSearchMarkerLngLat(null);
+    },
+    [
+      routeMenuLockedForProd,
+      resetArrivalToast,
+      clearRoutePins,
+      setBasicActiveHubCourseId,
+      setStartLngLat,
+      setRouteSummary,
+      focusAnchorOnMap,
+      setUserInfoSheetOpen,
+    ],
+  );
+
+  const nextRideCard =
+    nextRideCardVisible && nextRideView ? (
+      <NextRideCard
+        view={nextRideView}
+        onResume={handleResumeNextRide}
+        onExtend={handleStartRouteFromAnchor}
+        onShowOnMap={focusAnchorOnMap}
+        onDismiss={() => setNextRideDismissedRideId(nextRideView.target.rideId)}
+      />
+    ) : null;
+
+  /**
    * Go 사전조건 = 경로 준비 **+ 주행 입력 준비**.
    * 준비 미완료 상태로 주행 화면에 들어간 뒤 센서를 설정시키지 않는다(§1.4).
    */
@@ -1615,6 +1771,8 @@ export default function App() {
     setSummarySheetVisible(false);
     resetArrivalToast();
     setLastEndedWasAdhoc(null);
+    // 닫으면 지도 위 「다음 주행」 카드가 즉시 갱신된다(카드는 최근 Ride·SavedRoute 파생).
+    setLastRideResult(null);
   }
 
   function handleModifyFromPause() {
@@ -1640,7 +1798,7 @@ export default function App() {
     rideStatus === "idle" &&
     Boolean(routeGeometry) &&
     routeDistanceMeters > 0 &&
-    !summarySheetVisible;
+    !summaryVisible;
 
   const hudMetrics =
     rideStatus !== "idle"
@@ -1820,7 +1978,12 @@ export default function App() {
           </DebugMapStage>
         ) : (
           <AppMapStage
-            routeDock={routeDockPanel}
+            routeDock={
+              <>
+                {routeDockPanel}
+                {nextRideCard}
+              </>
+            }
             mapView={{
               accessToken: MAPBOX_TOKEN || undefined,
               routeElevationProfile: rideElevationProfile,
@@ -1856,7 +2019,10 @@ export default function App() {
               conquestLiveTraveledMeters:
                 rideStatus === "running" || rideStatus === "paused"
                   ? rideMetrics.virtualDistanceMeters
-                  : null,
+                  : (resumePreview?.meters ?? null),
+              resumeAnchor: resumePreview
+                ? { lngLat: resumePreview.lngLat, label: resumePreview.label }
+                : null,
               rideActive: rideStatus === "running" || rideStatus === "paused",
               rideCameraDistanceM,
               showRtwPoi,
@@ -2133,10 +2299,25 @@ export default function App() {
         }
         onLinkGoogle={user?.isAnonymous ? () => void handleGoogleSignIn() : undefined}
         onServiceExit={() => void handleServiceExit()}
+        savedRoutes={savedRoutes}
+        onShowRideOnMap={(ride) => {
+          const anchor = ride.sessionEndLngLat;
+          if (!anchor) return;
+          setUserInfoSheetOpen(false);
+          focusAnchorOnMap(anchor);
+        }}
+        onResumeRideRoute={(routeId) => handleResumeSavedRouteById(routeId)}
+        onExtendFromRide={handleStartRouteFromAnchor}
       />
 
       <RideSummarySheet
         open={summaryVisible}
+        result={lastRideResult}
+        onExtendFromEnd={
+          lastRideResult?.anchorLngLat
+            ? () => handleStartRouteFromAnchor(lastRideResult.anchorLngLat!)
+            : undefined
+        }
         arrivalCompleted={arrivalToastTick > 0}
         elapsedLabel={elapsedLabel}
         distanceKm={sessionDistanceKmLabel}
@@ -2150,6 +2331,7 @@ export default function App() {
           await handleSaveAdhocAsUserRoute(name, confirmUpdate);
           setSummarySheetVisible(false);
           resetArrivalToast();
+          setLastRideResult(null);
         }}
         onDismissAdhoc={() => setLastEndedWasAdhoc(null)}
         onClose={handleCloseSummary}
