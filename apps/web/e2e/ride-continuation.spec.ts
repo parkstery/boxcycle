@@ -1,4 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
+import fs from 'node:fs'
+import path from 'node:path'
 
 // 다음 주행·이어 달리기 e2e(RIDE-CONTINUE-1 §7.3).
 // 「어제 멈춘 곳이 오늘 앱을 열었을 때 자동으로 다음 출발점이 된다」를 종료→재진입까지 고정한다.
@@ -49,6 +51,12 @@ function fixtureLengthMeters(): number {
 }
 
 const FIXTURE_LENGTH_M = fixtureLengthMeters()
+
+/** U4 HUD 증거 스크린샷 — Playwright 가 정리해도 남는 고정 경로 */
+const U4_HUD_EVIDENCE_PATH = path.resolve(
+  process.cwd(),
+  '../../document/archive/ride-verify-evidence/u4-hud-resume-dual.png',
+)
 
 /** 게스트 진입 카드 → 익명 인증 완료 */
 async function enterAsGuest(page: Page) {
@@ -269,17 +277,22 @@ async function loadSavedRouteFromMenu(page: Page, routeName: string) {
 }
 
 /**
- * HUD 「거리」 셀의 **오늘 주행 km**.
- *
- * ⚠ 같은 셀이 주행 전에는 경로 미리보기(전체 거리 1개 값)를, 주행 중에는 「오늘 / 전체」를
- * 보여 준다. `/` 가 없으면 아직 주행 전이므로 -1 을 돌려 폴링이 조기 통과하지 않게 한다.
+ * HUD 「오늘 거리」 km — 이번 세션 실주행(재개 시 offset 차감).
+ * 주행 전(route-preview)에는 표시되지 않으므로 -1 을 돌려 폴링이 조기 통과하지 않게 한다.
  */
 async function readHudSessionKm(page: Page): Promise<number> {
-  const text = await page
-    .locator('.hud-metrics__cell--hero .hud-metrics__value')
-    .first()
-    .innerText()
-  if (!text.includes('/')) return -1
+  const today = page.getByLabel('오늘 거리')
+  if ((await today.count()) === 0) return -1
+  const text = await today.first().innerText()
+  const km = Number(text.trim().replace(/[^\d.]/g, ''))
+  return Number.isFinite(km) ? km : -1
+}
+
+/** HUD 「누적 진행」 — 경로상 누적 km(재개 offset 시드 포함) */
+async function readHudCumulativeKm(page: Page): Promise<number> {
+  const cumulative = page.getByLabel('누적 진행')
+  if ((await cumulative.count()) === 0) return -1
+  const text = await cumulative.first().innerText()
   const km = Number(text.trim().split('/')[0]?.replace(/[^\d.]/g, ''))
   return Number.isFinite(km) ? km : -1
 }
@@ -287,8 +300,13 @@ async function readHudSessionKm(page: Page): Promise<number> {
 /**
  * 목표 세션 거리까지 달린 뒤 종료한다.
  * 고정 sleep 대신 HUD 표시값을 폴링해 램핑·프레임 편차에 흔들리지 않게 한다.
+ * `beforeEnd` — 종료 클릭 직전(주행 중 HUD 가 보일 때) 콜백.
  */
-async function rideUntilSessionMeters(page: Page, targetMeters: number) {
+async function rideUntilSessionMeters(
+  page: Page,
+  targetMeters: number,
+  beforeEnd?: () => Promise<void>,
+) {
   const endButton = page.getByRole('button', { name: '주행 종료' })
   await expect(endButton).toBeVisible({ timeout: 30_000 })
   await expect(page.getByRole('group', { name: '주행 지표' })).toBeVisible({ timeout: 20_000 })
@@ -299,6 +317,7 @@ async function rideUntilSessionMeters(page: Page, targetMeters: number) {
       message: `세션 거리 ${targetMeters}m 에 도달하지 못했다`,
     })
     .toBeGreaterThanOrEqual(targetMeters)
+  if (beforeEnd) await beforeEnd()
   await endButton.click()
 }
 
@@ -315,7 +334,7 @@ test.describe('다음 주행 · 이어 달리기', () => {
     test.setTimeout(300_000)
   })
 
-  test('C1 — 미완주 SavedRoute 를 종료→재진입→재개까지 이어 달린다', async ({ page }) => {
+  test('C1 — 미완주 SavedRoute 를 종료→재진입→재개까지 이어 달린다', async ({ page }, testInfo) => {
     await enterAsGuest(page)
     const uid = await readGuestUid(page)
     const routeId = `fixture-c1-${Date.now()}`
@@ -364,7 +383,29 @@ test.describe('다음 주행 · 이어 달리기', () => {
     await prepareManualRideInput(page)
     await expect(start).toBeEnabled()
     await start.click()
-    await rideUntilSessionMeters(page, FIXTURE_LENGTH_M * 0.17)
+    await expect(page.getByRole('group', { name: '주행 지표' })).toBeVisible({ timeout: 20_000 })
+    await expect(page.getByLabel('오늘 거리')).toBeVisible()
+    await expect(page.getByLabel('누적 진행')).toBeVisible()
+    const resumeOffsetM = FIXTURE_LENGTH_M * (resumePct / 100)
+    // U4 — HUD 누적은 재개 지점(offset)부터, 오늘은 0 근처
+    await expect
+      .poll(async () => readHudCumulativeKm(page), {
+        timeout: 15_000,
+        message: '재개 직후 HUD 누적 위치가 offset 시드에 맞지 않다',
+      })
+      .toBeGreaterThanOrEqual((resumeOffsetM * 0.85) / 1000)
+    await expect
+      .poll(async () => readHudSessionKm(page), { timeout: 10_000 })
+      .toBeLessThan((resumeOffsetM * 0.5) / 1000)
+
+    await rideUntilSessionMeters(page, FIXTURE_LENGTH_M * 0.17, async () => {
+      const sessionKm = await readHudSessionKm(page)
+      const cumulativeKm = await readHudCumulativeKm(page)
+      expect(cumulativeKm, '누적 위치가 세션 거리보다 작다').toBeGreaterThan(sessionKm)
+      fs.mkdirSync(path.dirname(U4_HUD_EVIDENCE_PATH), { recursive: true })
+      await page.screenshot({ path: U4_HUD_EVIDENCE_PATH })
+      await page.screenshot({ path: testInfo.outputPath('u4-hud-resume-dual.png') })
+    })
 
     const summary2 = page.getByRole('region', { name: '주행 결과' })
     await expect(summary2).toBeVisible({ timeout: 20_000 })

@@ -306,8 +306,8 @@ export default function App() {
   /** 이어 달리기(§9.5.5 단위7) — 마지막으로 로드한 저장 경로 id(재개 후보). 렌더 중 ref 읽기 회피용 state */
   const [resumeCandidateId, setResumeCandidateId] = useState<string | null>(null);
   /**
-   * 이번 세션의 경로상 시작 오프셋(m) — HUD 거리는 누적(virtualDistance)으로 두고
-   * 평속·칼로리·종료 요약 거리는 세션 실주행(누적 − offset) 기준으로 파생하기 위한 state.
+   * 이번 세션의 경로상 시작 오프셋(m) — HUD 는 오늘(세션) 거리와 누적 위치·진행률을 함께 표시하고,
+   * 평속·칼로리·종료 요약·Claim 은 세션 실주행(누적 − offset) 기준으로 파생하기 위한 state.
    */
   const [sessionStartOffsetMeters, setSessionStartOffsetMeters] = useState(0);
   /**
@@ -1787,6 +1787,13 @@ export default function App() {
     rideMetrics.virtualDistanceMeters - sessionStartOffsetMeters,
   );
   const sessionDistanceKmLabel = (sessionDistanceMeters / 1000).toFixed(2);
+  /** HUD 누적 위치 — 경로상 virtualDistance(재개 시 offset 시드 포함) */
+  const cumulativeDistanceMeters = Math.max(0, rideMetrics.virtualDistanceMeters);
+  const cumulativeDistanceKmLabel = (cumulativeDistanceMeters / 1000).toFixed(2);
+  const routeProgressPctLabel =
+    routeDistanceMeters > 0
+      ? Math.min(100, Math.round((cumulativeDistanceMeters / routeDistanceMeters) * 100))
+      : null;
   // 저장 폼 기본 이름 제안 — "출발지 → 도착지 · 거리"(역지오코딩된 지명 + 저장될 경로 거리).
   // 거리는 세션 주행 거리가 아니라 저장 대상 경로 거리를 써서 이름이 경로를 안정적으로 식별하게 한다.
   const suggestedRouteName = buildSuggestedRouteName({
@@ -1805,13 +1812,18 @@ export default function App() {
       ? {
           mode: "ride" as const,
           elapsed: elapsedLabel,
+          /** 오늘(이번 세션) 실주행 km — 운동·칼로리와 동일 축 */
           distanceKm: sessionDistanceKmLabel,
+          /** 경로상 누적 위치 km — 재개 시 offset 시드 반영 */
+          cumulativeKm: cumulativeDistanceKmLabel,
           avgKmh: avgSpeedLabel,
           /* 램핑 적용속도는 소수 꼬리가 길다 — HUD 칩엔 정수만 */
           speedKmh: Math.round(rideMetrics.appliedSpeedKmh),
-          /* 주행경로 전체거리 — 경로 확정 시에만(0=미확정 → 병기 생략) */
+          /* 주행경로 전체거리 — 경로 확정 시에만(0=미확정 → 누적/전체 병기 생략) */
           routeTotalKm:
             routeDistanceMeters > 0 ? (routeDistanceMeters / 1000).toFixed(2) : null,
+          /** 경로 대비 누적 진행률(0~100). routeTotalKm 과 함께만 표시 */
+          routeProgressPct: routeProgressPctLabel,
         }
       : hudRoutePreview
         ? {

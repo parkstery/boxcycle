@@ -106,12 +106,14 @@ export const ENTRY_STEPS = [
   },
   {
     step: "ride-running-proof",
-    desc: "주행 중 확정 — 주행 지표 그룹 + 주행 종료 버튼",
+    desc: "주행 중 확정 — 주행 지표 그룹 + 오늘/누적 거리 + 주행 종료 버튼",
     file: "src/components/maphud/MapHud.tsx",
     anchors: [
       { name: "주행 지표 group", re: /aria-label="주행 지표"/ },
+      { name: "오늘 거리 aria-label", re: /aria-label="오늘 거리"/ },
+      { name: "누적 진행 aria-label", re: /aria-label="누적 진행"/ },
       { name: "주행 종료 aria-label", re: /aria-label="주행 종료"/ },
     ],
-    selector: `getByRole('group',{name:'주행 지표'}) & getByRole('button',{name:'주행 종료'})`,
+    selector: `getByRole('group',{name:'주행 지표'}) & getByLabel('오늘 거리') & getByLabel('누적 진행') & getByRole('button',{name:'주행 종료'})`,
   },
 ];

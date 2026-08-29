@@ -71,11 +71,16 @@ export type MapHudProps = {
     | ({
         mode: "ride";
         elapsed: string;
+        /** 오늘(이번 세션) 실주행 km */
         distanceKm: string;
+        /** 경로상 누적 위치 km — 재개 시 offset 시드 반영 */
+        cumulativeKm: string;
         avgKmh: string;
         speedKmh: number;
-        /** 주행경로 전체거리 km(정수 아님, 소수 2자리 문자열). null=경로 미확정 → 진행/전체 병기 생략 */
+        /** 주행경로 전체거리 km(정수 아님, 소수 2자리 문자열). null=경로 미확정 → 누적/전체 병기 생략 */
         routeTotalKm: string | null;
+        /** 경로 대비 누적 진행률 0~100. routeTotalKm 과 함께만 표시 */
+        routeProgressPct: number | null;
       })
     | ({
         mode: "route-preview";
@@ -338,19 +343,35 @@ export function MapHud(props: MapHudProps) {
               </span>
             ) : null}
             <div className="hud-metrics__capsule" role="group" aria-label="주행 지표">
-              {/* 주행 중엔 「진행 / 주행경로 전체거리」 병기 — 경로 확정 시에만(값 있을 때) */}
+              {/* 주행 중 — 오늘(세션) 거리 + 경로 누적 위치·진행률 병기(§9.5.5 단위7·U4) */}
               {metrics.mode === "ride" && metrics.routeTotalKm ? (
                 <span
-                  className="hud-metrics__cell hud-metrics__cell--hero"
-                  title="달린 거리 / 주행경로 전체거리"
+                  className="hud-metrics__cell hud-metrics__cell--hero hud-metrics__cell--distance-dual"
+                  title="오늘 거리 / 경로 누적 위치·진행률"
                 >
                   <span className="hud-metrics__label">거리</span>
-                  <span className="hud-metrics__value">
+                  <span
+                    className="hud-metrics__value hud-metrics__value--today"
+                    aria-label="오늘 거리"
+                  >
                     {metrics.distanceKm}
+                    <span className="hud-metrics__cell-unit">km</span>
+                  </span>
+                  <span
+                    className="hud-metrics__value hud-metrics__value--cumulative"
+                    aria-label="누적 진행"
+                  >
+                    {metrics.cumulativeKm}
                     <span className="hud-metrics__value-total">
                       {" / "}
                       {metrics.routeTotalKm}
                     </span>
+                    {metrics.routeProgressPct != null ? (
+                      <span className="hud-metrics__value-pct">
+                        {" "}
+                        ({metrics.routeProgressPct}%)
+                      </span>
+                    ) : null}
                     <span className="hud-metrics__cell-unit">km</span>
                   </span>
                 </span>
