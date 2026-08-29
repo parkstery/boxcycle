@@ -79,6 +79,32 @@ export const ENTRY_STEPS = [
     selector: `getByRole('button',{name:'주행 시작'})`,
   },
   {
+    step: "next-ride-card",
+    desc: "지도 위 「다음 주행」 카드 — 이어 달리기·새 경로 연결 CTA(RIDE-CONTINUE-1 §3.1)",
+    file: "src/components/ride/NextRideCard.tsx",
+    anchors: [
+      { name: "카드 aria-label", re: /aria-label="다음 주행"/ },
+      { name: "이어 달리기 CTA", re: /%에서 이어 달리기/ },
+      { name: "새 경로 CTA", re: /이 지점에서 새 경로/ },
+      { name: "지도에서 보기 CTA", re: /지도에서 보기/ },
+      { name: "숨기기 버튼", re: /aria-label="다음 주행 숨기기"/ },
+    ],
+    selector: `getByLabel('다음 주행') → getByRole('button',{name:/%에서 이어 달리기/}) | getByRole('button',{name:'이 지점에서 새 경로'})`,
+  },
+  {
+    step: "ride-result-progress",
+    desc: "주행 결과 시트 — 오늘 거리 + 전체 진행(이전→신규) + 다음 출발점(RIDE-CONTINUE-1 §3.5)",
+    file: "src/components/ride/RideSummarySheet.tsx",
+    anchors: [
+      { name: "결과 시트 region", re: /aria-label="주행 결과"/ },
+      { name: "오늘 거리 히어로", re: /ride-summary__hero-k/ },
+      { name: "전체 진행 라인", re: /aria-label="전체 진행"/ },
+      { name: "다음 출발점 안내", re: /다음 출발점이 저장되었습니다/ },
+      { name: "끝점에서 새 경로 CTA", re: /끝점에서 새 경로|지금 새 경로 연결/ },
+    ],
+    selector: `getByRole('region',{name:'주행 결과'}) → getByLabel('전체 진행')`,
+  },
+  {
     step: "ride-running-proof",
     desc: "주행 중 확정 — 주행 지표 그룹 + 주행 종료 버튼",
     file: "src/components/maphud/MapHud.tsx",
