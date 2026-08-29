@@ -64,6 +64,12 @@ const C1_CARD_NO_RELOAD_EVIDENCE_PATH = path.resolve(
   '../../document/archive/ride-verify-evidence/c1-next-ride-card-no-reload.png',
 )
 
+/** U2·§3.4 증거 — 이어 달리기 준비 상태(완료/남은 구간 + 재개점 마커 + Go) */
+const C1_RESUME_READY_EVIDENCE_PATH = path.resolve(
+  process.cwd(),
+  '../../document/archive/ride-verify-evidence/c1-resume-ready-to-start.png',
+)
+
 /** 게스트 진입 카드 → 익명 인증 완료 */
 async function enterAsGuest(page: Page) {
   await page.goto('/')
@@ -400,6 +406,10 @@ test.describe('다음 주행 · 이어 달리기', () => {
     const start = page.getByRole('button', { name: '주행 시작' })
     await expect(start).toBeVisible({ timeout: 20_000 })
     await expect(page.getByText(`${resumePct}% 지점부터`)).toBeVisible()
+    // §3.4 — 완료 구간·남은 구간·재개점 마커가 함께 보이는 준비 화면을 증거로 남긴다.
+    await expect(page.locator('.map-view__resume-marker')).toBeVisible({ timeout: 15_000 })
+    await page.screenshot({ path: C1_RESUME_READY_EVIDENCE_PATH })
+    await page.screenshot({ path: testInfo.outputPath('c1-resume-ready-to-start.png') })
 
     // 입력 준비 후 Go — 재개 주행은 세션 구간만 인정된다
     await prepareManualRideInput(page)
