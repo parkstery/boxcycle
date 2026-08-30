@@ -53,6 +53,7 @@ function runUnitTests(extraTests = []) {
     "scripts/route-token/harness-active.test.mjs",
     "scripts/route-token/isolation-guards.test.mjs",
     "scripts/route-token/directions-direct-guard.test.mjs",
+    "scripts/route-token/route-token-spend-state.test.mjs",
     "scripts/route-token/production-surface.test.mjs",
     ...extraTests,
   ];

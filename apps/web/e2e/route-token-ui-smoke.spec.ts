@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { pollInspectUser } from "../scripts/route-token/harness-control.mjs";
+import { harnessControl, pollInspectUser } from "../scripts/route-token/harness-control.mjs";
 
 const LIVE = process.env.ROUTE_TOKEN_UI_LIVE === "1";
 const FORCE_FAIL = process.env.ROUTE_TOKEN_UI_FORCE_FAIL === "1";
@@ -26,10 +26,11 @@ function clearEvidenceDir() {
   }
 }
 
-async function enterAsGuest(page: import("@playwright/test").Page) {
+async function enterAsGuest(page: import("@playwright/test").Page, options: { gateTimeoutMs?: number } = {}) {
+  const gateTimeoutMs = options.gateTimeoutMs ?? 60_000;
   await page.goto("/");
   const gate = page.getByRole("dialog", { name: "시작" });
-  await expect(gate).toBeVisible();
+  await expect(gate).toBeVisible({ timeout: gateTimeoutMs });
   const uidPromise = page.waitForResponse(
     (r) =>
       r.url().includes("identitytoolkit.googleapis.com") &&
@@ -103,19 +104,32 @@ async function waitForDirectionsPost(
   };
 }
 
-async function openTrailMenu(page: import("@playwright/test").Page) {
-  const menuBtn = page.getByRole("button", { name: "Trail 메뉴" });
-  await expect(menuBtn).toBeVisible({ timeout: 30_000 });
-  await menuBtn.click();
-  await page.waitForTimeout(400);
+async function assertMapTokenUi(
+  page: import("@playwright/test").Page,
+  holding: number,
+  spendMessage?: string,
+) {
+  await expect(page.getByTestId("route-token-holding")).toHaveText(`Route Token ${holding}개`);
+  if (holding > 0) {
+    await expect(page.getByTestId("route-token-cost-hint")).toHaveText("경로 생성 시 1개 사용");
+  } else {
+    await expect(page.getByTestId("route-token-insufficient")).toContainText("경로 토큰 부족");
+  }
+  if (spendMessage) {
+    await expect(page.getByTestId("route-token-spend-toast")).toHaveText(spendMessage);
+  }
 }
 
 async function planOneRoute(
   page: import("@playwright/test").Page,
   offset: number,
   expectedBalance: number,
+  options: { screenshotLabel?: string; clearAfter?: boolean } = {},
 ) {
+  const { screenshotLabel, clearAfter = true } = options;
   const expectedSpendMessage = `Route Token -1 · 잔여 ${expectedBalance}개`;
+  const expectedHolding = expectedBalance;
+
   await dismissMapPopup(page);
   const panelClear = page.getByRole("button", { name: "경로 전체 삭제" }).first();
   if (await panelClear.isVisible().catch(() => false)) {
@@ -135,13 +149,23 @@ async function planOneRoute(
     await cycling.click();
   });
   expect(routeResult.routeTokenBalance).toBe(expectedBalance);
-  await expect(page.getByText(expectedSpendMessage)).toBeVisible({ timeout: 15_000 });
 
-  await dismissMapPopup(page);
-  const clear = page.getByRole("button", { name: "경로 전체 삭제" }).first();
-  if (await clear.isVisible().catch(() => false)) {
-    await clear.click();
-    await page.waitForTimeout(300);
+  await assertMapTokenUi(page, expectedHolding, expectedSpendMessage);
+
+  if (screenshotLabel) {
+    await page.screenshot({
+      path: path.join(OUT_DIR, `ui-smoke-${RUN_ID}-${screenshotLabel}.png`),
+      fullPage: true,
+    });
+  }
+
+  if (clearAfter) {
+    await dismissMapPopup(page);
+    const clear = page.getByRole("button", { name: "경로 전체 삭제" }).first();
+    if (await clear.isVisible().catch(() => false)) {
+      await clear.click();
+      await page.waitForTimeout(300);
+    }
   }
 
   return routeResult;
@@ -150,7 +174,7 @@ async function planOneRoute(
 test.describe("Route Token UI smoke", () => {
   test.skip(!LIVE || FORCE_FAIL, "ROUTE_TOKEN_UI_LIVE=1 + Emulator 필요");
 
-  test.setTimeout(180_000);
+  test.setTimeout(300_000);
 
   test.beforeAll(() => {
     clearEvidenceDir();
@@ -170,52 +194,44 @@ test.describe("Route Token UI smoke", () => {
     ).toEqual([]);
   });
 
-  test("Guest 3회 Route 응답 2·1·0 → backend 0/3/3 → 4번째 UI 차단", async ({ page }) => {
+  test("메뉴 닫힘 기본 지도: 보유량·차감·4번째 차단·계정 격리·적립 재개", async ({ page }) => {
+    const evidence: Record<string, unknown> = { runId: RUN_ID, directionsV5Hits: [] };
+
+    const guestA = await enterAsGuest(page);
+    evidence.guestA = guestA;
+
+    await expect(page.getByRole("button", { name: "Trail 메뉴" })).toBeVisible();
+    await assertMapTokenUi(page, 3);
+    await page.screenshot({
+      path: path.join(OUT_DIR, `ui-smoke-${RUN_ID}-01-pre-route-balance-3.png`),
+      fullPage: true,
+    });
+
     const routeEvidence: Array<{ step: number; balance: number; distance: number; duration: number }> =
       [];
-
-    const guestUid = await enterAsGuest(page);
-    await openTrailMenu(page);
+    const screenshotLabels = ["02-route-1-balance-2", "03-route-2-balance-1", "04-route-3-balance-0"];
 
     for (let i = 0; i < 3; i += 1) {
       const expectedBalance = 2 - i;
-      const result = await planOneRoute(page, i * 12, expectedBalance);
+      const result = await planOneRoute(page, i * 12, expectedBalance, {
+        screenshotLabel: screenshotLabels[i],
+        clearAfter: i < 2,
+      });
       routeEvidence.push({
         step: i + 1,
         balance: result.routeTokenBalance,
         distance: result.distance,
         duration: result.duration,
       });
-      if (i === 0 || i === 2) {
-        await page.screenshot({
-          path: path.join(
-            OUT_DIR,
-            `ui-smoke-${RUN_ID}-route-${i + 1}-balance-${expectedBalance}.png`,
-          ),
-          fullPage: true,
-        });
-      }
     }
+    evidence.routeEvidence = routeEvidence;
 
-    fs.writeFileSync(
-      path.join(OUT_DIR, `ui-smoke-${RUN_ID}-routes.json`),
-      `${JSON.stringify({ runId: RUN_ID, guestUid, routeEvidence }, null, 2)}\n`,
-      "utf8",
-    );
-
-    await page.screenshot({
-      path: path.join(OUT_DIR, `ui-smoke-${RUN_ID}-after-3-routes.png`),
-      fullPage: true,
-    });
-
-    const afterThree = await pollInspectUser(guestUid, {
+    const afterThree = await pollInspectUser(guestA, {
       balance: 0,
       routeGenerateSpend: 3,
       providerCallCount: 3,
     });
-    expect(afterThree.balance).toBe(0);
-    expect(afterThree.routeGenerateSpend).toBe(3);
-    expect(afterThree.providerCallCount).toBe(3);
+    evidence.afterThree = afterThree;
 
     await dismissMapPopup(page);
     await clickMap(page, 300, 200);
@@ -223,21 +239,59 @@ test.describe("Route Token UI smoke", () => {
     await clickMap(page, 360, 260);
     await page.getByRole("button", { name: "Set end" }).click();
 
-    await expect(page.getByText("경로 토큰 부족")).toBeVisible({ timeout: 15_000 });
+    await assertMapTokenUi(page, 0);
+    await expect(page.getByTestId("route-token-insufficient")).toBeVisible({ timeout: 15_000 });
     const cycling = page.getByRole("button", { name: "자전거 경로" });
     await expect(cycling).toBeDisabled();
-
     await page.screenshot({
-      path: path.join(OUT_DIR, `ui-smoke-${RUN_ID}-token-exhausted.png`),
+      path: path.join(OUT_DIR, `ui-smoke-${RUN_ID}-05-fourth-blocked.png`),
       fullPage: true,
     });
 
-    const afterFourth = await pollInspectUser(guestUid, {
+    const afterFourth = await pollInspectUser(guestA, {
       balance: 0,
       routeGenerateSpend: 3,
       providerCallCount: 3,
     });
-    expect(afterFourth.providerCallCount).toBe(3);
-    expect(afterFourth.routeGenerateSpend).toBe(3);
+    evidence.afterFourth = afterFourth;
+
+    await harnessControl("setBalance", { uid: guestA, balance: 1 });
+    await pollInspectUser(guestA, { balance: 1, routeGenerateSpend: 3, providerCallCount: 3 });
+    await page.waitForTimeout(1200);
+    await assertMapTokenUi(page, 1);
+
+    await dismissMapPopup(page);
+    const earned = await planOneRoute(page, 48, 0, {
+      screenshotLabel: "06-earned-route-balance-0",
+      clearAfter: false,
+    });
+    evidence.earnedRoute = earned;
+
+    const browser = page.context().browser();
+    if (!browser) throw new Error("browser missing");
+    const guestBContext = await browser.newContext();
+    const guestBPage = await guestBContext.newPage();
+    guestBPage.on("request", (req) => {
+      if (req.url().includes("/directions/v5/")) directionsV5Hits.push(req.url());
+    });
+    const guestB = await enterAsGuest(guestBPage, { gateTimeoutMs: 90_000 });
+    evidence.guestB = guestB;
+    expect(guestB).not.toBe(guestA);
+    await assertMapTokenUi(guestBPage, 3);
+    await expect(guestBPage.getByTestId("route-token-spend-toast")).toHaveCount(0);
+
+    const guestBFirst = await planOneRoute(guestBPage, 60, 2, {
+      screenshotLabel: "07-guest-b-first-route-balance-2",
+      clearAfter: false,
+    });
+    evidence.guestBFirst = guestBFirst;
+    await guestBContext.close();
+
+    evidence.directionsV5Hits = [...directionsV5Hits];
+    fs.writeFileSync(
+      path.join(OUT_DIR, `ui-smoke-${RUN_ID}-evidence.json`),
+      `${JSON.stringify(evidence, null, 2)}\n`,
+      "utf8",
+    );
   });
 });
