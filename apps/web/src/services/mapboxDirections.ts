@@ -2,6 +2,10 @@ import type { User } from "firebase/auth";
 import type { Functions } from "firebase/functions";
 import type { LineStringGeometry, LngLat } from "../lib/geo";
 import { assertDirectionsServerOnly } from "../lib/directionsDirectGuard";
+import {
+  getRouteTokenInsufficient,
+  reportRouteTokenSpend,
+} from "../lib/routeTokenSpendBridge";
 import { resolveFunctionsHttpUrl } from "../lib/functionsEmulatorUrl";
 import { MAX_ROUTE_WAYPOINTS } from "../lib/routeWaypoints";
 
@@ -58,6 +62,14 @@ function wireStatusToFunctionsCode(status: string | undefined): string | undefin
   return map[status] ?? "functions/internal";
 }
 
+let lastSpendFeedbackRequestId: string | null = null;
+
+function maybeReportRouteTokenSpend(balance: number, requestId: string): void {
+  if (lastSpendFeedbackRequestId === requestId) return;
+  lastSpendFeedbackRequestId = requestId;
+  reportRouteTokenSpend(balance, requestId);
+}
+
 async function fetchRouteCallable(
   functions: Functions,
   user: User,
@@ -110,7 +122,7 @@ async function fetchRouteCallable(
   if (!res.ok) {
     throw new Error(`경로 계산 요청이 거부되었습니다. (HTTP ${res.status})`);
   }
-  return normalizeRoute(
+  const route = normalizeRoute(
     (json.result ?? {}) as {
       geometry?: { type?: string; coordinates?: unknown };
       distance?: unknown;
@@ -118,6 +130,8 @@ async function fetchRouteCallable(
       routeTokenBalance?: unknown;
     },
   );
+  maybeReportRouteTokenSpend(route.routeTokenBalance, requestId);
+  return route;
 }
 
 /**
@@ -137,6 +151,11 @@ export async function fetchRouteByProfile(
   assertDirectionsServerOnly();
   if (!user?.uid) {
     throw new Error("경로 계산은 로그인(임시 라이더) 후에 사용할 수 있습니다.");
+  }
+  if (getRouteTokenInsufficient()) {
+    const err = new Error("경로 토큰 부족 · 주행 완료 시 획득");
+    (err as { code?: string }).code = "functions/resource-exhausted";
+    throw err;
   }
   const rid =
     requestId?.trim() ||

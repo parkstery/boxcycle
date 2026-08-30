@@ -722,6 +722,14 @@
   opacity: 0.88;
 }
 
+.ride-panel__token-spend {
+  margin: 0.2rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.3;
+  color: var(--rp-accent, #6ba5ff);
+  font-weight: 600;
+}
+
 .ride-panel__ble-cadence {
   margin: 0.35rem 0 0.25rem;
   padding: 0.35rem 0.4rem;

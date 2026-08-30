@@ -43,6 +43,7 @@ import {
 } from "../../lib/geo";
 import type { RouteElevationProfileState } from "../../hooks/useRouteElevationProfile";
 import type { FollowMode } from "../ride/RideRoutePanel";
+import { getRouteTokenInsufficient as isRouteTokenBlocked } from "../../lib/routeTokenSpendBridge";
 import type { CoverageOverlayMode } from "../../lib/coverageOverlayMode";
 import { MAX_ROUTE_WAYPOINTS } from "../../lib/routeWaypoints";
 import type { RouteProfile } from "../../services/mapboxDirections";
@@ -1765,7 +1766,8 @@ export function MapView({
             onSelectPoint: (type, lngLat, slot) => onSelectPointRef.current(type, lngLat, slot),
             routeProfile: routeProfileRef.current,
             onRouteProfile: (p) => onRouteProfileRef.current(p),
-            getRouteTokenInsufficient: () => routeTokenInsufficientRef.current,
+            getRouteTokenInsufficient: () =>
+              isRouteTokenBlocked() || routeTokenInsufficientRef.current,
             lookupPioneer: (ll) => onLookupPioneerRef.current?.(ll) ?? Promise.resolve(null),
             onClearRoute:
               typeof onClearRouteRef.current === "function"
