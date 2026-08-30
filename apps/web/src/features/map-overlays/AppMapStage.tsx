@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { MapView, type MapViewProps } from "../../components/MapView";
+import { RouteTokenMapFeedback } from "../../components/map/RouteTokenMapFeedback";
 import { MapHud, type MapHudProps } from "../../components/maphud/MapHud";
 import {
   ActivityWorldLodDebugPanel,
@@ -23,6 +24,7 @@ export function AppMapStage({ mapView, mapHud, lodDebug, routeDock, weatherOverl
   return (
     <>
       <MapView {...mapView} />
+      <RouteTokenMapFeedback />
       {lodDebug ? <ActivityWorldLodDebugPanel {...lodDebug} /> : null}
       {weatherOverlay}
       {children}

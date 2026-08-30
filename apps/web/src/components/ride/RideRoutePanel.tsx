@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useRouteTokenSpendMessage } from "../../hooks/useRouteTokenSpendMessage";
 import type { PublishedPublicCourseSummary } from "../../lib/firestoreCourses";
 import type { RouteActivitySnapshot } from "../../lib/firestoreRouteActivity";
 import type { SavedRoute } from "../../lib/firestoreSavedRoutes";
@@ -92,7 +91,6 @@ type RideRoutePanelProps = {
 type Tab = "route" | "saved";
 
 export function RideRoutePanel(props: RideRoutePanelProps) {
-  const routeTokenSpendMessage = useRouteTokenSpendMessage();
   const [tab, setTab] = useState<Tab>("route");
   /** ad-hoc 저장 인라인 입력 폼 상태 — 토스트 액션이 열어줌 */
   const [adhocSaveOpen, setAdhocSaveOpen] = useState(false);
@@ -301,12 +299,6 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
           {props.routeSummary.trim() ? (
             <p className="ride-panel__summary" role="status">
               {props.routeSummary}
-            </p>
-          ) : null}
-
-          {routeTokenSpendMessage ? (
-            <p className="ride-panel__token-spend" role="status" aria-live="polite">
-              {routeTokenSpendMessage}
             </p>
           ) : null}
 
