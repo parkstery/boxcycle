@@ -64,10 +64,10 @@ function wireStatusToFunctionsCode(status: string | undefined): string | undefin
 
 let lastSpendFeedbackRequestId: string | null = null;
 
-function maybeReportRouteTokenSpend(balance: number, requestId: string): void {
+function maybeReportRouteTokenSpend(uid: string, balance: number, requestId: string): void {
   if (lastSpendFeedbackRequestId === requestId) return;
   lastSpendFeedbackRequestId = requestId;
-  reportRouteTokenSpend(balance, requestId);
+  reportRouteTokenSpend(uid, balance, requestId);
 }
 
 async function fetchRouteCallable(
@@ -130,7 +130,7 @@ async function fetchRouteCallable(
       routeTokenBalance?: unknown;
     },
   );
-  maybeReportRouteTokenSpend(route.routeTokenBalance, requestId);
+  maybeReportRouteTokenSpend(user.uid, route.routeTokenBalance, requestId);
   return route;
 }
 
@@ -152,7 +152,7 @@ export async function fetchRouteByProfile(
   if (!user?.uid) {
     throw new Error("경로 계산은 로그인(임시 라이더) 후에 사용할 수 있습니다.");
   }
-  if (getRouteTokenInsufficient()) {
+  if (getRouteTokenInsufficient(user.uid)) {
     const err = new Error("경로 토큰 부족 · 주행 완료 시 획득");
     (err as { code?: string }).code = "functions/resource-exhausted";
     throw err;

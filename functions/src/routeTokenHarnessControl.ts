@@ -9,10 +9,16 @@ import {
 } from "./harnessFakeMapbox.js";
 import { ROUTE_TOKEN_LEDGER } from "./routeTokenCore.js";
 
-type HarnessAction = "reset" | "stats" | "setFailNext" | "inspectUser";
+type HarnessAction = "reset" | "stats" | "setFailNext" | "inspectUser" | "setBalance";
 
 function parseAction(raw: unknown): HarnessAction {
-  if (raw === "reset" || raw === "stats" || raw === "setFailNext" || raw === "inspectUser") {
+  if (
+    raw === "reset" ||
+    raw === "stats" ||
+    raw === "setFailNext" ||
+    raw === "inspectUser" ||
+    raw === "setBalance"
+  ) {
     return raw;
   }
   throw new HttpsError("invalid-argument", "action 이 올바르지 않습니다.");
@@ -79,6 +85,18 @@ export const routeTokenHarnessControl = onRequest(
       const uid = typeof data.uid === "string" ? data.uid.trim() : "";
       if (!uid) {
         throw new HttpsError("invalid-argument", "uid 가 필요합니다.");
+      }
+
+      if (action === "setBalance") {
+        const balanceRaw = data.balance;
+        if (typeof balanceRaw !== "number" || !Number.isFinite(balanceRaw)) {
+          throw new HttpsError("invalid-argument", "balance 가 필요합니다.");
+        }
+        const balance = Math.max(0, Math.floor(balanceRaw));
+        const db = getFirestore();
+        await db.doc(`users/${uid}`).set({ routeTokenBalance: balance }, { merge: true });
+        res.status(200).json({ result: { balance } });
+        return;
       }
 
       const db = getFirestore();

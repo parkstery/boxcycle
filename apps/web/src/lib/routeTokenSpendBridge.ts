@@ -1,26 +1,32 @@
 import { formatRouteTokenSpendMessage } from "./directionsDirectGuard";
+import {
+  applyRouteSpend,
+  applySubscribedBalance,
+  bindUser,
+  computeEffectiveBalance,
+  createEmptySession,
+  isInsufficient,
+} from "./routeTokenSpendState.mjs";
+
+export {
+  formatRouteTokenHoldingMessage,
+  ROUTE_TOKEN_COST_HINT,
+  ROUTE_TOKEN_INSUFFICIENT_HINT,
+} from "./routeTokenUiCopy";
 
 type BalanceListener = (effective: number | null, insufficient: boolean) => void;
 type MessageListener = (message: string | null) => void;
 
-let subscribedBalance: number | null = null;
-let routeResponseBalance: number | null = null;
-let lastSpendMessage: string | null = null;
-let lastSpendRequestId: string | null = null;
+type SpendSession = ReturnType<typeof createEmptySession>;
+
+let session: SpendSession = createEmptySession();
 
 const balanceListeners = new Set<BalanceListener>();
 const messageListeners = new Set<MessageListener>();
 
-function computeEffectiveBalance(): number | null {
-  if (routeResponseBalance != null) {
-    return Math.min(routeResponseBalance, subscribedBalance ?? routeResponseBalance);
-  }
-  return subscribedBalance;
-}
-
 function notifyBalance() {
-  const effective = computeEffectiveBalance();
-  const insufficient = effective != null && effective < 1;
+  const effective = computeEffectiveBalance(session);
+  const insufficient = isInsufficient(session);
   for (const listener of balanceListeners) {
     listener(effective, insufficient);
   }
@@ -28,42 +34,46 @@ function notifyBalance() {
 
 function notifyMessage() {
   for (const listener of messageListeners) {
-    listener(lastSpendMessage);
+    listener(session.lastSpendMessage);
   }
 }
 
-export function setSubscribedRouteTokenBalance(balance: number | null) {
-  subscribedBalance = balance;
-  notifyBalance();
+export function getActiveRouteTokenUserId(): string | null {
+  return session.uid;
 }
 
-export function reportRouteTokenSpend(balance: number, requestId: string) {
-  routeResponseBalance = balance;
-  if (lastSpendRequestId !== requestId) {
-    lastSpendRequestId = requestId;
-    lastSpendMessage = formatRouteTokenSpendMessage(balance);
-    notifyMessage();
-  }
-  notifyBalance();
-}
-
-export function clearRouteTokenSpendSession() {
-  routeResponseBalance = null;
-  lastSpendMessage = null;
-  lastSpendRequestId = null;
+export function bindRouteTokenUser(uid: string | null): void {
+  session = bindUser(session, uid);
   notifyBalance();
   notifyMessage();
 }
 
-export function getRouteTokenInsufficient(): boolean {
-  const effective = computeEffectiveBalance();
-  return effective != null && effective < 1;
+export function setSubscribedRouteTokenBalance(uid: string | null, balance: number | null): void {
+  if (uid !== session.uid) return;
+  session = applySubscribedBalance(session, balance);
+  notifyBalance();
+}
+
+export function reportRouteTokenSpend(uid: string, balance: number, requestId: string): void {
+  if (uid !== session.uid) return;
+  session = applyRouteSpend(session, balance, requestId, formatRouteTokenSpendMessage);
+  notifyBalance();
+  notifyMessage();
+}
+
+export function getRouteTokenInsufficient(uid?: string | null): boolean {
+  if (uid != null && uid !== session.uid) return false;
+  return isInsufficient(session);
+}
+
+export function getEffectiveRouteTokenBalance(uid?: string | null): number | null {
+  if (uid != null && uid !== session.uid) return null;
+  return computeEffectiveBalance(session);
 }
 
 export function subscribeRouteTokenEffective(listener: BalanceListener): () => void {
   balanceListeners.add(listener);
-  const effective = computeEffectiveBalance();
-  listener(effective, effective != null && effective < 1);
+  listener(computeEffectiveBalance(session), isInsufficient(session));
   return () => {
     balanceListeners.delete(listener);
   };
@@ -71,8 +81,20 @@ export function subscribeRouteTokenEffective(listener: BalanceListener): () => v
 
 export function subscribeRouteTokenSpendMessage(listener: MessageListener): () => void {
   messageListeners.add(listener);
-  listener(lastSpendMessage);
+  listener(session.lastSpendMessage);
   return () => {
     messageListeners.delete(listener);
   };
+}
+
+/** @internal harness·단위 시험용 */
+export function __testRouteTokenSpendSession(): SpendSession {
+  return session;
+}
+
+/** @internal harness·단위 시험용 */
+export function __testResetRouteTokenSpendSession(next: SpendSession = createEmptySession()): void {
+  session = next;
+  notifyBalance();
+  notifyMessage();
 }
