@@ -103,11 +103,19 @@ async function waitForDirectionsPost(
   };
 }
 
+async function openTrailMenu(page: import("@playwright/test").Page) {
+  const menuBtn = page.getByRole("button", { name: "Trail 메뉴" });
+  await expect(menuBtn).toBeVisible({ timeout: 30_000 });
+  await menuBtn.click();
+  await page.waitForTimeout(400);
+}
+
 async function planOneRoute(
   page: import("@playwright/test").Page,
   offset: number,
   expectedBalance: number,
 ) {
+  const expectedSpendMessage = `Route Token -1 · 잔여 ${expectedBalance}개`;
   await dismissMapPopup(page);
   const panelClear = page.getByRole("button", { name: "경로 전체 삭제" }).first();
   if (await panelClear.isVisible().catch(() => false)) {
@@ -127,6 +135,7 @@ async function planOneRoute(
     await cycling.click();
   });
   expect(routeResult.routeTokenBalance).toBe(expectedBalance);
+  await expect(page.getByText(expectedSpendMessage)).toBeVisible({ timeout: 15_000 });
 
   await dismissMapPopup(page);
   const clear = page.getByRole("button", { name: "경로 전체 삭제" }).first();
@@ -166,6 +175,7 @@ test.describe("Route Token UI smoke", () => {
       [];
 
     const guestUid = await enterAsGuest(page);
+    await openTrailMenu(page);
 
     for (let i = 0; i < 3; i += 1) {
       const expectedBalance = 2 - i;
@@ -176,6 +186,15 @@ test.describe("Route Token UI smoke", () => {
         distance: result.distance,
         duration: result.duration,
       });
+      if (i === 0 || i === 2) {
+        await page.screenshot({
+          path: path.join(
+            OUT_DIR,
+            `ui-smoke-${RUN_ID}-route-${i + 1}-balance-${expectedBalance}.png`,
+          ),
+          fullPage: true,
+        });
+      }
     }
 
     fs.writeFileSync(
