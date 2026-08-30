@@ -1,4 +1,5 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
+import { resolveHarnessActive } from "./harnessActive.js";
 
 type LngLat = [number, number];
 type RouteProfile = "cycling" | "driving" | "walking";
@@ -9,34 +10,10 @@ export type HarnessFakeDirectionsRoute = {
   duration: number;
 };
 
-/** Harness demo project — 운영 boxcycle-dc2df 와 분리 */
-export const ROUTE_TOKEN_HARNESS_PROJECT_ID = "demo-rtw-route-token";
-
 const HARNESS_STATS_DOC = "harness/routeTokenFakeMapbox";
 
-function harnessProjectId(): string | null {
-  if (process.env.GCLOUD_PROJECT) return process.env.GCLOUD_PROJECT;
-  if (process.env.GCP_PROJECT) return process.env.GCP_PROJECT;
-  const raw = process.env.FIREBASE_CONFIG;
-  if (!raw) return null;
-  try {
-    const cfg = JSON.parse(raw) as { projectId?: string };
-    return cfg.projectId ?? null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Functions Emulator + harness env 또는 demo project 일 때만 활성.
- * 브라우저 입력으로 켤 수 없음.
- */
 export function isHarnessFakeMapboxActive(): boolean {
-  if (process.env.RTW_ROUTE_TOKEN_HARNESS === "1") return true;
-  return (
-    process.env.FUNCTIONS_EMULATOR === "true" &&
-    harnessProjectId() === ROUTE_TOKEN_HARNESS_PROJECT_ID
-  );
+  return resolveHarnessActive(process.env);
 }
 
 type HarnessStats = {
@@ -77,10 +54,6 @@ export async function getHarnessFakeMapboxCallCount(): Promise<number> {
   return stats.providerCallCount;
 }
 
-/**
- * Mapbox Directions REST 대체 — 결정적 거리·실패 모드.
- * 호출마다 providerCallCount 를 1 증가시킨다 (Firestore — 인스턴스 간 공유).
- */
 export async function fetchHarnessFakeDirections(
   profile: RouteProfile,
   start: LngLat,

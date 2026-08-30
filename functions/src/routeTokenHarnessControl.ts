@@ -1,9 +1,9 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { HttpsError, onRequest, type Request } from "firebase-functions/v2/https";
 import type { Response } from "express";
+import { resolveHarnessActive } from "./harnessActive.js";
 import {
   getHarnessFakeMapboxCallCount,
-  isHarnessFakeMapboxActive,
   resetHarnessFakeMapbox,
   setHarnessFakeMapboxFailNext,
 } from "./harnessFakeMapbox.js";
@@ -29,7 +29,7 @@ export const routeTokenHarnessControl = onRequest(
     invoker: "public",
   },
   async (req: Request, res: Response) => {
-    if (!isHarnessFakeMapboxActive()) {
+    if (!resolveHarnessActive(process.env)) {
       res.status(404).send("Not Found");
       return;
     }

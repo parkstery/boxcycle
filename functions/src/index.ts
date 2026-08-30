@@ -10,7 +10,6 @@ import {
   spendRouteGenerateToken,
 } from "./routeTokenCore.js";
 import { fetchHarnessFakeDirections, isHarnessFakeMapboxActive } from "./harnessFakeMapbox.js";
-import { routeTokenHarnessControl } from "./routeTokenHarnessControl.js";
 import { defineSecret } from "firebase-functions/params";
 import { HttpsError, onRequest, type Request } from "firebase-functions/v2/https";
 import type { Response } from "express";
@@ -264,7 +263,6 @@ export const getMapboxDirections = onRequest(
 );
 
 export { adminPromoteSavedRoute };
-export { routeTokenHarnessControl };
 export { autoReviewPublicRouteRequest };
 export { routeActivityOnRideCreated } from "./routeActivityOnRideCreated.js";
 export { routeActivityOnLivePublicationRideWritten } from "./routeActivityOnLivePublicationRideWritten.js";
