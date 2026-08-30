@@ -1,6 +1,7 @@
 import type { User } from "firebase/auth";
 import type { Functions } from "firebase/functions";
 import type { LineStringGeometry, LngLat } from "../lib/geo";
+import { resolveFunctionsHttpUrl } from "../lib/functionsEmulatorUrl";
 import { MAX_ROUTE_WAYPOINTS } from "../lib/routeWaypoints";
 
 export type RouteProfile = "cycling" | "driving" | "walking";
@@ -103,7 +104,9 @@ async function fetchRouteCallable(
       "VITE_FIREBASE_PROJECT_ID 가 비어 있어 getMapboxDirections URL 을 만들 수 없습니다. apps/web/.env 를 확인하세요.",
     );
   }
-  const url = `https://${region}-${projectId}.cloudfunctions.net/getMapboxDirections`;
+  const emulatorUrl = resolveFunctionsHttpUrl("getMapboxDirections");
+  const url =
+    emulatorUrl ?? `https://${region}-${projectId}.cloudfunctions.net/getMapboxDirections`;
   const idToken = await user.getIdToken();
   const wps = (waypoints ?? []).slice(0, MAX_ROUTE_WAYPOINTS);
   const res = await fetch(url, {

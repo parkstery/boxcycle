@@ -9,6 +9,7 @@ import {
   refundRouteGenerateToken,
   spendRouteGenerateToken,
 } from "./routeTokenCore.js";
+import { fetchHarnessFakeDirections, isHarnessFakeMapboxActive } from "./harnessFakeMapbox.js";
 import { defineSecret } from "firebase-functions/params";
 import { HttpsError, onRequest, type Request } from "firebase-functions/v2/https";
 import type { Response } from "express";
@@ -152,59 +153,89 @@ export const getMapboxDirections = onRequest(
       let routeTokenBalance = await spendRouteGenerateToken(uid, requestId);
       const generateCost = Math.max(0, Math.floor(economy.generateCostBase));
 
-      const token = mapboxAccessToken.value();
-      if (!token?.trim()) {
-        if (generateCost > 0) {
-          await refundRouteGenerateToken(uid, requestId, generateCost);
-        }
-        throw new HttpsError("failed-precondition", "서버에 Mapbox 토큰이 설정되지 않았습니다.");
-      }
-
-      const segments: string[] = [`${start[0]},${start[1]}`];
-      for (const w of waypoints) {
-        segments.push(`${w[0]},${w[1]}`);
-      }
-      segments.push(`${end[0]},${end[1]}`);
-      const coords = segments.join(";");
-      const url =
-        `https://api.mapbox.com/directions/v5/mapbox/${profile}/${coords}` +
-        `?geometries=geojson&overview=full&steps=false&access_token=${encodeURIComponent(token.trim())}`;
-
-      let mapResponse: globalThis.Response;
-      try {
-        mapResponse = await fetch(url);
-      } catch {
-        if (generateCost > 0) {
-          await refundRouteGenerateToken(uid, requestId, generateCost);
-        }
-        throw new HttpsError("unavailable", "Directions API 연결에 실패했습니다.");
-      }
-
-      if (!mapResponse.ok) {
-        const body = await mapResponse.text().catch(() => "");
-        console.error("Mapbox Directions HTTP error", mapResponse.status, body.slice(0, 500));
-        if (generateCost > 0) {
-          await refundRouteGenerateToken(uid, requestId, generateCost);
-        }
-        throw new HttpsError("internal", "Directions API 요청이 거부되었습니다.");
-      }
-
-      const mapJson = (await mapResponse.json()) as {
-        code?: string;
-        message?: string;
-        routes?: { geometry: { type: string; coordinates: number[][] }; distance: number; duration: number }[];
+      let route: {
+        geometry: { type: string; coordinates: number[][] };
+        distance: number;
+        duration: number;
       };
 
-      if (mapJson.code && mapJson.code !== "Ok") {
-        console.error("Mapbox Directions error body", mapJson.code, mapJson.message);
-        if (generateCost > 0) {
-          await refundRouteGenerateToken(uid, requestId, generateCost);
+      if (isHarnessFakeMapboxActive()) {
+        try {
+          route = await fetchHarnessFakeDirections(profile, start, end, waypoints);
+        } catch (e) {
+          if (generateCost > 0) {
+            await refundRouteGenerateToken(uid, requestId, generateCost);
+          }
+          console.error("harness fake mapbox failure", e);
+          throw new HttpsError("internal", "Directions API 요청이 거부되었습니다.");
         }
-        throw new HttpsError("invalid-argument", mapJson.message ?? "경로를 계산할 수 없습니다.");
+      } else {
+        const token = mapboxAccessToken.value();
+        if (!token?.trim()) {
+          if (generateCost > 0) {
+            await refundRouteGenerateToken(uid, requestId, generateCost);
+          }
+          throw new HttpsError("failed-precondition", "서버에 Mapbox 토큰이 설정되지 않았습니다.");
+        }
+
+        const segments: string[] = [`${start[0]},${start[1]}`];
+        for (const w of waypoints) {
+          segments.push(`${w[0]},${w[1]}`);
+        }
+        segments.push(`${end[0]},${end[1]}`);
+        const coords = segments.join(";");
+        const url =
+          `https://api.mapbox.com/directions/v5/mapbox/${profile}/${coords}` +
+          `?geometries=geojson&overview=full&steps=false&access_token=${encodeURIComponent(token.trim())}`;
+
+        let mapResponse: globalThis.Response;
+        try {
+          mapResponse = await fetch(url);
+        } catch {
+          if (generateCost > 0) {
+            await refundRouteGenerateToken(uid, requestId, generateCost);
+          }
+          throw new HttpsError("unavailable", "Directions API 연결에 실패했습니다.");
+        }
+
+        if (!mapResponse.ok) {
+          const body = await mapResponse.text().catch(() => "");
+          console.error("Mapbox Directions HTTP error", mapResponse.status, body.slice(0, 500));
+          if (generateCost > 0) {
+            await refundRouteGenerateToken(uid, requestId, generateCost);
+          }
+          throw new HttpsError("internal", "Directions API 요청이 거부되었습니다.");
+        }
+
+        const mapJson = (await mapResponse.json()) as {
+          code?: string;
+          message?: string;
+          routes?: { geometry: { type: string; coordinates: number[][] }; distance: number; duration: number }[];
+        };
+
+        if (mapJson.code && mapJson.code !== "Ok") {
+          console.error("Mapbox Directions error body", mapJson.code, mapJson.message);
+          if (generateCost > 0) {
+            await refundRouteGenerateToken(uid, requestId, generateCost);
+          }
+          throw new HttpsError("invalid-argument", mapJson.message ?? "경로를 계산할 수 없습니다.");
+        }
+
+        const mapRoute = mapJson.routes?.[0];
+        if (
+          !mapRoute?.geometry ||
+          mapRoute.geometry.type !== "LineString" ||
+          !Array.isArray(mapRoute.geometry.coordinates)
+        ) {
+          if (generateCost > 0) {
+            await refundRouteGenerateToken(uid, requestId, generateCost);
+          }
+          throw new HttpsError("not-found", "경로를 찾지 못했습니다.");
+        }
+        route = mapRoute;
       }
 
-      const route = mapJson.routes?.[0];
-      if (!route?.geometry || route.geometry.type !== "LineString" || !Array.isArray(route.geometry.coordinates)) {
+      if (route.geometry.type !== "LineString" || !Array.isArray(route.geometry.coordinates)) {
         if (generateCost > 0) {
           await refundRouteGenerateToken(uid, requestId, generateCost);
         }
