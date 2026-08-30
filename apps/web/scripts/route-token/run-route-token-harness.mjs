@@ -1,16 +1,28 @@
-import { spawnSync } from "node:child_process";
 import fs from "node:fs";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { assertNodeMajor20, node20Env, resolveNode20Executable } from "./node20.mjs";
+import {
+  assertNoTrackedSecret,
+  assertTrackedPackageUnchanged,
+  prepareFunctionsMirror,
+  removeFunctionsMirror,
+  writeMirrorSecret,
+} from "./functions-mirror.mjs";
+import { assertPortsFree } from "./port-guard.mjs";
+import { runFirebaseEmulatorsExec } from "./firebase-exec.mjs";
 import { readMapboxPkForUiSmoke } from "./read-mapbox-pk.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "../../../..");
 const functionsDir = path.join(repoRoot, "functions");
 const pkgPath = path.join(functionsDir, "package.json");
-const secretLocalPath = path.join(functionsDir, ".secret.local");
+const trackedSecretPath = path.join(functionsDir, ".secret.local");
+const cacheRoot = path.join(__dirname, ".runner-cache");
 const outDir = path.join(__dirname, ".out");
 const logPath = path.join(outDir, "emulator.log");
+const lastRunPath = path.join(outDir, ".last-run.json");
 const contractRel = "apps/web/scripts/route-token/route-token-contract.mjs";
 
 const FORBIDDEN_LOG = [
@@ -24,62 +36,35 @@ function run(cmd, args, opts = {}) {
     stdio: opts.inherit ? "inherit" : "pipe",
     encoding: opts.inherit ? undefined : "utf8",
     shell: process.platform === "win32",
+    env: node20Env(opts.env),
     ...opts,
   });
   if (result.error) throw result.error;
   return result;
 }
 
-function assertNodeMajor20() {
-  const major = Number(process.version.slice(1).split(".")[0]);
-  if (major !== 20) {
-    console.warn(
-      `[route-token] WARN: host Node ${process.version} — Functions 선언은 Node 20. build 는 현재 Node 로 수행합니다.`,
-    );
-  }
+function assertNodeMajor20Gate() {
+  const { nodeExe, version } = assertNodeMajor20();
+  console.log(`[route-token] Node 20 runtime: ${version} (${nodeExe})`);
 }
 
-function runUnitTests() {
+function runUnitTests(extraTests = []) {
   const tests = [
     "scripts/route-token/harness-active.test.mjs",
     "scripts/route-token/isolation-guards.test.mjs",
     "scripts/route-token/production-surface.test.mjs",
+    ...extraTests,
   ];
   for (const file of tests) {
-    const result = run("node", ["--test", file], {
+    const result = spawnSync(resolveNode20Executable(), ["--test", file], {
       cwd: path.join(repoRoot, "apps/web"),
-      inherit: true,
+      stdio: "inherit",
+      env: node20Env(),
     });
-    if (result.status !== 0) process.exit(result.status ?? 1);
+    if (result.status !== 0) {
+      throw new Error(`unit test failed: ${file}`);
+    }
   }
-}
-
-function patchHarnessEntry() {
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
-  const originalMain = pkg.main;
-  pkg.main = "lib/index.harness.js";
-  fs.writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
-  return originalMain;
-}
-
-function restorePackageMain(originalMain) {
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
-  pkg.main = originalMain;
-  fs.writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
-}
-
-function ensureSecretPlaceholder() {
-  if (fs.existsSync(secretLocalPath)) {
-    throw new Error(
-      "functions/.secret.local 이 이미 있습니다. harness runner 가 덮어쓰지 않습니다.",
-    );
-  }
-  fs.writeFileSync(
-    secretLocalPath,
-    "MAPBOX_ACCESS_TOKEN=harness-emulator-placeholder-not-real\n",
-    "utf8",
-  );
-  return true;
 }
 
 function assertCleanLog(output) {
@@ -90,82 +75,163 @@ function assertCleanLog(output) {
   }
 }
 
-function runEmulatorContract() {
+function prepareHarnessEnv(runId) {
+  fs.mkdirSync(cacheRoot, { recursive: true });
   fs.mkdirSync(outDir, { recursive: true });
-  const childEnv = {
-    ...process.env,
+  const mirrorDir = prepareFunctionsMirror(functionsDir, cacheRoot);
+  writeMirrorSecret(mirrorDir);
+  return { mirrorDir, runId };
+}
+
+function cleanupHarnessState(expectedPkgBytes) {
+  removeFunctionsMirror(cacheRoot);
+  assertTrackedPackageUnchanged(pkgPath, expectedPkgBytes);
+  assertNoTrackedSecret(trackedSecretPath);
+  assertPortsFree();
+}
+
+function runEmulatorContract() {
+  const childEnv = node20Env({
     RTW_ROUTE_TOKEN_HARNESS: "1",
     VITE_DIRECTIONS_DIRECT: "0",
-  };
-  const command = `firebase emulators:exec --only "auth,firestore,functions" --project demo-rtw-route-token "node ${contractRel}"`;
-  const result = spawnSync(command, {
+  });
+  const { result } = runFirebaseEmulatorsExec({
     cwd: repoRoot,
+    configPath: "firebase.harness.json",
+    innerCommand: `node ${contractRel}`,
     env: childEnv,
-    shell: true,
-    encoding: "utf8",
+    stdio: "pipe",
   });
   const combined = `${result.stdout ?? ""}\n${result.stderr ?? ""}`;
   fs.writeFileSync(logPath, combined, "utf8");
   if (result.status !== 0) {
     console.error(combined.slice(-4000));
-    process.exit(result.status ?? 1);
+    throw new Error(`emulator contract failed (exit ${result.status ?? 1})`);
+  }
+  if (combined.includes("Using node@24 from host")) {
+    throw new Error("Functions Emulator 가 Node 24 를 사용했습니다 — Node 20 이어야 합니다.");
   }
   assertCleanLog(combined);
   console.log("[route-token] emulator log gate PASS (no Secret Manager / Mapbox secret fetch)");
 }
 
-function runUiSmoke() {
+function runUiSmoke(runId, { forceFail = false } = {}) {
   const webDir = path.join(repoRoot, "apps/web");
   const mapboxPk = readMapboxPkForUiSmoke();
-  const childEnv = {
-    ...process.env,
+  const childEnv = node20Env({
     RTW_ROUTE_TOKEN_HARNESS: "1",
     ROUTE_TOKEN_UI_LIVE: "1",
+    ROUTE_TOKEN_RUN_ID: runId,
     VITE_DIRECTIONS_DIRECT: "0",
     VITE_MAPBOX_ACCESS_TOKEN: mapboxPk,
     RTW_DEV_PORT: "5010",
     FIRESTORE_EMULATOR_HOST: "127.0.0.1:8080",
     FIREBASE_AUTH_EMULATOR_HOST: "127.0.0.1:9099",
-  };
-  const command =
-    'firebase emulators:exec --only "auth,firestore,functions" --project demo-rtw-route-token --config ../../firebase.json "npx playwright test route-token-ui-smoke --workers=1"';
-  const result = spawnSync(command, {
+    ...(forceFail ? { ROUTE_TOKEN_UI_FORCE_FAIL: "1" } : {}),
+  });
+
+  const testName = forceFail ? "route-token-ui-force-fail" : "route-token-ui-smoke";
+  const nodeExe = resolveNode20Executable();
+  const { result } = runFirebaseEmulatorsExec({
     cwd: webDir,
+    configPath: "../../firebase.harness.json",
+    innerCommand: `${nodeExe} ../../node_modules/@playwright/test/cli.js test ${testName} --workers=1`,
     env: childEnv,
-    shell: true,
     stdio: "inherit",
   });
-  if (result.status !== 0) process.exit(result.status ?? 1);
+  if (result.status !== 0) {
+    throw new Error(`UI smoke failed (exit ${result.status ?? 1})`);
+  }
 }
 
-function main() {
-  assertNodeMajor20();
-  process.chdir(path.join(repoRoot, "apps/web"));
+function writeLastRun(runId, passed, nodeVersion) {
+  fs.writeFileSync(
+    lastRunPath,
+    `${JSON.stringify(
+      {
+        runId,
+        passed,
+        nodeVersion,
+        timestamp: new Date().toISOString(),
+      },
+      null,
+      2,
+    )}\n`,
+    "utf8",
+  );
+}
 
-  console.log("[route-token] functions build…");
-  const buildResult = run("npm", ["run", "build"], { cwd: functionsDir, inherit: true });
-  if (buildResult.status !== 0) process.exit(buildResult.status ?? 1);
+export function runHarness({ cleanupTestOnly = false } = {}) {
+  const expectedPkgBytes = fs.readFileSync(pkgPath);
+  const runId = new Date().toISOString().replace(/[:.]/g, "-");
+  let harnessPrepared = false;
 
-  console.log("[route-token] unit tests…");
-  runUnitTests();
-
-  let createdSecret = false;
-  let originalMain = "lib/index.js";
   try {
-    createdSecret = ensureSecretPlaceholder();
-    originalMain = patchHarnessEntry();
+    assertNodeMajor20Gate();
+    process.chdir(path.join(repoRoot, "apps/web"));
+
+    console.log("[route-token] functions build…");
+    const buildResult = run("npm", ["run", "build"], { cwd: functionsDir, inherit: true });
+    if (buildResult.status !== 0) {
+      throw new Error("functions build failed");
+    }
+
+    if (!cleanupTestOnly) {
+      console.log("[route-token] unit tests…");
+      runUnitTests(["scripts/route-token/runner-fail-recovery.test.mjs"]);
+    }
+
+    prepareHarnessEnv(runId);
+    harnessPrepared = true;
+
+    if (cleanupTestOnly) {
+      console.log("[route-token] cleanup regression — intentional UI fail…");
+      try {
+        runUiSmoke(runId, { forceFail: true });
+        throw new Error("intentional UI fail 이 발생하지 않았습니다");
+      } catch (err) {
+        if (String(err?.message ?? err).includes("intentional UI fail 이 발생하지 않았습니다")) {
+          throw err;
+        }
+        console.log("[route-token] cleanup regression — expected UI failure");
+        return 1;
+      }
+    }
+
     console.log("[route-token] emulator contract…");
     runEmulatorContract();
     console.log("[route-token] UI smoke…");
-    runUiSmoke();
+    runUiSmoke(runId);
+    writeLastRun(runId, true, assertNodeMajor20().version);
+    console.log("[route-token] ROUTE-TOKEN-1R2 harness PASS");
+    return 0;
   } finally {
-    restorePackageMain(originalMain);
-    if (createdSecret && fs.existsSync(secretLocalPath)) {
-      fs.unlinkSync(secretLocalPath);
+    if (harnessPrepared) {
+      try {
+        cleanupHarnessState(expectedPkgBytes);
+      } catch (cleanupErr) {
+        console.error("[route-token] CLEANUP FAILED:", cleanupErr);
+        if (!process.exitCode) process.exitCode = 2;
+        throw cleanupErr;
+      }
     }
   }
-
-  console.log("[route-token] ROUTE-TOKEN-1R harness PASS");
 }
 
-main();
+function main() {
+  const cleanupTestOnly = process.env.ROUTE_TOKEN_HARNESS_CLEANUP_TEST === "1";
+  try {
+    const code = runHarness({ cleanupTestOnly });
+    process.exitCode = code;
+  } catch (err) {
+    console.error(err);
+    if (!process.exitCode) process.exitCode = 1;
+  }
+}
+
+const isMain =
+  process.argv[1] &&
+  pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
+if (isMain) {
+  main();
+}
