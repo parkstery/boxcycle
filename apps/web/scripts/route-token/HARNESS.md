@@ -23,7 +23,7 @@
 route-token-contract.mjs
   → Auth Emulator (9099)
   → Firestore Emulator (8080)
-  → Functions Emulator (5001) — entry: lib/index.harness.js (runner 가 일시 패치)
+  → Functions Emulator (5001) — `firebase.harness.json` + `.runner-cache/functions-mirror` (추적 `package.json` 미수정)
       getMapboxDirections / ensureRouteTokenOnboardingHttp
       → harnessFakeMapbox (아래 3조건 AND 일 때만)
 ```
@@ -67,13 +67,14 @@ AND RTW_ROUTE_TOKEN_HARNESS === "1"
 npm -w boxcycle-web run test:route-token
 ```
 
-내부 동작 (`run-route-token-harness.mjs`):
+내부 동작 (`launch-route-token-harness.mjs` → `run-route-token-harness.mjs`):
 
-1. `functions` build
-2. 단위 시험: `harness-active`, `isolation-guards`, `production-surface`
-3. `functions/.secret.local` placeholder + `package.json` main → `lib/index.harness.js` (finally 복구)
-4. `firebase emulators:exec` + `route-token-contract.mjs`
-5. UI smoke Playwright (`ROUTE_TOKEN_UI_LIVE=1`, `--mode harness`, `.env.harness`)
+1. **Node 20 필수** — portable `/.runner-cache/node-v20` 또는 host Node 20; 미충족 시 즉시 실패
+2. `functions` build
+3. 단위 시험: `harness-active`, `isolation-guards`, `production-surface`, `runner-fail-recovery`
+4. mirror 준비 + mirror `.secret.local` placeholder (`finally` 정리)
+5. `firebase.harness.json` + `firebase-exec.mjs`(Node 20 으로 firebase-tools 구동) + contract
+6. UI smoke — POST `getMapboxDirections` 응답 `routeTokenBalance` 2·1·0, harness `inspectUser` 0/3/3, 4번째 UI 차단
 
 **전제:** JDK 11+, `firebase-tools`, `functions` 의존성 설치. UI smoke 지도 타일용 pk. 는 `apps/web/.env` 또는 형제 worktree `boxcycle/apps/web/.env` 에서 **읽기만** 한다.
 

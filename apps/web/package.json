@@ -31,7 +31,7 @@
     "test:sensor-cadence": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/sensor-cadence/cadence-contract.test.ts scripts/sensor-cadence/sensor-ui-contract.test.ts scripts/sensor-cadence/auto-reconnect-contract.test.ts",
     "test:s42-meters": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/s42/read-meters-and-hubs.test.ts",
     "test:s43-meters": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/s43/touch-meters.test.ts",
-    "test:route-token": "node scripts/route-token/run-route-token-harness.mjs",
+    "test:route-token": "node scripts/route-token/launch-route-token-harness.mjs",
     "test:e2e:u2": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test u2-map-render-tick --workers=1\"",
     "test:e2e:u3": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test u3-camera-trace --workers=1\"",
     "test:e2e:u5": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test u5-shots --workers=1\"",

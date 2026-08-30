@@ -22,6 +22,9 @@ const DEV_URL = `http://127.0.0.1:${DEV_PORT}`
 
 export default defineConfig({
   testDir: './e2e',
+  outputDir: routeTokenUiHarness
+    ? 'scripts/route-token/.out/playwright-test-results'
+    : 'test-results',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
