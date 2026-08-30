@@ -105,7 +105,6 @@ import { usePublicRouteReviewMeta } from "./hooks/usePublicRouteReviewMeta";
 import { useSavedRoutesWorkspace } from "./hooks/useSavedRoutesWorkspace";
 import { useRideEndAndPersistence } from "./hooks/useRideEndAndPersistence";
 import { useDistanceAutoRoute } from "./hooks/useDistanceAutoRoute";
-import { DistanceAutoRouteSheet } from "./components/route/DistanceAutoRouteSheet";
 import {
   DEFAULT_MAP_STYLE,
   MAP_STYLE_OPTIONS,
@@ -1517,12 +1516,6 @@ export default function App() {
     },
   });
 
-  const handleOpenDistanceAutoRoute = useCallback(() => {
-    setMenuOpen(false);
-    setPlaceSearchMarkerLngLat(null);
-    distanceAutoRoute.open();
-  }, [distanceAutoRoute]);
-
   const handleClearPins = useCallback(() => {
     clearRoutePins(routeMenuLockedForProd);
   }, [clearRoutePins, routeMenuLockedForProd]);
@@ -1920,7 +1913,19 @@ export default function App() {
               rideFollowCameraNonce,
               distanceTargetCircle: distanceAutoRoute.circleGeometry,
               autoRouteMapPick: distanceAutoRoute.mapPickMode,
-              onAutoRouteMapPick: (lngLat) => void distanceAutoRoute.handleMapPick(lngLat),
+              onStartDistanceAutoRoute: (input) => {
+                const result = distanceAutoRoute.startFromMapPopup(input);
+                if (result.ok) {
+                  setStartLngLat(input.start);
+                  setProfile(input.profile);
+                  setActiveOfficialCourseId(null);
+                  setPlaceSearchMarkerLngLat(null);
+                }
+                return result;
+              },
+              onAutoRouteMapPick: distanceAutoRoute.handleMapPick,
+              onRetryDistanceAutoRoute: distanceAutoRoute.retryDirection,
+              onDismissDistanceAutoRoute: distanceAutoRoute.dismissResult,
             }}
             lodDebug={lodDebugPanelProps}
             mapHud={{
@@ -1957,21 +1962,6 @@ export default function App() {
               conquestLiveMeters,
             }}
           >
-            <DistanceAutoRouteSheet
-              step={distanceAutoRoute.step}
-              targetKm={distanceAutoRoute.targetKm}
-              distancePresetsKm={distanceAutoRoute.distancePresetsKm}
-              profile={distanceAutoRoute.profile}
-              statusMessage={distanceAutoRoute.statusMessage}
-              isSearching={distanceAutoRoute.isSearching}
-              hasStart={distanceAutoRoute.start != null}
-              onClose={distanceAutoRoute.close}
-              onSetProfile={distanceAutoRoute.setProfile}
-              onSetTargetKm={distanceAutoRoute.setTargetKm}
-              onConfirmStart={distanceAutoRoute.confirmStart}
-              onConfirmProfile={distanceAutoRoute.confirmProfile}
-              onConfirmDistance={distanceAutoRoute.confirmDistance}
-            />
             {rideMapillaryStreet && mapillaryRideSync && mapillaryTokenConfigured ? (
               <div className="mapillary-street-floating" aria-label="Mapillary 거리뷰">
                 <div className="mapillary-street-floating__head">
@@ -2036,7 +2026,6 @@ export default function App() {
         <RideRoutePanel
           routeSummary={routeSummary}
           routeLoading={routeLoading || distanceAutoRoute.isSearching}
-          onOpenDistanceAutoRoute={handleOpenDistanceAutoRoute}
           basicSharedHubs={BASIC_SHARED_HUB_SUMMARIES}
           basicActiveHubCourseId={basicActiveHubCourseId}
           basicStartLoading={basicStartLoading}

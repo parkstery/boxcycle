@@ -353,6 +353,122 @@
   color: #f0f9ff;
 }
 
+.map-view__pick-auto-route {
+  margin-top: 0.42rem;
+  padding-top: 0.42rem;
+  border-top: 1px solid rgba(248, 250, 252, 0.12);
+}
+
+.map-view__pick-auto-route > .map-view__pick-profile-label {
+  margin: 0 0 0.3rem;
+}
+
+.map-view__pick-btn--auto-route,
+.map-view__pick-btn--auto-direction {
+  width: 100%;
+  border-radius: 0.65rem;
+  padding: 0.48rem 0.65rem;
+  color: #111827;
+  background: #f0a52f;
+  border-color: rgba(251, 191, 36, 0.9);
+}
+
+.map-view__pick-btn--auto-route:hover:not(:disabled),
+.map-view__pick-btn--auto-direction:hover:not(:disabled) {
+  background: #f7b849;
+}
+
+.map-view__pick-auto-route-form {
+  display: grid;
+  gap: 0.34rem;
+}
+
+.map-view__pick-auto-route-hint,
+.map-view__auto-route-status-message {
+  margin: 0;
+  color: rgba(226, 232, 240, 0.82);
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.map-view__pick-auto-route-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.28rem;
+}
+
+.map-view__pick-btn--auto-option {
+  color: #e2e8f0;
+  background: rgba(248, 250, 252, 0.07);
+  border-color: rgba(248, 250, 252, 0.14);
+}
+
+.map-view__pick-btn--auto-option.is-active {
+  color: #fef3c7;
+  background: rgba(240, 165, 47, 0.2);
+  border-color: rgba(240, 165, 47, 0.62);
+}
+
+.map-view__pick-auto-route-error {
+  margin: 0;
+  color: #fca5a5;
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.map-view__auto-route-status {
+  display: grid;
+  gap: 0.42rem;
+  min-width: 14rem;
+}
+
+.map-view__auto-route-status-title {
+  margin: 0;
+  color: #f8fafc;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.map-view__auto-route-status-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.map-view__pick-btn--auto-cancel {
+  flex: 0 0 auto;
+  border-radius: 0.65rem;
+  padding: 0.48rem 0.65rem;
+  color: #e2e8f0;
+  background: rgba(248, 250, 252, 0.08);
+  border-color: rgba(248, 250, 252, 0.16);
+}
+
+.map-view__auto-route-progress {
+  height: 0.18rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(248, 250, 252, 0.12);
+}
+
+.map-view__auto-route-progress::after {
+  content: "";
+  display: block;
+  width: 42%;
+  height: 100%;
+  border-radius: inherit;
+  background: #f0a52f;
+  animation: map-view-auto-route-progress 1s ease-in-out infinite alternate;
+}
+
+@keyframes map-view-auto-route-progress {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(138%);
+  }
+}
+
 .map-view__pick--awaiting-profile {
   outline: 1px solid rgba(232, 163, 61, 0.35);
   outline-offset: 1px;

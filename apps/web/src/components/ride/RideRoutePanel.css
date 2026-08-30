@@ -418,23 +418,6 @@
   margin-top: 0.3rem;
 }
 
-.ride-panel__auto-route {
-  margin: 0.65rem 0 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--rtw-divider);
-}
-
-.ride-panel__auto-route-btn {
-  width: 100%;
-}
-
-.ride-panel__auto-route-hint {
-  margin: 0.4rem 0 0;
-  font-size: 0.72rem;
-  line-height: 1.35;
-  color: var(--rtw-text-secondary);
-}
-
 .ride-panel__btn-secondary {
   font: inherit;
   font-size: 0.76rem;
