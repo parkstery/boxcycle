@@ -6,6 +6,7 @@ import {
   getRouteTokenInsufficient,
   reportRouteTokenSpend,
 } from "../lib/routeTokenSpendBridge";
+import { ROUTE_TOKEN_INSUFFICIENT_HINT } from "../lib/routeTokenUiCopy";
 import { resolveFunctionsHttpUrl } from "../lib/functionsEmulatorUrl";
 import { MAX_ROUTE_WAYPOINTS } from "../lib/routeWaypoints";
 
@@ -153,7 +154,7 @@ export async function fetchRouteByProfile(
     throw new Error("경로 계산은 로그인(임시 라이더) 후에 사용할 수 있습니다.");
   }
   if (getRouteTokenInsufficient(user.uid)) {
-    const err = new Error("경로 토큰 부족 · 주행 완료 시 획득");
+    const err = new Error(ROUTE_TOKEN_INSUFFICIENT_HINT);
     (err as { code?: string }).code = "functions/resource-exhausted";
     throw err;
   }

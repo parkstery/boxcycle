@@ -104,32 +104,42 @@ async function waitForDirectionsPost(
   };
 }
 
+async function assertNoGlobalTokenSurface(page: import("@playwright/test").Page) {
+  await expect(page.locator(".route-token-map-feedback")).toHaveCount(0);
+}
+
 async function assertMapTokenUi(
   page: import("@playwright/test").Page,
   holding: number,
   spendMessage?: string,
 ) {
-  await expect(page.getByTestId("route-token-holding")).toHaveText(`Route Token ${holding}개`);
-  if (holding > 0) {
-    await expect(page.getByTestId("route-token-cost-hint")).toHaveText("경로 생성 시 1개 사용");
-  } else {
-    await expect(page.getByTestId("route-token-insufficient")).toContainText("경로 토큰 부족");
-  }
+  const popup = page.locator(".map-view__pick-popup");
+  await expect(popup).toBeVisible();
+  await assertNoGlobalTokenSurface(page);
+
+  const feedback = popup.getByTestId("route-token-popup-feedback");
+  await expect(feedback).toBeVisible();
+  await expect(feedback.getByTestId("route-token-holding")).toHaveText(`Route Token ${holding}개`);
+
   if (spendMessage) {
-    await expect(page.getByTestId("route-token-spend-toast")).toHaveText(spendMessage);
+    await expect(feedback.getByTestId("route-token-spend-toast")).toHaveText(spendMessage);
+    await expect(feedback.getByTestId("route-token-cost-hint")).toHaveCount(0);
+    await expect(feedback.getByTestId("route-token-insufficient")).toHaveCount(0);
+  } else if (holding > 0) {
+    await expect(feedback.getByTestId("route-token-cost-hint")).toHaveText("경로 생성 시 1개 사용");
+    await expect(feedback.getByTestId("route-token-insufficient")).toHaveCount(0);
+    await expect(feedback.getByTestId("route-token-spend-toast")).toHaveCount(0);
+  } else {
+    await expect(feedback.getByTestId("route-token-insufficient")).toHaveText("경로 토큰 부족");
+    await expect(feedback.getByTestId("route-token-cost-hint")).toHaveCount(0);
+    await expect(feedback.getByTestId("route-token-spend-toast")).toHaveCount(0);
   }
 }
 
-async function planOneRoute(
+async function openRoutePopupWithPins(
   page: import("@playwright/test").Page,
   offset: number,
-  expectedBalance: number,
-  options: { screenshotLabel?: string; clearAfter?: boolean } = {},
 ) {
-  const { screenshotLabel, clearAfter = true } = options;
-  const expectedSpendMessage = `Route Token -1 · 잔여 ${expectedBalance}개`;
-  const expectedHolding = expectedBalance;
-
   await dismissMapPopup(page);
   const panelClear = page.getByRole("button", { name: "경로 전체 삭제" }).first();
   if (await panelClear.isVisible().catch(() => false)) {
@@ -141,16 +151,36 @@ async function planOneRoute(
   await page.getByRole("button", { name: "Set start" }).click({ timeout: 30_000 });
   await clickMap(page, 260 + offset, 240);
   await page.getByRole("button", { name: "Set end" }).click();
+  await expect(page.locator(".map-view__pick-popup")).toBeVisible({ timeout: 30_000 });
+}
+
+async function planOneRoute(
+  page: import("@playwright/test").Page,
+  offset: number,
+  expectedBalance: number,
+  options: { screenshotLabel?: string; clearAfter?: boolean } = {},
+) {
+  const { screenshotLabel, clearAfter = true } = options;
+  const expectedSpendMessage = `Route Token -1 · 잔여 ${expectedBalance}개`;
+  const expectedHoldingBefore = expectedBalance + 1;
+
+  await openRoutePopupWithPins(page, offset);
 
   const cycling = page.getByRole("button", { name: "자전거 경로" });
   await expect(cycling).toBeEnabled({ timeout: 30_000 });
+  await expect(page.locator(".map-view__pick-popup").getByTestId("route-token-holding")).toHaveText(
+    `Route Token ${expectedHoldingBefore}개`,
+    { timeout: 30_000 },
+  );
+  await assertMapTokenUi(page, expectedHoldingBefore);
 
   const routeResult = await waitForDirectionsPost(page, async () => {
     await cycling.click();
   });
   expect(routeResult.routeTokenBalance).toBe(expectedBalance);
 
-  await assertMapTokenUi(page, expectedHolding, expectedSpendMessage);
+  await assertMapTokenUi(page, expectedBalance, expectedSpendMessage);
+  await expect(page.locator(".map-view__pick-popup")).toBeVisible();
 
   if (screenshotLabel) {
     await page.screenshot({
@@ -174,7 +204,7 @@ async function planOneRoute(
 test.describe("Route Token UI smoke", () => {
   test.skip(!LIVE || FORCE_FAIL, "ROUTE_TOKEN_UI_LIVE=1 + Emulator 필요");
 
-  test.setTimeout(300_000);
+  test.setTimeout(600_000);
 
   test.beforeAll(() => {
     clearEvidenceDir();
@@ -201,6 +231,8 @@ test.describe("Route Token UI smoke", () => {
     evidence.guestA = guestA;
 
     await expect(page.getByRole("button", { name: "Trail 메뉴" })).toBeVisible();
+    await assertNoGlobalTokenSurface(page);
+    await openRoutePopupWithPins(page, 0);
     await assertMapTokenUi(page, 3);
     await page.screenshot({
       path: path.join(OUT_DIR, `ui-smoke-${RUN_ID}-01-pre-route-balance-3.png`),
@@ -233,14 +265,8 @@ test.describe("Route Token UI smoke", () => {
     });
     evidence.afterThree = afterThree;
 
-    await dismissMapPopup(page);
-    await clickMap(page, 300, 200);
-    await page.getByRole("button", { name: "Set start" }).click({ timeout: 30_000 });
-    await clickMap(page, 360, 260);
-    await page.getByRole("button", { name: "Set end" }).click();
-
+    await openRoutePopupWithPins(page, 300);
     await assertMapTokenUi(page, 0);
-    await expect(page.getByTestId("route-token-insufficient")).toBeVisible({ timeout: 15_000 });
     const cycling = page.getByRole("button", { name: "자전거 경로" });
     await expect(cycling).toBeDisabled();
     await page.screenshot({
@@ -257,10 +283,11 @@ test.describe("Route Token UI smoke", () => {
 
     await harnessControl("setBalance", { uid: guestA, balance: 1 });
     await pollInspectUser(guestA, { balance: 1, routeGenerateSpend: 3, providerCallCount: 3 });
-    await page.waitForTimeout(1200);
-    await assertMapTokenUi(page, 1);
-
     await dismissMapPopup(page);
+    await page.reload();
+    await expect(page.getByRole("button", { name: "Trail 메뉴" })).toBeVisible({ timeout: 60_000 });
+    await page.waitForTimeout(1500);
+
     const earned = await planOneRoute(page, 48, 0, {
       screenshotLabel: "06-earned-route-balance-0",
       clearAfter: false,
@@ -277,6 +304,7 @@ test.describe("Route Token UI smoke", () => {
     const guestB = await enterAsGuest(guestBPage, { gateTimeoutMs: 90_000 });
     evidence.guestB = guestB;
     expect(guestB).not.toBe(guestA);
+    await openRoutePopupWithPins(guestBPage, 60);
     await assertMapTokenUi(guestBPage, 3);
     await expect(guestBPage.getByTestId("route-token-spend-toast")).toHaveCount(0);
 

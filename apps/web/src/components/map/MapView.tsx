@@ -43,7 +43,12 @@ import {
 } from "../../lib/geo";
 import type { RouteElevationProfileState } from "../../hooks/useRouteElevationProfile";
 import type { FollowMode } from "../ride/RideRoutePanel";
-import { getRouteTokenInsufficient as isRouteTokenBlocked } from "../../lib/routeTokenSpendBridge";
+import {
+  getRouteTokenInsufficient as isRouteTokenBlocked,
+  subscribeRouteTokenEffective,
+} from "../../lib/routeTokenSpendBridge";
+import { mountRouteTokenPopupFeedback } from "../../lib/mountRouteTokenPopupFeedback";
+import { ROUTE_TOKEN_INSUFFICIENT_HINT } from "../../lib/routeTokenUiCopy";
 import type { CoverageOverlayMode } from "../../lib/coverageOverlayMode";
 import { MAX_ROUTE_WAYPOINTS } from "../../lib/routeWaypoints";
 import type { RouteProfile } from "../../services/mapboxDirections";
@@ -3180,6 +3185,9 @@ function buildPickPopup(deps: {
   rowProfile.setAttribute("role", "group");
   rowProfile.setAttribute("aria-labelledby", "map-view-pick-profile-label");
 
+  const tokenSection = document.createElement("div");
+  const tokenFeedback = mountRouteTokenPopupFeedback(tokenSection, signal);
+
   const profileSpecs: { profile: RouteProfile; ariaLabelKo: string }[] = [
     { profile: "driving", ariaLabelKo: "자동차 경로" },
     { profile: "cycling", ariaLabelKo: "자전거 경로" },
@@ -3199,8 +3207,8 @@ function buildPickPopup(deps: {
     pb.onclick = () => {
       if (!pins.start || !pins.end) return;
       if (getRouteTokenInsufficient?.()) return;
+      tokenFeedback.setRoutePending(true);
       onRouteProfile(profile);
-      closePopup();
     };
     profileButtons.push(pb);
     rowProfile.appendChild(pb);
@@ -3216,18 +3224,17 @@ function buildPickPopup(deps: {
       rowProfile.hidden = false;
     }
     wrap.classList.toggle("map-view__pick--awaiting-profile", ready);
+    profileLabel.textContent = "경로 탐색 유형 선택";
+    tokenSection.hidden = !ready;
     if (!ready) return;
     const tokenInsufficient = Boolean(getRouteTokenInsufficient?.());
-    profileLabel.textContent = tokenInsufficient
-      ? "경로 토큰 부족 · 주행 완료 시 획득"
-      : "경로 탐색 유형 선택";
     profileSpecs.forEach((spec, i) => {
       const pb = profileButtons[i];
       if (!pb) return;
       pb.disabled = tokenInsufficient;
       pb.classList.toggle("is-disabled", tokenInsufficient);
       pb.title = tokenInsufficient
-        ? "경로 토큰이 부족합니다. 주행을 완료하면 토큰을 받을 수 있습니다."
+        ? ROUTE_TOKEN_INSUFFICIENT_HINT
         : spec.profile === "driving"
           ? "Route by car"
           : spec.profile === "walking"
@@ -3236,8 +3243,19 @@ function buildPickPopup(deps: {
     });
   }
 
-  profileSection.append(profileHeader, rowProfile);
+  profileSection.append(profileHeader, tokenSection, rowProfile);
   syncProfileUi();
+
+  const unsubTokenForProfile = subscribeRouteTokenEffective(() => {
+    syncProfileUi();
+  });
+  signal.addEventListener(
+    "abort",
+    () => {
+      unsubTokenForProfile();
+    },
+    { once: true },
+  );
 
   /** Conquest — 이 지점 영토의 개척자(있을 때만 노출, §3.4 Phase A 유일 노출 지점) */
   const pioneerEl = document.createElement("div");
