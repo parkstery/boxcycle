@@ -1,6 +1,7 @@
 import type { User } from "firebase/auth";
 import { doc, onSnapshot, type Unsubscribe } from "firebase/firestore";
 import { getFirebaseFirestore } from "./firebase";
+import { resolveFunctionsHttpUrl } from "./functionsEmulatorUrl";
 
 export function subscribeRouteTokenBalance(
   userId: string,
@@ -26,7 +27,9 @@ export async function ensureRouteTokenOnboardingClient(user: User): Promise<numb
   const region = import.meta.env.VITE_FUNCTIONS_REGION?.trim() || "asia-northeast3";
   if (!projectId) return null;
 
-  const url = `https://${region}-${projectId}.cloudfunctions.net/ensureRouteTokenOnboardingHttp`;
+  const emulatorUrl = resolveFunctionsHttpUrl("ensureRouteTokenOnboardingHttp");
+  const url =
+    emulatorUrl ?? `https://${region}-${projectId}.cloudfunctions.net/ensureRouteTokenOnboardingHttp`;
   const idToken = await user.getIdToken();
   const res = await fetch(url, {
     method: "POST",

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { AUTH_EMULATOR_HOST, SAMPLE_ROUTE, URLS } from "./harness-config.mjs";
+import { AUTH_EMULATOR_HOST, FUNCTIONS_EMULATOR_HOST, HARNESS_REGION, SAMPLE_ROUTE, URLS } from "./harness-config.mjs";
 import { assertDirectDirectionsOff, assertEmulatorIsolation } from "./emulator-guard.mjs";
 
 function logStep(label, detail) {
@@ -83,9 +83,20 @@ async function inspectUser(uid) {
   return harnessControl("inspectUser", { uid });
 }
 
+async function assertProductionProjectControlAbsent() {
+  const url = `http://${FUNCTIONS_EMULATOR_HOST}/boxcycle-dc2df/${HARNESS_REGION}/routeTokenHarnessControl`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ data: { action: "stats" } }),
+  });
+  assert.equal(res.status, 404, "운영 project 에서 harness control 미발견");
+}
+
 async function runMainContract() {
   assertEmulatorIsolation();
   assertDirectDirectionsOff();
+  await assertProductionProjectControlAbsent();
   await harnessControl("reset");
 
   const guest = await signUpAnonymous();

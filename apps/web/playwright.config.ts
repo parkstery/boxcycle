@@ -10,6 +10,7 @@ import { defineConfig, devices } from '@playwright/test'
 //   - vite dev 서버에 VITE_USE_EMULATOR=1 을 넘겨 앱이 에뮬레이터에 붙게 한다.
 // 이렇게 하면 cross-env 나 수동 플래그 없이 에뮬레이터 컨텍스트를 자동 감지한다.
 const underEmulator = Boolean(process.env.FIRESTORE_EMULATOR_HOST)
+const routeTokenUiHarness = process.env.ROUTE_TOKEN_UI_LIVE === '1'
 if (underEmulator) {
   process.env.RIDE_VERIFY_LIVE = '1'
 }
@@ -37,14 +38,21 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev:localhost',
+    command: routeTokenUiHarness
+      ? 'npm run dev:localhost -- --mode harness'
+      : 'npm run dev:localhost',
     url: DEV_URL,
     // 에뮬레이터 컨텍스트에서만 vite 에 플래그를 넘겨 앱이 에뮬레이터에 붙게 한다.
     // (일반 test:e2e 는 이 env 없이 돌아 실 Firebase 설정을 그대로 쓴다 — smoke 는 Firebase 불필요)
-    env: underEmulator ? { VITE_USE_EMULATOR: '1' } : {},
+    env: underEmulator
+      ? {
+          VITE_USE_EMULATOR: '1',
+          ...(routeTokenUiHarness ? { VITE_DIRECTIONS_DIRECT: '0' } : {}),
+        }
+      : {},
     // 에뮬레이터 실행 시엔 기존 dev 서버(실 Firebase 에 붙은)를 재사용하면 안 된다 —
     // 반드시 VITE_USE_EMULATOR 를 켠 새 서버를 띄운다. 일반 e2e 는 기존 서버 재사용 허용.
-    reuseExistingServer: underEmulator ? false : !process.env.CI,
+    reuseExistingServer: underEmulator || routeTokenUiHarness ? false : !process.env.CI,
     timeout: 120_000,
   },
 })
