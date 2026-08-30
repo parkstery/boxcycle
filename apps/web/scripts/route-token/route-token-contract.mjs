@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { AUTH_EMULATOR_HOST, FUNCTIONS_EMULATOR_HOST, HARNESS_REGION, SAMPLE_ROUTE, URLS } from "./harness-config.mjs";
 import { assertDirectDirectionsOff, assertEmulatorIsolation } from "./emulator-guard.mjs";
+import { runDistanceAutoRouteTokenContract } from "./distance-auto-route-token-contract.mjs";
 
 function logStep(label, detail) {
   console.log(`[route-token] ${label}${detail ? `: ${detail}` : ""}`);
@@ -200,6 +201,7 @@ async function runProviderFailureContract() {
 async function main() {
   await runMainContract();
   await runProviderFailureContract();
+  await runDistanceAutoRouteTokenContract();
   console.log("\n[route-token] ROUTE-TOKEN-1 contract PASS");
 }
 

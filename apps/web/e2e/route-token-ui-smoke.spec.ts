@@ -150,7 +150,8 @@ async function openRoutePopupWithPins(
   await clickMap(page, 180 + offset, 180);
   await page.getByRole("button", { name: "Set start" }).click({ timeout: 30_000 });
   await clickMap(page, 260 + offset, 240);
-  await page.getByRole("button", { name: "Set end" }).click();
+  await page.getByRole("button", { name: "Set end" }).scrollIntoViewIfNeeded();
+  await page.getByRole("button", { name: "Set end" }).click({ timeout: 30_000 });
   await expect(page.locator(".map-view__pick-popup")).toBeVisible({ timeout: 30_000 });
 }
 

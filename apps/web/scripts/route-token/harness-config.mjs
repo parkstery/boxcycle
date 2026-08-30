@@ -11,6 +11,7 @@ export function functionUrl(name) {
 
 export const URLS = {
   getMapboxDirections: functionUrl("getMapboxDirections"),
+  getDistanceAutoRoute: functionUrl("getDistanceAutoRoute"),
   ensureOnboarding: functionUrl("ensureRouteTokenOnboardingHttp"),
   harnessControl: functionUrl("routeTokenHarnessControl"),
 };

@@ -19,6 +19,7 @@ export function isHarnessFakeMapboxActive(): boolean {
 type HarnessStats = {
   providerCallCount: number;
   failNext: boolean;
+  failAll: boolean;
 };
 
 async function readHarnessStats(): Promise<HarnessStats> {
@@ -28,6 +29,7 @@ async function readHarnessStats(): Promise<HarnessStats> {
     providerCallCount:
       typeof data.providerCallCount === "number" ? data.providerCallCount : 0,
     failNext: data.failNext === true,
+    failAll: data.failAll === true,
   };
 }
 
@@ -36,6 +38,7 @@ export async function resetHarnessFakeMapbox(): Promise<void> {
   await getFirestore().doc(HARNESS_STATS_DOC).set({
     providerCallCount: 0,
     failNext: false,
+    failAll: false,
     updatedAt: FieldValue.serverTimestamp(),
   });
 }
@@ -44,6 +47,14 @@ export async function setHarnessFakeMapboxFailNext(fail: boolean): Promise<void>
   if (!isHarnessFakeMapboxActive()) return;
   await getFirestore().doc(HARNESS_STATS_DOC).set(
     { failNext: fail, updatedAt: FieldValue.serverTimestamp() },
+    { merge: true },
+  );
+}
+
+export async function setHarnessFakeMapboxFailAll(fail: boolean): Promise<void> {
+  if (!isHarnessFakeMapboxActive()) return;
+  await getFirestore().doc(HARNESS_STATS_DOC).set(
+    { failAll: fail, updatedAt: FieldValue.serverTimestamp() },
     { merge: true },
   );
 }
@@ -68,14 +79,14 @@ export async function fetchHarnessFakeDirections(
   const failNext = await getFirestore().runTransaction(async (tx) => {
     const snap = await tx.get(ref);
     const data = snap.data() ?? {};
-    const shouldFail = data.failNext === true;
+    const shouldFail = data.failAll === true || data.failNext === true;
     const current =
       typeof data.providerCallCount === "number" ? data.providerCallCount : 0;
     tx.set(
       ref,
       {
         providerCallCount: current + 1,
-        failNext: shouldFail ? false : data.failNext === true,
+        failNext: data.failAll === true ? data.failNext === true : shouldFail ? false : data.failNext === true,
         updatedAt: FieldValue.serverTimestamp(),
       },
       { merge: true },

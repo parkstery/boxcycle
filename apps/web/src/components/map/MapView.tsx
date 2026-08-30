@@ -1286,6 +1286,21 @@ export type MapViewProps = {
   rideCameraDistanceM?: number;
   /** 임시 — RTW Dark POI 라벨 표시 비교용 토글 */
   showRtwPoi?: boolean;
+  /** 거리 기반 자동 경로 — 목표 거리 원(지도 stroke) */
+  distanceTargetCircle?: LineStringGeometry | null;
+  /** 자동 경로 마법사 중 지도 탭 가로채기 */
+  autoRouteMapPick?: "start" | "direction" | null;
+  /** 기본 지점 선택 팝업에서 Start·이동수단·목표거리를 확정하고 방향 선택으로 진입 */
+  onStartDistanceAutoRoute?: (input: {
+    start: LngLat;
+    profile: RouteProfile;
+    targetKm: number;
+  }) => { ok: true } | { ok: false; message: string };
+  onAutoRouteMapPick?: (
+    lngLat: LngLat,
+  ) => Promise<{ status: "found" | "failed"; message: string } | null>;
+  onRetryDistanceAutoRoute?: () => void;
+  onDismissDistanceAutoRoute?: () => void;
 };
 
 export function MapView({
@@ -1328,6 +1343,12 @@ export function MapView({
   rideActive = false,
   rideCameraDistanceM = RIDE_CAMERA_DISTANCE_DEFAULT_M,
   showRtwPoi = false,
+  distanceTargetCircle = null,
+  autoRouteMapPick = null,
+  onStartDistanceAutoRoute,
+  onAutoRouteMapPick,
+  onRetryDistanceAutoRoute,
+  onDismissDistanceAutoRoute,
 }: MapViewProps) {
   const trailSpectatorDataRef = useRef<{ dots: TrailSpectatorDot[]; routes: LineStringGeometry[] }>({
     dots: [],
@@ -1399,6 +1420,12 @@ export function MapView({
   const routeTokenInsufficientRef = useRef(routeTokenInsufficient);
   const onLookupPioneerRef = useRef(onLookupPioneer);
   const onClearRouteRef = useRef(onClearRoute);
+  const onStartDistanceAutoRouteRef = useRef(onStartDistanceAutoRoute);
+  const onAutoRouteMapPickRef = useRef(onAutoRouteMapPick);
+  const onRetryDistanceAutoRouteRef = useRef(onRetryDistanceAutoRoute);
+  const onDismissDistanceAutoRouteRef = useRef(onDismissDistanceAutoRoute);
+  const autoRouteMapPickRef = useRef(autoRouteMapPick);
+  const autoRouteSearchBusyRef = useRef(false);
   const onMapZoomRef = useRef(onMapZoom);
   const onMapViewportRef = useRef(onMapViewport);
   const onMapLodViewportRef = useRef(onMapLodViewport);
@@ -1514,6 +1541,26 @@ export function MapView({
   useEffect(() => {
     onClearRouteRef.current = onClearRoute;
   }, [onClearRoute]);
+
+  useEffect(() => {
+    onStartDistanceAutoRouteRef.current = onStartDistanceAutoRoute;
+  }, [onStartDistanceAutoRoute]);
+
+  useEffect(() => {
+    onAutoRouteMapPickRef.current = onAutoRouteMapPick;
+  }, [onAutoRouteMapPick]);
+
+  useEffect(() => {
+    onRetryDistanceAutoRouteRef.current = onRetryDistanceAutoRoute;
+  }, [onRetryDistanceAutoRoute]);
+
+  useEffect(() => {
+    onDismissDistanceAutoRouteRef.current = onDismissDistanceAutoRoute;
+  }, [onDismissDistanceAutoRoute]);
+
+  useEffect(() => {
+    autoRouteMapPickRef.current = autoRouteMapPick;
+  }, [autoRouteMapPick]);
 
   const coverageOverlayModeRef = useRef(coverageOverlayMode);
   const mapillaryClientTokenRef = useRef(mapillaryClientToken);
@@ -1737,6 +1784,7 @@ export function MapView({
     });
 
     map.on("click", (event) => {
+      if (autoRouteSearchBusyRef.current) return;
       const pinLabel = getActivityWorldPinLabelRef.current;
       if (
         pinLabel &&
@@ -1746,6 +1794,77 @@ export function MapView({
       }
 
       const picked: LngLat = [event.lngLat.lng, event.lngLat.lat];
+      if (autoRouteMapPickRef.current && onAutoRouteMapPickRef.current) {
+        popupRef.current?.remove();
+        const popup = new mapboxgl.Popup({
+          closeOnClick: false,
+          closeOnMove: false,
+          className: "map-view__pick-popup",
+          maxWidth: "min(20rem, calc(100vw - 1.5rem))",
+          anchor: pickPickPopupAnchor(map, event),
+          offset: 18,
+        })
+          .setLngLat(picked)
+          .setDOMContent(
+            buildAutoRouteStatusPopup({
+              state: "searching",
+              message: "목표 거리에 맞는 도로 경로를 찾는 중입니다…",
+            }),
+          )
+          .addTo(map);
+        popupRef.current = popup;
+        autoRouteSearchBusyRef.current = true;
+
+        const showDirectionPrompt = () => {
+          onRetryDistanceAutoRouteRef.current?.();
+          popup.setDOMContent(
+            buildAutoRouteStatusPopup({
+              state: "direction",
+              message: "지도를 클릭하여 주행 방향을 선택하세요.",
+              onCancel: () => {
+                onDismissDistanceAutoRouteRef.current?.();
+                popup.remove();
+              },
+            }),
+          );
+        };
+
+        void onAutoRouteMapPickRef.current(picked)
+          .then((result) => {
+            if (!result || popupRef.current !== popup) return;
+            popup.setDOMContent(
+              buildAutoRouteStatusPopup({
+                state: result.status,
+                message: result.message,
+                onRetry: result.status === "failed" ? showDirectionPrompt : undefined,
+                onConfirm:
+                  result.status === "found"
+                    ? () => {
+                        onDismissDistanceAutoRouteRef.current?.();
+                        popup.remove();
+                      }
+                    : undefined,
+              }),
+            );
+          })
+          .catch(() => {
+            if (popupRef.current !== popup) return;
+            popup.setDOMContent(
+              buildAutoRouteStatusPopup({
+                state: "failed",
+                message: "경로 탐색 중 오류가 발생했습니다. 방향을 다시 선택해 주세요.",
+                onRetry: showDirectionPrompt,
+              }),
+            );
+          })
+          .finally(() => {
+            autoRouteSearchBusyRef.current = false;
+          });
+        popup.on("close", () => {
+          if (popupRef.current === popup) popupRef.current = null;
+        });
+        return;
+      }
       popupRef.current?.remove();
       const ac = new AbortController();
       const closePopup = () => {
@@ -1769,8 +1888,14 @@ export function MapView({
             accessToken: accessToken.trim(),
             signal: ac.signal,
             onSelectPoint: (type, lngLat, slot) => onSelectPointRef.current(type, lngLat, slot),
+            initialStart: startLngLatRef.current,
             routeProfile: routeProfileRef.current,
             onRouteProfile: (p) => onRouteProfileRef.current(p),
+            onStartDistanceAutoRoute: (input) => onStartDistanceAutoRouteRef.current?.(input) ?? {
+              ok: false,
+              message: "자동 경로를 시작할 수 없습니다.",
+            },
+            onCancelDistanceAutoRoute: () => onDismissDistanceAutoRouteRef.current?.(),
             getRouteTokenInsufficient: () =>
               isRouteTokenBlocked() || routeTokenInsufficientRef.current,
             lookupPioneer: (ll) => onLookupPioneerRef.current?.(ll) ?? Promise.resolve(null),
@@ -1973,6 +2098,45 @@ export function MapView({
       map.off("moveend", onMoveEnd);
     };
   }, [routeGeometry, mapLoaded, prefersReducedMotion]);
+
+  const DISTANCE_TARGET_CIRCLE_SRC = "distance-target-circle";
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+
+    if (!distanceTargetCircle?.coordinates?.length) {
+      if (map.getLayer("distance-target-circle-line")) map.removeLayer("distance-target-circle-line");
+      if (map.getSource(DISTANCE_TARGET_CIRCLE_SRC)) map.removeSource(DISTANCE_TARGET_CIRCLE_SRC);
+      return;
+    }
+
+    const feature = {
+      type: "Feature" as const,
+      properties: {} as Record<string, never>,
+      geometry: distanceTargetCircle,
+    };
+
+    if (map.getSource(DISTANCE_TARGET_CIRCLE_SRC)) {
+      (map.getSource(DISTANCE_TARGET_CIRCLE_SRC) as mapboxgl.GeoJSONSource).setData(feature);
+    } else {
+      map.addSource(DISTANCE_TARGET_CIRCLE_SRC, { type: "geojson", data: feature });
+      map.addLayer(
+        {
+          id: "distance-target-circle-line",
+          type: "line",
+          source: DISTANCE_TARGET_CIRCLE_SRC,
+          paint: {
+            "line-color": "#E8A33D",
+            "line-width": 2,
+            "line-dasharray": [2, 2],
+            "line-opacity": 0.85,
+          },
+        },
+        map.getLayer("route") ? "route" : undefined,
+      );
+    }
+  }, [mapLoaded, distanceTargetCircle]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -3057,8 +3221,15 @@ function buildPickPopup(deps: {
     lngLat: LngLat,
     waypointSlot?: 0 | 1 | 2,
   ) => void;
+  initialStart: LngLat | null;
   routeProfile: RouteProfile;
   onRouteProfile: (p: RouteProfile) => void;
+  onStartDistanceAutoRoute?: (input: {
+    start: LngLat;
+    profile: RouteProfile;
+    targetKm: number;
+  }) => { ok: true } | { ok: false; message: string };
+  onCancelDistanceAutoRoute?: () => void;
   /** 호출 시점의 Route Token 부족 여부(잔액<1) — true면 수단 버튼 비활성 */
   getRouteTokenInsufficient?: () => boolean;
   /** Conquest — 이 지점 영토의 개척자 한 줄(null=미개척) */
@@ -3074,8 +3245,11 @@ function buildPickPopup(deps: {
     accessToken,
     signal,
     onSelectPoint,
+    initialStart,
     routeProfile,
     onRouteProfile,
+    onStartDistanceAutoRoute,
+    onCancelDistanceAutoRoute,
     getRouteTokenInsufficient,
     lookupPioneer,
     onClearRoute,
@@ -3090,6 +3264,7 @@ function buildPickPopup(deps: {
 
   /** 팝업이 열린 뒤 출발/도착 클릭으로 갱신되는 끝점 보유 상태(리렌더 전에도 동작). */
   const pins = { start: initialHasStart, end: initialHasEnd };
+  let selectedStart = initialStart;
 
   const addressEl = document.createElement("div");
   addressEl.className = "map-view__pick-address";
@@ -3111,8 +3286,10 @@ function buildPickPopup(deps: {
   startBtn.onclick = () => {
     onSelectPoint("start", lngLat);
     pins.start = true;
-    if (!pins.end) closePopup();
-    else syncProfileUi();
+    selectedStart = lngLat;
+    syncProfileUi();
+    syncAutoRouteUi();
+    syncTokenUi();
   };
 
   const wpSlots: (0 | 1 | 2)[] = [0, 1, 2];
@@ -3146,7 +3323,11 @@ function buildPickPopup(deps: {
     onSelectPoint("end", lngLat);
     pins.end = true;
     if (!pins.start) closePopup();
-    else syncProfileUi();
+    else {
+      syncProfileUi();
+      syncAutoRouteUi();
+      syncTokenUi();
+    }
   };
 
   pinRow.append(startBtn, wpButtons[0]!, wpButtons[1]!, wpButtons[2]!, endBtn);
@@ -3173,6 +3354,7 @@ function buildPickPopup(deps: {
       onClearRoute();
       pins.start = false;
       pins.end = false;
+      selectedStart = null;
       closePopup();
     };
     profileHeader.append(profileLabel, clearRouteBtn);
@@ -3225,7 +3407,6 @@ function buildPickPopup(deps: {
     }
     wrap.classList.toggle("map-view__pick--awaiting-profile", ready);
     profileLabel.textContent = "경로 탐색 유형 선택";
-    tokenSection.hidden = !ready;
     if (!ready) return;
     const tokenInsufficient = Boolean(getRouteTokenInsufficient?.());
     profileSpecs.forEach((spec, i) => {
@@ -3243,11 +3424,155 @@ function buildPickPopup(deps: {
     });
   }
 
-  profileSection.append(profileHeader, tokenSection, rowProfile);
+  function syncTokenUi() {
+    tokenSection.hidden = !pins.start;
+  }
+
+  profileSection.append(profileHeader, rowProfile);
   syncProfileUi();
+  syncTokenUi();
+
+  const autoRouteSection = document.createElement("div");
+  autoRouteSection.className = "map-view__pick-auto-route";
+
+  const autoRouteLabel = document.createElement("p");
+  autoRouteLabel.className = "map-view__pick-profile-label";
+  autoRouteLabel.textContent = "End 선택";
+
+  const autoRouteOpenBtn = document.createElement("button");
+  autoRouteOpenBtn.type = "button";
+  autoRouteOpenBtn.className = "map-view__pick-btn map-view__pick-btn--auto-route";
+  autoRouteOpenBtn.textContent = "목표 거리로 End 자동 찾기";
+
+  const autoRouteForm = document.createElement("div");
+  autoRouteForm.className = "map-view__pick-auto-route-form";
+  autoRouteForm.hidden = true;
+
+  const autoProfileLabel = document.createElement("p");
+  autoProfileLabel.className = "map-view__pick-auto-route-hint";
+  autoProfileLabel.textContent = "이동수단";
+
+  const autoProfileRow = document.createElement("div");
+  autoProfileRow.className = "map-view__pick-auto-route-options";
+  let autoProfile = routeProfile;
+  const autoProfileSpecs: { profile: RouteProfile; label: string }[] = [
+    { profile: "cycling", label: "자전거" },
+    { profile: "driving", label: "자동차" },
+    { profile: "walking", label: "도보" },
+  ];
+  const autoProfileButtons = autoProfileSpecs.map((spec) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "map-view__pick-btn map-view__pick-btn--auto-option";
+    button.textContent = spec.label;
+    button.classList.toggle("is-active", spec.profile === autoProfile);
+    button.onclick = () => {
+      autoProfile = spec.profile;
+      autoProfileButtons.forEach((item, index) => {
+        item.classList.toggle("is-active", autoProfileSpecs[index]?.profile === autoProfile);
+      });
+    };
+    autoProfileRow.appendChild(button);
+    return button;
+  });
+
+  const distanceLabel = document.createElement("p");
+  distanceLabel.className = "map-view__pick-auto-route-hint";
+  distanceLabel.textContent = "목표 거리 · 원은 직선거리 안내입니다";
+
+  const distanceRow = document.createElement("div");
+  distanceRow.className = "map-view__pick-auto-route-options";
+  const distancePresets = [3, 5, 10, 15, 20, 30] as const;
+  let targetKm = 10;
+  const distanceButtons = distancePresets.map((km) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "map-view__pick-btn map-view__pick-btn--auto-option";
+    button.textContent = `${km} km`;
+    button.classList.toggle("is-active", km === targetKm);
+    button.onclick = () => {
+      targetKm = km;
+      distanceButtons.forEach((item, index) => {
+        item.classList.toggle("is-active", distancePresets[index] === targetKm);
+      });
+    };
+    distanceRow.appendChild(button);
+    return button;
+  });
+
+  const autoRouteError = document.createElement("p");
+  autoRouteError.className = "map-view__pick-auto-route-error";
+  autoRouteError.hidden = true;
+
+  const directionBtn = document.createElement("button");
+  directionBtn.type = "button";
+  directionBtn.className = "map-view__pick-btn map-view__pick-btn--auto-direction";
+  directionBtn.textContent = "지도에서 방향 선택";
+  directionBtn.onclick = () => {
+    if (!selectedStart || typeof onStartDistanceAutoRoute !== "function") return;
+    if (getRouteTokenInsufficient?.()) {
+      autoRouteError.textContent = ROUTE_TOKEN_INSUFFICIENT_HINT;
+      autoRouteError.hidden = false;
+      return;
+    }
+    const result = onStartDistanceAutoRoute({ start: selectedStart, profile: autoProfile, targetKm });
+    if (!result.ok) {
+      autoRouteError.textContent = result.message;
+      autoRouteError.hidden = false;
+      return;
+    }
+    wrap.replaceChildren(
+      buildAutoRouteStatusPopup({
+        state: "direction",
+        message: "지도를 클릭하여 주행 방향을 선택하세요.",
+        onCancel: () => {
+          onCancelDistanceAutoRoute?.();
+          closePopup();
+        },
+      }),
+    );
+  };
+
+  autoRouteOpenBtn.onclick = () => {
+    autoRouteOpenBtn.hidden = true;
+    autoRouteForm.hidden = false;
+  };
+
+  autoRouteForm.append(
+    autoProfileLabel,
+    autoProfileRow,
+    distanceLabel,
+    distanceRow,
+    autoRouteError,
+    directionBtn,
+  );
+  autoRouteSection.append(autoRouteLabel, autoRouteOpenBtn, autoRouteForm);
+
+  function syncAutoRouteUi() {
+    const available = pins.start && !pins.end && typeof onStartDistanceAutoRoute === "function";
+    autoRouteSection.hidden = !available;
+    if (!available) {
+      autoRouteOpenBtn.hidden = false;
+      autoRouteForm.hidden = true;
+      autoRouteError.hidden = true;
+      return;
+    }
+    const tokenInsufficient = Boolean(getRouteTokenInsufficient?.());
+    autoRouteOpenBtn.disabled = tokenInsufficient;
+    directionBtn.disabled = tokenInsufficient;
+    autoRouteOpenBtn.classList.toggle("is-disabled", tokenInsufficient);
+    directionBtn.classList.toggle("is-disabled", tokenInsufficient);
+    if (tokenInsufficient) {
+      autoRouteOpenBtn.hidden = false;
+      autoRouteForm.hidden = true;
+    }
+  }
+  syncAutoRouteUi();
 
   const unsubTokenForProfile = subscribeRouteTokenEffective(() => {
     syncProfileUi();
+    syncAutoRouteUi();
+    syncTokenUi();
   });
   signal.addEventListener(
     "abort",
@@ -3275,7 +3600,7 @@ function buildPickPopup(deps: {
       });
   }
 
-  wrap.append(addressEl, metaEl, pioneerEl, pinRow, profileSection);
+  wrap.append(addressEl, metaEl, pioneerEl, pinRow, tokenSection, autoRouteSection, profileSection);
 
   const token = accessToken.trim();
   if (token.length > 0) {
@@ -3312,5 +3637,72 @@ function buildPickPopup(deps: {
     })();
   }
 
+  return wrap;
+}
+
+function buildAutoRouteStatusPopup(input: {
+  state: "direction" | "searching" | "found" | "failed";
+  message: string;
+  onRetry?: () => void;
+  onConfirm?: () => void;
+  onCancel?: () => void;
+}): HTMLDivElement {
+  const wrap = document.createElement("div");
+  wrap.className = "map-view__auto-route-status";
+
+  const title = document.createElement("p");
+  title.className = "map-view__auto-route-status-title";
+  title.textContent =
+    input.state === "found"
+      ? "자동 End를 찾았습니다"
+      : input.state === "failed"
+        ? "경로를 찾지 못했습니다"
+        : "목표 거리로 End 찾기";
+
+  const message = document.createElement("p");
+  message.className = "map-view__auto-route-status-message";
+  message.setAttribute("role", "status");
+  message.textContent = input.message;
+
+  wrap.append(title, message);
+
+  if (input.state === "searching") {
+    const progress = document.createElement("div");
+    progress.className = "map-view__auto-route-progress";
+    progress.setAttribute("aria-hidden", "true");
+    wrap.appendChild(progress);
+  }
+
+  const actions = document.createElement("div");
+  actions.className = "map-view__auto-route-status-actions";
+
+  if (input.onRetry) {
+    const retry = document.createElement("button");
+    retry.type = "button";
+    retry.className = "map-view__pick-btn map-view__pick-btn--auto-direction";
+    retry.textContent = "방향 다시 선택";
+    retry.onclick = input.onRetry;
+    actions.appendChild(retry);
+  }
+
+  if (input.onConfirm) {
+    const confirm = document.createElement("button");
+    confirm.type = "button";
+    confirm.className = "map-view__pick-btn map-view__pick-btn--auto-direction";
+    confirm.textContent = "확인";
+    confirm.onclick = input.onConfirm;
+    actions.appendChild(confirm);
+  }
+
+  if (input.onCancel) {
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.className = "map-view__pick-btn map-view__pick-btn--auto-cancel";
+    cancel.textContent = "취소";
+    cancel.onclick = input.onCancel;
+    actions.appendChild(cancel);
+  }
+
+  if (actions.childElementCount > 0) wrap.appendChild(actions);
   return wrap;
 }

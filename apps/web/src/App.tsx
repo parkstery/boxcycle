@@ -104,6 +104,7 @@ import { usePublicationCatalogHub } from "./hooks/usePublicationCatalogHub";
 import { usePublicRouteReviewMeta } from "./hooks/usePublicRouteReviewMeta";
 import { useSavedRoutesWorkspace } from "./hooks/useSavedRoutesWorkspace";
 import { useRideEndAndPersistence } from "./hooks/useRideEndAndPersistence";
+import { useDistanceAutoRoute } from "./hooks/useDistanceAutoRoute";
 import {
   DEFAULT_MAP_STYLE,
   MAP_STYLE_OPTIONS,
@@ -1494,6 +1495,27 @@ export default function App() {
   /** 맵 핀·경로 생성 등 — 프로덕션 주행 중에만 맵에서 잠금(좌측 MENU 패널은 항상 사용 가능) */
   const routeMenuLockedForProd = lockRouteWorkspaceDuringRide(rideStatus !== "idle");
 
+  const distanceAutoRoute = useDistanceAutoRoute({
+    user,
+    functionsRegion: FUNCTIONS_REGION,
+    rideLocked: routeMenuLockedForProd,
+    routeTokenInsufficient: routeTokenBalance != null && routeTokenBalance < 1,
+    onClearRouteArtifacts: () => clearRouteArtifactsRef.current(),
+    onApplyRoute: (result) => {
+      setRouteWaypoints([]);
+      setStartLngLat(result.start);
+      setEndLngLat(result.end);
+      setProfile(result.profile);
+      setRouteGeometry(result.geometry);
+      setRouteDistanceMeters(result.distanceMeters);
+      setRouteDurationSec(result.durationSec);
+      setRouteSummary(result.summary);
+      resetRide();
+      setActiveOfficialCourseId(null);
+      setPlaceSearchMarkerLngLat(null);
+    },
+  });
+
   const handleClearPins = useCallback(() => {
     clearRoutePins(routeMenuLockedForProd);
   }, [clearRoutePins, routeMenuLockedForProd]);
@@ -1889,6 +1911,21 @@ export default function App() {
               activityWorldRaw,
               getActivityWorldPinLabel,
               rideFollowCameraNonce,
+              distanceTargetCircle: distanceAutoRoute.circleGeometry,
+              autoRouteMapPick: distanceAutoRoute.mapPickMode,
+              onStartDistanceAutoRoute: (input) => {
+                const result = distanceAutoRoute.startFromMapPopup(input);
+                if (result.ok) {
+                  setStartLngLat(input.start);
+                  setProfile(input.profile);
+                  setActiveOfficialCourseId(null);
+                  setPlaceSearchMarkerLngLat(null);
+                }
+                return result;
+              },
+              onAutoRouteMapPick: distanceAutoRoute.handleMapPick,
+              onRetryDistanceAutoRoute: distanceAutoRoute.retryDirection,
+              onDismissDistanceAutoRoute: distanceAutoRoute.dismissResult,
             }}
             lodDebug={lodDebugPanelProps}
             mapHud={{
@@ -1988,7 +2025,7 @@ export default function App() {
         </div>
         <RideRoutePanel
           routeSummary={routeSummary}
-          routeLoading={routeLoading}
+          routeLoading={routeLoading || distanceAutoRoute.isSearching}
           basicSharedHubs={BASIC_SHARED_HUB_SUMMARIES}
           basicActiveHubCourseId={basicActiveHubCourseId}
           basicStartLoading={basicStartLoading}

@@ -5,17 +5,19 @@ import { resolveHarnessActive } from "./harnessActive.js";
 import {
   getHarnessFakeMapboxCallCount,
   resetHarnessFakeMapbox,
+  setHarnessFakeMapboxFailAll,
   setHarnessFakeMapboxFailNext,
 } from "./harnessFakeMapbox.js";
 import { ROUTE_TOKEN_LEDGER } from "./routeTokenCore.js";
 
-type HarnessAction = "reset" | "stats" | "setFailNext" | "inspectUser" | "setBalance";
+type HarnessAction = "reset" | "stats" | "setFailNext" | "setFailAll" | "inspectUser" | "setBalance";
 
 function parseAction(raw: unknown): HarnessAction {
   if (
     raw === "reset" ||
     raw === "stats" ||
     raw === "setFailNext" ||
+    raw === "setFailAll" ||
     raw === "inspectUser" ||
     raw === "setBalance"
   ) {
@@ -79,6 +81,13 @@ export const routeTokenHarnessControl = onRequest(
         const fail = data.fail === true;
         await setHarnessFakeMapboxFailNext(fail);
         res.status(200).json({ result: { failNext: fail } });
+        return;
+      }
+
+      if (action === "setFailAll") {
+        const fail = data.fail === true;
+        await setHarnessFakeMapboxFailAll(fail);
+        res.status(200).json({ result: { failAll: fail } });
         return;
       }
 
