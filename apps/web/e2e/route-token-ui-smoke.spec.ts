@@ -149,10 +149,14 @@ async function openRoutePopupWithPins(
 
   await clickMap(page, 180 + offset, 180);
   const popup = page.locator(".map-view__pick-popup").last();
-  await popup.getByRole("button", { name: "Set start" }).click({ timeout: 30_000, force: true });
+  await popup
+    .getByRole("button", { name: "Set start" })
+    .evaluate((node) => (node as HTMLButtonElement).click());
   await clickMap(page, 260 + offset, 240);
   const endPopup = page.locator(".map-view__pick-popup").last();
-  await endPopup.getByRole("button", { name: "Set end" }).click({ timeout: 30_000, force: true });
+  await endPopup
+    .getByRole("button", { name: "Set end" })
+    .evaluate((node) => (node as HTMLButtonElement).click());
   await expect(endPopup).toBeVisible({ timeout: 30_000 });
 }
 
