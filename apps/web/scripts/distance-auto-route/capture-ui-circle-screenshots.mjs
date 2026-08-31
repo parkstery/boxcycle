@@ -84,15 +84,15 @@ async function captureViewport(viewport) {
       throw new Error("거리 preset 행이 없습니다");
     }
 
-    const shot10Path = path.join(OUT_DIR, `3b-auto-route-expanded-10km-${viewport.label}.png`);
+    const shot10Path = path.join(OUT_DIR, `3b-r2-red-circle-10km-${viewport.label}.png`);
     await page.screenshot({ path: shot10Path, fullPage: false });
     console.log(`[screenshot] ${shot10Path}`);
 
-    await popup.getByRole("button", { name: "5 km", exact: true }).click();
+    await popup.getByRole("button", { name: "3 km", exact: true }).click();
     await page.waitForTimeout(1200);
-    const shot5Path = path.join(OUT_DIR, `3b-auto-route-5km-${viewport.label}.png`);
-    await page.screenshot({ path: shot5Path, fullPage: false });
-    console.log(`[screenshot] ${shot5Path}`);
+    const shot3Path = path.join(OUT_DIR, `3b-r2-red-circle-3km-${viewport.label}.png`);
+    await page.screenshot({ path: shot3Path, fullPage: false });
+    console.log(`[screenshot] ${shot3Path}`);
   } finally {
     await context.close();
     await browser.close();

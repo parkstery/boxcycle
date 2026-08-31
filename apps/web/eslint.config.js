@@ -30,12 +30,4 @@ export default defineConfig([
       ],
     },
   },
-  {
-    files: ['src/App.tsx'],
-    rules: {
-      // App god-file — ref mirror·effect 동기화는 기존 패턴 유지(3B 커밋 pre-commit 통과용).
-      'react-hooks/refs': 'off',
-      'react-hooks/set-state-in-effect': 'off',
-    },
-  },
 ])
