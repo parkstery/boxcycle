@@ -399,20 +399,17 @@
 }
 
 .map-view__pick-auto-route {
-  margin-top: 0.42rem;
-  padding-top: 0.42rem;
-  border-top: 1px solid rgba(248, 250, 252, 0.12);
-}
-
-.map-view__pick-auto-route > .map-view__pick-profile-label {
-  margin: 0 0 0.3rem;
+  margin-top: 0.32rem;
+  padding-top: 0.32rem;
+  border-top: 1px solid rgba(248, 250, 252, 0.1);
 }
 
 .map-view__pick-btn--auto-route,
 .map-view__pick-btn--auto-direction {
   width: 100%;
-  border-radius: 0.65rem;
-  padding: 0.48rem 0.65rem;
+  border-radius: 0.55rem;
+  padding: 0.38rem 0.55rem;
+  font-size: 0.72rem;
   color: #111827;
   background: #f0a52f;
   border-color: rgba(251, 191, 36, 0.9);
@@ -425,7 +422,10 @@
 
 .map-view__pick-auto-route-form {
   display: grid;
-  gap: 0.34rem;
+  gap: 0.28rem;
+  max-height: min(9.5rem, 28vh);
+  overflow-y: auto;
+  padding-right: 0.08rem;
 }
 
 .map-view__pick-auto-route-hint,
@@ -443,6 +443,8 @@
 }
 
 .map-view__pick-btn--auto-option {
+  padding: 0.24rem 0.42rem;
+  font-size: 0.68rem;
   color: #e2e8f0;
   background: rgba(248, 250, 252, 0.07);
   border-color: rgba(248, 250, 252, 0.14);

@@ -7,6 +7,7 @@ import {
   reportRouteTokenSpend,
 } from "../lib/routeTokenSpendBridge";
 import { ROUTE_TOKEN_INSUFFICIENT_HINT } from "../lib/routeTokenUiCopy";
+import { formatDistanceAutoRouteClientError } from "../lib/distanceAutoRouteErrors";
 import { resolveFunctionsHttpUrl } from "../lib/functionsEmulatorUrl";
 import type { RouteProfile } from "./mapboxDirections";
 
@@ -83,14 +84,19 @@ export async function fetchDistanceAutoRoute(
   const url =
     emulatorUrl ?? `https://${region}-${projectId}.cloudfunctions.net/getDistanceAutoRoute`;
   const idToken = await user.getIdToken();
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${idToken}`,
-    },
-    body: JSON.stringify({ data: input }),
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ data: input }),
+    });
+  } catch (error) {
+    throw new Error(formatDistanceAutoRouteClientError(error), { cause: error });
+  }
   let json: {
     result?: DistanceAutoRouteResponse;
     error?: { message?: string; status?: string };

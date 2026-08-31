@@ -1515,10 +1515,34 @@ export default function App() {
       setPlaceSearchMarkerLngLat(null);
     },
   });
+  const {
+    clearCirclePreview,
+    dismissResult,
+    previewCircleAt,
+    circleFitToken,
+    circleGeometry,
+    mapPickMode,
+    startFromMapPopup,
+    handleMapPick,
+    retryDirection,
+    isSearching,
+    setProfile: setAutoRouteProfile,
+  } = distanceAutoRoute;
 
   const handleClearPins = useCallback(() => {
     clearRoutePins(routeMenuLockedForProd);
-  }, [clearRoutePins, routeMenuLockedForProd]);
+    clearCirclePreview();
+    dismissResult();
+  }, [clearRoutePins, routeMenuLockedForProd, clearCirclePreview, dismissResult]);
+
+  const handleSetRouteProfileOnly = useCallback(
+    (p: RouteProfile) => {
+      if (routeMenuLockedForProd) return;
+      setProfile(p);
+      setAutoRouteProfile(p);
+    },
+    [routeMenuLockedForProd, setProfile, setAutoRouteProfile],
+  );
 
   const handleMapRouteProfile = useCallback(
     (p: RouteProfile) => {
@@ -1911,10 +1935,14 @@ export default function App() {
               activityWorldRaw,
               getActivityWorldPinLabel,
               rideFollowCameraNonce,
-              distanceTargetCircle: distanceAutoRoute.circleGeometry,
-              autoRouteMapPick: distanceAutoRoute.mapPickMode,
+              distanceTargetCircle: circleGeometry,
+              distanceTargetCircleFitToken: circleFitToken,
+              autoRouteMapPick: mapPickMode,
+              onPreviewDistanceAutoRouteCircle: previewCircleAt,
+              onClearDistanceAutoRouteCircle: clearCirclePreview,
+              onSetRouteProfileOnly: handleSetRouteProfileOnly,
               onStartDistanceAutoRoute: (input) => {
-                const result = distanceAutoRoute.startFromMapPopup(input);
+                const result = startFromMapPopup(input);
                 if (result.ok) {
                   setStartLngLat(input.start);
                   setProfile(input.profile);
@@ -1923,9 +1951,9 @@ export default function App() {
                 }
                 return result;
               },
-              onAutoRouteMapPick: distanceAutoRoute.handleMapPick,
-              onRetryDistanceAutoRoute: distanceAutoRoute.retryDirection,
-              onDismissDistanceAutoRoute: distanceAutoRoute.dismissResult,
+              onAutoRouteMapPick: handleMapPick,
+              onRetryDistanceAutoRoute: retryDirection,
+              onDismissDistanceAutoRoute: dismissResult,
             }}
             lodDebug={lodDebugPanelProps}
             mapHud={{
@@ -2025,7 +2053,7 @@ export default function App() {
         </div>
         <RideRoutePanel
           routeSummary={routeSummary}
-          routeLoading={routeLoading || distanceAutoRoute.isSearching}
+          routeLoading={routeLoading || isSearching}
           basicSharedHubs={BASIC_SHARED_HUB_SUMMARIES}
           basicActiveHubCourseId={basicActiveHubCourseId}
           basicStartLoading={basicStartLoading}

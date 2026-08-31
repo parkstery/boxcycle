@@ -8,6 +8,10 @@ import {
   bearingFromOriginToPoint,
   circleLineString,
 } from "../lib/distanceAutoRoute";
+import {
+  DISTANCE_AUTO_ROUTE_DIRECTION_HINT,
+  formatDistanceAutoRouteClientError,
+} from "../lib/distanceAutoRouteErrors";
 import { fetchDistanceAutoRoute } from "../services/distanceAutoRouteApi";
 import type { RouteProfile } from "../services/mapboxDirections";
 import type { ScoredAutoRoute } from "../lib/distanceAutoRoute";
@@ -66,11 +70,20 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
   const [targetKm, setTargetKm] = useState(10);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [bearingDeg, setBearingDeg] = useState<number | null>(null);
+  const [circlePreviewState, setCirclePreviewState] = useState<{
+    preview: { start: LngLat; targetKm: number } | null;
+    fitToken: number;
+  }>({ preview: null, fitToken: 0 });
   const activeRequestIdRef = useRef<string | null>(null);
 
   const targetMeters = targetKm * 1000;
+  const circlePreview = circlePreviewState.preview;
+  const circleFitToken = circlePreviewState.fitToken;
 
   const circleGeometry = useMemo(() => {
+    if (circlePreview) {
+      return circleLineString(circlePreview.start, circlePreview.targetKm * 1000);
+    }
     if (
       !start ||
       step === "closed" ||
@@ -80,7 +93,18 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
       return null;
     }
     return circleLineString(start, targetMeters);
-  }, [start, targetMeters, step]);
+  }, [circlePreview, start, targetMeters, step]);
+
+  const previewCircleAt = useCallback((input: { start: LngLat; targetKm: number }) => {
+    setCirclePreviewState((prev) => ({
+      preview: input,
+      fitToken: prev.fitToken + 1,
+    }));
+  }, []);
+
+  const clearCirclePreview = useCallback(() => {
+    setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
+  }, []);
 
   const open = useCallback(() => {
     if (rideLocked) {
@@ -104,6 +128,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
     setStep("closed");
     setStatusMessage(null);
     setBearingDeg(null);
+    setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
     activeRequestIdRef.current = null;
   }, []);
 
@@ -130,8 +155,9 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
       setProfile(input.profile);
       setTargetKm(input.targetKm);
       setBearingDeg(null);
+      setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
       activeRequestIdRef.current = null;
-      setStatusMessage("지도를 클릭하여 주행 방향을 선택하세요.");
+      setStatusMessage(DISTANCE_AUTO_ROUTE_DIRECTION_HINT);
       setStep("pick_direction");
       return { ok: true };
     },
@@ -156,7 +182,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
       setStatusMessage("목표 거리는 0.5~120 km 입니다.");
       return;
     }
-    setStatusMessage("지도를 클릭하여 주행 방향을 선택하세요.");
+    setStatusMessage(DISTANCE_AUTO_ROUTE_DIRECTION_HINT);
     setStep("pick_direction");
   }, [targetKm]);
 
@@ -213,8 +239,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
           setBearingDeg(bearing);
           return { status: "found", message: response.summary };
         } catch (e) {
-          const message =
-            e instanceof Error ? e.message : "목표거리와 적합한 경로를 찾지 못했습니다.";
+          const message = formatDistanceAutoRouteClientError(e);
           setStatusMessage(message);
           setStep("search_failed");
           return { status: "failed", message };
@@ -236,13 +261,14 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
 
   const retryDirection = useCallback(() => {
     activeRequestIdRef.current = null;
-    setStatusMessage("지도를 클릭하여 주행 방향을 선택하세요.");
+    setStatusMessage(DISTANCE_AUTO_ROUTE_DIRECTION_HINT);
     setStep("pick_direction");
   }, []);
 
   const dismissResult = useCallback(() => {
     setStep("closed");
     setStatusMessage(null);
+    setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
     activeRequestIdRef.current = null;
   }, []);
 
@@ -262,6 +288,9 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
     statusMessage,
     bearingDeg,
     circleGeometry,
+    circleFitToken,
+    previewCircleAt,
+    clearCirclePreview,
     mapPickMode,
     handleMapPick,
     confirmStart,
