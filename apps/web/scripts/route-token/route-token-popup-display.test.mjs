@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   resolveRouteTokenPopupSecondary,
+  formatRouteTokenPopupLine,
   ROUTE_TOKEN_POPUP_SECONDARY_TEST_IDS,
 } from "../../src/lib/routeTokenPopupDisplay.mjs";
 
@@ -46,5 +47,29 @@ describe("route token popup display", () => {
     });
     assert.equal(result.variant, "pending");
     assert.equal(result.text, "경로 생성 중…");
+  });
+
+  it("잔액·보조 상태를 한 줄로 조합한다", () => {
+    const holding = "경로 생성 잔여 토큰 0개";
+    const secondary = resolveRouteTokenPopupSecondary({
+      insufficient: true,
+      spendMessage: null,
+      routePending: false,
+    });
+    assert.equal(
+      formatRouteTokenPopupLine(holding, secondary),
+      "경로 생성 잔여 토큰 0개 · 경로 토큰 부족",
+    );
+  });
+
+  it("보조 상태가 없으면 구분자 없이 잔액만 표시한다", () => {
+    const holding = "경로 생성 잔여 토큰 3개";
+    const secondary = resolveRouteTokenPopupSecondary({
+      insufficient: false,
+      spendMessage: null,
+      routePending: false,
+    });
+    assert.equal(formatRouteTokenPopupLine(holding, secondary), "경로 생성 잔여 토큰 3개");
+    assert.equal(secondary.text, "");
   });
 });

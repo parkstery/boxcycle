@@ -17,6 +17,16 @@ export function resolveRouteTokenPopupSecondary({ insufficient, spendMessage, ro
   return { variant: "cost", text: "" };
 }
 
+/**
+ * @param {string} holding
+ * @param {{ variant: RouteTokenPopupSecondaryVariant; text: string }} secondary
+ * @returns {string}
+ */
+export function formatRouteTokenPopupLine(holding, secondary) {
+  if (!secondary.text) return holding;
+  return `${holding} · ${secondary.text}`;
+}
+
 export const ROUTE_TOKEN_POPUP_SECONDARY_TEST_IDS = {
   cost: "route-token-cost-hint",
   insufficient: "route-token-insufficient",

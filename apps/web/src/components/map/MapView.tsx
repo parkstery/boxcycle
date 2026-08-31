@@ -3483,38 +3483,16 @@ function buildPickPopup(deps: {
   const profileSection = document.createElement("div");
   profileSection.className = "map-view__pick-profile-section";
 
-  const profileHeader = document.createElement("div");
-  profileHeader.className = "map-view__pick-profile-header";
-
-  const profileLabel = document.createElement("p");
-  profileLabel.className = "map-view__pick-profile-label";
-  profileLabel.id = "map-view-pick-profile-label";
-  profileLabel.textContent = "경로 탐색 유형 선택";
-
-  if (typeof onClearRoute === "function") {
-    const clearRouteBtn = document.createElement("button");
-    clearRouteBtn.type = "button";
-    clearRouteBtn.className = "map-view__pick-btn map-view__pick-btn--clear-route";
-    clearRouteBtn.textContent = "경로 삭제";
-    clearRouteBtn.title = "Clear route";
-    clearRouteBtn.setAttribute("aria-label", "경로 전체 삭제");
-    clearRouteBtn.onclick = () => {
-      onClearRoute();
-      onClearDistanceAutoRouteCircle?.();
-      pins.start = false;
-      pins.end = false;
-      selectedStart = null;
-      closePopup();
-    };
-    profileHeader.append(profileLabel, clearRouteBtn);
-  } else {
-    profileHeader.appendChild(profileLabel);
-  }
-
   const rowProfile = document.createElement("div");
   rowProfile.className = "map-view__pick-actions map-view__pick-actions--profile";
   rowProfile.setAttribute("role", "group");
+
+  const profileLabel = document.createElement("span");
+  profileLabel.className = "map-view__pick-sr-only";
+  profileLabel.id = "map-view-pick-profile-label";
+  profileLabel.textContent = "이동수단";
   rowProfile.setAttribute("aria-labelledby", "map-view-pick-profile-label");
+  rowProfile.append(profileLabel);
 
   const tokenSection = document.createElement("div");
   const tokenFeedback = mountRouteTokenPopupFeedback(tokenSection, signal);
@@ -3554,6 +3532,24 @@ function buildPickPopup(deps: {
     rowProfile.appendChild(pb);
   }
 
+  if (typeof onClearRoute === "function") {
+    const clearRouteBtn = document.createElement("button");
+    clearRouteBtn.type = "button";
+    clearRouteBtn.className = "map-view__pick-btn map-view__pick-btn--clear-route";
+    clearRouteBtn.textContent = "경로 삭제";
+    clearRouteBtn.title = "Clear route";
+    clearRouteBtn.setAttribute("aria-label", "경로 전체 삭제");
+    clearRouteBtn.onclick = () => {
+      onClearRoute();
+      onClearDistanceAutoRouteCircle?.();
+      pins.start = false;
+      pins.end = false;
+      selectedStart = null;
+      closePopup();
+    };
+    rowProfile.appendChild(clearRouteBtn);
+  }
+
   function syncProfileUi() {
     const hasStart = pins.start;
     const manualRouteReady = pins.start && pins.end && !autoSessionActive;
@@ -3561,9 +3557,6 @@ function buildPickPopup(deps: {
     rowProfile.hidden = !hasStart;
     wrap.classList.toggle("map-view__pick--awaiting-profile", manualRouteReady);
     profileLabel.textContent = manualRouteReady ? "경로 탐색 유형 선택" : "이동수단";
-    profileLabel.className = manualRouteReady
-      ? "map-view__pick-profile-label"
-      : "map-view__pick-profile-label map-view__pick-sr-only";
     profileSpecs.forEach((spec, i) => {
       const pb = profileButtons[i];
       if (!pb) return;
@@ -3596,7 +3589,7 @@ function buildPickPopup(deps: {
     tokenSection.hidden = !pins.start;
   }
 
-  profileSection.append(profileHeader, rowProfile);
+  profileSection.append(rowProfile);
   syncProfileUi();
   syncTokenUi();
 
@@ -3609,9 +3602,21 @@ function buildPickPopup(deps: {
   distanceRow.className = "map-view__pick-distance-row";
 
   const distanceLabel = document.createElement("label");
-  distanceLabel.className = "map-view__pick-distance-label";
+  distanceLabel.className = "map-view__pick-sr-only";
   distanceLabel.textContent = "목표거리(km)";
   distanceLabel.htmlFor = "map-view-pick-distance-slider";
+
+  const minusBtn = document.createElement("button");
+  minusBtn.type = "button";
+  minusBtn.className = "map-view__pick-distance-step map-view__pick-distance-step--minus";
+  minusBtn.textContent = "−";
+  minusBtn.setAttribute("aria-label", "목표 거리 0.5km 감소");
+
+  const plusBtn = document.createElement("button");
+  plusBtn.type = "button";
+  plusBtn.className = "map-view__pick-distance-step map-view__pick-distance-step--plus";
+  plusBtn.textContent = "+";
+  plusBtn.setAttribute("aria-label", "목표 거리 0.5km 증가");
 
   const distanceSlider = document.createElement("input");
   distanceSlider.type = "range";
@@ -3623,14 +3628,13 @@ function buildPickPopup(deps: {
   distanceSlider.value = String(targetKm);
 
   const distanceNumber = document.createElement("input");
-  distanceNumber.type = "number";
+  distanceNumber.type = "text";
+  distanceNumber.inputMode = "decimal";
   distanceNumber.className = "map-view__pick-distance-number";
-  distanceNumber.min = String(DISTANCE_AUTO_ROUTE_KM_MIN);
-  distanceNumber.max = String(DISTANCE_AUTO_ROUTE_KM_MAX);
-  distanceNumber.step = String(DISTANCE_AUTO_ROUTE_KM_STEP);
+  distanceNumber.setAttribute("aria-label", "목표거리 km");
   distanceNumber.value = targetKm.toFixed(1);
 
-  distanceRow.append(distanceLabel, distanceSlider, distanceNumber);
+  distanceRow.append(distanceLabel, minusBtn, distanceSlider, plusBtn, distanceNumber);
 
   const autoRouteError = document.createElement("p");
   autoRouteError.className = "map-view__pick-auto-route-error";
@@ -3645,6 +3649,21 @@ function buildPickPopup(deps: {
     targetKm = km;
     distanceSlider.value = String(km);
     distanceNumber.value = km.toFixed(1);
+    minusBtn.disabled = km <= DISTANCE_AUTO_ROUTE_KM_MIN;
+    plusBtn.disabled = km >= DISTANCE_AUTO_ROUTE_KM_MAX;
+  }
+
+  function stepTargetKm(deltaKm: number) {
+    const next = Math.min(
+      DISTANCE_AUTO_ROUTE_KM_MAX,
+      Math.max(
+        DISTANCE_AUTO_ROUTE_KM_MIN,
+        Math.round((targetKm + deltaKm) / DISTANCE_AUTO_ROUTE_KM_STEP) * DISTANCE_AUTO_ROUTE_KM_STEP,
+      ),
+    );
+    syncDistanceInputs(next);
+    previewCircleForTargetKm(next);
+    tryArmDirectionPick();
   }
 
   function setInlinePhase(
@@ -3732,6 +3751,15 @@ function buildPickPopup(deps: {
   });
   distanceSlider.addEventListener("focus", () => {
     tryArmDirectionPick();
+  });
+
+  minusBtn.addEventListener("click", () => {
+    if (minusBtn.disabled) return;
+    stepTargetKm(-DISTANCE_AUTO_ROUTE_KM_STEP);
+  });
+  plusBtn.addEventListener("click", () => {
+    if (plusBtn.disabled) return;
+    stepTargetKm(DISTANCE_AUTO_ROUTE_KM_STEP);
   });
 
   distanceNumber.addEventListener("change", () => {

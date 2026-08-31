@@ -6,6 +6,11 @@ export function resolveRouteTokenPopupSecondary(input: {
   routePending: boolean;
 }): { variant: RouteTokenPopupSecondaryVariant; text: string };
 
+export function formatRouteTokenPopupLine(
+  holding: string,
+  secondary: { variant: RouteTokenPopupSecondaryVariant; text: string },
+): string;
+
 export const ROUTE_TOKEN_POPUP_SECONDARY_TEST_IDS: Record<
   RouteTokenPopupSecondaryVariant,
   string

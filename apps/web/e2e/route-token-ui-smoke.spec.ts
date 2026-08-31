@@ -119,20 +119,17 @@ async function assertMapTokenUi(
 
   const feedback = popup.getByTestId("route-token-popup-feedback");
   await expect(feedback).toBeVisible();
-  await expect(feedback.getByTestId("route-token-holding")).toHaveText(`경로 생성 잔여 토큰 ${holding}개`);
+  const holdingLine = feedback.getByTestId("route-token-holding");
 
   if (spendMessage) {
-    await expect(feedback.getByTestId("route-token-spend-toast")).toHaveText(spendMessage);
-    await expect(feedback.getByTestId("route-token-cost-hint")).toBeHidden();
-    await expect(feedback.getByTestId("route-token-insufficient")).toHaveCount(0);
+    await expect(holdingLine).toHaveText(`경로 생성 잔여 토큰 ${holding}개 · ${spendMessage}`);
+    await expect(holdingLine).toHaveAttribute("data-token-variant", "spend");
   } else if (holding > 0) {
-    await expect(feedback.getByTestId("route-token-cost-hint")).toBeHidden();
-    await expect(feedback.getByTestId("route-token-insufficient")).toHaveCount(0);
-    await expect(feedback.getByTestId("route-token-spend-toast")).toHaveCount(0);
+    await expect(holdingLine).toHaveText(`경로 생성 잔여 토큰 ${holding}개`);
+    await expect(holdingLine).toHaveAttribute("data-token-variant", "cost");
   } else {
-    await expect(feedback.getByTestId("route-token-insufficient")).toHaveText("경로 토큰 부족");
-    await expect(feedback.getByTestId("route-token-cost-hint")).toHaveCount(0);
-    await expect(feedback.getByTestId("route-token-spend-toast")).toHaveCount(0);
+    await expect(holdingLine).toHaveText("경로 생성 잔여 토큰 0개 · 경로 토큰 부족");
+    await expect(holdingLine).toHaveAttribute("data-token-variant", "insufficient");
   }
 }
 

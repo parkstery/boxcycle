@@ -51,6 +51,14 @@ const RIDE_ROUTE_PANEL_SOURCE = readFileSync(
 const BUILD_PICK_POPUP_SOURCE = MAP_VIEW_SOURCE.slice(
   MAP_VIEW_SOURCE.indexOf("function buildPickPopup"),
 );
+const MOUNT_TOKEN_SOURCE = readFileSync(
+  new URL("../../src/lib/mountRouteTokenPopupFeedback.ts", import.meta.url),
+  "utf8",
+);
+const TOKEN_DISPLAY_SOURCE = readFileSync(
+  new URL("../../src/lib/routeTokenPopupDisplay.mjs", import.meta.url),
+  "utf8",
+);
 
 describe("distanceAutoRoute", () => {
   it("bearingFromOriginToPoint — 동쪽 클릭은 약 90°", () => {
@@ -163,6 +171,9 @@ describe("distanceAutoRoute", () => {
   it("거리 컨트rol — slider·숫자 입력과 pick_direction 진입", () => {
     assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-distance-slider/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-distance-number/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-distance-step/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /inputMode = "decimal"/);
+    assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /distanceNumber\.type = "number"/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /tryArmDirectionPick/);
     assert.match(HOOK_SOURCE, /armDirectionPick/);
     assert.match(HOOK_SOURCE, /pick_direction/);
@@ -349,5 +360,35 @@ describe("distanceAutoRoute", () => {
       BUILD_PICK_POPUP_SOURCE.slice(BUILD_PICK_POPUP_SOURCE.indexOf("function syncProfileUi")),
       /const ready = pins\.start && pins\.end/,
     );
+  });
+
+  it("3D-2 — Token 잔액·부족을 한 줄로 조합", () => {
+    assert.match(TOKEN_DISPLAY_SOURCE, /formatRouteTokenPopupLine/);
+    assert.match(MOUNT_TOKEN_SOURCE, /formatRouteTokenPopupLine/);
+    assert.match(MOUNT_TOKEN_SOURCE, /map-view__pick-token-line/);
+    assert.doesNotMatch(MOUNT_TOKEN_SOURCE, /map-view__pick-token-secondary/);
+  });
+
+  it("3D-2 — 이동수단과 경로 삭제가 같은 action row", () => {
+    assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-btn--clear-route/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /rowProfile\.appendChild\(clearRouteBtn\)/);
+    assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /profileHeader/);
+  });
+
+  it("3D-2 — ± 버튼이 0.5km 증감하고 min/max에서 disable", () => {
+    assert.match(BUILD_PICK_POPUP_SOURCE, /stepTargetKm\(-DISTANCE_AUTO_ROUTE_KM_STEP\)/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /stepTargetKm\(DISTANCE_AUTO_ROUTE_KM_STEP\)/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /minusBtn\.disabled = km <= DISTANCE_AUTO_ROUTE_KM_MIN/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /plusBtn\.disabled = km >= DISTANCE_AUTO_ROUTE_KM_MAX/);
+  });
+
+  it("3D-2 — 거리 조작만으로 provider 호출 없음", () => {
+    const stepBlock = BUILD_PICK_POPUP_SOURCE.slice(
+      BUILD_PICK_POPUP_SOURCE.indexOf("function stepTargetKm"),
+      BUILD_PICK_POPUP_SOURCE.indexOf("function setInlinePhase"),
+    );
+    assert.doesNotMatch(stepBlock, /fetchDistanceAutoRoute/);
+    assert.doesNotMatch(stepBlock, /onAutoRouteMapPick/);
+    assert.match(stepBlock, /tryArmDirectionPick/);
   });
 });

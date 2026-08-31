@@ -3,8 +3,8 @@ import {
   subscribeRouteTokenSpendMessage,
 } from "./routeTokenSpendBridge";
 import {
+  formatRouteTokenPopupLine,
   resolveRouteTokenPopupSecondary,
-  ROUTE_TOKEN_POPUP_SECONDARY_TEST_IDS,
 } from "./routeTokenPopupDisplay.mjs";
 import { formatRouteTokenHoldingMessage } from "./routeTokenUiCopy";
 
@@ -32,14 +32,11 @@ export function mountRouteTokenPopupFeedback(
   container.setAttribute("role", "status");
   container.setAttribute("aria-live", "polite");
 
-  const holdingEl = document.createElement("p");
-  holdingEl.className = "map-view__pick-token-holding";
-  holdingEl.setAttribute("data-testid", "route-token-holding");
+  const lineEl = document.createElement("p");
+  lineEl.className = "map-view__pick-token-line";
+  lineEl.setAttribute("data-testid", "route-token-holding");
 
-  const secondaryEl = document.createElement("p");
-  secondaryEl.className = "map-view__pick-token-secondary";
-
-  container.append(holdingEl, secondaryEl);
+  container.append(lineEl);
 
   const clearSpendTimer = () => {
     if (hideSpendTimer != null) {
@@ -71,18 +68,17 @@ export function mountRouteTokenPopupFeedback(
       return;
     }
     container.hidden = false;
-    holdingEl.textContent = formatRouteTokenHoldingMessage(balance);
-
-    const { variant, text } = resolveRouteTokenPopupSecondary({
+    const holding = formatRouteTokenHoldingMessage(balance);
+    const secondary = resolveRouteTokenPopupSecondary({
       insufficient,
       spendMessage: spendVisible,
       routePending,
     });
 
-    secondaryEl.textContent = text;
-    secondaryEl.hidden = text.length === 0;
-    secondaryEl.className = `map-view__pick-token-secondary map-view__pick-token-secondary--${variant}`;
-    secondaryEl.setAttribute("data-testid", ROUTE_TOKEN_POPUP_SECONDARY_TEST_IDS[variant]);
+    lineEl.textContent = formatRouteTokenPopupLine(holding, secondary);
+    lineEl.className = `map-view__pick-token-line map-view__pick-token-line--${secondary.variant}`;
+    lineEl.setAttribute("data-testid", "route-token-holding");
+    lineEl.dataset.tokenVariant = secondary.variant;
   };
 
   const unsubBalance = subscribeRouteTokenEffective((next, blocked) => {
