@@ -80,6 +80,7 @@ export function mountRouteTokenPopupFeedback(
     });
 
     secondaryEl.textContent = text;
+    secondaryEl.hidden = text.length === 0;
     secondaryEl.className = `map-view__pick-token-secondary map-view__pick-token-secondary--${variant}`;
     secondaryEl.setAttribute("data-testid", ROUTE_TOKEN_POPUP_SECONDARY_TEST_IDS[variant]);
   };

@@ -399,61 +399,70 @@
 }
 
 .map-view__pick-auto-route {
-  margin-top: 0.32rem;
-  padding-top: 0.32rem;
+  margin-top: 0.24rem;
+  padding-top: 0.24rem;
   border-top: 1px solid rgba(248, 250, 252, 0.1);
 }
 
-.map-view__pick-btn--auto-route,
-.map-view__pick-btn--auto-direction {
-  width: 100%;
-  border-radius: 0.55rem;
-  padding: 0.38rem 0.55rem;
-  font-size: 0.72rem;
-  color: #111827;
-  background: #f0a52f;
-  border-color: rgba(251, 191, 36, 0.9);
+.map-view__pick-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.map-view__pick-btn--auto-route:hover:not(:disabled),
-.map-view__pick-btn--auto-direction:hover:not(:disabled) {
-  background: #f7b849;
-}
-
-.map-view__pick-auto-route-form {
+.map-view__pick-distance-row {
   display: grid;
-  gap: 0.28rem;
-  max-height: min(9.5rem, 28vh);
-  overflow-y: auto;
-  padding-right: 0.08rem;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.35rem;
 }
 
-.map-view__pick-auto-route-hint,
-.map-view__auto-route-status-message {
+.map-view__pick-distance-label {
   margin: 0;
-  color: rgba(226, 232, 240, 0.82);
   font-size: 0.68rem;
-  line-height: 1.4;
+  color: rgba(226, 232, 240, 0.88);
+  white-space: nowrap;
 }
 
-.map-view__pick-auto-route-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.28rem;
+.map-view__pick-distance-slider {
+  width: 100%;
+  min-width: 0;
+  accent-color: #ef4444;
 }
 
-.map-view__pick-btn--auto-option {
-  padding: 0.24rem 0.42rem;
+.map-view__pick-distance-number {
+  width: 3.4rem;
+  padding: 0.18rem 0.28rem;
   font-size: 0.68rem;
-  color: #e2e8f0;
-  background: rgba(248, 250, 252, 0.07);
-  border-color: rgba(248, 250, 252, 0.14);
+  color: #f8fafc;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(248, 250, 252, 0.18);
+  border-radius: 0.35rem;
 }
 
-.map-view__pick-btn--auto-option.is-active {
-  color: #fef3c7;
-  background: rgba(240, 165, 47, 0.2);
-  border-color: rgba(240, 165, 47, 0.62);
+.map-view__pick-auto-route-status {
+  margin: 0.12rem 0 0;
+  color: rgba(226, 232, 240, 0.9);
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.map-view__pick-auto-route-status--searching {
+  color: #fde68a;
+}
+
+.map-view__pick-auto-route-status--failed {
+  color: #fca5a5;
+}
+
+.map-view__pick-auto-route-status--found {
+  color: #86efac;
 }
 
 .map-view__pick-auto-route-error {

@@ -1522,11 +1522,12 @@ export default function App() {
     circleFitToken,
     circleGeometry,
     mapPickMode,
-    startFromMapPopup,
+    armDirectionPick,
     handleMapPick,
     retryDirection,
     isSearching,
     setProfile: setAutoRouteProfile,
+    disarm,
   } = distanceAutoRoute;
 
   const handleClearPins = useCallback(() => {
@@ -1913,7 +1914,10 @@ export default function App() {
                 setActiveOfficialCourseId(null);
                 setPlaceSearchMarkerLngLat(null);
                 if (type === "start") setStartLngLat(lngLat);
-                else if (type === "end") setEndLngLat(lngLat);
+                else if (type === "end") {
+                  disarm();
+                  setEndLngLat(lngLat);
+                }
                 else {
                   const slot = waypointSlot ?? 0;
                   setRouteWaypoints((prev) => {
@@ -1941,8 +1945,8 @@ export default function App() {
               onPreviewDistanceAutoRouteCircle: previewCircleAt,
               onClearDistanceAutoRouteCircle: clearCirclePreview,
               onSetRouteProfileOnly: handleSetRouteProfileOnly,
-              onStartDistanceAutoRoute: (input) => {
-                const result = startFromMapPopup(input);
+              onArmDirectionPick: (input) => {
+                const result = armDirectionPick(input);
                 if (result.ok) {
                   setStartLngLat(input.start);
                   setProfile(input.profile);

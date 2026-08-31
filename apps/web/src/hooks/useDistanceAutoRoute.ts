@@ -9,8 +9,9 @@ import {
   circleLineString,
 } from "../lib/distanceAutoRoute";
 import {
-  DISTANCE_AUTO_ROUTE_DIRECTION_HINT,
+  DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
   formatDistanceAutoRouteClientError,
+  validateDistanceAutoRouteTargetKm,
 } from "../lib/distanceAutoRouteErrors";
 import { fetchDistanceAutoRoute } from "../services/distanceAutoRouteApi";
 import type { RouteProfile } from "../services/mapboxDirections";
@@ -26,7 +27,7 @@ export type DistanceAutoRouteStep =
   | "route_found"
   | "search_failed";
 
-export type DistanceAutoRouteStartResult =
+export type DistanceAutoRouteArmResult =
   | { ok: true }
   | { ok: false; message: string };
 
@@ -51,8 +52,6 @@ export type UseDistanceAutoRouteOptions = {
   }) => void;
   onClearRouteArtifacts: () => void;
 };
-
-const DISTANCE_PRESETS_KM = [3, 5, 10, 15, 20, 30] as const;
 
 export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
   const {
@@ -106,25 +105,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
     setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
   }, []);
 
-  const open = useCallback(() => {
-    if (rideLocked) {
-      setStatusMessage("주행 중에는 자동 경로를 만들 수 없습니다.");
-      return;
-    }
-    if (!user) {
-      setStatusMessage("로그인(게스트 포함) 후 사용할 수 있습니다.");
-      return;
-    }
-    if (routeTokenInsufficient) {
-      setStatusMessage("Route Token 이 부족합니다.");
-      return;
-    }
-    setStatusMessage(null);
-    setBearingDeg(null);
-    setStep("pick_start");
-  }, [rideLocked, user, routeTokenInsufficient]);
-
-  const close = useCallback(() => {
+  const disarm = useCallback(() => {
     setStep("closed");
     setStatusMessage(null);
     setBearingDeg(null);
@@ -132,12 +113,12 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
     activeRequestIdRef.current = null;
   }, []);
 
-  const startFromMapPopup = useCallback(
+  const armDirectionPick = useCallback(
     (input: {
       start: LngLat;
       profile: RouteProfile;
       targetKm: number;
-    }): DistanceAutoRouteStartResult => {
+    }): DistanceAutoRouteArmResult => {
       if (rideLocked) {
         return { ok: false, message: "주행 중에는 자동 경로를 만들 수 없습니다." };
       }
@@ -147,47 +128,32 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
       if (routeTokenInsufficient) {
         return { ok: false, message: "Route Token 이 부족합니다." };
       }
-      if (input.targetKm < 0.5 || input.targetKm > 120) {
-        return { ok: false, message: "목표 거리는 0.5~120 km 입니다." };
+      const validated = validateDistanceAutoRouteTargetKm(input.targetKm);
+      if (!validated.ok) {
+        return validated;
       }
 
       setStart(input.start);
       setProfile(input.profile);
-      setTargetKm(input.targetKm);
+      setTargetKm(validated.km);
       setBearingDeg(null);
-      setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
       activeRequestIdRef.current = null;
-      setStatusMessage(DISTANCE_AUTO_ROUTE_DIRECTION_HINT);
+      setCirclePreviewState((prev) => ({
+        preview: { start: input.start, targetKm: validated.km },
+        fitToken: prev.fitToken + 1,
+      }));
+      setStatusMessage(DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT);
       setStep("pick_direction");
       return { ok: true };
     },
     [rideLocked, routeTokenInsufficient, user],
   );
 
-  const confirmStart = useCallback(() => {
-    if (!start) {
-      setStatusMessage("지도에서 출발점을 선택하세요.");
-      return;
-    }
-    setStatusMessage(null);
-    setStep("pick_profile");
-  }, [start]);
-
-  const confirmProfile = useCallback(() => {
-    setStep("pick_distance");
-  }, []);
-
-  const confirmDistance = useCallback(() => {
-    if (targetKm < 0.5 || targetKm > 120) {
-      setStatusMessage("목표 거리는 0.5~120 km 입니다.");
-      return;
-    }
-    setStatusMessage(DISTANCE_AUTO_ROUTE_DIRECTION_HINT);
-    setStep("pick_direction");
-  }, [targetKm]);
-
   const handleMapPick = useCallback(
     async (lngLat: LngLat): Promise<DistanceAutoRouteSearchResult | null> => {
+      if (step === "searching") {
+        return null;
+      }
       if (step === "pick_start") {
         setStart(lngLat);
         setStatusMessage(`출발: ${formatLngLat(lngLat)}`);
@@ -237,6 +203,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
           setStatusMessage(response.summary);
           setStep("route_found");
           setBearingDeg(bearing);
+          setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
           return { status: "found", message: response.summary };
         } catch (e) {
           const message = formatDistanceAutoRouteClientError(e);
@@ -261,30 +228,28 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
 
   const retryDirection = useCallback(() => {
     activeRequestIdRef.current = null;
-    setStatusMessage(DISTANCE_AUTO_ROUTE_DIRECTION_HINT);
+    if (!start) {
+      disarm();
+      return;
+    }
+    setStatusMessage(DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT);
     setStep("pick_direction");
-  }, []);
+  }, [disarm, start]);
 
   const dismissResult = useCallback(() => {
-    setStep("closed");
-    setStatusMessage(null);
-    setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
-    activeRequestIdRef.current = null;
-  }, []);
+    disarm();
+  }, [disarm]);
 
   const mapPickMode: "start" | "direction" | null =
     step === "pick_start" ? "start" : step === "pick_direction" ? "direction" : null;
 
   return {
     step,
-    open,
-    close,
     start,
     profile,
     setProfile,
     targetKm,
     setTargetKm,
-    distancePresetsKm: DISTANCE_PRESETS_KM,
     statusMessage,
     bearingDeg,
     circleGeometry,
@@ -293,13 +258,10 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
     clearCirclePreview,
     mapPickMode,
     handleMapPick,
-    confirmStart,
-    confirmProfile,
-    confirmDistance,
-    startFromMapPopup,
+    armDirectionPick,
     retryDirection,
     dismissResult,
-    isOpen: step !== "closed",
+    disarm,
     isSearching: step === "searching",
   };
 }

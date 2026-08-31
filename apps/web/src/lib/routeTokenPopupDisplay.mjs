@@ -14,7 +14,7 @@ export function resolveRouteTokenPopupSecondary({ insufficient, spendMessage, ro
   if (insufficient) {
     return { variant: "insufficient", text: "경로 토큰 부족" };
   }
-  return { variant: "cost", text: "경로 생성 시 1개 사용" };
+  return { variant: "cost", text: "" };
 }
 
 export const ROUTE_TOKEN_POPUP_SECONDARY_TEST_IDS = {

@@ -4,5 +4,5 @@ export const ROUTE_TOKEN_INSUFFICIENT_HINT = "경로 토큰 부족";
 
 export function formatRouteTokenHoldingMessage(balance: number): string {
   const n = Math.max(0, Math.floor(balance));
-  return `Route Token ${n}개`;
+  return `경로 생성 잔여 토큰 ${n}개`;
 }

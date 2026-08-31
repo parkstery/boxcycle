@@ -6,14 +6,14 @@ import {
 } from "../../src/lib/routeTokenPopupDisplay.mjs";
 
 describe("route token popup display", () => {
-  it("생성 전에는 보유량 비용 안내를 보여 준다", () => {
+  it("생성 전에는 보조 문구를 숨긴다", () => {
     const result = resolveRouteTokenPopupSecondary({
       insufficient: false,
       spendMessage: null,
       routePending: false,
     });
     assert.equal(result.variant, "cost");
-    assert.equal(result.text, "경로 생성 시 1개 사용");
+    assert.equal(result.text, "");
     assert.equal(ROUTE_TOKEN_POPUP_SECONDARY_TEST_IDS.cost, "route-token-cost-hint");
   });
 

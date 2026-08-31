@@ -18,8 +18,9 @@ import {
 } from "../../src/lib/distanceAutoRoute.ts";
 import {
   formatDistanceAutoRouteClientError,
-  DISTANCE_AUTO_ROUTE_DIRECTION_HINT,
+  DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
   DISTANCE_AUTO_ROUTE_SERVER_UNAVAILABLE,
+  validateDistanceAutoRouteTargetKm,
 } from "../../src/lib/distanceAutoRouteErrors.ts";
 import { getDistanceMeters } from "../../src/lib/geo.ts";
 
@@ -44,7 +45,6 @@ const RIDE_ROUTE_PANEL_SOURCE = readFileSync(
 
 const BUILD_PICK_POPUP_SOURCE = MAP_VIEW_SOURCE.slice(
   MAP_VIEW_SOURCE.indexOf("function buildPickPopup"),
-  MAP_VIEW_SOURCE.indexOf("function buildAutoRouteStatusPopup"),
 );
 
 describe("distanceAutoRoute", () => {
@@ -131,9 +131,11 @@ describe("distanceAutoRoute", () => {
     assert.equal(isValidAutoRouteEnd(ORIGIN, far), true);
   });
 
-  it("자동 경로 진입 — MENU가 아니라 기본 지도 지점 선택 팝업에 통합", () => {
-    assert.match(MAP_VIEW_SOURCE, /목표 거리로 End 자동 찾기/);
-    assert.match(MAP_VIEW_SOURCE, /onStartDistanceAutoRoute/);
+  it("자동 경로 진입 — 단일 설정 popup에 거리 컨트롤 통합", () => {
+    assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /목표 거리로 End 자동 찾기/);
+    assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /지도에서 방향 선택/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-distance-row/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /onArmDirectionPick/);
     assert.doesNotMatch(APP_SOURCE, /DistanceAutoRouteSheet/);
     assert.doesNotMatch(RIDE_ROUTE_PANEL_SOURCE, /onOpenDistanceAutoRoute/);
   });
@@ -152,15 +154,12 @@ describe("distanceAutoRoute", () => {
     assert.equal(profileBtnCreates?.length, 1);
   });
 
-  it("거리 원 preview — 펼침·preset 클릭 시 hook·fitBounds 연결", () => {
-    assert.match(HOOK_SOURCE, /previewCircleAt/);
-    assert.match(HOOK_SOURCE, /clearCirclePreview/);
-    assert.match(HOOK_SOURCE, /circleFitToken/);
-    assert.match(HOOK_SOURCE, /circlePreview/);
-    assert.match(MAP_VIEW_SOURCE, /onPreviewDistanceAutoRouteCircle/);
-    assert.match(MAP_VIEW_SOURCE, /distanceTargetCircleFitToken/);
-    assert.match(MAP_VIEW_SOURCE, /previewCircleForTargetKm/);
-    assert.match(MAP_VIEW_SOURCE, /fitBounds/);
+  it("거리 컨트rol — slider·숫자 입력과 pick_direction 진입", () => {
+    assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-distance-slider/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-distance-number/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /tryArmDirectionPick/);
+    assert.match(HOOK_SOURCE, /armDirectionPick/);
+    assert.match(HOOK_SOURCE, /pick_direction/);
   });
 
   it("원 중심 — Start 좌표로 previewCircleAt 전달", () => {
@@ -189,13 +188,50 @@ describe("distanceAutoRoute", () => {
     assert.doesNotMatch(MAP_VIEW_SOURCE, /#E8A33D/);
   });
 
-  it("방향 선택 안내 — 클릭 거리가 아닌 방향만 사용", () => {
-    assert.match(HOOK_SOURCE, /DISTANCE_AUTO_ROUTE_DIRECTION_HINT/);
-    assert.match(MAP_VIEW_SOURCE, /DISTANCE_AUTO_ROUTE_DIRECTION_HINT/);
+  it("방향 선택 안내 — popup 한 줄 클릭 힌트", () => {
+    assert.match(HOOK_SOURCE, /DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT/);
+    assert.match(MAP_VIEW_SOURCE, /DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT/);
     assert.equal(
-      DISTANCE_AUTO_ROUTE_DIRECTION_HINT,
-      "지도에서 원하는 주행 방향을 선택하세요. 클릭한 지점까지의 거리가 아니라 방향만 사용합니다.",
+      DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
+      "지도에서 원하는 방향을 클릭하세요",
     );
+  });
+
+  it("지도 클릭 — 방향 모드에서 동일 popup inline 갱신", () => {
+    assert.match(MAP_VIEW_SOURCE, /pickPopupAutoRouteUiRef/);
+    assert.match(MAP_VIEW_SOURCE, /setInlinePhase/);
+    assert.doesNotMatch(MAP_VIEW_SOURCE, /buildAutoRouteStatusPopup/);
+  });
+
+  it("수동 End — 거리 미사용 시 onSelectPoint end 유지", () => {
+    assert.match(APP_SOURCE, /else if \(type === "end"\)/);
+    assert.match(APP_SOURCE, /disarm\(\)/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /onSelectPoint\("end", lngLat\)/);
+  });
+
+  it("목표 거리 검증 — 0.4·120.5·빈 값 차단", () => {
+    assert.equal(validateDistanceAutoRouteTargetKm(0.4).ok, false);
+    assert.equal(validateDistanceAutoRouteTargetKm(120.5).ok, false);
+    assert.equal(validateDistanceAutoRouteTargetKm(Number.NaN).ok, false);
+    assert.equal(validateDistanceAutoRouteTargetKm(55).ok, true);
+  });
+
+  it("custom 55km — targetDistanceMeters 55000", () => {
+    assert.match(HOOK_SOURCE, /targetKm \* 1000/);
+    assert.equal(55 * 1000, 55000);
+  });
+
+  it("탐색 중 — handleMapPick 중복 클릭 무시", () => {
+    assert.match(HOOK_SOURCE, /step === "searching"/);
+    assert.match(MAP_VIEW_SOURCE, /autoRouteSearchBusyRef/);
+  });
+
+  it("Token 문구 — 잔여 한 줄", () => {
+    assert.match(
+      readFileSync(new URL("../../src/lib/routeTokenUiCopy.ts", import.meta.url), "utf8"),
+      /경로 생성 잔여 토큰/,
+    );
+    assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /경로 생성 시 1개 사용/);
   });
 
   it("fetch 연결 실패 — Failed to fetch 노출 금지", () => {
