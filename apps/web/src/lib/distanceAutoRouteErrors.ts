@@ -6,6 +6,10 @@ export const DISTANCE_AUTO_ROUTE_DIRECTION_HINT =
 export const DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT =
   "지도에서 원하는 방향을 클릭하세요";
 
+/** Route 생성 성공 후 같은 popup에서 재탐색 안내 */
+export const DISTANCE_AUTO_ROUTE_REROUTE_HINT =
+  "경로 생성 완료 · 다른 방향을 클릭하면 다시 탐색합니다";
+
 export const DISTANCE_AUTO_ROUTE_KM_MIN = 0.5;
 export const DISTANCE_AUTO_ROUTE_KM_MAX = 120;
 export const DISTANCE_AUTO_ROUTE_KM_STEP = 0.5;

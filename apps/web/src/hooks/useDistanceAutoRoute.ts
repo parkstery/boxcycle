@@ -1,6 +1,7 @@
 import type { User } from "firebase/auth";
 import { getFunctions } from "firebase/functions";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { registerDistanceAutoRouteMapBridge } from "../lib/distanceAutoRouteMapBridge";
 import { getFirebaseApp } from "../lib/firebase";
 import type { LngLat } from "../lib/geo";
 import { formatLngLat } from "../lib/geo";
@@ -10,6 +11,7 @@ import {
 } from "../lib/distanceAutoRoute";
 import {
   DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
+  DISTANCE_AUTO_ROUTE_REROUTE_HINT,
   formatDistanceAutoRouteClientError,
   validateDistanceAutoRouteTargetKm,
 } from "../lib/distanceAutoRouteErrors";
@@ -53,6 +55,12 @@ export type UseDistanceAutoRouteOptions = {
   onClearRouteArtifacts: () => void;
 };
 
+function createRequestId(): string {
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID().replace(/-/g, "")
+    : `auto_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
 export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
   const {
     user,
@@ -64,6 +72,9 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
   } = options;
 
   const [step, setStep] = useState<DistanceAutoRouteStep>("closed");
+  const [sessionActive, setSessionActive] = useState(false);
+  const [popupPickBound, setPopupPickBound] = useState(false);
+  const [hasSuccessfulRoute, setHasSuccessfulRoute] = useState(false);
   const [start, setStart] = useState<LngLat | null>(null);
   const [profile, setProfile] = useState<RouteProfile>("cycling");
   const [targetKm, setTargetKm] = useState(10);
@@ -83,15 +94,13 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
     if (circlePreview) {
       return circleLineString(circlePreview.start, circlePreview.targetKm * 1000);
     }
-    if (
-      !start ||
-      step === "closed" ||
-      step === "pick_start" ||
-      step === "route_found"
-    ) {
+    if (!start || step === "closed" || step === "pick_start") {
       return null;
     }
-    return circleLineString(start, targetMeters);
+    if (step === "pick_direction" || step === "searching") {
+      return circleLineString(start, targetMeters);
+    }
+    return null;
   }, [circlePreview, start, targetMeters, step]);
 
   const previewCircleAt = useCallback((input: { start: LngLat; targetKm: number }) => {
@@ -107,10 +116,17 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
 
   const disarm = useCallback(() => {
     setStep("closed");
+    setSessionActive(false);
+    setPopupPickBound(false);
+    setHasSuccessfulRoute(false);
     setStatusMessage(null);
     setBearingDeg(null);
     setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
     activeRequestIdRef.current = null;
+  }, []);
+
+  const suspendPopupPick = useCallback(() => {
+    setPopupPickBound(false);
   }, []);
 
   const armDirectionPick = useCallback(
@@ -133,6 +149,8 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
         return validated;
       }
 
+      setSessionActive(true);
+      setPopupPickBound(true);
       setStart(input.start);
       setProfile(input.profile);
       setTargetKm(validated.km);
@@ -142,12 +160,28 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
         preview: { start: input.start, targetKm: validated.km },
         fitToken: prev.fitToken + 1,
       }));
-      setStatusMessage(DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT);
+      setStatusMessage(
+        hasSuccessfulRoute
+          ? DISTANCE_AUTO_ROUTE_REROUTE_HINT
+          : DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
+      );
       setStep("pick_direction");
       return { ok: true };
     },
-    [rideLocked, routeTokenInsufficient, user],
+    [rideLocked, routeTokenInsufficient, user, hasSuccessfulRoute],
   );
+
+  const resumePickDirection = useCallback(() => {
+    if (!sessionActive || !start) return;
+    setPopupPickBound(true);
+    setStatusMessage(
+      hasSuccessfulRoute
+        ? DISTANCE_AUTO_ROUTE_REROUTE_HINT
+        : DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
+    );
+    setStep("pick_direction");
+    activeRequestIdRef.current = null;
+  }, [hasSuccessfulRoute, sessionActive, start]);
 
   const handleMapPick = useCallback(
     async (lngLat: LngLat): Promise<DistanceAutoRouteSearchResult | null> => {
@@ -159,17 +193,19 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
         setStatusMessage(`출발: ${formatLngLat(lngLat)}`);
         return null;
       }
-      if (step === "pick_direction" && start) {
+      if (step === "pick_direction" && popupPickBound && start) {
+        if (routeTokenInsufficient) {
+          const message = "Route Token 이 부족합니다.";
+          setStatusMessage(message);
+          return { status: "failed", message };
+        }
+
         const bearing = bearingFromOriginToPoint(start, lngLat);
         setBearingDeg(bearing);
         setStep("searching");
         setStatusMessage(`목표 ${(targetMeters / 1000).toFixed(1)} km에 맞는 경로를 찾는 중입니다…`);
 
-        const requestId =
-          activeRequestIdRef.current ??
-          (typeof crypto !== "undefined" && "randomUUID" in crypto
-            ? crypto.randomUUID().replace(/-/g, "")
-            : `auto_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`);
+        const requestId = createRequestId();
         activeRequestIdRef.current = requestId;
 
         const functions = getFunctions(getFirebaseApp(), functionsRegion);
@@ -183,10 +219,15 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
             requestId,
           });
 
+          activeRequestIdRef.current = null;
+
           if (response.status === "failed") {
-            setStatusMessage(response.message);
-            setStep("search_failed");
-            return { status: "failed", message: response.message };
+            const message = response.message;
+            setStatusMessage(
+              hasSuccessfulRoute ? DISTANCE_AUTO_ROUTE_REROUTE_HINT : message,
+            );
+            setStep("pick_direction");
+            return { status: "failed", message };
           }
 
           onClearRouteArtifacts();
@@ -200,15 +241,19 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
             summary: response.summary,
           });
 
-          setStatusMessage(response.summary);
-          setStep("route_found");
+          setHasSuccessfulRoute(true);
+          setStatusMessage(DISTANCE_AUTO_ROUTE_REROUTE_HINT);
+          setStep("pick_direction");
           setBearingDeg(bearing);
           setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
-          return { status: "found", message: response.summary };
+          return { status: "found", message: DISTANCE_AUTO_ROUTE_REROUTE_HINT };
         } catch (e) {
+          activeRequestIdRef.current = null;
           const message = formatDistanceAutoRouteClientError(e);
-          setStatusMessage(message);
-          setStep("search_failed");
+          setStatusMessage(
+            hasSuccessfulRoute ? DISTANCE_AUTO_ROUTE_REROUTE_HINT : message,
+          );
+          setStep("pick_direction");
           return { status: "failed", message };
         }
       }
@@ -216,35 +261,54 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
     },
     [
       step,
+      popupPickBound,
       start,
       targetMeters,
       profile,
       user,
       functionsRegion,
+      routeTokenInsufficient,
+      hasSuccessfulRoute,
       onApplyRoute,
       onClearRouteArtifacts,
     ],
   );
 
   const retryDirection = useCallback(() => {
-    activeRequestIdRef.current = null;
-    if (!start) {
-      disarm();
-      return;
-    }
-    setStatusMessage(DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT);
-    setStep("pick_direction");
-  }, [disarm, start]);
+    resumePickDirection();
+  }, [resumePickDirection]);
 
   const dismissResult = useCallback(() => {
     disarm();
   }, [disarm]);
 
   const mapPickMode: "start" | "direction" | null =
-    step === "pick_start" ? "start" : step === "pick_direction" ? "direction" : null;
+    step === "pick_start"
+      ? "start"
+      : popupPickBound && step === "pick_direction"
+        ? "direction"
+        : null;
+
+  const mapBridge = useMemo(
+    () => ({
+      sessionActive,
+      targetKm,
+      statusMessage,
+      suspendPopupPick,
+      disarm,
+    }),
+    [sessionActive, targetKm, statusMessage, suspendPopupPick, disarm],
+  );
+
+  useEffect(() => {
+    registerDistanceAutoRouteMapBridge(mapBridge);
+    return () => registerDistanceAutoRouteMapBridge(null);
+  }, [mapBridge]);
 
   return {
     step,
+    sessionActive,
+    hasSuccessfulRoute,
     start,
     profile,
     setProfile,
@@ -259,6 +323,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
     mapPickMode,
     handleMapPick,
     armDirectionPick,
+    suspendPopupPick,
     retryDirection,
     dismissResult,
     disarm,

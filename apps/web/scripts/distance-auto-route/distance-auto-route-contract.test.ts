@@ -19,6 +19,7 @@ import {
 import {
   formatDistanceAutoRouteClientError,
   DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
+  DISTANCE_AUTO_ROUTE_REROUTE_HINT,
   DISTANCE_AUTO_ROUTE_SERVER_UNAVAILABLE,
   validateDistanceAutoRouteTargetKm,
 } from "../../src/lib/distanceAutoRouteErrors.ts";
@@ -26,6 +27,10 @@ import { getDistanceMeters } from "../../src/lib/geo.ts";
 
 const ORIGIN: [number, number] = [127.02, 37.5];
 const APP_SOURCE = readFileSync(new URL("../../src/App.tsx", import.meta.url), "utf8");
+const BRIDGE_SOURCE = readFileSync(
+  new URL("../../src/lib/distanceAutoRouteMapBridge.ts", import.meta.url),
+  "utf8",
+);
 const MAP_VIEW_SOURCE = readFileSync(
   new URL("../../src/components/map/MapView.tsx", import.meta.url),
   "utf8",
@@ -142,7 +147,8 @@ describe("distanceAutoRoute", () => {
 
   it("Start 선택 — 기존 startLngLat 경로를 사용해 지도 마커와 동기화", () => {
     assert.match(MAP_VIEW_SOURCE, /onSelectPoint\("start", lngLat\)/);
-    assert.match(APP_SOURCE, /if \(type === "start"\) setStartLngLat\(lngLat\)/);
+    assert.match(APP_SOURCE, /type === "start"[\s\S]{0,80}setStartLngLat\(lngLat\)/);
+    assert.match(MAP_VIEW_SOURCE, /getDistanceAutoRouteMapBridge\(\)\?\.disarm/);
     assert.match(MAP_VIEW_SOURCE, /new mapboxgl\.Marker\([\s\S]*?setLngLat\(startLngLat\)/);
   });
 
@@ -248,6 +254,100 @@ describe("distanceAutoRoute", () => {
     assert.equal(
       formatDistanceAutoRouteClientError(new Error("목표거리와 적합한 경로를 찾지 못했습니다.")),
       "목표거리와 적합한 경로를 찾지 못했습니다.",
+    );
+  });
+
+  it("Route A 성공 후 — popup 열림 동안 방향 지도 클릭 유지", () => {
+    assert.equal(
+      DISTANCE_AUTO_ROUTE_REROUTE_HINT,
+      "경로 생성 완료 · 다른 방향을 클릭하면 다시 탐색합니다",
+    );
+    assert.match(HOOK_SOURCE, /popupPickBound/);
+    assert.match(HOOK_SOURCE, /step === "pick_direction"/);
+    assert.match(HOOK_SOURCE, /DISTANCE_AUTO_ROUTE_REROUTE_HINT/);
+    assert.doesNotMatch(
+      HOOK_SOURCE,
+      /step === "route_found"[\s\S]{0,80}mapPickMode[\s\S]{0,40}null/,
+    );
+  });
+
+  it("Route B — requestId 매 요청 신규 생성·성공 후 폐기", () => {
+    assert.match(HOOK_SOURCE, /createRequestId\(\)/);
+    assert.match(HOOK_SOURCE, /activeRequestIdRef\.current = null/);
+    assert.doesNotMatch(
+      HOOK_SOURCE.slice(HOOK_SOURCE.indexOf("const requestId ="), HOOK_SOURCE.indexOf("activeRequestIdRef.current = requestId") + 40),
+      /activeRequestIdRef\.current \?\?/,
+    );
+  });
+
+  it("Route B 성공 — onApplyRoute로 geometry·End 교체", () => {
+    assert.match(HOOK_SOURCE, /onApplyRoute\(/);
+    assert.match(APP_SOURCE, /setEndLngLat\(result\.end\)/);
+    assert.match(APP_SOURCE, /setRouteGeometry\(result\.geometry\)/);
+  });
+
+  it("Route B 탐색 중 — onApplyRoute 호출 전까지 Route A 유지", () => {
+    const searchBlock = HOOK_SOURCE.slice(
+      HOOK_SOURCE.indexOf('setStep("searching")'),
+      HOOK_SOURCE.indexOf("onClearRouteArtifacts"),
+    );
+    assert.doesNotMatch(searchBlock, /onApplyRoute/);
+    assert.doesNotMatch(searchBlock, /onClearRouteArtifacts/);
+  });
+
+  it("Route B 실패 — pick_direction 복귀·Route A 유지", () => {
+    assert.match(HOOK_SOURCE, /response\.status === "failed"/);
+    assert.match(HOOK_SOURCE, /setStep\("pick_direction"\)/);
+    assert.doesNotMatch(
+      HOOK_SOURCE.slice(HOOK_SOURCE.indexOf('response.status === "failed"'), HOOK_SOURCE.indexOf('setStep("pick_direction")', HOOK_SOURCE.indexOf('response.status === "failed"')) + 30),
+      /onApplyRoute/,
+    );
+  });
+
+  it("End 존재 시 — 거리 slider·숫자 입력 표시", () => {
+    const syncAutoRouteBlock = BUILD_PICK_POPUP_SOURCE.slice(
+      BUILD_PICK_POPUP_SOURCE.indexOf("function syncAutoRouteUi"),
+      BUILD_PICK_POPUP_SOURCE.indexOf("syncAutoRouteUi();", BUILD_PICK_POPUP_SOURCE.indexOf("function syncAutoRouteUi")) + 20,
+    );
+    assert.doesNotMatch(syncAutoRouteBlock, /pins\.start && !pins\.end/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /pins\.start && typeof onArmDirectionPick/);
+  });
+
+  it("popup 재개방 — 목표 거리·profile 복원", () => {
+    assert.match(MAP_VIEW_SOURCE, /autoRouteTargetKm/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /autoRouteTargetKm/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /syncDistanceInputs\(targetKm\)/);
+    assert.match(BRIDGE_SOURCE, /targetKm/);
+    assert.match(HOOK_SOURCE, /registerDistanceAutoRouteMapBridge/);
+  });
+
+  it("자동 세션 profile 변경 — 수동 onRouteProfile 호출 금지", () => {
+    assert.match(BUILD_PICK_POPUP_SOURCE, /manualRouteReady/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /!autoSessionActive/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /onSetRouteProfileOnly\?\.\(profile\)/);
+  });
+
+  it("popup close — suspendPopupPick으로 지도 클릭 가로채기 해제", () => {
+    assert.match(MAP_VIEW_SOURCE, /getDistanceAutoRouteMapBridge/);
+    assert.match(MAP_VIEW_SOURCE, /suspendPopupPick/);
+    assert.match(HOOK_SOURCE, /suspendPopupPick/);
+    assert.match(HOOK_SOURCE, /setPopupPickBound\(false\)/);
+  });
+
+  it("Token 0 — provider 호출 전 handleMapPick 차단", () => {
+    assert.match(HOOK_SOURCE, /routeTokenInsufficient/);
+    assert.match(
+      HOOK_SOURCE.slice(HOOK_SOURCE.indexOf("step === \"pick_direction\"")),
+      /if \(routeTokenInsufficient\)/,
+    );
+  });
+
+  it("구형 popup — 자동 세션에서 경로 탐색 유형 선택 미노출", () => {
+    assert.match(BUILD_PICK_POPUP_SOURCE, /manualRouteReady/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-sr-only/);
+    assert.doesNotMatch(
+      BUILD_PICK_POPUP_SOURCE.slice(BUILD_PICK_POPUP_SOURCE.indexOf("function syncProfileUi")),
+      /const ready = pins\.start && pins\.end/,
     );
   });
 });

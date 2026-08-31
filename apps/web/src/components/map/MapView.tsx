@@ -16,8 +16,10 @@ import {
   DISTANCE_AUTO_ROUTE_KM_MAX,
   DISTANCE_AUTO_ROUTE_KM_MIN,
   DISTANCE_AUTO_ROUTE_KM_STEP,
+  DISTANCE_AUTO_ROUTE_REROUTE_HINT,
   validateDistanceAutoRouteTargetKm,
 } from "../../lib/distanceAutoRouteErrors";
+import { getDistanceAutoRouteMapBridge } from "../../lib/distanceAutoRouteMapBridge";
 import {
   applyRtwLayerStyle,
   resetRtwStyleSnapshot,
@@ -1300,6 +1302,11 @@ export type MapViewProps = {
   distanceTargetCircleFitToken?: number;
   /** 자동 경로 마법사 중 지도 탭 가로채기 */
   autoRouteMapPick?: "start" | "direction" | null;
+  /** 자동 Route 세션 — End 존재와 별도로 단일 설정창 유지 */
+  autoRouteSessionActive?: boolean;
+  autoRouteTargetKm?: number;
+  autoRouteStatusMessage?: string | null;
+  onSuspendAutoRoutePopupPick?: () => void;
   /** 자동 찾기 펼침·거리 preset — provider/Token 없이 원만 미리보기 */
   onPreviewDistanceAutoRouteCircle?: (input: {
     start: LngLat;
@@ -1364,6 +1371,10 @@ export function MapView({
   distanceTargetCircle = null,
   distanceTargetCircleFitToken = 0,
   autoRouteMapPick = null,
+  autoRouteSessionActive = false,
+  autoRouteTargetKm = 10,
+  autoRouteStatusMessage = null,
+  onSuspendAutoRoutePopupPick,
   onPreviewDistanceAutoRouteCircle,
   onClearDistanceAutoRouteCircle,
   onSetRouteProfileOnly,
@@ -1451,6 +1462,10 @@ export function MapView({
   const onRetryDistanceAutoRouteRef = useRef(onRetryDistanceAutoRoute);
   const onDismissDistanceAutoRouteRef = useRef(onDismissDistanceAutoRoute);
   const autoRouteMapPickRef = useRef(autoRouteMapPick);
+  const autoRouteSessionActiveRef = useRef(autoRouteSessionActive);
+  const autoRouteTargetKmRef = useRef(autoRouteTargetKm);
+  const autoRouteStatusMessageRef = useRef(autoRouteStatusMessage);
+  const onSuspendAutoRoutePopupPickRef = useRef(onSuspendAutoRoutePopupPick);
   const autoRouteSearchBusyRef = useRef(false);
   const onMapZoomRef = useRef(onMapZoom);
   const onMapViewportRef = useRef(onMapViewport);
@@ -1599,6 +1614,22 @@ export function MapView({
   useEffect(() => {
     autoRouteMapPickRef.current = autoRouteMapPick;
   }, [autoRouteMapPick]);
+
+  useEffect(() => {
+    autoRouteSessionActiveRef.current = autoRouteSessionActive;
+  }, [autoRouteSessionActive]);
+
+  useEffect(() => {
+    autoRouteTargetKmRef.current = autoRouteTargetKm;
+  }, [autoRouteTargetKm]);
+
+  useEffect(() => {
+    autoRouteStatusMessageRef.current = autoRouteStatusMessage;
+  }, [autoRouteStatusMessage]);
+
+  useEffect(() => {
+    onSuspendAutoRoutePopupPickRef.current = onSuspendAutoRoutePopupPick;
+  }, [onSuspendAutoRoutePopupPick]);
 
   const coverageOverlayModeRef = useRef(coverageOverlayMode);
   const mapillaryClientTokenRef = useRef(mapillaryClientToken);
@@ -1923,12 +1954,25 @@ export function MapView({
                 : undefined,
             initialHasStart: Boolean(startLngLatRef.current),
             initialHasEnd: Boolean(endLngLatRef.current),
+            autoRouteSessionActive:
+              autoRouteSessionActiveRef.current ||
+              getDistanceAutoRouteMapBridge()?.sessionActive ||
+              false,
+            autoRouteTargetKm:
+              getDistanceAutoRouteMapBridge()?.targetKm ?? autoRouteTargetKmRef.current,
+            autoRouteStatusMessage:
+              getDistanceAutoRouteMapBridge()?.statusMessage ??
+              autoRouteStatusMessageRef.current,
             closePopup,
           }),
         )
         .addTo(map);
       popup.on("close", () => {
         ac.abort();
+        const suspendPick =
+          onSuspendAutoRoutePopupPickRef.current ??
+          getDistanceAutoRouteMapBridge()?.suspendPopupPick;
+        suspendPick?.();
         pickPopupAutoRouteUiRef.current = null;
         onClearDistanceAutoRouteCircleRef.current?.();
         if (popupRef.current === popup) popupRef.current = null;
@@ -3316,6 +3360,9 @@ function buildPickPopup(deps: {
   onClearRoute?: (() => void) | undefined;
   initialHasStart: boolean;
   initialHasEnd: boolean;
+  autoRouteSessionActive?: boolean;
+  autoRouteTargetKm?: number;
+  autoRouteStatusMessage?: string | null;
   closePopup: () => void;
 }): HTMLDivElement {
   const {
@@ -3338,6 +3385,9 @@ function buildPickPopup(deps: {
     onClearRoute,
     initialHasStart,
     initialHasEnd,
+    autoRouteSessionActive = false,
+    autoRouteTargetKm = 10,
+    autoRouteStatusMessage = null,
     closePopup,
   } = deps;
   const [lng, lat] = lngLat;
@@ -3349,6 +3399,8 @@ function buildPickPopup(deps: {
   const pins = { start: initialHasStart, end: initialHasEnd };
   let selectedStart = initialStart;
   let currentProfile = routeProfile;
+  const mapBridge = getDistanceAutoRouteMapBridge();
+  let autoSessionActive = autoRouteSessionActive || mapBridge?.sessionActive || false;
 
   function getRouteStart(): LngLat | null {
     return selectedStart ?? initialStart;
@@ -3378,13 +3430,14 @@ function buildPickPopup(deps: {
   startBtn.title = "Set as start";
   startBtn.setAttribute("aria-label", "Set start");
   startBtn.onclick = () => {
+    getDistanceAutoRouteMapBridge()?.disarm?.();
     onSelectPoint("start", lngLat);
     pins.start = true;
     selectedStart = lngLat;
     syncProfileUi();
     syncAutoRouteUi();
     syncTokenUi();
-    if (pins.start && !pins.end) previewCircleForTargetKm(targetKm);
+    if (pins.start) previewCircleForTargetKm(targetKm);
   };
 
   const wpSlots: (0 | 1 | 2)[] = [0, 1, 2];
@@ -3488,7 +3541,8 @@ function buildPickPopup(deps: {
       profileButtons.forEach((item, index) => {
         item.classList.toggle("is-active", profileSpecs[index]?.profile === currentProfile);
       });
-      if (pins.end) {
+      const manualRouteReady = pins.start && pins.end && !autoSessionActive;
+      if (manualRouteReady) {
         if (getRouteTokenInsufficient?.()) return;
         tokenFeedback.setRoutePending(true);
         onRouteProfile(profile);
@@ -3502,19 +3556,19 @@ function buildPickPopup(deps: {
 
   function syncProfileUi() {
     const hasStart = pins.start;
-    const ready = pins.start && pins.end;
+    const manualRouteReady = pins.start && pins.end && !autoSessionActive;
     profileSection.hidden = !hasStart;
     rowProfile.hidden = !hasStart;
-    wrap.classList.toggle("map-view__pick--awaiting-profile", ready);
-    profileLabel.textContent = ready ? "경로 탐색 유형 선택" : "이동수단";
-    profileLabel.className = ready
+    wrap.classList.toggle("map-view__pick--awaiting-profile", manualRouteReady);
+    profileLabel.textContent = manualRouteReady ? "경로 탐색 유형 선택" : "이동수단";
+    profileLabel.className = manualRouteReady
       ? "map-view__pick-profile-label"
       : "map-view__pick-profile-label map-view__pick-sr-only";
     profileSpecs.forEach((spec, i) => {
       const pb = profileButtons[i];
       if (!pb) return;
       pb.classList.toggle("is-active", spec.profile === currentProfile);
-      if (!ready) {
+      if (!manualRouteReady) {
         pb.disabled = false;
         pb.classList.remove("is-disabled");
         pb.title =
@@ -3549,7 +3603,7 @@ function buildPickPopup(deps: {
   const autoRouteSection = document.createElement("div");
   autoRouteSection.className = "map-view__pick-auto-route";
 
-  let targetKm = 10;
+  let targetKm = autoRouteTargetKm;
 
   const distanceRow = document.createElement("div");
   distanceRow.className = "map-view__pick-distance-row";
@@ -3654,7 +3708,16 @@ function buildPickPopup(deps: {
       setInlinePhase("idle");
       return;
     }
-    setInlinePhase("direction", DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT);
+    autoSessionActive = true;
+    const rerouteReady = inlineStatus.classList.contains(
+      "map-view__pick-auto-route-status--found",
+    );
+    setInlinePhase(
+      "direction",
+      rerouteReady || autoRouteStatusMessage === DISTANCE_AUTO_ROUTE_REROUTE_HINT
+        ? DISTANCE_AUTO_ROUTE_REROUTE_HINT
+        : DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
+    );
     onDirectionPickArmed?.();
   }
 
@@ -3681,7 +3744,7 @@ function buildPickPopup(deps: {
   autoRouteSection.append(distanceRow, autoRouteError, inlineStatus);
 
   function syncAutoRouteUi() {
-    const available = pins.start && !pins.end && typeof onArmDirectionPick === "function";
+    const available = pins.start && typeof onArmDirectionPick === "function";
     autoRouteSection.hidden = !available;
     if (!available) {
       autoRouteError.hidden = true;
@@ -3690,6 +3753,10 @@ function buildPickPopup(deps: {
     }
   }
   syncAutoRouteUi();
+  syncDistanceInputs(targetKm);
+  if (autoSessionActive && autoRouteStatusMessage) {
+    setInlinePhase("found", autoRouteStatusMessage);
+  }
 
   const unsubTokenForProfile = subscribeRouteTokenEffective(() => {
     syncProfileUi();
