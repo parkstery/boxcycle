@@ -64,9 +64,9 @@ async function ensureOnboarding(idToken) {
 async function autoRoute(idToken, requestId, overrides = {}) {
   const payload = {
     start: [127.02, 37.5],
+    targetRoadPoint: [127.07, 37.5],
     profile: "cycling",
     targetDistanceMeters: 5000,
-    bearingDeg: 90,
     requestId,
     ...overrides,
   };
@@ -157,9 +157,9 @@ async function assertProductionAutoRouteSurfaceAbsent() {
     body: JSON.stringify({
       data: {
         start: [127.02, 37.5],
+        targetRoadPoint: [127.07, 37.5],
         profile: "cycling",
         targetDistanceMeters: 5000,
-        bearingDeg: 90,
         requestId: "prod_surface_check_01",
       },
     }),

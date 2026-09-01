@@ -21,7 +21,15 @@ import {
   DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_LABEL,
   validateDistanceAutoRouteTargetKm,
 } from "../../lib/distanceAutoRouteErrors";
-import { getDistanceAutoRouteMapBridge } from "../../lib/distanceAutoRouteMapBridge";
+import {
+  getDistanceAutoRouteMapBridge,
+  registerDistanceAutoRouteClickDebugMarkerClear,
+} from "../../lib/distanceAutoRouteMapBridge";
+import {
+  createDistanceAutoRouteClickDebugMarkerElement,
+  isDistanceAutoRouteClickDebugEnabled,
+  updateDistanceAutoRouteClickDebugMarkerElement,
+} from "../../lib/distanceAutoRouteClickDebugMarker";
 import {
   buildRoutePickDockFocus,
   clampRoutePickDockPosition,
@@ -1340,6 +1348,37 @@ export type MapViewProps = {
   onDismissDistanceAutoRoute?: () => void;
 };
 
+function clearAutoRouteClickDebugMarkerOnMap(
+  markerRef: { current: mapboxgl.Marker | null },
+): void {
+  markerRef.current?.remove();
+  markerRef.current = null;
+}
+
+function placeAutoRouteClickDebugMarkerOnMap(
+  map: mapboxgl.Map,
+  markerRef: { current: mapboxgl.Marker | null },
+  lngLat: LngLat,
+): void {
+  if (!isDistanceAutoRouteClickDebugEnabled()) {
+    clearAutoRouteClickDebugMarkerOnMap(markerRef);
+    return;
+  }
+  if (markerRef.current) {
+    markerRef.current.setLngLat(lngLat);
+    updateDistanceAutoRouteClickDebugMarkerElement(markerRef.current.getElement(), lngLat);
+    return;
+  }
+  const element = createDistanceAutoRouteClickDebugMarkerElement(lngLat);
+  markerRef.current = new mapboxgl.Marker({
+    element,
+    anchor: "center",
+    className: "map-view__auto-route-click-debug-marker-host",
+  })
+    .setLngLat(lngLat)
+    .addTo(map);
+}
+
 export function MapView({
   accessToken,
   routeElevationProfile,
@@ -1425,6 +1464,7 @@ export function MapView({
   const mapZoomApplyRafRef = useRef<number | null>(null);
   const startMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const endMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const autoRouteClickDebugMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const placeSearchMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const waypointMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const liveMarkerRef = useRef<mapboxgl.Marker | null>(null);
@@ -1486,6 +1526,9 @@ export function MapView({
   const autoRouteStatusMessageRef = useRef(autoRouteStatusMessage);
   const onSuspendAutoRoutePopupPickRef = useRef(onSuspendAutoRoutePopupPick);
   const autoRouteSearchBusyRef = useRef(false);
+  const placeAutoRouteClickDebugMarkerRef = useRef<(lngLat: LngLat) => void>(() => {});
+  const clearAutoRouteClickDebugMarkerRef = useRef<() => void>(() => {});
+  const prevStartLngLatKeyRef = useRef<string | null>(null);
   const onMapZoomRef = useRef(onMapZoom);
   const onMapViewportRef = useRef(onMapViewport);
   const onMapLodViewportRef = useRef(onMapLodViewport);
@@ -1649,6 +1692,35 @@ export function MapView({
   useEffect(() => {
     onSuspendAutoRoutePopupPickRef.current = onSuspendAutoRoutePopupPick;
   }, [onSuspendAutoRoutePopupPick]);
+
+  useEffect(() => {
+    placeAutoRouteClickDebugMarkerRef.current = (lngLat) => {
+      const map = mapRef.current;
+      if (!map) return;
+      placeAutoRouteClickDebugMarkerOnMap(map, autoRouteClickDebugMarkerRef, lngLat);
+    };
+    clearAutoRouteClickDebugMarkerRef.current = () => {
+      clearAutoRouteClickDebugMarkerOnMap(autoRouteClickDebugMarkerRef);
+    };
+    registerDistanceAutoRouteClickDebugMarkerClear(() => {
+      clearAutoRouteClickDebugMarkerRef.current();
+    });
+    return () => registerDistanceAutoRouteClickDebugMarkerClear(null);
+  }, []);
+
+  useEffect(() => {
+    if (!autoRouteSessionActive) {
+      clearAutoRouteClickDebugMarkerRef.current();
+    }
+  }, [autoRouteSessionActive]);
+
+  useEffect(() => {
+    const key = startLngLat ? `${startLngLat[0]},${startLngLat[1]}` : null;
+    if (prevStartLngLatKeyRef.current != null && key !== prevStartLngLatKeyRef.current) {
+      clearAutoRouteClickDebugMarkerRef.current();
+    }
+    prevStartLngLatKeyRef.current = key;
+  }, [startLngLat]);
 
   const coverageOverlayModeRef = useRef(coverageOverlayMode);
   const mapillaryClientTokenRef = useRef(mapillaryClientToken);
@@ -2108,9 +2180,11 @@ export function MapView({
         onClearRoute:
           typeof onClearRouteRef.current === "function"
             ? () => {
+                clearAutoRouteClickDebugMarkerRef.current();
                 onClearRouteRef.current?.();
               }
             : undefined,
+        onClearAutoRouteClickDebugMarker: () => clearAutoRouteClickDebugMarkerRef.current(),
         initialHasStart,
         initialHasEnd: Boolean(endLngLatRef.current),
         autoRouteSessionActive:
@@ -2172,6 +2246,7 @@ export function MapView({
       if (autoRouteMapPickRef.current === "direction" && onAutoRouteMapPickRef.current) {
         if (autoRouteSearchBusyRef.current) return;
         if (routePickDockDraggingRef.current) return;
+        placeAutoRouteClickDebugMarkerRef.current(picked);
         const popup = popupRef.current;
         if (popup) popup.options.closeOnClick = false;
         autoRouteSearchBusyRef.current = true;
@@ -2232,6 +2307,7 @@ export function MapView({
       window.removeEventListener("resize", onResize);
       startMarkerRef.current?.remove();
       endMarkerRef.current?.remove();
+      clearAutoRouteClickDebugMarkerOnMap(autoRouteClickDebugMarkerRef);
       placeSearchMarkerRef.current?.remove();
       for (const wm of waypointMarkersRef.current) wm.remove();
       waypointMarkersRef.current = [];
@@ -3597,6 +3673,7 @@ function buildPickPopup(deps: {
   /** Conquest — 이 지점 영토의 개척자 한 줄(null=미개척) */
   lookupPioneer?: (lngLat: LngLat) => Promise<string | null>;
   onClearRoute?: (() => void) | undefined;
+  onClearAutoRouteClickDebugMarker?: () => void;
   initialHasStart: boolean;
   initialHasEnd: boolean;
   autoRouteSessionActive?: boolean;
@@ -3623,6 +3700,7 @@ function buildPickPopup(deps: {
     getRouteTokenInsufficient,
     lookupPioneer,
     onClearRoute,
+    onClearAutoRouteClickDebugMarker,
     initialHasStart,
     initialHasEnd,
     autoRouteSessionActive = false,
@@ -3672,6 +3750,7 @@ function buildPickPopup(deps: {
   startBtn.title = "Set as start";
   startBtn.setAttribute("aria-label", "Set start");
   startBtn.onclick = () => {
+    onClearAutoRouteClickDebugMarker?.();
     getDistanceAutoRouteMapBridge()?.disarm?.();
     onSelectPoint("start", lngLat);
     pins.start = true;
@@ -3935,6 +4014,7 @@ function buildPickPopup(deps: {
     mapBridge?.setDistanceDirectionMode?.(checked);
     syncDistanceModeUi();
     if (!checked) {
+      onClearAutoRouteClickDebugMarker?.();
       setInlinePhase("idle");
       return;
     }

@@ -2,17 +2,12 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { HttpsError } from "firebase-functions/v2/https";
 import {
   AUTO_ROUTE_ALGORITHM_VERSION,
-  buildAutoRouteCandidates,
   bearingFromOriginToPoint,
-  clipRouteGeometryToTargetMeters,
-  computeAutoRouteClickDiagnostics,
-  isValidAutoRouteEnd,
-  lineStringLengthMeters,
-  mapWithConcurrency,
-  pickBestExactDistanceAutoRoute,
+  searchDistanceAutoRoute,
   type DirectionsRouteLike,
+  type FetchDirectionsFn,
   type LngLat,
-  type ScoredAutoRoute,
+  type RouteProfile,
 } from "./distanceAutoRouteCore.js";
 import {
   loadRouteTokenEconomy,
@@ -20,17 +15,9 @@ import {
   spendRouteGenerateToken,
 } from "./routeTokenCore.js";
 
-export type RouteProfile = "cycling" | "driving" | "walking";
+export type { FetchDirectionsFn, RouteProfile } from "./distanceAutoRouteCore.js";
 
-const MAX_ROUTE_STRAIGHT_LINE_METERS = 120_000;
-const AUTO_ROUTE_PROVIDER_CONCURRENCY = 5;
 const ROUTE_AUTO_CACHE = "routeAutoRouteCache";
-
-export type FetchDirectionsFn = (
-  profile: RouteProfile,
-  start: LngLat,
-  end: LngLat,
-) => Promise<DirectionsRouteLike>;
 
 export type DistanceAutoRouteFound = {
   status: "found";
@@ -226,7 +213,6 @@ export async function executeDistanceAutoRoute(input: {
     requestId,
     fetchDirections,
   } = input;
-  const searchStartedAt = Date.now();
 
   const cached = await readCache(userId, requestId);
   if (cached) {
@@ -247,109 +233,39 @@ export async function executeDistanceAutoRoute(input: {
     throw e;
   }
 
-  const candidates = buildAutoRouteCandidates(start, bearingDeg, targetDistanceMeters).filter((c) =>
-    isValidAutoRouteEnd(start, c.end),
-  );
-
-  if (candidates.length === 0) {
-    if (generateCost > 0) {
-      await refundRouteGenerateToken(userId, tokenRequestId, generateCost);
-      routeTokenBalance += generateCost;
-    }
-    const failed: DistanceAutoRouteFailed = {
-      status: "failed",
-      message: "후보 종점을 만들 수 없습니다. 거리를 조정해 보세요.",
-      routeTokenBalance,
-    };
-    await writeCache(userId, requestId, {
-      userId,
-      requestId,
-      status: "failed",
-      message: failed.message,
-      routeTokenBalance,
-    });
-    return failed;
-  }
-
-  const scored = await mapWithConcurrency(candidates, AUTO_ROUTE_PROVIDER_CONCURRENCY, async (candidate) => {
-    if (candidate.straightLineMeters > MAX_ROUTE_STRAIGHT_LINE_METERS) return null;
-    try {
-      const route = await fetchDirections(profile, start, candidate.end);
-      const geomLen = lineStringLengthMeters(route.geometry);
-      if (geomLen < targetDistanceMeters) return null;
-      return {
-        candidate,
-        route,
-        errorMeters: geomLen - targetDistanceMeters,
-      } satisfies ScoredAutoRoute;
-    } catch {
-      return null;
-    }
-  });
-  const providerCallCount = scored.length;
-
-  const best = pickBestExactDistanceAutoRoute(scored, targetDistanceMeters, bearingDeg);
-  if (!best) {
-    if (generateCost > 0) {
-      await refundRouteGenerateToken(userId, tokenRequestId, generateCost);
-      routeTokenBalance += generateCost;
-    }
-    const message =
-      scored.length > 0
-        ? `목표거리(${ (targetDistanceMeters / 1000).toFixed(1) } km) 이상의 경로를 찾지 못했습니다. 방향이나 거리를 바꿔 보세요.`
-        : "목표거리와 적합한 경로를 찾지 못했습니다. 방향이나 거리를 바꿔 보세요.";
-    const failed: DistanceAutoRouteFailed = {
-      status: "failed",
-      message,
-      routeTokenBalance,
-    };
-    await writeCache(userId, requestId, {
-      userId,
-      requestId,
-      status: "failed",
-      message: failed.message,
-      routeTokenBalance,
-    });
-    return failed;
-  }
-
-  const clipped = clipRouteGeometryToTargetMeters({
-    geometry: best.route.geometry,
-    targetDistanceMeters,
-    originalDuration: best.route.duration,
-  });
-  if (!clipped.ok) {
-    if (generateCost > 0) {
-      await refundRouteGenerateToken(userId, tokenRequestId, generateCost);
-      routeTokenBalance += generateCost;
-    }
-    const failed: DistanceAutoRouteFailed = {
-      status: "failed",
-      message: "목표 연장에 맞게 경로를 절단하지 못했습니다. 방향이나 거리를 바꿔 보세요.",
-      routeTokenBalance,
-    };
-    await writeCache(userId, requestId, {
-      userId,
-      requestId,
-      status: "failed",
-      message: failed.message,
-      routeTokenBalance,
-    });
-    return failed;
-  }
-
-  const targetLabel = (targetDistanceMeters / 1000).toFixed(1);
-  const actualLabel = (clipped.distance / 1000).toFixed(2);
-  const summary = `목표 ${targetLabel} km · 연장 ${actualLabel} km / 예상 ${formatDuration(clipped.duration)}`;
-  const diagnostics = computeAutoRouteClickDiagnostics({
+  const searched = await searchDistanceAutoRoute({
     start,
     targetRoadPoint,
-    clippedEnd: clipped.end,
+    profile,
     targetDistanceMeters,
-    clippedDistanceMeters: clipped.distance,
-    providerCallCount,
-    searchElapsedMs: Date.now() - searchStartedAt,
+    bearingDeg,
+    fetchDirections,
   });
+
+  if (searched.status === "failed") {
+    if (generateCost > 0) {
+      await refundRouteGenerateToken(userId, tokenRequestId, generateCost);
+      routeTokenBalance += generateCost;
+    }
+    const failed: DistanceAutoRouteFailed = {
+      status: "failed",
+      message: searched.message,
+      routeTokenBalance,
+    };
+    await writeCache(userId, requestId, {
+      userId,
+      requestId,
+      status: "failed",
+      message: failed.message,
+      routeTokenBalance,
+    });
+    return failed;
+  }
+
+  const { diagnostics } = searched;
+  const targetLabel = (targetDistanceMeters / 1000).toFixed(1);
+  const actualLabel = (searched.distance / 1000).toFixed(2);
+  const summary = `목표 ${targetLabel} km · 연장 ${actualLabel} km / 예상 ${formatDuration(searched.duration)}`;
   console.info(
     JSON.stringify({
       kind: "distanceAutoRouteDiagnostics",
@@ -361,10 +277,10 @@ export async function executeDistanceAutoRoute(input: {
 
   const found: DistanceAutoRouteFound = {
     status: "found",
-    geometry: clipped.geometry,
-    distance: clipped.distance,
-    duration: clipped.duration,
-    end: clipped.end,
+    geometry: searched.geometry,
+    distance: searched.distance,
+    duration: searched.duration,
+    end: searched.end,
     targetDistanceMeters,
     summary,
     routeTokenBalance,

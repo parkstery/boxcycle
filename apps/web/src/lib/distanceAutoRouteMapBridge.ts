@@ -10,14 +10,26 @@ export type DistanceAutoRouteMapBridge = {
   /** popup armed 해제 + 목표 거리 원 제거 (checkbox 선호는 유지) */
   releasePickArm: () => void;
   disarm: () => void;
+  clearClickDebugMarker?: () => void;
 };
 
 let latestBridge: DistanceAutoRouteMapBridge | null = null;
+let clearClickDebugMarkerHandler: (() => void) | null = null;
 
 export function registerDistanceAutoRouteMapBridge(
   bridge: DistanceAutoRouteMapBridge | null,
 ): void {
   latestBridge = bridge;
+}
+
+export function registerDistanceAutoRouteClickDebugMarkerClear(
+  handler: (() => void) | null,
+): void {
+  clearClickDebugMarkerHandler = handler;
+}
+
+export function clearDistanceAutoRouteClickDebugMarker(): void {
+  clearClickDebugMarkerHandler?.();
 }
 
 export function getDistanceAutoRouteMapBridge(): DistanceAutoRouteMapBridge | null {

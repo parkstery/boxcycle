@@ -21,6 +21,8 @@ export type DistanceAutoRouteResponse =
       targetDistanceMeters: number;
       summary: string;
       routeTokenBalance: number;
+      endMissMeters?: number;
+      algorithmVersion?: string;
     }
   | {
       status: "failed";
@@ -56,9 +58,10 @@ export async function fetchDistanceAutoRoute(
   user: User,
   input: {
     start: LngLat;
+    targetRoadPoint: LngLat;
     profile: RouteProfile;
     targetDistanceMeters: number;
-    bearingDeg: number;
+    bearingDeg?: number;
     requestId: string;
   },
 ): Promise<DistanceAutoRouteResponse> {

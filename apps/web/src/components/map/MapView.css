@@ -624,6 +624,71 @@
   }
 }
 
+.map-view__auto-route-click-debug-marker-host {
+  pointer-events: none;
+}
+
+.map-view__auto-route-click-debug-host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  pointer-events: none;
+}
+
+.map-view__auto-route-click-debug-marker {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border: 2px solid #d946ef;
+  border-radius: 999px;
+  background: rgba(217, 70, 239, 0.18);
+  color: #f5d0fe;
+  font:
+    700 0.62rem/1 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    monospace;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.55);
+  pointer-events: none;
+}
+
+.map-view__auto-route-click-debug-marker::before,
+.map-view__auto-route-click-debug-marker::after {
+  content: "";
+  position: absolute;
+  background: #d946ef;
+  pointer-events: none;
+}
+
+.map-view__auto-route-click-debug-marker::before {
+  width: 0.72rem;
+  height: 2px;
+}
+
+.map-view__auto-route-click-debug-marker::after {
+  width: 2px;
+  height: 0.72rem;
+}
+
+.map-view__auto-route-click-debug-label {
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+  background: rgba(15, 23, 42, 0.82);
+  color: #f5d0fe;
+  font:
+    600 0.62rem/1.2 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    monospace;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 .map-view__pick--awaiting-profile {
   outline: 1px solid rgba(232, 163, 61, 0.35);
   outline-offset: 1px;

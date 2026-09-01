@@ -1,7 +1,7 @@
 import type { User } from "firebase/auth";
 import { getFunctions } from "firebase/functions";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { registerDistanceAutoRouteMapBridge } from "../lib/distanceAutoRouteMapBridge";
+import { registerDistanceAutoRouteMapBridge, clearDistanceAutoRouteClickDebugMarker } from "../lib/distanceAutoRouteMapBridge";
 import { getFirebaseApp } from "../lib/firebase";
 import type { LngLat } from "../lib/geo";
 import { formatLngLat } from "../lib/geo";
@@ -124,6 +124,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
     setBearingDeg(null);
     setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
     activeRequestIdRef.current = null;
+    clearDistanceAutoRouteClickDebugMarker();
   }, []);
 
   const suspendPopupPick = useCallback(() => {
@@ -138,6 +139,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
   const setDistanceDirectionMode = useCallback((enabled: boolean) => {
     setDistanceDirectionModeState(enabled);
     if (!enabled) {
+      clearDistanceAutoRouteClickDebugMarker();
       releasePickArm();
     }
   }, [releasePickArm]);
@@ -227,6 +229,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
         try {
           const response = await fetchDistanceAutoRoute(functions, user!, {
             start,
+            targetRoadPoint: lngLat,
             profile,
             targetDistanceMeters: targetMeters,
             bearingDeg: bearing,
