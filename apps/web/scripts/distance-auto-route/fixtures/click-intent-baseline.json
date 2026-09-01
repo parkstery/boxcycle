@@ -1,74 +1,82 @@
 [
   {
-    "id": "straight-road-5km",
+    "id": "3fcr1-offered-road-too-long",
     "fixtureKind": "deterministic",
     "start": [127.02, 37.5],
-    "targetRoadPoint": [127.07668, 37.5],
-    "targetDistanceMeters": 5000,
-    "profile": "cycling",
-    "baselineAlgorithm": "3F-A-observe",
-    "defaultRouteLengthFactor": 1.05,
+    "targetRoadPoint": [127.034712, 37.5],
+    "targetDistanceMeters": 1000,
+    "profile": "driving",
+    "baselineAlgorithm": "3F-C-R1-reach-offer",
+    "directRouteLengthM": 1300,
     "overrides": [],
     "expected": {
       "status": "found",
+      "outcome": "offered",
       "attemptedCalls": 1,
       "distanceErrorM": 0,
-      "snappedEndMissM": 1.3,
-      "rawEndMissM": 1.3,
+      "snappedEndMissM": 300,
+      "rawEndMissM": 300,
       "bearingErrorDeg": 0,
-      "clippedEnd": [127.07668, 37.5],
-      "sameResultReason": "3F-B direct click early success with exact clip at clicked road"
+      "clippedEnd": [127.031320, 37.5],
+      "clippedEndToleranceM": 15,
+      "sameResultReason": "3F-C-R1 offered: road > D+150 → direct clip 단 1회"
     }
   },
   {
-    "id": "ring-fallback-near",
+    "id": "3fcr1-exact-road-in-window",
     "fixtureKind": "deterministic",
     "start": [127.02, 37.5],
-    "targetRoadPoint": [127.07668, 37.5],
-    "targetDistanceMeters": 5000,
-    "profile": "cycling",
-    "baselineAlgorithm": "3F-A-observe",
-    "overrides": [
-      {
-        "endpointKind": "direct",
-        "kind": "route",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [
-            [127.02, 37.5],
-            [127.02634799241365, 37.499595135439684],
-            [127.03269595040817, 37.49919027088185],
-            [127.03904387398428, 37.49878540632651],
-            [127.04539176314267, 37.498380541773656],
-            [127.05173961788404, 37.49797567722329],
-            [127.05808743820904, 37.497570812675406],
-            [127.06443522411838, 37.49716594813001],
-            [127.07078297561274, 37.49676108358709],
-            [127.07713069269283, 37.49635621904666],
-            [127.08347837535935, 37.49595135450872]
-          ]
-        }
-      }
-    ],
+    "targetRoadPoint": [127.031885, 37.5],
+    "targetDistanceMeters": 1000,
+    "profile": "driving",
+    "baselineAlgorithm": "3F-C-R1-reach-offer",
+    "directRouteLengthM": 1050,
+    "overrides": [],
     "expected": {
       "status": "found",
-      "attemptedCalls": 2,
+      "outcome": "exact",
+      "attemptedCalls": 1,
       "distanceErrorM": 0,
-      "snappedEndMissM": 26.3,
-      "rawEndMissM": 26.3,
-      "bearingErrorDeg": 0.3,
-      "clippedEnd": [127.07668, 37.50024],
-      "sameResultReason": "3F-B ring fallback when direct clipped end exceeds 250m miss"
+      "snappedEndMissM": 50,
+      "rawEndMissM": 50,
+      "bearingErrorDeg": 0,
+      "clippedEnd": [127.031320, 37.5],
+      "clippedEndToleranceM": 15,
+      "sameResultReason": "3F-C-R1 exact: road in [D, D+150] → direct clip 단 1회"
     }
   },
   {
-    "id": "off-road-snap-fail",
+    "id": "3fcr1-detoured-road-short",
+    "fixtureKind": "deterministic",
+    "start": [127.02, 37.5],
+    "targetRoadPoint": [127.030769, 37.5],
+    "targetDistanceMeters": 1000,
+    "profile": "driving",
+    "baselineAlgorithm": "3F-C-R1-reach-offer",
+    "directRouteLengthM": 800,
+    "overrides": [],
+    "expected": {
+      "status": "found",
+      "outcome": "detoured",
+      "attemptedCalls": 2,
+      "maxAttemptedCalls": 9,
+      "distanceErrorM": 0,
+      "snappedEndMissM": 50,
+      "rawEndMissM": 50,
+      "bearingErrorDeg": 0,
+      "clippedEnd": [127.031336, 37.5],
+      "clippedEndToleranceM": 30,
+      "sameResultReason": "3F-C-R1 detoured: road < D → regula falsi 우회 성공"
+    }
+  },
+  {
+    "id": "3fcr1-fail-snap-too-far",
     "fixtureKind": "deterministic",
     "start": [127.02, 37.5],
     "targetRoadPoint": [127.07668, 37.5],
-    "targetDistanceMeters": 5000,
-    "profile": "cycling",
-    "baselineAlgorithm": "3F-A-observe",
+    "targetDistanceMeters": 1000,
+    "profile": "driving",
+    "baselineAlgorithm": "3F-C-R1-reach-offer",
     "overrides": [
       {
         "endpointKind": "direct",
@@ -84,50 +92,7 @@
       "rawEndMissM": 0,
       "bearingErrorDeg": 0,
       "clippedEnd": [127.02, 37.5],
-      "sameResultReason": "3F-B fails when provider snap distance exceeds 250m"
-    }
-  },
-  {
-    "id": "short-throw-mix",
-    "fixtureKind": "deterministic",
-    "start": [127.02, 37.5],
-    "targetRoadPoint": [127.07668, 37.5],
-    "targetDistanceMeters": 5000,
-    "profile": "cycling",
-    "baselineAlgorithm": "3F-A-observe",
-    "overrides": [
-      {
-        "endpointKind": "direct",
-        "kind": "too_short",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [
-            [127.02, 37.5],
-            [127.02421546371575, 37.49999992510517],
-            [127.0284309274273, 37.49999985021034],
-            [127.03264639113458, 37.499999775315494],
-            [127.03686185483764, 37.49999970042066],
-            [127.0410773185365, 37.49999962552582],
-            [127.0452927822311, 37.49999955063098],
-            [127.0495082459215, 37.49999947573615],
-            [127.05372370960767, 37.49999940084132]
-          ]
-        }
-      },
-      {
-        "endpointKind": "ring",
-        "kind": "throw"
-      }
-    ],
-    "expected": {
-      "status": "failed",
-      "attemptedCalls": 17,
-      "distanceErrorM": 0,
-      "snappedEndMissM": null,
-      "rawEndMissM": 0,
-      "bearingErrorDeg": 0,
-      "clippedEnd": [127.02, 37.5],
-      "sameResultReason": "3F-B refuses distant fallback when direct route is shorter than target"
+      "sameResultReason": "3F-C-R1 유일한 실패: clickSnapM > 250m"
     }
   }
 ]

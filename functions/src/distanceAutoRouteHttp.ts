@@ -4,6 +4,7 @@ import {
   AUTO_ROUTE_ALGORITHM_VERSION,
   bearingFromOriginToPoint,
   searchDistanceAutoRoute,
+  type AutoRouteOutcome,
   type DirectionsRouteLike,
   type FetchDirectionsFn,
   type LngLat,
@@ -30,6 +31,9 @@ export type DistanceAutoRouteFound = {
   routeTokenBalance: number;
   endMissMeters?: number;
   algorithmVersion?: string;
+  outcome?: AutoRouteOutcome;
+  directRoadMeters?: number;
+  detourCalls?: number;
 };
 
 export type DistanceAutoRouteFailed = {
@@ -56,6 +60,9 @@ type CacheDoc = {
   algorithmVersion?: string;
   endMissMeters?: number;
   snappedEnd?: LngLat;
+  outcome?: AutoRouteOutcome;
+  directRoadMeters?: number;
+  detourCalls?: number;
 };
 
 function cacheToResult(doc: CacheDoc): DistanceAutoRouteResult {
@@ -89,6 +96,9 @@ function cacheToResult(doc: CacheDoc): DistanceAutoRouteResult {
       routeTokenBalance: doc.routeTokenBalance,
       endMissMeters: doc.endMissMeters,
       algorithmVersion: doc.algorithmVersion,
+      outcome: doc.outcome,
+      directRoadMeters: doc.directRoadMeters,
+      detourCalls: doc.detourCalls,
     };
   }
   return {
@@ -124,12 +134,13 @@ export function parseDistanceAutoRouteBody(data: unknown): {
   targetDistanceMeters: number;
   bearingDeg: number;
   requestId: string;
+  distanceAdjustRetry?: boolean;
 } {
   if (!data || typeof data !== "object") {
     throw new HttpsError("invalid-argument", "요청 본문이 올바르지 않습니다.");
   }
   const o = data as Record<string, unknown>;
-  const { start, targetRoadPoint, profile, targetDistanceMeters, requestId } = o;
+  const { start, targetRoadPoint, profile, targetDistanceMeters, requestId, distanceAdjustRetry } = o;
   if (!isLngLat(start)) {
     throw new HttpsError("invalid-argument", "start 는 [lng,lat] 숫자 배열이어야 합니다.");
   }
@@ -162,6 +173,7 @@ export function parseDistanceAutoRouteBody(data: unknown): {
     targetDistanceMeters,
     bearingDeg: bearingFromOriginToPoint(start, targetRoadPoint),
     requestId: id,
+    distanceAdjustRetry: distanceAdjustRetry === true,
   };
 }
 
@@ -203,6 +215,7 @@ export async function executeDistanceAutoRoute(input: {
   bearingDeg: number;
   requestId: string;
   fetchDirections: FetchDirectionsFn;
+  distanceAdjustRetry?: boolean;
 }): Promise<DistanceAutoRouteResult> {
   const {
     userId,
@@ -213,6 +226,7 @@ export async function executeDistanceAutoRoute(input: {
     bearingDeg,
     requestId,
     fetchDirections,
+    distanceAdjustRetry,
   } = input;
 
   const cached = await readCache(userId, requestId);
@@ -225,13 +239,18 @@ export async function executeDistanceAutoRoute(input: {
   const tokenRequestId = spendRequestId(requestId);
 
   let routeTokenBalance: number;
-  try {
-    routeTokenBalance = await spendRouteGenerateToken(userId, tokenRequestId);
-  } catch (e) {
-    if (e instanceof HttpsError && e.code === "resource-exhausted") {
+  if (distanceAdjustRetry) {
+    // 거리 조정 재탐색: Token 차감 없이 현재 잔액만 조회 (costOverride=0 → ensureRouteTokenOnboarding 경유)
+    routeTokenBalance = await spendRouteGenerateToken(userId, tokenRequestId, 0);
+  } else {
+    try {
+      routeTokenBalance = await spendRouteGenerateToken(userId, tokenRequestId);
+    } catch (e) {
+      if (e instanceof HttpsError && e.code === "resource-exhausted") {
+        throw e;
+      }
       throw e;
     }
-    throw e;
   }
 
   const searched = await searchDistanceAutoRoute({
@@ -244,7 +263,7 @@ export async function executeDistanceAutoRoute(input: {
   });
 
   if (searched.status === "failed") {
-    if (generateCost > 0) {
+    if (!distanceAdjustRetry && generateCost > 0) {
       await refundRouteGenerateToken(userId, tokenRequestId, generateCost);
       routeTokenBalance += generateCost;
     }
@@ -263,7 +282,7 @@ export async function executeDistanceAutoRoute(input: {
     return failed;
   }
 
-  const { diagnostics } = searched;
+  const { diagnostics, outcome, directRoadMeters, endMissMeters, detourCalls } = searched;
   const targetLabel = (targetDistanceMeters / 1000).toFixed(1);
   const actualLabel = (searched.distance / 1000).toFixed(2);
   const summary = `목표 ${targetLabel} km · 연장 ${actualLabel} km / 예상 ${formatDuration(searched.duration)}`;
@@ -272,6 +291,11 @@ export async function executeDistanceAutoRoute(input: {
       kind: "distanceAutoRouteDiagnostics",
       requestId,
       algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
+      outcome,
+      directRoadMeters,
+      endMissMeters,
+      detourCalls,
+      distanceAdjustRetry: distanceAdjustRetry ?? false,
       ...diagnostics,
     }),
   );
@@ -287,6 +311,9 @@ export async function executeDistanceAutoRoute(input: {
     routeTokenBalance,
     endMissMeters: diagnostics.rawClickMissMeters,
     algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
+    outcome,
+    directRoadMeters,
+    detourCalls,
   };
 
   await writeCache(userId, requestId, {
@@ -304,6 +331,9 @@ export async function executeDistanceAutoRoute(input: {
     algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
     endMissMeters: diagnostics.rawClickMissMeters,
     snappedEnd: diagnostics.snappedClickPoint ?? undefined,
+    outcome,
+    directRoadMeters,
+    detourCalls,
   });
 
   return found;

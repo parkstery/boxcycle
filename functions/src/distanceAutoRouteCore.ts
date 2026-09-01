@@ -295,15 +295,17 @@ export function isValidAutoRouteEnd(origin: LngLat, end: LngLat, minMeters = 200
   return getDistanceMeters(origin, end) >= minMeters;
 }
 
-export const AUTO_ROUTE_ALGORITHM_VERSION = "3F-B-click-road";
+export const AUTO_ROUTE_ALGORITHM_VERSION = "3F-C-R1-reach-offer";
 
-export const CLICK_INTENT_EARLY_SNAP_TOLERANCE_M = 100;
-export const CLICK_INTENT_END_MISS_FAIL_M = 250;
-export const CLICK_INTENT_SNAP_DEDUPE_M = 10;
-export const CLICK_INTENT_CLICK_PROXIMITY_BUCKET_M = 10;
-export const CLICK_INTENT_RING_RADII_M = [25, 75] as const;
-export const CLICK_INTENT_RING_BEARINGS_DEG = [0, 45, 90, 135, 180, 225, 270, 315] as const;
-export const MAX_AUTO_ROUTE_PROVIDER_CALLS = 35;
+export const MAX_AUTO_ROUTE_PROVIDER_CALLS = 12;
+export const DETOUR_CALL_BUDGET = 8;
+
+/** 클릭→도로 스냅 거리 초과 시 유일한 실패 (m) */
+export const CLICK_SNAP_FAIL_M = 250;
+/** direct road > D + 이 값 이면 offered (우회 시도 없이 즉시) (m) */
+export const DIRECT_ROAD_EXCESS_TOLERANCE_M = 150;
+/** offered 가 아닌데 endMiss 이 이 값 초과 시 offered 로 강등 (m) */
+export const END_MISS_DEMOTE_TO_OFFERED_M = 200;
 
 export function isValidLngLat(v: unknown): v is LngLat {
   return (
@@ -324,163 +326,6 @@ export function parseDirectionsSnapMetadata(
   if (typeof dist !== "number" || !Number.isFinite(dist) || dist < 0) return null;
   return { snappedEnd: route.snappedEnd, endSnapDistanceMeters: dist };
 }
-
-export function buildClickSurroundingEndpoints(center: LngLat): LngLat[] {
-  const out: LngLat[] = [];
-  const seen = new Set<string>();
-  for (const radius of CLICK_INTENT_RING_RADII_M) {
-    for (const bearing of CLICK_INTENT_RING_BEARINGS_DEG) {
-      const point = offsetLngLatByBearingMeters(center, bearing, radius);
-      const key = `${point[0].toFixed(6)},${point[1].toFixed(6)}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      out.push(point);
-    }
-  }
-  return out;
-}
-
-export type EvaluatedClickRoute = {
-  geometry: DirectionsRouteLike["geometry"];
-  distance: number;
-  duration: number;
-  clippedEnd: LngLat;
-  snappedEnd: LngLat | null;
-  endSnapDistanceMeters: number | null;
-  snappedEndMissMeters: number | null;
-  rawEndMissMeters: number;
-  bearingErrorDeg: number;
-  providerCallIndex: number;
-  isDirectClick: boolean;
-};
-
-export function evaluateClickRouteCandidate(input: {
-  route: DirectionsRouteLike;
-  targetDistanceMeters: number;
-  targetRoadPoint: LngLat;
-  start: LngLat;
-  clickBearingDeg: number;
-  providerCallIndex: number;
-  isDirectClick: boolean;
-}): EvaluatedClickRoute | null {
-  const geomLen = lineStringLengthMeters(input.route.geometry);
-  if (geomLen < input.targetDistanceMeters) return null;
-
-  const clipped = clipRouteGeometryToTargetMeters({
-    geometry: input.route.geometry,
-    targetDistanceMeters: input.targetDistanceMeters,
-    originalDuration: input.route.duration,
-  });
-  if (!clipped.ok) return null;
-
-  const snapMeta = parseDirectionsSnapMetadata(input.route);
-  const snappedEnd = snapMeta?.snappedEnd ?? null;
-  const endSnapDistanceMeters = snapMeta?.endSnapDistanceMeters ?? null;
-  const snappedEndMissMeters =
-    snappedEnd != null ? getDistanceMeters(snappedEnd, clipped.end) : null;
-  const rawEndMissMeters = getDistanceMeters(input.targetRoadPoint, clipped.end);
-  const endBearing = bearingFromOriginToPoint(input.start, clipped.end);
-
-  return {
-    geometry: clipped.geometry,
-    distance: clipped.distance,
-    duration: clipped.duration,
-    clippedEnd: clipped.end,
-    snappedEnd,
-    endSnapDistanceMeters,
-    snappedEndMissMeters,
-    rawEndMissMeters,
-    bearingErrorDeg: angularBearingDiffDeg(input.clickBearingDeg, endBearing),
-    providerCallIndex: input.providerCallIndex,
-    isDirectClick: input.isDirectClick,
-  };
-}
-
-export function isClickIntentEarlySuccess(
-  evaluated: EvaluatedClickRoute,
-  targetDistanceMeters: number,
-): boolean {
-  if (!isExactTargetDistance(evaluated.distance, targetDistanceMeters)) return false;
-  if (
-    evaluated.endSnapDistanceMeters == null ||
-    evaluated.endSnapDistanceMeters > CLICK_INTENT_EARLY_SNAP_TOLERANCE_M
-  ) {
-    return false;
-  }
-  if (
-    evaluated.snappedEndMissMeters == null ||
-    evaluated.snappedEndMissMeters > CLICK_INTENT_EARLY_SNAP_TOLERANCE_M
-  ) {
-    return false;
-  }
-  return true;
-}
-
-export function compareClickIntentRoutes(
-  a: EvaluatedClickRoute,
-  b: EvaluatedClickRoute,
-  start: LngLat,
-): number {
-  const aSnappedMiss = a.snappedEndMissMeters ?? Number.POSITIVE_INFINITY;
-  const bSnappedMiss = b.snappedEndMissMeters ?? Number.POSITIVE_INFINITY;
-  if (aSnappedMiss !== bSnappedMiss) return aSnappedMiss - bSnappedMiss;
-
-  if (a.rawEndMissMeters !== b.rawEndMissMeters) return a.rawEndMissMeters - b.rawEndMissMeters;
-
-  const aClickSnap = a.endSnapDistanceMeters ?? Number.POSITIVE_INFINITY;
-  const bClickSnap = b.endSnapDistanceMeters ?? Number.POSITIVE_INFINITY;
-  if (aClickSnap !== bClickSnap) return aClickSnap - bClickSnap;
-
-  const aProx =
-    a.endSnapDistanceMeters != null
-      ? a.endSnapDistanceMeters
-      : a.rawEndMissMeters;
-  const bProx =
-    b.endSnapDistanceMeters != null
-      ? b.endSnapDistanceMeters
-      : b.rawEndMissMeters;
-  const aBucket = Math.floor(aProx / CLICK_INTENT_CLICK_PROXIMITY_BUCKET_M);
-  const bBucket = Math.floor(bProx / CLICK_INTENT_CLICK_PROXIMITY_BUCKET_M);
-  if (aBucket === bBucket && a.snappedEnd && b.snappedEnd) {
-    const aStartDist = getDistanceMeters(start, a.snappedEnd);
-    const bStartDist = getDistanceMeters(start, b.snappedEnd);
-    if (aStartDist !== bStartDist) return aStartDist - bStartDist;
-  }
-
-  if (a.bearingErrorDeg !== b.bearingErrorDeg) return a.bearingErrorDeg - b.bearingErrorDeg;
-  return a.providerCallIndex - b.providerCallIndex;
-}
-
-export function pickBestClickIntentRoute(
-  candidates: EvaluatedClickRoute[],
-  targetDistanceMeters: number,
-  start: LngLat,
-): EvaluatedClickRoute | null {
-  const exact = candidates.filter((item) =>
-    isExactTargetDistance(item.distance, targetDistanceMeters),
-  );
-  if (exact.length === 0) return null;
-
-  let best = exact[0]!;
-  for (let i = 1; i < exact.length; i += 1) {
-    const cur = exact[i]!;
-    if (compareClickIntentRoutes(cur, best, start) < 0) best = cur;
-  }
-  return best;
-}
-
-export function isClickIntentEndMissAcceptable(evaluated: EvaluatedClickRoute): boolean {
-  if (
-    evaluated.snappedEndMissMeters != null &&
-    evaluated.snappedEndMissMeters <= CLICK_INTENT_END_MISS_FAIL_M
-  ) {
-    return true;
-  }
-  return evaluated.rawEndMissMeters <= CLICK_INTENT_END_MISS_FAIL_M;
-}
-
-const NO_ROAD_NEAR_CLICK_MESSAGE =
-  "선택 지점 가까이에 이 이동수단으로 이용 가능한 도로가 없습니다.";
 
 export type AutoRouteClickDiagnostics = {
   rawClickMissMeters: number;
@@ -558,11 +403,16 @@ export async function mapWithConcurrency<T, R>(
 
 export type RouteProfile = "cycling" | "driving" | "walking";
 
+/**
+ * waypoints[0] = start, waypoints[last] = end.
+ * 중간 경과지가 있으면 waypoints[1..last-1] 에 포함.
+ */
 export type FetchDirectionsFn = (
   profile: RouteProfile,
-  start: LngLat,
-  end: LngLat,
+  waypoints: LngLat[],
 ) => Promise<DirectionsRouteLike>;
+
+export type AutoRouteOutcome = "exact" | "detoured" | "offered";
 
 export type DistanceAutoRouteSearchFound = {
   status: "found";
@@ -570,6 +420,10 @@ export type DistanceAutoRouteSearchFound = {
   distance: number;
   duration: number;
   end: LngLat;
+  outcome: AutoRouteOutcome;
+  directRoadMeters: number;
+  endMissMeters: number;
+  detourCalls: number;
   diagnostics: AutoRouteClickDiagnostics;
 };
 
@@ -584,6 +438,13 @@ export type DistanceAutoRouteSearchResult =
   | DistanceAutoRouteSearchFound
   | DistanceAutoRouteSearchFailed;
 
+const NO_ROAD_NEAR_CLICK_MESSAGE =
+  "선택 지점 가까이에 이 이동수단으로 이용 가능한 도로가 없습니다.";
+
+function midpointLngLat(a: LngLat, b: LngLat): LngLat {
+  return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+}
+
 export async function searchDistanceAutoRoute(input: {
   start: LngLat;
   targetRoadPoint: LngLat;
@@ -592,131 +453,221 @@ export async function searchDistanceAutoRoute(input: {
   bearingDeg: number;
   fetchDirections: FetchDirectionsFn;
 }): Promise<DistanceAutoRouteSearchResult> {
-  const { start, targetRoadPoint, profile, targetDistanceMeters, bearingDeg, fetchDirections } =
-    input;
+  const { start, targetRoadPoint, profile, targetDistanceMeters, fetchDirections } = input;
+  const D = targetDistanceMeters;
   const searchStartedAt = Date.now();
   let providerCallCount = 0;
-  const evaluated: EvaluatedClickRoute[] = [];
-  let directSnappedEnd: LngLat | null = null;
-  let directEndSnapDistanceMeters: number | null = null;
-  let directTooShort = false;
+  let detourCalls = 0;
 
-  const endpoints: LngLat[] = [
-    targetRoadPoint,
-    ...buildClickSurroundingEndpoints(targetRoadPoint),
-  ];
-
-  for (let i = 0; i < endpoints.length && providerCallCount < MAX_AUTO_ROUTE_PROVIDER_CALLS; i += 1) {
-    const endpoint = endpoints[i]!;
-    const isDirectClick = i === 0;
-    providerCallCount += 1;
-    try {
-      const route = await fetchDirections(profile, start, endpoint);
-      const snapMeta = parseDirectionsSnapMetadata(route);
-
-      if (isDirectClick) {
-        if (snapMeta) {
-          directSnappedEnd = snapMeta.snappedEnd;
-          directEndSnapDistanceMeters = snapMeta.endSnapDistanceMeters;
-          if (snapMeta.endSnapDistanceMeters > CLICK_INTENT_END_MISS_FAIL_M) {
-            return {
-              status: "failed",
-              message: NO_ROAD_NEAR_CLICK_MESSAGE,
-              providerCallCount,
-              searchElapsedMs: Date.now() - searchStartedAt,
-            };
-          }
-        }
-      }
-
-      if (lineStringLengthMeters(route.geometry) < targetDistanceMeters) {
-        if (isDirectClick) directTooShort = true;
-        continue;
-      }
-
-      const candidate = evaluateClickRouteCandidate({
-        route,
-        targetDistanceMeters,
-        targetRoadPoint,
-        start,
-        clickBearingDeg: bearingDeg,
-        providerCallIndex: providerCallCount,
-        isDirectClick,
-      });
-      if (!candidate) continue;
-      evaluated.push(candidate);
-
-      if (isClickIntentEarlySuccess(candidate, targetDistanceMeters)) {
-        const searchElapsedMs = Date.now() - searchStartedAt;
-        const diagnostics = computeAutoRouteClickDiagnostics({
-          start,
-          targetRoadPoint,
-          clippedEnd: candidate.clippedEnd,
-          targetDistanceMeters,
-          clippedDistanceMeters: candidate.distance,
-          snappedClickPoint: directSnappedEnd,
-          clickSnapMeters: directEndSnapDistanceMeters,
-          providerCallCount,
-          searchElapsedMs,
-        });
-        return {
-          status: "found",
-          geometry: candidate.geometry,
-          distance: candidate.distance,
-          duration: candidate.duration,
-          end: candidate.clippedEnd,
-          diagnostics,
-        };
-      }
-    } catch {
-      // provider 실패 — 다음 endpoint
-    }
-  }
-
-  const searchElapsedMs = Date.now() - searchStartedAt;
-  const best = pickBestClickIntentRoute(evaluated, targetDistanceMeters, start);
-
-  if (!best || !isClickIntentEndMissAcceptable(best)) {
-    let message: string;
-    if (directEndSnapDistanceMeters != null && directEndSnapDistanceMeters > CLICK_INTENT_END_MISS_FAIL_M) {
-      message = NO_ROAD_NEAR_CLICK_MESSAGE;
-    } else if (directTooShort && evaluated.length === 0) {
-      message = `목표거리(${(targetDistanceMeters / 1000).toFixed(1)} km)까지 도달하는 경로를 찾지 못했습니다. 클릭 지점이 목표 거리보다 가깝습니다.`;
-    } else if (evaluated.length === 0) {
-      message =
-        providerCallCount > 0
-          ? `목표거리(${(targetDistanceMeters / 1000).toFixed(1)} km) 이상의 경로를 찾지 못했습니다. 방향이나 거리를 바꿔 보세요.`
-          : "목표거리와 적합한 경로를 찾지 못했습니다. 방향이나 거리를 바꿔 보세요.";
-    } else {
-      message =
-        "클릭한 도로 근처에서 목표 연장에 맞는 경로를 찾지 못했습니다. 다른 위치를 클릭해 보세요.";
-    }
+  // Stage 0 — direct measurement (항상 1회)
+  providerCallCount += 1;
+  let directRoute: DirectionsRouteLike;
+  try {
+    directRoute = await fetchDirections(profile, [start, targetRoadPoint]);
+  } catch {
     return {
       status: "failed",
-      message,
+      message: "경로 검색 서비스에 연결하지 못했습니다.",
       providerCallCount,
-      searchElapsedMs,
+      searchElapsedMs: Date.now() - searchStartedAt,
     };
   }
 
-  const diagnostics = computeAutoRouteClickDiagnostics({
-    start,
-    targetRoadPoint,
-    clippedEnd: best.clippedEnd,
-    targetDistanceMeters,
-    clippedDistanceMeters: best.distance,
-    snappedClickPoint: directSnappedEnd,
-    clickSnapMeters: directEndSnapDistanceMeters,
-    providerCallCount,
-    searchElapsedMs,
-  });
+  const snapMeta0 = parseDirectionsSnapMetadata(directRoute);
+  const clickSnapM = snapMeta0?.endSnapDistanceMeters ?? 0;
+  const clickRoadPoint: LngLat = snapMeta0?.snappedEnd ?? targetRoadPoint;
+  const directRoadM = directRoute.distance;
 
-  return {
-    status: "found",
-    geometry: best.geometry,
-    distance: best.distance,
-    duration: best.duration,
-    end: best.clippedEnd,
-    diagnostics,
-  };
+  if (clickSnapM > CLICK_SNAP_FAIL_M) {
+    return {
+      status: "failed",
+      message: NO_ROAD_NEAR_CLICK_MESSAGE,
+      providerCallCount,
+      searchElapsedMs: Date.now() - searchStartedAt,
+    };
+  }
+
+  // 절단 + 결과 조립 헬퍼
+  function assembleResult(
+    routeToClip: DirectionsRouteLike,
+    pendingOutcome: AutoRouteOutcome,
+  ): DistanceAutoRouteSearchResult {
+    const clipped = clipRouteGeometryToTargetMeters({
+      geometry: routeToClip.geometry,
+      targetDistanceMeters: D,
+      originalDuration: routeToClip.duration,
+    });
+
+    // 절단 실패 시 direct offered 로 fallback
+    if (!clipped.ok) {
+      const directClipped = clipRouteGeometryToTargetMeters({
+        geometry: directRoute.geometry,
+        targetDistanceMeters: D,
+        originalDuration: directRoute.duration,
+      });
+      if (directClipped.ok) {
+        return assembleFromClipped(directClipped, "offered");
+      }
+      return {
+        status: "failed",
+        message: "경로 절단에 실패했습니다.",
+        providerCallCount,
+        searchElapsedMs: Date.now() - searchStartedAt,
+      };
+    }
+
+    return assembleFromClipped(clipped, pendingOutcome);
+  }
+
+  function assembleFromClipped(
+    clipped: Extract<ClipRouteGeometryResult, { ok: true }>,
+    pendingOutcome: AutoRouteOutcome,
+  ): DistanceAutoRouteSearchFound {
+    let finalOutcome = pendingOutcome;
+    let finalGeometry = clipped.geometry;
+    let finalEnd = clipped.end;
+    let finalDistance = clipped.distance;
+    let finalDuration = clipped.duration;
+
+    const endMissM = getDistanceMeters(clipped.end, clickRoadPoint);
+
+    // Hard gate: outcome != offered && endMiss > 200m → offered from direct
+    if (finalOutcome !== "offered" && endMissM > END_MISS_DEMOTE_TO_OFFERED_M) {
+      finalOutcome = "offered";
+      const directClipped = clipRouteGeometryToTargetMeters({
+        geometry: directRoute.geometry,
+        targetDistanceMeters: D,
+        originalDuration: directRoute.duration,
+      });
+      if (directClipped.ok) {
+        finalGeometry = directClipped.geometry;
+        finalEnd = directClipped.end;
+        finalDistance = directClipped.distance;
+        finalDuration = directClipped.duration;
+      }
+    }
+
+    const finalEndMissM = getDistanceMeters(finalEnd, clickRoadPoint);
+    const searchElapsedMs = Date.now() - searchStartedAt;
+
+    const diagnostics = computeAutoRouteClickDiagnostics({
+      start,
+      targetRoadPoint,
+      clippedEnd: finalEnd,
+      targetDistanceMeters: D,
+      clippedDistanceMeters: finalDistance,
+      snappedClickPoint: clickRoadPoint,
+      clickSnapMeters: clickSnapM,
+      providerCallCount,
+      searchElapsedMs,
+    });
+
+    return {
+      status: "found",
+      geometry: finalGeometry,
+      distance: finalDistance,
+      duration: finalDuration,
+      end: finalEnd,
+      outcome: finalOutcome,
+      directRoadMeters: directRoadM,
+      endMissMeters: finalEndMissM,
+      detourCalls,
+      diagnostics,
+    };
+  }
+
+  // Stage 0 조기 종료: offered (road > D+150) 또는 exact (road in [D, D+150])
+  if (directRoadM > D + DIRECT_ROAD_EXCESS_TOLERANCE_M) {
+    return assembleResult(directRoute, "offered");
+  }
+  if (directRoadM >= D) {
+    return assembleResult(directRoute, "exact");
+  }
+
+  // Stage 1 — regula falsi 우회 (Start→clickRoadPoint 축 ±90° 경과지)
+  const axisBearing = bearingFromOriginToPoint(start, clickRoadPoint);
+  const mid = midpointLngLat(start, clickRoadPoint);
+
+  let bestDetourRoute: DirectionsRouteLike | null = null;
+  let bestDetourF = Number.POSITIVE_INFINITY;
+
+  async function trySide(sideSign: 1 | -1, sideBudget: number): Promise<boolean> {
+    const sideAngle = (axisBearing + sideSign * 90 + 360) % 360;
+    let rLo = 0;
+    let fLo = directRoadM;
+    let rHi: number | null = null;
+    let fHi: number | null = null;
+    let r = Math.max(10, (D - directRoadM) / 2);
+
+    for (let i = 0; i < sideBudget; i += 1) {
+      if (detourCalls >= DETOUR_CALL_BUDGET) break;
+
+      const W = offsetLngLatByBearingMeters(mid, sideAngle, Math.max(1, r));
+      detourCalls += 1;
+      providerCallCount += 1;
+
+      let route: DirectionsRouteLike;
+      try {
+        route = await fetchDirections(profile, [start, W, clickRoadPoint]);
+      } catch {
+        // provider 오류 → 지수 성장으로 다음 반경 시도
+        if (rHi === null) r = r * 2;
+        continue;
+      }
+
+      const f = route.distance;
+
+      if (f >= D && f <= D + DIRECT_ROAD_EXCESS_TOLERANCE_M) {
+        // 목표 범위 내 — 즉시 성공
+        bestDetourRoute = route;
+        bestDetourF = f;
+        return true;
+      }
+
+      if (f >= D) {
+        // 초과: 최소 초과 후보 갱신
+        if (f < bestDetourF) {
+          bestDetourRoute = route;
+          bestDetourF = f;
+        }
+        // 새 상한 설정 후 regula falsi
+        const prevR = r;
+        rHi = r;
+        fHi = f;
+        const rf = rLo + (rHi - rLo) * (D - fLo) / (fHi - fLo);
+        const bisect = (rLo + rHi) / 2;
+        // 정체 방지: rf 가 상한에 너무 가까우면 이분 사용
+        r = (rHi - rf) < 0.05 * (rHi - rLo) ? bisect : rf;
+        if (r <= 0 || r === prevR) r = bisect;
+      } else {
+        // 부족: 하한 갱신
+        const prevR = r;
+        rLo = r;
+        fLo = f;
+        if (rHi === null) {
+          r = r * 2; // 상한 미발견 → 지수 증가
+        } else {
+          const rf = rLo + (rHi - rLo) * (D - fLo) / (fHi! - fLo);
+          const bisect = (rLo + rHi) / 2;
+          r = (rf - rLo) < 0.05 * (rHi - rLo) ? bisect : rf;
+          if (r >= rHi || r === prevR) r = bisect;
+        }
+      }
+    }
+    return false;
+  }
+
+  // +90° 먼저 4회, 이후 -90° 로 전환
+  const plusFound = await trySide(1, 4);
+  if (!plusFound && detourCalls < DETOUR_CALL_BUDGET) {
+    await trySide(-1, DETOUR_CALL_BUDGET - detourCalls);
+  }
+
+  // Stage 2 — 절단·검증·응답
+  if (bestDetourRoute !== null) {
+    return assembleResult(bestDetourRoute, "detoured");
+  }
+
+  // 예산 소진, f≥D 후보 없음 → offered from direct
+  return assembleResult(directRoute, "offered");
 }

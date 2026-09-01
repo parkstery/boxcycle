@@ -1,11 +1,11 @@
 import {
   AUTO_ROUTE_ALGORITHM_VERSION,
-  buildClickSurroundingEndpoints,
   bearingFromOriginToPoint,
   getDistanceMeters,
   lineStringLengthMeters,
   offsetLngLatByBearingMeters,
   searchDistanceAutoRoute,
+  type AutoRouteOutcome,
   type DirectionsRouteLike,
   type FetchDirectionsFn,
   type LngLat,
@@ -15,10 +15,8 @@ import {
 export const BASELINE_ALGORITHM_VERSION = "3F-A-observe";
 
 export type FixtureProviderOverride = {
-  /** direct = raw click, ring = click 주변 ring endpoint */
-  endpointKind: "direct" | "ring";
-  ringRadiusM?: number;
-  ringBearingDeg?: number;
+  /** direct = 2-waypoint 직접 호출, detour = 3-waypoint 우회 호출 */
+  endpointKind: "direct" | "detour";
 } & (
   | { kind: "route"; geometry: DirectionsRouteLike["geometry"]; duration?: number }
   | { kind: "throw" }
@@ -28,12 +26,15 @@ export type FixtureProviderOverride = {
 
 export type ClickIntentFixtureExpected = {
   status: "found" | "failed";
+  outcome?: AutoRouteOutcome;
   attemptedCalls: number;
+  maxAttemptedCalls?: number;
   distanceErrorM: number;
   snappedEndMissM: number | null;
   rawEndMissM: number;
   bearingErrorDeg: number;
   clippedEnd: LngLat;
+  clippedEndToleranceM?: number;
   sameResult?: boolean;
   sameResultReason?: string;
 };
@@ -46,6 +47,8 @@ export type ClickIntentFixture = {
   targetDistanceMeters: number;
   profile: RouteProfile;
   baselineAlgorithm: string;
+  /** 직접 경로 mock 거리(m). 미지정 시 targetDistanceMeters * defaultRouteLengthFactor */
+  directRouteLengthM?: number;
   defaultRouteLengthFactor?: number;
   overrides?: FixtureProviderOverride[];
   expected: ClickIntentFixtureExpected;
@@ -55,6 +58,10 @@ export type ClickIntentReplayRow = {
   scenario: string;
   fixtureKind: string;
   algorithm: string;
+  outcome: AutoRouteOutcome | null;
+  directRoadMeters: number | null;
+  endMissMeters: number | null;
+  detourCalls: number | null;
   distanceErrorM: number | null;
   snappedEndMissM: number | null;
   rawEndMissM: number | null;
@@ -65,59 +72,6 @@ export type ClickIntentReplayRow = {
   sameResult: boolean;
   sameResultReason?: string;
 };
-
-function ringEndpoint(
-  center: LngLat,
-  radiusM: number,
-  bearingDeg: number,
-): LngLat {
-  const ring = buildClickSurroundingEndpoints(center);
-  return (
-    ring.find(
-      (point) =>
-        Math.abs(getDistanceMeters(center, point) - radiusM) < 2 &&
-        Math.abs(bearingFromOriginToPoint(center, point) - bearingDeg) < 5,
-    ) ?? ring[0]!
-  );
-}
-
-function matchEndpoint(
-  fixture: ClickIntentFixture,
-  end: LngLat,
-): { kind: "direct" } | { kind: "ring"; radiusM: number; bearingDeg: number } | null {
-  if (getDistanceMeters(end, fixture.targetRoadPoint) < 1) {
-    return { kind: "direct" };
-  }
-  for (const radius of [25, 75] as const) {
-    for (const bearing of [0, 45, 90, 135, 180, 225, 270, 315] as const) {
-      const ringPoint = ringEndpoint(fixture.targetRoadPoint, radius, bearing);
-      if (getDistanceMeters(end, ringPoint) < 1) {
-        return { kind: "ring", radiusM: radius, bearingDeg: bearing };
-      }
-    }
-  }
-  return null;
-}
-
-function findOverride(
-  fixture: ClickIntentFixture,
-  end: LngLat,
-): FixtureProviderOverride | undefined {
-  const matched = matchEndpoint(fixture, end);
-  if (!matched) return undefined;
-  return fixture.overrides?.find((item) => {
-    if (item.endpointKind === "direct" && matched.kind === "direct") return true;
-    if (
-      item.endpointKind === "ring" &&
-      matched.kind === "ring" &&
-      (item.ringRadiusM == null || item.ringRadiusM === matched.radiusM) &&
-      (item.ringBearingDeg == null || item.ringBearingDeg === matched.bearingDeg)
-    ) {
-      return true;
-    }
-    return false;
-  });
-}
 
 export function buildStraightRouteGeometry(
   origin: LngLat,
@@ -173,25 +127,29 @@ export function buildParallelOffsetRouteGeometry(input: {
 export function createFixtureFetchDirections(fixture: ClickIntentFixture): FetchDirectionsFn {
   const lengthFactor = fixture.defaultRouteLengthFactor ?? 1.05;
 
-  return async (_profile, start, end) => {
-    const override = findOverride(fixture, end);
+  return async (_profile, waypoints) => {
+    const start = waypoints[0]!;
+    const end = waypoints[waypoints.length - 1]!;
+    const isDirect = waypoints.length === 2;
+    const endpointKind: "direct" | "detour" = isDirect ? "direct" : "detour";
+    const override = fixture.overrides?.find((o) => o.endpointKind === endpointKind);
+
     if (override?.kind === "throw") {
       throw new Error("fixture provider throw");
     }
 
-    if (override?.kind === "off_road") {
+    if (isDirect && override?.kind === "off_road") {
       const routeBearing = bearingFromOriginToPoint(start, end);
       const geometry = buildStraightRouteGeometry(
         start,
         routeBearing,
         fixture.targetDistanceMeters * lengthFactor,
       );
-      const snapped = ringEndpoint(fixture.targetRoadPoint, 25, 0);
       return {
         geometry,
         distance: lineStringLengthMeters(geometry),
         duration: 1200,
-        snappedEnd: snapped,
+        snappedEnd: fixture.targetRoadPoint,
         endSnapDistanceMeters: override.snapDistanceMeters,
       };
     }
@@ -218,12 +176,15 @@ export function createFixtureFetchDirections(fixture: ClickIntentFixture): Fetch
       };
     }
 
+    // 기본 직선 경로 — 2-waypoint(direct)와 3-waypoint(detour) 모두
     const routeBearing = bearingFromOriginToPoint(start, end);
-    const geometry = buildStraightRouteGeometry(
-      start,
-      routeBearing,
-      fixture.targetDistanceMeters * lengthFactor,
-    );
+    let routeLength: number;
+    if (isDirect && fixture.directRouteLengthM != null) {
+      routeLength = fixture.directRouteLengthM;
+    } else {
+      routeLength = fixture.targetDistanceMeters * lengthFactor;
+    }
+    const geometry = buildStraightRouteGeometry(start, routeBearing, routeLength);
     return {
       geometry,
       distance: lineStringLengthMeters(geometry),
@@ -284,6 +245,10 @@ function buildReplayRow(
       scenario: fixture.id,
       fixtureKind: fixture.fixtureKind,
       algorithm,
+      outcome: null,
+      directRoadMeters: null,
+      endMissMeters: null,
+      detourCalls: null,
       distanceErrorM: null,
       snappedEndMissM: null,
       rawEndMissM: null,
@@ -300,6 +265,10 @@ function buildReplayRow(
     scenario: fixture.id,
     fixtureKind: fixture.fixtureKind,
     algorithm,
+    outcome: searched.outcome,
+    directRoadMeters: searched.directRoadMeters,
+    endMissMeters: searched.endMissMeters,
+    detourCalls: searched.detourCalls,
     distanceErrorM: diagnostics.routeDistanceErrorMeters,
     snappedEndMissM: diagnostics.snappedClickMissMeters,
     rawEndMissM: diagnostics.rawClickMissMeters,
@@ -317,13 +286,17 @@ export function assertFixtureExpectations(
   toleranceMeters = 8,
 ): void {
   const { expected } = fixture;
+  const effectiveTolerance = expected.clippedEndToleranceM ?? toleranceMeters;
+
   if (expected.status === "failed") {
     if (searched.status !== "failed") {
       throw new Error(`${fixture.id}: expected failed but got found`);
     }
-    if (searched.providerCallCount !== expected.attemptedCalls) {
+    const calls = searched.providerCallCount;
+    const maxCalls = expected.maxAttemptedCalls ?? expected.attemptedCalls;
+    if (calls < expected.attemptedCalls || calls > maxCalls) {
       throw new Error(
-        `${fixture.id}: attemptedCalls expected ${expected.attemptedCalls} got ${searched.providerCallCount}`,
+        `${fixture.id}: attemptedCalls expected ${expected.attemptedCalls}..${maxCalls} got ${calls}`,
       );
     }
     return;
@@ -333,10 +306,18 @@ export function assertFixtureExpectations(
     throw new Error(`${fixture.id}: expected found but got failed (${searched.message})`);
   }
 
-  const { diagnostics } = searched;
-  if (diagnostics.providerCallCount !== expected.attemptedCalls) {
+  if (expected.outcome && searched.outcome !== expected.outcome) {
     throw new Error(
-      `${fixture.id}: attemptedCalls expected ${expected.attemptedCalls} got ${diagnostics.providerCallCount}`,
+      `${fixture.id}: outcome expected ${expected.outcome} got ${searched.outcome}`,
+    );
+  }
+
+  const { diagnostics } = searched;
+  const calls = diagnostics.providerCallCount;
+  const maxCalls = expected.maxAttemptedCalls ?? expected.attemptedCalls;
+  if (calls < expected.attemptedCalls || calls > maxCalls) {
+    throw new Error(
+      `${fixture.id}: attemptedCalls expected ${expected.attemptedCalls}..${maxCalls} got ${calls}`,
     );
   }
   if (Math.abs(diagnostics.routeDistanceErrorMeters - expected.distanceErrorM) > 0.5) {
@@ -350,13 +331,13 @@ export function assertFixtureExpectations(
     }
   } else if (
     diagnostics.snappedClickMissMeters == null ||
-    Math.abs(diagnostics.snappedClickMissMeters - expected.snappedEndMissM) > toleranceMeters
+    Math.abs(diagnostics.snappedClickMissMeters - expected.snappedEndMissM) > effectiveTolerance
   ) {
     throw new Error(
       `${fixture.id}: snappedEndMissM expected ${expected.snappedEndMissM} got ${diagnostics.snappedClickMissMeters}`,
     );
   }
-  if (Math.abs(diagnostics.rawClickMissMeters - expected.rawEndMissM) > toleranceMeters) {
+  if (Math.abs(diagnostics.rawClickMissMeters - expected.rawEndMissM) > effectiveTolerance) {
     throw new Error(
       `${fixture.id}: rawEndMissM expected ${expected.rawEndMissM} got ${diagnostics.rawClickMissMeters}`,
     );
@@ -366,16 +347,16 @@ export function assertFixtureExpectations(
       `${fixture.id}: bearingErrorDeg expected ${expected.bearingErrorDeg} got ${diagnostics.actualEndBearingErrorDeg}`,
     );
   }
-  if (getDistanceMeters(searched.end, expected.clippedEnd) > toleranceMeters) {
+  if (getDistanceMeters(searched.end, expected.clippedEnd) > effectiveTolerance) {
     throw new Error(
-      `${fixture.id}: clippedEnd expected ${expected.clippedEnd} got ${searched.end}`,
+      `${fixture.id}: clippedEnd expected ${JSON.stringify(expected.clippedEnd)} got ${JSON.stringify(searched.end)} (${getDistanceMeters(searched.end, expected.clippedEnd).toFixed(1)}m)`,
     );
   }
 }
 
 export function printReplayTable(rows: ClickIntentReplayRow[]): void {
   console.log(
-    "scenario | fixtureKind | algorithm | distanceErrorM | snappedEndMissM | rawEndMissM | bearingErrorDeg | attemptedCalls | ms | result | sameResult",
+    "scenario | fixtureKind | algorithm | outcome | directRoadM | endMissM | detourCalls | distanceErrorM | snappedEndMissM | rawEndMissM | bearingErrorDeg | attemptedCalls | ms | result | sameResult",
   );
   for (const row of rows) {
     console.log(
@@ -383,6 +364,10 @@ export function printReplayTable(rows: ClickIntentReplayRow[]): void {
         row.scenario,
         row.fixtureKind,
         row.algorithm,
+        row.outcome ?? "-",
+        formatMetric(row.directRoadMeters, 0),
+        formatMetric(row.endMissMeters, 0),
+        row.detourCalls ?? "-",
         formatMetric(row.distanceErrorM),
         formatMetric(row.snappedEndMissM),
         formatMetric(row.rawEndMissM),

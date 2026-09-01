@@ -194,7 +194,14 @@ describe("distanceAutoRoute", () => {
     assert.match(HOOK_SOURCE, /pick_direction/);
   });
 
-  it("원 중심 — Start 좌표로 previewCircleAt 전달", () => {
+  it("도넛 삭제 — 3F-C-R1: 참고 원만 유지, buildClickZoneDonut 없음", () => {
+    // 도넛은 삭제됨. 참고 원(circleLineString)만 남음.
+    const circle = circleLineString(ORIGIN, 1000, 36);
+    assert.equal(circle.type, "LineString");
+    assert.ok(circle.coordinates.length > 0);
+  });
+
+  it("도넛 중심 — Start 좌표로 previewCircleAt 전달", () => {
     assert.match(BUILD_PICK_POPUP_SOURCE, /onPreviewDistanceAutoRouteCircle\(\{ start, targetKm/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /getRouteStart\(\)/);
   });
@@ -205,27 +212,27 @@ describe("distanceAutoRoute", () => {
     assert.doesNotMatch(APP_SOURCE, /handleSetRouteProfileOnly[\s\S]{0,120}generateRoute/);
   });
 
-  it("원 제거 — popup 종료·경로 삭제·자동 찾기 숨김 시 clear", () => {
+  it("도넛 제거 — popup 종료·경로 삭제·자동 찾기 숨김 시 clear", () => {
     assert.match(MAP_VIEW_SOURCE, /onClearDistanceAutoRouteCircle/);
     assert.match(APP_SOURCE, /clearCirclePreview\(\)/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /onClearDistanceAutoRouteCircle\?\.\(\)/);
   });
 
-  it("목표 거리 원 — Route 선과 동일한 빨강·점선·가시성", () => {
+  it("목표 거리 참고 원 — 3F-C-R1: 도넛 삭제, 참고 원·Route 선만 유지", () => {
+    // 도넛 레이어 없음
+    assert.doesNotMatch(MAP_VIEW_SOURCE, /distance-target-click-zone-outer-line/);
+    assert.doesNotMatch(MAP_VIEW_SOURCE, /distance-target-click-zone-fill/);
+    // Route 선 스타일 유지
     assert.match(MAP_VIEW_SOURCE, /"line-color": ROUTE_LINE_COLOR/);
-    assert.match(MAP_VIEW_SOURCE, /"line-width": 3/);
-    assert.match(MAP_VIEW_SOURCE, /"line-opacity": 0\.95/);
-    assert.match(MAP_VIEW_SOURCE, /"line-dasharray": \[2, 2\]/);
-    assert.match(MAP_VIEW_SOURCE, /distance-target-circle-casing/);
     assert.doesNotMatch(MAP_VIEW_SOURCE, /#E8A33D/);
   });
 
-  it("방향 선택 안내 — popup 한 줄 클릭 힌트", () => {
+  it("방향 선택 안내 — popup 한 줄 클릭 힌트 (3F-C-R1: 도로 클릭 안내)", () => {
     assert.match(HOOK_SOURCE, /DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT/);
     assert.match(MAP_VIEW_SOURCE, /DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT/);
     assert.equal(
       DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
-      "지도에서 원하는 방향을 클릭하세요",
+      "도착하고 싶은 도로 위 지점을 클릭하세요",
     );
   });
 
