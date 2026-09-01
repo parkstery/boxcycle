@@ -10,6 +10,14 @@ const RUN_ID = process.env.ROUTE_TOKEN_RUN_ID ?? "unknown-run";
 const OUT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../scripts/route-token/.out");
 const directionsV5Hits: string[] = [];
 
+function routePickSurface(page: import("@playwright/test").Page) {
+  return page.locator(".map-view__pick-dock-panel, .map-view__pick-popup").last();
+}
+
+function routePickContent(page: import("@playwright/test").Page) {
+  return page.locator(".map-view__pick").last();
+}
+
 type RouteResult = {
   routeTokenBalance: number;
   geometry: unknown;
@@ -54,6 +62,12 @@ async function enterAsGuest(page: import("@playwright/test").Page, options: { ga
 }
 
 async function dismissMapPopup(page: import("@playwright/test").Page) {
+  const dockClose = page.locator(".map-view__pick-dock-close").first();
+  if (await dockClose.isVisible().catch(() => false)) {
+    await dockClose.click();
+    await page.waitForTimeout(250);
+    return;
+  }
   await page.keyboard.press("Escape");
   await page.waitForTimeout(250);
 }
@@ -65,6 +79,20 @@ async function clickMap(page: import("@playwright/test").Page, offsetX: number, 
   const box = await canvas.boundingBox();
   if (!box) throw new Error("map canvas bounding box missing");
   await page.mouse.click(box.x + offsetX, box.y + offsetY);
+  await page.waitForTimeout(400);
+}
+
+async function clickMapFraction(
+  page: import("@playwright/test").Page,
+  xRatio: number,
+  yRatio: number,
+) {
+  const canvas = page.locator("canvas.mapboxgl-canvas").first();
+  await expect(canvas).toBeVisible({ timeout: 60_000 });
+  await page.waitForTimeout(400);
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error("map canvas bounding box missing");
+  await page.mouse.click(box.x + box.width * xRatio, box.y + box.height * yRatio);
   await page.waitForTimeout(400);
 }
 
@@ -113,7 +141,7 @@ async function assertMapTokenUi(
   holding: number,
   spendMessage?: string,
 ) {
-  const popup = page.locator(".map-view__pick-popup");
+  const popup = routePickSurface(page);
   await expect(popup).toBeVisible();
   await assertNoGlobalTokenSurface(page);
 
@@ -145,16 +173,16 @@ async function openRoutePopupWithPins(
   }
 
   await clickMap(page, 180 + offset, 180);
-  const popup = page.locator(".map-view__pick-popup").last();
-  await popup
-    .getByRole("button", { name: "Set start" })
-    .evaluate((node) => (node as HTMLButtonElement).click());
-  await clickMap(page, 260 + offset, 240);
-  const endPopup = page.locator(".map-view__pick-popup").last();
-  await endPopup
-    .getByRole("button", { name: "Set end" })
-    .evaluate((node) => (node as HTMLButtonElement).click());
-  await expect(endPopup).toBeVisible({ timeout: 30_000 });
+  const popup = routePickContent(page);
+  await popup.getByRole("button", { name: "Set start" }).click();
+  await expect(routePickSurface(page)).toBeVisible({ timeout: 30_000 });
+  // 좌측 도킹 panel과 겹치지 않는 우측 영역을 클릭해 End 지점을 연다.
+  await clickMapFraction(page, 0.8, 0.45);
+  const endPopup = routePickContent(page);
+  const endBtn = endPopup.locator(".map-view__pick-btn--end");
+  await expect(endBtn).toBeVisible({ timeout: 30_000 });
+  await endBtn.click();
+  await expect(routePickSurface(page)).toBeVisible({ timeout: 30_000 });
 }
 
 async function planOneRoute(
@@ -171,7 +199,7 @@ async function planOneRoute(
 
   const cycling = page.getByRole("button", { name: "자전거 경로" });
   await expect(cycling).toBeEnabled({ timeout: 30_000 });
-  await expect(page.locator(".map-view__pick-popup").getByTestId("route-token-holding")).toHaveText(
+  await expect(routePickSurface(page).getByTestId("route-token-holding")).toHaveText(
     `경로 생성 잔여 토큰 ${expectedHoldingBefore}개`,
     { timeout: 30_000 },
   );
@@ -183,7 +211,7 @@ async function planOneRoute(
   expect(routeResult.routeTokenBalance).toBe(expectedBalance);
 
   await assertMapTokenUi(page, expectedBalance, expectedSpendMessage);
-  await expect(page.locator(".map-view__pick-popup")).toBeVisible();
+  await expect(routePickSurface(page)).toBeVisible();
 
   if (screenshotLabel) {
     await page.screenshot({

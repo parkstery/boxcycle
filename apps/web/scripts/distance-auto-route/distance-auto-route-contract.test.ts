@@ -24,6 +24,13 @@ import {
   validateDistanceAutoRouteTargetKm,
 } from "../../src/lib/distanceAutoRouteErrors.ts";
 import { getDistanceMeters } from "../../src/lib/geo.ts";
+import {
+  buildRoutePickDockCandidates,
+  clampRoutePickDockPosition,
+  pickRoutePickDockPosition,
+  ROUTE_PICK_DOCK_MARGIN_PX,
+  scoreRoutePickDockCandidate,
+} from "../../src/lib/mapPickRouteDock.ts";
 
 const ORIGIN: [number, number] = [127.02, 37.5];
 const APP_SOURCE = readFileSync(new URL("../../src/App.tsx", import.meta.url), "utf8");
@@ -450,11 +457,92 @@ describe("distanceAutoRoute", () => {
     assert.match(BUILD_PICK_POPUP_SOURCE, /autoRouteStatus\.dataset\.phase/);
   });
 
-  it("3D-2-R1 — ± hit area가 인접 컨트롤과 겹치지 않음", () => {
-    assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-distance-step-hit/);
-    assert.match(BUILD_PICK_POPUP_SOURCE, /minusHit\.append\(minusBtn\)/);
-    assert.match(BUILD_PICK_POPUP_SOURCE, /plusHit\.append\(plusBtn\)/);
+  it("3D-2-R1 — ± hit area가 인접 컨트롤과 겹치지 않음 (R2에서 step-hit 제거)", () => {
+    assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /map-view__pick-distance-step-hit/);
+    assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /minusHit/);
+    assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /plusHit/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /distanceRow\.append\(modeField, distanceLabel, minusBtn, distanceSlider, plusBtn, distanceNumber\)/);
+    assert.doesNotMatch(MAP_VIEW_CSS, /map-view__pick-distance-step-hit/);
     assert.doesNotMatch(MAP_VIEW_CSS, /map-view__pick-distance-step::before/);
-    assert.match(MAP_VIEW_CSS, /map-view__pick-distance-step-hit[\s\S]*?width: 2\.75rem/);
+  });
+
+  it("3D-2-R2 — Start 후 screen-space dock·drag·공간 회수", () => {
+    assert.match(MAP_VIEW_SOURCE, /mountDockedRoutePanel/);
+    assert.match(MAP_VIEW_SOURCE, /promotePointPopupToDock/);
+    assert.match(MAP_VIEW_SOURCE, /onRoutePanelActivated/);
+    assert.match(MAP_VIEW_SOURCE, /map-view__pick-dock-layer/);
+    assert.match(MAP_VIEW_SOURCE, /map-view__pick-drag-handle/);
+    assert.match(MAP_VIEW_SOURCE, /routePickDockDraggingRef/);
+    assert.match(MAP_VIEW_SOURCE, /map\.dragPan\.disable\(\)/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /onRoutePanelActivated\?\.\(\)/);
+    assert.doesNotMatch(MAP_VIEW_CSS, /\.map-view__pick \{[\s\S]*?padding-right: 1\.85rem/);
+    assert.match(MAP_VIEW_CSS, /map-view__pick-drag-handle[\s\S]*?padding-right: 1\.4rem/);
+    assert.match(
+      MAP_VIEW_CSS,
+      /map-view__pick-distance-row[\s\S]*?grid-template-columns: auto auto 1fr auto auto/,
+    );
+  });
+
+  it("3D-2-R2 — dock 위치 계산·clamp·예약 영역", () => {
+    const viewport = {
+      left: 0,
+      top: 0,
+      right: 400,
+      bottom: 300,
+      width: 400,
+      height: 300,
+    };
+    const panelWidth = 280;
+    const panelHeight = 200;
+    const reserved = [{ left: 300, top: 0, right: 400, bottom: 80, width: 100, height: 80 }];
+    const focus = {
+      clickPoint: { x: 200, y: 150 },
+      startPoint: { x: 180, y: 140 },
+      routePoints: [],
+    };
+    const pos = pickRoutePickDockPosition({
+      viewport,
+      panelWidth,
+      panelHeight,
+      reservedRects: reserved,
+      focus,
+    });
+    assert.ok(pos.left >= ROUTE_PICK_DOCK_MARGIN_PX);
+    assert.ok(pos.top >= ROUTE_PICK_DOCK_MARGIN_PX);
+    assert.ok(pos.left + panelWidth <= viewport.width - ROUTE_PICK_DOCK_MARGIN_PX);
+    assert.ok(pos.top + panelHeight <= viewport.height - ROUTE_PICK_DOCK_MARGIN_PX);
+    const panel = {
+      left: pos.left,
+      top: pos.top,
+      right: pos.left + panelWidth,
+      bottom: pos.top + panelHeight,
+      width: panelWidth,
+      height: panelHeight,
+    };
+    assert.ok(panel.right <= reserved[0]!.left || panel.left >= reserved[0]!.right || panel.bottom <= reserved[0]!.top);
+    const saved = { left: 12, top: 88 };
+    const clampedSaved = pickRoutePickDockPosition({
+      viewport,
+      panelWidth,
+      panelHeight,
+      reservedRects: reserved,
+      focus,
+      savedPosition: saved,
+    });
+    assert.equal(clampedSaved.left, saved.left);
+    assert.equal(clampedSaved.top, saved.top);
+    const candidates = buildRoutePickDockCandidates(viewport, panelWidth, panelHeight);
+    assert.ok(candidates.length >= 4);
+    const leftScore = scoreRoutePickDockCandidate(
+      candidates[0]!,
+      panelWidth,
+      panelHeight,
+      reserved,
+      focus,
+    );
+    assert.ok(Number.isFinite(leftScore));
+    const overflow = clampRoutePickDockPosition(500, 500, panelWidth, panelHeight, viewport);
+    assert.ok(overflow.left < 500);
+    assert.ok(overflow.top < 500);
   });
 });

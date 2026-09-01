@@ -4,6 +4,62 @@
   height: 100%;
 }
 
+.map-view__pick-dock-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.map-view__pick-dock-panel {
+  position: absolute;
+  pointer-events: auto;
+  box-sizing: border-box;
+  max-width: min(300px, calc(100vw - 1.5rem));
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(248, 250, 252, 0.18);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.map-view__pick-dock-close {
+  position: absolute;
+  z-index: 2;
+  top: 0.2rem;
+  right: 0.2rem;
+  width: 1.65rem;
+  height: 1.65rem;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(248, 250, 252, 0.22);
+  background: rgba(248, 250, 252, 0.12);
+  color: #f8fafc;
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.map-view__pick-dock-close:hover {
+  color: #fff;
+  background: rgba(248, 250, 252, 0.2);
+}
+
+.map-view__pick-dock-panel .map-view__pick {
+  max-height: min(70vh, 26rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.map-view--pick-dragging {
+  cursor: grabbing !important;
+}
+
 .map-view__tick-test {
   position: absolute;
   left: 8px;
@@ -141,11 +197,20 @@
 
 .map-view__pick {
   padding: 0.45rem 0.55rem 0.5rem;
-  padding-right: 1.85rem;
   min-width: 13.5rem;
   max-width: 20rem;
   box-sizing: border-box;
   color: #f1f5f9;
+}
+
+.map-view__pick-drag-handle {
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+
+.map-view .map-view__pick-popup .map-view__pick-drag-handle {
+  padding-right: 1.4rem;
 }
 
 .map-view__pick-address {
@@ -425,16 +490,6 @@
 
 .map-view__pick-distance-row--disabled .map-view__pick-distance-slider {
   opacity: 0.42;
-}
-
-.map-view__pick-distance-step-hit {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  width: 2.75rem;
-  height: 2.75rem;
-  flex-shrink: 0;
 }
 
 .map-view__pick-distance-step {
