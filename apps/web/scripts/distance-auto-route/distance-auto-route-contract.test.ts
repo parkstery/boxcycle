@@ -59,6 +59,10 @@ const TOKEN_DISPLAY_SOURCE = readFileSync(
   new URL("../../src/lib/routeTokenPopupDisplay.mjs", import.meta.url),
   "utf8",
 );
+const MAP_VIEW_CSS = readFileSync(
+  new URL("../../src/components/map/MapView.css", import.meta.url),
+  "utf8",
+);
 
 describe("distanceAutoRoute", () => {
   it("bearingFromOriginToPoint — 동쪽 클릭은 약 90°", () => {
@@ -172,9 +176,10 @@ describe("distanceAutoRoute", () => {
     assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-distance-slider/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-distance-number/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-distance-step/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-distance-mode-checkbox/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /inputMode = "decimal"/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /distanceNumber\.type = "number"/);
-    assert.match(BUILD_PICK_POPUP_SOURCE, /tryArmDirectionPick/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /tryArmDirectionPickIfChecked/);
     assert.match(HOOK_SOURCE, /armDirectionPick/);
     assert.match(HOOK_SOURCE, /pick_direction/);
   });
@@ -274,6 +279,7 @@ describe("distanceAutoRoute", () => {
       "경로 생성 완료 · 다른 방향을 클릭하면 다시 탐색합니다",
     );
     assert.match(HOOK_SOURCE, /popupPickBound/);
+    assert.match(HOOK_SOURCE, /distanceDirectionMode/);
     assert.match(HOOK_SOURCE, /step === "pick_direction"/);
     assert.match(HOOK_SOURCE, /DISTANCE_AUTO_ROUTE_REROUTE_HINT/);
     assert.doesNotMatch(
@@ -334,7 +340,7 @@ describe("distanceAutoRoute", () => {
 
   it("자동 세션 profile 변경 — 수동 onRouteProfile 호출 금지", () => {
     assert.match(BUILD_PICK_POPUP_SOURCE, /manualRouteReady/);
-    assert.match(BUILD_PICK_POPUP_SOURCE, /!autoSessionActive/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /!distanceDirectionChecked/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /onSetRouteProfileOnly\?\.\(profile\)/);
   });
 
@@ -342,6 +348,7 @@ describe("distanceAutoRoute", () => {
     assert.match(MAP_VIEW_SOURCE, /getDistanceAutoRouteMapBridge/);
     assert.match(MAP_VIEW_SOURCE, /suspendPopupPick/);
     assert.match(HOOK_SOURCE, /suspendPopupPick/);
+    assert.match(HOOK_SOURCE, /releasePickArm/);
     assert.match(HOOK_SOURCE, /setPopupPickBound\(false\)/);
   });
 
@@ -389,6 +396,65 @@ describe("distanceAutoRoute", () => {
     );
     assert.doesNotMatch(stepBlock, /fetchDistanceAutoRoute/);
     assert.doesNotMatch(stepBlock, /onAutoRouteMapPick/);
-    assert.match(stepBlock, /tryArmDirectionPick/);
+    assert.match(stepBlock, /tryArmDirectionPickIfChecked/);
+    assert.match(stepBlock, /if \(!distanceDirectionChecked\) return/);
+  });
+
+  it("3D-2-R1 — 거리·방향 모드 checkbox와 armed 분리", () => {
+    assert.match(
+      BUILD_PICK_POPUP_SOURCE,
+      /DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_ARIA/,
+    );
+    assert.match(
+      BUILD_PICK_POPUP_SOURCE,
+      /DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_LABEL/,
+    );
+    assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-distance-mode-checkbox/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /setDistanceDirectionMode/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /applyDistanceDirectionMode/);
+    assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /distanceSlider\.addEventListener\("focus"/);
+    assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /distanceNumber\.addEventListener\("focus"/);
+    assert.match(HOOK_SOURCE, /distanceDirectionMode/);
+    assert.match(HOOK_SOURCE, /setDistanceDirectionMode/);
+    assert.match(HOOK_SOURCE, /releasePickArm/);
+    assert.match(
+      HOOK_SOURCE,
+      /distanceDirectionMode && popupPickBound && step === "pick_direction"/,
+    );
+    assert.match(BRIDGE_SOURCE, /distanceDirectionMode/);
+    assert.match(BRIDGE_SOURCE, /releasePickArm/);
+  });
+
+  it("3D-2-R1 — ± 버튼 시각 크기가 숫자 입력 높이와 동일", () => {
+    assert.match(
+      MAP_VIEW_CSS,
+      /--pick-distance-control-height[\s\S]*?map-view__pick-distance-number[\s\S]*?height: var\(--pick-distance-control-height\)/,
+    );
+    assert.match(
+      MAP_VIEW_CSS,
+      /map-view__pick-distance-step[\s\S]*?height: var\(--pick-distance-control-height\)/,
+    );
+    assert.doesNotMatch(MAP_VIEW_CSS, /min-width: 40px/);
+  });
+
+  it("3D-2-R1 — 상태 메시지 단일 슬롯·고정 높이", () => {
+    assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-auto-route-status-slot/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /autoRouteStatusSlot\.append\(autoRouteStatus\)/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /autoRouteSection\.append\(distanceRow, autoRouteStatusSlot\)/);
+    assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /autoRouteError/);
+    assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /inlineStatus/);
+    assert.match(
+      MAP_VIEW_CSS,
+      /map-view__pick-auto-route-status-slot[\s\S]*?min-height:/,
+    );
+    assert.match(BUILD_PICK_POPUP_SOURCE, /autoRouteStatus\.dataset\.phase/);
+  });
+
+  it("3D-2-R1 — ± hit area가 인접 컨트롤과 겹치지 않음", () => {
+    assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-distance-step-hit/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /minusHit\.append\(minusBtn\)/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /plusHit\.append\(plusBtn\)/);
+    assert.doesNotMatch(MAP_VIEW_CSS, /map-view__pick-distance-step::before/);
+    assert.match(MAP_VIEW_CSS, /map-view__pick-distance-step-hit[\s\S]*?width: 2\.75rem/);
   });
 });

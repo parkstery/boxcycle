@@ -73,6 +73,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
 
   const [step, setStep] = useState<DistanceAutoRouteStep>("closed");
   const [sessionActive, setSessionActive] = useState(false);
+  const [distanceDirectionMode, setDistanceDirectionModeState] = useState(false);
   const [popupPickBound, setPopupPickBound] = useState(false);
   const [hasSuccessfulRoute, setHasSuccessfulRoute] = useState(false);
   const [start, setStart] = useState<LngLat | null>(null);
@@ -129,6 +130,18 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
     setPopupPickBound(false);
   }, []);
 
+  const releasePickArm = useCallback(() => {
+    setPopupPickBound(false);
+    setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
+  }, []);
+
+  const setDistanceDirectionMode = useCallback((enabled: boolean) => {
+    setDistanceDirectionModeState(enabled);
+    if (!enabled) {
+      releasePickArm();
+    }
+  }, [releasePickArm]);
+
   const armDirectionPick = useCallback(
     (input: {
       start: LngLat;
@@ -149,6 +162,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
         return validated;
       }
 
+      setDistanceDirectionModeState(true);
       setSessionActive(true);
       setPopupPickBound(true);
       setStart(input.start);
@@ -172,7 +186,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
   );
 
   const resumePickDirection = useCallback(() => {
-    if (!sessionActive || !start) return;
+    if (!sessionActive || !start || !distanceDirectionMode) return;
     setPopupPickBound(true);
     setStatusMessage(
       hasSuccessfulRoute
@@ -181,7 +195,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
     );
     setStep("pick_direction");
     activeRequestIdRef.current = null;
-  }, [hasSuccessfulRoute, sessionActive, start]);
+  }, [distanceDirectionMode, hasSuccessfulRoute, sessionActive, start]);
 
   const handleMapPick = useCallback(
     async (lngLat: LngLat): Promise<DistanceAutoRouteSearchResult | null> => {
@@ -193,7 +207,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
         setStatusMessage(`출발: ${formatLngLat(lngLat)}`);
         return null;
       }
-      if (step === "pick_direction" && popupPickBound && start) {
+      if (step === "pick_direction" && popupPickBound && start && distanceDirectionMode) {
         if (routeTokenInsufficient) {
           const message = "Route Token 이 부족합니다.";
           setStatusMessage(message);
@@ -269,6 +283,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
       functionsRegion,
       routeTokenInsufficient,
       hasSuccessfulRoute,
+      distanceDirectionMode,
       onApplyRoute,
       onClearRouteArtifacts,
     ],
@@ -285,7 +300,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
   const mapPickMode: "start" | "direction" | null =
     step === "pick_start"
       ? "start"
-      : popupPickBound && step === "pick_direction"
+      : distanceDirectionMode && popupPickBound && step === "pick_direction"
         ? "direction"
         : null;
 
@@ -294,10 +309,22 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
       sessionActive,
       targetKm,
       statusMessage,
+      distanceDirectionMode,
+      setDistanceDirectionMode,
       suspendPopupPick,
+      releasePickArm,
       disarm,
     }),
-    [sessionActive, targetKm, statusMessage, suspendPopupPick, disarm],
+    [
+      sessionActive,
+      targetKm,
+      statusMessage,
+      distanceDirectionMode,
+      setDistanceDirectionMode,
+      suspendPopupPick,
+      releasePickArm,
+      disarm,
+    ],
   );
 
   useEffect(() => {
@@ -308,6 +335,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
   return {
     step,
     sessionActive,
+    distanceDirectionMode,
     hasSuccessfulRoute,
     start,
     profile,
@@ -323,7 +351,9 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
     mapPickMode,
     handleMapPick,
     armDirectionPick,
+    setDistanceDirectionMode,
     suspendPopupPick,
+    releasePickArm,
     retryDirection,
     dismissResult,
     disarm,

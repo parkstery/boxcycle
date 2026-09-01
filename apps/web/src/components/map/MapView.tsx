@@ -17,6 +17,8 @@ import {
   DISTANCE_AUTO_ROUTE_KM_MIN,
   DISTANCE_AUTO_ROUTE_KM_STEP,
   DISTANCE_AUTO_ROUTE_REROUTE_HINT,
+  DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_ARIA,
+  DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_LABEL,
   validateDistanceAutoRouteTargetKm,
 } from "../../lib/distanceAutoRouteErrors";
 import { getDistanceAutoRouteMapBridge } from "../../lib/distanceAutoRouteMapBridge";
@@ -3401,6 +3403,8 @@ function buildPickPopup(deps: {
   let currentProfile = routeProfile;
   const mapBridge = getDistanceAutoRouteMapBridge();
   let autoSessionActive = autoRouteSessionActive || mapBridge?.sessionActive || false;
+  let distanceDirectionChecked =
+    mapBridge?.distanceDirectionMode ?? autoSessionActive;
 
   function getRouteStart(): LngLat | null {
     return selectedStart ?? initialStart;
@@ -3437,7 +3441,7 @@ function buildPickPopup(deps: {
     syncProfileUi();
     syncAutoRouteUi();
     syncTokenUi();
-    if (pins.start) previewCircleForTargetKm(targetKm);
+    if (pins.start && distanceDirectionChecked) previewCircleForTargetKm(targetKm);
   };
 
   const wpSlots: (0 | 1 | 2)[] = [0, 1, 2];
@@ -3519,7 +3523,7 @@ function buildPickPopup(deps: {
       profileButtons.forEach((item, index) => {
         item.classList.toggle("is-active", profileSpecs[index]?.profile === currentProfile);
       });
-      const manualRouteReady = pins.start && pins.end && !autoSessionActive;
+      const manualRouteReady = pins.start && pins.end && !distanceDirectionChecked;
       if (manualRouteReady) {
         if (getRouteTokenInsufficient?.()) return;
         tokenFeedback.setRoutePending(true);
@@ -3552,7 +3556,7 @@ function buildPickPopup(deps: {
 
   function syncProfileUi() {
     const hasStart = pins.start;
-    const manualRouteReady = pins.start && pins.end && !autoSessionActive;
+    const manualRouteReady = pins.start && pins.end && !distanceDirectionChecked;
     profileSection.hidden = !hasStart;
     rowProfile.hidden = !hasStart;
     wrap.classList.toggle("map-view__pick--awaiting-profile", manualRouteReady);
@@ -3601,6 +3605,20 @@ function buildPickPopup(deps: {
   const distanceRow = document.createElement("div");
   distanceRow.className = "map-view__pick-distance-row";
 
+  const modeField = document.createElement("label");
+  modeField.className = "map-view__pick-distance-mode";
+
+  const modeCheckbox = document.createElement("input");
+  modeCheckbox.type = "checkbox";
+  modeCheckbox.className = "map-view__pick-distance-mode-checkbox";
+  modeCheckbox.setAttribute("aria-label", DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_ARIA);
+
+  const modeLabel = document.createElement("span");
+  modeLabel.className = "map-view__pick-distance-mode-label";
+  modeLabel.textContent = DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_LABEL;
+
+  modeField.append(modeCheckbox, modeLabel);
+
   const distanceLabel = document.createElement("label");
   distanceLabel.className = "map-view__pick-sr-only";
   distanceLabel.textContent = "목표거리(km)";
@@ -3612,11 +3630,19 @@ function buildPickPopup(deps: {
   minusBtn.textContent = "−";
   minusBtn.setAttribute("aria-label", "목표 거리 0.5km 감소");
 
+  const minusHit = document.createElement("span");
+  minusHit.className = "map-view__pick-distance-step-hit";
+  minusHit.append(minusBtn);
+
   const plusBtn = document.createElement("button");
   plusBtn.type = "button";
   plusBtn.className = "map-view__pick-distance-step map-view__pick-distance-step--plus";
   plusBtn.textContent = "+";
   plusBtn.setAttribute("aria-label", "목표 거리 0.5km 증가");
+
+  const plusHit = document.createElement("span");
+  plusHit.className = "map-view__pick-distance-step-hit";
+  plusHit.append(plusBtn);
 
   const distanceSlider = document.createElement("input");
   distanceSlider.type = "range";
@@ -3634,26 +3660,64 @@ function buildPickPopup(deps: {
   distanceNumber.setAttribute("aria-label", "목표거리 km");
   distanceNumber.value = targetKm.toFixed(1);
 
-  distanceRow.append(distanceLabel, minusBtn, distanceSlider, plusBtn, distanceNumber);
+  distanceRow.append(modeField, distanceLabel, minusHit, distanceSlider, plusHit, distanceNumber);
 
-  const autoRouteError = document.createElement("p");
-  autoRouteError.className = "map-view__pick-auto-route-error";
-  autoRouteError.hidden = true;
+  const autoRouteStatusSlot = document.createElement("div");
+  autoRouteStatusSlot.className = "map-view__pick-auto-route-status-slot";
 
-  const inlineStatus = document.createElement("p");
-  inlineStatus.className = "map-view__pick-auto-route-status";
-  inlineStatus.hidden = true;
-  inlineStatus.setAttribute("role", "status");
+  const autoRouteStatus = document.createElement("p");
+  autoRouteStatus.className = "map-view__pick-auto-route-status map-view__pick-auto-route-status--idle";
+  autoRouteStatus.setAttribute("role", "status");
+  autoRouteStatus.setAttribute("aria-live", "polite");
+  autoRouteStatus.dataset.phase = "idle";
+
+  autoRouteStatusSlot.append(autoRouteStatus);
 
   function syncDistanceInputs(km: number) {
     targetKm = km;
     distanceSlider.value = String(km);
     distanceNumber.value = km.toFixed(1);
-    minusBtn.disabled = km <= DISTANCE_AUTO_ROUTE_KM_MIN;
-    plusBtn.disabled = km >= DISTANCE_AUTO_ROUTE_KM_MAX;
+    if (distanceDirectionChecked) {
+      minusBtn.disabled = km <= DISTANCE_AUTO_ROUTE_KM_MIN;
+      plusBtn.disabled = km >= DISTANCE_AUTO_ROUTE_KM_MAX;
+    }
+  }
+
+  function syncDistanceModeUi() {
+    modeCheckbox.checked = distanceDirectionChecked;
+    distanceSlider.disabled = !distanceDirectionChecked;
+    distanceNumber.disabled = !distanceDirectionChecked;
+    distanceRow.classList.toggle(
+      "map-view__pick-distance-row--disabled",
+      !distanceDirectionChecked,
+    );
+    if (!distanceDirectionChecked) {
+      minusBtn.disabled = true;
+      plusBtn.disabled = true;
+      return;
+    }
+    syncDistanceInputs(targetKm);
+  }
+
+  function applyDistanceDirectionMode(checked: boolean) {
+    distanceDirectionChecked = checked;
+    mapBridge?.setDistanceDirectionMode?.(checked);
+    syncDistanceModeUi();
+    if (!checked) {
+      setInlinePhase("idle");
+      return;
+    }
+    previewCircleForTargetKm(targetKm);
+    tryArmDirectionPickIfChecked();
+  }
+
+  function tryArmDirectionPickIfChecked() {
+    if (!distanceDirectionChecked) return;
+    tryArmDirectionPick();
   }
 
   function stepTargetKm(deltaKm: number) {
+    if (!distanceDirectionChecked) return;
     const next = Math.min(
       DISTANCE_AUTO_ROUTE_KM_MAX,
       Math.max(
@@ -3663,57 +3727,53 @@ function buildPickPopup(deps: {
     );
     syncDistanceInputs(next);
     previewCircleForTargetKm(next);
-    tryArmDirectionPick();
+    tryArmDirectionPickIfChecked();
   }
 
   function setInlinePhase(
     phase: "idle" | "direction" | "searching" | "found" | "failed",
     message?: string,
   ) {
-    inlineStatus.className = "map-view__pick-auto-route-status";
+    autoRouteStatus.className = "map-view__pick-auto-route-status";
+    autoRouteStatus.dataset.phase = phase;
     if (phase === "idle") {
-      inlineStatus.hidden = true;
-      inlineStatus.textContent = "";
+      autoRouteStatus.textContent = "";
+      autoRouteStatus.classList.add("map-view__pick-auto-route-status--idle");
       return;
     }
-    inlineStatus.hidden = false;
     if (phase === "direction") {
-      inlineStatus.textContent = message ?? DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT;
+      autoRouteStatus.textContent = message ?? DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT;
       return;
     }
     if (phase === "searching") {
-      inlineStatus.classList.add("map-view__pick-auto-route-status--searching");
-      inlineStatus.textContent =
+      autoRouteStatus.classList.add("map-view__pick-auto-route-status--searching");
+      autoRouteStatus.textContent =
         message ?? "목표 거리에 맞는 도로 경로를 찾는 중입니다…";
       return;
     }
     if (phase === "failed") {
-      inlineStatus.classList.add("map-view__pick-auto-route-status--failed");
-      inlineStatus.textContent = message ?? "경로를 찾지 못했습니다.";
+      autoRouteStatus.classList.add("map-view__pick-auto-route-status--failed");
+      autoRouteStatus.textContent = message ?? "경로를 찾지 못했습니다.";
       return;
     }
-    inlineStatus.classList.add("map-view__pick-auto-route-status--found");
-    inlineStatus.textContent = message ?? "경로를 찾았습니다.";
+    autoRouteStatus.classList.add("map-view__pick-auto-route-status--found");
+    autoRouteStatus.textContent = message ?? "경로를 찾았습니다.";
   }
 
   function tryArmDirectionPick() {
+    if (!distanceDirectionChecked) return;
     const start = getRouteStart();
     if (!start || typeof onArmDirectionPick !== "function") return;
     if (getRouteTokenInsufficient?.()) {
-      autoRouteError.textContent = ROUTE_TOKEN_INSUFFICIENT_HINT;
-      autoRouteError.hidden = false;
-      setInlinePhase("idle");
+      setInlinePhase("failed", ROUTE_TOKEN_INSUFFICIENT_HINT);
       return;
     }
     const parsed = Number.parseFloat(distanceNumber.value);
     const validated = validateDistanceAutoRouteTargetKm(parsed);
     if (!validated.ok) {
-      autoRouteError.textContent = validated.message;
-      autoRouteError.hidden = false;
-      setInlinePhase("idle");
+      setInlinePhase("failed", validated.message);
       return;
     }
-    autoRouteError.hidden = true;
     syncDistanceInputs(validated.km);
     previewCircleForTargetKm(validated.km);
     const result = onArmDirectionPick({
@@ -3722,15 +3782,11 @@ function buildPickPopup(deps: {
       targetKm: validated.km,
     });
     if (!result.ok) {
-      autoRouteError.textContent = result.message;
-      autoRouteError.hidden = false;
-      setInlinePhase("idle");
+      setInlinePhase("failed", result.message);
       return;
     }
     autoSessionActive = true;
-    const rerouteReady = inlineStatus.classList.contains(
-      "map-view__pick-auto-route-status--found",
-    );
+    const rerouteReady = autoRouteStatus.dataset.phase === "found";
     setInlinePhase(
       "direction",
       rerouteReady || autoRouteStatusMessage === DISTANCE_AUTO_ROUTE_REROUTE_HINT
@@ -3740,17 +3796,19 @@ function buildPickPopup(deps: {
     onDirectionPickArmed?.();
   }
 
-  onRegisterAutoRouteUi?.({ setInlinePhase, tryArmDirectionPick });
+  onRegisterAutoRouteUi?.({ setInlinePhase, tryArmDirectionPick: tryArmDirectionPickIfChecked });
+
+  modeCheckbox.addEventListener("change", () => {
+    applyDistanceDirectionMode(modeCheckbox.checked);
+  });
 
   distanceSlider.addEventListener("input", () => {
+    if (!distanceDirectionChecked) return;
     const km = Number.parseFloat(distanceSlider.value);
     if (!Number.isFinite(km)) return;
     syncDistanceInputs(km);
     previewCircleForTargetKm(km);
-    tryArmDirectionPick();
-  });
-  distanceSlider.addEventListener("focus", () => {
-    tryArmDirectionPick();
+    tryArmDirectionPickIfChecked();
   });
 
   minusBtn.addEventListener("click", () => {
@@ -3763,26 +3821,27 @@ function buildPickPopup(deps: {
   });
 
   distanceNumber.addEventListener("change", () => {
-    tryArmDirectionPick();
-  });
-  distanceNumber.addEventListener("focus", () => {
-    tryArmDirectionPick();
+    if (!distanceDirectionChecked) return;
+    tryArmDirectionPickIfChecked();
   });
 
-  autoRouteSection.append(distanceRow, autoRouteError, inlineStatus);
+  autoRouteSection.append(distanceRow, autoRouteStatusSlot);
 
   function syncAutoRouteUi() {
     const available = pins.start && typeof onArmDirectionPick === "function";
     autoRouteSection.hidden = !available;
     if (!available) {
-      autoRouteError.hidden = true;
       setInlinePhase("idle");
       onClearDistanceAutoRouteCircle?.();
     }
   }
   syncAutoRouteUi();
+  syncDistanceModeUi();
   syncDistanceInputs(targetKm);
-  if (autoSessionActive && autoRouteStatusMessage) {
+  if (distanceDirectionChecked && pins.start) {
+    tryArmDirectionPickIfChecked();
+  }
+  if (distanceDirectionChecked && autoRouteStatusMessage) {
     setInlinePhase("found", autoRouteStatusMessage);
   }
 

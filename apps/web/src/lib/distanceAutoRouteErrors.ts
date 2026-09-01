@@ -10,6 +10,13 @@ export const DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT =
 export const DISTANCE_AUTO_ROUTE_REROUTE_HINT =
   "경로 생성 완료 · 다른 방향을 클릭하면 다시 탐색합니다";
 
+/** 거리·방향 자동 Route 모드 checkbox 접근 가능 이름 */
+export const DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_ARIA =
+  "거리와 방향으로 Route 찾기";
+
+/** 거리·방향 자동 Route 모드 checkbox 시각 label */
+export const DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_LABEL = "거리";
+
 export const DISTANCE_AUTO_ROUTE_KM_MIN = 0.5;
 export const DISTANCE_AUTO_ROUTE_KM_MAX = 120;
 export const DISTANCE_AUTO_ROUTE_KM_STEP = 0.5;

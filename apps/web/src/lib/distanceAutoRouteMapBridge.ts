@@ -3,7 +3,12 @@ export type DistanceAutoRouteMapBridge = {
   sessionActive: boolean;
   targetKm: number;
   statusMessage: string | null;
+  /** 사용자 checkbox — 거리·방향 자동 Route 모드 선호 */
+  distanceDirectionMode: boolean;
+  setDistanceDirectionMode: (enabled: boolean) => void;
   suspendPopupPick: () => void;
+  /** popup armed 해제 + 목표 거리 원 제거 (checkbox 선호는 유지) */
+  releasePickArm: () => void;
   disarm: () => void;
 };
 
