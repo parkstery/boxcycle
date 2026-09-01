@@ -11,6 +11,7 @@ import {
   type MapViewportBounds,
 } from "../../lib/activityWorldLod";
 import { ACTIVITY_TRACE_RED } from "../../lib/activityWorldTraceStyle";
+import { DISTANCE_AUTO_ROUTE_REFERENCE_CIRCLE_HINT } from "../../lib/distanceAutoRoute";
 import {
   DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
   DISTANCE_AUTO_ROUTE_KM_MAX,
@@ -1316,10 +1317,18 @@ export type MapViewProps = {
   rideCameraDistanceM?: number;
   /** 임시 — RTW Dark POI 라벨 표시 비교용 토글 */
   showRtwPoi?: boolean;
-  /** 거리 기반 자동 경로 — 목표 거리 원(지도 stroke) */
+  /** 목표 거리 참고 원 — GeoJSON LineString(지도 stroke용) */
   distanceTargetCircle?: LineStringGeometry | null;
   /** 원 bounds fitBounds — 사용자가 자동 찾기·거리 변경할 때만 증가 */
   distanceTargetCircleFitToken?: number;
+  /** offered 결과: 클릭 지점(고스트)·도달 거리 표시용 */
+  autoRouteOfferedState?: {
+    clickLngLat: LngLat;
+    directKm: number;
+    targetKm: number;
+  } | null;
+  /** offered 거리 조정 재탐색 버튼 클릭 핸들러 */
+  onDistanceAdjustRetry?: () => void;
   /** 자동 경로 마법사 중 지도 탭 가로채기 */
   autoRouteMapPick?: "start" | "direction" | null;
   /** 자동 Route 세션 — End 존재와 별도로 단일 설정창 유지 */
@@ -1421,6 +1430,8 @@ export function MapView({
   showRtwPoi = false,
   distanceTargetCircle = null,
   distanceTargetCircleFitToken = 0,
+  autoRouteOfferedState = null,
+  onDistanceAdjustRetry: _onDistanceAdjustRetry,
   autoRouteMapPick = null,
   autoRouteSessionActive = false,
   autoRouteTargetKm = 10,
@@ -2511,7 +2522,7 @@ export function MapView({
             "line-color": "#111827",
             "line-width": 4,
             "line-dasharray": [2, 2],
-            "line-opacity": 0.35,
+            "line-opacity": 0.2,
           },
         },
         circleBeforeLayer,
@@ -2524,8 +2535,8 @@ export function MapView({
           paint: {
             "line-color": ROUTE_LINE_COLOR,
             "line-width": 3,
-            "line-dasharray": [2, 2],
             "line-opacity": 0.95,
+            "line-dasharray": [2, 2],
           },
         },
         circleBeforeLayer,
@@ -2557,6 +2568,67 @@ export function MapView({
     });
     onMapZoomRef.current(Number(map.getZoom().toFixed(1)));
   }, [mapLoaded, distanceTargetCircle, distanceTargetCircleFitToken, prefersReducedMotion]);
+
+  // offered 결과: 고스트 마커(클릭 지점) + 점선(클릭→End)
+  const DISTANCE_OFFERED_SRC = "distance-offered-overlay";
+  const offeredGhostMarkerRef = useRef<mapboxgl.Marker | null>(null);
+
+  useLayoutEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+
+    const clearOffered = () => {
+      offeredGhostMarkerRef.current?.remove();
+      offeredGhostMarkerRef.current = null;
+      if (map.getLayer("distance-offered-line")) map.removeLayer("distance-offered-line");
+      if (map.getSource(DISTANCE_OFFERED_SRC)) map.removeSource(DISTANCE_OFFERED_SRC);
+    };
+
+    if (!autoRouteOfferedState || !endLngLat) {
+      clearOffered();
+      return;
+    }
+
+    const { clickLngLat } = autoRouteOfferedState;
+
+    // 고스트 마커 (클릭 지점)
+    if (offeredGhostMarkerRef.current) {
+      offeredGhostMarkerRef.current.setLngLat(clickLngLat);
+    } else {
+      const el = document.createElement("div");
+      el.className = "map-view__auto-route-offered-ghost";
+      el.title = DISTANCE_AUTO_ROUTE_REFERENCE_CIRCLE_HINT;
+      offeredGhostMarkerRef.current = new mapboxgl.Marker({ element: el, anchor: "center" })
+        .setLngLat(clickLngLat)
+        .addTo(map);
+    }
+
+    // 점선(클릭→End)
+    const lineData = {
+      type: "Feature" as const,
+      properties: {},
+      geometry: {
+        type: "LineString" as const,
+        coordinates: [clickLngLat, endLngLat] as [number, number][],
+      },
+    };
+    if (map.getSource(DISTANCE_OFFERED_SRC)) {
+      (map.getSource(DISTANCE_OFFERED_SRC) as mapboxgl.GeoJSONSource).setData(lineData);
+    } else {
+      map.addSource(DISTANCE_OFFERED_SRC, { type: "geojson", data: lineData });
+      map.addLayer({
+        id: "distance-offered-line",
+        type: "line",
+        source: DISTANCE_OFFERED_SRC,
+        paint: {
+          "line-color": "#9ca3af",
+          "line-width": 2,
+          "line-dasharray": [3, 3],
+          "line-opacity": 0.7,
+        },
+      });
+    }
+  }, [mapLoaded, autoRouteOfferedState, endLngLat]);
 
   useEffect(() => {
     const map = mapRef.current;
