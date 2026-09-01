@@ -222,9 +222,34 @@ describe("distanceAutoRoute", () => {
     // 도넛 레이어 없음
     assert.doesNotMatch(MAP_VIEW_SOURCE, /distance-target-click-zone-outer-line/);
     assert.doesNotMatch(MAP_VIEW_SOURCE, /distance-target-click-zone-fill/);
+    // 참고 원 단일 레이어
+    assert.match(MAP_VIEW_SOURCE, /distance-target-circle-line/);
     // Route 선 스타일 유지
     assert.match(MAP_VIEW_SOURCE, /"line-color": ROUTE_LINE_COLOR/);
     assert.doesNotMatch(MAP_VIEW_SOURCE, /#E8A33D/);
+  });
+
+  it("3F-C-R1 — App.tsx가 circleGeometry 전달 (clickZoneGeometry 삭제)", () => {
+    assert.match(APP_SOURCE, /circleGeometry/);
+    assert.doesNotMatch(APP_SOURCE, /clickZoneGeometry/);
+    assert.match(APP_SOURCE, /distanceTargetCircle: circleGeometry/);
+    assert.doesNotMatch(APP_SOURCE, /distanceTargetClickZone/);
+  });
+
+  it("3F-C-R1 — MapView offered 상태 props 연결", () => {
+    assert.match(MAP_VIEW_SOURCE, /autoRouteOfferedState/);
+    assert.match(MAP_VIEW_SOURCE, /onDistanceAdjustRetry/);
+    assert.match(APP_SOURCE, /autoRouteOfferedState/);
+    assert.match(APP_SOURCE, /onDistanceAdjustRetry/);
+    assert.match(HOOK_SOURCE, /offeredState/);
+    assert.match(HOOK_SOURCE, /handleDistanceAdjustRetry/);
+  });
+
+  it("3F-C-R1 — offered UI: 고스트 마커·점선 distance-offered-line", () => {
+    assert.match(MAP_VIEW_SOURCE, /map-view__auto-route-offered-ghost/);
+    assert.match(MAP_VIEW_SOURCE, /distance-offered-line/);
+    // 고스트 마커는 clickLngLat 위치에
+    assert.match(MAP_VIEW_SOURCE, /clickLngLat/);
   });
 
   it("방향 선택 안내 — popup 한 줄 클릭 힌트 (3F-C-R1: 도로 클릭 안내)", () => {

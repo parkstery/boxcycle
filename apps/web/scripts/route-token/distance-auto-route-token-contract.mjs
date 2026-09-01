@@ -146,6 +146,29 @@ export async function runDistanceAutoRouteTokenContract() {
   );
   void providerAfterFail;
 
+  // ── distanceAdjustRetry 무료 재탐색 계약 ──────────────────────────────────
+  await harnessControl("reset");
+  const retryGuest = await signUpAnonymous();
+  await ensureOnboarding(retryGuest.idToken);
+
+  // 첫 탐색: 토큰 1개 소비
+  const firstSearch = await autoRoute(retryGuest.idToken, "harness_auto_retry_00000001");
+  assert.equal(firstSearch.status, 200, JSON.stringify(firstSearch.json));
+  assert.equal(firstSearch.json.result.routeTokenBalance, 2, "첫 탐색 후 잔액 2");
+
+  // distanceAdjustRetry=true: 새 requestId지만 거리 조정 재탐색 → 토큰 추가 차감 없음
+  const adjustRetry = await autoRoute(retryGuest.idToken, "harness_auto_retry_00000002", {
+    distanceAdjustRetry: true,
+    targetDistanceMeters: 6000,
+  });
+  assert.equal(adjustRetry.status, 200, JSON.stringify(adjustRetry.json));
+  const retryBalance = adjustRetry.json.result.routeTokenBalance;
+  assert.equal(retryBalance, 2, `distanceAdjustRetry는 토큰을 추가로 소비하지 않아야 함 (잔액 ${retryBalance})`);
+
+  let retryInspect = await inspectUser(retryGuest.uid);
+  assert.equal(retryInspect.balance, 2, "distanceAdjustRetry 후 잔액 여전히 2");
+  assert.equal(retryInspect.routeGenerateSpend, 1, "distanceAdjustRetry는 route_generate 지출 없음");
+
   logStep("distance auto route token contract", "PASS");
 }
 

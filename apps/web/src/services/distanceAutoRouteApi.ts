@@ -11,6 +11,8 @@ import { formatDistanceAutoRouteClientError } from "../lib/distanceAutoRouteErro
 import { resolveFunctionsHttpUrl } from "../lib/functionsEmulatorUrl";
 import type { RouteProfile } from "./mapboxDirections";
 
+export type RouteOutcome = "exact" | "detoured" | "offered";
+
 export type DistanceAutoRouteResponse =
   | {
       status: "found";
@@ -23,6 +25,9 @@ export type DistanceAutoRouteResponse =
       routeTokenBalance: number;
       endMissMeters?: number;
       algorithmVersion?: string;
+      outcome?: RouteOutcome;
+      directRoadMeters?: number;
+      detourCalls?: number;
     }
   | {
       status: "failed";
@@ -63,6 +68,7 @@ export async function fetchDistanceAutoRoute(
     targetDistanceMeters: number;
     bearingDeg?: number;
     requestId: string;
+    distanceAdjustRetry?: boolean;
   },
 ): Promise<DistanceAutoRouteResponse> {
   assertDirectionsServerOnly();

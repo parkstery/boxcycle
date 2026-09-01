@@ -4,7 +4,7 @@ export const DISTANCE_AUTO_ROUTE_DIRECTION_HINT =
 
 /** 방향 선택 모드 — popup 한 줄 상태 */
 export const DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT =
-  "지도에서 원하는 방향을 클릭하세요";
+  "도착하고 싶은 도로 위 지점을 클릭하세요";
 
 /** Route 생성 성공 후 같은 popup에서 재탐색 안내 */
 export const DISTANCE_AUTO_ROUTE_REROUTE_HINT =

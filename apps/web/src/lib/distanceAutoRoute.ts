@@ -14,6 +14,10 @@ export const AUTO_ROUTE_DISTANCE_FACTORS = [0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3] a
 /** 방위 미세 조정(°) — ±DIRECTION_TOLERANCE_DEG 범위 */
 export const AUTO_ROUTE_BEARING_OFFSETS_DEG = [-30, -15, 0, 15, 30] as const;
 
+/** 참고 원 안내 문구 — 도넛 아님, 눈금 역할 */
+export const DISTANCE_AUTO_ROUTE_REFERENCE_CIRCLE_HINT =
+  "참고 — 실제 도로 거리는 방향에 따라 다릅니다";
+
 /** 지도 클릭 지점 기준 출발→클릭 방위각(0=북, 시계방향) */
 export function bearingFromOriginToPoint(origin: LngLat, point: LngLat): number {
   const toRad = (deg: number) => (deg * Math.PI) / 180;
@@ -27,7 +31,7 @@ export function bearingFromOriginToPoint(origin: LngLat, point: LngLat): number 
   return (brng + 360) % 360;
 }
 
-/** 목표 거리 원 — GeoJSON LineString(지도 stroke용) */
+/** 목표 거리 참고 원 — GeoJSON LineString(지도 stroke용) */
 export function circleLineString(
   center: LngLat,
   radiusMeters: number,
