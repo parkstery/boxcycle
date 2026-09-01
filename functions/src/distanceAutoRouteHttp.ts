@@ -1,13 +1,15 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { HttpsError } from "firebase-functions/v2/https";
 import {
+  AUTO_ROUTE_ALGORITHM_VERSION,
   buildAutoRouteCandidates,
-  isDistanceErrorWithinMax,
+  bearingFromOriginToPoint,
+  clipRouteGeometryToTargetMeters,
+  computeAutoRouteClickDiagnostics,
   isValidAutoRouteEnd,
+  lineStringLengthMeters,
   mapWithConcurrency,
-  pickBestAutoRoute,
-  scoreRouteDistanceError,
-  snappedEndFromRoute,
+  pickBestExactDistanceAutoRoute,
   type DirectionsRouteLike,
   type LngLat,
   type ScoredAutoRoute,
@@ -39,6 +41,8 @@ export type DistanceAutoRouteFound = {
   targetDistanceMeters: number;
   summary: string;
   routeTokenBalance: number;
+  endMissMeters?: number;
+  algorithmVersion?: string;
 };
 
 export type DistanceAutoRouteFailed = {
@@ -61,6 +65,9 @@ type CacheDoc = {
   end?: LngLat;
   targetDistanceMeters?: number;
   summary?: string;
+  targetRoadPoint?: LngLat;
+  algorithmVersion?: string;
+  endMissMeters?: number;
 };
 
 function cacheToResult(doc: CacheDoc): DistanceAutoRouteResult {
@@ -92,6 +99,8 @@ function cacheToResult(doc: CacheDoc): DistanceAutoRouteResult {
       targetDistanceMeters: doc.targetDistanceMeters,
       summary: doc.summary,
       routeTokenBalance: doc.routeTokenBalance,
+      endMissMeters: doc.endMissMeters,
+      algorithmVersion: doc.algorithmVersion,
     };
   }
   return {
@@ -122,6 +131,7 @@ function isLngLat(v: unknown): v is LngLat {
 
 export function parseDistanceAutoRouteBody(data: unknown): {
   start: LngLat;
+  targetRoadPoint: LngLat;
   profile: RouteProfile;
   targetDistanceMeters: number;
   bearingDeg: number;
@@ -131,9 +141,15 @@ export function parseDistanceAutoRouteBody(data: unknown): {
     throw new HttpsError("invalid-argument", "요청 본문이 올바르지 않습니다.");
   }
   const o = data as Record<string, unknown>;
-  const { start, profile, targetDistanceMeters, bearingDeg, requestId } = o;
+  const { start, targetRoadPoint, profile, targetDistanceMeters, requestId } = o;
   if (!isLngLat(start)) {
     throw new HttpsError("invalid-argument", "start 는 [lng,lat] 숫자 배열이어야 합니다.");
+  }
+  if (!isLngLat(targetRoadPoint)) {
+    throw new HttpsError("invalid-argument", "targetRoadPoint 는 [lng,lat] 숫자 배열이어야 합니다.");
+  }
+  if (targetRoadPoint[0] < -180 || targetRoadPoint[0] > 180 || targetRoadPoint[1] < -90 || targetRoadPoint[1] > 90) {
+    throw new HttpsError("invalid-argument", "targetRoadPoint 좌표 범위가 올바르지 않습니다.");
   }
   if (profile !== "cycling" && profile !== "driving" && profile !== "walking") {
     throw new HttpsError("invalid-argument", "profile 은 cycling | driving | walking 만 허용됩니다.");
@@ -144,9 +160,6 @@ export function parseDistanceAutoRouteBody(data: unknown): {
   if (targetDistanceMeters < 500 || targetDistanceMeters > 120_000) {
     throw new HttpsError("invalid-argument", "목표 거리는 0.5~120 km 입니다.");
   }
-  if (typeof bearingDeg !== "number" || !Number.isFinite(bearingDeg)) {
-    throw new HttpsError("invalid-argument", "bearingDeg 가 필요합니다.");
-  }
   if (typeof requestId !== "string") {
     throw new HttpsError("invalid-argument", "requestId 가 필요합니다.");
   }
@@ -156,9 +169,10 @@ export function parseDistanceAutoRouteBody(data: unknown): {
   }
   return {
     start,
+    targetRoadPoint,
     profile,
     targetDistanceMeters,
-    bearingDeg: ((bearingDeg % 360) + 360) % 360,
+    bearingDeg: bearingFromOriginToPoint(start, targetRoadPoint),
     requestId: id,
   };
 }
@@ -195,14 +209,24 @@ function formatDuration(totalSeconds: number): string {
 export async function executeDistanceAutoRoute(input: {
   userId: string;
   start: LngLat;
+  targetRoadPoint: LngLat;
   profile: RouteProfile;
   targetDistanceMeters: number;
   bearingDeg: number;
   requestId: string;
   fetchDirections: FetchDirectionsFn;
 }): Promise<DistanceAutoRouteResult> {
-  const { userId, start, profile, targetDistanceMeters, bearingDeg, requestId, fetchDirections } =
-    input;
+  const {
+    userId,
+    start,
+    targetRoadPoint,
+    profile,
+    targetDistanceMeters,
+    bearingDeg,
+    requestId,
+    fetchDirections,
+  } = input;
+  const searchStartedAt = Date.now();
 
   const cached = await readCache(userId, requestId);
   if (cached) {
@@ -251,27 +275,28 @@ export async function executeDistanceAutoRoute(input: {
     if (candidate.straightLineMeters > MAX_ROUTE_STRAIGHT_LINE_METERS) return null;
     try {
       const route = await fetchDirections(profile, start, candidate.end);
+      const geomLen = lineStringLengthMeters(route.geometry);
+      if (geomLen < targetDistanceMeters) return null;
       return {
         candidate,
         route,
-        errorMeters: scoreRouteDistanceError(route.distance, targetDistanceMeters),
+        errorMeters: geomLen - targetDistanceMeters,
       } satisfies ScoredAutoRoute;
     } catch {
       return null;
     }
   });
+  const providerCallCount = scored.length;
 
-  const best = pickBestAutoRoute(scored, bearingDeg);
-  if (!best || !isDistanceErrorWithinMax(best.errorMeters, targetDistanceMeters)) {
+  const best = pickBestExactDistanceAutoRoute(scored, targetDistanceMeters, bearingDeg);
+  if (!best) {
     if (generateCost > 0) {
       await refundRouteGenerateToken(userId, tokenRequestId, generateCost);
       routeTokenBalance += generateCost;
     }
-    const km = best ? (best.route.distance / 1000).toFixed(1) : null;
-    const targetLabel = (targetDistanceMeters / 1000).toFixed(1);
     const message =
-      km != null
-        ? `목표거리와 적합한 경로를 찾지 못했습니다. (가장 가까운 결과: ${km} km / 목표 ${targetLabel} km)`
+      scored.length > 0
+        ? `목표거리(${ (targetDistanceMeters / 1000).toFixed(1) } km) 이상의 경로를 찾지 못했습니다. 방향이나 거리를 바꿔 보세요.`
         : "목표거리와 적합한 경로를 찾지 못했습니다. 방향이나 거리를 바꿔 보세요.";
     const failed: DistanceAutoRouteFailed = {
       status: "failed",
@@ -288,20 +313,63 @@ export async function executeDistanceAutoRoute(input: {
     return failed;
   }
 
-  const snappedEnd = snappedEndFromRoute(best.route);
-  const km = (best.route.distance / 1000).toFixed(1);
+  const clipped = clipRouteGeometryToTargetMeters({
+    geometry: best.route.geometry,
+    targetDistanceMeters,
+    originalDuration: best.route.duration,
+  });
+  if (!clipped.ok) {
+    if (generateCost > 0) {
+      await refundRouteGenerateToken(userId, tokenRequestId, generateCost);
+      routeTokenBalance += generateCost;
+    }
+    const failed: DistanceAutoRouteFailed = {
+      status: "failed",
+      message: "목표 연장에 맞게 경로를 절단하지 못했습니다. 방향이나 거리를 바꿔 보세요.",
+      routeTokenBalance,
+    };
+    await writeCache(userId, requestId, {
+      userId,
+      requestId,
+      status: "failed",
+      message: failed.message,
+      routeTokenBalance,
+    });
+    return failed;
+  }
+
   const targetLabel = (targetDistanceMeters / 1000).toFixed(1);
-  const summary = `목표 ${targetLabel} km · 실제 ${km} km / 예상 ${formatDuration(best.route.duration)}`;
+  const actualLabel = (clipped.distance / 1000).toFixed(2);
+  const summary = `목표 ${targetLabel} km · 연장 ${actualLabel} km / 예상 ${formatDuration(clipped.duration)}`;
+  const diagnostics = computeAutoRouteClickDiagnostics({
+    start,
+    targetRoadPoint,
+    clippedEnd: clipped.end,
+    targetDistanceMeters,
+    clippedDistanceMeters: clipped.distance,
+    providerCallCount,
+    searchElapsedMs: Date.now() - searchStartedAt,
+  });
+  console.info(
+    JSON.stringify({
+      kind: "distanceAutoRouteDiagnostics",
+      requestId,
+      algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
+      ...diagnostics,
+    }),
+  );
 
   const found: DistanceAutoRouteFound = {
     status: "found",
-    geometry: best.route.geometry,
-    distance: best.route.distance,
-    duration: best.route.duration,
-    end: snappedEnd,
+    geometry: clipped.geometry,
+    distance: clipped.distance,
+    duration: clipped.duration,
+    end: clipped.end,
     targetDistanceMeters,
     summary,
     routeTokenBalance,
+    endMissMeters: diagnostics.rawClickMissMeters,
+    algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
   };
 
   await writeCache(userId, requestId, {
@@ -315,6 +383,9 @@ export async function executeDistanceAutoRoute(input: {
     targetDistanceMeters: found.targetDistanceMeters,
     summary: found.summary,
     routeTokenBalance,
+    targetRoadPoint,
+    algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
+    endMissMeters: diagnostics.rawClickMissMeters,
   });
 
   return found;
