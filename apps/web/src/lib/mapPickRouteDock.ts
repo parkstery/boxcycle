@@ -108,6 +108,26 @@ export function buildRoutePickDockCandidates(
   ];
 }
 
+export function panelReservedOverlapArea(
+  panel: RectLike,
+  reservedRects: RectLike[],
+): number {
+  let total = 0;
+  for (const reserved of reservedRects) {
+    total += overlapArea(panel, reserved);
+  }
+  return total;
+}
+
+export function panelFocusOverlapArea(panel: RectLike, focus: RoutePickDockFocus): number {
+  let total = 0;
+  for (const focusRect of focusRects(focus)) {
+    total += overlapArea(panel, focusRect);
+  }
+  return total;
+}
+
+/** @deprecated 진단·회귀용. 위치 선택은 pickRoutePickDockPosition의 lexicographic 규칙을 따른다. */
 export function scoreRoutePickDockCandidate(
   candidate: RoutePickDockCandidate,
   panelWidth: number,
@@ -116,17 +136,41 @@ export function scoreRoutePickDockCandidate(
   focus: RoutePickDockFocus,
 ): number {
   const panel = panelRectAt(candidate.left, candidate.top, panelWidth, panelHeight);
-  let score = 0;
-  for (const reserved of reservedRects) {
-    score += overlapArea(panel, reserved) * 4;
-  }
-  for (const focusRect of focusRects(focus)) {
-    score += overlapArea(panel, focusRect) * 6;
-  }
-  if (candidate.edge === "left" || candidate.edge === "right") {
-    score -= 12;
-  }
-  return score;
+  return (
+    panelReservedOverlapArea(panel, reservedRects) * 4 +
+    panelFocusOverlapArea(panel, focus) * 6 -
+    (candidate.edge === "left" || candidate.edge === "right" ? 12 : 0)
+  );
+}
+
+function edgePreferenceRank(edge: RoutePickDockCandidate["edge"]): number {
+  return edge === "left" || edge === "right" ? 0 : 1;
+}
+
+export function pickBestRoutePickDockCandidate(input: {
+  candidates: RoutePickDockCandidate[];
+  panelWidth: number;
+  panelHeight: number;
+  reservedRects: RectLike[];
+  focus: RoutePickDockFocus;
+}): RoutePickDockCandidate {
+  const scored = input.candidates.map((candidate, index) => {
+    const panel = panelRectAt(candidate.left, candidate.top, input.panelWidth, input.panelHeight);
+    return {
+      candidate,
+      index,
+      reservedOverlap: panelReservedOverlapArea(panel, input.reservedRects),
+      focusOverlap: panelFocusOverlapArea(panel, input.focus),
+      edgeRank: edgePreferenceRank(candidate.edge),
+    };
+  });
+  scored.sort((a, b) => {
+    if (a.reservedOverlap !== b.reservedOverlap) return a.reservedOverlap - b.reservedOverlap;
+    if (a.focusOverlap !== b.focusOverlap) return a.focusOverlap - b.focusOverlap;
+    if (a.edgeRank !== b.edgeRank) return a.edgeRank - b.edgeRank;
+    return a.index - b.index;
+  });
+  return scored[0]!.candidate;
 }
 
 export function pickRoutePickDockPosition(input: {
@@ -155,21 +199,18 @@ export function pickRoutePickDockPosition(input: {
     input.panelHeight,
     margin,
   );
-  let best = candidates[0]!;
-  let bestScore = Number.POSITIVE_INFINITY;
-  for (const candidate of candidates) {
-    const score = scoreRoutePickDockCandidate(
-      candidate,
-      input.panelWidth,
-      input.panelHeight,
-      input.reservedRects,
-      input.focus,
-    );
-    if (score < bestScore) {
-      bestScore = score;
-      best = candidate;
-    }
-  }
+  const collisionFree = candidates.filter((candidate) => {
+    const panel = panelRectAt(candidate.left, candidate.top, input.panelWidth, input.panelHeight);
+    return panelReservedOverlapArea(panel, input.reservedRects) === 0;
+  });
+  const pool = collisionFree.length > 0 ? collisionFree : candidates;
+  const best = pickBestRoutePickDockCandidate({
+    candidates: pool,
+    panelWidth: input.panelWidth,
+    panelHeight: input.panelHeight,
+    reservedRects: input.reservedRects,
+    focus: input.focus,
+  });
   return clampRoutePickDockPosition(
     best.left,
     best.top,
@@ -180,22 +221,44 @@ export function pickRoutePickDockPosition(input: {
   );
 }
 
+export const ROUTE_PICK_DOCK_HUD_SLOT_SELECTORS = [
+  ".map-hud__tl",
+  ".map-hud__tc",
+  ".map-hud__tr",
+  ".map-hud__tr-under",
+  ".map-hud__rs",
+  ".map-hud__bc",
+  ".map-hud__br",
+  ".map-hud__mc",
+] as const;
+
 export const ROUTE_PICK_DOCK_HUD_SELECTORS = [
-  ".map-hud",
+  ...ROUTE_PICK_DOCK_HUD_SLOT_SELECTORS,
   ".route-dock-anchor",
   ".map-view__nav-control-wrap",
   ".elevation-overlay",
   "[data-route-pick-dock-reserved]",
 ] as const;
 
+function isVisibleDockReservationElement(el: HTMLElement): boolean {
+  const style = getComputedStyle(el);
+  if (style.display === "none" || style.visibility === "hidden") return false;
+  if (Number.parseFloat(style.opacity) === 0) return false;
+  if (el.getClientRects().length === 0) return false;
+  if (el.offsetParent === null && style.position !== "fixed" && style.position !== "sticky") {
+    return false;
+  }
+  const rect = el.getBoundingClientRect();
+  return rect.width > 0 && rect.height > 0;
+}
+
 export function collectRoutePickDockReservedRects(root: ParentNode): RectLike[] {
   const rects: RectLike[] = [];
   for (const selector of ROUTE_PICK_DOCK_HUD_SELECTORS) {
     for (const el of root.querySelectorAll(selector)) {
       if (!(el instanceof HTMLElement)) continue;
-      if (el.offsetParent === null && getComputedStyle(el).position !== "fixed") continue;
+      if (!isVisibleDockReservationElement(el)) continue;
       const rect = el.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0) continue;
       rects.push(rectFromLike(rect));
     }
   }

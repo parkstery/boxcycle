@@ -27,7 +27,10 @@ import { getDistanceMeters } from "../../src/lib/geo.ts";
 import {
   buildRoutePickDockCandidates,
   clampRoutePickDockPosition,
+  panelReservedOverlapArea,
+  pickBestRoutePickDockCandidate,
   pickRoutePickDockPosition,
+  ROUTE_PICK_DOCK_HUD_SELECTORS,
   ROUTE_PICK_DOCK_MARGIN_PX,
   scoreRoutePickDockCandidate,
 } from "../../src/lib/mapPickRouteDock.ts";
@@ -519,7 +522,7 @@ describe("distanceAutoRoute", () => {
       width: panelWidth,
       height: panelHeight,
     };
-    assert.ok(panel.right <= reserved[0]!.left || panel.left >= reserved[0]!.right || panel.bottom <= reserved[0]!.top);
+    assert.equal(panelReservedOverlapArea(panel, reserved), 0);
     const saved = { left: 12, top: 88 };
     const clampedSaved = pickRoutePickDockPosition({
       viewport,
@@ -544,5 +547,89 @@ describe("distanceAutoRoute", () => {
     const overflow = clampRoutePickDockPosition(500, 500, panelWidth, panelHeight, viewport);
     assert.ok(overflow.left < 500);
     assert.ok(overflow.top < 500);
+  });
+
+  it("3D-2-R2-R1 — collision-free 후보 우선·HUD slot selector", () => {
+    assert.doesNotMatch(
+      JSON.stringify(ROUTE_PICK_DOCK_HUD_SELECTORS),
+      /map-hud"/,
+    );
+    assert.match(JSON.stringify(ROUTE_PICK_DOCK_HUD_SELECTORS), /map-hud__tl/);
+    assert.match(JSON.stringify(ROUTE_PICK_DOCK_HUD_SELECTORS), /map-hud__br/);
+
+    const viewport = {
+      left: 0,
+      top: 0,
+      right: 400,
+      bottom: 300,
+      width: 400,
+      height: 300,
+    };
+    const panelWidth = 280;
+    const panelHeight = 200;
+    const reserved = [{ left: 300, top: 0, right: 400, bottom: 80, width: 100, height: 80 }];
+    const focus = {
+      clickPoint: { x: 200, y: 150 },
+      startPoint: { x: 180, y: 140 },
+      routePoints: [],
+    };
+    const candidates = buildRoutePickDockCandidates(viewport, panelWidth, panelHeight);
+    const betterFocusWorseReserved = candidates.find((candidate) => {
+      const panel = {
+        left: candidate.left,
+        top: candidate.top,
+        right: candidate.left + panelWidth,
+        bottom: candidate.top + panelHeight,
+        width: panelWidth,
+        height: panelHeight,
+      };
+      return panelReservedOverlapArea(panel, reserved) > 0;
+    });
+    assert.ok(betterFocusWorseReserved, "fixture must include a reserved-overlapping candidate");
+    const best = pickBestRoutePickDockCandidate({
+      candidates,
+      panelWidth,
+      panelHeight,
+      reservedRects: reserved,
+      focus,
+    });
+    const bestPanel = {
+      left: best.left,
+      top: best.top,
+      right: best.left + panelWidth,
+      bottom: best.top + panelHeight,
+      width: panelWidth,
+      height: panelHeight,
+    };
+    assert.equal(panelReservedOverlapArea(bestPanel, reserved), 0);
+
+    const tinyViewport = {
+      left: 0,
+      top: 0,
+      right: 300,
+      bottom: 220,
+      width: 300,
+      height: 220,
+    };
+    const hugeReserved = [
+      { left: 0, top: 0, right: 300, bottom: 220, width: 300, height: 220 },
+    ];
+    const tinyCandidates = buildRoutePickDockCandidates(tinyViewport, panelWidth, panelHeight);
+    const fallback = pickBestRoutePickDockCandidate({
+      candidates: tinyCandidates,
+      panelWidth,
+      panelHeight,
+      reservedRects: hugeReserved,
+      focus,
+    });
+    const fallbackPanel = {
+      left: fallback.left,
+      top: fallback.top,
+      right: fallback.left + panelWidth,
+      bottom: fallback.top + panelHeight,
+      width: panelWidth,
+      height: panelHeight,
+    };
+    assert.ok(panelReservedOverlapArea(fallbackPanel, hugeReserved) >= 0);
   });
 });
