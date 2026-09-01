@@ -276,6 +276,8 @@ async function fetchDirectionsRoute(
   geometry: { type: "LineString"; coordinates: [number, number][] };
   distance: number;
   duration: number;
+  snappedEnd?: [number, number];
+  endSnapDistanceMeters?: number;
 }> {
   if (isHarnessFakeMapboxActive()) {
     return fetchHarnessFakeDirections(profile, start, end, waypoints);
@@ -312,7 +314,12 @@ async function fetchDirectionsRoute(
   const mapJson = (await mapResponse.json()) as {
     code?: string;
     message?: string;
-    routes?: { geometry: { type: string; coordinates: number[][] }; distance: number; duration: number }[];
+    routes?: {
+      geometry: { type: string; coordinates: number[][] };
+      distance: number;
+      duration: number;
+    }[];
+    waypoints?: { location?: [number, number]; distance?: number }[];
   };
 
   if (mapJson.code && mapJson.code !== "Ok") {
@@ -325,10 +332,30 @@ async function fetchDirectionsRoute(
     throw new HttpsError("not-found", "경로를 찾지 못했습니다.");
   }
 
+  const lastWaypoint = mapJson.waypoints?.[mapJson.waypoints.length - 1];
+  let snappedEnd: [number, number] | undefined;
+  let endSnapDistanceMeters: number | undefined;
+  if (
+    lastWaypoint?.location &&
+    Array.isArray(lastWaypoint.location) &&
+    lastWaypoint.location.length === 2 &&
+    typeof lastWaypoint.location[0] === "number" &&
+    typeof lastWaypoint.location[1] === "number" &&
+    Number.isFinite(lastWaypoint.location[0]) &&
+    Number.isFinite(lastWaypoint.location[1])
+  ) {
+    snappedEnd = [lastWaypoint.location[0], lastWaypoint.location[1]];
+    if (typeof lastWaypoint.distance === "number" && Number.isFinite(lastWaypoint.distance)) {
+      endSnapDistanceMeters = lastWaypoint.distance;
+    }
+  }
+
   return {
     geometry: route.geometry as { type: "LineString"; coordinates: [number, number][] },
     distance: route.distance,
     duration: route.duration,
+    snappedEnd,
+    endSnapDistanceMeters,
   };
 }
 

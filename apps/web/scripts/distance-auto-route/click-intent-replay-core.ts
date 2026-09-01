@@ -1,41 +1,41 @@
 import {
   AUTO_ROUTE_ALGORITHM_VERSION,
-  AUTO_ROUTE_BEARING_OFFSETS_DEG,
-  AUTO_ROUTE_DISTANCE_FACTORS,
+  buildClickSurroundingEndpoints,
   bearingFromOriginToPoint,
-  buildAutoRouteCandidates,
   getDistanceMeters,
   lineStringLengthMeters,
   offsetLngLatByBearingMeters,
   searchDistanceAutoRoute,
-  type AutoRouteCandidate,
   type DirectionsRouteLike,
   type FetchDirectionsFn,
   type LngLat,
   type RouteProfile,
 } from "../../../../functions/src/distanceAutoRouteCore.ts";
 
-export const BASELINE_ALGORITHM_VERSION = "ebdee9d-baseline";
+export const BASELINE_ALGORITHM_VERSION = "3F-A-observe";
 
 export type FixtureProviderOverride = {
-  bearingOffsetDeg: number;
-  distanceFactor: number;
+  /** direct = raw click, ring = click 주변 ring endpoint */
+  endpointKind: "direct" | "ring";
+  ringRadiusM?: number;
+  ringBearingDeg?: number;
 } & (
   | { kind: "route"; geometry: DirectionsRouteLike["geometry"]; duration?: number }
   | { kind: "throw" }
   | { kind: "too_short"; geometry: DirectionsRouteLike["geometry"]; duration?: number }
+  | { kind: "off_road"; snapDistanceMeters: number }
 );
 
 export type ClickIntentFixtureExpected = {
   status: "found" | "failed";
   attemptedCalls: number;
   distanceErrorM: number;
-  snappedEndMissM: null;
+  snappedEndMissM: number | null;
   rawEndMissM: number;
   bearingErrorDeg: number;
   clippedEnd: LngLat;
-  sameResult: true;
-  sameResultReason: string;
+  sameResult?: boolean;
+  sameResultReason?: string;
 };
 
 export type ClickIntentFixture = {
@@ -66,65 +66,57 @@ export type ClickIntentReplayRow = {
   sameResultReason?: string;
 };
 
-function normalizeBearingOffsetDeg(offset: number): number {
-  let normalized = offset % 360;
-  if (normalized > 180) normalized -= 360;
-  if (normalized < -180) normalized += 360;
-  return Math.round(normalized);
+function ringEndpoint(
+  center: LngLat,
+  radiusM: number,
+  bearingDeg: number,
+): LngLat {
+  const ring = buildClickSurroundingEndpoints(center);
+  return (
+    ring.find(
+      (point) =>
+        Math.abs(getDistanceMeters(center, point) - radiusM) < 2 &&
+        Math.abs(bearingFromOriginToPoint(center, point) - bearingDeg) < 5,
+    ) ?? ring[0]!
+  );
 }
 
-function nearestDistanceFactor(straightMeters: number, targetMeters: number): number {
-  const ratio = straightMeters / targetMeters;
-  let best = AUTO_ROUTE_DISTANCE_FACTORS[0]!;
-  let bestDiff = Math.abs(ratio - best);
-  for (const factor of AUTO_ROUTE_DISTANCE_FACTORS) {
-    const diff = Math.abs(ratio - factor);
-    if (diff < bestDiff) {
-      best = factor;
-      bestDiff = diff;
+function matchEndpoint(
+  fixture: ClickIntentFixture,
+  end: LngLat,
+): { kind: "direct" } | { kind: "ring"; radiusM: number; bearingDeg: number } | null {
+  if (getDistanceMeters(end, fixture.targetRoadPoint) < 1) {
+    return { kind: "direct" };
+  }
+  for (const radius of [25, 75] as const) {
+    for (const bearing of [0, 45, 90, 135, 180, 225, 270, 315] as const) {
+      const ringPoint = ringEndpoint(fixture.targetRoadPoint, radius, bearing);
+      if (getDistanceMeters(end, ringPoint) < 1) {
+        return { kind: "ring", radiusM: radius, bearingDeg: bearing };
+      }
     }
   }
-  return best;
-}
-
-function nearestBearingOffsetDeg(candidateBearing: number, clickBearing: number): number {
-  const raw = normalizeBearingOffsetDeg(candidateBearing - clickBearing);
-  let best = AUTO_ROUTE_BEARING_OFFSETS_DEG[0]!;
-  let bestDiff = Math.abs(raw - best);
-  for (const offset of AUTO_ROUTE_BEARING_OFFSETS_DEG) {
-    const diff = Math.abs(raw - offset);
-    if (diff < bestDiff) {
-      best = offset;
-      bestDiff = diff;
-    }
-  }
-  return best;
-}
-
-function candidateSelector(
-  candidate: AutoRouteCandidate,
-  clickBearing: number,
-  targetDistanceMeters: number,
-): { bearingOffsetDeg: number; distanceFactor: number } {
-  return {
-    bearingOffsetDeg: nearestBearingOffsetDeg(candidate.bearingDeg, clickBearing),
-    distanceFactor: nearestDistanceFactor(candidate.straightLineMeters, targetDistanceMeters),
-  };
+  return null;
 }
 
 function findOverride(
-  candidate: AutoRouteCandidate,
-  clickBearing: number,
-  targetDistanceMeters: number,
-  overrides: FixtureProviderOverride[] | undefined,
+  fixture: ClickIntentFixture,
+  end: LngLat,
 ): FixtureProviderOverride | undefined {
-  if (!overrides?.length) return undefined;
-  const selector = candidateSelector(candidate, clickBearing, targetDistanceMeters);
-  return overrides.find(
-    (item) =>
-      item.bearingOffsetDeg === selector.bearingOffsetDeg &&
-      Math.abs(item.distanceFactor - selector.distanceFactor) < 0.01,
-  );
+  const matched = matchEndpoint(fixture, end);
+  if (!matched) return undefined;
+  return fixture.overrides?.find((item) => {
+    if (item.endpointKind === "direct" && matched.kind === "direct") return true;
+    if (
+      item.endpointKind === "ring" &&
+      matched.kind === "ring" &&
+      (item.ringRadiusM == null || item.ringRadiusM === matched.radiusM) &&
+      (item.ringBearingDeg == null || item.ringBearingDeg === matched.bearingDeg)
+    ) {
+      return true;
+    }
+    return false;
+  });
 }
 
 export function buildStraightRouteGeometry(
@@ -179,21 +171,29 @@ export function buildParallelOffsetRouteGeometry(input: {
 }
 
 export function createFixtureFetchDirections(fixture: ClickIntentFixture): FetchDirectionsFn {
-  const clickBearing = bearingFromOriginToPoint(fixture.start, fixture.targetRoadPoint);
   const lengthFactor = fixture.defaultRouteLengthFactor ?? 1.05;
 
   return async (_profile, start, end) => {
-    const candidates = buildAutoRouteCandidates(start, clickBearing, fixture.targetDistanceMeters);
-    const candidate =
-      candidates.find((item) => getDistanceMeters(item.end, end) < 1) ??
-      candidates.find((item) => getDistanceMeters(item.end, end) < 25);
-    if (!candidate) {
-      throw new Error(`fixture provider: unmatched end ${end.join(",")}`);
-    }
-
-    const override = findOverride(candidate, clickBearing, fixture.targetDistanceMeters, fixture.overrides);
+    const override = findOverride(fixture, end);
     if (override?.kind === "throw") {
       throw new Error("fixture provider throw");
+    }
+
+    if (override?.kind === "off_road") {
+      const routeBearing = bearingFromOriginToPoint(start, end);
+      const geometry = buildStraightRouteGeometry(
+        start,
+        routeBearing,
+        fixture.targetDistanceMeters * lengthFactor,
+      );
+      const snapped = ringEndpoint(fixture.targetRoadPoint, 25, 0);
+      return {
+        geometry,
+        distance: lineStringLengthMeters(geometry),
+        duration: 1200,
+        snappedEnd: snapped,
+        endSnapDistanceMeters: override.snapDistanceMeters,
+      };
     }
 
     if (override?.kind === "too_short") {
@@ -202,6 +202,8 @@ export function createFixtureFetchDirections(fixture: ClickIntentFixture): Fetch
         geometry,
         distance: lineStringLengthMeters(geometry),
         duration: override.duration ?? 900,
+        snappedEnd: end,
+        endSnapDistanceMeters: 0,
       };
     }
 
@@ -211,18 +213,23 @@ export function createFixtureFetchDirections(fixture: ClickIntentFixture): Fetch
         geometry,
         distance: lineStringLengthMeters(geometry),
         duration: override.duration ?? 1200,
+        snappedEnd: end,
+        endSnapDistanceMeters: 0,
       };
     }
 
+    const routeBearing = bearingFromOriginToPoint(start, end);
     const geometry = buildStraightRouteGeometry(
       start,
-      candidate.bearingDeg,
-      candidate.straightLineMeters * lengthFactor,
+      routeBearing,
+      fixture.targetDistanceMeters * lengthFactor,
     );
     return {
       geometry,
       distance: lineStringLengthMeters(geometry),
       duration: 1200,
+      snappedEnd: end,
+      endSnapDistanceMeters: 0,
     };
   };
 }
@@ -250,20 +257,20 @@ export function rowsFromReplay(
   fixture: ClickIntentFixture,
   searched: Awaited<ReturnType<typeof replayClickIntentFixture>>["searched"],
 ): ClickIntentReplayRow[] {
-  const baseRow = buildReplayRow(fixture, fixture.baselineAlgorithm, searched);
-  const observeRow = buildReplayRow(fixture, AUTO_ROUTE_ALGORITHM_VERSION, searched);
+  const baselineRow = buildReplayRow(fixture, fixture.baselineAlgorithm, searched);
+  const currentRow = buildReplayRow(fixture, AUTO_ROUTE_ALGORITHM_VERSION, searched);
   const sameResult =
-    baseRow.result === observeRow.result &&
-    baseRow.distanceErrorM === observeRow.distanceErrorM &&
-    baseRow.rawEndMissM === observeRow.rawEndMissM &&
-    baseRow.bearingErrorDeg === observeRow.bearingErrorDeg &&
-    baseRow.attemptedCalls === observeRow.attemptedCalls;
+    baselineRow.result === currentRow.result &&
+    baselineRow.distanceErrorM === currentRow.distanceErrorM &&
+    baselineRow.rawEndMissM === currentRow.rawEndMissM &&
+    baselineRow.bearingErrorDeg === currentRow.bearingErrorDeg &&
+    baselineRow.attemptedCalls === currentRow.attemptedCalls;
   const sameResultReason = sameResult
-    ? fixture.expected.sameResultReason
-    : "baseline·observe replay metrics diverged";
+    ? (fixture.expected.sameResultReason ?? "metrics match baseline")
+    : "baseline·current replay metrics diverged";
   return [
-    { ...baseRow, sameResult, sameResultReason },
-    { ...observeRow, sameResult, sameResultReason },
+    { ...baselineRow, sameResult, sameResultReason },
+    { ...currentRow, sameResult, sameResultReason },
   ];
 }
 
@@ -337,8 +344,17 @@ export function assertFixtureExpectations(
       `${fixture.id}: distanceErrorM expected ${expected.distanceErrorM} got ${diagnostics.routeDistanceErrorMeters}`,
     );
   }
-  if (diagnostics.snappedClickMissMeters != null) {
-    throw new Error(`${fixture.id}: snappedEndMissM should be unavailable (null)`);
+  if (expected.snappedEndMissM == null) {
+    if (diagnostics.snappedClickMissMeters != null) {
+      throw new Error(`${fixture.id}: snappedEndMissM should be unavailable (null)`);
+    }
+  } else if (
+    diagnostics.snappedClickMissMeters == null ||
+    Math.abs(diagnostics.snappedClickMissMeters - expected.snappedEndMissM) > toleranceMeters
+  ) {
+    throw new Error(
+      `${fixture.id}: snappedEndMissM expected ${expected.snappedEndMissM} got ${diagnostics.snappedClickMissMeters}`,
+    );
   }
   if (Math.abs(diagnostics.rawClickMissMeters - expected.rawEndMissM) > toleranceMeters) {
     throw new Error(

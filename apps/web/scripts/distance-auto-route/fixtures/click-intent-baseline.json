@@ -2,1070 +2,132 @@
   {
     "id": "straight-road-5km",
     "fixtureKind": "deterministic",
-    "start": [
-      127.02,
-      37.5
-    ],
-    "targetRoadPoint": [
-      127.07,
-      37.5
-    ],
+    "start": [127.02, 37.5],
+    "targetRoadPoint": [127.07668, 37.5],
     "targetDistanceMeters": 5000,
     "profile": "cycling",
-    "baselineAlgorithm": "ebdee9d-baseline",
+    "baselineAlgorithm": "3F-A-observe",
+    "defaultRouteLengthFactor": 1.05,
     "overrides": [],
     "expected": {
       "status": "found",
-      "attemptedCalls": 35,
-      "distanceErrorM": 0.002,
-      "snappedEndMissM": null,
-      "rawEndMissM": 1361,
-      "bearingErrorDeg": 15,
-      "clippedEnd": [
-        127.07475,
-        37.51165
-      ],
-      "sameResult": true,
-      "sameResultReason": "3F-A adds diagnostics only; baseline and observe share the same selection·clip pipeline on fixture provider responses"
+      "attemptedCalls": 1,
+      "distanceErrorM": 0,
+      "snappedEndMissM": 1.3,
+      "rawEndMissM": 1.3,
+      "bearingErrorDeg": 0,
+      "clippedEnd": [127.07668, 37.5],
+      "sameResultReason": "3F-B direct click early success with exact clip at clicked road"
     }
   },
   {
-    "id": "click-ne-end-se",
+    "id": "ring-fallback-near",
     "fixtureKind": "deterministic",
-    "start": [
-      127.02,
-      37.5
-    ],
-    "targetRoadPoint": [
-      127.06,
-      37.54
-    ],
+    "start": [127.02, 37.5],
+    "targetRoadPoint": [127.07668, 37.5],
     "targetDistanceMeters": 5000,
     "profile": "cycling",
-    "baselineAlgorithm": "ebdee9d-baseline",
+    "baselineAlgorithm": "3F-A-observe",
     "overrides": [
       {
-        "bearingOffsetDeg": 0,
-        "distanceFactor": 1,
+        "endpointKind": "direct",
         "kind": "route",
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [
-              127.02,
-              37.5
-            ],
-            [
-              127.0440527983103,
-              37.51907505412141
-            ],
-            [
-              127.08412372265144,
-              37.487272463993044
-            ]
+            [127.02, 37.5],
+            [127.02634799241365, 37.499595135439684],
+            [127.03269595040817, 37.49919027088185],
+            [127.03904387398428, 37.49878540632651],
+            [127.04539176314267, 37.498380541773656],
+            [127.05173961788404, 37.49797567722329],
+            [127.05808743820904, 37.497570812675406],
+            [127.06443522411838, 37.49716594813001],
+            [127.07078297561274, 37.49676108358709],
+            [127.07713069269283, 37.49635621904666],
+            [127.08347837535935, 37.49595135450872]
           ]
         }
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 0.7,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 0.8,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 0.9,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 1.1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 1.2,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 1.3,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 0.7,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 0.8,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 0.9,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 1.1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 1.2,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 1.3,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 0,
-        "distanceFactor": 0.7,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 0,
-        "distanceFactor": 0.8,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 0,
-        "distanceFactor": 0.9,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 0,
-        "distanceFactor": 1.1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 0,
-        "distanceFactor": 1.2,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 0,
-        "distanceFactor": 1.3,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 15,
-        "distanceFactor": 0.7,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 15,
-        "distanceFactor": 0.8,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 15,
-        "distanceFactor": 0.9,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 15,
-        "distanceFactor": 1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 15,
-        "distanceFactor": 1.1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 15,
-        "distanceFactor": 1.2,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 15,
-        "distanceFactor": 1.3,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 30,
-        "distanceFactor": 0.7,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 30,
-        "distanceFactor": 0.8,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 30,
-        "distanceFactor": 0.9,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 30,
-        "distanceFactor": 1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 30,
-        "distanceFactor": 1.1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 30,
-        "distanceFactor": 1.2,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 30,
-        "distanceFactor": 1.3,
-        "kind": "throw"
       }
     ],
     "expected": {
       "status": "found",
-      "attemptedCalls": 35,
-      "distanceErrorM": 0.256,
-      "snappedEndMissM": null,
-      "rawEndMissM": 3741,
-      "bearingErrorDeg": 40.3,
-      "clippedEnd": [
-        127.06008,
-        37.50636
-      ],
-      "sameResult": true,
-      "sameResultReason": "3F-A adds diagnostics only; baseline and observe share the same selection·clip pipeline on fixture provider responses"
+      "attemptedCalls": 2,
+      "distanceErrorM": 0,
+      "snappedEndMissM": 26.3,
+      "rawEndMissM": 26.3,
+      "bearingErrorDeg": 0.3,
+      "clippedEnd": [127.07668, 37.50024],
+      "sameResultReason": "3F-B ring fallback when direct clipped end exceeds 250m miss"
     }
   },
   {
-    "id": "parallel-road-near",
+    "id": "off-road-snap-fail",
     "fixtureKind": "deterministic",
-    "start": [
-      127.02,
-      37.5
-    ],
-    "targetRoadPoint": [
-      127.07,
-      37.5
-    ],
+    "start": [127.02, 37.5],
+    "targetRoadPoint": [127.07668, 37.5],
     "targetDistanceMeters": 5000,
     "profile": "cycling",
-    "baselineAlgorithm": "ebdee9d-baseline",
+    "baselineAlgorithm": "3F-A-observe",
     "overrides": [
       {
-        "bearingOffsetDeg": 0,
-        "distanceFactor": 1,
-        "kind": "route",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [
-            [
-              127.02,
-              37.5
-            ],
-            [
-              127.02634799241365,
-              37.499595135439684
-            ],
-            [
-              127.03269595040817,
-              37.49919027088185
-            ],
-            [
-              127.03904387398428,
-              37.49878540632651
-            ],
-            [
-              127.04539176314267,
-              37.498380541773656
-            ],
-            [
-              127.05173961788404,
-              37.49797567722329
-            ],
-            [
-              127.05808743820904,
-              37.497570812675406
-            ],
-            [
-              127.06443522411838,
-              37.49716594813001
-            ],
-            [
-              127.07078297561274,
-              37.49676108358709
-            ],
-            [
-              127.07713069269283,
-              37.49635621904666
-            ],
-            [
-              127.08347837535935,
-              37.49595135450872
-            ]
-          ]
-        }
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 0.7,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 0.8,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 0.9,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 1.1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 1.2,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 1.3,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 0.7,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 0.8,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 0.9,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 1.1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 1.2,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 1.3,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 0,
-        "distanceFactor": 0.7,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 0,
-        "distanceFactor": 0.8,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 0,
-        "distanceFactor": 0.9,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 0,
-        "distanceFactor": 1.1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 0,
-        "distanceFactor": 1.2,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 0,
-        "distanceFactor": 1.3,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 15,
-        "distanceFactor": 0.7,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 15,
-        "distanceFactor": 0.8,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 15,
-        "distanceFactor": 0.9,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 15,
-        "distanceFactor": 1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 15,
-        "distanceFactor": 1.1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 15,
-        "distanceFactor": 1.2,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 15,
-        "distanceFactor": 1.3,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 30,
-        "distanceFactor": 0.7,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 30,
-        "distanceFactor": 0.8,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 30,
-        "distanceFactor": 0.9,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 30,
-        "distanceFactor": 1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 30,
-        "distanceFactor": 1.1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 30,
-        "distanceFactor": 1.2,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": 30,
-        "distanceFactor": 1.3,
-        "kind": "throw"
+        "endpointKind": "direct",
+        "kind": "off_road",
+        "snapDistanceMeters": 300
       }
     ],
     "expected": {
-      "status": "found",
-      "attemptedCalls": 35,
+      "status": "failed",
+      "attemptedCalls": 1,
       "distanceErrorM": 0,
       "snappedEndMissM": null,
-      "rawEndMissM": 699,
-      "bearingErrorDeg": 4.6,
-      "clippedEnd": [
-        127.07649,
-        37.4964
-      ],
-      "sameResult": true,
-      "sameResultReason": "3F-A adds diagnostics only; baseline and observe share the same selection·clip pipeline on fixture provider responses"
+      "rawEndMissM": 0,
+      "bearingErrorDeg": 0,
+      "clippedEnd": [127.02, 37.5],
+      "sameResultReason": "3F-B fails when provider snap distance exceeds 250m"
     }
   },
   {
     "id": "short-throw-mix",
     "fixtureKind": "deterministic",
-    "start": [
-      127.02,
-      37.5
-    ],
-    "targetRoadPoint": [
-      127.07,
-      37.5
-    ],
+    "start": [127.02, 37.5],
+    "targetRoadPoint": [127.07668, 37.5],
     "targetDistanceMeters": 5000,
     "profile": "cycling",
-    "baselineAlgorithm": "ebdee9d-baseline",
+    "baselineAlgorithm": "3F-A-observe",
     "overrides": [
       {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 0.7,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 0.8,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 0.9,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 1.1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 1.2,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 1.3,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 0.7,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 0.8,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 0.9,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 1.1,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 1.2,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 1.3,
-        "kind": "throw"
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 0.7,
+        "endpointKind": "direct",
         "kind": "too_short",
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [
-              127.02,
-              37.5
-            ],
-            [
-              127.02421546371575,
-              37.49999992510517
-            ],
-            [
-              127.0284309274273,
-              37.49999985021034
-            ],
-            [
-              127.03264639113458,
-              37.499999775315494
-            ],
-            [
-              127.03686185483764,
-              37.49999970042066
-            ],
-            [
-              127.0410773185365,
-              37.49999962552582
-            ],
-            [
-              127.0452927822311,
-              37.49999955063098
-            ],
-            [
-              127.0495082459215,
-              37.49999947573615
-            ],
-            [
-              127.05372370960767,
-              37.49999940084132
-            ]
+            [127.02, 37.5],
+            [127.02421546371575, 37.49999992510517],
+            [127.0284309274273, 37.49999985021034],
+            [127.03264639113458, 37.499999775315494],
+            [127.03686185483764, 37.49999970042066],
+            [127.0410773185365, 37.49999962552582],
+            [127.0452927822311, 37.49999955063098],
+            [127.0495082459215, 37.49999947573615],
+            [127.05372370960767, 37.49999940084132]
           ]
         }
       },
       {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 0.7,
-        "kind": "too_short",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [
-            [
-              127.02,
-              37.5
-            ],
-            [
-              127.02421546371575,
-              37.49999992510517
-            ],
-            [
-              127.0284309274273,
-              37.49999985021034
-            ],
-            [
-              127.03264639113458,
-              37.499999775315494
-            ],
-            [
-              127.03686185483764,
-              37.49999970042066
-            ],
-            [
-              127.0410773185365,
-              37.49999962552582
-            ],
-            [
-              127.0452927822311,
-              37.49999955063098
-            ],
-            [
-              127.0495082459215,
-              37.49999947573615
-            ],
-            [
-              127.05372370960767,
-              37.49999940084132
-            ]
-          ]
-        }
-      },
-      {
-        "bearingOffsetDeg": 0,
-        "distanceFactor": 0.7,
-        "kind": "too_short",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [
-            [
-              127.02,
-              37.5
-            ],
-            [
-              127.02421546371575,
-              37.49999992510517
-            ],
-            [
-              127.0284309274273,
-              37.49999985021034
-            ],
-            [
-              127.03264639113458,
-              37.499999775315494
-            ],
-            [
-              127.03686185483764,
-              37.49999970042066
-            ],
-            [
-              127.0410773185365,
-              37.49999962552582
-            ],
-            [
-              127.0452927822311,
-              37.49999955063098
-            ],
-            [
-              127.0495082459215,
-              37.49999947573615
-            ],
-            [
-              127.05372370960767,
-              37.49999940084132
-            ]
-          ]
-        }
-      },
-      {
-        "bearingOffsetDeg": 15,
-        "distanceFactor": 0.7,
-        "kind": "too_short",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [
-            [
-              127.02,
-              37.5
-            ],
-            [
-              127.02421546371575,
-              37.49999992510517
-            ],
-            [
-              127.0284309274273,
-              37.49999985021034
-            ],
-            [
-              127.03264639113458,
-              37.499999775315494
-            ],
-            [
-              127.03686185483764,
-              37.49999970042066
-            ],
-            [
-              127.0410773185365,
-              37.49999962552582
-            ],
-            [
-              127.0452927822311,
-              37.49999955063098
-            ],
-            [
-              127.0495082459215,
-              37.49999947573615
-            ],
-            [
-              127.05372370960767,
-              37.49999940084132
-            ]
-          ]
-        }
-      },
-      {
-        "bearingOffsetDeg": 30,
-        "distanceFactor": 0.7,
-        "kind": "too_short",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [
-            [
-              127.02,
-              37.5
-            ],
-            [
-              127.02421546371575,
-              37.49999992510517
-            ],
-            [
-              127.0284309274273,
-              37.49999985021034
-            ],
-            [
-              127.03264639113458,
-              37.499999775315494
-            ],
-            [
-              127.03686185483764,
-              37.49999970042066
-            ],
-            [
-              127.0410773185365,
-              37.49999962552582
-            ],
-            [
-              127.0452927822311,
-              37.49999955063098
-            ],
-            [
-              127.0495082459215,
-              37.49999947573615
-            ],
-            [
-              127.05372370960767,
-              37.49999940084132
-            ]
-          ]
-        }
-      },
-      {
-        "bearingOffsetDeg": -30,
-        "distanceFactor": 0.8,
-        "kind": "too_short",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [
-            [
-              127.02,
-              37.5
-            ],
-            [
-              127.02481767281701,
-              37.49999990217818
-            ],
-            [
-              127.02963534562771,
-              37.49999980435636
-            ],
-            [
-              127.03445301843212,
-              37.499999706534545
-            ],
-            [
-              127.0392706912302,
-              37.49999960871273
-            ],
-            [
-              127.04408836402199,
-              37.4999995108909
-            ],
-            [
-              127.04890603680745,
-              37.49999941306907
-            ],
-            [
-              127.0537237095866,
-              37.499999315247244
-            ],
-            [
-              127.05854138235945,
-              37.49999921742541
-            ]
-          ]
-        }
-      },
-      {
-        "bearingOffsetDeg": -15,
-        "distanceFactor": 0.8,
-        "kind": "too_short",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [
-            [
-              127.02,
-              37.5
-            ],
-            [
-              127.02481767281701,
-              37.49999990217818
-            ],
-            [
-              127.02963534562771,
-              37.49999980435636
-            ],
-            [
-              127.03445301843212,
-              37.499999706534545
-            ],
-            [
-              127.0392706912302,
-              37.49999960871273
-            ],
-            [
-              127.04408836402199,
-              37.4999995108909
-            ],
-            [
-              127.04890603680745,
-              37.49999941306907
-            ],
-            [
-              127.0537237095866,
-              37.499999315247244
-            ],
-            [
-              127.05854138235945,
-              37.49999921742541
-            ]
-          ]
-        }
-      },
-      {
-        "bearingOffsetDeg": 0,
-        "distanceFactor": 0.8,
-        "kind": "too_short",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [
-            [
-              127.02,
-              37.5
-            ],
-            [
-              127.02481767281701,
-              37.49999990217818
-            ],
-            [
-              127.02963534562771,
-              37.49999980435636
-            ],
-            [
-              127.03445301843212,
-              37.499999706534545
-            ],
-            [
-              127.0392706912302,
-              37.49999960871273
-            ],
-            [
-              127.04408836402199,
-              37.4999995108909
-            ],
-            [
-              127.04890603680745,
-              37.49999941306907
-            ],
-            [
-              127.0537237095866,
-              37.499999315247244
-            ],
-            [
-              127.05854138235945,
-              37.49999921742541
-            ]
-          ]
-        }
-      },
-      {
-        "bearingOffsetDeg": 15,
-        "distanceFactor": 0.8,
-        "kind": "too_short",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [
-            [
-              127.02,
-              37.5
-            ],
-            [
-              127.02481767281701,
-              37.49999990217818
-            ],
-            [
-              127.02963534562771,
-              37.49999980435636
-            ],
-            [
-              127.03445301843212,
-              37.499999706534545
-            ],
-            [
-              127.0392706912302,
-              37.49999960871273
-            ],
-            [
-              127.04408836402199,
-              37.4999995108909
-            ],
-            [
-              127.04890603680745,
-              37.49999941306907
-            ],
-            [
-              127.0537237095866,
-              37.499999315247244
-            ],
-            [
-              127.05854138235945,
-              37.49999921742541
-            ]
-          ]
-        }
-      },
-      {
-        "bearingOffsetDeg": 30,
-        "distanceFactor": 0.8,
-        "kind": "too_short",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [
-            [
-              127.02,
-              37.5
-            ],
-            [
-              127.02481767281701,
-              37.49999990217818
-            ],
-            [
-              127.02963534562771,
-              37.49999980435636
-            ],
-            [
-              127.03445301843212,
-              37.499999706534545
-            ],
-            [
-              127.0392706912302,
-              37.49999960871273
-            ],
-            [
-              127.04408836402199,
-              37.4999995108909
-            ],
-            [
-              127.04890603680745,
-              37.49999941306907
-            ],
-            [
-              127.0537237095866,
-              37.499999315247244
-            ],
-            [
-              127.05854138235945,
-              37.49999921742541
-            ]
-          ]
-        }
+        "endpointKind": "ring",
+        "kind": "throw"
       }
     ],
     "expected": {
-      "status": "found",
-      "attemptedCalls": 35,
+      "status": "failed",
+      "attemptedCalls": 17,
       "distanceErrorM": 0,
       "snappedEndMissM": null,
-      "rawEndMissM": 589,
+      "rawEndMissM": 0,
       "bearingErrorDeg": 0,
-      "clippedEnd": [
-        127.07668,
-        37.50001
-      ],
-      "sameResult": true,
-      "sameResultReason": "3F-A adds diagnostics only; baseline and observe share the same selection·clip pipeline on fixture provider responses"
+      "clippedEnd": [127.02, 37.5],
+      "sameResultReason": "3F-B refuses distant fallback when direct route is shorter than target"
     }
   }
 ]

@@ -5,9 +5,18 @@ import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import {
   AUTO_ROUTE_ALGORITHM_VERSION,
-  buildAutoRouteCandidates,
+  CLICK_INTENT_EARLY_SNAP_TOLERANCE_M,
+  CLICK_INTENT_END_MISS_FAIL_M,
   computeAutoRouteClickDiagnostics,
+  evaluateClickRouteCandidate,
+  isClickIntentEarlySuccess,
+  isClickIntentEndMissAcceptable,
+  lineStringLengthMeters,
+  offsetLngLatByBearingMeters,
+  parseDirectionsSnapMetadata,
+  pickBestClickIntentRoute,
   searchDistanceAutoRoute,
+  type EvaluatedClickRoute,
   type FetchDirectionsFn,
 } from "../../../../functions/src/distanceAutoRouteCore.ts";
 import {
@@ -46,7 +55,7 @@ const TOKEN_CONTRACT_SOURCE = readFileSync(
   "utf8",
 );
 
-describe("distanceAutoRoute click intent 3F-A", () => {
+describe("distanceAutoRoute click intent 3F-B", () => {
   it("API·hook이 targetRoadPoint를 전달", () => {
     assert.match(API_SOURCE, /targetRoadPoint: LngLat/);
     assert.match(HOOK_SOURCE, /targetRoadPoint: lngLat/);
@@ -59,7 +68,7 @@ describe("distanceAutoRoute click intent 3F-A", () => {
     assert.match(HTTP_SOURCE, /algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION/);
     assert.match(HTTP_SOURCE, /endMissMeters: diagnostics\.rawClickMissMeters/);
     assert.match(HTTP_SOURCE, /targetRoadPoint,/);
-    assert.match(TOKEN_CONTRACT_SOURCE, /targetRoadPoint: \[127\.07, 37\.5\]/);
+    assert.match(TOKEN_CONTRACT_SOURCE, /targetRoadPoint: \[127\.07668, 37\.5\]/);
   });
 
   it("snapped click 지표는 provider snap 없으면 null", () => {
@@ -76,35 +85,43 @@ describe("distanceAutoRoute click intent 3F-A", () => {
     assert.equal(diagnostics.clickSnapMeters, null);
     assert.ok(diagnostics.rawClickMissMeters >= 0);
     assert.equal(diagnostics.providerCallCount, 12);
-    assert.equal(AUTO_ROUTE_ALGORITHM_VERSION, "3F-A-observe");
+    assert.equal(AUTO_ROUTE_ALGORITHM_VERSION, "3F-B-click-road");
   });
 
-  it("fetchDirections 호출 수는 성공·throw·짧은 geometry를 모두 집계", async () => {
+  it("DirectionsRouteLike가 snappedEnd·endSnapDistanceMeters를 파싱", () => {
+    const meta = parseDirectionsSnapMetadata({
+      geometry: { type: "LineString", coordinates: [[127, 37], [127.01, 37]] },
+      distance: 1000,
+      duration: 200,
+      snappedEnd: [127.01, 37.0001],
+      endSnapDistanceMeters: 12.5,
+    });
+    assert.ok(meta);
+    assert.equal(meta?.endSnapDistanceMeters, 12.5);
+    assert.equal(parseDirectionsSnapMetadata({
+      geometry: { type: "LineString", coordinates: [[127, 37], [127.01, 37]] },
+      distance: 1000,
+      duration: 200,
+    }), null);
+  });
+
+  it("첫 provider endpoint는 targetRoadPoint", async () => {
     const start: [number, number] = [127.02, 37.5];
-    const targetRoadPoint: [number, number] = [127.07, 37.5];
+    const targetRoadPoint: [number, number] = [127.07668, 37.5];
     const targetDistanceMeters = 5000;
-    const bearingDeg = 90;
-    const candidates = buildAutoRouteCandidates(start, bearingDeg, targetDistanceMeters);
-    let attempts = 0;
+    let firstEnd: [number, number] | null = null;
     const fetchDirections: FetchDirectionsFn = async (_profile, _start, end) => {
-      attempts += 1;
-      const idx = candidates.findIndex((item) => Math.abs(item.end[0] - end[0]) < 1e-4);
-      if (idx < 0) throw new Error("unknown end");
-      if (idx % 3 === 0) throw new Error("fixture throw");
-      if (idx % 3 === 1) {
-        return {
-          geometry: { type: "LineString", coordinates: [start, end] },
-          distance: targetDistanceMeters * 0.5,
-          duration: 600,
-        };
-      }
+      if (firstEnd == null) firstEnd = end;
+      const geometry = {
+        type: "LineString" as const,
+        coordinates: [start, end] as [number, number][],
+      };
       return {
-        geometry: {
-          type: "LineString",
-          coordinates: [start, [end[0], end[1]]],
-        },
+        geometry,
         distance: targetDistanceMeters * 1.05,
         duration: 1200,
+        snappedEnd: end,
+        endSnapDistanceMeters: 0,
       };
     };
 
@@ -113,21 +130,157 @@ describe("distanceAutoRoute click intent 3F-A", () => {
       targetRoadPoint,
       profile: "cycling",
       targetDistanceMeters,
-      bearingDeg,
+      bearingDeg: 90,
       fetchDirections,
     });
 
-    assert.equal(attempts, candidates.length);
+    assert.deepEqual(firstEnd, targetRoadPoint);
+    assert.equal(searched.status, "found");
     if (searched.status === "found") {
-      assert.equal(searched.diagnostics.providerCallCount, candidates.length);
-    } else {
-      assert.equal(searched.providerCallCount, candidates.length);
+      assert.equal(searched.diagnostics.providerCallCount, 1);
     }
   });
 
-  it("searchDistanceAutoRoute가 core에 attempt counter를 둔다", () => {
-    assert.match(CORE_SOURCE, /attemptCounter\.count \+= 1/);
-    assert.match(CORE_SOURCE, /await fetchDirections/);
+  it("raw 초과량이 작아도 clipped End miss가 큰 후보는 탈락", () => {
+    const start: [number, number] = [127.02, 37.5];
+    const targetRoadPoint: [number, number] = [127.06, 37.54];
+    const targetDistanceMeters = 5000;
+    const nearClick: EvaluatedClickRoute = {
+      geometry: { type: "LineString", coordinates: [start, targetRoadPoint] },
+      distance: 5000,
+      duration: 1000,
+      clippedEnd: targetRoadPoint,
+      snappedEnd: targetRoadPoint,
+      endSnapDistanceMeters: 0,
+      snappedEndMissMeters: 5,
+      rawEndMissMeters: 5,
+      bearingErrorDeg: 1,
+      providerCallIndex: 2,
+      isDirectClick: false,
+    };
+    const farEnd = offsetLngLatByBearingMeters(start, 120, 5000);
+    const farClick: EvaluatedClickRoute = {
+      ...nearClick,
+      clippedEnd: farEnd,
+      snappedEnd: farEnd,
+      snappedEndMissMeters: 3200,
+      rawEndMissMeters: 3200,
+      bearingErrorDeg: 35,
+      providerCallIndex: 1,
+      isDirectClick: true,
+    };
+    const best = pickBestClickIntentRoute(
+      [farClick, nearClick],
+      targetDistanceMeters,
+      start,
+    );
+    assert.equal(best?.providerCallIndex, 2);
+    assert.ok(!isClickIntentEndMissAcceptable(farClick));
+    assert.ok(isClickIntentEndMissAcceptable(nearClick));
+  });
+
+  it("direct exact+≤100m이면 provider 1회 조기 성공", () => {
+    const candidate: EvaluatedClickRoute = {
+      geometry: { type: "LineString", coordinates: [[127.02, 37.5], [127.07, 37.5]] },
+      distance: 5000,
+      duration: 1000,
+      clippedEnd: [127.07, 37.5],
+      snappedEnd: [127.07, 37.5],
+      endSnapDistanceMeters: 0,
+      snappedEndMissMeters: 0,
+      rawEndMissMeters: 0,
+      bearingErrorDeg: 0,
+      providerCallIndex: 1,
+      isDirectClick: true,
+    };
+    assert.ok(isClickIntentEarlySuccess(candidate, 5000));
+    assert.ok(CLICK_INTENT_EARLY_SNAP_TOLERANCE_M <= 100);
+    assert.ok(CLICK_INTENT_END_MISS_FAIL_M === 250);
+  });
+
+  it("provider 호출 수는 throw·짧은 geometry도 집계", async () => {
+    const start: [number, number] = [127.02, 37.5];
+    const targetRoadPoint: [number, number] = [127.07668, 37.5];
+    const targetDistanceMeters = 5000;
+    let attempts = 0;
+    const fetchDirections: FetchDirectionsFn = async (_profile, _start, end) => {
+      attempts += 1;
+      if (attempts === 1) throw new Error("direct throw");
+      if (attempts === 2) {
+        return {
+          geometry: {
+            type: "LineString",
+            coordinates: [start, offsetLngLatByBearingMeters(start, 90, 2000)],
+          },
+          distance: 2000,
+          duration: 600,
+          snappedEnd: end,
+          endSnapDistanceMeters: 0,
+        };
+      }
+      const geometry = {
+        type: "LineString" as const,
+        coordinates: [
+          start,
+          offsetLngLatByBearingMeters(start, 90, targetDistanceMeters * 1.05),
+        ],
+      };
+      return {
+        geometry,
+        distance: lineStringLengthMeters(geometry),
+        duration: 1200,
+        snappedEnd: end,
+        endSnapDistanceMeters: 0,
+      };
+    };
+
+    const searched = await searchDistanceAutoRoute({
+      start,
+      targetRoadPoint,
+      profile: "cycling",
+      targetDistanceMeters,
+      bearingDeg: 90,
+      fetchDirections,
+    });
+
+    assert.equal(attempts, 3);
+    if (searched.status === "found") {
+      assert.equal(searched.diagnostics.providerCallCount, 3);
+    } else {
+      assert.equal(searched.providerCallCount, 3);
+    }
+  });
+
+  it("searchDistanceAutoRoute가 targetRoadPoint 직접 호출·clip 평가를 수행", () => {
+    assert.match(CORE_SOURCE, /targetRoadPoint,\s*\.\.\.buildClickSurroundingEndpoints/);
+    assert.match(CORE_SOURCE, /pickBestClickIntentRoute/);
+    assert.match(CORE_SOURCE, /evaluateClickRouteCandidate/);
+    assert.doesNotMatch(CORE_SOURCE, /pickBestExactDistanceAutoRoute\(scored/);
+  });
+
+  it("evaluateClickRouteCandidate는 clipped End 기준 miss를 계산", () => {
+    const start: [number, number] = [127.02, 37.5];
+    const targetRoadPoint: [number, number] = [127.07, 37.5];
+    const end = offsetLngLatByBearingMeters(start, 90, 5200);
+    const geometry = { type: "LineString" as const, coordinates: [start, end] };
+    const evaluated = evaluateClickRouteCandidate({
+      route: {
+        geometry,
+        distance: lineStringLengthMeters(geometry),
+        duration: 1200,
+        snappedEnd: targetRoadPoint,
+        endSnapDistanceMeters: 0,
+      },
+      targetDistanceMeters: 5000,
+      targetRoadPoint,
+      start,
+      clickBearingDeg: 90,
+      providerCallIndex: 1,
+      isDirectClick: true,
+    });
+    assert.ok(evaluated);
+    assert.ok(evaluated!.snappedEndMissMeters != null);
+    assert.ok(evaluated!.rawEndMissMeters >= 0);
   });
 
   for (const fixture of fixtures) {
@@ -136,9 +289,7 @@ describe("distanceAutoRoute click intent 3F-A", () => {
       assertFixtureExpectations(fixture, searched);
       const rows = rowsFromReplay(fixture, searched);
       assert.equal(rows.length, 2);
-      assert.equal(rows[0]?.sameResult, true);
-      assert.equal(rows[1]?.sameResult, true);
-      assert.match(rows[0]?.sameResultReason ?? "", /3F-A adds diagnostics only/);
+      assert.equal(rows[1]?.algorithm, AUTO_ROUTE_ALGORITHM_VERSION);
     });
   }
 });

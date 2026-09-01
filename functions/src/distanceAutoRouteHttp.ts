@@ -55,6 +55,7 @@ type CacheDoc = {
   targetRoadPoint?: LngLat;
   algorithmVersion?: string;
   endMissMeters?: number;
+  snappedEnd?: LngLat;
 };
 
 function cacheToResult(doc: CacheDoc): DistanceAutoRouteResult {
@@ -302,6 +303,7 @@ export async function executeDistanceAutoRoute(input: {
     targetRoadPoint,
     algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
     endMissMeters: diagnostics.rawClickMissMeters,
+    snappedEnd: diagnostics.snappedClickPoint ?? undefined,
   });
 
   return found;

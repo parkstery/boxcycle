@@ -8,6 +8,7 @@ import {
   replayClickIntentFixture,
   rowsFromReplay,
 } from "./click-intent-replay-core.ts";
+import { AUTO_ROUTE_ALGORITHM_VERSION } from "../../../../functions/src/distanceAutoRouteCore.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixtures = JSON.parse(
@@ -20,10 +21,8 @@ for (const fixture of fixtures) {
   const { searched } = await replayClickIntentFixture(fixture);
   assertFixtureExpectations(fixture, searched);
   const rows = rowsFromReplay(fixture, searched);
-  for (const row of rows) {
-    assert.equal(row.sameResult, true, `${fixture.id}: baseline·observe must match`);
-    assert.ok(row.sameResultReason, `${fixture.id}: sameResult reason required`);
-  }
+  assert.equal(rows.length, 2);
+  assert.equal(rows[1]?.algorithm, AUTO_ROUTE_ALGORITHM_VERSION);
   allRows.push(...rows);
 }
 

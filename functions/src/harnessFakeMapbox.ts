@@ -8,6 +8,8 @@ export type HarnessFakeDirectionsRoute = {
   geometry: { type: "LineString"; coordinates: [number, number][] };
   distance: number;
   duration: number;
+  snappedEnd: LngLat;
+  endSnapDistanceMeters: number;
 };
 
 const HARNESS_STATS_DOC = "harness/routeTokenFakeMapbox";
@@ -98,20 +100,24 @@ export async function fetchHarnessFakeDirections(
     throw new Error("harness fake mapbox intentional failure");
   }
 
-  const coords: [number, number][] = [start];
-  for (const w of waypoints) coords.push(w);
-  coords.push(end);
-
   const dx = end[0] - start[0];
   const dy = end[1] - start[1];
   const straightDeg = Math.sqrt(dx * dx + dy * dy) * 111_320;
   const profileFactor = profile === "walking" ? 1.08 : profile === "driving" ? 1.18 : 1.12;
-  const distance = Math.max(250, straightDeg * profileFactor);
+  const geometryLengthMeters = Math.max(250, straightDeg * Math.max(profileFactor, 1.2));
+  const scale = straightDeg > 1 ? geometryLengthMeters / straightDeg : 1;
+  const routeEnd: LngLat = [start[0] + dx * scale, start[1] + dy * scale];
+  const coords: [number, number][] = [start];
+  for (const w of waypoints) coords.push(w);
+  coords.push(routeEnd);
+  const distance = geometryLengthMeters;
   const duration = distance / (profile === "walking" ? 1.4 : profile === "driving" ? 13 : 5);
 
   return {
     geometry: { type: "LineString", coordinates: coords },
     distance,
     duration,
+    snappedEnd: end,
+    endSnapDistanceMeters: 0,
   };
 }
