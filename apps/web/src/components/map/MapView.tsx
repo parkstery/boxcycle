@@ -1352,7 +1352,14 @@ export type MapViewProps = {
   }) => { ok: true } | { ok: false; message: string };
   onAutoRouteMapPick?: (
     lngLat: LngLat,
-  ) => Promise<{ status: "found" | "failed"; message: string } | null>;
+  ) => Promise<
+    | {
+        status: "found" | "failed";
+        message: string;
+        offered?: { adjustLabel: string };
+      }
+    | null
+  >;
   onRetryDistanceAutoRoute?: () => void;
   onDismissDistanceAutoRoute?: () => void;
 };
@@ -1431,7 +1438,7 @@ export function MapView({
   distanceTargetCircle = null,
   distanceTargetCircleFitToken = 0,
   autoRouteOfferedState = null,
-  onDistanceAdjustRetry: _onDistanceAdjustRetry,
+  onDistanceAdjustRetry,
   autoRouteMapPick = null,
   autoRouteSessionActive = false,
   autoRouteTargetKm = 10,
@@ -1530,6 +1537,7 @@ export function MapView({
   const onSetRouteProfileOnlyRef = useRef(onSetRouteProfileOnly);
   const onAutoRouteMapPickRef = useRef(onAutoRouteMapPick);
   const onRetryDistanceAutoRouteRef = useRef(onRetryDistanceAutoRoute);
+  const onDistanceAdjustRetryRef = useRef(onDistanceAdjustRetry);
   const onDismissDistanceAutoRouteRef = useRef(onDismissDistanceAutoRoute);
   const autoRouteMapPickRef = useRef(autoRouteMapPick);
   const autoRouteSessionActiveRef = useRef(autoRouteSessionActive);
@@ -1679,6 +1687,10 @@ export function MapView({
   useEffect(() => {
     onRetryDistanceAutoRouteRef.current = onRetryDistanceAutoRoute;
   }, [onRetryDistanceAutoRoute]);
+
+  useEffect(() => {
+    onDistanceAdjustRetryRef.current = onDistanceAdjustRetry;
+  }, [onDistanceAdjustRetry]);
 
   useEffect(() => {
     onDismissDistanceAutoRouteRef.current = onDismissDistanceAutoRoute;
@@ -2271,8 +2283,17 @@ export function MapView({
             if (!result) return;
             if (result.status === "found") {
               pickPopupAutoRouteUiRef.current?.setInlinePhase("found", result.message);
+              if (result.offered) {
+                pickPopupAutoRouteUiRef.current?.setOfferedPanel(
+                  { adjustLabel: result.offered.adjustLabel },
+                  () => onDistanceAdjustRetryRef.current?.(),
+                );
+              } else {
+                pickPopupAutoRouteUiRef.current?.setOfferedPanel(null);
+              }
               return;
             }
+            pickPopupAutoRouteUiRef.current?.setOfferedPanel(null);
             pickPopupAutoRouteUiRef.current?.setInlinePhase("failed", result.message);
             onRetryDistanceAutoRouteRef.current?.();
           })
@@ -3711,6 +3732,10 @@ type PickPopupAutoRouteUi = {
     message?: string,
   ) => void;
   tryArmDirectionPick: () => void;
+  setOfferedPanel: (
+    offered: { adjustLabel: string } | null,
+    onAdjust?: () => void,
+  ) => void;
 };
 
 function buildPickPopup(deps: {
@@ -4053,7 +4078,33 @@ function buildPickPopup(deps: {
   autoRouteStatus.setAttribute("aria-live", "polite");
   autoRouteStatus.dataset.phase = "idle";
 
-  autoRouteStatusSlot.append(autoRouteStatus);
+  const offeredPanel = document.createElement("div");
+  offeredPanel.className = "map-view__pick-auto-route-offered";
+  offeredPanel.hidden = true;
+
+  const offeredAdjustBtn = document.createElement("button");
+  offeredAdjustBtn.type = "button";
+  offeredAdjustBtn.className = "map-view__pick-auto-route-offered-btn";
+  offeredAdjustBtn.hidden = true;
+  offeredPanel.append(offeredAdjustBtn);
+
+  autoRouteStatusSlot.append(autoRouteStatus, offeredPanel);
+
+  function setOfferedPanel(
+    offered: { adjustLabel: string } | null,
+    onAdjust?: () => void,
+  ) {
+    if (!offered) {
+      offeredPanel.hidden = true;
+      offeredAdjustBtn.hidden = true;
+      offeredAdjustBtn.onclick = null;
+      return;
+    }
+    offeredPanel.hidden = false;
+    offeredAdjustBtn.hidden = false;
+    offeredAdjustBtn.textContent = offered.adjustLabel;
+    offeredAdjustBtn.onclick = () => onAdjust?.();
+  }
 
   function syncDistanceInputs(km: number) {
     targetKm = km;
@@ -4179,7 +4230,11 @@ function buildPickPopup(deps: {
     onDirectionPickArmed?.();
   }
 
-  onRegisterAutoRouteUi?.({ setInlinePhase, tryArmDirectionPick: tryArmDirectionPickIfChecked });
+  onRegisterAutoRouteUi?.({
+    setInlinePhase,
+    tryArmDirectionPick: tryArmDirectionPickIfChecked,
+    setOfferedPanel,
+  });
 
   modeCheckbox.addEventListener("change", () => {
     applyDistanceDirectionMode(modeCheckbox.checked);

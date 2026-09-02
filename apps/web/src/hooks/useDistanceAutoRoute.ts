@@ -12,7 +12,9 @@ import {
 import {
   DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
   DISTANCE_AUTO_ROUTE_REROUTE_HINT,
+  formatDistanceAutoRouteAdjustRetryLabel,
   formatDistanceAutoRouteClientError,
+  formatDistanceAutoRouteOfferedMessage,
   validateDistanceAutoRouteTargetKm,
 } from "../lib/distanceAutoRouteErrors";
 import { fetchDistanceAutoRoute } from "../services/distanceAutoRouteApi";
@@ -36,6 +38,11 @@ export type DistanceAutoRouteArmResult =
 export type DistanceAutoRouteSearchResult = {
   status: "found" | "failed";
   message: string;
+  offered?: {
+    directRoadMeters: number;
+    targetKm: number;
+    adjustLabel: string;
+  };
 };
 
 /** offered 결과: 클릭 지점에 도달 불가, 앱이 D 지점을 제시한 상태 */
@@ -296,7 +303,25 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
           const isOffered = response.outcome === "offered";
           if (isOffered && response.directRoadMeters != null) {
             const directKm = response.directRoadMeters / 1000;
+            const offeredMessage = formatDistanceAutoRouteOfferedMessage(
+              response.directRoadMeters,
+              effectiveTargetKm,
+            );
             setOfferedState({ clickLngLat: lngLat, directKm, targetKm: effectiveTargetKm });
+            setHasSuccessfulRoute(true);
+            setStatusMessage(offeredMessage);
+            setStep("pick_direction");
+            setBearingDeg(bearing);
+            setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
+            return {
+              status: "found",
+              message: offeredMessage,
+              offered: {
+                directRoadMeters: response.directRoadMeters,
+                targetKm: effectiveTargetKm,
+                adjustLabel: formatDistanceAutoRouteAdjustRetryLabel(response.directRoadMeters),
+              },
+            };
           }
 
           setHasSuccessfulRoute(true);

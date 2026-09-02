@@ -10,6 +10,23 @@ export const DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT =
 export const DISTANCE_AUTO_ROUTE_REROUTE_HINT =
   "경로 생성 완료 · 다른 방향을 클릭하면 다시 탐색합니다";
 
+/** 목표 거리 참고 원 — 금지 구역이 아닌 눈금 안내 */
+export const DISTANCE_AUTO_ROUTE_REFERENCE_CIRCLE_HINT =
+  "참고 — 실제 도로 거리는 방향에 따라 다릅니다";
+
+export function formatDistanceAutoRouteOfferedMessage(
+  directRoadMeters: number,
+  targetKm: number,
+): string {
+  const directKm = directRoadMeters / 1000;
+  return `클릭 지점까지는 도로로 ${directKm.toFixed(1)} km 입니다. 목표 ${targetKm.toFixed(1)} km 지점에서 종료했습니다.`;
+}
+
+export function formatDistanceAutoRouteAdjustRetryLabel(directRoadMeters: number): string {
+  const adjustedKm = Math.ceil(directRoadMeters / 100) / 10;
+  return `${adjustedKm.toFixed(1)} km 로 늘려 클릭 지점까지 가기`;
+}
+
 /** 거리·방향 자동 Route 모드 checkbox 접근 가능 이름 */
 export const DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_ARIA =
   "거리와 방향으로 Route 찾기";

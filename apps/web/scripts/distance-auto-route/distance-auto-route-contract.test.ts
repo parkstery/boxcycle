@@ -481,7 +481,10 @@ describe("distanceAutoRoute", () => {
 
   it("3D-2-R1 — 상태 메시지 단일 슬롯·고정 높이", () => {
     assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-auto-route-status-slot/);
-    assert.match(BUILD_PICK_POPUP_SOURCE, /autoRouteStatusSlot\.append\(autoRouteStatus\)/);
+    assert.match(
+      BUILD_PICK_POPUP_SOURCE,
+      /autoRouteStatusSlot\.append\(autoRouteStatus,\s*offeredPanel\)/,
+    );
     assert.match(BUILD_PICK_POPUP_SOURCE, /autoRouteSection\.append\(distanceRow, autoRouteStatusSlot\)/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /autoRouteError/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /inlineStatus/);
