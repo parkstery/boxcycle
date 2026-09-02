@@ -635,7 +635,6 @@ export default function App() {
     publishedCatalogRef,
     setSavedRoutes,
     setLastEndedWasAdhoc,
-    onOpenRideSummary: () => setSummarySheetVisible(true),
     setRecentSessions,
     setLastRideResult,
     onRideEndedWithPublication,
