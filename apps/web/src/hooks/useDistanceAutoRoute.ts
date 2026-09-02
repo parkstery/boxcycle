@@ -15,6 +15,7 @@ import {
   formatDistanceAutoRouteAdjustRetryLabel,
   formatDistanceAutoRouteClientError,
   formatDistanceAutoRouteOfferedMessage,
+  formatDistanceAutoRouteShortfallMessage,
   validateDistanceAutoRouteTargetKm,
 } from "../lib/distanceAutoRouteErrors";
 import { fetchDistanceAutoRoute } from "../services/distanceAutoRouteApi";
@@ -301,6 +302,19 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
           });
 
           const isOffered = response.outcome === "offered";
+          const isShortfall = response.outcome === "shortfall";
+          if (isShortfall) {
+            const shortfallMessage = formatDistanceAutoRouteShortfallMessage(
+              effectiveTargetKm,
+              response.distance,
+            );
+            setHasSuccessfulRoute(true);
+            setStatusMessage(shortfallMessage);
+            setStep("pick_direction");
+            setBearingDeg(bearing);
+            setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
+            return { status: "found", message: shortfallMessage };
+          }
           if (isOffered && response.directRoadMeters != null) {
             const directKm = response.directRoadMeters / 1000;
             const offeredMessage = formatDistanceAutoRouteOfferedMessage(

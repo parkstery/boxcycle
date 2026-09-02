@@ -295,10 +295,10 @@ export function isValidAutoRouteEnd(origin: LngLat, end: LngLat, minMeters = 200
   return getDistanceMeters(origin, end) >= minMeters;
 }
 
-export const AUTO_ROUTE_ALGORITHM_VERSION = "3F-C-R1-reach-offer";
+export const AUTO_ROUTE_ALGORITHM_VERSION = "3I-shortfall";
 
-export const MAX_AUTO_ROUTE_PROVIDER_CALLS = 12;
-export const DETOUR_CALL_BUDGET = 8;
+export const MAX_AUTO_ROUTE_PROVIDER_CALLS = 13;
+export const DETOUR_CALL_BUDGET = 12;
 
 /** 클릭→도로 스냅 거리 초과 시 유일한 실패 (m) */
 export const CLICK_SNAP_FAIL_M = 250;
@@ -412,7 +412,7 @@ export type FetchDirectionsFn = (
   waypoints: LngLat[],
 ) => Promise<DirectionsRouteLike>;
 
-export type AutoRouteOutcome = "exact" | "detoured" | "offered";
+export type AutoRouteOutcome = "exact" | "detoured" | "offered" | "shortfall";
 
 export type DistanceAutoRouteSearchFound = {
   status: "found";
@@ -498,8 +498,12 @@ export async function searchDistanceAutoRoute(input: {
       originalDuration: routeToClip.duration,
     });
 
-    // 절단 실패 시 direct offered 로 fallback
+    // 절단 실패 시: 목표보다 짧은 경로면 shortfall, 그 외 direct offered clip 시도
     if (!clipped.ok) {
+      const routeLen = lineStringLengthMeters(routeToClip.geometry);
+      if (routeLen < D - EXACT_TARGET_DISTANCE_TOLERANCE_M) {
+        return assembleShortfall(routeToClip);
+      }
       const directClipped = clipRouteGeometryToTargetMeters({
         geometry: directRoute.geometry,
         targetDistanceMeters: D,
@@ -517,6 +521,40 @@ export async function searchDistanceAutoRoute(input: {
     }
 
     return assembleFromClipped(clipped, pendingOutcome);
+  }
+
+  function assembleShortfall(route: DirectionsRouteLike): DistanceAutoRouteSearchFound {
+    const finalGeometry = route.geometry;
+    const finalEnd = snappedEndFromRoute(route);
+    const finalDistance = lineStringLengthMeters(finalGeometry);
+    const finalDuration = route.duration;
+    const finalEndMissM = getDistanceMeters(finalEnd, clickRoadPoint);
+    const searchElapsedMs = Date.now() - searchStartedAt;
+
+    const diagnostics = computeAutoRouteClickDiagnostics({
+      start,
+      targetRoadPoint,
+      clippedEnd: finalEnd,
+      targetDistanceMeters: D,
+      clippedDistanceMeters: finalDistance,
+      snappedClickPoint: clickRoadPoint,
+      clickSnapMeters: clickSnapM,
+      providerCallCount,
+      searchElapsedMs,
+    });
+
+    return {
+      status: "found",
+      geometry: finalGeometry,
+      distance: finalDistance,
+      duration: finalDuration,
+      end: finalEnd,
+      outcome: "shortfall",
+      directRoadMeters: directRoadM,
+      endMissMeters: finalEndMissM,
+      detourCalls,
+      diagnostics,
+    };
   }
 
   function assembleFromClipped(
@@ -549,6 +587,15 @@ export async function searchDistanceAutoRoute(input: {
 
     const finalEndMissM = getDistanceMeters(finalEnd, clickRoadPoint);
     const searchElapsedMs = Date.now() - searchStartedAt;
+
+    if (
+      (finalOutcome === "exact" || finalOutcome === "detoured") &&
+      !isExactTargetDistance(finalDistance, D)
+    ) {
+      if (finalDistance < D - EXACT_TARGET_DISTANCE_TOLERANCE_M) {
+        finalOutcome = "shortfall";
+      }
+    }
 
     const diagnostics = computeAutoRouteClickDiagnostics({
       start,
@@ -668,6 +715,6 @@ export async function searchDistanceAutoRoute(input: {
     return assembleResult(bestDetourRoute, "detoured");
   }
 
-  // 예산 소진, f≥D 후보 없음 → offered from direct
-  return assembleResult(directRoute, "offered");
+  // 예산 소진, f≥D 후보 없음 → 목표 미달 shortfall (Route 는 반환)
+  return assembleShortfall(directRoute);
 }
