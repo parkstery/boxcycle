@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { AUTH_EMULATOR_HOST, FUNCTIONS_EMULATOR_HOST, HARNESS_REGION, SAMPLE_ROUTE, URLS } from "./harness-config.mjs";
 import { assertDirectDirectionsOff, assertEmulatorIsolation } from "./emulator-guard.mjs";
 import { runDistanceAutoRouteTokenContract } from "./distance-auto-route-token-contract.mjs";
+import { HARNESS_TEST_ECONOMY, seedHarnessTestEconomy } from "./harness-test-economy.mjs";
 
 function logStep(label, detail) {
   console.log(`[route-token] ${label}${detail ? `: ${detail}` : ""}`);
@@ -17,6 +18,26 @@ async function signUpAnonymous() {
     },
   );
   assert.equal(res.status, 200, `anonymous signUp status ${res.status}`);
+  const json = await res.json();
+  assert.ok(json.idToken, "idToken missing");
+  assert.ok(json.localId, "localId missing");
+  return { idToken: json.idToken, uid: json.localId };
+}
+
+async function signUpWithEmail(email) {
+  const res = await fetch(
+    `http://${AUTH_EMULATOR_HOST}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-api-key`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        password: "HarnessPass123!",
+        returnSecureToken: true,
+      }),
+    },
+  );
+  assert.equal(res.status, 200, `email signUp status ${res.status}`);
   const json = await res.json();
   assert.ok(json.idToken, "idToken missing");
   assert.ok(json.localId, "localId missing");
@@ -94,30 +115,42 @@ async function assertProductionProjectControlAbsent() {
   assert.equal(res.status, 404, "운영 project 에서 harness control 미발견");
 }
 
-async function runMainContract() {
-  assertEmulatorIsolation();
-  assertDirectDirectionsOff();
-  await assertProductionProjectControlAbsent();
-  await harnessControl("reset");
+async function runSignedInOnboardingContract(economy) {
+  const signed = await signUpWithEmail(`harness_signed_${Date.now()}@test.local`);
+  logStep("Signed-in", signed.uid);
 
+  const balance = await ensureOnboarding(signed.idToken);
+  assert.equal(balance, economy.onboardingGrant, "signed-in onboarding uses onboardingGrant from seed");
+
+  const retry = await ensureOnboarding(signed.idToken);
+  assert.equal(retry, economy.onboardingGrant, "signed-in onboarding retry");
+
+  const inspect = await inspectUser(signed.uid);
+  assert.equal(inspect.balance, economy.onboardingGrant);
+  assert.equal(countLedgerReason(inspect.ledger, "onboarding"), 1);
+  logStep("signed-in onboarding contract", "PASS");
+}
+
+async function runMainContract(economy) {
+  const guestGrant = economy.guestOnboardingGrant;
   const guest = await signUpAnonymous();
   logStep("Guest", guest.uid);
 
   let balance = await ensureOnboarding(guest.idToken);
-  assert.equal(balance, 3, "onboarding balance");
+  assert.equal(balance, guestGrant, "onboarding balance");
 
   const balanceRetry = await ensureOnboarding(guest.idToken);
-  assert.equal(balanceRetry, 3, "onboarding retry balance");
+  assert.equal(balanceRetry, guestGrant, "onboarding retry balance");
   let inspect = await inspectUser(guest.uid);
-  assert.equal(inspect.balance, 3);
+  assert.equal(inspect.balance, guestGrant);
   assert.equal(countLedgerReason(inspect.ledger, "onboarding"), 1);
 
   const rows = [];
-  for (let i = 1; i <= 3; i += 1) {
+  for (let i = 1; i <= guestGrant; i += 1) {
     const requestId = `harness_route_${i}_00000001`;
     const { status, json } = await directions(guest.idToken, requestId, i);
     assert.equal(status, 200, `route ${i}: ${JSON.stringify(json)}`);
-    assert.equal(json.result.routeTokenBalance, 3 - i, `route ${i} balance`);
+    assert.equal(json.result.routeTokenBalance, guestGrant - i, `route ${i} balance`);
     inspect = await inspectUser(guest.uid);
     rows.push({
       step: i,
@@ -128,45 +161,48 @@ async function runMainContract() {
     });
   }
 
+  const expectedBalances = Array.from({ length: guestGrant }, (_, i) => guestGrant - i - 1);
   assert.deepEqual(
     rows.map((r) => r.balance),
-    [2, 1, 0],
+    expectedBalances,
   );
   assert.deepEqual(
     rows.map((r) => r.routeGenerateSpend),
-    [1, 2, 3],
+    Array.from({ length: guestGrant }, (_, i) => i + 1),
   );
-  assert.equal(rows[2].providerCalls, 3);
+  assert.equal(rows[guestGrant - 1].providerCalls, guestGrant);
 
-  const denied = await directions(guest.idToken, "harness_route_4_00000001", 4);
+  const denied = await directions(guest.idToken, "harness_route_4_00000001", guestGrant + 1);
   assert.equal(denied.status, 429, "4th route HTTP status");
   assert.equal(errorStatus(denied.json), "RESOURCE_EXHAUSTED");
   inspect = await inspectUser(guest.uid);
   assert.equal(inspect.balance, 0);
-  assert.equal(inspect.routeGenerateSpend, 3);
-  assert.equal(inspect.providerCallCount, 3, "4th must not call provider");
+  assert.equal(inspect.routeGenerateSpend, guestGrant);
+  assert.equal(inspect.providerCallCount, guestGrant, "denied route must not call provider");
 
   const dup = await directions(guest.idToken, "harness_route_1_00000001", 1);
   assert.equal(dup.status, 200);
   inspect = await inspectUser(guest.uid);
   assert.equal(inspect.balance, 0, "idempotent retry must not change balance");
-  assert.equal(inspect.routeGenerateSpend, 3, "idempotent retry spend");
+  assert.equal(inspect.routeGenerateSpend, guestGrant, "idempotent retry spend");
 
   console.log("\n=== ROUTE-TOKEN-1 통과표 ===");
   console.log("| step | result | balance | route_generate -1 | provider |");
-  console.log("| 0 onboarding | ok | 3 | 0 | 0 |");
+  console.log(`| 0 onboarding | ok | ${guestGrant} | 0 | 0 |`);
   for (const row of rows) {
     console.log(
       `| ${row.step} route | ok | ${row.balance} | ${row.routeGenerateSpend} | ${row.providerCalls} |`,
     );
   }
-  console.log("| 4 route | resource-exhausted | 0 | 3 | 3 |");
+  console.log(`| ${guestGrant + 1} route | resource-exhausted | 0 | ${guestGrant} | ${guestGrant} |`);
 }
 
-async function runProviderFailureContract() {
+async function runProviderFailureContract(economy) {
+  const guestGrant = economy.guestOnboardingGrant;
   const guest = await signUpAnonymous();
   await ensureOnboarding(guest.idToken);
   await harnessControl("reset");
+  await seedHarnessTestEconomy(harnessControl);
   await harnessControl("setFailNext", { fail: true });
 
   const { status, json } = await directions(guest.idToken, "harness_fail_00000001", 0);
@@ -174,7 +210,7 @@ async function runProviderFailureContract() {
   assert.ok(json.error, "error body expected");
 
   const inspect = await inspectUser(guest.uid);
-  assert.equal(inspect.balance, 3, "provider failure net balance");
+  assert.equal(inspect.balance, guestGrant, "provider failure net balance");
   assert.equal(inspect.providerCallCount, 1, "provider was invoked once");
 
   const onboardingCount = countLedgerReason(inspect.ledger, "onboarding");
@@ -191,7 +227,7 @@ async function runProviderFailureContract() {
   const retry = await directions(guest.idToken, "harness_fail_00000001", 0);
   assert.equal(retry.status, 200, "same requestId retry after refund");
   const afterRetry = await inspectUser(guest.uid);
-  assert.equal(afterRetry.balance, 3, "retry must not add spend after refund");
+  assert.equal(afterRetry.balance, guestGrant, "retry must not add spend after refund");
   assert.equal(afterRetry.routeGenerateSpend, 1);
   assert.equal(afterRetry.providerCallCount, 2);
 
@@ -199,9 +235,16 @@ async function runProviderFailureContract() {
 }
 
 async function main() {
-  await runMainContract();
-  await runProviderFailureContract();
-  await runDistanceAutoRouteTokenContract();
+  assertEmulatorIsolation();
+  assertDirectDirectionsOff();
+  await assertProductionProjectControlAbsent();
+  await harnessControl("reset");
+  const economy = await seedHarnessTestEconomy(harnessControl);
+
+  await runMainContract(economy);
+  await runSignedInOnboardingContract(economy);
+  await runProviderFailureContract(economy);
+  await runDistanceAutoRouteTokenContract({ harnessControl, economy });
   console.log("\n[route-token] ROUTE-TOKEN-1 contract PASS");
 }
 

@@ -56,6 +56,7 @@ function runUnitTests(extraTests = []) {
     "scripts/route-token/route-token-spend-state.test.mjs",
     "scripts/route-token/route-token-popup-display.test.mjs",
     "scripts/route-token/production-surface.test.mjs",
+    "scripts/route-token/route-token-onboarding-grant.test.mjs",
     ...extraTests,
   ];
   for (const file of tests) {

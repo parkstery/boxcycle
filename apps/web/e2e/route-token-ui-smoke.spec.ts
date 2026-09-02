@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { harnessControl, pollInspectUser } from "../scripts/route-token/harness-control.mjs";
+import { HARNESS_TEST_ECONOMY } from "../scripts/route-token/harness-test-economy.mjs";
 
 const LIVE = process.env.ROUTE_TOKEN_UI_LIVE === "1";
 const FORCE_FAIL = process.env.ROUTE_TOKEN_UI_FORCE_FAIL === "1";
@@ -237,8 +238,10 @@ test.describe("Route Token UI smoke", () => {
 
   test.setTimeout(600_000);
 
-  test.beforeAll(() => {
+  test.beforeAll(async () => {
     clearEvidenceDir();
+    await harnessControl("reset");
+    await harnessControl("seedEconomy", { economy: HARNESS_TEST_ECONOMY });
   });
 
   test.beforeEach(async ({ page }) => {

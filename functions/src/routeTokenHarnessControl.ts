@@ -8,9 +8,16 @@ import {
   setHarnessFakeMapboxFailAll,
   setHarnessFakeMapboxFailNext,
 } from "./harnessFakeMapbox.js";
-import { ROUTE_TOKEN_LEDGER } from "./routeTokenCore.js";
+import { ROUTE_TOKEN_ECONOMY_PATH, ROUTE_TOKEN_LEDGER } from "./routeTokenCore.js";
 
-type HarnessAction = "reset" | "stats" | "setFailNext" | "setFailAll" | "inspectUser" | "setBalance";
+type HarnessAction =
+  | "reset"
+  | "stats"
+  | "setFailNext"
+  | "setFailAll"
+  | "inspectUser"
+  | "setBalance"
+  | "seedEconomy";
 
 function parseAction(raw: unknown): HarnessAction {
   if (
@@ -19,7 +26,9 @@ function parseAction(raw: unknown): HarnessAction {
     raw === "setFailNext" ||
     raw === "setFailAll" ||
     raw === "inspectUser" ||
-    raw === "setBalance"
+    raw === "inspectUser" ||
+    raw === "setBalance" ||
+    raw === "seedEconomy"
   ) {
     return raw;
   }
@@ -88,6 +97,17 @@ export const routeTokenHarnessControl = onRequest(
         const fail = data.fail === true;
         await setHarnessFakeMapboxFailAll(fail);
         res.status(200).json({ result: { failAll: fail } });
+        return;
+      }
+
+      if (action === "seedEconomy") {
+        const economy = data.economy;
+        if (!economy || typeof economy !== "object" || Array.isArray(economy)) {
+          throw new HttpsError("invalid-argument", "economy 가 필요합니다.");
+        }
+        const db = getFirestore();
+        await db.doc(ROUTE_TOKEN_ECONOMY_PATH).set(economy as Record<string, unknown>);
+        res.status(200).json({ result: { seeded: true } });
         return;
       }
 

@@ -25,7 +25,7 @@ export const routeTokenOnRideCreated = onDocumentCreated(
     const isAnonymous = userSnap.data()?.isAnonymous === true;
 
     try {
-      await ensureRouteTokenOnboarding(userId);
+      await ensureRouteTokenOnboarding(userId, isAnonymous);
       await earnRouteTokenForCompletedRide({
         userId,
         rideId,
