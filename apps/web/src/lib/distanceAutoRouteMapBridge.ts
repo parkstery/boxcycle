@@ -1,3 +1,5 @@
+import type { LngLat } from "./geo";
+
 /** MapView ↔ useDistanceAutoRoute 연결 — App.tsx 변경 없이 popup에 세션 상태를 전달 */
 export type DistanceAutoRouteMapBridge = {
   sessionActive: boolean;
@@ -10,6 +12,8 @@ export type DistanceAutoRouteMapBridge = {
   /** popup armed 해제 + 목표 거리 원 제거 (checkbox 선호는 유지) */
   releasePickArm: () => void;
   disarm: () => void;
+  /** armDirectionPick 이 방금 고른 Start — popup microtask 가 stale pin 으로 덮어쓰지 않게 */
+  getArmedStart?: () => LngLat | null;
   clearClickDebugMarker?: () => void;
 };
 
