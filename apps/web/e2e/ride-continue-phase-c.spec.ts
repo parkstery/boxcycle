@@ -198,6 +198,86 @@ function coordsClose(a: [number, number], b: [number, number], epsilon = 0.0002)
   return Math.abs(a[0] - b[0]) <= epsilon && Math.abs(a[1] - b[1]) <= epsilon
 }
 
+function formatLngLat(p: [number, number]): string {
+  return `[${p[0].toFixed(6)}, ${p[1].toFixed(6)}]`
+}
+
+function haversineMeters(a: [number, number], b: [number, number]): number {
+  const r = 6_371_000
+  const toRad = (deg: number) => (deg * Math.PI) / 180
+  const dLat = toRad(b[1] - a[1])
+  const dLng = toRad(b[0] - a[0])
+  const lat1 = toRad(a[1])
+  const lat2 = toRad(b[1])
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2
+  return 2 * r * Math.asin(Math.sqrt(h))
+}
+
+function assertStartMatchesSessionEnd(
+  lap: number,
+  routeStart: [number, number],
+  sessionEnd: [number, number],
+) {
+  const distM = haversineMeters(routeStart, sessionEnd)
+  expect(
+    coordsClose(routeStart, sessionEnd),
+    `루프 ${lap}: Start ${formatLngLat(routeStart)} ≠ sessionEnd ${formatLngLat(sessionEnd)} (거리 ${distM.toFixed(1)}m)`,
+  ).toBe(true)
+}
+
+async function dumpRideAnchorState(
+  uid: string,
+  lap: number,
+  opts: {
+    routeStart?: [number, number]
+    lastRideSessionEnd?: [number, number] | null
+    phase: string
+  },
+) {
+  const sorted = sortRideAnchors(await listUserRideAnchors(uid))
+  const picked = await readLatestRideSessionEnd(uid)
+  console.log(`[phase-c] anchor dump — 루프 ${lap} (${opts.phase})`)
+  for (const row of sorted) {
+    console.log(
+      `[phase-c] rides row: ${JSON.stringify({
+        lap,
+        docId: row.docId,
+        endedAtMs: row.endedAtMs,
+        sessionEndLngLat: row.sessionEndLngLat,
+      })}`,
+    )
+  }
+  console.log(
+    `[phase-c] readLatestRideSessionEnd: ${JSON.stringify({ lap, value: picked })}`,
+  )
+  if (opts.lastRideSessionEnd) {
+    console.log(
+      `[phase-c] lastRideSessionEnd(cached): ${JSON.stringify({ lap, value: opts.lastRideSessionEnd })}`,
+    )
+  }
+  if (opts.routeStart) {
+    console.log(`[phase-c] routeStart: ${JSON.stringify({ lap, value: opts.routeStart })}`)
+    if (picked) {
+      console.log(
+        `[phase-c] routeStart vs readLatestRideSessionEnd: ${haversineMeters(opts.routeStart, picked).toFixed(1)}m`,
+      )
+    }
+    if (opts.lastRideSessionEnd) {
+      console.log(
+        `[phase-c] routeStart vs lastRideSessionEnd(cached): ${haversineMeters(opts.routeStart, opts.lastRideSessionEnd).toFixed(1)}m`,
+      )
+    }
+    for (const row of sorted) {
+      if (!row.sessionEndLngLat) continue
+      console.log(
+        `[phase-c] routeStart vs ride ${row.docId}: ${haversineMeters(opts.routeStart, row.sessionEndLngLat).toFixed(1)}m`,
+      )
+    }
+  }
+}
+
 type RideAnchorRow = {
   docId: string
   endedAtMs: number
@@ -357,16 +437,23 @@ test.describe('R1 단계 C — 자동 Route 3회 루프', () => {
         expect(lastRideSessionEnd, `루프 ${lap + 1}: 직전 Ride sessionEndLngLat`).not.toBeNull()
         const sessionEnd = lastRideSessionEnd!
 
+        await dumpRideAnchorState(uid, lap + 1, {
+          phase: 'extend 직전',
+          lastRideSessionEnd: sessionEnd,
+        })
+
         const dock = await extendFromNextRideCard(page)
         await expect(dock.locator('.map-view__pick-distance-number')).toHaveValue(`${TARGET_KM}.0`)
         result = await pickDirectionAndWaitRoute(page, directionOffsets[lap]!)
 
         const routeStart = routeStartFromResult(result)
         expect(routeStart, `루프 ${lap + 1}: Route start`).toBeDefined()
-        expect(
-          coordsClose(routeStart!, sessionEnd!),
-          `루프 ${lap + 1}: Start ≠ sessionEndLngLat`,
-        ).toBe(true)
+        await dumpRideAnchorState(uid, lap + 1, {
+          phase: 'Route 생성 직후',
+          routeStart: routeStart!,
+          lastRideSessionEnd: sessionEnd,
+        })
+        assertStartMatchesSessionEnd(lap + 1, routeStart!, sessionEnd)
       }
 
       const distanceM = result.distanceMeters ?? result.distance ?? 0
@@ -386,6 +473,10 @@ test.describe('R1 단계 C — 자동 Route 3회 루프', () => {
       await rideUntilEnd(page, lap === 0 ? 400 : 300)
       await closeRideSummary(page)
       lastRideSessionEnd = await waitForRideSessionEndAfter(uid, lastRideSessionEnd)
+      await dumpRideAnchorState(uid, lap + 1, {
+        phase: '주행 종료·Firestore persist 후',
+        lastRideSessionEnd,
+      })
     }
 
     expect(tokenCheckpoints).toEqual([10, 9, 8, 7])
