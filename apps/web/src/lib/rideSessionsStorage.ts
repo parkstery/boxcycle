@@ -1,4 +1,5 @@
 import type { User } from "firebase/auth";
+import type { LngLat } from "./geo";
 import { canPersistAppData } from "./clientPersistencePolicy";
 
 const SESSIONS_KEY = "boxcycle_web_ride_sessions_v1";

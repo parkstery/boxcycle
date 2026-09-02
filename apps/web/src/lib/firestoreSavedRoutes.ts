@@ -280,6 +280,7 @@ type SavedRouteDoc = {
   completedAt?: unknown;
   expiresAt?: unknown;
   lastRideId?: string | null;
+  lastProgressRatio?: number;
   routeFingerprint?: string;
 };
 
