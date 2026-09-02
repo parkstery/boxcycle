@@ -29,6 +29,12 @@
   --rtw-trace-accumulated: rgba(232, 163, 61, 0.4);
   --rtw-trace-warn-bg: rgba(232, 163, 61, 0.08);
   --rtw-trace-warn-border: rgba(232, 163, 61, 0.25);
+  /*
+   * 내가 달린 길(내 도로망·이번 주행 궤적) — 2026-08-27 결정의 BlueViolet.
+   * 지도 레이어의 SoT 는 `lib/rtwMapConfig.ts` 의 `RTW_TRACE_OWNED_COLOR` 이며,
+   * 이 토큰은 지도 밖 UI(재개점 마커 등)가 같은 색을 쓰기 위한 CSS 사본이다 — 함께 바꾼다.
+   */
+  --rtw-trace-owned: #8A2BE2;
 
   /* ---- 텍스트 ---- */
   --rtw-text-primary: #EDEFF2;

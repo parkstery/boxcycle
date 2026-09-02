@@ -1,5 +1,4 @@
 import type { User } from "firebase/auth";
-import type { LngLat } from "./geo";
 import { canPersistAppData } from "./clientPersistencePolicy";
 
 const SESSIONS_KEY = "boxcycle_web_ride_sessions_v1";
@@ -19,18 +18,24 @@ export type StoredRideSession = {
   routeName?: string | null;
   /** 완주율(0~1). routeDistanceMeters > 0 일 때만 의미 있음. */
   completionRatio?: number;
-  /** 출발지 역지오코딩(맵 UI·주행 종료 시 스냅샷). */
+  /** 출발지 역지오코딩(맵 UI·주행 종료 시 스냅샷). **계획된** Route 의 출발지다. */
   startPlaceLabel?: string;
-  /** 도착지 역지오코딩. */
+  /** 도착지 역지오코딩. **계획된** Route 의 도착지다. */
   endPlaceLabel?: string;
-  /** 이번 세션 실제 시작 좌표(geometry 위). legacy 문서는 null. */
-  sessionStartLngLat?: LngLat | null;
-  /** 이번 세션 실제 종료 좌표(geometry 위). */
-  sessionEndLngLat?: LngLat | null;
-  sessionStartRouteMeters?: number | null;
-  sessionEndRouteMeters?: number | null;
-  sessionStartProgressRatio?: number | null;
-  sessionEndProgressRatio?: number | null;
+  /**
+   * 이번 세션이 **실제로** 시작·종료한 경로상 지점(RIDE-CONTINUE-1 §4.1).
+   * 31% 에서 시작해 43% 에서 끝난 Ride 의 연결점을 복원하는 유일한 근거이며,
+   * 「다음 주행」의 출발점이 된다. 옛 Ride 는 필드가 없다(legacy fallback 유지).
+   */
+  sessionStartLngLat?: [number, number] | null;
+  sessionEndLngLat?: [number, number] | null;
+  sessionStartRouteMeters?: number;
+  sessionEndRouteMeters?: number;
+  sessionStartProgressRatio?: number;
+  sessionEndProgressRatio?: number;
+  /** 실제 세션 시작·종료 지점의 역지오코딩. UI 는 이 값을 우선하고 없으면 계획 지명으로 폴백. */
+  sessionStartPlaceLabel?: string;
+  sessionEndPlaceLabel?: string;
 };
 
 export function loadRideSessions(): StoredRideSession[] {

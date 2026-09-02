@@ -7,8 +7,8 @@ import {
   loadRideSessions,
   type StoredRideSession,
 } from "../../lib/rideSessionsStorage";
-import { isRouteCompletion } from "../../lib/rideRecordPolicy";
 import "./RideHistoryPanel.css";
+import { isRouteCompletion } from "../../lib/rideRecordPolicy";
 
 export type RideHistoryPanelProps = {
   /**
@@ -113,7 +113,9 @@ export function RideHistoryPanel(props: RideHistoryPanelProps) {
               typeof r.completionRatio === "number"
                 ? Math.round(r.completionRatio * 100)
                 : null;
-            const isCompleted = ratioPct !== null && isRouteCompletion(r.completionRatio!);
+            // 완주 판정은 전 UI 단일 정책(98%) — 반올림 백분율 95% 로 따로 판정하지 않는다(§2.6).
+            const isCompleted =
+              typeof r.completionRatio === "number" && isRouteCompletion(r.completionRatio);
             const titleName = r.routeName ?? "(이름 없는 경로)";
             return (
               <li key={r.id} className="ride-history__item">

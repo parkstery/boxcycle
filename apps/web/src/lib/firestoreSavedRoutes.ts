@@ -4,17 +4,21 @@ import {
   deleteDoc,
   doc,
   getDocs,
-  getDoc,
   increment,
   limit,
   query,
+  runTransaction,
   serverTimestamp,
   Timestamp,
   updateDoc,
-  runTransaction,
   where,
 } from "firebase/firestore";
 import { getFirebaseFirestore } from "./firebase";
+import {
+  clampProgressRatio,
+  preserveDedupedSavedRouteState,
+  resolveSavedRouteProgressUpdate,
+} from "./savedRouteProgressPolicy";
 import type { LineStringGeometry, LngLat } from "./geo";
 import type { User } from "firebase/auth";
 import type { RouteProfile } from "../services/mapboxDirections";
@@ -280,7 +284,6 @@ type SavedRouteDoc = {
   completedAt?: unknown;
   expiresAt?: unknown;
   lastRideId?: string | null;
-  lastProgressRatio?: number;
   routeFingerprint?: string;
 };
 
@@ -364,11 +367,11 @@ export type SaveRouteInput = {
  * 저장돼 있어, 저장값을 그대로 비교하면 규칙이 달라 절대 일치하지 않는다
  * (인덱스 쿼리도, "지문 있으면 skip" 폴백도 이 옛 문서를 놓쳤다 → 32건 중복의 원인).
  */
-async function findExistingSavedRouteIdByFingerprint(
+async function findExistingSavedRouteByFingerprint(
   db: ReturnType<typeof getFirebaseFirestore>,
   userId: string,
   routeFingerprint: string,
-): Promise<string | null> {
+): Promise<{ id: string; data: Record<string, unknown> } | null> {
   const qByUser = query(
     collection(db, SAVED_ROUTES_COLLECTION),
     where("userId", "==", userId),
@@ -384,7 +387,7 @@ async function findExistingSavedRouteIdByFingerprint(
       : "cycling") as RouteProfile;
     const fp = await computeRouteFingerprint(g, prof);
     if (fp === routeFingerprint) {
-      return d.id;
+      return { id: d.id, data };
     }
   }
   return null;
@@ -392,18 +395,6 @@ async function findExistingSavedRouteIdByFingerprint(
 
 /** 저장 결과 — `deduped=true` 면 새 문서를 만들지 않고 같은 경로의 기존 문서를 갱신했다는 뜻. */
 export type SaveRouteResult = SavedRoute & { deduped: boolean };
-
-/** Firestore 진행률 갱신 시 단조 max — completed=1 이면 null(갱신 안 함). */
-export function mergeSavedRouteProgressRatio(
-  existingCompleted: 0 | 1 | undefined,
-  existingRatio: number,
-  incomingRatio: number,
-): number | null {
-  if (existingCompleted === 1) return null;
-  const prev = Number.isFinite(existingRatio) ? Math.max(0, Math.min(1, existingRatio)) : 0;
-  const next = Number.isFinite(incomingRatio) ? Math.max(0, Math.min(1, incomingRatio)) : 0;
-  return Math.max(prev, next);
-}
 
 export async function saveRouteToFirestore(
   input: SaveRouteInput,
@@ -418,45 +409,56 @@ export async function saveRouteToFirestore(
 
   // 같은 경로가 이미 있으면 새로 만들지 않고 기존 문서를 갱신한다(중복 저장 방지).
   // "같은 길 반복은 새 자산이 아니다" — 정복 철학과 일치. 갱신은 quota 슬롯을 쓰지 않는다.
-  const existingId = await findExistingSavedRouteIdByFingerprint(db, input.userId, routeFingerprint);
-  if (existingId) {
+  const existing = await findExistingSavedRouteByFingerprint(db, input.userId, routeFingerprint);
+  if (existing) {
     // 확인 전이면 저장하지 않고 프롬프트를 유도한다.
     if (!input.confirmUpdate) {
-      throw new SavedRouteDuplicateError(existingId);
+      throw new SavedRouteDuplicateError(existing.id);
     }
     const nowIso = new Date().toISOString();
-    const existingSnap = await getDoc(doc(db, SAVED_ROUTES_COLLECTION, existingId));
-    const existing = existingSnap.exists()
-      ? fromDoc(existingId, existingSnap.data() as Partial<SavedRouteDoc>)
-      : null;
-    await updateDoc(doc(db, SAVED_ROUTES_COLLECTION, existingId), {
+    await updateDoc(doc(db, SAVED_ROUTES_COLLECTION, existing.id), {
       updatedAt: serverTimestamp(),
       lastSavedAt: serverTimestamp(),
       saveCount: increment(1),
       // 옛 지문 규칙으로 저장된 문서를 새 규칙 값으로 백필(다음 조회 정확도).
       routeFingerprint,
     });
+    // ⚠ 기존 문서를 「새 Route」처럼 completed:0 · progress:0 으로 합성하지 않는다(§4.5).
+    // 호출부가 이 반환값을 state 에 병합하므로, 합성하면 새로고침 전까지 완료·진행률이 사라진다.
+    const preserved = preserveDedupedSavedRouteState(
+      {
+        completed: existing.data.completed === 1 ? 1 : 0,
+        completedAtIso: toOptionalIso(existing.data.completedAt),
+        expiresAtIso: toOptionalIso(existing.data.expiresAt),
+        lastRideId:
+          typeof existing.data.lastRideId === "string" ? existing.data.lastRideId : null,
+        lastProgressRatio: clampProgressRatio(existing.data.lastProgressRatio),
+        createdAtIso:
+          existing.data.createdAt instanceof Timestamp
+            ? existing.data.createdAt.toDate().toISOString()
+            : nowIso,
+      },
+      {
+        completed: 0,
+        completedAtIso: null,
+        expiresAtIso: new Date(Date.now() + SAVED_ROUTE_EXPIRY_MS).toISOString(),
+        lastRideId: null,
+        lastProgressRatio: 0,
+        createdAtIso: nowIso,
+      },
+    );
     return {
-      id: existingId,
-      name: existing?.name ?? name,
-      profile: existing?.profile ?? input.profile,
-      startLngLat: existing?.startLngLat ?? input.startLngLat,
-      endLngLat: existing?.endLngLat ?? input.endLngLat,
-      waypoints: existing?.waypoints ?? waypoints,
-      geometry: existing?.geometry ?? input.geometry,
-      distanceMeters: existing?.distanceMeters ?? input.distanceMeters,
-      durationSec: existing?.durationSec ?? input.durationSec,
-      createdAtIso: existing?.createdAtIso ?? nowIso,
+      id: existing.id,
+      name,
+      profile: input.profile,
+      startLngLat: input.startLngLat,
+      endLngLat: input.endLngLat,
+      waypoints,
+      geometry: input.geometry,
+      distanceMeters: input.distanceMeters,
+      durationSec: input.durationSec,
       updatedAtIso: nowIso,
-      completed: existing?.completed ?? 0,
-      completedAtIso: existing?.completedAtIso ?? null,
-      expiresAtIso:
-        existing?.completed === 1
-          ? null
-          : (existing?.expiresAtIso ??
-            new Date(Date.now() + SAVED_ROUTE_EXPIRY_MS).toISOString()),
-      lastRideId: existing?.lastRideId ?? null,
-      lastProgressRatio: existing?.lastProgressRatio ?? 0,
+      ...preserved,
       deduped: true,
     };
   }
@@ -534,36 +536,43 @@ export async function promoteSavedRouteInFirestore(input: {
  * 미완주 주행의 진행률 저장 — 완주 임계 미만일 때 호출.
  * completed 는 건드리지 않고(0 유지) lastProgressRatio·lastRideId 만 갱신해
  * 「이어 달리기」·진행률 바의 근거로 남긴다. TTL(미완료 90일)도 유지된다.
+ *
+ * **transaction 으로 서버 문서를 읽어 `max(server, requested)` 를 보장**한다(§4.4) —
+ * 클라이언트가 계산한 값으로 덮어쓰면 다른 탭·기기의 늦은 낮은 진행률이 높은 진행률을
+ * 되돌린다. 반환값은 **반영 후 서버 기준 상태**이므로 호출부는 이 값으로 state 를 갱신한다.
  */
 export async function updateSavedRouteProgressInFirestore(input: {
   userId: string;
   routeId: string;
   rideId: string;
   progressRatio: number;
-}): Promise<void> {
+}): Promise<{ progressRatio: number; completed: 0 | 1 }> {
   const db = getFirebaseFirestore();
   const ref = doc(db, SAVED_ROUTES_COLLECTION, input.routeId);
-  await runTransaction(db, async (tx) => {
+  const requested = clampProgressRatio(input.progressRatio);
+  return await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
-    if (!snap.exists()) return;
-    const data = snap.data() as Partial<SavedRouteDoc>;
-    const existingCompleted = data.completed === 1 ? 1 : 0;
-    const existingRatio =
-      typeof data.lastProgressRatio === "number" && Number.isFinite(data.lastProgressRatio)
-        ? data.lastProgressRatio
-        : 0;
-    const merged = mergeSavedRouteProgressRatio(
-      existingCompleted,
-      existingRatio,
-      input.progressRatio,
+    if (!snap.exists()) {
+      return { progressRatio: requested, completed: 0 as const };
+    }
+    const data = snap.data() as Record<string, unknown>;
+    const decision = resolveSavedRouteProgressUpdate(
+      {
+        completed: data.completed === 1 ? 1 : 0,
+        lastProgressRatio: clampProgressRatio(data.lastProgressRatio),
+      },
+      requested,
     );
-    if (merged == null) return;
-    tx.update(ref, {
-      userId: input.userId,
-      lastRideId: input.rideId,
-      lastProgressRatio: merged,
-      updatedAt: serverTimestamp(),
-    });
+    // stale(더 낮은) write 는 진행률도 lastRideId 도 덮지 않는다 — 43% 뒤 늦은 31% 는 43% 로 남는다.
+    if (decision.shouldWrite) {
+      tx.update(ref, {
+        userId: input.userId,
+        lastRideId: input.rideId,
+        lastProgressRatio: decision.nextProgressRatio,
+        updatedAt: serverTimestamp(),
+      });
+    }
+    return { progressRatio: decision.nextProgressRatio, completed: decision.completed };
   });
 }
 
