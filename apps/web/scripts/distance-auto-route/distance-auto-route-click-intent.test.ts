@@ -74,8 +74,8 @@ describe("distanceAutoRoute click intent 3F-C-R1", () => {
     assert.match(HTTP_SOURCE, /distanceAdjustRetry/);
   });
 
-  it("알고리즘 버전이 3F-C-R1-reach-offer", () => {
-    assert.equal(AUTO_ROUTE_ALGORITHM_VERSION, "3F-C-R1-reach-offer");
+  it("알고리즘 버전이 3I-shortfall", () => {
+    assert.equal(AUTO_ROUTE_ALGORITHM_VERSION, "3I-shortfall");
   });
 
   it("3F-C-R1 핵심 상수 값 확인", () => {
@@ -374,9 +374,48 @@ describe("distanceAutoRoute click intent 3F-C-R1", () => {
     assert.doesNotMatch(CORE_SOURCE, /AUTO_ROUTE_CLICK_ZONE_INNER_RATIO/);
   });
 
-  it("MAX_AUTO_ROUTE_PROVIDER_CALLS=12, DETOUR_CALL_BUDGET=8", () => {
-    assert.match(CORE_SOURCE, /MAX_AUTO_ROUTE_PROVIDER_CALLS = 12/);
-    assert.match(CORE_SOURCE, /DETOUR_CALL_BUDGET = 8/);
+  it("MAX_AUTO_ROUTE_PROVIDER_CALLS=13, DETOUR_CALL_BUDGET=12", () => {
+    assert.match(CORE_SOURCE, /MAX_AUTO_ROUTE_PROVIDER_CALLS = 13/);
+    assert.match(CORE_SOURCE, /DETOUR_CALL_BUDGET = 12/);
+    assert.match(CORE_SOURCE, /shortfall/);
+  });
+
+  it("우회 예산 소진·direct < D → shortfall, 실수치 고지", async () => {
+    const start: [number, number] = [127.02, 37.5];
+    const targetRoadPoint = offsetLngLatByBearingMeters(start, 90, 4800) as [number, number];
+    const targetDistanceMeters = 5000;
+    const directLen = 4975.8;
+    let calls = 0;
+    const fetchDirections: FetchDirectionsFn = async (_profile, waypoints) => {
+      calls += 1;
+      const end = waypoints[waypoints.length - 1]!;
+      const bearing = waypoints.length === 2 ? 90 : 45;
+      const len = waypoints.length === 2 ? directLen : directLen * 0.95;
+      const farEnd = offsetLngLatByBearingMeters(waypoints[0]!, bearing, len);
+      const geometry = {
+        type: "LineString" as const,
+        coordinates: [waypoints[0]!, farEnd] as [number, number][],
+      };
+      const dist = lineStringLengthMeters(geometry);
+      return { geometry, distance: dist, duration: 1200, snappedEnd: end, endSnapDistanceMeters: 0 };
+    };
+
+    const searched = await searchDistanceAutoRoute({
+      start,
+      targetRoadPoint,
+      profile: "cycling",
+      targetDistanceMeters,
+      bearingDeg: 90,
+      fetchDirections,
+    });
+
+    assert.equal(searched.status, "found");
+    if (searched.status === "found") {
+      assert.equal(searched.outcome, "shortfall");
+      assert.ok(searched.distance < targetDistanceMeters - 5);
+      assert.ok(searched.detourCalls > 0);
+      assert.ok(calls <= 13);
+    }
   });
 
   for (const fixture of fixtures) {

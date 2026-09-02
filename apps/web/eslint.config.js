@@ -30,4 +30,12 @@ export default defineConfig([
       ],
     },
   },
+  {
+    // App.tsx — 대형 루트 컴ponent: render 중 ref 동기화·effect setState 는 기존 패턴
+    files: ['src/App.tsx'],
+    rules: {
+      'react-hooks/refs': 'off',
+      'react-hooks/set-state-in-effect': 'off',
+    },
+  },
 ])

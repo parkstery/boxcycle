@@ -29,6 +29,7 @@ import {
 } from "./publicRouteNamingPolicy";
 import { getUserProfileTier } from "./firestoreUser";
 import { assertTierQuotaClient } from "./tierQuota";
+import { functionsHttpUrl } from "./functionsEmulatorUrl";
 import { canSubmitPublicRoute, GUEST_PUBLIC_ROUTE_MSG } from "./userTier";
 import {
   maybeModeratePublicRouteCopyRemote,
@@ -282,12 +283,11 @@ class AutoReviewUnavailableError extends Error {
  */
 async function callAutoReviewPublicRouteRequest(user: User, requestId: string): Promise<string> {
   const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID?.trim();
-  const region = import.meta.env.VITE_FUNCTIONS_REGION?.trim() || "asia-northeast3";
   if (!projectId) {
     throw new AutoReviewUnavailableError();
   }
 
-  const url = `https://${region}-${projectId}.cloudfunctions.net/autoReviewPublicRouteRequest`;
+  const url = functionsHttpUrl("autoReviewPublicRouteRequest");
   let res: Response;
   try {
     const idToken = await user.getIdToken();

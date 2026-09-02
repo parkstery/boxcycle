@@ -1,5 +1,5 @@
 import type { User } from "firebase/auth";
-import { FUNCTIONS_REGION } from "../app/env";
+import { functionsHttpUrl } from "../lib/functionsEmulatorUrl";
 
 const GRAPH_IMAGES = "https://graph.mapillary.com/images";
 const FIELDS =
@@ -67,7 +67,7 @@ async function fetchRowsProxy(
 ): Promise<unknown[]> {
   const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID?.trim();
   if (!projectId) return [];
-  const url = `https://${FUNCTIONS_REGION}-${projectId}.cloudfunctions.net/getMapillaryImages`;
+  const url = functionsHttpUrl("getMapillaryImages");
   const idToken = await user.getIdToken();
   const res = await fetch(url, {
     method: "POST",

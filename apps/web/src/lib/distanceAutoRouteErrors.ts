@@ -14,6 +14,15 @@ export const DISTANCE_AUTO_ROUTE_REROUTE_HINT =
 export const DISTANCE_AUTO_ROUTE_REFERENCE_CIRCLE_HINT =
   "참고 — 실제 도로 거리는 방향에 따라 다릅니다";
 
+export function formatDistanceAutoRouteShortfallMessage(
+  targetKm: number,
+  distanceMeters: number,
+): string {
+  const deficitM = Math.max(0, Math.round(targetKm * 1000 - distanceMeters));
+  const actualKm = distanceMeters / 1000;
+  return `목표 ${targetKm.toFixed(1)} km 에 ${deficitM} m 모자란 ${actualKm.toFixed(2)} km 로 만들었습니다.`;
+}
+
 export function formatDistanceAutoRouteOfferedMessage(
   directRoadMeters: number,
   targetKm: number,

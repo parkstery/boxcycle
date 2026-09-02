@@ -8,10 +8,10 @@ import {
 } from "../lib/routeTokenSpendBridge";
 import { ROUTE_TOKEN_INSUFFICIENT_HINT } from "../lib/routeTokenUiCopy";
 import { formatDistanceAutoRouteClientError } from "../lib/distanceAutoRouteErrors";
-import { resolveFunctionsHttpUrl } from "../lib/functionsEmulatorUrl";
+import { functionsHttpUrl } from "../lib/functionsEmulatorUrl";
 import type { RouteProfile } from "./mapboxDirections";
 
-export type RouteOutcome = "exact" | "detoured" | "offered";
+export type RouteOutcome = "exact" | "detoured" | "offered" | "shortfall";
 
 export type DistanceAutoRouteResponse =
   | {
@@ -83,15 +83,12 @@ export async function fetchDistanceAutoRoute(
   }
 
   const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID?.trim();
-  const region = import.meta.env.VITE_FUNCTIONS_REGION?.trim() || "asia-northeast3";
   if (!projectId) {
     throw new Error(
       "VITE_FIREBASE_PROJECT_ID 가 비어 있어 getDistanceAutoRoute URL 을 만들 수 없습니다. apps/web/.env 를 확인하세요.",
     );
   }
-  const emulatorUrl = resolveFunctionsHttpUrl("getDistanceAutoRoute");
-  const url =
-    emulatorUrl ?? `https://${region}-${projectId}.cloudfunctions.net/getDistanceAutoRoute`;
+  const url = functionsHttpUrl("getDistanceAutoRoute");
   const idToken = await user.getIdToken();
   let res: Response;
   try {

@@ -288,3 +288,23 @@
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
+
+/* 진행률·다음 출발점 — 미완주 결과의 핵심 정보(§3.5) */
+.ride-summary__progress {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.ride-summary__nextstart {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.75;
+  text-align: center;
+}
+
+.ride-summary__form-btns--next {
+  margin-top: 0.1rem;
+}

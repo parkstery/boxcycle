@@ -1,0 +1,154 @@
+/*
+ * 「다음 주행」 카드 — RouteDock 과 같은 좌하단 anchor 를 쓴다(§3.1).
+ * 둘은 동시에 뜨지 않는다: Route 가 없는 idle 에서만 이 카드가, 경로가 올라오면 RouteDock 이 나온다.
+ * 폭·안전영역·Mapbox 로고 여백 정책도 RouteDock 과 같은 값을 공유해 겹침을 막는다.
+ */
+.next-ride-anchor {
+  --next-ride-pad: clamp(0.45rem, 1.4vw, 0.85rem);
+  position: absolute;
+  left: max(var(--next-ride-pad), env(safe-area-inset-left, 0px));
+  bottom: calc(
+    max(var(--next-ride-pad), env(safe-area-inset-bottom, 0px)) + var(--mapbox-logo-clearance, 2.875rem)
+  );
+  /* MapHud(z-index 5) 위 — 다음 행동이 정보 표시에 가려지면 안 된다(RouteDock 과 동일 근거) */
+  z-index: 6;
+  max-width: min(21.6rem, calc(100vw - 2rem));
+  pointer-events: none;
+}
+
+.next-ride__card {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  padding: 0.5rem 0.6rem 0.55rem;
+  border: 1px solid var(--rtw-glass-border, rgba(248, 250, 252, 0.18));
+  border-radius: var(--rtw-radius, 14px);
+  background: var(--rtw-glass-bg-strong, rgba(10, 16, 26, 0.64));
+  -webkit-backdrop-filter: blur(var(--rtw-glass-blur, 12px));
+  backdrop-filter: blur(var(--rtw-glass-blur, 12px));
+  box-shadow: var(--rtw-glass-shadow, 4px 8px 28px rgba(2, 8, 20, 0.4));
+  color: var(--rtw-text, #f8fafc);
+}
+
+.next-ride__head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.next-ride__title {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.next-ride__dismiss {
+  flex: 0 0 auto;
+  border: none;
+  background: transparent;
+  color: inherit;
+  opacity: 0.66;
+  font-size: 0.78rem;
+  line-height: 1;
+  padding: 0.2rem 0.25rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.next-ride__dismiss:hover {
+  opacity: 1;
+  background: rgba(248, 250, 252, 0.12);
+}
+
+.next-ride__line {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.22rem;
+  align-items: baseline;
+}
+
+.next-ride__line--strong {
+  font-weight: 700;
+}
+
+.next-ride__line--muted {
+  opacity: 0.72;
+  font-size: 0.7rem;
+}
+
+.next-ride__route-name {
+  max-width: 11rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.next-ride__sep {
+  opacity: 0.5;
+}
+
+.next-ride__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.15rem;
+}
+
+.next-ride__btn {
+  flex: 1 1 auto;
+  min-height: 2rem;
+  padding: 0.32rem 0.55rem;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.next-ride__btn--primary {
+  background: var(--rtw-accent, #e8a33d);
+  color: #10151f;
+}
+
+.next-ride__btn--primary:hover {
+  filter: brightness(1.06);
+}
+
+.next-ride__btn--ghost {
+  background: rgba(248, 250, 252, 0.1);
+  border-color: var(--rtw-glass-border, rgba(248, 250, 252, 0.18));
+  color: inherit;
+}
+
+.next-ride__btn--ghost:hover {
+  background: rgba(248, 250, 252, 0.18);
+}
+
+.next-ride__btn:focus-visible,
+.next-ride__dismiss:focus-visible {
+  outline: 2px solid var(--rtw-accent, #e8a33d);
+  outline-offset: 2px;
+}
+
+/* 모바일 가로 — RouteDock 과 같은 축소 정책(중앙 HUD·우상단 칩과 겹치지 않게) */
+@media (max-height: 520px), (max-width: 480px) {
+  .next-ride-anchor {
+    --mapbox-logo-clearance: 0.35rem;
+    max-width: min(18rem, calc(100vw - 2rem));
+  }
+
+  .next-ride__card {
+    padding: 0.4rem 0.45rem 0.45rem;
+  }
+
+  .next-ride__route-name {
+    max-width: 8.5rem;
+  }
+}

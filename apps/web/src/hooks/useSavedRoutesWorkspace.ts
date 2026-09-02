@@ -99,6 +99,12 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
 
   const [savedRoutes, setSavedRoutes] = useState<SavedRoute[]>([]);
   const [savedRoutesLoading, setSavedRoutesLoading] = useState(false);
+  /**
+   * 첫 로드가 끝났는가 — 「다음 주행」 후보 해석의 전제(§3.1).
+   * `savedRoutesLoading` 은 effect 가 돌기 전엔 false 라, 그 짧은 창에서 빈 목록으로
+   * 후보를 잘못 해석(재개 가능한 Route 를 놓치고 「새 경로」로 표시)할 수 있다.
+   */
+  const [savedRoutesLoaded, setSavedRoutesLoaded] = useState(false);
   const loadedSavedRouteIdRef = useRef<string | null>(null);
   const loadedSavedRouteNameRef = useRef<string | null>(null);
   /**
@@ -141,7 +147,10 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
         console.error("[savedRoutes] 로드/마이그레이션 실패 → localStorage 폴백", e);
         if (!cancelled) setSavedRoutes(loadSavedRoutesFromLocal());
       } finally {
-        if (!cancelled) setSavedRoutesLoading(false);
+        if (!cancelled) {
+          setSavedRoutesLoading(false);
+          setSavedRoutesLoaded(true);
+        }
       }
       const backfillKey = `boxcycle_saved_routes_ttl_backfill_v1_${user.uid}`;
       if (!cancelled && !localStorage.getItem(backfillKey)) {
@@ -200,7 +209,7 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
       );
       loadedSavedRouteIdRef.current = saved.id;
       loadedSavedRouteNameRef.current = saved.name;
-      loadedSavedRouteProgressRef.current = 0;
+      loadedSavedRouteProgressRef.current = saved.lastProgressRatio ?? 0;
       setRouteSummary(
         saved.deduped
           ? "이미 저장된 경로입니다 — 기존 항목의 주행 기록을 갱신했어요."
@@ -401,6 +410,7 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
     savedRoutes,
     setSavedRoutes,
     savedRoutesLoading,
+    savedRoutesLoaded,
     loadedSavedRouteIdRef,
     loadedSavedRouteNameRef,
     loadedSavedRouteProgressRef,

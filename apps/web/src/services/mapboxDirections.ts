@@ -7,7 +7,7 @@ import {
   reportRouteTokenSpend,
 } from "../lib/routeTokenSpendBridge";
 import { ROUTE_TOKEN_INSUFFICIENT_HINT } from "../lib/routeTokenUiCopy";
-import { resolveFunctionsHttpUrl } from "../lib/functionsEmulatorUrl";
+import { functionsHttpUrl } from "../lib/functionsEmulatorUrl";
 import { MAX_ROUTE_WAYPOINTS } from "../lib/routeWaypoints";
 
 export type RouteProfile = "cycling" | "driving" | "walking";
@@ -82,15 +82,12 @@ async function fetchRouteCallable(
 ): Promise<DirectionsRoute> {
   void functions;
   const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID?.trim();
-  const region = import.meta.env.VITE_FUNCTIONS_REGION?.trim() || "asia-northeast3";
   if (!projectId) {
     throw new Error(
       "VITE_FIREBASE_PROJECT_ID 가 비어 있어 getMapboxDirections URL 을 만들 수 없습니다. apps/web/.env 를 확인하세요.",
     );
   }
-  const emulatorUrl = resolveFunctionsHttpUrl("getMapboxDirections");
-  const url =
-    emulatorUrl ?? `https://${region}-${projectId}.cloudfunctions.net/getMapboxDirections`;
+  const url = functionsHttpUrl("getMapboxDirections");
   const idToken = await user.getIdToken();
   const wps = (waypoints ?? []).slice(0, MAX_ROUTE_WAYPOINTS);
   const res = await fetch(url, {

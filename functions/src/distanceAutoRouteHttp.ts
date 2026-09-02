@@ -285,7 +285,13 @@ export async function executeDistanceAutoRoute(input: {
   const { diagnostics, outcome, directRoadMeters, endMissMeters, detourCalls } = searched;
   const targetLabel = (targetDistanceMeters / 1000).toFixed(1);
   const actualLabel = (searched.distance / 1000).toFixed(2);
-  const summary = `목표 ${targetLabel} km · 연장 ${actualLabel} km / 예상 ${formatDuration(searched.duration)}`;
+  const summary =
+    outcome === "shortfall"
+      ? (() => {
+          const deficitM = Math.max(0, Math.round(targetDistanceMeters - searched.distance));
+          return `목표 ${targetLabel} km 에 ${deficitM} m 모자란 ${actualLabel} km 로 만들었습니다.`;
+        })()
+      : `목표 ${targetLabel} km · 연장 ${actualLabel} km / 예상 ${formatDuration(searched.duration)}`;
   console.info(
     JSON.stringify({
       kind: "distanceAutoRouteDiagnostics",

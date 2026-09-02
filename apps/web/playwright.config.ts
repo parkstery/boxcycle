@@ -11,13 +11,19 @@ import { defineConfig, devices } from '@playwright/test'
 // 이렇게 하면 cross-env 나 수동 플래그 없이 에뮬레이터 컨텍스트를 자동 감지한다.
 const underEmulator = Boolean(process.env.FIRESTORE_EMULATOR_HOST)
 const routeTokenUiHarness = process.env.ROUTE_TOKEN_UI_LIVE === '1'
+/** `scripts/e2e/run-with-functions-emulator.mjs` 또는 firebase-tools 가 Functions host 를 주입할 때 */
+const useFunctionsEmulatorBundle =
+  process.env.RTW_E2E_WITH_FUNCTIONS === '1' ||
+  Boolean(process.env.FIREBASE_FUNCTIONS_EMULATOR_HOST?.trim())
 if (underEmulator) {
   process.env.RIDE_VERIFY_LIVE = '1'
 }
 
-// 다른 worktree 의 dev 서버가 5000 을 잡고 있으면 `RTW_DEV_PORT=5001 npm run test:e2e:ride`.
-// vite.config.ts 가 같은 env 를 읽으므로 둘이 어긋나지 않는다.
-const DEV_PORT = Number(process.env.RTW_DEV_PORT ?? 5000)
+// emulator 모드 vite 는 기본 5002(vite.config.ts). Functions 포함 e2e 와 맞춘다.
+const DEV_PORT = Number(
+  process.env.RTW_DEV_PORT ??
+    (underEmulator && useFunctionsEmulatorBundle ? 5002 : 5000),
+)
 const DEV_URL = `http://127.0.0.1:${DEV_PORT}`
 
 export default defineConfig({
@@ -43,13 +49,17 @@ export default defineConfig({
   webServer: {
     command: routeTokenUiHarness
       ? 'npm run dev:localhost -- --mode harness'
-      : 'npm run dev:localhost',
+      : underEmulator && useFunctionsEmulatorBundle
+        ? 'npm run dev:localhost -- --mode emulator'
+        : 'npm run dev:localhost',
     url: DEV_URL,
-    // 에뮬레이터 컨텍스트에서만 vite 에 플래그를 넘겨 앱이 에뮬레이터에 붙게 한다.
-    // (일반 test:e2e 는 이 env 없이 돌아 실 Firebase 설정을 그대로 쓴다 — smoke 는 Firebase 불필요)
+    // Functions 포함 e2e 는 --mode emulator → apps/web/.env.emulator(VITE_* host 포함).
+    // Auth·Firestore 만 쓰는 e2e(peer-sync 등)는 VITE_USE_EMULATOR 만 넘긴다.
     env: underEmulator
       ? {
-          VITE_USE_EMULATOR: '1',
+          ...(useFunctionsEmulatorBundle
+            ? { RTW_DEV_PORT: String(DEV_PORT) }
+            : { VITE_USE_EMULATOR: '1' }),
           ...(routeTokenUiHarness ? { VITE_DIRECTIONS_DIRECT: '0' } : {}),
         }
       : {},

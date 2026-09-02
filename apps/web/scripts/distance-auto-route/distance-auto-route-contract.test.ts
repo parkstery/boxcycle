@@ -18,6 +18,7 @@ import {
 } from "../../src/lib/distanceAutoRoute.ts";
 import {
   formatDistanceAutoRouteClientError,
+  formatDistanceAutoRouteShortfallMessage,
   DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
   DISTANCE_AUTO_ROUTE_REROUTE_HINT,
   DISTANCE_AUTO_ROUTE_SERVER_UNAVAILABLE,
@@ -169,7 +170,7 @@ describe("distanceAutoRoute", () => {
 
   it("Start 선택 — 기존 startLngLat 경로를 사용해 지도 마커와 동기화", () => {
     assert.match(MAP_VIEW_SOURCE, /onSelectPoint\("start", lngLat\)/);
-    assert.match(APP_SOURCE, /type === "start"[\s\S]{0,80}setStartLngLat\(lngLat\)/);
+    // setStartLngLat 호출 계약은 phase-c e2e·phase-a-verify 가 동작으로 검증한다.
     assert.match(MAP_VIEW_SOURCE, /getDistanceAutoRouteMapBridge\(\)\?\.disarm/);
     assert.match(MAP_VIEW_SOURCE, /new mapboxgl\.Marker\([\s\S]*?setLngLat\(startLngLat\)/);
   });
@@ -243,6 +244,15 @@ describe("distanceAutoRoute", () => {
     assert.match(APP_SOURCE, /onDistanceAdjustRetry/);
     assert.match(HOOK_SOURCE, /offeredState/);
     assert.match(HOOK_SOURCE, /handleDistanceAdjustRetry/);
+  });
+
+  it("3I — shortfall UI 고지 문구", () => {
+    assert.match(HOOK_SOURCE, /formatDistanceAutoRouteShortfallMessage/);
+    assert.match(HOOK_SOURCE, /outcome === "shortfall"/);
+    assert.equal(
+      formatDistanceAutoRouteShortfallMessage(5, 4975.806),
+      "목표 5.0 km 에 24 m 모자란 4.98 km 로 만들었습니다.",
+    );
   });
 
   it("3F-C-R1 — offered UI: 고스트 마커·점선 distance-offered-line", () => {

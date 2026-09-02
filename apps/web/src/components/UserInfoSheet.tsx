@@ -7,6 +7,10 @@ import {
   type RideStatsPeriod,
 } from "../lib/rideStatsAggregate";
 import type { StoredRideSession } from "../lib/rideSessionsStorage";
+import { ROUTE_COMPLETION_RATIO_THRESHOLD, isRouteCompletion } from "../lib/rideRecordPolicy";
+import type { SavedRoute } from "../lib/firestoreSavedRoutes";
+import type { LngLat } from "../lib/geo";
+import { resolveRecentRideActions } from "../lib/nextRideTarget";
 import type { UserTier } from "../lib/firestoreUser";
 import {
   fetchSubscriptionMe,
@@ -36,6 +40,14 @@ type UserInfoSheetProps = {
   mileage?: { totalMeters: number; totalSec: number; rideCount: number } | null;
   onLinkGoogle?: () => void;
   onServiceExit: () => void;
+  /** 행 액션 판정용 — 본인 소유 SavedRoute 목록(§3.6) */
+  savedRoutes?: readonly SavedRoute[];
+  /** 실제 Ride 종료점을 지도에서 보기 */
+  onShowRideOnMap?: (ride: StoredRideSession) => void;
+  /** 소유 미완주 SavedRoute 이어 달리기 준비 */
+  onResumeRideRoute?: (routeId: string) => void;
+  /** 실제 종료점에서 새 경로 */
+  onExtendFromRide?: (anchorLngLat: LngLat) => void;
 };
 
 function formatElapsedFromSec(sec: number): string {
@@ -53,10 +65,13 @@ function formatMileageElapsedKo(sec: number): string {
   return `${h}시간 ${m}분`;
 }
 
-/** 출발·도착 한 줄(전체 주소는 title 로 노출, 한 줄은 CSS 말줄임). */
+/**
+ * 출발·도착 한 줄(전체 주소는 title 로 노출, 한 줄은 CSS 말줄임).
+ * **실제 세션 지명**을 우선하고, 없으면 계획 Route 지명으로 폴백한다(legacy Ride 호환, §4.1).
+ */
 function rideSessionPlacesCaption(s: StoredRideSession): string {
-  const a = s.startPlaceLabel?.trim();
-  const b = s.endPlaceLabel?.trim();
+  const a = s.sessionStartPlaceLabel?.trim() || s.startPlaceLabel?.trim();
+  const b = s.sessionEndPlaceLabel?.trim() || s.endPlaceLabel?.trim();
   if (a && b) return `${a} / ${b}`;
   if (a) return a;
   if (b) return b;
@@ -75,7 +90,11 @@ function formatRideEndedAtKo(iso: string): string {
   });
 }
 
-/** 주행 기록 패널과 동일: 계획 거리 대비 95% 이상이면 완주 */
+/**
+ * 완주 표시는 **전 UI 단일 정책**(`isRouteCompletion` = 98%)을 쓴다(§2.6).
+ * 반올림 백분율 95% 로 판정하던 표시는 95~97% Ride 를 「완주」로 보여 주면서
+ * SavedRoute 는 미완주로 남는 불일치를 만들었다.
+ */
 function rideCompletionDisplay(s: StoredRideSession): {
   label: string;
   isCompleted: boolean;
@@ -85,11 +104,13 @@ function rideCompletionDisplay(s: StoredRideSession): {
   if (typeof r !== "number" || !Number.isFinite(r)) {
     return { label: "—", isCompleted: false, title: "완주율 없음" };
   }
-  const pct = Math.round(Math.max(0, Math.min(1, r)) * 100);
-  const isCompleted = pct >= 95;
+  const clamped = Math.max(0, Math.min(1, r));
+  const pct = Math.round(clamped * 100);
+  const isCompleted = isRouteCompletion(clamped);
   const label = isCompleted ? "완주" : `미완주 (${pct}%)`;
+  const completionPct = Math.round(ROUTE_COMPLETION_RATIO_THRESHOLD * 100);
   const title = isCompleted
-    ? "계획 경로 대비 95% 이상 주행(완주로 표시)"
+    ? `계획 경로 대비 ${completionPct}% 이상 주행(완주로 표시)`
     : `계획 경로 대비 ${pct}%`;
   return { label, isCompleted, title };
 }
@@ -445,27 +466,75 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
                 const completion = rideCompletionDisplay(s);
                 const kmLabel = `${(s.distanceMeters / 1000).toFixed(2)} km`;
                 const summaryTitle = `${kmLabel}  ${whenLabel}  ${completion.label}`;
+                /**
+                 * 행 액션(§3.6) — 실제 종료점이 없는 legacy Ride 는 기록만 표시한다.
+                 * 중첩 button 을 만들지 않기 위해 요약 자체가 「지도에서 보기」 버튼이고,
+                 * 재개·새 경로는 형제 버튼으로 둔다.
+                 */
+                const actions = resolveRecentRideActions(s, props.savedRoutes ?? []);
+                const summaryInner = (
+                  <>
+                    <strong className="user-info-sheet__item-km">{kmLabel}</strong>
+                    <span className="user-info-sheet__item-when">{whenLabel}</span>
+                    <span
+                      className={`user-info-sheet__item-completion ${
+                        completion.label === "—"
+                          ? "is-unknown"
+                          : completion.isCompleted
+                            ? "is-completed"
+                            : "is-partial"
+                      }`}
+                      title={completion.title}
+                    >
+                      {completion.label}
+                    </span>
+                  </>
+                );
+                const showOnMap = actions.canShowOnMap && props.onShowRideOnMap;
                 return (
                   <li key={s.id} className="user-info-sheet__item">
-                    <div className="user-info-sheet__item-summary" title={summaryTitle}>
-                      <strong className="user-info-sheet__item-km">{kmLabel}</strong>
-                      <span className="user-info-sheet__item-when">{whenLabel}</span>
-                      <span
-                        className={`user-info-sheet__item-completion ${
-                          completion.label === "—"
-                            ? "is-unknown"
-                            : completion.isCompleted
-                              ? "is-completed"
-                              : "is-partial"
-                        }`}
-                        title={completion.title}
+                    {showOnMap ? (
+                      <button
+                        type="button"
+                        className="user-info-sheet__item-summary user-info-sheet__item-summary--action"
+                        title={`${summaryTitle} — 지도에서 보기`}
+                        aria-label={`${kmLabel} ${whenLabel} 주행 지도에서 보기`}
+                        onClick={() => props.onShowRideOnMap?.(s)}
                       >
-                        {completion.label}
-                      </span>
-                    </div>
+                        {summaryInner}
+                      </button>
+                    ) : (
+                      <div className="user-info-sheet__item-summary" title={summaryTitle}>
+                        {summaryInner}
+                      </div>
+                    )}
                     <span className="user-info-sheet__item-route" title={routeCaption}>
                       {routeCaption}
                     </span>
+                    {actions.resumeRouteId || actions.extendAnchor ? (
+                      <div className="user-info-sheet__item-actions">
+                        {actions.resumeRouteId && props.onResumeRideRoute ? (
+                          <button
+                            type="button"
+                            className="user-info-sheet__item-action"
+                            title="Resume this route"
+                            onClick={() => props.onResumeRideRoute?.(actions.resumeRouteId!)}
+                          >
+                            이어 달리기
+                          </button>
+                        ) : null}
+                        {actions.extendAnchor && props.onExtendFromRide ? (
+                          <button
+                            type="button"
+                            className="user-info-sheet__item-action"
+                            title="New route from here"
+                            onClick={() => props.onExtendFromRide?.(actions.extendAnchor!)}
+                          >
+                            여기서 새 경로
+                          </button>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </li>
                 );
               })

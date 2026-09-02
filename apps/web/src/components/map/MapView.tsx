@@ -72,6 +72,7 @@ import {
   lineStringLengthMeters,
   resolveRiderBearingDeg,
 } from "../../lib/geo";
+import { splitLineStringAtMeters } from "../../lib/routeProgressSplit";
 import type { RouteElevationProfileState } from "../../hooks/useRouteElevationProfile";
 import type { FollowMode } from "../ride/RideRoutePanel";
 import {
@@ -1291,8 +1292,18 @@ export type MapViewProps = {
     requestId: number;
     bbox?: [number, number, number, number] | null;
   } | null;
+  /** anchor 이어 달리기 — 지도 Route pick dock 을 프로그램matic 으로 연다 */
+  openRoutePickRequest?: {
+    lngLat: LngLat;
+    requestId: number;
+  } | null;
   /** 메뉴 장소 검색으로 이동한 위치 — 기본 핀과 구분되는 마커 */
   placeSearchMarkerLngLat?: LngLat | null;
+  /**
+   * 이어 달리기 재개점(§3.4) — 「31% · 여기서 계속」 단일 마커. null=표시 없음.
+   * 주행 전(idle) 재개 준비 상태에서만 넘어온다.
+   */
+  resumeAnchor?: { lngLat: LngLat; label: string } | null;
   /** Trail: 같은 Trail 에서 코스 주행 중인 다른 사용자 (빨간 dot + 노선) */
   trailSpectatorDots?: TrailSpectatorDot[] | null;
   trailSpectatorRoutes?: LineStringGeometry[] | null;
@@ -1423,7 +1434,9 @@ export function MapView({
   coverageOverlayMode,
   mapillaryClientToken,
   externalCameraJump = null,
+  openRoutePickRequest = null,
   placeSearchMarkerLngLat = null,
+  resumeAnchor = null,
   trailSpectatorDots = null,
   trailSpectatorRoutes = null,
   globalPresenceDots = null,
@@ -1484,6 +1497,7 @@ export function MapView({
   const endMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const autoRouteClickDebugMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const placeSearchMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const resumeMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const waypointMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const liveMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const liveMarkerPedalSpriteRef = useRef<HTMLDivElement | null>(null);
@@ -1505,6 +1519,7 @@ export function MapView({
   const routePickDockResizeHandlerRef = useRef<(() => void) | null>(null);
   const routePickDockDraggingRef = useRef(false);
   const routePickDockPanelRef = useRef<HTMLDivElement | null>(null);
+  const openRoutePickAtRef = useRef<((lngLat: LngLat) => void) | null>(null);
   const routeGeometryRef = useRef<LineStringGeometry | null>(null);
   const routeDistanceMetersRef = useRef(routeDistanceMeters);
   const liveLngLatRef = useRef<LngLat | null>(null);
@@ -2254,6 +2269,16 @@ export function MapView({
       popupRef.current = popup;
     };
 
+    openRoutePickAtRef.current = (picked: LngLat) => {
+      if (routePickDockDraggingRef.current) return;
+      const point = map.project(picked);
+      const fakeEvent = {
+        lngLat: { lng: picked[0], lat: picked[1] },
+        point,
+      } as mapboxgl.MapMouseEvent;
+      openPickSurface(picked, fakeEvent);
+    };
+
     map.on("click", (event) => {
       if (routePickDockDraggingRef.current) return;
       if (autoRouteSearchBusyRef.current) return;
@@ -2755,27 +2780,13 @@ export function MapView({
         return;
       }
       const traveled = conquestLiveTraveledMeters ?? 0;
-      let coordinates: [number, number][] = [];
-      if (routeGeometry && routeGeometry.coordinates.length >= 2 && traveled > 0) {
-        const coords = routeGeometry.coordinates as [number, number][];
-        const out: [number, number][] = [coords[0]];
-        let walked = 0;
-        for (let i = 0; i < coords.length - 1 && walked < traveled; i += 1) {
-          const segLen = getDistanceMeters(coords[i], coords[i + 1]);
-          if (segLen <= 0) continue;
-          if (walked + segLen >= traveled) {
-            const t = (traveled - walked) / segLen;
-            out.push([
-              coords[i][0] + (coords[i + 1][0] - coords[i][0]) * t,
-              coords[i][1] + (coords[i + 1][1] - coords[i][1]) * t,
-            ]);
-            break;
-          }
-          walked += segLen;
-          out.push(coords[i + 1]);
-        }
-        if (out.length >= 2) coordinates = out;
-      }
+      /**
+       * 완료 구간·남은 구간은 **같은 경계 좌표**를 공유해야 한다 — 각자 자르면 틈·중복이 생긴다.
+       * 분할은 순수 함수(`splitLineStringAtMeters`)가 단일 진실로 담당하고 시험이 고정한다(§3.4).
+       */
+      const completedLine = splitLineStringAtMeters(routeGeometry, traveled).completed;
+      const coordinates: [number, number][] =
+        traveled > 0 && completedLine ? (completedLine.coordinates as [number, number][]) : [];
       const fc = {
         type: "FeatureCollection" as const,
         features:
@@ -2930,6 +2941,42 @@ export function MapView({
       placeSearchMarkerRef.current = null;
     }
   }, [placeSearchMarkerLngLat, mapLoaded]);
+
+  /** 이어 달리기 재개점 마커 — 「N% · 여기서 계속」(§3.4) */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+
+    if (resumeAnchor) {
+      if (!resumeMarkerRef.current) {
+        const el = document.createElement("div");
+        el.className = "map-view__resume-marker";
+        el.textContent = resumeAnchor.label;
+        el.title = resumeAnchor.label;
+        resumeMarkerRef.current = new mapboxgl.Marker({
+          element: el,
+          className: "map-view__pin-marker map-view__resume-marker-host",
+          ...PIN_MARKER_VIEWPORT_ALIGNMENT,
+        })
+          .setLngLat(resumeAnchor.lngLat)
+          .addTo(map);
+      } else {
+        const el = resumeMarkerRef.current.getElement().querySelector<HTMLDivElement>(
+          ".map-view__resume-marker",
+        );
+        const host = resumeMarkerRef.current.getElement();
+        const target = el ?? (host.classList.contains("map-view__resume-marker") ? host : null);
+        if (target) {
+          target.textContent = resumeAnchor.label;
+          target.title = resumeAnchor.label;
+        }
+        resumeMarkerRef.current.setLngLat(resumeAnchor.lngLat);
+      }
+    } else {
+      resumeMarkerRef.current?.remove();
+      resumeMarkerRef.current = null;
+    }
+  }, [resumeAnchor, mapLoaded]);
 
   /** 경과지 마커(순번 1…3) */
   useEffect(() => {
@@ -3453,6 +3500,11 @@ export function MapView({
   }, [externalCameraJump, mapLoaded, prefersReducedMotion]);
 
   useEffect(() => {
+    if (!mapLoaded || !openRoutePickRequest) return;
+    openRoutePickAtRef.current?.(openRoutePickRequest.lngLat);
+  }, [openRoutePickRequest, mapLoaded]);
+
+  useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
     try {
@@ -3850,6 +3902,11 @@ function buildPickPopup(deps: {
     onClearAutoRouteClickDebugMarker?.();
     getDistanceAutoRouteMapBridge()?.disarm?.();
     onSelectPoint("start", lngLat);
+    queueMicrotask(() => {
+      if (!getDistanceAutoRouteMapBridge()?.distanceDirectionMode) {
+        applyDistanceDirectionMode(false);
+      }
+    });
     pins.start = true;
     selectedStart = lngLat;
     syncProfileUi();
@@ -4355,6 +4412,21 @@ function buildPickPopup(deps: {
       }
     })();
   }
+
+  // App 측 armDirectionPick(anchor extend) 이 popup DOM 보다 먼저 커밋되면 checkbox 가 한 틱 늦게 맞춰진다.
+  queueMicrotask(() => {
+    if (signal.aborted) return;
+    const live = getDistanceAutoRouteMapBridge();
+    if (!live?.distanceDirectionMode) return;
+    if (!pins.start && !selectedStart) return;
+    distanceDirectionChecked = true;
+    if (typeof live.targetKm === "number" && live.targetKm > 0) {
+      syncDistanceInputs(live.targetKm);
+    }
+    syncDistanceModeUi();
+    tryArmDirectionPickIfChecked();
+    onDirectionPickArmed?.();
+  });
 
   return wrap;
 }
