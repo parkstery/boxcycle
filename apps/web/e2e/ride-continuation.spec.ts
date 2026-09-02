@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test'
 import fs from 'node:fs'
 import path from 'node:path'
+import { readGuestUid } from './readGuestUid'
 
 // 다음 주행·이어 달리기 e2e(RIDE-CONTINUE-1 §7.3).
 // 「어제 멈춘 곳이 오늘 앱을 열었을 때 자동으로 다음 출발점이 된다」를 종료→재진입까지 고정한다.
@@ -98,79 +99,6 @@ async function prepareManualRideInput(page: Page, speedKmh = 50) {
   await expect(sheet).toBeHidden()
 }
 
-/**
- * 익명 인증된 게스트의 uid — Firestore fixture 를 그 사용자 소유로 심기 위함.
- * Firebase v9 는 인증 상태를 IndexedDB(`firebaseLocalStorageDb`)에 저장한다 —
- * localStorage 만 뒤지면 못 찾는다(폴백으로만 남겨 둔다).
- */
-async function readGuestUid(page: Page): Promise<string> {
-  let uid: string | null = null
-  await expect
-    .poll(
-      async () => {
-        uid = await page.evaluate(
-          () =>
-            new Promise<string | null>((resolve) => {
-              const fromLocal = (() => {
-                for (let i = 0; i < localStorage.length; i += 1) {
-                  const key = localStorage.key(i)
-                  if (!key || !key.startsWith('firebase:authUser:')) continue
-                  try {
-                    const parsed = JSON.parse(localStorage.getItem(key) ?? '{}') as {
-                      uid?: string
-                    }
-                    if (parsed?.uid) return parsed.uid
-                  } catch {
-                    /* noop */
-                  }
-                }
-                return null
-              })()
-              if (fromLocal) {
-                resolve(fromLocal)
-                return
-              }
-              let settled = false
-              const done = (v: string | null) => {
-                if (!settled) {
-                  settled = true
-                  resolve(v)
-                }
-              }
-              try {
-                const req = indexedDB.open('firebaseLocalStorageDb')
-                req.onerror = () => done(null)
-                req.onsuccess = () => {
-                  try {
-                    const db = req.result
-                    const store = db
-                      .transaction('firebaseLocalStorage', 'readonly')
-                      .objectStore('firebaseLocalStorage')
-                    const all = store.getAll()
-                    all.onsuccess = () => {
-                      const rows = all.result as { fbase_key?: string; value?: { uid?: string } }[]
-                      const row = rows.find(
-                        (r) => typeof r.fbase_key === 'string' && r.fbase_key.startsWith('firebase:authUser:'),
-                      )
-                      done(row?.value?.uid ?? null)
-                    }
-                    all.onerror = () => done(null)
-                  } catch {
-                    done(null)
-                  }
-                }
-              } catch {
-                done(null)
-              }
-            }),
-        )
-        return uid
-      },
-      { timeout: 30_000, message: '게스트 uid 를 찾지 못했다 — 익명 인증이 끝나지 않았다' },
-    )
-    .not.toBeNull()
-  return uid as unknown as string
-}
 
 function doubleArray(v: [number, number]) {
   return { arrayValue: { values: [{ doubleValue: v[0] }, { doubleValue: v[1] }] } }

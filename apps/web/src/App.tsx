@@ -1560,6 +1560,7 @@ export default function App() {
     isSearching,
     setProfile: setAutoRouteProfile,
     disarm,
+    setDistanceDirectionMode,
   } = distanceAutoRoute;
 
   const handleClearPins = useCallback(() => {
@@ -2166,7 +2167,10 @@ export default function App() {
                     const moved =
                       Math.abs(fixed[0] - lngLat[0]) > 1e-6 ||
                       Math.abs(fixed[1] - lngLat[1]) > 1e-6;
-                    if (moved) anchorFixedStartRef.current = null;
+                    if (moved) {
+                      anchorFixedStartRef.current = null;
+                      setDistanceDirectionMode(false);
+                    }
                   }
                   setStartLngLat(lngLat);
                 } else if (type === "end") {

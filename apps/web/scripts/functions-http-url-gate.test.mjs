@@ -38,5 +38,7 @@ describe("functions HTTP URL gate", () => {
   it("functionsEmulatorUrl.ts — functionsHttpUrl export", () => {
     const body = readFileSync(allowedFile, "utf8");
     assert.match(body, /export function functionsHttpUrl/);
+    assert.match(body, /requireFunctionsEmulatorHostWhenEmulatorMode/);
+    assert.match(body, /VITE_FUNCTIONS_EMULATOR_HOST 가 없습니다/);
   });
 });

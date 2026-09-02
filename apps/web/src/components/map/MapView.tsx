@@ -3902,6 +3902,11 @@ function buildPickPopup(deps: {
     onClearAutoRouteClickDebugMarker?.();
     getDistanceAutoRouteMapBridge()?.disarm?.();
     onSelectPoint("start", lngLat);
+    queueMicrotask(() => {
+      if (!getDistanceAutoRouteMapBridge()?.distanceDirectionMode) {
+        applyDistanceDirectionMode(false);
+      }
+    });
     pins.start = true;
     selectedStart = lngLat;
     syncProfileUi();
@@ -4407,6 +4412,21 @@ function buildPickPopup(deps: {
       }
     })();
   }
+
+  // App 측 armDirectionPick(anchor extend) 이 popup DOM 보다 먼저 커밋되면 checkbox 가 한 틱 늦게 맞춰진다.
+  queueMicrotask(() => {
+    if (signal.aborted) return;
+    const live = getDistanceAutoRouteMapBridge();
+    if (!live?.distanceDirectionMode) return;
+    if (!pins.start && !selectedStart) return;
+    distanceDirectionChecked = true;
+    if (typeof live.targetKm === "number" && live.targetKm > 0) {
+      syncDistanceInputs(live.targetKm);
+    }
+    syncDistanceModeUi();
+    tryArmDirectionPickIfChecked();
+    onDirectionPickArmed?.();
+  });
 
   return wrap;
 }
