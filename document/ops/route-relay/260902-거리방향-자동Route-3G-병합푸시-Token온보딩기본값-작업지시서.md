@@ -77,6 +77,8 @@
 3. 문서가 없으면 그대로 두고 "코드 기본값 적용" 사실을 보고에 남긴다.
 4. 이 확인·갱신은 **push 와 별개**다. push 는 진행하되, 배포 전 반드시 처리한다.
 
+**확인 결과(2026-09-02):** 프로젝트 `boxcycle-dc2df` 운영 Firestore — `config/routeTokenEconomy` 문서 **없음**(`exists: false`). 코드 기본값(Guest 10 · 로그인 15) 적용. 갱신 불필요.
+
 ### 3.3 [수정] `mergeUserAuthMeta` 실패 시 Guest 가 15 를 받는다
 
 `routeTokenEnsureOnboarding.ts:43` 에서 `mergeUserAuthMeta(uid).catch(() => {})` 로 실패를 삼킨다. 실패하면 `users/{uid}.isAnonymous` 가 기록되지 않고, `readUserTokenState` 의 `data.isAnonymous === true` 가 `false` 가 되어 **Guest 에게 로그인 금액 15 가 지급**된다. 온보딩은 멱등 1회이므로 **일시적 실패가 영구 과지급**으로 굳는다.
