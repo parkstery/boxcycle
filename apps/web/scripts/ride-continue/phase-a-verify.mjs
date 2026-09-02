@@ -1,6 +1,6 @@
 /**
- * R1 단계 A — 일회성 실동작 확인 (commit 하지 않음).
- * 전제: npm run dev (기본 5001 if 5000 busy)
+ * R1 단계 A — 일회성 실동작 확인.
+ * 전제: emulator + `npm run dev:emulator` (기본 5002, `RIDE_CONTINUE_PHASE_A_BASE_URL` 로 덮어쓰기)
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -11,6 +11,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = path.join(__dirname, ".out", "phase-a");
 const BASE_URL = process.env.RIDE_CONTINUE_PHASE_A_BASE_URL ?? "http://127.0.0.1:5001";
 const RUN_ID = process.env.RIDE_CONTINUE_RUN_ID ?? Date.now().toString(36);
+
+function writeReportJson(reportPath, report) {
+  fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
+}
 
 async function enterAsGuest(page) {
   await page.goto(BASE_URL);
@@ -110,6 +114,95 @@ async function readRouteDockStops(page) {
   return texts;
 }
 
+function parseRouteDockStartLabel(stops) {
+  const start = stops.find((s) => s.startsWith("S\n") || s.startsWith("S\r\n") || s === "S");
+  if (!start) return null;
+  return start.replace(/^S[\r\n]+/, "").trim();
+}
+
+async function collectSummaryActions(page) {
+  const region = page.getByRole("region", { name: "주행 결과" });
+  const summaryOpen = await region.isVisible().catch(() => false);
+  const summaryActions = [];
+  if (!summaryOpen) {
+    return { summaryOpen, summaryActions };
+  }
+  for (const label of ["내 경로로 저장", "저장 안 함"]) {
+    const btn = region.getByRole("button", { name: label });
+    if (await btn.isVisible().catch(() => false)) {
+      summaryActions.push(label);
+    }
+  }
+  if (await region.locator(".ride-summary__close").isVisible().catch(() => false)) {
+    summaryActions.push("닫기");
+  }
+  for (const label of ["지금 새 경로 연결", "끝점에서 새 경로"]) {
+    const btn = region.getByRole("button", { name: label });
+    if (await btn.isVisible().catch(() => false)) {
+      summaryActions.push(label);
+    }
+  }
+  return { summaryOpen, summaryActions };
+}
+
+async function collectIdleAfterRideUi(page) {
+  const nextRideCardExists =
+    (await page.getByRole("region", { name: "다음 주행" }).isVisible().catch(() => false)) ||
+    (await page.locator(".next-ride-anchor").isVisible().catch(() => false));
+  const routeDockStops = await readRouteDockStops(page);
+  return {
+    nextRideCardExists,
+    routeDockStops,
+    routeDockStartLabel: parseRouteDockStartLabel(routeDockStops),
+    hasNextRideUi: nextRideCardExists,
+  };
+}
+
+async function closeRideSummarySheet(page) {
+  const region = page.getByRole("region", { name: "주행 결과" });
+  if (!(await region.isVisible().catch(() => false))) return false;
+
+  const closeBtn = region.locator(".ride-summary__close");
+  if (await closeBtn.isVisible().catch(() => false)) {
+    await closeBtn.click();
+  } else {
+    await region.locator(".ride-summary__scrim").click({ force: true });
+  }
+  await page.waitForTimeout(1500);
+
+  return !(await region.isVisible().catch(() => true));
+}
+
+async function measureAfterRideEnd(page, labelPrefix) {
+  await page.waitForTimeout(4000);
+
+  const whileOpen = await collectSummaryActions(page);
+  const idleWhileOpen = await collectIdleAfterRideUi(page);
+
+  const afterEndWhileSheetOpen = {
+    rideSummaryOpen: whileOpen.summaryOpen,
+    summaryActions: whileOpen.summaryActions,
+    routeDockStops: idleWhileOpen.routeDockStops,
+    routeDockStartLabel: idleWhileOpen.routeDockStartLabel,
+    nextRideCardExists: idleWhileOpen.nextRideCardExists,
+    hasNextRideUi: idleWhileOpen.hasNextRideUi,
+  };
+
+  const closed = await closeRideSummarySheet(page);
+  await page.waitForTimeout(1500);
+
+  const idleAfterClose = await collectIdleAfterRideUi(page);
+  const afterEndAfterSheetClosed = {
+    summaryClosed: closed,
+    routeDockStops: idleAfterClose.routeDockStops,
+    routeDockStartLabel: idleAfterClose.routeDockStartLabel,
+    nextRideCardExists: idleAfterClose.nextRideCardExists,
+    hasNextRideUi: idleAfterClose.hasNextRideUi,
+  };
+
+  return { afterEndWhileSheetOpen, afterEndAfterSheetClosed, labelPrefix };
+}
+
 async function screenshot(page, name, report) {
   const p = path.join(OUT_DIR, `${RUN_ID}-${name}.png`);
   await page.screenshot({ path: p, fullPage: false });
@@ -125,7 +218,8 @@ async function main() {
     checks: {},
     autoRoute: null,
     savedRoute: null,
-    afterEnd: null,
+    savedRouteEnd: null,
+    adhocEnd: null,
     artifacts: [],
   };
 
@@ -147,7 +241,6 @@ async function main() {
     };
     await screenshot(page, "01-auto-route-applied", report);
 
-    // Check 2: save
     const saveName = `r1-phase-a-${RUN_ID}`;
     await page.getByRole("button", { name: "내 경로로 저장" }).click();
     await page.locator(".route-dock__save-input").fill(saveName);
@@ -168,46 +261,29 @@ async function main() {
     await page.keyboard.press("Escape");
     await page.waitForTimeout(500);
 
-    // Check 1: Go → running
     const go = page.getByRole("button", { name: "주행 시작" });
     report.checks.goEnabled = await go.isEnabled();
     await go.click();
-    // 유효 Ride(>100m·>5s) — 체험 5km/h 기준 약 80초
     await page.waitForTimeout(80_000);
     report.checks.rideRunning =
       (await page.getByRole("group", { name: "주행 지표" }).isVisible().catch(() => false)) &&
       (await page.getByRole("button", { name: "주행 종료" }).isVisible().catch(() => false));
     await screenshot(page, "04-running", report);
 
-    // End ride
     await page.getByRole("button", { name: "주행 종료" }).click();
-    await page.waitForTimeout(4000);
-
-    const summaryOpen = await page.getByRole("region", { name: "주행 결과" }).isVisible().catch(() => false);
-    report.checks.rideSummaryOpen = summaryOpen;
-    report.checks.nextRideCardExists = (await page.getByText("다음 주행").count()) > 0;
-    const dockStops = await readRouteDockStops(page);
-    const summaryActions = [];
-    if (summaryOpen) {
-      if (await page.getByRole("button", { name: "내 경로로 저장" }).isVisible().catch(() => false)) {
-        summaryActions.push("내 경로로 저장");
-      }
-      if (await page.getByText("저장 안 함").isVisible().catch(() => false)) {
-        summaryActions.push("저장 안 함");
-      }
-      if (await page.getByRole("button", { name: "닫기" }).isVisible().catch(() => false)) {
-        summaryActions.push("닫기");
-      }
-    }
-    report.afterEnd = {
-      routeDockStops: dockStops,
-      summaryOpen,
-      summaryActions,
-      hasNextRideUi: report.checks.nextRideCardExists,
+    const savedEnd = await measureAfterRideEnd(page, "saved");
+    report.savedRouteEnd = {
+      afterEndWhileSheetOpen: savedEnd.afterEndWhileSheetOpen,
+      afterEndAfterSheetClosed: savedEnd.afterEndAfterSheetClosed,
     };
-    await screenshot(page, "05-after-end-saved-route", report);
+    report.checks.rideSummaryOpen = savedEnd.afterEndWhileSheetOpen.rideSummaryOpen;
+    report.checks.nextRideCardExistsWhileSheetOpen =
+      savedEnd.afterEndWhileSheetOpen.nextRideCardExists;
+    report.checks.nextRideCardExistsAfterSheetClosed =
+      savedEnd.afterEndAfterSheetClosed.nextRideCardExists;
+    await screenshot(page, "05-after-end-saved-while-open", report);
+    await screenshot(page, "05b-after-end-saved-closed", report);
 
-    // Check 3: ad-hoc 주행 종료 — 결과 시트·startLngLat (저장 없이)
     await page.goto(BASE_URL);
     await page.waitForTimeout(2000);
     const gateAgain = page.getByRole("dialog", { name: "시작" });
@@ -223,30 +299,21 @@ async function main() {
     await go2.click();
     await page.waitForTimeout(80_000);
     await page.getByRole("button", { name: "주행 종료" }).click();
-    await page.waitForTimeout(5000);
-
-    const summaryOpenAdhoc = await page.getByRole("region", { name: "주행 결과" }).isVisible().catch(() => false);
-    const summaryActionsAdhoc = [];
-    if (summaryOpenAdhoc) {
-      for (const label of ["내 경로로 저장", "저장 안 함", "닫기"]) {
-        if (await page.getByRole("button", { name: label }).isVisible().catch(() => false)) {
-          summaryActionsAdhoc.push(label);
-        }
-      }
-    }
-    const dockStopsAdhoc = await readRouteDockStops(page);
-    report.afterEndAdhoc = {
-      routeDockStops: dockStopsAdhoc,
-      summaryOpen: summaryOpenAdhoc,
-      summaryActions: summaryActionsAdhoc,
-      hasNextRideUi: (await page.getByText("다음 주행").count()) > 0,
+    const adhocEnd = await measureAfterRideEnd(page, "adhoc");
+    report.adhocEnd = {
+      afterEndWhileSheetOpen: adhocEnd.afterEndWhileSheetOpen,
+      afterEndAfterSheetClosed: adhocEnd.afterEndAfterSheetClosed,
     };
-    report.checks.rideSummaryOpenAdhoc = summaryOpenAdhoc;
-    report.checks.nextRideCardExistsAdhoc = report.afterEndAdhoc.hasNextRideUi;
-    await screenshot(page, "07-after-end-adhoc", report);
+    report.checks.rideSummaryOpenAdhoc = adhocEnd.afterEndWhileSheetOpen.rideSummaryOpen;
+    report.checks.nextRideCardExistsAdhocWhileSheetOpen =
+      adhocEnd.afterEndWhileSheetOpen.nextRideCardExists;
+    report.checks.nextRideCardExistsAdhocAfterSheetClosed =
+      adhocEnd.afterEndAfterSheetClosed.nextRideCardExists;
+    await screenshot(page, "07-after-end-adhoc-while-open", report);
+    await screenshot(page, "07b-after-end-adhoc-closed", report);
 
     const reportPath = path.join(OUT_DIR, `${RUN_ID}-report.json`);
-    fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
+    writeReportJson(reportPath, report);
     console.log(JSON.stringify(report, null, 2));
     console.log(`[phase-a] report: ${reportPath}`);
   } finally {
