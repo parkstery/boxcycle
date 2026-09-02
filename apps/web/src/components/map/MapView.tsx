@@ -3872,7 +3872,8 @@ function buildPickPopup(deps: {
     mapBridge?.distanceDirectionMode ?? autoSessionActive;
 
   function getRouteStart(): LngLat | null {
-    return selectedStart ?? initialStart;
+    const armed = getDistanceAutoRouteMapBridge()?.getArmedStart?.() ?? null;
+    return armed ?? selectedStart ?? initialStart;
   }
 
   function previewCircleForTargetKm(km: number) {
@@ -4418,7 +4419,13 @@ function buildPickPopup(deps: {
     if (signal.aborted) return;
     const live = getDistanceAutoRouteMapBridge();
     if (!live?.distanceDirectionMode) return;
-    if (!pins.start && !selectedStart) return;
+    const armed = live.getArmedStart?.() ?? null;
+    if (armed) {
+      selectedStart = armed;
+      pins.start = true;
+    } else if (!pins.start && !selectedStart) {
+      return;
+    }
     distanceDirectionChecked = true;
     if (typeof live.targetKm === "number" && live.targetKm > 0) {
       syncDistanceInputs(live.targetKm);
