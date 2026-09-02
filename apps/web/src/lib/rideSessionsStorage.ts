@@ -22,6 +22,14 @@ export type StoredRideSession = {
   startPlaceLabel?: string;
   /** 도착지 역지오코딩. */
   endPlaceLabel?: string;
+  /** 이번 세션 실제 시작 좌표(geometry 위). legacy 문서는 null. */
+  sessionStartLngLat?: LngLat | null;
+  /** 이번 세션 실제 종료 좌표(geometry 위). */
+  sessionEndLngLat?: LngLat | null;
+  sessionStartRouteMeters?: number | null;
+  sessionEndRouteMeters?: number | null;
+  sessionStartProgressRatio?: number | null;
+  sessionEndProgressRatio?: number | null;
 };
 
 export function loadRideSessions(): StoredRideSession[] {

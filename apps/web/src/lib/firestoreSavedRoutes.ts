@@ -4,12 +4,14 @@ import {
   deleteDoc,
   doc,
   getDocs,
+  getDoc,
   increment,
   limit,
   query,
   serverTimestamp,
   Timestamp,
   updateDoc,
+  runTransaction,
   where,
 } from "firebase/firestore";
 import { getFirebaseFirestore } from "./firebase";
@@ -390,6 +392,18 @@ async function findExistingSavedRouteIdByFingerprint(
 /** 저장 결과 — `deduped=true` 면 새 문서를 만들지 않고 같은 경로의 기존 문서를 갱신했다는 뜻. */
 export type SaveRouteResult = SavedRoute & { deduped: boolean };
 
+/** Firestore 진행률 갱신 시 단조 max — completed=1 이면 null(갱신 안 함). */
+export function mergeSavedRouteProgressRatio(
+  existingCompleted: 0 | 1 | undefined,
+  existingRatio: number,
+  incomingRatio: number,
+): number | null {
+  if (existingCompleted === 1) return null;
+  const prev = Number.isFinite(existingRatio) ? Math.max(0, Math.min(1, existingRatio)) : 0;
+  const next = Number.isFinite(incomingRatio) ? Math.max(0, Math.min(1, incomingRatio)) : 0;
+  return Math.max(prev, next);
+}
+
 export async function saveRouteToFirestore(
   input: SaveRouteInput,
   authUser: User,
@@ -410,6 +424,10 @@ export async function saveRouteToFirestore(
       throw new SavedRouteDuplicateError(existingId);
     }
     const nowIso = new Date().toISOString();
+    const existingSnap = await getDoc(doc(db, SAVED_ROUTES_COLLECTION, existingId));
+    const existing = existingSnap.exists()
+      ? fromDoc(existingId, existingSnap.data() as Partial<SavedRouteDoc>)
+      : null;
     await updateDoc(doc(db, SAVED_ROUTES_COLLECTION, existingId), {
       updatedAt: serverTimestamp(),
       lastSavedAt: serverTimestamp(),
@@ -419,21 +437,25 @@ export async function saveRouteToFirestore(
     });
     return {
       id: existingId,
-      name,
-      profile: input.profile,
-      startLngLat: input.startLngLat,
-      endLngLat: input.endLngLat,
-      waypoints,
-      geometry: input.geometry,
-      distanceMeters: input.distanceMeters,
-      durationSec: input.durationSec,
-      createdAtIso: nowIso,
+      name: existing?.name ?? name,
+      profile: existing?.profile ?? input.profile,
+      startLngLat: existing?.startLngLat ?? input.startLngLat,
+      endLngLat: existing?.endLngLat ?? input.endLngLat,
+      waypoints: existing?.waypoints ?? waypoints,
+      geometry: existing?.geometry ?? input.geometry,
+      distanceMeters: existing?.distanceMeters ?? input.distanceMeters,
+      durationSec: existing?.durationSec ?? input.durationSec,
+      createdAtIso: existing?.createdAtIso ?? nowIso,
       updatedAtIso: nowIso,
-      completed: 0,
-      completedAtIso: null,
-      expiresAtIso: new Date(Date.now() + SAVED_ROUTE_EXPIRY_MS).toISOString(),
-      lastRideId: null,
-      lastProgressRatio: 0,
+      completed: existing?.completed ?? 0,
+      completedAtIso: existing?.completedAtIso ?? null,
+      expiresAtIso:
+        existing?.completed === 1
+          ? null
+          : (existing?.expiresAtIso ??
+            new Date(Date.now() + SAVED_ROUTE_EXPIRY_MS).toISOString()),
+      lastRideId: existing?.lastRideId ?? null,
+      lastProgressRatio: existing?.lastProgressRatio ?? 0,
       deduped: true,
     };
   }
@@ -519,12 +541,28 @@ export async function updateSavedRouteProgressInFirestore(input: {
   progressRatio: number;
 }): Promise<void> {
   const db = getFirebaseFirestore();
-  const ratio = Math.max(0, Math.min(1, Number(input.progressRatio) || 0));
-  await updateDoc(doc(db, SAVED_ROUTES_COLLECTION, input.routeId), {
-    userId: input.userId,
-    lastRideId: input.rideId,
-    lastProgressRatio: ratio,
-    updatedAt: serverTimestamp(),
+  const ref = doc(db, SAVED_ROUTES_COLLECTION, input.routeId);
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists()) return;
+    const data = snap.data() as Partial<SavedRouteDoc>;
+    const existingCompleted = data.completed === 1 ? 1 : 0;
+    const existingRatio =
+      typeof data.lastProgressRatio === "number" && Number.isFinite(data.lastProgressRatio)
+        ? data.lastProgressRatio
+        : 0;
+    const merged = mergeSavedRouteProgressRatio(
+      existingCompleted,
+      existingRatio,
+      input.progressRatio,
+    );
+    if (merged == null) return;
+    tx.update(ref, {
+      userId: input.userId,
+      lastRideId: input.rideId,
+      lastProgressRatio: merged,
+      updatedAt: serverTimestamp(),
+    });
   });
 }
 

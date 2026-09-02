@@ -20,6 +20,7 @@ import { formatLngLat } from "../lib/geo";
 import { MAX_ROUTE_WAYPOINTS } from "../lib/routeWaypoints";
 import { safeRideSpeechCancel } from "../lib/rideSpeech";
 import { loadRideSessions, saveRideSessions, type StoredRideSession } from "../lib/rideSessionsStorage";
+import { computeRideSessionAnchor } from "../lib/rideSessionAnchor";
 import { isDiscardableRideRecord, isRouteCompletion } from "../lib/rideRecordPolicy";
 import {
   loadSavedRoutesFromLocal,
@@ -34,7 +35,7 @@ import {
   resolvePublishedRouteLinkByPublicationId,
   type RouteRideEntry,
 } from "../lib/routePublicationResolve";
-import type { LastEndedAdhocState } from "./useSavedRoutesWorkspace";
+import type { LastEndedAdhocState, LastRideEndSummary } from "./useSavedRoutesWorkspace";
 import type { RideMetricsUi, RideSessionStatus } from "./useVirtualRideSession";
 
 export type UseRideEndAndPersistenceOptions = {
@@ -80,6 +81,8 @@ export type UseRideEndAndPersistenceOptions = {
   publishedCatalogRef?: RefObject<readonly PublishedPublicCourseSummary[]>;
   setSavedRoutes: Dispatch<SetStateAction<SavedRoute[]>>;
   setLastEndedWasAdhoc: Dispatch<SetStateAction<LastEndedAdhocState | null>>;
+  setLastRideEndSummary?: Dispatch<SetStateAction<LastRideEndSummary | null>>;
+  onOpenRideSummary?: () => void;
   setRecentSessions: Dispatch<SetStateAction<StoredRideSession[]>>;
 };
 
@@ -116,6 +119,8 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     publishedCatalogRef,
     setSavedRoutes,
     setLastEndedWasAdhoc,
+    setLastRideEndSummary,
+    onOpenRideSummary,
     setRecentSessions,
   } = options;
 
@@ -154,6 +159,13 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
           : formatLngLat(endLngLat)
         : undefined;
 
+    const sessionAnchor = computeRideSessionAnchor({
+      geometry: routeGeometry,
+      routeDistanceMeters,
+      virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
+      startOffsetMeters,
+    });
+
     const record: StoredRideSession = {
       id: crypto.randomUUID(),
       endedAt: new Date().toISOString(),
@@ -171,6 +183,12 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
       completionRatio,
       startPlaceLabel: startPlaceSnapshot,
       endPlaceLabel: endPlaceSnapshot,
+      sessionStartLngLat: sessionAnchor.sessionStartLngLat,
+      sessionEndLngLat: sessionAnchor.sessionEndLngLat,
+      sessionStartRouteMeters: sessionAnchor.sessionStartRouteMeters,
+      sessionEndRouteMeters: sessionAnchor.sessionEndRouteMeters,
+      sessionStartProgressRatio: sessionAnchor.sessionStartProgressRatio,
+      sessionEndProgressRatio: sessionAnchor.sessionEndProgressRatio,
     };
     if (!user) {
       setRideStatus("idle");
@@ -475,6 +493,21 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
       onRideEndedWithPublication?.(publicationIdAtEnd);
     }
 
+    if (!discardRecord && setLastRideEndSummary) {
+      const previousProgressRatio = savedRouteIdAtEnd
+        ? Math.max(0, Math.min(1, loadedSavedRouteProgressRef?.current ?? 0))
+        : null;
+      setLastRideEndSummary({
+        distanceMeters: sessionDistanceMeters,
+        elapsedSec,
+        completionRatio: routeDistanceMeters > 0 ? completionRatio : null,
+        previousProgressRatio,
+        routeName: savedRouteNameAtEnd,
+        arrivalCompleted: isRouteCompletion(completionRatio),
+      });
+      onOpenRideSummary?.();
+    }
+
     setRideStatus("idle");
   }, [
     mapboxAccessToken,
@@ -503,6 +536,8 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     publishedCatalogRef,
     setSavedRoutes,
     setLastEndedWasAdhoc,
+    setLastRideEndSummary,
+    onOpenRideSummary,
     setRecentSessions,
     onRideEndedWithPublication,
     onRidePersistedToFirestore,

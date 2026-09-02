@@ -26,6 +26,15 @@ import { formatDuration, type RouteProfile } from "../services/mapboxDirections"
 import type { PublishedRouteLink } from "../lib/routePublicationResolve";
 import type { RideSessionStatus } from "./useVirtualRideSession";
 
+export type LastRideEndSummary = {
+  distanceMeters: number;
+  elapsedSec: number;
+  completionRatio: number | null;
+  previousProgressRatio: number | null;
+  routeName: string | null;
+  arrivalCompleted: boolean;
+};
+
 export type LastEndedAdhocState = {
   distanceMeters: number;
   durationSec: number;
@@ -107,6 +116,7 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
    */
   const loadedSavedRouteProgressRef = useRef(0);
   const [lastEndedWasAdhoc, setLastEndedWasAdhoc] = useState<LastEndedAdhocState | null>(null);
+  const [lastRideEndSummary, setLastRideEndSummary] = useState<LastRideEndSummary | null>(null);
 
   const clearLoadedRouteAndAdhoc = useCallback(() => {
     loadedSavedRouteIdRef.current = null;
@@ -200,7 +210,7 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
       );
       loadedSavedRouteIdRef.current = saved.id;
       loadedSavedRouteNameRef.current = saved.name;
-      loadedSavedRouteProgressRef.current = 0;
+      loadedSavedRouteProgressRef.current = saved.lastProgressRatio ?? 0;
       setRouteSummary(
         saved.deduped
           ? "이미 저장된 경로입니다 — 기존 항목의 주행 기록을 갱신했어요."
@@ -406,6 +416,8 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
     loadedSavedRouteProgressRef,
     lastEndedWasAdhoc,
     setLastEndedWasAdhoc,
+    lastRideEndSummary,
+    setLastRideEndSummary,
     clearLoadedRouteAndAdhoc,
     handleSaveCurrentRoute,
     handleSaveAdhocAsUserRoute,

@@ -527,6 +527,8 @@ export default function App() {
     loadedSavedRouteProgressRef,
     lastEndedWasAdhoc,
     setLastEndedWasAdhoc,
+    lastRideEndSummary,
+    setLastRideEndSummary,
     handleSaveCurrentRoute,
     handleSaveAdhocAsUserRoute,
     handleLoadSavedRoute,
@@ -620,6 +622,8 @@ export default function App() {
     publishedCatalogRef,
     setSavedRoutes,
     setLastEndedWasAdhoc,
+    setLastRideEndSummary,
+    onOpenRideSummary: () => setSummarySheetVisible(true),
     setRecentSessions,
     onRideEndedWithPublication,
     onRidePersistedToFirestore,
@@ -1469,7 +1473,9 @@ export default function App() {
   void rideWorkspaceOpen;
 
   // ===== Map-first stage 머신 =====
-  const summaryVisible = summarySheetVisible && (arrivalToastTick > 0 || lastEndedWasAdhoc !== null);
+  const summaryVisible =
+    summarySheetVisible &&
+    (arrivalToastTick > 0 || lastEndedWasAdhoc !== null || lastRideEndSummary !== null);
   const needsGuestEntry =
     configured &&
     authInitialized &&
@@ -1664,6 +1670,7 @@ export default function App() {
     setSummarySheetVisible(false);
     resetArrivalToast();
     setLastEndedWasAdhoc(null);
+    setLastRideEndSummary(null);
   }
 
   function handleModifyFromPause() {
@@ -1671,13 +1678,35 @@ export default function App() {
     openMenuPanel();
   }
 
-  const elapsedLabel = formatElapsedFromMs(rideMetrics.accumulatedMs);
   /** HUD 거리·종료 요약·기록용 — 이번 세션 실주행 거리(오늘 N km, 재개 시 offset 차감) */
   const sessionDistanceMeters = Math.max(
     0,
     rideMetrics.virtualDistanceMeters - sessionStartOffsetMeters,
   );
+  const elapsedLabel = formatElapsedFromMs(rideMetrics.accumulatedMs);
   const sessionDistanceKmLabel = (sessionDistanceMeters / 1000).toFixed(2);
+  const summarySessionDistanceKmLabel = lastRideEndSummary
+    ? (lastRideEndSummary.distanceMeters / 1000).toFixed(2)
+    : sessionDistanceKmLabel;
+  const summaryElapsedLabel = lastRideEndSummary
+    ? formatElapsedFromMs(lastRideEndSummary.elapsedSec * 1000)
+    : elapsedLabel;
+  const summaryAvgKmh =
+    lastRideEndSummary && lastRideEndSummary.elapsedSec > 0
+      ? (
+          (lastRideEndSummary.distanceMeters / 1000) /
+          (lastRideEndSummary.elapsedSec / 3600)
+        ).toFixed(1)
+      : avgSpeedLabel;
+  const summarySavedRouteProgress =
+    lastRideEndSummary?.previousProgressRatio != null &&
+    lastRideEndSummary.completionRatio != null
+      ? {
+          fromPct: Math.round(lastRideEndSummary.previousProgressRatio * 100),
+          toPct: Math.round(lastRideEndSummary.completionRatio * 100),
+          routeName: lastRideEndSummary.routeName,
+        }
+      : null;
   // 저장 폼 기본 이름 제안 — "출발지 → 도착지 · 거리"(역지오코딩된 지명 + 저장될 경로 거리).
   // 거리는 세션 주행 거리가 아니라 저장 대상 경로 거리를 써서 이름이 경로를 안정적으로 식별하게 한다.
   const suggestedRouteName = buildSuggestedRouteName({
@@ -2210,12 +2239,13 @@ export default function App() {
 
       <RideSummarySheet
         open={summaryVisible}
-        arrivalCompleted={arrivalToastTick > 0}
-        elapsedLabel={elapsedLabel}
-        distanceKm={sessionDistanceKmLabel}
-        avgKmh={avgSpeedLabel}
+        arrivalCompleted={arrivalToastTick > 0 || Boolean(lastRideEndSummary?.arrivalCompleted)}
+        elapsedLabel={summaryElapsedLabel}
+        distanceKm={summarySessionDistanceKmLabel}
+        avgKmh={summaryAvgKmh}
         caloriesEstimate={caloriesEstimate}
         conquestLine={conquestSummaryLine}
+        savedRouteProgress={summarySavedRouteProgress}
         adhocSaveAvailable={lastEndedWasAdhoc !== null}
         maxNameLength={SAVED_ROUTE_NAME_MAX}
         suggestedName={suggestedRouteName}

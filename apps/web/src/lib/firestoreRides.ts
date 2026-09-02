@@ -11,6 +11,7 @@ import {
 } from "firebase/firestore";
 import { getFirebaseFirestore } from "./firebase";
 import type { ConquestRidePayload } from "./conquestTiles";
+import type { LngLat } from "./geo";
 import { buildRideCanonicalWriteFields, resolveRideRouteId } from "./rideDocFields";
 import type { RouteRideEntry } from "./routePublicationResolve";
 import type { StoredRideSession } from "./rideSessionsStorage";
@@ -46,6 +47,12 @@ type RideDoc = {
   completionRatio?: number;
   startPlaceLabel?: string | null;
   endPlaceLabel?: string | null;
+  sessionStartLngLat?: LngLat | null;
+  sessionEndLngLat?: LngLat | null;
+  sessionStartRouteMeters?: number | null;
+  sessionEndRouteMeters?: number | null;
+  sessionStartProgressRatio?: number | null;
+  sessionEndProgressRatio?: number | null;
   /** Conquest(정복) 페이로드 — CF `conquestOnRideCreated` 가 한도 적용 후 집계. null = 미계산 */
   conquest?: ConquestRidePayload | null;
 };
@@ -122,6 +129,12 @@ export async function saveRideSessionToFirestore(input: {
       typeof input.session.endPlaceLabel === "string" && input.session.endPlaceLabel.trim().length > 0
         ? input.session.endPlaceLabel.trim()
         : null,
+    sessionStartLngLat: input.session.sessionStartLngLat ?? null,
+    sessionEndLngLat: input.session.sessionEndLngLat ?? null,
+    sessionStartRouteMeters: input.session.sessionStartRouteMeters ?? null,
+    sessionEndRouteMeters: input.session.sessionEndRouteMeters ?? null,
+    sessionStartProgressRatio: input.session.sessionStartProgressRatio ?? null,
+    sessionEndProgressRatio: input.session.sessionEndProgressRatio ?? null,
     conquest: input.conquest ?? null,
   };
 
@@ -192,6 +205,18 @@ export async function loadRideSessionsForStatsFromFirestore(
           typeof data.endPlaceLabel === "string" && data.endPlaceLabel.trim().length > 0
             ? data.endPlaceLabel.trim()
             : undefined,
+        sessionStartLngLat: Array.isArray(data.sessionStartLngLat) ? data.sessionStartLngLat : null,
+        sessionEndLngLat: Array.isArray(data.sessionEndLngLat) ? data.sessionEndLngLat : null,
+        sessionStartRouteMeters:
+          typeof data.sessionStartRouteMeters === "number" ? data.sessionStartRouteMeters : null,
+        sessionEndRouteMeters:
+          typeof data.sessionEndRouteMeters === "number" ? data.sessionEndRouteMeters : null,
+        sessionStartProgressRatio:
+          typeof data.sessionStartProgressRatio === "number"
+            ? data.sessionStartProgressRatio
+            : null,
+        sessionEndProgressRatio:
+          typeof data.sessionEndProgressRatio === "number" ? data.sessionEndProgressRatio : null,
       };
     })
     .filter((s) => !isDiscardableRideRecord(s.distanceMeters, s.elapsedSec));

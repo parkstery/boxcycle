@@ -7,6 +7,7 @@ import {
   loadRideSessions,
   type StoredRideSession,
 } from "../../lib/rideSessionsStorage";
+import { isRouteCompletion } from "../../lib/rideRecordPolicy";
 import "./RideHistoryPanel.css";
 
 export type RideHistoryPanelProps = {
@@ -112,7 +113,7 @@ export function RideHistoryPanel(props: RideHistoryPanelProps) {
               typeof r.completionRatio === "number"
                 ? Math.round(r.completionRatio * 100)
                 : null;
-            const isCompleted = ratioPct !== null && ratioPct >= 95;
+            const isCompleted = ratioPct !== null && isRouteCompletion(r.completionRatio!);
             const titleName = r.routeName ?? "(이름 없는 경로)";
             return (
               <li key={r.id} className="ride-history__item">

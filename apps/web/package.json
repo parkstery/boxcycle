@@ -36,6 +36,7 @@
     "test:s43-meters": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/s43/touch-meters.test.ts",
     "test:route-token": "node scripts/route-token/launch-route-token-harness.mjs",
     "test:functions-http-url-gate": "node --test scripts/functions-http-url-gate.test.mjs",
+    "test:ride-continue-progress": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/ride-continue/saved-route-progress-contract.test.ts scripts/ride-continue/ride-session-anchor-contract.test.ts",
     "test:e2e:u2": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test u2-map-render-tick --workers=1\"",
     "test:e2e:u3": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test u3-camera-trace --workers=1\"",
     "test:e2e:u5": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test u5-shots --workers=1\"",

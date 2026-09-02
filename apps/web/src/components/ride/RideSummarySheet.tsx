@@ -14,6 +14,12 @@ type RideSummarySheetProps = {
   conquestLine?: string | null;
   /** ad-hoc(저장 안 한 채) 주행이 직전에 종료되어 「사용자 경로로 저장」 액션이 가능한 상태인지 */
   adhocSaveAvailable: boolean;
+  /** 미완주 SavedRoute — 전체 진행률 변화(이전→이번) */
+  savedRouteProgress?: {
+    fromPct: number;
+    toPct: number;
+    routeName: string | null;
+  } | null;
   /** 저장 길이 제한 */
   maxNameLength: number;
   /** 자동 제안 이름(출발→도착·거리) — 입력란 초기값으로 미리 채운다. 지명 비동기 도착 시 갱신될 수 있음 */
@@ -135,6 +141,17 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
         {props.conquestLine ? (
           <p className="ride-summary__conquest" role="status" aria-live="polite">
             ⚑ {props.conquestLine}
+          </p>
+        ) : null}
+
+        {props.savedRouteProgress ? (
+          <p className="ride-summary__progress" role="status">
+            전체 진행 {props.savedRouteProgress.fromPct}% → {props.savedRouteProgress.toPct}%
+            {props.savedRouteProgress.routeName
+              ? ` · ${props.savedRouteProgress.routeName}`
+              : ""}
+            <br />
+            다음 출발점이 저장되었습니다
           </p>
         ) : null}
 
