@@ -1,4 +1,5 @@
 import type { User } from "firebase/auth";
+import { functionsHttpUrl } from "./functionsEmulatorUrl";
 
 export type TierQuotaAction = "save_route" | "public_route_request" | "create_event";
 
@@ -90,12 +91,11 @@ export async function assertTierQuotaClient(
   action: TierQuotaAction,
 ): Promise<TierQuotaCheckResult> {
   const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID?.trim();
-  const region = import.meta.env.VITE_FUNCTIONS_REGION?.trim() || "asia-northeast3";
   if (!projectId) {
     throw new Error("Firebase 프로젝트가 설정되지 않았습니다.");
   }
 
-  const url = `https://${region}-${projectId}.cloudfunctions.net/assertTierQuotaHttp`;
+  const url = functionsHttpUrl("assertTierQuotaHttp");
   const idToken = await user.getIdToken();
   const res = await fetch(url, {
     method: "POST",

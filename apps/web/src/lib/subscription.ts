@@ -1,5 +1,6 @@
 import type { User } from "firebase/auth";
 import type { UserTier } from "./firestoreUser";
+import { functionsHttpUrl } from "./functionsEmulatorUrl";
 
 export type SubscriptionStatus = "none" | "active" | "past_due" | "canceled";
 
@@ -11,15 +12,6 @@ export type SubscriptionMe = {
   canCheckout: boolean;
   canManagePortal: boolean;
 };
-
-function functionsBaseUrl(): string {
-  const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID?.trim();
-  const region = import.meta.env.VITE_FUNCTIONS_REGION?.trim() || "asia-northeast3";
-  if (!projectId) {
-    throw new Error("Firebase 프로젝트가 설정되지 않았습니다.");
-  }
-  return `https://${region}-${projectId}.cloudfunctions.net`;
-}
 
 function parseErrorMessage(json: unknown, fallback: string): string {
   if (typeof json === "object" && json !== null && "error" in json) {
@@ -35,7 +27,7 @@ async function authedJson<T>(
   init?: RequestInit,
 ): Promise<T> {
   const idToken = await user.getIdToken();
-  const res = await fetch(`${functionsBaseUrl()}/${path}`, {
+  const res = await fetch(functionsHttpUrl(path), {
     ...init,
     headers: {
       "Content-Type": "application/json",
