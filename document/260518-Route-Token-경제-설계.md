@@ -72,7 +72,7 @@
 | 항목 | 상태 |
 |------|------|
 | `routeTokenLedger` / `users.routeTokenBalance` | **구현** |
-| 온보딩 +3, 완주 적립, 일일 상한(KST) | **구현** (`routeTokenOnRideCreated` 등) |
+| 온보딩 +3, 완주 적립, 일일 상한(KST) | **구현** (`routeTokenOnRideCreated` 등) — 온보딩 수치는 **Guest 10 · 로그인 15** 로 갱신(2026-09-02, [3G](ops/route-relay/260902-거리방향-자동Route-3G-병합푸시-Token온보딩기본값-작업지시서.md)) |
 | `getMapboxDirections` 선차감·환불 | **구현** (기술·비용 게이트) |
 | UI MENU 「경로 토큰 N」 | **구현** |
 | 마일리지(누적 이력) | **미구현** — §4 |
@@ -160,7 +160,7 @@ flowchart LR
 |------|------|------|
 | 완주 거리 기반 | **기본** | `earnPerKm` 소량 (§5.4) |
 | 입문 코스 완주 | **소보너스** | 온보딩·첫 습관 |
-| 온보딩 1회 | **시작 3개** | 첫 경로 체험용 — **잠금 해제용이 아니라 환영** 톤 |
+| 온보딩 1회 | **시작 토큰** | Guest **10** · 로그인 **15** — **잠금 해제용이 아니라 환영** 톤 |
 | **약한 랜덤** (§3.5) | **작은惊喜** | 「오늘 +3」「주말 보너스」 수준 |
 | 연속 N일 라이딩 | **스트릭 보너스** (후속) | RPG보다 **행동 유도**에 가깝 |
 
@@ -219,7 +219,7 @@ v2 `tokenDrops`는 **고정 메타 + 완주 1회 클레임** — 지도에 파�
 
 ## 5. 획득·소비 규칙 (수치 — config)
 
-> 수치는 `config/routeTokenEconomy` · [시드 JSON](config-routeTokenEconomy.seed.json). PM 합의 시 config만 갱신.
+> 수치는 `config/routeTokenEconomy` · [시드 JSON](config-routeTokenEconomy.seed.json). **Firestore `config/routeTokenEconomy` 문서가 존재하면 문서 필드가 코드 기본값보다 우선**한다(필드 누락 시에만 코드·시드 fallback). PM 합의 시 config만 갱신.
 
 ### 5.1 소비 (M1 — 기술 게이트)
 
@@ -233,7 +233,7 @@ v2 `tokenDrops`는 **고정 메타 + 완주 1회 클레임** — 지도에 파�
 
 | 소스 | `reason` | 초안 |
 |------|----------|------|
-| 온보딩 | `onboarding` | **+3** (1회) |
+| 온보딩 | `onboarding` | Guest **+10** · 로그인 **+15** (1회, `guestOnboardingGrant` / `onboardingGrant`) |
 | 완주 | `ride_complete` | `floor(km × 0.15)` |
 | 입문 | `ride_complete_intro` | **+2** |
 | 약한 보너스 | `daily_bonus` 등 | **후속** — reason 추가 |
@@ -281,8 +281,8 @@ M1 스키마는 **유지** (`routeTokenLedger`, `users.routeTokenBalance`, `conf
 
 ### 7.3 M1 스모크 (기술)
 
-1. 신규 로그인 → 잔액 3.  
-2. 경로 생성 3회 → 0 → 4회째 거부.  
+1. 신규 Guest → 잔액 10 · 신규 로그인 → 잔액 15.  
+2. Guest 경로 생성 10회(또는 harness seed 3회) → 0 → 거부.  
 3. 완주 → 적립·ledger.  
 4. Mapbox 실패 → 환불.
 
