@@ -69,14 +69,18 @@ async function createAutoRoute(page, targetKm = 5) {
   }
 
   const modeCheckbox = popup.getByRole("checkbox", { name: "거리와 방향으로 Route 찾기" });
+  await modeCheckbox.waitFor({ state: "visible", timeout: 10_000 });
   await modeCheckbox.check();
-  await popup
-    .locator('.map-view__pick-auto-route-status[data-phase="direction"]')
-    .waitFor({ state: "visible", timeout: 10_000 });
 
   const numberInput = popup.locator(".map-view__pick-distance-number");
+  await numberInput.waitFor({ state: "visible", timeout: 10_000 });
   await numberInput.fill(String(targetKm));
   await numberInput.dispatchEvent("change");
+  await page.waitForTimeout(300);
+
+  await popup
+    .getByText("도착하고 싶은 도로 위 지점을 클릭하세요")
+    .waitFor({ state: "visible", timeout: 30_000 });
   await page.waitForTimeout(800);
 
   const autoRoutePromise = page.waitForResponse(
@@ -168,7 +172,8 @@ async function main() {
     const go = page.getByRole("button", { name: "주행 시작" });
     report.checks.goEnabled = await go.isEnabled();
     await go.click();
-    await page.waitForTimeout(2000);
+    // 유효 Ride(>100m·>5s) — 체험 5km/h 기준 약 80초
+    await page.waitForTimeout(80_000);
     report.checks.rideRunning =
       (await page.getByRole("group", { name: "주행 지표" }).isVisible().catch(() => false)) &&
       (await page.getByRole("button", { name: "주행 종료" }).isVisible().catch(() => false));
@@ -216,7 +221,7 @@ async function main() {
 
     const go2 = page.getByRole("button", { name: "주행 시작" });
     await go2.click();
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(80_000);
     await page.getByRole("button", { name: "주행 종료" }).click();
     await page.waitForTimeout(5000);
 
