@@ -170,7 +170,7 @@ describe("distanceAutoRoute", () => {
 
   it("Start 선택 — 기존 startLngLat 경로를 사용해 지도 마커와 동기화", () => {
     assert.match(MAP_VIEW_SOURCE, /onSelectPoint\("start", lngLat\)/);
-    assert.match(APP_SOURCE, /type === "start"[\s\S]{0,80}setStartLngLat\(lngLat\)/);
+    assert.match(APP_SOURCE, /type === "start"[\s\S]{0,400}setStartLngLat\(lngLat\)/);
     assert.match(MAP_VIEW_SOURCE, /getDistanceAutoRouteMapBridge\(\)\?\.disarm/);
     assert.match(MAP_VIEW_SOURCE, /new mapboxgl\.Marker\([\s\S]*?setLngLat\(startLngLat\)/);
   });

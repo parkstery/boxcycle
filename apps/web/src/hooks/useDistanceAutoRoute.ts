@@ -105,6 +105,11 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
   const lastClickRef = useRef<LngLat | null>(null);
   const distanceAdjustRetryRef = useRef(false);
   const overrideTargetKmRef = useRef<number | null>(null);
+  /** 직전 자동 Route 세션의 이동수단·목표 거리 — 이어 달리기 anchor 진입 시 승계 */
+  const lastSessionPrefsRef = useRef<{ profile: RouteProfile; targetKm: number }>({
+    profile: "driving",
+    targetKm: 10,
+  });
 
   const targetMeters = targetKm * 1000;
   const circlePreview = circlePreviewState.preview;
@@ -203,10 +208,22 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
           ? DISTANCE_AUTO_ROUTE_REROUTE_HINT
           : DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
       );
+      lastSessionPrefsRef.current = { profile: input.profile, targetKm: validated.km };
       setStep("pick_direction");
       return { ok: true };
     },
     [rideLocked, routeTokenInsufficient, user, hasSuccessfulRoute],
+  );
+
+  useEffect(() => {
+    if (sessionActive) {
+      lastSessionPrefsRef.current = { profile, targetKm };
+    }
+  }, [sessionActive, profile, targetKm]);
+
+  const getLastSessionPrefs = useCallback(
+    () => lastSessionPrefsRef.current,
+    [],
   );
 
   const resumePickDirection = useCallback(() => {
@@ -454,6 +471,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
     handleMapPick,
     handleDistanceAdjustRetry,
     armDirectionPick,
+    getLastSessionPrefs,
     setDistanceDirectionMode,
     suspendPopupPick,
     releasePickArm,

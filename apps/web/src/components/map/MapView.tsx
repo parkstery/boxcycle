@@ -1292,6 +1292,11 @@ export type MapViewProps = {
     requestId: number;
     bbox?: [number, number, number, number] | null;
   } | null;
+  /** anchor 이어 달리기 — 지도 Route pick dock 을 프로그램matic 으로 연다 */
+  openRoutePickRequest?: {
+    lngLat: LngLat;
+    requestId: number;
+  } | null;
   /** 메뉴 장소 검색으로 이동한 위치 — 기본 핀과 구분되는 마커 */
   placeSearchMarkerLngLat?: LngLat | null;
   /**
@@ -1429,6 +1434,7 @@ export function MapView({
   coverageOverlayMode,
   mapillaryClientToken,
   externalCameraJump = null,
+  openRoutePickRequest = null,
   placeSearchMarkerLngLat = null,
   resumeAnchor = null,
   trailSpectatorDots = null,
@@ -1513,6 +1519,7 @@ export function MapView({
   const routePickDockResizeHandlerRef = useRef<(() => void) | null>(null);
   const routePickDockDraggingRef = useRef(false);
   const routePickDockPanelRef = useRef<HTMLDivElement | null>(null);
+  const openRoutePickAtRef = useRef<((lngLat: LngLat) => void) | null>(null);
   const routeGeometryRef = useRef<LineStringGeometry | null>(null);
   const routeDistanceMetersRef = useRef(routeDistanceMeters);
   const liveLngLatRef = useRef<LngLat | null>(null);
@@ -2260,6 +2267,16 @@ export function MapView({
       };
       popup.on("close", pickPopupCloseHandler);
       popupRef.current = popup;
+    };
+
+    openRoutePickAtRef.current = (picked: LngLat) => {
+      if (routePickDockDraggingRef.current) return;
+      const point = map.project(picked);
+      const fakeEvent = {
+        lngLat: { lng: picked[0], lat: picked[1] },
+        point,
+      } as mapboxgl.MapMouseEvent;
+      openPickSurface(picked, fakeEvent);
     };
 
     map.on("click", (event) => {
@@ -3481,6 +3498,11 @@ export function MapView({
       map.off("moveend", onEndFly);
     };
   }, [externalCameraJump, mapLoaded, prefersReducedMotion]);
+
+  useEffect(() => {
+    if (!mapLoaded || !openRoutePickRequest) return;
+    openRoutePickAtRef.current?.(openRoutePickRequest.lngLat);
+  }, [openRoutePickRequest, mapLoaded]);
 
   useEffect(() => {
     const map = mapRef.current;

@@ -321,6 +321,13 @@ export default function App() {
    * Ride·SavedRoute 를 삭제하지 않는다.
    */
   const [nextRideDismissedRideId, setNextRideDismissedRideId] = useState<string | null>(null);
+  /** anchor 이어 달리기 — Start 가 sessionEndLngLat 에 고정된 상태(null=일반 자동 Route) */
+  const anchorFixedStartRef = useRef<LngLat | null>(null);
+  const routePickOpenSeqRef = useRef(0);
+  const [routePickOpenRequest, setRoutePickOpenRequest] = useState<{
+    lngLat: LngLat;
+    requestId: number;
+  } | null>(null);
 
   const {
     publicRouteRequestModalRoute,
@@ -1547,6 +1554,7 @@ export default function App() {
     handleDistanceAdjustRetry,
     mapPickMode,
     armDirectionPick,
+    getLastSessionPrefs,
     handleMapPick,
     retryDirection,
     isSearching,
@@ -1590,8 +1598,10 @@ export default function App() {
   const handleRemoveRouteDockStop = useCallback(
     (id: RouteDockStopId) => {
       if (routeMenuLockedForProd) return;
-      if (id === "start") setStartLngLat(null);
-      else if (id === "end") setEndLngLat(null);
+      if (id === "start") {
+        anchorFixedStartRef.current = null;
+        setStartLngLat(null);
+      } else if (id === "end") setEndLngLat(null);
       else {
         const idx = Number(id.replace("wp-", ""));
         if (Number.isFinite(idx)) {
@@ -1708,9 +1718,8 @@ export default function App() {
   );
 
   /**
-   * 「이 지점에서 새 경로」(§3.3) — 마지막 Ride 의 실제 종료 좌표를 새 Route 의 출발점(S)으로 고정한다.
-   * 이전 Publication·Trail·loaded SavedRoute 결합 상태를 정리하고, 사용자는 도착점만 고르면 된다.
-   * SavedRoute geometry 는 건드리지 않는다 — Directions 응답은 언제나 **새 Route** 다.
+   * 「이 지점에서 새 경로」(R1 §4) — 마지막 Ride 종료점을 Start(S)로 고정하고
+   * 거리·방향 자동 Route 팝업을 1급 진입으로 연다. SavedRoute geometry 는 건드리지 않는다.
    */
   const handleStartRouteFromAnchor = useCallback(
     (anchorLngLat: LngLat) => {
@@ -1719,19 +1728,64 @@ export default function App() {
       resetArrivalToast();
       setLastRideResult(null);
       setUserInfoSheetOpen(false);
+      dismissResult();
+      clearCirclePreview();
       clearRoutePins(routeMenuLockedForProd);
       setBasicActiveHubCourseId(null);
-      setStartLngLat(anchorLngLat);
-      setRouteSummary("마지막 종료 지점을 출발점(S)으로 고정했습니다 — 지도에서 도착지를 선택하세요.");
-      focusAnchorOnMap(anchorLngLat);
       setPlaceSearchMarkerLngLat(null);
+
+      const lastPrefs = getLastSessionPrefs();
+      const extendProfile = lastPrefs.profile ?? profile;
+      const fallbackTargetKm =
+        routeDistanceMeters > 0
+          ? Math.max(
+              1,
+              Math.round((routeDistanceMeters / 1000) * 10) / 10,
+            )
+          : 10;
+      const extendTargetKm =
+        lastPrefs.targetKm > 0 ? lastPrefs.targetKm : fallbackTargetKm;
+
+      setStartLngLat(anchorLngLat);
+      setProfile(extendProfile);
+
+      const result = armDirectionPick({
+        start: anchorLngLat,
+        profile: extendProfile,
+        targetKm: extendTargetKm,
+      });
+
+      if (result.ok) {
+        anchorFixedStartRef.current = anchorLngLat;
+        routePickOpenSeqRef.current += 1;
+        setRoutePickOpenRequest({
+          lngLat: anchorLngLat,
+          requestId: routePickOpenSeqRef.current,
+        });
+        setRouteSummary(
+          "마지막 종료 지점에서 거리·방향 자동 Route — 지도에서 방향을 클릭하세요.",
+        );
+        focusAnchorOnMap(anchorLngLat);
+        return;
+      }
+
+      anchorFixedStartRef.current = null;
+      setRouteSummary(result.message);
+      focusAnchorOnMap(anchorLngLat);
     },
     [
       routeMenuLockedForProd,
       resetArrivalToast,
+      dismissResult,
+      clearCirclePreview,
       clearRoutePins,
       setBasicActiveHubCourseId,
+      getLastSessionPrefs,
+      profile,
+      routeDistanceMeters,
       setStartLngLat,
+      setProfile,
+      armDirectionPick,
       setRouteSummary,
       focusAnchorOnMap,
       setUserInfoSheetOpen,
@@ -2106,8 +2160,16 @@ export default function App() {
                 if (!user || routeMenuLockedForProd) return;
                 setActiveOfficialCourseId(null);
                 setPlaceSearchMarkerLngLat(null);
-                if (type === "start") setStartLngLat(lngLat);
-                else if (type === "end") {
+                if (type === "start") {
+                  const fixed = anchorFixedStartRef.current;
+                  if (fixed) {
+                    const moved =
+                      Math.abs(fixed[0] - lngLat[0]) > 1e-6 ||
+                      Math.abs(fixed[1] - lngLat[1]) > 1e-6;
+                    if (moved) anchorFixedStartRef.current = null;
+                  }
+                  setStartLngLat(lngLat);
+                } else if (type === "end") {
                   disarm();
                   setEndLngLat(lngLat);
                 }
@@ -2125,6 +2187,7 @@ export default function App() {
                 }
               },
               externalCameraJump,
+              openRoutePickRequest: routePickOpenRequest,
               placeSearchMarkerLngLat,
               trailSpectatorDots: spectatorDots,
               trailSpectatorRoutes: spectatorRouteGeometries,

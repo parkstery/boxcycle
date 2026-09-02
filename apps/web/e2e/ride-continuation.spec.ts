@@ -508,9 +508,13 @@ test.describe('다음 주행 · 이어 달리기', () => {
     await expect(summary.getByText('경로를 완주했습니다')).toBeVisible()
     await summary.getByRole('button', { name: '끝점에서 새 경로' }).click()
 
-    // 새 Route 준비 상태 — 출발점만 찍힌 setup 단계
+    // R1 §4 — 자동 Route 가 1급 진입: Go 없이 pick dock 이 열리고 거리·방향 모드가 켜진다
     await expect(page.getByRole('button', { name: '주행 시작' })).toHaveCount(0)
-    await expect(page.getByLabel('경로 설정')).toBeVisible({ timeout: 15_000 })
+    const extendDock = page.locator('.map-view__pick-dock-panel, .map-view__pick-popup').last()
+    await expect(extendDock).toBeVisible({ timeout: 15_000 })
+    await expect(
+      extendDock.getByRole('checkbox', { name: '거리와 방향으로 Route 찾기' }),
+    ).toBeChecked()
 
     // 이전 SavedRoute geometry 는 mutate 되지 않는다
     const after = await readSavedRoute(routeId)
@@ -543,6 +547,12 @@ test.describe('다음 주행 · 이어 달리기', () => {
     const card = nextRideCard(page)
     await expect(card).toBeVisible({ timeout: 30_000 })
     await expect(card.getByRole('button', { name: '이 지점에서 새 경로' })).toBeVisible()
+    await card.getByRole('button', { name: '이 지점에서 새 경로' }).click()
+    const extendDock = page.locator('.map-view__pick-dock-panel, .map-view__pick-popup').last()
+    await expect(extendDock).toBeVisible({ timeout: 15_000 })
+    await expect(
+      extendDock.getByRole('checkbox', { name: '거리와 방향으로 Route 찾기' }),
+    ).toBeChecked()
   })
 
   test('C5 — legacy Ride 는 기록만 보이고 잘못된 CTA·Null Island 이동이 없다', async ({ page }) => {
