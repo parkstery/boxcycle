@@ -1,7 +1,8 @@
 {
   "generateCostBase": 1,
   "earnPerKm": 0.15,
-  "onboardingGrant": 3,
+  "onboardingGrant": 15,
+  "guestOnboardingGrant": 10,
   "introRideBonus": 2,
   "minRideDistanceM": 1000,
   "minRideDurationSec": 180,

@@ -8,6 +8,8 @@
   ],
   "scripts": {
     "dev": "npm run dev -w boxcycle-web --",
+    "dev:emulator": "npm run dev:emulator -w boxcycle-web --",
+    "emulators": "npm --prefix functions run build && firebase emulators:start --only functions,auth,firestore",
     "dev:localhost": "npm run dev:localhost -w boxcycle-web --",
     "build": "npm run build -w boxcycle-web",
     "preview": "npm run preview -w boxcycle-web",

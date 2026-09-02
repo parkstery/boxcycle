@@ -10,6 +10,11 @@ import {
   spendRouteGenerateToken,
 } from "./routeTokenCore.js";
 import { fetchHarnessFakeDirections, isHarnessFakeMapboxActive } from "./harnessFakeMapbox.js";
+import {
+  executeDistanceAutoRoute,
+  parseDistanceAutoRouteBody,
+  type FetchDirectionsFn,
+} from "./distanceAutoRouteHttp.js";
 import { defineSecret } from "firebase-functions/params";
 import { HttpsError, onRequest, type Request } from "firebase-functions/v2/https";
 import type { Response } from "express";
@@ -250,6 +255,190 @@ export const getMapboxDirections = onRequest(
           routeTokenBalance,
         },
       });
+    } catch (e: unknown) {
+      if (e instanceof HttpsError) {
+        res.status(e.httpErrorCode.status).json({ error: e.toJSON() });
+        return;
+      }
+      console.error(e);
+      const err = new HttpsError("internal", "서버 오류가 발생했습니다.");
+      res.status(err.httpErrorCode.status).json({ error: err.toJSON() });
+    }
+  },
+);
+
+async function fetchDirectionsRoute(
+  profile: RouteProfile,
+  start: LngLat,
+  end: LngLat,
+  waypoints: LngLat[] = [],
+): Promise<{
+  geometry: { type: "LineString"; coordinates: [number, number][] };
+  distance: number;
+  duration: number;
+  snappedEnd?: [number, number];
+  endSnapDistanceMeters?: number;
+}> {
+  if (isHarnessFakeMapboxActive()) {
+    return fetchHarnessFakeDirections(profile, start, end, waypoints);
+  }
+
+  const token = mapboxAccessToken.value();
+  if (!token?.trim()) {
+    throw new HttpsError("failed-precondition", "서버에 Mapbox 토큰이 설정되지 않았습니다.");
+  }
+
+  const segments: string[] = [`${start[0]},${start[1]}`];
+  for (const w of waypoints) {
+    segments.push(`${w[0]},${w[1]}`);
+  }
+  segments.push(`${end[0]},${end[1]}`);
+  const coords = segments.join(";");
+  const url =
+    `https://api.mapbox.com/directions/v5/mapbox/${profile}/${coords}` +
+    `?geometries=geojson&overview=full&steps=false&access_token=${encodeURIComponent(token.trim())}`;
+
+  let mapResponse: globalThis.Response;
+  try {
+    mapResponse = await fetch(url);
+  } catch {
+    throw new HttpsError("unavailable", "Directions API 연결에 실패했습니다.");
+  }
+
+  if (!mapResponse.ok) {
+    const body = await mapResponse.text().catch(() => "");
+    console.error("Mapbox Directions HTTP error", mapResponse.status, body.slice(0, 500));
+    throw new HttpsError("internal", "Directions API 요청이 거부되었습니다.");
+  }
+
+  const mapJson = (await mapResponse.json()) as {
+    code?: string;
+    message?: string;
+    routes?: {
+      geometry: { type: string; coordinates: number[][] };
+      distance: number;
+      duration: number;
+    }[];
+    waypoints?: { location?: [number, number]; distance?: number }[];
+  };
+
+  if (mapJson.code && mapJson.code !== "Ok") {
+    console.error("Mapbox Directions error body", mapJson.code, mapJson.message);
+    throw new HttpsError("invalid-argument", mapJson.message ?? "경로를 계산할 수 없습니다.");
+  }
+
+  const route = mapJson.routes?.[0];
+  if (!route?.geometry || route.geometry.type !== "LineString" || !Array.isArray(route.geometry.coordinates)) {
+    throw new HttpsError("not-found", "경로를 찾지 못했습니다.");
+  }
+
+  const lastWaypoint = mapJson.waypoints?.[mapJson.waypoints.length - 1];
+  let snappedEnd: [number, number] | undefined;
+  let endSnapDistanceMeters: number | undefined;
+  if (
+    lastWaypoint?.location &&
+    Array.isArray(lastWaypoint.location) &&
+    lastWaypoint.location.length === 2 &&
+    typeof lastWaypoint.location[0] === "number" &&
+    typeof lastWaypoint.location[1] === "number" &&
+    Number.isFinite(lastWaypoint.location[0]) &&
+    Number.isFinite(lastWaypoint.location[1])
+  ) {
+    snappedEnd = [lastWaypoint.location[0], lastWaypoint.location[1]];
+    if (typeof lastWaypoint.distance === "number" && Number.isFinite(lastWaypoint.distance)) {
+      endSnapDistanceMeters = lastWaypoint.distance;
+    }
+  }
+
+  return {
+    geometry: route.geometry as { type: "LineString"; coordinates: [number, number][] },
+    distance: route.distance,
+    duration: route.duration,
+    snappedEnd,
+    endSnapDistanceMeters,
+  };
+}
+
+/**
+ * 거리·방향 자동 Route — 사용자 행동 1회당 Token 1개·서버 transaction 1건.
+ * 후보 Directions 호출은 서버 내부에서만 수행한다.
+ */
+export const getDistanceAutoRoute = onRequest(
+  {
+    region: "asia-northeast3",
+    secrets: [mapboxAccessToken],
+    timeoutSeconds: 120,
+    memory: "512MiB",
+    cors: true,
+    invoker: "public",
+  },
+  async (req: Request, res: Response) => {
+    if (req.method !== "POST") {
+      res.set("Allow", "POST");
+      res.status(405).send("Method Not Allowed");
+      return;
+    }
+
+    const authHeader = req.get("Authorization") ?? "";
+    const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
+    if (!tokenMatch) {
+      const err = new HttpsError("unauthenticated", "경로 계산은 로그인(게스트 포함) 후에 사용할 수 있습니다.");
+      res.status(err.httpErrorCode.status).json({ error: err.toJSON() });
+      return;
+    }
+    let uid: string;
+    try {
+      const decoded = await getAuth().verifyIdToken(tokenMatch[1]);
+      uid = decoded.uid;
+    } catch {
+      const err = new HttpsError("unauthenticated", "유효하지 않은 인증 토큰입니다.");
+      res.status(err.httpErrorCode.status).json({ error: err.toJSON() });
+      return;
+    }
+
+    let rawBody: unknown = req.body;
+    if (typeof rawBody === "string") {
+      try {
+        rawBody = JSON.parse(rawBody) as unknown;
+      } catch {
+        const err = new HttpsError("invalid-argument", "JSON 본문이 올바르지 않습니다.");
+        res.status(err.httpErrorCode.status).json({ error: err.toJSON() });
+        return;
+      }
+    }
+
+    try {
+      const dataField = (rawBody as { data?: unknown } | null)?.data;
+      const { start, targetRoadPoint, profile, targetDistanceMeters, bearingDeg, requestId, distanceAdjustRetry } =
+        parseDistanceAutoRouteBody(dataField);
+      try {
+        await mergeUserAuthMeta(uid);
+      } catch {
+        /* users 메타 실패해도 경로 계산은 진행 */
+      }
+      await ensureRouteTokenOnboarding(uid);
+
+      const fetchDirections: FetchDirectionsFn = (routeProfile, waypoints) =>
+        fetchDirectionsRoute(
+          routeProfile,
+          waypoints[0]!,
+          waypoints[waypoints.length - 1]!,
+          waypoints.slice(1, -1),
+        );
+
+      const result = await executeDistanceAutoRoute({
+        userId: uid,
+        start,
+        targetRoadPoint,
+        profile,
+        targetDistanceMeters,
+        bearingDeg,
+        requestId,
+        fetchDirections,
+        distanceAdjustRetry,
+      });
+
+      res.status(200).json({ result });
     } catch (e: unknown) {
       if (e instanceof HttpsError) {
         res.status(e.httpErrorCode.status).json({ error: e.toJSON() });

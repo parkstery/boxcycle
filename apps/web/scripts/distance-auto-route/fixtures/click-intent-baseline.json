@@ -1,0 +1,98 @@
+[
+  {
+    "id": "3fcr1-offered-road-too-long",
+    "fixtureKind": "deterministic",
+    "start": [127.02, 37.5],
+    "targetRoadPoint": [127.034712, 37.5],
+    "targetDistanceMeters": 1000,
+    "profile": "driving",
+    "baselineAlgorithm": "3F-C-R1-reach-offer",
+    "directRouteLengthM": 1300,
+    "overrides": [],
+    "expected": {
+      "status": "found",
+      "outcome": "offered",
+      "attemptedCalls": 1,
+      "distanceErrorM": 0,
+      "snappedEndMissM": 300,
+      "rawEndMissM": 300,
+      "bearingErrorDeg": 0,
+      "clippedEnd": [127.031320, 37.5],
+      "clippedEndToleranceM": 15,
+      "sameResultReason": "3F-C-R1 offered: road > D+150 → direct clip 단 1회"
+    }
+  },
+  {
+    "id": "3fcr1-exact-road-in-window",
+    "fixtureKind": "deterministic",
+    "start": [127.02, 37.5],
+    "targetRoadPoint": [127.031885, 37.5],
+    "targetDistanceMeters": 1000,
+    "profile": "driving",
+    "baselineAlgorithm": "3F-C-R1-reach-offer",
+    "directRouteLengthM": 1050,
+    "overrides": [],
+    "expected": {
+      "status": "found",
+      "outcome": "exact",
+      "attemptedCalls": 1,
+      "distanceErrorM": 0,
+      "snappedEndMissM": 50,
+      "rawEndMissM": 50,
+      "bearingErrorDeg": 0,
+      "clippedEnd": [127.031320, 37.5],
+      "clippedEndToleranceM": 15,
+      "sameResultReason": "3F-C-R1 exact: road in [D, D+150] → direct clip 단 1회"
+    }
+  },
+  {
+    "id": "3fcr1-detoured-road-short",
+    "fixtureKind": "deterministic",
+    "start": [127.02, 37.5],
+    "targetRoadPoint": [127.030769, 37.5],
+    "targetDistanceMeters": 1000,
+    "profile": "driving",
+    "baselineAlgorithm": "3F-C-R1-reach-offer",
+    "directRouteLengthM": 800,
+    "overrides": [],
+    "expected": {
+      "status": "found",
+      "outcome": "detoured",
+      "attemptedCalls": 2,
+      "maxAttemptedCalls": 9,
+      "distanceErrorM": 0,
+      "snappedEndMissM": 50,
+      "rawEndMissM": 50,
+      "bearingErrorDeg": 0,
+      "clippedEnd": [127.031336, 37.5],
+      "clippedEndToleranceM": 30,
+      "sameResultReason": "3F-C-R1 detoured: road < D → regula falsi 우회 성공"
+    }
+  },
+  {
+    "id": "3fcr1-fail-snap-too-far",
+    "fixtureKind": "deterministic",
+    "start": [127.02, 37.5],
+    "targetRoadPoint": [127.07668, 37.5],
+    "targetDistanceMeters": 1000,
+    "profile": "driving",
+    "baselineAlgorithm": "3F-C-R1-reach-offer",
+    "overrides": [
+      {
+        "endpointKind": "direct",
+        "kind": "off_road",
+        "snapDistanceMeters": 300
+      }
+    ],
+    "expected": {
+      "status": "failed",
+      "attemptedCalls": 1,
+      "distanceErrorM": 0,
+      "snappedEndMissM": null,
+      "rawEndMissM": 0,
+      "bearingErrorDeg": 0,
+      "clippedEnd": [127.02, 37.5],
+      "sameResultReason": "3F-C-R1 유일한 실패: clickSnapM > 250m"
+    }
+  }
+]

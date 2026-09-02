@@ -25,7 +25,10 @@ export type RouteTokenReason =
 export type RouteTokenEconomy = {
   generateCostBase: number;
   earnPerKm: number;
+  /** 로그인(비익명) 사용자 최초 온보딩 지급 */
   onboardingGrant: number;
+  /** Guest(익명 인증) 사용자 최초 온보딩 지급 */
+  guestOnboardingGrant: number;
   introRideBonus: number;
   minRideDistanceM: number;
   minRideDurationSec: number;
@@ -36,7 +39,8 @@ export type RouteTokenEconomy = {
 export const DEFAULT_ROUTE_TOKEN_ECONOMY: RouteTokenEconomy = {
   generateCostBase: 1,
   earnPerKm: 0.15,
-  onboardingGrant: 3,
+  onboardingGrant: 15,
+  guestOnboardingGrant: 10,
   introRideBonus: 2,
   minRideDistanceM: 1000,
   minRideDurationSec: 180,
@@ -53,6 +57,26 @@ export function kstDayKey(date = new Date()): string {
   return new Date(kstMs).toISOString().slice(0, 10);
 }
 
+export function resolveIsAnonymousForOnboarding(
+  userData: Record<string, unknown> | undefined,
+  isAnonymousHint?: boolean,
+): boolean {
+  const field = userData?.isAnonymous;
+  if (typeof field === "boolean") return field;
+  if (typeof isAnonymousHint === "boolean") return isAnonymousHint;
+  return true;
+}
+
+export function resolveOnboardingGrantAmount(
+  economy: RouteTokenEconomy,
+  isAnonymous: boolean,
+): number {
+  return Math.max(
+    0,
+    Math.floor(isAnonymous ? economy.guestOnboardingGrant : economy.onboardingGrant),
+  );
+}
+
 function ledgerDocId(idempotencyKey: string): string {
   return idempotencyKey.replace(/\//g, "_").slice(0, 1500);
 }
@@ -65,6 +89,10 @@ export async function loadRouteTokenEconomy(): Promise<RouteTokenEconomy> {
     generateCostBase: numField(d.generateCostBase, DEFAULT_ROUTE_TOKEN_ECONOMY.generateCostBase),
     earnPerKm: numField(d.earnPerKm, DEFAULT_ROUTE_TOKEN_ECONOMY.earnPerKm),
     onboardingGrant: numField(d.onboardingGrant, DEFAULT_ROUTE_TOKEN_ECONOMY.onboardingGrant),
+    guestOnboardingGrant: numField(
+      d.guestOnboardingGrant,
+      DEFAULT_ROUTE_TOKEN_ECONOMY.guestOnboardingGrant,
+    ),
     introRideBonus: numField(d.introRideBonus, DEFAULT_ROUTE_TOKEN_ECONOMY.introRideBonus),
     minRideDistanceM: numField(d.minRideDistanceM, DEFAULT_ROUTE_TOKEN_ECONOMY.minRideDistanceM),
     minRideDurationSec: numField(d.minRideDurationSec, DEFAULT_ROUTE_TOKEN_ECONOMY.minRideDurationSec),
@@ -139,8 +167,12 @@ function patchUserBalance(
 
 /**
  * 신규·기존 사용자 온보딩 지급(멱등). 잔액 반환.
+ * @param isAnonymousHint Firestore `isAnonymous` 미기록 시 사용. HTTP 실패 시 Guest(true)로 보수적 처리.
  */
-export async function ensureRouteTokenOnboarding(userId: string): Promise<number> {
+export async function ensureRouteTokenOnboarding(
+  userId: string,
+  isAnonymousHint?: boolean,
+): Promise<number> {
   const db = getFirestore();
   const economy = await loadRouteTokenEconomy();
   const userRef = db.doc(`users/${userId}`);
@@ -149,6 +181,8 @@ export async function ensureRouteTokenOnboarding(userId: string): Promise<number
   return db.runTransaction(async (tx) => {
     const ledgerRef = db.doc(`${ROUTE_TOKEN_LEDGER}/${ledgerDocId(idempotencyKey)}`);
     const ledgerSnap = await tx.get(ledgerRef);
+    const userSnap = await tx.get(userRef);
+    const userData = userSnap.data() ?? {};
     const state = await readUserTokenState(tx, userRef);
 
     if (ledgerSnap.exists) {
@@ -159,7 +193,8 @@ export async function ensureRouteTokenOnboarding(userId: string): Promise<number
       return state.balance;
     }
 
-    const grant = Math.max(0, Math.floor(economy.onboardingGrant));
+    const isAnonymous = resolveIsAnonymousForOnboarding(userData, isAnonymousHint);
+    const grant = resolveOnboardingGrantAmount(economy, isAnonymous);
     if (grant === 0) {
       patchUserBalance(tx, userRef, state.balance, { routeTokenOnboardingGranted: true });
       return state.balance;
@@ -189,7 +224,10 @@ export async function spendRouteGenerateToken(
   const economy = await loadRouteTokenEconomy();
   const cost = Math.max(0, Math.floor(costOverride ?? economy.generateCostBase));
   if (cost === 0) {
-    return ensureRouteTokenOnboarding(userId);
+    await ensureRouteTokenOnboarding(userId);
+    const snap = await db.doc(`users/${userId}`).get();
+    const balance = snap.data()?.routeTokenBalance;
+    return typeof balance === "number" ? balance : 0;
   }
 
   const userRef = db.doc(`users/${userId}`);

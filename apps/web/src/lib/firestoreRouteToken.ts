@@ -2,24 +2,38 @@ import type { User } from "firebase/auth";
 import { doc, onSnapshot, type Unsubscribe } from "firebase/firestore";
 import { getFirebaseFirestore } from "./firebase";
 import { resolveFunctionsHttpUrl } from "./functionsEmulatorUrl";
+import { bindRouteTokenUser, setSubscribedRouteTokenBalance } from "./routeTokenSpendBridge";
 
 export function subscribeRouteTokenBalance(
   userId: string,
   onValue: (balance: number | null) => void,
 ): Unsubscribe {
+  bindRouteTokenUser(userId);
   const db = getFirebaseFirestore();
-  return onSnapshot(
+  const unsub = onSnapshot(
     doc(db, "users", userId),
     (snap) => {
       if (!snap.exists()) {
+        setSubscribedRouteTokenBalance(userId, null);
         onValue(null);
         return;
       }
       const n = snap.data().routeTokenBalance;
-      onValue(typeof n === "number" && Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0);
+      const balance =
+        typeof n === "number" && Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
+      setSubscribedRouteTokenBalance(userId, balance);
+      onValue(balance);
     },
-    () => onValue(null),
+    () => {
+      setSubscribedRouteTokenBalance(userId, null);
+      onValue(null);
+    },
   );
+  return () => {
+    unsub();
+    bindRouteTokenUser(null);
+    setSubscribedRouteTokenBalance(userId, null);
+  };
 }
 
 export async function ensureRouteTokenOnboardingClient(user: User): Promise<number | null> {

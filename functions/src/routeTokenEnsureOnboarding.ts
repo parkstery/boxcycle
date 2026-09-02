@@ -30,9 +30,11 @@ export const ensureRouteTokenOnboardingHttp = onRequest(
     }
 
     let uid: string;
+    let isAnonymousHint = true;
     try {
       const decoded = await getAuth().verifyIdToken(tokenMatch[1]);
       uid = decoded.uid;
+      isAnonymousHint = decoded.firebase?.sign_in_provider === "anonymous";
     } catch {
       const err = new HttpsError("unauthenticated", "유효하지 않은 인증 토큰입니다.");
       res.status(err.httpErrorCode.status).json({ error: err.toJSON() });
@@ -40,10 +42,13 @@ export const ensureRouteTokenOnboardingHttp = onRequest(
     }
 
     try {
-      await mergeUserAuthMeta(uid).catch(() => {
-        /* noop */
-      });
-      const routeTokenBalance = await ensureRouteTokenOnboarding(uid);
+      try {
+        const meta = await mergeUserAuthMeta(uid);
+        isAnonymousHint = meta.isAnonymous;
+      } catch {
+        isAnonymousHint = true;
+      }
+      const routeTokenBalance = await ensureRouteTokenOnboarding(uid, isAnonymousHint);
       res.status(200).json({ result: { routeTokenBalance } });
     } catch (e: unknown) {
       if (e instanceof HttpsError) {

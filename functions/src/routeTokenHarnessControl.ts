@@ -5,14 +5,31 @@ import { resolveHarnessActive } from "./harnessActive.js";
 import {
   getHarnessFakeMapboxCallCount,
   resetHarnessFakeMapbox,
+  setHarnessFakeMapboxFailAll,
   setHarnessFakeMapboxFailNext,
 } from "./harnessFakeMapbox.js";
-import { ROUTE_TOKEN_LEDGER } from "./routeTokenCore.js";
+import { ROUTE_TOKEN_ECONOMY_PATH, ROUTE_TOKEN_LEDGER } from "./routeTokenCore.js";
 
-type HarnessAction = "reset" | "stats" | "setFailNext" | "inspectUser";
+type HarnessAction =
+  | "reset"
+  | "stats"
+  | "setFailNext"
+  | "setFailAll"
+  | "inspectUser"
+  | "setBalance"
+  | "seedEconomy";
 
 function parseAction(raw: unknown): HarnessAction {
-  if (raw === "reset" || raw === "stats" || raw === "setFailNext" || raw === "inspectUser") {
+  if (
+    raw === "reset" ||
+    raw === "stats" ||
+    raw === "setFailNext" ||
+    raw === "setFailAll" ||
+    raw === "inspectUser" ||
+    raw === "inspectUser" ||
+    raw === "setBalance" ||
+    raw === "seedEconomy"
+  ) {
     return raw;
   }
   throw new HttpsError("invalid-argument", "action 이 올바르지 않습니다.");
@@ -76,9 +93,39 @@ export const routeTokenHarnessControl = onRequest(
         return;
       }
 
+      if (action === "setFailAll") {
+        const fail = data.fail === true;
+        await setHarnessFakeMapboxFailAll(fail);
+        res.status(200).json({ result: { failAll: fail } });
+        return;
+      }
+
+      if (action === "seedEconomy") {
+        const economy = data.economy;
+        if (!economy || typeof economy !== "object" || Array.isArray(economy)) {
+          throw new HttpsError("invalid-argument", "economy 가 필요합니다.");
+        }
+        const db = getFirestore();
+        await db.doc(ROUTE_TOKEN_ECONOMY_PATH).set(economy as Record<string, unknown>);
+        res.status(200).json({ result: { seeded: true } });
+        return;
+      }
+
       const uid = typeof data.uid === "string" ? data.uid.trim() : "";
       if (!uid) {
         throw new HttpsError("invalid-argument", "uid 가 필요합니다.");
+      }
+
+      if (action === "setBalance") {
+        const balanceRaw = data.balance;
+        if (typeof balanceRaw !== "number" || !Number.isFinite(balanceRaw)) {
+          throw new HttpsError("invalid-argument", "balance 가 필요합니다.");
+        }
+        const balance = Math.max(0, Math.floor(balanceRaw));
+        const db = getFirestore();
+        await db.doc(`users/${uid}`).set({ routeTokenBalance: balance }, { merge: true });
+        res.status(200).json({ result: { balance } });
+        return;
       }
 
       const db = getFirestore();

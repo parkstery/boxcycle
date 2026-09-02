@@ -8,6 +8,8 @@ export type HarnessFakeDirectionsRoute = {
   geometry: { type: "LineString"; coordinates: [number, number][] };
   distance: number;
   duration: number;
+  snappedEnd: LngLat;
+  endSnapDistanceMeters: number;
 };
 
 const HARNESS_STATS_DOC = "harness/routeTokenFakeMapbox";
@@ -19,6 +21,7 @@ export function isHarnessFakeMapboxActive(): boolean {
 type HarnessStats = {
   providerCallCount: number;
   failNext: boolean;
+  failAll: boolean;
 };
 
 async function readHarnessStats(): Promise<HarnessStats> {
@@ -28,6 +31,7 @@ async function readHarnessStats(): Promise<HarnessStats> {
     providerCallCount:
       typeof data.providerCallCount === "number" ? data.providerCallCount : 0,
     failNext: data.failNext === true,
+    failAll: data.failAll === true,
   };
 }
 
@@ -36,6 +40,7 @@ export async function resetHarnessFakeMapbox(): Promise<void> {
   await getFirestore().doc(HARNESS_STATS_DOC).set({
     providerCallCount: 0,
     failNext: false,
+    failAll: false,
     updatedAt: FieldValue.serverTimestamp(),
   });
 }
@@ -44,6 +49,14 @@ export async function setHarnessFakeMapboxFailNext(fail: boolean): Promise<void>
   if (!isHarnessFakeMapboxActive()) return;
   await getFirestore().doc(HARNESS_STATS_DOC).set(
     { failNext: fail, updatedAt: FieldValue.serverTimestamp() },
+    { merge: true },
+  );
+}
+
+export async function setHarnessFakeMapboxFailAll(fail: boolean): Promise<void> {
+  if (!isHarnessFakeMapboxActive()) return;
+  await getFirestore().doc(HARNESS_STATS_DOC).set(
+    { failAll: fail, updatedAt: FieldValue.serverTimestamp() },
     { merge: true },
   );
 }
@@ -68,14 +81,14 @@ export async function fetchHarnessFakeDirections(
   const failNext = await getFirestore().runTransaction(async (tx) => {
     const snap = await tx.get(ref);
     const data = snap.data() ?? {};
-    const shouldFail = data.failNext === true;
+    const shouldFail = data.failAll === true || data.failNext === true;
     const current =
       typeof data.providerCallCount === "number" ? data.providerCallCount : 0;
     tx.set(
       ref,
       {
         providerCallCount: current + 1,
-        failNext: shouldFail ? false : data.failNext === true,
+        failNext: data.failAll === true ? data.failNext === true : shouldFail ? false : data.failNext === true,
         updatedAt: FieldValue.serverTimestamp(),
       },
       { merge: true },
@@ -87,20 +100,24 @@ export async function fetchHarnessFakeDirections(
     throw new Error("harness fake mapbox intentional failure");
   }
 
-  const coords: [number, number][] = [start];
-  for (const w of waypoints) coords.push(w);
-  coords.push(end);
-
   const dx = end[0] - start[0];
   const dy = end[1] - start[1];
   const straightDeg = Math.sqrt(dx * dx + dy * dy) * 111_320;
   const profileFactor = profile === "walking" ? 1.08 : profile === "driving" ? 1.18 : 1.12;
-  const distance = Math.max(250, straightDeg * profileFactor);
+  const geometryLengthMeters = Math.max(250, straightDeg * Math.max(profileFactor, 1.2));
+  const scale = straightDeg > 1 ? geometryLengthMeters / straightDeg : 1;
+  const routeEnd: LngLat = [start[0] + dx * scale, start[1] + dy * scale];
+  const coords: [number, number][] = [start];
+  for (const w of waypoints) coords.push(w);
+  coords.push(routeEnd);
+  const distance = geometryLengthMeters;
   const duration = distance / (profile === "walking" ? 1.4 : profile === "driving" ? 13 : 5);
 
   return {
     geometry: { type: "LineString", coordinates: coords },
     distance,
     duration,
+    snappedEnd: end,
+    endSnapDistanceMeters: 0,
   };
 }
