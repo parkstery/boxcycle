@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:emulator": "vite --mode emulator",
     "dev:localhost": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
     "gen:rider-glb": "node scripts/generate-rider-prototype-glb.mjs",
@@ -30,7 +31,7 @@
     "test:peer-s3a-replay": "node scripts/peer-sync/s3r-to-scenario.mjs && node scripts/peer-sync/replay.mjs --check && node scripts/peer-sync/replay.mjs --check --scenario ../../document/ops/sync-relay/s3r-z15-cruise-scenario.json && node scripts/peer-sync/s3-fixture-gate.mjs",
     "test:sensor-cadence": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/sensor-cadence/cadence-contract.test.ts scripts/sensor-cadence/sensor-ui-contract.test.ts scripts/sensor-cadence/auto-reconnect-contract.test.ts",
     "test:s42-meters": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/s42/read-meters-and-hubs.test.ts",
-    "test:distance-auto-route": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/distance-auto-route/distance-auto-route-contract.test.ts scripts/distance-auto-route/distance-auto-route-exact-clip.test.ts scripts/distance-auto-route/distance-auto-route-click-intent.test.ts",
+    "test:distance-auto-route": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/distance-auto-route/distance-auto-route-contract.test.ts scripts/distance-auto-route/distance-auto-route-exact-clip.test.ts scripts/distance-auto-route/distance-auto-route-click-intent.test.ts scripts/distance-auto-route/distance-auto-route-reach-offer-session.test.ts",
     "test:distance-auto-route-replay": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs scripts/distance-auto-route/distance-auto-route-click-intent-replay.mjs",
     "test:s43-meters": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/s43/touch-meters.test.ts",
     "test:route-token": "node scripts/route-token/launch-route-token-harness.mjs",
