@@ -6,6 +6,13 @@ export const DIRECTION_TOLERANCE_DEG = 30;
 /** provider 후보 탐색 시 직선 거리 배율 상한(내부). 최종 성공 허용에는 사용하지 않는다. */
 export const MAX_DISTANCE_ERROR_RATIO = 0.2;
 export const EXACT_TARGET_DISTANCE_TOLERANCE_M = 5;
+
+/**
+ * 절단 실패 문구. **provider 응답이 실제로 망가진 경우(`empty_geometry`·`single_point`)에만** 쓴다.
+ * 정상 경로가 이 문구를 받으면 결함이다 — `routeLen ∈ [D−허용오차, D)` 가 어디에도 걸리지
+ * 않아 이 문구로 떨어진 것이 2026-09-03 폰 실사용 결함 ①이었다.
+ */
+export const ROUTE_CLIP_FAILED_MESSAGE = "경로 절단에 실패했습니다.";
 export const AUTO_ROUTE_DISTANCE_FACTORS = [0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3] as const;
 export const AUTO_ROUTE_BEARING_OFFSETS_DEG = [-30, -15, 0, 15, 30] as const;
 
@@ -498,26 +505,42 @@ export async function searchDistanceAutoRoute(input: {
       originalDuration: routeToClip.duration,
     });
 
-    // 절단 실패 시: 목표보다 짧은 경로면 shortfall, 그 외 direct offered clip 시도
+    // 절단 실패 시 — `clipped.reason` 으로 갈린다. 이유를 보지 않고 길이만 보면
+    // 망가진 geometry(길이 0)가 shortfall 로 새어 나가고, 정상 경로가 실패로 떨어진다.
     if (!clipped.ok) {
+      // provider 응답이 실제로 망가진 경우만 실패다. Token 은 호출부가 환불한다.
+      if (clipped.reason !== "too_short") {
+        return {
+          status: "failed",
+          message: ROUTE_CLIP_FAILED_MESSAGE,
+          providerCallCount,
+          searchElapsedMs: Date.now() - searchStartedAt,
+        };
+      }
+
+      // 여기부터 `routeLen < D` 가 확정이다(`too_short` 의 정의).
       const routeLen = lineStringLengthMeters(routeToClip.geometry);
-      if (routeLen < D - EXACT_TARGET_DISTANCE_TOLERANCE_M) {
-        return assembleShortfall(routeToClip);
+
+      // routeLen ∈ [D − 허용오차, D) — 이미 ±5m 계약을 만족하므로 자를 필요가 없다.
+      // 이 구간이 비어 있어서 정상 경로가 「경로 절단에 실패했습니다」로 떨어졌다.
+      // 원본을 그대로 '절단 결과'로 넘겨 endMiss 게이트·진단을 한 곳에서 통과시킨다.
+      if (isExactTargetDistance(routeLen, D)) {
+        return assembleFromClipped(
+          {
+            ok: true,
+            geometry: routeToClip.geometry,
+            end: snappedEndFromRoute(routeToClip),
+            distance: routeLen,
+            duration: routeToClip.duration,
+          },
+          pendingOutcome,
+        );
       }
-      const directClipped = clipRouteGeometryToTargetMeters({
-        geometry: directRoute.geometry,
-        targetDistanceMeters: D,
-        originalDuration: directRoute.duration,
-      });
-      if (directClipped.ok) {
-        return assembleFromClipped(directClipped, "offered");
-      }
-      return {
-        status: "failed",
-        message: "경로 절단에 실패했습니다.",
-        providerCallCount,
-        searchElapsedMs: Date.now() - searchStartedAt,
-      };
+
+      // 허용오차보다 더 짧으면 정직하게 shortfall 로 내려보낸다.
+      // (기존의 `directRoute` 재절단 폴백은 죽은 가지였다 — 세 호출부 모두에서
+      //  `directRoute` 의 길이가 D 에 못 미치거나, 방금 실패한 그 절단을 그대로 반복한다.)
+      return assembleShortfall(routeToClip);
     }
 
     return assembleFromClipped(clipped, pendingOutcome);
