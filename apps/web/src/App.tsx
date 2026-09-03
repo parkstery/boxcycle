@@ -91,6 +91,7 @@ import type { LngLat } from "./lib/geo";
 import { getPointOnRouteByDistance, lineStringLengthMeters } from "./lib/geo";
 import { MAX_ROUTE_WAYPOINTS } from "./lib/routeWaypoints";
 import { lockRouteWorkspaceDuringRide } from "./lib/routeWorkspaceLock";
+import { resolveRideContinuationSetup } from "./lib/rideContinuationSetup";
 import type { PublishedPublicCourseSummary } from "./lib/firestoreCourses";
 import {
   resolvePublishedRouteLink,
@@ -1722,6 +1723,25 @@ export default function App() {
    * 「이 지점에서 새 경로」(R1 §4) — 마지막 Ride 종료점을 Start(S)로 고정하고
    * 거리·방향 자동 Route 팝업을 1급 진입으로 연다. SavedRoute geometry 는 건드리지 않는다.
    */
+  /**
+   * 이어 달리기 승계의 1순위 근거. `lastRideResult` 는 진입 즉시 `setLastRideResult(null)`
+   * 로 지워지므로(시트를 닫아야 하니까), 지워지기 전 값을 ref 에 붙들어 둔다.
+   * 폐기된 주행(≤100m)은 `lastRideResult` 가 만들어지지 않아 여기에도 남지 않는다 —
+   * 그때는 계약 함수가 다음 순위로 내려간다.
+   */
+  const continuationLastRideRef = useRef<{
+    profile: RouteProfile;
+    routeDistanceMeters: number;
+  } | null>(null);
+  useEffect(() => {
+    if (lastRideResult) {
+      continuationLastRideRef.current = {
+        profile: lastRideResult.profile,
+        routeDistanceMeters: lastRideResult.routeDistanceMeters,
+      };
+    }
+  }, [lastRideResult]);
+
   const handleStartRouteFromAnchor = useCallback(
     (anchorLngLat: LngLat) => {
       if (routeMenuLockedForProd) return;
@@ -1735,25 +1755,29 @@ export default function App() {
       setBasicActiveHubCourseId(null);
       setPlaceSearchMarkerLngLat(null);
 
-      const lastPrefs = getLastSessionPrefs();
-      const extendProfile = lastPrefs.profile ?? profile;
-      const fallbackTargetKm =
-        routeDistanceMeters > 0
-          ? Math.max(
-              1,
-              Math.round((routeDistanceMeters / 1000) * 10) / 10,
-            )
-          : 10;
-      const extendTargetKm =
-        lastPrefs.targetKm > 0 ? lastPrefs.targetKm : fallbackTargetKm;
+      /**
+       * 이어 달리기 진입 계약 — 두 진입점(결과 시트 「지금 새 경로 연결」·「다음 주행」
+       * 카드 「이 지점에서 새 경로」)이 **같은 순수 함수**로 초기 상태를 정한다.
+       * 승계 근거는 직전 Ride → 세션 선호 → 현재 화면 순이다. 세션 선호만 보면
+       * 그 ref 의 초기값(`driving`·10 km)이 그대로 승계된다(결함 ④).
+       */
+      const continuation = resolveRideContinuationSetup({
+        anchorLngLat,
+        lastRide: continuationLastRideRef.current,
+        sessionPrefs: getLastSessionPrefs(),
+        currentProfile: profile,
+        currentRouteDistanceMeters: routeDistanceMeters,
+      });
 
-      setStartLngLat(anchorLngLat);
-      setProfile(extendProfile);
+      setStartLngLat(continuation.startLngLat);
+      // End 는 clearRoutePins 가 이미 비웠다 — 계약이 비움을 요구한다는 사실을 여기서 못박는다.
+      setEndLngLat(continuation.endLngLat);
+      setProfile(continuation.profile);
 
       const result = armDirectionPick({
-        start: anchorLngLat,
-        profile: extendProfile,
-        targetKm: extendTargetKm,
+        start: continuation.startLngLat,
+        profile: continuation.profile,
+        targetKm: continuation.targetKm,
       });
 
       if (result.ok) {
@@ -1785,6 +1809,7 @@ export default function App() {
       profile,
       routeDistanceMeters,
       setStartLngLat,
+      setEndLngLat,
       setProfile,
       armDirectionPick,
       setRouteSummary,

@@ -4,7 +4,12 @@ import {
   backfillRideSessionsToFirestore,
   loadRecentRideSessionsFromFirestore,
 } from "../lib/firestoreRides";
-import { loadRideSessions, saveRideSessions, type StoredRideSession } from "../lib/rideSessionsStorage";
+import {
+  loadRideSessions,
+  mergeRecentRideSessions,
+  saveRideSessions,
+  type StoredRideSession,
+} from "../lib/rideSessionsStorage";
 import type { RouteProfile } from "../services/mapboxDirections";
 
 export type UseRecentRideSessionsOptions = {
@@ -37,8 +42,11 @@ export function useRecentRideSessions(options: UseRecentRideSessionsOptions) {
       .then(async (rows) => {
         if (cancelled) return;
         if (rows.length > 0) {
-          saveRideSessions(rows, user);
-          setRecentSessions(rows);
+          // 서버 응답이 로컬보다 한 세대 뒤일 수 있다(주행 종료 직후 Firestore 쓰기는
+          // fire-and-forget). 덮어쓰지 않고 최신 우선으로 합친다 — 결함 ⑦.
+          const merged = mergeRecentRideSessions(rows, loadRideSessions());
+          saveRideSessions(merged, user);
+          setRecentSessions(merged);
           return;
         }
         const localRows = loadRideSessions();
@@ -52,8 +60,9 @@ export function useRecentRideSessions(options: UseRecentRideSessionsOptions) {
             });
             const synced = await loadRecentRideSessionsFromFirestore(user.uid, 50);
             if (!cancelled && synced.length > 0) {
-              saveRideSessions(synced, user);
-              setRecentSessions(synced);
+              const merged = mergeRecentRideSessions(synced, loadRideSessions());
+              saveRideSessions(merged, user);
+              setRecentSessions(merged);
               return;
             }
           } catch {

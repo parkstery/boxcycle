@@ -194,6 +194,49 @@ async function extendFromNextRideCard(page: Page) {
   return dock
 }
 
+/**
+ * 결과 시트의 「지금 새 경로 연결」 — **폰에서 사용자가 실제로 누른 진입점**.
+ * 지금까지 e2e 는 「다음 주행」 카드만 눌러서, 시트 경로의 승계 실패(결함 ④⑤)가 살아남았다.
+ */
+async function extendFromRideSummarySheet(page: Page) {
+  const region = page.getByRole('region', { name: '주행 결과' })
+  await expect(region).toBeVisible({ timeout: 20_000 })
+  const btn = region.getByRole('button', { name: /지금 새 경로 연결|끝점에서 새 경로/ })
+  await expect(btn, '결과 시트에 이어가기 버튼이 없다(결함 ⑥)').toBeVisible({ timeout: 15_000 })
+  await btn.click()
+  await expect(region).toBeHidden({ timeout: 15_000 })
+  const dock = pickSurface(page)
+  await expect(dock).toBeVisible({ timeout: 15_000 })
+  await expect
+    .poll(
+      async () => dock.getByRole('checkbox', { name: '거리와 방향으로 Route 찾기' }).isChecked(),
+      { timeout: 30_000, intervals: [200], message: '시트 extend — 거리·방향 모드 arm' },
+    )
+    .toBe(true)
+  return dock
+}
+
+/** 진입점과 무관하게 매 회차 확인하는 승계 계약(§4.5.7-2) */
+async function assertContinuationContract(
+  page: Page,
+  dock: ReturnType<typeof pickSurface>,
+  lap: number,
+  expectedKm: number,
+) {
+  await expect(
+    dock.getByRole('checkbox', { name: '거리와 방향으로 Route 찾기' }),
+    `루프 ${lap}: 거리 모드가 꺼져 있다(결함 ④)`,
+  ).toBeChecked()
+  await expect(
+    dock.locator('.map-view__pick-distance-number'),
+    `루프 ${lap}: 목표 거리가 승계되지 않았다(결함 ④)`,
+  ).toHaveValue(`${expectedKm}.0`)
+  await expect(
+    page.locator('.route-dock__stop-dot--end'),
+    `루프 ${lap}: End 가 이미 찍혀 있다(결함 ⑤)`,
+  ).toHaveCount(0)
+}
+
 function coordsClose(a: [number, number], b: [number, number], epsilon = 0.0002): boolean {
   return Math.abs(a[0] - b[0]) <= epsilon && Math.abs(a[1] - b[1]) <= epsilon
 }
@@ -426,6 +469,8 @@ test.describe('R1 단계 C — 자동 Route 3회 루프', () => {
     ]
 
     let lastRideSessionEnd: [number, number] | null = null
+    /** 회차별 진입점 — 카드/시트를 번갈아 쓴다(§4.5.7-3) */
+    const usesSummarySheet = (lapIndex: number) => lapIndex === 1
 
     for (let lap = 0; lap < 3; lap += 1) {
       let result: Awaited<ReturnType<typeof pickDirectionAndWaitRoute>>
@@ -442,8 +487,11 @@ test.describe('R1 단계 C — 자동 Route 3회 루프', () => {
           lastRideSessionEnd: sessionEnd,
         })
 
-        const dock = await extendFromNextRideCard(page)
-        await expect(dock.locator('.map-view__pick-distance-number')).toHaveValue(`${TARGET_KM}.0`)
+        // 진입점을 번갈아 쓴다 — 카드 경로만 돌던 e2e 가 시트 경로의 결함을 놓쳤다(§4.5.2).
+        const dock = usesSummarySheet(lap)
+          ? await extendFromRideSummarySheet(page)
+          : await extendFromNextRideCard(page)
+        await assertContinuationContract(page, dock, lap + 1, TARGET_KM)
         result = await pickDirectionAndWaitRoute(page, directionOffsets[lap]!)
 
         const routeStart = routeStartFromResult(result)
@@ -471,7 +519,8 @@ test.describe('R1 단계 C — 자동 Route 3회 루프', () => {
 
       await page.getByRole('button', { name: '주행 시작' }).click()
       await rideUntilEnd(page, lap === 0 ? 400 : 300)
-      await closeRideSummary(page)
+      // 다음 회차가 결과 시트 진입점을 쓰면 시트를 열어 둔 채로 넘긴다.
+      if (!usesSummarySheet(lap + 1)) await closeRideSummary(page)
       lastRideSessionEnd = await waitForRideSessionEndAfter(uid, lastRideSessionEnd)
       await dumpRideAnchorState(uid, lap + 1, {
         phase: '주행 종료·Firestore persist 후',

@@ -396,10 +396,10 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
   );
 
   /** offered 결과에서 거리를 조정해 같은 클릭으로 재탐색 (Token 추가 차감 없음) */
-  const handleDistanceAdjustRetry = useCallback(() => {
+  const handleDistanceAdjustRetry = useCallback(async () => {
     const offered = offeredState;
     const lastClick = lastClickRef.current;
-    if (!offered || !lastClick) return;
+    if (!offered || !lastClick) return null;
 
     const rawAdjustedKm = Math.ceil((offered.directKm * 1000) / 100) * 100 / 1000;
     const validatedAdj = validateDistanceAutoRouteTargetKm(rawAdjustedKm);
@@ -410,7 +410,9 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
     overrideTargetKmRef.current = adjustedKm;
     distanceAdjustRetryRef.current = true;
 
-    handleMapPick(lastClick).catch(() => undefined);
+    // 결과를 호출부(MapView)로 돌려준다 — popup 슬라이더·문구를 여기서 맞출 수 없다.
+    const result = await handleMapPick(lastClick).catch(() => null);
+    return { adjustedKm, result };
   }, [offeredState, handleMapPick]);
 
   const retryDirection = useCallback(() => {

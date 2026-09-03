@@ -292,6 +292,8 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
         routeCompleted: isRouteCompletion(completionRatio),
         anchorLngLat: anchors.sessionEndLngLat,
         anchorPlaceLabel: record.sessionEndPlaceLabel ?? null,
+        profile,
+        routeDistanceMeters,
       });
     } else {
       setLastRideResult?.(null);

@@ -1,3 +1,4 @@
+import type { RouteProfile } from "../services/mapboxDirections";
 import type { LngLat } from "./geo";
 
 /**
@@ -31,6 +32,13 @@ export type RideEndResult = {
   anchorLngLat: LngLat | null;
   /** 다음 출발점 지명. 없으면 UI 가 「마지막 종료 지점」으로 표시한다. */
   anchorPlaceLabel: string | null;
+  /**
+   * 이어 달리기 승계의 1순위 근거(결함 ④). 페이지 세션 ref 는 초기값
+   * `{driving, 10}` 으로 시작해 채워지지 않은 경로로 들어오면 그대로 자동차가 나온다.
+   */
+  profile: RouteProfile;
+  /** 이번 주행이 달린 Route 전장(m) — 다음 목표 거리의 근거 */
+  routeDistanceMeters: number;
 };
 
 /** 진행률(0..1) → 표시용 정수 % */

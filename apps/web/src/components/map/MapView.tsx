@@ -1338,8 +1338,15 @@ export type MapViewProps = {
     directKm: number;
     targetKm: number;
   } | null;
-  /** offered 거리 조정 재탐색 버튼 클릭 핸들러 */
-  onDistanceAdjustRetry?: () => void;
+  /**
+   * offered 거리 조정 재탐색 버튼 클릭 핸들러.
+   * 조정된 km 와 재탐색 결과를 돌려준다 — popup 은 명령형 DOM 이라 호출부가 직접
+   * 슬라이더·문구를 맞춰야 한다(결함 ②③).
+   */
+  onDistanceAdjustRetry?: () => Promise<{
+    adjustedKm: number;
+    result: { status: "found" | "failed"; message: string; offered?: { adjustLabel: string } } | null;
+  } | null>;
   /** 자동 경로 마법사 중 지도 탭 가로채기 */
   autoRouteMapPick?: "start" | "direction" | null;
   /** 자동 Route 세션 — End 존재와 별도로 단일 설정창 유지 */
@@ -2290,6 +2297,46 @@ export function MapView({
         return;
       }
 
+      /**
+       * 자동 Route 결과를 popup 에 반영하는 **단일 경로**.
+       *
+       * 지도 클릭과 「거리 조정 재탐색」이 서로 다른 코드를 타서, 재탐색 쪽만 popup 갱신을
+       * 건너뛰었다 — 그래서 조정 성공 뒤에도 `offered` 문구가 남고(결함 ③) 슬라이더가 옛
+       * 값 그대로였다(결함 ②). 두 진입점이 이 함수를 함께 쓴다.
+       */
+      function applyAutoRoutePickResultToPopup(
+        result: { status: "found" | "failed"; message: string; offered?: { adjustLabel: string } } | null,
+      ): void {
+        if (!result) return;
+        const ui = pickPopupAutoRouteUiRef.current;
+        if (result.status === "found") {
+          ui?.setInlinePhase("found", result.message);
+          if (result.offered) {
+            ui?.setOfferedPanel({ adjustLabel: result.offered.adjustLabel }, () => {
+              void runDistanceAdjustRetry();
+            });
+          } else {
+            // 조정이 성공했으면 offered 패널·문구가 남아 있으면 안 된다(결함 ③).
+            ui?.setOfferedPanel(null);
+          }
+          return;
+        }
+        ui?.setOfferedPanel(null);
+        ui?.setInlinePhase("failed", result.message);
+        onRetryDistanceAutoRouteRef.current?.();
+      }
+
+      /** 거리 조정 재탐색 — 지도 클릭과 같은 UI 갱신을 거친다 */
+      async function runDistanceAdjustRetry(): Promise<void> {
+        const ui = pickPopupAutoRouteUiRef.current;
+        ui?.setInlinePhase("searching", "목표 거리에 맞는 도로 경로를 찾는 중입니다…");
+        const retried = await onDistanceAdjustRetryRef.current?.();
+        if (!retried) return;
+        // 목표 거리가 바뀐 그 지점에서 popup 입력을 맞춘다(결함 ②).
+        ui?.syncDistanceInputs(retried.adjustedKm);
+        applyAutoRoutePickResultToPopup(retried.result);
+      }
+
       const picked: LngLat = [event.lngLat.lng, event.lngLat.lat];
       if (autoRouteMapPickRef.current === "direction" && onAutoRouteMapPickRef.current) {
         if (autoRouteSearchBusyRef.current) return;
@@ -2305,22 +2352,7 @@ export function MapView({
 
         void onAutoRouteMapPickRef.current(picked)
           .then((result) => {
-            if (!result) return;
-            if (result.status === "found") {
-              pickPopupAutoRouteUiRef.current?.setInlinePhase("found", result.message);
-              if (result.offered) {
-                pickPopupAutoRouteUiRef.current?.setOfferedPanel(
-                  { adjustLabel: result.offered.adjustLabel },
-                  () => onDistanceAdjustRetryRef.current?.(),
-                );
-              } else {
-                pickPopupAutoRouteUiRef.current?.setOfferedPanel(null);
-              }
-              return;
-            }
-            pickPopupAutoRouteUiRef.current?.setOfferedPanel(null);
-            pickPopupAutoRouteUiRef.current?.setInlinePhase("failed", result.message);
-            onRetryDistanceAutoRouteRef.current?.();
+            applyAutoRoutePickResultToPopup(result);
           })
           .catch(() => {
             pickPopupAutoRouteUiRef.current?.setInlinePhase(
@@ -3788,6 +3820,12 @@ type PickPopupAutoRouteUi = {
     offered: { adjustLabel: string } | null,
     onAdjust?: () => void,
   ) => void;
+  /**
+   * 목표 거리 슬라이더·숫자 입력을 지정 km 로 맞춘다.
+   * popup 은 명령형 DOM 이라 React state 변화로 다시 그려지지 않는다 — 값이 바뀌는 지점에서
+   * 명시적으로 부른다(`queueMicrotask` 타이밍 맞추기를 늘리지 않는다).
+   */
+  syncDistanceInputs: (km: number) => void;
 };
 
 function buildPickPopup(deps: {
@@ -4292,6 +4330,7 @@ function buildPickPopup(deps: {
     setInlinePhase,
     tryArmDirectionPick: tryArmDirectionPickIfChecked,
     setOfferedPanel,
+    syncDistanceInputs,
   });
 
   modeCheckbox.addEventListener("change", () => {
