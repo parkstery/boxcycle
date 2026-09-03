@@ -4,10 +4,13 @@ import type { CadenceHudState } from "../../lib/cadenceSensorUi";
 import { useEffect, useSyncExternalStore } from "react";
 import { reportHudCompanionTrailDedup } from "../../lib/hudCompanionDiag";
 import {
-  getHasOtherLiveRiders,
+  getOtherLiveRiderCount,
   subscribeHasOtherLiveRiders,
 } from "../../lib/liveRideHudSignal";
-import { shouldShowCompanionEmptyCopy } from "../../lib/peerHud";
+import {
+  companionHudCopy,
+  formatCompanionHudActivityLine,
+} from "../../lib/companionHudCount";
 import { CadenceHudChip } from "./CadenceHudChip";
 import "./MapHud.css";
 
@@ -34,7 +37,7 @@ export type MapHudRidePresence = {
   trailError: string | null;
   courseTitle: string | null;
   coursePeerNames: string[];
-  /** `courseActivity` aggregate 한 줄(지금 N명 · 최근 7일 등) */
+  /** `courseActivity` aggregate 한 줄 — 인원수 절은 MapHud 가 Trail 실시간으로 치환 */
   courseActivityHudLine?: string | null;
 };
 
@@ -211,11 +214,12 @@ export function MapHud(props: MapHudProps) {
   // 접속·동행 현황은 HUD 가 단독으로 소유. MENU(Trail 섹션=참가·공개 설정 행동) 열린 동안은
   // 가림·중복을 피하려 숨긴다.
   const showRidePresence = ridePresence != null && !menuOpen;
-  const hasOtherLiveRiders = useSyncExternalStore(
+  const otherLiveRiderCount = useSyncExternalStore(
     subscribeHasOtherLiveRiders,
-    getHasOtherLiveRiders,
-    getHasOtherLiveRiders,
+    getOtherLiveRiderCount,
+    getOtherLiveRiderCount,
   );
+  const hasOtherLiveRiders = otherLiveRiderCount > 0;
 
   useEffect(() => {
     if (!ridePresence) return;
@@ -239,6 +243,22 @@ export function MapHud(props: MapHudProps) {
   const showCoach = coachLineEnabled && coachData !== null && (riding || paused);
   const showMainFab = riding;
   const showMc = paused || (stage === "setup" && Boolean(routeError));
+
+  const companionCopy =
+    ridePresence != null
+      ? companionHudCopy({
+          otherLiveRiderCount,
+          selfRiding: riding,
+          coursePeerNamesLength: ridePresence.coursePeerNames.length,
+        })
+      : { riderCount: null, showEmptyCopy: false };
+  const companionActivityLine =
+    ridePresence != null
+      ? formatCompanionHudActivityLine({
+          aggregateHudLine: ridePresence.courseActivityHudLine ?? null,
+          displayedRiderCount: companionCopy.riderCount,
+        })
+      : null;
 
   return (
     <div className="map-hud" aria-label="라이딩 HUD">
@@ -322,7 +342,7 @@ export function MapHud(props: MapHudProps) {
                 {ridePresence.courseTitle != null ||
                 ridePresence.coursePeerNames.length > 0 ||
                 hasOtherLiveRiders ||
-                ridePresence.courseActivityHudLine ? (
+                companionActivityLine ? (
                   <div
                     className="hud-ride-presence__block"
                     data-has-other-live={hasOtherLiveRiders ? "1" : "0"}
@@ -333,8 +353,15 @@ export function MapHud(props: MapHudProps) {
                         {ridePresence.courseTitle ?? "경로"}
                       </span>
                     </div>
-                    {ridePresence.courseActivityHudLine ? (
-                      <p className="hud-ride-presence__activity">{ridePresence.courseActivityHudLine}</p>
+                    {companionActivityLine ? (
+                      <p
+                        className="hud-ride-presence__activity"
+                        data-companion-count={
+                          companionCopy.riderCount != null ? String(companionCopy.riderCount) : ""
+                        }
+                      >
+                        {companionActivityLine}
+                      </p>
                     ) : null}
                     {ridePresence.coursePeerNames.length > 0 ? (
                       <ul className="hud-ride-presence__list">
@@ -342,10 +369,7 @@ export function MapHud(props: MapHudProps) {
                           <li key={`${name}-${i}`}>{name}</li>
                         ))}
                       </ul>
-                    ) : shouldShowCompanionEmptyCopy(
-                        ridePresence.coursePeerNames.length,
-                        hasOtherLiveRiders,
-                      ) ? (
+                    ) : companionCopy.showEmptyCopy ? (
                       <p className="hud-ride-presence__empty">다른 라이더 없음</p>
                     ) : null}
                   </div>
