@@ -1,15 +1,15 @@
 # 감리 → 개발팀장 지시서 — G-1 라이더 20배 확대 시각 실험
 
 > **실험 종료 (2026-08-27).** 제품 미채택. `main2` 병합 금지.
-> 스냅샷은 브랜치 `260825-gient` @ `2045e79` · 태그 `experiment/260825-gient`.
+> 스냅샷은 브랜치 `260825-giant` @ `2045e79` · 태그 `experiment/260825-giant`.
 > 종결 이정표: [260827-라이더-자이언트-스케일-실험-종결](../../archive/260827-라이더-자이언트-스케일-실험-종결.md).
-> G-2 지시·REPORT·샷의 정본은 그 브랜치의 `document/ops/gient-relay/` 이다.
+> G-2 지시·REPORT·샷의 정본은 그 브랜치의 `document/ops/giant-relay/` 이다.
 
 - **지시번호**: G-1 (라이더 아바타 + 자전거를 현재의 정확히 20배로 표시)
 - **발신**: 클로드감리0825 · **일시**: 2026-08-25 · **상태**: 실험종료·미채택
 - **기준선**: `origin/main2` — 이 지시서가 포함된 커밋
-- **브랜치**: **`260825-gient`** ← **오타를 고치지 마라.** `giant` 로 바꾸면 즉시 정지 조건이다
-- **worktree**: `C:/20.HDev/rtw-gient/repo` (신규)
+- **브랜치**: **`260825-giant`** ← 최초에는 `gient` 오타였고 2026-09-03 에 `giant` 로 정정했다
+- **worktree**: `C:/20.HDev/rtw-giant/repo` (신규)
 - **성격**: 시각 실험. 제품 확정이 아니다. **main2 병합 금지**(별도 지시 전까지)
 
 ---
@@ -24,18 +24,18 @@ git -C C:/20.HDev/boxcycle fetch origin
 git -C C:/20.HDev/boxcycle rev-parse origin/main2
 
 # 2) 전용 worktree + 새 브랜치 (base 는 origin/main2)
-git -C C:/20.HDev/boxcycle worktree add C:/20.HDev/rtw-gient/repo -b 260825-gient origin/main2
+git -C C:/20.HDev/boxcycle worktree add C:/20.HDev/rtw-giant/repo -b 260825-giant origin/main2
 
 # 3) 확인
-git -C C:/20.HDev/rtw-gient/repo rev-parse --abbrev-ref HEAD     # 260825-gient
-git -C C:/20.HDev/rtw-gient/repo merge-base --is-ancestor origin/main2 HEAD && echo BASE_OK
-git -C C:/20.HDev/rtw-gient/repo rev-list --count origin/main2..HEAD   # 0
+git -C C:/20.HDev/rtw-giant/repo rev-parse --abbrev-ref HEAD     # 260825-giant
+git -C C:/20.HDev/rtw-giant/repo merge-base --is-ancestor origin/main2 HEAD && echo BASE_OK
+git -C C:/20.HDev/rtw-giant/repo rev-list --count origin/main2..HEAD   # 0
 ```
 
 ### 즉시 정지 조건 (하나라도 걸리면 그 자리에서 멈추고 보고)
 
 ```
-브랜치 이름이 260825-gient 가 아니다 (giant·gient-260825 등 어떤 변형도 실패)
+브랜치 이름이 260825-giant 가 아니다 (giant·giant-260825 등 어떤 변형도 실패)
 base 가 fix/multiplayer-read-amplification 이다 — 그 브랜치에서 분기하면 안 된다
 기존 worktree(rtw-sync-s4-2 · rtw-hud-h1 · rtw-orchestrator)를 건드리게 된다
 G4(접지점)가 어긋난다 — GLB 원점 문제이며 이 지시의 범위 밖이다
@@ -76,7 +76,7 @@ G4(접지점)가 어긋난다 — GLB 원점 문제이며 이 지시의 범위 �
 export const RIDER_GLB_MODEL_BASE_SCALE = 1.15;
 
 /**
- * 260825-gient 시각 실험 — 아바타와 자전거를 기준의 **정확히 20배**로 표시한다.
+ * 260825-giant 시각 실험 — 아바타와 자전거를 기준의 **정확히 20배**로 표시한다.
  * 되돌리려면 1 로 바꾼다. 이 계수는 라이더 GLB 모델에만 곱해진다 —
  * 네임태그·HUD·경로선·지도 UI 는 이 상수를 읽지 않는다.
  */
@@ -116,7 +116,7 @@ git add -A · commit -a · --no-verify · force · rebase · reset · amend
 ## 4. 검증 게이트 — G0 부터 순서대로
 
 **모든 게이트는 「0·상수·센티넬로 자동 통과」하지 않도록 설계했다.** 값이 살아 있음을
-먼저 증명하고 나서 판정하라. 결과는 `document/ops/gient-relay/G-gates.json` 에 남긴다.
+먼저 증명하고 나서 판정하라. 결과는 `document/ops/giant-relay/G-gates.json` 에 남긴다.
 
 ### G0 — 계측 자가 검산 (가장 먼저)
 
@@ -129,7 +129,7 @@ map.getPaintProperty("boxcycle-rider-prototype-layer", "model-scale")
 | | 기대 |
 |---|---|
 | before (origin/main2) | `[1.15, 1.15, 1.15]` |
-| after (260825-gient) | `[23, 23, 23]` |
+| after (260825-giant) | `[23, 23, 23]` |
 
 **같은 방법으로 두 값을 읽어 서로 다름을 보여라.** 한쪽만 읽으면 게이트가 성립하지 않는다.
 
@@ -140,7 +140,7 @@ map.getPaintProperty("boxcycle-rider-prototype-layer", "model-scale")
 
 ```
 h_before = 라이더 실루엣 세로 픽셀 높이 (origin/main2)
-h_after  = 같은 조건에서의 세로 픽셀 높이 (260825-gient)
+h_after  = 같은 조건에서의 세로 픽셀 높이 (260825-giant)
 
 판정: h_after / h_before = 20.0 ± 5%
 ```
@@ -237,7 +237,7 @@ e2e ride-entry.spec.ts              green
 
 ## 5. 화면 증거
 
-`document/ops/gient-relay/shots/` 에 저장하고 REPORT 에 파일명과 해시를 적는다.
+`document/ops/giant-relay/shots/` 에 저장하고 REPORT 에 파일명과 해시를 적는다.
 **before 샷은 `origin/main2` 체크아웃 상태에서 찍는다.** 서로 해시가 달라야 한다.
 
 | 파일 | 내용 |
@@ -284,17 +284,17 @@ heightSpan          1.7852 m  →  35.7040 m   (전고 × 1.12)
 ## 7. 커밋 규칙 (분리하라)
 
 ```
-1) feat(rider): 260825-gient — 라이더 GLB 를 기준의 20배로 표시한다
+1) feat(rider): 260825-giant — 라이더 GLB 를 기준의 20배로 표시한다
    apps/web/src/lib/riderPrototype/config.ts  (1 파일)
 
 2) test(rider): G-1 배율·접지·UI 불변 게이트 증거를 남긴다
-   document/ops/gient-relay/G-gates.json · shots/**  (+ 측정 스크립트가 있다면 함께)
+   document/ops/giant-relay/G-gates.json · shots/**  (+ 측정 스크립트가 있다면 함께)
 
-3) docs(gient): G-1 결과를 보고한다
-   document/ops/gient-relay/INSTRUCTION.md (상태·§8) · REPORT.md
+3) docs(giant): G-1 결과를 보고한다
+   document/ops/giant-relay/INSTRUCTION.md (상태·§8) · REPORT.md
 ```
 
-push 는 `260825-gient` 로만 한다. **main2 에 push 하지 마라.**
+push 는 `260825-giant` 로만 한다. **main2 에 push 하지 마라.**
 
 ---
 
