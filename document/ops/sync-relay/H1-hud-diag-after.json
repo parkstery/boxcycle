@@ -1,0 +1,269 @@
+{
+  "instruction": "H-1R",
+  "phase": "after",
+  "elapsedMs": 120166,
+  "trailId": "Vg8oBvTvFjyXQY8w4puo",
+  "trailLabelA": "Trail 749",
+  "chiefTrail403": {
+    "matched": false,
+    "reason": "저장소에 Chief Trail 403 의 trailId 가 없고, 재현은 Trailhead 입문 코스 시작으로 새 Trail 이 생긴다. H-1 before 와 같은 경로."
+  },
+  "soloA": {
+    "atMs": 1786922125480,
+    "source": "snapshotHudCompanionDiag",
+    "coursePeerHud": [],
+    "activeTrailMemberUids": [
+      "ENnhxGT6h9TwlGBKyAkIfDhD2Bi1",
+      "d0shLOcH73MkpSe6396ed5QRH112"
+    ],
+    "coursePeerNamesLength": 0,
+    "publicationId": "basic-intro-nyc-central-park",
+    "liveRideRows": [],
+    "motionRowsLength": 1,
+    "motionPeersAfterPidFilter": 0,
+    "routeActivity": {
+      "publicationId": "basic-intro-nyc-central-park",
+      "activeRiderCount": 11,
+      "liveNow": true,
+      "firstFetchAtMs": 1786922118649,
+      "lastGetDocAtMs": 1786922118649,
+      "lastCacheHitAtMs": 1786922123275,
+      "getDocCount": 1,
+      "cacheHitCount": 3,
+      "inflightJoinCount": 0
+    }
+  },
+  "dualA": {
+    "atMs": 1786922150022,
+    "source": "snapshotHudCompanionDiag",
+    "coursePeerHud": [
+      {
+        "id": "K2HV3kEueuZ0gWzNaTndXYHNJkw1",
+        "label": "guest2"
+      }
+    ],
+    "activeTrailMemberUids": [
+      "K2HV3kEueuZ0gWzNaTndXYHNJkw1",
+      "d0shLOcH73MkpSe6396ed5QRH112"
+    ],
+    "coursePeerNamesLength": 0,
+    "publicationId": "basic-intro-nyc-central-park",
+    "liveRideRows": [
+      {
+        "uid": "K2HV3kEueuZ0gWzNaTndXYHNJkw1",
+        "publicationId": "basic-intro-nyc-central-park"
+      },
+      {
+        "uid": "d0shLOcH73MkpSe6396ed5QRH112",
+        "publicationId": "basic-intro-nyc-central-park"
+      }
+    ],
+    "motionRowsLength": 2,
+    "motionPeersAfterPidFilter": 1,
+    "routeActivity": {
+      "publicationId": "basic-intro-nyc-central-park",
+      "activeRiderCount": 13,
+      "liveNow": true,
+      "firstFetchAtMs": 1786922118649,
+      "lastGetDocAtMs": 1786922147418,
+      "lastCacheHitAtMs": 1786922123275,
+      "getDocCount": 2,
+      "cacheHitCount": 3,
+      "inflightJoinCount": 1
+    }
+  },
+  "dualB": {
+    "atMs": 1786922150316,
+    "source": "snapshotHudCompanionDiag",
+    "coursePeerHud": [
+      {
+        "id": "d0shLOcH73MkpSe6396ed5QRH112",
+        "label": "guest1"
+      }
+    ],
+    "activeTrailMemberUids": [
+      "K2HV3kEueuZ0gWzNaTndXYHNJkw1",
+      "d0shLOcH73MkpSe6396ed5QRH112"
+    ],
+    "coursePeerNamesLength": 0,
+    "publicationId": "basic-intro-nyc-central-park",
+    "liveRideRows": [
+      {
+        "uid": "d0shLOcH73MkpSe6396ed5QRH112",
+        "publicationId": "basic-intro-nyc-central-park"
+      }
+    ],
+    "motionRowsLength": 2,
+    "motionPeersAfterPidFilter": 1,
+    "routeActivity": {
+      "publicationId": "basic-intro-nyc-central-park",
+      "activeRiderCount": 12,
+      "liveNow": true,
+      "firstFetchAtMs": 1786922135996,
+      "lastGetDocAtMs": 1786922135996,
+      "lastCacheHitAtMs": 1786922142331,
+      "getDocCount": 1,
+      "cacheHitCount": 3,
+      "inflightJoinCount": 0
+    }
+  },
+  "dualAfterTtlA": {
+    "atMs": 1786922224349,
+    "source": "snapshotHudCompanionDiag",
+    "coursePeerHud": [
+      {
+        "id": "K2HV3kEueuZ0gWzNaTndXYHNJkw1",
+        "label": "guest2"
+      }
+    ],
+    "activeTrailMemberUids": [
+      "K2HV3kEueuZ0gWzNaTndXYHNJkw1",
+      "d0shLOcH73MkpSe6396ed5QRH112"
+    ],
+    "coursePeerNamesLength": 0,
+    "publicationId": "basic-intro-nyc-central-park",
+    "liveRideRows": [
+      {
+        "uid": "K2HV3kEueuZ0gWzNaTndXYHNJkw1",
+        "publicationId": "basic-intro-nyc-central-park"
+      },
+      {
+        "uid": "d0shLOcH73MkpSe6396ed5QRH112",
+        "publicationId": "basic-intro-nyc-central-park"
+      }
+    ],
+    "motionRowsLength": 2,
+    "motionPeersAfterPidFilter": 1,
+    "routeActivity": {
+      "publicationId": "basic-intro-nyc-central-park",
+      "activeRiderCount": 13,
+      "liveNow": true,
+      "firstFetchAtMs": 1786922118649,
+      "lastGetDocAtMs": 1786922152363,
+      "lastCacheHitAtMs": 1786922183854,
+      "getDocCount": 3,
+      "cacheHitCount": 6,
+      "inflightJoinCount": 1
+    }
+  },
+  "dualAfterTtlB": {
+    "atMs": 1786922224579,
+    "source": "snapshotHudCompanionDiag",
+    "coursePeerHud": [
+      {
+        "id": "d0shLOcH73MkpSe6396ed5QRH112",
+        "label": "guest1"
+      }
+    ],
+    "activeTrailMemberUids": [
+      "K2HV3kEueuZ0gWzNaTndXYHNJkw1",
+      "d0shLOcH73MkpSe6396ed5QRH112"
+    ],
+    "coursePeerNamesLength": 0,
+    "publicationId": "basic-intro-nyc-central-park",
+    "liveRideRows": [
+      {
+        "uid": "K2HV3kEueuZ0gWzNaTndXYHNJkw1",
+        "publicationId": "basic-intro-nyc-central-park"
+      },
+      {
+        "uid": "d0shLOcH73MkpSe6396ed5QRH112",
+        "publicationId": "basic-intro-nyc-central-park"
+      }
+    ],
+    "motionRowsLength": 2,
+    "motionPeersAfterPidFilter": 1,
+    "routeActivity": {
+      "publicationId": "basic-intro-nyc-central-park",
+      "activeRiderCount": 13,
+      "liveNow": true,
+      "firstFetchAtMs": 1786922135996,
+      "lastGetDocAtMs": 1786922202880,
+      "lastCacheHitAtMs": 1786922203394,
+      "getDocCount": 2,
+      "cacheHitCount": 4,
+      "inflightJoinCount": 0
+    }
+  },
+  "hudText": {
+    "soloEmptyCopy": [
+      "다른 라이더 없음"
+    ],
+    "emptyCopyA": [],
+    "emptyCopyB": [],
+    "activityA": [
+      "지금 13명 주행"
+    ],
+    "activityB": [
+      "지금 12명 주행"
+    ],
+    "namesA": [
+      "guest-K2HV3k",
+      "guest-d0shLO (나)"
+    ],
+    "namesB": [
+      "guest-K2HV3k (나)",
+      "guest-d0shLO"
+    ]
+  },
+  "shots": {
+    "v4-solo-a.png": "41a42f33c5c16eb973318b5c8bfe208e45d1e564ec37b73e91053fee2b07b296",
+    "v3-dual-a.png": "6dc8130cf4b318b407197fae565825592c85eafa792df075508d09e06acf33af",
+    "v3-dual-b.png": "819196170910d49a6f9b9008e662a90377ccd88dd72989a1304df67c54ef37e4",
+    "v2-dual-a.png": "76a6cc13a89e1de8cf33f6e4e2026e299bb01892c329d7199c7b8bcd0581724b",
+    "v2-dual-b.png": "89d4fb0598a8c92140be87c8cccfc4a81e500338b0a95f73be1063600789a99a"
+  },
+  "observationsUnfixed": {
+    "aTrailMembers": 2,
+    "activityCountA": 13,
+    "activityCountB": 12,
+    "course": "intro-course fresh trail — not Chief Trail 403 unless matched above"
+  },
+  "section22": {
+    "coursePeerHudALength": 1,
+    "coursePeerHudBLength": 1,
+    "coursePeerHudEmpty": false,
+    "liveRideRowCountA": 2,
+    "liveRideRowCountB": 1,
+    "publicationIds": {
+      "aSelf": "basic-intro-nyc-central-park",
+      "bSelf": "basic-intro-nyc-central-park",
+      "aLiveRows": [
+        "basic-intro-nyc-central-park",
+        "basic-intro-nyc-central-park"
+      ],
+      "bLiveRows": [
+        "basic-intro-nyc-central-park"
+      ]
+    }
+  },
+  "verdicts": {
+    "V2": {
+      "pass": true,
+      "a": 13,
+      "b": 13,
+      "note": "양쪽 인원수 일치"
+    },
+    "V3a": {
+      "pass": true,
+      "emptyCopyA": []
+    },
+    "V3b": {
+      "pass": true,
+      "emptyCopyB": []
+    },
+    "V4": {
+      "pass": true,
+      "soloEmptyCopy": [
+        "다른 라이더 없음"
+      ]
+    },
+    "V5": {
+      "aGetDoc": 3,
+      "bGetDoc": 2
+    },
+    "V6": {
+      "shotHashUnique": true
+    }
+  }
+}

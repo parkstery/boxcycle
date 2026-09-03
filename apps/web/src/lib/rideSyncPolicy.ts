@@ -119,6 +119,9 @@ export {
 /** WO-A adaptive — live activity 있음 active */
 export const ACTIVITY_WORLD_POLL_ACTIVE_MS = 60_000;
 
+/** routeActivity 세션 캐시 TTL — 주행 중 폴링 주기와 같게. 더 짧게 잡지 않는다. */
+export const ROUTE_ACTIVITY_CACHE_TTL_MS = ACTIVITY_WORLD_POLL_ACTIVE_MS;
+
 /** WO-A adaptive — live 없음 idle */
 export const ACTIVITY_WORLD_POLL_IDLE_MS = 600_000;
 

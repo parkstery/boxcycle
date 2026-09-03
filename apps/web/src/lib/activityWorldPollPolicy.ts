@@ -2,6 +2,7 @@ import { isRouteActivityLive, type RouteActivitySnapshot } from "./firestoreRout
 import {
   ACTIVITY_WORLD_POLL_ACTIVE_MS,
   ACTIVITY_WORLD_POLL_IDLE_MS,
+  ROUTE_ACTIVITY_CACHE_TTL_MS,
 } from "./rideSyncPolicy";
 
 export type ActivityWorldPollMode = "idle" | "active";
@@ -72,5 +73,8 @@ export function runActivityWorldPollPolicyChecks(): void {
   }
   if (activityWorldPollIntervalMs("active") !== ACTIVITY_WORLD_POLL_ACTIVE_MS) {
     throw new Error("[ActivityWorldPoll] active interval mismatch");
+  }
+  if (ROUTE_ACTIVITY_CACHE_TTL_MS !== ACTIVITY_WORLD_POLL_ACTIVE_MS) {
+    throw new Error("[ActivityWorldPoll] routeActivity cache TTL must match active poll interval");
   }
 }

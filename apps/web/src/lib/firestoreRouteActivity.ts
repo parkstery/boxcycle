@@ -13,6 +13,8 @@ import { isActivityLodDebugPanelEnabled } from "./mapDebugPhase";
 import type { LngLat } from "./geo";
 import { isWithinActivityTraceHeatWindow } from "./activityWorldTraceStyle";
 import { lastSeenAtToMillis } from "./firestoreTrail";
+import { recordRouteActivityAccess } from "./hudCompanionDiag";
+import { ROUTE_ACTIVITY_CACHE_TTL_MS } from "./rideSyncPolicy";
 
 /**
  * Activity World invariant
@@ -88,14 +90,32 @@ function parseRouteActivityDoc(publicationId: string, data: Record<string, unkno
   };
 }
 
-const memoryCache = new Map<string, RouteActivitySnapshot | null>();
+type RouteActivityCacheEntry = {
+  value: RouteActivitySnapshot | null;
+  atMs: number;
+};
+
+const memoryCache = new Map<string, RouteActivityCacheEntry>();
 const inflight = new Map<string, Promise<RouteActivitySnapshot | null>>();
 
-/** 저빈도 `getDoc` — 세션 캐시·in-flight 공유 */
+export function isRouteActivityCacheFresh(atMs: number, nowMs = Date.now()): boolean {
+  return nowMs - atMs < ROUTE_ACTIVITY_CACHE_TTL_MS;
+}
+
+/** 저빈도 `getDoc` — 세션 캐시(TTL=active poll) · in-flight 공유 */
 export async function fetchRouteActivity(publicationId: string): Promise<RouteActivitySnapshot | null> {
   const id = publicationId.trim();
   if (!id) return null;
-  if (memoryCache.has(id)) return memoryCache.get(id)!;
+  const cached = memoryCache.get(id);
+  if (cached && isRouteActivityCacheFresh(cached.atMs)) {
+    recordRouteActivityAccess({
+      kind: "cache",
+      publicationId: id,
+      activeRiderCount: cached.value?.activeRiderCount ?? null,
+      liveNow: cached.value?.liveNow ?? null,
+    });
+    return cached.value;
+  }
 
   let pending = inflight.get(id);
   if (!pending) {
@@ -105,7 +125,13 @@ export async function fetchRouteActivity(publicationId: string): Promise<RouteAc
       const parsed = routeSnap.exists()
         ? parseRouteActivityDoc(id, routeSnap.data() as Record<string, unknown>)
         : null;
-      memoryCache.set(id, parsed);
+      recordRouteActivityAccess({
+        kind: "getDoc",
+        publicationId: id,
+        activeRiderCount: parsed?.activeRiderCount ?? null,
+        liveNow: parsed?.liveNow ?? null,
+      });
+      memoryCache.set(id, { value: parsed, atMs: Date.now() });
       inflight.delete(id);
       return parsed;
     })().catch((e) => {
@@ -113,6 +139,8 @@ export async function fetchRouteActivity(publicationId: string): Promise<RouteAc
       throw e;
     });
     inflight.set(id, pending);
+  } else {
+    recordRouteActivityAccess({ kind: "inflight", publicationId: id });
   }
   return pending;
 }
