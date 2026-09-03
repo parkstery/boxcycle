@@ -1,0 +1,143 @@
+{
+  "instruction": "H-1",
+  "phase": "before",
+  "elapsedMs": 34558,
+  "trailId": "00f283O8AELROn4hIbAe",
+  "soloA": {
+    "atMs": 1786918267227,
+    "source": "snapshotHudCompanionDiag",
+    "coursePeerHud": [],
+    "activeTrailMemberUids": [
+      "pALUML8g69aoKFh04bPWl5GvxA53"
+    ],
+    "coursePeerNamesLength": 0,
+    "publicationId": "basic-intro-nyc-central-park",
+    "liveRideRows": [
+      {
+        "uid": "pALUML8g69aoKFh04bPWl5GvxA53",
+        "publicationId": "basic-intro-nyc-central-park"
+      }
+    ],
+    "motionRowsLength": 1,
+    "motionPeersAfterPidFilter": 0,
+    "routeActivity": {
+      "publicationId": "basic-intro-nyc-central-park",
+      "activeRiderCount": 2,
+      "liveNow": true,
+      "firstFetchAtMs": 1786918261789,
+      "lastGetDocAtMs": 1786918261789,
+      "lastCacheHitAtMs": 1786918265279,
+      "getDocCount": 1,
+      "cacheHitCount": 3,
+      "inflightJoinCount": 0
+    }
+  },
+  "dualA": {
+    "atMs": 1786918285540,
+    "source": "snapshotHudCompanionDiag",
+    "coursePeerHud": [],
+    "activeTrailMemberUids": [
+      "pALUML8g69aoKFh04bPWl5GvxA53"
+    ],
+    "coursePeerNamesLength": 0,
+    "publicationId": "basic-intro-nyc-central-park",
+    "liveRideRows": [
+      {
+        "uid": "ocnZ3qMN5jQlFXhjyEEYxJPGPA52",
+        "publicationId": "basic-intro-nyc-central-park"
+      },
+      {
+        "uid": "pALUML8g69aoKFh04bPWl5GvxA53",
+        "publicationId": "basic-intro-nyc-central-park"
+      }
+    ],
+    "motionRowsLength": 2,
+    "motionPeersAfterPidFilter": 1,
+    "routeActivity": {
+      "publicationId": "basic-intro-nyc-central-park",
+      "activeRiderCount": 2,
+      "liveNow": true,
+      "firstFetchAtMs": 1786918261789,
+      "lastGetDocAtMs": 1786918261789,
+      "lastCacheHitAtMs": 1786918265279,
+      "getDocCount": 1,
+      "cacheHitCount": 3,
+      "inflightJoinCount": 0
+    }
+  },
+  "dualB": {
+    "atMs": 1786918285719,
+    "source": "snapshotHudCompanionDiag",
+    "coursePeerHud": [
+      {
+        "id": "pALUML8g69aoKFh04bPWl5GvxA53",
+        "label": "guest-pALUML"
+      }
+    ],
+    "activeTrailMemberUids": [
+      "ocnZ3qMN5jQlFXhjyEEYxJPGPA52",
+      "pALUML8g69aoKFh04bPWl5GvxA53"
+    ],
+    "coursePeerNamesLength": 0,
+    "publicationId": "basic-intro-nyc-central-park",
+    "liveRideRows": [
+      {
+        "uid": "ocnZ3qMN5jQlFXhjyEEYxJPGPA52",
+        "publicationId": "basic-intro-nyc-central-park"
+      },
+      {
+        "uid": "pALUML8g69aoKFh04bPWl5GvxA53",
+        "publicationId": "basic-intro-nyc-central-park"
+      }
+    ],
+    "motionRowsLength": 2,
+    "motionPeersAfterPidFilter": 1,
+    "routeActivity": {
+      "publicationId": "basic-intro-nyc-central-park",
+      "activeRiderCount": 3,
+      "liveNow": true,
+      "firstFetchAtMs": 1786918275152,
+      "lastGetDocAtMs": 1786918275152,
+      "lastCacheHitAtMs": 1786918279437,
+      "getDocCount": 1,
+      "cacheHitCount": 3,
+      "inflightJoinCount": 0
+    }
+  },
+  "hudText": {
+    "emptyCopyA": [
+      "다른 라이더 없음"
+    ],
+    "emptyCopyB": [
+      "다른 라이더 없음"
+    ],
+    "activityA": [
+      "지금 2명 주행"
+    ],
+    "activityB": [
+      "지금 3명 주행"
+    ]
+  },
+  "shots": {
+    "before-solo-a.png": "76f0c94c1399b4975b005b0e705b79b15239490b5538c465c824cde9a9e44f1b",
+    "before-dual-a.png": "a652eaf5853eabbaa97f4401f294944c3c2ad16fc564c4f71f682c34cae94dfb",
+    "before-dual-b.png": "74fed24744f334e961f34208bc68188a7ca9c4ae089fd4fd8c20f05467e7ec98"
+  },
+  "section22": {
+    "coursePeerHudALength": 0,
+    "coursePeerHudBLength": 1,
+    "coursePeerHudEmpty": false,
+    "publicationIds": {
+      "aSelf": "basic-intro-nyc-central-park",
+      "bSelf": "basic-intro-nyc-central-park",
+      "aLiveRows": [
+        "basic-intro-nyc-central-park",
+        "basic-intro-nyc-central-park"
+      ],
+      "bLiveRows": [
+        "basic-intro-nyc-central-park",
+        "basic-intro-nyc-central-park"
+      ]
+    }
+  }
+}

@@ -1,6 +1,13 @@
 import type { CoachingData } from "../../lib/coachTypes";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
 import type { CadenceHudState } from "../../lib/cadenceSensorUi";
+import { useEffect, useSyncExternalStore } from "react";
+import { reportHudCompanionTrailDedup } from "../../lib/hudCompanionDiag";
+import {
+  getHasOtherLiveRiders,
+  subscribeHasOtherLiveRiders,
+} from "../../lib/liveRideHudSignal";
+import { shouldShowCompanionEmptyCopy } from "../../lib/peerHud";
 import { CadenceHudChip } from "./CadenceHudChip";
 import "./MapHud.css";
 
@@ -204,6 +211,19 @@ export function MapHud(props: MapHudProps) {
   // 접속·동행 현황은 HUD 가 단독으로 소유. MENU(Trail 섹션=참가·공개 설정 행동) 열린 동안은
   // 가림·중복을 피하려 숨긴다.
   const showRidePresence = ridePresence != null && !menuOpen;
+  const hasOtherLiveRiders = useSyncExternalStore(
+    subscribeHasOtherLiveRiders,
+    getHasOtherLiveRiders,
+    getHasOtherLiveRiders,
+  );
+
+  useEffect(() => {
+    if (!ridePresence) return;
+    reportHudCompanionTrailDedup({
+      activeTrailMemberUids: ridePresence.trailMembers.filter((m) => m.active).map((m) => m.key),
+      coursePeerNamesLength: ridePresence.coursePeerNames.length,
+    });
+  }, [ridePresence]);
   const showAccount = account !== null && !isGate && !isSummary;
   const showSignedOutAuth =
     !isGate && !isSummary && account === null && typeof onOpenSignedOutAuth === "function";
@@ -301,8 +321,12 @@ export function MapHud(props: MapHudProps) {
                 ) : null}
                 {ridePresence.courseTitle != null ||
                 ridePresence.coursePeerNames.length > 0 ||
+                hasOtherLiveRiders ||
                 ridePresence.courseActivityHudLine ? (
-                  <div className="hud-ride-presence__block">
+                  <div
+                    className="hud-ride-presence__block"
+                    data-has-other-live={hasOtherLiveRiders ? "1" : "0"}
+                  >
                     <div className="hud-ride-presence__head">
                       <span className="hud-ride-presence__tag">동행</span>
                       <span className="hud-ride-presence__room" title={ridePresence.courseTitle ?? ""}>
@@ -318,9 +342,12 @@ export function MapHud(props: MapHudProps) {
                           <li key={`${name}-${i}`}>{name}</li>
                         ))}
                       </ul>
-                    ) : (
+                    ) : shouldShowCompanionEmptyCopy(
+                        ridePresence.coursePeerNames.length,
+                        hasOtherLiveRiders,
+                      ) ? (
                       <p className="hud-ride-presence__empty">다른 라이더 없음</p>
-                    )}
+                    ) : null}
                   </div>
                 ) : null}
               </aside>
