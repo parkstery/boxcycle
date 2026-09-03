@@ -20,6 +20,7 @@ import {
   rideSafeViewportPx,
   rideSpanM,
 } from "../../src/lib/rideCameraFraming.ts";
+import { rideCameraDistanceRangeM } from "../../src/lib/mapGlobeView.ts";
 
 /** `config.ts` 의 기준 배율. 여기서만 쓰는 상수가 아니라 제품 값과 같아야 한다. */
 const BASE_SCALE = 1.15;
@@ -227,27 +228,10 @@ describe("G-5 · margin 은 pitch 원근 확대를 덮는다", () => {
   });
 });
 
-describe("G-5 §4.3 · span 상한", () => {
+describe("G-5 · span 은 전고를 따라간다(고정 상한 없음)", () => {
+  // 개정 전 판은 「factor 20 span ≤ 120m」 상한을 요구했다. 카메라를 고정하고 라이더를
+  // 거기 맞추는 종속 관계였고, 개정판 §2 에서 폐기됐다. 이제 반대로 라이더가 범위를 정한다.
   const PITCH_DOMAIN = [0, 30, 45, 60, 70, 80] as const;
-  const ALL_DISTANCES = [1, 10, 20, 40] as const;
-
-  it("factor 20 의 span 은 120m 를 넘지 않는다", () => {
-    for (const pitch of PITCH_DOMAIN) {
-      for (const d of ALL_DISTANCES) {
-        const span = rideSpanM(d, pitch, displayHeightAt(20));
-        assert.ok(span <= 120, `pitch ${pitch}° · 거리 ${d}m 에서 ${span.toFixed(1)}m`);
-      }
-    }
-  });
-
-  it("factor 1 의 span 은 40m 를 넘지 않는다 — 현재 제품이 줌 아웃되면 안 된다", () => {
-    for (const pitch of PITCH_DOMAIN) {
-      for (const d of ALL_DISTANCES) {
-        const span = rideSpanM(d, pitch, displayHeightAt(1));
-        assert.ok(span <= 40, `pitch ${pitch}° · 거리 ${d}m 에서 ${span.toFixed(1)}m`);
-      }
-    }
-  });
 
   it("factor 1 의 거리 10·20·40m 는 여전히 거리가 그대로 span 이다(회귀 방지)", () => {
     for (const pitch of PITCH_DOMAIN) {
@@ -261,13 +245,140 @@ describe("G-5 §4.3 · span 상한", () => {
     }
   });
 
-  it("factor 1 거리 1m 는 heightSpan 이 지배하고, 그 값이 실측 필요값을 만족한다", () => {
-    // G-4 에서 「원래 깨져 있던 자리」로 판정된 케이스. 이제 라이더가 프레임에 들어간다.
-    const span = rideSpanM(1, 80, displayHeightAt(1));
-    assert.ok(span > 1, "거리가 지배하면 라이더가 넘친다");
-    assert.ok(
-      Math.abs(span - displayHeightAt(1) * rideHeightSpanMargin(80)) < 1e-9,
-      "heightSpan 이 지배하지 않는다",
-    );
+  it("같은 슬라이더 위치에서 span 이 배율에 정확히 비례한다", () => {
+    for (const factor of [10, 20, 400]) {
+      const r1 = rideCameraDistanceRangeM(displayHeightAt(1));
+      const rf = rideCameraDistanceRangeM(displayHeightAt(factor));
+      for (const f of [0, 0.5, 1]) {
+        const d1 = r1.minM + (r1.maxM - r1.minM) * f;
+        const df = rf.minM + (rf.maxM - rf.minM) * f;
+        const s1 = rideSpanM(d1, 80, displayHeightAt(1));
+        const sf = rideSpanM(df, 80, displayHeightAt(factor));
+        assert.ok(
+          Math.abs(sf / s1 - factor) / factor < 1e-9,
+          `factor ${factor} · 슬라이더 ${f * 100}% 에서 ${(sf / s1).toFixed(3)}배`,
+        );
+      }
+    }
+  });
+
+  it("heightSpan 은 하한에서만 지배한다 — 그 위로는 항상 거리가 이긴다", () => {
+    for (const factor of [1, 20]) {
+      const r = rideCameraDistanceRangeM(displayHeightAt(factor));
+      // 하한은 프레이밍 바닥을 눈금 위로 올린 값이라 거리가 (아슬아슬하게) 이긴다
+      assert.ok(
+        Math.abs(rideSpanM(r.minM, 80, displayHeightAt(factor)) - r.minM) < 1e-9,
+        "하한에서 heightSpan 이 거리를 이겨 죽은 구간이 남는다",
+      );
+      assert.equal(rideSpanM(r.maxM, 80, displayHeightAt(factor)), r.maxM);
+    }
+  });
+});
+
+// ── G-5(개정) · 카메라 거리 범위를 라이더 전고에서 유도한다 ────────────────
+// 카메라 범위를 고정해 두고 라이더를 거기 맞추는 것이 아니라, 라이더 크기가
+// 카메라 범위를 정한다. 그래서 라이더의 화면 점유 비율이 배율에 불변이고,
+// 지도·건물이 상대적으로 작아진다.
+
+/** 슬라이더를 비율로 훑는다 — 거리 절대값은 배율마다 다르다 */
+const SLIDER_FRACTIONS = [0, 0.25, 0.5, 0.75, 1] as const;
+
+const rangeAt = (factor: number) => rideCameraDistanceRangeM(displayHeightAt(factor));
+const sliderDistancesAt = (factor: number) => {
+  const r = rangeAt(factor);
+  return SLIDER_FRACTIONS.map((f) => r.minM + (r.maxM - r.minM) * f);
+};
+
+describe("G-5 · 카메라 거리 유도", () => {
+  it("factor 1 은 오늘의 값(기본 40m · 상한 40m · 눈금 0.5m)을 그대로 재현한다", () => {
+    const r = rangeAt(1);
+    assert.ok(Math.abs(r.maxM - 40) < 1e-9, `상한이 ${r.maxM}`);
+    assert.ok(Math.abs(r.defaultM - 40) < 1e-9, `기본이 ${r.defaultM}`);
+    assert.ok(Math.abs(r.stepM - 0.5) < 1e-9, `눈금이 ${r.stepM}`);
+  });
+
+  it("하한은 heightSpan 이 거리를 이기는 지점을 눈금 위로 올린 값이다 — factor 1 에서 1m → 6m", () => {
+    // 잘려 나가는 1~6m 는 main2 에서 이미 라이더가 화면에 없던 죽은 구간이다.
+    const r = rangeAt(1);
+    const floorM = displayHeightAt(1) * rideHeightSpanMargin(80);
+    assert.ok(Math.abs(floorM - 5.589) < 0.01, `프레이밍 하한이 ${floorM.toFixed(3)}`);
+    assert.ok(r.minM >= floorM, "올림이 아니라 내림했다");
+    assert.ok(r.minM - floorM < r.stepM, "한 눈금보다 많이 올렸다");
+    assert.equal(r.minM, 6);
+  });
+
+  it("슬라이더 칸 수가 배율에 불변이다 — 조작감이 같다", () => {
+    for (const factor of [1, 10, 20, 400]) {
+      const r = rangeAt(factor);
+      const steps = (r.maxM - r.minM) / r.stepM;
+      assert.ok(Math.abs(steps - 68) < 1e-6, `factor ${factor} 에서 ${steps} 칸`);
+    }
+  });
+
+  it("하한 아래가 잘렸으므로 슬라이더 전 구간에서 거리가 span 을 지배한다(죽은 구간 없음)", () => {
+    for (const factor of [1, 10, 20]) {
+      const ds = sliderDistancesAt(factor);
+      const zooms = new Set<number>();
+      for (const d of ds) {
+        const span = rideSpanM(d, 80, displayHeightAt(factor));
+        assert.ok(
+          Math.abs(span - d) < 1e-9,
+          `factor ${factor} · 거리 ${d.toFixed(1)}m 가 heightSpan 에 먹혔다(span ${span.toFixed(1)})`,
+        );
+        zooms.add(Math.round(span * 1e6));
+      }
+      assert.equal(zooms.size, ds.length, `factor ${factor} 에서 슬라이더 지점이 겹친다`);
+    }
+  });
+
+  it("라이더 화면 점유 비율이 배율에 불변이다 — 「라이더 크기 유지·지도가 작아짐」", () => {
+    const fractionAt = (factor: number, sliderFraction: number) => {
+      const r = rangeAt(factor);
+      const d = r.minM + (r.maxM - r.minM) * sliderFraction;
+      return displayHeightAt(factor) / rideSpanM(d, 80, displayHeightAt(factor));
+    };
+    for (const f of SLIDER_FRACTIONS) {
+      const base = fractionAt(1, f);
+      for (const factor of [10, 20, 400]) {
+        const got = fractionAt(factor, f);
+        assert.ok(
+          Math.abs(got - base) / base <= 0.1,
+          `슬라이더 ${f * 100}% 에서 factor ${factor} 점유율이 ${((got / base - 1) * 100).toFixed(1)}% 어긋난다`,
+        );
+      }
+    }
+  });
+
+  it("look-at 오프셋도 슬라이더 전 구간에서 배율 불변이다", () => {
+    const relAt = (factor: number, sliderFraction: number) => {
+      const r = rangeAt(factor);
+      const d = r.minM + (r.maxM - r.minM) * sliderFraction;
+      const span = rideSpanM(d, 80, displayHeightAt(factor));
+      return rideLookAtAlongM(80, span, lookAtHeightAt(factor)) / span;
+    };
+    for (const f of SLIDER_FRACTIONS) {
+      for (const factor of [10, 20]) {
+        assert.ok(Math.abs(relAt(factor, f) - relAt(1, f)) < 1e-9, `슬라이더 ${f * 100}% 에서 어긋난다`);
+      }
+    }
+  });
+
+  it("400배도 파국 없이 계산된다 — 구현하지 않고 확장성만 확인한다", () => {
+    const r = rangeAt(400);
+    for (const [name, v] of [["min", r.minM], ["default", r.defaultM], ["max", r.maxM], ["step", r.stepM]] as const) {
+      assert.ok(Number.isFinite(v) && v > 0, `${name} 이 ${v}`);
+    }
+    assert.ok(r.minM < r.maxM, "하한이 상한보다 크다");
+    for (const d of sliderDistancesAt(400)) {
+      const span = rideSpanM(d, 80, displayHeightAt(400));
+      const zoom = Math.log2((156543.03392 * Math.cos((37.5 * Math.PI) / 180)) / (span / 728)) - 0.6 * (80 / 90);
+      assert.ok(Number.isFinite(zoom) && zoom > 0, `거리 ${d.toFixed(0)}m 에서 zoom ${zoom}`);
+    }
+  });
+
+  it("카메라 범위에 배율과 무관한 고정 상한이 남아 있지 않다", () => {
+    // 이번 개정의 요지 — 상한은 전고에 비례해야 한다.
+    assert.ok(rangeAt(20).maxM > rangeAt(1).maxM * 19, "상한이 배율을 따라오지 않는다");
+    assert.ok(rangeAt(400).maxM > rangeAt(20).maxM * 19, "큰 배율에서 상한이 막힌다");
   });
 });

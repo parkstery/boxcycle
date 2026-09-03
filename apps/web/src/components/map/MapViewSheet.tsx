@@ -6,6 +6,7 @@ import {
   MAP_ZOOM_SLIDER_MAX,
   RIDE_CAMERA_DISTANCE_MIN_M,
   RIDE_CAMERA_DISTANCE_MAX_M,
+  RIDE_CAMERA_DISTANCE_STEP_M,
 } from "../../lib/mapGlobeView";
 import type { FollowMode } from "../ride/RideRoutePanel";
 import "./MapViewSheet.css";
@@ -225,10 +226,10 @@ export function MapViewSheet(props: MapViewSheetProps) {
               <button
                 type="button"
                 className="map-view-sheet__zoom-step"
-                title="0.5m 가깝게"
-                aria-label="거리 0.5m 가깝게"
+                title="한 눈금 가깝게"
+                aria-label="거리 한 눈금 가깝게"
                 onClick={() => {
-                  const m = Math.round((props.rideCameraDistanceM - 0.5) * 10) / 10;
+                  const m = Math.round((props.rideCameraDistanceM - RIDE_CAMERA_DISTANCE_STEP_M) * 10) / 10;
                   props.onRideCameraDistanceM(Math.max(RIDE_CAMERA_DISTANCE_MIN_M, m));
                 }}
               >
@@ -240,10 +241,10 @@ export function MapViewSheet(props: MapViewSheetProps) {
               <button
                 type="button"
                 className="map-view-sheet__zoom-step"
-                title="0.5m 멀게"
-                aria-label="거리 0.5m 멀게"
+                title="한 눈금 멀게"
+                aria-label="거리 한 눈금 멀게"
                 onClick={() => {
-                  const m = Math.round((props.rideCameraDistanceM + 0.5) * 10) / 10;
+                  const m = Math.round((props.rideCameraDistanceM + RIDE_CAMERA_DISTANCE_STEP_M) * 10) / 10;
                   props.onRideCameraDistanceM(Math.min(RIDE_CAMERA_DISTANCE_MAX_M, m));
                 }}
               >
@@ -254,7 +255,7 @@ export function MapViewSheet(props: MapViewSheetProps) {
                 className="map-view-sheet__range"
                 min={RIDE_CAMERA_DISTANCE_MIN_M}
                 max={RIDE_CAMERA_DISTANCE_MAX_M}
-                step={0.5}
+                step={RIDE_CAMERA_DISTANCE_STEP_M}
                 value={Math.min(
                   RIDE_CAMERA_DISTANCE_MAX_M,
                   Math.max(RIDE_CAMERA_DISTANCE_MIN_M, props.rideCameraDistanceM),
