@@ -32,6 +32,45 @@ export const RIDER_LOOK_AT_HEIGHT_M = RIDER_PELVIS_Y_M * RIDER_GLB_MODEL_SCALE;
 /** 전고 대비 세로 여유 — 새 인체 상수가 아니라 HEAD_C 의 비율 */
 const RIDER_HEIGHT_SPAN_MARGIN = 1.12;
 
+/**
+ * look-at 오프셋 상한 = 화면에 담는 세로 범위(`spanM`)에 대한 비율.
+ *
+ * `RIDER_LOOK_AT_HEIGHT_M` 은 `RIDER_GLB_MODEL_SCALE` 에 선형 비례하는데 `spanM` 과 달리
+ * 보호가 없어, 배율이 커지면 카메라가 겨누는 지점이 라이더에서 달아난다. 20배·pitch 80° 에서
+ * 오프셋이 5.51m → 110.16m 로 벌어져 라이더가 화면 밖으로 나갔다(G-3 실측).
+ *
+ * 0.65 는 실측으로 정했다([G-4 REPORT](../../../../document/ops/giant-relay/REPORT-G4.md) §1).
+ * - 상한 0.80 — `inSafeArea` 를 만족하는 오프셋/`spanM` 최대값. `spanM` 10·20·40 m 에서
+ *   모두 0.800 으로 같아 비율로 쓸 수 있음을 확인했다(스케일 불변).
+ * - 하한 0.551 — factor 1 이 거리 10·20·40 m 에서 실제로 쓰는 오프셋 5.51 m 를 그대로
+ *   통과시키는 데 필요한 값(5.51/10). 이보다 작으면 현재 제품의 카메라가 바뀐다.
+ * 두 경계 사이의 중앙값이다.
+ */
+export const RIDE_LOOKAT_SPAN_RATIO = 0.65;
+
+/**
+ * 화면에 담는 세로 범위(m). 라이더 전고와 카메라 거리 중 큰 쪽.
+ * `displayHeightM` 은 시험이 배율을 바꿔 넣기 위한 주입점 — 앱은 기본값을 쓴다.
+ */
+export function rideSpanM(distanceM: number, displayHeightM: number = RIDER_DISPLAY_HEIGHT_M): number {
+  return Math.max(displayHeightM * RIDER_HEIGHT_SPAN_MARGIN, distanceM);
+}
+
+/**
+ * 카메라가 겨누는 지점을 라이더에서 얼마나 앞으로 미는가(m).
+ * 골반을 화면 중앙에 두려는 값이지만 `spanM` 비율로 상한을 둔다 — 상한이 없으면 배율에
+ * 선형 비례해 라이더가 프레임 밖으로 나간다.
+ */
+export function rideLookAtAlongM(
+  pitchDeg: number,
+  spanM: number,
+  lookAtHeightM: number = RIDER_LOOK_AT_HEIGHT_M,
+): number {
+  const depressionRad = ((90 - pitchDeg) * Math.PI) / 180;
+  const tanDep = Math.tan(Math.max(0.017, depressionRad));
+  return Math.min(lookAtHeightM / tanDep, spanM * RIDE_LOOKAT_SPAN_RATIO);
+}
+
 export type RideFollowFraming = {
   center: LngLat;
   zoom: number;
@@ -73,15 +112,13 @@ export function computeRideFollowFraming(input: {
     return { center: riderLngLat, zoom: fallbackZoom };
   }
 
-  const depressionRad = ((90 - pitchDeg) * Math.PI) / 180;
-  const tanDep = Math.tan(Math.max(0.017, depressionRad));
-  const lookAtAlongViewM = RIDER_LOOK_AT_HEIGHT_M / tanDep;
+  // spanM 을 먼저 정한다 — look-at 오프셋이 같은 규칙 아래 묶이려면 상한의 기준이 있어야 한다.
+  const spanM = rideSpanM(distanceM);
+  const lookAtAlongViewM = rideLookAtAlongM(pitchDeg, spanM);
   const viewBearing = ((offsetBearing + 180) % 360 + 360) % 360;
   const center = offsetLngLatByBearingMeters(riderLngLat, viewBearing, lookAtAlongViewM);
 
   const safe = rideSafeViewportPx(input.viewportWidthPx, input.viewportHeightPx);
-  const heightSpanM = RIDER_DISPLAY_HEIGHT_M * RIDER_HEIGHT_SPAN_MARGIN;
-  const spanM = Math.max(heightSpanM, distanceM);
   const latRad = (riderLngLat[1] * Math.PI) / 180;
   const targetMetersPerPixel = spanM / safe.height;
   const mppAtZ0 = 156543.03392 * Math.cos(latRad);
