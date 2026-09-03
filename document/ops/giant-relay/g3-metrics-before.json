@@ -1,0 +1,91 @@
+{
+  "phase": "before",
+  "camBeforeStart": {
+    "zoom": 16,
+    "pitch": 0,
+    "bearing": 0,
+    "center": [
+      126.98679850000008,
+      37.54899800407074
+    ],
+    "viewport": {
+      "w": 1280,
+      "h": 900
+    }
+  },
+  "camRunning": {
+    "zoom": 17.500000000000338,
+    "pitch": 2.176483558848526e-11,
+    "bearing": -120.24722279653821,
+    "center": [
+      126.98854962144337,
+      37.548570389970656
+    ],
+    "viewport": {
+      "w": 1280,
+      "h": 900
+    }
+  },
+  "camRear": {
+    "zoom": 20.57383053730238,
+    "pitch": 79.9999999999088,
+    "bearing": -117.99348858021722,
+    "center": [
+      126.98829541300195,
+      37.54847617903925
+    ],
+    "viewport": {
+      "w": 1280,
+      "h": 900
+    }
+  },
+  "distanceReadout": "40.0m",
+  "groundZoom": 20.6,
+  "model": {
+    "layers": [
+      {
+        "id": "boxcycle-rider-prototype-layer",
+        "type": "model"
+      }
+    ],
+    "scale": [
+      1.15,
+      1.15,
+      1.15
+    ],
+    "layerId": "boxcycle-rider-prototype-layer"
+  },
+  "riderGeo": {
+    "models": {
+      "live-self": [
+        126.98832655664938,
+        37.54848992351126
+      ]
+    },
+    "self": [
+      126.98832655664938,
+      37.54848992351126
+    ],
+    "center": [
+      126.98827102955265,
+      37.54846733978876
+    ],
+    "offsetM": 5.51,
+    "screen": {
+      "x": 640,
+      "y": 443
+    }
+  },
+  "nametag": [
+    {
+      "cls": "map-view__rider-nametag map-view__rider-nametag--live",
+      "text": "guest2",
+      "w": 43.5,
+      "h": 17.1,
+      "x": 618,
+      "y": 354,
+      "fontSize": "12.16px",
+      "display": "flex"
+    }
+  ]
+}
