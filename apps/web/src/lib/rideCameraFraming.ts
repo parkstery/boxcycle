@@ -29,8 +29,42 @@ export const RIDER_DISPLAY_HEIGHT_M = RIDER_HEAD_C_Y_M * RIDER_GLB_MODEL_SCALE;
 /** look-at 높이(m) = 골반 world y × 동일 scale */
 export const RIDER_LOOK_AT_HEIGHT_M = RIDER_PELVIS_Y_M * RIDER_GLB_MODEL_SCALE;
 
-/** 전고 대비 세로 여유 — 새 인체 상수가 아니라 HEAD_C 의 비율 */
-const RIDER_HEIGHT_SPAN_MARGIN = 1.12;
+/**
+ * 눕히지 않은 화면의 전고 대비 세로 여유 — 새 인체 상수가 아니라 HEAD_C 의 비율.
+ * pitch 0 의 하한이며, 기울인 화면에서는 `rideHeightSpanMargin()` 이 이보다 크게 잡는다.
+ */
+const RIDER_HEIGHT_SPAN_MARGIN_FLAT = 1.12;
+
+/**
+ * `heightSpan` 계수 — **pitch 원근 확대를 반영한다.**
+ *
+ * 이 값은 「라이더가 프레임에 들어가게 하는」 장치인데, 오래 `1.12` 고정이었다.
+ * 지도를 눕히면 세로로 선 물체는 지면보다 훨씬 크게 잡히므로(pitch 80° 에서 전고
+ * 31.88m 라이더가 40m 프레임에서 782 px — 안전영역 728 px 를 넘는다) 고정 계수로는
+ * 어떤 look-at 오프셋으로도 라이더가 들어가지 않았다(G-4 실측).
+ *
+ * 형태 `A + B·sin²(pitch)` 와 계수는 실측으로 정했다
+ * ([G-5 REPORT](../../../../document/ops/giant-relay/REPORT-G5.md) §1).
+ * 살아 있는 지도에서 pitch 별로 「`inSafeArea` 가 참이 되는 최소 계수」를 재고,
+ * 그 곡선을 모든 점에서 7~25 % 여유로 덮는 가장 낮은 곡선을 골랐다.
+ *
+ * | pitch | 실측 필요값(factor 1 / 20) | 이 함수 |
+ * |---:|---|---:|
+ * | 0° | 0.4 | 1.12 (하한) |
+ * | 30° | 1.1 | 1.28 |
+ * | 45° | 1.8 | 2.05 |
+ * | 60° | 2.4 | 2.83 |
+ * | 70° | 2.9 | 3.24 |
+ * | 80° | 3.15 / 3.25 | 3.51 |
+ *
+ * 두 배율의 실측값이 거의 같아 **배율 불변**임을 확인했다 — 계수는 pitch 만의 함수다.
+ * 하한 `1.12` 는 낮은 pitch 에서 현재 제품의 줌을 건드리지 않기 위한 것이다.
+ */
+export function rideHeightSpanMargin(pitchDeg: number): number {
+  const clamped = Math.max(0, Math.min(90, pitchDeg));
+  const s = Math.sin((clamped * Math.PI) / 180);
+  return Math.max(RIDER_HEIGHT_SPAN_MARGIN_FLAT, 0.5 + 3.1 * s * s);
+}
 
 /**
  * look-at 오프셋 상한 = 화면에 담는 세로 범위(`spanM`)에 대한 비율.
@@ -49,11 +83,15 @@ const RIDER_HEIGHT_SPAN_MARGIN = 1.12;
 export const RIDE_LOOKAT_SPAN_RATIO = 0.65;
 
 /**
- * 화면에 담는 세로 범위(m). 라이더 전고와 카메라 거리 중 큰 쪽.
+ * 화면에 담는 세로 범위(m). 라이더 전고(× pitch 계수)와 카메라 거리 중 큰 쪽.
  * `displayHeightM` 은 시험이 배율을 바꿔 넣기 위한 주입점 — 앱은 기본값을 쓴다.
  */
-export function rideSpanM(distanceM: number, displayHeightM: number = RIDER_DISPLAY_HEIGHT_M): number {
-  return Math.max(displayHeightM * RIDER_HEIGHT_SPAN_MARGIN, distanceM);
+export function rideSpanM(
+  distanceM: number,
+  pitchDeg: number,
+  displayHeightM: number = RIDER_DISPLAY_HEIGHT_M,
+): number {
+  return Math.max(displayHeightM * rideHeightSpanMargin(pitchDeg), distanceM);
 }
 
 /**
@@ -113,7 +151,7 @@ export function computeRideFollowFraming(input: {
   }
 
   // spanM 을 먼저 정한다 — look-at 오프셋이 같은 규칙 아래 묶이려면 상한의 기준이 있어야 한다.
-  const spanM = rideSpanM(distanceM);
+  const spanM = rideSpanM(distanceM, pitchDeg);
   const lookAtAlongViewM = rideLookAtAlongM(pitchDeg, spanM);
   const viewBearing = ((offsetBearing + 180) % 360 + 360) % 360;
   const center = offsetLngLatByBearingMeters(riderLngLat, viewBearing, lookAtAlongViewM);
