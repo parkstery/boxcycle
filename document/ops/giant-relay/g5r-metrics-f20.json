@@ -1,0 +1,348 @@
+{
+  "phase": "f20",
+  "baseURL": "http://127.0.0.1:5021",
+  "followModes": [
+    {
+      "mode": "rear30",
+      "zoom": 16.251902713972317,
+      "pitch": 79.99999993933952,
+      "bearing": -116.90199100677114,
+      "center": [
+        126.98720173381093,
+        37.548037517885206
+      ],
+      "viewport": {
+        "w": 1280,
+        "h": 900
+      },
+      "modelScale": 23,
+      "riderOffsetM": 110.16,
+      "riderScreen": {
+        "x": 640,
+        "y": 443
+      },
+      "diag": {
+        "inSafeArea": true,
+        "headTopPx": 399,
+        "wheelBottomPx": 443,
+        "leftPx": 634,
+        "rightPx": 646,
+        "viewportW": 1280,
+        "viewportH": 900
+      },
+      "nametag": {
+        "fontSize": "12.16px",
+        "w": 43.5
+      }
+    },
+    {
+      "mode": "front30",
+      "zoom": 16.251904843615428,
+      "pitch": 79.99999999999999,
+      "bearing": 93.32294783645273,
+      "center": [
+        126.98937982663138,
+        37.54831552160743
+      ],
+      "viewport": {
+        "w": 1280,
+        "h": 900
+      },
+      "modelScale": 23,
+      "riderOffsetM": 110.16,
+      "riderScreen": {
+        "x": 640,
+        "y": 443
+      },
+      "diag": {
+        "inSafeArea": true,
+        "headTopPx": 399,
+        "wheelBottomPx": 443,
+        "leftPx": 635,
+        "rightPx": 645,
+        "viewportW": 1280,
+        "viewportH": 900
+      },
+      "nametag": {
+        "fontSize": "12.16px",
+        "w": 43.5
+      }
+    },
+    {
+      "mode": "leftFlat",
+      "zoom": 16.25190667098563,
+      "pitch": 79.99999999999999,
+      "bearing": -0.2074936163262464,
+      "center": [
+        126.98788825095485,
+        37.54927112062341
+      ],
+      "viewport": {
+        "w": 1280,
+        "h": 900
+      },
+      "modelScale": 23,
+      "riderOffsetM": 110.16,
+      "riderScreen": {
+        "x": 640,
+        "y": 443
+      },
+      "diag": {
+        "inSafeArea": true,
+        "headTopPx": 399,
+        "wheelBottomPx": 443,
+        "leftPx": 639,
+        "rightPx": 641,
+        "viewportW": 1280,
+        "viewportH": 900
+      },
+      "nametag": {
+        "fontSize": "12.16px",
+        "w": 43.5
+      }
+    },
+    {
+      "mode": "north",
+      "zoom": 16.299999999900873,
+      "pitch": 79.99999999999999,
+      "bearing": -0.057607647188092415,
+      "center": [
+        126.98766455628564,
+        37.548260043839036
+      ],
+      "viewport": {
+        "w": 1280,
+        "h": 900
+      },
+      "modelScale": 23,
+      "riderOffsetM": 0,
+      "riderScreen": {
+        "x": 640,
+        "y": 416
+      },
+      "diag": {
+        "inSafeArea": true,
+        "headTopPx": 375,
+        "wheelBottomPx": 416,
+        "leftPx": 640,
+        "rightPx": 640,
+        "viewportW": 1280,
+        "viewportH": 900
+      },
+      "nametag": {
+        "fontSize": "12.16px",
+        "w": 43.5
+      }
+    },
+    {
+      "mode": "topDown",
+      "zoom": 16.299999999999997,
+      "pitch": 2.0349325179015395e-11,
+      "bearing": -90.85722738401228,
+      "center": [
+        126.9874609351908,
+        37.54828146175896
+      ],
+      "viewport": {
+        "w": 1280,
+        "h": 900
+      },
+      "modelScale": 23,
+      "riderOffsetM": 0,
+      "riderScreen": {
+        "x": 640,
+        "y": 416
+      },
+      "diag": {
+        "inSafeArea": true,
+        "headTopPx": 416,
+        "wheelBottomPx": 416,
+        "leftPx": 635,
+        "rightPx": 645,
+        "viewportW": 1280,
+        "viewportH": 900
+      },
+      "nametag": {
+        "fontSize": "12.16px",
+        "w": 43.5
+      }
+    }
+  ],
+  "distances": [
+    {
+      "sliderFraction": 0,
+      "distanceM": 120,
+      "zoom": 18.98887307841194,
+      "pitch": 79.99999999999999,
+      "bearing": -60.638571588671766,
+      "center": [
+        126.9863906686694,
+        37.54858255148904
+      ],
+      "viewport": {
+        "w": 1280,
+        "h": 900
+      },
+      "modelScale": 23,
+      "riderOffsetM": 78,
+      "riderScreen": {
+        "x": 640,
+        "y": 633
+      },
+      "diag": {
+        "inSafeArea": true,
+        "headTopPx": 136,
+        "wheelBottomPx": 633,
+        "leftPx": 591,
+        "rightPx": 686,
+        "viewportW": 1280,
+        "viewportH": 900
+      },
+      "nametag": {
+        "fontSize": "12.16px",
+        "w": 43.5
+      }
+    },
+    {
+      "sliderFraction": 0.25,
+      "distanceM": 290,
+      "zoom": 17.715854941176843,
+      "pitch": 79.99999999999999,
+      "bearing": -38.748747331028426,
+      "center": [
+        126.98618910888956,
+        37.54899431330816
+      ],
+      "viewport": {
+        "w": 1280,
+        "h": 900
+      },
+      "modelScale": 23,
+      "riderOffsetM": 110.16,
+      "riderScreen": {
+        "x": 640,
+        "y": 508
+      },
+      "diag": {
+        "inSafeArea": true,
+        "headTopPx": 357,
+        "wheelBottomPx": 508,
+        "leftPx": 626,
+        "rightPx": 654,
+        "viewportW": 1280,
+        "viewportH": 900
+      },
+      "nametag": {
+        "fontSize": "12.16px",
+        "w": 43.5
+      }
+    },
+    {
+      "sliderFraction": 0.5,
+      "distanceM": 460,
+      "zoom": 17.050272667568215,
+      "pitch": 79.99999999999999,
+      "bearing": -26.671542369152803,
+      "center": [
+        126.98624419398726,
+        37.54917748803196
+      ],
+      "viewport": {
+        "w": 1280,
+        "h": 900
+      },
+      "modelScale": 23,
+      "riderOffsetM": 110.16,
+      "riderScreen": {
+        "x": 640,
+        "y": 467
+      },
+      "diag": {
+        "inSafeArea": true,
+        "headTopPx": 383,
+        "wheelBottomPx": 467,
+        "leftPx": 629,
+        "rightPx": 651,
+        "viewportW": 1280,
+        "viewportH": 900
+      },
+      "nametag": {
+        "fontSize": "12.16px",
+        "w": 43.5
+      }
+    },
+    {
+      "sliderFraction": 0.75,
+      "distanceM": 630,
+      "zoom": 16.59655200502796,
+      "pitch": 79.99999999999999,
+      "bearing": -26.77214654700981,
+      "center": [
+        126.9861425948951,
+        37.54931639748442
+      ],
+      "viewport": {
+        "w": 1280,
+        "h": 900
+      },
+      "modelScale": 23,
+      "riderOffsetM": 110.16,
+      "riderScreen": {
+        "x": 640,
+        "y": 451
+      },
+      "diag": {
+        "inSafeArea": true,
+        "headTopPx": 393,
+        "wheelBottomPx": 451,
+        "leftPx": 632,
+        "rightPx": 648,
+        "viewportW": 1280,
+        "viewportH": 900
+      },
+      "nametag": {
+        "fontSize": "12.16px",
+        "w": 43.5
+      }
+    },
+    {
+      "sliderFraction": 1,
+      "distanceM": 800,
+      "zoom": 16.251900915493522,
+      "pitch": 79.99999999999999,
+      "bearing": -34.86977633104982,
+      "center": [
+        126.98590504625874,
+        37.549397126319896
+      ],
+      "viewport": {
+        "w": 1280,
+        "h": 900
+      },
+      "modelScale": 23,
+      "riderOffsetM": 110.16,
+      "riderScreen": {
+        "x": 640,
+        "y": 443
+      },
+      "diag": {
+        "inSafeArea": true,
+        "headTopPx": 399,
+        "wheelBottomPx": 443,
+        "leftPx": 634,
+        "rightPx": 646,
+        "viewportW": 1280,
+        "viewportH": 900
+      },
+      "nametag": {
+        "fontSize": "12.16px",
+        "w": 43.5
+      }
+    }
+  ],
+  "sliderBounds": {
+    "min": 120,
+    "max": 800,
+    "step": 10
+  }
+}

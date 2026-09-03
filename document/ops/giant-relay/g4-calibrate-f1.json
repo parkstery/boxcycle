@@ -1,0 +1,568 @@
+{
+  "label": "f1",
+  "baseURL": "http://127.0.0.1:5020",
+  "framing": {
+    "zoom": 20.57383017658441,
+    "pitch": 79.99999999975209,
+    "bearing": -118.69376851995787
+  },
+  "safeArea": {
+    "top": 52,
+    "bottom": 120,
+    "left": 44,
+    "right": 44
+  },
+  "rows": [
+    {
+      "offsetM": 0,
+      "inSafeArea": true,
+      "headTopPx": 374,
+      "wheelBottomPx": 414,
+      "leftPx": 635,
+      "rightPx": 646
+    },
+    {
+      "offsetM": 2,
+      "inSafeArea": true,
+      "headTopPx": 382,
+      "wheelBottomPx": 422,
+      "leftPx": 635,
+      "rightPx": 646
+    },
+    {
+      "offsetM": 4,
+      "inSafeArea": true,
+      "headTopPx": 390,
+      "wheelBottomPx": 432,
+      "leftPx": 635,
+      "rightPx": 646
+    },
+    {
+      "offsetM": 6,
+      "inSafeArea": true,
+      "headTopPx": 398,
+      "wheelBottomPx": 442,
+      "leftPx": 638,
+      "rightPx": 649
+    },
+    {
+      "offsetM": 8,
+      "inSafeArea": true,
+      "headTopPx": 408,
+      "wheelBottomPx": 453,
+      "leftPx": 638,
+      "rightPx": 650
+    },
+    {
+      "offsetM": 10,
+      "inSafeArea": true,
+      "headTopPx": 418,
+      "wheelBottomPx": 466,
+      "leftPx": 638,
+      "rightPx": 650
+    },
+    {
+      "offsetM": 12,
+      "inSafeArea": true,
+      "headTopPx": 429,
+      "wheelBottomPx": 479,
+      "leftPx": 637,
+      "rightPx": 650
+    },
+    {
+      "offsetM": 14,
+      "inSafeArea": true,
+      "headTopPx": 441,
+      "wheelBottomPx": 494,
+      "leftPx": 637,
+      "rightPx": 651
+    },
+    {
+      "offsetM": 16,
+      "inSafeArea": true,
+      "headTopPx": 455,
+      "wheelBottomPx": 510,
+      "leftPx": 637,
+      "rightPx": 652
+    },
+    {
+      "offsetM": 18,
+      "inSafeArea": true,
+      "headTopPx": 470,
+      "wheelBottomPx": 528,
+      "leftPx": 637,
+      "rightPx": 652
+    },
+    {
+      "offsetM": 20,
+      "inSafeArea": true,
+      "headTopPx": 487,
+      "wheelBottomPx": 548,
+      "leftPx": 637,
+      "rightPx": 653
+    },
+    {
+      "offsetM": 22,
+      "inSafeArea": true,
+      "headTopPx": 506,
+      "wheelBottomPx": 571,
+      "leftPx": 636,
+      "rightPx": 653
+    },
+    {
+      "offsetM": 24,
+      "inSafeArea": true,
+      "headTopPx": 527,
+      "wheelBottomPx": 596,
+      "leftPx": 636,
+      "rightPx": 654
+    },
+    {
+      "offsetM": 26,
+      "inSafeArea": true,
+      "headTopPx": 551,
+      "wheelBottomPx": 624,
+      "leftPx": 636,
+      "rightPx": 655
+    },
+    {
+      "offsetM": 28,
+      "inSafeArea": true,
+      "headTopPx": 579,
+      "wheelBottomPx": 658,
+      "leftPx": 636,
+      "rightPx": 656
+    },
+    {
+      "offsetM": 30,
+      "inSafeArea": true,
+      "headTopPx": 611,
+      "wheelBottomPx": 695,
+      "leftPx": 636,
+      "rightPx": 658
+    },
+    {
+      "offsetM": 32,
+      "inSafeArea": true,
+      "headTopPx": 650,
+      "wheelBottomPx": 740,
+      "leftPx": 635,
+      "rightPx": 659
+    },
+    {
+      "offsetM": 34,
+      "inSafeArea": false,
+      "headTopPx": 698,
+      "wheelBottomPx": 797,
+      "leftPx": 613,
+      "rightPx": 636
+    },
+    {
+      "offsetM": 36,
+      "inSafeArea": false,
+      "headTopPx": 752,
+      "wheelBottomPx": 859,
+      "leftPx": 602,
+      "rightPx": 627
+    },
+    {
+      "offsetM": 38,
+      "inSafeArea": false,
+      "headTopPx": 822,
+      "wheelBottomPx": 940,
+      "leftPx": 598,
+      "rightPx": 627
+    },
+    {
+      "offsetM": 40,
+      "inSafeArea": false,
+      "headTopPx": 915,
+      "wheelBottomPx": 1046,
+      "leftPx": 597,
+      "rightPx": 629
+    },
+    {
+      "offsetM": 42,
+      "inSafeArea": false,
+      "headTopPx": 1031,
+      "wheelBottomPx": 1175,
+      "leftPx": 587,
+      "rightPx": 624
+    },
+    {
+      "offsetM": 44,
+      "inSafeArea": false,
+      "headTopPx": 1196,
+      "wheelBottomPx": 1356,
+      "leftPx": 577,
+      "rightPx": 621
+    },
+    {
+      "offsetM": 46,
+      "inSafeArea": false,
+      "headTopPx": 1448,
+      "wheelBottomPx": 1627,
+      "leftPx": 568,
+      "rightPx": 623
+    },
+    {
+      "offsetM": 48,
+      "inSafeArea": false,
+      "headTopPx": 1837,
+      "wheelBottomPx": 2034,
+      "leftPx": 543,
+      "rightPx": 613
+    },
+    {
+      "offsetM": 50,
+      "inSafeArea": false,
+      "headTopPx": 2574,
+      "wheelBottomPx": 2788,
+      "leftPx": 506,
+      "rightPx": 605
+    },
+    {
+      "offsetM": 52,
+      "inSafeArea": false,
+      "headTopPx": 4291,
+      "wheelBottomPx": 4516,
+      "leftPx": 407,
+      "rightPx": 578
+    },
+    {
+      "offsetM": 54,
+      "inSafeArea": false,
+      "headTopPx": 13313,
+      "wheelBottomPx": 13540,
+      "leftPx": -121,
+      "rightPx": 478
+    },
+    {
+      "offsetM": 56,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 58,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 60,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 62,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 64,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 66,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 68,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 70,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 72,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 74,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 76,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 78,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 80,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 82,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 84,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 86,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 88,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 90,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 92,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 94,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 96,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 98,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 100,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 102,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 104,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 106,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 108,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 110,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 112,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 114,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 116,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 118,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 120,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 122,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 124,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 126,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 128,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    },
+    {
+      "offsetM": 130,
+      "inSafeArea": false,
+      "headTopPx": 1.7976931348623157e+308,
+      "wheelBottomPx": 1.7976931348623157e+308,
+      "leftPx": 1.7976931348623157e+308,
+      "rightPx": 1.7976931348623157e+308
+    }
+  ],
+  "inSafeAreaOffsets": [
+    0,
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14,
+    16,
+    18,
+    20,
+    22,
+    24,
+    26,
+    28,
+    30,
+    32
+  ],
+  "window": {
+    "minM": 0,
+    "maxM": 32
+  }
+}

@@ -29,8 +29,85 @@ export const RIDER_DISPLAY_HEIGHT_M = RIDER_HEAD_C_Y_M * RIDER_GLB_MODEL_SCALE;
 /** look-at 높이(m) = 골반 world y × 동일 scale */
 export const RIDER_LOOK_AT_HEIGHT_M = RIDER_PELVIS_Y_M * RIDER_GLB_MODEL_SCALE;
 
-/** 전고 대비 세로 여유 — 새 인체 상수가 아니라 HEAD_C 의 비율 */
-const RIDER_HEIGHT_SPAN_MARGIN = 1.12;
+/**
+ * 눕히지 않은 화면의 전고 대비 세로 여유 — 새 인체 상수가 아니라 HEAD_C 의 비율.
+ * pitch 0 의 하한이며, 기울인 화면에서는 `rideHeightSpanMargin()` 이 이보다 크게 잡는다.
+ */
+const RIDER_HEIGHT_SPAN_MARGIN_FLAT = 1.12;
+
+/**
+ * `heightSpan` 계수 — **pitch 원근 확대를 반영한다.**
+ *
+ * 이 값은 「라이더가 프레임에 들어가게 하는」 장치인데, 오래 `1.12` 고정이었다.
+ * 지도를 눕히면 세로로 선 물체는 지면보다 훨씬 크게 잡히므로(pitch 80° 에서 전고
+ * 31.88m 라이더가 40m 프레임에서 782 px — 안전영역 728 px 를 넘는다) 고정 계수로는
+ * 어떤 look-at 오프셋으로도 라이더가 들어가지 않았다(G-4 실측).
+ *
+ * 형태 `A + B·sin²(pitch)` 와 계수는 실측으로 정했다
+ * ([G-5 REPORT](../../../../document/ops/giant-relay/REPORT-G5.md) §1).
+ * 살아 있는 지도에서 pitch 별로 「`inSafeArea` 가 참이 되는 최소 계수」를 재고,
+ * 그 곡선을 모든 점에서 7~25 % 여유로 덮는 가장 낮은 곡선을 골랐다.
+ *
+ * | pitch | 실측 필요값(factor 1 / 20) | 이 함수 |
+ * |---:|---|---:|
+ * | 0° | 0.4 | 1.12 (하한) |
+ * | 30° | 1.1 | 1.28 |
+ * | 45° | 1.8 | 2.05 |
+ * | 60° | 2.4 | 2.83 |
+ * | 70° | 2.9 | 3.24 |
+ * | 80° | 3.15 / 3.25 | 3.51 |
+ *
+ * 두 배율의 실측값이 거의 같아 **배율 불변**임을 확인했다 — 계수는 pitch 만의 함수다.
+ * 하한 `1.12` 는 낮은 pitch 에서 현재 제품의 줌을 건드리지 않기 위한 것이다.
+ */
+export function rideHeightSpanMargin(pitchDeg: number): number {
+  const clamped = Math.max(0, Math.min(90, pitchDeg));
+  const s = Math.sin((clamped * Math.PI) / 180);
+  return Math.max(RIDER_HEIGHT_SPAN_MARGIN_FLAT, 0.5 + 3.1 * s * s);
+}
+
+/**
+ * look-at 오프셋 상한 = 화면에 담는 세로 범위(`spanM`)에 대한 비율.
+ *
+ * `RIDER_LOOK_AT_HEIGHT_M` 은 `RIDER_GLB_MODEL_SCALE` 에 선형 비례하는데 `spanM` 과 달리
+ * 보호가 없어, 배율이 커지면 카메라가 겨누는 지점이 라이더에서 달아난다. 20배·pitch 80° 에서
+ * 오프셋이 5.51m → 110.16m 로 벌어져 라이더가 화면 밖으로 나갔다(G-3 실측).
+ *
+ * 0.65 는 실측으로 정했다([G-4 REPORT](../../../../document/ops/giant-relay/REPORT-G4.md) §1).
+ * - 상한 0.80 — `inSafeArea` 를 만족하는 오프셋/`spanM` 최대값. `spanM` 10·20·40 m 에서
+ *   모두 0.800 으로 같아 비율로 쓸 수 있음을 확인했다(스케일 불변).
+ * - 하한 0.551 — factor 1 이 거리 10·20·40 m 에서 실제로 쓰는 오프셋 5.51 m 를 그대로
+ *   통과시키는 데 필요한 값(5.51/10). 이보다 작으면 현재 제품의 카메라가 바뀐다.
+ * 두 경계 사이의 중앙값이다.
+ */
+export const RIDE_LOOKAT_SPAN_RATIO = 0.65;
+
+/**
+ * 화면에 담는 세로 범위(m). 라이더 전고(× pitch 계수)와 카메라 거리 중 큰 쪽.
+ * `displayHeightM` 은 시험이 배율을 바꿔 넣기 위한 주입점 — 앱은 기본값을 쓴다.
+ */
+export function rideSpanM(
+  distanceM: number,
+  pitchDeg: number,
+  displayHeightM: number = RIDER_DISPLAY_HEIGHT_M,
+): number {
+  return Math.max(displayHeightM * rideHeightSpanMargin(pitchDeg), distanceM);
+}
+
+/**
+ * 카메라가 겨누는 지점을 라이더에서 얼마나 앞으로 미는가(m).
+ * 골반을 화면 중앙에 두려는 값이지만 `spanM` 비율로 상한을 둔다 — 상한이 없으면 배율에
+ * 선형 비례해 라이더가 프레임 밖으로 나간다.
+ */
+export function rideLookAtAlongM(
+  pitchDeg: number,
+  spanM: number,
+  lookAtHeightM: number = RIDER_LOOK_AT_HEIGHT_M,
+): number {
+  const depressionRad = ((90 - pitchDeg) * Math.PI) / 180;
+  const tanDep = Math.tan(Math.max(0.017, depressionRad));
+  return Math.min(lookAtHeightM / tanDep, spanM * RIDE_LOOKAT_SPAN_RATIO);
+}
 
 export type RideFollowFraming = {
   center: LngLat;
@@ -73,15 +150,13 @@ export function computeRideFollowFraming(input: {
     return { center: riderLngLat, zoom: fallbackZoom };
   }
 
-  const depressionRad = ((90 - pitchDeg) * Math.PI) / 180;
-  const tanDep = Math.tan(Math.max(0.017, depressionRad));
-  const lookAtAlongViewM = RIDER_LOOK_AT_HEIGHT_M / tanDep;
+  // spanM 을 먼저 정한다 — look-at 오프셋이 같은 규칙 아래 묶이려면 상한의 기준이 있어야 한다.
+  const spanM = rideSpanM(distanceM, pitchDeg);
+  const lookAtAlongViewM = rideLookAtAlongM(pitchDeg, spanM);
   const viewBearing = ((offsetBearing + 180) % 360 + 360) % 360;
   const center = offsetLngLatByBearingMeters(riderLngLat, viewBearing, lookAtAlongViewM);
 
   const safe = rideSafeViewportPx(input.viewportWidthPx, input.viewportHeightPx);
-  const heightSpanM = RIDER_DISPLAY_HEIGHT_M * RIDER_HEIGHT_SPAN_MARGIN;
-  const spanM = Math.max(heightSpanM, distanceM);
   const latRad = (riderLngLat[1] * Math.PI) / 180;
   const targetMetersPerPixel = spanM / safe.height;
   const mppAtZ0 = 156543.03392 * Math.cos(latRad);
