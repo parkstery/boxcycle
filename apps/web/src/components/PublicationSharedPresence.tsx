@@ -233,6 +233,8 @@ export function PublicationSharedPresence({
 
     return () => {
       cancelled = true;
+      liveRideRowsRef.current = [];
+      publishOtherLiveRiderCount(0);
       release();
     };
   }, [pageVisible, trailId]);

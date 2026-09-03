@@ -8,10 +8,9 @@ import {
   subscribeHasOtherLiveRiders,
 } from "../../lib/liveRideHudSignal";
 import {
-  companionDisplayedRiderCount,
+  companionHudCopy,
   formatCompanionHudActivityLine,
 } from "../../lib/companionHudCount";
-import { shouldShowCompanionEmptyCopy } from "../../lib/peerHud";
 import { CadenceHudChip } from "./CadenceHudChip";
 import "./MapHud.css";
 
@@ -38,10 +37,8 @@ export type MapHudRidePresence = {
   trailError: string | null;
   courseTitle: string | null;
   coursePeerNames: string[];
-  /** `courseActivity` aggregate 한 줄(지금 N명 · 최근 7일 등) */
+  /** `courseActivity` aggregate 한 줄 — 인원수 절은 MapHud 가 Trail 실시간으로 치환 */
   courseActivityHudLine?: string | null;
-  /** aggregate `activeRiderCount` — liveNow 가 아니면 null. 실시간 보정은 MapHud 가 max 로 올린다 */
-  courseActivityLiveCount?: number | null;
 };
 
 /** HUD 칩이 필요한 최소 센서 상태 + 상세 설정 열기 */
@@ -247,20 +244,19 @@ export function MapHud(props: MapHudProps) {
   const showMainFab = riding;
   const showMc = paused || (stage === "setup" && Boolean(routeError));
 
-  const companionDisplayedCount =
+  const companionCopy =
     ridePresence != null
-      ? companionDisplayedRiderCount({
-          aggregateCount: ridePresence.courseActivityLiveCount ?? null,
+      ? companionHudCopy({
           otherLiveRiderCount,
           selfRiding: riding,
+          coursePeerNamesLength: ridePresence.coursePeerNames.length,
         })
-      : null;
+      : { riderCount: null, showEmptyCopy: false };
   const companionActivityLine =
     ridePresence != null
       ? formatCompanionHudActivityLine({
           aggregateHudLine: ridePresence.courseActivityHudLine ?? null,
-          displayedRiderCount: companionDisplayedCount,
-          selfRiding: riding,
+          displayedRiderCount: companionCopy.riderCount,
         })
       : null;
 
@@ -361,7 +357,7 @@ export function MapHud(props: MapHudProps) {
                       <p
                         className="hud-ride-presence__activity"
                         data-companion-count={
-                          companionDisplayedCount != null ? String(companionDisplayedCount) : ""
+                          companionCopy.riderCount != null ? String(companionCopy.riderCount) : ""
                         }
                       >
                         {companionActivityLine}
@@ -373,10 +369,7 @@ export function MapHud(props: MapHudProps) {
                           <li key={`${name}-${i}`}>{name}</li>
                         ))}
                       </ul>
-                    ) : shouldShowCompanionEmptyCopy(
-                        ridePresence.coursePeerNames.length,
-                        hasOtherLiveRiders,
-                      ) ? (
+                    ) : companionCopy.showEmptyCopy ? (
                       <p className="hud-ride-presence__empty">다른 라이더 없음</p>
                     ) : null}
                   </div>
