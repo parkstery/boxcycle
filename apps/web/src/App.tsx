@@ -1999,6 +1999,9 @@ export default function App() {
     );
     const trailError = trailSession.error;
     const courseActivityHudLine = formatRouteActivityHudLine(courseActivity);
+    const courseActivityLiveCount = courseActivity?.liveNow
+      ? courseActivity.activeRiderCount
+      : null;
     // presence 와 동일한 Trail 기준으로 라벨·Trailhead 판정(주행 중 네비 trailId 와 어긋남 방지).
     const tid = presenceTrailId;
     return {
@@ -2013,6 +2016,7 @@ export default function App() {
       courseTitle,
       coursePeerNames,
       courseActivityHudLine,
+      courseActivityLiveCount,
     };
   }, [
     configured,

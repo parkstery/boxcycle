@@ -17,17 +17,31 @@ export function peerHudLabels(peers: PeerHudEntry[]): string[] {
 }
 
 /**
- * HUD 「다른 라이더 없음」 근거.
- * 구독 중인 live ride 행에서 나를 제외한 행이 하나라도 있으면 true.
- * coursePeerHud(가시성 필터)나 Trail 접속자(안 달릴 수 있음)를 쓰지 않는다.
+ * 구독 중인 live ride 행에서 나를 제외한 고유 uid 수.
+ * coursePeerHud(가시성 필터)나 Trail 접속자를 쓰지 않는다.
+ */
+export function countOtherLiveRidePeers(
+  rows: readonly { uid: string }[],
+  selfUid: string,
+): number {
+  const me = selfUid.trim();
+  if (!me) return 0;
+  const uids = new Set<string>();
+  for (const r of rows) {
+    const u = r.uid.trim();
+    if (u && u !== me) uids.add(u);
+  }
+  return uids.size;
+}
+
+/**
+ * HUD 「다른 라이더 없음」 근거 — 4B. count > 0 파생.
  */
 export function hasOtherLiveRidePeer(
   rows: readonly { uid: string }[],
   selfUid: string,
 ): boolean {
-  const me = selfUid.trim();
-  if (!me) return false;
-  return rows.some((r) => r.uid.trim() !== me);
+  return countOtherLiveRidePeers(rows, selfUid) > 0;
 }
 
 /**
