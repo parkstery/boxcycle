@@ -62,7 +62,7 @@ export const RIDER_GLB_NODE_OVERRIDE_NAMES = [
 export const RIDER_GLB_MODEL_BASE_SCALE = 1.15;
 
 /**
- * 260825-gient 시각 실험 — 아바타와 자전거를 기준의 **정확히 20배**로 표시한다.
+ * 260825-giant — 아바타와 자전거를 기준의 정확히 20배로 표시한다.
  * 되돌리려면 1 로 바꾼다. 이 계수는 라이더 GLB 모델에만 곱해진다 —
  * 네임태그·HUD·경로선·지도 UI 는 이 상수를 읽지 않는다.
  */
