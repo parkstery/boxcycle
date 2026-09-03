@@ -62,11 +62,14 @@ export const RIDER_GLB_NODE_OVERRIDE_NAMES = [
 export const RIDER_GLB_MODEL_BASE_SCALE = 1.15;
 
 /**
- * 260825-giant — 아바타와 자전거를 기준의 정확히 20배로 표시한다.
- * 되돌리려면 1 로 바꾼다. 이 계수는 라이더 GLB 모델에만 곱해진다 —
- * 네임태그·HUD·경로선·지도 UI 는 이 상수를 읽지 않는다.
+ * 260825-giant — 라이더 GLB 배율 계수. **제품 기본값은 1(현재 크기 유지)** 이다.
+ * 20 으로 올리면 거인 라이더가 되고, 카메라 거리 범위·프레이밍이 전고에서
+ * 유도되므로(`mapGlobeView` · `rideCameraFraming`) 배율을 바꿔도 화면이 깨지지 않는다.
+ * 2026-09-03 결정: 20배는 채택하지 않고 현재 크기를 유지한다. 계수 구조와
+ * 카메라 유도는 남겨 두어 다른 캐릭터(작은 동물·큰 동물)에 재사용한다.
+ * 이 계수는 라이더 GLB 모델에만 곱해진다 — 네임태그·HUD·경로선·지도 UI 는 읽지 않는다.
  */
-export const RIDER_GIANT_SCALE_FACTOR = 20;
+export const RIDER_GIANT_SCALE_FACTOR = 1;
 
 export const RIDER_GLB_MODEL_SCALE = RIDER_GLB_MODEL_BASE_SCALE * RIDER_GIANT_SCALE_FACTOR;
 
