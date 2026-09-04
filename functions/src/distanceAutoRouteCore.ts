@@ -24,7 +24,7 @@ export function formatDistanceAutoRouteTooCloseMessage(
 ): string {
   const directKm = (directRoadMeters / 1000).toFixed(1);
   const targetKm = (targetDistanceMeters / 1000).toFixed(1);
-  return `클릭 지점까지는 도로로 ${directKm} km 입니다. 목표 ${targetKm} km 에 모자랍니다. 바깥 원 근처를 클릭해 주세요.`;
+  return `클릭 지점까지는 도로로 ${directKm} km 입니다. 목표 ${targetKm} km 에 모자랍니다. 목표 거리 원 바깥을 클릭해 주세요.`;
 }
 export const AUTO_ROUTE_DISTANCE_FACTORS = [0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3] as const;
 export const AUTO_ROUTE_BEARING_OFFSETS_DEG = [-30, -15, 0, 15, 30] as const;

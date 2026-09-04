@@ -1335,8 +1335,8 @@ export type MapViewProps = {
   /** 목표 거리 참고 원 — GeoJSON LineString(지도 stroke용) */
   distanceTargetCircle?: LineStringGeometry | null;
   /**
-   * 도넛 안쪽 원 — 이 안은 「너무 가깝다」로 실패할 가능성이 높은 구역이다(5A-R2 §2).
-   * 바깥 원(= D)은 `distanceTargetCircle` 이 그린다.
+   * 도넛 안쪽 원(= D) — 이 안은 「너무 가까움」 실패 구역이다(5A-R2 §2.2 정정).
+   * 바깥 원(= 1.5D)은 `distanceTargetCircle` 로 그린다.
    */
   distanceTargetInnerCircle?: LineStringGeometry | null;
   /** 예상 시간 계산용 누적 주행(5A-R2 §4.3). 없으면 폴백 속도를 쓴다. */
@@ -2572,8 +2572,8 @@ export function MapView({
     }
 
     /**
-     * 도넛 — 바깥 원(= D)과 안쪽 원을 **한 소스**에 담고 `ring` 속성으로 구분해 그린다.
-     * 바깥은 부등식에서 나온 경계(직선 ≥ D 면 「너무 가까움」이 불가능), 안쪽은 실측 안내다.
+     * 도넛 — 바깥 원(= 1.5D)과 안쪽 원(= D)을 **한 소스**에 담고 `ring` 속성으로 구분해 그린다.
+     * 안쪽(= D)은 부등식 경계(직선 ≥ D 면 「너무 가까움」이 불가능), 바깥(= 1.5D)은 UI 권장 띠다.
      */
     const feature = {
       type: "FeatureCollection" as const,

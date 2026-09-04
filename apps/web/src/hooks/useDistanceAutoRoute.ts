@@ -117,20 +117,23 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
   const circleFitToken = circlePreviewState.fitToken;
 
   const circleGeometry = useMemo(() => {
+    // 바깥 원 = 1.5D (5A-R2 §2.2 정정). fitBounds·권장 띠 바깥 가장자리.
     if (circlePreview) {
-      return circleLineString(circlePreview.start, circlePreview.targetKm * 1000);
+      const { outerKm } = resolveDistanceAutoRouteGuideRadii(circlePreview.targetKm);
+      return circleLineString(circlePreview.start, outerKm * 1000);
     }
     if (!start || step === "closed" || step === "pick_start") {
       return null;
     }
     if (step === "pick_direction" || step === "searching") {
-      return circleLineString(start, targetMeters);
+      const { outerKm } = resolveDistanceAutoRouteGuideRadii(targetMeters / 1000);
+      return circleLineString(start, outerKm * 1000);
     }
     return null;
   }, [circlePreview, start, targetMeters, step]);
 
   /**
-   * 도넛 안쪽 원 — `D / λ_max`(5A-R2 §2.3). 바깥 원(= D)은 `circleGeometry` 다.
+   * 도넛 안쪽 원 = D (5A-R2 §2.2 정정). 바깥 원(= 1.5D)은 `circleGeometry` 다.
    * 안내용이므로 바깥 원이 있을 때만 그린다.
    */
   const innerCircleGeometry = useMemo(() => {

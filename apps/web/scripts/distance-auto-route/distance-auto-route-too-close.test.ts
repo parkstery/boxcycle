@@ -1,4 +1,4 @@
-// 짧은 클릭 안내 계약 — 5A-R2 §1·§2.
+// 짧은 클릭 안내 계약 — 5A-R2 §1·§2 (기하 정정: 안쪽=D, 바깥=1.5D).
 //
 // `road < D − 5m` 를 우회로 채우면 같은 도로를 되밟아 정복을 잃는다
 // (5A-1 실측: detoured 평균 3.7 % · 최대 17.1 % 중복). 채우지 않고 **안내하고 실패**시킨다.
@@ -16,7 +16,7 @@ import {
   type LngLat,
 } from "../../../../functions/src/distanceAutoRouteCore.ts";
 import {
-  DISTANCE_AUTO_ROUTE_GUIDE_INNER_RATIO,
+  DISTANCE_AUTO_ROUTE_GUIDE_OUTER_RATIO,
   resolveDistanceAutoRouteGuideRadii,
 } from "../../src/lib/distanceAutoRouteGuideRing.ts";
 
@@ -82,7 +82,7 @@ describe("§1 · road < D − 5m 는 안내하고 실패한다", () => {
     const msg = formatDistanceAutoRouteTooCloseMessage(1234, 3000);
     assert.match(msg, /1\.2 km/);
     assert.match(msg, /3\.0 km/);
-    assert.match(msg, /바깥 원/);
+    assert.match(msg, /원 바깥/);
     assert.doesNotMatch(msg, /더 멀리/);
   });
 
@@ -116,11 +116,21 @@ describe("§1 · road < D − 5m 는 안내하고 실패한다", () => {
   });
 });
 
-describe("§2 · 도넛 — 바깥 원은 D 다(부등식에서 나온 값)", () => {
-  it("바깥 원 반지름 = D. 다른 값이 아니다", () => {
+describe("§2 · 도넛 — 안쪽 원은 D, 바깥 원은 1.5D (§5.3)", () => {
+  it("안쪽 원 반지름 = D. 다른 값이 아니다", () => {
     for (const targetKm of [0.5, 0.7, 3, 5, 20, 120]) {
       const r = resolveDistanceAutoRouteGuideRadii(targetKm);
-      assert.equal(r.outerKm, targetKm, `바깥 원이 D 가 아니다: ${r.outerKm}`);
+      assert.equal(r.innerKm, targetKm, `안쪽 원이 D 가 아니다: ${r.innerKm}`);
+    }
+  });
+
+  it("바깥 원 반지름 = 1.5D", () => {
+    for (const targetKm of [0.5, 0.7, 3, 5, 20, 120]) {
+      const r = resolveDistanceAutoRouteGuideRadii(targetKm);
+      assert.ok(
+        Math.abs(r.outerKm - targetKm * DISTANCE_AUTO_ROUTE_GUIDE_OUTER_RATIO) < 1e-9,
+        `바깥 원이 1.5D 가 아니다: ${r.outerKm}`,
+      );
     }
   });
 
@@ -145,13 +155,31 @@ describe("§2 · 도넛 — 바깥 원은 D 다(부등식에서 나온 값)", ()
     }
   });
 
-  it("안쪽 원 = D / λ_max 이고 바깥보다 작다", () => {
+  it("바깥 원 밖(직선 > 1.5D)도 실패하지 않는다", async () => {
+    for (const straightM of [1501, 2000, 3000]) {
+      for (const lambda of [1.0, 1.2, 1.5]) {
+        const r = await searchDistanceAutoRoute({
+          start: START,
+          targetRoadPoint: offsetLngLatByBearingMeters(START, 90, straightM),
+          profile: "driving",
+          targetDistanceMeters: D,
+          bearingDeg: 90,
+          fetchDirections: straightProvider((s) => s * lambda),
+        });
+        assert.notEqual(
+          r.status,
+          "failed",
+          `직선 ${straightM}m(>1.5D) · λ ${lambda} 에서 실패했다`,
+        );
+      }
+    }
+  });
+
+  it("안쪽 < 바깥이고 바깥 = 안쪽 × 1.5", () => {
     const r = resolveDistanceAutoRouteGuideRadii(3);
     assert.ok(r.innerKm < r.outerKm);
-    assert.ok(
-      Math.abs(r.innerKm - 3 / DISTANCE_AUTO_ROUTE_GUIDE_INNER_RATIO) < 1e-9,
-      `${r.innerKm}`,
-    );
+    assert.equal(r.innerKm, 3);
+    assert.ok(Math.abs(r.outerKm - 3 * DISTANCE_AUTO_ROUTE_GUIDE_OUTER_RATIO) < 1e-9, `${r.outerKm}`);
   });
 
   it("퇴화 입력에서도 유한한 반지름을 준다", () => {
@@ -160,6 +188,32 @@ describe("§2 · 도넛 — 바깥 원은 D 다(부등식에서 나온 값)", ()
       assert.ok(Number.isFinite(r.outerKm) && r.outerKm > 0, `outer ${r.outerKm}`);
       assert.ok(Number.isFinite(r.innerKm) && r.innerKm > 0, `inner ${r.innerKm}`);
       assert.ok(r.innerKm < r.outerKm);
+    }
+  });
+});
+
+describe("§5.4 · 도넛 안 클릭은 우회를 호출하지 않는다", () => {
+  it("직선 ∈ [D, 1.5D] 에서 3-waypoint(우회) 호출 0회", async () => {
+    // λ=1 이면 road=straight ≥ D → 부족분 없음 → 우회 불필요.
+    for (const straightM of [D, D + 1, Math.round(D * 1.25), Math.round(D * 1.5)]) {
+      let calls = 0;
+      let threeWaypoint = 0;
+      const fetchDirections: FetchDirectionsFn = async (p, w) => {
+        calls += 1;
+        if (w.length === 3) threeWaypoint += 1;
+        return straightProvider((s) => s)(p, w);
+      };
+      const r = await searchDistanceAutoRoute({
+        start: START,
+        targetRoadPoint: offsetLngLatByBearingMeters(START, 90, straightM),
+        profile: "driving",
+        targetDistanceMeters: D,
+        bearingDeg: 90,
+        fetchDirections,
+      });
+      assert.notEqual(r.status, "failed", `직선 ${straightM}m 가 실패했다`);
+      assert.equal(threeWaypoint, 0, `직선 ${straightM}m 에서 우회 ${threeWaypoint}회`);
+      assert.ok(calls >= 1, `provider 호출 없음`);
     }
   });
 });

@@ -1,8 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
-import { fileURLToPath } from "node:url";
 import {
   AUTO_ROUTE_ALGORITHM_VERSION,
   CLICK_SNAP_FAIL_M,
@@ -18,18 +16,6 @@ import {
 import {
   formatDistanceAutoRouteClickDebugCoords,
 } from "../../src/lib/distanceAutoRouteClickDebugMarker.ts";
-import {
-  assertFixtureExpectations,
-  replayClickIntentFixture,
-  rowsFromReplay,
-  type ClickIntentFixture,
-} from "./click-intent-replay-core.ts";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const fixtures = JSON.parse(
-  readFileSync(join(__dirname, "fixtures/click-intent-baseline.json"), "utf8"),
-) as ClickIntentFixture[];
-
 const HOOK_SOURCE = readFileSync(
   new URL("../../src/hooks/useDistanceAutoRoute.ts", import.meta.url),
   "utf8",
@@ -269,7 +255,7 @@ describe("distanceAutoRoute click intent 3F-C-R1", () => {
     // 문구에 실측값이 들어간다(막연한 「더 멀리」 금지)
     assert.match(searched.message, /0\.8 km/, `문구에 실측 도로거리가 없다: ${searched.message}`);
     assert.match(searched.message, /1\.0 km/, `문구에 목표가 없다: ${searched.message}`);
-    assert.match(searched.message, /바깥 원/, "어디를 클릭할지 안내가 없다");
+    assert.match(searched.message, /원 바깥/, "어디를 클릭할지 안내가 없다");
   });
 
   // 5A-R2 §1: Stage 1 우회는 `road < D` 경로에서 호출되지 않으므로 「Stage 1 throw」가 없다.
