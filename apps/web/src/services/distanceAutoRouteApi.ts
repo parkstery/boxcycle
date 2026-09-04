@@ -11,7 +11,7 @@ import { formatDistanceAutoRouteClientError } from "../lib/distanceAutoRouteErro
 import { functionsHttpUrl } from "../lib/functionsEmulatorUrl";
 import type { RouteProfile } from "./mapboxDirections";
 
-export type RouteOutcome = "exact" | "detoured" | "offered" | "shortfall" | "extended";
+export type RouteOutcome = "exact" | "detoured" | "offered" | "shortfall";
 
 export type DistanceAutoRouteResponse =
   | {
@@ -68,7 +68,6 @@ export async function fetchDistanceAutoRoute(
     targetDistanceMeters: number;
     bearingDeg?: number;
     requestId: string;
-    distanceAdjustRetry?: boolean;
   },
 ): Promise<DistanceAutoRouteResponse> {
   assertDirectionsServerOnly();

@@ -151,6 +151,18 @@ test.describe('5A-R1 §4.1 후보 2 — 팝업이 지도를 얼마나 덮는가'
       }
       await page.waitForTimeout(400)
 
+      const chips = await surface.locator('.map-view__pick-distance-chip').count()
+      const sliderVisible = await surface
+        .locator('.map-view__pick-distance-slider')
+        .isVisible()
+        .catch(() => false)
+      const etaText = await surface
+        .locator('.map-view__pick-distance-eta')
+        .innerText()
+        .catch(() => '')
+      console.log(
+        `[5A-chip] ${vp.label.padEnd(21)} 칩 ${chips}개 · 슬라이더 보임 ${sliderVisible} · ETA "${etaText.trim()}"`,
+      )
       const sBox = await surface.boundingBox()
       const mapArea = box.width * box.height
       const cover = sBox ? (sBox.width * sBox.height) / mapArea : 0

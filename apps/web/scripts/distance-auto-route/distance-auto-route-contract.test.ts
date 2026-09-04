@@ -38,6 +38,10 @@ import {
 
 const ORIGIN: [number, number] = [127.02, 37.5];
 const APP_SOURCE = readFileSync(new URL("../../src/App.tsx", import.meta.url), "utf8");
+const ERRORS_SOURCE = readFileSync(
+  new URL("../../src/lib/distanceAutoRouteErrors.ts", import.meta.url),
+  "utf8",
+);
 const BRIDGE_SOURCE = readFileSync(
   new URL("../../src/lib/distanceAutoRouteMapBridge.ts", import.meta.url),
   "utf8",
@@ -237,13 +241,20 @@ describe("distanceAutoRoute", () => {
     assert.doesNotMatch(APP_SOURCE, /distanceTargetClickZone/);
   });
 
-  it("3F-C-R1 — MapView offered 상태 props 연결", () => {
+  it("3F-C-R1 — MapView offered 상태 props 연결(고지는 유지, 조정 버튼은 제거)", () => {
+    // 5A-R2 §3: 「N km 로 늘려 클릭 지점까지 가기」 버튼과 그 재탐색 경로를 제거했다.
+    // 그 버튼은 directRoadM 을 100m 단위로 올림해 목표로 삼아 스스로 부족분을 만들고
+    // 우회를 불러 중복을 생산했다. **고지(고스트 마커·점선·문구)는 그대로 남는다.**
     assert.match(MAP_VIEW_SOURCE, /autoRouteOfferedState/);
-    assert.match(MAP_VIEW_SOURCE, /onDistanceAdjustRetry/);
     assert.match(APP_SOURCE, /autoRouteOfferedState/);
-    assert.match(APP_SOURCE, /onDistanceAdjustRetry/);
     assert.match(HOOK_SOURCE, /offeredState/);
-    assert.match(HOOK_SOURCE, /handleDistanceAdjustRetry/);
+    assert.match(HOOK_SOURCE, /formatDistanceAutoRouteOfferedMessage/);
+
+    assert.doesNotMatch(MAP_VIEW_SOURCE, /onDistanceAdjustRetry/);
+    assert.doesNotMatch(APP_SOURCE, /onDistanceAdjustRetry/);
+    assert.doesNotMatch(HOOK_SOURCE, /handleDistanceAdjustRetry/);
+    assert.doesNotMatch(MAP_VIEW_SOURCE, /offeredAdjustBtn/);
+    assert.doesNotMatch(ERRORS_SOURCE, /formatDistanceAutoRouteAdjustRetryLabel/);
   });
 
   it("3I — shortfall UI 고지 문구", () => {
@@ -491,10 +502,9 @@ describe("distanceAutoRoute", () => {
 
   it("3D-2-R1 — 상태 메시지 단일 슬롯·고정 높이", () => {
     assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-auto-route-status-slot/);
-    assert.match(
-      BUILD_PICK_POPUP_SOURCE,
-      /autoRouteStatusSlot\.append\(autoRouteStatus,\s*offeredPanel\)/,
-    );
+    // 조정 버튼 패널이 사라져 슬롯에는 상태 문구만 남는다(5A-R2 §3).
+    assert.match(BUILD_PICK_POPUP_SOURCE, /autoRouteStatusSlot\.append\(autoRouteStatus\)/);
+    assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /offeredPanel/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /autoRouteSection\.append\(distanceRow, autoRouteStatusSlot\)/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /autoRouteError/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /inlineStatus/);

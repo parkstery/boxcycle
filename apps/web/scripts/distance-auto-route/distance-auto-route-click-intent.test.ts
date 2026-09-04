@@ -71,7 +71,8 @@ describe("distanceAutoRoute click intent 3F-C-R1", () => {
     assert.match(HTTP_SOURCE, /outcome/);
     assert.match(HTTP_SOURCE, /directRoadMeters/);
     assert.match(HTTP_SOURCE, /detourCalls/);
-    assert.match(HTTP_SOURCE, /distanceAdjustRetry/);
+    // `distanceAdjustRetry` 는 5A-R2 §3 으로 제거됐다 — 재탐색 기능 자체가 없어졌다.
+    assert.doesNotMatch(HTTP_SOURCE, /distanceAdjustRetry/);
   });
 
   it("알고리즘 버전이 3I-shortfall", () => {
@@ -234,33 +235,21 @@ describe("distanceAutoRoute click intent 3F-C-R1", () => {
     }
   });
 
-  // 5A-R1 §3.2 로 우선순위가 바뀌었다 — road < D 면 **먼저 방향 확장**(2-waypoint)을 시도하고,
-  // 그것이 목표를 못 채울 때만 우회(3-waypoint)로 내려간다. 이 fixture 는 2-waypoint 응답을
-  // 끝점과 무관하게 800m 로 고정하므로 확장이 실패하고 우회까지 내려간다.
-  it("road < D → (확장 실패 후) Stage 1 우회, 3-waypoint 호출 확인", async () => {
+  // 5A-R2 §1 로 계약이 바뀌었다 — `road < D − 5m` 는 **우회로 채우지 않고 안내·실패**시킨다.
+  // 우회가 같은 도로를 되밟아 정복을 잃었기 때문이다(5A-1 실측: 최대 17.1 % 중복).
+  it("road < D → 안내·실패. 우회(3-waypoint)를 호출하지 않는다", async () => {
     const start: [number, number] = [127.02, 37.5];
-    // 850m east: detour route clips at 1000m → endMiss = 150m < 200m → stays "detoured"
     const targetRoadPoint = offsetLngLatByBearingMeters(start, 90, 850) as [number, number];
     const targetDistanceMeters = 1000;
     let twoWaypointCalls = 0;
     let threeWaypointCalls = 0;
     const fetchDirections: FetchDirectionsFn = async (_profile, waypoints) => {
       const end = waypoints[waypoints.length - 1]!;
-      if (waypoints.length === 2) {
-        twoWaypointCalls += 1;
-        // 800m geometry (< D=1000) → Stage 1 triggers
-        const farEnd = offsetLngLatByBearingMeters(waypoints[0]!, 90, 800);
-        const geometry = { type: "LineString" as const, coordinates: [waypoints[0]!, farEnd] as [number, number][] };
-        const dist = lineStringLengthMeters(geometry);
-        return { geometry, distance: dist, duration: 900, snappedEnd: end, endSnapDistanceMeters: 0 };
-      } else {
-        threeWaypointCalls += 1;
-        // 1050m geometry ∈ [D, D+150] → detour success
-        const farEnd = offsetLngLatByBearingMeters(waypoints[0]!, 90, 1050);
-        const geometry = { type: "LineString" as const, coordinates: [waypoints[0]!, farEnd] as [number, number][] };
-        const dist = lineStringLengthMeters(geometry);
-        return { geometry, distance: dist, duration: 1200, snappedEnd: end, endSnapDistanceMeters: 0 };
-      }
+      if (waypoints.length === 2) twoWaypointCalls += 1;
+      else threeWaypointCalls += 1;
+      const farEnd = offsetLngLatByBearingMeters(waypoints[0]!, 90, 800);
+      const geometry = { type: "LineString" as const, coordinates: [waypoints[0]!, farEnd] as [number, number][] };
+      return { geometry, distance: lineStringLengthMeters(geometry), duration: 900, snappedEnd: end, endSnapDistanceMeters: 0 };
     };
 
     const searched = await searchDistanceAutoRoute({
@@ -272,36 +261,55 @@ describe("distanceAutoRoute click intent 3F-C-R1", () => {
       fetchDirections,
     });
 
-    // Stage 0 1회 + 방향 확장 최대 2회 = 최대 3회(5A-R1 §3.1). 이전에는 1회였다.
-    assert.ok(twoWaypointCalls >= 1 && twoWaypointCalls <= 3, `2-waypoint ${twoWaypointCalls}회`);
-    assert.ok(threeWaypointCalls >= 1, "우회 폴백이 돌지 않았다");
-    assert.equal(searched.status, "found");
-    if (searched.status === "found") {
-      assert.equal(searched.outcome, "detoured");
-      assert.ok(searched.directRoadMeters < targetDistanceMeters);
-      assert.ok(searched.detourCalls >= 1);
-    }
+    assert.equal(searched.status, "failed");
+    if (searched.status !== "failed") return;
+    assert.equal(twoWaypointCalls, 1, "Stage 0 한 번이면 충분하다");
+    assert.equal(threeWaypointCalls, 0, "우회를 호출했다 — 중복이 다시 생긴다");
+    assert.equal(searched.providerCallCount, 1);
+    // 문구에 실측값이 들어간다(막연한 「더 멀리」 금지)
+    assert.match(searched.message, /0\.8 km/, `문구에 실측 도로거리가 없다: ${searched.message}`);
+    assert.match(searched.message, /1\.0 km/, `문구에 목표가 없다: ${searched.message}`);
+    assert.match(searched.message, /바깥 원/, "어디를 클릭할지 안내가 없다");
   });
 
-  it("provider 호출 수는 Stage 0 throw·Stage 1 throw 모두 집계", async () => {
+  // 5A-R2 §1: Stage 1 우회는 `road < D` 경로에서 호출되지 않으므로 「Stage 1 throw」가 없다.
+  it("provider 호출 수는 Stage 0 throw 를 집계한다", async () => {
     const start: [number, number] = [127.02, 37.5];
-    // 850m east: detour clipped at 1000m → endMiss ≈ 150m < 200m → stays "detoured"
     const targetRoadPoint = offsetLngLatByBearingMeters(start, 90, 850) as [number, number];
+    const fetchDirections: FetchDirectionsFn = async () => {
+      throw new Error("stage0 throw");
+    };
+
+    const searched = await searchDistanceAutoRoute({
+      start,
+      targetRoadPoint,
+      profile: "cycling",
+      targetDistanceMeters: 1000,
+      bearingDeg: 90,
+      fetchDirections,
+    });
+
+    assert.equal(searched.status, "failed");
+    if (searched.status !== "failed") return;
+    assert.equal(searched.providerCallCount, 1, "throw 한 호출이 집계되지 않았다");
+  });
+
+  it("hard gate: exact endMiss > 200m → offered 강등", async () => {
+    // 우회 없이도 성립한다 — geometry 가 클릭 지점을 크게 지나쳐 끝나면 강등된다.
+    const start: [number, number] = [127.02, 37.5];
+    const targetRoadPoint = offsetLngLatByBearingMeters(start, 90, 700) as [number, number];
     const targetDistanceMeters = 1000;
-    let attempts = 0;
     const fetchDirections: FetchDirectionsFn = async (_profile, waypoints) => {
-      attempts += 1;
-      if (waypoints.length === 2) {
-        // Stage 0: 800m route (< D)
-        const farEnd = offsetLngLatByBearingMeters(waypoints[0]!, 90, 800);
-        const geometry = { type: "LineString" as const, coordinates: [waypoints[0]!, farEnd] as [number, number][] };
-        return { geometry, distance: lineStringLengthMeters(geometry), duration: 900, snappedEnd: waypoints[waypoints.length-1]!, endSnapDistanceMeters: 0 };
-      }
-      // Stage 1: first detour call throws, second succeeds
-      if (attempts === 2) throw new Error("detour throw");
-      const farEnd = offsetLngLatByBearingMeters(waypoints[0]!, 90, 1050);
+      // 도로거리는 D 이상(=exact 진입)이지만 geometry 는 2km 까지 뻗어 끝점이 멀다
+      const farEnd = offsetLngLatByBearingMeters(waypoints[0]!, 90, 2000);
       const geometry = { type: "LineString" as const, coordinates: [waypoints[0]!, farEnd] as [number, number][] };
-      return { geometry, distance: lineStringLengthMeters(geometry), duration: 1200, snappedEnd: waypoints[waypoints.length-1]!, endSnapDistanceMeters: 0 };
+      return {
+        geometry,
+        distance: 1100,
+        duration: 1200,
+        snappedEnd: targetRoadPoint,
+        endSnapDistanceMeters: 0,
+      };
     };
 
     const searched = await searchDistanceAutoRoute({
@@ -313,54 +321,10 @@ describe("distanceAutoRoute click intent 3F-C-R1", () => {
       fetchDirections,
     });
 
-    assert.ok(attempts >= 2);
-    if (searched.status === "found") {
-      assert.ok(searched.diagnostics.providerCallCount >= 2);
-      assert.equal(searched.outcome, "detoured");
-    } else {
-      assert.ok(searched.providerCallCount >= 2);
-    }
-  });
-
-  it("hard gate: exact/detoured endMiss > 200m → offered 강등", async () => {
-    const start: [number, number] = [127.02, 37.5];
-    const targetRoadPoint: [number, number] = [127.029, 37.5]; // 800m east
-    const targetDistanceMeters = 1000;
-    // Direct returns road=800m (< D → Stage 1). Detour returns 1050m but route goes east, far from targetRoadPoint.
-    const fetchDirections: FetchDirectionsFn = async (_profile, waypoints) => {
-      const end = waypoints[waypoints.length - 1]!;
-      if (waypoints.length === 2) {
-        const geometry = { type: "LineString" as const, coordinates: [waypoints[0]!, end] as [number, number][] };
-        return { geometry, distance: 800, duration: 900, snappedEnd: end, endSnapDistanceMeters: 0 };
-      }
-      // Detour route: goes east 1050m from start, ending 250m PAST targetRoadPoint
-      const farEnd = offsetLngLatByBearingMeters(start, 90, 1050);
-      const geometry = {
-        type: "LineString" as const,
-        coordinates: [start, farEnd] as [number, number][],
-      };
-      return { geometry, distance: 1050, duration: 1200, snappedEnd: end, endSnapDistanceMeters: 0 };
-    };
-
-    const searched = await searchDistanceAutoRoute({
-      start,
-      targetRoadPoint,
-      profile: "driving",
-      targetDistanceMeters,
-      bearingDeg: 90,
-      fetchDirections,
-    });
-
     assert.equal(searched.status, "found");
-    if (searched.status === "found") {
-      // clippedEnd at 1000m east, targetRoadPoint at 800m east → endMiss=200m
-      // 200m is NOT > 200m so no demote in this case
-      // but the detour geometry end is 1050m east, clip at 1000m → clippedEnd 1000m east
-      // targetRoadPoint 800m east → endMissM = 200m → not demoted (> not ≥)
-      assert.ok(searched.outcome === "detoured" || searched.outcome === "offered");
-      // directRoadMeters is always set
-      assert.equal(searched.directRoadMeters, 800);
-    }
+    if (searched.status !== "found") return;
+    assert.equal(searched.outcome, "offered", "endMiss 강등 게이트가 죽었다");
+    assert.ok(searched.endMissMeters > END_MISS_DEMOTE_TO_OFFERED_M);
   });
 
   it("3F-C-R1 core source 계약 — 새 함수명 포함", () => {
@@ -384,53 +348,34 @@ describe("distanceAutoRoute click intent 3F-C-R1", () => {
     assert.match(CORE_SOURCE, /shortfall/);
   });
 
-  it("우회 예산 소진·direct < D → shortfall, 실수치 고지", async () => {
+  // 5A-R2 §1: 「우회 예산 소진 → shortfall」 경로는 사라졌다. `road < D` 는 즉시 안내·실패다.
+  it("direct < D → 우회 없이 즉시 안내·실패(예산을 쓰지 않는다)", async () => {
     const start: [number, number] = [127.02, 37.5];
-    const targetRoadPoint = offsetLngLatByBearingMeters(start, 90, 4800) as [number, number];
-    const targetDistanceMeters = 5000;
-    const directLen = 4975.8;
+    const targetRoadPoint = offsetLngLatByBearingMeters(start, 90, 500) as [number, number];
     let calls = 0;
     const fetchDirections: FetchDirectionsFn = async (_profile, waypoints) => {
       calls += 1;
-      const end = waypoints[waypoints.length - 1]!;
-      const bearing = waypoints.length === 2 ? 90 : 45;
-      const len = waypoints.length === 2 ? directLen : directLen * 0.95;
-      const farEnd = offsetLngLatByBearingMeters(waypoints[0]!, bearing, len);
-      const geometry = {
-        type: "LineString" as const,
-        coordinates: [waypoints[0]!, farEnd] as [number, number][],
-      };
-      const dist = lineStringLengthMeters(geometry);
-      return { geometry, distance: dist, duration: 1200, snappedEnd: end, endSnapDistanceMeters: 0 };
+      const farEnd = offsetLngLatByBearingMeters(waypoints[0]!, 90, 500);
+      const geometry = { type: "LineString" as const, coordinates: [waypoints[0]!, farEnd] as [number, number][] };
+      return { geometry, distance: lineStringLengthMeters(geometry), duration: 600, snappedEnd: targetRoadPoint, endSnapDistanceMeters: 0 };
     };
 
     const searched = await searchDistanceAutoRoute({
       start,
       targetRoadPoint,
       profile: "cycling",
-      targetDistanceMeters,
+      targetDistanceMeters: 2000,
       bearingDeg: 90,
       fetchDirections,
     });
 
-    assert.equal(searched.status, "found");
-    if (searched.status === "found") {
-      assert.equal(searched.outcome, "shortfall");
-      assert.ok(searched.distance < targetDistanceMeters - 5);
-      assert.ok(searched.detourCalls > 0);
-      assert.ok(calls <= 13);
-    }
+    assert.equal(searched.status, "failed");
+    if (searched.status !== "failed") return;
+    assert.equal(calls, 1, `우회 예산을 썼다: ${calls}회`);
+    assert.match(searched.message, /0\.5 km/);
+    assert.match(searched.message, /2\.0 km/);
   });
 
-  for (const fixture of fixtures) {
-    it(`fixture ${fixture.id} — outcome·End·오차·호출 수`, async () => {
-      const { searched } = await replayClickIntentFixture(fixture);
-      assertFixtureExpectations(fixture, searched);
-      const rows = rowsFromReplay(fixture, searched);
-      assert.equal(rows.length, 2);
-      assert.equal(rows[1]?.algorithm, AUTO_ROUTE_ALGORITHM_VERSION);
-    });
-  }
 });
 
 describe("distanceAutoRoute click debug marker 3F-A-R1 §2.5", () => {

@@ -23,21 +23,6 @@ export function formatDistanceAutoRouteShortfallMessage(
   return `목표 ${targetKm.toFixed(1)} km 에 ${deficitM} m 모자란 ${actualKm.toFixed(2)} km 로 만들었습니다.`;
 }
 
-/**
- * 방향 확장 고지(5A-R1 §3.3) — **End 가 클릭 지점이 아니다.**
- *
- * 클릭 지점이 목표보다 가까워 같은 방위로 더 멀리 잡은 경우다. 숨기지 않는다 —
- * 화면과 실제가 다르면 사용자가 앱을 믿지 못한다(4A 에서 배운 것).
- * 거리 조정 버튼은 이 경우 의미가 없다(이미 클릭 지점보다 멀리 가 있다).
- */
-export function formatDistanceAutoRouteExtendedMessage(
-  directRoadMeters: number,
-  targetKm: number,
-): string {
-  const directKm = directRoadMeters / 1000;
-  return `클릭 지점까지는 도로로 ${directKm.toFixed(1)} km 로 목표에 모자랍니다. 같은 방향으로 ${targetKm.toFixed(1)} km 지점에서 종료했습니다.`;
-}
-
 export function formatDistanceAutoRouteOfferedMessage(
   directRoadMeters: number,
   targetKm: number,
@@ -46,10 +31,6 @@ export function formatDistanceAutoRouteOfferedMessage(
   return `클릭 지점까지는 도로로 ${directKm.toFixed(1)} km 입니다. 목표 ${targetKm.toFixed(1)} km 지점에서 종료했습니다.`;
 }
 
-export function formatDistanceAutoRouteAdjustRetryLabel(directRoadMeters: number): string {
-  const adjustedKm = Math.ceil(directRoadMeters / 100) / 10;
-  return `${adjustedKm.toFixed(1)} km 로 늘려 클릭 지점까지 가기`;
-}
 
 /** 거리·방향 자동 Route 모드 checkbox 접근 가능 이름 */
 export const DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_ARIA =
@@ -61,6 +42,15 @@ export const DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_LABEL = "거리";
 export const DISTANCE_AUTO_ROUTE_KM_MIN = 0.5;
 export const DISTANCE_AUTO_ROUTE_KM_MAX = 120;
 export const DISTANCE_AUTO_ROUTE_KM_STEP = 0.5;
+
+/**
+ * 목표 거리 칩(5A-R2 §4.2) — 슬라이더를 **대체**한다.
+ * 실내 주행에서 실제로 자주 쓰는 구간에 몰아 넣는다. 그 밖은 `±` 버튼과 숫자 입력으로.
+ */
+export const DISTANCE_AUTO_ROUTE_CHIP_KM: readonly number[] = [1, 3, 5, 10, 20];
+
+/** 기본 목표 거리(km) — 이어 달리기 루프가 핵심이라 짧게 여러 번이 낫다(5A-R2 §4.4) */
+export const DISTANCE_AUTO_ROUTE_DEFAULT_KM = 5;
 
 /**
  * 거리 슬라이더 **구간별 스냅**(5A-R1 §4.2).

@@ -143,71 +143,10 @@ function detourGeometry(origin: LngLat, clickPoint: LngLat, totalMeters: number)
   return build(hi);
 }
 
-describe("결함 ① · 우회 경계 — 자전거 도로망에서 실제로 걸린 경우", () => {
-  // 폰 검증은 자전거 프로필이었고 도로망이 촘촘해 이 구간에 잘 들어간다.
-  // direct 가 D 에 못 미쳐 우회 이분 탐색으로 가고, 우회 후보의 provider distance 는
-  // D 를 넘지만 geometry 길이는 D 를 근소하게 밑돈다.
-  const CLICK = offsetLngLatByBearingMeters(START, 90, D - 800);
-
-  it("M0 · 우회 fixture 가 클릭점에서 끝나고 길이가 맞다", () => {
-    for (const routeLen of [D - TOL, D - 1]) {
-      const g = detourGeometry(START, CLICK, routeLen);
-      const len = lineStringLengthMeters(g);
-      assert.ok(Math.abs(len - routeLen) < 0.5, `길이가 ${len.toFixed(2)}m`);
-      assert.ok(len >= routeLen, `요청값을 밑돈다: ${len.toFixed(6)}m`);
-      const last = g.coordinates.at(-1)!;
-      assert.ok(getDistanceMeters(last, CLICK) < 0.01, "클릭점에서 끝나지 않는다");
-    }
-  });
-
-  for (const routeLen of [D - TOL, D - 1]) {
-    it(`우회 routeLen ${routeLen}m → detoured(실패 문구 없음)`, async () => {
-      const fetchDirections: FetchDirectionsFn = async (_profile, waypoints) => {
-        if (waypoints.length === 2) {
-          // direct — D 보다 짧아 Stage 1 우회로 넘어간다
-          const g = straight(START, 90, D - 800);
-          return {
-            geometry: g,
-            distance: D - 800,
-            duration: 500,
-            snappedEnd: CLICK,
-            endSnapDistanceMeters: 0,
-          };
-        }
-        // 우회 후보 — provider 는 D+10 이라 보고하지만 폴리라인은 경계값이다
-        return {
-          geometry: detourGeometry(START, CLICK, routeLen),
-          distance: D + 10,
-          duration: 700,
-          snappedEnd: CLICK,
-          endSnapDistanceMeters: 0,
-        };
-      };
-
-      const searched = await searchDistanceAutoRoute({
-        start: START,
-        targetRoadPoint: CLICK,
-        profile: "cycling",
-        targetDistanceMeters: D,
-        bearingDeg: 90,
-        fetchDirections,
-      });
-
-      assert.equal(
-        searched.status,
-        "found",
-        `실패했다: ${searched.status === "failed" ? searched.message : ""}`,
-      );
-      if (searched.status !== "found") return;
-      assert.ok(
-        isExactTargetDistance(searched.distance, D),
-        `허용오차 밖이다: ${searched.distance.toFixed(2)}m`,
-      );
-      // 우회로 목표를 맞춘 것이므로 detoured 가 정직한 라벨이다(문구는 exact 와 같다).
-      assert.equal(searched.outcome, "detoured", `outcome 이 ${searched.outcome}`);
-    });
-  }
-});
+// 5A-R2 §1 로 `road < D − 5m` 는 우회 대신 안내·실패가 되어, **우회 경로로 절단 경계에
+// 도달할 수 없다.** 그 그룹(우회 routeLen D−5 · D−1)은 도달 불가능해져 삭제했다.
+// 경계 계약 자체는 위 Stage 0 그룹이 그대로 지킨다 — provider distance 와 폴리라인 길이가
+// 어긋나는 상황은 우회가 아니어도 발생하고, 그것이 결함 ①의 본질이었다.
 
 describe("결함 ① · 실패 분기는 provider 응답이 망가진 경우에만 남는다", () => {
   it("빈 geometry → 실패(문구 유지). shortfall 로 새지 않는다", async () => {
