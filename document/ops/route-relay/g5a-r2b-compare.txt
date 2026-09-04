@@ -1,0 +1,24 @@
+5A-R2b §5.2 — before(g5a-probe-samples) vs after(g5a-r2b-samples)
+조건: 강남 [127.0347,37.5051] · driving · D=700m · 8방위 × 400/600/850m
+
+=== 수정 전 detoured 였던 8 표본 ===
+표본          | before                         | after
+0°/400m      | detoured · 호출  6회            | failed · 호출 1회
+45°/400m     | detoured · 호출 13회            | failed · 호출 1회
+90°/400m     | detoured · 호출  7회            | failed · 호출 1회
+135°/400m    | detoured · 호출  7회            | failed · 호출 1회
+180°/400m    | detoured · 호출  2회            | failed · 호출 1회
+225°/400m    | detoured · 호출  4회            | failed · 호출 1회
+270°/400m    | detoured · 호출  3회            | failed · 호출 1회
+315°/400m    | detoured · 호출  7회            | failed · 호출 1회
+
+outcome  before→after:  detoured 8→0  exact 4→5  offered 12→11  failed 0→8
+provider 호출 총합 65 → 24
+former-detoured 호출 합 49 → 8
+거리 계약 위반(after): 0건
+detoured after: 0 — 중복 경로를 만들지 않음
+
+=== 안내 정직성 (새 기하: 안쪽=D=700, 바깥=1.5D=1050) ===
+안쪽 원 안(직선 400m < D): n=8 실패=8 성공=0 detourCalls합=0
+안쪽 원 안(직선 600m < D): n=8 실패=0 성공=8 detourCalls합=0
+도넛(직선 850m ∈ [D,1.5D]): n=8 실패=0 성공=8 detourCalls합=0
