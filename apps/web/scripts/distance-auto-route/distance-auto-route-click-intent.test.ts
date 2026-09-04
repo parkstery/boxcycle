@@ -234,7 +234,10 @@ describe("distanceAutoRoute click intent 3F-C-R1", () => {
     }
   });
 
-  it("road < D → Stage 1 우회, 3-waypoint 호출 확인", async () => {
+  // 5A-R1 §3.2 로 우선순위가 바뀌었다 — road < D 면 **먼저 방향 확장**(2-waypoint)을 시도하고,
+  // 그것이 목표를 못 채울 때만 우회(3-waypoint)로 내려간다. 이 fixture 는 2-waypoint 응답을
+  // 끝점과 무관하게 800m 로 고정하므로 확장이 실패하고 우회까지 내려간다.
+  it("road < D → (확장 실패 후) Stage 1 우회, 3-waypoint 호출 확인", async () => {
     const start: [number, number] = [127.02, 37.5];
     // 850m east: detour route clips at 1000m → endMiss = 150m < 200m → stays "detoured"
     const targetRoadPoint = offsetLngLatByBearingMeters(start, 90, 850) as [number, number];
@@ -269,8 +272,9 @@ describe("distanceAutoRoute click intent 3F-C-R1", () => {
       fetchDirections,
     });
 
-    assert.equal(twoWaypointCalls, 1);
-    assert.ok(threeWaypointCalls >= 1);
+    // Stage 0 1회 + 방향 확장 최대 2회 = 최대 3회(5A-R1 §3.1). 이전에는 1회였다.
+    assert.ok(twoWaypointCalls >= 1 && twoWaypointCalls <= 3, `2-waypoint ${twoWaypointCalls}회`);
+    assert.ok(threeWaypointCalls >= 1, "우회 폴백이 돌지 않았다");
     assert.equal(searched.status, "found");
     if (searched.status === "found") {
       assert.equal(searched.outcome, "detoured");

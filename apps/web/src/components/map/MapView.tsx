@@ -21,7 +21,8 @@ import {
   DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_ARIA,
   DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_LABEL,
   validateDistanceAutoRouteTargetKm,
-} from "../../lib/distanceAutoRouteErrors";
+  distanceAutoRouteSliderStops,
+  snapDistanceAutoRouteTargetKm,} from "../../lib/distanceAutoRouteErrors";
 import {
   getDistanceAutoRouteMapBridge,
   registerDistanceAutoRouteClickDebugMarkerClear,
@@ -122,7 +123,7 @@ import {
   publishRiderScreenDiag,
   RIDE_HUD_SAFE_PADDING,
   viewportPxFromMap,
-} from "../../lib/rideCameraFraming";
+  resolveRideFitPadding,} from "../../lib/rideCameraFraming";
 import { type LiveRiderMotion } from "./mapViewTypes";
 import {
   tickRideCameraFollow,
@@ -2540,7 +2541,11 @@ export function MapView({
     };
     map.once("moveend", onMoveEnd);
     map.fitBounds(bounds, {
-      padding: RIDE_HUD_SAFE_PADDING,
+      // 고정 padding 은 폰 가로에서 뷰포트의 54 % 를 먹는다(5A-R1 §4.1 실측).
+      padding: resolveRideFitPadding(
+        map.getContainer().clientWidth,
+        map.getContainer().clientHeight,
+      ),
       maxZoom: 16,
       duration: prefersReducedMotion ? 0 : 1100,
       essential: true,
@@ -4151,10 +4156,21 @@ function buildPickPopup(deps: {
   distanceSlider.type = "range";
   distanceSlider.className = "map-view__pick-distance-slider";
   distanceSlider.id = "map-view-pick-distance-slider";
-  distanceSlider.min = String(DISTANCE_AUTO_ROUTE_KM_MIN);
-  distanceSlider.max = String(DISTANCE_AUTO_ROUTE_KM_MAX);
-  distanceSlider.step = String(DISTANCE_AUTO_ROUTE_KM_STEP);
-  distanceSlider.value = String(targetKm);
+  /**
+   * 슬라이더는 **눈금 인덱스**로 움직인다(5A-R1 §4.2).
+   * 균일 step 으로는 구간별 스냅(0.5~10km 는 0.5, 10~30 은 5, 30~120 은 10)을 표현할 수
+   * 없다. 0.5~120km 를 0.5 균일 눈금으로 두면 240칸이라 폰에서 한 칸이 1px 미만이었다.
+   */
+  const distanceStops = distanceAutoRouteSliderStops();
+  const stopIndexOf = (km: number) => {
+    const snapped = snapDistanceAutoRouteTargetKm(km);
+    const i = distanceStops.indexOf(snapped);
+    return i >= 0 ? i : 0;
+  };
+  distanceSlider.min = "0";
+  distanceSlider.max = String(distanceStops.length - 1);
+  distanceSlider.step = "1";
+  distanceSlider.value = String(stopIndexOf(targetKm));
 
   const distanceNumber = document.createElement("input");
   distanceNumber.type = "text";
@@ -4204,7 +4220,9 @@ function buildPickPopup(deps: {
 
   function syncDistanceInputs(km: number) {
     targetKm = km;
-    distanceSlider.value = String(km);
+    distanceSlider.value = String(stopIndexOf(km));
+    // 값은 인덱스이므로 읽는 값은 따로 알려 준다.
+    distanceSlider.setAttribute("aria-valuetext", `${km.toFixed(1)} km`);
     distanceNumber.value = km.toFixed(1);
     if (distanceDirectionChecked) {
       minusBtn.disabled = km <= DISTANCE_AUTO_ROUTE_KM_MIN;
@@ -4339,8 +4357,9 @@ function buildPickPopup(deps: {
 
   distanceSlider.addEventListener("input", () => {
     if (!distanceDirectionChecked) return;
-    const km = Number.parseFloat(distanceSlider.value);
-    if (!Number.isFinite(km)) return;
+    const index = Number.parseInt(distanceSlider.value, 10);
+    const km = distanceStops[Math.max(0, Math.min(distanceStops.length - 1, index))];
+    if (km == null || !Number.isFinite(km)) return;
     syncDistanceInputs(km);
     previewCircleForTargetKm(km);
     tryArmDirectionPickIfChecked();

@@ -23,6 +23,21 @@ export function formatDistanceAutoRouteShortfallMessage(
   return `목표 ${targetKm.toFixed(1)} km 에 ${deficitM} m 모자란 ${actualKm.toFixed(2)} km 로 만들었습니다.`;
 }
 
+/**
+ * 방향 확장 고지(5A-R1 §3.3) — **End 가 클릭 지점이 아니다.**
+ *
+ * 클릭 지점이 목표보다 가까워 같은 방위로 더 멀리 잡은 경우다. 숨기지 않는다 —
+ * 화면과 실제가 다르면 사용자가 앱을 믿지 못한다(4A 에서 배운 것).
+ * 거리 조정 버튼은 이 경우 의미가 없다(이미 클릭 지점보다 멀리 가 있다).
+ */
+export function formatDistanceAutoRouteExtendedMessage(
+  directRoadMeters: number,
+  targetKm: number,
+): string {
+  const directKm = directRoadMeters / 1000;
+  return `클릭 지점까지는 도로로 ${directKm.toFixed(1)} km 로 목표에 모자랍니다. 같은 방향으로 ${targetKm.toFixed(1)} km 지점에서 종료했습니다.`;
+}
+
 export function formatDistanceAutoRouteOfferedMessage(
   directRoadMeters: number,
   targetKm: number,
@@ -46,6 +61,67 @@ export const DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_LABEL = "거리";
 export const DISTANCE_AUTO_ROUTE_KM_MIN = 0.5;
 export const DISTANCE_AUTO_ROUTE_KM_MAX = 120;
 export const DISTANCE_AUTO_ROUTE_KM_STEP = 0.5;
+
+/**
+ * 거리 슬라이더 **구간별 스냅**(5A-R1 §4.2).
+ *
+ * 문제는 눈금 크기가 아니라 **범위**였다. `0.5 ~ 120 km` 를 0.5 눈금으로 나누면 240 칸이고,
+ * 폰 팝업의 슬라이더 폭이 200 px 남짓이라 **한 칸이 1 px 미만**이다 — 손가락으로 특정
+ * 값을 고르는 것이 물리적으로 불가능하다.
+ *
+ * 정밀도를 **실제 주행이 일어나는 짧은 구간에 몰아준다.**
+ *
+ * | 구간 | 스냅 | 칸 수 |
+ * |---|---:|---:|
+ * | 0.5 ~ 10 km | 0.5 km | 20 |
+ * | 10 ~ 30 km | 5 km | 4 |
+ * | 30 ~ 120 km | 10 km | 9 |
+ * | | | **33** |
+ *
+ * 폰에서 한 칸이 약 6 px 이 된다. ± 버튼과 숫자 입력은 지금처럼 0.5 km 미세 조정을 맡으므로
+ * 스냅이 굵어져도 원하는 값을 못 넣는 일은 없다.
+ */
+export const DISTANCE_AUTO_ROUTE_SNAP_BANDS: ReadonlyArray<{ upToKm: number; stepKm: number }> = [
+  { upToKm: 10, stepKm: 0.5 },
+  { upToKm: 30, stepKm: 5 },
+  { upToKm: DISTANCE_AUTO_ROUTE_KM_MAX, stepKm: 10 },
+];
+
+/** 슬라이더가 취할 수 있는 값 목록 — 오름차순, 중복 없음 */
+export function distanceAutoRouteSliderStops(): number[] {
+  const stops: number[] = [DISTANCE_AUTO_ROUTE_KM_MIN];
+  for (const band of DISTANCE_AUTO_ROUTE_SNAP_BANDS) {
+    // 각 구간은 **자기 눈금 격자**에서 시작한다 — 앞 구간의 끝에 앞 구간 눈금을 더하면
+    // 10.5·15.5 같은 어정쩡한 값이 나온다.
+    const first = Math.ceil((stops[stops.length - 1]! - 1e-9) / band.stepKm) * band.stepKm;
+    for (let v = first; v <= band.upToKm + 1e-9; v += band.stepKm) {
+      const rounded = Math.round(v * 10) / 10;
+      if (rounded > stops[stops.length - 1]! + 1e-9) stops.push(rounded);
+    }
+  }
+  const max = DISTANCE_AUTO_ROUTE_KM_MAX;
+  if (stops[stops.length - 1] !== max) stops.push(max);
+  return stops;
+}
+
+/** 임의 km 를 슬라이더 눈금 중 가장 가까운 값으로 맞춘다(동률이면 작은 쪽) */
+export function snapDistanceAutoRouteTargetKm(km: number): number {
+  const stops = distanceAutoRouteSliderStops();
+  const n = Number(km);
+  if (!Number.isFinite(n)) return DISTANCE_AUTO_ROUTE_KM_MIN;
+  if (n <= stops[0]!) return stops[0]!;
+  if (n >= stops[stops.length - 1]!) return stops[stops.length - 1]!;
+  let best = stops[0]!;
+  let bestDiff = Infinity;
+  for (const s of stops) {
+    const d = Math.abs(s - n);
+    if (d < bestDiff - 1e-9) {
+      best = s;
+      bestDiff = d;
+    }
+  }
+  return best;
+}
 
 export function validateDistanceAutoRouteTargetKm(
   km: number,

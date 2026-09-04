@@ -17,7 +17,7 @@ import {
   formatDistanceAutoRouteOfferedMessage,
   formatDistanceAutoRouteShortfallMessage,
   validateDistanceAutoRouteTargetKm,
-} from "../lib/distanceAutoRouteErrors";
+  formatDistanceAutoRouteExtendedMessage,} from "../lib/distanceAutoRouteErrors";
 import { fetchDistanceAutoRoute } from "../services/distanceAutoRouteApi";
 import type { RouteProfile } from "../services/mapboxDirections";
 import type { ScoredAutoRoute } from "../lib/distanceAutoRoute";
@@ -326,6 +326,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
 
           const isOffered = response.outcome === "offered";
           const isShortfall = response.outcome === "shortfall";
+          const isExtended = response.outcome === "extended";
           if (isShortfall) {
             const shortfallMessage = formatDistanceAutoRouteShortfallMessage(
               effectiveTargetKm,
@@ -337,6 +338,26 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
             setBearingDeg(bearing);
             setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
             return { status: "found", message: shortfallMessage };
+          }
+          if (isExtended && response.directRoadMeters != null) {
+            // End 가 클릭 지점이 아님을 고지한다(5A-R1 §3.3). 고스트 마커·점선은
+            // `offeredState` 가 그리므로 그대로 세우되, **거리 조정 버튼은 띄우지 않는다**
+            // — 이미 클릭 지점보다 멀리 가 있어 「더 늘려 클릭 지점까지」가 의미 없다.
+            const extendedMessage = formatDistanceAutoRouteExtendedMessage(
+              response.directRoadMeters,
+              effectiveTargetKm,
+            );
+            setOfferedState({
+              clickLngLat: lngLat,
+              directKm: response.directRoadMeters / 1000,
+              targetKm: effectiveTargetKm,
+            });
+            setHasSuccessfulRoute(true);
+            setStatusMessage(extendedMessage);
+            setStep("pick_direction");
+            setBearingDeg(bearing);
+            setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
+            return { status: "found", message: extendedMessage };
           }
           if (isOffered && response.directRoadMeters != null) {
             const directKm = response.directRoadMeters / 1000;

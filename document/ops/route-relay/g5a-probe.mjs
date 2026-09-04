@@ -105,7 +105,7 @@ for (const c of cases) {
     directRoadMeters: r.status === "found" ? r.directRoadMeters : undefined,
     endMissMeters: r.status === "found" ? r.endMissMeters : undefined,
     detourCalls: r.status === "found" ? r.detourCalls : undefined,
-    providerCallCount: r.providerCallCount,
+    providerCallCount: r.status === "found" ? r.diagnostics?.providerCallCount : r.providerCallCount,
     distance: r.status === "found" ? r.distance : undefined,
     elapsedMs: Date.now() - t0,
     coordinates: r.status === "found" ? r.geometry.coordinates : undefined,

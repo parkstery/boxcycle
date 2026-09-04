@@ -1,0 +1,78 @@
+M0 직선 700m      → 중복 0.0% (0% 이어야 함)
+M0 왕복 350m×2    → 중복 46.2% (약 50% 이어야 함)
+M0 통과
+
+label        outcome   detour  total(m)  overlap(m)  ratio   cells
+0°/400m      detoured    5      700.0       23.6    3.4%     29
+0°/600m      exact       0      700.0        0.0    0.0%     28
+0°/850m      offered     0      700.0        0.0    0.0%     29
+45°/400m     detoured   12      700.0      119.6   17.1%     22
+45°/600m     exact       0      700.0        0.0    0.0%     28
+45°/850m     offered     0      700.0        0.0    0.0%     28
+90°/400m     detoured    6      700.0        0.0    0.0%     29
+90°/600m     offered     0      700.0        0.0    0.0%     29
+90°/850m     offered     0      700.0        0.0    0.0%     30
+135°/400m    detoured    6      700.0        5.9    0.8%     31
+135°/600m    exact       0      700.0       22.5    3.2%     30
+135°/850m    offered     0      700.0       22.5    3.2%     30
+180°/400m    detoured    1      700.0        0.0    0.0%     28
+180°/600m    offered     0      700.0        0.0    0.0%     30
+180°/850m    offered     0      700.0        0.0    0.0%     30
+225°/400m    detoured    3      700.0        0.0    0.0%     30
+225°/600m    offered     0      700.0       14.8    2.1%     31
+225°/850m    offered     0      700.0        0.0    0.0%     30
+270°/400m    detoured    2      700.0        0.0    0.0%     28
+270°/600m    offered     0      700.0        0.0    0.0%     27
+270°/850m    offered     0      700.0        0.0    0.0%     29
+315°/400m    detoured    6      700.0       57.5    8.2%     21
+315°/600m    exact       0      700.0        0.0    0.0%     29
+315°/850m    offered     0      700.0        0.0    0.0%     28
+
+outcome 별 평균·최대 중복 비율:
+  detoured  n= 8  평균 3.7%  최대 17.1%
+  exact     n= 4  평균 0.8%  최대 3.2%
+  offered   n=12  평균 0.4%  최대 3.2%
+표본          | before outcome/중복/호출 | after outcome/중복/호출
+0°/400m      | detoured    3.4%  6회 | extended    0.0%  2회
+0°/600m      | exact       0.0%  1회 | exact       0.0%  1회
+0°/850m      | offered     0.0%  1회 | offered     0.0%  1회
+45°/400m     | detoured   17.1% 13회 | extended    0.0%  2회
+45°/600m     | exact       0.0%  1회 | exact       0.0%  1회
+45°/850m     | offered     0.0%  1회 | offered     0.0%  1회
+90°/400m     | detoured    0.0%  7회 | extended    0.0%  3회
+90°/600m     | offered     0.0%  1회 | exact       0.0%  1회
+90°/850m     | offered     0.0%  1회 | offered     0.0%  1회
+135°/400m    | detoured    0.8%  7회 | extended    0.0%  2회
+135°/600m    | exact       3.2%  1회 | exact       3.2%  1회
+135°/850m    | offered     3.2%  1회 | offered     3.2%  1회
+180°/400m    | detoured    0.0%  2회 | offered     0.0%  3회
+180°/600m    | offered     0.0%  1회 | offered     0.0%  1회
+180°/850m    | offered     0.0%  1회 | offered     0.0%  1회
+225°/400m    | detoured    0.0%  4회 | extended    2.1%  3회
+225°/600m    | offered     2.1%  1회 | offered     2.1%  1회
+225°/850m    | offered     0.0%  1회 | offered     0.0%  1회
+270°/400m    | detoured    0.0%  3회 | detoured    0.0%  5회
+270°/600m    | offered     0.0%  1회 | offered     0.0%  1회
+270°/850m    | offered     0.0%  1회 | offered     0.0%  1회
+315°/400m    | detoured    8.2%  7회 | extended    0.8%  2회
+315°/600m    | exact       0.0%  1회 | exact       0.0%  1회
+315°/850m    | offered     0.0%  1회 | offered     0.0%  1회
+
+=== §5.2 핵심: 수정 전 detoured 였던 8표본 ===
+표본          | before 중복 → after 중복 | before 호출 → after 호출 | after outcome
+0°/400m      |   3.4% →   0.0%        |  6회 →  2회             | extended
+45°/400m     |  17.1% →   0.0%        | 13회 →  2회             | extended
+90°/400m     |   0.0% →   0.0%        |  7회 →  3회             | extended
+135°/400m    |   0.8% →   0.0%        |  7회 →  2회             | extended
+180°/400m    |   0.0% →   0.0%        |  2회 →  3회             | offered
+225°/400m    |   0.0% →   2.1%        |  4회 →  3회             | extended
+270°/400m    |   0.0% →   0.0%        |  3회 →  5회             | detoured
+315°/400m    |   8.2% →   0.8%        |  7회 →  2회             | extended
+
+평균 중복 3.7% → 0.4%   (-90%)
+최대 중복 17.1% → 2.1%   (-88%)
+평균 provider 호출 6.1회 → 2.8회   최대 13회 → 5회
+
+전체 24표본 평균 중복 1.59% → 0.48%
+거리 계약 위반(after): 0건
+provider 호출 예산 13 초과(after): 0건

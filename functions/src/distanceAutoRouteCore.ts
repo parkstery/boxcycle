@@ -311,6 +311,44 @@ export const DETOUR_CALL_BUDGET = 12;
 export const CLICK_SNAP_FAIL_M = 250;
 /** direct road > D + 이 값 이면 offered (우회 시도 없이 즉시) (m) */
 export const DIRECT_ROAD_EXCESS_TOLERANCE_M = 150;
+
+/** 방향 확장 최대 시도 횟수 — provider 호출을 늘리지 않는 것이 이 방식의 이점이다(5A-R1 §3.1) */
+export const DIRECTION_EXTEND_MAX_ATTEMPTS = 2;
+
+/**
+ * 부족분을 **같은 방위로 더 멀리** 잡아 채울 때, start 로부터의 **직선** 목표 거리(m).
+ *
+ * 도로거리와 직선거리의 비 `λ̂ = directRoadM / straightM` 를 **그 방위에서 실제로 재서**
+ * 쓴다. 방향마다 λ 가 1.0~1.4 로 흩어지는 것을 추정 대신 실측으로 흡수한다 —
+ * 곧은 방향은 조금, 구불구불한 방향은 많이 늘린다.
+ *
+ * ```
+ * deficit = D − directRoadM        (도로 기준 부족분)
+ * extendM = deficit / λ̂            (직선으로 환산)
+ * 결과    = straightM + extendM     (start 로부터의 직선 거리)
+ * ```
+ *
+ * `null` 이면 확장하지 않는다 — 이미 목표를 채웠거나(deficit ≤ 0), 입력이 퇴화해
+ * λ̂ 를 신뢰할 수 없는 경우다.
+ */
+export function resolveDirectionExtendStraightMeters(input: {
+  straightM: number;
+  directRoadM: number;
+  targetDistanceMeters: number;
+}): number | null {
+  const { straightM, directRoadM, targetDistanceMeters: D } = input;
+  if (!Number.isFinite(straightM) || straightM <= 0) return null;
+  if (!Number.isFinite(directRoadM) || directRoadM <= 0) return null;
+  if (!Number.isFinite(D) || D <= 0) return null;
+  const deficit = D - directRoadM;
+  if (deficit <= 0) return null;
+  const lambda = directRoadM / straightM;
+  // 도로가 직선보다 짧을 수는 없다. 1 미만이면 snap 오차이므로 1 로 바닥을 친다.
+  const safeLambda = Math.max(1, lambda);
+  const extendM = deficit / safeLambda;
+  if (!Number.isFinite(extendM) || extendM <= 0) return null;
+  return straightM + extendM;
+}
 /** offered 가 아닌데 endMiss 이 이 값 초과 시 offered 로 강등 (m) */
 export const END_MISS_DEMOTE_TO_OFFERED_M = 200;
 
@@ -419,7 +457,12 @@ export type FetchDirectionsFn = (
   waypoints: LngLat[],
 ) => Promise<DirectionsRouteLike>;
 
-export type AutoRouteOutcome = "exact" | "detoured" | "offered" | "shortfall";
+/**
+ * `extended` — 클릭 지점이 목표보다 가까워 **같은 방위로 더 멀리** 잡아 목표를 채운 경우.
+ * End 가 클릭 지점이 아니므로 `offered` 와 같은 고지 UI 를 쓰되, 거리 조정 버튼은 띄우지
+ * 않는다(더 늘릴 대상이 없다). 5A-R1 §3.3.
+ */
+export type AutoRouteOutcome = "exact" | "detoured" | "offered" | "shortfall" | "extended";
 
 export type DistanceAutoRouteSearchFound = {
   status: "found";
@@ -592,8 +635,15 @@ export async function searchDistanceAutoRoute(input: {
 
     const endMissM = getDistanceMeters(clipped.end, clickRoadPoint);
 
-    // Hard gate: outcome != offered && endMiss > 200m → offered from direct
-    if (finalOutcome !== "offered" && endMissM > END_MISS_DEMOTE_TO_OFFERED_M) {
+    // Hard gate: outcome != offered && endMiss > 200m → offered from direct.
+    // `extended` 는 면제한다 — **End 가 클릭 지점이 아닌 것이 그 정의**이고(5A-R1 §3.1),
+    // §3.3 고지 UI 로 이미 알린다. 여기서 강등하면 거리 조정 버튼이 붙어 사용자에게
+    // 「더 늘려 클릭 지점까지」를 제안하게 되는데, 확장은 이미 그보다 멀리 가 있다.
+    if (
+      finalOutcome !== "offered" &&
+      finalOutcome !== "extended" &&
+      endMissM > END_MISS_DEMOTE_TO_OFFERED_M
+    ) {
       finalOutcome = "offered";
       const directClipped = clipRouteGeometryToTargetMeters({
         geometry: directRoute.geometry,
@@ -612,7 +662,7 @@ export async function searchDistanceAutoRoute(input: {
     const searchElapsedMs = Date.now() - searchStartedAt;
 
     if (
-      (finalOutcome === "exact" || finalOutcome === "detoured") &&
+      (finalOutcome === "exact" || finalOutcome === "detoured" || finalOutcome === "extended") &&
       !isExactTargetDistance(finalDistance, D)
     ) {
       if (finalDistance < D - EXACT_TARGET_DISTANCE_TOLERANCE_M) {
@@ -656,6 +706,57 @@ export async function searchDistanceAutoRoute(input: {
 
   // Stage 1 — regula falsi 우회 (Start→clickRoadPoint 축 ±90° 경과지)
   const axisBearing = bearingFromOriginToPoint(start, clickRoadPoint);
+
+  /**
+   * Stage 0.5 — **방향 확장**(5A-R1 §3.1). 부족분을 옆으로 도는 우회가 아니라
+   * **같은 방위로 더 멀리** 잡아 채운다. 우회는 구조적으로 같은 도로를 되밟아
+   * 정복 손실을 만든다(5A-1 계측: detoured 평균 3.7 % · 최대 17.1 % 중복).
+   *
+   * 확장은 provider 호출을 **줄이는** 방향이다 — 우회 이분 탐색 8~12회 대신 1~2회.
+   */
+  let extendedRoute: DirectionsRouteLike | null = null;
+  {
+    let straightM = getDistanceMeters(start, clickRoadPoint);
+    let roadM = directRoadM;
+    for (let attempt = 0; attempt < DIRECTION_EXTEND_MAX_ATTEMPTS; attempt += 1) {
+      if (detourCalls >= DETOUR_CALL_BUDGET) break;
+      const nextStraightM = resolveDirectionExtendStraightMeters({
+        straightM,
+        directRoadM: roadM,
+        targetDistanceMeters: D,
+      });
+      if (nextStraightM == null) break;
+
+      const virtualClick = offsetLngLatByBearingMeters(start, axisBearing, nextStraightM);
+      providerCallCount += 1;
+      detourCalls += 1;
+      let route: DirectionsRouteLike;
+      try {
+        route = await fetchDirections(profile, [start, virtualClick]);
+      } catch {
+        break; // provider 오류 → 우회 폴백으로 내려간다
+      }
+
+      // 확장 지점 근처에 도로가 없으면(강·바다·막다른 길) 이 확장은 버린다(§3.1).
+      const snap = parseDirectionsSnapMetadata(route);
+      if ((snap?.endSnapDistanceMeters ?? 0) > CLICK_SNAP_FAIL_M) break;
+
+      const extendedRoadM = route.distance;
+      if (extendedRoadM >= D) {
+        extendedRoute = route;
+        break;
+      }
+      // 아직 모자라면 이 방위의 λ̂ 를 **갱신해** 한 번 더(총 2회를 넘기지 않는다).
+      extendedRoute = route; // 우회보다는 낫다 — 폴백 후보로 들고 간다
+      straightM = nextStraightM;
+      roadM = extendedRoadM;
+    }
+  }
+
+  // ① 방향 확장이 목표를 채웠으면 그것을 쓴다. End 는 클릭 지점이 아니므로 `extended`.
+  if (extendedRoute !== null && extendedRoute.distance >= D) {
+    return assembleResult(extendedRoute, "extended");
+  }
   const mid = midpointLngLat(start, clickRoadPoint);
 
   let bestDetourRoute: DirectionsRouteLike | null = null;
@@ -738,6 +839,10 @@ export async function searchDistanceAutoRoute(input: {
     return assembleResult(bestDetourRoute, "detoured");
   }
 
-  // 예산 소진, f≥D 후보 없음 → 목표 미달 shortfall (Route 는 반환)
+  // ③ 확장·우회 모두 목표를 못 채웠다 → shortfall 고지.
+  //    확장 후보가 직행보다 길면 그것을 쓴다(목표에 더 가깝다).
+  if (extendedRoute !== null && extendedRoute.distance > directRoadM) {
+    return assembleShortfall(extendedRoute);
+  }
   return assembleShortfall(directRoute);
 }

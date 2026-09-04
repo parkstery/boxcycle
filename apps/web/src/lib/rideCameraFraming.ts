@@ -17,6 +17,43 @@ export const RIDE_HUD_SAFE_PADDING = {
 } as const;
 
 /**
+ * `fitBounds` padding 이 뷰포트에서 차지할 수 있는 최대 비율.
+ *
+ * `RIDE_HUD_SAFE_PADDING` 은 데스크톱 기준 고정값이다(세로 합 172 px). 폰 가로처럼
+ * CSS 높이가 320 px 대인 화면에서는 **뷰포트의 54 %** 를 먹어, 원이 남은 148 px 에
+ * 욱여넣어진다 — 데스크톱보다 zoom 이 2.3 단계 낮게 잡힌다(5A-R1 §4.1 실측).
+ *
+ * `fitBounds` 가 무시되거나 예외를 던지는 것은 아니다. **크기 문제**다.
+ */
+export const RIDE_FIT_PADDING_MAX_VIEWPORT_RATIO = 0.4;
+
+/**
+ * 뷰포트에 맞춰 축소한 `fitBounds` padding.
+ * 각 축의 padding 합이 뷰포트의 `RIDE_FIT_PADDING_MAX_VIEWPORT_RATIO` 를 넘으면
+ * **비율을 유지한 채** 그 상한까지 줄인다. 데스크톱에서는 상한에 닿지 않아 그대로다.
+ */
+export function resolveRideFitPadding(
+  viewportWidthPx: number,
+  viewportHeightPx: number,
+  padding: { top: number; bottom: number; left: number; right: number } = RIDE_HUD_SAFE_PADDING,
+): { top: number; bottom: number; left: number; right: number } {
+  const scaleAxis = (a: number, b: number, extent: number): number => {
+    const sum = a + b;
+    if (!(extent > 0) || sum <= 0) return 1;
+    const max = extent * RIDE_FIT_PADDING_MAX_VIEWPORT_RATIO;
+    return sum <= max ? 1 : max / sum;
+  };
+  const sy = scaleAxis(padding.top, padding.bottom, viewportHeightPx);
+  const sx = scaleAxis(padding.left, padding.right, viewportWidthPx);
+  return {
+    top: Math.floor(padding.top * sy),
+    bottom: Math.floor(padding.bottom * sy),
+    left: Math.floor(padding.left * sx),
+    right: Math.floor(padding.right * sx),
+  };
+}
+
+/**
  * 생성기 SoT = `riderRig.geometry.mjs` ← `geometry.json` 파생.
  * 전고 = 머리 중심 world y (`HEAD_C[1]`). 헬멧 반구·여유는 비율만 곱한다.
  */
