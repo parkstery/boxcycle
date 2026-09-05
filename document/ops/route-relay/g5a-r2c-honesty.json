@@ -1,0 +1,362 @@
+{
+  "D": 700,
+  "bands": {
+    "0.90D-1.00D": {
+      "n": 24,
+      "ok": 24,
+      "fail": 0,
+      "rate": 1,
+      "detour": 0
+    },
+    "0.90D": {
+      "n": 8,
+      "ok": 8,
+      "fail": 0,
+      "rate": 1,
+      "detour": 0
+    },
+    "0.95D": {
+      "n": 8,
+      "ok": 8,
+      "fail": 0,
+      "rate": 1,
+      "detour": 0
+    },
+    "1.00D": {
+      "n": 8,
+      "ok": 8,
+      "fail": 0,
+      "rate": 1,
+      "detour": 0
+    },
+    "geD": {
+      "n": 16,
+      "ok": 16,
+      "fail": 0,
+      "rate": 1,
+      "detour": 0
+    }
+  },
+  "rows": [
+    {
+      "label": "0°/630m",
+      "straightM": 630,
+      "status": "found",
+      "outcome": "exact",
+      "directRoadMeters": 791.509,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "0°/665m",
+      "straightM": 665,
+      "status": "found",
+      "outcome": "exact",
+      "directRoadMeters": 840.612,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "0°/700m",
+      "straightM": 700,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 892.295,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "0°/750m",
+      "straightM": 750,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 944.196,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "45°/630m",
+      "straightM": 630,
+      "status": "found",
+      "outcome": "exact",
+      "directRoadMeters": 810.51,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "45°/665m",
+      "straightM": 665,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 860.346,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "45°/700m",
+      "straightM": 700,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 924.691,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "45°/750m",
+      "straightM": 750,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 947.5,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "90°/630m",
+      "straightM": 630,
+      "status": "found",
+      "outcome": "exact",
+      "directRoadMeters": 804.274,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "90°/665m",
+      "straightM": 665,
+      "status": "found",
+      "outcome": "exact",
+      "directRoadMeters": 838.337,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "90°/700m",
+      "straightM": 700,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 872.652,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "90°/750m",
+      "straightM": 750,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 927.412,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "135°/630m",
+      "straightM": 630,
+      "status": "found",
+      "outcome": "exact",
+      "directRoadMeters": 809.291,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "135°/665m",
+      "straightM": 665,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 897.777,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "135°/700m",
+      "straightM": 700,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 914.681,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "135°/750m",
+      "straightM": 750,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 960.198,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "180°/630m",
+      "straightM": 630,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 996.351,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "180°/665m",
+      "straightM": 665,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 1097.518,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "180°/700m",
+      "straightM": 700,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 1061.064,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "180°/750m",
+      "straightM": 750,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 1014.307,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "225°/630m",
+      "straightM": 630,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 942.531,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "225°/665m",
+      "straightM": 665,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 1447.044,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "225°/700m",
+      "straightM": 700,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 1423.346,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "225°/750m",
+      "straightM": 750,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 1385.245,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "270°/630m",
+      "straightM": 630,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 998.56,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "270°/665m",
+      "straightM": 665,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 965.987,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "270°/700m",
+      "straightM": 700,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 933.414,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "270°/750m",
+      "straightM": 750,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 980.585,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "315°/630m",
+      "straightM": 630,
+      "status": "found",
+      "outcome": "exact",
+      "directRoadMeters": 828.165,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "315°/665m",
+      "straightM": 665,
+      "status": "found",
+      "outcome": "exact",
+      "directRoadMeters": 836.47,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "315°/700m",
+      "straightM": 700,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 931.657,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    },
+    {
+      "label": "315°/750m",
+      "straightM": 750,
+      "status": "found",
+      "outcome": "offered",
+      "directRoadMeters": 1002.214,
+      "detourCalls": 0,
+      "threeWaypoint": 0,
+      "providerCalls": 1
+    }
+  ]
+}

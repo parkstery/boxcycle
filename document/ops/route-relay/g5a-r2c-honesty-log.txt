@@ -1,0 +1,43 @@
+(node:63268) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/20.HDev/boxcycle-5a/functions/src/distanceAutoRouteCore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\20.HDev\boxcycle-5a\functions\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+0°/630m        found exact road=792 3wp=0 prov=1
+0°/665m        found exact road=841 3wp=0 prov=1
+0°/700m        found offered road=892 3wp=0 prov=1
+0°/750m        found offered road=944 3wp=0 prov=1
+45°/630m       found exact road=811 3wp=0 prov=1
+45°/665m       found offered road=860 3wp=0 prov=1
+45°/700m       found offered road=925 3wp=0 prov=1
+45°/750m       found offered road=948 3wp=0 prov=1
+90°/630m       found exact road=804 3wp=0 prov=1
+90°/665m       found exact road=838 3wp=0 prov=1
+90°/700m       found offered road=873 3wp=0 prov=1
+90°/750m       found offered road=927 3wp=0 prov=1
+135°/630m      found exact road=809 3wp=0 prov=1
+135°/665m      found offered road=898 3wp=0 prov=1
+135°/700m      found offered road=915 3wp=0 prov=1
+135°/750m      found offered road=960 3wp=0 prov=1
+180°/630m      found offered road=996 3wp=0 prov=1
+180°/665m      found offered road=1098 3wp=0 prov=1
+180°/700m      found offered road=1061 3wp=0 prov=1
+180°/750m      found offered road=1014 3wp=0 prov=1
+225°/630m      found offered road=943 3wp=0 prov=1
+225°/665m      found offered road=1447 3wp=0 prov=1
+225°/700m      found offered road=1423 3wp=0 prov=1
+225°/750m      found offered road=1385 3wp=0 prov=1
+270°/630m      found offered road=999 3wp=0 prov=1
+270°/665m      found offered road=966 3wp=0 prov=1
+270°/700m      found offered road=933 3wp=0 prov=1
+270°/750m      found offered road=981 3wp=0 prov=1
+315°/630m      found exact road=828 3wp=0 prov=1
+315°/665m      found exact road=836 3wp=0 prov=1
+315°/700m      found offered road=932 3wp=0 prov=1
+315°/750m      found offered road=1002 3wp=0 prov=1
+
+=== §5.4 summary ===
+0.90D-1.00D: n=24 success=24 fail=0 rate=100.0% threeWaypointSum=0
+0.90D: n=8 success=8 fail=0 rate=100.0% threeWaypointSum=0
+0.95D: n=8 success=8 fail=0 rate=100.0% threeWaypointSum=0
+1.00D: n=8 success=8 fail=0 rate=100.0% threeWaypointSum=0
+geD: n=16 success=16 fail=0 rate=100.0% threeWaypointSum=0
