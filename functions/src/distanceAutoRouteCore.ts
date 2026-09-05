@@ -13,6 +13,19 @@ export const EXACT_TARGET_DISTANCE_TOLERANCE_M = 5;
  * 않아 이 문구로 떨어진 것이 2026-09-03 폰 실사용 결함 ①이었다.
  */
 export const ROUTE_CLIP_FAILED_MESSAGE = "경로 절단에 실패했습니다.";
+
+/**
+ * 「너무 가까움」 안내(5A-R2 §1.1). **실측값으로 만든다** — 「더 멀리」 같은 막연한 말을
+ * 쓰지 않는다. 목표 거리 원(반지름 D)이 화면에 함께 그려지므로 어디를 클릭할지 정확히 보인다.
+ */
+export function formatDistanceAutoRouteTooCloseMessage(
+  directRoadMeters: number,
+  targetDistanceMeters: number,
+): string {
+  const directKm = (directRoadMeters / 1000).toFixed(1);
+  const targetKm = (targetDistanceMeters / 1000).toFixed(1);
+  return `너무 가깝습니다 — 도로 ${directKm} km · 목표 ${targetKm} km. 원 주변이나 바깥을 클릭해 주세요.`;
+}
 export const AUTO_ROUTE_DISTANCE_FACTORS = [0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3] as const;
 export const AUTO_ROUTE_BEARING_OFFSETS_DEG = [-30, -15, 0, 15, 30] as const;
 
@@ -311,6 +324,7 @@ export const DETOUR_CALL_BUDGET = 12;
 export const CLICK_SNAP_FAIL_M = 250;
 /** direct road > D + 이 값 이면 offered (우회 시도 없이 즉시) (m) */
 export const DIRECT_ROAD_EXCESS_TOLERANCE_M = 150;
+
 /** offered 가 아닌데 endMiss 이 이 값 초과 시 offered 로 강등 (m) */
 export const END_MISS_DEMOTE_TO_OFFERED_M = 200;
 
@@ -650,10 +664,41 @@ export async function searchDistanceAutoRoute(input: {
   if (directRoadM > D + DIRECT_ROAD_EXCESS_TOLERANCE_M) {
     return assembleResult(directRoute, "offered");
   }
-  if (directRoadM >= D) {
+  // 허용오차 안(`road ∈ [D−5m, D)`)도 exact 다 — 이미 ±5m 계약을 만족한다.
+  // 5A-R2 §1 로 그 아래는 안내·실패이므로, 이 경계가 「성공/안내」를 가르는 유일한 선이다.
+  if (directRoadM >= D - EXACT_TARGET_DISTANCE_TOLERANCE_M) {
     return assembleResult(directRoute, "exact");
   }
 
+  /**
+   * **짧은 클릭은 안내하고 실패시킨다**(5A-R2 §1).
+   *
+   * 여기까지 왔다는 것은 `road < D` 라는 뜻이다. 예전에는 이 자리에서 Stage 1 우회가
+   * 발동해 부족분을 옆으로 돌아 채웠고, 그 우회가 같은 도로를 되밟아 정복을 잃었다
+   * (5A-1 실측: detoured 평균 3.7 % · 최대 17.1 % 중복).
+   *
+   * 채우지 않고 **어디를 클릭해야 하는지 실측값으로 알린다.** 「너무 멂」이 자동 처리
+   * (`offered` — D 지점에서 자름)인 것과 비대칭이지만 근거가 있다 —
+   * **자르기는 사용자가 가리킨 방향 안에 머물러 중복을 만들지 않고, 늘리기·우회는
+   * 가리키지 않은 영역으로 나가 중복을 만든다.**
+   *
+   * 허용오차 안(`road ∈ [D−5m, D)`)은 실패시키지 않는다. 이미 ±5m 계약을 만족하므로
+   * `assembleResult` 가 절단 없이 `exact` 로 채택한다(4A 결함 ① 수정).
+   *
+   * Token 은 호출부가 `status === "failed"` 에서 환불한다(`distanceAutoRouteHttp.ts`).
+   */
+  if (directRoadM < D - EXACT_TARGET_DISTANCE_TOLERANCE_M) {
+    return {
+      status: "failed",
+      message: formatDistanceAutoRouteTooCloseMessage(directRoadM, D),
+      providerCallCount,
+      searchElapsedMs: Date.now() - searchStartedAt,
+    };
+  }
+
+  // 여기 아래는 도달하지 않는다 — 위 분기가 `road < D` 를 모두 잡는다.
+  // R1 §3.2 대로 **우회 코드는 지우지 않고** 남긴다(다른 폴백 경로에서 되살릴 수 있게).
+  // 5A-R2 §1.2: 이 경로에서 호출만 하지 않는다.
   // Stage 1 — regula falsi 우회 (Start→clickRoadPoint 축 ±90° 경과지)
   const axisBearing = bearingFromOriginToPoint(start, clickRoadPoint);
   const mid = midpointLngLat(start, clickRoadPoint);
@@ -738,6 +783,7 @@ export async function searchDistanceAutoRoute(input: {
     return assembleResult(bestDetourRoute, "detoured");
   }
 
-  // 예산 소진, f≥D 후보 없음 → 목표 미달 shortfall (Route 는 반환)
+  // ③ 확장·우회 모두 목표를 못 채웠다 → shortfall 고지.
+  //    확장 후보가 직행보다 길면 그것을 쓴다(목표에 더 가깝다).
   return assembleShortfall(directRoute);
 }

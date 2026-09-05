@@ -1,5 +1,9 @@
 /* eslint-disable react-hooks/refs */
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  formatDistanceAutoRouteEta,
+  resolveDistanceAutoRouteEta,
+} from "../../lib/distanceAutoRouteEta";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "../../lib/disableMapboxTelemetry";
@@ -13,7 +17,7 @@ import {
 import { ACTIVITY_TRACE_RED } from "../../lib/activityWorldTraceStyle";
 import { DISTANCE_AUTO_ROUTE_REFERENCE_CIRCLE_HINT } from "../../lib/distanceAutoRoute";
 import {
-  DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
+  formatDistanceAutoRouteDirectionClickHint,
   DISTANCE_AUTO_ROUTE_KM_MAX,
   DISTANCE_AUTO_ROUTE_KM_MIN,
   DISTANCE_AUTO_ROUTE_KM_STEP,
@@ -21,7 +25,7 @@ import {
   DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_ARIA,
   DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_LABEL,
   validateDistanceAutoRouteTargetKm,
-} from "../../lib/distanceAutoRouteErrors";
+  DISTANCE_AUTO_ROUTE_CHIP_KM,} from "../../lib/distanceAutoRouteErrors";
 import {
   getDistanceAutoRouteMapBridge,
   registerDistanceAutoRouteClickDebugMarkerClear,
@@ -122,7 +126,7 @@ import {
   publishRiderScreenDiag,
   RIDE_HUD_SAFE_PADDING,
   viewportPxFromMap,
-} from "../../lib/rideCameraFraming";
+  resolveRideFitPadding,} from "../../lib/rideCameraFraming";
 import { type LiveRiderMotion } from "./mapViewTypes";
 import {
   tickRideCameraFollow,
@@ -1330,6 +1334,9 @@ export type MapViewProps = {
   showRtwPoi?: boolean;
   /** 목표 거리 참고 원 — GeoJSON LineString(지도 stroke용) */
   distanceTargetCircle?: LineStringGeometry | null;
+  /** 예상 시간 계산용 누적 주행(5A-R2 §4.3). 없으면 폴백 속도를 쓴다. */
+  userMileageTotalMeters?: number | null;
+  userMileageTotalSec?: number | null;
   /** 원 bounds fitBounds — 사용자가 자동 찾기·거리 변경할 때만 증가 */
   distanceTargetCircleFitToken?: number;
   /** offered 결과: 클릭 지점(고스트)·도달 거리 표시용 */
@@ -1338,15 +1345,6 @@ export type MapViewProps = {
     directKm: number;
     targetKm: number;
   } | null;
-  /**
-   * offered 거리 조정 재탐색 버튼 클릭 핸들러.
-   * 조정된 km 와 재탐색 결과를 돌려준다 — popup 은 명령형 DOM 이라 호출부가 직접
-   * 슬라이더·문구를 맞춰야 한다(결함 ②③).
-   */
-  onDistanceAdjustRetry?: () => Promise<{
-    adjustedKm: number;
-    result: { status: "found" | "failed"; message: string; offered?: { adjustLabel: string } } | null;
-  } | null>;
   /** 자동 경로 마법사 중 지도 탭 가로채기 */
   autoRouteMapPick?: "start" | "direction" | null;
   /** 자동 Route 세션 — End 존재와 별도로 단일 설정창 유지 */
@@ -1374,7 +1372,6 @@ export type MapViewProps = {
     | {
         status: "found" | "failed";
         message: string;
-        offered?: { adjustLabel: string };
       }
     | null
   >;
@@ -1456,9 +1453,10 @@ export function MapView({
   rideCameraDistanceM = RIDE_CAMERA_DISTANCE_DEFAULT_M,
   showRtwPoi = false,
   distanceTargetCircle = null,
+  userMileageTotalMeters = null,
+  userMileageTotalSec = null,
   distanceTargetCircleFitToken = 0,
   autoRouteOfferedState = null,
-  onDistanceAdjustRetry,
   autoRouteMapPick = null,
   autoRouteSessionActive = false,
   autoRouteTargetKm = 10,
@@ -1554,12 +1552,16 @@ export function MapView({
   const onClearRouteRef = useRef(onClearRoute);
   const onArmDirectionPickRef = useRef(onArmDirectionPick);
   const pickPopupAutoRouteUiRef = useRef<PickPopupAutoRouteUi | null>(null);
+  const userMileageRef = useRef({
+    totalMeters: userMileageTotalMeters,
+    totalSec: userMileageTotalSec,
+  });
+  userMileageRef.current = { totalMeters: userMileageTotalMeters, totalSec: userMileageTotalSec };
   const onPreviewDistanceAutoRouteCircleRef = useRef(onPreviewDistanceAutoRouteCircle);
   const onClearDistanceAutoRouteCircleRef = useRef(onClearDistanceAutoRouteCircle);
   const onSetRouteProfileOnlyRef = useRef(onSetRouteProfileOnly);
   const onAutoRouteMapPickRef = useRef(onAutoRouteMapPick);
   const onRetryDistanceAutoRouteRef = useRef(onRetryDistanceAutoRoute);
-  const onDistanceAdjustRetryRef = useRef(onDistanceAdjustRetry);
   const onDismissDistanceAutoRouteRef = useRef(onDismissDistanceAutoRoute);
   const autoRouteMapPickRef = useRef(autoRouteMapPick);
   const autoRouteSessionActiveRef = useRef(autoRouteSessionActive);
@@ -1709,10 +1711,6 @@ export function MapView({
   useEffect(() => {
     onRetryDistanceAutoRouteRef.current = onRetryDistanceAutoRoute;
   }, [onRetryDistanceAutoRoute]);
-
-  useEffect(() => {
-    onDistanceAdjustRetryRef.current = onDistanceAdjustRetry;
-  }, [onDistanceAdjustRetry]);
 
   useEffect(() => {
     onDismissDistanceAutoRouteRef.current = onDismissDistanceAutoRoute;
@@ -2206,6 +2204,10 @@ export function MapView({
           ok: false,
           message: "자동 경로를 시작할 수 없습니다.",
         },
+        getUserMileage: () => ({
+          totalMeters: userMileageRef.current.totalMeters,
+          totalSec: userMileageRef.current.totalSec,
+        }),
         onRegisterAutoRouteUi: (ui) => {
           pickPopupAutoRouteUiRef.current = ui;
         },
@@ -2305,36 +2307,16 @@ export function MapView({
        * 값 그대로였다(결함 ②). 두 진입점이 이 함수를 함께 쓴다.
        */
       function applyAutoRoutePickResultToPopup(
-        result: { status: "found" | "failed"; message: string; offered?: { adjustLabel: string } } | null,
+        result: { status: "found" | "failed"; message: string } | null,
       ): void {
         if (!result) return;
         const ui = pickPopupAutoRouteUiRef.current;
         if (result.status === "found") {
           ui?.setInlinePhase("found", result.message);
-          if (result.offered) {
-            ui?.setOfferedPanel({ adjustLabel: result.offered.adjustLabel }, () => {
-              void runDistanceAdjustRetry();
-            });
-          } else {
-            // 조정이 성공했으면 offered 패널·문구가 남아 있으면 안 된다(결함 ③).
-            ui?.setOfferedPanel(null);
-          }
           return;
         }
-        ui?.setOfferedPanel(null);
         ui?.setInlinePhase("failed", result.message);
         onRetryDistanceAutoRouteRef.current?.();
-      }
-
-      /** 거리 조정 재탐색 — 지도 클릭과 같은 UI 갱신을 거친다 */
-      async function runDistanceAdjustRetry(): Promise<void> {
-        const ui = pickPopupAutoRouteUiRef.current;
-        ui?.setInlinePhase("searching", "목표 거리에 맞는 도로 경로를 찾는 중입니다…");
-        const retried = await onDistanceAdjustRetryRef.current?.();
-        if (!retried) return;
-        // 목표 거리가 바뀐 그 지점에서 popup 입력을 맞춘다(결함 ②).
-        ui?.syncDistanceInputs(retried.adjustedKm);
-        applyAutoRoutePickResultToPopup(retried.result);
       }
 
       const picked: LngLat = [event.lngLat.lng, event.lngLat.lat];
@@ -2540,7 +2522,11 @@ export function MapView({
     };
     map.once("moveend", onMoveEnd);
     map.fitBounds(bounds, {
-      padding: RIDE_HUD_SAFE_PADDING,
+      // 고정 padding 은 폰 가로에서 뷰포트의 54 % 를 먹는다(5A-R1 §4.1 실측).
+      padding: resolveRideFitPadding(
+        map.getContainer().clientWidth,
+        map.getContainer().clientHeight,
+      ),
       maxZoom: 16,
       duration: prefersReducedMotion ? 0 : 1100,
       essential: true,
@@ -2579,10 +2565,16 @@ export function MapView({
       return;
     }
 
+    /** 안내 원 하나 = D (5A-R2c §2). 파선. 도넛(두 번째 링·채움) 없음. */
     const feature = {
-      type: "Feature" as const,
-      properties: {} as Record<string, never>,
-      geometry: distanceTargetCircle,
+      type: "FeatureCollection" as const,
+      features: [
+        {
+          type: "Feature" as const,
+          properties: {},
+          geometry: distanceTargetCircle,
+        },
+      ],
     };
 
     const circleBeforeLayer = map.getLayer("route") ? "route" : undefined;
@@ -2645,7 +2637,12 @@ export function MapView({
       essential: true,
     });
     onMapZoomRef.current(Number(map.getZoom().toFixed(1)));
-  }, [mapLoaded, distanceTargetCircle, distanceTargetCircleFitToken, prefersReducedMotion]);
+  }, [
+    mapLoaded,
+    distanceTargetCircle,
+    distanceTargetCircleFitToken,
+    prefersReducedMotion,
+  ]);
 
   // offered 결과: 고스트 마커(클릭 지점) + 점선(클릭→End)
   const DISTANCE_OFFERED_SRC = "distance-offered-overlay";
@@ -3816,10 +3813,6 @@ type PickPopupAutoRouteUi = {
     message?: string,
   ) => void;
   tryArmDirectionPick: () => void;
-  setOfferedPanel: (
-    offered: { adjustLabel: string } | null,
-    onAdjust?: () => void,
-  ) => void;
   /**
    * 목표 거리 슬라이더·숫자 입력을 지정 km 로 맞춘다.
    * popup 은 명령형 DOM 이라 React state 변화로 다시 그려지지 않는다 — 값이 바뀌는 지점에서
@@ -3847,6 +3840,8 @@ function buildPickPopup(deps: {
     targetKm: number;
   }) => { ok: true } | { ok: false; message: string };
   onRegisterAutoRouteUi?: (ui: PickPopupAutoRouteUi) => void;
+  /** 예상 시간 계산용 누적 주행 — 없으면 폴백 속도를 쓴다(5A-R2 §4.3) */
+  getUserMileage?: () => { totalMeters: number | null; totalSec: number | null };
   onDirectionPickArmed?: () => void;
   onRoutePanelActivated?: () => void;
   onPreviewDistanceAutoRouteCircle?: (input: {
@@ -3879,6 +3874,7 @@ function buildPickPopup(deps: {
     onRouteProfile,
     onArmDirectionPick,
     onRegisterAutoRouteUi,
+    getUserMileage,
     onDirectionPickArmed,
     onRoutePanelActivated,
     onPreviewDistanceAutoRouteCircle,
@@ -4151,10 +4147,16 @@ function buildPickPopup(deps: {
   distanceSlider.type = "range";
   distanceSlider.className = "map-view__pick-distance-slider";
   distanceSlider.id = "map-view-pick-distance-slider";
-  distanceSlider.min = String(DISTANCE_AUTO_ROUTE_KM_MIN);
-  distanceSlider.max = String(DISTANCE_AUTO_ROUTE_KM_MAX);
-  distanceSlider.step = String(DISTANCE_AUTO_ROUTE_KM_STEP);
-  distanceSlider.value = String(targetKm);
+  /**
+   * **슬라이더를 칩으로 대체한다**(5A-R2 §4.2). 추가가 아니라 대체다 — 팝업이 커지면
+   * 3D-2 의 공간 최적화를 되돌리는 것이라 실패다.
+   *
+   * 0.5~120 km 를 0.5 눈금으로 두면 240칸이고 폰 슬라이더 폭 200 px 에서 한 칸이 1 px
+   * 미만이라 손가락으로 특정 값을 고를 수 없었다. 자주 쓰는 값을 칩으로 내고, 미세 조정은
+   * 이미 있는 `±` 버튼과 숫자 입력이 맡는다. 20 km 초과는 숫자 입력으로 — 드문 경우에
+   * UI 공간을 쓰지 않는다.
+   */
+  distanceSlider.hidden = true;
 
   const distanceNumber = document.createElement("input");
   distanceNumber.type = "text";
@@ -4163,7 +4165,32 @@ function buildPickPopup(deps: {
   distanceNumber.setAttribute("aria-label", "목표거리 km");
   distanceNumber.value = targetKm.toFixed(1);
 
+  const distanceChips = document.createElement("div");
+  distanceChips.className = "map-view__pick-distance-chips";
+  const chipButtons: { km: number; el: HTMLButtonElement }[] = [];
+  for (const km of DISTANCE_AUTO_ROUTE_CHIP_KM) {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "map-view__pick-distance-chip";
+    chip.textContent = String(km);
+    chip.setAttribute("aria-label", `목표 거리 ${km}km`);
+    chip.onclick = () => {
+      if (!distanceDirectionChecked) return;
+      syncDistanceInputs(km);
+      previewCircleForTargetKm(km);
+      tryArmDirectionPickIfChecked();
+    };
+    chipButtons.push({ km, el: chip });
+    distanceChips.appendChild(chip);
+  }
+
+  /** 예상 소요 시간 — 사용자의 누적 평균 속도로 계산한다(5A-R2 §4.3) */
+  const distanceEta = document.createElement("p");
+  distanceEta.className = "map-view__pick-distance-eta";
+  distanceEta.setAttribute("aria-live", "polite");
+
   distanceRow.append(modeField, distanceLabel, minusBtn, distanceSlider, plusBtn, distanceNumber);
+  distanceRow.append(distanceChips, distanceEta);
 
   const autoRouteStatusSlot = document.createElement("div");
   autoRouteStatusSlot.className = "map-view__pick-auto-route-status-slot";
@@ -4174,47 +4201,37 @@ function buildPickPopup(deps: {
   autoRouteStatus.setAttribute("aria-live", "polite");
   autoRouteStatus.dataset.phase = "idle";
 
-  const offeredPanel = document.createElement("div");
-  offeredPanel.className = "map-view__pick-auto-route-offered";
-  offeredPanel.hidden = true;
-
-  const offeredAdjustBtn = document.createElement("button");
-  offeredAdjustBtn.type = "button";
-  offeredAdjustBtn.className = "map-view__pick-auto-route-offered-btn";
-  offeredAdjustBtn.hidden = true;
-  offeredPanel.append(offeredAdjustBtn);
-
-  autoRouteStatusSlot.append(autoRouteStatus, offeredPanel);
-
-  function setOfferedPanel(
-    offered: { adjustLabel: string } | null,
-    onAdjust?: () => void,
-  ) {
-    if (!offered) {
-      offeredPanel.hidden = true;
-      offeredAdjustBtn.hidden = true;
-      offeredAdjustBtn.onclick = null;
-      return;
-    }
-    offeredPanel.hidden = false;
-    offeredAdjustBtn.hidden = false;
-    offeredAdjustBtn.textContent = offered.adjustLabel;
-    offeredAdjustBtn.onclick = () => onAdjust?.();
-  }
+  // 「N km 로 늘려 클릭 지점까지 가기」 버튼은 제거했다(5A-R2 §3).
+  // 그 버튼은 directRoadM 을 100m 단위로 **올림**해 목표로 삼아, 목표가 실측 도로거리보다
+  // 커지면서 스스로 부족분을 만들고 우회를 불러 중복을 생산했다.
+  // `offered` 고지 문구·고스트 마커·점선은 그대로 남는다 — 없앤 것은 버튼뿐이다.
+  autoRouteStatusSlot.append(autoRouteStatus);
 
   function syncDistanceInputs(km: number) {
     targetKm = km;
-    distanceSlider.value = String(km);
+    for (const c of chipButtons) c.el.classList.toggle("is-active", Math.abs(c.km - km) < 1e-9);
+    distanceEta.textContent = formatDistanceAutoRouteEta(
+      resolveDistanceAutoRouteEta({
+        targetKm: km,
+        mileageTotalMeters: getUserMileage?.().totalMeters ?? null,
+        mileageTotalSec: getUserMileage?.().totalSec ?? null,
+      }),
+    );
     distanceNumber.value = km.toFixed(1);
     if (distanceDirectionChecked) {
       minusBtn.disabled = km <= DISTANCE_AUTO_ROUTE_KM_MIN;
       plusBtn.disabled = km >= DISTANCE_AUTO_ROUTE_KM_MAX;
+      // 원과 함께 안내 `{N}` 즉시 갱신(검색/결과 문구는 덮지 않음)
+      if (autoRouteStatus.dataset.phase === "direction") {
+        autoRouteStatus.textContent = formatDistanceAutoRouteDirectionClickHint(km);
+      }
     }
   }
 
   function syncDistanceModeUi() {
     modeCheckbox.checked = distanceDirectionChecked;
     distanceSlider.disabled = !distanceDirectionChecked;
+    for (const c of chipButtons) c.el.disabled = !distanceDirectionChecked;
     distanceNumber.disabled = !distanceDirectionChecked;
     distanceRow.classList.toggle(
       "map-view__pick-distance-row--disabled",
@@ -4272,7 +4289,8 @@ function buildPickPopup(deps: {
       return;
     }
     if (phase === "direction") {
-      autoRouteStatus.textContent = message ?? DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT;
+      autoRouteStatus.textContent =
+        message ?? formatDistanceAutoRouteDirectionClickHint(targetKm);
       return;
     }
     if (phase === "searching") {
@@ -4321,7 +4339,7 @@ function buildPickPopup(deps: {
       "direction",
       rerouteReady || autoRouteStatusMessage === DISTANCE_AUTO_ROUTE_REROUTE_HINT
         ? DISTANCE_AUTO_ROUTE_REROUTE_HINT
-        : DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
+        : formatDistanceAutoRouteDirectionClickHint(validated.km),
     );
     onDirectionPickArmed?.();
   }
@@ -4329,7 +4347,6 @@ function buildPickPopup(deps: {
   onRegisterAutoRouteUi?.({
     setInlinePhase,
     tryArmDirectionPick: tryArmDirectionPickIfChecked,
-    setOfferedPanel,
     syncDistanceInputs,
   });
 
@@ -4337,14 +4354,6 @@ function buildPickPopup(deps: {
     applyDistanceDirectionMode(modeCheckbox.checked);
   });
 
-  distanceSlider.addEventListener("input", () => {
-    if (!distanceDirectionChecked) return;
-    const km = Number.parseFloat(distanceSlider.value);
-    if (!Number.isFinite(km)) return;
-    syncDistanceInputs(km);
-    previewCircleForTargetKm(km);
-    tryArmDirectionPickIfChecked();
-  });
 
   minusBtn.addEventListener("click", () => {
     if (minusBtn.disabled) return;

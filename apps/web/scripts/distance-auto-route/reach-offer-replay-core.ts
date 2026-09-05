@@ -26,7 +26,7 @@ export type Session6ClickRow = {
   /** Mapbox Directions 실측 도로거리 (§2 table) */
   directRoadMeters: number;
   /** 기대 outcome */
-  expectedOutcome: AutoRouteOutcome;
+  expectedOutcome: AutoRouteOutcome | "failed";
   /** 최소 provider 호출 수 */
   expectedAttemptedCalls: number;
   /** 최대 provider 호출 수 */
@@ -103,15 +103,23 @@ export function assertSession6ClickExpectations(
   click: Session6ClickRow,
   searched: Awaited<ReturnType<typeof replaySession6Click>>,
 ): void {
-  if (searched.status !== "found") {
+  // 5A-R2 §1: `road < D − 5m` 는 경로를 만들지 않고 안내·실패한다. 그것도 계약이므로
+  // fixture 가 `expectedOutcome: "failed"` 로 기대할 수 있어야 한다.
+  const actualOutcome = searched.status === "found" ? searched.outcome : "failed";
+  if (actualOutcome !== click.expectedOutcome) {
     throw new Error(
-      `${click.id}: expected found but got failed (${(searched as { message?: string }).message ?? "unknown"})`,
+      `${click.id}: outcome expected ${click.expectedOutcome} got ${actualOutcome}` +
+        (searched.status === "failed" ? ` (${searched.message})` : ""),
     );
   }
-  if (searched.outcome !== click.expectedOutcome) {
-    throw new Error(
-      `${click.id}: outcome expected ${click.expectedOutcome} got ${searched.outcome}`,
-    );
+  if (searched.status !== "found") {
+    const failedCalls = searched.providerCallCount;
+    if (failedCalls < click.expectedAttemptedCalls || failedCalls > click.maxAttemptedCalls) {
+      throw new Error(
+        `${click.id}: providerCallCount expected ${click.expectedAttemptedCalls}..${click.maxAttemptedCalls} got ${failedCalls}`,
+      );
+    }
+    return;
   }
   const calls = searched.diagnostics.providerCallCount;
   if (calls < click.expectedAttemptedCalls || calls > click.maxAttemptedCalls) {

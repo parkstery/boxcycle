@@ -1,0 +1,32 @@
+(node:59780) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/20.HDev/boxcycle-5a/functions/src/distanceAutoRouteCore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\20.HDev\boxcycle-5a\functions\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+0°/400m      failed -         direct=-m dist=-m detour=- provider=1 endMiss=-m pts=0
+0°/600m      found  exact     direct=763.5m dist=700.0m detour=0 provider=1 endMiss=62.7m pts=11
+0°/850m      found  offered   direct=1059.3m dist=700.0m detour=0 provider=1 endMiss=267.2m pts=11
+45°/400m     failed -         direct=-m dist=-m detour=- provider=1 endMiss=-m pts=0
+45°/600m     found  exact     direct=783.3m dist=700.0m detour=0 provider=1 endMiss=82.4m pts=13
+45°/850m     found  offered   direct=1094.4m dist=700.0m detour=0 provider=1 endMiss=321.2m pts=13
+90°/400m     failed -         direct=-m dist=-m detour=- provider=1 endMiss=-m pts=0
+90°/600m     found  exact     direct=785.1m dist=700.0m detour=0 provider=1 endMiss=76.9m pts=19
+90°/850m     found  offered   direct=1074.5m dist=700.0m detour=0 provider=1 endMiss=335.2m pts=19
+135°/400m    failed -         direct=-m dist=-m detour=- provider=1 endMiss=-m pts=0
+135°/600m    found  exact     direct=797.4m dist=700.0m detour=0 provider=1 endMiss=69.6m pts=15
+135°/850m    found  offered   direct=1096.8m dist=700.0m detour=0 provider=1 endMiss=286.0m pts=15
+180°/400m    failed -         direct=-m dist=-m detour=- provider=1 endMiss=-m pts=0
+180°/600m    found  offered   direct=985.4m dist=700.0m detour=0 provider=1 endMiss=230.0m pts=15
+180°/850m    found  offered   direct=1135.6m dist=700.0m detour=0 provider=1 endMiss=335.3m pts=15
+225°/400m    failed -         direct=-m dist=-m detour=- provider=1 endMiss=-m pts=0
+225°/600m    found  offered   direct=930.4m dist=700.0m detour=0 provider=1 endMiss=136.9m pts=17
+225°/850m    found  offered   direct=1437.8m dist=700.0m detour=0 provider=1 endMiss=613.6m pts=15
+270°/400m    failed -         direct=-m dist=-m detour=- provider=1 endMiss=-m pts=0
+270°/600m    found  offered   direct=1026.5m dist=700.0m detour=0 provider=1 endMiss=83.5m pts=14
+270°/850m    found  offered   direct=1110.4m dist=700.0m detour=0 provider=1 endMiss=369.6m pts=12
+315°/400m    failed -         direct=-m dist=-m detour=- provider=1 endMiss=-m pts=0
+315°/600m    found  exact     direct=758.3m dist=700.0m detour=0 provider=1 endMiss=45.7m pts=12
+315°/850m    found  offered   direct=1087.6m dist=700.0m detour=0 provider=1 endMiss=310.0m pts=12
+
+표본 24건 → document/ops/route-relay/g5a-r2c-samples.json
+outcome 분포: {"failed":8,"exact":5,"offered":11}
+거리 계약 위반(|dist−D|>5m, shortfall 제외): 0

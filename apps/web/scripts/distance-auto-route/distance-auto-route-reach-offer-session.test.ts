@@ -30,12 +30,14 @@ describe("3F-C-R1 §2 세션 6클릭 재현 — reach-offer", () => {
     assert.equal(SESSION_6_TARGET_METERS, 1000);
   });
 
-  it("mock outcome 분포: offered 3개(#1·#4·#6), exact 1개(#2), detoured 2개(#3·#5)", () => {
-    // #4는 directRoadM < D이지만 직선 mock endMiss 272m > 200m → hard gate → offered
+  it("mock outcome 분포: offered 2개(#1·#6), exact 1개(#2), failed 3개(#3·#4·#5)", () => {
+    // 5A-R2 §1 로 계약이 바뀌었다 — `road < D` 는 우회로 채우지 않고 안내·실패한다.
+    // #3·#4·#5 는 road 851·732·861m < D 1000m 라 전부 실패로 옮겨 갔다.
     const outcomes = session6Clicks.map((c) => c.expectedOutcome);
-    assert.equal(outcomes.filter((o) => o === "offered").length, 3);
+    assert.equal(outcomes.filter((o) => o === "offered").length, 2);
     assert.equal(outcomes.filter((o) => o === "exact").length, 1);
-    assert.equal(outcomes.filter((o) => o === "detoured").length, 2);
+    assert.equal(outcomes.filter((o) => o === "detoured").length, 0, "우회가 살아 있다");
+    assert.equal(outcomes.filter((o) => o === "failed").length, 3);
   });
 
   it("offered 클릭 중 road > D+150는 Stage 0 direct clip (provider 1회)", () => {

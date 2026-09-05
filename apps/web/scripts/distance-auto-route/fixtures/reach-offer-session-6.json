@@ -1,7 +1,10 @@
 [
   {
     "id": "session6-click1-offered",
-    "clickLngLat": [127.044977, 37.4978],
+    "clickLngLat": [
+      127.044977,
+      37.4978
+    ],
     "directRoadMeters": 1567,
     "expectedOutcome": "offered",
     "expectedAttemptedCalls": 1,
@@ -10,7 +13,10 @@
   },
   {
     "id": "session6-click2-exact",
-    "clickLngLat": [127.025811, 37.503977],
+    "clickLngLat": [
+      127.025811,
+      37.503977
+    ],
     "directRoadMeters": 1033,
     "expectedOutcome": "exact",
     "expectedAttemptedCalls": 1,
@@ -19,34 +25,46 @@
   },
   {
     "id": "session6-click3-detoured",
-    "clickLngLat": [127.031693, 37.511892],
+    "clickLngLat": [
+      127.031693,
+      37.511892
+    ],
     "directRoadMeters": 851,
-    "expectedOutcome": "detoured",
-    "expectedAttemptedCalls": 2,
-    "maxAttemptedCalls": 9,
-    "_comment": "road 851m < D → Stage 1 우회 → detoured (§2 #3, 실제 1013m·End miss 13m)"
+    "expectedOutcome": "failed",
+    "expectedAttemptedCalls": 1,
+    "maxAttemptedCalls": 1,
+    "_comment": "road 851m < D → 5A-R2 §1 안내·실패(우회 없음, provider 1회)"
   },
   {
     "id": "session6-click4-offered",
-    "clickLngLat": [127.037973, 37.498572],
+    "clickLngLat": [
+      127.037973,
+      37.498572
+    ],
     "directRoadMeters": 732,
-    "expectedOutcome": "offered",
-    "expectedAttemptedCalls": 2,
-    "maxAttemptedCalls": 9,
-    "_comment": "road 732m < D → Stage 1 우회 → 직선 mock endMiss 272m > 200m → hard gate → offered (실제 도로는 End miss 4m·detoured)"
+    "expectedOutcome": "failed",
+    "expectedAttemptedCalls": 1,
+    "maxAttemptedCalls": 1,
+    "_comment": "road 732m < D → 5A-R2 §1 안내·실패(우회 없음, provider 1회)"
   },
   {
     "id": "session6-click5-detoured",
-    "clickLngLat": [127.038464, 37.497477],
+    "clickLngLat": [
+      127.038464,
+      37.497477
+    ],
     "directRoadMeters": 861,
-    "expectedOutcome": "detoured",
-    "expectedAttemptedCalls": 2,
-    "maxAttemptedCalls": 9,
-    "_comment": "road 861m < D → Stage 1 우회 → detoured (§2 #5, 실제 1133m·End miss 133m)"
+    "expectedOutcome": "failed",
+    "expectedAttemptedCalls": 1,
+    "maxAttemptedCalls": 1,
+    "_comment": "road 861m < D → 5A-R2 §1 안내·실패(우회 없음, provider 1회)"
   },
   {
     "id": "session6-click6-offered",
-    "clickLngLat": [127.044189, 37.499398],
+    "clickLngLat": [
+      127.044189,
+      37.499398
+    ],
     "directRoadMeters": 1379,
     "expectedOutcome": "offered",
     "expectedAttemptedCalls": 1,

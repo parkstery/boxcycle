@@ -134,13 +134,12 @@ export function parseDistanceAutoRouteBody(data: unknown): {
   targetDistanceMeters: number;
   bearingDeg: number;
   requestId: string;
-  distanceAdjustRetry?: boolean;
 } {
   if (!data || typeof data !== "object") {
     throw new HttpsError("invalid-argument", "요청 본문이 올바르지 않습니다.");
   }
   const o = data as Record<string, unknown>;
-  const { start, targetRoadPoint, profile, targetDistanceMeters, requestId, distanceAdjustRetry } = o;
+  const { start, targetRoadPoint, profile, targetDistanceMeters, requestId } = o;
   if (!isLngLat(start)) {
     throw new HttpsError("invalid-argument", "start 는 [lng,lat] 숫자 배열이어야 합니다.");
   }
@@ -173,7 +172,6 @@ export function parseDistanceAutoRouteBody(data: unknown): {
     targetDistanceMeters,
     bearingDeg: bearingFromOriginToPoint(start, targetRoadPoint),
     requestId: id,
-    distanceAdjustRetry: distanceAdjustRetry === true,
   };
 }
 
@@ -215,7 +213,6 @@ export async function executeDistanceAutoRoute(input: {
   bearingDeg: number;
   requestId: string;
   fetchDirections: FetchDirectionsFn;
-  distanceAdjustRetry?: boolean;
 }): Promise<DistanceAutoRouteResult> {
   const {
     userId,
@@ -226,7 +223,6 @@ export async function executeDistanceAutoRoute(input: {
     bearingDeg,
     requestId,
     fetchDirections,
-    distanceAdjustRetry,
   } = input;
 
   const cached = await readCache(userId, requestId);
@@ -238,11 +234,9 @@ export async function executeDistanceAutoRoute(input: {
   const generateCost = Math.max(0, Math.floor(economy.generateCostBase));
   const tokenRequestId = spendRequestId(requestId);
 
+  // 「거리 조정 재탐색 1회 무료」 정책은 제거했다(5A-R2 §3.2) — 재탐색 기능 자체가 없어졌다.
   let routeTokenBalance: number;
-  if (distanceAdjustRetry) {
-    // 거리 조정 재탐색: Token 차감 없이 현재 잔액만 조회 (costOverride=0 → ensureRouteTokenOnboarding 경유)
-    routeTokenBalance = await spendRouteGenerateToken(userId, tokenRequestId, 0);
-  } else {
+  {
     try {
       routeTokenBalance = await spendRouteGenerateToken(userId, tokenRequestId);
     } catch (e) {
@@ -263,7 +257,7 @@ export async function executeDistanceAutoRoute(input: {
   });
 
   if (searched.status === "failed") {
-    if (!distanceAdjustRetry && generateCost > 0) {
+    if (generateCost > 0) {
       await refundRouteGenerateToken(userId, tokenRequestId, generateCost);
       routeTokenBalance += generateCost;
     }
@@ -301,7 +295,6 @@ export async function executeDistanceAutoRoute(input: {
       directRoadMeters,
       endMissMeters,
       detourCalls,
-      distanceAdjustRetry: distanceAdjustRetry ?? false,
       ...diagnostics,
     }),
   );

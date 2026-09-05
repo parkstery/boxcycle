@@ -68,7 +68,6 @@ export async function fetchDistanceAutoRoute(
     targetDistanceMeters: number;
     bearingDeg?: number;
     requestId: string;
-    distanceAdjustRetry?: boolean;
   },
 ): Promise<DistanceAutoRouteResponse> {
   assertDirectionsServerOnly();
