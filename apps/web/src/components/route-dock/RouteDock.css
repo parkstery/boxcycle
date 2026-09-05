@@ -110,6 +110,28 @@
   }
 }
 
+
+/* 6A: cadence sensor chip — always visible (outside collapsible panel) */
+.route-dock__sensor-rail {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  padding: 0 0.28rem 0 0.1rem;
+  pointer-events: auto;
+}
+
+.route-dock__sensor-rail .hud-cadence {
+  height: 1.85rem;
+  padding: 0 0.55rem;
+  font-size: 0.7rem;
+  backdrop-filter: none;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.route-dock__sensor-rail .hud-cadence__text {
+  min-width: 2.6rem;
+}
 .route-dock__head {
   display: flex;
   align-items: center;
@@ -531,6 +553,24 @@
   .route-dock__go {
     min-width: 2.4rem;
     padding: 0.24rem 0.55rem;
+  }
+
+  /* phone landscape: shrink rpm chip so Go is not displaced */
+  .route-dock__sensor-rail {
+    padding: 0 0.18rem 0 0.05rem;
+  }
+  .route-dock__sensor-rail .hud-cadence {
+    height: 1.55rem;
+    padding: 0 0.38rem;
+    font-size: 0.62rem;
+    gap: 0.28rem;
+  }
+  .route-dock__sensor-rail .hud-cadence__text {
+    min-width: 2.1rem;
+  }
+  .route-dock__sensor-rail .hud-cadence__led {
+    width: 0.45rem;
+    height: 0.45rem;
   }
 
   .route-dock__save-trigger,

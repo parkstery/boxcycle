@@ -12,6 +12,7 @@ import {
   formatCompanionHudActivityLine,
 } from "../../lib/companionHudCount";
 import { CadenceHudChip } from "./CadenceHudChip";
+import { resolveCadenceChipSurface } from "../route-dock/routeDockVisibility";
 import "./MapHud.css";
 
 export type AccountChipState = {
@@ -232,7 +233,12 @@ export function MapHud(props: MapHudProps) {
   const showSignedOutAuth =
     !isGate && !isSummary && account === null && typeof onOpenSignedOutAuth === "function";
   // 센서 상태는 계정 데이터에 종속되지 않는다 — signed-out 맵 모드에서도 로그인 칩 왼쪽에 남는다.
-  const showCadenceChip = cadence !== null && !isGate && !isSummary;
+  // 6A: chip primary home is RouteDock; MapHud TR only when dock absent (signed-out/idle/...).
+  const showCadenceChip =
+    cadence !== null &&
+    !isGate &&
+    !isSummary &&
+    resolveCadenceChipSurface(stage) === "map-hud-tr";
   const showTopRight = showCadenceChip || showAccount || showSignedOutAuth;
   const showMapViewTrigger = !isGate && !isSummary;
   const showMetrics =

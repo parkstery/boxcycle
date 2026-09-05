@@ -1,12 +1,23 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
+import type { CadenceHudState } from "../../lib/cadenceSensorUi";
 import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/firestoreSavedRoutes";
 import { isIncompleteQuotaError } from "../../lib/tierQuota";
+import { CadenceHudChip } from "../maphud/CadenceHudChip";
 import type { RouteDockStop, RouteDockStopId } from "./useRouteDockStops";
+import { isRouteDockStageVisible } from "./routeDockVisibility";
 import "./RouteDock.css";
+
+export type RouteDockCadence = {
+  state: CadenceHudState;
+  open: boolean;
+  onOpen: () => void;
+};
 
 export type RouteDockProps = {
   stage: RideUiStage;
+  /** Sensor chip in always-visible rail (outside collapsible body). null hides. */
+  cadence?: RouteDockCadence | null;
   stops: RouteDockStop[];
   routeLoading: boolean;
   canStartRide: boolean;
@@ -33,6 +44,7 @@ const STOP_KIND_LABEL: Record<RouteDockStop["kind"], string> = {
 export function RouteDock(props: RouteDockProps) {
   const {
     stage,
+    cadence = null,
     stops,
     routeLoading,
     canStartRide,
@@ -47,7 +59,7 @@ export function RouteDock(props: RouteDockProps) {
     onIncompleteQuotaBlocked,
   } = props;
 
-  const visible = stage === "setup" || stage === "ready-to-start" || stage === "riding" || stage === "paused";
+  const visible = isRouteDockStageVisible(stage);
   const [expanded, setExpanded] = useState(true);
   const [saveOpen, setSaveOpen] = useState(false);
   const [saveDraft, setSaveDraft] = useState("");
@@ -65,9 +77,13 @@ export function RouteDock(props: RouteDockProps) {
     setRestartFromZero(false);
   }
 
-  useEffect(() => {
+  // Expand when dock becomes relevant or stop count changes (same as former effect).
+  // Render-time setState — avoids react-hooks/set-state-in-effect.
+  const [prevDockExpandKey, setPrevDockExpandKey] = useState({ visible, stopsLen: stops.length });
+  if (visible !== prevDockExpandKey.visible || stops.length !== prevDockExpandKey.stopsLen) {
+    setPrevDockExpandKey({ visible, stopsLen: stops.length });
     if (visible && stops.length > 0) setExpanded(true);
-  }, [visible, stops.length]);
+  }
 
   async function commitSave(confirmUpdate = false) {
     if (saveBusy) return;
@@ -158,6 +174,17 @@ export function RouteDock(props: RouteDockProps) {
             )}
           </svg>
         </button>
+
+        {cadence ? (
+          <div className="route-dock__sensor-rail">
+            <CadenceHudChip
+              state={cadence.state}
+              riding={stage === "riding" || stage === "paused"}
+              open={cadence.open}
+              onOpen={cadence.onOpen}
+            />
+          </div>
+        ) : null}
 
         <div
           className="route-dock__panel hud-glass"

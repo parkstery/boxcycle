@@ -1857,6 +1857,7 @@ export default function App() {
   const routeDockPanel = (
     <RouteDock
       stage={stage}
+      cadence={cadenceHud}
       stops={routeDockStops}
       routeLoading={routeLoading}
       canStartRide={canStartRideWithInput}
