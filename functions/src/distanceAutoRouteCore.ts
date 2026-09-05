@@ -16,7 +16,7 @@ export const ROUTE_CLIP_FAILED_MESSAGE = "경로 절단에 실패했습니다.";
 
 /**
  * 「너무 가까움」 안내(5A-R2 §1.1). **실측값으로 만든다** — 「더 멀리」 같은 막연한 말을
- * 쓰지 않는다. 바깥 원(직선거리 D)이 화면에 함께 그려지므로 어디를 클릭할지 정확히 보인다.
+ * 쓰지 않는다. 목표 거리 원(반지름 D)이 화면에 함께 그려지므로 어디를 클릭할지 정확히 보인다.
  */
 export function formatDistanceAutoRouteTooCloseMessage(
   directRoadMeters: number,
@@ -24,7 +24,7 @@ export function formatDistanceAutoRouteTooCloseMessage(
 ): string {
   const directKm = (directRoadMeters / 1000).toFixed(1);
   const targetKm = (targetDistanceMeters / 1000).toFixed(1);
-  return `클릭 지점까지는 도로로 ${directKm} km 입니다. 목표 ${targetKm} km 에 모자랍니다. 목표 거리 원 바깥을 클릭해 주세요.`;
+  return `너무 가깝습니다 — 도로 ${directKm} km · 목표 ${targetKm} km. 원 주변이나 바깥을 클릭해 주세요.`;
 }
 export const AUTO_ROUTE_DISTANCE_FACTORS = [0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3] as const;
 export const AUTO_ROUTE_BEARING_OFFSETS_DEG = [-30, -15, 0, 15, 30] as const;

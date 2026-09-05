@@ -4,14 +4,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { registerDistanceAutoRouteMapBridge, clearDistanceAutoRouteClickDebugMarker } from "../lib/distanceAutoRouteMapBridge";
 import { getFirebaseApp } from "../lib/firebase";
 import type { LngLat } from "../lib/geo";
-import { resolveDistanceAutoRouteGuideRadii } from "../lib/distanceAutoRouteGuideRing";
+import { resolveDistanceAutoRouteGuideRadiusKm } from "../lib/distanceAutoRouteGuideRing";
 import { formatLngLat } from "../lib/geo";
 import {
   bearingFromOriginToPoint,
   circleLineString,
 } from "../lib/distanceAutoRoute";
 import {
-  DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
+  formatDistanceAutoRouteDirectionClickHint,
   DISTANCE_AUTO_ROUTE_REROUTE_HINT,
   formatDistanceAutoRouteClientError,
   formatDistanceAutoRouteOfferedMessage,
@@ -117,33 +117,20 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
   const circleFitToken = circlePreviewState.fitToken;
 
   const circleGeometry = useMemo(() => {
-    // 바깥 원 = 1.5D (5A-R2 §2.2 정정). fitBounds·권장 띠 바깥 가장자리.
+    // 안내 원 = D (5A-R2c §2). 파선 하나. fitBounds도 이 원을 쓴다.
     if (circlePreview) {
-      const { outerKm } = resolveDistanceAutoRouteGuideRadii(circlePreview.targetKm);
-      return circleLineString(circlePreview.start, outerKm * 1000);
+      const radiusKm = resolveDistanceAutoRouteGuideRadiusKm(circlePreview.targetKm);
+      return circleLineString(circlePreview.start, radiusKm * 1000);
     }
     if (!start || step === "closed" || step === "pick_start") {
       return null;
     }
     if (step === "pick_direction" || step === "searching") {
-      const { outerKm } = resolveDistanceAutoRouteGuideRadii(targetMeters / 1000);
-      return circleLineString(start, outerKm * 1000);
+      const radiusKm = resolveDistanceAutoRouteGuideRadiusKm(targetMeters / 1000);
+      return circleLineString(start, radiusKm * 1000);
     }
     return null;
   }, [circlePreview, start, targetMeters, step]);
-
-  /**
-   * 도넛 안쪽 원 = D (5A-R2 §2.2 정정). 바깥 원(= 1.5D)은 `circleGeometry` 다.
-   * 안내용이므로 바깥 원이 있을 때만 그린다.
-   */
-  const innerCircleGeometry = useMemo(() => {
-    if (!circleGeometry) return null;
-    const center = circlePreview?.start ?? start;
-    if (!center) return null;
-    const km = circlePreview ? circlePreview.targetKm : targetMeters / 1000;
-    const { innerKm } = resolveDistanceAutoRouteGuideRadii(km);
-    return circleLineString(center, innerKm * 1000);
-  }, [circleGeometry, circlePreview, start, targetMeters]);
 
   const previewCircleAt = useCallback((input: { start: LngLat; targetKm: number }) => {
     setCirclePreviewState((prev) => ({
@@ -225,7 +212,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
       setStatusMessage(
         hasSuccessfulRoute
           ? DISTANCE_AUTO_ROUTE_REROUTE_HINT
-          : DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
+          : formatDistanceAutoRouteDirectionClickHint(validated.km),
       );
       lastSessionPrefsRef.current = { profile: input.profile, targetKm: validated.km };
       setStep("pick_direction");
@@ -245,17 +232,18 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
     [],
   );
 
+
   const resumePickDirection = useCallback(() => {
     if (!sessionActive || !start || !distanceDirectionMode) return;
     setPopupPickBound(true);
     setStatusMessage(
       hasSuccessfulRoute
         ? DISTANCE_AUTO_ROUTE_REROUTE_HINT
-        : DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
+        : formatDistanceAutoRouteDirectionClickHint(targetKm),
     );
     setStep("pick_direction");
     activeRequestIdRef.current = null;
-  }, [distanceDirectionMode, hasSuccessfulRoute, sessionActive, start]);
+  }, [distanceDirectionMode, hasSuccessfulRoute, sessionActive, start, targetKm]);
 
   const handleMapPick = useCallback(
     async (lngLat: LngLat): Promise<DistanceAutoRouteSearchResult | null> => {
@@ -459,7 +447,6 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
     statusMessage,
     bearingDeg,
     circleGeometry,
-    innerCircleGeometry,
     offeredState,
     circleFitToken,
     previewCircleAt,

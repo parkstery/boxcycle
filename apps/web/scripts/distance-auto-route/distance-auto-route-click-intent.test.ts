@@ -255,7 +255,7 @@ describe("distanceAutoRoute click intent 3F-C-R1", () => {
     // 문구에 실측값이 들어간다(막연한 「더 멀리」 금지)
     assert.match(searched.message, /0\.8 km/, `문구에 실측 도로거리가 없다: ${searched.message}`);
     assert.match(searched.message, /1\.0 km/, `문구에 목표가 없다: ${searched.message}`);
-    assert.match(searched.message, /원 바깥/, "어디를 클릭할지 안내가 없다");
+    assert.match(searched.message, /원 주변이나 바깥/, "어디를 클릭할지 안내가 없다");
   });
 
   // 5A-R2 §1: Stage 1 우회는 `road < D` 경로에서 호출되지 않으므로 「Stage 1 throw」가 없다.

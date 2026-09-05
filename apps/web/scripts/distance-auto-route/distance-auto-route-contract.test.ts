@@ -20,6 +20,7 @@ import {
   formatDistanceAutoRouteClientError,
   formatDistanceAutoRouteShortfallMessage,
   DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
+  formatDistanceAutoRouteDirectionClickHint,
   DISTANCE_AUTO_ROUTE_REROUTE_HINT,
   DISTANCE_AUTO_ROUTE_SERVER_UNAVAILABLE,
   validateDistanceAutoRouteTargetKm,
@@ -273,12 +274,16 @@ describe("distanceAutoRoute", () => {
     assert.match(MAP_VIEW_SOURCE, /clickLngLat/);
   });
 
-  it("방향 선택 안내 — popup 한 줄 클릭 힌트 (3F-C-R1: 도로 클릭 안내)", () => {
-    assert.match(HOOK_SOURCE, /DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT/);
-    assert.match(MAP_VIEW_SOURCE, /DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT/);
+  it("방향 선택 안내 — popup 한 줄 클릭 힌트 (5A-R2c: 원 반경 안내)", () => {
+    assert.match(HOOK_SOURCE, /formatDistanceAutoRouteDirectionClickHint/);
+    assert.match(MAP_VIEW_SOURCE, /formatDistanceAutoRouteDirectionClickHint/);
     assert.equal(
+      formatDistanceAutoRouteDirectionClickHint(5),
+      "5.0 km 반경의 원 주변 도로를 선택하세요",
+    );
+    assert.match(
       DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
-      "도착하고 싶은 도로 위 지점을 클릭하세요",
+      /반경의 원 주변 도로를 선택하세요/,
     );
   });
 

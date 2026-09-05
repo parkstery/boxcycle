@@ -17,7 +17,7 @@ import {
 import { ACTIVITY_TRACE_RED } from "../../lib/activityWorldTraceStyle";
 import { DISTANCE_AUTO_ROUTE_REFERENCE_CIRCLE_HINT } from "../../lib/distanceAutoRoute";
 import {
-  DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
+  formatDistanceAutoRouteDirectionClickHint,
   DISTANCE_AUTO_ROUTE_KM_MAX,
   DISTANCE_AUTO_ROUTE_KM_MIN,
   DISTANCE_AUTO_ROUTE_KM_STEP,
@@ -1334,11 +1334,6 @@ export type MapViewProps = {
   showRtwPoi?: boolean;
   /** 목표 거리 참고 원 — GeoJSON LineString(지도 stroke용) */
   distanceTargetCircle?: LineStringGeometry | null;
-  /**
-   * 도넛 안쪽 원(= D) — 이 안은 「너무 가까움」 실패 구역이다(5A-R2 §2.2 정정).
-   * 바깥 원(= 1.5D)은 `distanceTargetCircle` 로 그린다.
-   */
-  distanceTargetInnerCircle?: LineStringGeometry | null;
   /** 예상 시간 계산용 누적 주행(5A-R2 §4.3). 없으면 폴백 속도를 쓴다. */
   userMileageTotalMeters?: number | null;
   userMileageTotalSec?: number | null;
@@ -1458,7 +1453,6 @@ export function MapView({
   rideCameraDistanceM = RIDE_CAMERA_DISTANCE_DEFAULT_M,
   showRtwPoi = false,
   distanceTargetCircle = null,
-  distanceTargetInnerCircle = null,
   userMileageTotalMeters = null,
   userMileageTotalSec = null,
   distanceTargetCircleFitToken = 0,
@@ -2571,27 +2565,15 @@ export function MapView({
       return;
     }
 
-    /**
-     * 도넛 — 바깥 원(= 1.5D)과 안쪽 원(= D)을 **한 소스**에 담고 `ring` 속성으로 구분해 그린다.
-     * 안쪽(= D)은 부등식 경계(직선 ≥ D 면 「너무 가까움」이 불가능), 바깥(= 1.5D)은 UI 권장 띠다.
-     */
+    /** 안내 원 하나 = D (5A-R2c §2). 파선. 도넛(두 번째 링·채움) 없음. */
     const feature = {
       type: "FeatureCollection" as const,
       features: [
         {
           type: "Feature" as const,
-          properties: { ring: "outer" },
+          properties: {},
           geometry: distanceTargetCircle,
         },
-        ...(distanceTargetInnerCircle?.coordinates?.length
-          ? [
-              {
-                type: "Feature" as const,
-                properties: { ring: "inner" },
-                geometry: distanceTargetInnerCircle,
-              },
-            ]
-          : []),
       ],
     };
 
@@ -2621,10 +2603,9 @@ export function MapView({
           type: "line",
           source: DISTANCE_TARGET_CIRCLE_SRC,
           paint: {
-            // 안쪽 원은 「여기는 너무 가깝다」는 안내라 흐리게 — 판정선이 아니다.
             "line-color": ROUTE_LINE_COLOR,
-            "line-width": ["match", ["get", "ring"], "inner", 2, 3] as unknown as number,
-            "line-opacity": ["match", ["get", "ring"], "inner", 0.45, 0.95] as unknown as number,
+            "line-width": 3,
+            "line-opacity": 0.95,
             "line-dasharray": [2, 2],
           },
         },
@@ -2659,7 +2640,6 @@ export function MapView({
   }, [
     mapLoaded,
     distanceTargetCircle,
-    distanceTargetInnerCircle,
     distanceTargetCircleFitToken,
     prefersReducedMotion,
   ]);
@@ -4241,6 +4221,10 @@ function buildPickPopup(deps: {
     if (distanceDirectionChecked) {
       minusBtn.disabled = km <= DISTANCE_AUTO_ROUTE_KM_MIN;
       plusBtn.disabled = km >= DISTANCE_AUTO_ROUTE_KM_MAX;
+      // 원과 함께 안내 `{N}` 즉시 갱신(검색/결과 문구는 덮지 않음)
+      if (autoRouteStatus.dataset.phase === "direction") {
+        autoRouteStatus.textContent = formatDistanceAutoRouteDirectionClickHint(km);
+      }
     }
   }
 
@@ -4305,7 +4289,8 @@ function buildPickPopup(deps: {
       return;
     }
     if (phase === "direction") {
-      autoRouteStatus.textContent = message ?? DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT;
+      autoRouteStatus.textContent =
+        message ?? formatDistanceAutoRouteDirectionClickHint(targetKm);
       return;
     }
     if (phase === "searching") {
@@ -4354,7 +4339,7 @@ function buildPickPopup(deps: {
       "direction",
       rerouteReady || autoRouteStatusMessage === DISTANCE_AUTO_ROUTE_REROUTE_HINT
         ? DISTANCE_AUTO_ROUTE_REROUTE_HINT
-        : DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
+        : formatDistanceAutoRouteDirectionClickHint(validated.km),
     );
     onDirectionPickArmed?.();
   }

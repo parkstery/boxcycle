@@ -2,10 +2,6 @@
 export const DISTANCE_AUTO_ROUTE_DIRECTION_HINT =
   "지도에서 원하는 주행 방향을 선택하세요. 클릭한 지점까지의 거리가 아니라 방향만 사용합니다.";
 
-/** 방향 선택 모드 — popup 한 줄 상태 */
-export const DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT =
-  "도착하고 싶은 도로 위 지점을 클릭하세요";
-
 /** Route 생성 성공 후 같은 popup에서 재탐색 안내 */
 export const DISTANCE_AUTO_ROUTE_REROUTE_HINT =
   "경로 생성 완료 · 다른 방향을 클릭하면 다시 탐색합니다";
@@ -51,6 +47,23 @@ export const DISTANCE_AUTO_ROUTE_CHIP_KM: readonly number[] = [1, 3, 5, 10, 20];
 
 /** 기본 목표 거리(km) — 이어 달리기 루프가 핵심이라 짧게 여러 번이 낫다(5A-R2 §4.4) */
 export const DISTANCE_AUTO_ROUTE_DEFAULT_KM = 5;
+
+/**
+ * 방향 선택 모드 — popup 한 줄 안내(5A-R2c §2.5).
+ * `{N}` = 현재 목표 km(소수 한 자리). 목표 변경 시 원과 함께 즉시 갱신한다.
+ */
+export function formatDistanceAutoRouteDirectionClickHint(targetKm: number): string {
+  const n = Number(targetKm);
+  const safe =
+    Number.isFinite(n) && n > 0
+      ? Math.min(DISTANCE_AUTO_ROUTE_KM_MAX, Math.max(DISTANCE_AUTO_ROUTE_KM_MIN, n))
+      : DISTANCE_AUTO_ROUTE_DEFAULT_KM;
+  return `${safe.toFixed(1)} km 반경의 원 주변 도로를 선택하세요`;
+}
+
+/** 기본 목표(5 km) 기준 안내 — 동적 갱신은 formatDistanceAutoRouteDirectionClickHint */
+export const DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT =
+  formatDistanceAutoRouteDirectionClickHint(DISTANCE_AUTO_ROUTE_DEFAULT_KM);
 
 /**
  * 거리 슬라이더 **구간별 스냅**(5A-R1 §4.2).
