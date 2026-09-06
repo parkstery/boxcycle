@@ -1,0 +1,44 @@
+{
+  "viewport": {
+    "width": 844,
+    "height": 390
+  },
+  "results": [
+    {
+      "key": "before-collapsed",
+      "mode": "before-collapsed",
+      "dock_w": 90,
+      "dock_h": 58,
+      "shell_w": 90,
+      "shell_h": 58,
+      "shot": "C:\\20.HDev\\boxcycle-6a\\apps\\web\\scripts\\route-dock\\6a-r2-measure\\before-collapsed.png"
+    },
+    {
+      "key": "before-expanded",
+      "mode": "before-expanded",
+      "dock_w": 288,
+      "dock_h": 100,
+      "shell_w": 288,
+      "shell_h": 100,
+      "shot": "C:\\20.HDev\\boxcycle-6a\\apps\\web\\scripts\\route-dock\\6a-r2-measure\\before-expanded.png"
+    },
+    {
+      "key": "after-collapsed",
+      "mode": "after-collapsed",
+      "dock_w": 101,
+      "dock_h": 33,
+      "shell_w": 101,
+      "shell_h": 33,
+      "shot": "C:\\20.HDev\\boxcycle-6a\\apps\\web\\scripts\\route-dock\\6a-r2-measure\\after-collapsed.png"
+    },
+    {
+      "key": "after-expanded",
+      "mode": "after-expanded",
+      "dock_w": 184,
+      "dock_h": 130,
+      "shell_w": 184,
+      "shell_h": 130,
+      "shot": "C:\\20.HDev\\boxcycle-6a\\apps\\web\\scripts\\route-dock\\6a-r2-measure\\after-expanded.png"
+    }
+  ]
+}

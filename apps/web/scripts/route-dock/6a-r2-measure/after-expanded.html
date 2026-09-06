@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>6A-R2 dock measure</title>
+  <link id="dock-css" rel="stylesheet" href="file:///C:/20.HDev/boxcycle-6a/apps/web/src/components/route-dock/RouteDock.css" />
+  <style>
+    :root {
+      --rtw-glass-border: rgba(248, 250, 252, 0.18);
+      --rtw-radius: 14px;
+      --rtw-glass-bg-strong: rgba(10, 16, 26, 0.64);
+      --rtw-glass-blur: 12px;
+      --rtw-glass-shadow: 4px 8px 28px rgba(2, 8, 20, 0.4);
+      --rtw-text: #f8fafc;
+      --rtw-text-primary: #f8fafc;
+      --rtw-trace: #E8A33D;
+      --rtw-bg: #0f172a;
+      --mapbox-logo-clearance: 2.875rem;
+    }
+    html, body { margin: 0; height: 100%; background: #1e293b; font-family: system-ui, sans-serif; }
+    .hud-cadence {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      height: 2rem; padding: 0 0.65rem; border-radius: 999px;
+      border: 1px solid rgba(248,250,252,0.18); color: #f8fafc;
+      background: rgba(15,23,42,0.55); font-size: 0.75rem; font-weight: 700;
+    }
+    .hud-cadence__led { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: #22c55e; }
+    .hud-cadence__text { min-width: 2.8rem; }
+    #stage { position: relative; width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="stage"></div>
+  <script>
+    const mode = new URLSearchParams(location.search).get('mode') || 'after-collapsed';
+    const stage = document.getElementById('stage');
+
+    function chip() {
+      return `<button type="button" class="hud-cadence"><span class="hud-cadence__led"></span><span class="hud-cadence__text">CAD</span></button>`;
+    }
+
+    function panelExpanded() {
+      return `<div class="route-dock__panel hud-glass">
+        <header class="route-dock__head">
+          <button type="button" class="route-dock__go">Go</button>
+          <div class="route-dock__head-actions">
+            <button type="button" class="route-dock__save-trigger">내 경로로 저장</button>
+            <button type="button" class="route-dock__icon-btn">삭제</button>
+          </div>
+        </header>
+        <ul class="route-dock__stops" role="list">
+          <li><button type="button" class="route-dock__stop"><span class="route-dock__stop-dot route-dock__stop-dot--start">S</span><span class="route-dock__stop-label">서울시청</span></button><button type="button" class="route-dock__stop-remove">×</button></li>
+          <li><button type="button" class="route-dock__stop"><span class="route-dock__stop-dot route-dock__stop-dot--end">E</span><span class="route-dock__stop-label">한강공원</span></button><button type="button" class="route-dock__stop-remove">×</button></li>
+        </ul>
+      </div>`;
+    }
+
+    function beforeDock(expanded) {
+      const open = expanded ? ' route-dock-anchor--open' : '';
+      const panel = expanded
+        ? panelExpanded()
+        : `<div class="route-dock__panel hud-glass" hidden aria-hidden="true"></div>`;
+      return `<div class="route-dock-anchor${open}" id="dock">
+        <div class="route-dock__shell">
+          <button type="button" class="route-dock__caret hud-glass" aria-expanded="${expanded}">
+            <span class="route-dock__caret-name" aria-hidden>경로</span>
+            <svg class="route-dock__caret-icon" viewBox="0 0 24 24" width="14" height="14"><path d="M10 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.25"/></svg>
+          </button>
+          <div class="route-dock__sensor-rail">${chip()}</div>
+          ${panel}
+        </div>
+      </div>`;
+    }
+
+    function afterDock(expanded) {
+      const open = expanded ? ' route-dock-anchor--open' : '';
+      const panel = expanded
+        ? panelExpanded()
+        : `<div class="route-dock__panel hud-glass" hidden aria-hidden="true"></div>`;
+      return `<div class="route-dock-anchor${open}" id="dock">
+        <div class="route-dock__shell">
+          <div class="route-dock__topbar">
+            ${chip()}
+            <button type="button" class="route-dock__caret" aria-expanded="${expanded}">
+              <svg class="route-dock__caret-icon" viewBox="0 0 24 24" width="14" height="14"><path d="M6 14l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.25"/></svg>
+            </button>
+          </div>
+          ${panel}
+        </div>
+      </div>`;
+    }
+
+    const map = {
+      'before-collapsed': () => beforeDock(false),
+      'before-expanded': () => beforeDock(true),
+      'after-collapsed': () => afterDock(false),
+      'after-expanded': () => afterDock(true),
+    };
+    stage.innerHTML = (map[mode] || map['after-collapsed'])();
+  </script>
+</body>
+</html>

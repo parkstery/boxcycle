@@ -19,7 +19,7 @@ export const ENTRY_STEPS = [
   },
   {
     step: "cadence-chip",
-    desc: "Cadence sensor chip in RouteDock header (fallback MapHud TR when dock hidden); opens sensor sheet",
+    desc: "Cadence sensor chip in RouteDock top bar (dock stages include idle); opens sensor sheet",
     file: "src/components/maphud/CadenceHudChip.tsx",
     anchors: [
       { name: "칩 접근성 이름", re: /aria-label=\{view\.ariaLabel\}/ },

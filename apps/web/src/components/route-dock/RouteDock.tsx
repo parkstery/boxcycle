@@ -16,7 +16,7 @@ export type RouteDockCadence = {
 
 export type RouteDockProps = {
   stage: RideUiStage;
-  /** Sensor chip in always-visible rail (outside collapsible body). null hides. */
+  /** Sensor chip in always-visible top bar (outside collapsible panel). null hides. */
   cadence?: RouteDockCadence | null;
   stops: RouteDockStop[];
   routeLoading: boolean;
@@ -60,7 +60,7 @@ export function RouteDock(props: RouteDockProps) {
   } = props;
 
   const visible = isRouteDockStageVisible(stage);
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(() => visible && stops.length > 0);
   const [saveOpen, setSaveOpen] = useState(false);
   const [saveDraft, setSaveDraft] = useState("");
   const [saveBusy, setSaveBusy] = useState(false);
@@ -79,10 +79,19 @@ export function RouteDock(props: RouteDockProps) {
 
   // Expand when dock becomes relevant or stop count changes (same as former effect).
   // Render-time setState — avoids react-hooks/set-state-in-effect.
-  const [prevDockExpandKey, setPrevDockExpandKey] = useState({ visible, stopsLen: stops.length });
-  if (visible !== prevDockExpandKey.visible || stops.length !== prevDockExpandKey.stopsLen) {
-    setPrevDockExpandKey({ visible, stopsLen: stops.length });
+  const [prevDockExpandKey, setPrevDockExpandKey] = useState({
+    visible,
+    stopsLen: stops.length,
+    stage,
+  });
+  if (
+    visible !== prevDockExpandKey.visible ||
+    stops.length !== prevDockExpandKey.stopsLen ||
+    stage !== prevDockExpandKey.stage
+  ) {
+    setPrevDockExpandKey({ visible, stopsLen: stops.length, stage });
     if (visible && stops.length > 0) setExpanded(true);
+    else if (stage === "idle" && stops.length === 0) setExpanded(false);
   }
 
   async function commitSave(confirmUpdate = false) {
@@ -135,58 +144,56 @@ export function RouteDock(props: RouteDockProps) {
       aria-label="경로 설정"
     >
       <div className="route-dock__shell">
-        <button
-          type="button"
-          className="route-dock__caret hud-glass"
-          aria-expanded={expanded}
-          aria-label={expanded ? "경로 패널 접기" : "경로 패널 펼치기"}
-          title={expanded ? "접기" : "펼치기"}
-          onClick={() => setExpanded((v) => !v)}
-        >
-          <span className="route-dock__caret-name" aria-hidden>
-            경로
-          </span>
-          <svg
-            className="route-dock__caret-icon"
-            viewBox="0 0 24 24"
-            width="14"
-            height="14"
-            aria-hidden
-          >
-            {expanded ? (
-              <path
-                d="M14 6l-6 6 6 6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.25"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            ) : (
-              <path
-                d="M10 6l6 6-6 6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.25"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            )}
-          </svg>
-        </button>
-
-        {cadence ? (
-          <div className="route-dock__sensor-rail">
+        <div className="route-dock__topbar">
+          {cadence ? (
             <CadenceHudChip
               state={cadence.state}
               riding={stage === "riding" || stage === "paused"}
               open={cadence.open}
               onOpen={cadence.onOpen}
             />
-          </div>
-        ) : null}
+          ) : (
+            <span className="route-dock__topbar-spacer" aria-hidden />
+          )}
+          <button
+            type="button"
+            className="route-dock__caret"
+            aria-expanded={expanded}
+            aria-label={expanded ? "경로 패널 접기" : "경로 패널 펼치기"}
+            title={expanded ? "접기" : "펼치기"}
+            onClick={() => setExpanded((v) => !v)}
+          >
+            <svg
+              className="route-dock__caret-icon"
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              aria-hidden
+            >
+              {expanded ? (
+                <path
+                  d="M6 14l6-6 6 6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.25"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              ) : (
+                <path
+                  d="M6 10l6 6 6-6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.25"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )}
+            </svg>
+          </button>
+        </div>
 
-        <div
+<div
           className="route-dock__panel hud-glass"
           hidden={!expanded}
           aria-hidden={!expanded}

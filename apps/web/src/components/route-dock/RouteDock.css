@@ -20,7 +20,7 @@
 /* 단일 글래스 틀 — caret + 패널을 한 덩어리로 감싸 일체화 */
 .route-dock__shell {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: stretch;
   gap: 0;
   pointer-events: auto;
@@ -33,40 +33,50 @@
   overflow: hidden;
 }
 
+/* always-visible top bar: chip + collapse caret (height = chip + padding only) */
+.route-dock__topbar {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  padding: 0.28rem 0.4rem;
+  pointer-events: auto;
+}
+
+.route-dock__topbar-spacer {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.route-dock__topbar .hud-cadence {
+  height: 1.85rem;
+  padding: 0 0.55rem;
+  font-size: 0.7rem;
+  backdrop-filter: none;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.route-dock__topbar .hud-cadence__text {
+  min-width: 2.6rem;
+}
+
 .route-dock__caret {
   flex: 0 0 auto;
   display: inline-flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.3rem;
-  width: 1.55rem;
-  min-height: 2.75rem;
-  padding: 0.4rem 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  min-height: 0;
+  padding: 0;
   border: none;
+  border-radius: 8px;
   background: transparent;
   color: var(--rtw-text, #f8fafc);
   cursor: pointer;
   transition: background 0.14s ease, color 0.14s ease;
-}
-
-/* 접힌 상태에서 패널 이름을 캐럿 탭에 세로로 노출 (펼치면 헤더 제목이 대신함) */
-.route-dock__caret-name {
-  writing-mode: vertical-rl;
-  text-orientation: upright;
-  font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  opacity: 0.9;
-}
-
-.route-dock-anchor--open .route-dock__caret-name {
-  display: none;
-}
-
-/* 펼침 시 구분선 없음 — caret 는 hover 로만 구분 (틀은 shell 단일) */
-.route-dock-anchor--open .route-dock__caret {
-  min-height: 0;
 }
 
 .route-dock__caret:hover {
@@ -79,9 +89,9 @@
 }
 
 .route-dock__panel {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-width: 0;
-  width: min(21rem, calc(100vw - 2.5rem));
+  width: 100%;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -102,36 +112,15 @@
 @keyframes route-dock-panel-in {
   from {
     opacity: 0;
-    transform: translateX(-0.35rem);
+    transform: translateY(-0.25rem);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
   }
 }
 
 
-/* 6A: cadence sensor chip — always visible (outside collapsible panel) */
-.route-dock__sensor-rail {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  align-self: center;
-  padding: 0 0.28rem 0 0.1rem;
-  pointer-events: auto;
-}
-
-.route-dock__sensor-rail .hud-cadence {
-  height: 1.85rem;
-  padding: 0 0.55rem;
-  font-size: 0.7rem;
-  backdrop-filter: none;
-  background: rgba(15, 23, 42, 0.45);
-}
-
-.route-dock__sensor-rail .hud-cadence__text {
-  min-width: 2.6rem;
-}
 .route-dock__head {
   display: flex;
   align-items: center;
@@ -519,7 +508,7 @@
   }
 
   .route-dock__panel {
-    width: min(17.5rem, calc(100vw - 2.5rem));
+    width: 100%;
     gap: 0.3rem;
     padding: 0.35rem 0.4rem 0.4rem;
     max-height: min(52vh, 11rem);
@@ -555,22 +544,26 @@
     padding: 0.24rem 0.55rem;
   }
 
-  /* phone landscape: shrink rpm chip so Go is not displaced */
-  .route-dock__sensor-rail {
-    padding: 0 0.18rem 0 0.05rem;
+  /* phone landscape: shrink top-bar chip (vertical axis; panel below) */
+  .route-dock__topbar {
+    padding: 0.18rem 0.32rem;
   }
-  .route-dock__sensor-rail .hud-cadence {
+  .route-dock__topbar .hud-cadence {
     height: 1.55rem;
     padding: 0 0.38rem;
     font-size: 0.62rem;
     gap: 0.28rem;
   }
-  .route-dock__sensor-rail .hud-cadence__text {
+  .route-dock__topbar .hud-cadence__text {
     min-width: 2.1rem;
   }
-  .route-dock__sensor-rail .hud-cadence__led {
+  .route-dock__topbar .hud-cadence__led {
     width: 0.45rem;
     height: 0.45rem;
+  }
+  .route-dock__caret {
+    width: 1.5rem;
+    height: 1.5rem;
   }
 
   .route-dock__save-trigger,
