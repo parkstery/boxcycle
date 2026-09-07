@@ -294,6 +294,9 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
         anchorPlaceLabel: record.sessionEndPlaceLabel ?? null,
         profile,
         routeDistanceMeters,
+        // F4: persistence status (independent axes)
+        rideSaveStatus: "pending",
+        savedRouteProgressStatus: savedRouteIdAtEnd ? "pending" : "n/a",
       });
     } else {
       setLastRideResult?.(null);
@@ -453,7 +456,15 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
             session: sessionForPersist,
             conquest: conquestPayload,
           });
-          if (!rideId) return;
+          if (!rideId) {
+            // F4: ride save failed
+            setLastRideResult?.((prev) =>
+              prev && prev.recordId === record.id
+                ? { ...prev, rideSaveStatus: "failed" }
+                : prev,
+            );
+            return;
+          }
           
           // F1: serverRideId 연결 — 로컬 record와 Firestore doc ID 매핑
           const rowsWithServerId = loadRideSessions().map((r) =>
@@ -462,10 +473,10 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
           saveRideSessions(rowsWithServerId, user);
           setRecentSessions(rowsWithServerId);
           
-          // F1: RideEndResult에도 serverRideId 반영
+          // F1: RideEndResult에도 serverRideId 반영 + F4: ride save success
           setLastRideResult?.((prev) =>
             prev && prev.recordId === record.id
-              ? { ...prev, serverRideId: rideId }
+              ? { ...prev, serverRideId: rideId, rideSaveStatus: "success" }
               : prev,
           );
           // aggregate 재조회는 onRidePersisted에서 수행 — 여기서 invalidate 하면
@@ -526,21 +537,35 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
                     : r,
                 ),
               );
+              // F4: Firestore progress update success
               setLastRideResult?.((prev) =>
                 prev && prev.recordId === record.id
                   ? {
                       ...prev,
                       progressRatio: appliedProgress,
                       routeCompleted: appliedCompleted === 1,
+                      savedRouteProgressStatus: "success",
                     }
                   : prev,
               );
             } catch (e) {
               console.warn("[savedRoutes] 진행/격상 갱신 실패", e);
+              // F4: Firestore progress update failed
+              setLastRideResult?.((prev) =>
+                prev && prev.recordId === record.id
+                  ? { ...prev, savedRouteProgressStatus: "failed" }
+                  : prev,
+              );
             }
           } else if (savedRouteIdAtEnd && rideCompletedRoute) {
             promoteSavedRouteInLocal({ routeId: savedRouteIdAtEnd, rideId });
             setSavedRoutes(loadSavedRoutesFromLocal());
+            // F4: local promote success
+            setLastRideResult?.((prev) =>
+              prev && prev.recordId === record.id
+                ? { ...prev, savedRouteProgressStatus: "success" }
+                : prev,
+            );
           } else if (savedRouteIdAtEnd) {
             // 로컬(게스트) 미완주 — Firestore transaction 과 같은 단조 규칙(내부에서 max 유지)
             const applied = updateSavedRouteProgressInLocal({
@@ -548,16 +573,18 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
               rideId,
               progressRatio: progressToSave,
             });
-            setSavedRoutes(loadSavedRoutesFromLocal());
-            setLastRideResult?.((prev) =>
-              prev && prev.recordId === record.id
-                ? {
-                    ...prev,
-                    progressRatio: applied.progressRatio,
-                    routeCompleted: applied.completed === 1,
-                  }
-                : prev,
-            );
+              setSavedRoutes(loadSavedRoutesFromLocal());
+              // F4: progress update success (local guest)
+              setLastRideResult?.((prev) =>
+                prev && prev.recordId === record.id
+                  ? {
+                      ...prev,
+                      progressRatio: applied.progressRatio,
+                      routeCompleted: applied.completed === 1,
+                      savedRouteProgressStatus: "success",
+                    }
+                  : prev,
+              );
           } else if (
             routeGeometry &&
             routeGeometry.coordinates.length >= 2 &&
@@ -574,10 +601,22 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
               waypoints: routeWaypoints.slice(0, MAX_ROUTE_WAYPOINTS),
               profile,
               rideId,
-            });
+            }            );
           }
+          // F4: progress update success (for routes without explicit update above)
+          setLastRideResult?.((prev) =>
+            prev && prev.recordId === record.id && prev.savedRouteProgressStatus === "pending"
+              ? { ...prev, savedRouteProgressStatus: "success" }
+              : prev,
+          );
         } catch {
           // Firestore 저장 실패 시 로컬 저장본은 유지한다.
+          // F4: progress update failed (independent from ride save)
+          setLastRideResult?.((prev) =>
+            prev && prev.recordId === record.id && prev.savedRouteProgressStatus === "pending"
+              ? { ...prev, savedRouteProgressStatus: "failed" }
+              : prev,
+          );
         }
       })();
     } else if (!discardRecord && savedRouteIdAtEnd) {

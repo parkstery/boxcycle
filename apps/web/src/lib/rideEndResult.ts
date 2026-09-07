@@ -44,6 +44,10 @@ export type RideEndResult = {
   routeDistanceMeters: number;
   /** F3: Conquest 결과 (rides/{serverRideId}.conquestResult). serverRideId가 없으면 unsaved */
   conquest?: RideConquestResult;
+  /** F4: Ride save 상태 (Firestore rides 저장 성공 여부) */
+  rideSaveStatus?: "pending" | "success" | "failed";
+  /** F4: SavedRoute progress 상태 (Firestore progress 업데이트 성공 여부, 독립 축) */
+  savedRouteProgressStatus?: "pending" | "success" | "failed" | "n/a";
 };
 
 /** 진행률(0..1) → 표시용 정수 % */
