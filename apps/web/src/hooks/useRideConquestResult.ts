@@ -9,6 +9,7 @@ import {
   EMPTY_CONQUEST_RESULT,
   parseConquestResult,
   isRideOwnedByUser,
+  isRideIdMatch,
   type RideConquestResult,
 } from "../lib/rideConquestResult";
 
@@ -51,6 +52,12 @@ export function useRideConquestResult(
         const data = snap.data();
         // F5: userId 일치 확인 (다른 사용자의 주행 결과를 내 result로 표시하지 않음)
         if (!isRideOwnedByUser(data?.userId as string | undefined, userId)) {
+          setResult({ status: "error", newMeters: 0 });
+          return;
+        }
+
+        // F5: delayed snap guard — active serverRideId 변경 후 늦은 응답 거부
+        if (!isRideIdMatch(serverRideId, snap.id)) {
           setResult({ status: "error", newMeters: 0 });
           return;
         }
