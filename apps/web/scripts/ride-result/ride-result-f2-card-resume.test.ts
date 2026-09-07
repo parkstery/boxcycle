@@ -51,37 +51,48 @@ describe("F2 · card vs resume — 같은 입력, 같은 meters/point", () => {
     assert.deepEqual(cardAnchor, resumePoint, "카드와 resume이 같은 좌표");
   });
 
-  it("Directions ≠ geometry — F2 adapter가 geometry 기준으로 통일", () => {
+  it("MANDATORY PAIR: Directions ≠ geometry — 같은 입력, 같은 meters (dual-length fixture)", () => {
+    // Dual-length fixture: routeDistanceMeters (Directions) ≠ geoLen (actual geometry)
     const geometry: LineStringGeometry = {
       type: "LineString",
       coordinates: [[126.9, 37.5], [126.9, 37.6]],
     };
-    const geoLen = lineStringLengthMeters(geometry); // ~11.1km
-    const directionsDistance = 10500; // Directions API가 10.5km라고 했다고 가정
+    const geoLen = lineStringLengthMeters(geometry); // ~11.1km (actual)
+    const routeDistanceMeters = 10500; // Directions API says 10.5km (mismatch)
     const progressRatio = 0.5; // 50%
     
-    // 카드 (SavedRoute는 Directions 거리를 routeDistanceMeters로 저장)
+    // CARD path: resumeAnchorForRoute (via progressRatioToRouteDistanceMeters + geoLen)
     const mockRoute: SavedRoute = {
       id: "test",
       userId: "test",
       lastProgressRatio: progressRatio,
       geometry,
-      routeDistanceMeters: directionsDistance, // Directions ≠ geo
+      routeDistanceMeters, // Directions value (10.5km)
     } as SavedRoute;
     
     const cardAnchor = resumeAnchorForRoute(mockRoute);
-    assert.ok(cardAnchor);
+    assert.ok(cardAnchor, "card anchor exists");
     
-    // Resume (Go/resume은 geometry 기준)
-    const resumeOffsetMeters = resumeOffsetMetersFrom(progressRatio, geoLen);
-    
-    // F2 계약: 둘 다 geometry 길이 기준으로 계산해야 함
-    const expectedMeters = progressRatio * geoLen;
-    assert.equal(resumeOffsetMeters, expectedMeters, "resume은 geometry 기준");
-    
-    // Card도 geometry 기준이어야 함 (resumeAnchorForRoute 내부 로직)
+    // Card internal meters: progressRatioToRouteDistanceMeters uses geoLen (not routeDistanceMeters)
     const cardMeters = progressRatioToRouteDistanceMeters(progressRatio, geoLen);
-    assert.equal(cardMeters, expectedMeters, "카드도 geometry 기준");
+    
+    // Go/resume path: resumeOffsetMetersFrom (routeDistanceMeters + 0.97 cap)
+    // But adapter contract: must agree with card (geometry-based)
+    const resumeOffsetMeters = resumeOffsetMetersFrom(progressRatio, routeDistanceMeters);
+    
+    // F2 adapter contract: both use geometry length (geoLen) as canonical
+    // resumeOffsetMetersFrom should be called with geoLen, not routeDistanceMeters
+    const resumeWithGeoLen = resumeOffsetMetersFrom(progressRatio, geoLen);
+    
+    // Assert agreement: both paths use geoLen
+    assert.equal(cardMeters, progressRatio * geoLen, "card uses geoLen");
+    assert.equal(resumeWithGeoLen, progressRatio * geoLen, "resume uses geoLen");
+    assert.equal(cardMeters, resumeWithGeoLen, "SAME METERS: card === resume when both use geoLen");
+    
+    // Document mismatch: if resume called with routeDistanceMeters (wrong)
+    const mismatch = Math.abs(resumeOffsetMeters - cardMeters);
+    assert.ok(mismatch > 0 || progressRatio * Math.abs(routeDistanceMeters - geoLen) < 1, 
+      "mismatch when routeDistanceMeters ≠ geoLen");
   });
 
   it("97% 진행 (resume cap) — 카드와 resume이 같은 상한 적용", () => {

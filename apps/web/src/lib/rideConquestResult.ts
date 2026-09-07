@@ -83,3 +83,40 @@ export function formatConquestSummaryLine(result: RideConquestResult): string | 
   const km = result.newMeters / 1000;
   return `새 도로 +${km.toFixed(result.newMeters < 10000 ? 1 : 0)}km`;
 }
+
+/**
+ * F5: Ownership guard — 순수 함수로 추출 (useRideConquestResult에서 사용)
+ * 
+ * Firestore snapshot의 userId가 현재 active userId와 일치하는지 확인.
+ * 다른 사용자의 주행 결과가 내 result로 잘못 적용되지 않도록 보호.
+ * 
+ * @param docUserId - Firestore doc의 userId 필드
+ * @param activeUserId - 현재 로그인한 사용자 ID
+ * @returns userId 일치하면 true (적용 가능), 불일치하면 false (거부)
+ */
+export function isRideOwnedByUser(
+  docUserId: string | null | undefined,
+  activeUserId: string | null | undefined,
+): boolean {
+  if (!activeUserId) return false; // 로그인 안 됨
+  if (!docUserId) return false; // doc에 userId 없음
+  return docUserId === activeUserId;
+}
+
+/**
+ * F5/C12: serverRideId 일치 확인 (delayed response가 wrong ride에 적용 방지)
+ * 
+ * serverRideId는 구독 경로(doc(rides, serverRideId))에 implicit하지만,
+ * 테스트/문서화를 위해 명시적 guard 제공.
+ * 
+ * @param expectedRideId - 구독 중인 ride ID
+ * @param actualRideId - snapshot에서 온 ride ID (보통 doc path와 동일)
+ * @returns 일치하면 true, 불일치하면 false
+ */
+export function isRideIdMatch(
+  expectedRideId: string | null | undefined,
+  actualRideId: string | null | undefined,
+): boolean {
+  if (!expectedRideId || !actualRideId) return false;
+  return expectedRideId === actualRideId;
+}
