@@ -169,8 +169,6 @@ export default function App() {
     cellIds: conquestCellIds,
     traces: conquestTraces,
   } = useConquest(user, configured);
-  /** 주행 시작 시점 정복 스냅샷 — 주행 요약 「새 도로 +N km」 델타 계산용 */
-  const [conquestBaseline, setConquestBaseline] = useState<{ meters: number } | null>(null);
 
   const [mapStyle, setMapStyle] = useState(DEFAULT_MAP_STYLE);
   const [showRtwPoi, setShowRtwPoi] = useState(false);
@@ -935,19 +933,11 @@ export default function App() {
   useEffect(() => {
     crankRpmForConquestRef.current = bleCrankRpm.crankRpm;
   }, [bleCrankRpm.crankRpm]);
-  const conquestSummaryRef = useRef(conquestSummary);
-  useEffect(() => {
-    conquestSummaryRef.current = conquestSummary;
-  }, [conquestSummary]);
   const prevRideStatusRef = useRef(rideStatus);
   useEffect(() => {
     if (prevRideStatusRef.current === "idle" && rideStatus === "running") {
       // 새 세션 시작 — 센서 신호를 보기 전까지는 null(T0) 유지
       pedalActiveSecRef.current = null;
-      // 주행 요약 「새 도로 +N km」 델타 기준점
-      setConquestBaseline({
-        meters: conquestSummaryRef.current?.totalMeters ?? 0,
-      });
     }
     prevRideStatusRef.current = rideStatus;
     if (rideStatus !== "running") return;
@@ -981,14 +971,6 @@ export default function App() {
     () => (conquestTraces ? conquestTraces.map((t) => t.geometry) : null),
     [conquestTraces],
   );
-
-  /** 주행 요약 「새 도로 +N km」 — CF 집계 완료 시 반응형 갱신 */
-  const conquestSummaryLine = useMemo(() => {
-    if (!conquestSummary || !conquestBaseline) return null;
-    const newMeters = Math.max(0, conquestSummary.totalMeters - conquestBaseline.meters);
-    if (newMeters < 50) return null; // 50m 미만은 「+0.0km」 — 미표시(0 미표시 원칙)
-    return `새 도로 +${(newMeters / 1000).toFixed(newMeters < 10000 ? 1 : 0)}km`;
-  }, [conquestSummary, conquestBaseline]);
 
   const { coachData, rideElevationProfile, rideBgmCatalogConfigured } = useRideCoachingMedia({
     routeGeometry,
@@ -2513,8 +2495,8 @@ export default function App() {
         distanceKm={sessionDistanceKmLabel}
         avgKmh={avgSpeedLabel}
         caloriesEstimate={caloriesEstimate}
-        conquestLine={conquestSummaryLine}
         adhocSaveAvailable={lastEndedWasAdhoc !== null}
+        userId={user?.uid}
         maxNameLength={SAVED_ROUTE_NAME_MAX}
         suggestedName={suggestedRouteName}
         onSaveAdhoc={async (name, confirmUpdate) => {

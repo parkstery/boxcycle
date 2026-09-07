@@ -454,6 +454,20 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
             conquest: conquestPayload,
           });
           if (!rideId) return;
+          
+          // F1: serverRideId 연결 — 로컬 record와 Firestore doc ID 매핑
+          const rowsWithServerId = loadRideSessions().map((r) =>
+            r.id === record.id ? { ...r, serverRideId: rideId } : r,
+          );
+          saveRideSessions(rowsWithServerId, user);
+          setRecentSessions(rowsWithServerId);
+          
+          // F1: RideEndResult에도 serverRideId 반영
+          setLastRideResult?.((prev) =>
+            prev && prev.recordId === record.id
+              ? { ...prev, serverRideId: rideId }
+              : prev,
+          );
           // aggregate 재조회는 onRidePersisted에서 수행 — 여기서 invalidate 하면
           // CF `recentRideCount7d` 반영 전 서버 0이 낙관 heat를 지워 버린다.
           onRidePersistedToFirestore?.(persistedPublicationId);

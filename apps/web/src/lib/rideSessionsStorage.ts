@@ -5,6 +5,8 @@ const SESSIONS_KEY = "boxcycle_web_ride_sessions_v1";
 
 export type StoredRideSession = {
   id: string;
+  /** Firestore rides/{} 문서 ID (서버 부여). F1: local↔server identity link */
+  serverRideId?: string | null;
   endedAt: string;
   elapsedSec: number;
   distanceMeters: number;
@@ -62,6 +64,7 @@ export function saveRideSessions(items: StoredRideSession[], user: User | null):
  * 이어 달리기로 이동수단이 바뀌면 실제로 재실행된다) 아직 최신 주행이 없는 서버 응답이
  * 로컬을 통째로 덮어써, 「다음 주행」 카드가 **한 세대 전**을 가리킨다(2026-09-03 결함 ⑦).
  *
+ * F1: serverRideId 기준 중복 제거 — 한 주행이 한 행. local id ≠ server id 를 연결한다.
  * id 기준 합집합 · `endedAt` 내림차순 · 상한 `limit`.
  */
 export function mergeRecentRideSessions(
@@ -70,9 +73,29 @@ export function mergeRecentRideSessions(
   limit = 50,
 ): StoredRideSession[] {
   const byId = new Map<string, StoredRideSession>();
-  // 로컬을 먼저 넣고 서버로 덮는다 — 같은 id 면 서버판이 정본(지명 역지오코딩 등 후처리 반영).
-  for (const row of localRows) if (row?.id) byId.set(row.id, row);
-  for (const row of serverRows) if (row?.id) byId.set(row.id, row);
+  const byServerId = new Map<string, StoredRideSession>();
+  
+  // F1: serverRideId로 먼저 매핑 (한 주행 = 한 행 보장)
+  for (const row of serverRows) {
+    if (!row?.id) continue;
+    byId.set(row.id, row);
+    if (row.serverRideId) byServerId.set(row.serverRideId, row);
+  }
+  
+  for (const row of localRows) {
+    if (!row?.id) continue;
+    // F1: serverRideId가 있으면 이미 서버에 있는 주행 → 서버판 유지
+    if (row.serverRideId && byServerId.has(row.serverRideId)) {
+      // 서버판에 로컬의 serverRideId를 보존 (병합)
+      const existing = byServerId.get(row.serverRideId)!;
+      byId.set(existing.id, { ...existing, serverRideId: row.serverRideId });
+      continue;
+    }
+    // 같은 local id면 서버판이 정본
+    if (byId.has(row.id)) continue;
+    byId.set(row.id, row);
+  }
+  
   const endedAtMs = (r: StoredRideSession) => {
     const t = Date.parse(r.endedAt ?? "");
     return Number.isFinite(t) ? t : 0;
