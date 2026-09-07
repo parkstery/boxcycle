@@ -8,6 +8,7 @@ import { getFirebaseFirestore } from "../lib/firebase";
 import {
   EMPTY_CONQUEST_RESULT,
   parseConquestResult,
+  isRideOwnedByUser,
   type RideConquestResult,
 } from "../lib/rideConquestResult";
 
