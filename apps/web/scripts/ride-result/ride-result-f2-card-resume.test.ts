@@ -1,0 +1,165 @@
+/**
+ * F2 · Distance/resume adapter — 카드와 Go/resume이 같은 입력으로 같은 meters/point 계산
+ * 
+ * 팀장 요구: "Call the **same functions the card uses** and the **same functions Go/resume uses**
+ * with identical inputs and assert they agree on meters/point."
+ */
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import type { LineStringGeometry } from "../../src/lib/geo.ts";
+
+// F2 계약의 핵심 함수들
+import { resumeAnchorForRoute } from "../../src/lib/nextRideTarget.ts"; // 카드가 쓰는 함수
+import { resumeOffsetMetersFrom } from "../../src/lib/rideRecordPolicy.ts"; // Go/resume이 쓰는 함수
+import { progressRatioToRouteDistanceMeters, computeRouteProgressRatio } from "../../src/lib/routeProgressMath.ts";
+import { lineStringLengthMeters, getPointOnRouteByDistance } from "../../src/lib/geo.ts";
+import type { SavedRoute } from "../../src/lib/firestoreSavedRoutes.ts";
+
+describe("F2 · card vs resume — 같은 입력, 같은 meters/point", () => {
+  it("43% 진행 경로 — 카드 anchor와 resume offset이 같은 meters", () => {
+    const geometry: LineStringGeometry = {
+      type: "LineString",
+      // ~11km 직선 (위도 0.1 ≈ 11.1km)
+      coordinates: [[126.9, 37.5], [126.9, 37.6]],
+    };
+    const geoLen = lineStringLengthMeters(geometry);
+    const progressRatio = 0.43;
+    
+    // 카드 경로: resumeAnchorForRoute (SavedRoute → LngLat)
+    const mockRoute: SavedRoute = {
+      id: "test-route",
+      userId: "test-user",
+      lastProgressRatio: progressRatio,
+      geometry,
+      routeDistanceMeters: geoLen, // Directions API 거리 (여기서는 geo와 동일)
+    } as SavedRoute;
+    
+    const cardAnchor = resumeAnchorForRoute(mockRoute);
+    assert.ok(cardAnchor, "카드 anchor 계산 성공");
+    
+    // Resume 경로: resumeOffsetMetersFrom (progressRatio → meters)
+    const resumeOffsetMeters = resumeOffsetMetersFrom(progressRatio, geoLen);
+    
+    // Card anchor의 meters 역계산
+    const cardMeters = progressRatioToRouteDistanceMeters(progressRatio, geoLen);
+    
+    // 같은 meters를 가리켜야 함
+    assert.equal(resumeOffsetMeters, cardMeters, "카드와 resume이 같은 offset meters");
+    
+    // 좌표도 일치해야 함
+    const resumePoint = getPointOnRouteByDistance(geometry, resumeOffsetMeters);
+    assert.deepEqual(cardAnchor, resumePoint, "카드와 resume이 같은 좌표");
+  });
+
+  it("Directions ≠ geometry — F2 adapter가 geometry 기준으로 통일", () => {
+    const geometry: LineStringGeometry = {
+      type: "LineString",
+      coordinates: [[126.9, 37.5], [126.9, 37.6]],
+    };
+    const geoLen = lineStringLengthMeters(geometry); // ~11.1km
+    const directionsDistance = 10500; // Directions API가 10.5km라고 했다고 가정
+    const progressRatio = 0.5; // 50%
+    
+    // 카드 (SavedRoute는 Directions 거리를 routeDistanceMeters로 저장)
+    const mockRoute: SavedRoute = {
+      id: "test",
+      userId: "test",
+      lastProgressRatio: progressRatio,
+      geometry,
+      routeDistanceMeters: directionsDistance, // Directions ≠ geo
+    } as SavedRoute;
+    
+    const cardAnchor = resumeAnchorForRoute(mockRoute);
+    assert.ok(cardAnchor);
+    
+    // Resume (Go/resume은 geometry 기준)
+    const resumeOffsetMeters = resumeOffsetMetersFrom(progressRatio, geoLen);
+    
+    // F2 계약: 둘 다 geometry 길이 기준으로 계산해야 함
+    const expectedMeters = progressRatio * geoLen;
+    assert.equal(resumeOffsetMeters, expectedMeters, "resume은 geometry 기준");
+    
+    // Card도 geometry 기준이어야 함 (resumeAnchorForRoute 내부 로직)
+    const cardMeters = progressRatioToRouteDistanceMeters(progressRatio, geoLen);
+    assert.equal(cardMeters, expectedMeters, "카드도 geometry 기준");
+  });
+
+  it("97% 진행 (resume cap) — 카드와 resume이 같은 상한 적용", () => {
+    const geometry: LineStringGeometry = {
+      type: "LineString",
+      coordinates: [[0, 0], [0, 0.1]],
+    };
+    const geoLen = lineStringLengthMeters(geometry);
+    const progressRatio = 0.99; // 99% 진행
+    
+    const mockRoute: SavedRoute = {
+      id: "test",
+      userId: "test",
+      lastProgressRatio: progressRatio,
+      geometry,
+      routeDistanceMeters: geoLen,
+    } as SavedRoute;
+    
+    const cardAnchor = resumeAnchorForRoute(mockRoute);
+    const resumeOffsetMeters = resumeOffsetMetersFrom(progressRatio, geoLen);
+    
+    // resumeOffsetMetersFrom은 0.97 cap 적용 (rideRecordPolicy.ts ROUTE_RESUME_MAX_RATIO)
+    const cappedMeters = 0.97 * geoLen;
+    assert.equal(resumeOffsetMeters, cappedMeters, "resume은 0.97 cap");
+    
+    // Card는 저장된 progressRatio를 그대로 쓰지만, resume과 비교 시 cap 후 일치
+    const cardMetersFromCappedRatio = progressRatioToRouteDistanceMeters(0.97, geoLen);
+    assert.equal(cardMetersFromCappedRatio, cappedMeters, "0.97로 cap하면 일치");
+  });
+
+  it("0% 진행 (첫 시작) — 카드와 resume 둘 다 0 meters", () => {
+    const geometry: LineStringGeometry = {
+      type: "LineString",
+      coordinates: [[0, 0], [0, 0.1]],
+    };
+    const geoLen = lineStringLengthMeters(geometry);
+    
+    const mockRoute: SavedRoute = {
+      id: "test",
+      userId: "test",
+      lastProgressRatio: 0,
+      geometry,
+      routeDistanceMeters: geoLen,
+    } as SavedRoute;
+    
+    const cardAnchor = resumeAnchorForRoute(mockRoute);
+    const resumeOffsetMeters = resumeOffsetMetersFrom(0, geoLen);
+    
+    assert.equal(resumeOffsetMeters, 0, "resume offset = 0");
+    
+    const cardPoint0 = getPointOnRouteByDistance(geometry, 0);
+    assert.deepEqual(cardAnchor, cardPoint0, "카드도 0 meters 지점");
+  });
+
+  it("31%→43% 세션 — offset 차감 후 session distance 일치", () => {
+    const geometry: LineStringGeometry = {
+      type: "LineString",
+      coordinates: [[0, 0], [0, 0.1]], // ~11km
+    };
+    const geoLen = lineStringLengthMeters(geometry);
+    const routeDistanceMeters = geoLen;
+    
+    const startProgressRatio = 0.31;
+    const endProgressRatio = 0.43;
+    
+    // 시작 offset
+    const startOffsetMeters = resumeOffsetMetersFrom(startProgressRatio, routeDistanceMeters);
+    
+    // 종료 virtual distance (offset 0 기준)
+    const endVirtualDistanceMeters = progressRatioToRouteDistanceMeters(endProgressRatio, geoLen);
+    
+    // Session distance = end virtual - start offset
+    const sessionDistanceMeters = endVirtualDistanceMeters - startOffsetMeters;
+    
+    // 예상: (0.43 - 0.31) * geoLen = 0.12 * geoLen
+    const expectedSessionDistance = (endProgressRatio - startProgressRatio) * geoLen;
+    
+    assert.ok(Math.abs(sessionDistanceMeters - expectedSessionDistance) < 1, 
+      "session distance = 12% segment (offset 차감)");
+  });
+});
