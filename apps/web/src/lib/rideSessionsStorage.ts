@@ -64,41 +64,50 @@ export function saveRideSessions(items: StoredRideSession[], user: User | null):
  * 이어 달리기로 이동수단이 바뀌면 실제로 재실행된다) 아직 최신 주행이 없는 서버 응답이
  * 로컬을 통째로 덮어써, 「다음 주행」 카드가 **한 세대 전**을 가리킨다(2026-09-03 결함 ⑦).
  *
- * F1: serverRideId 기준 중복 제거 — 한 주행이 한 행. local id ≠ server id 를 연결한다.
- * id 기준 합집합 · `endedAt` 내림차순 · 상한 `limit`.
+ * F1 (fixed): serverRideId 기준 중복 제거 — 한 주행이 한 행.
+ * - 서버 세션: id = serverRideId = Firestore doc ID
+ * - 로컬 세션: id = UUID, serverRideId = Firestore doc ID (저장 후 채워짐)
+ * - serverRideId로 매칭하여 한 주행이 두 행으로 중복되지 않게 함
  */
 export function mergeRecentRideSessions(
   serverRows: readonly StoredRideSession[],
   localRows: readonly StoredRideSession[],
   limit = 50,
 ): StoredRideSession[] {
-  const byId = new Map<string, StoredRideSession>();
   const byServerId = new Map<string, StoredRideSession>();
+  const localOnlyById = new Map<string, StoredRideSession>();
   
-  // F1: serverRideId로 먼저 매핑 (한 주행 = 한 행 보장)
+  // 1. 서버 세션을 serverRideId로 매핑 (서버 세션의 id = serverRideId)
   for (const row of serverRows) {
     if (!row?.id) continue;
-    byId.set(row.id, row);
-    if (row.serverRideId) byServerId.set(row.serverRideId, row);
+    const serverId = row.serverRideId || row.id; // 서버판은 id가 곧 serverRideId
+    byServerId.set(serverId, row);
   }
   
+  // 2. 로컬 세션 처리
   for (const row of localRows) {
     if (!row?.id) continue;
-    // F1: serverRideId가 있으면 이미 서버에 있는 주행 → 서버판 유지
+    
+    // serverRideId가 있으면 서버와 매칭 시도
     if (row.serverRideId && byServerId.has(row.serverRideId)) {
-      // 서버판에 로컬의 serverRideId를 보존 (병합)
+      // 이미 서버에 있음 → 서버판이 정본 (지명 역지오코딩 등 후처리 반영)
+      // 단, 서버판이 아직 serverRideId를 명시하지 않았다면 추가
       const existing = byServerId.get(row.serverRideId)!;
-      byId.set(existing.id, { ...existing, serverRideId: row.serverRideId });
+      if (!existing.serverRideId) {
+        byServerId.set(row.serverRideId, { ...existing, serverRideId: row.serverRideId });
+      }
       continue;
     }
-    // 같은 local id면 서버판이 정본
-    if (byId.has(row.id)) continue;
-    byId.set(row.id, row);
+    
+    // serverRideId가 없거나 서버에 아직 없음 → 로컬 전용 (in-flight)
+    localOnlyById.set(row.id, row);
   }
   
+  // 3. 합치고 정렬
+  const all = [...byServerId.values(), ...localOnlyById.values()];
   const endedAtMs = (r: StoredRideSession) => {
     const t = Date.parse(r.endedAt ?? "");
     return Number.isFinite(t) ? t : 0;
   };
-  return [...byId.values()].sort((a, b) => endedAtMs(b) - endedAtMs(a)).slice(0, limit);
+  return all.sort((a, b) => endedAtMs(b) - endedAtMs(a)).slice(0, limit);
 }

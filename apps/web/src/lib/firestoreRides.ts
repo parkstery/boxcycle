@@ -238,6 +238,7 @@ export async function loadRideSessionsForStatsFromFirestore(
           : new Date().toISOString();
       return {
         id: d.id,
+        serverRideId: d.id, // F1: 서버 세션의 id = serverRideId (merge 시 매칭용)
         endedAt,
         elapsedSec: Number(data.elapsedSec ?? 0),
         distanceMeters: Number(data.distanceMeters ?? 0),

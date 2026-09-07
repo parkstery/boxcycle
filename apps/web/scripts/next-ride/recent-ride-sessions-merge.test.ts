@@ -36,21 +36,30 @@ describe("M0 · 시험 자가 검산", () => {
 describe("결함 ⑦ · 서버 응답이 로컬 최신을 덮지 않는다", () => {
   it("서버에 아직 없는 최신 주행이 살아남고 맨 앞에 온다", () => {
     const newest = session("r2", "2026-09-03T07:58:00.000Z");
+    // F1 fix: 서버 세션은 serverRideId도 설정해야 함
     const merged = mergeRecentRideSessions(
-      [session("r1", "2026-09-03T07:50:00.000Z")], // 서버 — 한 세대 뒤
-      [newest, session("r1", "2026-09-03T07:50:00.000Z")],
+      [session("r1", "2026-09-03T07:50:00.000Z", { serverRideId: "r1" })], // 서버 — 한 세대 뒤
+      [newest, session("r1-local", "2026-09-03T07:50:00.000Z", { serverRideId: "r1" })],
     );
     assert.equal(merged[0]?.id, "r2", "카드가 한 세대 전을 가리킨다");
-    assert.equal(merged.length, 2);
+    assert.equal(merged.length, 2, "서버 r1 + 로컬 r2");
   });
 
-  it("같은 id 는 서버판이 정본이다(지명 등 후처리 반영)", () => {
+  it("같은 serverRideId 는 서버판이 정본이다(지명 등 후처리 반영)", () => {
+    // F1 fix: 서버 세션 (id=serverRideId) vs 로컬 세션 (id=uuid, serverRideId=서버id)
     const merged = mergeRecentRideSessions(
-      [session("r1", "2026-09-03T07:50:00.000Z", { endPlaceLabel: "논현로98길" })],
-      [session("r1", "2026-09-03T07:50:00.000Z", { endPlaceLabel: undefined })],
+      [session("server-r1", "2026-09-03T07:50:00.000Z", { 
+        serverRideId: "server-r1",
+        endPlaceLabel: "논현로98길" 
+      })],
+      [session("local-uuid", "2026-09-03T07:50:00.000Z", { 
+        serverRideId: "server-r1",
+        endPlaceLabel: undefined 
+      })],
     );
-    assert.equal(merged.length, 1);
-    assert.equal(merged[0]?.endPlaceLabel, "논현로98길");
+    assert.equal(merged.length, 1, "한 주행만");
+    assert.equal(merged[0]?.id, "server-r1", "서버판 id");
+    assert.equal(merged[0]?.endPlaceLabel, "논현로98길", "서버판이 정본");
   });
 
   it("endedAt 내림차순으로 정렬된다", () => {
