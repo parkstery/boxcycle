@@ -45,5 +45,8 @@
   "bugs": {
     "url": "https://github.com/parkstery/boxcycle/issues"
   },
-  "homepage": "https://github.com/parkstery/boxcycle#readme"
+  "homepage": "https://github.com/parkstery/boxcycle#readme",
+  "devDependencies": {
+    "firebase-tools": "^15.29.0"
+  }
 }
