@@ -288,6 +288,35 @@ describe("F2 · card vs resume — 같은 입력, 같은 meters/point", () => {
       "Codex-04: card 500m === App Go 500m (NOT 600m)");
   });
 
+  it("Codex-04: 0.97 resume cap fixture (0.975 saved → 0.97 resumed)", () => {
+    // Codex-04: "compare card/prep/Go around cap fixtures (e.g. 0.975)"
+    const geometry: LineStringGeometry = {
+      type: "LineString",
+      coordinates: [[0, 0], [0, 0.01]],
+    };
+    const routeDistanceMeters = 1000;
+    const savedRatio = 0.975; // Above 0.97 cap
+    
+    const mockRoute: SavedRoute = {
+      id: "test",
+      userId: "test",
+      lastProgressRatio: savedRatio,
+      geometry,
+      distanceMeters: routeDistanceMeters,
+    } as SavedRoute;
+    
+    // Card: resumeAnchorForRoute (should apply cap)
+    const cardAnchor = resumeAnchorForRoute(mockRoute);
+    assert.ok(cardAnchor, "card anchor exists");
+    
+    // App Go: resumeOffsetMetersFrom (applies cap internally)
+    const resumeMeters = resumeOffsetMetersFrom(savedRatio, routeDistanceMeters);
+    const expectedCappedMeters = 0.97 * routeDistanceMeters; // 970m
+    
+    assert.ok(Math.abs(resumeMeters - expectedCappedMeters) < 1,
+      `0.975 saved → 0.97 cap applied: ${resumeMeters}m ≈ ${expectedCappedMeters}m`);
+  });
+
   it("R1 ADAPTER PROOF: dual-length (routeDistance=1000, geo=1200, end 500 → resume 500 NOT 600)", () => {
     // R1 명령: End persistence uses routeDistanceMeters for progress; App resume used geometry length
     // — unify via adapter that preserves meaning (ratio↔meters) without wholesale switching
