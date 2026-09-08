@@ -33,8 +33,10 @@ export function useRideConquestResult(
   const [result, setResult] = useState<RideConquestResult>(EMPTY_CONQUEST_RESULT);
 
   useEffect(() => {
+    // Codex -02 Fix 3: A→B switch 시 prior result clear (late A callback 무시)
+    setResult(EMPTY_CONQUEST_RESULT);
+
     if (!serverRideId || !userId) {
-      setResult(EMPTY_CONQUEST_RESULT);
       return;
     }
 
@@ -62,12 +64,15 @@ export function useRideConquestResult(
           return;
         }
 
-        // R3: localRecordId guard — delayed snap for wrong local record
-        // useEffect deps already trigger resubscribe on localRecordId change,
-        // but explicit check prevents stale snap from applying to new result
-        if (localRecordId && data?.localRecordId && data.localRecordId !== localRecordId) {
-          setResult({ status: "error", newMeters: 0 });
-          return;
+        // Codex -02 Fix 3: localRecordId active guard (더 엄격)
+        // localRecordId가 있으면 doc도 반드시 해당 recordId여야 함 (missing field는 불일치)
+        if (localRecordId) {
+          const docRecordId = data?.localRecordId;
+          if (!docRecordId || docRecordId !== localRecordId) {
+            // doc이 아직 localRecordId를 안 썼거나, 다른 record의 late snap
+            setResult({ status: "error", newMeters: 0 });
+            return;
+          }
         }
 
         const conquestResult = data?.conquestResult as

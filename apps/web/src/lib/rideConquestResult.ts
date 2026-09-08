@@ -39,10 +39,10 @@ export const EMPTY_CONQUEST_RESULT: RideConquestResult = {
 /**
  * Firestore conquestResult raw 필드 → 타입 안전 결과.
  * 
- * R4: Absence ≠ confirmed 0; no Number() coercion of invalid types.
+ * Codex -02 Fix 4: Absence ≠ invalid type.
  * - Absence (필드 없음) → "none"
  * - 0 (확정) → "confirmed_zero"
- * - String "123" or null → reject (no coercion)
+ * - Invalid type (string/boolean/null) → "error" (CF bug/corruption)
  */
 export function parseConquestResult(
   raw: Record<string, unknown> | null | undefined,
@@ -51,11 +51,15 @@ export function parseConquestResult(
     return EMPTY_CONQUEST_RESULT;
   }
 
-  // R4: no Number() coercion — only accept actual numbers
+  // Codex -02 Fix 4: Absence vs invalid type 구분
   const newMetersRaw = raw.newMeters;
+  if (newMetersRaw === undefined) {
+    // Absence: CF가 아직 처리 안 함
+    return EMPTY_CONQUEST_RESULT; // status: "none"
+  }
   if (typeof newMetersRaw !== "number") {
-    // Absence or wrong type → "none" (not confirmed 0)
-    return EMPTY_CONQUEST_RESULT;
+    // Invalid type (string/boolean/null): CF bug or corruption
+    return { status: "error", newMeters: 0 };
   }
   if (!Number.isFinite(newMetersRaw)) {
     return { status: "error", newMeters: 0 };

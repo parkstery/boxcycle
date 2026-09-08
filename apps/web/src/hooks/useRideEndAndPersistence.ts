@@ -145,15 +145,18 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     const caloriesEstimate = Math.round((sessionDistanceMeters / 1000) * 30);
     const savedRouteIdAtEnd = loadedSavedRouteIdRef.current;
     const savedRouteNameAtEnd = loadedSavedRouteNameRef.current;
-    // F2: ratio 저장 denominator = geometry 길이 (resume adapter 계약)
-    // End persistence와 resume 계산이 같은 기준을 쓰도록 통일.
-    // routeDistanceMeters는 exercise distance/completion threshold 축에서만 사용 (0A catalog SoT 유지).
-    const geoLen = routeGeometry ? lineStringLengthMeters(routeGeometry) : 0;
-    const progressDenom = geoLen > 0 ? geoLen : routeDistanceMeters > 0 ? routeDistanceMeters : 0;
+    // Codex -02 Fix 1: completionRatio (완주 판정) vs progressRatio (resume 좌표) 분리
+    // completionRatio = virtualDist / routeDistanceMeters (motion-integral, 완주 판정)
+    // progressRatio (저장) = virtualDist / geometryLength (resume 좌표계, adapter)
     const completionRatio =
-      progressDenom > 0
-        ? Math.max(0, Math.min(1, rideMetrics.virtualDistanceMeters / progressDenom))
+      routeDistanceMeters > 0
+        ? Math.max(0, Math.min(1, rideMetrics.virtualDistanceMeters / routeDistanceMeters))
         : 0;
+    const geometryLength = routeGeometry ? lineStringLengthMeters(routeGeometry) : 0;
+    const progressRatioForResume =
+      geometryLength > 0
+        ? Math.max(0, Math.min(1, rideMetrics.virtualDistanceMeters / geometryLength))
+        : completionRatio; // fallback: geometry 없으면 completionRatio 사용
 
     const startPlaceSnapshot =
       startLngLat != null
@@ -193,7 +196,8 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
      * 거기서 ref 를 읽으면 언제나 0 이었다(= max 보호가 무력화).
      */
     const rideCompletedRoute = isRouteCompletion(completionRatio);
-    const progressToSave = Math.max(completionRatio, previousProgressRatio);
+    // progressToSave는 resume용 geometry 기준 ratio (adapter)
+    const progressToSave = Math.max(progressRatioForResume, previousProgressRatio);
 
     /**
      * anchor 가 계획 핀과 사실상 같은 지점이면(전 구간 주행) 이미 확보한 지명을 그대로 쓴다.
@@ -450,22 +454,47 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
             routeEntry = "public_catalog";
           }
 
-          const rideId = await saveRideSessionToFirestore({
-            userId: user.uid,
-            trailId,
-            routeId: canonicalRouteId,
-            publicationId,
-            routeEntry,
-            publicTitleSnap,
-            profile,
-            session: sessionForPersist,
-            conquest: conquestPayload,
-          });
-          if (!rideId) {
-            // F4: ride save failed
+          // Codex -02 Fix 2: saveRideSessionToFirestore reject를 명시적으로 catch
+          let rideId: string | null = null;
+          try {
+            rideId = await saveRideSessionToFirestore({
+              userId: user.uid,
+              trailId,
+              routeId: canonicalRouteId,
+              publicationId,
+              routeEntry,
+              publicTitleSnap,
+              profile,
+              session: sessionForPersist,
+              conquest: conquestPayload,
+            });
+          } catch (e) {
+            console.error("[handleEndRide] Ride save to Firestore failed:", e);
+            // F4: ride save failed (reject)
             setLastRideResult?.((prev) =>
               prev && prev.recordId === record.id
-                ? { ...prev, rideSaveStatus: "failed" }
+                ? {
+                    ...prev,
+                    rideSaveStatus: "failed",
+                    // progress update도 실패 (ride save 선행 실패)
+                    savedRouteProgressStatus:
+                      prev.savedRouteProgressStatus === "pending" ? "failed" : prev.savedRouteProgressStatus,
+                  }
+                : prev,
+            );
+            return;
+          }
+          if (!rideId) {
+            // F4: ride save failed (null return)
+            setLastRideResult?.((prev) =>
+              prev && prev.recordId === record.id
+                ? {
+                    ...prev,
+                    rideSaveStatus: "failed",
+                    // progress update도 실패 (ride save 선행 실패)
+                    savedRouteProgressStatus:
+                      prev.savedRouteProgressStatus === "pending" ? "failed" : prev.savedRouteProgressStatus,
+                  }
                 : prev,
             );
             return;

@@ -171,7 +171,8 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
         {routeCompleted ? (
           <p className="ride-summary__progress">경로를 완주했습니다</p>
         ) : null}
-        {hasNextStart ? (
+        {/* Codex -02 Fix 2: 다음 출발점 저장 성공 시에만 표시 (rideSaveStatus 기준) */}
+        {hasNextStart && rideSaveStatus === "success" ? (
           <p className="ride-summary__nextstart">다음 출발점이 저장되었습니다</p>
         ) : null}
 
