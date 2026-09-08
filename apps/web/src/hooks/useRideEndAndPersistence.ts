@@ -16,7 +16,7 @@ import {
   type ConquestRidePayload,
 } from "../lib/conquestTiles";
 import type { LineStringGeometry, LngLat } from "../lib/geo";
-import { formatLngLat, getDistanceMeters } from "../lib/geo";
+import { formatLngLat, getDistanceMeters, lineStringLengthMeters } from "../lib/geo";
 import { computeRideSessionAnchors } from "../lib/rideSessionAnchors";
 import type { RideEndResult } from "../lib/rideEndResult";
 import { MAX_ROUTE_WAYPOINTS } from "../lib/routeWaypoints";
@@ -145,9 +145,14 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     const caloriesEstimate = Math.round((sessionDistanceMeters / 1000) * 30);
     const savedRouteIdAtEnd = loadedSavedRouteIdRef.current;
     const savedRouteNameAtEnd = loadedSavedRouteNameRef.current;
+    // F2: ratio 저장 denominator = geometry 길이 (resume adapter 계약)
+    // End persistence와 resume 계산이 같은 기준을 쓰도록 통일.
+    // routeDistanceMeters는 exercise distance/completion threshold 축에서만 사용 (0A catalog SoT 유지).
+    const geoLen = routeGeometry ? lineStringLengthMeters(routeGeometry) : 0;
+    const progressDenom = geoLen > 0 ? geoLen : routeDistanceMeters > 0 ? routeDistanceMeters : 0;
     const completionRatio =
-      routeDistanceMeters > 0
-        ? Math.max(0, Math.min(1, rideMetrics.virtualDistanceMeters / routeDistanceMeters))
+      progressDenom > 0
+        ? Math.max(0, Math.min(1, rideMetrics.virtualDistanceMeters / progressDenom))
         : 0;
 
     const startPlaceSnapshot =

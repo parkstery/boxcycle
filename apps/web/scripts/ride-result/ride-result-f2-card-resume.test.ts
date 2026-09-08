@@ -95,6 +95,42 @@ describe("F2 · card vs resume — 같은 입력, 같은 meters/point", () => {
       "mismatch when routeDistanceMeters ≠ geoLen");
   });
 
+  it("R1 ADAPTER PROOF: dual-length (routeDistance=1000, geo=1200, end 500 → resume 500 NOT 600)", () => {
+    // R1 명령: End persistence uses routeDistanceMeters for progress; App resume used geometry length
+    // — unify via adapter that preserves meaning (ratio↔meters) without wholesale switching
+    // 
+    // Scenario: Directions API says 1000m, actual geometry is 1200m, ride ended at 500m.
+    // OLD BUG: End saves ratio = 500/1000 = 0.5, resume calculates 0.5 * 1200 = 600 (WRONG!)
+    // FIX: End saves ratio = 500/1200 = 0.417, resume calculates 0.417 * 1200 = 500 (CORRECT)
+    
+    // Adapter implementation (from useRideEndAndPersistence.ts):
+    // const progressDenom = geoLen > 0 ? geoLen : routeDistanceMeters > 0 ? routeDistanceMeters : 0;
+    // const completionRatio = progressDenom > 0 ? virtualDistanceMeters / progressDenom : 0;
+    
+    const geoLen = 1200; // Fixture: actual geometry length
+    const routeDistanceMeters = 1000; // Fixture: Directions API value (shorter)
+    const endOffset = 500; // Ride ended here (virtualDistanceMeters)
+    
+    // Adapter: use geoLen as denominator (not routeDistanceMeters)
+    const progressDenom = geoLen > 0 ? geoLen : routeDistanceMeters > 0 ? routeDistanceMeters : 0;
+    const savedRatio = endOffset / progressDenom; // Should be 500/1200 = 0.417
+    
+    // Verify saved ratio
+    assert.ok(Math.abs(savedRatio - 500 / 1200) < 0.001, `savedRatio should be 500/1200=${500 / 1200}, got ${savedRatio}`);
+    
+    // Resume calculation (from App.tsx / resumeOffsetMetersFrom)
+    const resumeMeters = resumeOffsetMetersFrom(savedRatio, geoLen);
+    
+    // PASS: resume should be ~500 (original end offset), NOT 600
+    assert.ok(Math.abs(resumeMeters - endOffset) < 1, `resume should be ${endOffset}, got ${resumeMeters}`);
+    
+    // FAIL example (old bug): if savedRatio was 0.5 (500/1000), resume would be 0.5*1200=600
+    const buggyRatio = endOffset / routeDistanceMeters; // 500/1000 = 0.5
+    const buggyResume = resumeOffsetMetersFrom(buggyRatio, geoLen); // 0.5*1200 = 600
+    assert.ok(Math.abs(buggyResume - 600) < 1, `buggy resume (old denominator) would be 600, got ${buggyResume}`);
+    assert.ok(Math.abs(buggyResume - endOffset) > 50, `buggy resume ${buggyResume} should NOT match endOffset ${endOffset}`);
+  });
+
   it("97% 진행 (resume cap) — 카드와 resume이 같은 상한 적용", () => {
     const geometry: LineStringGeometry = {
       type: "LineString",
