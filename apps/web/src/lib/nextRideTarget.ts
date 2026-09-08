@@ -3,7 +3,6 @@ import { getPointOnRouteByDistance, lineStringLengthMeters } from "./geo";
 import type { SavedRoute } from "./firestoreSavedRoutes";
 import type { StoredRideSession } from "./rideSessionsStorage";
 import { isDiscardableRideRecord, ROUTE_COMPLETION_RATIO_THRESHOLD } from "./rideRecordPolicy";
-import { progressRatioToRouteDistanceMeters } from "./routeProgressMath";
 
 /**
  * 「다음 주행」 후보(RIDE-CONTINUE-1 §4.3).
@@ -70,12 +69,20 @@ export function sortValidRidesNewestFirst(
  *
  * ⚠ 재개 위치의 진실은 **SavedRoute 의 `lastProgressRatio`** 이지 최근 Ride 의 종료 좌표가 아니다.
  * 43% 까지 간 Route 를 「처음부터」 타고 20% 에서 끝내도 재개점은 43% 다.
+ *
+ * Codex -03 Fix 2: lastProgressRatio는 routeDistanceMeters 기준 (historical meaning).
+ * Boundary adapter: routeDistanceMeters-offset → geometry coordinate.
  */
 export function resumeAnchorForRoute(route: SavedRoute): LngLat | null {
   const geoLen = lineStringLengthMeters(route.geometry);
   if (!Number.isFinite(geoLen) || geoLen <= 0) return null;
-  const meters = progressRatioToRouteDistanceMeters(clamp01(route.lastProgressRatio), geoLen);
-  return getPointOnRouteByDistance(route.geometry, meters);
+  // Adapter: routeDistanceMeters-based ratio → routeDistanceMeters offset → geometry coordinate
+  const routeDistMeters = Number.isFinite(route.distanceMeters) ? route.distanceMeters : geoLen;
+  const offsetMeters = clamp01(route.lastProgressRatio) * routeDistMeters;
+  // Convert routeDistanceMeters offset to geometry coordinate
+  const geoRatio = geoLen > 0 ? offsetMeters / geoLen : 0;
+  const geoMeters = geoRatio * geoLen;
+  return getPointOnRouteByDistance(route.geometry, geoMeters);
 }
 
 /**

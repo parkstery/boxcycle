@@ -16,7 +16,7 @@ import {
   type ConquestRidePayload,
 } from "../lib/conquestTiles";
 import type { LineStringGeometry, LngLat } from "../lib/geo";
-import { formatLngLat, getDistanceMeters, lineStringLengthMeters } from "../lib/geo";
+import { formatLngLat, getDistanceMeters } from "../lib/geo";
 import { computeRideSessionAnchors } from "../lib/rideSessionAnchors";
 import type { RideEndResult } from "../lib/rideEndResult";
 import { MAX_ROUTE_WAYPOINTS } from "../lib/routeWaypoints";
@@ -145,18 +145,13 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     const caloriesEstimate = Math.round((sessionDistanceMeters / 1000) * 30);
     const savedRouteIdAtEnd = loadedSavedRouteIdRef.current;
     const savedRouteNameAtEnd = loadedSavedRouteNameRef.current;
-    // Codex -02 Fix 1: completionRatio (완주 판정) vs progressRatio (resume 좌표) 분리
-    // completionRatio = virtualDist / routeDistanceMeters (motion-integral, 완주 판정)
-    // progressRatio (저장) = virtualDist / geometryLength (resume 좌표계, adapter)
+    // Codex -03 Fix 2: R1/F2 — Keep historical meaning of saved ratios (routeDistanceMeters 기준)
+    // completionRatio (motion-offset) = virtualDist / routeDistanceMeters → 저장, 완주 판정, 0.98 비교
+    // Resume 시에만 geometry 좌표로 변환 (boundary adapter)
     const completionRatio =
       routeDistanceMeters > 0
         ? Math.max(0, Math.min(1, rideMetrics.virtualDistanceMeters / routeDistanceMeters))
         : 0;
-    const geometryLength = routeGeometry ? lineStringLengthMeters(routeGeometry) : 0;
-    const progressRatioForResume =
-      geometryLength > 0
-        ? Math.max(0, Math.min(1, rideMetrics.virtualDistanceMeters / geometryLength))
-        : completionRatio; // fallback: geometry 없으면 completionRatio 사용
 
     const startPlaceSnapshot =
       startLngLat != null
@@ -196,8 +191,8 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
      * 거기서 ref 를 읽으면 언제나 0 이었다(= max 보호가 무력화).
      */
     const rideCompletedRoute = isRouteCompletion(completionRatio);
-    // progressToSave는 resume용 geometry 기준 ratio (adapter)
-    const progressToSave = Math.max(progressRatioForResume, previousProgressRatio);
+    // Codex -03 Fix 2: progressToSave는 routeDistanceMeters 기준 (historical meaning 유지)
+    const progressToSave = Math.max(completionRatio, previousProgressRatio);
 
     /**
      * anchor 가 계획 핀과 사실상 같은 지점이면(전 구간 주행) 이미 확보한 지명을 그대로 쓴다.
