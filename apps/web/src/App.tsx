@@ -1209,10 +1209,10 @@ export default function App() {
      * 재개 시작 오프셋(m) — 「위치는 누적, 인정은 세션」의 위치 시드(§9.5.5 단위7).
      * 이벤트 핸들러 내부라 ref 검증 허용 — 실제 로드된 경로와 후보가 일치할 때만 시드.
      */
-    // F2: geometry 길이 기준 (card와 동일 denominator)
+    // Codex -04 Fix: F2 adapter (NO scaling - routeDistanceMeters offset = geometry offset in meters)
     const rideStartOffsetMeters =
       !restart && resumeRatio != null && loadedSavedRouteIdRef.current === resumeCandidateId && routeGeometry
-        ? resumeOffsetMetersFrom(resumeRatio, lineStringLengthMeters(routeGeometry))
+        ? resumeOffsetMetersFrom(resumeRatio, routeDistanceMeters)
         : 0;
     setTrailStartBusy(true);
     const courseId = basicActiveHubCourseId ?? activeOfficialCourseId;
@@ -1648,9 +1648,8 @@ export default function App() {
    */
   const resumePreview = useMemo(() => {
     if (rideStatus !== "idle" || resumeRatio == null || !routeGeometry) return null;
-    // F2: geometry 길이 기준 (card와 동일 denominator)
-    const geoLen = lineStringLengthMeters(routeGeometry);
-    const meters = resumeOffsetMetersFrom(resumeRatio, geoLen);
+    // Codex -04 Fix: F2 adapter (NO scaling - routeDistanceMeters offset = geometry offset in meters)
+    const meters = resumeOffsetMetersFrom(resumeRatio, routeDistanceMeters);
     if (!(meters > 0)) return null;
     const lngLat = getPointOnRouteByDistance(routeGeometry, meters);
     if (!lngLat) return null;
