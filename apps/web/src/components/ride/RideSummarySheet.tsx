@@ -64,6 +64,10 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
   });
   const conquestLine = formatConquestSummaryLine(conquestResult);
 
+  // R2: F4 persistence status (independent axes)
+  const rideSaveStatus = result?.rideSaveStatus ?? "n/a";
+  const savedRouteProgressStatus = result?.savedRouteProgressStatus ?? "n/a";
+
   // 제안 이름이 갱신되면(지명 비동기 도착 등), 사용자가 아직 손대지 않은 경우에만 따라간다.
   // effect 대신 이전 값과 비교(React 권장) — 편집 중 덮어쓰기·불필요 리렌더 회피.
   const [prevSuggested, setPrevSuggested] = useState(suggested);
@@ -175,6 +179,30 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
           <p className="ride-summary__conquest" role="status" aria-live="polite">
             ⚑ {conquestLine}
           </p>
+        ) : null}
+
+        {/* R2: F4 persistence status (independent axes) */}
+        {rideSaveStatus !== "n/a" || savedRouteProgressStatus !== "n/a" ? (
+          <div className="ride-summary__status" aria-live="polite">
+            {rideSaveStatus === "pending" ? (
+              <span className="ride-summary__status-item ride-summary__status-item--pending">
+                주행 저장 중…
+              </span>
+            ) : rideSaveStatus === "failed" ? (
+              <span className="ride-summary__status-item ride-summary__status-item--failed">
+                ⚠ 주행 저장 실패
+              </span>
+            ) : null}
+            {savedRouteProgressStatus === "pending" ? (
+              <span className="ride-summary__status-item ride-summary__status-item--pending">
+                진행률 저장 중…
+              </span>
+            ) : savedRouteProgressStatus === "failed" ? (
+              <span className="ride-summary__status-item ride-summary__status-item--failed">
+                ⚠ 진행률 저장 실패
+              </span>
+            ) : null}
+          </div>
         ) : null}
 
         {hasNextStart && props.onExtendFromEnd ? (

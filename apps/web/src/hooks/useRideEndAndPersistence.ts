@@ -614,16 +614,32 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
               ? { ...prev, savedRouteProgressStatus: "success" }
               : prev,
           );
-        } catch {
+        } catch (progressError) {
           // Firestore 저장 실패 시 로컬 저장본은 유지한다.
           // F4: progress update failed (independent from ride save)
+          console.warn("[handleEndRide] Progress save failed:", progressError);
           setLastRideResult?.((prev) =>
             prev && prev.recordId === record.id && prev.savedRouteProgressStatus === "pending"
               ? { ...prev, savedRouteProgressStatus: "failed" }
               : prev,
           );
         }
-      })();
+      })().catch((outerError) => {
+        // R2: Handle unexpected throw/reject so status never stuck pending
+        console.error("[handleEndRide] Unexpected error in persistence flow:", outerError);
+        setLastRideResult?.((prev) =>
+          prev && prev.recordId === record.id
+            ? {
+                ...prev,
+                rideSaveStatus: prev.rideSaveStatus === "pending" ? "failed" : prev.rideSaveStatus,
+                savedRouteProgressStatus:
+                  prev.savedRouteProgressStatus === "pending"
+                    ? "failed"
+                    : prev.savedRouteProgressStatus,
+              }
+            : prev,
+        );
+      });
     } else if (!discardRecord && savedRouteIdAtEnd) {
       // Firebase 미구성(로컬 전용) — 완주 게이트·진행률 저장 동일 적용(§9.5)
       if (isRouteCompletion(completionRatio)) {
