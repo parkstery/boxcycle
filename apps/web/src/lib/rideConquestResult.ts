@@ -38,7 +38,11 @@ export const EMPTY_CONQUEST_RESULT: RideConquestResult = {
 
 /**
  * Firestore conquestResult raw 필드 → 타입 안전 결과.
- * Absence ≠ 0 — 필드가 없으면 "none", 0이면 "confirmed_zero".
+ * 
+ * R4: Absence ≠ confirmed 0; no Number() coercion of invalid types.
+ * - Absence (필드 없음) → "none"
+ * - 0 (확정) → "confirmed_zero"
+ * - String "123" or null → reject (no coercion)
  */
 export function parseConquestResult(
   raw: Record<string, unknown> | null | undefined,
@@ -47,16 +51,21 @@ export function parseConquestResult(
     return EMPTY_CONQUEST_RESULT;
   }
 
-  const newMeters = Number(raw.newMeters ?? 0);
-  if (!Number.isFinite(newMeters)) {
+  // R4: no Number() coercion — only accept actual numbers
+  const newMetersRaw = raw.newMeters;
+  if (typeof newMetersRaw !== "number") {
+    // Absence or wrong type → "none" (not confirmed 0)
+    return EMPTY_CONQUEST_RESULT;
+  }
+  if (!Number.isFinite(newMetersRaw)) {
     return { status: "error", newMeters: 0 };
   }
 
   // CF가 status를 명시적으로 쓰지 않으므로, newMeters 값으로 추론
-  if (newMeters > 0) {
+  if (newMetersRaw > 0) {
     return {
       status: "positive",
-      newMeters,
+      newMeters: newMetersRaw,
       newCells: typeof raw.newCells === "number" ? raw.newCells : undefined,
       creditedMeters: typeof raw.creditedMeters === "number" ? raw.creditedMeters : undefined,
       tier: typeof raw.tier === "string" ? raw.tier : undefined,
@@ -64,7 +73,8 @@ export function parseConquestResult(
     };
   }
 
-  if (newMeters === 0 && "newMeters" in raw) {
+  // newMeters === 0 && newMeters field exists → confirmed zero
+  if (newMetersRaw === 0) {
     return {
       status: "confirmed_zero",
       newMeters: 0,
@@ -73,7 +83,8 @@ export function parseConquestResult(
     };
   }
 
-  return EMPTY_CONQUEST_RESULT;
+  // newMeters < 0 (invalid) → error
+  return { status: "error", newMeters: 0 };
 }
 
 /** 「새 도로 +N km」 표시 문자열. 50m 미만은 null (0 미표시 원칙) */
