@@ -44,6 +44,9 @@ export class RideConquestSubscription {
   private disposed = false;
   private deps: RideConquestSubscriptionDeps;
   private observer: RideConquestSubscriptionObserver;
+  // S1-3: TODO - 15s delayed status + 60s subscription end timers
+  private delayedStatusTimer: ReturnType<typeof setTimeout> | null = null;
+  private subscriptionEndTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     deps: RideConquestSubscriptionDeps,
@@ -120,6 +123,15 @@ export class RideConquestSubscription {
     if (this.unsubscribe) {
       this.unsubscribe();
       this.unsubscribe = null;
+    }
+    // S1-3: Clear timers
+    if (this.delayedStatusTimer) {
+      this.deps.clearTimeout(this.delayedStatusTimer);
+      this.delayedStatusTimer = null;
+    }
+    if (this.subscriptionEndTimer) {
+      this.deps.clearTimeout(this.subscriptionEndTimer);
+      this.subscriptionEndTimer = null;
     }
     this.disposed = true;
   }
