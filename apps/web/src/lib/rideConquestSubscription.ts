@@ -1,13 +1,14 @@
 /**
- * S1-2: Ride conquest subscription controller
+ * S1-2/S1-3: Ride conquest subscription controller
  * 
  * Extracted from useRideConquestResult to enable:
  * - Injectable subscribe/timer deps
  * - Testable lifecycle (activate/dispose)
  * - Generation/cancel guards in production callbacks
+ * - S1-3: 15s delayed status + 60s subscription end + re-query
  */
 import type { Firestore, DocumentSnapshot, Unsubscribe } from "firebase/firestore";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot, getDoc } from "firebase/firestore";
 import {
   EMPTY_CONQUEST_RESULT,
   parseConquestResult,
@@ -27,6 +28,8 @@ export type RideConquestSubscriptionDeps = {
   subscribe: typeof onSnapshot;
   setTimeout: typeof globalThis.setTimeout;
   clearTimeout: typeof globalThis.clearTimeout;
+  getDoc?: (docRef: any) => Promise<DocumentSnapshot>;
+  doc?: (firestore: Firestore, path: string, ...pathSegments: string[]) => any;
 };
 
 export type RideConquestSubscriptionObserver = {
@@ -44,9 +47,10 @@ export class RideConquestSubscription {
   private disposed = false;
   private deps: RideConquestSubscriptionDeps;
   private observer: RideConquestSubscriptionObserver;
-  // S1-3: TODO - 15s delayed status + 60s subscription end timers
+  // S1-3: 15s delayed status + 60s subscription end timers
   private delayedStatusTimer: ReturnType<typeof setTimeout> | null = null;
   private subscriptionEndTimer: ReturnType<typeof setTimeout> | null = null;
+  private hasReceivedResult = false;
 
   constructor(
     deps: RideConquestSubscriptionDeps,
@@ -67,13 +71,66 @@ export class RideConquestSubscription {
 
     this.key = key;
     this.disposed = false;
+    this.hasReceivedResult = false;
 
     // S1-2: Clear prior result
     this.observer.onResult(EMPTY_CONQUEST_RESULT);
 
-    const docRef = doc(this.deps.firestore, "rides", this.key.serverRideId);
+    const docFn = this.deps.doc || doc;
+    const docRef = docFn(this.deps.firestore, "rides", this.key.serverRideId);
     const currentGeneration = this.generation;
     const activeKey = this.key;
+
+    // S1-3: 15s delayed status - if no result after 15s, mark as error
+    this.delayedStatusTimer = this.deps.setTimeout(() => {
+      if (this.disposed || this.generation !== currentGeneration) {
+        return;
+      }
+      if (!this.hasReceivedResult) {
+        this.observer.onResult({ status: "error", newMeters: 0 });
+      }
+    }, 15000);
+
+    // S1-3: 60s subscription end + same-doc re-query
+    this.subscriptionEndTimer = this.deps.setTimeout(async () => {
+      if (this.disposed || this.generation !== currentGeneration) {
+        return;
+      }
+      // Unsubscribe from real-time updates
+      if (this.unsubscribe) {
+        this.unsubscribe();
+        this.unsubscribe = null;
+      }
+      // S1-3: Same-doc re-query (one-time read, does NOT call Ride writer)
+      try {
+        const getDocFn = this.deps.getDoc || getDoc;
+        const snap = await getDocFn(docRef);
+        if (this.disposed || this.generation !== currentGeneration) {
+          return;
+        }
+        if (!snap.exists()) {
+          this.observer.onResult({ status: "error", newMeters: 0 });
+          return;
+        }
+        const data = snap.data() as any;
+        if (!isRideOwnedByUser(data?.userId as string | undefined, activeKey.userId)) {
+          this.observer.onResult({ status: "error", newMeters: 0 });
+          return;
+        }
+        if (!isRideIdMatch(activeKey.serverRideId, snap.id)) {
+          this.observer.onResult({ status: "error", newMeters: 0 });
+          return;
+        }
+        const conquestResult = data?.conquestResult as Record<string, unknown> | null | undefined;
+        this.observer.onResult(parseConquestResult(conquestResult));
+      } catch (error) {
+        if (this.disposed || this.generation !== currentGeneration) {
+          return;
+        }
+        console.warn(`[RideConquestSubscription] re-query error:`, error);
+        this.observer.onResult({ status: "error", newMeters: 0 });
+      }
+    }, 60000);
 
     this.unsubscribe = this.deps.subscribe(
       docRef,
@@ -82,6 +139,8 @@ export class RideConquestSubscription {
         if (this.disposed || this.generation !== currentGeneration) {
           return; // Late callback from prior generation
         }
+
+        this.hasReceivedResult = true;
 
         if (!snap.exists()) {
           this.observer.onResult({ status: "error", newMeters: 0 });
@@ -110,6 +169,7 @@ export class RideConquestSubscription {
         if (this.disposed || this.generation !== currentGeneration) {
           return;
         }
+        this.hasReceivedResult = true;
         console.warn(`[RideConquestSubscription] rides/${activeKey.serverRideId} error:`, error);
         this.observer.onResult({ status: "error", newMeters: 0 });
       },
