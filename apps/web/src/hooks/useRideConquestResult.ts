@@ -62,6 +62,14 @@ export function useRideConquestResult(
           return;
         }
 
+        // R3: localRecordId guard — delayed snap for wrong local record
+        // useEffect deps already trigger resubscribe on localRecordId change,
+        // but explicit check prevents stale snap from applying to new result
+        if (localRecordId && data?.localRecordId && data.localRecordId !== localRecordId) {
+          setResult({ status: "error", newMeters: 0 });
+          return;
+        }
+
         const conquestResult = data?.conquestResult as
           | Record<string, unknown>
           | null
