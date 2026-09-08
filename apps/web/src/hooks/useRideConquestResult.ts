@@ -1,17 +1,18 @@
 /**
  * F3: rides/{rideId}.conquestResult 구독.
- * RideEndResult의 serverRideId로 해당 문서를 subscribe하고 conquestResult를 반환한다.
+ * S1-2: Now uses RideConquestSubscription production controller.
  */
-import { doc, onSnapshot } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { onSnapshot } from "firebase/firestore";
+import { useEffect, useState, useRef } from "react";
 import { getFirebaseFirestore } from "../lib/firebase";
 import {
   EMPTY_CONQUEST_RESULT,
-  parseConquestResult,
-  isRideOwnedByUser,
-  isRideIdMatch,
   type RideConquestResult,
 } from "../lib/rideConquestResult";
+import {
+  RideConquestSubscription,
+  type RideConquestSubscriptionKey,
+} from "../lib/rideConquestSubscription";
 
 export type UseRideConquestResultOptions = {
   /** F3: Firestore rides/{} doc ID. null이면 구독 안 함 */
@@ -24,64 +25,48 @@ export type UseRideConquestResultOptions = {
 
 /**
  * rides/{serverRideId}.conquestResult 구독 hook.
- * F3: 계정 총계 − baseline 패턴 제거. CF 결과를 직접 읽는다.
+ * S1-2: Now uses RideConquestSubscription production controller.
  */
 export function useRideConquestResult(
   options: UseRideConquestResultOptions,
 ): RideConquestResult {
   const { serverRideId, userId, localRecordId } = options;
   const [result, setResult] = useState<RideConquestResult>(EMPTY_CONQUEST_RESULT);
+  const subscriptionRef = useRef<RideConquestSubscription | null>(null);
 
   useEffect(() => {
-    // Codex -02 Fix 3: A→B switch 시 prior result clear (late A callback 무시)
-    setResult(EMPTY_CONQUEST_RESULT);
-
     if (!serverRideId || !userId) {
+      setResult(EMPTY_CONQUEST_RESULT);
       return;
     }
 
-    const db = getFirebaseFirestore();
-    const docRef = doc(db, "rides", serverRideId);
+    // S1-2: Create production subscription controller (once)
+    if (!subscriptionRef.current) {
+      const db = getFirebaseFirestore();
+      subscriptionRef.current = new RideConquestSubscription(
+        {
+          firestore: db,
+          subscribe: onSnapshot,
+          setTimeout: globalThis.setTimeout.bind(globalThis),
+          clearTimeout: globalThis.clearTimeout.bind(globalThis),
+        },
+        {
+          onResult: setResult,
+        },
+      );
+    }
 
-    const unsubscribe = onSnapshot(
-      docRef,
-      (snap) => {
-        if (!snap.exists()) {
-          setResult({ status: "error", newMeters: 0 });
-          return;
-        }
+    // S1-2: Activate with current key
+    const key: RideConquestSubscriptionKey = {
+      userId,
+      localRecordId,
+      serverRideId,
+    };
+    subscriptionRef.current.activate(key);
 
-        const data = snap.data();
-        // F5: userId 일치 확인 (다른 사용자의 주행 결과를 내 result로 표시하지 않음)
-        if (!isRideOwnedByUser(data?.userId as string | undefined, userId)) {
-          setResult({ status: "error", newMeters: 0 });
-          return;
-        }
-
-        // F5: delayed snap guard — active serverRideId 변경 후 늦은 응답 거부
-        if (!isRideIdMatch(serverRideId, snap.id)) {
-          setResult({ status: "error", newMeters: 0 });
-          return;
-        }
-
-        // Codex -03 Fix 1 (CORRECTED): NO doc.localRecordId check
-        // Ownership guard via: serverRideId (subscription), userId (doc), localRecordId (effect deps)
-        // Effect deps trigger resubscribe on localRecordId change → prior subscription unsubscribed
-        // No need to check doc.localRecordId (normal web rides don't write it)
-
-        const conquestResult = data?.conquestResult as
-          | Record<string, unknown>
-          | null
-          | undefined;
-        setResult(parseConquestResult(conquestResult));
-      },
-      (error) => {
-        console.warn(`[useRideConquestResult] rides/${serverRideId} 구독 실패:`, error);
-        setResult({ status: "error", newMeters: 0 });
-      },
-    );
-
-    return () => unsubscribe();
+    return () => {
+      subscriptionRef.current?.dispose();
+    };
   }, [serverRideId, userId, localRecordId]);
 
   return result;
