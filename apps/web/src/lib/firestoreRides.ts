@@ -61,8 +61,6 @@ type RideDoc = {
   sessionEndPlaceLabel?: string | null;
   /** Conquest(정복) 페이로드 — CF `conquestOnRideCreated` 가 한도 적용 후 집계. null = 미계산 */
   conquest?: ConquestRidePayload | null;
-  /** F5: Local record ID (StoredRideSession.id) — late response ownership guard */
-  localRecordId?: string | null;
 };
 
 /** 좌표 유효성 — Firestore 에 `[NaN, NaN]`·Null Island 추측을 남기지 않는다 */
@@ -192,8 +190,6 @@ export async function saveRideSessionToFirestore(input: {
         : null,
     ...buildRideSessionAnchorWriteFields(input.session),
     conquest: input.conquest ?? null,
-    // Codex -03 Fix 1: F5 localRecordId — normal web-saved rides need this for result sheet
-    localRecordId: input.session.id ?? null,
   };
 
   const ref = await addDoc(collection(db, RIDES_COLLECTION), docData);

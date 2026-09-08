@@ -64,16 +64,10 @@ export function useRideConquestResult(
           return;
         }
 
-        // Codex -02 Fix 3: localRecordId active guard (더 엄격)
-        // localRecordId가 있으면 doc도 반드시 해당 recordId여야 함 (missing field는 불일치)
-        if (localRecordId) {
-          const docRecordId = data?.localRecordId;
-          if (!docRecordId || docRecordId !== localRecordId) {
-            // doc이 아직 localRecordId를 안 썼거나, 다른 record의 late snap
-            setResult({ status: "error", newMeters: 0 });
-            return;
-          }
-        }
+        // Codex -03 Fix 1 (CORRECTED): NO doc.localRecordId check
+        // Ownership guard via: serverRideId (subscription), userId (doc), localRecordId (effect deps)
+        // Effect deps trigger resubscribe on localRecordId change → prior subscription unsubscribed
+        // No need to check doc.localRecordId (normal web rides don't write it)
 
         const conquestResult = data?.conquestResult as
           | Record<string, unknown>
