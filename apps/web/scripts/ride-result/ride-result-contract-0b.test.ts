@@ -230,6 +230,44 @@ describe("C9 · F3: NO account total − baseline as conquest result source", ()
     const line = formatConquestSummaryLine(result);
     assert.notEqual(line, null, "line from result.newMeters, not global delta");
   });
+
+  it("R4: Absence (undefined) → status: none (NOT error)", () => {
+    // Codex -02: Absence ≠ invalid type
+    // Absence: CF hasn't processed yet → "none"
+    const raw = { /* newMeters: undefined */ };
+    const result = parseConquestResult(raw);
+    assert.equal(result.status, "none", "absence → none");
+    assert.equal(result.newMeters, 0);
+  });
+
+  it("R4: Invalid type (string) → status: error (NOT none)", () => {
+    // Codex -02: Invalid type → "error" (CF bug/corruption)
+    const raw = { newMeters: "123" }; // string, not number
+    const result = parseConquestResult(raw as any);
+    assert.equal(result.status, "error", "invalid type → error");
+    assert.equal(result.newMeters, 0);
+  });
+
+  it("R4: Invalid type (null) → status: error", () => {
+    const raw = { newMeters: null };
+    const result = parseConquestResult(raw as any);
+    assert.equal(result.status, "error");
+  });
+
+  it("R4: Invalid type (boolean) → status: error", () => {
+    const raw = { newMeters: true };
+    const result = parseConquestResult(raw as any);
+    assert.equal(result.status, "error");
+  });
+
+  it("R4: Confirmed zero (0) → status: confirmed_zero (NOT none or error)", () => {
+    // Codex -02: Absence ≠ confirmed 0
+    // Confirmed 0: CF processed and found no new roads → "confirmed_zero"
+    const raw = { newMeters: 0 };
+    const result = parseConquestResult(raw);
+    assert.equal(result.status, "confirmed_zero", "confirmed 0 → confirmed_zero");
+    assert.equal(result.newMeters, 0);
+  });
 });
 
 describe("C10 · F4: Ride save status ≠ SavedRoute progress status (independent axes)", () => {
