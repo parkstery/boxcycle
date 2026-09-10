@@ -100,8 +100,6 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
       setIsDelayed(false);
       setIsTimedOut(false);
     };
-    // serverRideId 변경 시에만 타이머 재시작
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serverRideId]);
 
   // R2: F4 persistence status (independent axes)
