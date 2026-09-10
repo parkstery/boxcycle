@@ -26,6 +26,9 @@ const DEV_PORT = Number(
 )
 const DEV_URL = `http://127.0.0.1:${DEV_PORT}`
 
+/** Outer attempt budget is enforced by scripts/e2e/run-with-deadline.mjs (default 600s). */
+const e2eGlobalTimeoutMs = Number(process.env.RTW_E2E_PLAYWRIGHT_GLOBAL_MS || 560_000)
+
 export default defineConfig({
   testDir: './e2e',
   outputDir: routeTokenUiHarness
@@ -33,8 +36,10 @@ export default defineConfig({
     : 'test-results',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // RTW-PLAYWRIGHT-LIMIT-20260910-01: no auto-retry budget reset; single worker.
+  retries: 0,
+  workers: 1,
+  globalTimeout: e2eGlobalTimeoutMs,
   reporter: [['line'], ['html', { open: 'never' }]],
   use: {
     baseURL: DEV_URL,
