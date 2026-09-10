@@ -1,100 +1,176 @@
 /**
- * S1-2: Subscription lifecycle - generation guards
- * 
+ * S1-2: Real subscription lifecycle — capture production subscribe callbacks.
+ *
  * Production: RideConquestSubscription (src/lib/rideConquestSubscription.ts)
- * Import site: useRideConquestResult (src/hooks/useRideConquestResult.ts:L12,L39-47)
- * 
- * Simplified unit tests focusing on generation guard logic.
- * 
- * S1-4 FALSIFICATION PROOF:
- * In production RideConquestSubscription.activate() (src/lib/rideConquestSubscription.ts:L77-80),
- * the generation guard is:
- *   if (this.disposed || this.generation !== currentGeneration) { return; }
- * 
- * To falsify: temporarily remove "this.generation !== currentGeneration" check.
- * Result: late callbacks would NOT be blocked, causing tests below to FAIL.
- * Specifically, "A→B switch" test would fail because late A callback would be accepted.
- * 
- * Restoration: add the guard back.
+ * Hook import/call: useRideConquestResult.ts creates controller and activate(key).
+ *
+ * Codex -05: store the real callback from subscribe(); A active → A result → B active →
+ * force late A success/error; assert B gets no extra events from A; B normal works;
+ * dispose/account switch; sub count 1/0.
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { RideConquestSubscription } from "../../src/lib/rideConquestSubscription.ts";
+import type { RideConquestResult } from "../../src/lib/rideConquestResult.ts";
 
-describe("S1-2: Subscription Generation Guards", () => {
-  it("Generation guard: late callback from generation N rejected when current is N+1", () => {
-    let currentGeneration = 1;
-    const targetGeneration = 1;
+type SnapHandler = (snap: {
+  id: string;
+  exists: () => boolean;
+  data: () => Record<string, unknown>;
+}) => void;
+type ErrHandler = (err: Error) => void;
 
-    // Simulate new activation (generation increments)
-    currentGeneration = 2;
+function makeSnap(id: string, data: Record<string, unknown> | null) {
+  return {
+    id,
+    exists: () => data != null,
+    data: () => data as Record<string, unknown>,
+  };
+}
 
-    // Late callback with old generation
-    const guardCheck = currentGeneration === targetGeneration;
+describe("S1-2: RideConquestSubscription real callback lifecycle", () => {
+  it("captures subscribe callback; late A after B does not mutate B; B success applies", () => {
+    const results: RideConquestResult[] = [];
+    const unsubs: Array<() => void> = [];
+    let liveHandlers: { ok: SnapHandler; err: ErrHandler } | null = null;
+    let subscribeCount = 0;
 
-    assert.equal(guardCheck, false, "Late callback (gen 1) rejected when current is gen 2");
-  });
-
-  it("Generation guard: current generation callback accepted", () => {
-    const currentGeneration = 2;
-    const callbackGeneration = 2;
-
-    const guardCheck = currentGeneration === callbackGeneration;
-
-    assert.equal(guardCheck, true, "Current generation callback accepted");
-  });
-
-  it("Dispose flag: late callback after dispose rejected", () => {
-    let disposed = false;
-
-    // Activate then dispose
-    disposed = true;
-
-    // Late callback
-    const guardCheck = !disposed;
-
-    assert.equal(guardCheck, false, "Late callback rejected after dispose");
-  });
-
-  it("A→B switch: generation increments, prior callbacks blocked", () => {
-    let generation = 0;
+    const subscription = new RideConquestSubscription(
+      {
+        firestore: { type: "firestore" } as unknown as import("firebase/firestore").Firestore,
+        doc: (_db: unknown, _col: string, id: string) => ({ path: `rides/${id}`, id }),
+        subscribe: ((_ref: unknown, onNext: SnapHandler, onErr?: ErrHandler) => {
+          subscribeCount++;
+          liveHandlers = { ok: onNext, err: onErr || (() => {}) };
+          const unsub = () => {
+            if (liveHandlers && liveHandlers.ok === onNext) liveHandlers = null;
+          };
+          unsubs.push(unsub);
+          return unsub;
+        }) as unknown as typeof import("firebase/firestore").onSnapshot,
+        setTimeout: (() => 0) as unknown as typeof setTimeout,
+        clearTimeout: (() => {}) as unknown as typeof clearTimeout,
+        getDoc: (async () => makeSnap("noop", null)) as unknown as (
+          docRef: unknown,
+        ) => Promise<ReturnType<typeof makeSnap>>,
+      },
+      { onResult: (r) => results.push(r) },
+    );
 
     // Activate A
-    generation++;
-    const genA = generation; // 1
+    subscription.activate({ userId: "u1", localRecordId: "local-A", serverRideId: "ride-A" });
+    assert.equal(subscribeCount, 1);
+    const handlersA = liveHandlers;
+    assert.ok(handlersA, "A subscribe callback captured");
+    // Clear initial EMPTY push noise baseline length after A activate
+    const afterAInit = results.length;
 
-    // Activate B
-    generation++;
-    const genB = generation; // 2
+    handlersA!.ok(
+      makeSnap("ride-A", { userId: "u1", conquestResult: { newMeters: 800 } }),
+    );
+    assert.equal(results[results.length - 1].status, "positive");
+    assert.equal(results[results.length - 1].newMeters, 800);
+    const afterAResult = results.length;
 
-    // Late A callback guard
-    const lateABlocked = generation !== genA;
+    // Activate B (same uid)
+    subscription.activate({ userId: "u1", localRecordId: "local-B", serverRideId: "ride-B" });
+    assert.equal(subscribeCount, 2);
+    const handlersB = liveHandlers;
+    assert.ok(handlersB, "B subscribe callback captured");
+    assert.notEqual(handlersB, handlersA);
+    const afterBInit = results.length;
+    // prior clear → EMPTY
+    assert.equal(results[afterBInit - 1].status, "none");
 
-    // B callback guard
-    const bAccepted = generation === genB;
+    // Force late A success + error — must not append B-visible conquest values
+    handlersA!.ok(
+      makeSnap("ride-A", { userId: "u1", conquestResult: { newMeters: 9999 } }),
+    );
+    handlersA!.err(new Error("late A error"));
+    assert.equal(
+      results.length,
+      afterBInit,
+      `late A must not push events (have ${results.length - afterBInit} extras)`,
+    );
 
-    assert.equal(lateABlocked, true, "Late A callback blocked (gen mismatch)");
-    assert.equal(bAccepted, true, "B callback accepted (gen match)");
+    // B normal success
+    handlersB!.ok(
+      makeSnap("ride-B", { userId: "u1", conquestResult: { newMeters: 120 } }),
+    );
+    assert.equal(results[results.length - 1].status, "positive");
+    assert.equal(results[results.length - 1].newMeters, 120);
+
+    // sanity: A did produce at least one real result before switch
+    assert.ok(afterAResult > afterAInit);
   });
 
-  it("Multiple activations: only latest generation accepted", () => {
-    let generation = 0;
-    const generations: number[] = [];
+  it("dispose then late callback: no further results; active subs become 0", () => {
+    const results: RideConquestResult[] = [];
+    let live: SnapHandler | null = null;
+    let activeSubs = 0;
 
-    // Activate A, B, C
-    for (let i = 0; i < 3; i++) {
-      generation++;
-      generations.push(generation);
-    }
+    const subscription = new RideConquestSubscription(
+      {
+        firestore: { type: "firestore" } as unknown as import("firebase/firestore").Firestore,
+        doc: (_db: unknown, _col: string, id: string) => ({ path: `rides/${id}`, id }),
+        subscribe: ((_ref: unknown, onNext: SnapHandler) => {
+          activeSubs++;
+          live = onNext;
+          return () => {
+            activeSubs--;
+            if (live === onNext) live = null;
+          };
+        }) as unknown as typeof import("firebase/firestore").onSnapshot,
+        setTimeout: (() => 0) as unknown as typeof setTimeout,
+        clearTimeout: (() => {}) as unknown as typeof clearTimeout,
+        getDoc: (async () => makeSnap("noop", null)) as unknown as (
+          docRef: unknown,
+        ) => Promise<ReturnType<typeof makeSnap>>,
+      },
+      { onResult: (r) => results.push(r) },
+    );
 
-    const currentGen = generation; // 3
+    subscription.activate({ userId: "u1", localRecordId: "l1", serverRideId: "s1" });
+    assert.equal(activeSubs, 1);
+    const cb = live!;
+    const n = results.length;
+    subscription.dispose();
+    assert.equal(activeSubs, 0);
+    cb(makeSnap("s1", { userId: "u1", conquestResult: { newMeters: 50 } }));
+    assert.equal(results.length, n, "disposed generation rejects late snap");
+  });
 
-    // Check each generation
-    const genABlocked = currentGen !== generations[0]; // 3 !== 1
-    const genBBlocked = currentGen !== generations[1]; // 3 !== 2
-    const genCAccepted = currentGen === generations[2]; // 3 === 3
+  it("account switch: prior user callback rejected by ownership+generation", () => {
+    const results: RideConquestResult[] = [];
+    let live: { ok: SnapHandler; err: ErrHandler } | null = null;
 
-    assert.equal(genABlocked, true, "Gen A (1) blocked");
-    assert.equal(genBBlocked, true, "Gen B (2) blocked");
-    assert.equal(genCAccepted, true, "Gen C (3) accepted");
+    const subscription = new RideConquestSubscription(
+      {
+        firestore: { type: "firestore" } as unknown as import("firebase/firestore").Firestore,
+        doc: (_db: unknown, _col: string, id: string) => ({ path: `rides/${id}`, id }),
+        subscribe: ((_ref: unknown, onNext: SnapHandler, onErr?: ErrHandler) => {
+          live = { ok: onNext, err: onErr || (() => {}) };
+          return () => {
+            if (live && live.ok === onNext) live = null;
+          };
+        }) as unknown as typeof import("firebase/firestore").onSnapshot,
+        setTimeout: (() => 0) as unknown as typeof setTimeout,
+        clearTimeout: (() => {}) as unknown as typeof clearTimeout,
+        getDoc: (async () => makeSnap("noop", null)) as unknown as (
+          docRef: unknown,
+        ) => Promise<ReturnType<typeof makeSnap>>,
+      },
+      { onResult: (r) => results.push(r) },
+    );
+
+    subscription.activate({ userId: "user-A", localRecordId: "l1", serverRideId: "r1" });
+    const handlersA = live!;
+    subscription.activate({ userId: "user-B", localRecordId: "l2", serverRideId: "r2" });
+    const afterB = results.length;
+    handlersA.ok(makeSnap("r1", { userId: "user-A", conquestResult: { newMeters: 1 } }));
+    assert.equal(results.length, afterB);
+
+    live!.ok(makeSnap("r2", { userId: "user-B", conquestResult: { newMeters: 40 } }));
+    assert.equal(results[results.length - 1].newMeters, 40);
   });
 });
