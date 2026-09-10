@@ -106,6 +106,9 @@
 | [260830-Route Token Harness 실패 복구·UI 재현성 1R2 작업지시서](ops/route-relay/260830-Route-Token-Harness-실패복구-UI-재현성-1R2-작업지시서.md) | `ROUTE-TOKEN-1R2` — runner 실패 원상복구·UI Route 응답 `2→1→0`·backend `0/3/3`·Node 20 연속 재현 증명 | 독립 재검토 PASS·PR 대기 |
 | [260830-Route Token Harness 격리 보완 1R 작업지시서](ops/route-relay/260830-Route-Token-Harness-격리-보완-1R-작업지시서.md) | `ROUTE-TOKEN-1R` — 운영 노출·Secret Manager·부정 조건은 개선, UI 재현성·실패 원상복구는 1R2로 이관 | 부분 수행·1R2 보완 필요 |
 | [260830-Route Token 정상 호출 경로 검증 1단계 작업지시서](ops/route-relay/260830-Route-Token-정상-호출-경로-검증-1단계-작업지시서.md) | `ROUTE-TOKEN-1` — Emulator Harness로 일반 Route Token `3→2→1→0→거부` 계약은 증명, 격리 결함은 1R로 이관 | 부분 수행·1R 보완 필요 |
+| [260907-RTW-도로망-성취경험-실행계획](260907-RTW-도로망-성취경험-실행계획.md) | 도로망 성취: 0→1 결과 → 2 다음 접속 → 3 주행 중 … | 반영중 |
+| [260907-도로망-성취결과-1단계-작업지시서](ops/ride-relay/260907-도로망-성취결과-1단계-작업지시서.md) | `RIDE-CLAIM-RESULT-1` · 결과 시트 새 도로·궤적 | 코드 반영·배포됨 |
+| [260911-도로망-다음접속-2단계-재착수-작업지시서](ops/ride-relay/260911-도로망-다음접속-2단계-재착수-작업지시서.md) | **현재 `RIDE-NEXT-VISIT-2`** · PR #8 보류 후 main2 재착수 | 활성 |
 | [260902-다음 주행·이어 달리기 자동 Route 결합 R1 작업지시서](ops/ride-relay/260902-다음-주행-이어달리기-자동Route-결합-R1-작업지시서.md) | **다음 작업 `RIDE-CONTINUE-1-R1`** — 주행 종료점을 다음 Start 로 승계해 루프를 닫고, 그 자리에서 거리·방향 자동 Route 로 다음 구간을 잇는다. 260829 §3.3 갱신 | 3G 병합 후 착수 |
 | [260829-다음 주행·이어 달리기 작업지시서](ops/ride-relay/260829-다음-주행-이어달리기-작업지시서.md) | **현재 실행 작업 RIDE-CONTINUE-1** — 실제 Ride 종료점을 다음 출발점으로 자동 연결 + 미완주 SavedRoute 재개를 지도 주 표면으로 승격 | 제품 결정 확정·실행 대기 |
 | [260828-Activity-World-줌-LOD-복구-작업지시서](ops/map-relay/260828-Activity-World-줌-LOD-복구-작업지시서.md) | **현재 실행 작업 MAP-LOD-1** — 비동기 흔적 dot/line 줌 전환이 2026-06-13부터 화면 미적용(회귀). 배선 복구 + 히스테리시스 복원 | 원인 확정·실행 대기 |
