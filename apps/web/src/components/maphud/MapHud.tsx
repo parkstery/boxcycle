@@ -130,6 +130,11 @@ export type MapHudProps = {
   weatherHint?: string | null;
   /** Conquest — 낙관 새 도로 m. null=미무장 숨김. 0=+0.00(이미 내 도로) */
   conquestLiveMeters?: number | null;
+  /**
+   * 「이미 내 도로」 힌트 — true 이면 +0.00 아래에 작은 부가 설명을 표시.
+   * 조건: `conquestLiveMeters === 0 && 세션 거리 ≥ 10m`.
+   */
+  conquestAllOwnedHint?: boolean;
   /** idle 단계 첫 진입 안내 문구 */
   idleHintMessage?: string;
 };
@@ -200,6 +205,7 @@ export function MapHud(props: MapHudProps) {
     ridePresence,
     weatherHint,
     conquestLiveMeters,
+    conquestAllOwnedHint,
     idleHintMessage = "MENU → 입문 경로",
   } = props;
 
@@ -452,6 +458,11 @@ export function MapHud(props: MapHudProps) {
                       +{formatRideDistanceKmNumber(conquestLiveMeters)}
                       <span className="hud-metrics__cell-unit">km</span>
                     </span>
+                    {conquestAllOwnedHint ? (
+                      <span className="hud-metrics__conquest-owned-hint" aria-label="이미 내 도로">
+                        이미 내 도로
+                      </span>
+                    ) : null}
                   </span>
                 </>
               ) : null}
