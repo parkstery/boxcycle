@@ -612,6 +612,7 @@ export default function App() {
     riding: rideStatus === "running" || rideStatus === "paused",
     routeGeometry,
     traveledMeters: rideMetrics.virtualDistanceMeters,
+    fromMeters: sessionStartOffsetMeters,
     serverCellIds: conquestCellIds,
   });
 

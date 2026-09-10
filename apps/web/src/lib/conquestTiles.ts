@@ -21,7 +21,7 @@ export const CONQUEST_CELL_ZOOM = 20;
 /** 사용자 정복 저장 청크 단위(z12 = z20 셀 65,536개 커버, 서울 위도 ~7.8km) */
 export const CONQUEST_CHUNK_ZOOM = 12;
 export const CONQUEST_PAYLOAD_VERSION = 2;
-/** 서울 위도 기준 셀 한 변(m) — 라이브 카운터의 근사 환산용 */
+/** 서울 위도 기준 셀 한 변(m) — 문서·디버그용. 라이브 「새 도로」는 경로 실측 미터를 쓴다. */
 export const CONQUEST_CELL_APPROX_METERS = 30;
 
 /** 셀 내 이동 거리 집계용 경로 보간 보폭(m) */
