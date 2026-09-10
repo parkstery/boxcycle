@@ -56,18 +56,22 @@ function killTree(pid) {
   if (!pid || pid <= 0) return { ok: false, reason: "no-pid" };
   try {
     if (process.platform === "win32") {
+      // timeout:6000 — prevent a hung taskkill from stalling the whole wrapper (Windows-verified).
       const r = spawnSync("taskkill", ["/PID", String(pid), "/T", "/F"], {
         encoding: "utf8",
         windowsHide: true,
+        timeout: 6000,
       });
       return {
         ok: r.status === 0,
         status: r.status,
         stdout: r.stdout,
         stderr: r.stderr,
+        timedOut: r.error?.code === "ETIMEDOUT" || r.signal === "SIGTERM",
       };
     }
-    // POSIX: prefer killing the process group when child was started with detached.
+    // POSIX: kill process group (detached spawn). Cleanup verification is
+    // Windows-verified in this test environment; POSIX path is unverified here.
     try {
       process.kill(-pid, "SIGTERM");
     } catch {
@@ -80,6 +84,25 @@ function killTree(pid) {
     return { ok: true };
   } catch (e) {
     return { ok: false, reason: String(e?.message || e) };
+  }
+}
+
+// Windows-verified; POSIX: signal(0) probe is unverified in this environment.
+function isPidAlive(pid) {
+  if (!pid || pid <= 0) return false;
+  if (process.platform === "win32") {
+    const r = spawnSync("tasklist", ["/FI", `PID eq ${pid}`, "/NH", "/FO", "CSV"], {
+      encoding: "utf8",
+      windowsHide: true,
+      timeout: 5000,
+    });
+    return r.stdout?.includes(String(pid)) ?? false;
+  }
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -141,28 +164,34 @@ const timer = setTimeout(() => {
   );
   const killResult = killTree(child.pid);
   console.error(`[e2e-deadline] killTree result=${JSON.stringify(killResult)}`);
-  const summary = {
-    status: "timeout",
-    limitSec,
-    startedAt: startedAt.toISOString(),
-    endedAt: endedAt.toISOString(),
-    elapsedMs,
-    command: commandLine,
-    pid: child.pid ?? null,
-    killResult,
-  };
-  const logPath =
-    process.env.RTW_E2E_DEADLINE_LOG ||
-    path.join(HERE, "../../test-results/e2e-deadline-timeout.json");
-  try {
-    fs.mkdirSync(path.dirname(logPath), { recursive: true });
-    fs.writeFileSync(logPath, `${JSON.stringify(summary, null, 2)}\n`);
-    console.error(`[e2e-deadline] wrote ${logPath}`);
-  } catch (e) {
-    console.error(`[e2e-deadline] log write failed: ${e}`);
-  }
   // Bounded cleanup: do not hang forever if child ignores signals.
+  // Summary is written after waitForExit so pidAlive reflects post-kill state.
   waitForExit(child, 5000).then((info) => {
+    // Windows-verified: assert attempt PID gone after tree-kill.
+    // POSIX: signal(0) probe is unverified in this environment.
+    const pidAlive = isPidAlive(child.pid);
+    console.error(`[e2e-deadline] pidAlive=${pidAlive} after kill`);
+    const summary = {
+      status: "timeout",
+      limitSec,
+      startedAt: startedAt.toISOString(),
+      endedAt: endedAt.toISOString(),
+      elapsedMs,
+      command: commandLine,
+      pid: child.pid ?? null,
+      killResult,
+      pidAlive,
+    };
+    const logPath =
+      process.env.RTW_E2E_DEADLINE_LOG ||
+      path.join(HERE, "../../test-results/e2e-deadline-timeout.json");
+    try {
+      fs.mkdirSync(path.dirname(logPath), { recursive: true });
+      fs.writeFileSync(logPath, `${JSON.stringify(summary, null, 2)}\n`);
+      console.error(`[e2e-deadline] wrote ${logPath}`);
+    } catch (e) {
+      console.error(`[e2e-deadline] log write failed: ${e}`);
+    }
     if (info.timedOut) {
       console.error(`[e2e-deadline] child still alive after 5s — escalate SIGKILL/taskkill`);
       if (process.platform === "win32") {

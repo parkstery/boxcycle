@@ -4,6 +4,7 @@ import { isIncompleteQuotaError } from "../../lib/tierQuota";
 import { progressPercentLabel, type RideEndResult } from "../../lib/rideEndResult";
 import { formatConquestSummaryLine } from "../../lib/rideConquestResult";
 import { useRideConquestResult } from "../../hooks/useRideConquestResult";
+import { getRideSaveStatusLabel, getSavedRouteProgressStatusLabel } from "../../lib/rideStatusCopy";
 import "./RideSummarySheet.css";
 
 type RideSummarySheetProps = {
@@ -183,24 +184,21 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
         ) : null}
 
         {/* R2: F4 persistence status (independent axes) */}
+        {/* 문구 원천: rideStatusCopy.ts — N2 테스트가 이 함수를 어서트해 실제 렌더 결과를 증명 */}
         {rideSaveStatus !== "n/a" || savedRouteProgressStatus !== "n/a" ? (
           <div className="ride-summary__status" aria-live="polite">
-            {rideSaveStatus === "pending" ? (
-              <span className="ride-summary__status-item ride-summary__status-item--pending">
-                주행 저장 중…
-              </span>
-            ) : rideSaveStatus === "failed" ? (
-              <span className="ride-summary__status-item ride-summary__status-item--failed">
-                ⚠ 주행 저장 실패
+            {getRideSaveStatusLabel(rideSaveStatus) != null ? (
+              <span
+                className={`ride-summary__status-item ride-summary__status-item--${rideSaveStatus}`}
+              >
+                {getRideSaveStatusLabel(rideSaveStatus)}
               </span>
             ) : null}
-            {savedRouteProgressStatus === "pending" ? (
-              <span className="ride-summary__status-item ride-summary__status-item--pending">
-                진행률 저장 중…
-              </span>
-            ) : savedRouteProgressStatus === "failed" ? (
-              <span className="ride-summary__status-item ride-summary__status-item--failed">
-                ⚠ 진행률 저장 실패
+            {getSavedRouteProgressStatusLabel(savedRouteProgressStatus) != null ? (
+              <span
+                className={`ride-summary__status-item ride-summary__status-item--${savedRouteProgressStatus}`}
+              >
+                {getSavedRouteProgressStatusLabel(savedRouteProgressStatus)}
               </span>
             ) : null}
           </div>
