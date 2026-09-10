@@ -11,7 +11,7 @@ import {
   companionHudCopy,
   formatCompanionHudActivityLine,
 } from "../../lib/companionHudCount";
-import { formatRideDistanceKmNumber } from "../../lib/rideDistanceFormat";
+import { formatRideDistanceKmNumber, LIVE_NEW_ROAD_HUD_MIN_METERS } from "../../lib/rideDistanceFormat";
 import { CadenceHudChip } from "./CadenceHudChip";
 import "./MapHud.css";
 
@@ -436,8 +436,8 @@ export function MapHud(props: MapHudProps) {
               <HudMetricCell label="평균" value={metrics.avgKmh} unit="km/h" />
               <span className="hud-metrics__divider" aria-hidden />
               <HudMetricCell label="속도" value={String(metrics.speedKmh)} unit="km/h" />
-              {/* 50m 미만은 「+0.0km」로 보여 미표시 — 정복 축은 발생 시에만(0 미표시 원칙) */}
-              {(riding || paused) && (conquestLiveMeters ?? 0) >= 50 ? (
+              {/* 0은 미표시. 라이브는 1m부터 표시(50m 대기 시 저속에서 ~30초 지연됨) */}
+              {(riding || paused) && (conquestLiveMeters ?? 0) >= LIVE_NEW_ROAD_HUD_MIN_METERS ? (
                 <>
                   <span className="hud-metrics__divider" aria-hidden />
                   <span
