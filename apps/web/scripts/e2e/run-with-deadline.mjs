@@ -100,7 +100,8 @@ console.error(
   `[e2e-deadline] start limitSec=${limitSec} cmd=${commandLine} at=${startedAt.toISOString()}`,
 );
 
-const child = spawn(cmd[0], cmd.slice(1), {
+// One shell string so nested quoted Playwright args survive (Windows npm scripts).
+const child = spawn(commandLine, {
   cwd: process.cwd(),
   env: process.env,
   stdio: "inherit",
