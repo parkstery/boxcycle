@@ -1,0 +1,79 @@
+/*
+ * 「입문 경로」 시작 CTA 카드 — 이전 주행이 없는 idle 에서만 표시한다(§3, RIDE-NEXT-VISIT-2).
+ * NextRideCard 와 같은 좌하단 anchor 를 쓰며, 동시에 표시되지 않는다.
+ */
+.first-ride-anchor {
+  --first-ride-pad: clamp(0.45rem, 1.4vw, 0.85rem);
+  position: absolute;
+  left: max(var(--first-ride-pad), env(safe-area-inset-left, 0px));
+  bottom: calc(
+    max(var(--first-ride-pad), env(safe-area-inset-bottom, 0px)) + var(--mapbox-logo-clearance, 2.875rem)
+  );
+  z-index: 6;
+  max-width: min(21.6rem, calc(100vw - 2rem));
+  pointer-events: none;
+}
+
+.first-ride__card {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.65rem 0.75rem 0.7rem;
+  border: 1px solid var(--rtw-glass-border, rgba(248, 250, 252, 0.18));
+  border-radius: var(--rtw-radius, 14px);
+  background: var(--rtw-glass-bg-strong, rgba(10, 16, 26, 0.64));
+  -webkit-backdrop-filter: blur(var(--rtw-glass-blur, 12px));
+  backdrop-filter: blur(var(--rtw-glass-blur, 12px));
+  box-shadow: var(--rtw-glass-shadow, 4px 8px 28px rgba(2, 8, 20, 0.4));
+  color: var(--rtw-text, #f8fafc);
+}
+
+.first-ride__title {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.first-ride__body {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.78;
+  line-height: 1.4;
+}
+
+.first-ride__btn {
+  margin-top: 0.1rem;
+  min-height: 2.2rem;
+  padding: 0.38rem 0.7rem;
+  border: none;
+  border-radius: 9px;
+  background: var(--rtw-accent, #e8a33d);
+  color: #10151f;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+}
+
+.first-ride__btn:hover {
+  filter: brightness(1.06);
+}
+
+.first-ride__btn:focus-visible {
+  outline: 2px solid var(--rtw-accent, #e8a33d);
+  outline-offset: 2px;
+}
+
+/* 모바일 가로 */
+@media (max-height: 520px), (max-width: 480px) {
+  .first-ride-anchor {
+    --mapbox-logo-clearance: 0.35rem;
+    max-width: min(18rem, calc(100vw - 2rem));
+  }
+
+  .first-ride__card {
+    padding: 0.45rem 0.5rem 0.5rem;
+  }
+}
