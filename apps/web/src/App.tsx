@@ -33,7 +33,7 @@ import { allowUnauthMapDev } from "./lib/authGatePolicy";
 import { readGuestEntryAccepted } from "./lib/appSessionKeys";
 import { useUserTier } from "./hooks/useUserTier";
 import { RideSummarySheet } from "./components/RideSummarySheet";
-import { NextRideCard } from "./components/ride";
+import { NextRideCard, FirstRideIntroCard } from "./components/ride";
 import { resolveNextRideView } from "./lib/nextRideTarget";
 import type { NextRideTarget } from "./lib/nextRideTarget";
 import type { RideEndResult } from "./lib/rideEndResult";
@@ -321,6 +321,8 @@ export default function App() {
    * Ride·SavedRoute 를 삭제하지 않는다.
    */
   const [nextRideDismissedRideId, setNextRideDismissedRideId] = useState<string | null>(null);
+  /** 카드가 뜰 때 지도를 1회만 앵커로 이동한 Ride id(pan 후 재점프 금지, RIDE-NEXT-VISIT-2 V1·V2) */
+  const nextRideFramedRideIdRef = useRef<string | null>(null);
   /** anchor 이어 달리기 — Start 가 sessionEndLngLat 에 고정된 상태(null=일반 자동 Route) */
   const anchorFixedStartRef = useRef<LngLat | null>(null);
   const routePickOpenSeqRef = useRef(0);
@@ -1652,6 +1654,26 @@ export default function App() {
   );
 
   /**
+   * 이전 주행이 없는 idle — 입문 코스 CTA 표시(RIDE-NEXT-VISIT-2 §3, V3).
+   * NextRideCard 와 같은 가드를 쓰되, `nextRideView` 가 null 일 때만 등장한다.
+   */
+  const firstRideIntroVisible = Boolean(
+    user &&
+      !nextRideView &&
+      stage === "idle" &&
+      !savedRoutesLoading &&
+      (!configured || savedRoutesLoaded) &&
+      !menuOpen &&
+      !placeSearchOpen &&
+      !mapViewSheetOpen &&
+      !userInfoSheetOpen &&
+      !rideSettingsSheetOpen &&
+      !cadenceSensorSheetOpen &&
+      !publicRouteRequestModalRoute &&
+      !needsGuestEntry,
+  );
+
+  /**
    * 재개 준비 상태의 지도 표현(§3.4) — 완료 구간은 마젠타(내 도로망과 같은 색),
    * 남은 구간은 현행 빨강, 경계에 「N% · 여기서 계속」 마커 하나.
    * 주행 중 진행 칠하기와 **같은 파이프라인**(conquestLiveTraveledMeters)을 재사용한다.
@@ -1821,6 +1843,38 @@ export default function App() {
         onDismiss={() => setNextRideDismissedRideId(nextRideView.target.rideId)}
       />
     ) : null;
+
+  /**
+   * 카드가 처음 나타날 때 지도를 재개 앵커로 1회 이동(RIDE-NEXT-VISIT-2 V1·V2).
+   * pan 후 재점프를 막기 위해 rideId 단위로 1회만 실행하고, 이후에는 카드가 다시
+   * 보여도 카메라를 건드리지 않는다.
+   */
+  useEffect(() => {
+    if (
+      nextRideCardVisible &&
+      nextRideView &&
+      nextRideFramedRideIdRef.current !== nextRideView.target.rideId
+    ) {
+      nextRideFramedRideIdRef.current = nextRideView.target.rideId;
+      setFollowMode("free");
+      cameraJumpSeqRef.current += 1;
+      setExternalCameraJump({
+        lngLat: nextRideView.target.anchorLngLat,
+        zoom: 14,
+        requestId: cameraJumpSeqRef.current,
+      });
+    }
+  }, [nextRideCardVisible, nextRideView]);
+
+  /** 입문 코스 CTA — 이전 주행 후보가 없는 idle 화면에서만 표시(RIDE-NEXT-VISIT-2 V3) */
+  const firstRideIntroCard = firstRideIntroVisible ? (
+    <FirstRideIntroCard
+      onStartIntro={() => {
+        const hubId = BASIC_SHARED_HUB_IDS[0];
+        if (hubId) void enterBasicHub(hubId);
+      }}
+    />
+  ) : null;
 
   /**
    * Go 사전조건 = 경로 준비 **+ 주행 입력 준비**.
@@ -2086,7 +2140,7 @@ export default function App() {
               onResumeFromPause: handleResume,
               onEndFromPause: handleEndRideWithTrailCleanup,
               onModifyFromPause: handleModifyFromPause,
-              showIdleHint: stage === "idle" && !idleHintDismissed,
+              showIdleHint: stage === "idle" && !idleHintDismissed && !nextRideCardVisible && !firstRideIntroVisible,
               onDismissIdleHint: () => setIdleHintDismissed(true),
               ridePresence: mapHudRidePresence,
               onGoTrailhead: goTrailheadAndCloseMenu,
@@ -2130,6 +2184,7 @@ export default function App() {
               <>
                 {routeDockPanel}
                 {nextRideCard}
+                {firstRideIntroCard}
               </>
             }
             mapView={{
@@ -2269,7 +2324,7 @@ export default function App() {
               onResumeFromPause: handleResume,
               onEndFromPause: handleEndRideWithTrailCleanup,
               onModifyFromPause: handleModifyFromPause,
-              showIdleHint: stage === "idle" && !idleHintDismissed,
+              showIdleHint: stage === "idle" && !idleHintDismissed && !nextRideCardVisible && !firstRideIntroVisible,
               onDismissIdleHint: () => setIdleHintDismissed(true),
               ridePresence: mapHudRidePresence,
               onGoTrailhead: goTrailheadAndCloseMenu,
