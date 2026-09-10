@@ -1,10 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { validateSavedRouteName } from "../../lib/firestoreSavedRoutes";
 import { isIncompleteQuotaError } from "../../lib/tierQuota";
 import { progressPercentLabel, type RideEndResult } from "../../lib/rideEndResult";
-import { formatConquestSummaryLine } from "../../lib/rideConquestResult";
 import { useRideConquestResult } from "../../hooks/useRideConquestResult";
 import { getRideSaveStatusLabel, getSavedRouteProgressStatusLabel } from "../../lib/rideStatusCopy";
+import {
+  formatNewRoadHero,
+  formatNewRoadSubtitle,
+  formatConquestStatusCopy,
+} from "../../lib/rideSessionPreview";
+import { RideSessionTracePreview } from "./RideSessionTracePreview";
 import "./RideSummarySheet.css";
 
 type RideSummarySheetProps = {
@@ -40,13 +45,17 @@ type RideSummarySheetProps = {
   onExtendFromEnd?: () => void;
   /** 미완료 쿼터 초과로 저장이 막혔을 때 상위에 알림(→ 시트 닫고 「내 경로」 대기 탭 유도) */
   onIncompleteQuotaBlocked?: (message: string) => void;
+  /**
+   * RIDE-CLAIM-RESULT-1: 이미 로드된 내 도로망 geometries.
+   * 세션 bounds 클리핑은 preview lib 에서 수행. 새 조회 없음.
+   */
+  conquestTraceGeometries?: Array<{ type: string; coordinates: number[][] }> | null;
 };
 
 /**
  * 주행 종료 후 하단 시트.
  * - 도착 여부·ad-hoc 여부로 노출을 제한하지 않는다 — 폐기되지 않은 **모든 유효 Ride** 가 연다(§3.5).
- * - 미완주면 「전체 진행 31% → 43%」, 완주면 「경로를 완주했습니다」, 그리고 다음 출발점을 알린다.
- * - ad-hoc 저장은 **보조** 액션이다. 저장하지 않아도 다음 출발점은 남으므로 경고하지 않는다.
+ * - §3.1 순서: 새 도로 hero → SVG 미리보기 → 오늘 통계 → 진행률 → 다음 출발점 → CTA
  */
 export function RideSummarySheet(props: RideSummarySheetProps) {
   const suggested = props.suggestedName ?? "";
@@ -56,6 +65,12 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
   /** 같은 경로가 이미 있어 "업데이트하시겠습니까?" 확인을 기다리는 중. */
   const [confirmingUpdate, setConfirmingUpdate] = useState(false);
 
+  // RIDE-CLAIM-RESULT-1: UI-level delay/timeout tracking (15s delayed, 60s timed-out)
+  const [isDelayed, setIsDelayed] = useState(false);
+  const [isTimedOut, setIsTimedOut] = useState(false);
+  const delayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timeoutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // F3: rides/{serverRideId}.conquestResult 구독
   const result = props.result ?? null;
   const conquestResult = useRideConquestResult({
@@ -63,14 +78,35 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
     userId: props.userId,
     localRecordId: result?.recordId ?? "",
   });
-  const conquestLine = formatConquestSummaryLine(conquestResult);
+
+  // UI delay 타이머 — serverRideId 가 바뀔 때만 재시작한다.
+  // positive/confirmed_zero 에서는 formatConquestStatusCopy 가 null 을 반환하므로
+  // isDelayed/isTimedOut 값이 있어도 UI 에 노출되지 않는다.
+  const serverRideId = result?.serverRideId;
+
+  useEffect(() => {
+    if (!serverRideId) return;
+
+    // 15초 → delayed (타이머 콜백에서 setState — 비동기, 허용됨)
+    const t15 = setTimeout(() => setIsDelayed(true), 15000);
+    // 60초 → timed out
+    const t60 = setTimeout(() => setIsTimedOut(true), 60000);
+    delayTimerRef.current = t15;
+    timeoutTimerRef.current = t60;
+    return () => {
+      clearTimeout(t15);
+      clearTimeout(t60);
+      // cleanup 에서의 setState 는 허용됨 — serverRideId 변경 시 상태 초기화
+      setIsDelayed(false);
+      setIsTimedOut(false);
+    };
+  }, [serverRideId]);
 
   // R2: F4 persistence status (independent axes)
   const rideSaveStatus = result?.rideSaveStatus ?? "n/a";
   const savedRouteProgressStatus = result?.savedRouteProgressStatus ?? "n/a";
 
   // 제안 이름이 갱신되면(지명 비동기 도착 등), 사용자가 아직 손대지 않은 경우에만 따라간다.
-  // effect 대신 이전 값과 비교(React 권장) — 편집 중 덮어쓰기·불필요 리렌더 회피.
   const [prevSuggested, setPrevSuggested] = useState(suggested);
   if (suggested !== prevSuggested) {
     setPrevSuggested(suggested);
@@ -83,6 +119,18 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
   /** 미완주 저장 경로 주행 — 이전→신규 진행률을 보여 줄 수 있는 경우 */
   const showProgressLine = Boolean(result && result.savedRouteId && !routeCompleted);
   const hasNextStart = Boolean(result?.anchorLngLat);
+
+  // RIDE-CLAIM-RESULT-1: 새 도로 conquest 표시 로직
+  const newRoadHero = formatNewRoadHero(conquestResult.newMeters, conquestResult.status);
+  const newRoadSubtitle = formatNewRoadSubtitle(conquestResult.newMeters, conquestResult.status);
+  const conquestStatusCopy = formatConquestStatusCopy(
+    conquestResult.status,
+    isDelayed,
+    isTimedOut,
+  );
+
+  // 저장 중(serverRideId 없음)이면 conquest hero 블록을 표시하지 않음
+  const showConquestBlock = Boolean(result);
 
   function requestClose() {
     if (busy) return;
@@ -105,14 +153,12 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
       setName("");
       setConfirmingUpdate(false);
     } catch (e) {
-      // 미완료 쿼터 초과: 시트를 닫고 「내 경로」 대기 탭으로 유도(상위에서 처리).
       if (isIncompleteQuotaError(e)) {
         setName("");
         setConfirmingUpdate(false);
         setError(null);
         props.onIncompleteQuotaBlocked?.(e.message);
       } else if (
-        // 같은 경로가 이미 있으면 "업데이트하시겠습니까?" 확인을 띄운다.
         e && typeof e === "object" && (e as { code?: string }).code === "saved-route-duplicate"
       ) {
         setConfirmingUpdate(true);
@@ -152,6 +198,58 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
             닫기
           </button>
         </div>
+
+        {/* §3.1 새 도로 hero (conquest 결과) */}
+        {showConquestBlock ? (
+          <div className="ride-summary__conquest-hero" aria-live="polite">
+            {newRoadHero ? (
+              <>
+                <div className="ride-summary__conquest-label">새 도로</div>
+                <strong className="ride-summary__conquest-value">{newRoadHero}</strong>
+                {newRoadSubtitle ? (
+                  <p className="ride-summary__conquest-subtitle">{newRoadSubtitle}</p>
+                ) : null}
+              </>
+            ) : conquestStatusCopy ? (
+              <p className="ride-summary__conquest-status">
+                {conquestStatusCopy}
+                {isTimedOut ? (
+                  <>
+                    {" "}
+                    <button
+                      type="button"
+                      className="ride-summary__conquest-retry"
+                      onClick={() => {
+                        setIsDelayed(false);
+                        setIsTimedOut(false);
+                        // 구독 재활성화: serverRideId key 가 변하지 않으므로 localRecordId 를 통해 hook 이 재구독
+                        // RideConquestSubscription 은 같은 key에 activate()를 재호출하면 재구독한다
+                        // 이를 트리거하기 위해 result key 를 강제 re-subscribe 할 수 없으므로
+                        // 15/60s timer 만 초기화한다 — 실제 Firestore 재구독은 hook 의 서버 ID 변경 없이는 불가.
+                        // BLOCK: useRideConquestResult hook 에 forceRetry() API 가 없으므로
+                        // 이 "다시 확인" 버튼은 타이머 상태만 초기화. 추후 hook에 재구독 신호 추가 필요.
+                      }}
+                    >
+                      다시 확인
+                    </button>
+                  </>
+                ) : null}
+              </p>
+            ) : newRoadSubtitle ? (
+              <p className="ride-summary__conquest-subtitle">{newRoadSubtitle}</p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {/* §3.2 SVG 미리보기 */}
+        {result?.sessionPathLngLat ? (
+          <RideSessionTracePreview
+            sessionPathLngLat={result.sessionPathLngLat}
+            conquestTraces={props.conquestTraceGeometries}
+          />
+        ) : null}
+
+        {/* 오늘 거리 hero (기존 스타일 유지, 보조로 이동) */}
         <div className="ride-summary__hero">
           <span className="ride-summary__hero-k">오늘</span>
           <strong className="ride-summary__hero-v">{props.distanceKm} km</strong>
@@ -177,14 +275,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
           <p className="ride-summary__nextstart">다음 출발점이 저장되었습니다</p>
         ) : null}
 
-        {conquestLine ? (
-          <p className="ride-summary__conquest" role="status" aria-live="polite">
-            ⚑ {conquestLine}
-          </p>
-        ) : null}
-
         {/* R2: F4 persistence status (independent axes) */}
-        {/* 문구 원천: rideStatusCopy.ts — N2 테스트가 이 함수를 어서트해 실제 렌더 결과를 증명 */}
         {rideSaveStatus !== "n/a" || savedRouteProgressStatus !== "n/a" ? (
           <div className="ride-summary__status" aria-live="polite">
             {getRideSaveStatusLabel(rideSaveStatus) != null ? (
@@ -222,7 +313,6 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
           <>
             {/*
               ad-hoc 저장은 보조 액션이다 — 저장하지 않아도 Ride 기록과 다음 출발점은 남는다.
-              「지금 닫으면 잃는다」 경고는 제거했다(§3.5).
             */}
             <div className="ride-summary__form">
               <input

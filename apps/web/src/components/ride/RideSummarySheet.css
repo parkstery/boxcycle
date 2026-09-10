@@ -275,6 +275,72 @@
   }
 }
 
+/* RIDE-CLAIM-RESULT-1: 새 도로 conquest hero 블록 */
+.ride-summary__conquest-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.6rem 0.7rem 0.5rem;
+  border-radius: var(--rtw-radius-md);
+  background: rgba(138, 43, 226, 0.08);
+  border: 1px solid rgba(138, 43, 226, 0.3);
+}
+
+.ride-summary__conquest-label {
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: #a060e0;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ride-summary__conquest-value {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #8a2be2;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.ride-summary__conquest-subtitle {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--rtw-text-secondary, #8b949e);
+  text-align: center;
+}
+
+.ride-summary__conquest-status {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--rtw-text-secondary, #8b949e);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.ride-summary__conquest-retry {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--rtw-divider);
+  border-radius: var(--rtw-radius-pill);
+  color: var(--rtw-text-primary);
+  font: inherit;
+  font-size: 0.68rem;
+  padding: 0.15rem 0.55rem;
+  cursor: pointer;
+  min-height: 28px;
+}
+
+.ride-summary__conquest-retry:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* 구식 conquest 라인 (이전 버전 호환, 이제 hero 블록이 주역) */
 /* Conquest — 「새 도로 +N km」 (도파민 지점): 골드 강조 카드 */
 .ride-summary__conquest {
   margin: 0;

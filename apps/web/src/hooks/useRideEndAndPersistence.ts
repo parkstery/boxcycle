@@ -317,6 +317,25 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
         // F4: persistence status (independent axes)
         rideSaveStatus: "pending",
         savedRouteProgressStatus: savedRouteIdAtEnd ? "pending" : "n/a",
+        // RIDE-CLAIM-RESULT-1: 세션 궤적 스냅샷 (Route workspace 초기화 전에 고정)
+        sessionPathLngLat: (() => {
+          if (!routeGeometry || routeGeometry.coordinates.length < 2) return null;
+          try {
+            const flat = buildTraveledPathForTrace(
+              routeGeometry,
+              rideMetrics.virtualDistanceMeters,
+              startOffsetMeters,
+            );
+            if (flat.length < 4) return null;
+            const pairs: import("../lib/geo").LngLat[] = [];
+            for (let i = 0; i < flat.length - 1; i += 2) {
+              pairs.push([flat[i], flat[i + 1]]);
+            }
+            return pairs;
+          } catch {
+            return null;
+          }
+        })(),
       });
     } else {
       setLastRideResult?.(null);

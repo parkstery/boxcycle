@@ -2509,6 +2509,7 @@ export default function App() {
         onDismissAdhoc={() => setLastEndedWasAdhoc(null)}
         onClose={handleCloseSummary}
         onIncompleteQuotaBlocked={handleIncompleteQuotaBlocked}
+        conquestTraceGeometries={conquestTraceGeometries}
       />
 
       {publicRouteRequestModalRoute && user ? (

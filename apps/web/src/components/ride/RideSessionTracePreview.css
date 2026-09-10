@@ -1,0 +1,99 @@
+/* RIDE-CLAIM-RESULT-1: 세션 궤적 SVG 미리보기 */
+
+.ride-trace-preview {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.ride-trace-preview__svg {
+  width: 100%;
+  height: auto;
+  max-height: 140px;
+  border-radius: var(--rtw-radius-md, 6px);
+  background: transparent;
+  overflow: visible;
+}
+
+/* 저화면(690×275 등) — 높이를 더 줄인다 */
+@media (max-height: 340px) {
+  .ride-trace-preview__svg {
+    max-height: 80px;
+  }
+}
+
+/* 이번에 달린 길: BlueViolet 굵은 선 + glow */
+.ride-trace-preview__session {
+  fill: none;
+  stroke: #8a2be2;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 4px rgba(138, 43, 226, 0.7));
+}
+
+/* 내 도로망: BlueViolet 가는 선 */
+.ride-trace-preview__trace {
+  fill: none;
+  stroke: #8a2be2;
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.4;
+}
+
+/* 범례 */
+.ride-trace-preview__legend {
+  display: flex;
+  gap: 0.8rem;
+  font-size: 0.62rem;
+  color: var(--rtw-text-secondary, #8b949e);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.ride-trace-preview__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.ride-trace-preview__legend-line {
+  display: inline-block;
+  height: 2px;
+  width: 18px;
+  border-radius: 2px;
+}
+
+.ride-trace-preview__legend-line--session {
+  background: #8a2be2;
+  height: 3px;
+  box-shadow: 0 0 4px rgba(138, 43, 226, 0.6);
+}
+
+.ride-trace-preview__legend-line--trace {
+  background: rgba(138, 43, 226, 0.4);
+  height: 1.5px;
+}
+
+/* 폴백 */
+.ride-trace-preview--fallback {
+  min-height: 3rem;
+  justify-content: center;
+}
+
+.ride-trace-preview__fallback-msg {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--rtw-text-secondary, #8b949e);
+  text-align: center;
+}
+
+/* reduced motion: glow 제거 */
+@media (prefers-reduced-motion: reduce) {
+  .ride-trace-preview__session {
+    filter: none;
+  }
+}
