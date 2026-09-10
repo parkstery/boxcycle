@@ -40,7 +40,7 @@
 .next-ride__title {
   flex: 1 1 auto;
   margin: 0;
-  font-size: 0.78rem;
+  font-size: 0.95rem;
   font-weight: 800;
   letter-spacing: 0.02em;
 }
@@ -65,7 +65,7 @@
 
 .next-ride__line {
   margin: 0;
-  font-size: 0.74rem;
+  font-size: 0.82rem;
   line-height: 1.35;
   display: flex;
   flex-wrap: wrap;
@@ -79,7 +79,7 @@
 
 .next-ride__line--muted {
   opacity: 0.72;
-  font-size: 0.7rem;
+  font-size: 0.78rem;
 }
 
 .next-ride__route-name {
@@ -113,6 +113,8 @@
 }
 
 .next-ride__btn--primary {
+  min-height: 2.35rem;
+  font-size: 0.8rem;
   background: var(--rtw-accent, #e8a33d);
   color: #10151f;
 }

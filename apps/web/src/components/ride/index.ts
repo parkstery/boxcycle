@@ -5,3 +5,4 @@ export { RideSettingsPanel } from "./RideSettingsPanel";
 export { SavedRoutesPanel } from "./SavedRoutesPanel";
 export { RideHistoryPanel } from "./RideHistoryPanel";
 export { NextRideCard, type NextRideCardProps } from "./NextRideCard";
+export { FirstRideIntroCard, type FirstRideIntroCardProps } from "./FirstRideIntroCard";

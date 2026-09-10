@@ -33,7 +33,7 @@ import { allowUnauthMapDev } from "./lib/authGatePolicy";
 import { readGuestEntryAccepted } from "./lib/appSessionKeys";
 import { useUserTier } from "./hooks/useUserTier";
 import { RideSummarySheet } from "./components/RideSummarySheet";
-import { NextRideCard } from "./components/ride";
+import { NextRideCard, FirstRideIntroCard } from "./components/ride";
 import { resolveNextRideView } from "./lib/nextRideTarget";
 import type { NextRideTarget } from "./lib/nextRideTarget";
 import type { RideEndResult } from "./lib/rideEndResult";
@@ -1643,6 +1643,47 @@ export default function App() {
   );
 
   /**
+   * C. 첫 사용자 입문 CTA(RIDE-NEXT-VISIT-2 §3.2) — 주행 후보가 없는 idle 에서만.
+   * nextRideCardVisible 과 동시에 노출되지 않는다(nextRideView 조건이 반대).
+   */
+  const firstRideIntroVisible = Boolean(
+    user &&
+      !nextRideView &&
+      stage === "idle" &&
+      !savedRoutesLoading &&
+      (!configured || savedRoutesLoaded) &&
+      !menuOpen &&
+      !placeSearchOpen &&
+      !mapViewSheetOpen &&
+      !userInfoSheetOpen &&
+      !rideSettingsSheetOpen &&
+      !cadenceSensorSheetOpen &&
+      !publicRouteRequestModalRoute &&
+      !needsGuestEntry,
+  );
+
+  /**
+   * A. idle 카메라 자동 프레이밍(RIDE-NEXT-VISIT-2) — 카드가 처음 안정적으로 뜰 때
+   * 재개 앵커를 한 번만 화면 중앙에 맞춘다. rideId 가 바뀌면 1회 허용.
+   * 마커 오염을 막기 위해 setPlaceSearchMarkerLngLat 는 호출하지 않는다.
+   */
+  const framedRideIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!nextRideCardVisible || !nextRideView) return;
+    const rideId = nextRideView.target.rideId;
+    if (framedRideIdRef.current === rideId) return;
+    framedRideIdRef.current = rideId;
+    setFollowMode("free");
+    cameraJumpSeqRef.current += 1;
+    setExternalCameraJump({
+      lngLat: nextRideView.target.anchorLngLat,
+      zoom: 14,
+      requestId: cameraJumpSeqRef.current,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nextRideCardVisible, nextRideView]);
+
+  /**
    * 재개 준비 상태의 지도 표현(§3.4) — 완료 구간은 마젠타(내 도로망과 같은 색),
    * 남은 구간은 현행 빨강, 경계에 「N% · 여기서 계속」 마커 하나.
    * 주행 중 진행 칠하기와 **같은 파이프라인**(conquestLiveTraveledMeters)을 재사용한다.
@@ -1812,6 +1853,15 @@ export default function App() {
         onDismiss={() => setNextRideDismissedRideId(nextRideView.target.rideId)}
       />
     ) : null;
+
+  /** C. 첫 사용자 입문 CTA — nextRideCard 와 동시에 표시되지 않는다 */
+  const firstRideIntroCard = firstRideIntroVisible ? (
+    <FirstRideIntroCard
+      onEnterIntro={() => {
+        void enterBasicHub(BASIC_SHARED_HUB_IDS[0]);
+      }}
+    />
+  ) : null;
 
   /**
    * Go 사전조건 = 경로 준비 **+ 주행 입력 준비**.
@@ -2077,7 +2127,7 @@ export default function App() {
               onResumeFromPause: handleResume,
               onEndFromPause: handleEndRideWithTrailCleanup,
               onModifyFromPause: handleModifyFromPause,
-              showIdleHint: stage === "idle" && !idleHintDismissed,
+              showIdleHint: stage === "idle" && !idleHintDismissed && !nextRideCardVisible && !firstRideIntroVisible,
               onDismissIdleHint: () => setIdleHintDismissed(true),
               ridePresence: mapHudRidePresence,
               onGoTrailhead: goTrailheadAndCloseMenu,
@@ -2120,6 +2170,7 @@ export default function App() {
               <>
                 {routeDockPanel}
                 {nextRideCard}
+                {firstRideIntroCard}
               </>
             }
             mapView={{
@@ -2259,7 +2310,7 @@ export default function App() {
               onResumeFromPause: handleResume,
               onEndFromPause: handleEndRideWithTrailCleanup,
               onModifyFromPause: handleModifyFromPause,
-              showIdleHint: stage === "idle" && !idleHintDismissed,
+              showIdleHint: stage === "idle" && !idleHintDismissed && !nextRideCardVisible && !firstRideIntroVisible,
               onDismissIdleHint: () => setIdleHintDismissed(true),
               ridePresence: mapHudRidePresence,
               onGoTrailhead: goTrailheadAndCloseMenu,
