@@ -1680,7 +1680,6 @@ export default function App() {
       zoom: 14,
       requestId: cameraJumpSeqRef.current,
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nextRideCardVisible, nextRideView]);
 
   /**
