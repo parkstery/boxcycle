@@ -7,7 +7,7 @@ import type { RideEndResult } from "./rideEndResult";
  * N2 테스트(`ride-result-n2-persistence.test.ts`)에서 결과 시트 문구를 증명할 때 쓴다.
  */
 export function getRideSaveStatusLabel(
-  status: RideEndResult["rideSaveStatus"],
+  status: RideEndResult["rideSaveStatus"] | "n/a",
 ): string | null {
   if (status === "pending") return "주행 저장 중…";
   if (status === "failed") return "⚠ 주행 저장 실패";
@@ -18,7 +18,7 @@ export function getRideSaveStatusLabel(
  * RideSummarySheet 에서 `savedRouteProgressStatus` → 표시 문자열.
  */
 export function getSavedRouteProgressStatusLabel(
-  status: RideEndResult["savedRouteProgressStatus"],
+  status: RideEndResult["savedRouteProgressStatus"] | "n/a",
 ): string | null {
   if (status === "pending") return "진행률 저장 중…";
   if (status === "failed") return "⚠ 진행률 저장 실패";
