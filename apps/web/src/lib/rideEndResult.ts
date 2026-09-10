@@ -48,6 +48,12 @@ export type RideEndResult = {
   rideSaveStatus?: "pending" | "success" | "failed";
   /** F4: SavedRoute progress 상태 (Firestore progress 업데이트 성공 여부, 독립 축) */
   savedRouteProgressStatus?: "pending" | "success" | "failed" | "n/a";
+  /**
+   * RIDE-CLAIM-RESULT-1: 종료 시점에 고정된 세션 궤적 (세션 구간 LngLat[]).
+   * Route workspace 가 비워지기 전에 복사해 두며, 이후 변경되지 않는다.
+   * geometry 가 없으면 null.
+   */
+  sessionPathLngLat?: LngLat[] | null;
 };
 
 /** 진행률(0..1) → 표시용 정수 % */
