@@ -9,6 +9,7 @@
  */
 
 import type { LngLat } from "./geo";
+import { formatRideDistanceKmNumber } from "./rideDistanceFormat";
 
 export type SessionPreviewPaths = {
   /** SVG viewBox 크기 */
@@ -249,7 +250,7 @@ export function buildSessionPreviewPaths(
 
 /**
  * conquest 상태별 hero 표시 문자열.
- * - positive ≥ 50m: "+N.N km" 문자열 반환
+ * - positive ≥ 50m: "+N.NN km" (HUD 거리와 동일 소수 2자리)
  * - positive < 50m: null (숫자 없는 메시지용)
  * - confirmed_zero: null
  * - none / error: null (대기/오류 카피 별도)
@@ -257,8 +258,7 @@ export function buildSessionPreviewPaths(
 export function formatNewRoadHero(newMeters: number, status: string): string | null {
   if (status !== "positive") return null;
   if (!Number.isFinite(newMeters) || newMeters < 50) return null;
-  const km = newMeters / 1000;
-  return `+${km.toFixed(newMeters < 10000 ? 1 : 0)} km`;
+  return `+${formatRideDistanceKmNumber(newMeters)} km`;
 }
 
 /**

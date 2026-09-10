@@ -193,15 +193,14 @@ describe("formatNewRoadHero", () => {
     assert.strictEqual(formatNewRoadHero(0, "error"), null);
   });
 
-  it("10000m → km 반올림 0자리", () => {
+  it("10000m → +10.00 km (소수 2자리 유지)", () => {
     const s = formatNewRoadHero(10000, "positive");
-    assert.ok(s !== null);
-    assert.ok(!s!.includes("."), "10km 이상은 소수점 없음");
+    assert.strictEqual(s, "+10.00 km");
   });
 
-  it("800m → +0.8 km", () => {
+  it("800m → +0.80 km", () => {
     const s = formatNewRoadHero(800, "positive");
-    assert.strictEqual(s, "+0.8 km");
+    assert.strictEqual(s, "+0.80 km");
   });
 });
 

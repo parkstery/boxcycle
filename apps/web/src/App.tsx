@@ -115,6 +115,7 @@ import {
   MAP_STYLE_OPTIONS,
 } from "./lib/appSessionKeys";
 import { formatElapsedFromMs } from "./lib/rideFormat";
+import { formatRideDistanceKmNumber } from "./lib/rideDistanceFormat";
 import { useBleCrankRpm } from "./hooks/useBleCrankRpm";
 import { resolveRideTargetSpeedKmh, type RideInputMode } from "./lib/cadenceRideInput";
 import { isRideInputReady, resolveRideInputReadiness } from "./lib/cadenceSensorUi";
@@ -1911,10 +1912,10 @@ export default function App() {
     rideMetrics.virtualDistanceMeters - sessionStartOffsetMeters,
   );
   const elapsedLabel = formatElapsedFromMs(rideMetrics.accumulatedMs);
-  const sessionDistanceKmLabel = (sessionDistanceMeters / 1000).toFixed(2);
+  const sessionDistanceKmLabel = formatRideDistanceKmNumber(sessionDistanceMeters);
   /** HUD 누적 위치 — 경로상 virtualDistance(재개 시 offset 시드 포함) */
   const cumulativeDistanceMeters = Math.max(0, rideMetrics.virtualDistanceMeters);
-  const cumulativeDistanceKmLabel = (cumulativeDistanceMeters / 1000).toFixed(2);
+  const cumulativeDistanceKmLabel = formatRideDistanceKmNumber(cumulativeDistanceMeters);
   const routeProgressPctLabel =
     routeDistanceMeters > 0
       ? Math.min(100, Math.round((cumulativeDistanceMeters / routeDistanceMeters) * 100))
