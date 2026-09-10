@@ -2,8 +2,7 @@ import type { LngLat } from "./geo";
 import { getPointOnRouteByDistance, lineStringLengthMeters } from "./geo";
 import type { SavedRoute } from "./firestoreSavedRoutes";
 import type { StoredRideSession } from "./rideSessionsStorage";
-import { isDiscardableRideRecord, ROUTE_COMPLETION_RATIO_THRESHOLD } from "./rideRecordPolicy";
-import { progressRatioToRouteDistanceMeters } from "./routeProgressMath";
+import { isDiscardableRideRecord, ROUTE_COMPLETION_RATIO_THRESHOLD, resumeOffsetMetersFrom } from "./rideRecordPolicy";
 
 /**
  * 「다음 주행」 후보(RIDE-CONTINUE-1 §4.3).
@@ -70,12 +69,17 @@ export function sortValidRidesNewestFirst(
  *
  * ⚠ 재개 위치의 진실은 **SavedRoute 의 `lastProgressRatio`** 이지 최근 Ride 의 종료 좌표가 아니다.
  * 43% 까지 간 Route 를 「처음부터」 타고 20% 에서 끝내도 재개점은 43% 다.
+ *
+ * Codex CP1: Use shared `resumeOffsetMetersFrom` helper to apply 0.97 cap consistently
+ * across card/prep/Go. lastProgressRatio (routeDistanceMeters basis) → capped offset → geometry coordinate.
  */
 export function resumeAnchorForRoute(route: SavedRoute): LngLat | null {
   const geoLen = lineStringLengthMeters(route.geometry);
   if (!Number.isFinite(geoLen) || geoLen <= 0) return null;
-  const meters = progressRatioToRouteDistanceMeters(clamp01(route.lastProgressRatio), geoLen);
-  return getPointOnRouteByDistance(route.geometry, meters);
+  const routeDistMeters = Number.isFinite(route.distanceMeters) ? route.distanceMeters : geoLen;
+  // Shared helper applies 0.97 cap (ROUTE_RESUME_MAX_RATIO)
+  const offsetMeters = resumeOffsetMetersFrom(route.lastProgressRatio, routeDistMeters);
+  return getPointOnRouteByDistance(route.geometry, offsetMeters);
 }
 
 /**

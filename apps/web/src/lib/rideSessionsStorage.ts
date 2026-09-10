@@ -5,6 +5,8 @@ const SESSIONS_KEY = "boxcycle_web_ride_sessions_v1";
 
 export type StoredRideSession = {
   id: string;
+  /** Firestore rides/{} 문서 ID (서버 부여). F1: local↔server identity link */
+  serverRideId?: string | null;
   endedAt: string;
   elapsedSec: number;
   distanceMeters: number;
@@ -62,20 +64,72 @@ export function saveRideSessions(items: StoredRideSession[], user: User | null):
  * 이어 달리기로 이동수단이 바뀌면 실제로 재실행된다) 아직 최신 주행이 없는 서버 응답이
  * 로컬을 통째로 덮어써, 「다음 주행」 카드가 **한 세대 전**을 가리킨다(2026-09-03 결함 ⑦).
  *
- * id 기준 합집합 · `endedAt` 내림차순 · 상한 `limit`.
+ * F1 (fixed): serverRideId 기준 중복 제거 — 한 주행이 한 행.
+ * - 서버 세션: id = serverRideId = Firestore doc ID
+ * - 로컬 세션: id = UUID, serverRideId = Firestore doc ID (저장 후 채워짐)
+ * - serverRideId로 매칭하여 한 주행이 두 행으로 중복되지 않게 함
  */
 export function mergeRecentRideSessions(
   serverRows: readonly StoredRideSession[],
   localRows: readonly StoredRideSession[],
   limit = 50,
 ): StoredRideSession[] {
-  const byId = new Map<string, StoredRideSession>();
-  // 로컬을 먼저 넣고 서버로 덮는다 — 같은 id 면 서버판이 정본(지명 역지오코딩 등 후처리 반영).
-  for (const row of localRows) if (row?.id) byId.set(row.id, row);
-  for (const row of serverRows) if (row?.id) byId.set(row.id, row);
+  const byKey = new Map<string, StoredRideSession>();
+  
+  // 1. 서버 세션 먼저 매핑 (서버판이 정본)
+  for (const row of serverRows) {
+    if (!row?.id) continue;
+    // 서버 세션: serverRideId가 있으면 그것으로, 없으면 id로 (legacy)
+    const key = row.serverRideId || row.id;
+    byKey.set(key, row);
+    // id로도 매핑 (legacy same-id merge 지원)
+    if (row.id !== key) {
+      byKey.set(row.id, row);
+    }
+  }
+  
+  // 2. 로컬 세션 처리
+  for (const row of localRows) {
+    if (!row?.id) continue;
+    
+    // 2a. serverRideId가 있으면 그것으로 매칭 시도
+    if (row.serverRideId) {
+      if (byKey.has(row.serverRideId)) {
+        // 서버에 이미 있음 → 서버판 유지 (지명 역지오코딩 등 후처리 반영)
+        const existing = byKey.get(row.serverRideId)!;
+        // 서버판이 아직 serverRideId를 명시하지 않았다면 추가
+        if (!existing.serverRideId) {
+          byKey.set(row.serverRideId, { ...existing, serverRideId: row.serverRideId });
+        }
+        continue;
+      }
+      // 서버에 아직 없음 → 로컬 추가 (in-flight)
+      byKey.set(row.serverRideId, row);
+      continue;
+    }
+    
+    // 2b. serverRideId 없음 (legacy) → id로 매칭 시도
+    if (byKey.has(row.id)) {
+      // 서버에 같은 id가 있음 → 서버판 유지
+      continue;
+    }
+    
+    // 2c. 완전히 새로운 로컬 전용
+    byKey.set(row.id, row);
+  }
+  
+  // 3. 중복 제거 및 정렬
+  const uniqueById = new Map<string, StoredRideSession>();
+  for (const row of byKey.values()) {
+    if (!uniqueById.has(row.id)) {
+      uniqueById.set(row.id, row);
+    }
+  }
+  
+  const all = Array.from(uniqueById.values());
   const endedAtMs = (r: StoredRideSession) => {
     const t = Date.parse(r.endedAt ?? "");
     return Number.isFinite(t) ? t : 0;
   };
-  return [...byId.values()].sort((a, b) => endedAtMs(b) - endedAtMs(a)).slice(0, limit);
+  return all.sort((a, b) => endedAtMs(b) - endedAtMs(a)).slice(0, limit);
 }

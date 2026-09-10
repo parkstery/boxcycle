@@ -2,9 +2,16 @@ import { test, expect, type Page } from '@playwright/test'
 import fs from 'node:fs'
 import path from 'node:path'
 import { readGuestUid } from './readGuestUid'
+import { stubMapboxStyle } from './mapbox-stub'
 
 // 다음 주행·이어 달리기 e2e(RIDE-CONTINUE-1 §7.3).
 // 「어제 멈춘 곳이 오늘 앱을 열었을 때 자동으로 다음 출발점이 된다」를 종료→재진입까지 고정한다.
+//
+// ⚠ 시나리오 ID 표기 규칙:
+//   RC1–RC5 = 이어달리기 e2e 전용 (이름만 비슷할 뿐 §6 C1–C5 와 다른 시나리오)
+//   RC13    = §6 C13 e2e 증거 (reload 없이 결과 닫기→다음 주행→Go)
+//   CF-LIVE = CF conquestOnRideCreated 에뮬레이터 라이브 (R5/F3) — §6 C14 가 아님
+//   §6 C1–C14 전체 매핑: document/archive/260910-RTW-0B-CLOSEOUT-C1-C14-matrix.md
 //
 // 셀렉터는 scripts/ride-verify/entry-contract.mjs 와 같은 계약을 쓴다 —
 // 한쪽만 고치지 않는다(verify-selectors.mjs 가 앵커 실재를 지킨다).
@@ -59,14 +66,16 @@ const U4_HUD_EVIDENCE_PATH = path.resolve(
   '../../document/archive/ride-verify-evidence/u4-hud-resume-dual.png',
 )
 
-/** U6 증거 — 결과 시트를 닫은 직후(reload 없이) 「다음 주행」 카드가 뜬 화면 */
-const C1_CARD_NO_RELOAD_EVIDENCE_PATH = path.resolve(
+/** RC1 U6 증거 — 결과 시트를 닫은 직후(reload 없이) 「다음 주행」 카드가 뜬 화면
+ *  ⚠ 이 상수는 이어달리기 e2e RC1 시나리오 전용이다 — 원문 §6 C1(서버 저장 응답)과 무관하다. */
+const RC1_CARD_NO_RELOAD_EVIDENCE_PATH = path.resolve(
   process.cwd(),
   '../../document/archive/ride-verify-evidence/c1-next-ride-card-no-reload.png',
 )
 
-/** U2·§3.4 증거 — 이어 달리기 준비 상태(완료/남은 구간 + 재개점 마커 + Go) */
-const C1_RESUME_READY_EVIDENCE_PATH = path.resolve(
+/** RC1 U2·§3.4 증거 — 이어 달리기 준비 상태(완료/남은 구간 + 재개점 마커 + Go)
+ *  ⚠ 이어달리기 e2e RC1 시나리오 전용 — 원문 §6 C1 과 무관하다. */
+const RC1_RESUME_READY_EVIDENCE_PATH = path.resolve(
   process.cwd(),
   '../../document/archive/ride-verify-evidence/c1-resume-ready-to-start.png',
 )
@@ -164,6 +173,16 @@ async function readSavedRoute(routeId: string): Promise<Record<string, unknown>>
     headers: { authorization: 'Bearer owner' },
   })
   expect(res.ok, `SavedRoute 조회 실패: ${res.status}`).toBe(true)
+  const json = (await res.json()) as { fields?: Record<string, unknown> }
+  return json.fields ?? {}
+}
+
+/** rides/{rideId} 문서를 에뮬레이터에서 직접 읽는다. CF conquestResult 폴링에 사용. */
+async function readRide(rideId: string): Promise<Record<string, unknown>> {
+  const res = await fetch(`${DOCS_URL}/rides/${rideId}`, {
+    headers: { authorization: 'Bearer owner' },
+  })
+  if (!res.ok) return {}
   const json = (await res.json()) as { fields?: Record<string, unknown> }
   return json.fields ?? {}
 }
@@ -270,19 +289,24 @@ const nextRideCard = (page: Page) => page.getByRole('group', { name: '다음 주
 test.describe('다음 주행 · 이어 달리기', () => {
   test.skip(!LIVE, 'Firebase 에뮬레이터 필요 — npm run test:e2e:ride-continuation')
   // 실제로 경로를 달리는 시험이다(1 km ≈ 80초). 기본 30초 타임아웃으로는 부족하다.
-  test.beforeEach(() => {
+  test.beforeEach(async ({ page }) => {
     test.setTimeout(300_000)
+    // Approach B: Mapbox 스타일 URL 을 가로채 최소 유효 JSON 으로 대체.
+    // fake pk 환경에서 map.on('load') 가 발화되어 mapLoaded=true 가 되게 한다.
+    // Auth / Firestore / Functions 에뮬레이터에는 영향 없음.
+    await stubMapboxStyle(page)
   })
 
-  test('C1 — 미완주 SavedRoute 를 종료→재진입→재개까지 이어 달린다', async ({ page }, testInfo) => {
+  // ── RC1: 이어달리기 e2e — reload 포함 전체 흐름 (원문 §6 C1 과 무관) ──
+  test('RC1 — 미완주 SavedRoute 를 종료→재진입→재개까지 이어 달린다', async ({ page }, testInfo) => {
     await enterAsGuest(page)
     const uid = await readGuestUid(page)
-    const routeId = `fixture-c1-${Date.now()}`
-    await seedSavedRoute({ uid, routeId, name: 'C1 이어달리기 픽스처', lastProgressRatio: 0 })
+    const routeId = `fixture-rc1-${Date.now()}`
+    await seedSavedRoute({ uid, routeId, name: 'RC1 이어달리기 픽스처', lastProgressRatio: 0 })
 
     await page.reload()
     await prepareManualRideInput(page)
-    await loadSavedRouteFromMenu(page, 'C1 이어달리기 픽스처')
+    await loadSavedRouteFromMenu(page, 'RC1 이어달리기 픽스처')
 
     // 1차 주행 — 전체의 약 20% 지점까지
     await page.getByRole('button', { name: '주행 시작' }).click()
@@ -307,8 +331,8 @@ test.describe('다음 주행 · 이어 달리기', () => {
     await expect(cardNoReload.getByRole('button', { name: /%에서 이어 달리기/ })).toBeVisible({
       timeout: 15_000,
     })
-    fs.mkdirSync(path.dirname(C1_CARD_NO_RELOAD_EVIDENCE_PATH), { recursive: true })
-    await page.screenshot({ path: C1_CARD_NO_RELOAD_EVIDENCE_PATH })
+    fs.mkdirSync(path.dirname(RC1_CARD_NO_RELOAD_EVIDENCE_PATH), { recursive: true })
+    await page.screenshot({ path: RC1_CARD_NO_RELOAD_EVIDENCE_PATH })
     await page.screenshot({ path: testInfo.outputPath('c1-next-ride-card-no-reload.png') })
 
     // Firestore 진행률 반영을 기다린 뒤 재진입한다(결과 시트는 로컬 record 낙관 표시라 더 빠르다)
@@ -336,7 +360,7 @@ test.describe('다음 주행 · 이어 달리기', () => {
     await expect(page.getByText(`${resumePct}% 지점부터`)).toBeVisible()
     // §3.4 — 완료 구간·남은 구간·재개점 마커가 함께 보이는 준비 화면을 증거로 남긴다.
     await expect(page.locator('.map-view__resume-marker')).toBeVisible({ timeout: 15_000 })
-    await page.screenshot({ path: C1_RESUME_READY_EVIDENCE_PATH })
+    await page.screenshot({ path: RC1_RESUME_READY_EVIDENCE_PATH })
     await page.screenshot({ path: testInfo.outputPath('c1-resume-ready-to-start.png') })
 
     // 입력 준비 후 Go — 재개 주행은 세션 구간만 인정된다
@@ -384,16 +408,17 @@ test.describe('다음 주행 · 이어 달리기', () => {
       .toBeGreaterThan(resumePct / 100)
   })
 
-  test('C2 — 늦은 낮은 진행률 write 가 높은 진행률을 되돌리지 않는다', async ({ page }) => {
+  // ── RC2: 이어달리기 e2e — stale 낮은 진행률 write 방어 (원문 §6 C2 와 무관) ──
+  test('RC2 — 늦은 낮은 진행률 write 가 높은 진행률을 되돌리지 않는다', async ({ page }) => {
     await enterAsGuest(page)
     const uid = await readGuestUid(page)
-    const routeId = `fixture-c2-${Date.now()}`
+    const routeId = `fixture-rc2-${Date.now()}`
     // 앱이 20% 를 캐시한 상태에서 서버가 43% 로 올라간 상황을 만든다.
-    await seedSavedRoute({ uid, routeId, name: 'C2 stale 픽스처', lastProgressRatio: 0.2 })
+    await seedSavedRoute({ uid, routeId, name: 'RC2 stale 픽스처', lastProgressRatio: 0.2 })
 
     await page.reload()
     await prepareManualRideInput(page)
-    await loadSavedRouteFromMenu(page, 'C2 stale 픽스처')
+    await loadSavedRouteFromMenu(page, 'RC2 stale 픽스처')
 
     // 로드 이후 다른 탭이 43% 로 올린다(클라이언트는 여전히 20% 를 들고 있다)
     await forceSavedRouteProgress(routeId, 0.43)
@@ -417,17 +442,18 @@ test.describe('다음 주행 · 이어 달리기', () => {
     await expect(card.getByRole('button', { name: /43%에서 이어 달리기/ })).toBeVisible()
   })
 
-  test('C3 — 완주 끝점에서 새 Route 를 연결하고 이전 경로는 불변이다', async ({ page }) => {
+  // ── RC3: 이어달리기 e2e — 완주 후 새 Route 연결 (원문 §6 C3 와 무관) ──
+  test('RC3 — 완주 끝점에서 새 Route 를 연결하고 이전 경로는 불변이다', async ({ page }) => {
     await enterAsGuest(page)
     const uid = await readGuestUid(page)
-    const routeId = `fixture-c3-${Date.now()}`
-    await seedSavedRoute({ uid, routeId, name: 'C3 완주 픽스처', lastProgressRatio: 0 })
+    const routeId = `fixture-rc3-${Date.now()}`
+    await seedSavedRoute({ uid, routeId, name: 'RC3 완주 픽스처', lastProgressRatio: 0 })
     const before = await readSavedRoute(routeId)
     const geometryBefore = (before.geometryCoordsJson as { stringValue?: string })?.stringValue
 
     await page.reload()
     await prepareManualRideInput(page)
-    await loadSavedRouteFromMenu(page, 'C3 완주 픽스처')
+    await loadSavedRouteFromMenu(page, 'RC3 완주 픽스처')
     await page.getByRole('button', { name: '주행 시작' }).click()
     // 끝까지 달린다 — 경로 끝에 닿으면 도착 자동 종료가 결과 시트를 연다(버튼을 누르지 않는다).
     await expect(page.getByRole('button', { name: '주행 종료' })).toBeVisible({ timeout: 30_000 })
@@ -450,7 +476,8 @@ test.describe('다음 주행 · 이어 달리기', () => {
     expect(fieldNumber(after, 'completed')).toBe(1)
   })
 
-  test('C4 — ad-hoc 주행은 저장하지 않아도 다음 출발점이 남는다', async ({ page }) => {
+  // ── RC4: 이어달리기 e2e — ad-hoc 주행 후 다음 출발점 (원문 §6 C4·C5 와 무관) ──
+  test('RC4 — ad-hoc 주행은 저장하지 않아도 다음 출발점이 남는다', async ({ page }) => {
     await enterAsGuest(page)
     await prepareManualRideInput(page)
 
@@ -483,7 +510,8 @@ test.describe('다음 주행 · 이어 달리기', () => {
     ).toBeChecked()
   })
 
-  test('C5 — legacy Ride 는 기록만 보이고 잘못된 CTA·Null Island 이동이 없다', async ({ page }) => {
+  // ── RC5: 이어달리기 e2e — legacy Ride CTA 없음 (원문 §6 C5 와 무관) ──
+  test('RC5 — legacy Ride 는 기록만 보이고 잘못된 CTA·Null Island 이동이 없다', async ({ page }) => {
     await enterAsGuest(page)
     const uid = await readGuestUid(page)
     await seedLegacyRide(uid, `legacy-${Date.now()}`)
@@ -506,5 +534,184 @@ test.describe('다음 주행 · 이어 달리기', () => {
     await expect(page.getByRole('button', { name: '여기서 새 경로' })).toHaveCount(0)
 
     expect(pageErrors, `스크립트 예외: ${pageErrors.join(' | ')}`).toEqual([])
+  })
+
+  /**
+   * RC13 — §6 C13 e2e: reload 없이 종료→카드→이어 달리기 Go 까지 완주한다.
+   *
+   * RC1 은 결과 시트를 닫은 뒤 **재진입(page.reload)**해 재개를 검증한다 (§6 C1 과 무관).
+   * RC13 은 같은 세션에서 reload 없이 카드 → resume → 센서 준비 → Go → HUD 를 검증한다.
+   * 핵심 가설: 첫 번째 reload 이후 mapLoaded=true 가 유지되므로
+   *            resume-marker 가 reload 없이도 렌더링되어야 한다.
+   */
+  test('RC13 — reload 없이 종료→카드→이어 달리기 Go 까지 완주한다', async ({ page }) => {
+    await enterAsGuest(page)
+    const uid = await readGuestUid(page)
+    const routeId = `fixture-rc13-${Date.now()}`
+    await seedSavedRoute({ uid, routeId, name: 'RC13 이어달리기 픽스처', lastProgressRatio: 0 })
+
+    // 첫 번째 reload: 씨드된 경로를 앱에 반영
+    await page.reload()
+    await prepareManualRideInput(page)
+    await loadSavedRouteFromMenu(page, 'RC13 이어달리기 픽스처')
+
+    // 1차 주행 — 전체의 약 20%
+    await page.getByRole('button', { name: '주행 시작' }).click()
+    await rideUntilSessionMeters(page, FIXTURE_LENGTH_M * 0.2)
+
+    // 결과 시트 대기 및 닫기 (이 이후로 page.reload() 없음)
+    const summary = page.getByRole('region', { name: '주행 결과' })
+    await expect(summary).toBeVisible({ timeout: 20_000 })
+    await summary.getByRole('button', { name: '닫기' }).first().click()
+
+    // reload 없이 「다음 주행」 카드가 즉시 나타나야 한다
+    const card = nextRideCard(page)
+    await expect(card).toBeVisible({ timeout: 15_000 })
+    const resumeBtn = card.getByRole('button', { name: /%에서 이어 달리기/ })
+    await expect(resumeBtn).toBeVisible()
+
+    // reload 없이 resume CTA 클릭
+    await resumeBtn.click()
+    const start = page.getByRole('button', { name: '주행 시작' })
+    await expect(start).toBeVisible({ timeout: 20_000 })
+
+    // §3.4 — resume-marker 는 mapLoaded=true 가 유지될 때만 렌더된다.
+    // reload 없이도 첫 load 이후 mapLoaded=true 가 유지되는 것을 확인한다.
+    await expect(page.locator('.map-view__resume-marker')).toBeVisible({ timeout: 15_000 })
+
+    // 센서 재준비 후 Go (reload 없이 두 번째 주행 시작)
+    await prepareManualRideInput(page)
+    await expect(start).toBeEnabled()
+    await start.click()
+
+    // HUD — 주행이 실제로 시작됐음을 확인
+    await expect(page.getByRole('group', { name: '주행 지표' })).toBeVisible({ timeout: 20_000 })
+    await expect(page.getByLabel('오늘 거리')).toBeVisible()
+    await expect(page.getByLabel('누적 진행')).toBeVisible()
+
+    // MIN_MEANINGFUL_RIDE_DISTANCE_METERS=100m 을 초과해야 discardRecord=false 가 된다.
+    // 150m(≈ 10.8초 @50km/h)는 안전 여유분이 있어 결과 시트가 정상 출현한다.
+    // rideUntilSessionMeters 는 종료 버튼 표시 대기를 포함한다.
+    await rideUntilSessionMeters(page, 150)
+    await expect(page.getByRole('region', { name: '주행 결과' })).toBeVisible({ timeout: 20_000 })
+  })
+
+  /**
+   * CF-LIVE — CF conquestOnRideCreated 가 에뮬레이터에서 conquestResult 를 기록한다.
+   * ⚠ 이어달리기 e2e CF-LIVE 시나리오(R5/F3 에뮬레이터 라이브) —
+   *   원문 §6 C14(end between UI metric ticks → 종료 샘플 일관성)와는 전혀 다른 항목이다.
+   *   §6 C14 = N2 end-sample 증거(ride-result-n2-persistence.test.ts)로 커버됨.
+   *
+   * 「단위 테스트 injection」과의 구분:
+   *   - 앱이 실 Firestore 에뮬레이터에 rides 문서를 생성하는 프로덕션 경로를 사용한다.
+   *   - 정복 페이로드(conquest.cells)는 클라이언트 `buildConquestCellsFromRoute` 가 계산한다.
+   *   - CF `conquestOnRideCreated` 가 Functions 에뮬레이터에서 트리거되어 `conquestResult` 를 기록한다.
+   *   - 테스트는 직접 conquestResult 를 주입하거나 fake PASS 를 만들지 않는다.
+   *
+   * BLOCK 조건:
+   *   (1) rides/{id}.conquest 페이로드가 없으면 CF 는 skip 함 — 클라이언트 conquest 계산 실패 의심.
+   *   (2) 60초 내 conquestResult 미출현 — Functions 에뮬레이터 미기동 또는 CF 오류.
+   *   두 경우 모두 정확한 오류와 로그를 남기고 FAIL 처리한다.
+   */
+  test('CF-LIVE — CF conquestOnRideCreated 가 에뮬레이터에서 conquestResult 를 기록한다', async ({ page }) => {
+    await enterAsGuest(page)
+    const uid = await readGuestUid(page)
+    const routeId = `fixture-cf-live-${Date.now()}`
+    await seedSavedRoute({ uid, routeId, name: 'CF-LIVE 정복 픽스처', lastProgressRatio: 0 })
+
+    await page.reload()
+    await prepareManualRideInput(page)
+    await loadSavedRouteFromMenu(page, 'CF-LIVE 정복 픽스처')
+
+    // 30% 주행 — conquest 셀이 충분히 생성되도록(~300m, 약 10개 z20 셀 예상)
+    await page.getByRole('button', { name: '주행 시작' }).click()
+    await rideUntilSessionMeters(page, FIXTURE_LENGTH_M * 0.3)
+
+    const summary = page.getByRole('region', { name: '주행 결과' })
+    await expect(summary).toBeVisible({ timeout: 20_000 })
+
+    // ── 1. savedRoutes.lastRideId 폴링 ──────────────────────────────────────
+    // 앱이 rides/{id} 를 Firestore 에 생성했음을 확인 (프로덕션 경로)
+    let serverRideId: string | null = null
+    await expect
+      .poll(
+        async () => {
+          const fields = await readSavedRoute(routeId)
+          const raw = fields.lastRideId as { stringValue?: string; nullValue?: null } | undefined
+          const id = raw?.stringValue ?? null
+          if (id) serverRideId = id
+          return id
+        },
+        {
+          timeout: 30_000,
+          message:
+            'savedRoutes.lastRideId 가 30초 내에 설정되지 않았다— ' +
+            'ride Firestore 저장 실패 또는 progress update 실패 의심',
+        },
+      )
+      .not.toBeNull()
+
+    console.log(`[CF-LIVE] serverRideId confirmed: ${serverRideId}`)
+
+    // ── 2. rides/{serverRideId}.conquest 페이로드 확인 (CF 전제조건) ─────────
+    // conquest 가 없으면 CF 는 즉시 return — fake PASS 방지용 조기 실패
+    const rideFields = await readRide(serverRideId!)
+    const conquestField = rideFields.conquest as
+      | { mapValue?: unknown }
+      | { nullValue?: null }
+      | undefined
+    if (!conquestField || !('mapValue' in conquestField)) {
+      const presentKeys = Object.keys(rideFields).join(', ')
+        throw new Error(
+          `BLOCK: rides/${serverRideId} 에 conquest 페이로드 없음 — ` +
+          `buildConquestCellsFromRoute 가 셀을 생성하지 못했거나 Firestore 저장 누락.\n` +
+          `존재하는 필드: [${presentKeys}]`,
+        )    }
+    console.log(`[CF-LIVE] conquest payload confirmed in rides/${serverRideId}`)
+
+    // ── 3. CF conquestOnRideCreated → rides/{id}.conquestResult 폴링 ─────────
+    // Functions 에뮬레이터가 Firestore 트리거를 받아 결과를 기록할 때까지 최대 60초 대기
+    // Firestore REST API: 정수 → integerValue, 실수 → doubleValue
+    type FirestoreNum = { doubleValue?: number; integerValue?: string }
+    type ConquestResultFields = {
+      newMeters?: FirestoreNum
+      newCells?: FirestoreNum
+      creditedMeters?: FirestoreNum
+      tier?: { stringValue?: string }
+      day?: { stringValue?: string }
+    }
+    let conquestResultFields: ConquestResultFields | null = null
+
+    await expect
+      .poll(
+        async () => {
+          const fields = await readRide(serverRideId!)
+          const result = fields.conquestResult as
+            | { mapValue?: { fields?: ConquestResultFields }; nullValue?: null }
+            | undefined
+          if (result && 'mapValue' in result && result.mapValue?.fields) {
+            conquestResultFields = result.mapValue.fields
+            return result
+          }
+          return null
+        },
+        {
+          timeout: 60_000,
+          intervals: [1000],
+          message:
+            `BLOCK: CF conquestOnRideCreated 가 rides/${serverRideId}.conquestResult 를 ` +
+            `60초 내에 기록하지 않았다. Functions 에뮬레이터 미기동 또는 CF 오류 의심.`,
+        },
+      )
+      .not.toBeNull()
+
+    // ── 4. conquestResult 내용 검증 ──────────────────────────────────────────
+    console.log(`[CF-LIVE] PASS — CF conquestResult: ${JSON.stringify(conquestResultFields)}`)
+    expect(conquestResultFields).not.toBeNull()
+    // CF 는 정수 미터를 Firestore integerValue 로 저장한다 — fieldNumber 로 양쪽 처리
+    const newMeters = fieldNumber(conquestResultFields as Record<string, unknown>, 'newMeters')
+    expect(newMeters, 'conquestResult.newMeters 가 없다').toBeGreaterThan(0)
+    // tier: 't0'(no-sensor) 또는 't1'(cadence)
+    expect(['t0', 't1']).toContain(conquestResultFields!.tier?.stringValue)
   })
 })

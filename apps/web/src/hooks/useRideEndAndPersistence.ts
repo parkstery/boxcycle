@@ -9,6 +9,12 @@ import {
 import { markRouteActivityRideCompletedOptimistic } from "../lib/firestoreRouteActivity";
 import { saveRideSessionToFirestore } from "../lib/firestoreRides";
 import {
+  persistRideEndCore,
+  type SaveRideSessionFn,
+  type UpdateSavedRouteProgressFn,
+  type PromoteSavedRouteFn,
+} from "../lib/rideEndPersistence";
+import {
   buildConquestCellsFromRoute,
   buildTraveledPathForTrace,
   CONQUEST_CELL_ZOOM,
@@ -89,6 +95,13 @@ export type UseRideEndAndPersistenceOptions = {
    * 결과 시트는 이 값 하나로 구동되고, 닫으면 「다음 주행」 카드가 즉시 갱신된다.
    */
   setLastRideResult?: Dispatch<SetStateAction<RideEndResult | null>>;
+  /**
+   * N2: injectable Firestore fns (controlled Promise injection for testing).
+   * 기본값: production imports. 테스트에서만 오버라이드한다.
+   */
+  saveRideSessionToFirestoreFn?: SaveRideSessionFn;
+  updateSavedRouteProgressInFirestoreFn?: UpdateSavedRouteProgressFn;
+  promoteSavedRouteInFirestoreFn?: PromoteSavedRouteFn;
 };
 
 /**
@@ -126,6 +139,9 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     setLastEndedWasAdhoc,
     setRecentSessions,
     setLastRideResult,
+    saveRideSessionToFirestoreFn,
+    updateSavedRouteProgressInFirestoreFn,
+    promoteSavedRouteInFirestoreFn,
   } = options;
 
   const handleEndRide = useCallback(() => {
@@ -145,6 +161,9 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     const caloriesEstimate = Math.round((sessionDistanceMeters / 1000) * 30);
     const savedRouteIdAtEnd = loadedSavedRouteIdRef.current;
     const savedRouteNameAtEnd = loadedSavedRouteNameRef.current;
+    // Codex -03 Fix 2: R1/F2 — Keep historical meaning of saved ratios (routeDistanceMeters 기준)
+    // completionRatio (motion-offset) = virtualDist / routeDistanceMeters → 저장, 완주 판정, 0.98 비교
+    // Resume 시에만 geometry 좌표로 변환 (boundary adapter)
     const completionRatio =
       routeDistanceMeters > 0
         ? Math.max(0, Math.min(1, rideMetrics.virtualDistanceMeters / routeDistanceMeters))
@@ -188,6 +207,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
      * 거기서 ref 를 읽으면 언제나 0 이었다(= max 보호가 무력화).
      */
     const rideCompletedRoute = isRouteCompletion(completionRatio);
+    // Codex -03 Fix 2: progressToSave는 routeDistanceMeters 기준 (historical meaning 유지)
     const progressToSave = Math.max(completionRatio, previousProgressRatio);
 
     /**
@@ -294,6 +314,9 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
         anchorPlaceLabel: record.sessionEndPlaceLabel ?? null,
         profile,
         routeDistanceMeters,
+        // F4: persistence status (independent axes)
+        rideSaveStatus: "pending",
+        savedRouteProgressStatus: savedRouteIdAtEnd ? "pending" : "n/a",
       });
     } else {
       setLastRideResult?.(null);
@@ -335,236 +358,167 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     }
 
     if (configured && !discardRecord) {
+      /**
+       * geocoding · publication 해소 후 `persistRideEndCore` 로 위임.
+       * save / progress fns 은 N2 injectable deps 로 주입하고, 기본값은 production imports.
+       */
       void (async () => {
-        try {
-          let sessionForPersist: StoredRideSession = record;
-          const token = mapboxAccessToken.trim();
-          if (token && startLngLat && endLngLat) {
-            try {
-              /**
-               * 계획 핀 지명 + **실제 세션 anchor 지명**(§4.1). anchor 가 계획 핀과 같은 지점이면
-               * 같은 결과를 재사용해 불필요한 호출을 만들지 않는다(부분 주행일 때만 추가 조회).
-               */
-              const needStartAnchor =
-                anchors.sessionStartLngLat != null && !startAnchorIsPlanned;
-              const needEndAnchor = anchors.sessionEndLngLat != null && !endAnchorIsPlanned;
-              const [sName, eName, sAnchorName, eAnchorName] = await Promise.all([
-                fetchMapboxReverseGeocodePlaceName(startLngLat, token),
-                fetchMapboxReverseGeocodePlaceName(endLngLat, token),
-                needStartAnchor
-                  ? fetchMapboxReverseGeocodePlaceName(anchors.sessionStartLngLat!, token)
-                  : Promise.resolve(null),
-                needEndAnchor
-                  ? fetchMapboxReverseGeocodePlaceName(anchors.sessionEndLngLat!, token)
-                  : Promise.resolve(null),
-              ]);
-              const sFromApi = sName?.trim();
-              const eFromApi = eName?.trim();
-              const sessionStartFromApi = needStartAnchor
-                ? sAnchorName?.trim()
-                : sFromApi || record.sessionStartPlaceLabel;
-              const sessionEndFromApi = needEndAnchor
-                ? eAnchorName?.trim()
-                : eFromApi || record.sessionEndPlaceLabel;
-              if (sFromApi || eFromApi || sessionStartFromApi || sessionEndFromApi) {
-                sessionForPersist = {
-                  ...record,
-                  startPlaceLabel: sFromApi || record.startPlaceLabel,
-                  endPlaceLabel: eFromApi || record.endPlaceLabel,
-                  sessionStartPlaceLabel:
-                    sessionStartFromApi || record.sessionStartPlaceLabel,
-                  sessionEndPlaceLabel: sessionEndFromApi || record.sessionEndPlaceLabel,
-                };
-                const rows = loadRideSessions().map((r) =>
-                  r.id === record.id ? sessionForPersist : r,
-                );
-                saveRideSessions(rows, user);
-                setRecentSessions(rows);
-                // 결과 시트의 「다음 출발점」 지명도 함께 갱신(좌표는 UI 에 노출하지 않는다).
-                const resolvedAnchorLabel = sessionForPersist.sessionEndPlaceLabel ?? null;
-                setLastRideResult?.((prev) =>
-                  prev && prev.recordId === record.id
-                    ? { ...prev, anchorPlaceLabel: resolvedAnchorLabel }
-                    : prev,
-                );
-              }
-            } catch {
-              /* noop */
+        let sessionForPersist: StoredRideSession = record;
+        const token = mapboxAccessToken.trim();
+        if (token && startLngLat && endLngLat) {
+          try {
+            /**
+             * 계획 핀 지명 + **실제 세션 anchor 지명**(§4.1). anchor 가 계획 핀과 같은 지점이면
+             * 같은 결과를 재사용해 불필요한 호출을 만들지 않는다(부분 주행일 때만 추가 조회).
+             */
+            const needStartAnchor =
+              anchors.sessionStartLngLat != null && !startAnchorIsPlanned;
+            const needEndAnchor = anchors.sessionEndLngLat != null && !endAnchorIsPlanned;
+            const [sName, eName, sAnchorName, eAnchorName] = await Promise.all([
+              fetchMapboxReverseGeocodePlaceName(startLngLat, token),
+              fetchMapboxReverseGeocodePlaceName(endLngLat, token),
+              needStartAnchor
+                ? fetchMapboxReverseGeocodePlaceName(anchors.sessionStartLngLat!, token)
+                : Promise.resolve(null),
+              needEndAnchor
+                ? fetchMapboxReverseGeocodePlaceName(anchors.sessionEndLngLat!, token)
+                : Promise.resolve(null),
+            ]);
+            const sFromApi = sName?.trim();
+            const eFromApi = eName?.trim();
+            const sessionStartFromApi = needStartAnchor
+              ? sAnchorName?.trim()
+              : sFromApi || record.sessionStartPlaceLabel;
+            const sessionEndFromApi = needEndAnchor
+              ? eAnchorName?.trim()
+              : eFromApi || record.sessionEndPlaceLabel;
+            if (sFromApi || eFromApi || sessionStartFromApi || sessionEndFromApi) {
+              sessionForPersist = {
+                ...record,
+                startPlaceLabel: sFromApi || record.startPlaceLabel,
+                endPlaceLabel: eFromApi || record.endPlaceLabel,
+                sessionStartPlaceLabel:
+                  sessionStartFromApi || record.sessionStartPlaceLabel,
+                sessionEndPlaceLabel: sessionEndFromApi || record.sessionEndPlaceLabel,
+              };
+              const rows = loadRideSessions().map((r) =>
+                r.id === record.id ? sessionForPersist : r,
+              );
+              saveRideSessions(rows, user);
+              setRecentSessions(rows);
+              // 결과 시트의 「다음 출발점」 지명도 함께 갱신(좌표는 UI 에 노출하지 않는다).
+              const resolvedAnchorLabel = sessionForPersist.sessionEndPlaceLabel ?? null;
+              setLastRideResult?.((prev) =>
+                prev && prev.recordId === record.id
+                  ? { ...prev, anchorPlaceLabel: resolvedAnchorLabel }
+                  : prev,
+              );
             }
+          } catch {
+            /* noop */
           }
-          let persistedPublicationId = publicationIdRef.current?.trim() || null;
-          let canonicalRouteId = savedRouteIdAtEnd;
-          let publicationId: string | null = persistedPublicationId;
-          let publicTitleSnap: string | null = null;
-          let routeEntry: RouteRideEntry | null = rideEntryRef?.current ?? null;
+        }
+        let persistedPublicationId = publicationIdRef.current?.trim() || null;
+        let canonicalRouteId = savedRouteIdAtEnd;
+        let publicationId: string | null = persistedPublicationId;
+        let publicTitleSnap: string | null = null;
+        let routeEntry: RouteRideEntry | null = rideEntryRef?.current ?? null;
 
-          if (
-            !persistedPublicationId &&
-            savedRouteIdAtEnd &&
-            routeGeometry &&
-            routeGeometry.coordinates.length >= 2
-          ) {
-            try {
-              const link = await resolvePublishedRouteLink({
-                savedRouteId: savedRouteIdAtEnd,
-                geometry: routeGeometry,
-                profile,
-                catalogHints: publishedCatalogRef?.current,
-              });
-              if (link) {
-                persistedPublicationId = link.publicationId;
-                publicationId = link.publicationId;
-                canonicalRouteId = link.routeId;
-                publicTitleSnap = link.publicTitle;
-                if (!routeEntry) routeEntry = "owner_library";
-              }
-            } catch {
-              /* publication 조회 실패 시 publicationId 없이 저장 */
+        if (
+          !persistedPublicationId &&
+          savedRouteIdAtEnd &&
+          routeGeometry &&
+          routeGeometry.coordinates.length >= 2
+        ) {
+          try {
+            const link = await resolvePublishedRouteLink({
+              savedRouteId: savedRouteIdAtEnd,
+              geometry: routeGeometry,
+              profile,
+              catalogHints: publishedCatalogRef?.current,
+            });
+            if (link) {
+              persistedPublicationId = link.publicationId;
+              publicationId = link.publicationId;
+              canonicalRouteId = link.routeId;
+              publicTitleSnap = link.publicTitle;
+              if (!routeEntry) routeEntry = "owner_library";
             }
+          } catch {
+            /* publication 조회 실패 시 publicationId 없이 저장 */
           }
+        }
 
-          if (persistedPublicationId && !canonicalRouteId) {
-            try {
-              const link = await resolvePublishedRouteLinkByPublicationId(persistedPublicationId);
-              if (link) {
-                canonicalRouteId = link.routeId;
-                publicationId = publicationId ?? link.publicationId;
-                publicTitleSnap = publicTitleSnap ?? link.publicTitle;
-                if (!routeEntry) routeEntry = "public_catalog";
-              }
-            } catch {
-              /* noop */
+        if (persistedPublicationId && !canonicalRouteId) {
+          try {
+            const link = await resolvePublishedRouteLinkByPublicationId(persistedPublicationId);
+            if (link) {
+              canonicalRouteId = link.routeId;
+              publicationId = publicationId ?? link.publicationId;
+              publicTitleSnap = publicTitleSnap ?? link.publicTitle;
+              if (!routeEntry) routeEntry = "public_catalog";
             }
+          } catch {
+            /* noop */
           }
+        }
 
-          if (savedRouteIdAtEnd && !routeEntry) routeEntry = "owner_library";
-          if (persistedPublicationId && !savedRouteIdAtEnd && !routeEntry) {
-            routeEntry = "public_catalog";
-          }
+        if (savedRouteIdAtEnd && !routeEntry) routeEntry = "owner_library";
+        if (persistedPublicationId && !savedRouteIdAtEnd && !routeEntry) {
+          routeEntry = "public_catalog";
+        }
 
-          const rideId = await saveRideSessionToFirestore({
+        // aggregate 재조회는 onRidePersisted에서 수행 — 여기서 invalidate 하면
+        // CF `recentRideCount7d` 반영 전 서버 0이 낙관 heat를 지워 버린다.
+        const publicationIdBeforeAsync = publicationIdRef.current?.trim() || null;
+
+        // N2: persistRideEndCore 로 저장 커널 위임 — injectable deps 로 controlled Promise 주입 가능
+        await persistRideEndCore(
+          {
+            record,
+            sessionForPersist,
             userId: user.uid,
             trailId,
-            routeId: canonicalRouteId,
+            savedRouteIdAtEnd,
+            rideCompletedRoute,
+            progressToSave,
+            completionRatio,
+            canonicalRouteId,
             publicationId,
+            persistedPublicationId,
+            publicationIdBeforeAsync,
             routeEntry,
             publicTitleSnap,
             profile,
-            session: sessionForPersist,
-            conquest: conquestPayload,
-          });
-          if (!rideId) return;
-          // aggregate 재조회는 onRidePersisted에서 수행 — 여기서 invalidate 하면
-          // CF `recentRideCount7d` 반영 전 서버 0이 낙관 heat를 지워 버린다.
-          onRidePersistedToFirestore?.(persistedPublicationId);
-          const publicationIdBeforeAsync = publicationIdRef.current?.trim() || null;
-          if (persistedPublicationId && persistedPublicationId !== publicationIdBeforeAsync) {
-            markRouteActivityRideCompletedOptimistic(persistedPublicationId);
-            onRideEndedWithPublication?.(persistedPublicationId);
-          }
-          if (savedRouteIdAtEnd && !savedRouteIdAtEnd.startsWith("local-")) {
-            try {
-              /**
-               * 진행률의 진실은 **서버 문서**다(§4.4). transaction 이 `max(server, requested)` 로
-               * 판정한 결과를 그대로 state 에 반영해, 늦은 낮은 진행률이 높은 값을 되돌리지 않게 한다.
-               */
-              let appliedProgress = progressToSave;
-              let appliedCompleted: 0 | 1 = rideCompletedRoute ? 1 : 0;
-              if (rideCompletedRoute) {
-                await promoteSavedRouteInFirestore({
-                  userId: user.uid,
-                  routeId: savedRouteIdAtEnd,
-                  rideId,
-                });
-                appliedProgress = 1;
-              } else {
-                const applied = await updateSavedRouteProgressInFirestore({
-                  userId: user.uid,
-                  routeId: savedRouteIdAtEnd,
-                  rideId,
-                  progressRatio: progressToSave,
-                });
-                appliedProgress = applied.progressRatio;
-                appliedCompleted = applied.completed;
-              }
-              const nowIso = new Date().toISOString();
-              setSavedRoutes((prev) =>
-                prev.map((r) =>
-                  r.id === savedRouteIdAtEnd
-                    ? appliedCompleted === 1
-                      ? {
-                          ...r,
-                          completed: 1,
-                          completedAtIso: r.completedAtIso ?? nowIso,
-                          expiresAtIso: null,
-                          lastRideId: rideCompletedRoute ? rideId : r.lastRideId,
-                          lastProgressRatio: 1,
-                          updatedAtIso: nowIso,
-                        }
-                      : {
-                          ...r,
-                          // stale write 로 서버가 값을 올리지 않았으면 lastRideId 도 그대로 둔다.
-                          lastRideId:
-                            appliedProgress > r.lastProgressRatio ? rideId : r.lastRideId,
-                          lastProgressRatio: appliedProgress,
-                          updatedAtIso: nowIso,
-                        }
-                    : r,
-                ),
-              );
-              setLastRideResult?.((prev) =>
-                prev && prev.recordId === record.id
-                  ? {
-                      ...prev,
-                      progressRatio: appliedProgress,
-                      routeCompleted: appliedCompleted === 1,
-                    }
-                  : prev,
-              );
-            } catch (e) {
-              console.warn("[savedRoutes] 진행/격상 갱신 실패", e);
-            }
-          } else if (savedRouteIdAtEnd && rideCompletedRoute) {
-            promoteSavedRouteInLocal({ routeId: savedRouteIdAtEnd, rideId });
-            setSavedRoutes(loadSavedRoutesFromLocal());
-          } else if (savedRouteIdAtEnd) {
-            // 로컬(게스트) 미완주 — Firestore transaction 과 같은 단조 규칙(내부에서 max 유지)
-            const applied = updateSavedRouteProgressInLocal({
-              routeId: savedRouteIdAtEnd,
-              rideId,
-              progressRatio: progressToSave,
-            });
-            setSavedRoutes(loadSavedRoutesFromLocal());
-            setLastRideResult?.((prev) =>
-              prev && prev.recordId === record.id
-                ? {
-                    ...prev,
-                    progressRatio: applied.progressRatio,
-                    routeCompleted: applied.completed === 1,
-                  }
-                : prev,
-            );
-          } else if (
-            routeGeometry &&
-            routeGeometry.coordinates.length >= 2 &&
-            startLngLat &&
-            endLngLat &&
-            routeDistanceMeters > 0
-          ) {
-            setLastEndedWasAdhoc({
-              distanceMeters: routeDistanceMeters,
-              durationSec: routeDurationSec,
-              geometry: routeGeometry,
-              startLngLat,
-              endLngLat,
-              waypoints: routeWaypoints.slice(0, MAX_ROUTE_WAYPOINTS),
-              profile,
-              rideId,
-            });
-          }
-        } catch {
-          // Firestore 저장 실패 시 로컬 저장본은 유지한다.
-        }
+            conquestPayload,
+            routeDistanceMeters,
+            routeDurationSec,
+            routeGeometry,
+            routeWaypoints,
+            startLngLat,
+            endLngLat,
+          },
+          {
+            setLastRideResult: setLastRideResult ?? (() => {}),
+            setSavedRoutes,
+            setRecentSessions,
+            setLastEndedWasAdhoc,
+            onRidePersistedToFirestore,
+            onRideEndedWithPublication,
+            onPublicationOptimistic: markRouteActivityRideCompletedOptimistic,
+          },
+          {
+            saveRideSessionFn:
+              saveRideSessionToFirestoreFn ?? saveRideSessionToFirestore,
+            updateSavedRouteProgressFn:
+              updateSavedRouteProgressInFirestoreFn ?? updateSavedRouteProgressInFirestore,
+            promoteSavedRouteFn:
+              promoteSavedRouteInFirestoreFn ?? promoteSavedRouteInFirestore,
+            loadRideSessionsFn: loadRideSessions,
+            saveRideSessionsFn: (items) => saveRideSessions(items, user),
+          },
+        );
+        // persistRideEndCore 는 절대 throw 하지 않는다 — .catch() 불필요
       })();
     } else if (!discardRecord && savedRouteIdAtEnd) {
       // Firebase 미구성(로컬 전용) — 완주 게이트·진행률 저장 동일 적용(§9.5)
@@ -673,6 +627,9 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     setLastRideResult,
     onRideEndedWithPublication,
     onRidePersistedToFirestore,
+    saveRideSessionToFirestoreFn,
+    updateSavedRouteProgressInFirestoreFn,
+    promoteSavedRouteInFirestoreFn,
   ]);
 
   return { handleEndRide };

@@ -1,5 +1,6 @@
 import type { RouteProfile } from "../services/mapboxDirections";
 import type { LngLat } from "./geo";
+import type { RideConquestResult } from "./rideConquestResult";
 
 /**
  * 주행 종료 결과 모델(RIDE-CONTINUE-1 단계 C).
@@ -11,6 +12,8 @@ import type { LngLat } from "./geo";
 export type RideEndResult = {
   /** 로컬 기록 id(낙관 표시용). Firestore rides 문서 id 와는 다르다. */
   recordId: string;
+  /** Firestore rides/{} 문서 ID (서버 부여). 저장 완료 후 채워진다. */
+  serverRideId?: string | null;
   endedAtIso: string;
   /** 이번 세션 실주행 거리(m) — 「오늘 N km」. 재개 offset 은 이미 빠져 있다. */
   sessionDistanceMeters: number;
@@ -39,6 +42,12 @@ export type RideEndResult = {
   profile: RouteProfile;
   /** 이번 주행이 달린 Route 전장(m) — 다음 목표 거리의 근거 */
   routeDistanceMeters: number;
+  /** F3: Conquest 결과 (rides/{serverRideId}.conquestResult). serverRideId가 없으면 unsaved */
+  conquest?: RideConquestResult;
+  /** F4: Ride save 상태 (Firestore rides 저장 성공 여부) */
+  rideSaveStatus?: "pending" | "success" | "failed";
+  /** F4: SavedRoute progress 상태 (Firestore progress 업데이트 성공 여부, 독립 축) */
+  savedRouteProgressStatus?: "pending" | "success" | "failed" | "n/a";
 };
 
 /** 진행률(0..1) → 표시용 정수 % */

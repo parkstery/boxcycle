@@ -2,6 +2,9 @@ import { useState } from "react";
 import { validateSavedRouteName } from "../../lib/firestoreSavedRoutes";
 import { isIncompleteQuotaError } from "../../lib/tierQuota";
 import { progressPercentLabel, type RideEndResult } from "../../lib/rideEndResult";
+import { formatConquestSummaryLine } from "../../lib/rideConquestResult";
+import { useRideConquestResult } from "../../hooks/useRideConquestResult";
+import { getRideSaveStatusLabel, getSavedRouteProgressStatusLabel } from "../../lib/rideStatusCopy";
 import "./RideSummarySheet.css";
 
 type RideSummarySheetProps = {
@@ -11,13 +14,13 @@ type RideSummarySheetProps = {
   distanceKm: string;
   avgKmh: string;
   caloriesEstimate: number;
-  /** Conquest — 「새 도로 +N km」 한 줄. CF 집계 완료 시 반응형 갱신, null=없음/집계 전 */
-  conquestLine?: string | null;
   /**
    * 종료 결과(§3.5) — 모든 유효 Ride 가 채운다. 미완주면 이전→신규 진행률을,
    * 완주·ad-hoc·Publication Ride 면 다음 출발점을 보여 준다. null 이면 진행·출발점 블록만 생략.
    */
   result?: RideEndResult | null;
+  /** F3: 현재 로그인 사용자 uid (conquest result ownership 체크) */
+  userId?: string | null;
   /** ad-hoc(저장 안 한 채) 주행이 직전에 종료되어 「사용자 경로로 저장」 액션이 가능한 상태인지 */
   adhocSaveAvailable: boolean;
   /** 미완주 SavedRoute — 전체 진행률 변화(이전→이번) */
@@ -53,6 +56,19 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
   /** 같은 경로가 이미 있어 "업데이트하시겠습니까?" 확인을 기다리는 중. */
   const [confirmingUpdate, setConfirmingUpdate] = useState(false);
 
+  // F3: rides/{serverRideId}.conquestResult 구독
+  const result = props.result ?? null;
+  const conquestResult = useRideConquestResult({
+    serverRideId: result?.serverRideId,
+    userId: props.userId,
+    localRecordId: result?.recordId ?? "",
+  });
+  const conquestLine = formatConquestSummaryLine(conquestResult);
+
+  // R2: F4 persistence status (independent axes)
+  const rideSaveStatus = result?.rideSaveStatus ?? "n/a";
+  const savedRouteProgressStatus = result?.savedRouteProgressStatus ?? "n/a";
+
   // 제안 이름이 갱신되면(지명 비동기 도착 등), 사용자가 아직 손대지 않은 경우에만 따라간다.
   // effect 대신 이전 값과 비교(React 권장) — 편집 중 덮어쓰기·불필요 리렌더 회피.
   const [prevSuggested, setPrevSuggested] = useState(suggested);
@@ -63,7 +79,6 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
 
   if (!props.open) return null;
 
-  const result = props.result ?? null;
   const routeCompleted = Boolean(result?.routeCompleted);
   /** 미완주 저장 경로 주행 — 이전→신규 진행률을 보여 줄 수 있는 경우 */
   const showProgressLine = Boolean(result && result.savedRouteId && !routeCompleted);
@@ -157,14 +172,36 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
         {routeCompleted ? (
           <p className="ride-summary__progress">경로를 완주했습니다</p>
         ) : null}
-        {hasNextStart ? (
+        {/* Codex -02 Fix 2: 다음 출발점 저장 성공 시에만 표시 (rideSaveStatus 기준) */}
+        {hasNextStart && rideSaveStatus === "success" ? (
           <p className="ride-summary__nextstart">다음 출발점이 저장되었습니다</p>
         ) : null}
 
-        {props.conquestLine ? (
+        {conquestLine ? (
           <p className="ride-summary__conquest" role="status" aria-live="polite">
-            ⚑ {props.conquestLine}
+            ⚑ {conquestLine}
           </p>
+        ) : null}
+
+        {/* R2: F4 persistence status (independent axes) */}
+        {/* 문구 원천: rideStatusCopy.ts — N2 테스트가 이 함수를 어서트해 실제 렌더 결과를 증명 */}
+        {rideSaveStatus !== "n/a" || savedRouteProgressStatus !== "n/a" ? (
+          <div className="ride-summary__status" aria-live="polite">
+            {getRideSaveStatusLabel(rideSaveStatus) != null ? (
+              <span
+                className={`ride-summary__status-item ride-summary__status-item--${rideSaveStatus}`}
+              >
+                {getRideSaveStatusLabel(rideSaveStatus)}
+              </span>
+            ) : null}
+            {getSavedRouteProgressStatusLabel(savedRouteProgressStatus) != null ? (
+              <span
+                className={`ride-summary__status-item ride-summary__status-item--${savedRouteProgressStatus}`}
+              >
+                {getSavedRouteProgressStatusLabel(savedRouteProgressStatus)}
+              </span>
+            ) : null}
+          </div>
         ) : null}
 
         {hasNextStart && props.onExtendFromEnd ? (

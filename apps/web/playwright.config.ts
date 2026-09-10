@@ -26,6 +26,9 @@ const DEV_PORT = Number(
 )
 const DEV_URL = `http://127.0.0.1:${DEV_PORT}`
 
+/** Outer attempt budget is enforced by scripts/e2e/run-with-deadline.mjs (default 600s). */
+const e2eGlobalTimeoutMs = Number(process.env.RTW_E2E_PLAYWRIGHT_GLOBAL_MS || 560_000)
+
 export default defineConfig({
   testDir: './e2e',
   outputDir: routeTokenUiHarness
@@ -33,8 +36,10 @@ export default defineConfig({
     : 'test-results',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // RTW-PLAYWRIGHT-LIMIT-20260910-01: no auto-retry budget reset; single worker.
+  retries: 0,
+  workers: 1,
+  globalTimeout: e2eGlobalTimeoutMs,
   reporter: [['line'], ['html', { open: 'never' }]],
   use: {
     baseURL: DEV_URL,
@@ -49,17 +54,15 @@ export default defineConfig({
   webServer: {
     command: routeTokenUiHarness
       ? 'npm run dev:localhost -- --mode harness'
-      : underEmulator && useFunctionsEmulatorBundle
+      : underEmulator
         ? 'npm run dev:localhost -- --mode emulator'
         : 'npm run dev:localhost',
     url: DEV_URL,
-    // Functions 포함 e2e 는 --mode emulator → apps/web/.env.emulator(VITE_* host 포함).
-    // Auth·Firestore 만 쓰는 e2e(peer-sync 등)는 VITE_USE_EMULATOR 만 넘긴다.
+    // Codex-04 Unit ③: emulator 모드는 항상 --mode emulator 로 .env.emulator 로드
+    // (Firebase config 없으면 GuestEntryCard 렌더링 안 됨)
     env: underEmulator
       ? {
-          ...(useFunctionsEmulatorBundle
-            ? { RTW_DEV_PORT: String(DEV_PORT) }
-            : { VITE_USE_EMULATOR: '1' }),
+          ...(useFunctionsEmulatorBundle ? { RTW_DEV_PORT: String(DEV_PORT) } : {}),
           ...(routeTokenUiHarness ? { VITE_DIRECTIONS_DIRECT: '0' } : {}),
         }
       : {},
