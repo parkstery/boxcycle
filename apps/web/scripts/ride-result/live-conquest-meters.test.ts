@@ -76,4 +76,19 @@ describe("computeLiveNewRoadFromRoute", () => {
       `session ${sessionLen}m vs live ${got.liveNewMeters}m`,
     );
   });
+
+  it("전 구간이 시작 시점 보유면 새 도로 0", () => {
+    const geometry = shortLine();
+    const traveled = 80;
+    const all = buildConquestCellsFromRoute(geometry, traveled, 0);
+    const owned = new Set(all.map((c) => c.id));
+    const got = computeLiveNewRoadFromRoute({
+      geometry,
+      traveledMeters: traveled,
+      fromMeters: 0,
+      ownedAtStart: owned,
+    });
+    assert.equal(got.liveNewMeters, 0);
+    assert.equal(got.liveNewCells, 0);
+  });
 });
