@@ -1,5 +1,9 @@
 # S2/N2: Production Hook Integration — 상태 업데이트
 
+> ⚠ **식별자 혼동 방지**: 이 파일의 "N2" / "S2" 는 hook integration 레이어 레이블이다.  
+> 이어달리기 e2e 시나리오 `RC1–RC5, RC13` / `CF-LIVE` (`apps/web/e2e/ride-continuation.spec.ts`) 와 다른 공간이다.  
+> §6 원문 C1–C14 전체 매핑: `document/archive/260910-RTW-0B-CLOSEOUT-C1-C14-matrix.md`
+
 ## 완료 (N2: 2026-09-10)
 
 N2 (`ride-result-n2-persistence.test.ts`) 가 S2 의 honest-TODO 를 해소했다.
