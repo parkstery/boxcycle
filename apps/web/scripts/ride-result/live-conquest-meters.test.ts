@@ -91,4 +91,60 @@ describe("computeLiveNewRoadFromRoute", () => {
     assert.equal(got.liveNewMeters, 0);
     assert.equal(got.liveNewCells, 0);
   });
+
+  it("traveledMeters 증가 시 liveNewMeters 단조 증가 — +0.00 고착 없음 (A3)", () => {
+    const geometry = shortLine();
+    const steps = [10, 20, 30, 50, 70, 90];
+    const results = steps.map((t) =>
+      computeLiveNewRoadFromRoute({
+        geometry,
+        traveledMeters: t,
+        fromMeters: 0,
+        ownedAtStart: new Set(),
+      }).liveNewMeters,
+    );
+    for (let i = 1; i < results.length; i++) {
+      assert.ok(
+        results[i] >= results[i - 1],
+        `step ${steps[i]}m: ${results[i]} >= ${results[i - 1]} 여야 함`,
+      );
+    }
+    assert.ok(results[results.length - 1] > 0, "최종값 > 0");
+  });
+
+  it("세션 시작 시점(traveledMeters=fromMeters)에서 새 도로 0 — 이전 잔여 비노출 (A5 경계)", () => {
+    const geometry = shortLine();
+    // traveledMeters === fromMeters → 세션 실주행 0m, 계산 결과도 0
+    for (const offset of [0, 30, 60]) {
+      const got = computeLiveNewRoadFromRoute({
+        geometry,
+        traveledMeters: offset,
+        fromMeters: offset,
+        ownedAtStart: new Set(),
+      });
+      assert.equal(
+        got.liveNewMeters,
+        0,
+        `offset=${offset}: 세션 시작 시점 새 도로는 0 이어야 함`,
+      );
+    }
+  });
+
+  it("재개 구간 미보유 시 세션 거리 ≈ 새 도로 (이어달리기 + 미보유, A2·A3 통합)", () => {
+    const geometry = shortLine();
+    const from = 30;
+    const traveled = 80;
+    const sessionLen = traveled - from;
+    const got = computeLiveNewRoadFromRoute({
+      geometry,
+      traveledMeters: traveled,
+      fromMeters: from,
+      ownedAtStart: new Set(),
+    });
+    assert.ok(got.liveNewMeters > 0, "새 도로 > 0");
+    assert.ok(
+      Math.abs(got.liveNewMeters - sessionLen) <= 2,
+      `세션 ${sessionLen}m vs 새도로 ${got.liveNewMeters}m`,
+    );
+  });
 });
