@@ -8,10 +8,10 @@ import { stubMapboxStyle } from './mapbox-stub'
 // 「어제 멈춘 곳이 오늘 앱을 열었을 때 자동으로 다음 출발점이 된다」를 종료→재진입까지 고정한다.
 //
 // ⚠ 시나리오 ID 표기 규칙:
-//   RC1–RC5, RC13 = 이어달리기 e2e 시나리오 (이 파일 전용)
-//   CF-LIVE       = CF conquestOnRideCreated 에뮬레이터 라이브 검증 (R5/F3)
-//   이 ID들은 원문 작업지시서 §6 C1–C14(결과계약 단위 테스트 목록)와 전혀 다른 공간이다.
-//   §6 C1–C14 매핑은 document/archive/260910-RTW-0B-CLOSEOUT-C1-C14-matrix.md 참조.
+//   RC1–RC5 = 이어달리기 e2e 전용 (이름만 비슷할 뿐 §6 C1–C5 와 다른 시나리오)
+//   RC13    = §6 C13 e2e 증거 (reload 없이 결과 닫기→다음 주행→Go)
+//   CF-LIVE = CF conquestOnRideCreated 에뮬레이터 라이브 (R5/F3) — §6 C14 가 아님
+//   §6 C1–C14 전체 매핑: document/archive/260910-RTW-0B-CLOSEOUT-C1-C14-matrix.md
 //
 // 셀렉터는 scripts/ride-verify/entry-contract.mjs 와 같은 계약을 쓴다 —
 // 한쪽만 고치지 않는다(verify-selectors.mjs 가 앵커 실재를 지킨다).
@@ -537,10 +537,9 @@ test.describe('다음 주행 · 이어 달리기', () => {
   })
 
   /**
-   * RC13 — reload 없이 종료→카드→이어 달리기 Go 까지 완주한다.
-   * ⚠ 이어달리기 e2e RC13 시나리오 — 원문 §6 C13(close result→next ride→Go without reload) 과 무관하다.
+   * RC13 — §6 C13 e2e: reload 없이 종료→카드→이어 달리기 Go 까지 완주한다.
    *
-   * RC1 은 결과 시트를 닫은 뒤 **재진입(page.reload)**해 재개를 검증한다.
+   * RC1 은 결과 시트를 닫은 뒤 **재진입(page.reload)**해 재개를 검증한다 (§6 C1 과 무관).
    * RC13 은 같은 세션에서 reload 없이 카드 → resume → 센서 준비 → Go → HUD 를 검증한다.
    * 핵심 가설: 첫 번째 reload 이후 mapLoaded=true 가 유지되므로
    *            resume-marker 가 reload 없이도 렌더링되어야 한다.
