@@ -690,6 +690,18 @@
   }
 }
 
+/* 「이미 내 도로」 힌트 — +0.00 아래 작게 표시(모든 셀이 기보유일 때) */
+.hud-metrics__conquest-owned-hint {
+  display: block;
+  font-size: 0.65em;
+  font-weight: 500;
+  color: var(--rtw-trace);
+  opacity: 0.55;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  margin-top: 1px;
+}
+
 /* 경로만 선택·주행 전: 동일 캡슐, 값 색만 구분(골드 톤 다운) */
 .hud-metrics--route-preview .hud-metrics__value {
   color: var(--rtw-trace);

@@ -3,7 +3,10 @@
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { computeLiveNewRoadFromRoute } from "../../src/hooks/useLiveConquestPaint.ts";
+import {
+  computeLiveNewRoadFromRoute,
+  shouldShowAlreadyOwnedHint,
+} from "../../src/hooks/useLiveConquestPaint.ts";
 import { buildConquestCellsFromRoute, conquestCellIdAt } from "../../src/lib/conquestTiles.ts";
 import type { LineStringGeometry } from "../../src/lib/geo.ts";
 import { getPointOnRouteByDistance, lineStringLengthMeters } from "../../src/lib/geo.ts";
@@ -90,5 +93,65 @@ describe("computeLiveNewRoadFromRoute", () => {
     });
     assert.equal(got.liveNewMeters, 0);
     assert.equal(got.liveNewCells, 0);
+  });
+});
+
+describe("shouldShowAlreadyOwnedHint", () => {
+  it("새 도로 0 + 세션 ≥ 10m → 힌트 표시", () => {
+    assert.equal(shouldShowAlreadyOwnedHint(0, 10), true);
+    assert.equal(shouldShowAlreadyOwnedHint(0, 50), true);
+    assert.equal(shouldShowAlreadyOwnedHint(0, 100), true);
+  });
+
+  it("새 도로 0 + 세션 < 10m → 힌트 미표시(아직 달리지 않음)", () => {
+    assert.equal(shouldShowAlreadyOwnedHint(0, 0), false);
+    assert.equal(shouldShowAlreadyOwnedHint(0, 9), false);
+    assert.equal(shouldShowAlreadyOwnedHint(0, 9.9), false);
+  });
+
+  it("새 도로 > 0m → 힌트 미표시(정상 증가 중)", () => {
+    assert.equal(shouldShowAlreadyOwnedHint(1, 50), false);
+    assert.equal(shouldShowAlreadyOwnedHint(30, 50), false);
+    assert.equal(shouldShowAlreadyOwnedHint(100, 100), false);
+  });
+
+  it("미무장(null) → 힌트 미표시", () => {
+    assert.equal(shouldShowAlreadyOwnedHint(null, 0), false);
+    assert.equal(shouldShowAlreadyOwnedHint(null, 50), false);
+    assert.equal(shouldShowAlreadyOwnedHint(null, 100), false);
+  });
+
+  it("전 구간 보유 + 실제 주행 거리 → A4 케이스 검증", () => {
+    // A4: ownedAtStart 에 모든 셀이 포함돼 있으면 liveNewMeters = 0 (올바른 동작)
+    // 그 상태에서 sessionProgress ≥ 10m 이면 힌트를 표시해 Chief에게 "이미 내 도로" 안내
+    const geometry = shortLine();
+    const traveled = 80;
+    const all = buildConquestCellsFromRoute(geometry, traveled, 0);
+    const owned = new Set(all.map((c) => c.id));
+    const got = computeLiveNewRoadFromRoute({
+      geometry,
+      traveledMeters: traveled,
+      fromMeters: 0,
+      ownedAtStart: owned,
+    });
+    // 계산은 0이 맞고
+    assert.equal(got.liveNewMeters, 0);
+    // 세션이 충분히 진행됐으면 힌트가 표시돼야 함
+    const sessionProgress = traveled; // fromMeters=0, traveledMeters=80
+    assert.equal(shouldShowAlreadyOwnedHint(got.liveNewMeters, sessionProgress), true);
+  });
+
+  it("새 도로 있는 경우(A2/A3 정상) + 세션 진행 → 힌트 없음", () => {
+    const geometry = shortLine();
+    const traveled = 80;
+    const got = computeLiveNewRoadFromRoute({
+      geometry,
+      traveledMeters: traveled,
+      fromMeters: 0,
+      ownedAtStart: new Set(), // 보유 없음
+    });
+    assert.ok(got.liveNewMeters > 0, "새 도로가 있어야 함");
+    // 새 도로가 있으므로 힌트 없음
+    assert.equal(shouldShowAlreadyOwnedHint(got.liveNewMeters, traveled), false);
   });
 });

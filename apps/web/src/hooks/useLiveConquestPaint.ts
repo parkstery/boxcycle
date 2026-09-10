@@ -6,6 +6,22 @@ import type { LineStringGeometry } from "../lib/geo";
  * 세션 구간 셀 중 시작 시점 미보유 셀의 실제 경로 미터 합.
  * 서버 `conquestOnRideCreated` 와 같은 `buildConquestCellsFromRoute` 미터를 쓴다.
  */
+
+/**
+ * HUD 힌트 — 「이미 내 도로」 표시 여부.
+ *
+ * 조건: 무장(liveNewMeters !== null) && 새 도로 0m && 세션 진행 ≥ 10m.
+ * - 0m 이지만 아직 10m 미만 → 힌트 보류(아직 달리지 않음)
+ * - liveNewMeters > 0 → 힌트 없음(정상 증가 중)
+ * - liveNewMeters null → 힌트 없음(미무장)
+ */
+export function shouldShowAlreadyOwnedHint(
+  liveNewMeters: number | null,
+  sessionProgressMeters: number,
+): boolean {
+  return liveNewMeters === 0 && sessionProgressMeters >= 10;
+}
+
 export function computeLiveNewRoadFromRoute(opts: {
   geometry: LineStringGeometry;
   traveledMeters: number;

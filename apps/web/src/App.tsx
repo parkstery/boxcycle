@@ -121,7 +121,7 @@ import { resolveRideTargetSpeedKmh, type RideInputMode } from "./lib/cadenceRide
 import { isRideInputReady, resolveRideInputReadiness } from "./lib/cadenceSensorUi";
 import { CadenceSensorSheet } from "./components/sensor";
 import { useConquest } from "./hooks/useConquest";
-import { useLiveConquestPaint } from "./hooks/useLiveConquestPaint";
+import { useLiveConquestPaint, shouldShowAlreadyOwnedHint } from "./hooks/useLiveConquestPaint";
 import { conquestCellIdsAround } from "./lib/conquestTiles";
 import { ROUTE_COMPLETION_RATIO_THRESHOLD, resumeOffsetMetersFrom } from "./lib/rideRecordPolicy";
 import { useRideMapillaryStreet } from "./hooks/useRideMapillaryStreet";
@@ -615,6 +615,14 @@ export default function App() {
     fromMeters: sessionStartOffsetMeters,
     serverCellIds: conquestCellIds,
   });
+  /**
+   * 「이미 내 도로」 힌트 — +0.00 고정 + 세션 ≥ 10m 일 때 true.
+   * sessionDistanceMeters 는 아래에서 계산되므로 여기서는 직접 파생.
+   */
+  const conquestAllOwnedHint = shouldShowAlreadyOwnedHint(
+    conquestLiveMeters,
+    Math.max(0, rideMetrics.virtualDistanceMeters - sessionStartOffsetMeters),
+  );
 
   const { handleEndRide } = useRideEndAndPersistence({
     mapboxAccessToken: MAPBOX_TOKEN,
@@ -2083,6 +2091,7 @@ export default function App() {
               ridePresence: mapHudRidePresence,
               onGoTrailhead: goTrailheadAndCloseMenu,
               conquestLiveMeters,
+              conquestAllOwnedHint,
             }}
           >
             {rideMapillaryStreet && mapillaryRideSync && mapillaryTokenConfigured ? (
@@ -2265,6 +2274,7 @@ export default function App() {
               ridePresence: mapHudRidePresence,
               onGoTrailhead: goTrailheadAndCloseMenu,
               conquestLiveMeters,
+              conquestAllOwnedHint,
             }}
           >
             {rideMapillaryStreet && mapillaryRideSync && mapillaryTokenConfigured ? (
