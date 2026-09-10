@@ -31,11 +31,41 @@ describe("e2e deadline watchdog", () => {
       },
     );
     const elapsed = Date.now() - started;
-    assert.equal(r.status, 124, `expected timeout exit 124, got ${r.status}; stderr=${r.stderr}`);
+    assert.equal(
+      r.status,
+      124,
+      `expected timeout exit 124, got ${r.status}; stderr=${r.stderr}`,
+    );
     assert.ok(elapsed < 15_000, `should not wait full hang (${elapsed}ms)`);
     assert.ok(fs.existsSync(logPath), "timeout log written");
     const summary = JSON.parse(fs.readFileSync(logPath, "utf8"));
     assert.equal(summary.status, "timeout");
     assert.equal(summary.limitSec, 2);
+    assert.ok(summary.killResult, "killTree result recorded");
+  });
+
+  it("kills nested child tree (grandchild) under short limit", () => {
+    const nestedLog = path.join(HERE, "../../test-results/e2e-deadline-nested.json");
+    if (fs.existsSync(nestedLog)) fs.unlinkSync(nestedLog);
+    const hangScript = path.join(HERE, "hang-with-child.mjs");
+    const nested = `"${process.execPath}" "${hangScript}"`;
+    const r = spawnSync(
+      process.execPath,
+      [runner, "--limit-sec", "2", "--", nested],
+      {
+        encoding: "utf8",
+        env: { ...process.env, RTW_E2E_DEADLINE_LOG: nestedLog },
+        timeout: 25_000,
+      },
+    );
+    assert.equal(r.status, 124, `stderr=${r.stderr}`);
+    const summary = JSON.parse(fs.readFileSync(nestedLog, "utf8"));
+    assert.equal(summary.status, "timeout");
+    assert.equal(summary.limitSec, 2);
+    assert.ok(summary.killResult, "killTree result recorded");
+    assert.ok(
+      summary.killResult.ok === true || Number(summary.killResult.status) === 0,
+      `killResult=${JSON.stringify(summary.killResult)}`,
+    );
   });
 });

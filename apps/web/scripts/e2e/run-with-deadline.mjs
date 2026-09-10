@@ -13,7 +13,7 @@
  *   RTW_E2E_DEADLINE_SEC  default 600
  *   RTW_E2E_DEADLINE_LOG  optional path for timeout summary JSON
  */
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -53,34 +53,52 @@ function parseArgs(argv) {
 }
 
 function killTree(pid) {
-  if (!pid || pid <= 0) return;
+  if (!pid || pid <= 0) return { ok: false, reason: "no-pid" };
   try {
     if (process.platform === "win32") {
-      spawn("taskkill", ["/PID", String(pid), "/T", "/F"], {
-        stdio: "ignore",
+      const r = spawnSync("taskkill", ["/PID", String(pid), "/T", "/F"], {
+        encoding: "utf8",
         windowsHide: true,
       });
-    } else {
-      try {
-        process.kill(-pid, "SIGTERM");
-      } catch {
-        process.kill(pid, "SIGTERM");
-      }
-      setTimeout(() => {
-        try {
-          process.kill(-pid, "SIGKILL");
-        } catch {
-          try {
-            process.kill(pid, "SIGKILL");
-          } catch {
-            /* ignore */
-          }
-        }
-      }, 2000).unref?.();
+      return {
+        ok: r.status === 0,
+        status: r.status,
+        stdout: r.stdout,
+        stderr: r.stderr,
+      };
     }
-  } catch {
-    /* ignore */
+    // POSIX: prefer killing the process group when child was started with detached.
+    try {
+      process.kill(-pid, "SIGTERM");
+    } catch {
+      try {
+        process.kill(pid, "SIGTERM");
+      } catch {
+        return { ok: false, reason: "sigterm-failed" };
+      }
+    }
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, reason: String(e?.message || e) };
   }
+}
+
+function waitForExit(child, timeoutMs) {
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = (info) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      resolve(info);
+    };
+    const timer = setTimeout(() => {
+      finish({ timedOut: true, code: null, signal: null });
+    }, timeoutMs);
+    child.once("exit", (code, signal) => {
+      finish({ timedOut: false, code, signal });
+    });
+  });
 }
 
 const raw = process.argv.slice(2);
@@ -101,12 +119,14 @@ console.error(
 );
 
 // One shell string so nested quoted Playwright args survive (Windows npm scripts).
+// POSIX: detached + new process group so -pid SIGTERM cleans descendants.
 const child = spawn(commandLine, {
   cwd: process.cwd(),
   env: process.env,
   stdio: "inherit",
   shell: true,
   windowsHide: true,
+  detached: process.platform !== "win32",
 });
 
 let settled = false;
@@ -119,6 +139,8 @@ const timer = setTimeout(() => {
   console.error(
     `[e2e-deadline] TIMEOUT after ${elapsedMs}ms (limit ${limitMs}ms) — killing attempt pid=${child.pid}`,
   );
+  const killResult = killTree(child.pid);
+  console.error(`[e2e-deadline] killTree result=${JSON.stringify(killResult)}`);
   const summary = {
     status: "timeout",
     limitSec,
@@ -127,6 +149,7 @@ const timer = setTimeout(() => {
     elapsedMs,
     command: commandLine,
     pid: child.pid ?? null,
+    killResult,
   };
   const logPath =
     process.env.RTW_E2E_DEADLINE_LOG ||
@@ -138,7 +161,28 @@ const timer = setTimeout(() => {
   } catch (e) {
     console.error(`[e2e-deadline] log write failed: ${e}`);
   }
-  killTree(child.pid);
+  // Bounded cleanup: do not hang forever if child ignores signals.
+  waitForExit(child, 5000).then((info) => {
+    if (info.timedOut) {
+      console.error(`[e2e-deadline] child still alive after 5s — escalate SIGKILL/taskkill`);
+      if (process.platform === "win32") {
+        killTree(child.pid);
+      } else {
+        try {
+          process.kill(-child.pid, "SIGKILL");
+        } catch {
+          try {
+            process.kill(child.pid, "SIGKILL");
+          } catch {
+            /* ignore */
+          }
+        }
+      }
+      waitForExit(child, 3000).then(() => process.exit(124));
+    } else {
+      process.exit(124);
+    }
+  });
 }, limitMs);
 
 child.on("exit", (code, signal) => {
@@ -151,7 +195,7 @@ child.on("exit", (code, signal) => {
     console.error(
       `[e2e-deadline] child exited after timeout code=${code} signal=${signal} elapsedMs=${elapsedMs}`,
     );
-    process.exit(124);
+    // exit handled by timeout path
     return;
   }
   console.error(

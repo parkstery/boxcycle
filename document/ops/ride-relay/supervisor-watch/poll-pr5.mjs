@@ -2,17 +2,11 @@
 /**
  * PR #5 Codex supervisor instruction poller (local IDE wake).
  *
- * - Reads issue comments via `gh` (no secrets in repo/comments).
- * - Does NOT execute comment bodies as shell.
- * - Emits AGENT_LOOP_WAKE_pr5_supervisor when a new actionable instruction appears.
- * - Persists processed comment IDs + single-run lock under runtime/.
- *
- * Env:
- *   PR5_WATCH_REPO   default parkstery/boxcycle
- *   PR5_WATCH_PR     default 5
- *   PR5_WATCH_STATE  default <this-dir>/runtime/state.json
- *   PR5_WATCH_ONCE   if "1", poll once and exit (no sleep loop)
- *   PR5_WATCH_INTERVAL_SEC  default 120 (≤600 per resume instruction)
+ * Fixes from RTW-AUTO-PROBE-20260910-01:
+ * - STOP bypasses busy work lock and cancels current work
+ * - Bootstrap seeds only non-actionable / already-handled comments (not unacked INSTRUCTION/STOP)
+ * - instructionId + commentId dedupe; already-locked same ID does not re-emit wake
+ * - Exclusive lockfile for single poller instance
  */
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -24,11 +18,15 @@ const REPO = process.env.PR5_WATCH_REPO || "parkstery/boxcycle";
 const PR = process.env.PR5_WATCH_PR || "5";
 const STATE_PATH =
   process.env.PR5_WATCH_STATE || path.join(HERE, "runtime", "state.json");
+const LOCK_PATH =
+  process.env.PR5_WATCH_LOCK || path.join(HERE, "runtime", "poller.lock");
 const INTERVAL_SEC = Math.min(
   600,
   Math.max(30, Number(process.env.PR5_WATCH_INTERVAL_SEC || 120) || 120),
 );
 const ONCE = process.env.PR5_WATCH_ONCE === "1";
+/** Optional ISO; when set, bootstrap also seeds actionable comments created at/before this time. */
+const SEED_BEFORE_ISO = process.env.PR5_WATCH_SEED_BEFORE_ISO || null;
 
 const ALLOWED_AUTHORS = new Set(["parkstery"]);
 const ACTIONABLE =
@@ -43,74 +41,81 @@ const IGNORE_PREFIXES = [
   "## NOTE —",
 ];
 
-function ensureRuntimeDir() {
-  fs.mkdirSync(path.dirname(STATE_PATH), { recursive: true });
+export function ensureRuntimeDir(statePath = STATE_PATH) {
+  fs.mkdirSync(path.dirname(statePath), { recursive: true });
 }
 
-function loadState() {
-  ensureRuntimeDir();
-  if (!fs.existsSync(STATE_PATH)) {
-    return {
-      version: 1,
-      pr: Number(PR),
-      repo: REPO,
-      processedCommentIds: [],
-      current: null, // { instructionId, commentId, status, executionId, startedAt }
-      lock: null, // { executionId, instructionId, commentId, acquiredAt }
-      stopped: false,
-      lastPollAt: null,
-      lastError: null,
-    };
-  }
-  return JSON.parse(fs.readFileSync(STATE_PATH, "utf8"));
+export function defaultState() {
+  return {
+    version: 2,
+    pr: Number(PR),
+    repo: REPO,
+    processedCommentIds: [],
+    processedInstructionIds: [],
+    current: null,
+    lock: null,
+    cancelledByStop: null,
+    stopped: false,
+    lastPollAt: null,
+    lastError: null,
+    bootstrapped: false,
+  };
 }
 
-function saveState(state) {
-  ensureRuntimeDir();
-  const tmp = `${STATE_PATH}.tmp`;
+export function loadState(statePath = STATE_PATH) {
+  ensureRuntimeDir(statePath);
+  if (!fs.existsSync(statePath)) return defaultState();
+  return { ...defaultState(), ...JSON.parse(fs.readFileSync(statePath, "utf8")) };
+}
+
+export function saveState(state, statePath = STATE_PATH) {
+  ensureRuntimeDir(statePath);
+  const tmp = `${statePath}.tmp`;
   fs.writeFileSync(tmp, `${JSON.stringify(state, null, 2)}\n`, "utf8");
-  fs.renameSync(tmp, STATE_PATH);
+  fs.renameSync(tmp, statePath);
 }
 
-function ghJson(args) {
-  const r = spawnSync("gh", args, {
-    encoding: "utf8",
-    maxBuffer: 8 * 1024 * 1024,
-    shell: false,
-  });
-  if (r.status !== 0) {
-    const err = (r.stderr || r.stdout || "").trim() || `gh exit ${r.status}`;
-    throw new Error(err);
-  }
-  return JSON.parse(r.stdout || "[]");
+export function firstLine(body) {
+  return (
+    String(body || "")
+      .split(/\r?\n/)
+      .find((l) => l.trim().length > 0) || ""
+  );
 }
 
-function firstLine(body) {
-  return String(body || "")
-    .split(/\r?\n/)
-    .find((l) => l.trim().length > 0) || "";
-}
-
-function isIgnored(body) {
+export function isIgnored(body) {
   const fl = firstLine(body);
   return IGNORE_PREFIXES.some((p) => fl.startsWith(p));
 }
 
-function parseActionable(body) {
+export function parseActionable(body) {
   if (isIgnored(body)) return null;
   const m = String(body || "").match(ACTIONABLE);
   if (!m) return null;
   const kind = m[1];
   const instructionId = m[2];
-  // Shared parkstery account: require Codex supervisor actor line on INSTRUCTION/STOP/CHECKPOINT
-  const actorOk =
-    /Actor:\s*Codex supervisor/i.test(body) ||
-    (kind === "REVIEW-CHECKPOINT" && /Actor:\s*Codex supervisor/i.test(body));
+  const actorOk = /Actor:\s*Codex supervisor/i.test(body);
   if (!actorOk) return null;
   return { kind, instructionId };
 }
 
-function acquireLock(state, item) {
+/** STOP always wins; does not require clearing work lock first. */
+export function selectNextCandidate(candidates) {
+  const sorted = [...candidates].sort((a, b) =>
+    String(a.createdAt).localeCompare(String(b.createdAt)),
+  );
+  const stop = sorted.find((x) => x.kind === "STOP");
+  return stop || sorted[0] || null;
+}
+
+/**
+ * Acquire work lock. STOP callers should use applyStop() instead.
+ * Same instructionId already locked → already=true (no second wake).
+ */
+export function acquireLock(state, item) {
+  if (state.processedInstructionIds?.includes(item.instructionId)) {
+    return { ok: false, reason: "instruction-done", lock: state.lock };
+  }
   if (state.lock && state.lock.instructionId !== item.instructionId) {
     return { ok: false, reason: "busy", lock: state.lock };
   }
@@ -136,48 +141,156 @@ function acquireLock(state, item) {
   return { ok: true, already: false, lock: state.lock };
 }
 
+export function applyStop(state, stopItem) {
+  const prev = state.lock;
+  state.stopped = true;
+  state.cancelledByStop = {
+    stopId: stopItem.instructionId,
+    stopCommentId: stopItem.commentId,
+    cancelledExecutionId: prev?.executionId ?? null,
+    cancelledInstructionId: prev?.instructionId ?? null,
+    at: new Date().toISOString(),
+  };
+  if (state.current) {
+    state.current.status = "stopped";
+  } else {
+    state.current = {
+      instructionId: stopItem.instructionId,
+      commentId: stopItem.commentId,
+      kind: "STOP",
+      status: "stopped",
+      executionId: `pr5-${stopItem.instructionId}-${stopItem.commentId}`,
+      startedAt: state.cancelledByStop.at,
+    };
+  }
+  // Release work lock so STOP is never blocked by busy work.
+  state.lock = null;
+  return state.cancelledByStop;
+}
+
+export function markProcessed(state, commentId, instructionId) {
+  const comments = new Set(state.processedCommentIds || []);
+  comments.add(String(commentId));
+  state.processedCommentIds = [...comments];
+  if (instructionId) {
+    const ids = new Set(state.processedInstructionIds || []);
+    ids.add(instructionId);
+    state.processedInstructionIds = [...ids];
+  }
+}
+
+/**
+ * Bootstrap seed: mark ignored/history comments only.
+ * Actionable INSTRUCTION/STOP are NOT seeded unless created_at <= seedBeforeIso.
+ */
+export function bootstrapSeedCommentIds(comments, { seedBeforeIso = null } = {}) {
+  const ids = [];
+  for (const c of comments) {
+    const author = c.user?.login || "";
+    if (!ALLOWED_AUTHORS.has(author)) continue;
+    const body = c.body || "";
+    if (isIgnored(body)) {
+      ids.push(String(c.id));
+      continue;
+    }
+    const actionable = parseActionable(body);
+    if (!actionable) continue;
+    if (
+      seedBeforeIso &&
+      c.created_at &&
+      String(c.created_at) <= String(seedBeforeIso)
+    ) {
+      ids.push(String(c.id));
+    }
+  }
+  return ids;
+}
+
+export function tryAcquirePollerLock(lockPath = LOCK_PATH) {
+  ensureRuntimeDir(lockPath);
+  try {
+    const fd = fs.openSync(lockPath, "wx");
+    fs.writeFileSync(
+      fd,
+      `${JSON.stringify({ pid: process.pid, at: new Date().toISOString() })}\n`,
+    );
+    fs.closeSync(fd);
+    return { ok: true };
+  } catch (e) {
+    if (e && e.code === "EEXIST") {
+      let stale = false;
+      try {
+        const raw = JSON.parse(fs.readFileSync(lockPath, "utf8"));
+        if (raw?.pid && raw.pid !== process.pid) {
+          try {
+            process.kill(raw.pid, 0);
+          } catch {
+            stale = true;
+          }
+        }
+      } catch {
+        stale = true;
+      }
+      if (stale) {
+        fs.unlinkSync(lockPath);
+        return tryAcquirePollerLock(lockPath);
+      }
+      return { ok: false, reason: "another-poller" };
+    }
+    throw e;
+  }
+}
+
+export function releasePollerLock(lockPath = LOCK_PATH) {
+  try {
+    fs.unlinkSync(lockPath);
+  } catch {
+    /* ignore */
+  }
+}
+
+function ghJson(args) {
+  const r = spawnSync("gh", args, {
+    encoding: "utf8",
+    maxBuffer: 8 * 1024 * 1024,
+    shell: false,
+  });
+  if (r.status !== 0) {
+    const err = (r.stderr || r.stdout || "").trim() || `gh exit ${r.status}`;
+    throw new Error(err);
+  }
+  return JSON.parse(r.stdout || "[]");
+}
+
 function emitWake(payload) {
-  // Sentinel for Cursor monitored-shell notify_on_output
   const line = `AGENT_LOOP_WAKE_pr5_supervisor ${JSON.stringify(payload)}`;
   process.stdout.write(`${line}\n`);
 }
 
-function pollOnce() {
-  const state = loadState();
+/** Pure poll step for fixtures / production. */
+export function pollOnceWithComments(state, comments, { emit = emitWake } = {}) {
   state.lastPollAt = new Date().toISOString();
   state.lastError = null;
 
   if (state.stopped) {
-    saveState(state);
-    process.stdout.write(
-      `pr5-watch: stopped=true (no wake). state=${STATE_PATH}\n`,
-    );
-    return { woke: false, reason: "stopped" };
-  }
-
-  let comments;
-  try {
-    comments = ghJson([
-      "api",
-      `repos/${REPO}/issues/${PR}/comments?per_page=100`,
-      "--paginate",
-    ]);
-  } catch (e) {
-    state.lastError = String(e && e.message ? e.message : e);
-    saveState(state);
-    process.stdout.write(`pr5-watch: poll error: ${state.lastError}\n`);
-    return { woke: false, reason: "error" };
+    return { woke: false, reason: "stopped", state };
   }
 
   const processed = new Set(state.processedCommentIds || []);
+  const doneInstr = new Set(state.processedInstructionIds || []);
   const candidates = [];
   for (const c of comments) {
     const id = String(c.id);
     if (processed.has(id)) continue;
-    const author = c.user && c.user.login ? c.user.login : "";
+    const author = c.user?.login || "";
     if (!ALLOWED_AUTHORS.has(author)) continue;
     const parsed = parseActionable(c.body || "");
     if (!parsed) continue;
+    if (doneInstr.has(parsed.instructionId) && parsed.kind !== "STOP") {
+      // New comment, same instruction ID already handled → swallow without wake
+      markProcessed(state, id, parsed.instructionId);
+      continue;
+    }
     candidates.push({
       commentId: id,
       createdAt: c.created_at,
@@ -188,43 +301,42 @@ function pollOnce() {
     });
   }
 
-  // Chronological: oldest unprocessed first; STOP always preferred if present
-  candidates.sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
-  const stop = candidates.find((x) => x.kind === "STOP");
-  const next = stop || candidates[0];
+  const next = selectNextCandidate(candidates);
   if (!next) {
-    saveState(state);
-    process.stdout.write(
-      `pr5-watch: ok no-new lastPoll=${state.lastPollAt} processed=${processed.size}\n`,
-    );
-    return { woke: false, reason: "none" };
+    return { woke: false, reason: "none", state };
+  }
+
+  if (next.kind === "STOP") {
+    const cancelled = applyStop(state, next);
+    markProcessed(state, next.commentId, next.instructionId);
+    emit({
+      prompt:
+        "PR #5 STOP received — cancel current work lock; do not start new implement work until resume INSTRUCTION.",
+      kind: "STOP",
+      instructionId: next.instructionId,
+      commentId: next.commentId,
+      author: next.author,
+      url: next.url,
+      receivePath: "automatic-poll",
+      cancelled,
+    });
+    return { woke: true, next, reason: "stop", state };
   }
 
   const lock = acquireLock(state, next);
   if (!lock.ok) {
-    saveState(state);
-    process.stdout.write(
-      `pr5-watch: busy lock=${lock.lock.executionId} deferred=${next.instructionId}\n`,
-    );
-    return { woke: false, reason: "busy" };
+    return { woke: false, reason: lock.reason, next, state };
+  }
+  if (lock.already) {
+    // Same instruction already running — mark comment processed, no second wake
+    markProcessed(state, next.commentId, next.instructionId);
+    return { woke: false, reason: "already", next, state };
   }
 
-  if (next.kind === "STOP") {
-    state.stopped = true;
-    state.current.status = "stopped";
-  }
-
-  // Mark received so restart won't re-fire the same comment; runner advances status.
-  if (!processed.has(next.commentId)) {
-    state.processedCommentIds = [...processed, next.commentId];
-  }
-  saveState(state);
-
-  const payload = {
+  markProcessed(state, next.commentId, next.instructionId);
+  emit({
     prompt:
-      "PR #5 supervisor watch wake: read the new actionable comment, ACK if INSTRUCTION, honor STOP immediately, do not re-run processed IDs. State file under document/ops/ride-relay/supervisor-watch/runtime/state.json.",
-    repo: REPO,
-    pr: Number(PR),
+      "PR #5 supervisor watch wake: read the new actionable comment, ACK if INSTRUCTION, honor STOP immediately, do not re-run processed IDs.",
     kind: next.kind,
     instructionId: next.instructionId,
     commentId: next.commentId,
@@ -232,13 +344,37 @@ function pollOnce() {
     url: next.url,
     executionId: lock.lock.executionId,
     receivePath: "automatic-poll",
-    statePath: STATE_PATH,
-  };
-  emitWake(payload);
-  process.stdout.write(
-    `pr5-watch: wake kind=${next.kind} id=${next.instructionId} comment=${next.commentId}\n`,
-  );
-  return { woke: true, next, executionId: lock.lock.executionId };
+  });
+  return { woke: true, next, executionId: lock.lock.executionId, state };
+}
+
+function pollOnceLive() {
+  const state = loadState();
+  let comments;
+  try {
+    comments = ghJson([
+      "api",
+      `repos/${REPO}/issues/${PR}/comments?per_page=100`,
+      "--paginate",
+    ]);
+  } catch (e) {
+    state.lastError = String(e?.message || e);
+    saveState(state);
+    process.stdout.write(`pr5-watch: poll error: ${state.lastError}\n`);
+    return { woke: false, reason: "error" };
+  }
+  const result = pollOnceWithComments(state, comments);
+  saveState(result.state);
+  if (result.woke) {
+    process.stdout.write(
+      `pr5-watch: wake kind=${result.next.kind} id=${result.next.instructionId} comment=${result.next.commentId}\n`,
+    );
+  } else {
+    process.stdout.write(
+      `pr5-watch: ok reason=${result.reason} lastPoll=${result.state.lastPollAt} processed=${(result.state.processedCommentIds || []).length}\n`,
+    );
+  }
+  return result;
 }
 
 function sleep(ms) {
@@ -246,11 +382,28 @@ function sleep(ms) {
 }
 
 async function main() {
+  const lock = tryAcquirePollerLock();
+  if (!lock.ok) {
+    process.stdout.write(
+      `pr5-watch: abort another poller holds ${LOCK_PATH}\n`,
+    );
+    process.exit(3);
+  }
+  const release = () => releasePollerLock();
+  process.on("exit", release);
+  process.on("SIGINT", () => {
+    release();
+    process.exit(130);
+  });
+  process.on("SIGTERM", () => {
+    release();
+    process.exit(143);
+  });
+
   process.stdout.write(
     `pr5-watch: start repo=${REPO} pr=${PR} interval=${INTERVAL_SEC}s once=${ONCE} state=${STATE_PATH}\n`,
   );
-  // Seed: mark already-known historical instructions as processed so first boot
-  // does not re-wake on -01..-05 / STOP / RESUME already ACKed in this session.
+
   const state = loadState();
   if (!state.bootstrapped) {
     try {
@@ -259,33 +412,18 @@ async function main() {
         `repos/${REPO}/issues/${PR}/comments?per_page=100`,
         "--paginate",
       ]);
-      const ids = [];
-      for (const c of comments) {
-        const author = c.user && c.user.login ? c.user.login : "";
-        if (!ALLOWED_AUTHORS.has(author)) continue;
-        if (parseActionable(c.body || "") || isIgnored(c.body || "")) {
-          ids.push(String(c.id));
-        }
-      }
+      const ids = bootstrapSeedCommentIds(comments, {
+        seedBeforeIso: SEED_BEFORE_ISO,
+      });
       state.processedCommentIds = Array.from(
         new Set([...(state.processedCommentIds || []), ...ids]),
       );
       state.bootstrapped = true;
       state.bootstrappedAt = new Date().toISOString();
-      // Active resume instruction already manually ACK'd — keep lock free for PROBE
-      state.lock = null;
-      state.current = {
-        instructionId: "RTW-RESUME-20260910-01",
-        commentId: "5612115646",
-        kind: "INSTRUCTION",
-        status: "running",
-        executionId: "cursor-ide-grok-resume-20260910-01",
-        startedAt: "2026-09-10T03:18:00Z",
-      };
       state.stopped = false;
       saveState(state);
       process.stdout.write(
-        `pr5-watch: bootstrap marked ${ids.length} historical comments processed\n`,
+        `pr5-watch: bootstrap seeded ${ids.length} non-actionable/historical ids (actionable unacked preserved)\n`,
       );
     } catch (e) {
       process.stdout.write(`pr5-watch: bootstrap failed: ${e}\n`);
@@ -293,13 +431,20 @@ async function main() {
   }
 
   for (;;) {
-    pollOnce();
+    pollOnceLive();
     if (ONCE) break;
     await sleep(INTERVAL_SEC * 1000);
   }
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+const isMain =
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isMain) {
+  main().catch((e) => {
+    console.error(e);
+    releasePollerLock();
+    process.exit(1);
+  });
+}
