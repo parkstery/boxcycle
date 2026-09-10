@@ -3,6 +3,8 @@
  * CF conquestOnRideCreated 가 rides/{rideId}.conquestResult 에 쓰는 결과를 읽는다.
  */
 
+import { formatRideDistanceKmNumber } from "./rideDistanceFormat";
+
 /** Conquest 결과 상태 — UI는 이 status로 loading·error·확정 0을 구분한다 */
 export type ConquestResultStatus =
   | "none" // 아직 CF가 처리하지 않음 (필드 부재 또는 pending)
@@ -91,12 +93,11 @@ export function parseConquestResult(
   return { status: "error", newMeters: 0 };
 }
 
-/** 「새 도로 +N km」 표시 문자열. 50m 미만은 null (0 미표시 원칙) */
+/** 「새 도로 +N.NN km」 표시 문자열. 50m 미만은 null (0 미표시 원칙). HUD 거리와 소수 2자리 통일. */
 export function formatConquestSummaryLine(result: RideConquestResult): string | null {
   if (result.status !== "positive") return null;
   if (result.newMeters < 50) return null;
-  const km = result.newMeters / 1000;
-  return `새 도로 +${km.toFixed(result.newMeters < 10000 ? 1 : 0)}km`;
+  return `새 도로 +${formatRideDistanceKmNumber(result.newMeters)}km`;
 }
 
 /**

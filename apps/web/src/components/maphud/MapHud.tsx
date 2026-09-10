@@ -11,6 +11,7 @@ import {
   companionHudCopy,
   formatCompanionHudActivityLine,
 } from "../../lib/companionHudCount";
+import { formatRideDistanceKmNumber } from "../../lib/rideDistanceFormat";
 import { CadenceHudChip } from "./CadenceHudChip";
 import "./MapHud.css";
 
@@ -448,7 +449,7 @@ export function MapHud(props: MapHudProps) {
                   >
                     <span className="hud-metrics__label">새 도로</span>
                     <span className="hud-metrics__value">
-                      +{((conquestLiveMeters ?? 0) / 1000).toFixed(1)}
+                      +{formatRideDistanceKmNumber(conquestLiveMeters ?? 0)}
                       <span className="hud-metrics__cell-unit">km</span>
                     </span>
                   </span>

@@ -189,18 +189,18 @@ describe("C8 · F3: Conquest from ride doc (rides/{id}.conquestResult.newMeters)
     assert.equal(positive.tier, "T1", "tier");
   });
 
-  it("formatConquestSummaryLine: 50m threshold, 10km decimal rule", () => {
+  it("formatConquestSummaryLine: 50m threshold, km 소수 2자리 (HUD 거리와 동일)", () => {
     const under50: RideConquestResult = { status: "positive", newMeters: 49 };
     assert.equal(formatConquestSummaryLine(under50), null, "< 50m → null");
     
     const at50: RideConquestResult = { status: "positive", newMeters: 50 };
-    assert.equal(formatConquestSummaryLine(at50), "새 도로 +0.1km", "50m → 0.1km");
+    assert.equal(formatConquestSummaryLine(at50), "새 도로 +0.05km", "50m → 0.05km");
     
     const km1: RideConquestResult = { status: "positive", newMeters: 1234 };
-    assert.equal(formatConquestSummaryLine(km1), "새 도로 +1.2km", "< 10km → 1 decimal");
+    assert.equal(formatConquestSummaryLine(km1), "새 도로 +1.23km", "소수 2자리");
     
     const km10: RideConquestResult = { status: "positive", newMeters: 12345 };
-    assert.equal(formatConquestSummaryLine(km10), "새 도로 +12km", "≥ 10km → integer");
+    assert.equal(formatConquestSummaryLine(km10), "새 도로 +12.35km", "≥ 10km 도 2자리");
   });
 
   it("Status distinction: none / pending / confirmed_zero / positive / error", () => {
@@ -243,20 +243,20 @@ describe("C9 · F3: NO account total − baseline as conquest result source", ()
   it("R4: Invalid type (string) → status: error (NOT none)", () => {
     // Codex -02: Invalid type → "error" (CF bug/corruption)
     const raw = { newMeters: "123" }; // string, not number
-    const result = parseConquestResult(raw as any);
+    const result = parseConquestResult(raw as Record<string, unknown>);
     assert.equal(result.status, "error", "invalid type → error");
     assert.equal(result.newMeters, 0);
   });
 
   it("R4: Invalid type (null) → status: error", () => {
     const raw = { newMeters: null };
-    const result = parseConquestResult(raw as any);
+    const result = parseConquestResult(raw as Record<string, unknown>);
     assert.equal(result.status, "error");
   });
 
   it("R4: Invalid type (boolean) → status: error", () => {
     const raw = { newMeters: true };
-    const result = parseConquestResult(raw as any);
+    const result = parseConquestResult(raw as Record<string, unknown>);
     assert.equal(result.status, "error");
   });
 
@@ -366,13 +366,14 @@ describe("C12 · F5: Delayed response only attaches to original ride identity/re
 
 describe("C5 · F2: 31%→43% session — distance is offset-subtracted, geometry this segment only", () => {
   it("Session distance excludes start offset (resume from 31%, end 43% = 12% segment)", () => {
-    const routeDistanceMeters = 10000; // 10km route
+    const _routeDistanceMeters = 10000; // 10km route (context only)
     const startOffsetMeters = 3100; // resume at 31%
     const endVirtualDistanceMeters = 4300; // end at 43%
     
     // Session distance = end - start (offset subtracted)
     const sessionDistanceMeters = endVirtualDistanceMeters - startOffsetMeters;
     assert.equal(sessionDistanceMeters, 1200, "session distance = 1.2km (43% - 31%)");
+    assert.ok(_routeDistanceMeters > sessionDistanceMeters, "route longer than session segment");
     
     // Not the full 4.3km to 43%
     assert.notEqual(sessionDistanceMeters, endVirtualDistanceMeters, "NOT full distance to 43%");

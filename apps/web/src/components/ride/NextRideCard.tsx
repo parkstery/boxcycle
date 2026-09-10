@@ -1,6 +1,7 @@
 import type { LngLat } from "../../lib/geo";
 import { shortPlaceLabel } from "../../lib/firestoreSavedRoutes";
 import type { NextRideTarget, NextRideView } from "../../lib/nextRideTarget";
+import { formatRideDistanceKmNumber } from "../../lib/rideDistanceFormat";
 import { progressPercentLabel } from "../../lib/rideEndResult";
 import "./NextRideCard.css";
 
@@ -43,7 +44,7 @@ export function NextRideCard(props: NextRideCardProps) {
   const { view } = props;
   const resumeTarget = view.target.kind === "resume_route" ? view.target : null;
   const placeName = anchorPlaceName(view);
-  const todayKm = (view.ride.distanceMeters / 1000).toFixed(1);
+  const todayKm = formatRideDistanceKmNumber(view.ride.distanceMeters);
 
   return (
     <div className="next-ride-anchor" aria-label="다음 주행">
@@ -73,8 +74,8 @@ export function NextRideCard(props: NextRideCardProps) {
                 ·
               </span>
               <span>
-                {((resumeTarget.progressRatio * view.route.distanceMeters) / 1000).toFixed(1)} /{" "}
-                {(view.route.distanceMeters / 1000).toFixed(1)} km
+                {formatRideDistanceKmNumber(resumeTarget.progressRatio * view.route.distanceMeters)} /{" "}
+                {formatRideDistanceKmNumber(view.route.distanceMeters)} km
               </span>
               <span className="next-ride__sep" aria-hidden>
                 ·
