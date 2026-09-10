@@ -91,6 +91,8 @@ export function useLiveConquestPaint(opts: {
       setLiveNewMeters(meters);
     };
 
+    // 시작 직후 1회 — setInterval만 쓰면 첫 표시가 최대 500ms 늦음
+    tick();
     const timer = setInterval(tick, 500);
     return () => clearInterval(timer);
   }, [riding]);
