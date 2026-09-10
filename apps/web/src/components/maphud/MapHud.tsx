@@ -11,7 +11,7 @@ import {
   companionHudCopy,
   formatCompanionHudActivityLine,
 } from "../../lib/companionHudCount";
-import { formatRideDistanceKmNumber, LIVE_NEW_ROAD_HUD_MIN_METERS } from "../../lib/rideDistanceFormat";
+import { formatRideDistanceKmNumber } from "../../lib/rideDistanceFormat";
 import { CadenceHudChip } from "./CadenceHudChip";
 import "./MapHud.css";
 
@@ -128,7 +128,7 @@ export type MapHudProps = {
   ridePresence?: MapHudRidePresence | null;
   /** 라이브 어스 — 주행 지역 현재 날씨·밤낮 한 줄(Open-Meteo, 세션 중만) */
   weatherHint?: string | null;
-  /** Conquest — 이번 주행에서 실시간으로 획득한 신규 도로 미터(낙관). 0/null=비표시 */
+  /** Conquest — 낙관 새 도로 m. null=미무장 숨김. 0=+0.00(이미 내 도로) */
   conquestLiveMeters?: number | null;
   /** idle 단계 첫 진입 안내 문구 */
   idleHintMessage?: string;
@@ -436,20 +436,20 @@ export function MapHud(props: MapHudProps) {
               <HudMetricCell label="평균" value={metrics.avgKmh} unit="km/h" />
               <span className="hud-metrics__divider" aria-hidden />
               <HudMetricCell label="속도" value={String(metrics.speedKmh)} unit="km/h" />
-              {/* 0은 미표시. 라이브는 1m부터 표시(50m 대기 시 저속에서 ~30초 지연됨) */}
-              {(riding || paused) && (conquestLiveMeters ?? 0) >= LIVE_NEW_ROAD_HUD_MIN_METERS ? (
+              {/* null = 미무장 숨김. 0 포함 무장 후 항상 표시(이미 내 도로면 +0.00) */}
+              {(riding || paused) && conquestLiveMeters != null ? (
                 <>
                   <span className="hud-metrics__divider" aria-hidden />
                   <span
                     key={conquestLiveMeters}
                     className="hud-metrics__cell hud-metrics__cell--conquest"
-                    title="이번 주행에서 획득한 새 도로"
+                    title="이번 주행에서 새로 밟은 도로(이미 내 도로면 0)"
                     role="status"
                     aria-live="polite"
                   >
                     <span className="hud-metrics__label">새 도로</span>
                     <span className="hud-metrics__value">
-                      +{formatRideDistanceKmNumber(conquestLiveMeters ?? 0)}
+                      +{formatRideDistanceKmNumber(conquestLiveMeters)}
                       <span className="hud-metrics__cell-unit">km</span>
                     </span>
                   </span>

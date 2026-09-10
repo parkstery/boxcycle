@@ -9,7 +9,6 @@ import type { LineStringGeometry } from "../lib/geo";
 export function computeLiveNewRoadFromRoute(opts: {
   geometry: LineStringGeometry;
   traveledMeters: number;
-  /** 재개 offset — 이번 세션 실주행 구간만 (Claim 페이로드와 동일) */
   fromMeters?: number;
   ownedAtStart: ReadonlySet<string>;
 }): { liveNewCells: number; liveNewMeters: number } {
@@ -25,11 +24,15 @@ export function computeLiveNewRoadFromRoute(opts: {
   return { liveNewCells, liveNewMeters };
 }
 
+/** cellIds 미도착 시 빈 스냅샷으로 넘어가기 전 대기 틱(250ms × 8 ≈ 2초) */
+const OWNED_SNAPSHOT_WAIT_TICKS = 8;
+
 /**
  * Conquest — 주행 중 실시간 「새 도로」 카운터(낙관).
  *
- * HUD 깜빡임 방지: `sessionArmed` 전에는 meters를 0으로 노출한다.
- * (이전 세션 state가 남아 시작 순간 잠깐 보이다 사라지는 현상)
+ * `liveNewMeters === null` → 아직 세션 미무장(HUD 숨김, 이전 잔여 비노출)
+ * `liveNewMeters === 0` → 무장됨·신규 없음(이미 내 도로만) — HUD에 +0.00 표시
+ * `liveNewMeters > 0` → 신규 구간
  */
 export function useLiveConquestPaint(opts: {
   riding: boolean;
@@ -39,7 +42,8 @@ export function useLiveConquestPaint(opts: {
   serverCellIds: readonly string[] | null;
 }): {
   liveNewCells: number;
-  liveNewMeters: number;
+  /** null = 미무장(비표시). 0 이상 = 무장·표시 */
+  liveNewMeters: number | null;
 } {
   const { riding, routeGeometry, traveledMeters, fromMeters = 0, serverCellIds } = opts;
 
@@ -62,7 +66,6 @@ export function useLiveConquestPaint(opts: {
 
   const [liveNewCells, setLiveNewCells] = useState(0);
   const [liveNewMeters, setLiveNewMeters] = useState(0);
-  /** 이번 주행에서 소유 스냅샷+1회 계산이 끝난 뒤에만 HUD에 실값 노출 */
   const [sessionArmed, setSessionArmed] = useState(false);
 
   useEffect(() => {
@@ -76,15 +79,20 @@ export function useLiveConquestPaint(opts: {
     }
 
     let ownedAtStart: ReadonlySet<string> | null = null;
+    let waitTicks = 0;
 
     const tick = () => {
-      const cellsNow = serverRef.current;
-      // 소유 맵 도착 전엔 armed 하지 않음 — 빈 스냅샷 과대/깜빡임 방지
-      if (cellsNow == null) return;
-
       if (ownedAtStart === null) {
-        ownedAtStart = new Set(cellsNow);
+        const cellsNow = serverRef.current;
+        if (cellsNow == null) {
+          waitTicks += 1;
+          if (waitTicks < OWNED_SNAPSHOT_WAIT_TICKS) return;
+          ownedAtStart = new Set();
+        } else {
+          ownedAtStart = new Set(cellsNow);
+        }
       }
+
       const geometry = routeRef.current;
       if (!geometry) {
         setLiveNewCells(0);
@@ -103,7 +111,6 @@ export function useLiveConquestPaint(opts: {
       setSessionArmed(true);
     };
 
-    // 외부 타이머 콜백에서 setState (effect 본문 동기 setState 회피)
     const boot = setTimeout(tick, 0);
     const timer = setInterval(tick, 250);
     return () => {
@@ -113,7 +120,7 @@ export function useLiveConquestPaint(opts: {
   }, [riding]);
 
   if (!riding || !sessionArmed) {
-    return { liveNewCells: 0, liveNewMeters: 0 };
+    return { liveNewCells: 0, liveNewMeters: null };
   }
   return { liveNewCells, liveNewMeters };
 }
