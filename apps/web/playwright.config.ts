@@ -1,4 +1,20 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { defineConfig, devices } from '@playwright/test'
+import { loadEnv } from 'vite'
+
+const webRoot = path.dirname(fileURLToPath(import.meta.url))
+
+/** `.env.emulator` 의 fake Mapbox 토큰 대신 `.env` 실토큰을 dev 서버에 주입(ride-entry 콘솔 회귀 방지) */
+function resolveEmulatorMapboxToken(): string | undefined {
+  const modeEnv = loadEnv('emulator', webRoot, 'VITE_')
+  const baseEnv = loadEnv('', webRoot, 'VITE_')
+  const fromMode = modeEnv.VITE_MAPBOX_ACCESS_TOKEN?.trim()
+  const fromBase = baseEnv.VITE_MAPBOX_ACCESS_TOKEN?.trim()
+  if (fromMode && !fromMode.includes('fake-token-for-emulator')) return fromMode
+  if (fromBase?.startsWith('pk.')) return fromBase
+  return fromMode || fromBase
+}
 
 // RTW E2E 설정. `npm run test:e2e -w boxcycle-web` 로 실행한다.
 // dev 서버(vite, 포트 5000)를 자동 기동/종료하므로 별도 서버를 미리 띄울 필요 없다.
@@ -25,6 +41,7 @@ const DEV_PORT = Number(
     (underEmulator && useFunctionsEmulatorBundle ? 5002 : 5000),
 )
 const DEV_URL = `http://127.0.0.1:${DEV_PORT}`
+const emulatorMapboxToken = underEmulator ? resolveEmulatorMapboxToken() : undefined
 
 /** Outer attempt budget is enforced by scripts/e2e/run-with-deadline.mjs (default 600s). */
 const e2eGlobalTimeoutMs = Number(process.env.RTW_E2E_PLAYWRIGHT_GLOBAL_MS || 560_000)
@@ -64,6 +81,7 @@ export default defineConfig({
       ? {
           ...(useFunctionsEmulatorBundle ? { RTW_DEV_PORT: String(DEV_PORT) } : {}),
           ...(routeTokenUiHarness ? { VITE_DIRECTIONS_DIRECT: '0' } : {}),
+          ...(emulatorMapboxToken ? { VITE_MAPBOX_ACCESS_TOKEN: emulatorMapboxToken } : {}),
         }
       : {},
     // 에뮬레이터 실행 시엔 기존 dev 서버(실 Firebase 에 붙은)를 재사용하면 안 된다 —

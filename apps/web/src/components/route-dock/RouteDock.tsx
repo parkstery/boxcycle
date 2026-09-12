@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
 import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/firestoreSavedRoutes";
+import { routeDockUiPolicy } from "../../lib/routeDockUiPolicy";
 import { isIncompleteQuotaError } from "../../lib/tierQuota";
 import type { RouteDockStop, RouteDockStopId } from "./useRouteDockStops";
 import "./RouteDock.css";
@@ -65,18 +66,13 @@ export function RouteDock(props: RouteDockProps) {
     setRestartFromZero(false);
   }
 
-  const isActiveRide = stage === "riding" || stage === "paused";
-  const isPreRideReady = stage === "ready-to-start";
-  /** 주행 중 — 경로 편집·경유지 목록을 숨기고 접힌 캐럿만 남긴다 */
-  const ridingDiet = isActiveRide;
-  /** Go 직전 — 저장·삭제는 MENU 로 유도(1탭 더 깊음) */
-  const preRideCompact = isPreRideReady;
-  const hideEditActions = ridingDiet || preRideCompact || editLocked;
+  const dockUi = routeDockUiPolicy(stage, editLocked);
+  const { isActiveRide, ridingDiet, preRideCompact, hideEditActions } = dockUi;
 
   const [prevIsActiveRide, setPrevIsActiveRide] = useState(isActiveRide);
   if (isActiveRide !== prevIsActiveRide) {
     setPrevIsActiveRide(isActiveRide);
-    if (isActiveRide) {
+    if (dockUi.autoCollapse) {
       setExpanded(false);
       setSaveOpen(false);
     }
