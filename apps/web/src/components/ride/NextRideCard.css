@@ -12,7 +12,7 @@
   );
   /* MapHud(z-index 5) 위 — 다음 행동이 정보 표시에 가려지면 안 된다(RouteDock 과 동일 근거) */
   z-index: 6;
-  max-width: min(21.6rem, calc(100vw - 2rem));
+  max-width: min(23rem, calc(100vw - 2rem));
   pointer-events: none;
 }
 
@@ -20,8 +20,8 @@
   pointer-events: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.28rem;
-  padding: 0.5rem 0.6rem 0.55rem;
+  gap: 0.32rem;
+  padding: 0.65rem 0.75rem 0.7rem;
   border: 1px solid var(--rtw-glass-border, rgba(248, 250, 252, 0.18));
   border-radius: var(--rtw-radius, 14px);
   background: var(--rtw-glass-bg-strong, rgba(10, 16, 26, 0.64));
@@ -40,9 +40,9 @@
 .next-ride__title {
   flex: 1 1 auto;
   margin: 0;
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   font-weight: 800;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
 }
 
 .next-ride__dismiss {
@@ -51,9 +51,9 @@
   background: transparent;
   color: inherit;
   opacity: 0.66;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   line-height: 1;
-  padding: 0.2rem 0.25rem;
+  padding: 0.22rem 0.28rem;
   border-radius: 6px;
   cursor: pointer;
 }
@@ -65,8 +65,8 @@
 
 .next-ride__line {
   margin: 0;
-  font-size: 0.74rem;
-  line-height: 1.35;
+  font-size: 0.8rem;
+  line-height: 1.38;
   display: flex;
   flex-wrap: wrap;
   gap: 0.22rem;
@@ -78,8 +78,8 @@
 }
 
 .next-ride__line--muted {
-  opacity: 0.72;
-  font-size: 0.7rem;
+  opacity: 0.78;
+  font-size: 0.74rem;
 }
 
 .next-ride__route-name {
@@ -102,11 +102,11 @@
 
 .next-ride__btn {
   flex: 1 1 auto;
-  min-height: 2rem;
-  padding: 0.32rem 0.55rem;
+  min-height: 2.2rem;
+  padding: 0.38rem 0.6rem;
   border-radius: 9px;
   border: 1px solid transparent;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
