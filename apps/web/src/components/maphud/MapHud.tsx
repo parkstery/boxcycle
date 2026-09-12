@@ -211,6 +211,8 @@ export function MapHud(props: MapHudProps) {
 
   const riding = stage === "riding";
   const paused = stage === "paused";
+  const activeRide = riding || paused;
+  const preRideReady = stage === "ready-to-start";
   const idle = stage === "idle";
   const isGate =
     stage === "gate-nickname" || (stage === "gate" && !authGateVisualDismissed);
@@ -220,7 +222,7 @@ export function MapHud(props: MapHudProps) {
   const showMenuTrigger = !isGate && !isSummary;
   // 접속·동행 현황은 HUD 가 단독으로 소유. MENU(Trail 섹션=참가·공개 설정 행동) 열린 동안은
   // 가림·중복을 피하려 숨긴다.
-  const showRidePresence = ridePresence != null && !menuOpen;
+  const showRidePresence = ridePresence != null && !menuOpen && !activeRide;
   const otherLiveRiderCount = useSyncExternalStore(
     subscribeHasOtherLiveRiders,
     getOtherLiveRiderCount,
@@ -268,7 +270,10 @@ export function MapHud(props: MapHudProps) {
       : null;
 
   return (
-    <div className="map-hud" aria-label="라이딩 HUD">
+    <div
+      className={`map-hud${activeRide ? " map-hud--active-ride" : ""}`}
+      aria-label="라이딩 HUD"
+    >
       {paused ? <div className="map-hud__scrim" aria-hidden /> : null}
 
       {showMenuTrigger ? (
@@ -286,21 +291,23 @@ export function MapHud(props: MapHudProps) {
                 <span className="hud-brand__dot" aria-hidden />
                 RTW
               </button>
-              <button
-                type="button"
-                className={`hud-place-search-btn ${placeSearchOpen ? "is-active" : ""}`}
-                onClick={onOpenPlaceSearch}
-                aria-label="지명 검색"
-                aria-expanded={placeSearchOpen}
-                title="Place search"
-              >
-                <span className="hud-place-search-btn__icon" aria-hidden>
-                  ⌕
-                </span>
-                <span className="hud-place-search-btn__label">지명</span>
-              </button>
+              {!activeRide && !preRideReady ? (
+                <button
+                  type="button"
+                  className={`hud-place-search-btn ${placeSearchOpen ? "is-active" : ""}`}
+                  onClick={onOpenPlaceSearch}
+                  aria-label="지명 검색"
+                  aria-expanded={placeSearchOpen}
+                  title="Place search"
+                >
+                  <span className="hud-place-search-btn__icon" aria-hidden>
+                    ⌕
+                  </span>
+                  <span className="hud-place-search-btn__label">지명</span>
+                </button>
+              ) : null}
             </div>
-            {weatherHint ? (
+            {weatherHint && !activeRide ? (
               <p className="hud-world-hint hud-weather-hint" role="status" title="주행 지역의 현재 날씨(Open-Meteo)">
                 {weatherHint}
               </p>
@@ -392,14 +399,6 @@ export function MapHud(props: MapHudProps) {
           <div
             className={`hud-metrics${metrics.mode === "route-preview" ? " hud-metrics--route-preview" : ""}`}
           >
-            {(riding || paused) && ridePresence ? (
-              <span
-                className="hud-metrics__trail hud-metrics__chip hud-metrics__chip--trail"
-                title={ridePresence.trailId}
-              >
-                {ridePresence.trailLabel}
-              </span>
-            ) : null}
             <div className="hud-metrics__capsule" role="group" aria-label="주행 지표">
               {/* 주행 중 — 오늘(세션) 거리 + 경로 누적 위치·진행률 병기(§9.5.5 단위7·U4) */}
               {metrics.mode === "ride" && metrics.routeTotalKm ? (

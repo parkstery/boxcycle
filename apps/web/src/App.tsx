@@ -94,6 +94,10 @@ import { lockRouteWorkspaceDuringRide } from "./lib/routeWorkspaceLock";
 import { resolveRideContinuationSetup } from "./lib/rideContinuationSetup";
 import type { PublishedPublicCourseSummary } from "./lib/firestoreCourses";
 import {
+  publicationDestinationFromTitle,
+  publicationDisplayTitle,
+} from "./lib/publicationDisplay";
+import {
   resolvePublishedRouteLink,
   type PublishedRouteLink,
   type RouteRideEntry,
@@ -924,9 +928,8 @@ export default function App() {
     if ((BASIC_SHARED_HUB_IDS as readonly string[]).includes(sharedPresenceCourseId)) {
       return getBasicHubCoursePayload(sharedPresenceCourseId).title;
     }
-    return (
-      publishedPublicCourses.find((c) => c.id === sharedPresenceCourseId)?.title ?? "공식 경로"
-    );
+    const pub = publishedPublicCourses.find((c) => c.id === sharedPresenceCourseId);
+    return pub ? publicationDisplayTitle(pub) : "퍼블릭 경로";
   }, [sharedPresenceCourseId, publishedPublicCourses]);
 
   const selfRiderNametagFallback = useMemo(() => {
@@ -1866,15 +1869,20 @@ export default function App() {
     }
   }, [nextRideCardVisible, nextRideView]);
 
+  const defaultIntroPublication = BASIC_SHARED_HUB_SUMMARIES[0] ?? null;
+
   /** 입문 코스 CTA — 이전 주행 후보가 없는 idle 화면에서만 표시(RIDE-NEXT-VISIT-2 V3) */
-  const firstRideIntroCard = firstRideIntroVisible ? (
-    <FirstRideIntroCard
-      onStartIntro={() => {
-        const hubId = BASIC_SHARED_HUB_IDS[0];
-        if (hubId) void enterBasicHub(hubId);
-      }}
-    />
-  ) : null;
+  const firstRideIntroCard =
+    firstRideIntroVisible && defaultIntroPublication ? (
+      <FirstRideIntroCard
+        introTitle={publicationDisplayTitle(defaultIntroPublication)}
+        introDestination={publicationDestinationFromTitle(defaultIntroPublication.title)}
+        onStartIntro={() => {
+          const hubId = BASIC_SHARED_HUB_IDS[0];
+          if (hubId) void enterBasicHub(hubId);
+        }}
+      />
+    ) : null;
 
   /**
    * Go 사전조건 = 경로 준비 **+ 주행 입력 준비**.
@@ -2053,7 +2061,7 @@ export default function App() {
   const mapHudRidePresence = useMemo(() => {
     if (!configured || !user) return null;
     const courseTitle = sharedPresenceCourseId
-      ? (sharedPresenceCourseTitle?.trim() || "공식 경로")
+      ? (sharedPresenceCourseTitle?.trim() || "퍼블릭 경로")
       : null;
     const trailMembers = trailSession.rows.map((r) => ({
       key: r.uid,
