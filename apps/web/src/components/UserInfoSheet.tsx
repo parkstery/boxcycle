@@ -93,6 +93,20 @@ function formatRideEndedAtKo(iso: string): string {
   });
 }
 
+function formatSessionAvgSpeedKmh(s: StoredRideSession): string {
+  const v = Number(s.avgSpeedKmh);
+  if (Number.isFinite(v) && v >= 0) return v.toFixed(1);
+  if (s.elapsedSec > 0) {
+    return ((s.distanceMeters / 1000) / (s.elapsedSec / 3600)).toFixed(1);
+  }
+  return "0.0";
+}
+
+function formatSessionCaloriesEstimate(s: StoredRideSession): number {
+  const v = Number(s.caloriesEstimate ?? 0);
+  return Number.isFinite(v) && v >= 0 ? Math.round(v) : 0;
+}
+
 function formatLastRideWhenKo(iso: string, now: Date = new Date()): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "—";
@@ -425,6 +439,8 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
                 >
                   {formatRideDistanceKmNumber(lastRide.distanceMeters)} km ·{" "}
                   {formatElapsedFromSec(lastRide.elapsedSec)} ·{" "}
+                  {formatSessionAvgSpeedKmh(lastRide)} km/h ·{" "}
+                  {formatSessionCaloriesEstimate(lastRide)} kcal ·{" "}
                   {formatLastRideWhenKo(lastRide.endedAt)}
                 </span>
               ) : (
@@ -450,7 +466,15 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
                 <span>시간</span>
                 <strong>{formatElapsedFromSec(dailyStats.stats.elapsedSec)}</strong>
               </div>
+              <div>
+                <span>평속</span>
+                <strong>{dailyStats.stats.avgSpeedKmh.toFixed(1)} km/h</strong>
+              </div>
             </div>
+            <p className="user-info-sheet__stats-cal user-info-sheet__stats-cal--daily">
+              칼로리 추정{" "}
+              <strong>{Math.round(dailyStats.stats.caloriesEstimate)}</strong> kcal
+            </p>
           </div>
 
           <div className="user-info-sheet__stats-head" role="tablist" aria-label="통계 기간">

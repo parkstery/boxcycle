@@ -292,8 +292,12 @@
 }
 
 .user-info-sheet__stats--daily {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-top: 0.05rem;
+}
+
+.user-info-sheet__stats-cal--daily {
+  margin-top: 0.1rem;
 }
 
 .user-info-sheet__stats-head {

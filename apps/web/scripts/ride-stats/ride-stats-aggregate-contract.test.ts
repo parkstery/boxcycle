@@ -50,6 +50,16 @@ describe("pickLastRide · endedAt 최신 유효 Ride", () => {
       null,
     );
   });
+
+  it("최신 Ride 에 avgSpeedKmh·caloriesEstimate 가 남아 UI 평속·칼로리에 쓸 수 있다", () => {
+    const last = pickLastRide([
+      session("a", new Date(2026, 8, 13, 8, 0, 0, 0), { avgSpeedKmh: 16.5, caloriesEstimate: 88 }),
+      session("b", new Date(2026, 8, 13, 10, 0, 0, 0), { avgSpeedKmh: 20.1, caloriesEstimate: 142 }),
+    ]);
+    assert.equal(last?.id, "b");
+    assert.equal(last?.avgSpeedKmh, 20.1);
+    assert.equal(last?.caloriesEstimate, 142);
+  });
 });
 
 describe("aggregateRideStatsForLocalDay · 로컬 오늘 자정 경계", () => {
@@ -58,14 +68,16 @@ describe("aggregateRideStatsForLocalDay · 로컬 오늘 자정 경계", () => {
   it("오늘 00:00 이상·내일 00:00 미만 endedAt 만 집계한다", () => {
     const rows = [
       session("yesterday-late", new Date(2026, 8, 12, 23, 59, 59, 999)),
-      session("today-early", new Date(2026, 8, 13, 0, 0, 0, 0)),
-      session("today-noon", new Date(2026, 8, 13, 12, 0, 0, 0)),
+      session("today-early", new Date(2026, 8, 13, 0, 0, 0, 0), { caloriesEstimate: 80 }),
+      session("today-noon", new Date(2026, 8, 13, 12, 0, 0, 0), { caloriesEstimate: 120 }),
       session("tomorrow", new Date(2026, 8, 14, 0, 0, 0, 0)),
     ];
     const { stats } = aggregateRideStatsForLocalDay(rows, now);
     assert.equal(stats.rides, 2);
     assert.equal(stats.distanceMeters, 6000);
     assert.equal(stats.elapsedSec, 1200);
+    assert.equal(stats.caloriesEstimate, 200);
+    assert.equal(stats.avgSpeedKmh, 18);
   });
 
   it("0건이면 0 으로 집계한다", () => {
@@ -73,6 +85,8 @@ describe("aggregateRideStatsForLocalDay · 로컬 오늘 자정 경계", () => {
     assert.equal(stats.rides, 0);
     assert.equal(stats.distanceMeters, 0);
     assert.equal(stats.elapsedSec, 0);
+    assert.equal(stats.caloriesEstimate, 0);
+    assert.equal(stats.avgSpeedKmh, 0);
   });
 });
 
