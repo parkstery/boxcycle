@@ -949,6 +949,22 @@ const PIN_MARKER_VIEWPORT_ALIGNMENT = {
   rotationAlignment: "viewport" as const,
 };
 
+function mountSelfLocationMarker(
+  map: mapboxgl.Map,
+  lngLat: LngLat,
+): { marker: mapboxgl.Marker; bearingEl: HTMLDivElement } {
+  const { root, bearingEl } = createSelfLocationMarkerRoot();
+  const marker = new mapboxgl.Marker({
+    element: root,
+    className: SELF_LOCATION_MARKER_CLASS,
+    anchor: "center",
+    ...PIN_MARKER_VIEWPORT_ALIGNMENT,
+  })
+    .setLngLat(lngLat)
+    .addTo(map);
+  return { marker, bearingEl };
+}
+
 /**
  * 라이더 DOM 마커만 — 앵커(bottom) 대비 픽셀 보정. Mapbox: 양수 → 오른쪽·아래, 음수 → 왼쪽·위.
  * (좌표 보간과 별개; 화면상 선·스프라이트 패딩 어긋남만 여기서 조절)
@@ -1972,6 +1988,12 @@ export function MapView({
       selfLocationMarkerRef.current?.remove();
       selfLocationMarkerRef.current = null;
       selfLocationBearingRef.current = null;
+      const selfLl = liveLngLatRef.current;
+      if (selfLl) {
+        const mounted = mountSelfLocationMarker(map, selfLl);
+        selfLocationMarkerRef.current = mounted.marker;
+        selfLocationBearingRef.current = mounted.bearingEl;
+      }
       for (const m of peerDomMarkersRef.current.values()) {
         try {
           m.remove();
@@ -3129,16 +3151,9 @@ export function MapView({
 
     if (liveLngLat) {
       if (!selfLocationMarkerRef.current) {
-        const { root, bearingEl } = createSelfLocationMarkerRoot();
-        selfLocationBearingRef.current = bearingEl;
-        selfLocationMarkerRef.current = new mapboxgl.Marker({
-          element: root,
-          className: SELF_LOCATION_MARKER_CLASS,
-          anchor: "center",
-          ...PIN_MARKER_VIEWPORT_ALIGNMENT,
-        })
-          .setLngLat(liveLngLat)
-          .addTo(map);
+        const mounted = mountSelfLocationMarker(map, liveLngLat);
+        selfLocationMarkerRef.current = mounted.marker;
+        selfLocationBearingRef.current = mounted.bearingEl;
       } else {
         selfLocationMarkerRef.current.setLngLat(liveLngLat);
       }

@@ -916,17 +916,24 @@
 
 .map-view__self-location-bearing {
   position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.map-view__self-location-bearing-chevron {
+  position: absolute;
   left: 50%;
-  top: 1px;
+  top: -1px;
   width: 0;
   height: 0;
   margin-left: -4px;
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
   border-bottom: 7px solid #fff;
-  transform-origin: 50% 100%;
-  opacity: 0;
-  transition: opacity 0.15s ease;
+  filter: drop-shadow(0 0 1px rgba(15, 23, 42, 0.55));
 }
 
 @keyframes map-view-self-location-pulse {

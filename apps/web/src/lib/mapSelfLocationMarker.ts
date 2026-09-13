@@ -22,9 +22,12 @@ export function createSelfLocationMarkerRoot(): {
 
   const bearing = document.createElement("div");
   bearing.className = "map-view__self-location-bearing";
-  core.appendChild(bearing);
+  bearing.setAttribute("aria-hidden", "true");
+  const chevron = document.createElement("div");
+  chevron.className = "map-view__self-location-bearing-chevron";
+  bearing.appendChild(chevron);
 
-  root.append(pulse, core);
+  root.append(pulse, core, bearing);
   return { root, bearingEl: bearing };
 }
 
