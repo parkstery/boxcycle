@@ -37,6 +37,10 @@ import { NextRideCard, FirstRideIntroCard } from "./components/ride";
 import { resolveNextRideView } from "./lib/nextRideTarget";
 import type { NextRideTarget } from "./lib/nextRideTarget";
 import type { RideEndResult } from "./lib/rideEndResult";
+import {
+  trackNextRideSelected,
+  trackRideSummaryResolved,
+} from "./lib/rideReturnExperimentEvents";
 import { MenuPanel } from "./components/MenuPanel";
 import { PlaceSearchPanel } from "./components/PlaceSearchPanel";
 import { MenuPlaceSearch } from "./components/MenuPlaceSearch";
@@ -1840,10 +1844,34 @@ export default function App() {
     nextRideCardVisible && nextRideView ? (
       <NextRideCard
         view={nextRideView}
-        onResume={handleResumeNextRide}
-        onExtend={handleStartRouteFromAnchor}
-        onShowOnMap={focusAnchorOnMap}
-        onDismiss={() => setNextRideDismissedRideId(nextRideView.target.rideId)}
+        onResume={(target) => {
+          trackNextRideSelected(target.rideId, target.kind, "resume_route");
+          handleResumeNextRide(target);
+        }}
+        onExtend={(anchorLngLat) => {
+          trackNextRideSelected(
+            nextRideView.target.rideId,
+            nextRideView.target.kind,
+            "extend_from_anchor",
+          );
+          handleStartRouteFromAnchor(anchorLngLat);
+        }}
+        onShowOnMap={(anchorLngLat) => {
+          trackNextRideSelected(
+            nextRideView.target.rideId,
+            nextRideView.target.kind,
+            "show_on_map",
+          );
+          focusAnchorOnMap(anchorLngLat);
+        }}
+        onDismiss={() => {
+          trackNextRideSelected(
+            nextRideView.target.rideId,
+            nextRideView.target.kind,
+            "dismiss",
+          );
+          setNextRideDismissedRideId(nextRideView.target.rideId);
+        }}
       />
     ) : null;
 
@@ -1969,6 +1997,7 @@ export default function App() {
   }
 
   function handleCloseSummary() {
+    if (lastRideResult) trackRideSummaryResolved(lastRideResult, "close");
     closeSummaryAndReturnToIdleMap();
   }
 

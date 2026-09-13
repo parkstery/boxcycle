@@ -6,6 +6,7 @@ import {
   type BleCrankRpmUiState,
   type RideInputReadiness,
 } from "../../lib/cadenceSensorUi";
+import { compatibilityGuideSections } from "../../lib/deviceCompatibilityGuide";
 import { SessionSpeedControl } from "./SessionSpeedControl";
 import "./CadenceSensorSheet.css";
 
@@ -127,6 +128,26 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
             localhost 로 열어 주세요.
           </p>
         ) : null}
+
+        <section className="cadence-sheet__compat" aria-label="호환 조합 안내">
+          <h3 className="cadence-sheet__compat-title">호환 조합 안내</h3>
+          <p className="cadence-sheet__help cadence-sheet__compat-lead">
+            아래는 팀이 확인한 조합입니다. 목록에 없는 환경·센서의 연결·주행을 보장하지 않습니다.
+          </p>
+          {compatibilityGuideSections().map((section) => (
+            <div key={section.heading} className="cadence-sheet__compat-group">
+              <p className="cadence-sheet__compat-heading">{section.heading}</p>
+              <ul className="cadence-sheet__compat-list">
+                {section.rows.map((row) => (
+                  <li key={row.label} className={`cadence-sheet__compat-item--${row.tier}`}>
+                    <strong>{row.label}</strong>
+                    <span>{row.note}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
 
         {props.capable && props.riding && !cadenceMode ? (
           <p className="cadence-sheet__help">

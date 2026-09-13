@@ -9,6 +9,10 @@ import {
   formatNewRoadSubtitle,
   formatConquestStatusCopy,
 } from "../../lib/rideSessionPreview";
+import {
+  trackRideSummaryResolved,
+  trackRideSummaryViewed,
+} from "../../lib/rideReturnExperimentEvents";
 import { RideSessionTracePreview } from "./RideSessionTracePreview";
 import "./RideSummarySheet.css";
 
@@ -84,6 +88,17 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
   // isDelayed/isTimedOut 값이 있어도 UI 에 노출되지 않는다.
   const serverRideId = result?.serverRideId;
 
+  const summaryViewedRecordRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!props.open || !result) {
+      if (!props.open) summaryViewedRecordRef.current = null;
+      return;
+    }
+    if (summaryViewedRecordRef.current === result.recordId) return;
+    summaryViewedRecordRef.current = result.recordId;
+    trackRideSummaryViewed(result);
+  }, [props.open, result]);
+
   useEffect(() => {
     if (!serverRideId) return;
 
@@ -150,6 +165,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
     setError(null);
     try {
       await props.onSaveAdhoc(normalized, confirmUpdate);
+      if (result) trackRideSummaryResolved(result, "save_adhoc");
       setName("");
       setConfirmingUpdate(false);
     } catch (e) {
@@ -302,7 +318,10 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
               className="ride-summary__btn ride-summary__btn--primary"
               title="New route from here"
               disabled={busy}
-              onClick={props.onExtendFromEnd}
+              onClick={() => {
+                if (result) trackRideSummaryResolved(result, "extend_from_end");
+                props.onExtendFromEnd?.();
+              }}
             >
               {routeCompleted ? "끝점에서 새 경로" : "지금 새 경로 연결"}
             </button>
@@ -337,7 +356,10 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
                   type="button"
                   className="ride-summary__btn ride-summary__btn--ghost"
                   title="Skip saving"
-                  onClick={props.onDismissAdhoc}
+                  onClick={() => {
+                    if (result) trackRideSummaryResolved(result, "dismiss_adhoc");
+                    props.onDismissAdhoc();
+                  }}
                   disabled={busy}
                 >
                   저장 안 함
