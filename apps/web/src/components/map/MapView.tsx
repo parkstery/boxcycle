@@ -36,6 +36,11 @@ import {
   updateDistanceAutoRouteClickDebugMarkerElement,
 } from "../../lib/distanceAutoRouteClickDebugMarker";
 import {
+  SELF_LOCATION_MARKER_CLASS,
+  createSelfLocationMarkerRoot,
+  updateSelfLocationMarkerBearing,
+} from "../../lib/mapSelfLocationMarker";
+import {
   buildRoutePickDockFocus,
   clampRoutePickDockPosition,
   collectRoutePickDockReservedRects,
@@ -1515,6 +1520,8 @@ export function MapView({
   const peerDomMarkersRef = useRef(new Map<string, mapboxgl.Marker>());
   const glbLiveNametagMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const glbLiveNametagElRef = useRef<HTMLDivElement | null>(null);
+  const selfLocationMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const selfLocationBearingRef = useRef<HTMLDivElement | null>(null);
   const liveRiderNametagRef = useRef(liveRiderNametag);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
   const mapShellRef = useRef<HTMLDivElement>(null);
@@ -1962,6 +1969,9 @@ export function MapView({
       glbLiveNametagMarkerRef.current?.remove();
       glbLiveNametagMarkerRef.current = null;
       glbLiveNametagElRef.current = null;
+      selfLocationMarkerRef.current?.remove();
+      selfLocationMarkerRef.current = null;
+      selfLocationBearingRef.current = null;
       for (const m of peerDomMarkersRef.current.values()) {
         try {
           m.remove();
@@ -2384,6 +2394,7 @@ export function MapView({
       waypointMarkersRef.current = [];
       liveMarkerRef.current?.remove();
       glbLiveNametagMarkerRef.current?.remove();
+      selfLocationMarkerRef.current?.remove();
       popupRef.current?.remove();
       routePickDockDragCleanupRef.current?.();
       routePickDockDragCleanupRef.current = null;
@@ -2401,6 +2412,8 @@ export function MapView({
       liveMarkerRef.current = null;
       glbLiveNametagMarkerRef.current = null;
       glbLiveNametagElRef.current = null;
+      selfLocationMarkerRef.current = null;
+      selfLocationBearingRef.current = null;
       liveMarkerFlipRef.current = null;
       liveMarkerPedalSpriteRef.current = null;
       liveMarkerNametagRef.current = null;
@@ -3109,6 +3122,33 @@ export function MapView({
     }
   }, [liveLngLat, liveRiderNametag, mapLoaded]);
 
+  /** Self-location — 화면 고정 px dot. live nametag·GLB 라이더와 별 요소, `liveLngLat`(=liveForMap) 좌표만 재사용 */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+
+    if (liveLngLat) {
+      if (!selfLocationMarkerRef.current) {
+        const { root, bearingEl } = createSelfLocationMarkerRoot();
+        selfLocationBearingRef.current = bearingEl;
+        selfLocationMarkerRef.current = new mapboxgl.Marker({
+          element: root,
+          className: SELF_LOCATION_MARKER_CLASS,
+          anchor: "center",
+          ...PIN_MARKER_VIEWPORT_ALIGNMENT,
+        })
+          .setLngLat(liveLngLat)
+          .addTo(map);
+      } else {
+        selfLocationMarkerRef.current.setLngLat(liveLngLat);
+      }
+    } else {
+      selfLocationMarkerRef.current?.remove();
+      selfLocationMarkerRef.current = null;
+      selfLocationBearingRef.current = null;
+    }
+  }, [liveLngLat, mapLoaded]);
+
   /** 본인·동행 라이더: rAF 로 위치·방향·페달 갱신 (동행 motion 은 PeerMotionRegistry) */
   useEffect(() => {
     if (!mapLoaded) return;
@@ -3128,6 +3168,13 @@ export function MapView({
         liveLngLatRef.current = sampled;
         if (liveMarkerRef.current && RIDER_PROTOTYPE_MODE !== "glb") {
           liveMarkerRef.current.setLngLat(sampled);
+        }
+        if (selfLocationMarkerRef.current) {
+          selfLocationMarkerRef.current.setLngLat(sampled);
+          updateSelfLocationMarkerBearing(
+            selfLocationBearingRef.current,
+            resolveRiderBearingDeg(routeGeometryRef.current, sampled, prevForBearing),
+          );
         }
         syncLiveSelfRiderVisual(
           sampled,
@@ -3256,13 +3303,20 @@ export function MapView({
     };
   }, [mapLoaded]);
 
-  /** GLB 네임태그 — 3D terrain·카메라 이동 시 DOM 마커 재투영 */
+  /** GLB 네임태그·self-location — 3D terrain·카메라 이동 시 DOM 마커 재투영 */
   useEffect(() => {
-    if (!mapLoaded || RIDER_PROTOTYPE_MODE !== "glb") return;
+    if (!mapLoaded) return;
     const map = mapRef.current;
     if (!map) return;
     const onRender = () => {
-      reprojectGlbNametagMarkers(glbLiveNametagMarkerRef.current, peerDomMarkersRef.current);
+      if (RIDER_PROTOTYPE_MODE === "glb") {
+        reprojectGlbNametagMarkers(glbLiveNametagMarkerRef.current, peerDomMarkersRef.current);
+      }
+      const selfMk = selfLocationMarkerRef.current;
+      if (selfMk) {
+        const ll = selfMk.getLngLat();
+        selfMk.setLngLat([ll.lng, ll.lat]);
+      }
     };
     map.on("render", onRender);
     return () => {
