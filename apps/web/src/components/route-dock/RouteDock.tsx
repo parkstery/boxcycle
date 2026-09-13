@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
 import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/firestoreSavedRoutes";
+import { routeDockUiPolicy } from "../../lib/routeDockUiPolicy";
 import { isIncompleteQuotaError } from "../../lib/tierQuota";
 import type { RouteDockStop, RouteDockStopId } from "./useRouteDockStops";
 import "./RouteDock.css";
@@ -65,9 +66,24 @@ export function RouteDock(props: RouteDockProps) {
     setRestartFromZero(false);
   }
 
-  useEffect(() => {
-    if (visible && stops.length > 0) setExpanded(true);
-  }, [visible, stops.length]);
+  const dockUi = routeDockUiPolicy(stage, editLocked);
+  const { isActiveRide, ridingDiet, preRideCompact, hideEditActions } = dockUi;
+
+  const [prevIsActiveRide, setPrevIsActiveRide] = useState(isActiveRide);
+  if (isActiveRide !== prevIsActiveRide) {
+    setPrevIsActiveRide(isActiveRide);
+    if (dockUi.autoCollapse) {
+      setExpanded(false);
+      setSaveOpen(false);
+    }
+  }
+
+  const autoExpandKey = `${visible}:${stops.length}:${isActiveRide}`;
+  const [prevAutoExpandKey, setPrevAutoExpandKey] = useState(autoExpandKey);
+  if (autoExpandKey !== prevAutoExpandKey) {
+    setPrevAutoExpandKey(autoExpandKey);
+    if (visible && stops.length > 0 && !isActiveRide) setExpanded(true);
+  }
 
   async function commitSave(confirmUpdate = false) {
     if (saveBusy) return;
@@ -106,12 +122,6 @@ export function RouteDock(props: RouteDockProps) {
     }
   }
   if (!visible) return null;
-
-  /**
-   * 주행이 시작돼도 패널을 자동 축소하지 않는다 — 출발·도착 주소를 계속 보여준다.
-   * (이전엔 주행 중 헤더·경유지 목록을 숨기고 속도 슬라이더만 남겼음: "운동 축 다이어트")
-   */
-  const ridingDiet = false;
 
   return (
     <div
@@ -178,33 +188,35 @@ export function RouteDock(props: RouteDockProps) {
               Go
             </button>
           ) : null}
-          <div className="route-dock__head-actions">
-            {!saveOpen ? (
+          {!hideEditActions ? (
+            <div className="route-dock__head-actions">
+              {!saveOpen ? (
+                <button
+                  type="button"
+                  className="route-dock__save-trigger"
+                  disabled={!canSaveRoute || editLocked}
+                  title="Save as my route"
+                  onClick={() => {
+                    setSaveError(null);
+                    setSaveDraft("");
+                    setSaveOpen(true);
+                  }}
+                >
+                  내 경로로 저장
+                </button>
+              ) : null}
               <button
                 type="button"
-                className="route-dock__save-trigger"
-                disabled={!canSaveRoute || editLocked}
-                title="Save as my route"
-                onClick={() => {
-                  setSaveError(null);
-                  setSaveDraft("");
-                  setSaveOpen(true);
-                }}
+                className="route-dock__icon-btn"
+                disabled={editLocked || stops.length === 0}
+                aria-label="경로 전체 삭제"
+                title="경로 전체 삭제"
+                onClick={onClearRoute}
               >
-                내 경로로 저장
+                삭제
               </button>
-            ) : null}
-            <button
-              type="button"
-              className="route-dock__icon-btn"
-              disabled={editLocked || stops.length === 0}
-              aria-label="경로 전체 삭제"
-              title="경로 전체 삭제"
-              onClick={onClearRoute}
-            >
-              삭제
-            </button>
-          </div>
+            </div>
+          ) : null}
           </header>
         ) : null}
 
@@ -233,7 +245,7 @@ export function RouteDock(props: RouteDockProps) {
           </div>
         ) : null}
 
-        {!ridingDiet && saveOpen ? (
+        {!ridingDiet && !preRideCompact && saveOpen ? (
           <div className="route-dock__save-form">
             <div className="route-dock__save-head">
               <label className="route-dock__save-label" htmlFor="route-dock-save-name">

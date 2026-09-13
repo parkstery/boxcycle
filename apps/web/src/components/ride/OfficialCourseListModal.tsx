@@ -1,19 +1,12 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
-import type { RouteProfile } from "../../services/mapboxDirections";
-import { formatDuration } from "../../services/mapboxDirections";
-import type { PublishedPublicCourseSummary, CourseProfile } from "../../lib/firestoreCourses";
+import type { PublishedPublicCourseSummary } from "../../lib/firestoreCourses";
+import { formatPublicationListMeta, publicationDisplayTitle } from "../../lib/publicationDisplay";
 import type { RouteActivitySnapshot } from "../../lib/firestoreRouteActivity";
 import { formatRouteActivityListBadge } from "../../lib/firestoreRouteActivity";
 import "./OfficialCourseListModal.css";
 
 export type OfficialCourseSegment = "intro" | "public" | "event";
-
-function profileLabelKo(p: RouteProfile | CourseProfile): string {
-  if (p === "walking") return "도보";
-  if (p === "driving") return "자동차";
-  return "자전거";
-}
 
 function segmentTitle(segment: OfficialCourseSegment): string {
   if (segment === "intro") return "입문 경로";
@@ -39,10 +32,9 @@ function PublicCoursePickRow(props: {
         onClick={props.onLoad}
       >
         <span className="oc-modal__item-meta">
-          <strong className="oc-modal__item-name">{c.title}</strong>
+          <strong className="oc-modal__item-name">{publicationDisplayTitle(c)}</strong>
           <span className="oc-modal__item-sub">
-            {profileLabelKo(c.profile)} · {(c.distanceMeters / 1000).toFixed(2)} km · 예상{" "}
-            {formatDuration(c.durationSec)}
+            {formatPublicationListMeta(c)}
             {c.publisherNickname ? (
               <span className="oc-modal__item-publisher"> · {c.publisherNickname}</span>
             ) : null}
