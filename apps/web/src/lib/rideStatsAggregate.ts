@@ -1,3 +1,4 @@
+import { isDiscardableRideRecord } from "./rideRecordPolicy";
 import type { StoredRideSession } from "./rideSessionsStorage";
 
 export type RideStatsPeriod = "week" | "month" | "year";
@@ -34,6 +35,14 @@ function startOfMonthLocal(ref: Date): Date {
 
 function endOfMonthExclusiveLocal(ref: Date): Date {
   return new Date(ref.getFullYear(), ref.getMonth() + 1, 1, 0, 0, 0, 0);
+}
+
+function startOfDayLocal(ref: Date): Date {
+  return new Date(ref.getFullYear(), ref.getMonth(), ref.getDate(), 0, 0, 0, 0);
+}
+
+function endOfDayExclusiveLocal(ref: Date): Date {
+  return new Date(ref.getFullYear(), ref.getMonth(), ref.getDate() + 1, 0, 0, 0, 0);
 }
 
 function startOfYearLocal(ref: Date): Date {
@@ -115,6 +124,46 @@ export function aggregateRideStatsForPeriod(
   now: Date = new Date(),
 ): { stats: AggregatedRideStats; range: PeriodRange } {
   const range = getRideStatsPeriodRange(period, now);
+  const stats = aggregateRideStatsInRange(sessions, range.start, range.endExclusive);
+  return { stats, range };
+}
+
+/** 통계·마지막 주행 — 폐기 기준과 동일하게 유효 Ride 만 남긴다 */
+export function filterValidRideSessions(sessions: StoredRideSession[]): StoredRideSession[] {
+  return sessions.filter((s) => !isDiscardableRideRecord(s.distanceMeters, s.elapsedSec));
+}
+
+export function getLocalDayRange(now: Date = new Date()): PeriodRange {
+  const start = startOfDayLocal(now);
+  const endExclusive = endOfDayExclusiveLocal(now);
+  return {
+    start,
+    endExclusive,
+    labelKo: `${formatKoShort(start)} (오늘)`,
+  };
+}
+
+/** endedAt 최신 유효 Ride 1건 — 없으면 null */
+export function pickLastRide(sessions: StoredRideSession[]): StoredRideSession | null {
+  let best: StoredRideSession | null = null;
+  let bestTime = -Infinity;
+  for (const s of filterValidRideSessions(sessions)) {
+    const t = new Date(s.endedAt).getTime();
+    if (Number.isNaN(t)) continue;
+    if (t > bestTime) {
+      bestTime = t;
+      best = s;
+    }
+  }
+  return best;
+}
+
+/** 기기 로컬 달력 오늘 00:00 ~ 내일 00:00 집계 */
+export function aggregateRideStatsForLocalDay(
+  sessions: StoredRideSession[],
+  now: Date = new Date(),
+): { stats: AggregatedRideStats; range: PeriodRange } {
+  const range = getLocalDayRange(now);
   const stats = aggregateRideStatsInRange(sessions, range.start, range.endExclusive);
   return { stats, range };
 }
