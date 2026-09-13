@@ -4,7 +4,9 @@ import { describe, it } from "node:test";
 import {
   SELF_LOCATION_HOST_CLASS,
   SELF_LOCATION_MARKER_CLASS,
+  normalizeBearingDeg,
   updateSelfLocationMarkerBearing,
+  viewportBearingDeg,
 } from "../../src/lib/mapSelfLocationMarker.ts";
 
 describe("mapSelfLocationMarker — 계약", () => {
@@ -22,5 +24,17 @@ describe("mapSelfLocationMarker — 계약", () => {
     assert.match(bearingEl.style.transform, /rotate\(90deg\)/);
     updateSelfLocationMarkerBearing(bearingEl, null);
     assert.equal(bearingEl.style.opacity, "0");
+  });
+
+  it("viewport 보정 — north-up 이면 지리 방위 그대로", () => {
+    assert.equal(viewportBearingDeg(90, 0), 90);
+    assert.equal(viewportBearingDeg(0, 0), 0);
+  });
+
+  it("viewport 보정 — 지도 bearing 만큼 빼서 화면 진행방향에 맞춘다", () => {
+    assert.equal(viewportBearingDeg(90, 90), 0);
+    assert.equal(viewportBearingDeg(0, 90), 270);
+    assert.equal(viewportBearingDeg(10, 350), 20);
+    assert.equal(normalizeBearingDeg(-90), 270);
   });
 });

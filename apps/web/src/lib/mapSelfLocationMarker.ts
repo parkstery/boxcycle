@@ -31,6 +31,21 @@ export function createSelfLocationMarkerRoot(): {
   return { root, bearingEl: bearing };
 }
 
+export function normalizeBearingDeg(deg: number): number {
+  return ((deg % 360) + 360) % 360;
+}
+
+/**
+ * Viewport-fixed Marker 용. 지리 방위(북=0°, 시계)를 CSS rotate(화면 위=0°)로 바꿀 때
+ * 지도 bearing 을 빼지 않으면 north-up 이 아닐 때 화살표가 접선과 어긋난다.
+ */
+export function viewportBearingDeg(
+  geographicBearingDeg: number,
+  mapBearingDeg: number,
+): number {
+  return normalizeBearingDeg(geographicBearingDeg - mapBearingDeg);
+}
+
 export function updateSelfLocationMarkerBearing(
   bearingEl: HTMLDivElement | null,
   bearingDeg: number | null,
@@ -42,4 +57,17 @@ export function updateSelfLocationMarkerBearing(
   }
   bearingEl.style.opacity = "1";
   bearingEl.style.transform = `rotate(${bearingDeg}deg)`;
+}
+
+export function updateSelfLocationMarkerViewportBearing(
+  bearingEl: HTMLDivElement | null,
+  geographicBearingDeg: number | null,
+  mapBearingDeg: number,
+): void {
+  if (geographicBearingDeg == null || !Number.isFinite(geographicBearingDeg)) {
+    updateSelfLocationMarkerBearing(bearingEl, null);
+    return;
+  }
+  const mapB = Number.isFinite(mapBearingDeg) ? mapBearingDeg : 0;
+  updateSelfLocationMarkerBearing(bearingEl, viewportBearingDeg(geographicBearingDeg, mapB));
 }

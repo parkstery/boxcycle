@@ -38,7 +38,7 @@ import {
 import {
   SELF_LOCATION_MARKER_CLASS,
   createSelfLocationMarkerRoot,
-  updateSelfLocationMarkerBearing,
+  updateSelfLocationMarkerViewportBearing,
 } from "../../lib/mapSelfLocationMarker";
 import {
   buildRoutePickDockFocus,
@@ -1538,6 +1538,7 @@ export function MapView({
   const glbLiveNametagElRef = useRef<HTMLDivElement | null>(null);
   const selfLocationMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const selfLocationBearingRef = useRef<HTMLDivElement | null>(null);
+  const selfLocationGeoBearingRef = useRef<number | null>(null);
   const liveRiderNametagRef = useRef(liveRiderNametag);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
   const mapShellRef = useRef<HTMLDivElement>(null);
@@ -1988,6 +1989,7 @@ export function MapView({
       selfLocationMarkerRef.current?.remove();
       selfLocationMarkerRef.current = null;
       selfLocationBearingRef.current = null;
+      selfLocationGeoBearingRef.current = null;
       const selfLl = liveLngLatRef.current;
       if (selfLl) {
         const mounted = mountSelfLocationMarker(map, selfLl);
@@ -2436,6 +2438,7 @@ export function MapView({
       glbLiveNametagElRef.current = null;
       selfLocationMarkerRef.current = null;
       selfLocationBearingRef.current = null;
+      selfLocationGeoBearingRef.current = null;
       liveMarkerFlipRef.current = null;
       liveMarkerPedalSpriteRef.current = null;
       liveMarkerNametagRef.current = null;
@@ -3161,6 +3164,7 @@ export function MapView({
       selfLocationMarkerRef.current?.remove();
       selfLocationMarkerRef.current = null;
       selfLocationBearingRef.current = null;
+      selfLocationGeoBearingRef.current = null;
     }
   }, [liveLngLat, mapLoaded]);
 
@@ -3186,10 +3190,6 @@ export function MapView({
         }
         if (selfLocationMarkerRef.current) {
           selfLocationMarkerRef.current.setLngLat(sampled);
-          updateSelfLocationMarkerBearing(
-            selfLocationBearingRef.current,
-            resolveRiderBearingDeg(routeGeometryRef.current, sampled, prevForBearing),
-          );
         }
         syncLiveSelfRiderVisual(
           sampled,
@@ -3212,6 +3212,19 @@ export function MapView({
           suppressUntilMs: suppressCameraFollowUntilRef.current,
           nowMs: now,
         });
+        if (selfLocationMarkerRef.current) {
+          const geoBearingDeg = resolveRiderBearingDeg(
+            routeGeometryRef.current,
+            sampled,
+            prevForBearing,
+          );
+          selfLocationGeoBearingRef.current = geoBearingDeg;
+          updateSelfLocationMarkerViewportBearing(
+            selfLocationBearingRef.current,
+            geoBearingDeg,
+            map.getBearing(),
+          );
+        }
         if (import.meta.env.DEV) {
           const headingDeg = resolveRiderBearingDeg(
             routeGeometryRef.current,
@@ -3220,6 +3233,12 @@ export function MapView({
           );
           publishRiderScreenDiag(measureRiderScreenDiag(map, sampled, headingDeg));
         }
+      } else if (selfLocationMarkerRef.current && selfLocationGeoBearingRef.current != null) {
+        updateSelfLocationMarkerViewportBearing(
+          selfLocationBearingRef.current,
+          selfLocationGeoBearingRef.current,
+          map.getBearing(),
+        );
       }
 
       const showPeerSprites = mapZoomRef.current > MAP_PEER_SPRITE_MIN_ZOOM;
@@ -3331,6 +3350,14 @@ export function MapView({
       if (selfMk) {
         const ll = selfMk.getLngLat();
         selfMk.setLngLat([ll.lng, ll.lat]);
+        const geo = selfLocationGeoBearingRef.current;
+        if (geo != null) {
+          updateSelfLocationMarkerViewportBearing(
+            selfLocationBearingRef.current,
+            geo,
+            map.getBearing(),
+          );
+        }
       }
     };
     map.on("render", onRender);
