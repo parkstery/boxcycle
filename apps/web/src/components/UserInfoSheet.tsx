@@ -2,8 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import type { User } from "firebase/auth";
 import { loadRideSessionsForStatsFromFirestore } from "../lib/firestoreRides";
 import { isFirebaseConfigured } from "../lib/firebase";
+import { formatRideDistanceKmNumber } from "../lib/rideDistanceFormat";
 import {
+  aggregateRideStatsForLocalDay,
   aggregateRideStatsForPeriod,
+  pickLastRide,
   type RideStatsPeriod,
 } from "../lib/rideStatsAggregate";
 import type { StoredRideSession } from "../lib/rideSessionsStorage";
@@ -90,6 +93,21 @@ function formatRideEndedAtKo(iso: string): string {
   });
 }
 
+function formatLastRideWhenKo(iso: string, now: Date = new Date()): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  const diffMs = now.getTime() - d.getTime();
+  if (diffMs < 0) return formatRideEndedAtKo(iso);
+  const diffMin = Math.floor(diffMs / 60_000);
+  if (diffMin < 1) return "방금";
+  if (diffMin < 60) return `${diffMin}분 전`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}시간 전`;
+  const diffDay = Math.floor(diffHr / 24);
+  if (diffDay < 7) return `${diffDay}일 전`;
+  return formatRideEndedAtKo(iso);
+}
+
 /**
  * 완주 표시는 **전 UI 단일 정책**(`isRouteCompletion` = 98%)을 쓴다(§2.6).
  * 반올림 백분율 95% 로 판정하던 표시는 95~97% Ride 를 「완주」로 보여 주면서
@@ -140,25 +158,27 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
     return () => window.removeEventListener("keydown", onKey);
   }, [props.open, props.onClose]);
 
-  /** 시트가 닫힐 때마다 「최근 주행」 펼침을 default(닫힘) 으로 리셋 */
-  useEffect(() => {
-    if (!props.open) setHistoryOpen(false);
-  }, [props.open]);
-
-  /** 시트가 닫힐 때마다 로그아웃 확인 상태도 리셋 */
-  useEffect(() => {
-    if (!props.open) setConfirmingLogout(false);
-  }, [props.open]);
-
-  useEffect(() => {
-    if (!props.open || !props.user || props.isGuest) {
-      setCanCheckout(false);
-      setCanManagePortal(false);
-      setSubscriptionNote(null);
-      return;
+  // 시트가 닫힐 때 펼침·로그아웃 확인을 default 로 리셋 — effect 대신 이전값 비교.
+  const [prevOpen, setPrevOpen] = useState(props.open);
+  if (props.open !== prevOpen) {
+    setPrevOpen(props.open);
+    if (!props.open) {
+      setHistoryOpen(false);
+      setConfirmingLogout(false);
     }
+  }
+
+  useEffect(() => {
     let cancelled = false;
     void (async () => {
+      if (!props.open || !props.user || props.isGuest) {
+        if (!cancelled) {
+          setCanCheckout(false);
+          setCanManagePortal(false);
+          setSubscriptionNote(null);
+        }
+        return;
+      }
       try {
         const me = await fetchSubscriptionMe(props.user!);
         if (cancelled) return;
@@ -268,6 +288,13 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
   const periodStats = useMemo(
     () => aggregateRideStatsForPeriod(statsSessions, statsPeriod),
     [statsSessions, statsPeriod],
+  );
+
+  const lastRide = useMemo(() => pickLastRide(statsSessions), [statsSessions]);
+
+  const dailyStats = useMemo(
+    () => aggregateRideStatsForLocalDay(statsSessions),
+    [statsSessions],
   );
 
   const initial = (() => {
@@ -387,6 +414,44 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
               ) : null}
             </div>
           ) : null}
+
+          <div className="user-info-sheet__snapshot" aria-label="마지막·일일 주행">
+            <div className="user-info-sheet__snapshot-row">
+              <span className="user-info-sheet__snapshot-k">마지막 주행</span>
+              {lastRide ? (
+                <span
+                  className="user-info-sheet__snapshot-v"
+                  title={formatRideEndedAtKo(lastRide.endedAt)}
+                >
+                  {formatRideDistanceKmNumber(lastRide.distanceMeters)} km ·{" "}
+                  {formatElapsedFromSec(lastRide.elapsedSec)} ·{" "}
+                  {formatLastRideWhenKo(lastRide.endedAt)}
+                </span>
+              ) : (
+                <span className="user-info-sheet__snapshot-v is-empty">없음</span>
+              )}
+            </div>
+            <div className="user-info-sheet__snapshot-row user-info-sheet__snapshot-row--daily">
+              <span className="user-info-sheet__snapshot-k">일일 주행</span>
+              <span className="user-info-sheet__snapshot-daily-range" title="Local calendar on this device">
+                {dailyStats.range.labelKo}
+              </span>
+            </div>
+            <div className="user-info-sheet__stats user-info-sheet__stats--daily">
+              <div>
+                <span>주행</span>
+                <strong>{dailyStats.stats.rides}</strong>
+              </div>
+              <div>
+                <span>거리</span>
+                <strong>{formatRideDistanceKmNumber(dailyStats.stats.distanceMeters)} km</strong>
+              </div>
+              <div>
+                <span>시간</span>
+                <strong>{formatElapsedFromSec(dailyStats.stats.elapsedSec)}</strong>
+              </div>
+            </div>
+          </div>
 
           <div className="user-info-sheet__stats-head" role="tablist" aria-label="통계 기간">
           {(

@@ -234,6 +234,68 @@
   font-weight: 700;
 }
 
+.user-info-sheet__snapshot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-top: 0.1rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: 10px;
+  border: 1px solid rgba(248, 250, 252, 0.12);
+  background: rgba(248, 250, 252, 0.04);
+}
+
+.user-info-sheet__snapshot-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.user-info-sheet__snapshot-row--daily {
+  margin-top: 0.15rem;
+}
+
+.user-info-sheet__snapshot-k {
+  flex: 0 0 auto;
+  font-size: 0.64rem;
+  font-weight: 700;
+  opacity: 0.88;
+}
+
+.user-info-sheet__snapshot-v {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.64rem;
+  line-height: 1.35;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-info-sheet__snapshot-v.is-empty {
+  opacity: 0.62;
+}
+
+.user-info-sheet__snapshot-daily-range {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.58rem;
+  line-height: 1.35;
+  opacity: 0.72;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-info-sheet__stats--daily {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 0.05rem;
+}
+
 .user-info-sheet__stats-head {
   display: flex;
   gap: 0.25rem;
