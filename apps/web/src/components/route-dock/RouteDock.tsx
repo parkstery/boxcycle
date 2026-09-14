@@ -67,7 +67,8 @@ export function RouteDock(props: RouteDockProps) {
   }
 
   const dockUi = routeDockUiPolicy(stage, editLocked);
-  const { isActiveRide, ridingDiet, preRideCompact, hideEditActions } = dockUi;
+  const { isActiveRide, ridingDiet, preRideCompact, hideEditActions, hideStopsList, lockStopEditing } =
+    dockUi;
 
   const [prevIsActiveRide, setPrevIsActiveRide] = useState(isActiveRide);
   if (isActiveRide !== prevIsActiveRide) {
@@ -329,10 +330,12 @@ export function RouteDock(props: RouteDockProps) {
           </div>
         ) : null}
 
-        {!ridingDiet ? (
+        {!hideStopsList ? (
           <ul className="route-dock__stops" role="list">
             {stops.length === 0 ? (
-              <li className="route-dock__stops-empty">지도를 탭해 출발·도착 설정</li>
+              isActiveRide ? null : (
+                <li className="route-dock__stops-empty">지도를 탭해 출발·도착 설정</li>
+              )
             ) : (
               stops.map((stop, index) => (
                 <li key={stop.id}>
@@ -360,7 +363,7 @@ export function RouteDock(props: RouteDockProps) {
                   <button
                     type="button"
                     className="route-dock__stop-remove"
-                    disabled={editLocked}
+                    disabled={lockStopEditing}
                     aria-label={`${stop.kind === "start" ? "출발" : stop.kind === "end" ? "도착" : "경유"} 삭제`}
                     title={`${stop.kind === "start" ? "출발" : stop.kind === "end" ? "도착" : "경유"} 삭제`}
                     onClick={() => onRemoveStop(stop.id)}
