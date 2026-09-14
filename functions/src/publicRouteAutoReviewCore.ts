@@ -170,10 +170,26 @@ export function routePolylineSimilaritySymmetric(
 export const PUBLIC_ROUTE_MIN_LENGTH_METERS = 100;
 export const PUBLIC_ROUTE_MAX_LENGTH_METERS = 120_000;
 export const PUBLIC_ROUTE_SIMILARITY_BLOCK = 0.9;
-export const PUBLIC_ROUTE_MIN_COORDS = 20;
+
+/**
+ * 좌표 수 하한 — **연장 하한에 연동**한다(운영 5,000m → 20점 = 250m당 1점).
+ *
+ * 상수 20 으로 못박혀 있던 것이 2026-09-14 사고의 원인이다: dev 완화로 연장 하한만
+ * 5,000 → 100m 로 낮췄는데 좌표 하한은 5km 시절 값 그대로라, 112m·4점짜리 정상
+ * 경로가 「경로 좌표 수가 비정상입니다.」로 영구 거부됐다(신청 3회 전부 동일).
+ * 연동해 두면 연장 하한 한 줄만 되돌려도 운영 값(20)이 정확히 복원된다.
+ */
+export const PUBLIC_ROUTE_MIN_COORDS = Math.max(
+  2,
+  Math.round(PUBLIC_ROUTE_MIN_LENGTH_METERS / 250),
+);
 /** 웹 `SAVED_ROUTE_MAX_COORDS` 와 동일값 */
 export const PUBLIC_ROUTE_MAX_COORDS = 5000;
-export const PUBLIC_ROUTE_MIN_BBOX_DIAGONAL_METERS = 500;
+/** bbox 대각 하한 — 같은 이유로 연장 하한의 10%에 연동(운영 5,000m → 500m) */
+export const PUBLIC_ROUTE_MIN_BBOX_DIAGONAL_METERS = Math.max(
+  50,
+  Math.round(PUBLIC_ROUTE_MIN_LENGTH_METERS * 0.1),
+);
 export const PUBLIC_ROUTE_MAX_URLS = 2;
 
 /** 미완주 출판 상한(선점 방지, 정책 §2). admin 은 무제한(코드에서 별도 처리). */
@@ -246,10 +262,21 @@ export function checkRouteLength(lengthMeters: number): AutoReviewVerdict {
   return ok();
 }
 
-/** 좌표 수 검사(G6 전반부) */
+/**
+ * 좌표 수 검사(G6 전반부).
+ * 파싱·좌표수·밀도가 같은 문구를 공유하면 로그·사용자 모두 원인을 구분할 수 없다 —
+ * 셋을 각각 다른 문구 + 실제 수치로 분리한다(2026-09-14).
+ */
 export function checkCoordCount(coords: LngLat[]): AutoReviewVerdict {
-  if (coords.length < PUBLIC_ROUTE_MIN_COORDS || coords.length > PUBLIC_ROUTE_MAX_COORDS) {
-    return fail("경로 좌표 수가 비정상입니다.");
+  if (coords.length < PUBLIC_ROUTE_MIN_COORDS) {
+    return fail(
+      `경로 좌표가 너무 적습니다(${coords.length}점, 최소 ${PUBLIC_ROUTE_MIN_COORDS}점).`,
+    );
+  }
+  if (coords.length > PUBLIC_ROUTE_MAX_COORDS) {
+    return fail(
+      `경로 좌표가 너무 많습니다(${coords.length}점, 최대 ${PUBLIC_ROUTE_MAX_COORDS}점).`,
+    );
   }
   return ok();
 }
@@ -257,15 +284,20 @@ export function checkCoordCount(coords: LngLat[]): AutoReviewVerdict {
 /** 밀도 검사(G6 후반부) */
 export function checkCoordDensity(coords: LngLat[], lengthMeters: number): AutoReviewVerdict {
   if (!isCoordDensityValid(coords, lengthMeters)) {
-    return fail("경로 좌표 수가 비정상입니다.");
+    return fail(
+      `경로 좌표가 길이에 비해 지나치게 촘촘합니다(약 ${(lengthMeters / 1000).toFixed(2)}km 에 ${coords.length}점).`,
+    );
   }
   return ok();
 }
 
 /** bbox 대각선 검사(G7) */
 export function checkBboxDiagonal(coords: LngLat[]): AutoReviewVerdict {
-  if (bboxDiagonalMeters(coords) < PUBLIC_ROUTE_MIN_BBOX_DIAGONAL_METERS) {
-    return fail("경로가 너무 좁은 영역에 몰려 있습니다(직경 500m 이상 필요).");
+  const diagonal = bboxDiagonalMeters(coords);
+  if (diagonal < PUBLIC_ROUTE_MIN_BBOX_DIAGONAL_METERS) {
+    return fail(
+      `경로가 너무 좁은 영역에 몰려 있습니다(직경 ${PUBLIC_ROUTE_MIN_BBOX_DIAGONAL_METERS}m 이상 필요, 현재 약 ${Math.round(diagonal)}m).`,
+    );
   }
   return ok();
 }

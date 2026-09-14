@@ -163,7 +163,7 @@ async function runAutoReview(
   // 3b. geometry
   const coords = parseAndValidateCoordsJson(req.geometryCoordsJson);
   if (!coords) {
-    return { status: "rejected", reason: "경로 좌표 수가 비정상입니다." };
+    return { status: "rejected", reason: "경로 좌표를 읽을 수 없습니다. 새로고침 후 다시 시도하세요." };
   }
   const coordCountVerdict = checkCoordCount(coords);
   if (!coordCountVerdict.ok) return { status: "rejected", reason: coordCountVerdict.reason };
