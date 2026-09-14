@@ -17,6 +17,38 @@ export const PUBLIC_ROUTE_MIN_LENGTH_METERS = 100;
 /** 퍼블릭 등록 최대 연장(초과 시 신청·승인 불가) */
 export const PUBLIC_ROUTE_MAX_LENGTH_METERS = 120_000;
 
+/**
+ * 좌표 수·bbox 하한은 **연장 하한에 연동**한다(운영 5,000m → 20점·500m).
+ * 상수로 못박으면 연장 하한만 dev 로 낮췄을 때 짧은 정상 경로가 영구 거부된다
+ * (2026-09-14: 112m·4점 신청이 서버에서 3회 거부). functions 쪽 상수와 동기 유지.
+ */
+export const PUBLIC_ROUTE_MIN_COORDS = Math.max(
+  2,
+  Math.round(PUBLIC_ROUTE_MIN_LENGTH_METERS / 250),
+);
+/** 웹 `SAVED_ROUTE_MAX_COORDS` 와 동일값 */
+export const PUBLIC_ROUTE_MAX_COORDS = 5000;
+export const PUBLIC_ROUTE_MIN_BBOX_DIAGONAL_METERS = Math.max(
+  50,
+  Math.round(PUBLIC_ROUTE_MIN_LENGTH_METERS * 0.1),
+);
+
+/** 경로 외접 사각형 대각선 거리(m) — functions `bboxDiagonalMeters` 와 동일 정의 */
+export function bboxDiagonalMeters(coords: LngLat[]): number {
+  if (coords.length === 0) return 0;
+  let minLng = coords[0][0];
+  let maxLng = coords[0][0];
+  let minLat = coords[0][1];
+  let maxLat = coords[0][1];
+  for (const [lng, lat] of coords) {
+    if (lng < minLng) minLng = lng;
+    if (lng > maxLng) maxLng = lng;
+    if (lat < minLat) minLat = lat;
+    if (lat > maxLat) maxLat = lat;
+  }
+  return getDistanceMeters([minLng, minLat], [maxLng, maxLat]);
+}
+
 /** 기존 코스와의 유사도 상한: 대칭 샘플 매칭 비율이 이 값 이상이면 등록 불가(동일 profile 일 때) */
 export const PUBLIC_ROUTE_SIMILARITY_BLOCK = 0.9;
 
@@ -139,6 +171,22 @@ export async function assertPublicRouteAutoReview(input: {
   if (len > PUBLIC_ROUTE_MAX_LENGTH_METERS) {
     throw new Error(
       `퍼블릭 등록은 코스 연장 약 ${PUBLIC_ROUTE_MAX_LENGTH_METERS / 1000}km 이하만 가능합니다. (현재 약 ${(len / 1000).toFixed(2)}km)`,
+    );
+  }
+
+  // 좌표 수·bbox 는 서버(autoReviewPublicRouteRequest)가 최종 판정하지만, 여기서 먼저 막지
+  // 않으면 쿼터를 소모하고 신청 문서를 만든 뒤에야 거부된다.
+  const nCoords = geometry.coordinates.length;
+  if (nCoords < PUBLIC_ROUTE_MIN_COORDS) {
+    throw new Error(`경로 좌표가 너무 적습니다(${nCoords}점, 최소 ${PUBLIC_ROUTE_MIN_COORDS}점).`);
+  }
+  if (nCoords > PUBLIC_ROUTE_MAX_COORDS) {
+    throw new Error(`경로 좌표가 너무 많습니다(${nCoords}점, 최대 ${PUBLIC_ROUTE_MAX_COORDS}점).`);
+  }
+  const diagonal = bboxDiagonalMeters(geometry.coordinates);
+  if (diagonal < PUBLIC_ROUTE_MIN_BBOX_DIAGONAL_METERS) {
+    throw new Error(
+      `경로가 너무 좁은 영역에 몰려 있습니다(직경 ${PUBLIC_ROUTE_MIN_BBOX_DIAGONAL_METERS}m 이상 필요, 현재 약 ${Math.round(diagonal)}m).`,
     );
   }
 
