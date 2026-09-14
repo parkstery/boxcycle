@@ -4,6 +4,15 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
+  // 의존성 스캔 대상을 앱 진입점 하나로 못박는다.
+  //
+  // 기본값은 root 아래 **모든** HTML 을 훑는데, 그러면 `scripts/*/**.html`(rider-preview
+  // 등 하네스)까지 앱 의존성 그래프로 끌려온다. 그 하네스들은 브라우저에서 직접 여는
+  // 독립 문서이고 three 를 **importmap → unpkg CDN** 으로 받는다. Vite 스캐너는
+  // importmap 을 모르므로 `three/addons/...` 를 node_modules 에서 찾다 실패하고,
+  // 그 한 건 때문에 **스캔 전체가 중단되어 pre-bundling 이 통째로 skip** 된다
+  // (dev 서버는 뜨지만 느려지고 CJS 의존성에서 엉뚱한 오류가 난다).
+  optimizeDeps: { entries: ["index.html"] },
   // 같은 Wi-Fi의 폰·다른 PC에서 `http://<이 PC의 LAN IP>:5000` 으로 접속하려면
   // 모든 인터페이스(0.0.0.0)에 바인딩해야 한다. 터미널에 Network 주소가 함께 출력된다.
   //
