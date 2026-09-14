@@ -18,8 +18,9 @@ dist-ssr
 /blob-report/
 /playwright/.cache/
 
-# 하네스 산출물(휘발성 검토용 — 커밋 안 함): rider-preview·peer-sync 등
+# 하네스 산출물(휘발성 검토용 — 커밋 안 함): rider-preview·peer-sync·conquest-lod 등
 /scripts/*/.out/
+/.out/
 
 # Editor directories and files
 .vscode/*

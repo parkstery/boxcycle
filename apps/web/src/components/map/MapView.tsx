@@ -54,6 +54,7 @@ import {
   applyRtwLayerStyle,
   resetRtwStyleSnapshot,
   RTW_MAP_STYLE_URL,
+  RTW_TRACE_ACCUMULATED_HALO_PAINT,
   RTW_TRACE_ACCUMULATED_PAINT,
   RTW_TRACE_LIVE_GLOW_PAINT,
   RTW_TRACE_LIVE_PAINT,
@@ -201,6 +202,8 @@ const EMPTY_ACTIVITY_WORLD_RAW: ActivityWorldRawOverlay = {
 /** Conquest — 「내 도로망」(과거 주행 궤적, 경로선 아래) */
 const CONQUEST_TRACES_SRC = "boxcycle-conquest-traces";
 const CONQUEST_TRACES_LAYER = "boxcycle-conquest-traces-line";
+/** Conquest — 줌아웃 LOD 집계 광채(누적 궤적 아래, z13 에서 사라짐) */
+const CONQUEST_TRACES_HALO_LAYER = "boxcycle-conquest-traces-halo";
 /** Conquest — 이번 주행에서 지금까지 달린 구간(실시간 칠하기) */
 const CONQUEST_LIVE_SRC = "boxcycle-conquest-live";
 const CONQUEST_LIVE_LAYER = "boxcycle-conquest-live-line";
@@ -213,16 +216,23 @@ const CONQUEST_LIVE_GLOW_LAYER = "boxcycle-conquest-live-glow";
  * 강한 빨강(#ef4444)에 덮여 어떤 색을 써도 드러나지 않는다. 레이어 추가 순서는
  * 경로 로드 시점에 따라 뒤집히므로 매 적용마다 다시 세운다.
  *
- * 최종 순서: route < 누적(내 도로망) < live glow < live(이번 주행)
+ * 최종 순서: route < LOD 광채 < 누적(내 도로망) < live glow < live(이번 주행)
  */
+const CONQUEST_ORDERED_LAYERS = [
+  CONQUEST_TRACES_HALO_LAYER,
+  CONQUEST_TRACES_LAYER,
+  CONQUEST_LIVE_GLOW_LAYER,
+  CONQUEST_LIVE_LAYER,
+] as const;
+
 function orderConquestLayersAboveRoute(map: mapboxgl.Map): void {
   try {
     const ids = (map.getStyle()?.layers ?? []).map((l) => l.id);
     const routeIdx = ids.indexOf("route");
     if (routeIdx < 0) return;
-    const ours = new Set([CONQUEST_TRACES_LAYER, CONQUEST_LIVE_GLOW_LAYER, CONQUEST_LIVE_LAYER]);
+    const ours = new Set<string>(CONQUEST_ORDERED_LAYERS);
     const afterRoute = ids.slice(routeIdx + 1).find((id) => !ours.has(id));
-    for (const id of [CONQUEST_TRACES_LAYER, CONQUEST_LIVE_GLOW_LAYER, CONQUEST_LIVE_LAYER]) {
+    for (const id of CONQUEST_ORDERED_LAYERS) {
       if (map.getLayer(id)) map.moveLayer(id, afterRoute);
     }
   } catch {
@@ -2801,6 +2811,16 @@ export function MapView({
           src.setData(fc);
         } else {
           map.addSource(CONQUEST_TRACES_SRC, { type: "geojson", data: fc });
+        }
+        if (!map.getLayer(CONQUEST_TRACES_HALO_LAYER)) {
+          // 줌아웃 LOD — 본선보다 먼저(아래) 추가한다. 순서는 아래에서 다시 세운다.
+          map.addLayer({
+            id: CONQUEST_TRACES_HALO_LAYER,
+            type: "line",
+            source: CONQUEST_TRACES_SRC,
+            layout: { "line-cap": "round", "line-join": "round" },
+            paint: { ...RTW_TRACE_ACCUMULATED_HALO_PAINT },
+          });
         }
         if (!map.getLayer(CONQUEST_TRACES_LAYER)) {
           map.addLayer(

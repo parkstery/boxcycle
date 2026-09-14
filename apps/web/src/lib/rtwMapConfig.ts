@@ -95,7 +95,29 @@ export const RTW_TRACE_LIVE_GLOW_PAINT: LinePaint = {
 export const RTW_TRACE_ACCUMULATED_PAINT: LinePaint = {
   "line-color": RTW_TRACE_OWNED_COLOR,
   "line-opacity": 0.95,
-  "line-width": ["interpolate", ["linear"], ["zoom"], 8, 2.2, 12, 4, 16, 7],
+  "line-width": ["interpolate", ["linear"], ["zoom"], 4, 2.6, 8, 2.8, 12, 4, 16, 7],
+};
+
+/**
+ * 줌아웃 LOD — 「내 도로망」 집계 광채.
+ *
+ * 문제: 세계 줌(z4~8)에서 하루치 주행은 몇 px짜리 실오라기라 사실상 보이지 않는다.
+ * 성취가 얇아 보이는 원인은 인정 규칙이 아니라 **원거리에서의 가시성**이다.
+ *
+ * 해법: 누적 궤적 **아래**에 같은 색을 굵고 흐리게 한 겹 깐다. 서로 가까운 궤적들의
+ * 흐린 테두리가 자연히 겹쳐 하나의 덩어리로 읽힌다 — 별도 집계 데이터·타일·면(面)
+ * 없이 순수 paint 만으로 LOD 집계가 성립한다.
+ *
+ * 경계(edge)가 없는 광채여야 한다. 윤곽이 생기는 순간 「채워야 할 영역」(분모)으로
+ * 읽히고, 그것은 Conquest 설계 §3.4 의 탐험도·비율 판정 금지와 어긋난다.
+ *
+ * z13 에서 0 으로 사라진다 — 근거리 표현은 종전과 완전히 동일하다.
+ */
+export const RTW_TRACE_ACCUMULATED_HALO_PAINT: LinePaint = {
+  "line-color": RTW_TRACE_OWNED_COLOR,
+  "line-width": ["interpolate", ["linear"], ["zoom"], 4, 16, 8, 13, 11, 8, 13, 0],
+  "line-blur": ["interpolate", ["linear"], ["zoom"], 4, 5, 8, 5, 11, 4, 13, 0],
+  "line-opacity": ["interpolate", ["linear"], ["zoom"], 4, 0.7, 8, 0.65, 11, 0.4, 13, 0],
 };
 
 /**
