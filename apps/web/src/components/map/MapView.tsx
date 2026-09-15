@@ -4034,14 +4034,7 @@ function buildPickPopup(deps: {
 
   const addressEl = document.createElement("div");
   addressEl.className = "map-view__pick-address";
-  /*
-   * 주소 글자는 자기 span 이 소유한다 — 잔여 토큰 배지를 같은 행에 인라인으로 흘려
-   * 넣으려면 `addressEl.textContent = …` 로 통째로 덮어쓸 수 없기 때문.
-   */
-  const addressTextEl = document.createElement("span");
-  addressTextEl.className = "map-view__pick-address-text";
-  addressTextEl.textContent = "주소를 불러오는 중…";
-  addressEl.append(addressTextEl);
+  addressEl.textContent = "주소를 불러오는 중…";
 
   const metaEl = document.createElement("div");
   metaEl.className = "map-view__pick-meta";
@@ -4546,18 +4539,9 @@ function buildPickPopup(deps: {
 
   const dragHandle = document.createElement("div");
   dragHandle.className = "map-view__pick-drag-handle";
-  /*
-   * 첫 행 = 주소 + 잔여 토큰(2026-09-16 Chief). 토큰 줄이 별도 행일 때는
-   * 자기 상자·테두리·위아래 여백까지 한 줄을 통째로 먹어 팝업이 그만큼 길어졌다.
-   *
-   * 나란한 두 칸(flex)이 아니라 **주소 글자 뒤에 인라인으로** 붙인다. 좁은 팝업에서
-   * 두 칸으로 나누면 주소가 두 줄에서 세 줄로 눌려 줄인 행을 도로 까먹는다 —
-   * 주소가 마지막 줄에 남긴 빈 자리에 배지가 들어가면 대개 행이 늘지 않는다.
-   */
-  addressEl.append(tokenSection);
   dragHandle.append(addressEl, metaEl);
 
-  wrap.append(dragHandle, pioneerEl, pinRow, profileSection, autoRouteSection);
+  wrap.append(dragHandle, pioneerEl, pinRow, tokenSection, profileSection, autoRouteSection);
 
   const token = accessToken.trim();
   if (token.length > 0) {
@@ -4568,18 +4552,18 @@ function buildPickPopup(deps: {
           fetchPointElevationMeters(lngLat, signal),
         ]);
         if (signal.aborted) return;
-        addressTextEl.textContent = place ?? "주소를 찾을 수 없습니다";
+        addressEl.textContent = place ?? "주소를 찾을 수 없습니다";
         const elevLabel =
           elevM != null && Number.isFinite(elevM) ? `${Math.round(elevM)}m` : "—";
         metaEl.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)} · 고도 ${elevLabel}`;
       } catch {
         if (signal.aborted) return;
-        addressTextEl.textContent = "주소를 불러오지 못했습니다";
+        addressEl.textContent = "주소를 불러오지 못했습니다";
         metaEl.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)} · 고도 —`;
       }
     })();
   } else {
-    addressTextEl.textContent = "지도 토큰이 없어 주소를 표시할 수 없습니다";
+    addressEl.textContent = "지도 토큰이 없어 주소를 표시할 수 없습니다";
     void (async () => {
       try {
         const elevM = await fetchPointElevationMeters(lngLat, signal);

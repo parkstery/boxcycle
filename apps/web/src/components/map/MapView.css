@@ -213,48 +213,7 @@
   padding-right: 1.4rem;
 }
 
-/*
- * 첫 행 = 주소 + 잔여 토큰 배지(2026-09-16 Chief).
- * 배지는 주소 글자 뒤에 **인라인으로** 흐른다 — 주소가 마지막 줄에 남긴 빈 자리를 쓰므로
- * 대개 행이 늘지 않고, 좁은 팝업에서 주소를 세 줄로 누르지도 않는다.
- */
-.map-view__pick-address-text {
-  /* 배지가 글자에 바로 붙지 않도록 */
-  margin-right: 0.3rem;
-}
-
-/* 별도 행이 아니라 주소 끝 배지 — 자기 여백을 버리고 글자도 한 단계 줄인다 */
-.map-view__pick-address > .map-view__pick-token {
-  display: inline-block;
-  vertical-align: middle;
-  margin: 0;
-  padding: 0.06rem 0.34rem;
-  border-radius: 999px;
-}
-
-.map-view__pick-address > .map-view__pick-token .map-view__pick-token-line {
-  display: inline;
-  font-size: 0.6rem;
-  font-weight: 650;
-  /* 한국어 어절 중간에서 끊지 않는다 */
-  word-break: keep-all;
-}
-
-/*
- * 닫기 ✕(절대 위치, 우상단 1.65rem)와 겹치지 않게 첫 행 우측을 비워 둔다.
- * 종전에는 긴 주소 첫 줄이 ✕ 밑으로 파고들었다 — 배지까지 그 자리에 오면 더 나쁘다.
- */
-.map-view__pick-dock-panel .map-view__pick-drag-handle {
-  padding-right: 1.9rem;
-}
-
 .map-view__pick-address {
-  /*
-   * 팝업은 shrink-to-fit(13.5~20rem)이다. 이 행이 고유 폭 계산에 기여하면 긴 주소 + 배지가
-   * 팝업을 가로로 밀어 붙여, 행 하나 줄이려다 더 넓게 가린다. 인라인 축 containment 로
-   * 폭 결정권을 아래 행들(핀·이동수단)에 넘기고, 주소·배지는 그 안에서 접힌다.
-   */
-  contain: inline-size;
   font-size: 0.82rem;
   font-weight: 700;
   line-height: 1.3;
