@@ -1931,6 +1931,7 @@ export default function App() {
       onRemoveStop={handleRemoveRouteDockStop}
       onFocusStop={handleFocusRouteDockStop}
       editLocked={routeMenuLockedForProd}
+      cadence={cadenceHud}
       onIncompleteQuotaBlocked={handleIncompleteQuotaBlocked}
     />
   );

@@ -316,11 +316,17 @@ describe("distanceAutoRoute", () => {
     assert.match(MAP_VIEW_SOURCE, /autoRouteSearchBusyRef/);
   });
 
-  it("Token 문구 — 잔여 한 줄", () => {
-    assert.match(
-      readFileSync(new URL("../../src/lib/routeTokenUiCopy.ts", import.meta.url), "utf8"),
-      /경로 생성 잔여 토큰/,
+  it("Token 문구 — 제목 + 잔여 한 줄", () => {
+    /*
+     * 2026-09-16: 문구가 제목(`ROUTE_TOKEN_TITLE`) + 잔액 조합으로 바뀌었다.
+     * **완성 문자열은 종전과 같다** — 원문 리터럴 대신 조합을 본다.
+     */
+    const copy = readFileSync(
+      new URL("../../src/lib/routeTokenUiCopy.ts", import.meta.url),
+      "utf8",
     );
+    assert.match(copy, /ROUTE_TOKEN_TITLE = "경로 생성"/);
+    assert.match(copy, /\$\{ROUTE_TOKEN_TITLE\} 잔여 토큰 \$\{n\}개/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /경로 생성 시 1개 사용/);
   });
 
@@ -539,7 +545,13 @@ describe("distanceAutoRoute", () => {
     assert.match(MAP_VIEW_SOURCE, /map\.dragPan\.disable\(\)/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /onRoutePanelActivated\?\.\(\)/);
     assert.doesNotMatch(MAP_VIEW_CSS, /\.map-view__pick \{[\s\S]*?padding-right: 1\.85rem/);
-    assert.match(MAP_VIEW_CSS, /map-view__pick-drag-handle[\s\S]*?padding-right: 1\.4rem/);
+    /*
+     * 닫기 ✕ 자리는 **제목 행**이 스스로 비운다(2026-09-16). 종전에는 drag handle 전체를
+     * 밀어 주소·좌표까지 오른쪽 여백을 물고 있었다 — 이제 그 줄들은 폭을 다 쓴다.
+     */
+    assert.match(MAP_VIEW_CSS, /\.map-view__pick-token \{[\s\S]*?padding: 0 1\.95rem/);
+    // 규칙 **본문 안**만 본다 — `[\s\S]*?` 로 열어 두면 파일 어딘가의 padding-right 에 걸린다
+    assert.doesNotMatch(MAP_VIEW_CSS, /\.map-view__pick-drag-handle \{[^}]*padding-right/);
     assert.match(
       MAP_VIEW_CSS,
       /map-view__pick-distance-row[\s\S]*?grid-template-columns: auto auto 1fr auto auto/,

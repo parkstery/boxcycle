@@ -1,6 +1,5 @@
 import type { CoachingData } from "../../lib/coachTypes";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
-import type { CadenceHudState } from "../../lib/cadenceSensorUi";
 import { useEffect, useSyncExternalStore } from "react";
 import { reportHudCompanionTrailDedup } from "../../lib/hudCompanionDiag";
 import {
@@ -12,7 +11,8 @@ import {
   formatCompanionHudActivityLine,
 } from "../../lib/companionHudCount";
 import { formatRideDistanceKmNumber } from "../../lib/rideDistanceFormat";
-import { CadenceHudChip } from "./CadenceHudChip";
+import { CadenceHudChip, type CadenceChipBinding } from "./CadenceHudChip";
+import { sensorChipSlot } from "../../lib/sensorChipSlot";
 import "./MapHud.css";
 
 export type AccountChipState = {
@@ -42,12 +42,8 @@ export type MapHudRidePresence = {
   courseActivityHudLine?: string | null;
 };
 
-/** HUD 칩이 필요한 최소 센서 상태 + 상세 설정 열기 */
-export type MapHudCadence = {
-  state: CadenceHudState;
-  open: boolean;
-  onOpen: () => void;
-};
+/** HUD 칩이 필요한 최소 센서 상태 + 상세 설정 열기 (RouteDock 도 같은 값을 받는다) */
+export type MapHudCadence = CadenceChipBinding;
 
 export type MapHudProps = {
   stage: RideUiStage;
@@ -60,7 +56,7 @@ export type MapHudProps = {
   onOpenPlaceSearch: () => void;
   placeSearchOpen: boolean;
 
-  // TR — 케이던스 센서 칩 + 사용자 정보 시트 트리거(아바타)
+  // TR — 사용자 정보 시트 트리거(아바타) + RouteDock 이 없는 stage 의 센서 칩 폴백
   /** null 이면 칩 미표시. 상태 표시만 담고 액션은 상세 설정이 소유한다 */
   cadence: MapHudCadence | null;
   account: AccountChipState | null;
@@ -240,8 +236,14 @@ export function MapHud(props: MapHudProps) {
   const showAccount = account !== null && !isGate && !isSummary;
   const showSignedOutAuth =
     !isGate && !isSummary && account === null && typeof onOpenSignedOutAuth === "function";
-  // 센서 상태는 계정 데이터에 종속되지 않는다 — signed-out 맵 모드에서도 로그인 칩 왼쪽에 남는다.
-  const showCadenceChip = cadence !== null && !isGate && !isSummary;
+  /*
+   * 센서 칩 자리 — `lib/sensorChipSlot.ts` 단일 판정(UI-DECLUTTER-SENSOR-6A).
+   * 경로가 있으면(=RouteDock 이 보이면) 칩은 dock 이 그린다. 여기 우상단은
+   * dock 이 아예 없는 stage(`idle` 등)의 **폴백**이다 — 두 곳에 동시에 그리지 않는다.
+   * 센서 상태는 계정 데이터에 종속되지 않으므로 signed-out 맵 모드에서도 남는다.
+   */
+  const showCadenceChip =
+    sensorChipSlot({ stage, hasCadence: cadence !== null, isGate, isSummary }) === "map-hud-tr";
   const showTopRight = showCadenceChip || showAccount || showSignedOutAuth;
   const showMapViewTrigger = !isGate && !isSummary;
   const showMetrics =
@@ -470,7 +472,7 @@ export function MapHud(props: MapHudProps) {
         </div>
       ) : null}
 
-      {/* 우상단은 하나의 액션 행 — 센서 칩이 계정/로그인 칩 왼쪽에 온다(절대 위치 겹침 금지) */}
+      {/* 우상단은 하나의 액션 행 — 계정/로그인 칩 + (dock 이 없을 때만) 센서 칩 */}
       {showTopRight ? (
         <div className="map-hud__tr">
           {showCadenceChip && cadence ? (

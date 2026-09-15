@@ -16,6 +16,18 @@ export type RouteDockUiPolicy = {
 };
 
 /**
+ * RouteDock 이 화면에 나오는 stage — 표시 여부의 단일 진실.
+ *
+ * RouteDock 자신과, 「센서 칩을 어느 슬롯에 그릴지」를 정하는 `sensorChipSlot` 이
+ * 같은 판정을 쓴다. 둘이 갈라지면 칩이 두 곳에 뜨거나(중복) 어느 곳에도 안 뜬다(소실).
+ */
+export function isRouteDockVisible(stage: RideUiStage): boolean {
+  return (
+    stage === "setup" || stage === "ready-to-start" || stage === "riding" || stage === "paused"
+  );
+}
+
+/**
  * RouteDock 주행 중 편집 UI 접기 — 단일 진실(제품·계약 테스트 공유).
  *
  * 의도는 **지도를 가리는 면적을 줄이는 것**이지 정보를 없애는 것이 아니다.
