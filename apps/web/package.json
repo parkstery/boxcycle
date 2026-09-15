@@ -48,7 +48,8 @@
     "test:e2e:u3": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test u3-camera-trace --workers=1\"",
     "test:e2e:u5": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test u5-shots --workers=1\"",
     "test:e2e:u5q": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test u5-render-phase --workers=1 --headed\"",
-    "test:e2e:sensor-chip": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test sensor-chip-route-dock-6a --workers=1 --retries=0\""
+    "test:e2e:sensor-chip": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test sensor-chip-route-dock-6a --workers=1 --retries=0\"",
+    "test:e2e:pick-title": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test route-pick-popup-title --workers=1 --retries=0\""
   },
   "dependencies": {
     "firebase": "^12.13.0",

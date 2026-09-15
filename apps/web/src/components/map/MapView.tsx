@@ -4213,7 +4213,11 @@ function buildPickPopup(deps: {
   }
 
   function syncTokenUi() {
-    tokenSection.hidden = !pins.start;
+    /*
+     * 제목 행은 늘 선다 — 숨기면 긴 주소가 첫 줄로 올라와 닫기 ✕ 를 덮는다.
+     * 출발 핀 전에는 「경로 생성」만, 찍으면 「경로 생성 잔여 토큰 N개」(2026-09-16 Chief).
+     */
+    tokenFeedback.setRouteStartPinned(pins.start);
   }
 
   profileSection.append(rowProfile);
@@ -4539,9 +4543,14 @@ function buildPickPopup(deps: {
 
   const dragHandle = document.createElement("div");
   dragHandle.className = "map-view__pick-drag-handle";
-  dragHandle.append(addressEl, metaEl);
+  /*
+   * 첫 줄 = 제목(「경로 생성 …」), 둘째 줄 = 주소(2026-09-16 Chief).
+   * 종전에는 긴 주소가 첫 줄이라 오른쪽 끝의 닫기 ✕ 밑으로 파고들었고, 팝업에
+   * 제목 구실을 하는 행이 아예 없었다. 짧은 제목을 위로 올려 둘 다 해결한다.
+   */
+  dragHandle.append(tokenSection, addressEl, metaEl);
 
-  wrap.append(dragHandle, pioneerEl, pinRow, tokenSection, profileSection, autoRouteSection);
+  wrap.append(dragHandle, pioneerEl, pinRow, profileSection, autoRouteSection);
 
   const token = accessToken.trim();
   if (token.length > 0) {
