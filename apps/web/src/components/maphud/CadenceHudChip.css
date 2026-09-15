@@ -77,34 +77,31 @@
 }
 
 /* ── RouteDock 자리 변형 ───────────────────────────────────
- * 유리 틀(shell) 안에 들어가므로 자기 배경·테두리·blur 를 벗는다 — 칩이
- * 또 하나의 「창」으로 보이면 화면 정리라는 목적 자체가 무너진다.
- * 표시 내용(LED 색·텍스트·aria)은 우상단과 동일하다. 치수만 조인다.
+ * dock 첫 행 안에 앉는 작은 알약. 저장·삭제 버튼과 같은 높이·같은 톤이라
+ * 행의 다른 컨트롤과 형제로 읽힌다.
+ *
+ * ⚠ 세로로 늘리지 않는다(`align-self: stretch` 금지). 전용 컬럼을 만들면
+ * 칩 아래가 통째로 비는데 dock 폭만 넓어져 지도를 더 가린다 — 정리하려다
+ * 면적을 늘리는 셈이 된다(2026-09-16 Chief 지적으로 되돌림).
  */
 .hud-cadence--dock {
-  /* Go 를 밀지 않는다 — 줄어들지도, 늘어나지도 않는 고정 폭 */
+  /* Go·저장·삭제를 밀거나 줄바꿈시키지 않는다 */
   flex: 0 0 auto;
+  align-self: center;
   height: auto;
-  align-self: stretch;
+  min-height: 1.5rem;
   gap: 0.3rem;
-  padding: 0 0.42rem;
-  border: 0;
-  border-left: 1px solid rgba(248, 250, 252, 0.14);
-  border-right: 1px solid rgba(248, 250, 252, 0.14);
-  border-radius: 0;
-  /*
-   * caret·panel 과 같은 유리 톤(hud-glass). `transparent` 로 두면 두 겹 유리 사이에서
-   * 칩만 밝게 떠 「끼워 넣은 다른 창」으로 읽힌다 — 화면 정리라는 목적과 정반대다.
-   */
-  background: rgba(15, 23, 42, 0.42);
+  padding: 0.22rem 0.5rem;
+  /* 같은 행의 `route-dock__icon-btn` 과 동일한 톤 */
+  border: 1px solid rgba(248, 250, 252, 0.14);
+  background: rgba(10, 16, 26, 0.35);
   backdrop-filter: none;
   font-size: 0.7rem;
-  transition: background 0.14s ease;
 }
 
 .hud-cadence--dock:hover,
 .hud-cadence--dock.hud-cadence--open {
-  background: rgba(232, 163, 61, 0.18);
+  background: rgba(232, 163, 61, 0.2);
   border-color: rgba(232, 163, 61, 0.45);
 }
 
@@ -117,28 +114,16 @@
   height: 0.5rem;
 }
 
-/*
- * 펼친 dock 은 세로로 길다 — 칩 내용을 가운데 두면 Go 에서 한참 아래로 떠내려간다.
- * 위로 붙여 헤더 행(Go)과 같은 높이에 오게 한다. 좌우 테두리는 전체 높이를 타 구분선이 된다.
- */
-.route-dock-anchor--open .hud-cadence--dock {
-  align-items: flex-start;
-  padding-top: 0.72rem;
-}
-
-/* 폰 가로 — 루트 16→13.5px 위에서 한 번 더 조인다(Go 를 밀지 않는 것이 우선) */
+/* 폰 가로 — 루트 16→13.5px 위에서 한 번 더 조인다(행 줄바꿈 금지가 우선) */
 @media (max-height: 560px) {
   .hud-cadence--dock {
+    min-height: 1.3rem;
     gap: 0.24rem;
-    padding: 0 0.34rem;
+    padding: 0.16rem 0.4rem;
     font-size: 0.64rem;
   }
 
   .hud-cadence--dock .hud-cadence__text {
     min-width: 2.4rem;
-  }
-
-  .route-dock-anchor--open .hud-cadence--dock {
-    padding-top: 0.5rem;
   }
 }

@@ -20,14 +20,29 @@ route-dock-anchor
    └ route-dock__panel  hidden={!expanded}   ← 헤더(Go)·경유지 목록이 여기
 ```
 
-따라서 §4.2(헤더 행)와 §3.1(접혀도 보여야 한다)은 **현재 코드에서 동시에 만족할 수 없다.** §3.1 을 우선해 칩을 **`shell` 안, caret 과 panel 사이**에 두었다. 결과적으로 읽는 순서는 지시서가 요구한 그대로다:
+§4.2(헤더 행)와 §3.1(접혀도 보여야 한다)을 **둘 다** 만족시키려면 헤더 행 자체를 접히는 본문 밖으로 끌어올려야 한다. 그렇게 했다:
 
 ```
-[ ‹ 경로 ][ ● CAD ][ Go   내 경로로 저장  삭제 ]
-   caret     센서              헤더(Go)
+route-dock-anchor
+└ route-dock__shell                 ← 항상 보임
+   ├ route-dock__caret              「경로」 탭
+   └ route-dock__body
+      ├ route-dock__top             ← 항상 보임: [● CAD][Go][저장][삭제]
+      └ route-dock__panel  hidden={!expanded}   ← 경유지 목록·저장 폼
+```
+
+읽는 순서는 지시서가 요구한 그대로이고, 칩은 첫 행 안에 앉는다:
+
+```
+[ ‹ ][ ● CAD  Go        내 경로로 저장  삭제 ]
+       └ 첫 행 ─────────────────────────────┘
+      [ S 출발 주소                       ✕ ]
+      [ E 도착 주소                       ✕ ]
 ```
 
 접으면 `[경로 ›][● -- rpm]` 만 남는다 — 주행 중 자동 접힘 상태에서도 rpm·연결 상태가 그대로 보인다.
+
+> **1차 시안 폐기(2026-09-16 Chief).** 처음에는 칩을 caret 과 패널 **사이의 세로 컬럼**으로 세웠다. 접힘 대응은 됐지만 칩 아래가 통째로 비면서 dock 폭만 243 → 310px 로 넓어졌다 — **정리하려다 지도를 더 가렸다.** 첫 행 안으로 넣어 되돌렸고, 이제 dock 크기는 칩 유무와 무관하다(§5).
 
 ---
 
@@ -37,9 +52,11 @@ route-dock-anchor
 |---|---|---|
 | 우상단 `map-hud__tr` | 센서 칩 · 계정 칩 · (로그인 칩) | **계정 칩 · (로그인 칩)** |
 | 우상단 아래 `map-hud__tr-under` | 맵 버튼 | 맵 버튼 (불변) |
-| RouteDock `shell` | caret · panel | caret · **센서 칩** · panel |
+| RouteDock 첫 행 | (Go · 저장 · 삭제) | **센서 칩** · Go · 저장 · 삭제 |
 
-칩 자체는 **위치만 옮겼다.** `cadenceChipView` 의 rpm 표기·LED 색·`aria-label`·클릭 시 `CadenceSensorSheet` 열기 전부 그대로다. 바뀐 것은 `placement="dock"` 이 붙는 치수·테두리뿐이다(높이 stretch, 패딩 축소, 둥근 알약 → 유리 틀 안 세그먼트).
+칩 자체는 **위치만 옮겼다.** `cadenceChipView` 의 rpm 표기·LED 색·`aria-label`·클릭 시 `CadenceSensorSheet` 열기 전부 그대로다. 바뀐 것은 `placement="dock"` 이 붙는 치수뿐이다 — 같은 행의 `삭제` 버튼과 같은 높이(min-height 1.3rem)·같은 톤(`rgba(10,16,26,0.35)`)을 쓰는 작은 알약.
+
+구조 변경 1건: 헤더 행(`route-dock__head`)을 `route-dock__panel` 밖 `route-dock__top` 으로 옮겼다. 이것이 「첫 행 좌측」과 「접어도 보인다」를 동시에 만족시키는 유일한 배치다. 헤더 내용의 표시 조건(`expanded && !ridingDiet`)은 종전과 같아 접힘·주행 중 동작은 변하지 않는다.
 
 부수 정리 1건: `.hud-cadence*` CSS 73줄을 `MapHud.css` → **`CadenceHudChip.css`** 로 옮겼다. 칩이 두 자리에 살게 되었으므로 스타일이 MapHud 파일에 얹혀 있으면 소유가 불분명해진다.
 
@@ -110,16 +127,18 @@ return isRouteDockVisible(stage) ? "route-dock" : "map-hud-tr";
 
 | 대상 | 칩 없음(before) | 칩 있음(after) | 차이 |
 |---|---|---|---|
-| **Go** x | 37.97 | 91.50 | **+53.53** |
+| **dock shell width** | 243.00 | 243.00 | **0** |
+| **dock shell height** | 83.53 | 83.53 | **0** |
 | **Go** width | 32.39 | 32.39 | **0** |
 | **Go** height | 22.27 | 22.27 | **0** |
 | 헤더 행 height | 22.27 | 22.27 | **0** (줄바꿈 없음) |
-| dock shell width | 259.17 | 310.50 | +51.33 |
-| 센서 칩 | — | **53.53 × 81.53** | — |
+| Go x | 36.97 | 95.89 | +58.92 (칩 폭 + 행 간격) |
+| 센서 칩 | — | **55.16 × 19.27** | 행 높이 22.27 이내 |
 
-- **Go 는 좁아지지도 줄바꿈되지도 않았다.** 이동량 +53.53px 은 **칩 폭과 정확히 같다** — 칩이 왼쪽에 끼어든 만큼일 뿐, 다른 것이 밀고 들어오지 않았다.
-- dock 폭 259 → 310px(화면의 37.6% → 45.0%). 패널 폭은 **줄이지 않았다** — 줄이면 경유지 주소 라벨이 더 잘린다. 폰 가로에서 모자란 축은 세로(275px)이지 가로(690px)가 아니라고 판단했다.
-- 지도 잠식 면적으로 보면 dock 은 +4,288px²(11.4% → 13.7%), 우상단은 칩이 빠져 **−약 2,000px²**. 순증은 화면의 **약 1.2%**이고, 떠 있는 표면은 **한 덩어리 줄었다.**
+- **dock 은 칩 유무와 무관하게 243 × 83.53px** — 지시서 이전(`main2`) 치수와 동일하다. 칩을 넣느라 지도를 더 가리지 않는다.
+- 칩 높이 19.27px < 행 높이 22.27px — **세로 컬럼을 만들지 않는다.**
+- Go 는 좁아지지도 줄바꿈되지도 않았다. x 이동 +58.92px 은 칩 폭(55.16) + 행 간격(3.78)으로 전부 설명된다 — 다른 것이 밀고 들어오지 않았다.
+- 지도 잠식은 **순감**이다: dock 면적은 그대로(20,299px²)이고 우상단에서 칩 약 2,000px² 이 빠졌다. 떠 있는 표면도 한 덩어리 줄었다.
 
 증거: `.out/sensor-chip-6a/measurements.json`.
 
@@ -132,11 +151,11 @@ return isRouteDockVisible(stage) ? "route-dock" : "map-hud-tr";
 | 파일 | 내용 |
 |---|---|
 | `01-idle-fallback-tr.png` | `idle` — 우상단 `[● CAD][G 게스트][맵]` 폴백 |
-| `02-ready-to-start-expanded.png` | 주행 전 펼침 — dock `[‹][● CAD][Go …]`, 우상단에 칩 없음 |
+| `02-ready-to-start-expanded.png` | 주행 전 펼침 — 첫 행 `[● CAD][Go]`, 우상단에 칩 없음 |
 | `03-riding-collapsed.png` | **주행 중 접힘** — `[경로 ›][● -- rpm]`, rpm 유지 |
 | `04-paused.png` | 일시정지 |
 | `05-setup.png` | 핀만 있는 상태 |
-| `06-shell-closeup.png` | dock 클로즈업 — 칩이 유리 틀에 녹아든 것 확인 |
+| `06-shell-closeup.png` | dock 클로즈업 — 칩이 첫 행 안에 앉은 것 확인 |
 
 ---
 
@@ -167,7 +186,7 @@ return isRouteDockVisible(stage) ? "route-dock" : "map-hud-tr";
 
 ### 8.1 §4.2 「헤더 행에 둔다」 — 현재 코드에서 §3.1 과 충돌
 
-§1 에 적은 대로다. 헤더는 `hidden={!expanded}` 패널 안이라 거기 넣으면 **주행 중 접는 순간 센서가 사라진다**(§3.1 위반). caret 과 패널 사이로 옮겨 두 요구를 모두 만족시켰다.
+§1 에 적은 대로다. 헤더는 `hidden={!expanded}` 패널 안이라 **그 상태 그대로** 칩을 넣으면 주행 중 접는 순간 센서가 사라진다(§3.1 위반). **헤더 행 자체를 패널 밖으로 hoist** 해 두 요구를 모두 만족시켰다.
 
 ### 8.2 §4.3 「signed-out 에서 RouteDock 이 안 보이면」 — 전제가 빗나갔다
 
@@ -175,7 +194,7 @@ return isRouteDockVisible(stage) ? "route-dock" : "map-hud-tr";
 
 ### 8.3 §7 「Go 를 밀어내지 마라」 — 이동은 불가피, 변형은 0
 
-칩을 Go **왼쪽**에 두라는 §4.2 와, Go 를 밀지 말라는 §7 은 문자 그대로는 양립할 수 없다(왼쪽에 무언가를 넣으면 Go 의 x 는 반드시 커진다). §7 의 취지를 「**칩 때문에 Go 가 좁아지거나 줄바꿈되면 안 된다**」로 읽고, 그 쪽을 수치로 못 박았다 — 폭 0, 높이 0, 헤더 행 높이 0, 이동량은 칩 폭과 정확히 일치(§5).
+칩을 Go **왼쪽**에 두라는 §4.2 와, Go 를 밀지 말라는 §7 은 문자 그대로는 양립할 수 없다(왼쪽에 무언가를 넣으면 Go 의 x 는 반드시 커진다). §7 의 취지를 「**칩 때문에 Go 가 좁아지거나 줄바꿈되면 안 된다**」로 읽고, 그 쪽을 수치로 못 박았다 — Go 폭 0, 높이 0, 헤더 행 높이 0, **dock 폭·높이도 0**(§5).
 
 ### 8.4 §6 별도 worktree — 쓰지 않았다
 
@@ -194,6 +213,8 @@ return isRouteDockVisible(stage) ? "route-dock" : "map-hud-tr";
 1. `addStyleTag` 가 돌려준 **그 노드만** 지우도록 고쳤다.
 2. 계측 자가 검산을 게이트로 세웠다 — 칩의 **computed `background`·`color`** 를 직접 단언한다. 칩 CSS 가 빠지면 이제 시험이 먼저 깨진다.
 
+같은 줄기로 「dock 이 커지지 않는다」도 게이트가 됐다 — `shell.width/height` 가 칩 유무와 **정확히 같아야** 통과한다. 1차 시안(세로 컬럼)은 여기서 폭 +53px 로 깨진다.
+
 ---
 
 ## 10. 변경 파일
@@ -206,8 +227,8 @@ return isRouteDockVisible(stage) ? "route-dock" : "map-hud-tr";
 | `src/components/maphud/CadenceHudChip.css` | **신설** — MapHud.css 에서 이관 + `--dock` 변형 |
 | `src/components/maphud/MapHud.css` | `.hud-cadence*` 73줄 제거(이관) |
 | `src/components/maphud/MapHud.tsx` | 우상단은 슬롯이 `"map-hud-tr"` 일 때만 |
-| `src/components/route-dock/RouteDock.tsx` | `cadence` prop · shell 안(패널 바깥) 렌더 |
-| `src/components/route-dock/RouteDock.css` | anchor `max-width` 를 칩 폭만큼 확대(패널은 불변) |
+| `src/components/route-dock/RouteDock.tsx` | `cadence` prop · 헤더 행을 접히는 본문 밖 `route-dock__top` 으로 hoist, 칩은 그 행 좌측 |
+| `src/components/route-dock/RouteDock.css` | `__body`·`__top` 신설, 여백 재배분. anchor `max-width` 는 **불변**(dock 크기 유지) |
 | `src/App.tsx` | `cadence={cadenceHud}` 결선 1줄 |
 | `scripts/ride-hierarchy/sensor-chip-slot-contract.test.ts` | **신설** — 슬롯 + 소스 구조 계약 7건 |
 | `scripts/ride-verify/entry-contract.mjs` | 칩 설명 갱신 + `cadence-chip-slot` 단계 신설 |

@@ -177,27 +177,26 @@ export function RouteDock(props: RouteDockProps) {
           </svg>
         </button>
 
+        <div className="route-dock__body">
         {/*
-          센서 칩 — **접히는 본문 바깥**, caret 바로 오른쪽.
-          읽는 순서가 「경로(caret) → 센서 → Go」가 되고, 접어도 rpm·연결 상태가 남는다.
-          본문(route-dock__panel) 안에 넣으면 주행 중 접었을 때 신호가 사라진다.
+          첫 행 — **접히는 본문 바깥**. 센서 칩이 왼쪽에 앉고 Go·저장·삭제가 그 오른쪽.
+          「경로(caret) → 센서 → Go」가 한 줄로 읽힌다.
+          칩을 세로로 세우지 않는 이유: 전용 컬럼을 만들면 그 아래가 통째로 빈 채
+          dock 폭만 넓어져 지도를 더 가린다(2026-09-16 Chief 지적).
+          헤더를 `route-dock__panel` 안에 두지 않는 이유: 주행 중 자동 접힘 상태에서
+          칩까지 같이 사라져 rpm·연결 신호가 끊긴다(지시서 §3.1).
         */}
-        {cadence ? (
-          <CadenceHudChip
-            placement="dock"
-            state={cadence.state}
-            riding={isActiveRide}
-            open={cadence.open}
-            onOpen={cadence.onOpen}
-          />
-        ) : null}
-
-        <div
-          className="route-dock__panel hud-glass"
-          hidden={!expanded}
-          aria-hidden={!expanded}
-        >
-        {!ridingDiet ? (
+        <div className="route-dock__top">
+          {cadence ? (
+            <CadenceHudChip
+              placement="dock"
+              state={cadence.state}
+              riding={isActiveRide}
+              open={cadence.open}
+              onOpen={cadence.onOpen}
+            />
+          ) : null}
+        {expanded && !ridingDiet ? (
           <header className="route-dock__head">
           {stage === "ready-to-start" ? (
             <button
@@ -242,7 +241,13 @@ export function RouteDock(props: RouteDockProps) {
           ) : null}
           </header>
         ) : null}
+        </div>
 
+        <div
+          className="route-dock__panel hud-glass"
+          hidden={!expanded}
+          aria-hidden={!expanded}
+        >
         {!ridingDiet && stage === "ready-to-start" && resumeRatio != null ? (
           <div className="route-dock__resume" role="radiogroup" aria-label="이어 달리기">
             <label className="route-dock__resume-option">
@@ -398,6 +403,7 @@ export function RouteDock(props: RouteDockProps) {
           </ul>
         ) : null}
 
+        </div>
         </div>
       </div>
     </div>

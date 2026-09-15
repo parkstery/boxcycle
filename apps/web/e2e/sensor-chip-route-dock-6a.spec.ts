@@ -37,7 +37,7 @@ test.describe("센서 칩 — RouteDock 이전", () => {
 
     const chip = page.getByRole("button", { name: /케이던스 센서/ });
     const trChip = page.locator(".map-hud__tr .hud-cadence");
-    const dockChip = page.locator(".route-dock__shell > .hud-cadence");
+    const dockChip = page.locator(".route-dock__top .hud-cadence");
 
     // ── idle: dock 이 없는 stage. 폴백이 우상단에 남아야 한다(§4.3) ──────────
     await expect(chip, "idle 에서도 센서 시트 입구는 있어야 한다").toBeVisible({ timeout: 30_000 });
@@ -109,7 +109,7 @@ test.describe("센서 칩 — RouteDock 이전", () => {
       return {
         shell: pick(".route-dock__shell"),
         caret: pick(".route-dock__caret"),
-        chip: pick(".route-dock__shell > .hud-cadence"),
+        chip: pick(".route-dock__top .hud-cadence"),
         panel: pick(".route-dock__panel"),
       };
     });
@@ -124,8 +124,8 @@ test.describe("센서 칩 — RouteDock 이전", () => {
      */
     const chipStyle = (measurements.computed as Record<string, { background: string; color: string }>)
       .chip;
-    expect(chipStyle.background, "칩이 유리 톤을 입어야 한다(기본 버튼 아님)").toBe(
-      "rgba(15, 23, 42, 0.42)",
+    expect(chipStyle.background, "칩이 dock 톤을 입어야 한다(기본 버튼 아님)").toBe(
+      "rgba(10, 16, 26, 0.35)",
     );
     expect(chipStyle.color, "칩 글자는 밝은 색").toBe("rgb(248, 250, 252)");
 
@@ -139,10 +139,21 @@ test.describe("센서 칩 — RouteDock 이전", () => {
       Math.abs(headAfter.height - headBefore.height),
       "헤더 행 줄바꿈 없음",
     ).toBeLessThanOrEqual(1);
+    /*
+     * ★ 핵심: 칩이 들어가도 **dock 자체는 커지지 않는다**(2026-09-16 Chief).
+     * 칩은 첫 행 안에 앉으므로 폭·높이 모두 칩 유무와 무관해야 한다.
+     * 전용 세로 컬럼이던 종전 안은 여기서 폭 +53px 로 깨진다.
+     */
+    expect(shellAfter.width, "dock 폭은 칩 유무와 무관").toBe(shellBefore.width);
+    expect(shellAfter.height, "dock 높이는 칩 유무와 무관").toBe(shellBefore.height);
+    // 칩은 첫 행 안 — 높이가 행 높이를 넘지 않는다(세로 컬럼 금지)
+    expect(chipBox.height, "칩이 세로로 늘어나면 안 된다").toBeLessThanOrEqual(
+      headAfter.height + 1,
+    );
     // Go 는 칩 폭만큼만 오른쪽으로 — 그 이상 밀리면 다른 것이 끼어든 것이다
     const goShift = goAfter.x - goBefore.x;
     expect(goShift, "Go 는 칩 폭만큼만 이동").toBeGreaterThanOrEqual(0);
-    expect(goShift, "Go 이동량 ≤ 칩 폭 + 2px").toBeLessThanOrEqual(chipBox.width + 2);
+    expect(goShift, "Go 이동량 ≤ 칩 폭 + 여백").toBeLessThanOrEqual(chipBox.width + 8);
     // dock·Go 가 화면 안에 온전히 있다
     expect(goAfter.x + goAfter.width, "Go 오른쪽 끝이 화면 안").toBeLessThanOrEqual(
       PHONE_LANDSCAPE.width,
@@ -206,7 +217,7 @@ test.describe("센서 칩 — RouteDock 이전", () => {
     await expect(setStart, "지도 지점 팝업").toBeVisible({ timeout: 20_000 });
     await setStart.click();
 
-    const dockChip = page.locator(".route-dock__shell > .hud-cadence");
+    const dockChip = page.locator(".route-dock__top .hud-cadence");
     await expect(dockChip, "setup 에서 dock 이 센서를 그린다").toBeVisible({ timeout: 20_000 });
     expect(await page.locator(".map-hud__tr .hud-cadence").count(), "우상단 폴백 없음").toBe(0);
 
