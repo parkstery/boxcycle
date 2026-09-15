@@ -1,7 +1,12 @@
 import { isDiscardableRideRecord } from "./rideRecordPolicy";
 import type { StoredRideSession } from "./rideSessionsStorage";
 
-export type RideStatsPeriod = "week" | "month" | "year";
+/**
+ * 통계 기간 축. `day` 는 2026-09-15 에 합류했다 — 종전에는 「일일 주행」이 탭 밖에서
+ * 별도 블록으로 그려져 같은 타일 세트가 두 벌 쌓였다. 일일도 기간의 하나이므로
+ * 같은 축에 넣어 통계 블록을 하나로 만든다.
+ */
+export type RideStatsPeriod = "day" | "week" | "month" | "year";
 
 export type AggregatedRideStats = {
   rides: number;
@@ -64,6 +69,7 @@ export type PeriodRange = {
 };
 
 export function getRideStatsPeriodRange(period: RideStatsPeriod, now: Date = new Date()): PeriodRange {
+  if (period === "day") return getLocalDayRange(now);
   if (period === "week") {
     const start = startOfMondayWeekLocal(now);
     const endExclusive = endOfWeekExclusiveLocal(now);
