@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import {
   aggregateRideStatsForLocalDay,
   aggregateRideStatsForPeriod,
+  getRideStatsPeriodRange,
   pickLastRide,
 } from "../../src/lib/rideStatsAggregate.ts";
 import type { StoredRideSession } from "../../src/lib/rideSessionsStorage.ts";
@@ -59,6 +60,30 @@ describe("pickLastRide · endedAt 최신 유효 Ride", () => {
     assert.equal(last?.id, "b");
     assert.equal(last?.avgSpeedKmh, 20.1);
     assert.equal(last?.caloriesEstimate, 142);
+  });
+});
+
+describe("기간 축 'day' · 일일이 탭으로 합류(2026-09-15)", () => {
+  const now = new Date(2026, 8, 13, 15, 0, 0, 0);
+
+  it("aggregateRideStatsForPeriod('day') 는 로컬 오늘 집계와 같다", () => {
+    const rows = [
+      session("yesterday-late", new Date(2026, 8, 12, 23, 59, 59, 999)),
+      session("today-early", new Date(2026, 8, 13, 0, 0, 0, 0), { caloriesEstimate: 80 }),
+      session("today-noon", new Date(2026, 8, 13, 12, 0, 0, 0), { caloriesEstimate: 120 }),
+      session("tomorrow", new Date(2026, 8, 14, 0, 0, 0, 0)),
+    ];
+    const viaPeriod = aggregateRideStatsForPeriod(rows, "day", now);
+    const viaDay = aggregateRideStatsForLocalDay(rows, now);
+    assert.deepEqual(viaPeriod.stats, viaDay.stats);
+    assert.equal(viaPeriod.range.labelKo, viaDay.range.labelKo);
+    assert.equal(viaPeriod.stats.rides, 2);
+  });
+
+  it("getRideStatsPeriodRange('day') 는 오늘 00:00 ~ 내일 00:00", () => {
+    const range = getRideStatsPeriodRange("day", now);
+    assert.equal(range.start.getTime(), new Date(2026, 8, 13, 0, 0, 0, 0).getTime());
+    assert.equal(range.endExclusive.getTime(), new Date(2026, 8, 14, 0, 0, 0, 0).getTime());
   });
 });
 

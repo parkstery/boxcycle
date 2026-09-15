@@ -4,7 +4,6 @@ import { loadRideSessionsForStatsFromFirestore } from "../lib/firestoreRides";
 import { isFirebaseConfigured } from "../lib/firebase";
 import { formatRideDistanceKmNumber } from "../lib/rideDistanceFormat";
 import {
-  aggregateRideStatsForLocalDay,
   aggregateRideStatsForPeriod,
   pickLastRide,
   type RideStatsPeriod,
@@ -52,6 +51,21 @@ type UserInfoSheetProps = {
   /** 실제 종료점에서 새 경로 */
   onExtendFromRide?: (anchorLngLat: LngLat) => void;
 };
+
+/** 한 방향 셰브런(펼침 상태는 CSS 회전) — ▸/▾ 딩벳 대체 */
+function ChevronRight() {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" aria-hidden focusable="false">
+      <path
+        d="M9 6l6 6-6 6"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 function formatElapsedFromSec(sec: number): string {
   const totalMin = Math.floor(sec / 60);
@@ -153,7 +167,7 @@ function rideCompletionDisplay(s: StoredRideSession): {
  */
 export function UserInfoSheet(props: UserInfoSheetProps) {
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [statsPeriod, setStatsPeriod] = useState<RideStatsPeriod>("week");
+  const [statsPeriod, setStatsPeriod] = useState<RideStatsPeriod>("day");
   const [statsSessions, setStatsSessions] = useState<StoredRideSession[]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsLoadNote, setStatsLoadNote] = useState<string | null>(null);
@@ -306,10 +320,22 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
 
   const lastRide = useMemo(() => pickLastRide(statsSessions), [statsSessions]);
 
-  const dailyStats = useMemo(
-    () => aggregateRideStatsForLocalDay(statsSessions),
-    [statsSessions],
-  );
+  /**
+   * 플랜 줄의 단일 행동. Guest 는 액션 없음(종전과 동일), Free 는 업그레이드,
+   * 유료는 구독 관리 — 상태만 알리던 표시 세 개를 이 한 줄이 대신한다.
+   */
+  const planAction = useMemo((): { label: string; onClick: () => void } | null => {
+    if (props.isGuest) return null;
+    if (canCheckout) return { label: "업그레이드", onClick: handleUpgrade };
+    if (canManagePortal) return { label: "구독 관리", onClick: handleManagePortal };
+    return null;
+    // handleUpgrade/handleManagePortal 은 렌더마다 새로 만들어지는 클로저다 —
+    // 의존성에 넣으면 매 렌더 재계산되므로 판정 입력만 본다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.isGuest, canCheckout, canManagePortal]);
+
+  const hasAssets =
+    (props.conquest?.totalMeters ?? 0) > 0 || (props.mileage?.totalMeters ?? 0) > 0;
 
   const initial = (() => {
     if (!props.user) return "?";
@@ -366,184 +392,178 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
         </div>
 
         <div className="user-info-sheet__scroll-body">
-          <div className="user-info-sheet__plan" aria-label="플랜">
-            <span className="user-info-sheet__plan-tier">{tierPlanLabel(props.tier)}</span>
-            <span className="user-info-sheet__plan-status">
-              {subscriptionStatusLabelKo(props.subscriptionStatus)}
-            </span>
-          </div>
-          {props.mileage && props.mileage.totalMeters > 0 ? (
-            <div className="user-info-sheet__mileage" aria-label="마일리지">
-              <span className="user-info-sheet__mileage-k">누적</span>
-              <span className="user-info-sheet__mileage-v">
-                {(props.mileage.totalMeters / 1000).toFixed(1)} km ·{" "}
-                {formatMileageElapsedKo(props.mileage.totalSec)} · {props.mileage.rideCount}회
+          {/*
+            플랜 — 상태와 행동을 **한 줄**로. 종전에는 「Free/미구독」 행 · 「Free 플랜」 라벨 ·
+            「유료 플랜 구독」 버튼이 같은 사실을 세 번 말했다(2026-09-15 Chief 지적).
+            상태만 알리는 표시는 지우고 누를 수 있는 것만 남긴다.
+          */}
+          {planAction ? (
+            <button
+              type="button"
+              className="user-info-sheet__plan is-actionable"
+              aria-label={`플랜 ${tierPlanLabel(props.tier)} — ${planAction.label}`}
+              disabled={props.busy || subscriptionBusy}
+              onClick={planAction.onClick}
+            >
+              <span className="user-info-sheet__plan-tier">{tierPlanLabel(props.tier)}</span>
+              <span className="user-info-sheet__plan-cta">
+                {planAction.label}
+                <ChevronRight />
+              </span>
+            </button>
+          ) : (
+            <div className="user-info-sheet__plan" aria-label="플랜">
+              <span className="user-info-sheet__plan-tier">{tierPlanLabel(props.tier)}</span>
+              <span className="user-info-sheet__plan-status">
+                {subscriptionStatusLabelKo(props.subscriptionStatus)}
               </span>
             </div>
+          )}
+          {props.subscriptionFlash ? (
+            <p className="user-info-sheet__subscription-note is-ok" role="status">
+              {props.subscriptionFlash}
+            </p>
           ) : null}
-          {props.conquest && props.conquest.totalMeters > 0 ? (
-            <div className="user-info-sheet__conquest" aria-label="정복">
-              <span className="user-info-sheet__conquest-k">🏴 내 도로망</span>
-              <span className="user-info-sheet__conquest-v">
-                <strong>{(props.conquest.totalMeters / 1000).toFixed(1)}</strong> km
-              </span>
-            </div>
+          {subscriptionNote ? (
+            <p className="user-info-sheet__subscription-note" role="status">
+              {subscriptionNote}
+            </p>
           ) : null}
-          {!props.isGuest ? (
-            <div className="user-info-sheet__subscription">
-              {props.isPaid ? (
-                <p className="user-info-sheet__subscription-copy">유료 플랜</p>
-              ) : (
-                <p className="user-info-sheet__subscription-copy">Free 플랜</p>
-              )}
-              {canCheckout ? (
-                <button
-                  type="button"
-                  className="user-info-sheet__btn user-info-sheet__btn--upgrade"
-                  disabled={props.busy || subscriptionBusy}
-                  onClick={handleUpgrade}
-                >
-                  유료 플랜 구독
-                </button>
+
+          {/* 자산 — 내 도로망·누적을 2열 한 행으로(종전 2블록) */}
+          {hasAssets ? (
+            <div className="user-info-sheet__assets">
+              {props.conquest && props.conquest.totalMeters > 0 ? (
+                <div className="user-info-sheet__asset is-conquest" aria-label="내 도로망">
+                  <span className="user-info-sheet__asset-k">🏴 내 도로망</span>
+                  <strong className="user-info-sheet__asset-v rtw-numeric">
+                    {(props.conquest.totalMeters / 1000).toFixed(1)}
+                    <span> km</span>
+                  </strong>
+                </div>
               ) : null}
-              {canManagePortal ? (
-                <button
-                  type="button"
-                  className="user-info-sheet__btn"
-                  disabled={props.busy || subscriptionBusy}
-                  onClick={handleManagePortal}
-                >
-                  구독 관리
-                </button>
-              ) : null}
-              {props.subscriptionFlash ? (
-                <p className="user-info-sheet__subscription-note is-ok" role="status">
-                  {props.subscriptionFlash}
-                </p>
-              ) : null}
-              {subscriptionNote ? (
-                <p className="user-info-sheet__subscription-note" role="status">
-                  {subscriptionNote}
-                </p>
+              {props.mileage && props.mileage.totalMeters > 0 ? (
+                <div className="user-info-sheet__asset" aria-label="누적">
+                  <span className="user-info-sheet__asset-k">누적</span>
+                  <strong className="user-info-sheet__asset-v rtw-numeric">
+                    {(props.mileage.totalMeters / 1000).toFixed(1)}
+                    <span> km</span>
+                  </strong>
+                  <span className="user-info-sheet__asset-sub rtw-numeric">
+                    {props.mileage.rideCount}회 · {formatMileageElapsedKo(props.mileage.totalSec)}
+                  </span>
+                </div>
               ) : null}
             </div>
           ) : null}
 
-          <div className="user-info-sheet__snapshot" aria-label="마지막·일일 주행">
-            <div className="user-info-sheet__snapshot-row">
-              <span className="user-info-sheet__snapshot-k">마지막 주행</span>
+          {/*
+            기간 축 하나 — 종전에는 「일일 주행」이 탭 밖 별도 블록이라 주행·거리·시간·평속 +
+            칼로리 타일이 **두 벌** 쌓였다. 오늘을 탭으로 흡수해 숫자 묶음을 하나로 만든다.
+          */}
+          <div className="user-info-sheet__stats-head" role="tablist" aria-label="통계 기간">
+            {(
+              [
+                { id: "day" as const, label: "오늘", title: "Today" },
+                { id: "week" as const, label: "주간", title: "This week" },
+                { id: "month" as const, label: "월간", title: "This month" },
+                { id: "year" as const, label: "연간", title: "This year" },
+              ] satisfies { id: RideStatsPeriod; label: string; title: string }[]
+            ).map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                aria-selected={statsPeriod === t.id}
+                className={`user-info-sheet__stats-tab ${statsPeriod === t.id ? "is-active" : ""}`}
+                title={t.title}
+                onClick={() => setStatsPeriod(t.id)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {/* 거리를 히어로로 — 같은 크기 타일 4개는 눈이 훑을 곳을 정하지 못한다 */}
+          <div className="user-info-sheet__stats-card">
+            <div className="user-info-sheet__stats-meta">
+              <span className="rtw-numeric" title="Local calendar on this device">
+                {statsLoading ? "통계 불러오는 중…" : periodStats.range.labelKo}
+              </span>
+              <span className="rtw-numeric">주행 {periodStats.stats.rides}회</span>
+            </div>
+            {statsLoadNote ? (
+              <p className="user-info-sheet__stats-note" role="status">
+                {statsLoadNote}
+              </p>
+            ) : null}
+            <p className="user-info-sheet__stats-hero">
+              <strong className="rtw-numeric">
+                {(periodStats.stats.distanceMeters / 1000).toFixed(2)}
+              </strong>
+              <span>km</span>
+            </p>
+            <div className="user-info-sheet__stats">
+              <div>
+                <span>시간</span>
+                <strong className="rtw-numeric">
+                  {formatElapsedFromSec(periodStats.stats.elapsedSec)}
+                </strong>
+              </div>
+              <div>
+                <span>평속</span>
+                <strong className="rtw-numeric">
+                  {periodStats.stats.avgSpeedKmh.toFixed(1)}
+                </strong>
+              </div>
+              <div>
+                <span>칼로리</span>
+                <strong className="rtw-numeric">
+                  {Math.round(periodStats.stats.caloriesEstimate)}
+                </strong>
+              </div>
+            </div>
+          </div>
+
+          {/*
+            마지막 주행 카드가 곧 「최근 주행」 목록의 입구다 — 종전에는 두 블록이 패널
+            위아래로 갈라져 있어 스크롤해서 다른 행을 찾아 눌러야 했다.
+          */}
+          <button
+            type="button"
+            className="user-info-sheet__last-ride"
+            aria-expanded={historyOpen}
+            aria-controls="user-info-sheet-history-list"
+            title="Recent rides"
+            onClick={() => setHistoryOpen((v) => !v)}
+          >
+            <span className="user-info-sheet__last-ride-body">
+              <span className="user-info-sheet__last-ride-head">
+                <span className="user-info-sheet__last-ride-k">마지막 주행</span>
+                {lastRide ? (
+                  <span className="user-info-sheet__last-ride-when">
+                    {formatLastRideWhenKo(lastRide.endedAt)}
+                  </span>
+                ) : null}
+              </span>
               {lastRide ? (
                 <span
-                  className="user-info-sheet__snapshot-v"
+                  className="user-info-sheet__last-ride-v rtw-numeric"
                   title={formatRideEndedAtKo(lastRide.endedAt)}
                 >
                   {formatRideDistanceKmNumber(lastRide.distanceMeters)} km ·{" "}
                   {formatElapsedFromSec(lastRide.elapsedSec)} ·{" "}
                   {formatSessionAvgSpeedKmh(lastRide)} km/h ·{" "}
-                  {formatSessionCaloriesEstimate(lastRide)} kcal ·{" "}
-                  {formatLastRideWhenKo(lastRide.endedAt)}
+                  {formatSessionCaloriesEstimate(lastRide)} kcal
                 </span>
               ) : (
-                <span className="user-info-sheet__snapshot-v is-empty">없음</span>
+                <span className="user-info-sheet__last-ride-v is-empty">없음</span>
               )}
-            </div>
-            <div className="user-info-sheet__snapshot-row user-info-sheet__snapshot-row--daily">
-              <span className="user-info-sheet__snapshot-k">일일 주행</span>
-              <span className="user-info-sheet__snapshot-daily-range" title="Local calendar on this device">
-                {dailyStats.range.labelKo}
-              </span>
-            </div>
-            <div className="user-info-sheet__stats user-info-sheet__stats--daily">
-              <div>
-                <span>주행</span>
-                <strong>{dailyStats.stats.rides}</strong>
-              </div>
-              <div>
-                <span>거리</span>
-                <strong>{formatRideDistanceKmNumber(dailyStats.stats.distanceMeters)} km</strong>
-              </div>
-              <div>
-                <span>시간</span>
-                <strong>{formatElapsedFromSec(dailyStats.stats.elapsedSec)}</strong>
-              </div>
-              <div>
-                <span>평속</span>
-                <strong>{dailyStats.stats.avgSpeedKmh.toFixed(1)} km/h</strong>
-              </div>
-            </div>
-            <p className="user-info-sheet__stats-cal user-info-sheet__stats-cal--daily">
-              칼로리 추정{" "}
-              <strong>{Math.round(dailyStats.stats.caloriesEstimate)}</strong> kcal
-            </p>
-          </div>
-
-          <div className="user-info-sheet__stats-head" role="tablist" aria-label="통계 기간">
-          {(
-            [
-              { id: "week" as const, label: "주간" },
-              { id: "month" as const, label: "월간" },
-              { id: "year" as const, label: "연간" },
-            ] satisfies { id: RideStatsPeriod; label: string }[]
-          ).map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              aria-selected={statsPeriod === t.id}
-              className={`user-info-sheet__stats-tab ${statsPeriod === t.id ? "is-active" : ""}`}
-              title={
-                t.id === "week" ? "This week" : t.id === "month" ? "This month" : "This year"
-              }
-              onClick={() => setStatsPeriod(t.id)}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-        <p className="user-info-sheet__stats-range" title="Local calendar on this device">
-          {statsLoading ? "통계 불러오는 중…" : periodStats.range.labelKo}
-        </p>
-        {statsLoadNote ? (
-          <p className="user-info-sheet__stats-note" role="status">
-            {statsLoadNote}
-          </p>
-        ) : null}
-        <div className="user-info-sheet__stats">
-          <div>
-            <span>주행</span>
-            <strong>{periodStats.stats.rides}</strong>
-          </div>
-          <div>
-            <span>거리</span>
-            <strong>{(periodStats.stats.distanceMeters / 1000).toFixed(1)} km</strong>
-          </div>
-          <div>
-            <span>시간</span>
-            <strong>{formatElapsedFromSec(periodStats.stats.elapsedSec)}</strong>
-          </div>
-          <div>
-            <span>평속</span>
-            <strong>{periodStats.stats.avgSpeedKmh.toFixed(1)} km/h</strong>
-          </div>
-        </div>
-        <p className="user-info-sheet__stats-cal">
-          칼로리 추정{" "}
-          <strong>{Math.round(periodStats.stats.caloriesEstimate)}</strong> kcal
-        </p>
-
-        <button
-          type="button"
-          className="user-info-sheet__h-toggle"
-          aria-expanded={historyOpen}
-          aria-controls="user-info-sheet-history-list"
-          title="Recent rides"
-          onClick={() => setHistoryOpen((v) => !v)}
-        >
-          <span>최근 주행</span>
-          <span className="user-info-sheet__h-chevron" aria-hidden>
-            {historyOpen ? "▾" : "▸"}
-          </span>
-        </button>
+            </span>
+            <span className={`user-info-sheet__h-chevron ${historyOpen ? "is-open" : ""}`} aria-hidden>
+              <ChevronRight />
+            </span>
+          </button>
         {historyOpen ? (
           <ul id="user-info-sheet-history-list" className="user-info-sheet__list">
             {props.recentSessions.length === 0 ? (

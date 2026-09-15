@@ -155,66 +155,10 @@
   opacity: 0.85;
 }
 
-/* 마일리지(누적 운동 이력) — 테마 중립: currentColor + 은은한 보더(conquest 파란 강조색과 구분) */
-.user-info-sheet__mileage {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.4rem 0.55rem;
-  border-radius: 8px;
-  border: 1px solid rgba(148, 163, 184, 0.32);
-  background: rgba(148, 163, 184, 0.08);
-}
-
-.user-info-sheet__mileage-k {
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-}
-
-.user-info-sheet__mileage-v {
-  font-size: 0.72rem;
-}
-
-/* Conquest 정복 통계 — 테마(다크·라이트) 중립: currentColor + 은은한 보더 */
-.user-info-sheet__conquest {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.4rem 0.55rem;
-  border-radius: 8px;
-  border: 1px solid rgba(232, 163, 61, 0.32);
-  background: rgba(232, 163, 61, 0.08);
-}
-
-.user-info-sheet__conquest-k {
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-}
-
-.user-info-sheet__conquest-v {
-  font-size: 0.72rem;
-}
-
-.user-info-sheet__conquest-v strong {
-  color: var(--rtw-trace);
-  font-weight: 800;
-}
-
 .user-info-sheet__subscription {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-}
-
-.user-info-sheet__subscription-copy {
-  margin: 0;
-  font-size: 0.64rem;
-  line-height: 1.4;
-  opacity: 0.82;
 }
 
 .user-info-sheet__subscription-note {
@@ -226,78 +170,6 @@
 
 .user-info-sheet__subscription-note.is-ok {
   color: #86efac;
-}
-
-.user-info-sheet__btn--upgrade {
-  background: rgba(232, 163, 61, 0.22);
-  border-color: rgba(232, 163, 61, 0.45);
-  font-weight: 700;
-}
-
-.user-info-sheet__snapshot {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  margin-top: 0.1rem;
-  padding: 0.45rem 0.5rem;
-  border-radius: 10px;
-  border: 1px solid rgba(248, 250, 252, 0.12);
-  background: rgba(248, 250, 252, 0.04);
-}
-
-.user-info-sheet__snapshot-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.45rem;
-  min-width: 0;
-}
-
-.user-info-sheet__snapshot-row--daily {
-  margin-top: 0.15rem;
-}
-
-.user-info-sheet__snapshot-k {
-  flex: 0 0 auto;
-  font-size: 0.64rem;
-  font-weight: 700;
-  opacity: 0.88;
-}
-
-.user-info-sheet__snapshot-v {
-  flex: 1 1 auto;
-  min-width: 0;
-  font-size: 0.64rem;
-  line-height: 1.35;
-  text-align: right;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.user-info-sheet__snapshot-v.is-empty {
-  opacity: 0.62;
-}
-
-.user-info-sheet__snapshot-daily-range {
-  flex: 1 1 auto;
-  min-width: 0;
-  font-size: 0.58rem;
-  line-height: 1.35;
-  opacity: 0.72;
-  text-align: right;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.user-info-sheet__stats--daily {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin-top: 0.05rem;
-}
-
-.user-info-sheet__stats-cal--daily {
-  margin-top: 0.1rem;
 }
 
 .user-info-sheet__stats-head {
@@ -313,10 +185,12 @@
   background: rgba(248, 250, 252, 0.05);
   color: #f8fafc;
   font: inherit;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 700;
+  /* 폰 터치 기준 — 종전 0.35rem 패딩은 높이 약 24px 이라 손가락으로 집기 어려웠다 */
+  min-height: 44px;
   padding: 0.35rem 0.25rem;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   letter-spacing: 0.02em;
 }
@@ -330,13 +204,6 @@
   border-color: rgba(232, 163, 61, 0.45);
 }
 
-.user-info-sheet__stats-range {
-  margin: 0.2rem 0 0;
-  font-size: 0.62rem;
-  line-height: 1.35;
-  opacity: 0.78;
-}
-
 .user-info-sheet__stats-note {
   margin: 0.15rem 0 0;
   font-size: 0.58rem;
@@ -345,20 +212,9 @@
   color: #fde68a;
 }
 
-.user-info-sheet__stats-cal {
-  margin: 0.25rem 0 0;
-  font-size: 0.66rem;
-  opacity: 0.82;
-}
-
-.user-info-sheet__stats-cal strong {
-  font-weight: 700;
-  color: #fef3c7;
-}
-
 .user-info-sheet__stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.35rem;
 }
 
@@ -649,4 +505,205 @@
 .user-info-sheet__item-action:focus-visible {
   outline: 2px solid var(--rtw-accent, #e8a33d);
   outline-offset: 2px;
+}
+
+
+/* ── 2026-09-15 계정 패널 정비 ─────────────────────────────────────────
+   접는 것과 지우는 것을 분리하고, 같은 사실을 한 번만 말한다.
+   블록 12개 → 7개. 정보는 그대로 두고 중복·이중 기간축만 걷어냈다.
+   ------------------------------------------------------------------ */
+
+/* 플랜 — 상태 + 행동 한 줄(버튼 형태) */
+.user-info-sheet__plan.is-actionable {
+  appearance: none;
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.user-info-sheet__plan.is-actionable:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.user-info-sheet__plan-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--rtw-trace, #e8a33d);
+}
+
+/* 자산 — 내 도로망 · 누적을 2열 한 행으로 */
+.user-info-sheet__assets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.user-info-sheet__asset {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  min-width: 0;
+  padding: 0.45rem 0.55rem;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.user-info-sheet__asset.is-conquest {
+  border-color: rgba(232, 163, 61, 0.32);
+  background: rgba(232, 163, 61, 0.08);
+}
+
+.user-info-sheet__asset-k {
+  font-size: 0.64rem;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.user-info-sheet__asset-v {
+  font-size: 1.06rem;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.user-info-sheet__asset-v span {
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.user-info-sheet__asset.is-conquest .user-info-sheet__asset-v {
+  color: var(--rtw-trace, #e8a33d);
+}
+
+.user-info-sheet__asset-sub {
+  font-size: 0.6rem;
+  opacity: 0.62;
+}
+
+/* 통계 — 기간 하나, 거리 히어로 + 보조 3 */
+.user-info-sheet__stats-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.55rem 0.6rem;
+  border-radius: 12px;
+  border: 1px solid rgba(248, 250, 252, 0.12);
+  background: rgba(248, 250, 252, 0.04);
+}
+
+.user-info-sheet__stats-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.45rem;
+  min-width: 0;
+  font-size: 0.62rem;
+  opacity: 0.72;
+}
+
+.user-info-sheet__stats-meta span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-info-sheet__stats-hero {
+  display: flex;
+  align-items: baseline;
+  gap: 0.22rem;
+  margin: 0;
+  color: var(--rtw-trace, #e8a33d);
+}
+
+.user-info-sheet__stats-hero strong {
+  font-size: 1.85rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.user-info-sheet__stats-hero span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+/* 마지막 주행 = 최근 주행 목록 입구 */
+.user-info-sheet__last-ride {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 52px;
+  box-sizing: border-box;
+  padding: 0.5rem 0.6rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(248, 250, 252, 0.04);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.user-info-sheet__last-ride:hover {
+  background: rgba(248, 250, 252, 0.08);
+}
+
+.user-info-sheet__last-ride-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.14rem;
+}
+
+.user-info-sheet__last-ride-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.user-info-sheet__last-ride-k {
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.user-info-sheet__last-ride-when {
+  font-size: 0.6rem;
+  opacity: 0.66;
+}
+
+.user-info-sheet__last-ride-v {
+  font-size: 0.64rem;
+  line-height: 1.35;
+  opacity: 0.9;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-info-sheet__last-ride-v.is-empty {
+  opacity: 0.6;
+}
+
+.user-info-sheet__h-chevron {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.66;
+  transition: transform 0.16s ease-out;
+}
+
+.user-info-sheet__h-chevron.is-open {
+  transform: rotate(90deg);
 }
