@@ -1,0 +1,144 @@
+/* ── 케이던스 센서 칩 ──────────────────────────────────────
+ * 2026-09-15(UI-DECLUTTER-SENSOR-6A): MapHud.css 에서 분리했다.
+ * 칩이 우상단(HUD) 과 RouteDock 두 자리에 살게 되었으므로, 스타일이
+ * MapHud 의 파일에 얹혀 있으면 소유가 불분명해진다. 칩은 칩이 소유한다.
+ */
+
+.hud-cadence {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  height: 2.2rem;
+  padding: 0 0.7rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(248, 250, 252, 0.25);
+  color: #f8fafc;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+
+.hud-cadence:hover,
+.hud-cadence--open {
+  border-color: rgba(232, 163, 61, 0.55);
+}
+
+.hud-cadence:focus-visible {
+  outline: 2px solid #e8a33d;
+  outline-offset: 2px;
+}
+
+.hud-cadence__led {
+  flex: 0 0 auto;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+}
+
+.hud-cadence__led--white {
+  background: #f8fafc;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.5);
+}
+
+.hud-cadence__led--green {
+  background: #34d399;
+  box-shadow: 0 0 6px rgba(52, 211, 153, 0.85);
+}
+
+.hud-cadence__led--pulse {
+  animation: hud-cadence-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes hud-cadence-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+/* 텍스트 폭이 CAD ↔ NN rpm 사이에서 흔들려 계정 칩을 밀지 않게 최소 폭을 준다 */
+.hud-cadence__text {
+  min-width: 3.1rem;
+  text-align: center;
+}
+
+@media (max-width: 520px) {
+  .hud-cadence {
+    padding: 0 0.5rem;
+    font-size: 0.7rem;
+  }
+  .hud-cadence__text {
+    min-width: 2.7rem;
+  }
+}
+
+/* ── RouteDock 자리 변형 ───────────────────────────────────
+ * 유리 틀(shell) 안에 들어가므로 자기 배경·테두리·blur 를 벗는다 — 칩이
+ * 또 하나의 「창」으로 보이면 화면 정리라는 목적 자체가 무너진다.
+ * 표시 내용(LED 색·텍스트·aria)은 우상단과 동일하다. 치수만 조인다.
+ */
+.hud-cadence--dock {
+  /* Go 를 밀지 않는다 — 줄어들지도, 늘어나지도 않는 고정 폭 */
+  flex: 0 0 auto;
+  height: auto;
+  align-self: stretch;
+  gap: 0.3rem;
+  padding: 0 0.42rem;
+  border: 0;
+  border-left: 1px solid rgba(248, 250, 252, 0.14);
+  border-right: 1px solid rgba(248, 250, 252, 0.14);
+  border-radius: 0;
+  /*
+   * caret·panel 과 같은 유리 톤(hud-glass). `transparent` 로 두면 두 겹 유리 사이에서
+   * 칩만 밝게 떠 「끼워 넣은 다른 창」으로 읽힌다 — 화면 정리라는 목적과 정반대다.
+   */
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: none;
+  font-size: 0.7rem;
+  transition: background 0.14s ease;
+}
+
+.hud-cadence--dock:hover,
+.hud-cadence--dock.hud-cadence--open {
+  background: rgba(232, 163, 61, 0.18);
+  border-color: rgba(232, 163, 61, 0.45);
+}
+
+.hud-cadence--dock .hud-cadence__text {
+  min-width: 2.8rem;
+}
+
+.hud-cadence--dock .hud-cadence__led {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+/*
+ * 펼친 dock 은 세로로 길다 — 칩 내용을 가운데 두면 Go 에서 한참 아래로 떠내려간다.
+ * 위로 붙여 헤더 행(Go)과 같은 높이에 오게 한다. 좌우 테두리는 전체 높이를 타 구분선이 된다.
+ */
+.route-dock-anchor--open .hud-cadence--dock {
+  align-items: flex-start;
+  padding-top: 0.72rem;
+}
+
+/* 폰 가로 — 루트 16→13.5px 위에서 한 번 더 조인다(Go 를 밀지 않는 것이 우선) */
+@media (max-height: 560px) {
+  .hud-cadence--dock {
+    gap: 0.24rem;
+    padding: 0 0.34rem;
+    font-size: 0.64rem;
+  }
+
+  .hud-cadence--dock .hud-cadence__text {
+    min-width: 2.4rem;
+  }
+
+  .route-dock-anchor--open .hud-cadence--dock {
+    padding-top: 0.5rem;
+  }
+}

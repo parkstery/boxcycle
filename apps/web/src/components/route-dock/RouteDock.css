@@ -13,7 +13,12 @@
    * 가려지면 안 된다. 실제로 「다른 라이더 없음」 문구가 Go 탭을 가로챘다.
    */
   z-index: 6;
-  max-width: min(21.6rem, calc(100vw - 2rem));
+  /*
+   * 폭 = 패널(21rem) + caret(1.55rem) + 센서 칩(≈4.6rem, UI-DECLUTTER-SENSOR-6A).
+   * 칩을 넣으면서 패널을 줄이지 않는다 — 줄이면 경유지 라벨이 더 잘린다.
+   * 폰 가로에서 부족한 축은 세로(275px)이지 가로(690px)가 아니다.
+   */
+  max-width: min(27.2rem, calc(100vw - 2rem));
   pointer-events: none;
 }
 
@@ -493,7 +498,8 @@
 @media (max-height: 560px) {
   .route-dock-anchor {
     --mapbox-logo-clearance: 0.35rem;
-    max-width: min(18rem, calc(100vw - 2rem));
+    /* 17.5(패널) + 1.55(caret) + ≈3.9(센서 칩) */
+    max-width: min(23rem, calc(100vw - 2rem));
   }
 
   .route-dock__panel {

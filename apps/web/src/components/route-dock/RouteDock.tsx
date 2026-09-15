@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
 import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/firestoreSavedRoutes";
-import { routeDockUiPolicy } from "../../lib/routeDockUiPolicy";
+import { isRouteDockVisible, routeDockUiPolicy } from "../../lib/routeDockUiPolicy";
+import { CadenceHudChip, type CadenceChipBinding } from "../maphud/CadenceHudChip";
 import { isIncompleteQuotaError } from "../../lib/tierQuota";
 import type { RouteDockStop, RouteDockStopId } from "./useRouteDockStops";
 import "./RouteDock.css";
@@ -21,6 +22,11 @@ export type RouteDockProps = {
   onRemoveStop: (id: RouteDockStopId) => void;
   onFocusStop: (stop: RouteDockStop) => void;
   editLocked?: boolean;
+  /**
+   * 케이던스 센서 칩(UI-DECLUTTER-SENSOR-6A). null 이면 미표시.
+   * Go 의 사전조건인 「주행 입력 준비」가 센서 시트에 있으므로 준비물을 Go 와 한 시선에 둔다.
+   */
+  cadence?: CadenceChipBinding | null;
   /** 미완료 쿼터 초과로 저장이 막혔을 때 상위에 알림(→「내 경로」 대기 탭 유도) */
   onIncompleteQuotaBlocked?: (message: string) => void;
 };
@@ -45,10 +51,11 @@ export function RouteDock(props: RouteDockProps) {
     onRemoveStop,
     onFocusStop,
     editLocked = false,
+    cadence = null,
     onIncompleteQuotaBlocked,
   } = props;
 
-  const visible = stage === "setup" || stage === "ready-to-start" || stage === "riding" || stage === "paused";
+  const visible = isRouteDockVisible(stage);
   const [expanded, setExpanded] = useState(true);
   const [saveOpen, setSaveOpen] = useState(false);
   const [saveDraft, setSaveDraft] = useState("");
@@ -169,6 +176,21 @@ export function RouteDock(props: RouteDockProps) {
             )}
           </svg>
         </button>
+
+        {/*
+          센서 칩 — **접히는 본문 바깥**, caret 바로 오른쪽.
+          읽는 순서가 「경로(caret) → 센서 → Go」가 되고, 접어도 rpm·연결 상태가 남는다.
+          본문(route-dock__panel) 안에 넣으면 주행 중 접었을 때 신호가 사라진다.
+        */}
+        {cadence ? (
+          <CadenceHudChip
+            placement="dock"
+            state={cadence.state}
+            riding={isActiveRide}
+            open={cadence.open}
+            onOpen={cadence.onOpen}
+          />
+        ) : null}
 
         <div
           className="route-dock__panel hud-glass"

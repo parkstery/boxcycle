@@ -19,13 +19,29 @@ export const ENTRY_STEPS = [
   },
   {
     step: "cadence-chip",
-    desc: "HUD 우상단 케이던스 센서 칩 — 계정 칩 왼쪽, 센서 상세 설정 트리거",
+    desc:
+      "케이던스 센서 칩 — 센서 상세 설정 트리거. 자리는 stage 에 따라 둘 중 하나다(6A): " +
+      "경로가 있으면 RouteDock 의 항상 보이는 행, 없으면(`idle` 등) HUD 우상단 폴백. " +
+      "셀렉터는 자리에 의존하지 않는 역할·접근성 이름이므로 이동해도 그대로 쓴다.",
     file: "src/components/maphud/CadenceHudChip.tsx",
     anchors: [
       { name: "칩 접근성 이름", re: /aria-label=\{view\.ariaLabel\}/ },
       { name: "열림 상태 aria-expanded", re: /aria-expanded=\{open\}/ },
+      { name: "자리 변형(hud|dock)", re: /placement\?: "hud" \| "dock"/ },
     ],
     selector: `getByRole('button',{name:/케이던스 센서/})`,
+  },
+  {
+    step: "cadence-chip-slot",
+    desc:
+      "센서 칩 자리 판정 — dock 과 우상단에 동시에 뜨면 getByRole 이 strict 위반으로 깨진다. " +
+      "어디에도 안 뜨면 「체험 속도로 준비」에 닿지 못해 Go 가 영영 잠긴다.",
+    file: "src/lib/sensorChipSlot.ts",
+    anchors: [
+      { name: "슬롯 판정 함수", re: /export function sensorChipSlot\(/ },
+      { name: "dock 우선", re: /isRouteDockVisible\(stage\) \? "route-dock" : "map-hud-tr"/ },
+    ],
+    selector: `(렌더 자리 판정 — 셀렉터 없음)`,
   },
   {
     step: "input-readiness",
