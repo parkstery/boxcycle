@@ -92,10 +92,40 @@ export const RTW_TRACE_LIVE_GLOW_PAINT: LinePaint = {
  * 누적된 세계(내 도로망) — 마젠타.
  * 「영구 자산」이 핵심 판타지이므로 넓은 맵에서 한눈에 보여야 한다.
  */
+/** 내 도로망 선 폭의 줌 stop — [zoom, px] */
+const RTW_TRACE_ACCUMULATED_WIDTH_STOPS: readonly (readonly [number, number])[] = [
+  [4, 2.6],
+  [8, 2.8],
+  [12, 4],
+  [16, 7],
+];
+
+/**
+ * 내 도로망 선 폭. `minWidthPx` 를 주면 그 아래로 내려가지 않는다.
+ *
+ * 왜 하한이 필요한가: 경로선은 줌과 무관하게 4px 고정인데 이 선은 z12 에서 4px,
+ * z8 에서 2.8px 다. 경로선 **아래** 로 깔리는 단계(경로 설정 중)에는 z12 이하에서
+ * 경로선이 더 굵어 내 도로망이 통째로 가려진다 — 하한을 줘서 양옆에 띠가 남게 한다.
+ */
+export function rtwAccumulatedWidthExpression(
+  minWidthPx?: number,
+): NonNullable<LinePaint>["line-width"] {
+  /*
+   * 하한은 **stop 값에 직접** 건다. `["max", <interpolate>, n]` 으로 감싸면 Mapbox 가
+   * 거부한다 — "zoom" 표현식은 top-level interpolate/step 의 입력으로만 쓸 수 있다.
+   * (실주행 e2e 콘솔 오류로 잡혔다.)
+   */
+  const expr: unknown[] = ["interpolate", ["linear"], ["zoom"]];
+  for (const [zoom, px] of RTW_TRACE_ACCUMULATED_WIDTH_STOPS) {
+    expr.push(zoom, minWidthPx == null ? px : Math.max(px, minWidthPx));
+  }
+  return expr as NonNullable<LinePaint>["line-width"];
+}
+
 export const RTW_TRACE_ACCUMULATED_PAINT: LinePaint = {
   "line-color": RTW_TRACE_OWNED_COLOR,
   "line-opacity": 0.95,
-  "line-width": ["interpolate", ["linear"], ["zoom"], 4, 2.6, 8, 2.8, 12, 4, 16, 7],
+  "line-width": rtwAccumulatedWidthExpression(),
 };
 
 /**

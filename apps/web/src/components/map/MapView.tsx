@@ -58,8 +58,12 @@ import {
   RTW_TRACE_ACCUMULATED_PAINT,
   RTW_TRACE_LIVE_GLOW_PAINT,
   RTW_TRACE_LIVE_PAINT,
+  rtwAccumulatedWidthExpression,
 } from "../../lib/rtwMapConfig";
-import { conquestLayerEmphasis } from "../../lib/conquestLayerEmphasis";
+import {
+  conquestLayerEmphasis,
+  type ConquestLayerEmphasis,
+} from "../../lib/conquestLayerEmphasis";
 import {
   shouldMoveActivityWorldLayersToTop,
   shouldSkipLiveOverlaysOnMap,
@@ -193,16 +197,11 @@ const PICK_POPUP_PROFILE_ICON_SVG: Record<RouteProfile, string> = {
 /** 사용자 경로 탐색 결과 폴리라인 (`route` 소스·레이어) */
 const ROUTE_LINE_COLOR = "#ef4444";
 /**
- * 경로선 흰 테두리(casing) — 2026-09-16.
- * 내 도로망(보라)·도로·위성 어느 배경 위에서도 빨간 선이 분리돼 읽히게 한다.
- * 지도 관례(경로선 = 색 본선 + 밝은 테두리)를 따르는 것이고, 색을 섞어 대비를 만드는
- * 방식보다 안전하다 — 진한 두 색을 겹치면 어느 쪽으로도 안 읽히는 제3의 색이 된다.
+ * 경로선 폭. 흰 테두리(casing)를 둘렀다가 걷어냈다 — 테두리가 내 도로망보다 굵어
+ * **경로선은 살고 내 도로망이 죽었다**(2026-09-16 Chief). 둘을 동시에 읽히게 하는 일은
+ * 색을 덧대는 대신 순서 + 폭 차이가 맡는다(`lib/conquestLayerEmphasis`).
  */
-const ROUTE_CASING_LAYER = "route-casing";
-const ROUTE_CASING_COLOR = "#ffffff";
 const ROUTE_LINE_WIDTH = 4;
-const ROUTE_CASING_WIDTH = ROUTE_LINE_WIDTH + 3.5;
-const ROUTE_CASING_OPACITY = 0.9;
 
 const EMPTY_ACTIVITY_WORLD_RAW: ActivityWorldRawOverlay = {
   pulseRoutes: [],
@@ -221,41 +220,19 @@ const CONQUEST_LIVE_SRC = "boxcycle-conquest-live";
 const CONQUEST_LIVE_LAYER = "boxcycle-conquest-live-line";
 const CONQUEST_LIVE_GLOW_LAYER = "boxcycle-conquest-live-glow";
 
-/**
- * 경로선 + 흰 테두리를 **한 쌍으로** 올린다.
- * 테두리를 따로 만들면 한쪽만 추가되거나 사이에 다른 레이어가 끼어드는 사고가 난다.
- */
-function addRouteLineWithCasing(map: mapboxgl.Map, beforeId: string | undefined): void {
-  if (!map.getLayer(ROUTE_CASING_LAYER)) {
-    // route 가 이미 있으면 그 **바로 아래**로 — beforeId 를 그대로 쓰면 위로 올라가 빨강을 덮는다
-    const casingBefore = map.getLayer("route") ? "route" : beforeId;
-    map.addLayer(
-      {
-        id: ROUTE_CASING_LAYER,
-        type: "line",
-        source: "route",
-        layout: { "line-cap": "round", "line-join": "round" },
-        paint: {
-          "line-color": ROUTE_CASING_COLOR,
-          "line-width": ROUTE_CASING_WIDTH,
-          "line-opacity": ROUTE_CASING_OPACITY,
-        },
-      },
-      casingBefore,
-    );
-  }
-  if (!map.getLayer("route")) {
-    map.addLayer(
-      {
-        id: "route",
-        type: "line",
-        source: "route",
-        layout: { "line-cap": "round", "line-join": "round" },
-        paint: { "line-color": ROUTE_LINE_COLOR, "line-width": ROUTE_LINE_WIDTH },
-      },
-      beforeId,
-    );
-  }
+/** 경로선 한 겹 — 테두리 없음(위 ROUTE_LINE_WIDTH 주석 참고) */
+function addRouteLine(map: mapboxgl.Map, beforeId: string | undefined): void {
+  if (map.getLayer("route")) return;
+  map.addLayer(
+    {
+      id: "route",
+      type: "line",
+      source: "route",
+      layout: { "line-cap": "round", "line-join": "round" },
+      paint: { "line-color": ROUTE_LINE_COLOR, "line-width": ROUTE_LINE_WIDTH },
+    },
+    beforeId,
+  );
 }
 
 /**
@@ -268,7 +245,7 @@ function addRouteLineWithCasing(map: mapboxgl.Map, beforeId: string | undefined)
  * 레이어 추가 순서는 경로 로드 시점에 따라 뒤집히므로 매 적용마다 다시 세운다.
  *
  * 위: route(+casing) < LOD 광채 < 누적(내 도로망) < live glow < live(이번 주행)
- * 아래: LOD 광채 < 누적 < live glow < live < route-casing < route
+ * 아래: LOD 광채 < 누적(내 도로망) < live glow < live < route
  */
 const CONQUEST_ORDERED_LAYERS = [
   CONQUEST_TRACES_HALO_LAYER,
@@ -283,10 +260,8 @@ function orderConquestLayers(map: mapboxgl.Map, aboveRoute: boolean): void {
     const routeIdx = ids.indexOf("route");
     if (routeIdx < 0) return;
     if (!aboveRoute) {
-      // 경로선(과 그 테두리) **아래**로 — 테두리까지 함께 덮이지 않게 casing 을 기준으로 둔다
-      const anchor = map.getLayer(ROUTE_CASING_LAYER) ? ROUTE_CASING_LAYER : "route";
       for (const id of CONQUEST_ORDERED_LAYERS) {
-        if (map.getLayer(id)) map.moveLayer(id, anchor);
+        if (map.getLayer(id)) map.moveLayer(id, "route");
       }
       return;
     }
@@ -301,14 +276,16 @@ function orderConquestLayers(map: mapboxgl.Map, aboveRoute: boolean): void {
 }
 
 /** 단계 판정을 실제 레이어에 적용 — 순서 + 내 도로망 불투명도 */
-function applyConquestEmphasis(
-  map: mapboxgl.Map,
-  emphasis: { tracesAboveRoute: boolean; accumulatedOpacity: number },
-): void {
+function applyConquestEmphasis(map: mapboxgl.Map, emphasis: ConquestLayerEmphasis): void {
   orderConquestLayers(map, emphasis.tracesAboveRoute);
   try {
     if (map.getLayer(CONQUEST_TRACES_LAYER)) {
       map.setPaintProperty(CONQUEST_TRACES_LAYER, "line-opacity", emphasis.accumulatedOpacity);
+      map.setPaintProperty(
+        CONQUEST_TRACES_LAYER,
+        "line-width",
+        rtwAccumulatedWidthExpression(emphasis.accumulatedMinWidthPx ?? undefined),
+      );
     }
   } catch {
     /* noop */
@@ -2051,7 +2028,7 @@ export function MapView({
         };
         if (!map.getSource("route")) {
           map.addSource("route", { type: "geojson", data: routeFeature });
-          addRouteLineWithCasing(map, routeLayerInsertBefore(map));
+          addRouteLine(map, routeLayerInsertBefore(map));
         }
       }
       if (shouldMoveActivityWorldLayersToTop()) {
@@ -2562,8 +2539,6 @@ export function MapView({
 
     if (!routeGeometry?.coordinates?.length) {
       if (map.getLayer("route")) map.removeLayer("route");
-      // 테두리는 같은 소스를 쓴다 — 함께 지우지 않으면 소스 제거에서 걸린다
-      if (map.getLayer(ROUTE_CASING_LAYER)) map.removeLayer(ROUTE_CASING_LAYER);
       if (map.getSource("route")) map.removeSource("route");
       if (map.isStyleLoaded()) {
         try {
@@ -2590,11 +2565,9 @@ export function MapView({
       if (map.getLayer("route")) {
         map.setPaintProperty("route", "line-color", ROUTE_LINE_COLOR);
       }
-      // 스타일 교체 등으로 테두리만 빠진 상태를 복구
-      addRouteLineWithCasing(map, routeLayerInsertBefore(map));
     } else {
       map.addSource("route", { type: "geojson", data: routeFeature });
-      addRouteLineWithCasing(map, routeLayerInsertBefore(map));
+      addRouteLine(map, routeLayerInsertBefore(map));
     }
 
     if (shouldMoveActivityWorldLayersToTop()) {
