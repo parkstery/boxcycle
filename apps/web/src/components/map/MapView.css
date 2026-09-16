@@ -979,7 +979,17 @@
   overflow: hidden;
 }
 
+/*
+ * 표고 그래프 — **표시 전용**.
+ *
+ * 배경이 transparent 라 지도가 비쳐 보이는데 터치는 삼키고 있었다. 폰 가로(690×275)에서
+ * 386×120px = 화면의 24.4% 이고, 그것도 팬·핀치를 가장 많이 하는 하단 중앙이다.
+ * `.map-hud` 가 이미 쓰는 규칙(「슬롯은 pointer-events: none, 내부 위젯만 다시 켠다」)에서
+ * 이 오버레이만 빠져 있었다. 나중에 그래프 위 스크럽 같은 조작을 넣으면 그 요소에만
+ * `pointer-events: auto` 를 준다 (2026-09-17 Chief).
+ */
 .elevation-overlay {
+  pointer-events: none;
   position: absolute;
   left: 50%;
   bottom: 1rem;

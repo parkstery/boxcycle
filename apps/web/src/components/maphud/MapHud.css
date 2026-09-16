@@ -1085,3 +1085,55 @@
     font-size: 0.52rem;
   }
 }
+
+/* ── 터치 타깃 44px ────────────────────────────────────────────────────────
+ * 인수인계 §2.2: 「터치 타깃 44px 이상. rem 으로 주면 가로에서 같이 줄어드니 px 로 고정한다.」
+ * 이 규칙을 HUD 가 지키지 못하고 있었다 — 폰 가로에서 루트 폰트가 16→13.5px 로 줄면서
+ * 선언 2.1~2.4rem 인 버튼들이 실제 28.4~32.4px 까지 작아진다. 손가락 접점(≈40px)보다
+ * 작아 가장자리를 빗맞히면 그 밑이 곧 지도라, 메뉴를 누르려다 지도 지점 팝업이 떴다
+ * (2026-09-17 Chief).
+ *
+ * 보이는 크기는 건드리지 않는다 — 버튼을 실제로 키우면 그동안 줄여 온 화면 밀도가
+ * 되돌아간다. **투명한 히트 영역만** 44px 로 넓힌다.
+ */
+.hud-brand,
+.hud-place-search-btn,
+.hud-account,
+.hud-signin-pill,
+.hud-bc-trigger,
+.hud-icon-btn {
+  position: relative;
+}
+
+/*
+ * 글자가 든 알약은 가로가 이미 44px 을 넘는다(패딩+텍스트). 모자란 것은 높이뿐이라
+ * **세로로만** 넓힌다 — 가로로도 넓히면 같은 행의 옆 버튼 위를 덮어 탭을 가로챈다.
+ */
+.hud-brand::after,
+.hud-place-search-btn::after,
+.hud-account::after,
+.hud-signin-pill::after,
+.hud-bc-trigger::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: max(100%, 44px);
+  transform: translateY(-50%);
+}
+
+/*
+ * 정사각 아이콘 버튼은 두 축 다 모자라다(32.4px). 세로로 쌓인 지도 컨트롤 열의 간격은
+ * 0.45rem(6.1px)이고 한쪽당 확장은 5.8px 이라, 서로의 **보이는 면적**은 침범하지 않는다.
+ * `max()` 라서 이미 44px 이상인 큰 변형(--xl 48.6px)은 줄어들지 않는다.
+ */
+.hud-icon-btn::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
+}
