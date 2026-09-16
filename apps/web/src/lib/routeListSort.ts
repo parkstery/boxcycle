@@ -8,14 +8,15 @@
  * 표시 문구·select 는 `components/ride/RouteSortSelect.tsx` 가 소유한다.
  */
 
-export type RouteSortKey = "recent" | "default" | "distance" | "name";
+export type RouteSortKey = "recent" | "distance" | "name";
 
 export type RouteSortFields = {
   name: string;
   distanceMeters: number;
   /**
-   * `recent` 전용 시각(ms). 공식 코스 요약에는 자기 시각이 없다 —
-   * 없으면 `recent` 는 조용히 **원래 순서**로 물러난다(엉뚱한 순서로 섞지 않는다).
+   * `recent` 의 시계(ms). 내 경로는 `updatedAt`, 퍼블릭 코스는 **등록 시각**이다.
+   * 입문 허브처럼 시각이 없는 정적 코스는 `null` — 그때 `recent` 는 조용히
+   * **원래 순서**로 물러난다(엉뚱한 순서로 섞지 않는다).
    */
   updatedAtMs?: number | null;
 };
@@ -43,14 +44,13 @@ export function compareRouteListItems(
   return 0;
 }
 
-/** 원본을 건드리지 않고 정렬한 새 배열. `default` 는 원래 순서 그대로. */
+/** 원본을 건드리지 않고 정렬한 새 배열. */
 export function sortRouteList<T>(
   items: readonly T[],
   key: RouteSortKey,
   fields: (item: T) => RouteSortFields,
 ): T[] {
   const out = [...items];
-  if (key === "default") return out;
   out.sort((a, b) => compareRouteListItems(fields(a), fields(b), key));
   return out;
 }

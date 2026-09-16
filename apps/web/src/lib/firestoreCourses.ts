@@ -21,6 +21,7 @@ import {
   ROUTE_PUBLICATIONS_COLLECTION,
   type RoutePublicationRow,
 } from "./firestoreRoutePublications";
+import { lastSeenAtToMillis } from "./firestoreTrail";
 import { getUserPublicLabelsByUid } from "./firestoreUser";
 import { getDistanceMeters, type LineStringGeometry, type LngLat } from "./geo";
 import { computeRouteFingerprint } from "./routeFingerprint";
@@ -116,6 +117,11 @@ export type PublishedPublicCourseSummary = {
   applicantUid?: string | null;
   /** `users/{applicantUid}` 닉네임(없으면 displayName 등) */
   publisherNickname?: string | null;
+  /**
+   * 퍼블릭 등록 시각(ms). 목록 「최근순」의 시계다 — 2026-09-16 Chief.
+   * 입문 허브처럼 등록 개념이 없는 정적 코스는 `null`(정렬이 원래 순서로 물러난다).
+   */
+  publishedAtMs?: number | null;
 };
 
 function summaryFromPublication(pub: RoutePublicationRow): PublishedPublicCourseSummary {
@@ -129,6 +135,7 @@ function summaryFromPublication(pub: RoutePublicationRow): PublishedPublicCourse
     publicationId: pub.publicationId,
     sourceSavedRouteId: pub.routeId,
     applicantUid: pub.applicantUid.length > 0 ? pub.applicantUid : null,
+    publishedAtMs: lastSeenAtToMillis(pub.createdAt),
   };
 }
 

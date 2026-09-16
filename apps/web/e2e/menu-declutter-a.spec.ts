@@ -150,8 +150,9 @@ test.describe("MENU 정리 A단계", () => {
 
     /*
      * ── 정렬을 입문·퍼블릭에도 (2026-09-16 Chief) ─────────────────────────
-     * 같은 컨트롤이 붙고, 기본값은 카탈로그 순서다 —
-     * 입문 Basic 1·2·3 은 의도된 순서라 이름·거리로 섞으면 안 된다.
+     * 같은 컨트롤·기본값 「최근순」. 입문 허브는 등록 시각이 없어 최근순이 원래 순서로
+     * 물러나므로 Basic 1·2·3 의 의도된 난이도 순서가 그대로 지켜진다 —
+     * 「최근순으로 두면 입문이 섞이지 않을까」를 실제로 확인하는 것이 아래 왕복이다.
      */
     await page.getByRole("button", { name: "입문", exact: true }).click();
     const introDialog = page.getByRole("dialog", { name: "입문 경로" });
@@ -162,12 +163,14 @@ test.describe("MENU 정리 A단계", () => {
     const introSort = introDialog.getByRole("combobox", { name: "정렬 기준" });
     const introSortable = (await introSort.count()) > 0;
     if (introSortable) {
-      await expect(introSort, "입문 기본 정렬은 카탈로그 순서").toHaveValue("default");
+      await expect(introSort, "입문 기본 정렬은 최근순").toHaveValue("recent");
+      // 최근순이 기본인데도 입문은 원래(카탈로그) 순서여야 한다 — 시각이 없으니 물러난다
+      expect(await introTitles(), "입문은 최근순에서도 카탈로그 순서").toEqual(introBefore);
       await introSort.selectOption("name");
       await page.waitForTimeout(250);
-      await introSort.selectOption("default");
+      await introSort.selectOption("recent");
       await page.waitForTimeout(250);
-      expect(await introTitles(), "기본순으로 되돌리면 원래 순서").toEqual(introBefore);
+      expect(await introTitles(), "최근순으로 되돌리면 원래 순서").toEqual(introBefore);
     }
     await page.screenshot({ path: path.join(OUT_DIR, "03-intro-sort.png") });
     await introDialog.getByRole("button", { name: "닫기" }).click();

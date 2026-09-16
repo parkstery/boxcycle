@@ -89,14 +89,15 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
 
   /*
    * 정렬 — 내 경로와 같은 컨트롤·같은 비교 규칙(2026-09-16 Chief).
-   * 기본값이 `default`(카탈로그 순서)인 이유는 두 가지다:
-   *   - 입문은 Basic 1·2·3 이 의도된 난이도 순서라 이름·거리로 섞으면 안 된다
-   *   - 공식 코스 요약에는 자기 시각이 없어 「최근순」을 댈 근거가 없다
+   * 기본값 「최근순」의 시계는 **퍼블릭 등록 시각**(`publishedAtMs`)이다.
+   * 입문 허브는 등록 개념이 없어 시각이 없으므로 최근순이 원래 순서로 물러난다 —
+   * Basic 1·2·3 의 의도된 난이도 순서가 그대로 지켜진다.
    */
-  const [sortKey, setSortKey] = useState<RouteSortKey>("default");
+  const [sortKey, setSortKey] = useState<RouteSortKey>("recent");
   const sortFields = (c: PublishedPublicCourseSummary) => ({
     name: publicationDisplayTitle(c),
     distanceMeters: c.distanceMeters,
+    updatedAtMs: c.publishedAtMs ?? null,
   });
   const introCourses = useMemo(
     () => sortRouteList(props.basicSharedHubs, sortKey, sortFields),
@@ -115,7 +116,7 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
         <RouteSortSelect
           value={sortKey}
           onChange={setSortKey}
-          keys={["default", "distance", "name"]}
+          keys={["recent", "distance", "name"]}
         />
       </div>
     ) : null;

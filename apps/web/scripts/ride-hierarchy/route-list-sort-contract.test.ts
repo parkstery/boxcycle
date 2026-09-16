@@ -33,10 +33,6 @@ const fields = (i: Item) => ({
 const ids = (arr: Item[]) => arr.map((i) => i.id).join(",");
 
 describe("routeListSort — 목록 정렬 단일 진실", () => {
-  it("default 는 원래 순서를 그대로 둔다", () => {
-    assert.equal(ids(sortRouteList(ITEMS, "default", fields)), "a,b,c");
-  });
-
   it("distance 는 **긴 것이 위** — 세 목록이 같은 방향", () => {
     assert.equal(ids(sortRouteList(ITEMS, "distance", fields)), "b,a,c");
   });
@@ -49,7 +45,7 @@ describe("routeListSort — 목록 정렬 단일 진실", () => {
     assert.equal(ids(sortRouteList(ITEMS, "recent", fields)), "a,c,b");
   });
 
-  it("시각이 없으면 recent 는 원래 순서로 물러난다(엉뚱하게 섞지 않는다)", () => {
+  it("시각이 없으면 recent 는 원래 순서로 물러난다 — 입문 Basic 1·2·3 이 그 경우다", () => {
     const noTime = ITEMS.map((i) => ({ ...i, updatedAtMs: null }));
     assert.equal(ids(sortRouteList(noTime, "recent", fields)), "a,b,c");
     // 한쪽만 없어도 비교하지 않는다
@@ -84,6 +80,7 @@ describe("routeListSort — 목록 정렬 단일 진실", () => {
       { id: "z", name: "같음", distanceMeters: 100 },
     ];
     for (const key of ["distance", "name", "recent"] as RouteSortKey[]) {
+      // 같은 값 + 시각 없음 → 전부 0 → 원래 순서
       assert.equal(ids(sortRouteList(same, key, fields)), "x,y,z", key);
     }
   });
@@ -107,10 +104,17 @@ describe("정렬 컨트롤이 세 목록에 실제로 붙어 있다", () => {
     }
   });
 
-  it("공식 코스는 기본값이 카탈로그 순서 — 입문 Basic 1·2·3 순서를 지킨다", () => {
+  it("공식 코스도 기본값이 최근순 — 시계는 퍼블릭 등록 시각", () => {
     const src = read("components/ride/OfficialCourseListModal.tsx");
-    assert.match(src, /useState<RouteSortKey>\("default"\)/);
-    assert.match(src, /keys=\{\["default", "distance", "name"\]\}/);
+    assert.match(src, /useState<RouteSortKey>\("recent"\)/);
+    assert.match(src, /keys=\{\["recent", "distance", "name"\]\}/);
+    assert.match(src, /updatedAtMs: c\.publishedAtMs/, "퍼블릭 등록 시각을 시계로 쓴다");
+  });
+
+  it("퍼블릭 요약이 등록 시각을 싣는다 — 없으면 최근순이 이름순처럼 보인다", () => {
+    const src = read("lib/firestoreCourses.ts");
+    assert.match(src, /publishedAtMs\?: number \| null/);
+    assert.match(src, /publishedAtMs: lastSeenAtToMillis\(pub\.createdAt\)/);
   });
 
   it("내 경로는 기본값이 최근순(종전 동작 유지)", () => {
