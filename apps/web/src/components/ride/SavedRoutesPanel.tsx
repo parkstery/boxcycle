@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { sortRouteList, type RouteSortKey } from "../../lib/routeListSort";
+import { RouteSortSelect } from "./RouteSortSelect";
 import type { SavedRoute } from "../../lib/firestoreSavedRoutes";
 import {
   encodeCanonicalRouteGeometryProfile,
@@ -8,7 +10,6 @@ import type { RouteProfile } from "../../services/mapboxDirections";
 import "./SavedRoutesPanel.css";
 
 type CompletionFilter = "all" | "completed" | "pending";
-type SortKey = "recent" | "distance" | "name";
 
 const PROFILE_LABEL: Record<RouteProfile, string> = {
   cycling: "자전거",
@@ -138,7 +139,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
   const [filter, setFilter] = useState<CompletionFilter>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [queryText, setQueryText] = useState("");
-  const [sortKey, setSortKey] = useState<SortKey>("recent");
+  const [sortKey, setSortKey] = useState<RouteSortKey>("recent");
 
   // 미완료 쿼터 초과 유도 시 「대기」 필터로 전환해 정리 대상 경로만 보여준다.
   // effect 대신 이전 신호값과 비교(React 권장) — cascading render·set-state-in-effect 회피.
@@ -157,14 +158,12 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
       if (q && !normalizeForSearch(r.name).includes(q)) return false;
       return true;
     });
-    const sorted = [...base];
-    sorted.sort((a, b) => {
-      if (sortKey === "distance") return b.distanceMeters - a.distanceMeters;
-      if (sortKey === "name") return a.name.localeCompare(b.name, "ko");
-      // recent: updatedAt 내림차순(최근이 위)
-      return Date.parse(b.updatedAtIso) - Date.parse(a.updatedAtIso);
-    });
-    return sorted;
+    // 비교 규칙은 `lib/routeListSort` 단일 진실 — 공식 코스 목록과 같은 것을 쓴다
+    return sortRouteList(base, sortKey, (r) => ({
+      name: r.name,
+      distanceMeters: r.distanceMeters,
+      updatedAtMs: Date.parse(r.updatedAtIso),
+    }));
   }, [props.routes, filter, queryText, sortKey]);
 
   const completedCount = useMemo(
@@ -355,19 +354,11 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
               </button>
             </div>
 
-            <label className="saved-routes__sort-label">
-              <span className="saved-routes__sort-caption">정렬</span>
-              <select
-                className="saved-routes__sort"
-                value={sortKey}
-                aria-label="정렬 기준"
-                onChange={(e) => setSortKey(e.target.value as SortKey)}
-              >
-                <option value="recent">최근순</option>
-                <option value="distance">거리순</option>
-                <option value="name">이름순</option>
-              </select>
-            </label>
+            <RouteSortSelect
+              value={sortKey}
+              onChange={setSortKey}
+              keys={["recent", "distance", "name"]}
+            />
           </div>
 
           <div className="saved-routes__toolbar" role="toolbar" aria-label="선택한 경로 작업">

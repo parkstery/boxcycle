@@ -195,3 +195,10 @@
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+/* 정렬 바 — 목록 바로 위, 오른쪽 정렬(2026-09-16) */
+.oc-modal__sortbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 0.45rem;
+}

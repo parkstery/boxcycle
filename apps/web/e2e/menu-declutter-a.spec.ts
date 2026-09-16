@@ -131,10 +131,58 @@ test.describe("MENU 정리 A단계", () => {
       "목록이 쓸 수 있는 최대 높이가 종전 인패널(61px)의 2배는 돼야 한다",
     ).toBeGreaterThan(BEFORE.savedListAreaH * 2);
 
+    /*
+     * 내 경로 정렬 — 종전 기본값(최근순) 유지.
+     * 경로가 0개면 컨트롤 자체가 안 나온다(제품 동작) — 에뮬레이터 게스트가 그렇다.
+     * 있을 때만 값을 보고, 없으면 기록만 남긴다. 기본값 자체는 단위 계약이 잡는다
+     * (`route-list-sort-contract.test.ts`).
+     */
+    const savedSort = savedDialog.getByRole("combobox", { name: "정렬 기준" });
+    const savedSortable = (await savedSort.count()) > 0;
+    if (savedSortable) {
+      await expect(savedSort, "내 경로 기본 정렬은 최근순").toHaveValue("recent");
+    }
+
     // 닫으면 MENU 로 돌아온다
     await savedDialog.getByRole("button", { name: "닫기" }).click();
     await expect(savedDialog).toBeHidden({ timeout: 10_000 });
     await expect(panel).toBeVisible();
+
+    /*
+     * ── 정렬을 입문·퍼블릭에도 (2026-09-16 Chief) ─────────────────────────
+     * 같은 컨트롤이 붙고, 기본값은 카탈로그 순서다 —
+     * 입문 Basic 1·2·3 은 의도된 순서라 이름·거리로 섞으면 안 된다.
+     */
+    await page.getByRole("button", { name: "입문", exact: true }).click();
+    const introDialog = page.getByRole("dialog", { name: "입문 경로" });
+    await expect(introDialog).toBeVisible({ timeout: 20_000 });
+    const introTitles = () =>
+      introDialog.locator(".oc-modal__item-title, .oc-modal__item strong, li").allInnerTexts();
+    const introBefore = await introTitles();
+    const introSort = introDialog.getByRole("combobox", { name: "정렬 기준" });
+    const introSortable = (await introSort.count()) > 0;
+    if (introSortable) {
+      await expect(introSort, "입문 기본 정렬은 카탈로그 순서").toHaveValue("default");
+      await introSort.selectOption("name");
+      await page.waitForTimeout(250);
+      await introSort.selectOption("default");
+      await page.waitForTimeout(250);
+      expect(await introTitles(), "기본순으로 되돌리면 원래 순서").toEqual(introBefore);
+    }
+    await page.screenshot({ path: path.join(OUT_DIR, "03-intro-sort.png") });
+    await introDialog.getByRole("button", { name: "닫기" }).click();
+    await expect(introDialog).toBeHidden({ timeout: 10_000 });
+
+    fs.writeFileSync(
+      path.join(OUT_DIR, "sort.json"),
+      `${JSON.stringify(
+        { savedSortable, introSortable, introCount: introBefore.length },
+        null,
+        2,
+      )}
+`,
+      "utf8",
+    );
 
     const chromeH =
       (rows.head ?? 0) + (rows.trailHub ?? 0) + (rows.sourceRow ?? 0);
