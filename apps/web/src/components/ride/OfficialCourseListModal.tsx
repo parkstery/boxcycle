@@ -6,12 +6,14 @@ import type { RouteActivitySnapshot } from "../../lib/firestoreRouteActivity";
 import { formatRouteActivityListBadge } from "../../lib/firestoreRouteActivity";
 import "./OfficialCourseListModal.css";
 
-export type OfficialCourseSegment = "intro" | "public" | "event";
+/*
+ * 2026-09-16: `event` 제거. 「이벤트 (준비 중)」 한 줄만 그리는 빈 껍데기가 폰 가로에서
+ * 가장 좁은 네비 줄의 1/3 을 상시 점유했다. 실제 이벤트가 생기면 그때 되살린다.
+ */
+export type OfficialCourseSegment = "intro" | "public";
 
 function segmentTitle(segment: OfficialCourseSegment): string {
-  if (segment === "intro") return "입문 경로";
-  if (segment === "public") return "퍼블릭 경로";
-  return "이벤트";
+  return segment === "intro" ? "입문 경로" : "퍼블릭 경로";
 }
 
 function PublicCoursePickRow(props: {
@@ -128,7 +130,7 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
           </button>
         ) : null}
       </>
-    ) : props.segment === "public" ? (
+    ) : (
       <>
         {!props.officialCourseCatalogAvailable ? (
           <p className="oc-modal__hint">목록 미연결</p>
@@ -162,8 +164,6 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
           </ul>
         )}
       </>
-    ) : (
-      <p className="oc-modal__hint">이벤트 (준비 중)</p>
     );
 
   return createPortal(

@@ -245,49 +245,6 @@
   text-align: center;
 }
 
-.ride-panel__tabs {
-  display: flex;
-  gap: 0.2rem;
-  margin-bottom: 0.4rem;
-  border-bottom: 1px solid var(--rp-border);
-}
-
-.ride-panel__tab {
-  font: inherit;
-  font-size: 0.76rem;
-  padding: 0.32rem 0.5rem;
-  border: 1px solid transparent;
-  border-bottom: none;
-  border-radius: 8px 8px 0 0;
-  background: transparent;
-  color: var(--rp-fg-muted);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.ride-panel__tab.is-active {
-  background: rgba(232, 163, 61, 0.14);
-  border-color: var(--rp-border);
-  color: var(--rp-fg);
-  font-weight: 650;
-}
-
-.ride-panel__tab-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1rem;
-  height: 1rem;
-  padding: 0 0.28rem;
-  border-radius: 999px;
-  background: var(--rp-accent-strong);
-  color: var(--rtw-bg);
-  font-size: 0.65rem;
-  line-height: 1;
-}
-
 .ride-panel__save-route {
   margin-top: 0.28rem;
 }
@@ -353,11 +310,6 @@
   background: var(--rp-chip);
   color: var(--rp-fg);
   cursor: pointer;
-}
-
-.ride-panel__saved-back {
-  width: 100%;
-  margin-top: 0.5rem;
 }
 
 .ride-panel__arrival-toast {
@@ -440,19 +392,11 @@
 }
 
 .ride-panel__official {
-  margin: 0.15rem 0 0.4rem;
-  padding: 0.38rem 0.42rem 0.4rem;
+  margin: 0 0 0.35rem;
+  padding: 0.35rem 0.4rem;
   border-radius: 8px;
   border: 1px solid var(--rp-border);
   background: var(--rp-surface);
-}
-
-.ride-panel__official-head {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  flex-wrap: nowrap;
-  margin-bottom: 0.3rem;
 }
 
 .ride-panel__official-title {
@@ -468,13 +412,17 @@
   opacity: 0.85;
 }
 
+/*
+ * 경로 출처 한 줄 — 입문 · 퍼블릭 · 내 경로.
+ * 종전에는 「공식」 키커 오른쪽에 밀어 붙이느라 flex-end 였는데, 이제 이 줄이 곧 내비게이션이라
+ * 왼쪽부터 채운다. 좁으면 줄바꿈해 칩이 찌그러지지 않게 한다(폰 가로 208px 패널).
+ */
 .ride-panel__official-segments {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 0.2rem;
-  flex: 1;
+  flex-wrap: wrap;
+  gap: 0.25rem;
   min-width: 0;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .ride-panel__official-seg {

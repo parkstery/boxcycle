@@ -166,32 +166,6 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
 
   return (
     <aside className="ride-panel" aria-label="경로 및 라이딩">
-      <div className="ride-panel__tabs" role="tablist" aria-label="패널 보기">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === "route"}
-          className={`ride-panel__tab ${tab === "route" ? "is-active" : ""}`}
-          title="Route"
-          onClick={() => setTab("route")}
-        >
-          공식경로
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === "saved"}
-          className={`ride-panel__tab ${tab === "saved" ? "is-active" : ""}`}
-          title="My routes"
-          onClick={() => setTab("saved")}
-        >
-          내 경로
-          {props.savedRoutes.length > 0 ? (
-            <span className="ride-panel__tab-badge">{props.savedRoutes.length}</span>
-          ) : null}
-        </button>
-      </div>
-
       {tab === "saved" ? (
         <>
           <div className="ride-panel__saved-head">
@@ -225,21 +199,16 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             onDismissQuotaNotice={props.onDismissSavedQuotaNotice}
             focusPendingSignal={openSavedTabSignal}
           />
-          <button
-            type="button"
-            className="ride-panel__btn-secondary ride-panel__btn-secondary--quiet ride-panel__saved-back"
-            title="Back to route"
-            onClick={() => setTab("route")}
-          >
-            경로로
-          </button>
         </>
       ) : (
         <>
-          <div className="ride-panel__official" aria-label="공식 경로">
-            <div className="ride-panel__official-head">
-              <span className="ride-panel__kicker">공식</span>
-              <div className="ride-panel__official-segments" role="group" aria-label="공식 경로 종류">
+          <div className="ride-panel__official" aria-label="경로 고르기">
+            {/*
+              경로 출처 한 줄 — 입문·퍼블릭·내 경로. 셋 다 성격이 같다(어디서 경로를 가져올까).
+              종전에는 「공식경로/내 경로」 탭 위에 「공식 + 세그먼트」가 얹힌 2층이었는데,
+              폰 가로에서 그 두 층 + 섹션 라벨 2줄이 패널 높이의 78% 를 먹고 목록에는 61px 만 남았다.
+            */}
+            <div className="ride-panel__official-segments" role="group" aria-label="경로 출처">
               <button
                 type="button"
                 className={`ride-panel__official-seg ${officialListModal === "intro" ? "is-active" : ""}`}
@@ -263,17 +232,23 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                   <span className="ride-panel__official-seg-badge">{props.publishedPublicCourses.length}</span>
                 ) : null}
               </button>
+              {/*
+                「내 경로」도 같은 줄의 출처 칩이다 — 종전 탭 계층을 없앴다.
+                aria-label 을 명시하는 이유: 텍스트만 쓰면 접근성 이름이 「내 경로 50」 이 되고,
+                주행 종료 후 나오는 「내 경로로 저장」 과 부분 일치해 셀렉터가 모호해진다.
+              */}
               <button
                 type="button"
-                className={`ride-panel__official-seg ${officialListModal === "event" ? "is-active" : ""}`}
-                title="이벤트 목록"
-                aria-haspopup="dialog"
-                aria-expanded={officialListModal === "event"}
-                onClick={() => openOfficialList("event")}
+                className="ride-panel__official-seg"
+                aria-label="내 경로 목록"
+                title="내 경로 목록"
+                onClick={() => setTab("saved")}
               >
-                이벤트
+                내 경로
+                {props.savedRoutes.length > 0 ? (
+                  <span className="ride-panel__official-seg-badge">{props.savedRoutes.length}</span>
+                ) : null}
               </button>
-              </div>
             </div>
 
             {activeOfficialTitle ? (

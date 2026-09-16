@@ -124,45 +124,11 @@
   color: var(--rtw-text-dim, #e2e8f0);
 }
 
-/* Trail / 경로 두 관심사를 시각적으로 분리하는 섹션 헤더 */
-.menu-panel__section {
-  flex-shrink: 0;
-  display: flex;
-  align-items: baseline;
-  gap: 0.45rem;
-  padding: 0.45rem 0.8rem 0.32rem;
-  border-left: 3px solid transparent;
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.menu-panel__section--route {
-  margin-top: 0.1rem;
-  border-top: 1px solid var(--rtw-glass-border, rgba(248, 250, 252, 0.1));
-}
-
-.menu-panel__section--trail {
-  border-left-color: var(--rtw-accent-on-dark, #6ba5ff);
-}
-
-.menu-panel__section--route {
-  border-left-color: var(--rtw-accent-line, rgba(99, 160, 255, 0.55));
-}
-
-/* 섹션 라벨 = 골드 (참조 SectionLabel) */
-.menu-panel__section-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--rtw-trace);
-}
-
-.menu-panel__section-hint {
-  font-size: 0.62rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: var(--rtw-text-mute, rgba(226, 232, 240, 0.6));
-}
+/*
+ * 2026-09-16: 섹션 헤더(`.menu-panel__section*`) 제거.
+ * 라벨만 있고 조작이 없는 두 줄이 폰 가로(패널 275px)에서 51px 를 먹었다 —
+ * 목록에 남던 높이 61px 에 맞먹는다. Trail 은 자체 라벨, 경로는 출처 칩이 스스로 말한다.
+ */
 
 /* 지명 검색은 고정 높이, 경로 패널만 스크롤 → 모바일에서 한 화면에 가깝게 */
 .menu-panel__body > .menu-place-search {

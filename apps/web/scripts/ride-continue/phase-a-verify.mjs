@@ -249,7 +249,8 @@ async function main() {
     await screenshot(page, "02-saved-before-ride", report);
 
     await page.getByRole("button", { name: "Trail 메뉴" }).click();
-    await page.getByRole("tab", { name: /내 경로/ }).click();
+    // 2026-09-16: 탭 → 경로 출처 칩(aria-label "내 경로 목록")
+    await page.getByRole("button", { name: "내 경로 목록" }).click();
     await page.waitForTimeout(1500);
     const savedRow = page.locator(".saved-routes__item").filter({ hasText: saveName }).first();
     report.checks.saveVisibleInList = await savedRow.isVisible().catch(() => false);

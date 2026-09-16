@@ -224,10 +224,12 @@ async function seedLegacyRide(uid: string, rideId: string): Promise<void> {
   expect(res.ok, `legacy ride seed 실패: ${res.status}`).toBe(true)
 }
 
-/** MENU → 내 경로 탭에서 fixture 를 불러온다(카드가 없는 최초 진입용 경로) */
+/** MENU → 「내 경로」 칩에서 fixture 를 불러온다(카드가 없는 최초 진입용 경로) */
 async function loadSavedRouteFromMenu(page: Page, routeName: string) {
   await page.getByRole('button', { name: 'Trail 메뉴' }).click()
-  await page.getByRole('tab', { name: /내 경로/ }).click()
+  // 2026-09-16: 탭 계층을 없애고 경로 출처 칩 한 줄로 합쳤다.
+  // 이름은 `내 경로 목록`(aria-label) — 「내 경로로 저장」과 섞이지 않게 명시했다.
+  await page.getByRole('button', { name: '내 경로 목록' }).click()
   const row = page.getByText(routeName, { exact: false }).first()
   await expect(row).toBeVisible({ timeout: 15_000 })
   await row.click()

@@ -2382,10 +2382,11 @@ export default function App() {
         }}
         onOpenSettings={openRideSettingsPanel}
       >
-        <div className="menu-panel__section menu-panel__section--trail">
-          <span className="menu-panel__section-label">Trail</span>
-          <span className="menu-panel__section-hint">참가 · 공개 설정</span>
-        </div>
+        {/*
+          섹션 라벨 2줄(Trail·경로)은 조작이 없는 순수 라벨인데 폰 가로에서 51px 를 먹었다
+          — 목록에 남던 높이(61px)에 맞먹는다. TrailHubPanel 이 자체 「TRAIL」 라벨을 갖고,
+          경로 쪽은 출처 칩이 스스로 무엇인지 말하므로 라벨 없이도 읽힌다(2026-09-16 Chief).
+        */}
         <TrailHubPanel
           user={user}
           activeTrailId={menuTrailSanitizedId}
@@ -2398,10 +2399,6 @@ export default function App() {
           visibilityBusy={trailVisibilityBusy}
           rideSessionActive={isRideSessionActive}
         />
-        <div className="menu-panel__section menu-panel__section--route">
-          <span className="menu-panel__section-label">경로</span>
-          <span className="menu-panel__section-hint">공식 코스 · 내 경로</span>
-        </div>
         <RideRoutePanel
           routeSummary={routeSummary}
           routeLoading={routeLoading || isSearching}
