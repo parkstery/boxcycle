@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import { createPortal } from "react-dom";
 import type { PublishedPublicCourseSummary } from "../../lib/firestoreCourses";
 import { formatPublicationListMeta, publicationDisplayTitle } from "../../lib/publicationDisplay";
 import type { RouteActivitySnapshot } from "../../lib/firestoreRouteActivity";
 import { formatRouteActivityListBadge } from "../../lib/firestoreRouteActivity";
+import { RouteListModalShell } from "./RouteListModalShell";
 import "./OfficialCourseListModal.css";
 
 /*
@@ -166,32 +166,13 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
       </>
     );
 
-  return createPortal(
-    <div className="oc-modal-overlay" role="presentation" onMouseDown={() => props.onClose()}>
-      <div
-        className="oc-modal"
-        role="dialog"
-        aria-labelledby="oc-modal-title"
-        aria-modal="true"
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <div className="oc-modal__head">
-          <h2 id="oc-modal-title" className="oc-modal__title">
-            {segmentTitle(props.segment)}
-          </h2>
-          <button
-            type="button"
-            className="oc-modal__close"
-            aria-label="닫기"
-            title="닫기"
-            onClick={() => props.onClose()}
-          >
-            닫기
-          </button>
-        </div>
-        <div className="oc-modal__body">{body}</div>
-      </div>
-    </div>,
-    document.body,
+  return (
+    <RouteListModalShell
+      titleId="oc-modal-title"
+      title={segmentTitle(props.segment)}
+      onClose={props.onClose}
+    >
+      {body}
+    </RouteListModalShell>
   );
 }

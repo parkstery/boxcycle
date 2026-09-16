@@ -4,7 +4,7 @@ import type { RouteActivitySnapshot } from "../../lib/firestoreRouteActivity";
 import type { SavedRoute } from "../../lib/firestoreSavedRoutes";
 import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/firestoreSavedRoutes";
 import { isIncompleteQuotaError } from "../../lib/tierQuota";
-import { SavedRoutesPanel } from "./SavedRoutesPanel";
+import { SavedRoutesModal } from "./SavedRoutesModal";
 import {
   OfficialCourseListModal,
   type OfficialCourseSegment,
@@ -88,10 +88,13 @@ type RideRoutePanelProps = {
   rideBgmCatalogConfigured: boolean;
 };
 
-type Tab = "route" | "saved";
-
 export function RideRoutePanel(props: RideRoutePanelProps) {
-  const [tab, setTab] = useState<Tab>("route");
+  /**
+   * 「내 경로」 목록 모달 (2026-09-16 B단계).
+   * 종전에는 패널 안 탭이라 폰 가로에서 61px 틈으로 스크롤해야 했다 — 공식 코스와 같은
+   * 급의 모달로 옮겨 목록이 화면 높이를 쓴다.
+   */
+  const [savedModalOpen, setSavedModalOpen] = useState(false);
   /** ad-hoc 저장 인라인 입력 폼 상태 — 토스트 액션이 열어줌 */
   const [adhocSaveOpen, setAdhocSaveOpen] = useState(false);
   const [adhocSaveDraft, setAdhocSaveDraft] = useState("");
@@ -110,7 +113,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
   const [prevOpenSavedTabSignal, setPrevOpenSavedTabSignal] = useState(openSavedTabSignal);
   if (openSavedTabSignal !== prevOpenSavedTabSignal) {
     setPrevOpenSavedTabSignal(openSavedTabSignal);
-    if (openSavedTabSignal > 0) setTab("saved");
+    if (openSavedTabSignal > 0) setSavedModalOpen(true);
   }
 
   function openOfficialList(segment: OfficialCourseSegment) {
@@ -166,43 +169,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
 
   return (
     <aside className="ride-panel" aria-label="경로 및 라이딩">
-      {tab === "saved" ? (
-        <>
-          <div className="ride-panel__saved-head">
-            <h2 className="ride-panel__h ride-panel__h--inline">내 경로</h2>
-            <button
-              type="button"
-              className="ride-panel__saved-close"
-              aria-label="사용자 경로 닫고 경로 화면으로 돌아가기"
-              title="Back to route"
-              onClick={() => setTab("route")}
-            >
-              닫기
-            </button>
-          </div>
-          <SavedRoutesPanel
-            routes={props.savedRoutes}
-            loading={props.savedRoutesLoading}
-            guestNotice={props.authGuest}
-            sessionIdle={routeLocksAsIdle}
-            pendingPublicRouteIds={props.pendingPublicRouteIds}
-            publishedPublicSavedRouteIds={props.publishedPublicSavedRouteIds}
-            publishedPublicRouteFingerprints={props.publishedPublicRouteFingerprints}
-            onOpenPublicRequest={props.onOpenPublicRequest}
-            onLoadRoute={(route) => {
-              props.onLoadSavedRoute(route);
-              setTab("route");
-            }}
-            onRenameRoute={props.onRenameSavedRoute}
-            onDeleteRoute={props.onDeleteSavedRoute}
-            quotaNotice={props.savedQuotaNotice}
-            onDismissQuotaNotice={props.onDismissSavedQuotaNotice}
-            focusPendingSignal={openSavedTabSignal}
-          />
-        </>
-      ) : (
-        <>
-          <div className="ride-panel__official" aria-label="경로 고르기">
+      <div className="ride-panel__official" aria-label="경로 고르기">
             {/*
               경로 출처 한 줄 — 입문·퍼블릭·내 경로. 셋 다 성격이 같다(어디서 경로를 가져올까).
               종전에는 「공식경로/내 경로」 탭 위에 「공식 + 세그먼트」가 얹힌 2층이었는데,
@@ -242,7 +209,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                 className="ride-panel__official-seg"
                 aria-label="내 경로 목록"
                 title="내 경로 목록"
-                onClick={() => setTab("saved")}
+                onClick={() => setSavedModalOpen(true)}
               >
                 내 경로
                 {props.savedRoutes.length > 0 ? (
@@ -396,8 +363,25 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             </div>
           ) : null}
 
-        </>
-      )}
+      {savedModalOpen ? (
+        <SavedRoutesModal
+          onClose={() => setSavedModalOpen(false)}
+          routes={props.savedRoutes}
+          loading={props.savedRoutesLoading}
+          guestNotice={props.authGuest}
+          sessionIdle={routeLocksAsIdle}
+          pendingPublicRouteIds={props.pendingPublicRouteIds}
+          publishedPublicSavedRouteIds={props.publishedPublicSavedRouteIds}
+          publishedPublicRouteFingerprints={props.publishedPublicRouteFingerprints}
+          onOpenPublicRequest={props.onOpenPublicRequest}
+          onLoadRoute={props.onLoadSavedRoute}
+          onRenameRoute={props.onRenameSavedRoute}
+          onDeleteRoute={props.onDeleteSavedRoute}
+          quotaNotice={props.savedQuotaNotice}
+          onDismissQuotaNotice={props.onDismissSavedQuotaNotice}
+          focusPendingSignal={openSavedTabSignal}
+        />
+      ) : null}
 
       {officialListModal ? (
         <OfficialCourseListModal

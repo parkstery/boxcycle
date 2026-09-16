@@ -16,6 +16,8 @@ import { fileURLToPath } from "node:url";
  *   - 「이벤트」(준비 중 한 줄만 그리던 빈 껍데기)
  *   - 「공식」 키커, 하단 「경로로」(상단 닫기와 중복)
  *
+ * B단계: 「내 경로」를 공식 코스와 같은 급의 **별도 모달**로 옮겼다.
+ *
  * 실행: npm run test:e2e:menu-a -w boxcycle-web
  */
 const LIVE = process.env.RIDE_VERIFY_LIVE === "1";
@@ -25,7 +27,7 @@ const OUT_DIR = path.resolve(__dirname, "../.out/menu-declutter-a");
 const PHONE_LANDSCAPE = { width: 690, height: 275 };
 
 /** A단계 이전 실측(main2 6b0f910) — 회귀 판정의 기준선 */
-const BEFORE = { chromeH: 214, savedScrollerClientH: 117 };
+const BEFORE = { chromeH: 214, savedScrollerClientH: 117, savedListAreaH: 61 };
 
 test.describe("MENU 정리 A단계", () => {
   test.skip(!LIVE, "Firebase 에뮬레이터 필요 — npm run test:e2e:menu-a");
@@ -81,23 +83,58 @@ test.describe("MENU 정리 A단계", () => {
     });
     await panel.screenshot({ path: path.join(OUT_DIR, "01-menu.png") });
 
-    // ── 내 경로 목록에 돌아간 높이 ──────────────────────────────────────
+    /*
+     * ── B단계: 「내 경로」는 MENU 안이 아니라 **별도 모달**에서 열린다 ──────
+     * 종전에는 좁은 사이드 패널 안 탭이라 목록 가용 높이가 61px 뿐이었다.
+     * 공식 코스와 같은 껍데기(oc-modal)를 쓰므로 「경로 고르는 자리」로 함께 읽힌다.
+     */
     await page.getByRole("button", { name: "내 경로 목록" }).click();
-    await page.waitForTimeout(500);
+    const savedDialog = page.getByRole("dialog", { name: "내 경로" });
+    await expect(savedDialog, "내 경로 모달").toBeVisible({ timeout: 20_000 });
+    expect(
+      await page.locator(".menu-panel .saved-routes").count(),
+      "목록이 MENU 패널 안에 남아 있으면 안 된다(모달로 이전)",
+    ).toBe(0);
+    await page.waitForTimeout(300);
+
     const saved = await page.evaluate(() => {
-      const scroller = Array.from(document.querySelectorAll(".menu-panel *")).find((n) => {
-        const e = n as HTMLElement;
-        return e.scrollHeight > e.clientHeight + 4 && e.clientHeight > 20;
-      }) as HTMLElement | undefined;
+      const dlg = document.querySelector(".oc-modal") as HTMLElement | null;
+      const body = document.querySelector(".oc-modal__body") as HTMLElement | null;
       const list = document.querySelector(".saved-routes") as HTMLElement | null;
+      const head = document.querySelector(".oc-modal__head") as HTMLElement | null;
+      /*
+       * 현재 높이는 계정에 경로가 몇 개냐에 따라 달라진다(에뮬레이터 게스트는 0개라 작게 나온다).
+       * 「자리가 넓어졌다」를 증명하려면 **쓸 수 있는 최대 높이**를 봐야 한다.
+       */
+      const maxDialogH = dlg ? parseFloat(getComputedStyle(dlg).maxHeight) : null;
       return {
-        scroller: scroller
-          ? { cls: scroller.className, clientH: scroller.clientHeight, scrollH: scroller.scrollHeight }
-          : null,
+        dialogH: dlg ? Math.round(dlg.getBoundingClientRect().height) : null,
+        bodyH: body ? Math.round(body.getBoundingClientRect().height) : null,
         listH: list ? Math.round(list.getBoundingClientRect().height) : null,
+        maxDialogH: maxDialogH != null ? Math.round(maxDialogH) : null,
+        headH: head ? Math.round(head.getBoundingClientRect().height) : null,
+        maxBodyH:
+          maxDialogH != null && head
+            ? Math.round(maxDialogH - head.getBoundingClientRect().height)
+            : null,
       };
     });
-    await panel.screenshot({ path: path.join(OUT_DIR, "02-saved.png") });
+    await page.screenshot({ path: path.join(OUT_DIR, "02-saved-modal.png") });
+
+    /*
+     * 목록이 쓸 수 있는 높이가 종전 인패널(61px)보다 확실히 커야 한다.
+     * 모달 본문 높이로 잰다 — 목록 자체 높이는 경로가 적으면 작게 나와(축퇴)
+     * 「자리가 넓어졌다」를 증명하지 못한다.
+     */
+    expect(
+      saved.maxBodyH ?? 0,
+      "목록이 쓸 수 있는 최대 높이가 종전 인패널(61px)의 2배는 돼야 한다",
+    ).toBeGreaterThan(BEFORE.savedListAreaH * 2);
+
+    // 닫으면 MENU 로 돌아온다
+    await savedDialog.getByRole("button", { name: "닫기" }).click();
+    await expect(savedDialog).toBeHidden({ timeout: 10_000 });
+    await expect(panel).toBeVisible();
 
     const chromeH =
       (rows.head ?? 0) + (rows.trailHub ?? 0) + (rows.sourceRow ?? 0);

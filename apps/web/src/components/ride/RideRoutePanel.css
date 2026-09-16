@@ -289,29 +289,6 @@
   color: #fde68a;
 }
 
-.ride-panel__saved-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.4rem;
-  margin: 0.15rem 0 0.35rem;
-}
-
-.ride-panel__h--inline {
-  margin: 0;
-}
-
-.ride-panel__saved-close {
-  font: inherit;
-  font-size: 0.72rem;
-  padding: 0.24rem 0.5rem;
-  border-radius: 6px;
-  border: 1px solid var(--rp-border);
-  background: var(--rp-chip);
-  color: var(--rp-fg);
-  cursor: pointer;
-}
-
 .ride-panel__arrival-toast {
   margin: 0.35rem 0 0.15rem;
   padding: 0.38rem 0.5rem;
