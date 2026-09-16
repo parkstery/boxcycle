@@ -56,7 +56,11 @@ export function RouteDock(props: RouteDockProps) {
   } = props;
 
   const visible = isRouteDockVisible(stage);
-  const [expanded, setExpanded] = useState(true);
+  /*
+   * 경로가 없는 첫 화면(`idle`)에서는 접힌 채로 뜬다 — dock 이 여기까지 보이게 된 이유는
+   * 센서 칩 한 줄을 실으려는 것이지 빈 패널을 펼쳐 지도를 가리려는 게 아니다.
+   */
+  const [expanded, setExpanded] = useState(() => stops.length > 0);
   const [saveOpen, setSaveOpen] = useState(false);
   const [saveDraft, setSaveDraft] = useState("");
   const [saveBusy, setSaveBusy] = useState(false);
@@ -86,11 +90,13 @@ export function RouteDock(props: RouteDockProps) {
     }
   }
 
-  const autoExpandKey = `${visible}:${stops.length}:${isActiveRide}`;
+  const autoExpandKey = `${visible}:${stops.length}:${isActiveRide}:${stage}`;
   const [prevAutoExpandKey, setPrevAutoExpandKey] = useState(autoExpandKey);
   if (autoExpandKey !== prevAutoExpandKey) {
     setPrevAutoExpandKey(autoExpandKey);
     if (visible && stops.length > 0 && !isActiveRide) setExpanded(true);
+    // 경로를 모두 지워 첫 화면으로 돌아오면 다시 접는다
+    else if (stage === "idle" && stops.length === 0) setExpanded(false);
   }
 
   async function commitSave(confirmUpdate = false) {

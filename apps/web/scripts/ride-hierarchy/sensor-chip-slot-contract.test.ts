@@ -28,10 +28,11 @@ const ALL_STAGES: RideUiStage[] = [
   "summary",
 ];
 
-const DOCK_STAGES: RideUiStage[] = ["setup", "ready-to-start", "riding", "paused"];
+/** 2026-09-16: `idle` 합류 — 첫 화면에도 dock 이 뜨면서 우상단 폴백이 사라졌다 */
+const DOCK_STAGES: RideUiStage[] = ["idle", "setup", "ready-to-start", "riding", "paused"];
 
 describe("sensorChipSlot — 센서 칩 자리", () => {
-  it("RouteDock 이 보이는 네 stage 에서는 dock 이 칩을 그린다", () => {
+  it("RouteDock 이 보이는 stage 에서는 dock 이 칩을 그린다", () => {
     for (const stage of DOCK_STAGES) {
       assert.equal(isRouteDockVisible(stage), true, `${stage}: dock 이 보여야 한다`);
       assert.equal(
@@ -42,17 +43,26 @@ describe("sensorChipSlot — 센서 칩 자리", () => {
     }
   });
 
-  it("dock 이 없는 stage 에서는 우상단 폴백 — 센서 시트 입구가 사라지면 안 된다", () => {
-    // `idle` = 앱 첫 화면(경로 없음). 여기서 「체험 속도로 준비」를 못 하면 Go 가 영영 잠긴다.
+  it("우상단 폴백은 더 이상 없다 — 칩은 dock 아니면 아예 없다", () => {
+    /*
+     * 폴백이 있던 이유는 `idle` 에 dock 이 없어서였다. 센서 시트는 「체험 속도로 준비」의
+     * 유일한 입구이고 그것이 Go 의 사전조건이라, 첫 화면에서 칩이 사라지면 주행을 시작할
+     * 수 없었다. dock 이 `idle` 까지 오면서 그 근거가 사라졌다.
+     */
     assert.equal(
       sensorChipSlot({ stage: "idle", hasCadence: true, isGate: false, isSummary: false }),
-      "map-hud-tr",
+      "route-dock",
+      "첫 화면에서도 칩은 dock 안",
     );
-    // 게이트가 시각적으로 닫힌 `gate` — MapHud 는 isGate=false 로 넘긴다
-    assert.equal(
-      sensorChipSlot({ stage: "gate", hasCadence: true, isGate: false, isSummary: false }),
-      "map-hud-tr",
-    );
+    for (const stage of ALL_STAGES) {
+      const slot: string = sensorChipSlot({
+        stage,
+        hasCadence: true,
+        isGate: false,
+        isSummary: false,
+      });
+      assert.notEqual(slot, "map-hud-tr", `${stage}: 우상단 폴백 부활 금지`);
+    }
   });
 
   it("게이트·결과 시트·센서 없음 에서는 어디에도 그리지 않는다", () => {
@@ -78,11 +88,15 @@ describe("sensorChipSlot — 센서 칩 자리", () => {
   it("두 곳에 동시에 뜨지 않고, 보여야 할 때 빠지지도 않는다", () => {
     for (const stage of ALL_STAGES) {
       const slot = sensorChipSlot({ stage, hasCadence: true, isGate: false, isSummary: false });
-      // 배타성 — 슬롯은 단일 값이므로 dock 과 우상단이 동시에 참일 수 없다
-      assert.equal(slot === "route-dock" && slot === "map-hud-tr", false);
-      // 소실 금지 — 게이트·결과가 아니면 반드시 어딘가에 있다
-      assert.notEqual(slot, "none", `${stage}: 칩이 사라지면 안 된다`);
+      /*
+       * 소실 금지 — dock 이 보이는 stage 면 반드시 칩이 있다.
+       * dock 이 없는 곳(gate·gate-nickname·summary)은 화면을 덮는 카드·시트가 차지하고
+       * 있어 칩을 띄울 자리도, 띄울 이유도 없다.
+       */
       assert.equal(slot === "route-dock", isRouteDockVisible(stage), `${stage}: dock 여부와 일치`);
+      if (isRouteDockVisible(stage)) {
+        assert.equal(slot, "route-dock", `${stage}: 칩이 사라지면 안 된다`);
+      }
     }
   });
 });
@@ -116,16 +130,33 @@ describe("RouteDock 소스 구조 — 접어도 센서가 남는다", () => {
     );
   });
 
-  it("MapHud 우상단은 슬롯 판정을 거친다 — 칩을 무조건 그리지 않는다", () => {
+  it("MapHud 우상단에서 센서 칩이 완전히 빠졌다", () => {
     const hud = fs.readFileSync(
       path.resolve(__dirname, "../../src/components/maphud/MapHud.tsx"),
       "utf8",
     );
-    assert.ok(hud.includes("sensorChipSlot("), "MapHud 가 슬롯 판정을 써야 한다");
-    assert.ok(
-      /showCadenceChip\s*=\s*\n?\s*sensorChipSlot\(/.test(hud),
-      "우상단 표시는 슬롯 === 'map-hud-tr' 로만 결정",
-    );
-    assert.ok(hud.includes('=== "map-hud-tr"'), "폴백 슬롯 비교가 있어야 한다");
+    /*
+     * 산문이 아니라 **코드**를 본다 — 단순 부분문자열로 보면 "…`cadence` 는 RouteDock 으로
+     * 간다" 같은 주석에도 걸려, 설명을 지워야 시험이 통과하는 거꾸로 된 게이트가 된다.
+     */
+    assert.equal(hud.includes("CadenceHudChip"), false, "우상단에 센서 칩이 남으면 안 된다");
+    assert.equal(hud.includes("showCadenceChip"), false, "폴백 표시 분기가 남으면 안 된다");
+    assert.doesNotMatch(hud, /^\s*cadence[?]?:/m, "props 에 cadence 가 남으면 안 된다");
+    assert.doesNotMatch(hud, /\bcadence\.\w/, "cadence 값을 읽는 코드가 남으면 안 된다");
+  });
+
+  it("좌하단을 나눠 쓰는 셋이 한 스택 안에 있다 — 겹쳐 놓지 않는다", () => {
+    /*
+     * dock 이 `idle` 까지 오면서 「다음 주행」 카드·입문 CTA 와 **같은 좌표**를 쓰게 됐다.
+     * 셋이 각자 absolute 로 붙어 있으면 그대로 겹친다.
+     */
+    const app = fs.readFileSync(path.resolve(__dirname, "../../src/App.tsx"), "utf8");
+    const open = app.indexOf("<MapBottomLeftStack>");
+    const close = app.indexOf("</MapBottomLeftStack>", open);
+    assert.ok(open > 0 && close > open, "좌하단 스택이 있어야 한다");
+    const inner = app.slice(open, close);
+    for (const node of ["{routeDockPanel}", "{nextRideCard}", "{firstRideIntroCard}"]) {
+      assert.ok(inner.includes(node), `${node} 가 스택 안에 있어야 한다`);
+    }
   });
 });

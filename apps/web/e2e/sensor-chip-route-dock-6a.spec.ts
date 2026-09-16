@@ -39,10 +39,76 @@ test.describe("센서 칩 — RouteDock 이전", () => {
     const trChip = page.locator(".map-hud__tr .hud-cadence");
     const dockChip = page.locator(".route-dock__top .hud-cadence");
 
-    // ── idle: dock 이 없는 stage. 폴백이 우상단에 남아야 한다(§4.3) ──────────
+    /*
+     * ── idle ────────────────────────────────────────────────────────────
+     * 2026-09-16: dock 이 `idle` 까지 오면서 우상단 폴백을 없앴다.
+     * 첫 화면에서도 칩은 dock 안이고, 우상단은 계정·맵 둘뿐이다.
+     */
     await expect(chip, "idle 에서도 센서 시트 입구는 있어야 한다").toBeVisible({ timeout: 30_000 });
-    expect(await trChip.count(), "idle = 우상단 폴백").toBe(1);
-    expect(await dockChip.count(), "idle 엔 dock 자체가 없다").toBe(0);
+    expect(await trChip.count(), "우상단 폴백은 없다").toBe(0);
+    expect(await dockChip.count(), "idle 에서도 칩은 dock 안").toBe(1);
+
+    /*
+     * 좌하단을 나눠 쓰는 셋(dock · 「다음 주행」 카드 · 입문 CTA)이 **겹치지 않는가**.
+     * 셋 다 종전에는 같은 좌표에 절대 배치돼 있었다 — dock 이 idle 에 오기 전까지는
+     * 서로 배타적이라 문제가 없었을 뿐이다. 겹침 면적 0 을 직접 잰다.
+     */
+    // 카드가 뜰 때까지 기다린다 — 상자가 하나뿐이면 「겹침 0」은 아무것도 증명하지 못한다
+    await page
+      .locator(".next-ride-anchor, .first-ride-anchor")
+      .first()
+      .waitFor({ state: "visible", timeout: 20_000 })
+      .catch(() => {});
+
+    const bottomLeft = await page.evaluate(() => {
+      const pick = (sel: string) => {
+        const el = document.querySelector(sel);
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return { sel, x: r.x, y: r.y, w: r.width, h: r.height };
+      };
+      const boxes = [".route-dock-anchor", ".next-ride-anchor", ".first-ride-anchor"]
+        .map(pick)
+        .filter((b): b is NonNullable<typeof b> => b != null && b.w > 0 && b.h > 0);
+      const overlaps: { a: string; b: string; area: number }[] = [];
+      for (let i = 0; i < boxes.length; i += 1) {
+        for (let j = i + 1; j < boxes.length; j += 1) {
+          const a = boxes[i]!;
+          const b = boxes[j]!;
+          const ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+          const oy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
+          overlaps.push({ a: a.sel, b: b.sel, area: Math.max(0, ox) * Math.max(0, oy) });
+        }
+      }
+      const stack = document.querySelector(".map-bottom-left-stack");
+      /*
+       * 구조 증명 — 스택 안의 anchor 가 자기 좌표를 들고 있으면(absolute) 언제든 겹친다.
+       * 시나리오에서 카드가 안 뜨더라도 이 검사는 회귀를 잡는다.
+       */
+      const positions = boxes.map((b) => ({
+        sel: b.sel,
+        position: getComputedStyle(document.querySelector(b.sel)!).position,
+      }));
+      return {
+        boxes,
+        boxCount: boxes.length,
+        overlaps,
+        positions,
+        stackH: stack ? Math.round(stack.getBoundingClientRect().height) : null,
+      };
+    });
+    measurements.bottomLeft = bottomLeft;
+    for (const o of bottomLeft.overlaps) {
+      expect(o.area, `${o.a} 와 ${o.b} 가 겹치면 안 된다`).toBe(0);
+    }
+    for (const p of bottomLeft.positions) {
+      expect(p.position, `${p.sel} 는 스택에 좌표를 맡겨야 한다`).toBe("static");
+    }
+    // 첫 화면의 dock 은 접힌 채여야 한다 — 빈 패널로 지도를 가리지 않는다
+    await expect(
+      page.getByRole("button", { name: "경로 패널 펼치기" }),
+      "idle 에서는 접힌 채로 뜬다",
+    ).toBeVisible();
     // 부팅 직후 연결 안내가 화면을 덮은 채로 찍히지 않도록 지도가 안정된 뒤 촬영
     await expect(page.locator(".mapboxgl-canvas").first()).toBeVisible({ timeout: 30_000 });
     await page.waitForTimeout(1500);

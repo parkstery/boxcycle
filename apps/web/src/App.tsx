@@ -38,6 +38,7 @@ import { resolveNextRideView } from "./lib/nextRideTarget";
 import type { NextRideTarget } from "./lib/nextRideTarget";
 import type { RideEndResult } from "./lib/rideEndResult";
 import { MenuPanel } from "./components/MenuPanel";
+import { MapBottomLeftStack } from "./features/map-overlays/MapBottomLeftStack";
 import { PlaceSearchPanel } from "./components/PlaceSearchPanel";
 import { MenuPlaceSearch } from "./components/MenuPlaceSearch";
 import { TrailHubPanel } from "./components/TrailHubPanel";
@@ -2128,7 +2129,6 @@ export default function App() {
               menuOpen,
               onOpenPlaceSearch: openPlaceSearchPanel,
               placeSearchOpen,
-              cadence: cadenceHud,
               account: accountChip,
               onOpenUserInfo: openUserInfoPanel,
               userInfoOpen: userInfoSheetOpen,
@@ -2190,11 +2190,11 @@ export default function App() {
         ) : (
           <AppMapStage
             routeDock={
-              <>
+              <MapBottomLeftStack>
                 {routeDockPanel}
                 {nextRideCard}
                 {firstRideIntroCard}
-              </>
+              </MapBottomLeftStack>
             }
             mapView={{
               accessToken: MAPBOX_TOKEN || undefined,
@@ -2312,7 +2312,6 @@ export default function App() {
               menuOpen,
               onOpenPlaceSearch: openPlaceSearchPanel,
               placeSearchOpen,
-              cadence: cadenceHud,
               account: accountChip,
               onOpenUserInfo: openUserInfoPanel,
               userInfoOpen: userInfoSheetOpen,

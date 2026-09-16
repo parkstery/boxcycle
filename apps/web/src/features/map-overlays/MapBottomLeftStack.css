@@ -1,0 +1,41 @@
+/*
+ * 좌하단 스택 — RouteDock · 「다음 주행」 카드 · 입문 CTA 가 나눠 쓰는 한 자리.
+ * 좌표·여백·z-index 는 여기서만 정하고, 안쪽 anchor 들은 흐름에 맡긴다.
+ */
+.map-bottom-left-stack {
+  --map-bl-pad: clamp(0.45rem, 1.4vw, 0.85rem);
+  position: absolute;
+  left: max(var(--map-bl-pad), env(safe-area-inset-left, 0px));
+  bottom: calc(
+    max(var(--map-bl-pad), env(safe-area-inset-bottom, 0px)) + var(--mapbox-logo-clearance, 2.875rem)
+  );
+  /* MapHud(z-index 5) 위 — 조작이 정보에 가려지면 안 된다(종전 anchor 들과 동일 근거) */
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  max-width: calc(100vw - 2rem);
+  pointer-events: none;
+}
+
+/*
+ * 안쪽 anchor 들은 자기 좌표를 버린다 — 좌표가 두 곳에 있으면 한쪽만 고쳐 놓고
+ * 다른 화면에서 겹치는 사고가 난다(이 스택이 생긴 이유 자체가 그것이다).
+ */
+.map-bottom-left-stack > .route-dock-anchor,
+.map-bottom-left-stack > .next-ride-anchor,
+.map-bottom-left-stack > .first-ride-anchor {
+  position: static;
+  left: auto;
+  bottom: auto;
+  z-index: auto;
+}
+
+/* 폰 가로 — 로고 여백 회수는 종전 dock 규칙과 같은 값 */
+@media (max-height: 560px) {
+  .map-bottom-left-stack {
+    --mapbox-logo-clearance: 0.35rem;
+    gap: 0.28rem;
+  }
+}
