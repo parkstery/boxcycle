@@ -44,7 +44,13 @@ export function buildElevationUi(
     const y = height - pad - ((value - dispMin) / range) * (height - pad * 2);
     return `${x.toFixed(2)},${y.toFixed(2)}`;
   });
-  let marker: { x: string; y: string } | null = null;
+  let marker: {
+    x: string;
+    y: string;
+    xPct: number;
+    yPct: number;
+    progressPct: number;
+  } | null = null;
   if (progressRatio != null && Number.isFinite(progressRatio)) {
     const clamped = Math.max(0, Math.min(1, progressRatio));
     const markerIdx = clamped * (values.length - 1);
@@ -55,16 +61,30 @@ export function buildElevationUi(
     const xUpper = pad + (upperIdx / (values.length - 1)) * (width - pad * 2);
     const yLower = height - pad - ((values[lowerIdx] - dispMin) / range) * (height - pad * 2);
     const yUpper = height - pad - ((values[upperIdx] - dispMin) / range) * (height - pad * 2);
+    const markerX = xLower + (xUpper - xLower) * t;
+    const markerY = yLower + (yUpper - yLower) * t;
     marker = {
-      x: (xLower + (xUpper - xLower) * t).toFixed(2),
-      y: (yLower + (yUpper - yLower) * t).toFixed(2),
+      x: markerX.toFixed(2),
+      y: markerY.toFixed(2),
+      // xPct/yPct/progressPct 는 모두 같은 clamped 값에서 나온다 — 점 위치와 % 숫자가
+      // 서로 다른 계산에서 어긋날 수 없게 하기 위함(HTML 라벨은 SVG 밖에서 % 좌표로 겹친다).
+      xPct: (markerX / width) * 100,
+      yPct: (markerY / height) * 100,
+      progressPct: Math.round(clamped * 100),
     };
   }
+  // 종점 좌표 — points 를 만드는 것과 똑같은 식으로 마지막 values 항목에서 계산한다.
+  // 별도 식을 쓰면 어긋나 깃발이 선 위에 안 앉는다.
+  const lastY = height - pad - ((values[values.length - 1] - dispMin) / range) * (height - pad * 2);
   return {
     polylinePoints: points.join(" "),
     startMeters: values[0],
     endMeters: values[values.length - 1],
     marker,
+    endPoint: {
+      xPct: ((width - pad) / width) * 100,
+      yPct: (lastY / height) * 100,
+    },
   };
 }
 

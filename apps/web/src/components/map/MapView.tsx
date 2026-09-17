@@ -3748,32 +3748,82 @@ export function MapView({
             <span>시점 {elevationUi.startMeters.toFixed(0)}m</span>
             <span>종점 {elevationUi.endMeters.toFixed(0)}m</span>
           </div>
-          <svg
-            className="elevation-overlay__svg"
-            viewBox="0 0 420 100"
-            preserveAspectRatio="none"
-            role="img"
-            aria-label="elevation profile"
-          >
-            <polyline
-              points={elevationUi.polylinePoints}
-              fill="none"
-              stroke="#ef4444"
-              strokeWidth="2.2"
-              strokeLinejoin="round"
-              strokeLinecap="round"
-            />
-            {elevationUi.marker ? (
-              <circle
-                cx={elevationUi.marker.x}
-                cy={elevationUi.marker.y}
-                r="4.2"
-                fill="#38bdf8"
-                stroke="#ffffff"
-                strokeWidth="1.4"
+          {/* viewBox 는 420x100 인데 실제 렌더는 비균등 비율(preserveAspectRatio="none")이라
+              SVG <text> 로 라벨을 쓰면 가로로 눌려 찌그러진다. 라벨은 SVG 밖 HTML 요소로
+              같은 박스에 겹쳐서(% 좌표) 절대배치한다 — 그래서 svg 와 라벨을 __plot 으로 함께 감싼다.
+              라벨은 기본이 점 위지만, 경로 최고점(viewBox pad 8 → yPct 최소 8)에서는 위로 뺄 높이가
+              모자라 「시점/종점」 메타 행을 침범한다. 임계 20% 미만이면 점 아래로 뒤집는다. */}
+          <div className="elevation-overlay__plot">
+            <svg
+              className="elevation-overlay__svg"
+              viewBox="0 0 420 100"
+              preserveAspectRatio="none"
+              role="img"
+              aria-label="elevation profile"
+            >
+              <polyline
+                points={elevationUi.polylinePoints}
+                fill="none"
+                stroke="#ef4444"
+                strokeWidth="2.2"
+                strokeLinejoin="round"
+                strokeLinecap="round"
               />
+              {elevationUi.marker ? (
+                <circle
+                  cx={elevationUi.marker.x}
+                  cy={elevationUi.marker.y}
+                  r="4.2"
+                  fill="#38bdf8"
+                  stroke="#ffffff"
+                  strokeWidth="1.4"
+                />
+              ) : null}
+            </svg>
+            {elevationUi.marker ? (
+              <span
+                className={`elevation-overlay__progress${
+                  elevationUi.marker.yPct < 20 ? " elevation-overlay__progress--below" : ""
+                }${
+                  elevationUi.marker.xPct < 15
+                    ? " elevation-overlay__progress--start"
+                    : elevationUi.marker.xPct > 85
+                      ? " elevation-overlay__progress--end"
+                      : ""
+                }`}
+                style={{
+                  // "N% covered" 라벨은 폭이 약 60px 로 커져(구 "N%" 는 ~17px), 예전처럼
+                  // 4~96% 로 left 를 클램프하면 경로 시작·끝 부근에서 라벨이 점에서 30px 가까이
+                  // 떨어져 보인다(클램프를 더 키워도 더 떨어질 뿐). 그래서 클램프 대신 CSS 쪽
+                  // 앵커 전환(--start/--end)으로 처리한다 — left 는 xPct 그대로 쓴다.
+                  left: `${elevationUi.marker.xPct}%`,
+                  top: `${elevationUi.marker.yPct}%`,
+                }}
+              >
+                {elevationUi.marker.progressPct}% covered
+              </span>
             ) : null}
-          </svg>
+            {/* 종점 깃발 — 이모지(🏁)는 색을 바꿀 수 없어 인라인 SVG 로 그린다(2026-09-17 Chief).
+                깃대 밑동이 종점에 정확히 앉아야 하므로 깃대를 SVG 오른쪽 끝에 두고
+                `translate(-100%, -100%)` 로 span 의 우하단을 종점에 맞춘다. 천은 왼쪽으로
+                뻗는다 — 종점이 플롯 오른쪽 끝(xPct 98%)이라 오른쪽으로 뻗으면 박스를 넘는다. */}
+            <span
+              className="elevation-overlay__finish"
+              style={{ left: `${elevationUi.endPoint.xPct}%`, top: `${elevationUi.endPoint.yPct}%` }}
+              aria-hidden
+            >
+              <svg viewBox="0 0 13 14" width="13" height="14">
+                <path
+                  d="M11.9 1V14"
+                  stroke="#ef4444"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+                <path d="M11.15 1.6 L3 4.2 L11.15 6.8 Z" fill="#ef4444" />
+              </svg>
+            </span>
+          </div>
         </div>
       ) : null}
     </div>

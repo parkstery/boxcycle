@@ -183,6 +183,75 @@ test.describe("터치 타깃 44px", () => {
     expect(probe!.hit.h, "히트 높이").toBeGreaterThanOrEqual(MIN_TOUCH_PX);
     expect(probe!.edgeHitsButton, "시각 경계 2px 바깥이 버튼에 잡혀야 한다").toBe(true);
   });
+
+  /*
+   * 캐럿에서 세로 텍스트 「경로」를 뺐다(2026-09-17 Chief) — 그 텍스트가 높이를 벌어주던
+   * 지지대였다. 폰 가로(루트 13.5px)에서 `min-height: 2.75rem` 은 약 37px 로 44px 계약 미달.
+   *
+   * 해법은 `::after` 투명 히트 영역이 **아니다**. 부모 `.route-dock__shell { overflow: hidden }`
+   * 이 caret 테두리 1px 바깥에서 잘라내므로 밖으로 뻗는 영역은 `elementFromPoint` 에 안 잡힌다
+   * (`getComputedStyle(::after)` 은 44px 를 보고한다 — 선언만 보는 계약이면 통과했을 축퇴 함정).
+   * 캐럿은 배경이 transparent 이고 보이는 것이 14px 셰브런뿐이라, 버튼의 **실제 높이**를 키우는
+   * 쪽이 시각 비용 0 으로 같은 목적을 달성한다. 그래서 여기서는 선언이 아니라 버튼 자신의
+   * `getBoundingClientRect` 와 그 안쪽 끝에서의 실제 히트를 본다.
+   *
+   * 폭(1.55rem = 약 21px)은 「경로」 제거와 무관하게 **원래부터** 44px 미만이다. 넓히면 dock
+   * 접힘 폭이 커져 시각 footprint 가 바뀌므로 별건으로 두고 실측만 기록한다(Chief 판단 대기).
+   */
+  test("RouteDock 캐럿 히트 높이 44px · 옆 센서 칩 탭을 가로채지 않는다", async ({ page }) => {
+    test.setTimeout(150_000);
+    fs.mkdirSync(OUT_DIR, { recursive: true });
+    await page.setViewportSize(PHONE_LANDSCAPE);
+    await page.goto("/");
+    await guestStart(page);
+    await armRideInput(page);
+
+    const probe = await page.evaluate(() => {
+      const caret = document.querySelector(".route-dock__caret") as HTMLElement | null;
+      const chip = document.querySelector(".route-dock__top .hud-cadence") as HTMLElement | null;
+      if (!caret || !chip) return null;
+      const r = caret.getBoundingClientRect();
+      const cx = r.x + r.width / 2;
+      const isCaret = (el: Element | null) => (el ? el === caret || caret.contains(el) : null);
+      const chipRect = chip.getBoundingClientRect();
+      const chipHit = document.elementFromPoint(
+        chipRect.x + chipRect.width / 2,
+        chipRect.y + chipRect.height / 2,
+      );
+      return {
+        box: {
+          w: Math.round(r.width * 10) / 10,
+          h: Math.round(r.height * 10) / 10,
+        },
+        // 선언(::after)이 아니라 버튼 박스 안쪽 위·아래 끝에서 실제로 캐럿이 잡히는지
+        topHitsCaret: isCaret(document.elementFromPoint(cx, r.y + 2)),
+        bottomHitsCaret: isCaret(document.elementFromPoint(cx, r.y + r.height - 2)),
+        chipStolenByCaret: isCaret(chipHit),
+        chipHitIsChip: chipHit ? chipHit === chip || chip.contains(chipHit) : null,
+      };
+    });
+
+    fs.writeFileSync(
+      path.join(OUT_DIR, "route-dock-caret.json"),
+      `${JSON.stringify(probe, null, 2)}
+`,
+      "utf8",
+    );
+
+    expect(probe, "캐럿과 옆 센서 칩을 찾아야 한다").not.toBeNull();
+    // 축퇴 방어 — 박스를 못 찾아 0 이 나온 것을 "통과"로 세지 않는다.
+    expect(probe!.box.h, "캐럿 박스 높이가 0 이면 요소를 못 찾은 것").toBeGreaterThan(0);
+    expect(probe!.box.w, "캐럿 박스 폭이 0 이면 요소를 못 찾은 것").toBeGreaterThan(0);
+
+    expect(probe!.box.h, "캐럿 히트 높이").toBeGreaterThanOrEqual(MIN_TOUCH_PX);
+    expect(probe!.topHitsCaret, "박스 위쪽 끝이 캐럿에 잡혀야 한다").toBe(true);
+    expect(probe!.bottomHitsCaret, "박스 아래쪽 끝이 캐럿에 잡혀야 한다").toBe(true);
+    // 폭은 위 주석대로 별건(기존 미달) — 이웃 칩을 가로채지 않는 것이 이번 작업의 계약이다.
+    expect(probe!.chipStolenByCaret, "캐럿 히트 영역이 옆 센서 칩 탭을 가로채면 안 된다").toBe(
+      false,
+    );
+    expect(probe!.chipHitIsChip, "센서 칩 중심은 여전히 칩이 잡아야 한다").toBe(true);
+  });
 });
 
 /** 주행 입력 준비 — Go 의 사전조건(SENSOR-2 §1.4) */

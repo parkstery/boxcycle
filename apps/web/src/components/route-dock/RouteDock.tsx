@@ -151,9 +151,6 @@ export function RouteDock(props: RouteDockProps) {
           title={expanded ? "접기" : "펼치기"}
           onClick={() => setExpanded((v) => !v)}
         >
-          <span className="route-dock__caret-name" aria-hidden>
-            경로
-          </span>
           <svg
             className="route-dock__caret-icon"
             viewBox="0 0 24 24"

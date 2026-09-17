@@ -41,27 +41,23 @@
   justify-content: center;
   gap: 0.3rem;
   width: 1.55rem;
-  min-height: 2.75rem;
+  /*
+   * 터치 타깃 44px — 「44px 이상, rem 금지」(f046ce5). 세로 텍스트 「경로」를 빼면서
+   * 높이를 벌어주던 지지대가 사라져 폰 가로(루트 13.5px)에서 2.75rem = 약 37px 로
+   * 줄었다. 배경이 transparent 이고 보이는 것은 14px 셰브런뿐이라, 버튼의 실제 높이를
+   * 키워도 시각적 비용이 없다 — `::after` 투명 히트 영역은 여기서 쓸 수 없다.
+   * 부모 `.route-dock__shell { overflow: hidden }` 이 caret 테두리 1px 바깥에서
+   * 잘라내 밖으로 뻗는 히트 영역이 elementFromPoint 에 잡히지 않기 때문이다.
+   * 가로(1.55rem = 약 21px)는 「경로」와 무관하게 원래부터 44px 미만 — 넓히면 dock
+   * 접힘 폭이 커지므로 Chief 판단 대기(별건).
+   */
+  min-height: 44px;
   padding: 0.4rem 0;
   border: none;
   background: transparent;
   color: var(--rtw-text, #f8fafc);
   cursor: pointer;
   transition: background 0.14s ease, color 0.14s ease;
-}
-
-/* 접힌 상태에서 패널 이름을 캐럿 탭에 세로로 노출 (펼치면 헤더 제목이 대신함) */
-.route-dock__caret-name {
-  writing-mode: vertical-rl;
-  text-orientation: upright;
-  font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  opacity: 0.9;
-}
-
-.route-dock-anchor--open .route-dock__caret-name {
-  display: none;
 }
 
 /* 펼침 시 구분선 없음 — caret 는 hover 로만 구분 (틀은 shell 단일) */
@@ -77,6 +73,7 @@
 .route-dock__caret-icon {
   display: block;
 }
+
 
 /*
  * caret 오른쪽 세로 스택 — 첫 행(항상 보임) + 접히는 본문.

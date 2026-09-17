@@ -1014,9 +1014,71 @@
   margin-bottom: 0.2rem;
 }
 
-.elevation-overlay__svg {
+/* svg 와 진행률 라벨(elevation-overlay__progress)이 같은 % 좌표계를 공유하도록
+   묶는 박스 — 라벨은 SVG 밖 HTML 요소라 이 박스 기준으로만 좌표가 맞는다. */
+.elevation-overlay__plot {
+  position: relative;
   width: 100%;
   height: calc(100% - 1rem);
+}
+
+.elevation-overlay__svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* 표고 그래프 마커 위 진행률(「NN% covered」) — 점 위치와 같은 clamped 값에서 나온 xPct/yPct 로
+   절대배치되어 점과 절대 어긋나지 않는다(mapElevationUi.buildElevationUi 참고).
+   `left` 는 클램프 없이 xPct 그대로 쓴다 — " covered" 가 붙어 라벨 폭이 약 17px → 60px 로
+   커지면서 예전 4~96% 클램프로는 경로 시작·끝에서 라벨이 점으로부터 30px 가까이 떨어져
+   보였다(클램프를 키워도 더 떨어질 뿐). 대신 수평 정렬을 앵커 전환으로 바꿔 라벨이 항상
+   점에 붙어 있게 한다 — 가운데(기본) / 왼쪽 끝(--start, xPct<15) / 오른쪽 끝(--end, xPct>85).
+   수평·수직 변형을 각 클래스가 `transform` 전체를 다시 쓰면 서로 덮어써 조합이 안 되므로
+   커스텀 프로퍼티로 축을 분리한다(2026-09-17 Chief). */
+.elevation-overlay__progress {
+  position: absolute;
+  --elev-label-x: -50%;
+  --elev-label-y: -160%;
+  transform: translate(var(--elev-label-x), var(--elev-label-y));
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: #f8fafc;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+}
+
+/* 경로 최고점 부근에서는 점 위로 뺄 높이가 없어(플롯 상단 여백 ≈ 8.5px < 라벨 16px)
+   라벨이 「시점/종점」 메타 행을 침범한다. 그 구간에서만 점 아래로 뒤집는다. */
+.elevation-overlay__progress--below {
+  --elev-label-y: 60%;
+}
+
+/* 경로 시작 부근(xPct<15) — 라벨 왼쪽 끝을 점에 맞춰 오른쪽으로 뻗는다 */
+.elevation-overlay__progress--start {
+  --elev-label-x: 0%;
+}
+
+/* 경로 끝 부근(xPct>85) — 라벨 오른쪽 끝을 점에 맞춰 왼쪽으로 뻗는다 */
+.elevation-overlay__progress--end {
+  --elev-label-x: -100%;
+}
+
+/* 종점 깃발 — 종점은 항상 플롯 오른쪽 끝이라 오른쪽 정렬로 붙이고,
+   세로는 점에 가운데 맞춰 최고점(yPct 최소 8)에서도 메타 행을 침범하지 않는다.
+   위로 띄우면(-100%) 경로 종점이 최고점일 때 진행률 라벨과 같은 이유로
+   「시점/종점」 메타 행을 침범하므로 반드시 -50%(가운데)를 유지한다.
+   `pointer-events` 는 켜지 않는다 — `.elevation-overlay { pointer-events: none }` 상속을
+   유지해야 지도 조작이 안 막힌다(커밋 f046ce5). */
+/* 종점 깃발 — 깃대(SVG 오른쪽 끝, 중심 x=11.9 / 폭 13)의 밑동이 종점에 앉도록
+   span 우하단을 종점에 맞춘다. 0.85px 은 깃대 중심을 span 오른쪽 끝에서 되돌리는 보정.
+   빨간 선(#ef4444) 위에 겹칠 수 있어 drop-shadow 로 윤곽을 준다. */
+.elevation-overlay__finish {
+  position: absolute;
+  transform: translate(calc(-100% + 0.85px), -100%);
+  line-height: 0;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9));
 }
 
 .elevation-overlay__empty {

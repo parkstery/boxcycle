@@ -1989,10 +1989,6 @@ export default function App() {
   /** HUD 누적 위치 — 경로상 virtualDistance(재개 시 offset 시드 포함) */
   const cumulativeDistanceMeters = Math.max(0, rideMetrics.virtualDistanceMeters);
   const cumulativeDistanceKmLabel = formatRideDistanceKmNumber(cumulativeDistanceMeters);
-  const routeProgressPctLabel =
-    routeDistanceMeters > 0
-      ? Math.min(100, Math.round((cumulativeDistanceMeters / routeDistanceMeters) * 100))
-      : null;
   // 저장 폼 기본 이름 제안 — "출발지 → 도착지 · 거리"(역지오코딩된 지명 + 저장될 경로 거리).
   // 거리는 세션 주행 거리가 아니라 저장 대상 경로 거리를 써서 이름이 경로를 안정적으로 식별하게 한다.
   const suggestedRouteName = buildSuggestedRouteName({
@@ -2021,8 +2017,6 @@ export default function App() {
           /* 주행경로 전체거리 — 경로 확정 시에만(0=미확정 → 누적/전체 병기 생략) */
           routeTotalKm:
             routeDistanceMeters > 0 ? (routeDistanceMeters / 1000).toFixed(2) : null,
-          /** 경로 대비 누적 진행률(0~100). routeTotalKm 과 함께만 표시 */
-          routeProgressPct: routeProgressPctLabel,
         }
       : hudRoutePreview
         ? {

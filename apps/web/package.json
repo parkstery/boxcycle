@@ -51,7 +51,8 @@
     "test:e2e:sensor-chip": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test sensor-chip-route-dock-6a --workers=1 --retries=0\"",
     "test:e2e:pick-title": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test route-pick-popup-title --workers=1 --retries=0\"",
     "test:e2e:menu-a": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test menu-declutter-a --workers=1 --retries=0\"",
-    "test:e2e:touch-targets": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test touch-targets-44 --workers=1 --retries=0\""
+    "test:e2e:touch-targets": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test touch-targets-44 --workers=1 --retries=0\"",
+    "test:e2e:hud-shots": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test hud-distance-elevation-shots --workers=1 --retries=0\""
   },
   "dependencies": {
     "firebase": "^12.13.0",
