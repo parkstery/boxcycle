@@ -79,6 +79,12 @@
   min-height: 320px;
 }
 
+/* 축척 바(「30m」)는 표시 전용 — 지도 하단에서 팬·핀치를 삼킬 이유가 없다.
+   실측에서 하단 격자 6 지점을 막고 있었다(diag-hit-scan.json). */
+.map-view .mapboxgl-ctrl-scale {
+  pointer-events: none;
+}
+
 /* 빌보드 마커: 기본 레이어 위로. 내 라이더·핀이 동행(맵 레이어)보다 위에 오도록 */
 .map-view .mapboxgl-marker {
   z-index: 5;
@@ -896,17 +902,24 @@
 .map-view__self-location-marker {
   background: transparent !important;
   border: none !important;
-  pointer-events: none;
+  /* `!important` 인 이유는 위 두 줄과 같다 — Mapbox 자체 `.mapboxgl-marker` 규칙이
+     같은 특이도(0,1,0)로 부딪혀 우리 선언이 밀린다. 실측에서 이 호스트가 표고 그래프
+     면 안에서 지도 조작을 3 지점 막고 있었다(elevation-area-scan.json). 내 위치 표식은
+     표시 전용이므로 못을 박는다. */
+  pointer-events: none !important;
 }
 
 .map-view__self-location-host {
   width: 28px;
   height: 28px;
   position: relative;
-  pointer-events: none;
+  pointer-events: none !important;
 }
 
 .map-view__self-location-pulse {
+  /* 장식(펄스 링)일 뿐인데 실측에서 터치를 잡고 있었다 — 부모 2개가 이미 none 이지만
+     Mapbox 자체 `.mapboxgl-marker` 규칙과 같은 특이도로 부딪힌다. 여기서 못을 박는다. */
+  pointer-events: none;
   position: absolute;
   inset: 0;
   border-radius: 50%;

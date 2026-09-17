@@ -139,6 +139,80 @@ test.describe("터치 타깃 44px", () => {
     expect(probe!.blocksMap, "그래프 한가운데 터치가 지도로 내려가야 한다").toBe(false);
   });
 
+  /*
+   * 표고 그래프 영역은 「표시 전용」이다 — 사용자가 그래프를 조작할 일이 없으므로
+   * 그 영역을 포함해 지도 팬·핀치가 되어야 한다(2026-09-17 Chief).
+   *
+   * 위의 「표고 그래프 영역이 지도 터치를 통과시킨다」는 오버레이 **한가운데 한 점**만,
+   * 그것도 주행 전(idle)에서 본다. 그 계약은 통과하는데도 Chief 는 여전히 막힌다고 했다 —
+   * 오버레이는 이미 통과하고 있었고, 주행 중에만 뜨는 `.map-hud__bc`(코치 토스트 슬롯)가
+   * 같은 자리에서 그 **위를** 덮고 있었기 때문이다. 그래서 여기서는 주행 중에,
+   * 오버레이 면 전체를 격자로 훑는다. 한 점 표본은 이런 부분 가림을 놓친다.
+   */
+  test("표고 그래프 면 전체가 주행 중에도 지도 조작을 막지 않는다", async ({ page }) => {
+    test.setTimeout(180_000);
+    fs.mkdirSync(OUT_DIR, { recursive: true });
+    await page.setViewportSize(PHONE_LANDSCAPE);
+    await page.goto("/");
+    await guestStart(page);
+    await armRideInput(page);
+    await loadIntroCourse(page);
+    await page.getByRole("button", { name: "주행 시작" }).click();
+    await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator(".elevation-overlay")).toBeVisible({ timeout: 30_000 });
+    await page.waitForTimeout(2500);
+
+    const scan = await page.evaluate(() => {
+      const ident = (el: Element | null): string => {
+        if (!el) return "(null)";
+        const e = el as HTMLElement;
+        const cls = typeof e.className === "string" ? e.className : "";
+        return `${el.tagName.toLowerCase()}${cls ? `.${cls.trim().split(/\s+/).join(".")}` : ""}`;
+      };
+      /** 진짜 조작 요소인가 — 버튼·dock·Mapbox 컨트롤이면 막아도 정상이다. */
+      const isInteractive = (el: Element | null) =>
+        !!el?.closest("button, .route-dock-anchor, .mapboxgl-ctrl-group");
+      const elev = document.querySelector(".elevation-overlay") as HTMLElement | null;
+      if (!elev) return null;
+      const r = elev.getBoundingClientRect();
+      const points: { x: number; y: number; hit: string }[] = [];
+      const blockedByChrome: { x: number; y: number; hit: string }[] = [];
+      for (let y = Math.ceil(r.top) + 2; y < r.bottom - 2; y += 6) {
+        for (let x = Math.ceil(r.left) + 2; x < r.right - 2; x += 8) {
+          const hit = document.elementFromPoint(x, y);
+          const id = ident(hit);
+          points.push({ x, y, hit: id });
+          const reachesMap = id.includes("mapboxgl-canvas");
+          if (!reachesMap && !isInteractive(hit)) blockedByChrome.push({ x, y, hit: id });
+        }
+      }
+      const counts: Record<string, number> = {};
+      for (const b of blockedByChrome) counts[b.hit] = (counts[b.hit] ?? 0) + 1;
+      return {
+        elevRect: { x: r.x, y: r.y, w: r.width, h: r.height },
+        elevPointerEvents: getComputedStyle(elev).pointerEvents,
+        totalPoints: points.length,
+        blockedByChrome: blockedByChrome.length,
+        blockedCounts: counts,
+        blockedSamples: blockedByChrome.slice(0, 12),
+      };
+    });
+
+    fs.writeFileSync(
+      path.join(OUT_DIR, "elevation-area-scan.json"),
+      `${JSON.stringify(scan, null, 2)}\n`,
+      "utf8",
+    );
+
+    expect(scan, "표고 그래프를 찾아야 한다").not.toBeNull();
+    // 축퇴 방어 — 표본이 없으면 "막힘 0" 은 통과가 아니라 계측 실패다.
+    expect(scan!.totalPoints, "격자 표본이 없으면 계측 실패").toBeGreaterThan(400);
+    expect(
+      scan!.blockedByChrome,
+      `표시 전용 크롬이 지도 조작을 막는 지점: ${JSON.stringify(scan!.blockedCounts)}`,
+    ).toBe(0);
+  });
+
   test("주행 컨트롤(정사각 아이콘)도 두 축 다 44px", async ({ page }) => {
     test.setTimeout(180_000);
     fs.mkdirSync(OUT_DIR, { recursive: true });
