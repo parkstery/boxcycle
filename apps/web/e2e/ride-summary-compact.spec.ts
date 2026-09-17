@@ -123,6 +123,124 @@ const DISTANCE_THRESHOLD_KM = 0.11;
 /** 제거 대상 문구 2종 — 시트 텍스트에 남아 있으면 회귀다. */
 const REMOVED_PHRASES = ["내 도로망에 더해졌어요", "다음 출발점이 저장되었습니다"];
 
+test.describe("다음 주행 카드 자리", () => {
+  /*
+   * 카드가 들고 나도 **RouteDock 이 움직이면 안 된다**(2026-09-17 Chief).
+   * 종전엔 둘 다 좌하단 스택에 있었고 스택이 하단 기준이라, 카드가 뜨면 dock 이 위로
+   * 밀리고 닫으면 내려왔다. 카드를 우하단으로 빼서 자리를 갈랐다.
+   *
+   * 선언(CSS right/left)만 보면 축퇴다 — 카드를 실제로 띄웠다 닫으며 dock 의 렌더 좌표가
+   * 그대로인지 잰다.
+   */
+  test("카드가 들고 나도 RouteDock 이 움직이지 않는다 · 카드는 우하단", async ({ page }) => {
+    test.setTimeout(240_000);
+    await stubMapboxStyle(page);
+    await page.setViewportSize(PHONE_LANDSCAPE);
+    await page.goto("/");
+    await guestStart(page);
+
+    const uid = await readGuestUid(page);
+    await seedShortRoute(uid, `next-ride-pos-${Date.now()}`);
+    await page.reload();
+    await armRideInput(page);
+    await loadSavedRouteFromMenu(page, FIXTURE_NAME);
+    await page.getByRole("button", { name: "주행 시작" }).click();
+
+    const sheet = page.getByRole("dialog", { name: "주행 결과" });
+    await expect(sheet, "도착 자동 종료가 결과 시트를 연다").toBeVisible({ timeout: 120_000 });
+    await sheet.getByRole("button", { name: "닫기" }).first().click();
+    await expect(sheet).toBeHidden({ timeout: 15_000 });
+
+    const dock = page.locator(".route-dock-anchor");
+    const card = page.locator(".next-ride-anchor");
+    await expect(dock).toBeVisible({ timeout: 20_000 });
+    await expect(card, "종료 후 idle 에서 「다음 주행」 카드가 뜬다").toBeVisible({
+      timeout: 20_000,
+    });
+
+    const dockWithCard = await dock.boundingBox();
+    const cardBox = await card.boundingBox();
+
+    // 축퇴 방어 — 상자를 못 찾았으면 「안 움직였다」는 공허하다.
+    expect(dockWithCard, "dock boundingBox").not.toBeNull();
+    expect(dockWithCard!.height, "dock 높이").toBeGreaterThan(0);
+    expect(cardBox, "카드 boundingBox").not.toBeNull();
+    expect(cardBox!.width, "카드 폭").toBeGreaterThan(0);
+
+    // 카드는 화면 오른쪽 절반에 있다
+    expect(
+      cardBox!.x,
+      `카드가 우하단에 있어야 한다: x=${cardBox!.x}, viewport=${PHONE_LANDSCAPE.width}`,
+    ).toBeGreaterThan(PHONE_LANDSCAPE.width / 2);
+    // dock 은 왼쪽에 그대로
+    expect(dockWithCard!.x, "dock 은 좌하단").toBeLessThan(PHONE_LANDSCAPE.width / 2);
+
+    /*
+     * 자리는 기존 UI 격자에 맞춘다(2026-09-17 Chief) — 「우하단」이라는 방향만으로는
+     * 부족하고, 이미 있는 컨트롤과의 관계로 기준선을 잡아야 한다.
+     *  · 오른쪽 끝 = 우상단 계정·맵 버튼(.map-hud__tr)의 오른쪽 끝
+     *  · 아래 끝   = RouteDock 의 아래 끝
+     * CSS 선언이 같은지가 아니라 **렌더된 상자 좌표**가 같은지를 본다.
+     */
+    const trBox = await page.locator(".map-hud__tr").boundingBox();
+    expect(trBox, "우상단 계정·맵 묶음 boundingBox").not.toBeNull();
+    expect(trBox!.width, "우상단 묶음 폭").toBeGreaterThan(0);
+    const ctrlBox = await page.locator(".mapboxgl-ctrl-top-right").boundingBox();
+
+    expect(
+      cardBox!.x + cardBox!.width,
+      `카드 오른쪽 끝이 계정·맵 버튼과 같은 선이어야 한다: card=${cardBox!.x + cardBox!.width}, tr=${trBox!.x + trBox!.width}`,
+    ).toBeCloseTo(trBox!.x + trBox!.width, 0);
+    expect(
+      cardBox!.y + cardBox!.height,
+      `카드 아래 끝이 RouteDock 아래 끝과 같은 선이어야 한다: card=${cardBox!.y + cardBox!.height}, dock=${dockWithCard!.y + dockWithCard!.height}`,
+    ).toBeCloseTo(dockWithCard!.y + dockWithCard!.height, 0);
+
+    /*
+     * 정렬을 기준선에 맞추면 폰 가로(세로 275px)에서는 카드 상단이 우측 지도 컨트롤 열까지
+     * 올라온다. 상자가 겹치는 것 자체보다 **버튼이 실제로 눌리는가**가 문제이므로 그것을 잰다.
+     */
+    const ctrlHit = await page.evaluate(() => {
+      const group = document.querySelector(".mapboxgl-ctrl-top-right .mapboxgl-ctrl-group");
+      if (!group) return null;
+      const btns = Array.from(group.querySelectorAll("button")) as HTMLElement[];
+      return btns.map((b) => {
+        const r = b.getBoundingClientRect();
+        const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+        return {
+          label: b.className,
+          reachable: hit ? b === hit || b.contains(hit) : false,
+        };
+      });
+    });
+    expect(ctrlHit, "지도 컨트롤 버튼을 찾아야 한다").not.toBeNull();
+    expect(ctrlHit!.length, "컨트롤 버튼이 0개면 계측 실패").toBeGreaterThan(0);
+    const blocked = ctrlHit!.filter((b) => !b.reachable).map((b) => b.label);
+    expect(blocked, `카드가 지도 컨트롤 버튼을 막는다: ${blocked.join(", ")}`).toEqual([]);
+
+    await page.screenshot({ path: path.join(SHOTS_DIR, "next-ride-card-right.png") });
+
+    // 카드를 닫는다 — 이때 dock 이 내려오면(=움직이면) 그게 Chief 가 지적한 현상이다.
+    await page.getByRole("button", { name: "다음 주행 숨기기" }).click();
+    await expect(card).toHaveCount(0, { timeout: 15_000 });
+    const dockWithoutCard = await dock.boundingBox();
+    expect(dockWithoutCard, "카드 닫은 뒤 dock boundingBox").not.toBeNull();
+
+    fs.writeFileSync(
+      path.join(SHOTS_DIR, "next-ride-card-position.json"),
+      `${JSON.stringify({ dockWithCard, cardBox, dockWithoutCard, trBox, ctrlBox }, null, 2)}
+`,
+      "utf8",
+    );
+
+    expect(
+      dockWithoutCard!.y,
+      `카드가 닫히자 dock 이 움직였다: 카드있음 y=${dockWithCard!.y}, 카드없음 y=${dockWithoutCard!.y}`,
+    ).toBeCloseTo(dockWithCard!.y, 0);
+    expect(dockWithoutCard!.x, "dock x 도 그대로여야 한다").toBeCloseTo(dockWithCard!.x, 0);
+  });
+});
+
 test.describe("주행 결과 시트 컴팩트화", () => {
   test("스크롤 없음 · 6줄 이하 · 끝점 CTA 제거 · 설명문 제거", async ({ page }) => {
     test.setTimeout(240_000);

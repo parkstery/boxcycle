@@ -27,7 +27,7 @@ describe("HUD 센서 칩 표시", () => {
   it("미연결: 흰 LED + CAD", () => {
     const v = cadenceChipView(hud(), false);
     assert.equal(v.led, "white");
-    assert.equal(v.text, "CAD");
+    assert.equal(v.text, "SENSOR");
     assert.equal(v.pulsing, false);
   });
 
@@ -35,13 +35,13 @@ describe("HUD 센서 칩 표시", () => {
     const v = cadenceChipView(hud({ uiState: "connecting" }), false);
     assert.equal(v.led, "white");
     assert.equal(v.pulsing, true);
-    assert.equal(v.text, "CAD");
+    assert.equal(v.text, "SENSOR");
   });
 
   it("연결됨·주행 전: 초록 LED + CAD (RPM 을 앞세우지 않는다)", () => {
     const v = cadenceChipView(hud({ uiState: "connected", crankRpm: 72 }), false);
     assert.equal(v.led, "green");
-    assert.equal(v.text, "CAD");
+    assert.equal(v.text, "SENSOR");
   });
 
   it("연결됨·주행 중 최초 샘플 전: 초록 LED + '-- rpm'", () => {
@@ -71,7 +71,7 @@ describe("HUD 센서 칩 표시", () => {
   it("Web Bluetooth 미지원: 흰 LED + CAD", () => {
     const v = cadenceChipView(hud({ capable: false }), true);
     assert.equal(v.led, "white");
-    assert.equal(v.text, "CAD");
+    assert.equal(v.text, "SENSOR");
   });
 
   it("LED 는 초록·흰색 두 값만 쓴다", () => {

@@ -1,6 +1,9 @@
 /*
- * 좌하단 스택 — RouteDock · 「다음 주행」 카드 · 입문 CTA 가 나눠 쓰는 한 자리.
+ * 좌하단 스택 — RouteDock · 입문 CTA 가 나눠 쓰는 한 자리.
  * 좌표·여백·z-index 는 여기서만 정하고, 안쪽 anchor 들은 흐름에 맡긴다.
+ *
+ * 「다음 주행」 카드는 2026-09-17 에 여기서 빠져 **우하단**으로 갔다(Chief) — 스택이 하단
+ * 기준이라, 카드가 들고 날 때마다 그 위의 RouteDock 이 밀려 올라갔다 내려왔다 했다.
  */
 .map-bottom-left-stack {
   --map-bl-pad: clamp(0.45rem, 1.4vw, 0.85rem);
@@ -24,7 +27,6 @@
  * 다른 화면에서 겹치는 사고가 난다(이 스택이 생긴 이유 자체가 그것이다).
  */
 .map-bottom-left-stack > .route-dock-anchor,
-.map-bottom-left-stack > .next-ride-anchor,
 .map-bottom-left-stack > .first-ride-anchor {
   position: static;
   left: auto;

@@ -38,7 +38,8 @@ export type CadenceChipView = {
   ariaLabel: string;
 };
 
-const CHIP_IDLE_TEXT = "CAD";
+/** 주행 전 칩 문구. 「CAD」(cadence 약어)는 무엇인지 알기 어렵다 — 2026-09-17 Chief. */
+const CHIP_IDLE_TEXT = "SENSOR";
 const CHIP_NO_SAMPLE_TEXT = "-- rpm";
 const ARIA_PREFIX = "케이던스 센서";
 

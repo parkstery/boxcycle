@@ -1,16 +1,23 @@
 /*
- * 「다음 주행」 카드 — RouteDock 과 같은 좌하단 anchor 를 쓴다(§3.1).
- * 둘은 동시에 뜨지 않는다: Route 가 없는 idle 에서만 이 카드가, 경로가 올라오면 RouteDock 이 나온다.
- * 폭·안전영역·Mapbox 로고 여백 정책도 RouteDock 과 같은 값을 공유해 겹침을 막는다.
+ * 우하단 — 좌하단 스택에서 빠져 나왔다(2026-09-17 Chief). 스택이 하단 기준이라 카드가
+ * 들고 날 때마다 RouteDock 이 위아래로 흔들렸다.
+ *
+ * 자리는 **기존 UI 격자에 맞춘다**(Chief) — 아무 데나 두면 화면이 어수선해진다.
+ *  · 오른쪽 끝 = 우상단 계정·맵 버튼(`.map-hud__tr`)의 오른쪽 끝과 같은 선
+ *  · 아래 끝   = RouteDock(`.map-bottom-left-stack`)의 아래 끝과 같은 선
+ * 세 곳의 여백 변수(`--hud-pad`·`--map-bl-pad`·`--next-ride-pad`)는 모두 같은
+ * `clamp(0.45rem, 1.4vw, 0.85rem)` 이라 아래 식이 그 둘과 정확히 일치한다.
+ * 어긋나면 e2e 가 렌더된 상자 좌표로 잡는다(선언이 아니라 결과를 본다).
  */
 .next-ride-anchor {
   --next-ride-pad: clamp(0.45rem, 1.4vw, 0.85rem);
   position: absolute;
-  left: max(var(--next-ride-pad), env(safe-area-inset-left, 0px));
+  /* = .map-hud__tr 의 right (--hud-pad-right) */
+  right: max(var(--next-ride-pad), env(safe-area-inset-right, 0px));
+  /* = .map-bottom-left-stack 의 bottom */
   bottom: calc(
     max(var(--next-ride-pad), env(safe-area-inset-bottom, 0px)) + var(--mapbox-logo-clearance, 2.875rem)
   );
-  /* MapHud(z-index 5) 위 — 다음 행동이 정보 표시에 가려지면 안 된다(RouteDock 과 동일 근거) */
   z-index: 6;
   max-width: min(23rem, calc(100vw - 2rem));
   pointer-events: none;

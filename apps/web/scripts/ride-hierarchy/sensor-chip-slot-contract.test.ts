@@ -145,18 +145,29 @@ describe("RouteDock 소스 구조 — 접어도 센서가 남는다", () => {
     assert.doesNotMatch(hud, /\bcadence\.\w/, "cadence 값을 읽는 코드가 남으면 안 된다");
   });
 
-  it("좌하단을 나눠 쓰는 셋이 한 스택 안에 있다 — 겹쳐 놓지 않는다", () => {
+  it("좌하단 스택은 dock·입문 CTA 둘만 — 「다음 주행」 카드는 밖(우하단)이다", () => {
     /*
-     * dock 이 `idle` 까지 오면서 「다음 주행」 카드·입문 CTA 와 **같은 좌표**를 쓰게 됐다.
-     * 셋이 각자 absolute 로 붙어 있으면 그대로 겹친다.
+     * dock 이 `idle` 까지 오면서 「다음 주행」 카드·입문 CTA 와 **같은 좌표**를 쓰게 됐고,
+     * 셋이 각자 absolute 로 붙어 있으면 그대로 겹치므로 한 스택으로 묶었다(2026-09-16).
+     *
+     * 2026-09-17: 그런데 스택은 **하단 기준**이라 「다음 주행」 카드가 들고 날 때마다 그 위의
+     * RouteDock 이 밀려 올라갔다 내려왔다 했다 — 「창의 위치가 흔들려서는 안 된다」(Chief).
+     * 카드만 스택 밖 우하단으로 내보내 자리를 갈랐다. 남은 둘은 서로 배타적이라 스택으로 충분하다.
+     * (카드의 실제 좌표·dock 불변은 e2e `ride-summary-compact.spec.ts` 가 렌더 결과로 잰다.)
      */
     const app = fs.readFileSync(path.resolve(__dirname, "../../src/App.tsx"), "utf8");
     const open = app.indexOf("<MapBottomLeftStack>");
     const close = app.indexOf("</MapBottomLeftStack>", open);
     assert.ok(open > 0 && close > open, "좌하단 스택이 있어야 한다");
     const inner = app.slice(open, close);
-    for (const node of ["{routeDockPanel}", "{nextRideCard}", "{firstRideIntroCard}"]) {
+    for (const node of ["{routeDockPanel}", "{firstRideIntroCard}"]) {
       assert.ok(inner.includes(node), `${node} 가 스택 안에 있어야 한다`);
     }
+    assert.equal(
+      inner.includes("{nextRideCard}"),
+      false,
+      "「다음 주행」 카드가 스택에 되돌아오면 dock 이 다시 흔들린다",
+    );
+    assert.ok(app.includes("{nextRideCard}"), "카드 자체는 여전히 렌더돼야 한다");
   });
 });

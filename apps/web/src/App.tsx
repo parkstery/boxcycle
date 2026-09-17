@@ -2182,11 +2182,19 @@ export default function App() {
         ) : (
           <AppMapStage
             routeDock={
-              <MapBottomLeftStack>
-                {routeDockPanel}
+              <>
+                <MapBottomLeftStack>
+                  {routeDockPanel}
+                  {firstRideIntroCard}
+                </MapBottomLeftStack>
+                {/*
+                  「다음 주행」 카드는 좌하단 스택 밖 — **우하단**에 홀로 선다(2026-09-17 Chief).
+                  스택은 하단 기준이라 카드가 들고 날 때마다 RouteDock 이 위아래로 밀렸다.
+                  창이 흔들리면 안 된다. 카드는 `stage === "idle"` 에서만 뜨고 주행 컨트롤
+                  (`.map-hud__br`)은 주행 중에만 뜨므로 우하단에서 부딪힐 상대가 없다.
+                */}
                 {nextRideCard}
-                {firstRideIntroCard}
-              </MapBottomLeftStack>
+              </>
             }
             mapView={{
               accessToken: MAPBOX_TOKEN || undefined,

@@ -27,6 +27,25 @@
 
 ## CLI
 
+### Modelling 교체 — 단계 0
+
+릴리스는 **모두 명시 인자**로 받는다. 폴더만 넘겨 최신 파일을 자동 탐색하지 않으므로 작업 중 파일이나 구형 릴리스가 섞이지 않는다. 기존 후보 승인은 새 입력에 승계하지 않는다. 인계 경로·해시는 [최신 인계 조건](../../../../document/260912-Modelling-최신라이더-인계조건.md)을 따른다.
+
+```powershell
+node apps/web/scripts/rider-cycle-fit/register-modelling-baseline.mjs `
+  --release "<릴리스 폴더>" --rider-glb "<파일>.glb" --rider-blend "<파일>.blend" `
+  --source-task "<제작 작업 ID>" [--evidence "a.json,b.md,..."] [--legacy "<v2_4_cyclefit>"] [--blender "<blender.exe>"]
+```
+
+- 저장소 루트에서 실행. `--release`·`--rider-glb`·`--rider-blend`·`--source-task`는 필수이며 빠지면 즉시 실패한다. `--evidence`는 릴리스 폴더 기준 상대 파일 목록(쉼표 구분)이고, 나열한 파일이 없으면 실패한다.
+- `--legacy` 기본값은 릴리스 폴더 기준 `../../../v2_4_cyclefit`, `--blender` 기본값은 Blender 5.2다.
+- 원본 GLB/blend·제작 증거·제품 GLB·rig/geometry/카메라 코드·하네스·기존 fit 입력을 사본으로 보존한다. 기존 `fit_ik.py`, `ik-joints-v2.json`, `cycle-only.glb`는 출처 추적용이며, 선택된 자전거 입력은 현재 제품 GLB에 포함된 자전거다. 자전거 단독 추출은 A 단계다.
+- `blender/rider-cycle-fit/inspect-modelling-baseline.py`가 사본만 열어 노드·본·버텍스 그룹·실제 정점 AABB를 추출하고 같은 카메라/조명/배율의 측면·사선 PNG 4장을 만든다. 열 blend는 manifest의 `selectedRiderBlend`를 따르며 파일명을 코드에 고정하지 않는다. 모델 저장·export·피팅 없음.
+- 제품 그림자는 제외한다. **앱 회전 오버라이드 없는 저장 자세**이므로 제품의 팔다리가 아래로 내려가 보인다. 위상을 맞춘 피팅 비교 자료가 아니다.
+- 산출: `.out/candidates/<candidateId>/`의 `manifest.json`(schemaVersion 2), `inventory.json`, PNG 4장, `snapshots/`, `blender.log`. ID 해시는 입력 경로/내용·Blender 버전·렌더 설정을 포함하며 기존 후보를 덮어쓰지 않는다.
+- 원본·사본 해시 및 이미지 크기 검증 성공 시 `READY_FOR_STAGE_0_REVIEW`, 오류 시 `FAILED`. Blender 제한 시간 240초. `approval`은 자동 기록하지 않는다.
+- 단계 0 검토 후 A 단계로 진행하며, 제품 승격 기능은 없다.
+
 ### register-inputs (단계 0)
 ```
 node scripts/rider-cycle-fit/register-inputs.mjs [--blender 5.2.0] \
