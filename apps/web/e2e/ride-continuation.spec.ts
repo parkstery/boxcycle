@@ -545,8 +545,8 @@ test.describe('다음 주행 · 이어 달리기', () => {
     await page.reload()
     const card = nextRideCard(page)
     await expect(card).toBeVisible({ timeout: 30_000 })
-    await expect(card.getByRole('button', { name: '이 지점에서 새 경로' })).toBeVisible()
-    await card.getByRole('button', { name: '이 지점에서 새 경로' }).click()
+    await expect(card.getByRole('button', { name: '여기에서 계속' })).toBeVisible()
+    await card.getByRole('button', { name: '여기에서 계속' }).click()
     const extendDock = page.locator('.map-view__pick-dock-panel, .map-view__pick-popup').last()
     await expect(extendDock).toBeVisible({ timeout: 15_000 })
     await expect(

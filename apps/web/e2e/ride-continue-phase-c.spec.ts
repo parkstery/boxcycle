@@ -3,7 +3,7 @@ import { readGuestUid } from './readGuestUid'
 
 /**
  * R1 단계 C — 자동 Route 3회 연속 루프.
- * 자동 Route → 주행 → 종료 → 「이 지점에서 새 경로」×3
+ * 자동 Route → 주행 → 종료 → 「여기에서 계속」×3
  */
 const LIVE = process.env.RIDE_VERIFY_LIVE === '1'
 const PROJECT_ID = 'boxcycle-dc2df'
@@ -190,7 +190,7 @@ async function rideUntilEnd(page: Page, minSessionMeters = 400) {
 async function extendFromNextRideCard(page: Page) {
   const card = page.getByRole('group', { name: '다음 주행' })
   await expect(card).toBeVisible({ timeout: 15_000 })
-  await card.getByRole('button', { name: '이 지점에서 새 경로' }).click()
+  await card.getByRole('button', { name: '여기에서 계속' }).click()
   const dock = pickSurface(page)
   await expect(dock).toBeVisible({ timeout: 15_000 })
   await expect

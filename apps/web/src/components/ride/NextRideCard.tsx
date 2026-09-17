@@ -37,7 +37,7 @@ function anchorPlaceName(view: NextRideView): string | null {
  * 지도 위 「다음 주행」 카드 — 다음 행동의 **주 표면**(§3.1).
  *
  * 사용자가 MENU → 내 경로 → 선택 → 열기를 반복하지 않도록, 마지막 유효 Ride 를 해석해
- * 「이어 달리기」·「이 지점에서 새 경로」를 지도 위에서 바로 제시한다.
+ * 「이어 달리기」·「여기에서 계속」을 지도 위에서 바로 제시한다.
  * 좌하단 RouteDock anchor 자리를 쓰며, 확장된 RouteDock 과 동시에 표시되지 않는다.
  */
 export function NextRideCard(props: NextRideCardProps) {
@@ -51,7 +51,7 @@ export function NextRideCard(props: NextRideCardProps) {
       <div className="next-ride__card hud-glass" role="group" aria-labelledby="next-ride-title">
         <div className="next-ride__head">
           <h2 id="next-ride-title" className="next-ride__title">
-            다음 주행
+            다음 주행 이어가기
           </h2>
           <button
             type="button"
@@ -87,7 +87,8 @@ export function NextRideCard(props: NextRideCardProps) {
         ) : (
           <>
             <p className="next-ride__line next-ride__line--strong">
-              {placeName ? `${placeName}에서 이어가기` : "마지막 종료 지점에서 이어가기"}
+              {/* 주소만 — 「에서 이어가기」는 제목이 이미 말한다(2026-09-18 Chief) */}
+              {placeName ?? "마지막 종료 지점"}
             </p>
             <p className="next-ride__line next-ride__line--muted">
               마지막 주행 {formatEndedAtKo(view.ride.endedAt)} · 오늘 {todayKm} km
@@ -112,7 +113,7 @@ export function NextRideCard(props: NextRideCardProps) {
             title="New route from here"
             onClick={() => props.onExtend(view.target.anchorLngLat)}
           >
-            이 지점에서 새 경로
+            여기에서 계속
           </button>
           {!resumeTarget ? (
             <button

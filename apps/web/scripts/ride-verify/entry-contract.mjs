@@ -101,11 +101,11 @@ export const ENTRY_STEPS = [
     anchors: [
       { name: "카드 aria-label", re: /aria-label="다음 주행"/ },
       { name: "이어 달리기 CTA", re: /%에서 이어 달리기/ },
-      { name: "새 경로 CTA", re: /이 지점에서 새 경로/ },
+      { name: "새 경로 CTA", re: /여기에서 계속/ },
       { name: "지도에서 보기 CTA", re: /지도에서 보기/ },
       { name: "숨기기 버튼", re: /aria-label="다음 주행 숨기기"/ },
     ],
-    selector: `getByLabel('다음 주행') → getByRole('button',{name:/%에서 이어 달리기/}) | getByRole('button',{name:'이 지점에서 새 경로'})`,
+    selector: `getByLabel('다음 주행') → getByRole('button',{name:/%에서 이어 달리기/}) | getByRole('button',{name:'여기에서 계속'})`,
   },
   {
     step: "ride-result-progress",
