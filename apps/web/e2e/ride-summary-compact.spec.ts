@@ -158,8 +158,10 @@ test.describe("주행 결과 시트 컴팩트화", () => {
 
     const sheet = page.getByRole("dialog", { name: "주행 결과" });
     await expect(sheet, "도착 자동 종료가 결과 시트를 연다").toBeVisible({ timeout: 120_000 });
-    // 완주 배지 — 「경로를 완주했습니다」 문단을 대신하는 새 표면.
-    await expect(sheet.locator(".ride-summary__heroes-badge--done")).toHaveText("완주");
+    // 「완주」·「도착」 배지는 제거됐다(2026-09-17 Chief) — 되살아나면 잡는다.
+    // 완주의 증거는 아래 「주행거리 = 총거리」다.
+    await expect(sheet.locator(".ride-summary__heroes-badge--done")).toHaveCount(0);
+    expect(((await sheet.textContent()) ?? "").includes("도착"), "「도착」 배지 제거").toBe(false);
 
     /*
      * 「이번 주행」 세 값 — 주행거리 / 총거리 / 새 도로(2026-09-17 Chief).
@@ -178,6 +180,34 @@ test.describe("주행 결과 시트 컴팩트화", () => {
     expect(totalKm, `시험 경로는 200m 이하여야 한다: ${totalKm}km`).toBeLessThanOrEqual(0.2);
 
     await expect(sheet.locator(".ride-summary__title-unit"), "단위는 헤더에 한 번").toHaveText("km");
+
+    /*
+     * 「새 도로」는 한 줄이다 — 라벨이 숫자 **왼쪽**에 앉는다(2026-09-17 Chief).
+     * 에뮬레이터에서 conquest 는 Cloud Function 이 늦게 채워 촬영 시점엔 「확인 중…」일 수
+     * 있다. 그래서 눈이 아니라 **배치 자체**를 잰다 — 값이 오든 안 오든 참이어야 하는 성질이다.
+     */
+    const conquestBox = sheet.locator(".ride-summary__conquest-hero");
+    if ((await conquestBox.count()) > 0) {
+      const layout = await conquestBox.evaluate((el) => {
+        const cs = getComputedStyle(el);
+        const r = el.getBoundingClientRect();
+        const label = el.querySelector(".ride-summary__conquest-label");
+        const value = el.querySelector(".ride-summary__conquest-value");
+        return {
+          flexDirection: cs.flexDirection,
+          height: Math.round(r.height),
+          labelX: label ? Math.round(label.getBoundingClientRect().x) : null,
+          valueX: value ? Math.round(value.getBoundingClientRect().x) : null,
+        };
+      });
+      expect(layout.height, "새 도로 칸 높이가 0 이면 계측 실패").toBeGreaterThan(0);
+      expect(layout.flexDirection, "새 도로는 한 줄(가로 배치)이어야 한다").toBe("row");
+      if (layout.labelX != null && layout.valueX != null) {
+        expect(layout.labelX, "「새 도로」 라벨이 숫자 왼쪽에 있어야 한다").toBeLessThan(
+          layout.valueX,
+        );
+      }
+    }
     expect(
       ((await sheet.textContent()) ?? "").includes("오늘"),
       "「오늘」(하루 누적)은 이 화면이 답할 질문이 아니다",

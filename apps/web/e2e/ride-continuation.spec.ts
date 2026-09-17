@@ -485,9 +485,19 @@ test.describe('다음 주행 · 이어 달리기', () => {
     await expect(page.getByRole('button', { name: '주행 종료' })).toBeVisible({ timeout: 30_000 })
     const summary = page.getByRole('region', { name: '주행 결과' })
     await expect(summary).toBeVisible({ timeout: 240_000 })
-    // 「경로를 완주했습니다」 문구는 컴팩트 재설계로 사라졌다 — 같은 사실(routeCompleted)은
-    // 이제 완주 배지(ride-summary__heroes-badge--done)로 표시된다.
-    await expect(summary.locator('.ride-summary__heroes-badge--done')).toHaveText('완주')
+    /*
+     * 완주 표시의 변천: 「경로를 완주했습니다」 문단 → 「완주」 배지 → **배지도 제거**
+     * (2026-09-17 Chief: "사용자는 주행을 마치는 순간에 완주를 인식하고, 결과의 숫자로
+     * 다시 확인한다"). 이제 완주의 증거는 **주행거리 = 총거리** 그 자체다.
+     */
+    const donePair = summary.getByLabel('주행 거리 / 경로 전체거리')
+    await expect(donePair).toBeVisible({ timeout: 15_000 })
+    const doneText = ((await donePair.textContent()) ?? '').trim()
+    const [doneRidden, doneTotal] = doneText.split('/').map((v) => Number(v.trim()))
+    expect(doneTotal, `총거리를 읽지 못했다: ${doneText}`).toBeGreaterThan(0)
+    expect(doneRidden, `완주인데 주행거리≠총거리: ${doneText}`).toBeCloseTo(doneTotal, 2)
+    // 미완주 진행률 배지는 완주 시 뜨지 않는다
+    await expect(summary.getByLabel('전체 진행')).toHaveCount(0)
     // 「끝점에서 새 경로」 버튼도 사라졌다(Chief 지시, 되살리지 않는다) — 살아있는 진입점
     // (사용자 정보 → 최근 주행 → 「여기서 새 경로」)으로 다시 겨눈다. 시트를 먼저 닫아야
     // 한다 — 전체화면 scrim 이 HUD 클릭을 막는다.

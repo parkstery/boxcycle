@@ -113,7 +113,9 @@ export const ENTRY_STEPS = [
     file: "src/components/ride/RideSummarySheet.tsx",
     anchors: [
       { name: "결과 시트 region", re: /aria-label="주행 결과"/ },
-      { name: "오늘 거리 히어로", re: /ride-summary__hero-k/ },
+      // 2026-09-17 Chief: 「오늘」·「거리」 라벨과 「완주/도착」 배지를 뺐다 — 숫자가 스스로 말한다.
+      // 남은 표면은 「주행거리 / 총거리」 쌍이다.
+      { name: "주행거리/총거리 쌍", re: /aria-label="주행 거리 \/ 경로 전체거리"/ },
       { name: "전체 진행 라인", re: /aria-label="전체 진행"/ },
       // 2026-09-17 컴팩트 재설계(Chief 지시)로 「다음 출발점이 저장되었습니다」 문구와
       // 「끝점에서 새 경로」/「지금 새 경로 연결」 버튼은 시트에서 제거됐다 — 이어가기 기능

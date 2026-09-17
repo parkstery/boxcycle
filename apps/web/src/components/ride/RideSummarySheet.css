@@ -28,7 +28,9 @@
   overflow: auto;
   margin-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
   border-radius: var(--rtw-radius-lg) var(--rtw-radius-lg) var(--rtw-radius-md) var(--rtw-radius-md);
-  background: var(--rtw-panel-solid);
+  /* --rtw-panel-solid(#0D1319)에 10% 투명도(2026-09-17 Chief) — 아래 지도가 비쳐
+     시트가 화면에서 떠 보인다. backdrop-filter 가 이미 걸려 있어 글자는 안 흐려진다. */
+  background: rgba(13, 19, 25, 0.9);
   border: 1px solid var(--rtw-divider);
   color: var(--rtw-text-primary);
   backdrop-filter: var(--rtw-blur-panel);
@@ -87,17 +89,6 @@
   letter-spacing: 0.02em;
 }
 
-.ride-summary__badge {
-  flex-shrink: 0;
-  font-size: 0.62rem;
-  font-weight: 650;
-  padding: 0.12rem 0.45rem;
-  border-radius: var(--rtw-radius-pill);
-  background: rgba(111, 207, 151, 0.14);
-  border: 1px solid rgba(111, 207, 151, 0.4);
-  color: var(--rtw-ok);
-}
-
 .ride-summary__close {
   flex-shrink: 0;
   appearance: none;
@@ -153,12 +144,6 @@
   color: var(--rtw-text-secondary);
 }
 
-.ride-summary__heroes-badge--done {
-  background: rgba(111, 207, 151, 0.14);
-  border-color: rgba(111, 207, 151, 0.4);
-  color: var(--rtw-ok);
-}
-
 /* 히어로 — 「오늘 N km」, 운동 축 주인공(§9.5.6 단위3). 새 도로와 짝을 이루는 조용한 카드 */
 .ride-summary__hero {
   display: flex;
@@ -170,12 +155,6 @@
   border-radius: var(--rtw-radius-md);
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--rtw-divider);
-}
-
-.ride-summary__hero-k {
-  font-size: 0.72rem;
-  font-weight: 650;
-  color: var(--rtw-text-secondary);
 }
 
 .ride-summary__hero-v {
@@ -192,7 +171,9 @@
   justify-content: center;
   gap: 0.4rem;
   padding: 0 0.48rem 0.1rem;
-  font-size: 0.72rem;
+  /* 종전 0.72rem(폰 가로 루트 13.5px 기준 약 9.7px)에서 2pt 키운다(2026-09-17 Chief).
+     pt 는 절대 단위라 루트 폰트가 달라져도 「정확히 2포인트」가 유지된다. */
+  font-size: calc(0.72rem + 2pt);
   font-weight: 650;
   color: var(--rtw-text-secondary);
 }
@@ -341,12 +322,14 @@
 }
 
 /* RIDE-CLAIM-RESULT-1: 새 도로 conquest hero 블록 — 2열 중 왼쪽 칸, 골드/보라 강조는 유지 */
+/* 한 줄 — 「새 도로」 라벨이 숫자 왼쪽에 앉는다(2026-09-17 Chief).
+   세로 2줄은 좁은 폰 가로에서 높이만 먹었다. */
 .ride-summary__conquest-hero {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-direction: row;
+  align-items: baseline;
   justify-content: center;
-  gap: 0.15rem;
+  gap: 0.36rem;
   padding: 0.45rem 0.35rem 0.4rem;
   border-radius: var(--rtw-radius-md);
   background: rgba(138, 43, 226, 0.08);

@@ -138,9 +138,17 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
    * 계기판이 보여 주던 「누적 / 전체」와 같은 숫자여야 화면이 이어지기 때문이다.
    */
   const routeTotalKmNum = result ? result.routeDistanceMeters / 1000 : null;
+  /*
+   * 완주면 분자를 전체거리로 맞춘다. 완주 인정 기준은 100% 가 아니라 **98%**
+   * (`ROUTE_COMPLETION_RATIO_THRESHOLD`)라, 그대로 두면 완주해도 「0.99 / 1.00」 처럼
+   * 보인다. 「완주」 배지를 뺀 근거가 「숫자를 보고 완주를 확인한다」(Chief)인데
+   * 0.99/1.00 으로는 완주인지 알 수 없어 그 근거가 무너진다.
+   */
   const riddenKmNum =
     result && Number.isFinite(result.progressRatio)
-      ? (result.routeDistanceMeters * Math.max(0, Math.min(1, result.progressRatio))) / 1000
+      ? result.routeCompleted
+        ? result.routeDistanceMeters / 1000
+        : (result.routeDistanceMeters * Math.max(0, Math.min(1, result.progressRatio))) / 1000
       : null;
   const distancePair =
     routeTotalKmNum != null && riddenKmNum != null && routeTotalKmNum > 0
@@ -202,9 +210,6 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
             {/* 단위는 여기서 한 번만 — 아래 숫자들엔 붙이지 않는다(2026-09-17 Chief) */}
             <span className="ride-summary__title-unit">km</span>
           </h2>
-          {props.arrivalCompleted || routeCompleted ? (
-            <span className="ride-summary__badge">도착</span>
-          ) : null}
           <button
             type="button"
             className="ride-summary__close"
@@ -227,7 +232,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
           >
             {distancePair ? (
               <div className="ride-summary__hero">
-                <span className="ride-summary__hero-k">거리</span>
+                {/* 라벨 없이 숫자만 — 「0.18 / 0.18」 자체가 무엇인지 말한다(2026-09-17 Chief) */}
                 <strong className="ride-summary__hero-v" aria-label="주행 거리 / 경로 전체거리">
                   {distancePair}
                 </strong>
@@ -271,11 +276,12 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
             ) : null}
           </div>
 
-          {routeCompleted ? (
-            <span className="ride-summary__heroes-badge ride-summary__heroes-badge--done">
-              완주
-            </span>
-          ) : showProgressLine && result ? (
+          {/*
+            「완주」·「도착」 배지는 뺐다(2026-09-17 Chief) — 사용자는 주행을 마치는 순간에
+            완주를 인식하고, 「0.18 / 0.18」 이라는 숫자가 다시 한 번 말해 준다. 미완주일
+            때의 진행률 배지는 숫자만으로는 이전 대비 얼마나 늘었는지 알 수 없어 남긴다.
+          */}
+          {!routeCompleted && showProgressLine && result ? (
             <span className="ride-summary__heroes-badge" aria-label="전체 진행">
               {progressPercentLabel(result.previousProgressRatio)}% →{" "}
               {progressPercentLabel(result.progressRatio)}%
