@@ -2550,11 +2550,6 @@ export default function App() {
       <RideSummarySheet
         open={summaryVisible}
         result={lastRideResult}
-        onExtendFromEnd={
-          lastRideResult?.anchorLngLat
-            ? () => handleStartRouteFromAnchor(lastRideResult.anchorLngLat!)
-            : undefined
-        }
         arrivalCompleted={arrivalToastTick > 0}
         elapsedLabel={elapsedLabel}
         distanceKm={sessionDistanceKmLabel}

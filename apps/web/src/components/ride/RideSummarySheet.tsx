@@ -4,11 +4,7 @@ import { isIncompleteQuotaError } from "../../lib/tierQuota";
 import { progressPercentLabel, type RideEndResult } from "../../lib/rideEndResult";
 import { useRideConquestResult } from "../../hooks/useRideConquestResult";
 import { getRideSaveStatusLabel, getSavedRouteProgressStatusLabel } from "../../lib/rideStatusCopy";
-import {
-  formatNewRoadHero,
-  formatNewRoadSubtitle,
-  formatConquestStatusCopy,
-} from "../../lib/rideSessionPreview";
+import { formatNewRoadHero, formatConquestStatusCopy } from "../../lib/rideSessionPreview";
 import "./RideSummarySheet.css";
 
 type RideSummarySheetProps = {
@@ -19,8 +15,8 @@ type RideSummarySheetProps = {
   avgKmh: string;
   caloriesEstimate: number;
   /**
-   * 종료 결과(§3.5) — 모든 유효 Ride 가 채운다. 미완주면 이전→신규 진행률을,
-   * 완주·ad-hoc·Publication Ride 면 다음 출발점을 보여 준다. null 이면 진행·출발점 블록만 생략.
+   * 종료 결과(§3.5) — 모든 유효 Ride 가 채운다. 미완주면 이전→신규 진행률을 보여 준다.
+   * null 이면 진행률 배지만 생략.
    */
   result?: RideEndResult | null;
   /** F3: 현재 로그인 사용자 uid (conquest result ownership 체크) */
@@ -40,8 +36,6 @@ type RideSummarySheetProps = {
   onSaveAdhoc: (name: string, confirmUpdate?: boolean) => Promise<void> | void;
   onDismissAdhoc: () => void;
   onClose: () => void;
-  /** 마지막 종료 지점에서 새 Route 연결 — 시트를 닫고 출발점을 고정한다 */
-  onExtendFromEnd?: () => void;
   /** 미완료 쿼터 초과로 저장이 막혔을 때 상위에 알림(→ 시트 닫고 「내 경로」 대기 탭 유도) */
   onIncompleteQuotaBlocked?: (message: string) => void;
   /**
@@ -53,7 +47,8 @@ type RideSummarySheetProps = {
 /**
  * 주행 종료 후 하단 시트.
  * - 도착 여부·ad-hoc 여부로 노출을 제한하지 않는다 — 폐기되지 않은 **모든 유효 Ride** 가 연다(§3.5).
- * - §3.1 순서: 새 도로 hero → SVG 미리보기 → 오늘 통계 → 진행률 → 다음 출발점 → CTA
+ * - 컴팩트 4행 구성: 헤더 → 2열 히어로(새 도로 + 오늘, 완주/진행률 배지) → 보조 수치(+저장 상태) → 저장 폼.
+ *   스크롤 없이 가로 폰 화면 한 장에 들어가야 한다.
  */
 export function RideSummarySheet(props: RideSummarySheetProps) {
   const suggested = props.suggestedName ?? "";
@@ -116,11 +111,9 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
   const routeCompleted = Boolean(result?.routeCompleted);
   /** 미완주 저장 경로 주행 — 이전→신규 진행률을 보여 줄 수 있는 경우 */
   const showProgressLine = Boolean(result && result.savedRouteId && !routeCompleted);
-  const hasNextStart = Boolean(result?.anchorLngLat);
 
   // RIDE-CLAIM-RESULT-1: 새 도로 conquest 표시 로직
   const newRoadHero = formatNewRoadHero(conquestResult.newMeters, conquestResult.status);
-  const newRoadSubtitle = formatNewRoadSubtitle(conquestResult.newMeters, conquestResult.status);
   const conquestStatusCopy = formatConquestStatusCopy(
     conquestResult.status,
     isDelayed,
@@ -129,6 +122,13 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
 
   // 저장 중(serverRideId 없음)이면 conquest hero 블록을 표시하지 않음
   const showConquestBlock = Boolean(result);
+  /*
+   * 내용이 실제로 있을 때만 새 도로 칸을 연다. `confirmed_zero`(새 도로 0m 확정)에서는
+   * hero 도 statusCopy 도 null 이라, 설명문을 걷어낸 뒤로는 **테두리만 남은 빈 박스**가 됐다.
+   * 「0 은 노출하지 않는다」는 기존 결정(50m 미만 미표시)을 뒤집지 않으려면 숫자를 채울 게
+   * 아니라 칸 자체를 접는 것이 맞다 — 그러면 「오늘」이 1열로 자리를 넓혀 쓴다.
+   */
+  const hasConquestContent = showConquestBlock && Boolean(newRoadHero || conquestStatusCopy);
 
   function requestClose() {
     if (busy) return;
@@ -197,112 +197,99 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
           </button>
         </div>
 
-        {/* §3.1 새 도로 hero (conquest 결과) */}
-        {showConquestBlock ? (
-          <div className="ride-summary__conquest-hero" aria-live="polite">
-            {newRoadHero ? (
-              <>
-                <div className="ride-summary__conquest-label">새 도로</div>
-                <strong className="ride-summary__conquest-value">{newRoadHero}</strong>
-                {newRoadSubtitle ? (
-                  <p className="ride-summary__conquest-subtitle">{newRoadSubtitle}</p>
-                ) : null}
-              </>
-            ) : conquestStatusCopy ? (
-              <p className="ride-summary__conquest-status">
-                {conquestStatusCopy}
-                {isTimedOut ? (
+        {/* §3.1 2열 히어로 — 새 도로(conquest, 골드/보라 강조) + 오늘(조용한 히어로), 우측에 완주/진행률 배지 */}
+        <div className="ride-summary__heroes">
+          <div
+            className={
+              hasConquestContent
+                ? "ride-summary__heroes-main"
+                : "ride-summary__heroes-main ride-summary__heroes-main--solo"
+            }
+          >
+            {hasConquestContent ? (
+              <div className="ride-summary__conquest-hero" aria-live="polite">
+                {newRoadHero ? (
                   <>
-                    {" "}
-                    <button
-                      type="button"
-                      className="ride-summary__conquest-retry"
-                      onClick={() => {
-                        setIsDelayed(false);
-                        setIsTimedOut(false);
-                        // 구독 재활성화: serverRideId key 가 변하지 않으므로 localRecordId 를 통해 hook 이 재구독
-                        // RideConquestSubscription 은 같은 key에 activate()를 재호출하면 재구독한다
-                        // 이를 트리거하기 위해 result key 를 강제 re-subscribe 할 수 없으므로
-                        // 15/60s timer 만 초기화한다 — 실제 Firestore 재구독은 hook 의 서버 ID 변경 없이는 불가.
-                        // BLOCK: useRideConquestResult hook 에 forceRetry() API 가 없으므로
-                        // 이 "다시 확인" 버튼은 타이머 상태만 초기화. 추후 hook에 재구독 신호 추가 필요.
-                      }}
-                    >
-                      다시 확인
-                    </button>
+                    <div className="ride-summary__conquest-label">새 도로</div>
+                    <strong className="ride-summary__conquest-value">{newRoadHero}</strong>
                   </>
+                ) : conquestStatusCopy ? (
+                  <p className="ride-summary__conquest-status">
+                    {conquestStatusCopy}
+                    {isTimedOut ? (
+                      <>
+                        {" "}
+                        <button
+                          type="button"
+                          className="ride-summary__conquest-retry"
+                          onClick={() => {
+                            setIsDelayed(false);
+                            setIsTimedOut(false);
+                            // 구독 재활성화: serverRideId key 가 변하지 않으므로 localRecordId 를 통해 hook 이 재구독
+                            // RideConquestSubscription 은 같은 key에 activate()를 재호출하면 재구독한다
+                            // 이를 트리거하기 위해 result key 를 강제 re-subscribe 할 수 없으므로
+                            // 15/60s timer 만 초기화한다 — 실제 Firestore 재구독은 hook 의 서버 ID 변경 없이는 불가.
+                            // BLOCK: useRideConquestResult hook 에 forceRetry() API 가 없으므로
+                            // 이 "다시 확인" 버튼은 타이머 상태만 초기화. 추후 hook에 재구독 신호 추가 필요.
+                          }}
+                        >
+                          다시 확인
+                        </button>
+                      </>
+                    ) : null}
+                  </p>
                 ) : null}
-              </p>
-            ) : newRoadSubtitle ? (
-              <p className="ride-summary__conquest-subtitle">{newRoadSubtitle}</p>
+              </div>
             ) : null}
-          </div>
-        ) : null}
 
-        {/* 오늘 거리 hero (기존 스타일 유지, 보조로 이동) */}
-        <div className="ride-summary__hero">
-          <span className="ride-summary__hero-k">오늘</span>
-          <strong className="ride-summary__hero-v">{props.distanceKm} km</strong>
+            <div className="ride-summary__hero">
+              <span className="ride-summary__hero-k">오늘</span>
+              <strong className="ride-summary__hero-v">{props.distanceKm} km</strong>
+            </div>
+          </div>
+
+          {routeCompleted ? (
+            <span className="ride-summary__heroes-badge ride-summary__heroes-badge--done">
+              완주
+            </span>
+          ) : showProgressLine && result ? (
+            <span className="ride-summary__heroes-badge" aria-label="전체 진행">
+              {progressPercentLabel(result.previousProgressRatio)}% →{" "}
+              {progressPercentLabel(result.progressRatio)}%
+            </span>
+          ) : null}
         </div>
 
         <div className="ride-summary__substats">
           <span className="ride-summary__substat">{props.elapsedLabel}</span>
           <span className="ride-summary__substat">{props.avgKmh} km/h</span>
           <span className="ride-summary__substat">{props.caloriesEstimate} kcal</span>
+          {/* R2: F4 persistence status (independent axes) — 독립 줄 대신 보조 수치 줄에 합류 */}
+          {rideSaveStatus !== "n/a" || savedRouteProgressStatus !== "n/a" ? (
+            <span className="ride-summary__substat ride-summary__status" aria-live="polite">
+              {getRideSaveStatusLabel(rideSaveStatus) != null ? (
+                <span
+                  className={`ride-summary__status-item ride-summary__status-item--${rideSaveStatus}`}
+                >
+                  {getRideSaveStatusLabel(rideSaveStatus)}
+                </span>
+              ) : null}
+              {getSavedRouteProgressStatusLabel(savedRouteProgressStatus) != null ? (
+                <span
+                  className={`ride-summary__status-item ride-summary__status-item--${savedRouteProgressStatus}`}
+                >
+                  {getSavedRouteProgressStatusLabel(savedRouteProgressStatus)}
+                </span>
+              ) : null}
+            </span>
+          ) : null}
         </div>
-
-        {showProgressLine && result ? (
-          <p className="ride-summary__progress" aria-label="전체 진행">
-            전체 진행 {progressPercentLabel(result.previousProgressRatio)}% →{" "}
-            <strong>{progressPercentLabel(result.progressRatio)}%</strong>
-          </p>
-        ) : null}
-        {routeCompleted ? (
-          <p className="ride-summary__progress">경로를 완주했습니다</p>
-        ) : null}
-        {/* Codex -02 Fix 2: 다음 출발점 저장 성공 시에만 표시 (rideSaveStatus 기준) */}
-        {hasNextStart && rideSaveStatus === "success" ? (
-          <p className="ride-summary__nextstart">다음 출발점이 저장되었습니다</p>
-        ) : null}
-
-        {/* R2: F4 persistence status (independent axes) */}
-        {rideSaveStatus !== "n/a" || savedRouteProgressStatus !== "n/a" ? (
-          <div className="ride-summary__status" aria-live="polite">
-            {getRideSaveStatusLabel(rideSaveStatus) != null ? (
-              <span
-                className={`ride-summary__status-item ride-summary__status-item--${rideSaveStatus}`}
-              >
-                {getRideSaveStatusLabel(rideSaveStatus)}
-              </span>
-            ) : null}
-            {getSavedRouteProgressStatusLabel(savedRouteProgressStatus) != null ? (
-              <span
-                className={`ride-summary__status-item ride-summary__status-item--${savedRouteProgressStatus}`}
-              >
-                {getSavedRouteProgressStatusLabel(savedRouteProgressStatus)}
-              </span>
-            ) : null}
-          </div>
-        ) : null}
-
-        {hasNextStart && props.onExtendFromEnd ? (
-          <div className="ride-summary__form-btns ride-summary__form-btns--next">
-            <button
-              type="button"
-              className="ride-summary__btn ride-summary__btn--primary"
-              title="New route from here"
-              disabled={busy}
-              onClick={props.onExtendFromEnd}
-            >
-              {routeCompleted ? "끝점에서 새 경로" : "지금 새 경로 연결"}
-            </button>
-          </div>
-        ) : null}
 
         {props.adhocSaveAvailable ? (
           <>
             {/*
               ad-hoc 저장은 보조 액션이다 — 저장하지 않아도 Ride 기록과 다음 출발점은 남는다.
+              입력창 + 버튼 2개를 한 행으로 — 690px 가로 기준 한 줄, 좁으면 flex-wrap 으로 대응.
             */}
             <div className="ride-summary__form">
               <input

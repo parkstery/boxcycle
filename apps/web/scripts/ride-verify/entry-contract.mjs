@@ -109,14 +109,19 @@ export const ENTRY_STEPS = [
   },
   {
     step: "ride-result-progress",
-    desc: "주행 결과 시트 — 오늘 거리 + 전체 진행(이전→신규) + 다음 출발점(RIDE-CONTINUE-1 §3.5)",
+    desc: "주행 결과 시트 — 오늘 거리 + 전체 진행(이전→신규) + 완주/진행률 배지(RIDE-CONTINUE-1 §3.5)",
     file: "src/components/ride/RideSummarySheet.tsx",
     anchors: [
       { name: "결과 시트 region", re: /aria-label="주행 결과"/ },
       { name: "오늘 거리 히어로", re: /ride-summary__hero-k/ },
       { name: "전체 진행 라인", re: /aria-label="전체 진행"/ },
-      { name: "다음 출발점 안내", re: /다음 출발점이 저장되었습니다/ },
-      { name: "끝점에서 새 경로 CTA", re: /끝점에서 새 경로|지금 새 경로 연결/ },
+      // 2026-09-17 컴팩트 재설계(Chief 지시)로 「다음 출발점이 저장되었습니다」 문구와
+      // 「끝점에서 새 경로」/「지금 새 경로 연결」 버튼은 시트에서 제거됐다 — 이어가기 기능
+      // 자체(handleStartRouteFromAnchor, App.tsx)는 살아있고 진입점만 UserInfoSheet 최근
+      // 주행 「여기서 새 경로」로 옮겨졌다. 시트가 새로 내놓는 표면(2열 히어로·완주/진행률
+      // 배지)으로 앵커를 옮긴다.
+      { name: "2열 히어로 컨테이너", re: /ride-summary__heroes"/ },
+      { name: "완주/진행률 배지", re: /ride-summary__heroes-badge/ },
     ],
     selector: `getByRole('region',{name:'주행 결과'}) → getByLabel('전체 진행')`,
   },

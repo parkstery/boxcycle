@@ -162,17 +162,25 @@ async function rideUntilEnd(page: Page, minSessionMeters = 400) {
   await expect(endButton).toBeVisible({ timeout: 30_000 })
   await expect(page.getByRole('group', { name: '주행 지표' })).toBeVisible({ timeout: 20_000 })
 
-  const today = page.getByLabel('오늘 거리')
+  /*
+   * 세션 거리 표시는 2026-09-17 컴팩트 재설계로 HUD 에서 사라졌다(offset 이 없으면 누적과
+   * 같은 숫자라 중복이었다). 시작 시점 누적을 기준선으로 잡아 그만큼 더 달렸는지 본다.
+   */
+  const readCumulativeKm = async () => {
+    const cumulative = page.getByLabel('주행 누적 거리')
+    if ((await cumulative.count()) === 0) return -1
+    const text = await cumulative.first().innerText()
+    const km = Number(text.trim().split('/')[0]?.replace(/[^\d.]/g, ''))
+    return Number.isFinite(km) ? km : -1
+  }
+  const baselineKm = await readCumulativeKm()
+  expect(baselineKm, 'HUD 누적 거리를 읽지 못했다(기준선 없음 → 계측 불가)').toBeGreaterThanOrEqual(0)
   await expect
-    .poll(
-      async () => {
-        if ((await today.count()) === 0) return -1
-        const text = await today.first().innerText()
-        const km = Number(text.trim().replace(/[^\d.]/g, ''))
-        return Number.isFinite(km) ? km * 1000 : -1
-      },
-      { timeout: 180_000, intervals: [500], message: `세션 ${minSessionMeters}m 미달` },
-    )
+    .poll(async () => ((await readCumulativeKm()) - baselineKm) * 1000, {
+      timeout: 180_000,
+      intervals: [500],
+      message: `세션 거리 ${minSessionMeters}m 에 도달하지 못했다(기준선 ${baselineKm}km)`,
+    })
     .toBeGreaterThanOrEqual(minSessionMeters)
 
   await endButton.click()
@@ -195,16 +203,30 @@ async function extendFromNextRideCard(page: Page) {
 }
 
 /**
- * 결과 시트의 「지금 새 경로 연결」 — **폰에서 사용자가 실제로 누른 진입점**.
- * 지금까지 e2e 는 「다음 주행」 카드만 눌러서, 시트 경로의 승계 실패(결함 ④⑤)가 살아남았다.
+ * 결과 시트의 「지금 새 경로 연결」/「끝점에서 새 경로」 CTA 는 2026-09-17 컴팩트 재설계
+ * (Chief 지시)로 시트에서 사라졌다 — 되살리지 않는다. 기능(handleStartRouteFromAnchor,
+ * App.tsx)은 그대로 살아 있고, 진입점만 사용자 정보 시트 「최근 주행」 목록의
+ * 「여기서 새 경로」(onExtendFromRide)로 옮겨졌다 — **폰에서 사용자가 실제로 누르는
+ * 진입점**은 이제 이쪽이다. 시트가 열려 있으면(§4.5.7-3 alternation 으로 이전 lap 종료 후
+ * 닫지 않고 넘어온 경우) 먼저 닫는다 — 전체화면 scrim 이 HUD 클릭을 막는다.
+ * 지금까지 e2e 는 「다음 주행」 카드만 눌러서, 이 진입점의 승계 실패(결함 ④⑤)가 살아남았다.
  */
 async function extendFromRideSummarySheet(page: Page) {
   const region = page.getByRole('region', { name: '주행 결과' })
-  await expect(region).toBeVisible({ timeout: 20_000 })
-  const btn = region.getByRole('button', { name: /지금 새 경로 연결|끝점에서 새 경로/ })
-  await expect(btn, '결과 시트에 이어가기 버튼이 없다(결함 ⑥)').toBeVisible({ timeout: 15_000 })
-  await btn.click()
-  await expect(region).toBeHidden({ timeout: 15_000 })
+  if (await region.isVisible().catch(() => false)) {
+    await region.getByRole('button', { name: '닫기' }).first().click()
+    await expect(region).toBeHidden({ timeout: 15_000 })
+  }
+  await page.getByRole('button', { name: '사용자 정보' }).click()
+  const historyToggle = page.getByRole('button', { name: '마지막 주행' })
+  await expect(historyToggle).toBeVisible({ timeout: 15_000 })
+  await historyToggle.click()
+  const latestRow = page.locator('#user-info-sheet-history-list .user-info-sheet__item').first()
+  const extendBtn = latestRow.getByRole('button', { name: '여기서 새 경로' })
+  await expect(extendBtn, '최근 주행 최신 행에 「여기서 새 경로」가 없다(결함 ⑥)').toBeVisible({
+    timeout: 15_000,
+  })
+  await extendBtn.click()
   const dock = pickSurface(page)
   await expect(dock).toBeVisible({ timeout: 15_000 })
   await expect

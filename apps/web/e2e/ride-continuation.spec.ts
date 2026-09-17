@@ -238,20 +238,15 @@ async function loadSavedRouteFromMenu(page: Page, routeName: string) {
 }
 
 /**
- * HUD 「오늘 거리」 km — 이번 세션 실주행(재개 시 offset 차감).
+ * HUD 「주행 누적 거리」 — 경로상 누적 km(재개 offset 시드 포함).
+ *
+ * 2026-09-17 컴팩트 재설계로 **세션 거리 표시가 HUD 에서 사라졌고**(offset 이 없으면 누적과
+ * 항상 같은 숫자라 중복이었다), 남은 누적값의 aria-label 도 「누적 진행」 → 「주행 누적 거리」로
+ * 바뀌었다. 세션 거리가 필요한 곳은 **주행 시작 시점의 누적을 기준선으로 잡아 빼서** 구한다.
  * 주행 전(route-preview)에는 표시되지 않으므로 -1 을 돌려 폴링이 조기 통과하지 않게 한다.
  */
-async function readHudSessionKm(page: Page): Promise<number> {
-  const today = page.getByLabel('오늘 거리')
-  if ((await today.count()) === 0) return -1
-  const text = await today.first().innerText()
-  const km = Number(text.trim().replace(/[^\d.]/g, ''))
-  return Number.isFinite(km) ? km : -1
-}
-
-/** HUD 「누적 진행」 — 경로상 누적 km(재개 offset 시드 포함) */
 async function readHudCumulativeKm(page: Page): Promise<number> {
-  const cumulative = page.getByLabel('누적 진행')
+  const cumulative = page.getByLabel('주행 누적 거리')
   if ((await cumulative.count()) === 0) return -1
   const text = await cumulative.first().innerText()
   const km = Number(text.trim().split('/')[0]?.replace(/[^\d.]/g, ''))
@@ -271,11 +266,14 @@ async function rideUntilSessionMeters(
   const endButton = page.getByRole('button', { name: '주행 종료' })
   await expect(endButton).toBeVisible({ timeout: 30_000 })
   await expect(page.getByRole('group', { name: '주행 지표' })).toBeVisible({ timeout: 20_000 })
+  // 세션 거리는 이제 HUD 에 없다 — 시작 시점 누적을 기준선으로 잡아 그만큼 더 달렸는지 본다.
+  const baselineKm = await readHudCumulativeKm(page)
+  expect(baselineKm, 'HUD 누적 거리를 읽지 못했다(기준선 없음 → 계측 불가)').toBeGreaterThanOrEqual(0)
   await expect
-    .poll(async () => (await readHudSessionKm(page)) * 1000, {
+    .poll(async () => ((await readHudCumulativeKm(page)) - baselineKm) * 1000, {
       timeout: 180_000,
       intervals: [500],
-      message: `세션 거리 ${targetMeters}m 에 도달하지 못했다`,
+      message: `세션 거리 ${targetMeters}m 에 도달하지 못했다(기준선 ${baselineKm}km)`,
     })
     .toBeGreaterThanOrEqual(targetMeters)
   if (beforeEnd) await beforeEnd()
@@ -287,6 +285,27 @@ async function rideUntilSessionMeters(
  * 카드 본체(role=group)로 정확히 겨냥한다.
  */
 const nextRideCard = (page: Page) => page.getByRole('group', { name: '다음 주행' })
+
+/**
+ * 결과 시트의 「끝점에서 새 경로」/「지금 새 경로 연결」 CTA 는 2026-09-17 컴팩트 재설계
+ * (Chief 지시)로 시트에서 사라졌다 — 되살리지 않는다. 기능(handleStartRouteFromAnchor,
+ * App.tsx)은 그대로 살아 있고, 진입점만 사용자 정보 시트 「최근 주행」 목록의
+ * 「여기서 새 경로」(onExtendFromRide, App.tsx 2547행 부근)로 옮겨졌다 — 그 살아있는
+ * 진입점을 그대로 쓴다. 목록은 endedAt 내림차순이라 맨 위 행이 방금 종료한 Ride 다.
+ * 시트가 전체화면 scrim(z-index 25)으로 HUD 클릭을 막으므로 호출 전에 시트를 닫아 둔다.
+ */
+async function extendFromRecentRideRow(page: Page) {
+  await page.getByRole('button', { name: '사용자 정보' }).click()
+  const historyToggle = page.getByRole('button', { name: '마지막 주행' })
+  await expect(historyToggle).toBeVisible({ timeout: 15_000 })
+  await historyToggle.click()
+  const latestRow = page.locator('#user-info-sheet-history-list .user-info-sheet__item').first()
+  const extendBtn = latestRow.getByRole('button', { name: '여기서 새 경로' })
+  await expect(extendBtn, '최근 주행 최신 행에 「여기서 새 경로」가 없다').toBeVisible({
+    timeout: 15_000,
+  })
+  await extendBtn.click()
+}
 
 test.describe('다음 주행 · 이어 달리기', () => {
   test.skip(!LIVE, 'Firebase 에뮬레이터 필요 — npm run test:e2e:ride-continuation')
@@ -314,11 +333,13 @@ test.describe('다음 주행 · 이어 달리기', () => {
     await page.getByRole('button', { name: '주행 시작' }).click()
     await rideUntilSessionMeters(page, FIXTURE_LENGTH_M * 0.2)
 
-    // 결과 시트: 전체 진행 0% → N% 와 다음 출발점
+    // 결과 시트: 전체 진행 0% → N%
     const summary = page.getByRole('region', { name: '주행 결과' })
     await expect(summary).toBeVisible({ timeout: 20_000 })
-    await expect(summary.getByLabel('전체 진행')).toContainText('전체 진행 0% →')
-    await expect(summary.getByText('다음 출발점이 저장되었습니다')).toBeVisible()
+    // 컴팩트 재설계로 「전체 진행」 문구는 aria-label 로만 남고 화면 텍스트는 "N% → M%" 뿐이다.
+    await expect(summary.getByLabel('전체 진행')).toContainText('0% →')
+    // 「다음 출발점이 저장되었습니다」 문구는 컴팩트 재설계로 제거됐다(Chief 지시, 되살리지 않는다).
+    // 같은 사실(anchor 저장)의 증거는 아래 U6 블록 — reload 없이 뜨는 「다음 주행」 카드로 확인한다.
     await summary.getByRole('button', { name: '닫기' }).first().click()
 
     /*
@@ -370,24 +391,27 @@ test.describe('다음 주행 · 이어 달리기', () => {
     await expect(start).toBeEnabled()
     await start.click()
     await expect(page.getByRole('group', { name: '주행 지표' })).toBeVisible({ timeout: 20_000 })
-    await expect(page.getByLabel('오늘 거리')).toBeVisible()
-    await expect(page.getByLabel('누적 진행')).toBeVisible()
+    await expect(page.getByLabel('주행 누적 거리')).toBeVisible()
+    // 세션 거리 별도 표기는 2026-09-17 에 폐기됐다(U4 이중 표기 뒤집음) — 되살아나면 잡는다.
+    await expect(page.getByLabel('오늘 거리')).toHaveCount(0)
     const resumeOffsetM = FIXTURE_LENGTH_M * (resumePct / 100)
-    // U4 — HUD 누적은 재개 지점(offset)부터, 오늘은 0 근처
+    // HUD 누적은 재개 지점(offset)부터 시작한다 — 이게 「이어 달리기」의 핵심 증거다.
     await expect
       .poll(async () => readHudCumulativeKm(page), {
         timeout: 15_000,
         message: '재개 직후 HUD 누적 위치가 offset 시드에 맞지 않다',
       })
       .toBeGreaterThanOrEqual((resumeOffsetM * 0.85) / 1000)
-    await expect
-      .poll(async () => readHudSessionKm(page), { timeout: 10_000 })
-      .toBeLessThan((resumeOffsetM * 0.5) / 1000)
+    // 재개 직후 「이번에 달린 거리」는 0 근처다 — 표시가 없으므로 누적 기준선으로 확인한다.
+    const resumeBaselineKm = await readHudCumulativeKm(page)
 
     await rideUntilSessionMeters(page, FIXTURE_LENGTH_M * 0.17, async () => {
-      const sessionKm = await readHudSessionKm(page)
       const cumulativeKm = await readHudCumulativeKm(page)
+      const sessionKm = cumulativeKm - resumeBaselineKm
       expect(cumulativeKm, '누적 위치가 세션 거리보다 작다').toBeGreaterThan(sessionKm)
+      expect(resumeBaselineKm, '재개 기준선이 offset 시드에 못 미친다').toBeGreaterThanOrEqual(
+        (resumeOffsetM * 0.85) / 1000,
+      )
       fs.mkdirSync(path.dirname(U4_HUD_EVIDENCE_PATH), { recursive: true })
       await page.screenshot({ path: U4_HUD_EVIDENCE_PATH })
       await page.screenshot({ path: testInfo.outputPath('u4-hud-resume-dual.png') })
@@ -461,8 +485,15 @@ test.describe('다음 주행 · 이어 달리기', () => {
     await expect(page.getByRole('button', { name: '주행 종료' })).toBeVisible({ timeout: 30_000 })
     const summary = page.getByRole('region', { name: '주행 결과' })
     await expect(summary).toBeVisible({ timeout: 240_000 })
-    await expect(summary.getByText('경로를 완주했습니다')).toBeVisible()
-    await summary.getByRole('button', { name: '끝점에서 새 경로' }).click()
+    // 「경로를 완주했습니다」 문구는 컴팩트 재설계로 사라졌다 — 같은 사실(routeCompleted)은
+    // 이제 완주 배지(ride-summary__heroes-badge--done)로 표시된다.
+    await expect(summary.locator('.ride-summary__heroes-badge--done')).toHaveText('완주')
+    // 「끝점에서 새 경로」 버튼도 사라졌다(Chief 지시, 되살리지 않는다) — 살아있는 진입점
+    // (사용자 정보 → 최근 주행 → 「여기서 새 경로」)으로 다시 겨눈다. 시트를 먼저 닫아야
+    // 한다 — 전체화면 scrim 이 HUD 클릭을 막는다.
+    await summary.getByRole('button', { name: '닫기' }).first().click()
+    await expect(summary).toBeHidden({ timeout: 15_000 })
+    await extendFromRecentRideRow(page)
 
     // R1 §4 — 자동 Route 가 1급 진입: Go 없이 pick dock 이 열리고 거리·방향 모드가 켜진다
     await expect(page.getByRole('button', { name: '주행 시작' })).toHaveCount(0)
@@ -495,7 +526,8 @@ test.describe('다음 주행 · 이어 달리기', () => {
     await expect(page.getByRole('button', { name: '주행 종료' })).toBeVisible({ timeout: 30_000 })
     const summary = page.getByRole('region', { name: '주행 결과' })
     await expect(summary).toBeVisible({ timeout: 180_000 })
-    await expect(summary.getByText('다음 출발점이 저장되었습니다')).toBeVisible()
+    // 「다음 출발점이 저장되었습니다」 문구는 컴팩트 재설계로 제거됐다(Chief 지시, 되살리지
+    // 않는다) — 같은 사실은 아래 reload 후 「다음 주행」 카드 등장으로 이미 증명된다.
     // 저장하지 않고 닫는다 — 경고 없이 즉시 닫혀야 한다
     await summary.getByRole('button', { name: '저장 안 함' }).click()
     await summary.getByRole('button', { name: '닫기' }).first().click()
@@ -525,9 +557,12 @@ test.describe('다음 주행 · 이어 달리기', () => {
     // 좌표도 Route 도 없는 Ride 뿐이므로 「다음 주행」 카드는 뜨지 않는다
     await expect(nextRideCard(page)).toHaveCount(0)
 
-    // 기록 자체는 최근 주행 목록에 남는다
+    // 기록 자체는 최근 주행 목록에 남는다.
+    // 목록을 여는 토글의 화면 문구는 「마지막 주행」이다 — 「최근 주행」은 소스 주석에만 있고
+    // 버튼 접근명이 아니다. 종전 셀렉터가 그 주석 표현을 쓰고 있어 이 시험은 **이미 깨져 있었다**
+    // (2026-09-17 확인, 이번 컴팩트 재설계와 무관한 기존 결함).
     await page.getByRole('button', { name: '사용자 정보' }).click()
-    const history = page.getByRole('button', { name: '최근 주행' })
+    const history = page.getByRole('button', { name: '마지막 주행' })
     await expect(history).toBeVisible({ timeout: 15_000 })
     await history.click()
     await expect(page.getByText('5.20 km').first()).toBeVisible({ timeout: 15_000 })
@@ -588,8 +623,7 @@ test.describe('다음 주행 · 이어 달리기', () => {
 
     // HUD — 주행이 실제로 시작됐음을 확인
     await expect(page.getByRole('group', { name: '주행 지표' })).toBeVisible({ timeout: 20_000 })
-    await expect(page.getByLabel('오늘 거리')).toBeVisible()
-    await expect(page.getByLabel('누적 진행')).toBeVisible()
+    await expect(page.getByLabel('주행 누적 거리')).toBeVisible()
 
     // MIN_MEANINGFUL_RIDE_DISTANCE_METERS=100m 을 초과해야 discardRecord=false 가 된다.
     // 150m(≈ 10.8초 @50km/h)는 안전 여유분이 있어 결과 시트가 정상 출현한다.

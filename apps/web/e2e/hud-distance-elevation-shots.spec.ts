@@ -522,11 +522,22 @@ async function guestStart(page: Page) {
 }
 
 /** 주행 입력 준비 — Go 의 사전조건(SENSOR-2 §1.4) */
-async function armRideInput(page: Page) {
+/*
+ * 체험 속도를 올려 시험 시간을 줄인다(`ride-continuation.spec.ts` 와 같은 수법).
+ * 부수 효과가 하나 더 있다 — 계기 고정 폭 시험에서 값이 빠르게 변해 자릿수 변화
+ * (「9.9 → 10.0」, Chief 가 지적한 바로 그 경우)가 표본 안에 실제로 잡힌다.
+ * 입문 코스는 0.41km 라 50km/h 로도 29초가 걸리므로, 13초짜리 표본 구간에는 여유가 있다.
+ */
+async function armRideInput(page: Page, speedKmh = 50) {
   await page.getByRole("button", { name: /케이던스 센서/ }).click();
   const sheet = page.getByRole("dialog", { name: "케이던스 센서" });
   await expect(sheet).toBeVisible({ timeout: 15_000 });
   await sheet.getByRole("button", { name: "체험 속도로 준비" }).click();
+  const speedInput = sheet.getByRole("spinbutton", { name: "속도 km/h" });
+  if (await speedInput.count()) {
+    await speedInput.fill(String(speedKmh));
+    await speedInput.blur();
+  }
   await sheet.getByRole("button", { name: "센서 설정 닫기" }).click();
   await expect(sheet).toBeHidden({ timeout: 10_000 });
 }

@@ -136,12 +136,9 @@ async function collectSummaryActions(page) {
   if (await region.locator(".ride-summary__close").isVisible().catch(() => false)) {
     summaryActions.push("닫기");
   }
-  for (const label of ["지금 새 경로 연결", "끝점에서 새 경로"]) {
-    const btn = region.getByRole("button", { name: label });
-    if (await btn.isVisible().catch(() => false)) {
-      summaryActions.push(label);
-    }
-  }
+  // 2026-09-17 컴팩트 재설계로 결과 시트의 「지금 새 경로 연결」/「끝점에서 새 경로」 CTA 는
+  // 제거됐다(진입점은 UserInfoSheet 최근 주행 「여기서 새 경로」로 이동) — 이 루프는 라벨을
+  // 수집만 하고 단언하지 않으므로(비교·스냅샷 코드 없음) 죽은 라벨만 목록에서 뺀다.
   return { summaryOpen, summaryActions };
 }
 
