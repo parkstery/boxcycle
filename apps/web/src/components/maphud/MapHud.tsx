@@ -1,7 +1,8 @@
 import type { CoachingData } from "../../lib/coachTypes";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { reportHudCompanionTrailDedup } from "../../lib/hudCompanionDiag";
+import { RIDE_PULSE_PERIOD_MS, ridePulseAnimationDelay } from "../../lib/ridePulse";
 import {
   getOtherLiveRiderCount,
   subscribeHasOtherLiveRiders,
@@ -211,6 +212,38 @@ export function MapHud(props: MapHudProps) {
   const isSummary = stage === "summary";
 
   // 트리거 노출 정책: gate/summary 가 아닌 동안 항상 보임.
+  /*
+   * 「새 도로」 펄스 — 값이 바뀔 때마다 터지는 게 아니라, **새 도로를 먹고 있는 동안**
+   * 내 위치 마커와 같은 박자로 뛴다(2026-09-17 Chief).
+   * 종전엔 `key={conquestLiveMeters}` 로 값마다 요소를 갈아끼워 0.35s 팝을 다시 틀었다 —
+   * 빠르게 달릴수록 갱신이 잦아 주기가 짧아지고 촐랑거렸다. 펄스가 아니라 갱신 알림이었다.
+   * 위상은 마커와 같은 격자에 못 박는다(lib/ridePulse.ts). 지연값은 켜지는 순간 한 번만
+   * 계산해 ref 에 담는다 — 매 렌더 다시 계산하면 그때마다 위상이 튄다.
+   */
+  const conquestMeters = conquestLiveMeters ?? null;
+  const [conquestPrev, setConquestPrev] = useState<number | null>(null);
+  /** null = 조용함. 값이 있으면 그 `delay` 로 마커와 같은 격자 위에서 뛴다. */
+  const [conquestPulse, setConquestPulse] = useState<{ delay: string } | null>(null);
+  // 값이 바뀐 바로 그 렌더에서 상태를 맞춘다 — React 가 권장하는 「props 로 state 조정」 패턴.
+  // effect 로 하면 setState 가 동기로 불려 렌더가 연쇄되고, ref 로 하면 렌더 중 ref 를 읽게 된다.
+  if (conquestMeters !== conquestPrev) {
+    const prev = conquestPrev;
+    setConquestPrev(conquestMeters);
+    if (conquestMeters == null) {
+      if (conquestPulse) setConquestPulse(null);
+    } else if (prev != null && conquestMeters > prev && !conquestPulse) {
+      // 켜는 순간에만 위상을 찍는다. 매 렌더 다시 계산하면 그때마다 위상이 튄다.
+      setConquestPulse({ delay: ridePulseAnimationDelay() });
+    }
+  }
+  useEffect(() => {
+    if (!conquestPulse) return;
+    // 새 도로가 끊기면 한 박자 더 뛰고 조용해진다 — 박자 중간에 잘리지 않게 주기의 배수로.
+    // `conquestMeters` 가 deps 에 있어 계속 먹는 동안에는 타이머가 매번 다시 선다.
+    const timer = window.setTimeout(() => setConquestPulse(null), RIDE_PULSE_PERIOD_MS * 2);
+    return () => window.clearTimeout(timer);
+  }, [conquestPulse, conquestMeters]);
+
   const showMenuTrigger = !isGate && !isSummary;
   // 접속·동행 현황은 HUD 가 단독으로 소유. MENU(Trail 섹션=참가·공개 설정 행동) 열린 동안은
   // 가림·중복을 피하려 숨긴다.
@@ -314,8 +347,10 @@ export function MapHud(props: MapHudProps) {
                     <>
                       <span className="hud-metrics__divider" aria-hidden />
                       <span
-                        key={conquestLiveMeters}
-                        className="hud-metrics__cell hud-metrics__cell--conquest"
+                        className={`hud-metrics__cell hud-metrics__cell--conquest${
+                          conquestPulse ? " hud-metrics__cell--conquest-pulsing" : ""
+                        }`}
+                        style={conquestPulse ? { animationDelay: conquestPulse.delay } : undefined}
                         title="이번 주행에서 새로 밟은 도로(이미 내 도로면 0)"
                         role="status"
                         aria-live="polite"

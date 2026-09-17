@@ -924,7 +924,7 @@
   inset: 0;
   border-radius: 50%;
   background: rgba(37, 99, 235, 0.28);
-  animation: map-view-self-location-pulse 2.2s ease-out infinite;
+  animation: map-view-self-location-pulse var(--rtw-ride-pulse-period, 2.2s) ease-out infinite;
 }
 
 .map-view__self-location-core {

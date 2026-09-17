@@ -1,3 +1,5 @@
+import { ridePulseAnimationDelay } from "./ridePulse";
+
 /** Screen-space self-location marker — zoom-independent "you are here" dot (MAP-SELF-LOCATION-MARKER-1) */
 
 export const SELF_LOCATION_MARKER_CLASS = "map-view__self-location-marker";
@@ -14,6 +16,8 @@ export function createSelfLocationMarkerRoot(): {
 
   const pulse = document.createElement("div");
   pulse.className = "map-view__self-location-pulse";
+  // HUD 「새 도로」와 같은 격자 위에서 뛰도록 위상을 못 박는다(lib/ridePulse.ts 참고).
+  pulse.style.animationDelay = ridePulseAnimationDelay();
   pulse.setAttribute("aria-hidden", "true");
 
   const core = document.createElement("div");

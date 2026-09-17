@@ -9,7 +9,6 @@ import {
   formatNewRoadSubtitle,
   formatConquestStatusCopy,
 } from "../../lib/rideSessionPreview";
-import { RideSessionTracePreview } from "./RideSessionTracePreview";
 import "./RideSummarySheet.css";
 
 type RideSummarySheetProps = {
@@ -49,7 +48,6 @@ type RideSummarySheetProps = {
    * RIDE-CLAIM-RESULT-1: 이미 로드된 내 도로망 geometries.
    * 세션 bounds 클리핑은 preview lib 에서 수행. 새 조회 없음.
    */
-  conquestTraceGeometries?: Array<{ type: string; coordinates: number[][] }> | null;
 };
 
 /**
@@ -239,14 +237,6 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
               <p className="ride-summary__conquest-subtitle">{newRoadSubtitle}</p>
             ) : null}
           </div>
-        ) : null}
-
-        {/* §3.2 SVG 미리보기 */}
-        {result?.sessionPathLngLat ? (
-          <RideSessionTracePreview
-            sessionPathLngLat={result.sessionPathLngLat}
-            conquestTraces={props.conquestTraceGeometries}
-          />
         ) : null}
 
         {/* 오늘 거리 hero (기존 스타일 유지, 보조로 이동) */}

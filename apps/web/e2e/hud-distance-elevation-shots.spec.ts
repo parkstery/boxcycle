@@ -264,6 +264,76 @@ test.describe("HUD 거리 1줄 + 표고 진행률 라벨 촬영", () => {
     }
   });
 
+  /*
+   * 「새 도로」 펄스는 내 위치 마커와 **같은 박자·같은 위상**으로 뛴다(2026-09-17 Chief).
+   * 종전엔 값이 바뀔 때마다 0.35s 팝을 다시 틀어, 빠를수록 주기가 짧아지고 촐랑거렸다.
+   *
+   * 선언(CSS duration)만 보면 축퇴다 — 위상까지 맞는지는 렌더된 애니메이션의 `currentTime`
+   * 으로만 알 수 있다. 두 요소의 currentTime 을 주기로 나눈 나머지가 같아야 같은 격자다.
+   */
+  test("새 도로 펄스가 내 위치 마커와 같은 박자·위상으로 뛴다", async ({ page }) => {
+    test.setTimeout(180_000);
+    await stubMapboxStyle(page);
+    await stubElevation(page, "A");
+    await page.setViewportSize(PHONE_LANDSCAPE);
+    await guestStart(page);
+    await armRideInput(page);
+    await loadIntroCourse(page);
+    await page.getByRole("button", { name: "주행 시작" }).click();
+    await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({ timeout: 30_000 });
+
+    // 새 도로를 먹기 시작해야 펄스가 켜진다.
+    const pulsingCell = page.locator(".hud-metrics__cell--conquest-pulsing");
+    await expect(pulsingCell).toBeVisible({ timeout: 90_000 });
+
+    const probe = await page.evaluate(() => {
+      const read = (sel: string) => {
+        const el = document.querySelector(sel) as HTMLElement | null;
+        if (!el) return null;
+        const anims = el.getAnimations();
+        const a = anims[0];
+        const cs = getComputedStyle(el);
+        // `currentTime` 은 «시작 이후 경과»라 음수 delay 가 안 들어간다.
+        // 위상은 effect 의 정규화 진행도(progress, 0..1)로 재야 한다.
+        const timing = a?.effect?.getComputedTiming();
+        return {
+          found: true,
+          animations: anims.length,
+          progress: typeof timing?.progress === "number" ? timing.progress : null,
+          delay: cs.animationDelay,
+          duration: cs.animationDuration,
+          iteration: cs.animationIterationCount,
+        };
+      };
+      return {
+        marker: read(".map-view__self-location-pulse"),
+        cell: read(".hud-metrics__cell--conquest-pulsing"),
+      };
+    });
+
+    // M0 축퇴 방어 — 요소나 애니메이션이 없으면 「위상이 같다」는 공허하다.
+    expect(probe.marker, "내 위치 마커 펄스를 찾아야 한다").not.toBeNull();
+    expect(probe.cell, "새 도로 펄스 셀을 찾아야 한다").not.toBeNull();
+    expect(probe.marker!.animations, "마커에 애니메이션이 있어야 한다").toBeGreaterThan(0);
+    expect(probe.cell!.animations, "셀에 애니메이션이 있어야 한다").toBeGreaterThan(0);
+    expect(probe.marker!.progress, "마커 진행도").not.toBeNull();
+    expect(probe.cell!.progress, "셀 진행도").not.toBeNull();
+
+    // 같은 박자 — duration 과 반복이 일치해야 한다.
+    expect(probe.cell!.duration, "펄스 주기가 마커와 같아야 한다").toBe(probe.marker!.duration);
+    expect(probe.cell!.iteration, "새 도로 펄스는 값 변화가 아니라 무한 반복이어야 한다").toBe(
+      "infinite",
+    );
+
+    // 같은 위상 — 정규화 진행도가 같아야 한다(0 과 1 은 같은 지점이라 래핑해서 본다).
+    const diff = Math.abs(probe.marker!.progress! - probe.cell!.progress!);
+    const wrapped = Math.min(diff, 1 - diff);
+    expect(
+      wrapped,
+      `위상이 어긋났다: 마커=${probe.marker!.progress}(delay ${probe.marker!.delay}), 셀=${probe.cell!.progress}(delay ${probe.cell!.delay})`,
+    ).toBeLessThan(0.03);
+  });
+
 async function runScenario(page: Page, scenario: ScenarioId) {
   fs.mkdirSync(SHOTS_DIR, { recursive: true });
 

@@ -717,8 +717,19 @@
 }
 
 /* Conquest — 주행 중 실시간 새 도로 카운터(도파민 지점): 골드 */
-.hud-metrics__cell--conquest {
-  animation: hud-conquest-pop 0.35s ease;
+
+/*
+ * 펄스는 값이 바뀔 때가 아니라 **새 도로를 먹고 있는 동안** 고정 박자로 뛴다
+ * (2026-09-17 Chief). 종전엔 값마다 요소를 갈아끼워 0.35s 팝을 다시 틀었고, 빠르게
+ * 달릴수록 갱신이 잦아 주기가 짧아져 촐랑거렸다 — 펄스가 아니라 갱신 알림이었다.
+ *
+ * 박자·위상 모두 내 위치 마커(`map-view-self-location-pulse`)와 맞춘다. 마커는 0% 에
+ * 터져 70% 까지 퍼지고 나머지는 침묵하므로, 여기서도 0% 에 한 번 부풀고 32%(≈0.7s)에
+ * 가라앉은 뒤 조용히 기다려 둘이 한 박자로 읽힌다. 위상 고정은 음수 `animation-delay`
+ * 인라인 스타일이 맡는다(`lib/ridePulse.ts` — CSS 만으로는 시계를 읽을 수 없다).
+ */
+.hud-metrics__cell--conquest-pulsing {
+  animation: hud-conquest-pulse var(--rtw-ride-pulse-period, 2.2s) ease-out infinite;
 }
 
 .hud-metrics__cell--conquest .hud-metrics__label {
@@ -730,12 +741,12 @@
   color: var(--rtw-trace);
 }
 
-@keyframes hud-conquest-pop {
+@keyframes hud-conquest-pulse {
   0% {
-    transform: scale(1);
+    transform: scale(1.13);
   }
-  40% {
-    transform: scale(1.16);
+  32% {
+    transform: scale(1);
   }
   100% {
     transform: scale(1);
@@ -743,7 +754,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hud-metrics__cell--conquest {
+  .hud-metrics__cell--conquest,
+  .hud-metrics__cell--conquest-pulsing {
     animation: none;
   }
 }
