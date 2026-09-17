@@ -2121,8 +2121,6 @@ export default function App() {
               stage,
               onOpenMenu: openMenuPanel,
               menuOpen,
-              onOpenPlaceSearch: openPlaceSearchPanel,
-              placeSearchOpen,
               account: accountChip,
               onOpenUserInfo: openUserInfoPanel,
               userInfoOpen: userInfoSheetOpen,
@@ -2304,8 +2302,6 @@ export default function App() {
               stage,
               onOpenMenu: openMenuPanel,
               menuOpen,
-              onOpenPlaceSearch: openPlaceSearchPanel,
-              placeSearchOpen,
               account: accountChip,
               onOpenUserInfo: openUserInfoPanel,
               userInfoOpen: userInfoSheetOpen,
@@ -2374,6 +2370,7 @@ export default function App() {
           setPlaceSearchMarkerLngLat(null);
         }}
         onOpenSettings={openRideSettingsPanel}
+        onOpenPlaceSearch={openPlaceSearchPanel}
       >
         {/*
           섹션 라벨 2줄(Trail·경로)은 조작이 없는 순수 라벨인데 폰 가로에서 51px 를 먹었다

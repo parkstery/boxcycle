@@ -8,13 +8,22 @@ type MenuPanelProps = {
   locked?: boolean;
   /** 주행 설정 시트( BLE·TTS 등 ) */
   onOpenSettings?: () => void;
+  /** 지명 검색 패널 — 헤더 행에 칩으로 산다(전폭 행은 한 줄을 통째로 낭비했다) */
+  onOpenPlaceSearch?: () => void;
   children: ReactNode;
 };
 
 /**
  * 좌측에서 슬라이드 인 하는 글래스 드로어.
  */
-export function MenuPanel({ open, onClose, locked: _locked, onOpenSettings, children }: MenuPanelProps) {
+export function MenuPanel({
+  open,
+  onClose,
+  locked: _locked,
+  onOpenSettings,
+  onOpenPlaceSearch,
+  children,
+}: MenuPanelProps) {
   void _locked;
 
   useEffect(() => {
@@ -40,6 +49,20 @@ export function MenuPanel({ open, onClose, locked: _locked, onOpenSettings, chil
         <div className="menu-panel__head">
           <h2 className="menu-panel__title">MENU</h2>
           <div className="menu-panel__head-actions">
+            {onOpenPlaceSearch ? (
+              <button
+                type="button"
+                className="menu-panel__place-search"
+                onClick={onOpenPlaceSearch}
+                aria-label="지명 검색"
+                title="지명으로 찾기"
+              >
+                <span className="menu-panel__place-search-icon" aria-hidden>
+                  ⌕
+                </span>
+                지명
+              </button>
+            ) : null}
             {onOpenSettings ? (
               <button
                 type="button"

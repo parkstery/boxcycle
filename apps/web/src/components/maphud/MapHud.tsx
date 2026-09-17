@@ -48,8 +48,6 @@ export type MapHudProps = {
   menuOpen: boolean;
   /** HUD 접속 패널에서 Trailhead로 복귀(주행 중이 아닐 때만). Trail 안에 있을 때만 노출. */
   onGoTrailhead?: () => void;
-  onOpenPlaceSearch: () => void;
-  placeSearchOpen: boolean;
 
   // TR — 사용자 정보 시트 트리거(아바타). 센서 칩은 여기 없다(RouteDock 소유)
 
@@ -128,20 +126,30 @@ export type MapHudProps = {
 };
 
 /** TC 지표 캡슐 셀 — 라벨 위·값 아래 (참조 TopHud) */
+/**
+ * `variant` 는 셀의 **고정 폭**을 고르는 열쇠다(2026-09-17 Chief). 값 글자 수가 바뀌면
+ * (`9.9`→`10.0`, `03:58`→`04:02`) 셀이 늘었다 줄었다 하면서 오른쪽 계기가 통째로
+ * 밀리고 당겨졌다 — 주행 중 눈이 같은 자리에서 같은 값을 못 찾는다.
+ * `tabular-nums` 는 **같은 자릿수**만 맞춰 주므로 이것만으로는 부족하다.
+ */
 function HudMetricCell({
   label,
   value,
   unit,
   hero = false,
+  variant,
 }: {
   label: string;
   value: string;
   unit?: string;
   hero?: boolean;
+  variant?: "distance" | "time" | "speed";
 }) {
   return (
     <span
-      className={`hud-metrics__cell${hero ? " hud-metrics__cell--hero" : ""}`}
+      className={`hud-metrics__cell${hero ? " hud-metrics__cell--hero" : ""}${
+        variant ? ` hud-metrics__cell--w-${variant}` : ""
+      }`}
       title={label}
     >
       <span className="hud-metrics__label">{label}</span>
@@ -165,8 +173,6 @@ export function MapHud(props: MapHudProps) {
     onOpenMenu,
     menuOpen,
     onGoTrailhead,
-    onOpenPlaceSearch,
-    placeSearchOpen,
     account,
     onOpenUserInfo,
     userInfoOpen,
@@ -199,7 +205,6 @@ export function MapHud(props: MapHudProps) {
   const riding = stage === "riding";
   const paused = stage === "paused";
   const activeRide = riding || paused;
-  const preRideReady = stage === "ready-to-start";
   const idle = stage === "idle";
   const isGate =
     stage === "gate-nickname" || (stage === "gate" && !authGateVisualDismissed);
@@ -266,185 +271,172 @@ export function MapHud(props: MapHudProps) {
     >
       {paused ? <div className="map-hud__scrim" aria-hidden /> : null}
 
-      {showMenuTrigger ? (
+      {showMenuTrigger || (showMetrics && metrics) ? (
         <div className="map-hud__tl">
-          <div className="map-hud__tl-stack">
-            <div className="map-hud__tl-actions">
-              <button
-                type="button"
-                className={`hud-brand ${menuOpen ? "hud-brand--muted" : ""}`}
-                onClick={onOpenMenu}
-                aria-label="Trail 메뉴"
-                aria-expanded={menuOpen}
-                title="Trail menu"
+          {/* 첫 줄 — 계기판. 비어도 높이를 예약해 RTW 가 주행 시작/종료에 튀지 않는다(Chief 「고정」) */}
+          <div className="map-hud__tl-metrics">
+            {showMetrics && metrics ? (
+              <div
+                className={`hud-metrics${metrics.mode === "route-preview" ? " hud-metrics--route-preview" : ""}`}
               >
-                <span className="hud-brand__dot" aria-hidden />
-                RTW
-              </button>
-              {!activeRide && !preRideReady ? (
+                <div className="hud-metrics__capsule" role="group" aria-label="주행 지표">
+                  {/* 주행 중 — 세션 거리는 offset 없으면 누적과 항상 동일해 중복이었다.
+                      이제 누적거리/전체거리 한 줄만 표시(§9.5.5 단위7·U4) */}
+                  {metrics.mode === "ride" && metrics.routeTotalKm ? (
+                    <span
+                      className="hud-metrics__cell hud-metrics__cell--hero hud-metrics__cell--w-distance"
+                      title="주행 누적 거리 / 경로 전체거리"
+                    >
+                      <span className="hud-metrics__label">거리</span>
+                      <span
+                        className="hud-metrics__value hud-metrics__value--cumulative"
+                        aria-label="주행 누적 거리"
+                      >
+                        {metrics.cumulativeKm}
+                        <span className="hud-metrics__value-total">
+                          {" / "}
+                          {metrics.routeTotalKm}
+                        </span>
+                        <span className="hud-metrics__cell-unit">km</span>
+                      </span>
+                    </span>
+                  ) : (
+                    <HudMetricCell label="거리" value={metrics.distanceKm} unit="km" hero variant="distance" />
+                  )}
+                  <span className="hud-metrics__divider" aria-hidden />
+                  <HudMetricCell label="시간" value={metrics.elapsed} variant="time" />
+                  <span className="hud-metrics__divider" aria-hidden />
+                  <HudMetricCell label="평균" value={metrics.avgKmh} unit="km/h" variant="speed" />
+                  <span className="hud-metrics__divider" aria-hidden />
+                  <HudMetricCell label="속도" value={String(metrics.speedKmh)} unit="km/h" variant="speed" />
+                  {/* null = 미무장 숨김. 0 포함 무장 후 항상 표시(이미 내 도로면 +0.00) */}
+                  {(riding || paused) && conquestLiveMeters != null ? (
+                    <>
+                      <span className="hud-metrics__divider" aria-hidden />
+                      <span
+                        key={conquestLiveMeters}
+                        className="hud-metrics__cell hud-metrics__cell--conquest"
+                        title="이번 주행에서 새로 밟은 도로(이미 내 도로면 0)"
+                        role="status"
+                        aria-live="polite"
+                      >
+                        <span className="hud-metrics__label">새 도로</span>
+                        <span className="hud-metrics__value">
+                          +{formatRideDistanceKmNumber(conquestLiveMeters)}
+                          <span className="hud-metrics__cell-unit">km</span>
+                        </span>
+                        {conquestAllOwnedHint ? (
+                          <span className="hud-metrics__conquest-owned-hint" aria-label="이미 내 도로">
+                            이미 내 도로
+                          </span>
+                        ) : null}
+                      </span>
+                    </>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+          </div>
+          {showMenuTrigger ? (
+            <div className="map-hud__tl-stack">
+              <div className="map-hud__tl-actions">
                 <button
                   type="button"
-                  className={`hud-place-search-btn ${placeSearchOpen ? "is-active" : ""}`}
-                  onClick={onOpenPlaceSearch}
-                  aria-label="지명 검색"
-                  aria-expanded={placeSearchOpen}
-                  title="Place search"
+                  className={`hud-brand ${menuOpen ? "hud-brand--muted" : ""}`}
+                  onClick={onOpenMenu}
+                  aria-label="Trail 메뉴"
+                  aria-expanded={menuOpen}
+                  title="Trail menu"
                 >
-                  <span className="hud-place-search-btn__icon" aria-hidden>
-                    ⌕
-                  </span>
-                  <span className="hud-place-search-btn__label">지명</span>
+                  <span className="hud-brand__dot" aria-hidden />
+                  RTW
                 </button>
+              </div>
+              {weatherHint && !activeRide ? (
+                <p className="hud-world-hint hud-weather-hint" role="status" title="주행 지역의 현재 날씨(Open-Meteo)">
+                  {weatherHint}
+                </p>
               ) : null}
-            </div>
-            {weatherHint && !activeRide ? (
-              <p className="hud-world-hint hud-weather-hint" role="status" title="주행 지역의 현재 날씨(Open-Meteo)">
-                {weatherHint}
-              </p>
-            ) : null}
-            {showRidePresence && ridePresence ? (
-              <aside className="hud-ride-presence hud-glass" aria-label="Trail·동행">
-                {ridePresence.trailheadEnabled ? (
-                  <div className="hud-ride-presence__block">
-                    <div className="hud-ride-presence__head">
-                      <span className="hud-ride-presence__tag">접속</span>
-                      <span className="hud-ride-presence__room" title={ridePresence.trailId}>
-                        {ridePresence.trailLabel}
-                      </span>
-                      {!ridePresence.onTrailhead && typeof onGoTrailhead === "function" ? (
-                        <button
-                          type="button"
-                          className="hud-ride-presence__trailhead-btn"
-                          disabled={riding || paused}
-                          title="Trailhead로 이동"
-                          onClick={onGoTrailhead}
+              {showRidePresence && ridePresence ? (
+                <aside className="hud-ride-presence hud-glass" aria-label="Trail·동행">
+                  {ridePresence.trailheadEnabled ? (
+                    <div className="hud-ride-presence__block">
+                      <div className="hud-ride-presence__head">
+                        <span className="hud-ride-presence__tag">접속</span>
+                        <span className="hud-ride-presence__room" title={ridePresence.trailId}>
+                          {ridePresence.trailLabel}
+                        </span>
+                        {!ridePresence.onTrailhead && typeof onGoTrailhead === "function" ? (
+                          <button
+                            type="button"
+                            className="hud-ride-presence__trailhead-btn"
+                            disabled={riding || paused}
+                            title="Trailhead로 이동"
+                            onClick={onGoTrailhead}
+                          >
+                            Trailhead로
+                          </button>
+                        ) : null}
+                      </div>
+                      {ridePresence.trailError ? (
+                        <p className="hud-ride-presence__err" title={ridePresence.trailError}>
+                          {ridePresence.trailError}
+                        </p>
+                      ) : ridePresence.trailMembers.filter((m) => m.active).length > 0 ? (
+                        <ul className="hud-ride-presence__list">
+                          {ridePresence.trailMembers
+                            .filter((m) => m.active)
+                            .map((m) => (
+                              <li key={m.key}>
+                                {m.display}
+                                {m.isSelf ? <span className="hud-ride-presence__you"> (나)</span> : null}
+                              </li>
+                            ))}
+                        </ul>
+                      ) : (
+                        <p className="hud-ride-presence__empty">접속자 없음</p>
+                      )}
+                    </div>
+                  ) : null}
+                  {ridePresence.courseTitle != null ||
+                  ridePresence.coursePeerNames.length > 0 ||
+                  hasOtherLiveRiders ||
+                  companionActivityLine ? (
+                    <div
+                      className="hud-ride-presence__block"
+                      data-has-other-live={hasOtherLiveRiders ? "1" : "0"}
+                    >
+                      <div className="hud-ride-presence__head">
+                        <span className="hud-ride-presence__tag">동행</span>
+                        <span className="hud-ride-presence__room" title={ridePresence.courseTitle ?? ""}>
+                          {ridePresence.courseTitle ?? "경로"}
+                        </span>
+                      </div>
+                      {companionActivityLine ? (
+                        <p
+                          className="hud-ride-presence__activity"
+                          data-companion-count={
+                            companionCopy.riderCount != null ? String(companionCopy.riderCount) : ""
+                          }
                         >
-                          Trailhead로
-                        </button>
+                          {companionActivityLine}
+                        </p>
+                      ) : null}
+                      {ridePresence.coursePeerNames.length > 0 ? (
+                        <ul className="hud-ride-presence__list">
+                          {ridePresence.coursePeerNames.map((name, i) => (
+                            <li key={`${name}-${i}`}>{name}</li>
+                          ))}
+                        </ul>
+                      ) : companionCopy.showEmptyCopy ? (
+                        <p className="hud-ride-presence__empty">다른 라이더 없음</p>
                       ) : null}
                     </div>
-                    {ridePresence.trailError ? (
-                      <p className="hud-ride-presence__err" title={ridePresence.trailError}>
-                        {ridePresence.trailError}
-                      </p>
-                    ) : ridePresence.trailMembers.filter((m) => m.active).length > 0 ? (
-                      <ul className="hud-ride-presence__list">
-                        {ridePresence.trailMembers
-                          .filter((m) => m.active)
-                          .map((m) => (
-                            <li key={m.key}>
-                              {m.display}
-                              {m.isSelf ? <span className="hud-ride-presence__you"> (나)</span> : null}
-                            </li>
-                          ))}
-                      </ul>
-                    ) : (
-                      <p className="hud-ride-presence__empty">접속자 없음</p>
-                    )}
-                  </div>
-                ) : null}
-                {ridePresence.courseTitle != null ||
-                ridePresence.coursePeerNames.length > 0 ||
-                hasOtherLiveRiders ||
-                companionActivityLine ? (
-                  <div
-                    className="hud-ride-presence__block"
-                    data-has-other-live={hasOtherLiveRiders ? "1" : "0"}
-                  >
-                    <div className="hud-ride-presence__head">
-                      <span className="hud-ride-presence__tag">동행</span>
-                      <span className="hud-ride-presence__room" title={ridePresence.courseTitle ?? ""}>
-                        {ridePresence.courseTitle ?? "경로"}
-                      </span>
-                    </div>
-                    {companionActivityLine ? (
-                      <p
-                        className="hud-ride-presence__activity"
-                        data-companion-count={
-                          companionCopy.riderCount != null ? String(companionCopy.riderCount) : ""
-                        }
-                      >
-                        {companionActivityLine}
-                      </p>
-                    ) : null}
-                    {ridePresence.coursePeerNames.length > 0 ? (
-                      <ul className="hud-ride-presence__list">
-                        {ridePresence.coursePeerNames.map((name, i) => (
-                          <li key={`${name}-${i}`}>{name}</li>
-                        ))}
-                      </ul>
-                    ) : companionCopy.showEmptyCopy ? (
-                      <p className="hud-ride-presence__empty">다른 라이더 없음</p>
-                    ) : null}
-                  </div>
-                ) : null}
-              </aside>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
-
-      {showMetrics && metrics ? (
-        <div className="map-hud__tc">
-          <div
-            className={`hud-metrics${metrics.mode === "route-preview" ? " hud-metrics--route-preview" : ""}`}
-          >
-            <div className="hud-metrics__capsule" role="group" aria-label="주행 지표">
-              {/* 주행 중 — 세션 거리는 offset 없으면 누적과 항상 동일해 중복이었다.
-                  이제 누적거리/전체거리 한 줄만 표시(§9.5.5 단위7·U4) */}
-              {metrics.mode === "ride" && metrics.routeTotalKm ? (
-                <span
-                  className="hud-metrics__cell hud-metrics__cell--hero"
-                  title="주행 누적 거리 / 경로 전체거리"
-                >
-                  <span className="hud-metrics__label">거리</span>
-                  <span
-                    className="hud-metrics__value hud-metrics__value--cumulative"
-                    aria-label="주행 누적 거리"
-                  >
-                    {metrics.cumulativeKm}
-                    <span className="hud-metrics__value-total">
-                      {" / "}
-                      {metrics.routeTotalKm}
-                    </span>
-                    <span className="hud-metrics__cell-unit">km</span>
-                  </span>
-                </span>
-              ) : (
-                <HudMetricCell label="거리" value={metrics.distanceKm} unit="km" hero />
-              )}
-              <span className="hud-metrics__divider" aria-hidden />
-              <HudMetricCell label="시간" value={metrics.elapsed} />
-              <span className="hud-metrics__divider" aria-hidden />
-              <HudMetricCell label="평균" value={metrics.avgKmh} unit="km/h" />
-              <span className="hud-metrics__divider" aria-hidden />
-              <HudMetricCell label="속도" value={String(metrics.speedKmh)} unit="km/h" />
-              {/* null = 미무장 숨김. 0 포함 무장 후 항상 표시(이미 내 도로면 +0.00) */}
-              {(riding || paused) && conquestLiveMeters != null ? (
-                <>
-                  <span className="hud-metrics__divider" aria-hidden />
-                  <span
-                    key={conquestLiveMeters}
-                    className="hud-metrics__cell hud-metrics__cell--conquest"
-                    title="이번 주행에서 새로 밟은 도로(이미 내 도로면 0)"
-                    role="status"
-                    aria-live="polite"
-                  >
-                    <span className="hud-metrics__label">새 도로</span>
-                    <span className="hud-metrics__value">
-                      +{formatRideDistanceKmNumber(conquestLiveMeters)}
-                      <span className="hud-metrics__cell-unit">km</span>
-                    </span>
-                    {conquestAllOwnedHint ? (
-                      <span className="hud-metrics__conquest-owned-hint" aria-label="이미 내 도로">
-                        이미 내 도로
-                      </span>
-                    ) : null}
-                  </span>
-                </>
+                  ) : null}
+                </aside>
               ) : null}
             </div>
-          </div>
+          ) : null}
         </div>
       ) : null}
 

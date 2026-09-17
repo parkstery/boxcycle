@@ -135,6 +135,41 @@
   flex-shrink: 0;
 }
 
+/*
+ * 지명 검색 — 헤더 행에 「설정」 왼쪽 칩으로 산다(2026-09-17 Chief).
+ * 종전엔 본문 첫 줄을 전폭으로 차지했는데, 「⌕ 지명으로 찾기」 한 줄에 목록 한 줄만큼을
+ * 통째로 썼다. 폰 가로에서 메뉴 본문 높이는 그렇게 쓸 여유가 없다.
+ * 톤은 옆의 `.menu-panel__settings` 와 같게 맞춘다 — 같은 행의 형제니까.
+ */
+.menu-panel__place-search {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  border: 1px solid var(--rtw-glass-border, rgba(248, 250, 252, 0.22));
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--rtw-text, #f8fafc);
+  min-height: 2rem;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.menu-panel__place-search:hover {
+  border-color: var(--rtw-accent-line, rgba(99, 160, 255, 0.55));
+  background: var(--rtw-accent-soft, rgba(248, 250, 252, 0.18));
+}
+
+.menu-panel__place-search-icon {
+  font-size: 0.92rem;
+  line-height: 1;
+}
+
 .menu-panel__body > .ride-panel {
   flex: 1;
   min-height: 0;

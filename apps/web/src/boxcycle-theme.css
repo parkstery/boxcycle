@@ -84,7 +84,6 @@ body {
 .hud-glass,
 .hud-chip,
 .hud-brand,
-.hud-place-search-btn,
 .hud-bc-trigger,
 .hud-idle-hint,
 .hud-coach,
@@ -115,12 +114,6 @@ body {
 .hud-brand__dot {
   background: var(--rtw-accent-on-dark);
   box-shadow: 0 0 0 3px var(--rtw-accent-soft);
-}
-
-.hud-place-search-btn.is-active {
-  background: var(--rtw-accent-soft);
-  border-color: var(--rtw-accent-line);
-  color: var(--rtw-text-primary);
 }
 
 /* =====================================================================

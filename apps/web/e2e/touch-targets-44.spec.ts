@@ -29,7 +29,6 @@ const MIN_TOUCH_PX = 44;
  */
 const TARGETS: [string, boolean][] = [
   [".hud-brand", false],
-  [".hud-place-search-btn", false],
   [".hud-account", false],
   [".hud-bc-trigger", false],
 ];
@@ -56,9 +55,16 @@ test.describe("터치 타깃 44px", () => {
           edgeHitsButton: boolean | null;
           bothAxes: boolean;
         }[] = [];
+        const missing: string[] = [];
         for (const [sel, bothAxes] of targets as [string, boolean][]) {
           const el = document.querySelector(sel) as HTMLElement | null;
-          if (!el) continue;
+          if (!el) {
+            // 종전에는 여기서 조용히 continue 했다 — 선언한 대상이 사라져도 통과였다.
+            // 실제로 09-17 에 지명검색 버튼이 MENU 로 옮겨가 사라졌는데 이 계약은 초록이었다
+            // (`measured.length >= 3` 가드는 4개 중 1개가 빠져도 3이라 통과한다).
+            missing.push(sel);
+            continue;
+          }
           const r = el.getBoundingClientRect();
           const after = getComputedStyle(el, "::after");
           const hw = parseFloat(after.width);
@@ -79,19 +85,24 @@ test.describe("터치 타깃 44px", () => {
           });
         }
         void minPx;
-        return out;
+        return { out, missing };
       },
       { targets: TARGETS, minPx: MIN_TOUCH_PX },
     );
 
     fs.writeFileSync(
       path.join(OUT_DIR, "targets.json"),
-      `${JSON.stringify({ viewport: PHONE_LANDSCAPE, measured }, null, 2)}\n`,
+      `${JSON.stringify({ viewport: PHONE_LANDSCAPE, ...measured }, null, 2)}\n`,
       "utf8",
     );
 
-    expect(measured.length, "잴 대상이 하나도 없으면 계약이 축퇴다").toBeGreaterThanOrEqual(3);
-    for (const m of measured) {
+    // 선언한 대상이 하나라도 화면에 없으면 계약 실패다 — 없는 것을 건너뛰면 계측이 아니라 축퇴다.
+    expect(
+      measured.missing,
+      `TARGETS 에 선언됐으나 화면에 없는 셀렉터: ${measured.missing.join(", ")}`,
+    ).toEqual([]);
+    expect(measured.out.length, "잰 대상 수 = 선언 수").toBe(TARGETS.length);
+    for (const m of measured.out) {
       expect(m.hit.h, `${m.sel} 히트 높이`).toBeGreaterThanOrEqual(MIN_TOUCH_PX);
       if (m.bothAxes) {
         expect(m.hit.w, `${m.sel} 히트 폭`).toBeGreaterThanOrEqual(MIN_TOUCH_PX);

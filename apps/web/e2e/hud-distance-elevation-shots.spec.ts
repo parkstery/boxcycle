@@ -42,7 +42,227 @@ test.describe("HUD 거리 1줄 + 표고 진행률 라벨 촬영", () => {
     test.setTimeout(150_000);
     await runScenario(page, "B");
   });
+
+  /*
+   * 좌상단 고정 계약(2026-09-17 Chief): 주행 중 계기판이 지도 중앙을 가리던 것을
+   * 좌상단 첫 줄로 옮기고, RTW 버튼을 그 아래 둘째 줄로 고정했다. 「고정」이란
+   * 계기판이 비어 있든(주행 전) 차 있든(주행 중) RTW 버튼의 y 가 그대로라는 뜻 —
+   * 매직 오프셋 두 슬롯이 아니라 높이를 예약한 한 슬롯(`.map-hud__tl-metrics`)으로
+   * 구현했으므로, 그 계약을 렌더된 박스로 실측해 고정한다.
+   */
+  test("좌상단 고정 계약 — 계기판 첫 줄, RTW 버튼 y 불변", async ({ page }) => {
+    test.setTimeout(150_000);
+    fs.mkdirSync(SHOTS_DIR, { recursive: true });
+
+    await stubMapboxStyle(page);
+    await stubElevation(page, "A");
+
+    await page.setViewportSize(PHONE_LANDSCAPE);
+    await guestStart(page);
+    await armRideInput(page);
+
+    const brand = page.locator(".hud-brand");
+    await expect(brand).toBeVisible({ timeout: 15_000 });
+
+    // ── 경로 없는 첫 화면 — 계기판이 아예 없는 유일한 상태 ────────────────
+    // 「고정」의 실제 시험대다. 코스를 로드하면 경로 미리보기 계기판이 떠버려
+    // 아래 idle 측정도 캡슐이 있는 상태가 된다 — 그러면 높이 예약
+    // (`.map-hud__tl-metrics { min-height }`)이 한 번도 시험되지 않는다.
+    await expect(page.locator(".hud-metrics__capsule")).toHaveCount(0);
+    const noRouteBrandBox = await brand.boundingBox();
+
+    await loadIntroCourse(page);
+
+    // ── 주행 전(idle, 코스 로드 후 — 경로 미리보기 계기판이 뜬다) ─────────
+    const idleBrandBox = await brand.boundingBox();
+    await page.screenshot({ path: path.join(SHOTS_DIR, "layout-idle.png") });
+
+    // ── 주행 시작 ────────────────────────────────────────────────────────
+    await page.getByRole("button", { name: "주행 시작" }).click();
+    await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({ timeout: 30_000 });
+
+    const capsule = page.locator(".hud-metrics__capsule");
+    await expect(capsule).toBeVisible({ timeout: 15_000 });
+
+    const ridingBrandBox = await brand.boundingBox();
+    const capsuleBox = await capsule.boundingBox();
+    await page.screenshot({ path: path.join(SHOTS_DIR, "layout-riding.png") });
+
+    // ── M0: 축퇴 방어 — boundingBox 가 null 이거나 폭/높이가 0 이면 계측 실패다 ──
+    expect(idleBrandBox, "주행 전 RTW 버튼 boundingBox 가 null 이면 안 된다").not.toBeNull();
+    expect(idleBrandBox!.width, "주행 전 RTW 버튼 width").toBeGreaterThan(0);
+    expect(idleBrandBox!.height, "주행 전 RTW 버튼 height").toBeGreaterThan(0);
+
+    expect(ridingBrandBox, "주행 중 RTW 버튼 boundingBox 가 null 이면 안 된다").not.toBeNull();
+    expect(ridingBrandBox!.width, "주행 중 RTW 버튼 width").toBeGreaterThan(0);
+    expect(ridingBrandBox!.height, "주행 중 RTW 버튼 height").toBeGreaterThan(0);
+
+    expect(capsuleBox, "주행 중 계기판 캡슐 boundingBox 가 null 이면 안 된다").not.toBeNull();
+    expect(capsuleBox!.width, "계기판 캡슐 width").toBeGreaterThan(0);
+    expect(capsuleBox!.height, "계기판 캡슐 height").toBeGreaterThan(0);
+
+    expect(noRouteBrandBox, "경로 없는 화면 RTW 버튼 boundingBox 가 null 이면 안 된다").not.toBeNull();
+    expect(noRouteBrandBox!.height, "경로 없는 화면 RTW 버튼 height").toBeGreaterThan(0);
+
+    // ── 본 단언 0: 계기판이 아예 없어도 RTW 는 같은 자리다 — 예약된 높이의 존재 이유 ──
+    expect(
+      Math.abs(noRouteBrandBox!.y - ridingBrandBox!.y),
+      `계기판이 없는 화면에서도 RTW y 가 같아야 한다: 경로없음=${noRouteBrandBox!.y}, 주행중=${ridingBrandBox!.y}`,
+    ).toBeLessThanOrEqual(1);
+
+    // ── 본 단언 1: RTW 버튼 y 는 주행 시작 전후 고정이다(Chief 「고정」) ────────
+    expect(
+      Math.abs(ridingBrandBox!.y - idleBrandBox!.y),
+      `RTW 버튼 y 가 주행 시작 전후 달라지면 안 된다: idle=${idleBrandBox!.y}, riding=${ridingBrandBox!.y}`,
+    ).toBeLessThanOrEqual(1);
+
+    // ── 본 단언 2: 계기판은 화면 좌측(20% 이내)에서 RTW 버튼보다 위에 있다 ──────
+    expect(
+      capsuleBox!.x,
+      `계기판이 화면 좌측(폭 20% 이내)에 있어야 한다: x=${capsuleBox!.x}, viewport=${PHONE_LANDSCAPE.width}`,
+    ).toBeLessThan(PHONE_LANDSCAPE.width * 0.2);
+    expect(
+      capsuleBox!.y,
+      `계기판이 RTW 버튼보다 위(더 작은 y)에 있어야 한다: capsule=${capsuleBox!.y}, brand=${ridingBrandBox!.y}`,
+    ).toBeLessThan(ridingBrandBox!.y);
+
+    fs.writeFileSync(
+      path.join(SHOTS_DIR, "layout-measure.json"),
+      `${JSON.stringify(
+        {
+          viewport: PHONE_LANDSCAPE,
+          noRouteBrandBox,
+          idleBrandBox,
+          ridingBrandBox,
+          capsuleBox,
+          brandYDelta: Math.abs(ridingBrandBox!.y - idleBrandBox!.y),
+          brandYDeltaNoRoute: Math.abs(ridingBrandBox!.y - noRouteBrandBox!.y),
+        },
+        null,
+        2,
+      )}\n`,
+      "utf8",
+    );
+  });
 });
+
+  /*
+   * 계기는 제자리를 지킨다(2026-09-17 Chief) — 「평균 9.9 → 10.0」 한 자리 차이로
+   * 오른쪽 계기가 통째로 밀리고 당겨지던 문제. `tabular-nums` 는 같은 자릿수끼리만
+   * 폭을 맞추므로 자릿수가 바뀌면 소용없다 → 셀마다 고정 폭(`--w-*`).
+   *
+   * 선언(CSS width)을 보면 축퇴다. 주행 중 값이 실제로 바뀌는 동안 렌더된 x 를
+   * 연속 표본으로 잡아 **한 번도 안 움직였는지**를 본다. 값이 안 변한 표본만 모으면
+   * 「안 움직였다」는 아무것도 증명하지 않으므로, 글자가 실제로 변했다는 것부터 세운다.
+   */
+  test("계기 고정 폭 — 값이 바뀌어도 셀 x 가 움직이지 않는다", async ({ page }) => {
+    test.setTimeout(180_000);
+    await stubMapboxStyle(page);
+    await stubElevation(page, "A");
+    await page.setViewportSize(PHONE_LANDSCAPE);
+    await guestStart(page);
+    await armRideInput(page);
+    await loadIntroCourse(page);
+    await page.getByRole("button", { name: "주행 시작" }).click();
+    await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator(".hud-metrics__capsule")).toBeVisible({ timeout: 15_000 });
+    await page.waitForTimeout(1500);
+
+    type Cell = { label: string; x: number; w: number; text: string };
+    const samples: Cell[][] = [];
+    for (let i = 0; i < 26; i += 1) {
+      samples.push(
+        await page.evaluate(() =>
+          Array.from(document.querySelectorAll(".hud-metrics__cell")).map((el) => {
+            const c = el as HTMLElement;
+            // getBoundingClientRect 가 아니라 offsetLeft/offsetWidth — **레이아웃** 위치다.
+            // 「새 도로」 셀은 값이 오를 때 transform: scale(1.16) 팝이 터진다(도파민 지점).
+            // 그건 의도된 연출이고 이웃을 밀지도 않는다(transform 은 레이아웃 밖). 시각
+            // 사각형을 재면 그 연출까지 「움직임」으로 잡혀 정작 재려던 밀림과 뒤섞인다.
+            return {
+              label: c.querySelector(".hud-metrics__label")?.textContent?.trim() ?? "",
+              x: c.offsetLeft,
+              w: c.offsetWidth,
+              text: (c.textContent ?? "").replace(/\s+/g, " ").trim(),
+            };
+          }),
+        ),
+      );
+      await page.waitForTimeout(500);
+    }
+
+    // 모든 표본에 공통으로 존재한 라벨만 비교한다(정복 셀은 주행 중 나타날 수 있다).
+    const labelSets = samples.map((s) => new Set(s.map((c) => c.label)));
+    const common = [...labelSets[0]].filter((l) => l && labelSets.every((set) => set.has(l)));
+
+    const byLabel = new Map<string, Cell[]>();
+    for (const snap of samples) {
+      for (const c of snap) {
+        if (!common.includes(c.label)) continue;
+        byLabel.set(c.label, [...(byLabel.get(c.label) ?? []), c]);
+      }
+    }
+
+    const report = [...byLabel.entries()].map(([label, cells]) => {
+      const xs = [...new Set(cells.map((c) => c.x))];
+      const ws = [...new Set(cells.map((c) => c.w))];
+      const texts = [...new Set(cells.map((c) => c.text))];
+      return { label, distinctX: xs, distinctW: ws, textVariants: texts.length, sample: texts.slice(0, 4) };
+    });
+    fs.writeFileSync(
+      path.join(SHOTS_DIR, "cell-stability.json"),
+      `${JSON.stringify({ samples: samples.length, report }, null, 2)}
+`,
+      "utf8",
+    );
+
+    // M0 축퇴 방어 — 셀을 못 찾았거나 값이 한 번도 안 바뀌었으면 「안 움직였다」는 공허하다.
+    expect(common.length, `공통 계기 라벨이 너무 적다: ${JSON.stringify(common)}`).toBeGreaterThanOrEqual(4);
+    expect(
+      report.some((r) => r.textVariants > 1),
+      `표본 동안 어떤 계기도 값이 바뀌지 않았다 — 고정 여부를 증명할 수 없다: ${JSON.stringify(report)}`,
+    ).toBe(true);
+
+    /*
+     * 위 표본은 실제 주행이라 값 변화가 「그날 나온 만큼」만 잡힌다 — 이번엔 느려서
+     * Chief 가 겪은 자릿수 변화(`9.9 → 10.0`)가 안 나왔다. 그래서 결정적 시험을 따로 건다:
+     * 값 글자를 억지로 길게 바꿔도 **오른쪽 이웃의 레이아웃 x 가 그대로**여야 한다.
+     * DOM 을 직접 고친 뒤 같은 evaluate 안에서 동기적으로 재므로 React 재렌더가 끼어들지 않는다.
+     */
+    const injected = await page.evaluate(() => {
+      const cells = Array.from(document.querySelectorAll(".hud-metrics__cell")) as HTMLElement[];
+      const before = cells.map((c) => c.offsetLeft);
+      const target = cells.find(
+        (c) => c.querySelector(".hud-metrics__label")?.textContent?.trim() === "평균",
+      );
+      const valueEl = target?.querySelector(".hud-metrics__value") as HTMLElement | undefined;
+      if (!valueEl) return null;
+      const original = valueEl.textContent ?? "";
+      valueEl.textContent = "8888.8888";
+      void target!.offsetWidth; // 강제 리플로
+      const after = cells.map((c) => c.offsetLeft);
+      valueEl.textContent = original;
+      return { before, after, original };
+    });
+
+    expect(injected, "「평균」 셀을 찾아야 한다").not.toBeNull();
+    expect(injected!.before.length, "계기 셀이 없으면 계측 실패").toBeGreaterThanOrEqual(4);
+    expect(
+      injected!.after,
+      `값을 길게 바꾸자 이웃이 밀렸다: before=${JSON.stringify(injected!.before)}, after=${JSON.stringify(injected!.after)}`,
+    ).toEqual(injected!.before);
+
+    for (const r of report) {
+      expect(
+        r.distinctX.length,
+        `「${r.label}」 셀의 레이아웃 x 가 움직였다: x=${JSON.stringify(r.distinctX)}, 값=${JSON.stringify(r.sample)}`,
+      ).toBe(1);
+      expect(
+        r.distinctW.length,
+        `「${r.label}」 셀 폭이 변했다: w=${JSON.stringify(r.distinctW)}`,
+      ).toBe(1);
+    }
+  });
 
 async function runScenario(page: Page, scenario: ScenarioId) {
   fs.mkdirSync(SHOTS_DIR, { recursive: true });

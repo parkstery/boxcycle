@@ -223,7 +223,6 @@ export function pickRoutePickDockPosition(input: {
 
 export const ROUTE_PICK_DOCK_HUD_SLOT_SELECTORS = [
   ".map-hud__tl",
-  ".map-hud__tc",
   ".map-hud__tr",
   ".map-hud__tr-under",
   ".map-hud__rs",

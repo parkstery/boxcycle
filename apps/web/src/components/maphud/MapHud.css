@@ -157,7 +157,17 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 0.35rem;
-  max-width: min(58vw, 15rem);
+  max-width: none;
+}
+
+/*
+ * 좌상단 첫 줄 — 계기판(Chief 「주행 중 상단 중앙 계기판이 진행 방향 지도를 가린다.
+ * 좌상단으로 옮겨라」). 비어 있어도 높이를 예약해 아래 RTW 버튼이 주행 시작·종료에
+ * 위아래로 튀지 않는다(Chief 「한 줄 아래로 내린 위치로 고정」).
+ */
+.map-hud__tl-metrics {
+  min-height: 2rem;
+  display: flex;
 }
 
 .map-hud__tl-stack {
@@ -166,6 +176,8 @@
   align-items: flex-start;
   gap: 0.35rem;
   width: 100%;
+  /* 날씨 힌트·동행 패널 줄바꿈 제약 — 계기판 캡슐(폰 가로 ~243px)은 이 제약 밖(.map-hud__tl)에 둔다 */
+  max-width: min(58vw, 15rem);
 }
 
 .map-hud__tl-actions {
@@ -173,45 +185,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.35rem;
-}
-
-.hud-place-search-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.28rem;
-  height: 2.1rem;
-  padding: 0 0.65rem;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.5);
-  border: 1px solid rgba(248, 250, 252, 0.18);
-  color: #f8fafc;
-  font: inherit;
-  font-size: 0.74rem;
-  font-weight: 650;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.hud-place-search-btn:hover {
-  background: rgba(15, 23, 42, 0.66);
-}
-
-.hud-place-search-btn.is-active {
-  background: rgba(232, 163, 61, 0.32);
-  border-color: rgba(232, 163, 61, 0.55);
-  color: var(--rtw-text-primary);
-}
-
-.hud-place-search-btn__icon {
-  font-size: 0.95rem;
-  line-height: 1;
-  transform: translateY(-1px);
-}
-
-.hud-place-search-btn__label {
-  font-size: 0.72rem;
 }
 
 /* 좌상단: 로비 방 + 동행 코스 요약 */
@@ -319,16 +292,6 @@
   font-size: 0.62rem;
   color: #fecaca;
   word-break: break-word;
-}
-
-.map-hud__tc {
-  position: absolute;
-  top: var(--hud-pad-top);
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 0.35rem;
-  max-width: calc(100% - 6rem);
 }
 
 /* 센서 칩 + 계정/로그인 칩이 함께 사는 단일 액션 행 */
@@ -559,17 +522,35 @@
   overflow: hidden;
 }
 
+/*
+ * 계기판은 「패널」이 아니라 지도 위에 뜬 숫자다(2026-09-17 Chief).
+ * 종전엔 불투명 검은 알약이 좌상단 지도를 통째로 가렸다 — HUD 가 지도를 가리면
+ * 맵 포워드가 아니다. 배경·테두리·그림자·블러를 전부 걷어내고, 대신 글자마다
+ * 짙은 외곽선을 둘러 **위성 이미지처럼 밝은 배경 위에서도** 읽히게 한다.
+ * (배경을 지우면 대비를 글자 자신이 만들어야 한다 — 그게 text-shadow 3겹의 이유다.)
+ */
 .hud-metrics__capsule {
   display: inline-flex;
   align-items: center;
-  gap: 0.15rem;
-  padding: 0.32rem 0.55rem;
-  border-radius: var(--rtw-radius-pill);
-  background: var(--rtw-panel);
-  border: 1px solid var(--rtw-divider);
-  box-shadow: var(--rtw-shadow-panel);
-  backdrop-filter: var(--rtw-blur-panel);
-  -webkit-backdrop-filter: var(--rtw-blur-panel);
+  /* 간격은 절반으로(2026-09-17 Chief) — 아래 셀 패딩 제거·고정 폭 축소와 함께 간다. */
+  gap: 0.35rem;
+  padding: 0.1rem 0.15rem;
+  /*
+   * 부드러운 그림자만으로는 **흰 지형 위 흰 글자**가 안 읽힌다(실측: 밝은 배경 3배
+   * 확대 촬영에서 값·라벨 모두 판독 불가). 그림자를 키우는 대신 8방향 1px 로
+   * 글자마다 진짜 키라인을 둘러 어떤 배경에서도 윤곽이 서게 한다. 마지막 한 겹은
+   * 바탕과 떼어 놓는 부드러운 드롭섀도.
+   */
+  text-shadow:
+    -1px -1px 0 rgba(0, 0, 0, 0.92),
+    1px -1px 0 rgba(0, 0, 0, 0.92),
+    -1px 1px 0 rgba(0, 0, 0, 0.92),
+    1px 1px 0 rgba(0, 0, 0, 0.92),
+    0 -1px 0 rgba(0, 0, 0, 0.92),
+    0 1px 0 rgba(0, 0, 0, 0.92),
+    -1px 0 0 rgba(0, 0, 0, 0.92),
+    1px 0 0 rgba(0, 0, 0, 0.92),
+    0 2px 6px rgba(0, 0, 0, 0.85);
 }
 
 .hud-metrics__cell {
@@ -582,11 +563,13 @@
   text-align: center;
 }
 
+/* 지도 위에 직접 뜨므로 종전의 흐린 회색(--rtw-text-secondary)으로는 밝은 지형에서
+   읽히지 않는다. 흰색을 살짝 낮춰 값과의 위계는 유지하되 대비는 확보한다. */
 .hud-metrics__label {
   font-size: var(--rtw-text-xs);
   line-height: 1;
   font-weight: var(--rtw-weight-label);
-  color: var(--rtw-text-secondary);
+  color: #f8fafc;
 }
 
 .hud-metrics__value {
@@ -604,7 +587,21 @@
 .hud-metrics__cell-unit {
   font-size: 0.55rem;
   font-weight: 500;
-  color: var(--rtw-text-secondary);
+  color: #f8fafc;
+}
+
+/*
+ * 라벨·단위는 글자가 8px 안팎이라 캡슐의 1px 키라인이 한글 획 사이를 메워 뭉갠다
+ * (실측: 3배 확대에서 「거리·시간」이 검은 덩어리로 보인다). 작은 글자에는 키라인 대신
+ * 촘촘한 헤일로를 씌운다 — 획을 침범하지 않으면서 밝은 지형과 분리된다.
+ */
+.hud-metrics__label,
+.hud-metrics__cell-unit {
+  text-shadow:
+    0 0 1px rgba(0, 0, 0, 0.98),
+    0 0 2px rgba(0, 0, 0, 0.95),
+    0 0 3px rgba(0, 0, 0, 0.9),
+    0 1px 3px rgba(0, 0, 0, 0.85);
 }
 
 /* 거리 = 오늘 운동의 핵심 숫자 — 골드는 핵심 강조 숫자에만(운동=본체 위계) */
@@ -618,12 +615,6 @@
 .hud-metrics__value--cumulative {
   font-size: 1.25rem;
   color: var(--rtw-trace);
-}
-
-/* 주행 중 — 누적거리(히어로)가 주변 크롬보다 먼저 읽히게 */
-.map-hud--active-ride .hud-metrics__capsule {
-  border-color: rgba(232, 163, 61, 0.45);
-  box-shadow: 0 0 0 1px rgba(232, 163, 61, 0.12), var(--rtw-shadow-panel);
 }
 
 .map-hud--active-ride .hud-metrics__cell--conquest {
@@ -642,11 +633,60 @@
   color: var(--rtw-text-primary);
 }
 
+/* 패널이 사라지면 이 선은 지도 위에 떠 있는 정체불명의 1px 가 된다 — 셀 사이 간격이
+   대신 구분을 맡는다(`.hud-metrics__capsule` 의 gap). */
 .hud-metrics__divider {
-  width: 1px;
-  height: 1.5rem;
-  background: var(--rtw-divider);
-  flex-shrink: 0;
+  display: none;
+}
+
+/*
+ * 계기는 제자리를 지킨다(2026-09-17 Chief).
+ * 종전엔 셀 폭이 내용에 따라 늘었다 줄었다 해서 「평균 9.9 → 10.0」 한 자리 차이로
+ * 오른쪽 계기가 통째로 밀리고 당겨졌다. 주행 중에는 눈이 화면을 훑지 않고 **같은 자리**를
+ * 보므로, 숫자가 움직이는 게 아니라 판이 움직이면 읽기가 무너진다.
+ *
+ * `tabular-nums`(값 폰트)는 **같은 자릿수**끼리만 폭을 맞춘다 — 자릿수 자체가 바뀌면
+ * 소용없다. 그래서 셀마다 최악의 경우를 담는 **고정 폭**을 준다(`flex: 0 0`).
+ * 폭 산정 근거(폰 가로 루트 13.5px 기준 최악값):
+ *   distance  「99.99 / 99.99 km」  히어로 1.25rem
+ *   time      「999:59」            분은 자릿수 제한이 없다(rideFormat.ts 는 MM:SS 인데 분을 안 자른다)
+ *   speed     「99.9 km/h」         평균·속도 공용
+ * 내용이 폭을 넘더라도 가운데 정렬로 **간격 안쪽으로만** 넘칠 뿐, 이웃을 밀지 않는다.
+ */
+/*
+ * 계기 사이가 필요 이상으로 벌어져 보이던 이유(2026-09-17 Chief):
+ * 고정 폭 셀에서 **좌우 패딩은 글자를 옮기지 않는다** — 내용이 가운데 정렬이라
+ * 상자만 넓힐 뿐이다. 즉 패딩은 순수하게 이웃과의 거리로만 나타났다.
+ * 패딩을 걷어내고 그만큼 폭을 줄이면 **글자가 쓸 수 있는 자리는 그대로**인 채
+ * 간격만 좁아진다. 미디어쿼리의 `.hud-metrics__cell` 패딩(0,1,0)보다 높은
+ * 특이도(0,2,0)로 덮는다.
+ */
+.hud-metrics__capsule .hud-metrics__cell {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* 폭은 걷어낸 패딩(폰 가로 0.28rem × 2)만큼 줄인다 — 내용 가용폭 불변. */
+.hud-metrics__cell--w-distance {
+  flex: 0 0 6rem;
+  width: 6rem;
+}
+
+.hud-metrics__cell--w-time {
+  flex: 0 0 3rem;
+  width: 3rem;
+}
+
+.hud-metrics__cell--w-speed {
+  flex: 0 0 3.45rem;
+  width: 3.45rem;
+}
+
+/* 마지막 셀이라 폭이 변해도 이웃을 밀지 않지만, 「이미 내 도로」 힌트가 들고 날 때
+   캡슐 전체 폭이 출렁이지 않도록 함께 고정한다. */
+.hud-metrics__cell--conquest {
+  flex: 0 0 4.05rem;
+  width: 4.05rem;
 }
 
 /* Trail 배지 칩(캡슐 밖 컨텍스트 배지) */
@@ -1007,7 +1047,12 @@
  * z-index 6 을 갖지만, 시각적 침범 자체를 줄이는 편이 낫다.
  */
 @media (max-height: 560px) {
-  .map-hud__tl {
+  /*
+   * 이 제약은 원래 `.map-hud__tl` 전체(RTW·날씨·동행)에 걸려 있었다. 계기판 캡슐이
+   * 이 슬롯으로 들어오면서 그대로 두면 여기서도 잘린다 — 베이스 규칙과 동일하게
+   * `.map-hud__tl-stack` 으로 좁혀 계기판(`.map-hud__tl-metrics`)은 이 제약 밖에 둔다.
+   */
+  .map-hud__tl-stack {
     max-width: min(46vw, 11rem);
   }
 
@@ -1038,11 +1083,6 @@
     width: 2.4rem;
     height: 2.4rem;
     font-size: 1rem;
-  }
-
-  /* TC 지표가 TR 칩(CAD·계정) 밑으로 파고들지 않게 — 「새 도로」 칸이 잘리고 있었다 */
-  .map-hud__tc {
-    max-width: calc(100% - 15rem);
   }
 
   .map-hud__tr-under {
@@ -1089,7 +1129,6 @@
  * 되돌아간다. **투명한 히트 영역만** 44px 로 넓힌다.
  */
 .hud-brand,
-.hud-place-search-btn,
 .hud-account,
 .hud-signin-pill,
 .hud-bc-trigger,
@@ -1102,7 +1141,6 @@
  * **세로로만** 넓힌다 — 가로로도 넓히면 같은 행의 옆 버튼 위를 덮어 탭을 가로챈다.
  */
 .hud-brand::after,
-.hud-place-search-btn::after,
 .hud-account::after,
 .hud-signin-pill::after,
 .hud-bc-trigger::after {
