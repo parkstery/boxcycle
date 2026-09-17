@@ -77,6 +77,16 @@
   letter-spacing: 0.02em;
 }
 
+/* 단위는 헤더가 한 번만 말한다 — 아래 숫자들엔 붙이지 않는다(2026-09-17 Chief).
+   제목보다 조용하게 두어 「주행 결과」가 먼저 읽히게 한다. */
+.ride-summary__title-unit {
+  margin-left: 0.32rem;
+  font-size: 0.72em;
+  font-weight: 600;
+  color: var(--rtw-text-secondary);
+  letter-spacing: 0.02em;
+}
+
 .ride-summary__badge {
   flex-shrink: 0;
   font-size: 0.62rem;

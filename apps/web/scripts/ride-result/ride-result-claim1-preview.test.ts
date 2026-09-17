@@ -167,10 +167,11 @@ describe("buildSessionPreviewPaths", () => {
 // ── 2. formatNewRoadHero ────────────────────────────────────────────────────
 
 describe("formatNewRoadHero", () => {
-  it("positive + ≥ 50m → km 문자열", () => {
+  it("positive + ≥ 50m → 단위·부호 없는 숫자 문자열", () => {
+    // 단위 km 는 결과 시트 헤더가 한 번만 말한다(2026-09-17 Chief) — 숫자에는 안 붙는다.
     const s = formatNewRoadHero(800, "positive");
     assert.ok(s !== null);
-    assert.match(s!, /^\+[\d.]+\s*km$/);
+    assert.match(s!, /^[\d.]+$/);
   });
 
   it("positive + 49m → null (50m 미만 미표시)", () => {
@@ -193,14 +194,14 @@ describe("formatNewRoadHero", () => {
     assert.strictEqual(formatNewRoadHero(0, "error"), null);
   });
 
-  it("10000m → +10.00 km (소수 2자리 유지)", () => {
+  it("10000m → 10.00 (소수 2자리 유지, 단위·부호 없음)", () => {
     const s = formatNewRoadHero(10000, "positive");
-    assert.strictEqual(s, "+10.00 km");
+    assert.strictEqual(s, "10.00");
   });
 
-  it("800m → +0.80 km", () => {
+  it("800m → 0.80 (단위·부호 없음)", () => {
     const s = formatNewRoadHero(800, "positive");
-    assert.strictEqual(s, "+0.80 km");
+    assert.strictEqual(s, "0.80");
   });
 });
 

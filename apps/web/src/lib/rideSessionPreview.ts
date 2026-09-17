@@ -249,16 +249,14 @@ export function buildSessionPreviewPaths(
 }
 
 /**
- * conquest 상태별 hero 표시 문자열.
- * - positive ≥ 50m: "+N.NN km" (HUD 거리와 동일 소수 2자리)
- * - positive < 50m: null (숫자 없는 메시지용)
- * - confirmed_zero: null
- * - none / error: null (대기/오류 카피 별도)
+ * 새 도로 히어로 숫자. **단위·부호 없이 숫자만** 돌려준다(2026-09-17 Chief) —
+ * 결과 시트는 단위 km 를 헤더에서 한 번만 말하고 각 숫자에는 붙이지 않는다.
+ * 50m 미만은 여전히 null(「0 은 노출하지 않는다」 기존 결정 유지).
  */
 export function formatNewRoadHero(newMeters: number, status: string): string | null {
   if (status !== "positive") return null;
   if (!Number.isFinite(newMeters) || newMeters < 50) return null;
-  return `+${formatRideDistanceKmNumber(newMeters)} km`;
+  return formatRideDistanceKmNumber(newMeters);
 }
 
 /**

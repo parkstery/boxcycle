@@ -2552,7 +2552,6 @@ export default function App() {
         result={lastRideResult}
         arrivalCompleted={arrivalToastTick > 0}
         elapsedLabel={elapsedLabel}
-        distanceKm={sessionDistanceKmLabel}
         avgKmh={avgSpeedLabel}
         caloriesEstimate={caloriesEstimate}
         adhocSaveAvailable={lastEndedWasAdhoc !== null}

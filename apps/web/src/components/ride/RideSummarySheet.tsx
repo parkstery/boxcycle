@@ -11,7 +11,6 @@ type RideSummarySheetProps = {
   open: boolean;
   arrivalCompleted: boolean;
   elapsedLabel: string;
-  distanceKm: string;
   avgKmh: string;
   caloriesEstimate: number;
   /**
@@ -129,6 +128,24 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
    * 아니라 칸 자체를 접는 것이 맞다 — 그러면 「오늘」이 1열로 자리를 넓혀 쓴다.
    */
   const hasConquestContent = showConquestBlock && Boolean(newRoadHero || conquestStatusCopy);
+  /*
+   * 「이번 주행」 세 값 — 주행거리 / 총거리 / 새 도로(2026-09-17 Chief).
+   * 「오늘」(하루 누적)은 이 화면이 답할 질문이 아니다. 단위 km 는 헤더가 한 번만 말하고
+   * 숫자에는 붙이지 않는다.
+   *
+   * 주행거리는 **경로상 누적 위치**다(세션 거리가 아니다, Chief 확정). 이어달리기로 경로
+   * 중간부터 재개해 끝낸 경우에도 「완주 = 0.50 / 0.50」 이 성립해야 하고, 주행 중 상단
+   * 계기판이 보여 주던 「누적 / 전체」와 같은 숫자여야 화면이 이어지기 때문이다.
+   */
+  const routeTotalKmNum = result ? result.routeDistanceMeters / 1000 : null;
+  const riddenKmNum =
+    result && Number.isFinite(result.progressRatio)
+      ? (result.routeDistanceMeters * Math.max(0, Math.min(1, result.progressRatio))) / 1000
+      : null;
+  const distancePair =
+    routeTotalKmNum != null && riddenKmNum != null && routeTotalKmNum > 0
+      ? `${riddenKmNum.toFixed(2)} / ${routeTotalKmNum.toFixed(2)}`
+      : null;
 
   function requestClose() {
     if (busy) return;
@@ -182,6 +199,8 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
         <div className="ride-summary__head">
           <h2 id="ride-summary-title" className="ride-summary__title">
             주행 결과
+            {/* 단위는 여기서 한 번만 — 아래 숫자들엔 붙이지 않는다(2026-09-17 Chief) */}
+            <span className="ride-summary__title-unit">km</span>
           </h2>
           {props.arrivalCompleted || routeCompleted ? (
             <span className="ride-summary__badge">도착</span>
@@ -197,15 +216,24 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
           </button>
         </div>
 
-        {/* §3.1 2열 히어로 — 새 도로(conquest, 골드/보라 강조) + 오늘(조용한 히어로), 우측에 완주/진행률 배지 */}
+        {/* §3.1 2열 히어로 — 거리(주행/전체) + 새 도로(골드/보라 강조), 우측에 완주/진행률 배지 */}
         <div className="ride-summary__heroes">
           <div
             className={
-              hasConquestContent
+              hasConquestContent && distancePair
                 ? "ride-summary__heroes-main"
                 : "ride-summary__heroes-main ride-summary__heroes-main--solo"
             }
           >
+            {distancePair ? (
+              <div className="ride-summary__hero">
+                <span className="ride-summary__hero-k">거리</span>
+                <strong className="ride-summary__hero-v" aria-label="주행 거리 / 경로 전체거리">
+                  {distancePair}
+                </strong>
+              </div>
+            ) : null}
+
             {hasConquestContent ? (
               <div className="ride-summary__conquest-hero" aria-live="polite">
                 {newRoadHero ? (
@@ -241,11 +269,6 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
                 ) : null}
               </div>
             ) : null}
-
-            <div className="ride-summary__hero">
-              <span className="ride-summary__hero-k">오늘</span>
-              <strong className="ride-summary__hero-v">{props.distanceKm} km</strong>
-            </div>
           </div>
 
           {routeCompleted ? (

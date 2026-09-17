@@ -2,6 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
 import { stubMapboxStyle } from "./mapbox-stub";
+import { readGuestUid } from "./readGuestUid";
 
 /**
  * 주행 결과 시트 컴팩트화 — 스크롤 없음 실측 (2026-09-17 Chief).
@@ -24,6 +25,94 @@ import { stubMapboxStyle } from "./mapbox-stub";
 
 const PHONE_LANDSCAPE = { width: 690, height: 275 };
 
+/*
+ * 시험 주행은 **200m 이하 경로**로 한다(2026-09-17 Chief) — 시험 시간을 줄이기 위함이다.
+ * 퍼블릭(입문) 경로는 가장 짧은 것이 414m 라 조건을 못 맞춘다. 그래서 `ride-continuation.spec.ts`
+ * 와 같은 방식으로 **결정적 SavedRoute 를 에뮬레이터에 직접 심는다**.
+ *
+ * 길이는 180m — 주행 폐기 임계(100m 초과, `lib/rideRecordPolicy.ts`)에 80m 여유를 두면서
+ * 체험 속도 상한 50km/h 로 약 13초면 완주한다.
+ */
+const PROJECT_ID = "boxcycle-dc2df";
+const EMULATOR_HOST = process.env.FIRESTORE_EMULATOR_HOST ?? "127.0.0.1:8080";
+const DOCS_URL = `http://${EMULATOR_HOST}/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+
+const FIXTURE_NAME = "SUMMARY 200m 이하 픽스처";
+const FIXTURE_LAT = 37.5;
+const FIXTURE_START_LNG = 127.02;
+/** 위도 37.5 에서 경도 1° ≈ 88.3km → 0.00051° ≈ 45m. 5점(4구간) ≈ 180m */
+const FIXTURE_STEP_LNG = 0.00051;
+const FIXTURE_POINTS = 5;
+
+function fixtureCoordinates(): [number, number][] {
+  return Array.from({ length: FIXTURE_POINTS }, (_, i): [number, number] => [
+    FIXTURE_START_LNG + i * FIXTURE_STEP_LNG,
+    FIXTURE_LAT,
+  ]);
+}
+
+function haversineMeters(a: [number, number], b: [number, number]): number {
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const R = 6371000;
+  const dLat = toRad(b[1] - a[1]);
+  const dLng = toRad(b[0] - a[0]);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a[1])) * Math.cos(toRad(b[1])) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
+const FIXTURE_LENGTH_M = fixtureCoordinates()
+  .slice(1)
+  .reduce((sum, c, i) => sum + haversineMeters(fixtureCoordinates()[i]!, c), 0);
+
+function doubleArray(v: [number, number]) {
+  return { arrayValue: { values: [{ doubleValue: v[0] }, { doubleValue: v[1] }] } };
+}
+
+/** `Authorization: Bearer owner` 는 에뮬레이터에서 rules 를 우회하는 표준 방법이다. */
+async function seedShortRoute(uid: string, routeId: string): Promise<void> {
+  const coords = fixtureCoordinates();
+  const nowIso = new Date().toISOString();
+  const body = {
+    fields: {
+      userId: { stringValue: uid },
+      name: { stringValue: FIXTURE_NAME },
+      profile: { stringValue: "cycling" },
+      startLngLat: doubleArray(coords[0]!),
+      endLngLat: doubleArray(coords[coords.length - 1]!),
+      geometryType: { stringValue: "LineString" },
+      geometryCoordsJson: { stringValue: JSON.stringify(coords) },
+      distanceMeters: { doubleValue: FIXTURE_LENGTH_M },
+      durationSec: { doubleValue: 60 },
+      source: { stringValue: "web" },
+      createdAt: { timestampValue: nowIso },
+      updatedAt: { timestampValue: nowIso },
+      completed: { integerValue: "0" },
+      completedAt: { nullValue: null },
+      expiresAt: { timestampValue: new Date(Date.now() + 86400000).toISOString() },
+      lastRideId: { nullValue: null },
+      lastProgressRatio: { doubleValue: 0 },
+    },
+  };
+  const res = await fetch(`${DOCS_URL}/savedRoutes?documentId=${routeId}`, {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: "Bearer owner" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`SavedRoute seed 실패: ${res.status} ${await res.text()}`);
+}
+
+async function loadSavedRouteFromMenu(page: Page, routeName: string) {
+  await page.getByRole("button", { name: "Trail 메뉴" }).click();
+  await page.getByRole("button", { name: "내 경로 목록" }).click();
+  const row = page.getByText(routeName, { exact: false }).first();
+  await expect(row).toBeVisible({ timeout: 15_000 });
+  await row.click();
+  await page.getByRole("button", { name: "열기" }).first().click();
+  await expect(page.getByRole("button", { name: "주행 시작" })).toBeVisible({ timeout: 15_000 });
+}
+
 /** chief 가 지정한 촬영/계측 저장 위치 — 세션 scratchpad 하위 shots/ */
 const SHOTS_DIR =
   "C:/Users/kdrea/AppData/Local/Temp/claude/C--20-HDev-boxcycle/2e5b96fa-d86d-4f15-9fe4-c5294d9318f9/scratchpad/shots";
@@ -43,26 +132,27 @@ test.describe("주행 결과 시트 컴팩트화", () => {
     await page.setViewportSize(PHONE_LANDSCAPE);
     await page.goto("/");
     await guestStart(page);
+
+    // 200m 이하 경로를 심고 그것으로 달린다(Chief) — 완주까지 약 13초.
+    const uid = await readGuestUid(page);
+    await seedShortRoute(uid, `summary-compact-${Date.now()}`);
+    await page.reload();
     await armRideInput(page);
-    await loadIntroCourse(page);
+    await loadSavedRouteFromMenu(page, FIXTURE_NAME);
 
     await page.getByRole("button", { name: "주행 시작" }).click();
     await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({ timeout: 30_000 });
 
     /*
-     * 끝까지 달려 **완주 상태**의 시트를 본다 — 컴팩트 재설계에서 「경로를 완주했습니다」
-     * 문단이 「완주」 배지로 바뀌었고, 그 배지는 완주해야만 뜬다. 부분 주행만 재면
-     * 새 표면의 절반을 시험하지 않는 셈이다.
-     *
-     * 입문 코스는 414m(가장 짧은 퍼블릭 경로)이고 체험 속도 상한이 50km/h
-     * (`SESSION_SPEED_MAX_KMH`)라 약 30초면 닿는다 — 도착하면 자동 종료가 결과 시트를
-     * 열어 주므로 「주행 종료」를 누르지 않는다. 폐기 임계(100m 초과)도 자연히 넘는다.
+     * 끝까지 달려 **완주 상태**의 시트를 본다 — 「완주」 배지는 완주해야만 뜨므로
+     * 부분 주행만 재면 새 표면의 절반을 시험하지 않는 셈이다.
+     * 도착하면 자동 종료가 결과 시트를 열어 주므로 「주행 종료」를 누르지 않는다.
      */
     await expect
       .poll(() => readCumulativeKm(page), {
         message: "HUD 누적 거리가 0.11km 를 넘어야 결과 시트가 뜬다(폐기 정책: 100m 초과)",
-        timeout: 150_000,
-        intervals: [1000],
+        timeout: 120_000,
+        intervals: [500],
       })
       .toBeGreaterThan(DISTANCE_THRESHOLD_KM);
 
@@ -70,6 +160,28 @@ test.describe("주행 결과 시트 컴팩트화", () => {
     await expect(sheet, "도착 자동 종료가 결과 시트를 연다").toBeVisible({ timeout: 120_000 });
     // 완주 배지 — 「경로를 완주했습니다」 문단을 대신하는 새 표면.
     await expect(sheet.locator(".ride-summary__heroes-badge--done")).toHaveText("완주");
+
+    /*
+     * 「이번 주행」 세 값 — 주행거리 / 총거리 / 새 도로(2026-09-17 Chief).
+     * 단위 km 는 헤더가 한 번만 말하고 숫자에는 붙지 않는다. 「오늘」(하루 누적)은 빠졌다.
+     */
+    const pair = sheet.getByLabel("주행 거리 / 경로 전체거리");
+    await expect(pair, "주행거리 / 총거리 쌍이 있어야 한다").toBeVisible();
+    const pairText = ((await pair.textContent()) ?? "").trim();
+    expect(pairText, `「N.NN / N.NN」 형식이어야 하고 단위가 붙으면 안 된다: ${pairText}`).toMatch(
+      /^\d+\.\d{2}\s*\/\s*\d+\.\d{2}$/,
+    );
+    const [riddenKm, totalKm] = pairText.split("/").map((v) => Number(v.trim()));
+    // 완주했으므로 앞뒤가 같아야 한다 — Chief 예시 「완주 시 0.5 / 0.5」.
+    expect(riddenKm, `완주인데 주행거리≠총거리: ${pairText}`).toBeCloseTo(totalKm, 2);
+    // 200m 이하 경로로 달렸는지 — 시험 시간 규율 자체를 계약으로 고정한다.
+    expect(totalKm, `시험 경로는 200m 이하여야 한다: ${totalKm}km`).toBeLessThanOrEqual(0.2);
+
+    await expect(sheet.locator(".ride-summary__title-unit"), "단위는 헤더에 한 번").toHaveText("km");
+    expect(
+      ((await sheet.textContent()) ?? "").includes("오늘"),
+      "「오늘」(하루 누적)은 이 화면이 답할 질문이 아니다",
+    ).toBe(false);
 
     await page.screenshot({ path: path.join(SHOTS_DIR, "summary-compact.png") });
     // 시트만 크롭 — 뷰포트 축소 없이 4행 전체가 실제로 그려졌는지 육안 확인용(보조 산출물).
@@ -192,13 +304,3 @@ async function armRideInput(page: Page, speedKmh = 50) {
   await expect(sheet).toBeHidden({ timeout: 10_000 });
 }
 
-async function loadIntroCourse(page: Page) {
-  await page.getByRole("button", { name: "Trail 메뉴" }).click();
-  await page.getByRole("button", { name: "입문" }).click();
-  const modal = page.getByRole("dialog").filter({ has: page.locator("#oc-modal-title") });
-  await expect(modal).toBeVisible({ timeout: 15_000 });
-  const items = modal.locator("button.oc-modal__item");
-  await expect(items.first()).toBeVisible();
-  await items.first().click();
-  await expect(page.getByRole("button", { name: "주행 시작" })).toBeVisible({ timeout: 20_000 });
-}
