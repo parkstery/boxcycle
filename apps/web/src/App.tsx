@@ -1219,6 +1219,16 @@ export default function App() {
     if (!routeGeometry || rideStatus !== "idle" || !user || !configured || trailStartBusy) return;
     // 주행 입력 준비(센서 확인 또는 명시적 체험 속도 선택)가 끝나기 전에는 시작하지 않는다.
     if (!rideInputReady) return;
+    /*
+     * 주행이 시작되면 거리 기반 자동 End 선택을 끝낸다(2026-09-18 Chief).
+     * 종전에는 `armDirectionPick` 이 주행 중 **새 요청만 거절**했을 뿐, 이미 떠 있던 목표
+     * 거리 원·방향 클릭 임시 표시·세션은 그대로 남았다.
+     * effect 가 아니라 여기서 부른다 — 주행 시작은 상태에서 파생되는 값이 아니라 사용자
+     * 행동이고, effect 안 동기 setState 는 연쇄 렌더를 부른다(react-hooks/set-state-in-effect).
+     * 「거리」를 끌 때와 **같은 정리**(`disarm`)를 쓴다. 팝업·도크 닫기는 그 표면을 소유한
+     * MapView 가 `rideActive` 로 받아 처리한다.
+     */
+    disarm();
     // MapHud FAB 등 onClick 직결 호출은 이벤트 객체가 첫 인자로 올 수 있어 `=== true` 로만 판정
     const restart = fromStart === true;
     /**

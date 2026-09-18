@@ -77,7 +77,7 @@ async function captureViewport(viewport) {
     await numberInput.dispatchEvent("change");
     await page.waitForTimeout(1500);
     await popup
-      .getByText("지도에서 원하는 방향을 클릭하세요")
+      .getByText(/반경의 원 주변 도로를 선택하세요/)
       .waitFor({ state: "visible", timeout: 10_000 });
 
     const shot2Path = path.join(OUT_DIR, `3d1-direction-55km-${viewport.label}.png`);

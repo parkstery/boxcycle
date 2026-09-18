@@ -167,13 +167,24 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
     setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
   }, []);
 
-  const setDistanceDirectionMode = useCallback((enabled: boolean) => {
-    setDistanceDirectionModeState(enabled);
-    if (!enabled) {
-      clearDistanceAutoRouteClickDebugMarker();
-      releasePickArm();
-    }
-  }, [releasePickArm]);
+  /**
+   * 「거리」 체크박스. **끄는 순간 세션까지 끝낸다**(2026-09-18 Chief).
+   *
+   * 종전에는 `releasePickArm()` 만 불러 **선호만 끄고 세션(`sessionActive`)은 살려 뒀다**.
+   * 그런데 클릭 해석과 팝업 초기값은 세션을 본다 — 「여기에서 계속」으로 켜진 세션이 남아
+   * 있으면 체크를 풀어도 지도 클릭이 계속 「방향 선택」으로 먹혀 End 를 직접 못 찍는다.
+   * 이 체크박스는 preference 토글이 아니라 **확실한 ON/OFF 컨트롤**이어야 한다.
+   *
+   * 켤 때는 세션을 여기서 시작하지 않는다 — Start·목표 거리가 정해진 뒤 `armDirectionPick`
+   * 이 연다. 끄는 쪽만 확실히 닫으면 된다.
+   */
+  const setDistanceDirectionMode = useCallback(
+    (enabled: boolean) => {
+      setDistanceDirectionModeState(enabled);
+      if (!enabled) disarm();
+    },
+    [disarm],
+  );
 
   const armDirectionPick = useCallback(
     (input: {

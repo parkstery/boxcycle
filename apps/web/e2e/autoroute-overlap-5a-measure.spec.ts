@@ -80,7 +80,7 @@ async function armDistanceDirectionMode(
     )
     .toBeGreaterThan(0)
 
-  const hint = popup.getByText(/도착하고 싶은 도로 위 지점을 클릭|방향을 클릭/)
+  const hint = popup.getByText(/반경의 원 주변 도로를 선택하세요/)
   const deadline = Date.now() + 60_000
   for (;;) {
     await numberInput.fill(String(targetKm))

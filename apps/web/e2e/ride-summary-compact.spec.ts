@@ -123,6 +123,109 @@ const DISTANCE_THRESHOLD_KM = 0.11;
 /** 제거 대상 문구 2종 — 시트 텍스트에 남아 있으면 회귀다. */
 const REMOVED_PHRASES = ["내 도로망에 더해졌어요", "다음 출발점이 저장되었습니다"];
 
+test.describe("「거리」 체크박스가 자동 End 세션을 끝낸다", () => {
+  /*
+   * 「여기에서 계속」으로 들어오면 거리 기반 자동 End 선택이 켜진 채 시작한다
+   * (rideContinuationSetup 이 보장하는 계약). 이때 「거리」를 끄면 **그 세션까지** 끝나야
+   * 한다 — 끄고도 세션이 살아 있으면 사용자의 지도 클릭이 계속 「방향 선택」으로 먹혀
+   * End 를 직접 찍을 수 없다(2026-09-18 Chief).
+   *
+   * 사용자 눈높이로 잰다: 끄면 방향 안내가 사라지고, 지도를 누르면 평소처럼 지점 팝업이
+   * 떠서 End 를 고를 수 있어야 한다.
+   */
+  test("끄면 방향 안내가 사라지고 지도 클릭이 지점 선택으로 돌아온다", async ({ page }) => {
+    test.setTimeout(240_000);
+    await stubMapboxStyle(page);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/");
+    await guestStart(page);
+    const uid = await readGuestUid(page);
+    await seedShortRoute(uid, `distance-off-${Date.now()}`);
+    await page.reload();
+    await armRideInput(page);
+    await loadSavedRouteFromMenu(page, FIXTURE_NAME);
+    await page.getByRole("button", { name: "주행 시작" }).click();
+
+    const sheet = page.getByRole("dialog", { name: "주행 결과" });
+    await expect(sheet).toBeVisible({ timeout: 120_000 });
+    await sheet.getByRole("button", { name: "닫기" }).first().click();
+    await expect(sheet).toBeHidden({ timeout: 15_000 });
+
+    await page.getByRole("button", { name: "여기에서 계속" }).click();
+
+    const dock = page.locator(".map-view__pick-dock-panel, .map-view__pick-popup").last();
+    await expect(dock, "「여기에서 계속」이 경로 설정을 연다").toBeVisible({ timeout: 30_000 });
+    const distanceToggle = dock.getByRole("checkbox", { name: "거리와 방향으로 Route 찾기" });
+    await expect(distanceToggle, "들어오면 「거리」가 켜져 있다").toBeChecked();
+    const hint = dock.getByText(/반경의 원 주변 도로를 선택하세요/);
+    await expect(hint, "거리 ON 이면 방향 안내가 보인다").toBeVisible({ timeout: 20_000 });
+
+    // ── 여기서 끈다 ────────────────────────────────────────────────────
+    await distanceToggle.uncheck();
+
+    await expect(hint, "끄면 방향 안내가 사라져야 한다").toHaveCount(0, { timeout: 15_000 });
+    await expect(distanceToggle).not.toBeChecked();
+
+    // 지도를 누르면 평소처럼 지점 팝업이 뜨고 End 를 고를 수 있어야 한다.
+    const canvas = page.locator("canvas.mapboxgl-canvas").first();
+    const box = await canvas.boundingBox();
+    expect(box, "지도 캔버스를 찾지 못했다").not.toBeNull();
+    await page.mouse.click(box!.x + box!.width * 0.62, box!.y + box!.height * 0.45);
+    await page.waitForTimeout(800);
+
+    const afterClick = page.locator(".map-view__pick-dock-panel, .map-view__pick-popup").last();
+    await expect(afterClick, "클릭이 지점 팝업을 연다").toBeVisible({ timeout: 20_000 });
+    await expect(
+      afterClick.getByText(/반경의 원 주변 도로를 선택하세요/),
+      "끈 뒤의 클릭이 방향 선택으로 먹히면 안 된다",
+    ).toHaveCount(0);
+    const endBtn = afterClick.getByRole("button", { name: "End" });
+    await expect(endBtn, "사용자가 End 를 직접 고를 수 있어야 한다").toBeEnabled({
+      timeout: 15_000,
+    });
+
+    /*
+     * 버튼이 「눌릴 수 있는지」로는 부족하다 — 눌렀을 때 실제로 그 지점이 End 가 되는지가
+     * Chief 가 말한 「원하는 위치를 End 로 지정할 수 없다」의 핵심이다.
+     */
+    await endBtn.click();
+    await page.waitForTimeout(1500);
+    const diag = await page.evaluate(() => {
+      const dockText = (
+        document.querySelector(".route-dock__stops")?.textContent ?? ""
+      ).replace(/\s+/g, " ").trim();
+      const surfaces = Array.from(
+        document.querySelectorAll(".map-view__pick-dock-panel, .map-view__pick-popup"),
+      ).map((el) => (el.textContent ?? "").replace(/\s+/g, " ").trim());
+      const toggle = document.querySelector(
+        ".map-view__pick-distance-mode-checkbox",
+      ) as HTMLInputElement | null;
+      return {
+        dockStops: dockText,
+        endPinCount: document.querySelectorAll(".map-view__route-pin--end").length,
+        distanceChecked: toggle ? toggle.checked : null,
+        hintBack: surfaces.some((t) => t.includes("반경의 원 주변 도로를 선택하세요")),
+      };
+    });
+    fs.writeFileSync(
+      path.join(SHOTS_DIR, "distance-off-diag.json"),
+      `${JSON.stringify(diag, null, 2)}
+`,
+      "utf8",
+    );
+
+    expect(diag.hintBack, `End 지정 후 방향 안내가 되살아났다: ${JSON.stringify(diag)}`).toBe(false);
+    expect(
+      diag.distanceChecked === true,
+      `End 지정 후 「거리」가 다시 켜졌다: ${JSON.stringify(diag)}`,
+    ).toBe(false);
+    expect(
+      diag.endPinCount,
+      `End 핀이 찍히지 않았다: ${JSON.stringify(diag)}`,
+    ).toBeGreaterThan(0);
+  });
+});
+
 test.describe("센서 설정 시트 레이아웃", () => {
   /*
    * 2026-09-18 Chief 6건: ① 제목과 연결 상태를 한 줄 ② 버튼 이름 「센서 연결」·「센서 없음」
@@ -349,7 +452,25 @@ test.describe("다음 주행 카드 자리", () => {
     await page.reload();
     await armRideInput(page);
     await loadSavedRouteFromMenu(page, FIXTURE_NAME);
+
+    /*
+     * 주행이 시작되면 경로 설정 표면이 닫혀야 한다(2026-09-18 Chief).
+     * 닫힌 채로 시작해서 「없다」를 확인하면 아무것도 증명하지 못한다 — **먼저 열어 둔다**.
+     */
+    const pickSurfaces = page.locator(".map-view__pick-dock-panel, .map-view__pick-popup");
+    const canvas = page.locator("canvas.mapboxgl-canvas").first();
+    const canvasBox = await canvas.boundingBox();
+    expect(canvasBox, "지도 캔버스를 찾지 못했다").not.toBeNull();
+    await page.mouse.click(canvasBox!.x + canvasBox!.width * 0.55, canvasBox!.y + canvasBox!.height * 0.4);
+    await expect(pickSurfaces.last(), "주행 전에는 지점 팝업이 열린다").toBeVisible({
+      timeout: 20_000,
+    });
+
     await page.getByRole("button", { name: "주행 시작" }).click();
+    await expect(
+      pickSurfaces,
+      "주행이 시작되면 경로 설정 팝업이 닫혀야 한다",
+    ).toHaveCount(0, { timeout: 20_000 });
 
     const sheet = page.getByRole("dialog", { name: "주행 결과" });
     await expect(sheet, "도착 자동 종료가 결과 시트를 연다").toBeVisible({ timeout: 120_000 });

@@ -83,7 +83,7 @@ async function createAutoRoute(page, targetKm = 5) {
   await page.waitForTimeout(300);
 
   await popup
-    .getByText("도착하고 싶은 도로 위 지점을 클릭하세요")
+    .getByText(/반경의 원 주변 도로를 선택하세요/)
     .waitFor({ state: "visible", timeout: 30_000 });
   await page.waitForTimeout(800);
 

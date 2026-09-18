@@ -1409,7 +1409,12 @@ export type MapViewProps = {
   onMapLodViewport?: (spanKm: number, zoom: number) => void;
   /** 주행 시작 시 후방·줌 21.5 즉시 적용 — `requestId` 증가마다 1회 */
   rideFollowCameraNonce?: number;
-  /** RTW Dark 한정 — 주행 중 도로 유령화·건물 숨김 해제 */
+  /**
+   * RTW Dark 한정 — 주행 중 도로 유령화·건물 숨김 해제.
+   * 2026-09-18 부터 **경로 설정 표면 정리**(팝업·도크·목표 거리 원)도 이 신호를 쓴다.
+   * `lockRouteWorkspaceDuringRide` 를 쓰지 않는 이유: 그건 `import.meta.env.PROD` 게이트가
+   * 걸려 있어 개발·시험 빌드에서는 항상 false 라 정리가 통째로 안 걸린다.
+   */
   rideActive?: boolean;
   /** 주행 카메라 라이더~카메라 거리(m) — 개발용 거리 슬라이더, 최적값 확정 후 제거 예정 */
   rideCameraDistanceM?: number;
@@ -1605,6 +1610,8 @@ export function MapView({
   const popupRef = useRef<mapboxgl.Popup | null>(null);
   const mapShellRef = useRef<HTMLDivElement>(null);
   const routePickDockLayerRef = useRef<HTMLDivElement>(null);
+  /** 경로 설정 표면(팝업·도크·원)을 한 번에 닫는다 — 아래 pick 효과가 채우고 주행 시작이 부른다 */
+  const closePickSurfacesRef = useRef<(() => void) | null>(null);
   const routePickDockPositionRef = useRef<{ left: number; top: number } | null>(null);
   const routePickDockDragCleanupRef = useRef<(() => void) | null>(null);
   const routePickDockResizeHandlerRef = useRef<(() => void) | null>(null);
@@ -1853,6 +1860,17 @@ export function MapView({
       clearAutoRouteClickDebugMarkerRef.current();
     }
   }, [autoRouteSessionActive]);
+
+  /*
+   * 주행이 시작되면 경로 설정 표면을 접는다(2026-09-18 Chief) — 팝업·도크를 닫고 목표 거리
+   * 원과 방향 클릭 임시 표시를 치운다. `finalizePickClose` 하나가 그 넷을 모두 정리하므로
+   * 여기서 따로 손으로 지우지 않는다(두 벌로 만들면 한쪽만 고쳐지는 사고가 난다).
+   * 거리 기반 세션 자체는 `useDistanceAutoRoute` 가 같은 신호로 끊는다.
+   */
+  useEffect(() => {
+    if (!rideActive) return;
+    closePickSurfacesRef.current?.();
+  }, [rideActive]);
 
   useEffect(() => {
     const key = startLngLat ? `${startLngLat[0]},${startLngLat[1]}` : null;
@@ -2122,6 +2140,8 @@ export function MapView({
       detachPickPopup();
       teardownRoutePickDock();
     };
+
+    closePickSurfacesRef.current = () => finalizePickClose();
 
     const buildDockFocus = (click?: LngLat) => {
       const route = routeGeometryRef.current;

@@ -86,7 +86,9 @@ async function armDistanceDirectionMode(page: Page, popup: ReturnType<typeof pic
   await numberInput.dispatchEvent('change')
   await page.waitForTimeout(300)
   await expect(
-    popup.getByText(/도착하고 싶은 도로 위 지점을 클릭|방향을 클릭/),
+    // 안내 문구는 「{N} km 반경의 원 주변 도로를 선택하세요」다(distanceAutoRouteErrors.ts).
+    // 종전 정규식은 옛 문구를 찾고 있어 이 시험이 계속 빨갰다(2026-09-18 확인).
+    popup.getByText(/반경의 원 주변 도로를 선택하세요/),
   ).toBeVisible({ timeout: 30_000 })
 }
 
