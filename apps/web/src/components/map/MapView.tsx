@@ -3520,6 +3520,7 @@ export function MapView({
       viewportWidthPx: vp.width,
       viewportHeightPx: vp.height,
       fallbackZoom: mapZoomRef.current,
+      screenUpBearing: nextCamera.bearing,
     });
     const center = framing.center;
     const rideZoom = framing.zoom;

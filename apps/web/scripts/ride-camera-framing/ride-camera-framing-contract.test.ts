@@ -14,13 +14,16 @@ import {
   RIDER_PELVIS_Y_M,
   RIDE_HUD_SAFE_PADDING,
   RIDE_LOOKAT_SPAN_RATIO,
+  RIDE_RIDER_SCREEN_ANCHOR,
   computeRideFollowFraming,
   rideHeightSpanMargin,
+  rideRiderAnchorBiasM,
   rideLookAtAlongM,
   rideSafeViewportPx,
   rideSpanM,
 } from "../../src/lib/rideCameraFraming.ts";
 import { rideCameraDistanceRangeM } from "../../src/lib/mapGlobeView.ts";
+import { getDistanceMeters } from "../../src/lib/geo.ts";
 
 /** `config.ts` 의 기준 배율. 여기서만 쓰는 상수가 아니라 제품 값과 같아야 한다. */
 const BASE_SCALE = 1.15;
@@ -380,5 +383,79 @@ describe("G-5 · 카메라 거리 유도", () => {
     // 이번 개정의 요지 — 상한은 전고에 비례해야 한다.
     assert.ok(rangeAt(20).maxM > rangeAt(1).maxM * 19, "상한이 배율을 따라오지 않는다");
     assert.ok(rangeAt(400).maxM > rangeAt(20).maxM * 19, "큰 배율에서 상한이 막힌다");
+  });
+});
+
+/*
+ * 라이더는 화면 「위 6 : 아래 4」 자리에 앉는다(2026-09-18 Chief).
+ * 주행 중에는 지나온 길보다 앞길이 중요하므로 정중앙보다 뒤(아래)로 내린다.
+ *
+ * 종전 계약은 라이더의 화면 세로 위치를 **재지 않았다** — 그래서 중앙이든 아니든 통과했다.
+ * 여기서 그 구멍을 막는다.
+ */
+describe("라이더 화면 세로 자리 — 위 6 : 아래 4", () => {
+  const VIEW_W = 1280;
+  const VIEW_H = 800;
+
+  it("기본 anchor 는 0.6 이다 — 정중앙(0.5)이 아니다", () => {
+    assert.equal(RIDE_RIDER_SCREEN_ANCHOR, 0.6);
+  });
+
+  it("anchor 0.5 는 밀지 않는다(회귀 방어: 예전 동작)", () => {
+    const bias = rideRiderAnchorBiasM({
+      spanM: 40,
+      safeHeightPx: 600,
+      viewportHeightPx: VIEW_H,
+      anchor: 0.5,
+    });
+    assert.equal(bias, 0);
+  });
+
+  it("anchor 0.6 은 뷰포트 높이의 10% 만큼 앞으로 민다", () => {
+    const spanM = 40;
+    const safeHeightPx = 600;
+    const bias = rideRiderAnchorBiasM({ spanM, safeHeightPx, viewportHeightPx: VIEW_H });
+    const expected = 0.1 * VIEW_H * (spanM / safeHeightPx);
+    assert.ok(
+      Math.abs(bias - expected) < 1e-9,
+      `bias=${bias} expected=${expected}`,
+    );
+  });
+
+  it("퇴화 입력(0·음수)에서는 밀지 않는다 — 카메라를 날려 보내지 않는다", () => {
+    assert.equal(rideRiderAnchorBiasM({ spanM: 0, safeHeightPx: 600, viewportHeightPx: VIEW_H }), 0);
+    assert.equal(rideRiderAnchorBiasM({ spanM: 40, safeHeightPx: 0, viewportHeightPx: VIEW_H }), 0);
+    assert.equal(rideRiderAnchorBiasM({ spanM: 40, safeHeightPx: 600, viewportHeightPx: 0 }), 0);
+  });
+
+  it("topDown(pitch 0) 구도에서 라이더가 화면 60% 지점에 앉는다", () => {
+    const rider: [number, number] = [127.02, 37.5];
+    const distanceM = 40;
+    const pitchDeg = 0;
+    const framing = computeRideFollowFraming({
+      riderLngLat: rider,
+      offsetBearing: 180, // 카메라는 라이더 남쪽 → 진행은 북쪽(화면 위)
+      distanceM,
+      pitchDeg,
+      viewportWidthPx: VIEW_W,
+      viewportHeightPx: VIEW_H,
+      fallbackZoom: 15,
+    });
+
+    // M0 축퇴 방어 — center 가 라이더와 같으면 아래 비교가 공허하다.
+    const gapM = getDistanceMeters(rider, framing.center);
+    assert.ok(gapM > 0, `center 가 라이더와 같다: gap=${gapM}`);
+
+    const spanM = rideSpanM(distanceM, pitchDeg);
+    const safe = rideSafeViewportPx(VIEW_W, VIEW_H);
+    const metersPerPixel = spanM / safe.height;
+    // 라이더는 center 보다 뒤(화면 아래)에 있다 — 그 거리를 픽셀로 환산한다.
+    const riderBelowCenterPx = gapM / metersPerPixel;
+    const riderScreenRatio = 0.5 + riderBelowCenterPx / VIEW_H;
+
+    assert.ok(
+      Math.abs(riderScreenRatio - RIDE_RIDER_SCREEN_ANCHOR) < 0.02,
+      `라이더 화면 위치 ${riderScreenRatio.toFixed(3)} (기대 ${RIDE_RIDER_SCREEN_ANCHOR})`,
+    );
   });
 });

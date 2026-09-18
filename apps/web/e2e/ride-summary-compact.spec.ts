@@ -488,6 +488,44 @@ test.describe("다음 주행 카드 자리", () => {
       "주행이 시작되면 경로 설정 팝업이 닫혀야 한다",
     ).toHaveCount(0, { timeout: 20_000 });
 
+    /*
+     * 주행 중 라이더는 화면 「위 6 : 아래 4」 자리에 앉는다(2026-09-18 Chief) —
+     * 지나온 길보다 앞길을 길게 보여 준다. 렌더된 마커의 화면 y 로 잰다.
+     */
+    await page.waitForTimeout(2500);
+    const riderPos = await page.evaluate(() => {
+      const el = document.querySelector(".map-view__self-location-host") as HTMLElement | null;
+      const mapEl = document.querySelector(".map-view") as HTMLElement | null;
+      if (!el || !mapEl) return null;
+      const r = el.getBoundingClientRect();
+      const m = mapEl.getBoundingClientRect();
+      if (!(r.height > 0) || !(m.height > 0)) return null;
+      return { ratio: (r.y + r.height / 2 - m.y) / m.height, riderH: r.height, mapH: m.height };
+    });
+    fs.writeFileSync(
+      path.join(SHOTS_DIR, "rider-screen-pos.json"),
+      `${JSON.stringify(riderPos, null, 2)}
+`,
+      "utf8",
+    );
+    expect(riderPos, "라이더 마커를 찾지 못했다").not.toBeNull();
+    expect(riderPos!.mapH, "지도 높이가 0 이면 계측 실패").toBeGreaterThan(0);
+    /*
+     * 정확한 0.6 은 순수 계약(`ride-camera-framing-contract.test.ts`)이 수식으로 잡는다.
+     * 여기서는 **실제 렌더에서 중앙 아래로 내려갔는지**를 밴드로 본다 — 이 시험 환경은
+     * `.map-view` 의 `min-height: 320px` 가 뷰포트(275px)보다 커서 요소 기준 비율이
+     * 화면 비율과 정확히 같지 않고, 주행 중 카메라 스무딩도 섞인다.
+     * 종전 값은 0.484(중앙)였다 — 회귀하면 이 하한에 걸린다.
+     */
+    expect(
+      riderPos!.ratio,
+      `라이더가 화면 중앙보다 아래로 내려와야 한다: ${JSON.stringify(riderPos)}`,
+    ).toBeGreaterThan(0.55);
+    expect(
+      riderPos!.ratio,
+      `라이더가 너무 내려가 앞길이 좁아졌다: ${JSON.stringify(riderPos)}`,
+    ).toBeLessThan(0.78);
+
     const sheet = page.getByRole("dialog", { name: "주행 결과" });
     await expect(sheet, "도착 자동 종료가 결과 시트를 연다").toBeVisible({ timeout: 120_000 });
     await sheet.getByRole("button", { name: "닫기" }).first().click();

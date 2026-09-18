@@ -120,6 +120,58 @@ export function rideHeightSpanMargin(pitchDeg: number): number {
 export const RIDE_LOOKAT_SPAN_RATIO = 0.65;
 
 /**
+ * 라이더가 화면 세로에서 앉는 자리 — **위에서부터의 비율**(2026-09-18 Chief).
+ *
+ * 0.5 면 정중앙이다. 주행 중에는 이미 지나온 길보다 **앞으로 갈 길**이 중요하므로
+ * 라이더를 뒤쪽(아래)으로 내려 앞을 더 길게 보여 준다. 「위 6 : 아래 4」 = 0.6.
+ */
+export const RIDE_RIDER_SCREEN_ANCHOR = 0.6;
+
+/**
+ * 라이더를 화면 `anchor` 자리에 앉히기 위해 카메라가 겨누는 지점을 **진행 방향으로**
+ * 더 밀어야 하는 거리(m).
+ *
+ * 화면 위쪽이 진행 방향이므로, 겨냥점을 앞으로 밀수록 라이더는 화면에서 아래로 내려온다.
+ * 중앙(0.5) 대비 몇 퍼센트를 더 미는지를 **뷰포트 높이** 기준으로 잰다 — 사용자가 보는 건
+ * HUD 안전 영역이 아니라 화면 전체다. 배율은 `spanM / safeHeightPx`(m/px)로 환산한다.
+ */
+export function rideRiderAnchorBiasM(input: {
+  spanM: number;
+  safeHeightPx: number;
+  viewportHeightPx: number;
+  anchor?: number;
+}): number {
+  const { spanM, safeHeightPx, viewportHeightPx } = input;
+  const anchor = input.anchor ?? RIDE_RIDER_SCREEN_ANCHOR;
+  if (!(spanM > 0) || !(safeHeightPx > 0) || !(viewportHeightPx > 0)) return 0;
+  const clamped = Math.min(0.9, Math.max(0.1, anchor));
+  const metersPerPixel = spanM / safeHeightPx;
+  return (clamped - 0.5) * viewportHeightPx * metersPerPixel;
+}
+
+/**
+ * 같은 anchor 규칙을 **줌으로** 환산한 값(m).
+ *
+ * `topDown` 은 거리 개념이 없어(`distanceM: 0`) `spanM` 으로 배율을 구할 수 없다 —
+ * 줌은 앱 상태가 쥐고 있으므로 거기서 m/px 을 얻는다. 주행 기본 모드가 이 경로라,
+ * 여기를 빼먹으면 화면에서는 아무것도 바뀌지 않는다(2026-09-18 실측으로 확인).
+ */
+export function rideRiderAnchorBiasMAtZoom(input: {
+  zoom: number;
+  latDeg: number;
+  viewportHeightPx: number;
+  anchor?: number;
+}): number {
+  const { zoom, latDeg, viewportHeightPx } = input;
+  const anchor = input.anchor ?? RIDE_RIDER_SCREEN_ANCHOR;
+  if (!Number.isFinite(zoom) || !Number.isFinite(latDeg) || !(viewportHeightPx > 0)) return 0;
+  const clamped = Math.min(0.9, Math.max(0.1, anchor));
+  const metersPerPixel = (156543.03392 * Math.cos((latDeg * Math.PI) / 180)) / Math.pow(2, zoom);
+  if (!Number.isFinite(metersPerPixel) || metersPerPixel <= 0) return 0;
+  return (clamped - 0.5) * viewportHeightPx * metersPerPixel;
+}
+
+/**
  * 화면에 담는 세로 범위(m). 라이더 전고(× pitch 계수)와 카메라 거리 중 큰 쪽.
  * `displayHeightM` 은 시험이 배율을 바꿔 넣기 위한 주입점 — 앱은 기본값을 쓴다.
  */
@@ -181,19 +233,48 @@ export function computeRideFollowFraming(input: {
   viewportWidthPx: number;
   viewportHeightPx: number;
   fallbackZoom: number;
+  /** 화면 위쪽이 가리키는 방위(= 카메라 bearing). `topDown` 처럼 offsetBearing 이 없을 때 쓴다. */
+  screenUpBearing?: number | null;
 }): RideFollowFraming {
   const { riderLngLat, offsetBearing, distanceM, pitchDeg, fallbackZoom } = input;
   if (!(distanceM > 0) || offsetBearing == null) {
-    return { center: riderLngLat, zoom: fallbackZoom };
+    /*
+     * 거리 개념이 없는 모드(topDown·north) — 종전에는 라이더를 그대로 중앙에 뒀다.
+     * 주행 기본 모드가 여기라, anchor 를 여기에도 적용해야 화면이 실제로 바뀐다.
+     */
+    const bias = rideRiderAnchorBiasMAtZoom({
+      zoom: fallbackZoom,
+      latDeg: riderLngLat[1],
+      viewportHeightPx: input.viewportHeightPx,
+    });
+    const up = input.screenUpBearing;
+    if (up == null || !Number.isFinite(up) || bias === 0) {
+      return { center: riderLngLat, zoom: fallbackZoom };
+    }
+    return { center: offsetLngLatByBearingMeters(riderLngLat, up, bias), zoom: fallbackZoom };
   }
 
   // spanM 을 먼저 정한다 — look-at 오프셋이 같은 규칙 아래 묶이려면 상한의 기준이 있어야 한다.
   const spanM = rideSpanM(distanceM, pitchDeg);
   const lookAtAlongViewM = rideLookAtAlongM(pitchDeg, spanM);
   const viewBearing = ((offsetBearing + 180) % 360 + 360) % 360;
-  const center = offsetLngLatByBearingMeters(riderLngLat, viewBearing, lookAtAlongViewM);
-
   const safe = rideSafeViewportPx(input.viewportWidthPx, input.viewportHeightPx);
+  /*
+   * 라이더를 화면 「위 6 : 아래 4」 자리로 내린다(2026-09-18 Chief) — 지나온 길보다 앞길이
+   * 중요하다. `lookAtAlongViewM`(pitch 보정)과 **더해서** 겨냥점을 앞으로 민다.
+   * topDown 에서는 pitch 보정이 0 이라 이 항만 남아 정확히 anchor 만큼 내려간다.
+   */
+  const anchorBiasM = rideRiderAnchorBiasM({
+    spanM,
+    safeHeightPx: safe.height,
+    viewportHeightPx: input.viewportHeightPx,
+  });
+  const center = offsetLngLatByBearingMeters(
+    riderLngLat,
+    viewBearing,
+    lookAtAlongViewM + anchorBiasM,
+  );
+
   const latRad = (riderLngLat[1] * Math.PI) / 180;
   const targetMetersPerPixel = spanM / safe.height;
   const mppAtZ0 = 156543.03392 * Math.cos(latRad);

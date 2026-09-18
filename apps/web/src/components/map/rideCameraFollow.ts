@@ -299,6 +299,7 @@ export function tickRideCameraFollow(
     viewportWidthPx: vp.width,
     viewportHeightPx: vp.height,
     fallbackZoom: opts.mapZoom,
+    screenUpBearing: nextBearing,
   });
   const cameraCenterTarget = framing.center;
   const followZoom = framing.zoom;
