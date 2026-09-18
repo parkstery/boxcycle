@@ -249,6 +249,8 @@ test.describe("RouteDock 레이아웃", () => {
           ? (({ x, y, width, height }) => ({ x, y, width, height }))(el.getBoundingClientRect())
           : null;
       return {
+        anchor: box(q(".route-dock-anchor")),
+        panel: box(q(".route-dock__panel")),
         caret: box(q(".route-dock__caret")),
         chip: box(q(".route-dock__top .hud-cadence")),
         go: box(q(".route-dock__go")),
@@ -272,6 +274,15 @@ test.describe("RouteDock 레이아웃", () => {
       expect(v, `${k} 를 찾지 못했다`).not.toBeNull();
       expect((v as { width: number }).width, `${k} 폭이 0`).toBeGreaterThan(0);
     }
+
+    /*
+     * dock 가로 80% 축소(2026-09-18 Chief). 실측 243.00 → 194.36px.
+     * 캐럿(12.55px)·테두리(2px)는 고정이라 패널만 20% 줄이면 전체는 83.8% 에 그친다 —
+     * **dock 전체** 기준으로 맞춘 값이다.
+     */
+    expect(layout.anchor, "dock anchor 를 찾지 못했다").not.toBeNull();
+    expect(layout.anchor!.width, `dock 폭: ${layout.anchor!.width}`).toBeGreaterThan(188);
+    expect(layout.anchor!.width, `dock 폭: ${layout.anchor!.width}`).toBeLessThan(201);
 
     // ② 캐럿 폭 = 0.93rem (종전 1.55rem 의 60%). 루트 13.5px 기준 약 12.55px.
     expect(layout.caret!.width, `캐럿 폭: ${layout.caret!.width}`).toBeGreaterThan(11);
