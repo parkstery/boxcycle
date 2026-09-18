@@ -785,7 +785,9 @@
   font-size: 0.78rem;
   font-weight: 600;
   text-align: center;
-  text-shadow: var(--rtw-map-text-keyline);
+  /* 코칭은 계기판보다 글자가 작아(0.78rem) 1px 키라인으로는 흰 지도에서 묻힌다 —
+     2중 테두리를 쓴다(2026-09-18 Chief). */
+  text-shadow: var(--rtw-map-text-keyline-strong);
 }
 
 .hud-coach__tip {
