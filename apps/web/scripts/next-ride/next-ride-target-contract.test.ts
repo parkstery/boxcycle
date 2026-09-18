@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   resolveNextRideTarget,
+  resolveNextRideView,
   resolveRecentRideActions,
   resumeAnchorForRoute,
 } from "../../src/lib/nextRideTarget.ts";
@@ -189,5 +190,58 @@ describe("resolveRecentRideActions", () => {
     assert.equal(actions.resumeRouteId, "route-1");
     assert.ok(actions.extendAnchor);
     assert.equal(actions.canShowOnMap, true);
+  });
+});
+
+/*
+ * 카드가 「마지막 주행」이라 적고 **예전 주행**을 보여 줄 수 있다 — 2026-09-18 Chief 가
+ * 9/18 에 달리고도 「마지막 주행 2026. 9. 17.」 을 본 현상의 메커니즘.
+ *
+ * `resolveNextRideView` 는 최신순으로 훑다가 **조건을 만족하는 첫 주행에서 멈춘다**.
+ * 최신 주행이 자격 미달이면(폐기 임계 미만 / 종료 좌표 없음 + 경로 완주·부재) 말없이
+ * 그 다음 주행으로 넘어간다. 아래 둘이 그 경로를 고정한다 — 고쳐야 할 대상이 아니라,
+ * **증상의 원인이 여기라는 사실**을 붙잡아 두는 것이다.
+ */
+describe("「마지막 주행」 표기와 실제 선택 대상", () => {
+  const NEW = "2026-09-18T00:00:00.000Z";
+  const OLD = "2026-09-17T00:00:00.000Z";
+
+  it("최신 주행이 폐기 임계 미만이면 그 전 주행이 「마지막 주행」으로 보인다", () => {
+    const view = resolveNextRideView({
+      rides: [
+        // 100m 초과·5초 초과라야 유효하다(rideRecordPolicy)
+        makeRide({ id: "new", endedAt: NEW, distanceMeters: 40, elapsedSec: 12 }),
+        makeRide({ id: "old", endedAt: OLD }),
+      ],
+      savedRoutes: [makeRoute({ lastProgressRatio: 0.31 })],
+    });
+    assert.ok(view, "후보가 나와야 한다");
+    assert.equal(view!.ride.id, "old");
+    assert.equal(view!.ride.endedAt, OLD, "카드에는 예전 날짜가 찍힌다");
+  });
+
+  it("최신 주행에 종료 좌표가 없고 경로도 완주됐으면 그 전 주행이 보인다", () => {
+    const view = resolveNextRideView({
+      rides: [
+        makeRide({ id: "new", endedAt: NEW, sessionEndLngLat: null, userRouteId: "done-route" }),
+        makeRide({ id: "old", endedAt: OLD }),
+      ],
+      savedRoutes: [
+        makeRoute({ id: "done-route", completed: 1, lastProgressRatio: 1 }),
+        makeRoute({ lastProgressRatio: 0.31 }),
+      ],
+    });
+    assert.ok(view, "후보가 나와야 한다");
+    assert.equal(view!.ride.id, "old");
+    assert.equal(view!.ride.endedAt, OLD, "카드에는 예전 날짜가 찍힌다");
+  });
+
+  it("최신 주행이 자격을 갖추면 당연히 그것이 보인다(대조군)", () => {
+    const view = resolveNextRideView({
+      rides: [makeRide({ id: "new", endedAt: NEW }), makeRide({ id: "old", endedAt: OLD })],
+      savedRoutes: [makeRoute({ lastProgressRatio: 0.31 })],
+    });
+    assert.ok(view);
+    assert.equal(view!.ride.id, "new");
   });
 });

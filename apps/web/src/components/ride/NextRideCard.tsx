@@ -86,12 +86,13 @@ export function NextRideCard(props: NextRideCardProps) {
           </>
         ) : (
           <>
+            {/* 둘째·셋째 줄 순서 교체 — 언제 달렸는지가 먼저, 어디서 이어갈지가 다음(2026-09-18 Chief) */}
+            <p className="next-ride__line next-ride__line--muted">
+              마지막 주행 {formatEndedAtKo(view.ride.endedAt)} · 오늘 {todayKm} km
+            </p>
             <p className="next-ride__line next-ride__line--strong">
               {/* 주소만 — 「에서 이어가기」는 제목이 이미 말한다(2026-09-18 Chief) */}
               {placeName ?? "마지막 종료 지점"}
-            </p>
-            <p className="next-ride__line next-ride__line--muted">
-              마지막 주행 {formatEndedAtKo(view.ride.endedAt)} · 오늘 {todayKm} km
             </p>
           </>
         )}
