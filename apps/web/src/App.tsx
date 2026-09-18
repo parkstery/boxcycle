@@ -1917,6 +1917,7 @@ export default function App() {
       stops={routeDockStops}
       routeLoading={routeLoading}
       canStartRide={canStartRideWithInput}
+      sensorAttention={Boolean(routeGeometry) && !routeLoading && !rideInputReady}
       canSaveRoute={
         Boolean(user) &&
         configured &&

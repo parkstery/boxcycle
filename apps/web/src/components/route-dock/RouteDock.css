@@ -40,7 +40,9 @@
   align-items: center;
   justify-content: center;
   gap: 0.3rem;
-  width: 1.55rem;
+  /* 폭 60% 축소(2026-09-18 Chief) — 1.55rem → 0.93rem. 공간을 아낀다.
+     세로 44px 히트는 유지(가로는 「경로」 글자 제거 이전부터 44px 미만 — 별건). */
+  width: 0.93rem;
   /*
    * 터치 타깃 44px — 「44px 이상, rem 금지」(f046ce5). 세로 텍스트 「경로」를 빼면서
    * 높이를 벌어주던 지지대가 사라져 폰 가로(루트 13.5px)에서 2.75rem = 약 37px 로
@@ -95,7 +97,8 @@
   align-items: center;
   gap: 0.35rem;
   box-sizing: border-box;
-  padding: 0.5rem 0.55rem 0;
+  /* 왼쪽 0 — 칩·주소가 캐럿에 바로 붙는다(2026-09-18 Chief: 왼쪽 빈 공간 없게) */
+  padding: 0.5rem 0.55rem 0 0;
   /*
    * 본문(hud-glass)과 같은 면. `hud-glass` 클래스를 붙이지 않는 이유는 그 1px 테두리가
    * dock 높이를 2px 키우기 때문 — 「칩을 넣어도 dock 크기는 그대로」를 지킨다.
@@ -122,7 +125,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
-  padding: 0.5rem 0.55rem 0.55rem;
+  /* 왼쪽 0 — 출발·도착 주소가 왼쪽 끝에 붙는다(2026-09-18 Chief) */
+  padding: 0.5rem 0.55rem 0.55rem 0;
   background: transparent;
   color: var(--rtw-text, #f8fafc);
   font-family: var(--rtw-font, inherit);
@@ -478,6 +482,8 @@
 .route-dock__stop-remove {
   flex: 0 0 1.5rem;
   width: 1.5rem;
+  /* 오른쪽 끝에 딱 붙어 답답했다 — 2px 숨통(2026-09-18 Chief) */
+  margin-right: 2px;
   border: 1px solid rgba(248, 250, 252, 0.12);
   border-radius: 7px;
   background: rgba(10, 16, 26, 0.4);
@@ -499,6 +505,8 @@
 }
 
 .route-dock__go {
+  /* 줄의 오른쪽 끝으로 밀어낸다 — 앞의 저장·삭제와 붙지 않게(2026-09-18 Chief) */
+  margin-left: auto;
   min-width: 2.75rem;
   padding: 0.32rem 0.7rem;
   border: 0;
@@ -535,13 +543,13 @@
 
   .route-dock__top {
     gap: 0.28rem;
-    padding: 0.35rem 0.4rem 0;
+    padding: 0.35rem 0.4rem 0 0;
   }
 
   .route-dock__panel {
     width: min(17.5rem, calc(100vw - 2.5rem));
     gap: 0.3rem;
-    padding: 0.35rem 0.4rem 0.4rem;
+    padding: 0.35rem 0.4rem 0.4rem 0;
     max-height: min(52vh, 11rem);
   }
 

@@ -19,6 +19,11 @@ export type CadenceHudChipProps = CadenceChipBinding & {
    * `dock` 은 RouteDock 유리 틀 안이라 자기 배경을 벗는다.
    */
   placement?: "hud" | "dock";
+  /**
+   * 경로가 잡혔는데 아직 센서·체험 속도를 안 고른 상태 — 칩을 깜빡여 다음 할 일을 가리킨다
+   * (2026-09-18 Chief). 준비가 끝나면 안내는 소음이 되므로 스스로 꺼진다.
+   */
+  attention?: boolean;
 };
 
 /**
@@ -34,12 +39,15 @@ export function CadenceHudChip({
   open,
   onOpen,
   placement = "hud",
+  attention = false,
 }: CadenceHudChipProps) {
   const view = cadenceChipView(state, riding);
   return (
     <button
       type="button"
-      className={`hud-cadence hud-cadence--${placement}${open ? " hud-cadence--open" : ""}`}
+      className={`hud-cadence hud-cadence--${placement}${open ? " hud-cadence--open" : ""}${
+        attention ? " hud-cadence--attention" : ""
+      }`}
       aria-label={view.ariaLabel}
       aria-expanded={open}
       title="Cadence sensor"

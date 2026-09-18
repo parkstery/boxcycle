@@ -12,6 +12,11 @@ export type RouteDockProps = {
   stops: RouteDockStop[];
   routeLoading: boolean;
   canStartRide: boolean;
+  /**
+   * 경로는 잡혔는데 센서·체험 속도를 아직 안 고른 상태. 센서 칩을 깜빡여 다음 할 일을
+   * 가리킨다(2026-09-18 Chief). 판정은 App 이 한다 — dock 은 `routeGeometry` 를 모른다.
+   */
+  sensorAttention?: boolean;
   canSaveRoute: boolean;
   onSaveCurrentRoute: (name: string, confirmUpdate?: boolean) => Promise<void> | void;
   /** 주행 시작. `fromStart=true` 면 재개 후보를 무시하고 처음부터(§9.5.5 단위7) */
@@ -43,6 +48,7 @@ export function RouteDock(props: RouteDockProps) {
     stops,
     routeLoading,
     canStartRide,
+    sensorAttention = false,
     canSaveRoute,
     onSaveCurrentRoute,
     onStartRide,
@@ -197,22 +203,11 @@ export function RouteDock(props: RouteDockProps) {
               riding={isActiveRide}
               open={cadence.open}
               onOpen={cadence.onOpen}
+              attention={sensorAttention && !isActiveRide}
             />
           ) : null}
         {expanded && !ridingDiet ? (
           <header className="route-dock__head">
-          {stage === "ready-to-start" ? (
-            <button
-              type="button"
-              className="route-dock__go"
-              disabled={!canStartRide || routeLoading || editLocked}
-              aria-label="주행 시작"
-              title="Start ride"
-              onClick={() => onStartRide(restartFromZero)}
-            >
-              Go
-            </button>
-          ) : null}
           {!hideEditActions ? (
             <div className="route-dock__head-actions">
               {!saveOpen ? (
@@ -241,6 +236,20 @@ export function RouteDock(props: RouteDockProps) {
                 삭제
               </button>
             </div>
+          ) : null}
+          {/* Go 는 줄의 **오른쪽 끝** — SENSOR 바로 옆에 붙이지 않는다(2026-09-18 Chief).
+              CSS order 대신 DOM 순서를 옮겨 키보드 순서도 보이는 대로 간다. */}
+          {stage === "ready-to-start" ? (
+            <button
+              type="button"
+              className="route-dock__go"
+              disabled={!canStartRide || routeLoading || editLocked}
+              aria-label="주행 시작"
+              title="Start ride"
+              onClick={() => onStartRide(restartFromZero)}
+            >
+              Go
+            </button>
           ) : null}
           </header>
         ) : null}

@@ -123,6 +123,98 @@ const DISTANCE_THRESHOLD_KM = 0.11;
 /** 제거 대상 문구 2종 — 시트 텍스트에 남아 있으면 회귀다. */
 const REMOVED_PHRASES = ["내 도로망에 더해졌어요", "다음 출발점이 저장되었습니다"];
 
+test.describe("RouteDock 레이아웃", () => {
+  /*
+   * 2026-09-18 Chief 5건: ① 경로가 잡혔는데 센서 미준비면 SENSOR 칩이 깜빡인다
+   * ② 캐럿 폭 60% ③ 칩·주소를 왼쪽 끝까지 ④ Go 는 줄의 오른쪽 끝 ⑤ 삭제(X) 오른쪽 2px.
+   *
+   * 선언이 아니라 렌더된 상자로 잰다. 특히 ①은 **켜지는 쪽과 꺼지는 쪽을 모두** 본다 —
+   * 한쪽만 보면 「항상 켜짐」·「항상 꺼짐」이 통과해 버린다.
+   */
+  test("센서 안내 깜빡임 · 캐럿 60% · 왼쪽 밀착 · Go 우측 끝 · X 여백", async ({ page }) => {
+    test.setTimeout(180_000);
+    await stubMapboxStyle(page);
+    await page.setViewportSize(PHONE_LANDSCAPE);
+    await page.goto("/");
+    await guestStart(page);
+    const uid = await readGuestUid(page);
+    await seedShortRoute(uid, `dock-layout-${Date.now()}`);
+    await page.reload();
+
+    // 센서를 준비하지 **않은 채** 경로만 올린다 — 안내가 필요한 바로 그 상태.
+    await loadSavedRouteFromMenu(page, FIXTURE_NAME);
+    const chip = page.locator(".route-dock__top .hud-cadence");
+    await expect(chip, "dock 에 센서 칩이 있어야 한다").toBeVisible({ timeout: 15_000 });
+    await expect(chip, "경로가 잡혔는데 센서 미준비 → 깜빡인다").toHaveClass(
+      /hud-cadence--attention/,
+    );
+
+    const layout = await page.evaluate(() => {
+      const q = (sel: string) => document.querySelector(sel) as HTMLElement | null;
+      const box = (el: HTMLElement | null) =>
+        el
+          ? (({ x, y, width, height }) => ({ x, y, width, height }))(el.getBoundingClientRect())
+          : null;
+      return {
+        caret: box(q(".route-dock__caret")),
+        chip: box(q(".route-dock__top .hud-cadence")),
+        go: box(q(".route-dock__go")),
+        top: box(q(".route-dock__top")),
+        removeBtn: box(q(".route-dock__stop-remove")),
+        stops: box(q(".route-dock__stops")),
+      };
+    });
+    await page.locator(".route-dock-anchor").screenshot({
+      path: path.join(SHOTS_DIR, "route-dock-layout.png"),
+    });
+    fs.writeFileSync(
+      path.join(SHOTS_DIR, "route-dock-layout.json"),
+      `${JSON.stringify(layout, null, 2)}
+`,
+      "utf8",
+    );
+
+    // M0 축퇴 방어 — 하나라도 못 찾으면 아래 비교는 공허하다.
+    for (const [k, v] of Object.entries(layout)) {
+      expect(v, `${k} 를 찾지 못했다`).not.toBeNull();
+      expect((v as { width: number }).width, `${k} 폭이 0`).toBeGreaterThan(0);
+    }
+
+    // ② 캐럿 폭 = 0.93rem (종전 1.55rem 의 60%). 루트 13.5px 기준 약 12.55px.
+    expect(layout.caret!.width, `캐럿 폭: ${layout.caret!.width}`).toBeGreaterThan(11);
+    expect(layout.caret!.width, `캐럿 폭: ${layout.caret!.width}`).toBeLessThan(14);
+
+    // ③ 칩이 캐럿 바로 오른쪽 — 왼쪽에 빈 공간이 없다.
+    expect(
+      layout.chip!.x,
+      `캐럿 오른쪽 끝(${layout.caret!.x + layout.caret!.width})과 칩 왼쪽(${layout.chip!.x}) 사이에 빈 공간`,
+    ).toBeCloseTo(layout.caret!.x + layout.caret!.width, 0);
+
+    // ④ Go 가 줄의 오른쪽 끝 — 칩 바로 옆이 아니다.
+    const rowRight = layout.top!.x + layout.top!.width;
+    const goRight = layout.go!.x + layout.go!.width;
+    expect(rowRight - goRight, `Go 가 줄 오른쪽 끝에서 멀다: ${rowRight - goRight}px`).toBeLessThan(
+      10,
+    );
+    expect(
+      layout.go!.x - (layout.chip!.x + layout.chip!.width),
+      "Go 가 SENSOR 바로 옆에 붙어 있다",
+    ).toBeGreaterThan(40);
+
+    // ⑤ 삭제(X) 오른쪽 여백 2px
+    const gap = layout.stops!.x + layout.stops!.width - (layout.removeBtn!.x + layout.removeBtn!.width);
+    expect(gap, `X 버튼 오른쪽 여백: ${gap}px`).toBeGreaterThanOrEqual(1.5);
+    expect(gap, `X 버튼 오른쪽 여백: ${gap}px`).toBeLessThanOrEqual(4);
+
+    // ① 꺼지는 쪽 — 센서를 준비하면 안내는 소음이므로 멎어야 한다.
+    await armRideInput(page);
+    await expect(chip, "센서 준비 후에는 깜빡임이 멎는다").not.toHaveClass(
+      /hud-cadence--attention/,
+      { timeout: 15_000 },
+    );
+  });
+});
+
 test.describe("다음 주행 카드 자리", () => {
   /*
    * 카드가 들고 나도 **RouteDock 이 움직이면 안 된다**(2026-09-17 Chief).
