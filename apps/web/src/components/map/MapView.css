@@ -735,7 +735,10 @@
   width: 27px;
   height: 41px;
   line-height: 0;
-  pointer-events: none;
+  /* `!important` 인 이유는 위 `background` 와 같다 — Mapbox 자체 `.mapboxgl-marker` 가
+     같은 특이도(0,1,0)로 부딪혀 우리 선언이 밀린다. S·E 핀은 표시 전용이고 클릭 핸들러도
+     없는데, 밀리면 지도 조작을 삼킨다(2026-09-18 실측: 표고 그래프 면에서 21 지점). */
+  pointer-events: none !important;
 }
 
 /* 라이더 프로토타입 — isometric 2D (VITE_RIDER_PROTOTYPE=iso2d) */
@@ -862,13 +865,17 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  pointer-events: none;
+  /* 이름표는 표시 전용인데 Mapbox `.mapboxgl-marker` 와 특이도가 같아 밀리고 있었다.
+     라이더를 화면 아래로 내린 뒤(anchor 0.6) 표고 그래프 면까지 들어와 15 지점을
+     막는 것이 계약에 걸렸다(2026-09-18). */
+  pointer-events: none !important;
   background: transparent !important;
 }
 
 .map-view__glb-nametag-marker {
   background: transparent !important;
   border: none !important;
+  pointer-events: none !important;
 }
 
 .map-view__glb-nametag-host .map-view__rider-nametag {

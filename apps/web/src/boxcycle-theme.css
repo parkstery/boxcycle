@@ -86,7 +86,6 @@ body {
 .hud-brand,
 .hud-bc-trigger,
 .hud-idle-hint,
-.hud-coach,
 .hud-account,
 .hud-signin-pill,
 .hud-icon-btn,
@@ -157,11 +156,8 @@ body {
   font-weight: 600;
 }
 
-.hud-coach__r {
-  background: var(--rtw-accent-soft);
-  border-color: var(--rtw-accent-line);
-  color: var(--rtw-text-primary);
-}
+/* 알약을 버렸다(2026-09-18 Chief) — 배경·테두리 없이 골드 글자만.
+   색은 MapHud.css 가 정한다. */
 
 .hud-bc-trigger.is-active {
   background: var(--rtw-accent-soft);
