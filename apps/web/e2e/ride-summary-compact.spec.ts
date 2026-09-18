@@ -160,10 +160,26 @@ test.describe("「거리」 체크박스가 자동 End 세션을 끝낸다", () 
     const hint = dock.getByText(/반경의 원 주변 도로를 선택하세요/);
     await expect(hint, "거리 ON 이면 방향 안내가 보인다").toBeVisible({ timeout: 20_000 });
 
+    /*
+     * 목표 거리 반경 원 — Chief 가 실기기에서 본 **바로 그 표시**다.
+     * 안내 문구만 보면 문구는 사라지는데 원은 남는 경우를 놓친다(실제로 놓쳤다).
+     */
+    const ringOnMap = () =>
+      page.evaluate(() => {
+        const w = window as Window & { __RTW_MAP__?: { getLayer: (id: string) => unknown } };
+        return Boolean(w.__RTW_MAP__?.getLayer("distance-target-circle-line"));
+      });
+    await expect
+      .poll(ringOnMap, { timeout: 20_000, message: "거리 ON 이면 반경 원이 그려진다" })
+      .toBe(true);
+
     // ── 여기서 끈다 ────────────────────────────────────────────────────
     await distanceToggle.uncheck();
 
     await expect(hint, "끄면 방향 안내가 사라져야 한다").toHaveCount(0, { timeout: 15_000 });
+    await expect
+      .poll(ringOnMap, { timeout: 15_000, message: "끄면 반경 원도 사라져야 한다" })
+      .toBe(false);
     await expect(distanceToggle).not.toBeChecked();
 
     // 지도를 누르면 평소처럼 지점 팝업이 뜨고 End 를 고를 수 있어야 한다.

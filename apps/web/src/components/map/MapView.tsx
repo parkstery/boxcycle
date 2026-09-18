@@ -4481,10 +4481,18 @@ function buildPickPopup(deps: {
 
   function applyDistanceDirectionMode(checked: boolean) {
     distanceDirectionChecked = checked;
-    mapBridge?.setDistanceDirectionMode?.(checked);
+    /*
+     * 브리지는 **그때그때 다시 찾는다**(2026-09-18 Chief).
+     * `mapBridge` 는 팝업을 만들 때 한 번 잡아 둔 값이라, 그 시점에 아직 등록 전이었거나
+     * 이후 다시 등록됐으면 `null`·낡은 객체를 붙들고 있다 — 그러면 이 호출이 조용히
+     * 사라져 체크를 풀어도 훅은 아무것도 모른다(반경 원이 그대로 남던 원인).
+     */
+    getDistanceAutoRouteMapBridge()?.setDistanceDirectionMode?.(checked);
     syncDistanceModeUi();
     if (!checked) {
       onClearAutoRouteClickDebugMarker?.();
+      // 원을 소유한 쪽에 직접 지우라고 말한다 — 훅의 정리에만 기대지 않는다.
+      onClearDistanceAutoRouteCircle?.();
       setInlinePhase("idle");
       return;
     }
