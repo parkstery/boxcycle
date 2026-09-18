@@ -174,6 +174,8 @@ test.describe("센서 설정 시트 레이아웃", () => {
         unit: box(q(".ride-speed-kicker__unit")),
         number: box(num),
         plus: box(plus),
+        range: box(q(".ride-speed-range")),
+        panel: box(q(".cadence-sheet__panel")),
         numberAppearance: num ? getComputedStyle(num).appearance : null,
       };
     });
@@ -196,6 +198,18 @@ test.describe("센서 설정 시트 레이아웃", () => {
     expect(["textfield", "none"], `숫자 입력 appearance: ${layout.numberAppearance}`).toContain(
       layout.numberAppearance,
     );
+
+    /*
+     * 스피드 바를 종전의 70% 로, 시트 폭도 그만큼(2026-09-18 Chief).
+     * 바는 `flex: 1 1 auto` 라 시트에서 뺀 폭이 그대로 바에서 빠진다 —
+     * 실측 172.20 → 120.48px(70.0%), 시트 297.00 → 245.28px.
+     * 폰 가로 루트 13.5px 기준의 값이라 여유 밴드로 잡는다.
+     */
+    expect(layout.range, "스피드 바를 찾지 못했다").not.toBeNull();
+    expect(layout.panel, "시트 패널을 찾지 못했다").not.toBeNull();
+    expect(layout.range!.width, `스피드 바 폭: ${layout.range!.width}`).toBeGreaterThan(112);
+    expect(layout.range!.width, `스피드 바 폭: ${layout.range!.width}`).toBeLessThan(129);
+    expect(layout.panel!.width, `시트 폭: ${layout.panel!.width}`).toBeLessThan(255);
 
     // ⑥ ＋ 가 숫자 입력보다 왼쪽
     expect(layout.plus!.x, "＋ 가 숫자 입력 왼쪽이어야 한다").toBeLessThan(layout.number!.x);

@@ -25,7 +25,14 @@
 .cadence-sheet__panel {
   position: relative;
   z-index: 1;
-  width: min(22rem, calc(100vw - 1rem));
+  /*
+   * 스피드 바를 종전의 70% 로 줄이고, 줄어든 만큼 시트 폭도 함께 줄인다(2026-09-18 Chief).
+   * 바는 `flex: 1 1 auto` 라 행에서 남는 폭을 혼자 먹는다 — 다른 요소(±·숫자·SPD)는 고정
+   * 폭이므로, 시트에서 뺀 만큼이 그대로 바에서 빠진다.
+   * 실측(폰 가로 루트 13.5px): 바 172.20px → 목표 120.54px(−51.66px),
+   * 시트 297.00px(=22rem) → 245.34px ≈ 18.17rem.
+   */
+  width: min(18.17rem, calc(100vw - 1rem));
   max-height: 70%;
   overflow: auto;
   margin-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
