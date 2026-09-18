@@ -177,6 +177,7 @@ test.describe("센서 설정 시트 레이아웃", () => {
         range: box(q(".ride-speed-range")),
         panel: box(q(".cadence-sheet__panel")),
         numberAppearance: num ? getComputedStyle(num).appearance : null,
+        btn: box(q(".cadence-sheet__btn")),
       };
     });
     fs.writeFileSync(
@@ -190,6 +191,14 @@ test.describe("센서 설정 시트 레이아웃", () => {
       expect(layout[k], `${k} 를 찾지 못했다`).not.toBeNull();
       expect(layout[k]!.width, `${k} 폭이 0`).toBeGreaterThan(0);
     }
+
+    /*
+     * 버튼 높이 70% 축소(2026-09-18 Chief) — 실측 28.17 → 19.80px.
+     * 세로 패딩만으로는 글자가 테두리에 닿아, line-height 를 1 로 조여 얻은 값이다.
+     */
+    expect(layout.btn, "센서 버튼을 찾지 못했다").not.toBeNull();
+    expect(layout.btn!.height, `버튼 높이: ${layout.btn!.height}`).toBeGreaterThan(18);
+    expect(layout.btn!.height, `버튼 높이: ${layout.btn!.height}`).toBeLessThan(22);
 
     // ④ SPD 아래에 km/h — 두 줄이다(같은 줄이면 y 가 같다).
     expect(layout.unit!.y, "km/h 가 SPD 아래 줄이어야 한다").toBeGreaterThan(layout.name!.y);

@@ -162,11 +162,18 @@
   gap: 0.4rem;
 }
 
+/*
+ * 높이 70% 축소(2026-09-18 Chief) — 실측 28.17px → 목표 19.72px.
+ * 세로 패딩만 줄이면 글자가 테두리에 닿는다(기본 line-height 1.5 가 15.4px 를 먹는다).
+ * line-height 를 1 로 조여 글자 상자를 글리프 크기까지 줄이고, 남은 몫을 패딩으로 나눈다:
+ *   2px(테두리) + 10.26px(0.76rem × 1) + 0.28rem × 2 ≈ 19.8px.
+ */
 .cadence-sheet__btn {
   font: inherit;
   font-size: 0.76rem;
   font-weight: 650;
-  padding: 0.4rem 0.75rem;
+  line-height: 1;
+  padding: 0.28rem 0.75rem;
   border-radius: 8px;
   border: 1px solid var(--rtw-glass-border, rgba(255, 255, 255, 0.08));
   background: rgba(255, 255, 255, 0.06);
