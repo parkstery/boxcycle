@@ -123,7 +123,7 @@ export type RideInputReadiness =
 
 export type RideInputReadinessInput = {
   mode: RideInputMode;
-  /** 사용자가 상세 설정에서 「체험 속도로 준비」를 명시적으로 골랐는가 */
+  /** 사용자가 상세 설정에서 「센서 없음」를 명시적으로 골랐는가 */
   manualChosen: boolean;
   uiState: BleCrankRpmUiState;
   /** 이번 연결에서 유효 크랭크 샘플을 최소 한 번 받았는가(이후 0rpm 이어도 유지) */
@@ -174,4 +174,14 @@ export function cadenceSensorStatusLine(state: CadenceHudState): string {
     default:
       return "미연결";
   }
+}
+
+/**
+ * 시트 제목 옆에 붙는 **짧은** 연결 상태(2026-09-18 Chief: 「케이던스 센서 [연결됨 / 연결 안됨]」
+ * 을 한 줄로). 긴 안내(`cadenceSensorStatusLine`)는 줄이 길어져 제목 옆에 못 붙는다.
+ */
+export function cadenceSensorShortStatus(state: CadenceHudState): string {
+  if (!state.capable) return "지원 안 됨";
+  if (state.uiState === "connecting") return "연결 중";
+  return state.uiState === "connected" ? "연결됨" : "연결 안 됨";
 }

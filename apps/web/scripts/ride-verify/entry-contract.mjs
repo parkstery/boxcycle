@@ -35,7 +35,7 @@ export const ENTRY_STEPS = [
     step: "cadence-chip-slot",
     desc:
       "센서 칩 자리 판정 — dock 과 우상단에 동시에 뜨면 getByRole 이 strict 위반으로 깨진다. " +
-      "어디에도 안 뜨면 「체험 속도로 준비」에 닿지 못해 Go 가 영영 잠긴다.",
+      "어디에도 안 뜨면 「센서 없음」에 닿지 못해 Go 가 영영 잠긴다.",
     file: "src/lib/sensorChipSlot.ts",
     anchors: [
       { name: "슬롯 판정 함수", re: /export function sensorChipSlot\(/ },
@@ -45,15 +45,15 @@ export const ENTRY_STEPS = [
   },
   {
     step: "input-readiness",
-    desc: "주행 입력 준비 — 센서 상세 설정에서 '체험 속도로 준비' (Go 사전조건)",
+    desc: "주행 입력 준비 — 센서 상세 설정에서 '센서 없음' (Go 사전조건)",
     file: "src/components/sensor/CadenceSensorSheet.tsx",
     anchors: [
       { name: "센서 시트 dialog", re: /role="dialog"/ },
       { name: "시트 aria-label", re: /aria-label="케이던스 센서"/ },
-      { name: "체험 속도로 준비 버튼", re: /체험 속도로 준비/ },
+      { name: "센서 없음 버튼", re: /센서 없음/ },
       { name: "시트 닫기 버튼", re: /aria-label="센서 설정 닫기"/ },
     ],
-    selector: `getByRole('dialog',{name:'케이던스 센서'}) → getByRole('button',{name:'체험 속도로 준비'})`,
+    selector: `getByRole('dialog',{name:'케이던스 센서'}) → getByRole('button',{name:'센서 없음'})`,
   },
   {
     step: "open-menu",

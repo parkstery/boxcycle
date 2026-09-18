@@ -91,14 +91,14 @@ async function enterAsGuest(page: Page) {
 
 /**
  * 주행 입력 준비(Go 사전조건) + 체험 속도 최대치.
- * 자동 E2E 에는 BLE 장치가 없으므로 「체험 속도로 준비」를 명시적으로 고른다.
+ * 자동 E2E 에는 BLE 장치가 없으므로 「센서 없음」를 명시적으로 고른다.
  * 속도를 올리는 건 시험 시간을 줄이기 위함이며, 주행 로직은 동일하다.
  */
 async function prepareManualRideInput(page: Page, speedKmh = 50) {
   await page.getByRole('button', { name: /케이던스 센서/ }).click()
   const sheet = page.getByRole('dialog', { name: '케이던스 센서' })
   await expect(sheet).toBeVisible()
-  await sheet.getByRole('button', { name: '체험 속도로 준비' }).click()
+  await sheet.getByRole('button', { name: '센서 없음' }).click()
   const speedInput = sheet.getByRole('spinbutton', { name: '속도 km/h' })
   if (await speedInput.count()) {
     await speedInput.fill(String(speedKmh))

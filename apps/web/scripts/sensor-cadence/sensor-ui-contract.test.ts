@@ -126,7 +126,7 @@ describe("주행 입력 준비 게이트", () => {
     );
   });
 
-  it("명시적 「체험 속도로 준비」 후 Go 가능", () => {
+  it("명시적 「센서 없음」 후 Go 가능", () => {
     const r = resolveRideInputReadiness(readiness({ manualChosen: true }));
     assert.equal(r, "manual-ready");
     assert.equal(isRideInputReady(r), true);

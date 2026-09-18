@@ -123,6 +123,85 @@ const DISTANCE_THRESHOLD_KM = 0.11;
 /** 제거 대상 문구 2종 — 시트 텍스트에 남아 있으면 회귀다. */
 const REMOVED_PHRASES = ["내 도로망에 더해졌어요", "다음 출발점이 저장되었습니다"];
 
+test.describe("센서 설정 시트 레이아웃", () => {
+  /*
+   * 2026-09-18 Chief 6건: ① 제목과 연결 상태를 한 줄 ② 버튼 이름 「센서 연결」·「센서 없음」
+   * ③ 「현재 입력」 줄과 choice-required 안내 제거 ④ SPD / km/h 두 줄
+   * ⑤ 숫자 입력의 증감(스피너) 제거 ⑥ 숫자 입력과 「＋」 위치 교체.
+   */
+  test("제목 한 줄 · 버튼 이름 · 불필요 줄 제거 · SPD 2줄 · 스피너 없음 · ＋/숫자 교체", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    await stubMapboxStyle(page);
+    await page.setViewportSize(PHONE_LANDSCAPE);
+    await page.goto("/");
+    await guestStart(page);
+
+    await page.getByRole("button", { name: /케이던스 센서/ }).click();
+    const sheet = page.getByRole("dialog", { name: "케이던스 센서" });
+    await expect(sheet).toBeVisible({ timeout: 15_000 });
+
+    // ① 제목 한 줄 — 제목과 상태가 같은 요소 안에 있다.
+    const title = sheet.locator(".cadence-sheet__title");
+    await expect(title).toContainText("케이던스 센서");
+    await expect(title.locator(".cadence-sheet__title-status")).toHaveText(/연결됨|연결 안 됨|연결 중|지원 안 됨/);
+
+    // ② 버튼 이름
+    await expect(sheet.getByRole("button", { name: "센서 없음" })).toBeVisible();
+
+    // ③ 제거된 두 줄
+    const text = (await sheet.textContent()) ?? "";
+    expect(text.includes("현재 입력"), "「현재 입력」 줄은 제거됐다").toBe(false);
+    expect(
+      text.includes("센서를 연결해 페달을 확인하거나"),
+      "choice-required 안내는 버튼이 대신한다",
+    ).toBe(false);
+
+    await sheet.screenshot({ path: path.join(SHOTS_DIR, "sensor-sheet.png") });
+
+    const layout = await page.evaluate(() => {
+      const q = (sel: string) => document.querySelector(sel) as HTMLElement | null;
+      const box = (el: HTMLElement | null) =>
+        el
+          ? (({ x, y, width, height }) => ({ x, y, width, height }))(el.getBoundingClientRect())
+          : null;
+      const num = q(".ride-speed-number");
+      const steps = Array.from(document.querySelectorAll(".ride-speed-step")) as HTMLElement[];
+      const plus = steps.find((b) => (b.textContent ?? "").includes("+")) ?? null;
+      return {
+        name: box(q(".ride-speed-kicker__name")),
+        unit: box(q(".ride-speed-kicker__unit")),
+        number: box(num),
+        plus: box(plus),
+        numberAppearance: num ? getComputedStyle(num).appearance : null,
+      };
+    });
+    fs.writeFileSync(
+      path.join(SHOTS_DIR, "sensor-sheet-layout.json"),
+      `${JSON.stringify(layout, null, 2)}
+`,
+      "utf8",
+    );
+
+    for (const k of ["name", "unit", "number", "plus"] as const) {
+      expect(layout[k], `${k} 를 찾지 못했다`).not.toBeNull();
+      expect(layout[k]!.width, `${k} 폭이 0`).toBeGreaterThan(0);
+    }
+
+    // ④ SPD 아래에 km/h — 두 줄이다(같은 줄이면 y 가 같다).
+    expect(layout.unit!.y, "km/h 가 SPD 아래 줄이어야 한다").toBeGreaterThan(layout.name!.y);
+
+    // ⑤ 스피너 제거 — textfield/none 이면 증감 화살표가 없다.
+    expect(["textfield", "none"], `숫자 입력 appearance: ${layout.numberAppearance}`).toContain(
+      layout.numberAppearance,
+    );
+
+    // ⑥ ＋ 가 숫자 입력보다 왼쪽
+    expect(layout.plus!.x, "＋ 가 숫자 입력 왼쪽이어야 한다").toBeLessThan(layout.number!.x);
+  });
+});
+
 test.describe("RouteDock 레이아웃", () => {
   /*
    * 2026-09-18 Chief 5건: ① 경로가 잡혔는데 센서 미준비면 SENSOR 칩이 깜빡인다
@@ -534,7 +613,7 @@ async function armRideInput(page: Page, speedKmh = 50) {
   await page.getByRole("button", { name: /케이던스 센서/ }).click();
   const sheet = page.getByRole("dialog", { name: "케이던스 센서" });
   await expect(sheet).toBeVisible({ timeout: 15_000 });
-  await sheet.getByRole("button", { name: "체험 속도로 준비" }).click();
+  await sheet.getByRole("button", { name: "센서 없음" }).click();
   const speedInput = sheet.getByRole("spinbutton", { name: "속도 km/h" });
   if (await speedInput.count()) {
     await speedInput.fill(String(speedKmh));

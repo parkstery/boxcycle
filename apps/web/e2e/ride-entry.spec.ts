@@ -44,13 +44,13 @@ async function enterAsGuest(page: import('@playwright/test').Page) {
 /**
  * 주행 입력 준비 — Go 의 사전조건(SENSOR-2 §1.4).
  * 자동 E2E 에는 BLE 장치가 없으므로 HUD 센서 칩 → 센서 상세 설정에서
- * 「체험 속도로 준비」를 **명시적으로** 고른다. 기본 manual 초기값만으로는 Go 가 잠긴다.
+ * 「센서 없음」를 **명시적으로** 고른다. 기본 manual 초기값만으로는 Go 가 잠긴다.
  */
 async function prepareManualRideInput(page: import('@playwright/test').Page) {
   await page.getByRole('button', { name: /케이던스 센서/ }).click()
   const sheet = page.getByRole('dialog', { name: '케이던스 센서' })
   await expect(sheet).toBeVisible()
-  await sheet.getByRole('button', { name: '체험 속도로 준비' }).click()
+  await sheet.getByRole('button', { name: '센서 없음' }).click()
   await sheet.getByRole('button', { name: '센서 설정 닫기' }).click()
   await expect(sheet).toBeHidden()
 }

@@ -532,7 +532,7 @@ async function armRideInput(page: Page, speedKmh = 50) {
   await page.getByRole("button", { name: /케이던스 센서/ }).click();
   const sheet = page.getByRole("dialog", { name: "케이던스 센서" });
   await expect(sheet).toBeVisible({ timeout: 15_000 });
-  await sheet.getByRole("button", { name: "체험 속도로 준비" }).click();
+  await sheet.getByRole("button", { name: "센서 없음" }).click();
   const speedInput = sheet.getByRole("spinbutton", { name: "속도 km/h" });
   if (await speedInput.count()) {
     await speedInput.fill(String(speedKmh));

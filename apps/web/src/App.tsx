@@ -221,7 +221,7 @@ export default function App() {
   const bleCrankRpm = useBleCrankRpm();
   const bleSensorConnected = bleCrankRpm.uiState === "connected";
   /**
-   * 「체험 속도로 준비」를 사용자가 명시적으로 골랐는가. 초기값 `manual` 은 선택이 아니다 —
+   * 「센서 없음」를 사용자가 명시적으로 골랐는가. 초기값 `manual` 은 선택이 아니다 —
    * 이게 false 면 Go 가 잠긴다(선택하지 않은 체험 주행 금지).
    */
   const [manualInputChosen, setManualInputChosen] = useState(false);

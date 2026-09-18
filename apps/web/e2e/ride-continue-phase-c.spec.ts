@@ -36,7 +36,7 @@ async function prepareManualRideInput(page: Page) {
   await page.getByRole('button', { name: /케이던스 센서/ }).click()
   const sheet = page.getByRole('dialog', { name: '케이던스 센서' })
   await expect(sheet).toBeVisible()
-  await sheet.getByRole('button', { name: '체험 속도로 준비' }).click()
+  await sheet.getByRole('button', { name: '센서 없음' }).click()
   const speedInput = sheet.getByRole('spinbutton', { name: '속도 km/h' })
   if (await speedInput.count()) {
     await speedInput.fill('50')

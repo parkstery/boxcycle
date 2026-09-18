@@ -69,13 +69,13 @@ async function guestStart(page: import("@playwright/test").Page) {
 
 /**
  * 주행 입력 준비 — Go 의 사전조건(SENSOR-2 §1.4). e2e 에는 BLE 장치가 없으므로
- * 센서 시트에서 「체험 속도로 준비」를 명시적으로 고른다(ride-entry.spec 과 동일).
+ * 센서 시트에서 「센서 없음」를 명시적으로 고른다(ride-entry.spec 과 동일).
  */
 async function armRideInput(page: import("@playwright/test").Page) {
   await page.getByRole("button", { name: /케이던스 센서/ }).click();
   const sheet = page.getByRole("dialog", { name: "케이던스 센서" });
   await expect(sheet).toBeVisible({ timeout: 15_000 });
-  await sheet.getByRole("button", { name: "체험 속도로 준비" }).click();
+  await sheet.getByRole("button", { name: "센서 없음" }).click();
   await sheet.getByRole("button", { name: "센서 설정 닫기" }).click();
   await expect(sheet).toBeHidden({ timeout: 10_000 });
 }

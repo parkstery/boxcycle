@@ -78,6 +78,15 @@
   letter-spacing: 0.02em;
 }
 
+/* 제목 옆 연결 상태(2026-09-18 Chief) — 제목보다 조용하게, 붙어 읽히지 않게 띄운다. */
+.cadence-sheet__title-status {
+  margin-left: 0.45rem;
+  font-size: 0.78em;
+  font-weight: 600;
+  color: var(--rtw-text-secondary);
+  letter-spacing: 0.01em;
+}
+
 .cadence-sheet__close {
   flex: 0 0 auto;
   font: inherit;

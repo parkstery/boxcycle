@@ -8,7 +8,7 @@ import { isRouteDockVisible } from "./routeDockUiPolicy";
  * - `none`        게이트·결과 시트 등 칩 자체를 숨기는 상태
  *
  * 2026-09-16: 우상단 폴백(`map-hud-tr`) 제거. 폴백이 있던 이유는 `idle` 에 dock 이
- * 없어서였는데 — 센서 시트가 「체험 속도로 준비」의 유일한 입구이고 그것이 Go 의
+ * 없어서였는데 — 센서 시트가 「센서 없음」의 유일한 입구이고 그것이 Go 의
  * 사전조건이라 그 화면에서 칩이 사라지면 주행을 시작할 수 없다 — dock 을 `idle` 에도
  * 띄우면서(`isRouteDockVisible`) 근거가 사라졌다. 이제 우상단은 **모든 stage 에서**
  * 계정·맵 둘뿐이다.

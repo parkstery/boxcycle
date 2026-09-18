@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { cadenceRpmToVirtualSpeedKmh, type RideInputMode } from "../../lib/cadenceRideInput";
 import {
-  cadenceSensorStatusLine,
+  cadenceSensorShortStatus,
   rideInputBlockedReason,
   type BleCrankRpmUiState,
   type RideInputReadiness,
@@ -26,7 +26,7 @@ export type CadenceSensorSheetProps = {
   onManualSpeedKmh: (n: number) => void;
   onConnect: () => void;
   onDisconnect: () => void;
-  /** 「체험 속도로 준비」·「체험 속도로 전환」 — 항상 사용자의 명시적 선택 */
+  /** 「센서 없음」 — 항상 사용자의 명시적 선택 */
   onChooseManual: () => void;
   onChooseCadence: () => void;
 };
@@ -69,7 +69,6 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
   const showReconnect =
     props.capable && !connected && !connecting && (allowFirstSetup || cadenceMode);
   const rpm = rpmLine(props);
-  const ready = props.readiness === "manual-ready" || props.readiness === "cadence-ready";
   const manualReady = props.readiness === "manual-ready";
   const blockedReason = rideInputBlockedReason(props.readiness);
 
@@ -89,7 +88,11 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
          * 남는다 — 명시적 닫기 버튼이 없으면 빠져나갈 길이 사실상 없다.
          */}
         <div className="cadence-sheet__head">
-          <h2 className="cadence-sheet__title">케이던스 센서</h2>
+          {/* 제목과 연결 상태를 한 줄로(2026-09-18 Chief) */}
+          <h2 className="cadence-sheet__title">
+            케이던스 센서
+            <span className="cadence-sheet__title-status">{cadenceSensorShortStatus(props)}</span>
+          </h2>
           <button
             type="button"
             className="cadence-sheet__close"
@@ -101,21 +104,16 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
           </button>
         </div>
 
-        <p className="cadence-sheet__status">{cadenceSensorStatusLine(props)}</p>
         {props.deviceLabel ? (
           <p className="cadence-sheet__device">{props.deviceLabel}</p>
         ) : null}
         {rpm ? <p className="cadence-sheet__rpm">{rpm}</p> : null}
 
-        <p className="cadence-sheet__mode">
-          현재 입력: <strong>{cadenceMode ? "센서 속도" : "체험 속도"}</strong>
-          {props.readiness === "cadence-awaiting-sample" ? " · 페달 확인 대기" : null}
-          {props.readiness === "choice-required" ? " · 준비 필요" : null}
-          {ready ? " · 주행 준비됨" : null}
-        </p>
 
         {/* Go 가 잠긴 이유는 실제로 해소할 수 있는 이 자리에서만 말한다(RouteDock 에 두지 않는다) */}
-        {blockedReason ? (
+        {/* 「센서를 연결해 페달을 확인하거나 체험 속도를 선택하세요」(choice-required)는
+            아래 두 버튼이 이미 말한다 — 제거(2026-09-18 Chief). 연결 중·페달 대기 안내는 남긴다. */}
+        {blockedReason && props.readiness !== "choice-required" ? (
           <p className="cadence-sheet__blocked" role="status">
             {blockedReason}
           </p>
@@ -144,7 +142,7 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
               title="Connect cadence sensor"
               onClick={props.onConnect}
             >
-              {props.uiState === "idle" ? "센서 검색" : "다시 연결"}
+              센서 연결
             </button>
           ) : null}
 
@@ -180,7 +178,7 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
             title="Use manual speed"
             onClick={props.onChooseManual}
           >
-            {cadenceMode ? "체험 속도로 전환" : "체험 속도로 준비"}
+            센서 없음
           </button>
         </div>
 

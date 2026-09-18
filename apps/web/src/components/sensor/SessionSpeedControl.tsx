@@ -28,7 +28,11 @@ export function SessionSpeedControl({ speedKmh, onSpeedKmh, disabled = false }: 
   return (
     <div className="ride-speed">
       <div className="ride-speed-row">
-        <span className="ride-speed-kicker">SPD(km/h)</span>
+        {/* 두 줄로 — 단위가 이름을 밀어내지 않게(2026-09-18 Chief) */}
+        <span className="ride-speed-kicker">
+          <span className="ride-speed-kicker__name">SPD</span>
+          <span className="ride-speed-kicker__unit">km/h</span>
+        </span>
         <button
           type="button"
           className="ride-speed-step"
@@ -49,6 +53,15 @@ export function SessionSpeedControl({ speedKmh, onSpeedKmh, disabled = false }: 
           aria-label="세션 속도 km/h"
           onChange={(e) => onSpeedKmh(clampSessionSpeedKmh(Number(e.target.value)))}
         />
+        <button
+          type="button"
+          className="ride-speed-step"
+          disabled={disabled || speedKmh >= SESSION_SPEED_MAX_KMH}
+          aria-label="속도 증가"
+          onClick={() => step(1)}
+        >
+          +
+        </button>
         <input
           type="number"
           className="ride-speed-number"
@@ -72,15 +85,6 @@ export function SessionSpeedControl({ speedKmh, onSpeedKmh, disabled = false }: 
             if (e.key === "Enter") e.currentTarget.blur();
           }}
         />
-        <button
-          type="button"
-          className="ride-speed-step"
-          disabled={disabled || speedKmh >= SESSION_SPEED_MAX_KMH}
-          aria-label="속도 증가"
-          onClick={() => step(1)}
-        >
-          +
-        </button>
       </div>
     </div>
   );

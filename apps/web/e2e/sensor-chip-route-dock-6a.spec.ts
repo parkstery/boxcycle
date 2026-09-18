@@ -344,7 +344,7 @@ async function armRideInput(page: Page) {
   await page.getByRole("button", { name: /케이던스 센서/ }).click();
   const sheet = page.getByRole("dialog", { name: "케이던스 센서" });
   await expect(sheet, "칩 클릭 → 센서 시트(동작 보존)").toBeVisible({ timeout: 15_000 });
-  await sheet.getByRole("button", { name: "체험 속도로 준비" }).click();
+  await sheet.getByRole("button", { name: "센서 없음" }).click();
   await sheet.getByRole("button", { name: "센서 설정 닫기" }).click();
   await expect(sheet).toBeHidden({ timeout: 10_000 });
 }
