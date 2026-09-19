@@ -32,6 +32,17 @@ service cloud.firestore {
         && request.auth.uid in get(/databases/$(database)/documents/config/routeReviewers).data.uids;
     }
 
+    /** 표고 배열 형태·범위 검증 — 사해(-430m)와 에베레스트(8849m) 바깥은 받지 않는다. */
+    function routeElevationPayloadValid() {
+      let v = request.resource.data.values;
+      return request.resource.data.keys().hasOnly(['values', 'sampleCount', 'source', 'createdAt'])
+        && v is list
+        && v.size() >= 2
+        && v.size() <= 256
+        && request.resource.data.sampleCount == v.size()
+        && request.resource.data.source is string;
+    }
+
     function experienceTagsValidPublicRequest() {
       let t = request.resource.data.experienceTags;
       return t is list
@@ -441,6 +452,17 @@ service cloud.firestore {
     match /publicationPresence/{publicationId} {
       allow read: if isSignedIn();
       allow write: if false;
+    }
+
+    /**
+     * 경로 표고 — 경로당 1회만 외부 API 에 묻고 여기 남긴다(호출량이 「주행 수」가 아니라
+     * 「경로 수」로 떨어진다). 문서 ID 는 기하 전체를 접은 키라 같은 ID = 같은 경로다.
+     * 그래서 **덮어쓰기·삭제를 막고 create 만** 허용한다 — 나중 값이 앞의 값을 밀어낼 이유가 없다.
+     */
+    match /routeElevations/{routeKey} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && routeElevationPayloadValid();
+      allow update, delete: if false;
     }
 
     match /worldActivity/{tileId} {
