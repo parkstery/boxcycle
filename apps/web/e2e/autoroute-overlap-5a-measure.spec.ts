@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect, type Page } from './open-meteo-stub'
 
 /**
  * 5A §2 재현 계측 — **원인 A(우리 우회 waypoint) vs B(provider 경로)** 를 가른다.

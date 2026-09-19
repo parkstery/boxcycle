@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect, type Page } from './open-meteo-stub'
 
 /**
  * 5A-R1 §4.1 계측 — 거리 원 자동 축척(fitBounds)이 폰 뷰포트에서 왜 안 먹는가.

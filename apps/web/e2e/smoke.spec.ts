@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './open-meteo-stub'
 
 // 앱이 뜨는지만 확인하는 최소 스모크 테스트. 실제 시나리오 테스트의 골격 예시.
 test('앱이 로드된다', async ({ page }) => {

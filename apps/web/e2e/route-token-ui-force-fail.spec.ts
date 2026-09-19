@@ -1,4 +1,4 @@
-import { test } from "@playwright/test";
+import { test } from "./open-meteo-stub";
 
 test.describe("Route Token UI force fail", () => {
   test.skip(process.env.ROUTE_TOKEN_UI_FORCE_FAIL !== "1", "ROUTE_TOKEN_UI_FORCE_FAIL=1 전용");
