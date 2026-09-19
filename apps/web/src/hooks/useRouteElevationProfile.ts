@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { LineStringGeometry, LngLat } from "../lib/geo";
 import {
   fetchRouteElevationProfile,
+  isElevationQuotaError,
   routeElevationSignature,
 } from "../lib/fetchRouteElevations";
 import { buildCoachElevationPoints } from "../lib/coachElevationFromRoute";
@@ -12,6 +13,8 @@ export type RouteElevationProfileState = {
   sampledCoords: LngLat[];
   loading: boolean;
   error: string | null;
+  /** 실패 원인이 고도 API 일일 한도 초과(429)인가 — 네트워크 오류·코드 회귀와 구분해 표시한다. */
+  quotaExceeded: boolean;
   routeSig: string;
 };
 
@@ -20,6 +23,7 @@ const empty: RouteElevationProfileState = {
   sampledCoords: [],
   loading: false,
   error: null,
+  quotaExceeded: false,
   routeSig: "",
 };
 
@@ -43,6 +47,7 @@ export function useRouteElevationProfile(
       sampledCoords: [],
       loading: true,
       error: null,
+      quotaExceeded: false,
       routeSig,
     }));
 
@@ -63,6 +68,7 @@ export function useRouteElevationProfile(
           sampledCoords,
           loading: false,
           error: null,
+          quotaExceeded: false,
           routeSig,
         });
       } catch (e) {
@@ -73,6 +79,7 @@ export function useRouteElevationProfile(
           sampledCoords: [],
           loading: false,
           error: message,
+          quotaExceeded: isElevationQuotaError(e),
           routeSig,
         });
       }

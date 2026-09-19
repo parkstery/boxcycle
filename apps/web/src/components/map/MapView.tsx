@@ -3760,7 +3760,12 @@ export function MapView({
       ) : null}
       {isElevationError ? (
         <div className="elevation-overlay">
-          <div className="elevation-overlay__empty">고도 데이터를 불러오지 못했습니다.</div>
+          {/* 한도 초과(429)를 따로 적는다 — 이게 뭉개지면 다음에도 코드 회귀로 오인한다. */}
+          <div className="elevation-overlay__empty">
+            {elevation.quotaExceeded
+              ? "고도 API 일일 한도 초과 — 내일 다시 시도됩니다."
+              : "고도 데이터를 불러오지 못했습니다."}
+          </div>
         </div>
       ) : null}
       {elevationUi ? (
