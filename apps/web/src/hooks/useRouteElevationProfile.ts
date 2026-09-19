@@ -7,6 +7,7 @@ import {
 } from "../lib/fetchRouteElevations";
 import { buildCoachElevationPoints } from "../lib/coachElevationFromRoute";
 import { applyRoadElevationModel } from "../services/roadElevationCoach";
+import { firestoreElevationStore } from "../services/routeElevationStore";
 
 export type RouteElevationProfileState = {
   values: number[];
@@ -53,7 +54,10 @@ export function useRouteElevationProfile(
 
     void (async () => {
       try {
-        const { values, sampledCoords } = await fetchRouteElevationProfile(geometry);
+        const { values, sampledCoords } = await fetchRouteElevationProfile(
+          geometry,
+          firestoreElevationStore,
+        );
         if (cancelled) return;
         if (routeElevationSignature(geometry) !== routeSig) return;
 

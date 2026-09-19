@@ -140,16 +140,72 @@ export function clearRouteElevationCache(): void {
   }
 }
 
+/**
+ * 공유 저장소(경로당 1회 저장)용 키.
+ *
+ * `routeElevationSignature` 는 「좌표 수 + 시점 + 종점」만 본다. 한 탭 안에서는 충분하지만,
+ * **모든 사용자가 공유하는** 저장소의 키로 쓰면 시종점과 꼭짓점 수가 같은 다른 경로가
+ * 남의 표고를 받아간다. 그래서 전체 좌표를 FNV-1a 로 접어 별도 키를 만든다.
+ */
+export function routeElevationCacheKey(geometry: LineStringGeometry | null): string {
+  if (!geometry || geometry.coordinates.length < 2) return "";
+  const MASK = 0xffffffffffffffffn;
+  const PRIME = 0x100000001b3n;
+  let hash = 0xcbf29ce484222325n;
+  for (const [lng, lat] of geometry.coordinates as LngLat[]) {
+    const token = `${lng.toFixed(6)},${lat.toFixed(6)};`;
+    for (let i = 0; i < token.length; i += 1) {
+      hash = ((hash ^ BigInt(token.charCodeAt(i))) * PRIME) & MASK;
+    }
+  }
+  return `v1-${geometry.coordinates.length}-${hash.toString(16).padStart(16, "0")}`;
+}
+
+/**
+ * 경로 표고의 영구 저장소(Firestore 어댑터를 호출부가 주입한다).
+ *
+ * 도로의 고도는 변하지 않는다 — 같은 경로를 누가 몇 번 달리든 질의는 **평생 한 번**이면 된다.
+ * 이 계층이 있으면 호출량이 「주행 수」가 아니라 「경로 수」로 떨어지고, 나중에 공급원을
+ * 무엇으로 바꾸든(유료 Open-Meteo·Mapbox·자체 DEM) 갈아끼울 지점이 여기 하나로 모인다.
+ * 라이브러리를 순수하게 두려고 구현이 아니라 인터페이스만 받는다.
+ */
+export type SharedElevationStore = {
+  /** 값만 돌려준다 — 샘플 좌표는 기하에서 다시 계산한다(원격 좌표를 믿지 않는다). */
+  read(key: string): Promise<number[] | null>;
+  write(key: string, values: number[]): Promise<void>;
+};
+
 export async function fetchRouteElevationProfile(
   geometry: LineStringGeometry,
+  store?: SharedElevationStore,
 ): Promise<RouteElevationProfile> {
+  // ① 이 탭에서 이미 받은 경로 — 아무 데도 묻지 않는다.
   const routeSig = routeElevationSignature(geometry);
   const cached = readRouteElevationCache(routeSig);
   if (cached) return cached;
 
+  // ② 다른 사람이 이미 받아 둔 경로 — Open-Meteo 대신 저장소에서 읽는다(72콜 → 0콜).
+  const sharedKey = routeElevationCacheKey(geometry);
+  if (store && sharedKey) {
+    const shared = await store.read(sharedKey).catch(() => null);
+    if (shared && shared.length >= 2) {
+      const profile: RouteElevationProfile = {
+        values: shared,
+        sampledCoords: sampleRouteCoordinatesByArcLength(geometry, shared.length),
+      };
+      writeRouteElevationCache(routeSig, profile);
+      return profile;
+    }
+  }
+
+  // ③ 아무도 받은 적 없는 경로 — 이때만 실제로 질의하고, 다음 사람을 위해 남긴다.
   const sampled = sampleRouteCoordinatesByArcLength(geometry, ROUTE_ELEVATION_SAMPLE_COUNT);
   const values = await fetchElevationsForCoords(sampled);
   const profile: RouteElevationProfile = { values, sampledCoords: sampled };
   writeRouteElevationCache(routeSig, profile);
+  if (store && sharedKey) {
+    // 저장 실패는 다음 사람이 한 번 더 묻는 것일 뿐 — 이번 주행을 막지 않는다.
+    void store.write(sharedKey, values).catch(() => undefined);
+  }
   return profile;
 }
