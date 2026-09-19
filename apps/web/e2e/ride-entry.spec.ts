@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './open-meteo-stub'
 
 // 실주행 진입 시퀀스 e2e: 게스트(익명 인증) → 입문 코스 로드 → 주행 시작 → running 확정.
 // 셀렉터는 scripts/ride-verify/entry-contract.mjs 와 동일한 계약을 쓴다 —
