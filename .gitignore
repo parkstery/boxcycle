@@ -43,6 +43,7 @@ temp/
 # 작업 부산물 (커밋 대상 아님)
 .firebase/
 test-results/
+apps/web/scripts/rider-preserve/.out/
 apps/web/scripts/route-token/.runner-cache/
 npm
 filelist.txt
