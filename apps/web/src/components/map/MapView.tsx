@@ -114,13 +114,21 @@ import { MAP_PEER_SPRITE_MIN_ZOOM } from "../../lib/rideSyncPolicy";
 import { applyCoverageOverlayMode } from "../../services/coverageOverlaySync";
 import type { GlobalLivePresenceDot } from "../../hooks/useGlobalLivePresence";
 import type { TrailSpectatorDot } from "../../hooks/useTrailLivePublicationRideSpectatorOverlay";
-import { getRiderPrototypeMode } from "../../lib/riderPrototype/config";
+import {
+  getRiderPrototypeMode,
+  isRiderPrototype3dMode,
+} from "../../lib/riderPrototype/config";
 import {
   applyIso2dRiderBearing,
   createIso2dRiderMarkerRoot,
   type RiderGlbModelSpec,
 } from "../../lib/riderPrototype/iso2dMarker";
 import { clearRiderGlbModels, ensureRiderGlbLayer, syncRiderGlbModels } from "../../lib/riderPrototype/glbModelLayer";
+import {
+  clearRiderPreservedModels,
+  ensureRiderPreservedLayer,
+  syncRiderPreservedModels,
+} from "../../lib/riderPrototype/preservedRiderLayer";
 import { PEER_RIDER_PEDAL_FRAME_COUNT } from "../../lib/registerPeerRiderPedalSprites";
 import { MapZoomGlobeControl } from "./MapZoomGlobeControl";
 import {
@@ -155,6 +163,7 @@ import { TickTestOffBadge } from "./TickTestOffBadge";
 import "./MapView.css";
 
 const RIDER_PROTOTYPE_MODE = getRiderPrototypeMode();
+const RIDER_PROTOTYPE_IS_3D = isRiderPrototype3dMode(RIDER_PROTOTYPE_MODE);
 
 /** 로비 관전: 다른 사용자 코스 진행률 기반(geometry 는 로컬 로드, Firestore 는 진행률만). */
 const TRAIL_SPEC_ROUTES_SRC = "boxcycle-lobby-spectator-routes";
@@ -1209,7 +1218,10 @@ function syncPeerDomMarkers(
   features: PeerDomGJFeature[],
   markersRef: { current: Map<string, mapboxgl.Marker> },
 ): void {
-  if (RIDER_PROTOTYPE_MODE === "glb" && ensureRiderGlbLayer(map)) {
+  const rider3dLayerReady =
+    (RIDER_PROTOTYPE_MODE === "glb" && ensureRiderGlbLayer(map)) ||
+    (RIDER_PROTOTYPE_MODE === "preserved" && ensureRiderPreservedLayer(map));
+  if (rider3dLayerReady) {
     syncGlbPeerNametagMarkers(map, features, markersRef);
     return;
   }
@@ -1303,7 +1315,7 @@ function syncLiveSelfRiderVisual(
     if (flip && img) applyIso2dRiderBearing(flip, img, "self", b);
     return;
   }
-  if (RIDER_PROTOTYPE_MODE === "glb") return;
+  if (RIDER_PROTOTYPE_IS_3D) return;
 
   const flip = flipRef.current;
   const sprite = spriteRef.current;
@@ -2053,8 +2065,13 @@ export function MapView({
         moveActivityWorldLayersToTop(map);
       }
       apply3DState(map, enable3DRef.current, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID);
-      clearRiderGlbModels(map);
-      ensureRiderGlbLayer(map);
+      if (RIDER_PROTOTYPE_MODE === "glb") {
+        clearRiderGlbModels(map);
+        ensureRiderGlbLayer(map);
+      } else if (RIDER_PROTOTYPE_MODE === "preserved") {
+        clearRiderPreservedModels(map);
+        ensureRiderPreservedLayer(map);
+      }
       if (import.meta.env.DEV) applyTickTestToMap(map);
       try {
         applyCoverageOverlayMode(
@@ -3162,7 +3179,7 @@ export function MapView({
     if (!map || !mapLoaded) return;
 
     if (liveLngLat) {
-      if (RIDER_PROTOTYPE_MODE !== "glb" && !liveMarkerRef.current) {
+      if (!RIDER_PROTOTYPE_IS_3D && !liveMarkerRef.current) {
         if (RIDER_PROTOTYPE_MODE === "iso2d") {
           const { root, nametag, flip, img } = createIso2dRiderMarkerRoot(
             "self",
@@ -3214,10 +3231,12 @@ export function MapView({
       prevLiveForBearingRef.current = null;
       if (RIDER_PROTOTYPE_MODE === "glb") {
         clearRiderGlbModels(map);
+      } else if (RIDER_PROTOTYPE_MODE === "preserved") {
+        clearRiderPreservedModels(map);
       }
     }
 
-    if (RIDER_PROTOTYPE_MODE !== "glb") {
+    if (!RIDER_PROTOTYPE_IS_3D) {
       const tagEl = liveMarkerNametagRef.current;
       if (tagEl) {
         const t = liveRiderNametag?.trim();
@@ -3269,7 +3288,7 @@ export function MapView({
       const prevForBearing = prevLiveForBearingRef.current;
       if (sampled) {
         liveLngLatRef.current = sampled;
-        if (liveMarkerRef.current && RIDER_PROTOTYPE_MODE !== "glb") {
+        if (liveMarkerRef.current && !RIDER_PROTOTYPE_IS_3D) {
           liveMarkerRef.current.setLngLat(sampled);
         }
         if (selfLocationMarkerRef.current) {
@@ -3335,7 +3354,13 @@ export function MapView({
       );
       const fc = showPeerSprites ? peerFc : EMPTY_GEOJSON_FC;
       syncPeerDomMarkers(map, fc.features as PeerDomGJFeature[], peerDomMarkersRef);
-      if (RIDER_PROTOTYPE_MODE === "glb" && ensureRiderGlbLayer(map)) {
+      const riderLayerReady =
+        RIDER_PROTOTYPE_MODE === "glb"
+          ? ensureRiderGlbLayer(map)
+          : RIDER_PROTOTYPE_MODE === "preserved"
+            ? ensureRiderPreservedLayer(map)
+            : false;
+      if (RIDER_PROTOTYPE_IS_3D && riderLayerReady) {
         const specs: RiderGlbModelSpec[] = [];
         const live = liveLngLatRef.current;
         if (live) {
@@ -3372,6 +3397,7 @@ export function MapView({
             lngLat: live,
             bearingDeg,
             pedalPose: resolveGlbPedalPose(liveCrankPhaseRevRef.current),
+            phaseRev: liveCrankPhaseRevRef.current,
             leanDeg: glbLeanDegRef.current,
           });
         }
@@ -3385,9 +3411,11 @@ export function MapView({
             lngLat: f.geometry.coordinates,
             bearingDeg: f.properties.hdg,
             pedalPose: resolveGlbPedalPose(phaseRev),
+            phaseRev,
           });
         }
-        syncRiderGlbModels(map, specs);
+        if (RIDER_PROTOTYPE_MODE === "glb") syncRiderGlbModels(map, specs);
+        else syncRiderPreservedModels(map, specs);
         if (import.meta.env.DEV && getTickTestOffList().length > 0) applyTickTestToMap(map);
         const liveLabel = liveRiderNametagRef.current?.trim() ?? "";
         syncGlbLiveNametagMarker(
@@ -3427,7 +3455,7 @@ export function MapView({
     const map = mapRef.current;
     if (!map) return;
     const onRender = () => {
-      if (RIDER_PROTOTYPE_MODE === "glb") {
+      if (RIDER_PROTOTYPE_IS_3D) {
         reprojectGlbNametagMarkers(glbLiveNametagMarkerRef.current, peerDomMarkersRef.current);
       }
       const selfMk = selfLocationMarkerRef.current;

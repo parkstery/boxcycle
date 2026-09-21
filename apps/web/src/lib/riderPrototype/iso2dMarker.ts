@@ -80,6 +80,8 @@ export type RiderGlbModelSpec = {
   bearingDeg: number;
   /** 크랭크·다리 nodeOverride 회전 */
   pedalPose?: RiderGlbPedalPose;
+  /** Shape-preserving custom layer crank phase, in revolutions. */
+  phaseRev?: number;
   /** 코너링 기울임(°) — heading 변화율 비례, 진행축 롤 */
   leanDeg?: number;
 };

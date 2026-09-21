@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "candidateId": "20260921-041426-cd81398e",
+  "stage": "APP_CUSTOM_LAYER_CANDIDATE",
+  "status": "APP_APPROVED_PRODUCT_ACTIVE",
+  "appApprovedAtKst": "2026-09-21",
+  "appApprovalTarget": "preserved-app-validator.html",
+  "sourceGlbSha256": "1108aa3e37615eef037984a0cdf80018b840a043c6e62f6750f828646b6b1ffb",
+  "stagedGlbSha256": "1108aa3e37615eef037984a0cdf80018b840a043c6e62f6750f828646b6b1ffb",
+  "pedalReportSha256": "720214a66ef928fa0ed50274a97c1f26adf840553a1ed8e090d85d7d54efd3d7",
+  "guideSourceSha256": "2f34ef80685bb234e517d490bd8ab46e6272ccbfa3065acc2bb85dc3dddef7b2",
+  "guideRuntimeSha256": "136895c8d9b8bd29e47b0a53ac10a0f8443e93240eb2578330da0581ee840dca",
+  "sourceCandidateDir": "C:\\20.HDev\\boxcycle\\tmp\\rider-shape-preserving\\apps\\web\\scripts\\rider-preserve\\.out\\candidates\\20260921-041426-cd81398e",
+  "files": {
+    "glb": "rider.glb",
+    "guideWeights": "guide-weights.json"
+  }
+}

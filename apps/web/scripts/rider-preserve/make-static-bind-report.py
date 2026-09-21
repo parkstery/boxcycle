@@ -56,12 +56,13 @@ def diff_metrics(before: Image.Image, after: Image.Image) -> dict:
     }
 
 
-def make_sheet(candidate_dir: Path, candidate_id: str, views: tuple[str, str], name: str) -> Path:
+def make_sheet(candidate_dir: Path, candidate_id: str, stage: str,
+               views: tuple[str, str], name: str) -> Path:
     tile_w, tile_h = 720, 554
     header_h = 70
     sheet = Image.new("RGB", (tile_w * 2, header_h + tile_h * 2), (18, 21, 24))
     draw = ImageDraw.Draw(sheet)
-    draw.text((18, 14), f"Candidate {candidate_id} | STATIC_BIND_FEASIBILITY | UNAPPROVED",
+    draw.text((18, 14), f"Candidate {candidate_id} | {stage} | UNAPPROVED",
               fill=(240, 244, 246), font=font(22))
     draw.text((18, 42), "Left: source original    Right: DQS bind evaluation    identical camera/light",
               fill=(166, 176, 184), font=font(16))
@@ -83,26 +84,39 @@ def main() -> None:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     candidate_id = manifest["candidateId"]
 
-    image_metrics = {}
-    for view in VIEWS:
-        source = Image.open(candidate_dir / f"source-{view}-{candidate_id}.png")
-        bind = Image.open(candidate_dir / f"bind-{view}-{candidate_id}.png")
-        image_metrics[view] = diff_metrics(source, bind)
-        diff = ImageChops.difference(source.convert("RGB"), bind.convert("RGB"))
-        diff = diff.point(lambda value: min(255, value * 8))
-        diff.save(candidate_dir / f"diff-x8-{view}-{candidate_id}.png")
+    pairs = [
+        (candidate_dir / f"source-{view}-{candidate_id}.png",
+         candidate_dir / f"bind-{view}-{candidate_id}.png")
+        for view in VIEWS
+    ]
+    pair_exists = [source.exists() and bind.exists() for source, bind in pairs]
+    if any(pair_exists) and not all(pair_exists):
+        raise FileNotFoundError("incomplete screenshot set; regenerate with --screenshots")
 
-    overview = make_sheet(candidate_dir, candidate_id, ("side", "34"),
-                          f"comparison-overview-{candidate_id}.png")
-    detail = make_sheet(candidate_dir, candidate_id, ("front", "knee"),
-                        f"comparison-detail-{candidate_id}.png")
+    image_metrics = {}
+    comparison_sheets = []
+    if all(pair_exists):
+        for view, (source_path, bind_path) in zip(VIEWS, pairs):
+            source = Image.open(source_path)
+            bind = Image.open(bind_path)
+            image_metrics[view] = diff_metrics(source, bind)
+            diff = ImageChops.difference(source.convert("RGB"), bind.convert("RGB"))
+            diff = diff.point(lambda value: min(255, value * 8))
+            diff.save(candidate_dir / f"diff-x8-{view}-{candidate_id}.png")
+
+        overview = make_sheet(candidate_dir, candidate_id, manifest["stage"], ("side", "34"),
+                              f"comparison-overview-{candidate_id}.png")
+        detail = make_sheet(candidate_dir, candidate_id, manifest["stage"], ("front", "knee"),
+                            f"comparison-detail-{candidate_id}.png")
+        comparison_sheets = [str(overview), str(detail)]
     report = {
         "candidateId": candidate_id,
         "stage": manifest["stage"],
         "status": manifest["status"],
         "geometryMetrics": manifest.get("metrics"),
         "imageDiffMetrics": image_metrics,
-        "comparisonSheets": [str(overview), str(detail)],
+        "comparisonSheets": comparison_sheets,
+        "screenshotsRequested": bool(comparison_sheets),
         "interpretation": (
             "Vertex displacement measures pose alignment. Edge-length deltas measure local shape distortion. "
             "Pixel differences exclude the metadata rectangle only."
@@ -110,7 +124,7 @@ def main() -> None:
     }
     report_path = candidate_dir / "static-bind-report.json"
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(json.dumps({"report": str(report_path), "sheets": report["comparisonSheets"]}, ensure_ascii=False))
+    print(json.dumps({"report": str(report_path), "sheets": comparison_sheets}, ensure_ascii=False))
 
 
 if __name__ == "__main__":

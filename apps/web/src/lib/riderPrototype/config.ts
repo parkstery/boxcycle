@@ -1,10 +1,23 @@
-/** `legacy` | `iso2d` | `glb` — `.env` `VITE_RIDER_PROTOTYPE` */
-export type RiderPrototypeMode = "legacy" | "iso2d" | "glb";
+/** `legacy` | `iso2d` | `glb` | `preserved` — `.env` `VITE_RIDER_PROTOTYPE` */
+export type RiderPrototypeMode = "legacy" | "iso2d" | "glb" | "preserved";
 
 export function getRiderPrototypeMode(): RiderPrototypeMode {
   const raw = import.meta.env.VITE_RIDER_PROTOTYPE?.trim().toLowerCase();
-  if (raw === "iso2d" || raw === "glb") return raw;
-  return "legacy";
+  if (raw === "iso2d" || raw === "glb" || raw === "preserved") return raw;
+  return "preserved";
+}
+
+export function isRiderPrototype3dMode(mode: RiderPrototypeMode): boolean {
+  return mode === "glb" || mode === "preserved";
+}
+
+export const PRESERVED_RIDER_CANDIDATE_ID = "20260921-041426-cd81398e";
+export const PRESERVED_RIDER_CUSTOM_LAYER_ID = "boxcycle-rider-preserved-layer";
+
+export function preservedRiderAssetUrl(fileName: "rider.glb" | "guide-weights.json" | "candidate.json"): string {
+  const baseRaw = import.meta.env.BASE_URL ?? "/";
+  const base = baseRaw.endsWith("/") ? baseRaw : `${baseRaw}/`;
+  return `${base}rider/preserved/candidates/${PRESERVED_RIDER_CANDIDATE_ID}/${fileName}`;
 }
 
 export function riderPrototypeGlbUrl(): string {

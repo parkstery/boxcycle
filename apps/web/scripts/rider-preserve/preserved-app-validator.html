@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RTW Preserved Rider — App Custom Layer Validator</title>
+    <style>
+      html, body, #map { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #10151b; }
+      #panel { position: fixed; z-index: 5; top: 14px; left: 14px; width: min(420px, calc(100vw - 28px)); box-sizing: border-box; padding: 14px 16px; border: 1px solid #44505e; border-radius: 12px; color: #f4f7fa; background: rgba(16, 21, 27, .9); font: 13px/1.45 system-ui, sans-serif; box-shadow: 0 8px 32px rgba(0,0,0,.35); }
+      #panel strong { color: #7ee787; }
+      #status[data-state="error"] { color: #ff7b72; }
+      #status[data-state="loading"] { color: #f2cc60; }
+      #phase { width: 100%; }
+      .row { display: flex; gap: 8px; align-items: center; margin-top: 9px; }
+      button { border: 1px solid #586576; border-radius: 8px; padding: 6px 10px; color: #fff; background: #28313c; cursor: pointer; }
+      code { color: #9ecbff; }
+    </style>
+  </head>
+  <body>
+    <div id="map" aria-label="보존형 라이더 앱 지도 검증"></div>
+    <section id="panel" aria-label="검증 상태">
+      <div><strong>APP CUSTOM LAYER</strong> · candidate <code>20260921-041426-cd81398e</code></div>
+      <div id="status" data-state="loading">승인 자산과 DQS 리그 로드 중…</div>
+      <div class="row"><button id="toggle">일시정지</button><button id="north">북쪽</button><button id="east">동쪽</button><span id="phaseText">0°</span></div>
+      <input id="phase" aria-label="크랭크 위상" type="range" min="0" max="360" value="0" />
+      <div>실제 Mapbox 좌표 · terrain · bearing · lean · 앱 런타임 DQS</div>
+    </section>
+    <script type="module" src="./preserved-app-validator.ts"></script>
+  </body>
+</html>
