@@ -145,8 +145,8 @@ const MapillaryRideViewer = lazy(async () => {
 });
 
 /** Quick Camera 1 — 3단 로테이션(지시07) */
-type Camera1Mode = "routeFit" | "aerial60" | "aerial10";
-const CAMERA1_MODE_CYCLE: readonly Camera1Mode[] = ["routeFit", "aerial60", "aerial10"];
+type Camera1Mode = "routeFit" | "aerial60" | "aerial5";
+const CAMERA1_MODE_CYCLE: readonly Camera1Mode[] = ["routeFit", "aerial60", "aerial5"];
 function nextCamera1Mode(cur: Camera1Mode): Camera1Mode {
   const i = CAMERA1_MODE_CYCLE.indexOf(cur);
   return CAMERA1_MODE_CYCLE[(i + 1) % CAMERA1_MODE_CYCLE.length]!;
@@ -214,7 +214,7 @@ export default function App() {
   const [followMode, setFollowMode] = useState<FollowMode>(DEFAULT_FOLLOW_MODE);
   /** Quick Camera 1~6 — 주행 HUD. null = 미선택 */
   const [activeQuickCamera, setActiveQuickCamera] = useState<1 | 2 | 3 | 4 | 5 | 6 | null>(null);
-  /** Quick Camera 1: routeFit → aerial60 → aerial10 → … (지시07) */
+  /** Quick Camera 1: routeFit → aerial60 → aerial5 → … (지시07·지시11) */
   const [camera1Mode, setCamera1Mode] = useState<Camera1Mode>("routeFit");
   /** Quick Camera 6: baseHeading 고정(북=0) */
   const [lockBaseHeading, setLockBaseHeading] = useState<number | null>(null);
@@ -1951,8 +1951,9 @@ export default function App() {
           setRideCameraDistanceM(60);
           setRideCameraSpanFloorMode("preset");
         } else {
+          // aerial5 — pitch 0 → floor≈1.79m, 5m 는 클램프 위(지시11)
           setFollowMode("aerial");
-          setRideCameraDistanceM(10);
+          setRideCameraDistanceM(5);
           setRideCameraSpanFloorMode("preset");
         }
         return;

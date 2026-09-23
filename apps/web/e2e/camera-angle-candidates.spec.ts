@@ -130,8 +130,8 @@ test.describe("지시07 각도 후보 · QC1 3단", () => {
 
     await btn1.click();
     await page.waitForTimeout(1200);
-    await expect(btn1).toHaveAttribute("data-camera1-mode", "aerial10");
-    await shot("qc1-aerial10.png");
+    await expect(btn1).toHaveAttribute("data-camera1-mode", "aerial5");
+    await shot("qc1-aerial5.png");
 
     const manifest = {
       outDir: OUT_DIR,

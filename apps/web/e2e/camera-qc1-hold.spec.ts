@@ -61,7 +61,7 @@ test.describe("QC1 Route Fit hold (지시05)", () => {
     await shot("qc1-aerial60.png");
     await qc.getByRole("button", { name: /카메라 1/ }).click();
     await page.waitForTimeout(1200);
-    await shot("qc1-aerial10.png");
+    await shot("qc1-aerial5.png");
 
     // 줌이 크게 달라지면 Route Fit 이 풀린 것 — 보고용(테스트 fail 은 감리 판단)
     console.log("[qc1-hold] zoom t0=", z0, "t3s=", z3);

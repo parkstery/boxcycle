@@ -56,7 +56,7 @@ test.describe("Quick Camera 캡처 (지시04)", () => {
     await qc.getByRole("button", { name: /카메라 1/ }).click();
     await shot("qc1-aerial60.png");
     await qc.getByRole("button", { name: /카메라 1/ }).click();
-    await shot("qc1-aerial10.png");
+    await shot("qc1-aerial5.png");
 
     for (const [n, file] of [
       [2, "qc2-forward.png"],

@@ -131,7 +131,7 @@ export type MapHudProps = {
     active: 1 | 2 | 3 | 4 | 5 | 6 | null;
     onSelect: (n: 1 | 2 | 3 | 4 | 5 | 6) => void;
     /** 1번 3단 상태 — 버튼에 작은 표식(지시07) */
-    camera1Mode?: "routeFit" | "aerial60" | "aerial10";
+    camera1Mode?: "routeFit" | "aerial60" | "aerial5";
   } | null;
 };
 
@@ -489,18 +489,26 @@ export function MapHud(props: MapHudProps) {
       {showTopRight ? (
         <div className="map-hud__tr">
           {quickCamera ? (
-            <div className="hud-quick-camera" role="group" aria-label="Quick Camera">
+            <div
+              className="hud-quick-camera"
+              role="group"
+              aria-label="Quick Camera"
+              /* 지시10 §3: gap·가장자리 터치가 맵(Mapbox)으로 전파되지 않게.
+               * click 만 막으면 모바일에서 touchstart/pointerdown 이 지도를 먼저 움직인다. */
+              onPointerDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
               {([1, 2, 3, 4, 5, 6] as const).map((n) => {
                 const c1 = n === 1 ? quickCamera.camera1Mode ?? "routeFit" : null;
                 const c1Mark =
-                  c1 === "routeFit" ? "R" : c1 === "aerial60" ? "60" : c1 === "aerial10" ? "10" : null;
+                  c1 === "routeFit" ? "R" : c1 === "aerial60" ? "60" : c1 === "aerial5" ? "5" : null;
                 const c1Label =
                   c1 === "routeFit"
                     ? "전체 경로"
                     : c1 === "aerial60"
                       ? "60m 상공"
-                      : c1 === "aerial10"
-                        ? "10m 상공"
+                      : c1 === "aerial5"
+                        ? "5m 상공"
                         : null;
                 return (
                   <button
@@ -512,6 +520,8 @@ export function MapHud(props: MapHudProps) {
                     aria-label={c1Label ? `카메라 1 · ${c1Label}` : `카메라 ${n}`}
                     aria-pressed={quickCamera.active === n}
                     data-camera1-mode={c1 ?? undefined}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
                     onClick={() => quickCamera.onSelect(n)}
                   >
                     <span className="hud-quick-camera__num">{n}</span>
