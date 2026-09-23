@@ -316,87 +316,94 @@ export function MapHud(props: MapHudProps) {
 
       {showMenuTrigger || (showMetrics && metrics) ? (
         <div className="map-hud__tl">
-          {/* 첫 줄 — 계기판. 비어도 높이를 예약해 RTW 가 주행 시작/종료에 튀지 않는다(Chief 「고정」) */}
-          <div className="map-hud__tl-metrics">
-            {showMetrics && metrics ? (
-              <div
-                className={`hud-metrics${metrics.mode === "route-preview" ? " hud-metrics--route-preview" : ""}`}
+          {/*
+            한 행 — RTW(좌상단 코너) + 계기판(그 오른쪽).
+            미니맵 세로 공간용: 예전 두 줄(계기/RTW)을 한 줄로 줄인다(20260923-minimap 지시01).
+            한쪽만 있어도 남은 요소가 좌상단 코너를 지킨다(idle=RTW만 / 일부 stage=계기만).
+          */}
+          <div className="map-hud__tl-row">
+            {showMenuTrigger ? (
+              <button
+                type="button"
+                className={`hud-brand ${menuOpen ? "hud-brand--muted" : ""}`}
+                onClick={onOpenMenu}
+                aria-label="Trail 메뉴"
+                aria-expanded={menuOpen}
+                title="Trail menu"
               >
-                <div className="hud-metrics__capsule" role="group" aria-label="주행 지표">
-                  {/* 주행 중 — 세션 거리는 offset 없으면 누적과 항상 동일해 중복이었다.
-                      이제 누적거리/전체거리 한 줄만 표시(§9.5.5 단위7·U4) */}
-                  {metrics.mode === "ride" && metrics.routeTotalKm ? (
-                    <span
-                      className="hud-metrics__cell hud-metrics__cell--hero hud-metrics__cell--w-distance"
-                      title="주행 누적 거리 / 경로 전체거리"
-                    >
-                      <span className="hud-metrics__label">거리</span>
+                <span className="hud-brand__dot" aria-hidden />
+                RTW
+              </button>
+            ) : null}
+            {showMetrics && metrics ? (
+              <div className="map-hud__tl-metrics">
+                <div
+                  className={`hud-metrics${metrics.mode === "route-preview" ? " hud-metrics--route-preview" : ""}`}
+                >
+                  <div className="hud-metrics__capsule" role="group" aria-label="주행 지표">
+                    {/* 주행 중 — 세션 거리는 offset 없으면 누적과 항상 동일해 중복이었다.
+                        이제 누적거리/전체거리 한 줄만 표시(§9.5.5 단위7·U4) */}
+                    {metrics.mode === "ride" && metrics.routeTotalKm ? (
                       <span
-                        className="hud-metrics__value hud-metrics__value--cumulative"
-                        aria-label="주행 누적 거리"
+                        className="hud-metrics__cell hud-metrics__cell--hero hud-metrics__cell--w-distance"
+                        title="주행 누적 거리 / 경로 전체거리"
                       >
-                        {metrics.cumulativeKm}
-                        <span className="hud-metrics__value-total">
-                          {" / "}
-                          {metrics.routeTotalKm}
-                        </span>
-                        <span className="hud-metrics__cell-unit">km</span>
-                      </span>
-                    </span>
-                  ) : (
-                    <HudMetricCell label="거리" value={metrics.distanceKm} unit="km" hero variant="distance" />
-                  )}
-                  <span className="hud-metrics__divider" aria-hidden />
-                  <HudMetricCell label="시간" value={metrics.elapsed} variant="time" />
-                  <span className="hud-metrics__divider" aria-hidden />
-                  <HudMetricCell label="평균" value={metrics.avgKmh} unit="km/h" variant="speed" />
-                  <span className="hud-metrics__divider" aria-hidden />
-                  <HudMetricCell label="속도" value={String(metrics.speedKmh)} unit="km/h" variant="speed" />
-                  {/* null = 미무장 숨김. 0 포함 무장 후 항상 표시(이미 내 도로면 +0.00) */}
-                  {(riding || paused) && conquestLiveMeters != null ? (
-                    <>
-                      <span className="hud-metrics__divider" aria-hidden />
-                      <span
-                        className={`hud-metrics__cell hud-metrics__cell--conquest${
-                          conquestPulse ? " hud-metrics__cell--conquest-pulsing" : ""
-                        }`}
-                        style={conquestPulse ? { animationDelay: conquestPulse.delay } : undefined}
-                        title="이번 주행에서 새로 밟은 도로(이미 내 도로면 0)"
-                        role="status"
-                        aria-live="polite"
-                      >
-                        <span className="hud-metrics__label">새 도로</span>
-                        <span className="hud-metrics__value">
-                          +{formatRideDistanceKmNumber(conquestLiveMeters)}
+                        <span className="hud-metrics__label">거리</span>
+                        <span
+                          className="hud-metrics__value hud-metrics__value--cumulative"
+                          aria-label="주행 누적 거리"
+                        >
+                          {metrics.cumulativeKm}
+                          <span className="hud-metrics__value-total">
+                            {" / "}
+                            {metrics.routeTotalKm}
+                          </span>
                           <span className="hud-metrics__cell-unit">km</span>
                         </span>
-                        {conquestAllOwnedHint ? (
-                          <span className="hud-metrics__conquest-owned-hint" aria-label="이미 내 도로">
-                            이미 내 도로
-                          </span>
-                        ) : null}
                       </span>
-                    </>
-                  ) : null}
+                    ) : (
+                      <HudMetricCell label="거리" value={metrics.distanceKm} unit="km" hero variant="distance" />
+                    )}
+                    <span className="hud-metrics__divider" aria-hidden />
+                    <HudMetricCell label="시간" value={metrics.elapsed} variant="time" />
+                    <span className="hud-metrics__divider" aria-hidden />
+                    <HudMetricCell label="평균" value={metrics.avgKmh} unit="km/h" variant="speed" />
+                    <span className="hud-metrics__divider" aria-hidden />
+                    <HudMetricCell label="속도" value={String(metrics.speedKmh)} unit="km/h" variant="speed" />
+                    {/* null = 미무장 숨김. 0 포함 무장 후 항상 표시(이미 내 도로면 +0.00) */}
+                    {(riding || paused) && conquestLiveMeters != null ? (
+                      <>
+                        <span className="hud-metrics__divider" aria-hidden />
+                        <span
+                          className={`hud-metrics__cell hud-metrics__cell--conquest${
+                            conquestPulse ? " hud-metrics__cell--conquest-pulsing" : ""
+                          }`}
+                          style={conquestPulse ? { animationDelay: conquestPulse.delay } : undefined}
+                          title="이번 주행에서 새로 밟은 도로(이미 내 도로면 0)"
+                          role="status"
+                          aria-live="polite"
+                        >
+                          <span className="hud-metrics__label">새 도로</span>
+                          <span className="hud-metrics__value">
+                            +{formatRideDistanceKmNumber(conquestLiveMeters)}
+                            <span className="hud-metrics__cell-unit">km</span>
+                          </span>
+                          {conquestAllOwnedHint ? (
+                            <span className="hud-metrics__conquest-owned-hint" aria-label="이미 내 도로">
+                              이미 내 도로
+                            </span>
+                          ) : null}
+                        </span>
+                      </>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             ) : null}
           </div>
-          {showMenuTrigger ? (
+          {showMenuTrigger &&
+          ((weatherHint && !activeRide) || (showRidePresence && ridePresence)) ? (
             <div className="map-hud__tl-stack">
-              <div className="map-hud__tl-actions">
-                <button
-                  type="button"
-                  className={`hud-brand ${menuOpen ? "hud-brand--muted" : ""}`}
-                  onClick={onOpenMenu}
-                  aria-label="Trail 메뉴"
-                  aria-expanded={menuOpen}
-                  title="Trail menu"
-                >
-                  <span className="hud-brand__dot" aria-hidden />
-                  RTW
-                </button>
-              </div>
               {weatherHint && !activeRide ? (
                 <p className="hud-world-hint hud-weather-hint" role="status" title="주행 지역의 현재 날씨(Open-Meteo)">
                   {weatherHint}

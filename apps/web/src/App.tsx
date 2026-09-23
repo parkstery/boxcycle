@@ -13,7 +13,7 @@ import {
   invalidateLiveRouteActivityIdsCache,
   invalidateRouteActivityCache,
 } from "./lib/firestoreRouteActivity";
-import { AppMapStage, useAppMapOverlays } from "./features/map-overlays";
+import { AppMapStage, RouteMinimap, useAppMapOverlays } from "./features/map-overlays";
 import { RouteDock, useRouteDockStops, type RouteDockStop, type RouteDockStopId } from "./components/route-dock";
 import { DebugMapStage } from "./features/map-overlays/DebugMapStage";
 import type { MapViewportBounds } from "./lib/activityWorldLod";
@@ -2289,6 +2289,13 @@ export default function App() {
           </DebugMapStage>
         ) : (
           <AppMapStage
+            minimap={
+              <RouteMinimap
+                active={stage === "riding" || stage === "paused"}
+                routeGeometry={routeGeometry}
+                liveLngLat={liveForMap}
+              />
+            }
             routeDock={
               <>
                 <MapBottomLeftStack>

@@ -1,6 +1,6 @@
 ---
 name: ops-relay
-description: document/ops 릴레이 폴더의 지시 파일을 폴링·수행한다. 카메라 작업(20260922-new_camera)·ops 지시·수행결과·감리 릴레이가 언급되거나 세션이 그 폴더를 다룰 때 사용. Chief 대기 없이 지시 파일 자체가 착수 신호다.
+description: document/ops 릴레이 폴더의 지시 파일을 폴링·수행한다. 미니맵 작업(20260923-minimap)·카메라 작업(20260922-new_camera)·ops 지시·수행결과·감리 릴레이가 언급되거나 세션이 그 폴더를 다룰 때 사용. Chief 대기 없이 지시 파일 자체가 착수 신호다.
 user-invocable: true
 ---
 
@@ -15,7 +15,7 @@ user-invocable: true
 ## 착수 전 (매번)
 
 ```bash
-node scripts/ops-relay/poll-next.mjs document/ops/20260922-new_camera
+node scripts/ops-relay/poll-next.mjs document/ops/20260923-minimap
 ```
 
 출력이 `IDLE` 이면 새 지시 없음. `NEXT <path>` 이면 그 지시 파일을 **읽고 바로 수행**한다.
@@ -44,8 +44,9 @@ node scripts/ops-relay/poll-next.mjs document/ops/20260922-new_camera
 3. `IDLE` 이면 60~120초 후 다시 폴링(Shell `block_until_ms` 또는 AwaitShell). Chief 호출을 기다리지 마라.
 4. 사용자가 명시적으로 중지하라고 할 때만 루프를 끊는다.
 
-## 이 묶음 고정 규칙 (`20260922-new_camera`)
+## 이 묶음 고정 규칙 (활성: `20260923-minimap`)
 
-- 상세 규약: `document/ops/20260922-new_camera/README.md`
+- 상세 규약: `document/ops/20260923-minimap/README.md`
+- 이전 묶음 `20260922-new_camera` 는 종결됐다(완료보고서 `document/archive/260923-RTW-Quick-Camera-작업-완료보고서.md`)
 - 캡처·`git diff --stat -- apps/web/src` 없는「문서만」보고는 실패로 본다.
 - 주행 검증 5분·3-strike·브라우저 5분 무진전 시 경로 전환(지시·CLAUDE.md).

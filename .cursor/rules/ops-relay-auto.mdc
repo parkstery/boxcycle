@@ -5,9 +5,10 @@ alwaysApply: true
 
 # ops 릴레이 — 지시 파일 = 착수
 
-카메라·ops 작업 중이거나 `document/ops/` 아래 지시가 보이면:
+미니맵·카메라·ops 작업 중이거나 `document/ops/` 아래 지시가 보이면:
 
-1. `node scripts/ops-relay/poll-next.mjs document/ops/20260922-new_camera` 로 **대기 지시**를 확인한다.
+1. `node scripts/ops-relay/poll-next.mjs document/ops/20260923-minimap` 로 **대기 지시**를 확인한다.
+   (현재 활성 묶음 = `20260923-minimap`. 이전 묶음 `20260922-new_camera` 는 종결됨)
 2. `NEXT …` 이면 **Chief 의 「계속」을 기다리지 말고** 해당 지시 파일을 읽고 즉시 수행한다.
 3. 수행 후 `지시NN수행결과-*.md` 를 같은 폴더에 쓴다 (번호는 지시에 대응; 재작업은 `수행결과02`).
 4. 한 지시를 끝낸 뒤·대기 구간에서는 60~120초마다 다시 폴링한다. 스킬: `.claude/skills/ops-relay/SKILL.md`.

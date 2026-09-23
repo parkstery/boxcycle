@@ -76,6 +76,25 @@
   display: block;
 }
 
+/* 주행 중 접힘 — 셰브런 자리의 센서 LED(지시01 §3). 색은 cadenceChipView 계약만. */
+.route-dock__caret-led {
+  display: block;
+  /* 캐럿 폭(0.93rem) 안에서 보이도록 칩 LED 보다 살짝 작게 */
+  width: 0.45rem;
+  height: 0.45rem;
+}
+
+/*
+ * 주행 중 접힘: body 가 빈 채 flex 로 폭을 먹지 않게.
+ * top:empty → display:none, panel[hidden] → 숨김 → shell = 캐럿 폭만.
+ */
+.route-dock-anchor--ride-collapsed .route-dock__body {
+  flex: 0 0 auto;
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
 
 /*
  * caret 오른쪽 세로 스택 — 첫 행(항상 보임) + 접히는 본문.

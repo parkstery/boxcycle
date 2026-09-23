@@ -1,0 +1,88 @@
+/*
+ * 좌측 미니맵 — 접힌 RouteDock **바로 위**(하단 정렬). 지시04.
+ * 상자 종횡비 = 화면비. 크기 공식은 JS(MINIMAP_WIDTH_RATIO = 0.294).
+ *
+ * bottom 식은 RouteDock.css `.route-dock-anchor` 와 같은 pad·logo clearance 를 쓴다.
+ * (공통 토큰 파일이 없어 식을 맞춰 두고, 한쪽만 바꾸면 어긋남을 주석으로 표시.)
+ */
+.route-minimap-anchor {
+  /* RouteDock 과 동일 이름·식 — 좌측 여백·하단 앵커 공유 */
+  --route-dock-pad: clamp(0.45rem, 1.4vw, 0.85rem);
+  --mapbox-logo-clearance: 2.875rem;
+  /* 접힌 캐럿(min-height 44px) + shell 테두리 여유 — RouteDock 접힘 높이와 맞춤 */
+  --mm-collapsed-dock-h: 3.4rem;
+  --mm-gap-above-dock: 0.35rem;
+  /* TL 침범 방지용 상단 예약(availH 상한) */
+  --mm-pad-top: max(var(--route-dock-pad), env(safe-area-inset-top, 0px));
+  --mm-tl-block: 2.55rem;
+  --mm-gap-after-tl: 0.35rem;
+  --mm-top: calc(var(--mm-pad-top) + var(--mm-tl-block) + var(--mm-gap-after-tl));
+  --mm-bottom-reserve: calc(
+    max(var(--route-dock-pad), env(safe-area-inset-bottom, 0px)) + var(--mapbox-logo-clearance) +
+      var(--mm-collapsed-dock-h) + var(--mm-gap-above-dock)
+  );
+
+  position: absolute;
+  z-index: 4;
+  left: max(var(--route-dock-pad), env(safe-area-inset-left, 0px));
+  /* availH 측정: TL 아래 ~ dock 위. 시각 상자는 이 슬롯의 **하단**에 붙인다 */
+  top: var(--mm-top);
+  bottom: var(--mm-bottom-reserve);
+  width: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.route-minimap {
+  position: absolute;
+  left: 0;
+  /* 지시04: RouteDock 바로 위 — 슬롯 하단 정렬(상단 TL 부착 제거) */
+  bottom: 0;
+  top: auto;
+  box-sizing: border-box;
+  padding: 0;
+  overflow: hidden;
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.route-minimap__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.route-minimap__path-outline {
+  stroke: rgba(2, 6, 23, 0.92);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.route-minimap__path {
+  stroke: #f8fafc;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.route-minimap__endpoint {
+  stroke: rgba(2, 6, 23, 0.9);
+  stroke-width: 1.25;
+}
+
+.route-minimap__endpoint--start {
+  fill: #94a3b8;
+}
+
+.route-minimap__endpoint--end {
+  fill: #e2e8f0;
+}
+
+.route-minimap__live {
+  fill: #e8a33d;
+  stroke: #f8fafc;
+  stroke-width: 1.75;
+}

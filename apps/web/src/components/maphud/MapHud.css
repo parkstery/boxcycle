@@ -161,12 +161,23 @@
 }
 
 /*
- * 좌상단 첫 줄 — 계기판(Chief 「주행 중 상단 중앙 계기판이 진행 방향 지도를 가린다.
- * 좌상단으로 옮겨라」). 비어 있어도 높이를 예약해 아래 RTW 버튼이 주행 시작·종료에
- * 위아래로 튀지 않는다(Chief 「한 줄 아래로 내린 위치로 고정」).
+ * 좌상단 한 행 — RTW + 계기판(20260923-minimap 지시01).
+ * 세로 중앙 정렬로 한 줄로 읽히게 한다. 계기판은 이 행 안·stack 제약 밖.
+ */
+.map-hud__tl-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: nowrap;
+}
+
+/*
+ * 계기판 슬롯. 예전 min-height: 2rem 은 「계기가 비어도 RTW 가 위아래로 튀지 않게」
+ * 높이를 예약하던 근거였다. RTW·계기가 같은 한 행이 되면 RTW 자신이 행 높이를
+ * 정하므로 그 예약은 근거가 사라져 제거했다(20260923-minimap 지시01 §1).
  */
 .map-hud__tl-metrics {
-  min-height: 2rem;
   display: flex;
 }
 
@@ -176,15 +187,8 @@
   align-items: flex-start;
   gap: 0.35rem;
   width: 100%;
-  /* 날씨 힌트·동행 패널 줄바꿈 제약 — 계기판 캡슐(폰 가로 ~243px)은 이 제약 밖(.map-hud__tl)에 둔다 */
+  /* 날씨 힌트·동행 패널 줄바꿈 제약 — 계기판 캡슐은 이 제약 밖(.map-hud__tl-row)에 둔다 */
   max-width: min(58vw, 15rem);
-}
-
-.map-hud__tl-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.35rem;
 }
 
 /* 좌상단: 로비 방 + 동행 코스 요약 */
@@ -621,8 +625,9 @@
 .hud-metrics__capsule {
   display: inline-flex;
   align-items: center;
-  /* 간격은 절반으로(2026-09-17 Chief) — 아래 셀 패딩 제거·고정 폭 축소와 함께 간다. */
-  gap: 0.35rem;
+  /* 간격 재절반(20260923-minimap 지시01 §2) — gap + 고정폭 여유분을 같이 줄인다.
+   * 고정 폭 셀에서 패딩만 줄이면 글자가 안 움직인다(가운데 정렬). */
+  gap: 0.2rem;
   padding: 0.1rem 0.15rem;
   /*
    * 부드러운 그림자만으로는 **흰 지형 위 흰 글자**가 안 읽힌다(실측: 밝은 배경 3배
@@ -745,27 +750,31 @@
   padding-right: 0;
 }
 
-/* 폭은 걷어낸 패딩(폰 가로 0.28rem × 2)만큼 줄인다 — 내용 가용폭 불변. */
+/*
+ * 고정 폭 — 최악값(거리 123.45/234.56km · 시간 10:00:00 · 속도 100 · 새 도로 +12.34km)
+ * 이 잘리지 않는 최소폭 + 값 사이 빈 간격이 변경 전 평균의 절반(±10%)이 되게 조임
+ * (20260923-minimap 지시01 §2 · 폰 가로 루트 13.5px 실측).
+ */
 .hud-metrics__cell--w-distance {
-  flex: 0 0 6rem;
-  width: 6rem;
+  flex: 0 0 6.45rem;
+  width: 6.45rem;
 }
 
 .hud-metrics__cell--w-time {
-  flex: 0 0 3rem;
-  width: 3rem;
+  flex: 0 0 3.25rem;
+  width: 3.25rem;
 }
 
 .hud-metrics__cell--w-speed {
-  flex: 0 0 3.45rem;
-  width: 3.45rem;
+  flex: 0 0 2.9rem;
+  width: 2.9rem;
 }
 
 /* 마지막 셀이라 폭이 변해도 이웃을 밀지 않지만, 「이미 내 도로」 힌트가 들고 날 때
    캡슐 전체 폭이 출렁이지 않도록 함께 고정한다. */
 .hud-metrics__cell--conquest {
-  flex: 0 0 4.05rem;
-  width: 4.05rem;
+  flex: 0 0 3.65rem;
+  width: 3.65rem;
 }
 
 /* Trail 배지 칩(캡슐 밖 컨텍스트 배지) */

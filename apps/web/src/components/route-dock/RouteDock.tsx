@@ -1,11 +1,14 @@
 import { useState } from "react";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
+import { cadenceChipView } from "../../lib/cadenceSensorUi";
 import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/firestoreSavedRoutes";
 import { isRouteDockVisible, routeDockUiPolicy } from "../../lib/routeDockUiPolicy";
 import { CadenceHudChip, type CadenceChipBinding } from "../maphud/CadenceHudChip";
 import { isIncompleteQuotaError } from "../../lib/tierQuota";
 import type { RouteDockStop, RouteDockStopId } from "./useRouteDockStops";
 import "./RouteDock.css";
+/* LED 클래스(hud-cadence__led*) — CadenceHudChip 이 묶은 CSS. 접힌 캐럿 LED 가 재사용한다. */
+import "../maphud/CadenceHudChip.css";
 
 export type RouteDockProps = {
   stage: RideUiStage;
@@ -143,9 +146,25 @@ export function RouteDock(props: RouteDockProps) {
   }
   if (!visible) return null;
 
+  /*
+   * 주행 중 접힘(20260923-minimap 지시01 §3): 센서 칩(텍스트)을 빼고 캐럿 폭만 남긴다.
+   * LED 는 셰브런 자리에. 펼치면 칩+셰브런 복귀. 주행 전 접힘에서는 칩을 유지
+   * (센서 설정 입구 — sensorChipSlot 2026-09-16 사고).
+   */
+  const rideCollapsed = isActiveRide && !expanded;
+  const showSensorChip = Boolean(cadence) && !rideCollapsed;
+  const caretSensorView = cadence && rideCollapsed ? cadenceChipView(cadence.state, true) : null;
+  const caretAriaLabel = expanded
+    ? "경로 패널 접기"
+    : caretSensorView
+      ? `경로 패널 펼치기 · ${caretSensorView.ariaLabel}`
+      : "경로 패널 펼치기";
+
   return (
     <div
-      className={`route-dock-anchor${expanded ? " route-dock-anchor--open" : ""}`}
+      className={`route-dock-anchor${expanded ? " route-dock-anchor--open" : ""}${
+        rideCollapsed ? " route-dock-anchor--ride-collapsed" : ""
+      }`}
       aria-label="경로 설정"
     >
       <div className="route-dock__shell">
@@ -153,37 +172,46 @@ export function RouteDock(props: RouteDockProps) {
           type="button"
           className="route-dock__caret hud-glass"
           aria-expanded={expanded}
-          aria-label={expanded ? "경로 패널 접기" : "경로 패널 펼치기"}
+          aria-label={caretAriaLabel}
           title={expanded ? "접기" : "펼치기"}
           onClick={() => setExpanded((v) => !v)}
         >
-          <svg
-            className="route-dock__caret-icon"
-            viewBox="0 0 24 24"
-            width="14"
-            height="14"
-            aria-hidden
-          >
-            {expanded ? (
-              <path
-                d="M14 6l-6 6 6 6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.25"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            ) : (
-              <path
-                d="M10 6l6 6-6 6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.25"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            )}
-          </svg>
+          {caretSensorView ? (
+            <span
+              className={`route-dock__caret-led hud-cadence__led hud-cadence__led--${caretSensorView.led}${
+                caretSensorView.pulsing ? " hud-cadence__led--pulse" : ""
+              }`}
+              aria-hidden
+            />
+          ) : (
+            <svg
+              className="route-dock__caret-icon"
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              aria-hidden
+            >
+              {expanded ? (
+                <path
+                  d="M14 6l-6 6 6 6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.25"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              ) : (
+                <path
+                  d="M10 6l6 6-6 6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.25"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )}
+            </svg>
+          )}
         </button>
 
         <div className="route-dock__body">
@@ -194,9 +222,11 @@ export function RouteDock(props: RouteDockProps) {
           dock 폭만 넓어져 지도를 더 가린다(2026-09-16 Chief 지적).
           헤더를 `route-dock__panel` 안에 두지 않는 이유: 주행 중 자동 접힘 상태에서
           칩까지 같이 사라져 rpm·연결 신호가 끊긴다(지시서 §3.1).
+          단, 주행 중+접힘에서는 칩 대신 캐럿 LED 로 연결만 표시(지시01 §3) —
+          rpm 은 펼친 뒤 칩에서 본다.
         */}
         <div className="route-dock__top">
-          {cadence ? (
+          {showSensorChip && cadence ? (
             <CadenceHudChip
               placement="dock"
               state={cadence.state}
