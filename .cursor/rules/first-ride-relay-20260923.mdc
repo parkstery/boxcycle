@@ -1,0 +1,35 @@
+---
+description: Local First Ride(첫 화면 지역 인식 · Ready Ride 자동 생성 · Claim 연동 스코어) 작업 릴레이 — 감리 지시와 수행결과를 주고받는 폴더 규약
+alwaysApply: true
+---
+
+# Local First Ride 릴레이 (20260923-first_ride)
+
+첫 주행·지역 선택·Ready Ride·경로 자동 생성·Local First 관련 작업을 지시받으면
+**먼저 `document/ops/20260923-first_ride/README.md` 와 `20260923-Local-First-착수브리핑.md` 를 읽어라.**
+감리(별도 창의 클로드)와는 그 폴더의 파일로만 통신한다.
+
+- 수신은 `node scripts/ops-relay/await-next.mjs document/ops/20260923-first_ride` — **블록해서 기다린다**
+- 보고는 같은 폴더에 `20260923-지시NN수행결과-<내용>.md`. 번호는 지시와 일치, 재작업은 `수행결과02`
+- 진행 로그 `PROGRESS.md` 에 **최소 10분에 한 줄**(UTF-8 로 써라). Chief 가 상황판으로 본다
+- 그때마다 `node scripts/ops-relay/check-amend.mjs document/ops/20260923-first_ride` 로 **정정을 확인**한다
+- 이 묶음에서는 **`git commit` · `git push` 금지** — `github-push-after-work` 규칙의 예외다.
+  커밋은 Chief 승인 후 감리가 별도 지시한다
+
+## 이 묶음의 요구 기준
+
+| 문서 | 역할 |
+|---|---|
+| `document/260923-RTW-Local-First-Ride-실행계획.md` | 요구의 기준(LF-0~LF-4 · 하지 않을 것) |
+| `document/260714-RTW-Ontology.md` | 용어. **Ready Ride 는 §2.2 등재된 사용자 노출 명칭** |
+| `document/260707-RTW-결정-로그.md` | 2026-09-23 네 줄이 결정 근거 |
+
+## 이 묶음에서 사고가 반복된 지점
+
+- **이미 있는 것을 다시 만들지 마라** — 경로 생성기는 `functions/src/distanceAutoRouteCore.ts`,
+  지명 검색은 `components/MenuPlaceSearch.tsx`, 카메라는 `setExternalCameraJump` 다
+- **자체 도로 그래프(Edge/Node)는 미채택 결정**이다. OSM 파이프라인을 들이지 마라
+- **첫 화면에서 위치 권한을 요청하지 마라** — `[현재 위치]` 클릭 시에만
+- 측정 근거 없는 판정 항목을 만들지 마라. 항상 같은 값이 되는 게이트는 **자동 통과 장치**다
+- 폰 가로 CSS 높이는 약 275px. 900×400 에서만 재면 실기와 100px 이상 어긋난다
+- 지도 위 UI 는 `pointerdown`/`touchstart` 를 막지 않으면 터치가 지도로 샌다

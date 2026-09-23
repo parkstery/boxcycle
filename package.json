@@ -33,6 +33,7 @@
     "admin:backfill-route-activity": "npm --prefix functions run admin:backfill-route-activity --",
     "admin:backfill-last-completed-ride-at": "npm --prefix functions run admin:backfill-last-completed-ride-at --",
     "admin:purge-ride-legacy-fields": "npm --prefix functions run admin:purge-ride-legacy-fields --",
+    "admin:purge-guest-users": "npm --prefix functions run admin:purge-guest-users --",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

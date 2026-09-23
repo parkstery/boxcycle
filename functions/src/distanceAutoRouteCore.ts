@@ -315,7 +315,96 @@ export function isValidAutoRouteEnd(origin: LngLat, end: LngLat, minMeters = 200
   return getDistanceMeters(origin, end) >= minMeters;
 }
 
-export const AUTO_ROUTE_ALGORITHM_VERSION = "3I-shortfall";
+/**
+ * ===== 경로 타당성 검사(V1~V3) — 지시04 §4 =====
+ *
+ * 없는 길(직선 기하)이 사용자 화면에 나가지 못하게 막는 최종 게이트. `searchDistanceAutoRoute`
+ * (클릭 기반·closeLoop 편도 폴백 공용)와 `searchReadyLoopRoute`(폐합) 양쪽의 "성공" 경로 직전에
+ * 반드시 통과시킨다 — 두 함수가 이걸 공유하므로 **클릭 기반 경로도 자동으로 같은 검사를 받는다.**
+ *
+ * 기준값은 실측이다(지시04 재조사, 2026-09-24 — `document/ops/20260923-first_ride/.out/jisi04/
+ * stats-real-routes.mjs`, 실 Mapbox Directions cycling 응답 7건: 도심 밀집 4건 + 교외 간선도로 1건
+ * + 강변 자전거도로 1건 + 여의도 폐합형 1건):
+ *   - 점 밀도(points/km) 실측 분포: 22.37 ~ 40.72 (최소 22.37, 도심 강남)
+ *   - 최장 구간/전체 길이 비율 실측 분포: 0.029 ~ 0.0997 (최대 9.97%, 교외 김포 간선도로에서도)
+ * 직선(2점) 지오메트리는 points/km ≈ 0.3~수 개, 최장 구간 비율 = 1.0(전 구간이 한 세그먼트)이므로
+ * 실측 최솟값에 4배 이상 여유를 두고 잡아도 정상 경로는 걸리지 않고 직선은 확실히 걸린다.
+ */
+
+/** V1 — 점 밀도 하한(points/km). 실측 최소 22.37 의 4배 이상 여유(교외 저밀도 도로 대비). */
+export const ROUTE_GEOMETRY_MIN_POINTS_PER_KM = 5;
+
+/** V2 — 최장 인접 구간 / 전체 길이 비율 상한. 실측 최대 0.0997 의 3.5배 이상 여유. */
+export const ROUTE_GEOMETRY_MAX_LONGEST_LEG_RATIO = 0.35;
+
+/**
+ * V3 — geometry 첫 점과 요청 start 사이 허용 오차(m). 기존 클릭 스냅 실패 기준
+ * `CLICK_SNAP_FAIL_M`(250m)보다 살짝 넉넉하게 잡아 이미 그 게이트를 통과한 정상 경로를
+ * 다시 걸러내지 않는다.
+ */
+export const ROUTE_GEOMETRY_MAX_START_MISS_METERS = 300;
+
+export type RouteGeometryValidation =
+  | { ok: true }
+  | {
+      ok: false;
+      reason: "low_point_density" | "long_straight_segment" | "start_mismatch";
+      detail: Record<string, number>;
+    };
+
+/**
+ * 없는 길(직선 기하) 근절 게이트. `start`는 이 지오메트리가 응답해야 할 요청 시작점 —
+ * closeLoop 이면 원 요청 `start`, 클릭 기반이면 마찬가지로 원 요청 `start` 다(둘 다 geometry[0]
+ * 이 그 근처여야 한다).
+ */
+export function validateRouteGeometryPlausibility(input: {
+  start: LngLat;
+  geometry: { type: "LineString"; coordinates: LngLat[] };
+}): RouteGeometryValidation {
+  const { start, geometry } = input;
+  const coords = geometry.coordinates;
+  const totalLengthMeters = lineStringLengthMeters(geometry);
+
+  if (coords.length < 2 || totalLengthMeters <= 0) {
+    return {
+      ok: false,
+      reason: "low_point_density",
+      detail: { pointsPerKm: 0, totalLengthMeters, coordCount: coords.length },
+    };
+  }
+
+  const pointsPerKm = coords.length / (totalLengthMeters / 1000);
+  if (pointsPerKm < ROUTE_GEOMETRY_MIN_POINTS_PER_KM) {
+    return {
+      ok: false,
+      reason: "low_point_density",
+      detail: { pointsPerKm, totalLengthMeters, coordCount: coords.length },
+    };
+  }
+
+  let longestLegMeters = 0;
+  for (let i = 1; i < coords.length; i += 1) {
+    const d = getDistanceMeters(coords[i - 1]!, coords[i]!);
+    if (d > longestLegMeters) longestLegMeters = d;
+  }
+  const longestLegRatio = longestLegMeters / totalLengthMeters;
+  if (longestLegRatio > ROUTE_GEOMETRY_MAX_LONGEST_LEG_RATIO) {
+    return {
+      ok: false,
+      reason: "long_straight_segment",
+      detail: { longestLegMeters, longestLegRatio, totalLengthMeters },
+    };
+  }
+
+  const startMissMeters = getDistanceMeters(start, coords[0]!);
+  if (startMissMeters > ROUTE_GEOMETRY_MAX_START_MISS_METERS) {
+    return { ok: false, reason: "start_mismatch", detail: { startMissMeters } };
+  }
+
+  return { ok: true };
+}
+
+export const AUTO_ROUTE_ALGORITHM_VERSION = "4A-ready-loop";
 
 export const MAX_AUTO_ROUTE_PROVIDER_CALLS = 13;
 export const DETOUR_CALL_BUDGET = 12;
@@ -560,13 +649,26 @@ export async function searchDistanceAutoRoute(input: {
     return assembleFromClipped(clipped, pendingOutcome);
   }
 
-  function assembleShortfall(route: DirectionsRouteLike): DistanceAutoRouteSearchFound {
+  function assembleShortfall(
+    route: DirectionsRouteLike,
+  ): DistanceAutoRouteSearchFound | DistanceAutoRouteSearchFailed {
     const finalGeometry = route.geometry;
     const finalEnd = snappedEndFromRoute(route);
     const finalDistance = lineStringLengthMeters(finalGeometry);
     const finalDuration = route.duration;
     const finalEndMissM = getDistanceMeters(finalEnd, clickRoadPoint);
     const searchElapsedMs = Date.now() - searchStartedAt;
+
+    // 지시04 §4 — 없는 길 근절 게이트. 여기가 마지막 반환 지점이므로 반드시 통과시킨다.
+    const geometryCheck = validateRouteGeometryPlausibility({ start, geometry: finalGeometry });
+    if (!geometryCheck.ok) {
+      return {
+        status: "failed",
+        message: `${ROUTE_CLIP_FAILED_MESSAGE}(${geometryCheck.reason})`,
+        providerCallCount,
+        searchElapsedMs,
+      };
+    }
 
     const diagnostics = computeAutoRouteClickDiagnostics({
       start,
@@ -597,7 +699,7 @@ export async function searchDistanceAutoRoute(input: {
   function assembleFromClipped(
     clipped: Extract<ClipRouteGeometryResult, { ok: true }>,
     pendingOutcome: AutoRouteOutcome,
-  ): DistanceAutoRouteSearchFound {
+  ): DistanceAutoRouteSearchFound | DistanceAutoRouteSearchFailed {
     let finalOutcome = pendingOutcome;
     let finalGeometry = clipped.geometry;
     let finalEnd = clipped.end;
@@ -632,6 +734,17 @@ export async function searchDistanceAutoRoute(input: {
       if (finalDistance < D - EXACT_TARGET_DISTANCE_TOLERANCE_M) {
         finalOutcome = "shortfall";
       }
+    }
+
+    // 지시04 §4 — 없는 길 근절 게이트. 여기가 마지막 반환 지점이므로 반드시 통과시킨다.
+    const geometryCheck = validateRouteGeometryPlausibility({ start, geometry: finalGeometry });
+    if (!geometryCheck.ok) {
+      return {
+        status: "failed",
+        message: `${ROUTE_CLIP_FAILED_MESSAGE}(${geometryCheck.reason})`,
+        providerCallCount,
+        searchElapsedMs,
+      };
     }
 
     const diagnostics = computeAutoRouteClickDiagnostics({
@@ -786,4 +899,396 @@ export async function searchDistanceAutoRoute(input: {
   // ③ 확장·우회 모두 목표를 못 채웠다 → shortfall 고지.
   //    확장 후보가 직행보다 길면 그것을 쓴다(목표에 더 가깝다).
   return assembleShortfall(directRoute);
+}
+
+/**
+ * ===== Ready Ride — 방위 자동 표본 + 폐합(출발=도착) =====
+ * 지시02(20260923). 클릭(`targetRoadPoint`)이 없을 때 쓰는 별도 탐색이다.
+ * `searchDistanceAutoRoute`(클릭 기반)는 그대로 두고 새 함수로 확장한다 — 계약이 다르다:
+ * 클릭 기반은 "사용자가 가리킨 한 점까지"이고, Ready Ride 는 "출발점으로 되돌아오는 삼각형"이다.
+ */
+
+/**
+ * 시작 방위 표본 5개(0/72/144/216/288, 360°균등). 후보 1개 = provider 호출 1회이므로
+ * 5개면 예산(13) 안에서 반 이상을 남겨 재시도 여지를 준다. 홀수 5개는 이웃 표본끼리
+ * 정확히 72°씩 벌어져, 짝수 표본보다 서로 마주보는(=거의 같은 도로를 고를) 쌍이 생기지 않는다.
+ */
+export const READY_LOOP_BEARING_SAMPLES_DEG = [0, 72, 144, 216, 288] as const;
+
+/**
+ * 자기중복 허용 상한. out-and-back(같은 길로 왕복)은 자기중복이 ~100%다.
+ * 삼각 폐합의 두 다리가 간선도로 일부를 함께 지나는 것은 정상이므로 0%를 요구하면
+ * 좁은 도로망 지역에서 폐합을 거의 못 찾는다. 60% 이상이면 "그냥 갔다 왔다"로 판정해 버린다.
+ */
+export const OUT_AND_BACK_OVERLAP_REJECT_RATIO = 0.6;
+
+/** 자기중복 판정 시 같은 지점 취급 거리(m). 도로 폭·GPS 오차 수준. */
+const SELF_OVERLAP_THRESHOLD_M = 15;
+
+/**
+ * 두 다리(start→W1, start→W2) 사이 각도. 0°에 가까우면 W1≈W2(순수 왕복), 180°면 start 가
+ * W1·W2 사이에 끼는 일직선(면적 0, 이 역시 왕복에 가깝다) — 그 중간인 140°에서 면적 있는
+ * 삼각형이 나온다("실제 도로망이 정삼각형에서 어긋나는 여유"도 겸한다).
+ */
+const READY_LOOP_ARM_ANGLE_DEG = 140;
+
+/**
+ * 두 다리 반경(m). 목표 거리 D, 다리 사이 각 θ 인 이등변삼각형 둘레는 `2R(1+sin(θ/2))` 다.
+ * 이 값이 **직선거리 기준으로 D 와 같아지는** R 을 역산한다 — 실제 도로는 직선보다 길어지므로
+ * (①③ 거리 허용 오차) 이 R 이 "D/3 안팎"이라는 지시서 지침의 실제 계산값이다.
+ * θ=140° 에서 R ≈ 0.258·D(≈D/3.9) — 순수 정삼각형(θ=120°, R=D/3.6)보다 살짝 작다.
+ */
+function readyLoopLegRadiusMeters(targetDistanceMeters: number): number {
+  const halfAngleRad = toRad(READY_LOOP_ARM_ANGLE_DEG / 2);
+  return targetDistanceMeters / (2 * (1 + Math.sin(halfAngleRad)));
+}
+
+function buildReadyLoopWaypoints(start: LngLat, bearingDeg: number, legRadiusMeters: number): LngLat[] {
+  const w1 = offsetLngLatByBearingMeters(start, bearingDeg, legRadiusMeters);
+  const w2 = offsetLngLatByBearingMeters(
+    start,
+    (bearingDeg + READY_LOOP_ARM_ANGLE_DEG + 360) % 360,
+    legRadiusMeters,
+  );
+  return [start, w1, w2, start];
+}
+
+/**
+ * 자기 중복 비율 = (다른(비인접) 구간과 `SELF_OVERLAP_THRESHOLD_M` 이내로 겹친 길이) / 전체 길이.
+ * 점이 많은 geometry는 300점으로 축약해 O(n²) 비교 비용을 제한한다.
+ */
+export function computeRouteSelfOverlapRatio(
+  coords: LngLat[],
+  overlapThresholdMeters: number = SELF_OVERLAP_THRESHOLD_M,
+): number {
+  const n = coords.length;
+  if (n < 4) return 0;
+
+  const maxPoints = 300;
+  const stride = Math.max(1, Math.floor(n / maxPoints));
+  const pts: LngLat[] = [];
+  for (let i = 0; i < n; i += stride) pts.push(coords[i]!);
+  if (pts[pts.length - 1] !== coords[n - 1]) pts.push(coords[n - 1]!);
+
+  const m = pts.length;
+  if (m < 4) return 0;
+  // 인접 제외 윈도우 — 같은 다리를 걷는 이웃 구간은 겹침으로 치지 않는다.
+  const excludeWindow = Math.max(5, Math.floor(m / 8));
+
+  let overlapLen = 0;
+  let totalLen = 0;
+  for (let i = 1; i < m; i += 1) {
+    const a = pts[i - 1]!;
+    const b = pts[i]!;
+    const segLen = getDistanceMeters(a, b);
+    totalLen += segLen;
+    const mid = midpointLngLat(a, b);
+    let minDist = Number.POSITIVE_INFINITY;
+    for (let j = 0; j < m; j += 1) {
+      if (Math.abs(j - i) < excludeWindow) continue;
+      const d = getDistanceMeters(mid, pts[j]!);
+      if (d < minDist) minDist = d;
+    }
+    if (minDist < overlapThresholdMeters) overlapLen += segLen;
+  }
+  return totalLen > 0 ? overlapLen / totalLen : 0;
+}
+
+export type ReadyLoopSearchFound = {
+  status: "found";
+  geometry: DirectionsRouteLike["geometry"];
+  distance: number;
+  duration: number;
+  /** 폐합이므로 시작점(도로 스냅 좌표)과 같다. */
+  end: LngLat;
+  startBearingSampleDeg: number;
+  selfOverlapRatio: number;
+  providerCallCount: number;
+  searchElapsedMs: number;
+  snappedStart: LngLat;
+  startSnapMeters: number;
+};
+
+export type ReadyLoopSearchFailed = {
+  status: "failed";
+  message: string;
+  reason: "no_road" | "budget_exceeded" | "no_loop";
+  providerCallCount: number;
+  searchElapsedMs: number;
+  /**
+   * reason === "no_loop" 일 때만 — 가장 가까웠던 후보의 오차·자기중복(왜 탈락했는지 진단용) +
+   * 그 후보의 시작 방위(지시03 §B3 — 호출부가 이 방위로 편도 대안을 재시도할 때 쓴다).
+   */
+  closestCandidate?: { errorRatio: number; selfOverlapRatio: number; bearingDeg: number };
+};
+
+export type ReadyLoopSearchResult = ReadyLoopSearchFound | ReadyLoopSearchFailed;
+
+const READY_LOOP_FAILURE_MESSAGE = "이 지역에서는 순환 경로를 찾지 못했습니다.";
+
+/**
+ * Ready Ride 탐색 — 방위 자동 표본(5개) × 삼각 폐합 1회 호출씩, 예산(기본 13) 안에서.
+ * **절단하지 않는다** — `clipRouteGeometryToTargetMeters` 로 자르면 폐합(출발=도착)이 깨지므로
+ * 폐합을 우선하고 거리는 기존 ±20%(`MAX_DISTANCE_ERROR_RATIO`) 허용오차로만 판정한다.
+ */
+export async function searchReadyLoopRoute(input: {
+  start: LngLat;
+  profile: RouteProfile;
+  targetDistanceMeters: number;
+  fetchDirections: FetchDirectionsFn;
+  maxProviderCalls?: number;
+  /**
+   * 「다른 경로」(지시03 §B3) — 직전에 쓴 시작 방위를 제외하고 다음 표본을 쓴다.
+   * `READY_LOOP_BEARING_SAMPLES_DEG` 의 정확한 값과 일치할 때만 제외한다.
+   */
+  excludeBearingsDeg?: number[];
+}): Promise<ReadyLoopSearchResult> {
+  const { start, profile, targetDistanceMeters: D, fetchDirections } = input;
+  const budget = input.maxProviderCalls ?? MAX_AUTO_ROUTE_PROVIDER_CALLS;
+  const searchStartedAt = Date.now();
+  const legRadius = readyLoopLegRadiusMeters(D);
+  const excludeSet = new Set(input.excludeBearingsDeg ?? []);
+  const filteredBearingSamples = READY_LOOP_BEARING_SAMPLES_DEG.filter((b) => !excludeSet.has(b));
+  // 전부 제외돼 표본이 비면(이론상 발생하지 않으나 방어) 제외를 무시하고 전체 표본을 쓴다.
+  const bearingSamples =
+    filteredBearingSamples.length > 0 ? filteredBearingSamples : READY_LOOP_BEARING_SAMPLES_DEG;
+
+  let providerCallCount = 0;
+  let snappedStart: LngLat | null = null;
+  let startSnapMeters = 0;
+
+  type Candidate = {
+    bearingDeg: number;
+    route: DirectionsRouteLike;
+    distanceMeters: number;
+    errorMeters: number;
+    selfOverlapRatio: number;
+  };
+  const candidates: Candidate[] = [];
+
+  for (const bearingDeg of bearingSamples) {
+    if (providerCallCount >= budget) break;
+    const waypoints = buildReadyLoopWaypoints(start, bearingDeg, legRadius);
+    providerCallCount += 1;
+    let route: DirectionsRouteLike;
+    try {
+      route = await fetchDirections(profile, waypoints);
+    } catch {
+      continue;
+    }
+
+    if (snappedStart === null) {
+      const snap = parseDirectionsSnapMetadata(route);
+      if (snap) {
+        snappedStart = snap.snappedEnd;
+        startSnapMeters = snap.endSnapDistanceMeters;
+      }
+    }
+
+    const distanceMeters = lineStringLengthMeters(route.geometry);
+    const errorMeters = scoreRouteDistanceError(distanceMeters, D);
+    const selfOverlapRatio = computeRouteSelfOverlapRatio(route.geometry.coordinates);
+    candidates.push({ bearingDeg, route, distanceMeters, errorMeters, selfOverlapRatio });
+  }
+
+  const elapsed = () => Date.now() - searchStartedAt;
+
+  if (candidates.length === 0) {
+    return {
+      status: "failed",
+      message: READY_LOOP_FAILURE_MESSAGE,
+      reason: providerCallCount >= budget ? "budget_exceeded" : "no_road",
+      providerCallCount,
+      searchElapsedMs: elapsed(),
+    };
+  }
+
+  // 지시04 §4 — 없는 길 근절 게이트. 폐합 후보도 통과해야만 eligible.
+  const eligible = candidates.filter(
+    (c) =>
+      isDistanceErrorWithinMax(c.errorMeters, D) &&
+      c.selfOverlapRatio < OUT_AND_BACK_OVERLAP_REJECT_RATIO &&
+      validateRouteGeometryPlausibility({ start, geometry: c.route.geometry }).ok,
+  );
+
+  if (eligible.length === 0) {
+    let closest = candidates[0]!;
+    for (const c of candidates.slice(1)) {
+      if (c.errorMeters < closest.errorMeters) closest = c;
+    }
+    return {
+      status: "failed",
+      message: READY_LOOP_FAILURE_MESSAGE,
+      reason: "no_loop",
+      providerCallCount,
+      searchElapsedMs: elapsed(),
+      closestCandidate: {
+        errorRatio: closest.errorMeters / D,
+        selfOverlapRatio: closest.selfOverlapRatio,
+        bearingDeg: closest.bearingDeg,
+      },
+    };
+  }
+
+  let best = eligible[0]!;
+  for (const c of eligible.slice(1)) {
+    if (c.errorMeters < best.errorMeters) best = c;
+  }
+
+  const end = snappedStart ?? start;
+  return {
+    status: "found",
+    geometry: best.route.geometry,
+    distance: best.distanceMeters,
+    duration: best.route.duration,
+    end,
+    startBearingSampleDeg: best.bearingDeg,
+    selfOverlapRatio: best.selfOverlapRatio,
+    providerCallCount,
+    searchElapsedMs: elapsed(),
+    snappedStart: end,
+    startSnapMeters,
+  };
+}
+
+/**
+ * ===== Ready Ride — 단순 경로(편도) 기본 (지시05) =====
+ * 폐합을 기본에서 빼고, 클릭 기반과 같은 `searchDistanceAutoRoute` 를 방위 자동 표본으로 돌린다.
+ * 표본은 폐합과 같은 5방위(0/72/144/216/288) — 예산 13을 편도에만 쓰므로 방위당
+ * 평균 2~3회 호출 여유. ±20% 이내면 즉시 채택해 호출을 아낀다.
+ */
+export type ReadyOnewaySearchFound = {
+  status: "found";
+  geometry: DirectionsRouteLike["geometry"];
+  distance: number;
+  duration: number;
+  end: LngLat;
+  startBearingSampleDeg: number;
+  providerCallCount: number;
+  searchElapsedMs: number;
+  outcome: AutoRouteOutcome;
+};
+
+export type ReadyOnewaySearchFailed = {
+  status: "failed";
+  message: string;
+  reason: "no_road" | "budget_exceeded" | "no_candidate";
+  providerCallCount: number;
+  searchElapsedMs: number;
+};
+
+export type ReadyOnewaySearchResult = ReadyOnewaySearchFound | ReadyOnewaySearchFailed;
+
+const READY_ONEWAY_FAILURE_MESSAGE = "이 지역에서는 경로를 찾지 못했습니다.";
+
+export async function searchReadyOnewayRoute(input: {
+  start: LngLat;
+  profile: RouteProfile;
+  targetDistanceMeters: number;
+  fetchDirections: FetchDirectionsFn;
+  maxProviderCalls?: number;
+  excludeBearingsDeg?: number[];
+}): Promise<ReadyOnewaySearchResult> {
+  const { start, profile, targetDistanceMeters: D, fetchDirections } = input;
+  const budget = input.maxProviderCalls ?? MAX_AUTO_ROUTE_PROVIDER_CALLS;
+  const searchStartedAt = Date.now();
+  const excludeSet = new Set(input.excludeBearingsDeg ?? []);
+  const filtered = READY_LOOP_BEARING_SAMPLES_DEG.filter((b) => !excludeSet.has(b));
+  const bearingSamples = filtered.length > 0 ? filtered : READY_LOOP_BEARING_SAMPLES_DEG;
+
+  let providerCallCount = 0;
+  type Cand = {
+    bearingDeg: number;
+    geometry: DirectionsRouteLike["geometry"];
+    distance: number;
+    duration: number;
+    end: LngLat;
+    errorMeters: number;
+    outcome: AutoRouteOutcome;
+  };
+  let best: Cand | null = null;
+
+  for (const bearingDeg of bearingSamples) {
+    if (providerCallCount >= budget) break;
+    const targetRoadPoint = offsetLngLatByBearingMeters(start, bearingDeg, D);
+    const searched = await searchDistanceAutoRoute({
+      start,
+      targetRoadPoint,
+      profile,
+      targetDistanceMeters: D,
+      bearingDeg,
+      fetchDirections,
+    });
+    const used =
+      searched.status === "found"
+        ? searched.diagnostics.providerCallCount
+        : searched.providerCallCount;
+    providerCallCount += used;
+
+    if (searched.status !== "found") continue;
+
+    const errorMeters = Math.abs(searched.distance - D);
+    const cand: Cand = {
+      bearingDeg,
+      geometry: searched.geometry,
+      distance: searched.distance,
+      duration: searched.duration,
+      end: searched.end,
+      errorMeters,
+      outcome: searched.outcome,
+    };
+    if (!best || cand.errorMeters < best.errorMeters) best = cand;
+
+    // ±20% 이내면 더 돌리지 않는다 — 예산·지연을 편도 기본에 맞게 절약.
+    if (isDistanceErrorWithinMax(errorMeters, D)) {
+      return {
+        status: "found",
+        geometry: cand.geometry,
+        distance: cand.distance,
+        duration: cand.duration,
+        end: cand.end,
+        startBearingSampleDeg: cand.bearingDeg,
+        providerCallCount,
+        searchElapsedMs: Date.now() - searchStartedAt,
+        outcome: cand.outcome,
+      };
+    }
+  }
+
+  if (best && isDistanceErrorWithinMax(best.errorMeters, D)) {
+    return {
+      status: "found",
+      geometry: best.geometry,
+      distance: best.distance,
+      duration: best.duration,
+      end: best.end,
+      startBearingSampleDeg: best.bearingDeg,
+      providerCallCount,
+      searchElapsedMs: Date.now() - searchStartedAt,
+      outcome: best.outcome,
+    };
+  }
+
+  // shortfall 이라도 최선 후보가 있으면 내보낸다(클릭 기반과 동일 — 모자람을 숨기지 않음).
+  if (best) {
+    return {
+      status: "found",
+      geometry: best.geometry,
+      distance: best.distance,
+      duration: best.duration,
+      end: best.end,
+      startBearingSampleDeg: best.bearingDeg,
+      providerCallCount,
+      searchElapsedMs: Date.now() - searchStartedAt,
+      outcome: best.outcome,
+    };
+  }
+
+  return {
+    status: "failed",
+    message: READY_ONEWAY_FAILURE_MESSAGE,
+    reason: providerCallCount >= budget ? "budget_exceeded" : "no_candidate",
+    providerCallCount,
+    searchElapsedMs: Date.now() - searchStartedAt,
+  };
 }

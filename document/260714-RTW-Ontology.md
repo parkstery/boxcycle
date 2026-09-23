@@ -107,6 +107,7 @@ flowchart LR
 | **SavedRoute** (저장 경로) | 사용자가 보관하는 Route 문서. 진행률·완주 여부를 가지며 쿼터(보유·미완료)의 대상 | — | `savedRoutes/{id}`, `lastProgressRatio` — 수치 SoT: [tier quota](260519-tier-quota-정책.md)·[Conquest §9.5](260703-Conquest-정복-레이어-설계.md) |
 | **Publication** (공개 경로) | Route가 공개 카탈로그에 등록된 **불변 스냅샷 인스턴스**. 월드 dot·동승·입문 코스의 단위 | Route 원본과 별개 문서. geometry가 바뀌면 새 Publication | `routePublications/{id}` — SoT: [Presence 설계](260523-World-Activity-Presence-설계.md) |
 | **코스** (한국어 UI) | "탈 수 있게 공개된 경로(Publication)"의 한국어 제품 표기 — 입문 코스·퍼블릭 코스 | 영문·코드의 `course`/`courseId`는 **퇴역**(Phase 7) — 신규 코드 사용 금지 | UI 문자열만. 장기 지위는 §4 미결 |
+| **Ready Ride** | 시스템이 **사용자 대신 만들어 바로 달릴 수 있게 내놓은 Route**. 사용자가 출발·도착·방향을 설계하지 않는다. 표기는 영문 그대로 「Ready Ride」(조사 붙임 — "Ready Ride를 시작") | **새 데이터 모델이 아니다** — 그릇은 Route(필요 시 SavedRoute). Publication도 아니고(공개 카탈로그 아님), 입문 코스(고정 3경로)도 아니다. 「추천 코스」와 달리 목록에서 고르는 것이 아니라 **한 건이 제시**된다 | 생성: `distanceAutoRouteCore.ts` · 그릇: `savedRoutes` — SoT: [Local First 실행계획](260923-RTW-Local-First-Ride-실행계획.md) |
 | **Journey** (여정) 💭 | (구상) 미완주 SavedRoute를 장기 프로젝트로 부르는 **표면명 후보** — "서울 한 바퀴 42%" | 새 데이터 모델이 아님(그릇 = SavedRoute + 진행률, 기구현) | 미확정 — [상태보드 §5](260707-RTW-기능-인벤토리-상태보드.md) |
 
 ### 2.3 주행·세션
@@ -177,6 +178,7 @@ flowchart LR
 
 | 날짜 | 내용 |
 |------|------|
+| 2026-09-23 | §2.2 **Ready Ride** 등재 — 사용자 노출 명칭으로 확정(Chief). 새 데이터 모델이 아니라 **자동 생성된 Route**이며, 목록에서 고르는 「추천 코스」·고정 3경로인 「입문 코스」와 구분한다. 근거: [결정 로그 09-23](260707-RTW-결정-로그.md) · [Local First 실행계획](260923-RTW-Local-First-Ride-실행계획.md) |
 | 2026-09-03 | §2.3 **동행** 등재 — 같은 Trail 만 동행. 같은 경로·다른 Trail 은 동행이 아님. 인원수 진실은 Trail 실시간 구독([4D](ops/route-relay/260903-동행-Trail단일진실-이탈반영-4D-작업지시서.md)) |
 | 2026-07-17 | §2.3에 **주행경로 전체거리**·**주행경로 누적거리** 등재 — HUD 거리 셀 「진행 / 전체」 병기 도입에 맞춰 두 거리 개념(마일리지와도) 구분 명문화 |
 | 2026-07-14 | 최초 작성 — 흩어져 있던 용어 정의를 단일 문서로 통합(자문 4층 구조 제안 수용). [260517](260517-제품-용어-Trailhead-Trail.md)의 온톨로지 역할 이관, 레이어 스코프·AI 해석 규칙 명시 |

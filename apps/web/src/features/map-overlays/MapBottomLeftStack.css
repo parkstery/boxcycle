@@ -27,7 +27,8 @@
  * 다른 화면에서 겹치는 사고가 난다(이 스택이 생긴 이유 자체가 그것이다).
  */
 .map-bottom-left-stack > .route-dock-anchor,
-.map-bottom-left-stack > .first-ride-anchor {
+.map-bottom-left-stack > .first-ride-anchor,
+.map-bottom-left-stack > .local-first-anchor {
   position: static;
   left: auto;
   bottom: auto;

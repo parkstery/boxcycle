@@ -1,16 +1,31 @@
 ---
-description: document/ops 지시 파일이 작업 착수 신호. Chief 대기 금지.
+description: ops 릴레이 — 지시 파일 수신 시 자동 착수. await-next + NEXT notify. Chief 대기 금지.
 alwaysApply: true
 ---
 
-# ops 릴레이 — 지시 파일 = 착수
+# ops 릴레이 — 지시 수신 = 자동 착수
 
-미니맵·카메라·ops 작업 중이거나 `document/ops/` 아래 지시가 보이면:
+**개발팀장 = 이 세션(커서).** 활성 묶음: `document/ops/20260923-first_ride`.
 
-1. `node scripts/ops-relay/poll-next.mjs document/ops/20260923-minimap` 로 **대기 지시**를 확인한다.
-   (현재 활성 묶음 = `20260923-minimap`. 이전 묶음 `20260922-new_camera` 는 종결됨)
-2. `NEXT …` 이면 **Chief 의 「계속」을 기다리지 말고** 해당 지시 파일을 읽고 즉시 수행한다.
-3. 수행 후 `지시NN수행결과-*.md` 를 같은 폴더에 쓴다 (번호는 지시에 대응; 재작업은 `수행결과02`).
-4. 한 지시를 끝낸 뒤·대기 구간에서는 60~120초마다 다시 폴링한다. 스킬: `.claude/skills/ops-relay/SKILL.md`.
+## 기본 동작 (세션이 살아 있는 동안)
 
-예외: 사용자가 명시적으로 중지하라고 한 경우만 폴링을 멈춘다.
+1. 대기기를 **백그라운드**로 띄운다:
+   ```bash
+   node scripts/ops-relay/await-next.mjs document/ops/20260923-first_ride --timeout 14400 --interval 20
+   ```
+2. 셸 `notify_on_output` 에 **`^NEXT `** 를 건다. `NEXT` 가 찍히면 **즉시** 지시 본문을 읽고 구현에 들어간다.
+3. `IDLE` 이면 **같은 명령으로 다시** 띄운다. 루프를 끊지 마라.
+4. 수행결과 작성 직후에도 바로 1번으로 돌아간다.
+
+핸드오프(다른 팀장이 미완 지시 마무리 중): `--ignore-open-at-start` 를 붙여 기존 미완만 건너뛴다.
+
+## 루프
+
+```
+await-next → NEXT → 즉시 수행 → PROGRESS.md → 지시NN수행결과-*.md → await-next …
+```
+
+- Chief·사용자「계속」**금지**. 지시 파일이 착수 신호다.
+- `git commit` · `git push` 금지.
+- `PROGRESS.md` UTF-8, 최소 10분에 한 줄. 작업 중 `check-amend.mjs`.
+- 스킬: `.cursor/skills/ops-relay-auto/SKILL.md` · `.claude/skills/ops-relay/SKILL.md`

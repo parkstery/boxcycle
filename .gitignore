@@ -60,3 +60,7 @@ screenshot.mjs
 
 # 라이더 제품 GLB 스냅샷 백업 (F20~ 작업 이력, 추적하지 않는다)
 apps/web/public/rider/prototype/*.bak
+
+.secret.local
+functions/.secret.local
+
