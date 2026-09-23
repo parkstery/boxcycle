@@ -1,0 +1,201 @@
+/*
+ * Local First Recognition 카드 — MapBottomLeftStack 안(좌표는 스택).
+ * 폰 가로(~275px) 높이 예산에 맞게 밀도를 낮춘다.
+ */
+.local-first-anchor {
+  pointer-events: none;
+  width: min(21.6rem, calc(100vw - 2rem));
+  max-width: min(21.6rem, calc(100vw - 2rem));
+}
+
+.local-first__card {
+  pointer-events: auto;
+  touch-action: manipulation;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  padding: 0.5rem 0.6rem 0.55rem;
+  border: 1px solid var(--rtw-glass-border, rgba(248, 250, 252, 0.18));
+  border-radius: var(--rtw-radius, 14px);
+  background: var(--rtw-glass-bg-strong, rgba(10, 16, 26, 0.64));
+  -webkit-backdrop-filter: blur(var(--rtw-glass-blur, 12px));
+  backdrop-filter: blur(var(--rtw-glass-blur, 12px));
+  box-shadow: var(--rtw-glass-shadow, 4px 8px 28px rgba(2, 8, 20, 0.4));
+  color: var(--rtw-text, #f8fafc);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.local-first__title {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 1.28;
+}
+
+.local-first__body {
+  margin: 0;
+  font-size: 0.74rem;
+  opacity: 0.78;
+  line-height: 1.3;
+}
+
+.local-first__fail {
+  margin: 0;
+  font-size: 0.7rem;
+  opacity: 0.7;
+  line-height: 1.25;
+}
+
+.local-first__actions {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.3rem;
+  margin-top: 0.02rem;
+}
+
+.local-first__btn {
+  flex: 1 1 0;
+  min-height: 1.9rem;
+  padding: 0.28rem 0.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.local-first__btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.local-first__btn--primary {
+  background: var(--rtw-accent, #e8a33d);
+  color: #10151f;
+}
+
+.local-first__btn--ghost {
+  background: rgba(248, 250, 252, 0.12);
+  color: var(--rtw-text, #f8fafc);
+  border: 1px solid rgba(248, 250, 252, 0.18);
+}
+
+.local-first__btn--intro {
+  flex: 1 1 auto;
+  width: 100%;
+  background: transparent;
+  color: var(--rtw-text, #f8fafc);
+  border: none;
+  font-weight: 600;
+  font-size: 0.72rem;
+  opacity: 0.82;
+  min-height: 1.55rem;
+  padding: 0.18rem 0.2rem;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.local-first__btn--primary:hover,
+.local-first__btn--ghost:hover {
+  filter: brightness(1.06);
+}
+
+.local-first__btn--intro:hover {
+  opacity: 1;
+}
+
+.local-first__btn:focus-visible {
+  outline: 2px solid var(--rtw-accent, #e8a33d);
+  outline-offset: 2px;
+}
+
+.local-first__chips {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.26rem;
+}
+
+.local-first__chip {
+  flex: 1 1 0;
+  min-height: 1.6rem;
+  padding: 0.16rem 0.3rem;
+  border: 1px solid rgba(248, 250, 252, 0.18);
+  border-radius: 999px;
+  background: rgba(248, 250, 252, 0.08);
+  color: var(--rtw-text, #f8fafc);
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+}
+
+.local-first__chip:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.local-first__chip--active {
+  background: var(--rtw-accent, #e8a33d);
+  border-color: var(--rtw-accent, #e8a33d);
+  color: #10151f;
+}
+
+.local-first__generating {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  min-height: 1.9rem;
+  font-size: 0.76rem;
+  opacity: 0.9;
+}
+
+.local-first__generating-label {
+  flex: 1 1 auto;
+}
+
+.local-first__ready-fail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+}
+
+.local-first__intro {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.08rem;
+  padding-top: 0.22rem;
+  border-top: 1px solid rgba(248, 250, 252, 0.12);
+}
+
+/* 폰 가로 */
+@media (max-height: 520px), (max-width: 480px) {
+  .local-first-anchor {
+    width: min(17.5rem, calc(100vw - 1.5rem));
+    max-width: min(17.5rem, calc(100vw - 1.5rem));
+  }
+
+  .local-first__card {
+    padding: 0.38rem 0.45rem 0.4rem;
+    gap: 0.2rem;
+  }
+
+  .local-first__title {
+    font-size: 0.78rem;
+  }
+
+  .local-first__btn {
+    min-height: 1.75rem;
+    padding: 0.22rem 0.4rem;
+    font-size: 0.72rem;
+  }
+
+  .local-first__intro {
+    margin-top: 0.04rem;
+    padding-top: 0.16rem;
+  }
+}

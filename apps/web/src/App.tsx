@@ -34,7 +34,7 @@ import { allowUnauthMapDev } from "./lib/authGatePolicy";
 import { readGuestEntryAccepted } from "./lib/appSessionKeys";
 import { useUserTier } from "./hooks/useUserTier";
 import { RideSummarySheet } from "./components/RideSummarySheet";
-import { NextRideCard, FirstRideIntroCard } from "./components/ride";
+import { NextRideCard, LocalFirstEntryCard } from "./components/ride";
 import { resolveNextRideView } from "./lib/nextRideTarget";
 import type { NextRideTarget } from "./lib/nextRideTarget";
 import type { RideEndResult } from "./lib/rideEndResult";
@@ -45,6 +45,14 @@ import { MenuPlaceSearch } from "./components/MenuPlaceSearch";
 import { TrailHubPanel } from "./components/TrailHubPanel";
 import { useOpenTrails } from "./hooks/useOpenTrails";
 import { useTrailInstanceMeta } from "./hooks/useTrailInstanceMeta";
+import {
+  clearLocalFirstRegion,
+  localFirstRegionLabel,
+  makeLocalFirstRegion,
+  readLocalFirstRegion,
+  writeLocalFirstRegion,
+  type LocalFirstRegion,
+} from "./lib/localFirstRegion";
 import {
   buildTrailRegionLabel,
   closeTrailInstance,
@@ -89,14 +97,13 @@ import {
 } from "./lib/firestoreTrail";
 import { canUserJoinTrail, resolveNewTrailVisibility } from "./lib/trailAccessPolicy";
 import { replaceTrailInUrl } from "./lib/trailUrl";
-import type { LngLat } from "./lib/geo";
+import type { LngLat, LineStringGeometry } from "./lib/geo";
 import { boundsFromLineCoordinates, getPointOnRouteByDistance, lineStringLengthMeters } from "./lib/geo";
 import { MAX_ROUTE_WAYPOINTS } from "./lib/routeWaypoints";
 import { lockRouteWorkspaceDuringRide } from "./lib/routeWorkspaceLock";
 import { resolveRideContinuationSetup } from "./lib/rideContinuationSetup";
 import type { PublishedPublicCourseSummary } from "./lib/firestoreCourses";
 import {
-  publicationDestinationFromTitle,
   publicationDisplayTitle,
 } from "./lib/publicationDisplay";
 import {
@@ -116,6 +123,7 @@ import { usePublicRouteReviewMeta } from "./hooks/usePublicRouteReviewMeta";
 import { useSavedRoutesWorkspace } from "./hooks/useSavedRoutesWorkspace";
 import { useRideEndAndPersistence } from "./hooks/useRideEndAndPersistence";
 import { useDistanceAutoRoute } from "./hooks/useDistanceAutoRoute";
+import { useReadyRide } from "./hooks/useReadyRide";
 import {
   DEFAULT_MAP_STYLE,
   MAP_STYLE_OPTIONS,
@@ -347,6 +355,17 @@ export default function App() {
   const [nextRideDismissedRideId, setNextRideDismissedRideId] = useState<string | null>(null);
   /** 카드가 뜰 때 지도를 1회만 앵커로 이동한 Ride id(pan 후 재점프 금지, RIDE-NEXT-VISIT-2 V1·V2) */
   const nextRideFramedRideIdRef = useRef<string | null>(null);
+  /**
+   * 지명 검색 결과 목적지 — menu(기존) vs localFirst(Recognition 카드).
+   * 패널을 여는 쪽이 설정하고, pick/close 때 menu 로 되돌린다.
+   */
+  const placeSearchIntentRef = useRef<"menu" | "localFirst">("menu");
+  /** Local First 지역 — 클라이언트 + localStorage. 새 Firestore 없음(LF-1). */
+  const [localFirstRegion, setLocalFirstRegion] = useState<LocalFirstRegion | null>(() =>
+    readLocalFirstRegion(),
+  );
+  /** 지역 선택 1회당 카메라 점프 1회 — at 키로 가드(NextRide rideId 가드와 동일 성질) */
+  const localFirstFramedAtRef = useRef<string | null>(null);
   /** anchor 이어 달리기 — Start 가 sessionEndLngLat 에 고정된 상태(null=일반 자동 Route) */
   const anchorFixedStartRef = useRef<LngLat | null>(null);
   const routePickOpenSeqRef = useRef(0);
@@ -1553,13 +1572,20 @@ export default function App() {
   /** 맵 핀·경로 생성 등 — 프로덕션 주행 중에만 맵에서 잠금(좌측 MENU 패널은 항상 사용 가능) */
   const routeMenuLockedForProd = lockRouteWorkspaceDuringRide(rideStatus !== "idle");
 
-  const distanceAutoRoute = useDistanceAutoRoute({
-    user,
-    functionsRegion: FUNCTIONS_REGION,
-    rideLocked: routeMenuLockedForProd,
-    routeTokenInsufficient: routeTokenBalance != null && routeTokenBalance < 1,
-    onClearRouteArtifacts: () => clearRouteArtifactsRef.current(),
-    onApplyRoute: (result) => {
+  /**
+   * 자동 생성(클릭 기반 · Ready Ride) 결과를 기존 Go 게이트에 얹는다 — 새 시작 경로를 만들지 않는다.
+   * 두 생성 경로(방향 클릭 / Ready Ride)가 이 한 함수를 공유해 회귀 여지를 줄인다.
+   */
+  const applyGeneratedRouteResult = useCallback(
+    (result: {
+      start: LngLat;
+      end: LngLat;
+      profile: RouteProfile;
+      distanceMeters: number;
+      durationSec: number;
+      geometry: LineStringGeometry;
+      summary: string;
+    }) => {
       setRouteWaypoints([]);
       setStartLngLat(result.start);
       setEndLngLat(result.end);
@@ -1572,6 +1598,38 @@ export default function App() {
       setActiveOfficialCourseId(null);
       setPlaceSearchMarkerLngLat(null);
     },
+    [
+      setRouteWaypoints,
+      setStartLngLat,
+      setEndLngLat,
+      setProfile,
+      setRouteGeometry,
+      setRouteDistanceMeters,
+      setRouteDurationSec,
+      setRouteSummary,
+      resetRide,
+      setActiveOfficialCourseId,
+      setPlaceSearchMarkerLngLat,
+    ],
+  );
+
+  const distanceAutoRoute = useDistanceAutoRoute({
+    user,
+    functionsRegion: FUNCTIONS_REGION,
+    rideLocked: routeMenuLockedForProd,
+    routeTokenInsufficient: routeTokenBalance != null && routeTokenBalance < 1,
+    onClearRouteArtifacts: () => clearRouteArtifactsRef.current(),
+    onApplyRoute: applyGeneratedRouteResult,
+  });
+
+  const readyRide = useReadyRide({
+    user,
+    functionsRegion: FUNCTIONS_REGION,
+    rideLocked: routeMenuLockedForProd,
+    routeTokenInsufficient: routeTokenBalance != null && routeTokenBalance < 1,
+    profile,
+    onClearRouteArtifacts: () => clearRouteArtifactsRef.current(),
+    onApplyRoute: applyGeneratedRouteResult,
   });
   const {
     clearCirclePreview,
@@ -1907,16 +1965,97 @@ export default function App() {
 
   const defaultIntroPublication = BASIC_SHARED_HUB_SUMMARIES[0] ?? null;
 
-  /** 입문 코스 CTA — 이전 주행 후보가 없는 idle 화면에서만 표시(RIDE-NEXT-VISIT-2 V3) */
+  const applyLocalFirstRegion = useCallback(
+    (region: LocalFirstRegion, opts?: { jumpCamera?: boolean }) => {
+      setLocalFirstRegion(region);
+      writeLocalFirstRegion(region);
+      if (opts?.jumpCamera === false) return;
+      localFirstFramedAtRef.current = region.at;
+      setFollowMode("free");
+      setActiveQuickCamera(null);
+      setLockBaseHeading(null);
+      cameraJumpSeqRef.current += 1;
+      setExternalCameraJump({
+        lngLat: region.lngLat,
+        zoom: region.zoom,
+        requestId: cameraJumpSeqRef.current,
+      });
+    },
+    [],
+  );
+
+  const handleOpenLocalFirstRegionSearch = useCallback(() => {
+    placeSearchIntentRef.current = "localFirst";
+    setMenuOpen(false);
+    setMapViewSheetOpen(false);
+    setUserInfoSheetOpen(false);
+    setRideSettingsSheetOpen(false);
+    setCadenceSensorSheetOpen(false);
+    setPlaceSearchOpen(true);
+  }, [
+    setMenuOpen,
+    setMapViewSheetOpen,
+    setUserInfoSheetOpen,
+    setRideSettingsSheetOpen,
+    setCadenceSensorSheetOpen,
+    setPlaceSearchOpen,
+  ]);
+
+  const handleClearLocalFirstRegion = useCallback(() => {
+    setLocalFirstRegion(null);
+    clearLocalFirstRegion();
+    localFirstFramedAtRef.current = null;
+  }, []);
+
+  /**
+   * localStorage 복원 지역 — 카드가 처음 보일 때 1회만 카메라 점프.
+   * 사용자가 지도를 움직인 뒤 재점프하지 않는다(at 가드).
+   */
+  useEffect(() => {
+    if (!firstRideIntroVisible || !localFirstRegion) return;
+    if (localFirstFramedAtRef.current === localFirstRegion.at) return;
+    localFirstFramedAtRef.current = localFirstRegion.at;
+    setFollowMode("free");
+    setActiveQuickCamera(null);
+    setLockBaseHeading(null);
+    cameraJumpSeqRef.current += 1;
+    setExternalCameraJump({
+      lngLat: localFirstRegion.lngLat,
+      zoom: localFirstRegion.zoom,
+      requestId: cameraJumpSeqRef.current,
+    });
+  }, [firstRideIntroVisible, localFirstRegion]);
+
+  const handleGenerateReadyRide = useCallback(
+    (targetDistanceKm: number) => {
+      if (!localFirstRegion) return;
+      void readyRide.generate({
+        start: localFirstRegion.lngLat,
+        targetDistanceMeters: targetDistanceKm * 1000,
+      });
+    },
+    [localFirstRegion, readyRide],
+  );
+
+  /** Local First Recognition + 입문 경로 CTA(RIDE-NEXT-VISIT-2 V3 · LF-1) */
   const firstRideIntroCard =
     firstRideIntroVisible && defaultIntroPublication ? (
-      <FirstRideIntroCard
-        introTitle={publicationDisplayTitle(defaultIntroPublication)}
-        introDestination={publicationDestinationFromTitle(defaultIntroPublication.title)}
+      <LocalFirstEntryCard
+        region={localFirstRegion}
+        mapboxAccessToken={MAPBOX_TOKEN}
+        onOpenRegionSearch={handleOpenLocalFirstRegionSearch}
+        onConfirmRegion={(region) => applyLocalFirstRegion(region)}
+        onClearRegion={handleClearLocalFirstRegion}
         onStartIntro={() => {
           const hubId = BASIC_SHARED_HUB_IDS[0];
           if (hubId) void enterBasicHub(hubId);
         }}
+        readyRideStatus={readyRide.status}
+        readyRideGeneratingLabel={readyRide.generatingLabel}
+        readyRideSlow={readyRide.slow}
+        readyRideFailMessage={readyRide.failMessage}
+        onGenerateReadyRide={handleGenerateReadyRide}
+        onCancelReadyRide={readyRide.cancel}
       />
     ) : null;
 
@@ -2044,7 +2183,28 @@ export default function App() {
   );
 
   // ===== Map-first 핸들러 =====
-  function handleMenuPlacePick(lngLat: LngLat, _placeName: string, _bbox: [number, number, number, number] | null) {
+  function handleMenuPlacePick(
+    lngLat: LngLat,
+    placeName: string,
+    _bbox: [number, number, number, number] | null,
+  ) {
+    const intent = placeSearchIntentRef.current;
+    placeSearchIntentRef.current = "menu";
+
+    if (intent === "localFirst") {
+      const name = localFirstRegionLabel(placeName) ?? (placeName.trim() || "선택한 지역");
+      applyLocalFirstRegion(
+        makeLocalFirstRegion({
+          name,
+          lngLat,
+          source: "search",
+        }),
+      );
+      setPlaceSearchMarkerLngLat(null);
+      setPlaceSearchOpen(false);
+      return;
+    }
+
     /** `liveForMap` 추적 jumpTo 가 flyTo 를 덮어쓰지 않도록 */
     setFollowMode("free");
     setActiveQuickCamera(null);
@@ -2504,7 +2664,10 @@ export default function App() {
           setPlaceSearchMarkerLngLat(null);
         }}
         onOpenSettings={openRideSettingsPanel}
-        onOpenPlaceSearch={openPlaceSearchPanel}
+        onOpenPlaceSearch={() => {
+          placeSearchIntentRef.current = "menu";
+          openPlaceSearchPanel();
+        }}
       >
         {/*
           섹션 라벨 2줄(Trail·경로)은 조작이 없는 순수 라벨인데 폰 가로에서 51px 를 먹었다
@@ -2579,7 +2742,10 @@ export default function App() {
 
       <PlaceSearchPanel
         open={placeSearchOpen}
-        onClose={() => setPlaceSearchOpen(false)}
+        onClose={() => {
+          placeSearchIntentRef.current = "menu";
+          setPlaceSearchOpen(false);
+        }}
       >
         <MenuPlaceSearch
           accessToken={MAPBOX_TOKEN}

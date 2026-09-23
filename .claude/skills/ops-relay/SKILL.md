@@ -1,6 +1,6 @@
 ---
 name: ops-relay
-description: document/ops 릴레이 폴더의 지시 파일을 폴링·수행한다. 미니맵 작업(20260923-minimap)·카메라 작업(20260922-new_camera)·ops 지시·수행결과·감리 릴레이가 언급되거나 세션이 그 폴더를 다룰 때 사용. Chief 대기 없이 지시 파일 자체가 착수 신호다.
+description: document/ops 릴레이 폴더의 지시를 수신·수행한다. Local First Ride(20260923-first_ride)·ops 지시·수행결과·감리 릴레이가 언급되거나 세션이 그 폴더를 다룰 때 사용. Chief 대기 없이 지시 파일 자체가 착수 신호이며, 대기는 await-next 로 블록한다.
 user-invocable: true
 ---
 
@@ -15,10 +15,14 @@ user-invocable: true
 ## 착수 전 (매번)
 
 ```bash
-node scripts/ops-relay/poll-next.mjs document/ops/20260923-minimap
+node scripts/ops-relay/await-next.mjs document/ops/20260923-first_ride
 ```
 
-출력이 `IDLE` 이면 새 지시 없음. `NEXT <path>` 이면 그 지시 파일을 **읽고 바로 수행**한다.
+**이것이 기본 동작이다.** 새 지시가 올 때까지 블록하고, 도착하면 **본문까지 찍고** 빠져나온다.
+그 자리에서 즉시 수행하라. `IDLE` 로 끝나면 **다시 실행**한다 — 루프를 끊지 마라.
+수신과 동시에 `PROGRESS.md` 에 「지시NN 수신」이 자동 기록되어 감리가 수신을 확인한다.
+
+1회만 묻는 `poll-next.mjs` 는 감리용이다.
 
 규칙:
 
@@ -39,14 +43,22 @@ node scripts/ops-relay/poll-next.mjs document/ops/20260923-minimap
 
 대기 중이거나 한 지시를 끝낸 뒤:
 
-1. `poll-next.mjs` 를 돌린다.
-2. `NEXT` 면 즉시 착수.
-3. `IDLE` 이면 60~120초 후 다시 폴링(Shell `block_until_ms` 또는 AwaitShell). Chief 호출을 기다리지 마라.
+```
+await-next  →  지시 수행  →  PROGRESS.md 진행 로그  →  지시NN수행결과-*.md  →  await-next …
+```
+
+1. `await-next.mjs` 가 지시를 물어다 준다. Chief 호출을 기다리지 마라.
+2. 착수 직후·진전마다·막히는 즉시 `PROGRESS.md` 에 한 줄(`HH:MM | 내용`). **최소 10분에 한 줄.**
+3. 수행결과를 쓴 **직후 바로 await-next 로 돌아간다.** 감리 판정이 다음 지시로 떨어진다.
 4. 사용자가 명시적으로 중지하라고 할 때만 루프를 끊는다.
 
-## 이 묶음 고정 규칙 (활성: `20260923-minimap`)
+Chief 는 `node scripts/ops-relay/watch-status.mjs <묶음>` 상황판으로 지켜본다 —
+`git diff --stat` 0줄이면 아무 일도 안 한 것으로 보인다.
 
-- 상세 규약: `document/ops/20260923-minimap/README.md`
-- 이전 묶음 `20260922-new_camera` 는 종결됐다(완료보고서 `document/archive/260923-RTW-Quick-Camera-작업-완료보고서.md`)
+## 이 묶음 고정 규칙 (활성: `20260923-first_ride`)
+
+- 상세 규약: `document/ops/20260923-first_ride/README.md` · 맥락: 같은 폴더 `20260923-Local-First-착수브리핑.md`
+- 요구 기준: `document/260923-RTW-Local-First-Ride-실행계획.md`
+- 이전 묶음 `20260923-minimap` · `20260922-new_camera` 는 종결됐다
 - 캡처·`git diff --stat -- apps/web/src` 없는「문서만」보고는 실패로 본다.
 - 주행 검증 5분·3-strike·브라우저 5분 무진전 시 경로 전환(지시·CLAUDE.md).

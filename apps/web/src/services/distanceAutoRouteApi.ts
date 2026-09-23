@@ -28,6 +28,11 @@ export type DistanceAutoRouteResponse =
       outcome?: RouteOutcome;
       directRoadMeters?: number;
       detourCalls?: number;
+      /** Ready Ride(closeLoop) 요청 결과에서만 채워진다. */
+      closeLoop?: boolean;
+      selfOverlapRatio?: number;
+      startBearingSampleDeg?: number;
+      startSnapMeters?: number;
     }
   | {
       status: "failed";
@@ -63,11 +68,15 @@ export async function fetchDistanceAutoRoute(
   user: User,
   input: {
     start: LngLat;
-    targetRoadPoint: LngLat;
+    /** Ready Ride(closeLoop) 요청은 클릭이 없어 생략한다. */
+    targetRoadPoint?: LngLat;
     profile: RouteProfile;
     targetDistanceMeters: number;
     bearingDeg?: number;
+    /** 방위 자동 표본 + 폐합(출발=도착) — 지시02 */
+    closeLoop?: boolean;
     requestId: string;
+    signal?: AbortSignal;
   },
 ): Promise<DistanceAutoRouteResponse> {
   assertDirectionsServerOnly();
@@ -89,6 +98,7 @@ export async function fetchDistanceAutoRoute(
   }
   const url = functionsHttpUrl("getDistanceAutoRoute");
   const idToken = await user.getIdToken();
+  const { signal, ...body } = input;
   let res: Response;
   try {
     res = await fetch(url, {
@@ -97,7 +107,8 @@ export async function fetchDistanceAutoRoute(
         "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`,
       },
-      body: JSON.stringify({ data: input }),
+      body: JSON.stringify({ data: body }),
+      signal,
     });
   } catch (error) {
     throw new Error(formatDistanceAutoRouteClientError(error), { cause: error });

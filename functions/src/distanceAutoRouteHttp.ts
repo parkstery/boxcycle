@@ -4,6 +4,7 @@ import {
   AUTO_ROUTE_ALGORITHM_VERSION,
   bearingFromOriginToPoint,
   searchDistanceAutoRoute,
+  searchReadyLoopRoute,
   type AutoRouteOutcome,
   type DirectionsRouteLike,
   type FetchDirectionsFn,
@@ -34,6 +35,11 @@ export type DistanceAutoRouteFound = {
   outcome?: AutoRouteOutcome;
   directRoadMeters?: number;
   detourCalls?: number;
+  /** Ready Ride(폐합) 결과에서만 채워진다. */
+  closeLoop?: boolean;
+  selfOverlapRatio?: number;
+  startBearingSampleDeg?: number;
+  startSnapMeters?: number;
 };
 
 export type DistanceAutoRouteFailed = {
@@ -63,6 +69,10 @@ type CacheDoc = {
   outcome?: AutoRouteOutcome;
   directRoadMeters?: number;
   detourCalls?: number;
+  closeLoop?: boolean;
+  selfOverlapRatio?: number;
+  startBearingSampleDeg?: number;
+  startSnapMeters?: number;
 };
 
 function cacheToResult(doc: CacheDoc): DistanceAutoRouteResult {
@@ -99,6 +109,10 @@ function cacheToResult(doc: CacheDoc): DistanceAutoRouteResult {
       outcome: doc.outcome,
       directRoadMeters: doc.directRoadMeters,
       detourCalls: doc.detourCalls,
+      closeLoop: doc.closeLoop,
+      selfOverlapRatio: doc.selfOverlapRatio,
+      startBearingSampleDeg: doc.startBearingSampleDeg,
+      startSnapMeters: doc.startSnapMeters,
     };
   }
   return {
@@ -129,25 +143,32 @@ function isLngLat(v: unknown): v is LngLat {
 
 export function parseDistanceAutoRouteBody(data: unknown): {
   start: LngLat;
-  targetRoadPoint: LngLat;
+  /** Ready Ride(closeLoop) 요청은 클릭이 없어 targetRoadPoint 가 없다. */
+  targetRoadPoint: LngLat | null;
   profile: RouteProfile;
   targetDistanceMeters: number;
-  bearingDeg: number;
+  bearingDeg: number | undefined;
+  closeLoop: boolean;
   requestId: string;
 } {
   if (!data || typeof data !== "object") {
     throw new HttpsError("invalid-argument", "요청 본문이 올바르지 않습니다.");
   }
   const o = data as Record<string, unknown>;
-  const { start, targetRoadPoint, profile, targetDistanceMeters, requestId } = o;
+  const { start, targetRoadPoint, profile, targetDistanceMeters, requestId, closeLoop } = o;
   if (!isLngLat(start)) {
     throw new HttpsError("invalid-argument", "start 는 [lng,lat] 숫자 배열이어야 합니다.");
   }
-  if (!isLngLat(targetRoadPoint)) {
-    throw new HttpsError("invalid-argument", "targetRoadPoint 는 [lng,lat] 숫자 배열이어야 합니다.");
-  }
-  if (targetRoadPoint[0] < -180 || targetRoadPoint[0] > 180 || targetRoadPoint[1] < -90 || targetRoadPoint[1] > 90) {
-    throw new HttpsError("invalid-argument", "targetRoadPoint 좌표 범위가 올바르지 않습니다.");
+  const isCloseLoop = closeLoop === true;
+  let parsedTargetRoadPoint: LngLat | null = null;
+  if (!isCloseLoop) {
+    if (!isLngLat(targetRoadPoint)) {
+      throw new HttpsError("invalid-argument", "targetRoadPoint 는 [lng,lat] 숫자 배열이어야 합니다.");
+    }
+    if (targetRoadPoint[0] < -180 || targetRoadPoint[0] > 180 || targetRoadPoint[1] < -90 || targetRoadPoint[1] > 90) {
+      throw new HttpsError("invalid-argument", "targetRoadPoint 좌표 범위가 올바르지 않습니다.");
+    }
+    parsedTargetRoadPoint = targetRoadPoint;
   }
   if (profile !== "cycling" && profile !== "driving" && profile !== "walking") {
     throw new HttpsError("invalid-argument", "profile 은 cycling | driving | walking 만 허용됩니다.");
@@ -167,10 +188,11 @@ export function parseDistanceAutoRouteBody(data: unknown): {
   }
   return {
     start,
-    targetRoadPoint,
+    targetRoadPoint: parsedTargetRoadPoint,
     profile,
     targetDistanceMeters,
-    bearingDeg: bearingFromOriginToPoint(start, targetRoadPoint),
+    bearingDeg: parsedTargetRoadPoint ? bearingFromOriginToPoint(start, parsedTargetRoadPoint) : undefined,
+    closeLoop: isCloseLoop,
     requestId: id,
   };
 }
@@ -207,10 +229,11 @@ function formatDuration(totalSeconds: number): string {
 export async function executeDistanceAutoRoute(input: {
   userId: string;
   start: LngLat;
-  targetRoadPoint: LngLat;
+  targetRoadPoint: LngLat | null;
   profile: RouteProfile;
   targetDistanceMeters: number;
-  bearingDeg: number;
+  bearingDeg: number | undefined;
+  closeLoop: boolean;
   requestId: string;
   fetchDirections: FetchDirectionsFn;
 }): Promise<DistanceAutoRouteResult> {
@@ -221,6 +244,7 @@ export async function executeDistanceAutoRoute(input: {
     profile,
     targetDistanceMeters,
     bearingDeg,
+    closeLoop,
     requestId,
     fetchDirections,
   } = input;
@@ -235,6 +259,8 @@ export async function executeDistanceAutoRoute(input: {
   const tokenRequestId = spendRequestId(requestId);
 
   // 「거리 조정 재탐색 1회 무료」 정책은 제거했다(5A-R2 §3.2) — 재탐색 기능 자체가 없어졌다.
+  // Ready Ride(closeLoop) 도 같은 Token 규칙을 그대로 쓴다 — 토큰은 이 라운드에서 건드리지 않는다
+  // (⚠【정정·Chief 2026-09-24】 — 무료·차감 분기 신설 금지).
   let routeTokenBalance: number;
   {
     try {
@@ -245,6 +271,106 @@ export async function executeDistanceAutoRoute(input: {
       }
       throw e;
     }
+  }
+
+  if (closeLoop) {
+    const loopSearched = await searchReadyLoopRoute({
+      start,
+      profile,
+      targetDistanceMeters,
+      fetchDirections,
+    });
+
+    if (loopSearched.status === "failed") {
+      if (generateCost > 0) {
+        await refundRouteGenerateToken(userId, tokenRequestId, generateCost);
+        routeTokenBalance += generateCost;
+      }
+      const failed: DistanceAutoRouteFailed = {
+        status: "failed",
+        message: loopSearched.message,
+        routeTokenBalance,
+      };
+      await writeCache(userId, requestId, {
+        userId,
+        requestId,
+        status: "failed",
+        message: failed.message,
+        routeTokenBalance,
+      });
+      console.info(
+        JSON.stringify({
+          kind: "readyLoopRouteDiagnostics",
+          requestId,
+          algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
+          status: "failed",
+          reason: loopSearched.reason,
+          providerCallCount: loopSearched.providerCallCount,
+          searchElapsedMs: loopSearched.searchElapsedMs,
+          closestCandidate: loopSearched.closestCandidate,
+        }),
+      );
+      return failed;
+    }
+
+    const targetLabel = (targetDistanceMeters / 1000).toFixed(1);
+    const actualLabel = (loopSearched.distance / 1000).toFixed(2);
+    const summary = `목표 ${targetLabel} km 순환 · 연장 ${actualLabel} km / 예상 ${formatDuration(loopSearched.duration)}`;
+
+    console.info(
+      JSON.stringify({
+        kind: "readyLoopRouteDiagnostics",
+        requestId,
+        algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
+        status: "found",
+        startBearingSampleDeg: loopSearched.startBearingSampleDeg,
+        selfOverlapRatio: loopSearched.selfOverlapRatio,
+        providerCallCount: loopSearched.providerCallCount,
+        searchElapsedMs: loopSearched.searchElapsedMs,
+        distance: loopSearched.distance,
+        startSnapMeters: loopSearched.startSnapMeters,
+      }),
+    );
+
+    const found: DistanceAutoRouteFound = {
+      status: "found",
+      geometry: loopSearched.geometry,
+      distance: loopSearched.distance,
+      duration: loopSearched.duration,
+      end: loopSearched.end,
+      targetDistanceMeters,
+      summary,
+      routeTokenBalance,
+      algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
+      closeLoop: true,
+      selfOverlapRatio: loopSearched.selfOverlapRatio,
+      startBearingSampleDeg: loopSearched.startBearingSampleDeg,
+      startSnapMeters: loopSearched.startSnapMeters,
+    };
+
+    await writeCache(userId, requestId, {
+      userId,
+      requestId,
+      status: "found",
+      geometryJson: JSON.stringify(found.geometry),
+      distance: found.distance,
+      duration: found.duration,
+      end: found.end,
+      targetDistanceMeters: found.targetDistanceMeters,
+      summary: found.summary,
+      routeTokenBalance,
+      algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
+      closeLoop: true,
+      selfOverlapRatio: loopSearched.selfOverlapRatio,
+      startBearingSampleDeg: loopSearched.startBearingSampleDeg,
+      startSnapMeters: loopSearched.startSnapMeters,
+    });
+
+    return found;
+  }
+
+  if (!targetRoadPoint || bearingDeg === undefined) {
+    throw new HttpsError("invalid-argument", "targetRoadPoint 가 필요합니다.");
   }
 
   const searched = await searchDistanceAutoRoute({

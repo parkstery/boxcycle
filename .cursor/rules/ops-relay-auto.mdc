@@ -1,16 +1,48 @@
 ---
-description: document/ops 지시 파일이 작업 착수 신호. Chief 대기 금지.
+description: document/ops 지시 파일이 작업 착수 신호. Chief 대기 금지. 대기는 await-next 로 블록한다.
 alwaysApply: true
 ---
 
 # ops 릴레이 — 지시 파일 = 착수
 
-미니맵·카메라·ops 작업 중이거나 `document/ops/` 아래 지시가 보이면:
+**활성 묶음: `document/ops/20260923-first_ride`** (Local First Ride).
+이전 묶음 `20260923-minimap` · `20260922-new_camera` 는 종결됨.
 
-1. `node scripts/ops-relay/poll-next.mjs document/ops/20260923-minimap` 로 **대기 지시**를 확인한다.
-   (현재 활성 묶음 = `20260923-minimap`. 이전 묶음 `20260922-new_camera` 는 종결됨)
-2. `NEXT …` 이면 **Chief 의 「계속」을 기다리지 말고** 해당 지시 파일을 읽고 즉시 수행한다.
-3. 수행 후 `지시NN수행결과-*.md` 를 같은 폴더에 쓴다 (번호는 지시에 대응; 재작업은 `수행결과02`).
-4. 한 지시를 끝낸 뒤·대기 구간에서는 60~120초마다 다시 폴링한다. 스킬: `.claude/skills/ops-relay/SKILL.md`.
+## 수신 (이 한 줄이 기본 동작이다)
 
-예외: 사용자가 명시적으로 중지하라고 한 경우만 폴링을 멈춘다.
+```bash
+node scripts/ops-relay/await-next.mjs document/ops/20260923-first_ride
+```
+
+- 이 스크립트는 **새 지시가 올 때까지 블록**한다. 지시가 올라오면 **본문까지 찍고** 빠져나온다.
+  그 자리에서 **즉시 착수**하라 — Chief 의 「계속」을 기다리지 마라.
+- 수신과 동시에 `PROGRESS.md` 에 「지시NN 수신 — 착수」가 자동 기록된다(감리가 이 줄로 수신을 확인한다).
+- `IDLE` 로 빠져나오면 **다시 실행**하라. 루프를 끊지 마라.
+- 1회만 묻고 싶으면 `poll-next.mjs` (감리용). 개발팀장의 기본은 `await-next.mjs` 다.
+
+## 루프 (이 순서를 벗어나지 마라)
+
+```
+await-next  →  지시 수행  →  PROGRESS.md 진행 로그  →  지시NN수행결과-*.md  →  await-next …
+```
+
+1. 착수 직후·진전마다·막히는 즉시 `PROGRESS.md` 에 한 줄(`HH:MM | 내용`). **최소 10분에 한 줄.**
+   그때 **같이 돌려라** — 작업 중에 지시가 고쳐졌는지 확인한다:
+   ```bash
+   node scripts/ops-relay/check-amend.mjs document/ops/20260923-first_ride
+   ```
+   `AMENDED` 면 **지금 하던 방향이 무효가 된 것이다.** 본문을 읽고 즉시 반영한 뒤
+   「정정 수신 — 무엇을 바꿨나」를 진행 로그에 남겨라. `CLEAN` 이면 하던 일을 계속한다.
+2. 수행결과는 같은 폴더에 `지시NN수행결과-*.md`. 번호는 **지시에 종속**(재작업은 `수행결과02`).
+3. 보고 직후 **바로 await-next 로 돌아간다.** 감리 판정이 다음 지시로 떨어진다.
+4. 사용자가 명시적으로 중지하라고 한 경우만 루프를 멈춘다.
+
+## 상황판 (Chief 가 본다)
+
+```bash
+node scripts/ops-relay/watch-status.mjs document/ops/20260923-first_ride
+```
+
+라운드·진행 로그·`git diff --stat`·캡처가 한 화면에 뜬다. **diff 0줄이면 아무 일도 안 한 것으로 보인다.**
+
+스킬 상세: `.claude/skills/ops-relay/SKILL.md`
