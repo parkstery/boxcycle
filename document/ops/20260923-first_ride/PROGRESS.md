@@ -29,3 +29,8 @@
 01:50 | 캡처 A/B/C/D/E/F/H 완료(경로 버그 수정: ROOT 상대경로 오프바이원). G(기존 방향클릭 회귀) 실 지도클릭 흐름 1차 실패 — 재시도
 02:15 | G(기존 방향클릭) 캡처 성공 — 실 운영 백엔드로 1km 경로 생성, 토큰 9개 잔여 확인(회귀 없음). A~I 전량 확보
 02:30 | 수행결과 문서 작성 완료 — 캡처 9종(A-I 중 I 미해결) + 수치표(8좌표) + 검증 PASS. 보고 대기
+01:30 | 착수. 지시03 읽음. A 원인 확정(STEP1)부터 시작 — App.tsx/MapView.tsx 관련 지점 정독, dev 서버(5000) 기동 확인됨
+02:15 | A STEP1: C1~C4 임시 로그(App.tsx applyLocalFirstRegion / MapView.tsx externalCameraJump 소비 효과, DEV 가드) 삽입 후 Playwright 재현 4종 시도 — (1)역지오코딩만 1.5s 지연 (2)getCurrentPosition 2.5s+역지오코딩 1.5s 지연 (3)+ 권한 프롬프트 중 document.visibilityState=hidden 흉내 (4)+ prefers-reduced-motion=reduce(duration=0 flyTo 경로). 4종 전부 C1→C2→C3→C4(moveend=target) 정상 완주 — 재현 실패
+03:10 | A 논의 종료(재현 실패, 코드 미수정). B 구현 착수 — searchReadyLoopRoute 실패 시 searchDistanceAutoRoute 재사용 편도 폴백(closed:false), excludeStartBearingDeg로 「다른 경로」, LocalFirstEntryCard 3버튼 + ready-to-start 단계에서도 카드 유지(MapBottomLeftStack 재사용)
+03:40 | B 캡처 F/G1/G2/H 전부 성공(오프-라인 인터셉트). A 회귀 캡처 C/D/E도 전부 정상. functions+apps/web tsc/build PASS, eslint error 증가 0. 수치 스크립트(numeric-matrix-b.mjs)로 편도 성공률·호출수·다른경로 검증 완료
+06:58 | 세션 재개. C1~C4 DEV 가드 확인(제거 안 함, 위치 보고서에 명시). 수행결과 문서 작성 완료 — 20260923-지시03수행결과-카메라재현실패-편도폴백구현.md. tsc/build 재확인 PASS. 보고 대기

@@ -409,8 +409,16 @@ export const getDistanceAutoRoute = onRequest(
 
     try {
       const dataField = (rawBody as { data?: unknown } | null)?.data;
-      const { start, targetRoadPoint, profile, targetDistanceMeters, bearingDeg, closeLoop, requestId } =
-        parseDistanceAutoRouteBody(dataField);
+      const {
+        start,
+        targetRoadPoint,
+        profile,
+        targetDistanceMeters,
+        bearingDeg,
+        closeLoop,
+        excludeStartBearingDeg,
+        requestId,
+      } = parseDistanceAutoRouteBody(dataField);
       try {
         await mergeUserAuthMeta(uid);
       } catch {
@@ -434,6 +442,7 @@ export const getDistanceAutoRoute = onRequest(
         targetDistanceMeters,
         bearingDeg,
         closeLoop,
+        excludeStartBearingDeg,
         requestId,
         fetchDirections,
       });

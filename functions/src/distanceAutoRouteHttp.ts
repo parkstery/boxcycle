@@ -3,6 +3,7 @@ import { HttpsError } from "firebase-functions/v2/https";
 import {
   AUTO_ROUTE_ALGORITHM_VERSION,
   bearingFromOriginToPoint,
+  offsetLngLatByBearingMeters,
   searchDistanceAutoRoute,
   searchReadyLoopRoute,
   type AutoRouteOutcome,
@@ -37,6 +38,12 @@ export type DistanceAutoRouteFound = {
   detourCalls?: number;
   /** Ready Ride(폐합) 결과에서만 채워진다. */
   closeLoop?: boolean;
+  /**
+   * closeLoop 요청의 실제 결과 — true 면 폐합(출발=도착), false 면 폐합에 실패해
+   * `searchDistanceAutoRoute` 로 만든 편도 대안이다(지시03 §B2·§B3). closeLoop 가 아닌
+   * 클릭 기반 응답에는 없다.
+   */
+  closed?: boolean;
   selfOverlapRatio?: number;
   startBearingSampleDeg?: number;
   startSnapMeters?: number;
@@ -70,6 +77,7 @@ type CacheDoc = {
   directRoadMeters?: number;
   detourCalls?: number;
   closeLoop?: boolean;
+  closed?: boolean;
   selfOverlapRatio?: number;
   startBearingSampleDeg?: number;
   startSnapMeters?: number;
@@ -110,6 +118,7 @@ function cacheToResult(doc: CacheDoc): DistanceAutoRouteResult {
       directRoadMeters: doc.directRoadMeters,
       detourCalls: doc.detourCalls,
       closeLoop: doc.closeLoop,
+      closed: doc.closed,
       selfOverlapRatio: doc.selfOverlapRatio,
       startBearingSampleDeg: doc.startBearingSampleDeg,
       startSnapMeters: doc.startSnapMeters,
@@ -149,13 +158,15 @@ export function parseDistanceAutoRouteBody(data: unknown): {
   targetDistanceMeters: number;
   bearingDeg: number | undefined;
   closeLoop: boolean;
+  /** 「다른 경로」(지시03 §B3) — closeLoop 요청에서만 의미 있다. 직전에 쓴 시작 방위. */
+  excludeStartBearingDeg: number | undefined;
   requestId: string;
 } {
   if (!data || typeof data !== "object") {
     throw new HttpsError("invalid-argument", "요청 본문이 올바르지 않습니다.");
   }
   const o = data as Record<string, unknown>;
-  const { start, targetRoadPoint, profile, targetDistanceMeters, requestId, closeLoop } = o;
+  const { start, targetRoadPoint, profile, targetDistanceMeters, requestId, closeLoop, excludeStartBearingDeg } = o;
   if (!isLngLat(start)) {
     throw new HttpsError("invalid-argument", "start 는 [lng,lat] 숫자 배열이어야 합니다.");
   }
@@ -186,6 +197,11 @@ export function parseDistanceAutoRouteBody(data: unknown): {
   if (id.length < 8 || id.length > 64 || !/^[a-zA-Z0-9_-]+$/.test(id)) {
     throw new HttpsError("invalid-argument", "requestId 형식이 올바르지 않습니다.");
   }
+  let parsedExcludeStartBearingDeg: number | undefined;
+  if (isCloseLoop && typeof excludeStartBearingDeg === "number" && Number.isFinite(excludeStartBearingDeg)) {
+    parsedExcludeStartBearingDeg = excludeStartBearingDeg;
+  }
+
   return {
     start,
     targetRoadPoint: parsedTargetRoadPoint,
@@ -193,6 +209,7 @@ export function parseDistanceAutoRouteBody(data: unknown): {
     targetDistanceMeters,
     bearingDeg: parsedTargetRoadPoint ? bearingFromOriginToPoint(start, parsedTargetRoadPoint) : undefined,
     closeLoop: isCloseLoop,
+    excludeStartBearingDeg: parsedExcludeStartBearingDeg,
     requestId: id,
   };
 }
@@ -234,6 +251,8 @@ export async function executeDistanceAutoRoute(input: {
   targetDistanceMeters: number;
   bearingDeg: number | undefined;
   closeLoop: boolean;
+  /** 「다른 경로」(지시03 §B3) — closeLoop 요청에서만 의미 있다. */
+  excludeStartBearingDeg?: number;
   requestId: string;
   fetchDirections: FetchDirectionsFn;
 }): Promise<DistanceAutoRouteResult> {
@@ -245,6 +264,7 @@ export async function executeDistanceAutoRoute(input: {
     targetDistanceMeters,
     bearingDeg,
     closeLoop,
+    excludeStartBearingDeg,
     requestId,
     fetchDirections,
   } = input;
@@ -279,94 +299,184 @@ export async function executeDistanceAutoRoute(input: {
       profile,
       targetDistanceMeters,
       fetchDirections,
+      excludeBearingsDeg:
+        excludeStartBearingDeg !== undefined ? [excludeStartBearingDeg] : undefined,
     });
 
-    if (loopSearched.status === "failed") {
-      if (generateCost > 0) {
-        await refundRouteGenerateToken(userId, tokenRequestId, generateCost);
-        routeTokenBalance += generateCost;
-      }
-      const failed: DistanceAutoRouteFailed = {
-        status: "failed",
-        message: loopSearched.message,
-        routeTokenBalance,
-      };
-      await writeCache(userId, requestId, {
-        userId,
-        requestId,
-        status: "failed",
-        message: failed.message,
-        routeTokenBalance,
-      });
+    if (loopSearched.status === "found") {
+      const targetLabel = (targetDistanceMeters / 1000).toFixed(1);
+      const actualLabel = (loopSearched.distance / 1000).toFixed(2);
+      const summary = `목표 ${targetLabel} km 순환 · 연장 ${actualLabel} km / 예상 ${formatDuration(loopSearched.duration)}`;
+
       console.info(
         JSON.stringify({
           kind: "readyLoopRouteDiagnostics",
           requestId,
           algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
-          status: "failed",
-          reason: loopSearched.reason,
+          status: "found",
+          closed: true,
+          startBearingSampleDeg: loopSearched.startBearingSampleDeg,
+          selfOverlapRatio: loopSearched.selfOverlapRatio,
           providerCallCount: loopSearched.providerCallCount,
           searchElapsedMs: loopSearched.searchElapsedMs,
-          closestCandidate: loopSearched.closestCandidate,
+          distance: loopSearched.distance,
+          startSnapMeters: loopSearched.startSnapMeters,
         }),
       );
-      return failed;
-    }
 
-    const targetLabel = (targetDistanceMeters / 1000).toFixed(1);
-    const actualLabel = (loopSearched.distance / 1000).toFixed(2);
-    const summary = `목표 ${targetLabel} km 순환 · 연장 ${actualLabel} km / 예상 ${formatDuration(loopSearched.duration)}`;
+      const found: DistanceAutoRouteFound = {
+        status: "found",
+        geometry: loopSearched.geometry,
+        distance: loopSearched.distance,
+        duration: loopSearched.duration,
+        end: loopSearched.end,
+        targetDistanceMeters,
+        summary,
+        routeTokenBalance,
+        algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
+        closeLoop: true,
+        closed: true,
+        selfOverlapRatio: loopSearched.selfOverlapRatio,
+        startBearingSampleDeg: loopSearched.startBearingSampleDeg,
+        startSnapMeters: loopSearched.startSnapMeters,
+      };
+
+      await writeCache(userId, requestId, {
+        userId,
+        requestId,
+        status: "found",
+        geometryJson: JSON.stringify(found.geometry),
+        distance: found.distance,
+        duration: found.duration,
+        end: found.end,
+        targetDistanceMeters: found.targetDistanceMeters,
+        summary: found.summary,
+        routeTokenBalance,
+        algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
+        closeLoop: true,
+        closed: true,
+        selfOverlapRatio: loopSearched.selfOverlapRatio,
+        startBearingSampleDeg: loopSearched.startBearingSampleDeg,
+        startSnapMeters: loopSearched.startSnapMeters,
+      });
+
+      return found;
+    }
 
     console.info(
       JSON.stringify({
         kind: "readyLoopRouteDiagnostics",
         requestId,
         algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
-        status: "found",
-        startBearingSampleDeg: loopSearched.startBearingSampleDeg,
-        selfOverlapRatio: loopSearched.selfOverlapRatio,
+        status: "failed",
+        reason: loopSearched.reason,
         providerCallCount: loopSearched.providerCallCount,
         searchElapsedMs: loopSearched.searchElapsedMs,
-        distance: loopSearched.distance,
-        startSnapMeters: loopSearched.startSnapMeters,
+        closestCandidate: loopSearched.closestCandidate,
       }),
     );
 
-    const found: DistanceAutoRouteFound = {
-      status: "found",
-      geometry: loopSearched.geometry,
-      distance: loopSearched.distance,
-      duration: loopSearched.duration,
-      end: loopSearched.end,
-      targetDistanceMeters,
-      summary,
-      routeTokenBalance,
-      algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
-      closeLoop: true,
-      selfOverlapRatio: loopSearched.selfOverlapRatio,
-      startBearingSampleDeg: loopSearched.startBearingSampleDeg,
-      startSnapMeters: loopSearched.startSnapMeters,
-    };
+    /**
+     * 지시03 §B2 정정 — 폐합 실패 시 조용히 편도로 낙하하지 않되(사실을 말해 준다),
+     * 결과 없이 되묻지도 않는다. `closestCandidate` 가 있으면(=도로 자체는 있었다) 그
+     * 방위로 `searchDistanceAutoRoute` 를 1회 더 시도한다. 후보가 아예 없었다면
+     * (reason: no_road/budget_exceeded) 편도도 같은 이유로 실패할 것이 확실하므로
+     * 호출을 아끼고 바로 실패로 내려보낸다("편도조차 못 만들면 그때는 실패다").
+     */
+    const fallbackBearingDeg = loopSearched.closestCandidate?.bearingDeg;
+    if (fallbackBearingDeg !== undefined) {
+      const fallbackTargetRoadPoint = offsetLngLatByBearingMeters(
+        start,
+        fallbackBearingDeg,
+        targetDistanceMeters,
+      );
+      const onewaySearched = await searchDistanceAutoRoute({
+        start,
+        targetRoadPoint: fallbackTargetRoadPoint,
+        profile,
+        targetDistanceMeters,
+        bearingDeg: fallbackBearingDeg,
+        fetchDirections,
+      });
 
+      const onewayProviderCallCount =
+        onewaySearched.status === "found"
+          ? onewaySearched.diagnostics.providerCallCount
+          : onewaySearched.providerCallCount;
+      console.info(
+        JSON.stringify({
+          kind: "readyLoopRouteOnewayFallbackDiagnostics",
+          requestId,
+          algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
+          status: onewaySearched.status,
+          fallbackBearingDeg,
+          loopProviderCallCount: loopSearched.providerCallCount,
+          onewayProviderCallCount,
+          totalProviderCallCount: loopSearched.providerCallCount + onewayProviderCallCount,
+        }),
+      );
+
+      if (onewaySearched.status === "found") {
+        const targetLabel = (targetDistanceMeters / 1000).toFixed(1);
+        const actualLabel = (onewaySearched.distance / 1000).toFixed(2);
+        const summary =
+          `순환 경로를 찾지 못해 편도 경로를 만들었어요 — 목표 ${targetLabel} km · ` +
+          `연장 ${actualLabel} km / 예상 ${formatDuration(onewaySearched.duration)}`;
+
+        const found: DistanceAutoRouteFound = {
+          status: "found",
+          geometry: onewaySearched.geometry,
+          distance: onewaySearched.distance,
+          duration: onewaySearched.duration,
+          end: onewaySearched.end,
+          targetDistanceMeters,
+          summary,
+          routeTokenBalance,
+          algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
+          closeLoop: true,
+          closed: false,
+          startBearingSampleDeg: fallbackBearingDeg,
+        };
+
+        await writeCache(userId, requestId, {
+          userId,
+          requestId,
+          status: "found",
+          geometryJson: JSON.stringify(found.geometry),
+          distance: found.distance,
+          duration: found.duration,
+          end: found.end,
+          targetDistanceMeters: found.targetDistanceMeters,
+          summary: found.summary,
+          routeTokenBalance,
+          algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
+          closeLoop: true,
+          closed: false,
+          startBearingSampleDeg: fallbackBearingDeg,
+        });
+
+        return found;
+      }
+    }
+
+    // 편도조차 못 만들었다(도로 없음 등) — 진짜 실패.
+    if (generateCost > 0) {
+      await refundRouteGenerateToken(userId, tokenRequestId, generateCost);
+      routeTokenBalance += generateCost;
+    }
+    const failed: DistanceAutoRouteFailed = {
+      status: "failed",
+      message: loopSearched.message,
+      routeTokenBalance,
+    };
     await writeCache(userId, requestId, {
       userId,
       requestId,
-      status: "found",
-      geometryJson: JSON.stringify(found.geometry),
-      distance: found.distance,
-      duration: found.duration,
-      end: found.end,
-      targetDistanceMeters: found.targetDistanceMeters,
-      summary: found.summary,
+      status: "failed",
+      message: failed.message,
       routeTokenBalance,
-      algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
-      closeLoop: true,
-      selfOverlapRatio: loopSearched.selfOverlapRatio,
-      startBearingSampleDeg: loopSearched.startBearingSampleDeg,
-      startSnapMeters: loopSearched.startSnapMeters,
     });
-
-    return found;
+    return failed;
   }
 
   if (!targetRoadPoint || bearingDeg === undefined) {

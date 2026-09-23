@@ -48,6 +48,14 @@
   line-height: 1.25;
 }
 
+/** 폐합 실패 → 편도 대안 안내(지시03 §B2·§B3) — 실패가 아니라 정보 고지이므로 fail 톤보다 옅게. */
+.local-first__oneway-note {
+  margin: 0;
+  font-size: 0.7rem;
+  opacity: 0.72;
+  line-height: 1.25;
+}
+
 .local-first__actions {
   display: flex;
   flex-wrap: nowrap;

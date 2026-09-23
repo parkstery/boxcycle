@@ -1967,6 +1967,9 @@ export default function App() {
 
   const applyLocalFirstRegion = useCallback(
     (region: LocalFirstRegion, opts?: { jumpCamera?: boolean }) => {
+      if (import.meta.env.DEV) {
+        console.log("[C1] applyLocalFirstRegion", region, opts);
+      }
       setLocalFirstRegion(region);
       writeLocalFirstRegion(region);
       if (opts?.jumpCamera === false) return;
@@ -1975,6 +1978,9 @@ export default function App() {
       setActiveQuickCamera(null);
       setLockBaseHeading(null);
       cameraJumpSeqRef.current += 1;
+      if (import.meta.env.DEV) {
+        console.log("[C2] setExternalCameraJump", cameraJumpSeqRef.current, region.lngLat, region.zoom);
+      }
       setExternalCameraJump({
         lngLat: region.lngLat,
         zoom: region.zoom,
@@ -2005,7 +2011,9 @@ export default function App() {
     setLocalFirstRegion(null);
     clearLocalFirstRegion();
     localFirstFramedAtRef.current = null;
-  }, []);
+    // 지역이 바뀌면 이전 지역의 「다른 경로」 제외 방위·편도 안내가 새 지역에 새어 나가지 않게 한다.
+    readyRide.cancel();
+  }, [readyRide]);
 
   /**
    * localStorage 복원 지역 — 카드가 처음 보일 때 1회만 카메라 점프.
@@ -2037,9 +2045,33 @@ export default function App() {
     [localFirstRegion, readyRide],
   );
 
+  /**
+   * 「다른 경로」(지시03 §B3) — 직전에 쓴 시작 방위를 제외한 다음 표본. 결과 없이 되묻지 않는다는
+   * 원칙(§B2)에 따라 실패해도 기존 `readyRideStatus === "failed"` 카드로 자연스럽게 떨어진다.
+   */
+  const handleAnotherReadyRide = useCallback(
+    (targetDistanceKm: number) => {
+      if (!localFirstRegion) return;
+      void readyRide.another({
+        start: localFirstRegion.lngLat,
+        targetDistanceMeters: targetDistanceKm * 1000,
+      });
+    },
+    [localFirstRegion, readyRide],
+  );
+
+  /**
+   * Ready Ride 로 만든 경로가 이미 Go 게이트(`ready-to-start`)에 얹혀 있다 — 지시03 §B3.
+   * 「경로는 이미 지도에 그려져 있어야 한다」·「다른 경로를 선택할 기회도 동시에 준다」를
+   * 만족하려면 카드가 여기서도 살아 있어야 한다(그 전엔 route 가 생기는 순간 stage 가
+   * ready-to-start 로 바뀌어 카드가 통째로 사라졌다 — RouteDock 과 같은 좌하단 스택에 쌓인다).
+   */
+  const readyRideGeneratedActive =
+    stage === "ready-to-start" && Boolean(localFirstRegion) && readyRide.lastResult != null;
+
   /** Local First Recognition + 입문 경로 CTA(RIDE-NEXT-VISIT-2 V3 · LF-1) */
   const firstRideIntroCard =
-    firstRideIntroVisible && defaultIntroPublication ? (
+    (firstRideIntroVisible || readyRideGeneratedActive) && defaultIntroPublication ? (
       <LocalFirstEntryCard
         region={localFirstRegion}
         mapboxAccessToken={MAPBOX_TOKEN}
@@ -2054,7 +2086,10 @@ export default function App() {
         readyRideGeneratingLabel={readyRide.generatingLabel}
         readyRideSlow={readyRide.slow}
         readyRideFailMessage={readyRide.failMessage}
+        readyRideLastResult={readyRide.lastResult}
+        hasActiveGeneratedRoute={readyRideGeneratedActive}
         onGenerateReadyRide={handleGenerateReadyRide}
+        onAnotherReadyRide={handleAnotherReadyRide}
         onCancelReadyRide={readyRide.cancel}
       />
     ) : null;

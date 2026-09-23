@@ -30,6 +30,8 @@ export type DistanceAutoRouteResponse =
       detourCalls?: number;
       /** Ready Ride(closeLoop) 요청 결과에서만 채워진다. */
       closeLoop?: boolean;
+      /** closeLoop 요청의 실제 결과 — false 면 폐합 실패 후 편도 대안(지시03 §B2·§B3). */
+      closed?: boolean;
       selfOverlapRatio?: number;
       startBearingSampleDeg?: number;
       startSnapMeters?: number;
@@ -75,6 +77,8 @@ export async function fetchDistanceAutoRoute(
     bearingDeg?: number;
     /** 방위 자동 표본 + 폐합(출발=도착) — 지시02 */
     closeLoop?: boolean;
+    /** 「다른 경로」(지시03 §B3) — 직전에 쓴 시작 방위를 제외한다. closeLoop 요청에서만 의미 있다. */
+    excludeStartBearingDeg?: number;
     requestId: string;
     signal?: AbortSignal;
   },

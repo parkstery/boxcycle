@@ -15,6 +15,15 @@ import type { RouteProfile } from "../services/mapboxDirections";
 
 export type ReadyRideStatus = "idle" | "generating" | "failed";
 
+/**
+ * 마지막 생성 결과 — 지시03 §B2·§B3. 카드가 「순환 실패 → 편도」 안내 문구를 보여줄지,
+ * 「다른 경로」가 어떤 시작 방위를 제외해야 할지 여기서 읽는다.
+ */
+export type ReadyRideLastResult = {
+  closed: boolean;
+  startBearingSampleDeg: number | null;
+};
+
 export type UseReadyRideOptions = {
   user: User | null;
   functionsRegion: string;
@@ -52,6 +61,7 @@ export function useReadyRide(options: UseReadyRideOptions) {
   const [status, setStatus] = useState<ReadyRideStatus>("idle");
   const [slow, setSlow] = useState(false);
   const [failMessage, setFailMessage] = useState<string | null>(null);
+  const [lastResult, setLastResult] = useState<ReadyRideLastResult | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const slowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -72,10 +82,11 @@ export function useReadyRide(options: UseReadyRideOptions) {
     setStatus("idle");
     setSlow(false);
     setFailMessage(null);
+    setLastResult(null);
   }, []);
 
-  const generate = useCallback(
-    async (input: { start: LngLat; targetDistanceMeters: number }) => {
+  const runGenerate = useCallback(
+    async (input: { start: LngLat; targetDistanceMeters: number; excludeStartBearingDeg?: number }) => {
       if (rideLocked) {
         setStatus("failed");
         setFailMessage("주행 중에는 Ready Ride 를 만들 수 없습니다.");
@@ -113,6 +124,7 @@ export function useReadyRide(options: UseReadyRideOptions) {
           profile,
           targetDistanceMeters: input.targetDistanceMeters,
           closeLoop: true,
+          excludeStartBearingDeg: input.excludeStartBearingDeg,
           requestId,
           signal: ac.signal,
         });
@@ -121,6 +133,7 @@ export function useReadyRide(options: UseReadyRideOptions) {
 
         if (response.status === "failed") {
           setStatus("failed");
+          setLastResult(null);
           setFailMessage(response.message);
           return;
         }
@@ -135,10 +148,15 @@ export function useReadyRide(options: UseReadyRideOptions) {
           geometry: response.geometry,
           summary: response.summary,
         });
+        setLastResult({
+          closed: response.closed !== false,
+          startBearingSampleDeg: response.startBearingSampleDeg ?? null,
+        });
         setStatus("idle");
       } catch (e) {
         if (ac.signal.aborted) return;
         setStatus("failed");
+        setLastResult(null);
         setFailMessage(formatDistanceAutoRouteClientError(e));
       } finally {
         if (slowTimerRef.current) {
@@ -150,6 +168,24 @@ export function useReadyRide(options: UseReadyRideOptions) {
     [rideLocked, user, routeTokenInsufficient, profile, functionsRegion, onApplyRoute, onClearRouteArtifacts],
   );
 
+  const generate = useCallback(
+    (input: { start: LngLat; targetDistanceMeters: number }) => runGenerate(input),
+    [runGenerate],
+  );
+
+  /**
+   * 「다른 경로」(지시03 §B3) — 직전에 쓴 시작 방위를 제외하고 다음 표본을 쓴다.
+   * `lastResult` 가 없으면(첫 생성 전) 일반 생성과 같다.
+   */
+  const another = useCallback(
+    (input: { start: LngLat; targetDistanceMeters: number }) =>
+      runGenerate({
+        ...input,
+        excludeStartBearingDeg: lastResult?.startBearingSampleDeg ?? undefined,
+      }),
+    [runGenerate, lastResult],
+  );
+
   const generatingLabel = slow ? READY_RIDE_SLOW_GENERATING_LABEL : READY_RIDE_GENERATING_LABEL;
 
   return {
@@ -158,7 +194,9 @@ export function useReadyRide(options: UseReadyRideOptions) {
     slow,
     generatingLabel,
     failMessage,
+    lastResult,
     generate,
+    another,
     cancel,
   };
 }

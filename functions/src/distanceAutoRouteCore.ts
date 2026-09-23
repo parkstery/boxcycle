@@ -902,8 +902,11 @@ export type ReadyLoopSearchFailed = {
   reason: "no_road" | "budget_exceeded" | "no_loop";
   providerCallCount: number;
   searchElapsedMs: number;
-  /** reason === "no_loop" 일 때만 — 가장 가까웠던 후보의 오차·자기중복(왜 탈락했는지 진단용) */
-  closestCandidate?: { errorRatio: number; selfOverlapRatio: number };
+  /**
+   * reason === "no_loop" 일 때만 — 가장 가까웠던 후보의 오차·자기중복(왜 탈락했는지 진단용) +
+   * 그 후보의 시작 방위(지시03 §B3 — 호출부가 이 방위로 편도 대안을 재시도할 때 쓴다).
+   */
+  closestCandidate?: { errorRatio: number; selfOverlapRatio: number; bearingDeg: number };
 };
 
 export type ReadyLoopSearchResult = ReadyLoopSearchFound | ReadyLoopSearchFailed;
@@ -921,11 +924,21 @@ export async function searchReadyLoopRoute(input: {
   targetDistanceMeters: number;
   fetchDirections: FetchDirectionsFn;
   maxProviderCalls?: number;
+  /**
+   * 「다른 경로」(지시03 §B3) — 직전에 쓴 시작 방위를 제외하고 다음 표본을 쓴다.
+   * `READY_LOOP_BEARING_SAMPLES_DEG` 의 정확한 값과 일치할 때만 제외한다.
+   */
+  excludeBearingsDeg?: number[];
 }): Promise<ReadyLoopSearchResult> {
   const { start, profile, targetDistanceMeters: D, fetchDirections } = input;
   const budget = input.maxProviderCalls ?? MAX_AUTO_ROUTE_PROVIDER_CALLS;
   const searchStartedAt = Date.now();
   const legRadius = readyLoopLegRadiusMeters(D);
+  const excludeSet = new Set(input.excludeBearingsDeg ?? []);
+  const filteredBearingSamples = READY_LOOP_BEARING_SAMPLES_DEG.filter((b) => !excludeSet.has(b));
+  // 전부 제외돼 표본이 비면(이론상 발생하지 않으나 방어) 제외를 무시하고 전체 표본을 쓴다.
+  const bearingSamples =
+    filteredBearingSamples.length > 0 ? filteredBearingSamples : READY_LOOP_BEARING_SAMPLES_DEG;
 
   let providerCallCount = 0;
   let snappedStart: LngLat | null = null;
@@ -940,7 +953,7 @@ export async function searchReadyLoopRoute(input: {
   };
   const candidates: Candidate[] = [];
 
-  for (const bearingDeg of READY_LOOP_BEARING_SAMPLES_DEG) {
+  for (const bearingDeg of bearingSamples) {
     if (providerCallCount >= budget) break;
     const waypoints = buildReadyLoopWaypoints(start, bearingDeg, legRadius);
     providerCallCount += 1;
@@ -997,6 +1010,7 @@ export async function searchReadyLoopRoute(input: {
       closestCandidate: {
         errorRatio: closest.errorMeters / D,
         selfOverlapRatio: closest.selfOverlapRatio,
+        bearingDeg: closest.bearingDeg,
       },
     };
   }

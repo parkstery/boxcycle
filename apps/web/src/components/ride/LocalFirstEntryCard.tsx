@@ -8,7 +8,7 @@ import {
   READY_RIDE_DEFAULT_DISTANCE_KM,
   formatReadyRideDistanceLabel,
 } from "../../lib/readyRide";
-import type { ReadyRideStatus } from "../../hooks/useReadyRide";
+import type { ReadyRideLastResult, ReadyRideStatus } from "../../hooks/useReadyRide";
 import "./LocalFirstEntryCard.css";
 
 export type LocalFirstEntryCardProps = {
@@ -27,8 +27,18 @@ export type LocalFirstEntryCardProps = {
   readyRideGeneratingLabel: string;
   readyRideSlow: boolean;
   readyRideFailMessage: string | null;
+  /** 마지막 생성 결과(폐합/편도) — 지시03 §B2·§B3 */
+  readyRideLastResult: ReadyRideLastResult | null;
   onGenerateReadyRide: (targetDistanceKm: number) => void;
+  /** 「다른 경로」 — 직전 시작 방위를 제외한 다음 후보 */
+  onAnotherReadyRide: (targetDistanceKm: number) => void;
   onCancelReadyRide: () => void;
+  /**
+   * Ready Ride 로 생성한 경로가 이미 Go 게이트에 얹혀 있다(stage === "ready-to-start").
+   * 이 경우 카드는 재생성·지역 재선택 UI 를 감추고 「다른 경로」만 남긴다 — 「Ready Ride 시작」·
+   * 「다시 고르기」는 이미 아래 RouteDock 의 실제 Go 버튼·경로 지우기와 중복·충돌한다(지시03 §B3).
+   */
+  hasActiveGeneratedRoute?: boolean;
 };
 
 type Phase = "ready" | "locating" | "denied";
@@ -54,8 +64,11 @@ export function LocalFirstEntryCard({
   readyRideGeneratingLabel,
   readyRideSlow,
   readyRideFailMessage,
+  readyRideLastResult,
   onGenerateReadyRide,
+  onAnotherReadyRide,
   onCancelReadyRide,
+  hasActiveGeneratedRoute = false,
 }: LocalFirstEntryCardProps) {
   const [phase, setPhase] = useState<Phase>("ready");
   const [failReason, setFailReason] = useState<string | null>(null);
@@ -140,6 +153,12 @@ export function LocalFirstEntryCard({
               {region.name} · 여기서 첫 Ready Ride
             </p>
 
+            {readyRideStatus !== "generating" && readyRideLastResult?.closed === false ? (
+              <p className="local-first__oneway-note">
+                순환 경로를 찾지 못해 편도 경로를 만들었어요
+              </p>
+            ) : null}
+
             <div className="local-first__chips" role="group" aria-label="Ready Ride 거리">
               {READY_RIDE_DISTANCE_KM_OPTIONS.map((km) => (
                 <button
@@ -170,7 +189,23 @@ export function LocalFirstEntryCard({
                   </button>
                 ) : null}
               </div>
-            ) : (
+            ) : hasActiveGeneratedRoute ? (
+              // 이미 Go 게이트에 경로가 얹혀 있다 — 「Ready Ride 시작」·「다시 고르기」는 아래
+              // RouteDock 의 실제 주행 시작·경로 지우기와 중복·충돌하므로 「다른 경로」만 남긴다.
+              readyRideStatus !== "failed" ? (
+                <div className="local-first__actions">
+                  <button
+                    type="button"
+                    className="local-first__btn local-first__btn--primary"
+                    onClick={() => onAnotherReadyRide(readyKm)}
+                  >
+                    다른 경로
+                  </button>
+                </div>
+              ) : null
+            ) : readyRideStatus !== "failed" ? (
+              // 실패 시엔 이 행 대신 아래 §B3 실패 블록만 보인다 — 「실패 문구」와 이 행이
+              // 동시에 뜨면 사용자가 뭘 눌러야 할지 헷갈린다(지시02 F 캡처에서 실제로 겹쳤다).
               <div className="local-first__actions">
                 <button
                   type="button"
@@ -179,6 +214,15 @@ export function LocalFirstEntryCard({
                 >
                   Ready Ride 시작
                 </button>
+                {readyRideLastResult ? (
+                  <button
+                    type="button"
+                    className="local-first__btn local-first__btn--ghost"
+                    onClick={() => onAnotherReadyRide(readyKm)}
+                  >
+                    다른 경로
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   className="local-first__btn local-first__btn--ghost"
@@ -191,7 +235,7 @@ export function LocalFirstEntryCard({
                   다시 고르기
                 </button>
               </div>
-            )}
+            ) : null}
 
             {readyRideStatus === "failed" && readyRideFailMessage ? (
               <div className="local-first__ready-fail">
