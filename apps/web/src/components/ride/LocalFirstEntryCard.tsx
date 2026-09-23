@@ -153,12 +153,6 @@ export function LocalFirstEntryCard({
               {region.name} · 여기서 첫 Ready Ride
             </p>
 
-            {readyRideStatus !== "generating" && readyRideLastResult?.closed === false ? (
-              <p className="local-first__oneway-note">
-                순환 경로를 찾지 못해 편도 경로를 만들었어요
-              </p>
-            ) : null}
-
             <div className="local-first__chips" role="group" aria-label="Ready Ride 거리">
               {READY_RIDE_DISTANCE_KM_OPTIONS.map((km) => (
                 <button

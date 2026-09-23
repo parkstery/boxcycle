@@ -418,6 +418,7 @@ export const getDistanceAutoRoute = onRequest(
         closeLoop,
         excludeStartBearingDeg,
         requestId,
+        readyOneway,
       } = parseDistanceAutoRouteBody(dataField);
       try {
         await mergeUserAuthMeta(uid);
@@ -442,6 +443,7 @@ export const getDistanceAutoRoute = onRequest(
         targetDistanceMeters,
         bearingDeg,
         closeLoop,
+        readyOneway,
         excludeStartBearingDeg,
         requestId,
         fetchDirections,

@@ -123,7 +123,7 @@ export function useReadyRide(options: UseReadyRideOptions) {
           start: input.start,
           profile,
           targetDistanceMeters: input.targetDistanceMeters,
-          closeLoop: true,
+          // 지시05 — 기본은 단순 경로. closeLoop 를 보내지 않으면 서버가 readyOneway 로 처리한다.
           excludeStartBearingDeg: input.excludeStartBearingDeg,
           requestId,
           signal: ac.signal,
@@ -149,7 +149,7 @@ export function useReadyRide(options: UseReadyRideOptions) {
           summary: response.summary,
         });
         setLastResult({
-          closed: response.closed !== false,
+          closed: false,
           startBearingSampleDeg: response.startBearingSampleDeg ?? null,
         });
         setStatus("idle");

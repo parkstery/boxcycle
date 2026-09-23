@@ -1,6 +1,6 @@
 ---
 name: ops-relay
-description: document/ops 릴레이 폴더의 지시를 수신·수행한다. Local First Ride(20260923-first_ride)·ops 지시·수행결과·감리 릴레이가 언급되거나 세션이 그 폴더를 다룰 때 사용. Chief 대기 없이 지시 파일 자체가 착수 신호이며, 대기는 await-next 로 블록한다.
+description: document/ops 릴레이 폴더의 지시를 수신·수행한다. Local First Ride(20260923-first_ride)·ops 지시·수행결과·감리 릴레이가 언급되거나 세션이 그 폴더를 다룰 때 사용. Chief 대기 없이 지시 파일 자체가 착수 신호이며, 대기는 await-next 로 블록한다. NEXT 수신 시 즉시 착수.
 user-invocable: true
 ---
 
@@ -11,16 +11,23 @@ user-invocable: true
 - **지시 파일이 올라오면 즉시 수행한다.** Chief 가「계속」이라고 말할 때까지 기다리지 마라.
 - Chief 에게 파일 붙여넣기·심부름을 시키지 마라. 양쪽이 `document/ops/<묶음>/` 을 직접 읽고 쓴다.
 - `git commit` / `git push` 는 해당 묶음 README 가 금지하면 하지 마라.
+- **자동 착수:** `await-next` 를 `notify_on_output`(pattern `^NEXT `) 로 띄워 두고, `NEXT` 가 나오면 그 턴에서 바로 구현한다.
 
 ## 착수 전 (매번)
 
 ```bash
-node scripts/ops-relay/await-next.mjs document/ops/20260923-first_ride
+node scripts/ops-relay/await-next.mjs document/ops/20260923-first_ride --timeout 14400 --interval 20
 ```
 
 **이것이 기본 동작이다.** 새 지시가 올 때까지 블록하고, 도착하면 **본문까지 찍고** 빠져나온다.
 그 자리에서 즉시 수행하라. `IDLE` 로 끝나면 **다시 실행**한다 — 루프를 끊지 마라.
 수신과 동시에 `PROGRESS.md` 에 「지시NN 수신」이 자동 기록되어 감리가 수신을 확인한다.
+
+다른 개발팀장이 미완 지시를 들고 있을 때(핸드오프):
+
+```bash
+node scripts/ops-relay/await-next.mjs document/ops/20260923-first_ride --ignore-open-at-start --timeout 14400 --interval 20
+```
 
 1회만 묻는 `poll-next.mjs` 는 감리용이다.
 

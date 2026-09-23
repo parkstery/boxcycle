@@ -1150,3 +1150,145 @@ export async function searchReadyLoopRoute(input: {
     startSnapMeters,
   };
 }
+
+/**
+ * ===== Ready Ride — 단순 경로(편도) 기본 (지시05) =====
+ * 폐합을 기본에서 빼고, 클릭 기반과 같은 `searchDistanceAutoRoute` 를 방위 자동 표본으로 돌린다.
+ * 표본은 폐합과 같은 5방위(0/72/144/216/288) — 예산 13을 편도에만 쓰므로 방위당
+ * 평균 2~3회 호출 여유. ±20% 이내면 즉시 채택해 호출을 아낀다.
+ */
+export type ReadyOnewaySearchFound = {
+  status: "found";
+  geometry: DirectionsRouteLike["geometry"];
+  distance: number;
+  duration: number;
+  end: LngLat;
+  startBearingSampleDeg: number;
+  providerCallCount: number;
+  searchElapsedMs: number;
+  outcome: AutoRouteOutcome;
+};
+
+export type ReadyOnewaySearchFailed = {
+  status: "failed";
+  message: string;
+  reason: "no_road" | "budget_exceeded" | "no_candidate";
+  providerCallCount: number;
+  searchElapsedMs: number;
+};
+
+export type ReadyOnewaySearchResult = ReadyOnewaySearchFound | ReadyOnewaySearchFailed;
+
+const READY_ONEWAY_FAILURE_MESSAGE = "이 지역에서는 경로를 찾지 못했습니다.";
+
+export async function searchReadyOnewayRoute(input: {
+  start: LngLat;
+  profile: RouteProfile;
+  targetDistanceMeters: number;
+  fetchDirections: FetchDirectionsFn;
+  maxProviderCalls?: number;
+  excludeBearingsDeg?: number[];
+}): Promise<ReadyOnewaySearchResult> {
+  const { start, profile, targetDistanceMeters: D, fetchDirections } = input;
+  const budget = input.maxProviderCalls ?? MAX_AUTO_ROUTE_PROVIDER_CALLS;
+  const searchStartedAt = Date.now();
+  const excludeSet = new Set(input.excludeBearingsDeg ?? []);
+  const filtered = READY_LOOP_BEARING_SAMPLES_DEG.filter((b) => !excludeSet.has(b));
+  const bearingSamples = filtered.length > 0 ? filtered : READY_LOOP_BEARING_SAMPLES_DEG;
+
+  let providerCallCount = 0;
+  type Cand = {
+    bearingDeg: number;
+    geometry: DirectionsRouteLike["geometry"];
+    distance: number;
+    duration: number;
+    end: LngLat;
+    errorMeters: number;
+    outcome: AutoRouteOutcome;
+  };
+  let best: Cand | null = null;
+
+  for (const bearingDeg of bearingSamples) {
+    if (providerCallCount >= budget) break;
+    const targetRoadPoint = offsetLngLatByBearingMeters(start, bearingDeg, D);
+    const searched = await searchDistanceAutoRoute({
+      start,
+      targetRoadPoint,
+      profile,
+      targetDistanceMeters: D,
+      bearingDeg,
+      fetchDirections,
+    });
+    const used =
+      searched.status === "found"
+        ? searched.diagnostics.providerCallCount
+        : searched.providerCallCount;
+    providerCallCount += used;
+
+    if (searched.status !== "found") continue;
+
+    const errorMeters = Math.abs(searched.distance - D);
+    const cand: Cand = {
+      bearingDeg,
+      geometry: searched.geometry,
+      distance: searched.distance,
+      duration: searched.duration,
+      end: searched.end,
+      errorMeters,
+      outcome: searched.outcome,
+    };
+    if (!best || cand.errorMeters < best.errorMeters) best = cand;
+
+    // ±20% 이내면 더 돌리지 않는다 — 예산·지연을 편도 기본에 맞게 절약.
+    if (isDistanceErrorWithinMax(errorMeters, D)) {
+      return {
+        status: "found",
+        geometry: cand.geometry,
+        distance: cand.distance,
+        duration: cand.duration,
+        end: cand.end,
+        startBearingSampleDeg: cand.bearingDeg,
+        providerCallCount,
+        searchElapsedMs: Date.now() - searchStartedAt,
+        outcome: cand.outcome,
+      };
+    }
+  }
+
+  if (best && isDistanceErrorWithinMax(best.errorMeters, D)) {
+    return {
+      status: "found",
+      geometry: best.geometry,
+      distance: best.distance,
+      duration: best.duration,
+      end: best.end,
+      startBearingSampleDeg: best.bearingDeg,
+      providerCallCount,
+      searchElapsedMs: Date.now() - searchStartedAt,
+      outcome: best.outcome,
+    };
+  }
+
+  // shortfall 이라도 최선 후보가 있으면 내보낸다(클릭 기반과 동일 — 모자람을 숨기지 않음).
+  if (best) {
+    return {
+      status: "found",
+      geometry: best.geometry,
+      distance: best.distance,
+      duration: best.duration,
+      end: best.end,
+      startBearingSampleDeg: best.bearingDeg,
+      providerCallCount,
+      searchElapsedMs: Date.now() - searchStartedAt,
+      outcome: best.outcome,
+    };
+  }
+
+  return {
+    status: "failed",
+    message: READY_ONEWAY_FAILURE_MESSAGE,
+    reason: providerCallCount >= budget ? "budget_exceeded" : "no_candidate",
+    providerCallCount,
+    searchElapsedMs: Date.now() - searchStartedAt,
+  };
+}

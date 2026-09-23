@@ -6,6 +6,7 @@ import {
   offsetLngLatByBearingMeters,
   searchDistanceAutoRoute,
   searchReadyLoopRoute,
+  searchReadyOnewayRoute,
   type AutoRouteOutcome,
   type DirectionsRouteLike,
   type FetchDirectionsFn,
@@ -152,15 +153,21 @@ function isLngLat(v: unknown): v is LngLat {
 
 export function parseDistanceAutoRouteBody(data: unknown): {
   start: LngLat;
-  /** Ready Ride(closeLoop) 요청은 클릭이 없어 targetRoadPoint 가 없다. */
+  /**
+   * 클릭 기반은 필수. Ready Ride(closeLoop 또는 지시05 단순 경로)는 클릭이 없어 null.
+   */
   targetRoadPoint: LngLat | null;
   profile: RouteProfile;
   targetDistanceMeters: number;
   bearingDeg: number | undefined;
   closeLoop: boolean;
-  /** 「다른 경로」(지시03 §B3) — closeLoop 요청에서만 의미 있다. 직전에 쓴 시작 방위. */
+  /**
+   * Ready Ride 「다른 경로」— closeLoop·단순 경로 모두에서 직전 시작 방위를 제외한다.
+   */
   excludeStartBearingDeg: number | undefined;
   requestId: string;
+  /** 지시05 — closeLoop 없이 target 없이 온 Ready Ride 단순 경로 요청 */
+  readyOneway: boolean;
 } {
   if (!data || typeof data !== "object") {
     throw new HttpsError("invalid-argument", "요청 본문이 올바르지 않습니다.");
@@ -172,14 +179,18 @@ export function parseDistanceAutoRouteBody(data: unknown): {
   }
   const isCloseLoop = closeLoop === true;
   let parsedTargetRoadPoint: LngLat | null = null;
-  if (!isCloseLoop) {
-    if (!isLngLat(targetRoadPoint)) {
+  const hasTarget = isLngLat(targetRoadPoint);
+  /** Ready Ride 단순 경로(지시05): closeLoop 아님 + target 없음 */
+  const readyOneway = !isCloseLoop && !hasTarget;
+
+  if (!isCloseLoop && !readyOneway) {
+    if (!hasTarget) {
       throw new HttpsError("invalid-argument", "targetRoadPoint 는 [lng,lat] 숫자 배열이어야 합니다.");
     }
     if (targetRoadPoint[0] < -180 || targetRoadPoint[0] > 180 || targetRoadPoint[1] < -90 || targetRoadPoint[1] > 90) {
       throw new HttpsError("invalid-argument", "targetRoadPoint 좌표 범위가 올바르지 않습니다.");
     }
-    parsedTargetRoadPoint = targetRoadPoint;
+    parsedTargetRoadPoint = targetRoadPoint as LngLat;
   }
   if (profile !== "cycling" && profile !== "driving" && profile !== "walking") {
     throw new HttpsError("invalid-argument", "profile 은 cycling | driving | walking 만 허용됩니다.");
@@ -198,7 +209,11 @@ export function parseDistanceAutoRouteBody(data: unknown): {
     throw new HttpsError("invalid-argument", "requestId 형식이 올바르지 않습니다.");
   }
   let parsedExcludeStartBearingDeg: number | undefined;
-  if (isCloseLoop && typeof excludeStartBearingDeg === "number" && Number.isFinite(excludeStartBearingDeg)) {
+  if (
+    (isCloseLoop || readyOneway) &&
+    typeof excludeStartBearingDeg === "number" &&
+    Number.isFinite(excludeStartBearingDeg)
+  ) {
     parsedExcludeStartBearingDeg = excludeStartBearingDeg;
   }
 
@@ -211,6 +226,7 @@ export function parseDistanceAutoRouteBody(data: unknown): {
     closeLoop: isCloseLoop,
     excludeStartBearingDeg: parsedExcludeStartBearingDeg,
     requestId: id,
+    readyOneway,
   };
 }
 
@@ -251,7 +267,9 @@ export async function executeDistanceAutoRoute(input: {
   targetDistanceMeters: number;
   bearingDeg: number | undefined;
   closeLoop: boolean;
-  /** 「다른 경로」(지시03 §B3) — closeLoop 요청에서만 의미 있다. */
+  /** Ready Ride 단순 경로(지시05) — closeLoop 없이 방위 자동 표본 */
+  readyOneway?: boolean;
+  /** 「다른 경로」(지시03 §B3) — Ready Ride(폐합·단순)에서 직전 시작 방위 제외 */
   excludeStartBearingDeg?: number;
   requestId: string;
   fetchDirections: FetchDirectionsFn;
@@ -264,6 +282,7 @@ export async function executeDistanceAutoRoute(input: {
     targetDistanceMeters,
     bearingDeg,
     closeLoop,
+    readyOneway = false,
     excludeStartBearingDeg,
     requestId,
     fetchDirections,
@@ -477,6 +496,109 @@ export async function executeDistanceAutoRoute(input: {
       routeTokenBalance,
     });
     return failed;
+  }
+
+  // 지시05 — Ready Ride 기본 = 단순 경로(방위 자동 표본 + searchDistanceAutoRoute)
+  if (readyOneway) {
+    const onewaySearched = await searchReadyOnewayRoute({
+      start,
+      profile,
+      targetDistanceMeters,
+      fetchDirections,
+      excludeBearingsDeg:
+        excludeStartBearingDeg !== undefined ? [excludeStartBearingDeg] : undefined,
+    });
+
+    if (onewaySearched.status === "failed") {
+      if (generateCost > 0) {
+        await refundRouteGenerateToken(userId, tokenRequestId, generateCost);
+        routeTokenBalance += generateCost;
+      }
+      console.info(
+        JSON.stringify({
+          kind: "readyOnewayRouteDiagnostics",
+          requestId,
+          algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
+          status: "failed",
+          reason: onewaySearched.reason,
+          providerCallCount: onewaySearched.providerCallCount,
+          searchElapsedMs: onewaySearched.searchElapsedMs,
+        }),
+      );
+      const failed: DistanceAutoRouteFailed = {
+        status: "failed",
+        message: onewaySearched.message,
+        routeTokenBalance,
+      };
+      await writeCache(userId, requestId, {
+        userId,
+        requestId,
+        status: "failed",
+        message: failed.message,
+        routeTokenBalance,
+      });
+      return failed;
+    }
+
+    const targetLabel = (targetDistanceMeters / 1000).toFixed(1);
+    const actualLabel = (onewaySearched.distance / 1000).toFixed(2);
+    const summary =
+      onewaySearched.outcome === "shortfall"
+        ? (() => {
+            const deficitM = Math.max(0, Math.round(targetDistanceMeters - onewaySearched.distance));
+            return `목표 ${targetLabel} km 에 ${deficitM} m 모자란 ${actualLabel} km 로 만들었습니다.`;
+          })()
+        : `목표 ${targetLabel} km · 연장 ${actualLabel} km / 예상 ${formatDuration(onewaySearched.duration)}`;
+
+    console.info(
+      JSON.stringify({
+        kind: "readyOnewayRouteDiagnostics",
+        requestId,
+        algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
+        status: "found",
+        closed: false,
+        startBearingSampleDeg: onewaySearched.startBearingSampleDeg,
+        providerCallCount: onewaySearched.providerCallCount,
+        searchElapsedMs: onewaySearched.searchElapsedMs,
+        distance: onewaySearched.distance,
+        outcome: onewaySearched.outcome,
+      }),
+    );
+
+    const found: DistanceAutoRouteFound = {
+      status: "found",
+      geometry: onewaySearched.geometry,
+      distance: onewaySearched.distance,
+      duration: onewaySearched.duration,
+      end: onewaySearched.end,
+      targetDistanceMeters,
+      summary,
+      routeTokenBalance,
+      algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
+      closeLoop: false,
+      closed: false,
+      outcome: onewaySearched.outcome,
+      startBearingSampleDeg: onewaySearched.startBearingSampleDeg,
+    };
+
+    await writeCache(userId, requestId, {
+      userId,
+      requestId,
+      status: "found",
+      geometryJson: JSON.stringify(found.geometry),
+      distance: found.distance,
+      duration: found.duration,
+      end: found.end,
+      targetDistanceMeters: found.targetDistanceMeters,
+      summary: found.summary,
+      routeTokenBalance,
+      algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION,
+      closeLoop: false,
+      closed: false,
+      startBearingSampleDeg: onewaySearched.startBearingSampleDeg,
+    });
+
+    return found;
   }
 
   if (!targetRoadPoint || bearingDeg === undefined) {
