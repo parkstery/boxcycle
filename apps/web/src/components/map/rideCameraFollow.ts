@@ -5,8 +5,9 @@ import {
   type LineStringGeometry as RouteLineStringGeometry,
 } from "../../lib/geo";
 import type { FollowMode } from "../ride/RideRoutePanel";
-import { RIDE_CAMERA_PITCH_CLOSE } from "../../lib/mapGlobeView";
+import { resolveRideCameraPitchClose } from "../../lib/mapGlobeView";
 import { computeRideFollowFraming, viewportPxFromMap } from "../../lib/rideCameraFraming";
+import type { RideSpanFloorMode } from "../../lib/rideCameraFraming";
 import {
   beginFollowCameraJump,
   endFollowCameraJump,
@@ -44,10 +45,11 @@ export function getCameraForFollowMode(input: {
 }): { bearing: number; offsetBearing: number | null; pitch: number; distanceM: number } {
   // 밀착 4방향은 3D(terrain) 유무와 무관하게 준수평 추적 — GoPro/레이싱 뷰.
   // 2D 에선 terrain 이 없어 지도가 눕지만, 이는 라이더 밀착 체험을 위해 의도된 것.
-  // maxPitch(85) 아래로 안정적인 RIDE_CAMERA_PITCH_CLOSE(80) 사용.
-  const pitchRear = RIDE_CAMERA_PITCH_CLOSE;
-  const pitchFront = RIDE_CAMERA_PITCH_CLOSE;
-  const pitchSide = RIDE_CAMERA_PITCH_CLOSE;
+  // maxPitch(85) 아래 resolveRideCameraPitchClose(확정 80, ?ridePitch=<deg> 캡처 유지).
+  const pitchClose = resolveRideCameraPitchClose();
+  const pitchRear = pitchClose;
+  const pitchFront = pitchClose;
+  const pitchSide = pitchClose;
 
   if (input.mode === "topDown") {
     // 상공 수직 — 라이더를 화면 중앙에 두고 진행 방향을 위로. 거리 개념 없음(줌은 앱 상태).
@@ -58,22 +60,31 @@ export function getCameraForFollowMode(input: {
       distanceM: 0,
     };
   }
+  if (input.mode === "aerial") {
+    const bearing = normalizeCompass(input.baseHeading);
+    return {
+      bearing,
+      offsetBearing: normalizeCompass(bearing + 180),
+      pitch: 0,
+      distanceM: input.distanceM > 0 ? input.distanceM : 60,
+    };
+  }
   if (input.mode === "north") {
     return { bearing: 0, offsetBearing: null, pitch: input.currentPitch, distanceM: 0 };
   }
-  if (input.mode === "rear30") {
+  if (input.mode === "forward") {
     const bearing = normalizeCompass(input.baseHeading);
     return { bearing, offsetBearing: normalizeCompass(bearing + 180), pitch: pitchRear, distanceM: input.distanceM };
   }
-  if (input.mode === "front30") {
+  if (input.mode === "backward") {
     const bearing = normalizeCompass(input.baseHeading + 180);
     return { bearing, offsetBearing: normalizeCompass(bearing + 180), pitch: pitchFront, distanceM: input.distanceM };
   }
-  if (input.mode === "rightFlat") {
+  if (input.mode === "right") {
     const bearing = normalizeCompass(input.baseHeading + 270);
     return { bearing, offsetBearing: normalizeCompass(bearing + 180), pitch: pitchSide, distanceM: input.distanceM };
   }
-  if (input.mode === "leftFlat") {
+  if (input.mode === "left") {
     const bearing = normalizeCompass(input.baseHeading + 90);
     return { bearing, offsetBearing: normalizeCompass(bearing + 180), pitch: pitchSide, distanceM: input.distanceM };
   }
@@ -202,6 +213,13 @@ export function tickRideCameraFollow(
     mapZoom: number;
     /** 주행 카메라 라이더~카메라 거리(m) — 개발용 거리 슬라이더, 최적값 확정 후 제거 예정 */
     rideCameraDistanceM: number;
+    /**
+     * Quick Camera 6(북향 밀착) — 진행 heading 대신 이 값을 baseHeading 으로 고정.
+     * null 이면 기존 move→route→map 우선순위.
+     */
+    lockBaseHeading?: number | null;
+    /** B1 — 사용자 줌 역산 거리면 floor 생략 */
+    spanFloorMode?: RideSpanFloorMode;
     sessionStatus?: LiveRiderMotion["sessionStatus"];
     routeGeometry: LineStringGeometry | null;
     prevLiveRef: { current: LngLat | null };
@@ -234,7 +252,10 @@ export function tickRideCameraFollow(
     CAMERA_BEARING_WINDOW_METERS,
     CAMERA_BEARING_WINDOW_SAMPLES,
   );
-  const baseHeading = headingFromMove ?? headingFromRoute ?? map.getBearing();
+  const baseHeading =
+    opts.lockBaseHeading != null && Number.isFinite(opts.lockBaseHeading)
+      ? opts.lockBaseHeading
+      : (headingFromMove ?? headingFromRoute ?? map.getBearing());
   const nextCamera = getCameraForFollowMode({
     mode: opts.followMode,
     baseHeading,
@@ -300,6 +321,7 @@ export function tickRideCameraFollow(
     viewportHeightPx: vp.height,
     fallbackZoom: opts.mapZoom,
     screenUpBearing: nextBearing,
+    spanFloorMode: opts.spanFloorMode ?? "preset",
   });
   const cameraCenterTarget = framing.center;
   const followZoom = framing.zoom;

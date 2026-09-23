@@ -22,7 +22,7 @@ import {
   rideSafeViewportPx,
   rideSpanM,
 } from "../../src/lib/rideCameraFraming.ts";
-import { rideCameraDistanceRangeM } from "../../src/lib/mapGlobeView.ts";
+import { rideCameraDistanceRangeM, RIDE_CAMERA_PITCH_CLOSE } from "../../src/lib/mapGlobeView.ts";
 import { getDistanceMeters } from "../../src/lib/geo.ts";
 
 /** `config.ts` 의 기준 배율. 여기서만 쓰는 상수가 아니라 제품 값과 같아야 한다. */
@@ -255,8 +255,8 @@ describe("G-5 · span 은 전고를 따라간다(고정 상한 없음)", () => {
       for (const f of [0, 0.5, 1]) {
         const d1 = r1.minM + (r1.maxM - r1.minM) * f;
         const df = rf.minM + (rf.maxM - rf.minM) * f;
-        const s1 = rideSpanM(d1, 80, displayHeightAt(1));
-        const sf = rideSpanM(df, 80, displayHeightAt(factor));
+        const s1 = rideSpanM(d1, RIDE_CAMERA_PITCH_CLOSE, displayHeightAt(1));
+        const sf = rideSpanM(df, RIDE_CAMERA_PITCH_CLOSE, displayHeightAt(factor));
         assert.ok(
           Math.abs(sf / s1 - factor) / factor < 1e-9,
           `factor ${factor} · 슬라이더 ${f * 100}% 에서 ${(sf / s1).toFixed(3)}배`,
@@ -270,10 +270,10 @@ describe("G-5 · span 은 전고를 따라간다(고정 상한 없음)", () => {
       const r = rideCameraDistanceRangeM(displayHeightAt(factor));
       // 하한은 프레이밍 바닥을 눈금 위로 올린 값이라 거리가 (아슬아슬하게) 이긴다
       assert.ok(
-        Math.abs(rideSpanM(r.minM, 80, displayHeightAt(factor)) - r.minM) < 1e-9,
+        Math.abs(rideSpanM(r.minM, RIDE_CAMERA_PITCH_CLOSE, displayHeightAt(factor)) - r.minM) < 1e-9,
         "하한에서 heightSpan 이 거리를 이겨 죽은 구간이 남는다",
       );
-      assert.equal(rideSpanM(r.maxM, 80, displayHeightAt(factor)), r.maxM);
+      assert.equal(rideSpanM(r.maxM, RIDE_CAMERA_PITCH_CLOSE, displayHeightAt(factor)), r.maxM);
     }
   });
 });
@@ -293,18 +293,17 @@ const sliderDistancesAt = (factor: number) => {
 };
 
 describe("G-5 · 카메라 거리 유도", () => {
-  it("factor 1 은 오늘의 값(기본 40m · 상한 40m · 눈금 0.5m)을 그대로 재현한다", () => {
+  it("factor 1 은 상한 60m · 기본 40m · 눈금 0.5m 를 재현한다(지시03)", () => {
     const r = rangeAt(1);
-    assert.ok(Math.abs(r.maxM - 40) < 1e-9, `상한이 ${r.maxM}`);
+    assert.ok(Math.abs(r.maxM - 60) < 1e-9, `상한이 ${r.maxM}`);
     assert.ok(Math.abs(r.defaultM - 40) < 1e-9, `기본이 ${r.defaultM}`);
     assert.ok(Math.abs(r.stepM - 0.5) < 1e-9, `눈금이 ${r.stepM}`);
   });
 
-  it("하한은 heightSpan 이 거리를 이기는 지점을 눈금 위로 올린 값이다 — factor 1 에서 1m → 6m", () => {
-    // 잘려 나가는 1~6m 는 main2 에서 이미 라이더가 화면에 없던 죽은 구간이다.
+  it("하한은 heightSpan 이 거리를 이기는 지점을 눈금 위로 올린 값이다 — pitch 80° 에서 6m(지시07)", () => {
     const r = rangeAt(1);
     const floorM = displayHeightAt(1) * rideHeightSpanMargin(80);
-    assert.ok(Math.abs(floorM - 5.589) < 0.01, `프레이밍 하한이 ${floorM.toFixed(3)}`);
+    assert.ok(Math.abs(floorM - 5.59) < 0.05, `프레이밍 하한이 ${floorM.toFixed(3)}`);
     assert.ok(r.minM >= floorM, "올림이 아니라 내림했다");
     assert.ok(r.minM - floorM < r.stepM, "한 눈금보다 많이 올렸다");
     assert.equal(r.minM, 6);
@@ -314,7 +313,8 @@ describe("G-5 · 카메라 거리 유도", () => {
     for (const factor of [1, 10, 20, 400]) {
       const r = rangeAt(factor);
       const steps = (r.maxM - r.minM) / r.stepM;
-      assert.ok(Math.abs(steps - 68) < 1e-6, `factor ${factor} 에서 ${steps} 칸`);
+      // pitch 80 → min 6: (60-6)/0.5 = 108
+      assert.ok(Math.abs(steps - 108) < 1e-6, `factor ${factor} 에서 ${steps} 칸`);
     }
   });
 
@@ -323,7 +323,7 @@ describe("G-5 · 카메라 거리 유도", () => {
       const ds = sliderDistancesAt(factor);
       const zooms = new Set<number>();
       for (const d of ds) {
-        const span = rideSpanM(d, 80, displayHeightAt(factor));
+        const span = rideSpanM(d, RIDE_CAMERA_PITCH_CLOSE, displayHeightAt(factor));
         assert.ok(
           Math.abs(span - d) < 1e-9,
           `factor ${factor} · 거리 ${d.toFixed(1)}m 가 heightSpan 에 먹혔다(span ${span.toFixed(1)})`,
@@ -338,7 +338,7 @@ describe("G-5 · 카메라 거리 유도", () => {
     const fractionAt = (factor: number, sliderFraction: number) => {
       const r = rangeAt(factor);
       const d = r.minM + (r.maxM - r.minM) * sliderFraction;
-      return displayHeightAt(factor) / rideSpanM(d, 80, displayHeightAt(factor));
+      return displayHeightAt(factor) / rideSpanM(d, RIDE_CAMERA_PITCH_CLOSE, displayHeightAt(factor));
     };
     for (const f of SLIDER_FRACTIONS) {
       const base = fractionAt(1, f);
@@ -356,8 +356,8 @@ describe("G-5 · 카메라 거리 유도", () => {
     const relAt = (factor: number, sliderFraction: number) => {
       const r = rangeAt(factor);
       const d = r.minM + (r.maxM - r.minM) * sliderFraction;
-      const span = rideSpanM(d, 80, displayHeightAt(factor));
-      return rideLookAtAlongM(80, span, lookAtHeightAt(factor)) / span;
+      const span = rideSpanM(d, RIDE_CAMERA_PITCH_CLOSE, displayHeightAt(factor));
+      return rideLookAtAlongM(RIDE_CAMERA_PITCH_CLOSE, span, lookAtHeightAt(factor)) / span;
     };
     for (const f of SLIDER_FRACTIONS) {
       for (const factor of [10, 20]) {
@@ -373,8 +373,10 @@ describe("G-5 · 카메라 거리 유도", () => {
     }
     assert.ok(r.minM < r.maxM, "하한이 상한보다 크다");
     for (const d of sliderDistancesAt(400)) {
-      const span = rideSpanM(d, 80, displayHeightAt(400));
-      const zoom = Math.log2((156543.03392 * Math.cos((37.5 * Math.PI) / 180)) / (span / 728)) - 0.6 * (80 / 90);
+      const span = rideSpanM(d, RIDE_CAMERA_PITCH_CLOSE, displayHeightAt(400));
+      const zoom =
+        Math.log2((156543.03392 * Math.cos((37.5 * Math.PI) / 180)) / (span / 728)) -
+        0.6 * (RIDE_CAMERA_PITCH_CLOSE / 90);
       assert.ok(Number.isFinite(zoom) && zoom > 0, `거리 ${d.toFixed(0)}m 에서 zoom ${zoom}`);
     }
   });

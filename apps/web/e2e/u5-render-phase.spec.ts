@@ -73,7 +73,7 @@ test.describe("U-5 Mapbox render 카메라 채택", () => {
       headed: true,
       speedKmh: 5,
       distanceM: 1,
-      follow: "leftFlat",
+      follow: "left",
       q0,
       q2,
       durationMs: snap!.durationMs,

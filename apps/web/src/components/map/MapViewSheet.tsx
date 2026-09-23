@@ -42,21 +42,22 @@ const FOLLOW_OPTIONS: { value: FollowMode; label: string }[] = [
   { value: "keep", label: "유지" },
   { value: "topDown", label: "상공" },
   { value: "north", label: "북향" },
-  { value: "rear30", label: "후방" },
-  { value: "front30", label: "전방" },
-  { value: "leftFlat", label: "좌측" },
-  { value: "rightFlat", label: "우측" },
+  { value: "forward", label: "전방" },
+  { value: "backward", label: "후방" },
+  { value: "left", label: "좌측" },
+  { value: "right", label: "우측" },
 ];
 
 const FOLLOW_TITLES: Record<FollowMode, string> = {
   free: "Free camera",
   keep: "Follow, keep bearing",
   topDown: "Top-down (overhead)",
+  aerial: "Aerial (distance)",
   north: "North up",
-  rear30: "Rear 30°",
-  front30: "Front 30°",
-  leftFlat: "Left side",
-  rightFlat: "Right side",
+  forward: "Forward (camera behind rider)",
+  backward: "Backward (camera ahead of rider)",
+  left: "Left side",
+  right: "Right side",
 };
 
 /**

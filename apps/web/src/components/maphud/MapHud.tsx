@@ -124,6 +124,15 @@ export type MapHudProps = {
   conquestAllOwnedHint?: boolean;
   /** idle 단계 첫 진입 안내 문구 */
   idleHintMessage?: string;
+  /**
+   * Quick Camera 1~6 — 주행 중에만 Account 왼쪽. null/undefined 이면 미렌더(CSS 숨김 금지).
+   */
+  quickCamera?: {
+    active: 1 | 2 | 3 | 4 | 5 | 6 | null;
+    onSelect: (n: 1 | 2 | 3 | 4 | 5 | 6) => void;
+    /** 1번 3단 상태 — 버튼에 작은 표식(지시07) */
+    camera1Mode?: "routeFit" | "aerial60" | "aerial10";
+  } | null;
 };
 
 /** TC 지표 캡슐 셀 — 라벨 위·값 아래 (참조 TopHud) */
@@ -201,6 +210,7 @@ export function MapHud(props: MapHudProps) {
     conquestLiveMeters,
     conquestAllOwnedHint,
     idleHintMessage = "MENU → 입문 경로",
+    quickCamera = null,
   } = props;
 
   const riding = stage === "riding";
@@ -270,7 +280,7 @@ export function MapHud(props: MapHudProps) {
    * 모든 주행 가능 stage 에서 보이므로 칩은 항상 dock 이 그린다(`lib/sensorChipSlot`).
    * 여기 남는 것은 계정·로그인 칩뿐이고, `cadence` 는 **RouteDock 으로만** 간다.
    */
-  const showTopRight = showAccount || showSignedOutAuth;
+  const showTopRight = showAccount || showSignedOutAuth || Boolean(quickCamera);
   const showMapViewTrigger = !isGate && !isSummary;
   const showMetrics =
     metrics !== null &&
@@ -478,6 +488,43 @@ export function MapHud(props: MapHudProps) {
       {/* 우상단은 하나의 액션 행 — 계정/로그인 칩만. 센서 칩은 RouteDock 이 소유한다 */}
       {showTopRight ? (
         <div className="map-hud__tr">
+          {quickCamera ? (
+            <div className="hud-quick-camera" role="group" aria-label="Quick Camera">
+              {([1, 2, 3, 4, 5, 6] as const).map((n) => {
+                const c1 = n === 1 ? quickCamera.camera1Mode ?? "routeFit" : null;
+                const c1Mark =
+                  c1 === "routeFit" ? "R" : c1 === "aerial60" ? "60" : c1 === "aerial10" ? "10" : null;
+                const c1Label =
+                  c1 === "routeFit"
+                    ? "전체 경로"
+                    : c1 === "aerial60"
+                      ? "60m 상공"
+                      : c1 === "aerial10"
+                        ? "10m 상공"
+                        : null;
+                return (
+                  <button
+                    key={n}
+                    type="button"
+                    className={`hud-quick-camera__btn${quickCamera.active === n ? " is-active" : ""}${
+                      n === 1 ? " hud-quick-camera__btn--c1" : ""
+                    }`}
+                    aria-label={c1Label ? `카메라 1 · ${c1Label}` : `카메라 ${n}`}
+                    aria-pressed={quickCamera.active === n}
+                    data-camera1-mode={c1 ?? undefined}
+                    onClick={() => quickCamera.onSelect(n)}
+                  >
+                    <span className="hud-quick-camera__num">{n}</span>
+                    {c1Mark && quickCamera.active === 1 ? (
+                      <span className="hud-quick-camera__c1-mark" aria-hidden>
+                        {c1Mark}
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
           {showAccount && account ? (
             <button
               type="button"

@@ -25,6 +25,7 @@ import {
   RIDE_FOLLOW_CAMERA_MODE,
   RIDE_START_ZOOM,
   RIDE_CAMERA_DISTANCE_DEFAULT_M,
+  RIDE_CAMERA_DISTANCE_MIN_M,
 } from "./lib/mapGlobeView";
 import { rideDistanceAlongRoute } from "./lib/liveLocationSnapshot";
 import { AuthGateCard, AuthGoogleMark } from "./components/AuthGateCard";
@@ -89,7 +90,7 @@ import {
 import { canUserJoinTrail, resolveNewTrailVisibility } from "./lib/trailAccessPolicy";
 import { replaceTrailInUrl } from "./lib/trailUrl";
 import type { LngLat } from "./lib/geo";
-import { getPointOnRouteByDistance, lineStringLengthMeters } from "./lib/geo";
+import { boundsFromLineCoordinates, getPointOnRouteByDistance, lineStringLengthMeters } from "./lib/geo";
 import { MAX_ROUTE_WAYPOINTS } from "./lib/routeWaypoints";
 import { lockRouteWorkspaceDuringRide } from "./lib/routeWorkspaceLock";
 import { resolveRideContinuationSetup } from "./lib/rideContinuationSetup";
@@ -142,6 +143,14 @@ const MapillaryRideViewer = lazy(async () => {
   const m = await import("./components/MapillaryRideViewer");
   return { default: m.MapillaryRideViewer };
 });
+
+/** Quick Camera 1 — 3단 로테이션(지시07) */
+type Camera1Mode = "routeFit" | "aerial60" | "aerial10";
+const CAMERA1_MODE_CYCLE: readonly Camera1Mode[] = ["routeFit", "aerial60", "aerial10"];
+function nextCamera1Mode(cur: Camera1Mode): Camera1Mode {
+  const i = CAMERA1_MODE_CYCLE.indexOf(cur);
+  return CAMERA1_MODE_CYCLE[(i + 1) % CAMERA1_MODE_CYCLE.length]!;
+}
 
 export default function App() {
   const {
@@ -203,6 +212,16 @@ export default function App() {
     setMapLodZoom(zoom);
   }, []);
   const [followMode, setFollowMode] = useState<FollowMode>(DEFAULT_FOLLOW_MODE);
+  /** Quick Camera 1~6 — 주행 HUD. null = 미선택 */
+  const [activeQuickCamera, setActiveQuickCamera] = useState<1 | 2 | 3 | 4 | 5 | 6 | null>(null);
+  /** Quick Camera 1: routeFit → aerial60 → aerial10 → … (지시07) */
+  const [camera1Mode, setCamera1Mode] = useState<Camera1Mode>("routeFit");
+  /** Quick Camera 6: baseHeading 고정(북=0) */
+  const [lockBaseHeading, setLockBaseHeading] = useState<number | null>(null);
+  /** 지시06 B1 — preset 거리 vs 사용자 줌 역산 */
+  const [rideCameraSpanFloorMode, setRideCameraSpanFloorMode] = useState<"preset" | "userZoom">(
+    "preset",
+  );
   const [enable3D, setEnable3D] = useState(DEFAULT_MAP_ENABLE_3D);
   const followModeSnapshotRef = useRef(followMode);
   const mapZoomSnapshotRef = useRef(mapZoom);
@@ -1625,6 +1644,8 @@ export default function App() {
   const handleFocusRouteDockStop = useCallback(
     (stop: RouteDockStop) => {
       setFollowMode("free");
+      setActiveQuickCamera(null);
+      setLockBaseHeading(null);
       cameraJumpSeqRef.current += 1;
       setExternalCameraJump({
         lngLat: stop.lngLat,
@@ -1710,6 +1731,8 @@ export default function App() {
   const focusAnchorOnMap = useCallback(
     (lngLat: LngLat) => {
       setFollowMode("free");
+      setActiveQuickCamera(null);
+      setLockBaseHeading(null);
       cameraJumpSeqRef.current += 1;
       setExternalCameraJump({
         lngLat,
@@ -1871,6 +1894,8 @@ export default function App() {
     ) {
       nextRideFramedRideIdRef.current = nextRideView.target.rideId;
       setFollowMode("free");
+      setActiveQuickCamera(null);
+      setLockBaseHeading(null);
       cameraJumpSeqRef.current += 1;
       setExternalCameraJump({
         lngLat: nextRideView.target.anchorLngLat,
@@ -1894,6 +1919,75 @@ export default function App() {
         }}
       />
     ) : null;
+
+  /**
+   * Quick Camera 1~6 — 공통 Camera Controller(followMode + distance + fitBounds)만 사용.
+   * 줌 비간섭은 지시03 범위 밖(STEP 6).
+   */
+  const handleQuickCameraSelect = useCallback(
+    (n: 1 | 2 | 3 | 4 | 5 | 6) => {
+      setActiveQuickCamera(n);
+      if (n === 1) {
+        // 다른 카메라에서 들어오면 Route Fit 부터. 이미 1이면 3단 순환.
+        const next: Camera1Mode =
+          activeQuickCamera === 1 ? nextCamera1Mode(camera1Mode) : "routeFit";
+        setCamera1Mode(next);
+        setLockBaseHeading(null);
+        if (next === "routeFit") {
+          if (routeGeometry?.coordinates?.length) {
+            const b = boundsFromLineCoordinates(routeGeometry.coordinates as [number, number][]);
+            cameraJumpSeqRef.current += 1;
+            setExternalCameraJump({
+              lngLat: liveForMap ?? startLngLat ?? routeGeometry.coordinates[0],
+              requestId: cameraJumpSeqRef.current,
+              bbox: [b.minLng, b.minLat, b.maxLng, b.maxLat],
+            });
+          }
+          // Route Fit = 1회 fitBounds 만. topDown 팔로우면 억제 창 후 tick 이 프레이밍을 덮는다(지시05).
+          setFollowMode("free");
+          setRideCameraSpanFloorMode("preset");
+        } else if (next === "aerial60") {
+          setFollowMode("aerial");
+          setRideCameraDistanceM(60);
+          setRideCameraSpanFloorMode("preset");
+        } else {
+          setFollowMode("aerial");
+          setRideCameraDistanceM(10);
+          setRideCameraSpanFloorMode("preset");
+        }
+        return;
+      }
+      setLockBaseHeading(n === 6 ? 0 : null);
+      const modeByN: Record<2 | 3 | 4 | 5 | 6, FollowMode> = {
+        2: "forward",
+        3: "backward",
+        4: "left",
+        5: "right",
+        6: "forward",
+      };
+      setFollowMode(modeByN[n]);
+      // pitch 80 확정 → floor≈5.59m → MIN 6.0m. 원안 「5m」는 max(5, MIN)으로 6m 적용을 드러낸다.
+      setRideCameraDistanceM(Math.max(5, RIDE_CAMERA_DISTANCE_MIN_M));
+      setRideCameraSpanFloorMode("preset");
+    },
+    [
+      activeQuickCamera,
+      camera1Mode,
+      routeGeometry,
+      liveForMap,
+      startLngLat,
+    ],
+  );
+
+  const handleRideCameraDistanceFromUserZoom = useCallback((distanceM: number) => {
+    setRideCameraDistanceM(distanceM);
+    setRideCameraSpanFloorMode("userZoom");
+  }, []);
+
+  const handleRideCameraDistancePreset = useCallback((distanceM: number) => {
+    setRideCameraDistanceM(distanceM);
+    setRideCameraSpanFloorMode("preset");
+  }, []);
 
   /**
    * Go 사전조건 = 경로 준비 **+ 주행 입력 준비**.
@@ -1952,6 +2046,8 @@ export default function App() {
   function handleMenuPlacePick(lngLat: LngLat, _placeName: string, _bbox: [number, number, number, number] | null) {
     /** `liveForMap` 추적 jumpTo 가 flyTo 를 덮어쓰지 않도록 */
     setFollowMode("free");
+    setActiveQuickCamera(null);
+    setLockBaseHeading(null);
     cameraJumpSeqRef.current += 1;
     setExternalCameraJump({
       lngLat,
@@ -2248,6 +2344,9 @@ export default function App() {
                 : null,
               rideActive: rideStatus === "running" || rideStatus === "paused",
               rideCameraDistanceM,
+              lockBaseHeading,
+              rideCameraSpanFloorMode,
+              onRideCameraDistanceFromUserZoom: handleRideCameraDistanceFromUserZoom,
               showRtwPoi,
               onLookupPioneer: handleLookupPioneer,
               onClearRoute: handleClearPins,
@@ -2347,6 +2446,14 @@ export default function App() {
               onGoTrailhead: goTrailheadAndCloseMenu,
               conquestLiveMeters,
               conquestAllOwnedHint,
+              quickCamera:
+                rideStatus === "running" || rideStatus === "paused"
+                  ? {
+                      active: activeQuickCamera,
+                      onSelect: handleQuickCameraSelect,
+                      camera1Mode,
+                    }
+                  : null,
             }}
           >
             {rideMapillaryStreet && mapillaryRideSync && mapillaryTokenConfigured ? (
@@ -2519,14 +2626,19 @@ export default function App() {
         enable3D={enable3D}
         onEnable3D={setEnable3D}
         followMode={followMode}
-        onFollowMode={setFollowMode}
+        onFollowMode={(m) => {
+          setFollowMode(m);
+          setLockBaseHeading(null);
+          setActiveQuickCamera(null);
+          setRideCameraSpanFloorMode("preset");
+        }}
         mapZoom={mapZoom}
         onMapZoom={setMapZoom}
         showRtwPoi={showRtwPoi}
         onShowRtwPoi={setShowRtwPoi}
         rideActive={rideStatus === "running" || rideStatus === "paused"}
         rideCameraDistanceM={rideCameraDistanceM}
-        onRideCameraDistanceM={setRideCameraDistanceM}
+        onRideCameraDistanceM={handleRideCameraDistancePreset}
       />
 
       <UserInfoSheet

@@ -432,6 +432,84 @@
 }
 
 /* ---------- TR: AccountChip ---------- */
+
+/* Quick Camera 1~6 — Account 왼쪽, 주행 중에만 렌더 */
+.hud-quick-camera {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  flex-shrink: 0;
+}
+
+.hud-quick-camera__btn {
+  box-sizing: border-box;
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.55rem;
+  height: 1.55rem;
+  padding: 0 0.28rem;
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 0.35rem;
+  background: rgba(15, 23, 42, 0.55);
+  color: #e2e8f0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.hud-quick-camera__btn--c1.is-active {
+  min-width: 1.85rem;
+  height: 1.85rem;
+  padding-bottom: 0.12rem;
+}
+
+.hud-quick-camera__num {
+  line-height: 1;
+}
+
+.hud-quick-camera__c1-mark {
+  margin-top: 0.08rem;
+  font-size: 0.48rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #bae6fd;
+  line-height: 1;
+}
+
+.hud-quick-camera__btn.is-active {
+  border-color: rgba(125, 211, 252, 0.85);
+  background: rgba(14, 116, 144, 0.55);
+  color: #f0f9ff;
+}
+
+.hud-quick-camera__btn:focus-visible {
+  outline: 2px solid #7dd3fc;
+  outline-offset: 1px;
+}
+
+@media (max-height: 420px) {
+  .hud-quick-camera__btn {
+    min-width: 1.35rem;
+    height: 1.35rem;
+    font-size: 0.65rem;
+  }
+
+  .hud-quick-camera__btn--c1.is-active {
+    min-width: 1.55rem;
+    height: 1.55rem;
+  }
+
+  .hud-quick-camera__c1-mark {
+    font-size: 0.42rem;
+  }
+}
+
 .hud-account {
   display: inline-flex;
   align-items: center;

@@ -174,13 +174,42 @@ export function rideRiderAnchorBiasMAtZoom(input: {
 /**
  * 화면에 담는 세로 범위(m). 라이더 전고(× pitch 계수)와 카메라 거리 중 큰 쪽.
  * `displayHeightM` 은 시험이 배율을 바꿔 넣기 위한 주입점 — 앱은 기본값을 쓴다.
+ *
+ * 【B1 / 지시06】 거리 출처로 floor 적용을 나눈다:
+ * - preset → floor 보호(라이더가 프레임에 들어가야 함)
+ * - userZoom → floor 없음 (`spanM = distanceM`) — 잘림이 줌인
  */
+export type RideSpanFloorMode = "preset" | "userZoom";
+
 export function rideSpanM(
   distanceM: number,
   pitchDeg: number,
   displayHeightM: number = RIDER_DISPLAY_HEIGHT_M,
+  floorMode: RideSpanFloorMode = "preset",
 ): number {
+  if (floorMode === "userZoom") return Math.max(1e-9, distanceM);
   return Math.max(displayHeightM * rideHeightSpanMargin(pitchDeg), distanceM);
+}
+
+/**
+ * `computeRideFollowFraming` 의 zoom←distance 역함수(거리 지배·userZoom 경로).
+ * pitch 보정 `(pitch/90)*0.6` 을 되돌린다.
+ */
+export function distanceMFromRideFollowZoom(input: {
+  zoom: number;
+  pitchDeg: number;
+  latDeg: number;
+  viewportWidthPx: number;
+  viewportHeightPx: number;
+}): number {
+  const { zoom, pitchDeg, latDeg, viewportWidthPx, viewportHeightPx } = input;
+  if (!Number.isFinite(zoom) || !Number.isFinite(latDeg)) return 0;
+  const safe = rideSafeViewportPx(viewportWidthPx, viewportHeightPx);
+  const pitchAdj = (pitchDeg / 90) * 0.6;
+  const mppAtZ0 = 156543.03392 * Math.cos((latDeg * Math.PI) / 180);
+  const mpp = mppAtZ0 / Math.pow(2, zoom + pitchAdj);
+  if (!(mpp > 0) || !(safe.height > 0)) return 0;
+  return mpp * safe.height;
 }
 
 /**
@@ -235,6 +264,8 @@ export function computeRideFollowFraming(input: {
   fallbackZoom: number;
   /** 화면 위쪽이 가리키는 방위(= 카메라 bearing). `topDown` 처럼 offsetBearing 이 없을 때 쓴다. */
   screenUpBearing?: number | null;
+  /** B1 — 사용자 줌 역산 거리면 floor 생략 */
+  spanFloorMode?: RideSpanFloorMode;
 }): RideFollowFraming {
   const { riderLngLat, offsetBearing, distanceM, pitchDeg, fallbackZoom } = input;
   if (!(distanceM > 0) || offsetBearing == null) {
@@ -255,7 +286,7 @@ export function computeRideFollowFraming(input: {
   }
 
   // spanM 을 먼저 정한다 — look-at 오프셋이 같은 규칙 아래 묶이려면 상한의 기준이 있어야 한다.
-  const spanM = rideSpanM(distanceM, pitchDeg);
+  const spanM = rideSpanM(distanceM, pitchDeg, RIDER_DISPLAY_HEIGHT_M, input.spanFloorMode ?? "preset");
   const lookAtAlongViewM = rideLookAtAlongM(pitchDeg, spanM);
   const viewBearing = ((offsetBearing + 180) % 360 + 360) % 360;
   const safe = rideSafeViewportPx(input.viewportWidthPx, input.viewportHeightPx);

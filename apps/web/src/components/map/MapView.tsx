@@ -132,20 +132,23 @@ import {
 import { PEER_RIDER_PEDAL_FRAME_COUNT } from "../../lib/registerPeerRiderPedalSprites";
 import { MapZoomGlobeControl } from "./MapZoomGlobeControl";
 import {
+  computeRideFollowFraming,
+  distanceMFromRideFollowZoom,
+  measureRiderScreenDiag,
+  publishRiderScreenDiag,
+  RIDE_HUD_SAFE_PADDING,
+  viewportPxFromMap,
+  resolveRideFitPadding,
+} from "../../lib/rideCameraFraming";
+import {
   MAP_GLOBE_MIN_ZOOM,
   DEFAULT_MAP_ZOOM,
   RIDE_FOLLOW_CAMERA_MODE,
   RIDE_CAMERA_DISTANCE_DEFAULT_M,
   RIDE_CAMERA_DISTANCE_MIN_M,
   RIDE_CAMERA_DISTANCE_MAX_M,
+  resolveRideCameraPitchClose,
 } from "../../lib/mapGlobeView";
-import {
-  computeRideFollowFraming,
-  measureRiderScreenDiag,
-  publishRiderScreenDiag,
-  RIDE_HUD_SAFE_PADDING,
-  viewportPxFromMap,
-  resolveRideFitPadding,} from "../../lib/rideCameraFraming";
 import { type LiveRiderMotion } from "./mapViewTypes";
 import {
   tickRideCameraFollow,
@@ -1430,6 +1433,15 @@ export type MapViewProps = {
   rideActive?: boolean;
   /** 주행 카메라 라이더~카메라 거리(m) — 개발용 거리 슬라이더, 최적값 확정 후 제거 예정 */
   rideCameraDistanceM?: number;
+  /** Quick Camera 6 — baseHeading 고정(북쪽=0). null 이면 일반 heading 소스 */
+  lockBaseHeading?: number | null;
+  /**
+   * 사용자 휠/핀치 줌 → 거리 역산 반영(지시06).
+   * `spanFloorMode: "userZoom"` 과 함께 쓴다.
+   */
+  onRideCameraDistanceFromUserZoom?: (distanceM: number) => void;
+  /** B1 floor 모드 — preset | userZoom */
+  rideCameraSpanFloorMode?: "preset" | "userZoom";
   /** 임시 — RTW Dark POI 라벨 표시 비교용 토글 */
   showRtwPoi?: boolean;
   /** 목표 거리 참고 원 — GeoJSON LineString(지도 stroke용) */
@@ -1551,6 +1563,9 @@ export function MapView({
   rideFollowCameraNonce = 0,
   rideActive = false,
   rideCameraDistanceM = RIDE_CAMERA_DISTANCE_DEFAULT_M,
+  lockBaseHeading = null,
+  onRideCameraDistanceFromUserZoom,
+  rideCameraSpanFloorMode = "preset",
   showRtwPoi = false,
   distanceTargetCircle = null,
   userMileageTotalMeters = null,
@@ -1650,6 +1665,9 @@ export function MapView({
   const mapZoomRef = useRef(mapZoom);
   /** 주행 카메라 거리(m) — 개발용 거리 슬라이더 최신값, rAF 루프에서 참조 */
   const rideCameraDistanceMRef = useRef(rideCameraDistanceM);
+  const lockBaseHeadingRef = useRef(lockBaseHeading);
+  const rideCameraSpanFloorModeRef = useRef(rideCameraSpanFloorMode);
+  const onRideCameraDistanceFromUserZoomRef = useRef(onRideCameraDistanceFromUserZoom);
   const prefersReducedMotionRef = useRef(false);
   const enable3DRef = useRef(enable3D);
   /** GLB 코너링 린 — 직전 heading·지수 감쇠 린(°) */
@@ -1759,6 +1777,18 @@ export function MapView({
         : null;
     rideCameraDistanceMRef.current = fromQuery ?? rideCameraDistanceM;
   }, [rideCameraDistanceM]);
+
+  useEffect(() => {
+    lockBaseHeadingRef.current = lockBaseHeading;
+  }, [lockBaseHeading]);
+
+  useEffect(() => {
+    rideCameraSpanFloorModeRef.current = rideCameraSpanFloorMode;
+  }, [rideCameraSpanFloorMode]);
+
+  useEffect(() => {
+    onRideCameraDistanceFromUserZoomRef.current = onRideCameraDistanceFromUserZoom;
+  }, [onRideCameraDistanceFromUserZoom]);
 
   useEffect(() => {
     prefersReducedMotionRef.current = prefersReducedMotion;
@@ -1968,7 +1998,7 @@ export function MapView({
     /** 축척: Mapbox 기본 우하단(bottom-right) */
     map.addControl(new mapboxgl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-right");
     mapRef.current = map;
-    if (import.meta.env.DEV && typeof window !== "undefined") {
+    if (typeof window !== "undefined") {
       (window as Window & { __RTW_MAP__?: mapboxgl.Map }).__RTW_MAP__ = map;
     }
     installCameraRenderPhaseHook(map);
@@ -2035,6 +2065,60 @@ export function MapView({
     map.on("idle", reportMapViewport);
     map.on("move", scheduleLodViewportReport);
     map.on("zoom", scheduleLodViewportReport);
+
+    /** 지시06 — 사용자 기원 zoom → 거리 역산(팔로우 tick 이 덮지 않도록) */
+    let userZoomGesture = false;
+    const onUserZoomStart = (e: mapboxgl.MapboxEvent & { originalEvent?: Event }) => {
+      if (e.originalEvent) userZoomGesture = true;
+    };
+    const onUserZoomEnd = () => {
+      if (!userZoomGesture) return;
+      userZoomGesture = false;
+      if (isFollowCameraJump()) return;
+      const mode = followModeRef.current;
+      const session = liveRiderMotionRef.current?.sessionStatus;
+      const following =
+        (session === "running" || session === "paused") && mode !== "free";
+      const z = map.getZoom();
+      // 거리 없는 모드(topDown·north·keep…): 앱 mapZoom 을 사용자 줌에 맞춰 tick fallback 이 따라가게
+      if (following && (mode === "topDown" || mode === "north" || mode === "keep")) {
+        mapZoomRef.current = z;
+        onMapZoomRef.current?.(Number(z.toFixed(1)));
+        return;
+      }
+      // 밀착/Aerial — 거리 역산
+      if (
+        following &&
+        (mode === "forward" ||
+          mode === "backward" ||
+          mode === "left" ||
+          mode === "right" ||
+          mode === "aerial")
+      ) {
+        const vp = viewportPxFromMap(map);
+        const c = map.getCenter();
+        const pitchDeg = mode === "aerial" ? 0 : resolveRideCameraPitchClose();
+        const dist = distanceMFromRideFollowZoom({
+          zoom: z,
+          pitchDeg,
+          latDeg: c.lat,
+          viewportWidthPx: vp.width,
+          viewportHeightPx: vp.height,
+        });
+        if (!(dist > 0) || !Number.isFinite(dist)) return;
+        // 상한만 느슨히 — 하한(floor)은 userZoom 경로에서 적용하지 않음(B1)
+        const capped = Math.min(dist, RIDE_CAMERA_DISTANCE_MAX_M * 2);
+        rideCameraDistanceMRef.current = capped;
+        rideCameraSpanFloorModeRef.current = "userZoom";
+        onRideCameraDistanceFromUserZoomRef.current?.(capped);
+        // smooth.zoom 을 현재에 맞춰 급격한 lerp 되돌림 완화
+        cameraSmoothRef.current.zoom = z;
+      }
+      // free(Route Fit): reportMapZoomToApp 가 shouldSync=true 로 이미 앱 줌을 맞춘다
+    };
+    map.on("zoomstart", onUserZoomStart);
+    map.on("zoomend", onUserZoomEnd);
+
     const onMoveCount = () => noteMapEvent("move");
     const onZoomCount = () => noteMapEvent("zoom");
     const onMoveEndCount = () => noteMapEvent("moveend");
@@ -2505,6 +2589,8 @@ export function MapView({
       map.off("idle", reportMapViewport);
       map.off("move", scheduleLodViewportReport);
       map.off("zoom", scheduleLodViewportReport);
+      map.off("zoomstart", onUserZoomStart);
+      map.off("zoomend", onUserZoomEnd);
       map.off("move", onMoveCount);
       map.off("zoom", onZoomCount);
       map.off("moveend", onMoveEndCount);
@@ -3308,6 +3394,8 @@ export function MapView({
           followMode: followModeRef.current,
           mapZoom: mapZoomRef.current,
           rideCameraDistanceM: rideCameraDistanceMRef.current,
+          lockBaseHeading: lockBaseHeadingRef.current,
+          spanFloorMode: rideCameraSpanFloorModeRef.current,
           sessionStatus: liveRiderMotionRef.current?.sessionStatus,
           routeGeometry: routeGeometryRef.current,
           prevLiveRef: prevLiveRef,
