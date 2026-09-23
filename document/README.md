@@ -113,6 +113,7 @@ UI/UX 작업 인수인계: [260917-UI-UX-개선-작업-인수인계](260917-UI-U
 | [260830-Route Token Harness 실패 복구·UI 재현성 1R2 작업지시서](ops/route-relay/260830-Route-Token-Harness-실패복구-UI-재현성-1R2-작업지시서.md) | `ROUTE-TOKEN-1R2` — runner 실패 원상복구·UI Route 응답 `2→1→0`·backend `0/3/3`·Node 20 연속 재현 증명 | 독립 재검토 PASS·PR 대기 |
 | [260830-Route Token Harness 격리 보완 1R 작업지시서](ops/route-relay/260830-Route-Token-Harness-격리-보완-1R-작업지시서.md) | `ROUTE-TOKEN-1R` — 운영 노출·Secret Manager·부정 조건은 개선, UI 재현성·실패 원상복구는 1R2로 이관 | 부분 수행·1R2 보완 필요 |
 | [260830-Route Token 정상 호출 경로 검증 1단계 작업지시서](ops/route-relay/260830-Route-Token-정상-호출-경로-검증-1단계-작업지시서.md) | `ROUTE-TOKEN-1` — Emulator Harness로 일반 Route Token `3→2→1→0→거부` 계약은 증명, 격리 결함은 1R로 이관 | 부분 수행·1R 보완 필요 |
+| [260923-RTW-Local-First-Ride-실행계획](260923-RTW-Local-First-Ride-실행계획.md) | 첫 주행을 「내 지역」에서 — Recognition→Ride→Claim→Explore→Choose. Chief 원안의 코드 대조 교정본(자체 그래프·Mission 보류, LF-0~LF-4) | 초안 |
 | [260907-RTW-도로망-성취경험-실행계획](260907-RTW-도로망-성취경험-실행계획.md) | 도로망 성취: 0→1 결과 → 2 다음 접속 → 3 주행 중 … | 반영중 |
 | [260907-도로망-성취결과-1단계-작업지시서](ops/ride-relay/260907-도로망-성취결과-1단계-작업지시서.md) | `RIDE-CLAIM-RESULT-1` · 결과 시트 새 도로·궤적 | 코드 반영·배포됨 |
 | [260911-도로망-다음접속-2단계-재착수-작업지시서](ops/ride-relay/260911-도로망-다음접속-2단계-재착수-작업지시서.md) | `RIDE-NEXT-VISIT-2` · PR #16 | 완료 |
