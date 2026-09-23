@@ -315,6 +315,95 @@ export function isValidAutoRouteEnd(origin: LngLat, end: LngLat, minMeters = 200
   return getDistanceMeters(origin, end) >= minMeters;
 }
 
+/**
+ * ===== 경로 타당성 검사(V1~V3) — 지시04 §4 =====
+ *
+ * 없는 길(직선 기하)이 사용자 화면에 나가지 못하게 막는 최종 게이트. `searchDistanceAutoRoute`
+ * (클릭 기반·closeLoop 편도 폴백 공용)와 `searchReadyLoopRoute`(폐합) 양쪽의 "성공" 경로 직전에
+ * 반드시 통과시킨다 — 두 함수가 이걸 공유하므로 **클릭 기반 경로도 자동으로 같은 검사를 받는다.**
+ *
+ * 기준값은 실측이다(지시04 재조사, 2026-09-24 — `document/ops/20260923-first_ride/.out/jisi04/
+ * stats-real-routes.mjs`, 실 Mapbox Directions cycling 응답 7건: 도심 밀집 4건 + 교외 간선도로 1건
+ * + 강변 자전거도로 1건 + 여의도 폐합형 1건):
+ *   - 점 밀도(points/km) 실측 분포: 22.37 ~ 40.72 (최소 22.37, 도심 강남)
+ *   - 최장 구간/전체 길이 비율 실측 분포: 0.029 ~ 0.0997 (최대 9.97%, 교외 김포 간선도로에서도)
+ * 직선(2점) 지오메트리는 points/km ≈ 0.3~수 개, 최장 구간 비율 = 1.0(전 구간이 한 세그먼트)이므로
+ * 실측 최솟값에 4배 이상 여유를 두고 잡아도 정상 경로는 걸리지 않고 직선은 확실히 걸린다.
+ */
+
+/** V1 — 점 밀도 하한(points/km). 실측 최소 22.37 의 4배 이상 여유(교외 저밀도 도로 대비). */
+export const ROUTE_GEOMETRY_MIN_POINTS_PER_KM = 5;
+
+/** V2 — 최장 인접 구간 / 전체 길이 비율 상한. 실측 최대 0.0997 의 3.5배 이상 여유. */
+export const ROUTE_GEOMETRY_MAX_LONGEST_LEG_RATIO = 0.35;
+
+/**
+ * V3 — geometry 첫 점과 요청 start 사이 허용 오차(m). 기존 클릭 스냅 실패 기준
+ * `CLICK_SNAP_FAIL_M`(250m)보다 살짝 넉넉하게 잡아 이미 그 게이트를 통과한 정상 경로를
+ * 다시 걸러내지 않는다.
+ */
+export const ROUTE_GEOMETRY_MAX_START_MISS_METERS = 300;
+
+export type RouteGeometryValidation =
+  | { ok: true }
+  | {
+      ok: false;
+      reason: "low_point_density" | "long_straight_segment" | "start_mismatch";
+      detail: Record<string, number>;
+    };
+
+/**
+ * 없는 길(직선 기하) 근절 게이트. `start`는 이 지오메트리가 응답해야 할 요청 시작점 —
+ * closeLoop 이면 원 요청 `start`, 클릭 기반이면 마찬가지로 원 요청 `start` 다(둘 다 geometry[0]
+ * 이 그 근처여야 한다).
+ */
+export function validateRouteGeometryPlausibility(input: {
+  start: LngLat;
+  geometry: { type: "LineString"; coordinates: LngLat[] };
+}): RouteGeometryValidation {
+  const { start, geometry } = input;
+  const coords = geometry.coordinates;
+  const totalLengthMeters = lineStringLengthMeters(geometry);
+
+  if (coords.length < 2 || totalLengthMeters <= 0) {
+    return {
+      ok: false,
+      reason: "low_point_density",
+      detail: { pointsPerKm: 0, totalLengthMeters, coordCount: coords.length },
+    };
+  }
+
+  const pointsPerKm = coords.length / (totalLengthMeters / 1000);
+  if (pointsPerKm < ROUTE_GEOMETRY_MIN_POINTS_PER_KM) {
+    return {
+      ok: false,
+      reason: "low_point_density",
+      detail: { pointsPerKm, totalLengthMeters, coordCount: coords.length },
+    };
+  }
+
+  let longestLegMeters = 0;
+  for (let i = 1; i < coords.length; i += 1) {
+    const d = getDistanceMeters(coords[i - 1]!, coords[i]!);
+    if (d > longestLegMeters) longestLegMeters = d;
+  }
+  const longestLegRatio = longestLegMeters / totalLengthMeters;
+  if (longestLegRatio > ROUTE_GEOMETRY_MAX_LONGEST_LEG_RATIO) {
+    return {
+      ok: false,
+      reason: "long_straight_segment",
+      detail: { longestLegMeters, longestLegRatio, totalLengthMeters },
+    };
+  }
+
+  const startMissMeters = getDistanceMeters(start, coords[0]!);
+  if (startMissMeters > ROUTE_GEOMETRY_MAX_START_MISS_METERS) {
+    return { ok: false, reason: "start_mismatch", detail: { startMissMeters } };
+  }
+
+  return { ok: true };
+}
+
 export const AUTO_ROUTE_ALGORITHM_VERSION = "4A-ready-loop";
 
 export const MAX_AUTO_ROUTE_PROVIDER_CALLS = 13;
@@ -560,13 +649,26 @@ export async function searchDistanceAutoRoute(input: {
     return assembleFromClipped(clipped, pendingOutcome);
   }
 
-  function assembleShortfall(route: DirectionsRouteLike): DistanceAutoRouteSearchFound {
+  function assembleShortfall(
+    route: DirectionsRouteLike,
+  ): DistanceAutoRouteSearchFound | DistanceAutoRouteSearchFailed {
     const finalGeometry = route.geometry;
     const finalEnd = snappedEndFromRoute(route);
     const finalDistance = lineStringLengthMeters(finalGeometry);
     const finalDuration = route.duration;
     const finalEndMissM = getDistanceMeters(finalEnd, clickRoadPoint);
     const searchElapsedMs = Date.now() - searchStartedAt;
+
+    // 지시04 §4 — 없는 길 근절 게이트. 여기가 마지막 반환 지점이므로 반드시 통과시킨다.
+    const geometryCheck = validateRouteGeometryPlausibility({ start, geometry: finalGeometry });
+    if (!geometryCheck.ok) {
+      return {
+        status: "failed",
+        message: `${ROUTE_CLIP_FAILED_MESSAGE}(${geometryCheck.reason})`,
+        providerCallCount,
+        searchElapsedMs,
+      };
+    }
 
     const diagnostics = computeAutoRouteClickDiagnostics({
       start,
@@ -597,7 +699,7 @@ export async function searchDistanceAutoRoute(input: {
   function assembleFromClipped(
     clipped: Extract<ClipRouteGeometryResult, { ok: true }>,
     pendingOutcome: AutoRouteOutcome,
-  ): DistanceAutoRouteSearchFound {
+  ): DistanceAutoRouteSearchFound | DistanceAutoRouteSearchFailed {
     let finalOutcome = pendingOutcome;
     let finalGeometry = clipped.geometry;
     let finalEnd = clipped.end;
@@ -632,6 +734,17 @@ export async function searchDistanceAutoRoute(input: {
       if (finalDistance < D - EXACT_TARGET_DISTANCE_TOLERANCE_M) {
         finalOutcome = "shortfall";
       }
+    }
+
+    // 지시04 §4 — 없는 길 근절 게이트. 여기가 마지막 반환 지점이므로 반드시 통과시킨다.
+    const geometryCheck = validateRouteGeometryPlausibility({ start, geometry: finalGeometry });
+    if (!geometryCheck.ok) {
+      return {
+        status: "failed",
+        message: `${ROUTE_CLIP_FAILED_MESSAGE}(${geometryCheck.reason})`,
+        providerCallCount,
+        searchElapsedMs,
+      };
     }
 
     const diagnostics = computeAutoRouteClickDiagnostics({
@@ -990,10 +1103,12 @@ export async function searchReadyLoopRoute(input: {
     };
   }
 
+  // 지시04 §4 — 없는 길 근절 게이트. 폐합 후보도 통과해야만 eligible.
   const eligible = candidates.filter(
     (c) =>
       isDistanceErrorWithinMax(c.errorMeters, D) &&
-      c.selfOverlapRatio < OUT_AND_BACK_OVERLAP_REJECT_RATIO,
+      c.selfOverlapRatio < OUT_AND_BACK_OVERLAP_REJECT_RATIO &&
+      validateRouteGeometryPlausibility({ start, geometry: c.route.geometry }).ok,
   );
 
   if (eligible.length === 0) {
