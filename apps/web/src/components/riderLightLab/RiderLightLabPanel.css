@@ -5,11 +5,14 @@
  */
 .light-lab {
   position: fixed;
-  top: 0.3rem;
-  right: 0.3rem;
+  /* D8 — 기존 UI 를 가리지 않는다(임시 표면이 비킨다).
+   * 우상단은 Quick Camera 1~6·계정·맵 버튼이, 오른쪽 가장자리는 줌/피치 컨트롤이,
+   * 우하단은 주행 제어가 쓴다. 그래서 QC 행 **아래** + 줌 열 **왼쪽** 으로 비켜 세운다. */
+  top: 5.4rem;
+  right: 3.4rem;
   z-index: 60;
   width: 12.6rem;
-  max-height: calc(100vh - 0.6rem);
+  max-height: calc(100vh - 12rem);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
