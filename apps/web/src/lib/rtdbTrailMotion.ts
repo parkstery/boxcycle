@@ -66,7 +66,8 @@ function disconnectKey(trailId: string, uid: string): string {
   return `${sanitizeTrailId(trailId)}:${uid}`;
 }
 
-function encodePayload(input: RtdbTrailMotionSnapshot, seq?: number): RtdbMotionPayload {
+/** 시험 대상 — RTDB 규칙(.validate)과의 계약을 `scripts/peer-sync/rtdb-rules-contract.test.ts` 가 대조한다. */
+export function encodePayload(input: RtdbTrailMotionSnapshot, seq?: number): RtdbMotionPayload {
   const payload: RtdbMotionPayload = {
     p: input.publicationId.trim(),
     d: Math.round(Math.max(0, input.distM) * 10) / 10,
