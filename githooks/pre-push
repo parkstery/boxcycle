@@ -23,6 +23,16 @@ touch_fn=$(echo "$changed" | grep -E '^functions/.*\.ts$' || true)
 
 fail=0
 
+# package.json 을 건드렸다면 lock 이 따라왔는지 본다.
+# 2026-09-25: functions 에 의존을 넣고 lock 을 갱신하지 않아 함수 28개 배포가 통째로
+# 실패했다. 로컬은 루트 hoist 로 돌아가 아무 증상이 없었고, Cloud Build 의 `npm ci`
+# 만 그것을 봤다. functions 는 워크스페이스가 아니라 자기 lock 을 따로 가진다.
+touch_pkg=$(echo "$changed" | grep -E 'package(-lock)?[.]json' || true)
+if [ -n "$touch_pkg" ]; then
+  echo "[pre-push] package.json ↔ lock 동기 검사…"
+  node scripts/check-lock-sync.mjs || fail=1
+fi
+
 if [ -n "$touch_web" ]; then
   echo "[pre-push] typecheck apps/web (tsc -b --noEmit)…"
   ( cd apps/web && npx tsc -b --noEmit ) || fail=1
