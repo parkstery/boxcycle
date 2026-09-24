@@ -153,7 +153,7 @@ export function lineStringLengthMeters(geometry: LineStringGeometry): number {
 
 /**
  * 경로를 `intervalMeters` 간격으로 재샘플한 LineString(시종점 유지).
- * Mapillary Graph 샘플링 등 “경로상 촘촘한 질의용”에 사용.
+ * 「경로상 촘촘한 질의용」에 사용.
  */
 export function densifyLineStringByIntervalM(
   geometry: LineStringGeometry,

@@ -264,38 +264,6 @@ body {
 }
 
 /* =====================================================================
-   10) Mapillary 거리뷰 플로팅 — "있을 때만" 인셋
-   다크 글래스 헤더 + 라운드 + 액센트 라벨로 정제.
-   ===================================================================== */
-.mapillary-street-floating {
-  border-radius: var(--rtw-radius);
-  border-color: var(--rtw-glass-border);
-  background: var(--rtw-glass-bg-strong);
-  color: var(--rtw-text);
-  box-shadow: 0 12px 30px rgba(2, 8, 20, 0.5);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-}
-
-.mapillary-street-floating__head {
-  font-family: var(--rtw-font);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  font-size: 0.66rem;
-  background: transparent;
-  border-bottom-color: rgba(255, 255, 255, 0.10);
-  color: var(--rtw-text-dim);
-}
-
-.mapillary-street-floating__close {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--rtw-glass-border);
-  color: var(--rtw-text);
-  border-radius: 8px;
-}
-
-/* =====================================================================
    11) 토스트 / 힌트
    ===================================================================== */
 .hud-idle-hint,

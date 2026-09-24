@@ -1385,10 +1385,8 @@ export type MapViewProps = {
   onLookupPioneer?: (lngLat: LngLat) => Promise<string | null>;
   /** 지도 지점 선택 팝업에서 출발·도착·경유·계산 경로 전체 초기화 */
   onClearRoute?: () => void;
-  /** OSRM(Mapbox Streets)·Mapillary 촬영 시퀀스 커버리지 */
+  /** OSRM(Mapbox Streets) 도로 커버리지 */
   coverageOverlayMode: CoverageOverlayMode;
-  /** Mapillary 타일·거리뷰용 클라이언트 토큰(없으면 Mapillary 모드 비활성) */
-  mapillaryClientToken?: string | null;
   /** 메뉴 지명 검색 등 — `requestId`가 바뀔 때마다 한 번 카메라 이동 (`bbox` 있으면 도시 단위 fitBounds) */
   externalCameraJump?: {
     lngLat: LngLat;
@@ -1557,7 +1555,6 @@ export function MapView({
   onLookupPioneer,
   onClearRoute,
   coverageOverlayMode,
-  mapillaryClientToken,
   externalCameraJump = null,
   openRoutePickRequest = null,
   placeSearchMarkerLngLat = null,
@@ -1934,9 +1931,7 @@ export function MapView({
   }, [startLngLat]);
 
   const coverageOverlayModeRef = useRef(coverageOverlayMode);
-  const mapillaryClientTokenRef = useRef(mapillaryClientToken);
   coverageOverlayModeRef.current = coverageOverlayMode;
-  mapillaryClientTokenRef.current = mapillaryClientToken;
 
   useEffect(() => {
     onMapZoomRef.current = onMapZoom;
@@ -2182,7 +2177,6 @@ export function MapView({
         applyCoverageOverlayMode(
           map,
           coverageOverlayModeRef.current,
-          mapillaryClientTokenRef.current ?? undefined,
         );
       } catch (e) {
         console.warn("[MapView] coverage overlay", e);
@@ -2689,7 +2683,6 @@ export function MapView({
           applyCoverageOverlayMode(
             map,
             coverageOverlayModeRef.current,
-            mapillaryClientTokenRef.current ?? undefined,
           );
         } catch {
           /* noop */
@@ -2725,7 +2718,6 @@ export function MapView({
           applyCoverageOverlayMode(
             map,
             coverageOverlayModeRef.current,
-            mapillaryClientTokenRef.current ?? undefined,
           );
         } catch {
           /* noop */
@@ -2773,7 +2765,6 @@ export function MapView({
         applyCoverageOverlayMode(
           map,
           coverageOverlayModeRef.current,
-          mapillaryClientTokenRef.current ?? undefined,
         );
       } catch {
         /* noop */
@@ -2952,7 +2943,6 @@ export function MapView({
         applyCoverageOverlayMode(
           map,
           coverageOverlayModeRef.current,
-          mapillaryClientTokenRef.current ?? undefined,
         );
       } catch {
         // 스타일시트 준비 전 addSource/addLayer throw — 다음 idle에 재시도
@@ -2968,7 +2958,7 @@ export function MapView({
       map.off("style.load", apply);
       map.off("idle", apply);
     };
-  }, [mapLoaded, coverageOverlayMode, mapillaryClientToken]);
+  }, [mapLoaded, coverageOverlayMode]);
 
   /**
    * Conquest — 「내 도로망」(과거 주행 궤적) 영구 렌더. 경로선 아래.

@@ -8,6 +8,7 @@ import {
   HemisphereLight,
   Matrix4,
   Scene,
+  SRGBColorSpace,
   Vector3,
   WebGLRenderer,
 } from "three";
@@ -129,6 +130,14 @@ class PreservedRiderCustomLayer implements CustomLayerInterface {
       antialias: true,
       alpha: true,
     });
+    /**
+     * 출력 색공간을 **명시적으로** 고정한다 — three 의 기본값에 기대지 않는다.
+     * r152 에서 기본값이 Linear → sRGB 로 바뀌었고, 0.134 를 쓰던 시절 이 코드는
+     * 그 기본값에 의존하고 있었다. 2026-09-25 에 0.134 → 0.186 으로 올리면서
+     * 라이더 색이 조용히 달라지는 경로가 되었으므로, 다음 업그레이드에서 또
+     * 흔들리지 않도록 여기서 선언한다. 값을 바꾸려면 화면을 보고 바꿔라.
+     */
+    this.renderer.outputColorSpace = SRGBColorSpace;
     this.renderer.autoClear = false;
     this.loadState = "loading";
     this.loadError = null;

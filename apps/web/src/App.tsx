@@ -1,4 +1,4 @@
-import { startTransition, useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PublicationSharedPresence } from "./components/PublicationSharedPresence";
 import { peerHudLabels, type PeerHudEntry } from "./lib/peerHud";
 import { SignUpNicknameCard } from "./components/SignUpNicknameCard";
@@ -144,8 +144,6 @@ import { useConquest } from "./hooks/useConquest";
 import { useLiveConquestPaint, shouldShowAlreadyOwnedHint } from "./hooks/useLiveConquestPaint";
 import { conquestCellIdsAround } from "./lib/conquestTiles";
 import { ROUTE_COMPLETION_RATIO_THRESHOLD, resumeOffsetMetersFrom } from "./lib/rideRecordPolicy";
-import { useRideMapillaryStreet } from "./hooks/useRideMapillaryStreet";
-import { MAPILLARY_CLIENT_TOKEN, mapillaryTokenConfigured } from "./lib/mapillaryToken";
 import type { CoverageOverlayMode } from "./lib/coverageOverlayMode";
 import { type RouteProfile } from "./services/mapboxDirections";
 import { FUNCTIONS_REGION, MAPBOX_TOKEN } from "./app/env";
@@ -157,11 +155,6 @@ import {
   nextCamera1Mode,
 } from "./lib/camera1Mode";
 import "./App.css";
-
-const MapillaryRideViewer = lazy(async () => {
-  const m = await import("./components/MapillaryRideViewer");
-  return { default: m.MapillaryRideViewer };
-});
 
 export default function App() {
   const {
@@ -252,8 +245,6 @@ export default function App() {
    * 절대 `manual` 로 자동 복귀시키지 않는다 — 페달링 없이 전진하는 실패를 막는다.
    */
   const [rideInputMode, setRideInputMode] = useState<RideInputMode>("manual");
-  /** 주행 중 Mapillary 거리뷰 창 — 기본 꺼짐. 맵 뷰 시트에서 켠다(기능은 그대로 유지) */
-  const [rideStreetViewEnabled, setRideStreetViewEnabled] = useState(false);
   const bleCrankRpm = useBleCrankRpm();
   const bleSensorConnected = bleCrankRpm.uiState === "connected";
   /**
@@ -1539,18 +1530,6 @@ export default function App() {
     enabled: globalLivePresenceSubscribeEnabled,
   });
 
-  const { streetState: rideMapillaryStreet, rideSync: mapillaryRideSync, dismissStreet: dismissMapillaryStreet } =
-    useRideMapillaryStreet({
-      user,
-      accessToken: mapillaryTokenConfigured ? MAPILLARY_CLIENT_TOKEN : null,
-      routeGeometry,
-      routeTotalMeters: routeDistanceMeters,
-      virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
-      sessionStatus: rideStatus,
-      speedKmh: rideMetrics.appliedSpeedKmh,
-      riderLngLat: liveForMap,
-      enabled: rideStreetViewEnabled,
-    });
 
   /** Firebase 미설정이거나 인증 준비 완료 후 — Trailhead·입문 코스 UI가 숨겨지지 않도록 메인 워크스페이스 표시 */
   const rideWorkspaceOpen = !configured || (configured && authInitialized);
@@ -2468,35 +2447,6 @@ export default function App() {
               conquestAllOwnedHint,
             }}
           >
-            {rideMapillaryStreet && mapillaryRideSync && mapillaryTokenConfigured ? (
-              <div className="mapillary-street-floating" aria-label="Mapillary 거리뷰">
-                <div className="mapillary-street-floating__head">
-                  <span className="mapillary-street-floating__title">Mapillary</span>
-                  <button
-                    type="button"
-                    className="mapillary-street-floating__close"
-                    title="Close street view"
-                    onClick={dismissMapillaryStreet}
-                  >
-                    닫기
-                  </button>
-                </div>
-                <div className="mapillary-street-floating__video">
-                  <Suspense
-                    fallback={<div className="mapillary-street-floating__loading">거리뷰 로드 중…</div>}
-                  >
-                    <MapillaryRideViewer
-                      accessToken={MAPILLARY_CLIENT_TOKEN}
-                      imageId={rideMapillaryStreet.imageKey}
-                      lookAt={mapillaryRideSync.lookAt}
-                      driveHeadingDeg={mapillaryRideSync.driveHeadingDeg}
-                      sphericalNavigation={rideMapillaryStreet.isPano}
-                    />
-                  </Suspense>
-                </div>
-                <p className="mapillary-street-floating__attr">Imagery © Mapillary contributors</p>
-              </div>
-            ) : null}
           </DebugMapStage>
         ) : (
           <AppMapStage
@@ -2551,7 +2501,6 @@ export default function App() {
               onMapViewport,
               onMapLodViewport,
               coverageOverlayMode,
-              mapillaryClientToken: mapillaryTokenConfigured ? MAPILLARY_CLIENT_TOKEN : null,
               routeProfile: profile,
               onRouteProfile: handleMapRouteProfile,
               routeTokenInsufficient,
@@ -2677,35 +2626,6 @@ export default function App() {
                   : null,
             }}
           >
-            {rideMapillaryStreet && mapillaryRideSync && mapillaryTokenConfigured ? (
-              <div className="mapillary-street-floating" aria-label="Mapillary 거리뷰">
-                <div className="mapillary-street-floating__head">
-                  <span className="mapillary-street-floating__title">Mapillary</span>
-                  <button
-                    type="button"
-                    className="mapillary-street-floating__close"
-                    title="Close street view"
-                    onClick={dismissMapillaryStreet}
-                  >
-                    닫기
-                  </button>
-                </div>
-                <div className="mapillary-street-floating__video">
-                  <Suspense
-                    fallback={<div className="mapillary-street-floating__loading">거리뷰 로드 중…</div>}
-                  >
-                    <MapillaryRideViewer
-                      accessToken={MAPILLARY_CLIENT_TOKEN}
-                      imageId={rideMapillaryStreet.imageKey}
-                      lookAt={mapillaryRideSync.lookAt}
-                      driveHeadingDeg={mapillaryRideSync.driveHeadingDeg}
-                      sphericalNavigation={rideMapillaryStreet.isPano}
-                    />
-                  </Suspense>
-                </div>
-                <p className="mapillary-street-floating__attr">Imagery © Mapillary contributors</p>
-              </div>
-            ) : null}
           </AppMapStage>
         )}
       </div>
@@ -2847,9 +2767,6 @@ export default function App() {
         onMapStyle={setMapStyle}
         coverageOverlayMode={coverageOverlayMode}
         onCoverageOverlayMode={setCoverageOverlayMode}
-        rideStreetViewEnabled={rideStreetViewEnabled}
-        onRideStreetViewEnabled={setRideStreetViewEnabled}
-        mapillaryTokenConfigured={mapillaryTokenConfigured}
         enable3D={enable3D}
         onEnable3D={setEnable3D}
         followMode={followMode}

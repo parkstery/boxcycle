@@ -494,4 +494,3 @@ export {
   openTrailListingOnLiveCourseRideWritten,
 } from "./openTrailListingProjection.js";
 export { openTrailListingsSweep } from "./openTrailListingsSweep.js";
-export { getMapillaryImages } from "./mapillaryImagesHttp.js";
