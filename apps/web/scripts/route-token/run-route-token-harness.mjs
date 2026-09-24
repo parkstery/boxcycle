@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { assertNodeMajor20, node20Env, resolveNode20Executable } from "./node20.mjs";
+import { assertNodeMajor, nodeRuntimeEnv, resolveNodeExecutable } from "./nodeRuntime.mjs";
 import {
   assertNoTrackedSecret,
   assertTrackedPackageUnchanged,
@@ -36,15 +36,15 @@ function run(cmd, args, opts = {}) {
     stdio: opts.inherit ? "inherit" : "pipe",
     encoding: opts.inherit ? undefined : "utf8",
     shell: process.platform === "win32",
-    env: node20Env(opts.env),
+    env: nodeRuntimeEnv(opts.env),
     ...opts,
   });
   if (result.error) throw result.error;
   return result;
 }
 
-function assertNodeMajor20Gate() {
-  const { nodeExe, version } = assertNodeMajor20();
+function assertNodeMajorGate() {
+  const { nodeExe, version } = assertNodeMajor();
   console.log(`[route-token] Node 20 runtime: ${version} (${nodeExe})`);
 }
 
@@ -60,10 +60,10 @@ function runUnitTests(extraTests = []) {
     ...extraTests,
   ];
   for (const file of tests) {
-    const result = spawnSync(resolveNode20Executable(), ["--test", file], {
+    const result = spawnSync(resolveNodeExecutable(), ["--test", file], {
       cwd: path.join(repoRoot, "apps/web"),
       stdio: "inherit",
-      env: node20Env(),
+      env: nodeRuntimeEnv(),
     });
     if (result.status !== 0) {
       throw new Error(`unit test failed: ${file}`);
@@ -95,7 +95,7 @@ function cleanupHarnessState(expectedPkgBytes) {
 }
 
 function runEmulatorContract() {
-  const childEnv = node20Env({
+  const childEnv = nodeRuntimeEnv({
     RTW_ROUTE_TOKEN_HARNESS: "1",
     VITE_DIRECTIONS_DIRECT: "0",
   });
@@ -122,7 +122,7 @@ function runEmulatorContract() {
 function runUiSmoke(runId, { forceFail = false } = {}) {
   const webDir = path.join(repoRoot, "apps/web");
   const mapboxPk = readMapboxPkForUiSmoke();
-  const childEnv = node20Env({
+  const childEnv = nodeRuntimeEnv({
     RTW_ROUTE_TOKEN_HARNESS: "1",
     ROUTE_TOKEN_UI_LIVE: "1",
     ROUTE_TOKEN_RUN_ID: runId,
@@ -135,7 +135,7 @@ function runUiSmoke(runId, { forceFail = false } = {}) {
   });
 
   const testName = forceFail ? "route-token-ui-force-fail" : "route-token-ui-smoke";
-  const nodeExe = resolveNode20Executable();
+  const nodeExe = resolveNodeExecutable();
   const { result } = runFirebaseEmulatorsExec({
     cwd: webDir,
     configPath: "../../firebase.harness.json",
@@ -171,7 +171,7 @@ export function runHarness({ cleanupTestOnly = false } = {}) {
   let harnessPrepared = false;
 
   try {
-    assertNodeMajor20Gate();
+    assertNodeMajorGate();
     process.chdir(path.join(repoRoot, "apps/web"));
 
     console.log("[route-token] functions build…");
@@ -206,7 +206,7 @@ export function runHarness({ cleanupTestOnly = false } = {}) {
     runEmulatorContract();
     console.log("[route-token] UI smoke…");
     runUiSmoke(runId);
-    writeLastRun(runId, true, assertNodeMajor20().version);
+    writeLastRun(runId, true, assertNodeMajor().version);
     console.log("[route-token] ROUTE-TOKEN-1R2 harness PASS");
     return 0;
   } finally {

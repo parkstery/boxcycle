@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { resolveNode20Executable } from "./node20.mjs";
+import { resolveNodeExecutable } from "./nodeRuntime.mjs";
 
 function resolveFirebaseJs() {
   const candidates = [
@@ -21,7 +21,7 @@ export function runFirebaseEmulatorsExec({
   env,
   stdio = "inherit",
 }) {
-  const nodeExe = resolveNode20Executable();
+  const nodeExe = resolveNodeExecutable();
   const firebaseJs = resolveFirebaseJs();
   const args = [
     firebaseJs,

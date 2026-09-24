@@ -69,11 +69,11 @@ npm -w boxcycle-web run test:route-token
 
 내부 동작 (`launch-route-token-harness.mjs` → `run-route-token-harness.mjs`):
 
-1. **Node 20 필수** — portable `/.runner-cache/node-v20` 또는 host Node 20; 미충족 시 즉시 실패
+1. **런타임 Node 버전 일치 필수** — 요구 버전은 `functions/package.json` 의 `engines.node` **한 곳**에서 읽는다(2026-09-25 일반화, 종전에는 `node20.mjs` 가 20 을 직접 박고 있었다). portable `/.runner-cache/node-v<major>` 또는 host Node; 미충족 시 즉시 실패. 배포된 런타임과 같은 Node 에서 계약을 검증해야 의미가 있으므로 「이상」이 아니라 「일치」를 본다
 2. `functions` build
 3. 단위 시험: `harness-active`, `isolation-guards`, `production-surface`, `runner-fail-recovery`
 4. mirror 준비 + mirror `.secret.local` placeholder (`finally` 정리)
-5. `firebase.harness.json` + `firebase-exec.mjs`(Node 20 으로 firebase-tools 구동) + contract
+5. `firebase.harness.json` + `firebase-exec.mjs`(요구 버전 Node 로 firebase-tools 구동) + contract
 6. UI smoke — POST `getMapboxDirections` 응답 `routeTokenBalance` 2·1·0, harness `inspectUser` 0/3/3, 4번째 UI 차단
 
 **전제:** JDK 11+, `firebase-tools`, `functions` 의존성 설치. UI smoke 지도 타일용 pk. 는 `apps/web/.env` 또는 형제 worktree `boxcycle/apps/web/.env` 에서 **읽기만** 한다.

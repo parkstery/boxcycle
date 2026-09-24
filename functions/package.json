@@ -2,7 +2,7 @@
   "name": "boxcycle-functions",
   "private": true,
   "engines": {
-    "node": "20"
+    "node": "24"
   },
   "main": "lib/index.js",
   "scripts": {

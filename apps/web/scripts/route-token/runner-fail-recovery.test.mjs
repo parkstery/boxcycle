@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 import { assertPortsFree } from "./port-guard.mjs";
-import { node20Env, resolveNode20Executable } from "./node20.mjs";
+import { nodeRuntimeEnv, resolveNodeExecutable } from "./nodeRuntime.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "../../../..");
@@ -28,9 +28,9 @@ describe("runner fail recovery", () => {
     const pkgBefore = fs.readFileSync(pkgPath);
     const gitBefore = gitPorcelain();
 
-    const result = spawnSync(resolveNode20Executable(), [runnerPath], {
+    const result = spawnSync(resolveNodeExecutable(), [runnerPath], {
       cwd: webDir,
-      env: node20Env({
+      env: nodeRuntimeEnv({
         ROUTE_TOKEN_HARNESS_CLEANUP_TEST: "1",
       }),
       encoding: "utf8",
