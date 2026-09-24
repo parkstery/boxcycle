@@ -1,0 +1,140 @@
+/*
+ * 라이더 조명 조절판(`?lightlab=1`, 지시02) — 감리·Chief 전용 디버그 도구.
+ * 공간 밀도 원칙(document/260924-RTW-UI-공간밀도-원칙.md) 적용: 라벨 2~4자,
+ * 풀 폭 버튼은 「값 복사」하나만, 접으면 헤더만 남는다.
+ */
+.light-lab {
+  position: fixed;
+  top: 0.3rem;
+  right: 0.3rem;
+  z-index: 60;
+  width: 12.6rem;
+  max-height: calc(100vh - 0.6rem);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.35rem 0.45rem;
+  background: var(--rtw-panel, rgba(10, 14, 18, 0.92));
+  border: 1px solid var(--rtw-divider, rgba(255, 255, 255, 0.08));
+  border-radius: var(--rtw-radius-md, 14px);
+  box-shadow: var(--rtw-shadow-panel, 0 8px 24px rgba(0, 0, 0, 0.4));
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: var(--rtw-text-primary, #edeff2);
+  font-size: 0.66rem;
+  line-height: 1.15;
+  pointer-events: auto;
+}
+
+.light-lab--collapsed {
+  width: auto;
+  max-height: none;
+  padding: 0.3rem 0.5rem;
+}
+
+.light-lab__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.light-lab__title {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.light-lab__collapse {
+  flex: none;
+  min-width: 1.3rem;
+  min-height: 1.3rem;
+  border: 1px solid var(--rtw-divider, rgba(255, 255, 255, 0.08));
+  border-radius: var(--rtw-radius-sm, 10px);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  cursor: pointer;
+}
+
+.light-lab__sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.light-lab__row {
+  display: grid;
+  grid-template-columns: 2.4rem 1fr 2.2rem;
+  align-items: center;
+  column-gap: 0.3rem;
+  min-height: 1.3rem;
+}
+
+.light-lab__label {
+  color: var(--rtw-text-secondary, #7c8a99);
+  font-weight: 600;
+}
+
+.light-lab__row input[type="range"] {
+  width: 100%;
+  accent-color: var(--rtw-trace, #e8a33d);
+}
+
+.light-lab__value {
+  text-align: right;
+  font-weight: 600;
+}
+
+.light-lab__presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.light-lab__chip {
+  flex: none;
+  padding: 0.2rem 0.45rem;
+  min-height: 1.4rem;
+  border-radius: var(--rtw-radius-pill, 999px);
+  border: 1px solid var(--rtw-divider, rgba(255, 255, 255, 0.08));
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--rtw-text-primary, #edeff2);
+  font-size: 0.62rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.light-lab__chip--reset {
+  color: var(--rtw-text-secondary, #7c8a99);
+}
+
+.light-lab__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.light-lab__code {
+  margin: 0;
+  padding: 0.28rem 0.32rem;
+  border-radius: var(--rtw-radius-sm, 10px);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--rtw-divider, rgba(255, 255, 255, 0.08));
+  font-family: "Barlow Semi Condensed", "Pretendard Variable", monospace;
+  font-size: 0.52rem;
+  line-height: 1.25;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.light-lab__copy-btn {
+  width: 100%;
+  min-height: 1.6rem;
+  border: none;
+  border-radius: var(--rtw-radius-md, 14px);
+  background: var(--rtw-trace, #e8a33d);
+  color: var(--rtw-bg, #0a0e12);
+  font-weight: 700;
+  cursor: pointer;
+}
