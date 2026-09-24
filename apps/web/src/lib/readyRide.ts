@@ -14,6 +14,11 @@ export function formatReadyRideDistanceLabel(km: number): string {
   return `${km} km`;
 }
 
+/** 칩 표시 — 단위는 제목 `(km)` 한 번(D1). */
+export function formatReadyRideDistanceChip(km: number): string {
+  return String(km);
+}
+
 export function createReadyRideRequestId(): string {
   return typeof crypto !== "undefined" && "randomUUID" in crypto
     ? `ready_${crypto.randomUUID().replace(/-/g, "")}`

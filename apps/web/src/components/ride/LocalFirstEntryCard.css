@@ -1,11 +1,12 @@
 /*
- * Local First Recognition 카드 — MapBottomLeftStack 안(좌표는 스택).
- * 폰 가로(~275px) 높이 예산에 맞게 밀도를 낮춘다.
+ * Local First Recognition 카드 — 지시10 공간 밀도(D1~D7).
+ * 폭은 내용에 맞추고(D5), 칩은 숫자만(D1), 터치 44px 은 높이로(D2).
  */
 .local-first-anchor {
   pointer-events: none;
-  width: min(21.6rem, calc(100vw - 2rem));
-  max-width: min(21.6rem, calc(100vw - 2rem));
+  /* 지시10 실측 카드 폭(~168px) 유지 — 지시11에서 키우지 않음 */
+  width: 10.5rem;
+  max-width: min(10.5rem, calc(100vw - 1.5rem));
 }
 
 .local-first__card {
@@ -13,8 +14,8 @@
   touch-action: manipulation;
   display: flex;
   flex-direction: column;
-  gap: 0.28rem;
-  padding: 0.5rem 0.6rem 0.55rem;
+  gap: 0.22rem;
+  padding: 0.4rem 0.48rem 0.42rem;
   border: 1px solid var(--rtw-glass-border, rgba(248, 250, 252, 0.18));
   border-radius: var(--rtw-radius, 14px);
   background: var(--rtw-glass-bg-strong, rgba(10, 16, 26, 0.64));
@@ -24,56 +25,80 @@
   color: var(--rtw-text, #f8fafc);
   width: 100%;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .local-first__title {
   margin: 0;
-  font-size: 0.82rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.06rem;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.local-first__place {
+  font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.01em;
-  line-height: 1.28;
+  line-height: 1.25;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.local-first__subtitle {
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.2;
+  opacity: 0.9;
+  max-width: 100%;
+}
+
+.local-first__title-unit {
+  font-weight: 650;
+  opacity: 0.72;
+  font-size: 0.68rem;
 }
 
 .local-first__body {
   margin: 0;
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   opacity: 0.78;
   line-height: 1.3;
 }
 
 .local-first__fail {
   margin: 0;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   opacity: 0.7;
-  line-height: 1.25;
-}
-
-/** 폐합 실패 → 편도 대안 안내(지시03 §B2·§B3) — 실패가 아니라 정보 고지이므로 fail 톤보다 옅게. */
-.local-first__oneway-note {
-  margin: 0;
-  font-size: 0.7rem;
-  opacity: 0.72;
   line-height: 1.25;
 }
 
 .local-first__actions {
   display: flex;
   flex-wrap: nowrap;
-  gap: 0.3rem;
-  margin-top: 0.02rem;
+  gap: 0.28rem;
+  width: fit-content;
+  max-width: 100%;
 }
 
 .local-first__btn {
-  flex: 1 1 0;
-  min-height: 1.9rem;
-  padding: 0.28rem 0.5rem;
+  min-height: 44px;
+  padding: 0.28rem 0.55rem;
   border: none;
   border-radius: 8px;
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   font-weight: 700;
   cursor: pointer;
   text-align: center;
   white-space: nowrap;
+}
+
+.local-first__btn--compact {
+  flex: 0 0 auto;
+  width: auto;
 }
 
 .local-first__btn:disabled {
@@ -92,28 +117,9 @@
   border: 1px solid rgba(248, 250, 252, 0.18);
 }
 
-.local-first__btn--intro {
-  flex: 1 1 auto;
-  width: 100%;
-  background: transparent;
-  color: var(--rtw-text, #f8fafc);
-  border: none;
-  font-weight: 600;
-  font-size: 0.72rem;
-  opacity: 0.82;
-  min-height: 1.55rem;
-  padding: 0.18rem 0.2rem;
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
-}
-
 .local-first__btn--primary:hover,
 .local-first__btn--ghost:hover {
   filter: brightness(1.06);
-}
-
-.local-first__btn--intro:hover {
-  opacity: 1;
 }
 
 .local-first__btn:focus-visible {
@@ -124,18 +130,21 @@
 .local-first__chips {
   display: flex;
   flex-wrap: nowrap;
-  gap: 0.26rem;
+  gap: 0.22rem;
+  width: fit-content;
+  max-width: 100%;
 }
 
 .local-first__chip {
-  flex: 1 1 0;
-  min-height: 1.6rem;
-  padding: 0.16rem 0.3rem;
+  flex: 0 0 auto;
+  min-width: 2.4rem;
+  min-height: 44px;
+  padding: 0.2rem 0.45rem;
   border: 1px solid rgba(248, 250, 252, 0.18);
   border-radius: 999px;
   background: rgba(248, 250, 252, 0.08);
   color: var(--rtw-text, #f8fafc);
-  font-size: 0.7rem;
+  font-size: 0.74rem;
   font-weight: 700;
   cursor: pointer;
   text-align: center;
@@ -152,13 +161,20 @@
   color: #10151f;
 }
 
+.local-first__chip--aux {
+  min-width: auto;
+  padding-inline: 0.55rem;
+  font-weight: 650;
+  opacity: 0.92;
+}
+
 .local-first__generating {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.4rem;
-  min-height: 1.9rem;
-  font-size: 0.76rem;
+  min-height: 44px;
+  font-size: 0.74rem;
   opacity: 0.9;
 }
 
@@ -169,41 +185,59 @@
 .local-first__ready-fail {
   display: flex;
   flex-direction: column;
-  gap: 0.22rem;
+  gap: 0.2rem;
 }
 
 .local-first__intro {
   display: flex;
-  flex-direction: column;
-  margin-top: 0.08rem;
-  padding-top: 0.22rem;
+  margin-top: 0.06rem;
+  padding-top: 0.16rem;
   border-top: 1px solid rgba(248, 250, 252, 0.12);
+  max-width: 100%;
+  min-width: 0;
 }
 
-/* 폰 가로 */
+.local-first__link {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--rtw-text, #f8fafc);
+  font-size: 0.7rem;
+  font-weight: 600;
+  opacity: 0.8;
+  padding: 0.2rem 0.1rem;
+  min-height: 44px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  max-width: 100%;
+}
+
+.local-first__link:hover {
+  opacity: 1;
+}
+
+.local-first__link:focus-visible {
+  outline: 2px solid var(--rtw-accent, #e8a33d);
+  outline-offset: 2px;
+}
+
 @media (max-height: 520px), (max-width: 480px) {
   .local-first-anchor {
-    width: min(17.5rem, calc(100vw - 1.5rem));
-    max-width: min(17.5rem, calc(100vw - 1.5rem));
+    width: 10.5rem;
+    max-width: min(10.5rem, calc(100vw - 1.25rem));
   }
 
   .local-first__card {
-    padding: 0.38rem 0.45rem 0.4rem;
-    gap: 0.2rem;
+    padding: 0.34rem 0.4rem 0.36rem;
+    gap: 0.18rem;
   }
 
-  .local-first__title {
-    font-size: 0.78rem;
+  .local-first__place {
+    font-size: 0.74rem;
   }
 
-  .local-first__btn {
-    min-height: 1.75rem;
-    padding: 0.22rem 0.4rem;
-    font-size: 0.72rem;
-  }
-
-  .local-first__intro {
-    margin-top: 0.04rem;
-    padding-top: 0.16rem;
+  .local-first__subtitle {
+    font-size: 0.66rem;
   }
 }
