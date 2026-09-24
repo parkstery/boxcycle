@@ -37,7 +37,7 @@ export type RouteTokenEconomy = {
 };
 
 export const DEFAULT_ROUTE_TOKEN_ECONOMY: RouteTokenEconomy = {
-  generateCostBase: 1,
+  generateCostBase: 0,
   earnPerKm: 0.15,
   onboardingGrant: 15,
   guestOnboardingGrant: 10,

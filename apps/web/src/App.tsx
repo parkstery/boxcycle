@@ -115,6 +115,10 @@ import type { SavedRoute } from "./lib/firestoreSavedRoutes";
 import { SAVED_ROUTE_NAME_MAX, buildSuggestedRouteName } from "./lib/firestoreSavedRoutes";
 import { useAppAuth } from "./hooks/useAppAuth";
 import { useRouteTokenBalance } from "./hooks/useRouteTokenBalance";
+import {
+  isRouteTokenGenerateMetered,
+  useRouteTokenGenerateCostBase,
+} from "./lib/routeTokenEconomyClient";
 import { useAppTrail } from "./hooks/useAppTrail";
 import { useRoutePlanning } from "./hooks/useRoutePlanning";
 import { useRecentRideSessions } from "./hooks/useRecentRideSessions";
@@ -186,6 +190,10 @@ export default function App() {
   const userTier = useUserTier(user, configured);
 
   const { routeTokenBalance } = useRouteTokenBalance(user, configured);
+  const routeTokenGenerateCostBase = useRouteTokenGenerateCostBase();
+  const routeTokenMetered = isRouteTokenGenerateMetered(routeTokenGenerateCostBase);
+  const routeTokenInsufficient =
+    routeTokenMetered && routeTokenBalance != null && routeTokenBalance < 1;
   /** Conquest(정복) — 요약 구독 + 내 도로 셀 + 「내 도로망」 궤적. 쓰기는 CF 전용. */
   const {
     summary: conquestSummary,
@@ -1625,7 +1633,7 @@ export default function App() {
     user,
     functionsRegion: FUNCTIONS_REGION,
     rideLocked: routeMenuLockedForProd,
-    routeTokenInsufficient: routeTokenBalance != null && routeTokenBalance < 1,
+    routeTokenInsufficient,
     onClearRouteArtifacts: () => clearRouteArtifactsRef.current(),
     onApplyRoute: applyGeneratedRouteResult,
   });
@@ -1634,7 +1642,7 @@ export default function App() {
     user,
     functionsRegion: FUNCTIONS_REGION,
     rideLocked: routeMenuLockedForProd,
-    routeTokenInsufficient: routeTokenBalance != null && routeTokenBalance < 1,
+    routeTokenInsufficient,
     profile,
     onClearRouteArtifacts: () => clearRouteArtifactsRef.current(),
     onApplyRoute: applyGeneratedRouteResult,
@@ -1675,10 +1683,10 @@ export default function App() {
   const handleMapRouteProfile = useCallback(
     (p: RouteProfile) => {
       // 토큰 부족(잔액<1)이면 RouteDock·지도 핀 팝업 어느 쪽에서도 생성을 막는다(정책 통일).
-      if (routeTokenBalance != null && routeTokenBalance < 1) return;
+      if (routeTokenInsufficient) return;
       applyRouteProfileForMapLocked(routeMenuLockedForProd, p);
     },
-    [applyRouteProfileForMapLocked, routeMenuLockedForProd, routeTokenBalance],
+    [applyRouteProfileForMapLocked, routeMenuLockedForProd, routeTokenInsufficient],
   );
 
   const routeDockStops = useRouteDockStops({
@@ -2544,7 +2552,7 @@ export default function App() {
               mapillaryClientToken: mapillaryTokenConfigured ? MAPILLARY_CLIENT_TOKEN : null,
               routeProfile: profile,
               onRouteProfile: handleMapRouteProfile,
-              routeTokenInsufficient: routeTokenBalance != null && routeTokenBalance < 1,
+              routeTokenInsufficient,
               conquestTraces: conquestTraceGeometries,
               conquestLiveTraveledMeters:
                 rideStatus === "running" || rideStatus === "paused"
@@ -2884,6 +2892,7 @@ export default function App() {
         }
         onLinkGoogle={user?.isAnonymous ? () => void handleGoogleSignIn() : undefined}
         onServiceExit={() => void handleServiceExit()}
+        rideActive={rideStatus === "running" || rideStatus === "paused"}
         savedRoutes={savedRoutes}
         onShowRideOnMap={(ride) => {
           const anchor = ride.sessionEndLngLat;

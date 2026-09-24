@@ -222,7 +222,7 @@ export function LocalFirstEntryCard({
                 <div className="local-first__actions">
                   <button
                     type="button"
-                    className="local-first__btn local-first__btn--primary"
+                    className="local-first__btn local-first__btn--ghost"
                     onClick={() => onAnotherReadyRide(readyKm)}
                   >
                     다른 경로
