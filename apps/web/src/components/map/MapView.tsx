@@ -208,6 +208,8 @@ const PICK_POPUP_PROFILE_ICON_SVG: Record<RouteProfile, string> = {
 
 /** 사용자 경로 탐색 결과 폴리라인 (`route` 소스·레이어) */
 const ROUTE_LINE_COLOR = "#ef4444";
+/** 표고 프로필 선·종점 깃발 — 경로선(#ef4444)과 같은 색이라 혼동을 준다는 Chief 지적으로 분리(2026-09-24) */
+const ELEVATION_LINE_COLOR = "#fdd836";
 /**
  * 경로선 폭. 흰 테두리(casing)를 둘렀다가 걷어냈다 — 테두리가 내 도로망보다 굵어
  * **경로선은 살고 내 도로망이 죽었다**(2026-09-16 Chief). 둘을 동시에 읽히게 하는 일은
@@ -3953,7 +3955,7 @@ export function MapView({
               <polyline
                 points={elevationUi.polylinePoints}
                 fill="none"
-                stroke="#ef4444"
+                stroke={ELEVATION_LINE_COLOR}
                 strokeWidth="2.2"
                 strokeLinejoin="round"
                 strokeLinecap="round"
@@ -4002,12 +4004,12 @@ export function MapView({
               <svg viewBox="0 0 13 14" width="13" height="14">
                 <path
                   d="M11.9 1V14"
-                  stroke="#ef4444"
+                  stroke={ELEVATION_LINE_COLOR}
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   fill="none"
                 />
-                <path d="M11.15 1.6 L3 4.2 L11.15 6.8 Z" fill="#ef4444" />
+                <path d="M11.15 1.6 L3 4.2 L11.15 6.8 Z" fill={ELEVATION_LINE_COLOR} />
               </svg>
             </span>
           </div>
