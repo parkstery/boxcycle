@@ -321,33 +321,31 @@
   }
 }
 
-/* RIDE-CLAIM-RESULT-1: 새 도로 conquest hero 블록 — 2열 중 왼쪽 칸, 골드/보라 강조는 유지 */
-/* 한 줄 — 「새 도로」 라벨이 숫자 왼쪽에 앉는다(2026-09-17 Chief).
-   세로 2줄은 좁은 폰 가로에서 높이만 먹었다. */
+/* 지시09 C — 「새 도로 +N」이 거리보다 먼저·더 크게. 줄 수는 그대로 2열. */
 .ride-summary__conquest-hero {
   display: flex;
   flex-direction: row;
   align-items: baseline;
   justify-content: center;
   gap: 0.36rem;
-  padding: 0.45rem 0.35rem 0.4rem;
+  padding: 0.5rem 0.35rem 0.45rem;
   border-radius: var(--rtw-radius-md);
-  background: rgba(138, 43, 226, 0.08);
-  border: 1px solid rgba(138, 43, 226, 0.3);
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.45);
+  order: -1;
 }
 
 .ride-summary__conquest-label {
-  font-size: 0.72rem;
-  font-weight: 650;
-  color: #a060e0;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #eab308;
+  letter-spacing: 0.02em;
 }
 
 .ride-summary__conquest-value {
-  font-size: 1.6rem;
+  font-size: 1.85rem;
   font-weight: 800;
-  color: #8a2be2;
+  color: #facc15;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   line-height: 1;

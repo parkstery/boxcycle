@@ -35,7 +35,8 @@
     "admin:phase7-terminology-purge": "npm run build && node lib/cliPhase7TerminologyPurge.js",
     "admin:backfill-trails-publication-id": "npm run build && node lib/cliBackfillTrailsPublicationId.js",
     "admin:backfill-mileage": "npm run build && node lib/cliBackfillMileage.js",
-    "admin:purge-guest-users": "npm run build && node lib/cliPurgeGuestUsers.js"
+    "admin:purge-guest-users": "npm run build && node lib/cliPurgeGuestUsers.js",
+    "admin:ride-metrics": "npm run build && node lib/cliRideMetrics.js"
   },
   "dependencies": {
     "firebase-admin": "^13.6.0",
