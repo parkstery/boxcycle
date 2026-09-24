@@ -109,13 +109,13 @@ async function loadSavedRouteFromMenu(page: Page, routeName: string) {
   const row = page.getByText(routeName, { exact: false }).first();
   await expect(row).toBeVisible({ timeout: 15_000 });
   await row.click();
-  await page.getByRole("button", { name: "열기" }).first().click();
+  await page.getByRole("button", { name: "열기", exact: true }).first().click();
   await expect(page.getByRole("button", { name: "주행 시작" })).toBeVisible({ timeout: 15_000 });
 }
 
-/** chief 가 지정한 촬영/계측 저장 위치 — 세션 scratchpad 하위 shots/ */
-const SHOTS_DIR =
-  "C:/Users/kdrea/AppData/Local/Temp/claude/C--20-HDev-boxcycle/2e5b96fa-d86d-4f15-9fe4-c5294d9318f9/scratchpad/shots";
+/** 촬영·계측 산출물 — 저장소 기준 .out/ (gitignore). 세션 임시폴더에 두면 다음 세션에서 사라진다. */
+const SHOTS_DIR = path.resolve(process.cwd(), ".out/ride-summary");
+fs.mkdirSync(SHOTS_DIR, { recursive: true });
 
 /** 폐기 정책(100m) 위 여유값 — 이보다 커지면 결과 시트가 뜬다고 확신할 수 있다. */
 const DISTANCE_THRESHOLD_KM = 0.11;
