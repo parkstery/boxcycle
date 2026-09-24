@@ -304,6 +304,7 @@ export function checkBboxDiagonal(coords: LngLat[]): AutoReviewVerdict {
 
 // ─── 제목·소개 구조 검사 (클라 publicRouteContentPolicy.ts `validatePublicRouteTitleAndSummary` 이식) ───
 
+// eslint-disable-next-line no-control-regex -- 제어문자를 탐지해 거부하는 입력 검증이다. 정규식에 있는 것이 의도다.
 const INVISIBLE_OR_CONTROL = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F\u200B-\u200D\uFEFF]/;
 /** 동일 문자·이모지 등 과도 반복(스팸 패턴) */
 const EXCESSIVE_REPEAT = /(.)\1{49,}/u;

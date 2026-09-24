@@ -30,7 +30,7 @@ export const ensureRouteTokenOnboardingHttp = onRequest(
     }
 
     let uid: string;
-    let isAnonymousHint = true;
+    let isAnonymousHint: boolean;
     try {
       const decoded = await getAuth().verifyIdToken(tokenMatch[1]);
       uid = decoded.uid;

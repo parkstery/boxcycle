@@ -155,7 +155,7 @@ export const getMapboxDirections = onRequest(
         /* users 메타 실패해도 경로 계산은 진행 */
       }
       await ensureRouteTokenOnboarding(uid);
-      let routeTokenBalance = await spendRouteGenerateToken(uid, requestId);
+      const routeTokenBalance = await spendRouteGenerateToken(uid, requestId);
       const generateCost = Math.max(0, Math.floor(economy.generateCostBase));
 
       let route: {

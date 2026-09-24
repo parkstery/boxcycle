@@ -180,7 +180,7 @@ async function main(): Promise<void> {
   const all = flag("all");
   const db = getFirestore();
 
-  let uids: string[] = [];
+  let uids: string[];
   if (all) {
     // savedRoutes 의 고유 userId 수집
     const snap = await db.collection("savedRoutes").select("userId").get();
