@@ -53,6 +53,7 @@ import {
   writeLocalFirstRegion,
   type LocalFirstRegion,
 } from "./lib/localFirstRegion";
+import { resolveMapBootCenter } from "./lib/mapBootCenter";
 import {
   buildTrailRegionLabel,
   closeTrailInstance,
@@ -203,7 +204,9 @@ export default function App() {
 
   const [mapStyle, setMapStyle] = useState(DEFAULT_MAP_STYLE);
   const [showRtwPoi, setShowRtwPoi] = useState(false);
-  const [mapZoom, setMapZoom] = useState(DEFAULT_MAP_ZOOM);
+  /** 지시09 A — 지도 최초 중심. 마운트 시 1회만 계산(재점프 금지). */
+  const [mapBoot] = useState(() => resolveMapBootCenter());
+  const [mapZoom, setMapZoom] = useState(() => mapBoot.zoom);
   /** 주행 카메라 라이더~카메라 거리(m) — 개발용 거리 슬라이더, 최적값 확정 후 제거 예정 */
   const [rideCameraDistanceM, setRideCameraDistanceM] = useState(RIDE_CAMERA_DISTANCE_DEFAULT_M);
   const [rideFollowCameraNonce, setRideFollowCameraNonce] = useState(0);
@@ -2543,6 +2546,8 @@ export default function App() {
               liveRiderNametag: resolvedLiveRiderNametag,
               mapStyle,
               mapZoom,
+              initialCenter: mapBoot.center,
+              initialZoom: mapBoot.zoom,
               followMode,
               enable3D,
               onMapZoom: setMapZoom,

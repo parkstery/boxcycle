@@ -230,21 +230,14 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
                 : "ride-summary__heroes-main ride-summary__heroes-main--solo"
             }
           >
-            {distancePair ? (
-              <div className="ride-summary__hero">
-                {/* 라벨 없이 숫자만 — 「0.18 / 0.18」 자체가 무엇인지 말한다(2026-09-17 Chief) */}
-                <strong className="ride-summary__hero-v" aria-label="주행 거리 / 경로 전체거리">
-                  {distancePair}
-                </strong>
-              </div>
-            ) : null}
-
             {hasConquestContent ? (
               <div className="ride-summary__conquest-hero" aria-live="polite">
                 {newRoadHero ? (
                   <>
                     <div className="ride-summary__conquest-label">새 도로</div>
-                    <strong className="ride-summary__conquest-value">{newRoadHero}</strong>
+                    <strong className="ride-summary__conquest-value" aria-label="새 도로">
+                      +{newRoadHero}
+                    </strong>
                   </>
                 ) : conquestStatusCopy ? (
                   <p className="ride-summary__conquest-status">
@@ -258,12 +251,6 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
                           onClick={() => {
                             setIsDelayed(false);
                             setIsTimedOut(false);
-                            // 구독 재활성화: serverRideId key 가 변하지 않으므로 localRecordId 를 통해 hook 이 재구독
-                            // RideConquestSubscription 은 같은 key에 activate()를 재호출하면 재구독한다
-                            // 이를 트리거하기 위해 result key 를 강제 re-subscribe 할 수 없으므로
-                            // 15/60s timer 만 초기화한다 — 실제 Firestore 재구독은 hook 의 서버 ID 변경 없이는 불가.
-                            // BLOCK: useRideConquestResult hook 에 forceRetry() API 가 없으므로
-                            // 이 "다시 확인" 버튼은 타이머 상태만 초기화. 추후 hook에 재구독 신호 추가 필요.
                           }}
                         >
                           다시 확인
@@ -272,6 +259,14 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
                     ) : null}
                   </p>
                 ) : null}
+              </div>
+            ) : null}
+
+            {distancePair ? (
+              <div className="ride-summary__hero">
+                <strong className="ride-summary__hero-v" aria-label="주행 거리 / 경로 전체거리">
+                  {distancePair}
+                </strong>
               </div>
             ) : null}
           </div>

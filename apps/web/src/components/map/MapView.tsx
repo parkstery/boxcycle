@@ -1012,7 +1012,7 @@ function syncLiveOverlayLayersOnMap(
   }
 }
 
-/** 레거시 `app.js` 와 동일한 서울 근처 기본 시야 */
+/** 레거시 `app.js` 와 동일한 서울 근처 기본 시야(강남). 지시09 — 부트 중심은 `initialCenter` 우선. */
 const DEFAULT_CENTER: [number, number] = [127.035, 37.505];
 const DEFAULT_ZOOM = DEFAULT_MAP_ZOOM;
 /**
@@ -1406,6 +1406,13 @@ export type MapViewProps = {
    * 주행 전(idle) 재개 준비 상태에서만 넘어온다.
    */
   resumeAnchor?: { lngLat: LngLat; label: string } | null;
+  /**
+   * 지도 **최초** 생성 중심(지시09 A). 생략 시 강남 기본.
+   * 생성 후에는 쓰지 않는다 — 재점프 금지.
+   */
+  initialCenter?: LngLat | null;
+  /** 최초 줌. 생략 시 DEFAULT_MAP_ZOOM(13). */
+  initialZoom?: number | null;
   /** Trail: 같은 Trail 에서 코스 주행 중인 다른 사용자 (빨간 dot + 노선) */
   trailSpectatorDots?: TrailSpectatorDot[] | null;
   trailSpectatorRoutes?: LineStringGeometry[] | null;
@@ -1553,6 +1560,8 @@ export function MapView({
   openRoutePickRequest = null,
   placeSearchMarkerLngLat = null,
   resumeAnchor = null,
+  initialCenter = null,
+  initialZoom = null,
   trailSpectatorDots = null,
   trailSpectatorRoutes = null,
   globalPresenceDots = null,
@@ -1981,11 +1990,21 @@ export function MapView({
 
     mapboxgl.accessToken = accessToken.trim();
     resetPeerMotionRegistry();
+    const bootCenter: [number, number] =
+      initialCenter &&
+      Number.isFinite(initialCenter[0]) &&
+      Number.isFinite(initialCenter[1])
+        ? [initialCenter[0], initialCenter[1]]
+        : DEFAULT_CENTER;
+    const bootZoom =
+      typeof initialZoom === "number" && Number.isFinite(initialZoom)
+        ? initialZoom
+        : DEFAULT_ZOOM;
     const map = new mapboxgl.Map({
       container: el,
       style: initialMapStyleRef.current,
-      center: DEFAULT_CENTER,
-      zoom: DEFAULT_ZOOM,
+      center: bootCenter,
+      zoom: bootZoom,
       minZoom: MAP_GLOBE_MIN_ZOOM,
       // 주행 밀착 카메라(거리 1~3m)가 zoom 22+를 요구 — 기본 maxZoom 22 클램프 해제
       maxZoom: 24,
