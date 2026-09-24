@@ -9,3 +9,4 @@
 15:50 | [감리] 지시01 PASS — 4단 순환 닫힘(zoom 16→18.4→20.1→23.7) · 상한 미적용 구조 확인 · 지시서 오류 2건(pitch 80 전제·10m 표기) 개발팀장이 정정. 커밋·병합·배포
 16:14 | 지시02 착수. preservedRiderLayer.ts 광원 3종 참조를 클래스 필드로 승격 + azimuth/elevation 역산 + applyLightLabState/setRiderLightLabState 추가(제품 기본값 불변). lib/riderPrototype/riderLightLab.ts(URL 게이트·범위·프리셋·localStorage·복사텍스트) + components/riderLightLab/RiderLightLabPanel.tsx 신규. App.tsx 최상위에 <RiderLightLabPanel /> 한 줄 추가. tsc/eslint(대상 파일) PASS. 프리셋 값은 Playwright 로 실제 화면 보고 정하는 중.
 16:29 | [감리] 지시02 PASS — 캡처 6종·URL 게이트·제품 기본값 불변(1.25/1.7/2.4)·tsc PASS 확인. 커밋·배포
+16:32 | 지시02 보고서 작성 완료(20260924-지시02수행결과-라이더-조명-조절판.md). 백그라운드 프로세스(firebase 에뮬레이터·vite) 정리 완료 — 4400/4500/5001/5002/8080/9099 리스닝 없음 확인. tsc/build PASS, eslint 대상 파일 0 errors. 드래그-지도누출 회귀 어서션은 코드엔 있으나 그 구간 포함 재실행은 중단 지시로 끝까지 못 봄(보고서 §5·§7에 명시). 잔여 작업 없음.
