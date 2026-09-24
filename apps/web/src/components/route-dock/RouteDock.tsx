@@ -152,29 +152,48 @@ export function RouteDock(props: RouteDockProps) {
    * (센서 설정 입구 — sensorChipSlot 2026-09-16 사고).
    */
   const rideCollapsed = isActiveRide && !expanded;
-  const showSensorChip = Boolean(cadence) && !rideCollapsed;
-  const caretSensorView = cadence && rideCollapsed ? cadenceChipView(cadence.state, true) : null;
-  const caretAriaLabel = expanded
-    ? "경로 패널 접기"
-    : caretSensorView
-      ? `경로 패널 펼치기 · ${caretSensorView.ariaLabel}`
-      : "경로 패널 펼치기";
+  /*
+   * 첫 화면(idle) — 「SENSOR」 텍스트가 보이는 칩 대신, 주행 중 접힘과 같은 형태로
+   * 캐럿 폭에 LED 만 남긴다(지시04 §A, 2026-09-23 미니맵 라운드 형태 재사용 — D7).
+   * 경유지가 하나라도 잡히면(stage 가 idle 을 벗어나면) 즉시 원래 칩+캐럿으로 돌아간다.
+   * 펼쳐 봐야 빈 목록뿐이라 펼침 대신 **눌러서 바로 센서 시트를 연다**(§A3 동작 유지).
+   */
+  const preRouteCollapsed = stage === "idle" && Boolean(cadence);
+  const caretOnly = rideCollapsed || preRouteCollapsed;
+  const showSensorChip = Boolean(cadence) && !caretOnly;
+  const caretSensorView = cadence && caretOnly ? cadenceChipView(cadence.state, isActiveRide) : null;
+  const caretAriaLabel = preRouteCollapsed
+    ? caretSensorView
+      ? `센서 설정 열기 · ${caretSensorView.ariaLabel}`
+      : "센서 설정 열기"
+    : expanded
+      ? "경로 패널 접기"
+      : caretSensorView
+        ? `경로 패널 펼치기 · ${caretSensorView.ariaLabel}`
+        : "경로 패널 펼치기";
+  const onCaretClick = () => {
+    if (preRouteCollapsed && cadence) {
+      cadence.onOpen();
+      return;
+    }
+    setExpanded((v) => !v);
+  };
 
   return (
     <div
       className={`route-dock-anchor${expanded ? " route-dock-anchor--open" : ""}${
         rideCollapsed ? " route-dock-anchor--ride-collapsed" : ""
-      }`}
+      }${preRouteCollapsed ? " route-dock-anchor--caret-only" : ""}`}
       aria-label="경로 설정"
     >
       <div className="route-dock__shell">
         <button
           type="button"
           className="route-dock__caret hud-glass"
-          aria-expanded={expanded}
+          aria-expanded={preRouteCollapsed ? (cadence?.open ?? false) : expanded}
           aria-label={caretAriaLabel}
-          title={expanded ? "접기" : "펼치기"}
-          onClick={() => setExpanded((v) => !v)}
+          title={preRouteCollapsed ? "센서 설정" : expanded ? "접기" : "펼치기"}
+          onClick={onCaretClick}
         >
           {caretSensorView ? (
             <span

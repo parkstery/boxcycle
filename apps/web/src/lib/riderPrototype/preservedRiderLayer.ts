@@ -238,8 +238,10 @@ export function setRiderLightLabState(state: RiderLightLabState): void {
 }
 
 export function ensureRiderPreservedLayer(map: MapboxMap): boolean {
+  let styleLayers: ReadonlyArray<{ id: string }> | undefined;
   try {
-    if (!map.getStyle()?.layers?.length) return false;
+    styleLayers = map.getStyle()?.layers;
+    if (!styleLayers?.length) return false;
   } catch {
     return false;
   }
@@ -250,6 +252,21 @@ export function ensureRiderPreservedLayer(map: MapboxMap): boolean {
       layer = new PreservedRiderCustomLayer();
       layerByMap.set(map, layer);
       map.addLayer(layer);
+    } else if (styleLayers[styleLayers.length - 1]?.id !== PRESERVED_RIDER_CUSTOM_LAYER_ID) {
+      /*
+       * 경로선(route)·내 도로망(conquest)·활동 오버레이(activity world) 등은 2D 라인
+       * 레이어라 커스텀 3D 레이어의 depth 를 읽지 않는다 — 앞뒤는 **style 의 레이어 순서
+       * (painter's algorithm)** 만으로 정해진다. 저 레이어들은 각자 필요할 때마다
+       * `addLayer`(beforeId 없음)·`moveLayer`(top)로 스스로를 최상단에 올리며 라이더보다
+       * 위로 올라가 버린다 — 그러면 선이 라이더 몸통·헬멧을 관통해 보인다(지시04 §B).
+       * 이 함수는 매 프레임 호출되므로, 라이더가 최상단이 아니게 된 다음 프레임에
+       * 곧바로 되돌려 항상 라이더가 선을 가리게 한다.
+       */
+      try {
+        map.moveLayer(PRESERVED_RIDER_CUSTOM_LAYER_ID);
+      } catch {
+        /* noop */
+      }
     }
     layer?.setSpecs(desiredSpecsByMap.get(map) ?? []);
     return true;

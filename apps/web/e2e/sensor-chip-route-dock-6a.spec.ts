@@ -46,7 +46,16 @@ test.describe("센서 칩 — RouteDock 이전", () => {
      */
     await expect(chip, "idle 에서도 센서 시트 입구는 있어야 한다").toBeVisible({ timeout: 30_000 });
     expect(await trChip.count(), "우상단 폴백은 없다").toBe(0);
-    expect(await dockChip.count(), "idle 에서도 칩은 dock 안").toBe(1);
+    /*
+     * 2026-09-24 지시04 §A: idle 에서는 「SENSOR」 텍스트 칩이 아니라 주행 중 접힘과
+     * 같은 형태 — 캐럿 폭에 LED 하나만 남긴다(D7, 미니맵 라운드 형태 재사용).
+     * 텍스트 칩은 stops 가 하나라도 잡혀야(setup·ready-to-start) 돌아온다.
+     */
+    expect(await dockChip.count(), "idle 에서는 텍스트 칩이 아니라 캐럿 LED 만 보인다").toBe(0);
+    expect(
+      await page.locator(".route-dock__caret .route-dock__caret-led").count(),
+      "idle 에서도 센서 LED 는 캐럿 안에 있다",
+    ).toBe(1);
 
     /*
      * 좌하단을 나눠 쓰는 셋(dock · 「다음 주행」 카드 · 입문 CTA)이 **겹치지 않는가**.
@@ -105,9 +114,10 @@ test.describe("센서 칩 — RouteDock 이전", () => {
       expect(p.position, `${p.sel} 는 스택에 좌표를 맡겨야 한다`).toBe("static");
     }
     // 첫 화면의 dock 은 접힌 채여야 한다 — 빈 패널로 지도를 가리지 않는다
+    // idle 캐럿은 더 이상 「펼치기」가 아니라 눌러서 바로 센서 시트를 연다(§A3).
     await expect(
-      page.getByRole("button", { name: "경로 패널 펼치기" }),
-      "idle 에서는 접힌 채로 뜬다",
+      page.getByRole("button", { name: /센서 설정 열기/ }),
+      "idle 에서는 캐럿이 접힌 채 · 누르면 바로 센서 시트",
     ).toBeVisible();
     // 부팅 직후 연결 안내가 화면을 덮은 채로 찍히지 않도록 지도가 안정된 뒤 촬영
     await expect(page.locator(".mapboxgl-canvas").first()).toBeVisible({ timeout: 30_000 });
