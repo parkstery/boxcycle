@@ -3764,31 +3764,8 @@ export function MapView({
 
   useEffect(() => {
     const map = mapRef.current;
-    if (import.meta.env.DEV) {
-      console.log("[C3] externalCameraJump effect fired", {
-        hasMap: Boolean(map),
-        mapLoaded,
-        externalCameraJump,
-      });
-    }
     if (!map || !mapLoaded || !externalCameraJump) return;
     const { lngLat, zoom: zoomHint, bbox } = externalCameraJump;
-    if (import.meta.env.DEV) {
-      const c = map.getCenter();
-      console.log("[C4] before jump — center", [c.lng, c.lat], "target", lngLat);
-      const onMoveStart = () => {
-        const cc = map.getCenter();
-        console.log("[C4] movestart center", [cc.lng, cc.lat]);
-      };
-      const onMoveEndDbg = () => {
-        const cc = map.getCenter();
-        console.log("[C4] moveend center", [cc.lng, cc.lat]);
-        map.off("movestart", onMoveStart);
-        map.off("moveend", onMoveEndDbg);
-      };
-      map.once("movestart", onMoveStart);
-      map.once("moveend", onMoveEndDbg);
-    }
     map.stop();
 
     const syncZoomFromMap = () => {

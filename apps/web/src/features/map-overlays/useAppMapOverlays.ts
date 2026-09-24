@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import type { User } from "firebase/auth";
 import { useRouteActivity } from "../../hooks/useRouteActivity";
 import { useRouteActivityMapOverlay } from "../../hooks/useRouteActivityMapOverlay";
@@ -383,27 +383,6 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     routeGeometry,
     phaseBFallbackDot,
     debugIsolationOn,
-  ]);
-
-  const phaseDSourceLogKeyRef = useRef("");
-  useEffect(() => {
-    if (!import.meta.env.DEV) return;
-    if (isPhaseA || isPhaseB || isPhaseC) return;
-    const key = `${publicationPresenceWorldMapEnabled}|${activityWorldRaw.pulseDots.length}|${activityWorldRaw.heatDots.length}`;
-    if (phaseDSourceLogKeyRef.current === key) return;
-    phaseDSourceLogKeyRef.current = key;
-    console.log("[PhaseD] source", {
-      publicationPresenceWorldMapEnabled,
-      rawPulse: activityWorldRaw.pulseDots.length,
-      rawHeat: activityWorldRaw.heatDots.length,
-    });
-  }, [
-    isPhaseA,
-    isPhaseB,
-    isPhaseC,
-    publicationPresenceWorldMapEnabled,
-    activityWorldRaw.pulseDots.length,
-    activityWorldRaw.heatDots.length,
   ]);
 
   const activityWorldRender = useMemo(

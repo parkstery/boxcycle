@@ -11,7 +11,6 @@ import type { RouteProfile } from "../services/mapboxDirections";
 import { decodeLineStringCoordsJson } from "./lineStringCoordsJson";
 
 /** 퍼블릭 등록 최소 연장(미만이면 신청 불가). 현재 dev 완화 중(100) — 운영 복귀 시 5000 으로. functions/src/publicRouteAutoReviewCore.ts 와 동기 유지 */
-// export const PUBLIC_ROUTE_MIN_LENGTH_METERS = 5000;
 export const PUBLIC_ROUTE_MIN_LENGTH_METERS = 100;
 
 /** 퍼블릭 등록 최대 연장(초과 시 신청·승인 불가) */

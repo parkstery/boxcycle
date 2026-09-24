@@ -459,7 +459,7 @@ export default function App() {
 
   /** leaveBasicHub 등에서 최신 주행 종료 로직을 호출하기 위한 ref */
   const handleEndRideRef = useRef<() => void>(() => {});
-  /** 주행 종료 시 `rides.publicationId` — `useOfficialCoursesHub` 이후 매 렌더 갱신 */
+  /** 주행 종료 시 `rides.publicationId` — publication 카탈로그 해소 이후 매 렌더 갱신 */
   const activePublicationIdRef = useRef<string | null>(null);
   /** `useSavedRoutesWorkspace` 가 주입 — `useRoutePlanning` 보다 아래에서 대입 */
   const clearSavedRouteArtifactsRef = useRef<() => void>(() => {});
@@ -1963,9 +1963,6 @@ export default function App() {
 
   const applyLocalFirstRegion = useCallback(
     (region: LocalFirstRegion, opts?: { jumpCamera?: boolean }) => {
-      if (import.meta.env.DEV) {
-        console.log("[C1] applyLocalFirstRegion", region, opts);
-      }
       setLocalFirstRegion(region);
       writeLocalFirstRegion(region);
       if (opts?.jumpCamera === false) return;
@@ -1974,9 +1971,6 @@ export default function App() {
       setActiveQuickCamera(null);
       setLockBaseHeading(null);
       cameraJumpSeqRef.current += 1;
-      if (import.meta.env.DEV) {
-        console.log("[C2] setExternalCameraJump", cameraJumpSeqRef.current, region.lngLat, region.zoom);
-      }
       setExternalCameraJump({
         lngLat: region.lngLat,
         zoom: region.zoom,
