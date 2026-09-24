@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { assertNodeMajor, nodeRuntimeEnv, resolveNodeExecutable } from "./nodeRuntime.mjs";
+import { assertNodeMajor, nodeRuntimeEnv, requiredNodeMajor, resolveNodeExecutable } from "./nodeRuntime.mjs";
 import {
   assertNoTrackedSecret,
   assertTrackedPackageUnchanged,
@@ -44,8 +44,8 @@ function run(cmd, args, opts = {}) {
 }
 
 function assertNodeMajorGate() {
-  const { nodeExe, version } = assertNodeMajor();
-  console.log(`[route-token] Node 20 runtime: ${version} (${nodeExe})`);
+  const { nodeExe, version, major } = assertNodeMajor();
+  console.log(`[route-token] Node ${major} runtime: ${version} (${nodeExe})`);
 }
 
 function runUnitTests(extraTests = []) {
@@ -112,8 +112,16 @@ function runEmulatorContract() {
     console.error(combined.slice(-4000));
     throw new Error(`emulator contract failed (exit ${result.status ?? 1})`);
   }
-  if (combined.includes("Using node@24 from host")) {
-    throw new Error("Functions Emulator 가 Node 24 를 사용했습니다 — Node 20 이어야 합니다.");
+  // Functions Emulator 가 어느 Node 로 떴는지 로그에서 확인한다.
+  // 요구 버전은 functions/package.json 의 engines.node 에서 읽는다 — 종전에는 여기에
+  // "node@24 면 실패" 가 박혀 있어, 2026-09-25 에 런타임을 24 로 올리자 이 게이트가
+  // 항상 실패하게 됐다. 버전을 코드에 적는 순간 같은 사고가 반복된다.
+  const wantMajor = requiredNodeMajor();
+  const usedMatch = combined.match(/Using node@(\d+) from host/);
+  if (usedMatch && Number(usedMatch[1]) !== wantMajor) {
+    throw new Error(
+      `Functions Emulator 가 Node ${usedMatch[1]} 를 사용했습니다 — Node ${wantMajor} 여야 합니다.`,
+    );
   }
   assertCleanLog(combined);
   console.log("[route-token] emulator log gate PASS (no Secret Manager / Mapbox secret fetch)");
