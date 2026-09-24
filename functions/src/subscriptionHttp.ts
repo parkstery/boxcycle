@@ -8,6 +8,7 @@ import {
   assertUserCanSubscribe,
   loadSubscriptionMe,
 } from "./subscriptionCore.js";
+import { REGION } from "./region.js";
 
 const stripeSecretKey = defineSecret("STRIPE_SECRET_KEY");
 const stripePriceId = defineSecret("STRIPE_PRICE_ID");
@@ -51,7 +52,7 @@ function parseUrl(raw: unknown, field: string): string {
  */
 export const getSubscriptionMeHttp = onRequest(
   {
-    region: "asia-northeast3",
+    region: REGION,
     cors: true,
     invoker: "public",
   },
@@ -83,7 +84,7 @@ export const getSubscriptionMeHttp = onRequest(
  */
 export const createSubscriptionCheckoutHttp = onRequest(
   {
-    region: "asia-northeast3",
+    region: REGION,
     cors: true,
     invoker: "public",
     secrets: [stripeSecretKey, stripePriceId],
@@ -159,7 +160,7 @@ export const createSubscriptionCheckoutHttp = onRequest(
  */
 export const createSubscriptionPortalHttp = onRequest(
   {
-    region: "asia-northeast3",
+    region: REGION,
     cors: true,
     invoker: "public",
     secrets: [stripeSecretKey],

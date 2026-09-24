@@ -3,6 +3,7 @@ import { HttpsError, onRequest, type Request } from "firebase-functions/v2/https
 import type { Response } from "express";
 import { ensureRouteTokenOnboarding } from "./routeTokenCore.js";
 import { mergeUserAuthMeta } from "./userTierCore.js";
+import { REGION } from "./region.js";
 
 /**
  * 로그인 직후 클라이언트가 1회 호출 — 온보딩 토큰 지급·잔액 표시.
@@ -10,7 +11,7 @@ import { mergeUserAuthMeta } from "./userTierCore.js";
  */
 export const ensureRouteTokenOnboardingHttp = onRequest(
   {
-    region: "asia-northeast3",
+    region: REGION,
     cors: true,
     invoker: "public",
   },

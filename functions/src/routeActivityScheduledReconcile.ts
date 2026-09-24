@@ -6,6 +6,7 @@ import {
 } from "./routeActivityAggregateCore.js";
 import { ROUTE_ACTIVITY_COLLECTION } from "./routeActivityConstants.js";
 import { scanAllLiveRideDocs } from "./liveRideScan.js";
+import { REGION } from "./region.js";
 
 /** 클라이언트 TRAIL_PRESENCE_STALE_MS 240s 보다 짧게 — stale live 문서 제외 */
 const LIVE_RIDE_FRESH_MS = 180_000;
@@ -26,7 +27,7 @@ function lastSeenMs(raw: unknown): number | null {
 export const routeActivityScheduledReconcile = onSchedule(
   {
     schedule: "every 24 hours",
-    region: "asia-northeast3",
+    region: REGION,
     timeZone: "Asia/Seoul",
   },
   async () => {

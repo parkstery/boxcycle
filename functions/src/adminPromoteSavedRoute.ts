@@ -6,8 +6,8 @@ import {
   PromoteSavedRouteError,
   promoteSavedRouteWithAdminSdk,
 } from "./savedRouteAdminPromoteCore.js";
+import { REGION } from "./region.js";
 
-const REGION = "asia-northeast3";
 
 async function assertBearerRouteReviewer(req: Request): Promise<string> {
   const authHeader = req.get("Authorization") ?? "";

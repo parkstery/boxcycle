@@ -3,6 +3,7 @@ import { HttpsError, onRequest, type Request } from "firebase-functions/v2/https
 import type { Response } from "express";
 import { assertTierQuota, type TierQuotaAction } from "./tierQuotaCore.js";
 import { mergeUserAuthMeta } from "./userTierCore.js";
+import { REGION } from "./region.js";
 
 const ACTIONS: TierQuotaAction[] = ["save_route", "public_route_request", "create_event"];
 
@@ -26,7 +27,7 @@ function parseAction(body: unknown): TierQuotaAction {
  */
 export const assertTierQuotaHttp = onRequest(
   {
-    region: "asia-northeast3",
+    region: REGION,
     cors: true,
     invoker: "public",
   },

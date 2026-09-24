@@ -3,6 +3,7 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { OPEN_TRAIL_LISTINGS_COLLECTION } from "./openTrailListingCore.js";
 
 import { TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION } from "./trailPaths.js";
+import { REGION } from "./region.js";
 
 const TRAILS_COLLECTION = "trails";
 const MEMBERS_SUB = "members";
@@ -48,7 +49,7 @@ async function deleteSubcollection(trailId: string, sub: string): Promise<number
 export const trailInstanceLifecycle = onSchedule(
   {
     schedule: "every 12 hours",
-    region: "asia-northeast3",
+    region: REGION,
     timeZone: "Asia/Seoul",
   },
   async () => {

@@ -18,6 +18,7 @@ import {
 import { defineSecret } from "firebase-functions/params";
 import { HttpsError, onRequest, type Request } from "firebase-functions/v2/https";
 import type { Response } from "express";
+import { REGION } from "./region.js";
 
 initializeApp();
 
@@ -103,7 +104,7 @@ function parseBody(data: unknown): {
  */
 export const getMapboxDirections = onRequest(
   {
-    region: "asia-northeast3",
+    region: REGION,
     secrets: [mapboxAccessToken],
     timeoutSeconds: 30,
     memory: "256MiB",
@@ -365,7 +366,7 @@ async function fetchDirectionsRoute(
  */
 export const getDistanceAutoRoute = onRequest(
   {
-    region: "asia-northeast3",
+    region: REGION,
     secrets: [mapboxAccessToken],
     timeoutSeconds: 120,
     memory: "512MiB",

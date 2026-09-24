@@ -1,6 +1,7 @@
 import { HttpsError, onRequest, type Request } from "firebase-functions/v2/https";
 import type { Response } from "express";
 import { applySubscriptionState, type SubscriptionStatus } from "./subscriptionCore.js";
+import { REGION } from "./region.js";
 
 const STATUSES: SubscriptionStatus[] = ["none", "active", "past_due", "canceled"];
 
@@ -10,7 +11,7 @@ const STATUSES: SubscriptionStatus[] = ["none", "active", "past_due", "canceled"
  */
 export const subscriptionDevApplyHttp = onRequest(
   {
-    region: "asia-northeast3",
+    region: REGION,
     cors: true,
     invoker: "public",
   },
