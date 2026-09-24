@@ -68,7 +68,8 @@
     "mapbox-gl": "^3.23.1",
     "mapillary-js": "^4.1.2",
     "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react-dom": "^19.2.5",
+    "three": "^0.134.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -83,7 +84,6 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
     "playwright": "^1.61.1",
-    "three": "^0.175.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.2",
     "vite": "^8.0.10"
