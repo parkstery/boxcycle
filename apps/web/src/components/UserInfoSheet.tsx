@@ -22,7 +22,7 @@ import {
   tierPlanLabel,
   type SubscriptionStatus,
 } from "../lib/subscription";
-import { AuthGoogleMark } from "./AuthGateCard";
+import { AuthGoogleMark } from "./auth/AuthGateCard";
 import { resetGuestAccount } from "../lib/guestAccountReset";
 import "./UserInfoSheet.css";
 

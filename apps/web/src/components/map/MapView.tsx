@@ -89,7 +89,7 @@ import {
 } from "../../lib/geo";
 import { splitLineStringAtMeters } from "../../lib/routeProgressSplit";
 import type { RouteElevationProfileState } from "../../hooks/useRouteElevationProfile";
-import type { FollowMode } from "../ride/RideRoutePanel";
+import type { FollowMode } from "../../lib/mapGlobeView";
 import {
   getRouteTokenInsufficient as isRouteTokenBlocked,
   subscribeRouteTokenEffective,

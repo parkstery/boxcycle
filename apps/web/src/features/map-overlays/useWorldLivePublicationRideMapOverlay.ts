@@ -81,8 +81,8 @@ export function useWorldLivePublicationRideMapOverlay(opts: {
 }): RouteActivityMapOverlay & {
   livePublicationCount: number;
   liveRideRowCount: number;
-  lobbySpectatorDots: TrailSpectatorDot[];
-  lobbySpectatorRoutes: LineStringGeometry[];
+  trailheadSpectatorDots: TrailSpectatorDot[];
+  trailheadSpectatorRoutes: LineStringGeometry[];
 } {
   const { enabled, mapZoom, myUid, excludePublicationId, trailIds } = opts;
   const [rows, setRows] = useState<TrailLivePublicationRideRow[]>([]);
@@ -195,7 +195,7 @@ export function useWorldLivePublicationRideMapOverlay(opts: {
     if (scheduled) setGeomEpoch((n) => n + 1);
   }, [enabled, aggregates]);
 
-  const lobbyActiveRowsKey = useMemo(() => {
+  const trailheadActiveRowsKey = useMemo(() => {
     const exclude = excludePublicationId?.trim() ?? "";
     return rows
       .filter((r) => {
@@ -210,10 +210,10 @@ export function useWorldLivePublicationRideMapOverlay(opts: {
   }, [rows, excludePublicationId, myUid]);
 
   useEffect(() => {
-    if (!enabled || lobbyActiveRowsKey.length === 0) return;
+    if (!enabled || trailheadActiveRowsKey.length === 0) return;
     const id = window.setInterval(() => setSpectatorTickMs(Date.now()), 1_000);
     return () => window.clearInterval(id);
-  }, [enabled, lobbyActiveRowsKey]);
+  }, [enabled, trailheadActiveRowsKey]);
 
   const overlay = useMemo((): RouteActivityMapOverlay => {
     if (aggregates.length === 0) return EMPTY_LIVE_OVERLAY;
@@ -241,7 +241,7 @@ export function useWorldLivePublicationRideMapOverlay(opts: {
     };
   }, [aggregates, mapZoom, geomEpoch]);
 
-  const lobbySpectator = useMemo(() => {
+  const trailheadSpectator = useMemo(() => {
     const exclude = excludePublicationId?.trim() ?? "";
     const activeRows = rows.filter((r) => {
       if (!isTrailLivePublicationRideRowFresh(r)) return false;
@@ -250,26 +250,26 @@ export function useWorldLivePublicationRideMapOverlay(opts: {
       return true;
     });
     if (activeRows.length === 0) {
-      return { lobbySpectatorDots: [] as TrailSpectatorDot[], lobbySpectatorRoutes: [] as LineStringGeometry[] };
+      return { trailheadSpectatorDots: [] as TrailSpectatorDot[], trailheadSpectatorRoutes: [] as LineStringGeometry[] };
     }
 
     const geomMap = geomByPublicationRef.current;
     const maxV = maxLineStringVerticesForMapZoom(mapZoom);
     const seenPublications = new Set<string>();
-    const lobbySpectatorRoutes: LineStringGeometry[] = [];
-    const lobbySpectatorDots: TrailSpectatorDot[] = [];
+    const trailheadSpectatorRoutes: LineStringGeometry[] = [];
+    const trailheadSpectatorDots: TrailSpectatorDot[] = [];
 
     for (const r of activeRows) {
       const g = geomMap.get(r.publicationId);
       if (!g || g.status !== "ready") continue;
       if (!seenPublications.has(r.publicationId)) {
         seenPublications.add(r.publicationId);
-        lobbySpectatorRoutes.push(decimateLineStringVertices(g.geometry, maxV));
+        trailheadSpectatorRoutes.push(decimateLineStringVertices(g.geometry, maxV));
       }
       const p = spectatorPointOnRoute(r, g.geometry, spectatorTickMs, { logPt10: true });
       if (p) {
         const who = r.displayName?.trim() || r.uid.slice(0, 6);
-        lobbySpectatorDots.push({
+        trailheadSpectatorDots.push({
           id: r.uid,
           lngLat: p as LngLat,
           label: who,
@@ -277,14 +277,14 @@ export function useWorldLivePublicationRideMapOverlay(opts: {
       }
     }
 
-    return { lobbySpectatorDots, lobbySpectatorRoutes };
+    return { trailheadSpectatorDots, trailheadSpectatorRoutes };
   }, [rows, excludePublicationId, myUid, mapZoom, geomEpoch, spectatorTickMs]);
 
   return {
     ...overlay,
     livePublicationCount: aggregates.length,
     liveRideRowCount: rows.length,
-    lobbySpectatorDots: lobbySpectator.lobbySpectatorDots,
-    lobbySpectatorRoutes: lobbySpectator.lobbySpectatorRoutes,
+    trailheadSpectatorDots: trailheadSpectator.trailheadSpectatorDots,
+    trailheadSpectatorRoutes: trailheadSpectator.trailheadSpectatorRoutes,
   };
 }

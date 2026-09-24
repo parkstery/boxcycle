@@ -4,7 +4,7 @@ import {
   headingOnRouteAtPoint,
   type LineStringGeometry as RouteLineStringGeometry,
 } from "../../lib/geo";
-import type { FollowMode } from "../ride/RideRoutePanel";
+import type { FollowMode } from "../../lib/mapGlobeView";
 import { resolveRideCameraPitchClose } from "../../lib/mapGlobeView";
 import { computeRideFollowFraming, viewportPxFromMap } from "../../lib/rideCameraFraming";
 import type { RideSpanFloorMode } from "../../lib/rideCameraFraming";

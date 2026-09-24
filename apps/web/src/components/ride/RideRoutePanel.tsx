@@ -11,20 +11,12 @@ import {
 } from "./OfficialCourseListModal";
 import "./RideRoutePanel.css";
 
-export type FollowMode =
-  | "free"
-  | "keep"
-  | "north"
-  /** 카메라가 라이더 뒤, 진행 방향을 봄 (구도=전방) */
-  | "forward"
-  /** 카메라가 라이더 앞, 지나온 쪽을 봄 (구도=후방) */
-  | "backward"
-  | "right"
-  | "left"
-  /** 상공에서 수직으로 내려찍기(pitch 0, 진행 방향이 화면 위) */
-  | "topDown"
-  /** 상공 Aerial — pitch 0 + 실거리(Quick Camera 1). topDown 과 분리해 주행 시작 줌 경로를 보존 */
-  | "aerial";
+/**
+ * 카메라 추종 모드는 지도의 개념이라 `lib/mapGlobeView` 가 소유한다(2026-09-25 이동).
+ * 종전에는 이 패널이 정의하고 코어가 그것을 import 하는 레이어링 역전이었다(구조 감사 M4).
+ * 기존 import 경로를 깨지 않도록 여기서는 다시 내보내기만 한다.
+ */
+export type { FollowMode } from "../../lib/mapGlobeView";
 
 type RideRoutePanelProps = {
   /** 경로 계산 결과 요약(거리·시간 등) — 생성은 RouteDock 소유, 여기선 표시만 */

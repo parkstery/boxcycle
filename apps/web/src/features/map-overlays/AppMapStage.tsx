@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { MapView, type MapViewProps } from "../../components/MapView";
+import { MapView, type MapViewProps } from "../../components/map/MapView";
 import { MapHud, type MapHudProps } from "../../components/maphud/MapHud";
 import {
   ActivityWorldLodDebugPanel,

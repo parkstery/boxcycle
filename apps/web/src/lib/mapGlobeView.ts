@@ -1,5 +1,24 @@
 import type { Map as MapboxMap } from "mapbox-gl";
-import type { FollowMode } from "../components/ride/RideRoutePanel";
+
+/**
+ * 주행 중 카메라가 라이더를 따라가는 방식.
+ * 2026-09-25 에 `components/ride/RideRoutePanel` 에서 이곳으로 옮겼다 — 코어가 UI 패널의
+ * 타입에 의존하던 역전을 없앤다(구조 감사 M4).
+ */
+export type FollowMode =
+  | "free"
+  | "keep"
+  | "north"
+  /** 카메라가 라이더 뒤, 진행 방향을 봄 (구도=전방) */
+  | "forward"
+  /** 카메라가 라이더 앞, 지나온 쪽을 봄 (구도=후방) */
+  | "backward"
+  | "right"
+  | "left"
+  /** 상공에서 수직으로 내려찍기(pitch 0, 진행 방향이 화면 위) */
+  | "topDown"
+  /** 상공 Aerial — pitch 0 + 실거리(Quick Camera 1). topDown 과 분리해 주행 시작 줌 경로를 보존 */
+  | "aerial";
 import { RIDER_GLB_MODEL_BASE_SCALE } from "./riderPrototype/config";
 import { RIDER_DISPLAY_HEIGHT_M, RIDER_HEAD_C_Y_M, rideHeightSpanMargin } from "./rideCameraFraming";
 

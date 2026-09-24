@@ -8,7 +8,7 @@ import {
   RIDE_CAMERA_DISTANCE_MAX_M,
   RIDE_CAMERA_DISTANCE_STEP_M,
 } from "../../lib/mapGlobeView";
-import type { FollowMode } from "../ride/RideRoutePanel";
+import type { FollowMode } from "../../lib/mapGlobeView";
 import "./MapViewSheet.css";
 
 type MapViewSheetProps = {

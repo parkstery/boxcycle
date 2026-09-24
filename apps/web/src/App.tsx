@@ -1,8 +1,9 @@
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PublicationSharedPresence } from "./components/PublicationSharedPresence";
 import { peerHudLabels, type PeerHudEntry } from "./lib/peerHud";
-import { SignUpNicknameCard } from "./components/SignUpNicknameCard";
-import { RideRoutePanel, type FollowMode } from "./components/RideRoutePanel";
+import { SignUpNicknameCard } from "./components/auth/SignUpNicknameCard";
+import { RideRoutePanel } from "./components/ride/RideRoutePanel";
+import type { FollowMode } from "./lib/mapGlobeView";
 import { PublicRouteRequestModal } from "./components/PublicRouteRequestModal";
 import { useTrailSession } from "./hooks/useTrailSession";
 import { useLiveLocationPublishSession } from "./hooks/useLiveLocationPublishSession";
@@ -28,12 +29,12 @@ import {
   RIDE_CAMERA_DISTANCE_MIN_M,
 } from "./lib/mapGlobeView";
 import { rideDistanceAlongRoute } from "./lib/liveLocationSnapshot";
-import { AuthGateCard, AuthGoogleMark } from "./components/AuthGateCard";
-import { GuestEntryCard } from "./components/GuestEntryCard";
+import { AuthGateCard, AuthGoogleMark } from "./components/auth/AuthGateCard";
+import { GuestEntryCard } from "./components/auth/GuestEntryCard";
 import { allowUnauthMapDev } from "./lib/authGatePolicy";
 import { readGuestEntryAccepted } from "./lib/appSessionKeys";
 import { useUserTier } from "./hooks/useUserTier";
-import { RideSummarySheet } from "./components/RideSummarySheet";
+import { RideSummarySheet } from "./components/ride/RideSummarySheet";
 import { NextRideCard, LocalFirstEntryCard } from "./components/ride";
 import { resolveNextRideView } from "./lib/nextRideTarget";
 import type { NextRideTarget } from "./lib/nextRideTarget";
@@ -42,7 +43,7 @@ import { MenuPanel } from "./components/MenuPanel";
 import { MapBottomLeftStack } from "./features/map-overlays/MapBottomLeftStack";
 import { PlaceSearchPanel } from "./components/PlaceSearchPanel";
 import { MenuPlaceSearch } from "./components/MenuPlaceSearch";
-import { TrailHubPanel } from "./components/TrailHubPanel";
+import { TrailHubPanel } from "./components/trail/TrailHubPanel";
 import { useOpenTrails } from "./hooks/useOpenTrails";
 import { useTrailInstanceMeta } from "./hooks/useTrailInstanceMeta";
 import {
@@ -72,9 +73,9 @@ import {
 } from "./lib/trailDisplayNumberCache";
 import { RotateOverlay } from "./components/RotateOverlay";
 import { RiderLightLabPanel } from "./components/riderLightLab/RiderLightLabPanel";
-import { MapViewSheet } from "./components/MapViewSheet";
+import { MapViewSheet } from "./components/map/MapViewSheet";
 import { UserInfoSheet } from "./components/UserInfoSheet";
-import { RideSettingsSheet } from "./components/RideSettingsSheet";
+import { RideSettingsSheet } from "./components/ride/RideSettingsSheet";
 import { useRideUiStage } from "./hooks/useRideUiStage";
 import {
   useRideArrivalAutoEnd,

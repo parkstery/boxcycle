@@ -559,18 +559,18 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
 
   const mapTrailSpectatorDots = useMemo(() => {
     if (spectatorDots.length > 0) return spectatorDots;
-    if (atTrailheadIdle) return livePublicationRideOverlay.lobbySpectatorDots;
+    if (atTrailheadIdle) return livePublicationRideOverlay.trailheadSpectatorDots;
     return spectatorDots;
-  }, [spectatorDots, atTrailheadIdle, livePublicationRideOverlay.lobbySpectatorDots]);
+  }, [spectatorDots, atTrailheadIdle, livePublicationRideOverlay.trailheadSpectatorDots]);
 
   const mapTrailSpectatorRoutes = useMemo(() => {
     if (spectatorRouteGeometries.length > 0) return spectatorRouteGeometries;
-    if (atTrailheadIdle) return livePublicationRideOverlay.lobbySpectatorRoutes;
+    if (atTrailheadIdle) return livePublicationRideOverlay.trailheadSpectatorRoutes;
     return spectatorRouteGeometries;
   }, [
     spectatorRouteGeometries,
     atTrailheadIdle,
-    livePublicationRideOverlay.lobbySpectatorRoutes,
+    livePublicationRideOverlay.trailheadSpectatorRoutes,
   ]);
 
   return {
