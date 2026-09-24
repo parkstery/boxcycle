@@ -4,7 +4,7 @@
 |---|---|
 | 문서 유형 | **execution** — Chief 원안 「Local First Ride & Route Generator」를 코드 현황과 대조해 범위·순서로 전환하는 계획 |
 | 최초 작성 | 2026-09-23 |
-| 상태 | **초안** — 코드 열람 결과 기반. 제품 코드 변경·측정·사용자 모집은 아직 수행하지 않았다 |
+| 상태 | **1차 완료(2026-09-24)** — LF-1~LF-3 구현·배포, LF-4 는 도구만(표본 0). 결과: [완료 보고](archive/260924-Local-First-Ride-1차-완료보고.md) |
 | 원안 | Chief 제공 「RTW Local First Ride & Route Generator」(2026-09-23, 대화 제출본) |
 | 릴레이 | [`ops/20260923-first_ride/`](ops/20260923-first_ride/README.md) — 감리(클로드)↔개발팀장(커서) 파일 통신 |
 | 연결 문서 | [Ontology](260714-RTW-Ontology.md) · [Conquest 설계](260703-Conquest-정복-레이어-설계.md) · [상태보드](260707-RTW-기능-인벤토리-상태보드.md) · [도로망 성취경험 실행계획](260907-RTW-도로망-성취경험-실행계획.md) · [결정 로그](260707-RTW-결정-로그.md) |

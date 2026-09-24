@@ -1,0 +1,58 @@
+{
+  "viewport": {
+    "width": 900,
+    "height": 400,
+    "rootFontPx": 13.5
+  },
+  "tlHeight": {
+    "before": 67.1875,
+    "after": 34.125
+  },
+  "metricsGapAvg": {
+    "before": 9.5703125,
+    "after": 4.5,
+    "beforeGaps": [
+      1.953125,
+      8.734375,
+      14.265625,
+      13.328125
+    ],
+    "afterGaps": [
+      3.625,
+      4.6875,
+      4.8125,
+      4.875
+    ]
+  },
+  "metricsValueWidths": {
+    "before": [
+      85.03125,
+      42,
+      37.015625,
+      37.015625,
+      47.015625
+    ],
+    "after": [
+      87.0625,
+      42,
+      37.015625,
+      37.015625,
+      47.015625
+    ]
+  },
+  "capsuleWidth": {
+    "before": 297.609375,
+    "after": 278.671875
+  },
+  "brand": {
+    "top": 10.984375,
+    "left": 8.09375,
+    "width": 57.53125,
+    "height": 28.34375,
+    "bottom": 39.328125,
+    "right": 65.625
+  },
+  "dockCollapsedWidth": 14.546875,
+  "remainingVerticalPx": 169.875,
+  "ratioGap": 0.47020408163265304
+}

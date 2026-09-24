@@ -1,0 +1,60 @@
+{
+  "mode": "dry-run",
+  "generatedAt": "2026-09-23T23:19:29.225Z",
+  "uids": [
+    {
+      "uid": "QR6Nhp55Bjd22ow8Ku2RkudwNfI3",
+      "users": 1,
+      "conquestSummary": 0,
+      "conquestChunks": 0,
+      "conquestTraces": 0,
+      "rides": 50,
+      "savedRoutes": 0,
+      "routeTokenLedger": 1,
+      "livePresence": 0,
+      "openTrailListings": 0,
+      "trailMembers": 0,
+      "publicationSessionMembers": 0,
+      "livePublicationRides": 0,
+      "publicRouteRequests": 0,
+      "routePublicationsOwnedReportOnly": 0,
+      "trailsHostedReportOnly": 0
+    },
+    {
+      "uid": "YgqWdArpCiZIqKgVqNzjCmidn6n2",
+      "users": 1,
+      "conquestSummary": 0,
+      "conquestChunks": 0,
+      "conquestTraces": 0,
+      "rides": 50,
+      "savedRoutes": 0,
+      "routeTokenLedger": 1,
+      "livePresence": 0,
+      "openTrailListings": 0,
+      "trailMembers": 1,
+      "publicationSessionMembers": 0,
+      "livePublicationRides": 0,
+      "publicRouteRequests": 0,
+      "routePublicationsOwnedReportOnly": 0,
+      "trailsHostedReportOnly": 0
+    },
+    {
+      "uid": "g9Fz43wW4Lc6YOom82gEbLFTFZ02",
+      "users": 1,
+      "conquestSummary": 0,
+      "conquestChunks": 0,
+      "conquestTraces": 0,
+      "rides": 50,
+      "savedRoutes": 0,
+      "routeTokenLedger": 1,
+      "livePresence": 0,
+      "openTrailListings": 0,
+      "trailMembers": 1,
+      "publicationSessionMembers": 0,
+      "livePublicationRides": 0,
+      "publicRouteRequests": 0,
+      "routePublicationsOwnedReportOnly": 0,
+      "trailsHostedReportOnly": 0
+    }
+  ]
+}

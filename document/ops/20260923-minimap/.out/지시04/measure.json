@@ -1,0 +1,93 @@
+{
+  "m740": {
+    "viewport": {
+      "width": 740,
+      "height": 300
+    },
+    "minimap": {
+      "top": 114.28125,
+      "left": 8.09375,
+      "width": 217.546875,
+      "height": 88.1875,
+      "bottom": 202.46875,
+      "right": 225.640625
+    },
+    "areaPct": 8.641853621199324,
+    "areaAsOneOverN": 11.571591510725208,
+    "leftPads": {
+      "rtw": 8.09375,
+      "minimap": 8.09375,
+      "dock": 8.09375
+    },
+    "gapMmBottomToDockTop": 4.625,
+    "linearScaleVsFull": {
+      "w": 0.6999999999999998,
+      "h": 0.7
+    },
+    "size70": {
+      "width": 217.55999999999997,
+      "height": 88.19999999999999,
+      "aspect": 2.466666666666667
+    },
+    "size100": {
+      "width": 310.8,
+      "height": 126,
+      "aspect": 2.466666666666667
+    }
+  },
+  "m1161": {
+    "viewport": {
+      "width": 1161,
+      "height": 870
+    },
+    "minimap": {
+      "top": 516.703125,
+      "left": 8.09375,
+      "width": 341.328125,
+      "height": 255.765625,
+      "bottom": 772.46875,
+      "right": 349.421875
+    },
+    "areaPct": 8.642965459889227,
+    "areaAsOneOverN": 11.570102931000449,
+    "leftPads": {
+      "rtw": 8.09375,
+      "minimap": 8.09375,
+      "dock": 8.09375
+    },
+    "gapMmBottomToDockTop": 4.625,
+    "linearScaleVsFull": {
+      "w": 0.7,
+      "h": 0.7000000000000001
+    },
+    "size70": {
+      "width": 341.334,
+      "height": 255.78000000000003,
+      "aspect": 1.3344827586206895
+    },
+    "size100": {
+      "width": 487.62,
+      "height": 365.40000000000003,
+      "aspect": 1.3344827586206895
+    }
+  },
+  "overlap740": {
+    "mm": {
+      "top": 114.28125,
+      "left": 8.09375,
+      "width": 217.546875,
+      "height": 88.1875,
+      "bottom": 202.46875,
+      "right": 225.640625
+    },
+    "dock": {
+      "top": 214.96875,
+      "left": 8.09375,
+      "width": 190.046875,
+      "height": 38.125,
+      "bottom": 253.09375,
+      "right": 198.140625
+    },
+    "overlapPx": 0
+  }
+}

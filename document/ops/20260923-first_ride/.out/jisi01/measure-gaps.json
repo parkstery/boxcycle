@@ -1,0 +1,36 @@
+{
+  "a": {
+    "vp": {
+      "w": 900,
+      "h": 400
+    },
+    "card": {
+      "top": 301.3,
+      "left": 11.5,
+      "w": 236.3,
+      "h": 82.6,
+      "pctH": 20.6
+    },
+    "gapDockShell": 3.8,
+    "gapHudTl": 256.7,
+    "dockH": 46,
+    "hudTlBottom": 44.5
+  },
+  "b": {
+    "vp": {
+      "w": 740,
+      "h": 300
+    },
+    "card": {
+      "top": 202.4,
+      "left": 10.4,
+      "w": 236.3,
+      "h": 82.6,
+      "pctH": 27.5
+    },
+    "gapDockShell": 3.8,
+    "gapHudTl": 158.9,
+    "dockH": 46,
+    "hudTlBottom": 43.4
+  }
+}

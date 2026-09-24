@@ -1,0 +1,71 @@
+{
+  "outDir": "C:\\20.HDev\\boxcycle\\apps\\web\\.out\\camera-angle",
+  "opsOut": "C:\\20.HDev\\boxcycle\\document\\ops\\20260922-new_camera\\.out\\지시07",
+  "notes": [
+    {
+      "file": "a-p75-d6.png",
+      "requestedPitch": 75,
+      "requestedDistanceM": 6,
+      "appliedDistanceM": 6,
+      "floorPushed": false,
+      "mapPitch": 74.99999999895736,
+      "mapZoom": 22.934365445090087
+    },
+    {
+      "file": "b-p80-d6.png",
+      "requestedPitch": 80,
+      "requestedDistanceM": 6,
+      "appliedDistanceM": 6,
+      "floorPushed": false,
+      "mapPitch": 79.99999999888784,
+      "mapZoom": 22.901032060308033
+    },
+    {
+      "file": "d-p80-d10.png",
+      "requestedPitch": 80,
+      "requestedDistanceM": 10,
+      "appliedDistanceM": 10,
+      "floorPushed": false,
+      "mapPitch": 79.99999999999999,
+      "mapZoom": 22.164244371612124
+    },
+    {
+      "file": "c-p85-d6.png",
+      "requestedPitch": 85,
+      "requestedDistanceM": 6,
+      "appliedDistanceM": 6,
+      "floorPushed": false,
+      "mapPitch": 84.99999999860636,
+      "mapZoom": 22.867698698872527
+    },
+    {
+      "file": "e-p85-d10.png",
+      "requestedPitch": 85,
+      "requestedDistanceM": 10,
+      "appliedDistanceM": 10,
+      "floorPushed": false,
+      "mapPitch": 85,
+      "mapZoom": 22.130798826898868
+    },
+    {
+      "file": "f-p85-d20.png",
+      "requestedPitch": 85,
+      "requestedDistanceM": 20,
+      "appliedDistanceM": 20,
+      "floorPushed": false,
+      "mapPitch": 85,
+      "mapZoom": 21.13077961926527
+    }
+  ],
+  "files": [
+    "a-p75-d6.png",
+    "b-p80-d6.png",
+    "c-p85-d6.png",
+    "d-p80-d10.png",
+    "e-p85-d10.png",
+    "f-p85-d20.png",
+    "qc1-aerial10.png",
+    "qc1-aerial60.png",
+    "qc1-routefit.png"
+  ]
+}
