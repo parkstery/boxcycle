@@ -34,9 +34,9 @@ export type RiderLightLabState = {
   keyElevationDeg: number;
 };
 
-const DEFAULT_AMBIENT_INTENSITY = 1.25;
-const DEFAULT_HEMISPHERE_INTENSITY = 1.7;
-const DEFAULT_KEY_INTENSITY = 2.4;
+const DEFAULT_AMBIENT_INTENSITY = 0.9;
+const DEFAULT_HEMISPHERE_INTENSITY = 1.2;
+const DEFAULT_KEY_INTENSITY = 1.6;
 const DEFAULT_KEY_POSITION = new Vector3(-3, 8, 5);
 const KEY_LIGHT_RADIUS = DEFAULT_KEY_POSITION.length();
 
