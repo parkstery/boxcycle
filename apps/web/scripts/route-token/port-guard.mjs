@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
-
-const HARNESS_PORTS = [5001, 5010, 8080, 9099];
+// 감시할 포트는 firebase.json 에서 읽는다(+ 하네스 전용 dev 포트).
+import { HARNESS_PORTS } from "../../../../scripts/emulatorPorts.mjs";
 
 /** Windows netstat 기준 — 포트 LISTENING 잔류 검사 */
 export function findListeningPorts(ports = HARNESS_PORTS) {
