@@ -74,6 +74,7 @@ npm -w boxcycle-web run test:route-token
 3. 단위 시험: `harness-active`, `isolation-guards`, `production-surface`, `runner-fail-recovery`
 4. mirror 준비 + mirror `.secret.local` placeholder (`finally` 정리)
 5. `firebase.harness.json` + `firebase-exec.mjs`(요구 버전 Node 로 firebase-tools 구동) + contract
+   - ⚠ **`firebase.harness.json` 은 손으로 고치지 않는다** — `firebase.json` 에서 생성한다(2026-09-25). 본체와 다른 것은 `functions.source`(미러)·`predeploy` 없음·`hosting` 없음 셋뿐이고, 나머지(emulators 포트·rules 경로)는 본체를 따른다. 바꾸려면 `firebase.json` 을 고치고 `node scripts/gen-firebase-harness-config.mjs` 를 돌려라. pre-push 가 동기를 검사한다
 6. UI smoke — POST `getMapboxDirections` 응답 `routeTokenBalance` 2·1·0, harness `inspectUser` 0/3/3, 4번째 UI 차단
 
 **전제:** JDK 11+, `firebase-tools`, `functions` 의존성 설치. UI smoke 지도 타일용 pk. 는 `apps/web/.env` 또는 형제 worktree `boxcycle/apps/web/.env` 에서 **읽기만** 한다.

@@ -33,6 +33,15 @@ if [ -n "$touch_pkg" ]; then
   node scripts/check-lock-sync.mjs || fail=1
 fi
 
+# firebase.harness.json 은 firebase.json 에서 생성한다(2026-09-25).
+# 종전에는 두 파일에 emulators 포트·rules 경로가 똑같이 적혀 있어, 한쪽만 고치면
+# 하네스가 다른 세계를 보면서도 아무 에러를 내지 않았다(구조 감사 H5).
+touch_fb=$(echo "$changed" | grep -E 'firebase([.]harness)?[.]json' || true)
+if [ -n "$touch_fb" ]; then
+  echo "[pre-push] firebase.harness.json ↔ firebase.json 동기 검사…"
+  node scripts/gen-firebase-harness-config.mjs --check || fail=1
+fi
+
 if [ -n "$touch_web" ]; then
   echo "[pre-push] typecheck apps/web (tsc -b --noEmit)…"
   ( cd apps/web && npx tsc -b --noEmit ) || fail=1
@@ -45,7 +54,7 @@ fi
 
 if [ "$fail" -ne 0 ]; then
   echo ""
-  echo "[pre-push] 타입 에러 — 원격에 올리기 전에 고치세요."
+  echo "[pre-push] 게이트 실패 — 원격에 올리기 전에 고치세요(타입·lock 동기·harness 설정)."
   echo "           정말 급하면: git push --no-verify (예외)"
   exit 1
 fi
