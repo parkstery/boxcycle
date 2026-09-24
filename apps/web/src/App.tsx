@@ -259,6 +259,14 @@ export default function App() {
     setRideInputMode("manual");
   }, []);
   const switchRideInputToCadence = useCallback(() => setRideInputMode("cadence"), []);
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    (window as unknown as { __rtwSetRideInputMode?: (m: RideInputMode) => void }).__rtwSetRideInputMode =
+      setRideInputMode;
+    return () => {
+      delete (window as unknown as { __rtwSetRideInputMode?: (m: RideInputMode) => void }).__rtwSetRideInputMode;
+    };
+  }, []);
   // 센서 연결 성공 = cadence 전환. effect 대신 이전값 비교(React 권장) — set-state-in-effect 회피.
   const [prevBleUiState, setPrevBleUiState] = useState(bleCrankRpm.uiState);
   if (bleCrankRpm.uiState !== prevBleUiState) {

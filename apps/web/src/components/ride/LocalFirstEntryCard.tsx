@@ -95,45 +95,77 @@ export function LocalFirstEntryCard({
     const ac = new AbortController();
     geoAbortRef.current = ac;
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        if (ac.signal.aborted) return;
-        const lngLat: [number, number] = [pos.coords.longitude, pos.coords.latitude];
-        void (async () => {
-          try {
-            const label = await fetchMapboxReverseGeocodeRegionLabel(
-              lngLat,
-              mapboxAccessToken,
-              ac.signal,
-            );
-            if (ac.signal.aborted) return;
-            const name = localFirstRegionLabel(label) || "현재 위치";
-            onConfirmRegion(
-              makeLocalFirstRegion({
-                name,
+    const GEO_OPTS: PositionOptions = {
+      // 지시06 A-3 — 데스크톱 Wi-Fi 측위는 10~20초가 흔하다. 8초는 너무 짧았다.
+      timeout: 30_000,
+      maximumAge: 600_000,
+      enableHighAccuracy: false,
+    };
+
+    const requestPosition = () => {
+      if (ac.signal.aborted) return;
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          // 늦게 도착한 성공도 살린다 — 사용자가 취소했거나 카드가 사라진 뒤만 버린다.
+          if (ac.signal.aborted) return;
+          const lngLat: [number, number] = [pos.coords.longitude, pos.coords.latitude];
+          void (async () => {
+            try {
+              const label = await fetchMapboxReverseGeocodeRegionLabel(
                 lngLat,
-                source: "geolocation",
-                zoom: LOCAL_FIRST_CAMERA_ZOOM,
-              }),
-            );
-            setPhase("ready");
-            setFailReason(null);
-          } catch {
-            if (ac.signal.aborted) return;
+                mapboxAccessToken,
+                ac.signal,
+              );
+              if (ac.signal.aborted) return;
+              const name = localFirstRegionLabel(label) || "현재 위치";
+              onConfirmRegion(
+                makeLocalFirstRegion({
+                  name,
+                  lngLat,
+                  source: "geolocation",
+                  zoom: LOCAL_FIRST_CAMERA_ZOOM,
+                }),
+              );
+              setPhase("ready");
+              setFailReason(null);
+            } catch {
+              if (ac.signal.aborted) return;
+              setPhase("denied");
+              setFailReason("지명을 확인하지 못했습니다");
+            }
+          })();
+        },
+        (err) => {
+          if (ac.signal.aborted) return;
+          // 진짜 거부만 S2. 타임아웃은 실패 단정하지 않고 재시도(대기 유지).
+          if (err.code === err.PERMISSION_DENIED) {
             setPhase("denied");
-            setFailReason("지명을 확인하지 못했습니다");
+            setFailReason("위치 권한이 거부되었습니다");
+            return;
           }
-        })();
-      },
-      (err) => {
-        if (ac.signal.aborted) return;
-        setPhase("denied");
-        if (err.code === err.PERMISSION_DENIED) setFailReason("위치 권한이 거부되었습니다");
-        else if (err.code === err.TIMEOUT) setFailReason("위치 확인 시간이 초과되었습니다");
-        else setFailReason("위치를 가져오지 못했습니다");
-      },
-      { timeout: 8000, maximumAge: 600_000 },
-    );
+          if (err.code === err.TIMEOUT) {
+            if (import.meta.env.DEV) {
+              console.info("[local-first-geo] TIMEOUT — retry while locating");
+            }
+            // phase 는 locating 유지. 취소 버튼으로만 빠져나간다.
+            requestPosition();
+            return;
+          }
+          setPhase("denied");
+          setFailReason("위치를 가져오지 못했습니다");
+        },
+        GEO_OPTS,
+      );
+    };
+
+    requestPosition();
+  };
+
+  const cancelLocating = () => {
+    geoAbortRef.current?.abort();
+    geoAbortRef.current = null;
+    setPhase("ready");
+    setFailReason(null);
   };
 
   const showS2 = phase === "denied" && !region;
@@ -279,21 +311,45 @@ export function LocalFirstEntryCard({
           <>
             <p className="local-first__title">어디에서 첫 라이딩을 할까요?</p>
             <div className="local-first__actions">
-              <button
-                type="button"
-                className="local-first__btn local-first__btn--primary"
-                onClick={onOpenRegionSearch}
-              >
-                지역 선택
-              </button>
               {geoAvailable ? (
+                phase === "locating" ? (
+                  <>
+                    <button
+                      type="button"
+                      className="local-first__btn local-first__btn--primary"
+                      disabled
+                      aria-busy="true"
+                    >
+                      위치를 확인하는 중…
+                    </button>
+                    <button
+                      type="button"
+                      className="local-first__btn local-first__btn--ghost"
+                      onClick={cancelLocating}
+                    >
+                      취소
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className="local-first__btn local-first__btn--primary"
+                    onClick={handleUseCurrentLocation}
+                  >
+                    현재 위치
+                  </button>
+                )
+              ) : null}
+              {phase !== "locating" ? (
                 <button
                   type="button"
-                  className="local-first__btn local-first__btn--ghost"
-                  disabled={phase === "locating"}
-                  onClick={handleUseCurrentLocation}
+                  className={
+                    "local-first__btn" +
+                    (geoAvailable ? " local-first__btn--ghost" : " local-first__btn--primary")
+                  }
+                  onClick={onOpenRegionSearch}
                 >
-                  {phase === "locating" ? "확인 중…" : "현재 위치"}
+                  지역 선택
                 </button>
               ) : null}
             </div>

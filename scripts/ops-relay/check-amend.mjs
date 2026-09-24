@@ -111,9 +111,16 @@ for (const a of fresh) {
 }
 console.log("반영했으면 PROGRESS.md 에 「정정 수신 — <무엇을 바꿨나>」 한 줄을 남겨라.");
 
-state.seenAmends[hit.file] = [...seen, ...fresh.map(hash)];
-try {
-  fs.writeFileSync(ackFile, JSON.stringify(state, null, 2));
-} catch {
-  /* 기록 실패가 전달을 막지 않는다 */
+// --peek: 읽음 처리를 하지 않는다(감리가 「정정이 잘 들어갔나」만 확인할 때).
+// 이 표시를 남기면 정작 개발팀장이 CLEAN 을 받아 정정을 놓친다 — 실제로 두 번 당했다.
+if (args.includes("--peek")) {
+  console.log("");
+  console.log("(--peek: 읽음 처리하지 않음 — 개발팀장은 이 정정을 그대로 받는다)");
+} else {
+  state.seenAmends[hit.file] = [...seen, ...fresh.map(hash)];
+  try {
+    fs.writeFileSync(ackFile, JSON.stringify(state, null, 2));
+  } catch {
+    /* 기록 실패가 전달을 막지 않는다 */
+  }
 }
