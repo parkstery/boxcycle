@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>지시02 minimap harness</title>
+<style>
+  html { font-size: 13.5px; }
+  * { box-sizing: border-box; }
+  body { margin: 0; overflow: hidden; font-family: system-ui, sans-serif; background: #1a2332; color: #f8fafc; }
+  .stage { position: relative; background:
+    linear-gradient(135deg, #7a9a6a 0%, #4a6a40 40%, #2a4a30 100%); }
+  .stage.vp-900 { width: 900px; height: 400px; }
+  .stage.vp-740 { width: 740px; height: 300px; }
+  .hud-glass {
+    background: rgba(15, 23, 42, 0.42);
+    border: 1px solid rgba(248, 250, 252, 0.18);
+    border-radius: 12px;
+    box-shadow: 0 6px 22px rgba(0,0,0,0.22);
+  }
+  .map-hud__tl {
+    position: absolute; top: 0.6rem; left: 0.6rem;
+    display: flex; align-items: center; gap: 0.35rem;
+  }
+  .hud-brand {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    height: 2.1rem; padding: 0 0.7rem 0 0.55rem; border-radius: 999px;
+    background: rgba(15,23,42,0.5); border: 1px solid rgba(248,250,252,0.18);
+    font-weight: 700; font-size: 0.78rem; letter-spacing: 0.08em;
+  }
+  .hud-brand__dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: #E8A33D; }
+  .metrics { font-size: 0.7rem; opacity: 0.9; white-space: nowrap; }
+  .map-hud__tr { position: absolute; top: 0.6rem; right: 0.6rem; display: flex; gap: 0.35rem; }
+  .qc { display: flex; gap: 0.15rem; }
+  .qc button {
+    min-width: 2rem; height: 2rem; border-radius: 0.4rem;
+    border: 1px solid rgba(255,255,255,0.22); background: rgba(15,23,42,0.55); color: #e2e8f0;
+  }
+  .account {
+    height: 2rem; padding: 0 0.6rem; border-radius: 999px;
+    border: 1px solid rgba(248,250,252,0.25); background: rgba(15,23,42,0.55); font-size: 0.72rem;
+  }
+  .route-dock-anchor {
+    position: absolute; left: 0.6rem;
+    bottom: calc(0.6rem + 2.875rem);
+    z-index: 6;
+  }
+  .route-dock__shell {
+    display: flex; border: 1px solid rgba(248,250,252,0.18);
+    border-radius: 14px; background: rgba(10,16,26,0.64); overflow: hidden;
+  }
+  .route-dock__caret {
+    width: 0.93rem; min-height: 44px; border: none; background: transparent; color: #f8fafc;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .route-dock__caret-led { width: 0.45rem; height: 0.45rem; border-radius: 50%; background: #34d399; box-shadow: 0 0 6px rgba(52,211,153,0.85); }
+  .route-dock-anchor--open .route-dock__body { padding: 0.4rem 0.5rem; font-size: 0.65rem; width: 13rem; background: rgba(10,14,18,0.9); }
+  .route-dock-anchor--open .route-dock__caret { min-height: 0; }
+
+  .route-minimap {
+    --mm-pad: 0.6rem;
+    --mm-tl-block: 2.55rem;
+    --mm-gap-after-tl: 0.35rem;
+    --mm-dock-collapsed: 3.4rem;
+    --mm-gap-before-dock: 0.35rem;
+    --mapbox-logo-clearance: 2.875rem;
+    --mm-top: calc(var(--mm-pad) + var(--mm-tl-block) + var(--mm-gap-after-tl));
+    --mm-bottom-reserve: calc(var(--mm-pad) + var(--mapbox-logo-clearance) + var(--mm-dock-collapsed) + var(--mm-gap-before-dock));
+    --mm-avail-h: calc(100% - var(--mm-top) - var(--mm-bottom-reserve));
+    position: absolute; z-index: 4; left: var(--mm-pad); top: var(--mm-top);
+    height: max(0px, min(var(--mm-avail-h), 11rem));
+    width: calc(max(0px, min(var(--mm-avail-h), 11rem)) * 16 / 9);
+    overflow: hidden; pointer-events: auto;
+  }
+  .route-minimap__svg { display: block; width: 100%; height: 100%; }
+  .route-minimap__path-outline { stroke: rgba(2,6,23,0.92); stroke-width: 4.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .route-minimap__path { stroke: #f8fafc; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .route-minimap__endpoint { stroke: rgba(2,6,23,0.9); stroke-width: 1.25; }
+  .route-minimap__endpoint--start { fill: #94a3b8; }
+  .route-minimap__endpoint--end { fill: #e2e8f0; }
+  .route-minimap__live { fill: #e8a33d; stroke: #f8fafc; stroke-width: 1.75; }
+
+  .zoom-wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #2a4a30; }
+  .zoom-wrap .route-minimap { position: relative; left: auto; top: auto; transform: scale(3); transform-origin: center; height: 72px; width: calc(72px * 16 / 9); }
+  .aspect-grid { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 24px; background: #1e3a28; }
+  .aspect-grid .cell { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .aspect-grid .route-minimap { position: relative; left: auto; top: auto; height: 90px; width: calc(90px * 16 / 9); }
+  .aspect-grid label { font-size: 12px; opacity: 0.85; }
+  #measure-out { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
+  .scene { display: none; }
+  .scene.is-on { display: block; }
+</style>
+</head>
+<body>
+<pre id="measure-out"></pre>
+<script>
+const PAD = 6;
+const MAX_COORDS = 1000;
+
+function boundsFromLineCoordinates(coords) {
+  let minLng=Infinity,minLat=Infinity,maxLng=-Infinity,maxLat=-Infinity;
+  for (const [lng,lat] of coords) {
+    minLng=Math.min(minLng,lng); minLat=Math.min(minLat,lat);
+    maxLng=Math.max(maxLng,lng); maxLat=Math.max(maxLat,lat);
+  }
+  return {minLng,minLat,maxLng,maxLat};
+}
+function sampleCoords(coords, maxCount) {
+  const n = coords.length;
+  if (n <= maxCount) return coords.slice();
+  const out = [];
+  const last = n - 1;
+  for (let i = 0; i < maxCount; i++) {
+    const idx = i === maxCount - 1 ? last : Math.round((i * last) / (maxCount - 1));
+    out.push(coords[idx]);
+  }
+  return out;
+}
+function projectRouteMinimap(coords, width, height, padPx = PAD) {
+  if (!coords.length || !(width > 0) || !(height > 0)) return null;
+  const original = coords;
+  const sampled = sampleCoords(original, MAX_COORDS);
+  const b = boundsFromLineCoordinates(sampled);
+  const midLat = (b.minLat + b.maxLat) / 2;
+  let cos = Math.cos((midLat * Math.PI) / 180);
+  if (!Number.isFinite(cos) || Math.abs(cos) < 1e-6) cos = 1e-6;
+  const x0 = b.minLng * cos, x1 = b.maxLng * cos, y0 = b.minLat, y1 = b.maxLat;
+  let dx = x1 - x0, dy = y1 - y0;
+  const innerW = Math.max(1, width - 2 * padPx);
+  const innerH = Math.max(1, height - 2 * padPx);
+  const EPS = 1e-12;
+  const degenerate = dx < EPS && dy < EPS;
+  if (dx < EPS) dx = EPS;
+  if (dy < EPS) dy = EPS;
+  const scale = Math.min(innerW / dx, innerH / dy);
+  const usedW = dx * scale, usedH = dy * scale;
+  const ox = padPx + (innerW - usedW) / 2;
+  const oy = padPx + (innerH - usedH) / 2;
+  const project = ([lng, lat]) => {
+    if (degenerate) return { x: width / 2, y: height / 2 };
+    return { x: ox + (lng * cos - x0) * scale, y: oy + (y1 - lat) * scale };
+  };
+  const pts = sampled.map(project);
+  const pathD = pts.length === 1
+    ? `M ${pts[0].x} ${pts[0].y}`
+    : pts.map((p,i)=>`${i===0?'M':'L'} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(' ');
+  const xs = pts.map(p=>p.x), ys = pts.map(p=>p.y);
+  const drawnW = Math.max(...xs) - Math.min(...xs);
+  const drawnH = Math.max(...ys) - Math.min(...ys);
+  return {
+    pathD, pts, start: pts[0], end: pts[pts.length-1], project,
+    bboxAspect: dx/dy, drawnAspect: drawnH > EPS ? drawnW/drawnH : 1, scale,
+    coordCountOriginal: original.length, coordCountSampled: sampled.length,
+  };
+}
+function distToPoly(point, poly) {
+  let best = Infinity;
+  for (let i=0;i<poly.length-1;i++) {
+    const a=poly[i], b=poly[i+1];
+    const abx=b.x-a.x, aby=b.y-a.y, len2=abx*abx+aby*aby;
+    let t = len2 < 1e-12 ? 0 : ((point.x-a.x)*abx+(point.y-a.y)*aby)/len2;
+    t=Math.max(0,Math.min(1,t));
+    best=Math.min(best, Math.hypot(point.x-(a.x+abx*t), point.y-(a.y+aby*t)));
+  }
+  return best;
+}
+function lerpRoute(coords, t) {
+  if (coords.length===1) return coords[0];
+  const segs=[]; let total=0;
+  for (let i=0;i<coords.length-1;i++) {
+    const a=coords[i], b=coords[i+1];
+    const d=Math.hypot(b[0]-a[0], b[1]-a[1]);
+    segs.push({a,b,d}); total+=d;
+  }
+  let remain = total * Math.max(0, Math.min(1,t));
+  for (const s of segs) {
+    if (remain <= s.d || s===segs[segs.length-1]) {
+      const r = s.d < 1e-12 ? 0 : remain/s.d;
+      return [s.a[0]+(s.b[0]-s.a[0])*r, s.a[1]+(s.b[1]-s.a[1])*r];
+    }
+    remain -= s.d;
+  }
+  return coords[coords.length-1];
+}
+
+/* Seoul-ish routes */
+const ROUTE_WIDE = (() => {
+  const c=[]; for (let i=0;i<=40;i++) c.push([126.97 + i*0.004, 37.56 + Math.sin(i/6)*0.0015]); return c;
+})();
+const ROUTE_TALL = (() => {
+  const c=[]; for (let i=0;i<=40;i++) c.push([126.98 + Math.sin(i/7)*0.0012, 37.55 + i*0.0035]); return c;
+})();
+const ROUTE_MAIN = ROUTE_WIDE;
+
+function svgMarkup(layout, live, w, h) {
+  if (!layout) return '';
+  const liveC = live ? `<circle class="route-minimap__live" cx="${live.x}" cy="${live.y}" r="4.2"/>` : '';
+  return `<svg class="route-minimap__svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <path class="route-minimap__path-outline" d="${layout.pathD}"/>
+    <path class="route-minimap__path" d="${layout.pathD}"/>
+    <circle class="route-minimap__endpoint route-minimap__endpoint--start" cx="${layout.start.x}" cy="${layout.start.y}" r="3.2"/>
+    <circle class="route-minimap__endpoint route-minimap__endpoint--end" cx="${layout.end.x}" cy="${layout.end.y}" r="3.2"/>
+    ${liveC}
+  </svg>`;
+}
+
+function paintMinimap(el, coords, progress) {
+  const w = el.clientWidth, h = el.clientHeight;
+  const layout = projectRouteMinimap(coords, w, h);
+  const liveLL = lerpRoute(coords, progress);
+  const live = layout ? layout.project(liveLL) : null;
+  el.innerHTML = svgMarkup(layout, live, w, h);
+  return { layout, live, liveLL, w, h };
+}
+
+function hudChrome(extraDock = '') {
+  return `
+    <div class="map-hud__tl" id="tl">
+      <button class="hud-brand"><span class="hud-brand__dot"></span>RTW</button>
+      <span class="metrics">12.3 / 45.6km · 32:10 · 22.1 · 24</span>
+    </div>
+    <div class="map-hud__tr">
+      <div class="qc"><button>1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>6</button></div>
+      <span class="account">G Guest</span>
+    </div>
+    ${extraDock}
+  `;
+}
+
+function dockCollapsed() {
+  return `<div class="route-dock-anchor" id="dock"><div class="route-dock__shell" id="dock-shell">
+    <button class="route-dock__caret"><span class="route-dock__caret-led"></span></button>
+  </div></div>`;
+}
+function dockExpanded() {
+  return `<div class="route-dock-anchor route-dock-anchor--open" id="dock"><div class="route-dock__shell" id="dock-shell">
+    <button class="route-dock__caret">◀</button>
+    <div class="route-dock__body">경유지 1 · 한강<br/>SENSOR 72 rpm</div>
+  </div></div>`;
+}
+
+function buildRiding(vpClass, progress, dockMode) {
+  const stage = document.createElement('section');
+  stage.className = `scene stage ${vpClass}`;
+  const dock = dockMode === 'expanded' ? dockExpanded() : dockCollapsed();
+  stage.innerHTML = hudChrome(dock) + `<div class="route-minimap hud-glass" id="mm"></div>`;
+  document.body.appendChild(stage);
+  return stage;
+}
+
+function rect(el){ if(!el) return null; const r=el.getBoundingClientRect(); return {top:r.top,left:r.left,width:r.width,height:r.height,bottom:r.bottom,right:r.right}; }
+
+function measureViewport(vpClass, w, h) {
+  const stage = buildRiding(vpClass, 0.5, 'collapsed');
+  stage.classList.add('is-on');
+  stage.style.width = w+'px'; stage.style.height = h+'px';
+  const mm = stage.querySelector('#mm');
+  const painted = paintMinimap(mm, ROUTE_MAIN, 0.5);
+  const tl = rect(stage.querySelector('#tl'));
+  const dock = rect(stage.querySelector('#dock-shell'));
+  const mmR = rect(mm);
+  const gap = (dock && tl) ? dock.top - tl.bottom : null;
+  const areaPct = mmR ? (mmR.width * mmR.height) / (w * h) * 100 : null;
+  const dist = painted.layout && painted.live ? distToPoly(painted.live, painted.layout.pts) : null;
+  const aspectErr = painted.layout
+    ? Math.abs(painted.layout.bboxAspect - painted.layout.drawnAspect) / painted.layout.bboxAspect
+    : null;
+  const out = {
+    viewport: { width: w, height: h },
+    remainingVerticalPx: gap,
+    tlBottom: tl && tl.bottom,
+    dockTop: dock && dock.top,
+    minimap: mmR,
+    areaPct,
+    areaAsOneOverN: areaPct ? 100 / areaPct : null,
+    bboxAspect: painted.layout && painted.layout.bboxAspect,
+    drawnAspect: painted.layout && painted.layout.drawnAspect,
+    aspectRelError: aspectErr,
+    liveDistToPathPx: dist,
+    coords: painted.layout && { original: painted.layout.coordCountOriginal, sampled: painted.layout.coordCountSampled },
+  };
+  stage.remove();
+  return out;
+}
+
+const scene = new URLSearchParams(location.search).get('scene') || 'measure';
+
+if (scene === 'measure') {
+  const m900 = measureViewport('vp-900', 900, 400);
+  const m740 = measureViewport('vp-740', 740, 300);
+  // aspect check numbers
+  const box = { w: 160, h: 90 };
+  const wide = projectRouteMinimap(ROUTE_WIDE, box.w, box.h);
+  const tall = projectRouteMinimap(ROUTE_TALL, box.w, box.h);
+  const report = {
+    m900, m740,
+    aspectCheck: {
+      wide: { bbox: wide.bboxAspect, drawn: wide.drawnAspect, relErr: Math.abs(wide.bboxAspect-wide.drawnAspect)/wide.bboxAspect },
+      tall: { bbox: tall.bboxAspect, drawn: tall.drawnAspect, relErr: Math.abs(tall.bboxAspect-tall.drawnAspect)/tall.bboxAspect },
+    }
+  };
+  document.getElementById('measure-out').textContent = JSON.stringify(report, null, 2);
+} else {
+  const map = {
+    'riding-900': () => { const s=buildRiding('vp-900',0.35,'collapsed'); s.classList.add('is-on'); paintMinimap(s.querySelector('#mm'), ROUTE_MAIN, 0.35); },
+    'riding-740': () => { const s=buildRiding('vp-740',0.35,'collapsed'); s.classList.add('is-on'); paintMinimap(s.querySelector('#mm'), ROUTE_MAIN, 0.35); },
+    'zoom': () => {
+      const s=document.createElement('section'); s.className='scene is-on'; s.style.width='900px'; s.style.height='400px'; s.style.position='relative';
+      s.innerHTML=`<div class="zoom-wrap"><div class="route-minimap hud-glass" id="mm"></div></div>`;
+      document.body.appendChild(s); paintMinimap(s.querySelector('#mm'), ROUTE_MAIN, 0.4);
+    },
+    'prog-0': () => { const s=buildRiding('vp-900',0,'collapsed'); s.classList.add('is-on'); paintMinimap(s.querySelector('#mm'), ROUTE_MAIN, 0); },
+    'prog-50': () => { const s=buildRiding('vp-900',0.5,'collapsed'); s.classList.add('is-on'); paintMinimap(s.querySelector('#mm'), ROUTE_MAIN, 0.5); },
+    'prog-100': () => { const s=buildRiding('vp-900',1,'collapsed'); s.classList.add('is-on'); paintMinimap(s.querySelector('#mm'), ROUTE_MAIN, 1); },
+    'dock-exp': () => { const s=buildRiding('vp-900',0.4,'expanded'); s.classList.add('is-on'); paintMinimap(s.querySelector('#mm'), ROUTE_MAIN, 0.4); },
+    'aspect': () => {
+      const s=document.createElement('section'); s.className='scene is-on'; s.style.width='900px'; s.style.height='400px'; s.style.position='relative';
+      s.innerHTML=`<div class="aspect-grid">
+        <div class="cell"><label>가로로 긴 경로</label><div class="route-minimap hud-glass" id="mm-w"></div></div>
+        <div class="cell"><label>세로로 긴 경로</label><div class="route-minimap hud-glass" id="mm-t"></div></div>
+      </div>`;
+      document.body.appendChild(s);
+      paintMinimap(s.querySelector('#mm-w'), ROUTE_WIDE, 0.5);
+      paintMinimap(s.querySelector('#mm-t'), ROUTE_TALL, 0.5);
+    },
+  };
+  (map[scene] || map['riding-900'])();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "outDir": "C:\\20.HDev\\boxcycle\\apps\\web\\.out\\camera-angle-real",
+  "opsOut": "C:\\20.HDev\\boxcycle\\document\\ops\\20260922-new_camera\\.out\\지시08",
+  "notes": [
+    {
+      "file": "c-p85-d6.png",
+      "distanceM": 6,
+      "pitch": 84.99995713044868,
+      "zoom": 22.8676994570241,
+      "styleName": "Mapbox Outdoors",
+      "hasTerrain": true
+    },
+    {
+      "file": "e-p85-d10.png",
+      "distanceM": 10,
+      "pitch": 84.99999999996434,
+      "zoom": 22.19123308957605,
+      "styleName": "Mapbox Outdoors",
+      "hasTerrain": true
+    },
+    {
+      "file": "f-p85-d20.png",
+      "distanceM": 20,
+      "pitch": 85,
+      "zoom": 21.21282417731901,
+      "styleName": "Mapbox Outdoors",
+      "hasTerrain": true
+    }
+  ],
+  "files": [
+    "a-p75-d6.png",
+    "b-p80-d6.png",
+    "c-p85-d6.png",
+    "d-p80-d10.png",
+    "e-p85-d10.png",
+    "f-p85-d20.png"
+  ],
+  "stubMapboxStyle": false,
+  "enable3D": true
+}

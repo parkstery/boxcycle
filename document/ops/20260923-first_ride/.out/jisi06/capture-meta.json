@@ -1,0 +1,30 @@
+{
+  "s0": {
+    "btns": [
+      {
+        "text": "현재 위치",
+        "primary": true
+      },
+      {
+        "text": "지역 선택",
+        "primary": false
+      }
+    ],
+    "zoom": 13,
+    "probe": 0
+  },
+  "permReport": {
+    "loadCount": 0,
+    "afterClickCount": 1
+  },
+  "hasSpeed": false,
+  "metrics": {
+    "kmh": [
+      "4.8\nkm/h",
+      "5\nkm/h"
+    ],
+    "dist": "0.01"
+  },
+  "speedVisibleWhenCadence": false,
+  "at": "2026-09-24T00:14:54.789Z"
+}
