@@ -6,6 +6,7 @@ import {
   type BleCrankRpmUiState,
   type RideInputReadiness,
 } from "../../lib/cadenceSensorUi";
+import { ALLOW_MANUAL_SPEED_WHILE_RIDING } from "../../lib/manualSpeedWhileRiding";
 import { SessionSpeedControl } from "./SessionSpeedControl";
 import "./CadenceSensorSheet.css";
 
@@ -191,8 +192,13 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
           </p>
         ) : null}
 
-        {/* 체험 속도는 Go 전에 여기서 정한다 — 주행 중 재튜닝 흐름은 만들지 않는다 */}
-        {!cadenceMode && !props.riding ? (
+        {/*
+          체험 속도는 Go 전에 여기서 정한다 — 주행 중 재튜닝 흐름은 만들지 않는다.
+          → 지시06: 개발 편의로 한시 허용, 출시 전 정리(출시 전 확인사항 §5).
+          스위치는 `ALLOW_MANUAL_SPEED_WHILE_RIDING` 한 곳(false = 종전 Go 전에만).
+          센서 연결(cadence) 중에는 노출하지 않는다 — 진실은 케이던스다.
+        */}
+        {!cadenceMode && (!props.riding || ALLOW_MANUAL_SPEED_WHILE_RIDING) ? (
           <div className="cadence-sheet__speed">
             <SessionSpeedControl
               speedKmh={props.manualSpeedKmh}

@@ -111,6 +111,24 @@ if (ignoreOpenAtStart) {
   } catch {
     /* noop */
   }
+  // ⚠ TTL — 무시 목록은 15분 뒤 자동 해제한다.
+  // 핸드오프 직후에 새 지시가 올라오면 그 지시까지 목록에 들어가 **영구 무시**되고,
+  // 「열린 지시 없음」만 반복하다 라운드가 통째로 멈춘다(2026-09-24 지시06 에서 실제 발생).
+  const HANDOFF_IGNORE_TTL_MS = 15 * 60 * 1000;
+  try {
+    if (fs.existsSync(handoffIgnoreFile)) {
+      const prev = JSON.parse(fs.readFileSync(handoffIgnoreFile, "utf8"));
+      const at = prev.at ? Date.parse(prev.at) : 0;
+      if (!at || Date.now() - at > HANDOFF_IGNORE_TTL_MS) {
+        fs.unlinkSync(handoffIgnoreFile);
+        ignoreFiles = new Set();
+        if (!quiet) process.stderr.write("핸드오프 ignore 만료 — 전체 지시를 다시 본다\n");
+      }
+    }
+  } catch {
+    /* noop */
+  }
+
   if (ignoreFiles.size === 0) {
     ignoreFiles = new Set(listOpenInstructionFiles());
     try {

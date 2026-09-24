@@ -12,8 +12,11 @@ export const MAP_GLOBE_MIN_ZOOM = 0;
 /** 맵 시트 슬라이더 상한(Mapbox 기본 maxZoom 근처) */
 export const MAP_ZOOM_SLIDER_MAX = 22;
 
-/** 앱 진입 시 기본 줌 */
-export const DEFAULT_MAP_ZOOM = 19;
+/**
+ * 앱 진입(첫 화면) 기본 줌 — 시·구·동 라벨이 읽히는 인식 스케일(지시01·지시06 A-2).
+ * 종전 19 는 ~10m 골목이었다. 주행 카메라·Quick Camera·NextRide 앵커는 이 상수를 쓰지 않는다.
+ */
+export const DEFAULT_MAP_ZOOM = 13;
 
 /** 앱 진입 시 기본 카메라 팔로우 — 좌측 */
 export const DEFAULT_FOLLOW_MODE: FollowMode = "left";
