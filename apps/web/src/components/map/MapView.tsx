@@ -209,7 +209,7 @@ const PICK_POPUP_PROFILE_ICON_SVG: Record<RouteProfile, string> = {
 /** 사용자 경로 탐색 결과 폴리라인 (`route` 소스·레이어) */
 const ROUTE_LINE_COLOR = "#ef4444";
 /** 표고 프로필 선·종점 깃발 — 경로선(#ef4444)과 같은 색이라 혼동을 준다는 Chief 지적으로 분리(2026-09-24) */
-const ELEVATION_LINE_COLOR = "#fdd836";
+const ELEVATION_LINE_COLOR = "#c36839";
 /**
  * 경로선 폭. 흰 테두리(casing)를 둘렀다가 걷어냈다 — 테두리가 내 도로망보다 굵어
  * **경로선은 살고 내 도로망이 죽었다**(2026-09-16 Chief). 둘을 동시에 읽히게 하는 일은

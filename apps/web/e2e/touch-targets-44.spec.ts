@@ -290,6 +290,12 @@ test.describe("터치 타깃 44px", () => {
     await page.goto("/");
     await guestStart(page);
     await armRideInput(page);
+    /*
+     * idle 에서는 캐럿과 센서 칩이 하나로 합쳐진다(2026-09-24 지시04 §A) — 옆에 훔칠 칩이
+     * 없다. 이 시험의 계약(캐럿이 옆 칩의 탭을 가로채지 않는다)은 caret+텍스트 칩이 나란히
+     * 있는 상태에서만 의미가 있으므로 경로를 올려 ready-to-start 로 옮긴 뒤 잰다.
+     */
+    await loadIntroCourse(page);
 
     const probe = await page.evaluate(() => {
       const caret = document.querySelector(".route-dock__caret") as HTMLElement | null;
