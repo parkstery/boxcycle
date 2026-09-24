@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { resolveDevPort } from './devPort'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -21,9 +22,8 @@ export default defineConfig(({ mode }) => ({
   // mode=emulator 는 Functions Emulator(5001)와 충돌하지 않도록 5002 를 쓴다.
   server: {
     host: true,
-    port: Number(
-      process.env.RTW_DEV_PORT ?? (mode === "emulator" ? 5002 : 5000),
-    ),
+    // 포트 값은 ./devPort 가 소유한다 — playwright.config.ts 와 같은 표를 본다.
+    port: resolveDevPort(mode === "emulator"),
     strictPort: false,
   },
 }))

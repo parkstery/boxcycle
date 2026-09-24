@@ -2,6 +2,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig, devices } from '@playwright/test'
 import { loadEnv } from 'vite'
+import { resolveDevPort } from './devPort'
 
 const webRoot = path.dirname(fileURLToPath(import.meta.url))
 
@@ -35,11 +36,9 @@ if (underEmulator) {
   process.env.RIDE_VERIFY_LIVE = '1'
 }
 
-// emulator 모드 vite 는 기본 5002(vite.config.ts). Functions 포함 e2e 와 맞춘다.
-const DEV_PORT = Number(
-  process.env.RTW_DEV_PORT ??
-    (underEmulator && useFunctionsEmulatorBundle ? 5002 : 5000),
-)
+// 포트 값은 ./devPort 가 소유한다 — vite.config.ts 와 같은 표를 본다.
+// 「에뮬레이터인가」의 판단만 여기 것이다: Functions 번들까지 쓰는 e2e 여야 5002 를 쓴다.
+const DEV_PORT = resolveDevPort(underEmulator && useFunctionsEmulatorBundle)
 const DEV_URL = `http://127.0.0.1:${DEV_PORT}`
 const emulatorMapboxToken = underEmulator ? resolveEmulatorMapboxToken() : undefined
 
