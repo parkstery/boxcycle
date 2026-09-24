@@ -404,7 +404,8 @@ export function validateRouteGeometryPlausibility(input: {
   return { ok: true };
 }
 
-export const AUTO_ROUTE_ALGORITHM_VERSION = "4A-ready-loop";
+/** 지시08 — Claim 신규도로 가산·자기중복 감점 순위 */
+export const AUTO_ROUTE_ALGORITHM_VERSION = "5A-claim-score";
 
 export const MAX_AUTO_ROUTE_PROVIDER_CALLS = 13;
 export const DETOUR_CALL_BUDGET = 12;
@@ -1152,10 +1153,13 @@ export async function searchReadyLoopRoute(input: {
 }
 
 /**
- * ===== Ready Ride — 단순 경로(편도) 기본 (지시05) =====
+ * ===== Ready Ride — 단순 경로(편도) 기본 (지시05) + Claim 순위 (지시08) =====
  * 폐합을 기본에서 빼고, 클릭 기반과 같은 `searchDistanceAutoRoute` 를 방위 자동 표본으로 돌린다.
  * 표본은 폐합과 같은 5방위(0/72/144/216/288) — 예산 13을 편도에만 쓰므로 방위당
- * 평균 2~3회 호출 여유. ±20% 이내면 즉시 채택해 호출을 아낀다.
+ * 평균 2~3회 호출 여유.
+ *
+ * Claim 셀이 없으면 종전: ±20% 이내 즉시 채택.
+ * Claim 셀이 있으면 예산 안 후보를 모은 뒤 순위만 바꾼다(탈락 게이트 아님 — G3).
  */
 export type ReadyOnewaySearchFound = {
   status: "found";
@@ -1167,6 +1171,9 @@ export type ReadyOnewaySearchFound = {
   providerCallCount: number;
   searchElapsedMs: number;
   outcome: AutoRouteOutcome;
+  newRoadRatio?: number;
+  selfOverlapRatio?: number;
+  rankScore?: number;
 };
 
 export type ReadyOnewaySearchFailed = {
@@ -1181,6 +1188,80 @@ export type ReadyOnewaySearchResult = ReadyOnewaySearchFound | ReadyOnewaySearch
 
 const READY_ONEWAY_FAILURE_MESSAGE = "이 지역에서는 경로를 찾지 못했습니다.";
 
+/**
+ * 지시08 가중치 — ±20% 거리 게이트는 그대로 두고, 게이트 통과 후보만 순위.
+ *
+ * rankScore = errorRatio − W_NEW×newRoadRatio + W_OVERLAP×selfOverlapRatio
+ * (낮을수록 좋음)
+ *
+ * W_NEW=0.12: 신규 0%→100% 가산이 거리오차 12%p 개선과 동급.
+ * 게이트 폭이 20%이므로 거리 최우선을 깨지 않으면서 새 길을 선호한다.
+ * W_OVERLAP=0.08: 자기중복 감점(지시04 계산 재사용). 신규보다 약하게.
+ */
+export const READY_CLAIM_WEIGHT_NEW_ROAD = 0.12;
+export const READY_CLAIM_WEIGHT_SELF_OVERLAP = 0.08;
+
+/** 신규 도로 비율 샘플 간격(m) — z20 셀 ~30m 에 맞춤 */
+const NEW_ROAD_SAMPLE_STEP_M = 25;
+
+function conquestCellIdAtLngLat(lngLat: LngLat): string {
+  const zoom = 20;
+  const clampedLat = Math.max(-85.05112878, Math.min(85.05112878, lngLat[1]));
+  const n = 2 ** zoom;
+  const x = Math.max(0, Math.min(n - 1, Math.floor(((lngLat[0] + 180) / 360) * n)));
+  const latRad = (clampedLat * Math.PI) / 180;
+  const y = Math.max(
+    0,
+    Math.min(
+      n - 1,
+      Math.floor(((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n),
+    ),
+  );
+  return `${zoom}_${x}_${y}`;
+}
+
+/**
+ * 신규 도로 비율 = Claim 되지 않은 구간 길이 / 전체 길이.
+ * claimed 가 비면 1(전부 신규) — 가산 항이 모든 후보에 같아 순위에 영향 없음.
+ */
+export function computeRouteNewRoadRatio(
+  coords: LngLat[],
+  claimedCellIds: ReadonlySet<string>,
+): number {
+  if (coords.length < 2) return 1;
+  let totalLen = 0;
+  let newLen = 0;
+  for (let i = 1; i < coords.length; i += 1) {
+    const a = coords[i - 1]!;
+    const b = coords[i]!;
+    const segLen = getDistanceMeters(a, b);
+    if (segLen <= 0) continue;
+    const pieces = Math.max(1, Math.ceil(segLen / NEW_ROAD_SAMPLE_STEP_M));
+    const pieceLen = segLen / pieces;
+    for (let p = 0; p < pieces; p += 1) {
+      const t = (p + 0.5) / pieces;
+      const mid: LngLat = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+      totalLen += pieceLen;
+      if (!claimedCellIds.has(conquestCellIdAtLngLat(mid))) newLen += pieceLen;
+    }
+  }
+  return totalLen > 0 ? newLen / totalLen : 1;
+}
+
+export function scoreReadyOnewayWithClaim(input: {
+  errorMeters: number;
+  targetMeters: number;
+  newRoadRatio: number;
+  selfOverlapRatio: number;
+}): number {
+  const errorRatio = input.targetMeters > 0 ? input.errorMeters / input.targetMeters : 0;
+  return (
+    errorRatio -
+    READY_CLAIM_WEIGHT_NEW_ROAD * input.newRoadRatio +
+    READY_CLAIM_WEIGHT_SELF_OVERLAP * input.selfOverlapRatio
+  );
+}
+
 export async function searchReadyOnewayRoute(input: {
   start: LngLat;
   profile: RouteProfile;
@@ -1188,6 +1269,11 @@ export async function searchReadyOnewayRoute(input: {
   fetchDirections: FetchDirectionsFn;
   maxProviderCalls?: number;
   excludeBearingsDeg?: number[];
+  /**
+   * 출발점 주변 Claim z20 셀. 비어 있거나 생략이면 종전(거리 조기채택).
+   * 값이 있으면 예산 안 후보를 모아 신규도로·자기중복으로 순위만 바꾼다.
+   */
+  claimedCellIds?: ReadonlySet<string>;
 }): Promise<ReadyOnewaySearchResult> {
   const { start, profile, targetDistanceMeters: D, fetchDirections } = input;
   const budget = input.maxProviderCalls ?? MAX_AUTO_ROUTE_PROVIDER_CALLS;
@@ -1195,6 +1281,8 @@ export async function searchReadyOnewayRoute(input: {
   const excludeSet = new Set(input.excludeBearingsDeg ?? []);
   const filtered = READY_LOOP_BEARING_SAMPLES_DEG.filter((b) => !excludeSet.has(b));
   const bearingSamples = filtered.length > 0 ? filtered : READY_LOOP_BEARING_SAMPLES_DEG;
+  const claimed = input.claimedCellIds;
+  const useClaimRank = Boolean(claimed && claimed.size > 0);
 
   let providerCallCount = 0;
   type Cand = {
@@ -1205,8 +1293,55 @@ export async function searchReadyOnewayRoute(input: {
     end: LngLat;
     errorMeters: number;
     outcome: AutoRouteOutcome;
+    newRoadRatio: number;
+    selfOverlapRatio: number;
+    rankScore: number;
   };
   let best: Cand | null = null;
+  const scored: Cand[] = [];
+
+  const toCand = (
+    bearingDeg: number,
+    searched: Extract<Awaited<ReturnType<typeof searchDistanceAutoRoute>>, { status: "found" }>,
+  ): Cand => {
+    const errorMeters = Math.abs(searched.distance - D);
+    const coords = searched.geometry.coordinates;
+    const newRoadRatio = computeRouteNewRoadRatio(coords, claimed ?? new Set());
+    const selfOverlapRatio = computeRouteSelfOverlapRatio(coords);
+    const rankScore = scoreReadyOnewayWithClaim({
+      errorMeters,
+      targetMeters: D,
+      newRoadRatio,
+      selfOverlapRatio,
+    });
+    return {
+      bearingDeg,
+      geometry: searched.geometry,
+      distance: searched.distance,
+      duration: searched.duration,
+      end: searched.end,
+      errorMeters,
+      outcome: searched.outcome,
+      newRoadRatio,
+      selfOverlapRatio,
+      rankScore,
+    };
+  };
+
+  const foundPayload = (cand: Cand): ReadyOnewaySearchFound => ({
+    status: "found",
+    geometry: cand.geometry,
+    distance: cand.distance,
+    duration: cand.duration,
+    end: cand.end,
+    startBearingSampleDeg: cand.bearingDeg,
+    providerCallCount,
+    searchElapsedMs: Date.now() - searchStartedAt,
+    outcome: cand.outcome,
+    newRoadRatio: cand.newRoadRatio,
+    selfOverlapRatio: cand.selfOverlapRatio,
+    rankScore: cand.rankScore,
+  });
 
   for (const bearingDeg of bearingSamples) {
     if (providerCallCount >= budget) break;
@@ -1227,61 +1362,37 @@ export async function searchReadyOnewayRoute(input: {
 
     if (searched.status !== "found") continue;
 
-    const errorMeters = Math.abs(searched.distance - D);
-    const cand: Cand = {
-      bearingDeg,
-      geometry: searched.geometry,
-      distance: searched.distance,
-      duration: searched.duration,
-      end: searched.end,
-      errorMeters,
-      outcome: searched.outcome,
-    };
+    const cand = toCand(bearingDeg, searched);
     if (!best || cand.errorMeters < best.errorMeters) best = cand;
 
-    // ±20% 이내면 더 돌리지 않는다 — 예산·지연을 편도 기본에 맞게 절약.
-    if (isDistanceErrorWithinMax(errorMeters, D)) {
-      return {
-        status: "found",
-        geometry: cand.geometry,
-        distance: cand.distance,
-        duration: cand.duration,
-        end: cand.end,
-        startBearingSampleDeg: cand.bearingDeg,
-        providerCallCount,
-        searchElapsedMs: Date.now() - searchStartedAt,
-        outcome: cand.outcome,
-      };
+    if (useClaimRank) {
+      scored.push(cand);
+      continue;
+    }
+
+    // Claim 없음 — 종전: ±20% 이내면 더 돌리지 않는다.
+    if (isDistanceErrorWithinMax(cand.errorMeters, D)) {
+      return foundPayload(cand);
     }
   }
 
+  if (useClaimRank && scored.length > 0) {
+    const eligible = scored.filter((c) => isDistanceErrorWithinMax(c.errorMeters, D));
+    const pool = eligible.length > 0 ? eligible : scored;
+    let pick = pool[0]!;
+    for (const c of pool.slice(1)) {
+      if (c.rankScore < pick.rankScore) pick = c;
+    }
+    return foundPayload(pick);
+  }
+
   if (best && isDistanceErrorWithinMax(best.errorMeters, D)) {
-    return {
-      status: "found",
-      geometry: best.geometry,
-      distance: best.distance,
-      duration: best.duration,
-      end: best.end,
-      startBearingSampleDeg: best.bearingDeg,
-      providerCallCount,
-      searchElapsedMs: Date.now() - searchStartedAt,
-      outcome: best.outcome,
-    };
+    return foundPayload(best);
   }
 
   // shortfall 이라도 최선 후보가 있으면 내보낸다(클릭 기반과 동일 — 모자람을 숨기지 않음).
   if (best) {
-    return {
-      status: "found",
-      geometry: best.geometry,
-      distance: best.distance,
-      duration: best.duration,
-      end: best.end,
-      startBearingSampleDeg: best.bearingDeg,
-      providerCallCount,
-      searchElapsedMs: Date.now() - searchStartedAt,
-      outcome: best.outcome,
-    };
+    return foundPayload(best);
   }
 
   return {

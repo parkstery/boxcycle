@@ -79,3 +79,17 @@
 10:52 | 지시07 보고완료 — A토큰0/복원증명·B게스트초기화·C카드주황제거·캡처A-C·tsc/build/test PASS
 10:53 | [감리] 지시07 감리 착수 — diff·캡처·수치 확인 중
 10:53 | [감리] 지시07 PASS — 캡처 8종·익명 전용 가드·주행 중 차단·복원 가능 확인. 커밋 진행
+11:08 | 지시08 수신 — 착수
+
+11:08 | 지시08 수신 — 착수 (Claim 연동 안 달린 길 우선)
+
+11:10 | 지시08 STEP1 — D1~D5 확인 완료. D3=z12 청크 ID로 출발점±1.5D bbox만 get(전체스캔 불필요). 스코어 구현 착수
+
+11:11 | 지시08 STEP2 — conquestClaimRead(z12 bbox) + searchReadyOnewayRoute Claim순위(W_new=0.12/W_ol=0.08) 반영. tsc/test·실측 착수
+11:52 | [감리] PC 재부팅 후 상태 확인 — 지시08 작업분 디스크 보존됨(conquestClaimRead.ts 신규 + core/http/test 수정). functions tsc PASS · npm test 9/9 PASS. 남은 것: 실측(수도권20곳·Claim 전후 비교)·캡처 A~D·수행결과 문서. 커서 재개 시 await-next 가 지시08 을 그대로 물어다 준다
+
+11:52 | 지시08 재개 — PC 재부팅 후. 코드/실측(claim전후3/3·수도권20/20) 유지. 에뮬레이터·캡처A-D 재착수
+
+12:08 | 지시08 보고완료 — Claim순위(W_new=0.12)·실측100%/claim전후3/3·캡처A-D·claimRead~117ms·tsc/test/build PASS. await-next 재무장
+12:08 | [감리] 지시08 감리 착수 — diff·캡처·수치 확인 중
+12:09 | [감리] 지시08 PASS — Claim 전후 geometry 변경·신규도로 0→0.99·성공률 20/20 유지·지연 117ms·캡처 4종. 커밋 진행
