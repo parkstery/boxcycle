@@ -1026,22 +1026,38 @@
   z-index: 3;
 }
 
-/* 지도 위에 배경 없이 뜨는 흰 글자다 — 밝은 지형에서 묻히지 않게 2중 테두리(2026-09-18 Chief) */
+/* 지도 위에 배경 없이 뜨는 흰 글자다 — 밝은 지형에서 묻히지 않게 2중 테두리(2026-09-18 Chief).
+ * (2026-09-24 지시03) 세로는 화면 하단 코칭 멘트 줄(`.hud-coach`/`.map-hud__bc`, MapHud.css)과
+ * 같은 높이로 고정한다 — 「허공에 떠 있다」던 Chief 지적. 코칭 멘트 유무와 무관해야 하므로
+ * 실제 코치 DOM 위치가 아니라 그 줄의 `bottom` 계산식을 그대로 복제해서 쓴다.
+ * `.hud-coach` 는 형제 컴포넌트(MapHud)에 있어 `--hud-pad-bottom` 커스텀 프로퍼티가 상속되지
+ * 않는다 — `PlaceSearchPanel.css`(`var(--hud-pad-top, 0.65rem)`)와 같은 방식으로 리터럴 폴백을
+ * 그대로 쓴다. 가로는 그대로 좌(시점)·우(종점) 끝을 유지한다.
+ */
 .elevation-overlay__meta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--hud-pad-bottom, 0.65rem) + 0.2rem);
   display: flex;
   justify-content: space-between;
+  padding: 0.1rem 0;
   font-size: 0.72rem;
   color: #f8fafc;
-  margin-bottom: 0.2rem;
   text-shadow: var(--rtw-map-text-keyline-strong);
 }
 
 /* svg 와 진행률 라벨(elevation-overlay__progress)이 같은 % 좌표계를 공유하도록
-   묶는 박스 — 라벨은 SVG 밖 HTML 요소라 이 박스 기준으로만 좌표가 맞는다. */
+   묶는 박스 — 라벨은 SVG 밖 HTML 요소라 이 박스 기준으로만 좌표가 맞는다.
+   (2026-09-24 지시03) 시점/종점 메타 행이 더 이상 이 박스 위에서 세로 공간을 먹지 않는다
+   (코칭 높이로 절대배치, 위 주석) — 그래프가 패널 높이 대부분을 그대로 쓴다.
+   0.3rem 만큼은 비워 둔다 — 메타 행이 이제 패널 **아래쪽**에 있어서, 경로 최저점 부근에서
+   그래프의 점·「N% covered」 배지가 메타 행과 너무 가까워질 계산상 여유(≈3px)가 빠듯했다.
+   실기 캡처로 확인하지 못한 채 계산으로만 정한 값이라 보수적으로 잡았다 — REPORT 참고. */
 .elevation-overlay__plot {
   position: relative;
   width: 100%;
-  height: calc(100% - 1rem);
+  height: calc(100% - 0.3rem);
 }
 
 .elevation-overlay__svg {
@@ -1071,11 +1087,10 @@
   white-space: nowrap;
 }
 
-/* 경로 최고점 부근에서는 점 위로 뺄 높이가 없어(플롯 상단 여백 ≈ 8.5px < 라벨 16px)
-   라벨이 「시점/종점」 메타 행을 침범한다. 그 구간에서만 점 아래로 뒤집는다. */
-.elevation-overlay__progress--below {
-  --elev-label-y: 60%;
-}
+/* (2026-09-24 지시03) 예전에는 경로 최고점 부근(플롯 상단 여백 ≈ 8.5px < 라벨 16px)에서
+   라벨이 「시점/종점」 메타 행을 침범해 `.elevation-overlay__progress--below`(yPct<20 전용,
+   점 아래로 뒤집기)로 피했다. 메타 행이 코칭 멘트 줄 높이로 내려가 침범할 자리 자체가
+   없어져 죽은 코드가 됐으므로 제거했다(--below 클래스는 더 이상 생성되지 않는다). */
 
 /* 경로 시작 부근(xPct<15) — 라벨 왼쪽 끝을 점에 맞춰 오른쪽으로 뻗는다 */
 .elevation-overlay__progress--start {
@@ -1087,10 +1102,11 @@
   --elev-label-x: -100%;
 }
 
-/* 종점 깃발 — 종점은 항상 플롯 오른쪽 끝이라 오른쪽 정렬로 붙이고,
-   세로는 점에 가운데 맞춰 최고점(yPct 최소 8)에서도 메타 행을 침범하지 않는다.
-   위로 띄우면(-100%) 경로 종점이 최고점일 때 진행률 라벨과 같은 이유로
-   「시점/종점」 메타 행을 침범하므로 반드시 -50%(가운데)를 유지한다.
+/* 종점 깃발 — 종점은 항상 플롯 오른쪽 끝이라 오른쪽 정렬로 붙인다.
+   (2026-09-24 지시03) 「최고점에서 -100% 로 띄우면 메타 행을 침범해 -50%(가운데)를
+   유지한다」던 옛 주석은 실제 transform 값(-100%, 아래)과 맞지 않았고, 메타 행이 코칭
+   멘트 줄 높이로 내려가며 그 전제 자체도 사라져 지웠다 — 실제 -100% 의 이유는 바로
+   아래 「깃대 밑동」 설명이다.
    `pointer-events` 는 켜지 않는다 — `.elevation-overlay { pointer-events: none }` 상속을
    유지해야 지도 조작이 안 막힌다(커밋 f046ce5). */
 /* 종점 깃발 — 깃대(SVG 오른쪽 끝, 중심 x=11.9 / 폭 13)의 밑동이 종점에 앉도록

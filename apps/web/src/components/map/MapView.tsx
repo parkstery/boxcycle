@@ -3928,6 +3928,10 @@ export function MapView({
       ) : null}
       {elevationUi ? (
         <div className="elevation-overlay">
+          {/* 시점/종점 — 화면 하단 코칭 멘트 줄(`.hud-coach`, MapHud.css)과 같은 세로 높이로
+              절대배치한다(CSS, 2026-09-24 지시03). 코칭 멘트 유무와 무관하게 고정 높이여야
+              하므로 실제 코치 DOM 이 아니라 그 줄의 `bottom` 값을 복제해 쓴다 — 가로는 기존처럼
+              좌(시점)·우(종점) 끝 그대로. */}
           <div className="elevation-overlay__meta">
             <span>시점 {elevationUi.startMeters.toFixed(0)}m</span>
             <span>종점 {elevationUi.endMeters.toFixed(0)}m</span>
@@ -3935,8 +3939,9 @@ export function MapView({
           {/* viewBox 는 420x100 인데 실제 렌더는 비균등 비율(preserveAspectRatio="none")이라
               SVG <text> 로 라벨을 쓰면 가로로 눌려 찌그러진다. 라벨은 SVG 밖 HTML 요소로
               같은 박스에 겹쳐서(% 좌표) 절대배치한다 — 그래서 svg 와 라벨을 __plot 으로 함께 감싼다.
-              라벨은 기본이 점 위지만, 경로 최고점(viewBox pad 8 → yPct 최소 8)에서는 위로 뺄 높이가
-              모자라 「시점/종점」 메타 행을 침범한다. 임계 20% 미만이면 점 아래로 뒤집는다. */}
+              (2026-09-24 지시03) 「시점/종점」 메타 행이 코칭 멘트 줄 높이로 내려가면서, 라벨이
+              점 위로 뺄 때 메타 행을 침범하던 문제 자체가 없어졌다 — yPct<20 뒤집기(`--below`)를
+              제거했다. 라벨은 이제 항상 점 위에 뜬다(가로 앵커만 남음, 아래). */}
           <div className="elevation-overlay__plot">
             <svg
               className="elevation-overlay__svg"
@@ -3967,8 +3972,6 @@ export function MapView({
             {elevationUi.marker ? (
               <span
                 className={`elevation-overlay__progress${
-                  elevationUi.marker.yPct < 20 ? " elevation-overlay__progress--below" : ""
-                }${
                   elevationUi.marker.xPct < 15
                     ? " elevation-overlay__progress--start"
                     : elevationUi.marker.xPct > 85
