@@ -9,7 +9,12 @@ import { stubMapboxStyle } from "./mapbox-stub";
  * 검증 대상(작업 트리에 이미 적용됨, 이 spec 은 로직을 바꾸지 않는다):
  *  - `MapHud.tsx`/`.css`: 상단 HUD 「거리」 셀 2줄 → 1줄(`0.03 / 0.16 km`).
  *  - `MapView.tsx`/`.css`, `mapElevationUi.ts`: 표고 그래프 마커에 `NN%` 라벨.
- *    `.elevation-overlay__progress` 는 `yPct < 20` 이면 `--below` 가 붙어 점 아래로 뒤집힌다.
+ *
+ * (2026-09-24 지시03) 예전엔 `.elevation-overlay__progress` 가 `yPct < 20` 이면 `--below` 가
+ * 붙어 점 아래로 뒤집혔다 — 「시점/종점」 메타 행이 그래프 **위**에 있어 라벨이 그 행을
+ * 침범했기 때문. 메타 행이 화면 하단 코칭 멘트 줄 높이로 옮겨가며 침범할 자리가 없어져
+ * `--below` 를 제거했다(MapView.tsx/.css). 시나리오 B(초반 최고점)는 이제 「뒤집기가
+ * 붙는지」가 아니라 「뒤집지 않아도 겹치지 않는지」를 본다.
  *
  * 진입 절차는 `ride-entry.spec.ts`/`touch-targets-44.spec.ts` 의 게스트→입문 코스→주행 시작
  * 헬퍼를 그대로 복사해 쓴다(원본 파일은 수정하지 않는다). Mapbox 는 `mapbox-stub.ts` 로 격리한다.
@@ -423,17 +428,14 @@ async function runScenario(page: Page, scenario: ScenarioId) {
   const fRight = finishBox!.x + finishBox!.width;
   const flagOverlapsMeta = fBottom > bTop && fTop < bBottom && fRight > bLeft && fLeft < bRight;
 
-  // ── 본 단언 2: 시나리오 B 는 --below 가 실제로 붙어야 한다 ────────────────
-  if (scenario === "B") {
-    expect(
-      hasBelowClass,
-      `시나리오 B 는 최고점 마커라 --below 가 붙어야 한다. yPct 실측을 보려면 measure.json 참고. ` +
-        `class="${labelClass}"`,
-    ).toBe(true);
-  } else {
-    // 대조군 — 시나리오 A(초반이 최저점)는 뒤집히지 않아야 두 시나리오가 실제로 구분된다.
-    expect(hasBelowClass, "시나리오 A 는 --below 가 붙으면 안 된다").toBe(false);
-  }
+  // ── 본 단언 2: --below 는 더 이상 존재하지 않는 클래스다(2026-09-24 지시03) ──
+  // 「시점/종점」 메타 행이 코칭 멘트 줄 높이로 내려가면서 뒤집기 자체가 죽은 코드가 돼
+  // MapView.tsx/.css 에서 제거됐다. 시나리오 B(초반 최고점, yPct 최소값 근접)에서도
+  // 클래스가 안 붙는 것 자체가 회귀 확인이다 — 겹침 여부는 위 「본 단언 1」이 잡는다.
+  expect(
+    hasBelowClass,
+    `--below 클래스는 제거됐다 — 더 붙으면 회귀다. scenario=${scenario}, class="${labelClass}"`,
+  ).toBe(false);
 
   // ── 본 단언 3: HUD 거리 셀이 1줄(누적 / 전체 km)이고 (NN%) 를 포함하지 않는다 ──
   expect(
