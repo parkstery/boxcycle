@@ -11,7 +11,8 @@ user-invocable: true
 - **지시 파일이 올라오면 즉시 수행한다.** Chief 가「계속」이라고 말할 때까지 기다리지 마라.
 - Chief 에게 파일 붙여넣기·심부름을 시키지 마라. 양쪽이 `document/ops/<묶음>/` 을 직접 읽고 쓴다.
 - `git commit` / `git push` 는 해당 묶음 README 가 금지하면 하지 마라.
-- **자동 착수:** `await-next` 를 `notify_on_output`(pattern `^NEXT `) 로 띄워 두고, `NEXT` 가 나오면 그 턴에서 바로 구현한다.
+- **자동 착수:** `await-next` 를 백그라운드로 띄운 뒤 **같은 턴에서 AwaitShell(`^NEXT `)로 블록**한다.
+  `NEXT` 가 나오면 사용자「계속」없이 즉시 구현한다. 수행결과 후 채팅만 끝내지 말고 다시 대기로 들어간다.
 
 ## 착수 전 (매번)
 
