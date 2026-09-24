@@ -5,7 +5,8 @@ alwaysApply: true
 
 # ops 릴레이 — 지시 수신 = 자동 착수
 
-**개발팀장 = 이 세션(커서).** 활성 묶음: `document/ops/20260923-first_ride`.
+**개발팀장 = 이 세션(커서).** 활성 묶음: `document/ops/20260924-camera-qc` (Quick Camera).
+이전 묶음 `20260923-first_ride` 는 **종결**됐다 — 거기엔 새 지시를 만들지 마라.
 
 ## 절대 금지
 
@@ -17,7 +18,7 @@ alwaysApply: true
 
 1. 대기기를 **백그라운드**로 띄운다 (`notify_on_output` pattern `^NEXT `):
    ```bash
-   node scripts/ops-relay/await-next.mjs document/ops/20260923-first_ride --timeout 14400 --interval 20
+   node scripts/ops-relay/await-next.mjs document/ops/20260924-camera-qc --timeout 14400 --interval 20
    ```
 2. **같은 턴에서** `AwaitShell`(또는 동등한 블록 대기)로 그 프로세스를 붙잡는다.
    pattern: `^NEXT ` · block 은 길어도 된다(수십 분).

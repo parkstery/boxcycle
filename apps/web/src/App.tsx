@@ -71,6 +71,7 @@ import {
   rememberTrailDisplayNumber,
 } from "./lib/trailDisplayNumberCache";
 import { RotateOverlay } from "./components/RotateOverlay";
+import { RiderLightLabPanel } from "./components/riderLightLab/RiderLightLabPanel";
 import { MapViewSheet } from "./components/MapViewSheet";
 import { UserInfoSheet } from "./components/UserInfoSheet";
 import { RideSettingsSheet } from "./components/RideSettingsSheet";
@@ -2425,6 +2426,7 @@ export default function App() {
   return (
     <div className="app-shell app-shell--map-first">
       <RotateOverlay />
+      <RiderLightLabPanel />
 
       <div className="app-map-stage">
         {debugMapIsolationActive ? (
