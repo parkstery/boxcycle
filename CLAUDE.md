@@ -24,6 +24,7 @@
 | 비전·전략·타겟 | [document/260511-RTW-마스터-비전-및-종합계획.md](document/260511-RTW-마스터-비전-및-종합계획.md) |
 | 정복 메커닉·인정 규칙·수치 | [document/260703-Conquest-정복-레이어-설계.md](document/260703-Conquest-정복-레이어-설계.md) |
 | Skill·Harness를 만들거나 구분하려면 | [document/260722-Skill-Harness-아키텍처.md](document/260722-Skill-Harness-아키텍처.md) |
+| 화면 공간을 어떻게 쓰나(버튼·칩·카드 크기) | [document/260924-RTW-UI-공간밀도-원칙.md](document/260924-RTW-UI-공간밀도-원칙.md) |
 | 실행·배포 방법 | [README.md](README.md) |
 
 ## 문서 규칙 (요약)
