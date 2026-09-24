@@ -13,6 +13,7 @@ import {
   type LngLat,
   type RouteProfile,
 } from "./distanceAutoRouteCore.js";
+import { loadClaimedCellsNearStart } from "./conquestClaimRead.js";
 import {
   loadRouteTokenEconomy,
   refundRouteGenerateToken,
@@ -499,7 +500,13 @@ export async function executeDistanceAutoRoute(input: {
   }
 
   // 지시05 — Ready Ride 기본 = 단순 경로(방위 자동 표본 + searchDistanceAutoRoute)
+  // 지시08 — 출발점 주변 Claim만 읽어 신규도로·자기중복으로 순위(탈락 아님)
   if (readyOneway) {
+    const claimLoad = await loadClaimedCellsNearStart({
+      userId,
+      start,
+      radiusMeters: targetDistanceMeters * 1.5,
+    });
     const onewaySearched = await searchReadyOnewayRoute({
       start,
       profile,
@@ -507,6 +514,7 @@ export async function executeDistanceAutoRoute(input: {
       fetchDirections,
       excludeBearingsDeg:
         excludeStartBearingDeg !== undefined ? [excludeStartBearingDeg] : undefined,
+      claimedCellIds: claimLoad.claimedCellIds,
     });
 
     if (onewaySearched.status === "failed") {
@@ -523,6 +531,9 @@ export async function executeDistanceAutoRoute(input: {
           reason: onewaySearched.reason,
           providerCallCount: onewaySearched.providerCallCount,
           searchElapsedMs: onewaySearched.searchElapsedMs,
+          claimReadMs: claimLoad.readMs,
+          claimChunksHit: claimLoad.chunksHit,
+          claimCells: claimLoad.claimedCellIds.size,
         }),
       );
       const failed: DistanceAutoRouteFailed = {
@@ -562,6 +573,12 @@ export async function executeDistanceAutoRoute(input: {
         searchElapsedMs: onewaySearched.searchElapsedMs,
         distance: onewaySearched.distance,
         outcome: onewaySearched.outcome,
+        newRoadRatio: onewaySearched.newRoadRatio,
+        selfOverlapRatio: onewaySearched.selfOverlapRatio,
+        rankScore: onewaySearched.rankScore,
+        claimReadMs: claimLoad.readMs,
+        claimChunksHit: claimLoad.chunksHit,
+        claimCells: claimLoad.claimedCellIds.size,
       }),
     );
 
@@ -579,6 +596,7 @@ export async function executeDistanceAutoRoute(input: {
       closed: false,
       outcome: onewaySearched.outcome,
       startBearingSampleDeg: onewaySearched.startBearingSampleDeg,
+      selfOverlapRatio: onewaySearched.selfOverlapRatio,
     };
 
     await writeCache(userId, requestId, {

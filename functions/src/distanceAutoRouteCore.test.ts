@@ -14,8 +14,11 @@
  */
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { chunkIdsCoveringRadius } from "./conquestClaimRead.js";
 import {
+  computeRouteNewRoadRatio,
   offsetLngLatByBearingMeters,
+  scoreReadyOnewayWithClaim,
   validateRouteGeometryPlausibility,
   type LngLat,
 } from "./distanceAutoRouteCore.js";
@@ -103,4 +106,73 @@ test("V3 — geometry 첫 점이 요청 start 에서 지나치게 멀면 거부�
   if (!result.ok) {
     assert.equal(result.reason, "start_mismatch");
   }
+});
+
+test("지시08 — Claim 없으면 신규도로 비율=1", () => {
+  const coords: LngLat[] = [
+    [127.0, 37.5],
+    [127.001, 37.5],
+    [127.002, 37.5],
+  ];
+  assert.equal(computeRouteNewRoadRatio(coords, new Set()), 1);
+});
+
+test("지시08 — 전 구간 Claim 이면 신규도로 비율≈0", () => {
+  const a: LngLat = [127.0, 37.5];
+  const b: LngLat = [127.0003, 37.5];
+  const claimed = new Set<string>();
+  // 샘플 중간점 셀을 전부 claimed 로 넣기 위해 세그먼트를 잘게 나눠 셀 ID 수집
+  for (let i = 0; i <= 20; i += 1) {
+    const t = i / 20;
+    const p: LngLat = [a[0] + (b[0] - a[0]) * t, a[1]];
+    const zoom = 20;
+    const n = 2 ** zoom;
+    const x = Math.floor(((p[0] + 180) / 360) * n);
+    const latRad = (p[1] * Math.PI) / 180;
+    const y = Math.floor(((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n);
+    claimed.add(`${zoom}_${x}_${y}`);
+  }
+  const ratio = computeRouteNewRoadRatio([a, b], claimed);
+  assert.ok(ratio < 0.15, `expected near 0, got ${ratio}`);
+});
+
+test("지시08 — 순위: 거리 비슷하면 신규도로 높은 쪽이 이긴다", () => {
+  const D = 3000;
+  const lowNew = scoreReadyOnewayWithClaim({
+    errorMeters: 50,
+    targetMeters: D,
+    newRoadRatio: 0.3,
+    selfOverlapRatio: 0,
+  });
+  const highNew = scoreReadyOnewayWithClaim({
+    errorMeters: 50,
+    targetMeters: D,
+    newRoadRatio: 0.95,
+    selfOverlapRatio: 0,
+  });
+  assert.ok(highNew < lowNew, `highNew=${highNew} should beat lowNew=${lowNew}`);
+});
+
+test("지시08 — 순위: 신규가 높아도 거리오차가 크면 진다(게이트 안에서도 거리 우선)", () => {
+  const D = 3000;
+  const tight = scoreReadyOnewayWithClaim({
+    errorMeters: 30, // 1%
+    targetMeters: D,
+    newRoadRatio: 0.5,
+    selfOverlapRatio: 0,
+  });
+  const loose = scoreReadyOnewayWithClaim({
+    errorMeters: 540, // 18%
+    targetMeters: D,
+    newRoadRatio: 1.0,
+    selfOverlapRatio: 0,
+  });
+  // W_NEW=0.12 → 신규 +0.5 가산 = 0.06. 거리 17%p 차이보다 작아 tight 승.
+  assert.ok(tight < loose, `tight=${tight} should beat loose=${loose}`);
+});
+
+test("지시08 — z12 청크는 출발점 반경으로만 좁힌다", () => {
+  const ids = chunkIdsCoveringRadius([127.0276, 37.4979], 4500);
+  assert.ok(ids.length >= 1 && ids.length <= 9, `got ${ids.length}: ${ids.join(",")}`);
+  assert.ok(ids.every((id) => id.startsWith("12_")));
 });
