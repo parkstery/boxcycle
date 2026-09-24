@@ -23,6 +23,7 @@ import {
   type SubscriptionStatus,
 } from "../lib/subscription";
 import { AuthGoogleMark } from "./AuthGateCard";
+import { resetGuestAccount } from "../lib/guestAccountReset";
 import "./UserInfoSheet.css";
 
 type UserInfoSheetProps = {
@@ -50,6 +51,8 @@ type UserInfoSheetProps = {
   onResumeRideRoute?: (routeId: string) => void;
   /** 실제 종료점에서 새 경로 */
   onExtendFromRide?: (anchorLngLat: LngLat) => void;
+  /** 주행 중이면 게스트 초기화 비활성 */
+  rideActive?: boolean;
 };
 
 /** 한 방향 셰브런(펼침 상태는 CSS 회전) — ▸/▾ 딩벳 대체 */
@@ -176,6 +179,9 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
   const [canCheckout, setCanCheckout] = useState(false);
   const [canManagePortal, setCanManagePortal] = useState(false);
   const [confirmingLogout, setConfirmingLogout] = useState(false);
+  const [confirmingGuestReset, setConfirmingGuestReset] = useState(false);
+  const [guestResetBusy, setGuestResetBusy] = useState(false);
+  const [guestResetNote, setGuestResetNote] = useState<string | null>(null);
 
   useEffect(() => {
     if (!props.open) return;
@@ -193,6 +199,8 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
     if (!props.open) {
       setHistoryOpen(false);
       setConfirmingLogout(false);
+      setConfirmingGuestReset(false);
+      setGuestResetNote(null);
     }
   }
 
@@ -356,7 +364,26 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
 
   const showGoogleLink = Boolean(props.isGuest && props.onLinkGoogle);
   const showLogout = props.user != null;
-  const showActionsFooter = showGoogleLink || showLogout;
+  /** 익명만 — 구글 등 provider 계정에는 절대 노출하지 않는다(지시07 B). */
+  const showGuestReset = Boolean(props.user?.isAnonymous);
+  const showActionsFooter = showGoogleLink || showLogout || showGuestReset;
+
+  const runGuestReset = async () => {
+    if (!props.user?.isAnonymous || props.rideActive || guestResetBusy) return;
+    setGuestResetBusy(true);
+    setGuestResetNote(null);
+    try {
+      const result = await resetGuestAccount(props.user);
+      if (!result.deletedAuth && result.deleteError) {
+        setGuestResetNote(`계정 삭제 실패 — 로컬만 정리합니다. (${result.deleteError})`);
+        await new Promise((r) => setTimeout(r, 1200));
+      }
+      location.reload();
+    } catch (e) {
+      setGuestResetBusy(false);
+      setGuestResetNote(e instanceof Error ? e.message : String(e));
+    }
+  };
 
   return (
     <div
@@ -664,6 +691,56 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
                 <AuthGoogleMark className="user-info-sheet__google-mark" />
                 Google 연결
               </button>
+            ) : null}
+            {showGuestReset ? (
+              confirmingGuestReset ? (
+                <div
+                  className="user-info-sheet__logout-confirm"
+                  role="group"
+                  aria-label="게스트 초기화 확인"
+                >
+                  <p className="user-info-sheet__logout-confirm-copy">
+                    이 게스트의 기록이 사라집니다
+                  </p>
+                  {guestResetNote ? (
+                    <p className="user-info-sheet__logout-confirm-copy" role="status">
+                      {guestResetNote}
+                    </p>
+                  ) : null}
+                  <div className="user-info-sheet__logout-confirm-row">
+                    <button
+                      type="button"
+                      className="user-info-sheet__btn"
+                      disabled={guestResetBusy}
+                      onClick={() => {
+                        setConfirmingGuestReset(false);
+                        setGuestResetNote(null);
+                      }}
+                    >
+                      취소
+                    </button>
+                    <button
+                      type="button"
+                      className="user-info-sheet__btn user-info-sheet__btn--danger"
+                      disabled={guestResetBusy || props.rideActive}
+                      title="Reset guest"
+                      onClick={() => void runGuestReset()}
+                    >
+                      {guestResetBusy ? "초기화 중…" : "초기화"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="user-info-sheet__btn user-info-sheet__btn--danger"
+                  disabled={props.busy || props.rideActive || guestResetBusy}
+                  title={props.rideActive ? "주행 중에는 초기화할 수 없습니다" : "Reset guest"}
+                  onClick={() => setConfirmingGuestReset(true)}
+                >
+                  게스트 초기화
+                </button>
+              )
             ) : null}
             {showLogout ? (
               confirmingLogout ? (
