@@ -12,6 +12,7 @@ import {
   formatCompanionHudActivityLine,
 } from "../../lib/companionHudCount";
 import { formatRideDistanceKmNumber } from "../../lib/rideDistanceFormat";
+import { type Camera1Mode, CAMERA1_MODE_META } from "../../lib/camera1Mode";
 import "./MapHud.css";
 
 export type AccountChipState = {
@@ -130,8 +131,8 @@ export type MapHudProps = {
   quickCamera?: {
     active: 1 | 2 | 3 | 4 | 5 | 6 | null;
     onSelect: (n: 1 | 2 | 3 | 4 | 5 | 6) => void;
-    /** 1번 3단 상태 — 버튼에 작은 표식(지시07) */
-    camera1Mode?: "routeFit" | "aerial60" | "aerial5";
+    /** 1번 순환 상태 — 버튼에 작은 표식(지시07·20260924-지시01: 4단) */
+    camera1Mode?: Camera1Mode;
   } | null;
 };
 
@@ -507,16 +508,9 @@ export function MapHud(props: MapHudProps) {
             >
               {([1, 2, 3, 4, 5, 6] as const).map((n) => {
                 const c1 = n === 1 ? quickCamera.camera1Mode ?? "routeFit" : null;
-                const c1Mark =
-                  c1 === "routeFit" ? "R" : c1 === "aerial60" ? "60" : c1 === "aerial5" ? "5" : null;
-                const c1Label =
-                  c1 === "routeFit"
-                    ? "전체 경로"
-                    : c1 === "aerial60"
-                      ? "60m 상공"
-                      : c1 === "aerial5"
-                        ? "5m 상공"
-                        : null;
+                const c1Meta = c1 ? CAMERA1_MODE_META[c1] : null;
+                const c1Mark = c1Meta?.mark ?? null;
+                const c1Label = c1Meta?.label ?? null;
                 return (
                   <button
                     key={n}

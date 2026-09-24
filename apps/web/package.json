@@ -21,6 +21,7 @@
     "test:e2e:camera-qc1-hold": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test camera-qc1-hold --workers=1 --retries=0\"",
     "test:e2e:camera-zoom": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test camera-zoom-noninterfere --workers=1 --retries=0\"",
     "test:e2e:camera-angle": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test camera-angle-candidates --workers=1 --retries=0\"",
+    "test:e2e:camera-qc1-200m": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test camera-qc1-200m --workers=1 --retries=0\"",
     "test:e2e:peer-s1": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s1 --workers=1\"",
     "test:e2e:peer-s3-diag": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s3-diag --workers=1\"",
     "test:e2e:peer-s3r2": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s3-diag-r2 --workers=1\"",

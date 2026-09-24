@@ -150,20 +150,17 @@ import { type RouteProfile } from "./services/mapboxDirections";
 import { FUNCTIONS_REGION, MAPBOX_TOKEN } from "./app/env";
 import { useAppSheetNavigation } from "./app/useAppSheetNavigation";
 import { getMapDebugPhase } from "./lib/mapDebugPhase";
+import {
+  type Camera1Mode,
+  CAMERA1_AERIAL_DISTANCE_M,
+  nextCamera1Mode,
+} from "./lib/camera1Mode";
 import "./App.css";
 
 const MapillaryRideViewer = lazy(async () => {
   const m = await import("./components/MapillaryRideViewer");
   return { default: m.MapillaryRideViewer };
 });
-
-/** Quick Camera 1 — 3단 로테이션(지시07) */
-type Camera1Mode = "routeFit" | "aerial60" | "aerial5";
-const CAMERA1_MODE_CYCLE: readonly Camera1Mode[] = ["routeFit", "aerial60", "aerial5"];
-function nextCamera1Mode(cur: Camera1Mode): Camera1Mode {
-  const i = CAMERA1_MODE_CYCLE.indexOf(cur);
-  return CAMERA1_MODE_CYCLE[(i + 1) % CAMERA1_MODE_CYCLE.length]!;
-}
 
 export default function App() {
   const {
@@ -233,7 +230,7 @@ export default function App() {
   const [followMode, setFollowMode] = useState<FollowMode>(DEFAULT_FOLLOW_MODE);
   /** Quick Camera 1~6 — 주행 HUD. null = 미선택 */
   const [activeQuickCamera, setActiveQuickCamera] = useState<1 | 2 | 3 | 4 | 5 | 6 | null>(null);
-  /** Quick Camera 1: routeFit → aerial60 → aerial5 → … (지시07·지시11) */
+  /** Quick Camera 1: routeFit → aerial200 → aerial60 → aerial5 → … (지시07·지시11·20260924-지시01) */
   const [camera1Mode, setCamera1Mode] = useState<Camera1Mode>("routeFit");
   /** Quick Camera 6: baseHeading 고정(북=0) */
   const [lockBaseHeading, setLockBaseHeading] = useState<number | null>(null);
@@ -2121,7 +2118,7 @@ export default function App() {
     (n: 1 | 2 | 3 | 4 | 5 | 6) => {
       setActiveQuickCamera(n);
       if (n === 1) {
-        // 다른 카메라에서 들어오면 Route Fit 부터. 이미 1이면 3단 순환.
+        // 다른 카메라에서 들어오면 Route Fit 부터. 이미 1이면 4단 순환(20260924-지시01: +200m).
         const next: Camera1Mode =
           activeQuickCamera === 1 ? nextCamera1Mode(camera1Mode) : "routeFit";
         setCamera1Mode(next);
@@ -2139,14 +2136,12 @@ export default function App() {
           // Route Fit = 1회 fitBounds 만. topDown 팔로우면 억제 창 후 tick 이 프레이밍을 덮는다(지시05).
           setFollowMode("free");
           setRideCameraSpanFloorMode("preset");
-        } else if (next === "aerial60") {
-          setFollowMode("aerial");
-          setRideCameraDistanceM(60);
-          setRideCameraSpanFloorMode("preset");
         } else {
-          // aerial5 — pitch 0 → floor≈1.79m, 5m 는 클램프 위(지시11)
+          // aerial200/aerial60/aerial5 — 거리는 camera1Mode.ts 의 단일 표(CAMERA1_AERIAL_DISTANCE_M).
+          // 거리 상한 60m(RIDE_CAMERA_DISTANCE_MAX_M)은 맵 뷰 시트 슬라이더 전용 클램프라
+          // 이 preset 경로는 거치지 않는다 — 200m 도 상한 변경 없이 그대로 적용된다.
           setFollowMode("aerial");
-          setRideCameraDistanceM(5);
+          setRideCameraDistanceM(CAMERA1_AERIAL_DISTANCE_M[next]);
           setRideCameraSpanFloorMode("preset");
         }
         return;
