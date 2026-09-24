@@ -64,3 +64,6 @@ apps/web/public/rider/prototype/*.bak
 .secret.local
 functions/.secret.local
 
+
+# ops 릴레이 캡처·계측 산출물 (용량·재생성 가능 — 추적하지 않는다)
+document/ops/**/.out/
