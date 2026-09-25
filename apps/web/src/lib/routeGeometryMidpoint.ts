@@ -1,23 +1,9 @@
-import type { LngLat } from "./geo";
+import { getDistanceMeters, type LngLat } from "./geo";
 
 const COORD_DECIMALS = 3;
-const EARTH_RADIUS_M = 6_371_000;
-
 function roundCoord(n: number): number {
   const f = 10 ** COORD_DECIMALS;
   return Math.round(n * f) / f;
-}
-
-function haversineMeters(a: LngLat, b: LngLat): number {
-  const [lng1, lat1] = a;
-  const [lng2, lat2] = b;
-  const p1 = (lat1 * Math.PI) / 180;
-  const p2 = (lat2 * Math.PI) / 180;
-  const dl = ((lng2 - lng1) * Math.PI) / 180;
-  const dp = p2 - p1;
-  const h =
-    Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
-  return 2 * EARTH_RADIUS_M * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
 /** polyline 누적 거리 비율(0..1) 지점 — Functions `lngLatAlongPolyline` 과 동일 정책 */
@@ -28,7 +14,7 @@ export function lngLatAlongPolyline(coords: readonly LngLat[], progressRatio: nu
   const segLens: number[] = [];
   let total = 0;
   for (let i = 1; i < coords.length; i++) {
-    const len = haversineMeters(coords[i - 1]!, coords[i]!);
+    const len = getDistanceMeters(coords[i - 1]!, coords[i]!);
     segLens.push(len);
     total += len;
   }

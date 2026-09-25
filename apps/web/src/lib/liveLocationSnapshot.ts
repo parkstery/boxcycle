@@ -1,5 +1,5 @@
 import type { LineStringGeometry, LngLat } from "./geo";
-import { lineStringLengthMeters } from "./geo";
+import { getDistanceMeters, lineStringLengthMeters } from "./geo";
 import { computeRouteProgressRatio, rideDistanceAlongRoute } from "./routeProgressMath";
 import { sanitizeTrailId } from "./trail/repo/firestoreTrail";
 import {
@@ -8,7 +8,6 @@ import {
   GLOBAL_LIVE_PRESENCE_MIN_WRITE_INTERVAL_MS,
   TRAIL_LIVE_PROGRESS_HEARTBEAT_MS,
   PEER_MOTION_PUBLISH_INTERVAL_MS,
-  haversineMeters,
   roundLngLatForLiveShare,
 } from "./rideSyncPolicy";
 import type { PeerSyncSnapshotCapture } from "./peerMotion/peerSyncSnapshotCapture";
@@ -139,7 +138,7 @@ export function shouldPublishGlobalPresence(
   const maxDue = state.globalWriteAt === 0 || elapsed >= GLOBAL_LIVE_PRESENCE_MAX_WRITE_INTERVAL_MS;
   const minOk = state.globalWriteAt === 0 || elapsed >= GLOBAL_LIVE_PRESENCE_MIN_WRITE_INTERVAL_MS;
   const moved =
-    state.globalLngLat == null ? true : haversineMeters(state.globalLngLat, lngLat) >= GLOBAL_LIVE_PRESENCE_MIN_MOVE_METERS;
+    state.globalLngLat == null ? true : getDistanceMeters(state.globalLngLat, lngLat) >= GLOBAL_LIVE_PRESENCE_MIN_MOVE_METERS;
   if (!minOk && !maxDue) return false;
   return maxDue || moved;
 }

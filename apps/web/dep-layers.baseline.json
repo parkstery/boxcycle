@@ -2,15 +2,14 @@
   "왜": "Phase 5 시작 시점의 위반 눈금. 허용 목록이 아니라 갚아야 할 빚이다. 늘면 pre-push 가 막는다. Phase 5 종료 시 0 이어야 한다.",
   "기준": "2026-09-25",
   "규칙지문": "bf77fd665dab6a85",
-  "violations": 59,
-  "cycles": 1,
+  "violations": 58,
+  "cycles": 0,
   "위반내역": [
     "account -> firebase  mountRouteTokenPopupFeedback.ts → firebase/app.ts",
     "account -> firebase  routeTokenEconomyClient.ts → firebase/app.ts",
     "account -> firebase  subscription.ts → firebase/functionsEmulatorUrl.ts",
     "account -> firebase  tierQuota.ts → firebase/functionsEmulatorUrl.ts",
     "account -> route  routeTokenSpendBridge.ts → directionsDirectGuard.ts",
-    "activity -> ride  activityWorldLod.ts → rideSyncPolicy.ts",
     "activity -> ride  activityWorldPollPolicy.ts → rideSyncPolicy.ts",
     "activity -> ride  activityWorldPollSignals.ts → rideSyncPolicy.ts",
     "activity/repo -> ride  activity/repo/firestoreRouteActivity.ts → rideSyncPolicy.ts",
@@ -65,7 +64,5 @@
     "trail/repo -> route  trail/repo/firestoreTrailInstance.ts → resolvePublicationIdFromDoc.ts",
     "trail/repo -> route  trail/repo/firestoreTrailLivePublicationRides.ts → resolvePublicationIdFromDoc.ts"
   ],
-  "순환내역": [
-    "activityWorldLod.ts <-> rideSyncPolicy.ts"
-  ]
+  "순환내역": []
 }

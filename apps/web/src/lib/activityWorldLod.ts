@@ -1,6 +1,6 @@
 import type { LngLat } from "./geo";
 import type { LineStringGeometry } from "./geo";
-import { haversineMeters } from "./rideSyncPolicy";
+import { getDistanceMeters } from "./geo";
 
 /** 줌 인 시 LINE 전환 (geometry ready 코스만) */
 export const MAP_ZOOM_ACTIVITY_WORLD_LINE_ENTER_MIN = 13;
@@ -68,8 +68,8 @@ export type ActivityWorldLodDebug = {
 
 export function viewportSpanKm(bounds: MapViewportBounds): number {
   const centerLat = (bounds.south + bounds.north) / 2;
-  const widthM = haversineMeters([bounds.west, centerLat], [bounds.east, centerLat]);
-  const heightM = haversineMeters([bounds.west, bounds.south], [bounds.west, bounds.north]);
+  const widthM = getDistanceMeters([bounds.west, centerLat], [bounds.east, centerLat]);
+  const heightM = getDistanceMeters([bounds.west, bounds.south], [bounds.west, bounds.north]);
   return Math.max(widthM, heightM) / 1000;
 }
 

@@ -109,12 +109,13 @@ export const GLOBAL_LIVE_PRESENCE_MIN_MOVE_METERS = 40;
 /** 월드 힌트 HUD: 이 줌 이하에서만 표시(맵 축소 시) */
 export const MAP_ZOOM_WORLD_ACTIVITY_MAX = 9;
 
-/** @see `activityWorldLod` — LOD 라인 전환 줌(enter/exit) */
-export {
-  MAP_ZOOM_ACTIVITY_WORLD_LINE_ENTER_MIN,
-  MAP_ZOOM_ACTIVITY_WORLD_LINE_EXIT_MIN,
-  MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN,
-} from "./activityWorldLod";
+/*
+ * LOD 라인 전환 줌 상수는 `activityWorldLod` 가 소유한다.
+ * 종전에는 여기서 re-export 했으나 **저장소 밖 소비자가 하나도 없었고**, 그 한 줄이
+ * `activityWorldLod ↔ rideSyncPolicy` 순환(구조 감사 R9)의 절반이었다.
+ * 순환이 되살아나면 import 순서에 따라 상수가 `undefined` 가 되고, 값이 0·NaN 으로
+ * 흘러 폴링이 멈추거나 폭주한다 — 그래서 여기에 다시 두지 않는다.
+ */
 
 /** WO-A adaptive — live activity 있음 active */
 export const ACTIVITY_WORLD_POLL_ACTIVE_MS = 60_000;
@@ -143,17 +144,8 @@ export function roundLngLatForLiveShare(lngLat: LngLat, decimals = LIVE_SHARE_CO
   return [Math.round(lngLat[0] * f) / f, Math.round(lngLat[1] * f) / f];
 }
 
-const EARTH_RADIUS_M = 6_371_000;
-
-/** 두 좌표 간 대원 거리(m), 근사 */
-export function haversineMeters(a: LngLat, b: LngLat): number {
-  const [lng1, lat1] = a;
-  const [lng2, lat2] = b;
-  const p1 = (lat1 * Math.PI) / 180;
-  const p2 = (lat2 * Math.PI) / 180;
-  const dl = ((lng2 - lng1) * Math.PI) / 180;
-  const dp = p2 - p1;
-  const h =
-    Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
-  return 2 * EARTH_RADIUS_M * Math.asin(Math.min(1, Math.sqrt(h)));
-}
+/*
+ * `haversineMeters` 는 `geo.getDistanceMeters` 와 **수치적으로 같은 함수**였다(최대 상대차
+ * 2e-12 — `asin` 과 `atan2` 표현 차이). 같은 계산을 세 곳에 두면 한쪽만 고쳐도 아무 에러가
+ * 나지 않는다 — Claim 셀 ID 에서 이미 데인 자리다. `geo` 로 모았다.
+ */

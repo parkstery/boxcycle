@@ -210,7 +210,7 @@ for (const tos of edges.values()) for (const t of tos) fanIn.set(t, fanIn.get(t)
 
 // ─────────────────────────────────────────────── 3. 순환 (Tarjan SCC)
 
-function findCycles() {
+function findCycles(graph = edges, nodes = files) {
   let idx = 0;
   const stack = [];
   const onStack = new Set();
@@ -224,7 +224,7 @@ function findCycles() {
     idx += 1;
     stack.push(v);
     onStack.add(v);
-    for (const w of edges.get(v) ?? []) {
+    for (const w of graph.get(v) ?? []) {
       if (!num.has(w)) {
         strong(w);
         low.set(v, Math.min(low.get(v), low.get(w)));
@@ -243,7 +243,7 @@ function findCycles() {
       if (comp.length > 1) out.push(comp);
     }
   }
-  for (const f of files) if (!num.has(f)) strong(f);
+  for (const f of nodes) if (!num.has(f)) strong(f);
   return out;
 }
 
@@ -257,11 +257,28 @@ const unassigned = files.filter(
   (f) => rel(f).startsWith(LIB_PREFIX) && domainOf(rel(f)) === null,
 );
 
-const r9 = ["rideSyncPolicy.ts", "activityWorldLod.ts"].map((n) =>
-  files.find((f) => rel(f) === LIB_PREFIX + n),
-);
-const r9Detected =
-  r9.every(Boolean) && cycles.some((c) => c.includes(r9[0]) && c.includes(r9[1]));
+/*
+ * 검출기 생존 확인 — **합성 그래프**로 잰다.
+ *
+ * 종전에는 「알려진 순환 R9 가 검출되는가」로 확인했다. 그런데 2026-09-25 에 R9 를
+ * **고치자 이 검산이 죽었다.** 고치면 죽는 검산은 검산이 아니다 — 제품 코드가 나쁜
+ * 상태로 남아 있어야만 성립하는 전제였다. 이제 알고리즘 자체를 시험한다.
+ */
+const synthCycle = new Map([
+  ["a", new Set(["b"])],
+  ["b", new Set(["c"])],
+  ["c", new Set(["a"])],
+  ["d", new Set(["a"])],
+]);
+const synthAcyclic = new Map([
+  ["a", new Set(["b"])],
+  ["b", new Set(["c"])],
+  ["c", new Set()],
+]);
+const synthNodes = ["a", "b", "c", "d"];
+const foundCycle = findCycles(synthCycle, synthNodes).some((c) => c.length === 3);
+const foundNone = findCycles(synthAcyclic, ["a", "b", "c"]).length === 0;
+const r9Detected = foundCycle && foundNone;
 
 const m0 = [
   ["수집 파일 수 ≥ " + MIN_FILES, files.length >= MIN_FILES, files.length],
@@ -271,7 +288,11 @@ const m0 = [
     geoFile ? fanIn.get(geoFile) >= MIN_GEO_FAN_IN : false,
     geoFile ? fanIn.get(geoFile) : "-",
   ],
-  ["알려진 순환 R9 검출 (검출기 생존 확인)", r9Detected, r9Detected ? "검출" : "미검출"],
+  [
+    "순환 검출기 생존 (합성 그래프 양방향)",
+    r9Detected,
+    `순환 ${foundCycle ? "검출" : "미검출"} · 비순환 오탐 ${foundNone ? "없음" : "있음"}`,
+  ],
   ["lib 파일 전원 도메인 지정", unassigned.length === 0, unassigned.length + "건 미지정"],
   // scripts 뿌리가 빠지면 이 모듈의 fan-in 이 0 이 된다 — 유일한 소비자가
   // scripts/ride-hierarchy 의 계약 시험이기 때문이다. 범위 누락의 감지선.
