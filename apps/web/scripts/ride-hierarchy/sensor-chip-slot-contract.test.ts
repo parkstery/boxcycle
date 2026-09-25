@@ -4,17 +4,24 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 import type { RideUiStage } from "../../src/hooks/useRideUiStage.ts";
-import { sensorChipSlot } from "../../src/lib/route/sensorChipSlot.ts";
+import { sensorChipSlot, sensorChipSlotView } from "../../src/lib/route/sensorChipSlot.ts";
 import { isRouteDockVisible } from "../../src/lib/route/routeDockUiPolicy.ts";
 
 /**
- * UI-DECLUTTER-SENSOR-6A — 센서 칩은 **정확히 한 곳**에 있고, 사라지지 않는다.
+ * UI-DECLUTTER-SENSOR-6A — 센서 신호는 **정확히 한 곳**에 있고, 사라지지 않는다.
  *
- * 지시서 §5.1 의 「8 조합(4 stage × 접힘/펼침) 표시 불변식」을 두 겹으로 잡는다:
- *   1. 슬롯 판정(순수 함수) — 어느 자리에 그리는가
- *   2. 소스 구조 — dock 안에서 **접히는 본문 바깥**에 있는가
- * 2 가 없으면 1 은 축퇴다: 슬롯이 "route-dock" 이어도 칩이 `hidden` 패널 안에 있으면
+ * 지시서 §5.1 의 「8 조합(4 stage × 접힘/펼침) 표시 불변식」을 세 겹으로 잡는다:
+ *   1. 슬롯 판정(순수 함수) — 어느 자리에, 칩인가 캐럿 LED 인가
+ *   2. **제품이 그 판정을 실제로 호출하는가**
+ *   3. 소스 구조 — dock 안에서 **접히는 본문 바깥**에 있는가
+ *
+ * 3 이 없으면 1 은 축퇴다: 슬롯이 dock 이어도 칩이 `hidden` 패널 안에 있으면
  * 접는 순간 사라진다. 순수 함수로는 그것을 볼 수 없다.
+ *
+ * 2026-09-26: **2 를 추가했다.** 그 전까지 이 시험이 `sensorChipSlot` 의 **유일한
+ * 소비자**였다 — 제품은 같은 판정을 인라인으로 따로 갖고 있었고, 09-23 에 세 번째
+ * 갈래(접힘 캐럿 LED)가 제품에만 생겼는데 모듈은 2갈래인 채였다. 아무도 호출하지 않는
+ * 판정을 시험하는 것은 **자기 자신을 소비자로 둔 축퇴**다.
  */
 
 const ALL_STAGES: RideUiStage[] = [
@@ -28,76 +35,162 @@ const ALL_STAGES: RideUiStage[] = [
   "summary",
 ];
 
-/** 2026-09-16: `idle` 합류 — 첫 화면에도 dock 이 뜨면서 우상단 폴백이 사라졌다 */
-const DOCK_STAGES: RideUiStage[] = ["idle", "setup", "ready-to-start", "riding", "paused"];
 
-describe("sensorChipSlot — 센서 칩 자리", () => {
-  it("RouteDock 이 보이는 stage 에서는 dock 이 칩을 그린다", () => {
-    for (const stage of DOCK_STAGES) {
+const EXPANDED_ONLY: RideUiStage[] = ["setup", "ready-to-start"];
+
+describe("sensorChipSlot — 센서 신호의 자리", () => {
+  it("RouteDock 이 보이고 펼쳐져 있으면 dock 이 칩을 그린다", () => {
+    for (const stage of EXPANDED_ONLY) {
       assert.equal(isRouteDockVisible(stage), true, `${stage}: dock 이 보여야 한다`);
       assert.equal(
-        sensorChipSlot({ stage, hasCadence: true, isGate: false, isSummary: false }),
-        "route-dock",
+        sensorChipSlot({ stage, hasCadence: true, expanded: true }),
+        "route-dock-chip",
         `${stage}: 칩은 dock`,
       );
     }
   });
 
-  it("우상단 폴백은 더 이상 없다 — 칩은 dock 아니면 아예 없다", () => {
+  it("접히면 칩 대신 캐럿 LED — 신호가 사라지지는 않는다", () => {
+    /*
+     * 2026-09-16 사고의 재발 방지선은 「칩이 항상 있다」가 아니라
+     * **「연결 표시가 사라지지 않는다」** 다. 접힘에서 `none` 이 나오면 그 사고와 같은 결과다.
+     */
+    // 첫 화면 — 센서가 있으면 항상 캐럿 형태(펼침 여부와 무관)
+    for (const expanded of [true, false]) {
+      assert.equal(
+        sensorChipSlot({ stage: "idle", hasCadence: true, expanded }),
+        "route-dock-caret",
+        `idle(expanded=${expanded}): 캐럿 LED`,
+      );
+    }
+    // 주행 중 접힘 — 칩을 빼고 캐럿 폭만
+    for (const stage of ["riding", "paused"] as RideUiStage[]) {
+      assert.equal(
+        sensorChipSlot({ stage, hasCadence: true, expanded: false }),
+        "route-dock-caret",
+        `${stage} 접힘: 캐럿 LED`,
+      );
+      assert.equal(
+        sensorChipSlot({ stage, hasCadence: true, expanded: true }),
+        "route-dock-chip",
+        `${stage} 펼침: 칩 복귀`,
+      );
+    }
+  });
+
+  it("우상단 폴백은 더 이상 없다 — 신호는 dock 아니면 아예 없다", () => {
     /*
      * 폴백이 있던 이유는 `idle` 에 dock 이 없어서였다. 센서 시트는 「센서 없음」의
-     * 유일한 입구이고 그것이 Go 의 사전조건이라, 첫 화면에서 칩이 사라지면 주행을 시작할
+     * 유일한 입구이고 그것이 Go 의 사전조건이라, 첫 화면에서 신호가 사라지면 주행을 시작할
      * 수 없었다. dock 이 `idle` 까지 오면서 그 근거가 사라졌다.
      */
-    assert.equal(
-      sensorChipSlot({ stage: "idle", hasCadence: true, isGate: false, isSummary: false }),
-      "route-dock",
-      "첫 화면에서도 칩은 dock 안",
-    );
     for (const stage of ALL_STAGES) {
-      const slot: string = sensorChipSlot({
-        stage,
-        hasCadence: true,
-        isGate: false,
-        isSummary: false,
-      });
-      assert.notEqual(slot, "map-hud-tr", `${stage}: 우상단 폴백 부활 금지`);
+      for (const expanded of [true, false]) {
+        const slot: string = sensorChipSlot({ stage, hasCadence: true, expanded });
+        assert.notEqual(slot, "map-hud-tr", `${stage}: 우상단 폴백 부활 금지`);
+        assert.ok(
+          slot === "none" || slot.startsWith("route-dock-"),
+          `${stage}: dock 밖에 자리를 만들지 않는다 (${slot})`,
+        );
+      }
     }
   });
 
   it("게이트·결과 시트·센서 없음 에서는 어디에도 그리지 않는다", () => {
     for (const stage of ALL_STAGES) {
+      for (const expanded of [true, false]) {
+        assert.equal(
+          sensorChipSlot({ stage, hasCadence: false, expanded }),
+          "none",
+          `${stage}: 센서 상태가 없으면 미표시`,
+        );
+      }
+    }
+    for (const stage of ["gate", "gate-nickname", "summary"] as RideUiStage[]) {
+      assert.equal(isRouteDockVisible(stage), false, `${stage}: dock 이 없어야 한다`);
       assert.equal(
-        sensorChipSlot({ stage, hasCadence: false, isGate: false, isSummary: false }),
+        sensorChipSlot({ stage, hasCadence: true, expanded: true }),
         "none",
-        `${stage}: 센서 상태가 없으면 미표시`,
-      );
-      assert.equal(
-        sensorChipSlot({ stage, hasCadence: true, isGate: true, isSummary: false }),
-        "none",
-        `${stage}: 게이트 중 미표시`,
-      );
-      assert.equal(
-        sensorChipSlot({ stage, hasCadence: true, isGate: false, isSummary: true }),
-        "none",
-        `${stage}: 결과 시트 중 미표시`,
+        `${stage}: 화면을 덮는 카드·시트가 자리를 차지한다`,
       );
     }
   });
 
   it("두 곳에 동시에 뜨지 않고, 보여야 할 때 빠지지도 않는다", () => {
     for (const stage of ALL_STAGES) {
-      const slot = sensorChipSlot({ stage, hasCadence: true, isGate: false, isSummary: false });
-      /*
-       * 소실 금지 — dock 이 보이는 stage 면 반드시 칩이 있다.
-       * dock 이 없는 곳(gate·gate-nickname·summary)은 화면을 덮는 카드·시트가 차지하고
-       * 있어 칩을 띄울 자리도, 띄울 이유도 없다.
-       */
-      assert.equal(slot === "route-dock", isRouteDockVisible(stage), `${stage}: dock 여부와 일치`);
-      if (isRouteDockVisible(stage)) {
-        assert.equal(slot, "route-dock", `${stage}: 칩이 사라지면 안 된다`);
+      for (const expanded of [true, false]) {
+        const slot = sensorChipSlot({ stage, hasCadence: true, expanded });
+        assert.equal(
+          slot !== "none",
+          isRouteDockVisible(stage),
+          `${stage}(expanded=${expanded}): dock 여부와 일치`,
+        );
       }
     }
+  });
+
+  it("접힘 형태와 슬롯이 같은 판정에서 나온다 — 갈라질 자리가 없다", () => {
+    /*
+     * `caretOnly` 는 레이아웃 클래스의 근거이면서 슬롯의 근거다. 둘이 따로 계산되면
+     * 한쪽만 바뀌어 「캐럿 폭인데 칩을 그린다」 같은 상태가 된다(09-23 이 그랬다).
+     */
+    for (const stage of ALL_STAGES) {
+      for (const expanded of [true, false]) {
+        const view = sensorChipSlotView({ stage, hasCadence: true, expanded });
+        assert.equal(
+          view.caretOnly,
+          view.rideCollapsed || view.preRouteCollapsed,
+          `${stage}: caretOnly 는 두 접힘의 합`,
+        );
+        if (view.slot !== "none") {
+          assert.equal(
+            view.slot === "route-dock-caret",
+            view.caretOnly,
+            `${stage}(expanded=${expanded}): 접힘이면 캐럿, 아니면 칩`,
+          );
+        }
+      }
+    }
+  });
+});
+
+describe("제품이 그 판정을 실제로 호출한다", () => {
+  const __dirnameCall = path.dirname(fileURLToPath(import.meta.url));
+  const dock = fs.readFileSync(
+    path.resolve(__dirnameCall, "../../src/components/route-dock/RouteDock.tsx"),
+    "utf8",
+  );
+
+  it("RouteDock 이 sensorChipSlot 모듈을 import 해 호출한다", () => {
+    /*
+     * 이 겹이 없으면 앞의 순수 함수 시험 전체가 축퇴다 — 아무도 부르지 않는 판정은
+     * 언제 제품과 갈라져도 초록으로 남는다. 실제로 09-23 ~ 09-26 사이가 그랬다.
+     */
+    assert.match(
+      dock,
+      /import\s*\{[^}]*sensorChipSlotView[^}]*\}\s*from\s*"[^"]*lib\/route\/sensorChipSlot"/,
+      "RouteDock 이 슬롯 판정을 import 해야 한다",
+    );
+    assert.match(dock, /sensorChipSlotView\(\s*\{/, "판정을 실제로 호출해야 한다");
+  });
+
+  it("칩·캐럿 분기를 인라인으로 다시 계산하지 않는다", () => {
+    for (const inlined of [
+      /const\s+rideCollapsed\s*=/,
+      /const\s+preRouteCollapsed\s*=/,
+      /const\s+caretOnly\s*=/,
+    ]) {
+      assert.doesNotMatch(
+        dock,
+        inlined,
+        `접힘 판정을 인라인으로 되살리면 모듈과 갈라진다: ${inlined}`,
+      );
+    }
+    assert.match(
+      dock,
+      /showSensorChip\s*=\s*sensorView\.slot\s*===\s*"route-dock-chip"/,
+      "칩 표시는 슬롯 판정에서 나와야 한다",
+    );
   });
 });
 
@@ -135,11 +228,11 @@ describe("RouteDock 소스 구조 — 접어도 센서가 남는다", () => {
     // 칩을 접힘에서 빼는 대가로 캐럿 LED 가 반드시 있어야 한다. 하나라도 없으면
     // 접었을 때 센서 신호가 통째로 사라진다(2026-09-16 사고와 같은 결과).
     assert.ok(
-      /const caretOnly\s*=/.test(src),
-      "접힘 판정(caretOnly)이 있어야 한다",
+      /const \{[^}]*preRouteCollapsed[^}]*\} = sensorView;/.test(src),
+      "접힘 판정을 슬롯 모듈에서 받아야 한다(2026-09-26: 인라인 계산 폐지)",
     );
     assert.ok(
-      /const caretSensorView\s*=[\s\S]{0,120}caretOnly/.test(src),
+      /const caretSensorView\s*=[\s\S]{0,160}route-dock-caret/.test(src),
       "접힘일 때 연결을 표시할 캐럿 LED 뷰가 있어야 한다",
     );
     assert.ok(

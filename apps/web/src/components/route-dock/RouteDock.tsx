@@ -3,6 +3,7 @@ import type { RideUiStage } from "../../hooks/useRideUiStage";
 import { cadenceChipView } from "../../lib/sensor/cadenceSensorUi";
 import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/route/repo/firestoreSavedRoutes";
 import { isRouteDockVisible, routeDockUiPolicy } from "../../lib/route/routeDockUiPolicy";
+import { sensorChipSlotView } from "../../lib/route/sensorChipSlot";
 import { CadenceHudChip, type CadenceChipBinding } from "../maphud/CadenceHudChip";
 import { isIncompleteQuotaError } from "../../lib/account/tierQuota";
 import type { RouteDockStop, RouteDockStopId } from "./useRouteDockStops";
@@ -147,21 +148,25 @@ export function RouteDock(props: RouteDockProps) {
   if (!visible) return null;
 
   /*
+   * 접힘 형태와 센서 자리는 **한 판정**에서 나온다 — `lib/route/sensorChipSlot`.
+   * 인라인으로 두면 09-23 처럼 모듈과 조용히 갈라진다(2026-09-26 통합).
+   *
    * 주행 중 접힘(20260923-minimap 지시01 §3): 센서 칩(텍스트)을 빼고 캐럿 폭만 남긴다.
    * LED 는 셰브런 자리에. 펼치면 칩+셰브런 복귀. 주행 전 접힘에서는 칩을 유지
    * (센서 설정 입구 — sensorChipSlot 2026-09-16 사고).
-   */
-  const rideCollapsed = isActiveRide && !expanded;
-  /*
+   *
    * 첫 화면(idle) — 「SENSOR」 텍스트가 보이는 칩 대신, 주행 중 접힘과 같은 형태로
    * 캐럿 폭에 LED 만 남긴다(지시04 §A, 2026-09-23 미니맵 라운드 형태 재사용 — D7).
    * 경유지가 하나라도 잡히면(stage 가 idle 을 벗어나면) 즉시 원래 칩+캐럿으로 돌아간다.
    * 펼쳐 봐야 빈 목록뿐이라 펼침 대신 **눌러서 바로 센서 시트를 연다**(§A3 동작 유지).
    */
-  const preRouteCollapsed = stage === "idle" && Boolean(cadence);
-  const caretOnly = rideCollapsed || preRouteCollapsed;
-  const showSensorChip = Boolean(cadence) && !caretOnly;
-  const caretSensorView = cadence && caretOnly ? cadenceChipView(cadence.state, isActiveRide) : null;
+  const sensorView = sensorChipSlotView({ stage, hasCadence: Boolean(cadence), expanded });
+  const { rideCollapsed, preRouteCollapsed } = sensorView;
+  const showSensorChip = sensorView.slot === "route-dock-chip";
+  const caretSensorView =
+    cadence && sensorView.slot === "route-dock-caret"
+      ? cadenceChipView(cadence.state, isActiveRide)
+      : null;
   const caretAriaLabel = preRouteCollapsed
     ? caretSensorView
       ? `센서 설정 열기 · ${caretSensorView.ariaLabel}`
