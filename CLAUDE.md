@@ -26,6 +26,7 @@
 | Skill·Harness를 만들거나 구분하려면 | [document/260722-Skill-Harness-아키텍처.md](document/260722-Skill-Harness-아키텍처.md) |
 | 화면 공간을 어떻게 쓰나(버튼·칩·카드 크기) | [document/260924-RTW-UI-공간밀도-원칙.md](document/260924-RTW-UI-공간밀도-원칙.md) |
 | 이 모듈이 어느 도메인인가·무엇을 import 해도 되나 | [document/260925-RTW-lib-도메인-경계와-의존-방향.md](document/260925-RTW-lib-도메인-경계와-의존-방향.md) |
+| 구조를 바꾸거나 게이트를 세우려면(도구·절차) | [document/260926-RTW-구조-게이트-운용-지침.md](document/260926-RTW-구조-게이트-운용-지침.md) |
 | 실행·배포 방법 | [README.md](README.md) |
 
 ## 문서 규칙 (요약)

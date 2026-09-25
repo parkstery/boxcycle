@@ -33,12 +33,37 @@ const WALK_ROOTS = ["src", "scripts", "e2e"];
 
 const planPath = process.argv[2];
 const DRY = process.argv.includes("--dry-run");
-if (!planPath) {
-  console.error("사용법: node scripts/move-lib-files.mjs <plan.json> [--dry-run]");
+
+const USAGE = [
+  "사용법: node scripts/move-lib-files.mjs <plan.json> [--dry-run]",
+  "",
+  '  plan.json = { "lib/<옛경로>": "lib/<새경로>", ... }   (apps/web/src 기준)',
+  "",
+  "  계획은 손으로 적지 말고 apps/web/dep-layers.json 에서 생성하라.",
+  "  절차·규율: document/260926-RTW-구조-게이트-운용-지침.md",
+].join("\n");
+
+if (!planPath || planPath.startsWith("-")) {
+  // `--help` 나 인자 누락을 JSON 파싱 오류로 죽게 두지 않는다 — 다음 사람이
+  // 이 도구에서 처음 보는 화면이다.
+  console.error(USAGE);
+  process.exit(2);
+}
+if (!fs.existsSync(planPath)) {
+  console.error(`[실패] 계획 파일이 없다: ${planPath}
+
+${USAGE}`);
   process.exit(2);
 }
 /** @type {Record<string,string>} apps/web/src 기준 상대경로 */
-const plan = JSON.parse(fs.readFileSync(planPath, "utf8"));
+let plan;
+try {
+  plan = JSON.parse(fs.readFileSync(planPath, "utf8"));
+} catch (e) {
+  console.error(`[실패] 계획 파일을 JSON 으로 읽지 못했다: ${planPath}
+  ${e.message}`);
+  process.exit(2);
+}
 
 // ── 파일 수집 ─────────────────────────────────────────────
 function collect() {
