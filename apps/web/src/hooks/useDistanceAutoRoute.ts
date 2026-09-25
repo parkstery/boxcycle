@@ -2,7 +2,7 @@ import type { User } from "firebase/auth";
 import { getFunctions } from "firebase/functions";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { registerDistanceAutoRouteMapBridge, clearDistanceAutoRouteClickDebugMarker } from "../lib/distanceAutoRouteMapBridge";
-import { getFirebaseApp } from "../lib/firebase";
+import { getFirebaseApp } from "../lib/firebase/app";
 import type { LngLat } from "../lib/geo";
 import { resolveDistanceAutoRouteGuideRadiusKm } from "../lib/distanceAutoRouteGuideRing";
 import { formatLngLat } from "../lib/geo";

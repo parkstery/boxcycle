@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { SavedRoute } from "../lib/firestoreSavedRoutes";
+import type { SavedRoute } from "../lib/route/repo/firestoreSavedRoutes";
 import {
   PUBLIC_ROUTE_NAMING_DISCLOSURE_KO,
   PUBLIC_ROUTE_NAMING_GUIDE_KO,

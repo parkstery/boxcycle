@@ -4,7 +4,7 @@ import { ACTIVITY_TRACE_LIVE_STRENGTH } from "./activityWorldTraceStyle";
 import {
   fetchPublicPublicationPresencesDetailed,
   PUBLICATION_PRESENCE_POLL_MS,
-} from "./firestorePublicationPresence";
+} from "./ride/repo/firestorePublicationPresence";
 import type { LngLat } from "./geo";
 
 /** 260527 Map 표현 계층 디버그 Phase — `VITE_MAP_DEBUG_PHASE` (unset = null → Phase D MapView) */

@@ -1,4 +1,4 @@
-import { isRouteActivityLive, type RouteActivitySnapshot } from "./firestoreRouteActivity";
+import { isRouteActivityLive, type RouteActivitySnapshot } from "./activity/repo/firestoreRouteActivity";
 import {
   ACTIVITY_WORLD_POLL_ACTIVE_MS,
   ACTIVITY_WORLD_POLL_IDLE_MS,

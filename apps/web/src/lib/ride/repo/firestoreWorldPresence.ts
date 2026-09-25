@@ -1,5 +1,5 @@
 import { doc, getDoc, type Timestamp } from "firebase/firestore";
-import { getFirebaseFirestore } from "./firebase";
+import { getFirebaseFirestore } from "../../firebase/app";
 
 export type WorldRegionRow = {
   id: string;

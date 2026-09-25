@@ -4,7 +4,7 @@
  */
 import { collection, getDocs, limit, query, where } from "firebase/firestore";
 import type { Firestore } from "firebase/firestore";
-import { listPublishedRoutePublications } from "./firestoreRoutePublications";
+import { listPublishedRoutePublications } from "./route/repo/firestoreRoutePublications";
 import type { LineStringGeometry, LngLat } from "./geo";
 import { getDistanceMeters, getPointOnRouteByDistance } from "./geo";
 import type { RouteProfile } from "../services/mapboxDirections";

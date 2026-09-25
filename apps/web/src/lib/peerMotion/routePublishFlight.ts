@@ -4,9 +4,9 @@
  */
 import type { User } from "firebase/auth";
 import type { LiveLocationSnapshot } from "../liveLocationSnapshot";
-import { DEFAULT_TRAIL_ID } from "../firestoreTrail";
-import { mergeTrailLivePublicationRideSnapshot } from "../firestoreTrailLivePublicationRides";
-import { touchTrailInstanceActivity } from "../firestoreTrailInstance";
+import { DEFAULT_TRAIL_ID } from "../trail/repo/firestoreTrail";
+import { mergeTrailLivePublicationRideSnapshot } from "../trail/repo/firestoreTrailLivePublicationRides";
+import { touchTrailInstanceActivity } from "../trail/repo/firestoreTrailInstance";
 import { ROUTE_FLIGHT_DRAIN_TIMEOUT_MS } from "../rideSyncPolicy";
 import {
   beginRouteInFlight,
@@ -224,11 +224,11 @@ async function installDevLiveRideProbe(): Promise<void> {
   if (!import.meta.env.DEV || typeof window === "undefined") return;
   if (window.__rtwLiveRideExists) return;
   const { doc, getDoc } = await import("firebase/firestore");
-  const { getFirebaseFirestore } = await import("../firebase");
+  const { getFirebaseFirestore } = await import("../firebase/app");
   const { TRAILS_COLLECTION, TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION } = await import(
-    "../firestoreTrailPaths"
+    "../trail/repo/firestoreTrailPaths"
   );
-  const { sanitizeTrailId } = await import("../firestoreTrail");
+  const { sanitizeTrailId } = await import("../trail/repo/firestoreTrail");
   window.__rtwLiveRideExists = async (trailId: string, uid: string) => {
     const snap = await getDoc(
       doc(

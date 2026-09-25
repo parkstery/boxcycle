@@ -1,7 +1,7 @@
 import type { LineStringGeometry, LngLat } from "./geo";
 import { lineStringLengthMeters } from "./geo";
 import { computeRouteProgressRatio, rideDistanceAlongRoute } from "./routeProgressMath";
-import { sanitizeTrailId } from "./firestoreTrail";
+import { sanitizeTrailId } from "./trail/repo/firestoreTrail";
 import {
   GLOBAL_LIVE_PRESENCE_MAX_WRITE_INTERVAL_MS,
   GLOBAL_LIVE_PRESENCE_MIN_MOVE_METERS,

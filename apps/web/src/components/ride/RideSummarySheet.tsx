@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { validateSavedRouteName } from "../../lib/firestoreSavedRoutes";
+import { validateSavedRouteName } from "../../lib/route/repo/firestoreSavedRoutes";
 import { isIncompleteQuotaError } from "../../lib/tierQuota";
 import { progressPercentLabel, type RideEndResult } from "../../lib/rideEndResult";
 import { useRideConquestResult } from "../../hooks/useRideConquestResult";

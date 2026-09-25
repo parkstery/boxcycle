@@ -8,40 +8,27 @@ import {
   type FieldValue,
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
-import { getFirebaseFirestore } from "./firebase";
-import { pickRandomTrailDisplayNumber } from "./trailDisplayNumber";
+import { getFirebaseFirestore } from "../../firebase/app";
+import { pickRandomTrailDisplayNumber } from "../../trailDisplayNumber";
 import { TRAILS_COLLECTION } from "./firestoreTrailPaths";
 import {
   removeOpenTrailListing,
   refreshOpenTrailListingFromTrail,
   scheduleOpenTrailListingRefresh,
 } from "./firestoreOpenTrailListings";
-import { assertPublicTrailHasRoute, trailHasConfiguredRoute } from "./trailAccessPolicy";
-import { resolvePublicationIdFromDoc } from "./resolvePublicationIdFromDoc";
-import { TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS } from "./rideSyncPolicy";
+import { assertPublicTrailHasRoute, trailHasConfiguredRoute } from "../../trailAccessPolicy";
+import { resolvePublicationIdFromDoc } from "../../resolvePublicationIdFromDoc";
+import { TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS } from "../../rideSyncPolicy";
 import {
   noteTouchActivityCall,
   noteTrailDocUpdateDoc,
   type TouchActivitySource,
-} from "./touchActivityMeters";
+} from "../../touchActivityMeters";
 
-export type TrailVisibility = "open" | "private";
-export type TrailStatus = "open" | "closed" | "archived";
-
-export type TrailInstance = {
-  id: string;
-  hostUid: string;
-  displayNumber: number;
-  publicationId: string | null;
-  regionLabel: string | null;
-  distanceKm: number | null;
-  visibility: TrailVisibility;
-  status: TrailStatus;
-  createdAtMs: number | null;
-  lastActivityAtMs: number | null;
-  /** `livePublicationRides` 서브컬렉션 문서 수(목록 UI용, best-effort) */
-  liveRiderCount?: number;
-};
+// 타입 정의는 도메인 층(`../trailTypes`)이 갖는다 — 정책이 저장소를 올려다보면
+// 순환이 된다(Phase 5 D1). 종전 이름으로 re-export 해 소비자를 건드리지 않는다.
+import type { TrailInstance, TrailStatus, TrailVisibility } from "../trailTypes";
+export type { TrailInstance, TrailStatus, TrailVisibility };
 
 type TrailInstanceDoc = {
   hostUid: string;

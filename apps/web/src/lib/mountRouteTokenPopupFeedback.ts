@@ -12,7 +12,7 @@ import {
   ROUTE_TOKEN_ECONOMY_CLIENT_DEFAULT,
 } from "./routeTokenEconomyClient";
 import { doc, onSnapshot } from "firebase/firestore";
-import { getFirebaseFirestore, isFirebaseConfigured } from "./firebase";
+import { getFirebaseFirestore, isFirebaseConfigured } from "./firebase/app";
 
 const SPEND_TOAST_MS = 5_000;
 const ROUTE_PENDING_CLEAR_MS = 90_000;

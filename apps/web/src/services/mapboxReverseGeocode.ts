@@ -1,5 +1,5 @@
 import type { LngLat } from "../lib/geo";
-import { shortPlaceLabel } from "../lib/firestoreSavedRoutes";
+import { shortPlaceLabel } from "../lib/route/repo/firestoreSavedRoutes";
 
 /**
  * Mapbox Geocoding reverse — 선택 좌표를 포함하는 대표 주소(한국어 `place_name`).

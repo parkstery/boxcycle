@@ -9,17 +9,17 @@ import {
   where,
   type QueryConstraint,
 } from "firebase/firestore";
-import { getFirebaseFirestore } from "./firebase";
-import type { LngLat } from "./geo";
-import { lastSeenAtToMillis } from "./firestoreTrail";
-import { COURSE_ACTIVITY_POLL_MS } from "./rideSyncPolicy";
+import { getFirebaseFirestore } from "../../firebase/app";
+import type { LngLat } from "../../geo";
+import { lastSeenAtToMillis } from "../../trail/repo/firestoreTrail";
+import { COURSE_ACTIVITY_POLL_MS } from "../../rideSyncPolicy";
 import {
   BASIC_SHARED_HUB_IDS,
   fetchCourseRoutePayload,
   getBasicHubCoursePayload,
-} from "./firestoreCourses";
-import { distanceMidpointLngLat } from "./routeGeometryMidpoint";
-import type { LineStringGeometry } from "./geo";
+} from "../../route/repo/firestoreCourses";
+import { distanceMidpointLngLat } from "../../routeGeometryMidpoint";
+import type { LineStringGeometry } from "../../geo";
 
 export const PUBLICATION_PRESENCE_COLLECTION = "publicationPresence";
 

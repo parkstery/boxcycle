@@ -28,7 +28,7 @@ const REPO_ROOT = path.resolve(WEB_ROOT, "..", "..");
 
 const SEED_TS = path.join(WEB_ROOT, "src", "lib", "basicIntroHubRouteGeometries.ts");
 const FUNCTIONS_IDS_TS = path.join(REPO_ROOT, "functions", "src", "basicIntroHubSeeds.ts");
-const COURSES_TS = path.join(WEB_ROOT, "src", "lib", "firestoreCourses.ts");
+const COURSES_TS = path.join(WEB_ROOT, "src", "lib", "route", "repo", "firestoreCourses.ts");
 const EVIDENCE_JSON = path.join(
   REPO_ROOT,
   "document",

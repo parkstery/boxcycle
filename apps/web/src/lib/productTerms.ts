@@ -6,4 +6,4 @@
 export const TRAILHEAD_LABEL = "Trailhead";
 export const TRAIL_LABEL = "Trail";
 
-export { DEFAULT_TRAIL_ID } from "./firestoreTrail";
+export { DEFAULT_TRAIL_ID } from "./trail/repo/firestoreTrail";

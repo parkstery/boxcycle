@@ -1,5 +1,5 @@
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
-import { getFirebaseFirestore } from "../lib/firebase";
+import { getFirebaseFirestore } from "../lib/firebase/app";
 import type { SharedElevationStore } from "../lib/fetchRouteElevations";
 
 /**

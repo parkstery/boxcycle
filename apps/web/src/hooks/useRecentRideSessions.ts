@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   backfillRideSessionsToFirestore,
   loadRecentRideSessionsFromFirestore,
-} from "../lib/firestoreRides";
+} from "../lib/ride/repo/firestoreRides";
 import {
   loadRideSessions,
   mergeRecentRideSessions,

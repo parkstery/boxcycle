@@ -4,13 +4,13 @@ import {
   ACTIVITY_TRACE_LIVE_STRENGTH,
   resolveHeatTraceStrength,
 } from "../lib/activityWorldTraceStyle";
-import { boundsCenterLngLat, boundsFromLineStringGeometry } from "../lib/firestoreCourses";
+import { boundsCenterLngLat, boundsFromLineStringGeometry } from "../lib/route/repo/firestoreCourses";
 import {
   heatVisualWeight,
   isRouteActivityHeat,
   isRouteActivityLive,
   type RouteActivitySnapshot,
-} from "../lib/firestoreRouteActivity";
+} from "../lib/activity/repo/firestoreRouteActivity";
 import type { LineStringGeometry } from "../lib/geo";
 import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../lib/geoDecimate";
 

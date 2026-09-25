@@ -162,21 +162,45 @@ function resolveSpec(fromFile, spec) {
   return null;
 }
 
-// `from "..."` 형태의 정적 import/export 와 `import("...")` 동적 import 를 함께 본다.
-// 동적 import 를 빼면 App.tsx:162 류(R2)가 그래프에서 사라진다.
-const IMPORT_RE = /(?:^|[\s;}])(?:import|export)[\s\S]*?\bfrom\s*["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']\s*\)/g;
+/**
+ * 정적 `import/export … from "x"` · 부수효과 `import "x"` · 동적 `import("x")`.
+ * 동적 import 를 빼면 App.tsx:162 류(R2)가 그래프에서 사라진다.
+ *
+ * ⚠️ 첫 절은 **줄머리에 고정**하고 `[^;'"]*` 로 문장을 넘지 못하게 한다.
+ * 종전 `[\s\S]*?` 는 `import.meta.url`(문장 중간의 `import`)에서 시작해 한참 뒤의
+ * `from "…"` 까지 이어 붙여 **없는 엣지를 만들어냈다**. 팬텀 엣지는 없는 위반을 만들고,
+ * 반대로 진짜 엣지를 가릴 수도 있다.
+ */
+const IMPORT_RE =
+  /^\s*(?:import|export)\b[^;'"]*\bfrom\s*["']([^"']+)["']|^\s*import\s*["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']\s*\)/gm;
 
 const edges = new Map();
+/**
+ * 해석되지 않은 상대 specifier.
+ *
+ * 왜 세는가 — 해석 못 한 엣지를 조용히 버리면 **깨진 코드가 위반을 줄인다.**
+ * 2026-09-25 파일 이동이 중간에 멈췄을 때 실제로 위반이 59 → 25 로 「좋아졌다」.
+ * 엣지가 사라지면 위반도 사라지기 때문이다 — 전형적인 축퇴값 자동통과다.
+ * 그래서 M0 에서 이것을 막는다. (패키지를 넘는 경로는 디스크로 확인해 제외한다)
+ */
+const unresolved = [];
 for (const f of files) {
   const src = fs.readFileSync(f, "utf8");
   const set = new Set();
   IMPORT_RE.lastIndex = 0;
   let m;
   while ((m = IMPORT_RE.exec(src))) {
-    const spec = m[1] ?? m[2];
+    const spec = m[1] ?? m[2] ?? m[3];
     if (!spec || !spec.startsWith(".")) continue;
     const r = resolveSpec(f, spec);
-    if (r) set.add(r);
+    if (r) {
+      set.add(r);
+      continue;
+    }
+    if (/\.(json|css|svg|png|glb)$/.test(spec)) continue;
+    const base = path.posix.join(path.posix.dirname(f), spec);
+    if (CANDIDATE_SUFFIXES.some((s) => fs.existsSync(base + s))) continue; // 범위 밖, 정상
+    unresolved.push(`${rel(f)} → ${spec}`);
   }
   edges.set(f, set);
 }
@@ -252,6 +276,11 @@ const m0 = [
   // scripts 뿌리가 빠지면 이 모듈의 fan-in 이 0 이 된다 — 유일한 소비자가
   // scripts/ride-hierarchy 의 계약 시험이기 때문이다. 범위 누락의 감지선.
   [
+    "깨진 상대경로 0 (엣지가 사라지면 위반도 사라진다)",
+    unresolved.length === 0,
+    unresolved.length + "건",
+  ],
+  [
     "scripts 뿌리 포함 (sensorChipSlot fan-in ≥ 1)",
     scsFile ? fanIn.get(scsFile) >= 1 : false,
     scsFile ? fanIn.get(scsFile) : "파일 없음",
@@ -261,6 +290,10 @@ const m0 = [
 console.log("=== M0 자가 검산 ===");
 for (const [name, ok, value] of m0) {
   console.log(`  ${ok ? "PASS" : "FAIL"}  ${name}  (${value})`);
+}
+if (unresolved.length > 0) {
+  console.log("\n  해석 못 한 상대경로 — 이동이 덜 끝났다는 뜻이다(repair-lib-imports.mjs):");
+  for (const u of unresolved.slice(0, 20)) console.log("    " + u);
 }
 if (unassigned.length > 0) {
   console.log("\n  미지정 파일 — dep-layers.json 의 assign 또는 pending 에 넣어야 한다:");

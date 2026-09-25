@@ -40,7 +40,7 @@ import {
 import { computeRideSessionAnchors } from "../../src/lib/rideSessionAnchors.ts";
 import type { RideEndResult } from "../../src/lib/rideEndResult.ts";
 import type { StoredRideSession } from "../../src/lib/rideSessionsStorage.ts";
-import type { SavedRoute } from "../../src/lib/firestoreSavedRoutes.ts";
+import type { SavedRoute } from "../../src/lib/route/repo/firestoreSavedRoutes.ts";
 
 // ---------------------------------------------------------------------------
 // 헬퍼: React useState setter 를 시뮬레이션

@@ -1,6 +1,6 @@
 import type { LineStringGeometry } from "./geo";
 import { getPointOnRouteByDistance, lineStringLengthMeters } from "./geo";
-import type { TrailLivePublicationRideRow } from "./firestoreTrailLivePublicationRides";
+import type { TrailLivePublicationRideRow } from "./trail/repo/firestoreTrailLivePublicationRides";
 import { progressRatioToRouteDistanceMeters } from "./liveLocationSnapshot";
 import { peerSyncChainLog } from "./peerMotion/peerSyncChainLog";
 import { SPECTATOR_MAX_EXTRAP_MS } from "./rideSyncPolicy";

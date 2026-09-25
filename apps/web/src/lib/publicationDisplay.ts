@@ -1,5 +1,5 @@
 import type { RouteProfile } from "../services/mapboxDirections";
-import type { PublishedPublicCourseSummary } from "./firestoreCourses";
+import type { PublishedPublicCourseSummary } from "./route/repo/firestoreCourses";
 
 /** Publication 목록·HUD — 프로필 한글 라벨 */
 export function publicationProfileLabelKo(profile: RouteProfile): string {

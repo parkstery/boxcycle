@@ -7,7 +7,7 @@ import type { LngLat } from "../../lib/geo";
 import {
   fetchPublicPublicationPresencesDetailed,
   PUBLICATION_PRESENCE_POLL_MS,
-} from "../../lib/firestorePublicationPresence";
+} from "../../lib/ride/repo/firestorePublicationPresence";
 import { getMapDebugPhase, type MapDebugPhase } from "../../lib/mapDebugPhase";
 
 const DEBUG_SRC_ID = "debug-world-light-src";

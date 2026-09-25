@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { formatDuration } from "../../services/mapboxDirections";
 import {
   loadRecentRideSessionsFromFirestore,
-} from "../../lib/firestoreRides";
+} from "../../lib/ride/repo/firestoreRides";
 import {
   loadRideSessions,
   type StoredRideSession,

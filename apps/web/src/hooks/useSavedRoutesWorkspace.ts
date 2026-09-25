@@ -11,7 +11,7 @@ import {
   renameSavedRouteInFirestore,
   saveRouteToFirestore,
   type SavedRoute,
-} from "../lib/firestoreSavedRoutes";
+} from "../lib/route/repo/firestoreSavedRoutes";
 import type { LineStringGeometry, LngLat } from "../lib/geo";
 import { MAX_ROUTE_WAYPOINTS } from "../lib/routeWaypoints";
 import { lockRouteWorkspaceDuringRide } from "../lib/routeWorkspaceLock";
@@ -21,7 +21,7 @@ import {
   exportLocalRoutesForMigration,
   loadSavedRoutesFromLocal,
   renameSavedRouteInLocal,
-} from "../lib/savedRoutesLocal";
+} from "../lib/route/repo/savedRoutesLocal";
 import { formatDuration, type RouteProfile } from "../services/mapboxDirections";
 import type { PublishedRouteLink } from "../lib/routePublicationResolve";
 import type { RideSessionStatus } from "./useVirtualRideSession";

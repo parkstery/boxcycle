@@ -1,5 +1,5 @@
 import type { User } from "firebase/auth";
-import { functionsHttpUrl } from "./functionsEmulatorUrl";
+import { functionsHttpUrl } from "./firebase/functionsEmulatorUrl";
 
 export type TierQuotaAction = "save_route" | "public_route_request" | "create_event";
 

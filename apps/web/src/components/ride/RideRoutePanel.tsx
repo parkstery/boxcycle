@@ -1,8 +1,8 @@
 import { useState } from "react";
-import type { PublishedPublicCourseSummary } from "../../lib/firestoreCourses";
-import type { RouteActivitySnapshot } from "../../lib/firestoreRouteActivity";
-import type { SavedRoute } from "../../lib/firestoreSavedRoutes";
-import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/firestoreSavedRoutes";
+import type { PublishedPublicCourseSummary } from "../../lib/route/repo/firestoreCourses";
+import type { RouteActivitySnapshot } from "../../lib/activity/repo/firestoreRouteActivity";
+import type { SavedRoute } from "../../lib/route/repo/firestoreSavedRoutes";
+import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/route/repo/firestoreSavedRoutes";
 import { isIncompleteQuotaError } from "../../lib/tierQuota";
 import { SavedRoutesModal } from "./SavedRoutesModal";
 import {

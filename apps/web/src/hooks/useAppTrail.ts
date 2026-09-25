@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { sanitizeTrailId } from "../lib/firestoreTrail";
+import { sanitizeTrailId } from "../lib/trail/repo/firestoreTrail";
 import { readTrailIdFromLocation, replaceTrailInUrl } from "../lib/trailUrl";
 
 /**

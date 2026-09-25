@@ -1,5 +1,5 @@
-import { sanitizeTrailId } from "./firestoreTrail";
-import { subscribeTrailMotion, type RtdbTrailMotionRow } from "./rtdbTrailMotion";
+import { sanitizeTrailId } from "../../trail/repo/firestoreTrail";
+import { subscribeTrailMotion, type RtdbTrailMotionRow } from "../../trail/repo/rtdbTrailMotion";
 
 type RowsListener = (rows: RtdbTrailMotionRow[]) => void;
 type ErrorListener = (err: Error) => void;

@@ -158,8 +158,8 @@
   },
   "assign": {
     "firebase": [
-      "firebase.ts",
-      "functionsEmulatorUrl.ts"
+      "firebase/app.ts",
+      "firebase/functionsEmulatorUrl.ts"
     ],
     "geo": [
       "geo.ts",
@@ -192,7 +192,7 @@
       "nickname.ts"
     ],
     "identity/repo": [
-      "firestoreUser.ts"
+      "identity/repo/firestoreUser.ts"
     ],
     "account": [
       "mountRouteTokenPopupFeedback.ts",
@@ -206,30 +206,31 @@
       "userTier.ts"
     ],
     "account/repo": [
-      "firestoreRouteToken.ts"
+      "account/repo/firestoreRouteToken.ts"
     ],
     "conquest": [
       "conquestLayerEmphasis.ts",
       "conquestTiles.ts"
     ],
     "conquest/repo": [
-      "firestoreConquest.ts"
+      "conquest/repo/firestoreConquest.ts"
     ],
     "trail": [
+      "trail/trailTypes.ts",
       "trailAccessPolicy.ts",
       "trailDisplayNumber.ts",
       "trailDisplayNumberCache.ts",
       "trailUrl.ts"
     ],
     "trail/repo": [
-      "activeLiveRideTrailIdsSubscriptionHub.ts",
-      "firestoreOpenTrailListings.ts",
-      "firestoreTrail.ts",
-      "firestoreTrailInstance.ts",
-      "firestoreTrailLivePublicationRides.ts",
-      "firestoreTrailPaths.ts",
-      "livePublicationRidesSubscriptionHub.ts",
-      "rtdbTrailMotion.ts"
+      "trail/repo/activeLiveRideTrailIdsSubscriptionHub.ts",
+      "trail/repo/firestoreOpenTrailListings.ts",
+      "trail/repo/firestoreTrail.ts",
+      "trail/repo/firestoreTrailInstance.ts",
+      "trail/repo/firestoreTrailLivePublicationRides.ts",
+      "trail/repo/firestoreTrailPaths.ts",
+      "trail/repo/livePublicationRidesSubscriptionHub.ts",
+      "trail/repo/rtdbTrailMotion.ts"
     ],
     "route": [
       "basicIntroHubRouteGeometries.ts",
@@ -260,10 +261,10 @@
       "sensorChipSlot.ts"
     ],
     "route/repo": [
-      "firestoreCourses.ts",
-      "firestoreRoutePublications.ts",
-      "firestoreSavedRoutes.ts",
-      "savedRoutesLocal.ts"
+      "route/repo/firestoreCourses.ts",
+      "route/repo/firestoreRoutePublications.ts",
+      "route/repo/firestoreSavedRoutes.ts",
+      "route/repo/savedRoutesLocal.ts"
     ],
     "activity": [
       "activityWorldAnchor.ts",
@@ -274,8 +275,8 @@
       "coverageOverlayMode.ts"
     ],
     "activity/repo": [
-      "firestoreRouteActivity.ts",
-      "firestoreWorldActivity.ts"
+      "activity/repo/firestoreRouteActivity.ts",
+      "activity/repo/firestoreWorldActivity.ts"
     ],
     "ride": [
       "companionHudCount.ts",
@@ -305,11 +306,11 @@
       "rideSyncPolicy.ts"
     ],
     "ride/repo": [
-      "firestoreGlobalLivePresence.ts",
-      "firestorePublicationPresence.ts",
-      "firestorePublicationSessionPresence.ts",
-      "firestoreRides.ts",
-      "firestoreWorldPresence.ts"
+      "ride/repo/firestoreGlobalLivePresence.ts",
+      "ride/repo/firestorePublicationPresence.ts",
+      "ride/repo/firestorePublicationSessionPresence.ts",
+      "ride/repo/firestoreRides.ts",
+      "ride/repo/firestoreWorldPresence.ts"
     ],
     "rider": [
       "registerPeerRiderPedalSprites.ts",
@@ -333,7 +334,7 @@
       "peerMotion/"
     ],
     "peerMotion/repo": [
-      "rtdbMotionSubscriptionHub.ts"
+      "peerMotion/repo/rtdbMotionSubscriptionHub.ts"
     ],
     "coach": [
       "coachElevationFromRoute.ts",

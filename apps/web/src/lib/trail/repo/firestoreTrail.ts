@@ -12,13 +12,13 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
-import { getPresenceDisplayName, getPresenceMemberType } from "./authDisplay";
-import { getFirebaseFirestore } from "./firebase";
+import { getPresenceDisplayName, getPresenceMemberType } from "../../authDisplay";
+import { getFirebaseFirestore } from "../../firebase/app";
 import {
   TRAIL_MEMBERS_SUBCOLLECTION,
   TRAILS_COLLECTION,
 } from "./firestoreTrailPaths";
-import { noteListingRefreshRead, notePresenceHeartbeatWrite } from "./touchActivityMeters";
+import { noteListingRefreshRead, notePresenceHeartbeatWrite } from "../../touchActivityMeters";
 
 /** URL·입장 시 기본 Trail ID (Firestore: `trails/default`) */
 export const DEFAULT_TRAIL_ID = "default";

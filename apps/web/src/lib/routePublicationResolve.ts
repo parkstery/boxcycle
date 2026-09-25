@@ -1,9 +1,9 @@
-import type { PublishedPublicCourseSummary } from "./firestoreCourses";
+import type { PublishedPublicCourseSummary } from "./route/repo/firestoreCourses";
 import {
   findPublishedRoutePublicationByFingerprint,
   findPublishedRoutePublicationById,
   findPublishedRoutePublicationByRouteId,
-} from "./firestoreRoutePublications";
+} from "./route/repo/firestoreRoutePublications";
 import type { LineStringGeometry } from "./geo";
 import { computeRouteFingerprint } from "./routeFingerprint";
 import type { RouteProfile } from "../services/mapboxDirections";

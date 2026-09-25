@@ -12,17 +12,17 @@ import {
   shouldPublishRouteProgress,
   type LiveLocationPublishInput,
 } from "../lib/liveLocationSnapshot";
-import { isFirebaseDatabaseConfigured } from "../lib/firebase";
+import { isFirebaseDatabaseConfigured } from "../lib/firebase/app";
 import { cleanupLiveLocationPublish, publishLiveLocationFanout } from "../lib/publishLiveLocationFanout";
-import { mergeGlobalLivePresence } from "../lib/firestoreGlobalLivePresence";
+import { mergeGlobalLivePresence } from "../lib/ride/repo/firestoreGlobalLivePresence";
 import { setPeerSyncSelfDistM } from "../lib/peerMotion/peerSyncDebug";
 import {
   finalizeAndDeleteTrailLivePublicationRide,
   deleteTrailLivePublicationRide,
-} from "../lib/firestoreTrailLivePublicationRides";
+} from "../lib/trail/repo/firestoreTrailLivePublicationRides";
 import { flushRideJoinPresenceBurst } from "../lib/rideJoinPresenceBurst";
-import { sanitizeTrailId } from "../lib/firestoreTrail";
-import { deleteTrailMotion } from "../lib/rtdbTrailMotion";
+import { sanitizeTrailId } from "../lib/trail/repo/firestoreTrail";
+import { deleteTrailMotion } from "../lib/trail/repo/rtdbTrailMotion";
 import {
   awaitRouteFlightSettled,
   cancelRoutePublish,

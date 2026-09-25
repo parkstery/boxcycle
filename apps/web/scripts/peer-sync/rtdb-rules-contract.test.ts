@@ -3,8 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
-import { encodePayload } from "../../src/lib/rtdbTrailMotion.ts";
-import type { TrailLiveRidePhase } from "../../src/lib/firestoreTrailLivePublicationRides.ts";
+import { encodePayload } from "../../src/lib/trail/repo/rtdbTrailMotion.ts";
+import type { TrailLiveRidePhase } from "../../src/lib/trail/repo/firestoreTrailLivePublicationRides.ts";
 
 /**
  * peer-sync 패킷과 RTDB 보안 규칙의 계약을 고정한다.

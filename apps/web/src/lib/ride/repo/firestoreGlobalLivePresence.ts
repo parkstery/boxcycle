@@ -9,10 +9,10 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
-import { getPresenceDisplayName } from "./authDisplay";
-import { getFirebaseFirestore } from "./firebase";
-import type { LngLat } from "./geo";
-import { lastSeenAtToMillis, TRAIL_PRESENCE_STALE_MS } from "./firestoreTrail";
+import { getPresenceDisplayName } from "../../authDisplay";
+import { getFirebaseFirestore } from "../../firebase/app";
+import type { LngLat } from "../../geo";
+import { lastSeenAtToMillis, TRAIL_PRESENCE_STALE_MS } from "../../trail/repo/firestoreTrail";
 
 /** 전역 라이브 presence — courseId·trail·geometry 불필요 */
 export const GLOBAL_LIVE_PRESENCE_COLLECTION = "livePresence";

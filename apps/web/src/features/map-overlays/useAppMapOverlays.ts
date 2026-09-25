@@ -8,23 +8,23 @@ import { useWorldPublicationPresenceOverlay } from "../../hooks/useWorldPublicat
 import {
   formatActivityWorldPinPopup,
   type RouteActivitySnapshot,
-} from "../../lib/firestoreRouteActivity";
-import { formatPublicationPresencePinPopup } from "../../lib/firestorePublicationPresence";
+} from "../../lib/activity/repo/firestoreRouteActivity";
+import { formatPublicationPresencePinPopup } from "../../lib/ride/repo/firestorePublicationPresence";
 import {
   resolveActivityWorldLodDebug,
   resolveActivityWorldRender,
   runActivityWorldLodP0Checks,
 } from "../../lib/activityWorldLod";
 import { runActivityWorldPollPolicyChecks } from "../../lib/activityWorldPollPolicy";
-import { BASIC_SHARED_HUB_IDS } from "../../lib/firestoreCourses";
-import type { PublishedPublicCourseSummary } from "../../lib/firestoreCourses";
-import type { TrailInstance } from "../../lib/firestoreTrailInstance";
-import { sanitizeTrailId, DEFAULT_TRAIL_ID } from "../../lib/firestoreTrail";
+import { BASIC_SHARED_HUB_IDS } from "../../lib/route/repo/firestoreCourses";
+import type { PublishedPublicCourseSummary } from "../../lib/route/repo/firestoreCourses";
+import type { TrailInstance } from "../../lib/trail/repo/firestoreTrailInstance";
+import { sanitizeTrailId, DEFAULT_TRAIL_ID } from "../../lib/trail/repo/firestoreTrail";
 import { useActiveLiveRideTrailIds } from "../../hooks/useActiveLiveRideTrailIds";
-import { debugTrailLivePublicationRidesSubscriptionCount } from "../../lib/livePublicationRidesSubscriptionHub";
+import { debugTrailLivePublicationRidesSubscriptionCount } from "../../lib/trail/repo/livePublicationRidesSubscriptionHub";
 import type { LineStringGeometry } from "../../lib/geo";
 import type { ActivityWorldLodDebugPanelProps } from "./ActivityWorldLodDebugPanel";
-import { runPublicationPresenceParseChecks } from "../../lib/firestorePublicationPresence";
+import { runPublicationPresenceParseChecks } from "../../lib/ride/repo/firestorePublicationPresence";
 import { resolveWorldMapOverlay, runWorldMapOverlayMergeChecks } from "./worldMapOverlayCore";
 import { useActivityWorldDataSync } from "./useActivityWorldDataSync";
 import { useWorldLivePublicationRideMapOverlay } from "./useWorldLivePublicationRideMapOverlay";

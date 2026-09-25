@@ -17,8 +17,8 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
-import { getPresenceDisplayName } from "./authDisplay";
-import { getFirebaseFirestore } from "./firebase";
+import { getPresenceDisplayName } from "../../authDisplay";
+import { getFirebaseFirestore } from "../../firebase/app";
 import {
   DEFAULT_TRAIL_ID,
   isMemberRecentlySeen,
@@ -30,20 +30,22 @@ import {
   TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION,
   TRAILS_COLLECTION,
 } from "./firestoreTrailPaths";
-import { resolvePublicationIdFromDoc } from "./resolvePublicationIdFromDoc";
+import { resolvePublicationIdFromDoc } from "../../resolvePublicationIdFromDoc";
 import {
   PEER_LIVE_RIDE_COMPLETED_VISIBLE_MS,
   PEER_LIVE_RIDE_FINAL_BURST_MS,
   PEER_LIVE_RIDE_STALE_MS,
-} from "./rideSyncPolicy";
+} from "../../rideSyncPolicy";
 import { deleteTrailMotion } from "./rtdbTrailMotion";
-import { trackUnderlyingReadSubscription } from "./readSubscriptionMeters";
-import { noteListingRefreshRead } from "./touchActivityMeters";
+import { trackUnderlyingReadSubscription } from "../../readSubscriptionMeters";
+import { noteListingRefreshRead } from "../../touchActivityMeters";
 
 /** publication 진행률만 주기적으로 올려 부담을 줄임 (좌표·geometry 미전송). */
 export const TRAIL_LIVE_PUBLICATION_RIDE_WRITE_INTERVAL_MS = 4_000;
 
-export type TrailLiveRidePhase = "live" | "paused" | "completed";
+// 타입 정의는 도메인 층이 갖는다 — 저장소끼리 타입을 주고받으면 순환이 된다(Phase 5 D1).
+import type { TrailLiveRidePhase } from "../trailTypes";
+export type { TrailLiveRidePhase };
 
 export type TrailLivePublicationRideRow = {
   uid: string;

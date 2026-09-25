@@ -1,5 +1,5 @@
 import type { User } from "firebase/auth";
-import type { UserTier } from "./firestoreUser";
+import type { UserTier } from "./identity/repo/firestoreUser";
 
 export type { UserTier };
 

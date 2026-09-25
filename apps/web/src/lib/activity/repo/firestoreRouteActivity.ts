@@ -8,13 +8,13 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { getFirebaseFirestore } from "./firebase";
-import { isActivityLodDebugPanelEnabled } from "./mapDebugPhase";
-import type { LngLat } from "./geo";
-import { isWithinActivityTraceHeatWindow } from "./activityWorldTraceStyle";
-import { lastSeenAtToMillis } from "./firestoreTrail";
-import { recordRouteActivityAccess } from "./hudCompanionDiag";
-import { ROUTE_ACTIVITY_CACHE_TTL_MS } from "./rideSyncPolicy";
+import { getFirebaseFirestore } from "../../firebase/app";
+import { isActivityLodDebugPanelEnabled } from "../../mapDebugPhase";
+import type { LngLat } from "../../geo";
+import { isWithinActivityTraceHeatWindow } from "../../activityWorldTraceStyle";
+import { lastSeenAtToMillis } from "../../trail/repo/firestoreTrail";
+import { recordRouteActivityAccess } from "../../hudCompanionDiag";
+import { ROUTE_ACTIVITY_CACHE_TTL_MS } from "../../rideSyncPolicy";
 
 /**
  * Activity World invariant

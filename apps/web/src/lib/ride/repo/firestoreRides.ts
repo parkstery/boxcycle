@@ -9,12 +9,12 @@ import {
   Timestamp,
   where,
 } from "firebase/firestore";
-import { getFirebaseFirestore } from "./firebase";
-import type { ConquestRidePayload } from "./conquestTiles";
-import { buildRideCanonicalWriteFields, resolveRideRouteId } from "./rideDocFields";
-import type { RouteRideEntry } from "./routePublicationResolve";
-import type { StoredRideSession } from "./rideSessionsStorage";
-import { isDiscardableRideRecord } from "./rideRecordPolicy";
+import { getFirebaseFirestore } from "../../firebase/app";
+import type { ConquestRidePayload } from "../../conquestTiles";
+import { buildRideCanonicalWriteFields, resolveRideRouteId } from "../../rideDocFields";
+import type { RouteRideEntry } from "../../routePublicationResolve";
+import type { StoredRideSession } from "../../rideSessionsStorage";
+import { isDiscardableRideRecord } from "../../rideRecordPolicy";
 
 const RIDES_COLLECTION = "rides";
 

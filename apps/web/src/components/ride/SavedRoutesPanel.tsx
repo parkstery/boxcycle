@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { sortRouteList, type RouteSortKey } from "../../lib/routeListSort";
 import { RouteSortSelect } from "./RouteSortSelect";
-import type { SavedRoute } from "../../lib/firestoreSavedRoutes";
+import type { SavedRoute } from "../../lib/route/repo/firestoreSavedRoutes";
 import {
   encodeCanonicalRouteGeometryProfile,
   fingerprintFromCanonicalSync,

@@ -1,6 +1,6 @@
 import { startTransition, useCallback, useEffect, useState } from "react";
-import { fetchTrailInstance, type TrailInstance } from "../lib/firestoreTrailInstance";
-import { DEFAULT_TRAIL_ID } from "../lib/firestoreTrail";
+import { fetchTrailInstance, type TrailInstance } from "../lib/trail/repo/firestoreTrailInstance";
+import { DEFAULT_TRAIL_ID } from "../lib/trail/repo/firestoreTrail";
 import { rememberTrailDisplayNumber } from "../lib/trailDisplayNumberCache";
 
 export function useTrailInstanceMeta(

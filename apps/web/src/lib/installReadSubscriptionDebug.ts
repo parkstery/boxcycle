@@ -5,15 +5,15 @@ import {
 import {
   debugInjectActiveLiveRideTrailIdsHubError,
   debugActiveLiveRideTrailIdsSubscriptionHub,
-} from "./activeLiveRideTrailIdsSubscriptionHub";
+} from "./trail/repo/activeLiveRideTrailIdsSubscriptionHub";
 import {
   debugInjectRtdbMotionHubError,
   debugRtdbMotionSubscriptionHub,
-} from "./rtdbMotionSubscriptionHub";
+} from "./peerMotion/repo/rtdbMotionSubscriptionHub";
 import {
   debugInjectTrailLivePublicationRidesHubError,
   debugTrailLivePublicationRidesSubscriptionHub,
-} from "./livePublicationRidesSubscriptionHub";
+} from "./trail/repo/livePublicationRidesSubscriptionHub";
 
 export function snapshotReadSubscriptions() {
   const underlying = snapshotUnderlyingReadSubscriptions();

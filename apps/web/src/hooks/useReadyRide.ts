@@ -1,7 +1,7 @@
 import type { User } from "firebase/auth";
 import { getFunctions } from "firebase/functions";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getFirebaseApp } from "../lib/firebase";
+import { getFirebaseApp } from "../lib/firebase/app";
 import type { LineStringGeometry, LngLat } from "../lib/geo";
 import { formatDistanceAutoRouteClientError } from "../lib/distanceAutoRouteErrors";
 import {

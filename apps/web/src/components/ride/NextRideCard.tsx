@@ -1,5 +1,5 @@
 import type { LngLat } from "../../lib/geo";
-import { shortPlaceLabel } from "../../lib/firestoreSavedRoutes";
+import { shortPlaceLabel } from "../../lib/route/repo/firestoreSavedRoutes";
 import type { NextRideTarget, NextRideView } from "../../lib/nextRideTarget";
 import { formatRideDistanceKmNumber } from "../../lib/rideDistanceFormat";
 import { progressPercentLabel } from "../../lib/rideEndResult";

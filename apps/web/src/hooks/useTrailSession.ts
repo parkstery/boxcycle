@@ -9,8 +9,8 @@ import {
   touchTrailPresence,
   upsertTrailPresence,
   type TrailMemberRow,
-} from "../lib/firestoreTrail";
-import { touchTrailInstanceActivity } from "../lib/firestoreTrailInstance";
+} from "../lib/trail/repo/firestoreTrail";
+import { touchTrailInstanceActivity } from "../lib/trail/repo/firestoreTrailInstance";
 import { TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS } from "../lib/rideSyncPolicy";
 
 /** Trail 1곳에 대한 upsert·스냅샷·하트비트 — 단일 구독용(App + 표시 컴포넌트 공유) */

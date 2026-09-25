@@ -5,9 +5,9 @@ import {
   promoteSavedRouteInFirestore,
   updateSavedRouteProgressInFirestore,
   type SavedRoute,
-} from "../lib/firestoreSavedRoutes";
-import { markRouteActivityRideCompletedOptimistic } from "../lib/firestoreRouteActivity";
-import { saveRideSessionToFirestore } from "../lib/firestoreRides";
+} from "../lib/route/repo/firestoreSavedRoutes";
+import { markRouteActivityRideCompletedOptimistic } from "../lib/activity/repo/firestoreRouteActivity";
+import { saveRideSessionToFirestore } from "../lib/ride/repo/firestoreRides";
 import {
   persistRideEndCore,
   type SaveRideSessionFn,
@@ -34,10 +34,10 @@ import {
   loadSavedRoutesFromLocal,
   promoteSavedRouteInLocal,
   updateSavedRouteProgressInLocal,
-} from "../lib/savedRoutesLocal";
+} from "../lib/route/repo/savedRoutesLocal";
 import { fetchMapboxReverseGeocodePlaceName } from "../services/mapboxReverseGeocode";
 import type { RouteProfile } from "../services/mapboxDirections";
-import type { PublishedPublicCourseSummary } from "../lib/firestoreCourses";
+import type { PublishedPublicCourseSummary } from "../lib/route/repo/firestoreCourses";
 import {
   resolvePublishedRouteLink,
   resolvePublishedRouteLinkByPublicationId,

@@ -1,12 +1,12 @@
 import type { User } from "firebase/auth";
 import { useMemo } from "react";
-import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "../../lib/firestoreTrail";
+import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "../../lib/trail/repo/firestoreTrail";
 import {
   canUserManageTrail,
   type TrailInstance,
   type TrailVisibility,
-} from "../../lib/firestoreTrailInstance";
-import { compareOpenTrailsForListing, isActiveOpenTrailListing } from "../../lib/firestoreOpenTrailListings";
+} from "../../lib/trail/repo/firestoreTrailInstance";
+import { compareOpenTrailsForListing, isActiveOpenTrailListing } from "../../lib/trail/repo/firestoreOpenTrailListings";
 import { formatTrailDisplayNumber } from "../../lib/trailDisplayNumber";
 import { TRAILHEAD_LABEL, TRAIL_LABEL } from "../../lib/productTerms";
 import "./TrailHubPanel.css";

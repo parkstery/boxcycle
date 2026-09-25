@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
 import { cadenceChipView } from "../../lib/cadenceSensorUi";
-import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/firestoreSavedRoutes";
+import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/route/repo/firestoreSavedRoutes";
 import { isRouteDockVisible, routeDockUiPolicy } from "../../lib/routeDockUiPolicy";
 import { CadenceHudChip, type CadenceChipBinding } from "../maphud/CadenceHudChip";
 import { isIncompleteQuotaError } from "../../lib/tierQuota";

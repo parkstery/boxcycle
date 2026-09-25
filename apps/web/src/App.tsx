@@ -13,7 +13,7 @@ import {
   formatRouteActivityHudLine,
   invalidateLiveRouteActivityIdsCache,
   invalidateRouteActivityCache,
-} from "./lib/firestoreRouteActivity";
+} from "./lib/activity/repo/firestoreRouteActivity";
 import { AppMapStage, RouteMinimap, useAppMapOverlays } from "./features/map-overlays";
 import { RouteDock, useRouteDockStops, type RouteDockStop, type RouteDockStopId } from "./components/route-dock";
 import { DebugMapStage } from "./features/map-overlays/DebugMapStage";
@@ -64,8 +64,8 @@ import {
   touchTrailInstanceActivity,
   withResolvedTrailPublicationId,
   type TrailInstance,
-} from "./lib/firestoreTrailInstance";
-import { fetchOpenTrailListingPublicationId } from "./lib/firestoreOpenTrailListings";
+} from "./lib/trail/repo/firestoreTrailInstance";
+import { fetchOpenTrailListingPublicationId } from "./lib/trail/repo/firestoreOpenTrailListings";
 import { formatTrailDisplayNumber, resolveTrailDisplayLabel } from "./lib/trailDisplayNumber";
 import {
   readTrailDisplayNumberCache,
@@ -82,22 +82,22 @@ import {
   useRideCoachingMedia,
   useRideFeedbackPreferences,
 } from "./features/ride-feedback";
-import { isFirebaseConfigured } from "./lib/firebase";
+import { isFirebaseConfigured } from "./lib/firebase/app";
 import {
   BASIC_SHARED_HUB_IDS,
   BASIC_SHARED_HUB_SUMMARIES,
   ensureBasicCoursesSeeded,
   fetchCourseRoutePayload,
   getBasicHubCoursePayload,
-} from "./lib/firestoreCourses";
-import { deletePublicationSessionMember } from "./lib/firestorePublicationSessionPresence";
-import { deleteGlobalLivePresence } from "./lib/firestoreGlobalLivePresence";
+} from "./lib/route/repo/firestoreCourses";
+import { deletePublicationSessionMember } from "./lib/ride/repo/firestorePublicationSessionPresence";
+import { deleteGlobalLivePresence } from "./lib/ride/repo/firestoreGlobalLivePresence";
 import {
   DEFAULT_TRAIL_ID,
   deleteTrailPresence,
   isTrailMemberActive,
   sanitizeTrailId,
-} from "./lib/firestoreTrail";
+} from "./lib/trail/repo/firestoreTrail";
 import { canUserJoinTrail, resolveNewTrailVisibility } from "./lib/trailAccessPolicy";
 import { replaceTrailInUrl } from "./lib/trailUrl";
 import type { LngLat, LineStringGeometry } from "./lib/geo";
@@ -105,7 +105,7 @@ import { boundsFromLineCoordinates, getPointOnRouteByDistance, lineStringLengthM
 import { MAX_ROUTE_WAYPOINTS } from "./lib/routeWaypoints";
 import { lockRouteWorkspaceDuringRide } from "./lib/routeWorkspaceLock";
 import { resolveRideContinuationSetup } from "./lib/rideContinuationSetup";
-import type { PublishedPublicCourseSummary } from "./lib/firestoreCourses";
+import type { PublishedPublicCourseSummary } from "./lib/route/repo/firestoreCourses";
 import {
   publicationDisplayTitle,
 } from "./lib/publicationDisplay";
@@ -114,8 +114,8 @@ import {
   type PublishedRouteLink,
   type RouteRideEntry,
 } from "./lib/routePublicationResolve";
-import type { SavedRoute } from "./lib/firestoreSavedRoutes";
-import { SAVED_ROUTE_NAME_MAX, buildSuggestedRouteName } from "./lib/firestoreSavedRoutes";
+import type { SavedRoute } from "./lib/route/repo/firestoreSavedRoutes";
+import { SAVED_ROUTE_NAME_MAX, buildSuggestedRouteName } from "./lib/route/repo/firestoreSavedRoutes";
 import { useAppAuth } from "./hooks/useAppAuth";
 import { useRouteTokenBalance } from "./hooks/useRouteTokenBalance";
 import {

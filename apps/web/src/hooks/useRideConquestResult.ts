@@ -4,7 +4,7 @@
  */
 import { onSnapshot } from "firebase/firestore";
 import { useEffect, useState, useRef } from "react";
-import { getFirebaseFirestore } from "../lib/firebase";
+import { getFirebaseFirestore } from "../lib/firebase/app";
 import {
   EMPTY_CONQUEST_RESULT,
   type RideConquestResult,

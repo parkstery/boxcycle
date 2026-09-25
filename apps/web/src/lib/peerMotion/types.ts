@@ -1,4 +1,4 @@
-import type { TrailLiveRidePhase } from "../firestoreTrailLivePublicationRides";
+import type { TrailLiveRidePhase } from "../trail/trailTypes";
 
 export type PeerMotionPhase = TrailLiveRidePhase;
 

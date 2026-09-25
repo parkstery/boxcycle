@@ -1,5 +1,5 @@
 import type { User } from "firebase/auth";
-import type { TrailInstance, TrailVisibility } from "./firestoreTrailInstance";
+import type { TrailInstance, TrailVisibility } from "./trail/trailTypes";
 
 export type TrailJoinGate =
   | { ok: true }

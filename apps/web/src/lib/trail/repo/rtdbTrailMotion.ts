@@ -8,16 +8,16 @@ import {
   type Unsubscribe,
 } from "firebase/database";
 import type { User } from "firebase/auth";
-import { getFirebaseApp, getFirebaseDatabase, isFirebaseDatabaseConfigured } from "./firebase";
+import { getFirebaseApp, getFirebaseDatabase, isFirebaseDatabaseConfigured } from "../../firebase/app";
 import { sanitizeTrailId } from "./firestoreTrail";
-import type { TrailLiveRidePhase } from "./firestoreTrailLivePublicationRides";
+import type { TrailLiveRidePhase } from "../trailTypes";
 import {
   beginMotionInFlight,
   endMotionInFlight,
   peerSyncChainLog,
   peekMotionInFlightMax,
-} from "./peerMotion/peerSyncChainLog";
-import { trackUnderlyingReadSubscription } from "./readSubscriptionMeters";
+} from "../../peerMotion/peerSyncChainLog";
+import { trackUnderlyingReadSubscription } from "../../readSubscriptionMeters";
 
 /** RTDB `/trails/{trailId}/motion/{uid}` */
 export const RTDB_TRAIL_MOTION_SEGMENT = "motion";

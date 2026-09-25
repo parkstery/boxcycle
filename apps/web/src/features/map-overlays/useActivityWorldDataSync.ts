@@ -14,13 +14,13 @@ import {
   fetchLiveRouteActivityIds,
   invalidateRouteActivityCache,
   type RouteActivitySnapshot,
-} from "../../lib/firestoreRouteActivity";
-import { fetchWorldPresenceSummary, formatWorldPresenceHudLine } from "../../lib/firestoreWorldPresence";
+} from "../../lib/activity/repo/firestoreRouteActivity";
+import { fetchWorldPresenceSummary, formatWorldPresenceHudLine } from "../../lib/ride/repo/firestoreWorldPresence";
 import {
   fetchWorldActivityGlobal,
   formatWorldActivityHudLine,
   mergeWorldHudLines,
-} from "../../lib/firestoreWorldActivity";
+} from "../../lib/activity/repo/firestoreWorldActivity";
 import { isActivityLodDebugPanelEnabled } from "../../lib/mapDebugPhase";
 
 export type UseActivityWorldDataSyncOpts = {

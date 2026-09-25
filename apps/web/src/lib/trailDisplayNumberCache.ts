@@ -1,4 +1,4 @@
-import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "./firestoreTrail";
+import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "./trail/repo/firestoreTrail";
 
 /** 세션 내 Trail id → `displayNumber` — fetch·seed 전에도 HUD·네임태그에 번호 즉시 표시 */
 const displayNumberByTrailId = new Map<string, number>();

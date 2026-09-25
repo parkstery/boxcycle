@@ -5,8 +5,8 @@ import {
   onSnapshot,
   type Unsubscribe,
 } from "firebase/firestore";
-import { getFirebaseFirestore } from "./firebase";
-import type { LineStringGeometry } from "./geo";
+import { getFirebaseFirestore } from "../../firebase/app";
+import type { LineStringGeometry } from "../../geo";
 
 /**
  * Conquest(정복) v2 — 도로 셀·궤적. 읽기 전용 클라이언트(쓰기는 CF `conquestOnRideCreated`).

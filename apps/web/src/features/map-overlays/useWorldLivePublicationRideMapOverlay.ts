@@ -6,13 +6,13 @@ import {
   BASIC_SHARED_HUB_IDS,
   fetchCourseRoutePayload,
   getBasicHubCoursePayload,
-} from "../../lib/firestoreCourses";
+} from "../../lib/route/repo/firestoreCourses";
 import {
   isTrailLivePublicationRideRowFresh,
   type TrailLivePublicationRideRow,
-} from "../../lib/firestoreTrailLivePublicationRides";
-import { acquireTrailLivePublicationRidesSubscription } from "../../lib/livePublicationRidesSubscriptionHub";
-import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "../../lib/firestoreTrail";
+} from "../../lib/trail/repo/firestoreTrailLivePublicationRides";
+import { acquireTrailLivePublicationRidesSubscription } from "../../lib/trail/repo/livePublicationRidesSubscriptionHub";
+import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "../../lib/trail/repo/firestoreTrail";
 import type { LineStringGeometry, LngLat } from "../../lib/geo";
 import { spectatorPointOnRoute } from "../../lib/spectatorRideExtrap";
 import type { TrailSpectatorDot } from "../../hooks/useTrailLivePublicationRideSpectatorOverlay";

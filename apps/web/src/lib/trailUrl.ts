@@ -1,4 +1,4 @@
-import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "./firestoreTrail";
+import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "./trail/repo/firestoreTrail";
 
 const TRAIL_QUERY_KEYS = ["trail", "room"] as const;
 

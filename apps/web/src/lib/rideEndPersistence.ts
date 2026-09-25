@@ -16,7 +16,7 @@
  */
 import type { Dispatch, SetStateAction } from "react";
 import type { StoredRideSession } from "./rideSessionsStorage";
-import type { SavedRoute } from "./firestoreSavedRoutes";
+import type { SavedRoute } from "./route/repo/firestoreSavedRoutes";
 import type { RideEndResult } from "./rideEndResult";
 import type { LineStringGeometry, LngLat } from "./geo";
 import type { RouteProfile } from "../services/mapboxDirections";
@@ -28,7 +28,7 @@ import {
   loadSavedRoutesFromLocal,
   promoteSavedRouteInLocal,
   updateSavedRouteProgressInLocal,
-} from "./savedRoutesLocal";
+} from "./route/repo/savedRoutesLocal";
 
 // ---------------------------------------------------------------------------
 // Injectable fn 타입 — Firestore SDK 의존을 주입으로 격리

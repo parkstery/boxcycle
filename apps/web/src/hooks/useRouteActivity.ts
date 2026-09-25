@@ -5,7 +5,7 @@ import {
   invalidateRouteActivityCache,
   markRouteActivityRideCompletedOptimistic,
   type RouteActivitySnapshot,
-} from "../lib/firestoreRouteActivity";
+} from "../lib/activity/repo/firestoreRouteActivity";
 import { resolveActivityWorldPollMode } from "../lib/activityWorldPollPolicy";
 import { getActivityWorldPollSignals, isPostRideActivityWatchActive } from "../lib/activityWorldPollSignals";
 import { useActivityWorldAdaptivePoll } from "./useActivityWorldAdaptivePoll";

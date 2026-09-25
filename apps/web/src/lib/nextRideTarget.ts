@@ -1,6 +1,6 @@
 import type { LngLat } from "./geo";
 import { getPointOnRouteByDistance, lineStringLengthMeters } from "./geo";
-import type { SavedRoute } from "./firestoreSavedRoutes";
+import type { SavedRoute } from "./route/repo/firestoreSavedRoutes";
 import type { StoredRideSession } from "./rideSessionsStorage";
 import { isDiscardableRideRecord, ROUTE_COMPLETION_RATIO_THRESHOLD, resumeOffsetMetersFrom } from "./rideRecordPolicy";
 

@@ -1,10 +1,10 @@
 import type { User } from "firebase/auth";
-import { upsertPublicationSessionMember } from "./firestorePublicationSessionPresence";
-import { mergeTrailLivePublicationRideSnapshot } from "./firestoreTrailLivePublicationRides";
-import { DEFAULT_TRAIL_ID } from "./firestoreTrail";
-import { touchTrailInstanceActivity } from "./firestoreTrailInstance";
+import { upsertPublicationSessionMember } from "./ride/repo/firestorePublicationSessionPresence";
+import { mergeTrailLivePublicationRideSnapshot } from "./trail/repo/firestoreTrailLivePublicationRides";
+import { DEFAULT_TRAIL_ID } from "./trail/repo/firestoreTrail";
+import { touchTrailInstanceActivity } from "./trail/repo/firestoreTrailInstance";
 import type { LiveLocationSnapshot } from "./liveLocationSnapshot";
-import { isFirebaseDatabaseConfigured } from "./firebase";
+import { isFirebaseDatabaseConfigured } from "./firebase/app";
 import { enqueueMotionPublish, peekMotionPublishEpoch } from "./peerMotion/motionPublishFlight";
 
 /** 주행 시작 직후 1회 — 세션 멤버 + livePublicationRides (스로틀 우회) */

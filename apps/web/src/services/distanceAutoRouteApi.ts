@@ -8,7 +8,7 @@ import {
 } from "../lib/routeTokenSpendBridge";
 import { ROUTE_TOKEN_INSUFFICIENT_HINT } from "../lib/routeTokenUiCopy";
 import { formatDistanceAutoRouteClientError } from "../lib/distanceAutoRouteErrors";
-import { functionsHttpUrl } from "../lib/functionsEmulatorUrl";
+import { functionsHttpUrl } from "../lib/firebase/functionsEmulatorUrl";
 import type { RouteProfile } from "./mapboxDirections";
 
 export type RouteOutcome = "exact" | "detoured" | "offered" | "shortfall";

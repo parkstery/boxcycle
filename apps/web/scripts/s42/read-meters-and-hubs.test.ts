@@ -7,7 +7,7 @@ import {
   debugTrailLivePublicationRidesSubscriptionHub,
   acquireTrailLivePublicationRidesSubscription,
   resetTrailLivePublicationRidesSubscriptionHubForTests,
-} from "../../src/lib/livePublicationRidesSubscriptionHub.ts";
+} from "../../src/lib/trail/repo/livePublicationRidesSubscriptionHub.ts";
 import {
   resetUnderlyingReadMeters,
   snapshotUnderlyingReadSubscriptions,
@@ -18,15 +18,15 @@ import {
   debugInjectRtdbMotionHubError,
   debugRtdbMotionSubscriptionHub,
   resetRtdbMotionSubscriptionHubForTests,
-} from "../../src/lib/rtdbMotionSubscriptionHub.ts";
-import type { RtdbTrailMotionRow } from "../../src/lib/rtdbTrailMotion.ts";
-import type { TrailLivePublicationRideRow } from "../../src/lib/firestoreTrailLivePublicationRides.ts";
+} from "../../src/lib/peerMotion/repo/rtdbMotionSubscriptionHub.ts";
+import type { RtdbTrailMotionRow } from "../../src/lib/trail/repo/rtdbTrailMotion.ts";
+import type { TrailLivePublicationRideRow } from "../../src/lib/trail/repo/firestoreTrailLivePublicationRides.ts";
 import {
   acquireActiveLiveRideTrailIdsSubscription,
   debugActiveLiveRideTrailIdsSubscriptionHub,
   debugInjectActiveLiveRideTrailIdsHubError,
   resetActiveLiveRideTrailIdsSubscriptionHubForTests,
-} from "../../src/lib/activeLiveRideTrailIdsSubscriptionHub.ts";
+} from "../../src/lib/trail/repo/activeLiveRideTrailIdsSubscriptionHub.ts";
 
 
 describe("readSubscriptionMeters", () => {

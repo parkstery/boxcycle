@@ -5,7 +5,7 @@
  */
 import { doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { getFirebaseFirestore, isFirebaseConfigured } from "./firebase";
+import { getFirebaseFirestore, isFirebaseConfigured } from "./firebase/app";
 
 /** 시드와 동기 — Firestore 문서가 없을 때·구독 전 기본값 */
 export const ROUTE_TOKEN_ECONOMY_CLIENT_DEFAULT: { generateCostBase: number } = {

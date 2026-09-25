@@ -12,14 +12,14 @@ import {
   fetchCourseRoutePayload,
   getBasicHubCourseBounds,
   getBasicHubCoursePayload,
-} from "../lib/firestoreCourses";
+} from "../lib/route/repo/firestoreCourses";
 import {
   fetchRouteActivitiesBatch,
   heatVisualWeight,
   isRouteActivityHeat,
   isRouteActivityLive,
   type RouteActivitySnapshot,
-} from "../lib/firestoreRouteActivity";
+} from "../lib/activity/repo/firestoreRouteActivity";
 import type { LineStringGeometry } from "../lib/geo";
 import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../lib/geoDecimate";
 import { resolveActivityWorldDotLngLat } from "../lib/activityWorldAnchor";

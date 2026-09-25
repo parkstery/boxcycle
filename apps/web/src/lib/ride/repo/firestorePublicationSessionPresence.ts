@@ -11,10 +11,10 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
-import { getPresenceDisplayName, getPresenceMemberType, type PresenceMemberType } from "./authDisplay";
-import { getFirebaseFirestore } from "./firebase";
-import type { LngLat } from "./geo";
-import { isMemberRecentlySeen, lastSeenAtToMillis } from "./firestoreTrail";
+import { getPresenceDisplayName, getPresenceMemberType, type PresenceMemberType } from "../../authDisplay";
+import { getFirebaseFirestore } from "../../firebase/app";
+import type { LngLat } from "../../geo";
+import { isMemberRecentlySeen, lastSeenAtToMillis } from "../../trail/repo/firestoreTrail";
 
 /** Phase 6 — 동일 출판(`publicationId`) 세션 멤버십. `publicationPresence` 집계와 별개. */
 export const PUBLICATION_SESSIONS_COLLECTION = "publicationSessions" as const;

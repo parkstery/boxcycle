@@ -20,13 +20,13 @@ import {
   setUserSignedOutSessionFlag,
 } from "../lib/appSessionKeys";
 import { isBenignAuthPopupCancel } from "../lib/firebaseAuthPopup";
-import { getFirebaseAuth } from "../lib/firebase";
+import { getFirebaseAuth } from "../lib/firebase/app";
 import {
   claimNicknameTransaction,
   ensureAnonymousUserTier,
   getUserProfileNickname,
   NicknameTakenError,
-} from "../lib/firestoreUser";
+} from "../lib/identity/repo/firestoreUser";
 import { isValidNickname } from "../lib/nickname";
 
 export type FsSyncState =

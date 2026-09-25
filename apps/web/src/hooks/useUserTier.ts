@@ -1,8 +1,8 @@
 import type { User } from "firebase/auth";
 import { doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
-import { getFirebaseFirestore } from "../lib/firebase";
-import type { UserTier } from "../lib/firestoreUser";
+import { getFirebaseFirestore } from "../lib/firebase/app";
+import type { UserTier } from "../lib/identity/repo/firestoreUser";
 import type { SubscriptionStatus } from "../lib/subscription";
 import {
   canSubmitPublicRoute,

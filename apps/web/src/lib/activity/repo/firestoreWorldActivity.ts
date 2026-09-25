@@ -1,6 +1,6 @@
 import { doc, getDoc } from "firebase/firestore";
-import { getFirebaseFirestore } from "./firebase";
-import { lastSeenAtToMillis } from "./firestoreTrail";
+import { getFirebaseFirestore } from "../../firebase/app";
+import { lastSeenAtToMillis } from "../../trail/repo/firestoreTrail";
 
 /** `worldActivity/global` — 줌 아웃 시 월드 레이어 힌트(저빈도 getDoc) */
 export type WorldActivitySnapshot = {

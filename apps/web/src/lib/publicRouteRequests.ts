@@ -15,21 +15,21 @@ import {
 } from "firebase/firestore";
 import { FirebaseError } from "firebase/app";
 import type { User } from "firebase/auth";
-import { getFirebaseFirestore } from "./firebase";
+import { getFirebaseFirestore } from "./firebase/app";
 import { type LineStringGeometry, type LngLat } from "./geo";
 import type { RouteProfile } from "../services/mapboxDirections";
-import type { SavedRoute } from "./firestoreSavedRoutes";
-import { SAVED_ROUTE_MAX_COORDS, SAVED_ROUTES_COLLECTION } from "./firestoreSavedRoutes";
+import type { SavedRoute } from "./route/repo/firestoreSavedRoutes";
+import { SAVED_ROUTE_MAX_COORDS, SAVED_ROUTES_COLLECTION } from "./route/repo/firestoreSavedRoutes";
 import { computeRouteFingerprint } from "./routeFingerprint";
 import { decodeLineStringCoordsJson } from "./lineStringCoordsJson";
 import { assertPublicRouteAutoReview } from "./publicRouteAutoReview";
-import { writeRoutePublicationOnApprove } from "./firestoreRoutePublications";
+import { writeRoutePublicationOnApprove } from "./route/repo/firestoreRoutePublications";
 import {
   PUBLIC_ROUTE_NAMING_POLICY_VERSION,
 } from "./publicRouteNamingPolicy";
-import { getUserProfileTier } from "./firestoreUser";
+import { getUserProfileTier } from "./identity/repo/firestoreUser";
 import { assertTierQuotaClient } from "./tierQuota";
-import { functionsHttpUrl } from "./functionsEmulatorUrl";
+import { functionsHttpUrl } from "./firebase/functionsEmulatorUrl";
 import { canSubmitPublicRoute, GUEST_PUBLIC_ROUTE_MSG } from "./userTier";
 import {
   maybeModeratePublicRouteCopyRemote,

@@ -5,15 +5,15 @@ import {
   BASIC_SHARED_HUB_IDS,
   fetchCourseRoutePayload,
   getBasicHubCoursePayload,
-} from "../lib/firestoreCourses";
+} from "../lib/route/repo/firestoreCourses";
 import type { LineStringGeometry, LngLat } from "../lib/geo";
 import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../lib/geoDecimate";
-import { acquireTrailLivePublicationRidesSubscription } from "../lib/livePublicationRidesSubscriptionHub";
-import { sanitizeTrailId } from "../lib/firestoreTrail";
+import { acquireTrailLivePublicationRidesSubscription } from "../lib/trail/repo/livePublicationRidesSubscriptionHub";
+import { sanitizeTrailId } from "../lib/trail/repo/firestoreTrail";
 import {
   isTrailLivePublicationRideRowFresh,
   type TrailLivePublicationRideRow,
-} from "../lib/firestoreTrailLivePublicationRides";
+} from "../lib/trail/repo/firestoreTrailLivePublicationRides";
 import { spectatorPointOnRoute } from "../lib/spectatorRideExtrap";
 
 export type TrailSpectatorDot = { id: string; lngLat: LngLat; label: string };

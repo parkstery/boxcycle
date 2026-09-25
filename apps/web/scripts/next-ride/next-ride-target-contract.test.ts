@@ -8,7 +8,7 @@ import {
   resolveRecentRideActions,
   resumeAnchorForRoute,
 } from "../../src/lib/nextRideTarget.ts";
-import type { SavedRoute } from "../../src/lib/firestoreSavedRoutes.ts";
+import type { SavedRoute } from "../../src/lib/route/repo/firestoreSavedRoutes.ts";
 import type { StoredRideSession } from "../../src/lib/rideSessionsStorage.ts";
 import {
   distanceOnRouteByProjectedPoint,

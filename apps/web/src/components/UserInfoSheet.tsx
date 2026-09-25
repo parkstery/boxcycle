@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { User } from "firebase/auth";
-import { loadRideSessionsForStatsFromFirestore } from "../lib/firestoreRides";
-import { isFirebaseConfigured } from "../lib/firebase";
+import { loadRideSessionsForStatsFromFirestore } from "../lib/ride/repo/firestoreRides";
+import { isFirebaseConfigured } from "../lib/firebase/app";
 import { formatRideDistanceKmNumber } from "../lib/rideDistanceFormat";
 import {
   aggregateRideStatsForPeriod,
@@ -10,10 +10,10 @@ import {
 } from "../lib/rideStatsAggregate";
 import type { StoredRideSession } from "../lib/rideSessionsStorage";
 import { ROUTE_COMPLETION_RATIO_THRESHOLD, isRouteCompletion } from "../lib/rideRecordPolicy";
-import type { SavedRoute } from "../lib/firestoreSavedRoutes";
+import type { SavedRoute } from "../lib/route/repo/firestoreSavedRoutes";
 import type { LngLat } from "../lib/geo";
 import { resolveRecentRideActions } from "../lib/nextRideTarget";
-import type { UserTier } from "../lib/firestoreUser";
+import type { UserTier } from "../lib/identity/repo/firestoreUser";
 import {
   fetchSubscriptionMe,
   openSubscriptionPortal,

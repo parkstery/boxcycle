@@ -8,7 +8,7 @@ import {
   useState,
   type MutableRefObject,
 } from "react";
-import { getFirebaseApp } from "../lib/firebase";
+import { getFirebaseApp } from "../lib/firebase/app";
 import type { LineStringGeometry, LngLat } from "../lib/geo";
 import { formatLngLat, getDistanceMeters } from "../lib/geo";
 import {

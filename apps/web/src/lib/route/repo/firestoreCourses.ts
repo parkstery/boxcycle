@@ -12,8 +12,8 @@ import {
 import {
   BASIC_INTRO_HUB_ROUTE_SEEDS,
   BASIC_INTRO_HUB_ROUTE_REVISION,
-} from "./basicIntroHubRouteGeometries";
-import { getFirebaseFirestore } from "./firebase";
+} from "../../basicIntroHubRouteGeometries";
+import { getFirebaseFirestore } from "../../firebase/app";
 import {
   findPublishedRoutePublicationById,
   listPublishedRoutePublications,
@@ -21,10 +21,10 @@ import {
   ROUTE_PUBLICATIONS_COLLECTION,
   type RoutePublicationRow,
 } from "./firestoreRoutePublications";
-import { lastSeenAtToMillis } from "./firestoreTrail";
-import { getUserPublicLabelsByUid } from "./firestoreUser";
-import { getDistanceMeters, type LineStringGeometry, type LngLat } from "./geo";
-import { computeRouteFingerprint } from "./routeFingerprint";
+import { lastSeenAtToMillis } from "../../trail/repo/firestoreTrail";
+import { getUserPublicLabelsByUid } from "../../identity/repo/firestoreUser";
+import { getDistanceMeters, type LineStringGeometry, type LngLat } from "../../geo";
+import { computeRouteFingerprint } from "../../routeFingerprint";
 
 export type CourseCategory = "basic" | "public" | "recommended" | "challenge";
 export type CourseProfile = "cycling" | "driving" | "walking";

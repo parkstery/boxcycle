@@ -8,7 +8,7 @@ import type { LiveLocationSnapshot } from "../liveLocationSnapshot";
 import {
   mergeTrailMotionSnapshot,
   snapshotToRtdbTrailMotionSnapshot,
-} from "../rtdbTrailMotion";
+} from "../trail/repo/rtdbTrailMotion";
 import { MOTION_FLIGHT_DRAIN_TIMEOUT_MS } from "../rideSyncPolicy";
 import { nextPeerSyncChainSeq, peerSyncChainLog } from "./peerSyncChainLog";
 
@@ -211,8 +211,8 @@ async function installDevMotionProbe(): Promise<void> {
   if (!import.meta.env.DEV || typeof window === "undefined") return;
   if (window.__rtwMotionExists) return;
   const { get, onValue, ref } = await import("firebase/database");
-  const { getFirebaseDatabase } = await import("../firebase");
-  const { sanitizeTrailId } = await import("../firestoreTrail");
+  const { getFirebaseDatabase } = await import("../firebase/app");
+  const { sanitizeTrailId } = await import("../trail/repo/firestoreTrail");
   window.__rtwMotionExists = async (trailId: string, uid: string) => {
     const snap = await get(
       ref(getFirebaseDatabase(), `trails/${sanitizeTrailId(trailId)}/motion/${uid}`),

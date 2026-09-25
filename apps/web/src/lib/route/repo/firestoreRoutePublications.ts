@@ -10,8 +10,8 @@ import {
   where,
   writeBatch,
 } from "firebase/firestore";
-import { getFirebaseFirestore } from "./firebase";
-import type { RouteProfile } from "../services/mapboxDirections";
+import { getFirebaseFirestore } from "../../firebase/app";
+import type { RouteProfile } from "../../../services/mapboxDirections";
 
 export const ROUTE_PUBLICATIONS_COLLECTION = "routePublications";
 

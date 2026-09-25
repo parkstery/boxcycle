@@ -5,7 +5,7 @@ import {
   loadMyPendingRequestRouteIds,
   type ExperienceTagId,
 } from "../lib/publicRouteRequests";
-import type { SavedRoute } from "../lib/firestoreSavedRoutes";
+import type { SavedRoute } from "../lib/route/repo/firestoreSavedRoutes";
 
 export type UsePublicRouteReviewMetaOptions = {
   configured: boolean;

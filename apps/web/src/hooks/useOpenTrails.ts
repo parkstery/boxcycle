@@ -4,11 +4,11 @@ import {
   mergeActiveOpenTrailRows,
   scheduleOpenTrailListingRefresh,
   subscribeOpenTrailListings,
-} from "../lib/firestoreOpenTrailListings";
-import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "../lib/firestoreTrail";
-import { countTrailLiveRidersFresh } from "../lib/firestoreTrailLivePublicationRides";
-import { acquireActiveLiveRideTrailIdsSubscription } from "../lib/activeLiveRideTrailIdsSubscriptionHub";
-import { fetchTrailInstance, type TrailInstance } from "../lib/firestoreTrailInstance";
+} from "../lib/trail/repo/firestoreOpenTrailListings";
+import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "../lib/trail/repo/firestoreTrail";
+import { countTrailLiveRidersFresh } from "../lib/trail/repo/firestoreTrailLivePublicationRides";
+import { acquireActiveLiveRideTrailIdsSubscription } from "../lib/trail/repo/activeLiveRideTrailIdsSubscriptionHub";
+import { fetchTrailInstance, type TrailInstance } from "../lib/trail/repo/firestoreTrailInstance";
 import { trailHasConfiguredRoute } from "../lib/trailAccessPolicy";
 
 /**

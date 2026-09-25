@@ -1,4 +1,4 @@
-import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "./firestoreTrail";
+import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "./trail/repo/firestoreTrail";
 import { TRAILHEAD_LABEL } from "./productTerms";
 import { readTrailDisplayNumberCache } from "./trailDisplayNumberCache";
 
