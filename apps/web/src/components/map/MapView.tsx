@@ -14,6 +14,7 @@ import {
   type ActivityWorldRawOverlay,
   type MapViewportBounds,
 } from "../../lib/activity/activityWorldLod";
+import { applyRtwLayerOrder, moveLayerByRank } from "../../lib/map/layerOrder";
 import { ACTIVITY_TRACE_RED } from "../../lib/activity/activityWorldTraceStyle";
 import { DISTANCE_AUTO_ROUTE_REFERENCE_CIRCLE_HINT } from "../../lib/route/distanceAutoRoute";
 import {
@@ -386,15 +387,12 @@ function moveActivityWorldLayersToTop(map: mapboxgl.Map): void {
   const sig = activityWorldLayerSignature(map);
   if (sig === lastActivityWorldLayerSigByMap.get(map)) return;
   const t0 = performance.now();
-  for (const id of ACTIVITY_WORLD_LAYER_IDS) {
-    if (map.getLayer(id)) {
-      try {
-        map.moveLayer(id);
-      } catch {
-        /* style switching */
-      }
-    }
-  }
+  /*
+   * 여덟 개의 **상대 순서를 한 번에** 세운다. 종전에는 각자 무조건 top 으로 올라가
+   * 라이더까지 덮었고(구조 감사 P4), 결과가 호출 순서에 달려 있었다.
+   * 낱개 `moveLayerByRank` 로는 그룹이 정렬되지 않는다(계약 시험이 잡는다).
+   */
+  applyRtwLayerOrder(map, ACTIVITY_WORLD_LAYER_IDS);
   lastActivityWorldLayerSigByMap.set(map, activityWorldLayerSignature(map));
   noteMoveToTopMs(performance.now() - t0);
 }
@@ -492,7 +490,7 @@ function syncWorldRedDots(
   }
   try {
     src.setData(fc);
-    map.moveLayer(ACTIVITY_PULSE_DOTS_LAYER);
+    moveLayerByRank(map, ACTIVITY_PULSE_DOTS_LAYER);
   } catch (e) {
     console.warn("[MapView] red dot setData/move failed", e);
   }
@@ -600,9 +598,7 @@ function syncWorldHeatDots(
   if (!src) return;
   try {
     src.setData(fc);
-    if (map.getLayer(ACTIVITY_HEAT_DOTS_LAYER)) {
-      map.moveLayer(ACTIVITY_HEAT_DOTS_LAYER);
-    }
+    moveLayerByRank(map, ACTIVITY_HEAT_DOTS_LAYER);
   } catch (e) {
     console.warn("[MapView] heat dot setData/move failed", e);
   }
@@ -880,19 +876,12 @@ const DEBUG_GLOBAL_LIVE_PRESENCE_ON_MAP =
   import.meta.env.VITE_DEBUG_GLOBAL_LIVE_PRESENCE_ON_MAP === "true";
 
 function moveGlobalLivePresenceLayersToTop(map: mapboxgl.Map): void {
-  for (const id of [
+  // presence 점이 라이더를 덮으면 내 위치를 잃는다. 세 개의 상대 순서를 한 번에 세운다.
+  applyRtwLayerOrder(map, [
     GLOBAL_LIVE_PRESENCE_GLOW_LAYER,
     GLOBAL_LIVE_PRESENCE_LAYER,
     GLOBAL_LIVE_PRESENCE_LABEL_LAYER,
-  ]) {
-    if (map.getLayer(id)) {
-      try {
-        map.moveLayer(id);
-      } catch {
-        /* style switching */
-      }
-    }
-  }
+  ]);
 }
 
 function ensureGlobalLivePresenceLayers(map: mapboxgl.Map): boolean {

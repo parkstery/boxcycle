@@ -360,6 +360,7 @@
     "map": [
       "map/disableMapboxTelemetry.ts",
       "map/distanceAutoRouteMapBridge.ts",
+      "map/layerOrder.ts",
       "map/mapBootCenter.ts",
       "map/mapGlobeView.ts",
       "map/mapPickRouteDock.ts",
