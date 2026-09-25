@@ -1,5 +1,13 @@
 #!/bin/sh
-# RTW pre-push 게이트 — 타입체크(무거움, ≈12s)를 여기서.
+# RTW pre-push 게이트 7종 (2026-09-26 Phase 5 마감 기준).
+#
+#   lock 동기 · harness 설정 동기 · lib 의존 방향/순환 · web 타입체크 ·
+#   web 계약 스위트(269건) · functions 타입체크+계약(19건) · Claim 셀 ID 벡터(4건)
+#
+# 각 게이트는 **고의로 깨뜨려 작동을 확인**한 것만 여기 있다 — 「통과」는 게이트가
+# 살아 있다는 증거가 아니다. 새 게이트를 붙일 때도 같은 규율을 지킨다.
+#
+# 타입체크(무거움, ≈12s)를 여기서.
 # 커밋은 가볍게 자주, 푸시 직전에만 tsc 로 타입 안전성 확인.
 # 우회: git push --no-verify (예외 상황 한정)
 #
@@ -81,7 +89,10 @@ fi
 
 if [ "$fail" -ne 0 ]; then
   echo ""
-  echo "[pre-push] 게이트 실패 — 원격에 올리기 전에 고치세요(타입·lock 동기·harness 설정)."
+  echo "[pre-push] 게이트 실패 — 원격에 올리기 전에 고치세요."
+  echo "           게이트 7종: lock 동기 · harness 설정 동기 · lib 의존 방향/순환 ·"
+  echo "                      web 타입체크 · web 계약 스위트 · functions 타입체크+계약 ·"
+  echo "                      Claim 셀 ID 벡터(클라↔서버)"
   echo "           정말 급하면: git push --no-verify (예외)"
   exit 1
 fi
