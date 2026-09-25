@@ -10,6 +10,7 @@ import {
   computeScaleGate,
   S1_LIMITS,
 } from "./s1-metrics.mjs";
+import { resolveFixtureGateInput } from "./fixture-gate-path.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DIR = resolve(HERE, "../../../../document/ops/sync-relay");
@@ -19,7 +20,7 @@ const DIR = resolve(HERE, "../../../../document/ops/sync-relay");
  */
 const OUT_TAG = (process.env.S41_OUT_TAG || "").replace(/[^A-Za-z0-9]/g, "");
 const OUT = resolve(DIR, `S41${OUT_TAG}-summary.json`);
-const FIXTURE = resolve(DIR, "S3-fixture-gate.json");
+const FIXTURE = resolveFixtureGateInput("s41");
 
 const INTERP_DELAY_MS = 160;
 const DISCARD_MS = 2_000;

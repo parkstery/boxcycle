@@ -10,11 +10,12 @@ import {
   computeScaleGate,
   S1_LIMITS,
 } from "./s1-metrics.mjs";
+import { resolveFixtureGateInput } from "./fixture-gate-path.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DIR = resolve(HERE, "../../../../document/ops/sync-relay");
 const OUT = resolve(DIR, "S41R-summary.json");
-const FIXTURE = resolve(DIR, "S3-fixture-gate.json");
+const FIXTURE = resolveFixtureGateInput("s41r");
 const LIFECYCLE = resolve(DIR, "S41R-lifecycle.json");
 const BASELINE = resolve(DIR, "S41R-lifecycle-baseline.json");
 
