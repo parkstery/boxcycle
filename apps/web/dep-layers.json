@@ -215,12 +215,13 @@
       "account/routeTokenSpendBridge.ts",
       "account/routeTokenSpendState.mjs",
       "account/routeTokenUiCopy.ts",
-      "account/subscription.ts",
       "account/tierQuota.ts",
       "account/userTier.ts"
     ],
     "account/repo": [
-      "account/repo/firestoreRouteToken.ts"
+      "account/repo/firestoreRouteToken.ts",
+      "account/repo/firestoreRouteTokenEconomy.ts",
+      "account/repo/subscription.ts"
     ],
     "conquest": [
       "conquest/conquestLayerEmphasis.ts",

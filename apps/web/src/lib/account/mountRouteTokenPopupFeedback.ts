@@ -11,8 +11,7 @@ import {
   isRouteTokenGenerateMetered,
   ROUTE_TOKEN_ECONOMY_CLIENT_DEFAULT,
 } from "./routeTokenEconomyClient";
-import { doc, onSnapshot } from "firebase/firestore";
-import { getFirebaseFirestore, isFirebaseConfigured } from "../firebase/app";
+import { subscribeRouteTokenGenerateCostBase } from "./repo/firestoreRouteTokenEconomy";
 
 const SPEND_TOAST_MS = 5_000;
 const ROUTE_PENDING_CLEAR_MS = 90_000;
@@ -117,7 +116,7 @@ export function mountRouteTokenPopupFeedback(
 
   let unsubEconomy: (() => void) | null = null;
   let forcePoll: ReturnType<typeof setInterval> | null = null;
-  const applyCost = (raw: unknown) => {
+  const applyCost = (costBase: number) => {
     if (import.meta.env.DEV && typeof window !== "undefined") {
       const f = window.__rtwForceGenerateCostBase;
       if (typeof f === "number" && Number.isFinite(f)) {
@@ -126,19 +125,11 @@ export function mountRouteTokenPopupFeedback(
         return;
       }
     }
-    generateCostBase =
-      typeof raw === "number" && Number.isFinite(raw)
-        ? Math.max(0, Math.floor(raw))
-        : ROUTE_TOKEN_ECONOMY_CLIENT_DEFAULT.generateCostBase;
+    generateCostBase = costBase;
     render();
   };
-  if (isFirebaseConfigured()) {
-    unsubEconomy = onSnapshot(
-      doc(getFirebaseFirestore(), "config", "routeTokenEconomy"),
-      (snap) => applyCost(snap.exists() ? snap.data()?.generateCostBase : undefined),
-      () => applyCost(undefined),
-    );
-  }
+  // 문서를 읽는 자리는 repo 하나다 — 이 모듈과 훅이 각자 읽던 것을 모았다(Phase 6-D2).
+  unsubEconomy = subscribeRouteTokenGenerateCostBase(applyCost);
   if (import.meta.env.DEV) {
     forcePoll = setInterval(() => applyCost(generateCostBase), 400);
   }

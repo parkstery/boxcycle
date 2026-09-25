@@ -1,6 +1,6 @@
 import type { User } from "firebase/auth";
-import type { UserTier } from "../identity/repo/firestoreUser";
-import { functionsHttpUrl } from "../firebase/functionsEmulatorUrl";
+import type { UserTier } from "../../identity/repo/firestoreUser";
+import { functionsHttpUrl } from "../../firebase/functionsEmulatorUrl";
 
 export type SubscriptionStatus = "none" | "active" | "past_due" | "canceled";
 

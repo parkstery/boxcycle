@@ -21,7 +21,7 @@ import {
   subscriptionStatusLabelKo,
   tierPlanLabel,
   type SubscriptionStatus,
-} from "../lib/account/subscription";
+} from "../lib/account/repo/subscription";
 import { AuthGoogleMark } from "./auth/AuthGateCard";
 import { resetGuestAccount } from "../lib/identity/guestAccountReset";
 import "./UserInfoSheet.css";

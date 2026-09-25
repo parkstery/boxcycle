@@ -3,7 +3,7 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import { getFirebaseFirestore } from "../lib/firebase/app";
 import type { UserTier } from "../lib/identity/repo/firestoreUser";
-import type { SubscriptionStatus } from "../lib/account/subscription";
+import type { SubscriptionStatus } from "../lib/account/repo/subscription";
 import {
   canSubmitPublicRoute,
   isGuestTier,
