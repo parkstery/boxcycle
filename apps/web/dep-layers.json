@@ -1,0 +1,384 @@
+{
+  "$schema": "./dep-layers.schema.md",
+  "왜": "Phase 5 도메인 분할의 단일 출처. 파일이 어느 도메인인지(assign)와 도메인이 무엇을 import 할 수 있는지(domains.mayImport)를 선언한다. scripts/check-dep-direction.mjs 가 이 파일만 읽고 판정한다.",
+  "원칙": [
+    "D7 — 선형 계층이 아니라 허용 엣지 DAG. 선언되지 않은 도메인 간 엣지는 전부 위반이다.",
+    "D5 — 파일 이름이 도메인을 정하지 않는다. rideCameraFraming 은 camera, routeWaypoints 는 geo 다.",
+    "D5 — 포괄 폴더(shared·common·utils)를 만들지 않는다. 행선지가 없으면 삭제 후보다.",
+    "D3 — firebase 는 순수 인프라로 도메인을 모른다. 도메인을 아는 저장소는 <도메인>/repo 다.",
+    "D1 — X 가 Y/repo 를 import 할 수 있는 조건은 X 가 Y 를 import 할 수 있는 것과 같다."
+  ],
+  "domains": {
+    "firebase": {
+      "책임": "Firebase 초기화·컬렉션 경로·변환기·에뮬레이터 배선. 도메인을 모른다",
+      "mayImport": []
+    },
+    "geo": {
+      "책임": "좌표·거리·waypoint·데시메이션·지역 판정",
+      "mayImport": []
+    },
+    "terms": {
+      "책임": "제품 용어 문자열(Ontology 반영)",
+      "mayImport": []
+    },
+    "storage": {
+      "책임": "클라이언트 저장 키·영속성 정책",
+      "mayImport": []
+    },
+    "sensor": {
+      "책임": "BLE 케이던스·수동 속도 등 입력 장치",
+      "mayImport": []
+    },
+    "identity": {
+      "책임": "인증·Guest·닉네임·표시 이름",
+      "mayImport": [
+        "storage",
+        "terms"
+      ]
+    },
+    "account": {
+      "책임": "티어·쿼터·경로 토큰 경제",
+      "mayImport": [
+        "identity",
+        "terms"
+      ]
+    },
+    "conquest": {
+      "책임": "Claim·점유 셀·누적",
+      "mayImport": [
+        "geo"
+      ]
+    },
+    "trail": {
+      "책임": "공유 주행 맥락 — Trailhead·접근권·표시번호. Ride 를 import 하지 않는다(D1)",
+      "mayImport": [
+        "geo",
+        "terms",
+        "identity"
+      ]
+    },
+    "route": {
+      "책임": "달릴 길 — 생성·공개·동일성·진행 계산",
+      "mayImport": [
+        "geo",
+        "terms",
+        "account",
+        "storage"
+      ]
+    },
+    "activity": {
+      "책임": "월드 활동 흔적·LOD·폴링 정책·커버리지",
+      "mayImport": [
+        "geo",
+        "route"
+      ]
+    },
+    "ride": {
+      "책임": "실제 주행이라는 행위 — 세션·기록·동기 정책·종료 확정",
+      "mayImport": [
+        "geo",
+        "route",
+        "conquest",
+        "activity",
+        "sensor",
+        "storage",
+        "terms",
+        "identity"
+      ]
+    },
+    "rider": {
+      "책임": "라이더 표현 — GLB·리그·페달 위상·스프라이트",
+      "mayImport": [
+        "geo",
+        "ride"
+      ]
+    },
+    "camera": {
+      "책임": "카메라 모드·추적·프레이밍",
+      "mayImport": [
+        "geo",
+        "ride",
+        "rider"
+      ]
+    },
+    "peerMotion": {
+      "책임": "동행 라이더 전송·보간·외삽. Trail 저장소를 직접 찌르지 않는다(D6)",
+      "mayImport": [
+        "geo",
+        "ride",
+        "identity",
+        "terms"
+      ]
+    },
+    "coach": {
+      "책임": "코치 표고·안내 타입",
+      "mayImport": [
+        "geo",
+        "route"
+      ]
+    },
+    "map": {
+      "책임": "지도 표현 — 부팅 중심·글로브·레이어 순서·설정",
+      "mayImport": [
+        "geo",
+        "route",
+        "ride",
+        "trail",
+        "conquest",
+        "activity",
+        "camera",
+        "rider",
+        "terms"
+      ]
+    },
+    "debug": {
+      "책임": "계측·프로브·window.__rtw* 설치. 게이트에서 제외한다",
+      "mayImport": [
+        "*"
+      ]
+    },
+    "weather": {
+      "책임": "날씨 조회·표현. 2026-08-27 표시 제거 후 되살리기 위해 의도적으로 보존한다(상태보드)",
+      "mayImport": [
+        "geo"
+      ]
+    }
+  },
+  "appLayer": {
+    "왜": "lib 밖(components·hooks·features·services·App.tsx)은 조립 지점이다. 도메인 규칙을 적용하지 않는다. Phase 5 범위는 lib/ 다.",
+    "paths": [
+      "components/",
+      "hooks/",
+      "features/",
+      "services/",
+      "app/",
+      "App.tsx",
+      "main.tsx"
+    ]
+  },
+  "assign": {
+    "firebase": [
+      "firebase.ts",
+      "functionsEmulatorUrl.ts"
+    ],
+    "geo": [
+      "geo.ts",
+      "geoDecimate.ts",
+      "lineStringCoordsJson.ts",
+      "localFirstRegion.ts",
+      "routeWaypoints.ts"
+    ],
+    "terms": [
+      "productTerms.ts"
+    ],
+    "storage": [
+      "appSessionKeys.ts",
+      "clientPersistencePolicy.ts"
+    ],
+    "sensor": [
+      "bleAutoReconnect.ts",
+      "bleCscCadence.ts",
+      "cadenceRideInput.ts",
+      "cadenceSensorUi.ts",
+      "manualSpeedWhileRiding.ts",
+      "sessionSpeedKmh.ts"
+    ],
+    "identity": [
+      "authDisplay.ts",
+      "authGatePolicy.ts",
+      "firebaseAuthPopup.ts",
+      "guestAccountReset.ts",
+      "guestNametag.ts",
+      "nickname.ts"
+    ],
+    "identity/repo": [
+      "firestoreUser.ts"
+    ],
+    "account": [
+      "mountRouteTokenPopupFeedback.ts",
+      "routeTokenEconomyClient.ts",
+      "routeTokenPopupDisplay.mjs",
+      "routeTokenSpendBridge.ts",
+      "routeTokenSpendState.mjs",
+      "routeTokenUiCopy.ts",
+      "subscription.ts",
+      "tierQuota.ts",
+      "userTier.ts"
+    ],
+    "account/repo": [
+      "firestoreRouteToken.ts"
+    ],
+    "conquest": [
+      "conquestLayerEmphasis.ts",
+      "conquestTiles.ts"
+    ],
+    "conquest/repo": [
+      "firestoreConquest.ts"
+    ],
+    "trail": [
+      "trailAccessPolicy.ts",
+      "trailDisplayNumber.ts",
+      "trailDisplayNumberCache.ts",
+      "trailUrl.ts"
+    ],
+    "trail/repo": [
+      "activeLiveRideTrailIdsSubscriptionHub.ts",
+      "firestoreOpenTrailListings.ts",
+      "firestoreTrail.ts",
+      "firestoreTrailInstance.ts",
+      "firestoreTrailLivePublicationRides.ts",
+      "firestoreTrailPaths.ts",
+      "livePublicationRidesSubscriptionHub.ts",
+      "rtdbTrailMotion.ts"
+    ],
+    "route": [
+      "basicIntroHubRouteGeometries.ts",
+      "directionsDirectGuard.core.mjs",
+      "directionsDirectGuard.ts",
+      "distanceAutoRoute.ts",
+      "distanceAutoRouteErrors.ts",
+      "distanceAutoRouteEta.ts",
+      "distanceAutoRouteGuideRing.ts",
+      "fetchRouteElevations.ts",
+      "publicRouteAutoReview.ts",
+      "publicRouteContentPolicy.ts",
+      "publicRouteNamingPolicy.ts",
+      "publicRouteRequests.ts",
+      "publicationDisplay.ts",
+      "readyRide.ts",
+      "resolvePublicationIdFromDoc.ts",
+      "routeDockUiPolicy.ts",
+      "routeFingerprint.ts",
+      "routeGeometryMidpoint.ts",
+      "routeLimits.ts",
+      "routeListSort.ts",
+      "routeProgressMath.ts",
+      "routeProgressSplit.ts",
+      "routePublicationResolve.ts",
+      "routeWorkspaceLock.ts",
+      "savedRouteProgressPolicy.ts",
+      "sensorChipSlot.ts"
+    ],
+    "route/repo": [
+      "firestoreCourses.ts",
+      "firestoreRoutePublications.ts",
+      "firestoreSavedRoutes.ts",
+      "savedRoutesLocal.ts"
+    ],
+    "activity": [
+      "activityWorldAnchor.ts",
+      "activityWorldLod.ts",
+      "activityWorldPollPolicy.ts",
+      "activityWorldPollSignals.ts",
+      "activityWorldTraceStyle.ts",
+      "coverageOverlayMode.ts"
+    ],
+    "activity/repo": [
+      "firestoreRouteActivity.ts",
+      "firestoreWorldActivity.ts"
+    ],
+    "ride": [
+      "companionHudCount.ts",
+      "liveLocationSnapshot.ts",
+      "liveRideHudSignal.ts",
+      "nextRideTarget.ts",
+      "publishLiveLocationFanout.ts",
+      "rideBgmConstants.ts",
+      "rideConquestResult.ts",
+      "rideConquestSubscription.ts",
+      "rideContinuationSetup.ts",
+      "rideDistanceFormat.ts",
+      "rideDocFields.ts",
+      "rideEndPersistence.ts",
+      "rideEndResult.ts",
+      "rideFormat.ts",
+      "rideJoinPresenceBurst.ts",
+      "ridePulse.ts",
+      "rideRecordPolicy.ts",
+      "rideSessionAnchors.ts",
+      "rideSessionPreview.ts",
+      "rideSessionsStorage.ts",
+      "rideSpeech.ts",
+      "rideSpeedRamp.ts",
+      "rideStatsAggregate.ts",
+      "rideStatusCopy.ts",
+      "rideSyncPolicy.ts"
+    ],
+    "ride/repo": [
+      "firestoreGlobalLivePresence.ts",
+      "firestorePublicationPresence.ts",
+      "firestorePublicationSessionPresence.ts",
+      "firestoreRides.ts",
+      "firestoreWorldPresence.ts"
+    ],
+    "rider": [
+      "registerPeerRiderPedalSprites.ts",
+      "riderGlbPedalPose.pose.mjs",
+      "riderGlbPedalPose.ts",
+      "riderPedalMotion.ts",
+      "riderPedalSpriteMeta.ts",
+      "riderPedalStripKeyframes.ts",
+      "riderPrototype/"
+    ],
+    "camera": [
+      "camera1Mode.ts",
+      "cameraFollowTrace.ts",
+      "cameraRenderPhase.ts",
+      "rideCameraFraming.ts"
+    ],
+    "peerMotion": [
+      "peerHud.ts",
+      "peerRidersDrive.ts",
+      "spectatorRideExtrap.ts",
+      "peerMotion/"
+    ],
+    "peerMotion/repo": [
+      "rtdbMotionSubscriptionHub.ts"
+    ],
+    "coach": [
+      "coachElevationFromRoute.ts",
+      "coachTypes.ts"
+    ],
+    "map": [
+      "disableMapboxTelemetry.ts",
+      "distanceAutoRouteMapBridge.ts",
+      "mapBootCenter.ts",
+      "mapGlobeView.ts",
+      "mapPickRouteDock.ts",
+      "mapSelfLocationMarker.ts",
+      "rtwMapConfig.ts"
+    ],
+    "debug": [
+      "distanceAutoRouteClickDebugMarker.ts",
+      "hudCompanionDiag.ts",
+      "installHudCompanionDebug.ts",
+      "installReadSubscriptionDebug.ts",
+      "installTouchActivityDebug.ts",
+      "localFirstGeoProbe.ts",
+      "mapDebugPhase.ts",
+      "mapTickProbe.ts",
+      "readSubscriptionMeters.ts",
+      "tickTestSwitches.ts",
+      "touchActivityMeters.ts"
+    ],
+    "weather": [
+      "openMeteoWeather.ts"
+    ]
+  },
+  "pending": {
+    "왜": "도메인을 정하지 않은 것이 아니라, 별도 판정이 필요한 것. 비어 있으면 없다."
+  },
+  "universallyImportable": {
+    "왜": "geo 는 자문이 말한 「가장 아래쪽의 순수 기반 도메인」이다 — 전 도메인이 좌표·거리를 본다. debug 는 계측 말단이라 방향을 어지럽히지 않는다(R11 게이팅은 별건).",
+    "domains": [
+      "geo",
+      "debug"
+    ]
+  },
+  "repoMayImport": {
+    "왜": "D3 — repo 의 존재 이유가 firebase 를 아는 것이다. 이것을 위반으로 세면 2층 구조 자체가 위반이 된다.",
+    "domains": [
+      "firebase"
+    ]
+  }
+}

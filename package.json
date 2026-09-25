@@ -14,6 +14,8 @@
     "build": "npm run build -w boxcycle-web",
     "preview": "npm run preview -w boxcycle-web",
     "lint": "npm run lint -w boxcycle-web",
+    "check:dep": "node scripts/check-dep-direction.mjs --check",
+    "check:dep:report": "node scripts/check-dep-direction.mjs",
     "deploy:hosting": "npm run build && firebase deploy --only hosting",
     "deploy:course-activity-functions": "firebase deploy --only \"functions:routeActivityOnLivePublicationRideWritten,functions:routeActivityScheduledReconcile\"",
     "deploy:publication-presence": "npm run build && firebase deploy --only firestore:indexes,firestore:rules && firebase deploy --only \"functions:routeActivityOnLivePublicationRideWritten,functions:routeActivityScheduledReconcile\" && firebase deploy --only hosting",

@@ -42,6 +42,16 @@ if [ -n "$touch_fb" ]; then
   node scripts/gen-firebase-harness-config.mjs --check || fail=1
 fi
 
+# lib/ 도메인 의존 방향·순환 래칫 (Phase 5, 2026-09-25).
+# 구조 감사 §8 은 "도메인 폴더로 나누면 순환은 자연 해소된다"고 적었으나 실측은 반대였다
+# — 분할은 순환을 드러낼 뿐 끊어주지 않는다. 그래서 방향을 선언(apps/web/dep-layers.json)
+# 하고 위반 수가 늘면 막는다. baseline 은 허용 목록이 아니라 갚아야 할 빚의 눈금이다.
+touch_dep=$(echo "$changed" | grep -E 'apps/web/dep-layers' || true)
+if [ -n "$touch_web" ] || [ -n "$touch_dep" ]; then
+  echo "[pre-push] lib 도메인 의존 방향·순환 검사…"
+  node scripts/check-dep-direction.mjs --check || fail=1
+fi
+
 if [ -n "$touch_web" ]; then
   echo "[pre-push] typecheck apps/web (tsc -b --noEmit)…"
   ( cd apps/web && npx tsc -b --noEmit ) || fail=1
