@@ -1,5 +1,5 @@
 import type { PublicationSessionMemberRow } from "../ride/repo/firestorePublicationSessionPresence";
-import type { TrailLivePublicationRideRow } from "../trail/repo/firestoreTrailLivePublicationRides";
+import type { TrailLivePublicationRideRow } from "../trail/trailTypes";
 import type { RtdbTrailMotionRow } from "./repo/rtdbTrailMotion";
 import { mapNametagForMember } from "../guestNametag";
 import { getPeerMotionRegistry } from "./PeerMotionRegistry";

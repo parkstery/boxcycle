@@ -5,8 +5,8 @@
 import type { User } from "firebase/auth";
 import type { LiveLocationSnapshot } from "../liveLocationSnapshot";
 import { DEFAULT_TRAIL_ID } from "../trail/trailId";
-import { mergeTrailLivePublicationRideSnapshot } from "../trail/repo/firestoreTrailLivePublicationRides";
-import { touchTrailInstanceActivity } from "../trail/repo/firestoreTrailInstance";
+import { installDevLiveRideProbe } from "../installLiveRideExistsDebug";
+import type { TrailLiveRideSink } from "./trailLiveRidePort";
 import { ROUTE_FLIGHT_DRAIN_TIMEOUT_MS } from "./peerSyncPolicy";
 import {
   beginRouteInFlight,
@@ -19,6 +19,11 @@ import {
 export type RouteFlightJob = {
   user: User;
   trailId: string;
+  /**
+   * Trail 라이브 주행 기록 구현(D6). **필수**다 — 전역 등록으로 두면 배선을 빠뜨렸을 때
+   * 아무 에러 없이 동행 기록만 멈춘다. 필수 필드면 `tsc` 가 조립을 강제한다.
+   */
+  sink: TrailLiveRideSink;
   snapshot: LiveLocationSnapshot;
   epoch: number;
   onWriteStart?: () => void;
@@ -43,7 +48,6 @@ declare global {
     };
     __rtwRouteEpochStarts?: Array<{ epoch: number; sessionKey: string; at: number }>;
     __rtwRouteErrorEvents?: Array<{ at: number; message: string }>;
-    __rtwLiveRideExists?: (trailId: string, uid: string) => Promise<boolean>;
     __rtwLastRouteUid?: string;
   }
 }
@@ -220,30 +224,7 @@ function syncRouteFlightDebug(): void {
   };
 }
 
-async function installDevLiveRideProbe(): Promise<void> {
-  if (!import.meta.env.DEV || typeof window === "undefined") return;
-  if (window.__rtwLiveRideExists) return;
-  const { doc, getDoc } = await import("firebase/firestore");
-  const { getFirebaseFirestore } = await import("../firebase/app");
-  const { TRAILS_COLLECTION, TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION } = await import(
-    "../trail/repo/firestoreTrailPaths"
-  );
-  const { sanitizeTrailId } = await import("../trail/trailId");
-  window.__rtwLiveRideExists = async (trailId: string, uid: string) => {
-    const snap = await getDoc(
-      doc(
-        getFirebaseFirestore(),
-        TRAILS_COLLECTION,
-        sanitizeTrailId(trailId),
-        TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION,
-        uid,
-      ),
-    );
-    return snap.exists();
-  };
-}
 
-void installDevLiveRideProbe();
 
 function readDevDelayMs(): number {
   if (!import.meta.env.DEV || typeof window === "undefined") return 0;
@@ -304,7 +285,7 @@ async function runRouteJob(job: RouteFlightJob): Promise<void> {
       throw new Error("rtw-route-write-fault-once");
     }
     job.onWriteStart?.();
-    await mergeTrailLivePublicationRideSnapshot(user, snapshot.trailId, {
+    await job.sink.publish(user, snapshot.trailId, {
       publicationId: snapshot.publicationId!,
       progressRatio: snapshot.progressRatio,
       distMeters: snapshot.distMetersAlongRoute,
@@ -328,7 +309,7 @@ async function runRouteJob(job: RouteFlightJob): Promise<void> {
     }
     if (snapshot.trailId !== DEFAULT_TRAIL_ID) {
       const touchStartAt = Date.now();
-      void touchTrailInstanceActivity(snapshot.trailId, "routePublish").then(
+      void job.sink.touchActivity(snapshot.trailId).then(
         () => {
           if (!import.meta.env.DEV) return;
           const touchDoneAt = Date.now();
@@ -397,3 +378,6 @@ async function runRouteJob(job: RouteFlightJob): Promise<void> {
     }
   }
 }
+
+// DEV 진단 프로브(계측 말단). e2e `peer-sync-s41r` 가 이 전역을 기다린다.
+void installDevLiveRideProbe();

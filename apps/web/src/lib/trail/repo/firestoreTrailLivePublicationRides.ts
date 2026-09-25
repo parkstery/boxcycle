@@ -39,24 +39,10 @@ import { noteListingRefreshRead } from "../../touchActivityMeters";
 export const TRAIL_LIVE_PUBLICATION_RIDE_WRITE_INTERVAL_MS = 4_000;
 
 // 타입 정의는 도메인 층이 갖는다 — 저장소끼리 타입을 주고받으면 순환이 된다(Phase 5 D1).
-import type { TrailLiveRidePhase } from "../trailTypes";
+import type { TrailLiveRidePhase, TrailLivePublicationRideRow } from "../trailTypes";
+export type { TrailLivePublicationRideRow };
 export type { TrailLiveRidePhase };
 
-export type TrailLivePublicationRideRow = {
-  uid: string;
-  /** 출판 ID — 레거시 문서의 `courseId` 와 동일 값 */
-  publicationId: string;
-  progressRatio: number;
-  /** geometry 위 주행 거리(m) — progressRatio 변환 오차 제거 */
-  distMeters: number | null;
-  lastSeenAtMs: number | null;
-  /** 클라이언트 수신 시각 — spectator 외삽 경과 계산용 (단일 로컬 시계) */
-  receivedAtLocalMs: number;
-  displayName: string | null;
-  /** m/s — 송신 측 속도(없으면 수신 측 delta 추정) */
-  speedMps: number | null;
-  ridePhase: TrailLiveRidePhase | null;
-};
 
 function readPublicationIdFromDoc(data: Record<string, unknown>): string {
   return resolvePublicationIdFromDoc(data) ?? "";

@@ -2,6 +2,8 @@ import type { User } from "firebase/auth";
 import { deleteGlobalLivePresence, mergeGlobalLivePresence } from "./ride/repo/firestoreGlobalLivePresence";
 import { deleteTrailLivePublicationRide } from "./trail/repo/firestoreTrailLivePublicationRides";
 import { sanitizeTrailId } from "./trail/trailId";
+// 조립 지점 — 전송 계층이 선언한 포트에 Trail 구현을 끼운다(D6).
+import { firestoreTrailLiveRideSink } from "./trail/trailLiveRideSink";
 import type { LiveLocationSnapshot } from "./liveLocationSnapshot";
 import { isFirebaseDatabaseConfigured } from "./firebase/app";
 import { deleteTrailMotion } from "./peerMotion/repo/rtdbTrailMotion";
@@ -72,6 +74,7 @@ export async function publishLiveLocationFanout(
       enqueueRoutePublish({
         user,
         trailId: snapshot.trailId,
+        sink: firestoreTrailLiveRideSink,
         snapshot,
         epoch,
         onWriteStart: () => {

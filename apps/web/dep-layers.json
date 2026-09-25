@@ -230,6 +230,7 @@
     ],
     "trail": [
       "trail/trailId.ts",
+      "trail/trailLiveRideSink.ts",
       "trail/trailTypes.ts",
       "trailAccessPolicy.ts",
       "trailDisplayNumber.ts",
@@ -343,10 +344,11 @@
     ],
     "peerMotion": [
       "peerHud.ts",
-      "peerRidersDrive.ts",
-      "spectatorRideExtrap.ts",
       "peerMotion/",
-      "peerMotion/peerSyncPolicy.ts"
+      "peerMotion/peerSyncPolicy.ts",
+      "peerMotion/trailLiveRidePort.ts",
+      "peerRidersDrive.ts",
+      "spectatorRideExtrap.ts"
     ],
     "peerMotion/repo": [
       "peerMotion/repo/rtdbMotionSubscriptionHub.ts",
@@ -369,6 +371,7 @@
       "distanceAutoRouteClickDebugMarker.ts",
       "hudCompanionDiag.ts",
       "installHudCompanionDebug.ts",
+      "installLiveRideExistsDebug.ts",
       "installReadSubscriptionDebug.ts",
       "installTouchActivityDebug.ts",
       "localFirstGeoProbe.ts",

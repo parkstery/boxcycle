@@ -1,4 +1,4 @@
-import type { TrailLivePublicationRideRow } from "../trail/repo/firestoreTrailLivePublicationRides";
+import type { TrailLivePublicationRideRow } from "../trail/trailTypes";
 import { progressRatioToRouteDistanceMeters } from "../liveLocationSnapshot";
 import type { PeerMotionPacket } from "./types";
 
