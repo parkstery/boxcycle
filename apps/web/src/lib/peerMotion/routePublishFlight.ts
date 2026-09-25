@@ -3,7 +3,7 @@
  * motionPublishFlight 와 같은 관용구. motion 파일은 수정하지 않는다.
  */
 import type { User } from "firebase/auth";
-import type { LiveLocationSnapshot } from "../ride/liveLocationSnapshot";
+import type { LiveLocationSnapshot } from "./types";
 import { DEFAULT_TRAIL_ID } from "../trail/trailId";
 import { installDevLiveRideProbe } from "../debug/installLiveRideExistsDebug";
 import type { TrailLiveRideSink } from "./trailLiveRidePort";

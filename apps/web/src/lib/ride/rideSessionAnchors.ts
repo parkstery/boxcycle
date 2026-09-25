@@ -1,6 +1,6 @@
 import type { LineStringGeometry, LngLat } from "../geo/geo";
 import { getPointOnRouteByDistance, lineStringLengthMeters } from "../geo/geo";
-import { computeRouteProgressRatio, rideDistanceAlongRoute } from "../route/routeProgressMath";
+import { computeRouteProgressRatio, rideDistanceAlongRoute } from "../geo/routeProgressMath";
 
 /**
  * 이번 세션이 **실제로** 시작·종료한 경로상 지점(RIDE-CONTINUE-1 단계 B).

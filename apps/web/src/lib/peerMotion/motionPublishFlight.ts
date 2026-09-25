@@ -4,7 +4,7 @@
  * routePublishFlight 와 같은 계약(epoch·배수·소유권·지연삭제·오류전달). route 파일은 수정하지 않는다.
  */
 import type { User } from "firebase/auth";
-import type { LiveLocationSnapshot } from "../ride/liveLocationSnapshot";
+import type { LiveLocationSnapshot } from "./types";
 import {
   mergeTrailMotionSnapshot,
   snapshotToRtdbTrailMotionSnapshot,

@@ -1,6 +1,6 @@
 import type { LineStringGeometry, LngLat } from "../geo/geo";
 import { getDistanceMeters, lineStringLengthMeters } from "../geo/geo";
-import { computeRouteProgressRatio, rideDistanceAlongRoute } from "../route/routeProgressMath";
+import { computeRouteProgressRatio, rideDistanceAlongRoute } from "../geo/routeProgressMath";
 import { sanitizeTrailId } from "../trail/trailId";
 import {
   GLOBAL_LIVE_PRESENCE_MAX_WRITE_INTERVAL_MS,
@@ -10,7 +10,7 @@ import {
   PEER_MOTION_PUBLISH_INTERVAL_MS,
   roundLngLatForLiveShare,
 } from "./rideSyncPolicy";
-import type { PeerSyncSnapshotCapture } from "../peerMotion/peerSyncSnapshotCapture";
+import type { LiveLocationSnapshot } from "../peerMotion/types";
 import {
   peekSampleAppliedSpeedKmh,
   peekSampleTargetSpeedKmh,
@@ -31,26 +31,13 @@ export type LiveLocationPublishInput = {
   routeRidePhase?: "live" | "paused";
 };
 
-/** 단일 위치·진행률 스냅샷 — publish fan-out 의 단일 진실 */
-export type LiveLocationSnapshot = {
-  lngLat: LngLat;
-  trailId: string;
-  publicationId: string;
-  progressRatio: number;
-  /** geometry 위 주행 거리(m) — peer 표시·외삽용 */
-  distMetersAlongRoute: number;
-  routeReady: boolean;
-  speedMps: number;
-  routeRidePhase: "live" | "paused";
-  /** DEV S3-DIAG-R2 — 스냅샷 생성 순간 동기 캡처. publish 페이로드에 넣지 않음 */
-  diagCapture?: PeerSyncSnapshotCapture;
-};
+export type { LiveLocationSnapshot } from "../peerMotion/types";
 
 export {
   computeRouteProgressRatio,
   progressRatioToRouteDistanceMeters,
   rideDistanceAlongRoute,
-} from "../route/routeProgressMath";
+} from "../geo/routeProgressMath";
 
 export function buildLiveLocationSnapshot(input: LiveLocationPublishInput): LiveLocationSnapshot | null {
   if (!input.lngLat) return null;

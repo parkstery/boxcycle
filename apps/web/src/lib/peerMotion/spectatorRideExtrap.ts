@@ -1,7 +1,7 @@
 import type { LineStringGeometry } from "../geo/geo";
 import { getPointOnRouteByDistance, lineStringLengthMeters } from "../geo/geo";
 import type { TrailLivePublicationRideRow } from "../trail/trailTypes";
-import { progressRatioToRouteDistanceMeters } from "../ride/liveLocationSnapshot";
+import { progressRatioToRouteDistanceMeters } from "../geo/routeProgressMath";
 import { peerSyncChainLog } from "./peerSyncChainLog";
 import { SPECTATOR_MAX_EXTRAP_MS } from "./peerSyncPolicy";
 
