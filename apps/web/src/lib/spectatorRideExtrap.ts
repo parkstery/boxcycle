@@ -3,7 +3,7 @@ import { getPointOnRouteByDistance, lineStringLengthMeters } from "./geo";
 import type { TrailLivePublicationRideRow } from "./trail/repo/firestoreTrailLivePublicationRides";
 import { progressRatioToRouteDistanceMeters } from "./liveLocationSnapshot";
 import { peerSyncChainLog } from "./peerMotion/peerSyncChainLog";
-import { SPECTATOR_MAX_EXTRAP_MS } from "./rideSyncPolicy";
+import { SPECTATOR_MAX_EXTRAP_MS } from "./peerMotion/peerSyncPolicy";
 
 export function anchorDistOnRoute(row: TrailLivePublicationRideRow, routeLen: number): number {
   if (typeof row.distMeters === "number" && Number.isFinite(row.distMeters)) {

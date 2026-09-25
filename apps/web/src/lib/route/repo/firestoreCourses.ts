@@ -21,7 +21,7 @@ import {
   ROUTE_PUBLICATIONS_COLLECTION,
   type RoutePublicationRow,
 } from "./firestoreRoutePublications";
-import { lastSeenAtToMillis } from "../../trail/repo/firestoreTrail";
+import { lastSeenAtToMillis } from "../../firebase/converters";
 import { getUserPublicLabelsByUid } from "../../identity/repo/firestoreUser";
 import { getDistanceMeters, type LineStringGeometry, type LngLat } from "../../geo";
 import { computeRouteFingerprint } from "../../routeFingerprint";

@@ -22,7 +22,7 @@ import {
 } from "../lib/trail/repo/firestoreTrailLivePublicationRides";
 import { flushRideJoinPresenceBurst } from "../lib/rideJoinPresenceBurst";
 import { sanitizeTrailId } from "../lib/trail/repo/firestoreTrail";
-import { deleteTrailMotion } from "../lib/trail/repo/rtdbTrailMotion";
+import { deleteTrailMotion } from "../lib/peerMotion/repo/rtdbTrailMotion";
 import {
   awaitRouteFlightSettled,
   cancelRoutePublish,
@@ -37,7 +37,7 @@ import {
   nextMotionPublishEpoch,
   requestMotionNodeCleanup,
 } from "../lib/peerMotion/motionPublishFlight";
-import { MOTION_FLIGHT_DRAIN_TIMEOUT_MS, ROUTE_FLIGHT_DRAIN_TIMEOUT_MS } from "../lib/rideSyncPolicy";
+import { MOTION_FLIGHT_DRAIN_TIMEOUT_MS, ROUTE_FLIGHT_DRAIN_TIMEOUT_MS } from "../lib/peerMotion/peerSyncPolicy";
 
 const PUBLISH_TICK_MS = 100;
 

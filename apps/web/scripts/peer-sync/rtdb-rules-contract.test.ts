@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
-import { encodePayload } from "../../src/lib/trail/repo/rtdbTrailMotion.ts";
+import { encodePayload } from "../../src/lib/peerMotion/repo/rtdbTrailMotion.ts";
 import type { TrailLiveRidePhase } from "../../src/lib/trail/repo/firestoreTrailLivePublicationRides.ts";
 
 /**

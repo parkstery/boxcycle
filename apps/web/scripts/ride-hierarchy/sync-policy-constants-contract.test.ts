@@ -18,6 +18,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import * as lod from "../../src/lib/activityWorldLod.ts";
+import * as poll from "../../src/lib/activityWorldPollConstants.ts";
+import * as peer from "../../src/lib/peerMotion/peerSyncPolicy.ts";
 import * as sync from "../../src/lib/rideSyncPolicy.ts";
 
 const numbersOf = (ns: Record<string, unknown>): [string, number][] =>
@@ -28,8 +30,10 @@ describe("G5 — 동기 정책 상수가 순환으로 무너지지 않는다", (
     // 하한은 모듈마다 다르다. 하나로 뭉뚱그리면 「상수를 못 읽었다」를 못 잡거나(너무 낮게)
     // 정상인데 실패한다(너무 높게). activityWorldLod 는 수치 상수가 셋뿐이다.
     for (const [mod, ns, min] of [
-      ["rideSyncPolicy", sync, 20],
+      ["rideSyncPolicy", sync, 15],
       ["activityWorldLod", lod, 3],
+      ["activityWorldPollConstants", poll, 4],
+      ["peerSyncPolicy", peer, 7],
     ] as const) {
       const nums = numbersOf(ns as unknown as Record<string, unknown>);
       assert.ok(
@@ -44,14 +48,18 @@ describe("G5 — 동기 정책 상수가 순환으로 무너지지 않는다", (
 
   it("파생 상수가 원본과 같다 — 반쯤 초기화되면 여기서 갈라진다", () => {
     // 셋 다 ACTIVITY_WORLD_POLL_ACTIVE_MS 에서 파생된다. 순환이면 파생 쪽만 undefined 가 된다.
-    assert.equal(sync.ROUTE_ACTIVITY_CACHE_TTL_MS, sync.ACTIVITY_WORLD_POLL_ACTIVE_MS);
-    assert.equal(sync.WORLD_PRESENCE_POLL_MS, sync.ACTIVITY_WORLD_POLL_ACTIVE_MS);
-    assert.equal(sync.COURSE_ACTIVITY_POLL_MS, sync.ACTIVITY_WORLD_POLL_ACTIVE_MS);
+    assert.equal(poll.ROUTE_ACTIVITY_CACHE_TTL_MS, poll.ACTIVITY_WORLD_POLL_ACTIVE_MS);
+    assert.equal(sync.WORLD_PRESENCE_POLL_MS, poll.ACTIVITY_WORLD_POLL_ACTIVE_MS);
+    assert.equal(sync.COURSE_ACTIVITY_POLL_MS, poll.ACTIVITY_WORLD_POLL_ACTIVE_MS);
     assert.equal(lod.MAP_ZOOM_ACTIVITY_WORLD_LINE_MIN, lod.MAP_ZOOM_ACTIVITY_WORLD_LINE_ENTER_MIN);
   });
 
   it("폴링 주기가 실제로 폴링이 되는 값이다", () => {
     // 0 이나 음수면 폭주하고, 과도하게 크면 멈춘 것과 같다.
+    const all: Record<string, number> = {
+      ...(poll as unknown as Record<string, number>),
+      ...(sync as unknown as Record<string, number>),
+    };
     for (const k of [
       "ACTIVITY_WORLD_POLL_ACTIVE_MS",
       "ACTIVITY_WORLD_POLL_IDLE_MS",
@@ -59,12 +67,12 @@ describe("G5 — 동기 정책 상수가 순환으로 무너지지 않는다", (
       "PEER_MOTION_PUBLISH_INTERVAL_MS",
       "TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS",
     ] as const) {
-      const v = sync[k];
+      const v = all[k];
       assert.ok(v >= 50, `${k} = ${v} — 50ms 미만이면 폭주다`);
       assert.ok(v <= 3_600_000, `${k} = ${v} — 1시간을 넘으면 멈춘 것과 같다`);
     }
     assert.ok(
-      sync.ACTIVITY_WORLD_POLL_IDLE_MS > sync.ACTIVITY_WORLD_POLL_ACTIVE_MS,
+      poll.ACTIVITY_WORLD_POLL_IDLE_MS > poll.ACTIVITY_WORLD_POLL_ACTIVE_MS,
       "idle 이 active 보다 잦으면 adaptive 가 뒤집힌 것이다",
     );
   });
@@ -75,6 +83,18 @@ describe("G5 — 동기 정책 상수가 순환으로 무너지지 않는다", (
       lod.MAP_ZOOM_ACTIVITY_WORLD_LINE_ENTER_MIN > lod.MAP_ZOOM_ACTIVITY_WORLD_LINE_EXIT_MIN,
       "enter > exit 여야 히스테리시스가 성립한다",
     );
+  });
+
+  it("구조 — 전송 상수는 peerMotion 이, 폴링 상수는 activity 가 갖는다 (D6)", () => {
+    // 이것들이 rideSyncPolicy 에 있었기 때문에 전송 계층이 주행 도메인을 올려다봤다.
+    for (const k of ["PEER_INTERP_DELAY_MS", "MOTION_FLIGHT_DRAIN_TIMEOUT_MS", "SPECTATOR_MAX_EXTRAP_MS"]) {
+      assert.equal(k in peer, true, `peerSyncPolicy 가 ${k} 를 가져야 한다`);
+      assert.equal(k in sync, false, `rideSyncPolicy 에 ${k} 가 남으면 방향이 되돌아간다`);
+    }
+    for (const k of ["ACTIVITY_WORLD_POLL_ACTIVE_MS", "ROUTE_ACTIVITY_CACHE_TTL_MS"]) {
+      assert.equal(k in poll, true, `activityWorldPollConstants 가 ${k} 를 가져야 한다`);
+      assert.equal(k in sync, false, `rideSyncPolicy 에 ${k} 가 남으면 activity → ride 가 된다`);
+    }
   });
 
   it("구조 — rideSyncPolicy 가 LOD 상수를 다시 re-export 하지 않는다", () => {

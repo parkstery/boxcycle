@@ -20,17 +20,10 @@ import {
 } from "./firestoreTrailPaths";
 import { noteListingRefreshRead, notePresenceHeartbeatWrite } from "../../touchActivityMeters";
 
-/** URL·입장 시 기본 Trail ID (Firestore: `trails/default`) */
-export const DEFAULT_TRAIL_ID = "default";
-
-const TRAIL_ID_RE = /^[a-zA-Z0-9_-]{1,64}$/;
-
-/** Firestore `trails/{id}` 경로용 Trail ID. 허용되지 않으면 `default` */
-export function sanitizeTrailId(raw: string | null | undefined): string {
-  const t = (raw ?? "").trim();
-  if (!t || !TRAIL_ID_RE.test(t)) return DEFAULT_TRAIL_ID;
-  return t;
-}
+// 식별자는 도메인 층(`../trailId`)이 갖는다 — 「ID 를 안다」와 「DB 를 읽는다」는 다르다(D6).
+// 종전 이름으로 re-export 해 소비자를 건드리지 않는다.
+import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "../trailId";
+export { DEFAULT_TRAIL_ID, sanitizeTrailId };
 
 /** 이 시간보다 오래된 lastSeenAt 은 “오프라인”으로 표시한다. */
 export const TRAIL_PRESENCE_STALE_MS = 240_000;
@@ -44,26 +37,9 @@ export type TrailMemberRow = {
   lastSeenAtMs: number | null;
 };
 
-/** Firestore Timestamp·{seconds,nanoseconds}·레거시 숫자 등을 ms 로 통일 */
-export function lastSeenAtToMillis(raw: unknown): number | null {
-  if (raw == null) return null;
-  if (typeof raw === "object" && raw !== null && typeof (raw as { toMillis?: () => number }).toMillis === "function") {
-    const ms = (raw as { toMillis: () => number }).toMillis();
-    return Number.isFinite(ms) ? ms : null;
-  }
-  if (typeof raw === "object" && raw !== null && "seconds" in raw) {
-    const o = raw as unknown as { seconds: unknown; nanoseconds?: unknown };
-    if (typeof o.seconds !== "number") return null;
-    const s = o.seconds;
-    const n = typeof o.nanoseconds === "number" ? o.nanoseconds : 0;
-    return s * 1000 + Math.floor(n / 1_000_000);
-  }
-  if (typeof raw === "number" && Number.isFinite(raw)) {
-    if (raw < 1e12) return Math.round(raw * 1000);
-    return raw;
-  }
-  return null;
-}
+// 변환기는 인프라 층(`../../firebase/converters`)이 갖는다 — Trail 과 무관하다(D6).
+import { lastSeenAtToMillis } from "../../firebase/converters";
+export { lastSeenAtToMillis };
 
 export function isMemberRecentlySeen(lastSeenAtMs: number | null): boolean {
   if (lastSeenAtMs == null) return true;

@@ -1,7 +1,7 @@
 import type { User } from "firebase/auth";
 import { upsertPublicationSessionMember } from "./ride/repo/firestorePublicationSessionPresence";
 import { mergeTrailLivePublicationRideSnapshot } from "./trail/repo/firestoreTrailLivePublicationRides";
-import { DEFAULT_TRAIL_ID } from "./trail/repo/firestoreTrail";
+import { DEFAULT_TRAIL_ID } from "./trail/trailId";
 import { touchTrailInstanceActivity } from "./trail/repo/firestoreTrailInstance";
 import type { LiveLocationSnapshot } from "./liveLocationSnapshot";
 import { isFirebaseDatabaseConfigured } from "./firebase/app";

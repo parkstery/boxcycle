@@ -9,14 +9,14 @@ import {
 } from "firebase/database";
 import type { User } from "firebase/auth";
 import { getFirebaseApp, getFirebaseDatabase, isFirebaseDatabaseConfigured } from "../../firebase/app";
-import { sanitizeTrailId } from "./firestoreTrail";
-import type { TrailLiveRidePhase } from "../trailTypes";
+import { sanitizeTrailId } from "../../trail/trailId";
+import type { TrailLiveRidePhase } from "../../trail/trailTypes";
 import {
   beginMotionInFlight,
   endMotionInFlight,
   peerSyncChainLog,
   peekMotionInFlightMax,
-} from "../../peerMotion/peerSyncChainLog";
+} from "../peerSyncChainLog";
 import { trackUnderlyingReadSubscription } from "../../readSubscriptionMeters";
 
 /** RTDB `/trails/{trailId}/motion/{uid}` */

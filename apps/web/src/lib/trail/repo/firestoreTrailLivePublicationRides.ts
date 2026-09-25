@@ -19,13 +19,8 @@ import {
 import type { User } from "firebase/auth";
 import { getPresenceDisplayName } from "../../authDisplay";
 import { getFirebaseFirestore } from "../../firebase/app";
-import {
-  DEFAULT_TRAIL_ID,
-  isMemberRecentlySeen,
-  lastSeenAtToMillis,
-  sanitizeTrailId,
-  TRAIL_PRESENCE_STALE_MS,
-} from "./firestoreTrail";
+import { DEFAULT_TRAIL_ID, isMemberRecentlySeen, sanitizeTrailId, TRAIL_PRESENCE_STALE_MS } from "./firestoreTrail";
+import { lastSeenAtToMillis } from "../../firebase/converters";
 import {
   TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION,
   TRAILS_COLLECTION,
@@ -36,7 +31,7 @@ import {
   PEER_LIVE_RIDE_FINAL_BURST_MS,
   PEER_LIVE_RIDE_STALE_MS,
 } from "../../rideSyncPolicy";
-import { deleteTrailMotion } from "./rtdbTrailMotion";
+import { deleteTrailMotion } from "../../peerMotion/repo/rtdbTrailMotion";
 import { trackUnderlyingReadSubscription } from "../../readSubscriptionMeters";
 import { noteListingRefreshRead } from "../../touchActivityMeters";
 

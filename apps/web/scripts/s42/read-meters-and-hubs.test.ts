@@ -19,7 +19,7 @@ import {
   debugRtdbMotionSubscriptionHub,
   resetRtdbMotionSubscriptionHubForTests,
 } from "../../src/lib/peerMotion/repo/rtdbMotionSubscriptionHub.ts";
-import type { RtdbTrailMotionRow } from "../../src/lib/trail/repo/rtdbTrailMotion.ts";
+import type { RtdbTrailMotionRow } from "../../src/lib/peerMotion/repo/rtdbTrailMotion.ts";
 import type { TrailLivePublicationRideRow } from "../../src/lib/trail/repo/firestoreTrailLivePublicationRides.ts";
 import {
   acquireActiveLiveRideTrailIdsSubscription,

@@ -1,3 +1,5 @@
+import { ACTIVITY_WORLD_POLL_ACTIVE_MS } from "./activityWorldPollConstants";
+
 import type { LngLat } from "./geo";
 
 /** 동행 라이브 좌표 Firestore 저장 시 소수점(LOD 중간층 — 정밀 5~6자리 대신) */
@@ -27,11 +29,7 @@ export const TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS = 30_000;
 /** Trail `livePublicationRides` — 1Hz 절대 dist+speed 하트비트 (수신 측 보간용) */
 export const TRAIL_LIVE_PROGRESS_HEARTBEAT_MS = 1_000;
 
-/** S4-1R — route flight 정착 대기 상한. S4-1 실측 FS RTT max 785ms 의 2배 이상. */
-export const ROUTE_FLIGHT_DRAIN_TIMEOUT_MS = 2_000;
 
-/** S4-M1R — motion flight 정착 대기 상한. route 와 동일. 늘려서 통과시키지 않는다. */
-export const MOTION_FLIGHT_DRAIN_TIMEOUT_MS = 2_000;
 
 /** RTDB `/trails/{trailId}/motion/{uid}` — 10Hz motion publish (지연↓: 보간 delay 를 낮추려면 틱레이트↑) */
 export const PEER_MOTION_PUBLISH_INTERVAL_MS = 100;
@@ -48,8 +46,6 @@ export const PEER_LIVE_RIDE_STALE_MS = 15_000;
 /** rAF speed 적분 상한 — hide 보다 짧게 두지 않음 */
 export const PEER_LIVE_RIDE_EXTRAP_MAX_MS = 12_000;
 
-/** peer 목록에서 잠깐 빠져도 sim·마커 유지 */
-export const PEER_DRIVE_SIM_GRACE_MS = 10_000;
 
 /** R2 — auth vs display 오차 이내면 pull 없음 (구 anchor soft correct) */
 export const PEER_RECONCILE_SOFT_M = 3.5;
@@ -68,13 +64,8 @@ export const PEER_RECONCILE_HARD_PULL_MPS = 9;
  * 받은 스냅샷 사이를 보간(추측 없음)하므로 가속/감속 고무줄·지연이 없다.
  * DELAY 는 publish 간격(RTDB 10Hz=100ms)+지터를 덮을 만큼: 한 스냅샷 앞을 항상 확보.
  */
-export const PEER_INTERP_DELAY_MS = 160;
 
-/** 보간 버퍼 최대 스냅샷 수 (uid 당) */
-export const PEER_INTERP_BUFFER_MAX = 16;
 
-/** 스트림 stall 시 newest 속도로 외삽 허용 상한(ms) — 이후엔 hold (지터·Firestore 폴백 완충) */
-export const PEER_INTERP_MAX_EXTRAP_MS = 1_200;
 
 /** 완주 final burst 후 peer 가 최종 위치를 유지하는 시간 */
 export const PEER_LIVE_RIDE_COMPLETED_VISIBLE_MS = 15_000;
@@ -94,8 +85,6 @@ export const TRAIL_LIVE_PROGRESS_MIN_DIST_DELTA_M = 0;
 /** 동행 peer 외삽 — 샘플 간격 속도 미상일 때 가정 km/h (가상 주행 기본) */
 export const PEER_EXTRAP_DEFAULT_SPEED_KMH = 5;
 
-/** spectator dot 외삽 상한 — Firestore 1 Hz + 실측 write RTT(≈2.4–3.0 s) 덮음 */
-export const SPECTATOR_MAX_EXTRAP_MS = 3_000;
 
 /** 입문 코스 동행 DOM 스프라이트 — 고줌에서만 (dot 은 global livePresence) */
 export const MAP_PEER_SPRITE_MIN_ZOOM = 14;
@@ -117,17 +106,11 @@ export const MAP_ZOOM_WORLD_ACTIVITY_MAX = 9;
  * 흘러 폴링이 멈추거나 폭주한다 — 그래서 여기에 다시 두지 않는다.
  */
 
-/** WO-A adaptive — live activity 있음 active */
-export const ACTIVITY_WORLD_POLL_ACTIVE_MS = 60_000;
-
-/** routeActivity 세션 캐시 TTL — 주행 중 폴링 주기와 같게. 더 짧게 잡지 않는다. */
-export const ROUTE_ACTIVITY_CACHE_TTL_MS = ACTIVITY_WORLD_POLL_ACTIVE_MS;
-
-/** WO-A adaptive — live 없음 idle */
-export const ACTIVITY_WORLD_POLL_IDLE_MS = 600_000;
-
-/** 주행 종료 후 peer 완주·heat 반영 대기 — active poll 유지 */
-export const ACTIVITY_WORLD_POST_RIDE_WATCH_MS = 900_000;
+/*
+ * 월드 활동 폴링 주기는 `activityWorldPollConstants` 가 소유한다(D6).
+ * 여기 있었기 때문에 활동 폴링 정책이 주행 동기 정책을 올려다봤고(`activity → ride`),
+ * R9 순환이 자란 뿌리도 같았다.
+ */
 
 /**
  * @deprecated WO-A `ACTIVITY_WORLD_POLL_*` adaptive 사용. 호환 alias(active).

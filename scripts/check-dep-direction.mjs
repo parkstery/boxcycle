@@ -83,7 +83,7 @@ const rulesFingerprint = crypto
   .update(
     JSON.stringify([
       Object.entries(decl.domains)
-        .map(([k, v]) => [k, [...v.mayImport].sort()])
+        .map(([k, v]) => [k, [...v.mayImport].sort(), [...(v.mayImportRepoOf ?? [])].sort()])
         .sort(),
       [...UNIVERSAL].sort(),
       [...REPO_MAY].sort(),
@@ -122,7 +122,17 @@ function mayImport(from, to) {
   const rule = decl.domains[fb];
   if (!rule) return false;
   if (rule.mayImport.includes("*")) return true;
-  return rule.mayImport.includes(tb);
+  if (!rule.mayImport.includes(tb)) return false;
+  /*
+   * 남의 도메인 **저장소**는 따로 허락받아야 한다(D1·D6).
+   *
+   * 「식별자를 안다」와 「데이터베이스를 읽는다」는 다르다. peerMotion 은 RTDB 경로
+   * 때문에 Trail ID 를 알아야 하지만 Trail 문서를 읽을 이유는 없다. 도메인 허용만으로
+   * 저장소까지 열어 주면 D1 의 「Trail 이 소유한 읽기 모델만」이 말이 되지 않는다.
+   * 이 조항은 규칙을 **넓히는 것이 아니라 한 차원 더 좁힌다.**
+   */
+  if (to.endsWith("/repo")) return (rule.mayImportRepoOf ?? []).includes(tb);
+  return true;
 }
 
 // ─────────────────────────────────────────────── 2. import 그래프

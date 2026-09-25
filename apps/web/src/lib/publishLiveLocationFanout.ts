@@ -1,10 +1,10 @@
 import type { User } from "firebase/auth";
 import { deleteGlobalLivePresence, mergeGlobalLivePresence } from "./ride/repo/firestoreGlobalLivePresence";
 import { deleteTrailLivePublicationRide } from "./trail/repo/firestoreTrailLivePublicationRides";
-import { sanitizeTrailId } from "./trail/repo/firestoreTrail";
+import { sanitizeTrailId } from "./trail/trailId";
 import type { LiveLocationSnapshot } from "./liveLocationSnapshot";
 import { isFirebaseDatabaseConfigured } from "./firebase/app";
-import { deleteTrailMotion } from "./trail/repo/rtdbTrailMotion";
+import { deleteTrailMotion } from "./peerMotion/repo/rtdbTrailMotion";
 import { enqueueMotionPublish, peekMotionPublishEpoch } from "./peerMotion/motionPublishFlight";
 import { enqueueRoutePublish } from "./peerMotion/routePublishFlight";
 import type { LiveLocationPublishThrottleState } from "./liveLocationSnapshot";

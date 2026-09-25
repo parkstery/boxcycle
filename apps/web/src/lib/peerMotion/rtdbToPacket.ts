@@ -1,4 +1,4 @@
-import type { RtdbTrailMotionRow } from "../trail/repo/rtdbTrailMotion";
+import type { RtdbTrailMotionRow } from "./repo/rtdbTrailMotion";
 import type { PeerMotionPacket } from "./types";
 
 export function rtdbMotionRowToPeerMotionPacket(

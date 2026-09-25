@@ -28,7 +28,7 @@ import {
   resetPeerMotionRegistry,
   syncPeerMotionFromPresence,
 } from "../lib/peerMotion";
-import type { RtdbTrailMotionRow } from "../lib/trail/repo/rtdbTrailMotion";
+import type { RtdbTrailMotionRow } from "../lib/peerMotion/repo/rtdbTrailMotion";
 import { countOtherLiveRidePeers, peerHudStableKey, type PeerHudEntry } from "../lib/peerHud";
 import { publishOtherLiveRiderCount } from "../lib/liveRideHudSignal";
 import {

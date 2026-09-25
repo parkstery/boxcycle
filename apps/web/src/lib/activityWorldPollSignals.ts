@@ -1,5 +1,5 @@
 import type { ActivityWorldPollModeInput } from "./activityWorldPollPolicy";
-import { ACTIVITY_WORLD_POST_RIDE_WATCH_MS } from "./rideSyncPolicy";
+import { ACTIVITY_WORLD_POST_RIDE_WATCH_MS } from "./activityWorldPollConstants";
 
 /** 여러 hook 간 adaptive mode 판정 공유(WO-A, onSnapshot 없음) */
 let signals: ActivityWorldPollModeInput = {

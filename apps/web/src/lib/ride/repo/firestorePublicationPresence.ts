@@ -11,7 +11,7 @@ import {
 } from "firebase/firestore";
 import { getFirebaseFirestore } from "../../firebase/app";
 import type { LngLat } from "../../geo";
-import { lastSeenAtToMillis } from "../../trail/repo/firestoreTrail";
+import { lastSeenAtToMillis } from "../../firebase/converters";
 import { COURSE_ACTIVITY_POLL_MS } from "../../rideSyncPolicy";
 import {
   BASIC_SHARED_HUB_IDS,

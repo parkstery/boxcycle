@@ -8,7 +8,7 @@ import {
   PEER_DRIVE_SIM_GRACE_MS,
   PEER_INTERP_DELAY_MS,
   PEER_INTERP_MAX_EXTRAP_MS,
-} from "../rideSyncPolicy";
+} from "./peerSyncPolicy";
 import { estimateCrankRpmFromSpeedKmh } from "../riderPedalMotion";
 import { PEER_RIDER_PEDAL_FRAME_COUNT } from "../registerPeerRiderPedalSprites";
 import {

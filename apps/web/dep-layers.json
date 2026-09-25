@@ -41,6 +41,9 @@
       "mayImport": [
         "identity",
         "terms"
+      ],
+      "mayImportRepoOf": [
+        "identity"
       ]
     },
     "conquest": {
@@ -64,6 +67,9 @@
         "terms",
         "account",
         "storage"
+      ],
+      "mayImportRepoOf": [
+        "identity"
       ]
     },
     "activity": {
@@ -83,7 +89,12 @@
         "sensor",
         "storage",
         "terms",
-        "identity"
+        "identity",
+        "peerMotion",
+        "trail"
+      ],
+      "mayImportRepoOf": [
+        "route"
       ]
     },
     "rider": {
@@ -102,13 +113,14 @@
       ]
     },
     "peerMotion": {
-      "책임": "동행 라이더 전송·보간·외삽. Trail 저장소를 직접 찌르지 않는다(D6)",
+      "책임": "동행 라이더 전송·보간·외삽. **Ride 가 쓰는 기계**이므로 Ride 를 import 하지 않는다(D6). Trail 저장소도 직접 찌르지 않는다",
       "mayImport": [
         "geo",
-        "ride",
         "identity",
-        "terms"
-      ]
+        "terms",
+        "trail"
+      ],
+      "mayImportRepoOf": []
     },
     "coach": {
       "책임": "코치 표고·안내 타입",
@@ -159,6 +171,7 @@
   "assign": {
     "firebase": [
       "firebase/app.ts",
+      "firebase/converters.ts",
       "firebase/functionsEmulatorUrl.ts"
     ],
     "geo": [
@@ -216,6 +229,7 @@
       "conquest/repo/firestoreConquest.ts"
     ],
     "trail": [
+      "trail/trailId.ts",
       "trail/trailTypes.ts",
       "trailAccessPolicy.ts",
       "trailDisplayNumber.ts",
@@ -229,8 +243,7 @@
       "trail/repo/firestoreTrailInstance.ts",
       "trail/repo/firestoreTrailLivePublicationRides.ts",
       "trail/repo/firestoreTrailPaths.ts",
-      "trail/repo/livePublicationRidesSubscriptionHub.ts",
-      "trail/repo/rtdbTrailMotion.ts"
+      "trail/repo/livePublicationRidesSubscriptionHub.ts"
     ],
     "route": [
       "basicIntroHubRouteGeometries.ts",
@@ -269,6 +282,7 @@
     "activity": [
       "activityWorldAnchor.ts",
       "activityWorldLod.ts",
+      "activityWorldPollConstants.ts",
       "activityWorldPollPolicy.ts",
       "activityWorldPollSignals.ts",
       "activityWorldTraceStyle.ts",
@@ -331,10 +345,12 @@
       "peerHud.ts",
       "peerRidersDrive.ts",
       "spectatorRideExtrap.ts",
-      "peerMotion/"
+      "peerMotion/",
+      "peerMotion/peerSyncPolicy.ts"
     ],
     "peerMotion/repo": [
-      "peerMotion/repo/rtdbMotionSubscriptionHub.ts"
+      "peerMotion/repo/rtdbMotionSubscriptionHub.ts",
+      "peerMotion/repo/rtdbTrailMotion.ts"
     ],
     "coach": [
       "coachElevationFromRoute.ts",
@@ -381,5 +397,8 @@
     "domains": [
       "firebase"
     ]
+  },
+  "repoAccess": {
+    "왜": "남의 도메인 저장소를 읽으려면 따로 허락받는다(D1·D6). 「식별자를 안다」와 「DB 를 읽는다」는 다르다. mayImport 만으로 저장소까지 열리면 읽기 모델 소유권 규칙이 무의미해진다."
   }
 }

@@ -12,9 +12,9 @@ import { getFirebaseFirestore } from "../../firebase/app";
 import { isActivityLodDebugPanelEnabled } from "../../mapDebugPhase";
 import type { LngLat } from "../../geo";
 import { isWithinActivityTraceHeatWindow } from "../../activityWorldTraceStyle";
-import { lastSeenAtToMillis } from "../../trail/repo/firestoreTrail";
+import { lastSeenAtToMillis } from "../../firebase/converters";
 import { recordRouteActivityAccess } from "../../hudCompanionDiag";
-import { ROUTE_ACTIVITY_CACHE_TTL_MS } from "../../rideSyncPolicy";
+import { ROUTE_ACTIVITY_CACHE_TTL_MS } from "../../activityWorldPollConstants";
 
 /**
  * Activity World invariant

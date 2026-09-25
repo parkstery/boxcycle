@@ -3,7 +3,7 @@ import {
   ACTIVITY_WORLD_POLL_ACTIVE_MS,
   ACTIVITY_WORLD_POLL_IDLE_MS,
   ROUTE_ACTIVITY_CACHE_TTL_MS,
-} from "./rideSyncPolicy";
+} from "./activityWorldPollConstants";
 
 export type ActivityWorldPollMode = "idle" | "active";
 

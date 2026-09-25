@@ -3,7 +3,7 @@ import {
   PEER_INTERP_BUFFER_MAX,
   PEER_INTERP_DELAY_MS,
   PEER_INTERP_MAX_EXTRAP_MS,
-} from "../rideSyncPolicy";
+} from "./peerSyncPolicy";
 
 const DIST_EPS_M = 0.2;
 const MAX_SPEED_MPS = 85 / 3.6;

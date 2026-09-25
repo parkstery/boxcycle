@@ -4,10 +4,10 @@
  */
 import type { User } from "firebase/auth";
 import type { LiveLocationSnapshot } from "../liveLocationSnapshot";
-import { DEFAULT_TRAIL_ID } from "../trail/repo/firestoreTrail";
+import { DEFAULT_TRAIL_ID } from "../trail/trailId";
 import { mergeTrailLivePublicationRideSnapshot } from "../trail/repo/firestoreTrailLivePublicationRides";
 import { touchTrailInstanceActivity } from "../trail/repo/firestoreTrailInstance";
-import { ROUTE_FLIGHT_DRAIN_TIMEOUT_MS } from "../rideSyncPolicy";
+import { ROUTE_FLIGHT_DRAIN_TIMEOUT_MS } from "./peerSyncPolicy";
 import {
   beginRouteInFlight,
   endRouteInFlight,
@@ -228,7 +228,7 @@ async function installDevLiveRideProbe(): Promise<void> {
   const { TRAILS_COLLECTION, TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION } = await import(
     "../trail/repo/firestoreTrailPaths"
   );
-  const { sanitizeTrailId } = await import("../trail/repo/firestoreTrail");
+  const { sanitizeTrailId } = await import("../trail/trailId");
   window.__rtwLiveRideExists = async (trailId: string, uid: string) => {
     const snap = await getDoc(
       doc(
