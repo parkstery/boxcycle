@@ -116,17 +116,35 @@ describe("RouteDock 소스 구조 — 접어도 센서가 남는다", () => {
     assert.ok(chipAt < panelAt, "칩은 hidden 패널 앞(= 바깥)에 있어야 한다");
   });
 
-  it("접힘 여부(expanded)가 칩 렌더를 가르지 않는다", () => {
+  /*
+   * 2026-09-25 정정 — 이 시험은 2026-09-23 `c66699a`(지시01 접힘 캐럿 LED) 이후 **red 였다.**
+   * 09-18 이후 갱신되지 않은 채, 「칩 가드는 `cadence` 하나뿐」이라는 낡은 계약을 주장했다.
+   * 아무도 몰랐던 이유: `test:next-ride` 가 어느 게이트에도 없었다(이번에 pre-push 로 승격).
+   *
+   * 지금의 의도는 「접어도 센서 신호가 남는다」 그대로이고, **남기는 수단만** 바뀌었다 —
+   * 접히면 칩 대신 **캐럿 LED** 가 연결만 표시한다(rpm 은 펼친 뒤 칩에서). 그래서 보호해야
+   * 할 것은 「칩이 항상 있다」가 아니라 **「접힘에서 연결 표시가 사라지지 않는다」** 다.
+   */
+  it("접힘에서도 연결 표시가 남는다 — 칩이 없으면 캐럿 LED 가 대신한다", () => {
     const chipAt = src.indexOf("<CadenceHudChip");
-    const chipEnd = src.indexOf("/>", chipAt);
-    // 칩 블록을 여는 조건은 `cadence ?` 하나뿐 — expanded 가 끼어들면 접을 때 사라진다
     const guard = src.slice(Math.max(0, chipAt - 400), chipAt);
-    assert.ok(guard.includes("{cadence ? ("), "칩 가드는 cadence 유무만이어야 한다");
-    assert.equal(guard.includes("expanded"), false, "expanded 가 칩 가드에 들어가면 안 된다");
-    assert.equal(
-      src.slice(chipAt, chipEnd).includes("expanded"),
-      false,
-      "칩 props 에 expanded 가 들어가면 안 된다",
+    assert.ok(
+      guard.includes("showSensorChip && cadence ? ("),
+      "칩 가드는 cadence 유무 + 캐럿 전용 여부여야 한다",
+    );
+    // 칩을 접힘에서 빼는 대가로 캐럿 LED 가 반드시 있어야 한다. 하나라도 없으면
+    // 접었을 때 센서 신호가 통째로 사라진다(2026-09-16 사고와 같은 결과).
+    assert.ok(
+      /const caretOnly\s*=/.test(src),
+      "접힘 판정(caretOnly)이 있어야 한다",
+    );
+    assert.ok(
+      /const caretSensorView\s*=[\s\S]{0,120}caretOnly/.test(src),
+      "접힘일 때 연결을 표시할 캐럿 LED 뷰가 있어야 한다",
+    );
+    assert.ok(
+      src.includes("CadenceHudChip.css"),
+      "캐럿 LED 가 재사용하는 LED 클래스가 import 되어야 한다",
     );
   });
 

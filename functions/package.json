@@ -8,7 +8,7 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint src",
-    "test": "tsc && node --test lib/distanceAutoRouteCore.test.js",
+    "test": "tsc && node --test lib/distanceAutoRouteCore.test.js lib/conquestClaimContract.test.js",
     "serve": "npm run build && firebase emulators:start --only functions",
     "admin:promote-saved-route": "npm run build && node lib/cliPromoteSavedRoute.js",
     "admin:migrate-rooms-to-trails": "npm run build && node lib/cliMigrateRoomsToTrails.js",

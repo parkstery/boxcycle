@@ -1,6 +1,31 @@
 /** 거리·방향 자동 Route — 서버 후보·선택 순수 로직(웹 `distanceAutoRoute.ts` 와 동기) */
+import { conquestCellIdAt, type LngLat } from "./geoTiles.js";
 
-export type LngLat = [number, number];
+export type { LngLat };
+
+/**
+ * Claim 읽기 결과. 이 코어는 Claim 을 **어디서 어떻게 읽는지 모른다**(Phase 5 D2).
+ * Firestore 구현은 `conquestClaimRead.ts` 가 제공하고, 조립은 `distanceAutoRouteHttp` 가 한다.
+ */
+export type ClaimReadResult = {
+  claimedCellIds: Set<string>;
+  chunkIdsRequested: string[];
+  chunksHit: number;
+  readMs: number;
+};
+
+/**
+ * 「출발점 주변 Claim 을 읽어 오는 것」의 계약.
+ *
+ * 왜 포트인가 — 경로 생성이 Claim 을 읽는 것은 **제품 요구 그 자체**다(신규도로 비율로 순위).
+ * 의존을 끊으면 기능이 사라진다. 그래서 끊지 않고 **방향을 뒤집는다** — 코어가 계약을
+ * 선언하고 Conquest 가 구현한다. 부수 이득으로 코어를 Firestore 없이 시험할 수 있다.
+ */
+export type ClaimReader = (input: {
+  userId: string;
+  start: LngLat;
+  radiusMeters: number;
+}) => Promise<ClaimReadResult>;
 
 export const DIRECTION_TOLERANCE_DEG = 30;
 /** provider 후보 탐색 시 직선 거리 배율 상한(내부). 최종 성공 허용에는 사용하지 않는다. */
@@ -1204,22 +1229,6 @@ export const READY_CLAIM_WEIGHT_SELF_OVERLAP = 0.08;
 /** 신규 도로 비율 샘플 간격(m) — z20 셀 ~30m 에 맞춤 */
 const NEW_ROAD_SAMPLE_STEP_M = 25;
 
-function conquestCellIdAtLngLat(lngLat: LngLat): string {
-  const zoom = 20;
-  const clampedLat = Math.max(-85.05112878, Math.min(85.05112878, lngLat[1]));
-  const n = 2 ** zoom;
-  const x = Math.max(0, Math.min(n - 1, Math.floor(((lngLat[0] + 180) / 360) * n)));
-  const latRad = (clampedLat * Math.PI) / 180;
-  const y = Math.max(
-    0,
-    Math.min(
-      n - 1,
-      Math.floor(((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n),
-    ),
-  );
-  return `${zoom}_${x}_${y}`;
-}
-
 /**
  * 신규 도로 비율 = Claim 되지 않은 구간 길이 / 전체 길이.
  * claimed 가 비면 1(전부 신규) — 가산 항이 모든 후보에 같아 순위에 영향 없음.
@@ -1242,7 +1251,7 @@ export function computeRouteNewRoadRatio(
       const t = (p + 0.5) / pieces;
       const mid: LngLat = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
       totalLen += pieceLen;
-      if (!claimedCellIds.has(conquestCellIdAtLngLat(mid))) newLen += pieceLen;
+      if (!claimedCellIds.has(conquestCellIdAt(mid))) newLen += pieceLen;
     }
   }
   return totalLen > 0 ? newLen / totalLen : 1;

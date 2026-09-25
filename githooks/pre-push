@@ -55,11 +55,28 @@ fi
 if [ -n "$touch_web" ]; then
   echo "[pre-push] typecheck apps/web (tsc -b --noEmit)…"
   ( cd apps/web && npx tsc -b --noEmit ) || fail=1
+
+  # 계약 스위트(245건, ≈2.5s). 2026-09-25 승격 — 어느 게이트에도 없어서
+  # `sensor-chip-slot-contract` 가 09-23 부터 **이틀간 red 인 채 아무도 몰랐다.**
+  # 등록만 하고 돌리지 않으면 그것은 게이트가 아니다.
+  echo "[pre-push] 계약 스위트 apps/web (test:next-ride)…"
+  ( cd apps/web && npm run test:next-ride --silent ) || fail=1
 fi
 
 if [ -n "$touch_fn" ]; then
-  echo "[pre-push] typecheck functions (tsc --noEmit)…"
-  ( cd functions && npx tsc --noEmit ) || fail=1
+  # `npm test` 가 tsc(emit) 를 먼저 돌리므로 타입체크를 겸한다. lib/ 는 gitignore.
+  # 계약 시험(G3)을 여기 두는 이유: Claim ↔ 경로 순위가 어긋나도 **에러가 나지 않는다**
+  # — 비율이 전부 1.0 이 되어 「Claim 없는 사용자」와 구분되지 않는다(감사 R10).
+  echo "[pre-push] functions typecheck + 계약 시험…"
+  ( cd functions && npm test --silent ) || fail=1
+fi
+
+# Claim 셀 ID 는 클라이언트가 쓰고 서버가 읽는다. 빌드가 나뉘어 코드를 공유할 수 없으므로
+# 양쪽에 같은 고정 벡터를 박아 고정한다 — 한쪽만 바뀌면 여기서 막는다.
+touch_cells=$(echo "$changed" | grep -E 'conquestTiles|conquest/cell-id-vectors|functions/src/geoTiles|conquestClaimRead' || true)
+if [ -n "$touch_cells" ]; then
+  echo "[pre-push] Claim 셀 ID 고정 벡터(클라↔서버) 검사…"
+  ( cd apps/web && npm run test:conquest-cells --silent ) || fail=1
 fi
 
 if [ "$fail" -ne 0 ]; then
