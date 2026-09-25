@@ -3,7 +3,7 @@ import type { PublishedPublicCourseSummary } from "../../lib/route/repo/firestor
 import type { RouteActivitySnapshot } from "../../lib/activity/repo/firestoreRouteActivity";
 import type { SavedRoute } from "../../lib/route/repo/firestoreSavedRoutes";
 import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/route/repo/firestoreSavedRoutes";
-import { isIncompleteQuotaError } from "../../lib/tierQuota";
+import { isIncompleteQuotaError } from "../../lib/account/tierQuota";
 import { SavedRoutesModal } from "./SavedRoutesModal";
 import {
   OfficialCourseListModal,
@@ -12,11 +12,11 @@ import {
 import "./RideRoutePanel.css";
 
 /**
- * 카메라 추종 모드는 지도의 개념이라 `lib/mapGlobeView` 가 소유한다(2026-09-25 이동).
+ * 카메라 추종 모드는 지도의 개념이라 `lib/map/mapGlobeView` 가 소유한다(2026-09-25 이동).
  * 종전에는 이 패널이 정의하고 코어가 그것을 import 하는 레이어링 역전이었다(구조 감사 M4).
  * 기존 import 경로를 깨지 않도록 여기서는 다시 내보내기만 한다.
  */
-export type { FollowMode } from "../../lib/mapGlobeView";
+export type { FollowMode } from "../../lib/map/mapGlobeView";
 
 type RideRoutePanelProps = {
   /** 경로 계산 결과 요약(거리·시간 등) — 생성은 RouteDock 소유, 여기선 표시만 */

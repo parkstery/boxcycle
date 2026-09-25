@@ -5,7 +5,7 @@ import { describe, it } from "node:test";
 import {
   preserveDedupedSavedRouteState,
   resolveSavedRouteProgressUpdate,
-} from "../../src/lib/savedRouteProgressPolicy.ts";
+} from "../../src/lib/route/savedRouteProgressPolicy.ts";
 
 describe("resolveSavedRouteProgressUpdate", () => {
   it("31% → 43% 는 43% 로 올라간다", () => {

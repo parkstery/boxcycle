@@ -1,5 +1,5 @@
 import type { Map as MapboxMap } from "mapbox-gl";
-import type { CoverageOverlayMode } from "../lib/coverageOverlayMode";
+import type { CoverageOverlayMode } from "../lib/activity/coverageOverlayMode";
 import { ensureOsrmRoutableRoadOverlay, setOsrmRoutableRoadVisibility, ROUTABLE_ROAD_LAYER_ID } from "./osrmRoadCoverage";
 
 /**

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { isValidNickname, NICKNAME_CASE_FOLD_HINT_KO, NICKNAME_RULES_SUMMARY_KO } from "../../lib/nickname";
+import { isValidNickname, NICKNAME_CASE_FOLD_HINT_KO, NICKNAME_RULES_SUMMARY_KO } from "../../lib/identity/nickname";
 import "./SignUpNicknameCard.css";
 
 type SignUpNicknameCardProps = {

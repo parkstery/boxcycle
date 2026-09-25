@@ -4,7 +4,7 @@ import {
   BLE_RECONNECT_MAX_MS,
   bleReconnectDelayMs,
   selectGrantedCadenceDevice,
-} from "../../src/lib/bleAutoReconnect.ts";
+} from "../../src/lib/sensor/bleAutoReconnect.ts";
 
 describe("BLE 자동 재연결 백오프", () => {
   it("0.5s에서 시작해 10s 상한까지 증가한다", () => {

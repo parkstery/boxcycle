@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { LineStringGeometry, LngLat } from "../lib/geo";
-import { getPointOnRouteByDistance, lineStringLengthMeters } from "../lib/geo";
-import { rideDistanceAlongRoute } from "../lib/liveLocationSnapshot";
-import { stepRideSpeedKmh } from "../lib/rideSpeedRamp";
+import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
+import { getPointOnRouteByDistance, lineStringLengthMeters } from "../lib/geo/geo";
+import { rideDistanceAlongRoute } from "../lib/ride/liveLocationSnapshot";
+import { stepRideSpeedKmh } from "../lib/ride/rideSpeedRamp";
 import { registerPeerSyncDistanceSamplers } from "../lib/peerMotion/peerSyncDistanceSamplers";
 
 export type RideSessionStatus = "idle" | "running" | "paused";

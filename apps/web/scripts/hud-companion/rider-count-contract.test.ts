@@ -4,12 +4,12 @@ import { describe, it } from "node:test";
 import {
   companionHudCopy,
   formatCompanionHudActivityLine,
-} from "../../src/lib/companionHudCount.ts";
+} from "../../src/lib/ride/companionHudCount.ts";
 import {
   countOtherLiveRidePeers,
   hasOtherLiveRidePeer,
   shouldShowCompanionEmptyCopy,
-} from "../../src/lib/peerHud.ts";
+} from "../../src/lib/peerMotion/peerHud.ts";
 
 describe("companionHudCopy — §4.3 세 상태 + 불변식", () => {
   it("주행 중 · others=0 → 인원 1, 빈 문장 표시", () => {

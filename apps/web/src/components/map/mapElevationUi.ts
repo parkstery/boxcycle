@@ -1,5 +1,5 @@
-import type { LngLat, LineStringGeometry } from "../../lib/geo";
-import { getDistanceMeters } from "../../lib/geo";
+import type { LngLat, LineStringGeometry } from "../../lib/geo/geo";
+import { getDistanceMeters } from "../../lib/geo/geo";
 
 /** 짧은 코스에서 세로 “자동 맞춤”만으로 고도 잡음이 과대 표시되는 것을 줄이기 위한 상한(m). */
 const ELEV_CHART_SHORT_ROUTE_MAX_M = 10_000;

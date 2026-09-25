@@ -17,10 +17,10 @@
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import * as lod from "../../src/lib/activityWorldLod.ts";
-import * as poll from "../../src/lib/activityWorldPollConstants.ts";
+import * as lod from "../../src/lib/activity/activityWorldLod.ts";
+import * as poll from "../../src/lib/activity/activityWorldPollConstants.ts";
 import * as peer from "../../src/lib/peerMotion/peerSyncPolicy.ts";
-import * as sync from "../../src/lib/rideSyncPolicy.ts";
+import * as sync from "../../src/lib/ride/rideSyncPolicy.ts";
 
 const numbersOf = (ns: Record<string, unknown>): [string, number][] =>
   Object.entries(ns).filter((e): e is [string, number] => typeof e[1] === "number");

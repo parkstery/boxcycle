@@ -1,8 +1,8 @@
-import type { LngLat } from "../../lib/geo";
+import type { LngLat } from "../../lib/geo/geo";
 import { shortPlaceLabel } from "../../lib/route/repo/firestoreSavedRoutes";
-import type { NextRideTarget, NextRideView } from "../../lib/nextRideTarget";
-import { formatRideDistanceKmNumber } from "../../lib/rideDistanceFormat";
-import { progressPercentLabel } from "../../lib/rideEndResult";
+import type { NextRideTarget, NextRideView } from "../../lib/ride/nextRideTarget";
+import { formatRideDistanceKmNumber } from "../../lib/ride/rideDistanceFormat";
+import { progressPercentLabel } from "../../lib/ride/rideEndResult";
 import "./NextRideCard.css";
 
 export type NextRideCardProps = {

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it } from "node:test";
 import type { FirestoreError } from "firebase/firestore";
-import { snapshotReadSubscriptions } from "../../src/lib/installReadSubscriptionDebug.ts";
+import { snapshotReadSubscriptions } from "../../src/lib/debug/installReadSubscriptionDebug.ts";
 import {
   debugInjectTrailLivePublicationRidesHubError,
   debugTrailLivePublicationRidesSubscriptionHub,
@@ -12,7 +12,7 @@ import {
   resetUnderlyingReadMeters,
   snapshotUnderlyingReadSubscriptions,
   trackUnderlyingReadSubscription,
-} from "../../src/lib/readSubscriptionMeters.ts";
+} from "../../src/lib/debug/readSubscriptionMeters.ts";
 import {
   acquireTrailMotionSubscription,
   debugInjectRtdbMotionHubError,

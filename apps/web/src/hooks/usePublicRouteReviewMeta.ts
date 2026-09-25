@@ -4,7 +4,7 @@ import {
   createPublicRouteRequest,
   loadMyPendingRequestRouteIds,
   type ExperienceTagId,
-} from "../lib/publicRouteRequests";
+} from "../lib/route/publicRouteRequests";
 import type { SavedRoute } from "../lib/route/repo/firestoreSavedRoutes";
 
 export type UsePublicRouteReviewMetaOptions = {

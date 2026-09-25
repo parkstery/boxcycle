@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { validateSavedRouteName } from "../../lib/route/repo/firestoreSavedRoutes";
-import { isIncompleteQuotaError } from "../../lib/tierQuota";
-import { progressPercentLabel, type RideEndResult } from "../../lib/rideEndResult";
+import { isIncompleteQuotaError } from "../../lib/account/tierQuota";
+import { progressPercentLabel, type RideEndResult } from "../../lib/ride/rideEndResult";
 import { useRideConquestResult } from "../../hooks/useRideConquestResult";
-import { getRideSaveStatusLabel, getSavedRouteProgressStatusLabel } from "../../lib/rideStatusCopy";
-import { formatNewRoadHero, formatConquestStatusCopy } from "../../lib/rideSessionPreview";
+import { getRideSaveStatusLabel, getSavedRouteProgressStatusLabel } from "../../lib/ride/rideStatusCopy";
+import { formatNewRoadHero, formatConquestStatusCopy } from "../../lib/ride/rideSessionPreview";
 import "./RideSummarySheet.css";
 
 type RideSummarySheetProps = {

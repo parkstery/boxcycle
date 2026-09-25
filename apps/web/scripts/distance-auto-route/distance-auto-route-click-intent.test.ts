@@ -15,7 +15,7 @@ import {
 } from "../../../../functions/src/distanceAutoRouteCore.ts";
 import {
   formatDistanceAutoRouteClickDebugCoords,
-} from "../../src/lib/distanceAutoRouteClickDebugMarker.ts";
+} from "../../src/lib/debug/distanceAutoRouteClickDebugMarker.ts";
 const HOOK_SOURCE = readFileSync(
   new URL("../../src/hooks/useDistanceAutoRoute.ts", import.meta.url),
   "utf8",
@@ -374,11 +374,11 @@ describe("distanceAutoRoute click debug marker 3F-A-R1 §2.5", () => {
     "utf8",
   );
   const DEBUG_MARKER_SOURCE = readFileSync(
-    new URL("../../src/lib/distanceAutoRouteClickDebugMarker.ts", import.meta.url),
+    new URL("../../src/lib/debug/distanceAutoRouteClickDebugMarker.ts", import.meta.url),
     "utf8",
   );
   const BRIDGE_SOURCE = readFileSync(
-    new URL("../../src/lib/distanceAutoRouteMapBridge.ts", import.meta.url),
+    new URL("../../src/lib/map/distanceAutoRouteMapBridge.ts", import.meta.url),
     "utf8",
   );
 

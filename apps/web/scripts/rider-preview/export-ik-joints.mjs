@@ -17,7 +17,7 @@ import {
   hipOf,
   shoulderOf,
 } from "../../src/lib/riderPrototype/riderRig.geometry.mjs";
-import { sampleRiderMetrics } from "../../src/lib/riderGlbPedalPose.pose.mjs";
+import { sampleRiderMetrics } from "../../src/lib/rider/riderGlbPedalPose.pose.mjs";
 
 const crankRadFromPhase = (phase) => -phase * Math.PI * 2;
 const mm = (v) => v.map((x) => +(x * 1000).toFixed(2));

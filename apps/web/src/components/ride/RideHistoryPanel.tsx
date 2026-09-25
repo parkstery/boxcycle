@@ -6,9 +6,9 @@ import {
 import {
   loadRideSessions,
   type StoredRideSession,
-} from "../../lib/rideSessionsStorage";
+} from "../../lib/ride/rideSessionsStorage";
 import "./RideHistoryPanel.css";
-import { isRouteCompletion } from "../../lib/rideRecordPolicy";
+import { isRouteCompletion } from "../../lib/ride/rideRecordPolicy";
 
 export type RideHistoryPanelProps = {
   /**

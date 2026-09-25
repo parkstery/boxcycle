@@ -1,15 +1,15 @@
-import type { LineStringGeometry, LngLat } from "../geo";
+import type { LineStringGeometry, LngLat } from "../geo/geo";
 import {
   getPointOnRouteByDistance,
   headingAtRouteDistanceMeters,
   lineStringLengthMeters,
-} from "../geo";
+} from "../geo/geo";
 import {
   PEER_DRIVE_SIM_GRACE_MS,
   PEER_INTERP_DELAY_MS,
   PEER_INTERP_MAX_EXTRAP_MS,
 } from "./peerSyncPolicy";
-import { estimateCrankRpmFromSpeedKmh } from "../riderPedalMotion";
+import { estimateCrankRpmFromSpeedKmh } from "../rider/riderPedalMotion";
 import {
   applyPeerMotionIngest,
   clampRouteDist,

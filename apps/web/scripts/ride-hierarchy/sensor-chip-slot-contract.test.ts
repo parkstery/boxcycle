@@ -4,8 +4,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 import type { RideUiStage } from "../../src/hooks/useRideUiStage.ts";
-import { sensorChipSlot } from "../../src/lib/sensorChipSlot.ts";
-import { isRouteDockVisible } from "../../src/lib/routeDockUiPolicy.ts";
+import { sensorChipSlot } from "../../src/lib/route/sensorChipSlot.ts";
+import { isRouteDockVisible } from "../../src/lib/route/routeDockUiPolicy.ts";
 
 /**
  * UI-DECLUTTER-SENSOR-6A — 센서 칩은 **정확히 한 곳**에 있고, 사라지지 않는다.

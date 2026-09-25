@@ -175,67 +175,67 @@
       "firebase/functionsEmulatorUrl.ts"
     ],
     "geo": [
-      "geo.ts",
-      "geoDecimate.ts",
-      "lineStringCoordsJson.ts",
-      "localFirstRegion.ts",
-      "routeWaypoints.ts"
+      "geo/geo.ts",
+      "geo/geoDecimate.ts",
+      "geo/lineStringCoordsJson.ts",
+      "geo/localFirstRegion.ts",
+      "geo/routeWaypoints.ts"
     ],
     "terms": [
-      "productTerms.ts"
+      "terms/productTerms.ts"
     ],
     "storage": [
-      "appSessionKeys.ts",
-      "clientPersistencePolicy.ts"
+      "storage/appSessionKeys.ts",
+      "storage/clientPersistencePolicy.ts"
     ],
     "sensor": [
-      "bleAutoReconnect.ts",
-      "bleCscCadence.ts",
-      "cadenceRideInput.ts",
-      "cadenceSensorUi.ts",
-      "manualSpeedWhileRiding.ts",
-      "sessionSpeedKmh.ts"
+      "sensor/bleAutoReconnect.ts",
+      "sensor/bleCscCadence.ts",
+      "sensor/cadenceRideInput.ts",
+      "sensor/cadenceSensorUi.ts",
+      "sensor/manualSpeedWhileRiding.ts",
+      "sensor/sessionSpeedKmh.ts"
     ],
     "identity": [
-      "authDisplay.ts",
-      "authGatePolicy.ts",
-      "firebaseAuthPopup.ts",
-      "guestAccountReset.ts",
-      "guestNametag.ts",
-      "nickname.ts"
+      "identity/authDisplay.ts",
+      "identity/authGatePolicy.ts",
+      "identity/firebaseAuthPopup.ts",
+      "identity/guestAccountReset.ts",
+      "identity/guestNametag.ts",
+      "identity/nickname.ts"
     ],
     "identity/repo": [
       "identity/repo/firestoreUser.ts"
     ],
     "account": [
-      "mountRouteTokenPopupFeedback.ts",
-      "routeTokenEconomyClient.ts",
-      "routeTokenPopupDisplay.mjs",
-      "routeTokenSpendBridge.ts",
-      "routeTokenSpendState.mjs",
-      "routeTokenUiCopy.ts",
-      "subscription.ts",
-      "tierQuota.ts",
-      "userTier.ts"
+      "account/mountRouteTokenPopupFeedback.ts",
+      "account/routeTokenEconomyClient.ts",
+      "account/routeTokenPopupDisplay.mjs",
+      "account/routeTokenSpendBridge.ts",
+      "account/routeTokenSpendState.mjs",
+      "account/routeTokenUiCopy.ts",
+      "account/subscription.ts",
+      "account/tierQuota.ts",
+      "account/userTier.ts"
     ],
     "account/repo": [
       "account/repo/firestoreRouteToken.ts"
     ],
     "conquest": [
-      "conquestLayerEmphasis.ts",
-      "conquestTiles.ts"
+      "conquest/conquestLayerEmphasis.ts",
+      "conquest/conquestTiles.ts"
     ],
     "conquest/repo": [
       "conquest/repo/firestoreConquest.ts"
     ],
     "trail": [
+      "trail/trailAccessPolicy.ts",
+      "trail/trailDisplayNumber.ts",
+      "trail/trailDisplayNumberCache.ts",
       "trail/trailId.ts",
       "trail/trailLiveRideSink.ts",
       "trail/trailTypes.ts",
-      "trailAccessPolicy.ts",
-      "trailDisplayNumber.ts",
-      "trailDisplayNumberCache.ts",
-      "trailUrl.ts"
+      "trail/trailUrl.ts"
     ],
     "trail/repo": [
       "trail/repo/activeLiveRideTrailIdsSubscriptionHub.ts",
@@ -247,32 +247,32 @@
       "trail/repo/livePublicationRidesSubscriptionHub.ts"
     ],
     "route": [
-      "basicIntroHubRouteGeometries.ts",
-      "directionsDirectGuard.core.mjs",
-      "directionsDirectGuard.ts",
-      "distanceAutoRoute.ts",
-      "distanceAutoRouteErrors.ts",
-      "distanceAutoRouteEta.ts",
-      "distanceAutoRouteGuideRing.ts",
-      "fetchRouteElevations.ts",
-      "publicRouteAutoReview.ts",
-      "publicRouteContentPolicy.ts",
-      "publicRouteNamingPolicy.ts",
-      "publicRouteRequests.ts",
-      "publicationDisplay.ts",
-      "readyRide.ts",
-      "resolvePublicationIdFromDoc.ts",
-      "routeDockUiPolicy.ts",
-      "routeFingerprint.ts",
-      "routeGeometryMidpoint.ts",
-      "routeLimits.ts",
-      "routeListSort.ts",
-      "routeProgressMath.ts",
-      "routeProgressSplit.ts",
-      "routePublicationResolve.ts",
-      "routeWorkspaceLock.ts",
-      "savedRouteProgressPolicy.ts",
-      "sensorChipSlot.ts"
+      "route/basicIntroHubRouteGeometries.ts",
+      "route/directionsDirectGuard.core.mjs",
+      "route/directionsDirectGuard.ts",
+      "route/distanceAutoRoute.ts",
+      "route/distanceAutoRouteErrors.ts",
+      "route/distanceAutoRouteEta.ts",
+      "route/distanceAutoRouteGuideRing.ts",
+      "route/fetchRouteElevations.ts",
+      "route/publicRouteAutoReview.ts",
+      "route/publicRouteContentPolicy.ts",
+      "route/publicRouteNamingPolicy.ts",
+      "route/publicRouteRequests.ts",
+      "route/publicationDisplay.ts",
+      "route/readyRide.ts",
+      "route/resolvePublicationIdFromDoc.ts",
+      "route/routeDockUiPolicy.ts",
+      "route/routeFingerprint.ts",
+      "route/routeGeometryMidpoint.ts",
+      "route/routeLimits.ts",
+      "route/routeListSort.ts",
+      "route/routeProgressMath.ts",
+      "route/routeProgressSplit.ts",
+      "route/routePublicationResolve.ts",
+      "route/routeWorkspaceLock.ts",
+      "route/savedRouteProgressPolicy.ts",
+      "route/sensorChipSlot.ts"
     ],
     "route/repo": [
       "route/repo/firestoreCourses.ts",
@@ -281,44 +281,44 @@
       "route/repo/savedRoutesLocal.ts"
     ],
     "activity": [
-      "activityWorldAnchor.ts",
-      "activityWorldLod.ts",
-      "activityWorldPollConstants.ts",
-      "activityWorldPollPolicy.ts",
-      "activityWorldPollSignals.ts",
-      "activityWorldTraceStyle.ts",
-      "coverageOverlayMode.ts"
+      "activity/activityWorldAnchor.ts",
+      "activity/activityWorldLod.ts",
+      "activity/activityWorldPollConstants.ts",
+      "activity/activityWorldPollPolicy.ts",
+      "activity/activityWorldPollSignals.ts",
+      "activity/activityWorldTraceStyle.ts",
+      "activity/coverageOverlayMode.ts"
     ],
     "activity/repo": [
       "activity/repo/firestoreRouteActivity.ts",
       "activity/repo/firestoreWorldActivity.ts"
     ],
     "ride": [
-      "companionHudCount.ts",
-      "liveLocationSnapshot.ts",
-      "liveRideHudSignal.ts",
-      "nextRideTarget.ts",
-      "publishLiveLocationFanout.ts",
-      "rideBgmConstants.ts",
-      "rideConquestResult.ts",
-      "rideConquestSubscription.ts",
-      "rideContinuationSetup.ts",
-      "rideDistanceFormat.ts",
-      "rideDocFields.ts",
-      "rideEndPersistence.ts",
-      "rideEndResult.ts",
-      "rideFormat.ts",
-      "rideJoinPresenceBurst.ts",
-      "ridePulse.ts",
-      "rideRecordPolicy.ts",
-      "rideSessionAnchors.ts",
-      "rideSessionPreview.ts",
-      "rideSessionsStorage.ts",
-      "rideSpeech.ts",
-      "rideSpeedRamp.ts",
-      "rideStatsAggregate.ts",
-      "rideStatusCopy.ts",
-      "rideSyncPolicy.ts"
+      "ride/companionHudCount.ts",
+      "ride/liveLocationSnapshot.ts",
+      "ride/liveRideHudSignal.ts",
+      "ride/nextRideTarget.ts",
+      "ride/publishLiveLocationFanout.ts",
+      "ride/rideBgmConstants.ts",
+      "ride/rideConquestResult.ts",
+      "ride/rideConquestSubscription.ts",
+      "ride/rideContinuationSetup.ts",
+      "ride/rideDistanceFormat.ts",
+      "ride/rideDocFields.ts",
+      "ride/rideEndPersistence.ts",
+      "ride/rideEndResult.ts",
+      "ride/rideFormat.ts",
+      "ride/rideJoinPresenceBurst.ts",
+      "ride/ridePulse.ts",
+      "ride/rideRecordPolicy.ts",
+      "ride/rideSessionAnchors.ts",
+      "ride/rideSessionPreview.ts",
+      "ride/rideSessionsStorage.ts",
+      "ride/rideSpeech.ts",
+      "ride/rideSpeedRamp.ts",
+      "ride/rideStatsAggregate.ts",
+      "ride/rideStatusCopy.ts",
+      "ride/rideSyncPolicy.ts"
     ],
     "ride/repo": [
       "ride/repo/firestoreGlobalLivePresence.ts",
@@ -328,60 +328,60 @@
       "ride/repo/firestoreWorldPresence.ts"
     ],
     "rider": [
-      "riderGlbPedalPose.pose.mjs",
-      "riderGlbPedalPose.ts",
-      "riderPedalMotion.ts",
-      "riderPedalSpriteMeta.ts",
-      "riderPedalStripKeyframes.ts",
+      "rider/riderGlbPedalPose.pose.mjs",
+      "rider/riderGlbPedalPose.ts",
+      "rider/riderPedalMotion.ts",
+      "rider/riderPedalSpriteMeta.ts",
+      "rider/riderPedalStripKeyframes.ts",
       "riderPrototype/"
     ],
     "camera": [
-      "camera1Mode.ts",
-      "cameraFollowTrace.ts",
-      "cameraRenderPhase.ts",
-      "rideCameraFraming.ts"
+      "camera/camera1Mode.ts",
+      "camera/cameraFollowTrace.ts",
+      "camera/cameraRenderPhase.ts",
+      "camera/rideCameraFraming.ts"
     ],
     "peerMotion": [
-      "peerHud.ts",
       "peerMotion/",
+      "peerMotion/peerHud.ts",
+      "peerMotion/peerRidersDrive.ts",
       "peerMotion/peerSyncPolicy.ts",
-      "peerMotion/trailLiveRidePort.ts",
-      "peerRidersDrive.ts",
-      "spectatorRideExtrap.ts"
+      "peerMotion/spectatorRideExtrap.ts",
+      "peerMotion/trailLiveRidePort.ts"
     ],
     "peerMotion/repo": [
       "peerMotion/repo/rtdbMotionSubscriptionHub.ts",
       "peerMotion/repo/rtdbTrailMotion.ts"
     ],
     "coach": [
-      "coachElevationFromRoute.ts",
-      "coachTypes.ts"
+      "coach/coachElevationFromRoute.ts",
+      "coach/coachTypes.ts"
     ],
     "map": [
-      "disableMapboxTelemetry.ts",
-      "distanceAutoRouteMapBridge.ts",
-      "mapBootCenter.ts",
-      "mapGlobeView.ts",
-      "mapPickRouteDock.ts",
-      "mapSelfLocationMarker.ts",
-      "rtwMapConfig.ts"
+      "map/disableMapboxTelemetry.ts",
+      "map/distanceAutoRouteMapBridge.ts",
+      "map/mapBootCenter.ts",
+      "map/mapGlobeView.ts",
+      "map/mapPickRouteDock.ts",
+      "map/mapSelfLocationMarker.ts",
+      "map/rtwMapConfig.ts"
     ],
     "debug": [
-      "distanceAutoRouteClickDebugMarker.ts",
-      "hudCompanionDiag.ts",
-      "installHudCompanionDebug.ts",
-      "installLiveRideExistsDebug.ts",
-      "installReadSubscriptionDebug.ts",
-      "installTouchActivityDebug.ts",
-      "localFirstGeoProbe.ts",
-      "mapDebugPhase.ts",
-      "mapTickProbe.ts",
-      "readSubscriptionMeters.ts",
-      "tickTestSwitches.ts",
-      "touchActivityMeters.ts"
+      "debug/distanceAutoRouteClickDebugMarker.ts",
+      "debug/hudCompanionDiag.ts",
+      "debug/installHudCompanionDebug.ts",
+      "debug/installLiveRideExistsDebug.ts",
+      "debug/installReadSubscriptionDebug.ts",
+      "debug/installTouchActivityDebug.ts",
+      "debug/localFirstGeoProbe.ts",
+      "debug/mapDebugPhase.ts",
+      "debug/mapTickProbe.ts",
+      "debug/readSubscriptionMeters.ts",
+      "debug/tickTestSwitches.ts",
+      "debug/touchActivityMeters.ts"
     ],
     "weather": [
-      "openMeteoWeather.ts"
+      "weather/openMeteoWeather.ts"
     ]
   },
   "pending": {

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { LngLat } from "../lib/geo";
+import type { LngLat } from "../lib/geo/geo";
 import {
   fetchMapboxForwardGeocodeSuggestions,
   fetchMapboxPlacePickDetail,

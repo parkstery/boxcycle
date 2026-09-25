@@ -55,7 +55,7 @@ H-1R 보고의 검증표에서 **V6 칸에 스크린샷 해시가 적혀 있었�
 
 ### 1-1. `touchTrailInstanceActivity` 는 **공유 문서**를 친다
 
-`apps/web/src/lib/firestoreTrailInstance.ts:173`
+`apps/web/src/lib/trail/repo/firestoreTrailInstance.ts:173`
 
 ```ts
 export async function touchTrailInstanceActivity(trailId: string) {

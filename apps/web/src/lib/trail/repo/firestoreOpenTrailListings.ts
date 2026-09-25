@@ -18,17 +18,17 @@ import { getAuth } from "firebase/auth";
 import { getFirebaseApp, getFirebaseFirestore } from "../../firebase/app";
 import { countTrailMembersFresh, TRAIL_PRESENCE_STALE_MS } from "./firestoreTrail";
 import { countTrailLiveRidersFresh } from "./firestoreTrailLivePublicationRides";
-import { trailHasConfiguredRoute } from "../../trailAccessPolicy";
+import { trailHasConfiguredRoute } from "../trailAccessPolicy";
 import { TRAILS_COLLECTION } from "./firestoreTrailPaths";
 import type { TrailInstance } from "../trailTypes";
-import { resolvePublicationIdFromDoc } from "../../resolvePublicationIdFromDoc";
+import { resolvePublicationIdFromDoc } from "../../route/resolvePublicationIdFromDoc";
 import {
   enterListingRefreshReadScope,
   leaveListingRefreshReadScope,
   noteListingRefreshRead,
   noteListingRefreshRun,
   noteListingRefreshSchedule,
-} from "../../touchActivityMeters";
+} from "../../debug/touchActivityMeters";
 
 /** Trailhead 공개 목록 — realtime 단일 진실 (자문: openTrailInstances) */
 export const OPEN_TRAIL_LISTINGS_COLLECTION = "openTrailListings";

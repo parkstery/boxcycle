@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { User } from "firebase/auth";
-import type { LineStringGeometry, LngLat } from "../lib/geo";
+import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
 import {
   buildLiveLocationSnapshot,
   createLiveLocationPublishThrottleState,
@@ -11,16 +11,16 @@ import {
   shouldPublishPeerMotion,
   shouldPublishRouteProgress,
   type LiveLocationPublishInput,
-} from "../lib/liveLocationSnapshot";
+} from "../lib/ride/liveLocationSnapshot";
 import { isFirebaseDatabaseConfigured } from "../lib/firebase/app";
-import { cleanupLiveLocationPublish, publishLiveLocationFanout } from "../lib/publishLiveLocationFanout";
+import { cleanupLiveLocationPublish, publishLiveLocationFanout } from "../lib/ride/publishLiveLocationFanout";
 import { mergeGlobalLivePresence } from "../lib/ride/repo/firestoreGlobalLivePresence";
 import { setPeerSyncSelfDistM } from "../lib/peerMotion/peerSyncDebug";
 import {
   finalizeAndDeleteTrailLivePublicationRide,
   deleteTrailLivePublicationRide,
 } from "../lib/trail/repo/firestoreTrailLivePublicationRides";
-import { flushRideJoinPresenceBurst } from "../lib/rideJoinPresenceBurst";
+import { flushRideJoinPresenceBurst } from "../lib/ride/rideJoinPresenceBurst";
 import { sanitizeTrailId } from "../lib/trail/repo/firestoreTrail";
 import { deleteTrailMotion } from "../lib/peerMotion/repo/rtdbTrailMotion";
 import {

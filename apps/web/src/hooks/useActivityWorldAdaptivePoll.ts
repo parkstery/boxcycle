@@ -3,8 +3,8 @@ import {
   activityWorldPollIntervalMs,
   resolveActivityWorldPollMode,
   type ActivityWorldPollMode,
-} from "../lib/activityWorldPollPolicy";
-import { getActivityWorldPollSignals, reportActivityWorldPollSignals } from "../lib/activityWorldPollSignals";
+} from "../lib/activity/activityWorldPollPolicy";
+import { getActivityWorldPollSignals, reportActivityWorldPollSignals } from "../lib/activity/activityWorldPollSignals";
 
 export type UseActivityWorldAdaptivePollOpts = {
   enabled: boolean;

@@ -9,7 +9,7 @@ import { describe, it } from "node:test";
 import {
   mergeRecentRideSessions,
   type StoredRideSession,
-} from "../../src/lib/rideSessionsStorage.ts";
+} from "../../src/lib/ride/rideSessionsStorage.ts";
 
 function session(id: string, endedAt: string, extra: Partial<StoredRideSession> = {}) {
   return {

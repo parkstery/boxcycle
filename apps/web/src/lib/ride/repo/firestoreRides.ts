@@ -10,11 +10,11 @@ import {
   where,
 } from "firebase/firestore";
 import { getFirebaseFirestore } from "../../firebase/app";
-import type { ConquestRidePayload } from "../../conquestTiles";
-import { buildRideCanonicalWriteFields, resolveRideRouteId } from "../../rideDocFields";
-import type { RouteRideEntry } from "../../routePublicationResolve";
-import type { StoredRideSession } from "../../rideSessionsStorage";
-import { isDiscardableRideRecord } from "../../rideRecordPolicy";
+import type { ConquestRidePayload } from "../../conquest/conquestTiles";
+import { buildRideCanonicalWriteFields, resolveRideRouteId } from "../rideDocFields";
+import type { RouteRideEntry } from "../../route/routePublicationResolve";
+import type { StoredRideSession } from "../rideSessionsStorage";
+import { isDiscardableRideRecord } from "../rideRecordPolicy";
 
 const RIDES_COLLECTION = "rides";
 

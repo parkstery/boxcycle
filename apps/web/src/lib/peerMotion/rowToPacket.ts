@@ -1,5 +1,5 @@
 import type { TrailLivePublicationRideRow } from "../trail/trailTypes";
-import { progressRatioToRouteDistanceMeters } from "../liveLocationSnapshot";
+import { progressRatioToRouteDistanceMeters } from "../ride/liveLocationSnapshot";
 import type { PeerMotionPacket } from "./types";
 
 export function trailLiveRowToPeerMotionPacket(

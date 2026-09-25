@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { formatRouteTokenSpendMessage } from "../../src/lib/directionsDirectGuard.core.mjs";
+import { formatRouteTokenSpendMessage } from "../../src/lib/route/directionsDirectGuard.core.mjs";
 import {
   applyRouteSpend,
   applySubscribedBalance,
@@ -8,7 +8,7 @@ import {
   computeEffectiveBalance,
   createEmptySession,
   isInsufficient,
-} from "../../src/lib/routeTokenSpendState.mjs";
+} from "../../src/lib/account/routeTokenSpendState.mjs";
 
 describe("route token spend state", () => {
   it("Guest A 0 고착이 Guest B 온보딩 3에 영향 주지 않음", () => {

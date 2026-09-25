@@ -10,7 +10,7 @@
  * 모든 후보에 같아 순위에 영향이 없어져 **에러 없이 기능만 사라진다**(구조 감사 R10).
  * 그래서 계산을 한 곳으로 모은다.
  *
- * ⚠️ 경계 밖에 **세 번째 구현**이 있다 — `apps/web/src/lib/conquestTiles.ts` 다.
+ * ⚠️ 경계 밖에 **세 번째 구현**이 있다 — `apps/web/src/lib/conquest/conquestTiles.ts` 다.
  * 그쪽이 Claim 을 **쓰고** 여기가 **읽으므로**, 둘이 어긋나면 같은 방식으로 조용히 깨진다.
  * 빌드가 나뉘어 코드를 공유할 수 없으니, **양쪽에 같은 고정 벡터**를 시험으로 박아 고정한다
  * (`conquestClaimContract.test.ts` ↔ `apps/web/scripts/conquest/cell-id-vectors.test.ts`).

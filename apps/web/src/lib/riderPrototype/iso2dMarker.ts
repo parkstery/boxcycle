@@ -1,5 +1,5 @@
-import type { LngLat } from "../geo";
-import type { RiderGlbPedalPose } from "../riderGlbPedalPose";
+import type { LngLat } from "../geo/geo";
+import type { RiderGlbPedalPose } from "../rider/riderGlbPedalPose";
 
 export type RiderVisualKind = "self" | "peer";
 

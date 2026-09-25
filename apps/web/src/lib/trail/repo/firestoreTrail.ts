@@ -12,13 +12,13 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
-import { getPresenceDisplayName, getPresenceMemberType } from "../../authDisplay";
+import { getPresenceDisplayName, getPresenceMemberType } from "../../identity/authDisplay";
 import { getFirebaseFirestore } from "../../firebase/app";
 import {
   TRAIL_MEMBERS_SUBCOLLECTION,
   TRAILS_COLLECTION,
 } from "./firestoreTrailPaths";
-import { noteListingRefreshRead, notePresenceHeartbeatWrite } from "../../touchActivityMeters";
+import { noteListingRefreshRead, notePresenceHeartbeatWrite } from "../../debug/touchActivityMeters";
 
 // 식별자는 도메인 층(`../trailId`)이 갖는다 — 「ID 를 안다」와 「DB 를 읽는다」는 다르다(D6).
 // 종전 이름으로 re-export 해 소비자를 건드리지 않는다.

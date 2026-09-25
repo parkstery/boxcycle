@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { resolveSavedRouteProgressUpdate } from "../../src/lib/savedRouteProgressPolicy.ts";
-import { isRouteCompletion, ROUTE_COMPLETION_RATIO_THRESHOLD } from "../../src/lib/rideRecordPolicy.ts";
+import { resolveSavedRouteProgressUpdate } from "../../src/lib/route/savedRouteProgressPolicy.ts";
+import { isRouteCompletion, ROUTE_COMPLETION_RATIO_THRESHOLD } from "../../src/lib/ride/rideRecordPolicy.ts";
 
 describe("ride-continue §6 A — SavedRoute progress·완주 정합", () => {
   it("resolveSavedRouteProgressUpdate — 31→43% = 43%", () => {

@@ -7,7 +7,7 @@ import {
   compareRouteListItems,
   sortRouteList,
   type RouteSortKey,
-} from "../../src/lib/routeListSort.ts";
+} from "../../src/lib/route/routeListSort.ts";
 
 /**
  * 경로 목록 정렬 — 내 경로 · 입문 · 퍼블릭이 **같은 규칙**을 쓴다(2026-09-16 Chief).

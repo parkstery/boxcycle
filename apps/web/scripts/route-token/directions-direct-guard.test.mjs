@@ -4,7 +4,7 @@ import {
   assertDirectionsServerOnlyFromRaw,
   formatRouteTokenSpendMessage,
   isDirectionsDirectBypassConfigured,
-} from "../../src/lib/directionsDirectGuard.core.mjs";
+} from "../../src/lib/route/directionsDirectGuard.core.mjs";
 
 describe("directions direct bypass guard (product core)", () => {
   it("VITE_DIRECTIONS_DIRECT=1 → 우회 설정으로 판정", () => {

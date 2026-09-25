@@ -1,18 +1,18 @@
-import type { CoachingData } from "../../lib/coachTypes";
+import type { CoachingData } from "../../lib/coach/coachTypes";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { reportHudCompanionTrailDedup } from "../../lib/hudCompanionDiag";
-import { RIDE_PULSE_PERIOD_MS, ridePulseAnimationDelay } from "../../lib/ridePulse";
+import { reportHudCompanionTrailDedup } from "../../lib/debug/hudCompanionDiag";
+import { RIDE_PULSE_PERIOD_MS, ridePulseAnimationDelay } from "../../lib/ride/ridePulse";
 import {
   getOtherLiveRiderCount,
   subscribeHasOtherLiveRiders,
-} from "../../lib/liveRideHudSignal";
+} from "../../lib/ride/liveRideHudSignal";
 import {
   companionHudCopy,
   formatCompanionHudActivityLine,
-} from "../../lib/companionHudCount";
-import { formatRideDistanceKmNumber } from "../../lib/rideDistanceFormat";
-import { type Camera1Mode, CAMERA1_MODE_META } from "../../lib/camera1Mode";
+} from "../../lib/ride/companionHudCount";
+import { formatRideDistanceKmNumber } from "../../lib/ride/rideDistanceFormat";
+import { type Camera1Mode, CAMERA1_MODE_META } from "../../lib/camera/camera1Mode";
 import "./MapHud.css";
 
 export type AccountChipState = {
@@ -228,7 +228,7 @@ export function MapHud(props: MapHudProps) {
    * 내 위치 마커와 같은 박자로 뛴다(2026-09-17 Chief).
    * 종전엔 `key={conquestLiveMeters}` 로 값마다 요소를 갈아끼워 0.35s 팝을 다시 틀었다 —
    * 빠르게 달릴수록 갱신이 잦아 주기가 짧아지고 촐랑거렸다. 펄스가 아니라 갱신 알림이었다.
-   * 위상은 마커와 같은 격자에 못 박는다(lib/ridePulse.ts). 지연값은 켜지는 순간 한 번만
+   * 위상은 마커와 같은 격자에 못 박는다(lib/ride/ridePulse.ts). 지연값은 켜지는 순간 한 번만
    * 계산해 ref 에 담는다 — 매 렌더 다시 계산하면 그때마다 위상이 튄다.
    */
   const conquestMeters = conquestLiveMeters ?? null;
@@ -278,7 +278,7 @@ export function MapHud(props: MapHudProps) {
     !isGate && !isSummary && account === null && typeof onOpenSignedOutAuth === "function";
   /*
    * 2026-09-16: 우상단에서 센서 칩이 완전히 빠졌다. RouteDock 이 `idle` 을 포함한
-   * 모든 주행 가능 stage 에서 보이므로 칩은 항상 dock 이 그린다(`lib/sensorChipSlot`).
+   * 모든 주행 가능 stage 에서 보이므로 칩은 항상 dock 이 그린다(`lib/route/sensorChipSlot`).
    * 여기 남는 것은 계정·로그인 칩뿐이고, `cadence` 는 **RouteDock 으로만** 간다.
    */
   const showTopRight = showAccount || showSignedOutAuth || Boolean(quickCamera);

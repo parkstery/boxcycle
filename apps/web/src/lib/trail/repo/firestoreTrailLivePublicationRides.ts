@@ -17,7 +17,7 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
-import { getPresenceDisplayName } from "../../authDisplay";
+import { getPresenceDisplayName } from "../../identity/authDisplay";
 import { getFirebaseFirestore } from "../../firebase/app";
 import { DEFAULT_TRAIL_ID, isMemberRecentlySeen, sanitizeTrailId, TRAIL_PRESENCE_STALE_MS } from "./firestoreTrail";
 import { lastSeenAtToMillis } from "../../firebase/converters";
@@ -25,15 +25,15 @@ import {
   TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION,
   TRAILS_COLLECTION,
 } from "./firestoreTrailPaths";
-import { resolvePublicationIdFromDoc } from "../../resolvePublicationIdFromDoc";
+import { resolvePublicationIdFromDoc } from "../../route/resolvePublicationIdFromDoc";
 import {
   PEER_LIVE_RIDE_COMPLETED_VISIBLE_MS,
   PEER_LIVE_RIDE_FINAL_BURST_MS,
   PEER_LIVE_RIDE_STALE_MS,
-} from "../../rideSyncPolicy";
+} from "../../ride/rideSyncPolicy";
 import { deleteTrailMotion } from "../../peerMotion/repo/rtdbTrailMotion";
-import { trackUnderlyingReadSubscription } from "../../readSubscriptionMeters";
-import { noteListingRefreshRead } from "../../touchActivityMeters";
+import { trackUnderlyingReadSubscription } from "../../debug/readSubscriptionMeters";
+import { noteListingRefreshRead } from "../../debug/touchActivityMeters";
 
 /** publication 진행률만 주기적으로 올려 부담을 줄임 (좌표·geometry 미전송). */
 export const TRAIL_LIVE_PUBLICATION_RIDE_WRITE_INTERVAL_MS = 4_000;

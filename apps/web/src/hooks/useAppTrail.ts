@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { sanitizeTrailId } from "../lib/trail/repo/firestoreTrail";
-import { readTrailIdFromLocation, replaceTrailInUrl } from "../lib/trailUrl";
+import { readTrailIdFromLocation, replaceTrailInUrl } from "../lib/trail/trailUrl";
 
 /**
  * Trail ID와 `?trail=`(하위 호환 `?room=`) URL 동기화. `popstate` 시 둘 다 갱신.

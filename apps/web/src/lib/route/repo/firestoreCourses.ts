@@ -12,7 +12,7 @@ import {
 import {
   BASIC_INTRO_HUB_ROUTE_SEEDS,
   BASIC_INTRO_HUB_ROUTE_REVISION,
-} from "../../basicIntroHubRouteGeometries";
+} from "../basicIntroHubRouteGeometries";
 import { getFirebaseFirestore } from "../../firebase/app";
 import {
   findPublishedRoutePublicationById,
@@ -23,8 +23,8 @@ import {
 } from "./firestoreRoutePublications";
 import { lastSeenAtToMillis } from "../../firebase/converters";
 import { getUserPublicLabelsByUid } from "../../identity/repo/firestoreUser";
-import { getDistanceMeters, type LineStringGeometry, type LngLat } from "../../geo";
-import { computeRouteFingerprint } from "../../routeFingerprint";
+import { getDistanceMeters, type LineStringGeometry, type LngLat } from "../../geo/geo";
+import { computeRouteFingerprint } from "../routeFingerprint";
 
 export type CourseCategory = "basic" | "public" | "recommended" | "challenge";
 export type CourseProfile = "cycling" | "driving" | "walking";

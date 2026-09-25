@@ -18,13 +18,13 @@ import {
   clampProgressRatio,
   preserveDedupedSavedRouteState,
   resolveSavedRouteProgressUpdate,
-} from "../../savedRouteProgressPolicy";
-import type { LineStringGeometry, LngLat } from "../../geo";
+} from "../savedRouteProgressPolicy";
+import type { LineStringGeometry, LngLat } from "../../geo/geo";
 import type { User } from "firebase/auth";
 import type { RouteProfile } from "../../../services/mapboxDirections";
-import { assertTierQuotaClient } from "../../tierQuota";
-import { MAX_ROUTE_WAYPOINTS } from "../../routeWaypoints";
-import { computeRouteFingerprint } from "../../routeFingerprint";
+import { assertTierQuotaClient } from "../../account/tierQuota";
+import { MAX_ROUTE_WAYPOINTS } from "../../geo/routeWaypoints";
+import { computeRouteFingerprint } from "../routeFingerprint";
 
 export const SAVED_ROUTES_COLLECTION = "savedRoutes";
 

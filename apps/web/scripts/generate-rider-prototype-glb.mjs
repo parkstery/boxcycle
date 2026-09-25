@@ -38,7 +38,7 @@ import {
 } from "../src/lib/riderPrototype/riderRig.geometry.mjs";
 // Static Fit 초기 포즈(rest→IK 방향 회전)를 GLB 노드에 직접 구워 프리뷰 정지자세로 쓴다.
 // (주행 시엔 feature-state 가 위상별로 덮어쓴다.)
-import { resolveGlbPedalPose } from "../src/lib/riderGlbPedalPose.pose.mjs";
+import { resolveGlbPedalPose } from "../src/lib/rider/riderGlbPedalPose.pose.mjs";
 
 globalThis.window = globalThis;
 globalThis.FileReader = class FileReaderPoly {

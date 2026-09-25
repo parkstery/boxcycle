@@ -15,7 +15,7 @@ import {
   pickBestAutoRoute,
   scoreRouteDistanceError,
   snappedEndFromRoute,
-} from "../../src/lib/distanceAutoRoute.ts";
+} from "../../src/lib/route/distanceAutoRoute.ts";
 import {
   formatDistanceAutoRouteClientError,
   formatDistanceAutoRouteShortfallMessage,
@@ -24,8 +24,8 @@ import {
   DISTANCE_AUTO_ROUTE_REROUTE_HINT,
   DISTANCE_AUTO_ROUTE_SERVER_UNAVAILABLE,
   validateDistanceAutoRouteTargetKm,
-} from "../../src/lib/distanceAutoRouteErrors.ts";
-import { getDistanceMeters } from "../../src/lib/geo.ts";
+} from "../../src/lib/route/distanceAutoRouteErrors.ts";
+import { getDistanceMeters } from "../../src/lib/geo/geo.ts";
 import {
   buildRoutePickDockCandidates,
   clampRoutePickDockPosition,
@@ -35,16 +35,16 @@ import {
   ROUTE_PICK_DOCK_HUD_SELECTORS,
   ROUTE_PICK_DOCK_MARGIN_PX,
   scoreRoutePickDockCandidate,
-} from "../../src/lib/mapPickRouteDock.ts";
+} from "../../src/lib/map/mapPickRouteDock.ts";
 
 const ORIGIN: [number, number] = [127.02, 37.5];
 const APP_SOURCE = readFileSync(new URL("../../src/App.tsx", import.meta.url), "utf8");
 const ERRORS_SOURCE = readFileSync(
-  new URL("../../src/lib/distanceAutoRouteErrors.ts", import.meta.url),
+  new URL("../../src/lib/route/distanceAutoRouteErrors.ts", import.meta.url),
   "utf8",
 );
 const BRIDGE_SOURCE = readFileSync(
-  new URL("../../src/lib/distanceAutoRouteMapBridge.ts", import.meta.url),
+  new URL("../../src/lib/map/distanceAutoRouteMapBridge.ts", import.meta.url),
   "utf8",
 );
 const MAP_VIEW_SOURCE = readFileSync(
@@ -68,11 +68,11 @@ const BUILD_PICK_POPUP_SOURCE = MAP_VIEW_SOURCE.slice(
   MAP_VIEW_SOURCE.indexOf("function buildPickPopup"),
 );
 const MOUNT_TOKEN_SOURCE = readFileSync(
-  new URL("../../src/lib/mountRouteTokenPopupFeedback.ts", import.meta.url),
+  new URL("../../src/lib/account/mountRouteTokenPopupFeedback.ts", import.meta.url),
   "utf8",
 );
 const TOKEN_DISPLAY_SOURCE = readFileSync(
-  new URL("../../src/lib/routeTokenPopupDisplay.mjs", import.meta.url),
+  new URL("../../src/lib/account/routeTokenPopupDisplay.mjs", import.meta.url),
   "utf8",
 );
 const MAP_VIEW_CSS = readFileSync(
@@ -322,7 +322,7 @@ describe("distanceAutoRoute", () => {
      * **완성 문자열은 종전과 같다** — 원문 리터럴 대신 조합을 본다.
      */
     const copy = readFileSync(
-      new URL("../../src/lib/routeTokenUiCopy.ts", import.meta.url),
+      new URL("../../src/lib/account/routeTokenUiCopy.ts", import.meta.url),
       "utf8",
     );
     assert.match(copy, /ROUTE_TOKEN_TITLE = "경로 생성"/);

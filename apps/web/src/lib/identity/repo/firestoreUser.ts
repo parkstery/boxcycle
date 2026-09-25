@@ -9,13 +9,13 @@ import {
   setDoc,
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
-import { getPresenceDisplayName } from "../../authDisplay";
+import { getPresenceDisplayName } from "../authDisplay";
 import { getFirebaseFirestore } from "../../firebase/app";
 import {
   isValidNickname,
   isValidNicknameKeyNormalized,
   normalizeNicknameKey,
-} from "../../nickname";
+} from "../nickname";
 
 export type UserTier = "anonymous" | "registered_free" | "registered_paid" | "admin";
 

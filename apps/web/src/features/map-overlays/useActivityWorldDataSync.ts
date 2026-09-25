@@ -3,12 +3,12 @@ import { useActivityWorldAdaptivePoll } from "../../hooks/useActivityWorldAdapti
 import {
   countRouteActivityLiveInBatch,
   resolveActivityWorldPollMode,
-} from "../../lib/activityWorldPollPolicy";
+} from "../../lib/activity/activityWorldPollPolicy";
 import {
   getActivityWorldPollSignals,
   isPostRideActivityWatchActive,
   reportActivityWorldPollSignals,
-} from "../../lib/activityWorldPollSignals";
+} from "../../lib/activity/activityWorldPollSignals";
 import {
   fetchRouteActivitiesBatch,
   fetchLiveRouteActivityIds,
@@ -21,7 +21,7 @@ import {
   formatWorldActivityHudLine,
   mergeWorldHudLines,
 } from "../../lib/activity/repo/firestoreWorldActivity";
-import { isActivityLodDebugPanelEnabled } from "../../lib/mapDebugPhase";
+import { isActivityLodDebugPanelEnabled } from "../../lib/debug/mapDebugPhase";
 
 export type UseActivityWorldDataSyncOpts = {
   enabled: boolean;

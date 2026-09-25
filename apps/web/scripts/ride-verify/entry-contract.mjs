@@ -36,7 +36,7 @@ export const ENTRY_STEPS = [
     desc:
       "센서 칩 자리 판정 — dock 과 우상단에 동시에 뜨면 getByRole 이 strict 위반으로 깨진다. " +
       "어디에도 안 뜨면 「센서 없음」에 닿지 못해 Go 가 영영 잠긴다.",
-    file: "src/lib/sensorChipSlot.ts",
+    file: "src/lib/route/sensorChipSlot.ts",
     anchors: [
       { name: "슬롯 판정 함수", re: /export function sensorChipSlot\(/ },
       { name: "dock 우선", re: /isRouteDockVisible\(stage\) \? "route-dock" : "map-hud-tr"/ },

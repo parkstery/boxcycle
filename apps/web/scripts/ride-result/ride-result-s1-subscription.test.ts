@@ -1,7 +1,7 @@
 /**
  * S1-2: Real subscription lifecycle — capture production subscribe callbacks.
  *
- * Production: RideConquestSubscription (src/lib/rideConquestSubscription.ts)
+ * Production: RideConquestSubscription (src/lib/ride/rideConquestSubscription.ts)
  * Hook import/call: useRideConquestResult.ts creates controller and activate(key).
  *
  * Codex -05: store the real callback from subscribe(); A active → A result → B active →
@@ -10,8 +10,8 @@
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { RideConquestSubscription } from "../../src/lib/rideConquestSubscription.ts";
-import type { RideConquestResult } from "../../src/lib/rideConquestResult.ts";
+import { RideConquestSubscription } from "../../src/lib/ride/rideConquestSubscription.ts";
+import type { RideConquestResult } from "../../src/lib/ride/rideConquestResult.ts";
 
 type SnapHandler = (snap: {
   id: string;

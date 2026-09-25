@@ -6,8 +6,8 @@ import {
   CAMERA1_MODE_META,
   nextCamera1Mode,
   type Camera1Mode,
-} from "../../src/lib/camera1Mode.ts";
-import { RIDE_CAMERA_DISTANCE_MAX_M, RIDE_CAMERA_DISTANCE_MIN_M } from "../../src/lib/mapGlobeView.ts";
+} from "../../src/lib/camera/camera1Mode.ts";
+import { RIDE_CAMERA_DISTANCE_MAX_M, RIDE_CAMERA_DISTANCE_MIN_M } from "../../src/lib/map/mapGlobeView.ts";
 
 /**
  * Quick Camera 1 의 단계 표를 고정한다.

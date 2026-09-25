@@ -19,7 +19,7 @@ import { stubMapboxStyle } from "./mapbox-stub";
  * 진입 절차는 `ride-entry.spec.ts`/`touch-targets-44.spec.ts` 의 게스트→입문 코스→주행 시작
  * 헬퍼를 그대로 복사해 쓴다(원본 파일은 수정하지 않는다). Mapbox 는 `mapbox-stub.ts` 로 격리한다.
  *
- * 표고는 Open-Meteo(`apps/web/src/lib/fetchRouteElevations.ts`) 에서 오는데, 실제 표시값은
+ * 표고는 Open-Meteo(`apps/web/src/lib/route/fetchRouteElevations.ts`) 에서 오는데, 실제 표시값은
  * 거기서 끝나지 않고 `useRouteElevationProfile` → `applyRoadElevationModel` 로 거리창 평균/보정을
  * 거친다(도로형 스무딩). 그래도 단조 증가/감소 원본 배열의 양 끝 값(index 0)은 이 스무딩에서
  * 그대로 유지되므로(`outElev[0] = first`), 배열 앞쪽을 최댓값/최솟값으로 만들면 스무딩 후에도

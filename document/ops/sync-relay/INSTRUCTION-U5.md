@@ -200,7 +200,7 @@ U-1 구도를 이 브랜치에 되돌렸다. 스냅과 틱이 다시 `computeRid
 ```
 apps/web/src/components/map/rideCameraFollow.ts:236  computeRideFollowFraming({   // 틱
 apps/web/src/components/map/MapView.tsx:2509        computeRideFollowFraming({   // 스냅
-apps/web/src/lib/rideCameraFraming.ts               존재
+apps/web/src/lib/camera/rideCameraFraming.ts               존재
 ```
 
 ### 스크린샷 (사용자 판정)

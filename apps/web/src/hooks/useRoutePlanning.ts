@@ -9,14 +9,14 @@ import {
   type MutableRefObject,
 } from "react";
 import { getFirebaseApp } from "../lib/firebase/app";
-import type { LineStringGeometry, LngLat } from "../lib/geo";
-import { formatLngLat, getDistanceMeters } from "../lib/geo";
+import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
+import { formatLngLat, getDistanceMeters } from "../lib/geo/geo";
 import {
   MAX_ROUTE_DISTANCE_KM,
   MAX_ROUTE_STRAIGHT_LINE_METERS,
-} from "../lib/routeLimits";
-import { MAX_ROUTE_WAYPOINTS } from "../lib/routeWaypoints";
-import { lockRouteWorkspaceDuringRide } from "../lib/routeWorkspaceLock";
+} from "../lib/route/routeLimits";
+import { MAX_ROUTE_WAYPOINTS } from "../lib/geo/routeWaypoints";
+import { lockRouteWorkspaceDuringRide } from "../lib/route/routeWorkspaceLock";
 import { fetchRouteByProfile, formatDuration, type RouteProfile } from "../services/mapboxDirections";
 import { fetchMapboxReverseGeocodePlaceName } from "../services/mapboxReverseGeocode";
 import { useVirtualRideSession } from "./useVirtualRideSession";

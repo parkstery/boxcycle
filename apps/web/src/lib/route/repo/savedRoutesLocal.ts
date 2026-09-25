@@ -1,6 +1,6 @@
-import type { LineStringGeometry, LngLat } from "../../geo";
+import type { LineStringGeometry, LngLat } from "../../geo/geo";
 import type { RouteProfile } from "../../../services/mapboxDirections";
-import { MAX_ROUTE_WAYPOINTS } from "../../routeWaypoints";
+import { MAX_ROUTE_WAYPOINTS } from "../../geo/routeWaypoints";
 import {
   SAVED_ROUTE_EXPIRY_MS,
   SAVED_ROUTE_MAX_COORDS,
@@ -9,8 +9,8 @@ import {
   type SavedRoute,
   type SaveRouteInput,
 } from "./firestoreSavedRoutes";
-import { computeRouteFingerprint } from "../../routeFingerprint";
-import { clampProgressRatio, resolveSavedRouteProgressUpdate } from "../../savedRouteProgressPolicy";
+import { computeRouteFingerprint } from "../routeFingerprint";
+import { clampProgressRatio, resolveSavedRouteProgressUpdate } from "../savedRouteProgressPolicy";
 
 const STORAGE_KEY = "boxcycle_web_saved_routes_v1";
 

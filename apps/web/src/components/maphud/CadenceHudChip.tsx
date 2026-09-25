@@ -1,4 +1,4 @@
-import { cadenceChipView, type CadenceHudState } from "../../lib/cadenceSensorUi";
+import { cadenceChipView, type CadenceHudState } from "../../lib/sensor/cadenceSensorUi";
 import "./CadenceHudChip.css";
 
 /**
@@ -30,7 +30,7 @@ export type CadenceHudChipProps = CadenceChipBinding & {
  * 케이던스 상태 칩 — LED(연결 여부)와 짧은 텍스트만 보여 주고,
  * 장치명·오류·액션은 센서 상세 설정(`CadenceSensorSheet`)이 소유한다.
  *
- * 자리는 `lib/sensorChipSlot.ts` 가 정한다 — 경로가 있으면 RouteDock,
+ * 자리는 `lib/route/sensorChipSlot.ts` 가 정한다 — 경로가 있으면 RouteDock,
  * 없으면(`idle` 등) HUD 우상단. 두 곳에 동시에 그리지 않는다.
  */
 export function CadenceHudChip({

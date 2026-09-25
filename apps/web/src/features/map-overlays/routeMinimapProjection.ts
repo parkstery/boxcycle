@@ -6,7 +6,7 @@ import {
   boundsFromLineCoordinates,
   type LineStringGeometry,
   type LngLat,
-} from "../../lib/geo";
+} from "../../lib/geo/geo";
 
 export const ROUTE_MINIMAP_PAD_PX = 6;
 export const ROUTE_MINIMAP_MAX_COORDS = 1000;

@@ -14,21 +14,21 @@ import {
   resolveActivityWorldLodDebug,
   resolveActivityWorldRender,
   runActivityWorldLodP0Checks,
-} from "../../lib/activityWorldLod";
-import { runActivityWorldPollPolicyChecks } from "../../lib/activityWorldPollPolicy";
+} from "../../lib/activity/activityWorldLod";
+import { runActivityWorldPollPolicyChecks } from "../../lib/activity/activityWorldPollPolicy";
 import { BASIC_SHARED_HUB_IDS } from "../../lib/route/repo/firestoreCourses";
 import type { PublishedPublicCourseSummary } from "../../lib/route/repo/firestoreCourses";
 import type { TrailInstance } from "../../lib/trail/repo/firestoreTrailInstance";
 import { sanitizeTrailId, DEFAULT_TRAIL_ID } from "../../lib/trail/repo/firestoreTrail";
 import { useActiveLiveRideTrailIds } from "../../hooks/useActiveLiveRideTrailIds";
 import { debugTrailLivePublicationRidesSubscriptionCount } from "../../lib/trail/repo/livePublicationRidesSubscriptionHub";
-import type { LineStringGeometry } from "../../lib/geo";
+import type { LineStringGeometry } from "../../lib/geo/geo";
 import type { ActivityWorldLodDebugPanelProps } from "./ActivityWorldLodDebugPanel";
 import { runPublicationPresenceParseChecks } from "../../lib/ride/repo/firestorePublicationPresence";
 import { resolveWorldMapOverlay, runWorldMapOverlayMergeChecks } from "./worldMapOverlayCore";
 import { useActivityWorldDataSync } from "./useActivityWorldDataSync";
 import { useWorldLivePublicationRideMapOverlay } from "./useWorldLivePublicationRideMapOverlay";
-import { EMPTY_PEER_HUD_IDS, peerHudIdsKey } from "../../lib/peerHud";
+import { EMPTY_PEER_HUD_IDS, peerHudIdsKey } from "../../lib/peerMotion/peerHud";
 import {
   mergePublicationWorldPulseDots,
   runWorldPublicationMapDotsChecks,
@@ -40,7 +40,7 @@ import {
   isMapDebugPhaseRecovery,
   shouldDisablePublicationOverlayHooks,
   shouldSkipLiveOverlaysOnMap,
-} from "../../lib/mapDebugPhase";
+} from "../../lib/debug/mapDebugPhase";
 
 export type UseAppMapOverlaysOpts = {
   configured: boolean;

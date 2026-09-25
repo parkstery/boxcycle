@@ -261,8 +261,23 @@ const cycles = findCycles();
 
 // ─────────────────────────────────────────────── 4. M0 자가 검산
 
-const geoFile = files.find((f) => rel(f) === LIB_PREFIX + "geo.ts");
-const scsFile = files.find((f) => rel(f) === LIB_PREFIX + "sensorChipSlot.ts");
+/*
+ * 감시 대상은 **선언에서 찾는다.** 평면 경로를 박아 두면 파일이 도메인 폴더로 옮겨질
+ * 때마다 M0 가 깨진다 — 2026-09-25 P5-6 에서 실제로 그랬다. 이동은 정상 작업이고,
+ * 그때마다 죽는 검산은 결국 꺼진다.
+ */
+function findByBase(base) {
+  for (const entries of Object.values(decl.assign)) {
+    for (const e of entries) {
+      if (e.endsWith("/" + base) || e === base) {
+        return files.find((f) => rel(f) === LIB_PREFIX + e);
+      }
+    }
+  }
+  return undefined;
+}
+const geoFile = findByBase("geo.ts");
+const scsFile = findByBase("sensorChipSlot.ts");
 const unassigned = files.filter(
   (f) => rel(f).startsWith(LIB_PREFIX) && domainOf(rel(f)) === null,
 );
@@ -292,9 +307,9 @@ const r9Detected = foundCycle && foundNone;
 
 const m0 = [
   ["수집 파일 수 ≥ " + MIN_FILES, files.length >= MIN_FILES, files.length],
-  ["src/lib/geo.ts 존재", Boolean(geoFile), geoFile ? rel(geoFile) : "없음"],
+  ["geo.ts 존재(선언에서 조회)", Boolean(geoFile), geoFile ? rel(geoFile) : "없음"],
   [
-    "src/lib/geo.ts fan-in ≥ " + MIN_GEO_FAN_IN,
+    "geo.ts fan-in ≥ " + MIN_GEO_FAN_IN,
     geoFile ? fanIn.get(geoFile) >= MIN_GEO_FAN_IN : false,
     geoFile ? fanIn.get(geoFile) : "-",
   ],

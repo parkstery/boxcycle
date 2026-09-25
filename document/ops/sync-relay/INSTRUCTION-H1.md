@@ -34,7 +34,7 @@ a111111 화면 동행 → 「지금 1명 주행」                       ← 서
 
 ### 1-1. ✅ 「지금 N명 주행」이 갱신되지 않는다 (확정)
 
-`apps/web/src/lib/firestoreRouteActivity.ts:91-98`
+`apps/web/src/lib/activity/repo/firestoreRouteActivity.ts:91-98`
 
 ```ts
 const memoryCache = new Map<string, RouteActivitySnapshot | null>();

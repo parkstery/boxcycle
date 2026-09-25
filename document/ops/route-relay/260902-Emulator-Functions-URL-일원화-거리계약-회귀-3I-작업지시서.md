@@ -47,12 +47,12 @@ Emulator 모드에서는 `firebase.ts` 가 `connectAuthEmulator()` 로 **Auth �
 
 | 파일 | 대상 함수 | Emulator 존중 |
 |---|---|---|
-| `lib/firestoreRouteToken.ts:46` | `ensureRouteTokenOnboardingHttp` | ✅ `emulatorUrl ?? …` |
+| `lib/account/repo/firestoreRouteToken.ts:46` | `ensureRouteTokenOnboardingHttp` | ✅ `emulatorUrl ?? …` |
 | `services/distanceAutoRouteApi.ts:94` | `getDistanceAutoRoute` | ✅ |
 | `services/mapboxDirections.ts:93` | `getMapboxDirections` | ✅ |
-| **`lib/tierQuota.ts:98`** | **`assertTierQuotaHttp`** | ❌ — **이번 저장 실패의 직접 원인** |
-| `lib/publicRouteRequests.ts:290` | `autoReviewPublicRouteRequest` | ❌ |
-| `lib/subscription.ts:21` | subscription 계열 전부 | ❌ |
+| **`lib/account/tierQuota.ts:98`** | **`assertTierQuotaHttp`** | ❌ — **이번 저장 실패의 직접 원인** |
+| `lib/route/publicRouteRequests.ts:290` | `autoReviewPublicRouteRequest` | ❌ |
+| `lib/account/subscription.ts:21` | subscription 계열 전부 | ❌ |
 | `services/mapillaryImagesFetch.ts:70` | `getMapillaryImages` | ❌ |
 
 토큰 잔액이 8개로 정상 표시되는 것과 모순되지 않는다. 온보딩·경로 생성은 ✅ 목록에 있어 에뮬레이터로 갔고, 저장 경로만 프로덕션으로 나갔다.
@@ -63,7 +63,7 @@ Emulator 모드에서는 `firebase.ts` 가 `connectAuthEmulator()` 로 **Auth �
 
 개별 파일에 `emulatorUrl ??` 를 하나씩 덧붙이지 말고 **단일 진입점으로 일원화**한다. 지금 방식은 새 Functions 호출이 생길 때마다 같은 실수를 반복한다.
 
-1. `lib/functionsEmulatorUrl.ts` 에 다음을 추가한다.
+1. `lib/firebase/functionsEmulatorUrl.ts` 에 다음을 추가한다.
 
 ```ts
 /** Functions HTTP 엔드포인트 URL — Emulator 모드면 자동으로 로컬을 가리킨다. */

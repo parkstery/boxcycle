@@ -11,9 +11,9 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
-import { getPresenceDisplayName, getPresenceMemberType, type PresenceMemberType } from "../../authDisplay";
+import { getPresenceDisplayName, getPresenceMemberType, type PresenceMemberType } from "../../identity/authDisplay";
 import { getFirebaseFirestore } from "../../firebase/app";
-import type { LngLat } from "../../geo";
+import type { LngLat } from "../../geo/geo";
 import { isMemberRecentlySeen } from "../../trail/repo/firestoreTrail";
 import { lastSeenAtToMillis } from "../../firebase/converters";
 

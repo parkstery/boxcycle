@@ -5,13 +5,13 @@ import { describe, it } from "node:test";
 import {
   computeRideSessionAnchors,
   EMPTY_RIDE_SESSION_ANCHORS,
-} from "../../src/lib/rideSessionAnchors.ts";
+} from "../../src/lib/ride/rideSessionAnchors.ts";
 import {
   distanceOnRouteByProjectedPoint,
   getDistanceMeters,
   lineStringLengthMeters,
   type LineStringGeometry,
-} from "../../src/lib/geo.ts";
+} from "../../src/lib/geo/geo.ts";
 
 /** 위도 37.5 를 따라 동쪽으로 뻗는 11점 폴리라인(약 880 m) */
 function makeRoute(points = 11): LineStringGeometry {

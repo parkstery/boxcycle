@@ -1,6 +1,6 @@
 /**
  * 퍼블릭 경로 자동 등록 — 기하·정책 검수 코어(신뢰 경계, Admin SDK 측).
- * 클라 `apps/web/src/lib/publicRouteAutoReview.ts` · `publicRouteContentPolicy.ts` 의 순수 함수를
+ * 클라 `apps/web/src/lib/route/publicRouteAutoReview.ts` · `publicRouteContentPolicy.ts` 의 순수 함수를
  * 이식한 것 — 알고리즘·상수는 동기 유지해야 한다(정책 §4). functions 쪽에서 자체 완결(웹 코드 import 금지).
  * SoT: document/260717-퍼블릭-경로-자동등록-정책.md
  */

@@ -7,7 +7,7 @@ import {
   rideInputBlockedReason,
   type CadenceHudState,
   type RideInputReadinessInput,
-} from "../../src/lib/cadenceSensorUi.ts";
+} from "../../src/lib/sensor/cadenceSensorUi.ts";
 
 function hud(over: Partial<CadenceHudState> = {}): CadenceHudState {
   return { capable: true, uiState: "idle", crankRpm: null, ...over };

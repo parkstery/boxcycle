@@ -9,9 +9,9 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
-import { getPresenceDisplayName } from "../../authDisplay";
+import { getPresenceDisplayName } from "../../identity/authDisplay";
 import { getFirebaseFirestore } from "../../firebase/app";
-import type { LngLat } from "../../geo";
+import type { LngLat } from "../../geo/geo";
 import { TRAIL_PRESENCE_STALE_MS } from "../../trail/repo/firestoreTrail";
 import { lastSeenAtToMillis } from "../../firebase/converters";
 

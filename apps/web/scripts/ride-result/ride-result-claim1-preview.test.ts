@@ -13,8 +13,8 @@ import {
   SESSION_PREVIEW_MAX_POINTS,
   SESSION_PREVIEW_SVG_W,
   SESSION_PREVIEW_SVG_H,
-} from "../../src/lib/rideSessionPreview.ts";
-import type { LngLat } from "../../src/lib/geo.ts";
+} from "../../src/lib/ride/rideSessionPreview.ts";
+import type { LngLat } from "../../src/lib/geo/geo.ts";
 
 // 간단한 경로 (서울 근처)
 const SEOUL_PATH: LngLat[] = [

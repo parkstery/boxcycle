@@ -16,10 +16,10 @@
  * - stale callback (A → B 전환 후 A 콜백 차단): `ride-result-s1-subscription.test.ts`
  *
  * ## 실제 production 경로
- * - `persistRideEndCore` ← `src/lib/rideEndPersistence.ts` (hook 이 직접 호출하는 함수)
- * - `getRideSaveStatusLabel` / `getSavedRouteProgressStatusLabel` ← `src/lib/rideStatusCopy.ts`
+ * - `persistRideEndCore` ← `src/lib/ride/rideEndPersistence.ts` (hook 이 직접 호출하는 함수)
+ * - `getRideSaveStatusLabel` / `getSavedRouteProgressStatusLabel` ← `src/lib/ride/rideStatusCopy.ts`
  *   (RideSummarySheet 가 import 해 렌더하는 함수 — 여기서 어서트 = 시트 렌더 증명)
- * - `computeRideSessionAnchors` ← `src/lib/rideSessionAnchors.ts`
+ * - `computeRideSessionAnchors` ← `src/lib/ride/rideSessionAnchors.ts`
  *   (sessionEndLngLat anchor 계산 — hook 동기 블록에서 호출)
  */
 import assert from "node:assert/strict";
@@ -32,14 +32,14 @@ import {
   type PersistRideEndCoreInput,
   type PersistRideEndCoreCallbacks,
   type PersistRideEndCoreDeps,
-} from "../../src/lib/rideEndPersistence.ts";
+} from "../../src/lib/ride/rideEndPersistence.ts";
 import {
   getRideSaveStatusLabel,
   getSavedRouteProgressStatusLabel,
-} from "../../src/lib/rideStatusCopy.ts";
-import { computeRideSessionAnchors } from "../../src/lib/rideSessionAnchors.ts";
-import type { RideEndResult } from "../../src/lib/rideEndResult.ts";
-import type { StoredRideSession } from "../../src/lib/rideSessionsStorage.ts";
+} from "../../src/lib/ride/rideStatusCopy.ts";
+import { computeRideSessionAnchors } from "../../src/lib/ride/rideSessionAnchors.ts";
+import type { RideEndResult } from "../../src/lib/ride/rideEndResult.ts";
+import type { StoredRideSession } from "../../src/lib/ride/rideSessionsStorage.ts";
 import type { SavedRoute } from "../../src/lib/route/repo/firestoreSavedRoutes.ts";
 
 // ---------------------------------------------------------------------------

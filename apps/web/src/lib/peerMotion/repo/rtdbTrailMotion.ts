@@ -17,7 +17,7 @@ import {
   peerSyncChainLog,
   peekMotionInFlightMax,
 } from "../peerSyncChainLog";
-import { trackUnderlyingReadSubscription } from "../../readSubscriptionMeters";
+import { trackUnderlyingReadSubscription } from "../../debug/readSubscriptionMeters";
 
 /** RTDB `/trails/{trailId}/motion/{uid}` */
 export const RTDB_TRAIL_MOTION_SEGMENT = "motion";

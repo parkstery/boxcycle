@@ -5,12 +5,12 @@ import {
   createCscCadenceTracker,
   parseCscCrankSample,
   u16Delta,
-} from "../../src/lib/bleCscCadence.ts";
+} from "../../src/lib/sensor/bleCscCadence.ts";
 import {
   CADENCE_SPEED_MAX_KMH,
   cadenceRpmToVirtualSpeedKmh,
   resolveRideTargetSpeedKmh,
-} from "../../src/lib/cadenceRideInput.ts";
+} from "../../src/lib/sensor/cadenceRideInput.ts";
 
 const FLAG_WHEEL = 0x01;
 const FLAG_CRANK = 0x02;

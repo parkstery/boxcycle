@@ -31,7 +31,7 @@ export const SOURCE_FILES = [
   "src/lib/riderPrototype/riderBody.mjs",
   "src/lib/riderPrototype/riderRig.geometry.mjs",
   "src/lib/riderPrototype/riderIk.mjs",
-  "src/lib/riderGlbPedalPose.pose.mjs",
+  "src/lib/rider/riderGlbPedalPose.pose.mjs",
   "scripts/generate-rider-prototype-glb.mjs",
   "scripts/build-rider-candidate.mjs",
   "scripts/rider-preview/rider-viewer.html",

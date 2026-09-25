@@ -9,8 +9,8 @@ import {
   routeElevationCacheKey,
   routeElevationSignature,
   type SharedElevationStore,
-} from "../../src/lib/fetchRouteElevations.ts";
-import type { LineStringGeometry } from "../../src/lib/geo.ts";
+} from "../../src/lib/route/fetchRouteElevations.ts";
+import type { LineStringGeometry } from "../../src/lib/geo/geo.ts";
 
 function installFakeSessionStorage() {
   const map = new Map<string, string>();

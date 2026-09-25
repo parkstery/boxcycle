@@ -1,7 +1,7 @@
 import {
   mergeActivityWorldDots,
   type ActivityWorldRawOverlay,
-} from "../../lib/activityWorldLod";
+} from "../../lib/activity/activityWorldLod";
 import type { RouteActivityMapOverlay } from "../../hooks/useRouteActivityMapOverlay";
 
 export type WorldMapOverlaySlice = RouteActivityMapOverlay;

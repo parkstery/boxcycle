@@ -13,8 +13,8 @@ import {
   readRouteElevationCache,
   routeElevationSignature,
   writeRouteElevationCache,
-} from "../../src/lib/fetchRouteElevations.ts";
-import type { LineStringGeometry } from "../../src/lib/geo.ts";
+} from "../../src/lib/route/fetchRouteElevations.ts";
+import type { LineStringGeometry } from "../../src/lib/geo/geo.ts";
 
 /** sessionStorage 최소 대역 — 라이브러리는 전역 `sessionStorage` 만 본다. */
 function installFakeSessionStorage() {

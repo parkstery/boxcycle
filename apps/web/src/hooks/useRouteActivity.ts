@@ -6,8 +6,8 @@ import {
   markRouteActivityRideCompletedOptimistic,
   type RouteActivitySnapshot,
 } from "../lib/activity/repo/firestoreRouteActivity";
-import { resolveActivityWorldPollMode } from "../lib/activityWorldPollPolicy";
-import { getActivityWorldPollSignals, isPostRideActivityWatchActive } from "../lib/activityWorldPollSignals";
+import { resolveActivityWorldPollMode } from "../lib/activity/activityWorldPollPolicy";
+import { getActivityWorldPollSignals, isPostRideActivityWatchActive } from "../lib/activity/activityWorldPollSignals";
 import { useActivityWorldAdaptivePoll } from "./useActivityWorldAdaptivePoll";
 
 export type UseRouteActivityOptions = {

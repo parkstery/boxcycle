@@ -1,4 +1,4 @@
-/** Firestore Trail 인스턴스 — `apps/web/src/lib/firestoreTrailPaths.ts` 와 동기 */
+/** Firestore Trail 인스턴스 — `apps/web/src/lib/trail/repo/firestoreTrailPaths.ts` 와 동기 */
 export const TRAILS_COLLECTION = "trails";
 export const TRAIL_MEMBERS_SUBCOLLECTION = "members";
 /** @deprecated Phase 5 — `livePublicationRides` 로 이전 */

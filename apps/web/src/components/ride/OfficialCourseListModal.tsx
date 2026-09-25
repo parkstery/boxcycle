@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import type { PublishedPublicCourseSummary } from "../../lib/route/repo/firestoreCourses";
-import { formatPublicationListMeta, publicationDisplayTitle } from "../../lib/publicationDisplay";
+import { formatPublicationListMeta, publicationDisplayTitle } from "../../lib/route/publicationDisplay";
 import type { RouteActivitySnapshot } from "../../lib/activity/repo/firestoreRouteActivity";
 import { formatRouteActivityListBadge } from "../../lib/activity/repo/firestoreRouteActivity";
-import { sortRouteList, type RouteSortKey } from "../../lib/routeListSort";
+import { sortRouteList, type RouteSortKey } from "../../lib/route/routeListSort";
 import { RouteListModalShell } from "./RouteListModalShell";
 import { RouteSortSelect } from "./RouteSortSelect";
 import "./OfficialCourseListModal.css";

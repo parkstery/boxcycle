@@ -16,7 +16,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { isDiscardableRideRecord, isRouteCompletion } from "../../src/lib/rideRecordPolicy.ts";
+import { isDiscardableRideRecord, isRouteCompletion } from "../../src/lib/ride/rideRecordPolicy.ts";
 
 describe("S2: Persistence Axes (PARTIAL - leaf helpers only)", () => {
   it("S2 placeholder: isDiscardableRideRecord validation", () => {

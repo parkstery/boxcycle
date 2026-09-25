@@ -8,11 +8,11 @@ import {
   CONQUEST_ACCUMULATED_OPACITY,
   CONQUEST_ACCUMULATED_OPACITY_DIMMED,
   conquestLayerEmphasis,
-} from "../../src/lib/conquestLayerEmphasis.ts";
+} from "../../src/lib/conquest/conquestLayerEmphasis.ts";
 import {
   RTW_TRACE_ACCUMULATED_PAINT,
   rtwAccumulatedWidthExpression,
-} from "../../src/lib/rtwMapConfig.ts";
+} from "../../src/lib/map/rtwMapConfig.ts";
 
 /** 경로선은 줌과 무관하게 4px 고정(MapView `ROUTE_LINE_WIDTH`) */
 const ROUTE_LINE_WIDTH = 4;
@@ -120,7 +120,7 @@ describe("경로선 테두리 · 적용 배선", () => {
 
   it("순서·불투명도가 판정 한 곳을 거친다 — 호출처마다 다르게 세우지 않는다", () => {
     // import 줄바꿈 모양에 의존하지 않는다 — 배선 여부만 본다
-    assert.match(mapView, /from "\.\.\/\.\.\/lib\/conquestLayerEmphasis"/);
+    assert.match(mapView, /from "\.\.\/\.\.\/lib\/conquest\/conquestLayerEmphasis"/);
     assert.match(mapView, /conquestLayerEmphasis\(\{/);
     assert.match(mapView, /function applyConquestEmphasis\(/);
     assert.doesNotMatch(mapView, /orderConquestLayersAboveRoute/, "옛 단방향 함수가 남으면 안 된다");

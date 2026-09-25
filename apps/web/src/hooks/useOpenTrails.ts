@@ -9,7 +9,7 @@ import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "../lib/trail/repo/firestoreTr
 import { countTrailLiveRidersFresh } from "../lib/trail/repo/firestoreTrailLivePublicationRides";
 import { acquireActiveLiveRideTrailIdsSubscription } from "../lib/trail/repo/activeLiveRideTrailIdsSubscriptionHub";
 import { fetchTrailInstance, type TrailInstance } from "../lib/trail/repo/firestoreTrailInstance";
-import { trailHasConfiguredRoute } from "../lib/trailAccessPolicy";
+import { trailHasConfiguredRoute } from "../lib/trail/trailAccessPolicy";
 
 /**
  * Trailhead MENU — `openTrailListings` + `livePublicationRides` CG (주행 중 Trail만).

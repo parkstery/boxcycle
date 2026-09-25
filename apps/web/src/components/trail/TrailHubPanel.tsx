@@ -7,8 +7,8 @@ import {
   type TrailVisibility,
 } from "../../lib/trail/repo/firestoreTrailInstance";
 import { compareOpenTrailsForListing, isActiveOpenTrailListing } from "../../lib/trail/repo/firestoreOpenTrailListings";
-import { formatTrailDisplayNumber } from "../../lib/trailDisplayNumber";
-import { TRAILHEAD_LABEL, TRAIL_LABEL } from "../../lib/productTerms";
+import { formatTrailDisplayNumber } from "../../lib/trail/trailDisplayNumber";
+import { TRAILHEAD_LABEL, TRAIL_LABEL } from "../../lib/terms/productTerms";
 import "./TrailHubPanel.css";
 
 export type TrailHubPanelProps = {

@@ -1,10 +1,10 @@
 import { useState } from "react";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
-import { cadenceChipView } from "../../lib/cadenceSensorUi";
+import { cadenceChipView } from "../../lib/sensor/cadenceSensorUi";
 import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/route/repo/firestoreSavedRoutes";
-import { isRouteDockVisible, routeDockUiPolicy } from "../../lib/routeDockUiPolicy";
+import { isRouteDockVisible, routeDockUiPolicy } from "../../lib/route/routeDockUiPolicy";
 import { CadenceHudChip, type CadenceChipBinding } from "../maphud/CadenceHudChip";
-import { isIncompleteQuotaError } from "../../lib/tierQuota";
+import { isIncompleteQuotaError } from "../../lib/account/tierQuota";
 import type { RouteDockStop, RouteDockStopId } from "./useRouteDockStops";
 import "./RouteDock.css";
 /* LED 클래스(hud-cadence__led*) — CadenceHudChip 이 묶은 CSS. 접힌 캐럿 LED 가 재사용한다. */

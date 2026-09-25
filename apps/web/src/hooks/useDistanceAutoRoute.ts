@@ -1,15 +1,15 @@
 import type { User } from "firebase/auth";
 import { getFunctions } from "firebase/functions";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { registerDistanceAutoRouteMapBridge, clearDistanceAutoRouteClickDebugMarker } from "../lib/distanceAutoRouteMapBridge";
+import { registerDistanceAutoRouteMapBridge, clearDistanceAutoRouteClickDebugMarker } from "../lib/map/distanceAutoRouteMapBridge";
 import { getFirebaseApp } from "../lib/firebase/app";
-import type { LngLat } from "../lib/geo";
-import { resolveDistanceAutoRouteGuideRadiusKm } from "../lib/distanceAutoRouteGuideRing";
-import { formatLngLat } from "../lib/geo";
+import type { LngLat } from "../lib/geo/geo";
+import { resolveDistanceAutoRouteGuideRadiusKm } from "../lib/route/distanceAutoRouteGuideRing";
+import { formatLngLat } from "../lib/geo/geo";
 import {
   bearingFromOriginToPoint,
   circleLineString,
-} from "../lib/distanceAutoRoute";
+} from "../lib/route/distanceAutoRoute";
 import {
   formatDistanceAutoRouteDirectionClickHint,
   DISTANCE_AUTO_ROUTE_REROUTE_HINT,
@@ -17,10 +17,10 @@ import {
   formatDistanceAutoRouteOfferedMessage,
   formatDistanceAutoRouteShortfallMessage,
   validateDistanceAutoRouteTargetKm,
-  DISTANCE_AUTO_ROUTE_DEFAULT_KM,} from "../lib/distanceAutoRouteErrors";
+  DISTANCE_AUTO_ROUTE_DEFAULT_KM,} from "../lib/route/distanceAutoRouteErrors";
 import { fetchDistanceAutoRoute } from "../services/distanceAutoRouteApi";
 import type { RouteProfile } from "../services/mapboxDirections";
-import type { ScoredAutoRoute } from "../lib/distanceAutoRoute";
+import type { ScoredAutoRoute } from "../lib/route/distanceAutoRoute";
 
 export type DistanceAutoRouteStep =
   | "closed"

@@ -23,7 +23,7 @@ import {
   chunkIdOfConquestCellId,
   conquestCellIdAt,
   lngLatToTileXY,
-} from "../../src/lib/conquestTiles.ts";
+} from "../../src/lib/conquest/conquestTiles.ts";
 
 // ── functions/src/conquestClaimContract.test.ts 와 동일해야 하는 값 ──
 const V_GANGNAM: [number, number] = [127.0276, 37.4979];

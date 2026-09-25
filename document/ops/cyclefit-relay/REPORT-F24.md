@@ -153,7 +153,7 @@ apps/web/public/rider/prototype/rider-lowpoly.glb   MD5 c42c6db476391c37e1b2abf4
 | 파일 | 내용 | 지시 |
 |---|---|---|
 | `apps/web/src/lib/riderPrototype/riderIk.mjs` | `restToDirRotationDeg` YZX 직접 추출(성분 뒤바뀜 수정) | F22 |
-| `apps/web/src/lib/riderGlbPedalPose.pose.mjs` | `kneePole` 안쪽 · `_poles` export · `torsoRotationDeg` 배선 | F23·F24 |
+| `apps/web/src/lib/rider/riderGlbPedalPose.pose.mjs` | `kneePole` 안쪽 · `_poles` export · `torsoRotationDeg` 배선 | F23·F24 |
 | `apps/web/src/lib/riderPrototype/riderRig.geometry.mjs` | 어깨 V2 정합(F20) · `TORSO_ROTATION_DEG` 신설 · HIP/SHOULDER B 값 | F20·F23·F24 |
 | `apps/web/src/lib/riderPrototype/geometry.json` | `saddleHeight` 487.75 · `coords.saddle` | F24 |
 | `apps/web/public/rider/prototype/rider-lowpoly.glb` | 안 B 이식 | F20~F24 |

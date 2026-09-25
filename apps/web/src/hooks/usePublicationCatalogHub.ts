@@ -12,12 +12,12 @@ import {
   routeGeometryMatchesBasicSharedHub,
   type PublishedPublicCourseSummary,
 } from "../lib/route/repo/firestoreCourses";
-import type { LineStringGeometry, LngLat } from "../lib/geo";
-import { lockRouteWorkspaceDuringRide } from "../lib/routeWorkspaceLock";
+import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
+import { lockRouteWorkspaceDuringRide } from "../lib/route/routeWorkspaceLock";
 import {
   encodeCanonicalRouteGeometryProfile,
   fingerprintFromCanonicalSync,
-} from "../lib/routeFingerprint";
+} from "../lib/route/routeFingerprint";
 import type { RouteProfile } from "../services/mapboxDirections";
 import { formatDuration } from "../services/mapboxDirections";
 import type { SavedRoute } from "../lib/route/repo/firestoreSavedRoutes";

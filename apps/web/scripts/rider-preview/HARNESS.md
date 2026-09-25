@@ -25,7 +25,7 @@ cd apps/web && node scripts/rider-preview/verify-rider-glb.mjs [glbPath]
 검사(하나라도 실패 시 exit 1):
 - **노드 6종** 존재: `crank, leg_l, leg_l_shin, leg_r, leg_r_shin, torso` — 이름 변경 시 페달링 IK 파손.
 - **월드 AABB** 전고 1.10~1.30m · 전장 1.25~1.55m — 저스케일·형태붕괴 회귀 감지. `groundShadow` 노드는 제외.
-- **IK 좌표 불변식**이 `src/lib/riderGlbPedalPose.ts`와 완전 일치(`pelvis/bb/kneeLocal/crankArmM`) — 두 파일이 하드코딩 공유하므로 한쪽만 바꾸면 발이 페달에서 떨어진다.
+- **IK 좌표 불변식**이 `src/lib/rider/riderGlbPedalPose.ts`와 완전 일치(`pelvis/bb/kneeLocal/crankArmM`) — 두 파일이 하드코딩 공유하므로 한쪽만 바꾸면 발이 페달에서 떨어진다.
 
 모델 변경 후 **항상** 돌린다. tsc 처럼 커밋 전 게이트로 쓸 것.
 

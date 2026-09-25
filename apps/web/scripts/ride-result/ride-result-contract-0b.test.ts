@@ -9,15 +9,15 @@ import { describe, it } from "node:test";
 import {
   mergeRecentRideSessions,
   type StoredRideSession,
-} from "../../src/lib/rideSessionsStorage.ts";
+} from "../../src/lib/ride/rideSessionsStorage.ts";
 import {
   parseConquestResult,
   formatConquestSummaryLine,
   type RideConquestResult,
-} from "../../src/lib/rideConquestResult.ts";
-import { ROUTE_RESUME_MAX_RATIO, ROUTE_COMPLETION_RATIO_THRESHOLD } from "../../src/lib/rideRecordPolicy.ts";
-import { computeRideSessionAnchors } from "../../src/lib/rideSessionAnchors.ts";
-import { lineStringLengthMeters, type LineStringGeometry } from "../../src/lib/geo.ts";
+} from "../../src/lib/ride/rideConquestResult.ts";
+import { ROUTE_RESUME_MAX_RATIO, ROUTE_COMPLETION_RATIO_THRESHOLD } from "../../src/lib/ride/rideRecordPolicy.ts";
+import { computeRideSessionAnchors } from "../../src/lib/ride/rideSessionAnchors.ts";
+import { lineStringLengthMeters, type LineStringGeometry } from "../../src/lib/geo/geo.ts";
 
 function session(id: string, endedAt: string, extra: Partial<StoredRideSession> = {}) {
   return {

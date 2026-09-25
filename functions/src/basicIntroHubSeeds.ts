@@ -1,6 +1,6 @@
 // 자동 생성 — 직접 수정하지 말 것. `node scripts/gen-basic-intro-routes.mjs` 로 재생성한다.
 //
-// 입문(Basic) publication seed — `apps/web/src/lib/basicIntroHubRouteGeometries.ts` 와 같은
+// 입문(Basic) publication seed — `apps/web/src/lib/route/basicIntroHubRouteGeometries.ts` 와 같은
 // Mapbox Directions cycling 응답에서 나온 동일 좌표다. Admin 마이그레이션(`cliSeedBasicIntroPublications`)과
 // presence allowlist(`publicationPresenceCore`)가 이 파일을 쓴다.
 // 두 파일의 ID 집합 일치는 `apps/web/scripts/basic-routes-verify/verify-basic-routes.mjs` 가 검사한다.

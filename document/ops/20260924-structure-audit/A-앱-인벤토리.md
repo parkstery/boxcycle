@@ -63,7 +63,7 @@
 | `lib/virtualRideDuration.ts` (14L) | DEAD | 참조 0건. `useVirtualRideSession` 은 쓰지 않음(이름만 유사) | 낮음 | 삭제 후보 |
 | `components/weather/WeatherOverlay.tsx` (158L) | DEAD | 참조 0건, 도달 불가 | 낮음 — 날씨 기능 전체 미연결 | 삭제 후보 |
 | `components/weather/WeatherOverlay.css` | DEAD | 위 파일만 import | 낮음 | 삭제 후보 |
-| `lib/openMeteoWeather.ts` (153L) | DEAD | 유일 소비자가 `WeatherOverlay.tsx`(DEAD). `e2e/open-meteo-stub.ts` 의 1건은 **주석 언급일 뿐 import 아님** | 중간 — 고도 API 와 혼동 주의 | 검토 필요 |
+| `lib/weather/openMeteoWeather.ts` (153L) | DEAD | 유일 소비자가 `WeatherOverlay.tsx`(DEAD). `e2e/open-meteo-stub.ts` 의 1건은 **주석 언급일 뿐 import 아님** | 중간 — 고도 API 와 혼동 주의 | 검토 필요 |
 | `components/trail/TrailSwitcher.tsx` | DEAD | `@deprecated 2026-05-19`. 참조 0건 | 낮음 | 삭제 후보 |
 | `components/trail/TrailSwitcher.css` | DEAD | 위 파일만 import | 낮음 | 삭제 후보 |
 | `components/trail/TrailheadPresence.tsx` (52L) | DEAD | 참조 0건. **단 `TrailheadPresence.css` 는 `PublicationSharedPresence.tsx:39` 가 import 중 → CSS 유지** | 중간 | 삭제 후보(**tsx만**) |
@@ -102,20 +102,20 @@
 
 | File:Line | 내용 | Action |
 |---|---|---|
-| `lib/rideSyncPolicy.ts:39,42,85,132,137` | 호환 alias 5개 — **fan-in 18 핵심 모듈** | 유지(alias만 점진 제거) |
-| `lib/firestoreCourses.ts:482` | `ensurePublicationPresenceFlagsMerged` 로 대체 | 검토 필요 |
-| `lib/firestoreRides.ts:24,40` | "read fallback only" 필드 2개 | 유지 |
-| `lib/firestoreRoutePublications.ts:164` | shim → `findPublishedRoutePublicationById` | 통합 후보 |
-| `lib/firestoreRouteActivity.ts:196` | 낙관 heat 제거 잔재 | 검토 필요 |
-| `lib/activityWorldLod.ts:10` / `activityWorldTraceStyle.ts:10` / `activityWorldPollPolicy.ts:44` | 상수·함수 alias | 통합 후보 |
-| `lib/directionsDirectGuard.ts:7` | `VITE_DIRECTIONS_DIRECT` — "프로덕션에서 제거됨" | 검토 필요 |
-| `lib/fetchRouteElevations.ts:46` | 호장 샘플러로 대체 | 통합 후보 |
-| `lib/mapPickRouteDock.ts:130` | 진단·회귀용 보존 | 유지 |
+| `lib/ride/rideSyncPolicy.ts:39,42,85,132,137` | 호환 alias 5개 — **fan-in 18 핵심 모듈** | 유지(alias만 점진 제거) |
+| `lib/route/repo/firestoreCourses.ts:482` | `ensurePublicationPresenceFlagsMerged` 로 대체 | 검토 필요 |
+| `lib/ride/repo/firestoreRides.ts:24,40` | "read fallback only" 필드 2개 | 유지 |
+| `lib/route/repo/firestoreRoutePublications.ts:164` | shim → `findPublishedRoutePublicationById` | 통합 후보 |
+| `lib/activity/repo/firestoreRouteActivity.ts:196` | 낙관 heat 제거 잔재 | 검토 필요 |
+| `lib/activity/activityWorldLod.ts:10` / `activityWorldTraceStyle.ts:10` / `activityWorldPollPolicy.ts:44` | 상수·함수 alias | 통합 후보 |
+| `lib/route/directionsDirectGuard.ts:7` | `VITE_DIRECTIONS_DIRECT` — "프로덕션에서 제거됨" | 검토 필요 |
+| `lib/route/fetchRouteElevations.ts:46` | 호장 샘플러로 대체 | 통합 후보 |
+| `lib/map/mapPickRouteDock.ts:130` | 진단·회귀용 보존 | 유지 |
 | `lib/peerMotion/mergePackets.ts:49` | alias | 통합 후보 |
 | `services/mapboxForwardGeocode.ts:63` | `fetchMapboxPlacePickDetail` 로 대체 | 통합 후보 |
 | `components/MenuPanel.tsx:7` | 하위 호환용 prop | 검토 필요 |
 | `features/map-overlays/worldPublicationMapDots.ts:7` | 단 `useAppMapOverlays.ts:452` 가 실호출 중 | 유지 |
-| `lib/publicRouteAutoReview.ts:14` | **주석 처리된 export** — 저장소 유일 | 삭제 후보 |
+| `lib/route/publicRouteAutoReview.ts:14` | **주석 처리된 export** — 저장소 유일 | 삭제 후보 |
 
 ## 6. 거대 파일 상위 15 — 책임 수
 
@@ -125,29 +125,29 @@
 | 2 | `App.tsx` | **3,030** | **5+** | `useState` **47개**, `useEffect` 25, import **91**. 전역 상태·시트 네비·인증·주행 라이프사이클·오버레이 조율 | **최우선 분할** |
 | 3 | `components/UserInfoSheet.tsx` | 787 | 3 | `useState` 15 — 프로필·닉네임·티어·게스트 리셋 | 검토 필요 |
 | 4 | `components/maphud/MapHud.tsx` | 729 | 2 | HUD 렌더 + 동행 카운트 | 유지 |
-| 5 | `lib/firestoreSavedRoutes.ts` | 701 | 2 | export 22 — CRUD + 진행률 정책 | 통합 후보 |
+| 5 | `lib/route/repo/firestoreSavedRoutes.ts` | 701 | 2 | export 22 — CRUD + 진행률 정책 | 통합 후보 |
 | 6 | `hooks/useRideEndAndPersistence.ts` | 655 | 3 | 종료 판정·영속화·정복 결과 | 검토 필요 |
 | 7 | `features/map-overlays/useAppMapOverlays.ts` | 613 | 4 | 오버레이 전부를 한 훅이 조율 | 검토 필요 |
 | 8 | `components/ride/SavedRoutesPanel.tsx` | 593 | 2 | 목록·정렬·필터 | 유지 |
-| 9 | `lib/publicRouteRequests.ts` | 575 | 3 | 요청·심사·명명 정책 | 통합 후보 |
-| 10 | `lib/firestoreCourses.ts` | 554 | 2 | export **26**, **이름이 퇴역 용어**인데 fan-in 16 | 검토 필요(개명) |
+| 9 | `lib/route/publicRouteRequests.ts` | 575 | 3 | 요청·심사·명명 정책 | 통합 후보 |
+| 10 | `lib/route/repo/firestoreCourses.ts` | 554 | 2 | export **26**, **이름이 퇴역 용어**인데 fan-in 16 | 검토 필요(개명) |
 | 11 | `components/PublicationSharedPresence.tsx` | 521 | 3 | presence 구독·peer 동기·렌더 | 검토 필요 |
 | 12 | `lib/riderPrototype/preservedRiderRig.ts` | 494 | 1 | 단일 소비자 | 유지 |
 | 13 | `hooks/useBleCrankRpm.ts` | 484 | 2 | BLE 연결 + RPM 계산 | 유지 |
 | 14 | `components/map/rideCameraFollow.ts` | 484 | 1 | 카메라 추종 전담 | 유지 |
 | 15 | `hooks/useDistanceAutoRoute.ts` | 477 | 2 | 자동 경로 + ETA·에러 | 유지 |
 
-**Fan-in 상위**: `lib/geo.ts` 83 · `lib/firebase.ts` 36 · `lib/firestoreTrail.ts` 33 · `services/mapboxDirections.ts` 24 · `lib/rideSyncPolicy.ts` 18 · `lib/firestoreSavedRoutes.ts` 17 · `lib/firestoreTrailLivePublicationRides.ts` 17 · `lib/firestoreCourses.ts` 16.
-→ **`lib/geo.ts`(export 21, fan-in 83)가 사실상 전역 허브.**
+**Fan-in 상위**: `lib/geo/geo.ts` 83 · `lib/firebase.ts` 36 · `lib/trail/repo/firestoreTrail.ts` 33 · `services/mapboxDirections.ts` 24 · `lib/ride/rideSyncPolicy.ts` 18 · `lib/route/repo/firestoreSavedRoutes.ts` 17 · `lib/trail/repo/firestoreTrailLivePublicationRides.ts` 17 · `lib/route/repo/firestoreCourses.ts` 16.
+→ **`lib/geo/geo.ts`(export 21, fan-in 83)가 사실상 전역 허브.**
 
 ## 7. 순환 의존 (4건, 전부 `lib/` 내부)
 
 | 경로 | Risk | Action |
 |---|---|---|
-| `lib/activityWorldLod.ts` ↔ `lib/rideSyncPolicy.ts` | **높음** — fan-in 14/18. deprecated alias 이관 중 생긴 상호 참조 | 검토 필요 |
-| `lib/firestoreTrailLivePublicationRides.ts` ↔ `lib/rtdbTrailMotion.ts` | 중간 — Firestore/RTDB 두 소스가 서로의 타입 참조 | 검토 필요 |
-| `lib/firestoreOpenTrailListings.ts` ↔ `lib/firestoreTrailInstance.ts` | 중간 | 검토 필요 |
-| `lib/firestoreTrailInstance.ts` ↔ `lib/trailAccessPolicy.ts` | 중간 — 정책이 데이터층을 역참조 | 통합 후보(정책→순수함수화) |
+| `lib/activity/activityWorldLod.ts` ↔ `lib/ride/rideSyncPolicy.ts` | **높음** — fan-in 14/18. deprecated alias 이관 중 생긴 상호 참조 | 검토 필요 |
+| `lib/trail/repo/firestoreTrailLivePublicationRides.ts` ↔ `lib/peerMotion/repo/rtdbTrailMotion.ts` | 중간 — Firestore/RTDB 두 소스가 서로의 타입 참조 | 검토 필요 |
+| `lib/trail/repo/firestoreOpenTrailListings.ts` ↔ `lib/trail/repo/firestoreTrailInstance.ts` | 중간 | 검토 필요 |
+| `lib/trail/repo/firestoreTrailInstance.ts` ↔ `lib/trail/trailAccessPolicy.ts` | 중간 — 정책이 데이터층을 역참조 | 통합 후보(정책→순수함수화) |
 
 컴포넌트 계층 순환은 **없다**. 4건 모두 `lib/` 평면 구조가 원인이며 도메인 폴더로 나누면 자연 해소된다.
 
@@ -183,7 +183,7 @@
 
 ### 주석 처리된 코드
 
-전 소스 통틀어 **1건** — `lib/publicRouteAutoReview.ts:14`. 나머지 주석은 전부 한국어 설계 근거 서술로 **품질이 높다**.
+전 소스 통틀어 **1건** — `lib/route/publicRouteAutoReview.ts:14`. 나머지 주석은 전부 한국어 설계 근거 서술로 **품질이 높다**.
 
 ## 10. TODO / FIXME
 
@@ -213,7 +213,7 @@
 
 | File | Classification | Reason |
 |---|---|---|
-| `lib/sensorChipSlot.ts` | **TEST 전용** | 도달 불가. 유일 소비자 `scripts/ride-hierarchy/sensor-chip-slot-contract.test.ts` — **계약 테스트만을 위해 존재하는 프로덕션 코드** |
+| `lib/route/sensorChipSlot.ts` | **TEST 전용** | 도달 불가. 유일 소비자 `scripts/ride-hierarchy/sensor-chip-slot-contract.test.ts` — **계약 테스트만을 위해 존재하는 프로덕션 코드** |
 | `lib/riderPrototype/riderBody.mjs` | SUPPORT | `scripts/build-rider-candidate.mjs:38` · `scripts/rider-preview/riderCandidate.mjs:31` 이 소비 |
 | `lib/directionsDirectGuard.core.d.mts` · `routeTokenPopupDisplay.d.mts` · `routeTokenSpendState.d.mts` | CONFIG | 짝 `.mjs` 의 타입 선언. 도달 불가가 정상 |
 | `vite-env.d.ts` | CONFIG | Vite 앰비언트 타입 |
@@ -226,7 +226,7 @@
 
 1. **`components/map/MapView.tsx` 4,903줄 · `useEffect` 68개.** effect 간 실행 순서 의존이 암묵적이다. 어떤 정비도 여기부터 시작하면 안 된다 — **먼저 계약 테스트를 깔아야 한다.**
 2. **`App.tsx` `useState` 47개 · import 91개.** 어떤 상태가 어떤 effect 를 깨우는지 추적 불가. `MapView` 와 props 강결합이라 둘을 따로 리팩터할 수 없다.
-3. **`lib/geo.ts` fan-in 83 / `lib/firebase.ts` 36 / `lib/firestoreTrail.ts` 33.** 세 파일이 단일 장애점. `lib/` 도메인 분할 시 가장 광범위한 diff.
+3. **`lib/geo/geo.ts` fan-in 83 / `lib/firebase.ts` 36 / `lib/trail/repo/firestoreTrail.ts` 33.** 세 파일이 단일 장애점. `lib/` 도메인 분할 시 가장 광범위한 diff.
 4. **순환 `activityWorldLod.ts` ↔ `rideSyncPolicy.ts`**(fan-in 14/18). 모듈 초기화 순서에 따라 상수가 `undefined` 로 읽힐 수 있는 잠재 버그.
 5. **퇴역 용어 `course` 가 ACTIVE 코드에 박혀 있다** — `firestoreCourses.ts`(fan-in 16). 개명하려면 16개 소비자 + Firestore 컬렉션명 호환까지 걸려 「쉬운 정비」가 아니다. **문서화로 먼저 봉합할 것.**
 
@@ -236,7 +236,7 @@
 2. **`console.log` 7줄 제거** — `App.tsx:1988,1999` / `MapView.tsx:3778,3788,3791,3795` / `useAppMapOverlays.ts:395`.
 3. **루트 shim 10개 통합** — 소비자 import 경로 치환. **단 `MapillaryRideViewer` 는 `App.tsx:162` 동적 import 라 수동 확인 필수.**
 4. **DEAD 배럴 4개 + 빈 디렉터리 1개 제거** — `app/index.ts` · `components/auth|map|trail/index.ts` · `components/route/`.
-5. **주석 처리 export 1줄 제거** — `lib/publicRouteAutoReview.ts:14`.
+5. **주석 처리 export 1줄 제거** — `lib/route/publicRouteAutoReview.ts:14`.
 
 ---
 
@@ -244,4 +244,4 @@
 
 - `tmp/rider-shape-preserving/` 아래 **프로젝트 전체 사본**이 존재한다(`apps/web/src/components/map/MapView.tsx` 등 동일 경로 복제). **grep 결과를 오염시키고 있다.**
 - 저장소 루트에 untracked 빈 파일 `0`.
-- `lib/sensorChipSlot.ts` 는 계약 테스트 전용 프로덕션 코드 — 테스트 배치 정책 검토 대상.
+- `lib/route/sensorChipSlot.ts` 는 계약 테스트 전용 프로덕션 코드 — 테스트 배치 정책 검토 대상.

@@ -3,14 +3,14 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import { getFirebaseFirestore } from "../lib/firebase/app";
 import type { UserTier } from "../lib/identity/repo/firestoreUser";
-import type { SubscriptionStatus } from "../lib/subscription";
+import type { SubscriptionStatus } from "../lib/account/subscription";
 import {
   canSubmitPublicRoute,
   isGuestTier,
   isPaidTier,
   isUserTier,
   resolveEffectiveTier,
-} from "../lib/userTier";
+} from "../lib/account/userTier";
 
 function normalizeSubscriptionStatus(raw: unknown): SubscriptionStatus {
   if (raw === "active" || raw === "past_due" || raw === "canceled") return raw;

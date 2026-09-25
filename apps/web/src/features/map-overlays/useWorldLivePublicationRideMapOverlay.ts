@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/refs, react-hooks/set-state-in-effect, react-hooks/purity */
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
-import type { ActivityWorldMapRoute } from "../../lib/activityWorldLod";
-import { ACTIVITY_TRACE_LIVE_STRENGTH } from "../../lib/activityWorldTraceStyle";
+import type { ActivityWorldMapRoute } from "../../lib/activity/activityWorldLod";
+import { ACTIVITY_TRACE_LIVE_STRENGTH } from "../../lib/activity/activityWorldTraceStyle";
 import {
   BASIC_SHARED_HUB_IDS,
   fetchCourseRoutePayload,
@@ -13,10 +13,10 @@ import {
 } from "../../lib/trail/repo/firestoreTrailLivePublicationRides";
 import { acquireTrailLivePublicationRidesSubscription } from "../../lib/trail/repo/livePublicationRidesSubscriptionHub";
 import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "../../lib/trail/repo/firestoreTrail";
-import type { LineStringGeometry, LngLat } from "../../lib/geo";
-import { spectatorPointOnRoute } from "../../lib/spectatorRideExtrap";
+import type { LineStringGeometry, LngLat } from "../../lib/geo/geo";
+import { spectatorPointOnRoute } from "../../lib/peerMotion/spectatorRideExtrap";
 import type { TrailSpectatorDot } from "../../hooks/useTrailLivePublicationRideSpectatorOverlay";
-import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../../lib/geoDecimate";
+import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../../lib/geo/geoDecimate";
 import type { RouteActivityMapOverlay } from "../../hooks/useRouteActivityMapOverlay";
 
 type PublicationGeomState =

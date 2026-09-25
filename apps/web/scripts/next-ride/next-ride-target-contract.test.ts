@@ -7,14 +7,14 @@ import {
   resolveNextRideView,
   resolveRecentRideActions,
   resumeAnchorForRoute,
-} from "../../src/lib/nextRideTarget.ts";
+} from "../../src/lib/ride/nextRideTarget.ts";
 import type { SavedRoute } from "../../src/lib/route/repo/firestoreSavedRoutes.ts";
-import type { StoredRideSession } from "../../src/lib/rideSessionsStorage.ts";
+import type { StoredRideSession } from "../../src/lib/ride/rideSessionsStorage.ts";
 import {
   distanceOnRouteByProjectedPoint,
   lineStringLengthMeters,
   type LineStringGeometry,
-} from "../../src/lib/geo.ts";
+} from "../../src/lib/geo/geo.ts";
 
 function makeGeometry(points = 11): LineStringGeometry {
   const coords: [number, number][] = [];

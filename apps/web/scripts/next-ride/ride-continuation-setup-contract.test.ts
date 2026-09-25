@@ -12,11 +12,11 @@ import { describe, it } from "node:test";
 import {
   DISTANCE_AUTO_ROUTE_KM_MAX,
   DISTANCE_AUTO_ROUTE_KM_MIN,
-} from "../../src/lib/distanceAutoRouteErrors.ts";
+} from "../../src/lib/route/distanceAutoRouteErrors.ts";
 import {
   normalizeContinuationTargetKm,
   resolveRideContinuationSetup,
-} from "../../src/lib/rideContinuationSetup.ts";
+} from "../../src/lib/ride/rideContinuationSetup.ts";
 
 const ANCHOR: [number, number] = [127.0276, 37.4979];
 

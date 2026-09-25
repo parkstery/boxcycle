@@ -1,6 +1,6 @@
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { getFirebaseFirestore } from "../lib/firebase/app";
-import type { SharedElevationStore } from "../lib/fetchRouteElevations";
+import type { SharedElevationStore } from "../lib/route/fetchRouteElevations";
 
 /**
  * 경로 표고의 영구 저장소 (`RIDE-ELEVATION-QUOTA-1` D2 — 호출 구조 축소).

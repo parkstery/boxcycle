@@ -1,22 +1,22 @@
-import type { LngLat, LineStringGeometry } from "../../lib/geo";
+import type { LngLat, LineStringGeometry } from "../../lib/geo/geo";
 import {
   getDistanceMeters,
   headingOnRouteAtPoint,
   type LineStringGeometry as RouteLineStringGeometry,
-} from "../../lib/geo";
-import type { FollowMode } from "../../lib/mapGlobeView";
-import { resolveRideCameraPitchClose } from "../../lib/mapGlobeView";
-import { computeRideFollowFraming, viewportPxFromMap } from "../../lib/rideCameraFraming";
-import type { RideSpanFloorMode } from "../../lib/rideCameraFraming";
+} from "../../lib/geo/geo";
+import type { FollowMode } from "../../lib/map/mapGlobeView";
+import { resolveRideCameraPitchClose } from "../../lib/map/mapGlobeView";
+import { computeRideFollowFraming, viewportPxFromMap } from "../../lib/camera/rideCameraFraming";
+import type { RideSpanFloorMode } from "../../lib/camera/rideCameraFraming";
 import {
   beginFollowCameraJump,
   endFollowCameraJump,
   noteFollowJumpTo,
   noteHeadingFromMove,
-} from "../../lib/mapTickProbe";
-import { noteFollowJumpToValues } from "../../lib/cameraFollowTrace";
-import { noteCameraWrite } from "../../lib/cameraRenderPhase";
-import { isTickTestAlignCamOn, isTickTestFollowOn, isTickTestMapStopOn } from "../../lib/tickTestSwitches";
+} from "../../lib/debug/mapTickProbe";
+import { noteFollowJumpToValues } from "../../lib/camera/cameraFollowTrace";
+import { noteCameraWrite } from "../../lib/camera/cameraRenderPhase";
+import { isTickTestAlignCamOn, isTickTestFollowOn, isTickTestMapStopOn } from "../../lib/debug/tickTestSwitches";
 import { type LiveRiderMotion } from "./mapViewTypes";
 
 const CAMERA_POSITION_TAU_SEC = 0.1;
@@ -97,7 +97,7 @@ function normalizeCompass(deg: number) {
   return x;
 }
 
-export { offsetLngLatByBearingMeters } from "../../lib/geo";
+export { offsetLngLatByBearingMeters } from "../../lib/geo/geo";
 
 export function getAverageHeadingAheadFromPoint(
   geometry: RouteLineStringGeometry | null,

@@ -10,13 +10,13 @@ N2 (`ride-result-n2-persistence.test.ts`) 가 S2 의 honest-TODO 를 해소했�
 
 ### N2 에서 추가된 증거
 
-- ✅ **실제 `persistRideEndCore` 경로** — hook 이 직접 호출하는 함수 (`src/lib/rideEndPersistence.ts`)
+- ✅ **실제 `persistRideEndCore` 경로** — hook 이 직접 호출하는 함수 (`src/lib/ride/rideEndPersistence.ts`)
 - ✅ **4개 케이스** via real `setLastRideResult` 상태 전이:
   - save reject (cascade pending→failed)
   - save null (cascade pending→failed)
   - save success + progress fail (독립 축)
   - normal save success + progress success
-- ✅ **시트 문구** — `getRideSaveStatusLabel` / `getSavedRouteProgressStatusLabel` (`src/lib/rideStatusCopy.ts`)
+- ✅ **시트 문구** — `getRideSaveStatusLabel` / `getSavedRouteProgressStatusLabel` (`src/lib/ride/rideStatusCopy.ts`)
   - `RideSummarySheet` 가 이 함수를 import 해 사용 → 어서트 = 실제 렌더 증명
 - ✅ **end sample vs stale UI** — `record` (end snapshot) 의 `distanceMeters`·`sessionEndLngLat` 이 저장됨
 - ✅ **지연 응답 격리** — `recordId` guard (`prev.recordId === record.id`) 증명
@@ -25,8 +25,8 @@ N2 (`ride-result-n2-persistence.test.ts`) 가 S2 의 honest-TODO 를 해소했�
 
 ### 생산 변경 (minimal)
 
-- `src/lib/rideEndPersistence.ts` (신규) — async IIFE 에서 저장 커널 추출, injectable deps
-- `src/lib/rideStatusCopy.ts` (신규) — 시트 문구 builder
+- `src/lib/ride/rideEndPersistence.ts` (신규) — async IIFE 에서 저장 커널 추출, injectable deps
+- `src/lib/ride/rideStatusCopy.ts` (신규) — 시트 문구 builder
 - `src/hooks/useRideEndAndPersistence.ts` — 3 optional injectable deps 추가, `persistRideEndCore` 위임
 - `src/components/ride/RideSummarySheet.tsx` — 문구를 `rideStatusCopy.ts` 에서 import
 

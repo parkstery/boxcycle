@@ -71,7 +71,13 @@ function resolveSpec(fromFile, spec, fileSet) {
   return null;
 }
 
-const SPEC_RE = /(from\s*|import\s*\(\s*|require\s*\(\s*)(["'])(\.[^"']*)\2/g;
+/*
+ * `from "x"` · `import("x")` · `require("x")` 에 더해 **부수효과 `import "x"`** 를 본다.
+ * 2026-09-25 P5-6 에서 `import "../../lib/map/disableMapboxTelemetry";` 한 줄을 놓쳐
+ * 이동 뒤 경로가 깨졌다 — `from` 이 없는 형태였다.
+ */
+const SPEC_RE =
+  /(from\s*|import\s*\(\s*|require\s*\(\s*|^\s*import\s*)(["'])(\.[^"']*)\2/gm;
 
 /**
  * 수집 범위 **밖**이라도 디스크에 실제로 있으면 정상 경로다.
@@ -140,7 +146,17 @@ for (const [f, list] of specsByFile) {
     const newTarget = newPathOf(target);
     if (newF === f && newTarget === target) continue; // 양쪽 다 그대로
     let rel = path.posix.relative(path.posix.dirname(newF), newTarget);
-    if (omitted) rel = rel.slice(0, rel.length - omitted.length);
+    /*
+     * 생략된 꼬리를 되돌린다. `/index.ts` 처럼 **경로 구분자를 포함한** 꼬리는 단순
+     * 길이 빼기로 자르면 안 된다 — `index.ts`(8자)에서 `/index.ts`(9자)를 빼
+     * `index.t` 라는 깨진 경로가 나왔다(2026-09-25 P5-6 에서 실제로 났다).
+     */
+    if (omitted && rel.endsWith(omitted)) {
+      rel = rel.slice(0, rel.length - omitted.length);
+    } else if (omitted.startsWith("/") && rel.endsWith(omitted.slice(1))) {
+      rel = rel.slice(0, rel.length - omitted.slice(1).length).replace(/\/$/, "");
+    }
+    if (rel === "") rel = ".";
     if (!rel.startsWith(".")) rel = `./${rel}`;
     if (rel === spec) continue;
     // 같은 specifier 가 한 파일에 두 번 나오면(별도 import 문) 첫 치환이 /g 로 둘 다
@@ -163,11 +179,24 @@ if (DRY) {
 }
 
 // ── 3. git mv ────────────────────────────────────────────
+let sidecars = 0;
 for (const [a, b] of moveMap) {
   fs.mkdirSync(path.dirname(b), { recursive: true });
   execFileSync("git", ["mv", a, b], { cwd: ROOT, stdio: "pipe" });
+  /*
+   * `.mjs` 의 짝인 `.d.mts` 선언 파일을 함께 옮긴다.
+   *
+   * 수집(`collect`)에서 `.d.mts` 를 제외하기 때문에 계획에 잡히지 않는다. 2026-09-25
+   * P5-6 에서 셋이 원래 자리에 남아, 옮겨진 `.mjs` 가 **타입을 잃고 암묵적 any** 가 됐다
+   * (`tsc` 가 잡았지만 자동이어야 한다).
+   */
+  const dts = a.replace(/\.mjs$/, ".d.mts");
+  if (a.endsWith(".mjs") && fs.existsSync(dts)) {
+    execFileSync("git", ["mv", dts, b.replace(/\.mjs$/, ".d.mts")], { cwd: ROOT, stdio: "pipe" });
+    sidecars += 1;
+  }
 }
-console.log(`git mv ${moveMap.size}개 완료`);
+console.log(`git mv ${moveMap.size}개 완료${sidecars > 0 ? ` (+ .d.mts ${sidecars}개 동반)` : ""}`);
 
 // ── 4. specifier 치환 ────────────────────────────────────
 for (const [f, list] of edits) {
@@ -216,7 +245,7 @@ for (const f of after) {
 /**
  * import 가 아닌 **문자열 경로** 참조.
  *
- * 왜 따로 보는가 — 계약 시험 몇 개가 소스를 `readFileSync("lib/firestoreCourses.ts")` 처럼
+ * 왜 따로 보는가 — 계약 시험 몇 개가 소스를 `readFileSync("lib/route/repo/firestoreCourses.ts")` 처럼
  * **경로 문자열로** 읽는다. 이동하면 `tsc` 는 통과하고 **시험만 ENOENT 로 죽는다.**
  * 2026-09-25 배치 B 에서 실제로 그랬다(`route-list-sort-contract`).
  * 경로를 어떻게 조립했는지는 파일마다 달라 자동 치환이 위험하므로, **목록만 내고 멈춘다.**
@@ -226,9 +255,12 @@ for (const [a] of moveMap) {
   const oldBase = path.posix.basename(a);
   for (const f of after) {
     const src = fs.readFileSync(f, "utf8");
-    // 따옴표 안에 옛 파일명이 남아 있고, 그 줄이 import specifier 가 아닌 경우
+    // 따옴표 안에 옛 파일명이 남아 있고, 그 줄이 import specifier 가 아닌 경우.
+    // 확장자 없는 줄기도 본다 — 시험이 소스 텍스트를 정규식으로 단언할 때는
+    // `lib\/conquestLayerEmphasis` 처럼 이스케이프된 형태로 나타난다(2026-09-25 P5-6).
+    const oldStem = oldBase.replace(/\.[^.]+$/, "");
     for (const line of src.split("\n")) {
-      if (!line.includes(oldBase)) continue;
+      if (!line.includes(oldBase) && !line.includes(oldStem)) continue;
       if (/(from|import\s*\(|require\s*\()\s*["']/.test(line)) continue;
       if (!/["'`]/.test(line)) continue;
       stringRefs.push(`${f.slice(WEB.length + 1)}: ${line.trim()}`);

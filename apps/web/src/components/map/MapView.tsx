@@ -3,19 +3,19 @@ import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } fr
 import {
   formatDistanceAutoRouteEta,
   resolveDistanceAutoRouteEta,
-} from "../../lib/distanceAutoRouteEta";
+} from "../../lib/route/distanceAutoRouteEta";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import "../../lib/disableMapboxTelemetry";
+import "../../lib/map/disableMapboxTelemetry";
 import {
   lngLatBoundsToViewport,
   viewportSpanKm,
   type ActivityWorldMapRoute,
   type ActivityWorldRawOverlay,
   type MapViewportBounds,
-} from "../../lib/activityWorldLod";
-import { ACTIVITY_TRACE_RED } from "../../lib/activityWorldTraceStyle";
-import { DISTANCE_AUTO_ROUTE_REFERENCE_CIRCLE_HINT } from "../../lib/distanceAutoRoute";
+} from "../../lib/activity/activityWorldLod";
+import { ACTIVITY_TRACE_RED } from "../../lib/activity/activityWorldTraceStyle";
+import { DISTANCE_AUTO_ROUTE_REFERENCE_CIRCLE_HINT } from "../../lib/route/distanceAutoRoute";
 import {
   formatDistanceAutoRouteDirectionClickHint,
   DISTANCE_AUTO_ROUTE_KM_MAX,
@@ -25,21 +25,21 @@ import {
   DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_ARIA,
   DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_LABEL,
   validateDistanceAutoRouteTargetKm,
-  DISTANCE_AUTO_ROUTE_CHIP_KM,} from "../../lib/distanceAutoRouteErrors";
+  DISTANCE_AUTO_ROUTE_CHIP_KM,} from "../../lib/route/distanceAutoRouteErrors";
 import {
   getDistanceAutoRouteMapBridge,
   registerDistanceAutoRouteClickDebugMarkerClear,
-} from "../../lib/distanceAutoRouteMapBridge";
+} from "../../lib/map/distanceAutoRouteMapBridge";
 import {
   createDistanceAutoRouteClickDebugMarkerElement,
   isDistanceAutoRouteClickDebugEnabled,
   updateDistanceAutoRouteClickDebugMarkerElement,
-} from "../../lib/distanceAutoRouteClickDebugMarker";
+} from "../../lib/debug/distanceAutoRouteClickDebugMarker";
 import {
   SELF_LOCATION_MARKER_CLASS,
   createSelfLocationMarkerRoot,
   updateSelfLocationMarkerViewportBearing,
-} from "../../lib/mapSelfLocationMarker";
+} from "../../lib/map/mapSelfLocationMarker";
 import {
   buildRoutePickDockFocus,
   clampRoutePickDockPosition,
@@ -49,7 +49,7 @@ import {
   pickRoutePickDockPosition,
   toCanvasLocalRect,
   viewportRectFromElement,
-} from "../../lib/mapPickRouteDock";
+} from "../../lib/map/mapPickRouteDock";
 import {
   applyRtwLayerStyle,
   resetRtwStyleSnapshot,
@@ -59,15 +59,15 @@ import {
   RTW_TRACE_LIVE_GLOW_PAINT,
   RTW_TRACE_LIVE_PAINT,
   rtwAccumulatedWidthExpression,
-} from "../../lib/rtwMapConfig";
+} from "../../lib/map/rtwMapConfig";
 import {
   conquestLayerEmphasis,
   type ConquestLayerEmphasis,
-} from "../../lib/conquestLayerEmphasis";
+} from "../../lib/conquest/conquestLayerEmphasis";
 import {
   shouldMoveActivityWorldLayersToTop,
   shouldSkipLiveOverlaysOnMap,
-} from "../../lib/mapDebugPhase";
+} from "../../lib/debug/mapDebugPhase";
 import {
   noteLodScheduleEmit,
   noteLodScheduleEnter,
@@ -77,40 +77,40 @@ import {
   noteRafFrame,
   noteSyncActivityMs,
   isFollowCameraJump,
-} from "../../lib/mapTickProbe";
-import { installCameraRenderPhaseHook } from "../../lib/cameraRenderPhase";
-import { applyTickTestToMap, getTickTestOffList, installTickTestMapHooks, subscribeTickTest } from "../../lib/tickTestSwitches";
-import type { LngLat, LineStringGeometry } from "../../lib/geo";
+} from "../../lib/debug/mapTickProbe";
+import { installCameraRenderPhaseHook } from "../../lib/camera/cameraRenderPhase";
+import { applyTickTestToMap, getTickTestOffList, installTickTestMapHooks, subscribeTickTest } from "../../lib/debug/tickTestSwitches";
+import type { LngLat, LineStringGeometry } from "../../lib/geo/geo";
 import {
   boundsFromLineCoordinates,
   getDistanceMeters,
   lineStringLengthMeters,
   resolveRiderBearingDeg,
-} from "../../lib/geo";
-import { splitLineStringAtMeters } from "../../lib/routeProgressSplit";
+} from "../../lib/geo/geo";
+import { splitLineStringAtMeters } from "../../lib/route/routeProgressSplit";
 import type { RouteElevationProfileState } from "../../hooks/useRouteElevationProfile";
-import type { FollowMode } from "../../lib/mapGlobeView";
+import type { FollowMode } from "../../lib/map/mapGlobeView";
 import {
   getRouteTokenInsufficient as isRouteTokenBlocked,
   subscribeRouteTokenEffective,
-} from "../../lib/routeTokenSpendBridge";
-import { mountRouteTokenPopupFeedback } from "../../lib/mountRouteTokenPopupFeedback";
-import { ROUTE_TOKEN_INSUFFICIENT_HINT } from "../../lib/routeTokenUiCopy";
-import type { CoverageOverlayMode } from "../../lib/coverageOverlayMode";
-import { MAX_ROUTE_WAYPOINTS } from "../../lib/routeWaypoints";
+} from "../../lib/account/routeTokenSpendBridge";
+import { mountRouteTokenPopupFeedback } from "../../lib/account/mountRouteTokenPopupFeedback";
+import { ROUTE_TOKEN_INSUFFICIENT_HINT } from "../../lib/account/routeTokenUiCopy";
+import type { CoverageOverlayMode } from "../../lib/activity/coverageOverlayMode";
+import { MAX_ROUTE_WAYPOINTS } from "../../lib/geo/routeWaypoints";
 import type { RouteProfile } from "../../services/mapboxDirections";
 import { fetchMapboxReverseGeocodePlaceName } from "../../services/mapboxReverseGeocode";
-import { ensureRiderPedalStripKeyframes } from "../../lib/riderPedalStripKeyframes";
+import { ensureRiderPedalStripKeyframes } from "../../lib/rider/riderPedalStripKeyframes";
 import {
   RIDER_PEDAL_CELL_PX,
   RIDER_PEDAL_FRAME_COUNT,
   RIDER_PEDAL_SPRITE_REVISION,
-} from "../../lib/riderPedalSpriteMeta";
-import { estimateCrankRpmFromSpeedKmh, resolvePedalCrankRpm } from "../../lib/riderPedalMotion";
-import { resolveGlbPedalPose } from "../../lib/riderGlbPedalPose";
-import { stepPeerDriveAndBuildGeoJson } from "../../lib/peerRidersDrive";
+} from "../../lib/rider/riderPedalSpriteMeta";
+import { estimateCrankRpmFromSpeedKmh, resolvePedalCrankRpm } from "../../lib/rider/riderPedalMotion";
+import { resolveGlbPedalPose } from "../../lib/rider/riderGlbPedalPose";
+import { stepPeerDriveAndBuildGeoJson } from "../../lib/peerMotion/peerRidersDrive";
 import { resetPeerMotionRegistry } from "../../lib/peerMotion";
-import { MAP_PEER_SPRITE_MIN_ZOOM } from "../../lib/rideSyncPolicy";
+import { MAP_PEER_SPRITE_MIN_ZOOM } from "../../lib/ride/rideSyncPolicy";
 import { applyCoverageOverlayMode } from "../../services/coverageOverlaySync";
 import type { GlobalLivePresenceDot } from "../../hooks/useGlobalLivePresence";
 import type { TrailSpectatorDot } from "../../hooks/useTrailLivePublicationRideSpectatorOverlay";
@@ -138,7 +138,7 @@ import {
   RIDE_HUD_SAFE_PADDING,
   viewportPxFromMap,
   resolveRideFitPadding,
-} from "../../lib/rideCameraFraming";
+} from "../../lib/camera/rideCameraFraming";
 import {
   MAP_GLOBE_MIN_ZOOM,
   DEFAULT_MAP_ZOOM,
@@ -147,7 +147,7 @@ import {
   RIDE_CAMERA_DISTANCE_MIN_M,
   RIDE_CAMERA_DISTANCE_MAX_M,
   resolveRideCameraPitchClose,
-} from "../../lib/mapGlobeView";
+} from "../../lib/map/mapGlobeView";
 import { type LiveRiderMotion } from "./mapViewTypes";
 import {
   tickRideCameraFollow,
@@ -212,7 +212,7 @@ const ELEVATION_LINE_COLOR = "#c36839";
 /**
  * 경로선 폭. 흰 테두리(casing)를 둘렀다가 걷어냈다 — 테두리가 내 도로망보다 굵어
  * **경로선은 살고 내 도로망이 죽었다**(2026-09-16 Chief). 둘을 동시에 읽히게 하는 일은
- * 색을 덧대는 대신 순서 + 폭 차이가 맡는다(`lib/conquestLayerEmphasis`).
+ * 색을 덧대는 대신 순서 + 폭 차이가 맡는다(`lib/conquest/conquestLayerEmphasis`).
  */
 const ROUTE_LINE_WIDTH = 4;
 
@@ -249,7 +249,7 @@ function addRouteLine(map: mapboxgl.Map, beforeId: string | undefined): void {
 }
 
 /**
- * 궤적 레이어와 경로선의 위아래를 **단계에 따라** 세운다(판정은 `lib/conquestLayerEmphasis`).
+ * 궤적 레이어와 경로선의 위아래를 **단계에 따라** 세운다(판정은 `lib/conquest/conquestLayerEmphasis`).
  *
  * 주행 중에는 궤적이 위다 — 이미 내 것인 도로를 다시 달릴 때 강한 빨강(#ef4444)에
  * 덮이면 어떤 색을 써도 드러나지 않는다.
@@ -1666,7 +1666,7 @@ export function MapView({
   const openRoutePickAtRef = useRef<((lngLat: LngLat) => void) | null>(null);
   const routeGeometryRef = useRef<LineStringGeometry | null>(null);
   /**
-   * 궤적/경로선 강조 — 단계마다 주인공이 다르다(`lib/conquestLayerEmphasis`).
+   * 궤적/경로선 강조 — 단계마다 주인공이 다르다(`lib/conquest/conquestLayerEmphasis`).
    * ref 로 두는 이유: 레이어 적용이 `style.load`·`idle` 콜백 안에서도 일어나 최신 값이 필요하다.
    */
   const conquestEmphasisRef = useRef(

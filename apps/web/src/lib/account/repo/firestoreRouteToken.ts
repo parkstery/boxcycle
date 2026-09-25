@@ -2,7 +2,7 @@ import type { User } from "firebase/auth";
 import { doc, onSnapshot, type Unsubscribe } from "firebase/firestore";
 import { getFirebaseFirestore } from "../../firebase/app";
 import { functionsHttpUrl } from "../../firebase/functionsEmulatorUrl";
-import { bindRouteTokenUser, setSubscribedRouteTokenBalance } from "../../routeTokenSpendBridge";
+import { bindRouteTokenUser, setSubscribedRouteTokenBalance } from "../routeTokenSpendBridge";
 
 export function subscribeRouteTokenBalance(
   userId: string,

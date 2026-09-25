@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
-import { sortRouteList, type RouteSortKey } from "../../lib/routeListSort";
+import { sortRouteList, type RouteSortKey } from "../../lib/route/routeListSort";
 import { RouteSortSelect } from "./RouteSortSelect";
 import type { SavedRoute } from "../../lib/route/repo/firestoreSavedRoutes";
 import {
   encodeCanonicalRouteGeometryProfile,
   fingerprintFromCanonicalSync,
-} from "../../lib/routeFingerprint";
+} from "../../lib/route/routeFingerprint";
 import type { RouteProfile } from "../../services/mapboxDirections";
 import "./SavedRoutesPanel.css";
 
@@ -158,7 +158,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
       if (q && !normalizeForSearch(r.name).includes(q)) return false;
       return true;
     });
-    // 비교 규칙은 `lib/routeListSort` 단일 진실 — 공식 코스 목록과 같은 것을 쓴다
+    // 비교 규칙은 `lib/route/routeListSort` 단일 진실 — 공식 코스 목록과 같은 것을 쓴다
     return sortRouteList(base, sortKey, (r) => ({
       name: r.name,
       distanceMeters: r.distanceMeters,

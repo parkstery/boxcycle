@@ -6,8 +6,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { isRideOwnedByUser, isRideIdMatch } from "../../src/lib/rideConquestResult.ts";
-import { isDiscardableRideRecord, isRouteCompletion } from "../../src/lib/rideRecordPolicy.ts";
+import { isRideOwnedByUser, isRideIdMatch } from "../../src/lib/ride/rideConquestResult.ts";
+import { isDiscardableRideRecord, isRouteCompletion } from "../../src/lib/ride/rideRecordPolicy.ts";
 
 describe("F5 · ownership guard — real production functions", () => {
   it("isRideOwnedByUser: userId 일치 → 적용", () => {

@@ -1,13 +1,13 @@
 import type { User } from "firebase/auth";
 import type { Functions } from "firebase/functions";
-import type { LineStringGeometry, LngLat } from "../lib/geo";
-import { assertDirectionsServerOnly } from "../lib/directionsDirectGuard";
+import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
+import { assertDirectionsServerOnly } from "../lib/route/directionsDirectGuard";
 import {
   getRouteTokenInsufficient,
   reportRouteTokenSpend,
-} from "../lib/routeTokenSpendBridge";
-import { ROUTE_TOKEN_INSUFFICIENT_HINT } from "../lib/routeTokenUiCopy";
-import { formatDistanceAutoRouteClientError } from "../lib/distanceAutoRouteErrors";
+} from "../lib/account/routeTokenSpendBridge";
+import { ROUTE_TOKEN_INSUFFICIENT_HINT } from "../lib/account/routeTokenUiCopy";
+import { formatDistanceAutoRouteClientError } from "../lib/route/distanceAutoRouteErrors";
 import { functionsHttpUrl } from "../lib/firebase/functionsEmulatorUrl";
 import type { RouteProfile } from "./mapboxDirections";
 

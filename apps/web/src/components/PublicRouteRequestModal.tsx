@@ -5,11 +5,11 @@ import {
   PUBLIC_ROUTE_NAMING_GUIDE_KO,
   hintPublicRouteTitle,
   shouldOpenNamingHelpForError,
-} from "../lib/publicRouteNamingPolicy";
+} from "../lib/route/publicRouteNamingPolicy";
 import {
   EXPERIENCE_TAG_OPTIONS,
   type ExperienceTagId,
-} from "../lib/publicRouteRequests";
+} from "../lib/route/publicRouteRequests";
 import "./PublicRouteRequestModal.css";
 
 export type PublicRouteRequestModalProps = {

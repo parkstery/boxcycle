@@ -2,14 +2,14 @@ import type { User } from "firebase/auth";
 import { getFunctions } from "firebase/functions";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getFirebaseApp } from "../lib/firebase/app";
-import type { LineStringGeometry, LngLat } from "../lib/geo";
-import { formatDistanceAutoRouteClientError } from "../lib/distanceAutoRouteErrors";
+import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
+import { formatDistanceAutoRouteClientError } from "../lib/route/distanceAutoRouteErrors";
 import {
   createReadyRideRequestId,
   READY_RIDE_GENERATING_LABEL,
   READY_RIDE_SLOW_GENERATE_MS,
   READY_RIDE_SLOW_GENERATING_LABEL,
-} from "../lib/readyRide";
+} from "../lib/route/readyRide";
 import { fetchDistanceAutoRoute } from "../services/distanceAutoRouteApi";
 import type { RouteProfile } from "../services/mapboxDirections";
 

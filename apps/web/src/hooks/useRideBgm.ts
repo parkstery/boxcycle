@@ -7,7 +7,7 @@ import {
   BG_MUSIC_NEAR_END_SEC,
   BG_MUSIC_WATCHDOG_MS,
   RIDE_BGM_PLAYLIST,
-} from "../lib/rideBgmConstants";
+} from "../lib/ride/rideBgmConstants";
 
 function fadeVolume(
   audio: HTMLAudioElement,

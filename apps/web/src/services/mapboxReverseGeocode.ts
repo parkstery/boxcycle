@@ -1,4 +1,4 @@
-import type { LngLat } from "../lib/geo";
+import type { LngLat } from "../lib/geo/geo";
 import { shortPlaceLabel } from "../lib/route/repo/firestoreSavedRoutes";
 
 /**

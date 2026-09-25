@@ -39,7 +39,7 @@ git switch -c <새 브랜치>   기준 main2@390c352
 ## 2. 제품 변경 — 한 줄
 
 ```
-apps/web/src/lib/mapGlobeView.ts:32
+apps/web/src/lib/map/mapGlobeView.ts:32
    export const RIDE_CAMERA_DISTANCE_DEFAULT_M = 4;
 →  export const RIDE_CAMERA_DISTANCE_DEFAULT_M = 40;
 ```

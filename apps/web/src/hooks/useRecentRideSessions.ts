@@ -9,7 +9,7 @@ import {
   mergeRecentRideSessions,
   saveRideSessions,
   type StoredRideSession,
-} from "../lib/rideSessionsStorage";
+} from "../lib/ride/rideSessionsStorage";
 import type { RouteProfile } from "../services/mapboxDirections";
 
 export type UseRecentRideSessionsOptions = {

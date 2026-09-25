@@ -2,13 +2,13 @@ import { useEffect, useMemo, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import type { FeatureCollection, Point } from "geojson";
-import type { MapViewportBounds } from "../../lib/activityWorldLod";
-import type { LngLat } from "../../lib/geo";
+import type { MapViewportBounds } from "../../lib/activity/activityWorldLod";
+import type { LngLat } from "../../lib/geo/geo";
 import {
   fetchPublicPublicationPresencesDetailed,
   PUBLICATION_PRESENCE_POLL_MS,
 } from "../../lib/ride/repo/firestorePublicationPresence";
-import { getMapDebugPhase, type MapDebugPhase } from "../../lib/mapDebugPhase";
+import { getMapDebugPhase, type MapDebugPhase } from "../../lib/debug/mapDebugPhase";
 
 const DEBUG_SRC_ID = "debug-world-light-src";
 const DEBUG_LAYER_ID = "debug-world-light-circle";

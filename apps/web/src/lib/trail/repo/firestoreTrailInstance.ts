@@ -9,21 +9,21 @@ import {
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
 import { getFirebaseFirestore } from "../../firebase/app";
-import { pickRandomTrailDisplayNumber } from "../../trailDisplayNumber";
+import { pickRandomTrailDisplayNumber } from "../trailDisplayNumber";
 import { TRAILS_COLLECTION } from "./firestoreTrailPaths";
 import {
   removeOpenTrailListing,
   refreshOpenTrailListingFromTrail,
   scheduleOpenTrailListingRefresh,
 } from "./firestoreOpenTrailListings";
-import { assertPublicTrailHasRoute, trailHasConfiguredRoute } from "../../trailAccessPolicy";
-import { resolvePublicationIdFromDoc } from "../../resolvePublicationIdFromDoc";
-import { TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS } from "../../rideSyncPolicy";
+import { assertPublicTrailHasRoute, trailHasConfiguredRoute } from "../trailAccessPolicy";
+import { resolvePublicationIdFromDoc } from "../../route/resolvePublicationIdFromDoc";
+import { TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS } from "../../ride/rideSyncPolicy";
 import {
   noteTouchActivityCall,
   noteTrailDocUpdateDoc,
   type TouchActivitySource,
-} from "../../touchActivityMeters";
+} from "../../debug/touchActivityMeters";
 
 // 타입 정의는 도메인 층(`../trailTypes`)이 갖는다 — 정책이 저장소를 올려다보면
 // 순환이 된다(Phase 5 D1). 종전 이름으로 re-export 해 소비자를 건드리지 않는다.

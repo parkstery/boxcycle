@@ -1,14 +1,14 @@
 import { useEffect } from "react";
-import type { CoverageOverlayMode } from "../../lib/coverageOverlayMode";
-import { COVERAGE_OVERLAY_OPTIONS } from "../../lib/coverageOverlayMode";
+import type { CoverageOverlayMode } from "../../lib/activity/coverageOverlayMode";
+import { COVERAGE_OVERLAY_OPTIONS } from "../../lib/activity/coverageOverlayMode";
 import {
   MAP_GLOBE_MIN_ZOOM,
   MAP_ZOOM_SLIDER_MAX,
   RIDE_CAMERA_DISTANCE_MIN_M,
   RIDE_CAMERA_DISTANCE_MAX_M,
   RIDE_CAMERA_DISTANCE_STEP_M,
-} from "../../lib/mapGlobeView";
-import type { FollowMode } from "../../lib/mapGlobeView";
+} from "../../lib/map/mapGlobeView";
+import type { FollowMode } from "../../lib/map/mapGlobeView";
 import "./MapViewSheet.css";
 
 type MapViewSheetProps = {

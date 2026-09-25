@@ -10,16 +10,16 @@ import {
   type QueryConstraint,
 } from "firebase/firestore";
 import { getFirebaseFirestore } from "../../firebase/app";
-import type { LngLat } from "../../geo";
+import type { LngLat } from "../../geo/geo";
 import { lastSeenAtToMillis } from "../../firebase/converters";
-import { COURSE_ACTIVITY_POLL_MS } from "../../rideSyncPolicy";
+import { COURSE_ACTIVITY_POLL_MS } from "../rideSyncPolicy";
 import {
   BASIC_SHARED_HUB_IDS,
   fetchCourseRoutePayload,
   getBasicHubCoursePayload,
 } from "../../route/repo/firestoreCourses";
-import { distanceMidpointLngLat } from "../../routeGeometryMidpoint";
-import type { LineStringGeometry } from "../../geo";
+import { distanceMidpointLngLat } from "../../route/routeGeometryMidpoint";
+import type { LineStringGeometry } from "../../geo/geo";
 
 export const PUBLICATION_PRESENCE_COLLECTION = "publicationPresence";
 

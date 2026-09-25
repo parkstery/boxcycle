@@ -1,14 +1,14 @@
 import type { User } from "firebase/auth";
 import type { Functions } from "firebase/functions";
-import type { LineStringGeometry, LngLat } from "../lib/geo";
-import { assertDirectionsServerOnly } from "../lib/directionsDirectGuard";
+import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
+import { assertDirectionsServerOnly } from "../lib/route/directionsDirectGuard";
 import {
   getRouteTokenInsufficient,
   reportRouteTokenSpend,
-} from "../lib/routeTokenSpendBridge";
-import { ROUTE_TOKEN_INSUFFICIENT_HINT } from "../lib/routeTokenUiCopy";
+} from "../lib/account/routeTokenSpendBridge";
+import { ROUTE_TOKEN_INSUFFICIENT_HINT } from "../lib/account/routeTokenUiCopy";
 import { functionsHttpUrl } from "../lib/firebase/functionsEmulatorUrl";
-import { MAX_ROUTE_WAYPOINTS } from "../lib/routeWaypoints";
+import { MAX_ROUTE_WAYPOINTS } from "../lib/geo/routeWaypoints";
 
 export type RouteProfile = "cycling" | "driving" | "walking";
 

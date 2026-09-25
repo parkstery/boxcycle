@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { MapHud, type MapHudProps } from "../../components/maphud/MapHud";
 import { DebugWorldLightMap } from "../../components/map/DebugWorldLightMap";
-import type { MapViewportBounds } from "../../lib/activityWorldLod";
+import type { MapViewportBounds } from "../../lib/activity/activityWorldLod";
 
 export type DebugMapStageProps = {
   accessToken?: string;

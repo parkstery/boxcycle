@@ -20,7 +20,7 @@ reset·rebase·amend·force 금지. `224dba7` 위에 새 커밋으로 쌓아라.
 
 ## 1. BLOCK — 첫 스냅샷 전의 빈 목록이 확정 데이터로 흘러간다
 
-`apps/web/src/lib/activeLiveRideTrailIdsSubscriptionHub.ts:64`
+`apps/web/src/lib/trail/repo/activeLiveRideTrailIdsSubscriptionHub.ts:64`
 
 ```ts
 ensureCollectionGroupSubscription();

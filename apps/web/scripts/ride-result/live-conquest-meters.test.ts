@@ -7,9 +7,9 @@ import {
   computeLiveNewRoadFromRoute,
   shouldShowAlreadyOwnedHint,
 } from "../../src/hooks/useLiveConquestPaint.ts";
-import { buildConquestCellsFromRoute, conquestCellIdAt } from "../../src/lib/conquestTiles.ts";
-import type { LineStringGeometry } from "../../src/lib/geo.ts";
-import { getPointOnRouteByDistance, lineStringLengthMeters } from "../../src/lib/geo.ts";
+import { buildConquestCellsFromRoute, conquestCellIdAt } from "../../src/lib/conquest/conquestTiles.ts";
+import type { LineStringGeometry } from "../../src/lib/geo/geo.ts";
+import { getPointOnRouteByDistance, lineStringLengthMeters } from "../../src/lib/geo/geo.ts";
 
 /** ~111m 남북 직선 (위도 0.001°) */
 function shortLine(): LineStringGeometry {

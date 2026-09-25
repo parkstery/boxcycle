@@ -21,9 +21,9 @@ import {
   rideLookAtAlongM,
   rideSafeViewportPx,
   rideSpanM,
-} from "../../src/lib/rideCameraFraming.ts";
-import { rideCameraDistanceRangeM, RIDE_CAMERA_PITCH_CLOSE } from "../../src/lib/mapGlobeView.ts";
-import { getDistanceMeters } from "../../src/lib/geo.ts";
+} from "../../src/lib/camera/rideCameraFraming.ts";
+import { rideCameraDistanceRangeM, RIDE_CAMERA_PITCH_CLOSE } from "../../src/lib/map/mapGlobeView.ts";
+import { getDistanceMeters } from "../../src/lib/geo/geo.ts";
 
 /** `config.ts` 의 기준 배율. 여기서만 쓰는 상수가 아니라 제품 값과 같아야 한다. */
 const BASE_SCALE = 1.15;

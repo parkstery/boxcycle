@@ -22,19 +22,19 @@ import {
   COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS,
   COURSE_PRESENCE_HEARTBEAT_PAUSED_MS,
   PEER_LIVE_RIDE_STALE_MS,
-} from "../lib/rideSyncPolicy";
-import { mapNametagForMember, sortedGuestUids } from "../lib/guestNametag";
+} from "../lib/ride/rideSyncPolicy";
+import { mapNametagForMember, sortedGuestUids } from "../lib/identity/guestNametag";
 import {
   resetPeerMotionRegistry,
   syncPeerMotionFromPresence,
 } from "../lib/peerMotion";
 import type { RtdbTrailMotionRow } from "../lib/peerMotion/repo/rtdbTrailMotion";
-import { countOtherLiveRidePeers, peerHudStableKey, type PeerHudEntry } from "../lib/peerHud";
-import { publishOtherLiveRiderCount } from "../lib/liveRideHudSignal";
+import { countOtherLiveRidePeers, peerHudStableKey, type PeerHudEntry } from "../lib/peerMotion/peerHud";
+import { publishOtherLiveRiderCount } from "../lib/ride/liveRideHudSignal";
 import {
   reportHudCompanionCoursePeers,
   reportHudCompanionPresenceSlice,
-} from "../lib/hudCompanionDiag";
+} from "../lib/debug/hudCompanionDiag";
 import { useDocumentVisibility } from "../hooks/useDocumentVisibility";
 import "./trail/TrailheadPresence.css";
 

@@ -23,7 +23,7 @@ import {
   noteTrailDocSnapshotReceived,
   resetTouchActivityMeters,
   snapshotTouchActivityMeters,
-} from "../../src/lib/touchActivityMeters.ts";
+} from "../../src/lib/debug/touchActivityMeters.ts";
 
 type Timer = { id: number; at: number; fn: () => void };
 

@@ -17,8 +17,8 @@
 | 파일 | 역할 |
 |---|---|
 | `apps/web/src/components/ride/LocalFirstEntryCard.tsx` + `.css` | **신규** S0/S1/S2 카드 |
-| `apps/web/src/lib/localFirstRegion.ts` | localStorage `rtw.localFirst.region` · 지명 축약 · zoom=13 |
-| `apps/web/src/lib/localFirstGeoProbe.ts` | `getCurrentPosition` 호출 계수 (`window.__rtwGeoCallCount`) |
+| `apps/web/src/lib/geo/localFirstRegion.ts` | localStorage `rtw.localFirst.region` · 지명 축약 · zoom=13 |
+| `apps/web/src/lib/debug/localFirstGeoProbe.ts` | `getCurrentPosition` 호출 계수 (`window.__rtwGeoCallCount`) |
 | `apps/web/src/services/mapboxReverseGeocode.ts` | `fetchMapboxReverseGeocodeRegionLabel` (types=place…) |
 | `apps/web/src/App.tsx` | `firstRideIntroCard` → LocalFirst · placeSearch intent · 카메라 1회 가드 |
 | `apps/web/src/components/ride/index.ts` | export |

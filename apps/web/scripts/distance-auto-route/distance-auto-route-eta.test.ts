@@ -6,7 +6,7 @@ import {
   formatDistanceAutoRouteEta,
   resolveDistanceAutoRouteEta,
   resolveUserAverageKmh,
-} from "../../src/lib/distanceAutoRouteEta.ts";
+} from "../../src/lib/route/distanceAutoRouteEta.ts";
 
 describe("M0 · 시험 자가 검산", () => {
   it("폴백 속도가 상수 0 이 아니다", () => {
