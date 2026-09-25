@@ -106,6 +106,33 @@ const CASES = [
     cwd: path.join(ROOT, "apps/web"),
   },
   {
+    // 2026-09-26 Phase 6-C. 하네스 모드는 자리표시자가 **의도**이고, 러너가 실토큰을
+    // 주입해 UI smoke 지도를 살린다. 주입이 사라지면 smoke 화면만 조용히 검어진다.
+    name: "Mapbox 토큰 — 하네스 러너의 실토큰 주입 제거",
+    tamper: () => {
+      const rel = "apps/web/scripts/route-token/run-route-token-harness.mjs";
+      const before = read(rel);
+      write(rel, before.replace("VITE_MAPBOX_ACCESS_TOKEN: mapboxPk", "// VITE_MAPBOX_ACCESS_TOKEN: mapboxPk"));
+      return () => write(rel, before);
+    },
+    cmd: "npm run test:next-ride --silent",
+    cwd: path.join(ROOT, "apps/web"),
+  },
+  {
+    // 2026-09-26 Phase 6-A. 제품이 슬롯 판정을 호출하지 않으면, 판정과 제품이 갈라져도
+    // 계약 시험은 **자기 자신을 소비자로 둔 채** 초록으로 남는다(09-23~09-26 이 그랬다).
+    name: "센서 칩 자리 — 제품이 판정을 호출하지 않음(축퇴 복귀)",
+    tamper: () => {
+      const rel = "apps/web/src/components/route-dock/RouteDock.tsx";
+      const before = read(rel);
+      const stripped = before.replace(/^import \{ sensorChipSlotView \}.*$/m, "");
+      write(rel, stripped);
+      return () => write(rel, before);
+    },
+    cmd: "npm run test:next-ride --silent",
+    cwd: path.join(ROOT, "apps/web"),
+  },
+  {
     name: "Claim 셀 ID — 클라이언트 줌만 변경(쓰는 쪽↔읽는 쪽 어긋남)",
     tamper: () => {
       const rel = "apps/web/src/lib/conquest/conquestTiles.ts";
