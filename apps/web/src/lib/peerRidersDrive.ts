@@ -45,7 +45,7 @@ export function stepPeerDriveAndBuildGeoJson(
   features: Array<{
     type: "Feature";
     geometry: { type: "Point"; coordinates: LngLat };
-    properties: { id: string; label: string; pframe: number; hdg: number };
+    properties: { id: string; label: string; phaseRev: number; hdg: number };
   }>;
 } {
   const registry = getPeerMotionRegistry();
@@ -55,7 +55,7 @@ export function stepPeerDriveAndBuildGeoJson(
   const features = registry.buildRenderFeatures(routeGeometry).map((f) => ({
     type: "Feature" as const,
     geometry: { type: "Point" as const, coordinates: f.lngLat },
-    properties: { id: f.id, label: f.label, pframe: f.pframe, hdg: f.hdg },
+    properties: { id: f.id, label: f.label, phaseRev: f.phaseRev, hdg: f.hdg },
   }));
   return { type: "FeatureCollection", features };
 }

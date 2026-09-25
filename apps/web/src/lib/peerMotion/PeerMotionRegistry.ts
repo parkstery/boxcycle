@@ -10,7 +10,6 @@ import {
   PEER_INTERP_MAX_EXTRAP_MS,
 } from "./peerSyncPolicy";
 import { estimateCrankRpmFromSpeedKmh } from "../riderPedalMotion";
-import { PEER_RIDER_PEDAL_FRAME_COUNT } from "../registerPeerRiderPedalSprites";
 import {
   applyPeerMotionIngest,
   clampRouteDist,
@@ -28,7 +27,15 @@ export type PeerMotionRenderFeature = {
   label: string;
   lngLat: LngLat;
   hdg: number;
-  pframe: number;
+  /**
+   * 크랭크 위상 0~1(연속). 페달을 밟지 않으면 0.
+   *
+   * 종전에는 `pframe`(0~5 정수)을 실었다 — 스프라이트가 6장이라서 생긴 제약인데,
+   * GLB 라이더가 그것을 다시 6으로 나눠 쓰는 바람에 **동행의 페달만 6단계로 계단화**됐다
+   * (본인 라이더는 연속값을 쓴다). 전송은 연속값을 싣고, **6장으로 자르는 일은
+   * 스프라이트를 그리는 쪽**(iso2d DOM 경로)이 한다.
+   */
+  phaseRev: number;
 };
 
 /** DEV — 라벨에서 뺀 ▸d·n·s·gap·b·a */
@@ -146,13 +153,8 @@ export class PeerMotionRegistry {
         const rpm = estimateCrankRpmFromSpeedKmh(spd);
         entity.phaseRev += (rpm / 60) * 0.016;
       }
-      const pframeRaw =
-        spd > 0.38
-          ? ((Math.floor((entity.phaseRev % 1) * PEER_RIDER_PEDAL_FRAME_COUNT) %
-              PEER_RIDER_PEDAL_FRAME_COUNT) +
-              PEER_RIDER_PEDAL_FRAME_COUNT) %
-            PEER_RIDER_PEDAL_FRAME_COUNT
-          : 0;
+      // 0~1 로 정규화한 연속 위상. 밟지 않으면 0(종전 `pframe = 0` 과 같은 의미).
+      const phaseRevRaw = spd > 0.38 ? ((entity.phaseRev % 1) + 1) % 1 : 0;
 
       const mapLabel = entity.label;
       if (import.meta.env.DEV) {
@@ -192,7 +194,7 @@ export class PeerMotionRegistry {
         label: mapLabel,
         lngLat,
         hdg: Number.isFinite(entity.hdg) ? entity.hdg : 0,
-        pframe: Number.isFinite(pframeRaw) ? pframeRaw : 0,
+        phaseRev: Number.isFinite(phaseRevRaw) ? phaseRevRaw : 0,
       });
       n += 1;
     }

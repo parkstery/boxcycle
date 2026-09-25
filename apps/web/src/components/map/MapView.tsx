@@ -129,7 +129,6 @@ import {
   ensureRiderPreservedLayer,
   syncRiderPreservedModels,
 } from "../../lib/riderPrototype/preservedRiderLayer";
-import { PEER_RIDER_PEDAL_FRAME_COUNT } from "../../lib/registerPeerRiderPedalSprites";
 import { MapZoomGlobeControl } from "./MapZoomGlobeControl";
 import {
   computeRideFollowFraming,
@@ -1179,12 +1178,24 @@ const PEER_DOM_STRIP_INDICES = pickPeerSourceFrameIndices(RIDER_PEDAL_FRAME_COUN
 type PeerDomGJFeature = {
   type: "Feature";
   geometry: { type: "Point"; coordinates: LngLat };
-  properties: { id: string; label: string; pframe: number; hdg: number };
+  properties: { id: string; label: string; phaseRev: number; hdg: number };
 };
 
-function applyPeerDomSpriteFrame(sprite: HTMLDivElement | null, pframe: number): void {
+/**
+ * `pedal-sprite.png` 스트립의 프레임 수. **스프라이트를 그리는 쪽이 갖는다.**
+ *
+ * 종전에는 이 값이 `lib/registerPeerRiderPedalSprites` 에 있었고, 전송 계층이 그것을
+ * 가져다 위상을 6단계로 잘라 실었다. 그 모듈의 나머지(Mapbox `addImage` 등록·ready
+ * 검사·틴트)는 **어디서도 호출되지 않는 죽은 코드**여서 함께 걷었다(2026-09-25).
+ * GLB 라이더는 연속 위상을 쓰므로, 6장으로 자르는 일은 여기(iso2d DOM 경로)에만 남는다.
+ */
+const PEER_DOM_PEDAL_FRAME_COUNT = 6;
+
+/** 연속 위상(0~1)을 스트립 프레임으로 자른다. 자르는 일은 여기서만 한다. */
+function applyPeerDomSpriteFrame(sprite: HTMLDivElement | null, phaseRev: number): void {
   if (!sprite) return;
-  const idx = ((Math.round(pframe) % 6) + 6) % 6;
+  const frame = Math.floor(((phaseRev % 1) + 1) % 1 * PEER_DOM_PEDAL_FRAME_COUNT);
+  const idx = ((frame % PEER_DOM_PEDAL_FRAME_COUNT) + PEER_DOM_PEDAL_FRAME_COUNT) % PEER_DOM_PEDAL_FRAME_COUNT;
   const stripIndex = PEER_DOM_STRIP_INDICES[idx] ?? 0;
   const cell = RIDER_PEDAL_CELL_PX;
   sprite.style.backgroundPosition = `-${stripIndex * cell}px 0`;
@@ -1236,7 +1247,7 @@ function syncPeerDomMarkers(
     const id = f.properties.id;
     next.add(id);
     const lngLat = f.geometry.coordinates;
-    const { label, pframe, hdg } = f.properties;
+    const { label, phaseRev, hdg } = f.properties;
     let mk = markers.get(id);
     if (!mk) {
       const root = createPeerRiderMarkerRoot(label);
@@ -1265,7 +1276,7 @@ function syncPeerDomMarkers(
     } else {
       const sprite = root.querySelector<HTMLDivElement>(".cycling-sim-marker-pedal-sprite");
       if (nametag) nametag.textContent = label;
-      applyPeerDomSpriteFrame(sprite, pframe);
+      applyPeerDomSpriteFrame(sprite, phaseRev);
       if (flip) {
         flip.style.transform = hdg > 90 && hdg < 270 ? "scaleX(-1)" : "scaleX(1)";
       }
@@ -3501,10 +3512,9 @@ export function MapView({
           });
         }
         for (const f of fc.features as PeerDomGJFeature[]) {
-          const phaseRev =
-            f.properties.pframe > 0
-              ? f.properties.pframe / PEER_RIDER_PEDAL_FRAME_COUNT
-              : 0;
+          // 연속 위상을 그대로 쓴다 — 종전에는 6단계 `pframe` 을 다시 6으로 나눠
+          // 동행의 페달만 계단으로 움직였다(본인 라이더는 연속값).
+          const phaseRev = f.properties.phaseRev;
           specs.push({
             id: f.properties.id,
             lngLat: f.geometry.coordinates,
