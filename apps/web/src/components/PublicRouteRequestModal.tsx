@@ -9,7 +9,7 @@ import {
 import {
   EXPERIENCE_TAG_OPTIONS,
   type ExperienceTagId,
-} from "../lib/route/publicRouteRequests";
+} from "../lib/route/repo/publicRouteRequests";
 import "./PublicRouteRequestModal.css";
 
 export type PublicRouteRequestModalProps = {

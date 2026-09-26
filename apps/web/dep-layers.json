@@ -223,7 +223,8 @@
     "account/repo": [
       "account/repo/firestoreRouteToken.ts",
       "account/repo/firestoreRouteTokenEconomy.ts",
-      "account/repo/subscription.ts"
+      "account/repo/subscription.ts",
+      "account/repo/tierQuotaApi.ts"
     ],
     "conquest": [
       "conquest/conquestLayerEmphasis.ts",
@@ -262,7 +263,6 @@
       "route/publicRouteAutoReview.ts",
       "route/publicRouteContentPolicy.ts",
       "route/publicRouteNamingPolicy.ts",
-      "route/publicRouteRequests.ts",
       "route/publicationDisplay.ts",
       "route/readyRide.ts",
       "route/resolvePublicationIdFromDoc.ts",
@@ -281,6 +281,7 @@
       "route/repo/firestoreCourses.ts",
       "route/repo/firestoreRoutePublications.ts",
       "route/repo/firestoreSavedRoutes.ts",
+      "route/repo/publicRouteRequests.ts",
       "route/repo/savedRoutesLocal.ts"
     ],
     "activity": [

@@ -15,26 +15,26 @@ import {
 } from "firebase/firestore";
 import { FirebaseError } from "firebase/app";
 import type { User } from "firebase/auth";
-import { getFirebaseFirestore } from "../firebase/app";
-import { type LineStringGeometry, type LngLat } from "../geo/geo";
-import type { RouteProfile } from "../../services/mapboxDirections";
-import type { SavedRoute } from "./repo/firestoreSavedRoutes";
-import { SAVED_ROUTE_MAX_COORDS, SAVED_ROUTES_COLLECTION } from "./repo/firestoreSavedRoutes";
-import { computeRouteFingerprint } from "./routeFingerprint";
-import { decodeLineStringCoordsJson } from "../geo/lineStringCoordsJson";
-import { assertPublicRouteAutoReview } from "./publicRouteAutoReview";
-import { writeRoutePublicationOnApprove } from "./repo/firestoreRoutePublications";
+import { getFirebaseFirestore } from "../../firebase/app";
+import { type LineStringGeometry, type LngLat } from "../../geo/geo";
+import type { RouteProfile } from "../../../services/mapboxDirections";
+import type { SavedRoute } from "./firestoreSavedRoutes";
+import { SAVED_ROUTE_MAX_COORDS, SAVED_ROUTES_COLLECTION } from "./firestoreSavedRoutes";
+import { computeRouteFingerprint } from "../routeFingerprint";
+import { decodeLineStringCoordsJson } from "../../geo/lineStringCoordsJson";
+import { assertPublicRouteAutoReview } from "../publicRouteAutoReview";
+import { writeRoutePublicationOnApprove } from "./firestoreRoutePublications";
 import {
   PUBLIC_ROUTE_NAMING_POLICY_VERSION,
-} from "./publicRouteNamingPolicy";
-import { getUserProfileTier } from "../identity/repo/firestoreUser";
-import { assertTierQuotaClient } from "../account/tierQuota";
-import { functionsHttpUrl } from "../firebase/functionsEmulatorUrl";
-import { canSubmitPublicRoute, GUEST_PUBLIC_ROUTE_MSG } from "../account/userTier";
+} from "../publicRouteNamingPolicy";
+import { getUserProfileTier } from "../../identity/repo/firestoreUser";
+import { assertTierQuotaClient } from "../../account/tierQuota";
+import { functionsHttpUrl } from "../../firebase/functionsEmulatorUrl";
+import { canSubmitPublicRoute, GUEST_PUBLIC_ROUTE_MSG } from "../../account/userTier";
 import {
   maybeModeratePublicRouteCopyRemote,
   validatePublicRouteTitleAndSummary,
-} from "./publicRouteContentPolicy";
+} from "../publicRouteContentPolicy";
 
 export const PUBLIC_ROUTE_REQUESTS_COLLECTION = "publicRouteRequests";
 

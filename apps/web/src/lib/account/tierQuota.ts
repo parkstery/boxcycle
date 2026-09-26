@@ -1,5 +1,5 @@
 import type { User } from "firebase/auth";
-import { functionsHttpUrl } from "../firebase/functionsEmulatorUrl";
+import { postAssertTierQuota } from "./repo/tierQuotaApi";
 
 export type TierQuotaAction = "save_route" | "public_route_request" | "create_event";
 
@@ -90,30 +90,10 @@ export async function assertTierQuotaClient(
   user: User,
   action: TierQuotaAction,
 ): Promise<TierQuotaCheckResult> {
-  const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID?.trim();
-  if (!projectId) {
-    throw new Error("Firebase 프로젝트가 설정되지 않았습니다.");
-  }
+  // 원격 호출은 repo 가 한다. 여기는 응답 해석·정책 판정만 남는다.
+  const { ok, json } = await postAssertTierQuota<TierQuotaCheckResult>(user, action);
 
-  const url = functionsHttpUrl("assertTierQuotaHttp");
-  const idToken = await user.getIdToken();
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${idToken}`,
-    },
-    body: JSON.stringify({ action }),
-  });
-
-  let json: { result?: TierQuotaCheckResult; error?: { message?: string } };
-  try {
-    json = (await res.json()) as typeof json;
-  } catch {
-    throw new Error("quota 검증 응답을 읽을 수 없습니다.");
-  }
-
-  if (!res.ok || json.error) {
+  if (!ok || json.error) {
     const message = parseErrorMessage(json, "quota 한도에 도달했습니다.");
     throw new TierQuotaExceededError(message, parseQuotaReason(json, message));
   }
