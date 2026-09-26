@@ -199,6 +199,40 @@ const CASES = [
   },
 ];
 
+/**
+ * 변조를 되돌린다. **되돌리기가 실패하면 그 자리에서 복구한다.**
+ *
+ * 2026-09-26: Windows 파일 잠금(dev 서버 watcher)으로 `writeFileSync` 가 UNKNOWN 을
+ * 던졌고, 스크립트가 거기서 죽으면서 **변조가 작업 트리에 그대로 남았다.** 생존 검사가
+ * 제품을 망가뜨린 채 끝나면 안 된다 — 다음 사람은 그것을 자기 변경으로 오인한다.
+ * 그래서 한 번 더 시도하고, 그래도 안 되면 git 으로 되돌린 뒤 무엇을 했는지 말한다.
+ */
+function restoreOrRecover(name, restore) {
+  try {
+    restore();
+    return;
+  } catch (e) {
+    console.error(`  ⚠ 되돌리기 실패(${name}): ${e.code ?? e.message} — 재시도`);
+  }
+  try {
+    restore();
+    return;
+  } catch {
+    /* 아래 git 복구로 넘어간다 */
+  }
+  try {
+    execSync("git checkout -- .", { cwd: ROOT, stdio: "pipe" });
+    console.error(`  ⚠ git checkout 으로 복구했다(${name}). 내 변경분은 커밋돼 있어야 한다.`);
+  } catch {
+    console.error(
+      `
+[중단] 변조를 되돌리지 못했다(${name}). **작업 트리가 더럽다** —` +
+        ` \`git status\` 로 확인하고 \`git checkout -- <파일>\` 로 되돌려라.`,
+    );
+    process.exit(2);
+  }
+}
+
 let alive = 0;
 const dead = [];
 for (const c of CASES) {
@@ -207,7 +241,7 @@ for (const c of CASES) {
   try {
     caught = expectFail(c.cmd, c.cwd ?? ROOT);
   } finally {
-    restore();
+    restoreOrRecover(c.name, restore);
   }
   if (caught) {
     alive += 1;
