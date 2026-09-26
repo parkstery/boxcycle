@@ -4,15 +4,17 @@ import { OPEN_TRAIL_LISTINGS_COLLECTION } from "./openTrailListingCore.js";
 
 import { TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION } from "./trailPaths.js";
 import { REGION } from "./region.js";
+import {
+  ARCHIVED_PURGE_MS,
+  CLOSED_TO_ARCHIVED_MS,
+  resolveArchivedAtMs,
+  resolveClosedAtMs,
+} from "./trailLifecycleCore.js";
 
 const TRAILS_COLLECTION = "trails";
 const MEMBERS_SUB = "members";
 const LIVE_SUB = TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION;
 
-/** UI 목록에서 사라진 뒤 DB에 남기는 기간 */
-const CLOSED_TO_ARCHIVED_MS = 24 * 60 * 60 * 1000;
-/** archived 메타·서브컬렉션 정리 */
-const ARCHIVED_PURGE_MS = 7 * 24 * 60 * 60 * 1000;
 const BATCH_LIMIT = 400;
 
 function timestampMs(raw: unknown): number | null {
@@ -67,8 +69,7 @@ export const trailInstanceLifecycle = onSchedule(
     let archivedCount = 0;
     for (const doc of closedSnap.docs) {
       const data = doc.data();
-      const closedMs =
-        timestampMs(data.closedAt) ?? timestampMs(data.lastActivityAt) ?? timestampMs(data.createdAt);
+      const closedMs = resolveClosedAtMs(data, timestampMs);
       if (closedMs == null || closedMs > closedCutoff) continue;
       await doc.ref.update({
         status: "archived",
@@ -87,8 +88,7 @@ export const trailInstanceLifecycle = onSchedule(
     let purgedCount = 0;
     for (const doc of archivedSnap.docs) {
       const data = doc.data();
-      const archivedMs =
-        timestampMs(data.archivedAt) ?? timestampMs(data.closedAt) ?? timestampMs(data.lastActivityAt);
+      const archivedMs = resolveArchivedAtMs(data, timestampMs);
       if (archivedMs == null || archivedMs > purgeCutoff) continue;
       const trailId = doc.id;
       if (trailId === "default") continue;

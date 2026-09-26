@@ -16,6 +16,12 @@
  */
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { initFirebaseAdminForCli } from "./initAdminForCli.js";
+import {
+  ARCHIVED_PURGE_MS,
+  CLOSED_TO_ARCHIVED_MS,
+  resolveArchivedAtMs,
+  resolveClosedAtMs,
+} from "./trailLifecycleCore.js";
 
 const TRAILS_COLLECTION = "trails";
 const LIVE_SUB = "livePublicationRides";
@@ -117,6 +123,19 @@ async function main(): Promise<void> {
   let oldestId: string | null = null;
   let oldestAgeMs = -1;
 
+  /*
+   * 정리 줄이 막혔는지 본다. 판정은 **정리기가 쓰는 함수·상수를 그대로 가져다** 쓴다 —
+   * 규칙을 베껴 두면 한쪽만 바뀌었을 때 점검이 딴 세상 숫자를 말한다.
+   *   · closed 인데 24시간이 넘었다  → 보관 단계가 밀렸다
+   *   · archived 인데 7일이 넘었다   → 삭제 단계가 밀렸다
+   *   · 기준 시각이 셋 다 없다       → 정리기가 **영원히 건너뛴다**
+   */
+  let closedOverdue = 0;
+  let closedStranded = 0;
+  let archivedOverdue = 0;
+  let archivedStranded = 0;
+  const archivedAges: number[] = [];
+
   for (const doc of snap.docs) {
     if (doc.id === "default") continue;
     const d = doc.data();
@@ -136,6 +155,21 @@ async function main(): Promise<void> {
     if (Number.isFinite(ageMs) && ageMs > oldestAgeMs) {
       oldestAgeMs = ageMs;
       oldestId = doc.id;
+    }
+
+    if (status === "closed") {
+      const ms = resolveClosedAtMs(d as Record<string, unknown>, toMillis);
+      if (ms == null) closedStranded += 1;
+      else if (now - ms > CLOSED_TO_ARCHIVED_MS) closedOverdue += 1;
+    }
+
+    if (status === "archived") {
+      const ms = resolveArchivedAtMs(d as Record<string, unknown>, toMillis);
+      if (ms == null) archivedStranded += 1;
+      else {
+        archivedAges.push(now - ms);
+        if (now - ms > ARCHIVED_PURGE_MS) archivedOverdue += 1;
+      }
     }
 
     if (status === "open") {
@@ -211,6 +245,46 @@ async function main(): Promise<void> {
     if (dirty > 0) {
       console.log("  ⚠ " + dirty + "개는 하위 문서가 남아 있다 — 닫기 전에 왜 남았는지 봐야 한다.");
     }
+  }
+
+  console.log("");
+  console.log("정리 줄이 막혔나 (정리기와 같은 규칙으로 판정):");
+  console.log(
+    "  closed → archived 대기 " +
+      Math.round(CLOSED_TO_ARCHIVED_MS / HOUR) +
+      "시간 초과: " +
+      closedOverdue +
+      "개" +
+      (closedOverdue > 0 ? "   ⚠ 보관 단계가 밀렸다" : ""),
+  );
+  console.log(
+    "  archived → 삭제 대기 " +
+      Math.round(ARCHIVED_PURGE_MS / DAY) +
+      "일 초과: " +
+      archivedOverdue +
+      "개" +
+      (archivedOverdue > 0 ? "   ⚠ 삭제 단계가 밀렸다" : ""),
+  );
+  if (closedStranded > 0 || archivedStranded > 0) {
+    console.log(
+      "  ⚠ 기준 시각이 없어 정리기가 영원히 건너뛰는 것: closed " +
+        closedStranded +
+        "개 · archived " +
+        archivedStranded +
+        "개",
+    );
+  }
+  if (archivedAges.length > 0) {
+    const sorted = [...archivedAges].sort((a, b) => a - b);
+    const mid = sorted[Math.floor(sorted.length / 2)] ?? 0;
+    console.log(
+      "  보관된 것들의 경과 — 최소 " +
+        fmtAge(sorted[0] ?? 0) +
+        " · 중앙값 " +
+        fmtAge(mid) +
+        " · 최대 " +
+        fmtAge(sorted[sorted.length - 1] ?? 0),
+    );
   }
 
   console.log("");
