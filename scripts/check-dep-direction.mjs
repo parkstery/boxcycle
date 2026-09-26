@@ -68,6 +68,8 @@ const pending = new Set(Object.keys(decl.pending ?? {}).filter((k) => k !== "왜
 const appLayerPaths = decl.appLayer.paths;
 const UNIVERSAL = decl.universallyImportable?.domains ?? [];
 const REPO_MAY = decl.repoMayImport?.domains ?? [];
+/** 구현자가 방향과 무관하게 볼 수 있는 포트 모듈(lib 기준 경로). 좁게 열거한다. */
+const PORTS = new Set(decl.ports?.modules ?? []);
 
 /**
  * 허용 규칙의 지문.
@@ -87,6 +89,8 @@ const rulesFingerprint = crypto
         .sort(),
       [...UNIVERSAL].sort(),
       [...REPO_MAY].sort(),
+      // 포트를 늘리는 것도 규칙 완화다 — 지문에 넣어 diff 에 드러나게 한다.
+      [...PORTS].sort(),
     ]),
   )
   .digest("hex")
@@ -331,7 +335,46 @@ const m0 = [
     scsFile ? fanIn.get(scsFile) >= 1 : false,
     scsFile ? fanIn.get(scsFile) : "파일 없음",
   ],
+  /*
+   * 선언된 포트가 **실제로 포트인가.**
+   *
+   * `ports.modules` 는 방향 검사를 건너뛰게 하므로, 아무 모듈이나 적으면 그 파일로 들어오는
+   * 모든 엣지가 사라진다 — 게이트를 통과하는 가장 쉬운 길이 또 하나 생기는 셈이다.
+   * 그래서 여기서 파일을 **열어 본다**: 타입만 내보내고, 런타임 import 가 없어야 한다.
+   * (이것이 포트를 포트답게 만드는 조건이고, 값이 실려 있으면 그것은 구멍이다.)
+   */
+  ["선언된 포트가 타입만 있는 leaf 인가", ...portsAreTypeOnly()],
 ];
+
+/**
+ * 선언된 포트 모듈을 열어 「타입만 있는 leaf」인지 본다.
+ * 실패 사유를 함께 돌려준다 — 어느 포트가 왜 아닌지 말하지 않으면 고칠 수가 없다.
+ */
+function portsAreTypeOnly() {
+  if (PORTS.size === 0) return [true, "선언된 포트 없음"];
+  const bad = [];
+  for (const m of PORTS) {
+    const abs = path.join(WEB, LIB_PREFIX + m);
+    if (!fs.existsSync(abs)) {
+      bad.push(`${m}: 파일 없음`);
+      continue;
+    }
+    const src = fs.readFileSync(abs, "utf8");
+    const lines = src.split(/\r?\n/);
+    for (const line of lines) {
+      const t = line.trim();
+      // 값 export 금지 — 포트는 계약이지 구현이 아니다.
+      if (/^export\s+/.test(t) && !/^export\s+(type|interface)\b/.test(t)) {
+        bad.push(`${m}: 값을 내보낸다 → ${t.slice(0, 60)}`);
+      }
+      // 런타임 import 금지 — 포트가 남의 도메인을 끌고 오면 방향이 되살아난다.
+      if (/^import\s+/.test(t) && !/^import\s+type\b/.test(t)) {
+        bad.push(`${m}: 런타임 import → ${t.slice(0, 60)}`);
+      }
+    }
+  }
+  return [bad.length === 0, bad.length === 0 ? `${PORTS.size}개 모두 타입 전용` : bad.join(" · ")];
+}
 
 console.log("=== M0 자가 검산 ===");
 for (const [name, ok, value] of m0) {
@@ -367,6 +410,12 @@ for (const [from, tos] of edges) {
     if (!tr.startsWith(LIB_PREFIX)) continue;
     const td = domainOf(tr);
     if (td === "(pending)") continue;
+    /*
+     * 포트는 방향 밖이다 — 남의 포트를 **구현**하려면 그 타입을 import 할 수밖에 없다.
+     * 이것을 위반으로 세면 게이트가 DIP 자체에 벌점을 준다(Phase 5 D6 `trailLiveRidePort`).
+     * 대신 「포트라고 적으면 통과」가 되지 않게 M0 가 실제로 타입만 있는 leaf 인지 본다.
+     */
+    if (PORTS.has(show(tr))) continue;
     if (mayImport(fd, td)) continue;
     violations.push({ rule: `${fd} -> ${td}`, from: show(fr), to: show(tr) });
   }
@@ -398,7 +447,7 @@ const current = { violations: violations.length, cycles: libCycles.length };
 
 if (MODE_WRITE) {
   const payload = {
-    왜: "Phase 5 시작 시점의 위반 눈금. 허용 목록이 아니라 갚아야 할 빚이다. 늘면 pre-push 가 막는다. Phase 5 종료 시 0 이어야 한다.",
+    왜: "위반 눈금(래칫). 허용 목록이 아니라 **갚아야 할 빚**이다 — 늘면 pre-push 가 막고, 줄이면 이 파일을 다시 고정한다. 목표는 0.",
     기준: new Date().toISOString().slice(0, 10),
     규칙지문: rulesFingerprint,
     ...current,

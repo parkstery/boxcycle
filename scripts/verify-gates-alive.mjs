@@ -84,6 +84,35 @@ const CASES = [
     cmd: "node scripts/check-dep-direction.mjs --check",
   },
   {
+    // 2026-09-26 Phase 6-②. `ports` 는 방향 검사를 건너뛰게 하므로, 아무 모듈이나 포트라고
+    // 적으면 그 파일로 들어오는 엣지가 통째로 사라진다 — 새로 생긴 가장 쉬운 우회로다.
+    // M0 가 파일을 열어 「타입만 있는 leaf 인가」를 보고 막아야 한다.
+    name: "포트 선언 — 뚱뚱한 모듈을 포트라고 선언해 우회",
+    tamper: () => {
+      const rel = "apps/web/dep-layers.json";
+      const before = read(rel);
+      const d = JSON.parse(before);
+      d.ports.modules = [...d.ports.modules, "trail/repo/firestoreTrail.ts"];
+      write(rel, JSON.stringify(d, null, 2) + "
+");
+      return () => write(rel, before);
+    },
+    cmd: "node scripts/check-dep-direction.mjs --check",
+  },
+  {
+    // 포트에 값이 실리면 그것은 계약이 아니라 구현이다 — 방향이 되살아난다.
+    name: "포트 선언 — 포트에 런타임 값을 싣기",
+    tamper: () => {
+      const rel = "apps/web/src/lib/peerMotion/trailLiveRidePort.ts";
+      const before = read(rel);
+      write(rel, before + "
+export const PORT_PROBE_MS = 3000;
+");
+      return () => write(rel, before);
+    },
+    cmd: "node scripts/check-dep-direction.mjs --check",
+  },
+  {
     name: "레이어 순서 — 라이더를 활동 점 아래로 (P4 재현)",
     tamper: () => {
       const rel = "apps/web/src/lib/map/layerOrder.ts";
