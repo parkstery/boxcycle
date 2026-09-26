@@ -28,3 +28,38 @@ export function resolveClosedAtMs(data: Record<string, unknown>, ts: ToMillis): 
 export function resolveArchivedAtMs(data: Record<string, unknown>, ts: ToMillis): number | null {
   return ts(data.archivedAt) ?? ts(data.closedAt) ?? ts(data.lastActivityAt);
 }
+
+/**
+ * 열린 Trail 이 「조용해서 닫아도 되는」 기간.
+ *
+ * 24시간인 이유 (2026-09-27 실측) — 열린 Trail 147개 중 **1~24시간 구간이 0개**였다.
+ * 달리는 중(1시간 미만)과 죽은 것(1일 이상) 사이가 통째로 비어 있어서, 24시간으로 잡아도
+ * 잃는 것이 없다. 더 짧게 잡을 이유도 없다 — 쉬었다 돌아오는 사람을 지킬 여유는 남긴다.
+ *
+ * ⚠️ 짧게 줄이지 마라. 닫힌 Trail 은 **다시 열 수 없고**, 그러면 2026-09-27 에 고친
+ * 「개설자가 자기 Trail 에서 쫓겨나는」 증상이 그대로 돌아온다.
+ */
+export const OPEN_QUIET_TO_CLOSED_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * 열린 Trail 을 닫아도 되는가 — **`lastActivityAt` 하나로 정한다.**
+ *
+ * 하위 문서(`livePublicationRides`·`members`)가 남았는지는 **보지 않는다.** 실측에서
+ * 131일 조용한 Trail 에 `live=true` 가 남아 있었다 — 탭을 그냥 닫으면 그렇게 된다.
+ * 그것을 「사람이 있다」로 읽으면 **가장 치워야 할 것이 영영 안 치워진다.**
+ * 누가 달리는 동안에는 30초마다 `lastActivityAt` 이 갱신되므로, 24시간 조용하다는 것은
+ * 남은 문서가 무엇이든 아무도 없다는 뜻이다. 남은 하위 문서는 삭제 단계가 함께 지운다.
+ *
+ * 날짜를 읽을 수 없으면 **닫지 않는다**(`null`) — 다른 두 단계와 같은 규칙이고,
+ * 그런 문서는 점검 스크립트가 따로 센다.
+ */
+export function shouldCloseQuietOpenTrail(
+  data: Record<string, unknown>,
+  ts: ToMillis,
+  nowMs: number,
+  quietMs: number = OPEN_QUIET_TO_CLOSED_MS,
+): boolean {
+  const lastMs = ts(data.lastActivityAt) ?? ts(data.createdAt);
+  if (lastMs == null) return false;
+  return nowMs - lastMs >= quietMs;
+}
