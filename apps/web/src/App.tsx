@@ -57,7 +57,6 @@ import {
 import { resolveMapBootCenter } from "./lib/map/mapBootCenter";
 import {
   buildTrailRegionLabel,
-  closeTrailInstance,
   createTrailInstance,
   fetchTrailInstance,
   setTrailVisibility,
@@ -65,7 +64,10 @@ import {
   withResolvedTrailPublicationId,
   type TrailInstance,
 } from "./lib/trail/repo/firestoreTrailInstance";
-import { fetchOpenTrailListingPublicationId } from "./lib/trail/repo/firestoreOpenTrailListings";
+import {
+  fetchOpenTrailListingPublicationId,
+  refreshOpenTrailListingFromTrail,
+} from "./lib/trail/repo/firestoreOpenTrailListings";
 import { formatTrailDisplayNumber, resolveTrailDisplayLabel } from "./lib/trail/trailDisplayNumber";
 import {
   readTrailDisplayNumberCache,
@@ -403,8 +405,6 @@ export default function App() {
   const pageVisible = useDocumentVisibility();
   const [trailVisibilityBusy, setTrailVisibilityBusy] = useState(false);
   const [trailStartBusy, setTrailStartBusy] = useState(false);
-  /** 이번 주행에서 호스트로 연 Trail — 종료 시 close */
-  const hostTrailIdRef = useRef<string | null>(null);
   /** Trail 생성·MENU 합류 직후 `displayNumber` 즉시 표시 — `useTrailInstanceMeta` fetch 전 */
   const [trailMetaSeed, setTrailMetaSeed] = useState<TrailInstance | null>(null);
   /** 주행 세션 동안 MENU·표시용 Trail id (Trailhead UI 전환과 무관하게 유지) */
@@ -1107,7 +1107,6 @@ export default function App() {
     setTrailDraft(tid);
     setTrailId(tid);
     replaceTrailInUrl(tid);
-    hostTrailIdRef.current = null;
     setTrailMetaSeed(null);
   }, [setTrailDraft, setTrailId]);
 
@@ -1188,7 +1187,6 @@ export default function App() {
         if (resolvedMeta.publicationId) {
           await loadCourseRouteForTrailJoin(resolvedMeta.publicationId);
         }
-        hostTrailIdRef.current = null;
         rememberTrailDisplayNumber(resolvedMeta.id, resolvedMeta.displayNumber);
         setTrailMetaSeed(resolvedMeta);
         setTrailDraft(next);
@@ -1321,7 +1319,6 @@ export default function App() {
             setError("이 Trail은 종료되었습니다.");
             return;
           }
-          hostTrailIdRef.current = existing.hostUid === user.uid ? existing.id : null;
           rememberTrailDisplayNumber(existing.id, existing.displayNumber);
           setTrailMetaSeed(existing);
           void touchTrailInstanceActivity(currentTid);
@@ -1346,7 +1343,6 @@ export default function App() {
           distanceKm: routeDistanceMeters > 0 ? routeDistanceMeters / 1000 : null,
           visibility,
         });
-        hostTrailIdRef.current = trail.id;
         rememberTrailDisplayNumber(trail.id, trail.displayNumber);
         setTrailMetaSeed(trail);
         const prev = sanitizeTrailId(trailId);
@@ -1383,12 +1379,28 @@ export default function App() {
         : trailId,
     );
     const uid = user?.uid ?? null;
-    const wasHostTrail = hostTrailIdRef.current === endedTrailId;
     setRidingTrailId(null);
     handleEndRide();
     void (async () => {
-      if (uid && wasHostTrail && endedTrailId !== DEFAULT_TRAIL_ID) {
-        await closeTrailInstance(endedTrailId).catch(() => {});
+      /*
+       * 2026-09-27: 종전에는 **개설자일 때만** `closeTrailInstance()` 를 불러 Trail 을
+       * `status: "closed"` 로 바꾸고 목록에서 지웠다. 되돌리는 코드가 앱에도 서버에도
+       * 없어서 개설자는 **자기 Trail 에 영원히 못 돌아갔다**(참여자는 멀쩡했다 — 목록에
+       * 남아 있어 번호를 다시 누르면 합류됐다).
+       *
+       * 그 「닫기」는 앞뒤도 맞지 않았다. Trail 이 닫히는 경우는 앱 전체에서 그 한 곳뿐이라,
+       * 참여자만 남아 있다가 전부 나간 Trail 은 열린 채 남았다. 개설자의 Stop 만 예외였다.
+       *
+       * 이제 **누가 나가든 같다** — 목록을 다시 계산할 뿐이다. 「지금 달리는 사람이
+       * 있는가」로 목록에 남길지 지울지는 `refreshOpenTrailListingFromTrail` 이 이미 정한다.
+       * 그래서 남은 사람이 있으면 Trail 이 유지되고(종전에는 개설자가 나가면 사라졌다),
+       * 아무도 없으면 목록에서 빠진다.
+       *
+       * ⚠ 아무도 없는 Trail 로 **돌아가는** 창구는 아직 없다 — 목록에 안 뜨기 때문이고,
+       *   이는 개설자·참여자 모두 같다. 별건(2단계)으로 남긴다.
+       */
+      if (uid && endedTrailId !== DEFAULT_TRAIL_ID) {
+        await refreshOpenTrailListingFromTrail(endedTrailId).catch(() => {});
       }
       returnToTrailhead();
     })();

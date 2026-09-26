@@ -153,6 +153,16 @@ export async function fetchTrailInstance(trailId: string): Promise<TrailInstance
   return parseTrailInstance(snap.id, snap.data() as Record<string, unknown>);
 }
 
+/**
+ * Trail 을 **영구히** 닫는다 — `status: "closed"` 는 되돌리는 코드가 앱에도 서버에도 없다.
+ *
+ * ⚠️ **2026-09-27 현재 아무도 이것을 부르지 않는다.** 종전에는 개설자가 주행을 끝낼 때
+ * 불렀는데, 그 때문에 개설자만 자기 Trail 에 다시 못 들어갔다(참여자는 멀쩡했다).
+ * 지금 주행 종료는 목록만 다시 계산한다 — `App.handleEndRideWithTrailCleanup`.
+ *
+ * 남겨 둔 이유는 「Trail 을 명시적으로 종료한다」가 별건(2단계)으로 예정돼 있어서다.
+ * 되살릴 때는 **주행 종료에 다시 묶지 마라** — 그것이 이번에 고친 결함이다.
+ */
 export async function closeTrailInstance(trailId: string): Promise<void> {
   const db = getFirebaseFirestore();
   await updateDoc(doc(db, TRAILS_COLLECTION, trailId), {
