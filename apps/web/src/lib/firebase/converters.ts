@@ -32,3 +32,18 @@ export function lastSeenAtToMillis(raw: unknown): number | null {
   }
   return null;
 }
+
+/*
+ * 2026-09-26 (Phase 6-D5): `route/resolvePublicationIdFromDoc.ts` 에서 **그대로** 옮겨 왔다.
+ * 같은 이유다 — 소비자는 Trail 저장소 셋뿐이었고 route 는 **아무도 쓰지 않았는데**,
+ * 그 셋이 문서에서 필드 하나를 꺼내려고 route 도메인을 import 하고 있었다.
+ * 문서에서 `publicationId` 필드를 꺼내는 일에 경로 도메인은 상관이 없다.
+ */
+/** Firestore 문서 — `publicationId` 단일 (Phase 7c F5: 레거시 `courseId` 폴백 제거) */
+export function resolvePublicationIdFromDoc(data: Record<string, unknown>): string | null {
+  const publicationId =
+    typeof data.publicationId === "string" && data.publicationId.trim()
+      ? data.publicationId.trim()
+      : "";
+  return publicationId || null;
+}

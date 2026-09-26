@@ -17,8 +17,8 @@ import {
   scheduleOpenTrailListingRefresh,
 } from "./firestoreOpenTrailListings";
 import { assertPublicTrailHasRoute, trailHasConfiguredRoute } from "../trailAccessPolicy";
-import { resolvePublicationIdFromDoc } from "../../route/resolvePublicationIdFromDoc";
-import { TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS } from "../../ride/rideSyncPolicy";
+import { resolvePublicationIdFromDoc } from "../../firebase/converters";
+import { TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS } from "../trailLivePolicy";
 import {
   noteTouchActivityCall,
   noteTrailDocUpdateDoc,

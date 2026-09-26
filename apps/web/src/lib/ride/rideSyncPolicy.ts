@@ -2,6 +2,13 @@ import { ACTIVITY_WORLD_POLL_ACTIVE_MS } from "../activity/activityWorldPollCons
 
 import type { LngLat } from "../geo/geo";
 
+/*
+ * Trail 라이브 주행의 수명·표시 시간(`TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS`·`PEER_LIVE_RIDE_*`)은
+ * **여기 없다** — `trail/trailLivePolicy` 가 갖는다(2026-09-26, Phase 6-D5).
+ * 소유권은 `peerSyncPolicy` 헤더가 이미 적어 두었는데 옮기지 않아, Trail 저장소가
+ * 주행 도메인을 올려다보고 있었다. 호환 re-export 를 두지 않는다 — 경유가 남으면 결합이 산다.
+ */
+
 /** 동행 라이브 좌표 Firestore 저장 시 소수점(LOD 중간층 — 정밀 5~6자리 대신) */
 export const LIVE_SHARE_COORD_DECIMALS = 3;
 
@@ -23,13 +30,8 @@ export const COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS = 24_000;
 /** 일시정지 등 비주행이지만 코스에 남아 있을 때 — 생존 신호만 저빈도 */
 export const COURSE_PRESENCE_HEARTBEAT_PAUSED_MS = 180_000;
 
-/** Trail 멤버 하트비트 — 포그라운드(탭 숨김 시 구독 자체 해제로 백그라운드 쓰기 없음) */
-export const TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS = 30_000;
-
 /** Trail `livePublicationRides` — 1Hz 절대 dist+speed 하트비트 (수신 측 보간용) */
 export const TRAIL_LIVE_PROGRESS_HEARTBEAT_MS = 1_000;
-
-
 
 /** RTDB `/trails/{trailId}/motion/{uid}` — 10Hz motion publish (지연↓: 보간 delay 를 낮추려면 틱레이트↑) */
 export const PEER_MOTION_PUBLISH_INTERVAL_MS = 100;
@@ -39,13 +41,6 @@ export const TRAIL_LIVE_PROGRESS_MIN_WRITE_MS = TRAIL_LIVE_PROGRESS_HEARTBEAT_MS
 
 /** @deprecated heartbeat 와 동일 — 호환 alias */
 export const TRAIL_LIVE_PROGRESS_MAX_WRITE_MS = TRAIL_LIVE_PROGRESS_HEARTBEAT_MS;
-
-/** 동행 peer 맵 hide — Firestore lastSeenAt (1Hz + jitter 여유) */
-export const PEER_LIVE_RIDE_STALE_MS = 15_000;
-
-/** rAF speed 적분 상한 — hide 보다 짧게 두지 않음 */
-export const PEER_LIVE_RIDE_EXTRAP_MAX_MS = 12_000;
-
 
 /** R2 — auth vs display 오차 이내면 pull 없음 (구 anchor soft correct) */
 export const PEER_RECONCILE_SOFT_M = 3.5;
@@ -65,17 +60,6 @@ export const PEER_RECONCILE_HARD_PULL_MPS = 9;
  * DELAY 는 publish 간격(RTDB 10Hz=100ms)+지터를 덮을 만큼: 한 스냅샷 앞을 항상 확보.
  */
 
-
-
-/** 완주 final burst 후 peer 가 최종 위치를 유지하는 시간 */
-export const PEER_LIVE_RIDE_COMPLETED_VISIBLE_MS = 15_000;
-
-/** 완주 final burst — Firestore 삭제 전 대기 */
-export const PEER_LIVE_RIDE_FINAL_BURST_MS = 3_000;
-
-/** @deprecated {@link PEER_LIVE_RIDE_EXTRAP_MAX_MS} */
-export const PEER_SPEED_EXTRAP_MAX_MS = PEER_LIVE_RIDE_EXTRAP_MAX_MS;
-
 /** Trail `livePublicationRides`: 진행률 변화가 이 값 이상일 때만 의미 있는 변화로 간주 */
 export const TRAIL_LIVE_PROGRESS_MIN_DELTA = 0.005;
 
@@ -84,7 +68,6 @@ export const TRAIL_LIVE_PROGRESS_MIN_DIST_DELTA_M = 0;
 
 /** 동행 peer 외삽 — 샘플 간격 속도 미상일 때 가정 km/h (가상 주행 기본) */
 export const PEER_EXTRAP_DEFAULT_SPEED_KMH = 5;
-
 
 /** 입문 코스 동행 DOM 스프라이트 — 고줌에서만 (dot 은 global livePresence) */
 export const MAP_PEER_SPRITE_MIN_ZOOM = 14;

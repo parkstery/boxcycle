@@ -25,12 +25,12 @@ import {
   TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION,
   TRAILS_COLLECTION,
 } from "./firestoreTrailPaths";
-import { resolvePublicationIdFromDoc } from "../../route/resolvePublicationIdFromDoc";
+import { resolvePublicationIdFromDoc } from "../../firebase/converters";
 import {
   PEER_LIVE_RIDE_COMPLETED_VISIBLE_MS,
   PEER_LIVE_RIDE_FINAL_BURST_MS,
   PEER_LIVE_RIDE_STALE_MS,
-} from "../../ride/rideSyncPolicy";
+} from "../trailLivePolicy";
 import { deleteTrailMotion } from "../../peerMotion/repo/rtdbTrailMotion";
 import { trackUnderlyingReadSubscription } from "../../debug/readSubscriptionMeters";
 import { noteListingRefreshRead } from "../../debug/touchActivityMeters";

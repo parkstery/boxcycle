@@ -21,8 +21,8 @@ import { TRAIL_PRESENCE_STALE_MS } from "../lib/trail/repo/firestoreTrail";
 import {
   COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS,
   COURSE_PRESENCE_HEARTBEAT_PAUSED_MS,
-  PEER_LIVE_RIDE_STALE_MS,
 } from "../lib/ride/rideSyncPolicy";
+import { PEER_LIVE_RIDE_STALE_MS } from "../lib/trail/trailLivePolicy";
 import { mapNametagForMember, sortedGuestUids } from "../lib/identity/guestNametag";
 import {
   resetPeerMotionRegistry,

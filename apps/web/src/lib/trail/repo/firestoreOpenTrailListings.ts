@@ -21,7 +21,7 @@ import { countTrailLiveRidersFresh } from "./firestoreTrailLivePublicationRides"
 import { trailHasConfiguredRoute } from "../trailAccessPolicy";
 import { TRAILS_COLLECTION } from "./firestoreTrailPaths";
 import type { TrailInstance } from "../trailTypes";
-import { resolvePublicationIdFromDoc } from "../../route/resolvePublicationIdFromDoc";
+import { resolvePublicationIdFromDoc } from "../../firebase/converters";
 import {
   enterListingRefreshReadScope,
   leaveListingRefreshReadScope,

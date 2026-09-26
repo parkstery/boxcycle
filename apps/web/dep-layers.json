@@ -238,6 +238,7 @@
       "trail/trailDisplayNumber.ts",
       "trail/trailDisplayNumberCache.ts",
       "trail/trailId.ts",
+      "trail/trailLivePolicy.ts",
       "trail/trailLiveRideSink.ts",
       "trail/trailTypes.ts",
       "trail/trailUrl.ts"
@@ -265,7 +266,6 @@
       "route/publicRouteNamingPolicy.ts",
       "route/publicationDisplay.ts",
       "route/readyRide.ts",
-      "route/resolvePublicationIdFromDoc.ts",
       "route/routeDockUiPolicy.ts",
       "route/routeFingerprint.ts",
       "route/routeGeometryMidpoint.ts",

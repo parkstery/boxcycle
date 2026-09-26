@@ -21,6 +21,7 @@ import * as lod from "../../src/lib/activity/activityWorldLod.ts";
 import * as poll from "../../src/lib/activity/activityWorldPollConstants.ts";
 import * as peer from "../../src/lib/peerMotion/peerSyncPolicy.ts";
 import * as sync from "../../src/lib/ride/rideSyncPolicy.ts";
+import * as trailLive from "../../src/lib/trail/trailLivePolicy.ts";
 
 const numbersOf = (ns: Record<string, unknown>): [string, number][] =>
   Object.entries(ns).filter((e): e is [string, number] => typeof e[1] === "number");
@@ -34,6 +35,7 @@ describe("G5 — 동기 정책 상수가 순환으로 무너지지 않는다", (
       ["activityWorldLod", lod, 3],
       ["activityWorldPollConstants", poll, 4],
       ["peerSyncPolicy", peer, 7],
+      ["trailLivePolicy", trailLive, 6],
     ] as const) {
       const nums = numbersOf(ns as unknown as Record<string, unknown>);
       assert.ok(
@@ -59,6 +61,7 @@ describe("G5 — 동기 정책 상수가 순환으로 무너지지 않는다", (
     const all: Record<string, number> = {
       ...(poll as unknown as Record<string, number>),
       ...(sync as unknown as Record<string, number>),
+      ...(trailLive as unknown as Record<string, number>),
     };
     for (const k of [
       "ACTIVITY_WORLD_POLL_ACTIVE_MS",
@@ -94,6 +97,28 @@ describe("G5 — 동기 정책 상수가 순환으로 무너지지 않는다", (
     for (const k of ["ACTIVITY_WORLD_POLL_ACTIVE_MS", "ROUTE_ACTIVITY_CACHE_TTL_MS"]) {
       assert.equal(k in poll, true, `activityWorldPollConstants 가 ${k} 를 가져야 한다`);
       assert.equal(k in sync, false, `rideSyncPolicy 에 ${k} 가 남으면 activity → ride 가 된다`);
+    }
+  });
+
+  it("구조 — Trail 라이브 주행 수명은 trail 이 갖는다 (2026-09-26 D5)", () => {
+    /*
+     * 소유권은 `peerSyncPolicy` 헤더가 이미 적어 두었는데(「PEER_LIVE_RIDE_* 는 trail/ 소유」)
+     * **옮기지는 않아** Trail 저장소가 주행 도메인을 올려다보고 있었다. 결정만 적고 두면
+     * 다음 사람은 그것이 이미 된 일이라고 읽는다.
+     */
+    for (const k of [
+      "TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS",
+      "PEER_LIVE_RIDE_STALE_MS",
+      "PEER_LIVE_RIDE_EXTRAP_MAX_MS",
+      "PEER_LIVE_RIDE_COMPLETED_VISIBLE_MS",
+      "PEER_LIVE_RIDE_FINAL_BURST_MS",
+    ]) {
+      assert.equal(k in trailLive, true, `trailLivePolicy 가 ${k} 를 가져야 한다`);
+      assert.equal(
+        k in sync,
+        false,
+        `rideSyncPolicy 에 ${k} 가 남거나 re-export 되면 trail/repo → ride 로 되돌아간다`,
+      );
     }
   });
 
