@@ -24,6 +24,7 @@
     "admin:backfill-last-completed-ride-at": "npm run build && node lib/cliBackfillLastCompletedRideAt.js",
     "admin:audit-route-activity-heat": "npm run build && node lib/cliAuditRouteActivityHeat.js",
     "admin:audit-recent-rides": "npm run build && node lib/cliAuditRecentRides.js",
+    "admin:audit-trails": "npm run build && node lib/cliAuditTrails.js",
     "admin:audit-conquest": "npm run build && node lib/cliAuditConquest.js",
     "admin:audit-tier-quota": "npm run build && node lib/cliAuditTierQuota.js",
     "admin:dedupe-saved-routes": "npm run build && node lib/cliDedupeSavedRoutes.js",
