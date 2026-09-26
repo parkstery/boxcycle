@@ -376,6 +376,7 @@
       "debug/hudCompanionDiag.ts",
       "debug/installHudCompanionDebug.ts",
       "debug/installLiveRideExistsDebug.ts",
+      "debug/installMotionExistsDebug.ts",
       "debug/installReadSubscriptionDebug.ts",
       "debug/installTouchActivityDebug.ts",
       "debug/localFirstGeoProbe.ts",

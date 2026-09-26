@@ -1,4 +1,4 @@
-import type { PublicationSessionMemberRow } from "../ride/repo/firestorePublicationSessionPresence";
+import type { PresenceMemberType } from "../identity/authDisplay";
 import type { TrailLivePublicationRideRow } from "../trail/trailTypes";
 import type { RtdbTrailMotionRow } from "./repo/rtdbTrailMotion";
 import { mapNametagForMember } from "../identity/guestNametag";
@@ -7,12 +7,26 @@ import { rtdbMotionRowToPeerMotionPacket } from "./rtdbToPacket";
 import { trailLiveRowToPeerMotionPacket } from "./rowToPacket";
 import { notePeerSeqSeen, peerSyncChainLog } from "./peerSyncChainLog";
 
+/**
+ * 이름표를 붙이는 데 **필요한 것만** 적는다.
+ *
+ * 2026-09-26 (Phase 6-③C): 종전에는 `ride/repo` 의 `PublicationSessionMemberRow` 를
+ * 통째로 가져왔다. 그 행은 다섯 필드인데 여기서 읽는 것은 셋뿐이고, 그 한 줄 때문에
+ * 전송 계층이 주행 **저장소**를 올려다봤다(D6). 필요한 모양만 적으면 호출자는
+ * 종전 그대로 행을 넘길 수 있다 — 더 넓은 객체는 구조적으로 이 모양을 만족한다.
+ */
+export type PeerNametagMember = {
+  uid: string;
+  displayName: string | null;
+  memberType: PresenceMemberType | null;
+};
+
 export type SyncPeerMotionFromPresenceInput = {
   publicationId: string;
   myUid: string;
   motionRows: readonly RtdbTrailMotionRow[];
   liveRideRows: readonly TrailLivePublicationRideRow[];
-  sessionMembers: readonly PublicationSessionMemberRow[];
+  sessionMembers: readonly PeerNametagMember[];
   guestUidsSorted: readonly string[];
   routeLenM?: number;
 };
