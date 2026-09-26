@@ -12,7 +12,7 @@ import type { User } from "firebase/auth";
 import { getPresenceDisplayName } from "../../identity/authDisplay";
 import { getFirebaseFirestore } from "../../firebase/app";
 import type { LngLat } from "../../geo/geo";
-import { TRAIL_PRESENCE_STALE_MS } from "../../trail/repo/firestoreTrail";
+import { TRAIL_PRESENCE_STALE_MS } from "../../trail/trailLivePolicy";
 import { lastSeenAtToMillis } from "../../firebase/converters";
 
 /** 전역 라이브 presence — courseId·trail·geometry 불필요 */

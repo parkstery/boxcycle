@@ -17,7 +17,7 @@ import { acquireTrailLivePublicationRidesSubscription } from "../lib/trail/repo/
 import { acquireTrailMotionSubscription } from "../lib/peerMotion/repo/rtdbMotionSubscriptionHub";
 import { isFirebaseDatabaseConfigured } from "../lib/firebase/app";
 import { sanitizeTrailId } from "../lib/trail/repo/firestoreTrail";
-import { TRAIL_PRESENCE_STALE_MS } from "../lib/trail/repo/firestoreTrail";
+import { TRAIL_PRESENCE_STALE_MS } from "../lib/trail/trailLivePolicy";
 import {
   COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS,
   COURSE_PRESENCE_HEARTBEAT_PAUSED_MS,

@@ -16,7 +16,8 @@ import {
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getFirebaseApp, getFirebaseFirestore } from "../../firebase/app";
-import { countTrailMembersFresh, TRAIL_PRESENCE_STALE_MS } from "./firestoreTrail";
+import { countTrailMembersFresh } from "./firestoreTrail";
+import { TRAIL_PRESENCE_STALE_MS } from "../trailLivePolicy";
 import { countTrailLiveRidersFresh } from "./firestoreTrailLivePublicationRides";
 import { trailHasConfiguredRoute } from "../trailAccessPolicy";
 import { TRAILS_COLLECTION } from "./firestoreTrailPaths";

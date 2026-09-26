@@ -19,7 +19,8 @@ import {
 import type { User } from "firebase/auth";
 import { getPresenceDisplayName } from "../../identity/authDisplay";
 import { getFirebaseFirestore } from "../../firebase/app";
-import { DEFAULT_TRAIL_ID, isMemberRecentlySeen, sanitizeTrailId, TRAIL_PRESENCE_STALE_MS } from "./firestoreTrail";
+import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "../trailId";
+import { isMemberRecentlySeen, TRAIL_PRESENCE_STALE_MS } from "../trailLivePolicy";
 import { lastSeenAtToMillis } from "../../firebase/converters";
 import {
   TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION,

@@ -26,10 +26,6 @@ import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "../trailId";
 export { DEFAULT_TRAIL_ID, sanitizeTrailId };
 
 /** 이 시간보다 오래된 lastSeenAt 은 “오프라인”으로 표시한다. */
-export const TRAIL_PRESENCE_STALE_MS = 240_000;
-
-/** presence lastSeenAt 갱신 주기 (탭 절전·백그라운드 대비) */
-export const PRESENCE_HEARTBEAT_INTERVAL_MS = 12_000;
 
 export type TrailMemberRow = {
   uid: string;
@@ -39,19 +35,15 @@ export type TrailMemberRow = {
 
 // 변환기는 인프라 층(`../../firebase/converters`)이 갖는다 — Trail 과 무관하다(D6).
 import { lastSeenAtToMillis } from "../../firebase/converters";
+/* presence 「살아 있는가」 판정은 정책이다 — 저장소가 갖지 않는다(Phase 6-D6). */
+import { TRAIL_PRESENCE_STALE_MS } from "../trailLivePolicy";
+export { isMemberRecentlySeen, isTrailMemberActive, PRESENCE_HEARTBEAT_INTERVAL_MS, TRAIL_PRESENCE_STALE_MS } from "../trailLivePolicy";
 export { lastSeenAtToMillis };
-
-export function isMemberRecentlySeen(lastSeenAtMs: number | null): boolean {
-  if (lastSeenAtMs == null) return true;
-  return Date.now() - lastSeenAtMs < TRAIL_PRESENCE_STALE_MS;
-}
 
 function membersCollectionRef(trailId: string) {
   const db = getFirebaseFirestore();
   return collection(db, TRAILS_COLLECTION, trailId, TRAIL_MEMBERS_SUBCOLLECTION);
 }
-
-export const isTrailMemberActive = isMemberRecentlySeen;
 
 async function defaultPresenceUpsert(user: User, trailId: string): Promise<void> {
   const rid = sanitizeTrailId(trailId);
