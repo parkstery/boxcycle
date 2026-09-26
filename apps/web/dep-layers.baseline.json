@@ -2,7 +2,7 @@
   "왜": "Phase 5 시작 시점의 위반 눈금. 허용 목록이 아니라 갚아야 할 빚이다. 늘면 pre-push 가 막는다. Phase 5 종료 시 0 이어야 한다.",
   "기준": "2026-09-26",
   "규칙지문": "be7ddaa4fa96d24c",
-  "violations": 21,
+  "violations": 16,
   "cycles": 0,
   "위반내역": [
     "peerMotion -> firebase  peerMotion/motionPublishFlight.ts → firebase/app.ts",
@@ -20,12 +20,7 @@
     "route/repo -> identity/repo  route/repo/firestoreCourses.ts → identity/repo/firestoreUser.ts",
     "route/repo -> identity/repo  route/repo/publicRouteRequests.ts → identity/repo/firestoreUser.ts",
     "trail -> peerMotion  trail/trailLiveRideSink.ts → peerMotion/trailLiveRidePort.ts",
-    "trail/repo -> peerMotion/repo  trail/repo/firestoreTrailLivePublicationRides.ts → peerMotion/repo/rtdbTrailMotion.ts",
-    "trail/repo -> ride  trail/repo/firestoreTrailInstance.ts → ride/rideSyncPolicy.ts",
-    "trail/repo -> ride  trail/repo/firestoreTrailLivePublicationRides.ts → ride/rideSyncPolicy.ts",
-    "trail/repo -> route  trail/repo/firestoreOpenTrailListings.ts → route/resolvePublicationIdFromDoc.ts",
-    "trail/repo -> route  trail/repo/firestoreTrailInstance.ts → route/resolvePublicationIdFromDoc.ts",
-    "trail/repo -> route  trail/repo/firestoreTrailLivePublicationRides.ts → route/resolvePublicationIdFromDoc.ts"
+    "trail/repo -> peerMotion/repo  trail/repo/firestoreTrailLivePublicationRides.ts → peerMotion/repo/rtdbTrailMotion.ts"
   ],
   "순환내역": []
 }
