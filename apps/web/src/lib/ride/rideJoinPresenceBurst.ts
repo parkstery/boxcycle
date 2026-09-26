@@ -1,10 +1,9 @@
 import type { User } from "firebase/auth";
 import { upsertPublicationSessionMember } from "./repo/firestorePublicationSessionPresence";
-import { mergeTrailLivePublicationRideSnapshot } from "../trail/repo/firestoreTrailLivePublicationRides";
 import { DEFAULT_TRAIL_ID } from "../trail/trailId";
-import { touchTrailInstanceActivity } from "../trail/repo/firestoreTrailInstance";
+import { mergeRideLiveProgress, touchTrailActivityForRideJoin } from "../trail/trailLiveRideSink";
 import type { LiveLocationSnapshot } from "./liveLocationSnapshot";
-import { isFirebaseDatabaseConfigured } from "../firebase/app";
+import { isMotionTransportConfigured } from "../peerMotion";
 import { enqueueMotionPublish, peekMotionPublishEpoch } from "../peerMotion/motionPublishFlight";
 
 /** 주행 시작 직후 1회 — 세션 멤버 + livePublicationRides (스로틀 우회) */
@@ -16,7 +15,7 @@ export async function flushRideJoinPresenceBurst(
 
   await Promise.all([
     upsertPublicationSessionMember(user, snapshot.publicationId),
-    mergeTrailLivePublicationRideSnapshot(user, snapshot.trailId, {
+    mergeRideLiveProgress(user, snapshot.trailId, {
       publicationId: snapshot.publicationId,
       progressRatio: snapshot.progressRatio,
       distMeters: snapshot.distMetersAlongRoute,
@@ -25,7 +24,7 @@ export async function flushRideJoinPresenceBurst(
     }),
   ]);
   // S3A: motion 은 single-flight. join burst 가 직접 set() 하면 tick 과 경쟁한다.
-  if (isFirebaseDatabaseConfigured()) {
+  if (isMotionTransportConfigured()) {
     enqueueMotionPublish({
       user,
       trailId: snapshot.trailId,
@@ -35,6 +34,6 @@ export async function flushRideJoinPresenceBurst(
   }
 
   if (snapshot.trailId !== DEFAULT_TRAIL_ID) {
-    void touchTrailInstanceActivity(snapshot.trailId, "joinBurst");
+    void touchTrailActivityForRideJoin(snapshot.trailId);
   }
 }

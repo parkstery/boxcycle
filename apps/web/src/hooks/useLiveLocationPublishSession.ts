@@ -390,6 +390,9 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
                 progressRatio: snap.progressRatio,
                 distMeters: snap.distMetersAlongRoute,
               });
+              // 종전에는 이 삭제가 위 함수 **안에** 있었다(Trail 저장소가 RTDB 까지 지움).
+              // 두 저장소를 걸치는 순서는 조립 지점의 일이라 여기로 꺼냈다 — 순서는 그대로다.
+              await deleteTrailMotion(u.uid, tid);
               await cleanupLiveLocationPublish(u.uid, trailId, {
                 skipRouteDelete: true,
                 skipMotionDelete: true,

@@ -9,3 +9,4 @@ export { mergePeerMotionPackets, pickFresherPeerMotionPacket } from "./mergePack
 export { syncPeerMotionFromPresence, type SyncPeerMotionFromPresenceInput } from "./syncFromPresence";
 export { trailLiveRowToPeerMotionPacket } from "./rowToPacket";
 export { rtdbMotionRowToPeerMotionPacket } from "./rtdbToPacket";
+export { cleanupPeerMotionPublish, isMotionTransportConfigured } from "./repo/rtdbTrailMotion";

@@ -32,7 +32,6 @@ import {
   PEER_LIVE_RIDE_FINAL_BURST_MS,
   PEER_LIVE_RIDE_STALE_MS,
 } from "../trailLivePolicy";
-import { deleteTrailMotion } from "../../peerMotion/repo/rtdbTrailMotion";
 import { trackUnderlyingReadSubscription } from "../../debug/readSubscriptionMeters";
 import { noteListingRefreshRead } from "../../debug/touchActivityMeters";
 
@@ -161,7 +160,12 @@ export async function finalizeAndDeleteTrailLivePublicationRide(
     /* noop */
   }
   await deleteTrailLivePublicationRide(user.uid, trailId).catch(() => {});
-  await deleteTrailMotion(user.uid, trailId);
+  /*
+   * 2026-09-26 (Phase 6-③): 여기서 `deleteTrailMotion()` 도 불렀다 — Trail 저장소가
+   * **동행 전송 저장소(RTDB)까지** 지우고 있었다. 두 저장소를 걸쳐 치우는 순서는
+   * 조립 지점의 일이지 한쪽 저장소의 일이 아니다. 호출자(`useLiveLocationPublishSession`)가
+   * 이 함수 **직후에** 같은 순서로 부른다 — 순서는 바뀌지 않았다.
+   */
 }
 
 function liveRideFreshnessCutoff(): Timestamp {

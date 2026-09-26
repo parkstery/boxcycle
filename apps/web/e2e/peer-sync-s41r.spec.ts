@@ -31,6 +31,24 @@ async function guestStart(page: import('@playwright/test').Page) {
   await expect(gate).toBeHidden({ timeout: 30_000 })
 }
 
+/**
+ * 주행 입력 준비 — Go 의 사전조건(SENSOR-2 §1.4).
+ *
+ * 2026-09-26: **이 단계가 없어 이 스펙은 2026-08-27 부터 한 달 넘게 red 였다.**
+ * 그날 Go 에 「센서 연결 또는 수동 속도」 조건이 붙었는데(`rideInputReady`), 스펙은
+ * 08-12 기준 그대로였다. 증상이 「버튼이 보이는데 안 눌린다」라서 원인이 잘 안 보인다.
+ * 방법은 `ride-entry.spec.ts` 와 같다 — 자동 e2e 에는 BLE 장치가 없으므로
+ * 센서 시트에서 **「센서 없음」을 명시적으로** 고른다.
+ */
+async function prepareManualRideInput(page: import('@playwright/test').Page) {
+  await page.getByRole('button', { name: /케이던스 센서/ }).click()
+  const sheet = page.getByRole('dialog', { name: '케이던스 센서' })
+  await expect(sheet).toBeVisible({ timeout: 15_000 })
+  await sheet.getByRole('button', { name: '센서 없음' }).click()
+  await sheet.getByRole('button', { name: '센서 설정 닫기' }).click()
+  await expect(sheet).toBeHidden({ timeout: 15_000 })
+}
+
 async function loadIntroCourse(page: import('@playwright/test').Page) {
   await page.getByRole('button', { name: 'Trail 메뉴' }).click()
   await page.getByRole('button', { name: '입문' }).click()
@@ -62,20 +80,23 @@ async function ensureRiding(page: import('@playwright/test').Page) {
   await expect(page.getByRole('button', { name: '주행 종료' })).toBeVisible({ timeout: 30_000 })
 }
 
-async function ensureDockExpanded(page: import('@playwright/test').Page) {
-  await ensureRiding(page)
-  const fold = page.getByRole('button', { name: '경로 패널 접기' })
-  if (!(await fold.isVisible().catch(() => false))) {
-    await page.getByRole('button', { name: '경로 패널 펼치기' }).click()
-  }
-  await expect(page.getByRole('slider', { name: '세션 속도 km/h' })).toBeVisible({
-    timeout: 10_000,
-  })
-}
-
+/**
+ * 세션 속도 설정.
+ *
+ * 2026-09-26: 종전에는 **경로 도크를 펼쳐** 슬라이더를 찾았다. 그 사이 속도 조절은
+ * 센서 시트(`CadenceSensorSheet`)로 옮겨 갔고, 도크에는 더 이상 없다. 스펙만 옛 자리를
+ * 보고 있어 「슬라이더가 안 보인다」로 죽었다.
+ */
 async function setSpeedKmh(page: import('@playwright/test').Page, kmh: number) {
-  await ensureDockExpanded(page)
-  await page.getByRole('slider', { name: '세션 속도 km/h' }).fill(String(kmh))
+  await ensureRiding(page)
+  await page.getByRole('button', { name: /케이던스 센서/ }).click()
+  const sheet = page.getByRole('dialog', { name: '케이던스 센서' })
+  await expect(sheet).toBeVisible({ timeout: 15_000 })
+  const slider = sheet.getByRole('slider', { name: '세션 속도 km/h' })
+  await expect(slider).toBeVisible({ timeout: 10_000 })
+  await slider.fill(String(kmh))
+  await sheet.getByRole('button', { name: '센서 설정 닫기' }).click()
+  await expect(sheet).toBeHidden({ timeout: 15_000 })
 }
 
 async function endRide(page: import('@playwright/test').Page) {
@@ -235,6 +256,7 @@ async function resolveUid(page: import('@playwright/test').Page): Promise<string
 async function bootAndRide(page: import('@playwright/test').Page) {
   await page.goto('/?peerSyncLogMs=200')
   await guestStart(page)
+  await prepareManualRideInput(page)
   await loadIntroCourse(page)
   await ensureRiding(page)
   await expect

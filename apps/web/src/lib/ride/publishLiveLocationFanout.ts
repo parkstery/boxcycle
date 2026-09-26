@@ -1,12 +1,10 @@
 import type { User } from "firebase/auth";
 import { deleteGlobalLivePresence, mergeGlobalLivePresence } from "./repo/firestoreGlobalLivePresence";
-import { deleteTrailLivePublicationRide } from "../trail/repo/firestoreTrailLivePublicationRides";
 import { sanitizeTrailId } from "../trail/trailId";
 // 조립 지점 — 전송 계층이 선언한 포트에 Trail 구현을 끼운다(D6).
-import { firestoreTrailLiveRideSink } from "../trail/trailLiveRideSink";
+import { deleteRideLiveRow, firestoreTrailLiveRideSink } from "../trail/trailLiveRideSink";
 import type { LiveLocationSnapshot } from "./liveLocationSnapshot";
-import { isFirebaseDatabaseConfigured } from "../firebase/app";
-import { deleteTrailMotion } from "../peerMotion/repo/rtdbTrailMotion";
+import { cleanupPeerMotionPublish, isMotionTransportConfigured } from "../peerMotion";
 import { enqueueMotionPublish, peekMotionPublishEpoch } from "../peerMotion/motionPublishFlight";
 import { enqueueRoutePublish } from "../peerMotion/routePublishFlight";
 import type { LiveLocationPublishThrottleState } from "./liveLocationSnapshot";
@@ -40,7 +38,7 @@ export async function publishLiveLocationFanout(
 
   if (
     opts.publishMotion &&
-    isFirebaseDatabaseConfigured() &&
+    isMotionTransportConfigured() &&
     snapshot.routeReady &&
     snapshot.publicationId
   ) {
@@ -105,10 +103,10 @@ export async function cleanupLiveLocationPublish(
   const tid = sanitizeTrailId(trailId);
   const tasks: Promise<void>[] = [deleteGlobalLivePresence(uid).catch(() => {})];
   if (!opts?.skipRouteDelete) {
-    tasks.push(deleteTrailLivePublicationRide(uid, tid).catch(() => {}));
+    tasks.push(deleteRideLiveRow(uid, tid).catch(() => {}));
   }
   if (!opts?.skipMotionDelete) {
-    tasks.push(deleteTrailMotion(uid, tid));
+    tasks.push(cleanupPeerMotionPublish(uid, tid));
   }
   await Promise.all(tasks);
 }

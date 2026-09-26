@@ -22,6 +22,28 @@ import { trackUnderlyingReadSubscription } from "../../debug/readSubscriptionMet
 /** RTDB `/trails/{trailId}/motion/{uid}` */
 export const RTDB_TRAIL_MOTION_SEGMENT = "motion";
 
+/**
+ * 동행 motion 전송이 가능한 환경인가.
+ *
+ * 2026-09-26 (Phase 6-③B): 주행 쪽 두 모듈이 `isFirebaseDatabaseConfigured()` 를 직접
+ * 물어보고 있었다. **어느 인프라를 쓰는지는 전송의 사정**이고, 주행이 알아야 할 것은
+ * 「지금 motion 을 보낼 수 있나」뿐이다. RTDB 를 다른 것으로 바꿔도 묻는 쪽은 그대로다.
+ */
+export function isMotionTransportConfigured(): boolean {
+  return isFirebaseDatabaseConfigured();
+}
+
+/**
+ * 이 사용자의 동행 전송 흔적을 치운다.
+ *
+ * 2026-09-26 (Phase 6-③): 주행 쪽 정리 코드가 `deleteTrailMotion` 을 직접 불렀다.
+ * **어디에 무엇이 남는지는 전송의 사정**이고, 주행이 시키는 것은 「내 것 치워라」뿐이다.
+ * 지금은 RTDB 노드 하나지만, 늘어나도 부르는 쪽은 바뀌지 않는다.
+ */
+export async function cleanupPeerMotionPublish(uid: string, trailId: string): Promise<void> {
+  await deleteTrailMotion(uid, trailId);
+}
+
 export type RtdbTrailMotionSnapshot = {
   publicationId: string;
   distM: number;
