@@ -1,8 +1,10 @@
 #!/bin/sh
-# RTW pre-push 게이트 7종 (2026-09-26 Phase 5 마감 기준).
+# RTW pre-push 게이트 7종 (2026-09-26 Phase 6-D 기준).
 #
 #   lock 동기 · harness 설정 동기 · lib 의존 방향/순환 · web 타입체크 ·
-#   web 계약 스위트(269건) · functions 타입체크+계약(19건) · Claim 셀 ID 벡터(4건)
+#   web 계약 스위트 · functions 타입체크+계약 · Claim 셀 ID 벡터
+#
+# 건수는 여기 적지 않는다 — 시험이 늘 때마다 주석만 낡는다(2026-09-26: 245·269 가 둘 다 낡아 있었다).
 #
 # 각 게이트는 **고의로 깨뜨려 작동을 확인**한 것만 여기 있다 — 「통과」는 게이트가
 # 살아 있다는 증거가 아니다. 새 게이트를 붙일 때도 같은 규율을 지킨다.
@@ -64,7 +66,7 @@ if [ -n "$touch_web" ]; then
   echo "[pre-push] typecheck apps/web (tsc -b --noEmit)…"
   ( cd apps/web && npx tsc -b --noEmit ) || fail=1
 
-  # 계약 스위트(245건, ≈2.5s). 2026-09-25 승격 — 어느 게이트에도 없어서
+  # 계약 스위트(≈3초). 2026-09-25 승격 — 어느 게이트에도 없어서
   # `sensor-chip-slot-contract` 가 09-23 부터 **이틀간 red 인 채 아무도 몰랐다.**
   # 등록만 하고 돌리지 않으면 그것은 게이트가 아니다.
   echo "[pre-push] 계약 스위트 apps/web (test:next-ride)…"
