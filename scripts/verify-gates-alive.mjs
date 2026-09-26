@@ -93,8 +93,7 @@ const CASES = [
       const before = read(rel);
       const d = JSON.parse(before);
       d.ports.modules = [...d.ports.modules, "trail/repo/firestoreTrail.ts"];
-      write(rel, JSON.stringify(d, null, 2) + "
-");
+      write(rel, JSON.stringify(d, null, 2) + "\n");
       return () => write(rel, before);
     },
     cmd: "node scripts/check-dep-direction.mjs --check",
@@ -105,9 +104,7 @@ const CASES = [
     tamper: () => {
       const rel = "apps/web/src/lib/peerMotion/trailLiveRidePort.ts";
       const before = read(rel);
-      write(rel, before + "
-export const PORT_PROBE_MS = 3000;
-");
+      write(rel, before + "\nexport const PORT_PROBE_MS = 3000;\n");
       return () => write(rel, before);
     },
     cmd: "node scripts/check-dep-direction.mjs --check",
