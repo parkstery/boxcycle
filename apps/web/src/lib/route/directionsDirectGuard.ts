@@ -1,6 +1,5 @@
 import {
   assertDirectionsServerOnlyFromRaw,
-  formatRouteTokenSpendMessage as formatRouteTokenSpendMessageCore,
   isDirectionsDirectBypassConfigured as isDirectionsDirectBypassConfiguredCore,
 } from "./directionsDirectGuard.core.mjs";
 
@@ -15,8 +14,4 @@ export function assertDirectionsServerOnly(
   raw: string | undefined = import.meta.env.VITE_DIRECTIONS_DIRECT,
 ): void {
   assertDirectionsServerOnlyFromRaw(raw);
-}
-
-export function formatRouteTokenSpendMessage(balance: number): string {
-  return formatRouteTokenSpendMessageCore(balance);
 }

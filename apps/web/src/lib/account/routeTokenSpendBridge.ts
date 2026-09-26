@@ -1,4 +1,4 @@
-import { formatRouteTokenSpendMessage } from "../route/directionsDirectGuard";
+import { formatRouteTokenSpendMessage } from "./routeTokenSpendMessage.mjs";
 import {
   applyRouteSpend,
   applySubscribedBalance,

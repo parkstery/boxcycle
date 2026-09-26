@@ -10,8 +10,3 @@ export function assertDirectionsServerOnlyFromRaw(raw) {
     );
   }
 }
-
-export function formatRouteTokenSpendMessage(balance) {
-  const n = Math.max(0, Math.floor(balance));
-  return `Route Token -1 · 잔여 ${n}개`;
-}

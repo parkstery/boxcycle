@@ -288,3 +288,20 @@ export function applyRtwLayerStyle(
   }
   return true;
 }
+
+/*
+ * 2026-09-26 (Phase 6-D3): `storage/appSessionKeys` 에서 **그대로** 옮겨 왔다.
+ * 스타일 목록은 지도 설정이지 세션 저장 키가 아니다.
+ */
+export const MAP_STYLE_OPTIONS = [
+  { value: RTW_MAP_STYLE_URL, label: "RTW Dark" },
+  { value: "mapbox://styles/mapbox/outdoors-v12", label: "Outdoors" },
+  { value: "mapbox://styles/mapbox/satellite-streets-v12", label: "Satellite" },
+];
+
+/**
+ * 앱 진입 시 기본 맵 스타일 — Outdoors.
+ * (2026-08-27) 폰 실주행에서 RTW Dark 는 도로·지형 판독이 어려워 Outdoors 를 기본으로 바꿨다.
+ * RTW Dark 는 스타일 목록에 그대로 남아 있다.
+ */
+export const DEFAULT_MAP_STYLE = MAP_STYLE_OPTIONS[1]!.value;

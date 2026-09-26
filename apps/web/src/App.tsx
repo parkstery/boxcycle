@@ -134,7 +134,7 @@ import { useReadyRide } from "./hooks/useReadyRide";
 import {
   DEFAULT_MAP_STYLE,
   MAP_STYLE_OPTIONS,
-} from "./lib/storage/appSessionKeys";
+} from "./lib/map/rtwMapConfig";
 import { formatElapsedFromMs } from "./lib/ride/rideFormat";
 import { formatRideDistanceKmNumber } from "./lib/ride/rideDistanceFormat";
 import { useBleCrankRpm } from "./hooks/useBleCrankRpm";

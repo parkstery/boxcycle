@@ -24,6 +24,7 @@ import {
 import { lastSeenAtToMillis } from "../../firebase/converters";
 import { getUserPublicLabelsByUid } from "../../identity/repo/firestoreUser";
 import { getDistanceMeters, type LineStringGeometry, type LngLat } from "../../geo/geo";
+import { boundsFromLineStringGeometry as boundsFromLineStringGeometryImpl } from "../../geo/bounds";
 import { computeRouteFingerprint } from "../routeFingerprint";
 
 export type CourseCategory = "basic" | "public" | "recommended" | "challenge";
@@ -380,25 +381,8 @@ const BASIC_COURSES: Omit<CourseDoc, "createdAt" | "updatedAt">[] =
 
 export type CourseBounds = CourseDoc["bounds"];
 
-export function boundsCenterLngLat(bounds: CourseBounds): LngLat {
-  return [(bounds.minLng + bounds.maxLng) / 2, (bounds.minLat + bounds.maxLat) / 2];
-}
-
-export function boundsFromLineStringGeometry(geometry: LineStringGeometry): CourseBounds | null {
-  const coords = geometry.coordinates;
-  if (coords.length < 1) return null;
-  let minLng = coords[0]![0];
-  let maxLng = minLng;
-  let minLat = coords[0]![1];
-  let maxLat = minLat;
-  for (const [lng, lat] of coords) {
-    if (lng < minLng) minLng = lng;
-    if (lng > maxLng) maxLng = lng;
-    if (lat < minLat) minLat = lat;
-    if (lat > maxLat) maxLat = lat;
-  }
-  return { minLng, minLat, maxLng, maxLat };
-}
+/* 계산 본체는 `geo/bounds` 로 내려갔다(Phase 6-D3) — 여기는 하위 호환 re-export 다. */
+export { boundsCenterLngLat, boundsFromLineStringGeometry } from "../../geo/bounds";
 
 export function getBasicHubCourseBounds(courseId: string): CourseBounds | null {
   const course = BASIC_COURSES.find((c) => c.id === courseId);
@@ -416,7 +400,7 @@ async function fetchCourseBoundsUncached(publicationId: string): Promise<CourseB
   if (pub?.geometryCoordsJson) {
     const coords = coordinatesFromGeometryCoordsJson(pub.geometryCoordsJson);
     if (coords?.length) {
-      return boundsFromLineStringGeometry({ type: "LineString", coordinates: coords });
+      return boundsFromLineStringGeometryImpl({ type: "LineString", coordinates: coords });
     }
   }
   return null;

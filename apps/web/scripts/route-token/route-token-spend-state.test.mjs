@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { formatRouteTokenSpendMessage } from "../../src/lib/route/directionsDirectGuard.core.mjs";
+import { formatRouteTokenSpendMessage } from "../../src/lib/account/routeTokenSpendMessage.mjs";
 import {
   applyRouteSpend,
   applySubscribedBalance,

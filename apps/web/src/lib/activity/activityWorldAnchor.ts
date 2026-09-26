@@ -1,5 +1,5 @@
 import type { RouteActivitySnapshot } from "./repo/firestoreRouteActivity";
-import { boundsCenterLngLat, boundsFromLineStringGeometry } from "../route/repo/firestoreCourses";
+import { boundsCenterLngLat, boundsFromLineStringGeometry } from "../geo/bounds";
 import type { LineStringGeometry, LngLat } from "../geo/geo";
 import { getPointOnRouteByDistance, lineStringLengthMeters } from "../geo/geo";
 

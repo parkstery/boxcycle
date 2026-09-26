@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   assertDirectionsServerOnlyFromRaw,
-  formatRouteTokenSpendMessage,
   isDirectionsDirectBypassConfigured,
 } from "../../src/lib/route/directionsDirectGuard.core.mjs";
+import { formatRouteTokenSpendMessage } from "../../src/lib/account/routeTokenSpendMessage.mjs";
 
 describe("directions direct bypass guard (product core)", () => {
   it("VITE_DIRECTIONS_DIRECT=1 → 우회 설정으로 판정", () => {

@@ -1,9 +1,11 @@
 /**
- * 앱 부트스트랩용 sessionStorage 키·리더 및 맵 스타일 프리셋.
+ * 앱 부트스트랩용 sessionStorage 키·리더.
  * (Phase 1: App.tsx 에서 분리)
+ *
+ * 2026-09-26 (Phase 6-D3): 맵 스타일 프리셋(`MAP_STYLE_OPTIONS`·`DEFAULT_MAP_STYLE`)이
+ * 여기 얹혀 있어 **저장소 도메인이 지도를 올려다보고** 있었다. `map/rtwMapConfig` 로
+ * 옮겼다 — App.tsx 를 쪼갤 때 「같이 나온 것」이 「같은 곳에 사는 것」이 돼 있었다.
  */
-import { RTW_MAP_STYLE_URL } from "../map/rtwMapConfig";
-
 /** 명시적 로그아웃 후 자동 익명 진입을 막는 플래그(같은 탭). */
 export const USER_SIGNED_OUT_SESSION_KEY = "boxcycle_user_signed_out_v1";
 
@@ -59,16 +61,3 @@ export function clearUserSignedOutSessionFlag(): void {
     /* noop */
   }
 }
-
-export const MAP_STYLE_OPTIONS = [
-  { value: RTW_MAP_STYLE_URL, label: "RTW Dark" },
-  { value: "mapbox://styles/mapbox/outdoors-v12", label: "Outdoors" },
-  { value: "mapbox://styles/mapbox/satellite-streets-v12", label: "Satellite" },
-];
-
-/**
- * 앱 진입 시 기본 맵 스타일 — Outdoors.
- * (2026-08-27) 폰 실주행에서 RTW Dark 는 도로·지형 판독이 어려워 Outdoors 를 기본으로 바꿨다.
- * RTW Dark 는 스타일 목록에 그대로 남아 있다.
- */
-export const DEFAULT_MAP_STYLE = MAP_STYLE_OPTIONS[1]!.value;

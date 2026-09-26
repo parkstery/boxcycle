@@ -175,6 +175,7 @@
       "firebase/functionsEmulatorUrl.ts"
     ],
     "geo": [
+      "geo/bounds.ts",
       "geo/geo.ts",
       "geo/geoDecimate.ts",
       "geo/lineStringCoordsJson.ts",
@@ -213,6 +214,7 @@
       "account/routeTokenEconomyClient.ts",
       "account/routeTokenPopupDisplay.mjs",
       "account/routeTokenSpendBridge.ts",
+      "account/routeTokenSpendMessage.mjs",
       "account/routeTokenSpendState.mjs",
       "account/routeTokenUiCopy.ts",
       "account/tierQuota.ts",
