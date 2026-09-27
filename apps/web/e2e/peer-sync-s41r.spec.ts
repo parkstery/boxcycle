@@ -2,6 +2,13 @@ import { test, expect } from './open-meteo-stub'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import {
+  dismissRideSummaryIfAny,
+  ensureRiding,
+  guestStart,
+  loadIntroCourse,
+  setSpeedKmh,
+} from './rideEntryHelpers'
 
 /**
  * S4-1R — route flight 수명주기 집중 시험 (T1~T4).
@@ -23,81 +30,6 @@ const FINALIZE_BURST_MS = 3_000
 const ROUTE_SETTLE_BUDGET_MS = 2_000
 /** in-flight(≤delay) + finalize 여유 */
 const POST_END_DRAIN_MS = 12_000
-
-async function guestStart(page: import('@playwright/test').Page) {
-  const gate = page.getByRole('dialog', { name: '시작' })
-  await expect(gate).toBeVisible({ timeout: 30_000 })
-  await gate.getByRole('button', { name: '시작', exact: true }).click()
-  await expect(gate).toBeHidden({ timeout: 30_000 })
-}
-
-/**
- * 주행 입력 준비 — Go 의 사전조건(SENSOR-2 §1.4).
- *
- * 2026-09-26: **이 단계가 없어 이 스펙은 2026-08-27 부터 한 달 넘게 red 였다.**
- * 그날 Go 에 「센서 연결 또는 수동 속도」 조건이 붙었는데(`rideInputReady`), 스펙은
- * 08-12 기준 그대로였다. 증상이 「버튼이 보이는데 안 눌린다」라서 원인이 잘 안 보인다.
- * 방법은 `ride-entry.spec.ts` 와 같다 — 자동 e2e 에는 BLE 장치가 없으므로
- * 센서 시트에서 **「센서 없음」을 명시적으로** 고른다.
- */
-async function prepareManualRideInput(page: import('@playwright/test').Page) {
-  await page.getByRole('button', { name: /케이던스 센서/ }).click()
-  const sheet = page.getByRole('dialog', { name: '케이던스 센서' })
-  await expect(sheet).toBeVisible({ timeout: 15_000 })
-  await sheet.getByRole('button', { name: '센서 없음' }).click()
-  await sheet.getByRole('button', { name: '센서 설정 닫기' }).click()
-  await expect(sheet).toBeHidden({ timeout: 15_000 })
-}
-
-async function loadIntroCourse(page: import('@playwright/test').Page) {
-  await page.getByRole('button', { name: 'Trail 메뉴' }).click()
-  await page.getByRole('button', { name: '입문' }).click()
-  const modal = page.getByRole('dialog').filter({ has: page.locator('#oc-modal-title') })
-  await expect(modal).toBeVisible({ timeout: 15_000 })
-  const items = modal.locator('button.oc-modal__item')
-  await expect(items.first()).toBeVisible()
-  const n = await items.count()
-  await items.nth(Math.max(0, n - 1)).click()
-  await expect(page.getByRole('button', { name: '주행 시작' })).toBeVisible({ timeout: 20_000 })
-}
-
-async function dismissRideSummaryIfAny(page: import('@playwright/test').Page) {
-  const summary = page.getByRole('dialog', { name: '주행 결과' })
-  if (!(await summary.isVisible().catch(() => false))) return
-  const skip = summary.getByRole('button', { name: '저장 안 함' })
-  if (await skip.isVisible().catch(() => false)) await skip.click()
-  else await summary.getByRole('button', { name: '닫기' }).first().click()
-  await expect(summary).toBeHidden({ timeout: 10_000 })
-}
-
-async function ensureRiding(page: import('@playwright/test').Page) {
-  await dismissRideSummaryIfAny(page)
-  if (await page.getByRole('button', { name: '주행 종료' }).isVisible().catch(() => false)) return
-  if (await page.getByRole('button', { name: '재개' }).first().isVisible().catch(() => false)) return
-  const start = page.getByRole('button', { name: '주행 시작' })
-  await expect(start).toBeVisible({ timeout: 20_000 })
-  await start.click()
-  await expect(page.getByRole('button', { name: '주행 종료' })).toBeVisible({ timeout: 30_000 })
-}
-
-/**
- * 세션 속도 설정.
- *
- * 2026-09-26: 종전에는 **경로 도크를 펼쳐** 슬라이더를 찾았다. 그 사이 속도 조절은
- * 센서 시트(`CadenceSensorSheet`)로 옮겨 갔고, 도크에는 더 이상 없다. 스펙만 옛 자리를
- * 보고 있어 「슬라이더가 안 보인다」로 죽었다.
- */
-async function setSpeedKmh(page: import('@playwright/test').Page, kmh: number) {
-  await ensureRiding(page)
-  await page.getByRole('button', { name: /케이던스 센서/ }).click()
-  const sheet = page.getByRole('dialog', { name: '케이던스 센서' })
-  await expect(sheet).toBeVisible({ timeout: 15_000 })
-  const slider = sheet.getByRole('slider', { name: '세션 속도 km/h' })
-  await expect(slider).toBeVisible({ timeout: 10_000 })
-  await slider.fill(String(kmh))
-  await sheet.getByRole('button', { name: '센서 설정 닫기' }).click()
-  await expect(sheet).toBeHidden({ timeout: 15_000 })
-}
 
 async function endRide(page: import('@playwright/test').Page) {
   const end = page.getByRole('button', { name: '주행 종료' })
@@ -256,7 +188,7 @@ async function resolveUid(page: import('@playwright/test').Page): Promise<string
 async function bootAndRide(page: import('@playwright/test').Page) {
   await page.goto('/?peerSyncLogMs=200')
   await guestStart(page)
-  await prepareManualRideInput(page)
+  // 주행 입력 준비(센서 없음)는 `ensureRiding` 이 필요할 때만 알아서 한다 — rideEntryHelpers.
   await loadIntroCourse(page)
   await ensureRiding(page)
   await expect
