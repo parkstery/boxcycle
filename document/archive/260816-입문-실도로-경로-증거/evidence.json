@@ -1,6 +1,11 @@
 {
-  "generatedAt": "2026-08-16T03:04:49.070Z",
-  "maxDistanceMeters": 500,
+  "generatedAt": "2026-09-27T06:36:10.636Z",
+  "maxDistanceMeters": {
+    "basic-intro-seoul-namsan": 500,
+    "basic-intro-paris-pont-neuf": 500,
+    "basic-intro-nyc-central-park": 500,
+    "basic-intro-amsterdam-vondelpark": 2200
+  },
   "routes": [
     {
       "id": "basic-intro-seoul-namsan",
@@ -10,8 +15,8 @@
       "overview": "full",
       "geometries": "geojson",
       "requestUrl": "https://api.mapbox.com/directions/v5/mapbox/cycling/126.988622,37.5486;126.984975,37.549777?geometries=geojson&overview=full&steps=true&access_token=<REDACTED_MAPBOX_TOKEN>",
-      "requestedAt": "2026-08-16T03:04:48.737Z",
-      "responseSha256": "ce4079506f55a1226ddc40f064ca003617a3663c7c43834de587fbbbe2359dc9",
+      "requestedAt": "2026-09-27T06:36:06.957Z",
+      "responseSha256": "08d8d75f92830cd8a5b80926c936f4f2e542ed11140a85db2dbfaa5d32fbba74",
       "startLngLat": [
         126.988622,
         37.5486
@@ -48,8 +53,8 @@
       "overview": "full",
       "geometries": "geojson",
       "requestUrl": "https://api.mapbox.com/directions/v5/mapbox/cycling/2.33996,48.856046;2.343945,48.854744?geometries=geojson&overview=full&steps=true&access_token=<REDACTED_MAPBOX_TOKEN>",
-      "requestedAt": "2026-08-16T03:04:48.999Z",
-      "responseSha256": "18b180826258c9f01e4b94d867a524a83367d1fbffc5587ef47be437496d377d",
+      "requestedAt": "2026-09-27T06:36:07.612Z",
+      "responseSha256": "f76867725996af45d24330a978a9fa1aea14cf0debefda420aa0a583434bf300",
       "startLngLat": [
         2.33996,
         48.856046
@@ -88,8 +93,8 @@
       "overview": "full",
       "geometries": "geojson",
       "requestUrl": "https://api.mapbox.com/directions/v5/mapbox/cycling/-73.969407,40.781743;-73.972581,40.778609?geometries=geojson&overview=full&steps=true&access_token=<REDACTED_MAPBOX_TOKEN>",
-      "requestedAt": "2026-08-16T03:04:49.041Z",
-      "responseSha256": "242bbbb6cb9a867c3fbb2b7848d021b790a40734a4bbd5b59a9f0080cc0b55be",
+      "requestedAt": "2026-09-27T06:36:08.246Z",
+      "responseSha256": "0ec7184a27c499ec858b6b8e932b6dda5c7b9e363cef6185584156ad6795981f",
       "startLngLat": [
         -73.969407,
         40.781743
@@ -117,6 +122,49 @@
         "West Drive"
       ],
       "screenshot": "basic-intro-nyc-central-park.png"
+    },
+    {
+      "id": "basic-intro-amsterdam-vondelpark",
+      "title": "Basic 4 · 암스테르담 폰델파크",
+      "provider": "Mapbox Directions API v5",
+      "profile": "cycling",
+      "overview": "full",
+      "geometries": "geojson",
+      "requestUrl": "https://api.mapbox.com/directions/v5/mapbox/cycling/4.869112,52.358011;4.886459,52.363477?geometries=geojson&overview=full&steps=true&access_token=<REDACTED_MAPBOX_TOKEN>",
+      "requestedAt": "2026-09-27T06:36:08.670Z",
+      "responseSha256": "5bced2c385f454d1743ddd7d60e0cda5674f06b4b7b87b672ee05bb21b254c12",
+      "startLngLat": [
+        4.869112,
+        52.358011
+      ],
+      "endLngLat": [
+        4.886459,
+        52.363477
+      ],
+      "waypointSnapDistanceMeters": [
+        0.004,
+        0.051
+      ],
+      "apiDistanceMeters": 2017.782,
+      "apiDurationSec": 487.999,
+      "recomputedPolylineMeters": 2015.57,
+      "recomputedVsApiDeltaMeters": -2.22,
+      "coordinateCount": 147,
+      "bounds": {
+        "minLng": 4.868604,
+        "minLat": 52.358011,
+        "maxLng": 4.887901,
+        "maxLat": 52.363477
+      },
+      "roadNames": [
+        "Vondelpark",
+        "Roemer Visscherstraat",
+        "Eerste Constantijn Huygensstraat",
+        "Pieter Cornelisz. Hooftstraat",
+        "Weteringschans",
+        "Prinsengracht"
+      ],
+      "screenshot": "basic-intro-amsterdam-vondelpark.png"
     }
   ]
 }

@@ -52,11 +52,35 @@ const ROUTE_SPECS = [
     from: [-73.969407, 40.781743],
     to: [-73.972581, 40.778609],
   },
+  {
+    /*
+     * 2026-09-27 추가 — **긴 입문 경로.** Basic 1~3 은 전부 500 m 미만이라, 몇 분씩
+     * 달려야 하는 계측(동행 e2e `peer-sync-s1` 의 8케이스 × 30 km/h)이 **측정 도중
+     * 완주해 버려** 돌아가지 못했다. 제품에도 「조금 더 달려 보는」 단계가 하나 생긴다.
+     */
+    id: "basic-intro-amsterdam-vondelpark",
+    order: 4,
+    constName: "BASIC_INTRO_AMSTERDAM_VONDELPARK_ROUTE",
+    title: "Basic 4 · 암스테르담 폰델파크",
+    description:
+      "폰델파크를 가로질러 프린선흐라흐트 운하로 이어지는 2 km 구간. 앞의 셋보다 길어 속도·리듬을 익히는 입문 경로.",
+    from: [4.869112, 52.358011],
+    to: [4.886459, 52.363477],
+    // 2 km 를 의도한 경로. 이보다 크게 벗어나면 routing 이 딴 길로 샜다는 뜻이다.
+    maxDistanceMeters: 2_200,
+  },
 ];
 
 const PROFILE = "cycling";
-const SEED_REVISION = 3;
-const MAX_DISTANCE_METERS = 500;
+const SEED_REVISION = 4;
+/**
+ * 길이 상한의 **기본값**. 경로별로 `maxDistanceMeters` 를 적으면 그것이 이긴다.
+ *
+ * 2026-09-27: 전역 하나였다. Basic 4(2 km)를 넣으려고 이 값을 올리면 **짧아야 할 셋도
+ * 조용히 길어질 수 있다** — 상한의 존재 이유(허구가 seed 로 들어가는 것을 막는다)가 흐려진다.
+ * 그래서 경로마다 자기 상한을 갖는다.
+ */
+const DEFAULT_MAX_DISTANCE_METERS = 500;
 
 function readMapboxToken() {
   const files = [
@@ -183,8 +207,10 @@ function renderSeedModule(entries) {
 /** seed 리비전 — geometry 가 바뀌면 올린다(Firestore 재시드 판단에 쓰임). */
 export const BASIC_INTRO_HUB_ROUTE_REVISION = ${SEED_REVISION};
 
-/** 입문 경로 상한 — 좌표 재계산 길이 기준(m) */
-export const BASIC_INTRO_MAX_DISTANCE_METERS = ${MAX_DISTANCE_METERS};
+/** 입문 경로 중 **가장 큰** 길이 상한(m). 상한은 경로마다 다르다(2026-09-27). */
+export const BASIC_INTRO_MAX_DISTANCE_METERS = ${Math.max(
+  ...ROUTE_SPECS.map((r) => r.maxDistanceMeters ?? DEFAULT_MAX_DISTANCE_METERS),
+)};
 
 export type BasicIntroHubRouteSeed = {
   id: string;
@@ -302,10 +328,13 @@ async function main() {
 
     // 게이트 — 여기서 막지 못하면 허구가 seed 로 들어간다.
     if (coordinates.length < 2) throw new Error(`좌표 부족: ${spec.id}`);
-    if (!(recomputed > 0 && recomputed <= MAX_DISTANCE_METERS)) {
-      throw new Error(`좌표 재계산 길이 초과: ${spec.id} = ${recomputed.toFixed(1)}m`);
+    const maxMeters = spec.maxDistanceMeters ?? DEFAULT_MAX_DISTANCE_METERS;
+    if (!(recomputed > 0 && recomputed <= maxMeters)) {
+      throw new Error(
+        `좌표 재계산 길이 초과: ${spec.id} = ${recomputed.toFixed(1)}m (상한 ${maxMeters}m)`,
+      );
     }
-    if (built.distanceMeters > MAX_DISTANCE_METERS) {
+    if (built.distanceMeters > maxMeters) {
       throw new Error(`API 거리 초과: ${spec.id} = ${built.distanceMeters}m`);
     }
     for (const d of snapDistances) {
@@ -365,7 +394,9 @@ async function main() {
   );
   fs.writeFileSync(
     path.join(EVIDENCE_DIR, "evidence.json"),
-    scrubToken(JSON.stringify({ generatedAt: new Date().toISOString(), maxDistanceMeters: MAX_DISTANCE_METERS, routes: evidence }, null, 2), token),
+    scrubToken(JSON.stringify({ generatedAt: new Date().toISOString(), maxDistanceMeters: Object.fromEntries(
+            ROUTE_SPECS.map((r) => [r.id, r.maxDistanceMeters ?? DEFAULT_MAX_DISTANCE_METERS]),
+          ), routes: evidence }, null, 2), token),
     "utf8",
   );
 
