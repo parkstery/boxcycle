@@ -61,6 +61,11 @@ function reset(nowMs = Date.now()): void {
 function report(nowMs: number): void {
   if (nowMs - lastReportMs < REPORT_INTERVAL_MS) return;
   lastReportMs = nowMs;
+  if (byUid.size === 0) {
+    // 조용한 계기는 고장난 계기와 구분되지 않는다 — 없으면 없다고 말한다.
+    console.info("[peerSmooth] 동행 없음 — 두 창 모두 달리는 중이어야 값이 잡힌다");
+    return;
+  }
   for (const r of read()) {
     if ((r.frames as number) < 10) continue;
     console.info(
@@ -72,6 +77,19 @@ function report(nowMs: number): void {
 
 function read(): Array<Record<string, number | string>> {
   const windowMs = Date.now() - windowStartMs;
+  if (byUid.size === 0) {
+    /*
+     * ⚠️ 빈 표는 **「계기가 고장났다」와 화면에서 구분되지 않는다**(2026-09-28, 실제로 겪었다).
+     * 왜 비어 있는지를 말해 준다.
+     */
+    return [
+      {
+        uid: "(동행 없음)",
+        안내: "두 창 모두 Go 를 눌러 달리는 중이어야 한다. 상대가 보이면 곧 값이 잡힌다.",
+        windowSec: Math.round(windowMs / 100) / 10,
+      },
+    ];
+  }
   return [...byUid.entries()].map(([uid, a]) => ({
     uid,
     frames: a.frames,
@@ -137,5 +155,5 @@ export function notePeerSmoothness(
     prev.lastAtMs = nowMs;
   }
 
-  if (byUid.size > 0) report(nowMs);
+  report(nowMs);
 }
