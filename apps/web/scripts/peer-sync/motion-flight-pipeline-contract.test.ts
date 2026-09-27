@@ -8,6 +8,7 @@ import {
   nextMotionPublishEpoch,
   peekMotionPublishEpoch,
   peekMotionSlotDiscardCount,
+  requestMotionNodeCleanup,
 } from "../../src/lib/peerMotion/motionPublishFlight.ts";
 import { MOTION_MAX_IN_FLIGHT } from "../../src/lib/peerMotion/peerSyncPolicy.ts";
 import type { LiveLocationSnapshot } from "../../src/lib/peerMotion/types.ts";
@@ -158,5 +159,54 @@ describe("겹쳐 보내도 수명주기는 그대로다", () => {
     assert.equal(r.droppedSlot, true, "취소했는데 대기 좌표가 남으면 나중에 되살아난다");
     assert.equal(peekMotionPublishEpoch(), e);
     await awaitMotionFlightSettled(3_000);
+  });
+});
+
+describe("정리는 날아가는 쓰기가 **전부** 끝난 뒤에", () => {
+  it("아직 날아가는 쓰기가 있으면 삭제하지 않는다", async () => {
+    /*
+     * 왜 — 삭제가 먼저 끝나면 **늦게 도착한 쓰기가 지운 노드를 되살린다.** 주행을
+     * 끝냈는데 상대 화면에 내가 남는다. 오늘 고친 「유령 라이더」가 다른 경로로 돌아온다.
+     *
+     * 겹쳐 보내기 전에는 내가 끝나면 날아가는 것이 없어 이 조건이 저절로 참이었다.
+     * e2e(s4m1 M6)가 이 회귀를 잡았고 — `deleteDoneAt` 이 `lateWriteDoneAt` 보다 86ms
+     * 빨랐다 — 그 시험은 3분 걸린다. 같은 불변식을 여기서 1초에 잡는다.
+     */
+    const w = installFakeWindow();
+    w.__rtwMotionWriteDelayMs = 80;
+    try {
+      await awaitMotionFlightSettled(3_000);
+      const e = nextMotionPublishEpoch(`cleanup-${Date.now()}`);
+      for (let i = 0; i < MOTION_MAX_IN_FLIGHT; i += 1) enqueueMotionPublish(job(i + 1, e));
+      assert.equal(readInFlight(w), MOTION_MAX_IN_FLIGHT, "겹쳐 날아가는 상태를 만들지 못했다");
+
+      cancelMotionPublish(e);
+      nextMotionPublishEpoch(`next-${Date.now()}`);
+
+      const seenInFlight: number[] = [];
+      requestMotionNodeCleanup({
+        epoch: e,
+        sessionKey: `cleanup-${e}`,
+        run: async () => {
+          seenInFlight.push(readInFlight(w));
+        },
+      });
+
+      await awaitMotionFlightSettled(3_000);
+      // 정리는 마지막 쓰기가 끝난 뒤에 돌므로 한 틱 양보한다.
+      await new Promise((r) => setTimeout(r, 50));
+
+      assert.ok(seenInFlight.length >= 1, "정리가 아예 돌지 않았다 — 노드가 영영 남는다");
+      for (const n of seenInFlight) {
+        assert.equal(
+          n,
+          0,
+          `날아가는 쓰기가 ${n}개 남은 채 삭제했다 — 그 쓰기가 지운 노드를 되살린다`,
+        );
+      }
+    } finally {
+      w.__rtwMotionWriteDelayMs = 0;
+      await awaitMotionFlightSettled(3_000);
+    }
   });
 });

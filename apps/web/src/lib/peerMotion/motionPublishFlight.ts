@@ -317,11 +317,20 @@ async function runMotionJob(job: MotionFlightJob): Promise<void> {
       lastLateWriteDoneAt = Date.now();
     }
     inFlight -= 1;
+    // 계기를 **줄이자마자** 갱신한다. 아래 정리 분기가 이 값을 보고 판단하고, 시험·디버그도
+    // 이 값을 읽는다. 뒤에서 한 번에 갱신하면 그 사이 읽는 쪽이 **낡은 값**을 본다.
+    syncMotionFlightDebug();
     const next = slot;
     slot = null;
-    // 취소된 epoch 의 늦은 쓰기가 끝난 지금이 지연 삭제(또는 skip-live-session) 시점이다.
+    // 취소된 epoch 의 늦은 쓰기가 **전부** 끝난 지금이 지연 삭제(또는 skip-live-session) 시점이다.
     // 새 세션 job 이 슬롯에 있어도 먼저 처리해야 M4 가드가 산다.
-    if (!isEpochLive(job.epoch)) {
+    //
+    // ⚠️ `inFlight === 0` 이 꼭 필요하다 (2026-09-27, s4m1 M6 이 잡았다). 겹쳐 보내기 전에는
+    // 내가 끝나면 날아가는 것이 없었으므로 이 조건이 저절로 참이었다. 이제는 아니다 —
+    // 하나가 끝나도 다른 하나가 아직 날아가는 중일 수 있고, 그때 삭제하면 **늦게 도착한
+    // 쓰기가 지운 노드를 되살린다.** 주행을 끝냈는데 상대 화면에 내가 남는다.
+    // 실측 반례: deleteDoneAt 이 lateWriteDoneAt 보다 86ms 빨랐다.
+    if (inFlight === 0 && !isEpochLive(job.epoch)) {
       drainDeferredCleanups();
     }
     if (next && isEpochLive(next.epoch)) {
