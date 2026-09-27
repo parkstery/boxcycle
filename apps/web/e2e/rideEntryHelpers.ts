@@ -93,11 +93,17 @@ export async function ensureRideInputReady(page: Page): Promise<void> {
 
 /**
  * Trail 메뉴 → 입문 → 코스 로드.
- * 기본은 **마지막 항목**(가장 긴 입문 코스) — 짧은 코스는 30km/h 에서 1분 만에 끝나 계측이 안 된다.
+ *
+ * 기본은 **가장 긴 코스**다. 동행 시험은 몇 분씩 달리는데, 짧은 코스를 고르면 측정 도중
+ * **완주해 버려** Go 버튼이 사라진다.
+ *
+ * 2026-09-27: 종전에는 「목록의 마지막 항목」을 골랐다. 그때는 그것이 가장 길었지만 코스가
+ * 늘면서 순서가 바뀌었고, s1 이 0.45 km 코스를 집어 8케이스 중간에 주행이 끝났다.
+ * **위치는 바뀌지만 의도는 안 바뀐다** — 목록에 적힌 거리(`N.NN km`)를 읽어 고른다.
  */
 export async function loadIntroCourse(
   page: Page,
-  opts?: { pick?: 'first' | 'last' },
+  opts?: { pick?: 'first' | 'last' | 'longest' },
 ): Promise<void> {
   await page.getByRole('button', { name: 'Trail 메뉴' }).click()
   await page.getByRole('button', { name: '입문' }).click()
@@ -106,7 +112,25 @@ export async function loadIntroCourse(
   const items = modal.locator('button.oc-modal__item')
   await expect(items.first()).toBeVisible()
   const n = await items.count()
-  const index = opts?.pick === 'first' ? 0 : Math.max(0, n - 1)
+
+  const pick = opts?.pick ?? 'longest'
+  let index = pick === 'first' ? 0 : Math.max(0, n - 1)
+
+  if (pick === 'longest') {
+    let bestKm = -1
+    for (let i = 0; i < n; i += 1) {
+      const text = (await items.nth(i).innerText().catch(() => '')) ?? ''
+      const m = text.match(/([\d.]+)\s*km/)
+      const km = m ? Number(m[1]) : NaN
+      if (Number.isFinite(km) && km > bestKm) {
+        bestKm = km
+        index = i
+      }
+    }
+    // 거리를 하나도 못 읽으면 마지막 항목으로 — 조용히 첫 항목을 고르지 않는다.
+    if (bestKm < 0) index = Math.max(0, n - 1)
+  }
+
   await items.nth(index).click()
   await expect(page.getByRole('button', { name: '주행 시작' })).toBeVisible({ timeout: 20_000 })
 }
