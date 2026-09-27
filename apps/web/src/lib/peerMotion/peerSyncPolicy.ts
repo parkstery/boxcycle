@@ -67,6 +67,25 @@ export const PEER_INTERP_MAX_EXTRAP_MS = 1_200;
 /** 시뮬레이션 주행에서 peer 를 유예하는 시간(ms) */
 export const PEER_DRIVE_SIM_GRACE_MS = 10_000;
 
+/**
+ * motion 좌표를 **동시에 몇 개까지** 보낼 수 있나.
+ *
+ * 왜 1 이 아닌가 (2026-09-27) — 종전에는 앞 쓰기가 끝나야 다음을 보냈다. 그래서
+ * 100ms 마다 보내려 해도 **실제 도착 간격은 왕복 시간에 묶였다**: 실측 `writeRttMs=137`,
+ * `publishQueueMs=70` → 약 200ms. 보내려던 10Hz 가 실제로는 5Hz 였다.
+ *
+ * 도착 간격은 곧 보간 지연이다(간격 × 2.2). 겹쳐 보내면 간격이 절반이 되고
+ * **동행이 뒤처져 보이는 시간도 절반**이 된다.
+ *
+ * 순서는 안전하다 — RTDB 는 한 클라이언트가 보낸 쓰기를 **보낸 순서대로** 적용한다.
+ * 받는 쪽도 거리가 뒤로 가는 패킷을 버린다(`discard-retrograde`).
+ *
+ * ⚠️ 이 값은 **지연을 줄이는 손잡이가 아니라 막힌 것을 뚫는 값**이다. 발행 빈도 자체는
+ * `PEER_MOTION_PUBLISH_INTERVAL_MS`(ride 소유)가 정한다. 전송량을 줄이려면 그쪽을 넓혀라
+ * — 보간이 제대로 도는 지금은 넓혀도 튀지 않는다.
+ */
+export const MOTION_MAX_IN_FLIGHT = 2;
+
 /** motion 비행(publish flight) 배수 종료 대기(ms) */
 export const MOTION_FLIGHT_DRAIN_TIMEOUT_MS = 2_000;
 /** route 비행(publish flight) 배수 종료 대기(ms) */
