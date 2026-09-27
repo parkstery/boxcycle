@@ -332,6 +332,7 @@
       "ride/repo/firestoreWorldPresence.ts"
     ],
     "rider": [
+      "rider/riderDetailLod.ts",
       "rider/riderGlbPedalPose.pose.mjs",
       "rider/riderGlbPedalPose.ts",
       "rider/riderPedalMotion.ts",

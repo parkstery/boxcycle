@@ -3444,14 +3444,19 @@ export function MapView({
       }
 
       const showPeerSprites = mapZoomRef.current > MAP_PEER_SPRITE_MIN_ZOOM;
-      const peerFc = stepPeerDriveAndBuildGeoJson(
+      /*
+       * 2026-09-27 — 종전에는 계산을 다 하고 결과만 버렸다(`showPeerSprites ? fc : EMPTY`).
+       * 게이트를 계산 **앞**으로 넘긴다. 위치 적분은 안에서 언제나 돌므로,
+       * 다시 그릴 때 동행이 제자리로 뛰지 않는다.
+       */
+      const fc = stepPeerDriveAndBuildGeoJson(
         null,
         dt,
         getBearing,
         routeGeometryRef.current,
         Date.now(),
+        { buildFeatures: showPeerSprites },
       );
-      const fc = showPeerSprites ? peerFc : EMPTY_GEOJSON_FC;
       syncPeerDomMarkers(map, fc.features as PeerDomGJFeature[], peerDomMarkersRef);
       const riderLayerReady =
         RIDER_PROTOTYPE_MODE === "glb"

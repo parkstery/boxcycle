@@ -5,6 +5,7 @@ import {
   measureRiderPose,
   measureRiderRenderFrame,
 } from "../debug/riderRenderCostProbe";
+import { shouldAnimateRiderPose } from "../rider/riderDetailLod";
 import { MercatorCoordinate } from "mapbox-gl";
 import {
   AmbientLight,
@@ -206,6 +207,12 @@ class PreservedRiderCustomLayer implements CustomLayerInterface {
      * 줌에서도 그대로 돈다 — 아낄 여지를 감으로 정하지 않기 위해 먼저 재는 것이다.
      */
     installRiderRenderCostProbe();
+    /*
+     * 점으로만 보이는 줌에서는 **자세를 새로 풀지 않는다**(2026-09-27).
+     * 실측상 렌더 비용의 40~46% 가 자세 계산이고, 그 자세는 화면에서 보이지 않는다.
+     * 위상·위치 같은 상태는 바깥에서 계속 돌므로 가까이 가면 다음 프레임에 바로 맞는다.
+     */
+    const animatePose = shouldAnimateRiderPose(map.getZoom());
     measureRiderRenderFrame(this.specs.length, () => {
     renderer.resetState();
     for (const spec of this.specs) {
@@ -226,7 +233,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface {
         .multiply(new Matrix4().makeRotationX(Math.PI / 2))
         .multiply(new Matrix4().makeRotationY(yaw))
         .multiply(new Matrix4().makeRotationX(lean));
-      measureRiderPose(() => rig.setPhase(spec.phaseRev ?? 0));
+      if (animatePose) measureRiderPose(() => rig.setPhase(spec.phaseRev ?? 0));
       this.camera.projectionMatrix.fromArray(matrix).multiply(local);
       this.camera.projectionMatrixInverse.copy(this.camera.projectionMatrix).invert();
       renderer.render(this.scene, this.camera);
