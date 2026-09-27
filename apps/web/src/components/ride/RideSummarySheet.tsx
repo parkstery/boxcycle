@@ -210,15 +210,24 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
             {/* 단위는 여기서 한 번만 — 아래 숫자들엔 붙이지 않는다(2026-09-17 Chief) */}
             <span className="ride-summary__title-unit">km</span>
           </h2>
-          <button
-            type="button"
-            className="ride-summary__close"
-            title="Close"
-            aria-label="닫기"
-            onClick={requestClose}
-          >
-            닫기
-          </button>
+          {/*
+            닫는 버튼은 **상태마다 정확히 하나**다.
+             · 저장할 것이 있으면 → 「저장 안 함」이 닫는다(위)
+             · 저장할 것이 없으면 → 여기 「닫기」가 닫는다
+            둘을 같이 두면 「저장 안 함」과 「닫기」가 무엇이 다른지 읽는 사람이 알 수 없다.
+            (배경 누르기는 언제나 닫힌다 — scrim)
+          */}
+          {props.adhocSaveAvailable ? null : (
+            <button
+              type="button"
+              className="ride-summary__close"
+              title="Close"
+              aria-label="닫기"
+              onClick={requestClose}
+            >
+              닫기
+            </button>
+          )}
         </div>
 
         {/* §3.1 2열 히어로 — 거리(주행/전체) + 새 도로(골드/보라 강조), 우측에 완주/진행률 배지 */}
@@ -334,11 +343,21 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
                 >
                   {busy ? "저장 중…" : "내 경로로 저장"}
                 </button>
+                {/*
+                  2026-09-27 — 「저장 안 함」이 **시트를 닫는다.**
+                  종전에는 저장 행만 사라지고 시트가 남아, 누른 사람이 「아무 일도 안 일어났다」고
+                  느꼈다(자동 시험도 여기서 닫히기를 기다리다 죽었다). 「이 주행을 경로로 남기지
+                  않는다」는 결정은 그 자체로 결말이므로, 닫는 것까지가 한 동작이다.
+                  ⚠️ Ride 기록과 다음 출발점은 그대로 남는다 — 지워지는 것은 「내 경로로 저장」뿐이다.
+                */}
                 <button
                   type="button"
                   className="ride-summary__btn ride-summary__btn--ghost"
-                  title="Skip saving"
-                  onClick={props.onDismissAdhoc}
+                  title="Skip saving and close"
+                  onClick={() => {
+                    props.onDismissAdhoc();
+                    requestClose();
+                  }}
                   disabled={busy}
                 >
                   저장 안 함
