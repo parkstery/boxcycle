@@ -1,5 +1,10 @@
 import type { CustomLayerInterface, Map as MapboxMap } from "mapbox-gl";
 import { moveLayerByRank, resolveBeforeIdByRank } from "../map/layerOrder";
+import {
+  installRiderRenderCostProbe,
+  measureRiderPose,
+  measureRiderRenderFrame,
+} from "../debug/riderRenderCostProbe";
 import { MercatorCoordinate } from "mapbox-gl";
 import {
   AmbientLight,
@@ -192,8 +197,16 @@ class PreservedRiderCustomLayer implements CustomLayerInterface {
   render(_gl: WebGL2RenderingContext, matrix: Array<number>): void {
     const map = this.map;
     const renderer = this.renderer;
-    if (!map || !renderer || this.specs.length === 0 || !this.rig) return;
+    const rig = this.rig;
+    if (!map || !renderer || this.specs.length === 0 || !rig) return;
 
+    /*
+     * 2026-09-27 — 이 한 프레임의 비용을 잰다(DEV 전용, 운영은 콜백만 부른다).
+     * 아래 루프는 **라이더 한 명마다 전체 장면을 한 번씩** 그린다. 점으로만 보이는
+     * 줌에서도 그대로 돈다 — 아낄 여지를 감으로 정하지 않기 위해 먼저 재는 것이다.
+     */
+    installRiderRenderCostProbe();
+    measureRiderRenderFrame(this.specs.length, () => {
     renderer.resetState();
     for (const spec of this.specs) {
       const [lng, lat] = spec.lngLat;
@@ -213,11 +226,12 @@ class PreservedRiderCustomLayer implements CustomLayerInterface {
         .multiply(new Matrix4().makeRotationX(Math.PI / 2))
         .multiply(new Matrix4().makeRotationY(yaw))
         .multiply(new Matrix4().makeRotationX(lean));
-      this.rig.setPhase(spec.phaseRev ?? 0);
+      measureRiderPose(() => rig.setPhase(spec.phaseRev ?? 0));
       this.camera.projectionMatrix.fromArray(matrix).multiply(local);
       this.camera.projectionMatrixInverse.copy(this.camera.projectionMatrix).invert();
       renderer.render(this.scene, this.camera);
     }
+    });
   }
 
   private async loadApprovedCandidate(generation: number): Promise<void> {
