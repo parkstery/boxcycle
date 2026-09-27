@@ -384,6 +384,7 @@
       "debug/mapDebugPhase.ts",
       "debug/mapTickProbe.ts",
       "debug/readSubscriptionMeters.ts",
+      "debug/peerSmoothnessProbe.ts",
       "debug/riderRenderCostProbe.ts",
       "debug/tickTestSwitches.ts",
       "debug/touchActivityMeters.ts"
