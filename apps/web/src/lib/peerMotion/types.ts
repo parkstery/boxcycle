@@ -23,6 +23,11 @@ export type PeerMotionSnapshot = {
   recvAtMs: number;
   /** 송신 t — 동일 패킷 재수신 dedup */
   serverAtMs: number;
+  /**
+   * **송신자가 좌표를 잡은 시각**(송신 측 시계). 보간 타임라인은 이것을 쓴다.
+   * 읽을 수 없으면 null — 그때만 `recvAtMs` 로 내려간다.
+   */
+  srcAtMs: number | null;
   speedMps: number;
   phase: PeerMotionPhase;
   seq?: number;
@@ -42,6 +47,25 @@ export type PeerMotionEntity = {
   displayDistM: number;
   /** prune 용 */
   lastIngestLocalMs: number;
+  /**
+   * 패킷이 **실제로 도착하는 간격**의 평활 추정(ms). 0 은 아직 모름.
+   * 보간 지연을 여기에 맞춘다 — 발행 주기가 아니라 도착 간격이어야 한다.
+   * 단일 슬롯 발행은 왕복 시간만큼 직렬화되므로 둘이 크게 다르다(실측 10Hz 발행 → 약 200ms 도착).
+   */
+  arrivalGapMsEma: number;
+  /**
+   * 수신 시계 − 송신 시계(ms). 두 기기의 시계 차를 상쇄해 송신 시각을 내 시계로 옮긴다.
+   * 최근 패킷 중 **가장 적게 지연된 것**을 기준으로 잡는다(= 오프셋의 running min).
+   */
+  clockOffsetMs: number | null;
+  /**
+   * **재생 시계**(내 시계 기준 ms) — 지금 화면에 그리는 시점.
+   * 실시간으로 흐르며 목표 지연 쪽으로 조금씩만 당겨진다. `지금 − 지연` 을 매 프레임
+   * 다시 계산하면 지연이 바뀔 때마다 화면이 순간이동한다.
+   */
+  renderClockMs: number | null;
+  /** 재생 시계를 얼마나 흘릴지 재기 위한 직전 step 시각 */
+  lastStepNowMs: number;
   /** render */
   hdg: number;
   phaseRev: number;
