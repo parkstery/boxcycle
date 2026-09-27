@@ -6,12 +6,13 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { computeDeffResidualFromSeries, S1_LIMITS } from "./s1-metrics.mjs";
+import { RELAY_OUT_DIR, relayInput } from "./relay-paths.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const DIR = resolve(HERE, "../../../../document/ops/sync-relay");
+const DIR = RELAY_OUT_DIR;
 const EVENTS = resolve(DIR, process.argv[2] || "S3AV-chain-events.json");
 const OUT = resolve(DIR, process.argv[3] || "S3AVR-summary.json");
-const PRIOR = resolve(DIR, "S3AV-summary.json");
+const PRIOR = relayInput("S3AV-summary.json", "s3avr-summarize");
 
 const INTERP_DELAY_MS = 160;
 const MAX_DELAY_MS = 3_000;

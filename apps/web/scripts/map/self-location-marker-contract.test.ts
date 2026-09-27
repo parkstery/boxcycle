@@ -7,7 +7,7 @@ import {
   normalizeBearingDeg,
   updateSelfLocationMarkerBearing,
   viewportBearingDeg,
-} from "../../src/lib/mapSelfLocationMarker.ts";
+} from "../../src/lib/map/mapSelfLocationMarker.ts";
 
 describe("mapSelfLocationMarker — 계약", () => {
   it("class 가 live nametag·peer 와 겹치지 않는다", () => {

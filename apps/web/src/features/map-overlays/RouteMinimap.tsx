@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, useState, type PointerEvent, type TouchEvent } from "react";
-import type { LineStringGeometry, LngLat } from "../../lib/geo";
+import type { LineStringGeometry, LngLat } from "../../lib/geo/geo";
 import { computeRouteMinimapSize, projectRouteMinimap } from "./routeMinimapProjection";
 import "./RouteMinimap.css";
 

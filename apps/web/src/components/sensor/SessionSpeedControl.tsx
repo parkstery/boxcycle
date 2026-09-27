@@ -3,7 +3,7 @@ import {
   SESSION_SPEED_MAX_KMH,
   SESSION_SPEED_MIN_KMH,
   clampSessionSpeedKmh,
-} from "../../lib/sessionSpeedKmh";
+} from "../../lib/sensor/sessionSpeedKmh";
 import "./SessionSpeedControl.css";
 
 type SessionSpeedControlProps = {

@@ -1,32 +1,32 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it } from "node:test";
 import type { FirestoreError } from "firebase/firestore";
-import { snapshotReadSubscriptions } from "../../src/lib/installReadSubscriptionDebug.ts";
+import { snapshotReadSubscriptions } from "../../src/lib/debug/installReadSubscriptionDebug.ts";
 import {
   debugInjectTrailLivePublicationRidesHubError,
   debugTrailLivePublicationRidesSubscriptionHub,
   acquireTrailLivePublicationRidesSubscription,
   resetTrailLivePublicationRidesSubscriptionHubForTests,
-} from "../../src/lib/livePublicationRidesSubscriptionHub.ts";
+} from "../../src/lib/trail/repo/livePublicationRidesSubscriptionHub.ts";
 import {
   resetUnderlyingReadMeters,
   snapshotUnderlyingReadSubscriptions,
   trackUnderlyingReadSubscription,
-} from "../../src/lib/readSubscriptionMeters.ts";
+} from "../../src/lib/debug/readSubscriptionMeters.ts";
 import {
   acquireTrailMotionSubscription,
   debugInjectRtdbMotionHubError,
   debugRtdbMotionSubscriptionHub,
   resetRtdbMotionSubscriptionHubForTests,
-} from "../../src/lib/rtdbMotionSubscriptionHub.ts";
-import type { RtdbTrailMotionRow } from "../../src/lib/rtdbTrailMotion.ts";
-import type { TrailLivePublicationRideRow } from "../../src/lib/firestoreTrailLivePublicationRides.ts";
+} from "../../src/lib/peerMotion/repo/rtdbMotionSubscriptionHub.ts";
+import type { RtdbTrailMotionRow } from "../../src/lib/peerMotion/repo/rtdbTrailMotion.ts";
+import type { TrailLivePublicationRideRow } from "../../src/lib/trail/repo/firestoreTrailLivePublicationRides.ts";
 import {
   acquireActiveLiveRideTrailIdsSubscription,
   debugActiveLiveRideTrailIdsSubscriptionHub,
   debugInjectActiveLiveRideTrailIdsHubError,
   resetActiveLiveRideTrailIdsSubscriptionHubForTests,
-} from "../../src/lib/activeLiveRideTrailIdsSubscriptionHub.ts";
+} from "../../src/lib/trail/repo/activeLiveRideTrailIdsSubscriptionHub.ts";
 
 
 describe("readSubscriptionMeters", () => {

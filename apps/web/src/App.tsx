@@ -1,8 +1,9 @@
-import { startTransition, useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PublicationSharedPresence } from "./components/PublicationSharedPresence";
-import { peerHudLabels, type PeerHudEntry } from "./lib/peerHud";
-import { SignUpNicknameCard } from "./components/SignUpNicknameCard";
-import { RideRoutePanel, type FollowMode } from "./components/RideRoutePanel";
+import { peerHudLabels, type PeerHudEntry } from "./lib/peerMotion/peerHud";
+import { SignUpNicknameCard } from "./components/auth/SignUpNicknameCard";
+import { RideRoutePanel } from "./components/ride/RideRoutePanel";
+import type { FollowMode } from "./lib/map/mapGlobeView";
 import { PublicRouteRequestModal } from "./components/PublicRouteRequestModal";
 import { useTrailSession } from "./hooks/useTrailSession";
 import { useLiveLocationPublishSession } from "./hooks/useLiveLocationPublishSession";
@@ -12,12 +13,12 @@ import {
   formatRouteActivityHudLine,
   invalidateLiveRouteActivityIdsCache,
   invalidateRouteActivityCache,
-} from "./lib/firestoreRouteActivity";
+} from "./lib/activity/repo/firestoreRouteActivity";
 import { AppMapStage, RouteMinimap, useAppMapOverlays } from "./features/map-overlays";
 import { RouteDock, useRouteDockStops, type RouteDockStop, type RouteDockStopId } from "./components/route-dock";
 import { DebugMapStage } from "./features/map-overlays/DebugMapStage";
-import type { MapViewportBounds } from "./lib/activityWorldLod";
-import { armPostRideActivityWatch } from "./lib/activityWorldPollSignals";
+import type { MapViewportBounds } from "./lib/activity/activityWorldLod";
+import { armPostRideActivityWatch } from "./lib/activity/activityWorldPollSignals";
 import {
   DEFAULT_FOLLOW_MODE,
   DEFAULT_MAP_ENABLE_3D,
@@ -26,23 +27,23 @@ import {
   RIDE_START_ZOOM,
   RIDE_CAMERA_DISTANCE_DEFAULT_M,
   RIDE_CAMERA_DISTANCE_MIN_M,
-} from "./lib/mapGlobeView";
-import { rideDistanceAlongRoute } from "./lib/liveLocationSnapshot";
-import { AuthGateCard, AuthGoogleMark } from "./components/AuthGateCard";
-import { GuestEntryCard } from "./components/GuestEntryCard";
-import { allowUnauthMapDev } from "./lib/authGatePolicy";
-import { readGuestEntryAccepted } from "./lib/appSessionKeys";
+} from "./lib/map/mapGlobeView";
+import { rideDistanceAlongRoute } from "./lib/ride/liveLocationSnapshot";
+import { AuthGateCard, AuthGoogleMark } from "./components/auth/AuthGateCard";
+import { GuestEntryCard } from "./components/auth/GuestEntryCard";
+import { allowUnauthMapDev } from "./lib/identity/authGatePolicy";
+import { readGuestEntryAccepted } from "./lib/storage/appSessionKeys";
 import { useUserTier } from "./hooks/useUserTier";
-import { RideSummarySheet } from "./components/RideSummarySheet";
+import { RideSummarySheet } from "./components/ride/RideSummarySheet";
 import { NextRideCard, LocalFirstEntryCard } from "./components/ride";
-import { resolveNextRideView } from "./lib/nextRideTarget";
-import type { NextRideTarget } from "./lib/nextRideTarget";
-import type { RideEndResult } from "./lib/rideEndResult";
+import { resolveNextRideView } from "./lib/ride/nextRideTarget";
+import type { NextRideTarget } from "./lib/ride/nextRideTarget";
+import type { RideEndResult } from "./lib/ride/rideEndResult";
 import { MenuPanel } from "./components/MenuPanel";
 import { MapBottomLeftStack } from "./features/map-overlays/MapBottomLeftStack";
 import { PlaceSearchPanel } from "./components/PlaceSearchPanel";
 import { MenuPlaceSearch } from "./components/MenuPlaceSearch";
-import { TrailHubPanel } from "./components/TrailHubPanel";
+import { TrailHubPanel } from "./components/trail/TrailHubPanel";
 import { useOpenTrails } from "./hooks/useOpenTrails";
 import { useTrailInstanceMeta } from "./hooks/useTrailInstanceMeta";
 import {
@@ -52,75 +53,77 @@ import {
   readLocalFirstRegion,
   writeLocalFirstRegion,
   type LocalFirstRegion,
-} from "./lib/localFirstRegion";
-import { resolveMapBootCenter } from "./lib/mapBootCenter";
+} from "./lib/geo/localFirstRegion";
+import { resolveMapBootCenter } from "./lib/map/mapBootCenter";
 import {
   buildTrailRegionLabel,
-  closeTrailInstance,
   createTrailInstance,
   fetchTrailInstance,
   setTrailVisibility,
   touchTrailInstanceActivity,
   withResolvedTrailPublicationId,
   type TrailInstance,
-} from "./lib/firestoreTrailInstance";
-import { fetchOpenTrailListingPublicationId } from "./lib/firestoreOpenTrailListings";
-import { formatTrailDisplayNumber, resolveTrailDisplayLabel } from "./lib/trailDisplayNumber";
+} from "./lib/trail/repo/firestoreTrailInstance";
+import {
+  fetchOpenTrailListingPublicationId,
+  refreshOpenTrailListingFromTrail,
+} from "./lib/trail/repo/firestoreOpenTrailListings";
+import { formatTrailDisplayNumber, resolveTrailDisplayLabel } from "./lib/trail/trailDisplayNumber";
 import {
   readTrailDisplayNumberCache,
   rememberTrailDisplayNumber,
-} from "./lib/trailDisplayNumberCache";
+} from "./lib/trail/trailDisplayNumberCache";
 import { RotateOverlay } from "./components/RotateOverlay";
 import { RiderLightLabPanel } from "./components/riderLightLab/RiderLightLabPanel";
-import { MapViewSheet } from "./components/MapViewSheet";
+import { MapViewSheet } from "./components/map/MapViewSheet";
 import { UserInfoSheet } from "./components/UserInfoSheet";
-import { RideSettingsSheet } from "./components/RideSettingsSheet";
+import { RideSettingsSheet } from "./components/ride/RideSettingsSheet";
 import { useRideUiStage } from "./hooks/useRideUiStage";
 import {
   useRideArrivalAutoEnd,
   useRideCoachingMedia,
   useRideFeedbackPreferences,
 } from "./features/ride-feedback";
-import { isFirebaseConfigured } from "./lib/firebase";
+import { isFirebaseConfigured } from "./lib/firebase/app";
 import {
   BASIC_SHARED_HUB_IDS,
   BASIC_SHARED_HUB_SUMMARIES,
   ensureBasicCoursesSeeded,
   fetchCourseRoutePayload,
   getBasicHubCoursePayload,
-} from "./lib/firestoreCourses";
-import { deletePublicationSessionMember } from "./lib/firestorePublicationSessionPresence";
-import { deleteGlobalLivePresence } from "./lib/firestoreGlobalLivePresence";
+} from "./lib/route/repo/firestoreCourses";
+import { deletePublicationSessionMember } from "./lib/ride/repo/firestorePublicationSessionPresence";
+import { deleteGlobalLivePresence } from "./lib/ride/repo/firestoreGlobalLivePresence";
 import {
   DEFAULT_TRAIL_ID,
   deleteTrailPresence,
   isTrailMemberActive,
   sanitizeTrailId,
-} from "./lib/firestoreTrail";
-import { canUserJoinTrail, resolveNewTrailVisibility } from "./lib/trailAccessPolicy";
-import { replaceTrailInUrl } from "./lib/trailUrl";
-import type { LngLat, LineStringGeometry } from "./lib/geo";
-import { boundsFromLineCoordinates, getPointOnRouteByDistance, lineStringLengthMeters } from "./lib/geo";
-import { MAX_ROUTE_WAYPOINTS } from "./lib/routeWaypoints";
-import { lockRouteWorkspaceDuringRide } from "./lib/routeWorkspaceLock";
-import { resolveRideContinuationSetup } from "./lib/rideContinuationSetup";
-import type { PublishedPublicCourseSummary } from "./lib/firestoreCourses";
+} from "./lib/trail/repo/firestoreTrail";
+import { canUserJoinTrail, resolveNewTrailVisibility } from "./lib/trail/trailAccessPolicy";
+import { replaceTrailInUrl } from "./lib/trail/trailUrl";
+import type { LngLat, LineStringGeometry } from "./lib/geo/geo";
+import { boundsFromLineCoordinates, getPointOnRouteByDistance, lineStringLengthMeters } from "./lib/geo/geo";
+import { MAX_ROUTE_WAYPOINTS } from "./lib/geo/routeWaypoints";
+import { lockRouteWorkspaceDuringRide } from "./lib/route/routeWorkspaceLock";
+import { resolveRideContinuationSetup } from "./lib/ride/rideContinuationSetup";
+import type { PublishedPublicCourseSummary } from "./lib/route/repo/firestoreCourses";
 import {
   publicationDisplayTitle,
-} from "./lib/publicationDisplay";
+} from "./lib/route/publicationDisplay";
 import {
   resolvePublishedRouteLink,
   type PublishedRouteLink,
   type RouteRideEntry,
-} from "./lib/routePublicationResolve";
-import type { SavedRoute } from "./lib/firestoreSavedRoutes";
-import { SAVED_ROUTE_NAME_MAX, buildSuggestedRouteName } from "./lib/firestoreSavedRoutes";
+} from "./lib/route/routePublicationResolve";
+import type { SavedRoute } from "./lib/route/repo/firestoreSavedRoutes";
+import { SAVED_ROUTE_NAME_MAX, buildSuggestedRouteName } from "./lib/route/repo/firestoreSavedRoutes";
 import { useAppAuth } from "./hooks/useAppAuth";
 import { useRouteTokenBalance } from "./hooks/useRouteTokenBalance";
 import {
   isRouteTokenGenerateMetered,
   useRouteTokenGenerateCostBase,
-} from "./lib/routeTokenEconomyClient";
+} from "./lib/account/routeTokenEconomyClient";
 import { useAppTrail } from "./hooks/useAppTrail";
 import { useRoutePlanning } from "./hooks/useRoutePlanning";
 import { useRecentRideSessions } from "./hooks/useRecentRideSessions";
@@ -133,35 +136,28 @@ import { useReadyRide } from "./hooks/useReadyRide";
 import {
   DEFAULT_MAP_STYLE,
   MAP_STYLE_OPTIONS,
-} from "./lib/appSessionKeys";
-import { formatElapsedFromMs } from "./lib/rideFormat";
-import { formatRideDistanceKmNumber } from "./lib/rideDistanceFormat";
+} from "./lib/map/rtwMapConfig";
+import { formatElapsedFromMs } from "./lib/ride/rideFormat";
+import { formatRideDistanceKmNumber } from "./lib/ride/rideDistanceFormat";
 import { useBleCrankRpm } from "./hooks/useBleCrankRpm";
-import { resolveRideTargetSpeedKmh, type RideInputMode } from "./lib/cadenceRideInput";
-import { isRideInputReady, resolveRideInputReadiness } from "./lib/cadenceSensorUi";
+import { resolveRideTargetSpeedKmh, type RideInputMode } from "./lib/sensor/cadenceRideInput";
+import { isRideInputReady, resolveRideInputReadiness } from "./lib/sensor/cadenceSensorUi";
 import { CadenceSensorSheet } from "./components/sensor";
 import { useConquest } from "./hooks/useConquest";
 import { useLiveConquestPaint, shouldShowAlreadyOwnedHint } from "./hooks/useLiveConquestPaint";
-import { conquestCellIdsAround } from "./lib/conquestTiles";
-import { ROUTE_COMPLETION_RATIO_THRESHOLD, resumeOffsetMetersFrom } from "./lib/rideRecordPolicy";
-import { useRideMapillaryStreet } from "./hooks/useRideMapillaryStreet";
-import { MAPILLARY_CLIENT_TOKEN, mapillaryTokenConfigured } from "./lib/mapillaryToken";
-import type { CoverageOverlayMode } from "./lib/coverageOverlayMode";
+import { conquestCellIdsAround } from "./lib/conquest/conquestTiles";
+import { ROUTE_COMPLETION_RATIO_THRESHOLD, resumeOffsetMetersFrom } from "./lib/ride/rideRecordPolicy";
+import type { CoverageOverlayMode } from "./lib/activity/coverageOverlayMode";
 import { type RouteProfile } from "./services/mapboxDirections";
 import { FUNCTIONS_REGION, MAPBOX_TOKEN } from "./app/env";
 import { useAppSheetNavigation } from "./app/useAppSheetNavigation";
-import { getMapDebugPhase } from "./lib/mapDebugPhase";
+import { getMapDebugPhase } from "./lib/debug/mapDebugPhase";
 import {
   type Camera1Mode,
   CAMERA1_AERIAL_DISTANCE_M,
   nextCamera1Mode,
-} from "./lib/camera1Mode";
+} from "./lib/camera/camera1Mode";
 import "./App.css";
-
-const MapillaryRideViewer = lazy(async () => {
-  const m = await import("./components/MapillaryRideViewer");
-  return { default: m.MapillaryRideViewer };
-});
 
 export default function App() {
   const {
@@ -252,8 +248,6 @@ export default function App() {
    * 절대 `manual` 로 자동 복귀시키지 않는다 — 페달링 없이 전진하는 실패를 막는다.
    */
   const [rideInputMode, setRideInputMode] = useState<RideInputMode>("manual");
-  /** 주행 중 Mapillary 거리뷰 창 — 기본 꺼짐. 맵 뷰 시트에서 켠다(기능은 그대로 유지) */
-  const [rideStreetViewEnabled, setRideStreetViewEnabled] = useState(false);
   const bleCrankRpm = useBleCrankRpm();
   const bleSensorConnected = bleCrankRpm.uiState === "connected";
   /**
@@ -411,8 +405,6 @@ export default function App() {
   const pageVisible = useDocumentVisibility();
   const [trailVisibilityBusy, setTrailVisibilityBusy] = useState(false);
   const [trailStartBusy, setTrailStartBusy] = useState(false);
-  /** 이번 주행에서 호스트로 연 Trail — 종료 시 close */
-  const hostTrailIdRef = useRef<string | null>(null);
   /** Trail 생성·MENU 합류 직후 `displayNumber` 즉시 표시 — `useTrailInstanceMeta` fetch 전 */
   const [trailMetaSeed, setTrailMetaSeed] = useState<TrailInstance | null>(null);
   /** 주행 세션 동안 MENU·표시용 Trail id (Trailhead UI 전환과 무관하게 유지) */
@@ -468,7 +460,7 @@ export default function App() {
 
   /** leaveBasicHub 등에서 최신 주행 종료 로직을 호출하기 위한 ref */
   const handleEndRideRef = useRef<() => void>(() => {});
-  /** 주행 종료 시 `rides.publicationId` — `useOfficialCoursesHub` 이후 매 렌더 갱신 */
+  /** 주행 종료 시 `rides.publicationId` — publication 카탈로그 해소 이후 매 렌더 갱신 */
   const activePublicationIdRef = useRef<string | null>(null);
   /** `useSavedRoutesWorkspace` 가 주입 — `useRoutePlanning` 보다 아래에서 대입 */
   const clearSavedRouteArtifactsRef = useRef<() => void>(() => {});
@@ -1115,7 +1107,6 @@ export default function App() {
     setTrailDraft(tid);
     setTrailId(tid);
     replaceTrailInUrl(tid);
-    hostTrailIdRef.current = null;
     setTrailMetaSeed(null);
   }, [setTrailDraft, setTrailId]);
 
@@ -1196,7 +1187,6 @@ export default function App() {
         if (resolvedMeta.publicationId) {
           await loadCourseRouteForTrailJoin(resolvedMeta.publicationId);
         }
-        hostTrailIdRef.current = null;
         rememberTrailDisplayNumber(resolvedMeta.id, resolvedMeta.displayNumber);
         setTrailMetaSeed(resolvedMeta);
         setTrailDraft(next);
@@ -1329,7 +1319,6 @@ export default function App() {
             setError("이 Trail은 종료되었습니다.");
             return;
           }
-          hostTrailIdRef.current = existing.hostUid === user.uid ? existing.id : null;
           rememberTrailDisplayNumber(existing.id, existing.displayNumber);
           setTrailMetaSeed(existing);
           void touchTrailInstanceActivity(currentTid);
@@ -1354,7 +1343,6 @@ export default function App() {
           distanceKm: routeDistanceMeters > 0 ? routeDistanceMeters / 1000 : null,
           visibility,
         });
-        hostTrailIdRef.current = trail.id;
         rememberTrailDisplayNumber(trail.id, trail.displayNumber);
         setTrailMetaSeed(trail);
         const prev = sanitizeTrailId(trailId);
@@ -1391,12 +1379,28 @@ export default function App() {
         : trailId,
     );
     const uid = user?.uid ?? null;
-    const wasHostTrail = hostTrailIdRef.current === endedTrailId;
     setRidingTrailId(null);
     handleEndRide();
     void (async () => {
-      if (uid && wasHostTrail && endedTrailId !== DEFAULT_TRAIL_ID) {
-        await closeTrailInstance(endedTrailId).catch(() => {});
+      /*
+       * 2026-09-27: 종전에는 **개설자일 때만** `closeTrailInstance()` 를 불러 Trail 을
+       * `status: "closed"` 로 바꾸고 목록에서 지웠다. 되돌리는 코드가 앱에도 서버에도
+       * 없어서 개설자는 **자기 Trail 에 영원히 못 돌아갔다**(참여자는 멀쩡했다 — 목록에
+       * 남아 있어 번호를 다시 누르면 합류됐다).
+       *
+       * 그 「닫기」는 앞뒤도 맞지 않았다. Trail 이 닫히는 경우는 앱 전체에서 그 한 곳뿐이라,
+       * 참여자만 남아 있다가 전부 나간 Trail 은 열린 채 남았다. 개설자의 Stop 만 예외였다.
+       *
+       * 이제 **누가 나가든 같다** — 목록을 다시 계산할 뿐이다. 「지금 달리는 사람이
+       * 있는가」로 목록에 남길지 지울지는 `refreshOpenTrailListingFromTrail` 이 이미 정한다.
+       * 그래서 남은 사람이 있으면 Trail 이 유지되고(종전에는 개설자가 나가면 사라졌다),
+       * 아무도 없으면 목록에서 빠진다.
+       *
+       * ⚠ 아무도 없는 Trail 로 **돌아가는** 창구는 아직 없다 — 목록에 안 뜨기 때문이고,
+       *   이는 개설자·참여자 모두 같다. 별건(2단계)으로 남긴다.
+       */
+      if (uid && endedTrailId !== DEFAULT_TRAIL_ID) {
+        await refreshOpenTrailListingFromTrail(endedTrailId).catch(() => {});
       }
       returnToTrailhead();
     })();
@@ -1539,18 +1543,6 @@ export default function App() {
     enabled: globalLivePresenceSubscribeEnabled,
   });
 
-  const { streetState: rideMapillaryStreet, rideSync: mapillaryRideSync, dismissStreet: dismissMapillaryStreet } =
-    useRideMapillaryStreet({
-      user,
-      accessToken: mapillaryTokenConfigured ? MAPILLARY_CLIENT_TOKEN : null,
-      routeGeometry,
-      routeTotalMeters: routeDistanceMeters,
-      virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
-      sessionStatus: rideStatus,
-      speedKmh: rideMetrics.appliedSpeedKmh,
-      riderLngLat: liveForMap,
-      enabled: rideStreetViewEnabled,
-    });
 
   /** Firebase 미설정이거나 인증 준비 완료 후 — Trailhead·입문 코스 UI가 숨겨지지 않도록 메인 워크스페이스 표시 */
   const rideWorkspaceOpen = !configured || (configured && authInitialized);
@@ -1984,9 +1976,6 @@ export default function App() {
 
   const applyLocalFirstRegion = useCallback(
     (region: LocalFirstRegion, opts?: { jumpCamera?: boolean }) => {
-      if (import.meta.env.DEV) {
-        console.log("[C1] applyLocalFirstRegion", region, opts);
-      }
       setLocalFirstRegion(region);
       writeLocalFirstRegion(region);
       if (opts?.jumpCamera === false) return;
@@ -1995,9 +1984,6 @@ export default function App() {
       setActiveQuickCamera(null);
       setLockBaseHeading(null);
       cameraJumpSeqRef.current += 1;
-      if (import.meta.env.DEV) {
-        console.log("[C2] setExternalCameraJump", cameraJumpSeqRef.current, region.lngLat, region.zoom);
-      }
       setExternalCameraJump({
         lngLat: region.lngLat,
         zoom: region.zoom,
@@ -2468,35 +2454,6 @@ export default function App() {
               conquestAllOwnedHint,
             }}
           >
-            {rideMapillaryStreet && mapillaryRideSync && mapillaryTokenConfigured ? (
-              <div className="mapillary-street-floating" aria-label="Mapillary 거리뷰">
-                <div className="mapillary-street-floating__head">
-                  <span className="mapillary-street-floating__title">Mapillary</span>
-                  <button
-                    type="button"
-                    className="mapillary-street-floating__close"
-                    title="Close street view"
-                    onClick={dismissMapillaryStreet}
-                  >
-                    닫기
-                  </button>
-                </div>
-                <div className="mapillary-street-floating__video">
-                  <Suspense
-                    fallback={<div className="mapillary-street-floating__loading">거리뷰 로드 중…</div>}
-                  >
-                    <MapillaryRideViewer
-                      accessToken={MAPILLARY_CLIENT_TOKEN}
-                      imageId={rideMapillaryStreet.imageKey}
-                      lookAt={mapillaryRideSync.lookAt}
-                      driveHeadingDeg={mapillaryRideSync.driveHeadingDeg}
-                      sphericalNavigation={rideMapillaryStreet.isPano}
-                    />
-                  </Suspense>
-                </div>
-                <p className="mapillary-street-floating__attr">Imagery © Mapillary contributors</p>
-              </div>
-            ) : null}
           </DebugMapStage>
         ) : (
           <AppMapStage
@@ -2551,7 +2508,6 @@ export default function App() {
               onMapViewport,
               onMapLodViewport,
               coverageOverlayMode,
-              mapillaryClientToken: mapillaryTokenConfigured ? MAPILLARY_CLIENT_TOKEN : null,
               routeProfile: profile,
               onRouteProfile: handleMapRouteProfile,
               routeTokenInsufficient,
@@ -2677,35 +2633,6 @@ export default function App() {
                   : null,
             }}
           >
-            {rideMapillaryStreet && mapillaryRideSync && mapillaryTokenConfigured ? (
-              <div className="mapillary-street-floating" aria-label="Mapillary 거리뷰">
-                <div className="mapillary-street-floating__head">
-                  <span className="mapillary-street-floating__title">Mapillary</span>
-                  <button
-                    type="button"
-                    className="mapillary-street-floating__close"
-                    title="Close street view"
-                    onClick={dismissMapillaryStreet}
-                  >
-                    닫기
-                  </button>
-                </div>
-                <div className="mapillary-street-floating__video">
-                  <Suspense
-                    fallback={<div className="mapillary-street-floating__loading">거리뷰 로드 중…</div>}
-                  >
-                    <MapillaryRideViewer
-                      accessToken={MAPILLARY_CLIENT_TOKEN}
-                      imageId={rideMapillaryStreet.imageKey}
-                      lookAt={mapillaryRideSync.lookAt}
-                      driveHeadingDeg={mapillaryRideSync.driveHeadingDeg}
-                      sphericalNavigation={rideMapillaryStreet.isPano}
-                    />
-                  </Suspense>
-                </div>
-                <p className="mapillary-street-floating__attr">Imagery © Mapillary contributors</p>
-              </div>
-            ) : null}
           </AppMapStage>
         )}
       </div>
@@ -2847,9 +2774,6 @@ export default function App() {
         onMapStyle={setMapStyle}
         coverageOverlayMode={coverageOverlayMode}
         onCoverageOverlayMode={setCoverageOverlayMode}
-        rideStreetViewEnabled={rideStreetViewEnabled}
-        onRideStreetViewEnabled={setRideStreetViewEnabled}
-        mapillaryTokenConfigured={mapillaryTokenConfigured}
         enable3D={enable3D}
         onEnable3D={setEnable3D}
         followMode={followMode}

@@ -3,13 +3,20 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
+import {
+  PEER_SYNC_OUT_DIR,
+  ensureRiding,
+  guestStart,
+  loadIntroCourse,
+  setSpeedKmh,
+} from './rideEntryHelpers'
 
 /**
  * S4-1 — route in-flight 제거 before/after.
  * S41_PHASE=before|after · S41_RUN=1|2|3
  */
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const OUT_DIR = path.resolve(__dirname, '../../../document/ops/sync-relay')
+const OUT_DIR = PEER_SYNC_OUT_DIR
 const WEB_ROOT = path.resolve(__dirname, '..')
 const GEO_STOP_M = 900
 const PHASE = (process.env.S41_PHASE || 'after').toLowerCase() === 'before' ? 'before' : 'after'
@@ -17,60 +24,6 @@ const RUN = Math.min(3, Math.max(1, Number(process.env.S41_RUN || '1')))
 /** S4-1R2 — 다른 작업선의 미커밋 S41-* 산출물을 덮지 않기 위한 출력 태그 (예: R2) */
 const OUT_TAG = (process.env.S41_OUT_TAG || '').replace(/[^A-Za-z0-9]/g, '')
 const EVENTS_NAME = `S41${OUT_TAG}-${PHASE}-run${RUN}-events.json`
-
-async function guestStart(page: import('@playwright/test').Page) {
-  const gate = page.getByRole('dialog', { name: '시작' })
-  await expect(gate).toBeVisible({ timeout: 30_000 })
-  await gate.getByRole('button', { name: '시작', exact: true }).click()
-  await expect(gate).toBeHidden({ timeout: 30_000 })
-}
-
-async function loadIntroCourse(page: import('@playwright/test').Page) {
-  await page.getByRole('button', { name: 'Trail 메뉴' }).click()
-  await page.getByRole('button', { name: '입문' }).click()
-  const modal = page.getByRole('dialog').filter({ has: page.locator('#oc-modal-title') })
-  await expect(modal).toBeVisible({ timeout: 15_000 })
-  const items = modal.locator('button.oc-modal__item')
-  await expect(items.first()).toBeVisible()
-  const n = await items.count()
-  await items.nth(Math.max(0, n - 1)).click()
-  await expect(page.getByRole('button', { name: '주행 시작' })).toBeVisible({ timeout: 20_000 })
-}
-
-async function dismissRideSummaryIfAny(page: import('@playwright/test').Page) {
-  const summary = page.getByRole('dialog', { name: '주행 결과' })
-  if (!(await summary.isVisible().catch(() => false))) return
-  const skip = summary.getByRole('button', { name: '저장 안 함' })
-  if (await skip.isVisible().catch(() => false)) await skip.click()
-  else await summary.getByRole('button', { name: '닫기' }).first().click()
-  await expect(summary).toBeHidden({ timeout: 10_000 })
-}
-
-async function ensureRiding(page: import('@playwright/test').Page) {
-  await dismissRideSummaryIfAny(page)
-  if (await page.getByRole('button', { name: '주행 종료' }).isVisible().catch(() => false)) return
-  if (await page.getByRole('button', { name: '재개' }).first().isVisible().catch(() => false)) return
-  const start = page.getByRole('button', { name: '주행 시작' })
-  await expect(start).toBeVisible({ timeout: 20_000 })
-  await start.click()
-  await expect(page.getByRole('button', { name: '주행 종료' })).toBeVisible({ timeout: 30_000 })
-}
-
-async function ensureDockExpanded(page: import('@playwright/test').Page) {
-  await ensureRiding(page)
-  const fold = page.getByRole('button', { name: '경로 패널 접기' })
-  if (!(await fold.isVisible().catch(() => false))) {
-    await page.getByRole('button', { name: '경로 패널 펼치기' }).click()
-  }
-  await expect(page.getByRole('slider', { name: '세션 속도 km/h' })).toBeVisible({
-    timeout: 10_000,
-  })
-}
-
-async function setSpeedKmh(page: import('@playwright/test').Page, kmh: number) {
-  await ensureDockExpanded(page)
-  await page.getByRole('slider', { name: '세션 속도 km/h' }).fill(String(kmh))
-}
 
 async function openMapViewSheet(page: import('@playwright/test').Page) {
   const btn = page.getByRole('button', { name: '맵 뷰 설정' })

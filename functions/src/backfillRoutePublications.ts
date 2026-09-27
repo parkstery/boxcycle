@@ -3,6 +3,7 @@ import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { HttpsError, onRequest } from "firebase-functions/v2/https";
 import type { Request, Response } from "express";
 import { isRouteReviewerUid } from "./savedRouteAdminPromoteCore.js";
+import { REGION } from "./region.js";
 
 async function assertBearerRouteReviewer(req: Request): Promise<string> {
   const authHeader = req.get("Authorization") ?? "";
@@ -26,7 +27,6 @@ async function assertBearerRouteReviewer(req: Request): Promise<string> {
   return decoded.uid;
 }
 
-const REGION = "asia-northeast3";
 
 type BackfillResult = {
   scanned: number;

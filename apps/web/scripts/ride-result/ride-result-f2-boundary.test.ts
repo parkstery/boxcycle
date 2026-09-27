@@ -5,7 +5,7 @@
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { isRouteCompletion } from "../../src/lib/rideRecordPolicy.ts";
+import { isRouteCompletion } from "../../src/lib/ride/rideRecordPolicy.ts";
 
 describe("F2 Boundary: End→Save→Restore", () => {
   it("50% progress: save 0.5 ratio → resume same meaning", () => {

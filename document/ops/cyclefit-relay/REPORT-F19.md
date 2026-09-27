@@ -156,7 +156,7 @@ C:\20.HDev\boxcycle\apps\web\scripts\rider-cycle-fit\.out\candidates\20260802-F1
  M apps/web/public/rider/prototype/rider-lowpoly.glb        ← F19 이식(761,732 B)
  M blender/rider-cycle-fit/decompose-v2-rider.py            ← 메시 무결성 복구
  M apps/web/src/lib/riderPrototype/riderRig.geometry.mjs    ← F18 잔여(사지 길이·발목)
- M apps/web/src/lib/riderGlbPedalPose.pose.mjs              ← F18 잔여(발목 목표)
+ M apps/web/src/lib/rider/riderGlbPedalPose.pose.mjs              ← F18 잔여(발목 목표)
 ?? apps/web/public/rider/prototype/rider-lowpoly.glb.pre-F19.bak   ← 백업
 ?? apps/web/public/rider/prototype/rider-lowpoly.glb.pre-F18.bak
 ?? apps/web/public/rider/prototype/rider-lowpoly.glb.pre-F15.bak

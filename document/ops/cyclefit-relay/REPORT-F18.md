@@ -181,7 +181,7 @@ V2 실측 어깨 반폭은 **180.4mm** 인데 `riderRig` 는 **200mm** 다. 지�
 ```
  M apps/web/public/rider/prototype/rider-lowpoly.glb        ← V2+자전거 병합본 이식
  M apps/web/src/lib/riderPrototype/riderRig.geometry.mjs    ← 사지 길이 5개 + 발목 오프셋
- M apps/web/src/lib/riderGlbPedalPose.pose.mjs              ← 발목 목표 겨냥
+ M apps/web/src/lib/rider/riderGlbPedalPose.pose.mjs              ← 발목 목표 겨냥
 ?? apps/web/public/rider/prototype/rider-lowpoly.glb.pre-F18.bak   ← 백업
 ?? apps/web/public/rider/prototype/rider-lowpoly.glb.pre-F15.bak
 ?? blender/rider-cycle-fit/merge-app-glb.py                 ← 신규 병합 스크립트

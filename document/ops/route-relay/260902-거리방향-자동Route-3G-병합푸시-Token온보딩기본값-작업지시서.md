@@ -27,7 +27,7 @@
 | # | commit 메시지 | 파일 |
 |---|---|---|
 | 1 | `chore(dev): add emulator dev mode on port 5002` | `apps/web/.env.example` · `apps/web/.env.emulator`(신규) · `apps/web/package.json` · `package.json` · `apps/web/vite.config.ts` |
-| 2 | `feat(route): finish 3F-C-R1 reach-offer wiring` | `apps/web/src/components/map/MapView.tsx` · `apps/web/src/hooks/useDistanceAutoRoute.ts` · `apps/web/src/hooks/useRoutePlanning.ts` · `apps/web/src/lib/distanceAutoRouteErrors.ts` · `apps/web/scripts/distance-auto-route/distance-auto-route-contract.test.ts` |
+| 2 | `feat(route): finish 3F-C-R1 reach-offer wiring` | `apps/web/src/components/map/MapView.tsx` · `apps/web/src/hooks/useDistanceAutoRoute.ts` · `apps/web/src/hooks/useRoutePlanning.ts` · `apps/web/src/lib/route/distanceAutoRouteErrors.ts` · `apps/web/scripts/distance-auto-route/distance-auto-route-contract.test.ts` |
 | 3 | `feat(token): grant 10 to guests and 15 to signed-in users` | `functions/src/routeTokenCore.ts` · `document/config-routeTokenEconomy.seed.json` |
 
 `apps/web/.env.emulator` 는 비밀값이 없고(`VITE_USE_EMULATOR` · `VITE_FUNCTIONS_EMULATOR_HOST` 뿐) `--mode emulator` 동작에 필요하므로 **커밋한다.** gitignore 대상이 아님을 확인했다.

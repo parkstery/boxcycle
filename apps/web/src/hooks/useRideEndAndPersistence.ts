@@ -5,44 +5,44 @@ import {
   promoteSavedRouteInFirestore,
   updateSavedRouteProgressInFirestore,
   type SavedRoute,
-} from "../lib/firestoreSavedRoutes";
-import { markRouteActivityRideCompletedOptimistic } from "../lib/firestoreRouteActivity";
-import { saveRideSessionToFirestore } from "../lib/firestoreRides";
+} from "../lib/route/repo/firestoreSavedRoutes";
+import { markRouteActivityRideCompletedOptimistic } from "../lib/activity/repo/firestoreRouteActivity";
+import { saveRideSessionToFirestore } from "../lib/ride/repo/firestoreRides";
 import {
   persistRideEndCore,
   type SaveRideSessionFn,
   type UpdateSavedRouteProgressFn,
   type PromoteSavedRouteFn,
-} from "../lib/rideEndPersistence";
+} from "../lib/ride/rideEndPersistence";
 import {
   buildConquestCellsFromRoute,
   buildTraveledPathForTrace,
   CONQUEST_CELL_ZOOM,
   CONQUEST_PAYLOAD_VERSION,
   type ConquestRidePayload,
-} from "../lib/conquestTiles";
-import type { LineStringGeometry, LngLat } from "../lib/geo";
-import { formatLngLat, getDistanceMeters } from "../lib/geo";
-import { computeRideSessionAnchors } from "../lib/rideSessionAnchors";
-import type { RideEndResult } from "../lib/rideEndResult";
-import { MAX_ROUTE_WAYPOINTS } from "../lib/routeWaypoints";
-import { safeRideSpeechCancel } from "../lib/rideSpeech";
-import { loadRideSessions, saveRideSessions, type StoredRideSession } from "../lib/rideSessionsStorage";
-import { isDiscardableRideRecord, isRouteCompletion } from "../lib/rideRecordPolicy";
-import { resolveSavedRouteProgressUpdate } from "../lib/savedRouteProgressPolicy";
+} from "../lib/conquest/conquestTiles";
+import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
+import { formatLngLat, getDistanceMeters } from "../lib/geo/geo";
+import { computeRideSessionAnchors } from "../lib/ride/rideSessionAnchors";
+import type { RideEndResult } from "../lib/ride/rideEndResult";
+import { MAX_ROUTE_WAYPOINTS } from "../lib/geo/routeWaypoints";
+import { safeRideSpeechCancel } from "../lib/ride/rideSpeech";
+import { loadRideSessions, saveRideSessions, type StoredRideSession } from "../lib/ride/rideSessionsStorage";
+import { isDiscardableRideRecord, isRouteCompletion } from "../lib/ride/rideRecordPolicy";
+import { resolveSavedRouteProgressUpdate } from "../lib/route/savedRouteProgressPolicy";
 import {
   loadSavedRoutesFromLocal,
   promoteSavedRouteInLocal,
   updateSavedRouteProgressInLocal,
-} from "../lib/savedRoutesLocal";
+} from "../lib/route/repo/savedRoutesLocal";
 import { fetchMapboxReverseGeocodePlaceName } from "../services/mapboxReverseGeocode";
 import type { RouteProfile } from "../services/mapboxDirections";
-import type { PublishedPublicCourseSummary } from "../lib/firestoreCourses";
+import type { PublishedPublicCourseSummary } from "../lib/route/repo/firestoreCourses";
 import {
   resolvePublishedRouteLink,
   resolvePublishedRouteLinkByPublicationId,
   type RouteRideEntry,
-} from "../lib/routePublicationResolve";
+} from "../lib/route/routePublicationResolve";
 import type { LastEndedAdhocState } from "./useSavedRoutesWorkspace";
 import type { RideMetricsUi, RideSessionStatus } from "./useVirtualRideSession";
 
@@ -327,7 +327,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
               startOffsetMeters,
             );
             if (flat.length < 4) return null;
-            const pairs: import("../lib/geo").LngLat[] = [];
+            const pairs: import("../lib/geo/geo").LngLat[] = [];
             for (let i = 0; i < flat.length - 1; i += 2) {
               pairs.push([flat[i], flat[i + 1]]);
             }

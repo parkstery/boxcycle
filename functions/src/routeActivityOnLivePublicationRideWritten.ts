@@ -27,6 +27,7 @@ import {
 } from "./publicationPresenceCore.js";
 
 import { readPublicationIdFromLiveRideData } from "./trailPaths.js";
+import { REGION } from "./region.js";
 
 
 
@@ -110,7 +111,7 @@ function isHeartbeatOnlyUpdate(before: DocumentSnapshot, after: DocumentSnapshot
 
 export const routeActivityOnLivePublicationRideWritten = onDocumentWritten(
 
-  { document: "trails/{trailId}/livePublicationRides/{uid}", region: "asia-northeast3" },
+  { document: "trails/{trailId}/livePublicationRides/{uid}", region: REGION },
 
   async (event) => {
 

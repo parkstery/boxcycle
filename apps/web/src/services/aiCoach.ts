@@ -1,4 +1,4 @@
-import type { CoachingData } from "../lib/coachTypes";
+import type { CoachingData } from "../lib/coach/coachTypes";
 import type { CoachElevationPoint } from "./roadElevationCoach";
 import { getTipIndicesByResistance, getCoachingPhrases } from "./phraseManifest";
 import { estimateRoadSlope } from "./roadElevationCoach";

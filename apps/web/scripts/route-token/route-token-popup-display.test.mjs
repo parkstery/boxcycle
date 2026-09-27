@@ -4,7 +4,7 @@ import {
   resolveRouteTokenPopupSecondary,
   formatRouteTokenPopupLine,
   ROUTE_TOKEN_POPUP_SECONDARY_TEST_IDS,
-} from "../../src/lib/routeTokenPopupDisplay.mjs";
+} from "../../src/lib/account/routeTokenPopupDisplay.mjs";
 
 describe("route token popup display", () => {
   it("생성 전에는 보조 문구를 숨긴다", () => {

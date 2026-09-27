@@ -113,7 +113,7 @@ async function main() {
     const mod = {
       integrator: await server.ssrLoadModule("./src/lib/peerMotion/integrator.ts"),
       merge: await server.ssrLoadModule("./src/lib/peerMotion/mergePackets.ts"),
-      policy: await server.ssrLoadModule("./src/lib/rideSyncPolicy.ts"),
+      policy: await server.ssrLoadModule("./src/lib/ride/rideSyncPolicy.ts"),
     };
 
     let scenarios;

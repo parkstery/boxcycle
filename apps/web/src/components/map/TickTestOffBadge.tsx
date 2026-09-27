@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { getTickTestOffList, subscribeTickTest } from "../../lib/tickTestSwitches";
+import { getTickTestOffList, subscribeTickTest } from "../../lib/debug/tickTestSwitches";
 
 /** DEV — 꺼진 틱 스위치만 표시. 전부 켜면 d4c8fbf 와 같이 안 보임. */
 export function TickTestOffBadge() {

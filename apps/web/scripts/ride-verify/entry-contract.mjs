@@ -36,10 +36,12 @@ export const ENTRY_STEPS = [
     desc:
       "센서 칩 자리 판정 — dock 과 우상단에 동시에 뜨면 getByRole 이 strict 위반으로 깨진다. " +
       "어디에도 안 뜨면 「센서 없음」에 닿지 못해 Go 가 영영 잠긴다.",
-    file: "src/lib/sensorChipSlot.ts",
+    file: "src/lib/route/sensorChipSlot.ts",
     anchors: [
       { name: "슬롯 판정 함수", re: /export function sensorChipSlot\(/ },
-      { name: "dock 우선", re: /isRouteDockVisible\(stage\) \? "route-dock" : "map-hud-tr"/ },
+      // 2026-09-26(Phase 6-A): 2갈래(route-dock|none) → **3갈래**. 접힘이면 칩 대신 캐럿 LED.
+      { name: "세 갈래 슬롯", re: /"route-dock-chip" \| "route-dock-caret" \| "none"/ },
+      { name: "dock 여부로 판정", re: /isRouteDockVisible\(stage\)/ },
     ],
     selector: `(렌더 자리 판정 — 셀렉터 없음)`,
   },
@@ -54,6 +56,47 @@ export const ENTRY_STEPS = [
       { name: "시트 닫기 버튼", re: /aria-label="센서 설정 닫기"/ },
     ],
     selector: `getByRole('dialog',{name:'케이던스 센서'}) → getByRole('button',{name:'센서 없음'})`,
+  },
+  {
+    /*
+     * 2026-09-27 추가 — 이 둘을 안 보고 있어서 동행 e2e 12개가 **한 달 넘게** red 였다.
+     * 앵커가 「그 파일에 그 문자열이 있나」만 보면, 컨트롤이 **다른 컴포넌트로 옮겨 갈 때**
+     * 원래 파일에서는 사라지는데도 아무도 모른다. 그래서 **자리까지** 계약에 적는다.
+     */
+    step: "session-speed-slider",
+    desc:
+      "세션 속도 슬라이더 — **센서 시트 안**에 있다. 2026-08 경에 경로 도크에서 옮겨 왔고, " +
+      "스펙은 도크를 계속 뒤지다 죽었다. 자리가 또 바뀌면 여기서 먼저 깨져야 한다.",
+    file: "src/components/sensor/CadenceSensorSheet.tsx",
+    anchors: [
+      // ⚠️ 접두사만 보면 안 된다 — `<SessionSpeedControlMoved` 에도 걸려 **이름을 바꿔도 통과한다.**
+      //    2026-09-27 에 이 앵커를 깨뜨려 보다 직접 걸렸다. 경계(``)까지 본다.
+      { name: "시트가 속도 컨트롤을 품는다", re: /<SessionSpeedControl[\s/>]/ },
+      { name: "속도 컨트롤 import", re: /import \{ SessionSpeedControl \}/ },
+    ],
+    selector: `getByRole('dialog',{name:'케이던스 센서'}).getByRole('slider',{name:'세션 속도 km/h'})`,
+  },
+  {
+    step: "session-speed-control",
+    desc: "세션 속도 컨트롤 — 슬라이더·숫자 입력의 접근성 이름",
+    file: "src/components/sensor/SessionSpeedControl.tsx",
+    anchors: [
+      { name: "슬라이더 이름", re: /aria-label="세션 속도 km\/h"/ },
+      { name: "숫자 입력 이름", re: /aria-label="속도 km\/h"/ },
+    ],
+    selector: `getByRole('slider',{name:'세션 속도 km/h'}) & getByRole('spinbutton',{name:'속도 km/h'})`,
+  },
+  {
+    step: "go-precondition",
+    desc:
+      "Go 사전조건 — 센서 연결 **또는** 수동 속도 입력이 준비돼야 눌린다(2026-08-27). " +
+      "이것을 모르면 「버튼이 보이는데 안 눌린다」로 죽는데, 원인이 잘 안 보인다.",
+    file: "src/App.tsx",
+    anchors: [
+      { name: "준비 판정", re: /const rideInputReady = isRideInputReady\(/ },
+      { name: "Go 가 그것에 걸린다", re: /canStartRideWithInput = [^;]*rideInputReady/ },
+    ],
+    selector: `(사전조건 — e2e 는 '센서 없음'을 골라 충족시킨다)`,
   },
   {
     step: "open-menu",
@@ -77,9 +120,13 @@ export const ENTRY_STEPS = [
     desc: "입문 코스 모달 — dialog + 코스 항목 버튼(Load course)",
     file: "src/components/ride/OfficialCourseListModal.tsx",
     anchors: [
-      { name: "모달 dialog", re: /role="dialog"/ },
-      { name: "모달 title id", re: /aria-labelledby="oc-modal-title"/ },
+      // dialog role·aria-labelledby 는 공용 껍데기(RouteListModalShell)로 옮겨 갔다.
+      // 이 파일이 지켜야 할 것은 **그 껍데기에 같은 title id 를 넘기는 것**이다.
+      { name: "공용 모달 껍데기", re: /RouteListModalShell/ },
+      { name: "모달 title id 전달", re: /titleId="oc-modal-title"/ },
       { name: "코스 항목 Load course", re: /Load course/ },
+      // 거리 표기 — e2e 가 「가장 긴 코스」를 이 숫자로 고른다(2026-09-27).
+      { name: "항목 거리 표기", re: /formatPublicationListMeta/ },
     ],
     selector: `getByRole('dialog').getByRole('button',{name:/<코스제목>/})`,
   },
@@ -129,14 +176,14 @@ export const ENTRY_STEPS = [
   },
   {
     step: "ride-running-proof",
-    desc: "주행 중 확정 — 주행 지표 그룹 + 오늘/누적 거리 + 주행 종료 버튼",
+    desc: "주행 중 확정 — 주행 지표 그룹 + 누적 거리 + 주행 종료 버튼",
     file: "src/components/maphud/MapHud.tsx",
     anchors: [
       { name: "주행 지표 group", re: /aria-label="주행 지표"/ },
-      { name: "오늘 거리 aria-label", re: /aria-label="오늘 거리"/ },
-      { name: "누적 진행 aria-label", re: /aria-label="누적 진행"/ },
+      // 2026-09-27 정정: 「오늘 거리」·「누적 진행」 라벨은 사라지고 하나로 합쳐졌다.
+      { name: "누적 거리 aria-label", re: /aria-label="주행 누적 거리"/ },
       { name: "주행 종료 aria-label", re: /aria-label="주행 종료"/ },
     ],
-    selector: `getByRole('group',{name:'주행 지표'}) & getByLabel('오늘 거리') & getByLabel('누적 진행') & getByRole('button',{name:'주행 종료'})`,
+    selector: `getByRole('group',{name:'주행 지표'}) & getByLabel('주행 누적 거리') & getByRole('button',{name:'주행 종료'})`,
   },
 ];

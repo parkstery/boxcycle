@@ -1,8 +1,8 @@
-import type { ActivityWorldMapDot, ActivityWorldRawOverlay } from "../../lib/activityWorldLod";
-import { mergeActivityWorldDots } from "../../lib/activityWorldLod";
-import { ACTIVITY_TRACE_LIVE_STRENGTH } from "../../lib/activityWorldTraceStyle";
-import type { LineStringGeometry } from "../../lib/geo";
-import { distanceMidpointLngLat } from "../../lib/routeGeometryMidpoint";
+import type { ActivityWorldMapDot, ActivityWorldRawOverlay } from "../../lib/activity/activityWorldLod";
+import { mergeActivityWorldDots } from "../../lib/activity/activityWorldLod";
+import { ACTIVITY_TRACE_LIVE_STRENGTH } from "../../lib/activity/activityWorldTraceStyle";
+import type { LineStringGeometry } from "../../lib/geo/geo";
+import { distanceMidpointLngLat } from "../../lib/route/routeGeometryMidpoint";
 
 /** @deprecated publication world mode 전용 — catalog 모드에서는 사용 안 함 */
 export function buildBasicHubWorldPulseDots(): ActivityWorldMapDot[] {

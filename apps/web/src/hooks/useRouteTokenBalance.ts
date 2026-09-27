@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import {
   ensureRouteTokenOnboardingClient,
   subscribeRouteTokenBalance,
-} from "../lib/firestoreRouteToken";
+} from "../lib/account/repo/firestoreRouteToken";
 
 /**
  * `users/{uid}.routeTokenBalance` 실시간 구독 + 로그인 시 온보딩 지급 HTTP 1회.

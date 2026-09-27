@@ -1,5 +1,15 @@
 #!/bin/sh
-# RTW pre-push 게이트 — 타입체크(무거움, ≈12s)를 여기서.
+# RTW pre-push 게이트 8종 (2026-09-27 기준).
+#
+#   lock 동기 · harness 설정 동기 · lib 의존 방향/순환 · web 타입체크 ·
+#   web 계약 스위트 · **진입 셀렉터 계약** · functions 타입체크+계약 · Claim 셀 ID 벡터
+#
+# 건수는 여기 적지 않는다 — 시험이 늘 때마다 주석만 낡는다(2026-09-26: 245·269 가 둘 다 낡아 있었다).
+#
+# 각 게이트는 **고의로 깨뜨려 작동을 확인**한 것만 여기 있다 — 「통과」는 게이트가
+# 살아 있다는 증거가 아니다. 새 게이트를 붙일 때도 같은 규율을 지킨다.
+#
+# 타입체크(무거움, ≈12s)를 여기서.
 # 커밋은 가볍게 자주, 푸시 직전에만 tsc 로 타입 안전성 확인.
 # 우회: git push --no-verify (예외 상황 한정)
 #
@@ -23,19 +33,77 @@ touch_fn=$(echo "$changed" | grep -E '^functions/.*\.ts$' || true)
 
 fail=0
 
+# package.json 을 건드렸다면 lock 이 따라왔는지 본다.
+# 2026-09-25: functions 에 의존을 넣고 lock 을 갱신하지 않아 함수 28개 배포가 통째로
+# 실패했다. 로컬은 루트 hoist 로 돌아가 아무 증상이 없었고, Cloud Build 의 `npm ci`
+# 만 그것을 봤다. functions 는 워크스페이스가 아니라 자기 lock 을 따로 가진다.
+touch_pkg=$(echo "$changed" | grep -E 'package(-lock)?[.]json' || true)
+if [ -n "$touch_pkg" ]; then
+  echo "[pre-push] package.json ↔ lock 동기 검사…"
+  node scripts/check-lock-sync.mjs || fail=1
+fi
+
+# firebase.harness.json 은 firebase.json 에서 생성한다(2026-09-25).
+# 종전에는 두 파일에 emulators 포트·rules 경로가 똑같이 적혀 있어, 한쪽만 고치면
+# 하네스가 다른 세계를 보면서도 아무 에러를 내지 않았다(구조 감사 H5).
+touch_fb=$(echo "$changed" | grep -E 'firebase([.]harness)?[.]json' || true)
+if [ -n "$touch_fb" ]; then
+  echo "[pre-push] firebase.harness.json ↔ firebase.json 동기 검사…"
+  node scripts/gen-firebase-harness-config.mjs --check || fail=1
+fi
+
+# lib/ 도메인 의존 방향·순환 래칫 (Phase 5, 2026-09-25).
+# 구조 감사 §8 은 "도메인 폴더로 나누면 순환은 자연 해소된다"고 적었으나 실측은 반대였다
+# — 분할은 순환을 드러낼 뿐 끊어주지 않는다. 그래서 방향을 선언(apps/web/dep-layers.json)
+# 하고 위반 수가 늘면 막는다. baseline 은 허용 목록이 아니라 갚아야 할 빚의 눈금이다.
+touch_dep=$(echo "$changed" | grep -E 'apps/web/dep-layers' || true)
+if [ -n "$touch_web" ] || [ -n "$touch_dep" ]; then
+  echo "[pre-push] lib 도메인 의존 방향·순환 검사…"
+  node scripts/check-dep-direction.mjs --check || fail=1
+fi
+
 if [ -n "$touch_web" ]; then
   echo "[pre-push] typecheck apps/web (tsc -b --noEmit)…"
   ( cd apps/web && npx tsc -b --noEmit ) || fail=1
+
+  # 계약 스위트(≈3초). 2026-09-25 승격 — 어느 게이트에도 없어서
+  # `sensor-chip-slot-contract` 가 09-23 부터 **이틀간 red 인 채 아무도 몰랐다.**
+  # 등록만 하고 돌리지 않으면 그것은 게이트가 아니다.
+  echo "[pre-push] 계약 스위트 apps/web (test:next-ride)…"
+  ( cd apps/web && npm run test:next-ride --silent ) || fail=1
+
+  # 실주행 진입 셀렉터 계약 (2026-09-27 승격).
+  # 동행 e2e 12개가 **한 달 넘게 red** 였는데 아무도 몰랐다 — Go 에 센서 사전조건이
+  # 붙고(08-27) 속도 슬라이더가 도크→센서 시트로 옮겨 간 것을 스펙이 몰랐다.
+  # 그것을 잡으라고 만든 이 도구도 **red 인 채 어느 게이트에도 없었다.**
+  # 브라우저·Firebase 없이 1초면 끝난다. 느린 e2e 가 아니라 이것이 먼저 막아야 한다.
+  echo "[pre-push] 진입 셀렉터 계약 (test:entry-selectors)…"
+  ( cd apps/web && npm run test:entry-selectors --silent ) || fail=1
 fi
 
 if [ -n "$touch_fn" ]; then
-  echo "[pre-push] typecheck functions (tsc --noEmit)…"
-  ( cd functions && npx tsc --noEmit ) || fail=1
+  # `npm test` 가 tsc(emit) 를 먼저 돌리므로 타입체크를 겸한다. lib/ 는 gitignore.
+  # 계약 시험(G3)을 여기 두는 이유: Claim ↔ 경로 순위가 어긋나도 **에러가 나지 않는다**
+  # — 비율이 전부 1.0 이 되어 「Claim 없는 사용자」와 구분되지 않는다(감사 R10).
+  echo "[pre-push] functions typecheck + 계약 시험…"
+  ( cd functions && npm test --silent ) || fail=1
+fi
+
+# Claim 셀 ID 는 클라이언트가 쓰고 서버가 읽는다. 빌드가 나뉘어 코드를 공유할 수 없으므로
+# 양쪽에 같은 고정 벡터를 박아 고정한다 — 한쪽만 바뀌면 여기서 막는다.
+touch_cells=$(echo "$changed" | grep -E 'conquestTiles|conquest/cell-id-vectors|functions/src/geoTiles|conquestClaimRead' || true)
+if [ -n "$touch_cells" ]; then
+  echo "[pre-push] Claim 셀 ID 고정 벡터(클라↔서버) 검사…"
+  ( cd apps/web && npm run test:conquest-cells --silent ) || fail=1
 fi
 
 if [ "$fail" -ne 0 ]; then
   echo ""
-  echo "[pre-push] 타입 에러 — 원격에 올리기 전에 고치세요."
+  echo "[pre-push] 게이트 실패 — 원격에 올리기 전에 고치세요."
+  echo "           게이트 8종: lock 동기 · harness 설정 동기 · lib 의존 방향/순환 ·"
+  echo "                      web 타입체크 · web 계약 스위트 · 진입 셀렉터 계약 ·"
+  echo "                      functions 타입체크+계약 ·"
+  echo "                      Claim 셀 ID 벡터(클라↔서버)"
   echo "           정말 급하면: git push --no-verify (예외)"
   exit 1
 fi

@@ -47,7 +47,7 @@ async function loadScene(buf) {
 }
 
 function readIkInvariantsFromSource() {
-  const src = fs.readFileSync(path.join(webRoot, "src", "lib", "riderGlbPedalPose.ts"), "utf8");
+  const src = fs.readFileSync(path.join(webRoot, "src", "lib", "rider", "riderGlbPedalPose.ts"), "utf8");
   const num = "(-?\\d+(?:\\.\\d+)?)";
   const grab = (re) => {
     const m = src.match(re);

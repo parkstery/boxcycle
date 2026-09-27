@@ -14,7 +14,7 @@
 **S4-8 의 판단(tooAggressive · 상한 갱신 거부)은 옳았다.** 그 규율을 유지한다.
 다만 그 캡처는 애초에 필요 없었다.
 
-`apps/web/src/lib/rideSpeedRamp.ts`
+`apps/web/src/lib/ride/rideSpeedRamp.ts`
 
 ```ts
 /**

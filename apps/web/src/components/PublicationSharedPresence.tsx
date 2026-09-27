@@ -1,6 +1,6 @@
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import type { User } from "firebase/auth";
-import { ensurePublicationPresenceFlagsMerged } from "../lib/firestoreCourses";
+import { ensurePublicationPresenceFlagsMerged } from "../lib/route/repo/firestoreCourses";
 import {
   deletePublicationSessionMember,
   isPublicationSessionMemberActive,
@@ -8,33 +8,33 @@ import {
   touchPublicationSessionMember,
   upsertPublicationSessionMember,
   type PublicationSessionMemberRow,
-} from "../lib/firestorePublicationSessionPresence";
+} from "../lib/ride/repo/firestorePublicationSessionPresence";
 import {
   isTrailLivePublicationRideRowPeerVisible,
   type TrailLivePublicationRideRow,
-} from "../lib/firestoreTrailLivePublicationRides";
-import { acquireTrailLivePublicationRidesSubscription } from "../lib/livePublicationRidesSubscriptionHub";
-import { acquireTrailMotionSubscription } from "../lib/rtdbMotionSubscriptionHub";
-import { isFirebaseDatabaseConfigured } from "../lib/firebase";
-import { sanitizeTrailId } from "../lib/firestoreTrail";
-import { TRAIL_PRESENCE_STALE_MS } from "../lib/firestoreTrail";
+} from "../lib/trail/repo/firestoreTrailLivePublicationRides";
+import { acquireTrailLivePublicationRidesSubscription } from "../lib/trail/repo/livePublicationRidesSubscriptionHub";
+import { acquireTrailMotionSubscription } from "../lib/peerMotion/repo/rtdbMotionSubscriptionHub";
+import { isFirebaseDatabaseConfigured } from "../lib/firebase/app";
+import { sanitizeTrailId } from "../lib/trail/repo/firestoreTrail";
+import { TRAIL_PRESENCE_STALE_MS } from "../lib/trail/trailLivePolicy";
 import {
   COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS,
   COURSE_PRESENCE_HEARTBEAT_PAUSED_MS,
-  PEER_LIVE_RIDE_STALE_MS,
-} from "../lib/rideSyncPolicy";
-import { mapNametagForMember, sortedGuestUids } from "../lib/guestNametag";
+} from "../lib/ride/rideSyncPolicy";
+import { PEER_LIVE_RIDE_STALE_MS } from "../lib/trail/trailLivePolicy";
+import { mapNametagForMember, sortedGuestUids } from "../lib/identity/guestNametag";
 import {
   resetPeerMotionRegistry,
   syncPeerMotionFromPresence,
 } from "../lib/peerMotion";
-import type { RtdbTrailMotionRow } from "../lib/rtdbTrailMotion";
-import { countOtherLiveRidePeers, peerHudStableKey, type PeerHudEntry } from "../lib/peerHud";
-import { publishOtherLiveRiderCount } from "../lib/liveRideHudSignal";
+import type { RtdbTrailMotionRow } from "../lib/peerMotion/repo/rtdbTrailMotion";
+import { countOtherLiveRidePeers, peerHudStableKey, type PeerHudEntry } from "../lib/peerMotion/peerHud";
+import { publishOtherLiveRiderCount } from "../lib/ride/liveRideHudSignal";
 import {
   reportHudCompanionCoursePeers,
   reportHudCompanionPresenceSlice,
-} from "../lib/hudCompanionDiag";
+} from "../lib/debug/hudCompanionDiag";
 import { useDocumentVisibility } from "../hooks/useDocumentVisibility";
 import "./trail/TrailheadPresence.css";
 

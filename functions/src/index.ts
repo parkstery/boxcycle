@@ -18,6 +18,7 @@ import {
 import { defineSecret } from "firebase-functions/params";
 import { HttpsError, onRequest, type Request } from "firebase-functions/v2/https";
 import type { Response } from "express";
+import { REGION } from "./region.js";
 
 initializeApp();
 
@@ -103,7 +104,7 @@ function parseBody(data: unknown): {
  */
 export const getMapboxDirections = onRequest(
   {
-    region: "asia-northeast3",
+    region: REGION,
     secrets: [mapboxAccessToken],
     timeoutSeconds: 30,
     memory: "256MiB",
@@ -155,7 +156,7 @@ export const getMapboxDirections = onRequest(
         /* users 메타 실패해도 경로 계산은 진행 */
       }
       await ensureRouteTokenOnboarding(uid);
-      let routeTokenBalance = await spendRouteGenerateToken(uid, requestId);
+      const routeTokenBalance = await spendRouteGenerateToken(uid, requestId);
       const generateCost = Math.max(0, Math.floor(economy.generateCostBase));
 
       let route: {
@@ -365,7 +366,7 @@ async function fetchDirectionsRoute(
  */
 export const getDistanceAutoRoute = onRequest(
   {
-    region: "asia-northeast3",
+    region: REGION,
     secrets: [mapboxAccessToken],
     timeoutSeconds: 120,
     memory: "512MiB",
@@ -494,4 +495,3 @@ export {
   openTrailListingOnLiveCourseRideWritten,
 } from "./openTrailListingProjection.js";
 export { openTrailListingsSweep } from "./openTrailListingsSweep.js";
-export { getMapillaryImages } from "./mapillaryImagesHttp.js";

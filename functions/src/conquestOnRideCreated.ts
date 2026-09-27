@@ -1,5 +1,6 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import { REGION } from "./region.js";
 
 /**
  * Conquest(정복) 레이어 v2 — 도로 셀 기반(2026-07-03 도로 전환).
@@ -93,7 +94,7 @@ function sanitizeFlatPath(raw: unknown): number[] {
 }
 
 export const conquestOnRideCreated = onDocumentCreated(
-  { document: "rides/{rideId}", region: "asia-northeast3" },
+  { document: "rides/{rideId}", region: REGION },
   async (event) => {
     const snap = event.data;
     if (!snap) return;

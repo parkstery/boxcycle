@@ -1,11 +1,11 @@
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveNode20Executable } from "./node20.mjs";
+import { resolveNodeExecutable } from "./nodeRuntime.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const harnessPath = path.join(__dirname, "run-route-token-harness.mjs");
-const nodeExe = resolveNode20Executable();
+const nodeExe = resolveNodeExecutable();
 
 const result = spawnSync(nodeExe, [harnessPath, ...process.argv.slice(2)], {
   stdio: "inherit",

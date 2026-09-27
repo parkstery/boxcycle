@@ -37,15 +37,18 @@
     "test:e2e:peer-s41r": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s41r --workers=1\"",
     "test:e2e:peer-s4m1": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s4m1 --workers=1\"",
     "test:peer-s3-fixtures": "node scripts/peer-sync/s3-fixture-gate.mjs",
+    "test:rtdb-rules": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/peer-sync/rtdb-rules-contract.test.ts",
     "test:peer-s3a-replay": "node scripts/peer-sync/s3r-to-scenario.mjs && node scripts/peer-sync/replay.mjs --check && node scripts/peer-sync/replay.mjs --check --scenario ../../document/ops/sync-relay/s3r-z15-cruise-scenario.json && node scripts/peer-sync/s3-fixture-gate.mjs",
     "test:sensor-cadence": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/sensor-cadence/cadence-contract.test.ts scripts/sensor-cadence/sensor-ui-contract.test.ts scripts/sensor-cadence/auto-reconnect-contract.test.ts",
     "test:ride-elevation-rules": "firebase emulators:exec --only auth,firestore --project boxcycle-dc2df --config ../../firebase.json \"node scripts/ride-elevation/rules-check.mjs\"",
     "test:ride-elevation": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/ride-elevation/route-elevation-cache.test.ts scripts/ride-elevation/route-elevation-shared-store.test.ts",
-    "test:next-ride": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/next-ride/ride-anchor-contract.test.ts scripts/next-ride/next-ride-target-contract.test.ts scripts/next-ride/progress-policy-contract.test.ts scripts/next-ride/route-split-contract.test.ts scripts/next-ride/ride-continuation-setup-contract.test.ts scripts/next-ride/recent-ride-sessions-merge.test.ts scripts/ride-hierarchy/publication-display-contract.test.ts scripts/ride-hierarchy/route-dock-riding-contract.test.ts scripts/ride-hierarchy/sensor-chip-slot-contract.test.ts scripts/ride-hierarchy/route-list-sort-contract.test.ts scripts/ride-hierarchy/conquest-emphasis-contract.test.ts scripts/ride-stats/ride-stats-aggregate-contract.test.ts scripts/ride-result/ride-result-contract-0b.test.ts scripts/ride-result/ride-result-f2-card-resume.test.ts scripts/ride-result/ride-result-f2-boundary.test.ts scripts/ride-result/ride-result-s1-subscription.test.ts scripts/ride-result/ride-result-s1-timers.test.ts scripts/ride-result/ride-result-s2-persistence.test.ts scripts/ride-result/ride-result-s2-real-persistence.test.ts scripts/ride-result/ride-result-s2-end-snapshot.test.ts scripts/ride-result/ride-result-s2-production-imports.test.ts scripts/ride-result/ride-result-f4-f5-guards.test.ts scripts/ride-result/ride-result-f1-id-link.test.ts scripts/ride-result/ride-result-n2-persistence.test.ts scripts/ride-result/ride-result-claim1-preview.test.ts scripts/ride-result/live-conquest-meters.test.ts scripts/map/self-location-marker-contract.test.ts",
+    "test:next-ride": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/next-ride/ride-anchor-contract.test.ts scripts/next-ride/next-ride-target-contract.test.ts scripts/next-ride/progress-policy-contract.test.ts scripts/next-ride/route-split-contract.test.ts scripts/next-ride/ride-continuation-setup-contract.test.ts scripts/next-ride/recent-ride-sessions-merge.test.ts scripts/ride-hierarchy/publication-display-contract.test.ts scripts/ride-hierarchy/route-dock-riding-contract.test.ts scripts/ride-hierarchy/sensor-chip-slot-contract.test.ts scripts/ride-hierarchy/live-publish-wiring-contract.test.ts scripts/ride-hierarchy/trail-lifecycle-contract.test.ts scripts/ride-hierarchy/route-list-sort-contract.test.ts scripts/ride-hierarchy/sync-policy-constants-contract.test.ts scripts/ride-hierarchy/conquest-emphasis-contract.test.ts scripts/ride-stats/ride-stats-aggregate-contract.test.ts scripts/ride-result/ride-result-contract-0b.test.ts scripts/ride-result/ride-result-f2-card-resume.test.ts scripts/ride-result/ride-result-f2-boundary.test.ts scripts/ride-result/ride-result-s1-subscription.test.ts scripts/ride-result/ride-result-s1-timers.test.ts scripts/ride-result/ride-result-s2-persistence.test.ts scripts/ride-result/ride-result-s2-real-persistence.test.ts scripts/ride-result/ride-result-s2-end-snapshot.test.ts scripts/ride-result/ride-result-s2-production-imports.test.ts scripts/ride-result/ride-result-f4-f5-guards.test.ts scripts/ride-result/ride-result-f1-id-link.test.ts scripts/ride-result/ride-result-n2-persistence.test.ts scripts/ride-result/ride-result-claim1-preview.test.ts scripts/ride-result/ride-summary-close-contract.test.ts scripts/ride-result/live-conquest-meters.test.ts scripts/map/self-location-marker-contract.test.ts scripts/map/layer-order-contract.test.ts scripts/map/mapbox-token-per-mode.test.ts",
+    "test:entry-selectors": "node scripts/ride-verify/verify-selectors.mjs",
+    "test:conquest-cells": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/conquest/cell-id-vectors.test.ts",
     "test:e2e:ride-continuation": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test ride-continuation --workers=1 --retries=0\"",
     "test:e2e:ride-continue-phase-c": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test ride-continue-phase-c --workers=1 --retries=0\"",
     "test:s42-meters": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/s42/read-meters-and-hubs.test.ts",
-    "test:ride-camera-framing": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/ride-camera-framing/ride-camera-framing-contract.test.ts",
+    "test:ride-camera-framing": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/ride-camera-framing/ride-camera-framing-contract.test.ts scripts/ride-camera-framing/camera1-mode-contract.test.ts",
     "test:distance-auto-route": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/distance-auto-route/distance-auto-route-contract.test.ts scripts/distance-auto-route/distance-auto-route-exact-clip.test.ts scripts/distance-auto-route/distance-auto-route-click-intent.test.ts scripts/distance-auto-route/distance-auto-route-reach-offer-session.test.ts scripts/distance-auto-route/distance-auto-route-clip-boundary.test.ts scripts/distance-auto-route/distance-auto-route-slider-snap.test.ts scripts/distance-auto-route/distance-auto-route-too-close.test.ts scripts/distance-auto-route/distance-auto-route-eta.test.ts",
     "test:distance-auto-route-replay": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs scripts/distance-auto-route/distance-auto-route-click-intent-replay.mjs",
     "test:s43-meters": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/s43/touch-meters.test.ts",
@@ -59,6 +62,9 @@
     "test:e2e:sensor-chip": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test sensor-chip-route-dock-6a --workers=1 --retries=0\"",
     "test:e2e:pick-title": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test route-pick-popup-title --workers=1 --retries=0\"",
     "test:e2e:menu-a": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test menu-declutter-a --workers=1 --retries=0\"",
+    "test:e2e:ride-hierarchy": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test ride-hierarchy-narrow --workers=1 --retries=0\"",
+    "test:e2e:smoke": "playwright test smoke --workers=1 --retries=0",
+    "test:e2e:stub-guard": "playwright test open-meteo-stub-guard --workers=1 --retries=0",
     "test:e2e:touch-targets": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test touch-targets-44 --workers=1 --retries=0\"",
     "test:e2e:hud-shots": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test hud-distance-elevation-shots --workers=1 --retries=0\"",
     "test:e2e:ride-summary": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test ride-summary-compact --workers=1 --retries=0\""
@@ -66,9 +72,9 @@
   "dependencies": {
     "firebase": "^12.13.0",
     "mapbox-gl": "^3.23.1",
-    "mapillary-js": "^4.1.2",
     "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react-dom": "^19.2.5",
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -76,6 +82,7 @@
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@types/three": "^0.186.0",
     "@types/web-bluetooth": "^0.0.21",
     "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^10.2.1",
@@ -83,7 +90,6 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
     "playwright": "^1.61.1",
-    "three": "^0.175.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.2",
     "vite": "^8.0.10"

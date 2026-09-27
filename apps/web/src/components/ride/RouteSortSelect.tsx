@@ -1,4 +1,4 @@
-import type { RouteSortKey } from "../../lib/routeListSort";
+import type { RouteSortKey } from "../../lib/route/routeListSort";
 import "./RouteSortSelect.css";
 
 const LABEL: Record<RouteSortKey, string> = {

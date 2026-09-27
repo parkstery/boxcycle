@@ -1,4 +1,4 @@
-import type { LngLat } from "../lib/geo";
+import type { LngLat } from "../lib/geo/geo";
 
 /** Mapbox Geocoding `bbox`: [west, south, east, north] */
 export type MapboxGeocodeBbox = [number, number, number, number];

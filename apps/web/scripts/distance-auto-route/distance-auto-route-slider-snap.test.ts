@@ -11,7 +11,7 @@ import {
   DISTANCE_AUTO_ROUTE_SNAP_BANDS,
   distanceAutoRouteSliderStops,
   snapDistanceAutoRouteTargetKm,
-} from "../../src/lib/distanceAutoRouteErrors.ts";
+} from "../../src/lib/route/distanceAutoRouteErrors.ts";
 
 describe("M0 · 시험 자가 검산", () => {
   it("구간이 셋이고 눈금이 서로 다르다(균일이면 시험이 무의미하다)", () => {

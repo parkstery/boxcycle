@@ -4,16 +4,16 @@ import type { User } from "firebase/auth";
 import {
   resetOpenTrailListingRefreshForTests,
   scheduleOpenTrailListingRefresh,
-} from "../../src/lib/firestoreOpenTrailListings.ts";
+} from "../../src/lib/trail/repo/firestoreOpenTrailListings.ts";
 import {
   resetTouchActivityCoalesceForTests,
   resetTouchTrailDocWriterForTests,
   touchTrailInstanceActivity,
-} from "../../src/lib/firestoreTrailInstance.ts";
+} from "../../src/lib/trail/repo/firestoreTrailInstance.ts";
 import {
   resetPresenceUpsertWriterForTests,
   upsertTrailPresence,
-} from "../../src/lib/firestoreTrail.ts";
+} from "../../src/lib/trail/repo/firestoreTrail.ts";
 import {
   beginTouchMeterWindow,
   endTouchMeterWindow,
@@ -23,7 +23,7 @@ import {
   noteTrailDocSnapshotReceived,
   resetTouchActivityMeters,
   snapshotTouchActivityMeters,
-} from "../../src/lib/touchActivityMeters.ts";
+} from "../../src/lib/debug/touchActivityMeters.ts";
 
 type Timer = { id: number; at: number; fn: () => void };
 

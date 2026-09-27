@@ -1,14 +1,14 @@
 import { useEffect } from "react";
-import type { CoverageOverlayMode } from "../../lib/coverageOverlayMode";
-import { COVERAGE_OVERLAY_OPTIONS } from "../../lib/coverageOverlayMode";
+import type { CoverageOverlayMode } from "../../lib/activity/coverageOverlayMode";
+import { COVERAGE_OVERLAY_OPTIONS } from "../../lib/activity/coverageOverlayMode";
 import {
   MAP_GLOBE_MIN_ZOOM,
   MAP_ZOOM_SLIDER_MAX,
   RIDE_CAMERA_DISTANCE_MIN_M,
   RIDE_CAMERA_DISTANCE_MAX_M,
   RIDE_CAMERA_DISTANCE_STEP_M,
-} from "../../lib/mapGlobeView";
-import type { FollowMode } from "../ride/RideRoutePanel";
+} from "../../lib/map/mapGlobeView";
+import type { FollowMode } from "../../lib/map/mapGlobeView";
 import "./MapViewSheet.css";
 
 type MapViewSheetProps = {
@@ -18,11 +18,7 @@ type MapViewSheetProps = {
   mapStyleOptions: { value: string; label: string }[];
   onMapStyle: (v: string) => void;
   coverageOverlayMode: CoverageOverlayMode;
-  /** 주행 중 Mapillary 거리뷰 창 — 기본 꺼짐, 필요할 때만 켠다 */
-  rideStreetViewEnabled: boolean;
-  onRideStreetViewEnabled: (enabled: boolean) => void;
   onCoverageOverlayMode: (m: CoverageOverlayMode) => void;
-  mapillaryTokenConfigured: boolean;
   enable3D: boolean;
   onEnable3D: (v: boolean) => void;
   followMode: FollowMode;
@@ -105,57 +101,20 @@ export function MapViewSheet(props: MapViewSheetProps) {
           <span className="map-view-sheet__label-title">노선</span>
           <div className="map-view-sheet__row-body">
             <div className="map-view-sheet__chips map-view-sheet__chips--inline">
-              {COVERAGE_OVERLAY_OPTIONS.map((opt) => {
-                const needsMly = opt.value === "mapillary" || opt.value === "both";
-                const disabled = needsMly && !props.mapillaryTokenConfigured;
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    title={
-                      disabled
-                        ? "Mapillary token required (VITE_MAPILLARY_CLIENT_TOKEN)"
-                        : opt.value === "off"
-                          ? "Hide coverage overlay"
-                          : opt.value === "osrm"
-                            ? "Road coverage (Mapbox vs OSRM may differ)"
-                            : opt.value === "mapillary"
-                              ? "Street imagery (Mapillary)"
-                              : "Road + Mapillary"
-                    }
-                    className={`map-view-sheet__chip ${
-                      props.coverageOverlayMode === opt.value ? "is-active" : ""
-                    }`}
-                    disabled={disabled}
-                    onClick={() => {
-                      if (!disabled) props.onCoverageOverlayMode(opt.value);
-                    }}
-                  >
-                    {opt.label}
-                  </button>
-                );
-              })}
+              {COVERAGE_OVERLAY_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  title={opt.value === "off" ? "Hide coverage overlay" : "Road coverage (Mapbox vs OSRM may differ)"}
+                  className={`map-view-sheet__chip ${
+                    props.coverageOverlayMode === opt.value ? "is-active" : ""
+                  }`}
+                  onClick={() => props.onCoverageOverlayMode(opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
             </div>
-            {!props.mapillaryTokenConfigured ? (
-              <span className="map-view-sheet__help map-view-sheet__help--inline" title="Mapillary 토큰 미설정">
-                Mapillary 토큰 미설정
-              </span>
-            ) : null}
-          </div>
-        </div>
-
-        <div className="map-view-sheet__group">
-          <span className="map-view-sheet__label-title">거리뷰</span>
-          <div className="map-view-sheet__row-body">
-            <label className="map-view-sheet__toggle" title="Street view while riding">
-              <input
-                type="checkbox"
-                checked={props.rideStreetViewEnabled}
-                disabled={!props.mapillaryTokenConfigured}
-                onChange={(e) => props.onRideStreetViewEnabled(e.target.checked)}
-              />
-              주행 중 거리뷰 창
-            </label>
           </div>
         </div>
 

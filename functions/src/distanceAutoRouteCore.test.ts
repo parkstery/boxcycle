@@ -14,7 +14,7 @@
  */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { chunkIdsCoveringRadius } from "./conquestClaimRead.js";
+import { chunkIdsCoveringRadius, conquestCellIdAt } from "./geoTiles.js";
 import {
   computeRouteNewRoadRatio,
   offsetLngLatByBearingMeters,
@@ -121,16 +121,12 @@ test("지시08 — 전 구간 Claim 이면 신규도로 비율≈0", () => {
   const a: LngLat = [127.0, 37.5];
   const b: LngLat = [127.0003, 37.5];
   const claimed = new Set<string>();
-  // 샘플 중간점 셀을 전부 claimed 로 넣기 위해 세그먼트를 잘게 나눠 셀 ID 수집
+  // 샘플 중간점 셀을 전부 claimed 로 넣기 위해 세그먼트를 잘게 나눠 셀 ID 수집.
+  // ⚠️ 여기서 타일 계산을 **다시 구현하면 안 된다** — 종전에는 그랬고, 그 결과 코어와
+  //    reader 의 매핑이 어긋나도 이 시험이 통과했다. 읽는 쪽과 같은 함수를 쓴다.
   for (let i = 0; i <= 20; i += 1) {
     const t = i / 20;
-    const p: LngLat = [a[0] + (b[0] - a[0]) * t, a[1]];
-    const zoom = 20;
-    const n = 2 ** zoom;
-    const x = Math.floor(((p[0] + 180) / 360) * n);
-    const latRad = (p[1] * Math.PI) / 180;
-    const y = Math.floor(((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n);
-    claimed.add(`${zoom}_${x}_${y}`);
+    claimed.add(conquestCellIdAt([a[0] + (b[0] - a[0]) * t, a[1]]));
   }
   const ratio = computeRouteNewRoadRatio([a, b], claimed);
   assert.ok(ratio < 0.15, `expected near 0, got ${ratio}`);

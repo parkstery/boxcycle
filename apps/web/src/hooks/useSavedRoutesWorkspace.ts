@@ -1,7 +1,7 @@
 import type { User } from "firebase/auth";
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { assertCanPersistAppData, canPersistAppData } from "../lib/clientPersistencePolicy";
+import { assertCanPersistAppData, canPersistAppData } from "../lib/storage/clientPersistencePolicy";
 import {
   backfillSavedRoutesExpiresAt,
   deleteSavedRouteFromFirestore,
@@ -11,19 +11,19 @@ import {
   renameSavedRouteInFirestore,
   saveRouteToFirestore,
   type SavedRoute,
-} from "../lib/firestoreSavedRoutes";
-import type { LineStringGeometry, LngLat } from "../lib/geo";
-import { MAX_ROUTE_WAYPOINTS } from "../lib/routeWaypoints";
-import { lockRouteWorkspaceDuringRide } from "../lib/routeWorkspaceLock";
+} from "../lib/route/repo/firestoreSavedRoutes";
+import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
+import { MAX_ROUTE_WAYPOINTS } from "../lib/geo/routeWaypoints";
+import { lockRouteWorkspaceDuringRide } from "../lib/route/routeWorkspaceLock";
 import {
   clearSavedRoutesLocal,
   deleteSavedRouteFromLocal,
   exportLocalRoutesForMigration,
   loadSavedRoutesFromLocal,
   renameSavedRouteInLocal,
-} from "../lib/savedRoutesLocal";
+} from "../lib/route/repo/savedRoutesLocal";
 import { formatDuration, type RouteProfile } from "../services/mapboxDirections";
-import type { PublishedRouteLink } from "../lib/routePublicationResolve";
+import type { PublishedRouteLink } from "../lib/route/routePublicationResolve";
 import type { RideSessionStatus } from "./useVirtualRideSession";
 
 export type LastEndedAdhocState = {

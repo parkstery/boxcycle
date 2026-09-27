@@ -12,7 +12,8 @@ const LIVE = process.env.RIDE_VERIFY_LIVE === '1'
 const NARROW_LANDSCAPE = { width: 690, height: 275 }
 
 /** Playwright cwd = apps/web */
-const ARCHIVE_DIR = path.resolve(process.cwd(), '../../document/archive')
+// 촬영 산출물은 .out/ 로 — 추적되는 document/archive 에 쓰면 테스트를 돌릴 때마다 커밋된 증거 이미지가 덮어써진다(2026-09-25).
+const ARCHIVE_DIR = path.resolve(process.cwd(), '.out/ride-hierarchy')
 if (!fs.existsSync(ARCHIVE_DIR)) fs.mkdirSync(ARCHIVE_DIR, { recursive: true })
 
 async function enterAsGuest(page: import('@playwright/test').Page) {

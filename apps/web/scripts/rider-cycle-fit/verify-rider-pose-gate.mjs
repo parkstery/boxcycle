@@ -42,7 +42,7 @@ import {
 } from "../../src/lib/riderPrototype/riderRig.geometry.mjs";
 import { solveIk3D, restToDirRotationDeg, childRotationDeg } from "../../src/lib/riderPrototype/riderIk.mjs";
 // ⚠ pole 을 재현하지 않는다 — pose.mjs 의 것을 그대로 쓴다(복제하면 거짓 PASS).
-import { _poles, resolveGlbPedalPose } from "../../src/lib/riderGlbPedalPose.pose.mjs";
+import { _poles, resolveGlbPedalPose } from "../../src/lib/rider/riderGlbPedalPose.pose.mjs";
 import { mapboxEulerDegToMat3, mat3Mul } from "../../src/lib/riderPrototype/riderIk.mjs";
 import {
   runSegmentPenetration,

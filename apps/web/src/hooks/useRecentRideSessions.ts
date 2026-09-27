@@ -3,13 +3,13 @@ import { useCallback, useEffect, useState } from "react";
 import {
   backfillRideSessionsToFirestore,
   loadRecentRideSessionsFromFirestore,
-} from "../lib/firestoreRides";
+} from "../lib/ride/repo/firestoreRides";
 import {
   loadRideSessions,
   mergeRecentRideSessions,
   saveRideSessions,
   type StoredRideSession,
-} from "../lib/rideSessionsStorage";
+} from "../lib/ride/rideSessionsStorage";
 import type { RouteProfile } from "../services/mapboxDirections";
 
 export type UseRecentRideSessionsOptions = {

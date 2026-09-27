@@ -6,7 +6,7 @@ import {
   subscribeConquestSummary,
   type ConquestSummary,
   type ConquestTrace,
-} from "../lib/firestoreConquest";
+} from "../lib/conquest/repo/firestoreConquest";
 
 /**
  * Conquest(정복) 상태 — 요약(onSnapshot) + 내 도로 셀 + 「내 도로망」 궤적.

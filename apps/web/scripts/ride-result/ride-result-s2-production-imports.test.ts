@@ -8,8 +8,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 // Production imports (not copied try/catch)
-import { isDiscardableRideRecord, isRouteCompletion } from "../../src/lib/rideRecordPolicy.ts";
-import { EMPTY_CONQUEST_RESULT, parseConquestResult } from "../../src/lib/rideConquestResult.ts";
+import { isDiscardableRideRecord, isRouteCompletion } from "../../src/lib/ride/rideRecordPolicy.ts";
+import { EMPTY_CONQUEST_RESULT, parseConquestResult } from "../../src/lib/ride/rideConquestResult.ts";
 
 describe("S2: Production Import Verification", () => {
   it("Production: isDiscardableRideRecord from rideRecordPolicy.ts", () => {

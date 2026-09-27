@@ -1,19 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import type { User } from "firebase/auth";
-import { loadRideSessionsForStatsFromFirestore } from "../lib/firestoreRides";
-import { isFirebaseConfigured } from "../lib/firebase";
-import { formatRideDistanceKmNumber } from "../lib/rideDistanceFormat";
+import { loadRideSessionsForStatsFromFirestore } from "../lib/ride/repo/firestoreRides";
+import { isFirebaseConfigured } from "../lib/firebase/app";
+import { formatRideDistanceKmNumber } from "../lib/ride/rideDistanceFormat";
 import {
   aggregateRideStatsForPeriod,
   pickLastRide,
   type RideStatsPeriod,
-} from "../lib/rideStatsAggregate";
-import type { StoredRideSession } from "../lib/rideSessionsStorage";
-import { ROUTE_COMPLETION_RATIO_THRESHOLD, isRouteCompletion } from "../lib/rideRecordPolicy";
-import type { SavedRoute } from "../lib/firestoreSavedRoutes";
-import type { LngLat } from "../lib/geo";
-import { resolveRecentRideActions } from "../lib/nextRideTarget";
-import type { UserTier } from "../lib/firestoreUser";
+} from "../lib/ride/rideStatsAggregate";
+import type { StoredRideSession } from "../lib/ride/rideSessionsStorage";
+import { ROUTE_COMPLETION_RATIO_THRESHOLD, isRouteCompletion } from "../lib/ride/rideRecordPolicy";
+import type { SavedRoute } from "../lib/route/repo/firestoreSavedRoutes";
+import type { LngLat } from "../lib/geo/geo";
+import { resolveRecentRideActions } from "../lib/ride/nextRideTarget";
+import type { UserTier } from "../lib/identity/repo/firestoreUser";
 import {
   fetchSubscriptionMe,
   openSubscriptionPortal,
@@ -21,9 +21,9 @@ import {
   subscriptionStatusLabelKo,
   tierPlanLabel,
   type SubscriptionStatus,
-} from "../lib/subscription";
-import { AuthGoogleMark } from "./AuthGateCard";
-import { resetGuestAccount } from "../lib/guestAccountReset";
+} from "../lib/account/repo/subscription";
+import { AuthGoogleMark } from "./auth/AuthGateCard";
+import { resetGuestAccount } from "../lib/identity/guestAccountReset";
 import "./UserInfoSheet.css";
 
 type UserInfoSheetProps = {

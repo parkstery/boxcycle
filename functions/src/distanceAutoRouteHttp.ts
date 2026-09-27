@@ -8,11 +8,14 @@ import {
   searchReadyLoopRoute,
   searchReadyOnewayRoute,
   type AutoRouteOutcome,
+  type ClaimReader,
   type DirectionsRouteLike,
   type FetchDirectionsFn,
   type LngLat,
   type RouteProfile,
 } from "./distanceAutoRouteCore.js";
+// 이 파일이 **조립 지점(composition root)** 이다 — 코어가 선언한 `ClaimReader` 포트에
+// Conquest 의 Firestore 구현을 끼운다(Phase 5 D2). 코어는 Conquest 를 모른다.
 import { loadClaimedCellsNearStart } from "./conquestClaimRead.js";
 import {
   loadRouteTokenEconomy,
@@ -274,6 +277,11 @@ export async function executeDistanceAutoRoute(input: {
   excludeStartBearingDeg?: number;
   requestId: string;
   fetchDirections: FetchDirectionsFn;
+  /**
+   * 출발점 주변 Claim 읽기. 생략하면 Firestore 구현을 쓴다.
+   * 시험에서 가짜를 주입해 Firestore 없이 순위 동작을 고정한다.
+   */
+  loadClaimedCells?: ClaimReader;
 }): Promise<DistanceAutoRouteResult> {
   const {
     userId,
@@ -287,6 +295,7 @@ export async function executeDistanceAutoRoute(input: {
     excludeStartBearingDeg,
     requestId,
     fetchDirections,
+    loadClaimedCells = loadClaimedCellsNearStart,
   } = input;
 
   const cached = await readCache(userId, requestId);
@@ -502,7 +511,7 @@ export async function executeDistanceAutoRoute(input: {
   // 지시05 — Ready Ride 기본 = 단순 경로(방위 자동 표본 + searchDistanceAutoRoute)
   // 지시08 — 출발점 주변 Claim만 읽어 신규도로·자기중복으로 순위(탈락 아님)
   if (readyOneway) {
-    const claimLoad = await loadClaimedCellsNearStart({
+    const claimLoad = await loadClaimedCells({
       userId,
       start,
       radiusMeters: targetDistanceMeters * 1.5,

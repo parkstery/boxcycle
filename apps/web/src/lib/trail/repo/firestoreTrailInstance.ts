@@ -1,0 +1,240 @@
+import {
+  collection,
+  doc,
+  getDoc,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+  type FieldValue,
+} from "firebase/firestore";
+import type { User } from "firebase/auth";
+import { getFirebaseFirestore } from "../../firebase/app";
+import { pickRandomTrailDisplayNumber } from "../trailDisplayNumber";
+import { TRAILS_COLLECTION } from "./firestoreTrailPaths";
+import {
+  removeOpenTrailListing,
+  refreshOpenTrailListingFromTrail,
+  scheduleOpenTrailListingRefresh,
+} from "./firestoreOpenTrailListings";
+import { assertPublicTrailHasRoute, trailHasConfiguredRoute } from "../trailAccessPolicy";
+import { resolvePublicationIdFromDoc } from "../../firebase/converters";
+import { TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS } from "../trailLivePolicy";
+import {
+  noteTouchActivityCall,
+  noteTrailDocUpdateDoc,
+  type TouchActivitySource,
+} from "../../debug/touchActivityMeters";
+
+// 타입 정의는 도메인 층(`../trailTypes`)이 갖는다 — 정책이 저장소를 올려다보면
+// 순환이 된다(Phase 5 D1). 종전 이름으로 re-export 해 소비자를 건드리지 않는다.
+import type { TrailInstance, TrailStatus, TrailVisibility } from "../trailTypes";
+export type { TrailInstance, TrailStatus, TrailVisibility };
+
+type TrailInstanceDoc = {
+  hostUid: string;
+  displayNumber: number;
+  publicationId?: string | null;
+  regionLabel?: string | null;
+  distanceKm?: number | null;
+  visibility: TrailVisibility;
+  status: TrailStatus;
+  createdAt?: FieldValue;
+  lastActivityAt?: FieldValue;
+};
+
+function resolveTrailPublicationId(data: Record<string, unknown>): string | null {
+  return resolvePublicationIdFromDoc(data);
+}
+
+function timestampToMs(raw: unknown): number | null {
+  if (raw == null) return null;
+  if (typeof raw === "object" && raw !== null && typeof (raw as { toMillis?: () => number }).toMillis === "function") {
+    const ms = (raw as { toMillis: () => number }).toMillis();
+    return Number.isFinite(ms) ? ms : null;
+  }
+  return null;
+}
+
+function parseTrailInstance(id: string, data: Record<string, unknown>): TrailInstance {
+  return {
+    id,
+    hostUid: typeof data.hostUid === "string" ? data.hostUid : "",
+    displayNumber:
+      typeof data.displayNumber === "number" && Number.isFinite(data.displayNumber)
+        ? Math.max(1, Math.min(999, Math.floor(data.displayNumber)))
+        : 1,
+    publicationId: resolveTrailPublicationId(data),
+    regionLabel:
+      typeof data.regionLabel === "string" && data.regionLabel.trim() ? data.regionLabel.trim() : null,
+    distanceKm:
+      typeof data.distanceKm === "number" && Number.isFinite(data.distanceKm) ? data.distanceKm : null,
+    visibility: data.visibility === "private" ? "private" : "open",
+    status:
+      data.status === "archived"
+        ? "archived"
+        : data.status === "closed"
+          ? "closed"
+          : "open",
+    createdAtMs: timestampToMs(data.createdAt),
+    lastActivityAtMs: timestampToMs(data.lastActivityAt),
+  };
+}
+
+export function buildTrailRegionLabel(input: {
+  startPlaceLabel: string | null;
+  endPlaceLabel: string | null;
+  courseTitle?: string | null;
+}): string {
+  const start = input.startPlaceLabel?.trim();
+  if (start) return start;
+  const course = input.courseTitle?.trim();
+  if (course) return course;
+  const end = input.endPlaceLabel?.trim();
+  if (end) return end;
+  return "Ride";
+}
+
+export async function createTrailInstance(input: {
+  hostUid: string;
+  publicationId: string | null;
+  regionLabel: string;
+  distanceKm: number | null;
+  visibility?: TrailVisibility;
+}): Promise<TrailInstance> {
+  const visibility = input.visibility ?? "open";
+  if (visibility === "open") {
+    assertPublicTrailHasRoute(input.publicationId);
+  }
+  const db = getFirebaseFirestore();
+  const ref = doc(collection(db, TRAILS_COLLECTION));
+  const displayNumber = pickRandomTrailDisplayNumber();
+  const publicationId = input.publicationId?.trim() || null;
+  const payload: TrailInstanceDoc = {
+    hostUid: input.hostUid,
+    displayNumber,
+    publicationId,
+    regionLabel: input.regionLabel,
+    distanceKm: input.distanceKm,
+    visibility,
+    status: "open",
+    createdAt: serverTimestamp(),
+    lastActivityAt: serverTimestamp(),
+  };
+  await setDoc(ref, payload);
+  const created: TrailInstance = {
+    id: ref.id,
+    hostUid: input.hostUid,
+    displayNumber,
+    publicationId,
+    regionLabel: input.regionLabel,
+    distanceKm: input.distanceKm,
+    visibility: payload.visibility,
+    status: "open",
+    createdAtMs: Date.now(),
+    lastActivityAtMs: Date.now(),
+  };
+  void refreshOpenTrailListingFromTrail(created.id);
+  return created;
+}
+
+export function withResolvedTrailPublicationId(
+  trail: TrailInstance,
+  fallbackPublicationId?: string | null,
+): TrailInstance {
+  if (trail.publicationId?.trim()) return trail;
+  const id = fallbackPublicationId?.trim();
+  return id ? { ...trail, publicationId: id } : trail;
+}
+
+export async function fetchTrailInstance(trailId: string): Promise<TrailInstance | null> {
+  const db = getFirebaseFirestore();
+  const snap = await getDoc(doc(db, TRAILS_COLLECTION, trailId));
+  if (!snap.exists()) return null;
+  return parseTrailInstance(snap.id, snap.data() as Record<string, unknown>);
+}
+
+/**
+ * Trail 을 **영구히** 닫는다 — `status: "closed"` 는 되돌리는 코드가 앱에도 서버에도 없다.
+ *
+ * ⚠️ **2026-09-27 현재 아무도 이것을 부르지 않는다.** 종전에는 개설자가 주행을 끝낼 때
+ * 불렀는데, 그 때문에 개설자만 자기 Trail 에 다시 못 들어갔다(참여자는 멀쩡했다).
+ * 지금 주행 종료는 목록만 다시 계산한다 — `App.handleEndRideWithTrailCleanup`.
+ *
+ * 남겨 둔 이유는 「Trail 을 명시적으로 종료한다」가 별건(2단계)으로 예정돼 있어서다.
+ * 되살릴 때는 **주행 종료에 다시 묶지 마라** — 그것이 이번에 고친 결함이다.
+ */
+export async function closeTrailInstance(trailId: string): Promise<void> {
+  const db = getFirebaseFirestore();
+  await updateDoc(doc(db, TRAILS_COLLECTION, trailId), {
+    status: "closed",
+    closedAt: serverTimestamp(),
+    lastActivityAt: serverTimestamp(),
+  });
+  void removeOpenTrailListing(trailId);
+}
+
+async function defaultTouchTrailDoc(trailId: string): Promise<void> {
+  const db = getFirebaseFirestore();
+  await updateDoc(doc(db, TRAILS_COLLECTION, trailId), {
+    lastActivityAt: serverTimestamp(),
+  }).catch(() => {});
+}
+
+let touchTrailDocWriter = defaultTouchTrailDoc;
+let touchNow = (): number => Date.now();
+const lastTouchWriteAt = new Map<string, number>();
+
+/** DEV·단위시험용. 제품 수명주기에서 호출하지 마라. */
+export function resetTouchTrailDocWriterForTests(
+  writer?: (trailId: string) => Promise<void>,
+): void {
+  touchTrailDocWriter = writer ?? defaultTouchTrailDoc;
+}
+
+/** DEV·단위시험용. 제품 수명주기에서 호출하지 마라. */
+export function resetTouchActivityCoalesceForTests(now?: () => number): void {
+  lastTouchWriteAt.clear();
+  touchNow = now ?? (() => Date.now());
+}
+
+export async function touchTrailInstanceActivity(
+  trailId: string,
+  source: TouchActivitySource = "unspecified",
+): Promise<void> {
+  noteTouchActivityCall(source);
+  const now = touchNow();
+  const last = lastTouchWriteAt.get(trailId) ?? 0;
+  if (last > 0 && now - last < TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS) {
+    scheduleOpenTrailListingRefresh(trailId);
+    return;
+  }
+  lastTouchWriteAt.set(trailId, now);
+  noteTrailDocUpdateDoc();
+  await touchTrailDocWriter(trailId);
+  scheduleOpenTrailListingRefresh(trailId);
+}
+
+export async function setTrailVisibility(
+  trailId: string,
+  visibility: TrailVisibility,
+): Promise<void> {
+  if (visibility === "open") {
+    const existing = await fetchTrailInstance(trailId);
+    if (!existing || !trailHasConfiguredRoute(existing)) {
+      throw new Error("공개 Trail은 경로(코스)가 설정된 후에만 가능합니다.");
+    }
+  }
+  const db = getFirebaseFirestore();
+  await updateDoc(doc(db, TRAILS_COLLECTION, trailId), {
+    visibility,
+    lastActivityAt: serverTimestamp(),
+  });
+  void (visibility === "open"
+    ? refreshOpenTrailListingFromTrail(trailId)
+    : removeOpenTrailListing(trailId));
+}
+
+export function canUserManageTrail(trail: TrailInstance | null, user: User | null | undefined): boolean {
+  if (!trail || !user) return false;
+  return trail.hostUid === user.uid && trail.status === "open";
+}

@@ -22,7 +22,7 @@ function distanceMeters(a: LngLat, b: LngLat): number {
 
 /**
  * "같은 경로" 판정 지문 — 출발·도착 좌표 + 거리 버킷 + 이동 수단.
- * ⚠️ 클라 apps/web/src/lib/routeFingerprint.ts 와 규칙이 반드시 일치해야 한다
+ * ⚠️ 클라 apps/web/src/lib/route/routeFingerprint.ts 와 규칙이 반드시 일치해야 한다
  * (한쪽만 바꾸면 클라·서버 중복 판정이 어긋난다).
  */
 export function encodeCanonicalRouteGeometryProfile(

@@ -1,5 +1,5 @@
 import type { IControl, Map as MapboxMap } from "mapbox-gl";
-import { applyMapGlobeView } from "../../lib/mapGlobeView";
+import { applyMapGlobeView } from "../../lib/map/mapGlobeView";
 
 function makeCtrlButton(
   className: string,

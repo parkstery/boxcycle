@@ -2,7 +2,7 @@
  * 입문(Basic) 실도로 경로 3개 생성기 — Mapbox Directions `cycling` / `overview=full` / GeoJSON.
  *
  * 이 스크립트가 만드는 것(단일 진실):
- *   1. apps/web/src/lib/basicIntroHubRouteGeometries.ts  — geometry SoT (BASIC_COURSES 가 파생)
+ *   1. apps/web/src/lib/route/basicIntroHubRouteGeometries.ts  — geometry SoT (BASIC_COURSES 가 파생)
  *   2. functions/src/basicIntroHubSeeds.ts               — Functions 쪽 동일 seed + allowlist
  *   3. document/archive/260816-입문-실도로-경로-증거/     — 요청·응답·해시 증거(토큰 제거)
  *   4. 같은 폴더의 Mapbox Static Images 스크린샷(도로 위 경로선)
@@ -52,11 +52,35 @@ const ROUTE_SPECS = [
     from: [-73.969407, 40.781743],
     to: [-73.972581, 40.778609],
   },
+  {
+    /*
+     * 2026-09-27 추가 — **긴 입문 경로.** Basic 1~3 은 전부 500 m 미만이라, 몇 분씩
+     * 달려야 하는 계측(동행 e2e `peer-sync-s1` 의 8케이스 × 30 km/h)이 **측정 도중
+     * 완주해 버려** 돌아가지 못했다. 제품에도 「조금 더 달려 보는」 단계가 하나 생긴다.
+     */
+    id: "basic-intro-amsterdam-vondelpark",
+    order: 4,
+    constName: "BASIC_INTRO_AMSTERDAM_VONDELPARK_ROUTE",
+    title: "Basic 4 · 암스테르담 폰델파크",
+    description:
+      "폰델파크를 가로질러 프린선흐라흐트 운하로 이어지는 2 km 구간. 앞의 셋보다 길어 속도·리듬을 익히는 입문 경로.",
+    from: [4.869112, 52.358011],
+    to: [4.886459, 52.363477],
+    // 2 km 를 의도한 경로. 이보다 크게 벗어나면 routing 이 딴 길로 샜다는 뜻이다.
+    maxDistanceMeters: 2_200,
+  },
 ];
 
 const PROFILE = "cycling";
-const SEED_REVISION = 3;
-const MAX_DISTANCE_METERS = 500;
+const SEED_REVISION = 4;
+/**
+ * 길이 상한의 **기본값**. 경로별로 `maxDistanceMeters` 를 적으면 그것이 이긴다.
+ *
+ * 2026-09-27: 전역 하나였다. Basic 4(2 km)를 넣으려고 이 값을 올리면 **짧아야 할 셋도
+ * 조용히 길어질 수 있다** — 상한의 존재 이유(허구가 seed 로 들어가는 것을 막는다)가 흐려진다.
+ * 그래서 경로마다 자기 상한을 갖는다.
+ */
+const DEFAULT_MAX_DISTANCE_METERS = 500;
 
 function readMapboxToken() {
   const files = [
@@ -183,8 +207,10 @@ function renderSeedModule(entries) {
 /** seed 리비전 — geometry 가 바뀌면 올린다(Firestore 재시드 판단에 쓰임). */
 export const BASIC_INTRO_HUB_ROUTE_REVISION = ${SEED_REVISION};
 
-/** 입문 경로 상한 — 좌표 재계산 길이 기준(m) */
-export const BASIC_INTRO_MAX_DISTANCE_METERS = ${MAX_DISTANCE_METERS};
+/** 입문 경로 중 **가장 큰** 길이 상한(m). 상한은 경로마다 다르다(2026-09-27). */
+export const BASIC_INTRO_MAX_DISTANCE_METERS = ${Math.max(
+  ...ROUTE_SPECS.map((r) => r.maxDistanceMeters ?? DEFAULT_MAX_DISTANCE_METERS),
+)};
 
 export type BasicIntroHubRouteSeed = {
   id: string;
@@ -227,7 +253,7 @@ ${coords}
 
   return `// 자동 생성 — 직접 수정하지 말 것. \`node scripts/gen-basic-intro-routes.mjs\` 로 재생성한다.
 //
-// 입문(Basic) publication seed — \`apps/web/src/lib/basicIntroHubRouteGeometries.ts\` 와 같은
+// 입문(Basic) publication seed — \`apps/web/src/lib/route/basicIntroHubRouteGeometries.ts\` 와 같은
 // Mapbox Directions cycling 응답에서 나온 동일 좌표다. Admin 마이그레이션(\`cliSeedBasicIntroPublications\`)과
 // presence allowlist(\`publicationPresenceCore\`)가 이 파일을 쓴다.
 // 두 파일의 ID 집합 일치는 \`apps/web/scripts/basic-routes-verify/verify-basic-routes.mjs\` 가 검사한다.
@@ -302,10 +328,13 @@ async function main() {
 
     // 게이트 — 여기서 막지 못하면 허구가 seed 로 들어간다.
     if (coordinates.length < 2) throw new Error(`좌표 부족: ${spec.id}`);
-    if (!(recomputed > 0 && recomputed <= MAX_DISTANCE_METERS)) {
-      throw new Error(`좌표 재계산 길이 초과: ${spec.id} = ${recomputed.toFixed(1)}m`);
+    const maxMeters = spec.maxDistanceMeters ?? DEFAULT_MAX_DISTANCE_METERS;
+    if (!(recomputed > 0 && recomputed <= maxMeters)) {
+      throw new Error(
+        `좌표 재계산 길이 초과: ${spec.id} = ${recomputed.toFixed(1)}m (상한 ${maxMeters}m)`,
+      );
     }
-    if (built.distanceMeters > MAX_DISTANCE_METERS) {
+    if (built.distanceMeters > maxMeters) {
       throw new Error(`API 거리 초과: ${spec.id} = ${built.distanceMeters}m`);
     }
     for (const d of snapDistances) {
@@ -354,7 +383,7 @@ async function main() {
   }
 
   fs.writeFileSync(
-    "apps/web/src/lib/basicIntroHubRouteGeometries.ts",
+    "apps/web/src/lib/route/basicIntroHubRouteGeometries.ts",
     renderSeedModule(entries),
     "utf8",
   );
@@ -365,11 +394,13 @@ async function main() {
   );
   fs.writeFileSync(
     path.join(EVIDENCE_DIR, "evidence.json"),
-    scrubToken(JSON.stringify({ generatedAt: new Date().toISOString(), maxDistanceMeters: MAX_DISTANCE_METERS, routes: evidence }, null, 2), token),
+    scrubToken(JSON.stringify({ generatedAt: new Date().toISOString(), maxDistanceMeters: Object.fromEntries(
+            ROUTE_SPECS.map((r) => [r.id, r.maxDistanceMeters ?? DEFAULT_MAX_DISTANCE_METERS]),
+          ), routes: evidence }, null, 2), token),
     "utf8",
   );
 
-  console.info("written: apps/web/src/lib/basicIntroHubRouteGeometries.ts");
+  console.info("written: apps/web/src/lib/route/basicIntroHubRouteGeometries.ts");
   console.info("written: functions/src/basicIntroHubSeeds.ts");
   console.info(`written: ${EVIDENCE_DIR}/ (evidence.json, *.directions.json, *.png)`);
 }

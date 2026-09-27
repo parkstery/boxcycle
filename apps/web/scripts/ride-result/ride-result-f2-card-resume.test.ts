@@ -6,11 +6,11 @@
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import type { LineStringGeometry } from "../../src/lib/geo.ts";
-import { resumeAnchorForRoute } from "../../src/lib/nextRideTarget.ts";
-import { resumeOffsetMetersFrom } from "../../src/lib/rideRecordPolicy.ts";
-import { lineStringLengthMeters, getPointOnRouteByDistance } from "../../src/lib/geo.ts";
-import type { SavedRoute } from "../../src/lib/firestoreSavedRoutes.ts";
+import type { LineStringGeometry } from "../../src/lib/geo/geo.ts";
+import { resumeAnchorForRoute } from "../../src/lib/ride/nextRideTarget.ts";
+import { resumeOffsetMetersFrom } from "../../src/lib/ride/rideRecordPolicy.ts";
+import { lineStringLengthMeters, getPointOnRouteByDistance } from "../../src/lib/geo/geo.ts";
+import type { SavedRoute } from "../../src/lib/route/repo/firestoreSavedRoutes.ts";
 
 describe("F2 · card vs Go — 0.97 cap + dual-length", () => {
   it("CP1: 0.975 saved → card/Go both capped at 0.97 (970m on 1000m route)", () => {

@@ -5,7 +5,7 @@ import {
   subscribeGlobalLivePresence,
   type GlobalLivePresenceDot,
   type GlobalLivePresenceRow,
-} from "../lib/firestoreGlobalLivePresence";
+} from "../lib/ride/repo/firestoreGlobalLivePresence";
 
 type UseGlobalLivePresenceOpts = {
   user: User | null | undefined;

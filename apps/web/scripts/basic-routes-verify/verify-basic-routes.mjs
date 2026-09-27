@@ -26,9 +26,11 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB_ROOT = path.resolve(HERE, "..", "..");
 const REPO_ROOT = path.resolve(WEB_ROOT, "..", "..");
 
-const SEED_TS = path.join(WEB_ROOT, "src", "lib", "basicIntroHubRouteGeometries.ts");
+// 2026-09-25 Phase 5-6 에서 `src/lib/route/` 로 옮겨 갔다. 그 뒤로 이 검사기는
+// 「필수 파일 없음」으로 죽어 있었고, 어느 게이트에도 없어 아무도 몰랐다(2026-09-27 정정).
+const SEED_TS = path.join(WEB_ROOT, "src", "lib", "route", "basicIntroHubRouteGeometries.ts");
 const FUNCTIONS_IDS_TS = path.join(REPO_ROOT, "functions", "src", "basicIntroHubSeeds.ts");
-const COURSES_TS = path.join(WEB_ROOT, "src", "lib", "firestoreCourses.ts");
+const COURSES_TS = path.join(WEB_ROOT, "src", "lib", "route", "repo", "firestoreCourses.ts");
 const EVIDENCE_JSON = path.join(
   REPO_ROOT,
   "document",
@@ -37,8 +39,17 @@ const EVIDENCE_JSON = path.join(
   "evidence.json",
 );
 
-const EXPECTED_ROUTE_COUNT = 3;
-const MAX_DISTANCE_METERS = 500;
+const EXPECTED_ROUTE_COUNT = 4;
+/**
+ * 길이 상한은 **경로마다** 다르다(2026-09-27). Basic 1~3 은 짧아야 하고, Basic 4 는
+ * 2 km 를 의도했다. 전역 하나로 두면 Basic 4 를 위해 올린 값이 **짧아야 할 셋의 상한도
+ * 같이 풀어 버린다** — 상한의 존재 이유(허구 경로가 seed 로 들어가는 것을 막는다)가 흐려진다.
+ * 생성기(`scripts/gen-basic-intro-routes.mjs`)의 `maxDistanceMeters` 와 같은 값이어야 한다.
+ */
+const MAX_DISTANCE_METERS_BY_ID = {
+  "basic-intro-amsterdam-vondelpark": 2_200,
+};
+const DEFAULT_MAX_DISTANCE_METERS = 500;
 /** metadata(API distance) vs 좌표 재계산 허용 오차 — 같은 polyline 이므로 작아야 정상 */
 const DISTANCE_TOLERANCE_METERS = 15;
 const DISTANCE_TOLERANCE_RATIO = 0.03;
@@ -185,8 +196,9 @@ function main() {
 
     // C3 — nominal 이 아니라 좌표로 증명
     const recomputed = polylineLengthMeters(r.coordinates);
-    check("C3", recomputed > 0 && recomputed <= MAX_DISTANCE_METERS,
-      `${tag} 좌표 재계산 거리 = ${recomputed.toFixed(1)}m (<= ${MAX_DISTANCE_METERS}m)`);
+    const maxMeters = MAX_DISTANCE_METERS_BY_ID[r.id] ?? DEFAULT_MAX_DISTANCE_METERS;
+    check("C3", recomputed > 0 && recomputed <= maxMeters,
+      `${tag} 좌표 재계산 거리 = ${recomputed.toFixed(1)}m (<= ${maxMeters}m)`);
 
     // C4
     const delta = Math.abs(recomputed - r.distanceMeters);

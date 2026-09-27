@@ -62,7 +62,7 @@ async function main(): Promise<void> {
     }
     console.info("  coordsJson len:", json.length, "chars");
 
-    let rawParsed: unknown = null;
+    let rawParsed: unknown;
     try {
       rawParsed = JSON.parse(json);
     } catch (e) {

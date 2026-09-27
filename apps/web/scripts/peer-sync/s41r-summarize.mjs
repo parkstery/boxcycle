@@ -10,13 +10,14 @@ import {
   computeScaleGate,
   S1_LIMITS,
 } from "./s1-metrics.mjs";
+import { RELAY_OUT_DIR, relayInput, relayOutput } from "./relay-paths.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const DIR = resolve(HERE, "../../../../document/ops/sync-relay");
-const OUT = resolve(DIR, "S41R-summary.json");
-const FIXTURE = resolve(DIR, "S3-fixture-gate.json");
-const LIFECYCLE = resolve(DIR, "S41R-lifecycle.json");
-const BASELINE = resolve(DIR, "S41R-lifecycle-baseline.json");
+const DIR = RELAY_OUT_DIR;
+const OUT = relayOutput("S41R-summary.json");
+const FIXTURE = relayInput("S3-fixture-gate.json", "s41r-summarize");
+const LIFECYCLE = relayInput("S41R-lifecycle.json", "s41r-summarize");
+const BASELINE = relayInput("S41R-lifecycle-baseline.json", "s41r-summarize");
 
 const INTERP_DELAY_MS = 160;
 const DISCARD_MS = 2_000;

@@ -1,5 +1,5 @@
-/** `legacy` | `iso2d` | `glb` | `preserved` — `.env` `VITE_RIDER_PROTOTYPE` */
-export type RiderPrototypeMode = "legacy" | "iso2d" | "glb" | "preserved";
+/** `iso2d` | `glb` | `preserved` — `.env` `VITE_RIDER_PROTOTYPE`. 기본값 `preserved` */
+export type RiderPrototypeMode = "iso2d" | "glb" | "preserved";
 
 export function getRiderPrototypeMode(): RiderPrototypeMode {
   const raw = import.meta.env.VITE_RIDER_PROTOTYPE?.trim().toLowerCase();

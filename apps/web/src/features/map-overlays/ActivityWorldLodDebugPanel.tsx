@@ -1,5 +1,5 @@
-import type { MapDebugPhase } from "../../lib/mapDebugPhase";
-import type { ActivityWorldLodDebug, ActivityWorldRawOverlay, ActivityWorldRenderOverlay } from "../../lib/activityWorldLod";
+import type { MapDebugPhase } from "../../lib/debug/mapDebugPhase";
+import type { ActivityWorldLodDebug, ActivityWorldRawOverlay, ActivityWorldRenderOverlay } from "../../lib/activity/activityWorldLod";
 
 export type ActivityWorldLodDebugPanelProps = {
   activityWorldLodDebug: ActivityWorldLodDebug;

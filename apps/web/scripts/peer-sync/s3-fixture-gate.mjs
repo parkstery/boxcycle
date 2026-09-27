@@ -17,12 +17,13 @@ import {
   judgeCase,
   S1_LIMITS,
 } from "./s1-metrics.mjs";
+import { relayInput, relayOutput } from "./relay-paths.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const RAW = resolve(HERE, "../../../../document/ops/sync-relay/REPORT-S1-raw-logs.json");
-const S3B1_EVENTS = resolve(HERE, "../../../../document/ops/sync-relay/S3B1-chain-events.json");
-const S3B2_EVENTS = resolve(HERE, "../../../../document/ops/sync-relay/S3B2-chain-events.json");
-const OUT = resolve(HERE, "../../../../document/ops/sync-relay/S3-fixture-gate.json");
+const RAW = relayInput("REPORT-S1-raw-logs.json", "s3-fixture-gate");
+const S3B1_EVENTS = relayInput("S3B1-chain-events.json", "s3-fixture-gate");
+const S3B2_EVENTS = relayInput("S3B2-chain-events.json", "s3-fixture-gate");
+
 
 const INVALID_OLD_D = {
   "z15-depart": 10_000,
@@ -231,6 +232,7 @@ const out = {
   knownFails,
   generatedAt: new Date().toISOString(),
 };
-writeFileSync(OUT, JSON.stringify(out, null, 2), "utf8");
+// 추적 경로(document/ops/sync-relay/*.json)에 쓰지 않는다 — 돌리기만 해도 git 이 더러워진다.
+writeFileSync(relayOutput("S3-fixture-gate.json"), JSON.stringify(out, null, 2), "utf8");
 console.log(JSON.stringify({ pass: out.pass, failures, fixtureIds: fixtures.map((f) => f.id), knownFails: knownFails.map((k) => ({ id: k.id, pass: k.pass })) }, null, 2));
 process.exit(out.pass ? 0 : 1);

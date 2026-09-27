@@ -3,25 +3,25 @@ import { useActivityWorldAdaptivePoll } from "../../hooks/useActivityWorldAdapti
 import {
   countRouteActivityLiveInBatch,
   resolveActivityWorldPollMode,
-} from "../../lib/activityWorldPollPolicy";
+} from "../../lib/activity/activityWorldPollPolicy";
 import {
   getActivityWorldPollSignals,
   isPostRideActivityWatchActive,
   reportActivityWorldPollSignals,
-} from "../../lib/activityWorldPollSignals";
+} from "../../lib/activity/activityWorldPollSignals";
 import {
   fetchRouteActivitiesBatch,
   fetchLiveRouteActivityIds,
   invalidateRouteActivityCache,
   type RouteActivitySnapshot,
-} from "../../lib/firestoreRouteActivity";
-import { fetchWorldPresenceSummary, formatWorldPresenceHudLine } from "../../lib/firestoreWorldPresence";
+} from "../../lib/activity/repo/firestoreRouteActivity";
+import { fetchWorldPresenceSummary, formatWorldPresenceHudLine } from "../../lib/ride/repo/firestoreWorldPresence";
 import {
   fetchWorldActivityGlobal,
   formatWorldActivityHudLine,
   mergeWorldHudLines,
-} from "../../lib/firestoreWorldActivity";
-import { isActivityLodDebugPanelEnabled } from "../../lib/mapDebugPhase";
+} from "../../lib/activity/repo/firestoreWorldActivity";
+import { isActivityLodDebugPanelEnabled } from "../../lib/debug/mapDebugPhase";
 
 export type UseActivityWorldDataSyncOpts = {
   enabled: boolean;

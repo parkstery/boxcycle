@@ -18,16 +18,16 @@ import {
   readUserSignedOutSessionFlag,
   setGuestEntryAccepted,
   setUserSignedOutSessionFlag,
-} from "../lib/appSessionKeys";
-import { isBenignAuthPopupCancel } from "../lib/firebaseAuthPopup";
-import { getFirebaseAuth } from "../lib/firebase";
+} from "../lib/storage/appSessionKeys";
+import { isBenignAuthPopupCancel } from "../lib/identity/firebaseAuthPopup";
+import { getFirebaseAuth } from "../lib/firebase/app";
 import {
   claimNicknameTransaction,
   ensureAnonymousUserTier,
   getUserProfileNickname,
   NicknameTakenError,
-} from "../lib/firestoreUser";
-import { isValidNickname } from "../lib/nickname";
+} from "../lib/identity/repo/firestoreUser";
+import { isValidNickname } from "../lib/identity/nickname";
 
 export type FsSyncState =
   | { state: "idle" }

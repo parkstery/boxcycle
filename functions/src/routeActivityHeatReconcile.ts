@@ -5,6 +5,7 @@ import {
 } from "firebase-admin/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { ROUTE_ACTIVITY_COLLECTION } from "./routeActivityConstants.js";
+import { REGION } from "./region.js";
 
 const RIDES_COLLECTION = "rides";
 /** heat 배지용 — 최근 24h completed rides 만 집계 */
@@ -17,7 +18,7 @@ const PAGE_SIZE = 400;
 export const routeActivityHeatReconcile = onSchedule(
   {
     schedule: "0 4 * * 0",
-    region: "asia-northeast3",
+    region: REGION,
     timeZone: "Asia/Seoul",
   },
   async () => {

@@ -4,9 +4,9 @@ import {
   CSC_SERVICE_UUID,
   createCscCadenceTracker,
   parseCscCrankSample,
-} from "../lib/bleCscCadence";
-import { bleReconnectDelayMs, selectGrantedCadenceDevice } from "../lib/bleAutoReconnect";
-import type { BleCrankRpmUiState } from "../lib/cadenceSensorUi";
+} from "../lib/sensor/bleCscCadence";
+import { bleReconnectDelayMs, selectGrantedCadenceDevice } from "../lib/sensor/bleAutoReconnect";
+import type { BleCrankRpmUiState } from "../lib/sensor/cadenceSensorUi";
 
 /** 정지(0rpm) 판정을 위한 폴링 주기 — stall 임계보다 충분히 짧게 */
 const STALL_POLL_MS = 400;
@@ -45,7 +45,7 @@ function isBluetoothCapable(): boolean {
 
 /**
  * Web Bluetooth CSC 크랭크 케이던스 — 권한·GATT·알림 생명주기만 담당한다.
- * 패킷 해석·rollover·정지 판정은 `lib/bleCscCadence` 의 순수 로직이 한다.
+ * 패킷 해석·rollover·정지 판정은 `lib/sensor/bleCscCadence` 의 순수 로직이 한다.
  *
  * 주행 세션과 분리돼 있다 — 주행 전에 연결해 확인하고, 주행이 끝나도 같은 앱
  * 세션에서 연결이 유지된다. 정리는 명시적 해제·unmount·페이지 종료에서만.

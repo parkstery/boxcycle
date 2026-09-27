@@ -4,15 +4,15 @@
  */
 import { onSnapshot } from "firebase/firestore";
 import { useEffect, useState, useRef } from "react";
-import { getFirebaseFirestore } from "../lib/firebase";
+import { getFirebaseFirestore } from "../lib/firebase/app";
 import {
   EMPTY_CONQUEST_RESULT,
   type RideConquestResult,
-} from "../lib/rideConquestResult";
+} from "../lib/ride/rideConquestResult";
 import {
   RideConquestSubscription,
   type RideConquestSubscriptionKey,
-} from "../lib/rideConquestSubscription";
+} from "../lib/ride/rideConquestSubscription";
 
 export type UseRideConquestResultOptions = {
   /** F3: Firestore rides/{} doc ID. null이면 구독 안 함 */

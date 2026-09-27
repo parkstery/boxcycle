@@ -5,11 +5,12 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { RELAY_OUT_DIR, relayInput, relayOutput } from "./relay-paths.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const DIR = resolve(HERE, "../../../../document/ops/sync-relay");
-const EVENTS = resolve(DIR, process.argv[2] || "S3R-chain-events.json");
-const OUT = resolve(DIR, process.argv[3] || "S3R-summary.json");
+const DIR = RELAY_OUT_DIR;
+const EVENTS = relayInput(process.argv[2] || "S3R-chain-events.json", "s3r-summarize");
+const OUT = relayOutput(process.argv[3] || "S3R-summary.json");
 
 const METRICS_UI_S = 0.2;
 const ROUND_M = 0.05;

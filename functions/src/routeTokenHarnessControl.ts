@@ -9,6 +9,7 @@ import {
   setHarnessFakeMapboxFailNext,
 } from "./harnessFakeMapbox.js";
 import { ROUTE_TOKEN_ECONOMY_PATH, ROUTE_TOKEN_LEDGER } from "./routeTokenCore.js";
+import { REGION } from "./region.js";
 
 type HarnessAction =
   | "reset"
@@ -41,7 +42,7 @@ function parseAction(raw: unknown): HarnessAction {
  */
 export const routeTokenHarnessControl = onRequest(
   {
-    region: "asia-northeast3",
+    region: REGION,
     cors: false,
     invoker: "public",
   },

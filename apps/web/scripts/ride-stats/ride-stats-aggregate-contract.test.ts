@@ -6,8 +6,8 @@ import {
   aggregateRideStatsForPeriod,
   getRideStatsPeriodRange,
   pickLastRide,
-} from "../../src/lib/rideStatsAggregate.ts";
-import type { StoredRideSession } from "../../src/lib/rideSessionsStorage.ts";
+} from "../../src/lib/ride/rideStatsAggregate.ts";
+import type { StoredRideSession } from "../../src/lib/ride/rideSessionsStorage.ts";
 
 function session(id: string, endedAt: Date, extra: Partial<StoredRideSession> = {}) {
   return {

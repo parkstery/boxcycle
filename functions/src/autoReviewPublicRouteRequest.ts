@@ -35,8 +35,8 @@ import {
   PUBLIC_ROUTE_SIMILARITY_BLOCK,
 } from "./publicRouteAutoReviewCore.js";
 import { countHttpUrls } from "./publicRouteBadWords.js";
+import { REGION } from "./region.js";
 
-const REGION = "asia-northeast3";
 
 const PUBLIC_ROUTE_REQUESTS_COLLECTION = "publicRouteRequests";
 const ROUTE_PUBLICATIONS_COLLECTION = "routePublications";

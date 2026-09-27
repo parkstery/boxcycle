@@ -116,7 +116,7 @@ const lastSessionPrefsRef = useRef({ profile: "driving", targetKm: 10 });
 
 ### 수정 — 승계를 순수 함수로 옮기고 우선순위를 고정
 
-`apps/web/src/lib/rideContinuationSetup.ts` 신설.
+`apps/web/src/lib/ride/rideContinuationSetup.ts` 신설.
 
 | 순위 | 근거 | 이유 |
 |---|---|---|
@@ -166,7 +166,7 @@ const lastSessionPrefsRef = useRef({ profile: "driving", targetKm: 10 });
 완주 시트에 이어가기 버튼이 없던 이유를 수치로 확정했다.
 
 ```
-apps/web/src/lib/rideRecordPolicy.ts
+apps/web/src/lib/ride/rideRecordPolicy.ts
   MIN_MEANINGFUL_RIDE_DISTANCE_METERS = 100
   isDiscardableRideRecord: d <= 100 || t <= 5   → 폐기
 ```
@@ -184,7 +184,7 @@ apps/web/src/lib/rideRecordPolicy.ts
 
 | | 거리 | 시간 |
 |---|---:|---:|
-| `apps/web/src/lib/rideRecordPolicy.ts` | 100 m | 5 s |
+| `apps/web/src/lib/ride/rideRecordPolicy.ts` | 100 m | 5 s |
 | `functions/src/rideRecordPolicy.ts` | **200 m** | **180 s** |
 
 거리 100–200 m · 시간 5–180 s 구간의 주행은 **클라이언트는 남기고 서버는 버린다.** 새로고침하면 사라지는 주행이 생긴다. 이번 범위 밖이라 건드리지 않았다.

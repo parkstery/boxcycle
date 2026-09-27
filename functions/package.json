@@ -2,12 +2,13 @@
   "name": "boxcycle-functions",
   "private": true,
   "engines": {
-    "node": "20"
+    "node": "24"
   },
   "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "tsc && node --test lib/distanceAutoRouteCore.test.js",
+    "lint": "eslint src",
+    "test": "tsc && node --test lib/distanceAutoRouteCore.test.js lib/conquestClaimContract.test.js lib/trailLifecycleCore.test.js",
     "serve": "npm run build && firebase emulators:start --only functions",
     "admin:promote-saved-route": "npm run build && node lib/cliPromoteSavedRoute.js",
     "admin:migrate-rooms-to-trails": "npm run build && node lib/cliMigrateRoomsToTrails.js",
@@ -23,6 +24,7 @@
     "admin:backfill-last-completed-ride-at": "npm run build && node lib/cliBackfillLastCompletedRideAt.js",
     "admin:audit-route-activity-heat": "npm run build && node lib/cliAuditRouteActivityHeat.js",
     "admin:audit-recent-rides": "npm run build && node lib/cliAuditRecentRides.js",
+    "admin:audit-trails": "npm run build && node lib/cliAuditTrails.js",
     "admin:audit-conquest": "npm run build && node lib/cliAuditConquest.js",
     "admin:audit-tier-quota": "npm run build && node lib/cliAuditTierQuota.js",
     "admin:dedupe-saved-routes": "npm run build && node lib/cliDedupeSavedRoutes.js",
@@ -44,7 +46,11 @@
     "stripe": "^17.7.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/express": "^4.17.21",
-    "typescript": "~5.9.3"
+    "eslint": "^10.2.1",
+    "globals": "^17.5.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.58.2"
   }
 }

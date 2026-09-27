@@ -1,17 +1,17 @@
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
-import type { ActivityWorldMapDot, ActivityWorldMapRoute } from "../lib/activityWorldLod";
+import type { ActivityWorldMapDot, ActivityWorldMapRoute } from "../lib/activity/activityWorldLod";
 import {
   ACTIVITY_TRACE_LIVE_STRENGTH,
   resolveClosedPresenceOpacity,
-} from "../lib/activityWorldTraceStyle";
-import { BASIC_SHARED_HUB_IDS, fetchCourseRoutePayload, getBasicHubCoursePayload } from "../lib/firestoreCourses";
+} from "../lib/activity/activityWorldTraceStyle";
+import { BASIC_SHARED_HUB_IDS, fetchCourseRoutePayload, getBasicHubCoursePayload } from "../lib/route/repo/firestoreCourses";
 import {
   fetchPublicPublicationPresencesDetailed,
   PUBLICATION_PRESENCE_POLL_MS,
   type PublicationPresenceSnapshot,
-} from "../lib/firestorePublicationPresence";
-import type { LineStringGeometry } from "../lib/geo";
-import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../lib/geoDecimate";
+} from "../lib/ride/repo/firestorePublicationPresence";
+import type { LineStringGeometry } from "../lib/geo/geo";
+import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../lib/geo/geoDecimate";
 
 export type WorldPublicationPresenceOverlayStats = {
   activeCount: number;

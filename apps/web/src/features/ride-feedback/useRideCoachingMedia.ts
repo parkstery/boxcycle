@@ -1,9 +1,9 @@
 import { useRideBgm } from "../../hooks/useRideBgm";
 import { useRideCoaching } from "../../hooks/useRideCoaching";
 import { useRouteElevationProfile, type RouteElevationProfileState } from "../../hooks/useRouteElevationProfile";
-import { RIDE_BGM_PLAYLIST } from "../../lib/rideBgmConstants";
-import type { CoachingData } from "../../lib/coachTypes";
-import type { LineStringGeometry } from "../../lib/geo";
+import { RIDE_BGM_PLAYLIST } from "../../lib/ride/rideBgmConstants";
+import type { CoachingData } from "../../lib/coach/coachTypes";
+import type { LineStringGeometry } from "../../lib/geo/geo";
 import type { RideSessionStatus } from "../../hooks/useVirtualRideSession";
 
 /** 고도 프로필 → 코칭(TTS) → BGM 을 한 훅에서 연결 */

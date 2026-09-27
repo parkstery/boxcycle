@@ -87,7 +87,7 @@ signed-out 여부는 무관했다 — `showCadenceChip` 는 `account` 를 보지
 
 ### 판단
 
-`idle`(및 게이트가 시각적으로 닫힌 `gate`)에서만 **우상단 폴백**을 남겼다. 자리 판정은 `src/lib/sensorChipSlot.ts` 한 곳이 소유한다.
+`idle`(및 게이트가 시각적으로 닫힌 `gate`)에서만 **우상단 폴백**을 남겼다. 자리 판정은 `src/lib/route/sensorChipSlot.ts` 한 곳이 소유한다.
 
 ```ts
 if (!hasCadence || isGate || isSummary) return "none";
@@ -221,8 +221,8 @@ return isRouteDockVisible(stage) ? "route-dock" : "map-hud-tr";
 
 | 파일 | 변경 |
 |---|---|
-| `src/lib/sensorChipSlot.ts` | **신설** — 칩 자리 단일 판정 |
-| `src/lib/routeDockUiPolicy.ts` | `isRouteDockVisible(stage)` 추출(표시 조건 단일 진실) |
+| `src/lib/route/sensorChipSlot.ts` | **신설** — 칩 자리 단일 판정 |
+| `src/lib/route/routeDockUiPolicy.ts` | `isRouteDockVisible(stage)` 추출(표시 조건 단일 진실) |
 | `src/components/maphud/CadenceHudChip.tsx` | `placement` prop · `CadenceChipBinding` 타입 공개 · 자체 CSS import |
 | `src/components/maphud/CadenceHudChip.css` | **신설** — MapHud.css 에서 이관 + `--dock` 변형 |
 | `src/components/maphud/MapHud.css` | `.hud-cadence*` 73줄 제거(이관) |

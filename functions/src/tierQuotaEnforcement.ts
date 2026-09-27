@@ -3,12 +3,13 @@ import {
   rollbackPublicRouteRequestIfOverQuota,
   rollbackSavedRouteIfOverQuota,
 } from "./tierQuotaCore.js";
+import { REGION } from "./region.js";
 
 /** 클라이언트 우회 create 시 quota 초과 문서 삭제 */
 export const savedRoutesTierQuotaGuard = onDocumentCreated(
   {
     document: "savedRoutes/{routeId}",
-    region: "asia-northeast3",
+    region: REGION,
   },
   async (event) => {
     const snap = event.data;
@@ -22,7 +23,7 @@ export const savedRoutesTierQuotaGuard = onDocumentCreated(
 export const publicRouteRequestsTierQuotaGuard = onDocumentCreated(
   {
     document: "publicRouteRequests/{requestId}",
-    region: "asia-northeast3",
+    region: REGION,
   },
   async (event) => {
     const snap = event.data;

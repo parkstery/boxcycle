@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { User } from "firebase/auth";
-import type { LineStringGeometry, LngLat } from "../lib/geo";
+import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
 import {
   buildLiveLocationSnapshot,
   createLiveLocationPublishThrottleState,
@@ -11,18 +11,18 @@ import {
   shouldPublishPeerMotion,
   shouldPublishRouteProgress,
   type LiveLocationPublishInput,
-} from "../lib/liveLocationSnapshot";
-import { isFirebaseDatabaseConfigured } from "../lib/firebase";
-import { cleanupLiveLocationPublish, publishLiveLocationFanout } from "../lib/publishLiveLocationFanout";
-import { mergeGlobalLivePresence } from "../lib/firestoreGlobalLivePresence";
+} from "../lib/ride/liveLocationSnapshot";
+import { isFirebaseDatabaseConfigured } from "../lib/firebase/app";
+import { cleanupLiveLocationPublish, publishLiveLocationFanout } from "../lib/ride/publishLiveLocationFanout";
+import { mergeGlobalLivePresence } from "../lib/ride/repo/firestoreGlobalLivePresence";
 import { setPeerSyncSelfDistM } from "../lib/peerMotion/peerSyncDebug";
 import {
   finalizeAndDeleteTrailLivePublicationRide,
   deleteTrailLivePublicationRide,
-} from "../lib/firestoreTrailLivePublicationRides";
-import { flushRideJoinPresenceBurst } from "../lib/rideJoinPresenceBurst";
-import { sanitizeTrailId } from "../lib/firestoreTrail";
-import { deleteTrailMotion } from "../lib/rtdbTrailMotion";
+} from "../lib/trail/repo/firestoreTrailLivePublicationRides";
+import { flushRideJoinPresenceBurst } from "../lib/ride/rideJoinPresenceBurst";
+import { sanitizeTrailId } from "../lib/trail/repo/firestoreTrail";
+import { deleteTrailMotion } from "../lib/peerMotion/repo/rtdbTrailMotion";
 import {
   awaitRouteFlightSettled,
   cancelRoutePublish,
@@ -37,7 +37,7 @@ import {
   nextMotionPublishEpoch,
   requestMotionNodeCleanup,
 } from "../lib/peerMotion/motionPublishFlight";
-import { MOTION_FLIGHT_DRAIN_TIMEOUT_MS, ROUTE_FLIGHT_DRAIN_TIMEOUT_MS } from "../lib/rideSyncPolicy";
+import { MOTION_FLIGHT_DRAIN_TIMEOUT_MS, ROUTE_FLIGHT_DRAIN_TIMEOUT_MS } from "../lib/peerMotion/peerSyncPolicy";
 
 const PUBLISH_TICK_MS = 100;
 
@@ -390,6 +390,9 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
                 progressRatio: snap.progressRatio,
                 distMeters: snap.distMetersAlongRoute,
               });
+              // 종전에는 이 삭제가 위 함수 **안에** 있었다(Trail 저장소가 RTDB 까지 지움).
+              // 두 저장소를 걸치는 순서는 조립 지점의 일이라 여기로 꺼냈다 — 순서는 그대로다.
+              await deleteTrailMotion(u.uid, tid);
               await cleanupLiveLocationPublish(u.uid, trailId, {
                 skipRouteDelete: true,
                 skipMotionDelete: true,

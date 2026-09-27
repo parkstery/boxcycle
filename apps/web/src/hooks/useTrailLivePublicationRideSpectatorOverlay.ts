@@ -5,16 +5,16 @@ import {
   BASIC_SHARED_HUB_IDS,
   fetchCourseRoutePayload,
   getBasicHubCoursePayload,
-} from "../lib/firestoreCourses";
-import type { LineStringGeometry, LngLat } from "../lib/geo";
-import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../lib/geoDecimate";
-import { acquireTrailLivePublicationRidesSubscription } from "../lib/livePublicationRidesSubscriptionHub";
-import { sanitizeTrailId } from "../lib/firestoreTrail";
+} from "../lib/route/repo/firestoreCourses";
+import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
+import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../lib/geo/geoDecimate";
+import { acquireTrailLivePublicationRidesSubscription } from "../lib/trail/repo/livePublicationRidesSubscriptionHub";
+import { sanitizeTrailId } from "../lib/trail/repo/firestoreTrail";
 import {
   isTrailLivePublicationRideRowFresh,
   type TrailLivePublicationRideRow,
-} from "../lib/firestoreTrailLivePublicationRides";
-import { spectatorPointOnRoute } from "../lib/spectatorRideExtrap";
+} from "../lib/trail/repo/firestoreTrailLivePublicationRides";
+import { spectatorPointOnRoute } from "../lib/peerMotion/spectatorRideExtrap";
 
 export type TrailSpectatorDot = { id: string; lngLat: LngLat; label: string };
 

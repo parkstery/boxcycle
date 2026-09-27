@@ -1,7 +1,7 @@
 import type { User } from "firebase/auth";
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { deletePublicationSessionMember } from "../lib/firestorePublicationSessionPresence";
+import { deletePublicationSessionMember } from "../lib/ride/repo/firestorePublicationSessionPresence";
 import {
   BASIC_SHARED_HUB_IDS,
   fetchCourseRoutePayload,
@@ -11,16 +11,16 @@ import {
   matchBasicSharedHubCourseId,
   routeGeometryMatchesBasicSharedHub,
   type PublishedPublicCourseSummary,
-} from "../lib/firestoreCourses";
-import type { LineStringGeometry, LngLat } from "../lib/geo";
-import { lockRouteWorkspaceDuringRide } from "../lib/routeWorkspaceLock";
+} from "../lib/route/repo/firestoreCourses";
+import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
+import { lockRouteWorkspaceDuringRide } from "../lib/route/routeWorkspaceLock";
 import {
   encodeCanonicalRouteGeometryProfile,
   fingerprintFromCanonicalSync,
-} from "../lib/routeFingerprint";
+} from "../lib/route/routeFingerprint";
 import type { RouteProfile } from "../services/mapboxDirections";
 import { formatDuration } from "../services/mapboxDirections";
-import type { SavedRoute } from "../lib/firestoreSavedRoutes";
+import type { SavedRoute } from "../lib/route/repo/firestoreSavedRoutes";
 import type { RideSessionStatus } from "./useVirtualRideSession";
 
 export type UsePublicationCatalogHubOptions = {

@@ -7,7 +7,7 @@ import {
   compareRouteListItems,
   sortRouteList,
   type RouteSortKey,
-} from "../../src/lib/routeListSort.ts";
+} from "../../src/lib/route/routeListSort.ts";
 
 /**
  * 경로 목록 정렬 — 내 경로 · 입문 · 퍼블릭이 **같은 규칙**을 쓴다(2026-09-16 Chief).
@@ -112,7 +112,7 @@ describe("정렬 컨트롤이 세 목록에 실제로 붙어 있다", () => {
   });
 
   it("퍼블릭 요약이 등록 시각을 싣는다 — 없으면 최근순이 이름순처럼 보인다", () => {
-    const src = read("lib/firestoreCourses.ts");
+    const src = read("lib/route/repo/firestoreCourses.ts");
     assert.match(src, /publishedAtMs\?: number \| null/);
     assert.match(src, /publishedAtMs: lastSeenAtToMillis\(pub\.createdAt\)/);
   });

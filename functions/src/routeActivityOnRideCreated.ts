@@ -1,6 +1,7 @@
 import { FieldValue, getFirestore, Timestamp } from "firebase-admin/firestore";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { ROUTE_ACTIVITY_COLLECTION } from "./routeActivityConstants.js";
+import { REGION } from "./region.js";
 
 const WORLD_ACTIVITY = "worldActivity";
 const WORLD_GLOBAL_ID = "global";
@@ -22,7 +23,7 @@ function readRideEndedAt(data: Record<string, unknown>): Timestamp | ReturnType<
  * `rides` 완주 시 publication·월드 aggregate increment (클라이언트 write 없음).
  */
 export const routeActivityOnRideCreated = onDocumentCreated(
-  { document: "rides/{rideId}", region: "asia-northeast3" },
+  { document: "rides/{rideId}", region: REGION },
   async (event) => {
     const data = event.data?.data();
     if (!data) return;

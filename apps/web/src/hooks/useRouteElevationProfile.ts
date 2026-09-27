@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import type { LineStringGeometry, LngLat } from "../lib/geo";
+import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
 import {
   fetchRouteElevationProfile,
   isElevationQuotaError,
   routeElevationSignature,
-} from "../lib/fetchRouteElevations";
-import { buildCoachElevationPoints } from "../lib/coachElevationFromRoute";
+} from "../lib/route/fetchRouteElevations";
+import { buildCoachElevationPoints } from "../lib/coach/coachElevationFromRoute";
 import { applyRoadElevationModel } from "../services/roadElevationCoach";
 import { firestoreElevationStore } from "../services/routeElevationStore";
 

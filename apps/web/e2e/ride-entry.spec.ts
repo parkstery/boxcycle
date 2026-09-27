@@ -11,7 +11,7 @@ import { test, expect } from './open-meteo-stub'
 const LIVE = process.env.RIDE_VERIFY_LIVE === '1'
 
 /**
- * 입문 실도로 경로 계약 — `apps/web/src/lib/basicIntroHubRouteGeometries.ts` 와 같은 값.
+ * 입문 실도로 경로 계약 — `apps/web/src/lib/route/basicIntroHubRouteGeometries.ts` 와 같은 값.
  * 정적 검증은 `scripts/basic-routes-verify/verify-basic-routes.mjs` 가 하고,
  * 여기서는 "목록에 정확히 3개가 뜨고 각각 실제로 로드·주행 시작까지 간다"만 본다.
  */
@@ -19,6 +19,8 @@ const BASIC_INTRO_TITLES = [
   'Basic 1 · 서울 남산공원길',
   'Basic 2 · 파리 퐁뇌프',
   'Basic 3 · 뉴욕 센트럴파크',
+  // 2026-09-27 추가 — 2 km. 앞의 셋이 전부 500 m 미만이라 몇 분짜리 계측이 완주해 버렸다.
+  'Basic 4 · 암스테르담 폰델파크',
 ]
 const BASIC_INTRO_MAX_KM = 0.5
 

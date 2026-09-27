@@ -4,7 +4,7 @@ import {
   formatPublicationListMeta,
   publicationDestinationFromTitle,
   publicationDisplayTitle,
-} from "../../src/lib/publicationDisplay.ts";
+} from "../../src/lib/route/publicationDisplay.ts";
 
 describe("publicationDisplay", () => {
   it("제목에서 · 뒤 목적지를 추출한다", () => {

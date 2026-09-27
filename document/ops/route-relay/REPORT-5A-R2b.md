@@ -40,7 +40,7 @@ R2(`d273b39`) 는 도넛을 **`[D/1.5, D] = [0.67D, D]`** 로 그렸다.
 
 ## 1. 새 공식
 
-`apps/web/src/lib/distanceAutoRouteGuideRing.ts`:
+`apps/web/src/lib/route/distanceAutoRouteGuideRing.ts`:
 
 ```
 DISTANCE_AUTO_ROUTE_GUIDE_OUTER_RATIO = 1.5
@@ -147,7 +147,7 @@ provider 호출 총합 65 → 24 (−63 %)
 
 ## 7. 변경 파일
 
-- `apps/web/src/lib/distanceAutoRouteGuideRing.ts` — 공식 정정
+- `apps/web/src/lib/route/distanceAutoRouteGuideRing.ts` — 공식 정정
 - `apps/web/src/hooks/useDistanceAutoRoute.ts` — outer=1.5D / inner=D 렌더
 - `apps/web/src/components/map/MapView.tsx` — 주석
 - `functions/src/distanceAutoRouteCore.ts` — 실패 문구

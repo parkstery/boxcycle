@@ -15,7 +15,7 @@ import { readGuestUid } from "./readGuestUid";
  * 진입 절차(`guestStart`/`armRideInput`/`loadIntroCourse`)는 `account-panel-tidy.spec.ts`
  * 의 헬퍼를 그대로 복사했다(원본 파일은 수정하지 않는다).
  *
- * 주행 폐기 정책(`lib/rideRecordPolicy.ts`): 거리 100m 초과 + 5초 초과라야 결과 시트가 뜬다.
+ * 주행 폐기 정책(`lib/ride/rideRecordPolicy.ts`): 거리 100m 초과 + 5초 초과라야 결과 시트가 뜬다.
  * 그래서 HUD 거리 셀을 폴링하며 0.11km 를 넘을 때까지 기다린 뒤 종료한다(체험 속도 50km/h 기준 약 10초).
  *
  * 뷰포트는 반드시 가로(690×275) — 세로면 회전 오버레이가 클릭을 가로챈다(앱은 폰 가로 전용).
@@ -30,7 +30,7 @@ const PHONE_LANDSCAPE = { width: 690, height: 275 };
  * 퍼블릭(입문) 경로는 가장 짧은 것이 414m 라 조건을 못 맞춘다. 그래서 `ride-continuation.spec.ts`
  * 와 같은 방식으로 **결정적 SavedRoute 를 에뮬레이터에 직접 심는다**.
  *
- * 길이는 180m — 주행 폐기 임계(100m 초과, `lib/rideRecordPolicy.ts`)에 80m 여유를 두면서
+ * 길이는 180m — 주행 폐기 임계(100m 초과, `lib/ride/rideRecordPolicy.ts`)에 80m 여유를 두면서
  * 체험 속도 상한 50km/h 로 약 13초면 완주한다.
  */
 const PROJECT_ID = "boxcycle-dc2df";
@@ -109,13 +109,13 @@ async function loadSavedRouteFromMenu(page: Page, routeName: string) {
   const row = page.getByText(routeName, { exact: false }).first();
   await expect(row).toBeVisible({ timeout: 15_000 });
   await row.click();
-  await page.getByRole("button", { name: "열기" }).first().click();
+  await page.getByRole("button", { name: "열기", exact: true }).first().click();
   await expect(page.getByRole("button", { name: "주행 시작" })).toBeVisible({ timeout: 15_000 });
 }
 
-/** chief 가 지정한 촬영/계측 저장 위치 — 세션 scratchpad 하위 shots/ */
-const SHOTS_DIR =
-  "C:/Users/kdrea/AppData/Local/Temp/claude/C--20-HDev-boxcycle/2e5b96fa-d86d-4f15-9fe4-c5294d9318f9/scratchpad/shots";
+/** 촬영·계측 산출물 — 저장소 기준 .out/ (gitignore). 세션 임시폴더에 두면 다음 세션에서 사라진다. */
+const SHOTS_DIR = path.resolve(process.cwd(), ".out/ride-summary");
+fs.mkdirSync(SHOTS_DIR, { recursive: true });
 
 /** 폐기 정책(100m) 위 여유값 — 이보다 커지면 결과 시트가 뜬다고 확신할 수 있다. */
 const DISTANCE_THRESHOLD_KM = 0.11;

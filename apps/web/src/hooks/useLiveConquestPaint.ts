@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { buildConquestCellsFromRoute } from "../lib/conquestTiles";
-import type { LineStringGeometry } from "../lib/geo";
+import { buildConquestCellsFromRoute } from "../lib/conquest/conquestTiles";
+import type { LineStringGeometry } from "../lib/geo/geo";
 
 /**
  * 세션 구간 셀 중 시작 시점 미보유 셀의 실제 경로 미터 합.

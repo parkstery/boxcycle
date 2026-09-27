@@ -3,8 +3,8 @@ import type { Request, Response } from "express";
 import { getAuth } from "firebase-admin/auth";
 import { isRouteReviewerUid } from "./savedRouteAdminPromoteCore.js";
 import { backfillRouteActivityLastCompletedRideAt } from "./backfillRouteActivityLastCompletedRideAtCore.js";
+import { REGION } from "./region.js";
 
-const REGION = "asia-northeast3";
 
 async function assertBearerRouteReviewer(req: Request): Promise<string> {
   const authHeader = req.get("Authorization") ?? "";

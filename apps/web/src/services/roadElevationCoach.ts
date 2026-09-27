@@ -9,7 +9,7 @@
  *  - bridgePatternAttenuation 게이트를 강화하고 감쇠 계수를 완화 (오인 시에도 R 추락 방지).
  */
 
-import { getDistanceMeters } from "../lib/geo";
+import { getDistanceMeters } from "../lib/geo/geo";
 
 /** cycle `ElevationPoint` 호환 — `location` 은 lat/lng 객체 */
 export type CoachElevationPoint = {

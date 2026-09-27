@@ -1,4 +1,10 @@
 import type { CustomLayerInterface, Map as MapboxMap } from "mapbox-gl";
+import { moveLayerByRank, resolveBeforeIdByRank } from "../map/layerOrder";
+import {
+  installRiderRenderCostProbe,
+  measureRiderPose,
+  measureRiderRenderFrame,
+} from "../debug/riderRenderCostProbe";
 import { MercatorCoordinate } from "mapbox-gl";
 import {
   AmbientLight,
@@ -8,6 +14,7 @@ import {
   HemisphereLight,
   Matrix4,
   Scene,
+  SRGBColorSpace,
   Vector3,
   WebGLRenderer,
 } from "three";
@@ -26,6 +33,23 @@ import {
  * 조명 조절판(`?lightlab=1`, 지시02) 전용 상태 — Ambient·Hemisphere·Key 강도 + Key 방향(방위각·고도각).
  * 기본값은 이 파일에 원래 하드코딩돼 있던 값과 동일하다 — **제품 기본값은 불변**.
  */
+/**
+ * 라이더가 **레지스트리가 정한 자리**에 있는가.
+ *
+ * 종전에는 「스타일의 마지막 레이어인가」로 판정했다. 그러면 DEV 진단 레이어처럼
+ * 라이더보다 위에 있어야 할 것이 하나라도 있으면 **매 프레임 헛되게 이동**한다.
+ */
+function isPreservedRiderAtRankPosition(
+  map: mapboxgl.Map,
+  styleLayers: readonly { id: string }[],
+): boolean {
+  const idx = styleLayers.findIndex((l) => l.id === PRESERVED_RIDER_CUSTOM_LAYER_ID);
+  if (idx < 0) return false;
+  const above = styleLayers[idx + 1]?.id;
+  const want = resolveBeforeIdByRank(map, PRESERVED_RIDER_CUSTOM_LAYER_ID);
+  return above === want;
+}
+
 export type RiderLightLabState = {
   ambient: number;
   hemisphere: number;
@@ -129,6 +153,14 @@ class PreservedRiderCustomLayer implements CustomLayerInterface {
       antialias: true,
       alpha: true,
     });
+    /**
+     * 출력 색공간을 **명시적으로** 고정한다 — three 의 기본값에 기대지 않는다.
+     * r152 에서 기본값이 Linear → sRGB 로 바뀌었고, 0.134 를 쓰던 시절 이 코드는
+     * 그 기본값에 의존하고 있었다. 2026-09-25 에 0.134 → 0.186 으로 올리면서
+     * 라이더 색이 조용히 달라지는 경로가 되었으므로, 다음 업그레이드에서 또
+     * 흔들리지 않도록 여기서 선언한다. 값을 바꾸려면 화면을 보고 바꿔라.
+     */
+    this.renderer.outputColorSpace = SRGBColorSpace;
     this.renderer.autoClear = false;
     this.loadState = "loading";
     this.loadError = null;
@@ -165,8 +197,16 @@ class PreservedRiderCustomLayer implements CustomLayerInterface {
   render(_gl: WebGL2RenderingContext, matrix: Array<number>): void {
     const map = this.map;
     const renderer = this.renderer;
-    if (!map || !renderer || this.specs.length === 0 || !this.rig) return;
+    const rig = this.rig;
+    if (!map || !renderer || this.specs.length === 0 || !rig) return;
 
+    /*
+     * 2026-09-27 — 이 한 프레임의 비용을 잰다(DEV 전용, 운영은 콜백만 부른다).
+     * 아래 루프는 **라이더 한 명마다 전체 장면을 한 번씩** 그린다. 점으로만 보이는
+     * 줌에서도 그대로 돈다 — 아낄 여지를 감으로 정하지 않기 위해 먼저 재는 것이다.
+     */
+    installRiderRenderCostProbe();
+    measureRiderRenderFrame(this.specs.length, () => {
     renderer.resetState();
     for (const spec of this.specs) {
       const [lng, lat] = spec.lngLat;
@@ -186,11 +226,12 @@ class PreservedRiderCustomLayer implements CustomLayerInterface {
         .multiply(new Matrix4().makeRotationX(Math.PI / 2))
         .multiply(new Matrix4().makeRotationY(yaw))
         .multiply(new Matrix4().makeRotationX(lean));
-      this.rig.setPhase(spec.phaseRev ?? 0);
+      measureRiderPose(() => rig.setPhase(spec.phaseRev ?? 0));
       this.camera.projectionMatrix.fromArray(matrix).multiply(local);
       this.camera.projectionMatrixInverse.copy(this.camera.projectionMatrix).invert();
       renderer.render(this.scene, this.camera);
     }
+    });
   }
 
   private async loadApprovedCandidate(generation: number): Promise<void> {
@@ -252,21 +293,18 @@ export function ensureRiderPreservedLayer(map: MapboxMap): boolean {
       layer = new PreservedRiderCustomLayer();
       layerByMap.set(map, layer);
       map.addLayer(layer);
-    } else if (styleLayers[styleLayers.length - 1]?.id !== PRESERVED_RIDER_CUSTOM_LAYER_ID) {
+    } else if (!isPreservedRiderAtRankPosition(map, styleLayers)) {
       /*
        * 경로선(route)·내 도로망(conquest)·활동 오버레이(activity world) 등은 2D 라인
        * 레이어라 커스텀 3D 레이어의 depth 를 읽지 않는다 — 앞뒤는 **style 의 레이어 순서
        * (painter's algorithm)** 만으로 정해진다. 저 레이어들은 각자 필요할 때마다
-       * `addLayer`(beforeId 없음)·`moveLayer`(top)로 스스로를 최상단에 올리며 라이더보다
-       * 위로 올라가 버린다 — 그러면 선이 라이더 몸통·헬멧을 관통해 보인다(지시04 §B).
-       * 이 함수는 매 프레임 호출되므로, 라이더가 최상단이 아니게 된 다음 프레임에
-       * 곧바로 되돌려 항상 라이더가 선을 가리게 한다.
+       * 각자 필요할 때마다 순서를 다시 세운다. 종전에는 그것이 **무조건 top 이동**이라
+       * 라이더보다 위로 올라가 버렸다 — 그러면 선이 라이더 몸통·헬멧을 관통해 보인다
+       * (지시04 §B). 이제 저들은 `lib/map/layerOrder` 의 **자기 랭크 자리**로 가고,
+       * 라이더도 같은 레지스트리를 쓴다. 이 함수는 매 프레임 호출되므로 어긋난 다음
+       * 프레임에 곧바로 되돌린다.
        */
-      try {
-        map.moveLayer(PRESERVED_RIDER_CUSTOM_LAYER_ID);
-      } catch {
-        /* noop */
-      }
+      moveLayerByRank(map, PRESERVED_RIDER_CUSTOM_LAYER_ID);
     }
     layer?.setSpecs(desiredSpecsByMap.get(map) ?? []);
     return true;

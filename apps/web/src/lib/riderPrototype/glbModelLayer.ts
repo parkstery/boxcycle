@@ -22,7 +22,7 @@ import {
   riderPrototypeGlbUrl,
 } from "./config";
 import type { RiderGlbModelSpec } from "./iso2dMarker";
-import type { RiderGlbPedalPose } from "../riderGlbPedalPose";
+import type { RiderGlbPedalPose } from "../rider/riderGlbPedalPose";
 
 type ModelSource = Source & {
   setModels: (models: Record<string, unknown>) => void;

@@ -4,12 +4,13 @@
  * routePublishFlight 와 같은 계약(epoch·배수·소유권·지연삭제·오류전달). route 파일은 수정하지 않는다.
  */
 import type { User } from "firebase/auth";
-import type { LiveLocationSnapshot } from "../liveLocationSnapshot";
+import type { LiveLocationSnapshot } from "./types";
 import {
   mergeTrailMotionSnapshot,
   snapshotToRtdbTrailMotionSnapshot,
-} from "../rtdbTrailMotion";
-import { MOTION_FLIGHT_DRAIN_TIMEOUT_MS } from "../rideSyncPolicy";
+} from "./repo/rtdbTrailMotion";
+import { MOTION_FLIGHT_DRAIN_TIMEOUT_MS } from "./peerSyncPolicy";
+import { installDevMotionProbe } from "../debug/installMotionExistsDebug";
 import { nextPeerSyncChainSeq, peerSyncChainLog } from "./peerSyncChainLog";
 
 export type MotionFlightJob = {
@@ -39,11 +40,7 @@ declare global {
     };
     __rtwMotionEpochStarts?: Array<{ epoch: number; sessionKey: string; at: number }>;
     __rtwMotionErrorEvents?: Array<{ at: number; message: string }>;
-    __rtwMotionExists?: (trailId: string, uid: string) => Promise<boolean>;
     __rtwLastMotionUid?: string;
-    __rtwMotionWatchSamples?: Array<{ at: number; exists: boolean }>;
-    __rtwStartMotionWatch?: (trailId: string, uid: string) => void;
-    __rtwStopMotionWatch?: () => void;
   }
 }
 
@@ -207,32 +204,7 @@ function syncMotionFlightDebug(): void {
   };
 }
 
-async function installDevMotionProbe(): Promise<void> {
-  if (!import.meta.env.DEV || typeof window === "undefined") return;
-  if (window.__rtwMotionExists) return;
-  const { get, onValue, ref } = await import("firebase/database");
-  const { getFirebaseDatabase } = await import("../firebase");
-  const { sanitizeTrailId } = await import("../firestoreTrail");
-  window.__rtwMotionExists = async (trailId: string, uid: string) => {
-    const snap = await get(
-      ref(getFirebaseDatabase(), `trails/${sanitizeTrailId(trailId)}/motion/${uid}`),
-    );
-    return snap.exists();
-  };
-  window.__rtwStartMotionWatch = (trailId: string, uid: string) => {
-    window.__rtwStopMotionWatch?.();
-    const samples: Array<{ at: number; exists: boolean }> = [];
-    window.__rtwMotionWatchSamples = samples;
-    const r = ref(getFirebaseDatabase(), `trails/${sanitizeTrailId(trailId)}/motion/${uid}`);
-    const unsub = onValue(r, (snap) => {
-      samples.push({ at: Date.now(), exists: snap.exists() });
-    });
-    window.__rtwStopMotionWatch = () => {
-      unsub();
-    };
-  };
-}
-
+/* DEV 프로브는 계측 말단(`debug`)이 갖는다 — Phase 6-③B. */
 void installDevMotionProbe();
 
 function readDevDelayMs(): number {

@@ -1,6 +1,7 @@
 import type { DocumentSnapshot } from "firebase-admin/firestore";
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
 import { recomputeOpenTrailListing } from "./openTrailListingCore.js";
+import { REGION } from "./region.js";
 
 function trailIdFromParams(params: Record<string, string>): string {
   return typeof params.trailId === "string" ? params.trailId.trim() : "";
@@ -29,7 +30,7 @@ async function runRecompute(trailId: string): Promise<void> {
 export const openTrailListingOnTrailWritten = onDocumentWritten(
   {
     document: "trails/{trailId}",
-    region: "asia-northeast3",
+    region: REGION,
   },
   async (event) => {
     const trailId = trailIdFromParams(event.params as Record<string, string>);
@@ -41,7 +42,7 @@ export const openTrailListingOnTrailWritten = onDocumentWritten(
 export const openTrailListingOnMemberWritten = onDocumentWritten(
   {
     document: "trails/{trailId}/members/{userId}",
-    region: "asia-northeast3",
+    region: REGION,
   },
   async (event) => {
     const trailId = trailIdFromParams(event.params as Record<string, string>);
@@ -53,7 +54,7 @@ export const openTrailListingOnMemberWritten = onDocumentWritten(
 export const openTrailListingOnLiveCourseRideWritten = onDocumentWritten(
   {
     document: "trails/{trailId}/livePublicationRides/{uid}",
-    region: "asia-northeast3",
+    region: REGION,
   },
   async (event) => {
     const trailId = trailIdFromParams(event.params as Record<string, string>);

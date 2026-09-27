@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import type { User } from "firebase/auth";
 import { useRouteActivity } from "../../hooks/useRouteActivity";
 import { useRouteActivityMapOverlay } from "../../hooks/useRouteActivityMapOverlay";
@@ -8,27 +8,27 @@ import { useWorldPublicationPresenceOverlay } from "../../hooks/useWorldPublicat
 import {
   formatActivityWorldPinPopup,
   type RouteActivitySnapshot,
-} from "../../lib/firestoreRouteActivity";
-import { formatPublicationPresencePinPopup } from "../../lib/firestorePublicationPresence";
+} from "../../lib/activity/repo/firestoreRouteActivity";
+import { formatPublicationPresencePinPopup } from "../../lib/ride/repo/firestorePublicationPresence";
 import {
   resolveActivityWorldLodDebug,
   resolveActivityWorldRender,
   runActivityWorldLodP0Checks,
-} from "../../lib/activityWorldLod";
-import { runActivityWorldPollPolicyChecks } from "../../lib/activityWorldPollPolicy";
-import { BASIC_SHARED_HUB_IDS } from "../../lib/firestoreCourses";
-import type { PublishedPublicCourseSummary } from "../../lib/firestoreCourses";
-import type { TrailInstance } from "../../lib/firestoreTrailInstance";
-import { sanitizeTrailId, DEFAULT_TRAIL_ID } from "../../lib/firestoreTrail";
+} from "../../lib/activity/activityWorldLod";
+import { runActivityWorldPollPolicyChecks } from "../../lib/activity/activityWorldPollPolicy";
+import { BASIC_SHARED_HUB_IDS } from "../../lib/route/repo/firestoreCourses";
+import type { PublishedPublicCourseSummary } from "../../lib/route/repo/firestoreCourses";
+import type { TrailInstance } from "../../lib/trail/repo/firestoreTrailInstance";
+import { sanitizeTrailId, DEFAULT_TRAIL_ID } from "../../lib/trail/repo/firestoreTrail";
 import { useActiveLiveRideTrailIds } from "../../hooks/useActiveLiveRideTrailIds";
-import { debugTrailLivePublicationRidesSubscriptionCount } from "../../lib/livePublicationRidesSubscriptionHub";
-import type { LineStringGeometry } from "../../lib/geo";
+import { debugTrailLivePublicationRidesSubscriptionCount } from "../../lib/trail/repo/livePublicationRidesSubscriptionHub";
+import type { LineStringGeometry } from "../../lib/geo/geo";
 import type { ActivityWorldLodDebugPanelProps } from "./ActivityWorldLodDebugPanel";
-import { runPublicationPresenceParseChecks } from "../../lib/firestorePublicationPresence";
+import { runPublicationPresenceParseChecks } from "../../lib/ride/repo/firestorePublicationPresence";
 import { resolveWorldMapOverlay, runWorldMapOverlayMergeChecks } from "./worldMapOverlayCore";
 import { useActivityWorldDataSync } from "./useActivityWorldDataSync";
 import { useWorldLivePublicationRideMapOverlay } from "./useWorldLivePublicationRideMapOverlay";
-import { EMPTY_PEER_HUD_IDS, peerHudIdsKey } from "../../lib/peerHud";
+import { EMPTY_PEER_HUD_IDS, peerHudIdsKey } from "../../lib/peerMotion/peerHud";
 import {
   mergePublicationWorldPulseDots,
   runWorldPublicationMapDotsChecks,
@@ -40,7 +40,7 @@ import {
   isMapDebugPhaseRecovery,
   shouldDisablePublicationOverlayHooks,
   shouldSkipLiveOverlaysOnMap,
-} from "../../lib/mapDebugPhase";
+} from "../../lib/debug/mapDebugPhase";
 
 export type UseAppMapOverlaysOpts = {
   configured: boolean;
@@ -385,27 +385,6 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     debugIsolationOn,
   ]);
 
-  const phaseDSourceLogKeyRef = useRef("");
-  useEffect(() => {
-    if (!import.meta.env.DEV) return;
-    if (isPhaseA || isPhaseB || isPhaseC) return;
-    const key = `${publicationPresenceWorldMapEnabled}|${activityWorldRaw.pulseDots.length}|${activityWorldRaw.heatDots.length}`;
-    if (phaseDSourceLogKeyRef.current === key) return;
-    phaseDSourceLogKeyRef.current = key;
-    console.log("[PhaseD] source", {
-      publicationPresenceWorldMapEnabled,
-      rawPulse: activityWorldRaw.pulseDots.length,
-      rawHeat: activityWorldRaw.heatDots.length,
-    });
-  }, [
-    isPhaseA,
-    isPhaseB,
-    isPhaseC,
-    publicationPresenceWorldMapEnabled,
-    activityWorldRaw.pulseDots.length,
-    activityWorldRaw.heatDots.length,
-  ]);
-
   const activityWorldRender = useMemo(
     () => resolveActivityWorldRender(mapLodZoom, activityWorldRaw),
     [mapLodZoom, activityWorldRaw],
@@ -580,18 +559,18 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
 
   const mapTrailSpectatorDots = useMemo(() => {
     if (spectatorDots.length > 0) return spectatorDots;
-    if (atTrailheadIdle) return livePublicationRideOverlay.lobbySpectatorDots;
+    if (atTrailheadIdle) return livePublicationRideOverlay.trailheadSpectatorDots;
     return spectatorDots;
-  }, [spectatorDots, atTrailheadIdle, livePublicationRideOverlay.lobbySpectatorDots]);
+  }, [spectatorDots, atTrailheadIdle, livePublicationRideOverlay.trailheadSpectatorDots]);
 
   const mapTrailSpectatorRoutes = useMemo(() => {
     if (spectatorRouteGeometries.length > 0) return spectatorRouteGeometries;
-    if (atTrailheadIdle) return livePublicationRideOverlay.lobbySpectatorRoutes;
+    if (atTrailheadIdle) return livePublicationRideOverlay.trailheadSpectatorRoutes;
     return spectatorRouteGeometries;
   }, [
     spectatorRouteGeometries,
     atTrailheadIdle,
-    livePublicationRideOverlay.lobbySpectatorRoutes,
+    livePublicationRideOverlay.trailheadSpectatorRoutes,
   ]);
 
   return {

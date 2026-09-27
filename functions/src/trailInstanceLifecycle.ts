@@ -3,15 +3,20 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { OPEN_TRAIL_LISTINGS_COLLECTION } from "./openTrailListingCore.js";
 
 import { TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION } from "./trailPaths.js";
+import { REGION } from "./region.js";
+import {
+  ARCHIVED_PURGE_MS,
+  CLOSED_TO_ARCHIVED_MS,
+  OPEN_QUIET_TO_CLOSED_MS,
+  resolveArchivedAtMs,
+  resolveClosedAtMs,
+  shouldCloseQuietOpenTrail,
+} from "./trailLifecycleCore.js";
 
 const TRAILS_COLLECTION = "trails";
 const MEMBERS_SUB = "members";
 const LIVE_SUB = TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION;
 
-/** UI 목록에서 사라진 뒤 DB에 남기는 기간 */
-const CLOSED_TO_ARCHIVED_MS = 24 * 60 * 60 * 1000;
-/** archived 메타·서브컬렉션 정리 */
-const ARCHIVED_PURGE_MS = 7 * 24 * 60 * 60 * 1000;
 const BATCH_LIMIT = 400;
 
 function timestampMs(raw: unknown): number | null {
@@ -42,13 +47,21 @@ async function deleteSubcollection(trailId: string, sub: string): Promise<number
 }
 
 /**
- * `closed` Trail → `archived` (24h) → 서브컬렉션·문서 삭제 (7d).
+ * 아무도 없는 `open` → `closed` (24h 조용) → `archived` (24h) → 삭제 (7d).
  * 클라이언트 open 목록은 `status == open` 만 조회.
+ *
+ * 첫 단계가 2026-09-27 에 붙었다. 그전까지 Trail 이 닫히는 경우는 **「개설자가 주행
+ * 종료」 한 곳뿐**이었고, 그것이 개설자를 자기 Trail 에서 쫓아내는 결함이라 제거했다.
+ * 제거만 하면 **아무것도 정리 줄에 서지 못한다** — 실측으로 열린 Trail 147개 중 145개가
+ * 이미 하루 넘게 죽어 있었고 가장 오래된 것은 131일이었다.
+ *
+ * 그래서 기준을 「누가 Stop 을 눌렀나」에서 **「아무도 안 달리나」**로 옮긴다.
+ * 사람의 행동이 아니라 상태로 판단하므로, 탭만 닫고 사라진 Trail 도 함께 치워진다.
  */
 export const trailInstanceLifecycle = onSchedule(
   {
     schedule: "every 12 hours",
-    region: "asia-northeast3",
+    region: REGION,
     timeZone: "Asia/Seoul",
   },
   async () => {
@@ -56,6 +69,30 @@ export const trailInstanceLifecycle = onSchedule(
     const now = Date.now();
     const closedCutoff = now - CLOSED_TO_ARCHIVED_MS;
     const purgeCutoff = now - ARCHIVED_PURGE_MS;
+
+    /*
+     * ① 아무도 없는 열린 Trail 을 닫는다.
+     *
+     * ⚠️ 닫힌 Trail 은 다시 열 수 없다. 기준을 짧게 줄이면 「쉬었다 돌아오려던 사람이
+     *    쫓겨나는」 2026-09-27 의 결함이 그대로 돌아온다. 판정은 `trailLifecycleCore` 에 있다.
+     */
+    const quietSnap = await db
+      .collection(TRAILS_COLLECTION)
+      .where("status", "==", "open")
+      .limit(200)
+      .get();
+
+    let quietClosedCount = 0;
+    for (const doc of quietSnap.docs) {
+      if (doc.id === "default") continue;
+      if (!shouldCloseQuietOpenTrail(doc.data(), timestampMs, now)) continue;
+      await doc.ref.update({
+        status: "closed",
+        closedAt: FieldValue.serverTimestamp(),
+        lastActivityAt: FieldValue.serverTimestamp(),
+      });
+      quietClosedCount += 1;
+    }
 
     const closedSnap = await db
       .collection(TRAILS_COLLECTION)
@@ -66,8 +103,7 @@ export const trailInstanceLifecycle = onSchedule(
     let archivedCount = 0;
     for (const doc of closedSnap.docs) {
       const data = doc.data();
-      const closedMs =
-        timestampMs(data.closedAt) ?? timestampMs(data.lastActivityAt) ?? timestampMs(data.createdAt);
+      const closedMs = resolveClosedAtMs(data, timestampMs);
       if (closedMs == null || closedMs > closedCutoff) continue;
       await doc.ref.update({
         status: "archived",
@@ -86,8 +122,7 @@ export const trailInstanceLifecycle = onSchedule(
     let purgedCount = 0;
     for (const doc of archivedSnap.docs) {
       const data = doc.data();
-      const archivedMs =
-        timestampMs(data.archivedAt) ?? timestampMs(data.closedAt) ?? timestampMs(data.lastActivityAt);
+      const archivedMs = resolveArchivedAtMs(data, timestampMs);
       if (archivedMs == null || archivedMs > purgeCutoff) continue;
       const trailId = doc.id;
       if (trailId === "default") continue;
@@ -98,6 +133,11 @@ export const trailInstanceLifecycle = onSchedule(
       purgedCount += 1;
     }
 
-    console.info("[trailInstanceLifecycle]", { archivedCount, purgedCount });
+    console.info("[trailInstanceLifecycle]", {
+      quietClosedCount,
+      quietHours: Math.round(OPEN_QUIET_TO_CLOSED_MS / (60 * 60 * 1000)),
+      archivedCount,
+      purgedCount,
+    });
   },
 );

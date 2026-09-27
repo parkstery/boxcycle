@@ -2,12 +2,12 @@
 // 경계 틈·중복이 생기면 지도에서 마젠타(달린 길)와 빨강(안 간 길) 사이가 벌어진다.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { splitLineStringAtMeters } from "../../src/lib/routeProgressSplit.ts";
+import { splitLineStringAtMeters } from "../../src/lib/route/routeProgressSplit.ts";
 import {
   getDistanceMeters,
   lineStringLengthMeters,
   type LineStringGeometry,
-} from "../../src/lib/geo.ts";
+} from "../../src/lib/geo/geo.ts";
 
 function makeRoute(points = 11): LineStringGeometry {
   const coords: [number, number][] = [];

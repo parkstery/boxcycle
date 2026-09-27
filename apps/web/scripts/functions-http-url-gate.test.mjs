@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 
 const webSrc = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../src");
-const allowedFile = path.join(webSrc, "lib", "functionsEmulatorUrl.ts");
+const allowedFile = path.join(webSrc, "lib", "firebase", "functionsEmulatorUrl.ts");
 
 function walk(dir, out = []) {
   for (const name of readdirSync(dir)) {

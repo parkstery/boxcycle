@@ -7,6 +7,7 @@ import {
   mapStripeSubscriptionStatus,
   markWebhookEventProcessed,
 } from "./subscriptionCore.js";
+import { REGION } from "./region.js";
 
 const stripeSecretKey = defineSecret("STRIPE_SECRET_KEY");
 const stripeWebhookSecret = defineSecret("STRIPE_WEBHOOK_SECRET");
@@ -38,7 +39,7 @@ async function applyFromStripeSubscription(sub: Stripe.Subscription): Promise<vo
  */
 export const stripeSubscriptionWebhookHttp = onRequest(
   {
-    region: "asia-northeast3",
+    region: REGION,
     cors: false,
     invoker: "public",
     secrets: [stripeSecretKey, stripeWebhookSecret],

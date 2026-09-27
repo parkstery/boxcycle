@@ -1,18 +1,18 @@
 import { useMemo } from "react";
-import type { ActivityWorldMapDot, ActivityWorldMapRoute } from "../lib/activityWorldLod";
+import type { ActivityWorldMapDot, ActivityWorldMapRoute } from "../lib/activity/activityWorldLod";
 import {
   ACTIVITY_TRACE_LIVE_STRENGTH,
   resolveHeatTraceStrength,
-} from "../lib/activityWorldTraceStyle";
-import { boundsCenterLngLat, boundsFromLineStringGeometry } from "../lib/firestoreCourses";
+} from "../lib/activity/activityWorldTraceStyle";
+import { boundsCenterLngLat, boundsFromLineStringGeometry } from "../lib/route/repo/firestoreCourses";
 import {
   heatVisualWeight,
   isRouteActivityHeat,
   isRouteActivityLive,
   type RouteActivitySnapshot,
-} from "../lib/firestoreRouteActivity";
-import type { LineStringGeometry } from "../lib/geo";
-import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../lib/geoDecimate";
+} from "../lib/activity/repo/firestoreRouteActivity";
+import type { LineStringGeometry } from "../lib/geo/geo";
+import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../lib/geo/geoDecimate";
 
 export type RouteActivityMapOverlay = {
   pulseRoutes: ActivityWorldMapRoute[];

@@ -15,11 +15,11 @@ import {
   type FetchDirectionsFn,
   type LngLat,
 } from "../../../../functions/src/distanceAutoRouteCore.ts";
-import { resolveDistanceAutoRouteGuideRadiusKm } from "../../src/lib/distanceAutoRouteGuideRing.ts";
+import { resolveDistanceAutoRouteGuideRadiusKm } from "../../src/lib/route/distanceAutoRouteGuideRing.ts";
 import {
   formatDistanceAutoRouteDirectionClickHint,
   DISTANCE_AUTO_ROUTE_DEFAULT_KM,
-} from "../../src/lib/distanceAutoRouteErrors.ts";
+} from "../../src/lib/route/distanceAutoRouteErrors.ts";
 
 const START: LngLat = [127.02, 37.5];
 const D = 1000;

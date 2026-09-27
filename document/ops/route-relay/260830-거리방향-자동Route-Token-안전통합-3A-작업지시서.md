@@ -24,7 +24,7 @@
 원격 브랜치 `origin/feat/distance-based-auto-route`의 `2b0bfec`에 최초 구현이 있다.
 
 - `apps/web/src/hooks/useDistanceAutoRoute.ts`
-- `apps/web/src/lib/distanceAutoRoute.ts`
+- `apps/web/src/lib/route/distanceAutoRoute.ts`
 - `apps/web/scripts/distance-auto-route/distance-auto-route-contract.test.ts`
 - `DistanceAutoRouteSheet` 기반 초기 UI
 
@@ -69,7 +69,7 @@
    - `apps/web/src/components/route/DistanceAutoRouteSheet.css` 삭제
    - `apps/web/src/components/route/DistanceAutoRouteSheet.tsx` 삭제
    - `apps/web/src/hooks/useDistanceAutoRoute.ts`
-   - `apps/web/src/lib/distanceAutoRoute.ts`
+   - `apps/web/src/lib/route/distanceAutoRoute.ts`
 3. `document/README.md`와 `document/ops/route-relay/`의 다른 작업지시서는 이 코드 커밋에 섞지 않는다.
 4. `test:distance-auto-route`와 web build를 다시 실행한다.
 5. 권장 commit: `fix(route): move distance auto route into map popup`

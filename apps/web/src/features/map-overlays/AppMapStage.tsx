@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { MapView, type MapViewProps } from "../../components/MapView";
+import { MapView, type MapViewProps } from "../../components/map/MapView";
 import { MapHud, type MapHudProps } from "../../components/maphud/MapHud";
 import {
   ActivityWorldLodDebugPanel,
@@ -16,7 +16,7 @@ export type AppMapStageProps = {
   minimap?: ReactNode;
   /** 지도 위·HUD 아래 날씨 비주얼(밤·비·눈…) */
   weatherOverlay?: ReactNode;
-  /** MapView·MapHud 아래 추가 오버레이 (Mapillary 등) */
+  /** MapView·MapHud 아래 추가 오버레이 */
   children?: ReactNode;
 };
 

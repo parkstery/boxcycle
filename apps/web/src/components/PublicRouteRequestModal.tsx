@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { SavedRoute } from "../lib/firestoreSavedRoutes";
+import type { SavedRoute } from "../lib/route/repo/firestoreSavedRoutes";
 import {
   PUBLIC_ROUTE_NAMING_DISCLOSURE_KO,
   PUBLIC_ROUTE_NAMING_GUIDE_KO,
   hintPublicRouteTitle,
   shouldOpenNamingHelpForError,
-} from "../lib/publicRouteNamingPolicy";
+} from "../lib/route/publicRouteNamingPolicy";
 import {
   EXPERIENCE_TAG_OPTIONS,
   type ExperienceTagId,
-} from "../lib/publicRouteRequests";
+} from "../lib/route/repo/publicRouteRequests";
 import "./PublicRouteRequestModal.css";
 
 export type PublicRouteRequestModalProps = {

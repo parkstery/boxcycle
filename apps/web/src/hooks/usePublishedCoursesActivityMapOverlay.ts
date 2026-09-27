@@ -1,10 +1,10 @@
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ActivityWorldMapDot, ActivityWorldMapRoute } from "../lib/activityWorldLod";
+import type { ActivityWorldMapDot, ActivityWorldMapRoute } from "../lib/activity/activityWorldLod";
 import {
   ACTIVITY_TRACE_LIVE_STRENGTH,
   resolveHeatTraceStrength,
-} from "../lib/activityWorldTraceStyle";
-import type { LngLat } from "../lib/geo";
+} from "../lib/activity/activityWorldTraceStyle";
+import type { LngLat } from "../lib/geo/geo";
 import {
   BASIC_SHARED_HUB_IDS,
   boundsCenterLngLat,
@@ -12,17 +12,17 @@ import {
   fetchCourseRoutePayload,
   getBasicHubCourseBounds,
   getBasicHubCoursePayload,
-} from "../lib/firestoreCourses";
+} from "../lib/route/repo/firestoreCourses";
 import {
   fetchRouteActivitiesBatch,
   heatVisualWeight,
   isRouteActivityHeat,
   isRouteActivityLive,
   type RouteActivitySnapshot,
-} from "../lib/firestoreRouteActivity";
-import type { LineStringGeometry } from "../lib/geo";
-import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../lib/geoDecimate";
-import { resolveActivityWorldDotLngLat } from "../lib/activityWorldAnchor";
+} from "../lib/activity/repo/firestoreRouteActivity";
+import type { LineStringGeometry } from "../lib/geo/geo";
+import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../lib/geo/geoDecimate";
+import { resolveActivityWorldDotLngLat } from "../lib/activity/activityWorldAnchor";
 import type { RouteActivityMapOverlay } from "./useRouteActivityMapOverlay";
 
 const MAX_LIVE_MAP_OVERLAY = 10;

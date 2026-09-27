@@ -1,15 +1,15 @@
 /**
  * S1-3: Subscription timers - 15s delayed status + 60s subscription end + re-query
  * 
- * Production: RideConquestSubscription (src/lib/rideConquestSubscription.ts)
+ * Production: RideConquestSubscription (src/lib/ride/rideConquestSubscription.ts)
  * Import site: useRideConquestResult (src/hooks/useRideConquestResult.ts:L12,L39-47)
  * 
  * Tests with fake clock to verify timer behavior.
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { RideConquestSubscription } from "../../src/lib/rideConquestSubscription.ts";
-import type { RideConquestResult } from "../../src/lib/rideConquestResult.ts";
+import { RideConquestSubscription } from "../../src/lib/ride/rideConquestSubscription.ts";
+import type { RideConquestResult } from "../../src/lib/ride/rideConquestResult.ts";
 
 type FakeTimer = {
   callback: () => void;

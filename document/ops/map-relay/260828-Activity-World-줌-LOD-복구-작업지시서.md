@@ -25,7 +25,7 @@
 
 ### 1.1 알고리즘은 정상이다
 
-`apps/web/src/lib/activityWorldLod.ts`를 실제로 실행한 결과:
+`apps/web/src/lib/activity/activityWorldLod.ts`를 실제로 실행한 결과:
 
 ```text
 ENTER_MIN 13   EXIT_MIN 12.5

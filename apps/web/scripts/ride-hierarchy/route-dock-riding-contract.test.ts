@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { routeDockUiPolicy } from "../../src/lib/routeDockUiPolicy.ts";
+import { routeDockUiPolicy } from "../../src/lib/route/routeDockUiPolicy.ts";
 
 describe("routeDock riding hierarchy", () => {
   /**

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { LngLat } from "../../lib/geo";
+import type { LngLat } from "../../lib/geo/geo";
 
 export type RouteDockStopId = "start" | "wp-0" | "wp-1" | "wp-2" | "end";
 

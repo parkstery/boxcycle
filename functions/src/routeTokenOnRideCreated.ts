@@ -1,12 +1,13 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { earnRouteTokenForCompletedRide, ensureRouteTokenOnboarding } from "./routeTokenCore.js";
+import { REGION } from "./region.js";
 
 /**
  * `rides` 완주 저장 시 Route Token 적립(멱등).
  */
 export const routeTokenOnRideCreated = onDocumentCreated(
-  { document: "rides/{rideId}", region: "asia-northeast3" },
+  { document: "rides/{rideId}", region: REGION },
   async (event) => {
     const data = event.data?.data();
     if (!data) return;

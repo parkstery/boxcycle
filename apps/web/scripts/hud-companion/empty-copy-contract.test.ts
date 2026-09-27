@@ -6,7 +6,7 @@ import { describe, it } from "node:test";
 import {
   hasOtherLiveRidePeer,
   shouldShowCompanionEmptyCopy,
-} from "../../src/lib/peerHud.ts";
+} from "../../src/lib/peerMotion/peerHud.ts";
 
 describe("hasOtherLiveRidePeer", () => {
   it("나 말고 live ride 행이 있으면 true", () => {

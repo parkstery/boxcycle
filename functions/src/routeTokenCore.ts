@@ -236,7 +236,7 @@ export async function spendRouteGenerateToken(
   return db.runTransaction(async (tx) => {
     const ledgerRef = db.doc(`${ROUTE_TOKEN_LEDGER}/${ledgerDocId(idempotencyKey)}`);
     const ledgerSnap = await tx.get(ledgerRef);
-    let state = await readUserTokenState(tx, userRef);
+    const state = await readUserTokenState(tx, userRef);
 
     if (ledgerSnap.exists) {
       const after = ledgerSnap.data()?.balanceAfter;
@@ -342,7 +342,7 @@ export async function earnRouteTokenForCompletedRide(input: {
     }
 
     const dayKey = kstDayKey();
-    let earnedToday = state.earnDayKey === dayKey ? state.earnedToday : 0;
+    const earnedToday = state.earnDayKey === dayKey ? state.earnedToday : 0;
     const cap = input.isAnonymous ? economy.guestDailyEarnCap : economy.dailyEarnCap;
     const room = Math.max(0, cap - earnedToday);
     const applied = Math.min(earn, room);

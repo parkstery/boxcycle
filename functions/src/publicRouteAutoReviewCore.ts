@@ -1,6 +1,6 @@
 /**
  * 퍼블릭 경로 자동 등록 — 기하·정책 검수 코어(신뢰 경계, Admin SDK 측).
- * 클라 `apps/web/src/lib/publicRouteAutoReview.ts` · `publicRouteContentPolicy.ts` 의 순수 함수를
+ * 클라 `apps/web/src/lib/route/publicRouteAutoReview.ts` · `publicRouteContentPolicy.ts` 의 순수 함수를
  * 이식한 것 — 알고리즘·상수는 동기 유지해야 한다(정책 §4). functions 쪽에서 자체 완결(웹 코드 import 금지).
  * SoT: document/260717-퍼블릭-경로-자동등록-정책.md
  */
@@ -304,6 +304,7 @@ export function checkBboxDiagonal(coords: LngLat[]): AutoReviewVerdict {
 
 // ─── 제목·소개 구조 검사 (클라 publicRouteContentPolicy.ts `validatePublicRouteTitleAndSummary` 이식) ───
 
+// eslint-disable-next-line no-control-regex -- 제어문자를 탐지해 거부하는 입력 검증이다. 정규식에 있는 것이 의도다.
 const INVISIBLE_OR_CONTROL = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F\u200B-\u200D\uFEFF]/;
 /** 동일 문자·이모지 등 과도 반복(스팸 패턴) */
 const EXCESSIVE_REPEAT = /(.)\1{49,}/u;

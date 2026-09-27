@@ -2,13 +2,13 @@ import { useEffect, useState } from "react";
 import { formatDuration } from "../../services/mapboxDirections";
 import {
   loadRecentRideSessionsFromFirestore,
-} from "../../lib/firestoreRides";
+} from "../../lib/ride/repo/firestoreRides";
 import {
   loadRideSessions,
   type StoredRideSession,
-} from "../../lib/rideSessionsStorage";
+} from "../../lib/ride/rideSessionsStorage";
 import "./RideHistoryPanel.css";
-import { isRouteCompletion } from "../../lib/rideRecordPolicy";
+import { isRouteCompletion } from "../../lib/ride/rideRecordPolicy";
 
 export type RideHistoryPanelProps = {
   /**

@@ -3,19 +3,20 @@ import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } fr
 import {
   formatDistanceAutoRouteEta,
   resolveDistanceAutoRouteEta,
-} from "../../lib/distanceAutoRouteEta";
+} from "../../lib/route/distanceAutoRouteEta";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import "../../lib/disableMapboxTelemetry";
+import "../../lib/map/disableMapboxTelemetry";
 import {
   lngLatBoundsToViewport,
   viewportSpanKm,
   type ActivityWorldMapRoute,
   type ActivityWorldRawOverlay,
   type MapViewportBounds,
-} from "../../lib/activityWorldLod";
-import { ACTIVITY_TRACE_RED } from "../../lib/activityWorldTraceStyle";
-import { DISTANCE_AUTO_ROUTE_REFERENCE_CIRCLE_HINT } from "../../lib/distanceAutoRoute";
+} from "../../lib/activity/activityWorldLod";
+import { applyRtwLayerOrder, moveLayerByRank } from "../../lib/map/layerOrder";
+import { ACTIVITY_TRACE_RED } from "../../lib/activity/activityWorldTraceStyle";
+import { DISTANCE_AUTO_ROUTE_REFERENCE_CIRCLE_HINT } from "../../lib/route/distanceAutoRoute";
 import {
   formatDistanceAutoRouteDirectionClickHint,
   DISTANCE_AUTO_ROUTE_KM_MAX,
@@ -25,21 +26,21 @@ import {
   DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_ARIA,
   DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_LABEL,
   validateDistanceAutoRouteTargetKm,
-  DISTANCE_AUTO_ROUTE_CHIP_KM,} from "../../lib/distanceAutoRouteErrors";
+  DISTANCE_AUTO_ROUTE_CHIP_KM,} from "../../lib/route/distanceAutoRouteErrors";
 import {
   getDistanceAutoRouteMapBridge,
   registerDistanceAutoRouteClickDebugMarkerClear,
-} from "../../lib/distanceAutoRouteMapBridge";
+} from "../../lib/map/distanceAutoRouteMapBridge";
 import {
   createDistanceAutoRouteClickDebugMarkerElement,
   isDistanceAutoRouteClickDebugEnabled,
   updateDistanceAutoRouteClickDebugMarkerElement,
-} from "../../lib/distanceAutoRouteClickDebugMarker";
+} from "../../lib/debug/distanceAutoRouteClickDebugMarker";
 import {
   SELF_LOCATION_MARKER_CLASS,
   createSelfLocationMarkerRoot,
   updateSelfLocationMarkerViewportBearing,
-} from "../../lib/mapSelfLocationMarker";
+} from "../../lib/map/mapSelfLocationMarker";
 import {
   buildRoutePickDockFocus,
   clampRoutePickDockPosition,
@@ -49,7 +50,7 @@ import {
   pickRoutePickDockPosition,
   toCanvasLocalRect,
   viewportRectFromElement,
-} from "../../lib/mapPickRouteDock";
+} from "../../lib/map/mapPickRouteDock";
 import {
   applyRtwLayerStyle,
   resetRtwStyleSnapshot,
@@ -59,15 +60,15 @@ import {
   RTW_TRACE_LIVE_GLOW_PAINT,
   RTW_TRACE_LIVE_PAINT,
   rtwAccumulatedWidthExpression,
-} from "../../lib/rtwMapConfig";
+} from "../../lib/map/rtwMapConfig";
 import {
   conquestLayerEmphasis,
   type ConquestLayerEmphasis,
-} from "../../lib/conquestLayerEmphasis";
+} from "../../lib/conquest/conquestLayerEmphasis";
 import {
   shouldMoveActivityWorldLayersToTop,
   shouldSkipLiveOverlaysOnMap,
-} from "../../lib/mapDebugPhase";
+} from "../../lib/debug/mapDebugPhase";
 import {
   noteLodScheduleEmit,
   noteLodScheduleEnter,
@@ -77,40 +78,40 @@ import {
   noteRafFrame,
   noteSyncActivityMs,
   isFollowCameraJump,
-} from "../../lib/mapTickProbe";
-import { installCameraRenderPhaseHook } from "../../lib/cameraRenderPhase";
-import { applyTickTestToMap, getTickTestOffList, installTickTestMapHooks, subscribeTickTest } from "../../lib/tickTestSwitches";
-import type { LngLat, LineStringGeometry } from "../../lib/geo";
+} from "../../lib/debug/mapTickProbe";
+import { installCameraRenderPhaseHook } from "../../lib/camera/cameraRenderPhase";
+import { applyTickTestToMap, getTickTestOffList, installTickTestMapHooks, subscribeTickTest } from "../../lib/debug/tickTestSwitches";
+import type { LngLat, LineStringGeometry } from "../../lib/geo/geo";
 import {
   boundsFromLineCoordinates,
   getDistanceMeters,
   lineStringLengthMeters,
   resolveRiderBearingDeg,
-} from "../../lib/geo";
-import { splitLineStringAtMeters } from "../../lib/routeProgressSplit";
+} from "../../lib/geo/geo";
+import { splitLineStringAtMeters } from "../../lib/route/routeProgressSplit";
 import type { RouteElevationProfileState } from "../../hooks/useRouteElevationProfile";
-import type { FollowMode } from "../ride/RideRoutePanel";
+import type { FollowMode } from "../../lib/map/mapGlobeView";
 import {
   getRouteTokenInsufficient as isRouteTokenBlocked,
   subscribeRouteTokenEffective,
-} from "../../lib/routeTokenSpendBridge";
-import { mountRouteTokenPopupFeedback } from "../../lib/mountRouteTokenPopupFeedback";
-import { ROUTE_TOKEN_INSUFFICIENT_HINT } from "../../lib/routeTokenUiCopy";
-import type { CoverageOverlayMode } from "../../lib/coverageOverlayMode";
-import { MAX_ROUTE_WAYPOINTS } from "../../lib/routeWaypoints";
+} from "../../lib/account/routeTokenSpendBridge";
+import { mountRouteTokenPopupFeedback } from "../../lib/account/mountRouteTokenPopupFeedback";
+import { ROUTE_TOKEN_INSUFFICIENT_HINT } from "../../lib/account/routeTokenUiCopy";
+import type { CoverageOverlayMode } from "../../lib/activity/coverageOverlayMode";
+import { MAX_ROUTE_WAYPOINTS } from "../../lib/geo/routeWaypoints";
 import type { RouteProfile } from "../../services/mapboxDirections";
 import { fetchMapboxReverseGeocodePlaceName } from "../../services/mapboxReverseGeocode";
-import { ensureRiderPedalStripKeyframes } from "../../lib/riderPedalStripKeyframes";
+import { ensureRiderPedalStripKeyframes } from "../../lib/rider/riderPedalStripKeyframes";
 import {
   RIDER_PEDAL_CELL_PX,
   RIDER_PEDAL_FRAME_COUNT,
   RIDER_PEDAL_SPRITE_REVISION,
-} from "../../lib/riderPedalSpriteMeta";
-import { estimateCrankRpmFromSpeedKmh, resolvePedalCrankRpm } from "../../lib/riderPedalMotion";
-import { resolveGlbPedalPose } from "../../lib/riderGlbPedalPose";
-import { stepPeerDriveAndBuildGeoJson } from "../../lib/peerRidersDrive";
+} from "../../lib/rider/riderPedalSpriteMeta";
+import { estimateCrankRpmFromSpeedKmh, resolvePedalCrankRpm } from "../../lib/rider/riderPedalMotion";
+import { resolveGlbPedalPose } from "../../lib/rider/riderGlbPedalPose";
+import { stepPeerDriveAndBuildGeoJson } from "../../lib/peerMotion/peerRidersDrive";
 import { resetPeerMotionRegistry } from "../../lib/peerMotion";
-import { MAP_PEER_SPRITE_MIN_ZOOM } from "../../lib/rideSyncPolicy";
+import { MAP_PEER_SPRITE_MIN_ZOOM } from "../../lib/ride/rideSyncPolicy";
 import { applyCoverageOverlayMode } from "../../services/coverageOverlaySync";
 import type { GlobalLivePresenceDot } from "../../hooks/useGlobalLivePresence";
 import type { TrailSpectatorDot } from "../../hooks/useTrailLivePublicationRideSpectatorOverlay";
@@ -129,7 +130,6 @@ import {
   ensureRiderPreservedLayer,
   syncRiderPreservedModels,
 } from "../../lib/riderPrototype/preservedRiderLayer";
-import { PEER_RIDER_PEDAL_FRAME_COUNT } from "../../lib/registerPeerRiderPedalSprites";
 import { MapZoomGlobeControl } from "./MapZoomGlobeControl";
 import {
   computeRideFollowFraming,
@@ -139,7 +139,7 @@ import {
   RIDE_HUD_SAFE_PADDING,
   viewportPxFromMap,
   resolveRideFitPadding,
-} from "../../lib/rideCameraFraming";
+} from "../../lib/camera/rideCameraFraming";
 import {
   MAP_GLOBE_MIN_ZOOM,
   DEFAULT_MAP_ZOOM,
@@ -148,7 +148,7 @@ import {
   RIDE_CAMERA_DISTANCE_MIN_M,
   RIDE_CAMERA_DISTANCE_MAX_M,
   resolveRideCameraPitchClose,
-} from "../../lib/mapGlobeView";
+} from "../../lib/map/mapGlobeView";
 import { type LiveRiderMotion } from "./mapViewTypes";
 import {
   tickRideCameraFollow,
@@ -213,7 +213,7 @@ const ELEVATION_LINE_COLOR = "#c36839";
 /**
  * 경로선 폭. 흰 테두리(casing)를 둘렀다가 걷어냈다 — 테두리가 내 도로망보다 굵어
  * **경로선은 살고 내 도로망이 죽었다**(2026-09-16 Chief). 둘을 동시에 읽히게 하는 일은
- * 색을 덧대는 대신 순서 + 폭 차이가 맡는다(`lib/conquestLayerEmphasis`).
+ * 색을 덧대는 대신 순서 + 폭 차이가 맡는다(`lib/conquest/conquestLayerEmphasis`).
  */
 const ROUTE_LINE_WIDTH = 4;
 
@@ -250,7 +250,7 @@ function addRouteLine(map: mapboxgl.Map, beforeId: string | undefined): void {
 }
 
 /**
- * 궤적 레이어와 경로선의 위아래를 **단계에 따라** 세운다(판정은 `lib/conquestLayerEmphasis`).
+ * 궤적 레이어와 경로선의 위아래를 **단계에 따라** 세운다(판정은 `lib/conquest/conquestLayerEmphasis`).
  *
  * 주행 중에는 궤적이 위다 — 이미 내 것인 도로를 다시 달릴 때 강한 빨강(#ef4444)에
  * 덮이면 어떤 색을 써도 드러나지 않는다.
@@ -387,15 +387,12 @@ function moveActivityWorldLayersToTop(map: mapboxgl.Map): void {
   const sig = activityWorldLayerSignature(map);
   if (sig === lastActivityWorldLayerSigByMap.get(map)) return;
   const t0 = performance.now();
-  for (const id of ACTIVITY_WORLD_LAYER_IDS) {
-    if (map.getLayer(id)) {
-      try {
-        map.moveLayer(id);
-      } catch {
-        /* style switching */
-      }
-    }
-  }
+  /*
+   * 여덟 개의 **상대 순서를 한 번에** 세운다. 종전에는 각자 무조건 top 으로 올라가
+   * 라이더까지 덮었고(구조 감사 P4), 결과가 호출 순서에 달려 있었다.
+   * 낱개 `moveLayerByRank` 로는 그룹이 정렬되지 않는다(계약 시험이 잡는다).
+   */
+  applyRtwLayerOrder(map, ACTIVITY_WORLD_LAYER_IDS);
   lastActivityWorldLayerSigByMap.set(map, activityWorldLayerSignature(map));
   noteMoveToTopMs(performance.now() - t0);
 }
@@ -493,7 +490,7 @@ function syncWorldRedDots(
   }
   try {
     src.setData(fc);
-    map.moveLayer(ACTIVITY_PULSE_DOTS_LAYER);
+    moveLayerByRank(map, ACTIVITY_PULSE_DOTS_LAYER);
   } catch (e) {
     console.warn("[MapView] red dot setData/move failed", e);
   }
@@ -601,9 +598,7 @@ function syncWorldHeatDots(
   if (!src) return;
   try {
     src.setData(fc);
-    if (map.getLayer(ACTIVITY_HEAT_DOTS_LAYER)) {
-      map.moveLayer(ACTIVITY_HEAT_DOTS_LAYER);
-    }
+    moveLayerByRank(map, ACTIVITY_HEAT_DOTS_LAYER);
   } catch (e) {
     console.warn("[MapView] heat dot setData/move failed", e);
   }
@@ -881,19 +876,12 @@ const DEBUG_GLOBAL_LIVE_PRESENCE_ON_MAP =
   import.meta.env.VITE_DEBUG_GLOBAL_LIVE_PRESENCE_ON_MAP === "true";
 
 function moveGlobalLivePresenceLayersToTop(map: mapboxgl.Map): void {
-  for (const id of [
+  // presence 점이 라이더를 덮으면 내 위치를 잃는다. 세 개의 상대 순서를 한 번에 세운다.
+  applyRtwLayerOrder(map, [
     GLOBAL_LIVE_PRESENCE_GLOW_LAYER,
     GLOBAL_LIVE_PRESENCE_LAYER,
     GLOBAL_LIVE_PRESENCE_LABEL_LAYER,
-  ]) {
-    if (map.getLayer(id)) {
-      try {
-        map.moveLayer(id);
-      } catch {
-        /* style switching */
-      }
-    }
-  }
+  ]);
 }
 
 function ensureGlobalLivePresenceLayers(map: mapboxgl.Map): boolean {
@@ -1179,12 +1167,24 @@ const PEER_DOM_STRIP_INDICES = pickPeerSourceFrameIndices(RIDER_PEDAL_FRAME_COUN
 type PeerDomGJFeature = {
   type: "Feature";
   geometry: { type: "Point"; coordinates: LngLat };
-  properties: { id: string; label: string; pframe: number; hdg: number };
+  properties: { id: string; label: string; phaseRev: number; hdg: number };
 };
 
-function applyPeerDomSpriteFrame(sprite: HTMLDivElement | null, pframe: number): void {
+/**
+ * `pedal-sprite.png` 스트립의 프레임 수. **스프라이트를 그리는 쪽이 갖는다.**
+ *
+ * 종전에는 이 값이 `lib/registerPeerRiderPedalSprites` 에 있었고, 전송 계층이 그것을
+ * 가져다 위상을 6단계로 잘라 실었다. 그 모듈의 나머지(Mapbox `addImage` 등록·ready
+ * 검사·틴트)는 **어디서도 호출되지 않는 죽은 코드**여서 함께 걷었다(2026-09-25).
+ * GLB 라이더는 연속 위상을 쓰므로, 6장으로 자르는 일은 여기(iso2d DOM 경로)에만 남는다.
+ */
+const PEER_DOM_PEDAL_FRAME_COUNT = 6;
+
+/** 연속 위상(0~1)을 스트립 프레임으로 자른다. 자르는 일은 여기서만 한다. */
+function applyPeerDomSpriteFrame(sprite: HTMLDivElement | null, phaseRev: number): void {
   if (!sprite) return;
-  const idx = ((Math.round(pframe) % 6) + 6) % 6;
+  const frame = Math.floor(((phaseRev % 1) + 1) % 1 * PEER_DOM_PEDAL_FRAME_COUNT);
+  const idx = ((frame % PEER_DOM_PEDAL_FRAME_COUNT) + PEER_DOM_PEDAL_FRAME_COUNT) % PEER_DOM_PEDAL_FRAME_COUNT;
   const stripIndex = PEER_DOM_STRIP_INDICES[idx] ?? 0;
   const cell = RIDER_PEDAL_CELL_PX;
   sprite.style.backgroundPosition = `-${stripIndex * cell}px 0`;
@@ -1236,7 +1236,7 @@ function syncPeerDomMarkers(
     const id = f.properties.id;
     next.add(id);
     const lngLat = f.geometry.coordinates;
-    const { label, pframe, hdg } = f.properties;
+    const { label, phaseRev, hdg } = f.properties;
     let mk = markers.get(id);
     if (!mk) {
       const root = createPeerRiderMarkerRoot(label);
@@ -1265,7 +1265,7 @@ function syncPeerDomMarkers(
     } else {
       const sprite = root.querySelector<HTMLDivElement>(".cycling-sim-marker-pedal-sprite");
       if (nametag) nametag.textContent = label;
-      applyPeerDomSpriteFrame(sprite, pframe);
+      applyPeerDomSpriteFrame(sprite, phaseRev);
       if (flip) {
         flip.style.transform = hdg > 90 && hdg < 270 ? "scaleX(-1)" : "scaleX(1)";
       }
@@ -1385,10 +1385,8 @@ export type MapViewProps = {
   onLookupPioneer?: (lngLat: LngLat) => Promise<string | null>;
   /** 지도 지점 선택 팝업에서 출발·도착·경유·계산 경로 전체 초기화 */
   onClearRoute?: () => void;
-  /** OSRM(Mapbox Streets)·Mapillary 촬영 시퀀스 커버리지 */
+  /** OSRM(Mapbox Streets) 도로 커버리지 */
   coverageOverlayMode: CoverageOverlayMode;
-  /** Mapillary 타일·거리뷰용 클라이언트 토큰(없으면 Mapillary 모드 비활성) */
-  mapillaryClientToken?: string | null;
   /** 메뉴 지명 검색 등 — `requestId`가 바뀔 때마다 한 번 카메라 이동 (`bbox` 있으면 도시 단위 fitBounds) */
   externalCameraJump?: {
     lngLat: LngLat;
@@ -1557,7 +1555,6 @@ export function MapView({
   onLookupPioneer,
   onClearRoute,
   coverageOverlayMode,
-  mapillaryClientToken,
   externalCameraJump = null,
   openRoutePickRequest = null,
   placeSearchMarkerLngLat = null,
@@ -1658,7 +1655,7 @@ export function MapView({
   const openRoutePickAtRef = useRef<((lngLat: LngLat) => void) | null>(null);
   const routeGeometryRef = useRef<LineStringGeometry | null>(null);
   /**
-   * 궤적/경로선 강조 — 단계마다 주인공이 다르다(`lib/conquestLayerEmphasis`).
+   * 궤적/경로선 강조 — 단계마다 주인공이 다르다(`lib/conquest/conquestLayerEmphasis`).
    * ref 로 두는 이유: 레이어 적용이 `style.load`·`idle` 콜백 안에서도 일어나 최신 값이 필요하다.
    */
   const conquestEmphasisRef = useRef(
@@ -1934,9 +1931,7 @@ export function MapView({
   }, [startLngLat]);
 
   const coverageOverlayModeRef = useRef(coverageOverlayMode);
-  const mapillaryClientTokenRef = useRef(mapillaryClientToken);
   coverageOverlayModeRef.current = coverageOverlayMode;
-  mapillaryClientTokenRef.current = mapillaryClientToken;
 
   useEffect(() => {
     onMapZoomRef.current = onMapZoom;
@@ -2182,7 +2177,6 @@ export function MapView({
         applyCoverageOverlayMode(
           map,
           coverageOverlayModeRef.current,
-          mapillaryClientTokenRef.current ?? undefined,
         );
       } catch (e) {
         console.warn("[MapView] coverage overlay", e);
@@ -2689,7 +2683,6 @@ export function MapView({
           applyCoverageOverlayMode(
             map,
             coverageOverlayModeRef.current,
-            mapillaryClientTokenRef.current ?? undefined,
           );
         } catch {
           /* noop */
@@ -2725,7 +2718,6 @@ export function MapView({
           applyCoverageOverlayMode(
             map,
             coverageOverlayModeRef.current,
-            mapillaryClientTokenRef.current ?? undefined,
           );
         } catch {
           /* noop */
@@ -2773,7 +2765,6 @@ export function MapView({
         applyCoverageOverlayMode(
           map,
           coverageOverlayModeRef.current,
-          mapillaryClientTokenRef.current ?? undefined,
         );
       } catch {
         /* noop */
@@ -2952,7 +2943,6 @@ export function MapView({
         applyCoverageOverlayMode(
           map,
           coverageOverlayModeRef.current,
-          mapillaryClientTokenRef.current ?? undefined,
         );
       } catch {
         // 스타일시트 준비 전 addSource/addLayer throw — 다음 idle에 재시도
@@ -2968,7 +2958,7 @@ export function MapView({
       map.off("style.load", apply);
       map.off("idle", apply);
     };
-  }, [mapLoaded, coverageOverlayMode, mapillaryClientToken]);
+  }, [mapLoaded, coverageOverlayMode]);
 
   /**
    * Conquest — 「내 도로망」(과거 주행 궤적) 영구 렌더. 경로선 아래.
@@ -3511,10 +3501,9 @@ export function MapView({
           });
         }
         for (const f of fc.features as PeerDomGJFeature[]) {
-          const phaseRev =
-            f.properties.pframe > 0
-              ? f.properties.pframe / PEER_RIDER_PEDAL_FRAME_COUNT
-              : 0;
+          // 연속 위상을 그대로 쓴다 — 종전에는 6단계 `pframe` 을 다시 6으로 나눠
+          // 동행의 페달만 계단으로 움직였다(본인 라이더는 연속값).
+          const phaseRev = f.properties.phaseRev;
           specs.push({
             id: f.properties.id,
             lngLat: f.geometry.coordinates,
@@ -3774,31 +3763,8 @@ export function MapView({
 
   useEffect(() => {
     const map = mapRef.current;
-    if (import.meta.env.DEV) {
-      console.log("[C3] externalCameraJump effect fired", {
-        hasMap: Boolean(map),
-        mapLoaded,
-        externalCameraJump,
-      });
-    }
     if (!map || !mapLoaded || !externalCameraJump) return;
     const { lngLat, zoom: zoomHint, bbox } = externalCameraJump;
-    if (import.meta.env.DEV) {
-      const c = map.getCenter();
-      console.log("[C4] before jump — center", [c.lng, c.lat], "target", lngLat);
-      const onMoveStart = () => {
-        const cc = map.getCenter();
-        console.log("[C4] movestart center", [cc.lng, cc.lat]);
-      };
-      const onMoveEndDbg = () => {
-        const cc = map.getCenter();
-        console.log("[C4] moveend center", [cc.lng, cc.lat]);
-        map.off("movestart", onMoveStart);
-        map.off("moveend", onMoveEndDbg);
-      };
-      map.once("movestart", onMoveStart);
-      map.once("moveend", onMoveEndDbg);
-    }
     map.stop();
 
     const syncZoomFromMap = () => {

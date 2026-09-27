@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState, type PointerEvent, type TouchEvent } from "react";
-import type { LocalFirstRegion } from "../../lib/localFirstRegion";
-import { LOCAL_FIRST_CAMERA_ZOOM, makeLocalFirstRegion, localFirstRegionLabel } from "../../lib/localFirstRegion";
-import { installLocalFirstGeoProbe } from "../../lib/localFirstGeoProbe";
+import type { LocalFirstRegion } from "../../lib/geo/localFirstRegion";
+import { LOCAL_FIRST_CAMERA_ZOOM, makeLocalFirstRegion, localFirstRegionLabel } from "../../lib/geo/localFirstRegion";
+import { installLocalFirstGeoProbe } from "../../lib/debug/localFirstGeoProbe";
 import { fetchMapboxReverseGeocodeRegionLabel } from "../../services/mapboxReverseGeocode";
 import {
   READY_RIDE_DISTANCE_KM_OPTIONS,
   READY_RIDE_DEFAULT_DISTANCE_KM,
   formatReadyRideDistanceChip,
-} from "../../lib/readyRide";
+} from "../../lib/route/readyRide";
 import type { ReadyRideLastResult, ReadyRideStatus } from "../../hooks/useReadyRide";
 import "./LocalFirstEntryCard.css";
 

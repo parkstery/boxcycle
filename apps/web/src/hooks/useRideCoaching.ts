@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { LineStringGeometry, LngLat } from "../lib/geo";
-import { routeElevationSignature } from "../lib/fetchRouteElevations";
-import type { CoachingData } from "../lib/coachTypes";
+import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
+import { routeElevationSignature } from "../lib/route/fetchRouteElevations";
+import type { CoachingData } from "../lib/coach/coachTypes";
 import {
   buildCoachElevationPoints,
   elevationReadyForCoach,
   sliceCoachPointsAhead,
-} from "../lib/coachElevationFromRoute";
+} from "../lib/coach/coachElevationFromRoute";
 import {
   getCourseBriefingMessage,
   getPredictiveCoaching,
@@ -19,7 +19,7 @@ import {
   safeRideSpeechCancel,
   setRideTtsEnabled,
   speakRideText,
-} from "../lib/rideSpeech";
+} from "../lib/ride/rideSpeech";
 import type { RideSessionStatus } from "./useVirtualRideSession";
 
 const COACH_TICK_MS = 500;

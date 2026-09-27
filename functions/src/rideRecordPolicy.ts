@@ -1,7 +1,7 @@
 /**
  * 주행 기록으로 남기지 않을 최소 거리(초과해야 유효).
  * ⚠️ 테스트용 100m. 출시 전 200 으로 되돌릴 것 — document/출시 전 확인사항.md 참고.
- * ⚠️ 이 파일과 apps/web/src/lib/rideRecordPolicy.ts 는 **항상 같은 값**이어야 한다.
+ * ⚠️ 이 파일과 apps/web/src/lib/ride/rideRecordPolicy.ts 는 **항상 같은 값**이어야 한다.
  *    한쪽만 바꾸면 클라이언트는 남기고 서버는 버리는 주행이 생겨,
  *    새로고침하면 사라지는 기록이 된다(2026-09-04 실제 발생).
  */
@@ -10,7 +10,7 @@ export const MIN_MEANINGFUL_RIDE_DISTANCE_METERS = 100;
 /**
  * 주행 기록으로 남기지 않을 최소 시간(초과해야 유효).
  * ⚠️ 테스트용 5초. 출시 전 3 * 60(3분)으로 되돌릴 것 — document/출시 전 확인사항.md 참고.
- * ⚠️ apps/web/src/lib/rideRecordPolicy.ts 와 같은 값을 유지할 것.
+ * ⚠️ apps/web/src/lib/ride/rideRecordPolicy.ts 와 같은 값을 유지할 것.
  */
 export const MIN_MEANINGFUL_RIDE_DURATION_SEC = 5;
 

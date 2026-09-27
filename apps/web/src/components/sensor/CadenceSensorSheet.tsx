@@ -1,12 +1,12 @@
 import { useEffect } from "react";
-import { cadenceRpmToVirtualSpeedKmh, type RideInputMode } from "../../lib/cadenceRideInput";
+import { cadenceRpmToVirtualSpeedKmh, type RideInputMode } from "../../lib/sensor/cadenceRideInput";
 import {
   cadenceSensorShortStatus,
   rideInputBlockedReason,
   type BleCrankRpmUiState,
   type RideInputReadiness,
-} from "../../lib/cadenceSensorUi";
-import { ALLOW_MANUAL_SPEED_WHILE_RIDING } from "../../lib/manualSpeedWhileRiding";
+} from "../../lib/sensor/cadenceSensorUi";
+import { ALLOW_MANUAL_SPEED_WHILE_RIDING } from "../../lib/sensor/manualSpeedWhileRiding";
 import { SessionSpeedControl } from "./SessionSpeedControl";
 import "./CadenceSensorSheet.css";
 

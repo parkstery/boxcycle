@@ -7,13 +7,14 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { analyzeRun, departMechanics, stats } from "./s3b2r-analyze.mjs";
 import { S1_LIMITS } from "./s1-metrics.mjs";
+import { RELAY_OUT_DIR, relayInput, relayOutput } from "./relay-paths.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const DIR = resolve(HERE, "../../../../document/ops/sync-relay");
-const FIT = resolve(DIR, "S3B2R-fitcurve.json");
-const BASE = resolve(DIR, "S3B2-base-events.json");
-const POST = resolve(DIR, "S3B2-chain-events.json");
-const OUT = resolve(DIR, "S3B2R-summary.json");
+const DIR = RELAY_OUT_DIR;
+const FIT = relayInput("S3B2R-fitcurve.json", "s3b2r-summarize");
+const BASE = relayInput("S3B2-base-events.json", "s3b2r-summarize");
+const POST = relayInput("S3B2-chain-events.json", "s3b2r-summarize");
+const OUT = relayOutput("S3B2R-summary.json");
 
 const RUNS = [1, 2, 3].map((n) => ({
   n,
