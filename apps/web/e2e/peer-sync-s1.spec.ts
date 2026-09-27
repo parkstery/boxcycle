@@ -9,6 +9,7 @@ import {
   judgeCase,
 } from '../scripts/peer-sync/s1-metrics.mjs'
 import {
+  PEER_SYNC_OUT_DIR,
   ensureRiding,
   guestStart,
   loadIntroCourse,
@@ -26,7 +27,7 @@ import {
  */
 const LIVE = process.env.RIDE_VERIFY_LIVE === '1'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const OUT_DIR = path.resolve(__dirname, '../../../document/ops/sync-relay')
+const OUT_DIR = PEER_SYNC_OUT_DIR
 
 type PeerRow = {
   t: number

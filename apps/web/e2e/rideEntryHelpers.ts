@@ -1,4 +1,6 @@
 import { expect, type Locator, type Page } from '@playwright/test'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 /**
  * 실주행 진입 공용 헬퍼 — **동행(peer-sync) e2e 12개가 함께 쓴다.**
@@ -156,3 +158,23 @@ export async function setSpeedKmh(page: Page, kmh: number): Promise<void> {
   }
   await closeCadenceSheet(page)
 }
+
+/**
+ * 동행 시험 산출물이 나갈 자리 — **기본은 추적되지 않는 `.out/`.**
+ *
+ * 왜 (2026-09-27) — 이 시험들은 `document/ops/sync-relay/` 에 직접 썼다. 한 번 돌리면
+ * **13만 줄이 바뀐다.** 돌리면 저장소가 더러워지니 아무도 안 돌리게 되고, 그래서 12개가
+ * 한 달 넘게 red 인 줄도 몰랐다. 감사 P2 와 같은 계열이고, e2e 두 스펙(09-25)과
+ * S3 픽스처 게이트(09-26)가 이미 같은 처방으로 옮겨 갔다.
+ *
+ * 다만 이 산출물은 **보고서 증거로 쓰인 이력**이 있다. 그래서 필요할 때만 켠다:
+ *
+ *   PEER_SYNC_EVIDENCE=1   → `document/ops/sync-relay/` 에 쓴다(증거를 남길 때)
+ *   (기본)                  → `apps/web/.out/sync-relay/` 에 쓴다
+ */
+const HERE = path.dirname(fileURLToPath(import.meta.url))
+
+export const PEER_SYNC_OUT_DIR =
+  process.env.PEER_SYNC_EVIDENCE === '1'
+    ? path.resolve(HERE, '../../../document/ops/sync-relay')
+    : path.resolve(HERE, '../.out/sync-relay')

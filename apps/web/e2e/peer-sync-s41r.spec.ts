@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
+  PEER_SYNC_OUT_DIR,
   dismissRideSummaryIfAny,
   ensureRiding,
   guestStart,
@@ -15,7 +16,7 @@ import {
  * S41R_BASELINE=1 이면 수정 전 반례 관측 모드(실패를 기대·기록).
  */
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const OUT_DIR = path.resolve(__dirname, '../../../document/ops/sync-relay')
+const OUT_DIR = PEER_SYNC_OUT_DIR
 const BASELINE = process.env.S41R_BASELINE === '1'
 /**
  * S4-1R2 — 강제 지연은 배수 예산(2 s)보다 **커야** 한다.

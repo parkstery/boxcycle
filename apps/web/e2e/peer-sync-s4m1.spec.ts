@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
+  PEER_SYNC_OUT_DIR,
   dismissRideSummaryIfAny,
   ensureRiding,
   guestStart,
@@ -16,7 +17,7 @@ import {
  * (원본 S4M1-lifecycle-baseline.json 은 덮지 않는다).
  */
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const OUT_DIR = path.resolve(__dirname, '../../../document/ops/sync-relay')
+const OUT_DIR = PEER_SYNC_OUT_DIR
 const BASELINE = process.env.S4M1_BASELINE === '1'
 /** 배수 2s + finalize burst 3s 보다 커야 종료 경로에서 늦은 쓰기가 삭제 뒤에 착지한다. */
 const WRITE_DELAY_MS = 8_000

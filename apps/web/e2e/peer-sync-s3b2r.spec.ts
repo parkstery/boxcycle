@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
+  PEER_SYNC_OUT_DIR,
   ensureRiding,
   guestStart,
   loadIntroCourse,
@@ -13,7 +14,7 @@ import {
  * S3B-2R — 같은 빌드(D-1) 3 런 반복. S3B2R_RUN=1|2|3 → S3B2R-run{N}-events.json
  */
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const OUT_DIR = path.resolve(__dirname, '../../../document/ops/sync-relay')
+const OUT_DIR = PEER_SYNC_OUT_DIR
 const GEO_STOP_M = 900
 const RUN = Math.min(3, Math.max(1, Number(process.env.S3B2R_RUN || '1')))
 const EVENTS_NAME = `S3B2R-run${RUN}-events.json`

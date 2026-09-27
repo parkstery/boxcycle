@@ -4,6 +4,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
 import {
+  PEER_SYNC_OUT_DIR,
   ensureRiding,
   guestStart,
   loadIntroCourse,
@@ -15,7 +16,7 @@ import {
  * 산출: document/ops/sync-relay/S3R-chain-events.json · S3R-summary.json
  */
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const OUT_DIR = path.resolve(__dirname, '../../../document/ops/sync-relay')
+const OUT_DIR = PEER_SYNC_OUT_DIR
 const WEB_ROOT = path.resolve(__dirname, '..')
 
 function attachChainCapture(page: import('@playwright/test').Page) {

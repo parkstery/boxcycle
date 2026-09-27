@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
+  PEER_SYNC_OUT_DIR,
   ensureRiding,
   guestStart,
   loadIntroCourse,
@@ -17,7 +18,7 @@ import {
  * REPORT.md 는 개발팀장이 이 JSON 을 근거로 작성한다.
  */
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const OUT_DIR = path.resolve(__dirname, '../../../document/ops/sync-relay')
+const OUT_DIR = PEER_SYNC_OUT_DIR
 
 function attachChainCapture(page: import('@playwright/test').Page) {
   const lines: string[] = []
