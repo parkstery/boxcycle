@@ -12,13 +12,14 @@ import {
   parsePeerSyncLine,
   computeDeffResidualFromSeries,
 } from "./s1-metrics.mjs";
+import { relayInput, relayOutput } from "./relay-paths.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const WEB_ROOT = resolve(HERE, "../..");
-const RAW = resolve(HERE, "../../../../document/ops/sync-relay/REPORT-S1-raw-logs.json");
-const RECOMPUTE = resolve(HERE, "../../../../document/ops/sync-relay/S2-recompute.json");
-const OUT_SCENARIO = resolve(HERE, "../../../../document/ops/sync-relay/s2-z15-cruise-scenario.json");
-const OUT_GATE = resolve(HERE, "../../../../document/ops/sync-relay/S2-accuracy-gate.json");
+const RAW = relayInput("REPORT-S1-raw-logs.json", "s2-accuracy-gate");
+const RECOMPUTE = relayInput("S2-recompute.json", "s2-accuracy-gate");
+const OUT_SCENARIO = relayOutput("s2-z15-cruise-scenario.json");
+const OUT_GATE = relayOutput("S2-accuracy-gate.json");
 
 const TOL = 0.2; // ±20%
 

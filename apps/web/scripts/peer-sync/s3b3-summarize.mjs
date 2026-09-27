@@ -9,11 +9,12 @@ import {
   computeScaleGate,
   S1_LIMITS,
 } from "./s1-metrics.mjs";
+import { RELAY_OUT_DIR, relayInput, relayOutput } from "./relay-paths.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const DIR = resolve(HERE, "../../../../document/ops/sync-relay");
-const OUT = resolve(DIR, "S3B3-summary.json");
-const S3B2_POST = resolve(DIR, "S3B2-chain-events.json");
+const DIR = RELAY_OUT_DIR;
+const OUT = relayOutput("S3B3-summary.json");
+const S3B2_POST = relayInput("S3B2-chain-events.json", "s3b3-summarize");
 
 const INTERP_DELAY_MS = 160;
 const DISCARD_MS = 2_000;

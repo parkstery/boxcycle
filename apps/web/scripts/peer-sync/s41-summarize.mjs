@@ -10,17 +10,17 @@ import {
   computeScaleGate,
   S1_LIMITS,
 } from "./s1-metrics.mjs";
-import { resolveFixtureGateInput } from "./fixture-gate-path.mjs";
+import { RELAY_OUT_DIR, relayInput, relayOutput } from "./relay-paths.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const DIR = resolve(HERE, "../../../../document/ops/sync-relay");
+const DIR = RELAY_OUT_DIR;
 /**
  * S4-1R2 — S41_OUT_TAG 를 주면 **after 런과 출력 파일만** 태그 이름을 쓴다.
  * before 런(S41-before-run 파일)은 그대로 읽기만 한다. 미커밋 S41 after·summary 산출물은 건드리지 않는다.
  */
 const OUT_TAG = (process.env.S41_OUT_TAG || "").replace(/[^A-Za-z0-9]/g, "");
-const OUT = resolve(DIR, `S41${OUT_TAG}-summary.json`);
-const FIXTURE = resolveFixtureGateInput("s41");
+const OUT = relayOutput(`S41${OUT_TAG}-summary.json`);
+const FIXTURE = relayInput("S3-fixture-gate.json", "s41-summarize");
 
 const INTERP_DELAY_MS = 160;
 const DISCARD_MS = 2_000;
@@ -327,7 +327,7 @@ function pathBFromRun(raw) {
 function loadRuns(phase) {
   return [1, 2, 3].map((n) => {
     const tag = phase === "after" ? OUT_TAG : "";
-    const p = resolve(DIR, `S41${tag}-${phase}-run${n}-events.json`);
+    const p = relayInput(`S41${tag}-${phase}-run${n}-events.json`, "s41-summarize");
     if (!existsSync(p)) throw new Error(`missing ${p}`);
     return JSON.parse(readFileSync(p, "utf8"));
   });

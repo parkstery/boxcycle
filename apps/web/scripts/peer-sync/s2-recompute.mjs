@@ -13,10 +13,11 @@ import {
   computeDeffResidualFromSeries,
   judgeCase,
 } from "./s1-metrics.mjs";
+import { relayInput, relayOutput } from "./relay-paths.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const RAW = resolve(HERE, "../../../../document/ops/sync-relay/REPORT-S1-raw-logs.json");
-const OUT = resolve(HERE, "../../../../document/ops/sync-relay/S2-recompute.json");
+const RAW = relayInput("REPORT-S1-raw-logs.json", "s2-recompute");
+const OUT = relayOutput("S2-recompute.json");
 
 function selfSeries(lines) {
   const rows = [];

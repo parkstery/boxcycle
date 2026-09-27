@@ -6,7 +6,7 @@
  * ⚠ 무효 로그에서 새 D_eff 숫자를 REPORT 에 올리지 않는다.
  *    depart·cruise 는 「D_eff 산출 불가」만 표시.
  */
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -17,12 +17,12 @@ import {
   judgeCase,
   S1_LIMITS,
 } from "./s1-metrics.mjs";
-import { FIXTURE_GATE_OUT } from "./fixture-gate-path.mjs";
+import { relayInput, relayOutput } from "./relay-paths.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const RAW = resolve(HERE, "../../../../document/ops/sync-relay/REPORT-S1-raw-logs.json");
-const S3B1_EVENTS = resolve(HERE, "../../../../document/ops/sync-relay/S3B1-chain-events.json");
-const S3B2_EVENTS = resolve(HERE, "../../../../document/ops/sync-relay/S3B2-chain-events.json");
+const RAW = relayInput("REPORT-S1-raw-logs.json", "s3-fixture-gate");
+const S3B1_EVENTS = relayInput("S3B1-chain-events.json", "s3-fixture-gate");
+const S3B2_EVENTS = relayInput("S3B2-chain-events.json", "s3-fixture-gate");
 
 
 const INVALID_OLD_D = {
@@ -233,7 +233,6 @@ const out = {
   generatedAt: new Date().toISOString(),
 };
 // 추적 경로(document/ops/sync-relay/*.json)에 쓰지 않는다 — 돌리기만 해도 git 이 더러워진다.
-mkdirSync(dirname(FIXTURE_GATE_OUT), { recursive: true });
-writeFileSync(FIXTURE_GATE_OUT, JSON.stringify(out, null, 2), "utf8");
+writeFileSync(relayOutput("S3-fixture-gate.json"), JSON.stringify(out, null, 2), "utf8");
 console.log(JSON.stringify({ pass: out.pass, failures, fixtureIds: fixtures.map((f) => f.id), knownFails: knownFails.map((k) => ({ id: k.id, pass: k.pass })) }, null, 2));
 process.exit(out.pass ? 0 : 1);

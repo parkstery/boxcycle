@@ -15,11 +15,12 @@ import {
   overlapAtDelay,
   S1_LIMITS,
 } from "./s1-metrics.mjs";
+import { RELAY_OUT_DIR, relayInput, relayOutput } from "./relay-paths.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const DIR = resolve(HERE, "../../../../document/ops/sync-relay");
-const EVENTS = resolve(DIR, process.argv[2] || "S3AV-chain-events.json");
-const OUT = resolve(DIR, process.argv[3] || "S3AV-summary.json");
+const DIR = RELAY_OUT_DIR;
+const EVENTS = relayInput(process.argv[2] || "S3AV-chain-events.json", "s3av-summarize");
+const OUT = relayOutput(process.argv[3] || "S3AV-summary.json");
 if (OUT.includes("S3AVR")) {
   await import("./s3avr-summarize.mjs");
   process.exit(0);

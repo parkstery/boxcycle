@@ -6,13 +6,14 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { computeDeffResidualFromSeries, computeScaleGate, S1_LIMITS } from "./s1-metrics.mjs";
+import { RELAY_OUT_DIR, relayInput, relayOutput } from "./relay-paths.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const DIR = resolve(HERE, "../../../../document/ops/sync-relay");
-const BASE = resolve(DIR, "S3B2-base-events.json");
-const POST = resolve(DIR, "S3B2-chain-events.json");
-const OUT = resolve(DIR, "S3B2-summary.json");
-const S3B1 = resolve(DIR, "S3B1-summary.json");
+const DIR = RELAY_OUT_DIR;
+const BASE = relayInput("S3B2-base-events.json", "s3b2-summarize");
+const POST = relayInput("S3B2-chain-events.json", "s3b2-summarize");
+const OUT = relayOutput("S3B2-summary.json");
+const S3B1 = relayInput("S3B1-summary.json", "s3b2-summarize");
 
 const INTERP_DELAY_MS = 160;
 const DISCARD_MS = 2_000;
