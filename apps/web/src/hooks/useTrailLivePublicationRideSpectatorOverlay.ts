@@ -12,6 +12,7 @@ import { acquireTrailLivePublicationRidesSubscription } from "../lib/trail/repo/
 import { sanitizeTrailId } from "../lib/trail/repo/firestoreTrail";
 import {
   isTrailLivePublicationRideRowFresh,
+  isTrailLivePublicationRideRowPeerVisible,
   type TrailLivePublicationRideRow,
 } from "../lib/trail/repo/firestoreTrailLivePublicationRides";
 import { spectatorPointOnRoute } from "../lib/peerMotion/spectatorRideExtrap";
@@ -150,6 +151,15 @@ export function useTrailLivePublicationRideSpectatorOverlay(opts: UseTrailLivePu
     const map = geomByPublicationRef.current;
     const out: TrailSpectatorDot[] = [];
     for (const r of activeRows) {
+      /*
+       * 맵 점은 **15초** 기준으로 지운다 — `activeRows` 의 240초가 아니다.
+       *
+       * 여기서 다시 거르는 이유: `activeRows` 는 Firestore 가 새 행을 밀어야 다시 계산된다.
+       * 발행이 끊긴 주행은 **영영 다시 계산되지 않아** 그 목록에 남는다. 반면 이 계산은
+       * `spectatorTickMs` 로 1초마다 다시 도므로, 시간이 지나면 사라지게 하려면 여기여야 한다.
+       * (2026-09-27 실측: 103초 끊긴 주행이 계속 그려짐 → 얼어붙었다가 순간이동)
+       */
+      if (!isTrailLivePublicationRideRowPeerVisible(r, spectatorTickMs)) continue;
       const g = map.get(r.publicationId);
       if (!g || g.status !== "ready") continue;
       const p = spectatorPointOnRoute(r, g.geometry, spectatorTickMs, { logPt10: true });

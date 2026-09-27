@@ -86,6 +86,32 @@ export type AppMapOverlaysResult = {
   lodDebugPanelProps: ActivityWorldLodDebugPanelProps | null;
 };
 
+/**
+ * DEV 계측 로그를 **2초에 한 번**으로 제한한다.
+ *
+ * 왜 (2026-09-27) — 아래 블록은 지도가 움직일 때마다 다시 돈다. 주행 중에는 시야가
+ * 계속 바뀌므로 사실상 매 프레임이다. 그때마다 P0 점검 5종 + 큰 객체 `console.debug` +
+ * `console.warn` 이 돌았고, `console.warn` 은 React DEV 에서 **컴포넌트 스택 전체**를
+ * 함께 찍는다. 실측 콘솔에 남은 값:
+ *
+ *     [Violation] 'message' handler took 1496ms
+ *     [Violation] 'requestAnimationFrame' handler took <N>ms   ×30
+ *
+ * 1.5초 멈추면 동행 보간이 그동안 갱신되지 못하고, 풀리는 순간 **한꺼번에 따라잡는다**
+ * — 화면에는 「툭툭 튀는」 것으로 보인다. 즉 이 로그가 진단하려던 증상을 스스로 만들었다.
+ *
+ * ⚠️ 프로덕션에는 없던 문제다(`import.meta.env.DEV` 가드). 그러나 chief 가 실제 시험을
+ * DEV 서버(5000)에서 하므로, **여기를 고쳐야 다른 계측을 믿을 수 있다.**
+ */
+const ACTIVITY_WORLD_DEBUG_MIN_INTERVAL_MS = 2_000;
+let lastActivityWorldDebugAtMs = 0;
+
+function shouldEmitActivityWorldDebug(nowMs: number = Date.now()): boolean {
+  if (nowMs - lastActivityWorldDebugAtMs < ACTIVITY_WORLD_DEBUG_MIN_INTERVAL_MS) return false;
+  lastActivityWorldDebugAtMs = nowMs;
+  return true;
+}
+
 export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysResult {
   const {
     configured,
@@ -423,6 +449,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   useEffect(() => {
     if (debugIsolationOn) return;
     if (!import.meta.env.DEV) return;
+    if (!shouldEmitActivityWorldDebug()) return;
     try {
       runActivityWorldLodP0Checks();
       runActivityWorldPollPolicyChecks();
