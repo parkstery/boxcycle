@@ -135,16 +135,25 @@ export async function loadIntroCourse(
   await expect(page.getByRole('button', { name: '주행 시작' })).toBeVisible({ timeout: 20_000 })
 }
 
-/** 결과 시트가 떠 있으면 닫는다. 닫았으면 true */
+/**
+ * 결과 시트가 떠 있으면 닫는다. 닫았으면 true.
+ *
+ * 2026-09-27 — 종전에는 「저장 안 함」**이나** 「닫기」 **둘 중 하나**를 눌렀다. 그런데
+ * 제품에서 그 둘은 하는 일이 다르다:
+ *   · 「저장 안 함」 → `onDismissAdhoc` — **저장 행만 없앤다. 시트는 그대로 열려 있다**
+ *   · 「닫기」       → `onClose` — 시트를 닫는다
+ * 그래서 「저장 안 함」을 누르고 닫히기를 기다리면 영영 안 닫힌다.
+ * 저장 행이 있으면 먼저 치우고, **닫는 것은 언제나 「닫기」로** 한다.
+ */
 export async function dismissRideSummaryIfAny(page: Page): Promise<boolean> {
   const summary = page.getByRole('dialog', { name: '주행 결과' })
   if (!(await summary.isVisible().catch(() => false))) return false
+
   const skip = summary.getByRole('button', { name: '저장 안 함' })
   if (await skip.isVisible().catch(() => false)) {
-    await skip.click()
-  } else {
-    await summary.getByRole('button', { name: '닫기' }).first().click()
+    await skip.click({ timeout: 10_000 })
   }
+  await summary.getByRole('button', { name: '닫기' }).first().click({ timeout: 10_000 })
   await expect(summary).toBeHidden({ timeout: 10_000 })
   return true
 }
