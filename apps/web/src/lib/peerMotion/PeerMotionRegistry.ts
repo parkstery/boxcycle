@@ -18,6 +18,8 @@ import {
   snapshotTimelineMs,
 } from "./integrator";
 import type { PeerMotionEntity, PeerMotionPacket } from "./types";
+import { PEER_LIVE_RIDE_STALE_MS } from "../trail/trailLivePolicy";
+import { notePeerSmoothness } from "../debug/peerSmoothnessProbe";
 import { getPeerSyncSelfDistM } from "./peerSyncDebug";
 import { peerSyncChainLog, peerSyncChainShouldEmit } from "./peerSyncChainLog";
 
@@ -58,13 +60,47 @@ function publishPeerStepDiag(rows: PeerStepDiag[]): void {
 
 let singleton: PeerMotionRegistry | null = null;
 
+/**
+ * 「이 동행이 아직 **보내고 있는가**」의 판정 근거.
+ *
+ * 왜 거리가 아니라 송신 시각인가 — 신호 대기로 **멈춘 사람**도 좌표는 계속 보낸다.
+ * 거리로 판정하면 멈춘 사람을 「나갔다」고 지워 버린다. 보내기를 멈춘 것만이 나간 것이다.
+ *
+ * 왜 시계를 비교하지 않는가 — 송신 시각은 **남의 시계**다. 대신 「그 값이 **바뀌는 것을**
+ * 마지막으로 본 내 시각」을 적는다. 순수 상대 비교라 시계 차이와 무관하다.
+ */
+type PeerLivenessMark = { srcAtMs: number; seenLocalMs: number };
+
 export class PeerMotionRegistry {
   private readonly entities = new Map<string, PeerMotionEntity>();
   private activeUids = new Set<string>();
+  private readonly liveness = new Map<string, PeerLivenessMark>();
 
-  ingest(packet: PeerMotionPacket, label: string): void {
+  ingest(packet: PeerMotionPacket, label: string, nowMs: number = Date.now()): void {
     if (!packet.uid || !packet.publicationId.trim()) return;
     if (packet.distM < 0 || !Number.isFinite(packet.distM)) return;
+
+    /*
+     * 탭을 그냥 닫으면 아무도 정리해 주지 않는다 — Firestore 에는 「연결이 끊기면 지워라」가
+     * 없고, RTDB onDisconnect 도 서버가 끊김을 알아챌 때까지 시간이 걸린다. 그동안 같은 행이
+     * 계속 배달되고, 여기서 그것을 받아 주면 **라이더가 영영 화면에 남는다**(2026-09-28 chief 보고:
+     * 「Stop 은 15초 안에 사라지는데 탭을 닫으면 유지된다」).
+     *
+     * 낡은 행을 **되살리지 않는 것**이 핵심이다. 지우기만 하면 다음 배달에 다시 태어난다.
+     */
+    const src = Number.isFinite(packet.serverAtMs) && packet.serverAtMs > 0 ? packet.serverAtMs : null;
+    if (src != null) {
+      const prev = this.liveness.get(packet.uid);
+      if (prev && prev.srcAtMs === src) {
+        if (nowMs - prev.seenLocalMs > PEER_LIVE_RIDE_STALE_MS) {
+          this.entities.delete(packet.uid);
+          this.activeUids.delete(packet.uid);
+          return;
+        }
+      } else {
+        this.liveness.set(packet.uid, { srcAtMs: src, seenLocalMs: nowMs });
+      }
+    }
 
     // 보간 모델 — 정렬·dedup·단조 처리는 applyPeerMotionIngest 가 버퍼에 담당.
     const cur = this.entities.get(packet.uid);
@@ -97,15 +133,28 @@ export class PeerMotionRegistry {
   remove(uid: string): void {
     this.entities.delete(uid);
     this.activeUids.delete(uid);
+    this.liveness.delete(uid);
   }
 
   clear(): void {
     this.entities.clear();
     this.activeUids.clear();
+    this.liveness.clear();
   }
 
   pruneInactive(nowMs = Date.now()): void {
     for (const uid of [...this.entities.keys()]) {
+      /*
+       * 조용해진 동행은 **activeUids 에 있어도** 지운다.
+       * 그 목록은 「행이 아직 배달되는가」일 뿐 「사람이 아직 있는가」가 아니다 —
+       * 탭을 닫으면 행은 남고 사람은 없다.
+       */
+      const mark = this.liveness.get(uid);
+      if (mark && nowMs - mark.seenLocalMs > PEER_LIVE_RIDE_STALE_MS) {
+        this.entities.delete(uid);
+        this.activeUids.delete(uid);
+        continue;
+      }
       if (this.activeUids.has(uid)) continue;
       const e = this.entities.get(uid)!;
       if (nowMs - e.lastIngestLocalMs > PEER_DRIVE_SIM_GRACE_MS) {
@@ -120,6 +169,8 @@ export class PeerMotionRegistry {
     for (const entity of this.entities.values()) {
       stepPeerMotionEntity(entity, clampedDt, routeLenM, nowMs);
     }
+    // 화면 위 속도를 잰다(DEV 전용). 여기가 **적분이 끝난 직후**라 화면과 같은 값이다.
+    notePeerSmoothness(this.entities.values(), nowMs);
   }
 
   buildRenderFeatures(routeGeometry: LineStringGeometry | null): PeerMotionRenderFeature[] {
