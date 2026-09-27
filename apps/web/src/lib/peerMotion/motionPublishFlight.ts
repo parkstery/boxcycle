@@ -9,7 +9,7 @@ import {
   mergeTrailMotionSnapshot,
   snapshotToRtdbTrailMotionSnapshot,
 } from "./repo/rtdbTrailMotion";
-import { MOTION_FLIGHT_DRAIN_TIMEOUT_MS } from "./peerSyncPolicy";
+import { MOTION_FLIGHT_DRAIN_TIMEOUT_MS, MOTION_MAX_IN_FLIGHT } from "./peerSyncPolicy";
 import { installDevMotionProbe } from "../debug/installMotionExistsDebug";
 import { nextPeerSyncChainSeq, peerSyncChainLog } from "./peerSyncChainLog";
 
@@ -28,6 +28,9 @@ declare global {
     __rtwMotionWriteDelayMs?: number;
     __rtwMotionFlightDebug?: {
       writing: boolean;
+      /** 지금 날아가고 있는 쓰기 수 — 겹쳐 보내기가 실제로 도는지 보는 값 */
+      inFlight: number;
+      inFlightMax: number;
       hasSlot: boolean;
       slotDiscardTotal: number;
       epochDiscardTotal: number;
@@ -44,7 +47,8 @@ declare global {
   }
 }
 
-let writing = false;
+/** 지금 서버로 날아가고 있는 쓰기 수. 종전의 `writing: boolean` 을 대체한다. */
+let inFlight = 0;
 let slot: MotionFlightJob | null = null;
 let slotDiscardCount = 0;
 let epochDiscardCount = 0;
@@ -91,7 +95,7 @@ export function isMotionSessionLive(sessionKey: string): boolean {
 }
 
 export function requestMotionNodeCleanup(req: DeferredMotionCleanup): void {
-  if (!writing) {
+  if (inFlight === 0) {
     void runDeferredCleanup(req);
     return;
   }
@@ -141,11 +145,11 @@ export function cancelMotionPublish(epoch: number): { hadInFlight: boolean; drop
     slotDiscardCount += 1;
   }
   syncMotionFlightDebug();
-  return { hadInFlight: writing, droppedSlot };
+  return { hadInFlight: inFlight > 0, droppedSlot };
 }
 
 export function awaitMotionFlightSettled(timeoutMs = MOTION_FLIGHT_DRAIN_TIMEOUT_MS): Promise<boolean> {
-  if (!writing) return Promise.resolve(true);
+  if (inFlight === 0) return Promise.resolve(true);
   return new Promise((resolve) => {
     let done = false;
     const finish = (ok: boolean) => {
@@ -189,7 +193,9 @@ function discardEpochJob(reason: string, job: MotionFlightJob): void {
 function syncMotionFlightDebug(): void {
   if (!import.meta.env.DEV || typeof window === "undefined") return;
   window.__rtwMotionFlightDebug = {
-    writing,
+    writing: inFlight > 0,
+    inFlight,
+    inFlightMax: MOTION_MAX_IN_FLIGHT,
     hasSlot: slot != null,
     slotDiscardTotal: slotDiscardCount,
     epochDiscardTotal: epochDiscardCount,
@@ -223,7 +229,7 @@ export function enqueueMotionPublish(
     discardEpochJob("enqueue-stale", job);
     return { accepted: "reject", overwrite: false };
   }
-  if (writing) {
+  if (inFlight >= MOTION_MAX_IN_FLIGHT) {
     const overwrite = slot != null;
     if (overwrite) {
       slotDiscardCount += 1;
@@ -239,7 +245,7 @@ export function enqueueMotionPublish(
     syncMotionFlightDebug();
     return { accepted: "slot", overwrite };
   }
-  writing = true;
+  inFlight += 1;
   syncMotionFlightDebug();
   void runMotionJob(job);
   return { accepted: "write", overwrite: false };
@@ -310,6 +316,7 @@ async function runMotionJob(job: MotionFlightJob): Promise<void> {
     if (delayMs > 0) {
       lastLateWriteDoneAt = Date.now();
     }
+    inFlight -= 1;
     const next = slot;
     slot = null;
     // 취소된 epoch 의 늦은 쓰기가 끝난 지금이 지연 삭제(또는 skip-live-session) 시점이다.
@@ -318,16 +325,19 @@ async function runMotionJob(job: MotionFlightJob): Promise<void> {
       drainDeferredCleanups();
     }
     if (next && isEpochLive(next.epoch)) {
+      inFlight += 1;
       syncMotionFlightDebug();
       void runMotionJob(next);
     } else {
       if (next && !isEpochLive(next.epoch)) {
         discardEpochJob("slot-stale", next);
       }
-      writing = false;
       syncMotionFlightDebug();
-      notifySettled();
-      drainDeferredCleanups();
+      // 마지막 한 개가 끝났을 때만 「배수 완료」다 — 겹쳐 보내면 남은 것이 있을 수 있다.
+      if (inFlight === 0) {
+        notifySettled();
+        drainDeferredCleanups();
+      }
     }
   }
 }

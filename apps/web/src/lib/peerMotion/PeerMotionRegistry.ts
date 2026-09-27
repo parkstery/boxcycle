@@ -6,7 +6,6 @@ import {
 } from "../geo/geo";
 import {
   PEER_DRIVE_SIM_GRACE_MS,
-  PEER_INTERP_DELAY_MS,
   PEER_INTERP_MAX_EXTRAP_MS,
 } from "./peerSyncPolicy";
 import { estimateCrankRpmFromSpeedKmh } from "../rider/riderPedalMotion";
@@ -15,6 +14,8 @@ import {
   clampRouteDist,
   createPeerMotionEntity,
   stepPeerMotionEntity,
+  peerRenderTimeMs,
+  snapshotTimelineMs,
 } from "./integrator";
 import type { PeerMotionEntity, PeerMotionPacket } from "./types";
 import { getPeerSyncSelfDistM } from "./peerSyncDebug";
@@ -254,7 +255,10 @@ function logStepModeDiag(entity: PeerMotionEntity, nowMs: number, routeLenM: num
   if (buf.length === 0) return;
   const newest = buf[buf.length - 1]!;
   const oldest = buf[0]!;
-  const renderTime = nowMs - PEER_INTERP_DELAY_MS;
+  // 제품과 **같은 함수**를 본다. 베껴 두면 제품을 고칠 때 로그만 옛 규칙으로 남는다.
+  const renderTime = peerRenderTimeMs(entity, nowMs);
+  const newestT = snapshotTimelineMs(entity, newest);
+  const oldestT = snapshotTimelineMs(entity, oldest);
   const newestAgeMs = nowMs - newest.recvAtMs;
   let mode: "paused" | "oldest" | "interpolate" | "extrapolate";
   const extra: Record<string, string | number | boolean | null> = {};
@@ -263,14 +267,14 @@ function logStepModeDiag(entity: PeerMotionEntity, nowMs: number, routeLenM: num
     mode = "paused";
     extra.newestSeq = newest.seq ?? null;
     extra.newestDist = newest.distM;
-  } else if (renderTime <= oldest.recvAtMs) {
+  } else if (renderTime <= oldestT) {
     mode = "oldest";
     extra.oldestSeq = oldest.seq ?? null;
     extra.oldestRecv = oldest.recvAtMs;
     extra.oldestDist = oldest.distM;
-  } else if (renderTime >= newest.recvAtMs) {
+  } else if (renderTime >= newestT) {
     mode = "extrapolate";
-    const aheadRaw = renderTime - newest.recvAtMs;
+    const aheadRaw = renderTime - newestT;
     const aheadCap = Math.min(aheadRaw, PEER_INTERP_MAX_EXTRAP_MS);
     extra.newestSeq = newest.seq ?? null;
     extra.newestRecv = newest.recvAtMs;
@@ -283,14 +287,15 @@ function logStepModeDiag(entity: PeerMotionEntity, nowMs: number, routeLenM: num
     let s0 = oldest;
     let s1 = newest;
     for (let i = 1; i < buf.length; i += 1) {
-      if (buf[i]!.recvAtMs >= renderTime) {
+      if (snapshotTimelineMs(entity, buf[i]!) >= renderTime) {
         s1 = buf[i]!;
         s0 = buf[i - 1]!;
         break;
       }
     }
-    const span = s1.recvAtMs - s0.recvAtMs;
-    const t = span > 0 ? (renderTime - s0.recvAtMs) / span : 0;
+    const s0T = snapshotTimelineMs(entity, s0);
+    const span = snapshotTimelineMs(entity, s1) - s0T;
+    const t = span > 0 ? (renderTime - s0T) / span : 0;
     extra.s0Seq = s0.seq ?? null;
     extra.s1Seq = s1.seq ?? null;
     extra.s0Recv = s0.recvAtMs;

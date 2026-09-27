@@ -9,6 +9,7 @@ import {
 } from "../../lib/route/repo/firestoreCourses";
 import {
   isTrailLivePublicationRideRowFresh,
+  isTrailLivePublicationRideRowPeerVisible,
   type TrailLivePublicationRideRow,
 } from "../../lib/trail/repo/firestoreTrailLivePublicationRides";
 import { acquireTrailLivePublicationRidesSubscription } from "../../lib/trail/repo/livePublicationRidesSubscriptionHub";
@@ -244,7 +245,15 @@ export function useWorldLivePublicationRideMapOverlay(opts: {
   const trailheadSpectator = useMemo(() => {
     const exclude = excludePublicationId?.trim() ?? "";
     const activeRows = rows.filter((r) => {
-      if (!isTrailLivePublicationRideRowFresh(r)) return false;
+      /*
+       * 맵 점은 **15초** 기준으로 지운다 — 240초(`...RowFresh`)가 아니다.
+       *
+       * 2026-09-27 실측: 103초 전에 발행이 끊긴 주행이 그대로 그려지고 있었다.
+       * 관전 외삽은 3초에서 멈추므로(`SPECTATOR_MAX_EXTRAP_MS`) 그 점은 한자리에
+       * 얼어붙어 있다가, 다음 행이 오는 순간 그만큼 **순간이동**한다 — 「툭툭 튀는」 증상.
+       * 240초는 멤버 목록·인원수용 기준이고, 맵 표시 기준은 `PEER_LIVE_RIDE_STALE_MS`(15초)다.
+       */
+      if (!isTrailLivePublicationRideRowPeerVisible(r, spectatorTickMs)) return false;
       if (exclude && r.publicationId.trim() === exclude) return false;
       if (myUid && r.uid === myUid) return false;
       return true;

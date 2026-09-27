@@ -14,7 +14,7 @@ function peerDriveDevLogMs(): number {
 function peerDriveDevLog(
   registry: PeerMotionRegistry,
   nowMs: number,
-  routeLenM: number,
+  routeLenMOf: () => number,
 ): void {
   if (!import.meta.env.DEV) return;
   if (nowMs - peerDriveDevLogAt < peerDriveDevLogMs()) return;
@@ -30,7 +30,7 @@ function peerDriveDevLog(
   );
   // t=Date.now() 원값 — S1 시각 정렬용 (콘솔 wall-clock 과 별개)
   console.debug(
-    `[peerSync] t=${nowMs} self=${self} routeLen=${Math.round(routeLenM)} | ${parts.join(" || ")}`,
+    `[peerSync] t=${nowMs} self=${self} routeLen=${Math.round(routeLenMOf())} | ${parts.join(" || ")}`,
   );
 }
 
@@ -40,6 +40,19 @@ export function stepPeerDriveAndBuildGeoJson(
   _getBearing: (a: LngLat, b: LngLat) => number,
   routeGeometry: LineStringGeometry | null = null,
   nowMs = Date.now(),
+  opts?: {
+    /**
+     * 표시용 좌표·방향을 만들지. 기본 true.
+     *
+     * 2026-09-27 — 호출부가 **결과를 버리면서도 계산은 다 시켰다**
+     * (`showPeerSprites ? peerFc : EMPTY`). 낮은 줌에서 동행을 안 그리는데도 경로 위
+     * 좌표·방향 샘플링이 사람 수만큼 돌았다. 게이트를 계산 **앞**으로 옮긴다.
+     *
+     * ⚠️ 위치 적분(`step`)은 **언제나** 돈다. 멈추면 다시 켤 때 동행이 제자리로 훅 뛴다.
+     * 건너뛰는 것은 **그릴 때만 필요한 것**뿐이다.
+     */
+    buildFeatures?: boolean;
+  },
 ): {
   type: "FeatureCollection";
   features: Array<{
@@ -51,7 +64,9 @@ export function stepPeerDriveAndBuildGeoJson(
   const registry = getPeerMotionRegistry();
   registry.pruneInactive(nowMs);
   registry.step(dtSec, routeGeometry, nowMs);
-  peerDriveDevLog(registry, nowMs, routeGeometry ? lineStringLengthMeters(routeGeometry) : 0);
+  // 길이는 **DEV 로그가 실제로 찍을 때만** 잰다 — 인자로 넘기면 운영에서도 매 프레임 O(n) 이 돈다.
+  peerDriveDevLog(registry, nowMs, () => (routeGeometry ? lineStringLengthMeters(routeGeometry) : 0));
+  if (opts?.buildFeatures === false) return { type: "FeatureCollection", features: [] };
   const features = registry.buildRenderFeatures(routeGeometry).map((f) => ({
     type: "Feature" as const,
     geometry: { type: "Point" as const, coordinates: f.lngLat },
