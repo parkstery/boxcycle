@@ -243,17 +243,17 @@ test.describe("센서 칩 — RouteDock 이전", () => {
     const grid: Record<string, Record<string, boolean>> = {};
     grid["ready-to-start"] = await bothFoldStates(page, dockChip);
 
-    await startRide(page); // → riding (자동 접힘)
-    await expect(page.getByRole("button", { name: "경로 패널 펼치기" })).toBeVisible({
+    await startRide(page); // → riding (2026-09-28 Chief: 자동 접힘 없음 — 펼친 채 남는다)
+    await expect(page.getByRole("button", { name: "경로 패널 접기" })).toBeVisible({
       timeout: 20_000,
     });
-    expect(await dockChip.count(), "주행 중 접힘 상태에서도 칩은 DOM 에 있다").toBe(1);
-    await expect(dockChip, "주행 중 접혀도 센서가 보여야 한다").toBeVisible();
-    await page.screenshot({ path: path.join(OUT_DIR, "03-riding-collapsed.png") });
+    expect(await dockChip.count(), "주행 중에도 칩은 DOM 에 있다").toBe(1);
+    await expect(dockChip, "주행 중에도 센서가 보여야 한다").toBeVisible();
+    await page.screenshot({ path: path.join(OUT_DIR, "03-riding-expanded.png") });
     grid.riding = await bothFoldStates(page, dockChip);
 
     await page.getByRole("button", { name: "일시정지" }).click();
-    // 「재개」는 일시정지 패널 텍스트 버튼과 FAB 아이콘 버튼 둘 다에 있다 — FAB 로 특정한다
+    // 재개는 dock 헤더의 Go 가 맡는다 — 우하단 FAB 은 2026-09-28 에 제거했다
     await expect(page.locator('button[aria-label="재개"]')).toBeVisible({ timeout: 20_000 });
     grid.paused = await bothFoldStates(page, dockChip);
     await page.screenshot({ path: path.join(OUT_DIR, "04-paused.png") });
@@ -373,5 +373,5 @@ async function loadIntroCourse(page: Page) {
 
 async function startRide(page: Page) {
   await page.getByRole("button", { name: "주행 시작" }).click();
-  await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled({ timeout: 30_000 });
 }

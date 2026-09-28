@@ -48,7 +48,7 @@ test.describe("QC1 200m 추가 4단 (20260924-지시01)", () => {
     await armRideInput(page);
     await loadIntroCourse(page);
     await page.getByRole("button", { name: "주행 시작" }).click();
-    await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled({ timeout: 30_000 });
 
     const qc = page.getByRole("group", { name: "Quick Camera" });
     await expect(qc).toBeVisible({ timeout: 15_000 });

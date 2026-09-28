@@ -29,7 +29,7 @@ test.describe("계정 패널", () => {
     await armRideInput(page);
     await loadIntroCourse(page);
     await page.getByRole("button", { name: "주행 시작" }).click();
-    await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled({ timeout: 30_000 });
     await page.waitForTimeout(4_000);
     await page.getByRole("button", { name: "주행 종료" }).click();
     await dismissRideSummaryIfAny(page);

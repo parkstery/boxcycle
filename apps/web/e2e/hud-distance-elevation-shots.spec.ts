@@ -84,7 +84,7 @@ test.describe("HUD 거리 1줄 + 표고 진행률 라벨 촬영", () => {
 
     // ── 주행 시작 ────────────────────────────────────────────────────────
     await page.getByRole("button", { name: "주행 시작" }).click();
-    await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled({ timeout: 30_000 });
 
     const capsule = page.locator(".hud-metrics__capsule");
     await expect(capsule).toBeVisible({ timeout: 15_000 });
@@ -169,7 +169,7 @@ test.describe("HUD 거리 1줄 + 표고 진행률 라벨 촬영", () => {
     await armRideInput(page);
     await loadIntroCourse(page);
     await page.getByRole("button", { name: "주행 시작" }).click();
-    await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled({ timeout: 30_000 });
     await expect(page.locator(".hud-metrics__capsule")).toBeVisible({ timeout: 15_000 });
     await page.waitForTimeout(1500);
 
@@ -285,7 +285,7 @@ test.describe("HUD 거리 1줄 + 표고 진행률 라벨 촬영", () => {
     await armRideInput(page);
     await loadIntroCourse(page);
     await page.getByRole("button", { name: "주행 시작" }).click();
-    await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled({ timeout: 30_000 });
 
     // 새 도로를 먹기 시작해야 펄스가 켜진다.
     const pulsingCell = page.locator(".hud-metrics__cell--conquest-pulsing");
@@ -352,7 +352,7 @@ async function runScenario(page: Page, scenario: ScenarioId) {
   await loadIntroCourse(page);
 
   await page.getByRole("button", { name: "주행 시작" }).click();
-  await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled({ timeout: 30_000 });
 
   const capsule = page.locator(".hud-metrics__capsule");
   const overlay = page.locator(".elevation-overlay");

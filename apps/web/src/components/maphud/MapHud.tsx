@@ -96,21 +96,12 @@ export type MapHudProps = {
   // MC — 액션 카드 (일시정지 / 설정 단계 오류 안내)
   routeError: string | null;
 
-  // BR — 메인 FAB
-  canStartRide: boolean;
-  onStartRide: () => void;
-  onPauseRide: () => void;
-  onResumeRide: () => void;
-  onEndRide: () => void;
 
   // paused 단계의 MC 컨트롤
   onResumeFromPause: () => void;
   onEndFromPause: () => void;
   onModifyFromPause: () => void;
 
-  // 첫 진입 안내 (idle 단계만)
-  showIdleHint: boolean;
-  onDismissIdleHint: () => void;
 
   /** Trailhead·코스 동행 요약(없으면 미표시) */
   ridePresence?: MapHudRidePresence | null;
@@ -123,8 +114,6 @@ export type MapHudProps = {
    * 조건: `conquestLiveMeters === 0 && 세션 거리 ≥ 10m`.
    */
   conquestAllOwnedHint?: boolean;
-  /** idle 단계 첫 진입 안내 문구 */
-  idleHintMessage?: string;
   /**
    * Quick Camera 1~6 — 주행 중에만 Account 왼쪽. null/undefined 이면 미렌더(CSS 숨김 금지).
    */
@@ -196,28 +185,19 @@ export function MapHud(props: MapHudProps) {
     metrics,
     onClearPins,
     routeError,
-    canStartRide,
-    onStartRide,
-    onPauseRide,
-    onResumeRide,
-    onEndRide,
     onResumeFromPause,
     onEndFromPause,
     onModifyFromPause,
-    showIdleHint,
-    onDismissIdleHint,
     ridePresence,
     weatherHint,
     conquestLiveMeters,
     conquestAllOwnedHint,
-    idleHintMessage = "MENU → 입문 경로",
     quickCamera = null,
   } = props;
 
   const riding = stage === "riding";
   const paused = stage === "paused";
   const activeRide = riding || paused;
-  const idle = stage === "idle";
   const isGate =
     stage === "gate-nickname" || (stage === "gate" && !authGateVisualDismissed);
   const isSummary = stage === "summary";
@@ -289,7 +269,6 @@ export function MapHud(props: MapHudProps) {
     !isSummary &&
     (riding || paused || metrics.mode === "route-preview");
   const showCoach = coachLineEnabled && coachData !== null && (riding || paused);
-  const showMainFab = riding;
   const showMc = paused || (stage === "setup" && Boolean(routeError));
 
   const companionCopy =
@@ -659,71 +638,13 @@ export function MapHud(props: MapHudProps) {
         </div>
       ) : null}
 
-      {showMainFab ? (
-        <div className="map-hud__br">
-          {idle && showIdleHint ? (
-            <button
-              type="button"
-              className="hud-idle-hint"
-              onClick={onDismissIdleHint}
-              title="Dismiss hint"
-            >
-              {idleHintMessage}
-            </button>
-          ) : null}
-          <div className="map-hud__br-main">
-            {riding ? (
-              <button
-                type="button"
-                className="hud-main-fab hud-main-fab--pause"
-                onClick={onPauseRide}
-                aria-label="일시정지"
-                title="Pause"
-              >
-                ‖
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="hud-main-fab"
-                onClick={onStartRide}
-                disabled={!canStartRide}
-                aria-label="주행 시작"
-                title="Start ride"
-              >
-                ▶
-              </button>
-            )}
-            {riding ? (
-              <button
-                type="button"
-                className="hud-icon-btn hud-icon-btn--danger"
-                onClick={onEndRide}
-                aria-label="주행 종료"
-                title="Stop ride"
-              >
-                ■
-              </button>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
-
-      {paused ? (
-        <div className="map-hud__br">
-          <div className="map-hud__br-main">
-            <button
-              type="button"
-              className="hud-icon-btn hud-icon-btn--primary"
-              onClick={onResumeRide}
-              aria-label="재개"
-              title="Resume"
-            >
-              ▶
-            </button>
-          </div>
-        </div>
-      ) : null}
+      {/*
+        우하단 주행 FAB(일시정지·종료·재개)은 2026-09-28 Chief 지시로 제거했다 —
+        RouteDock 헤더의 주행 제어(Go·일시정지·종료)와 같은 버튼이 두 벌이었다.
+        같은 자리에 있던 첫 화면 안내 칩(「MENU → 입문 경로」)도 함께 뺐다: 게이트가
+        `showMainFab`(=riding) 이라 `idle` 조건과 영영 겹치지 않아 표시된 적이 없었고,
+        살려 놓으면 라벨의 「입문」이 Trail 메뉴의 「입문」 탭과 셀렉터에서 겹친다.
+      */}
     </div>
   );
 }

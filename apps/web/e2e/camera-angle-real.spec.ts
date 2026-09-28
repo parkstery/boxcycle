@@ -144,7 +144,7 @@ test.describe("지시08 실 스타일 각도 후보", () => {
       await armRideInput(page);
       await loadIntroCourse(page);
       await page.getByRole("button", { name: "주행 시작" }).click();
-      await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({
+      await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled({
         timeout: 25_000,
       });
       await page.waitForFunction(

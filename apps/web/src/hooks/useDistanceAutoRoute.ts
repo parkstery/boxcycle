@@ -109,7 +109,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
   /** 직전 자동 Route 세션의 이동수단·목표 거리 — 이어 달리기 anchor 진입 시 승계 */
   const lastSessionPrefsRef = useRef<{ profile: RouteProfile; targetKm: number }>({
     profile: "driving",
-    targetKm: 10,
+    targetKm: DISTANCE_AUTO_ROUTE_DEFAULT_KM,
   });
 
   const targetMeters = targetKm * 1000;

@@ -33,7 +33,7 @@ test.describe("지시08 pitch85 only", () => {
     await armRideInput(page);
     await loadIntroCourse(page);
     await page.getByRole("button", { name: "주행 시작" }).click();
-    await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled({ timeout: 30_000 });
     await page.waitForFunction(
       () => Boolean((window as unknown as { __RTW_MAP__?: unknown }).__RTW_MAP__),
       null,

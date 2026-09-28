@@ -180,56 +180,53 @@
   min-width: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 0.35rem;
 }
 
-.route-dock__head-actions {
+/*
+ * 주행 제어(Go · 일시정지 · 종료) — 2026-09-28 Chief.
+ * 세 버튼은 항상 같은 자리·같은 크기다. 상태에 따라 사라지지 않으므로 줄 폭이
+ * 흔들리지 않고, 종료 버튼의 위치가 몸에 남는다.
+ */
+.route-dock__transport {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.28rem;
-  flex: 1 1 auto;
-  min-width: 0;
+  gap: 0.3rem;
+  margin-left: auto;
+  flex: 0 0 auto;
 }
 
-/*
- * 헤더 액션(내 경로로 저장 · 삭제)은 같은 높이·같은 글자 크기로 맞춘다.
- * 이전엔 두 버튼의 font-size·line-height·padding 이 달라 높이가 17.7px vs 20.3px 로
- * 어긋나고 글자가 알약에 꽉 차 찌그러져 보였다. 줄이지도(flex-shrink 0) 않는다.
- */
-.route-dock__save-trigger,
-.route-dock__icon-btn {
+.route-dock__transport-btn {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 1.5rem;
-  padding: 0.22rem 0.6rem;
-  font: inherit;
-  font-size: 0.7rem;
-  font-weight: 650;
-  line-height: 1.2;
-  white-space: nowrap;
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0;
+  border: 1px solid rgba(248, 250, 252, 0.14);
   border-radius: 999px;
+  background: rgba(10, 16, 26, 0.45);
+  color: var(--rtw-text-primary);
   appearance: none;
   cursor: pointer;
 }
 
-.route-dock__save-trigger {
-  border: 1px solid rgba(232, 163, 61, 0.35);
-  background: rgba(232, 163, 61, 0.14);
-  color: var(--rtw-text-primary);
+.route-dock__transport-btn:hover:not(:disabled) {
+  border-color: rgba(248, 250, 252, 0.34);
+  background: rgba(10, 16, 26, 0.62);
 }
 
-.route-dock__save-trigger:hover:not(:disabled) {
-  background: rgba(232, 163, 61, 0.24);
-  border-color: rgba(232, 163, 61, 0.5);
-}
-
-.route-dock__save-trigger:disabled {
-  opacity: 0.4;
+.route-dock__transport-btn:disabled {
+  opacity: 0.32;
   cursor: not-allowed;
+}
+
+.route-dock__transport-btn--stop:hover:not(:disabled) {
+  border-color: rgba(248, 113, 113, 0.5);
+  color: #fca5a5;
 }
 
 /* 이어 달리기(§9.5.5 단위7) — 미완주 저장 경로 로드 시 재개/처음부터 선택 */
@@ -279,136 +276,6 @@
 
 .route-dock__resume-option strong {
   font-weight: 700;
-}
-
-.route-dock__save-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.28rem;
-  flex: 0 0 auto;
-  padding: 0.35rem 0.4rem;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.38);
-  border: 1px solid rgba(248, 250, 252, 0.1);
-}
-
-.route-dock__save-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.4rem;
-}
-
-.route-dock__save-label {
-  flex: 0 0 auto;
-  font-size: 0.62rem;
-  font-weight: 600;
-  opacity: 0.8;
-}
-
-.route-dock__save-input {
-  width: 100%;
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0.28rem 0.4rem;
-  font: inherit;
-  font-size: 0.72rem;
-  border-radius: 6px;
-  border: 1px solid rgba(248, 250, 252, 0.18);
-  background: rgba(255, 255, 255, 0.06);
-  /* background: rgba(10, 16, 26, 0.55); */
-  color: #f8fafc;
-}
-
-.route-dock__save-input:focus-visible {
-  outline: 2px solid rgba(232, 163, 61, 0.65);
-  outline-offset: 1px;
-}
-
-.route-dock__save-error {
-  margin: 0;
-  font-size: 0.64rem;
-  color: #fecaca;
-  line-height: 1.3;
-}
-
-.route-dock__save-confirm {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  padding: 0.35rem 0.45rem;
-  border-radius: 8px;
-  background: rgba(251, 191, 36, 0.14);
-  border: 1px solid rgba(251, 191, 36, 0.5);
-}
-
-.route-dock__save-confirm-msg {
-  margin: 0;
-  font-size: 0.66rem;
-  font-weight: 600;
-  line-height: 1.35;
-  color: #b45309;
-}
-
-.route-dock__save-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.32rem;
-  flex: 0 0 auto;
-}
-
-.route-dock__save-commit {
-  flex: 0 0 auto;
-  border: 0;
-  border-radius: 6px;
-  background: rgba(232, 163, 61, 0.85);
-  color: #0f172a;
-  font: inherit;
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 0.32rem 0.7rem;
-  cursor: pointer;
-}
-
-.route-dock__save-commit:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.route-dock__save-cancel {
-  flex: 0 0 auto;
-  border: 1px solid rgba(248, 250, 252, 0.28);
-  border-radius: 6px;
-  background: rgba(248, 250, 252, 0.06);
-  color: inherit;
-  font: inherit;
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 0.32rem 0.7rem;
-  cursor: pointer;
-  opacity: 1;
-}
-
-.route-dock__save-cancel:hover:not(:disabled) {
-  background: rgba(248, 250, 252, 0.12);
-  border-color: rgba(248, 250, 252, 0.4);
-}
-
-.route-dock__icon-btn {
-  border: 1px solid rgba(248, 250, 252, 0.14);
-  background: rgba(10, 16, 26, 0.35);
-  color: inherit;
-  opacity: 0.85;
-}
-
-.route-dock__icon-btn:hover:not(:disabled) {
-  opacity: 1;
-  border-color: rgba(248, 113, 113, 0.4);
-}
-
-.route-dock__icon-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
 }
 
 .route-dock__stops {
@@ -529,30 +396,21 @@
   cursor: not-allowed;
 }
 
+/* Go 만 채운 알약 — 셋 중 유일한 「진행」 동작이라 색으로 구분한다. */
 .route-dock__go {
-  /* 줄의 오른쪽 끝으로 밀어낸다 — 앞의 저장·삭제와 붙지 않게(2026-09-18 Chief) */
-  margin-left: auto;
-  min-width: 2.75rem;
-  padding: 0.32rem 0.7rem;
   border: 0;
-  border-radius: 999px;
   background: var(--rtw-trace);
   color: var(--rtw-bg);
-  font: inherit;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  cursor: pointer;
   box-shadow: 0 3px 12px rgba(232, 163, 61, 0.35);
 }
 
 .route-dock__go:hover:not(:disabled) {
   filter: brightness(1.06);
+  background: var(--rtw-trace);
+  border: 0;
 }
 
 .route-dock__go:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
   box-shadow: none;
 }
 
@@ -607,15 +465,17 @@
     width: 1.2rem;
   }
 
-  .route-dock__go {
-    min-width: 2.4rem;
-    padding: 0.24rem 0.55rem;
+  .route-dock__transport {
+    gap: 0.24rem;
   }
 
-  .route-dock__save-trigger,
-  .route-dock__icon-btn {
-    min-height: 1.3rem;
-    padding: 0.16rem 0.45rem;
-    font-size: 0.64rem;
+  .route-dock__transport-btn {
+    width: 1.8rem;
+    height: 1.8rem;
+  }
+
+  .route-dock__transport-btn svg {
+    width: 14px;
+    height: 14px;
   }
 }

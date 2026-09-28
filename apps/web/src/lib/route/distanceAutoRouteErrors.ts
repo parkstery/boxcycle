@@ -45,8 +45,11 @@ export const DISTANCE_AUTO_ROUTE_KM_STEP = 0.5;
  */
 export const DISTANCE_AUTO_ROUTE_CHIP_KM: readonly number[] = [1, 3, 5, 10, 20];
 
-/** 기본 목표 거리(km) — 이어 달리기 루프가 핵심이라 짧게 여러 번이 낫다(5A-R2 §4.4) */
-export const DISTANCE_AUTO_ROUTE_DEFAULT_KM = 5;
+/**
+ * 기본 목표 거리(km) — 이어 달리기 루프가 핵심이라 짧게 여러 번이 낫다(5A-R2 §4.4).
+ * 2026-09-28 Chief: 5 → 1. 주행 시험이 대부분 단거리라 매번 줄이는 시간이 아깝다.
+ */
+export const DISTANCE_AUTO_ROUTE_DEFAULT_KM = 1;
 
 /**
  * 방향 선택 모드 — popup 한 줄 안내(5A-R2c §2.5).
@@ -61,7 +64,7 @@ export function formatDistanceAutoRouteDirectionClickHint(targetKm: number): str
   return `${safe.toFixed(1)} km 반경의 원 주변 도로를 선택하세요`;
 }
 
-/** 기본 목표(5 km) 기준 안내 — 동적 갱신은 formatDistanceAutoRouteDirectionClickHint */
+/** 기본 목표 기준 안내 — 동적 갱신은 formatDistanceAutoRouteDirectionClickHint */
 export const DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT =
   formatDistanceAutoRouteDirectionClickHint(DISTANCE_AUTO_ROUTE_DEFAULT_KM);
 

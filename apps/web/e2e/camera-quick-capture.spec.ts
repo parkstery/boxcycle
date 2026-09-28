@@ -43,7 +43,7 @@ test.describe("Quick Camera 캡처 (지시04)", () => {
     await armRideInput(page);
     await loadIntroCourse(page);
     await page.getByRole("button", { name: "주행 시작" }).click();
-    await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({
+    await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled({
       timeout: 30_000,
     });
 
@@ -81,7 +81,7 @@ test.describe("Quick Camera 캡처 (지시04)", () => {
       await armRideInput(page);
       await loadIntroCourse(page);
       await page.getByRole("button", { name: "주행 시작" }).click();
-      await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({
+      await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled({
         timeout: 30_000,
       });
       const qc2 = page.getByRole("group", { name: "Quick Camera" });

@@ -169,7 +169,7 @@ test.describe("터치 타깃 44px", () => {
     await armRideInput(page);
     await loadIntroCourse(page);
     await page.getByRole("button", { name: "주행 시작" }).click();
-    await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled({ timeout: 30_000 });
     await expect(page.locator(".elevation-overlay")).toBeVisible({ timeout: 30_000 });
     await page.waitForTimeout(2500);
 
@@ -233,7 +233,7 @@ test.describe("터치 타깃 44px", () => {
     await armRideInput(page);
     await loadIntroCourse(page);
     await page.getByRole("button", { name: "주행 시작" }).click();
-    await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled({ timeout: 30_000 });
 
     const probe = await page.evaluate(() => {
       const el = document.querySelector(".hud-icon-btn") as HTMLElement | null;

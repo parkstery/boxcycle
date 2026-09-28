@@ -165,7 +165,8 @@ describe("§2 · 원 하나 = D (§5.3)", () => {
     );
     assert.equal(
       formatDistanceAutoRouteDirectionClickHint(DISTANCE_AUTO_ROUTE_DEFAULT_KM),
-      "5.0 km 반경의 원 주변 도로를 선택하세요",
+      // 기본 목표 거리 1 km(2026-09-28 Chief) — 상수를 바꾸면 이 줄도 같이 바뀐다.
+      "1.0 km 반경의 원 주변 도로를 선택하세요",
     );
     // 반지름도 같은 D
     assert.equal(resolveDistanceAutoRouteGuideRadiusKm(12.5), 12.5);

@@ -10,6 +10,7 @@ import {
   type MapViewportBounds,
 } from "../../lib/activity/activityWorldLod";
 import { DISTANCE_AUTO_ROUTE_REFERENCE_CIRCLE_HINT } from "../../lib/route/distanceAutoRoute";
+import { DISTANCE_AUTO_ROUTE_DEFAULT_KM } from "../../lib/route/distanceAutoRouteErrors";
 import {
   getDistanceAutoRouteMapBridge,
   registerDistanceAutoRouteClickDebugMarkerClear,
@@ -517,7 +518,7 @@ export function MapView({
   autoRouteOfferedState = null,
   autoRouteMapPick = null,
   autoRouteSessionActive = false,
-  autoRouteTargetKm = 10,
+  autoRouteTargetKm = DISTANCE_AUTO_ROUTE_DEFAULT_KM,
   autoRouteStatusMessage = null,
   onSuspendAutoRoutePopupPick,
   onPreviewDistanceAutoRouteCircle,

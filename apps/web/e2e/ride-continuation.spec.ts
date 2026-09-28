@@ -482,7 +482,7 @@ test.describe('다음 주행 · 이어 달리기', () => {
     await loadSavedRouteFromMenu(page, 'RC3 완주 픽스처')
     await page.getByRole('button', { name: '주행 시작' }).click()
     // 끝까지 달린다 — 경로 끝에 닿으면 도착 자동 종료가 결과 시트를 연다(버튼을 누르지 않는다).
-    await expect(page.getByRole('button', { name: '주행 종료' })).toBeVisible({ timeout: 30_000 })
+    await expect(page.getByRole('button', { name: '주행 종료' })).toBeEnabled({ timeout: 30_000 })
     const summary = page.getByRole('region', { name: '주행 결과' })
     await expect(summary).toBeVisible({ timeout: 240_000 })
     /*
@@ -533,7 +533,7 @@ test.describe('다음 주행 · 이어 달리기', () => {
 
     await page.getByRole('button', { name: '주행 시작' }).click()
     // 입문 경로는 0.5 km 미만이라 도착 자동 종료가 먼저 온다 — 결과 시트를 기다린다.
-    await expect(page.getByRole('button', { name: '주행 종료' })).toBeVisible({ timeout: 30_000 })
+    await expect(page.getByRole('button', { name: '주행 종료' })).toBeEnabled({ timeout: 30_000 })
     const summary = page.getByRole('region', { name: '주행 결과' })
     await expect(summary).toBeVisible({ timeout: 180_000 })
     // 「다음 출발점이 저장되었습니다」 문구는 컴팩트 재설계로 제거됐다(Chief 지시, 되살리지

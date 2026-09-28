@@ -195,12 +195,12 @@ async function dismissRideSummaryIfAny(page: import("@playwright/test").Page) {
 
 async function ensureRiding(page: import("@playwright/test").Page) {
   await dismissRideSummaryIfAny(page);
-  if (await page.getByRole("button", { name: "주행 종료" }).isVisible().catch(() => false)) return;
+  if (await page.getByRole("button", { name: "주행 종료" }).isEnabled().catch(() => false)) return;
   if (await page.getByRole("button", { name: "재개" }).first().isVisible().catch(() => false)) return;
   const start = page.getByRole("button", { name: "주행 시작" });
   await expect(start).toBeVisible({ timeout: 20_000 });
   await start.click();
-  await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled({ timeout: 30_000 });
 }
 
 async function ensureDockExpanded(page: import("@playwright/test").Page) {

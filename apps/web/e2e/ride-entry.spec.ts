@@ -86,7 +86,7 @@ test.describe('실주행 진입 시퀀스', () => {
 
     // running 확정 — 주행 지표 그룹 + 주행 종료 버튼
     await expect(page.getByRole('group', { name: '주행 지표' })).toBeVisible()
-    await expect(page.getByRole('button', { name: '주행 종료' })).toBeVisible()
+    await expect(page.getByRole('button', { name: '주행 종료' })).toBeEnabled()
   })
 
   test('입문 목록은 실도로 경로 3개이고 전부 0.5km 이하', async ({ page }) => {
@@ -153,7 +153,7 @@ test.describe('실주행 진입 시퀀스', () => {
       await start.click()
 
       await expect(page.getByRole('group', { name: '주행 지표' })).toBeVisible()
-      await expect(page.getByRole('button', { name: '주행 종료' })).toBeVisible()
+      await expect(page.getByRole('button', { name: '주행 종료' })).toBeEnabled()
 
       expect(pageErrors, `스크립트 예외: ${pageErrors.join(' | ')}`).toEqual([])
       expect(consoleErrors, `콘솔 오류: ${consoleErrors.join(' | ')}`).toEqual([])

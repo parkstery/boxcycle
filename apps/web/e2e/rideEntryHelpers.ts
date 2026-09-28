@@ -164,14 +164,14 @@ export async function dismissRideSummaryIfAny(page: Page): Promise<boolean> {
  */
 export async function ensureRiding(page: Page): Promise<void> {
   await dismissRideSummaryIfAny(page)
-  if (await page.getByRole('button', { name: '주행 종료' }).isVisible().catch(() => false)) return
+  if (await page.getByRole('button', { name: '주행 종료' }).isEnabled().catch(() => false)) return
   if (await page.getByRole('button', { name: '재개' }).first().isVisible().catch(() => false)) return
   const start = page.getByRole('button', { name: '주행 시작' })
   await expect(start).toBeVisible({ timeout: 20_000 })
   // Go 는 센서·수동 입력이 준비돼야 눌린다. 준비돼 있으면 아무것도 하지 않는다.
   await ensureRideInputReady(page)
   await start.click()
-  await expect(page.getByRole('button', { name: '주행 종료' })).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByRole('button', { name: '주행 종료' })).toBeEnabled({ timeout: 30_000 })
 }
 
 /**

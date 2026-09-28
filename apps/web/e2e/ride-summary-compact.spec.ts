@@ -639,7 +639,7 @@ test.describe("주행 결과 시트 컴팩트화", () => {
     await loadSavedRouteFromMenu(page, FIXTURE_NAME);
 
     await page.getByRole("button", { name: "주행 시작" }).click();
-    await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled({ timeout: 30_000 });
 
     /*
      * 끝까지 달려 **완주 상태**의 시트를 본다 — 「완주」 배지는 완주해야만 뜨므로

@@ -4,11 +4,13 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 /**
- * 주행 중 RouteDock 계약 — Chief 의도(2026-09-15):
- *   "주행이 시작되면 지도를 가리는 패널을 자동으로 접어라.
- *    단, 사용자가 펼치면 패널 내용을 확인할 수 있어야 한다."
+ * 주행 중 RouteDock 계약 — Chief 의도(2026-09-28, 2026-09-15 의도를 뒤집음):
+ *   "주행이 시작돼도 패널을 자동으로 접지 마라. 접으면 스톱 메뉴를 찾기 어렵다.
+ *    접을 사용자는 스스로 접는다."
  *
- * 회귀 방지 대상: 접기(autoCollapse)는 되는데 펼친 패널이 **빈 껍데기**가 되던 상태.
+ * 회귀 방지 대상 둘:
+ *   1) 주행 시작 시 패널이 제멋대로 접히는 것(자동 접힘 부활)
+ *   2) 펼친 패널이 **빈 껍데기**가 되는 것(경유지 목록 소실)
  *
  * 실행: npm run test:e2e:route-dock -w boxcycle-web
  */
@@ -19,7 +21,7 @@ const OUT_DIR = path.resolve(__dirname, "../.out/route-dock");
 test.describe("주행 중 RouteDock", () => {
   test.skip(!LIVE, "Firebase 에뮬레이터 필요 — npm run test:e2e:route-dock");
 
-  test("주행 시작 시 접히고, 펼치면 경로 내용이 보인다", async ({ page }) => {
+  test("주행 시작해도 펼친 채로 남고, 경로 내용·주행 제어가 보인다", async ({ page }) => {
     test.setTimeout(120_000);
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto("/");
@@ -35,15 +37,18 @@ test.describe("주행 중 RouteDock", () => {
 
     await startRide(page);
 
-    // 1) 자동 접힘 — 펼치기 버튼이 나온다(= 접힌 상태)
-    const expandBtn = page.getByRole("button", { name: "경로 패널 펼치기" });
-    await expect(expandBtn, "주행 시작 시 자동 접힘").toBeVisible({ timeout: 15_000 });
+    // 1) 자동 접힘 없음 — 접기 버튼이 그대로다(= 펼친 상태 유지)
+    await expect(
+      page.getByRole("button", { name: "경로 패널 접기" }),
+      "주행 시작해도 펼친 상태를 유지한다",
+    ).toBeVisible({ timeout: 15_000 });
     fs.mkdirSync(OUT_DIR, { recursive: true });
-    await page.screenshot({ path: path.join(OUT_DIR, "riding-collapsed.png") });
 
-    // 2) 펼치면 내용이 보인다 — 빈 껍데기가 아니어야 한다
-    await expandBtn.click();
-    await expect(page.getByRole("button", { name: "경로 패널 접기" })).toBeVisible();
+    // 2) 주행 제어가 헤더에 그대로 있다 — 멈추려는 사용자가 찾아 헤맬 곳이 없어야 한다
+    await expect(page.getByRole("button", { name: "일시정지" })).toBeEnabled();
+    await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled();
+
+    // 3) 내용이 보인다 — 빈 껍데기가 아니어야 한다
     await expect(stops.first(), "주행 중 펼친 패널에 경유지가 보여야 한다").toBeVisible({
       timeout: 10_000,
     });
@@ -52,7 +57,7 @@ test.describe("주행 중 RouteDock", () => {
     expect(firstLabel.length, "경유지 라벨이 비어 있지 않아야 한다").toBeGreaterThan(0);
     await page.screenshot({ path: path.join(OUT_DIR, "riding-expanded.png") });
 
-    // 3) 표시는 하되 조작은 잠근다 — 주행 중 경로 변형 방지
+    // 4) 표시는 하되 조작은 잠근다 — 주행 중 경로 변형 방지
     const removes = page.locator(".route-dock__stop-remove");
     for (let i = 0; i < (await removes.count()); i += 1) {
       await expect(removes.nth(i), "주행 중 경유지 삭제는 잠금").toBeDisabled();
@@ -94,5 +99,5 @@ async function loadIntroCourse(page: import("@playwright/test").Page) {
 
 async function startRide(page: import("@playwright/test").Page) {
   await page.getByRole("button", { name: "주행 시작" }).click();
-  await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled({ timeout: 30_000 });
 }

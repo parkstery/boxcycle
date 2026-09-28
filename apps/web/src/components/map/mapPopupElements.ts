@@ -11,7 +11,7 @@
  */
 import { formatDistanceAutoRouteEta, resolveDistanceAutoRouteEta } from "../../lib/route/distanceAutoRouteEta";
 import mapboxgl from "mapbox-gl";
-import { formatDistanceAutoRouteDirectionClickHint, DISTANCE_AUTO_ROUTE_KM_MAX, DISTANCE_AUTO_ROUTE_KM_MIN, DISTANCE_AUTO_ROUTE_KM_STEP, DISTANCE_AUTO_ROUTE_REROUTE_HINT, DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_ARIA, DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_LABEL, validateDistanceAutoRouteTargetKm, DISTANCE_AUTO_ROUTE_CHIP_KM } from "../../lib/route/distanceAutoRouteErrors";
+import { formatDistanceAutoRouteDirectionClickHint, DISTANCE_AUTO_ROUTE_KM_MAX, DISTANCE_AUTO_ROUTE_KM_MIN, DISTANCE_AUTO_ROUTE_KM_STEP, DISTANCE_AUTO_ROUTE_REROUTE_HINT, DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_ARIA, DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_LABEL, validateDistanceAutoRouteTargetKm, DISTANCE_AUTO_ROUTE_CHIP_KM, DISTANCE_AUTO_ROUTE_DEFAULT_KM } from "../../lib/route/distanceAutoRouteErrors";
 import { getDistanceAutoRouteMapBridge } from "../../lib/map/distanceAutoRouteMapBridge";
 import type { LngLat } from "../../lib/geo/geo";
 import { subscribeRouteTokenEffective } from "../../lib/account/routeTokenSpendBridge";
@@ -304,7 +304,7 @@ export function buildPickPopup(deps: {
     initialHasStart,
     initialHasEnd,
     autoRouteSessionActive = false,
-    autoRouteTargetKm = 10,
+    autoRouteTargetKm = DISTANCE_AUTO_ROUTE_DEFAULT_KM,
     autoRouteStatusMessage = null,
     closePopup,
   } = deps;

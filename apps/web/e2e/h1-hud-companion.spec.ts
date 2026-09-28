@@ -90,12 +90,12 @@ async function dismissRideSummaryIfAny(page: import('@playwright/test').Page) {
 
 async function ensureRiding(page: import('@playwright/test').Page) {
   await dismissRideSummaryIfAny(page)
-  if (await page.getByRole('button', { name: '주행 종료' }).isVisible().catch(() => false)) return
+  if (await page.getByRole('button', { name: '주행 종료' }).isEnabled().catch(() => false)) return
   if (await page.getByRole('button', { name: '재개' }).first().isVisible().catch(() => false)) return
   const start = page.getByRole('button', { name: '주행 시작' })
   await expect(start).toBeVisible({ timeout: 20_000 })
   await start.click()
-  await expect(page.getByRole('button', { name: '주행 종료' })).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByRole('button', { name: '주행 종료' })).toBeEnabled({ timeout: 30_000 })
 }
 
 async function setSpeedKmh(page: import('@playwright/test').Page, kmh: number) {
@@ -210,8 +210,8 @@ test.describe('H-1 HUD companion diag', () => {
     abortIfLate('settle')
     await dismissRideSummaryIfAny(pageA)
     await dismissRideSummaryIfAny(pageB)
-    await expect(pageA.getByRole('button', { name: '주행 종료' })).toBeVisible({ timeout: 5_000 })
-    await expect(pageB.getByRole('button', { name: '주행 종료' })).toBeVisible({ timeout: 5_000 })
+    await expect(pageA.getByRole('button', { name: '주행 종료' })).toBeEnabled({ timeout: 5_000 })
+    await expect(pageB.getByRole('button', { name: '주행 종료' })).toBeEnabled({ timeout: 5_000 })
 
     const dualA = await readDiag(pageA)
     const dualB = await readDiag(pageB)

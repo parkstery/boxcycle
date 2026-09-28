@@ -251,10 +251,14 @@ export default function App() {
   const bleCrankRpm = useBleCrankRpm();
   const bleSensorConnected = bleCrankRpm.uiState === "connected";
   /**
-   * 「센서 없음」를 사용자가 명시적으로 골랐는가. 초기값 `manual` 은 선택이 아니다 —
-   * 이게 false 면 Go 가 잠긴다(선택하지 않은 체험 주행 금지).
+   * 「센서 없음」(체험 속도)로 시작할 준비가 됐는가. 이게 false 면 Go 가 잠긴다.
+   *
+   * 2026-09-28 Chief: **기본값을 「센서 없음」으로 둔다.** 종전에는 false 로 시작해
+   * 센서 시트를 한 번 열어 고르기 전에는 Go 가 잠겼는데(「선택하지 않은 체험 주행 금지」),
+   * 주행 시험마다 그 한 바퀴를 도느라 시간이 샜다. 센서를 연결하면 `cadence` 로 올라가고,
+   * 단절·정지에서 `manual` 로 자동 복귀하지 않는 보호는 그대로다.
    */
-  const [manualInputChosen, setManualInputChosen] = useState(false);
+  const [manualInputChosen, setManualInputChosen] = useState(true);
   /** 이번 연결에서 유효 크랭크 샘플을 한 번이라도 받았는가(이후 0rpm 이어도 유지) */
   const [cadenceSampleSeen, setCadenceSampleSeen] = useState(false);
   const switchRideInputToManual = useCallback(() => {
@@ -341,7 +345,6 @@ export default function App() {
   /** MENU 최초 오픈 시에만 퍼블릭 카탈로그·심사 메타 Firestore 로드(세션당 uid 1회) */
   const menuFirestorePrimedUidRef = useRef<string | null>(null);
   const [subscriptionFlash, setSubscriptionFlash] = useState<string | null>(null);
-  const [idleHintDismissed, setIdleHintDismissed] = useState(false);
   const [summarySheetVisible, setSummarySheetVisible] = useState(false);
   const [coverageOverlayMode, setCoverageOverlayMode] = useState<CoverageOverlayMode>("off");
   /** 미완료 쿼터 초과 유도 — 안내 배너 문구와 「내 경로」 탭 오픈 신호(nonce) */
@@ -603,7 +606,6 @@ export default function App() {
     loadedSavedRouteProgressRef,
     lastEndedWasAdhoc,
     setLastEndedWasAdhoc,
-    handleSaveCurrentRoute,
     handleSaveAdhocAsUserRoute,
     handleLoadSavedRoute,
     handleRenameSavedRoute,
@@ -2198,23 +2200,15 @@ export default function App() {
       routeLoading={routeLoading}
       canStartRide={canStartRideWithInput}
       sensorAttention={Boolean(routeGeometry) && !routeLoading && !rideInputReady}
-      canSaveRoute={
-        Boolean(user) &&
-        configured &&
-        Boolean(routeGeometry) &&
-        routeDistanceMeters > 0 &&
-        !routeLoading &&
-        !routeMenuLockedForProd
-      }
-      onSaveCurrentRoute={handleSaveCurrentRoute}
       onStartRide={handleStartRide}
+      onPauseRide={handlePause}
+      onResumeRide={handleResume}
+      onEndRide={handleEndRideWithTrailCleanup}
       resumeRatio={resumeRatio}
-      onClearRoute={handleClearPins}
       onRemoveStop={handleRemoveRouteDockStop}
       onFocusStop={handleFocusRouteDockStop}
       editLocked={routeMenuLockedForProd}
       cadence={cadenceHud}
-      onIncompleteQuotaBlocked={handleIncompleteQuotaBlocked}
     />
   );
 
@@ -2432,22 +2426,14 @@ export default function App() {
               authGateVisualDismissed: needsAuthCard,
               onOpenMapView: openMapViewPanel,
               mapViewOpen: mapViewSheetOpen,
-              idleHintMessage: "MENU → 입문 경로",
               coachData,
               coachLineEnabled: rideCoachingBannerVisible,
               metrics: hudMetrics,
               onClearPins: handleClearPins,
               routeError: null,
-              canStartRide: canStartRideWithInput,
-              onStartRide: handleStartRide,
-              onPauseRide: handlePause,
-              onResumeRide: handleResume,
-              onEndRide: handleEndRideWithTrailCleanup,
               onResumeFromPause: handleResume,
               onEndFromPause: handleEndRideWithTrailCleanup,
               onModifyFromPause: handleModifyFromPause,
-              showIdleHint: stage === "idle" && !idleHintDismissed && !nextRideCardVisible && !firstRideIntroVisible,
-              onDismissIdleHint: () => setIdleHintDismissed(true),
               ridePresence: mapHudRidePresence,
               onGoTrailhead: goTrailheadAndCloseMenu,
               conquestLiveMeters,
@@ -2603,22 +2589,14 @@ export default function App() {
               authGateVisualDismissed: needsAuthCard,
               onOpenMapView: openMapViewPanel,
               mapViewOpen: mapViewSheetOpen,
-              idleHintMessage: "MENU → 입문 경로",
               coachData,
               coachLineEnabled: rideCoachingBannerVisible,
               metrics: hudMetrics,
               onClearPins: handleClearPins,
               routeError: null,
-              canStartRide: canStartRideWithInput,
-              onStartRide: handleStartRide,
-              onPauseRide: handlePause,
-              onResumeRide: handleResume,
-              onEndRide: handleEndRideWithTrailCleanup,
               onResumeFromPause: handleResume,
               onEndFromPause: handleEndRideWithTrailCleanup,
               onModifyFromPause: handleModifyFromPause,
-              showIdleHint: stage === "idle" && !idleHintDismissed && !nextRideCardVisible && !firstRideIntroVisible,
-              onDismissIdleHint: () => setIdleHintDismissed(true),
               ridePresence: mapHudRidePresence,
               onGoTrailhead: goTrailheadAndCloseMenu,
               conquestLiveMeters,

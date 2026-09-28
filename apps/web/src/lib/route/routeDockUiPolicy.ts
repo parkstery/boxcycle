@@ -5,14 +5,9 @@ export type RouteDockUiPolicy = {
   isPreRideReady: boolean;
   /** 주행 중 — 경로 **편집** UI 숨김. 정보(경유지 목록)는 이 플래그로 숨기지 않는다 */
   ridingDiet: boolean;
-  /** Go 직전 — 저장·삭제는 MENU 로 유도 */
-  preRideCompact: boolean;
-  hideEditActions: boolean;
   hideStopsList: boolean;
   /** 주행 중에는 경유지 삭제 등 경로 변형을 막는다(표시는 하되 조작만 잠금) */
   lockStopEditing: boolean;
-  /** riding/paused 진입 시 패널 자동 접힘 */
-  autoCollapse: boolean;
 };
 
 /**
@@ -30,14 +25,17 @@ export function isRouteDockVisible(stage: RideUiStage): boolean {
 }
 
 /**
- * RouteDock 주행 중 편집 UI 접기 — 단일 진실(제품·계약 테스트 공유).
+ * RouteDock 주행 중 UI 정책 — 단일 진실(제품·계약 테스트 공유).
  *
- * 의도는 **지도를 가리는 면적을 줄이는 것**이지 정보를 없애는 것이 아니다.
- * 따라서 주행 중 동작은 두 가지로 분리한다:
- *   - `autoCollapse`  주행 시작 시 패널을 접는다 → 지도 가림 최소화
- *   - `ridingDiet`    펼쳤을 때 **편집** UI(저장·삭제·경유지 삭제)만 뺀다
- * 경유지 목록 같은 **정보는 펼치면 그대로 보여야 한다** — 접기로만 감춘다.
- * (2026-09-15: ridingDiet 가 목록까지 숨겨 펼친 패널이 빈 껍데기가 되던 것을 수정)
+ * 2026-09-28 Chief: **주행 시작 시 자동 접힘을 없앤다.** dock 헤더가 Go·일시정지·종료
+ * 버튼 자리가 되었으므로, 접어 버리면 멈추려는 사용자가 버튼을 찾지 못한다.
+ * 접는 판단은 사용자에게 맡긴다 — 위치가 고정되어 있어야 몸이 기억한다.
+ * (종전 `autoCollapse` 필드는 이 결정과 함께 삭제. 「지도 가림 최소화」는 사용자의 접기로.)
+ *
+ * 저장·삭제는 dock 에서 빠졌다(각각 주행 결과 시트·경로 설정 팝업이 단일 창구).
+ * 그래서 `hideEditActions`·`preRideCompact` 도 함께 삭제했다 — 숨길 대상이 없다.
+ * 남은 주행 중 동작은 `ridingDiet`(편집성 보조 UI 제거)와 `lockStopEditing`(조작 잠금)뿐.
+ * 경유지 목록 같은 **정보는 펼치면 그대로 보여야 한다**.
  */
 export function routeDockUiPolicy(
   stage: RideUiStage,
@@ -46,16 +44,12 @@ export function routeDockUiPolicy(
   const isActiveRide = stage === "riding" || stage === "paused";
   const isPreRideReady = stage === "ready-to-start";
   const ridingDiet = isActiveRide;
-  const preRideCompact = isPreRideReady;
   return {
     isActiveRide,
     isPreRideReady,
     ridingDiet,
-    preRideCompact,
-    hideEditActions: ridingDiet || preRideCompact || editLocked,
-    // 정보는 숨기지 않는다 — 가림 최소화는 autoCollapse 가 담당한다.
+    // 정보는 숨기지 않는다.
     hideStopsList: false,
     lockStopEditing: isActiveRide || editLocked,
-    autoCollapse: isActiveRide,
   };
 }

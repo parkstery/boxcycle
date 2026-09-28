@@ -265,7 +265,7 @@ async function main() {
     await page.waitForTimeout(80_000);
     report.checks.rideRunning =
       (await page.getByRole("group", { name: "주행 지표" }).isVisible().catch(() => false)) &&
-      (await page.getByRole("button", { name: "주행 종료" }).isVisible().catch(() => false));
+      (await page.getByRole("button", { name: "주행 종료" }).isEnabled().catch(() => false));
     await screenshot(page, "04-running", report);
 
     await page.getByRole("button", { name: "주행 종료" }).click();

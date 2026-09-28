@@ -66,7 +66,7 @@ test.describe("지시07 각도 후보 · QC1 3단", () => {
       await armRideInput(page);
       await loadIntroCourse(page);
       await page.getByRole("button", { name: "주행 시작" }).click();
-      await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({
+      await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled({
         timeout: 30_000,
       });
       await page.waitForFunction(
@@ -105,7 +105,7 @@ test.describe("지시07 각도 후보 · QC1 3단", () => {
     await armRideInput(page);
     await loadIntroCourse(page);
     await page.getByRole("button", { name: "주행 시작" }).click();
-    await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({
+    await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled({
       timeout: 30_000,
     });
     await page.waitForFunction(

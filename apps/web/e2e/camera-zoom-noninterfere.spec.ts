@@ -52,7 +52,7 @@ test.describe("지시06 줌 비간섭", () => {
     await armRideInput(page);
     await loadIntroCourse(page);
     await page.getByRole("button", { name: "주행 시작" }).click();
-    await expect(page.getByRole("button", { name: "주행 종료" })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled({ timeout: 30_000 });
 
     // Map 핸들 노출(앱 훅)
     await page.waitForFunction(() => Boolean((window as unknown as { __RTW_MAP__?: unknown }).__RTW_MAP__), null, {

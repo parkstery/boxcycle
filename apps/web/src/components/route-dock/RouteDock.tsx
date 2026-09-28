@@ -1,11 +1,9 @@
 import { useState } from "react";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
 import { cadenceChipView } from "../../lib/sensor/cadenceSensorUi";
-import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/route/repo/firestoreSavedRoutes";
 import { isRouteDockVisible, routeDockUiPolicy } from "../../lib/route/routeDockUiPolicy";
 import { sensorChipSlotView } from "../../lib/route/sensorChipSlot";
 import { CadenceHudChip, type CadenceChipBinding } from "../maphud/CadenceHudChip";
-import { isIncompleteQuotaError } from "../../lib/account/tierQuota";
 import type { RouteDockStop, RouteDockStopId } from "./useRouteDockStops";
 import "./RouteDock.css";
 /* LED 클래스(hud-cadence__led*) — CadenceHudChip 이 묶은 CSS. 접힌 캐럿 LED 가 재사용한다. */
@@ -21,13 +19,16 @@ export type RouteDockProps = {
    * 가리킨다(2026-09-18 Chief). 판정은 App 이 한다 — dock 은 `routeGeometry` 를 모른다.
    */
   sensorAttention?: boolean;
-  canSaveRoute: boolean;
-  onSaveCurrentRoute: (name: string, confirmUpdate?: boolean) => Promise<void> | void;
   /** 주행 시작. `fromStart=true` 면 재개 후보를 무시하고 처음부터(§9.5.5 단위7) */
   onStartRide: (fromStart?: boolean) => void;
+  /** 주행 중 → 일시정지 */
+  onPauseRide: () => void;
+  /** 일시정지 → 재개 */
+  onResumeRide: () => void;
+  /** 주행 종료(결과 시트로) */
+  onEndRide: () => void;
   /** 로드된 미완주 저장 경로의 재개 후보 진행률(0..1). null=재개 불가(선택 UI 미표시) */
   resumeRatio?: number | null;
-  onClearRoute: () => void;
   onRemoveStop: (id: RouteDockStopId) => void;
   onFocusStop: (stop: RouteDockStop) => void;
   editLocked?: boolean;
@@ -36,8 +37,6 @@ export type RouteDockProps = {
    * Go 의 사전조건인 「주행 입력 준비」가 센서 시트에 있으므로 준비물을 Go 와 한 시선에 둔다.
    */
   cadence?: CadenceChipBinding | null;
-  /** 미완료 쿼터 초과로 저장이 막혔을 때 상위에 알림(→「내 경로」 대기 탭 유도) */
-  onIncompleteQuotaBlocked?: (message: string) => void;
 };
 
 const STOP_KIND_LABEL: Record<RouteDockStop["kind"], string> = {
@@ -53,16 +52,15 @@ export function RouteDock(props: RouteDockProps) {
     routeLoading,
     canStartRide,
     sensorAttention = false,
-    canSaveRoute,
-    onSaveCurrentRoute,
     onStartRide,
+    onPauseRide,
+    onResumeRide,
+    onEndRide,
     resumeRatio = null,
-    onClearRoute,
     onRemoveStop,
     onFocusStop,
     editLocked = false,
     cadence = null,
-    onIncompleteQuotaBlocked,
   } = props;
 
   const visible = isRouteDockVisible(stage);
@@ -71,12 +69,6 @@ export function RouteDock(props: RouteDockProps) {
    * 센서 칩 한 줄을 실으려는 것이지 빈 패널을 펼쳐 지도를 가리려는 게 아니다.
    */
   const [expanded, setExpanded] = useState(() => stops.length > 0);
-  const [saveOpen, setSaveOpen] = useState(false);
-  const [saveDraft, setSaveDraft] = useState("");
-  const [saveBusy, setSaveBusy] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  /** 같은 경로가 이미 있어 "업데이트하시겠습니까?" 확인을 기다리는 중. */
-  const [saveConfirmUpdate, setSaveConfirmUpdate] = useState(false);
   /** 이어 달리기 — true 면 처음부터 다시(기본은 저장 지점부터 재개). */
   const [restartFromZero, setRestartFromZero] = useState(false);
   // 재개 후보가 바뀌면(다른 경로 로드 등) 선택을 기본값(이어달리기)으로 리셋.
@@ -88,18 +80,12 @@ export function RouteDock(props: RouteDockProps) {
   }
 
   const dockUi = routeDockUiPolicy(stage, editLocked);
-  const { isActiveRide, ridingDiet, preRideCompact, hideEditActions, hideStopsList, lockStopEditing } =
-    dockUi;
+  const { isActiveRide, ridingDiet, hideStopsList, lockStopEditing } = dockUi;
 
-  const [prevIsActiveRide, setPrevIsActiveRide] = useState(isActiveRide);
-  if (isActiveRide !== prevIsActiveRide) {
-    setPrevIsActiveRide(isActiveRide);
-    if (dockUi.autoCollapse) {
-      setExpanded(false);
-      setSaveOpen(false);
-    }
-  }
-
+  /*
+   * 주행 시작 시 자동 접힘은 없다(2026-09-28 Chief). 접어 버리면 멈추려는 사용자가
+   * 종료 버튼을 찾지 못한다 — 접는 판단은 사용자에게 맡긴다.
+   */
   const autoExpandKey = `${visible}:${stops.length}:${isActiveRide}:${stage}`;
   const [prevAutoExpandKey, setPrevAutoExpandKey] = useState(autoExpandKey);
   if (autoExpandKey !== prevAutoExpandKey) {
@@ -109,42 +95,6 @@ export function RouteDock(props: RouteDockProps) {
     else if (stage === "idle" && stops.length === 0) setExpanded(false);
   }
 
-  async function commitSave(confirmUpdate = false) {
-    if (saveBusy) return;
-    let normalizedName: string;
-    try {
-      normalizedName = validateSavedRouteName(saveDraft);
-    } catch (e) {
-      setSaveError(e instanceof Error ? e.message : String(e));
-      return;
-    }
-    setSaveBusy(true);
-    setSaveError(null);
-    try {
-      await onSaveCurrentRoute(normalizedName, confirmUpdate);
-      setSaveOpen(false);
-      setSaveDraft("");
-      setSaveConfirmUpdate(false);
-    } catch (e) {
-      // 미완료 쿼터 초과: 인라인 에러 대신 저장 폼을 닫고 「내 경로」 대기 탭으로 유도한다.
-      if (isIncompleteQuotaError(e)) {
-        setSaveOpen(false);
-        setSaveDraft("");
-        setSaveConfirmUpdate(false);
-        setSaveError(null);
-        onIncompleteQuotaBlocked?.(e.message);
-      } else if (
-        // 같은 경로가 이미 있으면 "업데이트하시겠습니까?" 확인을 띄운다.
-        e && typeof e === "object" && (e as { code?: string }).code === "saved-route-duplicate"
-      ) {
-        setSaveConfirmUpdate(true);
-      } else {
-        setSaveError(e instanceof Error ? e.message : String(e));
-      }
-    } finally {
-      setSaveBusy(false);
-    }
-  }
   if (!visible) return null;
 
   /*
@@ -183,6 +133,25 @@ export function RouteDock(props: RouteDockProps) {
     }
     setExpanded((v) => !v);
   };
+
+  /*
+   * 주행 제어(Go · 일시정지 · 종료) — 2026-09-28 Chief.
+   * 종전 이 자리에 있던 「내 경로로 저장」·「삭제」는 각각 주행 결과 시트와 경로 설정
+   * 팝업이 이미 갖고 있어 중복이었다. 비운 자리를 주행 제어가 받는다.
+   *
+   * 세 버튼은 **항상 같은 자리에 같은 순서로** 그린다(조건부 렌더 대신 disabled).
+   * 버튼이 들고 나면 위치가 흔들려 「몸이 기억하는 종료 버튼」이 성립하지 않는다.
+   *
+   * 같은 버튼이 두 벌이던 HUD 우하단 FAB 은 함께 제거했다(2026-09-28 Chief) — 그래서
+   * 여기가 주행 제어의 유일한 자리이고, 표준 이름(주행 시작·일시정지·주행 종료)을 쓴다.
+   * ⚠️ 못 쓰는 상황에서도 **DOM 에 남아 있다**(disabled). 「주행 종료 버튼이 보이면
+   *    주행 중」으로 판정하지 말 것 — e2e 는 `isEnabled()` 로 본다.
+   */
+  const paused = stage === "paused";
+  const riding = stage === "riding";
+  const goDisabled = paused
+    ? false
+    : !(stage === "ready-to-start" && canStartRide && !routeLoading && !editLocked);
 
   return (
     <div
@@ -240,12 +209,12 @@ export function RouteDock(props: RouteDockProps) {
 
         <div className="route-dock__body">
         {/*
-          첫 행 — **접히는 본문 바깥**. 센서 칩이 왼쪽에 앉고 Go·저장·삭제가 그 오른쪽.
+          첫 행 — **접히는 본문 바깥**. 센서 칩이 왼쪽에 앉고 주행 제어가 그 오른쪽.
           「경로(caret) → 센서 → Go」가 한 줄로 읽힌다.
           칩을 세로로 세우지 않는 이유: 전용 컬럼을 만들면 그 아래가 통째로 빈 채
           dock 폭만 넓어져 지도를 더 가린다(2026-09-16 Chief 지적).
-          헤더를 `route-dock__panel` 안에 두지 않는 이유: 주행 중 자동 접힘 상태에서
-          칩까지 같이 사라져 rpm·연결 신호가 끊긴다(지시서 §3.1).
+          헤더를 `route-dock__panel` 안에 두지 않는 이유: 접었을 때 칩까지 같이 사라져
+          rpm·연결 신호가 끊긴다(지시서 §3.1).
           단, 주행 중+접힘에서는 칩 대신 캐럿 LED 로 연결만 표시(지시01 §3) —
           rpm 은 펼친 뒤 칩에서 본다.
         */}
@@ -260,51 +229,49 @@ export function RouteDock(props: RouteDockProps) {
               attention={sensorAttention && !isActiveRide}
             />
           ) : null}
-        {expanded && !ridingDiet ? (
+        {expanded ? (
           <header className="route-dock__head">
-          {!hideEditActions ? (
-            <div className="route-dock__head-actions">
-              {!saveOpen ? (
-                <button
-                  type="button"
-                  className="route-dock__save-trigger"
-                  disabled={!canSaveRoute || editLocked}
-                  title="Save as my route"
-                  onClick={() => {
-                    setSaveError(null);
-                    setSaveDraft("");
-                    setSaveOpen(true);
-                  }}
-                >
-                  내 경로로 저장
-                </button>
-              ) : null}
+            {/* 주행 제어는 줄의 **오른쪽 끝** — SENSOR 바로 옆에 붙이지 않는다(2026-09-18 Chief).
+                CSS order 대신 DOM 순서를 그대로 둬 키보드 순서도 보이는 대로 간다. */}
+            <div className="route-dock__transport" role="group" aria-label="주행 제어">
               <button
                 type="button"
-                className="route-dock__icon-btn"
-                disabled={editLocked || stops.length === 0}
-                aria-label="경로 전체 삭제"
-                title="경로 전체 삭제"
-                onClick={onClearRoute}
+                className="route-dock__go route-dock__transport-btn"
+                disabled={goDisabled}
+                aria-label={paused ? "재개" : "주행 시작"}
+                title={paused ? "Resume" : "Start ride"}
+                onClick={() => (paused ? onResumeRide() : onStartRide(restartFromZero))}
               >
-                삭제
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden focusable="false">
+                  <path d="M8 5.5v13l11-6.5z" fill="currentColor" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="route-dock__transport-btn route-dock__transport-btn--pause"
+                disabled={!riding}
+                aria-label="일시정지"
+                title="Pause"
+                onClick={onPauseRide}
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden focusable="false">
+                  <rect x="7" y="5.5" width="3.6" height="13" rx="1.1" fill="currentColor" />
+                  <rect x="13.4" y="5.5" width="3.6" height="13" rx="1.1" fill="currentColor" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="route-dock__transport-btn route-dock__transport-btn--stop"
+                disabled={!isActiveRide}
+                aria-label="주행 종료"
+                title="Stop ride"
+                onClick={onEndRide}
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden focusable="false">
+                  <rect x="6.5" y="6.5" width="11" height="11" rx="1.8" fill="currentColor" />
+                </svg>
               </button>
             </div>
-          ) : null}
-          {/* Go 는 줄의 **오른쪽 끝** — SENSOR 바로 옆에 붙이지 않는다(2026-09-18 Chief).
-              CSS order 대신 DOM 순서를 옮겨 키보드 순서도 보이는 대로 간다. */}
-          {stage === "ready-to-start" ? (
-            <button
-              type="button"
-              className="route-dock__go"
-              disabled={!canStartRide || routeLoading || editLocked}
-              aria-label="주행 시작"
-              title="Start ride"
-              onClick={() => onStartRide(restartFromZero)}
-            >
-              Go
-            </button>
-          ) : null}
           </header>
         ) : null}
         </div>
@@ -336,90 +303,6 @@ export function RouteDock(props: RouteDockProps) {
               />
               <span>처음부터</span>
             </label>
-          </div>
-        ) : null}
-
-        {!ridingDiet && !preRideCompact && saveOpen ? (
-          <div className="route-dock__save-form">
-            <div className="route-dock__save-head">
-              <label className="route-dock__save-label" htmlFor="route-dock-save-name">
-                경로 이름
-              </label>
-              <div className="route-dock__save-actions">
-                <button
-                  type="button"
-                  className="route-dock__save-commit"
-                  disabled={saveBusy}
-                  title="경로 저장"
-                  onClick={() => void commitSave()}
-                >
-                  {saveBusy ? "저장 중…" : "저장"}
-                </button>
-                <button
-                  type="button"
-                  className="route-dock__save-cancel"
-                  disabled={saveBusy}
-                  title="저장 취소"
-                  onClick={() => {
-                    setSaveOpen(false);
-                    setSaveDraft("");
-                    setSaveError(null);
-                  }}
-                >
-                  취소
-                </button>
-              </div>
-            </div>
-            <input
-              id="route-dock-save-name"
-              className="route-dock__save-input"
-              type="text"
-              maxLength={SAVED_ROUTE_NAME_MAX}
-              value={saveDraft}
-              placeholder="예: 한강"
-              autoFocus
-              onChange={(e) => setSaveDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") void commitSave();
-                if (e.key === "Escape") {
-                  setSaveOpen(false);
-                  setSaveDraft("");
-                  setSaveError(null);
-                }
-              }}
-            />
-            {saveError ? (
-              <p className="route-dock__save-error" role="alert">
-                {saveError}
-              </p>
-            ) : null}
-            {saveConfirmUpdate ? (
-              <div className="route-dock__save-confirm" role="alertdialog">
-                <p className="route-dock__save-confirm-msg">
-                  저장된 경로 — 업데이트할까요?
-                </p>
-                <div className="route-dock__save-actions">
-                  <button
-                    type="button"
-                    className="route-dock__save-commit"
-                    disabled={saveBusy}
-                    title="Update existing"
-                    onClick={() => void commitSave(true)}
-                  >
-                    {saveBusy ? "업데이트 중…" : "예 · 업데이트"}
-                  </button>
-                  <button
-                    type="button"
-                    className="route-dock__save-cancel"
-                    disabled={saveBusy}
-                    title="Keep previous"
-                    onClick={() => setSaveConfirmUpdate(false)}
-                  >
-                    아니오 · 유지
-                  </button>
-                </div>
-              </div>
-            ) : null}
           </div>
         ) : null}
 
