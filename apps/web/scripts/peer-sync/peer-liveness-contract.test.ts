@@ -115,35 +115,38 @@ describe("멈춰 있는 사람을 쫓아내지 않는다", () => {
   });
 });
 
-describe("송신 시각을 읽을 수 없으면 종전대로 둔다", () => {
-  it("serverAtMs 가 없으면 생존 판정을 하지 않는다 — 모르는 것으로 지우지 않는다", () => {
+describe("송신 시각을 읽을 수 없으면 내용으로 판정한다", () => {
+  /*
+   * 종전에는 판정 자체를 하지 않아 **영영 안 지워졌다.** chief 보고(2026-09-28):
+   * 브라우저를 강제 종료하면 개설자 라이더가 1분 넘게 남았다.
+   * 「모르니까 그냥 둔다」는 유령을 만든다.
+   */
+  it("내용이 그대로면 결국 사라진다 — 다만 더 오래 기다린다", () => {
     const r = new PeerMotionRegistry();
-    r.ingest(packet({ serverAtMs: 0 }), "peer1", 0);
-    const t = SILENT * 3;
-    r.ingest(packet({ serverAtMs: 0 }), "peer1", t);
-    r.pruneInactive(t);
-    assert.equal(countOf(r), 1, "판정 근거가 없는데 지우면 멀쩡한 동행이 사라진다");
-  });
-});
-
-describe("배달이 아예 끊겨도 사라진다", () => {
-  it("행이 더 오지 않는데 목록에는 남아 있으면 — 그래도 지운다", () => {
-    /*
-     * ⚠️ 이 경우를 처음에 빠뜨렸고, 사보타주가 **통과해서** 알았다.
-     *
-     * Firestore·RTDB 가 둘 다 조용하면 구독 콜백이 아예 불리지 않는다. 그러면 ingest 도
-     * 없고, `activeUids` 는 마지막에 본 목록 그대로 남는다. 그 목록은 「행이 아직 배달되는가」일
-     * 뿐 「사람이 아직 있는가」가 아니다 — 그래서 prune 이 목록과 **무관하게** 판정해야 한다.
-     */
-    const r = new PeerMotionRegistry();
-    r.ingest(packet({ serverAtMs: 1_000 }), "peer1", 0);
-    r.markActiveUids(["peer1"]);
+    r.ingest(packet({ serverAtMs: 0, distM: 10 }), "peer1", 0);
     assert.equal(countOf(r), 1);
 
-    r.pruneInactive(SILENT - 1_000);
-    assert.equal(countOf(r), 1, "아직은 남아 있어야 한다");
-
+    // 15초(송신 시각이 있을 때의 기준)에는 아직 남아 있어야 한다 —
+    // 멈춰 있을 뿐인 동행을 쫓아내면 안 된다.
+    r.ingest(packet({ serverAtMs: 0, distM: 10 }), "peer1", SILENT + 1_000);
     r.pruneInactive(SILENT + 1_000);
-    assert.equal(countOf(r), 0, "배달이 끊겼는데 목록에 있다는 이유로 남겨 뒀다");
+    assert.equal(countOf(r), 1, "판정 근거가 약할 때는 더 기다려야 한다");
+
+    const long = 50_000;
+    r.ingest(packet({ serverAtMs: 0, distM: 10 }), "peer1", long);
+    r.pruneInactive(long);
+    assert.equal(countOf(r), 0, "영영 안 지우면 유령이 된다");
+  });
+
+  it("내용이 바뀌면 살아 있는 것으로 본다", () => {
+    const r = new PeerMotionRegistry();
+    let t = 0;
+    for (let k = 0; k < 120; k += 1) {
+      t = k * 500;
+      r.ingest(packet({ serverAtMs: 0, distM: 10 + k * 0.5 }), "peer1", t);
+      r.pruneInactive(t);
+    }
+    assert.ok(t > 50_000, "시험이 충분히 오래 돌지 않았다");
+    assert.equal(countOf(r), 1, "계속 움직이는 동행을 지웠다");
   });
 });
