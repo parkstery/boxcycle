@@ -6,6 +6,9 @@ import {
   PEER_INTERP_DELAY_MAX_MS,
   PEER_INTERP_DELAY_MS,
   PEER_INTERP_MAX_EXTRAP_MS,
+  PEER_DISPLAY_CATCHUP_FACTOR,
+  PEER_DISPLAY_MIN_CATCHUP_MPS,
+  PEER_DISPLAY_SNAP_M,
   PEER_RENDER_CLOCK_CATCHUP_RATE,
   PEER_RENDER_CLOCK_RESYNC_MS,
 } from "./peerSyncPolicy";
@@ -109,10 +112,19 @@ export function applyPeerMotionIngest(
   const srcAtMs = readSrcAtMs(packet);
   if (srcAtMs != null) {
     const off = now - srcAtMs;
-    entity.clockOffsetMs =
-      entity.clockOffsetMs == null || off < entity.clockOffsetMs
-        ? off
-        : entity.clockOffsetMs + (off - entity.clockOffsetMs) * CLOCK_OFFSET_DRIFT;
+    const prevOff = entity.clockOffsetMs;
+    const nextOff =
+      prevOff == null || off < prevOff ? off : prevOff + (off - prevOff) * CLOCK_OFFSET_DRIFT;
+    /*
+     * ⚠️ 오프셋이 바뀌면 **버퍼의 모든 스냅샷이 타임라인 위에서 그만큼 통째로 이동한다**
+     * (타임라인 = 송신시각 + 오프셋). 재생 시계를 그대로 두면 그 차이만큼 화면이 건너뛴다.
+     * 같은 양만큼 재생 시계도 옮겨 **상대 위치를 보존**한다 — 그러면 갱신이 보이지 않는다.
+     * 어긋난 만큼은 뒤에서 천천히(±10%) 제자리를 찾는다.
+     */
+    if (prevOff != null && entity.renderClockMs != null) {
+      entity.renderClockMs += nextOff - prevOff;
+    }
+    entity.clockOffsetMs = nextOff;
   }
 
   if (newest) {
@@ -254,6 +266,7 @@ export function stepPeerMotionEntity(
     return;
   }
 
+  const dtMs = Math.max(0, Math.min(1_000, nowMs - entity.lastStepNowMs));
   const renderTime = advancePeerRenderClock(entity, nowMs);
   const oldest = buf[0]!;
 
@@ -289,5 +302,39 @@ export function stepPeerMotionEntity(
     dist = s0.distM + (s1.distM - s0.distM) * t;
   }
 
-  entity.displayDistM = clampRouteDist(dist, routeLenM);
+  entity.displayDistM = applyPeerDisplayCorrection(
+    entity,
+    clampRouteDist(dist, routeLenM),
+    dtMs,
+  );
+}
+
+/**
+ * 계산된 위치로 **한 번에 건너뛰지 않는다** — 제 속도의 몇 배까지만 따라간다.
+ *
+ * 왜 원인마다 쫓지 않는가 — 실주행 계측에서 튐은 **0.5~0.8% 의 프레임**에만 나타났고
+ * (최대 51 m/s), 원인이 여럿일 수 있다(시계 오프셋 갱신·버퍼 밀림·외삽에서 보간으로 전환).
+ * 하나씩 쫓으면 늘 하나가 남는다. **출구 한 곳에 한도를 걸면 무엇이 원인이든 보이지 않는다.**
+ *
+ * ⚠️ 이것은 위치를 **지연**시킬 뿐 버리지 않는다. 어긋난 만큼은 다음 프레임들에서 따라잡는다.
+ * 진짜 순간이동(재참여·경로 재시작)은 `PEER_DISPLAY_SNAP_M` 을 넘으므로 즉시 맞춘다.
+ */
+function applyPeerDisplayCorrection(
+  entity: PeerMotionEntity,
+  targetDistM: number,
+  dtMs: number,
+): number {
+  const prev = entity.displayDistM;
+  if (!Number.isFinite(prev) || dtMs <= 0) return targetDistM;
+
+  const err = targetDistM - prev;
+  if (Math.abs(err) > PEER_DISPLAY_SNAP_M) return targetDistM;
+
+  const catchUpMps = Math.max(
+    entity.speedMps * PEER_DISPLAY_CATCHUP_FACTOR,
+    PEER_DISPLAY_MIN_CATCHUP_MPS,
+  );
+  const maxStep = catchUpMps * (dtMs / 1000);
+  if (Math.abs(err) <= maxStep) return targetDistM;
+  return prev + (err > 0 ? maxStep : -maxStep);
 }
