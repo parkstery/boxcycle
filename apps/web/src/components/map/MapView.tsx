@@ -147,8 +147,6 @@ import {
 import {
   buildPickPopup,
   createLiveRiderMarkerRoot,
-  createRouteEndpointPinEl,
-  createWaypointMarkerEl,
   pickPickPopupAnchor,
   tryOpenActivityWorldPinPopup,
   type PickPopupAutoRouteUi,
@@ -165,6 +163,7 @@ import {
   ROUTE_LINE_COLOR,
 } from "./routeConquestLayers";
 import { RouteElevationOverlay } from "./RouteElevationOverlay";
+import { useMapPinMarkers } from "./useMapPinMarkers";
 
 function isMapAttachedToContainer(map: mapboxgl.Map, container: HTMLElement | null): boolean {
   if (!container) return false;
@@ -557,12 +556,7 @@ export function MapView({
   const mapRef = useRef<mapboxgl.Map | null>(null);
   /** props `mapZoom` → `map.zoomTo` 적용을 한 프레임으로 묶어 연속 onChange·리렌더 떨림 완화 */
   const mapZoomApplyRafRef = useRef<number | null>(null);
-  const startMarkerRef = useRef<mapboxgl.Marker | null>(null);
-  const endMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const autoRouteClickDebugMarkerRef = useRef<mapboxgl.Marker | null>(null);
-  const placeSearchMarkerRef = useRef<mapboxgl.Marker | null>(null);
-  const resumeMarkerRef = useRef<mapboxgl.Marker | null>(null);
-  const waypointMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const liveMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const liveMarkerPedalSpriteRef = useRef<HTMLDivElement | null>(null);
   const liveMarkerImgRef = useRef<HTMLImageElement | null>(null);
@@ -673,6 +667,22 @@ export function MapView({
     lastTs: null,
   });
   const [mapLoaded, setMapLoaded] = useState(false);
+
+  /** 핀 마커(출발·도착·장소 검색·재개점·경유지) 생명주기 — A-5b 에서 훅으로 뽑았다. */
+  const { clearOnMapTeardown: clearPinMarkers } = useMapPinMarkers({
+    mapRef,
+    mapLoaded,
+    startLngLat,
+    endLngLat,
+    placeSearchMarkerLngLat,
+    resumeAnchor,
+    routeWaypoints,
+  });
+  /** 지도 초기화 effect 의 정리 구간에서 부른다 — 그 effect 의 의존성을 늘리지 않으려고 ref 로 받는다. */
+  const clearPinMarkersRef = useRef(clearPinMarkers);
+  useEffect(() => {
+    clearPinMarkersRef.current = clearPinMarkers;
+  }, [clearPinMarkers]);
   const prefersReducedMotion = useSyncExternalStore(
     subscribeReducedMotion,
     getReducedMotionSnapshot,
@@ -1549,12 +1559,8 @@ export function MapView({
       map.off("idle", onIdleCount);
       if (lodRaf) cancelAnimationFrame(lodRaf);
       window.removeEventListener("resize", onResize);
-      startMarkerRef.current?.remove();
-      endMarkerRef.current?.remove();
+      clearPinMarkersRef.current();
       clearAutoRouteClickDebugMarkerOnMap(autoRouteClickDebugMarkerRef);
-      placeSearchMarkerRef.current?.remove();
-      for (const wm of waypointMarkersRef.current) wm.remove();
-      waypointMarkersRef.current = [];
       liveMarkerRef.current?.remove();
       glbLiveNametagMarkerRef.current?.remove();
       selfLocationMarkerRef.current?.remove();
@@ -1568,10 +1574,6 @@ export function MapView({
       routePickDockLayerRef.current?.replaceChildren();
       routePickDockPanelRef.current = null;
       routePickDockPositionRef.current = null;
-      startMarkerRef.current = null;
-      endMarkerRef.current = null;
-      placeSearchMarkerRef.current = null;
-      waypointMarkersRef.current = [];
       liveMarkerRef.current = null;
       glbLiveNametagMarkerRef.current = null;
       glbLiveNametagElRef.current = null;
@@ -2078,133 +2080,9 @@ export function MapView({
     };
   }, [mapLoaded, mapStyle, rideActive, showRtwPoi]);
 
-  /** 출발/도착 마커 */
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
 
-    if (startLngLat) {
-      if (!startMarkerRef.current) {
-        startMarkerRef.current = new mapboxgl.Marker({
-          element: createRouteEndpointPinEl("start"),
-          anchor: "bottom",
-          className: "map-view__pin-marker map-view__pin-marker--start map-view__route-pin-marker",
-          ...PIN_MARKER_VIEWPORT_ALIGNMENT,
-        })
-          .setLngLat(startLngLat)
-          .addTo(map);
-      } else {
-        startMarkerRef.current.setLngLat(startLngLat);
-      }
-    } else {
-      startMarkerRef.current?.remove();
-      startMarkerRef.current = null;
-    }
 
-    if (endLngLat) {
-      if (!endMarkerRef.current) {
-        endMarkerRef.current = new mapboxgl.Marker({
-          element: createRouteEndpointPinEl("end"),
-          anchor: "bottom",
-          className: "map-view__pin-marker map-view__pin-marker--end map-view__route-pin-marker",
-          ...PIN_MARKER_VIEWPORT_ALIGNMENT,
-        })
-          .setLngLat(endLngLat)
-          .addTo(map);
-      } else {
-        endMarkerRef.current.setLngLat(endLngLat);
-      }
-    } else {
-      endMarkerRef.current?.remove();
-      endMarkerRef.current = null;
-    }
-  }, [startLngLat, endLngLat, mapLoaded]);
 
-  /** 메뉴 장소 검색 결과 위치 */
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
-
-    if (placeSearchMarkerLngLat) {
-      if (!placeSearchMarkerRef.current) {
-        placeSearchMarkerRef.current = new mapboxgl.Marker({
-          color: "#0ea5e9",
-          className: "map-view__pin-marker map-view__pin-marker--place-search",
-          ...PIN_MARKER_VIEWPORT_ALIGNMENT,
-        })
-          .setLngLat(placeSearchMarkerLngLat)
-          .addTo(map);
-      } else {
-        placeSearchMarkerRef.current.setLngLat(placeSearchMarkerLngLat);
-      }
-    } else {
-      placeSearchMarkerRef.current?.remove();
-      placeSearchMarkerRef.current = null;
-    }
-  }, [placeSearchMarkerLngLat, mapLoaded]);
-
-  /** 이어 달리기 재개점 마커 — 「N% · 여기서 계속」(§3.4) */
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
-
-    if (resumeAnchor) {
-      if (!resumeMarkerRef.current) {
-        const el = document.createElement("div");
-        el.className = "map-view__resume-marker";
-        el.textContent = resumeAnchor.label;
-        el.title = resumeAnchor.label;
-        resumeMarkerRef.current = new mapboxgl.Marker({
-          element: el,
-          className: "map-view__pin-marker map-view__resume-marker-host",
-          ...PIN_MARKER_VIEWPORT_ALIGNMENT,
-        })
-          .setLngLat(resumeAnchor.lngLat)
-          .addTo(map);
-      } else {
-        const el = resumeMarkerRef.current.getElement().querySelector<HTMLDivElement>(
-          ".map-view__resume-marker",
-        );
-        const host = resumeMarkerRef.current.getElement();
-        const target = el ?? (host.classList.contains("map-view__resume-marker") ? host : null);
-        if (target) {
-          target.textContent = resumeAnchor.label;
-          target.title = resumeAnchor.label;
-        }
-        resumeMarkerRef.current.setLngLat(resumeAnchor.lngLat);
-      }
-    } else {
-      resumeMarkerRef.current?.remove();
-      resumeMarkerRef.current = null;
-    }
-  }, [resumeAnchor, mapLoaded]);
-
-  /** 경과지 마커(순번 1…3) */
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
-
-    const markers = waypointMarkersRef.current;
-    while (markers.length > routeWaypoints.length) {
-      markers.pop()?.remove();
-    }
-    while (markers.length < routeWaypoints.length) {
-      const idx = markers.length;
-      const order = idx + 1;
-      const el = createWaypointMarkerEl(order);
-      const m = new mapboxgl.Marker({
-        element: el,
-        className: "map-view__pin-marker map-view__waypoint-marker-host",
-        ...PIN_MARKER_VIEWPORT_ALIGNMENT,
-      })
-        .setLngLat(routeWaypoints[idx]!)
-        .addTo(map);
-      markers.push(m);
-    }
-    for (let i = 0; i < routeWaypoints.length; i++) {
-      markers[i]?.setLngLat(routeWaypoints[i]!);
-    }
-  }, [routeWaypoints, mapLoaded]);
 
   /** 라이브 위치 마커 생성·제거 — 위치 갱신은 rAF(sampleLiveLngLat) */
   useEffect(() => {
