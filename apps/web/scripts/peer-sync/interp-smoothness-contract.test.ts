@@ -8,6 +8,8 @@ import {
   stepPeerMotionEntity,
 } from "../../src/lib/peerMotion/integrator.ts";
 import {
+  PEER_DISPLAY_CATCHUP_FACTOR,
+  PEER_DISPLAY_SNAP_M,
   PEER_INTERP_DELAY_GAP_FACTOR,
   PEER_INTERP_DELAY_MAX_MS,
   PEER_INTERP_DELAY_MS,
@@ -60,6 +62,8 @@ function replay(opts: {
   runMs: number;
   /** k 번째 패킷의 추가 지연(ms). 기본은 결정적 의사난수. */
   delayAt?: (k: number, jitterMs: number) => number;
+  /** [시작, 끝] ms — 이 구간에 잡힌 좌표는 **도착하지 않는다**(끊김 재현). */
+  dropWindowMs?: [number, number];
 }) {
   const { intervalMs, jitterMs, runMs } = opts;
   const RTT = 140;
@@ -68,11 +72,13 @@ function replay(opts: {
   // 결정적으로 흔든다 — 시험이 돌 때마다 결과가 달라지면 계약이 아니다.
   const delayAt = opts.delayAt ?? ((k: number, j: number) => ((Math.sin(k * 7.13) + 1) / 2) * j);
 
+  const drop = opts.dropWindowMs;
   const arrivals: Array<{ capturedAt: number; arriveAt: number }> = [];
   let k = 0;
   for (let t = intervalMs; t < runMs; t += intervalMs) {
-    arrivals.push({ capturedAt: t, arriveAt: t + RTT + delayAt(k, jitterMs) });
     k += 1;
+    if (drop && t >= drop[0] && t <= drop[1]) continue;
+    arrivals.push({ capturedAt: t, arriveAt: t + RTT + delayAt(k - 1, jitterMs) });
   }
   arrivals.sort((a, b) => a.arriveAt - b.arriveAt);
 
@@ -238,4 +244,132 @@ describe("등속 송신은 등속으로 보여야 한다", () => {
       assert.ok(max < SPEED * 2.5, `화면 속도가 ${max.toFixed(2)} m/s 까지 튀었다`);
     });
   }
+});
+
+describe("④ 한 프레임에 통째로 건너뛰지 않는다", () => {
+  /*
+   * 실주행 계측(2026-09-28, chief 두 창) — 송신자는 등속 1.4 m/s 인데:
+   *
+   *     avg=1.41  min=-10.57  max=34.36  back=0.8%   (1,815 프레임)
+   *     avg=2.13  min=-2.96   max=51.62  back=0.5%   (5,497 프레임)
+   *
+   * 평균은 맞는데 **0.5~0.8% 의 프레임이 통째로 튄다**. 60fps 에서 2~3초에 한 번이고
+   * 그것이 chief 가 보던 「작은 튐」이다. 도착 간격·지연은 정상이었다 — 전송이 아니라
+   * 계산 결과가 가끔 건너뛰는 것이다.
+   *
+   * 원인이 여럿일 수 있으므로(시계 오프셋 갱신·버퍼 밀림·외삽→보간 전환) 하나씩 쫓지 않고
+   * **출구에 한도**를 걸었다. 이 계약은 그 한도가 살아 있는지 본다.
+   */
+
+  it("따라잡기 배수가 1보다 크고 지나치게 크지 않다", () => {
+    assert.ok(PEER_DISPLAY_CATCHUP_FACTOR > 1, "1 이하면 영영 따라잡지 못한다");
+    assert.ok(PEER_DISPLAY_CATCHUP_FACTOR <= 4, "너무 크면 한도가 있으나 마나다");
+  });
+
+  it("등속 송신이면 화면 속도가 좁은 띠 안에 있다", () => {
+    for (const c of [
+      { intervalMs: 200, jitterMs: 60, runMs: 25_000 },
+      { intervalMs: 1000, jitterMs: 200, runMs: 40_000 },
+    ]) {
+      const { min, max } = replay(c);
+      assert.ok(min > 0, `동행이 뒤로 갔다: ${min.toFixed(2)} m/s (간격 ${c.intervalMs}ms)`);
+      assert.ok(
+        max <= SPEED * PEER_DISPLAY_CATCHUP_FACTOR + 0.01,
+        `한도(${SPEED * PEER_DISPLAY_CATCHUP_FACTOR} m/s)를 넘겼다: ${max.toFixed(2)} (간격 ${c.intervalMs}ms)`,
+      );
+    }
+  });
+
+  it("2초 끊겼다 돌아와도 한 프레임에 건너뛰지 않는다", () => {
+    /*
+     * ⚠️ 이 시나리오가 없으면 계약이 **아무것도 막지 못한다** — 실제로 한도를 떼어 봤는데
+     * 통과했다. 평범한 지터만으로는 큰 튐이 안 만들어진다.
+     *
+     * 끊기는 동안 외삽은 1.2초에서 멈추고(`PEER_INTERP_MAX_EXTRAP_MS`) 화면은 서 있다.
+     * 그동안 상대는 계속 달렸으므로, 다시 이어질 때 그 차이만큼 **한 프레임에 건너뛴다.**
+     * chief 가 본 「가끔 한 프레임이 통째로 튀는」 것과 같은 모양이다.
+     */
+    const { max } = replay({
+      intervalMs: 200,
+      jitterMs: 60,
+      runMs: 30_000,
+      dropWindowMs: [12_000, 14_000],
+    });
+    assert.ok(
+      max <= SPEED * PEER_DISPLAY_CATCHUP_FACTOR + 0.01,
+      `끊김에서 돌아올 때 ${max.toFixed(1)} m/s 로 건너뛰었다`,
+    );
+  });
+
+  it("늦던 신호가 갑자기 빨라져도 건너뛰지 않는다", () => {
+    /*
+     * 시계 오프셋은 **가장 빨리 온 패킷** 기준이라 한 번 내려가면 버퍼 전체가 타임라인 위에서
+     * 통째로 이동한다. 재생 시계를 같이 옮기지 않으면 그 차이만큼 화면이 건너뛴다.
+     */
+    const { max } = replay({
+      intervalMs: 200,
+      jitterMs: 0,
+      runMs: 30_000,
+      delayAt: (k) => (k < 60 ? 500 : 0),
+    });
+    assert.ok(
+      max <= SPEED * PEER_DISPLAY_CATCHUP_FACTOR + 0.01,
+      `오프셋이 내려갈 때 ${max.toFixed(1)} m/s 로 건너뛰었다`,
+    );
+  });
+
+  it("시계 오프셋이 내려가면 재생 시계도 같은 만큼 내려간다", () => {
+    /*
+     * ⚠️ 이 판정은 **출구 한도를 통해서는 잡히지 않는다** — 한도가 가려 주기 때문이다.
+     * 실제로 이 보정을 떼고도 위 판정들이 전부 통과했다. 그래서 직접 겨눈다.
+     *
+     * 타임라인 = 송신시각 + 오프셋. 오프셋이 Δ 만큼 내려가면 버퍼의 모든 스냅샷이 타임라인
+     * 위에서 Δ 만큼 앞으로 이동한다. 재생 시계를 그대로 두면 상대 위치가 Δ 만큼 어긋나고,
+     * 그 차이는 결국 화면에서 메워야 할 빚이 된다.
+     */
+    const realNow = Date.now;
+    let now = 0;
+    (Date as unknown as { now: () => number }).now = () => now;
+    try {
+      /*
+       * ⚠️ 첫 패킷이 오프셋을 정한다. 이것을 **느린 도착으로 만들지 않으면** 오프셋이
+       * 처음부터 0 근처가 되어 「내려갈 여지」가 없다 — 첫 판에서 실제로 그래서
+       * 46ms 밖에 안 내려갔다(M0 가 잡았다).
+       */
+      now = 501;
+      const e = createPeerMotionEntity(packet(1), "peer");
+      // 느린 망 — 도착이 500ms 늦는다.
+      for (let cap = 200; cap <= 2_000; cap += 200) {
+        now = cap + 500;
+        applyPeerMotionIngest(e, packet(cap), "peer");
+        stepPeerMotionEntity(e, 0.2, ROUTE_LEN, now);
+      }
+      const offBefore = e.clockOffsetMs;
+      const clockBefore = e.renderClockMs;
+      assert.ok(offBefore != null && clockBefore != null, "재생 시계가 아직 서지 않았다(M0)");
+
+      // 망이 갑자기 빨라진다 — 같은 시각에 잡힌 좌표가 지연 없이 도착.
+      now = 2_200;
+      applyPeerMotionIngest(e, packet(2_200), "peer");
+
+      const drop = offBefore! - e.clockOffsetMs!;
+      assert.ok(drop > 200, `오프셋이 실제로 내려가야 시험이 의미 있다 (내려간 양 ${drop}ms)`);
+      const clockMoved = clockBefore! - e.renderClockMs!;
+      assert.ok(
+        Math.abs(clockMoved - drop) < 1,
+        `재생 시계가 ${clockMoved}ms 만 따라갔다 — 오프셋은 ${drop}ms 내려갔다`,
+      );
+    } finally {
+      (Date as unknown as { now: () => number }).now = realNow;
+    }
+  });
+
+  it("진짜 순간이동은 즉시 맞춘다 — 기어가면 더 이상하다", () => {
+    /*
+     * 재참여·경로 재시작이면 수십 m 가 한 번에 바뀐다. 그것까지 2.5배로 기어가면
+     * 동행이 한참 동안 엉뚱한 곳에 있다. 한도는 **작은 어긋남**을 위한 것이다.
+     */
+    assert.ok(PEER_DISPLAY_SNAP_M >= 5, "너무 작으면 평범한 보정도 순간이동으로 친다");
+    assert.ok(PEER_DISPLAY_SNAP_M <= 50, "너무 크면 진짜 순간이동이 한참 기어간다");
+  });
 });
