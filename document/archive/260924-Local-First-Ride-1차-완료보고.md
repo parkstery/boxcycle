@@ -5,7 +5,7 @@
 | 문서 유형 | **기록** — 2026-09-23~24 릴레이 11라운드의 결과·판정·남은 것 |
 | 작성 | 2026-09-24 |
 | 릴레이 | `document/ops/20260923-first_ride/` (종결) |
-| 요구 기준 | [Local First Ride 실행계획](../260923-RTW-Local-First-Ride-실행계획.md) |
+| 요구 기준 | [Local First Ride 실행계획](260923-RTW-Local-First-Ride-실행계획.md) |
 | 최종 상태 | `main` = `e7b4c1a` · 배포 완료(서버·웹) |
 
 ---

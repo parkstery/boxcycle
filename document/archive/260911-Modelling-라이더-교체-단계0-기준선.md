@@ -5,7 +5,7 @@
 | 문서 유형 | **record** — 단계 0 실행·검증 기록 |
 | 최초 작성 | 2026-09-11 |
 | 상태 | **검토됨** — 도구 실행 및 이미지 확인 완료. 사용자 단계 0 승인은 미수신 |
-| 연결 문서 | [교체 실행 계획](../260910-Modelling-라이더-교체-실행계획.md) · [하네스](../../apps/web/scripts/rider-cycle-fit/HARNESS.md) |
+| 연결 문서 | [교체 실행 계획](260910-Modelling-라이더-교체-실행계획.md) · [하네스](../../apps/web/scripts/rider-cycle-fit/HARNESS.md) |
 
 ## 실행 결과
 

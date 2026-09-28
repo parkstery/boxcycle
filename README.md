@@ -2,7 +2,7 @@
 
 문서 작성은 [`document/260509-BOXCYCLE-문서-생성-및-수정-지침.md`](document/260509-BOXCYCLE-문서-생성-및-수정-지침.md)를 따른다. **분류별 전체 목록**은 [`document/README.md`](document/README.md)를 본다.
 
-**현재 단계·범위·스택·1차 마일스톤(멀티 유저 검증)** 의 단일 진실은 [`document/260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md`](document/260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md)를 본다.
+**현재 단계·범위·스택·1차 마일스톤(멀티 유저 검증)** 의 단일 진실은 [`document/archive/260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md`](document/archive/260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md)를 본다.
 
 **서비스 비전·UGC 정책·저장 전략(장기)** 의 단일 진실은 [`document/260511-RTW-마스터-비전-및-종합계획.md`](document/260511-RTW-마스터-비전-및-종합계획.md)를 본다.
 

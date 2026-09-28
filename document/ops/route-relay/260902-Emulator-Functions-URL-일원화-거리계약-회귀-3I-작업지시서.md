@@ -136,7 +136,7 @@ export function functionsHttpUrl(functionName: string): string
 
 ### 4.2 통합 후에 남는 일 (단계 C)
 
-`feat/next-ride-continuation` 은 자동 Route 팝업이 존재하기 전에 만들어졌다. 따라서 [R1 §4](../ride-relay/260902-다음-주행-이어달리기-자동Route-결합-R1-작업지시서.md#4-단계-c--자동-route-결합-이-r1-의-신규-조항) 의 자동 Route 결합 조항은 **여전히 새 작업**이다.
+`feat/next-ride-continuation` 은 자동 Route 팝업이 존재하기 전에 만들어졌다. 따라서 [R1 §4](../../archive/ops/ride-relay/260902-다음-주행-이어달리기-자동Route-결합-R1-작업지시서.md#4-단계-c--자동-route-결합-이-r1-의-신규-조항) 의 자동 Route 결합 조항은 **여전히 새 작업**이다.
 
 - 260829 §3.3 「이 지점에서 새 경로」에서 자동 Route 팝업을 1급 진입으로 연결
 - 목표 거리·이동수단 직전 값 승계

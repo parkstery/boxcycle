@@ -67,6 +67,6 @@ node scripts/ops-relay/check-amend.mjs document/ops/20260923-first_ride  # 라�
 
 | 문서 | 역할 |
 |---|---|
-| `document/260923-RTW-Local-First-Ride-실행계획.md` | LF-0~LF-4 범위·하지 않을 것 |
+| `document/archive/260923-RTW-Local-First-Ride-실행계획.md` | LF-0~LF-4 범위·하지 않을 것 |
 | `document/260714-RTW-Ontology.md` | 용어. **Ready Ride** 는 §2.2 등재된 사용자 노출 명칭 |
 | `document/260707-RTW-결정-로그.md` | 2026-09-23~24 결정들 |

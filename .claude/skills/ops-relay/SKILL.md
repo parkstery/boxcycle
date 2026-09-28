@@ -66,7 +66,7 @@ Chief 는 `node scripts/ops-relay/watch-status.mjs <묶음>` 상황판으로 지
 ## 이 묶음 고정 규칙 (활성: `20260923-first_ride`)
 
 - 상세 규약: `document/ops/20260923-first_ride/README.md` · 맥락: 같은 폴더 `20260923-Local-First-착수브리핑.md`
-- 요구 기준: `document/260923-RTW-Local-First-Ride-실행계획.md`
+- 요구 기준: `document/archive/260923-RTW-Local-First-Ride-실행계획.md`
 - 이전 묶음 `20260923-minimap` · `20260922-new_camera` 는 종결됐다
 - 캡처·`git diff --stat -- apps/web/src` 없는「문서만」보고는 실패로 본다.
 - 주행 검증 5분·3-strike·브라우저 5분 무진전 시 경로 전환(지시·CLAUDE.md).

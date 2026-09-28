@@ -51,7 +51,7 @@
 
 `feat/ride-continue-r1` 브랜치는 만들어졌지만 commit 이 0개다. 원인은 **읽을 지시서가 worktree 에 없기 때문**이다.
 
-[260902-다음 주행·이어 달리기 자동 Route 결합 R1](../ride-relay/260902-다음-주행-이어달리기-자동Route-결합-R1-작업지시서.md) 은 `C:\20.HDev\boxcycle` 의 미추적 파일로만 존재하고, worktree 의 `document/ops/ride-relay/` 에는 260829 하나뿐이다.
+[260902-다음 주행·이어 달리기 자동 Route 결합 R1](../../archive/ops/ride-relay/260902-다음-주행-이어달리기-자동Route-결합-R1-작업지시서.md) 은 `C:\20.HDev\boxcycle` 의 미추적 파일로만 존재하고, worktree 의 `document/archive/ops/ride-relay/` 에는 260829 하나뿐이다.
 
 ```text
 cp "C:/20.HDev/boxcycle/document/ops/ride-relay/260902-다음-주행-이어달리기-자동Route-결합-R1-작업지시서.md" \
@@ -64,7 +64,7 @@ cp "C:/20.HDev/boxcycle/document/README.md" \
 
 ## 4. 3H-3 — RIDE-CONTINUE-1-R1 단계 A 실행·보고
 
-[R1 지시서](../ride-relay/260902-다음-주행-이어달리기-자동Route-결합-R1-작업지시서.md) §2 의 3건을 **실제로 눌러 보고** 화면 증거와 함께 보고한다. 코드만 읽고 추정하지 않는다.
+[R1 지시서](../../archive/ops/ride-relay/260902-다음-주행-이어달리기-자동Route-결합-R1-작업지시서.md) §2 의 3건을 **실제로 눌러 보고** 화면 증거와 함께 보고한다. 코드만 읽고 추정하지 않는다.
 
 1. 자동 Route 생성 직후 `Go` 로 주행이 시작되는가. `rideStatus` 가 `running` 이 되는가.
 2. 자동 Route 를 「내 경로로 저장」하면 SavedRoute 로 남는가. `profile`·거리·geometry 가 생성값과 일치하는가.

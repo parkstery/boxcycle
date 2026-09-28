@@ -5,7 +5,7 @@
 | 문서 유형 | **record** — 단계 0 실행·검증 기록 |
 | 최초 작성 | 2026-09-13 |
 | 상태 | **검토됨** — 도구 실행 및 이미지 확인 완료. 사용자 단계 0 승인은 미수신 |
-| 연결 문서 | [교체 실행 계획](../260910-Modelling-라이더-교체-실행계획.md) · [최신 인계 조건](../260912-Modelling-최신라이더-인계조건.md) · [9월 11일 기준선](260911-Modelling-라이더-교체-단계0-기준선.md) · [하네스](../../apps/web/scripts/rider-cycle-fit/HARNESS.md) |
+| 연결 문서 | [교체 실행 계획](260910-Modelling-라이더-교체-실행계획.md) · [최신 인계 조건](260912-Modelling-최신라이더-인계조건.md) · [9월 11일 기준선](260911-Modelling-라이더-교체-단계0-기준선.md) · [하네스](../../apps/web/scripts/rider-cycle-fit/HARNESS.md) |
 
 ## 1. 인수 대상과 해시 대조
 
@@ -20,7 +20,7 @@
 
 ## 2. 도구 확장
 
-기존 `register-modelling-baseline.mjs`는 9월 11일 릴리스의 파일명·source task·blend 경로가 코드에 고정되어 있어 새 릴리스에 쓸 수 없었다. [인계 조건 §5-2](../260912-Modelling-최신라이더-인계조건.md)에 따라 **모든 입력을 명시 인자로 받도록 확장**했다(`--release` / `--rider-glb` / `--rider-blend` / `--source-task` / `--evidence` / `--legacy` / `--blender`). 폴더 자동 탐색은 넣지 않았다 — 작업 중 파일이나 구형 릴리스가 섞이는 경로를 애초에 만들지 않기 위함이다. 필수 인자 누락과 존재하지 않는 증거 파일은 즉시 실패한다.
+기존 `register-modelling-baseline.mjs`는 9월 11일 릴리스의 파일명·source task·blend 경로가 코드에 고정되어 있어 새 릴리스에 쓸 수 없었다. [인계 조건 §5-2](260912-Modelling-최신라이더-인계조건.md)에 따라 **모든 입력을 명시 인자로 받도록 확장**했다(`--release` / `--rider-glb` / `--rider-blend` / `--source-task` / `--evidence` / `--legacy` / `--blender`). 폴더 자동 탐색은 넣지 않았다 — 작업 중 파일이나 구형 릴리스가 섞이는 경로를 애초에 만들지 않기 위함이다. 필수 인자 누락과 존재하지 않는 증거 파일은 즉시 실패한다.
 
 `inspect-modelling-baseline.py`가 열던 blend 경로도 하드코딩을 제거하고 manifest의 `selectedRiderBlend`를 따르게 했다. manifest는 `schemaVersion: 2`로 올리고 `selectedRiderBlend`·`releaseDirectory`를 추가했다.
 

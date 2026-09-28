@@ -5,7 +5,7 @@
 | 문서 유형 | architecture (실행 스키마 초안) |
 | 최초 작성 | 2026-05-09 |
 | 상태 | **채택(참고)** — 코드·Rules와 동기 유지, RTW·현재 단계 문서가 우선 |
-| 연결 문서 | [RTW 마스터 비전](../260511-RTW-마스터-비전-및-종합계획.md), [코스 수명·UGC 품질 정책](260511-코스-수명-UGC-품질-정책.md), [경로 저장 계층화](260511-경로저장-계층화-Frozen-Route-Segment.md), [Firestore Rules 일반화](260511-Firestore-Rules-일반화-방안.md), [현재 단계·1차 마일스톤](../260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md), [Firestore→Postgres 체크리스트](260509-Firestore-Postgres-이전-체크리스트.md), [아키텍처·DB 장기안](260509-아키텍쳐-DB설계.md), [제품 용어 Trailhead·Trail](../260517-제품-용어-Trailhead-Trail.md) |
+| 연결 문서 | [RTW 마스터 비전](../260511-RTW-마스터-비전-및-종합계획.md), [코스 수명·UGC 품질 정책](260511-코스-수명-UGC-품질-정책.md), [경로 저장 계층화](260511-경로저장-계층화-Frozen-Route-Segment.md), [Firestore Rules 일반화](260511-Firestore-Rules-일반화-방안.md), [현재 단계·1차 마일스톤](260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md), [Firestore→Postgres 체크리스트](260509-Firestore-Postgres-이전-체크리스트.md), [아키텍처·DB 장기안](260509-아키텍쳐-DB설계.md), [제품 용어 Trailhead·Trail](../260517-제품-용어-Trailhead-Trail.md) |
 
 > **제품 용어:** **`trails/{trailId}`** = Trail 인스턴스(단일 진실). `rooms/` = 마이그레이션 완료 **레거시 read-only** — [용어집 §8](../260517-제품-용어-Trailhead-Trail.md).
 

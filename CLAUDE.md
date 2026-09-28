@@ -17,10 +17,12 @@
 
 | 질문 | 문서 |
 |---|---|
+| 지금 어디까지 왔나·다음 목표·chief 결정 대기 | [document/260928-RTW-현황판.md](document/260928-RTW-현황판.md) |
+| 에이전트 작업 창구(ops) 현황·새 묶음 열기 | [document/ops/README.md](document/ops/README.md) |
 | X가 무엇인가·뭐라고 부르나 | [document/260714-RTW-Ontology.md](document/260714-RTW-Ontology.md) |
 | 왜 그렇게 결정했나 | [document/260707-RTW-결정-로그.md](document/260707-RTW-결정-로그.md) |
 | 어디까지 구현됐나·전체 그림 | [document/260707-RTW-기능-인벤토리-상태보드.md](document/260707-RTW-기능-인벤토리-상태보드.md) |
-| 문서·용어를 바꾸는 절차 | [document/260509-BOXCYCLE-문서-생성-및-수정-지침.md](document/260509-BOXCYCLE-문서-생성-및-수정-지침.md) §6·§6.1 |
+| 문서·용어를 바꾸는 절차 | [document/260509-BOXCYCLE-문서-생성-및-수정-지침.md](document/260509-BOXCYCLE-문서-생성-및-수정-지침.md) §6·§6.1·§8 |
 | 비전·전략·타겟 | [document/260511-RTW-마스터-비전-및-종합계획.md](document/260511-RTW-마스터-비전-및-종합계획.md) |
 | 정복 메커닉·인정 규칙·수치 | [document/260703-Conquest-정복-레이어-설계.md](document/260703-Conquest-정복-레이어-설계.md) |
 | Skill·Harness를 만들거나 구분하려면 | [document/260722-Skill-Harness-아키텍처.md](document/260722-Skill-Harness-아키텍처.md) |

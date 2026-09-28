@@ -5,7 +5,7 @@
 | 문서 유형 | **execution** — 4개 architecture·product 결정의 코드 작업 단위 변환 |
 | 최초 작성 | 2026-05-11 |
 | 상태 | **코드 반영 중** — Phase 1-A·Trail 기반 presence는 반영. `sessions`/`presence` 루트 컬렉션(1-B)은 미착수. |
-| 연결 문서 | [RTW 마스터](../260511-RTW-마스터-비전-및-종합계획.md), [코스 수명·UGC 품질 정책](260511-코스-수명-UGC-품질-정책.md), [경로 저장 계층화](260511-경로저장-계층화-Frozen-Route-Segment.md), [Firestore Rules 일반화](260511-Firestore-Rules-일반화-방안.md), [현재 단계·1차 마일스톤](../260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md), [app.js 분리 1차 리팩터링](260509-app-js-프론트백엔드-분리-1차리팩터링.md), [Firestore 스키마 초안](260509-Firestore-컬렉션-스키마-초안.md) |
+| 연결 문서 | [RTW 마스터](../260511-RTW-마스터-비전-및-종합계획.md), [코스 수명·UGC 품질 정책](260511-코스-수명-UGC-품질-정책.md), [경로 저장 계층화](260511-경로저장-계층화-Frozen-Route-Segment.md), [Firestore Rules 일반화](260511-Firestore-Rules-일반화-방안.md), [현재 단계·1차 마일스톤](260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md), [app.js 분리 1차 리팩터링](260509-app-js-프론트백엔드-분리-1차리팩터링.md), [Firestore 스키마 초안](260509-Firestore-컬렉션-스키마-초안.md) |
 
 ---
 
@@ -14,7 +14,7 @@
 - 본 문서는 **마스터·architecture 결정을 PR·이슈 단위로 분해한 실행 체크리스트**다.
 - 각 Phase는 **수락 기준 + 영향받는 파일 + 대응 architecture 문서 §** 표 형식.
 - Phase 간 의존성은 §6 의존성 그래프.
-- 1차 마일스톤 범위·진행 표는 [현재 단계 문서 §2.1](../260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md)이 단일 진실.
+- 1차 마일스톤 범위·진행 표는 [현재 단계 문서 §2.1](260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md)이 단일 진실.
 
 ### 0.1 2026-05 실제 반영 (계획 vs 코드)
 
@@ -26,7 +26,7 @@
 | 1-B~1-D | `sessions/` · `presence/` 신설, `coursePresence` 폐기 | ⬜ `firestoreSessions.ts` 없음. `coursePresence`·`firestoreCoursePresence.ts` **유지** |
 | (병행) Trail presence | 원안 1C-2는 `rooms/…/members` | ✅ **`trails/{trailId}/members`**, `livePublicationRides`, `useTrailSession` — [용어집](../260517-제품-용어-Trailhead-Trail.md) |
 | (병행) Trailhead MENU listing | — | ✅ `openTrailListings` + CG, **활성 라이더만** — [스키마 §3.2.3](260509-Firestore-컬렉션-스키마-초안.md) |
-| (병행) Activity·출판 | Phase 2 이후 | 🔄 `courseActivity`, `routePublications`, World Presence M1~M3 — [현재 단계 §4.3](../260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md) |
+| (병행) Activity·출판 | Phase 2 이후 | 🔄 `courseActivity`, `routePublications`, World Presence M1~M3 — [현재 단계 §4.3](260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md) |
 
 **의사결정:** 1차 마일스톤 **C·D** 는 Trail·`coursePresence` 로 검증 가능. **1-B는 1차 달성 후** 또는 UGC Phase 2와 일정 조율.
 
