@@ -421,7 +421,13 @@ async function runScenario(page: Page, scenario: ScenarioId) {
   expect(finishBox, "깃발 boundingBox 가 null 이면 안 된다").not.toBeNull();
   expect(finishBox!.width, "깃발 width").toBeGreaterThan(0);
   expect(finishBox!.height, "깃발 height").toBeGreaterThan(0);
-  expect(flagFill, "깃발 천 색은 빨강이어야 한다").toBe("#ef4444");
+  /*
+   * 깃발 천 색은 표고선(`ELEVATION_LINE_COLOR`)과 같아야 한다 — 2026-09-24 에 경로선(#ef4444)과
+   * 구분하려고 표고 계열을 #c36839 로 바꿨는데 이 줄만 옛 빨강에 남아 있었다. 앞선
+   * 「겹치면 안 된다」가 먼저 터지는 바람에 여기까지 오지 못해 4일간 드러나지 않았다
+   * (2026-09-28). 제품 상수와 같은 값을 적는다.
+   */
+  expect(flagFill, "깃발 천 색은 표고선과 같아야 한다").toBe("#c36839");
   const fTop = finishBox!.y;
   const fBottom = finishBox!.y + finishBox!.height;
   const fLeft = finishBox!.x;

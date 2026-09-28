@@ -1027,18 +1027,19 @@
 }
 
 /* 지도 위에 배경 없이 뜨는 흰 글자다 — 밝은 지형에서 묻히지 않게 2중 테두리(2026-09-18 Chief).
- * (2026-09-24 지시03) 세로는 화면 하단 코칭 멘트 줄(`.hud-coach`/`.map-hud__bc`, MapHud.css)과
- * 같은 높이로 고정한다 — 「허공에 떠 있다」던 Chief 지적. 코칭 멘트 유무와 무관해야 하므로
- * 실제 코치 DOM 위치가 아니라 그 줄의 `bottom` 계산식을 그대로 복제해서 쓴다.
- * `.hud-coach` 는 형제 컴포넌트(MapHud)에 있어 `--hud-pad-bottom` 커스텀 프로퍼티가 상속되지
- * 않는다 — `PlaceSearchPanel.css`(`var(--hud-pad-top, 0.65rem)`)와 같은 방식으로 리터럴 폴백을
- * 그대로 쓴다. 가로는 그대로 좌(시점)·우(종점) 끝을 유지한다.
+ * (2026-09-24 지시03) 세로를 화면 하단 코칭 멘트 줄 높이에 맞췄다 — 「허공에 떠 있다」던 지적.
+ *
+ * (2026-09-28 Chief) 그 높이가 하필 **그래프 안쪽**이었다. 표고가 낮은 시·종점은 플롯 바닥
+ * 근처에 찍히는데 메타 행이 거기 얹혀 시점·종점 점과 「N% covered」 배지를 가렸다. 그래서
+ * 메타 행을 오버레이 **맨 아래(bottom: 0)** 로 내리고 플롯은 그만큼 바닥을 비운다
+ * (`.elevation-overlay__plot` 의 `calc(100% - 1.4rem)`). 두 값은 한 쌍이다 — 한쪽만 바꾸면
+ * 겹침이 돌아온다. 가로는 그대로 좌(시점)·우(종점) 끝을 유지한다.
  */
 .elevation-overlay__meta {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: calc(var(--hud-pad-bottom, 0.65rem) + 0.2rem);
+  bottom: 0;
   display: flex;
   justify-content: space-between;
   padding: 0.1rem 0;
@@ -1049,15 +1050,15 @@
 
 /* svg 와 진행률 라벨(elevation-overlay__progress)이 같은 % 좌표계를 공유하도록
    묶는 박스 — 라벨은 SVG 밖 HTML 요소라 이 박스 기준으로만 좌표가 맞는다.
-   (2026-09-24 지시03) 시점/종점 메타 행이 더 이상 이 박스 위에서 세로 공간을 먹지 않는다
-   (코칭 높이로 절대배치, 위 주석) — 그래프가 패널 높이 대부분을 그대로 쓴다.
-   0.3rem 만큼은 비워 둔다 — 메타 행이 이제 패널 **아래쪽**에 있어서, 경로 최저점 부근에서
-   그래프의 점·「N% covered」 배지가 메타 행과 너무 가까워질 계산상 여유(≈3px)가 빠듯했다.
-   실기 캡처로 확인하지 못한 채 계산으로만 정한 값이라 보수적으로 잡았다 — REPORT 참고. */
+   바닥 1.4rem 은 메타 행(「시점/종점」) 자리로 비워 둔다 — 2026-09-28 Chief.
+   0.3rem 만 비웠던 종전 값은 메타 행이 플롯 안쪽에 걸쳐, 표고가 낮은 시·종점에서
+   점과 「N% covered」 배지를 가렸다. 이 값과 `.elevation-overlay__meta { bottom: 0 }` 은
+   한 쌍이다 — 한쪽만 바꾸면 겹침이 돌아온다. e2e `hud-distance-elevation-shots` 의
+   「진행률 라벨이 시점/종점 메타 행과 겹치면 안 된다」가 감시한다. */
 .elevation-overlay__plot {
   position: relative;
   width: 100%;
-  height: calc(100% - 0.3rem);
+  height: calc(100% - 1.4rem);
 }
 
 .elevation-overlay__svg {
