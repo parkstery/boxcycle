@@ -1,13 +1,13 @@
 /**
  * 라이더 조명 조절판(`?lightlab=1`, 지시02) — UI 전용 설정.
- * 광원 참조·강도 반영은 `preservedRiderLayer.ts` 가 맡는다(구조 변경 없음). 이 파일은
- * 슬라이더 범위·프리셋 값·URL 게이트·localStorage 영속화·「값 복사」 텍스트만 다룬다.
+ * 기본값·좌표 변환은 `riderLightRig.ts`, 광원에 실제로 반영하는 일은 지도 레이어가 맡는다.
+ * 이 파일은 슬라이더 범위·프리셋 값·URL 게이트·localStorage 영속화·「값 복사」 텍스트만 다룬다.
  */
 import {
   RIDER_LIGHT_LAB_DEFAULT_STATE,
   riderLightLabKeyPosition,
   type RiderLightLabState,
-} from "./preservedRiderLayer";
+} from "./riderLightRig";
 
 export type { RiderLightLabState };
 export { RIDER_LIGHT_LAB_DEFAULT_STATE };

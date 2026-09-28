@@ -22,7 +22,7 @@ import {
   type RoutePublicationRow,
 } from "./firestoreRoutePublications";
 import { lastSeenAtToMillis } from "../../firebase/converters";
-import { getUserPublicLabelsByUid } from "../../identity/repo/firestoreUser";
+import type { RouteUserLabelLookup } from "../routeIdentityPort";
 import { getDistanceMeters, type LineStringGeometry, type LngLat } from "../../geo/geo";
 import { boundsFromLineStringGeometry as boundsFromLineStringGeometryImpl } from "../../geo/bounds";
 import { computeRouteFingerprint } from "../routeFingerprint";
@@ -143,11 +143,14 @@ function summaryFromPublication(pub: RoutePublicationRow): PublishedPublicCourse
 /**
  * 퍼블릭 카탈로그 — `routePublications` 단일 (Phase 5: `courses` 폴백 제거).
  */
-export async function listPublishedPublicCourses(max = 40): Promise<PublishedPublicCourseSummary[]> {
+export async function listPublishedPublicCourses(
+  lookupUserLabels: RouteUserLabelLookup,
+  max = 40,
+): Promise<PublishedPublicCourseSummary[]> {
   const cap = Math.min(80, Math.max(1, max));
   const pubs = await listPublishedRoutePublications(cap);
   const rows = pubs.map(summaryFromPublication);
-  const labelByUid = await getUserPublicLabelsByUid(
+  const labelByUid = await lookupUserLabels(
     rows.map((r) => r.applicantUid).filter((uid): uid is string => Boolean(uid)),
   );
   return rows.map((r) => ({

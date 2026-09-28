@@ -27,7 +27,7 @@ import { writeRoutePublicationOnApprove } from "./firestoreRoutePublications";
 import {
   PUBLIC_ROUTE_NAMING_POLICY_VERSION,
 } from "../publicRouteNamingPolicy";
-import { getUserProfileTier } from "../../identity/repo/firestoreUser";
+import type { RouteUserTierLookup } from "../routeIdentityPort";
 import { assertTierQuotaClient } from "../../account/tierQuota";
 import { functionsHttpUrl } from "../../firebase/functionsEmulatorUrl";
 import { canSubmitPublicRoute, GUEST_PUBLIC_ROUTE_MSG } from "../../account/userTier";
@@ -345,9 +345,10 @@ export async function createPublicRouteRequest(
     experienceTags: ExperienceTagId[];
     namingPolicyAcknowledged: boolean;
   },
+  lookupUserTier: RouteUserTierLookup,
 ): Promise<string> {
   try {
-  const tier = await getUserProfileTier(user.uid);
+  const tier = await lookupUserTier(user.uid);
   if (!canSubmitPublicRoute(tier, user)) {
     throw new Error(GUEST_PUBLIC_ROUTE_MSG);
   }

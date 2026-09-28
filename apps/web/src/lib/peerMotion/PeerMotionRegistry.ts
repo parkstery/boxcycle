@@ -8,7 +8,7 @@ import {
   PEER_DRIVE_SIM_GRACE_MS,
   PEER_INTERP_MAX_EXTRAP_MS,
 } from "./peerSyncPolicy";
-import { estimateCrankRpmFromSpeedKmh } from "../rider/riderPedalMotion";
+import { estimateCrankRpmFromSpeedKmh } from "../sensor/crankRpm";
 import {
   applyPeerMotionIngest,
   clampRouteDist,

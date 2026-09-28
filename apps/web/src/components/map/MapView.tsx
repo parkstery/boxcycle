@@ -107,7 +107,7 @@ import {
   RIDER_PEDAL_FRAME_COUNT,
   RIDER_PEDAL_SPRITE_REVISION,
 } from "../../lib/rider/riderPedalSpriteMeta";
-import { estimateCrankRpmFromSpeedKmh, resolvePedalCrankRpm } from "../../lib/rider/riderPedalMotion";
+import { estimateCrankRpmFromSpeedKmh, resolvePedalCrankRpm } from "../../lib/sensor/crankRpm";
 import { resolveGlbPedalPose } from "../../lib/rider/riderGlbPedalPose";
 import { stepPeerDriveAndBuildGeoJson } from "../../lib/peerMotion/peerRidersDrive";
 import { resetPeerMotionRegistry } from "../../lib/peerMotion";
@@ -129,7 +129,7 @@ import {
   clearRiderPreservedModels,
   ensureRiderPreservedLayer,
   syncRiderPreservedModels,
-} from "../../lib/riderPrototype/preservedRiderLayer";
+} from "../../lib/map/riderPreservedLayer";
 import { MapZoomGlobeControl } from "./MapZoomGlobeControl";
 import {
   computeRideFollowFraming,

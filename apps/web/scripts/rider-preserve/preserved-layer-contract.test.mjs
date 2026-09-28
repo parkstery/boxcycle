@@ -43,7 +43,7 @@ test("MapView forwards the live phase and keeps the legacy GLB path", () => {
 });
 
 test("custom layer renders every rider with terrain, phase, bearing and lean", () => {
-  const source = read(path.join(webRoot, "src", "lib", "riderPrototype", "preservedRiderLayer.ts"));
+  const source = read(path.join(webRoot, "src", "lib", "map", "riderPreservedLayer.ts"));
   assert.match(source, /for \(const spec of this\.specs\)/);
   assert.match(source, /this\.rig\.setPhase\(spec\.phaseRev \?\? 0\)/);
   assert.match(source, /queryTerrainElevation/);

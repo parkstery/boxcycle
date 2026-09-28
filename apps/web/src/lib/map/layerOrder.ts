@@ -8,7 +8,7 @@
  *   red dot setData                   pulse dots 를 top 으로 (갱신마다)
  *   heat dot setData                  heat dots 를 top 으로
  *   moveGlobalLivePresenceLayersToTop presence 3개를 top 으로
- *   preservedRiderLayer               라이더가 스스로 top 으로
+ *   riderPreservedLayer               라이더가 스스로 top 으로
  *
  * **마지막에 실행된 쪽이 이긴다.** 그래서 주행 중 최상단이 라이더가 아니라 activity
  * pulse dots 였다(구조 감사 P4 실측). 호출 순서에 순서가 달려 있으면 그것은 정책이 아니다.

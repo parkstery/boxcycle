@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent, type TouchEvent } from "react";
-import { setRiderLightLabState } from "../../lib/riderPrototype/preservedRiderLayer";
+import { setRiderLightLabState } from "../../lib/riderPrototype/riderLightRig";
 import {
   formatRiderLightLabCodePaste,
   isRiderLightLabEnabled,
