@@ -23,15 +23,14 @@
 |------|------|------|-----------|------|
 | [sync-relay](sync-relay/INSTRUCTION.md) | **대기** | 동행 위치 동기화. 활성 지시 없음, S4-4(동행 튐) 재개 보류 | 후속 계획: [동행 지연과 경쟁 판정](../260927-RTW-동행-지연과-경쟁-판정.md) | 불가 — `apps/web/scripts/peer-sync`·e2e·`/싱크지시` 가 경로 사용 |
 | [20260923-minimap](20260923-minimap/HANDOFF.md) | **대기** | 미니맵·HUD 재배치. 지시04까지 병합 후 중단 | 남은 일: 보류01(배경에 실제 지도)·보류02 | 가능(종료 시) |
-| [cyclefit-relay](cyclefit-relay/HANDOFF.md) | **정지** | 라이더-자전거 피팅(V2.4). 2026-08-08 F36 이후 활동 없음 | 라이더는 09-22 다른 경로로 교체 완료 → [완료 보고](../archive/260922-RTW-라이더-신구모델-교체-완료보고.md) | 보류 — `/지시확인` 창구 |
-| [map-relay](map-relay/) | **정지** | 줌 LOD 복구 · 지도 현재 위치 표시(방향 보정 시도 3/3, 09-13) | — | 가능(종료 판정 후) |
-| [route-relay](route-relay/) | **정지** | Route Token · 거리·방향 자동 Route(3F-C-R1 병합) · 화면 정리 6A. 09-05 이후 활동 없음 | 후속은 [Local First Ride](../archive/260923-RTW-Local-First-Ride-실행계획.md) 로 흡수 | 불가 — e2e 가 경로 사용 |
+| [cyclefit-relay](cyclefit-relay/HANDOFF.md) | 종료 | 라이더-자전거 피팅(V2.4). 08-08 F36 이후 멈춤 → 09-28 종료(chief) | 라이더는 09-22 다른 경로로 교체 완료 → [완료 보고](../archive/260922-RTW-라이더-신구모델-교체-완료보고.md) | 불가 — `/지시확인`·`/order` 명령이 경로 사용 |
+| [route-relay](route-relay/) | 종료 | Route Token · 거리·방향 자동 Route(3F-C-R1 병합) · 화면 정리 6A. 09-05 이후 멈춤 → 09-28 종료(chief) | 후속은 [Local First Ride](../archive/260923-RTW-Local-First-Ride-실행계획.md) 로 흡수 | 불가 — e2e 가 경로 사용 |
 | [20260924-camera-qc](20260924-camera-qc/README.md) | 종료 | Quick Camera 후속 — QC1 4단·라이더 조명·센서칩 최소화 | 지시04 PASS·배포 | 불가 — 코드 주석이 경로 사용 |
 | [20260923-first_ride](20260923-first_ride/README.md) | 종료 | Local First Ride 1차(지시01~11) | [완료 보고](../archive/260924-Local-First-Ride-1차-완료보고.md) | 불가 — 스킬·functions 가 경로 사용 |
 | [20260922-new_camera](20260922-new_camera/HANDOFF.md) | 종료 | Quick Camera 1~6 | [완료 보고](../archive/260923-RTW-Quick-Camera-작업-완료보고서.md) | 불가 — e2e 가 경로 사용 |
 | [giant-relay](giant-relay/INSTRUCTION.md) | 종료 | 라이더 20배 확대 실험 — 미채택 | [실험 종결](../archive/260827-라이더-자이언트-스케일-실험-종결.md) | 불가 — 코드 주석이 경로 사용 |
 
-「정지」는 종료 선언 없이 멈춘 묶음이다. 재개할지 닫을지 정해지면 상태를 바꾼다.
+「정지」(종료 선언 없이 멈춘 묶음)였던 셋은 2026-09-28 chief 결정으로 종료했다. 새로 멈추는 묶음이 생기면 이 상태를 다시 쓴다.
 
 ## archive 로 옮긴 묶음
 
@@ -41,3 +40,4 @@
 | [sensor-relay](../archive/ops/sensor-relay/) | BLE 케이던스 직결 · HUD 센서 칩(실센서 검증 통과) | 2026-09-28 |
 | [rider-replace](../archive/ops/rider-replace/) | 라이더 GLB 교체 사전 점검(P·P2·B) | 2026-09-28 |
 | [20260924-structure-audit](../archive/ops/20260924-structure-audit/) | 구조 감사 갈래별 원본(A·B·C) | 2026-09-28 |
+| [map-relay](../archive/ops/map-relay/) | 줌 LOD 복구 · 지도 현재 위치 표시(방향 보정 시도 3/3에서 멈춤) — 09-28 종료(chief) | 2026-09-28 |
