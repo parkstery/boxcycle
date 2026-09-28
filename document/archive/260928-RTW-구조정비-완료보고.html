@@ -1,0 +1,406 @@
+<title>RTW 구조 정비 결과</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f7f5fa;
+    --surface: #ffffff;
+    --surface-2: #f1eef7;
+    --line: #e0dbe9;
+    --line-soft: #ebe7f2;
+    --ink: #1c1726;
+    --ink-2: #4a4259;
+    --muted: #756d85;
+    --violet: #7c3aed;      /* 내 도로망 계열 — 이 앱이 「달린 길」에 쓰는 색 */
+    --violet-soft: #ede7fb;
+    --red: #dc2626;         /* 경로선 계열 — 아직 안 간 길 */
+    --red-soft: #fdeaea;
+    --good: #15803d;
+    --good-soft: #e6f4ea;
+    --amber: #b45309;
+    --amber-soft: #fbf0df;
+    --sans: "IBM Plex Sans KR", system-ui, -apple-system, "Malgun Gothic", sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "Consolas", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #141119;
+      --surface: #1d1926;
+      --surface-2: #262031;
+      --line: #342c42;
+      --line-soft: #2a2335;
+      --ink: #f2eefa;
+      --ink-2: #c8c0d6;
+      --muted: #9a92a9;
+      --violet: #a78bfa;
+      --violet-soft: #2e2542;
+      --red: #f87171;
+      --red-soft: #3a2126;
+      --good: #4ade80;
+      --good-soft: #1c3226;
+      --amber: #fbbf24;
+      --amber-soft: #382d18;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #141119;
+    --surface: #1d1926;
+    --surface-2: #262031;
+    --line: #342c42;
+    --line-soft: #2a2335;
+    --ink: #f2eefa;
+    --ink-2: #c8c0d6;
+    --muted: #9a92a9;
+    --violet: #a78bfa;
+    --violet-soft: #2e2542;
+    --red: #f87171;
+    --red-soft: #3a2126;
+    --good: #4ade80;
+    --good-soft: #1c3226;
+    --amber: #fbbf24;
+    --amber-soft: #382d18;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 920px;
+    margin: 0 auto;
+    padding-inline: 20px;
+    padding-block: 44px 72px;
+    display: flex;
+    flex-direction: column;
+    gap: 44px;
+  }
+  h1, h2, h3 { text-wrap: balance; margin: 0; }
+  p { margin: 0; }
+
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    font-family: var(--mono);
+  }
+  h1 { font-size: clamp(28px, 5.2vw, 40px); font-weight: 700; letter-spacing: -.02em; line-height: 1.25; margin-top: 10px; }
+  .lede { color: var(--ink-2); margin-top: 14px; font-size: clamp(15px, 2.4vw, 17px); max-width: 60ch; }
+  .lede b { color: var(--ink); font-weight: 600; }
+
+  h2 {
+    font-size: 20px; font-weight: 700; letter-spacing: -.01em;
+    display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  }
+  h2 .h2-note { font-size: 13px; font-weight: 400; color: var(--muted); letter-spacing: 0; }
+  section { display: flex; flex-direction: column; gap: 18px; }
+
+  /* ── 핵심 수치 ── */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+  .kpi {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 4px;
+  }
+  .kpi__label { font-size: 12.5px; color: var(--muted); font-weight: 500; }
+  .kpi__value {
+    font-family: var(--mono); font-variant-numeric: tabular-nums;
+    font-size: 27px; font-weight: 700; letter-spacing: -.02em; line-height: 1.2;
+  }
+  .kpi__value .from { color: var(--muted); font-weight: 400; font-size: 20px; }
+  .kpi__value .arrow { color: var(--muted); font-weight: 400; font-size: 17px; margin: 0 3px; }
+  .kpi__foot { font-size: 12.5px; color: var(--ink-2); }
+  .kpi--win .kpi__value { color: var(--good); }
+  .kpi--violet .kpi__value { color: var(--violet); }
+
+  /* ── 단계 차트 ── */
+  .chart { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px 20px; }
+  .stage { display: grid; grid-template-columns: 116px 1fr 118px; align-items: center; gap: 14px; padding: 7px 0; }
+  .stage + .stage { border-top: 1px dashed var(--line-soft); }
+  .stage__name { font-size: 13.5px; font-weight: 600; line-height: 1.35; }
+  .stage__name small { display: block; font-weight: 400; color: var(--muted); font-size: 11.5px; font-family: var(--mono); }
+  .track { background: var(--surface-2); border-radius: 5px; height: 22px; overflow: hidden; }
+  .bar { height: 100%; border-radius: 5px; background: var(--violet); opacity: .82; }
+  .stage--start .bar { background: var(--red); opacity: .72; }
+  .stage__num { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 14px; text-align: right; font-weight: 500; }
+  .stage__num .delta { display: block; font-size: 11.5px; color: var(--good); font-weight: 500; }
+  .stage--start .stage__num .delta { color: var(--muted); }
+  @media (max-width: 560px) {
+    .stage { grid-template-columns: 1fr 86px; grid-template-areas: "name num" "bar bar"; gap: 4px 10px; }
+    .stage__name { grid-area: name; }
+    .stage__num { grid-area: num; }
+    .track { grid-area: bar; height: 14px; margin-top: 2px; }
+  }
+
+  /* ── 표 ── */
+  .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 11px 16px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  thead th { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: var(--surface-2); }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+  code, .path { font-family: var(--mono); font-size: 12.5px; }
+  .path { color: var(--violet); word-break: break-all; }
+
+  /* ── 함정 ── */
+  .traps { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+  .trap {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--amber);
+    border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px;
+  }
+  .trap--headline { border-left-color: var(--red); grid-column: 1 / -1; background: var(--red-soft); border-color: transparent; }
+  .trap h3 { font-size: 15px; font-weight: 700; }
+  .trap p { font-size: 13.5px; color: var(--ink-2); }
+  .trap__fix { font-size: 13px; color: var(--ink); background: var(--surface); border-radius: 7px; padding: 8px 11px; border: 1px solid var(--line); }
+  .trap--headline .trap__fix { background: var(--surface); }
+
+  /* ── 멈춘 이유 ── */
+  .stopbox { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+  .refs { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ref {
+    font-family: var(--mono); font-size: 12px; background: var(--violet-soft); color: var(--violet);
+    border-radius: 999px; padding: 5px 11px; font-weight: 500; white-space: nowrap;
+  }
+  .ref b { font-weight: 700; }
+
+  /* ── 미결 ── */
+  .open { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); overflow: hidden; }
+  .open__row { display: flex; gap: 14px; padding: 13px 16px; align-items: baseline; }
+  .open__row + .open__row { border-top: 1px solid var(--line-soft); }
+  .pill { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; flex: none; font-family: var(--mono); }
+  .pill--wait { background: var(--amber-soft); color: var(--amber); }
+  .pill--open { background: var(--violet-soft); color: var(--violet); }
+  .pill--side { background: var(--surface-2); color: var(--muted); }
+  .open__text { font-size: 13.5px; color: var(--ink-2); }
+  .open__text b { color: var(--ink); font-weight: 600; }
+
+  footer { border-top: 1px solid var(--line); padding-top: 20px; color: var(--muted); font-size: 12.5px; display: flex; flex-wrap: wrap; gap: 6px 20px; }
+  footer span { font-family: var(--mono); }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">RTW · boxcycle · 2026-09-28</p>
+    <h1>구조 정비 결과</h1>
+    <p class="lede">
+      도메인 경계를 바로잡고 <b>MapView</b> 를 여섯 번에 나눠 쪼갰다.
+      <b>동작은 한 줄도 바꾸지 않았고</b>, 단계마다 실기 확인을 받았다.
+      「자리만 옮기기」로 할 수 있는 정비는 여기서 끝났다.
+    </p>
+  </header>
+
+  <section>
+    <div class="kpis">
+      <div class="kpi kpi--win">
+        <span class="kpi__label">도메인 방향 위반</span>
+        <span class="kpi__value"><span class="from">4</span><span class="arrow">→</span>0</span>
+        <span class="kpi__foot">규칙을 넓혀 덮은 것 없음</span>
+      </div>
+      <div class="kpi kpi--violet">
+        <span class="kpi__label">MapView.tsx</span>
+        <span class="kpi__value"><span class="from">4,874</span><span class="arrow">→</span>2,695</span>
+        <span class="kpi__foot">−1,944줄 · −45%</span>
+      </div>
+      <div class="kpi">
+        <span class="kpi__label">계약 시험</span>
+        <span class="kpi__value">331<span class="arrow">·</span><span class="from">0</span></span>
+        <span class="kpi__foot">pass · fail — 단계마다 전부 실행</span>
+      </div>
+      <div class="kpi">
+        <span class="kpi__label">새로 생긴 파일</span>
+        <span class="kpi__value">10</span>
+        <span class="kpi__foot">전부 「원래 거기 있었어야 할 자리」</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>MapView 가 줄어든 과정 <span class="h2-note">막대 길이 = 실제 줄 수 비율</span></h2>
+    <div class="chart">
+      <div class="stage stage--start">
+        <div class="stage__name">시작<small>2026-09-28</small></div>
+        <div class="track"><div class="bar" style="width:100%"></div></div>
+        <div class="stage__num">4,874<span class="delta">기준</span></div>
+      </div>
+      <div class="stage">
+        <div class="stage__name">A-1 남의 흔적·관전 점<small>mapLiveOverlayLayers</small></div>
+        <div class="track"><div class="bar" style="width:85.5%"></div></div>
+        <div class="stage__num">4,168<span class="delta">−706</span></div>
+      </div>
+      <div class="stage">
+        <div class="stage__name">A-2 라이더 DOM 마커<small>riderDomMarkers</small></div>
+        <div class="track"><div class="bar" style="width:80.4%"></div></div>
+        <div class="stage__num">3,918<span class="delta">−250</span></div>
+      </div>
+      <div class="stage">
+        <div class="stage__name">A-3 팝업·핀 제조기<small>mapPopupElements</small></div>
+        <div class="track"><div class="bar" style="width:61.8%"></div></div>
+        <div class="stage__num">3,012<span class="delta">−906</span></div>
+      </div>
+      <div class="stage">
+        <div class="stage__name">A-4 경로선·내 도로망<small>routeConquestLayers</small></div>
+        <div class="track"><div class="bar" style="width:60.1%"></div></div>
+        <div class="stage__num">2,930<span class="delta">−82</span></div>
+      </div>
+      <div class="stage">
+        <div class="stage__name">A-5a 표고 그래프<small>RouteElevationOverlay</small></div>
+        <div class="track"><div class="bar" style="width:57.8%"></div></div>
+        <div class="stage__num">2,817<span class="delta">−113</span></div>
+      </div>
+      <div class="stage">
+        <div class="stage__name">A-5b 핀 마커 생명주기<small>useMapPinMarkers</small></div>
+        <div class="track"><div class="bar" style="width:55.3%"></div></div>
+        <div class="stage__num">2,695<span class="delta">−122</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>경계를 바로잡은 세 건 <span class="h2-note">B단계 — 예외를 박은 것이 아니라 구조를 고쳤다</span></h2>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>위반</th><th>무엇이 문제였나</th><th>어떻게 갚았나</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="path">route → identity</span><br><span style="font-size:12px;color:var(--muted)">2건</span></td>
+            <td>코스 저장소가 사용자 저장소를 직접 열어 이름·등급을 읽었다</td>
+            <td><b>방향을 뒤집었다.</b> 저장소는 모양만 선언(<span class="path">routeIdentityPort</span>), 구현은 조립 지점이 <b>필수 인자</b>로 꽂는다 — 전역 setter 는 배선을 빠뜨려도 조용하다</td>
+          </tr>
+          <tr>
+            <td><span class="path">peerMotion → rider</span><br><span style="font-size:12px;color:var(--muted)">1건</span></td>
+            <td>속도→크랭크 RPM 계산이 라이더 쪽에 있었다. 라이더 표현이 아니라 <b>자전거 운동학</b>이다</td>
+            <td><b>배정을 정정했다.</b> <span class="path">sensor/crankRpm</span> 으로 내렸다. 규칙 변경이라 결정 로그에 기록 — sensor 는 맨 아래층이라 순환이 없다</td>
+          </tr>
+          <tr>
+            <td><span class="path">rider → map</span><br><span style="font-size:12px;color:var(--muted)">1건</span></td>
+            <td>한 파일에 라이더 조명과 mapbox 레이어가 섞여, 조절판이 지도 레지스트리를 끌고 왔다</td>
+            <td><b>책임을 갈랐다.</b> 조명·좌표는 <span class="path">riderLightRig</span>, 레이어는 <span class="path">map/riderPreservedLayer</span>. 라이더가 지도에 요구하는 건 한 줄 계약뿐</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>새로 생긴 파일 <span class="h2-note">합계 2,837줄 — 옮긴 것이지 늘린 것이 아니다</span></h2>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>파일</th><th>책임</th><th class="num">줄</th></tr></thead>
+        <tbody>
+          <tr><td class="path">components/map/mapPopupElements.ts</td><td>지점 팝업 · 출발/도착 핀 · 경유지 · 활동 점 팝업</td><td class="num">921</td></tr>
+          <tr><td class="path">components/map/mapLiveOverlayLayers.ts</td><td>남의 흔적 · 관전 점 · 전역 presence 레이어</td><td class="num">745</td></tr>
+          <tr><td class="path">lib/map/riderPreservedLayer.ts</td><td>mapbox 커스텀 3D 라이더 레이어</td><td class="num">287</td></tr>
+          <tr><td class="path">components/map/riderDomMarkers.ts</td><td>라이더 네임태그 · 스프라이트 마커</td><td class="num">281</td></tr>
+          <tr><td class="path">components/map/useMapPinMarkers.ts</td><td>핀 마커 4종 생명주기 (훅)</td><td class="num">191</td></tr>
+          <tr><td class="path">components/map/RouteElevationOverlay.tsx</td><td>표고 그래프 (표시 전용)</td><td class="num">154</td></tr>
+          <tr><td class="path">components/map/routeConquestLayers.ts</td><td>경로선 · 내 도로망 레이어</td><td class="num">105</td></tr>
+          <tr><td class="path">lib/riderPrototype/riderLightRig.ts</td><td>라이더 조명 상태 · 좌표 변환</td><td class="num">95</td></tr>
+          <tr><td class="path">lib/sensor/crankRpm.ts</td><td>속도 · BLE → 크랭크 RPM</td><td class="num">32</td></tr>
+          <tr><td class="path">lib/route/routeIdentityPort.ts</td><td>사용자 이름 · 등급 조회 포트 (타입만)</td><td class="num">24</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>값을 치른 함정 <span class="h2-note">다음에 코드를 옮길 때 그대로 겪는다</span></h2>
+    <div class="traps">
+      <div class="trap trap--headline">
+        <h3>코드를 옮기면 그 코드를 겨누던 계약이 죽는다 — 이번에 4건</h3>
+        <p>
+          계약 시험 상당수가 <b>소스 파일을 읽어 정규식으로 단언</b>한다. 코드가 다른 파일로 빠져나가면
+          「이 문구가 있으면 안 된다」류는 <b>「없으니 통과」</b>가 되고,
+          <code>slice(indexOf(…))</code> 는 못 찾아 <code>-1</code> → 한 글자만 남기고 <b>전부 통과</b>한다.
+          시험은 초록인데 아무것도 막지 않는다.
+        </p>
+        <p class="trap__fix">
+          <b>규칙</b> — 옮길 때마다 ① 식별자로 <code>scripts/</code>·<code>e2e/</code> grep
+          ② 새 파일을 보도록 고침 ③ 못 찾으면 죽는 가드 추가 ④ <b>금지 문자열을 심어 red 가 되는지 확인</b>
+        </p>
+      </div>
+      <div class="trap">
+        <h3>「이왕 하는 김에」가 동작 변경이다</h3>
+        <p>마커 정리 범위를 종전과 똑같이 맞췄다 — 재개점은 건드리지 않는다. 의존성 배열도 늘리지 않았다.</p>
+        <p class="trap__fix">범위를 넓히는 순간 이동이 아니라 수정이다.</p>
+      </div>
+      <div class="trap">
+        <h3>import 블록을 통째로 다시 쓰지 마라</h3>
+        <p>재구성 스크립트가 블록 사이에 낀 상수 선언까지 지워 파일을 망가뜨렸다. 커밋에서 되돌렸다.</p>
+        <p class="trap__fix"><code>tsc</code> 진단이 가리키는 줄만 지운다.</p>
+      </div>
+      <div class="trap">
+        <h3>pre-commit 은 파일 전체에 lint 를 돌린다</h3>
+        <p>기존 error 가 있는 파일은 한 줄만 고쳐도 커밋이 막힌다.</p>
+        <p class="trap__fix"><code>git stash</code> 로 증가 0 을 대조하고, 그때만 승인받아 우회한다.</p>
+      </div>
+      <div class="trap">
+        <h3>heredoc 을 파이프 뒤에 붙이면 git 이 멈춘다</h3>
+        <p><code>git commit -F- … | tail &lt;&lt;EOF</code> 는 heredoc 이 <code>tail</code> 에 붙는다.</p>
+        <p class="trap__fix">메시지는 파일로 쓰고 <code>-F &lt;파일&gt;</code> 로 넘긴다.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>왜 여기서 멈췄나 <span class="h2-note">더 가면 자리 옮기기가 아니라 배선 변경이다</span></h2>
+    <div class="stopbox">
+      <div>
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:6px;">주행 카메라 — 뽑을 수 없다</h3>
+        <p style="font-size:13.5px;color:var(--ink-2);">
+          카메라 상태가 <b>가변 ref 여럿을 rAF 주행 루프와 공유</b>한다. 그중 일부는 루프 안에 있다.
+          훅으로 뽑으려면 ref 를 통째로 넘기거나(결합은 그대로) 루프를 함께 옮겨야 하는데,
+          그 루프가 <b>동행 렌더 경로</b>다.
+        </p>
+        <div class="refs" style="margin-top:10px;">
+          <span class="ref">suppressCameraFollowUntilRef <b>8곳</b></span>
+          <span class="ref">cameraSmoothRef <b>7곳</b></span>
+          <span class="ref">mapZoomRef <b>7곳</b></span>
+          <span class="ref">rideCameraDistanceMRef <b>5곳</b></span>
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--line-soft);padding-top:16px;">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:6px;">App.tsx 2,954줄 — 크기가 본질적이다</h3>
+        <p style="font-size:13.5px;color:var(--ink-2);">
+          import 160줄 · <b>훅 호출 105개</b> · JSX 543줄(이미 컴포넌트로 쪼개져 각 1회 사용) ·
+          나머지 약 2,250줄이 상태·핸들러·effect. <b>조립 지점</b>이라 덩어리를 들어내는 방식으로는 줄지 않는다.
+        </p>
+      </div>
+      <p class="trap__fix" style="font-size:13px;">
+        <b>다음에 이걸 열려면</b> ① rAF 루프의 계약 시험을 먼저 만들어 동작을 고정 ② 카메라 상태를 한 객체로 모음
+        ③ 그다음 훅으로 뽑는다. <b>①이 없으면 하지 마라.</b>
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>살아 있는 미결 <span class="h2-note">이번 작업과는 별개</span></h2>
+    <div class="open">
+      <div class="open__row"><span class="pill pill--wait">결정 대기</span><span class="open__text"><b>동행 발행 간격</b> — 자주 보내면 매끄럽고 비싸다, 드물면 싸고 뒤처진다</span></div>
+      <div class="open__row"><span class="pill pill--open">미결</span><span class="open__text"><b>강제 종료 유령의 개설자 비대칭</b> — 가설 3개, <code>[peerAlive]</code> 로 시작</span></div>
+      <div class="open__row"><span class="pill pill--open">미착수</span><span class="open__text"><b>서버 sweeper</b> — 뿌리 원인은 Firestore 에 「끊기면 지워라」가 없다는 것. 앱 코드만으론 못 막는다</span></div>
+      <div class="open__row"><span class="pill pill--side">별건</span><span class="open__text"><b>재개점 마커가 안 뜬다</b> — 이번 변경 때문이 아니다. 거리 기반 경로를 넣으며 설계가 바뀐 흔적</span></div>
+      <div class="open__row"><span class="pill pill--side">별건</span><span class="open__text"><b>리뷰어 심사 큐 화면이 없다</b> — 권한·규칙·함수는 있는데 부르는 버튼이 없다</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>main 07eeb12</span>
+    <span>커밋 13</span>
+    <span>순환 0쌍</span>
+    <span>규칙 완화 0</span>
+    <span>eslint 0 error</span>
+    <span>전 단계 실기 확인 통과</span>
+  </footer>
+
+</div>
