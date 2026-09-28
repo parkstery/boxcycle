@@ -6,6 +6,7 @@ import {
   type ExperienceTagId,
 } from "../lib/route/repo/publicRouteRequests";
 import type { SavedRoute } from "../lib/route/repo/firestoreSavedRoutes";
+import { getUserProfileTier } from "../lib/identity/repo/firestoreUser";
 
 export type UsePublicRouteReviewMetaOptions = {
   configured: boolean;
@@ -45,7 +46,8 @@ export function usePublicRouteReviewMeta(options: UsePublicRouteReviewMetaOption
       if (!user) return;
       const route = publicRouteRequestModalRoute;
       if (!route) return;
-      await createPublicRouteRequest(user, route, input);
+      // 등급 조회를 꽂는다 — 신청 저장소는 사용자 저장소를 모른다(routeIdentityPort).
+      await createPublicRouteRequest(user, route, input, getUserProfileTier);
       setPublicRouteRequestModalRoute(null);
       await refreshPublicRouteMeta();
     },

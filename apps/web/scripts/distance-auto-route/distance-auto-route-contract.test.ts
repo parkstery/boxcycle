@@ -64,9 +64,21 @@ const RIDE_ROUTE_PANEL_SOURCE = readFileSync(
   "utf8",
 );
 
-const BUILD_PICK_POPUP_SOURCE = MAP_VIEW_SOURCE.slice(
-  MAP_VIEW_SOURCE.indexOf("function buildPickPopup"),
+/*
+ * 2026-09-28 (구조 정비 A-3) — 팝업 제조기가 MapView 에서 mapPopupElements 로 옮겨갔다.
+ * 계약은 코드를 따라간다. `indexOf` 가 -1 이 되면 slice 가 끝자락만 잘라
+ * **모든 doesNotMatch 가 통과**한다 — 조용히 아무것도 막지 않는 시험이 된다.
+ * 그래서 시작 위치를 찾지 못하면 여기서 먼저 죽인다.
+ */
+const POPUP_SOURCE = readFileSync(
+  new URL("../../src/components/map/mapPopupElements.ts", import.meta.url),
+  "utf8",
 );
+const BUILD_PICK_POPUP_START = POPUP_SOURCE.indexOf("function buildPickPopup");
+if (BUILD_PICK_POPUP_START < 0) {
+  throw new Error("mapPopupElements.ts 에 buildPickPopup 이 없다 — 계약을 옮긴 자리로 다시 겨눠라");
+}
+const BUILD_PICK_POPUP_SOURCE = POPUP_SOURCE.slice(BUILD_PICK_POPUP_START);
 const MOUNT_TOKEN_SOURCE = readFileSync(
   new URL("../../src/lib/account/mountRouteTokenPopupFeedback.ts", import.meta.url),
   "utf8",
@@ -174,9 +186,9 @@ describe("distanceAutoRoute", () => {
   });
 
   it("Start 선택 — 기존 startLngLat 경로를 사용해 지도 마커와 동기화", () => {
-    assert.match(MAP_VIEW_SOURCE, /onSelectPoint\("start", lngLat\)/);
+    assert.match(POPUP_SOURCE, /onSelectPoint\("start", lngLat\)/);
     // setStartLngLat 호출 계약은 phase-c e2e·phase-a-verify 가 동작으로 검증한다.
-    assert.match(MAP_VIEW_SOURCE, /getDistanceAutoRouteMapBridge\(\)\?\.disarm/);
+    assert.match(POPUP_SOURCE, /getDistanceAutoRouteMapBridge\(\)\?\.disarm/);
     assert.match(MAP_VIEW_SOURCE, /new mapboxgl\.Marker\([\s\S]*?setLngLat\(startLngLat\)/);
   });
 
@@ -276,7 +288,8 @@ describe("distanceAutoRoute", () => {
 
   it("방향 선택 안내 — popup 한 줄 클릭 힌트 (5A-R2c: 원 반경 안내)", () => {
     assert.match(HOOK_SOURCE, /formatDistanceAutoRouteDirectionClickHint/);
-    assert.match(MAP_VIEW_SOURCE, /formatDistanceAutoRouteDirectionClickHint/);
+    // 2026-09-28 (A-3) — 힌트를 쓰는 쪽이 팝업 제조기로 옮겨갔다. 옮긴 자리에서 겨눈다.
+    assert.match(POPUP_SOURCE, /formatDistanceAutoRouteDirectionClickHint/);
     assert.equal(
       formatDistanceAutoRouteDirectionClickHint(5),
       "5.0 km 반경의 원 주변 도로를 선택하세요",

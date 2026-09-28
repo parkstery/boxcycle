@@ -43,7 +43,7 @@ test("MapView forwards the live phase and keeps the legacy GLB path", () => {
 });
 
 test("custom layer renders every rider with terrain, phase, bearing and lean", () => {
-  const source = read(path.join(webRoot, "src", "lib", "riderPrototype", "preservedRiderLayer.ts"));
+  const source = read(path.join(webRoot, "src", "lib", "map", "riderPreservedLayer.ts"));
   assert.match(source, /for \(const spec of this\.specs\)/);
   assert.match(source, /this\.rig\.setPhase\(spec\.phaseRev \?\? 0\)/);
   assert.match(source, /queryTerrainElevation/);
@@ -52,7 +52,9 @@ test("custom layer renders every rider with terrain, phase, bearing and lean", (
 });
 
 test("preserved peers use the 3D nametag path without duplicate DOM sprites", () => {
-  const source = read(path.join(webRoot, "src", "components", "map", "MapView.tsx"));
+  // 2026-09-28 (구조 정비 A-2) — 마커 코드가 MapView 에서 riderDomMarkers 로 옮겨갔다.
+  // 계약은 코드를 따라간다. 옮긴 자리에서 계속 겨누지 않으면 이 시험은 조용히 아무것도 막지 않는다.
+  const source = read(path.join(webRoot, "src", "components", "map", "riderDomMarkers.ts"));
   assert.match(source, /RIDER_PROTOTYPE_MODE === "preserved" && ensureRiderPreservedLayer\(map\)/);
   assert.match(source, /if \(rider3dLayerReady\) \{\s*syncGlbPeerNametagMarkers/);
 });

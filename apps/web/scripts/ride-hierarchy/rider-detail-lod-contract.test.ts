@@ -66,7 +66,7 @@ describe("라이더 자세 LOD — 점에서는 풀지 않는다", () => {
 });
 
 describe("제품이 그 판정을 실제로 쓴다", () => {
-  const layer = codeOnly(read("src/lib/riderPrototype/preservedRiderLayer.ts"));
+  const layer = codeOnly(read("src/lib/map/riderPreservedLayer.ts"));
 
   it("렌더가 LOD 판정을 불러 자세 계산을 가린다", () => {
     assert.match(layer, /shouldAnimateRiderPose\(/, "판정을 호출해야 한다");

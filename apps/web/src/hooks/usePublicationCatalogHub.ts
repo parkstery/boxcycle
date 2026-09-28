@@ -13,6 +13,7 @@ import {
   type PublishedPublicCourseSummary,
 } from "../lib/route/repo/firestoreCourses";
 import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
+import { getUserPublicLabelsByUid } from "../lib/identity/repo/firestoreUser";
 import { lockRouteWorkspaceDuringRide } from "../lib/route/routeWorkspaceLock";
 import {
   encodeCanonicalRouteGeometryProfile,
@@ -96,7 +97,11 @@ export function usePublicationCatalogHub(options: UsePublicationCatalogHubOption
     setPublishedPublicCoursesLoading(true);
     setPublishedPublicCoursesError(null);
     try {
-      const rows = await listPublishedPublicCourses(50);
+      /**
+       * 표시 이름 조회는 **여기서 꽂는다** — 코스 저장소는 사용자 저장소를 모른다
+       * (`lib/route/routeIdentityPort.ts`).
+       */
+      const rows = await listPublishedPublicCourses(getUserPublicLabelsByUid, 50);
       setPublishedPublicCourses(rows);
     } catch (e: unknown) {
       setPublishedPublicCourses([]);

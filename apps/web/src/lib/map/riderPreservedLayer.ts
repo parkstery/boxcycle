@@ -1,5 +1,5 @@
 import type { CustomLayerInterface, Map as MapboxMap } from "mapbox-gl";
-import { moveLayerByRank, resolveBeforeIdByRank } from "../map/layerOrder";
+import { moveLayerByRank, resolveBeforeIdByRank } from "./layerOrder";
 import {
   installRiderRenderCostProbe,
   measureRiderPose,
@@ -20,20 +20,28 @@ import {
   WebGLRenderer,
 } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import type { RiderGlbModelSpec } from "./iso2dMarker";
+import type { RiderGlbModelSpec } from "../riderPrototype/iso2dMarker";
 import {
   PRESERVED_RIDER_CUSTOM_LAYER_ID,
   preservedRiderAssetUrl,
-} from "./config";
+} from "../riderPrototype/config";
 import {
   PreservedRiderRig,
   type PreservedGuideData,
-} from "./preservedRiderRig";
+} from "../riderPrototype/preservedRiderRig";
+import {
+  DEFAULT_AMBIENT_INTENSITY,
+  DEFAULT_HEMISPHERE_INTENSITY,
+  DEFAULT_KEY_INTENSITY,
+  DEFAULT_KEY_POSITION,
+  KEY_LIGHT_RADIUS,
+  keyLightPositionFromAzimuthElevationDeg,
+  registerRiderLightLabTarget,
+  unregisterRiderLightLabTarget,
+  type RiderLightLabState,
+  type RiderLightLabTarget,
+} from "../riderPrototype/riderLightRig";
 
-/**
- * 조명 조절판(`?lightlab=1`, 지시02) 전용 상태 — Ambient·Hemisphere·Key 강도 + Key 방향(방위각·고도각).
- * 기본값은 이 파일에 원래 하드코딩돼 있던 값과 동일하다 — **제품 기본값은 불변**.
- */
 /**
  * 라이더가 **레지스트리가 정한 자리**에 있는가.
  *
@@ -51,60 +59,7 @@ function isPreservedRiderAtRankPosition(
   return above === want;
 }
 
-export type RiderLightLabState = {
-  ambient: number;
-  hemisphere: number;
-  keyIntensity: number;
-  keyAzimuthDeg: number;
-  keyElevationDeg: number;
-};
-
-const DEFAULT_AMBIENT_INTENSITY = 0.9;
-const DEFAULT_HEMISPHERE_INTENSITY = 1.2;
-const DEFAULT_KEY_INTENSITY = 1.6;
-const DEFAULT_KEY_POSITION = new Vector3(-3, 8, 5);
-const KEY_LIGHT_RADIUS = DEFAULT_KEY_POSITION.length();
-
-/** Key 위치 → (방위각, 고도각) — 조절판 초기 슬라이더 값을 기존 `(-3, 8, 5)`에서 역산한다. */
-function keyLightAzimuthElevationDeg(pos: Vector3): { azimuthDeg: number; elevationDeg: number } {
-  const r = pos.length() || 1;
-  const clampedSin = Math.min(1, Math.max(-1, pos.y / r));
-  return {
-    azimuthDeg: ((Math.atan2(pos.x, pos.z) * 180) / Math.PI + 360) % 360,
-    elevationDeg: (Math.asin(clampedSin) * 180) / Math.PI,
-  };
-}
-
-/** (방위각, 고도각, 반지름) → Key 위치 — 조절판 슬라이더를 씬에 즉시 반영할 때 쓰는 역변환. */
-function keyLightPositionFromAzimuthElevationDeg(
-  azimuthDeg: number,
-  elevationDeg: number,
-  radius: number,
-): Vector3 {
-  const az = (azimuthDeg * Math.PI) / 180;
-  const el = (elevationDeg * Math.PI) / 180;
-  const y = radius * Math.sin(el);
-  const horizontal = radius * Math.cos(el);
-  return new Vector3(horizontal * Math.sin(az), y, horizontal * Math.cos(az));
-}
-
-const DEFAULT_KEY_AZIMUTH_ELEVATION = keyLightAzimuthElevationDeg(DEFAULT_KEY_POSITION);
-
-export const RIDER_LIGHT_LAB_DEFAULT_STATE: RiderLightLabState = {
-  ambient: DEFAULT_AMBIENT_INTENSITY,
-  hemisphere: DEFAULT_HEMISPHERE_INTENSITY,
-  keyIntensity: DEFAULT_KEY_INTENSITY,
-  keyAzimuthDeg: DEFAULT_KEY_AZIMUTH_ELEVATION.azimuthDeg,
-  keyElevationDeg: DEFAULT_KEY_AZIMUTH_ELEVATION.elevationDeg,
-};
-
-/** 조절판 「값 복사」용 — 강도만 다루는 프로덕션 코드(`key.position.set(...)`)와 같은 좌표계. */
-export function riderLightLabKeyPosition(state: RiderLightLabState): { x: number; y: number; z: number } {
-  const p = keyLightPositionFromAzimuthElevationDeg(state.keyAzimuthDeg, state.keyElevationDeg, KEY_LIGHT_RADIUS);
-  return { x: p.x, y: p.y, z: p.z };
-}
-
-class PreservedRiderCustomLayer implements CustomLayerInterface {
+class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTarget {
   readonly id = PRESERVED_RIDER_CUSTOM_LAYER_ID;
   readonly type = "custom" as const;
   readonly renderingMode = "3d" as const;
@@ -131,8 +86,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface {
     this.scene.add(this.ambientLight);
     this.scene.add(this.hemisphereLight);
     this.scene.add(this.keyLight);
-    liveRiderLightLabLayers.add(this);
-    if (riderLightLabOverrideState) this.applyLightLabState(riderLightLabOverrideState);
+    registerRiderLightLabTarget(this);
   }
 
   /** 조절판(`?lightlab=1`) 전용 진입점 — 강도·Key 방향만 갱신, 다음 프레임에 반영. */
@@ -170,7 +124,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface {
 
   onRemove(): void {
     this.generation++;
-    liveRiderLightLabLayers.delete(this);
+    unregisterRiderLightLabTarget(this);
     this.rig?.dispose();
     this.rig = null;
     this.riderRoot.clear();
@@ -274,16 +228,6 @@ class PreservedRiderCustomLayer implements CustomLayerInterface {
 
 const layerByMap = new WeakMap<MapboxMap, PreservedRiderCustomLayer>();
 const desiredSpecsByMap = new WeakMap<MapboxMap, readonly RiderGlbModelSpec[]>();
-
-// 조절판(`?lightlab=1`) 전용 — 살아 있는 레이어 전체에 즉시 반영 + 이후 생성되는 레이어의 초기값.
-const liveRiderLightLabLayers = new Set<PreservedRiderCustomLayer>();
-let riderLightLabOverrideState: RiderLightLabState | null = null;
-
-/** 조절판 전용 진입점. 화면의 모든 preserved 레이어에 즉시 반영한다 — 재로드·재시작 불필요. */
-export function setRiderLightLabState(state: RiderLightLabState): void {
-  riderLightLabOverrideState = state;
-  for (const layer of liveRiderLightLabLayers) layer.applyLightLabState(state);
-}
 
 export function ensureRiderPreservedLayer(map: MapboxMap): boolean {
   let styleLayers: ReadonlyArray<{ id: string }> | undefined;

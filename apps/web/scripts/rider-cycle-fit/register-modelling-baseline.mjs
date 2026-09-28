@@ -59,7 +59,7 @@ const repoFiles = [
   'apps/web/src/lib/riderPrototype/geometry.json', 'apps/web/src/lib/riderPrototype/riderAnthropometry.json',
   'apps/web/src/lib/riderPrototype/riderRig.geometry.mjs', 'apps/web/src/lib/riderPrototype/riderRig.ts',
   'apps/web/src/lib/riderPrototype/riderIk.mjs', 'apps/web/src/lib/rider/riderGlbPedalPose.pose.mjs',
-  'apps/web/src/lib/rider/riderGlbPedalPose.ts', 'apps/web/src/lib/rider/riderPedalMotion.ts',
+  'apps/web/src/lib/rider/riderGlbPedalPose.ts', 'apps/web/src/lib/sensor/crankRpm.ts',
   'apps/web/src/lib/camera/rideCameraFraming.ts', 'apps/web/src/lib/map/mapGlobeView.ts',
   'apps/web/scripts/generate-rider-prototype-glb.mjs',
   'apps/web/scripts/rider-preview/export-ik-joints-v2.mjs',

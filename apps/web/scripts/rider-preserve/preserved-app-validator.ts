@@ -5,7 +5,7 @@ import {
   ensureRiderPreservedLayer,
   getRiderPreservedDebugState,
   syncRiderPreservedModels,
-} from "../../src/lib/riderPrototype/preservedRiderLayer";
+} from "../../src/lib/map/riderPreservedLayer";
 
 mapboxgl.accessToken = MAPBOX_TOKEN;
 const center: [number, number] = [127.035, 37.505];
