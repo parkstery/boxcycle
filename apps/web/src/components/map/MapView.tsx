@@ -317,8 +317,6 @@ export type MapViewProps = {
   conquestTraces?: readonly LineStringGeometry[] | null;
   /** Conquest — 이번 주행 진행 거리(m). 진행 구간을 실시간으로 칠한다. null=비주행 */
   conquestLiveTraveledMeters?: number | null;
-  /** 핀 팝업 도로 상태 한 줄(「내가 달린 도로」 등). null=비표시 */
-  onLookupPioneer?: (lngLat: LngLat) => Promise<string | null>;
   /** 지도 지점 선택 팝업에서 출발·도착·경유·계산 경로 전체 초기화 */
   onClearRoute?: () => void;
   /** OSRM(Mapbox Streets) 도로 커버리지 */
@@ -488,7 +486,6 @@ export function MapView({
   routeTokenInsufficient = false,
   conquestTraces = null,
   conquestLiveTraveledMeters = null,
-  onLookupPioneer,
   onClearRoute,
   coverageOverlayMode,
   externalCameraJump = null,
@@ -621,7 +618,6 @@ export function MapView({
   const routeProfileRef = useRef(routeProfile);
   const onRouteProfileRef = useRef(onRouteProfile);
   const routeTokenInsufficientRef = useRef(routeTokenInsufficient);
-  const onLookupPioneerRef = useRef(onLookupPioneer);
   const onClearRouteRef = useRef(onClearRoute);
   const onArmDirectionPickRef = useRef(onArmDirectionPick);
   const pickPopupAutoRouteUiRef = useRef<PickPopupAutoRouteUi | null>(null);
@@ -776,10 +772,6 @@ export function MapView({
   useEffect(() => {
     routeTokenInsufficientRef.current = routeTokenInsufficient;
   }, [routeTokenInsufficient]);
-
-  useEffect(() => {
-    onLookupPioneerRef.current = onLookupPioneer;
-  }, [onLookupPioneer]);
 
   useEffect(() => {
     onRouteProfileRef.current = onRouteProfile;
@@ -1405,7 +1397,6 @@ export function MapView({
         onSetRouteProfileOnly: (p) => onSetRouteProfileOnlyRef.current?.(p),
         getRouteTokenInsufficient: () =>
           isRouteTokenBlocked() || routeTokenInsufficientRef.current,
-        lookupPioneer: (ll) => onLookupPioneerRef.current?.(ll) ?? Promise.resolve(null),
         onClearRoute:
           typeof onClearRouteRef.current === "function"
             ? () => {

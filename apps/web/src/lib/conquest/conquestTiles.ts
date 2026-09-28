@@ -76,17 +76,11 @@ export function conquestCellIdAt(lngLat: LngLat): string {
   return `${CONQUEST_CELL_ZOOM}_${x}_${y}`;
 }
 
-/** 클릭 지점 판정용 — 셀 + 8방 이웃(도로 폭·클릭 오차 관용) */
-export function conquestCellIdsAround(lngLat: LngLat): string[] {
-  const { x, y } = lngLatToTileXY(lngLat[0], lngLat[1], CONQUEST_CELL_ZOOM);
-  const out: string[] = [];
-  for (let dx = -1; dx <= 1; dx += 1) {
-    for (let dy = -1; dy <= 1; dy += 1) {
-      out.push(`${CONQUEST_CELL_ZOOM}_${x + dx}_${y + dy}`);
-    }
-  }
-  return out;
-}
+/*
+ * (2026-09-28) `conquestCellIdsAround`(셀 + 8방 이웃) 를 지웠다. 유일한 소비자가 핀 팝업의
+ * 「🏴 내가 달린 도로」 한 줄이었고 그 줄을 제거했다(Chief). 클릭 지점의 셀 보유 판정이
+ * 다시 필요해지면 여기서 되살린다.
+ */
 
 /** `20_x_y` → 상위 z12 청크 문서 ID(`12_x_y`). 형식 불일치 시 null. */
 export function chunkIdOfConquestCellId(cellId: string): string | null {

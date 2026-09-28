@@ -270,7 +270,6 @@ export function buildPickPopup(deps: {
   /** 호출 시점의 Route Token 부족 여부(잔액<1) — true면 수단 버튼 비활성 */
   getRouteTokenInsufficient?: () => boolean;
   /** Conquest — 이 지점 영토의 개척자 한 줄(null=미개척) */
-  lookupPioneer?: (lngLat: LngLat) => Promise<string | null>;
   onClearRoute?: (() => void) | undefined;
   onClearAutoRouteClickDebugMarker?: () => void;
   initialHasStart: boolean;
@@ -298,7 +297,6 @@ export function buildPickPopup(deps: {
     onClearDistanceAutoRouteCircle,
     onSetRouteProfileOnly,
     getRouteTokenInsufficient,
-    lookupPioneer,
     onClearRoute,
     onClearAutoRouteClickDebugMarker,
     initialHasStart,
@@ -832,24 +830,6 @@ export function buildPickPopup(deps: {
     { once: true },
   );
 
-  /** Conquest — 이 지점 영토의 개척자(있을 때만 노출, §3.4 Phase A 유일 노출 지점) */
-  const pioneerEl = document.createElement("div");
-  pioneerEl.className = "map-view__pick-pioneer";
-  pioneerEl.hidden = true;
-  if (typeof lookupPioneer === "function") {
-    void lookupPioneer(lngLat)
-      .then((line) => {
-        if (signal.aborted) return;
-        if (line) {
-          pioneerEl.textContent = line;
-          pioneerEl.hidden = false;
-        }
-      })
-      .catch(() => {
-        /* noop */
-      });
-  }
-
   const dragHandle = document.createElement("div");
   dragHandle.className = "map-view__pick-drag-handle";
   /*
@@ -859,7 +839,7 @@ export function buildPickPopup(deps: {
    */
   dragHandle.append(tokenSection, addressEl, metaEl);
 
-  wrap.append(dragHandle, pioneerEl, pinRow, profileSection, autoRouteSection);
+  wrap.append(dragHandle, pinRow, profileSection, autoRouteSection);
 
   const token = accessToken.trim();
   if (token.length > 0) {

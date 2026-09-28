@@ -145,7 +145,6 @@ import { isRideInputReady, resolveRideInputReadiness } from "./lib/sensor/cadenc
 import { CadenceSensorSheet } from "./components/sensor";
 import { useConquest } from "./hooks/useConquest";
 import { useLiveConquestPaint, shouldShowAlreadyOwnedHint } from "./hooks/useLiveConquestPaint";
-import { conquestCellIdsAround } from "./lib/conquest/conquestTiles";
 import { ROUTE_COMPLETION_RATIO_THRESHOLD, resumeOffsetMetersFrom } from "./lib/ride/rideRecordPolicy";
 import type { CoverageOverlayMode } from "./lib/activity/coverageOverlayMode";
 import { type RouteProfile } from "./services/mapboxDirections";
@@ -1015,21 +1014,13 @@ export default function App() {
     return () => clearInterval(timer);
   }, [rideStatus]);
 
-  /** Conquest — 핀 팝업 도로 상태 한 줄(내가 달린 도로인지, 로컬 판정 — 서버 읽기 없음) */
-  const conquestCellIdSetRef = useRef<ReadonlySet<string>>(new Set());
-  useEffect(() => {
-    conquestCellIdSetRef.current = new Set(conquestCellIds ?? []);
-  }, [conquestCellIds]);
-  const handleLookupPioneer = useCallback(
-    async (lngLat: LngLat): Promise<string | null> => {
-      if (!configured || !user) return null;
-      const owned = conquestCellIdSetRef.current;
-      // 클릭 오차·도로 폭 관용 — 셀 + 8방 이웃 중 하나라도 내 도로면 인정
-      const mine = conquestCellIdsAround(lngLat).some((id) => owned.has(id));
-      return mine ? "🏴 내가 달린 도로" : null;
-    },
-    [configured, user],
-  );
+  /*
+   * (2026-09-28 Chief) 핀 팝업의 「🏴 내가 달린 도로」 한 줄을 제거했다.
+   * 폐기된 v1 셀 단위 Pioneer(Conquest §3.4 에서 구간 챌린지로 대체)의 잔해로, 이름만
+   * `lookupPioneer` 였을 뿐 개척자를 읽지 않고 내 conquest 셀을 로컬 대조하기만 했다.
+   * 경로를 만드는 화면에서 아무 선택도 바꾸지 않고, 같은 사실은 지도의 마젠타
+   * 「내 도로망」 궤적이 이미 보여 준다.
+   */
 
   /** 「내 도로망」 렌더용 geometry 배열 */
   const conquestTraceGeometries = useMemo(
@@ -2511,7 +2502,6 @@ export default function App() {
               rideCameraSpanFloorMode,
               onRideCameraDistanceFromUserZoom: handleRideCameraDistanceFromUserZoom,
               showRtwPoi,
-              onLookupPioneer: handleLookupPioneer,
               onClearRoute: handleClearPins,
               onSelectPoint: (type, lngLat, waypointSlot) => {
                 if (!user || routeMenuLockedForProd) return;
