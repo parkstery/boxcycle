@@ -98,8 +98,6 @@ import type { RouteProfile } from "../../services/mapboxDirections";
 import { fetchMapboxReverseGeocodePlaceName } from "../../services/mapboxReverseGeocode";
 import { ensureRiderPedalStripKeyframes } from "../../lib/rider/riderPedalStripKeyframes";
 import {
-  RIDER_PEDAL_CELL_PX,
-  RIDER_PEDAL_FRAME_COUNT,
   RIDER_PEDAL_SPRITE_REVISION,
 } from "../../lib/rider/riderPedalSpriteMeta";
 import { estimateCrankRpmFromSpeedKmh, resolvePedalCrankRpm } from "../../lib/sensor/crankRpm";
@@ -299,13 +297,6 @@ function applyConquestEmphasis(map: mapboxgl.Map, emphasis: ConquestLayerEmphasi
 /** 레거시 `app.js` 와 동일한 서울 근처 기본 시야(강남). 지시09 — 부트 중심은 `initialCenter` 우선. */
 const DEFAULT_CENTER: [number, number] = [127.035, 37.505];
 const DEFAULT_ZOOM = DEFAULT_MAP_ZOOM;
-/**
- * 출발/도착/경유·라이더: 3D 피치에서도 빌보드(세움). `map` 정렬은 스프라이트가 지면에 눕는 문제가 있어 라이더도 viewport 유지.
- */
-const PIN_MARKER_VIEWPORT_ALIGNMENT = {
-  pitchAlignment: "viewport" as const,
-  rotationAlignment: "viewport" as const,
-};
 
 function mountSelfLocationMarker(
   map: mapboxgl.Map,
@@ -323,255 +314,14 @@ function mountSelfLocationMarker(
   return { marker, bearingEl };
 }
 
-/**
- * 라이더 DOM 마커만 — 앵커(bottom) 대비 픽셀 보정. Mapbox: 양수 → 오른쪽·아래, 음수 → 왼쪽·위.
- * (좌표 보간과 별개; 화면상 선·스프라이트 패딩 어긋남만 여기서 조절)
- */
-const RIDER_ROUTE_MARKER_OFFSET_PX: [number, number] = [14, 18];
-
-/** GLB 네임태그 — `viewport` 빌보드(측면 3D 시점에서도 읽힘). 위치 추적은 rAF·render 재투영으로 처리 */
-const RIDER_GLB_NAMETAG_ALIGNMENT = {
-  pitchAlignment: "viewport" as const,
-  rotationAlignment: "viewport" as const,
-};
-
-/** GLB 모드 — 캐릭터 머리 위 네임태그(지면 앵커 + 화면 픽셀 위로) */
-const RIDER_GLB_NAMETAG_OFFSET_PX: [number, number] = [0, -40];
-
-const RIDER_GLB_NAMETAG_MARKER_OPTS = {
-  anchor: "bottom" as const,
-  offset: RIDER_GLB_NAMETAG_OFFSET_PX,
-  ...RIDER_GLB_NAMETAG_ALIGNMENT,
-  /** GLB 머리 높이(~1.1m) — terrain 표면 기준, 과도한 상승 방지 */
-  altitude: 1.05,
-};
-
-function createGlbRiderNametagRoot(kind: "live" | "peer", label: string): HTMLDivElement {
-  const root = document.createElement("div");
-  root.className = `map-view__glb-nametag-host map-view__glb-nametag-host--${kind}`;
-  const nametag = document.createElement("div");
-  nametag.className =
-    kind === "live"
-      ? "map-view__rider-nametag map-view__rider-nametag--live"
-      : "map-view__rider-nametag map-view__rider-nametag--peer";
-  nametag.setAttribute("aria-hidden", "true");
-  nametag.textContent = label;
-  if (!label.trim()) nametag.style.display = "none";
-  root.appendChild(nametag);
-  return root;
-}
-
-function applyGlbNametagLabel(el: HTMLDivElement | null, label: string): void {
-  if (!el) return;
-  const t = label.trim();
-  el.textContent = t;
-  el.style.display = t ? "flex" : "none";
-}
-
-/** terrain·피치 변화 시 DOM 마커 재투영 (최초 생성 좌표에 고정되는 Mapbox 이슈 완화) */
-function reprojectGlbNametagMarkers(
-  liveMarker: mapboxgl.Marker | null,
-  peerMarkers: ReadonlyMap<string, mapboxgl.Marker>,
-): void {
-  if (liveMarker) {
-    const ll = liveMarker.getLngLat();
-    liveMarker.setLngLat([ll.lng, ll.lat]);
-  }
-  for (const mk of peerMarkers.values()) {
-    const ll = mk.getLngLat();
-    mk.setLngLat([ll.lng, ll.lat]);
-  }
-}
-
-function syncGlbLiveNametagMarker(
-  map: mapboxgl.Map,
-  lngLat: LngLat | null,
-  label: string,
-  markerRef: { current: mapboxgl.Marker | null },
-  nametagElRef: { current: HTMLDivElement | null },
-): void {
-  if (!lngLat) {
-    markerRef.current?.remove();
-    markerRef.current = null;
-    nametagElRef.current = null;
-    return;
-  }
-  let mk = markerRef.current;
-  if (!mk) {
-    const root = createGlbRiderNametagRoot("live", label);
-    nametagElRef.current = root.querySelector<HTMLDivElement>(".map-view__rider-nametag");
-    mk = new mapboxgl.Marker({
-      element: root,
-      className: "map-view__glb-nametag-marker map-view__live-rider-marker",
-      ...RIDER_GLB_NAMETAG_MARKER_OPTS,
-    })
-      .setLngLat(lngLat)
-      .addTo(map);
-    markerRef.current = mk;
-  } else {
-    mk.setLngLat(lngLat);
-    applyGlbNametagLabel(nametagElRef.current, label);
-  }
-}
-
-function syncGlbPeerNametagMarkers(
-  map: mapboxgl.Map,
-  features: PeerDomGJFeature[],
-  markersRef: { current: Map<string, mapboxgl.Marker> },
-): void {
-  const markers = markersRef.current;
-  const next = new Set<string>();
-  for (const f of features) {
-    const id = f.properties.id;
-    next.add(id);
-    const lngLat = f.geometry.coordinates;
-    const { label } = f.properties;
-    let mk = markers.get(id);
-    if (!mk) {
-      const root = createGlbRiderNametagRoot("peer", label);
-      mk = new mapboxgl.Marker({
-        element: root,
-        className: "map-view__glb-nametag-marker",
-        ...RIDER_GLB_NAMETAG_MARKER_OPTS,
-      })
-        .setLngLat(lngLat)
-        .addTo(map);
-      markers.set(id, mk);
-    } else {
-      mk.setLngLat(lngLat);
-      const nametag = mk.getElement().querySelector<HTMLDivElement>(".map-view__rider-nametag");
-      applyGlbNametagLabel(nametag, label);
-    }
-  }
-  for (const id of [...markers.keys()]) {
-    if (!next.has(id)) {
-      markers.get(id)?.remove();
-      markers.delete(id);
-    }
-  }
-}
-
-function pickPeerSourceFrameIndices(totalFrames: number): number[] {
-  if (totalFrames < 2) return [0, 0, 0, 0, 0, 0];
-  return [0, 1, 2, 3, 4, 5].map((i) => Math.min(totalFrames - 1, Math.round((i * (totalFrames - 1)) / 5)));
-}
-
-const PEER_DOM_STRIP_INDICES = pickPeerSourceFrameIndices(RIDER_PEDAL_FRAME_COUNT);
-
-type PeerDomGJFeature = {
-  type: "Feature";
-  geometry: { type: "Point"; coordinates: LngLat };
-  properties: { id: string; label: string; phaseRev: number; hdg: number };
-};
-
-/**
- * `pedal-sprite.png` 스트립의 프레임 수. **스프라이트를 그리는 쪽이 갖는다.**
- *
- * 종전에는 이 값이 `lib/registerPeerRiderPedalSprites` 에 있었고, 전송 계층이 그것을
- * 가져다 위상을 6단계로 잘라 실었다. 그 모듈의 나머지(Mapbox `addImage` 등록·ready
- * 검사·틴트)는 **어디서도 호출되지 않는 죽은 코드**여서 함께 걷었다(2026-09-25).
- * GLB 라이더는 연속 위상을 쓰므로, 6장으로 자르는 일은 여기(iso2d DOM 경로)에만 남는다.
- */
-const PEER_DOM_PEDAL_FRAME_COUNT = 6;
-
-/** 연속 위상(0~1)을 스트립 프레임으로 자른다. 자르는 일은 여기서만 한다. */
-function applyPeerDomSpriteFrame(sprite: HTMLDivElement | null, phaseRev: number): void {
-  if (!sprite) return;
-  const frame = Math.floor(((phaseRev % 1) + 1) % 1 * PEER_DOM_PEDAL_FRAME_COUNT);
-  const idx = ((frame % PEER_DOM_PEDAL_FRAME_COUNT) + PEER_DOM_PEDAL_FRAME_COUNT) % PEER_DOM_PEDAL_FRAME_COUNT;
-  const stripIndex = PEER_DOM_STRIP_INDICES[idx] ?? 0;
-  const cell = RIDER_PEDAL_CELL_PX;
-  sprite.style.backgroundPosition = `-${stripIndex * cell}px 0`;
-}
-
-function createPeerRiderMarkerRoot(initialLabel: string): HTMLDivElement {
-  if (RIDER_PROTOTYPE_MODE === "iso2d") {
-    return createIso2dRiderMarkerRoot("peer", initialLabel, "map-view__peer-rider-host").root;
-  }
-  ensureRiderPedalStripKeyframes();
-  const root = document.createElement("div");
-  root.className = "cycling-sim-marker-host map-view__peer-rider-host";
-  const nametag = document.createElement("div");
-  nametag.className = "map-view__rider-nametag map-view__rider-nametag--peer";
-  nametag.setAttribute("aria-hidden", "true");
-  nametag.textContent = initialLabel;
-  const flip = document.createElement("div");
-  flip.className = "cycling-sim-marker-flip";
-  const stack = document.createElement("div");
-  stack.className = "cycling-sim-marker-stack";
-  const sprite = document.createElement("div");
-  sprite.className = "cycling-sim-marker-pedal-sprite";
-  const baseRaw = import.meta.env.BASE_URL ?? "/";
-  const base = baseRaw.endsWith("/") ? baseRaw : `${baseRaw}/`;
-  sprite.style.backgroundImage = `url("${base}rider/pedal-sprite.png?v=${RIDER_PEDAL_SPRITE_REVISION}")`;
-  sprite.style.animationPlayState = "paused";
-  stack.appendChild(sprite);
-  flip.appendChild(stack);
-  root.appendChild(nametag);
-  root.appendChild(flip);
-  return root;
-}
-
-function syncPeerDomMarkers(
-  map: mapboxgl.Map,
-  features: PeerDomGJFeature[],
-  markersRef: { current: Map<string, mapboxgl.Marker> },
-): void {
-  const rider3dLayerReady =
-    (RIDER_PROTOTYPE_MODE === "glb" && ensureRiderGlbLayer(map)) ||
-    (RIDER_PROTOTYPE_MODE === "preserved" && ensureRiderPreservedLayer(map));
-  if (rider3dLayerReady) {
-    syncGlbPeerNametagMarkers(map, features, markersRef);
-    return;
-  }
-  const markers = markersRef.current;
-  const next = new Set<string>();
-  for (const f of features) {
-    const id = f.properties.id;
-    next.add(id);
-    const lngLat = f.geometry.coordinates;
-    const { label, phaseRev, hdg } = f.properties;
-    let mk = markers.get(id);
-    if (!mk) {
-      const root = createPeerRiderMarkerRoot(label);
-      mk = new mapboxgl.Marker({
-        element: root,
-        className: "map-view__peer-rider-marker",
-        anchor: "bottom",
-        offset: RIDER_ROUTE_MARKER_OFFSET_PX,
-        ...PIN_MARKER_VIEWPORT_ALIGNMENT,
-      })
-        .setLngLat(lngLat)
-        .addTo(map);
-      markers.set(id, mk);
-    } else {
-      mk.setLngLat(lngLat);
-    }
-    const root = mk.getElement();
-    const nametag = root.querySelector<HTMLDivElement>(".map-view__rider-nametag--peer");
-    const flip = root.querySelector<HTMLDivElement>(
-      RIDER_PROTOTYPE_MODE === "iso2d" ? ".map-view__proto-iso-flip" : ".cycling-sim-marker-flip",
-    );
-    if (RIDER_PROTOTYPE_MODE === "iso2d") {
-      const img = root.querySelector<HTMLImageElement>(".map-view__proto-iso-sprite");
-      if (nametag) nametag.textContent = label;
-      if (flip && img) applyIso2dRiderBearing(flip, img, "peer", hdg);
-    } else {
-      const sprite = root.querySelector<HTMLDivElement>(".cycling-sim-marker-pedal-sprite");
-      if (nametag) nametag.textContent = label;
-      applyPeerDomSpriteFrame(sprite, phaseRev);
-      if (flip) {
-        flip.style.transform = hdg > 90 && hdg < 270 ? "scaleX(-1)" : "scaleX(1)";
-      }
-    }
-  }
-  for (const id of [...markers.keys()]) {
-    if (!next.has(id)) {
-      markers.get(id)?.remove();
-      markers.delete(id);
-    }
-  }
-}
+import {
+  PIN_MARKER_VIEWPORT_ALIGNMENT,
+  RIDER_ROUTE_MARKER_OFFSET_PX,
+  reprojectGlbNametagMarkers,
+  syncGlbLiveNametagMarker,
+  syncPeerDomMarkers,
+  type PeerDomGJFeature,
+} from "./riderDomMarkers";
 
 function subscribeReducedMotion(callback: () => void): () => void {
   if (typeof window === "undefined" || !window.matchMedia) return () => {};
