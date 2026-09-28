@@ -102,30 +102,47 @@ describe("경로선 테두리 · 적용 배선", () => {
     path.resolve(__dirname, "../../src/components/map/MapView.tsx"),
     "utf8",
   );
+  /*
+   * 2026-09-28 (구조 정비 A-4) — 레이어를 만들고 세우는 코드가 MapView 에서
+   * `routeConquestLayers.ts` 로 옮겨갔다. **계약은 코드를 따라간다.**
+   * 옮긴 자리에서 겨누지 않으면 `doesNotMatch` 가 「파일에 없으니 통과」가 되어
+   * 테두리가 부활해도 조용히 초록이 된다.
+   */
+  const layers = fs.readFileSync(
+    path.resolve(__dirname, "../../src/components/map/routeConquestLayers.ts"),
+    "utf8",
+  );
 
   it("경로선에 흰 테두리를 두르지 않는다 — 테두리가 내 도로망을 덮었다", () => {
-    assert.doesNotMatch(mapView, /route-casing/, "테두리 레이어가 부활하면 안 된다");
-    assert.doesNotMatch(mapView, /ROUTE_CASING/, "테두리 상수가 부활하면 안 된다");
-    assert.match(mapView, /const ROUTE_LINE_WIDTH = 4;/, "계약이 아는 경로선 폭");
+    for (const [name, src] of [["MapView", mapView], ["routeConquestLayers", layers]] as const) {
+      assert.doesNotMatch(src, /route-casing/, `${name}: 테두리 레이어가 부활하면 안 된다`);
+      assert.doesNotMatch(src, /ROUTE_CASING/, `${name}: 테두리 상수가 부활하면 안 된다`);
+    }
+    assert.match(layers, /const ROUTE_LINE_WIDTH = 4;/, "계약이 아는 경로선 폭");
   });
 
   it("내 도로망 폭은 한 곳에서만 만든다 — stop 이 흩어지면 갈라진다", () => {
-    assert.match(mapView, /rtwAccumulatedWidthExpression\(/);
-    assert.doesNotMatch(
-      mapView,
-      /"line-width": \["interpolate", \["linear"\], \["zoom"\], 4, 2\.6/,
-      "누적 궤적 폭을 MapView 에서 직접 적지 않는다",
-    );
+    assert.match(layers, /rtwAccumulatedWidthExpression\(/);
+    for (const [name, src] of [["MapView", mapView], ["routeConquestLayers", layers]] as const) {
+      assert.doesNotMatch(
+        src,
+        /"line-width": \["interpolate", \["linear"\], \["zoom"\], 4, 2\.6/,
+        `${name}: 누적 궤적 폭을 직접 적지 않는다`,
+      );
+    }
   });
 
   it("순서·불투명도가 판정 한 곳을 거친다 — 호출처마다 다르게 세우지 않는다", () => {
     // import 줄바꿈 모양에 의존하지 않는다 — 배선 여부만 본다
     assert.match(mapView, /from "\.\.\/\.\.\/lib\/conquest\/conquestLayerEmphasis"/);
     assert.match(mapView, /conquestLayerEmphasis\(\{/);
-    assert.match(mapView, /function applyConquestEmphasis\(/);
-    assert.doesNotMatch(mapView, /orderConquestLayersAboveRoute/, "옛 단방향 함수가 남으면 안 된다");
+    assert.match(layers, /function applyConquestEmphasis\(/);
+    for (const [name, src] of [["MapView", mapView], ["routeConquestLayers", layers]] as const) {
+      assert.doesNotMatch(src, /orderConquestLayersAboveRoute/, `${name}: 옛 단방향 함수가 남으면 안 된다`);
+    }
     // 궤적을 세우는 곳은 전부 applyConquestEmphasis 를 거친다
-    const orderCalls = mapView.match(/orderConquestLayers\(/g) ?? [];
+    const orderCalls = layers.match(/orderConquestLayers\(/g) ?? [];
     assert.equal(orderCalls.length, 2, "선언 1 + applyConquestEmphasis 안 1 뿐이어야 한다");
+    assert.doesNotMatch(mapView, /orderConquestLayers\(/, "MapView 가 직접 순서를 세우면 안 된다");
   });
 });
