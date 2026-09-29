@@ -266,6 +266,75 @@ const s2LowZoom = {
   })(),
 };
 
+/**
+ * 5Hz(200ms) publish 후보 회귀 — 결정적 지터 + stop/start + 2s gap.
+ * 기존 S2 200ms 케이스와 달리, 제안된 PEER_MOTION_PUBLISH_INTERVAL_MS=200 전환을
+ * 수신 지터·정지·공백이 겹친 조건에서 보호한다. 발행 시계(serverAtMs/dist)는 200ms
+ * 격자, atMs 만 고정 지터 패턴을 먹인다(비결정 난수 없음).
+ */
+const candidate5hzJitterGap = {
+  name: "candidate-5hz-jitter-gap",
+  routeLenM: 2000,
+  events: (() => {
+    const intervalMs = 200;
+    const speedMps = 8;
+    const baseRttMs = 40;
+    // 고정 패턴: ± 지터(ms). 합이 0에 가깝게 두어 장기 드리프트를 만들지 않는다.
+    const jitterMs = [0, 55, -35, 60, -25, 45, -50, 30];
+    const events = [];
+    let distM = 100;
+    let pubMs = 10_000;
+    let i = 0;
+
+    const pushPub = (phase, speed) => {
+      const jitter = jitterMs[i % jitterMs.length];
+      const atMs = pubMs + baseRttMs + jitter;
+      events.push({
+        atMs,
+        packet: {
+          uid: UID,
+          publicationId: PUB,
+          distM,
+          speedMps: speed,
+          phase,
+          serverAtMs: pubMs,
+        },
+      });
+      i += 1;
+      pubMs += intervalMs;
+    };
+
+    // 1) 정속 5Hz + 지터
+    for (let k = 0; k < 40; k += 1) {
+      pushPub("live", speedMps);
+      distM += speedMps * (intervalMs / 1000);
+    }
+
+    // 2) stop/start — 마지막 발행 위치에 speed 0 을 몇 틱 보낸 뒤 재출발
+    const heldDist = events[events.length - 1].packet.distM;
+    distM = heldDist;
+    for (let k = 0; k < 8; k += 1) {
+      pushPub("live", 0);
+    }
+    for (let k = 0; k < 20; k += 1) {
+      distM += speedMps * (intervalMs / 1000);
+      pushPub("live", speedMps);
+    }
+
+    // 3) 2s 전송 공백 후 재개(거리는 공백 동안 등속 진행한 것으로 이어 역행을 만들지 않음)
+    const last = events[events.length - 1];
+    const gapMs = 2_000;
+    pubMs = last.packet.serverAtMs + gapMs;
+    distM = last.packet.distM + speedMps * (gapMs / 1000);
+    for (let k = 0; k < 30; k += 1) {
+      pushPub("live", speedMps);
+      distM += speedMps * (intervalMs / 1000);
+    }
+
+    return events;
+  })(),
+};
+
 export const SCENARIOS = [
   cruise,
   accelDecel,
@@ -277,4 +346,5 @@ export const SCENARIOS = [
   s2Decel,
   s2Pause,
   s2LowZoom,
+  candidate5hzJitterGap,
 ];

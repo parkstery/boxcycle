@@ -7,8 +7,11 @@ function trailIdFromParams(params: Record<string, string>): string {
   return typeof params.trailId === "string" ? params.trailId.trim() : "";
 }
 
-/** 멤버·라이브 하트비트(update only)는 `trails.lastActivityAt` 트리거로 처리 */
-function isSubcollectionCreateOrDelete(
+/**
+ * 멤버·livePublicationRides 공통 — create/delete 만 listing 즉시 재계산.
+ * update(하트비트 등)는 `openTrailListingOnTrailWritten`(throttled lastActivityAt)에 맡긴다.
+ */
+export function isSubcollectionCreateOrDelete(
   before: DocumentSnapshot | undefined,
   after: DocumentSnapshot | undefined,
 ): boolean {
@@ -51,6 +54,7 @@ export const openTrailListingOnMemberWritten = onDocumentWritten(
   },
 );
 
+/** 라이브 라이드 생성·삭제만 즉시 반영 — 진행 하트비트(~1Hz) update 는 스킵 */
 export const openTrailListingOnLiveCourseRideWritten = onDocumentWritten(
   {
     document: "trails/{trailId}/livePublicationRides/{uid}",
@@ -58,6 +62,7 @@ export const openTrailListingOnLiveCourseRideWritten = onDocumentWritten(
   },
   async (event) => {
     const trailId = trailIdFromParams(event.params as Record<string, string>);
+    if (!isSubcollectionCreateOrDelete(event.data?.before, event.data?.after)) return;
     await runRecompute(trailId);
   },
 );

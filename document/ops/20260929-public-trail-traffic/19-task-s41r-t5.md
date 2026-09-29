@@ -1,0 +1,7 @@
+# Task 09 — Diagnose and stabilize S4-1R T5 regression gate
+
+Owner: Cursor CLI Developer. You are not alone in the codebase; preserve all prior edits. Start read-only. Allowed edit only `apps/web/e2e/peer-sync-s41r.spec.ts` if the issue is demonstrably test setup/timing; do not modify product source without reporting back. Result: `document/ops/20260929-public-trail-traffic/20-result-s41r-t5.md`. No commit/push/deploy/live Firebase.
+
+Supervisor reran `RTW_DEV_PORT=5016 npm run test:e2e:peer-s41` against emulators after listener changes. S4-1 passed. S4-1R T1-T4 passed; T5 failed because `newSessionRowKept=true` but `deferredRunTotal=0`, `deferredSkipTotal=0`, `guardFired=false` in `apps/web/test-results/.../error-context.md` and `document/ops/sync-relay/S41R-lifecycle.json`. The last T5 code needs actual delayed cleanup guard exercise; do not weaken `guardFired` or mark pass merely because row remains.
+
+Inspect injection and route flight lifecycle code. Determine whether the delayed write/cleanup path failed to arm (test race) or product behavior regressed. If test race, make the smallest deterministic test-only change that waits for verified delayed cleanup preconditions and asserts them, then run S4-1R emulator test (single worker, dedicated port) and report exact result. If product bug, do not edit product code; report precise file/line mechanism and proposed fix. Respect 5-minute browser no-progress rule. Do not rerun unrelated large suites.

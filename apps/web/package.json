@@ -36,6 +36,8 @@
     "test:e2e:peer-s41": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s41 --workers=1\"",
     "test:e2e:peer-s41r": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s41r --workers=1\"",
     "test:e2e:peer-s4m1": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test peer-sync-s4m1 --workers=1\"",
+    "test:listener-scope": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/ride-hierarchy/listener-scope-gate-contract.test.ts",
+    "test:e2e:listener-scope": "firebase emulators:exec --only auth,firestore,database --project boxcycle-dc2df --config ../../firebase.json \"playwright test listener-scope-ride --workers=1 --retries=0\"",
     "test:peer-s3-fixtures": "node scripts/peer-sync/s3-fixture-gate.mjs",
     "test:rtdb-rules": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/peer-sync/rtdb-rules-contract.test.ts",
     "probe:peer-interp": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs scripts/peer-sync/interp-jitter-probe.ts",

@@ -16,7 +16,7 @@ import {
 import { acquireTrailLivePublicationRidesSubscription } from "../lib/trail/repo/livePublicationRidesSubscriptionHub";
 import { acquireTrailMotionSubscription } from "../lib/peerMotion/repo/rtdbMotionSubscriptionHub";
 import { isFirebaseDatabaseConfigured } from "../lib/firebase/app";
-import { sanitizeTrailId } from "../lib/trail/repo/firestoreTrail";
+import { DEFAULT_TRAIL_ID, sanitizeTrailId } from "../lib/trail/repo/firestoreTrail";
 import { TRAIL_PRESENCE_STALE_MS } from "../lib/trail/trailLivePolicy";
 import {
   COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS,
@@ -204,11 +204,21 @@ export function PublicationSharedPresence({
   useEffect(() => {
     if (!pageVisible) {
       startTransition(() => setLiveRideRows([]));
+      liveRideRowsRef.current = [];
       publishOtherLiveRiderCount(0);
       return;
     }
 
     const tid = sanitizeTrailId(trailId);
+    // DEFAULT_TRAIL_ID = Trailhead — peer live-rides / motion 은 dedicated Trail 전용.
+    // 입문 코스가 남아 있어도 Trailhead 복귀 후 residual 구독을 걸지 않는다.
+    if (tid === DEFAULT_TRAIL_ID) {
+      startTransition(() => setLiveRideRows([]));
+      liveRideRowsRef.current = [];
+      publishOtherLiveRiderCount(0);
+      return;
+    }
+
     let cancelled = false;
     const release = acquireTrailLivePublicationRidesSubscription(
       tid,
@@ -251,6 +261,17 @@ export function PublicationSharedPresence({
     }
 
     const tid = sanitizeTrailId(trailId);
+    if (tid === DEFAULT_TRAIL_ID) {
+      peerSyncDevLog("rtdb-off", {
+        pageVisible,
+        dbConfigured: true,
+        reason: "default-trail",
+      });
+      startTransition(() => setMotionRows([]));
+      motionRowsRef.current = [];
+      return;
+    }
+
     let cancelled = false;
     const release = acquireTrailMotionSubscription(
       tid,
