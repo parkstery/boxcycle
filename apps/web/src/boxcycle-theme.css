@@ -88,6 +88,7 @@ body {
 .hud-idle-hint,
 .hud-account,
 .hud-signin-pill,
+.hud-clock,
 .hud-icon-btn,
 .hud-metrics__chip {
   background: var(--rtw-glass-bg);

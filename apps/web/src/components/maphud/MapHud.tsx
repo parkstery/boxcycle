@@ -15,6 +15,17 @@ import { formatRideDistanceKmNumber } from "../../lib/ride/rideDistanceFormat";
 import { type Camera1Mode, CAMERA1_MODE_META } from "../../lib/camera/camera1Mode";
 import "./MapHud.css";
 
+/** HUD 우상단 시계 — `26.09.29 15:09:35` (로컬, 초 단위) */
+function formatHudClock(d: Date): string {
+  const yy = String(d.getFullYear()).slice(-2);
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mi = String(d.getMinutes()).padStart(2, "0");
+  const ss = String(d.getSeconds()).padStart(2, "0");
+  return `${yy}.${mm}.${dd} ${hh}:${mi}:${ss}`;
+}
+
 export type AccountChipState = {
   initial: string;
   isGuest: boolean;
@@ -256,6 +267,14 @@ export function MapHud(props: MapHudProps) {
   const showAccount = account !== null && !isGate && !isSummary;
   const showSignedOutAuth =
     !isGate && !isSummary && account === null && typeof onOpenSignedOutAuth === "function";
+  const showClock = showAccount || showSignedOutAuth;
+  const [clockNow, setClockNow] = useState(() => new Date());
+  useEffect(() => {
+    if (!showClock) return;
+    const id = window.setInterval(() => setClockNow(new Date()), 1000);
+    return () => window.clearInterval(id);
+  }, [showClock]);
+  const clockText = formatHudClock(clockNow);
   /*
    * 2026-09-16: 우상단에서 센서 칩이 완전히 빠졌다. RouteDock 이 `idle` 을 포함한
    * 모든 주행 가능 stage 에서 보이므로 칩은 항상 dock 이 그린다(`lib/route/sensorChipSlot`).
@@ -515,6 +534,12 @@ export function MapHud(props: MapHudProps) {
               })}
             </div>
           ) : null}
+          {showClock ? (
+            <time className="hud-clock" dateTime={clockNow.toISOString()} aria-label="현재 시각">
+              {clockText}
+            </time>
+          ) : null}
+
           {showAccount && account ? (
             <button
               type="button"
