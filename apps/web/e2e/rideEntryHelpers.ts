@@ -118,7 +118,7 @@ export async function loadIntroCourse(
   const pick = opts?.pick ?? 'longest'
   const maxKm = opts?.maxKm
   let index = pick === 'first' ? 0 : Math.max(0, n - 1)
-  let selectedKm: number | null = null
+  let selectedKm: number | null
 
   const readKm = async (i: number): Promise<number | null> => {
     const text = (await items.nth(i).innerText().catch(() => '')) ?? ''

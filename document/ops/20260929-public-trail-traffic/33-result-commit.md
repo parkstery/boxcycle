@@ -47,4 +47,31 @@ Ops reports (`30-result`, `30c-result`, `31a-result`, queue, README, PROGRESS) p
 
 ## Commit report
 
-Filled after `git commit` (SHA, file count, remaining dirty, `diff --check`, deploy hazards).
+| Item | Value |
+|---|---|
+| SHA | `f37006f9ac1726abbd19ff613a2233792212a584` (+ follow-up lint hygiene commit) |
+| Committed file count (primary) | **80** |
+| `git diff --cached --check` (pre-commit) | **PASS** (exit 0) |
+| Push / merge / deploy | **not performed** |
+
+### Excluded dirty paths still present (intentional)
+
+**C (unrelated UI — preserve, uncommitted):**
+- `apps/web/src/boxcycle-theme.css`
+- `apps/web/src/components/maphud/MapHud.tsx`
+- `apps/web/src/components/maphud/MapHud.css`
+- `document/ops/20260929-public-trail-traffic/.relay-handoff-ignore.json`
+
+**D (raw / superseded / scratch — local-only):**
+- Heavy harness raw: `task30b-after-fix.json`, `task30c-after-fix.json`, `task30c-fallback-regress.json`, `task31a-fallback-4s.json`
+- Superseded 30A: `task30a-*.json`
+- Fail/superseded: `public-trail-functional-*-task29a-fail*`, `*-task29c*`, `task31b-attempt1*`, `.task31b-attempt1-INVALID.md`
+- Scratch: `.task29*.md`, `.task29ar*`, `listener-scope-ride-task25.json`
+- Note: `task30b-baseline-fail.json` / `task30c-baseline-fail.json` raw dumps not restored (pre-fix FAIL matrices); committed `.summary.json` retain metrics/pass counts
+
+### Remaining deployment hazards (unchanged from TASK-32)
+
+1. R2 must deploy Created/Deleted listing CF **and delete** legacy Written names.
+2. 4s FS heartbeat: RTDB outage → FS fallback freshness window wider (harness-covered).
+3. `routeActivityOnLivePublicationRideWritten` still Written (optional TASK-29).
+4. R1 merge / R2 deploy still **NEEDS_APPROVAL**.

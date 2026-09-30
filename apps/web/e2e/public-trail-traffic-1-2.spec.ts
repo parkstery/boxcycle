@@ -519,7 +519,7 @@ test.describe("public-trail traffic 1 vs 2 (emulator meters)", () => {
     // --- SOLO ---
     const soloCtx = await browser.newContext();
     const soloPage = await soloCtx.newPage();
-    let soloClientDelta: Record<string, number> | null = null;
+    let soloClientDelta: Record<string, number> | undefined;
     try {
       log("solo_setup", "start");
       const soloBoot = await bootSoloRiding(soloPage);
@@ -604,7 +604,9 @@ test.describe("public-trail traffic 1 vs 2 (emulator meters)", () => {
         payload.blocker = "solo_cleanup_failed_abort_before_dual";
         writePartial();
         log("solo_cleanup", "fail", { detail });
-        throw new Error(`solo cleanup failed — abort before dual to avoid contamination: ${detail}`);
+        throw new Error(`solo cleanup failed — abort before dual to avoid contamination: ${detail}`, {
+          cause: cleanupErr,
+        });
       }
 
       log("solo_measure", "ok", { delta: soloClientDelta, durationMs: soloDurationMs });

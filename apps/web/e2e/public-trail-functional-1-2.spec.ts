@@ -277,7 +277,9 @@ async function withPageHardCap<T>(
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       if (/Target (page|closed)|has been closed|browser has been closed/i.test(msg)) {
-        throw new Error(`bounded-timeout ${ms}ms — ${label} (page closed to cancel: ${msg})`);
+        throw new Error(`bounded-timeout ${ms}ms — ${label} (page closed to cancel: ${msg})`, {
+          cause: err,
+        });
       }
       throw err;
     }
@@ -381,11 +383,6 @@ async function captureRideUi(page: Page, tag: string): Promise<Record<string, un
       summaryVisible: false,
     };
   }
-}
-
-async function summarySheetVisible(page: Page): Promise<boolean> {
-  const snap = await readRideDomSnap(page, "summary?");
-  return snap.summaryOpen;
 }
 
 /**
@@ -1496,10 +1493,10 @@ test.describe("Public Trail functional matrix (1–2 riders, emulator)", () => {
 
     let trailId = "";
     let uid = "";
-    let selectedKm: number | null = null;
-    let riddenKm = NaN;
-    let totalKm = NaN;
-    let trailMeta: TrailMetaFields | null = null;
+    let selectedKm: number | null;
+    let riddenKm: number;
+    let totalKm: number;
+    let trailMeta: TrailMetaFields | null;
 
     try {
     lastPhase = "F6-boot";
