@@ -34,8 +34,17 @@ import {
 } from "../trailLivePolicy";
 import { trackUnderlyingReadSubscription } from "../../debug/readSubscriptionMeters";
 import { noteListingRefreshRead } from "../../debug/touchActivityMeters";
+import {
+  noteFsLiveRideUnderlyingDocChanges,
+  noteLivePublicationRideWriteAttempt,
+  noteLivePublicationRideWriteError,
+  noteLivePublicationRideWriteOk,
+} from "../../debug/trafficPublishMeters";
 
-/** publication 진행률만 주기적으로 올려 부담을 줄임 (좌표·geometry 미전송). */
+/**
+ * Legacy alias — steady publish gate SoT 는 `rideSyncPolicy.TRAIL_LIVE_PROGRESS_HEARTBEAT_MS`.
+ * publication 진행률만 주기적으로 올림 (좌표·geometry 미전송).
+ */
 export const TRAIL_LIVE_PUBLICATION_RIDE_WRITE_INTERVAL_MS = 4_000;
 
 // 타입 정의는 도메인 층이 갖는다 — 저장소끼리 타입을 주고받으면 순환이 된다(Phase 5 D1).
@@ -71,6 +80,7 @@ export function subscribeTrailLivePublicationRides(
     onSnapshot(
       liveRidesCollectionRef(rid),
       (snap) => {
+        noteFsLiveRideUnderlyingDocChanges(snap.docChanges().length);
         const rows: TrailLivePublicationRideRow[] = [];
         for (const d of snap.docs) {
           const data = d.data() as Record<string, unknown>;
@@ -134,7 +144,14 @@ export async function mergeTrailLivePublicationRideSnapshot(
   if (typeof input.distMeters === "number" && Number.isFinite(input.distMeters)) {
     payload.distMeters = Math.round(Math.max(0, input.distMeters) * 10) / 10;
   }
-  await setDoc(ref, payload, { merge: true });
+  const writeTicket = noteLivePublicationRideWriteAttempt();
+  try {
+    await setDoc(ref, payload, { merge: true });
+    noteLivePublicationRideWriteOk(writeTicket);
+  } catch (e) {
+    noteLivePublicationRideWriteError(writeTicket);
+    throw e;
+  }
 }
 
 export async function deleteTrailLivePublicationRide(uid: string, trailId: string): Promise<void> {

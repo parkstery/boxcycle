@@ -30,8 +30,13 @@ export const COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS = 24_000;
 /** 일시정지 등 비주행이지만 코스에 남아 있을 때 — 생존 신호만 저빈도 */
 export const COURSE_PRESENCE_HEARTBEAT_PAUSED_MS = 180_000;
 
-/** Trail `livePublicationRides` — 1Hz 절대 dist+speed 하트비트 (수신 측 보간용) */
-export const TRAIL_LIVE_PROGRESS_HEARTBEAT_MS = 1_000;
+/**
+ * Trail `livePublicationRides` — steady-riding 절대 dist+speed 하트비트.
+ * RTDB motion 은 `PEER_MOTION_PUBLISH_INTERVAL_MS`(5Hz) 유지. 초기·phase/end·속도 변경
+ * 즉시 publish 는 `shouldPublishRouteProgress` / join burst / finalize 경로가 담당.
+ * 15s stale(`PEER_LIVE_RIDE_STALE_MS`) 대비 여유 ≈ 11s (TASK-31A; 8–10s 는 거부).
+ */
+export const TRAIL_LIVE_PROGRESS_HEARTBEAT_MS = 4_000;
 
 /** RTDB `/trails/{trailId}/motion/{uid}` — 5Hz motion publish (지연↓: 보간 delay 를 낮추려면 틱레이트↑) */
 export const PEER_MOTION_PUBLISH_INTERVAL_MS = 200;

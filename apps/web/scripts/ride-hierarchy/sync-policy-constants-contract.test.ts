@@ -69,6 +69,7 @@ describe("G5 — 동기 정책 상수가 순환으로 무너지지 않는다", (
       "ACTIVITY_WORLD_POST_RIDE_WATCH_MS",
       "PEER_MOTION_PUBLISH_INTERVAL_MS",
       "TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS",
+      "TRAIL_LIVE_PROGRESS_HEARTBEAT_MS",
     ] as const) {
       const v = all[k];
       assert.ok(v >= 50, `${k} = ${v} — 50ms 미만이면 폭주다`);
@@ -77,6 +78,17 @@ describe("G5 — 동기 정책 상수가 순환으로 무너지지 않는다", (
     assert.ok(
       poll.ACTIVITY_WORLD_POLL_IDLE_MS > poll.ACTIVITY_WORLD_POLL_ACTIVE_MS,
       "idle 이 active 보다 잦으면 adaptive 가 뒤집힌 것이다",
+    );
+  });
+
+  it("TASK-31A — FS livePublicationRides 4s · RTDB 5Hz · stale 여유", () => {
+    assert.equal(sync.TRAIL_LIVE_PROGRESS_HEARTBEAT_MS, 4_000);
+    assert.equal(sync.PEER_MOTION_PUBLISH_INTERVAL_MS, 200);
+    assert.equal(sync.TRAIL_LIVE_PROGRESS_MIN_WRITE_MS, sync.TRAIL_LIVE_PROGRESS_HEARTBEAT_MS);
+    assert.equal(sync.TRAIL_LIVE_PROGRESS_MAX_WRITE_MS, sync.TRAIL_LIVE_PROGRESS_HEARTBEAT_MS);
+    assert.ok(
+      trailLive.PEER_LIVE_RIDE_STALE_MS - sync.TRAIL_LIVE_PROGRESS_HEARTBEAT_MS >= 10_000,
+      "4s heartbeat must leave ≥10s margin under 15s peer stale hide",
     );
   });
 

@@ -491,7 +491,9 @@ export { backfillRouteActivityLastCompletedRideAtHttp } from "./backfillRouteAct
 export { trailInstanceLifecycle } from "./trailInstanceLifecycle.js";
 export {
   openTrailListingOnTrailWritten,
-  openTrailListingOnMemberWritten,
-  openTrailListingOnLiveCourseRideWritten,
+  openTrailListingOnMemberCreated,
+  openTrailListingOnMemberDeleted,
+  openTrailListingOnLiveCourseRideCreated,
+  openTrailListingOnLiveCourseRideDeleted,
 } from "./openTrailListingProjection.js";
 export { openTrailListingsSweep } from "./openTrailListingsSweep.js";

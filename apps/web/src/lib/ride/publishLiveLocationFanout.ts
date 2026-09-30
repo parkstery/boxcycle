@@ -18,7 +18,7 @@ export type LiveLocationFanoutResult = {
   motionRttMs?: number;
 };
 
-/** global livePresence + Firestore 1Hz presence/heat + (선택) RTDB 5Hz motion */
+/** global livePresence + Firestore livePublicationRides (4s steady) + (선택) RTDB 5Hz motion */
 export async function publishLiveLocationFanout(
   user: User,
   snapshot: LiveLocationSnapshot,

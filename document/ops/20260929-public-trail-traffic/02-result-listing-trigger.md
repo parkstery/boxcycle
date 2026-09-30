@@ -1,6 +1,8 @@
 # Result 02 — listing trigger create/delete gate
 
-Status: DONE
+> **Superseded (2026-09-29 TASK-26):** members·livePublicationRides 는 더 이상 `onDocumentWritten` + exists gate 가 아니라 **Created/Deleted 전용 트리거**다. See [26-result-listing-created-deleted.md](26-result-listing-created-deleted.md).
+
+Status: DONE (historical — pre-TASK-26)
 Task: [01-task-listing-trigger.md](01-task-listing-trigger.md)
 Date: 2026-09-29
 

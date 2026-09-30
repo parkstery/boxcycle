@@ -1,0 +1,30 @@
+{
+  "task": "TASK-29B",
+  "probe": "single-rider-stop-probe",
+  "sessionId": "stop-probe-1790744747735",
+  "pass": true,
+  "atMs": 1790744787886,
+  "elapsedMs": 40151,
+  "lastPhase": "assert",
+  "trailId": "3MrWSbpAa236Emthcxwd",
+  "uidPrefix": "MqdtSI",
+  "kmBeforeStop": 0.17,
+  "summaryVisible": true,
+  "liveAfter": false,
+  "uiAfter": {
+    "tag": "post-stop",
+    "url": "http://127.0.0.1:5050/",
+    "hudKmText": null,
+    "hudKm": null,
+    "elapsedText": null,
+    "endEnabled": false,
+    "startVisible": false,
+    "summaryOpen": true,
+    "summaryRole": "region",
+    "trailMenuExpanded": false,
+    "bodyHasRideSummary": true,
+    "summaryVisible": true
+  },
+  "claimTwoRider": false,
+  "note": "Single-rider only; no claim on 2-rider flow. Stronger create-matrix still PENDING until this PASS then separate run."
+}

@@ -135,9 +135,10 @@ export const ENTRY_STEPS = [
     desc: "RouteDock 'Go'(ready-to-start) — 주행 시작",
     file: "src/components/route-dock/RouteDock.tsx",
     anchors: [
-      { name: "Go aria-label", re: /aria-label="주행 시작"/ },
-      { name: "Go 텍스트", re: /\bGo\b/ },
+      // 2026-09-28: 일시정지 후 같은 버튼이 「재개」로 바뀐다 — 고정 문자열 앵커는 실종로 오탐.
+      { name: "Go aria-label (시작|재개)", re: /aria-label=\{paused \? "재개" : "주행 시작"\}/ },
       { name: "ready-to-start 게이트", re: /stage === "ready-to-start"/ },
+      { name: "주행 제어 그룹", re: /aria-label="주행 제어"/ },
     ],
     selector: `getByRole('button',{name:'주행 시작'})`,
   },
@@ -176,14 +177,24 @@ export const ENTRY_STEPS = [
   },
   {
     step: "ride-running-proof",
-    desc: "주행 중 확정 — 주행 지표 그룹 + 누적 거리 + 주행 종료 버튼",
+    desc: "주행 중 확정 — HUD 주행 지표 그룹 + 누적 거리",
     file: "src/components/maphud/MapHud.tsx",
     anchors: [
       { name: "주행 지표 group", re: /aria-label="주행 지표"/ },
       // 2026-09-27 정정: 「오늘 거리」·「누적 진행」 라벨은 사라지고 하나로 합쳐졌다.
       { name: "누적 거리 aria-label", re: /aria-label="주행 누적 거리"/ },
-      { name: "주행 종료 aria-label", re: /aria-label="주행 종료"/ },
     ],
-    selector: `getByRole('group',{name:'주행 지표'}) & getByLabel('주행 누적 거리') & getByRole('button',{name:'주행 종료'})`,
+    selector: `getByRole('group',{name:'주행 지표'}) & getByLabel('주행 누적 거리')`,
+  },
+  {
+    // 2026-09-28 Chief: 주행 종료는 MapHud 가 아니라 RouteDock transport 에만 있다.
+    step: "ride-end-control",
+    desc: "주행 종료 — RouteDock 주행 제어(Stop)",
+    file: "src/components/route-dock/RouteDock.tsx",
+    anchors: [
+      { name: "주행 종료 aria-label", re: /aria-label="주행 종료"/ },
+      { name: "주행 제어 그룹", re: /aria-label="주행 제어"/ },
+    ],
+    selector: `getByRole('button',{name:'주행 종료'})`,
   },
 ];

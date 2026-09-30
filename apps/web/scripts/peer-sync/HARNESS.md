@@ -48,8 +48,27 @@ cd apps/web && node scripts/peer-sync/replay.mjs [--check] [--graph] [--scenario
 `replay.mjs` 가 재생 중 전역 `Date.now` 를 이벤트 시각으로 스텁하고 끝나면 복원한다(소스 무수정).
 `stepPeerMotionEntity` 는 `nowMs` 파라미터로 직접 주입한다.
 
+## RTDB↔FS 소스 선택 (TASK-30B) · both-stream liveness (TASK-30C)
+
+주식 `replay.mjs` 는 단일 패킷 스트림만 재생한다. RTDB freeze 후 FS 폴백·양방 정지 liveness 는
+**실제** `syncPeerMotionFromPresence` + `PeerMotionRegistry` 경로가 필요하므로 별도 Vite SSR 하네스.
+
+행렬(30B): FS 수신 간격 1/4/8/10s × 송신 시계 ±30s/0 × moving/stationary × silent-freeze/hard-error (+ recovery retake).
+
+행렬(30C): both-stream-stop × moving/stationary × ±30s/0 — frozen 재배달 후 15s 내 소멸.
+
+```bash
+cd apps/web && node scripts/peer-sync/rtdb-fs-fallback-harness.mjs
+cd apps/web && node scripts/peer-sync/rtdb-fs-fallback-harness.mjs --suite both-stop
+cd apps/web && node scripts/peer-sync/rtdb-fs-fallback-harness.mjs --suite fallback
+cd apps/web && node --test scripts/peer-sync/rtdb-fs-fallback-source-select.test.mjs
+```
+
+선택: `selectPeerMotionPacketForIngest` + `noteRtdbContentObservation` — **수신 측 RTDB 내용 변화 시각**만 사용 (송신 `t` / FS `serverTimestamp` 교차 비교 금지).
+이중 소스 ingest stamp: `stampDualSourceIngestPacket` — 내용 변화 시에만 `serverAtMs` 정규화(매 sync nowMs 덮어쓰기 금지).
+
 ## 미구현 (하네스 확장 TODO)
 
-- **mergePackets 재생 미포함**: 현재 시나리오는 이미 병합된 단일 패킷 스트림만 넣는다. RTDB(10Hz)+Firestore(1Hz) **이중 스트림 병합**(`mergePeerMotionPackets`)의 clock 혼용 버그는 아직 재생 안 한다 — 두 소스 이벤트를 각각 넣고 merge 를 태우는 시나리오 타입 추가 필요.
+- **mergePackets 재생 미포함**: 현재 시나리오는 이미 병합된 단일 패킷 스트림만 넣는다. RTDB(5Hz)+Firestore livePublicationRides(4s steady, TASK-31A) **필드 병합**(`mergePeerMotionPackets`)의 clock 혼용 버그는 아직 재생 안 한다 — 두 소스 이벤트를 각각 넣고 merge 를 태우는 시나리오 타입 추가 필요. (소스 **선택**/폴백은 위 TASK-30B 하네스가 담당.)
 - **R2 reconcile(soft/hard pull) 미검증**: 자기 위치 보정(`PEER_RECONCILE_*`)은 이 하네스 범위 밖.
 - ~~**알려진 미해결 버그**: `stationary-dedup`(정지 peer ~7m 오버슛)~~ ✅ **수정됨(2026-07-22)** — stall 외삽이 `newest.speedMps`(버퍼 낡은 값) 대신 `entity.speedMps`(매 ingest 갱신)를 쓰게 함. 오버슛 7.2m→0m, `expectFail` 제거해 이제 정상 회귀 방어.

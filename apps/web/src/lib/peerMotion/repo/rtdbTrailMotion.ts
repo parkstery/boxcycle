@@ -18,6 +18,11 @@ import {
   peekMotionInFlightMax,
 } from "../peerSyncChainLog";
 import { trackUnderlyingReadSubscription } from "../../debug/readSubscriptionMeters";
+import {
+  noteRtdbMotionWriteAttempt,
+  noteRtdbMotionWriteError,
+  noteRtdbMotionWriteOk,
+} from "../../debug/trafficPublishMeters";
 
 /** RTDB `/trails/{trailId}/motion/{uid}` */
 export const RTDB_TRAIL_MOTION_SEGMENT = "motion";
@@ -136,7 +141,7 @@ async function ensureMotionOnDisconnect(trailId: string, uid: string): Promise<v
   onDisconnectArmed.add(key);
 }
 
-/** 5Hz — ephemeral peer motion (Firestore 1Hz 는 presence/heat) */
+/** 5Hz — ephemeral peer motion (Firestore livePublicationRides 는 presence/heat fallback) */
 export async function mergeTrailMotionSnapshot(
   user: User,
   trailId: string,
@@ -157,6 +162,7 @@ export async function mergeTrailMotionSnapshot(
     await ensureMotionOnDisconnect(trailId, user.uid);
     const db = getFirebaseDatabase();
     const motionWriteStartAt = Date.now();
+    // DEV fault injection stays before meters — synthetic throw must not count as a set attempt/error.
     if (import.meta.env.DEV && typeof window !== "undefined") {
       const n = Number(window.__rtwMotionWriteFaultOnce);
       if (Number.isFinite(n) && n > 0) {
@@ -164,7 +170,14 @@ export async function mergeTrailMotionSnapshot(
         throw new Error("rtw-motion-write-fault-once");
       }
     }
-    await set(motionRef(db, trailId, user.uid), payload);
+    const writeTicket = noteRtdbMotionWriteAttempt();
+    try {
+      await set(motionRef(db, trailId, user.uid), payload);
+      noteRtdbMotionWriteOk(writeTicket, payload);
+    } catch (writeErr) {
+      noteRtdbMotionWriteError(writeTicket);
+      throw writeErr;
+    }
     const motionWriteDoneAt = Date.now();
     const writeRttMs = motionWriteDoneAt - motionWriteStartAt;
     const capturedAt = opts?.snapshotCapturedAt;

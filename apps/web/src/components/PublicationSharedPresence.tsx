@@ -27,6 +27,7 @@ import { mapNametagForMember, sortedGuestUids } from "../lib/identity/guestNamet
 import {
   resetPeerMotionRegistry,
   syncPeerMotionFromPresence,
+  isRtdbMotionRowPeerVisibleByReceiverObs,
 } from "../lib/peerMotion";
 import type { RtdbTrailMotionRow } from "../lib/peerMotion/repo/rtdbTrailMotion";
 import { countOtherLiveRidePeers, peerHudStableKey, type PeerHudEntry } from "../lib/peerMotion/peerHud";
@@ -315,10 +316,24 @@ export function PublicationSharedPresence({
         });
       },
       (err) => {
-        // RTDB motion 오류 — Firestore fallback. DEV 에선 permission_denied 등 표면화.
+        // RTDB motion 구독 실패 시 마지막 motionRows 를 남기면, 신선도 선택 전·시계 동률
+        // 구간에서 얼어 있는 RTDB 행이 FS 폴백을 가릴 수 있다(TASK-30A). 행을 비우고
+        // FS-only 로 sync 한다. 정상 RTDB-first 는 콜백이 다시 채울 때 복구.
         if (import.meta.env.DEV) {
           console.warn("[peerSync] RTDB motion subscribe error:", err?.message ?? err);
         }
+        if (cancelled) return;
+        motionRowsRef.current = [];
+        startTransition(() => setMotionRows([]));
+        syncPeerMotionFromPresence({
+          publicationId: publicationIdRef.current,
+          myUid: userRef.current.uid,
+          motionRows: [],
+          liveRideRows: liveRideRowsRef.current,
+          sessionMembers: sessionRowsRef.current,
+          guestUidsSorted: guestUidsRef.current,
+          routeLenM: routeLenMRef.current,
+        });
       },
     );
 
@@ -417,8 +432,8 @@ export function PublicationSharedPresence({
     }
     for (const [uid, row] of motionRowsByUid) {
       if (m.get(uid)) continue;
-      const age = row.serverAtMs > 0 ? now - row.serverAtMs : 0;
-      m.set(uid, age <= PEER_LIVE_RIDE_STALE_MS);
+      // 송신 RTDB t vs 수신 now 교차 비교 금지(+30s 시계면 15s 더 버팀). 수신 관측 연령 사용.
+      m.set(uid, isRtdbMotionRowPeerVisibleByReceiverObs(uid, row, now));
     }
     return m;
   }, [liveRidesByUid, motionRowsByUid, visibilityNowMs]);
@@ -454,7 +469,7 @@ export function PublicationSharedPresence({
     return m;
   }, [rows]);
 
-  /** Firestore 1Hz + RTDB 5Hz → PeerMotionRegistry (소스별 최신 패킷 병합) */
+  /** Firestore livePublicationRides + RTDB 5Hz → PeerMotionRegistry (소스별 최신 패킷 병합) */
   useEffect(() => {
     syncPeerMotionFromPresence({
       publicationId,

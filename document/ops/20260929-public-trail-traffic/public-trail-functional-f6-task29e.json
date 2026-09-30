@@ -1,0 +1,18 @@
+{
+  "pass": true,
+  "task": "TASK-25R2-F6",
+  "sessionId": "f6-1790768093595",
+  "trailId": "dzuPSFaXwMRoxctulQSR",
+  "uidPrefix": "2AQTWD",
+  "selectedKm": 0.41,
+  "riddenKm": 0.41,
+  "totalKm": 0.41,
+  "visibility": "open",
+  "status": "open",
+  "liveAfterFinish": false,
+  "openListingAfterFinish": false,
+  "urlTrailAtFinish": null,
+  "elapsedMin": 1.3,
+  "functionsEmu": "127.0.0.1:5001",
+  "lastPhase": "F6-cleanup"
+}
