@@ -49,9 +49,11 @@ Ops reports (`30-result`, `30c-result`, `31a-result`, queue, README, PROGRESS) p
 
 | Item | Value |
 |---|---|
-| SHA | `f37006f9ac1726abbd19ff613a2233792212a584` (+ follow-up lint hygiene commit) |
+| SHA (primary A/B) | `f37006f9ac1726abbd19ff613a2233792212a584` |
+| SHA (lint + report follow-up) | `dd59808f77bb12de3d292ff22b6dee89640f9f32` (HEAD) |
 | Committed file count (primary) | **80** |
-| `git diff --cached --check` (pre-commit) | **PASS** (exit 0) |
+| Follow-up file count | **4** |
+| `git diff --check` | **PASS** (exit 0) on remaining dirty tree |
 | Push / merge / deploy | **not performed** |
 
 ### Excluded dirty paths still present (intentional)
