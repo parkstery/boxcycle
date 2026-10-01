@@ -44,7 +44,7 @@ Supervisor는 아키텍처, 도메인 경계, 데이터 모델, Firestore·RTDB�
 
 | 폴더 | 상태 | 무엇 | 결과·입구 | 이동 |
 |------|------|------|-----------|------|
-| [20260929-public-trail-traffic](20260929-public-trail-traffic/README.md) | **R2 배포 완료 · 검수 대기** | Public Trail 동행 트래픽 절감 — listing Created/Deleted + Hosting 배포 | [R2](20260929-public-trail-traffic/37-result-r2-deploy.md) · [R1](20260929-public-trail-traffic/36-result-r1-merge-main.md) | 가능(종료 시) |
+| [20260929-public-trail-traffic](20260929-public-trail-traffic/README.md) | **최종 보고 검수 완료 · 묶음 종료** (production billed 1v2 관측 별도 미실시) | Public Trail 동행 트래픽 절감 — listing Created/Deleted + Hosting 배포 | [최종 보고](../archive/261001-Public-Trail-동행-트래픽-개선-결과보고.md) · [R2](20260929-public-trail-traffic/37-result-r2-deploy.md) | 가능 |
 | [20260929-ai-development-system](20260929-ai-development-system/README.md) | 종료 | Codex Supervisor ↔ Cursor CLI 파일 기반 개발 프로토콜 | [완료 보고](../archive/260929-RTW-AI-개발체계-구축-완료보고.md) · [검수 PASS](20260929-ai-development-system/04-review-01.md) | 불가 — 공통 규칙·상태판이 경로 사용 |
 | [sync-relay](sync-relay/INSTRUCTION.md) | **대기** | 동행 위치 동기화. 활성 지시 없음, S4-4(동행 튐) 재개 보류 | 후속 계획: [동행 지연과 경쟁 판정](../260927-RTW-동행-지연과-경쟁-판정.md) | 불가 — `apps/web/scripts/peer-sync`·e2e·`/싱크지시` 가 경로 사용 |
 | [20260923-minimap](20260923-minimap/HANDOFF.md) | **대기** | 미니맵·HUD 재배치. 지시04까지 병합 후 중단 | 남은 일: 보류01(배경에 실제 지도)·보류02 | 가능(종료 시) |
