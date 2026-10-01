@@ -1,6 +1,6 @@
 # Task queue — Public Trail traffic (`codex/public-trail-traffic`)
 
-Updated: 2026-10-01 (R1 DONE — `origin/main`=`006ce97`; see `36-result-r1-merge-main.md`; R2 awaits Supervisor). Comparison scope: **1 rider / 2 riders only**. No larger-group work on this branch.
+Updated: 2026-10-01 (R2 DONE — deploy @ `803f6ff`; see `37-result-r2-deploy.md`). Comparison scope: **1 rider / 2 riders only**. No larger-group work on this branch.
 
 Status key: `DONE` · `IN_PROGRESS` · `PENDING` · `BLOCKED` · `NEEDS_APPROVAL` · `DEFERRED`
 
@@ -47,7 +47,8 @@ Status key: `DONE` · `IN_PROGRESS` · `PENDING` · `BLOCKED` · `NEEDS_APPROVAL
 | **33** | **Evidence hygiene + isolated branch commit** (Supervisor-approved A/B only; no push) | **`33-result-commit.md`** · compact `task30b/30c/31a *.summary.json` committed; raw dumps local-only · exclude C/D |
 | **34** | **Post-commit verify** + stabilize TASK-33 SHA wording | **`34-result-postcommit-verify.md`** · builds + focused contracts PASS; E2E skipped |
 | **35** | **Conflict-free integration branch** — new worktree/branch from traffic; merge main in | **`35-result-integration-merge.md`** · merge `fd27d06` (parents `beb22b1`+`4492753`) · 2-file resolve · entry-selectors 15/15 · no push |
-| **R1** | **Merge traffic → main + publish `origin/main`** | **`36-result-r1-merge-main.md`** · FF → `3f583da`; R1-R dep-layers + ignored `.env`; tip/`origin/main`=`006ce97` (unblock `f5f2130`) |
+| **R1** | **Merge traffic → main + publish `origin/main`** | **`36-result-r1-merge-main.md`** · FF → `3f583da`; R1-R dep-layers + ignored `.env`; tip after align=`803f6ff` |
+| **R2** | **Production deploy** (Hosting + listing CF Created/Deleted; delete Written) | **`37-result-r2-deploy.md`** · create×4 · delete Written×2 · hosting 200 @ `index-B5Q89rqf.js` · project `boxcycle-dc2df` · SHA `803f6ff` |
 
 Earlier S4-1 / S4-1R T1–T4 emulator PASS (pre–listener-scope and/or partial suite) remains historical evidence; see `20-result-s41r-t5.md` and sync-relay artifacts.
 
@@ -92,11 +93,11 @@ Earlier S4-1 / S4-1R T1–T4 emulator PASS (pre–listener-scope and/or partial 
 
 | ID | Item | Notes |
 |---|---|---|
-| R2 | **Production deploy** (Hosting / Functions) | Await Supervisor review of R1 (`origin/main`=`006ce97`); **delete** legacy listing Written CF names (`26-result`) |
+| — | _(none)_ | R1+R2 Chief-authorized and DONE |
 
 Out of this queue (not “waiting on approval” as unfinished local work):
 
-- Live production A/B billed R/W + perceived 5Hz quality → after R2, separate plan.
+- Live production A/B billed R/W + perceived 5Hz quality → separate plan (R2 deploy does **not** assert billed cost drop).
 - Adaptive RTDB rate / groups larger than 2 riders → out of branch comparison scope until evidence.
 
 ---
@@ -105,8 +106,9 @@ Out of this queue (not “waiting on approval” as unfinished local work):
 
 1. ~~Supervisor reviews `32-precommit-audit.md`~~ → **TASK-33** local commit done (A+B; omit C+heavy D).
 2. ~~**TASK-34** post-commit builds + focused unit gates~~ → PASS; `33-result` SHA table stabilized (no mutable HEAD).
-3. Optional **TASK-29** — routeActivity trigger surgery if meters still show CF invocation waste after 4s (31B-R whole-run Written=**213** vs 28D-B 320; client FS 11/45s). Functional @4s already green (31C).
-4. Optional **27b** if checklist requires.
-5. **NEEDS_APPROVAL R1** merge, then **R2** deploy (legacy Written delete).
+3. ~~**R1** merge + **R2** deploy~~ → DONE (`36-result` · `37-result`).
+4. Optional **TASK-29** — routeActivity trigger surgery if production meters still show CF invocation waste after listing Written delete + 4s heartbeat.
+5. Optional **27b** if checklist requires.
+6. Supervisor review of R2 evidence; separate production billed 1v2 observation plan if Chief wants.
 
 Do **not** push / merge / deploy without Chief approval.

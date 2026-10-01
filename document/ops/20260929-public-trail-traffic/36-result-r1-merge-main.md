@@ -70,7 +70,8 @@ Command: `git push origin main` (normal; no force / no `--no-verify`) — pre-pu
 |---|---|
 | R1-R unblock commit (dep-layers + ops) | `f5f2130219a9230b523eb5dc5d19d083a2316e63` |
 | Docs SHA fill-in commit | `006ce97a8ac74a833e440297602225cd6d69b3ae` |
-| Current local `main` / `origin/main` | `006ce97a8ac74a833e440297602225cd6d69b3ae` |
+| Tip-align commit (this file/queue/progress) | `803f6ffd6826b08e79a7167ca0aa61be2b6acb4c` |
+| Current local `main` / `origin/main` (R1 tip before R2 docs) | `803f6ffd6826b08e79a7167ca0aa61be2b6acb4c` |
 | Prior `origin/main` | `44927534fe25263ff8e735629c70fae6f45628a8` |
 
-R2 Firebase deploy: **not run** (await Supervisor review of this R1 result).
+R2 Firebase deploy: see [`37-result-r2-deploy.md`](37-result-r2-deploy.md) (ran from tip `803f6ff`).
