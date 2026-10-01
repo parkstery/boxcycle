@@ -1,6 +1,6 @@
 # Task queue — Public Trail traffic (`codex/public-trail-traffic`)
 
-Updated: 2026-10-01 (TASK-33 local A/B commit after Supervisor OK; compact harness summaries; raw D dumps local-only). Comparison scope: **1 rider / 2 riders only**. No larger-group work on this branch.
+Updated: 2026-10-01 (TASK-34 post-commit verify PASS; TASK-33 SHA wording stabilized; R1/R2 still NEEDS_APPROVAL). Comparison scope: **1 rider / 2 riders only**. No larger-group work on this branch.
 
 Status key: `DONE` · `IN_PROGRESS` · `PENDING` · `BLOCKED` · `NEEDS_APPROVAL` · `DEFERRED`
 
@@ -54,7 +54,7 @@ Earlier S4-1 / S4-1R T1–T4 emulator PASS (pre–listener-scope and/or partial 
 
 | ID | Item | Next |
 |---|---|---|
-| — | _(none)_ — TASK-33 local commit done; **R1** merge / **R2** deploy remain NEEDS_APPROVAL | — |
+| — | _(none)_ — TASK-34 verify done; **R1** merge / **R2** deploy remain NEEDS_APPROVAL | — |
 
 ---
 
@@ -102,8 +102,9 @@ Out of this queue (not “waiting on approval” as unfinished local work):
 ## Suggested next TASK order
 
 1. ~~Supervisor reviews `32-precommit-audit.md`~~ → **TASK-33** local commit done (A+B; omit C+heavy D).
-2. Optional **TASK-29** — routeActivity trigger surgery if meters still show CF invocation waste after 4s (31B-R whole-run Written=**213** vs 28D-B 320; client FS 11/45s). Functional @4s already green (31C).
-3. Optional **27b** if checklist requires.
-4. **NEEDS_APPROVAL R1** merge, then **R2** deploy (legacy Written delete).
+2. ~~**TASK-34** post-commit builds + focused unit gates~~ → PASS; `33-result` SHA table stabilized (no mutable HEAD).
+3. Optional **TASK-29** — routeActivity trigger surgery if meters still show CF invocation waste after 4s (31B-R whole-run Written=**213** vs 28D-B 320; client FS 11/45s). Functional @4s already green (31C).
+4. Optional **27b** if checklist requires.
+5. **NEEDS_APPROVAL R1** merge, then **R2** deploy (legacy Written delete).
 
 Do **not** push / merge / deploy without Chief approval.

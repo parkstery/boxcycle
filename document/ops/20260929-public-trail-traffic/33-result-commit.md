@@ -47,12 +47,17 @@ Ops reports (`30-result`, `30c-result`, `31a-result`, queue, README, PROGRESS) p
 
 ## Commit report
 
+Fixed SHAs for this task’s commit stack. **Do not label any row as HEAD** — tip may move with later doc-only commits (e.g. PROGRESS).
+
+| Role | Full SHA | Notes |
+|---|---|---|
+| Primary A/B | `f37006f9ac1726abbd19ff613a2233792212a584` | Product + CF + meters + compact summaries (**80** files) |
+| Lint follow-up | `dd59808f77bb12de3d292ff22b6dee89640f9f32` | e2e eslint left out of primary index (**4** files) |
+| Docs (result SHAs) | `646b87ac3d13baced14b9d05ea2bd38fc3e2d25c` | `33-result-commit.md` SHA table wording |
+| Docs (PROGRESS) | `b9593c5100f277f95fcc6e95f745c67b91f4d1aa` | PROGRESS line for TASK-33 SHAs |
+
 | Item | Value |
 |---|---|
-| SHA (primary A/B) | `f37006f9ac1726abbd19ff613a2233792212a584` |
-| SHA (lint + report follow-up) | `dd59808f77bb12de3d292ff22b6dee89640f9f32` (HEAD) |
-| Committed file count (primary) | **80** |
-| Follow-up file count | **4** |
 | `git diff --check` | **PASS** (exit 0) on remaining dirty tree |
 | Push / merge / deploy | **not performed** |
 
