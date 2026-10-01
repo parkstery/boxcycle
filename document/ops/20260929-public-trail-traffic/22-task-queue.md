@@ -1,6 +1,6 @@
 # Task queue — Public Trail traffic (`codex/public-trail-traffic`)
 
-Updated: 2026-10-01 (TASK-34 post-commit verify PASS; TASK-33 SHA wording stabilized; R1/R2 still NEEDS_APPROVAL). Comparison scope: **1 rider / 2 riders only**. No larger-group work on this branch.
+Updated: 2026-10-01 (TASK-35 integration merge `fd27d06` DONE locally; R1/R2 still NEEDS_APPROVAL). Comparison scope: **1 rider / 2 riders only**. No larger-group work on this branch.
 
 Status key: `DONE` · `IN_PROGRESS` · `PENDING` · `BLOCKED` · `NEEDS_APPROVAL` · `DEFERRED`
 
@@ -45,6 +45,8 @@ Status key: `DONE` · `IN_PROGRESS` · `PENDING` · `BLOCKED` · `NEEDS_APPROVAL
 | **31C** | **Post-4s functional regression** — create-matrix + F6 once @4s heartbeat | **`31c-result-functional-4s.md`** · create exit0 process=214s allPass · F6 exit0 0.41/0.41 live+listing clear · hub secondary timeout not claimed · no 4s stale defect · no product edit |
 | **32** | **Final pre-commit audit** (classify A/B/C/D; builds + focused contracts; no commit) | **`32-precommit-audit.md`** · web+functions build PASS · diff --check PASS · meters 14 · heartbeat+policy 13 · cmp+select 22 · liveness 7 · replay 19 · functions 36 · **C** MapHud/theme/relay-ignore preserved · heavy task30* JSON = D |
 | **33** | **Evidence hygiene + isolated branch commit** (Supervisor-approved A/B only; no push) | **`33-result-commit.md`** · compact `task30b/30c/31a *.summary.json` committed; raw dumps local-only · exclude C/D |
+| **34** | **Post-commit verify** + stabilize TASK-33 SHA wording | **`34-result-postcommit-verify.md`** · builds + focused contracts PASS; E2E skipped |
+| **35** | **Conflict-free integration branch** — new worktree/branch from traffic; merge main in | **`35-result-integration-merge.md`** · merge `fd27d06` (parents `beb22b1`+`4492753`) · 2-file resolve · entry-selectors 15/15 · no push |
 
 Earlier S4-1 / S4-1R T1–T4 emulator PASS (pre–listener-scope and/or partial suite) remains historical evidence; see `20-result-s41r-t5.md` and sync-relay artifacts.
 
@@ -54,7 +56,7 @@ Earlier S4-1 / S4-1R T1–T4 emulator PASS (pre–listener-scope and/or partial 
 
 | ID | Item | Next |
 |---|---|---|
-| — | _(none)_ — TASK-34 verify done; **R1** merge / **R2** deploy remain NEEDS_APPROVAL | — |
+| — | _(none)_ — TASK-35 integration branch ready; **R1** merge-to-main / **R2** deploy remain NEEDS_APPROVAL | — |
 
 ---
 

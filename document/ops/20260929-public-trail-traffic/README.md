@@ -1,12 +1,12 @@
 # Public Trail traffic reduction
 
-- Branch: `codex/public-trail-traffic`
-- Worktree: `C:\Users\kdrea\.codex\worktrees\public-trail-traffic\boxcycle`
-- Status: **TASK-34** post-commit verify PASS; TASK-33 A/B stack wording stabilized. **No push / merge / deploy.**
+- Traffic branch / worktree: `codex/public-trail-traffic` @ `C:\Users\kdrea\.codex\worktrees\public-trail-traffic\boxcycle` (`beb22b1`)
+- Integration branch / worktree: `codex/public-trail-traffic-integration` @ `C:\Users\kdrea\.codex\worktrees\public-trail-traffic-integration\boxcycle` (merge `fd27d06` = traffic + main `4492753`)
+- Status: **TASK-35** integration merge DONE locally. **No push / merge-to-main / deploy.** R1/R2 still NEEDS_APPROVAL.
 - Supervisor: Codex (no coding)
 - Developer: Cursor CLI
 - Chief approval: This work was explicitly approved on 2026-09-29. Deployment and merge remain separate actions.
-- Current result: [34-result-postcommit-verify.md](34-result-postcommit-verify.md) · [33-result-commit.md](33-result-commit.md) · [32-precommit-audit.md](32-precommit-audit.md) · [31c-result-functional-4s.md](31c-result-functional-4s.md) · queue [22-task-queue.md](22-task-queue.md)
+- Current result: [35-result-integration-merge.md](35-result-integration-merge.md) · [34-result-postcommit-verify.md](34-result-postcommit-verify.md) · [33-result-commit.md](33-result-commit.md) · queue [22-task-queue.md](22-task-queue.md)
 
 Comparison scope: one rider and two riders only. Larger groups require a separate instruction.
 
