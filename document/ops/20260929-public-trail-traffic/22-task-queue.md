@@ -1,6 +1,6 @@
 # Task queue — Public Trail traffic (`codex/public-trail-traffic`)
 
-Updated: 2026-10-01 (R1 DONE — `origin/main`=`f5f2130`; see `36-result-r1-merge-main.md`; R2 awaits Supervisor). Comparison scope: **1 rider / 2 riders only**. No larger-group work on this branch.
+Updated: 2026-10-01 (R1 DONE — `origin/main`=`006ce97`; see `36-result-r1-merge-main.md`; R2 awaits Supervisor). Comparison scope: **1 rider / 2 riders only**. No larger-group work on this branch.
 
 Status key: `DONE` · `IN_PROGRESS` · `PENDING` · `BLOCKED` · `NEEDS_APPROVAL` · `DEFERRED`
 
@@ -47,7 +47,7 @@ Status key: `DONE` · `IN_PROGRESS` · `PENDING` · `BLOCKED` · `NEEDS_APPROVAL
 | **33** | **Evidence hygiene + isolated branch commit** (Supervisor-approved A/B only; no push) | **`33-result-commit.md`** · compact `task30b/30c/31a *.summary.json` committed; raw dumps local-only · exclude C/D |
 | **34** | **Post-commit verify** + stabilize TASK-33 SHA wording | **`34-result-postcommit-verify.md`** · builds + focused contracts PASS; E2E skipped |
 | **35** | **Conflict-free integration branch** — new worktree/branch from traffic; merge main in | **`35-result-integration-merge.md`** · merge `fd27d06` (parents `beb22b1`+`4492753`) · 2-file resolve · entry-selectors 15/15 · no push |
-| **R1** | **Merge traffic → main + publish `origin/main`** | **`36-result-r1-merge-main.md`** · FF → `3f583da`; R1-R dep-layers + ignored `.env`; tip/`origin/main`=`f5f2130` |
+| **R1** | **Merge traffic → main + publish `origin/main`** | **`36-result-r1-merge-main.md`** · FF → `3f583da`; R1-R dep-layers + ignored `.env`; tip/`origin/main`=`006ce97` (unblock `f5f2130`) |
 
 Earlier S4-1 / S4-1R T1–T4 emulator PASS (pre–listener-scope and/or partial suite) remains historical evidence; see `20-result-s41r-t5.md` and sync-relay artifacts.
 
@@ -92,7 +92,7 @@ Earlier S4-1 / S4-1R T1–T4 emulator PASS (pre–listener-scope and/or partial 
 
 | ID | Item | Notes |
 |---|---|---|
-| R2 | **Production deploy** (Hosting / Functions) | Await Supervisor review of R1 (`origin/main`=`f5f2130`); **delete** legacy listing Written CF names (`26-result`) |
+| R2 | **Production deploy** (Hosting / Functions) | Await Supervisor review of R1 (`origin/main`=`006ce97`); **delete** legacy listing Written CF names (`26-result`) |
 
 Out of this queue (not “waiting on approval” as unfinished local work):
 

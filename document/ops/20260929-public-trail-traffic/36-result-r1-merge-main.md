@@ -68,8 +68,9 @@ Command: `git push origin main` (normal; no force / no `--no-verify`) — pre-pu
 
 | Ref | SHA |
 |---|---|
-| Local `main` after R1-R commit | `f5f2130219a9230b523eb5dc5d19d083a2316e63` |
-| `origin/main` after non-force push | `f5f2130219a9230b523eb5dc5d19d083a2316e63` |
+| R1-R unblock commit (dep-layers + ops) | `f5f2130219a9230b523eb5dc5d19d083a2316e63` |
+| Docs SHA fill-in commit | `006ce97a8ac74a833e440297602225cd6d69b3ae` |
+| Current local `main` / `origin/main` | `006ce97a8ac74a833e440297602225cd6d69b3ae` |
 | Prior `origin/main` | `44927534fe25263ff8e735629c70fae6f45628a8` |
 
 R2 Firebase deploy: **not run** (await Supervisor review of this R1 result).
