@@ -136,7 +136,9 @@ export const ENTRY_STEPS = [
     file: "src/components/route-dock/RouteDock.tsx",
     anchors: [
       // 2026-09-28: 일시정지 후 같은 버튼이 「재개」로 바뀐다 — 고정 문자열 앵커는 실종로 오탐.
+      // main RouteDock: 아이콘 버튼 + paused 분기 aria-label (문자 「Go」는 주석/클래스에 잔존).
       { name: "Go aria-label (시작|재개)", re: /aria-label=\{paused \? "재개" : "주행 시작"\}/ },
+      { name: "Go 텍스트", re: /\bGo\b/ },
       { name: "ready-to-start 게이트", re: /stage === "ready-to-start"/ },
       { name: "주행 제어 그룹", re: /aria-label="주행 제어"/ },
     ],
@@ -187,13 +189,15 @@ export const ENTRY_STEPS = [
     selector: `getByRole('group',{name:'주행 지표'}) & getByLabel('주행 누적 거리')`,
   },
   {
-    // 2026-09-28 Chief: 주행 종료는 MapHud 가 아니라 RouteDock transport 에만 있다.
+    // 2026-09-28 Chief/main: 종료·일시정지는 MapHud FAB 가 아니라 RouteDock transport.
+    // traffic 계약은 지표(MapHud)와 종료 제어(RouteDock)를 단계로 분리한다.
     step: "ride-end-control",
-    desc: "주행 종료 — RouteDock 주행 제어(Stop)",
+    desc: "주행 종료 — RouteDock 주행 제어(Stop/Pause)",
     file: "src/components/route-dock/RouteDock.tsx",
     anchors: [
+      { name: "주행 제어 group", re: /aria-label="주행 제어"/ },
       { name: "주행 종료 aria-label", re: /aria-label="주행 종료"/ },
-      { name: "주행 제어 그룹", re: /aria-label="주행 제어"/ },
+      { name: "일시정지 aria-label", re: /aria-label="일시정지"/ },
     ],
     selector: `getByRole('button',{name:'주행 종료'})`,
   },

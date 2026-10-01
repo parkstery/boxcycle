@@ -1,47 +1,13 @@
 ---
 name: ops-relay-auto
-description: >-
-  document/ops 릴레이 자동 착수. 지시 파일이 올라오면 Chief·사용자「계속」없이 즉시 수행.
-  await-next + AwaitShell 블록 대기. Local First Ride(20260923-first_ride)·NEXT 수신·
-  수행결과·핸드오프가 언급되거나 개발팀장(커서)이 릴레이를 돌릴 때 사용.
+description: 기존 ops 릴레이를 명시적으로 재개할 때만 사용하는 호환 스킬. 새 Codex Supervisor → Cursor CLI 작업에는 document/ops/README.md 프로토콜을 따른다.
 ---
 
-# ops-relay-auto — 지시 수신 = 즉시 착수
+# 기존 릴레이 호환
 
-## 철칙
+이 스킬은 종료된 릴레이의 기록과 도구를 해석할 때 사용한다. [ops 색인](../../../document/ops/README.md)에서 해당 묶음의 현재 상태를 먼저 확인한다. 종료된 묶음은 명시적 재개 지시가 없으면 실행하지 않는다.
 
-- **지시가 찍히면 그 자리에서 수행한다.** Chief·사용자「계속」을 **기다리지 마라·묻지 마라**.
-- 수신기: `await-next.mjs`. stdout 에 `NEXT` → **본문 정독 → 즉시 구현**.
-- 수행결과를 쓴 뒤 채팅만 끝내면 **실패**다. 반드시 다시 대기로 들어간다.
-- `git commit` / `git push` 금지(묶음 README).
-
-## 대기 절차 (필수 — 이 순서를 건너뛰지 마라)
-
-```bash
-node scripts/ops-relay/await-next.mjs document/ops/20260923-first_ride --timeout 14400 --interval 20
-```
-
-1. 위 명령을 **백그라운드**(`block_until_ms: 0`) + `notify_on_output` pattern **`^NEXT `**
-2. **같은 어시스턴트 턴에서** `AwaitShell` 로 그 shell 을 블록한다 (`pattern: ^NEXT `, block 길게).
-3. `NEXT` 매칭 → 지시 파일 읽고 착수. 사용자 메시지 불필요.
-4. `IDLE`/타임아웃/프로세스 종료(NEXT 없이) → **다시 1번**.
-
-핸드오프(미완 지시 가로채기 방지):
-
-```bash
-node scripts/ops-relay/await-next.mjs document/ops/20260923-first_ride --ignore-open-at-start --timeout 14400 --interval 20
-```
-
-## 루프
-
-```
-await-next(bg+notify) → AwaitShell(^NEXT) → 수행 → PROGRESS → 수행결과 → await-next …
-```
-
-- `PROGRESS.md` UTF-8, 최소 10분에 한 줄
-- 작업 중 `check-amend.mjs` — `AMENDED` 면 즉시 반영
-- 사용자「중지」명시만 루프 종료
-
-## 활성 묶음
-
-`document/ops/20260923-first_ride`
+- 새 작업은 해당 묶음 README와 최신 Supervisor 지시를 읽고, 한 지시를 수행한 뒤 별도 결과 파일을 쓰고 종료한다.
+- 기존 묶음이 재개되면 그 묶음의 파일명·검증·Git 제한을 따른다.
+- `await-next.mjs`는 지시에서 명시적으로 요구할 때만 실행한다. 무한 대기·자동 재시작을 기본 동작으로 삼지 않는다.
+- 테스트 실패와 미완료는 결과에 그대로 기록한다. Chief에게 파일 중계를 요구하지 않는다.
