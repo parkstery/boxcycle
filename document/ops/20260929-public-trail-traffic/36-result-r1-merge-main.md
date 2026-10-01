@@ -62,11 +62,14 @@ Pre-push abort:
 
 ---
 
-## Publish
+## Publish (DONE)
+
+Command: `git push origin main` (normal; no force / no `--no-verify`) — pre-push gates passed.
 
 | Ref | SHA |
 |---|---|
-| Local `main` after R1-R commit | *(filled after commit/push)* |
-| `origin/main` after non-force push | *(filled after push)* |
+| Local `main` after R1-R commit | `f5f2130219a9230b523eb5dc5d19d083a2316e63` |
+| `origin/main` after non-force push | `f5f2130219a9230b523eb5dc5d19d083a2316e63` |
+| Prior `origin/main` | `44927534fe25263ff8e735629c70fae6f45628a8` |
 
-R2 Firebase deploy: **not run**.
+R2 Firebase deploy: **not run** (await Supervisor review of this R1 result).
