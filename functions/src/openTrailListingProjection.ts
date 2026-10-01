@@ -1,20 +1,9 @@
-import type { DocumentSnapshot } from "firebase-admin/firestore";
-import { onDocumentWritten } from "firebase-functions/v2/firestore";
+import { onDocumentCreated, onDocumentDeleted, onDocumentWritten } from "firebase-functions/v2/firestore";
 import { recomputeOpenTrailListing } from "./openTrailListingCore.js";
 import { REGION } from "./region.js";
 
 function trailIdFromParams(params: Record<string, string>): string {
   return typeof params.trailId === "string" ? params.trailId.trim() : "";
-}
-
-/** 멤버·라이브 하트비트(update only)는 `trails.lastActivityAt` 트리거로 처리 */
-function isSubcollectionCreateOrDelete(
-  before: DocumentSnapshot | undefined,
-  after: DocumentSnapshot | undefined,
-): boolean {
-  const had = Boolean(before?.exists);
-  const has = Boolean(after?.exists);
-  return had !== has;
 }
 
 async function runRecompute(trailId: string): Promise<void> {
@@ -26,38 +15,61 @@ async function runRecompute(trailId: string): Promise<void> {
   }
 }
 
-/** Trail 메타·활동 시각 변경 → listing 재계산 */
+async function recomputeListingForTrailParams(params: Record<string, string>): Promise<void> {
+  await runRecompute(trailIdFromParams(params));
+}
+
+/** Trail 메타·활동 시각 변경 → listing 재계산 (throttled lastActivityAt 포함) */
 export const openTrailListingOnTrailWritten = onDocumentWritten(
   {
     document: "trails/{trailId}",
     region: REGION,
   },
   async (event) => {
-    const trailId = trailIdFromParams(event.params as Record<string, string>);
-    await runRecompute(trailId);
+    await recomputeListingForTrailParams(event.params as Record<string, string>);
   },
 );
 
-/** 합류·이탈 즉시 반영 */
-export const openTrailListingOnMemberWritten = onDocumentWritten(
+/** 합류 즉시 반영 — update 는 트리거 자체가 발생하지 않음 */
+export const openTrailListingOnMemberCreated = onDocumentCreated(
   {
     document: "trails/{trailId}/members/{userId}",
     region: REGION,
   },
   async (event) => {
-    const trailId = trailIdFromParams(event.params as Record<string, string>);
-    if (!isSubcollectionCreateOrDelete(event.data?.before, event.data?.after)) return;
-    await runRecompute(trailId);
+    await recomputeListingForTrailParams(event.params as Record<string, string>);
   },
 );
 
-export const openTrailListingOnLiveCourseRideWritten = onDocumentWritten(
+/** 이탈 즉시 반영 */
+export const openTrailListingOnMemberDeleted = onDocumentDeleted(
+  {
+    document: "trails/{trailId}/members/{userId}",
+    region: REGION,
+  },
+  async (event) => {
+    await recomputeListingForTrailParams(event.params as Record<string, string>);
+  },
+);
+
+/** 라이브 라이드 doc 생성 즉시 반영 — 하트비트 update 는 CF 미호출 */
+export const openTrailListingOnLiveCourseRideCreated = onDocumentCreated(
   {
     document: "trails/{trailId}/livePublicationRides/{uid}",
     region: REGION,
   },
   async (event) => {
-    const trailId = trailIdFromParams(event.params as Record<string, string>);
-    await runRecompute(trailId);
+    await recomputeListingForTrailParams(event.params as Record<string, string>);
+  },
+);
+
+/** 라이브 라이드 doc 삭제 즉시 반영 */
+export const openTrailListingOnLiveCourseRideDeleted = onDocumentDeleted(
+  {
+    document: "trails/{trailId}/livePublicationRides/{uid}",
+    region: REGION,
+  },
+  async (event) => {
+    await recomputeListingForTrailParams(event.params as Record<string, string>);
   },
 );

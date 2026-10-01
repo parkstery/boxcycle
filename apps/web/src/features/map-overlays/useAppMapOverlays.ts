@@ -41,6 +41,10 @@ import {
   shouldDisablePublicationOverlayHooks,
   shouldSkipLiveOverlaysOnMap,
 } from "../../lib/debug/mapDebugPhase";
+import {
+  resolveActiveLiveRideTrailIdsListenerEnabled,
+  resolveWorldLivePublicationRideOverlayEnabled,
+} from "./listenerScopePolicy";
 
 export type UseAppMapOverlaysOpts = {
   configured: boolean;
@@ -167,7 +171,13 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   const atTrailheadIdle = sanitizedTrailId === DEFAULT_TRAIL_ID && !isRideSessionActive;
 
   const activeLiveRideTrailIdsQuery = useActiveLiveRideTrailIds({
-    enabled: Boolean(configured && user && pageVisible && trailheadSessionActive),
+    enabled: resolveActiveLiveRideTrailIdsListenerEnabled({
+      configured,
+      hasUser: Boolean(user),
+      pageVisible,
+      trailheadSessionActive,
+      isRideSessionActive,
+    }),
   });
 
   const liveRideTrailIds = useMemo(() => {
@@ -293,8 +303,14 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       : undefined,
   });
 
-  const worldLivePublicationRideOverlayEnabled =
-    !debugIsolationOn && Boolean(configured && user && pageVisible) && !publicationPresenceWorldMapEnabled;
+  const worldLivePublicationRideOverlayEnabled = resolveWorldLivePublicationRideOverlayEnabled({
+    configured,
+    hasUser: Boolean(user),
+    pageVisible,
+    isRideSessionActive,
+    debugIsolationOn,
+    publicationPresenceWorldMapEnabled,
+  });
 
   const livePublicationRideOverlay = useWorldLivePublicationRideMapOverlay({
     enabled: worldLivePublicationRideOverlayEnabled,

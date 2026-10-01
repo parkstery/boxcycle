@@ -15,6 +15,7 @@ import {
   invalidateRouteActivityCache,
 } from "./lib/activity/repo/firestoreRouteActivity";
 import { AppMapStage, RouteMinimap, useAppMapOverlays } from "./features/map-overlays";
+import { resolveOpenTrailsListenerEnabled } from "./features/map-overlays/listenerScopePolicy";
 import { RouteDock, useRouteDockStops, type RouteDockStop, type RouteDockStopId } from "./components/route-dock";
 import { DebugMapStage } from "./features/map-overlays/DebugMapStage";
 import type { MapViewportBounds } from "./lib/activity/activityWorldLod";
@@ -776,8 +777,14 @@ export default function App() {
   }, [isRideSessionActive, ridingTrailId, trailId]);
 
   const openTrailsQuery = useOpenTrails({
-    /** Trailhead 세션 — 주행 중 Trail listing 만 */
-    enabled: Boolean(configured && user && trailheadSessionActive),
+    /** Trailhead idle 또는 주행 중 메뉴 열림 — 주행+메뉴닫힘이면 listing/CG 해제 */
+    enabled: resolveOpenTrailsListenerEnabled({
+      configured,
+      hasUser: Boolean(user),
+      trailheadSessionActive,
+      isRideSessionActive,
+      menuOpen,
+    }),
   });
 
   /** HUD·네임태그·TrailHub — fetch 전 seed·공개 목록으로 `displayNumber` 보강 */

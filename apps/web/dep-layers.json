@@ -384,6 +384,7 @@
       "debug/installMotionExistsDebug.ts",
       "debug/installReadSubscriptionDebug.ts",
       "debug/installTouchActivityDebug.ts",
+      "debug/installTrafficPublishDebug.ts",
       "debug/localFirstGeoProbe.ts",
       "debug/mapDebugPhase.ts",
       "debug/mapTickProbe.ts",
@@ -391,7 +392,9 @@
       "debug/peerSmoothnessProbe.ts",
       "debug/riderRenderCostProbe.ts",
       "debug/tickTestSwitches.ts",
-      "debug/touchActivityMeters.ts"
+      "debug/touchActivityMeters.ts",
+      "debug/trafficPairedCapture.ts",
+      "debug/trafficPublishMeters.ts"
     ],
     "weather": [
       "weather/openMeteoWeather.ts"

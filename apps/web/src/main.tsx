@@ -7,10 +7,12 @@ import './boxcycle-theme.css';   // 다크 테마 (토큰 별칭 레이어)
 import { installReadSubscriptionDebug } from './lib/debug/installReadSubscriptionDebug'
 import { installTouchActivityDebug } from './lib/debug/installTouchActivityDebug'
 import { installHudCompanionDebug } from './lib/debug/installHudCompanionDebug'
+import { installTrafficPublishDebug } from './lib/debug/installTrafficPublishDebug'
 
 installReadSubscriptionDebug()
 installTouchActivityDebug()
 installHudCompanionDebug()
+installTrafficPublishDebug()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

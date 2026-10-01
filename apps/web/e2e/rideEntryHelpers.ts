@@ -97,14 +97,16 @@ export async function ensureRideInputReady(page: Page): Promise<void> {
  * 기본은 **가장 긴 코스**다. 동행 시험은 몇 분씩 달리는데, 짧은 코스를 고르면 측정 도중
  * **완주해 버려** Go 버튼이 사라진다.
  *
+ * `shortest` — 목록에서 가장 짧은 코스(완주 E2E용). `maxKm` 이 있으면 그 이하만 후보.
+ *
  * 2026-09-27: 종전에는 「목록의 마지막 항목」을 골랐다. 그때는 그것이 가장 길었지만 코스가
  * 늘면서 순서가 바뀌었고, s1 이 0.45 km 코스를 집어 8케이스 중간에 주행이 끝났다.
  * **위치는 바뀌지만 의도는 안 바뀐다** — 목록에 적힌 거리(`N.NN km`)를 읽어 고른다.
  */
 export async function loadIntroCourse(
   page: Page,
-  opts?: { pick?: 'first' | 'last' | 'longest' },
-): Promise<void> {
+  opts?: { pick?: 'first' | 'last' | 'longest' | 'shortest'; maxKm?: number },
+): Promise<{ selectedKm: number | null }> {
   await page.getByRole('button', { name: 'Trail 메뉴' }).click()
   await page.getByRole('button', { name: '입문' }).click()
   const modal = page.getByRole('dialog').filter({ has: page.locator('#oc-modal-title') })
@@ -114,25 +116,47 @@ export async function loadIntroCourse(
   const n = await items.count()
 
   const pick = opts?.pick ?? 'longest'
+  const maxKm = opts?.maxKm
   let index = pick === 'first' ? 0 : Math.max(0, n - 1)
+  let selectedKm: number | null
 
-  if (pick === 'longest') {
-    let bestKm = -1
+  const readKm = async (i: number): Promise<number | null> => {
+    const text = (await items.nth(i).innerText().catch(() => '')) ?? ''
+    const m = text.match(/([\d.]+)\s*km/)
+    const km = m ? Number(m[1]) : NaN
+    return Number.isFinite(km) ? km : null
+  }
+
+  if (pick === 'longest' || pick === 'shortest') {
+    let bestKm = pick === 'longest' ? -1 : Number.POSITIVE_INFINITY
+    let found = false
     for (let i = 0; i < n; i += 1) {
-      const text = (await items.nth(i).innerText().catch(() => '')) ?? ''
-      const m = text.match(/([\d.]+)\s*km/)
-      const km = m ? Number(m[1]) : NaN
-      if (Number.isFinite(km) && km > bestKm) {
+      const km = await readKm(i)
+      if (km == null) continue
+      if (maxKm != null && km > maxKm) continue
+      const better = pick === 'longest' ? km > bestKm : km < bestKm
+      if (better) {
         bestKm = km
         index = i
+        found = true
       }
     }
-    // 거리를 하나도 못 읽으면 마지막 항목으로 — 조용히 첫 항목을 고르지 않는다.
-    if (bestKm < 0) index = Math.max(0, n - 1)
+    if (!found) {
+      if (maxKm != null) {
+        throw new Error(`입문 코스 중 ${maxKm}km 이하가 없다 (pick=${pick})`)
+      }
+      // 거리를 하나도 못 읽으면 마지막 항목으로 — 조용히 첫 항목을 고르지 않는다.
+      index = Math.max(0, n - 1)
+      bestKm = -1
+    }
+    selectedKm = found ? bestKm : await readKm(index)
+  } else {
+    selectedKm = await readKm(index)
   }
 
   await items.nth(index).click()
   await expect(page.getByRole('button', { name: '주행 시작' })).toBeVisible({ timeout: 20_000 })
+  return { selectedKm }
 }
 
 /**

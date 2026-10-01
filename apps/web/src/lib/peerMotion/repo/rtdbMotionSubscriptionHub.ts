@@ -1,5 +1,6 @@
 import { sanitizeTrailId } from "../../trail/trailId";
 import { subscribeTrailMotion, type RtdbTrailMotionRow } from "./rtdbTrailMotion";
+import { noteRtdbMotionUnderlyingDelivery } from "../../debug/trafficPublishMeters";
 
 type RowsListener = (rows: RtdbTrailMotionRow[]) => void;
 type ErrorListener = (err: Error) => void;
@@ -48,6 +49,7 @@ function ensureRtdbSubscription(tid: string, slot: TrailSlot): void {
   slot.unsub = underlyingSubscribe(
     tid,
     (rows) => {
+      noteRtdbMotionUnderlyingDelivery();
       slot.rows = rows;
       for (const listener of slot.rowsListeners) listener(rows);
     },

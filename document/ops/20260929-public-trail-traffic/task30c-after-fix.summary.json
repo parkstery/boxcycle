@@ -1,0 +1,205 @@
+{
+  "task": "TASK-30C",
+  "suite": "both-stop",
+  "at": "2026-09-30T20:55:51.609Z",
+  "note": "Offline dual-source replay through syncPeerMotionFromPresence + PeerMotionRegistry. Not billed Firebase reads. Publisher cadence unchanged — FS intervals are receive-side simulations. Sender clock offset applied only to RTDB t; FS lastSeenAt uses receiver-aligned wall base. both-stream-stop: frozen RTDB+FS redelivery must expire peer within PEER_LIVE_RIDE_STALE_MS. | COMPACT SUMMARY for git: scenario metrics/pass retained; selectionSamples/timeline omitted. Full raw dump remains local-only (not committed): task30c-after-fix.json",
+  "evidenceKind": "compact-summary",
+  "rawLocalOnly": "task30c-after-fix.json",
+  "results": [
+    {
+      "fsIntervalMs": 1000,
+      "freezeAtMs": 4000,
+      "peerGoneInOutage": true,
+      "peerGoneAtMs": 19100,
+      "staleDeadlineMs": 19100,
+      "maxBackM": 26,
+      "maxJumpM": 121,
+      "maxGapVisibleMs": 5200,
+      "outageInvisibleSpans": [
+        {
+          "from": 19100,
+          "to": 24200,
+          "ms": 5100
+        }
+      ],
+      "lagMAtEnd": 2.2,
+      "staleRiskMarginMs": 14000,
+      "staleRiskThin": false,
+      "maxExtrapAheadMs": 1200,
+      "endDisplayDistM": 137.8,
+      "endEntityCount": 1,
+      "recoveryRtdbRetakeShare": null,
+      "violations": [],
+      "pass": true,
+      "senderOffsetMs": -30000,
+      "motion": "moving",
+      "failureMode": "both-stream-stop",
+      "hasSelectExport": true,
+      "hasLocalObsExport": true,
+      "preFreezeRtdbFirstShare": 1
+    },
+    {
+      "fsIntervalMs": 1000,
+      "freezeAtMs": 4000,
+      "peerGoneInOutage": true,
+      "peerGoneAtMs": 19100,
+      "staleDeadlineMs": 19100,
+      "maxBackM": 40,
+      "maxJumpM": 40,
+      "maxGapVisibleMs": 5400,
+      "outageInvisibleSpans": [
+        {
+          "from": 19100,
+          "to": 24400,
+          "ms": 5300
+        }
+      ],
+      "lagMAtEnd": 0,
+      "staleRiskMarginMs": 14000,
+      "staleRiskThin": false,
+      "maxExtrapAheadMs": 1200,
+      "endDisplayDistM": 40,
+      "endEntityCount": 1,
+      "recoveryRtdbRetakeShare": null,
+      "violations": [],
+      "pass": true,
+      "senderOffsetMs": -30000,
+      "motion": "stationary",
+      "failureMode": "both-stream-stop",
+      "hasSelectExport": true,
+      "hasLocalObsExport": true,
+      "preFreezeRtdbFirstShare": 1
+    },
+    {
+      "fsIntervalMs": 1000,
+      "freezeAtMs": 4000,
+      "peerGoneInOutage": true,
+      "peerGoneAtMs": 19100,
+      "staleDeadlineMs": 19100,
+      "maxBackM": 26,
+      "maxJumpM": 121,
+      "maxGapVisibleMs": 5200,
+      "outageInvisibleSpans": [
+        {
+          "from": 19100,
+          "to": 24200,
+          "ms": 5100
+        }
+      ],
+      "lagMAtEnd": 2.2,
+      "staleRiskMarginMs": 14000,
+      "staleRiskThin": false,
+      "maxExtrapAheadMs": 1200,
+      "endDisplayDistM": 137.8,
+      "endEntityCount": 1,
+      "recoveryRtdbRetakeShare": null,
+      "violations": [],
+      "pass": true,
+      "senderOffsetMs": 0,
+      "motion": "moving",
+      "failureMode": "both-stream-stop",
+      "hasSelectExport": true,
+      "hasLocalObsExport": true,
+      "preFreezeRtdbFirstShare": 1
+    },
+    {
+      "fsIntervalMs": 1000,
+      "freezeAtMs": 4000,
+      "peerGoneInOutage": true,
+      "peerGoneAtMs": 19100,
+      "staleDeadlineMs": 19100,
+      "maxBackM": 40,
+      "maxJumpM": 40,
+      "maxGapVisibleMs": 5400,
+      "outageInvisibleSpans": [
+        {
+          "from": 19100,
+          "to": 24400,
+          "ms": 5300
+        }
+      ],
+      "lagMAtEnd": 0,
+      "staleRiskMarginMs": 14000,
+      "staleRiskThin": false,
+      "maxExtrapAheadMs": 1200,
+      "endDisplayDistM": 40,
+      "endEntityCount": 1,
+      "recoveryRtdbRetakeShare": null,
+      "violations": [],
+      "pass": true,
+      "senderOffsetMs": 0,
+      "motion": "stationary",
+      "failureMode": "both-stream-stop",
+      "hasSelectExport": true,
+      "hasLocalObsExport": true,
+      "preFreezeRtdbFirstShare": 1
+    },
+    {
+      "fsIntervalMs": 1000,
+      "freezeAtMs": 4000,
+      "peerGoneInOutage": true,
+      "peerGoneAtMs": 19100,
+      "staleDeadlineMs": 19100,
+      "maxBackM": 26,
+      "maxJumpM": 121,
+      "maxGapVisibleMs": 5200,
+      "outageInvisibleSpans": [
+        {
+          "from": 19100,
+          "to": 24200,
+          "ms": 5100
+        }
+      ],
+      "lagMAtEnd": 2.2,
+      "staleRiskMarginMs": 14000,
+      "staleRiskThin": false,
+      "maxExtrapAheadMs": 1200,
+      "endDisplayDistM": 137.8,
+      "endEntityCount": 1,
+      "recoveryRtdbRetakeShare": null,
+      "violations": [],
+      "pass": true,
+      "senderOffsetMs": 30000,
+      "motion": "moving",
+      "failureMode": "both-stream-stop",
+      "hasSelectExport": true,
+      "hasLocalObsExport": true,
+      "preFreezeRtdbFirstShare": 1
+    },
+    {
+      "fsIntervalMs": 1000,
+      "freezeAtMs": 4000,
+      "peerGoneInOutage": true,
+      "peerGoneAtMs": 19100,
+      "staleDeadlineMs": 19100,
+      "maxBackM": 40,
+      "maxJumpM": 40,
+      "maxGapVisibleMs": 5400,
+      "outageInvisibleSpans": [
+        {
+          "from": 19100,
+          "to": 24400,
+          "ms": 5300
+        }
+      ],
+      "lagMAtEnd": 0,
+      "staleRiskMarginMs": 14000,
+      "staleRiskThin": false,
+      "maxExtrapAheadMs": 1200,
+      "endDisplayDistM": 40,
+      "endEntityCount": 1,
+      "recoveryRtdbRetakeShare": null,
+      "violations": [],
+      "pass": true,
+      "senderOffsetMs": 30000,
+      "motion": "stationary",
+      "failureMode": "both-stream-stop",
+      "hasSelectExport": true,
+      "hasLocalObsExport": true,
+      "preFreezeRtdbFirstShare": 1
+    }
+  ],
+  "allPass": true,
+  "failCount": 0,
+  "passCount": 6
+}

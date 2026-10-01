@@ -1,0 +1,139 @@
+{
+  "task": "TASK-29D",
+  "sessionId": "matrix-1790800838073",
+  "atMs": 1790801013256,
+  "elapsedMin": 2.9,
+  "elapsedMs": 175183,
+  "lastPhase": "F7-end",
+  "emulatorHost": "127.0.0.1:8080",
+  "authEmu": "127.0.0.1:9099",
+  "rtdbEmu": "127.0.0.1:9000",
+  "functionsEmu": "127.0.0.1:5001",
+  "trailId": "2opi5fLi9hbcr067Y8dP",
+  "uidAPrefix": "06sl8V",
+  "uidBPrefix": "Hkq1pj",
+  "allPass": true,
+  "rows": [
+    {
+      "id": "F1-create",
+      "label": "Public Trail 생성",
+      "pass": true,
+      "evidence": {
+        "trailId": "2opi5fLi9hbcr067Y8dP",
+        "uidAPrefix": "06sl8V",
+        "liveRideA": true,
+        "visibility": "open",
+        "status": "open",
+        "hostUidPrefix": "06sl8V",
+        "displayNumber": 31,
+        "publicationIdPrefix": "basic-in",
+        "regionLabel": "Vondelpark 2, 1071 AA 암스테르담, 네덜란드",
+        "openListing": true
+      }
+    },
+    {
+      "id": "F2-join",
+      "label": "동행 참여/합류",
+      "pass": true,
+      "evidence": {
+        "trailId": "2opi5fLi9hbcr067Y8dP",
+        "uidBPrefix": "Hkq1pj",
+        "liveRideB": true,
+        "urlTrail": "2opi5fLi9hbcr067Y8dP"
+      }
+    },
+    {
+      "id": "F3-companion",
+      "label": "동행 peer/data (visible UI 별도)",
+      "pass": true,
+      "evidence": {
+        "dualLiveDb": true,
+        "peerDataOk": true,
+        "liveRowsA": 2,
+        "liveRowsB": 1,
+        "motionA": 2,
+        "motionB": 2,
+        "peersA": 1,
+        "peersB": 1,
+        "coursePeerHudA": 1,
+        "coursePeerHudB": 1,
+        "visibleHudDomA": {
+          "visibleUiOk": false,
+          "activityCount": null,
+          "hasOtherLive": false,
+          "peerListCount": 0,
+          "otherLiveSignal": 1
+        },
+        "visibleHudDomB": {
+          "visibleUiOk": false,
+          "activityCount": null,
+          "hasOtherLive": false,
+          "peerListCount": 0,
+          "otherLiveSignal": 1
+        },
+        "visibleHudDomBoth": false,
+        "visualUiClaimedFromOtherLiveSignalAlone": false,
+        "mapTwoRidersVisual": "L — Chief/user independent observation; not this E2E gate"
+      }
+    },
+    {
+      "id": "F4-stop",
+      "label": "Stop (A 주행 종료)",
+      "pass": true,
+      "evidence": {
+        "summaryVisible": true,
+        "summaryCloseRequired": false,
+        "kmBeforeStop": 0.26,
+        "aLiveAfterStop": false,
+        "bLive": true,
+        "openListingWhileB": true
+      }
+    },
+    {
+      "id": "F8-other-keeps",
+      "label": "다른 라이더 주행 유지",
+      "pass": true,
+      "evidence": {
+        "bLive": true,
+        "bEndEnabled": true,
+        "trailId": "2opi5fLi9hbcr067Y8dP",
+        "openListingWhileB": true
+      }
+    },
+    {
+      "id": "F5-rejoin",
+      "label": "재참여",
+      "pass": true,
+      "evidence": {
+        "aLive": true,
+        "bLive": true,
+        "openListing": true,
+        "urlTrailA": "2opi5fLi9hbcr067Y8dP",
+        "rejoinNav": "clean goto /?trail=",
+        "aKmWarm": 0.17,
+        "bKmAtF5": 0.23
+      }
+    },
+    {
+      "id": "F7-end",
+      "label": "Trail 종료 (양쪽 Stop)",
+      "pass": true,
+      "evidence": {
+        "aLive": false,
+        "bLive": false,
+        "liveEvidenceCapturedAt": "F7-dual-live-clear",
+        "summaryVisibleA": true,
+        "summaryVisibleB": true,
+        "kmBeforeStopA": 0.44,
+        "kmBeforeStopB": 0.63,
+        "summaryCloseRequired": false,
+        "openListingAfterEnd": false,
+        "listedInHubAfterEnd": false,
+        "hubError": "bounded-timeout 20000ms — trailListedInHub",
+        "hubIsSecondary": true
+      }
+    }
+  ],
+  "noteComplete": "Stronger matrix vs TASK-25 weak PASS. F6 완주는 별도 --grep F6. Map visual two riders = L separate. F7 hub secondary.",
+  "supersedesWeakTask25": true
+}

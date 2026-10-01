@@ -133,7 +133,7 @@ export function shouldPublishGlobalPresence(
 /** 슬라이더 등 속도 변경 시 즉시 publish (≈1 km/h) */
 const SPEED_PUBLISH_DELTA_MPS = 0.28;
 
-/** 1Hz — 절대 distMeters+speedMps. 속도 변경 시 heartbeat 대기 없이 1회 publish */
+/** 4s heartbeat — 절대 distMeters+speedMps. 초기·속도 변경 시 heartbeat 대기 없이 publish */
 export function shouldPublishRouteProgress(
   now: number,
   state: LiveLocationPublishThrottleState,

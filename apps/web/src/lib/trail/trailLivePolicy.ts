@@ -12,7 +12,7 @@
 /** Trail 멤버 하트비트 — 포그라운드(탭 숨김 시 구독 자체 해제로 백그라운드 쓰기 없음) */
 export const TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS = 30_000;
 
-/** 동행 peer 맵 hide — Firestore lastSeenAt (1Hz + jitter 여유) */
+/** 동행 peer 맵 hide — Firestore lastSeenAt (4s FS heartbeat + jitter 여유) */
 export const PEER_LIVE_RIDE_STALE_MS = 15_000;
 
 /** rAF speed 적분 상한 — hide 보다 짧게 두지 않음 */

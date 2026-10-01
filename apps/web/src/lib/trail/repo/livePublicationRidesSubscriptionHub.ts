@@ -4,6 +4,7 @@ import {
   subscribeTrailLivePublicationRides,
   type TrailLivePublicationRideRow,
 } from "./firestoreTrailLivePublicationRides";
+import { noteFsLiveRideUnderlyingDelivery } from "../../debug/trafficPublishMeters";
 
 type RowsListener = (rows: TrailLivePublicationRideRow[]) => void;
 type ErrorListener = (err: FirestoreError) => void;
@@ -52,6 +53,7 @@ function ensureFirestoreSubscription(tid: string, slot: TrailSlot): void {
   slot.unsub = underlyingSubscribe(
     tid,
     (rows) => {
+      noteFsLiveRideUnderlyingDelivery();
       slot.rows = rows;
       for (const listener of slot.rowsListeners) listener(rows);
     },

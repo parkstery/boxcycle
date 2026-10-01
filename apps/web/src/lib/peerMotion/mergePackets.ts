@@ -5,7 +5,7 @@ const SPEED_EPS_MPS = 0.02;
 const RTDB_SPEED_STALE_MS = 2_500;
 
 /**
- * RTDB 5Hz + Firestore 1Hz 필드 병합.
+ * RTDB 5Hz + Firestore livePublicationRides 필드 병합.
  * - distM: live 전진 max
  * - speedMps: RTDB 우선(5Hz), stale 시 Firestore
  * - serverAtMs: max

@@ -1,0 +1,528 @@
+{
+  "task": "TASK-28C",
+  "sessionId": "t28c-munauwzr",
+  "measureMs": 45000,
+  "settleMs": 3000,
+  "routePick": "longest",
+  "suiteStartedAtMs": 1790724040839,
+  "suiteStartedIso": "2026-09-29T23:20:40.839Z",
+  "emulator": {
+    "firestore": "127.0.0.1:8080",
+    "auth": "127.0.0.1:9099",
+    "rtdb": "127.0.0.1:9000",
+    "functions": "127.0.0.1:5001"
+  },
+  "caveats": [
+    "Emulator counts ≠ billed production Firestore reads/writes or Functions invocations.",
+    "rtdbMotionWriteBytesApprox = UTF-8 JSON of client payload only (no RTDB wire framing).",
+    "fsLiveRideUnderlyingDeliveries / rtdbMotionUnderlyingDeliveries = hub callbacks, NOT billed reads/downloads.",
+    "fsLiveRideUnderlyingDocChanges = sum of snap.docChanges().length, NOT billed document reads.",
+    "Write attempts/success are client-side setDoc/set call meters, NOT billed writes.",
+    "Functions invocations (if present) are whole emulators:exec run only — see top-level functionsInvocationsWholeRun; not solo/dual window-attributed."
+  ],
+  "peerStaleMs": 15000,
+  "fsRole": "livePublicationRides is companion interpolation fallback when RTDB motion fails; PEER_LIVE_RIDE_STALE_MS=15s",
+  "meterFieldNotes": {
+    "livePublicationRideWriteAttempts": "setDoc call starts (client)",
+    "livePublicationRideWrites": "setDoc successes (client)",
+    "fsLiveRideUnderlyingDeliveries": "hub onSnapshot callbacks ≠ billed reads",
+    "fsLiveRideUnderlyingDocChanges": "docChanges lengths ≠ billed reads",
+    "rtdbMotionUnderlyingDeliveries": "hub onValue callbacks ≠ billed downloads"
+  },
+  "solo": {
+    "trailId": "NaupaJbtPnEp5eFJR8dw",
+    "uidPrefix": "u5Ok58",
+    "selectedKm": 2.02,
+    "routePick": "longest",
+    "setupSeparated": true,
+    "settleMs": 3000,
+    "measure": {
+      "startIso": "2026-09-29T23:21:03.715Z",
+      "endIso": "2026-09-29T23:21:49.104Z",
+      "startMs": 1790724063715,
+      "endMs": 1790724109104,
+      "durationMs": 45389,
+      "requestedMs": 45000,
+      "durationOk": true
+    },
+    "clientMeters": {
+      "start": {
+        "source": "trafficPublishMeters",
+        "atMs": 1790724063935,
+        "livePublicationRideWriteAttempts": 0,
+        "livePublicationRideWrites": 0,
+        "livePublicationRideWriteErrors": 0,
+        "rtdbMotionWriteAttempts": 0,
+        "rtdbMotionWrites": 0,
+        "rtdbMotionWriteErrors": 0,
+        "rtdbMotionWriteBytesApprox": 0,
+        "fsLiveRideUnderlyingDeliveries": 0,
+        "fsLiveRideUnderlyingDocChanges": 0,
+        "rtdbMotionUnderlyingDeliveries": 0
+      },
+      "end": {
+        "source": "trafficPublishMeters",
+        "atMs": 1790724109103,
+        "livePublicationRideWriteAttempts": 41,
+        "livePublicationRideWrites": 41,
+        "livePublicationRideWriteErrors": 0,
+        "rtdbMotionWriteAttempts": 149,
+        "rtdbMotionWrites": 149,
+        "rtdbMotionWriteErrors": 0,
+        "rtdbMotionWriteBytesApprox": 15239,
+        "fsLiveRideUnderlyingDeliveries": 83,
+        "fsLiveRideUnderlyingDocChanges": 83,
+        "rtdbMotionUnderlyingDeliveries": 149
+      },
+      "delta": {
+        "livePublicationRideWriteAttempts": 41,
+        "livePublicationRideWrites": 41,
+        "livePublicationRideWriteErrors": 0,
+        "rtdbMotionWriteAttempts": 149,
+        "rtdbMotionWrites": 149,
+        "rtdbMotionWriteErrors": 0,
+        "rtdbMotionWriteBytesApprox": 15239,
+        "fsLiveRideUnderlyingDeliveries": 83,
+        "fsLiveRideUnderlyingDocChanges": 83,
+        "rtdbMotionUnderlyingDeliveries": 149
+      }
+    },
+    "listenerScopeMidRide": {
+      "atMs": 1790724109253,
+      "source": "snapshotReadSubscriptions",
+      "totalsAreCumulative": true,
+      "compareStatesUsing": "open",
+      "underlying": {
+        "source": "readSubscriptionMeters",
+        "totalsAreCumulative": true,
+        "compareStatesUsing": "open",
+        "rtdbOnValue": {
+          "open": 1,
+          "openTotal": 1,
+          "closeTotal": 0
+        },
+        "trailOnSnapshot": {
+          "open": 1,
+          "openTotal": 1,
+          "closeTotal": 0
+        },
+        "collectionGroup": {
+          "open": 0,
+          "openTotal": 1,
+          "closeTotal": 1
+        }
+      },
+      "motionHub": {
+        "slotCount": 1,
+        "slots": [
+          {
+            "trailId": "NaupaJbtPnEp5eFJR8dw",
+            "refCount": 1,
+            "underlyingOpen": true,
+            "consumers": 1
+          }
+        ],
+        "acquireTotal": 1,
+        "releaseTotal": 0,
+        "unsubCallTotal": 0,
+        "errorFanoutHits": 0,
+        "injectedFanoutHits": 0
+      },
+      "ridesHub": {
+        "slotCount": 1,
+        "slots": [
+          {
+            "trailId": "NaupaJbtPnEp5eFJR8dw",
+            "refCount": 2,
+            "underlyingOpen": true,
+            "consumers": 2
+          }
+        ],
+        "acquireTotal": 2,
+        "releaseTotal": 0,
+        "unsubCallTotal": 0,
+        "errorFanoutHits": 0,
+        "injectedFanoutHits": 0
+      },
+      "activeLiveRideTrailIdsHub": {
+        "refCount": 0,
+        "consumers": 0,
+        "underlyingOpen": false,
+        "acquireTotal": 2,
+        "releaseTotal": 2,
+        "unsubCallTotal": 1,
+        "errorFanoutHits": 0,
+        "injectedFanoutHits": 0
+      },
+      "crossCheck": {
+        "motionUnsubCallTotalEqualsRtdbOnValueCloseTotal": true,
+        "ridesUnsubCallTotalEqualsTrailOnSnapshotCloseTotal": true,
+        "cgUnsubCallTotalEqualsCollectionGroupCloseTotal": true,
+        "ok": true
+      }
+    },
+    "cleanup": {
+      "status": "ok",
+      "stopClicked": true,
+      "liveRideCleared": true,
+      "summarySheetCloseRequired": false
+    }
+  },
+  "dual": {
+    "trailId": "yCl5Jh3h1M3kZQrz5F42",
+    "uidAPrefix": "bRIVEG",
+    "uidBPrefix": "4tzmFv",
+    "selectedKm": 2.02,
+    "routePick": "longest",
+    "setupSeparated": true,
+    "settleMs": 3000,
+    "measure": {
+      "startIso": "2026-09-29T23:22:39.589Z",
+      "endIso": "2026-09-29T23:23:25.688Z",
+      "startMs": 1790724159589,
+      "endMs": 1790724205688,
+      "durationMs": 46099,
+      "requestedMs": 45000,
+      "durationOk": true
+    },
+    "clientMeters": {
+      "pageA": {
+        "start": {
+          "source": "trafficPublishMeters",
+          "atMs": 1790724159782,
+          "livePublicationRideWriteAttempts": 1,
+          "livePublicationRideWrites": 1,
+          "livePublicationRideWriteErrors": 0,
+          "rtdbMotionWriteAttempts": 2,
+          "rtdbMotionWrites": 2,
+          "rtdbMotionWriteErrors": 0,
+          "rtdbMotionWriteBytesApprox": 202,
+          "fsLiveRideUnderlyingDeliveries": 8,
+          "fsLiveRideUnderlyingDocChanges": 8,
+          "rtdbMotionUnderlyingDeliveries": 5
+        },
+        "end": {
+          "source": "trafficPublishMeters",
+          "atMs": 1790724205371,
+          "livePublicationRideWriteAttempts": 42,
+          "livePublicationRideWrites": 42,
+          "livePublicationRideWriteErrors": 0,
+          "rtdbMotionWriteAttempts": 149,
+          "rtdbMotionWrites": 148,
+          "rtdbMotionWriteErrors": 0,
+          "rtdbMotionWriteBytesApprox": 15208,
+          "fsLiveRideUnderlyingDeliveries": 142,
+          "fsLiveRideUnderlyingDocChanges": 142,
+          "rtdbMotionUnderlyingDeliveries": 302
+        },
+        "delta": {
+          "livePublicationRideWriteAttempts": 41,
+          "livePublicationRideWrites": 41,
+          "livePublicationRideWriteErrors": 0,
+          "rtdbMotionWriteAttempts": 147,
+          "rtdbMotionWrites": 146,
+          "rtdbMotionWriteErrors": 0,
+          "rtdbMotionWriteBytesApprox": 15006,
+          "fsLiveRideUnderlyingDeliveries": 134,
+          "fsLiveRideUnderlyingDocChanges": 134,
+          "rtdbMotionUnderlyingDeliveries": 297
+        }
+      },
+      "pageB": {
+        "start": {
+          "source": "trafficPublishMeters",
+          "atMs": 1790724160081,
+          "livePublicationRideWriteAttempts": 0,
+          "livePublicationRideWrites": 0,
+          "livePublicationRideWriteErrors": 0,
+          "rtdbMotionWriteAttempts": 3,
+          "rtdbMotionWrites": 2,
+          "rtdbMotionWriteErrors": 0,
+          "rtdbMotionWriteBytesApprox": 202,
+          "fsLiveRideUnderlyingDeliveries": 1,
+          "fsLiveRideUnderlyingDocChanges": 1,
+          "rtdbMotionUnderlyingDeliveries": 4
+        },
+        "end": {
+          "source": "trafficPublishMeters",
+          "atMs": 1790724205687,
+          "livePublicationRideWriteAttempts": 39,
+          "livePublicationRideWrites": 39,
+          "livePublicationRideWriteErrors": 0,
+          "rtdbMotionWriteAttempts": 153,
+          "rtdbMotionWrites": 152,
+          "rtdbMotionWriteErrors": 0,
+          "rtdbMotionWriteBytesApprox": 15549,
+          "fsLiveRideUnderlyingDeliveries": 121,
+          "fsLiveRideUnderlyingDocChanges": 121,
+          "rtdbMotionUnderlyingDeliveries": 301
+        },
+        "delta": {
+          "livePublicationRideWriteAttempts": 39,
+          "livePublicationRideWrites": 39,
+          "livePublicationRideWriteErrors": 0,
+          "rtdbMotionWriteAttempts": 150,
+          "rtdbMotionWrites": 150,
+          "rtdbMotionWriteErrors": 0,
+          "rtdbMotionWriteBytesApprox": 15347,
+          "fsLiveRideUnderlyingDeliveries": 120,
+          "fsLiveRideUnderlyingDocChanges": 120,
+          "rtdbMotionUnderlyingDeliveries": 297
+        }
+      },
+      "sumDeltaAcrossClients": {
+        "livePublicationRideWriteAttempts": 80,
+        "livePublicationRideWrites": 80,
+        "livePublicationRideWriteErrors": 0,
+        "rtdbMotionWriteAttempts": 297,
+        "rtdbMotionWrites": 296,
+        "rtdbMotionWriteErrors": 0,
+        "rtdbMotionWriteBytesApprox": 30353,
+        "fsLiveRideUnderlyingDeliveries": 254,
+        "fsLiveRideUnderlyingDocChanges": 254,
+        "rtdbMotionUnderlyingDeliveries": 594
+      }
+    },
+    "listenerScopeMidRide": {
+      "pageA": {
+        "atMs": 1790724205951,
+        "source": "snapshotReadSubscriptions",
+        "totalsAreCumulative": true,
+        "compareStatesUsing": "open",
+        "underlying": {
+          "source": "readSubscriptionMeters",
+          "totalsAreCumulative": true,
+          "compareStatesUsing": "open",
+          "rtdbOnValue": {
+            "open": 1,
+            "openTotal": 1,
+            "closeTotal": 0
+          },
+          "trailOnSnapshot": {
+            "open": 1,
+            "openTotal": 2,
+            "closeTotal": 1
+          },
+          "collectionGroup": {
+            "open": 0,
+            "openTotal": 1,
+            "closeTotal": 1
+          }
+        },
+        "motionHub": {
+          "slotCount": 1,
+          "slots": [
+            {
+              "trailId": "yCl5Jh3h1M3kZQrz5F42",
+              "refCount": 1,
+              "underlyingOpen": true,
+              "consumers": 1
+            }
+          ],
+          "acquireTotal": 1,
+          "releaseTotal": 0,
+          "unsubCallTotal": 0,
+          "errorFanoutHits": 0,
+          "injectedFanoutHits": 0
+        },
+        "ridesHub": {
+          "slotCount": 1,
+          "slots": [
+            {
+              "trailId": "yCl5Jh3h1M3kZQrz5F42",
+              "refCount": 2,
+              "underlyingOpen": true,
+              "consumers": 2
+            }
+          ],
+          "acquireTotal": 3,
+          "releaseTotal": 1,
+          "unsubCallTotal": 1,
+          "errorFanoutHits": 0,
+          "injectedFanoutHits": 0
+        },
+        "activeLiveRideTrailIdsHub": {
+          "refCount": 0,
+          "consumers": 0,
+          "underlyingOpen": false,
+          "acquireTotal": 2,
+          "releaseTotal": 2,
+          "unsubCallTotal": 1,
+          "errorFanoutHits": 0,
+          "injectedFanoutHits": 0
+        },
+        "crossCheck": {
+          "motionUnsubCallTotalEqualsRtdbOnValueCloseTotal": true,
+          "ridesUnsubCallTotalEqualsTrailOnSnapshotCloseTotal": true,
+          "cgUnsubCallTotalEqualsCollectionGroupCloseTotal": true,
+          "ok": true
+        }
+      },
+      "pageB": {
+        "atMs": 1790724206199,
+        "source": "snapshotReadSubscriptions",
+        "totalsAreCumulative": true,
+        "compareStatesUsing": "open",
+        "underlying": {
+          "source": "readSubscriptionMeters",
+          "totalsAreCumulative": true,
+          "compareStatesUsing": "open",
+          "rtdbOnValue": {
+            "open": 1,
+            "openTotal": 2,
+            "closeTotal": 1
+          },
+          "trailOnSnapshot": {
+            "open": 1,
+            "openTotal": 3,
+            "closeTotal": 2
+          },
+          "collectionGroup": {
+            "open": 0,
+            "openTotal": 1,
+            "closeTotal": 1
+          }
+        },
+        "motionHub": {
+          "slotCount": 1,
+          "slots": [
+            {
+              "trailId": "yCl5Jh3h1M3kZQrz5F42",
+              "refCount": 1,
+              "underlyingOpen": true,
+              "consumers": 1
+            }
+          ],
+          "acquireTotal": 2,
+          "releaseTotal": 1,
+          "unsubCallTotal": 1,
+          "errorFanoutHits": 0,
+          "injectedFanoutHits": 0
+        },
+        "ridesHub": {
+          "slotCount": 1,
+          "slots": [
+            {
+              "trailId": "yCl5Jh3h1M3kZQrz5F42",
+              "refCount": 2,
+              "underlyingOpen": true,
+              "consumers": 2
+            }
+          ],
+          "acquireTotal": 6,
+          "releaseTotal": 4,
+          "unsubCallTotal": 2,
+          "errorFanoutHits": 0,
+          "injectedFanoutHits": 0
+        },
+        "activeLiveRideTrailIdsHub": {
+          "refCount": 0,
+          "consumers": 0,
+          "underlyingOpen": false,
+          "acquireTotal": 2,
+          "releaseTotal": 2,
+          "unsubCallTotal": 1,
+          "errorFanoutHits": 0,
+          "injectedFanoutHits": 0
+        },
+        "crossCheck": {
+          "motionUnsubCallTotalEqualsRtdbOnValueCloseTotal": true,
+          "ridesUnsubCallTotalEqualsTrailOnSnapshotCloseTotal": true,
+          "cgUnsubCallTotalEqualsCollectionGroupCloseTotal": true,
+          "ok": true
+        }
+      }
+    },
+    "cleanup": {
+      "status": "ok",
+      "liveRideClearedA": true,
+      "liveRideClearedB": true,
+      "summarySheetCloseRequired": false
+    }
+  },
+  "comparison": {
+    "scope": "1 vs 2 riders only",
+    "measureMs": 45000,
+    "settleMs": 3000,
+    "routePick": "longest",
+    "selectedKmMatched": true,
+    "livePublicationRideWriteAttempts": {
+      "soloClient": 41,
+      "dualClientSum": 80,
+      "ratioDualOverSolo": 1.951219512195122
+    },
+    "livePublicationRideWrites": {
+      "soloClient": 41,
+      "dualClientSum": 80,
+      "ratioDualOverSolo": 1.951219512195122
+    },
+    "rtdbMotionWriteAttempts": {
+      "soloClient": 149,
+      "dualClientSum": 297,
+      "ratioDualOverSolo": 1.9932885906040267
+    },
+    "rtdbMotionWrites": {
+      "soloClient": 149,
+      "dualClientSum": 296,
+      "ratioDualOverSolo": 1.9865771812080537
+    },
+    "rtdbMotionWriteBytesApprox": {
+      "soloClient": 15239,
+      "dualClientSum": 30353
+    },
+    "fsLiveRideUnderlyingDeliveries": {
+      "soloClient": 83,
+      "dualClientSum": 254,
+      "note": "Hub callback counts ≠ billed reads. Sum across clients; each client has its own hub."
+    },
+    "fsLiveRideUnderlyingDocChanges": {
+      "soloClient": 83,
+      "dualClientSum": 254,
+      "note": "docChanges lengths ≠ billed document reads."
+    },
+    "rtdbMotionUnderlyingDeliveries": {
+      "soloClient": 149,
+      "dualClientSum": 594,
+      "note": "Hub onValue callbacks ≠ billed downloads."
+    }
+  },
+  "pass": true,
+  "workerIndex": 0,
+  "elapsedMin": 2.97,
+  "functionsInvocationsWholeRun": {
+    "status": "ok",
+    "beginCountsByName": {
+      "openTrailListingOnMemberCreated": 10,
+      "ensureRouteTokenOnboardingHttp": 3,
+      "openTrailListingOnTrailWritten": 11,
+      "openTrailListingOnMemberDeleted": 5,
+      "routeActivityOnLivePublicationRideWritten": 320,
+      "openTrailListingOnLiveCourseRideCreated": 3,
+      "conquestOnRideCreated": 3,
+      "routeTokenOnRideCreated": 3,
+      "mileageOnRideCreated": 3,
+      "routeActivityOnRideCreated": 3,
+      "openTrailListingOnLiveCourseRideDeleted": 3
+    },
+    "finishedCountsByName": {
+      "openTrailListingOnMemberCreated": 10,
+      "ensureRouteTokenOnboardingHttp": 3,
+      "openTrailListingOnTrailWritten": 11,
+      "openTrailListingOnMemberDeleted": 5,
+      "routeActivityOnLivePublicationRideWritten": 320,
+      "openTrailListingOnLiveCourseRideCreated": 3,
+      "conquestOnRideCreated": 3,
+      "routeTokenOnRideCreated": 3,
+      "mileageOnRideCreated": 3,
+      "routeActivityOnRideCreated": 3,
+      "openTrailListingOnLiveCourseRideDeleted": 3
+    },
+    "totalBegin": 367,
+    "method": "Regex on firebase emulators:exec stdout/stderr for Beginning execution of \"…\". Emulator invocations ≠ production billed executions.",
+    "attribution": "whole_emulators_exec_run",
+    "note": "Whole firebase emulators:exec stdout/stderr (setup + solo + dual + teardown). Not measure-window-sliced and not solo/dual-attributed. Prefer client meter deltas for 1v2 ratios. Emulator invocations ≠ production billed executions."
+  },
+  "functionsLogPath": "C:\\Users\\kdrea\\.codex\\worktrees\\public-trail-traffic\\boxcycle\\apps\\web\\.out\\firebase-traffic\\task28-emulator.log",
+  "functionsAttributionPolicy": "top_level_whole_run_only — no solo/dual twin copies of CF begin counts",
+  "runnerExitCode": 0
+}
