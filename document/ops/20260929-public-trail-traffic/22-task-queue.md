@@ -1,6 +1,6 @@
 # Task queue — Public Trail traffic (`codex/public-trail-traffic`)
 
-Updated: 2026-10-01 (TASK-35 integration merge `fd27d06` DONE locally; R1/R2 still NEEDS_APPROVAL). Comparison scope: **1 rider / 2 riders only**. No larger-group work on this branch.
+Updated: 2026-10-01 (R1-R: dep-layers + Mapbox env unblock; publish in progress — see `36-result-r1-merge-main.md`; R2 not started). Comparison scope: **1 rider / 2 riders only**. No larger-group work on this branch.
 
 Status key: `DONE` · `IN_PROGRESS` · `PENDING` · `BLOCKED` · `NEEDS_APPROVAL` · `DEFERRED`
 
@@ -56,7 +56,7 @@ Earlier S4-1 / S4-1R T1–T4 emulator PASS (pre–listener-scope and/or partial 
 
 | ID | Item | Next |
 |---|---|---|
-| — | _(none)_ — TASK-35 integration branch ready; **R1** merge-to-main / **R2** deploy remain NEEDS_APPROVAL | — |
+| **R1** | R1-R: `assign.debug` + local `.env` (ignored) validated; committing unblock then `git push origin main` | Evidence `36-result-r1-merge-main.md`; R2 waits Supervisor |
 
 ---
 
@@ -91,8 +91,8 @@ Earlier S4-1 / S4-1R T1–T4 emulator PASS (pre–listener-scope and/or partial 
 
 | ID | Item | Notes |
 |---|---|---|
-| R1 | **Merge** `codex/public-trail-traffic` → mainline | Chief / Supervisor explicit approve |
-| R2 | **Production deploy** (Hosting / Functions) | Separate from merge; **delete** legacy listing Written CF names on deploy (`26-result`) |
+| R1 | **Merge** traffic → mainline + publish `origin/main` | Chief approved; **local FF DONE**; **push REJECTED** (`36-result`) — unblock then re-push |
+| R2 | **Production deploy** (Hosting / Functions) | Separate; wait until `origin/main` = traffic tip; **delete** legacy listing Written CF names (`26-result`) |
 
 Out of this queue (not “waiting on approval” as unfinished local work):
 
