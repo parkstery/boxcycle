@@ -4,7 +4,7 @@
 
 | 현재 작업 | 단계 | Supervisor | Developer | Chief 승인 | 마지막 검수 | 막힘 | 다음 작업 |
 |---|---|---|---|---|---|---|---|
-| [Foreground read spike](20261003-focus-read-spike/README.md) | APPROVED · main2 통합 진행 | Codex | Cursor CLI | 행동 보존형 read/write 저감 승인됨 | [21 final PASS](20261003-focus-read-spike/21-review-final-approval.md) | billed/SDK reconnect 미계측 | `main2` fast-forward 후 로컬 통합 확인 |
+| [Foreground read spike](20261003-focus-read-spike/README.md) | APPROVED · main2 FF 완료(로컬) | Codex | Cursor CLI | 행동 보존형 read/write 저감 승인됨 | [21 final PASS](20261003-focus-read-spike/21-review-final-approval.md) · [23 merge](20261003-focus-read-spike/23-result-merge-main2.md) | billed/SDK reconnect 미계측 · push 미실시 | Supervisor/Chief: push·배포 여부 결정 |
 | [Public Trail traffic followup](20261002-public-trail-traffic-followup/README.md) | AWAITING_CHIEF (TASK-02R APPROVED) | Codex | Cursor CLI | 배포·트리거/전송 주기·A/B/D 구현 전 필요 | [09 PASS](20261002-public-trail-traffic-followup/09-review-phase-aligned-measurement-rework.md) | 배포 후 정렬된 운영 1/2명 데이터 Ø | Chief: quiet/solo/dual ISO 구간과 분당 read/write 제공 또는 후속 범위 결정 |
 | [Public Trail traffic](20260929-public-trail-traffic/README.md) | CLOSED | Codex | Cursor CLI | R1+R2 승인·실행됨 | [최종 보고](../archive/261001-Public-Trail-동행-트래픽-개선-결과보고.md) · [R2](20260929-public-trail-traffic/37-result-r2-deploy.md) | 없음 | 후속은 followup 묶음 |
 | [AI 개발 체계 구축](20260929-ai-development-system/README.md) | CLOSED | Codex | Cursor CLI (handoff 시험 완료) | 현재 범위에는 불필요 | [검수 01 PASS](20260929-ai-development-system/04-review-01.md) | 없음 | 실제 개발 지시 때 새 묶음 열기 |

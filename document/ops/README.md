@@ -44,7 +44,7 @@ Supervisor는 아키텍처, 도메인 경계, 데이터 모델, Firestore·RTDB�
 
 | 폴더 | 상태 | 무엇 | 결과·입구 | 이동 |
 |------|------|------|-----------|------|
-| [20261003-focus-read-spike](20261003-focus-read-spike/README.md) | **APPROVED** — main2 통합 진행 | 앱 foreground 복귀만으로 발생하는 Firestore read spike 조사·저감 | [21 최종 승인](20261003-focus-read-spike/21-review-final-approval.md) · [22 통합 지시](20261003-focus-read-spike/22-task-merge-main2.md) | — |
+| [20261003-focus-read-spike](20261003-focus-read-spike/README.md) | **APPROVED** — main2 FF 완료(로컬) | 앱 foreground 복귀만으로 발생하는 Firestore read spike 조사·저감 | [21 최종 승인](20261003-focus-read-spike/21-review-final-approval.md) · [23 통합 결과](20261003-focus-read-spike/23-result-merge-main2.md) | — |
 | [20261002-public-trail-traffic-followup](20261002-public-trail-traffic-followup/README.md) | **AWAITING_CHIEF** — 측정 도구 검수 완료, 운영 데이터 Ø | Public Trail 트래픽 후속 — phase-aligned 측정 준비 | [08 재작업](20261002-public-trail-traffic-followup/08-result-phase-aligned-measurement-rework.md) · [09 검수 PASS](20261002-public-trail-traffic-followup/09-review-phase-aligned-measurement-rework.md) | — |
 | [20260929-public-trail-traffic](20260929-public-trail-traffic/README.md) | **CLOSED** · 최종 보고 검수 완료 (production billed 1v2 관측 별도 미실시) | Public Trail 동행 트래픽 절감 — listing Created/Deleted + Hosting 배포 | [최종 보고](../archive/261001-Public-Trail-동행-트래픽-개선-결과보고.md) · [R2](20260929-public-trail-traffic/37-result-r2-deploy.md) | 가능 |
 | [20260929-ai-development-system](20260929-ai-development-system/README.md) | 종료 | Codex Supervisor ↔ Cursor CLI 파일 기반 개발 프로토콜 | [완료 보고](../archive/260929-RTW-AI-개발체계-구축-완료보고.md) · [검수 PASS](20260929-ai-development-system/04-review-01.md) | 불가 — 공통 규칙·상태판이 경로 사용 |
