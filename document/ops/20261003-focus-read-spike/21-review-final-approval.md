@@ -17,4 +17,3 @@
 ## 한계
 
 production billed read 절감률은 배포 후 동일 시나리오 재관측 전까지 확정하지 않는다. 이번 승인은 코드·Emulator operation proxy 기준이다.
-

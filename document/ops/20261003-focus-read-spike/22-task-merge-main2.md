@@ -9,4 +9,3 @@ Owner: Cursor CLI Developer. [21 최종 승인](21-review-final-approval.md)을 
 5. 결과를 `23-result-merge-main2.md`에 쓰고 상태판을 `APPROVED`로 갱신한 뒤 docs commit을 `main2`에 남긴다.
 
 push, deploy, production Firebase 접속, stash/worktree 변경, amend/rebase/force 금지.
-
