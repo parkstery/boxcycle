@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect -- config/auth gates clear catalog state */
 import type { User } from "firebase/auth";
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -14,6 +15,11 @@ import {
 } from "../lib/route/repo/firestoreCourses";
 import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
 import { getUserPublicLabelsByUid } from "../lib/identity/repo/firestoreUser";
+import {
+  createInflightDeduper,
+  decidePublishedCatalogRefresh,
+  PUBLISHED_CATALOG_TTL_MS,
+} from "../lib/route/publishedCatalogRefreshPolicy";
 import { lockRouteWorkspaceDuringRide } from "../lib/route/routeWorkspaceLock";
 import {
   encodeCanonicalRouteGeometryProfile,
@@ -86,31 +92,64 @@ export function usePublicationCatalogHub(options: UsePublicationCatalogHubOption
   const [basicStartLoading, setBasicStartLoading] = useState(false);
   const basicStartHubJoined = basicActiveHubCourseId !== null;
   const basicStartHubLeftExplicitRef = useRef(false);
+  const catalogLastSuccessAtMsRef = useRef<number | null>(null);
+  const catalogInflightRef = useRef(createInflightDeduper<PublishedPublicCourseSummary[]>());
 
-  const refreshPublishedPublicCourseCatalog = useCallback(async () => {
-    if (!configured) {
-      setPublishedPublicCourses([]);
-      setPublishedPublicCoursesError(null);
-      setPublishedPublicCoursesLoading(false);
-      return;
-    }
-    setPublishedPublicCoursesLoading(true);
+  useEffect(() => {
+    if (configured) return;
+    catalogLastSuccessAtMsRef.current = null;
+    catalogInflightRef.current.reset();
+    setPublishedPublicCourses([]);
     setPublishedPublicCoursesError(null);
-    try {
-      /**
-       * 표시 이름 조회는 **여기서 꽂는다** — 코스 저장소는 사용자 저장소를 모른다
-       * (`lib/route/routeIdentityPort.ts`).
-       */
-      const rows = await listPublishedPublicCourses(getUserPublicLabelsByUid, 50);
-      setPublishedPublicCourses(rows);
-    } catch (e: unknown) {
-      setPublishedPublicCourses([]);
-      const msg = e instanceof Error ? e.message : String(e);
-      setPublishedPublicCoursesError(msg);
-    } finally {
-      setPublishedPublicCoursesLoading(false);
-    }
+    setPublishedPublicCoursesLoading(false);
   }, [configured]);
+
+  const refreshPublishedPublicCourseCatalog = useCallback(
+    async (opts?: { force?: boolean }) => {
+      if (!configured) {
+        catalogLastSuccessAtMsRef.current = null;
+        catalogInflightRef.current.reset();
+        setPublishedPublicCourses([]);
+        setPublishedPublicCoursesError(null);
+        setPublishedPublicCoursesLoading(false);
+        return;
+      }
+      const force = opts?.force === true;
+      const decision = decidePublishedCatalogRefresh({
+        hasCachedResult: catalogLastSuccessAtMsRef.current != null,
+        lastSuccessAtMs: catalogLastSuccessAtMsRef.current,
+        nowMs: Date.now(),
+        ttlMs: PUBLISHED_CATALOG_TTL_MS,
+        force,
+      });
+      if (decision === "use_cache") return;
+
+      setPublishedPublicCoursesLoading(true);
+      setPublishedPublicCoursesError(null);
+      try {
+        /**
+         * 표시 이름 조회는 **여기서 꽂는다** — 코스 저장소는 사용자 저장소를 모른다
+         * (`lib/route/routeIdentityPort.ts`).
+         * 동시 자동 refresh 는 in-flight 하나로 합친다.
+         */
+        const rows = await catalogInflightRef.current.run(() =>
+          listPublishedPublicCourses(getUserPublicLabelsByUid, 50),
+        );
+        catalogLastSuccessAtMsRef.current = Date.now();
+        setPublishedPublicCourses(rows);
+      } catch (e: unknown) {
+        // 실패는 성공 freshness 로 기록하지 않는다. 직전 성공 rows 는 유지.
+        if (catalogLastSuccessAtMsRef.current == null) {
+          setPublishedPublicCourses([]);
+        }
+        const msg = e instanceof Error ? e.message : String(e);
+        setPublishedPublicCoursesError(msg);
+      } finally {
+        setPublishedPublicCoursesLoading(false);
+      }
+    },
+    [configured],
+  );
 
   const publishedPublicSavedRouteIds = useMemo(
     () =>

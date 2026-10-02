@@ -34,6 +34,7 @@ import {
 } from "../trailLivePolicy";
 import { trackUnderlyingReadSubscription } from "../../debug/readSubscriptionMeters";
 import { noteListingRefreshRead } from "../../debug/touchActivityMeters";
+import { trackVisibilityListener } from "../../debug/visibilityReadMeters";
 import {
   noteFsLiveRideUnderlyingDocChanges,
   noteLivePublicationRideWriteAttempt,
@@ -75,41 +76,44 @@ export function subscribeTrailLivePublicationRides(
   onError?: (e: FirestoreError) => void,
 ): Unsubscribe {
   const rid = sanitizeTrailId(trailId);
-  return trackUnderlyingReadSubscription(
-    "trailOnSnapshot",
-    onSnapshot(
-      liveRidesCollectionRef(rid),
-      (snap) => {
-        noteFsLiveRideUnderlyingDocChanges(snap.docChanges().length);
-        const rows: TrailLivePublicationRideRow[] = [];
-        for (const d of snap.docs) {
-          const data = d.data() as Record<string, unknown>;
-          const publicationId = readPublicationIdFromDoc(data);
-          const pr = data.progressRatio;
-          const progressRatio =
-            typeof pr === "number" && Number.isFinite(pr) ? Math.max(0, Math.min(1, pr)) : Number.NaN;
-          const dm = data.distMeters;
-          const distMeters =
-            typeof dm === "number" && Number.isFinite(dm) ? Math.max(0, dm) : null;
-          const sm = data.speedMps;
-          const speedMps =
-            typeof sm === "number" && Number.isFinite(sm) ? Math.max(0, sm) : null;
-          if (!publicationId || Number.isNaN(progressRatio)) continue;
-          rows.push({
-            uid: d.id,
-            publicationId,
-            progressRatio,
-            distMeters,
-            lastSeenAtMs: lastSeenAtToMillis(data.lastSeenAt),
-            receivedAtLocalMs: Date.now(),
-            displayName: typeof data.displayName === "string" ? data.displayName : null,
-            speedMps,
-            ridePhase: readRidePhase(data),
-          });
-        }
-        onChange(rows);
-      },
-      (err) => onError?.(err),
+  return trackVisibilityListener(
+    "trailLiveRides",
+    trackUnderlyingReadSubscription(
+      "trailOnSnapshot",
+      onSnapshot(
+        liveRidesCollectionRef(rid),
+        (snap) => {
+          noteFsLiveRideUnderlyingDocChanges(snap.docChanges().length);
+          const rows: TrailLivePublicationRideRow[] = [];
+          for (const d of snap.docs) {
+            const data = d.data() as Record<string, unknown>;
+            const publicationId = readPublicationIdFromDoc(data);
+            const pr = data.progressRatio;
+            const progressRatio =
+              typeof pr === "number" && Number.isFinite(pr) ? Math.max(0, Math.min(1, pr)) : Number.NaN;
+            const dm = data.distMeters;
+            const distMeters =
+              typeof dm === "number" && Number.isFinite(dm) ? Math.max(0, dm) : null;
+            const sm = data.speedMps;
+            const speedMps =
+              typeof sm === "number" && Number.isFinite(sm) ? Math.max(0, sm) : null;
+            if (!publicationId || Number.isNaN(progressRatio)) continue;
+            rows.push({
+              uid: d.id,
+              publicationId,
+              progressRatio,
+              distMeters,
+              lastSeenAtMs: lastSeenAtToMillis(data.lastSeenAt),
+              receivedAtLocalMs: Date.now(),
+              displayName: typeof data.displayName === "string" ? data.displayName : null,
+              speedMps,
+              ridePhase: readRidePhase(data),
+            });
+          }
+          onChange(rows);
+        },
+        (err) => onError?.(err),
+      ),
     ),
   );
 }
@@ -252,12 +256,15 @@ export function subscribeTrailIdsWithActiveLiveRides(
     orderBy("lastSeenAt", "desc"),
     limit(ACTIVE_LIVE_RIDE_TRAIL_SCAN_LIMIT),
   );
-  return trackUnderlyingReadSubscription(
-    "collectionGroup",
-    onSnapshot(
-      q,
-      (snap) => onChange(parseActiveLiveRideTrailIds(snap.docs)),
-      (err) => onError?.(err),
+  return trackVisibilityListener(
+    "collectionGroupLiveRides",
+    trackUnderlyingReadSubscription(
+      "collectionGroup",
+      onSnapshot(
+        q,
+        (snap) => onChange(parseActiveLiveRideTrailIds(snap.docs)),
+        (err) => onError?.(err),
+      ),
     ),
   );
 }

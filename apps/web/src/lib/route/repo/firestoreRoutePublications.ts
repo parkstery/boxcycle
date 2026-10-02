@@ -11,6 +11,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { getFirebaseFirestore } from "../../firebase/app";
+import { noteVisibilityOneShot } from "../../debug/visibilityReadMeters";
 import type { RouteProfile } from "../../../services/mapboxDirections";
 
 export const ROUTE_PUBLICATIONS_COLLECTION = "routePublications";
@@ -145,6 +146,7 @@ export async function findPublishedRoutePublicationByFingerprint(
 
 /** 퍼블릭 탭 카탈로그 — `routePublications` 우선(Phase C) */
 export async function listPublishedRoutePublications(max = 50): Promise<RoutePublicationRow[]> {
+  noteVisibilityOneShot("catalogPublications");
   const db = getFirebaseFirestore();
   const qy = query(
     collection(db, ROUTE_PUBLICATIONS_COLLECTION),

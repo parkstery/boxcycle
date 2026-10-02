@@ -248,6 +248,7 @@ describe("배선 (최소)", () => {
     assert.match(app, /resolveOpenTrailsListenerEnabled\(/);
     assert.match(overlays, /from\s+["'].*listenerScopePolicy["']/);
     assert.match(overlays, /resolveActiveLiveRideTrailIdsListenerEnabled\(/);
-    assert.match(overlays, /resolveWorldLivePublicationRideOverlayEnabled\(/);
+    assert.match(overlays, /resolveWorldLivePublicationRideOverlayEligible\(/);
+    assert.match(overlays, /useVisibilityListenGrace\(/);
   });
 });

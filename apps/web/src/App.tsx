@@ -962,7 +962,7 @@ export default function App() {
   }, [configured, menuOpen, user, refreshPublicRouteMeta, refreshPublishedPublicCourseCatalog]);
 
   const onRefreshPublishedPublicCourses = useCallback(() => {
-    void refreshPublishedPublicCourseCatalog();
+    void refreshPublishedPublicCourseCatalog({ force: true });
   }, [refreshPublishedPublicCourseCatalog]);
 
   const onCoursePeerHudChange = useCallback((next: PeerHudEntry[]) => {

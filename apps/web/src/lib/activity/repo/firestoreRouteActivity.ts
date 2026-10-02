@@ -14,6 +14,7 @@ import type { LngLat } from "../../geo/geo";
 import { isWithinActivityTraceHeatWindow } from "../activityWorldTraceStyle";
 import { lastSeenAtToMillis } from "../../firebase/converters";
 import { recordRouteActivityAccess } from "../../debug/hudCompanionDiag";
+import { noteVisibilityOneShot } from "../../debug/visibilityReadMeters";
 import { ROUTE_ACTIVITY_CACHE_TTL_MS } from "../activityWorldPollConstants";
 
 /**
@@ -121,6 +122,7 @@ export async function fetchRouteActivity(publicationId: string): Promise<RouteAc
   if (!pending) {
     pending = (async () => {
       const db = getFirebaseFirestore();
+      noteVisibilityOneShot("activityWorldRouteActivityGetDoc");
       const routeSnap = await getDoc(doc(db, ROUTE_ACTIVITY_COLLECTION, id));
       const parsed = routeSnap.exists()
         ? parseRouteActivityDoc(id, routeSnap.data() as Record<string, unknown>)
@@ -216,6 +218,7 @@ export async function fetchLiveRouteActivityIds(
     return liveRouteIdsCache.ids;
   }
 
+  noteVisibilityOneShot("activityWorldLiveIds");
   const db = getFirebaseFirestore();
 
   const runQuery = async (collectionId: string, ordered: boolean) => {
@@ -251,6 +254,7 @@ export async function fetchRouteActivitiesBatch(
   options?: { refresh?: boolean },
 ): Promise<Map<string, RouteActivitySnapshot | null>> {
   const uniq = [...new Set(publicationIds.map((id) => id.trim()).filter(Boolean))];
+  noteVisibilityOneShot("activityWorldBatchInvocation");
   if (options?.refresh) invalidateRouteActivityCache(uniq);
   const pairs = await Promise.all(
     uniq.map(async (id) => [id, await fetchRouteActivity(id)] as const),

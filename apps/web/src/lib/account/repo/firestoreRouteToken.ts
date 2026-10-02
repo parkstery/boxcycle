@@ -2,6 +2,7 @@ import type { User } from "firebase/auth";
 import { doc, onSnapshot, type Unsubscribe } from "firebase/firestore";
 import { getFirebaseFirestore } from "../../firebase/app";
 import { functionsHttpUrl } from "../../firebase/functionsEmulatorUrl";
+import { trackVisibilityListener } from "../../debug/visibilityReadMeters";
 import { bindRouteTokenUser, setSubscribedRouteTokenBalance } from "../routeTokenSpendBridge";
 
 export function subscribeRouteTokenBalance(
@@ -10,24 +11,27 @@ export function subscribeRouteTokenBalance(
 ): Unsubscribe {
   bindRouteTokenUser(userId);
   const db = getFirebaseFirestore();
-  const unsub = onSnapshot(
-    doc(db, "users", userId),
-    (snap) => {
-      if (!snap.exists()) {
+  const unsub = trackVisibilityListener(
+    "users",
+    onSnapshot(
+      doc(db, "users", userId),
+      (snap) => {
+        if (!snap.exists()) {
+          setSubscribedRouteTokenBalance(userId, null);
+          onValue(null);
+          return;
+        }
+        const n = snap.data().routeTokenBalance;
+        const balance =
+          typeof n === "number" && Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
+        setSubscribedRouteTokenBalance(userId, balance);
+        onValue(balance);
+      },
+      () => {
         setSubscribedRouteTokenBalance(userId, null);
         onValue(null);
-        return;
-      }
-      const n = snap.data().routeTokenBalance;
-      const balance =
-        typeof n === "number" && Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
-      setSubscribedRouteTokenBalance(userId, balance);
-      onValue(balance);
-    },
-    () => {
-      setSubscribedRouteTokenBalance(userId, null);
-      onValue(null);
-    },
+      },
+    ),
   );
   return () => {
     unsub();

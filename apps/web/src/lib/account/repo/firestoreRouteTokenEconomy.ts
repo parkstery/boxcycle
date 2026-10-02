@@ -11,6 +11,7 @@
  */
 import { doc, onSnapshot } from "firebase/firestore";
 import { getFirebaseFirestore, isFirebaseConfigured } from "../../firebase/app";
+import { trackVisibilityListener } from "../../debug/visibilityReadMeters";
 
 /** 시드와 동기 — 문서가 없을 때·구독 전 기본값 */
 export const ROUTE_TOKEN_ECONOMY_DEFAULT_GENERATE_COST_BASE = 0;
@@ -30,9 +31,13 @@ export function subscribeRouteTokenGenerateCostBase(
   onCostBase: (costBase: number) => void,
 ): (() => void) | null {
   if (!isFirebaseConfigured()) return null;
-  return onSnapshot(
-    doc(getFirebaseFirestore(), "config", "routeTokenEconomy"),
-    (snap) => onCostBase(normalizeGenerateCostBase(snap.exists() ? snap.data()?.generateCostBase : undefined)),
-    () => onCostBase(ROUTE_TOKEN_ECONOMY_DEFAULT_GENERATE_COST_BASE),
+  return trackVisibilityListener(
+    "economy",
+    onSnapshot(
+      doc(getFirebaseFirestore(), "config", "routeTokenEconomy"),
+      (snap) =>
+        onCostBase(normalizeGenerateCostBase(snap.exists() ? snap.data()?.generateCostBase : undefined)),
+      () => onCostBase(ROUTE_TOKEN_ECONOMY_DEFAULT_GENERATE_COST_BASE),
+    ),
   );
 }

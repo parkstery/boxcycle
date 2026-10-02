@@ -11,6 +11,7 @@ import {
 import type { User } from "firebase/auth";
 import { getPresenceDisplayName } from "../authDisplay";
 import { getFirebaseFirestore } from "../../firebase/app";
+import { noteVisibilityOneShot } from "../../debug/visibilityReadMeters";
 import {
   isValidNickname,
   isValidNicknameKeyNormalized,
@@ -80,6 +81,7 @@ export async function getUserPublicLabelsByUid(uids: readonly string[]): Promise
   const map = new Map<string, string>();
   if (uniq.length === 0) return map;
 
+  noteVisibilityOneShot("catalogLabels", uniq.length);
   const db = getFirebaseFirestore();
   await Promise.all(
     uniq.map(async (uid) => {

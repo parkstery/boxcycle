@@ -242,6 +242,8 @@
       "trail/trailDisplayNumberCache.ts",
       "trail/trailId.ts",
       "trail/trailLivePolicy.ts",
+      "trail/listenerVisibilityGracePolicy.ts",
+      "trail/presenceWriteResumePolicy.ts",
       "trail/trailLiveRideSink.ts",
       "trail/trailTypes.ts",
       "trail/trailUrl.ts"
@@ -268,6 +270,7 @@
       "route/publicRouteContentPolicy.ts",
       "route/publicRouteNamingPolicy.ts",
       "route/publicationDisplay.ts",
+      "route/publishedCatalogRefreshPolicy.ts",
       "route/readyRide.ts",
       "route/routeDockUiPolicy.ts",
       "route/routeFingerprint.ts",
@@ -294,6 +297,7 @@
       "activity/activityWorldPollConstants.ts",
       "activity/activityWorldPollPolicy.ts",
       "activity/activityWorldPollSignals.ts",
+      "activity/activityWorldResumePolicy.ts",
       "activity/activityWorldTraceStyle.ts",
       "activity/coverageOverlayMode.ts"
     ],
@@ -396,7 +400,9 @@
       "debug/rideCameraLab.ts",
       "debug/touchActivityMeters.ts",
       "debug/trafficPairedCapture.ts",
-      "debug/trafficPublishMeters.ts"
+      "debug/trafficPublishMeters.ts",
+      "debug/visibilityReadMeters.ts",
+      "debug/documentVisibilityOverride.ts"
     ],
     "weather": [
       "weather/openMeteoWeather.ts"

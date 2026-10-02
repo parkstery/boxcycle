@@ -14,6 +14,7 @@ import {
   BASIC_INTRO_HUB_ROUTE_REVISION,
 } from "../basicIntroHubRouteGeometries";
 import { getFirebaseFirestore } from "../../firebase/app";
+import { noteVisibilityOneShot } from "../../debug/visibilityReadMeters";
 import {
   findPublishedRoutePublicationById,
   listPublishedRoutePublications,
@@ -326,6 +327,7 @@ function courseRoutePayloadFromPublication(
 }
 
 async function fetchCourseRoutePayloadUncached(publicationId: string): Promise<CourseRoutePayload | null> {
+  noteVisibilityOneShot("routeGeometryGapFill");
   const pub = await findPublishedRoutePublicationById(publicationId);
   return pub ? courseRoutePayloadFromPublication(pub) : null;
 }

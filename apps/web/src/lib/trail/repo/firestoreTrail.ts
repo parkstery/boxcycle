@@ -19,6 +19,10 @@ import {
   TRAILS_COLLECTION,
 } from "./firestoreTrailPaths";
 import { noteListingRefreshRead, notePresenceHeartbeatWrite } from "../../debug/touchActivityMeters";
+import {
+  noteTrailPresenceWriteProxy,
+  trackVisibilityListener,
+} from "../../debug/visibilityReadMeters";
 
 // 식별자는 도메인 층(`../trailId`)이 갖는다 — 「ID 를 안다」와 「DB 를 읽는다」는 다르다(D6).
 // 종전 이름으로 re-export 해 소비자를 건드리지 않는다.
@@ -72,6 +76,7 @@ export function resetPresenceUpsertWriterForTests(
 
 export async function upsertTrailPresence(user: User, trailId: string): Promise<void> {
   notePresenceHeartbeatWrite();
+  noteTrailPresenceWriteProxy();
   await presenceUpsertWriter(user, trailId);
 }
 
@@ -109,19 +114,22 @@ export function subscribeTrailMembers(
   onError?: (e: FirestoreError) => void,
 ): Unsubscribe {
   const rid = sanitizeTrailId(trailId);
-  return onSnapshot(
-    membersCollectionRef(rid),
-    (snap) => {
-      const rows: TrailMemberRow[] = snap.docs.map((d) => {
-        const data = d.data() as Record<string, unknown>;
-        return {
-          uid: d.id,
-          displayName: typeof data.displayName === "string" ? data.displayName : null,
-          lastSeenAtMs: lastSeenAtToMillis(data.lastSeenAt),
-        };
-      });
-      onChange(rows);
-    },
-    (err) => onError?.(err),
+  return trackVisibilityListener(
+    "trailMembers",
+    onSnapshot(
+      membersCollectionRef(rid),
+      (snap) => {
+        const rows: TrailMemberRow[] = snap.docs.map((d) => {
+          const data = d.data() as Record<string, unknown>;
+          return {
+            uid: d.id,
+            displayName: typeof data.displayName === "string" ? data.displayName : null,
+            lastSeenAtMs: lastSeenAtToMillis(data.lastSeenAt),
+          };
+        });
+        onChange(rows);
+      },
+      (err) => onError?.(err),
+    ),
   );
 }

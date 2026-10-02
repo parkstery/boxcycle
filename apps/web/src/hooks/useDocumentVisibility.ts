@@ -1,15 +1,21 @@
 import { useEffect, useState } from "react";
+import {
+  resolveDocumentVisible,
+  subscribeDocumentVisibilityOverride,
+} from "../lib/debug/documentVisibilityOverride";
 
 /** `document.visibilityState` — 백그라운드에서 리스너·쓰기 완화용 */
 export function useDocumentVisibility(): boolean {
-  const [visible, setVisible] = useState(
-    () => typeof document === "undefined" || document.visibilityState === "visible",
-  );
+  const [visible, setVisible] = useState(() => resolveDocumentVisible());
 
   useEffect(() => {
-    const onVis = () => setVisible(document.visibilityState === "visible");
-    document.addEventListener("visibilitychange", onVis);
-    return () => document.removeEventListener("visibilitychange", onVis);
+    const sync = () => setVisible(resolveDocumentVisible());
+    const unsubOverride = subscribeDocumentVisibilityOverride(sync);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      unsubOverride();
+      document.removeEventListener("visibilitychange", sync);
+    };
   }, []);
 
   return visible;

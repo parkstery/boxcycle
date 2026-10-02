@@ -30,6 +30,7 @@ import {
   noteListingRefreshRun,
   noteListingRefreshSchedule,
 } from "../../debug/touchActivityMeters";
+import { trackVisibilityListener } from "../../debug/visibilityReadMeters";
 
 /** Trailhead 공개 목록 — realtime 단일 진실 (자문: openTrailInstances) */
 export const OPEN_TRAIL_LISTINGS_COLLECTION = "openTrailListings";
@@ -349,39 +350,42 @@ export function subscribeOpenTrailListings(
     limit(OPEN_TRAIL_LISTINGS_LIMIT),
   );
 
-  return onSnapshot(
-    listingsQuery,
-    (snap) => {
-      const nowMs = Date.now();
-      const rows = snap.docs
-        .map((d) => {
-          const data = d.data({ serverTimestamps: "estimate" }) as Record<string, unknown>;
-          return {
-            row: listingToTrailInstance(d.id, data),
-            createdMs: timestampToMs(data.createdAt),
-            updatedMs: timestampToMs(data.updatedAt),
-          };
-        })
-        .filter(({ row, updatedMs }) => {
-          const stale =
-            updatedMs == null || nowMs - updatedMs > OPEN_TRAIL_LISTING_STALE_MS;
-          if (stale) {
-            // 유령 listing — 숨기고 재계산 예약(비활성이면 삭제, 활성이면 updatedAt 갱신 후 복귀)
-            scheduleOpenTrailListingRefresh(row.id);
-            return false;
-          }
-          return isActiveOpenTrailListing(row);
-        })
-        .map(({ row, createdMs }) => {
-          if (createdMs == null && !createdAtBackfillScheduled.has(row.id)) {
-            createdAtBackfillScheduled.add(row.id);
-            scheduleOpenTrailListingRefresh(row.id, 500);
-          }
-          return row;
-        })
-        .sort(compareOpenTrailsForListing);
-      onChange(rows);
-    },
-    (err) => onError?.(err),
+  return trackVisibilityListener(
+    "openTrailListings",
+    onSnapshot(
+      listingsQuery,
+      (snap) => {
+        const nowMs = Date.now();
+        const rows = snap.docs
+          .map((d) => {
+            const data = d.data({ serverTimestamps: "estimate" }) as Record<string, unknown>;
+            return {
+              row: listingToTrailInstance(d.id, data),
+              createdMs: timestampToMs(data.createdAt),
+              updatedMs: timestampToMs(data.updatedAt),
+            };
+          })
+          .filter(({ row, updatedMs }) => {
+            const stale =
+              updatedMs == null || nowMs - updatedMs > OPEN_TRAIL_LISTING_STALE_MS;
+            if (stale) {
+              // 유령 listing — 숨기고 재계산 예약(비활성이면 삭제, 활성이면 updatedAt 갱신 후 복귀)
+              scheduleOpenTrailListingRefresh(row.id);
+              return false;
+            }
+            return isActiveOpenTrailListing(row);
+          })
+          .map(({ row, createdMs }) => {
+            if (createdMs == null && !createdAtBackfillScheduled.has(row.id)) {
+              createdAtBackfillScheduled.add(row.id);
+              scheduleOpenTrailListingRefresh(row.id, 500);
+            }
+            return row;
+          })
+          .sort(compareOpenTrailsForListing);
+        onChange(rows);
+      },
+      (err) => onError?.(err),
+    ),
   );
 }

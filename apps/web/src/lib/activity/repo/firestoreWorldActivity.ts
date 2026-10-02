@@ -1,6 +1,7 @@
 import { doc, getDoc } from "firebase/firestore";
 import { getFirebaseFirestore } from "../../firebase/app";
 import { lastSeenAtToMillis } from "../../firebase/converters";
+import { noteVisibilityOneShot } from "../../debug/visibilityReadMeters";
 
 /** `worldActivity/global` — 줌 아웃 시 월드 레이어 힌트(저빈도 getDoc) */
 export type WorldActivitySnapshot = {
@@ -42,6 +43,7 @@ function parseWorldActivityDoc(data: Record<string, unknown>): WorldActivitySnap
 }
 
 export async function fetchWorldActivityGlobal(): Promise<WorldActivitySnapshot | null> {
+  noteVisibilityOneShot("activityWorldGlobal");
   const db = getFirebaseFirestore();
   const snap = await getDoc(doc(db, COLLECTION, GLOBAL_DOC_ID));
   if (!snap.exists()) return null;

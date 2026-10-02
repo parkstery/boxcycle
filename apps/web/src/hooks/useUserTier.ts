@@ -11,6 +11,7 @@ import {
   isUserTier,
   resolveEffectiveTier,
 } from "../lib/account/userTier";
+import { trackVisibilityListener } from "../lib/debug/visibilityReadMeters";
 
 function normalizeSubscriptionStatus(raw: unknown): SubscriptionStatus {
   if (raw === "active" || raw === "past_due" || raw === "canceled") return raw;
@@ -49,18 +50,21 @@ export function useUserTier(user: User | null, configured: boolean) {
     }
 
     const ref = doc(getFirebaseFirestore(), "users", user.uid);
-    const unsubscribe = onSnapshot(
-      ref,
-      (snap) => {
-        const data = snap.data();
-        const raw = data?.tier;
-        setFirestoreTier(isUserTier(raw) ? raw : null);
-        setSubscriptionStatus(normalizeSubscriptionStatus(data?.subscriptionStatus));
-        setMileageTotalMeters(normalizeMileageNumber(data?.mileageTotalMeters));
-        setMileageTotalSec(normalizeMileageNumber(data?.mileageTotalSec));
-        setMileageRideCount(normalizeMileageNumber(data?.mileageRideCount));
-      },
-      reset,
+    const unsubscribe = trackVisibilityListener(
+      "users",
+      onSnapshot(
+        ref,
+        (snap) => {
+          const data = snap.data();
+          const raw = data?.tier;
+          setFirestoreTier(isUserTier(raw) ? raw : null);
+          setSubscriptionStatus(normalizeSubscriptionStatus(data?.subscriptionStatus));
+          setMileageTotalMeters(normalizeMileageNumber(data?.mileageTotalMeters));
+          setMileageTotalSec(normalizeMileageNumber(data?.mileageTotalSec));
+          setMileageRideCount(normalizeMileageNumber(data?.mileageRideCount));
+        },
+        reset,
+      ),
     );
     return () => {
       unsubscribe();

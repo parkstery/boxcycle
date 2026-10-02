@@ -3,6 +3,14 @@ import {
   snapshotUnderlyingReadSubscriptions,
 } from "./readSubscriptionMeters";
 import {
+  resetVisibilityReadMeters,
+  snapshotVisibilityReadMeters,
+} from "./visibilityReadMeters";
+import {
+  getDocumentVisibilityOverrideForTests,
+  setDocumentVisibilityOverrideForTests,
+} from "./documentVisibilityOverride";
+import {
   debugInjectActiveLiveRideTrailIdsHubError,
   debugActiveLiveRideTrailIdsSubscriptionHub,
 } from "../trail/repo/activeLiveRideTrailIdsSubscriptionHub";
@@ -20,6 +28,7 @@ export function snapshotReadSubscriptions() {
   const motionHub = debugRtdbMotionSubscriptionHub();
   const ridesHub = debugTrailLivePublicationRidesSubscriptionHub();
   const activeLiveRideTrailIdsHub = debugActiveLiveRideTrailIdsSubscriptionHub();
+  const visibility = snapshotVisibilityReadMeters();
   const motionUnsubMatchesRtdbClose =
     motionHub.unsubCallTotal === underlying.rtdbOnValue.closeTotal;
   const ridesUnsubMatchesTrailClose =
@@ -32,6 +41,7 @@ export function snapshotReadSubscriptions() {
     totalsAreCumulative: true as const,
     compareStatesUsing: "open" as const,
     underlying,
+    visibility,
     motionHub,
     ridesHub,
     activeLiveRideTrailIdsHub,
@@ -52,7 +62,15 @@ export function installReadSubscriptionDebug(): void {
   if (typeof window === "undefined") return;
   const api = {
     snapshot: snapshotReadSubscriptions,
-    resetMeters: resetUnderlyingReadMeters,
+    resetMeters: () => {
+      resetUnderlyingReadMeters();
+      resetVisibilityReadMeters();
+    },
+    resetUnderlyingMeters: resetUnderlyingReadMeters,
+    resetVisibilityMeters: resetVisibilityReadMeters,
+    snapshotVisibility: snapshotVisibilityReadMeters,
+    setVisibilityOverride: setDocumentVisibilityOverrideForTests,
+    getVisibilityOverride: getDocumentVisibilityOverrideForTests,
     injectMotionError: debugInjectRtdbMotionHubError,
     injectRidesError: debugInjectTrailLivePublicationRidesHubError,
     injectCgError: debugInjectActiveLiveRideTrailIdsHubError,

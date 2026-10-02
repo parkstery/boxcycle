@@ -1,5 +1,6 @@
 import { doc, getDoc, type Timestamp } from "firebase/firestore";
 import { getFirebaseFirestore } from "../../firebase/app";
+import { noteVisibilityOneShot } from "../../debug/visibilityReadMeters";
 
 export type WorldRegionRow = {
   id: string;
@@ -41,6 +42,7 @@ export type WorldPresenceFetchResult = {
  * 문서: `appMeta/worldPresence` — regions[], optional updatedAt
  */
 export async function fetchWorldPresenceSummary(): Promise<WorldPresenceFetchResult> {
+  noteVisibilityOneShot("activityWorldSummary");
   try {
     const db = getFirebaseFirestore();
     const snap = await getDoc(doc(db, "appMeta", "worldPresence"));

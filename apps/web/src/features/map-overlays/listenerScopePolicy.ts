@@ -47,23 +47,34 @@ export function resolveActiveLiveRideTrailIdsListenerEnabled(
   );
 }
 
-export type WorldLivePublicationRideOverlayEnabledOpts = {
+export type WorldLivePublicationRideOverlayEligibleOpts = {
   configured: boolean;
   hasUser: boolean;
-  pageVisible: boolean;
   isRideSessionActive: boolean;
   debugIsolationOn: boolean;
   publicationPresenceWorldMapEnabled: boolean;
 };
 
+export type WorldLivePublicationRideOverlayEnabledOpts =
+  WorldLivePublicationRideOverlayEligibleOpts & {
+    pageVisible: boolean;
+  };
+
+/** eligibility — pageVisible 제외. short-hide grace 는 hook 에서 적용. */
+export function resolveWorldLivePublicationRideOverlayEligible(
+  opts: WorldLivePublicationRideOverlayEligibleOpts,
+): boolean {
+  return (
+    !opts.debugIsolationOn &&
+    Boolean(opts.configured && opts.hasUser) &&
+    !opts.publicationPresenceWorldMapEnabled &&
+    !opts.isRideSessionActive
+  );
+}
+
 /** 다 Trail world livePublicationRides overlay — 주행 중 off (현재 Trail spectator 유지). */
 export function resolveWorldLivePublicationRideOverlayEnabled(
   opts: WorldLivePublicationRideOverlayEnabledOpts,
 ): boolean {
-  return (
-    !opts.debugIsolationOn &&
-    Boolean(opts.configured && opts.hasUser && opts.pageVisible) &&
-    !opts.publicationPresenceWorldMapEnabled &&
-    !opts.isRideSessionActive
-  );
+  return resolveWorldLivePublicationRideOverlayEligible(opts) && opts.pageVisible;
 }

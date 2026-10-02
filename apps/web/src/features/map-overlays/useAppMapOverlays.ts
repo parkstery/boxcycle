@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { User } from "firebase/auth";
 import { useRouteActivity } from "../../hooks/useRouteActivity";
 import { useRouteActivityMapOverlay } from "../../hooks/useRouteActivityMapOverlay";
 import { usePublishedCoursesActivityMapOverlay } from "../../hooks/usePublishedCoursesActivityMapOverlay";
 import { useTrailLivePublicationRideSpectatorOverlay } from "../../hooks/useTrailLivePublicationRideSpectatorOverlay";
 import { useWorldPublicationPresenceOverlay } from "../../hooks/useWorldPublicationPresenceOverlay";
+import { useVisibilityListenGrace } from "../../hooks/useVisibilityListenGrace";
 import {
   formatActivityWorldPinPopup,
   type RouteActivitySnapshot,
@@ -43,7 +44,7 @@ import {
 } from "../../lib/debug/mapDebugPhase";
 import {
   resolveActiveLiveRideTrailIdsListenerEnabled,
-  resolveWorldLivePublicationRideOverlayEnabled,
+  resolveWorldLivePublicationRideOverlayEligible,
 } from "./listenerScopePolicy";
 
 export type UseAppMapOverlaysOpts = {
@@ -245,15 +246,18 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
   void shouldDisablePublicationOverlayHooks;
   const publicationPresenceWorldMapEnabled = false;
 
-  const activityWorldSyncEnabled = Boolean(
+  /** eligibility — pageVisible 제외. hide 동안 성공 sync 결과를 지우지 않기 위함 */
+  const activityWorldEligible = Boolean(
     !debugIsolationOn &&
-      worldMapActivityEnabled &&
+      configured &&
+      user &&
       !publicationPresenceWorldMapEnabled &&
       baseCatalogPublicationIds.length > 0,
   );
 
   const activityWorldSync = useActivityWorldDataSync({
-    enabled: activityWorldSyncEnabled,
+    enabled: activityWorldEligible,
+    pageVisible,
     selfRideActive: isRideSessionActive,
     publicationIds: baseCatalogPublicationIds,
     excludePublicationId: isRideSessionActive ? trackedPublicationId : null,
@@ -295,7 +299,7 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     enabled: catalogOverlayEnabled,
     worldMapRenderEnabled: catalogOverlayEnabled,
     refreshNonce: activityMapRefreshNonce,
-    externalSync: activityWorldSyncEnabled
+    externalSync: activityWorldEligible
       ? {
           activityByPublicationId: activityWorldSync.activityByPublicationId,
           syncEpoch: activityWorldSync.syncEpoch,
@@ -303,21 +307,38 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
       : undefined,
   });
 
-  const worldLivePublicationRideOverlayEnabled = resolveWorldLivePublicationRideOverlayEnabled({
+  const worldLivePublicationRideEligible = resolveWorldLivePublicationRideOverlayEligible({
     configured,
     hasUser: Boolean(user),
-    pageVisible,
     isRideSessionActive,
     debugIsolationOn,
     publicationPresenceWorldMapEnabled,
   });
+  const worldLivePublicationRideListenActive = useVisibilityListenGrace(
+    worldLivePublicationRideEligible,
+    pageVisible,
+    "world-live-publication-rides",
+  );
+  /** hide 직전 visible 스냅샷 — CG pageVisible 게이트와 같은 커밋에서 trailIds 가 줄어도 grace 중 hub 유지 */
+  const [frozenLiveRideTrailIds, setFrozenLiveRideTrailIds] = useState(liveRideTrailIds);
+  if (pageVisible) {
+    const prevKey = frozenLiveRideTrailIds.join("\0");
+    const nextKey = liveRideTrailIds.join("\0");
+    if (prevKey !== nextKey) {
+      setFrozenLiveRideTrailIds(liveRideTrailIds);
+    }
+  }
+  const worldLiveOverlayTrailIds =
+    !pageVisible && worldLivePublicationRideListenActive
+      ? frozenLiveRideTrailIds
+      : liveRideTrailIds;
 
   const livePublicationRideOverlay = useWorldLivePublicationRideMapOverlay({
-    enabled: worldLivePublicationRideOverlayEnabled,
+    enabled: worldLivePublicationRideListenActive,
     mapZoom,
     myUid: user?.uid ?? null,
     excludePublicationId: isRideSessionActive ? trackedPublicationId : null,
-    trailIds: liveRideTrailIds,
+    trailIds: worldLiveOverlayTrailIds,
   });
 
   const publicationWorldDots = useMemo(

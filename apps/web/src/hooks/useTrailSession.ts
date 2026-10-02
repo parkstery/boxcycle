@@ -12,6 +12,9 @@ import {
 } from "../lib/trail/repo/firestoreTrail";
 import { touchTrailInstanceActivity } from "../lib/trail/repo/firestoreTrailInstance";
 import { TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS } from "../lib/trail/trailLivePolicy";
+import { LISTENER_VISIBILITY_GRACE_MS } from "../lib/trail/listenerVisibilityGracePolicy";
+import { decidePresenceWriteResume } from "../lib/trail/presenceWriteResumePolicy";
+import { useVisibilityListenGrace } from "./useVisibilityListenGrace";
 
 /** Trail 1곳에 대한 upsert·스냅샷·하트비트 — 단일 구독용(App + 표시 컴포넌트 공유) */
 export function useTrailSession(opts: {
@@ -24,6 +27,12 @@ export function useTrailSession(opts: {
   const [error, setError] = useState<string | null>(null);
   const [rowsTrailId, setRowsTrailId] = useState(opts.trailId);
   const userRef = useRef<User | null>(null);
+  const lastPresenceSuccessRef = useRef<{ key: string; atMs: number } | null>(null);
+  const hiddenSinceMsRef = useRef<number | null>(null);
+
+  const eligible = Boolean(opts.enabled && opts.user);
+  const sessionKey = opts.user ? `${opts.user.uid}:${opts.trailId}` : "";
+  const listenActive = useVisibilityListenGrace(eligible, opts.pageVisible, sessionKey);
 
   useEffect(() => {
     userRef.current = opts.user ?? null;
@@ -46,8 +55,9 @@ export function useTrailSession(opts: {
     };
   }, [opts.enabled, opts.user?.uid, opts.trailId]);
 
+  // Members listener — visibility grace (presence write 와 분리)
   useEffect(() => {
-    if (!opts.enabled || !opts.user || !opts.pageVisible) {
+    if (!listenActive || !opts.user) {
       startTransition(() => {
         setRows([]);
         setError(null);
@@ -55,15 +65,9 @@ export function useTrailSession(opts: {
       return;
     }
 
-    const user = opts.user;
     const { trailId } = opts;
     let cancelled = false;
     startTransition(() => setError(null));
-
-    void upsertTrailPresence(user, trailId).catch((e: unknown) => {
-      const message = e instanceof Error ? e.message : String(e);
-      if (!cancelled) setError(message);
-    });
 
     const unsub = subscribeTrailMembers(
       trailId,
@@ -75,27 +79,94 @@ export function useTrailSession(opts: {
       },
     );
 
-    const timer = window.setInterval(() => {
-      const u = userRef.current;
-      if (!u) return;
-      void touchTrailPresence(u, trailId).catch((e: unknown) => {
-        const message = e instanceof Error ? e.message : String(e);
-        if (!cancelled) setError(message);
-      });
-      const tid = sanitizeTrailId(trailId);
-      if (tid !== DEFAULT_TRAIL_ID) {
-        void touchTrailInstanceActivity(tid).catch(() => {});
+    return () => {
+      cancelled = true;
+      unsub();
+    };
+  }, [listenActive, opts.trailId, opts.user?.uid]);
+
+  // Presence write / heartbeat — visible 일 때만. short resume 은 heartbeat 창 안이면 지연.
+  useEffect(() => {
+    if (!opts.enabled || !opts.user || !opts.pageVisible) {
+      if (!opts.pageVisible && hiddenSinceMsRef.current == null) {
+        hiddenSinceMsRef.current = Date.now();
       }
-    }, TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS);
+      return;
+    }
+
+    const user = opts.user;
+    const { trailId } = opts;
+    const key = `${user.uid}:${trailId}`;
+    const prev = lastPresenceSuccessRef.current;
+    const lastSuccessAtMs = prev && prev.key === key ? prev.atMs : null;
+    const hiddenMs =
+      hiddenSinceMsRef.current != null ? Date.now() - hiddenSinceMsRef.current : 0;
+    hiddenSinceMsRef.current = null;
+    // long hide (≥ read grace) → immediate; short hide uses heartbeat remaining
+    const decision =
+      hiddenMs >= LISTENER_VISIBILITY_GRACE_MS
+        ? ({ action: "immediate" } as const)
+        : decidePresenceWriteResume({
+            lastSuccessAtMs,
+            nowMs: Date.now(),
+            heartbeatIntervalMs: TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS,
+          });
+
+    let cancelled = false;
+    let heartbeatTimer: number | undefined;
+    let resumeTimer: number | undefined;
+
+    const noteSuccess = () => {
+      if (!cancelled) {
+        lastPresenceSuccessRef.current = { key, atMs: Date.now() };
+      }
+    };
+
+    const runUpsert = () => {
+      void upsertTrailPresence(user, trailId)
+        .then(noteSuccess)
+        .catch((e: unknown) => {
+          const message = e instanceof Error ? e.message : String(e);
+          if (!cancelled) setError(message);
+        });
+    };
+
+    const startHeartbeat = () => {
+      heartbeatTimer = window.setInterval(() => {
+        const u = userRef.current;
+        if (!u) return;
+        void touchTrailPresence(u, trailId)
+          .then(noteSuccess)
+          .catch((e: unknown) => {
+            const message = e instanceof Error ? e.message : String(e);
+            if (!cancelled) setError(message);
+          });
+        const tid = sanitizeTrailId(trailId);
+        if (tid !== DEFAULT_TRAIL_ID) {
+          void touchTrailInstanceActivity(tid).catch(() => {});
+        }
+      }, TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS);
+    };
+
+    if (decision.action === "immediate") {
+      runUpsert();
+      startHeartbeat();
+    } else {
+      resumeTimer = window.setTimeout(() => {
+        if (cancelled) return;
+        runUpsert();
+        startHeartbeat();
+      }, decision.delayMs);
+    }
 
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
-      unsub();
+      if (resumeTimer != null) window.clearTimeout(resumeTimer);
+      if (heartbeatTimer != null) window.clearInterval(heartbeatTimer);
     };
   }, [opts.enabled, opts.trailId, opts.user?.uid, opts.pageVisible]);
 
-  if (!opts.enabled || !opts.user || !opts.pageVisible) {
+  if (!listenActive || !opts.user) {
     return { rows: [], error: null };
   }
   return { rows, error };

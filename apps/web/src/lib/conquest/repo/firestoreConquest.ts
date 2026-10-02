@@ -7,6 +7,7 @@ import {
 } from "firebase/firestore";
 import { getFirebaseFirestore } from "../../firebase/app";
 import type { LineStringGeometry } from "../../geo/geo";
+import { trackVisibilityListener } from "../../debug/visibilityReadMeters";
 
 /**
  * Conquest(정복) v2 — 도로 셀·궤적. 읽기 전용 클라이언트(쓰기는 CF `conquestOnRideCreated`).
@@ -30,20 +31,23 @@ export function subscribeConquestSummary(
   onChange: (summary: ConquestSummary | null) => void,
 ): Unsubscribe {
   const db = getFirebaseFirestore();
-  return onSnapshot(
-    doc(db, "conquest", userId),
-    (snap) => {
-      if (!snap.exists()) {
-        onChange(null);
-        return;
-      }
-      const data = snap.data();
-      onChange({
-        totalMeters: Math.max(0, Number(data.totalMeters) || 0),
-        totalCells: Math.max(0, Number(data.totalCells) || 0),
-      });
-    },
-    () => onChange(null),
+  return trackVisibilityListener(
+    "conquest",
+    onSnapshot(
+      doc(db, "conquest", userId),
+      (snap) => {
+        if (!snap.exists()) {
+          onChange(null);
+          return;
+        }
+        const data = snap.data();
+        onChange({
+          totalMeters: Math.max(0, Number(data.totalMeters) || 0),
+          totalCells: Math.max(0, Number(data.totalCells) || 0),
+        });
+      },
+      () => onChange(null),
+    ),
   );
 }
 
