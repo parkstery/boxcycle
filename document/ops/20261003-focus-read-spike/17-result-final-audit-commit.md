@@ -69,7 +69,7 @@ TASK-01~04 누적 제품 diff는 계측 · catalog TTL/in-flight · Activity Wor
 
 | 항목 | 값 |
 |---|---|
-| SHA | *(본 커밋 직후 기록)* |
+| SHA | `f820c0dde631d779ff414109bce80363b8ffcae8` |
 | 메시지 | `docs(ops): record focus-read-spike final audit commit` |
 | 파일 | `document/ops/20261003-focus-read-spike/**` · `document/ops/PROGRESS.md` · `document/ops/README.md` |
 
