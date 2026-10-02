@@ -96,6 +96,8 @@
 | [260928-RTW-구조정비-완료보고](archive/260928-RTW-구조정비-완료보고.md) | 구조 정비 전체 결과 — 위반 0·순환 0 |
 | [260929-RTW-AI-개발체계-구축-완료보고](archive/260929-RTW-AI-개발체계-구축-완료보고.md) | Codex Supervisor ↔ Cursor CLI Developer 업무 프로토콜과 실제 handoff 검증 |
 | [261001-Public-Trail-동행-트래픽-개선-결과보고](archive/261001-Public-Trail-동행-트래픽-개선-결과보고.md) | Public Trail 1·2인 Firebase 트래픽 개선 — emulator FS writes ~73%·배포·billed 미측정 |
+| [261001-03-ARCHITECTURE-초안-검증보고](archive/261001-03-ARCHITECTURE-초안-검증보고.md) | 외부 아키텍처 초안 vs SoT·코드 — `dmv2`/env/도메인 누락 등 |
+| [261002-카메라-미세조정-HUD-방법](archive/261002-카메라-미세조정-HUD-방법.md) | camlab HUD + QC2·3 제품 튜닝 bake · 나머지 QC는 기존 Follow 기본 |
 | [260928-RTW-동행-동기화-메커니즘과-유령-보고서](archive/260928-RTW-동행-동기화-메커니즘과-유령-보고서.md) | 동행 동기화 전모 — 채널·화면 경로·보간 |
 | [260924-Local-First-Ride-1차-완료보고](archive/260924-Local-First-Ride-1차-완료보고.md) | 첫 화면 「내 지역」·Ready Ride·Claim 연동 결과 |
 | [260922-RTW-라이더-신구모델-교체-완료보고](archive/260922-RTW-라이더-신구모델-교체-완료보고.md) | 라이더 3D 교체 — **모델 재교체 전 필독** |
@@ -117,3 +119,4 @@
 | 2026-09-22 | 라이더 신·구 모델 교체 완료 보고 · 개발 중간 점검 보고서 등재 |
 | 2026-09-28 | **3층 구조 개편** — 입구를 현황판·ops 창구로. 끝난 계획·인수인계 11편과 ops 묶음 4개를 `archive/` 로 이동. ops 지시서 목록(약 60줄)을 색인에서 빼고 [ops 창구](ops/README.md)로 대체 |
 | 2026-10-01 | Public Trail 동행 트래픽 개선 결과 보고 등재 — [261001](archive/261001-Public-Trail-동행-트래픽-개선-결과보고.md) |
+| 2026-10-02 | 카메라 미세조정 HUD 방법 등재 — [261002](archive/261002-카메라-미세조정-HUD-방법.md) |

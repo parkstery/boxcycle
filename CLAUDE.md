@@ -31,6 +31,12 @@
 | 구조를 바꾸거나 게이트를 세우려면(도구·절차) | [document/260926-RTW-구조-게이트-운용-지침.md](document/260926-RTW-구조-게이트-운용-지침.md) |
 | 실행·배포 방법 | [README.md](README.md) |
 
+## Mermaid (필수 · Cursor 채팅)
+
+- **`%%{init: ...}%%` · themeVariables 금지.** Cursor 채팅에서 Syntax Error가 난다.
+- **순수 Mermaid만** (`flowchart` / `sequenceDiagram` …). 펜스 안에 설명 문장 금지. 옛 `document/*.md` 다이어그램의 init을 베끼지 말 것.
+- SoT: `.cursor/rules/mermaid-cursor-safe.mdc` · 스킬 `.cursor/skills/mermaid-safe/SKILL.md`
+
 ## 문서 규칙 (요약)
 
 - 새 문서는 `YYMMDD-` 접두어 + [document/README.md](document/README.md) 색인 등재. 보고서·완료된 체크리스트는 태어날 때부터 `document/archive/`에 작성.

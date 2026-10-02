@@ -1,0 +1,31 @@
+---
+description: CRITICAL — Mermaid in Cursor chat MUST NOT use %%{init}; pure syntax only or Syntax Error
+alwaysApply: true
+---
+
+# Mermaid — Cursor chat safe (mandatory)
+
+Cursor IDE chat Mermaid renderer **fails** on `%%{init: ...}%%` theme JSON.
+Agents repeatedly reintroduce it by copying old `document/*.md` examples.
+**Never do that.**
+
+## Hard rules (every chat, every diagram)
+
+1. Fence starts with ` ```mermaid `, body is **diagram only**, then close the fence.
+2. **Forbidden:** `%%{init`, `themeVariables`, `mainBkg`, any theme JSON.
+3. **Forbidden:** Korean/English prose inside the fence (put it after the closing fence).
+4. **Forbidden:** copying Mermaid with init from `document/` or archive — those examples are legacy for other viewers.
+5. Labels short ASCII/words; avoid `<br/>` and nested quotes in node text.
+6. Prefer `flowchart` / `sequenceDiagram` with `id[short label]` nodes.
+
+## Template (copy this shape)
+
+```mermaid
+flowchart LR
+  a[step one] --> b[step two]
+  c[other] -.->|note| b
+```
+
+## If tempted to style
+
+Do not. Transparent backgrounds are **not** worth Syntax Error. User already chose pure Mermaid for Cursor.
