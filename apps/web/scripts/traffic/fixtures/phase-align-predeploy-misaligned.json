@@ -1,0 +1,28 @@
+{
+  "evidenceClass": "P",
+  "deployLabel": "pre-deploy-console-2026-09-29",
+  "calendarDate": "2026-09-29",
+  "seriesNotes": "Historical console hover bins from archive 261001 Part B §1.2 only (363/118, 45/1, 1400/280, 1200/252). Invented edge-minute counts removed. 60s ride stamps cross minute boundaries → no fully-contained bin.",
+  "solo": {
+    "steady": {
+      "startIso": "2026-09-29T08:18:56+09:00",
+      "endIso": "2026-09-29T08:19:56+09:00"
+    }
+  },
+  "dual": {
+    "steady": {
+      "startIso": "2026-09-29T08:24:28+09:00",
+      "endIso": "2026-09-29T08:25:28+09:00"
+    }
+  },
+  "quiet": {
+    "startIso": "2026-09-29T08:21:00+09:00",
+    "endIso": "2026-09-29T08:22:00+09:00"
+  },
+  "minuteBins": [
+    { "minuteStartIso": "2026-09-29T08:19:00+09:00", "reads": 363, "writes": 118 },
+    { "minuteStartIso": "2026-09-29T08:21:00+09:00", "reads": 45, "writes": 1 },
+    { "minuteStartIso": "2026-09-29T08:23:00+09:00", "reads": 1400, "writes": 280 },
+    { "minuteStartIso": "2026-09-29T08:24:00+09:00", "reads": 1200, "writes": 252 }
+  ]
+}

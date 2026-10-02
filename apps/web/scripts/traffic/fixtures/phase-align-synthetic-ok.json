@@ -1,0 +1,42 @@
+{
+  "evidenceClass": "P",
+  "deployLabel": "synthetic-tool-selfcheck",
+  "calendarDate": "2026-10-02",
+  "seriesNotes": "Synthetic fixture for CLI/tool verification only — not production observation.",
+  "quiet": {
+    "startIso": "2026-10-02T00:00:00.000Z",
+    "endIso": "2026-10-02T00:02:00.000Z"
+  },
+  "solo": {
+    "start": {
+      "startIso": "2026-10-02T00:02:00.000Z",
+      "endIso": "2026-10-02T00:03:00.000Z"
+    },
+    "steady": {
+      "startIso": "2026-10-02T00:03:00.000Z",
+      "endIso": "2026-10-02T00:06:00.000Z"
+    },
+    "end": {
+      "startIso": "2026-10-02T00:06:00.000Z",
+      "endIso": "2026-10-02T00:07:00.000Z"
+    }
+  },
+  "dual": {
+    "steady": {
+      "startIso": "2026-10-02T00:10:00.000Z",
+      "endIso": "2026-10-02T00:13:00.000Z"
+    }
+  },
+  "minuteBins": [
+    { "minuteStartIso": "2026-10-02T00:00:00.000Z", "reads": 40, "writes": 2 },
+    { "minuteStartIso": "2026-10-02T00:01:00.000Z", "reads": 40, "writes": 2 },
+    { "minuteStartIso": "2026-10-02T00:02:00.000Z", "reads": 100, "writes": 10 },
+    { "minuteStartIso": "2026-10-02T00:03:00.000Z", "reads": 200, "writes": 50 },
+    { "minuteStartIso": "2026-10-02T00:04:00.000Z", "reads": 200, "writes": 50 },
+    { "minuteStartIso": "2026-10-02T00:05:00.000Z", "reads": 200, "writes": 50 },
+    { "minuteStartIso": "2026-10-02T00:06:00.000Z", "reads": 90, "writes": 9 },
+    { "minuteStartIso": "2026-10-02T00:10:00.000Z", "reads": 600, "writes": 120 },
+    { "minuteStartIso": "2026-10-02T00:11:00.000Z", "reads": 600, "writes": 120 },
+    { "minuteStartIso": "2026-10-02T00:12:00.000Z", "reads": 600, "writes": 120 }
+  ]
+}
