@@ -16,6 +16,11 @@ import {
 } from "../../lib/debug/mapTickProbe";
 import { noteFollowJumpToValues } from "../../lib/camera/cameraFollowTrace";
 import { noteCameraWrite } from "../../lib/camera/cameraRenderPhase";
+import {
+  getQuickCameraProductTune,
+  type QuickCameraSlot,
+} from "../../lib/camera/quickCameraProductTune";
+import { getRideCameraLabOverride } from "../../lib/debug/rideCameraLab";
 import { isTickTestAlignCamOn, isTickTestFollowOn, isTickTestMapStopOn } from "../../lib/debug/tickTestSwitches";
 import { type LiveRiderMotion } from "./mapViewTypes";
 
@@ -218,6 +223,8 @@ export function tickRideCameraFollow(
      * null 이면 기존 move→route→map 우선순위.
      */
     lockBaseHeading?: number | null;
+    /** 활성 QC 슬롯 — 제품 튜닝표(`quickCameraProductTune`) 조회용 */
+    activeQuickCamera?: QuickCameraSlot | null;
     /** B1 — 사용자 줌 역산 거리면 floor 생략 */
     spanFloorMode?: RideSpanFloorMode;
     sessionStatus?: LiveRiderMotion["sessionStatus"];
@@ -263,6 +270,27 @@ export function tickRideCameraFollow(
     distanceM: opts.rideCameraDistanceM,
   });
 
+  // 제품 QC 튜닝 → camlab 순. Follow 스키마만(FreeCamera 없음).
+  const productTune = getQuickCameraProductTune(opts.activeQuickCamera ?? null);
+  const lab = getRideCameraLabOverride();
+  const tune = lab ?? productTune;
+  let targetBearing = nextCamera.bearing;
+  let targetOffsetBearing = nextCamera.offsetBearing;
+  let targetPitch = nextCamera.pitch;
+  let targetDistanceM = nextCamera.distanceM;
+  let lookAtAlongExtraM = 0;
+  let screenAnchor: number | undefined;
+  if (tune) {
+    targetDistanceM = tune.distanceM;
+    targetPitch = tune.pitchDeg;
+    targetBearing = normalizeCompass(nextCamera.bearing + tune.bearingOffsetDeg);
+    if (targetOffsetBearing != null) {
+      targetOffsetBearing = normalizeCompass(targetBearing + 180);
+    }
+    lookAtAlongExtraM = tune.lookAtAlongExtraM;
+    screenAnchor = tune.screenAnchor;
+  }
+
   opts.prevLiveRef.current = targetLngLat;
   const smooth = opts.smooth;
   if (
@@ -280,11 +308,12 @@ export function tickRideCameraFollow(
   const dtSec = clamp(dtMs, 0, CAMERA_MAX_DT_MS) / 1000;
   const alphaPos = dampAlpha(dtSec, CAMERA_POSITION_TAU_SEC);
   const alignCam = isTickTestAlignCamOn();
-  const alphaCenter = alignCam ? 1 : alphaPos;
-  const alphaBearingPrimary = dampAlpha(dtSec, CAMERA_BEARING_TAU_PRIMARY_SEC);
-  const alphaBearingSecondary = dampAlpha(dtSec, CAMERA_BEARING_TAU_SECONDARY_SEC);
-  const maxStepPrimary = CAMERA_BEARING_MAX_DPS_PRIMARY * dtSec;
-  const maxStepSecondary = CAMERA_BEARING_MAX_DPS_SECONDARY * dtSec;
+  const snapLab = lab != null;
+  const alphaCenter = alignCam || snapLab ? 1 : alphaPos;
+  const alphaBearingPrimary = snapLab ? 1 : dampAlpha(dtSec, CAMERA_BEARING_TAU_PRIMARY_SEC);
+  const alphaBearingSecondary = snapLab ? 1 : dampAlpha(dtSec, CAMERA_BEARING_TAU_SECONDARY_SEC);
+  const maxStepPrimary = snapLab ? 360 : CAMERA_BEARING_MAX_DPS_PRIMARY * dtSec;
+  const maxStepSecondary = snapLab ? 360 : CAMERA_BEARING_MAX_DPS_SECONDARY * dtSec;
 
   const curPitch = smooth.pitch ?? map.getPitch();
   const curZoom = smooth.zoom ?? map.getZoom();
@@ -293,7 +322,7 @@ export function tickRideCameraFollow(
 
   const nextBearingPrimary = lerpAngle(
     curBearingPrimary,
-    nextCamera.bearing,
+    targetBearing,
     alphaBearingPrimary,
     maxStepPrimary,
   );
@@ -305,23 +334,25 @@ export function tickRideCameraFollow(
   );
 
   const offsetForFraming =
-    nextCamera.offsetBearing == null
+    targetOffsetBearing == null
       ? null
-      : alignCam
+      : alignCam || snapLab
         ? normalizeCompass(nextBearing + 180)
-        : nextCamera.offsetBearing;
+        : targetOffsetBearing;
 
   const vp = viewportPxFromMap(map);
   const framing = computeRideFollowFraming({
     riderLngLat: targetLngLat,
     offsetBearing: offsetForFraming,
-    distanceM: nextCamera.distanceM,
-    pitchDeg: nextCamera.pitch,
+    distanceM: targetDistanceM,
+    pitchDeg: targetPitch,
     viewportWidthPx: vp.width,
     viewportHeightPx: vp.height,
     fallbackZoom: opts.mapZoom,
     screenUpBearing: nextBearing,
     spanFloorMode: opts.spanFloorMode ?? "preset",
+    lookAtAlongExtraM,
+    screenAnchor,
   });
   const cameraCenterTarget = framing.center;
   const followZoom = framing.zoom;
@@ -331,8 +362,8 @@ export function tickRideCameraFollow(
     lerp(curCenter[0], cameraCenterTarget[0], alphaCenter),
     lerp(curCenter[1], cameraCenterTarget[1], alphaCenter),
   ];
-  const nextPitch = lerp(curPitch, nextCamera.pitch, alphaPos);
-  const nextZoom = lerp(curZoom, followZoom, alphaPos);
+  const nextPitch = lerp(curPitch, targetPitch, snapLab ? 1 : alphaPos);
+  const nextZoom = lerp(curZoom, followZoom, snapLab ? 1 : alphaPos);
 
   smooth.center = nextCenter;
   smooth.pitch = nextPitch;

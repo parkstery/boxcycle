@@ -76,6 +76,7 @@ import {
 } from "./lib/trail/trailDisplayNumberCache";
 import { RotateOverlay } from "./components/RotateOverlay";
 import { RiderLightLabPanel } from "./components/riderLightLab/RiderLightLabPanel";
+import { RideCameraLabPanel } from "./components/rideCameraLab/RideCameraLabPanel";
 import { MapViewSheet } from "./components/map/MapViewSheet";
 import { UserInfoSheet } from "./components/UserInfoSheet";
 import { RideSettingsSheet } from "./components/ride/RideSettingsSheet";
@@ -157,6 +158,7 @@ import {
   CAMERA1_AERIAL_DISTANCE_M,
   nextCamera1Mode,
 } from "./lib/camera/camera1Mode";
+import { getQuickCameraProductTune } from "./lib/camera/quickCameraProductTune";
 import "./App.css";
 
 export default function App() {
@@ -2142,8 +2144,9 @@ export default function App() {
         6: "forward",
       };
       setFollowMode(modeByN[n]);
-      // pitch 80 확정 → floor≈5.59m → MIN 6.0m. 원안 「5m」는 max(5, MIN)으로 6m 적용을 드러낸다.
-      setRideCameraDistanceM(Math.max(5, RIDE_CAMERA_DISTANCE_MIN_M));
+      // QC2·3 은 quickCameraProductTune 거리. 나머지 밀착은 pitch 80 floor → MIN≈6m.
+      const tune = getQuickCameraProductTune(n);
+      setRideCameraDistanceM(tune?.distanceM ?? Math.max(5, RIDE_CAMERA_DISTANCE_MIN_M));
       setRideCameraSpanFloorMode("preset");
     },
     [
@@ -2405,6 +2408,11 @@ export default function App() {
     <div className="app-shell app-shell--map-first">
       <RotateOverlay />
       <RiderLightLabPanel />
+      <RideCameraLabPanel
+        activeQuickCamera={activeQuickCamera}
+        camera1Mode={camera1Mode}
+        onDistanceM={handleRideCameraDistancePreset}
+      />
 
       <div className="app-map-stage">
         {debugMapIsolationActive ? (
@@ -2506,6 +2514,7 @@ export default function App() {
               rideActive: rideStatus === "running" || rideStatus === "paused",
               rideCameraDistanceM,
               lockBaseHeading,
+              activeQuickCamera,
               rideCameraSpanFloorMode,
               onRideCameraDistanceFromUserZoom: handleRideCameraDistanceFromUserZoom,
               showRtwPoi,

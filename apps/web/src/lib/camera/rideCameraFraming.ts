@@ -266,8 +266,14 @@ export function computeRideFollowFraming(input: {
   screenUpBearing?: number | null;
   /** B1 — 사용자 줌 역산 거리면 floor 생략 */
   spanFloorMode?: RideSpanFloorMode;
+  /** `?camlab=1` — look-at 전방 추가(m). 제품 경로에서는 생략(0). */
+  lookAtAlongExtraM?: number;
+  /** `?camlab=1` — 화면 세로 anchor. 생략 시 `RIDE_RIDER_SCREEN_ANCHOR`. */
+  screenAnchor?: number;
 }): RideFollowFraming {
   const { riderLngLat, offsetBearing, distanceM, pitchDeg, fallbackZoom } = input;
+  const lookAtAlongExtraM = input.lookAtAlongExtraM ?? 0;
+  const screenAnchor = input.screenAnchor;
   if (!(distanceM > 0) || offsetBearing == null) {
     /*
      * 거리 개념이 없는 모드(topDown·north) — 종전에는 라이더를 그대로 중앙에 뒀다.
@@ -277,12 +283,14 @@ export function computeRideFollowFraming(input: {
       zoom: fallbackZoom,
       latDeg: riderLngLat[1],
       viewportHeightPx: input.viewportHeightPx,
+      anchor: screenAnchor,
     });
     const up = input.screenUpBearing;
-    if (up == null || !Number.isFinite(up) || bias === 0) {
+    const along = bias + lookAtAlongExtraM;
+    if (up == null || !Number.isFinite(up) || along === 0) {
       return { center: riderLngLat, zoom: fallbackZoom };
     }
-    return { center: offsetLngLatByBearingMeters(riderLngLat, up, bias), zoom: fallbackZoom };
+    return { center: offsetLngLatByBearingMeters(riderLngLat, up, along), zoom: fallbackZoom };
   }
 
   // spanM 을 먼저 정한다 — look-at 오프셋이 같은 규칙 아래 묶이려면 상한의 기준이 있어야 한다.
@@ -299,11 +307,12 @@ export function computeRideFollowFraming(input: {
     spanM,
     safeHeightPx: safe.height,
     viewportHeightPx: input.viewportHeightPx,
+    anchor: screenAnchor,
   });
   const center = offsetLngLatByBearingMeters(
     riderLngLat,
     viewBearing,
-    lookAtAlongViewM + anchorBiasM,
+    lookAtAlongViewM + anchorBiasM + lookAtAlongExtraM,
   );
 
   const latRad = (riderLngLat[1] * Math.PI) / 180;

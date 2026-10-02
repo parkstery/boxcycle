@@ -347,6 +347,7 @@
       "camera/camera1Mode.ts",
       "camera/cameraFollowTrace.ts",
       "camera/cameraRenderPhase.ts",
+      "camera/quickCameraProductTune.ts",
       "camera/rideCameraFraming.ts"
     ],
     "peerMotion": [
@@ -392,6 +393,7 @@
       "debug/peerSmoothnessProbe.ts",
       "debug/riderRenderCostProbe.ts",
       "debug/tickTestSwitches.ts",
+      "debug/rideCameraLab.ts",
       "debug/touchActivityMeters.ts",
       "debug/trafficPairedCapture.ts",
       "debug/trafficPublishMeters.ts"

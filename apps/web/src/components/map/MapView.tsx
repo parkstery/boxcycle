@@ -376,6 +376,8 @@ export type MapViewProps = {
   rideCameraDistanceM?: number;
   /** Quick Camera 6 — baseHeading 고정(북쪽=0). null 이면 일반 heading 소스 */
   lockBaseHeading?: number | null;
+  /** 활성 QC 슬롯 — 제품 카메라 튜닝표 적용 */
+  activeQuickCamera?: 1 | 2 | 3 | 4 | 5 | 6 | null;
   /**
    * 사용자 휠/핀치 줌 → 거리 역산 반영(지시06).
    * `spanFloorMode: "userZoom"` 과 함께 쓴다.
@@ -505,6 +507,7 @@ export function MapView({
   rideActive = false,
   rideCameraDistanceM = RIDE_CAMERA_DISTANCE_DEFAULT_M,
   lockBaseHeading = null,
+  activeQuickCamera = null,
   onRideCameraDistanceFromUserZoom,
   rideCameraSpanFloorMode = "preset",
   showRtwPoi = false,
@@ -602,6 +605,7 @@ export function MapView({
   /** 주행 카메라 거리(m) — 개발용 거리 슬라이더 최신값, rAF 루프에서 참조 */
   const rideCameraDistanceMRef = useRef(rideCameraDistanceM);
   const lockBaseHeadingRef = useRef(lockBaseHeading);
+  const activeQuickCameraRef = useRef(activeQuickCamera);
   const rideCameraSpanFloorModeRef = useRef(rideCameraSpanFloorMode);
   const onRideCameraDistanceFromUserZoomRef = useRef(onRideCameraDistanceFromUserZoom);
   const prefersReducedMotionRef = useRef(false);
@@ -732,6 +736,9 @@ export function MapView({
   useEffect(() => {
     lockBaseHeadingRef.current = lockBaseHeading;
   }, [lockBaseHeading]);
+  useEffect(() => {
+    activeQuickCameraRef.current = activeQuickCamera;
+  }, [activeQuickCamera]);
 
   useEffect(() => {
     rideCameraSpanFloorModeRef.current = rideCameraSpanFloorMode;
@@ -2212,6 +2219,7 @@ export function MapView({
           mapZoom: mapZoomRef.current,
           rideCameraDistanceM: rideCameraDistanceMRef.current,
           lockBaseHeading: lockBaseHeadingRef.current,
+          activeQuickCamera: activeQuickCameraRef.current,
           spanFloorMode: rideCameraSpanFloorModeRef.current,
           sessionStatus: liveRiderMotionRef.current?.sessionStatus,
           routeGeometry: routeGeometryRef.current,
