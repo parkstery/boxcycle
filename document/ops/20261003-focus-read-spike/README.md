@@ -4,10 +4,10 @@
 |---|---|
 | 문서 유형 | **ops 묶음** — 비활성/백그라운드 앱의 foreground 복귀만으로 발생하는 Firestore 읽기 급증 조사·저감 |
 | 최초 작성 | 2026-10-03 |
-| 상태 | **DEVELOPMENT_DONE** — TASK-05R docs range 정정 완료, Supervisor 재검수 대기 |
+| 상태 | **APPROVED** — 최종 검수 통과, TASK-06 main2 통합 진행 |
 | Supervisor | Codex |
 | Developer | Cursor CLI |
-| 연결 | [최종 결과 17](17-result-final-audit-commit.md) · [검수 18](18-review-final-audit.md) · [재지시 19](19-task-docs-range-fix.md) · [결과 20](20-result-docs-range-fix.md) · [전체 상태판](../PROGRESS.md) |
+| 연결 | [최종 승인 21](21-review-final-approval.md) · [통합 지시 22](22-task-merge-main2.md) · [전체 상태판](../PROGRESS.md) |
 
 ## 사용자 관측
 
@@ -39,4 +39,5 @@
 4. TASK-03 catalog TTL + Activity World fresh-resume — **APPROVED**.
 5. TASK-04 listener 10초 grace + presence resume throttle — **APPROVED**.
 6. TASK-05 최종 감사·전용 브랜치 커밋 — 제품 `e2a49e2` 유지, docs range check로 **REWORK_REQUIRED** ([18](18-review-final-audit.md)).
-7. TASK-05R ops 문서 공백·기록 정정 — **DEVELOPMENT_DONE**, 재검수 대기 ([20](20-result-docs-range-fix.md)).
+7. TASK-05R ops 문서 공백·기록 정정 — **APPROVED** ([20](20-result-docs-range-fix.md)).
+8. TASK-06 `main2` fast-forward 통합 — **진행 중**.
