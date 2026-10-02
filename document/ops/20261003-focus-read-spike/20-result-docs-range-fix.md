@@ -42,10 +42,10 @@ ops 묶음 문서의 trailing whitespace·EOF blank-line만 제거해 `git diff 
 
 | 명령 | 결과 |
 |---|---|
-| `git diff --check main2..HEAD` | **PASS** (경고 0) |
-| `git status` | docs-only 커밋 후 clean (제품 트리 미변경) |
-| `git log main2..HEAD --oneline` | 제품 1 + docs 체인 (본 커밋 포함) |
-| 제품 커밋 파일 범위 | `e2a49e2` = 38 files `apps/web` only (HEAD와 제품 tree 동일) |
+| `git diff --check main2..HEAD` | **PASS** (경고 0, exit 0) |
+| `git status` | clean |
+| `git log main2..HEAD --oneline` | `de99101` docs fix · `5111bf9` annotate · `f820c0d` docs record · `e2a49e2` product |
+| 제품 커밋 파일 범위 | `e2a49e2` = 38 files `apps/web` only · `git diff e2a49e2 HEAD -- apps/web` empty |
 | stash list[0] | `wip-stale-focus-read-spike-before-TASK05` 유지 |
 | stale worktree branch | `codex/focus-read-spike-stale-wip` 유지 |
 
@@ -53,8 +53,8 @@ ops 묶음 문서의 trailing whitespace·EOF blank-line만 제거해 `git diff 
 
 | 항목 | 값 |
 |---|---|
-| 제품 (불변) | `e2a49e2` — `fix(firestore): reduce foreground resume read spikes` |
-| 본 docs-only | 커밋 후 `git rev-parse HEAD`로 확인 · 메시지 `docs(ops): fix focus-read-spike range whitespace` |
+| 제품 (불변) | `e2a49e2c13ed4c5c5065a740ad3508d8c71002f0` — `fix(firestore): reduce foreground resume read spikes` |
+| 본 docs-only | `de99101f360866d76b4586a60983969416b669bd` — `docs(ops): fix focus-read-spike range whitespace` |
 
 ---
 

@@ -75,7 +75,7 @@ TASK-01~04 누적 제품 diff는 계측 · catalog TTL/in-flight · Activity Wor
 |---|---|
 | 최초 docs 기록 | `f820c0dde631d779ff414109bce80363b8ffcae8` — `docs(ops): record focus-read-spike final audit commit` |
 | SHA 주석 | `5111bf96b69bfda6ac3f76a0051278223d3cb983` — `docs(ops): annotate focus-read-spike docs commit SHA` |
-| 최종 docs (range 정정) | TASK-05R 커밋 — [20-result-docs-range-fix.md](20-result-docs-range-fix.md)에 SHA·`git diff --check main2..HEAD` PASS 기록 |
+| 최종 docs (range 정정) | `de99101f360866d76b4586a60983969416b669bd` — `docs(ops): fix focus-read-spike range whitespace` · [20](20-result-docs-range-fix.md) · `git diff --check main2..HEAD` **PASS** |
 
 ---
 
