@@ -12,4 +12,3 @@ Owner: Cursor CLI Developer. [06 검수](06-review-visibility-meter.md)의 네 �
 - N=3 Emulator 검증을 시도한다. 성공하면 10 cycles 기대 delta를 기록하고, 실패/비현실적이면 순수 모델임을 명시하고 기존 E2E와 섞지 않는다.
 - focused tests, s42 meters, dep check, tsc, changed-file lint, focused E2E를 재실행한다.
 - 결과는 `08-result-visibility-meter-rework.md`에 작성하고 05의 과장된 문구는 정정 링크를 남긴다.
-

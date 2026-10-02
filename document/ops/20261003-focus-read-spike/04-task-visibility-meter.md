@@ -40,4 +40,3 @@ baseline visible settle 후 hidden→visible 10회를 시뮬레이션하고 다�
 - baseline 표에서 가장 큰 앱 제어 가능 항목 1~3개를 확정한다.
 - 다음 최소 수정안은 제안만 하고 구현하지 않는다.
 - 결과 문서에 정확한 명령, PASS/FAIL/SKIP, 파일, 수치, 한계가 있다.
-

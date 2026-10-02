@@ -20,4 +20,3 @@
 4. `noteVisibilityOneShot`의 각 위치가 실제 `getDoc/getDocs` 직전인지, cache guard 뒤인지 전수 점검하고 표에 `actual network call proxy`와 `invocation proxy`를 분리하라.
 
 계측이 실제 Firebase 호출을 추가하면 안 된다. 제품 최적화는 아직 하지 말라.
-

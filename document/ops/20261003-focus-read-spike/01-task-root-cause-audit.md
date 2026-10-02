@@ -35,4 +35,3 @@ Owner: Cursor CLI Developer. Supervisor: Codex. 현재 작업은 **read-only 감
 - 확인한 명령과 사실, 미확인 항목.
 
 원인이 충분히 좁혀지지 않으면 추측으로 구현하지 말고 어떤 계측이 필요한지 정확히 보고하라.
-

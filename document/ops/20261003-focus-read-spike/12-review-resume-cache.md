@@ -13,4 +13,3 @@
 - 동일 Emulator E2E ×10에서 `catalogPublications`, `activityWorldSummary`, `activityWorldGlobal`이 각각 10→0, routeActivity getDoc 0 유지다.
 - Supervisor 재실행 `test:focus-read-spike` 27/27, dependency check 및 diff check PASS.
 - world `trailLiveRides` N=3의 30/30, Trail members 10/10, presence write 10은 의도적으로 남아 다음 단계에서 다룬다.
-

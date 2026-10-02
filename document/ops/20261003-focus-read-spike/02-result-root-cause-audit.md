@@ -174,7 +174,7 @@ flowchart TD
 | CG / listings | OpenTrails 유지 시 앱 재open 없음 | SDK 재전달 시만 (가설) |
 | Presence write | upsertTrailPresence | write 1/화면/복귀 (+ later heartbeats) |
 
-**스케치:** reads ≈ \(C \times V \times (R_{world}(N) + R_{poll}(P) + R_{catalog} + R_{members} + R_{sdk\_kept})\).  
+**스케치:** reads ≈ \(C \times V \times (R_{world}(N) + R_{poll}(P) + R_{catalog} + R_{members} + R_{sdk\_kept})\).
 \(C=4\), \(V\)가 수십, \(P\)가 수십, \(N\)이 수~십이면 Console **~1.2만 reads / 60분** 자리수는 **가능**하나, **어느 항이 지배적인지는 계측 전 미확정**.
 
 쓰기 302: 복귀당 presence upsert ×4 + (구간 내) 30s heartbeat + listing refresh/setDoc 후보. 주행 없이도 설명 가능. CF 연쇄는 listing refresh·presence 경로에 달림(본 감사는 functions 미추적).

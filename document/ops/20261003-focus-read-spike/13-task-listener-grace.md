@@ -44,4 +44,3 @@ Owner: Cursor CLI Developer. Supervisor: Codex. [12 검수](12-review-resume-cac
 - focused tests, dep check, tsc, changed-file lint, focused Emulator E2E. 5분 무진전 시 브라우저 반복을 중단하고 대체 검증으로 전환한다.
 
 결과는 `14-result-listener-grace.md`에 작성한다. commit/push/deploy/production 접속 금지.
-

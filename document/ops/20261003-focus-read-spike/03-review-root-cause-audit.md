@@ -24,4 +24,3 @@
 4. visibility와 무관하게 유지되는 listener.
 
 SDK 내부 billed read는 Emulator/클라이언트 계수로 완전히 재현되지 않을 수 있으므로, 결과는 `operation proxy`로 표기한다. 계측 없는 제품 동작 변경은 아직 금지한다.
-

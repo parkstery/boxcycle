@@ -42,4 +42,3 @@ hidden→visible 반복에서 최신 데이터가 이미 있으면 published cat
 - 제품 e2e가 5분 무진전이면 중단하고 정적/단위 검증으로 전환한다.
 
 결과는 `11-result-resume-cache.md`에 작성한다. commit/push/deploy하지 말라.
-

@@ -18,4 +18,3 @@
 1. `routePublications` catalog query는 1회 호출이 최대 여러 문서 read이므로 성공 캐시 TTL과 in-flight dedup을 우선 적용한다. 명시적 사용자 새로고침은 force로 보존한다.
 2. Activity World는 hidden 동안 poll을 멈추되 직전 성공 결과를 보존하고, freshness 기간 안에 복귀하면 즉시 full sync를 반복하지 않는다.
 3. world `trailLiveRides × N` 재구독은 다음 단계에서 별도 visibility grace로 다룬다. 이번 구현과 섞지 않는다.
-

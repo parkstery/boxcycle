@@ -15,4 +15,3 @@ Owner: Cursor CLI Developer. Supervisor: Codex. [15 검수](15-review-listener-g
 6. 결과를 `17-result-final-audit-commit.md`에 작성하고 그 결과 문서·상태판까지 별도 docs commit으로 남긴다. 각 commit SHA와 파일 범위, 검증을 기록한다.
 
 push, merge to `main2`, deploy, production Firebase 접속은 금지한다.
-

@@ -18,4 +18,3 @@
 ## 남은 한계
 
 Firebase SDK 자체 WebChannel reconnect billed read는 local proxy로 계측할 수 없다. production 배포 후 같은 사용자 시나리오를 Console/분당 원본으로 재관측해야 최종 billed 효과를 확정할 수 있다.
-

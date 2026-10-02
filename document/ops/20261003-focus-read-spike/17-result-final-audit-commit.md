@@ -30,10 +30,13 @@ TASK-01~04 누적 제품 diff는 계측 · catalog TTL/in-flight · Activity Wor
 
 제품 외 잔여: ops 묶음·상태판은 아래 docs 커밋으로 분리.
 
-### 브랜치 포인터
+### 브랜치 포인터 · stale WIP 복구 지점
 
 - 작업 직전 `codex/focus-read-spike` = `main2` = `ae498b7` (동일).
-- 다른 worktree가 같은 브랜치를 점유하고 있어, 그 WIP를 stash한 뒤 `codex/focus-read-spike-stale-wip`로 옮긴 다음 본 워크스페이스에서 브랜치를 전환했다. 본 TASK-01~04 제품 작업과 무관한 stale WIP이며 본 커밋에 섞이지 않았다.
+- 다른 worktree가 같은 브랜치를 점유하고 있어, 그 WIP를 stash한 뒤 브랜치를 옮긴 다음 본 워크스페이스에서 `codex/focus-read-spike`로 전환했다. 본 TASK-01~04 제품 작업과 무관한 stale WIP이며 본 커밋에 섞이지 않았다.
+- **보존된 복구 지점 (드롭·apply·pop·내용 수정 금지):**
+  - worktree branch: `codex/focus-read-spike-stale-wip` (base `ae498b7`, worktree `C:/Users/kdrea/.codex/worktrees/focus-read-spike/boxcycle`)
+  - stash: `stash@{0}` 이름 `wip-stale-focus-read-spike-before-TASK05` (10 files: `apps/web` 8 + `document/ops/PROGRESS.md` · `document/ops/README.md`)
 
 ---
 
@@ -46,7 +49,8 @@ TASK-01~04 누적 제품 diff는 계측 · catalog TTL/in-flight · Activity Wor
 | `apps/web`: `npm run test:listener-scope` | **PASS** 17/17 |
 | `apps/web`: `npm run build` (`tsc -b && vite build`) | **PASS** (기존 riderRig undefined import warning만) |
 | repo root: `npm run check:dep` | **PASS** |
-| `git diff --check` | **PASS** |
+| `git diff --check` (working tree only) | **PASS** — 단, range check 근거로는 부족 ([18](18-review-final-audit.md)) |
+| `git diff --check main2..HEAD` (TASK-05 직후) | **FAIL** — ops 문서 trailing whitespace · EOF blank-line → [19](19-task-docs-range-fix.md) / [20](20-result-docs-range-fix.md)에서 정정 |
 | changed-file `npx eslint` | **PASS** (0 errors · 기존 exhaustive-deps warning 11) |
 | E2E `test:e2e:focus-read-spike` | **생략** — [14 결과](14-result-listener-grace.md)에서 포트 5015로 2/2 PASS. TASK-05에서 제품 코드 추가 변경 없음(동일 누적 diff 커밋만). |
 
@@ -65,18 +69,19 @@ TASK-01~04 누적 제품 diff는 계측 · catalog TTL/in-flight · Activity Wor
 
 주요 경로: meters·override · catalog/Activity World resume 정책 · listener grace · presence resume · wiring · `scripts/focus-read-spike/*` · `e2e/focus-read-spike.spec.ts` · `dep-layers.json` · `package.json` scripts.
 
-### 2) docs (본 결과·상태판)
+### 2) docs (기록 체인)
 
 | 항목 | 값 |
 |---|---|
-| SHA | `f820c0dde631d779ff414109bce80363b8ffcae8` |
-| 메시지 | `docs(ops): record focus-read-spike final audit commit` |
-| 파일 | `document/ops/20261003-focus-read-spike/**` · `document/ops/PROGRESS.md` · `document/ops/README.md` |
+| 최초 docs 기록 | `f820c0dde631d779ff414109bce80363b8ffcae8` — `docs(ops): record focus-read-spike final audit commit` |
+| SHA 주석 | `5111bf96b69bfda6ac3f76a0051278223d3cb983` — `docs(ops): annotate focus-read-spike docs commit SHA` |
+| 최종 docs (range 정정) | TASK-05R 커밋 — [20-result-docs-range-fix.md](20-result-docs-range-fix.md)에 SHA·`git diff --check main2..HEAD` PASS 기록 |
 
 ---
 
 ## 잔여·금지 준수
 
 - push / `main2` merge / deploy / production 접속: **하지 않음**.
+- stash / `codex/focus-read-spike-stale-wip` worktree 내용: **변경·drop·apply·pop 없음**.
 - Firebase SDK WebChannel reconnect billed read는 여전히 local proxy로 미계측 — production 재관측은 Chief/배포 후 별도.
-- Supervisor 검수 대기.
+- Supervisor 재검수 대기 (TASK-05R 후).
