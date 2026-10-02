@@ -75,7 +75,7 @@
 | post-change 2 riders | 471 / 166 | 1366 / 365 |
 | post-change 3 riders | 584 / 189 | 1509 / 414 |
 
-계산 (post 2 vs pre 2): peak read **−66.4%** · peak write **−40.7%** · run read **−67.8%** · run write **−57.3%**.  
+계산 (post 2 vs pre 2): peak read **−66.4%** · peak write **−40.7%** · run read **−67.8%** · run write **−57.3%**.
 3 rider = **참고 관측** — 이 audit의 성능 검증·비용식 권위 범위를 3명으로 확대하지 말 것.
 
 ## 잔여 후보 (우선순위 가설 — 결론으로 쓰지 말 것)

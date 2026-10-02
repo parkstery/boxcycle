@@ -55,7 +55,7 @@
 | post 2 riders | 471 / 166 | 1366 / 365 |
 | post 3 riders (참고) | 584 / 189 | 1509 / 414 |
 
-post 2 vs pre 2 계산: peak read −66.4% · peak write −40.7% · run read −67.8% · run write −57.3%.  
+post 2 vs pre 2 계산: peak read −66.4% · peak write −40.7% · run read −67.8% · run write −57.3%.
 3 rider는 참고만 — 첫 audit 성능 검증 범위 자동 확대 금지.
 
 ## 5. 잔여 후보 (가설 · 결론 아님)
@@ -116,7 +116,7 @@ Developer는 [01-task-remaining-opportunity-audit.md](01-task-remaining-opportun
 
 ### 9.2 Cursor CLI Developer 호출 순서
 
-워크스페이스: `C:\Users\kdrea\.codex\worktrees\public-trail-traffic-followup\boxcycle`  
+워크스페이스: `C:\Users\kdrea\.codex\worktrees\public-trail-traffic-followup\boxcycle`
 브랜치: `codex/public-trail-traffic-followup`
 
 ```text
