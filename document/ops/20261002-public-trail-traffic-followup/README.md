@@ -5,7 +5,7 @@
 | 문서 유형 | **ops 묶음** — Public Trail 동행 트래픽 후속(증거 기반 잔여 여지 검토) |
 | 독자 | **AI** (Chief는 [PROGRESS](../PROGRESS.md) · 본 README 요약만) |
 | 최초 작성 | 2026-10-02 |
-| 상태 | **READY_FOR_DEVELOPMENT** — 첫 TASK(read-only audit) 대기 |
+| 상태 | **AWAITING_CHIEF** — TASK-02R 검수 APPROVED, 배포 후 운영 1/2명 입력 대기 |
 | 연결 문서 | [이전 묶음(종료)](../20260929-public-trail-traffic/README.md) · [최종 보고](../../archive/261001-Public-Trail-동행-트래픽-개선-결과보고.md) · [ops 색인](../README.md) |
 
 ## 목적
@@ -52,9 +52,13 @@
 
 ## 지금 할 일
 
-1. Developer: [01-task-remaining-opportunity-audit.md](01-task-remaining-opportunity-audit.md)를 읽고 조사한 뒤 **결과 문서만** `02-result-remaining-opportunity-audit.md`로 작성.
-2. Supervisor: 결과·근거 링크·범위 준수 검수 후 다음 지시 또는 Chief 게이트.
-3. 구현 TASK는 audit + Supervisor 검수(+ 필요 시 Chief 승인) **이후** 별도 지시로만.
+1. Developer: [TASK-01](01-task-remaining-opportunity-audit.md) 읽기 전용 감사 완료 → [결과](02-result-remaining-opportunity-audit.md).
+2. Supervisor: [03 검수](03-review-remaining-opportunity-audit.md) **APPROVED**.
+3. Chief: 테스트·코드 변경 승인(2026-10-02) → [TASK-02](04-task-phase-aligned-measurement.md) 측정 도구 범위 개방.
+4. Developer: TASK-02 완료 → [결과](05-result-phase-aligned-measurement.md). production billed 1v2는 **Ø**.
+5. Supervisor: [06 검수](06-review-phase-aligned-measurement.md) **REWORK_REQUIRED** (누락/중복 분·metric·fixture).
+6. Developer: [TASK-02R](07-task-phase-aligned-measurement-rework.md) → [08 결과](08-result-phase-aligned-measurement-rework.md).
+7. Supervisor: [09 재검수](09-review-phase-aligned-measurement-rework.md) **APPROVED** — 도구·테스트 완료. 운영 P/billed 1v2는 입력 없어 **Ø**. 배포·트리거/전송 주기·A/B/D는 별도 Chief 게이트.
 
 인수인계·새 창 시작 순서: [00-handoff.md](00-handoff.md).
 
@@ -64,7 +68,14 @@
 |---|---|
 | [00-handoff.md](00-handoff.md) | 공식 handoff · 새 창 시작 프롬프트 |
 | [01-task-remaining-opportunity-audit.md](01-task-remaining-opportunity-audit.md) | 첫 Developer 지시 (read-only) |
-| `02-result-remaining-opportunity-audit.md` | Developer 결과 (**아직 없음**) |
+| [02-result-remaining-opportunity-audit.md](02-result-remaining-opportunity-audit.md) | Cursor CLI 감사 결과 |
+| [03-review-remaining-opportunity-audit.md](03-review-remaining-opportunity-audit.md) | Supervisor 검수 APPROVED · Chief 게이트 |
+| [04-task-phase-aligned-measurement.md](04-task-phase-aligned-measurement.md) | TASK-02 — phase-aligned 측정 도구 |
+| [05-result-phase-aligned-measurement.md](05-result-phase-aligned-measurement.md) | TASK-02 Cursor CLI 결과 (초판 · 일부 주장 정정) |
+| [06-review-phase-aligned-measurement.md](06-review-phase-aligned-measurement.md) | Supervisor 검수 REWORK_REQUIRED |
+| [07-task-phase-aligned-measurement-rework.md](07-task-phase-aligned-measurement-rework.md) | TASK-02R 재작업 지시 |
+| [08-result-phase-aligned-measurement-rework.md](08-result-phase-aligned-measurement-rework.md) | TASK-02R Cursor CLI 결과 |
+| [09-review-phase-aligned-measurement-rework.md](09-review-phase-aligned-measurement-rework.md) | Supervisor 재검수 APPROVED |
 
 ## 명시적 비목표 (이 묶음 첫 단계)
 

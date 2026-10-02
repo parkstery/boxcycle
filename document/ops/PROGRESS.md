@@ -4,7 +4,7 @@
 
 | 현재 작업 | 단계 | Supervisor | Developer | Chief 승인 | 마지막 검수 | 막힘 | 다음 작업 |
 |---|---|---|---|---|---|---|---|
-| [Public Trail traffic followup](20261002-public-trail-traffic-followup/README.md) | READY_FOR_DEVELOPMENT | Codex | Cursor CLI | 구현 전 audit 검수 후 게이트 | handoff 작성 | 없음 | Developer: [TASK-01 audit](20261002-public-trail-traffic-followup/01-task-remaining-opportunity-audit.md) → `02-result-…` |
+| [Public Trail traffic followup](20261002-public-trail-traffic-followup/README.md) | AWAITING_CHIEF (TASK-02R APPROVED) | Codex | Cursor CLI | 배포·트리거/전송 주기·A/B/D 구현 전 필요 | [09 PASS](20261002-public-trail-traffic-followup/09-review-phase-aligned-measurement-rework.md) | 배포 후 정렬된 운영 1/2명 데이터 Ø | Chief: quiet/solo/dual ISO 구간과 분당 read/write 제공 또는 후속 범위 결정 |
 | [Public Trail traffic](20260929-public-trail-traffic/README.md) | CLOSED | Codex | Cursor CLI | R1+R2 승인·실행됨 | [최종 보고](../archive/261001-Public-Trail-동행-트래픽-개선-결과보고.md) · [R2](20260929-public-trail-traffic/37-result-r2-deploy.md) | 없음 | 후속은 followup 묶음 |
 | [AI 개발 체계 구축](20260929-ai-development-system/README.md) | CLOSED | Codex | Cursor CLI (handoff 시험 완료) | 현재 범위에는 불필요 | [검수 01 PASS](20260929-ai-development-system/04-review-01.md) | 없음 | 실제 개발 지시 때 새 묶음 열기 |
 | [동행 싱크](sync-relay/INSTRUCTION.md) | PLANNING (기존 대기) | 미지정 | 미지정 | 후속 범위 결정 시 확인 | 기존 S4 기록 | S4-4 재개 보류 | [후속 계획](../260927-RTW-동행-지연과-경쟁-판정.md) 검토 |
