@@ -78,6 +78,11 @@ export type RiderGlbModelSpec = {
   id: string;
   lngLat: LngLat;
   bearingDeg: number;
+  /**
+   * 화면 구분용 비주얼 역할. 기본 `self`(내 라이더 기본 컬러).
+   * `peer` 는 동행 — 헬멧·상의만 별도 키트로 칠한다(위치·자세·메시 불변).
+   */
+  kind?: RiderVisualKind;
   /** 크랭크·다리 nodeOverride 회전 */
   pedalPose?: RiderGlbPedalPose;
   /** Shape-preserving custom layer crank phase, in revolutions. */

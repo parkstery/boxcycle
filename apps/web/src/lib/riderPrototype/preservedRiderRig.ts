@@ -8,6 +8,8 @@ import {
   Quaternion,
   Vector3,
 } from "three";
+import type { RiderVisualKind } from "./iso2dMarker";
+import { applyRiderVisualKit } from "./riderVisualKit";
 
 type Side = "R" | "L";
 type Vec3 = [number, number, number];
@@ -348,6 +350,11 @@ export class PreservedRiderRig {
 
     this.poles = { R: this.bindPole("R"), L: this.bindPole("L") };
     this.setPhase(0);
+  }
+
+  /** 헬멧·상의 컬러만 교체. self 기본색을 보존하고 peer 에만 구분색을 쓴다. */
+  setVisualKind(kind: RiderVisualKind): void {
+    applyRiderVisualKit(this.object, kind);
   }
 
   setPhase(phaseRev: number): void {

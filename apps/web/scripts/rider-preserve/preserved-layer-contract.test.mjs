@@ -40,12 +40,15 @@ test("MapView forwards the live phase and keeps the legacy GLB path", () => {
   assert.match(source, /syncRiderPreservedModels\(map, specs\)/);
   assert.match(source, /phaseRev: liveCrankPhaseRevRef\.current/);
   assert.match(source, /syncRiderGlbModels\(map, specs\)/);
+  assert.match(source, /id: "live-self"[\s\S]*?kind: "self"/);
+  assert.match(source, /id: f\.properties\.id[\s\S]*?kind: "peer"/);
 });
 
 test("custom layer renders every rider with terrain, phase, bearing and lean", () => {
   const source = read(path.join(webRoot, "src", "lib", "map", "riderPreservedLayer.ts"));
   assert.match(source, /for \(const spec of this\.specs\)/);
-  assert.match(source, /this\.rig\.setPhase\(spec\.phaseRev \?\? 0\)/);
+  assert.match(source, /rig\.setPhase\(spec\.phaseRev \?\? 0\)/);
+  assert.match(source, /rig\.setVisualKind\(spec\.kind \?\? "self"\)/);
   assert.match(source, /queryTerrainElevation/);
   assert.match(source, /90 - spec\.bearingDeg/);
   assert.match(source, /spec\.leanDeg/);

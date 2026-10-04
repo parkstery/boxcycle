@@ -188,6 +188,8 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
         .multiply(new Matrix4().makeRotationY(yaw))
         .multiply(new Matrix4().makeRotationX(lean));
       if (animatePose) measureRiderPose(() => rig.setPhase(spec.phaseRev ?? 0));
+      // 공용 rig 1개를 self/peer 순으로 그리므로, 그리기 직전에 컬러 키트만 맞춘다.
+      rig.setVisualKind(spec.kind ?? "self");
       this.camera.projectionMatrix.fromArray(matrix).multiply(local);
       this.camera.projectionMatrixInverse.copy(this.camera.projectionMatrix).invert();
       renderer.render(this.scene, this.camera);

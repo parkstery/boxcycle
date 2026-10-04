@@ -2312,6 +2312,7 @@ export function MapView({
           glbLeanDegRef.current += (leanTarget - glbLeanDegRef.current) * leanAlpha;
           specs.push({
             id: "live-self",
+            kind: "self",
             lngLat: live,
             bearingDeg,
             pedalPose: resolveGlbPedalPose(liveCrankPhaseRevRef.current),
@@ -2325,6 +2326,7 @@ export function MapView({
           const phaseRev = f.properties.phaseRev;
           specs.push({
             id: f.properties.id,
+            kind: "peer",
             lngLat: f.geometry.coordinates,
             bearingDeg: f.properties.hdg,
             pedalPose: resolveGlbPedalPose(phaseRev),
