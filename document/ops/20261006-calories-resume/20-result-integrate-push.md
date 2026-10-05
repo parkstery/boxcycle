@@ -86,4 +86,4 @@ main                               (미갱신)
 ## 6. 후속
 
 - 원격 push·`main` 반영·hosting 배포는 **별도 승인 지시** 대기.
-- result20·ops 상태 갱신은 이어지는 docs 커밋으로 local tip이 `8995580` 이후로 바뀔 수 있다. **최종 CLI 응답에 실제 tip SHA를 보고**한다.
+- result20·ops 상태 갱신 docs 커밋: `6db62ba4d7b6b77c1dd1ed10280b6c2a5857c8de`. local `main2` / `codex/document-system` tip = **`6db62ba`**.
