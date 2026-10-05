@@ -364,7 +364,8 @@
     ],
     "peerMotion/repo": [
       "peerMotion/repo/rtdbMotionSubscriptionHub.ts",
-      "peerMotion/repo/rtdbTrailMotion.ts"
+      "peerMotion/repo/rtdbTrailMotion.ts",
+      "peerMotion/repo/serverClockOffset.ts"
     ],
     "coach": [
       "coach/coachElevationFromRoute.ts",
@@ -390,6 +391,7 @@
       "debug/installReadSubscriptionDebug.ts",
       "debug/installTouchActivityDebug.ts",
       "debug/installTrafficPublishDebug.ts",
+      "debug/peerIngestDiag.ts",
       "debug/localFirstGeoProbe.ts",
       "debug/mapDebugPhase.ts",
       "debug/mapTickProbe.ts",
