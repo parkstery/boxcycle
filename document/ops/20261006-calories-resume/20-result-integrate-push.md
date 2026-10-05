@@ -19,10 +19,10 @@
 | ref | SHA |
 |-----|-----|
 | 시작 tip (`f093c15`) | `f093c15ce97782dbbbcc552a1dd9dc59c3974450` |
-| 제품 통합 tip (result20 직전) | `899558029a6354fc71d877ba7b55e98f60ddfe40` |
-| local `main2` | `899558029a6354fc71d877ba7b55e98f60ddfe40` |
-| local `codex/document-system` | `899558029a6354fc71d877ba7b55e98f60ddfe40` |
-| local `codex/integrate-approved-20261006` | `899558029a6354fc71d877ba7b55e98f60ddfe40` |
+| 제품·증거·공백 정리 tip | `899558029a6354fc71d877ba7b55e98f60ddfe40` |
+| result20 기록 후 최종 local tip | CLI 종료 시 `git rev-parse HEAD` (docs 커밋 체인; 본 문서는 제품 tip `8995580` / 코드 tip `61a8f60` 고정) |
+| local `main2` | result20 docs 커밋 이후 tip과 동일 (FF) |
+| local `codex/document-system` | result20 docs 커밋 이후 tip과 동일 |
 | `origin/main2` | `f093c15ce97782dbbbcc552a1dd9dc59c3974450` (미push) |
 | `origin/main` | `f093c15ce97782dbbbcc552a1dd9dc59c3974450` (미갱신) |
 
