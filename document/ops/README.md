@@ -44,6 +44,7 @@ Supervisor는 아키텍처, 도메인 경계, 데이터 모델, Firestore·RTDB�
 
 | 폴더 | 상태 | 무엇 | 결과·입구 | 이동 |
 |------|------|------|-----------|------|
+| [20261005-peer-spacing-jitter](20261005-peer-spacing-jitter/README.md) | **CLOSED** · Chief PASS · main2/main 통합 | 등속 진동 시간축·공통 표시(tSrv/D600) · 0.01m 양자 | [최종 보고](../archive/261005-RTW-동행-위치-동기화와-반복진동-해결-결과보고.md) · [40](20261005-peer-spacing-jitter/40-result-final-report-and-integrate.md) | — |
 | [20261003-focus-read-spike](20261003-focus-read-spike/README.md) | **APPROVED** — main2 FF 완료(로컬) | 앱 foreground 복귀만으로 발생하는 Firestore read spike 조사·저감 | [21 최종 승인](20261003-focus-read-spike/21-review-final-approval.md) · [23 통합 결과](20261003-focus-read-spike/23-result-merge-main2.md) | — |
 | [20261002-public-trail-traffic-followup](20261002-public-trail-traffic-followup/README.md) | **AWAITING_CHIEF** — 측정 도구 검수 완료, 운영 데이터 Ø | Public Trail 트래픽 후속 — phase-aligned 측정 준비 | [08 재작업](20261002-public-trail-traffic-followup/08-result-phase-aligned-measurement-rework.md) · [09 검수 PASS](20261002-public-trail-traffic-followup/09-review-phase-aligned-measurement-rework.md) | — |
 | [20260929-public-trail-traffic](20260929-public-trail-traffic/README.md) | **CLOSED** · 최종 보고 검수 완료 (production billed 1v2 관측 별도 미실시) | Public Trail 동행 트래픽 절감 — listing Created/Deleted + Hosting 배포 | [최종 보고](../archive/261001-Public-Trail-동행-트래픽-개선-결과보고.md) · [R2](20260929-public-trail-traffic/37-result-r2-deploy.md) | 가능 |
@@ -68,3 +69,4 @@ Supervisor는 아키텍처, 도메인 경계, 데이터 모델, Firestore·RTDB�
 | [rider-replace](../archive/ops/rider-replace/) | 라이더 GLB 교체 사전 점검(P·P2·B) | 2026-09-28 |
 | [20260924-structure-audit](../archive/ops/20260924-structure-audit/) | 구조 감사 갈래별 원본(A·B·C) | 2026-09-28 |
 | [map-relay](../archive/ops/map-relay/) | 줌 LOD 복구 · 지도 현재 위치 표시(방향 보정 시도 3/3에서 멈춤) — 09-28 종료(chief) | 2026-09-28 |
+

@@ -1,9 +1,10 @@
 # ops 전체 상태판
 
-마지막 갱신: 2026-10-03. 상세 기록은 각 묶음에, 제품 전체 방향은 [RTW 현황판](../260928-RTW-현황판.md)에 있다.
+마지막 갱신: 2026-10-05. 상세 기록은 각 묶음에, 제품 전체 방향은 [RTW 현황판](../260928-RTW-현황판.md)에 있다.
 
 | 현재 작업 | 단계 | Supervisor | Developer | Chief 승인 | 마지막 검수 | 막힘 | 다음 작업 |
 |---|---|---|---|---|---|---|---|
+| [등속 동행 간격 진동](20261005-peer-spacing-jitter/README.md) | CLOSED · main2/main 통합 | Codex | Cursor CLI | 실주행 PASS · 상세보고·로컬/원격 main2·main 통합 승인 | [최종 보고](../archive/261005-RTW-동행-위치-동기화와-반복진동-해결-결과보고.md) · [40](20261005-peer-spacing-jitter/40-result-final-report-and-integrate.md) · [38](20261005-peer-spacing-jitter/38-review-precision-and-capture.md) | stall/clock·billed·수동배포 잔여 | Supervisor: 40 검수 |
 | [Foreground read spike](20261003-focus-read-spike/README.md) | APPROVED · main2 FF 완료(로컬) | Codex | Cursor CLI | 행동 보존형 read/write 저감 승인됨 | [21 final PASS](20261003-focus-read-spike/21-review-final-approval.md) · [23 merge](20261003-focus-read-spike/23-result-merge-main2.md) | billed/SDK reconnect 미계측 · push 미실시 | Supervisor/Chief: push·배포 여부 결정 |
 | [Public Trail traffic followup](20261002-public-trail-traffic-followup/README.md) | AWAITING_CHIEF (TASK-02R APPROVED) | Codex | Cursor CLI | 배포·트리거/전송 주기·A/B/D 구현 전 필요 | [09 PASS](20261002-public-trail-traffic-followup/09-review-phase-aligned-measurement-rework.md) | 배포 후 정렬된 운영 1/2명 데이터 Ø | Chief: quiet/solo/dual ISO 구간과 분당 read/write 제공 또는 후속 범위 결정 |
 | [Public Trail traffic](20260929-public-trail-traffic/README.md) | CLOSED | Codex | Cursor CLI | R1+R2 승인·실행됨 | [최종 보고](../archive/261001-Public-Trail-동행-트래픽-개선-결과보고.md) · [R2](20260929-public-trail-traffic/37-result-r2-deploy.md) | 없음 | 후속은 followup 묶음 |
@@ -12,3 +13,4 @@
 | [미니맵](20260923-minimap/HANDOFF.md) | PLANNING (기존 대기) | 미지정 | 미지정 | 미확인 | 지시04까지 병합 | 보류01·02 | 재개 시 새 지시 |
 
 종료된 묶음과 이동 가능 여부는 [ops 색인](README.md)에 보존한다. 이 표의 상태는 각 작업 폴더의 최신 지시·결과·검수와 함께 갱신한다.
+

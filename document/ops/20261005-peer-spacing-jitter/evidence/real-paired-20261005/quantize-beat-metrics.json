@@ -1,0 +1,313 @@
+{
+  "generatedAt": "2026-10-05T08:42:59.684Z",
+  "evidenceKind": "synthetic-equal-speed-product-path",
+  "note": "Equal-speed dual synthetic (PUB200, RTT140, D600). Does NOT read original paired JSON. Separates observed symptom from causal quantum contribution. Pre-round-trip distances irrecoverable from wire files.",
+  "publishCadenceMs": 200,
+  "before": {
+    "label": "BEFORE_0.1",
+    "quantumM": 0.1,
+    "productQuantumExport": 0.01,
+    "phaseMs": 80,
+    "speedKmh": 5,
+    "pubMs": 200,
+    "gap": {
+      "n": 360,
+      "min": -0.3200000000000074,
+      "p50": -0.26166662597655943,
+      "p90": -0.21999999999999886,
+      "max": -0.21999999999998465,
+      "mean": -0.2655277777777792,
+      "pp": 0.10000000000002274
+    },
+    "gapPp1s": {
+      "n": 6,
+      "min": 0.10000000000000853,
+      "p50": 0.10000000000002274,
+      "p90": 0.10000000000002274,
+      "max": 0.10000000000002274,
+      "mean": 0.100000000000018,
+      "pp": 1.4210854715202004e-14
+    },
+    "sample": [
+      {
+        "t": 2000.0000000000034,
+        "gap": -0.22000000000001307,
+        "peer": 101.67999999999999,
+        "self": 101.9
+      },
+      {
+        "t": 2666.6666666666647,
+        "gap": -0.3200000000000074,
+        "peer": 102.5800001220703,
+        "self": 102.90000012207031
+      },
+      {
+        "t": 3333.3333333333253,
+        "gap": -0.24666662597657307,
+        "peer": 103.55333325195312,
+        "self": 103.7999998779297
+      },
+      {
+        "t": 3999.999999999986,
+        "gap": -0.22000000000001307,
+        "peer": 104.47999999999999,
+        "self": 104.7
+      },
+      {
+        "t": 4666.666666666662,
+        "gap": -0.2866666259765509,
+        "peer": 105.38000012207031,
+        "self": 105.66666674804686
+      },
+      {
+        "t": 5333.333333333341,
+        "gap": -0.3200000000000074,
+        "peer": 106.27999987792968,
+        "self": 106.59999987792969
+      },
+      {
+        "t": 6000.00000000002,
+        "gap": -0.28000000000000114,
+        "peer": 107.22,
+        "self": 107.5
+      },
+      {
+        "t": 6666.666666666699,
+        "gap": -0.21999999999999886,
+        "peer": 108.18000012207031,
+        "self": 108.40000012207031
+      }
+    ]
+  },
+  "after": {
+    "label": "AFTER_product",
+    "quantumM": 0.01,
+    "productQuantumExport": 0.01,
+    "phaseMs": 80,
+    "speedKmh": 5,
+    "pubMs": 200,
+    "gap": {
+      "n": 360,
+      "min": -0.27200000000000557,
+      "p50": -0.27199999999999136,
+      "p90": -0.26383333740234605,
+      "max": -0.26199999999998624,
+      "mean": -0.26988611111110733,
+      "pp": 0.010000000000019327
+    },
+    "gapPp1s": {
+      "n": 6,
+      "min": 0.004000000000019099,
+      "p50": 0.010000000000019327,
+      "p90": 0.010000000000019327,
+      "max": 0.010000000000019327,
+      "mean": 0.00800000000001925,
+      "pp": 0.006000000000000227
+    },
+    "sample": [
+      {
+        "t": 2000.0000000000034,
+        "gap": -0.26199999999998624,
+        "peer": 101.67800000000001,
+        "self": 101.94
+      },
+      {
+        "t": 2666.6666666666647,
+        "gap": -0.27199999999999136,
+        "peer": 102.60133344726563,
+        "self": 102.87333344726562
+      },
+      {
+        "t": 3333.3333333333253,
+        "gap": -0.27200000000000557,
+        "peer": 103.52466655273437,
+        "self": 103.79666655273438
+      },
+      {
+        "t": 3999.999999999986,
+        "gap": -0.2680000000000007,
+        "peer": 104.452,
+        "self": 104.72
+      },
+      {
+        "t": 4666.666666666662,
+        "gap": -0.2686666625976528,
+        "peer": 105.38133344726563,
+        "self": 105.65000010986329
+      },
+      {
+        "t": 5333.333333333341,
+        "gap": -0.27200000000000557,
+        "peer": 106.30466655273437,
+        "self": 106.57666655273438
+      },
+      {
+        "t": 6000.00000000002,
+        "gap": -0.27199999999999136,
+        "peer": 107.22800000000001,
+        "self": 107.5
+      },
+      {
+        "t": 6666.666666666699,
+        "gap": -0.2713333374023392,
+        "peer": 108.15200010986328,
+        "self": 108.42333344726562
+      }
+    ]
+  },
+  "compare": {
+    "beforeMean1sPp": 0.100000000000018,
+    "afterMean1sPp": 0.00800000000001925,
+    "reduction": 0.9199999999998218
+  },
+  "matrix": {
+    "phasesMs": [
+      0,
+      40,
+      80,
+      120,
+      160
+    ],
+    "speedsKmh": [
+      5,
+      6,
+      20
+    ],
+    "rows": [
+      {
+        "speedKmh": 5,
+        "phaseMs": 0,
+        "beforeMean1sPp": 0.10000000000000853,
+        "afterMean1sPp": 2.842170943040401e-14,
+        "ok": true
+      },
+      {
+        "speedKmh": 5,
+        "phaseMs": 40,
+        "beforeMean1sPp": 0.05333333333334167,
+        "afterMean1sPp": 0.010000000000019327,
+        "ok": true
+      },
+      {
+        "speedKmh": 5,
+        "phaseMs": 80,
+        "beforeMean1sPp": 0.100000000000018,
+        "afterMean1sPp": 0.00800000000001925,
+        "ok": true
+      },
+      {
+        "speedKmh": 5,
+        "phaseMs": 120,
+        "beforeMean1sPp": 0.06000000000000938,
+        "afterMean1sPp": 0.007000000000019213,
+        "ok": true
+      },
+      {
+        "speedKmh": 5,
+        "phaseMs": 160,
+        "beforeMean1sPp": 0.10000000000000142,
+        "afterMean1sPp": 0.010000000000019327,
+        "ok": true
+      },
+      {
+        "speedKmh": 6,
+        "phaseMs": 0,
+        "beforeMean1sPp": 0.09999999999999432,
+        "afterMean1sPp": 2.842170943040401e-14,
+        "ok": true
+      },
+      {
+        "speedKmh": 6,
+        "phaseMs": 40,
+        "beforeMean1sPp": 0.020000000000024443,
+        "afterMean1sPp": 0.010000000000019327,
+        "ok": true
+      },
+      {
+        "speedKmh": 6,
+        "phaseMs": 80,
+        "beforeMean1sPp": 0.10000000000002274,
+        "afterMean1sPp": 0.006000000000014438,
+        "ok": true
+      },
+      {
+        "speedKmh": 6,
+        "phaseMs": 120,
+        "beforeMean1sPp": 0.040000000000020464,
+        "afterMean1sPp": 0.006000000000014438,
+        "ok": true
+      },
+      {
+        "speedKmh": 6,
+        "phaseMs": 160,
+        "beforeMean1sPp": 0.0800000000000125,
+        "afterMean1sPp": 0.010000000000019327,
+        "ok": true
+      },
+      {
+        "speedKmh": 20,
+        "phaseMs": 0,
+        "beforeMean1sPp": 0.08333333333335939,
+        "afterMean1sPp": 3.315866100213801e-14,
+        "ok": true
+      },
+      {
+        "speedKmh": 20,
+        "phaseMs": 40,
+        "beforeMean1sPp": 0.09861110432944287,
+        "afterMean1sPp": 0.00800000000002162,
+        "ok": true
+      },
+      {
+        "speedKmh": 20,
+        "phaseMs": 80,
+        "beforeMean1sPp": 0.07194443766278624,
+        "afterMean1sPp": 0.009194443766292673,
+        "ok": true
+      },
+      {
+        "speedKmh": 20,
+        "phaseMs": 120,
+        "beforeMean1sPp": 0.040000000000015724,
+        "afterMean1sPp": 0.009055554199233503,
+        "ok": true
+      },
+      {
+        "speedKmh": 20,
+        "phaseMs": 160,
+        "beforeMean1sPp": 0.07000000000000976,
+        "afterMean1sPp": 0.006527777099627485,
+        "ok": true
+      }
+    ],
+    "pass": true
+  },
+  "encodeByteCost": {
+    "note": "JSON.stringify(encodePayload) UTF-8; no RTDB/transport overhead. Same N samples, publish cadence unchanged (5Hz).",
+    "publishHz": 5,
+    "sampleCount": 500,
+    "before0_1m": {
+      "quantumM": 0.1,
+      "n": 500,
+      "meanBytes": 93.888,
+      "maxBytes": 94,
+      "minBytes": 92,
+      "totalBytes": 46944
+    },
+    "afterProduct0_01m": {
+      "quantumM": 0.01,
+      "n": 500,
+      "meanBytes": 94.776,
+      "maxBytes": 95,
+      "minBytes": 92,
+      "totalBytes": 47388
+    },
+    "meanDeltaBytes": 0.887999999999991,
+    "maxDeltaBytes": 1,
+    "oneRiderPerHourIncrementalBytes": 15983.999999999838,
+    "cadenceUnchanged": true
+  },
+  "pass": true,
+  "passPrimary": true,
+  "graphWritten": false
+}

@@ -1,0 +1,84 @@
+{
+  "task": "20261005-peer-spacing-jitter A4 same-fixture PRE/POST",
+  "at": "2026-10-05T03:41:42.176Z",
+  "fixture": {
+    "harness": "scripts/peer-sync/peer-spacing-jitter-harness.mjs --gate",
+    "harnessSha256": "60b66d8166f0b46de98be001156469fdd28cfa50b46062936eb9b5ea64be223a",
+    "window": "stable (12000..40000ms)",
+    "cell": "dual × 200ms × senderOffset 0 × withSeq",
+    "pre": "stampDualSourceIngestPacket = 수정 전 버그 동작(내용 변경마다 serverAtMs=nowMs) — 임시 변이",
+    "post": "프로덕션 stampDualSourceIngestPacket (복원 후)"
+  },
+  "cells": {
+    "dual200-sin-off0": {
+      "pre": {
+        "minSpeedMps": 4,
+        "maxSpeedMps": 8.148,
+        "maxBackM": 0,
+        "maxJumpM": 0.136,
+        "reverseFrames": 0,
+        "teleportFrames": 0,
+        "spacingMinM": 3.183,
+        "spacingMaxM": 3.799,
+        "spacingMeanM": 3.505,
+        "spacingPpM": 0.617,
+        "spacingStdM": 0.195,
+        "pass": false
+      },
+      "post": {
+        "minSpeedMps": 5,
+        "maxSpeedMps": 6.111,
+        "maxBackM": 0,
+        "maxJumpM": 0.102,
+        "reverseFrames": 0,
+        "teleportFrames": 0,
+        "spacingMinM": 3.152,
+        "spacingMaxM": 3.411,
+        "spacingMeanM": 3.284,
+        "spacingPpM": 0.259,
+        "spacingStdM": 0.081,
+        "pass": true
+      }
+    },
+    "dual200-bundle-off0": {
+      "pre": {
+        "minSpeedMps": 2.727,
+        "maxSpeedMps": 13.889,
+        "maxBackM": 0,
+        "maxJumpM": 0.231,
+        "reverseFrames": 0,
+        "teleportFrames": 0,
+        "spacingMinM": 3.222,
+        "spacingMaxM": 3.984,
+        "spacingMeanM": 3.594,
+        "spacingPpM": 0.763,
+        "spacingStdM": 0.225,
+        "pass": false
+      },
+      "post": {
+        "minSpeedMps": 5,
+        "maxSpeedMps": 6.111,
+        "maxBackM": 0,
+        "maxJumpM": 0.102,
+        "reverseFrames": 0,
+        "teleportFrames": 0,
+        "spacingMinM": 3.051,
+        "spacingMaxM": 3.07,
+        "spacingMeanM": 3.053,
+        "spacingPpM": 0.019,
+        "spacingStdM": 0.004,
+        "pass": true
+      }
+    }
+  },
+  "mutationGate": {
+    "preExit": 1,
+    "preRequiredFailCount": 8,
+    "postExit": 0,
+    "postRequiredFailCount": 0,
+    "transitionsUnderMutation": {
+      "exit": 1,
+      "requiredFailCount": 7
+    }
+  }
+}

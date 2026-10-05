@@ -1,0 +1,7 @@
+{
+  "targetSha16": "708c57e7780579c8",
+  "scenarios": "rtdbStallFs,stallStopResume,stallAccelResume",
+  "preExit": 1,
+  "postExit": 0,
+  "gateAlive": true
+}

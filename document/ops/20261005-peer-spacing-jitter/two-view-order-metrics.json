@@ -1,0 +1,2086 @@
+{
+  "task": "20261005-peer-spacing-jitter B two-view order",
+  "at": "2026-10-05T03:41:36.739Z",
+  "policy": "all",
+  "measurement": true,
+  "note": "측정 하네스(제품 미변경). 현행=self 즉시·peer 과거 보간(실제 sync→Registry, 독립 모듈 그래프 2개). common-timeline=오프라인 이상화(공통 시계 정확·self/peer 모두 renderTime=commonNow−D). FS 는 dual-from-first-packet fixture(첫 RTDB 도착부터 dual). RTDB-only→dual 축은 peer-spacing --suite transitions 가 담당.",
+  "definitions": {
+    "viewA_AminusB": "selfA − peerB_display (창 A)",
+    "viewB_AminusB": "peerA_display − selfB (창 B) = −gapB",
+    "gapB": "selfB − peerA_display (지시서 정의; 순서 비교는 gapA 와 −gapB)",
+    "mismatch": "부호(동률 |x|<0.05m=0)가 서로 다른 프레임",
+    "oppositeSign": "서로 반대 부호(양쪽 모두 「내가 앞」)",
+    "warmupMs": 10000,
+    "runMs": 40000,
+    "intervalMs": 200,
+    "speedReflect": "표시 거리의 6프레임 창 속도가 전환 폭의 50%/90% 에 이르기까지(창 편향 W/2 보정). self 는 로컬 즉시이므로 ≈0."
+  },
+  "commonDelaysMs": [
+    300,
+    500
+  ],
+  "scenarios": [
+    {
+      "id": "1a-equal-gap15",
+      "title": "등속 20km/h · 초기 간격 15m(B 앞) — 간격 > D×v",
+      "clock": {
+        "A": 0,
+        "B": 0
+      },
+      "link": {
+        "AtoB": {
+          "oneWayMs": 70,
+          "jitter": "sin"
+        },
+        "BtoA": {
+          "oneWayMs": 70,
+          "jitter": "sin"
+        }
+      },
+      "current": {
+        "afterWarmup": {
+          "frames": 1800,
+          "orderMismatchFrames": 0,
+          "orderMismatchShare": 0,
+          "oppositeSignFrames": 0,
+          "oppositeSignShare": 0,
+          "tieDisagreeFrames": 0,
+          "viewAWrongVsTruthFrames": 0,
+          "viewBWrongVsTruthFrames": 0,
+          "abDiffMeanAbsM": 6.25,
+          "abDiffMaxAbsM": 6.848,
+          "abDiffMaxAtMs": 11417,
+          "peerLagInViewA_M": {
+            "mean": 3.125,
+            "max": 3.424
+          },
+          "peerLagInViewB_M": {
+            "mean": 3.125,
+            "max": 3.424
+          },
+          "meanGapA_M": -11.875,
+          "meanGapB_M": 18.125,
+          "meanDelayMs": {
+            "A": 439.5,
+            "B": 439.5
+          }
+        },
+        "all": {
+          "frames": 2382,
+          "orderMismatchFrames": 0,
+          "orderMismatchShare": 0,
+          "oppositeSignFrames": 0,
+          "oppositeSignShare": 0,
+          "tieDisagreeFrames": 0,
+          "viewAWrongVsTruthFrames": 0,
+          "viewBWrongVsTruthFrames": 0,
+          "abDiffMeanAbsM": 6.122,
+          "abDiffMaxAbsM": 6.852,
+          "abDiffMaxAtMs": 4017,
+          "peerLagInViewA_M": {
+            "mean": 3.061,
+            "max": 3.426
+          },
+          "peerLagInViewB_M": {
+            "mean": 3.061,
+            "max": 3.426
+          },
+          "meanGapA_M": -11.939,
+          "meanGapB_M": 18.061,
+          "meanDelayMs": {
+            "A": 439.6,
+            "B": 439.6
+          }
+        },
+        "speedChanges": []
+      },
+      "commonTimeline": {
+        "D300": {
+          "afterWarmup": {
+            "frames": 1800,
+            "orderMismatchFrames": 0,
+            "orderMismatchShare": 0,
+            "oppositeSignFrames": 0,
+            "oppositeSignShare": 0,
+            "tieDisagreeFrames": 0,
+            "viewAWrongVsTruthFrames": 0,
+            "viewBWrongVsTruthFrames": 0,
+            "abDiffMeanAbsM": 0,
+            "abDiffMaxAbsM": 0,
+            "abDiffMaxAtMs": 32900,
+            "peerLagInViewA_M": {
+              "mean": 1.667,
+              "max": 1.667
+            },
+            "peerLagInViewB_M": {
+              "mean": 1.667,
+              "max": 1.667
+            },
+            "meanGapA_M": -15,
+            "meanGapB_M": 15,
+            "meanDelayMs": {
+              "A": 300,
+              "B": 300
+            }
+          },
+          "speedChanges": []
+        },
+        "D500": {
+          "afterWarmup": {
+            "frames": 1800,
+            "orderMismatchFrames": 0,
+            "orderMismatchShare": 0,
+            "oppositeSignFrames": 0,
+            "oppositeSignShare": 0,
+            "tieDisagreeFrames": 0,
+            "viewAWrongVsTruthFrames": 0,
+            "viewBWrongVsTruthFrames": 0,
+            "abDiffMeanAbsM": 0,
+            "abDiffMaxAbsM": 0,
+            "abDiffMaxAtMs": 18083,
+            "peerLagInViewA_M": {
+              "mean": 2.778,
+              "max": 2.778
+            },
+            "peerLagInViewB_M": {
+              "mean": 2.778,
+              "max": 2.778
+            },
+            "meanGapA_M": -15,
+            "meanGapB_M": 15,
+            "meanDelayMs": {
+              "A": 500,
+              "B": 500
+            }
+          },
+          "speedChanges": []
+        }
+      }
+    },
+    {
+      "id": "1b-equal-gap1",
+      "title": "등속 20km/h · 초기 간격 1m(B 앞) — 간격 < D×v, D_A=D_B",
+      "clock": {
+        "A": 0,
+        "B": 0
+      },
+      "link": {
+        "AtoB": {
+          "oneWayMs": 70,
+          "jitter": "sin"
+        },
+        "BtoA": {
+          "oneWayMs": 70,
+          "jitter": "sin"
+        }
+      },
+      "current": {
+        "afterWarmup": {
+          "frames": 1800,
+          "orderMismatchFrames": 1800,
+          "orderMismatchShare": 1,
+          "oppositeSignFrames": 1800,
+          "oppositeSignShare": 1,
+          "tieDisagreeFrames": 0,
+          "viewAWrongVsTruthFrames": 1800,
+          "viewBWrongVsTruthFrames": 0,
+          "abDiffMeanAbsM": 6.25,
+          "abDiffMaxAbsM": 6.848,
+          "abDiffMaxAtMs": 11417,
+          "peerLagInViewA_M": {
+            "mean": 3.125,
+            "max": 3.424
+          },
+          "peerLagInViewB_M": {
+            "mean": 3.125,
+            "max": 3.424
+          },
+          "meanGapA_M": 2.125,
+          "meanGapB_M": 4.125,
+          "meanDelayMs": {
+            "A": 439.5,
+            "B": 439.5
+          }
+        },
+        "all": {
+          "frames": 2382,
+          "orderMismatchFrames": 2378,
+          "orderMismatchShare": 0.998,
+          "oppositeSignFrames": 2377,
+          "oppositeSignShare": 0.998,
+          "tieDisagreeFrames": 1,
+          "viewAWrongVsTruthFrames": 2377,
+          "viewBWrongVsTruthFrames": 0,
+          "abDiffMeanAbsM": 6.122,
+          "abDiffMaxAbsM": 6.852,
+          "abDiffMaxAtMs": 4017,
+          "peerLagInViewA_M": {
+            "mean": 3.061,
+            "max": 3.426
+          },
+          "peerLagInViewB_M": {
+            "mean": 3.061,
+            "max": 3.426
+          },
+          "meanGapA_M": 2.061,
+          "meanGapB_M": 4.061,
+          "meanDelayMs": {
+            "A": 439.6,
+            "B": 439.6
+          }
+        },
+        "speedChanges": []
+      },
+      "commonTimeline": {
+        "D300": {
+          "afterWarmup": {
+            "frames": 1800,
+            "orderMismatchFrames": 0,
+            "orderMismatchShare": 0,
+            "oppositeSignFrames": 0,
+            "oppositeSignShare": 0,
+            "tieDisagreeFrames": 0,
+            "viewAWrongVsTruthFrames": 0,
+            "viewBWrongVsTruthFrames": 0,
+            "abDiffMeanAbsM": 0,
+            "abDiffMaxAbsM": 0,
+            "abDiffMaxAtMs": 32900,
+            "peerLagInViewA_M": {
+              "mean": 1.667,
+              "max": 1.667
+            },
+            "peerLagInViewB_M": {
+              "mean": 1.667,
+              "max": 1.667
+            },
+            "meanGapA_M": -1,
+            "meanGapB_M": 1,
+            "meanDelayMs": {
+              "A": 300,
+              "B": 300
+            }
+          },
+          "speedChanges": []
+        },
+        "D500": {
+          "afterWarmup": {
+            "frames": 1800,
+            "orderMismatchFrames": 0,
+            "orderMismatchShare": 0,
+            "oppositeSignFrames": 0,
+            "oppositeSignShare": 0,
+            "tieDisagreeFrames": 0,
+            "viewAWrongVsTruthFrames": 0,
+            "viewBWrongVsTruthFrames": 0,
+            "abDiffMeanAbsM": 0,
+            "abDiffMaxAbsM": 0,
+            "abDiffMaxAtMs": 18083,
+            "peerLagInViewA_M": {
+              "mean": 2.778,
+              "max": 2.778
+            },
+            "peerLagInViewB_M": {
+              "mean": 2.778,
+              "max": 2.778
+            },
+            "meanGapA_M": -1,
+            "meanGapB_M": 1,
+            "meanDelayMs": {
+              "A": 500,
+              "B": 500
+            }
+          },
+          "speedChanges": []
+        }
+      }
+    },
+    {
+      "id": "2-overtake",
+      "title": "추월: A 25km/h(0–20s) 후 20km/h, B 20km/h, 시작 B 12m 앞",
+      "clock": {
+        "A": 0,
+        "B": 0
+      },
+      "link": {
+        "AtoB": {
+          "oneWayMs": 70,
+          "jitter": "sin"
+        },
+        "BtoA": {
+          "oneWayMs": 70,
+          "jitter": "sin"
+        }
+      },
+      "current": {
+        "afterWarmup": {
+          "frames": 1800,
+          "orderMismatchFrames": 98,
+          "orderMismatchShare": 0.054,
+          "oppositeSignFrames": 96,
+          "oppositeSignShare": 0.053,
+          "tieDisagreeFrames": 2,
+          "viewAWrongVsTruthFrames": 0,
+          "viewBWrongVsTruthFrames": 96,
+          "abDiffMeanAbsM": 6.52,
+          "abDiffMaxAbsM": 7.704,
+          "abDiffMaxAtMs": 11417,
+          "peerLagInViewA_M": {
+            "mean": 3.125,
+            "max": 3.424
+          },
+          "peerLagInViewB_M": {
+            "mean": 3.395,
+            "max": 4.28
+          },
+          "meanGapA_M": 16.684,
+          "meanGapB_M": -10.164,
+          "meanDelayMs": {
+            "A": 439.5,
+            "B": 439.5
+          }
+        },
+        "all": {
+          "frames": 2382,
+          "orderMismatchFrames": 312,
+          "orderMismatchShare": 0.131,
+          "oppositeSignFrames": 307,
+          "oppositeSignShare": 0.129,
+          "tieDisagreeFrames": 5,
+          "viewAWrongVsTruthFrames": 127,
+          "viewBWrongVsTruthFrames": 176,
+          "abDiffMeanAbsM": 6.502,
+          "abDiffMaxAbsM": 7.709,
+          "abDiffMaxAtMs": 4017,
+          "peerLagInViewA_M": {
+            "mean": 3.061,
+            "max": 3.426
+          },
+          "peerLagInViewB_M": {
+            "mean": 3.44,
+            "max": 4.283
+          },
+          "meanGapA_M": 12.126,
+          "meanGapB_M": -5.624,
+          "meanDelayMs": {
+            "A": 439.6,
+            "B": 439.6
+          }
+        },
+        "speedChanges": [
+          {
+            "rider": "A",
+            "atMs": 20100,
+            "fromKmh": 25,
+            "toKmh": 20,
+            "selfSees": {
+              "t50Ms": 0,
+              "t90Ms": 50
+            },
+            "otherWindowSees": {
+              "t50Ms": 0,
+              "t90Ms": 0
+            }
+          }
+        ]
+      },
+      "commonTimeline": {
+        "D300": {
+          "afterWarmup": {
+            "frames": 1800,
+            "orderMismatchFrames": 0,
+            "orderMismatchShare": 0,
+            "oppositeSignFrames": 0,
+            "oppositeSignShare": 0,
+            "tieDisagreeFrames": 0,
+            "viewAWrongVsTruthFrames": 0,
+            "viewBWrongVsTruthFrames": 0,
+            "abDiffMeanAbsM": 0,
+            "abDiffMaxAbsM": 0.069,
+            "abDiffMaxAtMs": 20400,
+            "peerLagInViewA_M": {
+              "mean": 1.667,
+              "max": 1.667
+            },
+            "peerLagInViewB_M": {
+              "mean": 1.809,
+              "max": 2.083
+            },
+            "meanGapA_M": 13.417,
+            "meanGapB_M": -13.417,
+            "meanDelayMs": {
+              "A": 300,
+              "B": 300
+            }
+          },
+          "speedChanges": [
+            {
+              "rider": "A",
+              "atMs": 20100,
+              "fromKmh": 25,
+              "toKmh": 20,
+              "selfSees": {
+                "t50Ms": 300,
+                "t90Ms": 350
+              },
+              "otherWindowSees": {
+                "t50Ms": 250,
+                "t90Ms": 433
+              }
+            }
+          ]
+        },
+        "D500": {
+          "afterWarmup": {
+            "frames": 1800,
+            "orderMismatchFrames": 0,
+            "orderMismatchShare": 0,
+            "oppositeSignFrames": 0,
+            "oppositeSignShare": 0,
+            "tieDisagreeFrames": 0,
+            "viewAWrongVsTruthFrames": 0,
+            "viewBWrongVsTruthFrames": 0,
+            "abDiffMeanAbsM": 0,
+            "abDiffMaxAbsM": 0.069,
+            "abDiffMaxAtMs": 20600,
+            "peerLagInViewA_M": {
+              "mean": 2.778,
+              "max": 2.778
+            },
+            "peerLagInViewB_M": {
+              "mean": 3.017,
+              "max": 3.472
+            },
+            "meanGapA_M": 13.32,
+            "meanGapB_M": -13.32,
+            "meanDelayMs": {
+              "A": 500,
+              "B": 500
+            }
+          },
+          "speedChanges": [
+            {
+              "rider": "A",
+              "atMs": 20100,
+              "fromKmh": 25,
+              "toKmh": 20,
+              "selfSees": {
+                "t50Ms": 500,
+                "t90Ms": 550
+              },
+              "otherWindowSees": {
+                "t50Ms": 450,
+                "t90Ms": 633
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "3-speed-changes",
+      "title": "A 20→30(12.1s)→10(24.1s)km/h, B 20km/h 등속, B 10m 앞",
+      "clock": {
+        "A": 0,
+        "B": 0
+      },
+      "link": {
+        "AtoB": {
+          "oneWayMs": 70,
+          "jitter": "sin"
+        },
+        "BtoA": {
+          "oneWayMs": 70,
+          "jitter": "sin"
+        }
+      },
+      "current": {
+        "afterWarmup": {
+          "frames": 1800,
+          "orderMismatchFrames": 184,
+          "orderMismatchShare": 0.102,
+          "oppositeSignFrames": 180,
+          "oppositeSignShare": 0.1,
+          "tieDisagreeFrames": 4,
+          "viewAWrongVsTruthFrames": 70,
+          "viewBWrongVsTruthFrames": 107,
+          "abDiffMeanAbsM": 5.496,
+          "abDiffMaxAbsM": 8.538,
+          "abDiffMaxAtMs": 17417,
+          "peerLagInViewA_M": {
+            "mean": 2.561,
+            "max": 3.424
+          },
+          "peerLagInViewB_M": {
+            "mean": 2.935,
+            "max": 5.128
+          },
+          "meanGapA_M": 16.298,
+          "meanGapB_M": -10.802,
+          "meanDelayMs": {
+            "A": 439.5,
+            "B": 439.5
+          }
+        },
+        "all": {
+          "frames": 2382,
+          "orderMismatchFrames": 184,
+          "orderMismatchShare": 0.077,
+          "oppositeSignFrames": 180,
+          "oppositeSignShare": 0.076,
+          "tieDisagreeFrames": 4,
+          "viewAWrongVsTruthFrames": 70,
+          "viewBWrongVsTruthFrames": 107,
+          "abDiffMeanAbsM": 5.553,
+          "abDiffMaxAbsM": 8.538,
+          "abDiffMaxAtMs": 17417,
+          "peerLagInViewA_M": {
+            "mean": 2.635,
+            "max": 3.426
+          },
+          "peerLagInViewB_M": {
+            "mean": 2.918,
+            "max": 5.128
+          },
+          "meanGapA_M": 10.572,
+          "meanGapB_M": -5.019,
+          "meanDelayMs": {
+            "A": 439.6,
+            "B": 439.6
+          }
+        },
+        "speedChanges": [
+          {
+            "rider": "A",
+            "atMs": 12100,
+            "fromKmh": 20,
+            "toKmh": 30,
+            "selfSees": {
+              "t50Ms": 17,
+              "t90Ms": 50
+            },
+            "otherWindowSees": {
+              "t50Ms": 700,
+              "t90Ms": 817
+            }
+          },
+          {
+            "rider": "A",
+            "atMs": 24100,
+            "fromKmh": 30,
+            "toKmh": 10,
+            "selfSees": {
+              "t50Ms": 0,
+              "t90Ms": 50
+            },
+            "otherWindowSees": {
+              "t50Ms": 533,
+              "t90Ms": 767
+            }
+          },
+          {
+            "rider": "B",
+            "atMs": 18100,
+            "fromKmh": 20,
+            "toKmh": 15,
+            "selfSees": {
+              "t50Ms": 17,
+              "t90Ms": 50
+            },
+            "otherWindowSees": {
+              "t50Ms": 233,
+              "t90Ms": 283
+            }
+          }
+        ]
+      },
+      "commonTimeline": {
+        "D300": {
+          "afterWarmup": {
+            "frames": 1800,
+            "orderMismatchFrames": 0,
+            "orderMismatchShare": 0,
+            "oppositeSignFrames": 0,
+            "oppositeSignShare": 0,
+            "tieDisagreeFrames": 0,
+            "viewAWrongVsTruthFrames": 15,
+            "viewBWrongVsTruthFrames": 15,
+            "abDiffMeanAbsM": 0.001,
+            "abDiffMaxAbsM": 0.278,
+            "abDiffMaxAtMs": 24400,
+            "peerLagInViewA_M": {
+              "mean": 1.365,
+              "max": 1.667
+            },
+            "peerLagInViewB_M": {
+              "mean": 1.563,
+              "max": 2.5
+            },
+            "meanGapA_M": 13.539,
+            "meanGapB_M": -13.539,
+            "meanDelayMs": {
+              "A": 300,
+              "B": 300
+            }
+          },
+          "speedChanges": [
+            {
+              "rider": "A",
+              "atMs": 12100,
+              "fromKmh": 20,
+              "toKmh": 30,
+              "selfSees": {
+                "t50Ms": 317,
+                "t90Ms": 350
+              },
+              "otherWindowSees": {
+                "t50Ms": 267,
+                "t90Ms": 433
+              }
+            },
+            {
+              "rider": "A",
+              "atMs": 24100,
+              "fromKmh": 30,
+              "toKmh": 10,
+              "selfSees": {
+                "t50Ms": 300,
+                "t90Ms": 350
+              },
+              "otherWindowSees": {
+                "t50Ms": 250,
+                "t90Ms": 433
+              }
+            },
+            {
+              "rider": "B",
+              "atMs": 18100,
+              "fromKmh": 20,
+              "toKmh": 15,
+              "selfSees": {
+                "t50Ms": 317,
+                "t90Ms": 350
+              },
+              "otherWindowSees": {
+                "t50Ms": 267,
+                "t90Ms": 433
+              }
+            }
+          ]
+        },
+        "D500": {
+          "afterWarmup": {
+            "frames": 1800,
+            "orderMismatchFrames": 0,
+            "orderMismatchShare": 0,
+            "oppositeSignFrames": 0,
+            "oppositeSignShare": 0,
+            "tieDisagreeFrames": 0,
+            "viewAWrongVsTruthFrames": 27,
+            "viewBWrongVsTruthFrames": 27,
+            "abDiffMeanAbsM": 0.002,
+            "abDiffMaxAbsM": 0.278,
+            "abDiffMaxAtMs": 24600,
+            "peerLagInViewA_M": {
+              "mean": 2.277,
+              "max": 2.778
+            },
+            "peerLagInViewB_M": {
+              "mean": 2.609,
+              "max": 4.167
+            },
+            "meanGapA_M": 13.405,
+            "meanGapB_M": -13.404,
+            "meanDelayMs": {
+              "A": 500,
+              "B": 500
+            }
+          },
+          "speedChanges": [
+            {
+              "rider": "A",
+              "atMs": 12100,
+              "fromKmh": 20,
+              "toKmh": 30,
+              "selfSees": {
+                "t50Ms": 517,
+                "t90Ms": 550
+              },
+              "otherWindowSees": {
+                "t50Ms": 567,
+                "t90Ms": 633
+              }
+            },
+            {
+              "rider": "A",
+              "atMs": 24100,
+              "fromKmh": 30,
+              "toKmh": 10,
+              "selfSees": {
+                "t50Ms": 500,
+                "t90Ms": 550
+              },
+              "otherWindowSees": {
+                "t50Ms": 550,
+                "t90Ms": 633
+              }
+            },
+            {
+              "rider": "B",
+              "atMs": 18100,
+              "fromKmh": 20,
+              "toKmh": 15,
+              "selfSees": {
+                "t50Ms": 517,
+                "t90Ms": 550
+              },
+              "otherWindowSees": {
+                "t50Ms": 467,
+                "t90Ms": 633
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "4-asymmetric",
+      "title": "비대칭 링크: A→B 편도70ms+sin, B→A 편도250ms+bundle · B 6m 앞",
+      "clock": {
+        "A": 0,
+        "B": 0
+      },
+      "link": {
+        "AtoB": {
+          "oneWayMs": 70,
+          "jitter": "sin"
+        },
+        "BtoA": {
+          "oneWayMs": 250,
+          "jitter": "bundle"
+        }
+      },
+      "current": {
+        "afterWarmup": {
+          "frames": 1800,
+          "orderMismatchFrames": 0,
+          "orderMismatchShare": 0,
+          "oppositeSignFrames": 0,
+          "oppositeSignShare": 0,
+          "tieDisagreeFrames": 0,
+          "viewAWrongVsTruthFrames": 0,
+          "viewBWrongVsTruthFrames": 0,
+          "abDiffMeanAbsM": 7.318,
+          "abDiffMaxAbsM": 8.051,
+          "abDiffMaxAtMs": 11433,
+          "peerLagInViewA_M": {
+            "mean": 4.193,
+            "max": 4.642
+          },
+          "peerLagInViewB_M": {
+            "mean": 3.125,
+            "max": 3.424
+          },
+          "meanGapA_M": -1.807,
+          "meanGapB_M": 9.125,
+          "meanDelayMs": {
+            "A": 401.4,
+            "B": 439.5
+          }
+        },
+        "all": {
+          "frames": 2363,
+          "orderMismatchFrames": 0,
+          "orderMismatchShare": 0,
+          "oppositeSignFrames": 0,
+          "oppositeSignShare": 0,
+          "tieDisagreeFrames": 0,
+          "viewAWrongVsTruthFrames": 0,
+          "viewBWrongVsTruthFrames": 0,
+          "abDiffMeanAbsM": 7.205,
+          "abDiffMaxAbsM": 8.051,
+          "abDiffMaxAtMs": 11433,
+          "peerLagInViewA_M": {
+            "mean": 4.13,
+            "max": 4.642
+          },
+          "peerLagInViewB_M": {
+            "mean": 3.075,
+            "max": 3.426
+          },
+          "meanGapA_M": -1.87,
+          "meanGapB_M": 9.075,
+          "meanDelayMs": {
+            "A": 392.9,
+            "B": 441.1
+          }
+        },
+        "speedChanges": []
+      },
+      "commonTimeline": {
+        "D300": {
+          "afterWarmup": {
+            "frames": 1800,
+            "orderMismatchFrames": 0,
+            "orderMismatchShare": 0,
+            "oppositeSignFrames": 0,
+            "oppositeSignShare": 0,
+            "tieDisagreeFrames": 0,
+            "viewAWrongVsTruthFrames": 0,
+            "viewBWrongVsTruthFrames": 0,
+            "abDiffMeanAbsM": 0,
+            "abDiffMaxAbsM": 0,
+            "abDiffMaxAtMs": 35500,
+            "peerLagInViewA_M": {
+              "mean": 1.667,
+              "max": 1.667
+            },
+            "peerLagInViewB_M": {
+              "mean": 1.667,
+              "max": 1.667
+            },
+            "meanGapA_M": -6,
+            "meanGapB_M": 6,
+            "meanDelayMs": {
+              "A": 300,
+              "B": 300
+            }
+          },
+          "speedChanges": []
+        },
+        "D500": {
+          "afterWarmup": {
+            "frames": 1800,
+            "orderMismatchFrames": 0,
+            "orderMismatchShare": 0,
+            "oppositeSignFrames": 0,
+            "oppositeSignShare": 0,
+            "tieDisagreeFrames": 0,
+            "viewAWrongVsTruthFrames": 0,
+            "viewBWrongVsTruthFrames": 0,
+            "abDiffMeanAbsM": 0,
+            "abDiffMaxAbsM": 0,
+            "abDiffMaxAtMs": 34933,
+            "peerLagInViewA_M": {
+              "mean": 2.778,
+              "max": 2.778
+            },
+            "peerLagInViewB_M": {
+              "mean": 2.778,
+              "max": 2.778
+            },
+            "meanGapA_M": -6,
+            "meanGapB_M": 6,
+            "meanDelayMs": {
+              "A": 500,
+              "B": 500
+            }
+          },
+          "speedChanges": []
+        }
+      }
+    },
+    {
+      "id": "5a-clock-A+30s",
+      "title": "A 기기 시계 +30s(송신 t 가 +30s) · B 6m 앞",
+      "clock": {
+        "A": 30000,
+        "B": 0
+      },
+      "link": {
+        "AtoB": {
+          "oneWayMs": 70,
+          "jitter": "sin"
+        },
+        "BtoA": {
+          "oneWayMs": 70,
+          "jitter": "sin"
+        }
+      },
+      "current": {
+        "afterWarmup": {
+          "frames": 1800,
+          "orderMismatchFrames": 0,
+          "orderMismatchShare": 0,
+          "oppositeSignFrames": 0,
+          "oppositeSignShare": 0,
+          "tieDisagreeFrames": 0,
+          "viewAWrongVsTruthFrames": 0,
+          "viewBWrongVsTruthFrames": 0,
+          "abDiffMeanAbsM": 6.25,
+          "abDiffMaxAbsM": 6.848,
+          "abDiffMaxAtMs": 11417,
+          "peerLagInViewA_M": {
+            "mean": 3.125,
+            "max": 3.424
+          },
+          "peerLagInViewB_M": {
+            "mean": 3.125,
+            "max": 3.424
+          },
+          "meanGapA_M": -2.875,
+          "meanGapB_M": 9.125,
+          "meanDelayMs": {
+            "A": 439.5,
+            "B": 439.5
+          }
+        },
+        "all": {
+          "frames": 2382,
+          "orderMismatchFrames": 0,
+          "orderMismatchShare": 0,
+          "oppositeSignFrames": 0,
+          "oppositeSignShare": 0,
+          "tieDisagreeFrames": 0,
+          "viewAWrongVsTruthFrames": 0,
+          "viewBWrongVsTruthFrames": 0,
+          "abDiffMeanAbsM": 6.122,
+          "abDiffMaxAbsM": 6.852,
+          "abDiffMaxAtMs": 4017,
+          "peerLagInViewA_M": {
+            "mean": 3.061,
+            "max": 3.426
+          },
+          "peerLagInViewB_M": {
+            "mean": 3.061,
+            "max": 3.426
+          },
+          "meanGapA_M": -2.939,
+          "meanGapB_M": 9.061,
+          "meanDelayMs": {
+            "A": 439.6,
+            "B": 439.6
+          }
+        },
+        "speedChanges": []
+      },
+      "commonTimeline": {
+        "D300": {
+          "afterWarmup": {
+            "frames": 1800,
+            "orderMismatchFrames": 0,
+            "orderMismatchShare": 0,
+            "oppositeSignFrames": 0,
+            "oppositeSignShare": 0,
+            "tieDisagreeFrames": 0,
+            "viewAWrongVsTruthFrames": 0,
+            "viewBWrongVsTruthFrames": 0,
+            "abDiffMeanAbsM": 0,
+            "abDiffMaxAbsM": 0,
+            "abDiffMaxAtMs": 32900,
+            "peerLagInViewA_M": {
+              "mean": 1.667,
+              "max": 1.667
+            },
+            "peerLagInViewB_M": {
+              "mean": 1.667,
+              "max": 1.667
+            },
+            "meanGapA_M": -6,
+            "meanGapB_M": 6,
+            "meanDelayMs": {
+              "A": 300,
+              "B": 300
+            }
+          },
+          "speedChanges": []
+        },
+        "D500": {
+          "afterWarmup": {
+            "frames": 1800,
+            "orderMismatchFrames": 0,
+            "orderMismatchShare": 0,
+            "oppositeSignFrames": 0,
+            "oppositeSignShare": 0,
+            "tieDisagreeFrames": 0,
+            "viewAWrongVsTruthFrames": 0,
+            "viewBWrongVsTruthFrames": 0,
+            "abDiffMeanAbsM": 0,
+            "abDiffMaxAbsM": 0,
+            "abDiffMaxAtMs": 18083,
+            "peerLagInViewA_M": {
+              "mean": 2.778,
+              "max": 2.778
+            },
+            "peerLagInViewB_M": {
+              "mean": 2.778,
+              "max": 2.778
+            },
+            "meanGapA_M": -6,
+            "meanGapB_M": 6,
+            "meanDelayMs": {
+              "A": 500,
+              "B": 500
+            }
+          },
+          "speedChanges": []
+        }
+      }
+    },
+    {
+      "id": "5b-clock-B-30s",
+      "title": "B 기기 시계 −30s · B 6m 앞",
+      "clock": {
+        "A": 0,
+        "B": -30000
+      },
+      "link": {
+        "AtoB": {
+          "oneWayMs": 70,
+          "jitter": "sin"
+        },
+        "BtoA": {
+          "oneWayMs": 70,
+          "jitter": "sin"
+        }
+      },
+      "current": {
+        "afterWarmup": {
+          "frames": 1800,
+          "orderMismatchFrames": 0,
+          "orderMismatchShare": 0,
+          "oppositeSignFrames": 0,
+          "oppositeSignShare": 0,
+          "tieDisagreeFrames": 0,
+          "viewAWrongVsTruthFrames": 0,
+          "viewBWrongVsTruthFrames": 0,
+          "abDiffMeanAbsM": 6.25,
+          "abDiffMaxAbsM": 6.848,
+          "abDiffMaxAtMs": 11417,
+          "peerLagInViewA_M": {
+            "mean": 3.125,
+            "max": 3.424
+          },
+          "peerLagInViewB_M": {
+            "mean": 3.125,
+            "max": 3.424
+          },
+          "meanGapA_M": -2.875,
+          "meanGapB_M": 9.125,
+          "meanDelayMs": {
+            "A": 439.5,
+            "B": 439.5
+          }
+        },
+        "all": {
+          "frames": 2382,
+          "orderMismatchFrames": 0,
+          "orderMismatchShare": 0,
+          "oppositeSignFrames": 0,
+          "oppositeSignShare": 0,
+          "tieDisagreeFrames": 0,
+          "viewAWrongVsTruthFrames": 0,
+          "viewBWrongVsTruthFrames": 0,
+          "abDiffMeanAbsM": 6.122,
+          "abDiffMaxAbsM": 6.852,
+          "abDiffMaxAtMs": 4017,
+          "peerLagInViewA_M": {
+            "mean": 3.061,
+            "max": 3.426
+          },
+          "peerLagInViewB_M": {
+            "mean": 3.061,
+            "max": 3.426
+          },
+          "meanGapA_M": -2.939,
+          "meanGapB_M": 9.061,
+          "meanDelayMs": {
+            "A": 439.6,
+            "B": 439.6
+          }
+        },
+        "speedChanges": []
+      },
+      "commonTimeline": {
+        "D300": {
+          "afterWarmup": {
+            "frames": 1800,
+            "orderMismatchFrames": 0,
+            "orderMismatchShare": 0,
+            "oppositeSignFrames": 0,
+            "oppositeSignShare": 0,
+            "tieDisagreeFrames": 0,
+            "viewAWrongVsTruthFrames": 0,
+            "viewBWrongVsTruthFrames": 0,
+            "abDiffMeanAbsM": 0,
+            "abDiffMaxAbsM": 0,
+            "abDiffMaxAtMs": 32900,
+            "peerLagInViewA_M": {
+              "mean": 1.667,
+              "max": 1.667
+            },
+            "peerLagInViewB_M": {
+              "mean": 1.667,
+              "max": 1.667
+            },
+            "meanGapA_M": -6,
+            "meanGapB_M": 6,
+            "meanDelayMs": {
+              "A": 300,
+              "B": 300
+            }
+          },
+          "speedChanges": []
+        },
+        "D500": {
+          "afterWarmup": {
+            "frames": 1800,
+            "orderMismatchFrames": 0,
+            "orderMismatchShare": 0,
+            "oppositeSignFrames": 0,
+            "oppositeSignShare": 0,
+            "tieDisagreeFrames": 0,
+            "viewAWrongVsTruthFrames": 0,
+            "viewBWrongVsTruthFrames": 0,
+            "abDiffMeanAbsM": 0,
+            "abDiffMaxAbsM": 0,
+            "abDiffMaxAtMs": 18083,
+            "peerLagInViewA_M": {
+              "mean": 2.778,
+              "max": 2.778
+            },
+            "peerLagInViewB_M": {
+              "mean": 2.778,
+              "max": 2.778
+            },
+            "meanGapA_M": -6,
+            "meanGapB_M": 6,
+            "meanDelayMs": {
+              "A": 500,
+              "B": 500
+            }
+          },
+          "speedChanges": []
+        }
+      }
+    },
+    {
+      "id": "6-stall-A-to-B",
+      "title": "한쪽 stall: A→B 길 16–22s 두절(RTDB+FS 재배달) · A 10m 앞",
+      "clock": {
+        "A": 0,
+        "B": 0
+      },
+      "link": {
+        "AtoB": {
+          "oneWayMs": 70,
+          "jitter": "sin",
+          "stall": {
+            "fromMs": 16000,
+            "toMs": 22000
+          }
+        },
+        "BtoA": {
+          "oneWayMs": 70,
+          "jitter": "sin"
+        }
+      },
+      "current": {
+        "afterWarmup": {
+          "frames": 1800,
+          "orderMismatchFrames": 197,
+          "orderMismatchShare": 0.109,
+          "oppositeSignFrames": 196,
+          "oppositeSignShare": 0.109,
+          "tieDisagreeFrames": 1,
+          "viewAWrongVsTruthFrames": 0,
+          "viewBWrongVsTruthFrames": 196,
+          "abDiffMeanAbsM": 8.242,
+          "abDiffMaxAbsM": 31.414,
+          "abDiffMaxAtMs": 22067,
+          "peerLagInViewA_M": {
+            "mean": 3.125,
+            "max": 3.424
+          },
+          "peerLagInViewB_M": {
+            "mean": 5.117,
+            "max": 28.148
+          },
+          "meanGapA_M": 13.125,
+          "meanGapB_M": -4.883,
+          "meanDelayMs": {
+            "A": 439.5,
+            "B": 529
+          }
+        },
+        "all": {
+          "frames": 2382,
+          "orderMismatchFrames": 197,
+          "orderMismatchShare": 0.083,
+          "oppositeSignFrames": 196,
+          "oppositeSignShare": 0.082,
+          "tieDisagreeFrames": 1,
+          "viewAWrongVsTruthFrames": 0,
+          "viewBWrongVsTruthFrames": 196,
+          "abDiffMeanAbsM": 7.628,
+          "abDiffMaxAbsM": 31.414,
+          "abDiffMaxAtMs": 22067,
+          "peerLagInViewA_M": {
+            "mean": 3.061,
+            "max": 3.426
+          },
+          "peerLagInViewB_M": {
+            "mean": 4.567,
+            "max": 28.148
+          },
+          "meanGapA_M": 13.061,
+          "meanGapB_M": -5.433,
+          "meanDelayMs": {
+            "A": 439.6,
+            "B": 507.2
+          }
+        },
+        "speedChanges": []
+      },
+      "commonTimeline": {
+        "D300": {
+          "afterWarmup": {
+            "frames": 1800,
+            "orderMismatchFrames": 179,
+            "orderMismatchShare": 0.099,
+            "oppositeSignFrames": 178,
+            "oppositeSignShare": 0.099,
+            "tieDisagreeFrames": 1,
+            "viewAWrongVsTruthFrames": 0,
+            "viewBWrongVsTruthFrames": 178,
+            "abDiffMeanAbsM": 2.111,
+            "abDiffMaxAbsM": 26.481,
+            "abDiffMaxAtMs": 22067,
+            "peerLagInViewA_M": {
+              "mean": 1.667,
+              "max": 1.667
+            },
+            "peerLagInViewB_M": {
+              "mean": 3.778,
+              "max": 28.148
+            },
+            "meanGapA_M": 10,
+            "meanGapB_M": -7.889,
+            "meanDelayMs": {
+              "A": 300,
+              "B": 300
+            }
+          },
+          "speedChanges": []
+        },
+        "D500": {
+          "afterWarmup": {
+            "frames": 1800,
+            "orderMismatchFrames": 167,
+            "orderMismatchShare": 0.093,
+            "oppositeSignFrames": 166,
+            "oppositeSignShare": 0.092,
+            "tieDisagreeFrames": 1,
+            "viewAWrongVsTruthFrames": 0,
+            "viewBWrongVsTruthFrames": 166,
+            "abDiffMeanAbsM": 1.938,
+            "abDiffMaxAbsM": 25.37,
+            "abDiffMaxAtMs": 22067,
+            "peerLagInViewA_M": {
+              "mean": 2.778,
+              "max": 2.778
+            },
+            "peerLagInViewB_M": {
+              "mean": 4.716,
+              "max": 28.148
+            },
+            "meanGapA_M": 10,
+            "meanGapB_M": -8.062,
+            "meanDelayMs": {
+              "A": 500,
+              "B": 500
+            }
+          },
+          "speedChanges": []
+        }
+      }
+    },
+    {
+      "id": "7-asym-speed-changes",
+      "title": "비대칭 링크(B→A 편도250ms+bundle > D=300) + 속도 변화 · B 3m 앞 — 공통 지연보다 늦은 패킷",
+      "clock": {
+        "A": 0,
+        "B": 0
+      },
+      "link": {
+        "AtoB": {
+          "oneWayMs": 70,
+          "jitter": "sin"
+        },
+        "BtoA": {
+          "oneWayMs": 250,
+          "jitter": "bundle"
+        }
+      },
+      "current": {
+        "afterWarmup": {
+          "frames": 1800,
+          "orderMismatchFrames": 389,
+          "orderMismatchShare": 0.216,
+          "oppositeSignFrames": 385,
+          "oppositeSignShare": 0.214,
+          "tieDisagreeFrames": 4,
+          "viewAWrongVsTruthFrames": 265,
+          "viewBWrongVsTruthFrames": 117,
+          "abDiffMeanAbsM": 7.042,
+          "abDiffMaxAbsM": 9.742,
+          "abDiffMaxAtMs": 17433,
+          "peerLagInViewA_M": {
+            "mean": 4.107,
+            "max": 5.802
+          },
+          "peerLagInViewB_M": {
+            "mean": 2.935,
+            "max": 5.128
+          },
+          "meanGapA_M": 20.299,
+          "meanGapB_M": -13.256,
+          "meanDelayMs": {
+            "A": 401.4,
+            "B": 439.5
+          }
+        },
+        "all": {
+          "frames": 2363,
+          "orderMismatchFrames": 912,
+          "orderMismatchShare": 0.386,
+          "oppositeSignFrames": 899,
+          "oppositeSignShare": 0.38,
+          "tieDisagreeFrames": 13,
+          "viewAWrongVsTruthFrames": 779,
+          "viewBWrongVsTruthFrames": 117,
+          "abDiffMeanAbsM": 6.994,
+          "abDiffMaxAbsM": 9.742,
+          "abDiffMaxAtMs": 17433,
+          "peerLagInViewA_M": {
+            "mean": 4.064,
+            "max": 5.802
+          },
+          "peerLagInViewB_M": {
+            "mean": 2.931,
+            "max": 5.128
+          },
+          "meanGapA_M": 15.683,
+          "meanGapB_M": -8.688,
+          "meanDelayMs": {
+            "A": 392.9,
+            "B": 441.1
+          }
+        },
+        "speedChanges": [
+          {
+            "rider": "A",
+            "atMs": 12100,
+            "fromKmh": 20,
+            "toKmh": 30,
+            "selfSees": {
+              "t50Ms": 17,
+              "t90Ms": 50
+            },
+            "otherWindowSees": {
+              "t50Ms": 700,
+              "t90Ms": 817
+            }
+          },
+          {
+            "rider": "A",
+            "atMs": 24100,
+            "fromKmh": 30,
+            "toKmh": 10,
+            "selfSees": {
+              "t50Ms": 0,
+              "t90Ms": 50
+            },
+            "otherWindowSees": {
+              "t50Ms": 533,
+              "t90Ms": 767
+            }
+          },
+          {
+            "rider": "B",
+            "atMs": 18100,
+            "fromKmh": 20,
+            "toKmh": 15,
+            "selfSees": {
+              "t50Ms": 17,
+              "t90Ms": 50
+            },
+            "otherWindowSees": {
+              "t50Ms": 0,
+              "t90Ms": 0
+            }
+          },
+          {
+            "rider": "B",
+            "atMs": 30100,
+            "fromKmh": 15,
+            "toKmh": 25,
+            "selfSees": {
+              "t50Ms": 0,
+              "t90Ms": 50
+            },
+            "otherWindowSees": {
+              "t50Ms": 117,
+              "t90Ms": 133
+            }
+          }
+        ]
+      },
+      "commonTimeline": {
+        "D300": {
+          "afterWarmup": {
+            "frames": 1800,
+            "orderMismatchFrames": 0,
+            "orderMismatchShare": 0,
+            "oppositeSignFrames": 0,
+            "oppositeSignShare": 0,
+            "tieDisagreeFrames": 0,
+            "viewAWrongVsTruthFrames": 33,
+            "viewBWrongVsTruthFrames": 33,
+            "abDiffMeanAbsM": 0.005,
+            "abDiffMaxAbsM": 0.602,
+            "abDiffMaxAtMs": 30617,
+            "peerLagInViewA_M": {
+              "mean": 1.637,
+              "max": 2.685
+            },
+            "peerLagInViewB_M": {
+              "mean": 1.563,
+              "max": 2.5
+            },
+            "meanGapA_M": 16.266,
+            "meanGapB_M": -16.264,
+            "meanDelayMs": {
+              "A": 300,
+              "B": 300
+            }
+          },
+          "speedChanges": [
+            {
+              "rider": "A",
+              "atMs": 12100,
+              "fromKmh": 20,
+              "toKmh": 30,
+              "selfSees": {
+                "t50Ms": 317,
+                "t90Ms": 350
+              },
+              "otherWindowSees": {
+                "t50Ms": 267,
+                "t90Ms": 433
+              }
+            },
+            {
+              "rider": "A",
+              "atMs": 24100,
+              "fromKmh": 30,
+              "toKmh": 10,
+              "selfSees": {
+                "t50Ms": 300,
+                "t90Ms": 350
+              },
+              "otherWindowSees": {
+                "t50Ms": 250,
+                "t90Ms": 433
+              }
+            },
+            {
+              "rider": "B",
+              "atMs": 18100,
+              "fromKmh": 20,
+              "toKmh": 15,
+              "selfSees": {
+                "t50Ms": 317,
+                "t90Ms": 350
+              },
+              "otherWindowSees": {
+                "t50Ms": 483,
+                "t90Ms": 483
+              }
+            },
+            {
+              "rider": "B",
+              "atMs": 30100,
+              "fromKmh": 15,
+              "toKmh": 25,
+              "selfSees": {
+                "t50Ms": 300,
+                "t90Ms": 350
+              },
+              "otherWindowSees": {
+                "t50Ms": 483,
+                "t90Ms": 483
+              }
+            }
+          ]
+        },
+        "D500": {
+          "afterWarmup": {
+            "frames": 1800,
+            "orderMismatchFrames": 0,
+            "orderMismatchShare": 0,
+            "oppositeSignFrames": 0,
+            "oppositeSignShare": 0,
+            "tieDisagreeFrames": 0,
+            "viewAWrongVsTruthFrames": 57,
+            "viewBWrongVsTruthFrames": 57,
+            "abDiffMeanAbsM": 0.002,
+            "abDiffMaxAbsM": 0.278,
+            "abDiffMaxAtMs": 24600,
+            "peerLagInViewA_M": {
+              "mean": 2.724,
+              "max": 3.519
+            },
+            "peerLagInViewB_M": {
+              "mean": 2.609,
+              "max": 4.167
+            },
+            "meanGapA_M": 16.307,
+            "meanGapB_M": -16.306,
+            "meanDelayMs": {
+              "A": 500,
+              "B": 500
+            }
+          },
+          "speedChanges": [
+            {
+              "rider": "A",
+              "atMs": 12100,
+              "fromKmh": 20,
+              "toKmh": 30,
+              "selfSees": {
+                "t50Ms": 517,
+                "t90Ms": 550
+              },
+              "otherWindowSees": {
+                "t50Ms": 567,
+                "t90Ms": 633
+              }
+            },
+            {
+              "rider": "A",
+              "atMs": 24100,
+              "fromKmh": 30,
+              "toKmh": 10,
+              "selfSees": {
+                "t50Ms": 500,
+                "t90Ms": 550
+              },
+              "otherWindowSees": {
+                "t50Ms": 550,
+                "t90Ms": 633
+              }
+            },
+            {
+              "rider": "B",
+              "atMs": 18100,
+              "fromKmh": 20,
+              "toKmh": 15,
+              "selfSees": {
+                "t50Ms": 517,
+                "t90Ms": 550
+              },
+              "otherWindowSees": {
+                "t50Ms": 483,
+                "t90Ms": 533
+              }
+            },
+            {
+              "rider": "B",
+              "atMs": 30100,
+              "fromKmh": 15,
+              "toKmh": 25,
+              "selfSees": {
+                "t50Ms": 500,
+                "t90Ms": 550
+              },
+              "otherWindowSees": {
+                "t50Ms": 483,
+                "t90Ms": 533
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "claimCorrection": {
+    "note": "대칭 링크(편도70ms·sin 지터·같은 속도)에서 D_A≈D_B 이다. 진실 간격 |g| 가 평균 뒤처짐 L(=창 안 self−peer, = v×(편도+적응지연))보다 작으면 두 창이 모두 「내가 앞」(부호 반대)을 보인다 — D_A≠D_B 가 아니어도 생긴다.",
+    "speedMps": 5.556,
+    "measuredMeanLagM": 3.125,
+    "measuredMeanAdaptiveDelayMs": 439.6,
+    "predictedMismatchBandM": "|g| < 3.125 m (L)",
+    "insideBandMeanMismatchShare": 1,
+    "outsideBandMeanMismatchShare": 0,
+    "rows": [
+      {
+        "truthGapAminusB_M": -6,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 0,
+        "currentOppositeSignShare": 0,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": -5.5,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 0,
+        "currentOppositeSignShare": 0,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": -5,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 0,
+        "currentOppositeSignShare": 0,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": -4.5,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 0,
+        "currentOppositeSignShare": 0,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": -4,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 0,
+        "currentOppositeSignShare": 0,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": -3.5,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 0,
+        "currentOppositeSignShare": 0,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": -3,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 0.723,
+        "currentOppositeSignShare": 0.588,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": -2.5,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 1,
+        "currentOppositeSignShare": 1,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": -2,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 1,
+        "currentOppositeSignShare": 1,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": -1.5,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 1,
+        "currentOppositeSignShare": 1,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": -1,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 1,
+        "currentOppositeSignShare": 1,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": -0.5,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 1,
+        "currentOppositeSignShare": 1,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": 0,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 1,
+        "currentOppositeSignShare": 1,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": 0.5,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 1,
+        "currentOppositeSignShare": 1,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": 1,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 1,
+        "currentOppositeSignShare": 1,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": 1.5,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 1,
+        "currentOppositeSignShare": 1,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": 2,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 1,
+        "currentOppositeSignShare": 1,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": 2.5,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 1,
+        "currentOppositeSignShare": 1,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": 3,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 0.723,
+        "currentOppositeSignShare": 0.588,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": 3.5,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 0,
+        "currentOppositeSignShare": 0,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": 4,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 0,
+        "currentOppositeSignShare": 0,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": 4.5,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 0,
+        "currentOppositeSignShare": 0,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": 5,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 0,
+        "currentOppositeSignShare": 0,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": 5.5,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 0,
+        "currentOppositeSignShare": 0,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      },
+      {
+        "truthGapAminusB_M": 6,
+        "meanDelayMs": {
+          "A": 439.6,
+          "B": 439.6
+        },
+        "lagInViewA_M": 3.125,
+        "lagInViewB_M": 3.125,
+        "currentOrderMismatchShare": 0,
+        "currentOppositeSignShare": 0,
+        "common": {
+          "D300": 0,
+          "D500": 0
+        }
+      }
+    ]
+  },
+  "policyCompare": [
+    {
+      "id": "1a-equal-gap15",
+      "currentMismatchShare": 0,
+      "currentOppositeShare": 0,
+      "currentAbDiffMaxM": 6.848,
+      "commonD300MismatchShare": 0,
+      "commonD300AbDiffMaxM": 0,
+      "commonD500MismatchShare": 0,
+      "commonD500AbDiffMaxM": 0
+    },
+    {
+      "id": "1b-equal-gap1",
+      "currentMismatchShare": 1,
+      "currentOppositeShare": 1,
+      "currentAbDiffMaxM": 6.848,
+      "commonD300MismatchShare": 0,
+      "commonD300AbDiffMaxM": 0,
+      "commonD500MismatchShare": 0,
+      "commonD500AbDiffMaxM": 0
+    },
+    {
+      "id": "2-overtake",
+      "currentMismatchShare": 0.054,
+      "currentOppositeShare": 0.053,
+      "currentAbDiffMaxM": 7.704,
+      "commonD300MismatchShare": 0,
+      "commonD300AbDiffMaxM": 0.069,
+      "commonD500MismatchShare": 0,
+      "commonD500AbDiffMaxM": 0.069
+    },
+    {
+      "id": "3-speed-changes",
+      "currentMismatchShare": 0.102,
+      "currentOppositeShare": 0.1,
+      "currentAbDiffMaxM": 8.538,
+      "commonD300MismatchShare": 0,
+      "commonD300AbDiffMaxM": 0.278,
+      "commonD500MismatchShare": 0,
+      "commonD500AbDiffMaxM": 0.278
+    },
+    {
+      "id": "4-asymmetric",
+      "currentMismatchShare": 0,
+      "currentOppositeShare": 0,
+      "currentAbDiffMaxM": 8.051,
+      "commonD300MismatchShare": 0,
+      "commonD300AbDiffMaxM": 0,
+      "commonD500MismatchShare": 0,
+      "commonD500AbDiffMaxM": 0
+    },
+    {
+      "id": "5a-clock-A+30s",
+      "currentMismatchShare": 0,
+      "currentOppositeShare": 0,
+      "currentAbDiffMaxM": 6.848,
+      "commonD300MismatchShare": 0,
+      "commonD300AbDiffMaxM": 0,
+      "commonD500MismatchShare": 0,
+      "commonD500AbDiffMaxM": 0
+    },
+    {
+      "id": "5b-clock-B-30s",
+      "currentMismatchShare": 0,
+      "currentOppositeShare": 0,
+      "currentAbDiffMaxM": 6.848,
+      "commonD300MismatchShare": 0,
+      "commonD300AbDiffMaxM": 0,
+      "commonD500MismatchShare": 0,
+      "commonD500AbDiffMaxM": 0
+    },
+    {
+      "id": "6-stall-A-to-B",
+      "currentMismatchShare": 0.109,
+      "currentOppositeShare": 0.109,
+      "currentAbDiffMaxM": 31.414,
+      "commonD300MismatchShare": 0.099,
+      "commonD300AbDiffMaxM": 26.481,
+      "commonD500MismatchShare": 0.093,
+      "commonD500AbDiffMaxM": 25.37
+    },
+    {
+      "id": "7-asym-speed-changes",
+      "currentMismatchShare": 0.216,
+      "currentOppositeShare": 0.214,
+      "currentAbDiffMaxM": 9.742,
+      "commonD300MismatchShare": 0,
+      "commonD300AbDiffMaxM": 0.602,
+      "commonD500MismatchShare": 0,
+      "commonD500AbDiffMaxM": 0.278
+    }
+  ],
+  "invariantProblems": [],
+  "summaryOf": "apps/web/scripts/peer-sync/.out/two-view-order-metrics.json (timeline 10Hz 포함 전체본, gitignore)"
+}

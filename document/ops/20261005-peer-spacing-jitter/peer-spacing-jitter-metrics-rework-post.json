@@ -1,0 +1,1905 @@
+{
+  "task": "20261005-peer-spacing-jitter TASK-02",
+  "gate": true,
+  "suite": null,
+  "at": "2026-10-05T03:41:42.010Z",
+  "note": "Dual-source stamp maps native+offset (same source preserves Δt). Single-source omits FS so stampDualSourceIngestPacket is skipped. Gate = stable window; startup recorded separately. interval>RTDB_SOURCE_STALE is policyConflict (not forced PASS; counts as required fail in --gate). spacing pp is NOT enforced for interval≥1000ms: adaptive delay ≈ gap×2.2 (~2200ms at 1s) makes self(now)−peer(past) mean lag ≈ 12m at 20km/h — pp there is a delay-policy artefact, not a stamp-regression signal.",
+  "thresholds": {
+    "spacingPpFailM": 0.5,
+    "speedBandFrac": 0.2,
+    "teleportFailM": 0.5351851851851852,
+    "backEpsM": 0.5,
+    "startupMs": 5000,
+    "stableStartMs": 12000,
+    "runMs": 40000,
+    "rttMs": 140,
+    "fsIntervalMs": 4000,
+    "rtdbSourceStaleMs": 2500
+  },
+  "summary": {
+    "total": 11,
+    "requiredFailCount": 0,
+    "policyConflictCount": 0,
+    "dualRequiredFailCount": 0,
+    "singleRequiredFailCount": 0,
+    "dualJitterRequiredFailCount": 0,
+    "dual200Pass": true,
+    "single200Pass": true,
+    "dual200MaxSpacePp": 0.259,
+    "single200MaxSpacePp": 0.259
+  },
+  "results": [
+    {
+      "mode": "dual",
+      "intervalMs": 200,
+      "senderOffsetMs": -30000,
+      "jitterPattern": "none",
+      "withSeq": true,
+      "speedMps": 5.555555555555555,
+      "startup": {
+        "minSpeedMps": 0,
+        "maxSpeedMps": 66.667,
+        "maxBackM": 0,
+        "maxJumpM": 1.111,
+        "reverseFrames": 0,
+        "teleportFrames": 1,
+        "spacingMinM": 0.093,
+        "spacingMaxM": 3.278,
+        "spacingMeanM": 2.611,
+        "spacingPpM": 3.185,
+        "spacingStdM": 0.732,
+        "violations": [
+          "screen speed reverse min=0.000 m/s",
+          "screen speed max=66.667 > 6.667 m/s (±20%)",
+          "screen speed min=0.000 < 4.444 m/s (±20%)",
+          "spacing peak-peak 3.19m > 0.5m",
+          "teleport frames=1 (jump>0.54m)"
+        ],
+        "pass": false
+      },
+      "stable": {
+        "minSpeedMps": 5.556,
+        "maxSpeedMps": 5.556,
+        "maxBackM": 0,
+        "maxJumpM": 0.093,
+        "reverseFrames": 0,
+        "teleportFrames": 0,
+        "spacingMinM": 3.278,
+        "spacingMaxM": 3.278,
+        "spacingMeanM": 3.278,
+        "spacingPpM": 0,
+        "spacingStdM": 0,
+        "violations": [],
+        "pass": true
+      },
+      "stampedNowShare": 1,
+      "ingestAccepted": 199,
+      "syncCalls": 2600,
+      "endDisplayDistM": 218.94444444444443,
+      "endSelfDistM": 222.2222222222217,
+      "policyConflict": null,
+      "minSpeedMps": 5.556,
+      "maxSpeedMps": 5.556,
+      "maxBackM": 0,
+      "maxJumpM": 0.093,
+      "reverseFrames": 0,
+      "teleportFrames": 0,
+      "spacingPpM": 0,
+      "spacingStdM": 0,
+      "spacingMeanM": 3.278,
+      "violations": [
+        "startup: screen speed reverse min=0.000 m/s",
+        "startup: screen speed max=66.667 > 6.667 m/s (±20%)",
+        "startup: screen speed min=0.000 < 4.444 m/s (±20%)",
+        "startup: spacing peak-peak 3.19m > 0.5m",
+        "startup: teleport frames=1 (jump>0.54m)"
+      ],
+      "startupPass": false,
+      "stablePass": true,
+      "pass": true,
+      "delayConvergence": {
+        "windows": {
+          "0-5s": {
+            "delayMs": {
+              "n": 279,
+              "mean": 427.957,
+              "std": 56.807,
+              "min": 160,
+              "max": 440
+            },
+            "renderLagMs": {
+              "n": 279,
+              "mean": 344.162,
+              "std": 98.905,
+              "min": 160,
+              "max": 440
+            },
+            "gapEmaMs": {
+              "n": 279,
+              "mean": 191.398,
+              "std": 40.576,
+              "min": 0,
+              "max": 200
+            }
+          },
+          "5-12s": {
+            "delayMs": {
+              "n": 421,
+              "mean": 440,
+              "std": 0,
+              "min": 440,
+              "max": 440
+            },
+            "renderLagMs": {
+              "n": 421,
+              "mean": 440,
+              "std": 0,
+              "min": 440,
+              "max": 440
+            },
+            "gapEmaMs": {
+              "n": 421,
+              "mean": 200,
+              "std": 0,
+              "min": 200,
+              "max": 200
+            }
+          },
+          "12-25s": {
+            "delayMs": {
+              "n": 779,
+              "mean": 440,
+              "std": 0,
+              "min": 440,
+              "max": 440
+            },
+            "renderLagMs": {
+              "n": 779,
+              "mean": 440,
+              "std": 0,
+              "min": 440,
+              "max": 440
+            },
+            "gapEmaMs": {
+              "n": 779,
+              "mean": 200,
+              "std": 0,
+              "min": 200,
+              "max": 200
+            }
+          },
+          "25-40s": {
+            "delayMs": {
+              "n": 901,
+              "mean": 440,
+              "std": 0,
+              "min": 440,
+              "max": 440
+            },
+            "renderLagMs": {
+              "n": 901,
+              "mean": 440,
+              "std": 0,
+              "min": 440,
+              "max": 440
+            },
+            "gapEmaMs": {
+              "n": 901,
+              "mean": 200,
+              "std": 0,
+              "min": 200,
+              "max": 200
+            }
+          }
+        },
+        "delayPp12to40Ms": 0,
+        "renderLagPp12to40Ms": 0,
+        "targetLast5sMeanMs": 440,
+        "convergeTimeMs": 550,
+        "note": "delayMs = integrator.peerRenderDelayMs(target); renderLagMs = nowMs − entity.renderClockMs. converge = first t where delayMs stays within ±20ms of mean(last 5s) for 1s."
+      }
+    },
+    {
+      "mode": "dual",
+      "intervalMs": 200,
+      "senderOffsetMs": -30000,
+      "jitterPattern": "sin",
+      "withSeq": true,
+      "speedMps": 5.555555555555555,
+      "startup": {
+        "minSpeedMps": 0,
+        "maxSpeedMps": 66.667,
+        "maxBackM": 0,
+        "maxJumpM": 1.111,
+        "reverseFrames": 0,
+        "teleportFrames": 1,
+        "spacingMinM": 0.093,
+        "spacingMaxM": 3.411,
+        "spacingMeanM": 2.65,
+        "spacingPpM": 3.318,
+        "spacingStdM": 0.681,
+        "violations": [
+          "screen speed reverse min=0.000 m/s",
+          "screen speed max=66.667 > 6.667 m/s (±20%)",
+          "screen speed min=0.000 < 4.444 m/s (±20%)",
+          "spacing peak-peak 3.32m > 0.5m",
+          "teleport frames=1 (jump>0.54m)"
+        ],
+        "pass": false
+      },
+      "stable": {
+        "minSpeedMps": 5,
+        "maxSpeedMps": 6.111,
+        "maxBackM": 0,
+        "maxJumpM": 0.102,
+        "reverseFrames": 0,
+        "teleportFrames": 0,
+        "spacingMinM": 3.152,
+        "spacingMaxM": 3.411,
+        "spacingMeanM": 3.284,
+        "spacingPpM": 0.259,
+        "spacingStdM": 0.081,
+        "violations": [],
+        "pass": true
+      },
+      "stampedNowShare": 0.226,
+      "ingestAccepted": 199,
+      "syncCalls": 2600,
+      "endDisplayDistM": 219.018701171875,
+      "endSelfDistM": 222.2222222222217,
+      "policyConflict": null,
+      "minSpeedMps": 5,
+      "maxSpeedMps": 6.111,
+      "maxBackM": 0,
+      "maxJumpM": 0.102,
+      "reverseFrames": 0,
+      "teleportFrames": 0,
+      "spacingPpM": 0.259,
+      "spacingStdM": 0.081,
+      "spacingMeanM": 3.284,
+      "violations": [
+        "startup: screen speed reverse min=0.000 m/s",
+        "startup: screen speed max=66.667 > 6.667 m/s (±20%)",
+        "startup: screen speed min=0.000 < 4.444 m/s (±20%)",
+        "startup: spacing peak-peak 3.32m > 0.5m",
+        "startup: teleport frames=1 (jump>0.54m)"
+      ],
+      "startupPass": false,
+      "stablePass": true,
+      "pass": true,
+      "delayConvergence": {
+        "windows": {
+          "0-5s": {
+            "delayMs": {
+              "n": 276,
+              "mean": 436.058,
+              "std": 67.792,
+              "min": 160,
+              "max": 513.333
+            },
+            "renderLagMs": {
+              "n": 276,
+              "mean": 340.624,
+              "std": 100.267,
+              "min": 160,
+              "max": 462.402
+            },
+            "gapEmaMs": {
+              "n": 276,
+              "mean": 194.519,
+              "std": 46.152,
+              "min": 0,
+              "max": 233.333
+            }
+          },
+          "5-12s": {
+            "delayMs": {
+              "n": 421,
+              "mean": 440.067,
+              "std": 15.159,
+              "min": 417.491,
+              "max": 461.139
+            },
+            "renderLagMs": {
+              "n": 421,
+              "mean": 440.164,
+              "std": 13.949,
+              "min": 417.491,
+              "max": 461.139
+            },
+            "gapEmaMs": {
+              "n": 421,
+              "mean": 200.03,
+              "std": 6.89,
+              "min": 189.769,
+              "max": 209.609
+            }
+          },
+          "12-25s": {
+            "delayMs": {
+              "n": 779,
+              "mean": 440.154,
+              "std": 14.876,
+              "min": 417.332,
+              "max": 462.503
+            },
+            "renderLagMs": {
+              "n": 779,
+              "mean": 440.045,
+              "std": 13.852,
+              "min": 417.332,
+              "max": 462.503
+            },
+            "gapEmaMs": {
+              "n": 779,
+              "mean": 200.07,
+              "std": 6.762,
+              "min": 189.696,
+              "max": 210.229
+            }
+          },
+          "25-40s": {
+            "delayMs": {
+              "n": 901,
+              "mean": 439.437,
+              "std": 15.191,
+              "min": 417.327,
+              "max": 463.757
+            },
+            "renderLagMs": {
+              "n": 901,
+              "mean": 439.58,
+              "std": 13.795,
+              "min": 417.327,
+              "max": 461.896
+            },
+            "gapEmaMs": {
+              "n": 901,
+              "mean": 199.744,
+              "std": 6.905,
+              "min": 189.694,
+              "max": 210.799
+            }
+          }
+        },
+        "delayPp12to40Ms": 46.43,
+        "renderLagPp12to40Ms": 45.176,
+        "targetLast5sMeanMs": 440.138,
+        "convergeTimeMs": 2600,
+        "note": "delayMs = integrator.peerRenderDelayMs(target); renderLagMs = nowMs − entity.renderClockMs. converge = first t where delayMs stays within ±20ms of mean(last 5s) for 1s."
+      }
+    },
+    {
+      "mode": "dual",
+      "intervalMs": 200,
+      "senderOffsetMs": -30000,
+      "jitterPattern": "bundle",
+      "withSeq": true,
+      "speedMps": 5.555555555555555,
+      "startup": {
+        "minSpeedMps": 0,
+        "maxSpeedMps": 66.667,
+        "maxBackM": 0,
+        "maxJumpM": 1.111,
+        "reverseFrames": 0,
+        "teleportFrames": 1,
+        "spacingMinM": 0.093,
+        "spacingMaxM": 3.049,
+        "spacingMeanM": 2.451,
+        "spacingPpM": 2.956,
+        "spacingStdM": 0.605,
+        "violations": [
+          "screen speed reverse min=0.000 m/s",
+          "screen speed max=66.667 > 6.667 m/s (±20%)",
+          "screen speed min=0.000 < 4.444 m/s (±20%)",
+          "spacing peak-peak 2.96m > 0.5m",
+          "teleport frames=1 (jump>0.54m)"
+        ],
+        "pass": false
+      },
+      "stable": {
+        "minSpeedMps": 5,
+        "maxSpeedMps": 6.111,
+        "maxBackM": 0,
+        "maxJumpM": 0.102,
+        "reverseFrames": 0,
+        "teleportFrames": 0,
+        "spacingMinM": 3.051,
+        "spacingMaxM": 3.07,
+        "spacingMeanM": 3.053,
+        "spacingPpM": 0.019,
+        "spacingStdM": 0.004,
+        "violations": [],
+        "pass": true
+      },
+      "stampedNowShare": 0.505,
+      "ingestAccepted": 198,
+      "syncCalls": 2599,
+      "endDisplayDistM": 219.1707817925347,
+      "endSelfDistM": 222.2222222222217,
+      "policyConflict": null,
+      "minSpeedMps": 5,
+      "maxSpeedMps": 6.111,
+      "maxBackM": 0,
+      "maxJumpM": 0.102,
+      "reverseFrames": 0,
+      "teleportFrames": 0,
+      "spacingPpM": 0.019,
+      "spacingStdM": 0.004,
+      "spacingMeanM": 3.053,
+      "violations": [
+        "startup: screen speed reverse min=0.000 m/s",
+        "startup: screen speed max=66.667 > 6.667 m/s (±20%)",
+        "startup: screen speed min=0.000 < 4.444 m/s (±20%)",
+        "startup: spacing peak-peak 2.96m > 0.5m",
+        "startup: teleport frames=1 (jump>0.54m)"
+      ],
+      "startupPass": false,
+      "stablePass": true,
+      "pass": true,
+      "delayConvergence": {
+        "windows": {
+          "0-5s": {
+            "delayMs": {
+              "n": 269,
+              "mean": 332.363,
+              "std": 84.775,
+              "min": 160,
+              "max": 477.735
+            },
+            "renderLagMs": {
+              "n": 269,
+              "mean": 306.792,
+              "std": 87.198,
+              "min": 160,
+              "max": 397.168
+            },
+            "gapEmaMs": {
+              "n": 269,
+              "mean": 147.312,
+              "std": 47.186,
+              "min": 0,
+              "max": 217.152
+            }
+          },
+          "5-12s": {
+            "delayMs": {
+              "n": 421,
+              "mean": 405.482,
+              "std": 22.222,
+              "min": 396.854,
+              "max": 480.739
+            },
+            "renderLagMs": {
+              "n": 421,
+              "mean": 399.025,
+              "std": 0.771,
+              "min": 396.854,
+              "max": 400.924
+            },
+            "gapEmaMs": {
+              "n": 421,
+              "mean": 184.31,
+              "std": 10.101,
+              "min": 180.388,
+              "max": 218.518
+            }
+          },
+          "12-25s": {
+            "delayMs": {
+              "n": 779,
+              "mean": 406.163,
+              "std": 22.69,
+              "min": 399.258,
+              "max": 480.741
+            },
+            "renderLagMs": {
+              "n": 779,
+              "mean": 399.4,
+              "std": 0.464,
+              "min": 399.258,
+              "max": 400.926
+            },
+            "gapEmaMs": {
+              "n": 779,
+              "mean": 184.619,
+              "std": 10.314,
+              "min": 181.481,
+              "max": 218.519
+            }
+          },
+          "25-40s": {
+            "delayMs": {
+              "n": 901,
+              "mean": 405.951,
+              "std": 22.372,
+              "min": 399.259,
+              "max": 480.741
+            },
+            "renderLagMs": {
+              "n": 901,
+              "mean": 399.396,
+              "std": 0.458,
+              "min": 399.259,
+              "max": 400.926
+            },
+            "gapEmaMs": {
+              "n": 901,
+              "mean": 184.523,
+              "std": 10.169,
+              "min": 181.481,
+              "max": 218.519
+            }
+          }
+        },
+        "delayPp12to40Ms": 81.483,
+        "renderLagPp12to40Ms": 1.668,
+        "targetLast5sMeanMs": 405.756,
+        "convergeTimeMs": null,
+        "note": "delayMs = integrator.peerRenderDelayMs(target); renderLagMs = nowMs − entity.renderClockMs. converge = first t where delayMs stays within ±20ms of mean(last 5s) for 1s."
+      }
+    },
+    {
+      "mode": "dual",
+      "intervalMs": 200,
+      "senderOffsetMs": 0,
+      "jitterPattern": "none",
+      "withSeq": true,
+      "speedMps": 5.555555555555555,
+      "startup": {
+        "minSpeedMps": 0,
+        "maxSpeedMps": 66.667,
+        "maxBackM": 0,
+        "maxJumpM": 1.111,
+        "reverseFrames": 0,
+        "teleportFrames": 1,
+        "spacingMinM": 0.093,
+        "spacingMaxM": 3.278,
+        "spacingMeanM": 2.611,
+        "spacingPpM": 3.185,
+        "spacingStdM": 0.732,
+        "violations": [
+          "screen speed reverse min=0.000 m/s",
+          "screen speed max=66.667 > 6.667 m/s (±20%)",
+          "screen speed min=0.000 < 4.444 m/s (±20%)",
+          "spacing peak-peak 3.19m > 0.5m",
+          "teleport frames=1 (jump>0.54m)"
+        ],
+        "pass": false
+      },
+      "stable": {
+        "minSpeedMps": 5.556,
+        "maxSpeedMps": 5.556,
+        "maxBackM": 0,
+        "maxJumpM": 0.093,
+        "reverseFrames": 0,
+        "teleportFrames": 0,
+        "spacingMinM": 3.278,
+        "spacingMaxM": 3.278,
+        "spacingMeanM": 3.278,
+        "spacingPpM": 0,
+        "spacingStdM": 0,
+        "violations": [],
+        "pass": true
+      },
+      "stampedNowShare": 1,
+      "ingestAccepted": 199,
+      "syncCalls": 2600,
+      "endDisplayDistM": 218.94444444444443,
+      "endSelfDistM": 222.2222222222217,
+      "policyConflict": null,
+      "minSpeedMps": 5.556,
+      "maxSpeedMps": 5.556,
+      "maxBackM": 0,
+      "maxJumpM": 0.093,
+      "reverseFrames": 0,
+      "teleportFrames": 0,
+      "spacingPpM": 0,
+      "spacingStdM": 0,
+      "spacingMeanM": 3.278,
+      "violations": [
+        "startup: screen speed reverse min=0.000 m/s",
+        "startup: screen speed max=66.667 > 6.667 m/s (±20%)",
+        "startup: screen speed min=0.000 < 4.444 m/s (±20%)",
+        "startup: spacing peak-peak 3.19m > 0.5m",
+        "startup: teleport frames=1 (jump>0.54m)"
+      ],
+      "startupPass": false,
+      "stablePass": true,
+      "pass": true,
+      "delayConvergence": {
+        "windows": {
+          "0-5s": {
+            "delayMs": {
+              "n": 279,
+              "mean": 427.957,
+              "std": 56.807,
+              "min": 160,
+              "max": 440
+            },
+            "renderLagMs": {
+              "n": 279,
+              "mean": 344.162,
+              "std": 98.905,
+              "min": 160,
+              "max": 440
+            },
+            "gapEmaMs": {
+              "n": 279,
+              "mean": 191.398,
+              "std": 40.576,
+              "min": 0,
+              "max": 200
+            }
+          },
+          "5-12s": {
+            "delayMs": {
+              "n": 421,
+              "mean": 440,
+              "std": 0,
+              "min": 440,
+              "max": 440
+            },
+            "renderLagMs": {
+              "n": 421,
+              "mean": 440,
+              "std": 0,
+              "min": 440,
+              "max": 440
+            },
+            "gapEmaMs": {
+              "n": 421,
+              "mean": 200,
+              "std": 0,
+              "min": 200,
+              "max": 200
+            }
+          },
+          "12-25s": {
+            "delayMs": {
+              "n": 779,
+              "mean": 440,
+              "std": 0,
+              "min": 440,
+              "max": 440
+            },
+            "renderLagMs": {
+              "n": 779,
+              "mean": 440,
+              "std": 0,
+              "min": 440,
+              "max": 440
+            },
+            "gapEmaMs": {
+              "n": 779,
+              "mean": 200,
+              "std": 0,
+              "min": 200,
+              "max": 200
+            }
+          },
+          "25-40s": {
+            "delayMs": {
+              "n": 901,
+              "mean": 440,
+              "std": 0,
+              "min": 440,
+              "max": 440
+            },
+            "renderLagMs": {
+              "n": 901,
+              "mean": 440,
+              "std": 0,
+              "min": 440,
+              "max": 440
+            },
+            "gapEmaMs": {
+              "n": 901,
+              "mean": 200,
+              "std": 0,
+              "min": 200,
+              "max": 200
+            }
+          }
+        },
+        "delayPp12to40Ms": 0,
+        "renderLagPp12to40Ms": 0,
+        "targetLast5sMeanMs": 440,
+        "convergeTimeMs": 550,
+        "note": "delayMs = integrator.peerRenderDelayMs(target); renderLagMs = nowMs − entity.renderClockMs. converge = first t where delayMs stays within ±20ms of mean(last 5s) for 1s."
+      }
+    },
+    {
+      "mode": "dual",
+      "intervalMs": 200,
+      "senderOffsetMs": 0,
+      "jitterPattern": "sin",
+      "withSeq": true,
+      "speedMps": 5.555555555555555,
+      "startup": {
+        "minSpeedMps": 0,
+        "maxSpeedMps": 66.667,
+        "maxBackM": 0,
+        "maxJumpM": 1.111,
+        "reverseFrames": 0,
+        "teleportFrames": 1,
+        "spacingMinM": 0.093,
+        "spacingMaxM": 3.411,
+        "spacingMeanM": 2.65,
+        "spacingPpM": 3.318,
+        "spacingStdM": 0.681,
+        "violations": [
+          "screen speed reverse min=0.000 m/s",
+          "screen speed max=66.667 > 6.667 m/s (±20%)",
+          "screen speed min=0.000 < 4.444 m/s (±20%)",
+          "spacing peak-peak 3.32m > 0.5m",
+          "teleport frames=1 (jump>0.54m)"
+        ],
+        "pass": false
+      },
+      "stable": {
+        "minSpeedMps": 5,
+        "maxSpeedMps": 6.111,
+        "maxBackM": 0,
+        "maxJumpM": 0.102,
+        "reverseFrames": 0,
+        "teleportFrames": 0,
+        "spacingMinM": 3.152,
+        "spacingMaxM": 3.411,
+        "spacingMeanM": 3.284,
+        "spacingPpM": 0.259,
+        "spacingStdM": 0.081,
+        "violations": [],
+        "pass": true
+      },
+      "stampedNowShare": 0.226,
+      "ingestAccepted": 199,
+      "syncCalls": 2600,
+      "endDisplayDistM": 219.018701171875,
+      "endSelfDistM": 222.2222222222217,
+      "policyConflict": null,
+      "minSpeedMps": 5,
+      "maxSpeedMps": 6.111,
+      "maxBackM": 0,
+      "maxJumpM": 0.102,
+      "reverseFrames": 0,
+      "teleportFrames": 0,
+      "spacingPpM": 0.259,
+      "spacingStdM": 0.081,
+      "spacingMeanM": 3.284,
+      "violations": [
+        "startup: screen speed reverse min=0.000 m/s",
+        "startup: screen speed max=66.667 > 6.667 m/s (±20%)",
+        "startup: screen speed min=0.000 < 4.444 m/s (±20%)",
+        "startup: spacing peak-peak 3.32m > 0.5m",
+        "startup: teleport frames=1 (jump>0.54m)"
+      ],
+      "startupPass": false,
+      "stablePass": true,
+      "pass": true,
+      "delayConvergence": {
+        "windows": {
+          "0-5s": {
+            "delayMs": {
+              "n": 276,
+              "mean": 436.058,
+              "std": 67.792,
+              "min": 160,
+              "max": 513.333
+            },
+            "renderLagMs": {
+              "n": 276,
+              "mean": 340.624,
+              "std": 100.267,
+              "min": 160,
+              "max": 462.402
+            },
+            "gapEmaMs": {
+              "n": 276,
+              "mean": 194.519,
+              "std": 46.152,
+              "min": 0,
+              "max": 233.333
+            }
+          },
+          "5-12s": {
+            "delayMs": {
+              "n": 421,
+              "mean": 440.067,
+              "std": 15.159,
+              "min": 417.491,
+              "max": 461.139
+            },
+            "renderLagMs": {
+              "n": 421,
+              "mean": 440.164,
+              "std": 13.949,
+              "min": 417.491,
+              "max": 461.139
+            },
+            "gapEmaMs": {
+              "n": 421,
+              "mean": 200.03,
+              "std": 6.89,
+              "min": 189.769,
+              "max": 209.609
+            }
+          },
+          "12-25s": {
+            "delayMs": {
+              "n": 779,
+              "mean": 440.154,
+              "std": 14.876,
+              "min": 417.332,
+              "max": 462.503
+            },
+            "renderLagMs": {
+              "n": 779,
+              "mean": 440.045,
+              "std": 13.852,
+              "min": 417.332,
+              "max": 462.503
+            },
+            "gapEmaMs": {
+              "n": 779,
+              "mean": 200.07,
+              "std": 6.762,
+              "min": 189.696,
+              "max": 210.229
+            }
+          },
+          "25-40s": {
+            "delayMs": {
+              "n": 901,
+              "mean": 439.437,
+              "std": 15.191,
+              "min": 417.327,
+              "max": 463.757
+            },
+            "renderLagMs": {
+              "n": 901,
+              "mean": 439.58,
+              "std": 13.795,
+              "min": 417.327,
+              "max": 461.896
+            },
+            "gapEmaMs": {
+              "n": 901,
+              "mean": 199.744,
+              "std": 6.905,
+              "min": 189.694,
+              "max": 210.799
+            }
+          }
+        },
+        "delayPp12to40Ms": 46.43,
+        "renderLagPp12to40Ms": 45.176,
+        "targetLast5sMeanMs": 440.138,
+        "convergeTimeMs": 2600,
+        "note": "delayMs = integrator.peerRenderDelayMs(target); renderLagMs = nowMs − entity.renderClockMs. converge = first t where delayMs stays within ±20ms of mean(last 5s) for 1s."
+      }
+    },
+    {
+      "mode": "dual",
+      "intervalMs": 200,
+      "senderOffsetMs": 0,
+      "jitterPattern": "bundle",
+      "withSeq": true,
+      "speedMps": 5.555555555555555,
+      "startup": {
+        "minSpeedMps": 0,
+        "maxSpeedMps": 66.667,
+        "maxBackM": 0,
+        "maxJumpM": 1.111,
+        "reverseFrames": 0,
+        "teleportFrames": 1,
+        "spacingMinM": 0.093,
+        "spacingMaxM": 3.049,
+        "spacingMeanM": 2.451,
+        "spacingPpM": 2.956,
+        "spacingStdM": 0.605,
+        "violations": [
+          "screen speed reverse min=0.000 m/s",
+          "screen speed max=66.667 > 6.667 m/s (±20%)",
+          "screen speed min=0.000 < 4.444 m/s (±20%)",
+          "spacing peak-peak 2.96m > 0.5m",
+          "teleport frames=1 (jump>0.54m)"
+        ],
+        "pass": false
+      },
+      "stable": {
+        "minSpeedMps": 5,
+        "maxSpeedMps": 6.111,
+        "maxBackM": 0,
+        "maxJumpM": 0.102,
+        "reverseFrames": 0,
+        "teleportFrames": 0,
+        "spacingMinM": 3.051,
+        "spacingMaxM": 3.07,
+        "spacingMeanM": 3.053,
+        "spacingPpM": 0.019,
+        "spacingStdM": 0.004,
+        "violations": [],
+        "pass": true
+      },
+      "stampedNowShare": 0.505,
+      "ingestAccepted": 198,
+      "syncCalls": 2599,
+      "endDisplayDistM": 219.1707817925347,
+      "endSelfDistM": 222.2222222222217,
+      "policyConflict": null,
+      "minSpeedMps": 5,
+      "maxSpeedMps": 6.111,
+      "maxBackM": 0,
+      "maxJumpM": 0.102,
+      "reverseFrames": 0,
+      "teleportFrames": 0,
+      "spacingPpM": 0.019,
+      "spacingStdM": 0.004,
+      "spacingMeanM": 3.053,
+      "violations": [
+        "startup: screen speed reverse min=0.000 m/s",
+        "startup: screen speed max=66.667 > 6.667 m/s (±20%)",
+        "startup: screen speed min=0.000 < 4.444 m/s (±20%)",
+        "startup: spacing peak-peak 2.96m > 0.5m",
+        "startup: teleport frames=1 (jump>0.54m)"
+      ],
+      "startupPass": false,
+      "stablePass": true,
+      "pass": true,
+      "delayConvergence": {
+        "windows": {
+          "0-5s": {
+            "delayMs": {
+              "n": 269,
+              "mean": 332.363,
+              "std": 84.775,
+              "min": 160,
+              "max": 477.735
+            },
+            "renderLagMs": {
+              "n": 269,
+              "mean": 306.792,
+              "std": 87.198,
+              "min": 160,
+              "max": 397.168
+            },
+            "gapEmaMs": {
+              "n": 269,
+              "mean": 147.312,
+              "std": 47.186,
+              "min": 0,
+              "max": 217.152
+            }
+          },
+          "5-12s": {
+            "delayMs": {
+              "n": 421,
+              "mean": 405.482,
+              "std": 22.222,
+              "min": 396.854,
+              "max": 480.739
+            },
+            "renderLagMs": {
+              "n": 421,
+              "mean": 399.025,
+              "std": 0.771,
+              "min": 396.854,
+              "max": 400.924
+            },
+            "gapEmaMs": {
+              "n": 421,
+              "mean": 184.31,
+              "std": 10.101,
+              "min": 180.388,
+              "max": 218.518
+            }
+          },
+          "12-25s": {
+            "delayMs": {
+              "n": 779,
+              "mean": 406.163,
+              "std": 22.69,
+              "min": 399.258,
+              "max": 480.741
+            },
+            "renderLagMs": {
+              "n": 779,
+              "mean": 399.4,
+              "std": 0.464,
+              "min": 399.258,
+              "max": 400.926
+            },
+            "gapEmaMs": {
+              "n": 779,
+              "mean": 184.619,
+              "std": 10.314,
+              "min": 181.481,
+              "max": 218.519
+            }
+          },
+          "25-40s": {
+            "delayMs": {
+              "n": 901,
+              "mean": 405.951,
+              "std": 22.372,
+              "min": 399.259,
+              "max": 480.741
+            },
+            "renderLagMs": {
+              "n": 901,
+              "mean": 399.396,
+              "std": 0.458,
+              "min": 399.259,
+              "max": 400.926
+            },
+            "gapEmaMs": {
+              "n": 901,
+              "mean": 184.523,
+              "std": 10.169,
+              "min": 181.481,
+              "max": 218.519
+            }
+          }
+        },
+        "delayPp12to40Ms": 81.483,
+        "renderLagPp12to40Ms": 1.668,
+        "targetLast5sMeanMs": 405.756,
+        "convergeTimeMs": null,
+        "note": "delayMs = integrator.peerRenderDelayMs(target); renderLagMs = nowMs − entity.renderClockMs. converge = first t where delayMs stays within ±20ms of mean(last 5s) for 1s."
+      }
+    },
+    {
+      "mode": "dual",
+      "intervalMs": 200,
+      "senderOffsetMs": 30000,
+      "jitterPattern": "none",
+      "withSeq": true,
+      "speedMps": 5.555555555555555,
+      "startup": {
+        "minSpeedMps": 0,
+        "maxSpeedMps": 66.667,
+        "maxBackM": 0,
+        "maxJumpM": 1.111,
+        "reverseFrames": 0,
+        "teleportFrames": 1,
+        "spacingMinM": 0.093,
+        "spacingMaxM": 3.278,
+        "spacingMeanM": 2.611,
+        "spacingPpM": 3.185,
+        "spacingStdM": 0.732,
+        "violations": [
+          "screen speed reverse min=0.000 m/s",
+          "screen speed max=66.667 > 6.667 m/s (±20%)",
+          "screen speed min=0.000 < 4.444 m/s (±20%)",
+          "spacing peak-peak 3.19m > 0.5m",
+          "teleport frames=1 (jump>0.54m)"
+        ],
+        "pass": false
+      },
+      "stable": {
+        "minSpeedMps": 5.556,
+        "maxSpeedMps": 5.556,
+        "maxBackM": 0,
+        "maxJumpM": 0.093,
+        "reverseFrames": 0,
+        "teleportFrames": 0,
+        "spacingMinM": 3.278,
+        "spacingMaxM": 3.278,
+        "spacingMeanM": 3.278,
+        "spacingPpM": 0,
+        "spacingStdM": 0,
+        "violations": [],
+        "pass": true
+      },
+      "stampedNowShare": 1,
+      "ingestAccepted": 199,
+      "syncCalls": 2600,
+      "endDisplayDistM": 218.94444444444443,
+      "endSelfDistM": 222.2222222222217,
+      "policyConflict": null,
+      "minSpeedMps": 5.556,
+      "maxSpeedMps": 5.556,
+      "maxBackM": 0,
+      "maxJumpM": 0.093,
+      "reverseFrames": 0,
+      "teleportFrames": 0,
+      "spacingPpM": 0,
+      "spacingStdM": 0,
+      "spacingMeanM": 3.278,
+      "violations": [
+        "startup: screen speed reverse min=0.000 m/s",
+        "startup: screen speed max=66.667 > 6.667 m/s (±20%)",
+        "startup: screen speed min=0.000 < 4.444 m/s (±20%)",
+        "startup: spacing peak-peak 3.19m > 0.5m",
+        "startup: teleport frames=1 (jump>0.54m)"
+      ],
+      "startupPass": false,
+      "stablePass": true,
+      "pass": true,
+      "delayConvergence": {
+        "windows": {
+          "0-5s": {
+            "delayMs": {
+              "n": 279,
+              "mean": 427.957,
+              "std": 56.807,
+              "min": 160,
+              "max": 440
+            },
+            "renderLagMs": {
+              "n": 279,
+              "mean": 344.162,
+              "std": 98.905,
+              "min": 160,
+              "max": 440
+            },
+            "gapEmaMs": {
+              "n": 279,
+              "mean": 191.398,
+              "std": 40.576,
+              "min": 0,
+              "max": 200
+            }
+          },
+          "5-12s": {
+            "delayMs": {
+              "n": 421,
+              "mean": 440,
+              "std": 0,
+              "min": 440,
+              "max": 440
+            },
+            "renderLagMs": {
+              "n": 421,
+              "mean": 440,
+              "std": 0,
+              "min": 440,
+              "max": 440
+            },
+            "gapEmaMs": {
+              "n": 421,
+              "mean": 200,
+              "std": 0,
+              "min": 200,
+              "max": 200
+            }
+          },
+          "12-25s": {
+            "delayMs": {
+              "n": 779,
+              "mean": 440,
+              "std": 0,
+              "min": 440,
+              "max": 440
+            },
+            "renderLagMs": {
+              "n": 779,
+              "mean": 440,
+              "std": 0,
+              "min": 440,
+              "max": 440
+            },
+            "gapEmaMs": {
+              "n": 779,
+              "mean": 200,
+              "std": 0,
+              "min": 200,
+              "max": 200
+            }
+          },
+          "25-40s": {
+            "delayMs": {
+              "n": 901,
+              "mean": 440,
+              "std": 0,
+              "min": 440,
+              "max": 440
+            },
+            "renderLagMs": {
+              "n": 901,
+              "mean": 440,
+              "std": 0,
+              "min": 440,
+              "max": 440
+            },
+            "gapEmaMs": {
+              "n": 901,
+              "mean": 200,
+              "std": 0,
+              "min": 200,
+              "max": 200
+            }
+          }
+        },
+        "delayPp12to40Ms": 0,
+        "renderLagPp12to40Ms": 0,
+        "targetLast5sMeanMs": 440,
+        "convergeTimeMs": 550,
+        "note": "delayMs = integrator.peerRenderDelayMs(target); renderLagMs = nowMs − entity.renderClockMs. converge = first t where delayMs stays within ±20ms of mean(last 5s) for 1s."
+      }
+    },
+    {
+      "mode": "dual",
+      "intervalMs": 200,
+      "senderOffsetMs": 30000,
+      "jitterPattern": "sin",
+      "withSeq": true,
+      "speedMps": 5.555555555555555,
+      "startup": {
+        "minSpeedMps": 0,
+        "maxSpeedMps": 66.667,
+        "maxBackM": 0,
+        "maxJumpM": 1.111,
+        "reverseFrames": 0,
+        "teleportFrames": 1,
+        "spacingMinM": 0.093,
+        "spacingMaxM": 3.411,
+        "spacingMeanM": 2.65,
+        "spacingPpM": 3.318,
+        "spacingStdM": 0.681,
+        "violations": [
+          "screen speed reverse min=0.000 m/s",
+          "screen speed max=66.667 > 6.667 m/s (±20%)",
+          "screen speed min=0.000 < 4.444 m/s (±20%)",
+          "spacing peak-peak 3.32m > 0.5m",
+          "teleport frames=1 (jump>0.54m)"
+        ],
+        "pass": false
+      },
+      "stable": {
+        "minSpeedMps": 5,
+        "maxSpeedMps": 6.111,
+        "maxBackM": 0,
+        "maxJumpM": 0.102,
+        "reverseFrames": 0,
+        "teleportFrames": 0,
+        "spacingMinM": 3.152,
+        "spacingMaxM": 3.411,
+        "spacingMeanM": 3.284,
+        "spacingPpM": 0.259,
+        "spacingStdM": 0.081,
+        "violations": [],
+        "pass": true
+      },
+      "stampedNowShare": 0.226,
+      "ingestAccepted": 199,
+      "syncCalls": 2600,
+      "endDisplayDistM": 219.018701171875,
+      "endSelfDistM": 222.2222222222217,
+      "policyConflict": null,
+      "minSpeedMps": 5,
+      "maxSpeedMps": 6.111,
+      "maxBackM": 0,
+      "maxJumpM": 0.102,
+      "reverseFrames": 0,
+      "teleportFrames": 0,
+      "spacingPpM": 0.259,
+      "spacingStdM": 0.081,
+      "spacingMeanM": 3.284,
+      "violations": [
+        "startup: screen speed reverse min=0.000 m/s",
+        "startup: screen speed max=66.667 > 6.667 m/s (±20%)",
+        "startup: screen speed min=0.000 < 4.444 m/s (±20%)",
+        "startup: spacing peak-peak 3.32m > 0.5m",
+        "startup: teleport frames=1 (jump>0.54m)"
+      ],
+      "startupPass": false,
+      "stablePass": true,
+      "pass": true,
+      "delayConvergence": {
+        "windows": {
+          "0-5s": {
+            "delayMs": {
+              "n": 276,
+              "mean": 436.058,
+              "std": 67.792,
+              "min": 160,
+              "max": 513.333
+            },
+            "renderLagMs": {
+              "n": 276,
+              "mean": 340.624,
+              "std": 100.267,
+              "min": 160,
+              "max": 462.402
+            },
+            "gapEmaMs": {
+              "n": 276,
+              "mean": 194.519,
+              "std": 46.152,
+              "min": 0,
+              "max": 233.333
+            }
+          },
+          "5-12s": {
+            "delayMs": {
+              "n": 421,
+              "mean": 440.067,
+              "std": 15.159,
+              "min": 417.491,
+              "max": 461.139
+            },
+            "renderLagMs": {
+              "n": 421,
+              "mean": 440.164,
+              "std": 13.949,
+              "min": 417.491,
+              "max": 461.139
+            },
+            "gapEmaMs": {
+              "n": 421,
+              "mean": 200.03,
+              "std": 6.89,
+              "min": 189.769,
+              "max": 209.609
+            }
+          },
+          "12-25s": {
+            "delayMs": {
+              "n": 779,
+              "mean": 440.154,
+              "std": 14.876,
+              "min": 417.332,
+              "max": 462.503
+            },
+            "renderLagMs": {
+              "n": 779,
+              "mean": 440.045,
+              "std": 13.852,
+              "min": 417.332,
+              "max": 462.503
+            },
+            "gapEmaMs": {
+              "n": 779,
+              "mean": 200.07,
+              "std": 6.762,
+              "min": 189.696,
+              "max": 210.229
+            }
+          },
+          "25-40s": {
+            "delayMs": {
+              "n": 901,
+              "mean": 439.437,
+              "std": 15.191,
+              "min": 417.327,
+              "max": 463.757
+            },
+            "renderLagMs": {
+              "n": 901,
+              "mean": 439.58,
+              "std": 13.795,
+              "min": 417.327,
+              "max": 461.896
+            },
+            "gapEmaMs": {
+              "n": 901,
+              "mean": 199.744,
+              "std": 6.905,
+              "min": 189.694,
+              "max": 210.799
+            }
+          }
+        },
+        "delayPp12to40Ms": 46.43,
+        "renderLagPp12to40Ms": 45.176,
+        "targetLast5sMeanMs": 440.138,
+        "convergeTimeMs": 2600,
+        "note": "delayMs = integrator.peerRenderDelayMs(target); renderLagMs = nowMs − entity.renderClockMs. converge = first t where delayMs stays within ±20ms of mean(last 5s) for 1s."
+      }
+    },
+    {
+      "mode": "dual",
+      "intervalMs": 200,
+      "senderOffsetMs": 30000,
+      "jitterPattern": "bundle",
+      "withSeq": true,
+      "speedMps": 5.555555555555555,
+      "startup": {
+        "minSpeedMps": 0,
+        "maxSpeedMps": 66.667,
+        "maxBackM": 0,
+        "maxJumpM": 1.111,
+        "reverseFrames": 0,
+        "teleportFrames": 1,
+        "spacingMinM": 0.093,
+        "spacingMaxM": 3.049,
+        "spacingMeanM": 2.451,
+        "spacingPpM": 2.956,
+        "spacingStdM": 0.605,
+        "violations": [
+          "screen speed reverse min=0.000 m/s",
+          "screen speed max=66.667 > 6.667 m/s (±20%)",
+          "screen speed min=0.000 < 4.444 m/s (±20%)",
+          "spacing peak-peak 2.96m > 0.5m",
+          "teleport frames=1 (jump>0.54m)"
+        ],
+        "pass": false
+      },
+      "stable": {
+        "minSpeedMps": 5,
+        "maxSpeedMps": 6.111,
+        "maxBackM": 0,
+        "maxJumpM": 0.102,
+        "reverseFrames": 0,
+        "teleportFrames": 0,
+        "spacingMinM": 3.051,
+        "spacingMaxM": 3.07,
+        "spacingMeanM": 3.053,
+        "spacingPpM": 0.019,
+        "spacingStdM": 0.004,
+        "violations": [],
+        "pass": true
+      },
+      "stampedNowShare": 0.505,
+      "ingestAccepted": 198,
+      "syncCalls": 2599,
+      "endDisplayDistM": 219.1707817925347,
+      "endSelfDistM": 222.2222222222217,
+      "policyConflict": null,
+      "minSpeedMps": 5,
+      "maxSpeedMps": 6.111,
+      "maxBackM": 0,
+      "maxJumpM": 0.102,
+      "reverseFrames": 0,
+      "teleportFrames": 0,
+      "spacingPpM": 0.019,
+      "spacingStdM": 0.004,
+      "spacingMeanM": 3.053,
+      "violations": [
+        "startup: screen speed reverse min=0.000 m/s",
+        "startup: screen speed max=66.667 > 6.667 m/s (±20%)",
+        "startup: screen speed min=0.000 < 4.444 m/s (±20%)",
+        "startup: spacing peak-peak 2.96m > 0.5m",
+        "startup: teleport frames=1 (jump>0.54m)"
+      ],
+      "startupPass": false,
+      "stablePass": true,
+      "pass": true,
+      "delayConvergence": {
+        "windows": {
+          "0-5s": {
+            "delayMs": {
+              "n": 269,
+              "mean": 332.363,
+              "std": 84.775,
+              "min": 160,
+              "max": 477.735
+            },
+            "renderLagMs": {
+              "n": 269,
+              "mean": 306.792,
+              "std": 87.198,
+              "min": 160,
+              "max": 397.168
+            },
+            "gapEmaMs": {
+              "n": 269,
+              "mean": 147.312,
+              "std": 47.186,
+              "min": 0,
+              "max": 217.152
+            }
+          },
+          "5-12s": {
+            "delayMs": {
+              "n": 421,
+              "mean": 405.482,
+              "std": 22.222,
+              "min": 396.854,
+              "max": 480.739
+            },
+            "renderLagMs": {
+              "n": 421,
+              "mean": 399.025,
+              "std": 0.771,
+              "min": 396.854,
+              "max": 400.924
+            },
+            "gapEmaMs": {
+              "n": 421,
+              "mean": 184.31,
+              "std": 10.101,
+              "min": 180.388,
+              "max": 218.518
+            }
+          },
+          "12-25s": {
+            "delayMs": {
+              "n": 779,
+              "mean": 406.163,
+              "std": 22.69,
+              "min": 399.258,
+              "max": 480.741
+            },
+            "renderLagMs": {
+              "n": 779,
+              "mean": 399.4,
+              "std": 0.464,
+              "min": 399.258,
+              "max": 400.926
+            },
+            "gapEmaMs": {
+              "n": 779,
+              "mean": 184.619,
+              "std": 10.314,
+              "min": 181.481,
+              "max": 218.519
+            }
+          },
+          "25-40s": {
+            "delayMs": {
+              "n": 901,
+              "mean": 405.951,
+              "std": 22.372,
+              "min": 399.259,
+              "max": 480.741
+            },
+            "renderLagMs": {
+              "n": 901,
+              "mean": 399.396,
+              "std": 0.458,
+              "min": 399.259,
+              "max": 400.926
+            },
+            "gapEmaMs": {
+              "n": 901,
+              "mean": 184.523,
+              "std": 10.169,
+              "min": 181.481,
+              "max": 218.519
+            }
+          }
+        },
+        "delayPp12to40Ms": 81.483,
+        "renderLagPp12to40Ms": 1.668,
+        "targetLast5sMeanMs": 405.756,
+        "convergeTimeMs": null,
+        "note": "delayMs = integrator.peerRenderDelayMs(target); renderLagMs = nowMs − entity.renderClockMs. converge = first t where delayMs stays within ±20ms of mean(last 5s) for 1s."
+      }
+    },
+    {
+      "mode": "single",
+      "intervalMs": 200,
+      "senderOffsetMs": 0,
+      "jitterPattern": "sin",
+      "withSeq": true,
+      "speedMps": 5.555555555555555,
+      "startup": {
+        "minSpeedMps": 0,
+        "maxSpeedMps": 66.667,
+        "maxBackM": 0,
+        "maxJumpM": 1.111,
+        "reverseFrames": 0,
+        "teleportFrames": 1,
+        "spacingMinM": 0.093,
+        "spacingMaxM": 3.411,
+        "spacingMeanM": 2.65,
+        "spacingPpM": 3.318,
+        "spacingStdM": 0.681,
+        "violations": [
+          "screen speed reverse min=0.000 m/s",
+          "screen speed max=66.667 > 6.667 m/s (±20%)",
+          "screen speed min=0.000 < 4.444 m/s (±20%)",
+          "spacing peak-peak 3.32m > 0.5m",
+          "teleport frames=1 (jump>0.54m)"
+        ],
+        "pass": false
+      },
+      "stable": {
+        "minSpeedMps": 5,
+        "maxSpeedMps": 6.111,
+        "maxBackM": 0,
+        "maxJumpM": 0.102,
+        "reverseFrames": 0,
+        "teleportFrames": 0,
+        "spacingMinM": 3.152,
+        "spacingMaxM": 3.411,
+        "spacingMeanM": 3.284,
+        "spacingPpM": 0.259,
+        "spacingStdM": 0.081,
+        "violations": [],
+        "pass": true
+      },
+      "stampedNowShare": 0.226,
+      "ingestAccepted": 199,
+      "syncCalls": 2600,
+      "endDisplayDistM": 219.018701171875,
+      "endSelfDistM": 222.2222222222217,
+      "policyConflict": null,
+      "minSpeedMps": 5,
+      "maxSpeedMps": 6.111,
+      "maxBackM": 0,
+      "maxJumpM": 0.102,
+      "reverseFrames": 0,
+      "teleportFrames": 0,
+      "spacingPpM": 0.259,
+      "spacingStdM": 0.081,
+      "spacingMeanM": 3.284,
+      "violations": [
+        "startup: screen speed reverse min=0.000 m/s",
+        "startup: screen speed max=66.667 > 6.667 m/s (±20%)",
+        "startup: screen speed min=0.000 < 4.444 m/s (±20%)",
+        "startup: spacing peak-peak 3.32m > 0.5m",
+        "startup: teleport frames=1 (jump>0.54m)"
+      ],
+      "startupPass": false,
+      "stablePass": true,
+      "pass": true,
+      "delayConvergence": {
+        "windows": {
+          "0-5s": {
+            "delayMs": {
+              "n": 276,
+              "mean": 436.058,
+              "std": 67.792,
+              "min": 160,
+              "max": 513.333
+            },
+            "renderLagMs": {
+              "n": 276,
+              "mean": 340.624,
+              "std": 100.267,
+              "min": 160,
+              "max": 462.402
+            },
+            "gapEmaMs": {
+              "n": 276,
+              "mean": 194.519,
+              "std": 46.152,
+              "min": 0,
+              "max": 233.333
+            }
+          },
+          "5-12s": {
+            "delayMs": {
+              "n": 421,
+              "mean": 440.067,
+              "std": 15.159,
+              "min": 417.491,
+              "max": 461.139
+            },
+            "renderLagMs": {
+              "n": 421,
+              "mean": 440.164,
+              "std": 13.949,
+              "min": 417.491,
+              "max": 461.139
+            },
+            "gapEmaMs": {
+              "n": 421,
+              "mean": 200.03,
+              "std": 6.89,
+              "min": 189.769,
+              "max": 209.609
+            }
+          },
+          "12-25s": {
+            "delayMs": {
+              "n": 779,
+              "mean": 440.154,
+              "std": 14.876,
+              "min": 417.332,
+              "max": 462.503
+            },
+            "renderLagMs": {
+              "n": 779,
+              "mean": 440.045,
+              "std": 13.852,
+              "min": 417.332,
+              "max": 462.503
+            },
+            "gapEmaMs": {
+              "n": 779,
+              "mean": 200.07,
+              "std": 6.762,
+              "min": 189.696,
+              "max": 210.229
+            }
+          },
+          "25-40s": {
+            "delayMs": {
+              "n": 901,
+              "mean": 439.437,
+              "std": 15.191,
+              "min": 417.327,
+              "max": 463.757
+            },
+            "renderLagMs": {
+              "n": 901,
+              "mean": 439.58,
+              "std": 13.795,
+              "min": 417.327,
+              "max": 461.896
+            },
+            "gapEmaMs": {
+              "n": 901,
+              "mean": 199.744,
+              "std": 6.905,
+              "min": 189.694,
+              "max": 210.799
+            }
+          }
+        },
+        "delayPp12to40Ms": 46.43,
+        "renderLagPp12to40Ms": 45.176,
+        "targetLast5sMeanMs": 440.138,
+        "convergeTimeMs": 2600,
+        "note": "delayMs = integrator.peerRenderDelayMs(target); renderLagMs = nowMs − entity.renderClockMs. converge = first t where delayMs stays within ±20ms of mean(last 5s) for 1s."
+      }
+    },
+    {
+      "mode": "dual",
+      "intervalMs": 200,
+      "senderOffsetMs": 0,
+      "jitterPattern": "sin",
+      "withSeq": false,
+      "speedMps": 5.555555555555555,
+      "startup": {
+        "minSpeedMps": 0,
+        "maxSpeedMps": 66.667,
+        "maxBackM": 0,
+        "maxJumpM": 1.111,
+        "reverseFrames": 0,
+        "teleportFrames": 1,
+        "spacingMinM": 0.093,
+        "spacingMaxM": 3.411,
+        "spacingMeanM": 2.65,
+        "spacingPpM": 3.318,
+        "spacingStdM": 0.681,
+        "violations": [
+          "screen speed reverse min=0.000 m/s",
+          "screen speed max=66.667 > 6.667 m/s (±20%)",
+          "screen speed min=0.000 < 4.444 m/s (±20%)",
+          "spacing peak-peak 3.32m > 0.5m",
+          "teleport frames=1 (jump>0.54m)"
+        ],
+        "pass": false
+      },
+      "stable": {
+        "minSpeedMps": 5,
+        "maxSpeedMps": 6.111,
+        "maxBackM": 0,
+        "maxJumpM": 0.102,
+        "reverseFrames": 0,
+        "teleportFrames": 0,
+        "spacingMinM": 3.152,
+        "spacingMaxM": 3.411,
+        "spacingMeanM": 3.284,
+        "spacingPpM": 0.259,
+        "spacingStdM": 0.081,
+        "violations": [],
+        "pass": true
+      },
+      "stampedNowShare": 0.226,
+      "ingestAccepted": 199,
+      "syncCalls": 2600,
+      "endDisplayDistM": 219.018701171875,
+      "endSelfDistM": 222.2222222222217,
+      "policyConflict": null,
+      "minSpeedMps": 5,
+      "maxSpeedMps": 6.111,
+      "maxBackM": 0,
+      "maxJumpM": 0.102,
+      "reverseFrames": 0,
+      "teleportFrames": 0,
+      "spacingPpM": 0.259,
+      "spacingStdM": 0.081,
+      "spacingMeanM": 3.284,
+      "violations": [
+        "startup: screen speed reverse min=0.000 m/s",
+        "startup: screen speed max=66.667 > 6.667 m/s (±20%)",
+        "startup: screen speed min=0.000 < 4.444 m/s (±20%)",
+        "startup: spacing peak-peak 3.32m > 0.5m",
+        "startup: teleport frames=1 (jump>0.54m)"
+      ],
+      "startupPass": false,
+      "stablePass": true,
+      "pass": true,
+      "delayConvergence": {
+        "windows": {
+          "0-5s": {
+            "delayMs": {
+              "n": 276,
+              "mean": 436.058,
+              "std": 67.792,
+              "min": 160,
+              "max": 513.333
+            },
+            "renderLagMs": {
+              "n": 276,
+              "mean": 340.624,
+              "std": 100.267,
+              "min": 160,
+              "max": 462.402
+            },
+            "gapEmaMs": {
+              "n": 276,
+              "mean": 194.519,
+              "std": 46.152,
+              "min": 0,
+              "max": 233.333
+            }
+          },
+          "5-12s": {
+            "delayMs": {
+              "n": 421,
+              "mean": 440.067,
+              "std": 15.159,
+              "min": 417.491,
+              "max": 461.139
+            },
+            "renderLagMs": {
+              "n": 421,
+              "mean": 440.164,
+              "std": 13.949,
+              "min": 417.491,
+              "max": 461.139
+            },
+            "gapEmaMs": {
+              "n": 421,
+              "mean": 200.03,
+              "std": 6.89,
+              "min": 189.769,
+              "max": 209.609
+            }
+          },
+          "12-25s": {
+            "delayMs": {
+              "n": 779,
+              "mean": 440.154,
+              "std": 14.876,
+              "min": 417.332,
+              "max": 462.503
+            },
+            "renderLagMs": {
+              "n": 779,
+              "mean": 440.045,
+              "std": 13.852,
+              "min": 417.332,
+              "max": 462.503
+            },
+            "gapEmaMs": {
+              "n": 779,
+              "mean": 200.07,
+              "std": 6.762,
+              "min": 189.696,
+              "max": 210.229
+            }
+          },
+          "25-40s": {
+            "delayMs": {
+              "n": 901,
+              "mean": 439.437,
+              "std": 15.191,
+              "min": 417.327,
+              "max": 463.757
+            },
+            "renderLagMs": {
+              "n": 901,
+              "mean": 439.58,
+              "std": 13.795,
+              "min": 417.327,
+              "max": 461.896
+            },
+            "gapEmaMs": {
+              "n": 901,
+              "mean": 199.744,
+              "std": 6.905,
+              "min": 189.694,
+              "max": 210.799
+            }
+          }
+        },
+        "delayPp12to40Ms": 46.43,
+        "renderLagPp12to40Ms": 45.176,
+        "targetLast5sMeanMs": 440.138,
+        "convergeTimeMs": 2600,
+        "note": "delayMs = integrator.peerRenderDelayMs(target); renderLagMs = nowMs − entity.renderClockMs. converge = first t where delayMs stays within ±20ms of mean(last 5s) for 1s."
+      },
+      "note": "no-seq production-like"
+    }
+  ],
+  "requiredAllPass": true
+}

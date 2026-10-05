@@ -1,0 +1,25 @@
+{
+  "note": "JSON.stringify(encodePayload) UTF-8; no RTDB/transport overhead. Same N samples, publish cadence unchanged (5Hz).",
+  "publishHz": 5,
+  "sampleCount": 500,
+  "before0_1m": {
+    "quantumM": 0.1,
+    "n": 500,
+    "meanBytes": 93.888,
+    "maxBytes": 94,
+    "minBytes": 92,
+    "totalBytes": 46944
+  },
+  "afterProduct0_01m": {
+    "quantumM": 0.01,
+    "n": 500,
+    "meanBytes": 94.776,
+    "maxBytes": 95,
+    "minBytes": 92,
+    "totalBytes": 47388
+  },
+  "meanDeltaBytes": 0.887999999999991,
+  "maxDeltaBytes": 1,
+  "oneRiderPerHourIncrementalBytes": 15983.999999999838,
+  "cadenceUnchanged": true
+}

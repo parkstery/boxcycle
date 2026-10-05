@@ -1,0 +1,634 @@
+{
+  "generatedAt": "2026-10-05T08:10:12.653Z",
+  "note": "Raw paired analysis (legacy ring240, capture idle). UIDs omitted from external share.",
+  "unknown": [
+    "firebase-original-callback-time",
+    "publish-queue-time",
+    "clock-offset-ms",
+    "camera-follow-state",
+    "full-20s-capture-overwritten-by-live-ring",
+    "window-ring-outside-data"
+  ],
+  "A": {
+    "tag": "A",
+    "frameCount": 240,
+    "ingestCount": 240,
+    "capture": {
+      "active": false,
+      "status": "idle",
+      "durationSec": null,
+      "startedAtMs": null,
+      "endsAtMs": null,
+      "remainingMs": null,
+      "droppedFrameForCap": 0,
+      "droppedIngestForCap": 0,
+      "emptyReason": null
+    },
+    "fsPick": 3,
+    "estimated": 3,
+    "captureCount": 1090,
+    "maxJumpByUid": {
+      "giYciMW9MsZsCLxWkaX4XRZHR6K2": 0.294
+    },
+    "atMs": {
+      "min": 1791186901061,
+      "max": 1791186918042,
+      "spanMs": 16981
+    },
+    "dtMs": {
+      "n": 108,
+      "min": 32,
+      "p50": 67.5,
+      "p90": 89.3,
+      "max": 137,
+      "mean": 66.63888888888889,
+      "pp": 105
+    },
+    "relativeGapM": {
+      "n": 108,
+      "min": -0.3456115779645188,
+      "p50": -0.26570857288822936,
+      "p90": -0.2122882594837492,
+      "max": -0.18288171455873226,
+      "mean": -0.26780083815595596,
+      "pp": 0.16272986340578655
+    },
+    "absDGap": {
+      "n": 107,
+      "min": 0.0004990642545266155,
+      "p50": 0.013263245426472281,
+      "p90": 0.034505540966239326,
+      "max": 0.08141068403908491,
+      "mean": 0.015712029917241868,
+      "pp": 0.0809116197845583
+    },
+    "gapPp1s": {
+      "n": 7,
+      "min": 0.051753061142690626,
+      "p50": 0.10512701873335573,
+      "p90": 0.135222185743757,
+      "max": 0.15127325147423676,
+      "mean": 0.10432458765110246,
+      "pp": 0.09952019033154613
+    },
+    "dGapPeriodMedianMs": 564,
+    "frameSource": {
+      "rtdb/capture": 111,
+      "fs/estimated": 129
+    },
+    "ingestWireFracAllTenth": true,
+    "missing": [
+      "firebase-original-callback-time",
+      "publish-queue-time",
+      "clock-offset-ms",
+      "camera-follow-state"
+    ],
+    "seriesCompact": [
+      {
+        "t": 0,
+        "gap": -0.2293,
+        "peer": 102.0662,
+        "self": 102.2955,
+        "jump": 0.1245,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 81
+      },
+      {
+        "t": 260,
+        "gap": -0.2542,
+        "peer": 102.4445,
+        "self": 102.6987,
+        "jump": 0.0548,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 40
+      },
+      {
+        "t": 518,
+        "gap": -0.2574,
+        "peer": 102.7771,
+        "self": 103.0346,
+        "jump": 0.0916,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 73
+      },
+      {
+        "t": 768,
+        "gap": -0.2538,
+        "peer": 103.1117,
+        "self": 103.3654,
+        "jump": 0.1521,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 101
+      },
+      {
+        "t": 1022,
+        "gap": -0.1894,
+        "peer": 103.5126,
+        "self": 103.702,
+        "jump": 0.1029,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 74
+      },
+      {
+        "t": 1309,
+        "gap": -0.1843,
+        "peer": 103.9007,
+        "self": 104.0849,
+        "jump": 0.1007,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 74
+      },
+      {
+        "t": 1609,
+        "gap": -0.2641,
+        "peer": 104.2373,
+        "self": 104.5014,
+        "jump": 0.0993,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 94
+      },
+      {
+        "t": 1857,
+        "gap": -0.3141,
+        "peer": 104.5758,
+        "self": 104.8899,
+        "jump": 0.0645,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 44
+      },
+      {
+        "t": 2093,
+        "gap": -0.2853,
+        "peer": 104.9201,
+        "self": 105.2055,
+        "jump": 0.0642,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 45
+      },
+      {
+        "t": 2381,
+        "gap": -0.2522,
+        "peer": 105.3374,
+        "self": 105.5896,
+        "jump": 0.0676,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 46
+      },
+      {
+        "t": 2615,
+        "gap": -0.3298,
+        "peer": 105.6741,
+        "self": 106.0039,
+        "jump": 0.0619,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 42
+      },
+      {
+        "t": 2849,
+        "gap": -0.2518,
+        "peer": 105.9986,
+        "self": 106.2504,
+        "jump": 0.0569,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 42
+      },
+      {
+        "t": 3078,
+        "gap": -0.238,
+        "peer": 106.3707,
+        "self": 106.6087,
+        "jump": 0.0707,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 40
+      },
+      {
+        "t": 3311,
+        "gap": -0.2238,
+        "peer": 106.6985,
+        "self": 106.9223,
+        "jump": 0.0458,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 46
+      },
+      {
+        "t": 3560,
+        "gap": -0.3053,
+        "peer": 107.01,
+        "self": 107.3153,
+        "jump": 0.0614,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 43
+      },
+      {
+        "t": 3845,
+        "gap": -0.3178,
+        "peer": 107.3966,
+        "self": 107.7145,
+        "jump": 0.106,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 80
+      },
+      {
+        "t": 4058,
+        "gap": -0.2447,
+        "peer": 107.7347,
+        "self": 107.9794,
+        "jump": 0.1037,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 61
+      },
+      {
+        "t": 4308,
+        "gap": -0.2458,
+        "peer": 108.0935,
+        "self": 108.3393,
+        "jump": 0.0697,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 69
+      },
+      {
+        "t": 4500,
+        "gap": -0.2978,
+        "peer": 108.3096,
+        "self": 108.6074,
+        "jump": 0.0796,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 62
+      },
+      {
+        "t": 4746,
+        "gap": -0.2457,
+        "peer": 108.6812,
+        "self": 108.9269,
+        "jump": 0.1069,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 59
+      },
+      {
+        "t": 5000,
+        "gap": -0.2518,
+        "peer": 109.0712,
+        "self": 109.323,
+        "jump": 0.0369,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 40
+      },
+      {
+        "t": 5267,
+        "gap": -0.3166,
+        "peer": 109.3844,
+        "self": 109.701,
+        "jump": 0.1338,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 89
+      },
+      {
+        "t": 5524,
+        "gap": -0.2421,
+        "peer": 109.7612,
+        "self": 110.0033,
+        "jump": 0.1187,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 82
+      },
+      {
+        "t": 5843,
+        "gap": -0.2858,
+        "peer": 110.167,
+        "self": 110.4528,
+        "jump": 0.0968,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 91
+      }
+    ]
+  },
+  "B": {
+    "tag": "B",
+    "frameCount": 240,
+    "ingestCount": 240,
+    "capture": {
+      "active": false,
+      "status": "idle",
+      "durationSec": null,
+      "startedAtMs": null,
+      "endsAtMs": null,
+      "remainingMs": null,
+      "droppedFrameForCap": 0,
+      "droppedIngestForCap": 0,
+      "emptyReason": null
+    },
+    "fsPick": 71,
+    "estimated": 59,
+    "captureCount": 4559,
+    "maxJumpByUid": {
+      "mEkM9T8m8LNam1rX2p0Q8NwF9Zh2": 115.755,
+      "xOTFTZY8qRYOt6WG2kXU2Xq30WB3": 3.475
+    },
+    "atMs": {
+      "min": 1791186903804,
+      "max": 1791186919315,
+      "spanMs": 15511
+    },
+    "dtMs": {
+      "n": 62,
+      "min": 39,
+      "p50": 69,
+      "p90": 94.69999999999999,
+      "max": 105,
+      "mean": 68.74193548387096,
+      "pp": 66
+    },
+    "relativeGapM": {
+      "n": 62,
+      "min": 0.20119387027797586,
+      "p50": 0.2877005514823523,
+      "p90": 0.32561097736416683,
+      "max": 0.3483863437408843,
+      "mean": 0.27801912290917863,
+      "pp": 0.14719247346290842
+    },
+    "absDGap": {
+      "n": 61,
+      "min": 0.0009048934916222606,
+      "p50": 0.015706369504343343,
+      "p90": 0.034558823529408755,
+      "max": 0.05067259039861938,
+      "mean": 0.017427626538208785,
+      "pp": 0.049767696906997116
+    },
+    "gapPp1s": {
+      "n": 5,
+      "min": 0.022618514927785327,
+      "p50": 0.1233836102858561,
+      "p90": 0.13281182145848902,
+      "max": 0.1383038269796657,
+      "mean": 0.09095019170881642,
+      "pp": 0.11568531205188037
+    },
+    "dGapPeriodMedianMs": 517,
+    "frameSource": {
+      "rtdb/capture": 63,
+      "fs/estimated": 177
+    },
+    "ingestWireFracAllTenth": true,
+    "missing": [
+      "firebase-original-callback-time",
+      "publish-queue-time",
+      "clock-offset-ms",
+      "camera-follow-state"
+    ],
+    "seriesCompact": [
+      {
+        "t": 0,
+        "gap": 0.3247,
+        "peer": 105.9772,
+        "self": 105.6525,
+        "jump": 0.1139,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 64
+      },
+      {
+        "t": 231,
+        "gap": 0.2611,
+        "peer": 106.2361,
+        "self": 105.975,
+        "jump": 0.0529,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 63
+      },
+      {
+        "t": 470,
+        "gap": 0.2373,
+        "peer": 106.5942,
+        "self": 106.3569,
+        "jump": 0.1137,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 62
+      },
+      {
+        "t": 756,
+        "gap": 0.2227,
+        "peer": 106.967,
+        "self": 106.7443,
+        "jump": 0.0505,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 51
+      },
+      {
+        "t": 996,
+        "gap": 0.3219,
+        "peer": 107.3862,
+        "self": 107.0643,
+        "jump": 0.1063,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 53
+      },
+      {
+        "t": 1250,
+        "gap": 0.3166,
+        "peer": 107.7226,
+        "self": 107.406,
+        "jump": 0.058,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 50
+      },
+      {
+        "t": 1528,
+        "gap": 0.2268,
+        "peer": 108.0805,
+        "self": 107.8537,
+        "jump": 0.0765,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 53
+      },
+      {
+        "t": 1774,
+        "gap": 0.2727,
+        "peer": 108.4319,
+        "self": 108.1592,
+        "jump": 0.094,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 67
+      },
+      {
+        "t": 2070,
+        "gap": 0.2871,
+        "peer": 108.8324,
+        "self": 108.5453,
+        "jump": 0.087,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 69
+      },
+      {
+        "t": 2347,
+        "gap": 0.2126,
+        "peer": 109.2361,
+        "self": 109.0234,
+        "jump": 0.1164,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 71
+      },
+      {
+        "t": 2592,
+        "gap": 0.3258,
+        "peer": 109.5986,
+        "self": 109.2729,
+        "jump": 0.1055,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 77
+      },
+      {
+        "t": 2913,
+        "gap": 0.2384,
+        "peer": 109.9864,
+        "self": 109.748,
+        "jump": 0.1381,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 98
+      },
+      {
+        "t": 3221,
+        "gap": 0.2883,
+        "peer": 110.433,
+        "self": 110.1447,
+        "jump": 0.0755,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 80
+      },
+      {
+        "t": 3532,
+        "gap": 0.3272,
+        "peer": 110.8691,
+        "self": 110.5419,
+        "jump": 0.1452,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 95
+      },
+      {
+        "t": 3814,
+        "gap": 0.2934,
+        "peer": 111.2319,
+        "self": 110.9385,
+        "jump": 0.1035,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 82
+      },
+      {
+        "t": 4107,
+        "gap": 0.2805,
+        "peer": 111.6168,
+        "self": 111.3363,
+        "jump": 0.119,
+        "src": "rtdb",
+        "q": "capture",
+        "dt": 88
+      }
+    ]
+  },
+  "overlap": {
+    "oLo": 1791186903804,
+    "oHi": 1791186918042,
+    "spanMs": 14238
+  },
+  "orderSyncSample": [
+    {
+      "tOff": 0,
+      "Agap": -0.274,
+      "Bgap": 0.325,
+      "sum": 0.05
+    },
+    {
+      "tOff": 500,
+      "Agap": -0.225,
+      "Bgap": 0.245,
+      "sum": 0.02
+    },
+    {
+      "tOff": 1000,
+      "Agap": -0.332,
+      "Bgap": 0.348,
+      "sum": 0.016
+    },
+    {
+      "tOff": 1500,
+      "Agap": -0.246,
+      "Bgap": 0.227,
+      "sum": -0.019
+    },
+    {
+      "tOff": 2000,
+      "Agap": -0.246,
+      "Bgap": 0.303,
+      "sum": 0.057
+    },
+    {
+      "tOff": 2500,
+      "Agap": -0.317,
+      "Bgap": 0.318,
+      "sum": 0.002
+    },
+    {
+      "tOff": 3000,
+      "Agap": -0.297,
+      "Bgap": 0.307,
+      "sum": 0.011
+    },
+    {
+      "tOff": 3500,
+      "Agap": -0.296,
+      "Bgap": 0.327,
+      "sum": 0.032
+    },
+    {
+      "tOff": 4000,
+      "Agap": -0.307,
+      "Bgap": 0.286,
+      "sum": -0.021
+    },
+    {
+      "tOff": 4500,
+      "Agap": -0.123,
+      "Bgap": 0.137,
+      "sum": 0.014
+    }
+  ]
+}

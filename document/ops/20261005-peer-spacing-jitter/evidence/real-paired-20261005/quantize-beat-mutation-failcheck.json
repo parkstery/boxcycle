@@ -1,0 +1,10 @@
+{
+  "generatedAt": "2026-10-05T08:42:54.279Z",
+  "mutation": "MOTION_WIRE_DIST_QUANTUM_M 0.01→0.1",
+  "harnessExit": 1,
+  "stdoutTail": "    \"meanDeltaBytes\": 0,\n    \"maxDeltaBytes\": 0,\n    \"oneRiderPerHourIncrementalBytes\": 0\n  }\n}\nFAIL before 0.1000 after 0.1000\nwallMs 5322\n",
+  "stderrTail": "",
+  "expectFail": true,
+  "mutationDetectedRegression": true,
+  "wallMs": 5752
+}
