@@ -1,0 +1,151 @@
+/**
+ * 짧은 숨김→표시 복귀 시 catalog/world 단발 재조회 가드 계약.
+ * client invocation 정책이며 billed read 가 아니다.
+ *
+ * 실행: node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/ride-hierarchy/visibility-resume-fetch-contract.test.ts
+ */
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { describe, it } from "node:test";
+import { ACTIVITY_WORLD_POLL_ACTIVE_MS } from "../../src/lib/activity/activityWorldPollConstants.ts";
+import {
+  PUBLIC_CATALOG_VISIBILITY_FRESH_MS,
+  resolvePollResumeDelayMs,
+  shouldSkipFreshFetch,
+} from "../../src/lib/activity/visibilityResumePolicy.ts";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const read = (rel: string) => fs.readFileSync(path.resolve(__dirname, "../..", rel), "utf8");
+
+describe("PUBLIC_CATALOG_VISIBILITY_FRESH_MS reuses active poll interval", () => {
+  it("equals ACTIVITY_WORLD_POLL_ACTIVE_MS (no invent-TTL)", () => {
+    assert.equal(PUBLIC_CATALOG_VISIBILITY_FRESH_MS, ACTIVITY_WORLD_POLL_ACTIVE_MS);
+    assert.equal(ACTIVITY_WORLD_POLL_ACTIVE_MS, 60_000);
+  });
+});
+
+describe("shouldSkipFreshFetch — catalog visibility contract", () => {
+  const base = {
+    lastSuccessAtMs: 1_000,
+    nowMs: 1_000 + 10_000,
+    freshWithinMs: ACTIVITY_WORLD_POLL_ACTIVE_MS,
+    hasError: false,
+  };
+
+  it("first load (no success) → fetch", () => {
+    assert.equal(
+      shouldSkipFreshFetch({ ...base, force: false, lastSuccessAtMs: 0 }),
+      false,
+    );
+  });
+
+  it("quick hide→visible within fresh window → skip (0 additional)", () => {
+    assert.equal(shouldSkipFreshFetch({ ...base, force: false }), true);
+  });
+
+  it("stale resume beyond fresh window → fetch once", () => {
+    assert.equal(
+      shouldSkipFreshFetch({
+        ...base,
+        force: false,
+        nowMs: base.lastSuccessAtMs + ACTIVITY_WORLD_POLL_ACTIVE_MS + 1,
+      }),
+      false,
+    );
+  });
+
+  it("manual refresh force → fetch", () => {
+    assert.equal(shouldSkipFreshFetch({ ...base, force: true }), false);
+  });
+
+  it("error retry → fetch", () => {
+    assert.equal(shouldSkipFreshFetch({ ...base, force: false, hasError: true }), false);
+  });
+});
+
+describe("resolvePollResumeDelayMs — Activity World resume", () => {
+  it("first enable → immediate (0)", () => {
+    assert.equal(
+      resolvePollResumeDelayMs({
+        lastSuccessAtMs: 0,
+        nextDueAtMs: 0,
+        nowMs: 5_000,
+        forceImmediate: false,
+      }),
+      0,
+    );
+  });
+
+  it("quick resume with remaining schedule → positive delay", () => {
+    assert.equal(
+      resolvePollResumeDelayMs({
+        lastSuccessAtMs: 1_000,
+        nextDueAtMs: 1_000 + 40_000,
+        nowMs: 1_000 + 10_000,
+        forceImmediate: false,
+      }),
+      30_000,
+    );
+  });
+
+  it("stale resume (past nextDue) → immediate", () => {
+    assert.equal(
+      resolvePollResumeDelayMs({
+        lastSuccessAtMs: 1_000,
+        nextDueAtMs: 1_000 + 20_000,
+        nowMs: 1_000 + 25_000,
+        forceImmediate: false,
+      }),
+      0,
+    );
+  });
+
+  it("forceImmediate (selfRide / refresh) → 0", () => {
+    assert.equal(
+      resolvePollResumeDelayMs({
+        lastSuccessAtMs: 1_000,
+        nextDueAtMs: 1_000 + 50_000,
+        nowMs: 1_000 + 5_000,
+        forceImmediate: true,
+      }),
+      0,
+    );
+  });
+});
+
+describe("wiring — App / overlays keep visibility resume guards", () => {
+  it("App visibility refresh passes reason; manual uses force", () => {
+    const app = read("src/App.tsx");
+    assert.match(app, /refreshPublishedPublicCourseCatalog\(\{\s*reason:\s*"visibility"\s*\}\)/);
+    assert.match(
+      app,
+      /refreshPublishedPublicCourseCatalog\(\{\s*force:\s*true,\s*reason:\s*"manual"\s*\}\)/,
+    );
+  });
+
+  it("Activity World sync stays enabled without pageVisible; poll receives pageVisible", () => {
+    const overlays = read("src/features/map-overlays/useAppMapOverlays.ts");
+    assert.match(overlays, /worldMapBaseEnabled/);
+    assert.match(overlays, /enabled:\s*activityWorldSyncEnabled/);
+    assert.match(overlays, /pageVisible,/);
+    const sync = read("src/features/map-overlays/useActivityWorldDataSync.ts");
+    assert.match(sync, /pageVisible:\s*boolean/);
+    const poll = read("src/hooks/useActivityWorldAdaptivePoll.ts");
+    assert.match(poll, /resolvePollResumeDelayMs/);
+  });
+
+  it("openTrailListings listener still has no pageVisible gate (non-goal)", () => {
+    const policy = read("src/features/map-overlays/listenerScopePolicy.ts");
+    const optsStart = policy.indexOf("export type OpenTrailsListenerEnabledOpts");
+    const optsEnd = policy.indexOf("export function resolveOpenTrailsListenerEnabled");
+    assert.ok(optsStart >= 0 && optsEnd > optsStart);
+    const optsBlock = policy.slice(optsStart, optsEnd);
+    assert.equal(
+      /\bpageVisible\b/.test(optsBlock),
+      false,
+      "OpenTrailsListenerEnabledOpts must not gain pageVisible in this task",
+    );
+  });
+});

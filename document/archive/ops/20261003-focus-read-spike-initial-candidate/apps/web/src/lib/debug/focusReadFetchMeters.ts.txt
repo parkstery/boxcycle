@@ -1,0 +1,80 @@
+/**
+ * DEV — catalog refresh / Activity World full sync **client invocation** 카운터.
+ * billed Firestore read 가 아니다. empty emulator 문서 수 절감률 주장에 쓰지 말 것.
+ */
+
+export type FocusReadFetchSource =
+  | "catalog:visibility"
+  | "catalog:manual"
+  | "catalog:coalesced"
+  | "catalog:skipped-fresh"
+  | "world:poll"
+  | "world:visibility-stale"
+  | "world:visibility-fresh-skip"
+  | "world:refreshNonce"
+  | "world:selfRide"
+  | "world:enable"
+  | "world:coalesced";
+
+export type FocusReadFetchMetersSnapshot = {
+  atMs: number;
+  /** 실제 조회를 시작한 횟수(coalesce/skip 제외) */
+  catalogFetchStarts: number;
+  worldSyncStarts: number;
+  bySource: Record<string, number>;
+  note: "client-invocation-not-billed-reads";
+};
+
+const bySource: Record<string, number> = Object.create(null) as Record<string, number>;
+let catalogFetchStarts = 0;
+let worldSyncStarts = 0;
+
+function bump(source: FocusReadFetchSource): void {
+  bySource[source] = (bySource[source] ?? 0) + 1;
+}
+
+/** catalog 실제 list/get 시작 */
+export function recordCatalogFetchStart(source: FocusReadFetchSource): void {
+  bump(source);
+  if (source === "catalog:visibility" || source === "catalog:manual") {
+    catalogFetchStarts += 1;
+  }
+}
+
+export function recordCatalogFetchSkipOrCoalesce(source: FocusReadFetchSource): void {
+  bump(source);
+}
+
+/** Activity World full sync 실제 시작 */
+export function recordWorldSyncStart(source: FocusReadFetchSource): void {
+  bump(source);
+  if (
+    source === "world:poll" ||
+    source === "world:visibility-stale" ||
+    source === "world:refreshNonce" ||
+    source === "world:selfRide" ||
+    source === "world:enable"
+  ) {
+    worldSyncStarts += 1;
+  }
+}
+
+export function recordWorldSyncSkipOrCoalesce(source: FocusReadFetchSource): void {
+  bump(source);
+}
+
+export function snapshotFocusReadFetchMeters(nowMs = Date.now()): FocusReadFetchMetersSnapshot {
+  return {
+    atMs: nowMs,
+    catalogFetchStarts,
+    worldSyncStarts,
+    bySource: { ...bySource },
+    note: "client-invocation-not-billed-reads",
+  };
+}
+
+export function resetFocusReadFetchMeters(): void {
+  for (const k of Object.keys(bySource)) delete bySource[k];
+  catalogFetchStarts = 0;
+  worldSyncStarts = 0;
+}

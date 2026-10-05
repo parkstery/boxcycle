@@ -33,6 +33,8 @@
 
 ## 진행
 
+초기 후보 기록(00-brief, 01~05의 focus-read-audit/fix 계열)은 대체 상태를 표시해 보존한다. 현행 지시는 아래 최종 체인이다. 초기 코드·시험은 [보관 색인](../../archive/ops/20261003-focus-read-spike-initial-candidate/README.md)으로 분리했다. 정리: [25 지시](25-task-retire-untracked.md) → [26 결과](26-result-retire-untracked.md) → [27 검수 PASS](27-review-retire-untracked.md). 본 작업의 구조 검사를 방해하던 미추적 후보를 앱 경로에서 제거했다.
+
 1. TASK-01 read-only 원인 감사 및 재현 설계 — **APPROVED**.
 2. TASK-02 visibility operation proxy 계측 — **REWORK_REQUIRED** ([06](06-review-visibility-meter.md)).
 3. TASK-02R 실제 network call proxy·production no-op·N=3 근거 보강 — **APPROVED**.

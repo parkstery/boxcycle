@@ -1,0 +1,27 @@
+[
+  {
+    "original": "apps/web/e2e/focus-read-visibility-audit.spec.ts",
+    "archived": "document/archive/ops/20261003-focus-read-spike-initial-candidate/apps/web/e2e/focus-read-visibility-audit.spec.ts.txt",
+    "sha256": "CA0D6B92C875BF24FA897E75BA80D4764B3BDF8795625604804A5012739F9487"
+  },
+  {
+    "original": "apps/web/scripts/ride-hierarchy/visibility-resume-fetch-contract.test.ts",
+    "archived": "document/archive/ops/20261003-focus-read-spike-initial-candidate/apps/web/scripts/ride-hierarchy/visibility-resume-fetch-contract.test.ts.txt",
+    "sha256": "A2B04B3F4F82D8ACD37FCA2846E39B5AAF4CAD535337C8FB086A4A113D71EB2E"
+  },
+  {
+    "original": "apps/web/src/lib/activity/visibilityResumePolicy.ts",
+    "archived": "document/archive/ops/20261003-focus-read-spike-initial-candidate/apps/web/src/lib/activity/visibilityResumePolicy.ts.txt",
+    "sha256": "4354D397E617B3BD213A1E8DC6CE32DBD082B19CBA9B05EB9B801936F0FCF9D1"
+  },
+  {
+    "original": "apps/web/src/lib/debug/focusReadFetchMeters.ts",
+    "archived": "document/archive/ops/20261003-focus-read-spike-initial-candidate/apps/web/src/lib/debug/focusReadFetchMeters.ts.txt",
+    "sha256": "F1CB6B21714DAF4B92B8CE7A2800416661BAE1E2E7E9699EF984CDBDF6F45404"
+  },
+  {
+    "original": "apps/web/src/lib/debug/installFocusReadFetchDebug.ts",
+    "archived": "document/archive/ops/20261003-focus-read-spike-initial-candidate/apps/web/src/lib/debug/installFocusReadFetchDebug.ts.txt",
+    "sha256": "F940188E7A805D415E560866994ED55DCD7A65D8F2E7F178DB44790D2F37E38C"
+  }
+]

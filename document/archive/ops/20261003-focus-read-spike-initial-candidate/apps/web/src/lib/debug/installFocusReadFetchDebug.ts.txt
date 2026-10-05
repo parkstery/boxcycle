@@ -1,0 +1,20 @@
+import {
+  resetFocusReadFetchMeters,
+  snapshotFocusReadFetchMeters,
+} from "./focusReadFetchMeters";
+
+export function installFocusReadFetchDebug(): void {
+  if (!import.meta.env.DEV) return;
+  if (typeof window === "undefined") return;
+  const api = {
+    snapshot: snapshotFocusReadFetchMeters,
+    reset: resetFocusReadFetchMeters,
+  };
+  (
+    window as Window & {
+      __rtwFocusReadFetches?: typeof snapshotFocusReadFetchMeters;
+      __rtwFocusReadFetchesApi?: typeof api;
+    }
+  ).__rtwFocusReadFetches = snapshotFocusReadFetchMeters;
+  (window as Window & { __rtwFocusReadFetchesApi?: typeof api }).__rtwFocusReadFetchesApi = api;
+}

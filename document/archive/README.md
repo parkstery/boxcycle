@@ -40,6 +40,8 @@
 
 ## 이동한 종료 묶음
 
+초기 후보 코드 보관: [20261003-focus-read-spike-initial-candidate](ops/20261003-focus-read-spike-initial-candidate/README.md). 최종 구현과 분리해 소스·시험 5개를 내용 그대로 보존하며 앱 검사에서 제외한다. 전체 작업의 CLOSED 선언은 아니다.
+
 | 묶음 | 무엇 | 이동일 |
 |---|---|---|
 | [20260929-ai-development-system](ops/20260929-ai-development-system/README.md) | Codex ↔ Cursor CLI 프로토콜 검수 PASS · [완료 보고](260929-RTW-AI-개발체계-구축-완료보고.md) | 2026-10-05 |

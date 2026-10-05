@@ -1,0 +1,401 @@
+import { test, expect, type Page } from "./open-meteo-stub";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { guestStart } from "./rideEntryHelpers";
+
+/**
+ * TASK-01/02 focus-read audit — Guest Trailhead (no ride).
+ * Separates (a) focus while still visible, (b) hidden→visible, (c) repeated toggles.
+ * Meters: window.__rtwReadSubs() underlying open/openTotal + hubs,
+ * plus DEV __rtwFocusReadFetches() catalog/world **client invocation** counts
+ * (≠ billed Firestore reads).
+ *
+ * Run: npm run test:e2e:focus-read-audit  (apps/web)
+ */
+
+const EMULATOR_HOST = process.env.FIRESTORE_EMULATOR_HOST?.trim() ?? "";
+const UNDER_EMULATOR = Boolean(EMULATOR_HOST);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const OUT_DIR = path.resolve(__dirname, "../.out/firebase-traffic");
+
+type UnderlyingMeter = { open: number; openTotal: number; closeTotal: number };
+type HubSnap = {
+  unsubCallTotal?: number;
+  slotCount?: number;
+  refCount?: number;
+  underlyingOpen?: boolean;
+  consumers?: number;
+  slots?: Array<{ trailId?: string; refCount?: number; underlyingOpen?: boolean }>;
+};
+type ReadSnap = {
+  atMs?: number;
+  underlying?: {
+    rtdbOnValue?: UnderlyingMeter;
+    trailOnSnapshot?: UnderlyingMeter;
+    collectionGroup?: UnderlyingMeter;
+  };
+  motionHub?: HubSnap;
+  ridesHub?: HubSnap;
+  activeLiveRideTrailIdsHub?: HubSnap;
+  crossCheck?: { ok?: boolean };
+};
+
+type FocusFetchSnap = {
+  atMs?: number;
+  catalogFetchStarts?: number;
+  worldSyncStarts?: number;
+  bySource?: Record<string, number>;
+  note?: string;
+};
+
+type Compact = {
+  atMs: number | null;
+  visibilityState: string | null;
+  rtdb: UnderlyingMeter | null;
+  trail: UnderlyingMeter | null;
+  cg: UnderlyingMeter | null;
+  ridesHub: HubSnap | null;
+  cgHub: HubSnap | null;
+  crossCheckOk: boolean | null;
+  emulatorReqTotal: number;
+  catalogFetchStarts: number | null;
+  worldSyncStarts: number | null;
+  focusBySource: Record<string, number> | null;
+};
+
+function assertEmulatorHostOnly(): void {
+  if (!EMULATOR_HOST) {
+    throw new Error(
+      "FIRESTORE_EMULATOR_HOST missing — refuse live Firebase. Use firebase emulators:exec.",
+    );
+  }
+  const host = EMULATOR_HOST.toLowerCase();
+  const local =
+    host.startsWith("127.0.0.1") ||
+    host.startsWith("localhost") ||
+    host.startsWith("[::1]");
+  if (!local) {
+    throw new Error(`FIRESTORE_EMULATOR_HOST=${EMULATOR_HOST} is not a local emulator — abort.`);
+  }
+}
+
+async function waitMeters(page: Page): Promise<void> {
+  await page.waitForFunction(
+    () =>
+      typeof (window as Window & { __rtwReadSubs?: unknown }).__rtwReadSubs === "function" &&
+      typeof (window as Window & { __rtwFocusReadFetches?: unknown }).__rtwFocusReadFetches ===
+        "function",
+    null,
+    { timeout: 30_000 },
+  );
+}
+
+async function readSubs(page: Page): Promise<ReadSnap | { unmeasurable: string }> {
+  return page.evaluate(() => {
+    const w = window as Window & { __rtwReadSubs?: () => ReadSnap };
+    if (typeof w.__rtwReadSubs !== "function") {
+      return { unmeasurable: "__rtwReadSubs missing" };
+    }
+    return w.__rtwReadSubs();
+  });
+}
+
+async function readFocusFetches(page: Page): Promise<FocusFetchSnap | { unmeasurable: string }> {
+  return page.evaluate(() => {
+    const w = window as Window & { __rtwFocusReadFetches?: () => FocusFetchSnap };
+    if (typeof w.__rtwFocusReadFetches !== "function") {
+      return { unmeasurable: "__rtwFocusReadFetches missing" };
+    }
+    return w.__rtwFocusReadFetches();
+  });
+}
+
+async function readVisibility(page: Page): Promise<string> {
+  return page.evaluate(() => document.visibilityState);
+}
+
+async function compact(page: Page, emulatorReqTotal: number): Promise<Compact> {
+  const snap = await readSubs(page);
+  const focus = await readFocusFetches(page);
+  const vis = await readVisibility(page);
+  const focusOk = !("unmeasurable" in focus);
+  if ("unmeasurable" in snap) {
+    return {
+      atMs: null,
+      visibilityState: vis,
+      rtdb: null,
+      trail: null,
+      cg: null,
+      ridesHub: null,
+      cgHub: null,
+      crossCheckOk: null,
+      emulatorReqTotal,
+      catalogFetchStarts: focusOk ? (focus.catalogFetchStarts ?? null) : null,
+      worldSyncStarts: focusOk ? (focus.worldSyncStarts ?? null) : null,
+      focusBySource: focusOk ? (focus.bySource ?? null) : null,
+    };
+  }
+  return {
+    atMs: snap.atMs ?? null,
+    visibilityState: vis,
+    rtdb: snap.underlying?.rtdbOnValue ?? null,
+    trail: snap.underlying?.trailOnSnapshot ?? null,
+    cg: snap.underlying?.collectionGroup ?? null,
+    ridesHub: snap.ridesHub ?? null,
+    cgHub: snap.activeLiveRideTrailIdsHub ?? null,
+    crossCheckOk: snap.crossCheck?.ok ?? null,
+    emulatorReqTotal,
+    catalogFetchStarts: focusOk ? (focus.catalogFetchStarts ?? null) : null,
+    worldSyncStarts: focusOk ? (focus.worldSyncStarts ?? null) : null,
+    focusBySource: focusOk ? (focus.bySource ?? null) : null,
+  };
+}
+
+async function setVisibility(page: Page, state: "hidden" | "visible"): Promise<void> {
+  await page.evaluate((next) => {
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      get: () => next,
+    });
+    Object.defineProperty(document, "hidden", {
+      configurable: true,
+      get: () => next === "hidden",
+    });
+    document.dispatchEvent(new Event("visibilitychange"));
+  }, state);
+}
+
+async function fireFocusOnly(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    window.dispatchEvent(new Event("focus"));
+    window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: false }));
+  });
+}
+
+function deltaMeter(before: UnderlyingMeter | null, after: UnderlyingMeter | null) {
+  if (!before || !after) return null;
+  return {
+    open: after.open - before.open,
+    openTotal: after.openTotal - before.openTotal,
+    closeTotal: after.closeTotal - before.closeTotal,
+  };
+}
+
+test.describe("focus-read visibility audit (emulator, Trailhead Guest)", () => {
+  test.skip(!UNDER_EMULATOR, "Firebase emulator required — npm run test:e2e:focus-read-audit");
+
+  test("focus-only vs hidden→visible vs repeat (no ride)", async ({ page }) => {
+    assertEmulatorHostOnly();
+    test.setTimeout(120_000);
+
+    let emulatorReqTotal = 0;
+    page.on("request", (req) => {
+      const url = req.url();
+      if (url.includes(":8080") || url.includes("firestore.googleapis.com") || url.includes("/google.firestore")) {
+        emulatorReqTotal += 1;
+      }
+    });
+
+    fs.mkdirSync(OUT_DIR, { recursive: true });
+    const samples: Record<string, Compact & { note?: string }> = {};
+    const notes: string[] = [];
+
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto("/");
+    await guestStart(page);
+    await waitMeters(page);
+
+    await expect
+      .poll(
+        async () => {
+          const c = await compact(page, emulatorReqTotal);
+          return c.cg?.open ?? -1;
+        },
+        { timeout: 45_000, message: "trailheadIdle: collectionGroup.open → ≥1" },
+      )
+      .toBeGreaterThanOrEqual(1);
+
+    await expect
+      .poll(
+        async () => {
+          const f = await readFocusFetches(page);
+          if ("unmeasurable" in f) return -1;
+          return f.catalogFetchStarts ?? -1;
+        },
+        { timeout: 30_000, message: "first catalog fetch start ≥1" },
+      )
+      .toBeGreaterThanOrEqual(1);
+
+    // Activity World first enable tick (basic hub ids keep sync enabled on empty emulator).
+    await expect
+      .poll(
+        async () => {
+          const f = await readFocusFetches(page);
+          if ("unmeasurable" in f) return -1;
+          return f.worldSyncStarts ?? -1;
+        },
+        { timeout: 30_000, message: "first world sync start ≥1" },
+      )
+      .toBeGreaterThanOrEqual(1);
+
+    await page.waitForTimeout(1_500);
+    samples.baseline = await compact(page, emulatorReqTotal);
+    notes.push(`emulatorHost=${EMULATOR_HOST}`);
+    notes.push(
+      `baseline cg.open=${samples.baseline.cg?.open} trail.open=${samples.baseline.trail?.open} rtdb.open=${samples.baseline.rtdb?.open}`,
+    );
+    notes.push(
+      `baseline catalogFetchStarts=${samples.baseline.catalogFetchStarts} worldSyncStarts=${samples.baseline.worldSyncStarts} (client invocation ≠ billed)`,
+    );
+
+    const beforeFocus = await compact(page, emulatorReqTotal);
+    expect(beforeFocus.visibilityState).toBe("visible");
+    await fireFocusOnly(page);
+    await page.waitForTimeout(800);
+    await fireFocusOnly(page);
+    await page.waitForTimeout(800);
+    samples.afterFocusOnly = await compact(page, emulatorReqTotal);
+    expect(samples.afterFocusOnly.visibilityState).toBe("visible");
+
+    const focusDelta = {
+      rtdb: deltaMeter(beforeFocus.rtdb, samples.afterFocusOnly.rtdb),
+      trail: deltaMeter(beforeFocus.trail, samples.afterFocusOnly.trail),
+      cg: deltaMeter(beforeFocus.cg, samples.afterFocusOnly.cg),
+      emulatorReq: samples.afterFocusOnly.emulatorReqTotal - beforeFocus.emulatorReqTotal,
+      catalogFetchStarts:
+        (samples.afterFocusOnly.catalogFetchStarts ?? 0) - (beforeFocus.catalogFetchStarts ?? 0),
+      worldSyncStarts:
+        (samples.afterFocusOnly.worldSyncStarts ?? 0) - (beforeFocus.worldSyncStarts ?? 0),
+    };
+    notes.push(
+      `focusOnlyΔ trail.openTotal=${focusDelta.trail?.openTotal} cg.openTotal=${focusDelta.cg?.openTotal} req=${focusDelta.emulatorReq} catalog=${focusDelta.catalogFetchStarts} world=${focusDelta.worldSyncStarts}`,
+    );
+
+    const beforeHide = await compact(page, emulatorReqTotal);
+    await setVisibility(page, "hidden");
+    await page.waitForTimeout(1_200);
+    samples.hidden = await compact(page, emulatorReqTotal);
+    expect(samples.hidden.visibilityState).toBe("hidden");
+
+    await setVisibility(page, "visible");
+    await page.waitForTimeout(2_500);
+    samples.afterVisibleOnce = await compact(page, emulatorReqTotal);
+    expect(samples.afterVisibleOnce.visibilityState).toBe("visible");
+
+    const hideShowDelta = {
+      fromBeforeHide: {
+        rtdb: deltaMeter(beforeHide.rtdb, samples.afterVisibleOnce.rtdb),
+        trail: deltaMeter(beforeHide.trail, samples.afterVisibleOnce.trail),
+        cg: deltaMeter(beforeHide.cg, samples.afterVisibleOnce.cg),
+        emulatorReq: samples.afterVisibleOnce.emulatorReqTotal - beforeHide.emulatorReqTotal,
+        catalogFetchStarts:
+          (samples.afterVisibleOnce.catalogFetchStarts ?? 0) - (beforeHide.catalogFetchStarts ?? 0),
+        worldSyncStarts:
+          (samples.afterVisibleOnce.worldSyncStarts ?? 0) - (beforeHide.worldSyncStarts ?? 0),
+      },
+      hiddenVsBefore: {
+        rtdb: deltaMeter(beforeHide.rtdb, samples.hidden.rtdb),
+        trail: deltaMeter(beforeHide.trail, samples.hidden.trail),
+        cg: deltaMeter(beforeHide.cg, samples.hidden.cg),
+      },
+    };
+    notes.push(
+      `hide→visibleΔ openTotal trail=${hideShowDelta.fromBeforeHide.trail?.openTotal} cg=${hideShowDelta.fromBeforeHide.cg?.openTotal} req=${hideShowDelta.fromBeforeHide.emulatorReq} catalog=${hideShowDelta.fromBeforeHide.catalogFetchStarts} world=${hideShowDelta.fromBeforeHide.worldSyncStarts}`,
+    );
+    notes.push(
+      `whileHiddenΔ open trail=${hideShowDelta.hiddenVsBefore.trail?.open} cg=${hideShowDelta.hiddenVsBefore.cg?.open}`,
+    );
+
+    const repeat: Array<{
+      i: number;
+      before: Compact;
+      hidden: Compact;
+      after: Compact;
+      openTotalTrailDelta: number | null;
+      openTrailAfter: number | null;
+      catalogDelta: number;
+      worldDelta: number;
+    }> = [];
+    for (let i = 1; i <= 3; i += 1) {
+      const before = await compact(page, emulatorReqTotal);
+      await setVisibility(page, "hidden");
+      await page.waitForTimeout(700);
+      const hidden = await compact(page, emulatorReqTotal);
+      await setVisibility(page, "visible");
+      await page.waitForTimeout(1_800);
+      const after = await compact(page, emulatorReqTotal);
+      const d = deltaMeter(before.trail, after.trail);
+      repeat.push({
+        i,
+        before,
+        hidden,
+        after,
+        openTotalTrailDelta: d?.openTotal ?? null,
+        openTrailAfter: after.trail?.open ?? null,
+        catalogDelta: (after.catalogFetchStarts ?? 0) - (before.catalogFetchStarts ?? 0),
+        worldDelta: (after.worldSyncStarts ?? 0) - (before.worldSyncStarts ?? 0),
+      });
+    }
+    samples.afterRepeat = await compact(page, emulatorReqTotal);
+
+    const openTrailValues = repeat.map((r) => r.openTrailAfter);
+    const openTotalTrailDeltas = repeat.map((r) => r.openTotalTrailDelta);
+    notes.push(`repeat openTrailAfter=[${openTrailValues.join(",")}]`);
+    notes.push(`repeat openTotalTrailΔ=[${openTotalTrailDeltas.join(",")}]`);
+    notes.push(
+      `repeat catalogΔ=[${repeat.map((r) => r.catalogDelta).join(",")}] worldΔ=[${repeat.map((r) => r.worldDelta).join(",")}]`,
+    );
+
+    if (
+      openTrailValues.every((v) => typeof v === "number") &&
+      openTrailValues[0] != null &&
+      openTrailValues[2] != null
+    ) {
+      expect(
+        openTrailValues[2]! - openTrailValues[0]!,
+        "trailOnSnapshot.open should not grow across repeated hide→visible (leak)",
+      ).toBeLessThanOrEqual(0);
+    }
+
+    expect(focusDelta.trail?.openTotal ?? 0, "focus-only must not open new trailOnSnapshot").toBe(0);
+    expect(focusDelta.cg?.openTotal ?? 0, "focus-only must not open new collectionGroup").toBe(0);
+    expect(focusDelta.rtdb?.openTotal ?? 0, "focus-only must not open new rtdbOnValue").toBe(0);
+    expect(focusDelta.catalogFetchStarts, "focus-only catalog fetch starts Δ").toBe(0);
+    expect(focusDelta.worldSyncStarts, "focus-only world sync starts Δ").toBe(0);
+
+    expect(
+      hideShowDelta.fromBeforeHide.catalogFetchStarts,
+      "quick hide→visible must not start extra catalog fetch",
+    ).toBe(0);
+    expect(
+      hideShowDelta.fromBeforeHide.worldSyncStarts,
+      "quick hide→visible must not start extra world full sync",
+    ).toBe(0);
+
+    expect(samples.baseline.catalogFetchStarts ?? 0).toBeGreaterThanOrEqual(1);
+
+    const payload = {
+      instruction: "04-task-focus-read-fix",
+      capturedAt: new Date().toISOString(),
+      emulatorHost: EMULATOR_HOST,
+      scenario: "guest-trailhead-no-ride",
+      compareStatesUsing: "open",
+      metersNote: "focusReadFetches are client invocations, not billed reads",
+      notes,
+      focusDelta,
+      hideShowDelta,
+      repeatSummary: {
+        openTrailAfter: openTrailValues,
+        openTotalTrailDeltas,
+        catalogDeltas: repeat.map((r) => r.catalogDelta),
+        worldDeltas: repeat.map((r) => r.worldDelta),
+      },
+      samples,
+      repeat,
+    };
+    const outPath = path.join(OUT_DIR, "focus-read-visibility-audit.json");
+    fs.writeFileSync(outPath, JSON.stringify(payload, null, 2) + "\n");
+    notes.push(`wrote ${outPath}`);
+  });
+});

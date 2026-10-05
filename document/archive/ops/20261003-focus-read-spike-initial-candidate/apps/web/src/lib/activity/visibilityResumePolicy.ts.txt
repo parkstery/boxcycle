@@ -1,0 +1,55 @@
+import { ACTIVITY_WORLD_POLL_ACTIVE_MS } from "./activityWorldPollConstants";
+
+/**
+ * 짧은 숨김→표시 복귀 시 단발 재조회를 줄이기 위한 순수 정책.
+ *
+ * 신선도 창은 새 TTL을 만들지 않고 호출측이 넘긴 `freshWithinMs` /
+ * `nextDueAtMs`(기존 poll 스케줄)를 재사용한다.
+ */
+
+/**
+ * 공개 Route 카탈로그 visibility 복귀 신선도 —
+ * Activity World active poll 주기와 동일 값을 재사용(새 TTL 금지).
+ */
+export const PUBLIC_CATALOG_VISIBILITY_FRESH_MS = ACTIVITY_WORLD_POLL_ACTIVE_MS;
+
+export type FreshFetchDecisionInput = {
+  force: boolean;
+  lastSuccessAtMs: number;
+  nowMs: number;
+  /** 예: ACTIVITY_WORLD_POLL_ACTIVE_MS (60s) */
+  freshWithinMs: number;
+  /** 직전 조회가 오류였으면 재시도 허용 */
+  hasError: boolean;
+};
+
+/** true면 네트워크 조회를 건너뛰고 최근 성공 데이터를 재사용한다. */
+export function shouldSkipFreshFetch(input: FreshFetchDecisionInput): boolean {
+  if (input.force) return false;
+  if (input.hasError) return false;
+  if (!(input.lastSuccessAtMs > 0)) return false;
+  if (!(input.freshWithinMs > 0)) return false;
+  return input.nowMs - input.lastSuccessAtMs < input.freshWithinMs;
+}
+
+export type PollResumeDelayInput = {
+  lastSuccessAtMs: number;
+  /** 숨김 전에 잡혀 있던 다음 tick 시각. 없으면 0 */
+  nextDueAtMs: number;
+  nowMs: number;
+  /** selfRide / refreshNonce / 최초 enable 등 — 즉시 1회 */
+  forceImmediate: boolean;
+};
+
+/**
+ * poll 재개 시 대기 ms.
+ * - 0: 즉시 1회 tick (최초·stale·강제)
+ * - >0: 남은 스케줄만 이어 간다 (빠른 복귀)
+ */
+export function resolvePollResumeDelayMs(input: PollResumeDelayInput): number {
+  if (input.forceImmediate) return 0;
+  if (!(input.lastSuccessAtMs > 0)) return 0;
+  if (!(input.nextDueAtMs > 0)) return 0;
+  const remaining = input.nextDueAtMs - input.nowMs;
+  return remaining > 0 ? remaining : 0;
+}
