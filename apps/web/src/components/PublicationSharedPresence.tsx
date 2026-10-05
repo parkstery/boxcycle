@@ -28,6 +28,12 @@ import {
   resetPeerMotionRegistry,
   syncPeerMotionFromPresence,
   isRtdbMotionRowPeerVisibleByReceiverObs,
+  acquireServerClockOffset,
+  setCompanionDisplayActive,
+  resetCommonDisplayClock,
+  resetSelfDisplayBuffer,
+  getPeerMotionRegistry,
+  subscribeServerClockDiscontinuity,
 } from "../lib/peerMotion";
 import type { RtdbTrailMotionRow } from "../lib/peerMotion/repo/rtdbTrailMotion";
 import { countOtherLiveRidePeers, peerHudStableKey, type PeerHudEntry } from "../lib/peerMotion/peerHud";
@@ -150,12 +156,35 @@ export function PublicationSharedPresence({
       onPeerHudChangeRef.current?.([]);
       publishOtherLiveRiderCount(0);
       resetPeerMotionRegistry();
+      resetSelfDisplayBuffer();
+      resetCommonDisplayClock();
+      setCompanionDisplayActive(false);
     };
   }, []);
 
   useEffect(() => {
     resetPeerMotionRegistry();
+    resetSelfDisplayBuffer();
+    resetCommonDisplayClock();
+    setCompanionDisplayActive(false);
   }, [publicationId]);
+
+  useEffect(() => {
+    if (!pageVisible || !isFirebaseDatabaseConfigured()) return;
+    const tid = sanitizeTrailId(trailId);
+    if (tid === DEFAULT_TRAIL_ID) return;
+    const releaseClock = acquireServerClockOffset();
+    const unsubJump = subscribeServerClockDiscontinuity(() => {
+      // 큰 offset jump — 구/신 축 버퍼 혼용 금지.
+      resetSelfDisplayBuffer();
+      resetCommonDisplayClock();
+      getPeerMotionRegistry().rebaseServerTimelineEntities();
+    });
+    return () => {
+      unsubJump();
+      releaseClock();
+    };
+  }, [pageVisible, trailId]);
 
   useEffect(() => {
     let cancelled = false;

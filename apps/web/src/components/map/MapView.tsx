@@ -2160,7 +2160,7 @@ export function MapView({
     }
   }, [liveLngLat, liveRiderNametag, mapLoaded]);
 
-  /** Self-location — 화면 고정 px dot. live nametag·GLB 라이더와 별 요소, `liveLngLat`(=liveForMap) 좌표만 재사용 */
+  /** Self-location — 화면 고정 px dot. rAF(sampleLiveLngLat) 가 위치를 소유하면 React liveLngLat(raw HUD)로 덮어쓰지 않는다. */
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
@@ -2170,7 +2170,8 @@ export function MapView({
         const mounted = mountSelfLocationMarker(map, liveLngLat);
         selfLocationMarkerRef.current = mounted.marker;
         selfLocationBearingRef.current = mounted.bearingEl;
-      } else {
+      } else if (!sampleLiveLngLat) {
+        // sample 경로가 없으면(비주행) prop 좌표로 갱신.
         selfLocationMarkerRef.current.setLngLat(liveLngLat);
       }
     } else {
@@ -2179,7 +2180,7 @@ export function MapView({
       selfLocationBearingRef.current = null;
       selfLocationGeoBearingRef.current = null;
     }
-  }, [liveLngLat, mapLoaded]);
+  }, [liveLngLat, mapLoaded, sampleLiveLngLat]);
 
   /** 본인·동행 라이더: rAF 로 위치·방향·페달 갱신 (동행 motion 은 PeerMotionRegistry) */
   useEffect(() => {

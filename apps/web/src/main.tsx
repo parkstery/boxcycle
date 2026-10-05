@@ -8,11 +8,13 @@ import { installReadSubscriptionDebug } from './lib/debug/installReadSubscriptio
 import { installTouchActivityDebug } from './lib/debug/installTouchActivityDebug'
 import { installHudCompanionDebug } from './lib/debug/installHudCompanionDebug'
 import { installTrafficPublishDebug } from './lib/debug/installTrafficPublishDebug'
+import { installPeerIngestDiag } from './lib/debug/peerIngestDiag'
 
 installReadSubscriptionDebug()
 installTouchActivityDebug()
 installHudCompanionDebug()
 installTrafficPublishDebug()
+installPeerIngestDiag()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

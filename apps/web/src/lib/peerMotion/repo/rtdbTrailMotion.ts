@@ -23,6 +23,10 @@ import {
   noteRtdbMotionWriteError,
   noteRtdbMotionWriteOk,
 } from "../../debug/trafficPublishMeters";
+import {
+  quantizeMotionWireDistM,
+  quantizeMotionWireSpeedMps,
+} from "../motionWireQuantize";
 
 /** RTDB `/trails/{trailId}/motion/{uid}` */
 export const RTDB_TRAIL_MOTION_SEGMENT = "motion";
@@ -54,6 +58,8 @@ export type RtdbTrailMotionSnapshot = {
   distM: number;
   speedMps: number;
   ridePhase: TrailLiveRidePhase;
+  /** 캡처 순간 추정 서버시각 — encode 재샘플 금지 */
+  tSrv?: number;
 };
 
 export type RtdbTrailMotionRow = {
@@ -63,6 +69,8 @@ export type RtdbTrailMotionRow = {
   speedMps: number;
   ridePhase: TrailLiveRidePhase;
   serverAtMs: number;
+  /** wire optional — 캡처 순간 추정 서버시각 */
+  tSrv?: number;
   /** DEV S3-DIAG — encodePayload `s` (없을 수 있음) */
   seq?: number;
 };
@@ -73,6 +81,8 @@ type RtdbMotionPayload = {
   v: number;
   ph: TrailLiveRidePhase;
   t: number;
+  /** optional — capture-time estimated server ms */
+  tSrv?: number;
   /** DEV S3-DIAG 상관 ID — 없어도 decode 됨 */
   s?: number;
 };
@@ -97,11 +107,15 @@ function disconnectKey(trailId: string, uid: string): string {
 export function encodePayload(input: RtdbTrailMotionSnapshot, seq?: number): RtdbMotionPayload {
   const payload: RtdbMotionPayload = {
     p: input.publicationId.trim(),
-    d: Math.round(Math.max(0, input.distM) * 10) / 10,
-    v: Math.round(Math.max(0, input.speedMps) * 100) / 100,
+    d: quantizeMotionWireDistM(input.distM),
+    v: quantizeMotionWireSpeedMps(input.speedMps),
     ph: input.ridePhase,
     t: Date.now(),
   };
+  if (typeof input.tSrv === "number" && Number.isFinite(input.tSrv) && input.tSrv > 0) {
+    // 캡처 스냅샷 시각 유지 — encode 직전 재샘플 금지.
+    payload.tSrv = Math.floor(input.tSrv);
+  }
   if (import.meta.env.DEV && typeof seq === "number" && Number.isFinite(seq)) {
     payload.s = Math.floor(seq);
   }
@@ -116,6 +130,11 @@ function decodeRow(uid: string, val: unknown): RtdbTrailMotionRow | null {
   const speedMps = typeof o.v === "number" ? o.v : 0;
   const ridePhase = o.ph;
   const serverAtMs = typeof o.t === "number" ? o.t : 0;
+  const tSrvRaw = o.tSrv;
+  const tSrv =
+    typeof tSrvRaw === "number" && Number.isFinite(tSrvRaw) && tSrvRaw > 0
+      ? tSrvRaw
+      : undefined;
   const seqRaw = o.s;
   const seq =
     typeof seqRaw === "number" && Number.isFinite(seqRaw) ? Math.floor(seqRaw) : undefined;
@@ -128,8 +147,17 @@ function decodeRow(uid: string, val: unknown): RtdbTrailMotionRow | null {
     speedMps: Math.max(0, speedMps),
     ridePhase,
     serverAtMs,
+    ...(tSrv != null ? { tSrv } : {}),
     ...(seq != null ? { seq } : {}),
   };
+}
+
+/** 시험·하네스 — wire payload → row (구버전 tSrv 생략 포함) */
+export function decodeTrailMotionPayload(
+  uid: string,
+  val: unknown,
+): RtdbTrailMotionRow | null {
+  return decodeRow(uid, val);
 }
 
 async function ensureMotionOnDisconnect(trailId: string, uid: string): Promise<void> {
@@ -264,11 +292,15 @@ export function snapshotToRtdbTrailMotionSnapshot(snapshot: {
   distMetersAlongRoute: number;
   speedMps: number;
   routeRidePhase: "live" | "paused";
+  tSrv?: number;
 }): RtdbTrailMotionSnapshot {
   return {
     publicationId: snapshot.publicationId,
     distM: snapshot.distMetersAlongRoute,
     speedMps: snapshot.speedMps,
     ridePhase: snapshot.routeRidePhase,
+    ...(typeof snapshot.tSrv === "number" && Number.isFinite(snapshot.tSrv) && snapshot.tSrv > 0
+      ? { tSrv: snapshot.tSrv }
+      : {}),
   };
 }

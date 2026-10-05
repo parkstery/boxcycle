@@ -16,6 +16,7 @@ import {
   peekSampleTargetSpeedKmh,
   peekSampleVirtualDistanceM,
 } from "../peerMotion/peerSyncDistanceSamplers";
+import { captureEstimatedServerNowMs } from "../peerMotion/commonDisplayClock";
 
 /** compute-once → fan-out publish 입력 */
 export type LiveLocationPublishInput = {
@@ -63,6 +64,8 @@ export function buildLiveLocationSnapshot(input: LiveLocationPublishInput): Live
       : Number.isFinite(speedKmh)
         ? Math.max(0, speedKmh / 3.6)
         : 0;
+  // 캡처 순간 추정 서버시각 — encode/큐에서 재샘플하지 않도록 스냅샷에 고정.
+  const tSrv = captureEstimatedServerNowMs() ?? undefined;
   return {
     lngLat: roundLngLatForLiveShare(input.lngLat),
     trailId: sanitizeTrailId(input.trailId),
@@ -76,6 +79,7 @@ export function buildLiveLocationSnapshot(input: LiveLocationPublishInput): Live
     routeReady,
     speedMps,
     routeRidePhase: input.routeRidePhase ?? "live",
+    ...(tSrv != null ? { tSrv } : {}),
     ...(import.meta.env.DEV
       ? {
           diagCapture: {

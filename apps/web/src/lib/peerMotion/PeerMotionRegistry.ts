@@ -20,8 +20,15 @@ import {
 import type { PeerMotionEntity, PeerMotionPacket } from "./types";
 import { PEER_LIVE_RIDE_STALE_MS } from "../trail/trailLivePolicy";
 import { notePeerSmoothness } from "../debug/peerSmoothnessProbe";
+import { notePeerFrameDiag } from "../debug/peerIngestDiag";
 import { getPeerSyncSelfDistM } from "./peerSyncDebug";
 import { peerSyncChainLog, peerSyncChainShouldEmit } from "./peerSyncChainLog";
+import {
+  ensureFrameDisplayRenderTimeMs,
+  isCompanionDisplayActive,
+  sharedDisplayCommonNowMs,
+} from "./commonDisplayClock";
+import { isServerClockUncertain } from "./repo/serverClockOffset";
 
 const PEER_MAX = 30;
 
@@ -187,6 +194,15 @@ export class PeerMotionRegistry {
     this.activeUids = new Set(uids);
   }
 
+  /** 동행 표시(D=600) 활성 여부 — 활성 peer 가 1명 이상 */
+  hasActivePeers(): boolean {
+    return this.activeUids.size > 0 || this.entities.size > 0;
+  }
+
+  activePeerCount(): number {
+    return this.activeUids.size;
+  }
+
   remove(uid: string): void {
     this.entities.delete(uid);
     this.activeUids.delete(uid);
@@ -224,11 +240,54 @@ export class PeerMotionRegistry {
   step(dtSec: number, routeGeometry: LineStringGeometry | null, nowMs: number = Date.now()): void {
     const routeLenM = routeGeometry ? lineStringLengthMeters(routeGeometry) : 0;
     const clampedDt = Math.min(0.12, Math.max(0, dtSec));
+    const commonNow = sharedDisplayCommonNowMs(nowMs);
+    // self sample 이 같은 프레임에 이미 전진시켰으면 peek, 아니면 여기서 한 번만.
+    const frameRenderTime =
+      commonNow != null && !isServerClockUncertain() && isCompanionDisplayActive()
+        ? ensureFrameDisplayRenderTimeMs(nowMs)
+        : null;
     for (const entity of this.entities.values()) {
-      stepPeerMotionEntity(entity, clampedDt, routeLenM, nowMs);
+      if (entity.serverTimeline && frameRenderTime != null) {
+        stepPeerMotionEntity(entity, clampedDt, routeLenM, nowMs, {
+          lockedRenderTimeMs: frameRenderTime,
+        });
+      } else {
+        const stepNow =
+          entity.serverTimeline && commonNow != null ? commonNow : nowMs;
+        stepPeerMotionEntity(entity, clampedDt, routeLenM, stepNow);
+      }
     }
     // 화면 위 속도를 잰다(DEV 전용). 여기가 **적분이 끝난 직후**라 화면과 같은 값이다.
     notePeerSmoothness(this.entities.values(), nowMs);
+    if (import.meta.env.DEV) {
+      for (const entity of this.entities.values()) {
+        notePeerFrameDiag({
+          atMs: nowMs,
+          uid: entity.uid,
+          peerRawDistM: entity.displayDistM,
+          serverTimeline: entity.serverTimeline,
+        });
+      }
+    }
+  }
+
+  /** harness — 반올림 없는 표시 거리 */
+  getRawDisplayDistM(uid: string): number | null {
+    const e = this.entities.get(uid);
+    return e ? e.displayDistM : null;
+  }
+
+  /** clock jump / publication 전환 — 서버축 엔티티 버퍼만 비우고 재생 시계 rebase */
+  rebaseServerTimelineEntities(): void {
+    for (const entity of this.entities.values()) {
+      if (!entity.serverTimeline) continue;
+      const newest = entity.buffer[entity.buffer.length - 1];
+      if (!newest) continue;
+      entity.buffer = [newest];
+      entity.renderClockMs = null;
+      entity.lastStepNowMs = 0;
+      entity.displayDistM = newest.distM;
+    }
   }
 
   buildRenderFeatures(routeGeometry: LineStringGeometry | null): PeerMotionRenderFeature[] {

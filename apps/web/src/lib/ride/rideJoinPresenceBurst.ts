@@ -5,6 +5,7 @@ import { mergeRideLiveProgress, touchTrailActivityForRideJoin } from "../trail/t
 import type { LiveLocationSnapshot } from "./liveLocationSnapshot";
 import { isMotionTransportConfigured } from "../peerMotion";
 import { enqueueMotionPublish, peekMotionPublishEpoch } from "../peerMotion/motionPublishFlight";
+import { pushSelfDisplaySample } from "../peerMotion/selfDisplayBuffer";
 
 /** 주행 시작 직후 1회 — 세션 멤버 + livePublicationRides (스로틀 우회) */
 export async function flushRideJoinPresenceBurst(
@@ -31,6 +32,13 @@ export async function flushRideJoinPresenceBurst(
       snapshot,
       epoch: peekMotionPublishEpoch(),
     });
+    if (typeof snapshot.tSrv === "number" && snapshot.tSrv > 0) {
+      pushSelfDisplaySample({
+        tSrv: snapshot.tSrv,
+        distM: snapshot.distMetersAlongRoute,
+        speedMps: snapshot.speedMps,
+      });
+    }
   }
 
   if (snapshot.trailId !== DEFAULT_TRAIL_ID) {

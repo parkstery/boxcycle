@@ -4,6 +4,14 @@ import { getPointOnRouteByDistance, lineStringLengthMeters } from "../lib/geo/ge
 import { rideDistanceAlongRoute } from "../lib/ride/liveLocationSnapshot";
 import { stepRideSpeedKmh } from "../lib/ride/rideSpeedRamp";
 import { registerPeerSyncDistanceSamplers } from "../lib/peerMotion/peerSyncDistanceSamplers";
+import {
+  advanceSelfDisplayRenderTimeMs,
+  companionDisplayDelayMs,
+  isDisplayRenderCatchingUp,
+  resetCommonDisplayClock,
+  sampleSelfDisplayDistM,
+  resetSelfDisplayBuffer,
+} from "../lib/peerMotion";
 
 export type RideSessionStatus = "idle" | "running" | "paused";
 
@@ -157,6 +165,8 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
     lastAnimTsRef.current = null;
     lastUiTsRef.current = null;
     appliedSpeedRef.current = 0;
+    resetSelfDisplayBuffer();
+    resetCommonDisplayClock();
     setMetricsUi({
       virtualDistanceMeters: offset,
       accumulatedMs: 0,
@@ -176,15 +186,25 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
   }, []);
 
   /**
-   * rAF 루프 내부 거리·경로 기준 위치 — React METRICS_UI_MS throttle 없이 맵 마커용.
-   * idle 이면 null, paused 는 마지막 거리 고정.
+   * rAF 맵·카메라용 위치. 동행이면 송신과 같은 motion 표본 버퍼를 공통 frame renderTime 으로 보간.
+   * delay=0(solo/leave) 이어도 시계를 전진시켜 D600→0 catch-up 이 끊기지 않게 한다.
+   * HUD `metricsUi.virtualDistanceMeters` 는 즉시 실제값 유지.
    */
   const sampleLiveLngLat = useCallback((): LngLat | null => {
     if (statusRef.current === "idle") return null;
     const geom = routeGeometryRef.current;
     const routeLen = routeDistanceRef.current;
     const geoLen = geom ? lineStringLengthMeters(geom) : 0;
-    const dist = rideDistanceAlongRoute(virtualDistanceRef.current, routeLen, geoLen);
+    const now = Date.now();
+    const renderTime = advanceSelfDisplayRenderTimeMs(now);
+    const delayed = sampleSelfDisplayDistM(renderTime);
+    const delayMs = companionDisplayDelayMs();
+    const catchingUp = isDisplayRenderCatchingUp(now);
+    let distSource = virtualDistanceRef.current;
+    if (delayed != null && (delayMs > 0 || catchingUp)) {
+      distSource = delayed;
+    }
+    const dist = rideDistanceAlongRoute(distSource, routeLen, geoLen);
     return geom ? getPointOnRouteByDistance(geom, dist) : null;
   }, []);
 

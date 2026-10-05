@@ -7,7 +7,9 @@ import { getPeerMotionRegistry } from "./PeerMotionRegistry";
 import { rtdbMotionRowToPeerMotionPacket } from "./rtdbToPacket";
 import { trailLiveRowToPeerMotionPacket } from "./rowToPacket";
 import { notePeerSeqSeen, peerSyncChainLog } from "./peerSyncChainLog";
-import type { PeerMotionPacket } from "./types";
+import type { PeerMotionPacket, PeerMotionTimeQuality } from "./types";
+import { setCompanionDisplayActive } from "./commonDisplayClock";
+import { notePeerIngestDiag } from "../debug/peerIngestDiag";
 
 /**
  * 이름표를 붙이는 데 **필요한 것만** 적는다.
@@ -54,6 +56,13 @@ type DualIngestStampObs = {
   fingerprint: string;
   source: "rtdb" | "fs";
   motionFp: string;
+  /** 마지막 원본(송신 t / FS lastSeenAt) 시각 */
+  nativeServerAtMs: number;
+  /**
+   * 수신 축 매핑: normalized = native + offsetMs.
+   * 동일 source 동안 고정 — 송신 시간 증가량을 보간에 보존한다.
+   */
+  offsetMs: number;
   normalizedServerAtMs: number;
 };
 
@@ -63,12 +72,157 @@ const rtdbContentObsByUid = new Map<string, RtdbContentObs>();
 /**
  * 이중 소스 ingest 시각 정규화 상태.
  * 내용이 같으면 같은 normalizedServerAtMs 를 유지해 Registry liveness 가 만료될 수 있게 한다(TASK-30C).
+ * 동일 source 동안은 native Δt 를 보존하고, source 전환 시에만 offset 을 재정렬한다.
  */
 const dualIngestStampByUid = new Map<string, DualIngestStampObs>();
+
+/**
+ * 표시축 tip — capture(권위) 또는 estimated(FS 연속).
+ * publication|uid 키로 이전 Trail 앵커 유입을 막는다.
+ */
+export type ServerCaptureAnchor = {
+  publicationId: string;
+  tSrv: number;
+  distM: number;
+  speedMps: number;
+  quality: PeerMotionTimeQuality;
+};
+
+/** 거리/속도로 복원하는 추정 전진 상한(ms). FS 4s 성김 연속용 — 정확한 캡처 복원 아님. */
+export const ESTIMATED_TSRV_MAX_ADVANCE_MS = 8_000;
+
+const lastCaptureByKey = new Map<string, ServerCaptureAnchor>();
+const lastDisplayTipByKey = new Map<string, ServerCaptureAnchor>();
+
+function timelineKey(publicationId: string, uid: string): string {
+  return `${publicationId}|${uid}`;
+}
+
+function packetHasFiniteTsrv(packet: PeerMotionPacket): boolean {
+  return typeof packet.tSrv === "number" && Number.isFinite(packet.tSrv) && packet.tSrv > 0;
+}
+
+function resolvePacketTimeQuality(
+  packet: PeerMotionPacket,
+  pickSource: "rtdb" | "fs",
+): PeerMotionTimeQuality | "none" {
+  if (!packetHasFiniteTsrv(packet)) return "none";
+  if (packet.tSrvQuality === "estimated") return "estimated";
+  if (packet.tSrvQuality === "capture") return "capture";
+  // 구경로: tSrv 만 있고 quality 없음 → RTDB 캡처로 간주
+  return pickSource === "rtdb" ? "capture" : "estimated";
+}
 
 export function resetPeerMotionRtdbContentObservations(): void {
   rtdbContentObsByUid.clear();
   dualIngestStampByUid.clear();
+  lastCaptureByKey.clear();
+  lastDisplayTipByKey.clear();
+}
+
+/** 시험용 — 권위 capture anchor (estimated tip 아님) */
+export function peekServerCaptureAnchorForTests(
+  publicationId: string,
+  uid: string,
+): ServerCaptureAnchor | null {
+  return lastCaptureByKey.get(timelineKey(publicationId, uid)) ?? null;
+}
+
+/** 시험용 — FS 연속용 표시 tip (capture 또는 estimated) */
+export function peekDisplayTimelineTipForTests(
+  publicationId: string,
+  uid: string,
+): ServerCaptureAnchor | null {
+  return lastDisplayTipByKey.get(timelineKey(publicationId, uid)) ?? null;
+}
+
+/**
+ * FS 폴백 패킷에 **표시축** tip 을 거리 연속으로 이어 붙인다.
+ *
+ * 결과는 항상 `tSrvQuality: "estimated"` — 권위 capture 와 구별한다.
+ * 거리/속도로는 캡처 시각을 정확히 복원할 수 없으므로 연속 fallback 전용이며,
+ * NaN/무한/과도 전진을 clamp 한다. 정지·역행은 tip 을 뒤로 밀지 않는다.
+ */
+export function bridgeFsPacketToServerTimeline(
+  packet: PeerMotionPacket,
+  last: Pick<ServerCaptureAnchor, "tSrv" | "distM" | "speedMps">,
+): PeerMotionPacket {
+  // 이미 권위 capture tSrv 가 있으면 추정으로 덮지 않는다.
+  if (packetHasFiniteTsrv(packet) && packet.tSrvQuality !== "estimated") {
+    return packet.tSrvQuality === "capture"
+      ? packet
+      : { ...packet, tSrvQuality: "capture" };
+  }
+  const dDist = packet.distM - last.distM;
+  const packetSpeed = packet.speedMps > 0.02 ? packet.speedMps : 0;
+  const lastSpeed = last.speedMps > 0.02 ? last.speedMps : 0;
+  // 역행·frozen·정지: tip 유지. 정지 이탈=현재속도, 순항/가감속=평균(가속 tip 지연 완화).
+  let advanceMs = 0;
+  if (dDist > 0.05 && packetSpeed > 0.02) {
+    const speed = lastSpeed <= 0.02 ? packetSpeed : (packetSpeed + lastSpeed) / 2;
+    advanceMs = (dDist / speed) * 1000;
+  }
+  if (!Number.isFinite(advanceMs) || advanceMs < 0) advanceMs = 0;
+  if (advanceMs > ESTIMATED_TSRV_MAX_ADVANCE_MS) {
+    advanceMs = ESTIMATED_TSRV_MAX_ADVANCE_MS;
+  }
+  const tSrv = last.tSrv + advanceMs;
+  if (!Number.isFinite(tSrv) || tSrv <= 0) {
+    return { ...packet, tSrv: last.tSrv, tSrvQuality: "estimated" };
+  }
+  return { ...packet, tSrv, tSrvQuality: "estimated" };
+}
+
+/**
+ * 권위 capture 와 표시 tip 을 분리 갱신한다.
+ * estimated 는 capture 를 덮지 않고, 늦은/역행 capture 는 anchor 를 되돌리지 않는다.
+ */
+function rememberServerCapture(
+  uid: string,
+  packet: PeerMotionPacket,
+  pickSource: "rtdb" | "fs",
+): void {
+  if (!packetHasFiniteTsrv(packet)) return;
+  const quality = resolvePacketTimeQuality(packet, pickSource);
+  if (quality === "none") return;
+
+  const key = timelineKey(packet.publicationId, uid);
+  const next: ServerCaptureAnchor = {
+    publicationId: packet.publicationId,
+    tSrv: packet.tSrv!,
+    distM: packet.distM,
+    speedMps: packet.speedMps,
+    quality,
+  };
+
+  if (quality === "capture") {
+    const prevCap = lastCaptureByKey.get(key);
+    // 늦은 RTDB — 권위 capture 를 과거로 되돌리지 않음
+    if (prevCap && next.tSrv + 0.5 < prevCap.tSrv) {
+      return;
+    }
+    lastCaptureByKey.set(key, next);
+    const prevTip = lastDisplayTipByKey.get(key);
+    // 복구 snap 방지: estimated tip 보다 과거 capture 로 표시 tip 을 되감지 않음.
+    // 권위 시각은 lastCapture 에만 두고, tip/ingest 축은 단조 유지.
+    if (
+      prevTip &&
+      prevTip.publicationId === next.publicationId &&
+      next.tSrv + 0.5 < prevTip.tSrv
+    ) {
+      lastDisplayTipByKey.set(key, { ...next, tSrv: prevTip.tSrv });
+    } else {
+      lastDisplayTipByKey.set(key, next);
+    }
+    return;
+  }
+
+  // estimated — 표시 tip 만. capture 오염 금지.
+  const prevTip = lastDisplayTipByKey.get(key);
+  if (prevTip && prevTip.publicationId === next.publicationId && next.tSrv + 0.5 < prevTip.tSrv) {
+    return;
+  }
+  lastDisplayTipByKey.set(key, next);
 }
 
 function rtdbContentFingerprint(row: RtdbTrailMotionRow): string {
@@ -125,10 +279,15 @@ export function selectPeerMotionPacketForIngest(
 }
 
 /**
- * 이중 소스 선택 결과의 네이티브 송신/FS 시각을 수신 now 로 옮긴다.
- * **소스 내용(핑거프린트)이 바뀔 때만** normalizedServerAtMs 를 갱신한다.
- * 매 sync 마다 nowMs 로 덮으면 frozen 재배달이 영원히 신선해진다(TASK-30C).
- * 같은 자세에서 RTDB↔FS 전환만 일어나면 stamp 를 유지해 15s liveness 가 늘어나지 않게 한다.
+ * 선택 패킷(RTDB-only / dual / FS-only)의 네이티브 송신·FS 시각을 수신 축으로 옮긴다.
+ * 함수명은 historical dual naming을 유지한다 — 적용 범위는 all-source.
+ *
+ * - 동일 source: `normalized = native + offset`(offset 고정) → 송신 Δt 보존.
+ * - source 전환(내용 변경): 이 패킷만 `nowMs` 에 맞춰 offset 재정렬.
+ * - frozen 재배달: stamp 유지(TASK-30C — 매 sync nowMs 덮어쓰기 금지).
+ * - 같은 자세에서 RTDB↔FS 전환만: stamp 유지해 15s liveness 가 늘어나지 않게 한다.
+ *
+ * 과거 결함: 내용 변화마다 `serverAtMs := nowMs` 로 찍어 도착 지터가 속도 지터가 됐다.
  */
 export function stampDualSourceIngestPacket(
   uid: string,
@@ -136,28 +295,71 @@ export function stampDualSourceIngestPacket(
   source: "rtdb" | "fs",
   nowMs: number,
 ): PeerMotionPacket {
+  // 공통 서버축(tSrv) — 수신 시각으로 재정규화하면 창마다 축이 갈라진다.
+  if (typeof selected.tSrv === "number" && Number.isFinite(selected.tSrv) && selected.tSrv > 0) {
+    return selected;
+  }
+
+  const native = selected.serverAtMs;
+  const nativeOk = Number.isFinite(native) && native > 0;
   const motionFp = `${selected.distM}|${selected.speedMps}|${selected.phase}`;
-  const fingerprint = `${source}|${selected.serverAtMs}|${selected.seq ?? ""}|${motionFp}`;
+  const fingerprint = `${source}|${native}|${selected.seq ?? ""}|${motionFp}`;
   const prev = dualIngestStampByUid.get(uid);
-  if (!prev || prev.fingerprint !== fingerprint) {
-    if (prev && prev.motionFp === motionFp && prev.source !== source) {
-      dualIngestStampByUid.set(uid, {
-        fingerprint,
-        source,
-        motionFp,
-        normalizedServerAtMs: prev.normalizedServerAtMs,
-      });
-      return { ...selected, serverAtMs: prev.normalizedServerAtMs };
-    }
+
+  if (prev && prev.fingerprint === fingerprint) {
+    return { ...selected, serverAtMs: prev.normalizedServerAtMs };
+  }
+
+  // 같은 자세 · 소스만 전환 — liveness stamp 유지, 새 source 의 offset 은 그 축에 맞춤.
+  if (prev && prev.motionFp === motionFp && prev.source !== source) {
+    const offsetMs = nativeOk
+      ? prev.normalizedServerAtMs - native
+      : prev.offsetMs;
     dualIngestStampByUid.set(uid, {
       fingerprint,
       source,
       motionFp,
-      normalizedServerAtMs: nowMs,
+      nativeServerAtMs: nativeOk ? native : prev.nativeServerAtMs,
+      offsetMs,
+      normalizedServerAtMs: prev.normalizedServerAtMs,
     });
-    return { ...selected, serverAtMs: nowMs };
+    return { ...selected, serverAtMs: prev.normalizedServerAtMs };
   }
-  return { ...selected, serverAtMs: prev.normalizedServerAtMs };
+
+  let offsetMs: number;
+  let normalizedServerAtMs: number;
+  if (!nativeOk) {
+    offsetMs = 0;
+    normalizedServerAtMs = nowMs;
+  } else if (!prev || prev.source !== source) {
+    // 최초 또는 source 전환(내용 변경): 수신 now 에 정렬.
+    offsetMs = nowMs - native;
+    normalizedServerAtMs = nowMs;
+  } else {
+    // 동일 source: 원본 시각 증가량 보존 (도착 nowMs 재지정 금지).
+    offsetMs = prev.offsetMs;
+    normalizedServerAtMs = native + offsetMs;
+    /*
+     * 인과 클램프 — 수신 축 stamp 는 now 보다 미래일 수 없다.
+     * 낡은 FS 스냅샷으로 source 진입해 offset 이 커진 뒤, 다음 FS 가 native 를
+     * 한꺼번에 따라잡으면 stamp 가 미래로 나가 clockOffset 이 음수로 붕괴한다
+     * (TASK-30 8s silent-freeze 회귀). 늦은 패킷(stamp < now)은 그대로 두어 Δt 를 지킨다.
+     */
+    if (normalizedServerAtMs > nowMs) {
+      normalizedServerAtMs = nowMs;
+      offsetMs = nowMs - native;
+    }
+  }
+
+  dualIngestStampByUid.set(uid, {
+    fingerprint,
+    source,
+    motionFp,
+    nativeServerAtMs: nativeOk ? native : 0,
+    offsetMs,
+    normalizedServerAtMs,
+  });
+  return { ...selected, serverAtMs: normalizedServerAtMs };
 }
 
 /**
@@ -212,9 +414,9 @@ export function syncPeerMotionFromPresence(input: SyncPeerMotionFromPresenceInpu
     if (rtdbRow == null) {
       rtdbContentObsByUid.delete(uid);
     }
-    if (rtdbPacket == null || fsPacket == null) {
-      dualIngestStampByUid.delete(uid);
-    }
+    // 단일 소스여도 stamp 상태를 지우지 않는다.
+    // RTDB-only(raw 송신축) → dual 진입 때 stamp 맵이 비어 있으면 첫 FS/정규화 stamp 가
+    // 수신 now 로만 앵커되어 ±30s 송신시계에서 clockOffset 이 붕괴한다(TASK-03 A2).
 
     if (import.meta.env.DEV && rtdbRow) {
       const seen = notePeerSeqSeen(rtdbRow.uid, rtdbRow.seq, nowMs);
@@ -246,17 +448,57 @@ export function syncPeerMotionFromPresence(input: SyncPeerMotionFromPresenceInpu
       changedAt,
     );
     if (!selected) continue;
-    // 이중 소스일 때 송신 t / FS serverTimestamp 를 그대로 넣으면 소스 전환 시
-    // integrator clockOffset 이 ±수십 초 점프해 display 가 뒤로 간다(TASK-30B).
-    // 내용이 바뀔 때만 수신 now 로 정규화하고, frozen 재배달은 안정 stamp 유지(TASK-30C).
+    // 송신 t / FS lastSeenAt 을 그대로 넣으면 소스 전환·단일→이중 진입 시
+    // integrator clockOffset 이 ±수십 초 점프해 display 가 뒤로 간다(TASK-30B/TASK-03).
+    // 단일 소스에서도 stamp 로 수신축을 유지해 RTDB-only↔dual↔FS-only 전환을 안정화한다.
+    // 동일 source 는 native Δt 보존, source 전환·최초만 now 정렬(TASK-02).
+    // frozen 재배달은 안정 stamp 유지(TASK-30C).
     const pickSource: "rtdb" | "fs" = selected === rtdbPacket ? "rtdb" : "fs";
-    const packet =
-      rtdbPacket != null && fsPacket != null
-        ? stampDualSourceIngestPacket(uid, selected, pickSource, nowMs)
-        : selected;
+    let packet = stampDualSourceIngestPacket(uid, selected, pickSource, nowMs);
+    // RTDB wire tSrv → 권위 capture 표시(내부 quality; wire 필드 추가 없음).
+    if (
+      pickSource === "rtdb" &&
+      packetHasFiniteTsrv(packet) &&
+      packet.tSrvQuality !== "estimated"
+    ) {
+      packet = { ...packet, tSrvQuality: "capture" };
+    }
+    // FS wire 는 tSrv 없음 → 직전 표시 tip(보통 마지막 capture)으로 estimated 연속.
+    // estimated 는 capture anchor 를 덮지 않는다.
+    if (
+      pickSource === "fs" &&
+      !(packetHasFiniteTsrv(packet) && packet.tSrvQuality === "capture")
+    ) {
+      const tip = lastDisplayTipByKey.get(timelineKey(packet.publicationId, uid));
+      if (tip && tip.publicationId === packet.publicationId) {
+        packet = bridgeFsPacketToServerTimeline(packet, tip);
+      }
+    }
+    rememberServerCapture(uid, packet, pickSource);
+    // ingest 축 단조: tip 이 capture 진실보다 앞서 있으면 tip 시각으로 맞춤(복구 snap 방지).
+    if (pickSource === "rtdb" && packetHasFiniteTsrv(packet)) {
+      const tip = lastDisplayTipByKey.get(timelineKey(packet.publicationId, uid));
+      if (tip && packet.tSrv! + 0.5 < tip.tSrv) {
+        packet = { ...packet, tSrv: tip.tSrv, tSrvQuality: "capture" };
+      }
+    }
+    if (import.meta.env.DEV) {
+      notePeerIngestDiag({
+        atMs: nowMs,
+        uid,
+        publicationId: packet.publicationId,
+        source: pickSource,
+        tSrvQuality: resolvePacketTimeQuality(packet, pickSource),
+        tSrv: packetHasFiniteTsrv(packet) ? packet.tSrv! : null,
+        distM: packet.distM,
+        speedMps: packet.speedMps,
+        serverTimeline: packetHasFiniteTsrv(packet),
+      });
+    }
     registry.ingest(packet, label, nowMs);
     activeUids.push(uid);
   }
 
   registry.markActiveUids(activeUids);
+  setCompanionDisplayActive(activeUids.length > 0);
 }

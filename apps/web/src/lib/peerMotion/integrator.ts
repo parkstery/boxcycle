@@ -1,6 +1,7 @@
 import type { PeerMotionEntity, PeerMotionPacket, PeerMotionSnapshot } from "./types";
 import {
   PEER_ARRIVAL_GAP_EMA,
+  PEER_COMMON_DISPLAY_DELAY_MS,
   PEER_INTERP_BUFFER_MAX,
   PEER_INTERP_DELAY_GAP_FACTOR,
   PEER_INTERP_DELAY_MAX_MS,
@@ -19,8 +20,13 @@ const PEDAL_SPEED_EMA = 0.35;
 /** 시계 오프셋이 위로 따라가는 속도 — 시계 드리프트만 흡수하고 지연 튐은 무시한다. */
 const CLOCK_OFFSET_DRIFT = 0.01;
 
-/** 패킷에서 쓸 수 있는 송신 시각만 꺼낸다. */
+function packetHasServerTimeline(packet: PeerMotionPacket): boolean {
+  return typeof packet.tSrv === "number" && Number.isFinite(packet.tSrv) && packet.tSrv > 0;
+}
+
+/** 패킷에서 쓸 수 있는 송신 시각만 꺼낸다. tSrv 우선(서버축). */
 function readSrcAtMs(packet: PeerMotionPacket): number | null {
+  if (packetHasServerTimeline(packet)) return packet.tSrv!;
   const t = packet.serverAtMs;
   return typeof t === "number" && Number.isFinite(t) && t > 0 ? t : null;
 }
@@ -110,7 +116,22 @@ export function applyPeerMotionIngest(
   // 도착 간격은 **버퍼에 실제로 쌓이는 것들** 사이로 잰다. dedup 으로 버려진 패킷은
   // 보간에 쓰이지 않으므로, 그것까지 세면 간격을 실제보다 짧게 보고 지연이 모자라진다.
   const srcAtMs = readSrcAtMs(packet);
-  if (srcAtMs != null) {
+  const serverTimeline = packetHasServerTimeline(packet);
+
+  if (entity.serverTimeline !== serverTimeline) {
+    // 서버축↔legacy 전환 — 혼합 버퍼 금지, 이번 패킷으로 rebase.
+    entity.buffer.length = 0;
+    entity.renderClockMs = null;
+    entity.lastStepNowMs = serverTimeline ? 0 : now;
+    entity.arrivalGapMsEma = 0;
+    entity.clockOffsetMs = null;
+  }
+  entity.serverTimeline = serverTimeline;
+
+  if (serverTimeline) {
+    // 서버축 — clockOffset 으로 수신축에 끌어오지 않는다(공통 D 붕괴 방지).
+    entity.clockOffsetMs = 0;
+  } else if (srcAtMs != null) {
     const off = now - srcAtMs;
     const prevOff = entity.clockOffsetMs;
     const nextOff =
@@ -156,6 +177,8 @@ export function createPeerMotionEntity(
 ): PeerMotionEntity {
   const now = Date.now();
   const speed = packet.phase === "completed" ? 0 : capSpeedMps(packet.speedMps);
+  const serverTimeline = packetHasServerTimeline(packet);
+  const srcAtMs = readSrcAtMs(packet);
   return {
     uid: packet.uid,
     label: label.slice(0, 48),
@@ -167,7 +190,7 @@ export function createPeerMotionEntity(
         distM: packet.distM,
         recvAtMs: now,
         serverAtMs: packet.serverAtMs,
-        srcAtMs: readSrcAtMs(packet),
+        srcAtMs,
         speedMps: speed,
         phase: packet.phase,
         ...(packet.seq != null ? { seq: packet.seq } : {}),
@@ -177,8 +200,9 @@ export function createPeerMotionEntity(
     lastIngestLocalMs: now,
     arrivalGapMsEma: 0,
     renderClockMs: null,
-    lastStepNowMs: now,
-    clockOffsetMs: readSrcAtMs(packet) == null ? null : now - readSrcAtMs(packet)!,
+    lastStepNowMs: serverTimeline ? 0 : now,
+    serverTimeline,
+    clockOffsetMs: serverTimeline ? 0 : srcAtMs == null ? null : now - srcAtMs,
     hdg: 0,
     phaseRev: 0,
     pedalSpeedKmh: speed * 3.6,
@@ -203,6 +227,8 @@ export function createPeerMotionEntity(
  * 보이는 시간」이기 때문이다.
  */
 export function peerRenderDelayMs(entity: PeerMotionEntity): number {
+  // 서버축(tSrv) 동행 — 창별 gap EMA 금지, 고정 공통 D.
+  if (entity.serverTimeline) return PEER_COMMON_DISPLAY_DELAY_MS;
   const gap = entity.arrivalGapMsEma;
   if (!(gap > 0)) return PEER_INTERP_DELAY_MS;
   const want = gap * PEER_INTERP_DELAY_GAP_FACTOR;
@@ -252,13 +278,19 @@ export function stepPeerMotionEntity(
   _dtSec: number,
   routeLenM: number,
   nowMs: number = Date.now(),
+  opts?: { lockedRenderTimeMs?: number },
 ): void {
   const buf = entity.buffer;
   if (buf.length === 0) return;
 
   const newest = buf[buf.length - 1]!;
 
-  if (entity.phase === "paused" || entity.phase === "completed") {
+  // 구버전/수신축 — paused/completed 는 newest 스냅(기존 liveness 계약).
+  // 서버축은 capture 시점 보간을 유지해 self D=600 과 불일치·튐을 막는다.
+  if (
+    !entity.serverTimeline &&
+    (entity.phase === "paused" || entity.phase === "completed")
+  ) {
     entity.displayDistM = clampRouteDist(newest.distM, routeLenM);
     // 멈춰 있는 동안에도 재생 시계는 따라가게 둔다 — 다시 달릴 때 몰아서 따라잡지 않게.
     entity.renderClockMs = nowMs - peerRenderDelayMs(entity);
@@ -267,7 +299,18 @@ export function stepPeerMotionEntity(
   }
 
   const dtMs = Math.max(0, Math.min(1_000, nowMs - entity.lastStepNowMs));
-  const renderTime = advancePeerRenderClock(entity, nowMs);
+  let renderTime: number;
+  if (
+    typeof opts?.lockedRenderTimeMs === "number" &&
+    Number.isFinite(opts.lockedRenderTimeMs)
+  ) {
+    // 공통 frame renderTime — self/카메라와 동일 시각(별도 entity catch-up 금지).
+    renderTime = opts.lockedRenderTimeMs;
+    entity.renderClockMs = renderTime;
+    entity.lastStepNowMs = nowMs;
+  } else {
+    renderTime = advancePeerRenderClock(entity, nowMs);
+  }
   const oldest = buf[0]!;
 
   const newestT = snapshotTimelineMs(entity, newest);
@@ -283,8 +326,13 @@ export function stepPeerMotionEntity(
     // 안 쌓여 newest 가 정지 직전 전진 스냅샷에 고정되고, 그 옛 속도로 외삽해 멈춘 peer 가
     // ~7m 미끄러진다(신호대기 오버슛). entity.speedMps 는 dedup 되어도 매 ingest 갱신되므로
     // 정지가 즉시 반영된다.
+    // 서버축 paused/completed 는 capture 시점 hold(0) — newest 위치 즉시 snap 금지.
+    const pausedHold =
+      entity.serverTimeline &&
+      (newest.phase === "paused" || newest.phase === "completed");
+    const extrapSpeed = pausedHold ? 0 : entity.speedMps;
     const aheadMs = Math.min(renderTime - newestT, PEER_INTERP_MAX_EXTRAP_MS);
-    dist = newest.distM + entity.speedMps * (aheadMs / 1000);
+    dist = newest.distM + extrapSpeed * (aheadMs / 1000);
   } else {
     // renderTime 을 감싸는 두 스냅샷 보간
     let s0 = oldest;

@@ -16,8 +16,17 @@
 
 /** 보간 버퍼 최대 길이(패킷 수) */
 export const PEER_INTERP_BUFFER_MAX = 16;
+
+/**
+ * 동행 공통 표시 지연(ms) — self·peer·카메라가 같은 과거 시점을 소비한다.
+ * 창별 gap EMA 로 D 를 고르지 않는다. solo 는 0(commonDisplayClock).
+ * @see COMMON_COMPANION_DISPLAY_DELAY_MS in commonDisplayClock.ts (동일 값)
+ */
+export const PEER_COMMON_DISPLAY_DELAY_MS = 600;
+
 /**
  * 보간 지연의 **하한**(ms) — 이만큼 과거를 재생해 지터를 흡수한다.
+ * tSrv 서버축 동행에서는 {@link PEER_COMMON_DISPLAY_DELAY_MS} 고정이 우선한다.
  *
  * ⚠️ 이 값 하나만 쓰면 보간이 성립하지 않는다. 지연이 **도착 간격보다 짧으면** 재생
  * 시점이 늘 최신 스냅샷보다 앞서서, 코드가 보간이 아니라 **외삽 후 스냅**으로 동작한다.

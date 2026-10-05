@@ -9,6 +9,7 @@ import { enqueueMotionPublish, peekMotionPublishEpoch } from "../peerMotion/moti
 import { enqueueRoutePublish } from "../peerMotion/routePublishFlight";
 import type { LiveLocationPublishThrottleState } from "./liveLocationSnapshot";
 import { markPeerMotionPublished, markRouteProgressPublished } from "./liveLocationSnapshot";
+import { pushSelfDisplaySample } from "../peerMotion/selfDisplayBuffer";
 
 export type LiveLocationFanoutResult = {
   global: boolean;
@@ -58,6 +59,14 @@ export async function publishLiveLocationFanout(
       },
       onError: opts.onMotionError,
     });
+    // 자기 표시도 peer 가 받는 동일 canonical 표본만 사용(송신 주기 샘플).
+    if (typeof snapshot.tSrv === "number" && snapshot.tSrv > 0) {
+      pushSelfDisplaySample({
+        tSrv: snapshot.tSrv,
+        distM: snapshot.distMetersAlongRoute,
+        speedMps: snapshot.speedMps,
+      });
+    }
     result.motion = true;
   }
 
