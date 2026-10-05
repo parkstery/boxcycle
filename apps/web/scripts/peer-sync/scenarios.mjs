@@ -574,6 +574,15 @@ const cmp5hzJitterGap = {
   events: profileJitterStopGap(200),
 };
 
+/*
+ * ── 사각 (2026-10-05 TASK-02) ──────────────────────────────────────
+ * 주식 replay 는 이미 고른 단일 PeerMotionPacket 스트림만 ingest 한다.
+ * 프로덕션 Presence 경로의 이중 소스 선택·stampDualSourceIngestPacket 은
+ * 여기로 재생되지 않는다. 그 결함/회귀는 필수 게이트:
+ *   node scripts/peer-sync/peer-spacing-jitter-harness.mjs
+ * (RTDB freeze→FS 폴백·15s liveness 는 rtdb-fs-fallback-harness.mjs)
+ */
+
 export const SCENARIOS = [
   cruise,
   accelDecel,

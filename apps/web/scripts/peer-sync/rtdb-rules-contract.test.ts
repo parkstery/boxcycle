@@ -111,9 +111,9 @@ describe("R8 고정 · 패킷이 RTDB 규칙을 만족한다", () => {
 
   it("규칙의 필수 필드와 패킷의 필드가 정확히 일치한다 — 한쪽만 바뀌면 여기서 갈라진다", () => {
     const required = [...requiredFieldsFromRules(VALIDATE)].sort();
-    // `s` 는 DEV 진단용 선택 필드라 계약에서 뺀다(규칙도 추가 필드를 막지 않는다).
+    // `s` 는 DEV 진단용, `tSrv` 는 optional 캡처시각 — 둘 다 계약 exact-match 에서 뺀다.
     const sent = Object.keys(encodePayload(sampleSnapshot()) as Record<string, unknown>)
-      .filter((k) => k !== "s")
+      .filter((k) => k !== "s" && k !== "tSrv")
       .sort();
     assert.deepEqual(
       sent,
@@ -121,6 +121,25 @@ describe("R8 고정 · 패킷이 RTDB 규칙을 만족한다", () => {
       `패킷 [${sent.join(",")}] 과 규칙 [${required.join(",")}] 이 다르다. ` +
         "규칙이 더 많으면 write 가 거부되고, 코드가 더 많으면 검증되지 않는 필드가 흘러간다.",
     );
+  });
+
+  it("optional tSrv 가 있으면 숫자·양수로 encode 되고 규칙은 허용한다", () => {
+    assert.match(VALIDATE, /hasChild\('tSrv'\)/);
+    const payload = encodePayload(sampleSnapshot({ tSrv: 1_700_000_000_123 })) as Record<
+      string,
+      unknown
+    >;
+    assert.equal(typeof payload.tSrv, "number");
+    assert.ok((payload.tSrv as number) > 0);
+    // 필수 키는 그대로
+    for (const f of requiredFieldsFromRules(VALIDATE)) {
+      assert.ok(Object.prototype.hasOwnProperty.call(payload, f));
+    }
+  });
+
+  it("구 wire(tSrv 없음) decode 호환 — encode 기본은 tSrv 생략", () => {
+    const payload = encodePayload(sampleSnapshot()) as Record<string, unknown>;
+    assert.equal(Object.prototype.hasOwnProperty.call(payload, "tSrv"), false);
   });
 
   it("`p` 는 비어 있지 않은 문자열이고 길이 상한 안이다", () => {

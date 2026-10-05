@@ -72,6 +72,14 @@ if [ -n "$touch_web" ]; then
   echo "[pre-push] 계약 스위트 apps/web (test:next-ride)…"
   ( cd apps/web && npm run test:next-ride --silent ) || fail=1
 
+  # 동행 등속 간격·소스 전환 회귀 (2026-10-05, TASK-02/03).
+  # 단일 스트림 replay/smoothness 계약은 dual-source stamp 경로(stampDualSourceIngestPacket)를
+  # 우회한다 — 도착축 stamp 로 되돌려도 계약은 초록이었다. 실제 sync→Registry 경로를 재생하는
+  # 이것(--gate 200ms 필수 셀 + --suite transitions)만이 그 회귀를 잡는다. 약 10초, 브라우저·Firebase 없음.
+  # 게이트가 살아 있는지는 `npm run test:peer-spacing:mutation`(파괴적 — push 훅에 넣지 않음)으로 확인.
+  echo "[pre-push] 동행 간격·소스 전환 (test:peer-spacing)…"
+  ( cd apps/web && npm run test:peer-spacing --silent ) || fail=1
+
   # 실주행 진입 셀렉터 계약 (2026-09-27 승격).
   # 동행 e2e 12개가 **한 달 넘게 red** 였는데 아무도 몰랐다 — Go 에 센서 사전조건이
   # 붙고(08-27) 속도 슬라이더가 도크→센서 시트로 옮겨 간 것을 스펙이 몰랐다.
