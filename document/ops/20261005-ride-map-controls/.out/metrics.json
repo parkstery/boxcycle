@@ -1,0 +1,77 @@
+{
+  "note": [
+    "guest",
+    "sensor",
+    "menu",
+    "intro",
+    "courseCandidates=4",
+    "go",
+    "running"
+  ],
+  "viewport": {
+    "w": 740,
+    "h": 300
+  },
+  "beforeEstimate": {
+    "qcStackH": 31.4,
+    "areaPct": "2.09"
+  },
+  "after": {
+    "controlsBox": {
+      "x": 440.203125,
+      "y": 41.453125,
+      "width": 96.375,
+      "height": 27.328125
+    },
+    "styleBox": {
+      "x": 440.203125,
+      "y": 41.453125,
+      "width": 36.34375,
+      "height": 27.328125
+    },
+    "zoomInBox": {
+      "x": 509.25,
+      "y": 41.453125,
+      "width": 27.328125,
+      "height": 27.328125
+    },
+    "qcBox": {
+      "x": 359.171875,
+      "y": 10.359375,
+      "width": 177.40625,
+      "height": 27.328125
+    },
+    "accountBox": {
+      "x": 650.796875,
+      "y": 24.71875,
+      "width": 78.84375,
+      "height": 29.6875
+    },
+    "mapBox": {
+      "x": 683.640625,
+      "y": 72.515625,
+      "width": 46,
+      "height": 25.203125
+    },
+    "controlsAreaPct": "1.19",
+    "styleContentVsWidth": "2.27",
+    "touch44": {
+      "styleViaPseudo": true,
+      "zoomViaPseudo": true,
+      "visualH": 27.328125
+    }
+  },
+  "styleToggle": {
+    "label0": "야외",
+    "label1": "위성",
+    "label2": "야외",
+    "roundTrip": true
+  },
+  "overlap": {
+    "account": false,
+    "mapTrigger": false,
+    "qc": false
+  },
+  "elapsedMs": 16479,
+  "remainMs": 223521
+}
