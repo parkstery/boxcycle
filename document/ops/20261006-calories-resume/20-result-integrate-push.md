@@ -86,4 +86,4 @@ main                               (미갱신)
 ## 6. 후속
 
 - 원격 push·`main` 반영·hosting 배포는 **별도 승인 지시** 대기.
-- result20·ops 상태 갱신 docs 커밋: `6db62ba4d7b6b77c1dd1ed10280b6c2a5857c8de`. local `main2` / `codex/document-system` tip = **`6db62ba`**.
+- result20 docs: `6db62ba4d7b6b77c1dd1ed10280b6c2a5857c8de`. tip SHA 기록 보정: `71d04ff4149e3682682d3b037ff7dd7e8fac607b`. local `main2` / `codex/document-system` 최종 tip = **`71d04ff`**.
