@@ -4,9 +4,9 @@
 
 **현재 단계·범위·스택·1차 마일스톤(멀티 유저 검증)** 의 단일 진실은 [`document/archive/260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md`](document/archive/260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md)를 본다.
 
-**서비스 비전·UGC 정책·저장 전략(장기)** 의 단일 진실은 [`document/260511-RTW-마스터-비전-및-종합계획.md`](document/260511-RTW-마스터-비전-및-종합계획.md)를 본다.
+**서비스 비전·UGC 정책·저장 전략(장기)** 의 단일 진실은 [`document/reference/product/260511-RTW-마스터-비전-및-종합계획.md`](document/reference/product/260511-RTW-마스터-비전-및-종합계획.md)를 본다.
 
-**월드 맵 activity presence(publication dot·heartbeat 분리)** 의 단일 진실은 [`document/260523-World-Activity-Presence-설계.md`](document/260523-World-Activity-Presence-설계.md)를 본다.
+**월드 맵 activity presence(publication dot·heartbeat 분리)** 의 단일 진실은 [`document/reference/architecture/260523-World-Activity-Presence-설계.md`](document/reference/architecture/260523-World-Activity-Presence-설계.md)를 본다.
 
 Mapbox 기반 **실내 사이클** 서비스입니다. Mapbox 시뮬 검증은 완료되었으며, 본 개발 앱은 **`apps/web`** (Vite + TypeScript + React + Firebase Auth) 에서 진행한다.
 
@@ -31,11 +31,11 @@ npm run dev
 
 `apps/web`만 열어 두었다면, 위와 동일하게 **먼저 루트에서 `npm install`** 한 뒤 `apps/web`에서 `npm run dev`를 써도 같은 워크스페이스를 가리킨다. **`apps/web`에 별도 `package-lock.json`은 두지 않는다.**
 
-> **품질 게이트**: `git config core.hooksPath githooks`를 1회 실행하면 [githooks/pre-commit](githooks/pre-commit)(변경 파일 eslint)·[githooks/pre-push](githooks/pre-push)(변경 워크스페이스 typecheck)가 켜진다. 브랜치·커밋·푸시 운영 규칙은 [document/260719-개발-워크플로-브랜치-커밋-게이트](document/260719-개발-워크플로-브랜치-커밋-게이트.md).
+> **품질 게이트**: `git config core.hooksPath githooks`를 1회 실행하면 [githooks/pre-commit](githooks/pre-commit)(변경 파일 eslint)·[githooks/pre-push](githooks/pre-push)(변경 워크스페이스 typecheck)가 켜진다. 브랜치·커밋·푸시 운영 규칙은 [document/260719-개발-워크플로-브랜치-커밋-게이트](document/reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md).
 
 **Firebase CLI:** 프로젝트 연결은 저장소 **루트**의 `.firebaserc`(기본 프로젝트 ID)와 `firebase.json`을 쓴다. 명령은 루트에서 실행한다.
 
-**Firestore(프로필/Trailhead·Trail/라이드/코스 동기화):** Firebase Console에서 **Firestore Database** 를 생성한다. 로그인 시 `users/{uid}` 문서에 표시 이름·이메일 등을 **merge** 저장한다. Trail presence는 `trails/{trailId}/members/{uid}`, Trail 주행 진행률은 `trails/{trailId}/liveCourseRides/{uid}`, 주행 요약은 `rides`, 코스는 `courses`, 입문 허브 동행은 `coursePresence/{courseId}/members/{uid}` 를 사용한다. `rooms/` 레거시 데이터는 `npm run admin:migrate-rooms-to-trails` 로 이전한다(용어·배포 순서: `document/260517-제품-용어-Trailhead-Trail.md` §8). 저장소 루트의 `firestore.rules`, `firestore.indexes.json`을 기준으로 적용한다.
+**Firestore(프로필/Trailhead·Trail/라이드/코스 동기화):** Firebase Console에서 **Firestore Database** 를 생성한다. 로그인 시 `users/{uid}` 문서에 표시 이름·이메일 등을 **merge** 저장한다. Trail presence는 `trails/{trailId}/members/{uid}`, Trail 주행 진행률은 `trails/{trailId}/liveCourseRides/{uid}`, 주행 요약은 `rides`, 코스는 `courses`, 입문 허브 동행은 `coursePresence/{courseId}/members/{uid}` 를 사용한다. `rooms/` 레거시 데이터는 `npm run admin:migrate-rooms-to-trails` 로 이전한다(용어·배포 순서: `document/reference/product/260517-제품-용어-Trailhead-Trail.md` §8). 저장소 루트의 `firestore.rules`, `firestore.indexes.json`을 기준으로 적용한다.
 
 **Hosting:** `firebase.json` 이 `apps/web/dist` 를 SPA(`rewrites` → `index.html`)로 배포하도록 설정되어 있다. 배포 전에 웹 앱을 빌드해야 한다.
 
@@ -115,7 +115,7 @@ Firebase Console에서 **Authentication → Google** 사용 설정 및 **Authent
 
 빌드 확인: 루트에서 `npm run build` → 산출물은 `apps/web/dist/` .
 
-**과거 정적 POC:** Mapbox 검증용 HTML+단일 `app.js` 구현은 [260508 개발 중간 보고](document/260508-개발중간보고-HTML과-JS-프로토타입.md)에 기록되어 있다. 저장소 루트의 해당 파일은 제거하였다.
+**과거 정적 POC:** Mapbox 검증용 HTML+단일 `app.js` 구현은 [260508 개발 중간 보고](document/archive/260508-개발중간보고-HTML과-JS-프로토타입.md)에 기록되어 있다. 저장소 루트의 해당 파일은 제거하였다.
 
 ## 실행이 안 될 때 체크
 

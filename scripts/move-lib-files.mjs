@@ -40,7 +40,7 @@ const USAGE = [
   '  plan.json = { "lib/<옛경로>": "lib/<새경로>", ... }   (apps/web/src 기준)',
   "",
   "  계획은 손으로 적지 말고 apps/web/dep-layers.json 에서 생성하라.",
-  "  절차·규율: document/260926-RTW-구조-게이트-운용-지침.md",
+  "  절차·규율: document/reference/operations/260926-RTW-구조-게이트-운용-지침.md",
 ].join("\n");
 
 if (!planPath || planPath.startsWith("-")) {

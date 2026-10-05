@@ -5,7 +5,7 @@
 | 문서 유형 | **product** + **architecture**(요약) — PM·개발 공통의 단일 진실(현재 단계) |
 | 최초 작성 | 2026-05-09 |
 | 상태 | **코드 반영 중** — `apps/web` + Firebase(Auth·Firestore·**Directions Callable**)·Mapbox GL; Geocoding 프록시 등은 미도입 |
-| 연결 문서 | [문서 생성·수정 지침](../260509-BOXCYCLE-문서-생성-및-수정-지침.md), [**RTW 마스터 비전 및 종합계획**](../260511-RTW-마스터-비전-및-종합계획.md), [Mapbox 시뮬 검증 기록](260508-개발중간보고-HTML과-JS-프로토타입.md), [아키텍쳐·DB 장기안](260509-아키텍쳐-DB설계.md), [Firestore→Postgres 피하기](260509-Firestore-Postgres-이전-체크리스트.md), [실행·리팩터링](260509-app-js-프론트백엔드-분리-1차리팩터링.md), [Phase별 실행 체크리스트](260511-Phase별-실행-체크리스트-Course-Session-Presence.md), [제품 용어 Trailhead·Trail](../260517-제품-용어-Trailhead-Trail.md), [사용자 tier·진입](../260519-사용자-tier-및-진입-정책.md), [World Activity Presence](../260523-World-Activity-Presence-설계.md), [Firestore 스키마 초안](260509-Firestore-컬렉션-스키마-초안.md) |
+| 연결 문서 | [문서 생성·수정 지침](../260509-BOXCYCLE-문서-생성-및-수정-지침.md), [**RTW 마스터 비전 및 종합계획**](../reference/product/260511-RTW-마스터-비전-및-종합계획.md), [Mapbox 시뮬 검증 기록](260508-개발중간보고-HTML과-JS-프로토타입.md), [아키텍쳐·DB 장기안](260509-아키텍쳐-DB설계.md), [Firestore→Postgres 피하기](260509-Firestore-Postgres-이전-체크리스트.md), [실행·리팩터링](260509-app-js-프론트백엔드-분리-1차리팩터링.md), [Phase별 실행 체크리스트](260511-Phase별-실행-체크리스트-Course-Session-Presence.md), [제품 용어 Trailhead·Trail](../reference/product/260517-제품-용어-Trailhead-Trail.md), [사용자 tier·진입](../reference/product/260519-사용자-tier-및-진입-정책.md), [World Activity Presence](../reference/architecture/260523-World-Activity-Presence-설계.md), [Firestore 스키마 초안](260509-Firestore-컬렉션-스키마-초안.md) |
 
 > **제품 용어(2026-05-17):** Lobby → **Trailhead**, Room(방) → **Trail**. Firestore `trails/{trailId}` 가 Trail 인스턴스 경로이다.
 
@@ -29,7 +29,7 @@
 
 | # | 항목 | 설명 | 진행 (2026-06-24) |
 |---|------|------|-------------------|
-| A | 인증 | **Google(Gmail) 로그인** 하나로 빠른 검증. 다른 제공자·이메일 비밀번호는 1차 범위 밖으로 둘 수 있다. | ✅ 코드 — 게스트·익명 자동 진입은 [tier·진입](../260519-사용자-tier-및-진입-정책.md) 정책 따름 |
+| A | 인증 | **Google(Gmail) 로그인** 하나로 빠른 검증. 다른 제공자·이메일 비밀번호는 1차 범위 밖으로 둘 수 있다. | ✅ 코드 — 게스트·익명 자동 진입은 [tier·진입](../reference/product/260519-사용자-tier-및-진입-정책.md) 정책 따름 |
 | B | 사용자 식별 | 로그인 사용자마다 **서버(Firebase) 기준 고유 ID**가 있고, 클라이언트가 이를 기준으로 동작한다. | ✅ `users/{uid}` merge |
 | C | 동시 접속·공유 상태 | 동일 **Trail/코스**에 **2명 이상**이 동시에 참여할 때, Firebase 기준으로 상대 존재·진행이 반영된다. | 🔄 코드 — `trails/…/members`, `livePublicationRides`, Trailhead **활성 Trail 목록**·관전. RTW `sessions/`·`presence/` 루트 컬렉션은 **미착수** |
 | D | 영속화 | Trail 멤버·하트비트·주행 메타 등 최소 데이터가 Firebase에 저장·동기된다. **`sessions/{sessionId}` 는 1차 직후 후순위** | ✅ `trails`·`rides`·`courses`·`openTrailListings` 등. `sessions/` 도입은 후순위 유지 |
@@ -83,11 +83,11 @@
 | `trails/{trailId}/livePublicationRides/{uid}` | 같은 Trail 내 출판 경로 주행 진행·관전(구 `liveCourseRides`) |
 | `coursePresence/{courseId}/members/{uid}` | 입문 허브 등 **코스 단위** 동행(`presenceEnabled`) |
 | `courseActivity/{courseId}` | Activity World 집계(저빈도 읽기) |
-| `routePublications/{id}` · `publicationPresence/{id}` | 경로 출판·월드 dot([World Presence](../260523-World-Activity-Presence-설계.md)) |
+| `routePublications/{id}` · `publicationPresence/{id}` | 경로 출판·월드 dot([World Presence](../reference/architecture/260523-World-Activity-Presence-설계.md)) |
 | `rides/{id}` · `courses/{id}` · `savedRoutes/{id}` | 주행 기록·코스·저장 경로 |
 | `openTrailListings/{trailId}` | Trailhead MENU **주행 중 Trail** projection (`riderCount` > 0). CF `openTrailListingProjection` + 클라이언트 fallback |
 | `livePresence/{uid}` | 글로벌 라이브(설계 범위 내) |
-| `rooms/…` | **레거시 read-only** — 신규 쓰기는 `trails/` ([용어집 §8](../260517-제품-용어-Trailhead-Trail.md)) |
+| `rooms/…` | **레거시 read-only** — 신규 쓰기는 `trails/` ([용어집 §8](../reference/product/260517-제품-용어-Trailhead-Trail.md)) |
 
 Rules: `coursePresence` 는 `courses/{courseId}.presenceEnabled == true` 게이트. 시드는 `firestoreCourses.ts` `ensureBasicCoursesSeeded`.
 
@@ -101,15 +101,15 @@ Rules: `coursePresence` 는 `courses/{courseId}.presenceEnabled == true` 게이�
 | Activity World LOD | ✅ | [LOD 설계](260517-Activity-World-지도-LOD-설계.md) |
 | Firestore 부하 1차 저감 | ✅ | [(cycle) 종합보고](260515-(cycle)Firestore-부하-경감-조치-종합보고서.md) |
 | App 도메인·훅 분리 | ✅ 1차 | [결과 보고](260516-App-도메인-훅-분리-결과-보고서.md) |
-| tier·identity D1~D6 | 🔄 부분 | [tier·진입](../260519-사용자-tier-및-진입-정책.md) — Stripe 운영·UI 후속 |
-| World Activity Presence M1~M3 | 🔄 | [설계](../260523-World-Activity-Presence-설계.md) |
+| tier·identity D1~D6 | 🔄 부분 | [tier·진입](../reference/product/260519-사용자-tier-및-진입-정책.md) — Stripe 운영·UI 후속 |
+| World Activity Presence M1~M3 | 🔄 | [설계](../reference/architecture/260523-World-Activity-Presence-설계.md) |
 | RTW `sessions/` · `presence/` | ⬜ | [Phase 1-B](260511-Phase별-실행-체크리스트-Course-Session-Presence.md) |
 
 ### 4.4 다음 2주 (우선순위)
 
 1. **1차 마일스톤 E** — Hosting/스테이징에서 2계정 Trail·입문 허브 동행 데모 PM 서명 ([스모크](260516-수동-스모크-체크리스트.md)).
 2. **Phase 1-A-3** — Rules 회귀 T1~T3 수동 확인.
-3. **World Presence** — 설계 M 잔여·비용 체크리스트와 정합 ([Firebase 비용](../260523-Firebase-비용-운영-체크리스트.md)).
+3. **World Presence** — 설계 M 잔여·비용 체크리스트와 정합 ([Firebase 비용](../reference/operations/260523-Firebase-비용-운영-체크리스트.md)).
 
 ### 4.5 과거 POC
 

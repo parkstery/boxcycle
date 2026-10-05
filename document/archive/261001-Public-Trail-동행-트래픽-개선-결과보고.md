@@ -6,7 +6,7 @@
 | 최초 작성 | 2026-10-01 |
 | 상태 | **검토됨 · 끝남** — Supervisor 최종 검수 PASS · production billed 1v2 관측은 별도 미실시 |
 | 독자 | **chief · AI** |
-| 연결 문서 | [ops 묶음](../ops/20260929-public-trail-traffic/README.md) · [production 1인vs2인 분석(배포 전)](260929-주행-Firebase-트래픽-1인vs2인-분석보고.md) · [측정 한계 검수](../ops/20260929-public-trail-traffic/08-review-measurement.md) · [문서 지침](../260509-BOXCYCLE-문서-생성-및-수정-지침.md) · [Ontology](../260714-RTW-Ontology.md) |
+| 연결 문서 | [ops 묶음](../ops/20260929-public-trail-traffic/README.md) · [production 1인vs2인 분석(배포 전)](260929-주행-Firebase-트래픽-1인vs2인-분석보고.md) · [측정 한계 검수](../ops/20260929-public-trail-traffic/08-review-measurement.md) · [문서 지침](../260509-BOXCYCLE-문서-생성-및-수정-지침.md) · [Ontology](../reference/product/260714-RTW-Ontology.md) |
 
 ---
 
@@ -417,7 +417,7 @@ npm run test:e2e:listener-scope
 
 ## 부록 B — 용어
 
-UI·문서: **Trail** · **Trailhead** · **Guest**(익명 인증 후). Room/Lobby/`courseId` 신규 사용 금지 — [Ontology](../260714-RTW-Ontology.md).
+UI·문서: **Trail** · **Trailhead** · **Guest**(익명 인증 후). Room/Lobby/`courseId` 신규 사용 금지 — [Ontology](../reference/product/260714-RTW-Ontology.md).
 코드/Firestore에 남은 `liveCourseRide*` 함수 이름은 레거시 export 식별자이며, 제품 용어로 노출하지 않는다.
 
 ---

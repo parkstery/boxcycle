@@ -10,7 +10,7 @@
 | 작업 브랜치 | `chore/route-token-harness` 계속 사용 |
 | 기준 commit | `9f68a4b0a463465ee4389696290c27f225fca31d` |
 | 재검토로 남은 상태 | `functions/package.json` 임시 main 변경·`functions/.secret.local`·루트 `test-results/` — 아래 안전 절차로만 정리 |
-| 연결 문서 | [1R 작업지시서](260830-Route-Token-Harness-격리-보완-1R-작업지시서.md) · [개발 워크플로](../../260719-개발-워크플로-브랜치-커밋-게이트.md) |
+| 연결 문서 | [1R 작업지시서](260830-Route-Token-Harness-격리-보완-1R-작업지시서.md) · [개발 워크플로](../../reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md) |
 
 **
 Route Token Harness 실패 복구·UI 재현성 1R2 — 개발팀장 작업 지시서
@@ -25,7 +25,7 @@ Route Token Harness 실패 복구·UI 재현성 1R2 — 개발팀장 작업 지�
 | 작업 브랜치 | `chore/route-token-harness` 계속 사용 |
 | 기준 commit | `9f68a4b0a463465ee4389696290c27f225fca31d` |
 | 재검토로 남은 상태 | `functions/package.json` 임시 main 변경·`functions/.secret.local`·루트 `test-results/` — 아래 안전 절차로만 정리 |
-| 연결 문서 | [1R 작업지시서](260830-Route-Token-Harness-격리-보완-1R-작업지시서.md) · [개발 워크플로](../../260719-개발-워크플로-브랜치-커밋-게이트.md) |
+| 연결 문서 | [1R 작업지시서](260830-Route-Token-Harness-격리-보완-1R-작업지시서.md) · [개발 워크플로](../../reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md) |
 
 > 개발팀장에게 전달할 한 줄: **`ca2563f`·`9f68a4b`를 보존하고 같은 worktree에서 `ROUTE-TOKEN-1R2`만 수행하라. runner가 성공·실패 모두에서 추적 파일·임시 secret·프로세스를 원상복구하게 하고, UI smoke가 Route 응답 `2→1→0`·ledger 3건·provider 3회·4번째 차단을 직접 증명하게 하라. Node 24 경고를 PASS로 인정하지 말고 재검토 전 push·PR·merge하지 말라.**
 

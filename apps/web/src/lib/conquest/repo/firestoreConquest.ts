@@ -11,7 +11,7 @@ import { trackVisibilityListener } from "../../debug/visibilityReadMeters";
 
 /**
  * Conquest(정복) v2 — 도로 셀·궤적. 읽기 전용 클라이언트(쓰기는 CF `conquestOnRideCreated`).
- * 설계 SoT: document/260703-Conquest-정복-레이어-설계.md §4.
+ * 설계 SoT: document/reference/architecture/260703-Conquest-정복-레이어-설계.md §4.
  */
 
 export type ConquestSummary = {

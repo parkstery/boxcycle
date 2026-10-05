@@ -5,7 +5,7 @@
 | 문서 유형 | **execution** — 4개 architecture·product 결정의 코드 작업 단위 변환 |
 | 최초 작성 | 2026-05-11 |
 | 상태 | **코드 반영 중** — Phase 1-A·Trail 기반 presence는 반영. `sessions`/`presence` 루트 컬렉션(1-B)은 미착수. |
-| 연결 문서 | [RTW 마스터](../260511-RTW-마스터-비전-및-종합계획.md), [코스 수명·UGC 품질 정책](260511-코스-수명-UGC-품질-정책.md), [경로 저장 계층화](260511-경로저장-계층화-Frozen-Route-Segment.md), [Firestore Rules 일반화](260511-Firestore-Rules-일반화-방안.md), [현재 단계·1차 마일스톤](260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md), [app.js 분리 1차 리팩터링](260509-app-js-프론트백엔드-분리-1차리팩터링.md), [Firestore 스키마 초안](260509-Firestore-컬렉션-스키마-초안.md) |
+| 연결 문서 | [RTW 마스터](../reference/product/260511-RTW-마스터-비전-및-종합계획.md), [코스 수명·UGC 품질 정책](260511-코스-수명-UGC-품질-정책.md), [경로 저장 계층화](260511-경로저장-계층화-Frozen-Route-Segment.md), [Firestore Rules 일반화](260511-Firestore-Rules-일반화-방안.md), [현재 단계·1차 마일스톤](260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md), [app.js 분리 1차 리팩터링](260509-app-js-프론트백엔드-분리-1차리팩터링.md), [Firestore 스키마 초안](260509-Firestore-컬렉션-스키마-초안.md) |
 
 ---
 
@@ -24,7 +24,7 @@
 |------------|-----------|-------------------|
 | 1-A | Rules `presenceEnabled` 일반화 | ✅ 1A-1·1A-2 반영. 1A-3 회귀 T1~T3 ⬜ 수동 |
 | 1-B~1-D | `sessions/` · `presence/` 신설, `coursePresence` 폐기 | ⬜ `firestoreSessions.ts` 없음. `coursePresence`·`firestoreCoursePresence.ts` **유지** |
-| (병행) Trail presence | 원안 1C-2는 `rooms/…/members` | ✅ **`trails/{trailId}/members`**, `livePublicationRides`, `useTrailSession` — [용어집](../260517-제품-용어-Trailhead-Trail.md) |
+| (병행) Trail presence | 원안 1C-2는 `rooms/…/members` | ✅ **`trails/{trailId}/members`**, `livePublicationRides`, `useTrailSession` — [용어집](../reference/product/260517-제품-용어-Trailhead-Trail.md) |
 | (병행) Trailhead MENU listing | — | ✅ `openTrailListings` + CG, **활성 라이더만** — [스키마 §3.2.3](260509-Firestore-컬렉션-스키마-초안.md) |
 | (병행) Activity·출판 | Phase 2 이후 | 🔄 `courseActivity`, `routePublications`, World Presence M1~M3 — [현재 단계 §4.3](260509-BOXCYCLE-현재단계-범위-스택-및-1차마일스톤.md) |
 
@@ -137,7 +137,7 @@
 
 | # | 작업 | 영향 파일 | 수락 기준 | 대응 § |
 |---|------|-----------|-----------|--------|
-| 3B-1 | Object Storage 선택 결정 ([RTW 마스터 §7 Q5](../260511-RTW-마스터-비전-및-종합계획.md)) | (PM 결정) | 선택 기록 |
+| 3B-1 | Object Storage 선택 결정 ([RTW 마스터 §7 Q5](../reference/product/260511-RTW-마스터-비전-및-종합계획.md)) | (PM 결정) | 선택 기록 |
 | 3B-2 | `storageGeometry.ts` (upload/download + geometryRef 갱신) | `apps/web/src/lib/storageGeometry.ts`(신설) | 업로드 후 다운로드 round-trip OK | [저장 계층화 §2.2](260511-경로저장-계층화-Frozen-Route-Segment.md) |
 | 3B-3 | 사용자 코스 생성 시 geometry → Storage, Firestore에는 `geometryRef`만 | 위 파일 + App.tsx | Firestore 문서 크기 절감 확인 |
 | 3B-4 | Storage Rules 게이트 (`courses/{routeId}.visibility == "public"` 또는 본인) | (Storage rules) | 권한 회귀 테스트 통과 | [Rules 일반화 §5.4](260511-Firestore-Rules-일반화-방안.md) |

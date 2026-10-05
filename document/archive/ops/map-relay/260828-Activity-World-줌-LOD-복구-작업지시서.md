@@ -7,7 +7,7 @@
 | 상태 | **원인 확정 · 실행 대기** |
 | 작업 ID | `MAP-LOD-1` |
 | 목표 브랜치 | `fix/activity-world-zoom-lod` → 완료 후 `main2` 병합·브랜치 삭제 |
-| 연결 문서 | [World Activity Presence 설계](../../../260523-World-Activity-Presence-설계.md) · [Activity World LOD 설계](../../260517-Activity-World-지도-LOD-설계.md) · [결정 로그](../../../260707-RTW-결정-로그.md) · [상태보드](../../../260707-RTW-기능-인벤토리-상태보드.md) |
+| 연결 문서 | [World Activity Presence 설계](../../../reference/architecture/260523-World-Activity-Presence-설계.md) · [Activity World LOD 설계](../../260517-Activity-World-지도-LOD-설계.md) · [결정 로그](../../../260707-RTW-결정-로그.md) · [상태보드](../../../260707-RTW-기능-인벤토리-상태보드.md) |
 
 > 개발팀장에게 전달할 한 줄: **이 문서를 처음부터 끝까지 읽고 `MAP-LOD-1`을 수행하라. LOD 알고리즘을 새로 설계하지 말라 — 이미 정상 동작하는 코드가 배선만 끊겨 있다. 별도 worktree는 만들지 말라.**
 
@@ -153,7 +153,7 @@ red dot 미표시 문제를 잡느라 렌더 경로를 최소화하면서 LOD가
 
 1. `git status --short --branch`로 `main2` 기준 깨끗한지 확인
 2. worktree 없이 `git switch -c fix/activity-world-zoom-lod`
-3. `AGENTS.md`, [World Activity Presence 설계](../../../260523-World-Activity-Presence-설계.md) §5·§10 완독
+3. `AGENTS.md`, [World Activity Presence 설계](../../../reference/architecture/260523-World-Activity-Presence-설계.md) §5·§10 완독
 4. 기준 게이트 먼저 실행(§5.1) — 회귀 판정 기준선 확보
 
 ### 단계 B — 계약을 시험으로 먼저 고정

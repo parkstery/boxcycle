@@ -5,7 +5,7 @@
 | 문서 유형 | **product + architecture** — 정복 레이어(핵심 판타지·메커닉·데이터 모델·비용)의 **단일 진실** |
 | 최초 작성 | 2026-07-03 |
 | 상태 | **초안** — PM 합의본. 타일 줌 레벨 등 세부 수치는 Phase A 체감 테스트 후 확정 |
-| 연결 문서 | [마스터 비전](260511-RTW-마스터-비전-및-종합계획.md), [World Activity Presence(red dot)](260523-World-Activity-Presence-설계.md), [Route Token 경제](260518-Route-Token-경제-설계.md), [코스 수명·UGC 정책](archive/260511-코스-수명-UGC-품질-정책.md), [tier·진입 정책](260519-사용자-tier-및-진입-정책.md), [Firebase 비용 체크리스트](260523-Firebase-비용-운영-체크리스트.md), [진행 종합 검토(2026-07-02)](archive/260702-프로젝트-진행-종합-검토-보고서.md) |
+| 연결 문서 | [마스터 비전](../product/260511-RTW-마스터-비전-및-종합계획.md), [World Activity Presence(red dot)](260523-World-Activity-Presence-설계.md), [Route Token 경제](../product/260518-Route-Token-경제-설계.md), [코스 수명·UGC 정책](../../archive/260511-코스-수명-UGC-품질-정책.md), [tier·진입 정책](../product/260519-사용자-tier-및-진입-정책.md), [Firebase 비용 체크리스트](../operations/260523-Firebase-비용-운영-체크리스트.md), [진행 종합 검토(2026-07-02)](../../archive/260702-프로젝트-진행-종합-검토-보고서.md) |
 
 ---
 
@@ -96,8 +96,8 @@ red dot은 24시간이면 사라지고([presence 설계](260523-World-Activity-P
 - 정복 인정 거리 = `min(실주행 거리, 티어 속도 상한 × 인정 시간, 잔여 1일 한도)`. 블록은 **경로 순서대로 예산 소진까지** 인정.
 - **개척자 크레딧도 인정된 블록에만 발생** — 슬라이더 개척 land-grab 차단.
 - 슬라이더 UI는 유지(개발·체험용). 시뮬 주행 속도는 자유 — 정복 **계산**만 상한으로 클램프.
-- Trust Tier는 [tier·진입 정책](260519-사용자-tier-및-진입-정책.md)의 **계정 tier와 독립 축**이다(계정 tier × 입력 신뢰의 곱집합).
-- 유효 주행 게이트 재사용: `isDiscardableRideRecord`(200m·출시 기준 3분 — [출시 전 확인사항](출시%20전%20확인사항.md)의 5초→3분 복원과 연동) 통과 주행만 정복 인정.
+- Trust Tier는 [tier·진입 정책](../product/260519-사용자-tier-및-진입-정책.md)의 **계정 tier와 독립 축**이다(계정 tier × 입력 신뢰의 곱집합).
+- 유효 주행 게이트 재사용: `isDiscardableRideRecord`(200m·출시 기준 3분 — [출시 전 확인사항](../../출시%20전%20확인사항.md)의 5초→3분 복원과 연동) 통과 주행만 정복 인정.
 
 ### 3.3 1일 한도 — cheat 차단과 게임 중독 방지는 같은 장치
 
@@ -107,7 +107,7 @@ red dot은 24시간이면 사라지고([presence 설계](260523-World-Activity-P
   - 근거: 실내 세션 대다수는 30~90분, 더블 세션까지 4h로 커버. 그 이상은 게임이 보상하지 않는 것이 건강·공정 양면에 맞다.
   - 한도 도달 시 부드러운 안내: "오늘의 정복 한도에 도달했어요 — 주행은 계속할 수 있습니다."
 - 블록 상한 병행: 인정 블록 ≤ `ceil(인정 시간(초) / 30)` — §3.1의 규칙을 유지하되 "시간"의 정의가 **검증된 페달링 시간**으로 바뀐다(T0은 슬라이더 시간이되 §3.2 한도가 지배).
-- **모든 수치는 config**([tierQuotas 시드](config-tierQuotas.seed.json)와 같은 방식)로 두고 Phase A 실데이터로 튜닝(OQ-7). 지금 숫자에 매달리지 않는다.
+- **모든 수치는 config**([tierQuotas 시드](../../config-tierQuotas.seed.json)와 같은 방식)로 두고 Phase A 실데이터로 튜닝(OQ-7). 지금 숫자에 매달리지 않는다.
 
 ### 3.4 Claim은 관대하게, Pioneer는 **구간 챌린지로** (2026-07-03 도로 전환과 함께 개정)
 
@@ -169,11 +169,11 @@ rides/{rideId}.conquestResult      ← CF 회신: { newMeters, newCells, credite
 | reads | 지도 열람 세션당 청크 ~5 + 요약 1 ≈ 6 × 200세션 | ~1,200 |
 | storage | 유저당 청크 ~10개 × 10KB = 100KB → 1만 유저 ≈ 1GB | — |
 
-Firestore 무료 한도(write 2만/일·read 5만/일) 대비 **한 자릿수 %**. 초당 갱신되는 presence 계열보다 훨씬 싸다 — 이 레이어는 비용이 아니라 리텐션에 베팅하는 기능이다. [비용 체크리스트](260523-Firebase-비용-운영-체크리스트.md)에 관측 항목 추가할 것.
+Firestore 무료 한도(write 2만/일·read 5만/일) 대비 **한 자릿수 %**. 초당 갱신되는 presence 계열보다 훨씬 싸다 — 이 레이어는 비용이 아니라 리텐션에 베팅하는 기능이다. [비용 체크리스트](../operations/260523-Firebase-비용-운영-체크리스트.md)에 관측 항목 추가할 것.
 
 ## 6. UI (Phase A 최소)
 
-**사용자 노출 용어(2026-07-03):** "z16"·"블록"·"타일"은 **내부 구현 용어** — UI에 절대 노출하지 않는다. 사용자에게는 **「영토」**로 표기(`새 영토 +18`). 구현 시 [제품 용어 문서](260517-제품-용어-Trailhead-Trail.md)에 등재.
+**사용자 노출 용어(2026-07-03):** "z16"·"블록"·"타일"은 **내부 구현 용어** — UI에 절대 노출하지 않는다. 사용자에게는 **「영토」**로 표기(`새 영토 +18`). 구현 시 [제품 용어 문서](../product/260517-제품-용어-Trailhead-Trail.md)에 등재.
 
 1. **지도 오버레이** — 내 영토 반투명 칠(라이트 테마 액센트 계열). 줌아웃 클러스터 표현은 후순위.
 2. **주행 요약 시트** — `새 영토 +12 · 개척 3` 한 줄(도파민 지점).
@@ -191,7 +191,7 @@ Firestore 무료 한도(write 2만/일·read 5만/일) 대비 **한 자릿수 %*
 ## 8. 수익화 원칙
 
 - **코어 루프(블록 적립·개척자 기록)는 영구 무료** — 절대 유료화하지 않는다(축적 게임의 신뢰 기반).
-- 유료 후보: 영토 표시 커스텀 색, 클럽 생성, 상세 통계·공유 카드, 정복 지도 고해상 내보내기. [tier 정책](260519-사용자-tier-및-진입-정책.md) 체계에 편입.
+- 유료 후보: 영토 표시 커스텀 색, 클럽 생성, 상세 통계·공유 카드, 정복 지도 고해상 내보내기. [tier 정책](../product/260519-사용자-tier-및-진입-정책.md) 체계에 편입.
 
 ## 9. KPI
 
@@ -226,7 +226,8 @@ Firestore 무료 한도(write 2만/일·read 5만/일) 대비 **한 자릿수 %*
 
 ### 9.5.3 미완료 자동 정리
 
-- **미완료 TTL 7일 → 90일 연장**([firestoreSavedRoutes.ts](../apps/web/src/lib/firestoreSavedRoutes.ts) `SAVED_ROUTE_EXPIRY_MS`). 장거리 프로젝트를 몇 달 보관 가능.
+- **미완료 TTL 7일 → 90일 연장**([firestoreSavedRoutes.ts](../../../apps/web/src/lib/route/repo/firestoreSavedRoutes.ts) `SAVED_ROUTE_EXPIRY_MS`). 장거리 프로젝트를 몇 달 보관 가능.
+- **2026-10-06 보완:** 현재 이어달리기로 지정한 단일 경로는 `expiresAt=null`로 만료를 막는다. 명시적 「이어달리기 종료」 시 미완료 경로의 TTL을 그 시점부터 90일로 복원한다. 완주 경로는 계속 만료하지 않는다. 상세 정책은 §9.5.6.
 - ⚠️ **불변 원칙**: Route 삭제·만료돼도 **누적 거리·Claim·Pioneer·칼로리는 유지**. 사라지는 것은 Route 문서뿐.
 
 ### 9.5.4 UI (장기 프로젝트화)
@@ -244,7 +245,7 @@ Firestore 무료 한도(write 2만/일·read 5만/일) 대비 **한 자릿수 %*
 6. ✅ 진행률 바 UI(SavedRoutesPanel) (07-12 `957159e`)
 7. ✅ **이어 달리기 재개** — 설계 확정·구현 완료(07-13 `6e5647a`, Playwright 실주행 E2E 검증: 20% 저장→재개 UI→누적 HUD→37% 갱신→처음부터 probe max 유지). **원칙: 위치는 누적, 인정은 세션.**
    - `useVirtualRideSession.resetDistances(startOffsetMeters)` — virtualDistance를 offset(= `min(lastProgressRatio, 0.97) × routeDistance`)으로 시드. 위치·도착판정·completionRatio(누적)는 무수정 작동
-   - **운동 인정 분리**: `record.distanceMeters`·칼로리·평속 = `virtualDistance − offset`(이번 세션만). completionRatio는 누적 유지
+   - **운동 인정 분리**: `record.distanceMeters`·평속은 `virtualDistance − offset`(이번 세션만). completionRatio는 누적 유지. **2026-10-06 칼로리 변경:** 가상거리 환산 대신 `MET × 체중kg × 실제 페달링초/3600`으로 추정하며 이전 주행·재개 offset은 포함하지 않는다. [근거·설정 정책](../../ops/20261006-calories-resume/03-calorie-proposal.md)
    - **Claim 분리**: `buildConquestCellsFromRoute`/`buildTraveledPathForTrace`에 `fromMeters` 추가 → **[offset, virtualDistance] 구간만** 페이로드. (순진한 offset 시드는 0..offset 셀·trace·크레딧 예산을 오염 — §9.5 인정 분리 원칙 위반)
    - HUD = **누적 위치**(예: 338.4km/540km — 여정 몰입), 종료 요약·기록 = 「오늘 N km」 병기
    - 진행률 저장 = **max(기존, 신규)** — "처음부터 다시" 후 중간 종료해도 최대 도달점 유지
@@ -252,6 +253,15 @@ Firestore 무료 한도(write 2만/일·read 5만/일) 대비 **한 자릿수 %*
    - 수정 지점 5곳: `useVirtualRideSession.ts` · `useSavedRoutesWorkspace.ts`(로드 시 offset 후보) · `conquestTiles.ts`(from-to) · `useRideEndAndPersistence.ts`(세션 거리) · `RouteDock.tsx`(선택 UI)
 
 > Claim·Pioneer·운동기록의 **원칙(실주행 구간 기준)은 불변**. 단위7에서 conquest 페이로드 유틸에 구간 시작점만 추가한다(원칙을 지키기 위한 확장).
+
+### 9.5.6 단일 이어달리기 유지 (2026-10-06)
+
+- 사용자별 이어달리기 대상은 **최대 1개**다. 다른 경로를 주행하거나 카드를 닫아도 기존 대상은 유지한다. 다른 경로는 처음부터 주행한다.
+- 소유한 유효 경로의 진행률이 `0 < lastProgressRatio < 0.98`이고 미완주일 때 재개 가능하다. 진행률은 항상 최대 도달점이며 재개 offset은 97% 상한을 유지한다.
+- 명시적 「이어달리기 종료」, 완주, 경로 삭제 또는 실제 경로 무효 시 해제한다. 일시적인 로드 실패·권한 오류를 삭제로 간주하지 않는다. 종료 후 과거 기록을 자동으로 뒤져 대상을 다시 선정하지 않는다.
+- 최초 도입 시에만 기존 유효 미완주 경로 1개를 복원한다. 이후 빈 대상은 실제 주행의 진도 저장 성공 이벤트로 확보한다. 결과창을 닫는 것과 저장 완료는 독립적이다.
+- 등록 사용자는 `users/{uid}.rideResumeSlot`으로 기기 간 보관하며 Guest는 UID별 로컬 슬롯을 쓴다. Guest 다중 탭은 Web Locks 지원 환경에서 직렬화한다. 미지원 환경은 단일 탭만 보장한다.
+- 미완료 경로 쿼터·100m/5초 초과 주행 기록 기준·Claim 인정 원칙은 유지한다. [조건 조사](../../ops/20261006-calories-resume/06-conditions-and-findings.md) · [작업 기록](../../ops/20261006-calories-resume/README.md)
 
 ---
 
@@ -285,5 +295,5 @@ Firestore 무료 한도(write 2만/일·read 5만/일) 대비 **한 자릿수 %*
 | 2026-07-03 | **Phase A 구현 1차 완료(코드 반영 중)** — 클라 `conquestTiles.ts`(단일 패스 타일 변환)·`rides.conquest` 페이로드·pedalSec 누적, CF `conquestOnRideCreated`(Trust Tier 한도·청크·pioneer write-once·`conquestResult` 회신), rules(`conquest/*`·`pioneerChunks` 읽기 전용), UI 4종(지도 오버레이·요약 「새 영토 +N」·account 정복 통계·핀 팝업 개척자). §7 Phase C 의 **라이브 날씨(Open-Meteo)를 선행 도입**(세션 중 HUD 한 줄, 30분 갱신). 배포(functions·rules) 후 유효 |
 | 2026-07-03 | **v2 도로 전환(PM 결정)** — §3.1 정복 단위를 z16 타일(면)→**z20 도로 셀(~30m, 선)**로 교체(근거: 자산 언어=도로, 노력 비례, 시뮬레이터라 맵매칭 불요). 자산=「내 도로망」 궤적 영구 렌더, 지표=신규 도로 km, 라이브 카운터=「🏴 +N km」+진행 구간 실시간 파란 칠. §3.4 **셀 pioneer 폐기 → 구간 챌린지**(교차로·IC~JC 완주+정지시간 규칙, Phase B, OSM 그래프 필요). §4 v2 스키마(chunks z12·traces). SEC_PER_BLOCK 폐지(m 예산이 유일 한도). 실주행 검증 후 개편 |
 | 2026-07-07 | **§9.5 신설(자문 3연속 → PM 확정)** — 주행 인정 분리(운동·Claim·Pioneer 즉시 인정 유지, Route 완주만 **≥98% 게이트**), **Route 진행률·이어 달리기** 도입, **미완료 쿼터 무료5/유료10**(보유 30/100 범위 내), 미완료 TTL **7→90일**, 최소 인정 거리 임계 **폐기**. Claim·Pioneer·운동기록 코드 불변. 구현은 §9.5.5 단위로 다음 세션 |
-| 2026-07-13 | **§9.5.5 단위 1~6 구현·배포 완료 표기 + 단위7(이어 달리기 재개) 설계 확정(PM 결정 3건)** — 「위치는 누적, 인정은 세션」: virtualDistance offset 시드 + 운동기록·Claim 페이로드는 [offset..virtual] 구간 분리(`fromMeters`), HUD 누적 표시·진행률 max 유지·Go 영역 선택 UI. 배경: [07-12 자문](archive/260712-자문-문답-홀로-함께-역할분담-이어달리기.md)·[결정 로그](260707-RTW-결정-로그.md) "홀로 vs 함께" 역할 분담 |
+| 2026-07-13 | **§9.5.5 단위 1~6 구현·배포 완료 표기 + 단위7(이어 달리기 재개) 설계 확정(PM 결정 3건)** — 「위치는 누적, 인정은 세션」: virtualDistance offset 시드 + 운동기록·Claim 페이로드는 [offset..virtual] 구간 분리(`fromMeters`), HUD 누적 표시·진행률 max 유지·Go 영역 선택 UI. 배경: [07-12 자문](../../archive/260712-자문-문답-홀로-함께-역할분담-이어달리기.md)·[결정 로그](../../260707-RTW-결정-로그.md) "홀로 vs 함께" 역할 분담 |
 | 2026-07-13 | **단위7 구현 완료(`6e5647a`)** — §9.5 전 단위 종결. 검증 중 발견한 HUD 평속·칼로리·요약 거리의 누적 기준 왜곡을 세션 기준으로 분리 수정(HUD 거리만 누적 유지). 게스트 로컬 진행률 저장 + Firebase 미구성 분기 무조건 격상(기존 결함)도 완주 게이트로 수정. Playwright 실주행 E2E로 재개 UI·누적 HUD·진행률 max·Claim 중복 없음(🏴 +0.0km) 확인 |

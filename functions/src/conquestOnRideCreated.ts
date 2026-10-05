@@ -6,7 +6,7 @@ import { REGION } from "./region.js";
  * Conquest(정복) 레이어 v2 — 도로 셀 기반(2026-07-03 도로 전환).
  * rides 생성 시 클라이언트 payload(도로 셀 + 궤적)에 Trust Tier 한도를 적용해
  * 「내 도로망」(신규 도로 미터·궤적)을 집계한다.
- * 설계 SoT: document/260703-Conquest-정복-레이어-설계.md §3~§4.
+ * 설계 SoT: document/reference/architecture/260703-Conquest-정복-레이어-설계.md §3~§4.
  *
  * Pioneer 는 셀 단위로 부여하지 않는다 — 구간 챌린지(교차로~교차로·IC~JC 완주)로
  * Phase B 에서 설계(§3.4 개정). v1 타일 데이터(z10 청크·pioneerChunks)는 유휴.

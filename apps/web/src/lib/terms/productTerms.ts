@@ -1,5 +1,5 @@
 /**
- * 제품 표면 용어 — 단일 진실: `document/260517-제품-용어-Trailhead-Trail.md`
+ * 제품 표면 용어 — 단일 진실: `document/reference/product/260517-제품-용어-Trailhead-Trail.md`
  * Firestore 경로 `trails/`. `rides.trailId` = Trail ID (레거시 문서는 `roomId` 폴백).
  * Trailhead = `DEFAULT_TRAIL_ID` Trail 인스턴스 — 「어느 Trail에 있는가」 범주에 포함.
  */

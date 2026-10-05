@@ -6,7 +6,7 @@
 | 최초 작성 | 2026-09-10 |
 | 상태 | **코드 반영 중** — 2026-09-14 natural_joint_skin 인계 기록 갱신. 목둘레 수정 완료 미확인·새 후보 외형 승인·앱 운동 검증 미완료. 제품 교체 미실행 |
 | 요청 | Modelling 프로젝트의 **블렌더 라이더 모델 수정** 결과물을 boxcycle 현재 라이더와 교체할 계획 수립 |
-| 연결 문서 | [결합 스킬](../../.agents/skills/rider-cycle-fit/SKILL.md) · [결합 하네스](../../apps/web/scripts/rider-cycle-fit/HARNESS.md) · [Skill/Harness 구조](../260722-Skill-Harness-아키텍처.md) |
+| 연결 문서 | [결합 스킬](../../.agents/skills/rider-cycle-fit/SKILL.md) · [결합 하네스](../../apps/web/scripts/rider-cycle-fit/HARNESS.md) · [Skill/Harness 구조](../reference/operations/260722-Skill-Harness-아키텍처.md) |
 
 이식 권고안은 **수정된 라이더 전체 외형을 앱의 명명 관절 노드 구조로 변환하고, 현재 자전거와 결합**하는 것이다. 최신 결과의 저지 색상·하의·머리 방향·가슴·어깨·헬멧을 포함한다. 자전거까지 교체한다는 요청은 없으므로 현행 자전거를 기본 입력으로 삼는다. 접점 정합에 필요한 안장·후드 조정은 후보에서 검증하며, 체형을 임의로 늘이거나 줄이지 않는다.
 

@@ -9,7 +9,7 @@
 | 작업 worktree | `C:\20.HDev\boxcycle-route-token-default-enforcement` |
 | 작업 브랜치 | `fix/route-token-default-enforcement` 계속 사용 |
 | 기준 commit | `a9951eac90dbc3b8dd6ad756f19abee3d075a2ab` |
-| 연결 문서 | [2A 작업지시서](260830-Route-Token-기본경로-우회차단-차감피드백-2A-작업지시서.md) · [Route Token 경제](../../260518-Route-Token-경제-설계.md) · [개발 워크플로](../../260719-개발-워크플로-브랜치-커밋-게이트.md) |
+| 연결 문서 | [2A 작업지시서](260830-Route-Token-기본경로-우회차단-차감피드백-2A-작업지시서.md) · [Route Token 경제](../../reference/product/260518-Route-Token-경제-설계.md) · [개발 워크플로](../../reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md) |
 
 > 개발팀장에게 전달할 한 줄: **`7fa4e7e`·`0e6d7b2`·`a9951ea`를 보존하고 같은 브랜치에서 `ROUTE-TOKEN-2A-R1`만 수행하라. Token 잔액·메시지를 UID별로 격리하고 구독 잔액 증가를 막지 않게 하며, Trail 메뉴가 닫힌 기본 지도에서도 Route 성공 직후 전역 피드백을 보이게 하라. 실제 제품 모듈을 검증하는 시험으로 Guest 전환·0→적립→재생성·메뉴 닫힘·실패/멱등을 증명하고 재검토 전 push·PR·merge하지 말라.**
 

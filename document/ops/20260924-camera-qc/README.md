@@ -32,7 +32,7 @@ node scripts/ops-relay/check-amend.mjs document/ops/20260924-camera-qc   # 진�
   감리가 특정 라운드에 캡처를 명시적으로 요구할 때만 찍는다
 - `PROGRESS.md` **UTF-8**, 10분에 한 줄
 - 같은 수정 3회 실패 → 멈추고 감리에 올려라
-- **UI 공간 밀도 원칙**([D1~D7](../../260924-RTW-UI-공간밀도-원칙.md))이 자동 적용된다
+- **UI 공간 밀도 원칙**([D1~D7](../../reference/product/260924-RTW-UI-공간밀도-원칙.md))이 자동 적용된다
 
 ## 4. 요구의 기준
 
@@ -40,4 +40,4 @@ node scripts/ops-relay/check-amend.mjs document/ops/20260924-camera-qc   # 진�
 |---|---|
 | [결정 로그](../../260707-RTW-결정-로그.md) 2026-09-23 `[Map][UI]` 줄들 | pitch·거리·명칭 확정값 |
 | [Quick Camera 완료보고](../../archive/260923-RTW-Quick-Camera-작업-완료보고서.md) | 1~6 의 현재 동작 |
-| [UI 공간 밀도 원칙](../../260924-RTW-UI-공간밀도-원칙.md) | 버튼·라벨 |
+| [UI 공간 밀도 원칙](../../reference/product/260924-RTW-UI-공간밀도-원칙.md) | 버튼·라벨 |

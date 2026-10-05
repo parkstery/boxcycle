@@ -1,0 +1,109 @@
+{
+  "files": 524,
+  "errors": [
+    {
+      "file": "document/260703-Conquest-정복-레이어-설계.md",
+      "target": "apps/web/src/lib/firestoreSavedRoutes.ts"
+    },
+    {
+      "file": "document/260707-RTW-결정-로그.md",
+      "target": "apps/web/src/lib/bleAutoReconnect.ts"
+    },
+    {
+      "file": "document/260707-RTW-결정-로그.md",
+      "target": "document/260812-AI-오케스트레이션-Claude-인수인계.md"
+    },
+    {
+      "file": "document/archive/260509-Firestore-컬렉션-스키마-초안.md",
+      "target": "document/apps/web/src/lib/firestoreCoursePresence.ts"
+    },
+    {
+      "file": "document/archive/260511-Firestore-Rules-일반화-방안.md",
+      "target": "document/firestore.rules"
+    },
+    {
+      "file": "document/archive/260511-Phase별-실행-체크리스트-Course-Session-Presence.md",
+      "target": "document/apps/web/src/lib/firestoreCourses.ts"
+    },
+    {
+      "file": "document/archive/260511-Phase별-실행-체크리스트-Course-Session-Presence.md",
+      "target": "document/firestore.rules"
+    },
+    {
+      "file": "document/archive/260511-Phase별-실행-체크리스트-Course-Session-Presence.md",
+      "target": "document/apps/web/src/App.tsx"
+    },
+    {
+      "file": "document/archive/260511-Phase별-실행-체크리스트-Course-Session-Presence.md",
+      "target": "document/apps/web/src/components/CourseSharedPresence.tsx"
+    },
+    {
+      "file": "document/archive/260511-Phase별-실행-체크리스트-Course-Session-Presence.md",
+      "target": "document/firestore.indexes.json"
+    },
+    {
+      "file": "document/archive/260511-Phase별-실행-체크리스트-Course-Session-Presence.md",
+      "target": "document/apps/web/package.json"
+    },
+    {
+      "file": "document/archive/260511-Phase별-실행-체크리스트-Course-Session-Presence.md",
+      "target": "document/apps/web/src/lib/firestoreRides.ts"
+    },
+    {
+      "file": "document/archive/260511-경로저장-계층화-Frozen-Route-Segment.md",
+      "target": "document/apps/web/src/lib/firestoreCourses.ts"
+    },
+    {
+      "file": "document/archive/260627-Phase7c-liveCourseRides-courseId-디커미션-체크리스트.md",
+      "target": "document/functions/src/trailPaths.ts"
+    },
+    {
+      "file": "document/archive/260627-Phase7c-liveCourseRides-courseId-디커미션-체크리스트.md",
+      "target": "document/firestore.rules"
+    },
+    {
+      "file": "document/archive/260627-Phase7c-liveCourseRides-courseId-디커미션-체크리스트.md",
+      "target": "document/functions/src/backfillRoutePublications.ts"
+    },
+    {
+      "file": "document/archive/260627-Phase7c-liveCourseRides-courseId-디커미션-체크리스트.md",
+      "target": "document/functions/src/backfillRoutePublicationsCore.ts"
+    },
+    {
+      "file": "document/archive/260627-Phase7c-liveCourseRides-courseId-디커미션-체크리스트.md",
+      "target": "document/apps/web/src/lib/resolvePublicationIdFromDoc.ts"
+    },
+    {
+      "file": "document/archive/260627-Phase7c-liveCourseRides-courseId-디커미션-체크리스트.md",
+      "target": "document/functions/src/openTrailListingProjection.ts"
+    },
+    {
+      "file": "document/archive/260910-Modelling-라이더-교체-실행계획.md",
+      "target": "document/apps/web/src/lib/rideCameraFraming.ts"
+    },
+    {
+      "file": "document/archive/260913-도로망-다음접속-2단계-완료보고.md",
+      "target": "document/ride-relay/260913-도로망-주행중-3단계-작업지시서.md"
+    },
+    {
+      "file": "document/archive/260928-RTW-결정-로그-상세-0703-0928.md",
+      "target": "document/apps/web/src/lib/bleAutoReconnect.ts"
+    },
+    {
+      "file": "document/archive/260928-RTW-결정-로그-상세-0703-0928.md",
+      "target": "document/archive/260812-AI-오케스트레이션-Claude-인수인계.md"
+    },
+    {
+      "file": "document/archive/261001-03-ARCHITECTURE-초안-검증보고.md",
+      "target": "document/apps/web/dep-layers.json"
+    },
+    {
+      "file": "document/ops/20260922-new_camera/20260922-지시04수행결과-하네스캡처-pitch캐시.md",
+      "target": "document/ops/20260922-new_camera/825c78b5-b7ea-428a-88e8-00c80bb4619d"
+    },
+    {
+      "file": "document/ops/cyclefit-relay/REPORT-F4.md",
+      "target": "document/ops/cyclefit-relay/apps/web/scripts/generate-rider-prototype-glb.mjs"
+    }
+  ]
+}

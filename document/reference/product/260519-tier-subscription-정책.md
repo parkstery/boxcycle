@@ -7,7 +7,7 @@
 | 상태 | **채택(1차)** — Checkout·Webhook·포털·만료 스윕 |
 | 상위 | [사용자 tier 및 진입 정책](260519-사용자-tier-및-진입-정책.md) §2.4, §6 D6 |
 | quota | [tier quota 정책](260519-tier-quota-정책.md) — `registered_paid` 한도 적용 |
-| 시드 | [config-subscription.seed.json](config-subscription.seed.json) |
+| 시드 | [config-subscription.seed.json](../../config-subscription.seed.json) |
 
 ---
 

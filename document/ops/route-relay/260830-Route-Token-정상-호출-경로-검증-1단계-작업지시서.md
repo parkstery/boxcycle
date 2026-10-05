@@ -9,7 +9,7 @@
 | 기준 브랜치 | `origin/main2` |
 | 작업 브랜치 | `chore/route-token-harness` — 전용 worktree에서만 수행 |
 | 보호 대상 | `feat/distance-based-auto-route` 현재 WIP — commit·stash·rebase·merge·checkout 금지 |
-| 연결 문서 | [Route Token 경제 설계](../../260518-Route-Token-경제-설계.md) · [Skill·Harness 아키텍처](../../260722-Skill-Harness-아키텍처.md) · [개발 워크플로](../../260719-개발-워크플로-브랜치-커밋-게이트.md) |
+| 연결 문서 | [Route Token 경제 설계](../../reference/product/260518-Route-Token-경제-설계.md) · [Skill·Harness 아키텍처](../../reference/operations/260722-Skill-Harness-아키텍처.md) · [개발 워크플로](../../reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md) |
 
 > 후속 지시: [Route Token Harness 격리 보완 1R](260830-Route-Token-Harness-격리-보완-1R-작업지시서.md)을 우선 수행한다.
 
@@ -152,7 +152,7 @@ Route Token은 **RTW 내부 보상·사용량 시스템**이다. Mapbox access t
 
 ### 4.1 Harness
 
-[Skill·Harness 아키텍처](../../260722-Skill-Harness-아키텍처.md)에 따라 다음 경로에 둔다.
+[Skill·Harness 아키텍처](../../reference/operations/260722-Skill-Harness-아키텍처.md)에 따라 다음 경로에 둔다.
 
 ```text
 apps/web/scripts/route-token/

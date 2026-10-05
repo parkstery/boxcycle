@@ -9,7 +9,7 @@
 | 작업 worktree | `C:\20.HDev\boxcycle-route-token-default-enforcement` |
 | 작업 브랜치 | `fix/route-token-default-enforcement` 계속 사용 |
 | 기준 commit | `8f0718872146141f018c4609beae9eea6bb0c33b` |
-| 연결 문서 | [2A-R1 작업지시서](260830-Route-Token-기본경로-세션격리-전역피드백-2A-R1-작업지시서.md) · [Route Token 경제](../../260518-Route-Token-경제-설계.md) · [개발 워크플로](../../260719-개발-워크플로-브랜치-커밋-게이트.md) |
+| 연결 문서 | [2A-R1 작업지시서](260830-Route-Token-기본경로-세션격리-전역피드백-2A-R1-작업지시서.md) · [Route Token 경제](../../reference/product/260518-Route-Token-경제-설계.md) · [개발 워크플로](../../reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md) |
 
 > 개발팀장에게 전달할 한 줄: **현재 Token worktree와 `localhost:5000` 검수 상태를 그대로 유지하고 `ROUTE-TOKEN-2A-R2`에서는 표시 문제만 고쳐라. 상단 중앙 전역 Token 카드를 제거하고 보유량·비용·차감·부족 상태를 경로 설정 popup의 기존 부족 안내 자리에 통합하라. Token 획득 조건·지급 로직·Public Route 연계와 자동 Route 통합은 건드리지 말며, 획득 문제는 이 작업 통과 후 새 worktree·별도 브랜치의 후속 지시로 처리한다. 재검토 전 push·PR·배포하지 말라.**
 

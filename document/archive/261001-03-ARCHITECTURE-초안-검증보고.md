@@ -4,7 +4,7 @@
 |------|------|
 | 문서 유형 | **보고서** — 외부 초안 `03_ARCHITECTURE.md`와 저장소 SoT·코드 대조 |
 | 작성일 | 2026-10-01 |
-| 검증 기준 | `document/260925-RTW-lib-도메인-경계와-의존-방향.md` · `apps/web/dep-layers.json` · `document/260714-RTW-Ontology.md` · `origin/main` / 로컬 트리 · README · `.env.example` |
+| 검증 기준 | `document/reference/architecture/260925-RTW-lib-도메인-경계와-의존-방향.md` · `apps/web/dep-layers.json` · `document/reference/product/260714-RTW-Ontology.md` · `origin/main` / 로컬 트리 · README · `.env.example` |
 | 상태 | **완료** — 초안을 SoT로 채택하기 전 수정 필수 |
 | 범위 | **앱 코드 미수정.** 문서·코드 읽기만 |
 
@@ -47,11 +47,11 @@
 - 기계 SoT [`dep-layers.json`](../apps/web/dep-layers.json) 도메인에는 최소 다음이 **동등한 레이어**로 존재한다:  
   `firebase`, `map`, `peerMotion`, `activity`, `account`, `identity`, `sensor`, `camera`, `rider`, `coach`, `weather`, `debug`, `terms`, `storage` 등.
 - 초안이 다섯만 “핵심”으로 고정하면, **표현 계층(`map`)·동행 전송(`peerMotion`)·Activity World(`activity`)·경제(`account`)**가 아키텍처 밖에서 임의 구현되는 오해를 낳는다.
-- 기존 SoT: [260925-RTW-lib-도메인-경계와-의존-방향.md](../260925-RTW-lib-도메인-경계와-의존-방향.md) §2~§3.
+- 기존 SoT: [260925-RTW-lib-도메인-경계와-의존-방향.md](../reference/architecture/260925-RTW-lib-도메인-경계와-의존-방향.md) §2~§3.
 
 ### ❌ Ontology 핵심 개념 **Publication** 누락
 
-- [260714-RTW-Ontology.md](../260714-RTW-Ontology.md): Route → **Publication**, Ride는 Publication/Route를 따를 수 있음, Activity World red dot은 publication 단위.
+- [260714-RTW-Ontology.md](../reference/product/260714-RTW-Ontology.md): Route → **Publication**, Ride는 Publication/Route를 따를 수 있음, Activity World red dot은 publication 단위.
 - 초안은 Route/Ride/Trail/Claim만 말하고 **Publication·Route Token·Trailhead**를 구조도에 넣지 않음. UI·Firestore 경로(`livePublicationRides`, `publicationId`)와 불일치.
 
 ### ❌ §32 배포를 Vercel만으로 단정
@@ -152,7 +152,7 @@
 2. **도메인 목록:** 260925 / `dep-layers.json`과 정렬. “제품 판타지 5영역”과 “코드 레이어 전체”를 **두 표로 분리**.
 3. **Ontology 정렬:** Publication · Trailhead · Route Token을 개념도에 추가.
 4. **수치·트리거:** “현재”에 `origin/main` SHA 또는 “Production 배포 기준”을 붙이고, FS live heartbeat·listing Created/Deleted를 정확히 기술.
-5. **중복 SoT 방지:** 이미 [260925](../260925-RTW-lib-도메인-경계와-의존-방향.md)가 lib 의존 SoT이다. 초안은 그 문서를 **링크+요약**하고, 스택·배포·데이터 채널만 보강하는 편이 지침 §2(이중 기술 금지)에 맞다.
+5. **중복 SoT 방지:** 이미 [260925](../reference/architecture/260925-RTW-lib-도메인-경계와-의존-방향.md)가 lib 의존 SoT이다. 초안은 그 문서를 **링크+요약**하고, 스택·배포·데이터 채널만 보강하는 편이 지침 §2(이중 기술 금지)에 맞다.
 
 ---
 

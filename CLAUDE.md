@@ -4,7 +4,7 @@
 
 ## 용어 (필수)
 
-용어·개념·금지어의 단일 진실: **[document/260714-RTW-Ontology.md](document/260714-RTW-Ontology.md)**. UI 문자열·문서·**신규** 코드 식별자는 이 문서를 따른다. 단, 기존 코드 식별자·Firestore 경로의 일괄 rename 근거로 쓰지 않는다 — rename·마이그레이션은 결정 로그를 거친 별도 계획으로만(스코프 규칙: Ontology §0.1).
+용어·개념·금지어의 단일 진실: **[document/reference/product/260714-RTW-Ontology.md](document/reference/product/260714-RTW-Ontology.md)**. UI 문자열·문서·**신규** 코드 식별자는 이 문서를 따른다. 단, 기존 코드 식별자·Firestore 경로의 일괄 rename 근거로 쓰지 않는다 — rename·마이그레이션은 결정 로그를 거친 별도 계획으로만(스코프 규칙: Ontology §0.1).
 
 자주 틀리는 것:
 
@@ -17,18 +17,18 @@
 
 | 질문 | 문서 |
 |---|---|
-| 지금 어디까지 왔나·다음 목표·chief 결정 대기 | [document/260928-RTW-현황판.md](document/260928-RTW-현황판.md) |
+| 다음 목표·chief 결정 대기 요약 | [document/260928-RTW-현황판.md](document/260928-RTW-현황판.md) |
 | 에이전트 작업 창구(ops) 현황·새 묶음 열기 | [document/ops/README.md](document/ops/README.md) |
-| X가 무엇인가·뭐라고 부르나 | [document/260714-RTW-Ontology.md](document/260714-RTW-Ontology.md) |
+| X가 무엇인가·뭐라고 부르나 | [document/reference/product/260714-RTW-Ontology.md](document/reference/product/260714-RTW-Ontology.md) |
 | 왜 그렇게 결정했나 | [document/260707-RTW-결정-로그.md](document/260707-RTW-결정-로그.md) |
-| 어디까지 구현됐나·전체 그림 | [document/260707-RTW-기능-인벤토리-상태보드.md](document/260707-RTW-기능-인벤토리-상태보드.md) |
+| 목표·기능별 진도·전체 그림 — Chief 핵심 입구 | [document/260707-RTW-기능-인벤토리-상태보드.md](document/260707-RTW-기능-인벤토리-상태보드.md) |
 | 문서·용어를 바꾸는 절차 | [document/260509-BOXCYCLE-문서-생성-및-수정-지침.md](document/260509-BOXCYCLE-문서-생성-및-수정-지침.md) §6·§6.1·§8 |
-| 비전·전략·타겟 | [document/260511-RTW-마스터-비전-및-종합계획.md](document/260511-RTW-마스터-비전-및-종합계획.md) |
-| 정복 메커닉·인정 규칙·수치 | [document/260703-Conquest-정복-레이어-설계.md](document/260703-Conquest-정복-레이어-설계.md) |
-| Skill·Harness를 만들거나 구분하려면 | [document/260722-Skill-Harness-아키텍처.md](document/260722-Skill-Harness-아키텍처.md) |
-| 화면 공간을 어떻게 쓰나(버튼·칩·카드 크기) | [document/260924-RTW-UI-공간밀도-원칙.md](document/260924-RTW-UI-공간밀도-원칙.md) |
-| 이 모듈이 어느 도메인인가·무엇을 import 해도 되나 | [document/260925-RTW-lib-도메인-경계와-의존-방향.md](document/260925-RTW-lib-도메인-경계와-의존-방향.md) |
-| 구조를 바꾸거나 게이트를 세우려면(도구·절차) | [document/260926-RTW-구조-게이트-운용-지침.md](document/260926-RTW-구조-게이트-운용-지침.md) |
+| 비전·전략·타겟 | [document/reference/product/260511-RTW-마스터-비전-및-종합계획.md](document/reference/product/260511-RTW-마스터-비전-및-종합계획.md) |
+| 정복 메커닉·인정 규칙·수치 | [document/reference/architecture/260703-Conquest-정복-레이어-설계.md](document/reference/architecture/260703-Conquest-정복-레이어-설계.md) |
+| Skill·Harness를 만들거나 구분하려면 | [document/reference/operations/260722-Skill-Harness-아키텍처.md](document/reference/operations/260722-Skill-Harness-아키텍처.md) |
+| 화면 공간을 어떻게 쓰나(버튼·칩·카드 크기) | [document/reference/product/260924-RTW-UI-공간밀도-원칙.md](document/reference/product/260924-RTW-UI-공간밀도-원칙.md) |
+| 이 모듈이 어느 도메인인가·무엇을 import 해도 되나 | [document/reference/architecture/260925-RTW-lib-도메인-경계와-의존-방향.md](document/reference/architecture/260925-RTW-lib-도메인-경계와-의존-방향.md) |
+| 구조를 바꾸거나 게이트를 세우려면(도구·절차) | [document/reference/operations/260926-RTW-구조-게이트-운용-지침.md](document/reference/operations/260926-RTW-구조-게이트-운용-지침.md) |
 | 실행·배포 방법 | [README.md](README.md) |
 
 ## Mermaid (필수 · Cursor 채팅)
@@ -39,7 +39,7 @@
 
 ## 문서 규칙 (요약)
 
-- 새 문서는 `YYMMDD-` 접두어 + [document/README.md](document/README.md) 색인 등재. 보고서·완료된 체크리스트는 태어날 때부터 `document/archive/`에 작성.
+- 현재 기준은 `document/reference/`에 `YYMMDD-` 접두어로 작성하고 [문서 색인](document/README.md)에 등재. 작업 문서는 ops 묶음에, 새 최종 보고서는 `document/archive/reports/`에 보관. 날짜 예외·종료 절차는 문서 지침 §8을 따른다.
 - 주요 결정은 [결정 로그](document/260707-RTW-결정-로그.md)에 태그 포함 한 줄 append(최신이 위). 기능 상태 변경은 [상태보드](document/260707-RTW-기능-인벤토리-상태보드.md) 기호만 갱신 — "인벤토리 갱신해"는 코드와 대조해 상태보드를 갱신하라는 뜻.
 
 ## 자율 진행 및 질문 정책

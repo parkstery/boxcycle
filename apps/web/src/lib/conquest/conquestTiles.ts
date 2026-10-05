@@ -8,7 +8,7 @@ import { decimateLineStringVertices } from "../geo/geoDecimate";
 
 /**
  * Conquest(정복) 레이어 — 주행 경로 → 도로 셀("내 도로망") 변환.
- * 설계 SoT: document/260703-Conquest-정복-레이어-설계.md §3~§4.
+ * 설계 SoT: document/reference/architecture/260703-Conquest-정복-레이어-설계.md §3~§4.
  *
  * 2026-07-03 도로 전환(PM 결정): 정복 단위를 z16 타일(면)에서 **z20 도로 셀(~30m, 선)**로 교체.
  * 사이클리스트의 자산은 면적이 아니라 "달린 도로"다. 경로는 Mapbox Directions 산출이라

@@ -1,124 +1,83 @@
-# RTW `document/` — 문서 색인
+# RTW 문서 입구
 
 | 항목 | 내용 |
-|------|------|
-| 문서 유형 | **메타** — 최상위에 있는 문서만 등재하는 색인. 작업 창구는 `ops/`, 기록은 `archive/` |
+|---|---|
+| 문서 유형 | 메타 — 현재 기준·작업·기록의 색인 |
+| 최초 작성 | 2026-05-23 |
 | 독자 | chief · AI |
-| 최초 작성 | 2026-05-23 (2026-07-07 아카이브 분리 · 2026-09-28 3층 구조 개편) |
-| 상태 | **SoT** |
-| 연결 문서 | [문서 지침 §8](260509-BOXCYCLE-문서-생성-및-수정-지침.md) |
+| 상태 | SoT — 2026-10-05 수명별 체계 정리 |
+| 연결 문서 | [문서 운영 지침](260509-BOXCYCLE-문서-생성-및-수정-지침.md#8-문서-운영--수명별-체계-2026-10-05) |
 
-> **어디서부터 볼까?** → [**현황판**](260928-RTW-현황판.md) 한 장. 에이전트 작업 상황은 [**ops 창구**](ops/README.md) 한 장.
-> 더 궁금한 것은 문서를 열지 말고 AI 에게 질문한다.
+**목표와 기능별 진도는 [상태보드](260707-RTW-기능-인벤토리-상태보드.md)에서 확인한다.** Chief가 계속 직접 활용하는 핵심 문서다. 다음 목표·결정 대기 요약은 [현황판](260928-RTW-현황판.md), 에이전트 실행 상황은 [ops 상태판](ops/PROGRESS.md)이다.
 
-## 세 층
+## 자주 보는 문서
 
-| 층 | 독자 | 어디 |
-|----|------|------|
-| ① 현황판 | chief | [현황판](260928-RTW-현황판.md) · [ops 창구](ops/README.md) |
-| ② 정본 | chief 가끔, AI 항상 | 아래 「정본」「정책」 표 |
-| ③ 작업·기록 | AI | 아래 「진행 중」 표 · `ops/` · `archive/` |
+| 확인할 것 | 문서 | 유지 방식 |
+|---|---|---|
+| 목표·전 기능 진도·다음 액션 | [상태보드](260707-RTW-기능-인벤토리-상태보드.md) | 기존 파일·한눈 지도·기능표 유지. 코드 대조 후 상태 갱신 |
+| 지금 위치·다음 목표·Chief 결정 대기 | [현황판](260928-RTW-현황판.md) | 짧은 요약, 상세는 상태보드·정본 링크 |
+| 왜 그렇게 결정했나 | [결정 로그](260707-RTW-결정-로그.md) | 결정 한 줄, 최신이 위 |
+| 에이전트 진행·대기·막힘 | [ops 상태판](ops/PROGRESS.md) · [작업 입구](ops/README.md) | 종료 작업은 목록에서 제외 |
+| 출시 전 복원할 값 | [출시 전 확인사항](출시%20전%20확인사항.md) | 반복 점검하는 현재 목록 |
+| 문서 생성·종료·이동 절차 | [문서 지침](260509-BOXCYCLE-문서-생성-및-수정-지침.md) | 수명과 보관 위치의 단일 기준 |
 
-규칙(독자·수명 표시, 크기 상한, 이동 조건, 갱신 리듬)은 [문서 지침 §8](260509-BOXCYCLE-문서-생성-및-수정-지침.md).
+## 현재 기준과 검토 중인 문서
 
-## 질문 → 문서
+`reference/`는 주제별 탐색 공간이다. **위치만으로 채택된 기준이 되지는 않는다.** 검토 중인 경제 설계와 부록은 아래 상태를 확인한다. 상태보드의 구현 기호와 문서의 채택 상태도 서로 다르다.
 
-| 질문 | 문서 |
-|------|------|
-| 지금 어디까지 왔고 다음은 뭔가 | [현황판](260928-RTW-현황판.md) |
-| 무엇을 만들려는 앱인가·원칙·로드맵 | [마스터 비전](260511-RTW-마스터-비전-및-종합계획.md) |
-| X가 무엇인가·뭐라고 부르나 | [Ontology](260714-RTW-Ontology.md) |
-| 왜 그렇게 결정했나 | [결정 로그](260707-RTW-결정-로그.md) |
-| 기능별로 어디까지 구현됐나 | [상태보드](260707-RTW-기능-인벤토리-상태보드.md) |
-| 정복 메커닉·인정 규칙·수치 | [Conquest 설계](260703-Conquest-정복-레이어-설계.md) |
-| 출시 전에 되돌릴 값 | [출시 전 확인사항](출시%20전%20확인사항.md) |
-| 문서·용어를 바꾸려면 | [문서 지침](260509-BOXCYCLE-문서-생성-및-수정-지침.md) §6·§6.1·§8 |
-| 이 모듈이 어느 도메인인가·무엇을 import 해도 되나 | [lib 도메인 경계](260925-RTW-lib-도메인-경계와-의존-방향.md) |
-| 구조를 바꾸거나 게이트를 세우려면 | [구조 게이트 운용 지침](260926-RTW-구조-게이트-운용-지침.md) |
+### 제품·용어·정책 — reference/product
 
----
+| 문서 | 역할 | 문서 상태 |
+|---|---|---|
+| [마스터 비전](reference/product/260511-RTW-마스터-비전-및-종합계획.md) | 정체성·제품 원칙·로드맵 | SoT |
+| [Ontology](reference/product/260714-RTW-Ontology.md) | 개념·용어·금지어 | 채택·SoT |
+| [Trail·Trailhead 상세](reference/product/260517-제품-용어-Trailhead-Trail.md) | 도메인 동작·매핑. 용어 정의는 Ontology | 채택·범위 축소 |
+| [tier·진입 정책](reference/product/260519-사용자-tier-및-진입-정책.md) | identity·tier·진입의 기준. 구현 진도는 상태보드 | SoT·부분 구현 |
+| [tier quota](reference/product/260519-tier-quota-정책.md) | 생성·저장 한도 | 채택(1차)·tier 정책 부록 |
+| [tier subscription](reference/product/260519-tier-subscription-정책.md) | Stripe 구독 | 채택(1차)·tier 정책 부록 |
+| [Route Token 경제](reference/product/260518-Route-Token-경제-설계.md) | 경제 루프·소비처·저장 한도와의 관계 | 검토 중·미결 있음, 한시 무제한 |
+| [퍼블릭 경로 자동등록](reference/product/260717-퍼블릭-경로-자동등록-정책.md) | 등록·자동 심사 조건 | SoT |
+| [UI 공간밀도 원칙](reference/product/260924-RTW-UI-공간밀도-원칙.md) | 화면 공간 규칙 D1~D7 | SoT |
 
-## 정본
+### 현재 설계 — reference/architecture
 
-| 문서 | 역할 | 상태 |
-|------|------|------|
-| [260928-RTW-현황판](260928-RTW-현황판.md) | chief 용 한 장 — 지금 위치·다음 목표·결정 대기 | SoT |
-| [260511-RTW-마스터-비전-및-종합계획](260511-RTW-마스터-비전-및-종합계획.md) | 정의·해자·타겟·제품 원칙 P1~P7·로드맵·미결 질문 (09-28 v2) | SoT |
-| [260714-RTW-Ontology](260714-RTW-Ontology.md) | 용어·개념·관계·금지어 | SoT |
-| [260703-Conquest-정복-레이어-설계](260703-Conquest-정복-레이어-설계.md) | 「Ride = Claim」 메커닉·데이터 모델·Phase A~C | SoT |
-| [260707-RTW-기능-인벤토리-상태보드](260707-RTW-기능-인벤토리-상태보드.md) | 전 기능 상태(✅🔶💭⚠️❌)·충돌·미결 | 반영중 |
-| [260707-RTW-결정-로그](260707-RTW-결정-로그.md) | 결정 한 줄씩, 최신이 위 | 반영중 |
-| [출시 전 확인사항](출시%20전%20확인사항.md) | 개발 완화값 복원 목록 | 반영중 |
-| [260924-RTW-UI-공간밀도-원칙](260924-RTW-UI-공간밀도-원칙.md) | 화면 공간 규칙 D1~D7 — 신규·수정 UI 전부에 적용 | SoT |
-| [260925-RTW-lib-도메인-경계와-의존-방향](260925-RTW-lib-도메인-경계와-의존-방향.md) | `lib/` 도메인 책임·허용 의존. 기계 판독본 `apps/web/dep-layers.json` | SoT |
-| [260926-RTW-구조-게이트-운용-지침](260926-RTW-구조-게이트-운용-지침.md) | 구조 도구 사용법·게이트 규율 | SoT |
-| [260719-개발-워크플로-브랜치-커밋-게이트](260719-개발-워크플로-브랜치-커밋-게이트.md) | 브랜치(main2 base)·커밋/푸시·품질 게이트 | SoT |
-| [260722-Skill-Harness-아키텍처](260722-Skill-Harness-아키텍처.md) | Skill(왜)/Harness(어떻게)/실행코드 3계층 | SoT |
-| [260509-BOXCYCLE-문서-생성-및-수정-지침](260509-BOXCYCLE-문서-생성-및-수정-지침.md) | 파일명·메타·링크·용어 변경 절차·§8 문서 운영 | SoT |
+| 문서 | 역할 | 문서 상태 |
+|---|---|---|
+| [Conquest 설계](reference/architecture/260703-Conquest-정복-레이어-설계.md) | Ride = Claim 메커닉·데이터·단계별 구상 | SoT·미구현 단계 구분 |
+| [World Activity Presence](reference/architecture/260523-World-Activity-Presence-설계.md) | 월드 맵 activity·presence 경계 | SoT |
+| [lib 도메인 경계](reference/architecture/260925-RTW-lib-도메인-경계와-의존-방향.md) | 모듈 책임·허용 의존 | SoT |
 
-## 정책
+### 반복 절차·개발 운영 — reference/operations
 
-| 문서 | 역할 | 상태 |
-|------|------|------|
-| [260519-사용자-tier-및-진입-정책](260519-사용자-tier-및-진입-정책.md) | identity·tier·진입 | SoT |
-| [260519-tier-quota-정책](260519-tier-quota-정책.md) | tier 별 생성·저장 한도 | 부록 |
-| [260519-tier-subscription-정책](260519-tier-subscription-정책.md) | Stripe → `registered_paid` | 부록 |
-| [260518-Route-Token-경제-설계](260518-Route-Token-경제-설계.md) | Route Token 경제 — ⚠️ 저장 한도와 이중 체계(비전 §7 Q1), 09-24 부터 한시 무제한 | 초안 |
-| [260717-퍼블릭-경로-자동등록-정책](260717-퍼블릭-경로-자동등록-정책.md) | 퍼블릭 경로 등록 조건·자동 심사 | SoT |
-| [260517-제품-용어-Trailhead-Trail](260517-제품-용어-Trailhead-Trail.md) | Trail·Trailhead 도메인 상세(용어 정의는 Ontology) | SoT(범위 축소) |
-| [260523-World-Activity-Presence-설계](260523-World-Activity-Presence-설계.md) | 월드 맵 presence·publication dot | SoT |
-| [260523-Firebase-비용-운영-체크리스트](260523-Firebase-비용-운영-체크리스트.md) | 비용 관측·대응 | 반영중 |
+| 문서 | 역할 | 문서 상태 |
+|---|---|---|
+| [Firebase 비용 체크리스트](reference/operations/260523-Firebase-비용-운영-체크리스트.md) | 반복 비용 관측·대응 절차 | 검토됨·운영 문서 |
+| [개발 워크플로](reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md) | 브랜치·커밋·검증 게이트 | SoT |
+| [Skill·Harness 아키텍처](reference/operations/260722-Skill-Harness-아키텍처.md) | 규율·도구·실행코드 3계층 | SoT |
+| [구조 게이트 운용](reference/operations/260926-RTW-구조-게이트-운용-지침.md) | 구조 도구·게이트 규율 | SoT |
 
-## 진행 중 (끝나면 `archive/` 로)
+## 작업과 기록
 
-| 문서 | 역할 | 상태 |
-|------|------|------|
-| [260927-RTW-동행-지연과-경쟁-판정](260927-RTW-동행-지연과-경쟁-판정.md) | 동행 경쟁 판정을 렌더 위치에서 떼어낸다 — ① 판정 설계(미착수) · ② 도착 간격 절반(완료) · ③ 느낌 보정 | 진행 중 |
+| 수명 | 위치 | 입구 |
+|---|---|---|
+| 진행·대기 계획, 지시·결과·검수 | `ops/YYYYMMDD-주제/` | [진행·대기 작업](ops/README.md) |
+| 미착수 경쟁 판정 계획 | `ops/20260927-peer-competition/` | [계획 입구](ops/20260927-peer-competition/README.md), 현재 구현 기준과 구분 |
+| 종료 묶음·최종 보고·대체된 기준 | `archive/` | [완료 기록 색인](archive/README.md). 경로 의존으로 제자리 보관한 종료 묶음도 여기서 찾는다 |
 
-## 정책 시드 JSON (문서 본문 아님)
+새 보고서는 `archive/reports/`, 대체 정본은 `archive/superseded/`, 종료 묶음은 `archive/ops/`에 보관한다. 기존 archive 최상위 기록은 경로를 유지한다. 매 작업마다 별도 보고서를 추가하지 않고, 일반 작업은 묶음의 최종 결과로 충분하다.
+
+## 정책 시드 — 경로 유지
 
 | 파일 | 용도 |
-|------|------|
+|---|---|
 | [config-tierQuotas.seed.json](config-tierQuotas.seed.json) | tier 한도 시드 |
 | [config-subscription.seed.json](config-subscription.seed.json) | 구독 시드 |
-| [config-routeTokenEconomy.seed.json](config-routeTokenEconomy.seed.json) | Route Token 경제 시드 |
+| [config-routeTokenEconomy.seed.json](config-routeTokenEconomy.seed.json) | Route Token 시드 |
 
----
+시드는 문서 본문이 아닌 운영 입력이다. 폴더 미관을 이유로 이동하지 않는다.
 
-## `archive/` — 기록
+## 정리 검증
 
-끝난 계획·보고서·인수인계·스냅샷. **전체를 색인하지 않는다** — 날짜 접두어로 훑거나 `git grep <키워드> document/archive` 로 찾는다(AI 에게 물으면 찾아 준다). 끝난 `ops/` 묶음은 `archive/ops/`.
+`node scripts/check-document-system.mjs`는 현재 문서 링크·reference 색인 누락·종료 작업의 PROGRESS 잔류를 확인한다. `--all`은 과거 기록까지 검사하며 기존 오류도 실패로 보고한다. anchor·동적 경로·코드블록 예시는 검사 대상이 아니다.
 
-자주 찾는 기록:
-
-| 문서 | 무엇 |
-|------|------|
-| [260928-RTW-구조정비-완료보고](archive/260928-RTW-구조정비-완료보고.md) | 구조 정비 전체 결과 — 위반 0·순환 0 |
-| [260929-RTW-AI-개발체계-구축-완료보고](archive/260929-RTW-AI-개발체계-구축-완료보고.md) | Codex Supervisor ↔ Cursor CLI Developer 업무 프로토콜과 실제 handoff 검증 |
-| [261001-Public-Trail-동행-트래픽-개선-결과보고](archive/261001-Public-Trail-동행-트래픽-개선-결과보고.md) | Public Trail 1·2인 Firebase 트래픽 개선 — emulator FS writes ~73%·배포·billed 미측정 |
-| [261001-03-ARCHITECTURE-초안-검증보고](archive/261001-03-ARCHITECTURE-초안-검증보고.md) | 외부 아키텍처 초안 vs SoT·코드 — `dmv2`/env/도메인 누락 등 |
-| [261002-카메라-미세조정-HUD-방법](archive/261002-카메라-미세조정-HUD-방법.md) | camlab HUD + QC2·3 제품 튜닝 bake · 나머지 QC는 기존 Follow 기본 |
-| [261005-RTW-동행-위치-동기화와-반복진동-해결-결과보고](archive/261005-RTW-동행-위치-동기화와-반복진동-해결-결과보고.md) | 등속 동행 간격 진동·창 간 순서 — tSrv/D600·0.01m 양자·Chief PASS |
-| [260928-RTW-동행-동기화-메커니즘과-유령-보고서](archive/260928-RTW-동행-동기화-메커니즘과-유령-보고서.md) | 동행 동기화 전모 — 채널·화면 경로·보간 |
-| [260924-Local-First-Ride-1차-완료보고](archive/260924-Local-First-Ride-1차-완료보고.md) | 첫 화면 「내 지역」·Ready Ride·Claim 연동 결과 |
-| [260922-RTW-라이더-신구모델-교체-완료보고](archive/260922-RTW-라이더-신구모델-교체-완료보고.md) | 라이더 3D 교체 — **모델 재교체 전 필독** |
-| [260922-RTW-개발중간점검-보고서](archive/260922-RTW-개발중간점검-보고서.md) | 09-22 시점 스냅샷 |
-| [260928-RTW-결정-로그-상세-0703-0928](archive/260928-RTW-결정-로그-상세-0703-0928.md) | 한 줄화 이전 결정 로그 원문 |
-| [260928-RTW-상태보드-스냅샷-다이어트전](archive/260928-RTW-상태보드-스냅샷-다이어트전.md) | 칸 줄이기 이전 상태보드 원문 |
-| [260928-RTW-마스터-비전-v1-개정전](archive/260928-RTW-마스터-비전-v1-개정전.md) | 2026-05 플랫폼 비전 원문 |
-
----
-
-## 개정 이력
-
-| 날짜 | 내용 |
-|------|------|
-| 2026-05-23 | 최초 작성 — 네 덩어리 색인 |
-| 2026-07-07 | **아카이브 분리 개편** — 기록성 38편 `archive/` 이동, 색인을 살아있는 문서만으로 축소, 수명 규칙 신설 |
-| 2026-07-14 | **Ontology 신설 반영** — 질문→문서 라우팅 표 추가, [RTW Ontology](260714-RTW-Ontology.md) 등재, 260517 역할 축소, 루트 CLAUDE.md 등재 |
-| 2026-08-27 | 자이언트 스케일 실험 종결 보고 등재 — [260827](archive/260827-라이더-자이언트-스케일-실험-종결.md) |
-| 2026-09-22 | 라이더 신·구 모델 교체 완료 보고 · 개발 중간 점검 보고서 등재 |
-| 2026-09-28 | **3층 구조 개편** — 입구를 현황판·ops 창구로. 끝난 계획·인수인계 11편과 ops 묶음 4개를 `archive/` 로 이동. ops 지시서 목록(약 60줄)을 색인에서 빼고 [ops 창구](ops/README.md)로 대체 |
-| 2026-10-01 | Public Trail 동행 트래픽 개선 결과 보고 등재 — [261001](archive/261001-Public-Trail-동행-트래픽-개선-결과보고.md) |
-| 2026-10-02 | 카메라 미세조정 HUD 방법 등재 — [261002](archive/261002-카메라-미세조정-HUD-방법.md) |
-| 2026-10-05 | 동행 위치 동기화·반복 진동 해결 결과 보고 등재 — [261005](archive/261005-RTW-동행-위치-동기화와-반복진동-해결-결과보고.md) |
+[2026-10-05 정리 결과](archive/reports/261005-RTW-문서체계-정리-완료보고.md) · [실제 이동 목록·검수](ops/20261005-document-system/README.md)

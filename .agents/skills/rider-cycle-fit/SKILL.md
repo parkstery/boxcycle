@@ -18,7 +18,7 @@ allowed-tools:
 rider-preview는 "생성기로 라이더를 굽는" 작업, 이 스킬은 "**이미 만들어진 두 자산을 결합**"하는 작업이다.
 라이더를 처음부터 다시 만드는 게 아니다.
 
-- **이 문서 = 왜·언제·합격기준.** 도구를 **어떻게** 쓰는지는 [하네스 사용법](../../../apps/web/scripts/rider-cycle-fit/HARNESS.md)을 보라. [Skill/Harness 아키텍처](../../../document/260722-Skill-Harness-아키텍처.md) 3계층 표준을 따른다.
+- **이 문서 = 왜·언제·합격기준.** 도구를 **어떻게** 쓰는지는 [하네스 사용법](../../../apps/web/scripts/rider-cycle-fit/HARNESS.md)을 보라. [Skill/Harness 아키텍처](../../../document/reference/operations/260722-Skill-Harness-아키텍처.md) 3계층 표준을 따른다.
 - **SoT 우선순위**: 자전거 수치의 정본은 [geometry.json](../../../apps/web/src/lib/riderPrototype/geometry.json), 인체 치수 정본은 [riderAnthropometry.json](../../../apps/web/src/lib/riderPrototype/riderAnthropometry.json). **충돌하면 이 도메인 SoT가 우선한다.** 작업 인수인계는 memory `v24-cyclefit-handoff`.
 - **범위(현재)**: 단계 0(입력 등록)·A(앵커 정합)·verify-fit(불변식)까지 하네스화됨. Blender 렌더 자동화·promote는 미구현(→HARNESS 확장 TODO).
 

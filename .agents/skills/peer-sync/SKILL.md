@@ -14,10 +14,10 @@ allowed-tools:
 peer 위치 동기화(`src/lib/peerMotion/`)는 실주행 2인 이상이 있어야 눈으로 확인돼서,
 "고치고 → 실주행 → 또 어긋남 → 또 고침"으로 **알고리즘을 3번 갈아엎은** 영역이다. 그 반복의
 근본 원인은 실력이 아니라 **실주행 없이 검증할 하네스의 부재**였다(3번 규칙,
-[Skill/Harness 아키텍처](../../../document/260722-Skill-Harness-아키텍처.md) §4).
+[Skill/Harness 아키텍처](../../../document/reference/operations/260722-Skill-Harness-아키텍처.md) §4).
 
 - **이 문서 = 왜·언제·합격기준.** 도구를 **어떻게** 쓰는지는 [하네스 사용법](../../../apps/web/scripts/peer-sync/HARNESS.md)을 보라.
-- **SoT 우선순위**: 보간·외삽·쓰기 정책의 수치 정본은 [`src/lib/rideSyncPolicy.ts`](../../../apps/web/src/lib/rideSyncPolicy.ts)와 [`integrator.ts`](../../../apps/web/src/lib/peerMotion/integrator.ts) 주석이다. **코드 주석과 이 스킬이 충돌하면 코드가 우선한다** — 이 스킬은 그 계약을 재생으로 강제할 뿐이다.
+- **SoT 우선순위**: 보간·외삽·쓰기 정책의 수치 정본은 [`src/lib/ride/rideSyncPolicy.ts`](../../../apps/web/src/lib/ride/rideSyncPolicy.ts)와 [`integrator.ts`](../../../apps/web/src/lib/peerMotion/integrator.ts) 주석이다. **코드 주석과 이 스킬이 충돌하면 코드가 우선한다** — 이 스킬은 그 계약을 재생으로 강제할 뿐이다.
 
 ## 철칙 — 실주행으로 sync 를 확인하지 마라
 

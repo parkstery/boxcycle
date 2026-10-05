@@ -5,7 +5,7 @@
 | 문서 유형 | **product** + **architecture** — 월드 맵 activity event·presence·비용 경계의 **단일 진실** |
 | 최초 작성 | 2026-05-23 |
 | 상태 | **코드 반영 중** — M1~M3 클라이언트·CF 집계 (2026-05-23) |
-| 연결 문서 | [Route Publication 모델](archive/260518-Route-Publication-통합-모델-및-마이그레이션.md), [Activity World LOD](archive/260517-Activity-World-지도-LOD-설계.md)(렌더·줌), [Firestore 트래픽 계획](archive/260516-Firestore-트래픽-저감-상세-수정-계획.md), [Firebase 비용 체크리스트](260523-Firebase-비용-운영-체크리스트.md), [경로 표시 백로그](archive/260518-Activity-World-경로표시-우선순위-백로그.md), [자문단 정렬 보고](archive/260526-World-Activity-Presence-자문단-정렬-보고.md) |
+| 연결 문서 | [Route Publication 모델](../../archive/260518-Route-Publication-통합-모델-및-마이그레이션.md), [Activity World LOD](../../archive/260517-Activity-World-지도-LOD-설계.md)(렌더·줌), [Firestore 트래픽 계획](../../archive/260516-Firestore-트래픽-저감-상세-수정-계획.md), [Firebase 비용 체크리스트](../operations/260523-Firebase-비용-운영-체크리스트.md), [경로 표시 백로그](../../archive/260518-Activity-World-경로표시-우선순위-백로그.md), [자문단 정렬 보고](../../archive/260526-World-Activity-Presence-자문단-정렬-보고.md) |
 
 ---
 
@@ -39,7 +39,7 @@ BOXCYCLE 월드 맵은 **실시간 GPS 트래커**가 아니라, **`routePublica
 |----|------|------|--------|------|
 | **Layer 1** | Historical Activity | 모든 접속자(`public`만) | closed publication + `closedAt` | **Faded red dot**, age decay opacity |
 | **Layer 2** | Active Presence | 모든 접속자(`public`만) | active publication presence | **Strong red dot** @ `representativePoint` |
-| **Layer 3** | Same-publication Session | 해당 publication 참가자만 | session riders | heartbeat, 진행 점·(선택) 노선 — [Trail 관전](archive/260514-(cycle)로비_코스주행자_맵관전_구현_보고서.md) 계열 |
+| **Layer 3** | Same-publication Session | 해당 publication 참가자만 | session riders | heartbeat, 진행 점·(선택) 노선 — [Trail 관전](../../archive/260514-(cycle)로비_코스주행자_맵관전_구현_보고서.md) 계열 |
 
 **Trailhead / Trail:** Layer 2·1은 **Trail 무관**. Layer 3·B층 관전은 **동일 `trailId`**(Trailhead = `default` 포함).
 
@@ -134,7 +134,7 @@ flowchart TB
 | 7~30일 | 0.30 |
 | 30일+ | 0.10 또는 미조회 |
 
-줌·LOD(점 vs publication geometry 선)는 [Activity World LOD](archive/260517-Activity-World-지도-LOD-설계.md)를 따르되, **데이터 키는 `publicationId`** 로 통일한다.
+줌·LOD(점 vs publication geometry 선)는 [Activity World LOD](../../archive/260517-Activity-World-지도-LOD-설계.md)를 따르되, **데이터 키는 `publicationId`** 로 통일한다.
 
 ### 5.3 v2 이후 확장(지금 설계만)
 
@@ -184,13 +184,13 @@ Layer 1·2의 **단일 진실**. `publicationId` === `routePublications` 문서 
 | **`courseActivity/{courseId}`** | 레거시 카탈로그·패널 배지·마이그레이션 기간 **듀얼 라이트** → 점진 퇴역 |
 | **`worldActivity/global`** | highlighted 목록 등 **보조 발견** (선택) |
 
-[Route Publication](archive/260518-Route-Publication-통합-모델-및-마이그레이션.md): `publicationId` ↔ `courseId` 동일 ID 단순화는 **유지** 가능 — presence 키는 **`publicationId`**.
+[Route Publication](../../archive/260518-Route-Publication-통합-모델-및-마이그레이션.md): `publicationId` ↔ `courseId` 동일 ID 단순화는 **유지** 가능 — presence 키는 **`publicationId`**.
 
 ---
 
 ## 7. 읽기 · 비용 가드레일
 
-[Firebase 비용 체크리스트](260523-Firebase-비용-운영-체크리스트.md) §1.1: `liveCourseRides` 잦은 쓰기 → `courseActivityOnLiveCourseRideWritten` 폭증이 **현재 1위 비용 경로**.
+[Firebase 비용 체크리스트](../operations/260523-Firebase-비용-운영-체크리스트.md) §1.1: `liveCourseRides` 잦은 쓰기 → `courseActivityOnLiveCourseRideWritten` 폭증이 **현재 1위 비용 경로**.
 
 | 금지 | 권장 |
 |------|------|
@@ -245,7 +245,7 @@ firebase functions:secrets:set STRIPE_WEBHOOK_SECRET
 
 ---
 
-## 10. [Activity World LOD](archive/260517-Activity-World-지도-LOD-설계.md) 와의 역할 분담
+## 10. [Activity World LOD](../../archive/260517-Activity-World-지도-LOD-설계.md) 와의 역할 분담
 
 | 주제 | 본 문서 (Presence) | LOD 문서 |
 |------|-------------------|----------|
@@ -265,7 +265,7 @@ publication 단위 dot·closed fade가 쌓이면:
 - 지역별 **activity heat memory**
 - “이번 주 세계에서 많이 달린 route”
 
-등 **GPS 트래커가 아닌 activity geography**로 확장 가능 — [RTW 마스터 비전](260511-RTW-마스터-비전-및-종합계획.md)과 정합.
+등 **GPS 트래커가 아닌 activity geography**로 확장 가능 — [RTW 마스터 비전](../product/260511-RTW-마스터-비전-및-종합계획.md)과 정합.
 
 ---
 

@@ -7,7 +7,7 @@
 | 상태 | **1차 완료(2026-09-24)** — LF-1~LF-3 구현·배포, LF-4 는 도구만(표본 0). 결과: [완료 보고](260924-Local-First-Ride-1차-완료보고.md) |
 | 원안 | Chief 제공 「RTW Local First Ride & Route Generator」(2026-09-23, 대화 제출본) |
 | 릴레이 | [`ops/20260923-first_ride/`](../ops/20260923-first_ride/README.md) — 감리(클로드)↔개발팀장(커서) 파일 통신 |
-| 연결 문서 | [Ontology](../260714-RTW-Ontology.md) · [Conquest 설계](../260703-Conquest-정복-레이어-설계.md) · [상태보드](../260707-RTW-기능-인벤토리-상태보드.md) · [도로망 성취경험 실행계획](260907-RTW-도로망-성취경험-실행계획.md) · [결정 로그](../260707-RTW-결정-로그.md) |
+| 연결 문서 | [Ontology](../reference/product/260714-RTW-Ontology.md) · [Conquest 설계](../reference/architecture/260703-Conquest-정복-레이어-설계.md) · [상태보드](../260707-RTW-기능-인벤토리-상태보드.md) · [도로망 성취경험 실행계획](260907-RTW-도로망-성취경험-실행계획.md) · [결정 로그](../260707-RTW-결정-로그.md) |
 
 ---
 
@@ -24,7 +24,7 @@
 - 구현된 기능을 새 시스템으로 대체하지 않는다. `distanceAutoRoute`·`NextRideCard`·입문 코스·Conquest 집계를 **재사용**한다.
 - 측정할 수단이 없는 판정 항목은 만들지 않는다. 축퇴값(항상 같은 값)으로 게이트가 자동 통과하는 구조를 금지한다.
 - 각 단계는 수용 기준과 회귀 검증이 통과한 뒤 다음으로 간다. 기간은 담당자 1명 기준 **추정**이며 확약이 아니다.
-- 용어·인정 수치·tier 정책·완주 기준은 각 SoT를 따른다. 신규 제품명은 [Ontology §2](../260714-RTW-Ontology.md) 등재 전에는 코드·UI에 쓰지 않는다(§4).
+- 용어·인정 수치·tier 정책·완주 기준은 각 SoT를 따른다. 신규 제품명은 [Ontology §2](../reference/product/260714-RTW-Ontology.md) 등재 전에는 코드·UI에 쓰지 않는다(§4).
 
 ---
 
@@ -118,7 +118,7 @@ LF-1 캡처에서 S0(지역 미정) 첫 화면이 **10m 줌의 이름 없는 골
 
 ## 4. 용어 — 착수 전 처리 필요
 
-**결정(2026-09-23, Chief):** 「Ready Ride」를 **사용자 노출 명칭으로 쓴다.** [Ontology §2.2](../260714-RTW-Ontology.md)에 등재 완료.
+**결정(2026-09-23, Chief):** 「Ready Ride」를 **사용자 노출 명칭으로 쓴다.** [Ontology §2.2](../reference/product/260714-RTW-Ontology.md)에 등재 완료.
 
 - 표기는 **영문 그대로 「Ready Ride」**, 한국어 문장에서는 조사를 붙인다 — 「Ready Ride를 시작」·「내 지역 Ready Ride」. 한글 음차(레디 라이드)·번역어를 병행하지 않는다.
 - **데이터 모델은 만들지 않는다.** Ready Ride의 그릇은 **Route**(필요 시 SavedRoute로 저장)다. 따라서 쿼터·완주 판정·Claim 처리는 기존 Route/SavedRoute 규칙을 그대로 따르며, 새 컬렉션·새 상태 기계를 추가하지 않는다.

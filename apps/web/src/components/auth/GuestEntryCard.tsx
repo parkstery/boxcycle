@@ -10,7 +10,7 @@ type GuestEntryCardProps = {
 
 /**
  * 최초 진입 — 임시 라이더(익명 인증) 안내 후 세계 참가.
- * [tier 정책 §3.2](document/260519-사용자-tier-및-진입-정책.md)
+ * [tier 정책 §3.2](document/reference/product/260519-사용자-tier-및-진입-정책.md)
  */
 export function GuestEntryCard({ busy, error, onStartGuest, onGoogleSignIn }: GuestEntryCardProps) {
   return (

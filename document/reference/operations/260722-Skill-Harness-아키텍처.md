@@ -5,7 +5,7 @@
 | 문서 유형 | **meta** — Skill·Harness의 경계·폴더 구조·작성 표준의 **단일 진실(SoT)**. 신규 Skill/Harness는 본 문서를 따른다 |
 | 최초 작성 | 2026-07-22 |
 | 상태 | **채택** |
-| 연결 문서 | [개발 워크플로](260719-개발-워크플로-브랜치-커밋-게이트.md) · [결정 로그](260707-RTW-결정-로그.md) · [상태보드](260707-RTW-기능-인벤토리-상태보드.md) · 예시: [rider-preview SKILL](../.claude/skills/rider-preview/SKILL.md) |
+| 연결 문서 | [개발 워크플로](260719-개발-워크플로-브랜치-커밋-게이트.md) · [결정 로그](../../260707-RTW-결정-로그.md) · [상태보드](../../260707-RTW-기능-인벤토리-상태보드.md) · 예시: [rider-preview SKILL](../../../.claude/skills/rider-preview/SKILL.md) |
 
 ---
 

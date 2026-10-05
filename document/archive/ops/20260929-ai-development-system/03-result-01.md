@@ -7,7 +7,7 @@
 
 ## 1. 읽은 파일
 
-- `document/ops/20260929-ai-development-system/02-task-01.md`
+- `document/archive/ops/20260929-ai-development-system/02-task-01.md`
 - `document/ops/README.md`
 
 ## 2. 허용·금지 범위 요약
@@ -27,13 +27,13 @@
  M .cursor/skills/ops-relay-auto/SKILL.md
  M AGENTS.md
  M document/ops/README.md
-?? document/ops/20260929-ai-development-system/
+?? document/archive/ops/20260929-ai-development-system/
 ?? document/ops/PROGRESS.md
 ```
 
 ## 4. 결과 파일 존재 확인
 
-- 확인 방법: PowerShell에서 `Test-Path "document/ops/20260929-ai-development-system/03-result-01.md"` 실행.
+- 확인 방법: PowerShell에서 `Test-Path "document/archive/ops/20260929-ai-development-system/03-result-01.md"` 실행.
 - 결과: `True` — 파일이 존재한다.
 
 ## 5. 테스트·빌드

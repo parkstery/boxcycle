@@ -139,7 +139,7 @@ git switch feat/distance-auto-route-ui-unification
    - `[Route]` `[Product]` — 자동 Route 는 클릭 지점에서 끝나는 경로를 만들고, 불가능하면 실패 대신 방향 도로 위 목표거리 지점을 `offered` 로 제시한다. 직선 비율 도넛은 도로거리와 단조 관계조차 없어 폐기했다. 근거: 사용자 6클릭 실측(성공 1/6 → 6/6).
    - `[Economy]` — Route Token 온보딩 지급을 Guest 10 · 로그인 15 로 확정(기존 3). 기존 사용자 소급 지급 없음.
 2. **상태보드** [260707-RTW-기능-인벤토리-상태보드.md](../../260707-RTW-기능-인벤토리-상태보드.md) — 거리·방향 자동 Route 항목의 상태 기호를 코드와 대조해 갱신한다. 해당 행이 없으면 새로 추가한다.
-3. **[260518-Route-Token-경제-설계.md](../../260518-Route-Token-경제-설계.md)** — 온보딩 지급 수치를 3 → Guest 10 / 로그인 15 로 갱신하고, `config/routeTokenEconomy` 문서가 코드 기본값보다 **우선**한다는 사실을 명시한다(§3.2 가 이 문서에 없어서 놓친 함정이다).
+3. **[260518-Route-Token-경제-설계.md](../../reference/product/260518-Route-Token-경제-설계.md)** — 온보딩 지급 수치를 3 → Guest 10 / 로그인 15 로 갱신하고, `config/routeTokenEconomy` 문서가 코드 기본값보다 **우선**한다는 사실을 명시한다(§3.2 가 이 문서에 없어서 놓친 함정이다).
 4. **[3F-C-R1 작업지시서](260902-거리방향-자동Route-실패없는-도달제안-3F-C-R1-작업지시서.md)** 상태를 `사용자 검수 PASS · 3G 로 병합` 으로 갱신하고, [document/README.md](../../README.md) 색인 행도 함께 갱신한다.
 
 ### 6.5 [주의] `document/ops/route-relay/` 는 아직 어느 브랜치에도 커밋되지 않았다

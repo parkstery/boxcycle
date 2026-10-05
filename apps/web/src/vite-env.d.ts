@@ -26,7 +26,7 @@ interface ImportMetaEnv {
   readonly VITE_RIDE_BGM_PLAYLIST_JSON?: string;
   /**
    * QA 전용. "1" 또는 "true" 이면 `user === null` 에서도 맵·HUD 사용(프로덕션 비권장).
-   * [tier 정책 §3.3](document/260519-사용자-tier-및-진입-정책.md)
+   * [tier 정책 §3.3](document/reference/product/260519-사용자-tier-및-진입-정책.md)
    */
   readonly VITE_ALLOW_UNAUTH_MAP?: string;
 }

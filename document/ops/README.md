@@ -22,7 +22,7 @@
 
 ## 새 작업 묶음
 
-`YYYYMMDD-주제/`를 만들고 `README.md`에 목적, 현재 상태, 최신 지시·결과·검수 링크와 다음 행동을 적는다. 규모에 맞춰 `00-brief.md`, `01-plan.md`, `02-task-01.md`, `03-result-01.md`, `04-review-01.md` 등을 **필요한 만큼만** 만든다. 기존 묶음의 이름은 바꾸지 않는다. 작업 지시는 담당자, 허용·금지 범위, 완료 조건, 검증 명령, 보고 경로, Chief 승인 조건을 명시한다. 지시와 결과와 검수는 서로 다른 파일로 남기고, 재작업은 다음 번호의 파일로 이어 이전 기록을 덮어쓰지 않는다. 완료 보고서는 [문서 지침 §8](../260509-BOXCYCLE-문서-생성-및-수정-지침.md)에 따라 `document/archive/`에 작성한다.
+`YYYYMMDD-주제/`를 만들고 `README.md`에 목적, 현재 상태, 최신 지시·결과·검수 링크와 다음 행동을 적는다. 규모에 맞춰 `00-brief.md`, `01-plan.md`, `02-task-01.md`, `03-result-01.md`, `04-review-01.md` 등을 **필요한 만큼만** 만든다. 기존 묶음의 이름은 바꾸지 않는다. 작업 지시는 담당자, 허용·금지 범위, 완료 조건, 검증 명령, 보고 경로, Chief 승인 조건을 명시한다. 지시와 결과와 검수는 서로 다른 파일로 남기고, 재작업은 다음 번호의 파일로 이어 이전 기록을 덮어쓰지 않는다. 일반 작업은 묶음의 최종 결과만 남긴다. 별도 완료 보고서가 필요한 작업은 [문서 지침 §8](../260509-BOXCYCLE-문서-생성-및-수정-지침.md)에 따라 `document/archive/reports/`에 한 편 작성한다.
 
 ## 상태와 승인
 
@@ -32,41 +32,27 @@ Supervisor는 아키텍처, 도메인 경계, 데이터 모델, Firestore·RTDB�
 
 ## 실행·Git
 
-새 지시 한 건마다 Cursor CLI 프로세스 한 번을 기본으로 한다. `agent -p --workspace C:\20.HDev\boxcycle "document/ops/<묶음>/<지시파일>을 읽고 지시된 범위만 수행한 뒤 결과 파일을 작성하라"` 형태로 실행하고 종료 코드와 출력을 확인한다. 실제 옵션은 로컬 `agent --help`에서 확인한다. 무한 대기 릴레이는 기본 실행 방식이 아니다. Git 브랜치·커밋·푸시는 [개발 워크플로](../260719-개발-워크플로-브랜치-커밋-게이트.md)와 해당 작업 지시의 제한을 따른다. 다른 작업의 변경은 섞지 않는다.
+새 지시 한 건마다 Cursor CLI 프로세스 한 번을 기본으로 한다. `agent -p --workspace C:\20.HDev\boxcycle "document/ops/<묶음>/<지시파일>을 읽고 지시된 범위만 수행한 뒤 결과 파일을 작성하라"` 형태로 실행하고 종료 코드와 출력을 확인한다. 실제 옵션은 로컬 `agent --help`에서 확인한다. 무한 대기 릴레이는 기본 실행 방식이 아니다. Git 브랜치·커밋·푸시는 [개발 워크플로](../reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md)와 해당 작업 지시의 제한을 따른다. 다른 작업의 변경은 섞지 않는다.
 
 ## 규칙 (요약)
 
 1. 새 묶음은 `YYYYMMDD-주제/` 로 열고 폴더 `README.md` 에 「지금 할 일」을 둔다. 이 표에 한 줄 추가.
-2. 끝나면 이 표의 상태를 **종료**로 바꾸고, 결과 보고서는 `archive/` 에 둔다.
+2. 종료가 확정되면 현재 표와 PROGRESS에서 빼고 [종료 색인](../archive/README.md)에 결과와 위치를 남긴다. APPROVED는 CLOSED와 다르다.
 3. 종료된 폴더는 **코드·스킬·명령이 그 경로를 가리키지 않을 때만** `archive/ops/` 로 옮긴다. 가리키면 제자리에 둔다.
 
-## 묶음 현황 (2026-10-03)
+## 진행·대기 묶음 (2026-10-05)
 
 | 폴더 | 상태 | 무엇 | 결과·입구 | 이동 |
-|------|------|------|-----------|------|
-| [20261005-peer-spacing-jitter](20261005-peer-spacing-jitter/README.md) | **CLOSED** · Chief PASS · main2/main 통합 | 등속 진동 시간축·공통 표시(tSrv/D600) · 0.01m 양자 | [최종 보고](../archive/261005-RTW-동행-위치-동기화와-반복진동-해결-결과보고.md) · [40](20261005-peer-spacing-jitter/40-result-final-report-and-integrate.md) | — |
+|---|---|---|---|---|
+| [20261006-calories-resume](20261006-calories-resume/README.md) | **APPROVED** | 칼로리 계산 변경·단일 재개 대상 유지 | [18 검수](20261006-calories-resume/18-review-supervisor.md) | 사용 확인·배포 대기 |
+| [20261006-saved-route-readability](20261006-saved-route-readability/README.md) | **APPROVED** | Edge 내 경로 글자 가독성 | [03 검수](20261006-saved-route-readability/03-review.md) | 사용 확인·종료 대기 |
+| [20261005-ride-map-controls](20261005-ride-map-controls/README.md) | **APPROVED** | 카메라 아래 맵 제어·축척 왼쪽 고도 | [09 고도 검수](20261005-ride-map-controls/09-review-camera-altitude.md) | Chief 사용 확인·종료 대기 |
+| [20261005-product-value-name-calories](20261005-product-value-name-calories/README.md) | **AWAITING_CHIEF** · 조사 완료 | 제품 동기·새 이름·칼로리 근거 조사와 제안 | [02 조사·제안](20261005-product-value-name-calories/02-result-and-proposal.md) | 제품 변경 미실시 |
+| [20261005-document-system](20261005-document-system/README.md) | **APPROVED** · Supervisor PASS | 문서 체계 정리·상태보드 입구 유지 | [03 검수](20261005-document-system/03-review-document-system.md) | Chief 종료 승인 전 |
 | [20261003-focus-read-spike](20261003-focus-read-spike/README.md) | **APPROVED** — main2 FF 완료(로컬) | 앱 foreground 복귀만으로 발생하는 Firestore read spike 조사·저감 | [21 최종 승인](20261003-focus-read-spike/21-review-final-approval.md) · [23 통합 결과](20261003-focus-read-spike/23-result-merge-main2.md) | — |
 | [20261002-public-trail-traffic-followup](20261002-public-trail-traffic-followup/README.md) | **AWAITING_CHIEF** — 측정 도구 검수 완료, 운영 데이터 Ø | Public Trail 트래픽 후속 — phase-aligned 측정 준비 | [08 재작업](20261002-public-trail-traffic-followup/08-result-phase-aligned-measurement-rework.md) · [09 검수 PASS](20261002-public-trail-traffic-followup/09-review-phase-aligned-measurement-rework.md) | — |
-| [20260929-public-trail-traffic](20260929-public-trail-traffic/README.md) | **CLOSED** · 최종 보고 검수 완료 (production billed 1v2 관측 별도 미실시) | Public Trail 동행 트래픽 절감 — listing Created/Deleted + Hosting 배포 | [최종 보고](../archive/261001-Public-Trail-동행-트래픽-개선-결과보고.md) · [R2](20260929-public-trail-traffic/37-result-r2-deploy.md) | 가능 |
-| [20260929-ai-development-system](20260929-ai-development-system/README.md) | 종료 | Codex Supervisor ↔ Cursor CLI 파일 기반 개발 프로토콜 | [완료 보고](../archive/260929-RTW-AI-개발체계-구축-완료보고.md) · [검수 PASS](20260929-ai-development-system/04-review-01.md) | 불가 — 공통 규칙·상태판이 경로 사용 |
-| [sync-relay](sync-relay/INSTRUCTION.md) | **대기** | 동행 위치 동기화. 활성 지시 없음, S4-4(동행 튐) 재개 보류 | 후속 계획: [동행 지연과 경쟁 판정](../260927-RTW-동행-지연과-경쟁-판정.md) | 불가 — `apps/web/scripts/peer-sync`·e2e·`/싱크지시` 가 경로 사용 |
+| [sync-relay](sync-relay/INSTRUCTION.md) | **대기** | 동행 위치 동기화. 활성 지시 없음, S4-4(동행 튐) 재개 보류 | 후속 계획: [동행 지연과 경쟁 판정](20260927-peer-competition/260927-RTW-동행-지연과-경쟁-판정.md) | 불가 — `apps/web/scripts/peer-sync`·e2e·`/싱크지시` 가 경로 사용 |
 | [20260923-minimap](20260923-minimap/HANDOFF.md) | **대기** | 미니맵·HUD 재배치. 지시04까지 병합 후 중단 | 남은 일: 보류01(배경에 실제 지도)·보류02 | 가능(종료 시) |
-| [cyclefit-relay](cyclefit-relay/HANDOFF.md) | 종료 | 라이더-자전거 피팅(V2.4). 08-08 F36 이후 멈춤 → 09-28 종료(chief) | 라이더는 09-22 다른 경로로 교체 완료 → [완료 보고](../archive/260922-RTW-라이더-신구모델-교체-완료보고.md) | 불가 — `/지시확인`·`/order` 명령이 경로 사용 |
-| [route-relay](route-relay/) | 종료 | Route Token · 거리·방향 자동 Route(3F-C-R1 병합) · 화면 정리 6A. 09-05 이후 멈춤 → 09-28 종료(chief) | 후속은 [Local First Ride](../archive/260923-RTW-Local-First-Ride-실행계획.md) 로 흡수 | 불가 — e2e 가 경로 사용 |
-| [20260924-camera-qc](20260924-camera-qc/README.md) | 종료 | Quick Camera 후속 — QC1 4단·라이더 조명·센서칩 최소화 | 지시04 PASS·배포 | 불가 — 코드 주석이 경로 사용 |
-| [20260923-first_ride](20260923-first_ride/README.md) | 종료 | Local First Ride 1차(지시01~11) | [완료 보고](../archive/260924-Local-First-Ride-1차-완료보고.md) | 불가 — 스킬·functions 가 경로 사용 |
-| [20260922-new_camera](20260922-new_camera/HANDOFF.md) | 종료 | Quick Camera 1~6 | [완료 보고](../archive/260923-RTW-Quick-Camera-작업-완료보고서.md) | 불가 — e2e 가 경로 사용 |
-| [giant-relay](giant-relay/INSTRUCTION.md) | 종료 | 라이더 20배 확대 실험 — 미채택 | [실험 종결](../archive/260827-라이더-자이언트-스케일-실험-종결.md) | 불가 — 코드 주석이 경로 사용 |
+| [20260927-peer-competition](20260927-peer-competition/README.md) | **대기** · PLANNING | 경쟁 판정 분리·느낌 보정의 기존 미착수 계획 | [계획](20260927-peer-competition/260927-RTW-동행-지연과-경쟁-판정.md) | 재개 시 새 지시 |
 
-「정지」(종료 선언 없이 멈춘 묶음)였던 셋은 2026-09-28 chief 결정으로 종료했다. 새로 멈추는 묶음이 생기면 이 상태를 다시 쓴다.
-
-## archive 로 옮긴 묶음
-
-| 폴더 | 무엇 | 옮긴 날 |
-|------|------|---------|
-| [ride-relay](../archive/ops/ride-relay/) | 이어 달리기 · 도로망 성취 결과 0~3단계(4·5단계 폐기) | 2026-09-28 |
-| [sensor-relay](../archive/ops/sensor-relay/) | BLE 케이던스 직결 · HUD 센서 칩(실센서 검증 통과) | 2026-09-28 |
-| [rider-replace](../archive/ops/rider-replace/) | 라이더 GLB 교체 사전 점검(P·P2·B) | 2026-09-28 |
-| [20260924-structure-audit](../archive/ops/20260924-structure-audit/) | 구조 감사 갈래별 원본(A·B·C) | 2026-09-28 |
-| [map-relay](../archive/ops/map-relay/) | 줌 LOD 복구 · 지도 현재 위치 표시(방향 보정 시도 3/3에서 멈춤) — 09-28 종료(chief) | 2026-09-28 |
-
+종료 작업과 옛 relay 이력은 [완료 기록 색인](../archive/README.md)에 있다. 코드·시험·스킬이 경로를 사용하는 종료 묶음은 제자리에 보존하지만 현재 작업으로 표시하지 않는다.

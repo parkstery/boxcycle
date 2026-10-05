@@ -5,7 +5,7 @@ alwaysApply: true
 
 # UI 공간 밀도 (모든 화면 작업에 적용)
 
-SoT: `document/260924-RTW-UI-공간밀도-원칙.md` — **지시서가 말하지 않아도 이 규칙이 적용된다.**
+SoT: `document/reference/product/260924-RTW-UI-공간밀도-원칙.md` — **지시서가 말하지 않아도 이 규칙이 적용된다.**
 
 이 앱은 **폰 가로 전용, CSS 높이 약 275px**. 버튼 하나를 키우면 지도가 그만큼 사라진다.
 

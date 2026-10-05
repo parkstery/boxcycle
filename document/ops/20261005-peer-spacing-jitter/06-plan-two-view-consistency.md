@@ -14,7 +14,7 @@
 | self | 로컬 `virtualDistanceMeters` → 경로 선상 점 **즉시** | `App.tsx` `liveForMap` → `getPointOnRouteByDistance` |
 | peer | 수신 버퍼를 `now - delay` 시점으로 **보간** | `integrator.ts` `peerRenderTimeMs` / `stepPeerMotionEntity` · 지연 = max(160ms, gap×2.2) ≤ 3000ms (`peerSyncPolicy.ts`) |
 
-실측 하한(기존): 편도 ~70ms + 적응 지연 ~0.25–0.44s → 20km/h에서 **약 1.4–2.4m** peer가 뒤로 보임([260927-RTW-동행-지연과-경쟁-판정](../../260927-RTW-동행-지연과-경쟁-판정.md)).
+실측 하한(기존): 편도 ~70ms + 적응 지연 ~0.25–0.44s → 20km/h에서 **약 1.4–2.4m** peer가 뒤로 보임([260927-RTW-동행-지연과-경쟁-판정](../20260927-peer-competition/260927-RTW-동행-지연과-경쟁-판정.md)).
 
 ### 1.2 두 창 재생으로 생기는 착시
 

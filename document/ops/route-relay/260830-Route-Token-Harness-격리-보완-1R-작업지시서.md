@@ -10,7 +10,7 @@
 | 작업 브랜치 | `chore/route-token-harness` 계속 사용 |
 | 기준 commit | `2aff91287497a47b502e0c3ba9fbda1fc01a709c` |
 | 최종 병합 대상 | 재검토·승인 후 `main2`; `main` 직접 금지 |
-| 연결 문서 | [1단계 작업지시서](260830-Route-Token-정상-호출-경로-검증-1단계-작업지시서.md) · [Route Token 경제 설계](../../260518-Route-Token-경제-설계.md) · [개발 워크플로](../../260719-개발-워크플로-브랜치-커밋-게이트.md) |
+| 연결 문서 | [1단계 작업지시서](260830-Route-Token-정상-호출-경로-검증-1단계-작업지시서.md) · [Route Token 경제 설계](../../reference/product/260518-Route-Token-경제-설계.md) · [개발 워크플로](../../reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md) |
 
 > 재검토 결과 Harness 격리는 개선됐으나 UI smoke 재현성·실패 원상복구·Node 20 게이트가 미완료다. [1R2 작업지시서](260830-Route-Token-Harness-실패복구-UI-재현성-1R2-작업지시서.md)를 우선 수행한다.
 

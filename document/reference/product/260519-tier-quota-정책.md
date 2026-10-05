@@ -6,7 +6,7 @@
 | 작성일 | 2026-05-19 |
 | 상태 | **채택(1차)** — CF `assertTierQuotaHttp` + onCreate 강제 |
 | 상위 | [사용자 tier 및 진입 정책](260519-사용자-tier-및-진입-정책.md) §2.5, §6 D5 |
-| 시드 | [config-tierQuotas.seed.json](config-tierQuotas.seed.json) (코드 기본값과 동일) |
+| 시드 | [config-tierQuotas.seed.json](../../config-tierQuotas.seed.json) (코드 기본값과 동일) |
 
 ---
 
@@ -29,7 +29,7 @@
 
 - **신규 저장/월:** `savedRoutes` `createdAt` 이 해당 KST 월인 문서 수. (free 15→**5**, 2026-07-06 조정)
 - **보유 상한:** 해당 `userId` 의 `savedRoutes` 전체 문서 수(만료·완주 포함).
-- **미완료 슬롯 상한(2026-07-07 신설):** `completed=0` 문서 수의 하위 제약(보유 상한 범위 내). 초과 시 새 Route 생성 불가 → "이어서 주행 / 삭제" 유도. 상세: [Conquest §9.5.2](260703-Conquest-정복-레이어-설계.md).
+- **미완료 슬롯 상한(2026-07-07 신설):** `completed=0` 문서 수의 하위 제약(보유 상한 범위 내). 초과 시 새 Route 생성 불가 → "이어서 주행 / 삭제" 유도. 상세: [Conquest §9.5.2](../architecture/260703-Conquest-정복-레이어-설계.md).
 - **공개 신청:** `publicRouteRequests` `createdAt` (상태 무관, 취소·거절도 카운트). 코드 기준 **일** 한도.
 
 ---

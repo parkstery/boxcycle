@@ -8,7 +8,7 @@
 | 작업 ID | `ROUTE-TOKEN-2A` |
 | 선행 작업 | `ROUTE-TOKEN-1R2` 검토 PASS, HEAD `7103d8f` |
 | 대상 브랜치 | `fix/route-token-default-enforcement` — 최신 `main2`에서 새로 생성 |
-| 연결 문서 | [Route Token 경제](../../260518-Route-Token-경제-설계.md) · [Ontology](../../260714-RTW-Ontology.md) · [개발 워크플로](../../260719-개발-워크플로-브랜치-커밋-게이트.md) |
+| 연결 문서 | [Route Token 경제](../../reference/product/260518-Route-Token-경제-설계.md) · [Ontology](../../reference/product/260714-RTW-Ontology.md) · [개발 워크플로](../../reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md) |
 
 > 개발팀장에게 전달할 한 줄: **하네스 PR을 먼저 `main2`에 반영한 뒤 새 브랜치에서 `ROUTE-TOKEN-2A`만 수행하라. 기본 Route 생성의 `VITE_DIRECTIONS_DIRECT` 우회를 제거하고, 성공한 서버 응답의 잔액으로 `Route Token -1 · 잔여 N개`를 표시하며, Guest가 3회 생성 후 4번째에서 실제 차단되는 것을 기본 지도 UI·Network·ledger로 증명하라. 자동 Route 후보 탐색·Token 정책 변경은 섞지 말라.**
 

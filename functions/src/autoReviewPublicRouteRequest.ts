@@ -2,7 +2,7 @@
  * 퍼블릭 경로 자동 등록 — HTTP 진입점(신뢰 경계).
  * `adminPromoteSavedRoute.ts` 패턴(onRequest v2, Bearer ID 토큰 검증, HttpsError JSON 응답,
  * region asia-northeast3)을 따르되, 인증 대상은 리뷰어가 아니라 **신청자 본인**이다.
- * 정책 SoT: document/260717-퍼블릭-경로-자동등록-정책.md
+ * 정책 SoT: document/reference/product/260717-퍼블릭-경로-자동등록-정책.md
  *
  * 일·월 횟수 quota 는 `tierQuotaEnforcement.ts` 의 `publicRouteRequestsTierQuotaGuard`(onCreate 트리거)가
  * 신청 생성 시점에 이미 강제한다(위반 시 문서 삭제) — 이 CF 에서 재검사하지 않는다. 문서가 이미
