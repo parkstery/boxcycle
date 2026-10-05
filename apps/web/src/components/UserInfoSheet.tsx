@@ -8,6 +8,7 @@ import {
   pickLastRide,
   type RideStatsPeriod,
 } from "../lib/ride/rideStatsAggregate";
+import { isLegacyDistanceCalories } from "../lib/ride/caloriesEstimate";
 import type { StoredRideSession } from "../lib/ride/rideSessionsStorage";
 import { ROUTE_COMPLETION_RATIO_THRESHOLD, isRouteCompletion } from "../lib/ride/rideRecordPolicy";
 import type { SavedRoute } from "../lib/route/repo/firestoreSavedRoutes";
@@ -53,6 +54,13 @@ type UserInfoSheetProps = {
   onExtendFromRide?: (anchorLngLat: LngLat) => void;
   /** 주행 중이면 게스트 초기화 비활성 */
   rideActive?: boolean;
+  /**
+   * 현재 슬롯 활성 경로 id — 전달 시 다른 경로의 이어달리기 버튼을 차단한다.
+   * undefined = legacy(슬롯 미사용, 차단 없음).
+   */
+  activeRouteId?: string | null;
+  /** 슬롯 활성 경로로 지도 포커스 이동 */
+  onFocusActiveRoute?: (routeId: string) => void;
 };
 
 /** 한 방향 셰브런(펼침 상태는 CSS 회전) — ▸/▾ 딩벳 대체 */
@@ -119,9 +127,22 @@ function formatSessionAvgSpeedKmh(s: StoredRideSession): string {
   return "0.0";
 }
 
-function formatSessionCaloriesEstimate(s: StoredRideSession): number {
-  const v = Number(s.caloriesEstimate ?? 0);
-  return Number.isFinite(v) && v >= 0 ? Math.round(v) : 0;
+function formatSessionCaloriesEstimate(s: StoredRideSession): string {
+  if (s.caloriesEstimate == null) return "—";
+  const v = Number(s.caloriesEstimate);
+  if (!Number.isFinite(v) || v < 0) return "—";
+  const n = Math.round(v);
+  return isLegacyDistanceCalories(s) ? `${n} kcal(옛)` : `${n} kcal`;
+}
+
+/** 전부 미산정이면 합계 0을 「운동 소모 0」으로 읽지 않게 — 표시 */
+function formatPeriodCaloriesTotal(stats: {
+  rides: number;
+  caloriesEstimate: number;
+  caloriesUnknownCount: number;
+}): string {
+  if (stats.rides > 0 && stats.caloriesUnknownCount >= stats.rides) return "—";
+  return String(Math.round(stats.caloriesEstimate));
 }
 
 function formatLastRideWhenKo(iso: string, now: Date = new Date()): string {
@@ -325,6 +346,16 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
     () => aggregateRideStatsForPeriod(statsSessions, statsPeriod),
     [statsSessions, statsPeriod],
   );
+  const periodHasLegacyCalories = useMemo(() => {
+    const start = periodStats.range.start.getTime();
+    const end = periodStats.range.endExclusive.getTime();
+    return statsSessions.some((s) => {
+      const t = new Date(s.endedAt).getTime();
+      if (!Number.isFinite(t) || t < start || t >= end) return false;
+      return isLegacyDistanceCalories(s);
+    });
+  }, [statsSessions, periodStats.range.start, periodStats.range.endExclusive]);
+
 
   const lastRide = useMemo(() => pickLastRide(statsSessions), [statsSessions]);
 
@@ -544,10 +575,24 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
                 </strong>
               </div>
               <div>
-                <span>칼로리</span>
+                <span>
+                  {periodStats.stats.caloriesUnknownCount > 0 || periodHasLegacyCalories
+                    ? "추정 kcal"
+                    : "칼로리"}
+                </span>
                 <strong className="rtw-numeric">
-                  {Math.round(periodStats.stats.caloriesEstimate)}
+                  {formatPeriodCaloriesTotal(periodStats.stats)}
                 </strong>
+                {periodStats.stats.caloriesUnknownCount > 0 ? (
+                  <span className="user-info-sheet__stat-note">
+                    미산정 {periodStats.stats.caloriesUnknownCount}회
+                  </span>
+                ) : null}
+                {periodHasLegacyCalories ? (
+                  <span className="user-info-sheet__stat-note">
+                    옛=거리환산 · 새=페달·체중
+                  </span>
+                ) : null}
               </div>
             </div>
           </div>
@@ -581,7 +626,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
                   {formatRideDistanceKmNumber(lastRide.distanceMeters)} km ·{" "}
                   {formatElapsedFromSec(lastRide.elapsedSec)} ·{" "}
                   {formatSessionAvgSpeedKmh(lastRide)} km/h ·{" "}
-                  {formatSessionCaloriesEstimate(lastRide)} kcal
+                  {formatSessionCaloriesEstimate(lastRide)}
                 </span>
               ) : (
                 <span className="user-info-sheet__last-ride-v is-empty">없음</span>
@@ -607,7 +652,9 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
                  * 중첩 button 을 만들지 않기 위해 요약 자체가 「지도에서 보기」 버튼이고,
                  * 재개·새 경로는 형제 버튼으로 둔다.
                  */
-                const actions = resolveRecentRideActions(s, props.savedRoutes ?? []);
+                const actions = resolveRecentRideActions(s, props.savedRoutes ?? [], {
+                  activeRouteId: props.activeRouteId,
+                });
                 const summaryInner = (
                   <>
                     <strong className="user-info-sheet__item-km">{kmLabel}</strong>
@@ -647,7 +694,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
                     <span className="user-info-sheet__item-route" title={routeCaption}>
                       {routeCaption}
                     </span>
-                    {actions.resumeRouteId || actions.extendAnchor ? (
+                    {actions.resumeRouteId || actions.extendAnchor || actions.resumeBlocked ? (
                       <div className="user-info-sheet__item-actions">
                         {actions.resumeRouteId && props.onResumeRideRoute ? (
                           <button
@@ -658,6 +705,23 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
                           >
                             이어 달리기
                           </button>
+                        ) : null}
+                        {actions.resumeBlocked ? (
+                          <>
+                            <span className="user-info-sheet__item-action user-info-sheet__item-action--blocked">
+                              이어달리기 한 경로만
+                            </span>
+                            {props.activeRouteId && props.onFocusActiveRoute ? (
+                              <button
+                                type="button"
+                                className="user-info-sheet__item-action"
+                                title="활성 경로 확인"
+                                onClick={() => props.onFocusActiveRoute?.(props.activeRouteId!)}
+                              >
+                                활성 경로 확인
+                              </button>
+                            ) : null}
+                          </>
                         ) : null}
                         {actions.extendAnchor && props.onExtendFromRide ? (
                           <button

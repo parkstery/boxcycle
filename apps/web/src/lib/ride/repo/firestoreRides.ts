@@ -13,10 +13,23 @@ import { getFirebaseFirestore } from "../../firebase/app";
 import type { ConquestRidePayload } from "../../conquest/conquestTiles";
 import { buildRideCanonicalWriteFields, resolveRideRouteId } from "../rideDocFields";
 import type { RouteRideEntry } from "../../route/routePublicationResolve";
+import type { CaloriesEstimateMeta } from "../caloriesEstimate";
+import { parseCaloriesMeta } from "../caloriesEstimate";
 import type { StoredRideSession } from "../rideSessionsStorage";
 import { isDiscardableRideRecord } from "../rideRecordPolicy";
 
 const RIDES_COLLECTION = "rides";
+
+function parseCaloriesEstimateField(v: unknown): number | null {
+  if (v === null) return null;
+  if (v === undefined) return 0;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function parseCaloriesMetaField(v: unknown): CaloriesEstimateMeta | null {
+  return parseCaloriesMeta(v);
+}
 
 type RideDoc = {
   userId: string;
@@ -29,7 +42,8 @@ type RideDoc = {
   elapsedSec: number;
   distanceMeters: number;
   avgSpeedKmh: number;
-  caloriesEstimate: number;
+  caloriesEstimate: number | null;
+  caloriesMeta?: CaloriesEstimateMeta | null;
   routeDistanceMeters: number;
   routeDurationSec: number;
   source: "web";
@@ -161,7 +175,11 @@ export async function saveRideSessionToFirestore(input: {
     elapsedSec: input.session.elapsedSec,
     distanceMeters: input.session.distanceMeters,
     avgSpeedKmh: input.session.avgSpeedKmh,
-    caloriesEstimate: input.session.caloriesEstimate,
+    caloriesEstimate:
+      input.session.caloriesEstimate == null
+        ? null
+        : Number(input.session.caloriesEstimate),
+    caloriesMeta: input.session.caloriesMeta ?? null,
     routeDistanceMeters: input.session.routeDistanceMeters,
     routeDurationSec: input.session.routeDurationSec,
     source: "web",
@@ -243,7 +261,8 @@ export async function loadRideSessionsForStatsFromFirestore(
         elapsedSec: Number(data.elapsedSec ?? 0),
         distanceMeters: Number(data.distanceMeters ?? 0),
         avgSpeedKmh: Number(data.avgSpeedKmh ?? 0),
-        caloriesEstimate: Number(data.caloriesEstimate ?? 0),
+        caloriesEstimate: parseCaloriesEstimateField(data.caloriesEstimate),
+        caloriesMeta: parseCaloriesMetaField(data.caloriesMeta),
         routeDistanceMeters: Number(data.routeDistanceMeters ?? 0),
         routeDurationSec: Number(data.routeDurationSec ?? 0),
         userRouteId: resolveRideRouteId(data as Record<string, unknown>),

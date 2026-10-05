@@ -1,5 +1,6 @@
 import type { User } from "firebase/auth";
 import { canPersistAppData } from "../storage/clientPersistencePolicy";
+import type { CaloriesEstimateMeta } from "./caloriesEstimate";
 
 const SESSIONS_KEY = "boxcycle_web_ride_sessions_v1";
 
@@ -11,7 +12,13 @@ export type StoredRideSession = {
   elapsedSec: number;
   distanceMeters: number;
   avgSpeedKmh: number;
-  caloriesEstimate: number;
+  /**
+   * 추정 kcal. null = 미산정(체중·강도·케이던스 센서 부족).
+   * legacy 거리×30 숫자는 소급 변경 없이 유지. 0 은 진짜 활동 0.
+   */
+  caloriesEstimate: number | null;
+  /** MET-gross-v1 근거(체중 제외). legacy 는 없음 */
+  caloriesMeta?: CaloriesEstimateMeta | null;
   routeDistanceMeters: number;
   routeDurationSec: number;
   /** 격상시킨 사용자 경로 ID(저장된 경로를 불러와 주행한 경우만). ad-hoc 주행은 null. */

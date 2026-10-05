@@ -114,6 +114,20 @@ export type PersistRideEndCoreCallbacks = {
   onPublicationOptimistic?: (publicationId: string) => void;
 };
 
+/**
+ * 실제 progress 저장 성공 후 UI(`lastRideResult`)와 무관하게 전달되는 이벤트.
+ * 결과창 닫힘·다음 주행으로 result 가 null 이어도 슬롯 확보/해제가 누락되지 않게 한다.
+ */
+export type SavedRouteProgressAppliedEvent = {
+  userId: string;
+  recordId: string;
+  routeId: string;
+  /** 서버/local에 실제로 적용된 completed */
+  routeCompleted: boolean;
+};
+
+export type OnSavedRouteProgressApplied = (event: SavedRouteProgressAppliedEvent) => void;
+
 export type PersistRideEndCoreDeps = {
   saveRideSessionFn: SaveRideSessionFn;
   updateSavedRouteProgressFn: UpdateSavedRouteProgressFn;
@@ -122,6 +136,11 @@ export type PersistRideEndCoreDeps = {
   loadRideSessionsFn?: () => StoredRideSession[];
   /** localStorage 세션 저장. injectable for test isolation */
   saveRideSessionsFn?: (items: StoredRideSession[]) => void;
+  /**
+   * progress 실제 저장 성공 뒤에만 호출(save 실패·progress 실패에는 호출 금지).
+   * `setLastRideResult` updater 안이 아니라 성공 경로에서 직접 호출한다.
+   */
+  onSavedRouteProgressApplied?: OnSavedRouteProgressApplied;
 };
 
 // ---------------------------------------------------------------------------
@@ -180,7 +199,17 @@ export async function persistRideEndCore(
     promoteSavedRouteFn,
     loadRideSessionsFn,
     saveRideSessionsFn,
+    onSavedRouteProgressApplied,
   } = deps;
+
+  const emitProgressApplied = (routeId: string, routeCompleted: boolean) => {
+    onSavedRouteProgressApplied?.({
+      userId,
+      recordId: record.id,
+      routeId,
+      routeCompleted,
+    });
+  };
 
   try {
     // ── 1. Ride 저장 ────────────────────────────────────────────────────────
@@ -297,7 +326,7 @@ export async function persistRideEndCore(
               : r,
           ),
         );
-        // F4: progress update success (Firestore)
+        // F4: progress update success (Firestore) — UI state 와 독립 이벤트
         setLastRideResult((prev) =>
           prev && prev.recordId === record.id
             ? {
@@ -308,9 +337,10 @@ export async function persistRideEndCore(
               }
             : prev,
         );
+        emitProgressApplied(savedRouteIdAtEnd, appliedCompleted === 1);
       } catch (e) {
         console.warn("[persistRideEndCore] Progress update failed:", e);
-        // F4: progress update failed (independent axis)
+        // F4: progress update failed (independent axis) — 이벤트 없음
         setLastRideResult((prev) =>
           prev && prev.recordId === record.id
             ? { ...prev, savedRouteProgressStatus: "failed" }
@@ -326,6 +356,7 @@ export async function persistRideEndCore(
           ? { ...prev, savedRouteProgressStatus: "success" }
           : prev,
       );
+      emitProgressApplied(savedRouteIdAtEnd, true);
     } else if (savedRouteIdAtEnd) {
       // 로컬(게스트) 미완주 — monotonic progress
       const applied = updateSavedRouteProgressInLocal({
@@ -344,6 +375,7 @@ export async function persistRideEndCore(
             }
           : prev,
       );
+      emitProgressApplied(savedRouteIdAtEnd, applied.completed === 1);
     } else if (
       routeGeometry &&
       routeGeometry.coordinates.length >= 2 &&

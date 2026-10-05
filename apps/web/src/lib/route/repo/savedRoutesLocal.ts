@@ -251,6 +251,22 @@ export function clearSavedRoutesLocal(): void {
   localStorage.removeItem(STORAGE_KEY);
 }
 
+/**
+ * 로컬 경로의 expiresAtIso 필드만 갱신.
+ * 슬롯 acquire(null=TTL 보호) / abandon(ISO=TTL 복구) 에 사용한다.
+ * updatedAtIso 는 건드리지 않는다 — TTL 복구가 새 주행·이름변경으로 오인되면 안 된다.
+ */
+export function updateSavedRouteExpiresAtInLocal(
+  routeId: string,
+  expiresAtIso: string | null,
+): void {
+  const items = readAll();
+  const idx = items.findIndex((r) => r.id === routeId);
+  if (idx < 0) return;
+  items[idx] = { ...items[idx], expiresAtIso };
+  writeAll(items);
+}
+
 /** Firestore 마이그레이션용 — 로컬 항목을 SaveRouteInput 배열로 변환(userId 는 호출자가 채움). */
 export function exportLocalRoutesForMigration(): Omit<SaveRouteInput, "userId">[] {
   return readAll().map((r) => ({

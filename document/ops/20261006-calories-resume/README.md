@@ -1,0 +1,10 @@
+# 칼로리 개선안·단일 이어달리기 유지
+
+상태: **APPROVED** — [18 Supervisor 검수](18-review-supervisor.md). 코드·자동 시험 완료, Chief 사용 확인 및 최종 종료 대기. 실 Firebase·다중 탭/e2e는 미실행.
+
+[01 조사 지시](01-task-audit.md) → [02 조사](02-audit.md) → [03 칼로리 제안](03-calorie-proposal.md).  
+재개: [04](04-task-resume-slot.md) → [05](05-result-resume-slot.md) · [08 재작업](08-task-resume-rework.md).  
+검수·통합: [07](07-preliminary-review.md) → [09 결과](09-result-resume-rework.md) · [14 findings](14-final-integration-findings.md) → [15 결과](15-result-integration.md).  
+칼로리: [10 구현 지시](10-task-calorie-implementation.md) → [11 결과](11-result-calories.md) → [12 검수 보완](12-task-calorie-review-fixes.md) → [13 결과](13-result-calorie-review-fixes.md).  
+독립 저장: [16 지시](16-task-result-independent-resume.md) → [17 결과](17-result-result-independent-resume.md). 조건 조사: [06](06-conditions-and-findings.md).
+커밋·push·배포 금지.

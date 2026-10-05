@@ -233,6 +233,14 @@
   opacity: 0.72;
 }
 
+.user-info-sheet__stat-note {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--rtw-text-secondary, #7C8A99);
+  line-height: 1.2;
+}
+
 .user-info-sheet__stats strong {
   font-size: 0.82rem;
 }

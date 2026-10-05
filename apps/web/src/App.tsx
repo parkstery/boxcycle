@@ -24,11 +24,19 @@ import {
   DEFAULT_FOLLOW_MODE,
   DEFAULT_MAP_ENABLE_3D,
   DEFAULT_MAP_ZOOM,
+  MAP_GLOBE_MIN_ZOOM,
+  MAP_ZOOM_SLIDER_MAX,
   RIDE_FOLLOW_CAMERA_MODE,
   RIDE_START_ZOOM,
   RIDE_CAMERA_DISTANCE_DEFAULT_M,
+  RIDE_CAMERA_DISTANCE_MAX_M,
   RIDE_CAMERA_DISTANCE_MIN_M,
 } from "./lib/map/mapGlobeView";
+
+/** HUD 줌 −/+ 거리 상한 — 제스처(MAX×2)와 aerial200 preset 을 모두 수용 */
+const RIDE_USER_ZOOM_DISTANCE_SOFT_MAX_M = Math.max(RIDE_CAMERA_DISTANCE_MAX_M * 2, 250);
+/** 거리 지배 모드 상대 줌(±1 map zoom 체감에 가깝게). 고정 STEP은 aerial200에서 무감. */
+const RIDE_USER_ZOOM_DISTANCE_FACTOR = 1.25;
 import { rideDistanceAlongRoute } from "./lib/ride/liveLocationSnapshot";
 import { AuthGateCard, AuthGoogleMark } from "./components/auth/AuthGateCard";
 import { GuestEntryCard } from "./components/auth/GuestEntryCard";
@@ -39,7 +47,17 @@ import { RideSummarySheet } from "./components/ride/RideSummarySheet";
 import { NextRideCard, LocalFirstEntryCard } from "./components/ride";
 import { resolveNextRideView } from "./lib/ride/nextRideTarget";
 import type { NextRideTarget } from "./lib/ride/nextRideTarget";
+import { useRideResumeSlot } from "./hooks/useRideResumeSlot";
+import {
+  RESUME_SLOT_BLOCKED_MSG,
+  filterProgressAppliedEventsForUid,
+  peekNextProgressAppliedEvent,
+  resolveRideEndSlotAction,
+  shouldMarkSlotOpProcessed,
+  type ProgressAppliedSlotEvent,
+} from "./lib/ride/rideResumeSlotPolicy";
 import type { RideEndResult } from "./lib/ride/rideEndResult";
+import type { OnSavedRouteProgressApplied } from "./lib/ride/rideEndPersistence";
 import { MenuPanel } from "./components/MenuPanel";
 import { MapBottomLeftStack } from "./features/map-overlays/MapBottomLeftStack";
 import { PlaceSearchPanel } from "./components/PlaceSearchPanel";
@@ -80,6 +98,13 @@ import { RideCameraLabPanel } from "./components/rideCameraLab/RideCameraLabPane
 import { MapViewSheet } from "./components/map/MapViewSheet";
 import { UserInfoSheet } from "./components/UserInfoSheet";
 import { RideSettingsSheet } from "./components/ride/RideSettingsSheet";
+import { useCalorieProfile } from "./hooks/useCalorieProfile";
+import {
+  clampActiveSecForCalories,
+  estimateGrossKcal,
+  resolveMet,
+  type CalorieSessionSnapshot,
+} from "./lib/ride/caloriesEstimate";
 import { useRideUiStage } from "./hooks/useRideUiStage";
 import {
   useRideArrivalAutoEnd,
@@ -138,6 +163,8 @@ import { useReadyRide } from "./hooks/useReadyRide";
 import {
   DEFAULT_MAP_STYLE,
   MAP_STYLE_OPTIONS,
+  mapStyleHudShortLabel,
+  nextOutdoorsSatelliteMapStyle,
 } from "./lib/map/rtwMapConfig";
 import { formatElapsedFromMs } from "./lib/ride/rideFormat";
 import { formatRideDistanceKmNumber } from "./lib/ride/rideDistanceFormat";
@@ -237,6 +264,12 @@ export default function App() {
   const [rideCameraSpanFloorMode, setRideCameraSpanFloorMode] = useState<"preset" | "userZoom">(
     "preset",
   );
+  /** HUD mapZoom 모드 ± — MapView 실측 zoom 기준 1회 스텝 */
+  const [mapZoomStepRequest, setMapZoomStepRequest] = useState<{
+    requestId: number;
+    delta: number;
+  } | null>(null);
+  const mapZoomStepSeqRef = useRef(0);
   const [enable3D, setEnable3D] = useState(DEFAULT_MAP_ENABLE_3D);
   const followModeSnapshotRef = useRef(followMode);
   const mapZoomSnapshotRef = useRef(mapZoom);
@@ -614,6 +647,25 @@ export default function App() {
     handleDeleteSavedRoute,
   } = savedRoutesWorkspace;
 
+  // 단일 이어달리기 슬롯
+  const rideResumeSlot = useRideResumeSlot({
+    configured,
+    user,
+    savedRoutes,
+    savedRoutesLoaded,
+    savedRoutesLoading,
+    recentSessions,
+  });
+
+  // 경로 삭제 후 슬롯 강제 해제(삭제 전 clear는 유효 미완주로 거부됨)
+  const handleDeleteSavedRouteWithSlotClear = useCallback(
+    async (route: SavedRoute) => {
+      await handleDeleteSavedRoute(route);
+      await rideResumeSlot.clearIfActive(route.id, { force: true });
+    },
+    [handleDeleteSavedRoute, rideResumeSlot.clearIfActive],
+  );
+
   /**
    * 미완료(진행 중) 경로 슬롯이 가득 차 저장이 막혔을 때 공통 처리 —
    * 저장 UI 대신 MENU 를 열고 「내 경로」 대기 탭으로 유도하며 안내 배너를 띄운다.
@@ -662,8 +714,29 @@ export default function App() {
   /**
    * Conquest Trust Tier — 세션 중 케이던스>0 누적 초.
    * null = 센서 신호를 한 번도 못 봄(T0 no-sensor). 주행 시작 시 리셋.
+   * 칼로리 실제 활동초와 동일 신호(pause·수동 가상속도는 미산정).
    */
   const pedalActiveSecRef = useRef<number | null>(null);
+  const calorieSessionSnapshotRef = useRef<CalorieSessionSnapshot | null>(null);
+  const calorieSignalGapRef = useRef(false);
+  const { profile: calorieProfile, setWeightKg: setCalorieWeightKg, setIntensityId: setCalorieIntensityId } =
+    useCalorieProfile(user);
+  /** uid 切替 시 이전 계정 활동초·스냅샷이 남지 않게 렌더 중 ref 정렬 */
+  const calorieUidRef = useRef(user?.uid ?? null);
+  if (calorieUidRef.current !== (user?.uid ?? null)) {
+    calorieUidRef.current = user?.uid ?? null;
+    pedalActiveSecRef.current = null;
+    calorieSignalGapRef.current = false;
+    if (rideStatus === "running") {
+      calorieSessionSnapshotRef.current = {
+        weightKg: calorieProfile.weightKg,
+        intensityId: calorieProfile.intensityId,
+        met: resolveMet(calorieProfile.intensityId),
+      };
+    } else {
+      calorieSessionSnapshotRef.current = null;
+    }
+  }
 
   /** Conquest — 주행 중 실시간 「새 도로」 카운터(낙관) */
   const { liveNewMeters: conquestLiveMeters } = useLiveConquestPaint({
@@ -681,6 +754,17 @@ export default function App() {
     conquestLiveMeters,
     Math.max(0, rideMetrics.virtualDistanceMeters - sessionStartOffsetMeters),
   );
+
+  /**
+   * progress 실제 저장 성공 이벤트 큐 — `lastRideResult` UI 와 분리.
+   * 결과창을 닫아 result 가 null 이 되어도 슬롯 확보/해제가 누락되지 않는다.
+   */
+  const pendingProgressAppliedRef = useRef<ProgressAppliedSlotEvent[]>([]);
+  const [progressAppliedSeq, setProgressAppliedSeq] = useState(0);
+  const onSavedRouteProgressApplied = useCallback<OnSavedRouteProgressApplied>((event) => {
+    pendingProgressAppliedRef.current = [...pendingProgressAppliedRef.current, event];
+    setProgressAppliedSeq((n) => n + 1);
+  }, []);
 
   const { handleEndRide } = useRideEndAndPersistence({
     mapboxAccessToken: MAPBOX_TOKEN,
@@ -706,6 +790,8 @@ export default function App() {
     loadedSavedRouteProgressRef,
     rideEntryRef,
     pedalActiveSecRef,
+    calorieSessionSnapshotRef,
+    calorieSignalGapRef,
     publishedCatalogRef,
     setSavedRoutes,
     setLastEndedWasAdhoc,
@@ -713,6 +799,7 @@ export default function App() {
     setLastRideResult,
     onRideEndedWithPublication,
     onRidePersistedToFirestore,
+    onSavedRouteProgressApplied,
   });
 
   const {
@@ -1011,12 +1098,23 @@ export default function App() {
     if (prevRideStatusRef.current === "idle" && rideStatus === "running") {
       // 새 세션 시작 — 센서 신호를 보기 전까지는 null(T0) 유지
       pedalActiveSecRef.current = null;
+      calorieSignalGapRef.current = false;
+      // 체중·MET 스냅샷 고정(중간 설정 변경은 다음 주행부터)
+      calorieSessionSnapshotRef.current = {
+        weightKg: calorieProfile.weightKg,
+        intensityId: calorieProfile.intensityId,
+        met: resolveMet(calorieProfile.intensityId),
+      };
     }
     prevRideStatusRef.current = rideStatus;
     if (rideStatus !== "running") return;
     const timer = setInterval(() => {
       const rpm = crankRpmForConquestRef.current;
-      if (rpm == null) return;
+      if (rpm == null) {
+        // 연결 전 구간도 이후 센서가 연결되면 일부 구간만 산정한 것으로 표시한다.
+        calorieSignalGapRef.current = true;
+        return;
+      }
       if (pedalActiveSecRef.current == null) pedalActiveSecRef.current = 0;
       if (rpm > 0) pedalActiveSecRef.current += 1;
     }, 1000);
@@ -1252,8 +1350,13 @@ export default function App() {
    * 후보 id 는 로드 시 state 로 받고(렌더 중 ref 읽기 금지 준수), 진행률·완주 여부는
    * savedRoutes state 에서 파생 — 삭제·완주 격상 시 UI 가 자동 무효화된다.
    */
+  // hook이 ownerUid+ready 가드된 active만 반환. loading 중엔 null.
+  const resumeSlotActiveRouteId = rideResumeSlot.activeRouteId;
+
   const resumeRatio = (() => {
     if (rideStatus !== "idle" || !routeGeometry || !resumeCandidateId) return null;
+    // 슬롯 ready + 활성 경로와 일치할 때만 이어달리기 오프셋 표시
+    if (resumeSlotActiveRouteId !== resumeCandidateId) return null;
     const route = savedRoutes.find((r) => r.id === resumeCandidateId);
     if (!route || route.completed === 1) return null;
     const ratio = route.lastProgressRatio;
@@ -1266,6 +1369,20 @@ export default function App() {
     if (!routeGeometry || rideStatus !== "idle" || !user || !configured || trailStartBusy) return;
     // 주행 입력 준비(센서 확인 또는 명시적 체험 속도 선택)가 끝나기 전에는 시작하지 않는다.
     if (!rideInputReady) return;
+    /**
+     * 슬롯 로딩 중 Go → offset 0으로 시작하면 재개 A를 처음부터로 오인한다.
+     * 재개 후보가 로드된 상태면 준비될 때까지 대기.
+     */
+    const restartEarly = fromStart === true;
+    if (
+      !restartEarly &&
+      resumeCandidateId &&
+      loadedSavedRouteIdRef.current === resumeCandidateId &&
+      rideResumeSlot.status !== "ready"
+    ) {
+      setRouteSummary("이어달리기 준비 중");
+      return;
+    }
     /*
      * 주행이 시작되면 거리 기반 자동 End 선택을 끝낸다(2026-09-18 Chief).
      * 종전에는 `armDirectionPick` 이 주행 중 **새 요청만 거절**했을 뿐, 이미 떠 있던 목표
@@ -1730,10 +1847,22 @@ export default function App() {
    * 후보는 mutable pointer 문서가 아니라 최근 Ride + SavedRoute 에서 **파생**한다 —
    * Route 가 삭제·완주되면 카드도 자동으로 무효화된다(§4.3).
    */
+  // 슬롯 ready 가드는 상단 resumeSlotActiveRouteId 정의 참고
   const nextRideView = useMemo(
-    () => resolveNextRideView({ rides: recentSessions, savedRoutes }),
-    [recentSessions, savedRoutes],
+    () =>
+      resolveNextRideView({
+        rides: recentSessions,
+        savedRoutes,
+        activeRouteId: resumeSlotActiveRouteId,
+      }),
+    [recentSessions, savedRoutes, resumeSlotActiveRouteId],
   );
+
+  // 슬롯 등록 실패·bootstrap 실패 등 짧은 UI 안내(성공처럼 포기/확보 보고하지 않음)
+  useEffect(() => {
+    if (!rideResumeSlot.errorMessage) return;
+    setRouteSummary(rideResumeSlot.errorMessage);
+  }, [rideResumeSlot.errorMessage, setRouteSummary]);
 
   /**
    * 카드 노출 조건(§3.1) — Route 가 없는 idle 화면에서만, gate·summary·sheet/modal 이
@@ -1825,12 +1954,18 @@ export default function App() {
         if (dismissRideId) setNextRideDismissedRideId(dismissRideId);
         return;
       }
+      // 다른 경로가 슬롯을 점유 중이면 교체하지 않고 안내만
+      const slotActive = resumeSlotActiveRouteId;
+      if (slotActive !== null && slotActive !== routeId) {
+        setRouteSummary(RESUME_SLOT_BLOCKED_MSG);
+        return;
+      }
       setSummarySheetVisible(false);
       setLastRideResult(null);
       setUserInfoSheetOpen(false);
       handleLoadSavedRoute(route);
     },
-    [savedRoutes, handleLoadSavedRoute, setUserInfoSheetOpen],
+    [savedRoutes, handleLoadSavedRoute, setUserInfoSheetOpen, resumeSlotActiveRouteId, setRouteSummary],
   );
 
   const handleResumeNextRide = useCallback(
@@ -1850,6 +1985,126 @@ export default function App() {
    * 폐기된 주행(≤100m)은 `lastRideResult` 가 만들어지지 않아 여기에도 남지 않는다 —
    * 그때는 계약 함수가 다음 순위로 내려간다.
    */
+  // 사용자 전환 시 낡은 result·다른 UID 이벤트로 슬롯이 돌지 않게 초기화
+  const slotOwnerUidGateRef = useRef<string | null>(null);
+  const processedSlotRecordIdsRef = useRef<Set<string>>(new Set());
+  const rideResumeSlotRef = useRef(rideResumeSlot);
+  rideResumeSlotRef.current = rideResumeSlot;
+  useEffect(() => {
+    const uid = user?.uid ?? null;
+    if (slotOwnerUidGateRef.current != null && slotOwnerUidGateRef.current !== uid) {
+      setLastRideResult(null);
+      processedSlotRecordIdsRef.current.clear();
+      pendingProgressAppliedRef.current = filterProgressAppliedEventsForUid(
+        pendingProgressAppliedRef.current,
+        uid,
+      );
+    }
+    slotOwnerUidGateRef.current = uid;
+  }, [user?.uid]);
+
+  // 매 유효 주행 후 「다음 주행」 카드 dismiss 리셋(슬롯 op 와 무관)
+  useEffect(() => {
+    if (lastRideResult) setNextRideDismissedRideId(null);
+  }, [lastRideResult]);
+
+  // progress 실제 저장 성공 이벤트 → 슬롯 확보/해제 (UI result null 과 무관)
+  useEffect(() => {
+    const uid = user?.uid ?? null;
+    pendingProgressAppliedRef.current = filterProgressAppliedEventsForUid(
+      pendingProgressAppliedRef.current,
+      uid,
+    );
+
+    const slotApi = rideResumeSlotRef.current;
+    let event = peekNextProgressAppliedEvent(
+      pendingProgressAppliedRef.current,
+      processedSlotRecordIdsRef.current,
+    );
+    let action: ReturnType<typeof resolveRideEndSlotAction> = "wait";
+    while (event) {
+      action = resolveRideEndSlotAction({
+        savedRouteId: event.routeId,
+        routeCompleted: event.routeCompleted,
+        savedRouteProgressStatus: "success",
+        slotStatus: slotApi.status,
+        slotInitialized: slotApi.slot.initialized,
+        slotOwnerUid: slotApi.slotOwnerUid,
+        currentUid: uid,
+        recordId: event.recordId,
+        alreadyProcessed: processedSlotRecordIdsRef.current.has(event.recordId),
+      });
+      if (action === "skip") {
+        processedSlotRecordIdsRef.current.add(event.recordId);
+        event = peekNextProgressAppliedEvent(
+          pendingProgressAppliedRef.current,
+          processedSlotRecordIdsRef.current,
+        );
+        continue;
+      }
+      break;
+    }
+    if (!event || action === "wait" || action === "skip") return;
+
+    const routeId = event.routeId;
+    const eventUid = event.userId;
+    let cancelled = false;
+    let attempts = 0;
+    const MAX_ATTEMPTS = 3;
+    const retryTimers: number[] = [];
+
+    const markProcessed = () => {
+      processedSlotRecordIdsRef.current.add(event!.recordId);
+    };
+
+    const run = () => {
+      if (cancelled || slotOwnerUidGateRef.current !== eventUid) return;
+      if (processedSlotRecordIdsRef.current.has(event!.recordId)) return;
+      const api = rideResumeSlotRef.current;
+
+      if (action === "clear") {
+        void api.clearIfActive(routeId).then((op) => {
+          if (cancelled || slotOwnerUidGateRef.current !== eventUid) return;
+          if (shouldMarkSlotOpProcessed(op)) {
+            markProcessed();
+            setProgressAppliedSeq((n) => n + 1);
+            return;
+          }
+          attempts += 1;
+          if (attempts < MAX_ATTEMPTS) {
+            retryTimers.push(window.setTimeout(run, 400));
+          }
+        });
+        return;
+      }
+
+      void api.ensureAcquired(routeId).then((op) => {
+        if (cancelled || slotOwnerUidGateRef.current !== eventUid) return;
+        if (shouldMarkSlotOpProcessed(op)) {
+          markProcessed();
+          setProgressAppliedSeq((n) => n + 1);
+          return;
+        }
+        attempts += 1;
+        if (attempts < MAX_ATTEMPTS) {
+          retryTimers.push(window.setTimeout(run, 400));
+        }
+      });
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+      for (const t of retryTimers) window.clearTimeout(t);
+    };
+  }, [
+    progressAppliedSeq,
+    user?.uid,
+    rideResumeSlot.status,
+    rideResumeSlot.slot.initialized,
+    rideResumeSlot.slotOwnerUid,
+  ]);
+
   const continuationLastRideRef = useRef<{
     profile: RouteProfile;
     routeDistanceMeters: number;
@@ -1947,6 +2202,9 @@ export default function App() {
         onExtend={handleStartRouteFromAnchor}
         onShowOnMap={focusAnchorOnMap}
         onDismiss={() => setNextRideDismissedRideId(nextRideView.target.rideId)}
+        onAbandonResume={
+          nextRideView.target.kind === "resume_route" ? rideResumeSlot.abandon : undefined
+        }
       />
     ) : null;
 
@@ -2206,6 +2464,7 @@ export default function App() {
       onResumeRide={handleResume}
       onEndRide={handleEndRideWithTrailCleanup}
       resumeRatio={resumeRatio}
+      onAbandonResume={resumeRatio != null ? rideResumeSlot.abandon : null}
       onRemoveStop={handleRemoveRouteDockStop}
       onFocusStop={handleFocusRouteDockStop}
       editLocked={routeMenuLockedForProd}
@@ -2351,7 +2610,16 @@ export default function App() {
           mileageKm: accountMileageKm,
         }
       : null;
-  const caloriesEstimate = Math.round((sessionDistanceMeters / 1000) * 30);
+  const snap = calorieSessionSnapshotRef.current;
+  const liveElapsedSec = Math.floor(rideMetrics.accumulatedMs / 1000);
+  const caloriesEstimate =
+    lastRideResult?.caloriesEstimate !== undefined
+      ? lastRideResult.caloriesEstimate
+      : estimateGrossKcal({
+          weightKg: snap?.weightKg ?? null,
+          met: snap?.met ?? null,
+          activeSec: clampActiveSecForCalories(pedalActiveSecRef.current, liveElapsedSec),
+        });
 
   const mapHudRidePresence = useMemo(() => {
     if (!configured || !user) return null;
@@ -2497,6 +2765,7 @@ export default function App() {
               followMode,
               enable3D,
               onMapZoom: setMapZoom,
+              mapZoomStepRequest,
               onMapViewport,
               onMapLodViewport,
               coverageOverlayMode,
@@ -2613,6 +2882,71 @@ export default function App() {
                       active: activeQuickCamera,
                       onSelect: handleQuickCameraSelect,
                       camera1Mode,
+                      mapControls: {
+                        styleLabel: mapStyleHudShortLabel(mapStyle),
+                        styleAriaLabel: `맵 스타일 ${mapStyleHudShortLabel(mapStyle)}, 클릭 시 ${mapStyleHudShortLabel(nextOutdoorsSatelliteMapStyle(mapStyle))}`,
+                        onToggleStyle: () =>
+                          setMapStyle(nextOutdoorsSatelliteMapStyle(mapStyle)),
+                        onZoomOut: () => {
+                          // − = 축소. 거리 없는 모드·routeFit(free)는 실측 mapZoom 스텝.
+                          if (
+                            followMode === "free" ||
+                            followMode === "topDown" ||
+                            followMode === "north" ||
+                            followMode === "keep"
+                          ) {
+                            mapZoomStepSeqRef.current += 1;
+                            setMapZoomStepRequest({
+                              requestId: mapZoomStepSeqRef.current,
+                              delta: -1,
+                            });
+                            return;
+                          }
+                          const m =
+                            Math.round(
+                              rideCameraDistanceM * RIDE_USER_ZOOM_DISTANCE_FACTOR * 10,
+                            ) / 10;
+                          handleRideCameraDistanceFromUserZoom(
+                            Math.min(RIDE_USER_ZOOM_DISTANCE_SOFT_MAX_M, m),
+                          );
+                        },
+                        onZoomIn: () => {
+                          // + = 확대. 실측 mapZoom↑ 또는 거리↓(userZoom).
+                          if (
+                            followMode === "free" ||
+                            followMode === "topDown" ||
+                            followMode === "north" ||
+                            followMode === "keep"
+                          ) {
+                            mapZoomStepSeqRef.current += 1;
+                            setMapZoomStepRequest({
+                              requestId: mapZoomStepSeqRef.current,
+                              delta: 1,
+                            });
+                            return;
+                          }
+                          const m =
+                            Math.round(
+                              (rideCameraDistanceM / RIDE_USER_ZOOM_DISTANCE_FACTOR) * 10,
+                            ) / 10;
+                          handleRideCameraDistanceFromUserZoom(Math.max(1e-9, m));
+                        },
+                        zoomOutDisabled:
+                          followMode === "free" ||
+                          followMode === "topDown" ||
+                          followMode === "north" ||
+                          followMode === "keep"
+                            ? mapZoom <= MAP_GLOBE_MIN_ZOOM + 1e-6
+                            : rideCameraDistanceM >=
+                              RIDE_USER_ZOOM_DISTANCE_SOFT_MAX_M - 1e-6,
+                        zoomInDisabled:
+                          followMode === "free" ||
+                          followMode === "topDown" ||
+                          followMode === "north" ||
+                          followMode === "keep"
+                            ? mapZoom >= MAP_ZOOM_SLIDER_MAX - 1e-6
+                            : rideCameraDistanceM <= 1e-6,
+                      },
                     }
                   : null,
             }}
@@ -2679,7 +3013,7 @@ export default function App() {
             setMenuOpen(false);
           }}
           onRenameSavedRoute={handleRenameSavedRoute}
-          onDeleteSavedRoute={handleDeleteSavedRoute}
+          onDeleteSavedRoute={handleDeleteSavedRouteWithSlotClear}
           arrivalToastVisible={false}
           adhocSaveAvailable={false}
           onSaveAdhocAsUserRoute={handleSaveAdhocAsUserRoute}
@@ -2729,6 +3063,10 @@ export default function App() {
         onRideCoachingBanner={setRideCoachingBannerVisible}
         rideBgmCatalogConfigured={rideBgmCatalogConfigured}
         rideElevationProfileLoading={rideElevationProfileLoading}
+        calorieWeightKg={calorieProfile.weightKg}
+        onCalorieWeightKg={setCalorieWeightKg}
+        calorieIntensityId={calorieProfile.intensityId}
+        onCalorieIntensityId={setCalorieIntensityId}
       />
 
       <CadenceSensorSheet
@@ -2812,6 +3150,13 @@ export default function App() {
         }}
         onResumeRideRoute={(routeId) => handleResumeSavedRouteById(routeId)}
         onExtendFromRide={handleStartRouteFromAnchor}
+        activeRouteId={resumeSlotActiveRouteId}
+        onFocusActiveRoute={(routeId) => {
+          const route = savedRoutes.find((r) => r.id === routeId);
+          if (!route) return;
+          setUserInfoSheetOpen(false);
+          handleResumeSavedRouteById(routeId);
+        }}
       />
 
       <RideSummarySheet
@@ -2821,6 +3166,7 @@ export default function App() {
         elapsedLabel={elapsedLabel}
         avgKmh={avgSpeedLabel}
         caloriesEstimate={caloriesEstimate}
+        onOpenCalorieSettings={openRideSettingsPanel}
         adhocSaveAvailable={lastEndedWasAdhoc !== null}
         userId={user?.uid}
         maxNameLength={SAVED_ROUTE_NAME_MAX}

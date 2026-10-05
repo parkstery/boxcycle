@@ -102,6 +102,7 @@ describe("aggregateRideStatsForLocalDay · 로컬 오늘 자정 경계", () => {
     assert.equal(stats.distanceMeters, 6000);
     assert.equal(stats.elapsedSec, 1200);
     assert.equal(stats.caloriesEstimate, 200);
+    assert.equal(stats.caloriesUnknownCount, 0);
     assert.equal(stats.avgSpeedKmh, 18);
   });
 
@@ -111,6 +112,7 @@ describe("aggregateRideStatsForLocalDay · 로컬 오늘 자정 경계", () => {
     assert.equal(stats.distanceMeters, 0);
     assert.equal(stats.elapsedSec, 0);
     assert.equal(stats.caloriesEstimate, 0);
+    assert.equal(stats.caloriesUnknownCount, 0);
     assert.equal(stats.avgSpeedKmh, 0);
   });
 });

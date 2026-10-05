@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import type { CalorieIntensityId } from "../../lib/ride/caloriesEstimate";
 import { RideSettingsPanel } from "./RideSettingsPanel";
 import "./RideSettingsSheet.css";
 
@@ -13,6 +14,10 @@ type RideSettingsSheetProps = {
   onRideCoachingBanner: (enabled: boolean) => void;
   rideBgmCatalogConfigured: boolean;
   rideElevationProfileLoading: boolean;
+  calorieWeightKg?: number | null;
+  onCalorieWeightKg?: (raw: string) => boolean | void;
+  calorieIntensityId?: CalorieIntensityId | null;
+  onCalorieIntensityId?: (id: CalorieIntensityId) => boolean | void;
 };
 
 /** 주행·표시 설정 — MENU 와 분리된 하단 시트. 센서는 별도 케이던스 상세 설정이 소유. */
@@ -50,6 +55,10 @@ export function RideSettingsSheet(props: RideSettingsSheetProps) {
           onRideCoachingBanner={props.onRideCoachingBanner}
           rideBgmCatalogConfigured={props.rideBgmCatalogConfigured}
           rideElevationProfileLoading={props.rideElevationProfileLoading}
+          calorieWeightKg={props.calorieWeightKg}
+          onCalorieWeightKg={props.onCalorieWeightKg}
+          calorieIntensityId={props.calorieIntensityId}
+          onCalorieIntensityId={props.onCalorieIntensityId}
         />
       </div>
     </div>

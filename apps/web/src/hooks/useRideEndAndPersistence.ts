@@ -13,6 +13,7 @@ import {
   type SaveRideSessionFn,
   type UpdateSavedRouteProgressFn,
   type PromoteSavedRouteFn,
+  type OnSavedRouteProgressApplied,
 } from "../lib/ride/rideEndPersistence";
 import {
   buildConquestCellsFromRoute,
@@ -25,6 +26,12 @@ import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
 import { formatLngLat, getDistanceMeters } from "../lib/geo/geo";
 import { computeRideSessionAnchors } from "../lib/ride/rideSessionAnchors";
 import type { RideEndResult } from "../lib/ride/rideEndResult";
+import {
+  buildCaloriesMeta,
+  clampActiveSecForCalories,
+  estimateGrossKcal,
+  type CalorieSessionSnapshot,
+} from "../lib/ride/caloriesEstimate";
 import { MAX_ROUTE_WAYPOINTS } from "../lib/geo/routeWaypoints";
 import { safeRideSpeechCancel } from "../lib/ride/rideSpeech";
 import { loadRideSessions, saveRideSessions, type StoredRideSession } from "../lib/ride/rideSessionsStorage";
@@ -82,9 +89,13 @@ export type UseRideEndAndPersistenceOptions = {
   rideEntryRef?: RefObject<RouteRideEntry | null>;
   /**
    * Conquest — 이번 세션의 케이던스>0 누적 초. null = BLE 센서 미연결(T0 no-sensor).
-   * App 이 주행 중 1초 간격으로 누적(§3.2 Trust Tier).
+   * App 이 주행 중 1초 간격으로 누적(§3.2 Trust Tier). 칼로리 활동초와 동일 신호.
    */
   pedalActiveSecRef?: RefObject<number | null>;
+  /** 세션 시작 시 고정된 체중·MET. 중간 설정 변경은 반영하지 않음 */
+  calorieSessionSnapshotRef?: RefObject<CalorieSessionSnapshot | null>;
+  /** 세션 중 센서 일시 끊김 여부 */
+  calorieSignalGapRef?: RefObject<boolean>;
   /** `resolvePublishedRouteLink` 카탈로그 1차 힌트 */
   publishedCatalogRef?: RefObject<readonly PublishedPublicCourseSummary[]>;
   setSavedRoutes: Dispatch<SetStateAction<SavedRoute[]>>;
@@ -102,6 +113,11 @@ export type UseRideEndAndPersistenceOptions = {
   saveRideSessionToFirestoreFn?: SaveRideSessionFn;
   updateSavedRouteProgressInFirestoreFn?: UpdateSavedRouteProgressFn;
   promoteSavedRouteInFirestoreFn?: PromoteSavedRouteFn;
+  /**
+   * 실제 progress 저장 성공 후 UI result 와 무관하게 슬롯 확보/해제용.
+   * save/progress 실패에는 호출되지 않는다.
+   */
+  onSavedRouteProgressApplied?: OnSavedRouteProgressApplied;
 };
 
 /**
@@ -134,6 +150,8 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     loadedSavedRouteProgressRef,
     rideEntryRef,
     pedalActiveSecRef,
+    calorieSessionSnapshotRef,
+    calorieSignalGapRef,
     publishedCatalogRef,
     setSavedRoutes,
     setLastEndedWasAdhoc,
@@ -142,6 +160,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     saveRideSessionToFirestoreFn,
     updateSavedRouteProgressInFirestoreFn,
     promoteSavedRouteInFirestoreFn,
+    onSavedRouteProgressApplied,
   } = options;
 
   const handleEndRide = useCallback(() => {
@@ -158,7 +177,24 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
       Math.min(startOffsetMetersRef?.current ?? 0, rideMetrics.virtualDistanceMeters),
     );
     const sessionDistanceMeters = rideMetrics.virtualDistanceMeters - startOffsetMeters;
-    const caloriesEstimate = Math.round((sessionDistanceMeters / 1000) * 30);
+    const snap = calorieSessionSnapshotRef?.current ?? null;
+    const rawPedalForCal = clampActiveSecForCalories(
+      pedalActiveSecRef?.current ?? null,
+      elapsedSec,
+    );
+    const caloriesEstimate = estimateGrossKcal({
+      weightKg: snap?.weightKg ?? null,
+      met: snap?.met ?? null,
+      activeSec: rawPedalForCal,
+    });
+    const caloriesMeta =
+      caloriesEstimate != null && snap?.met != null && rawPedalForCal != null
+        ? buildCaloriesMeta({
+            met: snap.met,
+            activeSec: rawPedalForCal,
+            signalGap: calorieSignalGapRef?.current ?? false,
+          })
+        : null;
     const savedRouteIdAtEnd = loadedSavedRouteIdRef.current;
     const savedRouteNameAtEnd = loadedSavedRouteNameRef.current;
     // Codex -03 Fix 2: R1/F2 — Keep historical meaning of saved ratios (routeDistanceMeters 기준)
@@ -234,6 +270,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
           ? (sessionDistanceMeters / 1000) / (elapsedSec / 3600)
           : 0,
       caloriesEstimate,
+      caloriesMeta,
       routeDistanceMeters,
       routeDurationSec,
       userRouteId: savedRouteIdAtEnd,
@@ -304,6 +341,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
         elapsedSec: record.elapsedSec,
         avgSpeedKmh: record.avgSpeedKmh,
         caloriesEstimate: record.caloriesEstimate,
+        caloriesMeta: record.caloriesMeta ?? null,
         savedRouteId: savedRouteIdAtEnd,
         routeName: savedRouteNameAtEnd,
         hasRoute: routeDistanceMeters > 0 && Boolean(routeGeometry),
@@ -535,25 +573,46 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
               promoteSavedRouteInFirestoreFn ?? promoteSavedRouteInFirestore,
             loadRideSessionsFn: loadRideSessions,
             saveRideSessionsFn: (items) => saveRideSessions(items, user),
+            onSavedRouteProgressApplied,
           },
         );
         // persistRideEndCore 는 절대 throw 하지 않는다 — .catch() 불필요
       })();
     } else if (!discardRecord && savedRouteIdAtEnd) {
       // Firebase 미구성(로컬 전용) — 완주 게이트·진행률 저장 동일 적용(§9.5)
-      if (isRouteCompletion(completionRatio)) {
+      const localCompleted = isRouteCompletion(completionRatio);
+      let appliedCompleted: 0 | 1 = localCompleted ? 1 : 0;
+      if (localCompleted) {
         promoteSavedRouteInLocal({
           routeId: savedRouteIdAtEnd,
           rideId: record.id,
         });
       } else {
-        updateSavedRouteProgressInLocal({
+        const applied = updateSavedRouteProgressInLocal({
           routeId: savedRouteIdAtEnd,
           rideId: record.id,
           progressRatio: Math.max(completionRatio, previousProgressRatio),
         });
+        appliedCompleted = applied.completed;
       }
       setSavedRoutes(loadSavedRoutesFromLocal());
+      setLastRideResult?.((prev) =>
+        prev && prev.recordId === record.id
+          ? {
+              ...prev,
+              routeCompleted: appliedCompleted === 1,
+              savedRouteProgressStatus: "success",
+            }
+          : prev,
+      );
+      if (user) {
+        onSavedRouteProgressApplied?.({
+          userId: user.uid,
+          recordId: record.id,
+          routeId: savedRouteIdAtEnd,
+          routeCompleted: appliedCompleted === 1,
+        });
+      }
     } else if (
       !discardRecord &&
       routeGeometry &&
@@ -638,6 +697,8 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     loadedSavedRouteProgressRef,
     rideEntryRef,
     pedalActiveSecRef,
+    calorieSessionSnapshotRef,
+    calorieSignalGapRef,
     publicationIdRef,
     publishedCatalogRef,
     setSavedRoutes,
@@ -649,6 +710,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     saveRideSessionToFirestoreFn,
     updateSavedRouteProgressInFirestoreFn,
     promoteSavedRouteInFirestoreFn,
+    onSavedRouteProgressApplied,
   ]);
 
   return { handleEndRide };

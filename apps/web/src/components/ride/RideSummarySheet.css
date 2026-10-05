@@ -184,6 +184,26 @@
   color: var(--rtw-text-faint);
 }
 
+.ride-summary__substat--calorie {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.ride-summary__calorie-setup {
+  font: inherit;
+  font-size: inherit;
+  font-weight: 650;
+  min-height: 44px;
+  padding: 0.2rem 0.45rem;
+  border-radius: 8px;
+  border: 1px solid var(--rtw-glass-border, rgba(255, 255, 255, 0.12));
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--rtw-trace, #E8A33D);
+  cursor: pointer;
+}
+
 /* R2: F4 저장 상태 칩 — 독립 줄 대신 보조 수치 줄에 인라인 합류 */
 .ride-summary__status {
   display: inline-flex;

@@ -5,6 +5,7 @@ import { progressPercentLabel, type RideEndResult } from "../../lib/ride/rideEnd
 import { useRideConquestResult } from "../../hooks/useRideConquestResult";
 import { getRideSaveStatusLabel, getSavedRouteProgressStatusLabel } from "../../lib/ride/rideStatusCopy";
 import { formatNewRoadHero, formatConquestStatusCopy } from "../../lib/ride/rideSessionPreview";
+import { formatCaloriesEstimateLabel } from "../../lib/ride/caloriesEstimate";
 import "./RideSummarySheet.css";
 
 type RideSummarySheetProps = {
@@ -12,7 +13,10 @@ type RideSummarySheetProps = {
   arrivalCompleted: boolean;
   elapsedLabel: string;
   avgKmh: string;
-  caloriesEstimate: number;
+  /** null = 미산정. result.caloriesEstimate 가 있으면 그쪽 우선 */
+  caloriesEstimate: number | null;
+  /** 미산정 시 체중·강도 설정 진입 */
+  onOpenCalorieSettings?: () => void;
   /**
    * 종료 결과(§3.5) — 모든 유효 Ride 가 채운다. 미완주면 이전→신규 진행률을 보여 준다.
    * null 이면 진행률 배지만 생략.
@@ -296,7 +300,42 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
         <div className="ride-summary__substats">
           <span className="ride-summary__substat">{props.elapsedLabel}</span>
           <span className="ride-summary__substat">{props.avgKmh} km/h</span>
-          <span className="ride-summary__substat">{props.caloriesEstimate} kcal</span>
+          {(() => {
+            const kcal =
+              result?.caloriesEstimate !== undefined
+                ? result.caloriesEstimate
+                : props.caloriesEstimate;
+            const label = formatCaloriesEstimateLabel(kcal);
+            const signalGap = Boolean(result?.caloriesMeta?.signalGap);
+            if (kcal == null) {
+              return (
+                <span className="ride-summary__substat ride-summary__substat--calorie">
+                  추정 — kcal
+                  {props.onOpenCalorieSettings ? (
+                    <button
+                      type="button"
+                      className="ride-summary__calorie-setup"
+                      onClick={props.onOpenCalorieSettings}
+                    >
+                      체중·강도 설정
+                    </button>
+                  ) : null}
+                </span>
+              );
+            }
+            return (
+              <span
+                className="ride-summary__substat"
+                title={
+                  signalGap
+                    ? "추정 총 운동 에너지 · 센서 끊김 구간 미산정"
+                    : "추정 총 운동 에너지"
+                }
+              >
+                추정 {label} kcal{signalGap ? " · 누락" : ""}
+              </span>
+            );
+          })()}
           {/* R2: F4 persistence status (independent axes) — 독립 줄 대신 보조 수치 줄에 합류 */}
           {rideSaveStatus !== "n/a" || savedRouteProgressStatus !== "n/a" ? (
             <span className="ride-summary__substat ride-summary__status" aria-live="polite">

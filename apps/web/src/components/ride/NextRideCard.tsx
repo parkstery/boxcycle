@@ -15,6 +15,8 @@ export type NextRideCardProps = {
   onShowOnMap: (anchorLngLat: LngLat) => void;
   /** 이번 앱 세션 동안 숨기기 — Ride·SavedRoute 를 삭제하지 않는다 */
   onDismiss: () => void;
+  /** 이어달리기 슬롯 명시 종료 — 경로·진행률은 삭제하지 않는다 */
+  onAbandonResume?: () => void;
 };
 
 function formatEndedAtKo(iso: string): string {
@@ -127,6 +129,17 @@ export function NextRideCard(props: NextRideCardProps) {
             </button>
           ) : null}
         </div>
+        {resumeTarget && props.onAbandonResume ? (
+          <button
+            type="button"
+            className="next-ride__abandon"
+            title="이어달리기 종료"
+            aria-label="이어달리기 종료"
+            onClick={props.onAbandonResume}
+          >
+            이어달리기 종료
+          </button>
+        ) : null}
       </div>
     </div>
   );

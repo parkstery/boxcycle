@@ -143,3 +143,54 @@
   font-size: 0.68rem;
   color: var(--rtw-danger, #E07A5F);
 }
+
+.ride-settings-sheet__calorie-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.55rem;
+}
+
+.ride-settings-sheet__weight {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.76rem;
+}
+
+.ride-settings-sheet__weight input {
+  width: 4.2rem;
+  min-height: 44px;
+  padding: 0.35rem 0.4rem;
+  border-radius: 8px;
+  border: 1px solid var(--rtw-glass-border, rgba(255, 255, 255, 0.12));
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--rtw-text, #EDEFF2);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.ride-settings-sheet__chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.ride-settings-sheet__chip {
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 650;
+  min-height: 44px;
+  padding: 0.35rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid var(--rtw-glass-border, rgba(255, 255, 255, 0.12));
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--rtw-text, #EDEFF2);
+  cursor: pointer;
+}
+
+.ride-settings-sheet__chip.is-active {
+  background: var(--rtw-accent-soft, rgba(232, 163, 61, 0.14));
+  border-color: var(--rtw-accent-line, rgba(232, 163, 61, 0.45));
+  color: var(--rtw-trace, #E8A33D);
+}

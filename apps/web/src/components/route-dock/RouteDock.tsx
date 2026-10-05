@@ -29,6 +29,8 @@ export type RouteDockProps = {
   onEndRide: () => void;
   /** 로드된 미완주 저장 경로의 재개 후보 진행률(0..1). null=재개 불가(선택 UI 미표시) */
   resumeRatio?: number | null;
+  /** 이어달리기 슬롯 명시 종료. null=표시 안 함 */
+  onAbandonResume?: (() => void) | null;
   onRemoveStop: (id: RouteDockStopId) => void;
   onFocusStop: (stop: RouteDockStop) => void;
   editLocked?: boolean;
@@ -303,6 +305,15 @@ export function RouteDock(props: RouteDockProps) {
               />
               <span>처음부터</span>
             </label>
+            {props.onAbandonResume ? (
+              <button
+                type="button"
+                className="route-dock__abandon-resume"
+                onClick={props.onAbandonResume}
+              >
+                이어달리기 종료
+              </button>
+            ) : null}
           </div>
         ) : null}
 

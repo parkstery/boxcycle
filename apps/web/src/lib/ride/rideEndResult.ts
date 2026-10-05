@@ -1,5 +1,6 @@
 import type { RouteProfile } from "../../services/mapboxDirections";
 import type { LngLat } from "../geo/geo";
+import type { CaloriesEstimateMeta } from "./caloriesEstimate";
 import type { RideConquestResult } from "./rideConquestResult";
 
 /**
@@ -19,7 +20,9 @@ export type RideEndResult = {
   sessionDistanceMeters: number;
   elapsedSec: number;
   avgSpeedKmh: number;
-  caloriesEstimate: number;
+  /** null = 미산정 — 0kcal 로 표시하지 말 것 */
+  caloriesEstimate: number | null;
+  caloriesMeta?: CaloriesEstimateMeta | null;
   /** 주행 대상이 저장 경로였다면 그 id. ad-hoc·퍼블릭 전용은 null. */
   savedRouteId: string | null;
   routeName: string | null;

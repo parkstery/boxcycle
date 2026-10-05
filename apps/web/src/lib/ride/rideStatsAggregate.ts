@@ -12,7 +12,10 @@ export type AggregatedRideStats = {
   rides: number;
   distanceMeters: number;
   elapsedSec: number;
+  /** 추정값이 있는 주행만 합산(null→0 강제 합산 금지) */
   caloriesEstimate: number;
+  /** caloriesEstimate == null 인 유효 주행 수 */
+  caloriesUnknownCount: number;
   /** 총 거리·총 시간으로 환산한 평균 속도(km/h) */
   avgSpeedKmh: number;
 };
@@ -113,15 +116,28 @@ export function aggregateRideStatsInRange(
   let distanceMeters = 0;
   let elapsedSec = 0;
   let caloriesEstimate = 0;
+  let caloriesUnknownCount = 0;
   for (const s of filtered) {
     distanceMeters += s.distanceMeters;
     elapsedSec += s.elapsedSec;
-    caloriesEstimate += Number(s.caloriesEstimate ?? 0);
+    if (s.caloriesEstimate == null) {
+      caloriesUnknownCount += 1;
+    } else {
+      const v = Number(s.caloriesEstimate);
+      if (Number.isFinite(v) && v >= 0) caloriesEstimate += v;
+    }
   }
   const rides = filtered.length;
   const avgSpeedKmh =
     elapsedSec > 0 ? (distanceMeters / 1000) / (elapsedSec / 3600) : 0;
-  return { rides, distanceMeters, elapsedSec, caloriesEstimate, avgSpeedKmh };
+  return {
+    rides,
+    distanceMeters,
+    elapsedSec,
+    caloriesEstimate,
+    caloriesUnknownCount,
+    avgSpeedKmh,
+  };
 }
 
 export function aggregateRideStatsForPeriod(

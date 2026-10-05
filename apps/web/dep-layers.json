@@ -306,6 +306,7 @@
       "activity/repo/firestoreWorldActivity.ts"
     ],
     "ride": [
+      "ride/caloriesEstimate.ts",
       "ride/companionHudCount.ts",
       "ride/liveLocationSnapshot.ts",
       "ride/liveRideHudSignal.ts",
@@ -323,6 +324,7 @@
       "ride/rideJoinPresenceBurst.ts",
       "ride/ridePulse.ts",
       "ride/rideRecordPolicy.ts",
+      "ride/rideResumeSlotPolicy.ts",
       "ride/rideSessionAnchors.ts",
       "ride/rideSessionPreview.ts",
       "ride/rideSessionsStorage.ts",
@@ -333,11 +335,14 @@
       "ride/rideSyncPolicy.ts"
     ],
     "ride/repo": [
+      "ride/repo/calorieProfileLocal.ts",
       "ride/repo/firestoreGlobalLivePresence.ts",
       "ride/repo/firestorePublicationPresence.ts",
       "ride/repo/firestorePublicationSessionPresence.ts",
+      "ride/repo/firestoreRideResumeSlot.ts",
       "ride/repo/firestoreRides.ts",
-      "ride/repo/firestoreWorldPresence.ts"
+      "ride/repo/firestoreWorldPresence.ts",
+      "ride/repo/rideResumeSlotLocal.ts"
     ],
     "rider": [
       "rider/riderDetailLod.ts",

@@ -93,14 +93,75 @@ export function resumeAnchorForRoute(route: SavedRoute): LngLat | null {
 export function resolveNextRideTarget(input: {
   rides: readonly StoredRideSession[];
   savedRoutes: readonly SavedRoute[];
+  activeRouteId?: string | null;
 }): NextRideTarget | null {
   return resolveNextRideView(input)?.target ?? null;
 }
 
+/**
+ * 다음 주행 후보 해석.
+ *
+ * activeRouteId 파라미터에 따른 동작:
+ * - string: 해당 경로를 우선 반환. 관련 Ride가 없으면 minimal view 합성.
+ * - null: 슬롯이 비어있음 — resume 경로를 새로 고르지 않고 extend_from_ride만.
+ * - undefined: legacy 동작 — 기존 알고리즘 그대로(테스트 하위호환).
+ */
 export function resolveNextRideView(input: {
   rides: readonly StoredRideSession[];
   savedRoutes: readonly SavedRoute[];
+  activeRouteId?: string | null;
 }): NextRideView | null {
+  const { activeRouteId } = input;
+
+  // 슬롯에 활성 경로가 있으면 그것을 우선 반환
+  if (typeof activeRouteId === "string") {
+    const route = input.savedRoutes.find((r) => r.id === activeRouteId) ?? null;
+    if (route && route.completed !== 1) {
+      const progressRatio = clamp01(route.lastProgressRatio);
+      if (progressRatio > 0 && progressRatio < ROUTE_COMPLETION_RATIO_THRESHOLD) {
+        const anchorLngLat = resumeAnchorForRoute(route);
+        if (anchorLngLat) {
+          // 관련 Ride를 history에서 찾는다
+          const ordered = sortValidRidesNewestFirst(input.rides);
+          const existingRide = ordered.find((r) => r.userRouteId?.trim() === activeRouteId);
+          // 관련 Ride가 없으면 minimal StoredRideSession 합성
+          // 실측 운동 거리·시간을 조작하지 않는다 — 카드 경로 진행 표시 전용
+          const ride: StoredRideSession = existingRide ?? {
+            id: `slot:${route.id}`,
+            endedAt: route.updatedAtIso,
+            elapsedSec: 0,
+            distanceMeters: 0,
+            avgSpeedKmh: 0,
+            caloriesEstimate: 0,
+            routeDistanceMeters: route.distanceMeters,
+            routeDurationSec: route.durationSec,
+            userRouteId: route.id,
+            routeName: route.name,
+            completionRatio: progressRatio,
+            sessionEndLngLat: anchorLngLat,
+          };
+          return {
+            target: {
+              kind: "resume_route",
+              rideId: ride.id,
+              routeId: route.id,
+              progressRatio,
+              anchorLngLat,
+            },
+            ride,
+            route,
+          };
+        }
+      }
+    }
+    // 활성 슬롯이 지정됐는데 그 경로가 재개 불능이면 다른 Route resume으로 우회하지 않는다
+    // (extend_from_ride 만 허용 — 다슬롯 제품 경로 금지)
+  }
+
+  // activeRouteId===null 또는 string(무효 A): resume을 새로 고르지 않고 extend_from_ride만
+  // activeRouteId===undefined: legacy — 기존 알고리즘 전체 실행
+  const suppressDerivedResume = activeRouteId !== undefined;
+
   const ordered = sortValidRidesNewestFirst(input.rides);
   for (const ride of ordered) {
     const routeId = ride.userRouteId?.trim();
@@ -111,17 +172,21 @@ export function resolveNextRideView(input: {
         if (progressRatio > 0 && progressRatio < ROUTE_COMPLETION_RATIO_THRESHOLD) {
           const anchorLngLat = resumeAnchorForRoute(route);
           if (anchorLngLat) {
-            return {
-              target: {
-                kind: "resume_route",
-                rideId: ride.id,
-                routeId: route.id,
-                progressRatio,
-                anchorLngLat,
-              },
-              ride,
-              route,
-            };
+            if (suppressDerivedResume) {
+              // 슬롯 API 사용 경로: 파생 resume 금지
+            } else {
+              return {
+                target: {
+                  kind: "resume_route",
+                  rideId: ride.id,
+                  routeId: route.id,
+                  progressRatio,
+                  anchorLngLat,
+                },
+                ride,
+                route,
+              };
+            }
           }
         }
       }
@@ -146,11 +211,17 @@ export type RecentRideActions = {
   resumeRouteId: string | null;
   /** 실제 종료 지점에서 새 경로를 만들 수 있는가 */
   extendAnchor: LngLat | null;
+  /**
+   * 다른 경로가 슬롯을 점유해 이 Ride 의 이어달리기가 막혔는가.
+   * activeRouteId 미전달(undefined, legacy) 시 항상 false.
+   */
+  resumeBlocked: boolean;
 };
 
 export function resolveRecentRideActions(
   ride: StoredRideSession,
   savedRoutes: readonly SavedRoute[],
+  options?: { activeRouteId?: string | null },
 ): RecentRideActions {
   const anchor = asLngLat(ride.sessionEndLngLat);
   const routeId = ride.userRouteId?.trim();
@@ -162,9 +233,23 @@ export function resolveRecentRideActions(
     progressRatio > 0 &&
     progressRatio < ROUTE_COMPLETION_RATIO_THRESHOLD &&
     resumeAnchorForRoute(route) != null;
+
+  const activeRouteId = options?.activeRouteId; // undefined = legacy(슬롯 미사용)
+
+  // 다른 경로가 활성일 때: resumeRouteId 차단 + resumeBlocked=true
+  const blocked =
+    typeof activeRouteId === "string" && activeRouteId !== null
+      ? activeRouteId !== routeId
+      : false;
+
+  // activeRouteId===null: 슬롯 비어있음 — 재개 허용(UI가 acquire)
+  // activeRouteId===undefined: legacy — 기존 동작 그대로
+  const showResume = resumable && !blocked;
+
   return {
     canShowOnMap: anchor != null,
-    resumeRouteId: resumable ? route!.id : null,
+    resumeRouteId: showResume ? route!.id : null,
     extendAnchor: anchor,
+    resumeBlocked: resumable && blocked,
   };
 }
