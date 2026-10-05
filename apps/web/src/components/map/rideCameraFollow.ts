@@ -271,24 +271,35 @@ export function tickRideCameraFollow(
   });
 
   // 제품 QC 튜닝 → camlab 순. Follow 스키마만(FreeCamera 없음).
+  // productTune 거리는 명시적 userZoom 이 있으면 덮지 않는다. camlab 은 거리 포함 전원 우선.
   const productTune = getQuickCameraProductTune(opts.activeQuickCamera ?? null);
   const lab = getRideCameraLabOverride();
-  const tune = lab ?? productTune;
   let targetBearing = nextCamera.bearing;
   let targetOffsetBearing = nextCamera.offsetBearing;
   let targetPitch = nextCamera.pitch;
   let targetDistanceM = nextCamera.distanceM;
   let lookAtAlongExtraM = 0;
   let screenAnchor: number | undefined;
-  if (tune) {
-    targetDistanceM = tune.distanceM;
-    targetPitch = tune.pitchDeg;
-    targetBearing = normalizeCompass(nextCamera.bearing + tune.bearingOffsetDeg);
+  if (lab) {
+    targetDistanceM = lab.distanceM;
+    targetPitch = lab.pitchDeg;
+    targetBearing = normalizeCompass(nextCamera.bearing + lab.bearingOffsetDeg);
     if (targetOffsetBearing != null) {
       targetOffsetBearing = normalizeCompass(targetBearing + 180);
     }
-    lookAtAlongExtraM = tune.lookAtAlongExtraM;
-    screenAnchor = tune.screenAnchor;
+    lookAtAlongExtraM = lab.lookAtAlongExtraM;
+    screenAnchor = lab.screenAnchor;
+  } else if (productTune) {
+    if (opts.spanFloorMode !== "userZoom") {
+      targetDistanceM = productTune.distanceM;
+    }
+    targetPitch = productTune.pitchDeg;
+    targetBearing = normalizeCompass(nextCamera.bearing + productTune.bearingOffsetDeg);
+    if (targetOffsetBearing != null) {
+      targetOffsetBearing = normalizeCompass(targetBearing + 180);
+    }
+    lookAtAlongExtraM = productTune.lookAtAlongExtraM;
+    screenAnchor = productTune.screenAnchor;
   }
 
   opts.prevLiveRef.current = targetLngLat;

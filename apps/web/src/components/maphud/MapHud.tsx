@@ -127,12 +127,23 @@ export type MapHudProps = {
   conquestAllOwnedHint?: boolean;
   /**
    * Quick Camera 1~6 — 주행 중에만 Account 왼쪽. null/undefined 이면 미렌더(CSS 숨김 금지).
+   * `mapControls` 는 QC 가 있을 때만 같은 스택 아래 보조 행으로 렌더한다.
    */
   quickCamera?: {
     active: 1 | 2 | 3 | 4 | 5 | 6 | null;
     onSelect: (n: 1 | 2 | 3 | 4 | 5 | 6) => void;
     /** 1번 순환 상태 — 버튼에 작은 표식(지시07·20260924-지시01: 4단) */
     camera1Mode?: Camera1Mode;
+    /** Outdoors/Satellite 토글 + 거리(줌) ± — 맵 뷰 시트와 동일 상태 */
+    mapControls?: {
+      styleLabel: string;
+      styleAriaLabel: string;
+      onToggleStyle: () => void;
+      onZoomOut: () => void;
+      onZoomIn: () => void;
+      zoomOutDisabled: boolean;
+      zoomInDisabled: boolean;
+    };
   } | null;
 };
 
@@ -496,42 +507,93 @@ export function MapHud(props: MapHudProps) {
         <div className="map-hud__tr">
           {quickCamera ? (
             <div
-              className="hud-quick-camera"
-              role="group"
-              aria-label="Quick Camera"
-              /* 지시10 §3: gap·가장자리 터치가 맵(Mapbox)으로 전파되지 않게.
-               * click 만 막으면 모바일에서 touchstart/pointerdown 이 지도를 먼저 움직인다. */
+              className="hud-quick-camera-stack"
               onPointerDown={(e) => e.stopPropagation()}
               onTouchStart={(e) => e.stopPropagation()}
             >
-              {([1, 2, 3, 4, 5, 6] as const).map((n) => {
-                const c1 = n === 1 ? quickCamera.camera1Mode ?? "routeFit" : null;
-                const c1Meta = c1 ? CAMERA1_MODE_META[c1] : null;
-                const c1Mark = c1Meta?.mark ?? null;
-                const c1Label = c1Meta?.label ?? null;
-                return (
+              <div
+                className="hud-quick-camera"
+                role="group"
+                aria-label="Quick Camera"
+                /* 지시10 §3: gap·가장자리 터치가 맵(Mapbox)으로 전파되지 않게.
+                 * click 만 막으면 모바일에서 touchstart/pointerdown 이 지도를 먼저 움직인다. */
+                onPointerDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+              >
+                {([1, 2, 3, 4, 5, 6] as const).map((n) => {
+                  const c1 = n === 1 ? quickCamera.camera1Mode ?? "routeFit" : null;
+                  const c1Meta = c1 ? CAMERA1_MODE_META[c1] : null;
+                  const c1Mark = c1Meta?.mark ?? null;
+                  const c1Label = c1Meta?.label ?? null;
+                  return (
+                    <button
+                      key={n}
+                      type="button"
+                      className={`hud-quick-camera__btn${quickCamera.active === n ? " is-active" : ""}${
+                        n === 1 ? " hud-quick-camera__btn--c1" : ""
+                      }`}
+                      aria-label={c1Label ? `카메라 1 · ${c1Label}` : `카메라 ${n}`}
+                      aria-pressed={quickCamera.active === n}
+                      data-camera1-mode={c1 ?? undefined}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onTouchStart={(e) => e.stopPropagation()}
+                      onClick={() => quickCamera.onSelect(n)}
+                    >
+                      <span className="hud-quick-camera__num">{n}</span>
+                      {c1Mark && quickCamera.active === 1 ? (
+                        <span className="hud-quick-camera__c1-mark" aria-hidden>
+                          {c1Mark}
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+              {quickCamera.mapControls ? (
+                <div
+                  className="hud-ride-map-controls"
+                  role="group"
+                  aria-label="맵 제어"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                >
                   <button
-                    key={n}
                     type="button"
-                    className={`hud-quick-camera__btn${quickCamera.active === n ? " is-active" : ""}${
-                      n === 1 ? " hud-quick-camera__btn--c1" : ""
-                    }`}
-                    aria-label={c1Label ? `카메라 1 · ${c1Label}` : `카메라 ${n}`}
-                    aria-pressed={quickCamera.active === n}
-                    data-camera1-mode={c1 ?? undefined}
+                    className="hud-ride-map-controls__style"
+                    aria-label={quickCamera.mapControls.styleAriaLabel}
+                    title={quickCamera.mapControls.styleAriaLabel}
                     onPointerDown={(e) => e.stopPropagation()}
                     onTouchStart={(e) => e.stopPropagation()}
-                    onClick={() => quickCamera.onSelect(n)}
+                    onClick={quickCamera.mapControls.onToggleStyle}
                   >
-                    <span className="hud-quick-camera__num">{n}</span>
-                    {c1Mark && quickCamera.active === 1 ? (
-                      <span className="hud-quick-camera__c1-mark" aria-hidden>
-                        {c1Mark}
-                      </span>
-                    ) : null}
+                    {quickCamera.mapControls.styleLabel}
                   </button>
-                );
-              })}
+                  <button
+                    type="button"
+                    className="hud-ride-map-controls__zoom"
+                    aria-label="줌 축소"
+                    title="축소"
+                    disabled={quickCamera.mapControls.zoomOutDisabled}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onClick={quickCamera.mapControls.onZoomOut}
+                  >
+                    −
+                  </button>
+                  <button
+                    type="button"
+                    className="hud-ride-map-controls__zoom"
+                    aria-label="줌 확대"
+                    title="확대"
+                    disabled={quickCamera.mapControls.zoomInDisabled}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onClick={quickCamera.mapControls.onZoomIn}
+                  >
+                    +
+                  </button>
+                </div>
+              ) : null}
             </div>
           ) : null}
           {showClock ? (
@@ -582,7 +644,11 @@ export function MapHud(props: MapHudProps) {
        * 하단 중앙에 두면 폰에서 지도 한가운데를 잡아먹는다.
        */}
       {showMapViewTrigger ? (
-        <div className="map-hud__tr-under">
+        <div
+          className={`map-hud__tr-under${
+            quickCamera?.mapControls ? " map-hud__tr-under--with-ride-controls" : ""
+          }`}
+        >
           <button
             type="button"
             className={`hud-bc-trigger ${mapViewOpen ? "is-active" : ""}`}

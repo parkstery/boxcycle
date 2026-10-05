@@ -1165,10 +1165,46 @@
 
 /*
  * 축척( bottom-right ): Mapbox 기본값이 attribution 위에 넉넉한 간격을 둠 → 저작권 바에 더 붙이기.
+ * 고도 라벨은 축척 왼쪽 같은 행. attribution 은 아래 줄 전체.
  * HUD 주행 FAB은 맵 밖 오버레이라 여기 margin 은 Mapbox 컨트롤만 영향.
  */
 .app-shell--map-first .map-view .mapboxgl-ctrl-bottom-right {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: flex-end;
+  align-items: flex-end;
+  column-gap: 0.35rem;
+  row-gap: 0.12rem;
   margin-bottom: -0.25rem;
+}
+
+.app-shell--map-first .map-view .mapboxgl-ctrl-bottom-right .mapboxgl-ctrl-attrib {
+  flex: 1 0 100%;
+  order: 10;
+}
+
+.app-shell--map-first .map-view .map-ctrl-camera-altitude {
+  order: 1;
+  margin: 0 0 0 0;
+  pointer-events: none;
+}
+
+.app-shell--map-first .map-view .mapboxgl-ctrl-scale {
+  order: 2;
+  /* Mapbox 기본 .mapboxgl-ctrl margin 이 고도·축척 세로를 어긋나게 함 */
+  margin: 0;
+}
+
+.map-view .map-ctrl-camera-altitude__label {
+  display: inline-block;
+  padding: 0 4px;
+  border-radius: 2px;
+  background-color: rgba(255, 255, 255, 0.75);
+  color: #333;
+  font-size: 10px;
+  line-height: 1.4;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 /*

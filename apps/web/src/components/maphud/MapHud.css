@@ -320,6 +320,11 @@
   justify-content: flex-end;
 }
 
+/* QC 아래 맵 제어 행이 있을 때 — 「맵」 트리거가 보조 행과 겹치지 않게 한 단 내림 */
+.map-hud__tr-under--with-ride-controls {
+  top: calc(var(--hud-pad-top) + 2.2rem + 0.35rem + 44px + 0.28rem);
+}
+
 .map-hud__rs {
   position: absolute;
   top: 50%;
@@ -460,6 +465,17 @@
   user-select: none;
 }
 
+/* Quick Camera 스택 — 1~6 행 + (주행 시) 맵 스타일/거리 보조 행 */
+.hud-quick-camera-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.28rem;
+  flex-shrink: 0;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+}
+
 /* Quick Camera 1~6 — Account 왼쪽, 주행 중에만 렌더
  * 지시10: 버튼 자체만 150%(gap 0.2rem 유지). 터치가 맵으로 통과하지 않게
  * 컨테이너·버튼 모두 pointer-events: auto !important (Mapbox 특이도 함정 대비).
@@ -472,6 +488,61 @@
   pointer-events: auto !important;
   /* gap·가장자리도 히트 영역 — 빈 틈이 맵으로 떨어지지 않게 */
   touch-action: manipulation;
+}
+
+/* QC 바로 아래 — Outdoors/Satellite 토글 + 거리 ± (맵 뷰 시트와 동일 상태) */
+.hud-ride-map-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.2rem;
+  flex-shrink: 0;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+}
+
+.hud-ride-map-controls__style,
+.hud-ride-map-controls__zoom {
+  box-sizing: border-box;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 터치 44px는 실높이로 — 가로 ::after 로 이웃을 덮지 않음(D2·검수03) */
+  min-height: 44px;
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 0.525rem;
+  background: rgba(15, 23, 42, 0.55);
+  color: #e2e8f0;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+}
+
+.hud-ride-map-controls__style {
+  padding: 0 0.45rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+}
+
+.hud-ride-map-controls__zoom {
+  min-width: 2.025rem;
+  padding: 0 0.35rem;
+  font-size: 1.05rem;
+}
+
+.hud-ride-map-controls__zoom:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+.hud-ride-map-controls__style:focus-visible,
+.hud-ride-map-controls__zoom:focus-visible {
+  outline: 2px solid #7dd3fc;
+  outline-offset: 1px;
 }
 
 .hud-quick-camera__btn {
@@ -1212,6 +1283,10 @@
 
   .map-hud__tr-under {
     top: calc(var(--hud-pad-top) + 2rem + 0.3rem);
+  }
+
+  .map-hud__tr-under--with-ride-controls {
+    top: calc(var(--hud-pad-top) + 2rem + 0.3rem + 44px + 0.28rem);
   }
 
   /* Trail 번호 배지 — MENU 의 TRAIL 행과 중복이고 주행 중 조작할 것도 아니다 */

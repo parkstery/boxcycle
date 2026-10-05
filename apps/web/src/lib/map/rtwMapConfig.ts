@@ -299,6 +299,27 @@ export const MAP_STYLE_OPTIONS = [
   { value: "mapbox://styles/mapbox/satellite-streets-v12", label: "Satellite" },
 ];
 
+export const MAP_STYLE_OUTDOORS = MAP_STYLE_OPTIONS[1]!.value;
+export const MAP_STYLE_SATELLITE = MAP_STYLE_OPTIONS[2]!.value;
+
+/**
+ * 주행 HUD Outdoors↔Satellite 토글.
+ * RTW Dark 등 그 외 스타일이면 첫 클릭에 Outdoors 로 보낸다(목록에서 Dark 는 삭제하지 않음).
+ */
+export function nextOutdoorsSatelliteMapStyle(current: string): string {
+  if (current === MAP_STYLE_SATELLITE) return MAP_STYLE_OUTDOORS;
+  if (current === MAP_STYLE_OUTDOORS) return MAP_STYLE_SATELLITE;
+  return MAP_STYLE_OUTDOORS;
+}
+
+/** HUD 칩용 짧은 라벨(2~4자). 시트 전체 라벨과 별개. */
+export function mapStyleHudShortLabel(style: string): string {
+  if (style === MAP_STYLE_SATELLITE) return "위성";
+  if (style === MAP_STYLE_OUTDOORS) return "야외";
+  if (style === RTW_MAP_STYLE_URL) return "다크";
+  return "맵";
+}
+
 /**
  * 앱 진입 시 기본 맵 스타일 — Outdoors.
  * (2026-08-27) 폰 실주행에서 RTW Dark 는 도로·지형 판독이 어려워 Outdoors 를 기본으로 바꿨다.

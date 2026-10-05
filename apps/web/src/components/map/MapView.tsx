@@ -96,6 +96,7 @@ import {
   ensureRiderPreservedLayer,
   syncRiderPreservedModels,
 } from "../../lib/map/riderPreservedLayer";
+import { MapCameraAltitudeControl } from "./MapCameraAltitudeControl";
 import { MapZoomGlobeControl } from "./MapZoomGlobeControl";
 import {
   computeRideFollowFraming,
@@ -108,6 +109,7 @@ import {
 } from "../../lib/camera/rideCameraFraming";
 import {
   MAP_GLOBE_MIN_ZOOM,
+  MAP_ZOOM_SLIDER_MAX,
   DEFAULT_MAP_ZOOM,
   RIDE_FOLLOW_CAMERA_MODE,
   RIDE_CAMERA_DISTANCE_DEFAULT_M,
@@ -302,6 +304,11 @@ export type MapViewProps = {
   followMode: FollowMode;
   enable3D: boolean;
   onMapZoom: (zoom: number) => void;
+  /**
+   * HUD 줌 ± — 맵 실측 zoom+delta 를 즉시 적용(App mapZoom↔idle sync 경합·반대 jump 회피).
+   * `requestId` 가 바뀔 때마다 1회.
+   */
+  mapZoomStepRequest?: { requestId: number; delta: number } | null;
   /** `waypoint`일 때만 `waypointSlot`(0=WP1 … 2=WP3) 전달 */
   onSelectPoint: (
     type: "start" | "end" | "waypoint",
@@ -482,6 +489,7 @@ export function MapView({
   followMode,
   enable3D,
   onMapZoom,
+  mapZoomStepRequest = null,
   onSelectPoint,
   routeProfile,
   onRouteProfile,
@@ -957,8 +965,9 @@ export function MapView({
       new mapboxgl.NavigationControl({ visualizePitch: true, showZoom: false }),
       "top-right",
     );
-    /** 축척: Mapbox 기본 우하단(bottom-right) */
+    /** 축척: Mapbox 기본 우하단(bottom-right). 고도는 축척 왼쪽(같은 행, CSS). */
     map.addControl(new mapboxgl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-right");
+    map.addControl(new MapCameraAltitudeControl(), "bottom-right");
     mapRef.current = map;
     if (typeof window !== "undefined") {
       (window as Window & { __RTW_MAP__?: mapboxgl.Map }).__RTW_MAP__ = map;
@@ -2433,6 +2442,26 @@ export function MapView({
       }
     };
   }, [mapZoom, mapLoaded]);
+
+  const appliedMapZoomStepIdRef = useRef(0);
+
+  /** HUD 줌 ± — 실측 getZoom()+delta (free/topDown 등 mapZoom 상태 경합 회피) */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded || !mapZoomStepRequest) return;
+    if (appliedMapZoomStepIdRef.current === mapZoomStepRequest.requestId) return;
+    appliedMapZoomStepIdRef.current = mapZoomStepRequest.requestId;
+    const next =
+      Math.round((map.getZoom() + mapZoomStepRequest.delta) * 10) / 10;
+    const clamped = Math.min(
+      MAP_ZOOM_SLIDER_MAX,
+      Math.max(MAP_GLOBE_MIN_ZOOM, next),
+    );
+    cameraSmoothRef.current.zoom = clamped;
+    suppressCameraFollowUntilRef.current = performance.now() + 600;
+    map.zoomTo(clamped, { duration: 0 });
+    onMapZoomRef.current?.(Number(clamped.toFixed(1)));
+  }, [mapZoomStepRequest, mapLoaded]);
 
   /** 주행 시작 — fitBounds·zoomend 동기화와 무관하게 후방·줌 21.5 즉시 스냅 */
   useEffect(() => {
