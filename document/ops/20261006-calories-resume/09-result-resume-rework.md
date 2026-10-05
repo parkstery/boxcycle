@@ -62,7 +62,7 @@ App.tsx 전체 eslint는 기존·칼로리 concurrent warning 포함(ownership �
 
 ## UI 740×300
 
-실제 `NextRideCard`+CSS import, Vite fixture 렌더 후 Playwright 캡처. auth 우회·앱 전체 기동 없음. 손코딩 HTML 위장 캡처 폐기.  
+실제 `NextRideCard`+CSS import, Vite fixture 렌더 후 Playwright 캡처. auth 우회·앱 전체 기동 없음. 손코딩 HTML 위장 캡처 폐기.
 증거: `fixtures/resume-slot-ui-740x300.png` — 「20%에서 이어 달리기」·「이어달리기 종료」 표시.
 
 ## 한계 (정직)

@@ -18,7 +18,7 @@
 
 ### 0.1 한 줄
 
-**운동이 주인공, 게임 요소는 조연.**  
+**운동이 주인공, 게임 요소는 조연.**
 보상·랜덤·성장은 모두 **「오늘도 타게 만드는」운동 행동 강화**를 위한 장치여야 한다.
 
 ### 0.2 피해야 할 방향
@@ -56,7 +56,7 @@
 
 ### 1.1 무엇을 만들 것인가
 
-**핵심 목표:** 사용자가 **실내에서 꾸준히 라이딩**하게 만든다.  
+**핵심 목표:** 사용자가 **실내에서 꾸준히 라이딩**하게 만든다.
 지도·경로·Activity World는 **운동 리듬을 유지**하는 맥락(어디를 달렸는지, 세계가 비어 있지 않음)이지, 게임 자체가 아니다.
 
 **보조 목표 (약한 동기):**
@@ -212,7 +212,7 @@ v2 `tokenDrops`는 **고정 메타 + 완주 1회 클레임** — 지도에 파�
 | 감소 | **없음** (통계만) | 소비 시 감소 |
 | UI | 프로필·리포트·성장 피드백 **중심** | MENU 소량 표시 + 상점(후속) |
 
-**데이터(권장):** `mileage_ledger` 또는 `users` 집계 캐시 + `rides` 파생 — [기능 추가 계획 §9.2](../../archive/260509-기능-추가-계획-제품-및-아키텍처.md), [DB 장기안](../../archive/260509-아키텍쳐-DB설계.md).  
+**데이터(권장):** `mileage_ledger` 또는 `users` 집계 캐시 + `rides` 파생 — [기능 추가 계획 §9.2](../../archive/260509-기능-추가-계획-제품-및-아키텍처.md), [DB 장기안](../../archive/260509-아키텍쳐-DB설계.md).
 **M1 범위 밖.** 토큰 원장(`routeTokenLedger`)과 **혼합하지 않는다.**
 
 ---
@@ -249,11 +249,11 @@ Guest cap 강화 · Premium은 **생성 무제한**보다 **시각·리포트** 
 
 ## 6. 데이터 설계 (Firestore v1)
 
-M1 스키마는 **유지** (`routeTokenLedger`, `users.routeTokenBalance`, `config/routeTokenEconomy`).  
+M1 스키마는 **유지** (`routeTokenLedger`, `users.routeTokenBalance`, `config/routeTokenEconomy`).
 마일리지 추가 시 **별 컬렉션** — §4.
 
-`RouteTokenReason` (현재):  
-`onboarding` | `ride_complete` | `ride_complete_intro` | `route_generate` | `directions_refund` | `drop_claim` | `admin_adjust`  
+`RouteTokenReason` (현재):
+`onboarding` | `ride_complete` | `ride_complete_intro` | `route_generate` | `directions_refund` | `drop_claim` | `admin_adjust`
 후속: `streak_bonus` | `daily_bonus` | `unlock_theme` (소비) 등.
 
 ---
@@ -281,9 +281,9 @@ M1 스키마는 **유지** (`routeTokenLedger`, `users.routeTokenBalance`, `conf
 
 ### 7.3 M1 스모크 (기술)
 
-1. 신규 Guest → 잔액 10 · 신규 로그인 → 잔액 15.  
-2. Guest 경로 생성 10회(또는 harness seed 3회) → 0 → 거부.  
-3. 완주 → 적립·ledger.  
+1. 신규 Guest → 잔액 10 · 신규 로그인 → 잔액 15.
+2. Guest 경로 생성 10회(또는 harness seed 3회) → 0 → 거부.
+3. 완주 → 적립·ledger.
 4. Mapbox 실패 → 환불.
 
 ---

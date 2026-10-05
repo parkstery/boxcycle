@@ -21,7 +21,7 @@
   lastProcessedEnd: { routeId: string; at: string } | null }
 ```
 
-순수 모듈: `apps/web/src/lib/ride/rideResumeSlotPolicy.ts`  
+순수 모듈: `apps/web/src/lib/ride/rideResumeSlotPolicy.ts`
 전이: bootstrap / acquire(점유 시 교체 금지) / abandon(tombstone) / clearIfActive(일치 id만) / markInitializedEmpty.
 
 ## 원자성 · TTL · Guest
@@ -44,7 +44,7 @@
 
 ## 실제 변경 파일
 
-**신규:** `rideResumeSlotPolicy.ts`, `repo/firestoreRideResumeSlot.ts`, `repo/rideResumeSlotLocal.ts`, `hooks/useRideResumeSlot.ts`, `scripts/next-ride/ride-resume-slot-policy.test.ts`  
+**신규:** `rideResumeSlotPolicy.ts`, `repo/firestoreRideResumeSlot.ts`, `repo/rideResumeSlotLocal.ts`, `hooks/useRideResumeSlot.ts`, `scripts/next-ride/ride-resume-slot-policy.test.ts`
 **수정:** `nextRideTarget.ts`, `App.tsx`, `NextRideCard.tsx`, `RouteDock.tsx`, `UserInfoSheet.tsx`, `savedRoutesLocal.ts`(+expiresAt 헬퍼), `dep-layers.json`
 
 Rules·칼로리·상태보드·결정로그·01~04 ops 문서 미변경.
