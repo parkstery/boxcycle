@@ -44,11 +44,11 @@ Supervisor는 아키텍처, 도메인 경계, 데이터 모델, Firestore·RTDB�
 
 | 폴더 | 상태 | 무엇 | 결과·입구 | 이동 |
 |---|---|---|---|---|
-| [20261006-calories-resume](20261006-calories-resume/README.md) | **APPROVED** | 칼로리 계산 변경·단일 재개 대상 유지 | [18 검수](20261006-calories-resume/18-review-supervisor.md) | 사용 확인·배포 대기 |
-| [20261006-saved-route-readability](20261006-saved-route-readability/README.md) | **APPROVED** | Edge 내 경로 글자 가독성 | [03 검수](20261006-saved-route-readability/03-review.md) | 사용 확인·종료 대기 |
-| [20261005-ride-map-controls](20261005-ride-map-controls/README.md) | **APPROVED** | 카메라 아래 맵 제어·축척 왼쪽 고도 | [09 고도 검수](20261005-ride-map-controls/09-review-camera-altitude.md) | Chief 사용 확인·종료 대기 |
-| [20261005-product-value-name-calories](20261005-product-value-name-calories/README.md) | **AWAITING_CHIEF** · 조사 완료 | 제품 동기·새 이름·칼로리 근거 조사와 제안 | [02 조사·제안](20261005-product-value-name-calories/02-result-and-proposal.md) | 제품 변경 미실시 |
-| [20261005-document-system](20261005-document-system/README.md) | **APPROVED** · Supervisor PASS | 문서 체계 정리·상태보드 입구 유지 | [03 검수](20261005-document-system/03-review-document-system.md) | Chief 종료 승인 전 |
+| [20261006-calories-resume](20261006-calories-resume/README.md) | **APPROVED** · local main2 FF | 칼로리 계산 변경·단일 재개 대상 유지 | [18 검수](20261006-calories-resume/18-review-supervisor.md) · [20 통합](20261006-calories-resume/20-result-integrate-push.md) | 사용 확인·원격 push 승인 대기 |
+| [20261006-saved-route-readability](20261006-saved-route-readability/README.md) | **APPROVED** · local main2 FF | Edge 내 경로 글자 가독성 | [03 검수](20261006-saved-route-readability/03-review.md) | 사용 확인·종료 대기 |
+| [20261005-ride-map-controls](20261005-ride-map-controls/README.md) | **APPROVED** · local main2 FF | 카메라 아래 맵 제어·축척 왼쪽 고도 | [09 고도 검수](20261005-ride-map-controls/09-review-camera-altitude.md) | Chief 사용 확인·종료 대기 |
+| [20261005-product-value-name-calories](20261005-product-value-name-calories/README.md) | **AWAITING_CHIEF** · 조사 문서 local 커밋 | 제품 동기·새 이름·칼로리 근거 조사와 제안 | [02 조사·제안](20261005-product-value-name-calories/02-result-and-proposal.md) | 제품 변경 미실시 |
+| [20261005-document-system](20261005-document-system/README.md) | **APPROVED** · local main2 FF | 문서 체계 정리·상태보드 입구 유지 | [03 검수](20261005-document-system/03-review-document-system.md) | Chief 종료 승인 전 |
 | [20261003-focus-read-spike](20261003-focus-read-spike/README.md) | **APPROVED** — main2 FF 완료(로컬) | 앱 foreground 복귀만으로 발생하는 Firestore read spike 조사·저감 | [21 최종 승인](20261003-focus-read-spike/21-review-final-approval.md) · [23 통합 결과](20261003-focus-read-spike/23-result-merge-main2.md) | — |
 | [20261002-public-trail-traffic-followup](20261002-public-trail-traffic-followup/README.md) | **AWAITING_CHIEF** — 측정 도구 검수 완료, 운영 데이터 Ø | Public Trail 트래픽 후속 — phase-aligned 측정 준비 | [08 재작업](20261002-public-trail-traffic-followup/08-result-phase-aligned-measurement-rework.md) · [09 검수 PASS](20261002-public-trail-traffic-followup/09-review-phase-aligned-measurement-rework.md) | — |
 | [sync-relay](sync-relay/INSTRUCTION.md) | **대기** | 동행 위치 동기화. 활성 지시 없음, S4-4(동행 튐) 재개 보류 | 후속 계획: [동행 지연과 경쟁 판정](20260927-peer-competition/260927-RTW-동행-지연과-경쟁-판정.md) | 불가 — `apps/web/scripts/peer-sync`·e2e·`/싱크지시` 가 경로 사용 |
