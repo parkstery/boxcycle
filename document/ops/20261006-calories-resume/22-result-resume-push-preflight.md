@@ -1,6 +1,6 @@
 # RESULT-22 — 원격 push 재개 preflight (검증만 · push 미실시)
 
-담당: Cursor CLI Development Lead · 지시: [21-task-resume-push.md](21-task-resume-push.md) · 시각: 2026-10-06  
+담당: Cursor CLI Development Lead · 지시: [21-task-resume-push.md](21-task-resume-push.md) · 시각: 2026-10-06
 상태: **DEVELOPMENT_DONE_PENDING_REVIEW** · push·commit 금지 준수 · Supervisor 검수 대기
 
 ## 판정 요약
@@ -28,7 +28,7 @@
 | `origin/main` | `f093c15ce97782dbbbcc552a1dd9dc59c3974450` (미갱신) |
 | range | `origin/main2..main2` = 11 commits · 파일 243 |
 
-커밋 목록(최신→base): `442d488` … `03f8b19` (결과20 승인 체인과 동일 tip).  
+커밋 목록(최신→base): `442d488` … `03f8b19` (결과20 승인 체인과 동일 tip).
 변경 touch: web `.ts/.tsx` 40 · `dep-layers.json` · `functions/src/*.ts` 3 · `conquestTiles.ts` 포함. `package*.json`·`firebase*.json` **없음** → lock/harness는 실제 훅에서 skip.
 
 시작 브랜치 `codex/document-system` tip도 `442d488`로 main2와 동일했음 → `git switch main2` 후 검증.
