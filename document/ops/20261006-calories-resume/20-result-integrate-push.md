@@ -1,6 +1,6 @@
 # RESULT-20 — 로컬 선택 커밋 · main2 병합 (원격 push 보류)
 
-담당: Cursor CLI Development Lead · 지시: [19-task-integrate-push.md](19-task-integrate-push.md) · 시각: 2026-10-06  
+담당: Cursor CLI Development Lead · 지시: [19-task-integrate-push.md](19-task-integrate-push.md) · 시각: 2026-10-06
 상태: **DEVELOPMENT_DONE_PENDING_REVIEW** · Supervisor 검수 대기
 
 ## 판정 요약
