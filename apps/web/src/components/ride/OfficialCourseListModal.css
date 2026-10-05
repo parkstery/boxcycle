@@ -16,6 +16,7 @@
   flex-direction: column;
   background: #141820;
   color: #e8eaef;
+  color-scheme: dark;
   border: 1px solid rgba(148, 163, 184, 0.28);
   border-radius: 12px;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
@@ -152,6 +153,8 @@
   display: block;
   font-size: 0.82rem;
   line-height: 1.35;
+  color: #e8eaef;
+  -webkit-text-fill-color: #e8eaef;
 }
 
 .oc-modal__item-sub {
