@@ -44,11 +44,12 @@ Supervisor는 아키텍처, 도메인 경계, 데이터 모델, Firestore·RTDB�
 
 | 폴더 | 상태 | 무엇 | 결과·입구 | 이동 |
 |---|---|---|---|---|
+| [20261006-camera1-presets](20261006-camera1-presets/README.md) | **IN_PROGRESS** · Cursor | 카메라 1번 경로전체/500m/20m · 위성 기본 | [지시 11](20261006-camera1-presets/02-task-11.md) | — |
 | [20261006-ride-end-north-up](20261006-ride-end-north-up/README.md) | **APPROVED** · 커밋 완료 | 주행 종료 시 지도 정북 복귀 | [검수 10](20261006-ride-end-north-up/04-review-10.md) | — |
 | [20261006-ride-summary-layout](20261006-ride-summary-layout/README.md) | **APPROVED** · 커밋 완료 | 주행 결과 히어로 정리·✕ 닫기 | [검수 09-2](20261006-ride-summary-layout/04-review-09b.md) | — |
 | [20261006-lint-baseline-saved-routes](20261006-lint-baseline-saved-routes/README.md) | **APPROVED** · 커밋 완료 | pre-commit 막는 기존 lint 오류 제거 | [검수 08](20261006-lint-baseline-saved-routes/04-review-08.md) | — |
 | [20261006-minimap-dock-overlap](20261006-minimap-dock-overlap/README.md) | **APPROVED** · 커밋 완료 | PC 에서 미니맵·RouteDock 겹침 | [검수 07](20261006-minimap-dock-overlap/04-review-07.md) | — |
-| [20261006-hud-clock-map-controls](20261006-hud-clock-map-controls/README.md) | **DEVELOPMENT_DONE** · Cursor | 시계 HUD 우하단·맵 상시 + 폰 가로 TR/계기판 겹침 | [지시 06-2](20261006-hud-clock-map-controls/02-task-06b.md) · [결과 06b](20261006-hud-clock-map-controls/03-result-06b.md) | — |
+| [20261006-hud-clock-map-controls](20261006-hud-clock-map-controls/README.md) | **DEVELOPMENT_DONE** · Cursor · 검수 대기 | 시계 HUD 우하단·맵 상시 + Mapbox 제자리·카드 비킴(06-4) | [지시 06-4](20261006-hud-clock-map-controls/02-task-06d.md) · [결과 06d](20261006-hud-clock-map-controls/03-result-06d.md) | — |
 | [20261006-saved-route-integrity](20261006-saved-route-integrity/README.md) | **APPROVED** · 커밋 완료, functions 배포 대기(Chief) | 퍼블릭 신청 지문 오거절·「내 경로로 저장」 미완주 기록·이어달리기 대상 교체 | [지시 03](20261006-saved-route-integrity/02-task-03.md) · [지시 04](20261006-saved-route-integrity/02-task-04.md) | — |
 | [20261006-route-modal-public-badge](20261006-route-modal-public-badge/README.md) | **APPROVED** · 미커밋 | 경로 선택 창 — Public 배지·등록자 우측·공개 시 창 전환 | [검수 01](20261006-route-modal-public-badge/04-review-01.md) · [검수 02](20261006-route-modal-public-badge/04-review-02.md) | — |
 | [20261006-calories-resume](20261006-calories-resume/README.md) | **APPROVED** · origin/main2 반영 완료 | 칼로리 계산 변경·단일 재개 대상 유지 | [18 검수](20261006-calories-resume/18-review-supervisor.md) · [24 push 완료](20261006-calories-resume/24-result-remote-push.md) | 사용 확인·종료 대기 |

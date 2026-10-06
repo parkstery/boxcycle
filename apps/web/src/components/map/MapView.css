@@ -1148,12 +1148,12 @@
 }
 
 /*
- * MapHud 우상단 프로필( .hud-account 2.2rem )과 Mapbox NavigationControl 이 겹침.
- * HUD 상단 패딩과 동일한 clamp 로 맞춘 뒤, 아바타 + 소간격 + 컨트롤 버튼 높이의 1.5배만큼 아래로 내림.
+ * MapHud 우상단 TR(맵 제어 44px 포함) + 「맵」 트리거 아래와 Mapbox NavigationControl 이 겹침.
+ * HUD 상단 패딩과 맞춘 뒤 TR·트리거·소간격만큼 아래로 내림.
  */
 .app-shell--map-first .map-view .mapboxgl-ctrl-top-right {
   margin-top: calc(
-    max(clamp(0.45rem, 1.4vw, 0.85rem), env(safe-area-inset-top, 0px)) + 2.2rem + 0.4rem + 1.5 * 30px
+    max(clamp(0.45rem, 1.4vw, 0.85rem), env(safe-area-inset-top, 0px)) + 44px + 0.35rem + 2rem + 0.25rem
   );
 }
 
@@ -1208,13 +1208,16 @@
 }
 
 /*
- * 폰 가로 — 지도 컨트롤(줌·지구·나침반) 4개가 세로 50% 를 먹고, 우하단 주행 FAB 과 겹쳤다.
- * 버튼을 px 단위로 줄이고 상단 여백을 계정 칩 바로 아래까지만 둔다.
+ * 폰 가로 — 지도 컨트롤(줌·지구·나침반) 버튼만 작게. 열은 오른쪽 가장자리 유지
+ * (주행 중에도 margin-right 로 밀지 않음). 「다음 주행」 카드가 비키는 쪽은
+ * NextRideCard.css (짧은 뷰포트 padding-right 거터).
  */
 @media (max-height: 560px) {
   .app-shell--map-first .map-view .mapboxgl-ctrl-top-right {
-    /* 계정 칩(2rem) + 맵 뷰 트리거 행 아래 */
-    margin-top: calc(max(0.45rem, env(safe-area-inset-top, 0px)) + 4.75rem);
+    /* TR(44px) + 「맵」 트리거 행 아래 — 오른쪽 복귀 후 트리거와 1줄 겹치지 않게 여유 */
+    margin-top: calc(
+      max(0.45rem, env(safe-area-inset-top, 0px)) + 44px + 0.35rem + 1.75rem + 0.45rem
+    );
   }
 
   .map-view .mapboxgl-ctrl-group button {

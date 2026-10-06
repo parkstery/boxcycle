@@ -1,0 +1,447 @@
+[
+  {
+    "phase": "idle-next-ride",
+    "viewport": {
+      "tag": "690x275",
+      "width": 690,
+      "height": 275
+    },
+    "cardAnchor": {
+      "x": 454.5,
+      "y": 156.671875,
+      "w": 225.84375,
+      "h": 103.953125,
+      "right": 680.34375,
+      "bottom": 260.625
+    },
+    "cardBody": {
+      "x": 454.5,
+      "y": 156.671875,
+      "w": 197.125,
+      "h": 103.953125,
+      "right": 651.625,
+      "bottom": 260.625
+    },
+    "tr": {
+      "x": 527.375,
+      "y": 9.65625,
+      "w": 152.96875,
+      "h": 44,
+      "right": 680.34375,
+      "bottom": 53.65625
+    },
+    "mapTrigger": null,
+    "ctrl": {
+      "x": 666,
+      "y": 84.5,
+      "w": 24,
+      "h": 104,
+      "right": 690,
+      "bottom": 188.5
+    },
+    "clock": {
+      "x": 576.90625,
+      "y": 201.234375,
+      "w": 103.4375,
+      "h": 29.6875,
+      "right": 680.34375,
+      "bottom": 230.921875
+    },
+    "dock": {
+      "x": 9.65625,
+      "y": 214.625,
+      "w": 14.546875,
+      "h": 46,
+      "right": 24.203125,
+      "bottom": 260.625
+    },
+    "minimap": null,
+    "btns": [
+      {
+        "label": "mapboxgl-ctrl-zoom-in",
+        "reachable": true,
+        "rect": {
+          "x": 666,
+          "y": 84.5,
+          "w": 24,
+          "h": 24,
+          "right": 690,
+          "bottom": 108.5
+        }
+      },
+      {
+        "label": "mapboxgl-ctrl-zoom-out",
+        "reachable": true,
+        "rect": {
+          "x": 666,
+          "y": 108.5,
+          "w": 24,
+          "h": 24,
+          "right": 690,
+          "bottom": 132.5
+        }
+      },
+      {
+        "label": "mapboxgl-ctrl-globe-view",
+        "reachable": true,
+        "rect": {
+          "x": 666,
+          "y": 132.5,
+          "w": 24,
+          "h": 24,
+          "right": 690,
+          "bottom": 156.5
+        }
+      }
+    ],
+    "ctrlX": 666,
+    "ctrlNearRightEdge": true,
+    "overlapCardBodyCtrl": 0,
+    "overlapCardAnchorCtrl": 456.53466796875,
+    "overlapCardClock": 2218.212890625,
+    "overlapCardDock": 0,
+    "overlapCardMinimap": 0,
+    "mapboxErrors": [],
+    "consoleErrors": [
+      "Access to fetch at 'http://127.0.0.1:5001/boxcycle-dc2df/asia-northeast3/ensureRouteTokenOnboardingHttp' from origin 'http://127.0.0.1:5002' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "TypeError: Failed to fetch",
+      "[2026-10-06T06:54:29.969Z]  @firebase/firestore: Firestore (12.13.0): Could not reach Cloud Firestore backend. Connection failed 1 times. Most recent error: FirebaseError: [code=unavailable]: The operation could not be completed\nThis typically indicates that your device does not have a healthy Internet connection at the moment. The client will operate in offline mode until it is able to successfully connect to the backend.",
+      "Access to fetch at 'http://127.0.0.1:5001/boxcycle-dc2df/asia-northeast3/ensureRouteTokenOnboardingHttp' from origin 'http://127.0.0.1:5002' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "TypeError: Failed to fetch"
+    ]
+  },
+  {
+    "phase": "idle-next-ride",
+    "viewport": {
+      "tag": "740x360",
+      "width": 740,
+      "height": 360
+    },
+    "cardAnchor": {
+      "x": 503.796875,
+      "y": 240.96875,
+      "w": 225.84375,
+      "h": 103.953125,
+      "right": 729.640625,
+      "bottom": 344.921875
+    },
+    "cardBody": {
+      "x": 503.796875,
+      "y": 240.96875,
+      "w": 197.125,
+      "h": 103.953125,
+      "right": 700.921875,
+      "bottom": 344.921875
+    },
+    "tr": {
+      "x": 576.671875,
+      "y": 10.359375,
+      "w": 152.96875,
+      "h": 44,
+      "right": 729.640625,
+      "bottom": 54.359375
+    },
+    "mapTrigger": null,
+    "ctrl": {
+      "x": 716,
+      "y": 84.5,
+      "w": 24,
+      "h": 104,
+      "right": 740,
+      "bottom": 188.5
+    },
+    "clock": {
+      "x": 626.203125,
+      "y": 285.53125,
+      "w": 103.4375,
+      "h": 29.6875,
+      "right": 729.640625,
+      "bottom": 315.21875
+    },
+    "dock": {
+      "x": 10.359375,
+      "y": 298.921875,
+      "w": 14.546875,
+      "h": 46,
+      "right": 24.90625,
+      "bottom": 344.921875
+    },
+    "minimap": null,
+    "btns": [
+      {
+        "label": "mapboxgl-ctrl-zoom-in",
+        "reachable": true,
+        "rect": {
+          "x": 716,
+          "y": 84.5,
+          "w": 24,
+          "h": 24,
+          "right": 740,
+          "bottom": 108.5
+        }
+      },
+      {
+        "label": "mapboxgl-ctrl-zoom-out",
+        "reachable": true,
+        "rect": {
+          "x": 716,
+          "y": 108.5,
+          "w": 24,
+          "h": 24,
+          "right": 740,
+          "bottom": 132.5
+        }
+      },
+      {
+        "label": "mapboxgl-ctrl-globe-view",
+        "reachable": true,
+        "rect": {
+          "x": 716,
+          "y": 132.5,
+          "w": 24,
+          "h": 24,
+          "right": 740,
+          "bottom": 156.5
+        }
+      }
+    ],
+    "ctrlX": 716,
+    "ctrlNearRightEdge": true,
+    "overlapCardBodyCtrl": 0,
+    "overlapCardAnchorCtrl": 0,
+    "overlapCardClock": 2218.212890625,
+    "overlapCardDock": 0,
+    "overlapCardMinimap": 0,
+    "mapboxErrors": [],
+    "consoleErrors": [
+      "Access to fetch at 'http://127.0.0.1:5001/boxcycle-dc2df/asia-northeast3/ensureRouteTokenOnboardingHttp' from origin 'http://127.0.0.1:5002' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "TypeError: Failed to fetch",
+      "[2026-10-06T06:54:29.969Z]  @firebase/firestore: Firestore (12.13.0): Could not reach Cloud Firestore backend. Connection failed 1 times. Most recent error: FirebaseError: [code=unavailable]: The operation could not be completed\nThis typically indicates that your device does not have a healthy Internet connection at the moment. The client will operate in offline mode until it is able to successfully connect to the backend.",
+      "Access to fetch at 'http://127.0.0.1:5001/boxcycle-dc2df/asia-northeast3/ensureRouteTokenOnboardingHttp' from origin 'http://127.0.0.1:5002' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "TypeError: Failed to fetch"
+    ]
+  },
+  {
+    "phase": "idle-next-ride",
+    "viewport": {
+      "tag": "1000x640",
+      "width": 1000,
+      "height": 640
+    },
+    "cardAnchor": {
+      "x": 759.40625,
+      "y": 449.53125,
+      "w": 227,
+      "h": 130.875,
+      "right": 986.40625,
+      "bottom": 580.40625
+    },
+    "cardBody": {
+      "x": 759.40625,
+      "y": 449.53125,
+      "w": 227,
+      "h": 130.875,
+      "right": 986.40625,
+      "bottom": 580.40625
+    },
+    "tr": {
+      "x": 775.265625,
+      "y": 13.59375,
+      "w": 211.140625,
+      "h": 44,
+      "right": 986.40625,
+      "bottom": 57.59375
+    },
+    "mapTrigger": null,
+    "ctrl": {
+      "x": 958,
+      "y": 99.1875,
+      "w": 42,
+      "h": 148,
+      "right": 1000,
+      "bottom": 247.1875
+    },
+    "clock": {
+      "x": 855.109375,
+      "y": 550.421875,
+      "w": 131.296875,
+      "h": 35.1875,
+      "right": 986.40625,
+      "bottom": 585.609375
+    },
+    "dock": {
+      "x": 13.59375,
+      "y": 534.40625,
+      "w": 16.875,
+      "h": 46,
+      "right": 30.46875,
+      "bottom": 580.40625
+    },
+    "minimap": null,
+    "btns": [
+      {
+        "label": "mapboxgl-ctrl-zoom-in",
+        "reachable": true,
+        "rect": {
+          "x": 958,
+          "y": 109.1875,
+          "w": 32,
+          "h": 32,
+          "right": 990,
+          "bottom": 141.1875
+        }
+      },
+      {
+        "label": "mapboxgl-ctrl-zoom-out",
+        "reachable": true,
+        "rect": {
+          "x": 958,
+          "y": 141.1875,
+          "w": 32,
+          "h": 32,
+          "right": 990,
+          "bottom": 173.1875
+        }
+      },
+      {
+        "label": "mapboxgl-ctrl-globe-view",
+        "reachable": true,
+        "rect": {
+          "x": 958,
+          "y": 173.1875,
+          "w": 32,
+          "h": 32,
+          "right": 990,
+          "bottom": 205.1875
+        }
+      }
+    ],
+    "ctrlX": 958,
+    "ctrlNearRightEdge": true,
+    "overlapCardBodyCtrl": 0,
+    "overlapCardAnchorCtrl": 0,
+    "overlapCardClock": 3936.854736328125,
+    "overlapCardDock": 0,
+    "overlapCardMinimap": 0,
+    "mapboxErrors": [],
+    "consoleErrors": [
+      "Access to fetch at 'http://127.0.0.1:5001/boxcycle-dc2df/asia-northeast3/ensureRouteTokenOnboardingHttp' from origin 'http://127.0.0.1:5002' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "TypeError: Failed to fetch",
+      "[2026-10-06T06:54:29.969Z]  @firebase/firestore: Firestore (12.13.0): Could not reach Cloud Firestore backend. Connection failed 1 times. Most recent error: FirebaseError: [code=unavailable]: The operation could not be completed\nThis typically indicates that your device does not have a healthy Internet connection at the moment. The client will operate in offline mode until it is able to successfully connect to the backend.",
+      "Access to fetch at 'http://127.0.0.1:5001/boxcycle-dc2df/asia-northeast3/ensureRouteTokenOnboardingHttp' from origin 'http://127.0.0.1:5002' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "TypeError: Failed to fetch"
+    ]
+  },
+  {
+    "phase": "riding",
+    "viewport": {
+      "tag": "690x275-riding",
+      "width": 690,
+      "height": 275
+    },
+    "cardAnchor": null,
+    "cardBody": null,
+    "tr": {
+      "x": 392.4375,
+      "y": 9.65625,
+      "w": 287.90625,
+      "h": 44,
+      "right": 680.34375,
+      "bottom": 53.65625
+    },
+    "mapTrigger": null,
+    "ctrl": {
+      "x": 666,
+      "y": 84.5,
+      "w": 24,
+      "h": 104,
+      "right": 690,
+      "bottom": 188.5
+    },
+    "clock": {
+      "x": 576.90625,
+      "y": 201.234375,
+      "w": 103.4375,
+      "h": 29.6875,
+      "right": 680.34375,
+      "bottom": 230.921875
+    },
+    "dock": {
+      "x": 9.65625,
+      "y": 175.0625,
+      "w": 194.359375,
+      "h": 85.5625,
+      "right": 204.015625,
+      "bottom": 260.625
+    },
+    "minimap": {
+      "x": 9.65625,
+      "y": 86.21875,
+      "w": 202.859375,
+      "h": 80.84375,
+      "right": 212.515625,
+      "bottom": 167.0625
+    },
+    "btns": [
+      {
+        "label": "mapboxgl-ctrl-zoom-in",
+        "reachable": true,
+        "rect": {
+          "x": 666,
+          "y": 84.5,
+          "w": 24,
+          "h": 24,
+          "right": 690,
+          "bottom": 108.5
+        }
+      },
+      {
+        "label": "mapboxgl-ctrl-zoom-out",
+        "reachable": true,
+        "rect": {
+          "x": 666,
+          "y": 108.5,
+          "w": 24,
+          "h": 24,
+          "right": 690,
+          "bottom": 132.5
+        }
+      },
+      {
+        "label": "mapboxgl-ctrl-globe-view",
+        "reachable": true,
+        "rect": {
+          "x": 666,
+          "y": 132.5,
+          "w": 24,
+          "h": 24,
+          "right": 690,
+          "bottom": 156.5
+        }
+      }
+    ],
+    "ctrlX": 666,
+    "ctrlNearRightEdge": true,
+    "overlapCardBodyCtrl": 0,
+    "overlapCardAnchorCtrl": 0,
+    "overlapCardClock": 0,
+    "overlapCardDock": 0,
+    "overlapCardMinimap": 0,
+    "mapboxErrors": [],
+    "consoleErrors": [
+      "Access to fetch at 'http://127.0.0.1:5001/boxcycle-dc2df/asia-northeast3/ensureRouteTokenOnboardingHttp' from origin 'http://127.0.0.1:5002' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "TypeError: Failed to fetch",
+      "[2026-10-06T06:54:29.969Z]  @firebase/firestore: Firestore (12.13.0): Could not reach Cloud Firestore backend. Connection failed 1 times. Most recent error: FirebaseError: [code=unavailable]: The operation could not be completed\nThis typically indicates that your device does not have a healthy Internet connection at the moment. The client will operate in offline mode until it is able to successfully connect to the backend.",
+      "Access to fetch at 'http://127.0.0.1:5001/boxcycle-dc2df/asia-northeast3/ensureRouteTokenOnboardingHttp' from origin 'http://127.0.0.1:5002' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "TypeError: Failed to fetch"
+    ]
+  }
+]

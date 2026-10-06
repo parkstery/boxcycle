@@ -1,0 +1,248 @@
+[
+  {
+    "viewport": {
+      "tag": "690x275",
+      "width": 690,
+      "height": 275
+    },
+    "card": {
+      "x": 483.21875,
+      "y": 156.671875,
+      "w": 197.125,
+      "h": 103.953125,
+      "right": 680.34375,
+      "bottom": 260.625
+    },
+    "tr": {
+      "x": 527.375,
+      "y": 9.65625,
+      "w": 152.96875,
+      "h": 44,
+      "right": 680.34375,
+      "bottom": 53.65625
+    },
+    "mapTrigger": {
+      "x": 634.34375,
+      "y": 57.703125,
+      "w": 46,
+      "h": 25.203125,
+      "right": 680.34375,
+      "bottom": 82.90625
+    },
+    "ctrl": {
+      "x": 415.578125,
+      "y": 78.421875,
+      "w": 24,
+      "h": 104,
+      "right": 439.578125,
+      "bottom": 182.421875
+    },
+    "btns": [
+      {
+        "label": "mapboxgl-ctrl-zoom-in",
+        "reachable": true,
+        "rect": {
+          "x": 415.578125,
+          "y": 78.421875,
+          "w": 24,
+          "h": 24,
+          "right": 439.578125,
+          "bottom": 102.421875
+        }
+      },
+      {
+        "label": "mapboxgl-ctrl-zoom-out",
+        "reachable": true,
+        "rect": {
+          "x": 415.578125,
+          "y": 102.421875,
+          "w": 24,
+          "h": 24,
+          "right": 439.578125,
+          "bottom": 126.421875
+        }
+      },
+      {
+        "label": "mapboxgl-ctrl-globe-view",
+        "reachable": true,
+        "rect": {
+          "x": 415.578125,
+          "y": 126.421875,
+          "w": 24,
+          "h": 24,
+          "right": 439.578125,
+          "bottom": 150.421875
+        }
+      }
+    ],
+    "overlapCardTr": 0,
+    "overlapCardCtrl": 0,
+    "overlapCardMapTrig": 0,
+    "overlapTrCtrl": 0,
+    "overlapMapTrigCtrl": 0
+  },
+  {
+    "viewport": {
+      "tag": "740x360",
+      "width": 740,
+      "height": 360
+    },
+    "card": {
+      "x": 532.515625,
+      "y": 240.96875,
+      "w": 197.125,
+      "h": 103.953125,
+      "right": 729.640625,
+      "bottom": 344.921875
+    },
+    "tr": {
+      "x": 576.671875,
+      "y": 10.359375,
+      "w": 152.96875,
+      "h": 44,
+      "right": 729.640625,
+      "bottom": 54.359375
+    },
+    "mapTrigger": {
+      "x": 683.640625,
+      "y": 58.40625,
+      "w": 46,
+      "h": 25.203125,
+      "right": 729.640625,
+      "bottom": 83.609375
+    },
+    "ctrl": {
+      "x": 465.578125,
+      "y": 78.421875,
+      "w": 24,
+      "h": 104,
+      "right": 489.578125,
+      "bottom": 182.421875
+    },
+    "btns": [
+      {
+        "label": "mapboxgl-ctrl-zoom-in",
+        "reachable": true,
+        "rect": {
+          "x": 465.578125,
+          "y": 78.421875,
+          "w": 24,
+          "h": 24,
+          "right": 489.578125,
+          "bottom": 102.421875
+        }
+      },
+      {
+        "label": "mapboxgl-ctrl-zoom-out",
+        "reachable": true,
+        "rect": {
+          "x": 465.578125,
+          "y": 102.421875,
+          "w": 24,
+          "h": 24,
+          "right": 489.578125,
+          "bottom": 126.421875
+        }
+      },
+      {
+        "label": "mapboxgl-ctrl-globe-view",
+        "reachable": true,
+        "rect": {
+          "x": 465.578125,
+          "y": 126.421875,
+          "w": 24,
+          "h": 24,
+          "right": 489.578125,
+          "bottom": 150.421875
+        }
+      }
+    ],
+    "overlapCardTr": 0,
+    "overlapCardCtrl": 0,
+    "overlapCardMapTrig": 0,
+    "overlapTrCtrl": 0,
+    "overlapMapTrigCtrl": 0
+  },
+  {
+    "viewport": {
+      "tag": "1000x640",
+      "width": 1000,
+      "height": 640
+    },
+    "card": {
+      "x": 759.40625,
+      "y": 449.53125,
+      "w": 227,
+      "h": 130.875,
+      "right": 986.40625,
+      "bottom": 580.40625
+    },
+    "tr": {
+      "x": 775.265625,
+      "y": 13.59375,
+      "w": 211.140625,
+      "h": 44,
+      "right": 986.40625,
+      "bottom": 57.59375
+    },
+    "mapTrigger": {
+      "x": 932.9375,
+      "y": 63.1875,
+      "w": 53.46875,
+      "h": 29.484375,
+      "right": 986.40625,
+      "bottom": 92.671875
+    },
+    "ctrl": {
+      "x": 958,
+      "y": 99.1875,
+      "w": 42,
+      "h": 148,
+      "right": 1000,
+      "bottom": 247.1875
+    },
+    "btns": [
+      {
+        "label": "mapboxgl-ctrl-zoom-in",
+        "reachable": true,
+        "rect": {
+          "x": 958,
+          "y": 109.1875,
+          "w": 32,
+          "h": 32,
+          "right": 990,
+          "bottom": 141.1875
+        }
+      },
+      {
+        "label": "mapboxgl-ctrl-zoom-out",
+        "reachable": true,
+        "rect": {
+          "x": 958,
+          "y": 141.1875,
+          "w": 32,
+          "h": 32,
+          "right": 990,
+          "bottom": 173.1875
+        }
+      },
+      {
+        "label": "mapboxgl-ctrl-globe-view",
+        "reachable": true,
+        "rect": {
+          "x": 958,
+          "y": 173.1875,
+          "w": 32,
+          "h": 32,
+          "right": 990,
+          "bottom": 205.1875
+        }
+      }
+    ],
+    "overlapCardTr": 0,
+    "overlapCardCtrl": 0,
+    "overlapCardMapTrig": 0,
+    "overlapTrCtrl": 0,
+    "overlapMapTrigCtrl": 0
+  }
+]

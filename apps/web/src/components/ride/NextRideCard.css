@@ -168,11 +168,19 @@
   outline-offset: 2px;
 }
 
-/* 모바일 가로 — RouteDock 과 같은 축소 정책(중앙 HUD·우상단 칩과 겹치지 않게) */
-@media (max-height: 520px), (max-width: 480px) {
+/*
+ * 짧은 뷰포트 — RouteDock 과 같은 축소 정책.
+ * Mapbox ctrl 열은 오른쪽 가장자리 유지(MapView.css). 앵커 `right` 는 TR 과 같은 선
+ * (「다음 주행 카드 자리」 e2e). 카드 본체만 컨트롤 열(24px)+간격만큼 왼쪽으로 비킨다 —
+ * 앵커 pointer-events:none 이라 거터 클릭이 컨트롤에 닿는다(지시 06-4).
+ */
+@media (max-height: 560px), (max-width: 480px) {
   .next-ride-anchor {
     --mapbox-logo-clearance: 0.35rem;
+    --next-ride-ctrl-gutter: calc(24px + 0.35rem);
     max-width: min(18rem, calc(100vw - 2rem));
+    box-sizing: border-box;
+    padding-right: var(--next-ride-ctrl-gutter);
   }
 
   .next-ride__card {
