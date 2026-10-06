@@ -2923,73 +2923,95 @@ export default function App() {
                       active: activeQuickCamera,
                       onSelect: handleQuickCameraSelect,
                       camera1Mode,
-                      mapControls: {
-                        styleLabel: mapStyleHudShortLabel(mapStyle),
-                        styleAriaLabel: `맵 스타일 ${mapStyleHudShortLabel(mapStyle)}, 클릭 시 ${mapStyleHudShortLabel(nextOutdoorsSatelliteMapStyle(mapStyle))}`,
-                        onToggleStyle: () =>
-                          setMapStyle(nextOutdoorsSatelliteMapStyle(mapStyle)),
-                        onZoomOut: () => {
-                          // − = 축소. 거리 없는 모드·routeFit(free)는 실측 mapZoom 스텝.
-                          if (
-                            followMode === "free" ||
-                            followMode === "topDown" ||
-                            followMode === "north" ||
-                            followMode === "keep"
-                          ) {
-                            mapZoomStepSeqRef.current += 1;
-                            setMapZoomStepRequest({
-                              requestId: mapZoomStepSeqRef.current,
-                              delta: -1,
-                            });
-                            return;
-                          }
-                          const m =
-                            Math.round(
-                              rideCameraDistanceM * RIDE_USER_ZOOM_DISTANCE_FACTOR * 10,
-                            ) / 10;
-                          handleRideCameraDistanceFromUserZoom(
-                            Math.min(RIDE_USER_ZOOM_DISTANCE_SOFT_MAX_M, m),
-                          );
-                        },
-                        onZoomIn: () => {
-                          // + = 확대. 실측 mapZoom↑ 또는 거리↓(userZoom).
-                          if (
-                            followMode === "free" ||
-                            followMode === "topDown" ||
-                            followMode === "north" ||
-                            followMode === "keep"
-                          ) {
-                            mapZoomStepSeqRef.current += 1;
-                            setMapZoomStepRequest({
-                              requestId: mapZoomStepSeqRef.current,
-                              delta: 1,
-                            });
-                            return;
-                          }
-                          const m =
-                            Math.round(
-                              (rideCameraDistanceM / RIDE_USER_ZOOM_DISTANCE_FACTOR) * 10,
-                            ) / 10;
-                          handleRideCameraDistanceFromUserZoom(Math.max(1e-9, m));
-                        },
-                        zoomOutDisabled:
-                          followMode === "free" ||
-                          followMode === "topDown" ||
-                          followMode === "north" ||
-                          followMode === "keep"
-                            ? mapZoom <= MAP_GLOBE_MIN_ZOOM + 1e-6
-                            : rideCameraDistanceM >=
-                              RIDE_USER_ZOOM_DISTANCE_SOFT_MAX_M - 1e-6,
-                        zoomInDisabled:
-                          followMode === "free" ||
-                          followMode === "topDown" ||
-                          followMode === "north" ||
-                          followMode === "keep"
-                            ? mapZoom >= MAP_ZOOM_SLIDER_MAX - 1e-6
-                            : rideCameraDistanceM <= 1e-6,
-                      },
                     }
                   : null,
+              mapControls: {
+                styleLabel: mapStyleHudShortLabel(mapStyle),
+                styleAriaLabel: `맵 스타일 ${mapStyleHudShortLabel(mapStyle)}, 클릭 시 ${mapStyleHudShortLabel(nextOutdoorsSatelliteMapStyle(mapStyle))}`,
+                onToggleStyle: () =>
+                  setMapStyle(nextOutdoorsSatelliteMapStyle(mapStyle)),
+                onZoomOut: () => {
+                  const rideActive =
+                    rideStatus === "running" || rideStatus === "paused";
+                  // idle = 일반 지도 줌 −1. 주행 = 거리 없는 모드·routeFit(free)는 실측 mapZoom 스텝.
+                  if (
+                    !rideActive ||
+                    followMode === "free" ||
+                    followMode === "topDown" ||
+                    followMode === "north" ||
+                    followMode === "keep"
+                  ) {
+                    mapZoomStepSeqRef.current += 1;
+                    setMapZoomStepRequest({
+                      requestId: mapZoomStepSeqRef.current,
+                      delta: -1,
+                    });
+                    return;
+                  }
+                  const m =
+                    Math.round(
+                      rideCameraDistanceM * RIDE_USER_ZOOM_DISTANCE_FACTOR * 10,
+                    ) / 10;
+                  handleRideCameraDistanceFromUserZoom(
+                    Math.min(RIDE_USER_ZOOM_DISTANCE_SOFT_MAX_M, m),
+                  );
+                },
+                onZoomIn: () => {
+                  const rideActive =
+                    rideStatus === "running" || rideStatus === "paused";
+                  // idle = 일반 지도 줌 +1. 주행 = 실측 mapZoom↑ 또는 거리↓(userZoom).
+                  if (
+                    !rideActive ||
+                    followMode === "free" ||
+                    followMode === "topDown" ||
+                    followMode === "north" ||
+                    followMode === "keep"
+                  ) {
+                    mapZoomStepSeqRef.current += 1;
+                    setMapZoomStepRequest({
+                      requestId: mapZoomStepSeqRef.current,
+                      delta: 1,
+                    });
+                    return;
+                  }
+                  const m =
+                    Math.round(
+                      (rideCameraDistanceM / RIDE_USER_ZOOM_DISTANCE_FACTOR) * 10,
+                    ) / 10;
+                  handleRideCameraDistanceFromUserZoom(Math.max(1e-9, m));
+                },
+                zoomOutDisabled: (() => {
+                  const rideActive =
+                    rideStatus === "running" || rideStatus === "paused";
+                  if (
+                    !rideActive ||
+                    followMode === "free" ||
+                    followMode === "topDown" ||
+                    followMode === "north" ||
+                    followMode === "keep"
+                  ) {
+                    return mapZoom <= MAP_GLOBE_MIN_ZOOM + 1e-6;
+                  }
+                  return (
+                    rideCameraDistanceM >=
+                    RIDE_USER_ZOOM_DISTANCE_SOFT_MAX_M - 1e-6
+                  );
+                })(),
+                zoomInDisabled: (() => {
+                  const rideActive =
+                    rideStatus === "running" || rideStatus === "paused";
+                  if (
+                    !rideActive ||
+                    followMode === "free" ||
+                    followMode === "topDown" ||
+                    followMode === "north" ||
+                    followMode === "keep"
+                  ) {
+                    return mapZoom >= MAP_ZOOM_SLIDER_MAX - 1e-6;
+                  }
+                  return rideCameraDistanceM <= 1e-6;
+                })(),
+              },
             }}
           >
           </AppMapStage>

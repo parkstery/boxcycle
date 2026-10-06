@@ -311,18 +311,13 @@
   max-width: calc(100vw - var(--hud-pad-right) - 10rem);
 }
 
-/* 맵 뷰 트리거 — 계정 칩 바로 아래, 지도 컨트롤 열과 같은 우측 라인 */
+/* 맵 뷰 트리거 — 우상단 한 줄(맵 제어 44px 포함) 바로 아래 */
 .map-hud__tr-under {
   position: absolute;
-  top: calc(var(--hud-pad-top) + 2.2rem + 0.35rem);
+  top: calc(var(--hud-pad-top) + 44px + 0.35rem);
   right: var(--hud-pad-right);
   display: flex;
   justify-content: flex-end;
-}
-
-/* QC 아래 맵 제어 행이 있을 때 — 「맵」 트리거가 보조 행과 겹치지 않게 한 단 내림 */
-.map-hud__tr-under--with-ride-controls {
-  top: calc(var(--hud-pad-top) + 2.2rem + 0.35rem + 44px + 0.28rem);
 }
 
 .map-hud__rs {
@@ -442,8 +437,13 @@
 
 /* ---------- TR: AccountChip ---------- */
 
-/* 계정/로그인 칩 바로 왼쪽 — 날짜·시분초(초 갱신). 터치 타깃 아님 */
+/* 우하단 — 고도/축척·저작권 위. 날짜·시분초(초 갱신). 터치 타깃 아님 */
 .hud-clock {
+  position: absolute;
+  right: var(--hud-pad-right);
+  /* attrib + 고도/축척 행 위 (Mapbox bottom-right) */
+  bottom: calc(var(--hud-pad-bottom) + 2.55rem);
+  z-index: 2;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -465,18 +465,7 @@
   user-select: none;
 }
 
-/* Quick Camera 스택 — 1~6 행 + (주행 시) 맵 스타일/거리 보조 행 */
-.hud-quick-camera-stack {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.28rem;
-  flex-shrink: 0;
-  pointer-events: auto !important;
-  touch-action: manipulation;
-}
-
-/* Quick Camera 1~6 — Account 왼쪽, 주행 중에만 렌더
+/* Quick Camera 1~6 — Account 왼쪽(맵 제어 옆), 주행 중에만 렌더
  * 지시10: 버튼 자체만 150%(gap 0.2rem 유지). 터치가 맵으로 통과하지 않게
  * 컨테이너·버튼 모두 pointer-events: auto !important (Mapbox 특이도 함정 대비).
  */
@@ -490,7 +479,7 @@
   touch-action: manipulation;
 }
 
-/* QC 바로 아래 — Outdoors/Satellite 토글 + 거리 ± (맵 뷰 시트와 동일 상태) */
+/* 우상단 한 줄 — Outdoors/Satellite 토글 + 줌 ± (맵 뷰 시트와 동일 상태) */
 .hud-ride-map-controls {
   display: flex;
   align-items: center;
@@ -520,6 +509,38 @@
   cursor: pointer;
   pointer-events: auto !important;
   touch-action: manipulation;
+}
+
+/* 줌 ± 는 정사각에 가깝다 — 세로·가로 모두 44px 히트(이웃과 겹치면 같은 그룹) */
+.hud-ride-map-controls__zoom::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
+}
+
+/* 스타일 칩은 가로가 이미 44+ — 높이만 확장 */
+.hud-ride-map-controls__style::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: max(100%, 44px);
+  transform: translateY(-50%);
+}
+
+.hud-quick-camera__btn::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
 }
 
 .hud-ride-map-controls__style {
@@ -616,6 +637,70 @@
 
   .hud-quick-camera__c1-mark {
     font-size: 0.63rem;
+  }
+}
+
+/*
+ * 지시 06-2 — 폰 가로+좁은 폭에서 우상단 [QC][야외−+][계정] 이 좌상단 계기판(새 도로)을 덮는다.
+ * 해법 a: 한 줄 유지, 카메라·맵 버튼의 시각 폭만 축소. 터치 44px 는 ::after.
+ */
+@media (max-width: 900px) and (max-height: 560px) {
+  .map-hud__tr {
+    gap: 0.2rem;
+  }
+
+  .hud-quick-camera {
+    gap: 0.1rem;
+  }
+
+  .hud-quick-camera__btn {
+    min-width: 1.55rem;
+    height: 1.55rem;
+    padding: 0 0.22rem;
+    font-size: 0.85rem;
+    border-radius: 0.4rem;
+  }
+
+  .hud-quick-camera__btn--c1.is-active {
+    min-width: 1.85rem;
+    height: 1.85rem;
+    padding-bottom: 0.1rem;
+  }
+
+  .hud-quick-camera__c1-mark {
+    margin-top: 0.06rem;
+    font-size: 0.55rem;
+  }
+
+  .hud-ride-map-controls {
+    gap: 0.12rem;
+  }
+
+  .hud-ride-map-controls__style {
+    padding: 0 0.28rem;
+    font-size: 0.65rem;
+    border-radius: 0.4rem;
+  }
+
+  .hud-ride-map-controls__zoom {
+    min-width: 1.5rem;
+    padding: 0 0.2rem;
+    font-size: 0.95rem;
+    border-radius: 0.4rem;
+  }
+
+  .hud-account {
+    gap: 0.3rem;
+    padding: 0 0.45rem 0 0.28rem;
+    max-width: 7.2rem;
+  }
+
+  .hud-account__name {
+    font-size: 0.72rem;
+  }
+
+  .hud-account__mileage {
+    font-size: 0.6rem;
   }
 }
 
@@ -1282,11 +1367,7 @@
   }
 
   .map-hud__tr-under {
-    top: calc(var(--hud-pad-top) + 2rem + 0.3rem);
-  }
-
-  .map-hud__tr-under--with-ride-controls {
-    top: calc(var(--hud-pad-top) + 2rem + 0.3rem + 44px + 0.28rem);
+    top: calc(var(--hud-pad-top) + 44px + 0.3rem);
   }
 
   /* Trail 번호 배지 — MENU 의 TRAIL 행과 중복이고 주행 중 조작할 것도 아니다 */

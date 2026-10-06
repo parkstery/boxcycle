@@ -127,23 +127,25 @@ export type MapHudProps = {
   conquestAllOwnedHint?: boolean;
   /**
    * Quick Camera 1~6 — 주행 중에만 Account 왼쪽. null/undefined 이면 미렌더(CSS 숨김 금지).
-   * `mapControls` 는 QC 가 있을 때만 같은 스택 아래 보조 행으로 렌더한다.
    */
   quickCamera?: {
     active: 1 | 2 | 3 | 4 | 5 | 6 | null;
     onSelect: (n: 1 | 2 | 3 | 4 | 5 | 6) => void;
     /** 1번 순환 상태 — 버튼에 작은 표식(지시07·20260924-지시01: 4단) */
     camera1Mode?: Camera1Mode;
-    /** Outdoors/Satellite 토글 + 거리(줌) ± — 맵 뷰 시트와 동일 상태 */
-    mapControls?: {
-      styleLabel: string;
-      styleAriaLabel: string;
-      onToggleStyle: () => void;
-      onZoomOut: () => void;
-      onZoomIn: () => void;
-      zoomOutDisabled: boolean;
-      zoomInDisabled: boolean;
-    };
+  } | null;
+  /**
+   * Outdoors/Satellite 토글 + 줌 ± — 카메라 유무와 무관하게 우상단 한 줄
+   * (QC 와 계정 사이 · idle 이면 계정 바로 왼쪽).
+   */
+  mapControls?: {
+    styleLabel: string;
+    styleAriaLabel: string;
+    onToggleStyle: () => void;
+    onZoomOut: () => void;
+    onZoomIn: () => void;
+    zoomOutDisabled: boolean;
+    zoomInDisabled: boolean;
   } | null;
 };
 
@@ -215,6 +217,7 @@ export function MapHud(props: MapHudProps) {
     conquestLiveMeters,
     conquestAllOwnedHint,
     quickCamera = null,
+    mapControls = null,
   } = props;
 
   const riding = stage === "riding";
@@ -286,12 +289,15 @@ export function MapHud(props: MapHudProps) {
     return () => window.clearInterval(id);
   }, [showClock]);
   const clockText = formatHudClock(clockNow);
+  /** 게이트·요약이 아닐 때 상시 — 카메라 유무와 무관 */
+  const showMapControls = Boolean(mapControls) && !isGate && !isSummary;
   /*
    * 2026-09-16: 우상단에서 센서 칩이 완전히 빠졌다. RouteDock 이 `idle` 을 포함한
    * 모든 주행 가능 stage 에서 보이므로 칩은 항상 dock 이 그린다(`lib/route/sensorChipSlot`).
    * 여기 남는 것은 계정·로그인 칩뿐이고, `cadence` 는 **RouteDock 으로만** 간다.
    */
-  const showTopRight = showAccount || showSignedOutAuth || Boolean(quickCamera);
+  const showTopRight =
+    showAccount || showSignedOutAuth || Boolean(quickCamera) || showMapControls;
   const showMapViewTrigger = !isGate && !isSummary;
   const showMetrics =
     metrics !== null &&
@@ -502,104 +508,94 @@ export function MapHud(props: MapHudProps) {
         </div>
       ) : null}
 
-      {/* 우상단은 하나의 액션 행 — 계정/로그인 칩만. 센서 칩은 RouteDock 이 소유한다 */}
+      {/* 우상단 한 줄 — [QC][야외 − +][계정]. 센서 칩은 RouteDock 이 소유한다 */}
       {showTopRight ? (
         <div className="map-hud__tr">
           {quickCamera ? (
             <div
-              className="hud-quick-camera-stack"
+              className="hud-quick-camera"
+              role="group"
+              aria-label="Quick Camera"
+              /* 지시10 §3: gap·가장자리 터치가 맵(Mapbox)으로 전파되지 않게.
+               * click 만 막으면 모바일에서 touchstart/pointerdown 이 지도를 먼저 움직인다. */
               onPointerDown={(e) => e.stopPropagation()}
               onTouchStart={(e) => e.stopPropagation()}
             >
-              <div
-                className="hud-quick-camera"
-                role="group"
-                aria-label="Quick Camera"
-                /* 지시10 §3: gap·가장자리 터치가 맵(Mapbox)으로 전파되지 않게.
-                 * click 만 막으면 모바일에서 touchstart/pointerdown 이 지도를 먼저 움직인다. */
-                onPointerDown={(e) => e.stopPropagation()}
-                onTouchStart={(e) => e.stopPropagation()}
-              >
-                {([1, 2, 3, 4, 5, 6] as const).map((n) => {
-                  const c1 = n === 1 ? quickCamera.camera1Mode ?? "routeFit" : null;
-                  const c1Meta = c1 ? CAMERA1_MODE_META[c1] : null;
-                  const c1Mark = c1Meta?.mark ?? null;
-                  const c1Label = c1Meta?.label ?? null;
-                  return (
-                    <button
-                      key={n}
-                      type="button"
-                      className={`hud-quick-camera__btn${quickCamera.active === n ? " is-active" : ""}${
-                        n === 1 ? " hud-quick-camera__btn--c1" : ""
-                      }`}
-                      aria-label={c1Label ? `카메라 1 · ${c1Label}` : `카메라 ${n}`}
-                      aria-pressed={quickCamera.active === n}
-                      data-camera1-mode={c1 ?? undefined}
-                      onPointerDown={(e) => e.stopPropagation()}
-                      onTouchStart={(e) => e.stopPropagation()}
-                      onClick={() => quickCamera.onSelect(n)}
-                    >
-                      <span className="hud-quick-camera__num">{n}</span>
-                      {c1Mark && quickCamera.active === 1 ? (
-                        <span className="hud-quick-camera__c1-mark" aria-hidden>
-                          {c1Mark}
-                        </span>
-                      ) : null}
-                    </button>
-                  );
-                })}
-              </div>
-              {quickCamera.mapControls ? (
-                <div
-                  className="hud-ride-map-controls"
-                  role="group"
-                  aria-label="맵 제어"
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                >
+              {([1, 2, 3, 4, 5, 6] as const).map((n) => {
+                const c1 = n === 1 ? quickCamera.camera1Mode ?? "routeFit" : null;
+                const c1Meta = c1 ? CAMERA1_MODE_META[c1] : null;
+                const c1Mark = c1Meta?.mark ?? null;
+                const c1Label = c1Meta?.label ?? null;
+                return (
                   <button
+                    key={n}
                     type="button"
-                    className="hud-ride-map-controls__style"
-                    aria-label={quickCamera.mapControls.styleAriaLabel}
-                    title={quickCamera.mapControls.styleAriaLabel}
+                    className={`hud-quick-camera__btn${quickCamera.active === n ? " is-active" : ""}${
+                      n === 1 ? " hud-quick-camera__btn--c1" : ""
+                    }`}
+                    aria-label={c1Label ? `카메라 1 · ${c1Label}` : `카메라 ${n}`}
+                    aria-pressed={quickCamera.active === n}
+                    data-camera1-mode={c1 ?? undefined}
                     onPointerDown={(e) => e.stopPropagation()}
                     onTouchStart={(e) => e.stopPropagation()}
-                    onClick={quickCamera.mapControls.onToggleStyle}
+                    onClick={() => quickCamera.onSelect(n)}
                   >
-                    {quickCamera.mapControls.styleLabel}
+                    <span className="hud-quick-camera__num">{n}</span>
+                    {c1Mark && quickCamera.active === 1 ? (
+                      <span className="hud-quick-camera__c1-mark" aria-hidden>
+                        {c1Mark}
+                      </span>
+                    ) : null}
                   </button>
-                  <button
-                    type="button"
-                    className="hud-ride-map-controls__zoom"
-                    aria-label="줌 축소"
-                    title="축소"
-                    disabled={quickCamera.mapControls.zoomOutDisabled}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onTouchStart={(e) => e.stopPropagation()}
-                    onClick={quickCamera.mapControls.onZoomOut}
-                  >
-                    −
-                  </button>
-                  <button
-                    type="button"
-                    className="hud-ride-map-controls__zoom"
-                    aria-label="줌 확대"
-                    title="확대"
-                    disabled={quickCamera.mapControls.zoomInDisabled}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onTouchStart={(e) => e.stopPropagation()}
-                    onClick={quickCamera.mapControls.onZoomIn}
-                  >
-                    +
-                  </button>
-                </div>
-              ) : null}
+                );
+              })}
             </div>
           ) : null}
-          {showClock ? (
-            <time className="hud-clock" dateTime={clockNow.toISOString()} aria-label="현재 시각">
-              {clockText}
-            </time>
+
+          {showMapControls && mapControls ? (
+            <div
+              className="hud-ride-map-controls"
+              role="group"
+              aria-label="맵 제어"
+              onPointerDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="hud-ride-map-controls__style"
+                aria-label={mapControls.styleAriaLabel}
+                title={mapControls.styleAriaLabel}
+                onPointerDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onClick={mapControls.onToggleStyle}
+              >
+                {mapControls.styleLabel}
+              </button>
+              <button
+                type="button"
+                className="hud-ride-map-controls__zoom"
+                aria-label="줌 축소"
+                title="축소"
+                disabled={mapControls.zoomOutDisabled}
+                onPointerDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onClick={mapControls.onZoomOut}
+              >
+                −
+              </button>
+              <button
+                type="button"
+                className="hud-ride-map-controls__zoom"
+                aria-label="줌 확대"
+                title="확대"
+                disabled={mapControls.zoomInDisabled}
+                onPointerDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onClick={mapControls.onZoomIn}
+              >
+                +
+              </button>
+            </div>
           ) : null}
 
           {showAccount && account ? (
@@ -639,16 +635,19 @@ export function MapHud(props: MapHudProps) {
         </div>
       ) : null}
 
+      {/* 우하단 — 고도/축척 바 바로 위, 오른쪽 정렬 */}
+      {showClock ? (
+        <time className="hud-clock" dateTime={clockNow.toISOString()} aria-label="현재 시각">
+          {clockText}
+        </time>
+      ) : null}
+
       {/*
        * 맵 뷰 트리거 — 우상단 칩 행 바로 아래(지도 컨트롤 열의 머리).
        * 하단 중앙에 두면 폰에서 지도 한가운데를 잡아먹는다.
        */}
       {showMapViewTrigger ? (
-        <div
-          className={`map-hud__tr-under${
-            quickCamera?.mapControls ? " map-hud__tr-under--with-ride-controls" : ""
-          }`}
-        >
+        <div className="map-hud__tr-under">
           <button
             type="button"
             className={`hud-bc-trigger ${mapViewOpen ? "is-active" : ""}`}
