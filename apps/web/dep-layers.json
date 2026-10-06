@@ -258,6 +258,7 @@
       "trail/repo/livePublicationRidesSubscriptionHub.ts"
     ],
     "route": [
+      "route/adhocSaveAsUserRoutePolicy.ts",
       "route/basicIntroHubRouteGeometries.ts",
       "route/directionsDirectGuard.core.mjs",
       "route/directionsDirectGuard.ts",
@@ -384,6 +385,7 @@
       "map/mapGlobeView.ts",
       "map/mapPickRouteDock.ts",
       "map/mapSelfLocationMarker.ts",
+      "map/rideEndNorthUp.ts",
       "map/riderPreservedLayer.ts",
       "map/rtwMapConfig.ts"
     ],
