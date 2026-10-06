@@ -36,7 +36,8 @@
   border-radius: var(--rtw-radius-lg) var(--rtw-radius-lg) var(--rtw-radius-md) var(--rtw-radius-md);
   /* --rtw-panel-solid(#0D1319)에 10% 투명도(2026-09-17 Chief) — 아래 지도가 비쳐
      시트가 화면에서 떠 보인다. backdrop-filter 가 이미 걸려 있어 글자는 안 흐려진다. */
-  background: rgba(13, 19, 25, 0.9);
+  /* 2026-10-06 Chief: 투명도 10% → 30%(+20%p) — 배경 지도가 더 드러나게 */
+  background: rgba(13, 19, 25, 0.7);
   border: 1px solid var(--rtw-divider);
   color: var(--rtw-text-primary);
   backdrop-filter: var(--rtw-blur-panel);
