@@ -446,6 +446,21 @@
   color: var(--rtw-text, #EDEFF2);
 }
 
+/* 계정 탈퇴 확인 문구 입력(2026-10-06) */
+.user-info-sheet__confirm-input {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 0.3rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(248, 113, 113, 0.55);
+  background: rgba(2, 6, 23, 0.55);
+  color: var(--rtw-text, #EDEFF2);
+  font: inherit;
+  font-size: 0.85rem;
+}
+
 .user-info-sheet__logout-confirm-row {
   display: flex;
   gap: 0.4rem;

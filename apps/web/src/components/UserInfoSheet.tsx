@@ -25,6 +25,11 @@ import {
 } from "../lib/account/repo/subscription";
 import { AuthGoogleMark } from "./auth/AuthGateCard";
 import { resetGuestAccount } from "../lib/identity/guestAccountReset";
+import {
+  ACCOUNT_DELETION_CONFIRM_PHRASE,
+  deleteMyAccount,
+  isDeletionConfirmPhrase,
+} from "../lib/account/accountDeletion";
 import "./UserInfoSheet.css";
 
 type UserInfoSheetProps = {
@@ -203,6 +208,10 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
   const [confirmingGuestReset, setConfirmingGuestReset] = useState(false);
   const [guestResetBusy, setGuestResetBusy] = useState(false);
   const [guestResetNote, setGuestResetNote] = useState<string | null>(null);
+  const [confirmingDeletion, setConfirmingDeletion] = useState(false);
+  const [deletionPhrase, setDeletionPhrase] = useState("");
+  const [deletionBusy, setDeletionBusy] = useState(false);
+  const [deletionNote, setDeletionNote] = useState<string | null>(null);
 
   useEffect(() => {
     if (!props.open) return;
@@ -222,6 +231,9 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
       setConfirmingLogout(false);
       setConfirmingGuestReset(false);
       setGuestResetNote(null);
+      setConfirmingDeletion(false);
+      setDeletionPhrase("");
+      setDeletionNote(null);
     }
   }
 
@@ -397,7 +409,23 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
   const showLogout = props.user != null;
   /** 익명만 — 구글 등 provider 계정에는 절대 노출하지 않는다(지시07 B). */
   const showGuestReset = Boolean(props.user?.isAnonymous);
-  const showActionsFooter = showGoogleLink || showLogout || showGuestReset;
+  /** 계정 탈퇴 — Google 등 정식 계정만(게스트는 「이 기기 데이터 지우기」). 2026-10-06 Chief */
+  const showAccountDeletion = Boolean(props.user && !props.user.isAnonymous);
+  const showActionsFooter = showGoogleLink || showLogout || showGuestReset || showAccountDeletion;
+
+  const runAccountDeletion = async () => {
+    if (!props.user || props.user.isAnonymous || props.rideActive || deletionBusy) return;
+    if (!isDeletionConfirmPhrase(deletionPhrase)) return;
+    setDeletionBusy(true);
+    setDeletionNote(null);
+    try {
+      await deleteMyAccount(props.user, deletionPhrase);
+      location.reload();
+    } catch (e) {
+      setDeletionBusy(false);
+      setDeletionNote(e instanceof Error ? e.message : String(e));
+    }
+  };
 
   const runGuestReset = async () => {
     if (!props.user?.isAnonymous || props.rideActive || guestResetBusy) return;
@@ -761,10 +789,10 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
                 <div
                   className="user-info-sheet__logout-confirm"
                   role="group"
-                  aria-label="게스트 초기화 확인"
+                  aria-label="이 기기 데이터 지우기 확인"
                 >
                   <p className="user-info-sheet__logout-confirm-copy">
-                    이 게스트의 기록이 사라집니다
+                    이 기기의 게스트 기록과 앱 데이터가 모두 지워집니다
                   </p>
                   {guestResetNote ? (
                     <p className="user-info-sheet__logout-confirm-copy" role="status">
@@ -790,7 +818,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
                       title="Reset guest"
                       onClick={() => void runGuestReset()}
                     >
-                      {guestResetBusy ? "초기화 중…" : "초기화"}
+                      {guestResetBusy ? "지우는 중…" : "지우기"}
                     </button>
                   </div>
                 </div>
@@ -799,10 +827,10 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
                   type="button"
                   className="user-info-sheet__btn user-info-sheet__btn--danger"
                   disabled={props.busy || props.rideActive || guestResetBusy}
-                  title={props.rideActive ? "주행 중에는 초기화할 수 없습니다" : "Reset guest"}
+                  title={props.rideActive ? "주행 중에는 지울 수 없습니다" : "Clear this device"}
                   onClick={() => setConfirmingGuestReset(true)}
                 >
-                  게스트 초기화
+                  이 기기 데이터 지우기
                 </button>
               )
             ) : null}
@@ -839,6 +867,72 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
                   onClick={() => setConfirmingLogout(true)}
                 >
                   로그아웃
+                </button>
+              )
+            ) : null}
+            {showAccountDeletion ? (
+              confirmingDeletion ? (
+                <div
+                  className="user-info-sheet__logout-confirm"
+                  role="group"
+                  aria-label="계정 탈퇴 확인"
+                >
+                  <p className="user-info-sheet__logout-confirm-copy">
+                    계정과 내 경로·주행 기록·정복 기록·토큰이 즉시 삭제되며 되돌릴 수 없습니다.
+                    구독 중이면 해지됩니다. 내가 등록한 퍼블릭 경로는 「탈퇴한 라이더」 이름으로
+                    남습니다.
+                  </p>
+                  <label className="user-info-sheet__logout-confirm-copy">
+                    계속하려면 「{ACCOUNT_DELETION_CONFIRM_PHRASE}」를 입력하세요
+                    <input
+                      type="text"
+                      className="user-info-sheet__confirm-input"
+                      value={deletionPhrase}
+                      disabled={deletionBusy}
+                      aria-label="탈퇴 확인 문구"
+                      onChange={(e) => setDeletionPhrase(e.target.value)}
+                    />
+                  </label>
+                  {deletionNote ? (
+                    <p className="user-info-sheet__logout-confirm-copy" role="alert">
+                      {deletionNote}
+                    </p>
+                  ) : null}
+                  <div className="user-info-sheet__logout-confirm-row">
+                    <button
+                      type="button"
+                      className="user-info-sheet__btn"
+                      disabled={deletionBusy}
+                      onClick={() => {
+                        setConfirmingDeletion(false);
+                        setDeletionPhrase("");
+                        setDeletionNote(null);
+                      }}
+                    >
+                      취소
+                    </button>
+                    <button
+                      type="button"
+                      className="user-info-sheet__btn user-info-sheet__btn--danger"
+                      disabled={
+                        deletionBusy || props.rideActive || !isDeletionConfirmPhrase(deletionPhrase)
+                      }
+                      title="Delete account"
+                      onClick={() => void runAccountDeletion()}
+                    >
+                      {deletionBusy ? "탈퇴 처리 중…" : "탈퇴"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="user-info-sheet__btn user-info-sheet__btn--danger"
+                  disabled={props.busy || props.rideActive || deletionBusy}
+                  title={props.rideActive ? "주행 중에는 탈퇴할 수 없습니다" : "Delete account"}
+                  onClick={() => setConfirmingDeletion(true)}
+                >
+                  계정 탈퇴
                 </button>
               )
             ) : null}

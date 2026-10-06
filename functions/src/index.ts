@@ -484,6 +484,7 @@ export {
   createSubscriptionPortalHttp,
 } from "./subscriptionHttp.js";
 export { stripeSubscriptionWebhookHttp } from "./stripeWebhookHttp.js";
+export { deleteAccountHttp } from "./accountDeletionHttp.js";
 export { subscriptionExpireSweep } from "./subscriptionScheduled.js";
 export { subscriptionDevApplyHttp } from "./subscriptionDevHttp.js";
 export { backfillRoutePublicationsHttp } from "./backfillRoutePublications.js";

@@ -39,7 +39,7 @@ export function clearAppLocalStorage(): string[] {
   return keys;
 }
 
-async function clearFirebaseAuthIndexedDb(): Promise<void> {
+export async function clearFirebaseAuthIndexedDb(): Promise<void> {
   if (typeof indexedDB === "undefined" || typeof indexedDB.databases !== "function") return;
   try {
     const dbs = await indexedDB.databases();

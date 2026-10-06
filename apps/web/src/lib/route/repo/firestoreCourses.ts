@@ -137,6 +137,8 @@ function summaryFromPublication(pub: RoutePublicationRow): PublishedPublicCourse
     publicationId: pub.publicationId,
     sourceSavedRouteId: pub.routeId,
     applicantUid: pub.applicantUid.length > 0 ? pub.applicantUid : null,
+    // 등록자 탈퇴 → 익명 표기(서버 accountDeletionCore 의 DELETED_PUBLISHER_LABEL 과 같은 문구)
+    publisherNickname: pub.publisherDeleted ? "탈퇴한 라이더" : null,
     publishedAtMs: lastSeenAtToMillis(pub.createdAt),
   };
 }
@@ -156,7 +158,9 @@ export async function listPublishedPublicCourses(
   );
   return rows.map((r) => ({
     ...r,
-    publisherNickname: r.applicantUid ? (labelByUid.get(r.applicantUid) ?? null) : null,
+    publisherNickname: r.applicantUid
+      ? (labelByUid.get(r.applicantUid) ?? null)
+      : (r.publisherNickname ?? null),
   }));
 }
 

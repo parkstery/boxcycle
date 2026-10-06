@@ -213,6 +213,7 @@
       "identity/repo/firestoreUser.ts"
     ],
     "account": [
+      "account/accountDeletion.ts",
       "account/mountRouteTokenPopupFeedback.ts",
       "account/routeTokenEconomyClient.ts",
       "account/routeTokenPopupDisplay.mjs",
@@ -224,6 +225,7 @@
       "account/userTier.ts"
     ],
     "account/repo": [
+      "account/repo/accountDeletionApi.ts",
       "account/repo/firestoreRouteToken.ts",
       "account/repo/firestoreRouteTokenEconomy.ts",
       "account/repo/subscription.ts",

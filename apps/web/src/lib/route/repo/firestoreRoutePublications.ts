@@ -30,6 +30,8 @@ export type RoutePublicationDoc = {
   snapshotDistanceMeters: number;
   snapshotDurationSec: number;
   applicantUid: string;
+  /** 등록자가 탈퇴해 익명화됨(applicantUid "") — 서버 deleteAccountHttp 가 쓴다(2026-10-06) */
+  publisherDeleted?: boolean;
   sourcePublicRouteRequestId: string;
   /** 동행(coursePresence) Rules — `routePublications/{id}` 기준 */
   presenceEnabled?: boolean;
@@ -67,6 +69,7 @@ function parsePublicationRow(id: string, data: Record<string, unknown>): RoutePu
       typeof data.snapshotDistanceMeters === "number" ? data.snapshotDistanceMeters : 0,
     snapshotDurationSec: typeof data.snapshotDurationSec === "number" ? data.snapshotDurationSec : 0,
     applicantUid: typeof data.applicantUid === "string" ? data.applicantUid : "",
+    publisherDeleted: data.publisherDeleted === true,
     sourcePublicRouteRequestId:
       typeof data.sourcePublicRouteRequestId === "string" ? data.sourcePublicRouteRequestId : "",
     createdAt: data.createdAt,
