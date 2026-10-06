@@ -44,6 +44,7 @@ process.env.FIRESTORE_EMULATOR_HOST = FS_HOST;
 process.env.FIREBASE_DATABASE_EMULATOR_HOST = DB_HOST;
 
 const DELETE_URL = `http://${FN_HOST}/${PROJECT_ID}/${REGION}/deleteAccountHttp`;
+const RESET_GUEST_URL = `http://${FN_HOST}/${PROJECT_ID}/${REGION}/resetGuestHttp`;
 
 function log(step, detail) {
   console.log(`[account-deletion-e2e] ${step}${detail ? `: ${detail}` : ""}`);
@@ -257,6 +258,56 @@ async function runHappyPath(admin) {
   return { userA, userB, nickKey, trailId, pubId };
 }
 
+async function postResetGuest(idToken) {
+  const res = await fetch(RESET_GUEST_URL, {
+    method: "POST",
+    headers: idToken ? { Authorization: `Bearer ${idToken}` } : {},
+  });
+  let json = {};
+  try {
+    json = await res.json();
+  } catch {
+    json = {};
+  }
+  return { status: res.status, json };
+}
+
+/** Guest 「이 기기 데이터 지우기」 — 데이터와 Auth 를 함께 지운다(고아 문서 방지, 2026-10-07) */
+async function runGuestReset(admin) {
+  const stamp = Date.now();
+  const guest = await authSignUpAnonymous();
+  const keeper = await authSignUpEmail(`reset_keep_${stamp}@test.local`);
+  const rideId = `ride-guest-${stamp}`;
+  const batch = admin.db.batch();
+  batch.set(admin.db.doc(`users/${guest.uid}`), { isAnonymous: true, tier: "anonymous" });
+  batch.set(admin.db.doc(`rides/${rideId}`), { userId: guest.uid, status: "completed" });
+  batch.set(admin.db.doc(`conquest/${guest.uid}`), { totalMeters: 10 });
+  batch.set(admin.db.doc(`conquest/${guest.uid}/chunks/c1`), { meters: 10 });
+  batch.set(admin.db.doc(`routeTokenLedger/ledger-guest-${stamp}`), { userId: guest.uid, delta: 10 });
+  batch.set(admin.db.doc(`users/${keeper.uid}`), { nickname: "ResetKeep" });
+  await batch.commit();
+
+  // 정식 계정은 거절
+  const notGuest = await postResetGuest(keeper.idToken);
+  log("resetGuest reject non-guest", `${notGuest.status}`);
+  assert.equal(notGuest.status, 400);
+  assert.match(String(notGuest.json?.error?.status ?? ""), /FAILED_PRECONDITION/i);
+
+  const res = await postResetGuest(guest.idToken);
+  log("resetGuestHttp", `${res.status} ${JSON.stringify(res.json)}`);
+  assert.equal(res.status, 200);
+  assert.equal(res.json?.result?.ok, true);
+
+  await assertDocMissing(admin.db, `users/${guest.uid}`);
+  await assertDocMissing(admin.db, `rides/${rideId}`);
+  await assertDocMissing(admin.db, `conquest/${guest.uid}`);
+  await assertDocMissing(admin.db, `conquest/${guest.uid}/chunks/c1`);
+  await assertQueryEmpty(admin.db, "routeTokenLedger", "userId", guest.uid);
+  await assertAuthMissing(admin.auth, guest.uid, "guest");
+  assert.equal((await admin.db.doc(`users/${keeper.uid}`).get()).exists, true, "keeper users doc remains");
+  await assertAuthExists(admin.auth, keeper.uid, "keeper");
+}
+
 async function runRejectionCases() {
   const stamp = Date.now();
 
@@ -298,6 +349,8 @@ async function main() {
   log("happy path", "PASS");
   await runRejectionCases();
   log("rejection cases", "PASS (d skipped)");
+  await runGuestReset(admin);
+  log("guest reset", "PASS");
   log("ALL", "PASS");
 }
 

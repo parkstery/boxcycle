@@ -1,9 +1,12 @@
 /**
  * 게스트(익명) 계정 초기화 — 지시07 B.
- * Auth `user.delete()` + 앱 localStorage/IndexedDB 정리 후 reload.
+ * 서버(resetGuestHttp)가 Firestore·RTDB 데이터와 Auth 계정을 함께 지운 뒤, 앱 localStorage/IndexedDB 정리 후 reload.
+ * 앱에서 `user.delete()` 로 Auth 만 지우면 데이터가 고아로 남는다(2026-10-07 운영 8건) — 쓰지 않는다.
+ * 서버 실패 시 Auth 도 지우지 않는다: 계정이 남아 있어야 `admin:purge-guest-users` 가 데이터와 함께 찾는다.
  */
 import type { User } from "firebase/auth";
 import { LOCAL_FIRST_REGION_STORAGE_KEY } from "../geo/localFirstRegion";
+import { postResetGuest } from "./repo/guestResetApi";
 
 const APP_LOCAL_STORAGE_KEYS = [
   LOCAL_FIRST_REGION_STORAGE_KEY,
@@ -83,13 +86,16 @@ export async function resetGuestAccount(user: User): Promise<GuestResetResult> {
   }
 
   let deletedAuth = false;
-  let deleteError: string | null = null;
+  let deleteError: string | null;
   try {
-    await user.delete();
-    deletedAuth = true;
+    const res = await postResetGuest(user);
+    deletedAuth = res.ok;
+    deleteError = res.errorMessage;
   } catch (e) {
     deleteError = e instanceof Error ? e.message : String(e);
   }
+  // 서버 삭제 실패 — 이 기기도 그대로 둔다(같은 게스트로 다시 시도 가능)
+  if (!deletedAuth) return { deletedAuth, deleteError, clearedKeys: [] };
 
   const clearedKeys = clearAppLocalStorage();
   await clearFirebaseAuthIndexedDb();

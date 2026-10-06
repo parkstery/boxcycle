@@ -140,3 +140,63 @@ export const deleteAccountHttp = onRequest(
     }
   },
 );
+
+/**
+ * Guest 「이 기기 데이터 지우기」 — POST + Bearer(익명 토큰), 본문 없음.
+ * 예전에는 앱이 `user.delete()` 로 Auth 만 지워 Firestore 데이터가 고아로 남았다
+ * (2026-10-07 운영에서 고아 Guest 8건·145문서 발견). 탈퇴와 같은 deleteAccountData 로 데이터를 먼저 지우고 Auth 를 지운다.
+ * 확인 문구·최근 로그인 조건 없음 — 익명 계정은 재인증 수단이 없고, 앱 확인 단계가 대신한다.
+ */
+export const resetGuestHttp = onRequest(
+  {
+    region: REGION,
+    cors: true,
+    invoker: "public",
+    timeoutSeconds: 300,
+  },
+  async (req: Request, res: Response) => {
+    if (req.method !== "POST") {
+      res.set("Allow", "POST");
+      res.status(405).send("Method Not Allowed");
+      return;
+    }
+
+    const tokenMatch = (req.get("Authorization") ?? "").match(/^Bearer\s+(.+)$/i);
+    if (!tokenMatch) {
+      sendError(res, new HttpsError("unauthenticated", "로그인 후에 사용할 수 있습니다."));
+      return;
+    }
+
+    let uid: string;
+    let signInProvider: string | undefined;
+    try {
+      const decoded = await getAuth().verifyIdToken(tokenMatch[1], true);
+      uid = decoded.uid;
+      signInProvider = decoded.firebase?.sign_in_provider;
+    } catch {
+      sendError(res, new HttpsError("unauthenticated", "유효하지 않은 인증 토큰입니다."));
+      return;
+    }
+
+    if (signInProvider !== "anonymous") {
+      sendError(res, new HttpsError("failed-precondition", "게스트 계정만 이 기기 데이터 지우기를 할 수 있습니다."));
+      return;
+    }
+
+    try {
+      let rtdb = null;
+      try {
+        rtdb = getDatabase();
+      } catch {
+        rtdb = null;
+      }
+      const report = await deleteAccountData(getFirestore(), rtdb, uid);
+      await getAuth().deleteUser(uid);
+      console.info("[resetGuest] done", report);
+      res.status(200).json({ result: { ok: true } });
+    } catch (e: unknown) {
+      console.error("[resetGuest] failed", { uid, e });
+      sendError(res, new HttpsError("internal", "게스트 데이터 삭제 중 오류가 발생했습니다. 다시 시도해 주세요."));
+    }
+  },
+);

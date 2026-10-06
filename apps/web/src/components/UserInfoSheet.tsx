@@ -433,9 +433,10 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
     setGuestResetNote(null);
     try {
       const result = await resetGuestAccount(props.user);
-      if (!result.deletedAuth && result.deleteError) {
-        setGuestResetNote(`계정 삭제 실패 — 로컬만 정리합니다. (${result.deleteError})`);
-        await new Promise((r) => setTimeout(r, 1200));
+      if (!result.deletedAuth) {
+        setGuestResetBusy(false);
+        setGuestResetNote(`지우지 못했습니다. 잠시 후 다시 시도하세요. (${result.deleteError ?? "알 수 없는 오류"})`);
+        return;
       }
       location.reload();
     } catch (e) {

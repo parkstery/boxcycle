@@ -210,7 +210,8 @@
       "identity/nickname.ts"
     ],
     "identity/repo": [
-      "identity/repo/firestoreUser.ts"
+      "identity/repo/firestoreUser.ts",
+      "identity/repo/guestResetApi.ts"
     ],
     "account": [
       "account/accountDeletion.ts",
