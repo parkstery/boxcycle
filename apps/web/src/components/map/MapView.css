@@ -1180,7 +1180,7 @@
   --br-card-above-clock: 10px; /* e2e 는 ≥8px 를 엄격(<)하게 본다 — 경계값 8 에 걸리지 않게 여유 */
   --br-altitude-box-width: 74px; /* 「고도 999.9 km」 최대 폭 */
   --br-altitude-box-height: 16px;
-  --br-scale-box-width: 120px; /* ScaleControl maxWidth·바깥 상자 */
+  --br-scale-box-width: 120px; /* ScaleControl maxWidth(막대 최대 길이) */
   --br-scale-box-height: 16px;
 }
 
@@ -1207,8 +1207,9 @@
   order: 10;
 }
 
+/* 2026-10-06 Chief: 축척 ↔ 고도 자리 교환 — 고도가 오른쪽 끝(고정 폭), 축척은 그 왼쪽에서 늘고 준다 */
 .app-shell--map-first .map-view .map-ctrl-camera-altitude {
-  order: 1;
+  order: 2;
   margin: 0 0 0 0;
   pointer-events: none;
   flex: 0 0 var(--br-altitude-box-width);
@@ -1219,14 +1220,14 @@
   box-sizing: border-box;
 }
 
-/* 바깥 상자 고정 — 막대(.mapboxgl-ctrl-scale)는 Mapbox inline width 그대로 */
+/*
+ * 축척 — Mapbox 원래 동작대로 막대 길이가 줌에 따라 늘고 준다(2026-10-06 Chief: 고정 폭 상자 해제).
+ * 고도가 오른쪽 끝에 있으므로 막대 길이가 변해도 고도 상자는 움직이지 않는다.
+ */
 .app-shell--map-first .map-view .map-ctrl-scale-box {
-  order: 2;
+  order: 1;
   margin: 0;
-  flex: 0 0 var(--br-scale-box-width);
-  width: var(--br-scale-box-width);
-  min-width: var(--br-scale-box-width);
-  max-width: var(--br-scale-box-width);
+  flex: 0 0 auto;
   height: var(--br-scale-box-height);
   box-sizing: border-box;
   display: flex;

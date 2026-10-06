@@ -100,8 +100,8 @@ import { MapCameraAltitudeControl } from "./MapCameraAltitudeControl";
 import { MapZoomGlobeControl } from "./MapZoomGlobeControl";
 
 /**
- * 축척 막대는 Mapbox 가 계산한 폭을 쓰고, 바깥만 고정 폭 상자(120px).
- * ScaleControl 루트에 width 를 강제하면 막대=상자라 축척이 거짓이 된다.
+ * 축척 막대는 Mapbox 가 계산한 폭을 그대로 쓴다(줌에 따라 늘고 준다). 래퍼는 배치용 클래스만 단다.
+ * ScaleControl 루트에 width 를 강제하면 막대 길이가 고정돼 축척이 거짓이 된다.
  */
 function createFixedScaleBoxControl(): mapboxgl.IControl {
   const inner = new mapboxgl.ScaleControl({ maxWidth: 120, unit: "metric" });
@@ -1041,7 +1041,7 @@ export function MapView({
       new mapboxgl.NavigationControl({ visualizePitch: true, showZoom: false }),
       "top-right",
     );
-    /** 축척: 고정 폭 상자 안 가변 막대(createFixedScaleBoxControl). 고도는 왼쪽 같은 행. */
+    /** 축척: 가변 막대(createFixedScaleBoxControl 래퍼). 고도는 오른쪽 끝 같은 행(CSS). */
     map.addControl(createFixedScaleBoxControl(), "bottom-right");
     map.addControl(new MapCameraAltitudeControl(), "bottom-right");
     mapRef.current = map;
