@@ -448,20 +448,19 @@
   display: inline-flex;
   align-items: center;
   height: var(--br-clock-height, 2.2rem);
-  padding: 0 0.45rem;
-  border-radius: 0.45rem;
-  background: rgba(15, 23, 42, 0.45);
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  color: rgba(226, 232, 240, 0.88);
+  padding: 0 0.15rem;
+  /* 2026-10-06 Chief: 검은 상자 대신 코칭 문구(.hud-coach)와 같은 halo — 배경·테두리 없이 글자 키라인만 */
+  background: none;
+  border: none;
+  color: #f8fafc;
+  text-shadow: var(--rtw-map-text-keyline-strong);
   font-size: 0.72rem;
-  font-weight: 500;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
   line-height: 1;
   white-space: nowrap;
   pointer-events: none;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   user-select: none;
 }
 

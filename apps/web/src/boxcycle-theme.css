@@ -88,7 +88,7 @@ body {
 .hud-idle-hint,
 .hud-account,
 .hud-signin-pill,
-.hud-clock,
+/* .hud-clock 은 2026-10-06 상자를 버리고 halo 글자만(MapHud.css) */
 .hud-icon-btn,
 .hud-metrics__chip {
   background: var(--rtw-glass-bg);
