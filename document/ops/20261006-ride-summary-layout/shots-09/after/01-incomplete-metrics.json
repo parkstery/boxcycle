@@ -1,0 +1,33 @@
+{
+  "heroesFlexDirection": "row",
+  "badge": {
+    "text": "0% → 68%",
+    "height": 15.27,
+    "lineHeight": 10.04,
+    "lines": 1.52,
+    "width": 56.13
+  },
+  "badgeParent": "ride-summary__head",
+  "conquestLabel": null,
+  "conquestValue": null,
+  "distance": {
+    "text": "0.12 / 0.18",
+    "height": 20.8,
+    "lineHeight": 20.79,
+    "lines": 1,
+    "width": 97
+  },
+  "titleUnit": {
+    "text": "km",
+    "height": 10,
+    "lineHeight": 12.39,
+    "lines": 0.81,
+    "width": 11.34
+  },
+  "heroesMainClass": "ride-summary__heroes-main",
+  "scroll": {
+    "scrollHeight": 179,
+    "clientHeight": 158
+  },
+  "sheetText": "주행 결과km0% → 68%닫기새 도로 확인 중…0.12 / 0.1800:1824.4 km/h추정 — kcal체중·강도 설정주행 저장 중…진행률 저장 중…"
+}

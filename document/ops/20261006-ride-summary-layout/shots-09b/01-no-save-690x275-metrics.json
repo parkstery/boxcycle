@@ -1,0 +1,28 @@
+{
+  "viewport": {
+    "width": 690,
+    "height": 275
+  },
+  "closeVisible": true,
+  "skipVisible": false,
+  "substats": [
+    {
+      "text": "00:22",
+      "height": 18.578125,
+      "lineHeight": 18.58,
+      "lines": 1
+    },
+    {
+      "text": "29.4 km/h",
+      "height": 18.578125,
+      "lineHeight": 18.58,
+      "lines": 1
+    },
+    {
+      "text": "추정 — kcal",
+      "height": 18.578125,
+      "lineHeight": 18.58,
+      "lines": 1
+    }
+  ]
+}

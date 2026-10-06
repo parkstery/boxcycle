@@ -208,33 +208,53 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
       />
       <div className="ride-summary__sheet" role="dialog" aria-labelledby="ride-summary-title">
         <div className="ride-summary__handle" aria-hidden />
-        <div className="ride-summary__head">
+        <div
+          className={
+            props.adhocSaveAvailable
+              ? "ride-summary__head"
+              : "ride-summary__head ride-summary__head--with-close"
+          }
+        >
           <h2 id="ride-summary-title" className="ride-summary__title">
             주행 결과
             {/* 단위는 여기서 한 번만 — 아래 숫자들엔 붙이지 않는다(2026-09-17 Chief) */}
             <span className="ride-summary__title-unit">km</span>
           </h2>
           {/*
+            미완주 진행률 배지(N% → M%) — 제목과 닫기 사이, 헤더 행에 둔다(히어로 열이 아니다).
+            「완주」·「도착」 배지는 뺐다(2026-09-17 Chief) — 사용자는 주행을 마치는 순간에
+            완주를 인식하고, 「0.18 / 0.18」 이라는 숫자가 다시 한 번 말해 준다. 미완주일
+            때의 진행률 배지는 숫자만으로는 이전 대비 얼마나 늘었는지 알 수 없어 남긴다.
+          */}
+          {!routeCompleted && showProgressLine && result ? (
+            <span className="ride-summary__heroes-badge" aria-label="전체 진행">
+              {progressPercentLabel(result.previousProgressRatio)}% →{" "}
+              {progressPercentLabel(result.progressRatio)}%
+            </span>
+          ) : null}
+          {/*
             닫는 버튼은 **상태마다 정확히 하나**다.
-             · 저장할 것이 있으면 → 「저장 안 함」이 닫는다(위)
-             · 저장할 것이 없으면 → 여기 「닫기」가 닫는다
+             · 저장할 것이 있으면 → 「저장 안 함」이 닫는다(아래)
+             · 저장할 것이 없으면 → 여기 ✕ 가 닫는다
             둘을 같이 두면 「저장 안 함」과 「닫기」가 무엇이 다른지 읽는 사람이 알 수 없다.
             (배경 누르기는 언제나 닫힌다 — scrim)
+            모양은 oc-modal__close(공식 코스 목록 모달)와 같다 — 시트 우상단 절대 배치 ✕.
+            글자 대신 아이콘이라 폭을 먹지 않는다(공간 밀도 D2·D6).
           */}
           {props.adhocSaveAvailable ? null : (
             <button
               type="button"
               className="ride-summary__close"
-              title="Close"
+              title="닫기"
               aria-label="닫기"
               onClick={requestClose}
             >
-              닫기
+              <span aria-hidden="true">✕</span>
             </button>
           )}
         </div>
 
-        {/* §3.1 2열 히어로 — 거리(주행/전체) + 새 도로(골드/보라 강조), 우측에 완주/진행률 배지 */}
+        {/* §3.1 히어로 — [새 도로][주행/전체] 2칸만. 진행률은 헤더 행 */}
         <div className="ride-summary__heroes">
           <div
             className={
@@ -283,23 +303,15 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
               </div>
             ) : null}
           </div>
-
-          {/*
-            「완주」·「도착」 배지는 뺐다(2026-09-17 Chief) — 사용자는 주행을 마치는 순간에
-            완주를 인식하고, 「0.18 / 0.18」 이라는 숫자가 다시 한 번 말해 준다. 미완주일
-            때의 진행률 배지는 숫자만으로는 이전 대비 얼마나 늘었는지 알 수 없어 남긴다.
-          */}
-          {!routeCompleted && showProgressLine && result ? (
-            <span className="ride-summary__heroes-badge" aria-label="전체 진행">
-              {progressPercentLabel(result.previousProgressRatio)}% →{" "}
-              {progressPercentLabel(result.progressRatio)}%
-            </span>
-          ) : null}
         </div>
 
         <div className="ride-summary__substats">
-          <span className="ride-summary__substat">{props.elapsedLabel}</span>
-          <span className="ride-summary__substat">{props.avgKmh} km/h</span>
+          <span className="ride-summary__substat">
+            <span className="ride-summary__substat-metric">{props.elapsedLabel}</span>
+          </span>
+          <span className="ride-summary__substat">
+            <span className="ride-summary__substat-metric">{props.avgKmh}&nbsp;km/h</span>
+          </span>
           {(() => {
             const kcal =
               result?.caloriesEstimate !== undefined
@@ -310,7 +322,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
             if (kcal == null) {
               return (
                 <span className="ride-summary__substat ride-summary__substat--calorie">
-                  추정 — kcal
+                  <span className="ride-summary__substat-metric">추정 — kcal</span>
                   {props.onOpenCalorieSettings ? (
                     <button
                       type="button"
@@ -332,7 +344,9 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
                     : "추정 총 운동 에너지"
                 }
               >
-                추정 {label} kcal{signalGap ? " · 누락" : ""}
+                <span className="ride-summary__substat-metric">
+                  추정 {label} kcal{signalGap ? " · 누락" : ""}
+                </span>
               </span>
             );
           })()}

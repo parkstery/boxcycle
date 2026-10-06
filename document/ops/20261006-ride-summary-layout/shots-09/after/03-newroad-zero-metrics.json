@@ -1,0 +1,27 @@
+{
+  "heroesFlexDirection": "row",
+  "badge": null,
+  "badgeParent": null,
+  "conquestLabel": null,
+  "conquestValue": null,
+  "distance": {
+    "text": "0.18 / 0.18",
+    "height": 20.8,
+    "lineHeight": 20.79,
+    "lines": 1,
+    "width": 97
+  },
+  "titleUnit": {
+    "text": "km",
+    "height": 10,
+    "lineHeight": 12.39,
+    "lines": 0.81,
+    "width": 11.34
+  },
+  "heroesMainClass": "ride-summary__heroes-main ride-summary__heroes-main--solo",
+  "scroll": {
+    "scrollHeight": 158,
+    "clientHeight": 158
+  },
+  "sheetText": "주행 결과km닫기0.18 / 0.1800:2229.4 km/h추정 — kcal체중·강도 설정"
+}

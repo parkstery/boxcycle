@@ -89,35 +89,56 @@
   letter-spacing: 0.02em;
 }
 
+/* 닫기 ✕ 가 우상단에 절대 배치되므로 헤더 우측을 비워 배지·제목과 겹치지 않게 한다 */
+.ride-summary__head--with-close {
+  padding-right: 2.2rem;
+}
+
+/* oc-modal__close(OfficialCourseListModal.css)와 같은 모양 — 시트 우상단 ✕.
+   보이는 원은 1.9rem, 터치 영역은 ::after 로 44px 확보(D2: 폭이 아니라 투명 확장). */
 .ride-summary__close {
-  flex-shrink: 0;
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  z-index: 2;
+  width: 1.9rem;
+  height: 1.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
   appearance: none;
-  border: 1px solid var(--rtw-divider);
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--rtw-text-primary);
   font: inherit;
-  font-size: 0.62rem;
-  font-weight: 650;
-  letter-spacing: 0.04em;
-  padding: 0.22rem 0.5rem;
-  border-radius: var(--rtw-radius-pill);
-  cursor: pointer;
+  font-size: 0.95rem;
   line-height: 1;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: #cbd5e1;
+  cursor: pointer;
+}
+
+.ride-summary__close::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
 }
 
 .ride-summary__close:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(56, 189, 248, 0.14);
+  color: #e8eaef;
 }
 
-/* 2열 히어로 래퍼 — 새 도로(conquest) + 오늘, 우측에 완주/진행률 배지(§3.1) */
+/* 히어로 래퍼 — 새 도로(conquest) + 거리. 진행률 배지는 헤더 행으로 옮겼다 */
 .ride-summary__heroes {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.35rem;
+  min-width: 0;
 }
 
 .ride-summary__heroes-main {
-  flex: 1;
   min-width: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -128,11 +149,10 @@
   grid-template-columns: 1fr;
 }
 
-/* 완주·진행률 배지 — 히어로 행 우측 상단, 독립 줄 대신 여기 하나로 */
+/* 진행률 배지 — 헤더 행(제목과 닫기 사이). 독립 줄 대신 여기 하나로 */
 .ride-summary__heroes-badge {
   flex-shrink: 0;
-  align-self: flex-start;
-  margin-top: 0.15rem;
+  line-height: 1.2;
   font-size: 0.62rem;
   font-weight: 650;
   padding: 0.12rem 0.45rem;
@@ -162,14 +182,16 @@
   font-weight: 700;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
-/* 보조 지표 — 시간·평속·칼로리 한 줄(작게) */
+/* 보조 지표 — 시간·평속·칼로리 한 줄(작게). 셀 안에서는 줄바꿈하지 않는다 */
 .ride-summary__substats {
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
+  justify-content: space-between;
+  gap: 0.28rem;
   padding: 0 0.48rem 0.1rem;
   /* 종전 0.72rem(폰 가로 루트 13.5px 기준 약 9.7px)에서 2pt 키운다(2026-09-17 Chief).
      pt 는 절대 단위라 루트 폰트가 달라져도 「정확히 2포인트」가 유지된다. */
@@ -178,30 +200,57 @@
   color: var(--rtw-text-secondary);
 }
 
+.ride-summary__substat {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.ride-summary__substat-metric {
+  display: inline-block;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
 .ride-summary__substat:not(:last-child)::after {
   content: "·";
-  margin-left: 0.4rem;
+  margin-left: 0.28rem;
   color: var(--rtw-text-faint);
 }
 
 .ride-summary__substat--calorie {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.3rem;
-  flex-wrap: wrap;
+  flex: 1 1 auto;
+  white-space: nowrap;
 }
 
+/* 보이는 높이는 내용 + 최소 패딩, 터치 44px 는 ::after 로 확보(D2) */
 .ride-summary__calorie-setup {
+  position: relative;
   font: inherit;
   font-size: inherit;
   font-weight: 650;
-  min-height: 44px;
+  min-height: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
   padding: 0.2rem 0.45rem;
   border-radius: 8px;
   border: 1px solid var(--rtw-glass-border, rgba(255, 255, 255, 0.12));
   background: rgba(255, 255, 255, 0.06);
   color: var(--rtw-trace, #E8A33D);
   cursor: pointer;
+}
+
+.ride-summary__calorie-setup::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 44px;
+  transform: translateY(-50%);
 }
 
 /* R2: F4 저장 상태 칩 — 독립 줄 대신 보조 수치 줄에 인라인 합류 */
@@ -336,8 +385,10 @@
     font-size: 1.35rem;
   }
 
+  /* 좁은 폭: 행은 줄바꿈 허용, 셀 안(.substat / .substat-metric)은 nowrap 유지 */
   .ride-summary__substats {
     flex-wrap: wrap;
+    justify-content: flex-start;
   }
 }
 
