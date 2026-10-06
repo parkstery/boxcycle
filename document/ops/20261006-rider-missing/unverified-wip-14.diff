@@ -1,0 +1,192 @@
+diff --git a/apps/web/src/components/map/MapView.tsx b/apps/web/src/components/map/MapView.tsx
+index c6440d9..613668d 100644
+--- a/apps/web/src/components/map/MapView.tsx
++++ b/apps/web/src/components/map/MapView.tsx
+@@ -94,6 +94,7 @@ import { clearRiderGlbModels, ensureRiderGlbLayer, syncRiderGlbModels } from "..
+ import {
+   clearRiderPreservedModels,
+   ensureRiderPreservedLayer,
++  probeRiderPreservedLayer,
+   syncRiderPreservedModels,
+ } from "../../lib/map/riderPreservedLayer";
+ import { MapCameraAltitudeControl } from "./MapCameraAltitudeControl";
+@@ -1022,7 +1023,20 @@ export function MapView({
+     map.addControl(new MapCameraAltitudeControl(), "bottom-right");
+     mapRef.current = map;
+     if (typeof window !== "undefined") {
+-      (window as Window & { __RTW_MAP__?: mapboxgl.Map }).__RTW_MAP__ = map;
++      const w = window as Window & {
++        __RTW_MAP__?: mapboxgl.Map;
++        __RTW_RIDER_PROBE__?: () => ReturnType<typeof probeRiderPreservedLayer> | null;
++      };
++      w.__RTW_MAP__ = map;
++      w.__RTW_RIDER_PROBE__ = () => {
++        const m = w.__RTW_MAP__;
++        if (!m) return null;
++        try {
++          return probeRiderPreservedLayer(m);
++        } catch {
++          return null;
++        }
++      };
+     }
+     installCameraRenderPhaseHook(map);
+     installTickTestMapHooks(map);
+@@ -1172,11 +1186,14 @@ export function MapView({
+         moveActivityWorldLayersToTop(map);
+       }
+       apply3DState(map, enable3DRef.current, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID);
++      /*
++       * setStyle 후 custom layer 재설치. desiredSpecs 를 비우지 않는다 —
++       * clear 하면 rAF sync 전 프레임에서 빈 스펙이 고정되고, 좀비 레이어와 겹치면
++       * GLB 가 복구되지 않는다. ensure 가 WeakMap 스펙을 다시 붙인다.
++       */
+       if (RIDER_PROTOTYPE_MODE === "glb") {
+-        clearRiderGlbModels(map);
+         ensureRiderGlbLayer(map);
+       } else if (RIDER_PROTOTYPE_MODE === "preserved") {
+-        clearRiderPreservedModels(map);
+         ensureRiderPreservedLayer(map);
+       }
+       if (import.meta.env.DEV) applyTickTestToMap(map);
+@@ -2115,7 +2132,9 @@ export function MapView({
+     if (!map || !mapLoaded) return;
+     if (currentStyleRef.current === mapStyle) return;
+     currentStyleRef.current = mapStyle;
+-    map.setStyle(mapStyle);
++    // diff:false — custom Three 레이어가 style diff 에 좀비로 남는 경로를 차단(지시14).
++    // mapbox-gl 타입은 SetStyleOptions 일부 필드를 필수로 두지만 runtime 은 partial 허용.
++    map.setStyle(mapStyle, { diff: false } as Parameters<mapboxgl.Map["setStyle"]>[1]);
+     resetRtwStyleSnapshot(map);
+   }, [mapStyle, mapLoaded]);
+ 
+diff --git a/apps/web/src/lib/map/riderPreservedLayer.ts b/apps/web/src/lib/map/riderPreservedLayer.ts
+index 817ef83..f805a0f 100644
+--- a/apps/web/src/lib/map/riderPreservedLayer.ts
++++ b/apps/web/src/lib/map/riderPreservedLayer.ts
+@@ -149,6 +149,11 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
+     };
+   }
+ 
++  /** Mapbox `setStyle` 이후 style 에 id 만 남고 onAdd 상태가 죽은 좀비 레이어 판별용 */
++  isAttached(): boolean {
++    return this.map != null && this.renderer != null;
++  }
++
+   render(_gl: WebGL2RenderingContext, matrix: Array<number>): void {
+     const map = this.map;
+     const renderer = this.renderer;
+@@ -241,7 +246,20 @@ export function ensureRiderPreservedLayer(map: MapboxMap): boolean {
+   }
+   try {
+     let layer = layerByMap.get(map);
+-    if (!map.getLayer(PRESERVED_RIDER_CUSTOM_LAYER_ID)) {
++    const inStyle = Boolean(map.getLayer(PRESERVED_RIDER_CUSTOM_LAYER_ID));
++    /*
++     * setStyle(diff) 이후 style 목록에 id 만 남고 onRemove 된 인스턴스(renderer/map null)가
++     * WeakMap 에 남는 경우가 있다. getLayer 만 보면 재설치를 건너뛰어 GLB 가 영구 비가시.
++     */
++    const attached = layer?.isAttached() === true;
++    if (!inStyle || !attached) {
++      if (inStyle) {
++        try {
++          map.removeLayer(PRESERVED_RIDER_CUSTOM_LAYER_ID);
++        } catch {
++          /* noop — 이미 제거 중 */
++        }
++      }
+       layer?.onRemove();
+       layer = new PreservedRiderCustomLayer();
+       layerByMap.set(map, layer);
+@@ -267,6 +285,47 @@ export function ensureRiderPreservedLayer(map: MapboxMap): boolean {
+   }
+ }
+ 
++/** e2e·DEV 계측 — 레이어 존재·부착·로드 상태·WebGL 유실 */
++export function probeRiderPreservedLayer(map: MapboxMap): {
++  layerExists: boolean;
++  layerIndex: number;
++  layerCount: number;
++  attached: boolean;
++  loadState: string | null;
++  loadError: string | null;
++  hasRig: boolean;
++  hasSpec: boolean;
++  webglLost: boolean | null;
++} {
++  let layers: ReadonlyArray<{ id: string }> = [];
++  try {
++    layers = map.getStyle()?.layers ?? [];
++  } catch {
++    layers = [];
++  }
++  const layerIndex = layers.findIndex((l) => l.id === PRESERVED_RIDER_CUSTOM_LAYER_ID);
++  const layer = layerByMap.get(map);
++  const debug = layer?.getDebugState() ?? null;
++  let webglLost: boolean | null = null;
++  try {
++    const canvas = map.getCanvas() as HTMLCanvasElement & { isContextLost?: () => boolean };
++    webglLost = typeof canvas.isContextLost === "function" ? canvas.isContextLost() : null;
++  } catch {
++    webglLost = null;
++  }
++  return {
++    layerExists: layerIndex >= 0,
++    layerIndex,
++    layerCount: layers.length,
++    attached: layer?.isAttached() === true,
++    loadState: debug?.loadState ?? null,
++    loadError: debug?.loadError ?? null,
++    hasRig: debug?.hasRig ?? false,
++    hasSpec: debug?.hasSpec ?? false,
++    webglLost,
++  };
++}
++
+ export function syncRiderPreservedModels(map: MapboxMap, specs: readonly RiderGlbModelSpec[]): void {
+   desiredSpecsByMap.set(map, specs.slice());
+   if (!ensureRiderPreservedLayer(map)) return;
+diff --git a/apps/web/scripts/rider-preserve/preserved-layer-contract.test.mjs b/apps/web/scripts/rider-preserve/preserved-layer-contract.test.mjs
+index d710e31..8c14334 100644
+--- a/apps/web/scripts/rider-preserve/preserved-layer-contract.test.mjs
++++ b/apps/web/scripts/rider-preserve/preserved-layer-contract.test.mjs
+@@ -44,6 +44,28 @@ test("MapView forwards the live phase and keeps the legacy GLB path", () => {
+   assert.match(source, /id: f\.properties\.id[\s\S]*?kind: "peer"/);
+ });
+ 
++test("style reload reinstalls preserved rider without clearing desired specs", () => {
++  const mapView = read(path.join(webRoot, "src", "components", "map", "MapView.tsx"));
++  const layer = read(path.join(webRoot, "src", "lib", "map", "riderPreservedLayer.ts"));
++  // setStyle? diff:false ? custom layer ??? ???(?? ??? ??).
++  assert.match(mapView, /setStyle\(mapStyle,\s*\{\s*diff:\s*false\s*\}/);
++  // style.load ???? preserved ??? ? clearRiderPreservedModels ? ??? ???.
++  const styleLoadBlock = mapView.match(
++    /map\.on\("style\.load",\s*\(\)\s*=>\s*\{[\s\S]*?apply3DState\([\s\S]*?RIDER_PROTOTYPE_MODE === "preserved"\)\s*\{([\s\S]*?)\}/,
++  );
++  assert.ok(styleLoadBlock, "style.load preserved ?? ??");
++  assert.doesNotMatch(
++    styleLoadBlock[1],
++    /clearRiderPreservedModels/,
++    "style.load ?? desiredSpecs ? ??? ?? ??? ??",
++  );
++  assert.match(styleLoadBlock[1], /ensureRiderPreservedLayer\(map\)/);
++  // ??(id ? ?? detached) ???
++  assert.match(layer, /isAttached\(\)/);
++  assert.match(layer, /!inStyle \|\| !attached/);
++  assert.match(layer, /map\.removeLayer\(PRESERVED_RIDER_CUSTOM_LAYER_ID\)/);
++});
++
+ test("custom layer renders every rider with terrain, phase, bearing and lean", () => {
+   const source = read(path.join(webRoot, "src", "lib", "map", "riderPreservedLayer.ts"));
+   assert.match(source, /for \(const spec of this\.specs\)/);
+@@ -55,8 +77,8 @@ test("custom layer renders every rider with terrain, phase, bearing and lean", (
+ });
+ 
+ test("preserved peers use the 3D nametag path without duplicate DOM sprites", () => {
+-  // 2026-09-28 (구조 정비 A-2) — 마커 코드가 MapView 에서 riderDomMarkers 로 옮겨갔다.
+-  // 계약은 코드를 따라간다. 옮긴 자리에서 계속 겨누지 않으면 이 시험은 조용히 아무것도 막지 않는다.
++  // 2026-09-28 (?? ?? A-2) ? ?? ??? MapView ?? riderDomMarkers ? ????.
++  // ??? ??? ????. ?? ???? ?? ??? ??? ? ??? ??? ???? ?? ???.
+   const source = read(path.join(webRoot, "src", "components", "map", "riderDomMarkers.ts"));
+   assert.match(source, /RIDER_PROTOTYPE_MODE === "preserved" && ensureRiderPreservedLayer\(map\)/);
+   assert.match(source, /if \(rider3dLayerReady\) \{\s*syncGlbPeerNametagMarkers/);

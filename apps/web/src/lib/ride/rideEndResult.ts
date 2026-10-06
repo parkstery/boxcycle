@@ -7,8 +7,10 @@ import type { RideConquestResult } from "./rideConquestResult";
  * 주행 종료 결과 모델(RIDE-CONTINUE-1 단계 C).
  *
  * 「도착했는가」·「ad-hoc 인가」로 결과 시트 노출을 제한하던 조건을 대체한다 —
- * `isDiscardableRideRecord` 로 폐기되지 않은 **모든 유효 Ride** 가 이 결과를 만들고,
- * 결과 시트는 이 값 하나로 구동된다. 문구 조합은 컴포넌트가 한다(App 에 누적하지 않는다).
+ * 폐기되지 않은 유효 Ride, 또는 **기록은 폐기했지만 저장 경로 진행이 늘어난** 종료가
+ * 이 결과를 만들고, 결과 시트는 이 값 하나로 구동된다.
+ * 후자는 `rideSaveStatus: "n/a"`(rides 문서 없음) + 진행률/완주만 채운다.
+ * 문구 조합은 컴포넌트가 한다(App 에 누적하지 않는다).
  */
 export type RideEndResult = {
   /** 로컬 기록 id(낙관 표시용). Firestore rides 문서 id 와는 다르다. */
@@ -47,8 +49,8 @@ export type RideEndResult = {
   routeDistanceMeters: number;
   /** F3: Conquest 결과 (rides/{serverRideId}.conquestResult). serverRideId가 없으면 unsaved */
   conquest?: RideConquestResult;
-  /** F4: Ride save 상태 (Firestore rides 저장 성공 여부) */
-  rideSaveStatus?: "pending" | "success" | "failed";
+  /** F4: Ride save 상태 (Firestore rides 저장 성공 여부). 기록 폐기 시 "n/a" */
+  rideSaveStatus?: "pending" | "success" | "failed" | "n/a";
   /** F4: SavedRoute progress 상태 (Firestore progress 업데이트 성공 여부, 독립 축) */
   savedRouteProgressStatus?: "pending" | "success" | "failed" | "n/a";
   /**

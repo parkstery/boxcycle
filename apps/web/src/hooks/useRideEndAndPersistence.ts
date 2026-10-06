@@ -10,6 +10,7 @@ import { markRouteActivityRideCompletedOptimistic } from "../lib/activity/repo/f
 import { saveRideSessionToFirestore } from "../lib/ride/repo/firestoreRides";
 import {
   persistRideEndCore,
+  persistDiscardedRideSavedRouteProgress,
   type SaveRideSessionFn,
   type UpdateSavedRouteProgressFn,
   type PromoteSavedRouteFn,
@@ -35,7 +36,7 @@ import {
 import { MAX_ROUTE_WAYPOINTS } from "../lib/geo/routeWaypoints";
 import { safeRideSpeechCancel } from "../lib/ride/rideSpeech";
 import { loadRideSessions, saveRideSessions, type StoredRideSession } from "../lib/ride/rideSessionsStorage";
-import { isDiscardableRideRecord, isRouteCompletion } from "../lib/ride/rideRecordPolicy";
+import { isRouteCompletion, resolveRideEndDisposition } from "../lib/ride/rideRecordPolicy";
 import { resolveSavedRouteProgressUpdate } from "../lib/route/savedRouteProgressPolicy";
 import {
   loadSavedRoutesFromLocal,
@@ -287,10 +288,19 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
       return;
     }
 
-    const discardRecord = isDiscardableRideRecord(
-      record.distanceMeters,
-      record.elapsedSec,
-    );
+    /**
+     * 운동 기록 폐기와 저장 경로 진행 반영을 분리(지시 13).
+     * 짧은 이어 달리기로 남은 구간만 달려 기록이 폐기돼도, 진행이 늘었으면 완주·진행률은 반영한다.
+     */
+    const disposition = resolveRideEndDisposition({
+      distanceMeters: record.distanceMeters,
+      elapsedSec: record.elapsedSec,
+      hasSavedRoute: Boolean(savedRouteIdAtEnd),
+      previousProgressRatio,
+      completionRatio,
+    });
+    const discardRecord = disposition.discardRecord;
+    const applySavedRouteProgress = disposition.applySavedRouteProgress;
 
     /** Conquest 페이로드 — 이번 세션 실주행 구간(offset..virtualDistance) 도로 셀 + 궤적 + 검증된 페달링 초 */
     let conquestPayload: ConquestRidePayload | null = null;
@@ -331,17 +341,18 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
 
     /**
      * 결과 시트 구동값(§3.5) — 도착·ad-hoc 여부로 노출을 제한하지 않는다.
-     * Firestore 쓰기 전에 로컬 record 로 **낙관 표시**하되, 실패는 아래에서 숨기지 않는다.
+     * 유효 Ride 또는 **폐기됐지만 경로 진행이 늘어난** 종료는 시트를 연다.
+     * 후자는 rides 저장이 없으므로 rideSaveStatus = "n/a".
      */
-    if (!discardRecord) {
+    if (!discardRecord || applySavedRouteProgress) {
       setLastRideResult?.({
         recordId: record.id,
         endedAtIso: record.endedAt,
         sessionDistanceMeters: record.distanceMeters,
         elapsedSec: record.elapsedSec,
         avgSpeedKmh: record.avgSpeedKmh,
-        caloriesEstimate: record.caloriesEstimate,
-        caloriesMeta: record.caloriesMeta ?? null,
+        caloriesEstimate: discardRecord ? null : record.caloriesEstimate,
+        caloriesMeta: discardRecord ? null : (record.caloriesMeta ?? null),
         savedRouteId: savedRouteIdAtEnd,
         routeName: savedRouteNameAtEnd,
         hasRoute: routeDistanceMeters > 0 && Boolean(routeGeometry),
@@ -353,8 +364,9 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
         profile,
         routeDistanceMeters,
         // F4: persistence status (independent axes)
-        rideSaveStatus: "pending",
-        savedRouteProgressStatus: savedRouteIdAtEnd ? "pending" : "n/a",
+        rideSaveStatus: discardRecord ? "n/a" : "pending",
+        savedRouteProgressStatus:
+          applySavedRouteProgress && savedRouteIdAtEnd ? "pending" : "n/a",
         // RIDE-CLAIM-RESULT-1: 세션 궤적 스냅샷 (Route workspace 초기화 전에 고정)
         sessionPathLngLat: (() => {
           if (!routeGeometry || routeGeometry.coordinates.length < 2) return null;
@@ -384,8 +396,9 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
      * 보이려면, Firestore 왕복을 기다리지 않고 로컬 state 부터 올려야 한다.
      * 규칙은 서버 transaction 과 동일한 순수 정책을 쓴다(낮은 값으로 되돌리지 않는다).
      * 서버 판정이 오면 아래에서 그 값으로 정정한다.
+     * 기록 폐기여도 applySavedRouteProgress 이면 동일하게 낙관 반영한다.
      */
-    if (!discardRecord && savedRouteIdAtEnd) {
+    if (applySavedRouteProgress && savedRouteIdAtEnd) {
       const nowIso = new Date().toISOString();
       setSavedRoutes((prev) =>
         prev.map((r) => {
@@ -578,19 +591,51 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
         );
         // persistRideEndCore 는 절대 throw 하지 않는다 — .catch() 불필요
       })();
-    } else if (!discardRecord && savedRouteIdAtEnd) {
+    } else if (
+      configured &&
+      discardRecord &&
+      applySavedRouteProgress &&
+      savedRouteIdAtEnd
+    ) {
+      /**
+       * 짧은 주행으로 운동 기록은 폐기했지만 경로 진행·완주는 반영(지시 13).
+       * rides 문서 없음 → promote/update 의 rideId 는 "" (adhoc promote 관례).
+       */
+      void persistDiscardedRideSavedRouteProgress(
+        {
+          userId: user.uid,
+          recordId: record.id,
+          savedRouteId: savedRouteIdAtEnd,
+          rideCompletedRoute,
+          progressToSave,
+        },
+        {
+          setLastRideResult: setLastRideResult ?? (() => {}),
+          setSavedRoutes,
+        },
+        {
+          updateSavedRouteProgressFn:
+            updateSavedRouteProgressInFirestoreFn ?? updateSavedRouteProgressInFirestore,
+          promoteSavedRouteFn:
+            promoteSavedRouteInFirestoreFn ?? promoteSavedRouteInFirestore,
+          onSavedRouteProgressApplied,
+        },
+      );
+    } else if (applySavedRouteProgress && savedRouteIdAtEnd) {
       // Firebase 미구성(로컬 전용) — 완주 게이트·진행률 저장 동일 적용(§9.5)
+      // 폐기된 짧은 주행도 진행이 늘었으면 여기로 온다. rideId: 폐기면 "" (Firestore 관례와 동일).
       const localCompleted = isRouteCompletion(completionRatio);
+      const rideIdForWrite = discardRecord ? "" : record.id;
       let appliedCompleted: 0 | 1 = localCompleted ? 1 : 0;
       if (localCompleted) {
         promoteSavedRouteInLocal({
           routeId: savedRouteIdAtEnd,
-          rideId: record.id,
+          rideId: rideIdForWrite,
         });
       } else {
         const applied = updateSavedRouteProgressInLocal({
           routeId: savedRouteIdAtEnd,
-          rideId: record.id,
+          rideId: rideIdForWrite,
           progressRatio: Math.max(completionRatio, previousProgressRatio),
         });
         appliedCompleted = applied.completed;
@@ -601,6 +646,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
           ? {
               ...prev,
               routeCompleted: appliedCompleted === 1,
+              rideSaveStatus: discardRecord ? "n/a" : prev.rideSaveStatus,
               savedRouteProgressStatus: "success",
             }
           : prev,

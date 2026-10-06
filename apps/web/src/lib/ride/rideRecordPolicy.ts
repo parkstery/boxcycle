@@ -38,6 +38,47 @@ export function isRouteCompletion(completionRatio: number): boolean {
 }
 
 /**
+ * 주행 종료 시 **운동 기록 폐기**와 **저장 경로 진행 반영**을 분리한 판정.
+ *
+ * 짧은 이어 달리기(남은 구간 ≤100m)가 기록 폐기되면 진행률·완주도 막히는 교착을 막는다.
+ * ad-hoc(저장 경로 아님)은 진행 반영이 없고, 폐기 임계값은 바꾸지 않는다.
+ */
+export type RideEndDisposition = {
+  /** rides 문서·로컬 세션·칼로리 통계에서 제외 */
+  discardRecord: boolean;
+  /** 저장 경로 진행률 갱신·완주 promote 수행 */
+  applySavedRouteProgress: boolean;
+};
+
+export function resolveRideEndDisposition(input: {
+  distanceMeters: number;
+  elapsedSec: number;
+  /** 저장 경로 주행인가(ad-hoc 이면 false) */
+  hasSavedRoute: boolean;
+  /** 이번 주행 전 저장 진행률(0..1) */
+  previousProgressRatio: number;
+  /** 이번 세션 누적 진행률(0..1) */
+  completionRatio: number;
+}): RideEndDisposition {
+  const discardRecord = isDiscardableRideRecord(input.distanceMeters, input.elapsedSec);
+  if (!input.hasSavedRoute) {
+    return { discardRecord, applySavedRouteProgress: false };
+  }
+  const prev = Number.isFinite(input.previousProgressRatio)
+    ? Math.max(0, Math.min(1, input.previousProgressRatio))
+    : 0;
+  const next = Number.isFinite(input.completionRatio)
+    ? Math.max(0, Math.min(1, input.completionRatio))
+    : 0;
+  if (!discardRecord) {
+    // 일반 유효 주행 — 종전처럼 저장 경로면 진행 반영 시도(단조 정책이 no-op 가능)
+    return { discardRecord: false, applySavedRouteProgress: true };
+  }
+  // 폐기된 짧은 주행: 누적 진행이 기존보다 높을 때만 경로 반영
+  return { discardRecord: true, applySavedRouteProgress: next > prev };
+}
+
+/**
  * 이어 달리기(§9.5.5 단위7) 시작 오프셋의 진행률 상한.
  * 완주 임계(0.98) 직전에서 재개해 몇 m 만 달리고 완주 처리되는 퇴화를 막는다.
  */

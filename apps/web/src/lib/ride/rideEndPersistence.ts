@@ -422,3 +422,149 @@ export async function persistRideEndCore(
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// 폐기된 짧은 주행 — 저장 경로 진행만 반영 (rides 문서 없음)
+// ---------------------------------------------------------------------------
+
+/**
+ * 운동 기록은 폐기했지만 저장 경로 진행률·완주만 반영한다.
+ *
+ * `rideId` 는 Firestore rides 문서가 없으므로 `""` 로 전달한다 —
+ * `useSavedRoutesWorkspace` ad-hoc 저장 promote 관례(`rideId ?? ""`)와 동일.
+ * localStorage 세션·conquest·publication heat 는 건드리지 않는다.
+ */
+export type PersistDiscardedRideProgressInput = {
+  userId: string;
+  /** 로컬 end-sample id — setLastRideResult 가드용 */
+  recordId: string;
+  savedRouteId: string;
+  rideCompletedRoute: boolean;
+  progressToSave: number;
+};
+
+export async function persistDiscardedRideSavedRouteProgress(
+  input: PersistDiscardedRideProgressInput,
+  callbacks: Pick<PersistRideEndCoreCallbacks, "setLastRideResult" | "setSavedRoutes">,
+  deps: {
+    updateSavedRouteProgressFn: UpdateSavedRouteProgressFn;
+    promoteSavedRouteFn: PromoteSavedRouteFn;
+    onSavedRouteProgressApplied?: OnSavedRouteProgressApplied;
+  },
+): Promise<void> {
+  const { userId, recordId, savedRouteId, rideCompletedRoute, progressToSave } = input;
+  const { setLastRideResult, setSavedRoutes } = callbacks;
+  const { updateSavedRouteProgressFn, promoteSavedRouteFn, onSavedRouteProgressApplied } = deps;
+  /** rides 문서 없음 — ad-hoc promote 와 같이 빈 문자열 */
+  const rideIdForWrite = "";
+
+  const emitProgressApplied = (routeCompleted: boolean) => {
+    onSavedRouteProgressApplied?.({
+      userId,
+      recordId,
+      routeId: savedRouteId,
+      routeCompleted,
+    });
+  };
+
+  try {
+    if (savedRouteId.startsWith("local-")) {
+      if (rideCompletedRoute) {
+        promoteSavedRouteInLocal({ routeId: savedRouteId, rideId: rideIdForWrite });
+        setSavedRoutes(loadSavedRoutesFromLocal());
+        setLastRideResult((prev) =>
+          prev && prev.recordId === recordId
+            ? {
+                ...prev,
+                progressRatio: 1,
+                routeCompleted: true,
+                rideSaveStatus: "n/a",
+                savedRouteProgressStatus: "success",
+              }
+            : prev,
+        );
+        emitProgressApplied(true);
+      } else {
+        const applied = updateSavedRouteProgressInLocal({
+          routeId: savedRouteId,
+          rideId: rideIdForWrite,
+          progressRatio: progressToSave,
+        });
+        setSavedRoutes(loadSavedRoutesFromLocal());
+        setLastRideResult((prev) =>
+          prev && prev.recordId === recordId
+            ? {
+                ...prev,
+                progressRatio: applied.progressRatio,
+                routeCompleted: applied.completed === 1,
+                rideSaveStatus: "n/a",
+                savedRouteProgressStatus: "success",
+              }
+            : prev,
+        );
+        emitProgressApplied(applied.completed === 1);
+      }
+      return;
+    }
+
+    let appliedProgress = progressToSave;
+    let appliedCompleted: 0 | 1 = rideCompletedRoute ? 1 : 0;
+    if (rideCompletedRoute) {
+      await promoteSavedRouteFn({
+        userId,
+        routeId: savedRouteId,
+        rideId: rideIdForWrite,
+      });
+      appliedProgress = 1;
+    } else {
+      const applied = await updateSavedRouteProgressFn({
+        userId,
+        routeId: savedRouteId,
+        rideId: rideIdForWrite,
+        progressRatio: progressToSave,
+      });
+      appliedProgress = applied.progressRatio;
+      appliedCompleted = applied.completed;
+    }
+    const nowIso = new Date().toISOString();
+    setSavedRoutes((prev) =>
+      prev.map((r) =>
+        r.id === savedRouteId
+          ? appliedCompleted === 1
+            ? {
+                ...r,
+                completed: 1,
+                completedAtIso: r.completedAtIso ?? nowIso,
+                expiresAtIso: null,
+                lastProgressRatio: 1,
+                updatedAtIso: nowIso,
+              }
+            : {
+                ...r,
+                lastProgressRatio: appliedProgress,
+                updatedAtIso: nowIso,
+              }
+          : r,
+      ),
+    );
+    setLastRideResult((prev) =>
+      prev && prev.recordId === recordId
+        ? {
+            ...prev,
+            progressRatio: appliedProgress,
+            routeCompleted: appliedCompleted === 1,
+            rideSaveStatus: "n/a",
+            savedRouteProgressStatus: "success",
+          }
+        : prev,
+    );
+    emitProgressApplied(appliedCompleted === 1);
+  } catch (e) {
+    console.warn("[persistDiscardedRideSavedRouteProgress] Progress update failed:", e);
+    setLastRideResult((prev) =>
+      prev && prev.recordId === recordId
+        ? { ...prev, rideSaveStatus: "n/a", savedRouteProgressStatus: "failed" }
+        : prev,
+    );
+  }
+}
