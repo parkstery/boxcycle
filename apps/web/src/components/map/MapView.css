@@ -1254,7 +1254,7 @@
   line-height: calc(var(--br-scale-box-height, 16px) - 2px);
   font-variant-numeric: tabular-nums;
   color: rgba(226, 232, 240, 0.88);
-  background: rgba(15, 23, 42, 0.45);
+  background: rgba(15, 23, 42, 0.7); /* 2026-10-06 Chief: 45% 는 글씨가 흐려 70% */
   border: 1.5px solid rgba(226, 232, 240, 0.7);
   border-top: none;
   border-radius: 0 0 3px 3px;
@@ -1269,7 +1269,7 @@
   height: 100%;
   padding: 0 5px;
   border-radius: 0.35rem;
-  background-color: rgba(15, 23, 42, 0.45);
+  background-color: rgba(15, 23, 42, 0.7); /* 2026-10-06 Chief: 45% 는 글씨가 흐려 70% */
   border: 1px solid rgba(148, 163, 184, 0.22);
   color: rgba(226, 232, 240, 0.88);
   backdrop-filter: blur(8px);
