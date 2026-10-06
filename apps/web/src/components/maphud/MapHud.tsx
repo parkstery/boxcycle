@@ -23,7 +23,8 @@ function formatHudClock(d: Date): string {
   const hh = String(d.getHours()).padStart(2, "0");
   const mi = String(d.getMinutes()).padStart(2, "0");
   const ss = String(d.getSeconds()).padStart(2, "0");
-  return `${yy}.${mm}.${dd} ${hh}:${mi}:${ss}`;
+  // 날짜와 시간 사이 「 / 」 — 한눈에 구분되게(2026-10-06 Chief)
+  return `${yy}.${mm}.${dd} / ${hh}:${mi}:${ss}`;
 }
 
 export type AccountChipState = {
