@@ -399,20 +399,25 @@
 }
 
 /* 지시09 C — 「새 도로 +N」이 거리보다 먼저·더 크게. 줄 수는 그대로 2열. */
+/*
+ * 2026-10-06 Chief: [주행/전체][새 도로] 순서로 자리 교환, 「새 도로」 는 값 바로 위 타이틀 줄
+ * (종전: 「새 도로 +0.99」 가로 한 줄 · 왼쪽 칸).
+ */
 .ride-summary__conquest-hero {
   display: flex;
-  flex-direction: row;
-  align-items: baseline;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  gap: 0.36rem;
-  padding: 0.5rem 0.35rem 0.45rem;
+  gap: 0.15rem;
+  padding: 0.35rem 0.35rem 0.4rem;
   border-radius: var(--rtw-radius-md);
   background: rgba(234, 179, 8, 0.1);
   border: 1px solid rgba(234, 179, 8, 0.45);
-  order: -1;
+  order: 1;
 }
 
 .ride-summary__conquest-label {
+  line-height: 1;
   font-size: 0.78rem;
   font-weight: 700;
   color: #eab308;

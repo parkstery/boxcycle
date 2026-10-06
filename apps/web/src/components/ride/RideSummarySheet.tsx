@@ -254,7 +254,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
           )}
         </div>
 
-        {/* §3.1 히어로 — [새 도로][주행/전체] 2칸만. 진행률은 헤더 행 */}
+        {/* §3.1 히어로 — 화면 순서 [주행/전체][새 도로](CSS order) 2칸만. 진행률은 헤더 행 */}
         <div className="ride-summary__heroes">
           <div
             className={

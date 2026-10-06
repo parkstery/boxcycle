@@ -684,7 +684,8 @@ test.describe("주행 결과 시트 컴팩트화", () => {
     await expect(sheet.locator(".ride-summary__title-unit"), "단위는 헤더에 한 번").toHaveText("km");
 
     /*
-     * 「새 도로」는 한 줄이다 — 라벨이 숫자 **왼쪽**에 앉는다(2026-09-17 Chief).
+     * 「새 도로」는 **타이틀 줄**이다 — 라벨이 숫자 **바로 위**, 칸은 주행/전체 **오른쪽**
+     * (2026-10-06 Chief, 종전 2026-09-17 「라벨이 숫자 왼쪽 한 줄」을 대체).
      * 에뮬레이터에서 conquest 는 Cloud Function 이 늦게 채워 촬영 시점엔 「확인 중…」일 수
      * 있다. 그래서 눈이 아니라 **배치 자체**를 잰다 — 값이 오든 안 오든 참이어야 하는 성질이다.
      */
@@ -695,19 +696,25 @@ test.describe("주행 결과 시트 컴팩트화", () => {
         const r = el.getBoundingClientRect();
         const label = el.querySelector(".ride-summary__conquest-label");
         const value = el.querySelector(".ride-summary__conquest-value");
+        const pair = el.parentElement?.querySelector(".ride-summary__hero");
         return {
           flexDirection: cs.flexDirection,
           height: Math.round(r.height),
-          labelX: label ? Math.round(label.getBoundingClientRect().x) : null,
-          valueX: value ? Math.round(value.getBoundingClientRect().x) : null,
+          boxX: Math.round(r.x),
+          pairX: pair ? Math.round(pair.getBoundingClientRect().x) : null,
+          labelBottom: label ? Math.round(label.getBoundingClientRect().bottom) : null,
+          valueTop: value ? Math.round(value.getBoundingClientRect().top) : null,
         };
       });
       expect(layout.height, "새 도로 칸 높이가 0 이면 계측 실패").toBeGreaterThan(0);
-      expect(layout.flexDirection, "새 도로는 한 줄(가로 배치)이어야 한다").toBe("row");
-      if (layout.labelX != null && layout.valueX != null) {
-        expect(layout.labelX, "「새 도로」 라벨이 숫자 왼쪽에 있어야 한다").toBeLessThan(
-          layout.valueX,
+      expect(layout.flexDirection, "새 도로는 라벨 위·값 아래(세로 배치)").toBe("column");
+      if (layout.labelBottom != null && layout.valueTop != null) {
+        expect(layout.labelBottom, "「새 도로」 라벨이 숫자 위에 있어야 한다").toBeLessThanOrEqual(
+          layout.valueTop,
         );
+      }
+      if (layout.pairX != null) {
+        expect(layout.boxX, "새 도로 칸은 주행/전체 칸 오른쪽").toBeGreaterThan(layout.pairX);
       }
     }
     expect(
