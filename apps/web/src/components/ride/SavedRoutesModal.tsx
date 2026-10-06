@@ -2,7 +2,8 @@ import { useState } from "react";
 import { RouteListModalShell } from "./RouteListModalShell";
 import { SavedRoutesPanel, type SavedRoutesPanelProps } from "./SavedRoutesPanel";
 
-export type SavedRoutesModalProps = SavedRoutesPanelProps & {
+/** 검색어는 이 모달이 제목 줄에서 소유한다 — 호출 측은 넘기지 않는다 */
+export type SavedRoutesModalProps = Omit<SavedRoutesPanelProps, "queryText"> & {
   onClose: () => void;
 };
 
