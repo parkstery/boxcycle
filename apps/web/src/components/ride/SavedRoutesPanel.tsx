@@ -7,6 +7,7 @@ import {
   fingerprintFromCanonicalSync,
 } from "../../lib/route/routeFingerprint";
 import type { RouteProfile } from "../../services/mapboxDirections";
+import { ROUTE_COMPLETION_RATIO_THRESHOLD } from "../../lib/ride/rideRecordPolicy";
 import "./SavedRoutesPanel.css";
 
 /**
@@ -23,6 +24,13 @@ type CompletionState = Exclude<CompletionFilter, "all">;
 function completionState(r: SavedRoute): CompletionState {
   if (r.completed === 1) return "completed";
   return r.lastProgressRatio > 0 ? "incomplete" : "pending";
+}
+
+/** 툴바 「이어 달리기」 대상 — 슬롯 교체·재개 offset 이 의미 있는 미완주 */
+function isResumeToolbarTarget(r: SavedRoute): boolean {
+  if (r.completed === 1) return false;
+  const p = r.lastProgressRatio;
+  return Number.isFinite(p) && p > 0 && p < ROUTE_COMPLETION_RATIO_THRESHOLD;
 }
 
 const PROFILE_LABEL: Record<RouteProfile, string> = {
@@ -131,6 +139,13 @@ export type SavedRoutesPanelProps = {
   /** 로그인 사용자: 완주 경로 퍼블릭 등록 모달 열기(게스트는 동일 라벨 비활성 버튼만 표시) */
   onOpenPublicRequest?: (route: SavedRoute) => void;
   onLoadRoute: (route: SavedRoute) => void;
+  /**
+   * 미완주 「이어 달리기」 — 슬롯 대상 확보/교체 후 로드.
+   * 없으면 onLoadRoute 로 폴백(대기·완주 「열기」는 항상 onLoadRoute).
+   */
+  onResumeRoute?: (route: SavedRoute) => void;
+  /** 현재 이어달리기 슬롯 활성 경로 — 「이어달리기 중」 배지 */
+  activeResumeRouteId?: string | null;
   onRenameRoute: (route: SavedRoute, newName: string) => Promise<void> | void;
   onDeleteRoute: (route: SavedRoute) => Promise<void> | void;
   /** 미완료 쿼터 초과로 유도됐을 때 상단에 표시할 안내(없으면 미표시) */
@@ -279,6 +294,10 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
   }
   function onToolbarOpen() {
     if (!selectedRoute || !actionsEnabled) return;
+    if (isResumeToolbarTarget(selectedRoute) && props.onResumeRoute) {
+      props.onResumeRoute(selectedRoute);
+      return;
+    }
     props.onLoadRoute(selectedRoute);
   }
   function onToolbarRename() {
@@ -394,13 +413,17 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
               title={
                 !hasSelection
                   ? "경로를 선택하세요"
-                  : props.sessionIdle
-                    ? "지도에 경로 불러오기"
-                    : "주행 종료 후 사용 가능"
+                  : !props.sessionIdle
+                    ? "주행 종료 후 사용 가능"
+                    : selectedRoute && isResumeToolbarTarget(selectedRoute)
+                      ? "이어 달리기"
+                      : "지도에 경로 불러오기"
               }
               onClick={onToolbarOpen}
             >
-              열기
+              {selectedRoute && isResumeToolbarTarget(selectedRoute)
+                ? "이어 달리기"
+                : "열기"}
             </button>
             <button
               type="button"
@@ -435,7 +458,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
       ) : props.routes.length === 0 ? (
         <p className="saved-routes__empty">
           사용자 경로가 없습니다. 「경로」 탭에서 경로를 만든 뒤 「내 경로로 저장」으로 목록에 올려 보세요.
-          미주행 7일 후 자동 삭제 · 완주 시 영구 보존
+          미완료 경로는 90일 후 자동 삭제 · 완주 시 영구 보존
         </p>
       ) : filtered.length === 0 ? (
         <p className="saved-routes__empty">
@@ -587,9 +610,11 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                         </span>
                       ) : null}
                     </p>
-                    {isSelected && route.completed !== 1
+                    {/* 미완주(진행률>0)는 선택 여부와 무관하게 진행률 표시 — 대기(0%)는 숨김 */}
+                    {route.completed !== 1 && route.lastProgressRatio > 0
                       ? (() => {
                           const pct = Math.round(clamp01(route.lastProgressRatio) * 100);
+                          const isActiveResume = props.activeResumeRouteId === route.id;
                           return (
                             <div
                               className="saved-routes__progress"
@@ -609,6 +634,14 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                                 />
                               </div>
                               <span className="saved-routes__progress-label">{pct}%</span>
+                              {isActiveResume ? (
+                                <span
+                                  className="saved-routes__badge saved-routes__badge--resume"
+                                  title="이어달리기 대상"
+                                >
+                                  이어달리기 중
+                                </span>
+                              ) : null}
                             </div>
                           );
                         })()

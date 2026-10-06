@@ -13,6 +13,7 @@ import type { StoredRideSession } from "../lib/ride/rideSessionsStorage";
 import {
   emptyRideResumeSlot,
   pickBootstrapRouteId,
+  resolveResumeSlotSwitchAction,
   type RideResumeSlot,
 } from "../lib/ride/rideResumeSlotPolicy";
 import {
@@ -53,6 +54,11 @@ export type UseRideResumeSlotReturn = {
   abandon: () => void;
   clearIfActive: (routeId: string, options?: { force?: boolean }) => Promise<SlotOpResult>;
   ensureAcquired: (routeId: string) => Promise<SlotOpResult>;
+  /**
+   * 이어달리기 대상을 routeId 로 맞춤 — none/acquire/switch.
+   * switch 는 abandon(기존 「이어달리기 종료」와 동일) 성공 후 acquire.
+   */
+  switchTo: (routeId: string) => Promise<SlotOpResult>;
   refresh: () => void;
 };
 
@@ -518,6 +524,107 @@ export function useRideResumeSlot(props: UseRideResumeSlotProps): UseRideResumeS
     ],
   );
 
+  const switchTo = useCallback(
+    async (routeId: string): Promise<SlotOpResult> => {
+      if (!uid) {
+        return { ok: false, reason: "no_uid", slot: emptyRideResumeSlot() };
+      }
+      if (!ownerMatches) {
+        return { ok: false, reason: "uid_mismatch", slot: emptyRideResumeSlot() };
+      }
+      if (status !== "ready") {
+        return { ok: false, reason: "not_ready", slot: safeSlot };
+      }
+      if (!safeSlot.initialized) {
+        return { ok: false, reason: "not_initialized", slot: safeSlot };
+      }
+
+      const decision = resolveResumeSlotSwitchAction(safeSlot.activeRouteId, routeId);
+      if (decision === "none") {
+        return { ok: true, slot: safeSlot };
+      }
+      if (decision === "acquire") {
+        return ensureAcquired(routeId);
+      }
+
+      // switch: abandon(기존 이어달리기 종료와 동일) 성공 후에만 확보
+      const expectedRouteId = safeSlot.activeRouteId;
+      if (!expectedRouteId) {
+        return ensureAcquired(routeId);
+      }
+
+      if (isGuest) {
+        const abandoned = await abandonLocalRideResumeSlot(uid, savedRoutes, expectedRouteId);
+        if (mountedUidRef.current !== uid) {
+          return { ok: false, reason: "uid_changed", slot: emptyRideResumeSlot() };
+        }
+        if (!abandoned.ok) {
+          if (abandoned.reason !== "expected_mismatch") {
+            setErrorMessage("이어달리기 대상 변경 실패");
+          }
+          return toOpResult(abandoned);
+        }
+        setSlot(abandoned.slot);
+        const acquired = await acquireLocalRideResumeSlot(uid, routeId, savedRoutes);
+        if (mountedUidRef.current !== uid) {
+          return { ok: false, reason: "uid_changed", slot: emptyRideResumeSlot() };
+        }
+        if (acquired.ok) {
+          setSlot(acquired.slot);
+          setErrorMessage(null);
+        } else {
+          setErrorMessage("이어달리기 대상 변경 실패");
+        }
+        return toOpResult(acquired);
+      }
+
+      if (!configured) {
+        return { ok: false, reason: "not_configured", slot: safeSlot };
+      }
+      try {
+        const abandoned = await abandonRideResumeSlot(uid, expectedRouteId);
+        if (mountedUidRef.current !== uid) {
+          return { ok: false, reason: "uid_changed", slot: emptyRideResumeSlot() };
+        }
+        if (!abandoned.ok) {
+          if (abandoned.reason !== "expected_mismatch") {
+            startTransition(() => setErrorMessage("이어달리기 대상 변경 실패"));
+          }
+          return toOpResult(abandoned);
+        }
+        startTransition(() => setSlot(abandoned.slot));
+        const acquired = await acquireRideResumeSlot(uid, routeId);
+        if (mountedUidRef.current !== uid) {
+          return { ok: false, reason: "uid_changed", slot: emptyRideResumeSlot() };
+        }
+        startTransition(() => {
+          if (acquired.ok) {
+            setSlot(acquired.slot);
+            setErrorMessage(null);
+          } else {
+            setErrorMessage("이어달리기 대상 변경 실패");
+          }
+        });
+        return toOpResult(acquired);
+      } catch {
+        if (mountedUidRef.current === uid) {
+          startTransition(() => setErrorMessage("이어달리기 대상 변경 실패"));
+        }
+        return { ok: false, reason: "switch_failed", slot: safeSlot };
+      }
+    },
+    [
+      uid,
+      ownerMatches,
+      status,
+      safeSlot,
+      isGuest,
+      configured,
+      savedRoutes,
+      ensureAcquired,
+    ],
+  );
+
   const refresh = useCallback(() => {
     if (!uid || !isGuest) return;
     if (mountedUidRef.current !== uid) return;
@@ -534,6 +641,7 @@ export function useRideResumeSlot(props: UseRideResumeSlotProps): UseRideResumeS
     abandon,
     clearIfActive,
     ensureAcquired,
+    switchTo,
     refresh,
   };
 }

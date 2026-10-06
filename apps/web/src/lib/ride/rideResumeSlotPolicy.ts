@@ -206,6 +206,37 @@ export function isResumeBlockedBySlot(activeRouteId: string | null, routeId: str
 }
 
 /**
+ * 사용자가 미완주 경로를 「이어 달리기」로 고를 때 슬롯 조치.
+ * - none: 이미 활성 → 해제·확보 불필요
+ * - acquire: 빈 슬롯 → 확보만
+ * - switch: 다른 경로 활성 → 해제(abandon) 후 확보(순서 보장)
+ *
+ * 「해제 없이 확보」로 바꾸면 switch 가 사라진다 — 계약 테스트가 이를 막는다.
+ */
+export type ResumeSlotSwitchDecision = "none" | "acquire" | "switch";
+
+export function resolveResumeSlotSwitchAction(
+  activeRouteId: string | null,
+  targetRouteId: string,
+): ResumeSlotSwitchDecision {
+  if (activeRouteId === targetRouteId) return "none";
+  if (activeRouteId === null) return "acquire";
+  return "switch";
+}
+
+/**
+ * ad-hoc 「내 경로로 저장」 미완주 성공 후 슬롯 확보 여부.
+ * 빈 슬롯일 때만 acquire — 이미 대상이 있으면 교체하지 않는다(사용자가 고를 때만 교체).
+ */
+export type AdhocSaveSlotAcquireDecision = "acquire" | "skip";
+
+export function resolveAdhocSaveSlotAcquireAction(
+  activeRouteId: string | null,
+): AdhocSaveSlotAcquireDecision {
+  return activeRouteId === null ? "acquire" : "skip";
+}
+
+/**
  * 주행 종료 결과 → 슬롯 확보/해제 시도 여부.
  * progress pending이면 wait(재실행 대기). success 후에만 acquire/clear.
  */

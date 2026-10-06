@@ -35,6 +35,14 @@ export function SavedRoutesModal({ onClose, ...panel }: SavedRoutesModalProps) {
           panel.onLoadRoute(route);
           onClose();
         }}
+        onResumeRoute={
+          panel.onResumeRoute
+            ? (route) => {
+                panel.onResumeRoute?.(route);
+                onClose();
+              }
+            : undefined
+        }
         // 「공개」 클릭 시 내 경로 창을 닫아 등록 창이 뒤에 깔리지 않게 한다(2026-10-06 Chief).
         onOpenPublicRequest={
           panel.onOpenPublicRequest

@@ -383,7 +383,7 @@ export async function persistRideEndCore(
       endLngLat &&
       routeDistanceMeters > 0
     ) {
-      // ad-hoc 저장 컨텍스트
+      // ad-hoc 저장 컨텍스트 — 진행률·완주는 §5 와 같은 산출값을 그대로 싣는다
       setLastEndedWasAdhoc({
         distanceMeters: routeDistanceMeters,
         durationSec: routeDurationSec,
@@ -393,6 +393,8 @@ export async function persistRideEndCore(
         waypoints: routeWaypoints.slice(0, MAX_ROUTE_WAYPOINTS),
         profile,
         rideId,
+        progressRatio: progressToSave,
+        completedRoute: rideCompletedRoute,
       });
     }
 

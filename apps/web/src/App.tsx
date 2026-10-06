@@ -49,9 +49,10 @@ import { resolveNextRideView } from "./lib/ride/nextRideTarget";
 import type { NextRideTarget } from "./lib/ride/nextRideTarget";
 import { useRideResumeSlot } from "./hooks/useRideResumeSlot";
 import {
-  RESUME_SLOT_BLOCKED_MSG,
   filterProgressAppliedEventsForUid,
   peekNextProgressAppliedEvent,
+  resolveAdhocSaveSlotAcquireAction,
+  resolveResumeSlotSwitchAction,
   resolveRideEndSlotAction,
   shouldMarkSlotOpProcessed,
   type ProgressAppliedSlotEvent,
@@ -1948,6 +1949,7 @@ export default function App() {
    * 「이어 달리기」(§3.2) — Route 를 불러와 `ready-to-start` 까지만 만든다.
    * 실제 시작은 기존 Go·주행 입력 준비 게이트를 그대로 통과한다(카드가 Go 를 우회하지 않는다).
    * 후보 해석 뒤 Route 가 삭제·완주됐으면 stale 상태를 시작하지 않고 CTA 만 거둔다.
+   * 다른 경로가 슬롯을 점유 중이면 switchTo(abandon→acquire)로 대상을 교체한다.
    */
   const handleResumeSavedRouteById = useCallback(
     (routeId: string, dismissRideId?: string) => {
@@ -1956,18 +1958,55 @@ export default function App() {
         if (dismissRideId) setNextRideDismissedRideId(dismissRideId);
         return;
       }
-      // 다른 경로가 슬롯을 점유 중이면 교체하지 않고 안내만
-      const slotActive = resumeSlotActiveRouteId;
-      if (slotActive !== null && slotActive !== routeId) {
-        setRouteSummary(RESUME_SLOT_BLOCKED_MSG);
-        return;
-      }
-      setSummarySheetVisible(false);
-      setLastRideResult(null);
-      setUserInfoSheetOpen(false);
-      handleLoadSavedRoute(route);
+      const priorActive = rideResumeSlot.activeRouteId;
+      const decision = resolveResumeSlotSwitchAction(priorActive, routeId);
+      void (async () => {
+        const op = await rideResumeSlot.switchTo(routeId);
+        if (!op.ok) {
+          setRouteSummary("이어달리기 대상 변경에 실패했어요. 다시 시도해 주세요.");
+          return;
+        }
+        setSummarySheetVisible(false);
+        setLastRideResult(null);
+        setUserInfoSheetOpen(false);
+        handleLoadSavedRoute(route);
+        if (decision === "acquire" || decision === "switch") {
+          const pct = Math.round(
+            Math.max(0, Math.min(1, route.lastProgressRatio)) * 100,
+          );
+          setRouteSummary(`이어달리기 대상을 이 경로로 바꿨어요 — ${pct}%부터`);
+        }
+      })();
     },
-    [savedRoutes, handleLoadSavedRoute, setUserInfoSheetOpen, resumeSlotActiveRouteId, setRouteSummary],
+    [savedRoutes, handleLoadSavedRoute, setUserInfoSheetOpen, rideResumeSlot, setRouteSummary],
+  );
+
+  /**
+   * 내 경로 「이어 달리기」 — switchTo 후 로드.
+   * 대기·완주 「열기」는 handleLoadSavedRoute 만(슬롯 불변).
+   */
+  const handleResumeSavedRouteFromLibrary = useCallback(
+    (route: SavedRoute) => {
+      handleResumeSavedRouteById(route.id);
+    },
+    [handleResumeSavedRouteById],
+  );
+
+  /** ad-hoc 미완주 저장 성공 시 — 슬롯이 비어 있을 때만 확보(교체는 사용자가 고를 때만) */
+  const handleSaveAdhocAsUserRouteWithSlot = useCallback(
+    async (name: string, confirmUpdate?: boolean) => {
+      const applied = await handleSaveAdhocAsUserRoute(name, confirmUpdate);
+      if (applied.completed === 1) return applied;
+      if (resolveAdhocSaveSlotAcquireAction(rideResumeSlot.activeRouteId) !== "acquire") {
+        return applied;
+      }
+      const op = await rideResumeSlot.ensureAcquired(applied.id);
+      if (!op.ok) {
+        setRouteSummary("내 경로에 저장했지만 이어달리기 대상 확보에 실패했어요.");
+      }
+      return applied;
+    },
+    [handleSaveAdhocAsUserRoute, rideResumeSlot, setRouteSummary],
   );
 
   const handleResumeNextRide = useCallback(
@@ -3014,11 +3053,16 @@ export default function App() {
             handleLoadSavedRoute(route);
             setMenuOpen(false);
           }}
+          onResumeSavedRoute={(route) => {
+            handleResumeSavedRouteFromLibrary(route);
+            setMenuOpen(false);
+          }}
+          activeResumeRouteId={resumeSlotActiveRouteId}
           onRenameSavedRoute={handleRenameSavedRoute}
           onDeleteSavedRoute={handleDeleteSavedRouteWithSlotClear}
           arrivalToastVisible={false}
           adhocSaveAvailable={false}
-          onSaveAdhocAsUserRoute={handleSaveAdhocAsUserRoute}
+          onSaveAdhocAsUserRoute={handleSaveAdhocAsUserRouteWithSlot}
           adhocSuggestedName={suggestedRouteName}
           onDismissAdhocSave={() => setLastEndedWasAdhoc(null)}
           openSavedTabSignal={openSavedTabNonce}
@@ -3175,7 +3219,7 @@ export default function App() {
         maxNameLength={SAVED_ROUTE_NAME_MAX}
         suggestedName={suggestedRouteName}
         onSaveAdhoc={async (name, confirmUpdate) => {
-          await handleSaveAdhocAsUserRoute(name, confirmUpdate);
+          await handleSaveAdhocAsUserRouteWithSlot(name, confirmUpdate);
           // 저장 후에도 같은 규칙 — 지도를 idle 로 되돌려야 카드가 다음 행동을 제시한다.
           closeSummaryAndReturnToIdleMap();
         }}

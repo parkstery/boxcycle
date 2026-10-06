@@ -209,7 +209,7 @@
   border: 1px solid rgba(56, 189, 248, 0.5);
 }
 
-/* 선택된 카드에서만 진행률 바가 뜰 때, 위 meta 와 간격을 준다 */
+/* 미완주 카드의 진행률 바 — meta 와 간격 */
 .saved-routes__meta + .saved-routes__progress {
   margin-top: 0.4rem;
 }
@@ -248,6 +248,16 @@
   font-variant-numeric: tabular-nums;
   text-align: right;
   color: var(--sr-fg-muted);
+}
+
+.saved-routes__badge--resume {
+  flex: 0 0 auto;
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  font-size: 0.65rem;
+  padding: 0.05rem 0.35rem;
+  white-space: nowrap;
 }
 
 .saved-routes__row-actions {

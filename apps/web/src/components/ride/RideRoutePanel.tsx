@@ -44,6 +44,10 @@ type RideRoutePanelProps = {
   savedRoutes: SavedRoute[];
   savedRoutesLoading: boolean;
   onLoadSavedRoute: (route: SavedRoute) => void;
+  /** 미완주 「이어 달리기」 — 슬롯 교체 포함. 없으면 onLoadSavedRoute */
+  onResumeSavedRoute?: (route: SavedRoute) => void;
+  /** 이어달리기 슬롯 활성 경로 id */
+  activeResumeRouteId?: string | null;
   onRenameSavedRoute: (route: SavedRoute, newName: string) => Promise<void> | void;
   onDeleteSavedRoute: (route: SavedRoute) => Promise<void> | void;
   /** 값이 바뀌면 「내 경로」 탭을 열고 대기 필터로 전환(미완료 쿼터 초과 유도). 0=무동작 */
@@ -381,6 +385,8 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
           publishedPublicRouteFingerprints={props.publishedPublicRouteFingerprints}
           onOpenPublicRequest={props.onOpenPublicRequest}
           onLoadRoute={props.onLoadSavedRoute}
+          onResumeRoute={props.onResumeSavedRoute}
+          activeResumeRouteId={props.activeResumeRouteId}
           onRenameRoute={props.onRenameSavedRoute}
           onDeleteRoute={props.onDeleteSavedRoute}
           quotaNotice={props.savedQuotaNotice}

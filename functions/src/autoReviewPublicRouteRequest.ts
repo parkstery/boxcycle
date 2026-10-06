@@ -36,6 +36,7 @@ import {
 } from "./publicRouteAutoReviewCore.js";
 import { countHttpUrls } from "./publicRouteBadWords.js";
 import { REGION } from "./region.js";
+import { matchSavedRouteFingerprint } from "./savedRouteFingerprintMatch.js";
 
 
 const PUBLIC_ROUTE_REQUESTS_COLLECTION = "publicRouteRequests";
@@ -196,15 +197,25 @@ async function runAutoReview(
   if (savedRouteData.userId !== uid) {
     return { status: "rejected", reason: "본인 저장 경로를 찾을 수 없습니다. 새로고침 후 다시 시도하세요." };
   }
+  // 저장 문서의 routeFingerprint 필드는 옛 규칙 값일 수 있다 — geometry 로 재계산해 대조.
   const savedRouteFingerprint =
     typeof savedRouteData.routeFingerprint === "string" && savedRouteData.routeFingerprint.length === 64
       ? savedRouteData.routeFingerprint
       : null;
-  if (savedRouteFingerprint && savedRouteFingerprint !== computedFingerprint) {
-    return {
-      status: "rejected",
-      reason: "경로 데이터가 원본 저장 경로와 일치하지 않습니다. 새로고침 후 다시 시도하세요.",
-    };
+  const savedMatch = matchSavedRouteFingerprint({
+    applicantFingerprint: computedFingerprint,
+    savedRouteFingerprint,
+    geometryCoordsJson: savedRouteData.geometryCoordsJson,
+    geometry: savedRouteData.geometry,
+    profile: savedRouteData.profile,
+  });
+  if (!savedMatch.ok) {
+    return { status: "rejected", reason: savedMatch.reason };
+  }
+  if (savedMatch.needsBackfill) {
+    await db.collection(SAVED_ROUTES_COLLECTION).doc(req.savedRouteId).update({
+      routeFingerprint: computedFingerprint,
+    });
   }
 
   // 3d. 중복

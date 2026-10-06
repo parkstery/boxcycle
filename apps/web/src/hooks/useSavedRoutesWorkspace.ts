@@ -10,10 +10,12 @@ import {
   promoteSavedRouteInFirestore,
   renameSavedRouteInFirestore,
   saveRouteToFirestore,
+  updateSavedRouteProgressInFirestore,
   type SavedRoute,
 } from "../lib/route/repo/firestoreSavedRoutes";
 import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
 import { MAX_ROUTE_WAYPOINTS } from "../lib/geo/routeWaypoints";
+import { resolveAdhocSaveServerAction } from "../lib/route/adhocSaveAsUserRoutePolicy";
 import { lockRouteWorkspaceDuringRide } from "../lib/route/routeWorkspaceLock";
 import {
   clearSavedRoutesLocal,
@@ -35,6 +37,10 @@ export type LastEndedAdhocState = {
   waypoints: LngLat[];
   profile: RouteProfile;
   rideId: string | null;
+  /** 종료 시점 `progressToSave`(0..1) — 새 계산 금지 */
+  progressRatio: number;
+  /** 종료 시점 `rideCompletedRoute`(≥98%) */
+  completedRoute: boolean;
 };
 
 export type UseSavedRoutesWorkspaceOptions = {
@@ -233,7 +239,7 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
   );
 
   const handleSaveAdhocAsUserRoute = useCallback(
-    async (name: string, confirmUpdate = false) => {
+    async (name: string, confirmUpdate = false): Promise<SavedRoute> => {
       if (!lastEndedWasAdhoc) {
         throw new Error("저장 대상 경로 정보가 없습니다.");
       }
@@ -249,46 +255,95 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
         confirmUpdate,
       };
       const rideId = lastEndedWasAdhoc.rideId;
+      const intent = {
+        completedRoute: lastEndedWasAdhoc.completedRoute,
+        progressRatio: lastEndedWasAdhoc.progressRatio,
+      };
+      const serverAction = resolveAdhocSaveServerAction(intent);
       assertCanPersistAppData(user);
       const uid = user!.uid;
       if (!configured) {
         throw new Error("Firebase 설정이 필요합니다.");
       }
       const saved = await saveRouteToFirestore({ ...base, userId: uid }, user!);
-      let promotedOnServer = false;
-      try {
-        await promoteSavedRouteInFirestore({
-          userId: uid,
-          routeId: saved.id,
-          rideId: rideId ?? "",
-        });
-        promotedOnServer = true;
-      } catch {
-        /* 격상 실패 시 로컬 completed=1 로 표시하지 않음 */
-      }
+      // rideId null: 진행률·promote 는 기록하되 lastRideId 는 "" 로 전달(promote 와 동일).
+      // updateSavedRouteProgress 가 shouldWrite 일 때만 lastRideId 를 덮는다.
+      const rideIdForWrite = rideId ?? "";
       const nowIso = new Date().toISOString();
-      const promoted: SavedRoute = promotedOnServer
-        ? {
+      let applied: SavedRoute = saved;
+      if (serverAction.action === "promote") {
+        let promotedOnServer = false;
+        try {
+          await promoteSavedRouteInFirestore({
+            userId: uid,
+            routeId: saved.id,
+            rideId: rideIdForWrite,
+          });
+          promotedOnServer = true;
+        } catch {
+          /* 격상 실패 시 로컬 completed=1 로 표시하지 않음 */
+        }
+        if (promotedOnServer) {
+          applied = {
             ...saved,
             completed: 1,
             completedAtIso: nowIso,
             expiresAtIso: null,
             lastRideId: rideId ?? null,
+            lastProgressRatio: 1,
             updatedAtIso: nowIso,
-          }
-        : saved;
-      // 갱신(중복)이면 기존 항목을 교체, 신규면 앞에 추가.
+          };
+        }
+      } else {
+        try {
+          const server = await updateSavedRouteProgressInFirestore({
+            userId: uid,
+            routeId: saved.id,
+            rideId: rideIdForWrite,
+            progressRatio: serverAction.progressRatio,
+          });
+          // 서버 반환값 기준(§5 패턴) — 기존 완주·더 높은 진행률은 transaction 이 유지
+          const prevRatio = saved.lastProgressRatio ?? 0;
+          applied = {
+            ...saved,
+            completed: server.completed,
+            lastProgressRatio: server.progressRatio,
+            lastRideId:
+              server.completed === 1
+                ? (saved.lastRideId ?? rideId)
+                : server.progressRatio > prevRatio
+                  ? (rideId ?? saved.lastRideId)
+                  : saved.lastRideId,
+            updatedAtIso: nowIso,
+            ...(server.completed === 1
+              ? {
+                  completedAtIso: saved.completedAtIso ?? nowIso,
+                  expiresAtIso: null,
+                }
+              : {}),
+          };
+        } catch {
+          /* 진행률 기록 실패 시 save 결과만 목록에 반영 */
+        }
+      }
       setSavedRoutes((prev) =>
         saved.deduped
-          ? prev.map((r) => (r.id === promoted.id ? { ...r, ...promoted } : r))
-          : [promoted, ...prev],
+          ? prev.map((r) => (r.id === applied.id ? { ...r, ...applied } : r))
+          : [applied, ...prev],
       );
+      const incompletePct = Math.round(
+        Math.max(0, Math.min(1, applied.lastProgressRatio ?? 0)) * 100,
+      );
+      const incompleteSummary = `내 경로에 저장했습니다 — 미완주 ${incompletePct}%, 다음에 이어 달릴 수 있어요.`;
       setRouteSummary(
-        saved.deduped
-          ? "이미 저장된 경로입니다 — 기존 항목의 주행 기록을 갱신했어요."
-          : "내 경로에 저장했습니다.",
+        applied.completed === 1
+          ? saved.deduped
+            ? "이미 저장된 경로입니다 — 기존 항목의 주행 기록을 갱신했어요."
+            : "내 경로에 저장했습니다."
+          : incompleteSummary,
       );
       setLastEndedWasAdhoc(null);
+      return applied;
     },
     [configured, user, lastEndedWasAdhoc, setRouteSummary, setSavedRoutes],
   );

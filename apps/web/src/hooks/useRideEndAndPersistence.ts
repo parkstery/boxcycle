@@ -630,6 +630,8 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
         waypoints: routeWaypoints.slice(0, MAX_ROUTE_WAYPOINTS),
         profile,
         rideId: null,
+        progressRatio: progressToSave,
+        completedRoute: rideCompletedRoute,
       });
     }
 
