@@ -129,6 +129,12 @@ import {
   CAMERA_BEARING_WINDOW_METERS,
   CAMERA_BEARING_WINDOW_SAMPLES,
 } from "./rideCameraFollow";
+import {
+  shouldEaseNorthUpOnRideActiveChange,
+  easeMapNorthUpAfterRideEnd,
+  isSameRouteLine,
+  RIDE_END_NORTH_UP_DURATION_MS,
+} from "../../lib/map/rideEndNorthUp";
 import { TickTestOffBadge } from "./TickTestOffBadge";
 import "./MapView.css";
 
@@ -660,6 +666,10 @@ export function MapView({
   const prevLiveRef = useRef<LngLat | null>(null);
   /** 지명 검색 flyTo 직후 `liveLngLat` 추적 jumpTo 가 카메라를 되돌리는 것을 막는다 */
   const suppressCameraFollowUntilRef = useRef(0);
+  /** 주행 종료 정북 hold — fitBounds·mapZoom props·follow tick 이 중심·줌을 덮지 않게 */
+  const prevRideActiveForNorthUpRef = useRef(rideActive);
+  const holdCameraAfterRideEndRef = useRef(false);
+  const rideEndHeldRouteRef = useRef<LineStringGeometry | null>(null);
   const cameraSmoothRef = useRef<{
     center: LngLat | null;
     bearingPrimary: number | null;
@@ -729,6 +739,8 @@ export function MapView({
   }, [followMode]);
 
   useEffect(() => {
+    // 종료 hold 중에는 App idle 줌 복원이 ref 를 덮지 않게 — follow tick fallback 이 옛 줌으로 뛰지 않음.
+    if (holdCameraAfterRideEndRef.current) return;
     mapZoomRef.current = mapZoom;
   }, [mapZoom]);
 
@@ -875,6 +887,46 @@ export function MapView({
     if (!rideActive) return;
     closePickSurfacesRef.current?.();
   }, [rideActive]);
+
+  /**
+   * 주행 종료(running|paused → idle) — follow 해제와 같은 신호(`rideActive` false)에서
+   * bearing 만 정북(0°)으로 ease. 일시정지(rideActive 유지)에서는 호출되지 않는다.
+   * 흐름: App `rideStatus→idle` → `liveRiderMotion=null`·`liveForMap=null`(follow tick 중단)
+   * → 이 effect → `easeMapNorthUpAfterRideEnd`.
+   * App idle `setMapZoom` 복원은 Chief(중심·줌 유지)와 충돌하므로 hold 로 무시하고,
+   * 다음 주행 시작(`rideFollowCameraNonce`)에서 해제한다.
+   */
+  useEffect(() => {
+    const was = prevRideActiveForNorthUpRef.current;
+    prevRideActiveForNorthUpRef.current = rideActive;
+    if (!shouldEaseNorthUpOnRideActiveChange(was, rideActive)) return;
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+    const durationMs = prefersReducedMotion ? 0 : RIDE_END_NORTH_UP_DURATION_MS;
+    holdCameraAfterRideEndRef.current = true;
+    rideEndHeldRouteRef.current = routeGeometryRef.current;
+    // hold 동안 follow tick 이 재개되지 않게 — ease 끝나면 짧게 여유.
+    suppressCameraFollowUntilRef.current = performance.now() + durationMs + 200;
+    const heldZoom = map.getZoom();
+    cameraSmoothRef.current.zoom = heldZoom;
+    mapZoomRef.current = heldZoom;
+    easeMapNorthUpAfterRideEnd(map, { durationMs });
+    const smooth = cameraSmoothRef.current;
+    smooth.bearing = 0;
+    smooth.bearingPrimary = 0;
+    // App idle `setMapZoom(preRide)` 와 경합 — held 줌을 다시 올려 mapZoom props 충돌을 없앤다.
+    const pushHeldZoom = () => {
+      if (!holdCameraAfterRideEndRef.current) return;
+      onMapZoomRef.current?.(Number(heldZoom.toFixed(1)));
+    };
+    pushHeldZoom();
+    const t0 = window.setTimeout(pushHeldZoom, 0);
+    const t1 = window.setTimeout(pushHeldZoom, 50);
+    return () => {
+      window.clearTimeout(t0);
+      window.clearTimeout(t1);
+    };
+  }, [rideActive, mapLoaded, prefersReducedMotion]);
 
   useEffect(() => {
     const key = startLngLat ? `${startLngLat[0]},${startLngLat[1]}` : null;
@@ -1672,6 +1724,12 @@ export function MapView({
       return;
     }
 
+    // 주행 종료 정북 hold: 같은 경로 재-fitBounds 금지. 좌표가 바뀌면 hold 해제.
+    if (holdCameraAfterRideEndRef.current) {
+      if (isSameRouteLine(rideEndHeldRouteRef.current, routeGeometry)) return;
+      holdCameraAfterRideEndRef.current = false;
+    }
+
     const bounds = new mapboxgl.LngLatBounds();
     routeGeometry.coordinates.forEach((p) => bounds.extend(p as [number, number]));
 
@@ -2224,20 +2282,25 @@ export function MapView({
           liveMarkerPedalSpriteRef,
           prefersReducedMotionRef.current,
         );
-        tickRideCameraFollow(map, sampled, {
-          followMode: followModeRef.current,
-          mapZoom: mapZoomRef.current,
-          rideCameraDistanceM: rideCameraDistanceMRef.current,
-          lockBaseHeading: lockBaseHeadingRef.current,
-          activeQuickCamera: activeQuickCameraRef.current,
-          spanFloorMode: rideCameraSpanFloorModeRef.current,
-          sessionStatus: liveRiderMotionRef.current?.sessionStatus,
-          routeGeometry: routeGeometryRef.current,
-          prevLiveRef: prevLiveRef,
-          smooth: cameraSmoothRef.current,
-          suppressUntilMs: suppressCameraFollowUntilRef.current,
-          nowMs: now,
-        });
+        // 종료 hold·비주행: follow tick 금지 — App followMode 복원(left 등)이 카메라를 덮지 않게.
+        const session = liveRiderMotionRef.current?.sessionStatus;
+        const rideSessionLive = session === "running" || session === "paused";
+        if (rideSessionLive && !holdCameraAfterRideEndRef.current) {
+          tickRideCameraFollow(map, sampled, {
+            followMode: followModeRef.current,
+            mapZoom: mapZoomRef.current,
+            rideCameraDistanceM: rideCameraDistanceMRef.current,
+            lockBaseHeading: lockBaseHeadingRef.current,
+            activeQuickCamera: activeQuickCameraRef.current,
+            spanFloorMode: rideCameraSpanFloorModeRef.current,
+            sessionStatus: session,
+            routeGeometry: routeGeometryRef.current,
+            prevLiveRef: prevLiveRef,
+            smooth: cameraSmoothRef.current,
+            suppressUntilMs: suppressCameraFollowUntilRef.current,
+            nowMs: now,
+          });
+        }
         if (selfLocationMarkerRef.current) {
           const geoBearingDeg = resolveRiderBearingDeg(
             routeGeometryRef.current,
@@ -2411,19 +2474,22 @@ export function MapView({
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
+    if (holdCameraAfterRideEndRef.current) return;
     if (performance.now() < suppressCameraFollowUntilRef.current) return;
     if (Math.abs(map.getZoom() - mapZoom) < 0.05) return;
 
     const applyPropZoom = () => {
       const m = mapRef.current;
-      if (!m || Math.abs(m.getZoom() - mapZoom) < 0.05) return;
+      if (!m || holdCameraAfterRideEndRef.current) return;
+      if (Math.abs(m.getZoom() - mapZoom) < 0.05) return;
       cameraSmoothRef.current.zoom = mapZoom;
       suppressCameraFollowUntilRef.current = performance.now() + 600;
       if (mapZoomApplyRafRef.current != null) cancelAnimationFrame(mapZoomApplyRafRef.current);
       mapZoomApplyRafRef.current = requestAnimationFrame(() => {
         mapZoomApplyRafRef.current = null;
         const live = mapRef.current;
-        if (!live || Math.abs(live.getZoom() - mapZoom) < 0.05) return;
+        if (!live || holdCameraAfterRideEndRef.current) return;
+        if (Math.abs(live.getZoom() - mapZoom) < 0.05) return;
         live.zoomTo(mapZoom, { duration: 0 });
       });
     };
@@ -2473,6 +2539,7 @@ export function MapView({
     if (!target) return;
 
     const rideMode = RIDE_FOLLOW_CAMERA_MODE;
+    holdCameraAfterRideEndRef.current = false;
     suppressCameraFollowUntilRef.current = 0;
 
     const headingFromRoute = getAverageHeadingAheadFromPoint(

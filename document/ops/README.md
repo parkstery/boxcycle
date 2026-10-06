@@ -44,7 +44,7 @@ Supervisor는 아키텍처, 도메인 경계, 데이터 모델, Firestore·RTDB�
 
 | 폴더 | 상태 | 무엇 | 결과·입구 | 이동 |
 |---|---|---|---|---|
-| [20261006-ride-end-north-up](20261006-ride-end-north-up/README.md) | **IN_PROGRESS** · Cursor | 주행 종료 시 지도 정북 복귀 | [지시 10](20261006-ride-end-north-up/02-task-10.md) | — |
+| [20261006-ride-end-north-up](20261006-ride-end-north-up/README.md) | **APPROVED** · 커밋 완료 | 주행 종료 시 지도 정북 복귀 | [검수 10](20261006-ride-end-north-up/04-review-10.md) | — |
 | [20261006-ride-summary-layout](20261006-ride-summary-layout/README.md) | **IN_PROGRESS** · Cursor | 주행 결과 히어로 — 진행률 행 분리 | [지시 09](20261006-ride-summary-layout/02-task-09.md) | — |
 | [20261006-lint-baseline-saved-routes](20261006-lint-baseline-saved-routes/README.md) | **APPROVED** · 커밋 완료 | pre-commit 막는 기존 lint 오류 제거 | [검수 08](20261006-lint-baseline-saved-routes/04-review-08.md) | — |
 | [20261006-minimap-dock-overlap](20261006-minimap-dock-overlap/README.md) | **APPROVED** · 커밋 완료 | PC 에서 미니맵·RouteDock 겹침 | [검수 07](20261006-minimap-dock-overlap/04-review-07.md) | — |

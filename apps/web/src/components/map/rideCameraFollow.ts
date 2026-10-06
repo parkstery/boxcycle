@@ -478,6 +478,8 @@ export function apply3DState(
   if (!enabled) {
     map.setTerrain(null);
     if (map.getLayer(buildingLayerId)) map.removeLayer(buildingLayerId);
+    // pitch→0 만 — 주행 종료 정북은 lib/map/rideEndNorthUp.easeMapNorthUpAfterRideEnd.
+    // 여기서 bearing 을 넣으면 3D 토글마다 북향이 강제된다.
     map.easeTo({ pitch: 0, duration: 400 });
     return;
   }
