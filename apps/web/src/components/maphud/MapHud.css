@@ -497,8 +497,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  /* 터치 44px는 실높이로 — 가로 ::after 로 이웃을 덮지 않음(D2·검수03) */
-  min-height: 44px;
+  /*
+   * 크기는 퀵 카메라 버튼과 같다(2026-10-06 Chief: 기기마다 카메라 버튼과 동일하게).
+   * 터치 44px 는 실높이 대신 ::after 로 — 카메라 버튼과 같은 방식.
+   */
+  height: 2.325rem;
+  min-width: 2.325rem;
   margin: 0;
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 0.525rem;
@@ -544,15 +548,14 @@
 }
 
 .hud-ride-map-controls__style {
-  padding: 0 0.45rem;
+  padding: 0 0.42rem;
   font-size: 0.78rem;
   letter-spacing: 0.01em;
 }
 
 .hud-ride-map-controls__zoom {
-  min-width: 2.025rem;
-  padding: 0 0.35rem;
-  font-size: 1.05rem;
+  padding: 0 0.42rem;
+  font-size: 1.08rem;
 }
 
 .hud-ride-map-controls__zoom:disabled {
@@ -638,6 +641,16 @@
   .hud-quick-camera__c1-mark {
     font-size: 0.63rem;
   }
+
+  .hud-ride-map-controls__style,
+  .hud-ride-map-controls__zoom {
+    min-width: 2.025rem;
+    height: 2.025rem;
+  }
+
+  .hud-ride-map-controls__zoom {
+    font-size: 0.975rem;
+  }
 }
 
 /*
@@ -676,17 +689,20 @@
     gap: 0.12rem;
   }
 
-  .hud-ride-map-controls__style {
-    padding: 0 0.28rem;
-    font-size: 0.65rem;
+  .hud-ride-map-controls__style,
+  .hud-ride-map-controls__zoom {
+    min-width: 1.55rem;
+    height: 1.55rem;
+    padding: 0 0.22rem;
     border-radius: 0.4rem;
   }
 
+  .hud-ride-map-controls__style {
+    font-size: 0.65rem;
+  }
+
   .hud-ride-map-controls__zoom {
-    min-width: 1.5rem;
-    padding: 0 0.2rem;
-    font-size: 0.95rem;
-    border-radius: 0.4rem;
+    font-size: 0.85rem;
   }
 
   /*
