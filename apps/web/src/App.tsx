@@ -26,7 +26,6 @@ import {
   DEFAULT_MAP_ZOOM,
   MAP_GLOBE_MIN_ZOOM,
   MAP_ZOOM_SLIDER_MAX,
-  RIDE_FOLLOW_CAMERA_MODE,
   RIDE_START_ZOOM,
   RIDE_CAMERA_DISTANCE_DEFAULT_M,
   RIDE_CAMERA_DISTANCE_MAX_M,
@@ -585,10 +584,22 @@ export default function App() {
           follow: followModeSnapshotRef.current,
           zoom: mapZoomSnapshotRef.current,
         };
-        setFollowMode(RIDE_FOLLOW_CAMERA_MODE);
         setEnable3D(false);
         setMapZoom(RIDE_START_ZOOM);
-        setMapStyle(DEFAULT_MAP_STYLE);
+        /*
+         * 2026-10-06 Chief: 주행 시작 기본 카메라 = 퀵 카메라 1번 500m(aerial500).
+         * 1번 진입 규칙(bad185c)대로 위성 지도, 진입 직전 스타일은 기본 지도로 기억해 두고
+         * 종료(idle) 때 사용자가 주행 중 스타일을 직접 바꾸지 않았으면 되돌린다.
+         */
+        camera1StyleBeforeEnterRef.current = DEFAULT_MAP_STYLE;
+        camera1UserToggledStyleRef.current = false;
+        setMapStyle(MAP_STYLE_SATELLITE);
+        setActiveQuickCamera(1);
+        setCamera1Mode("aerial500");
+        setLockBaseHeading(null);
+        setFollowMode("aerial");
+        setRideCameraDistanceM(CAMERA1_AERIAL_DISTANCE_M.aerial500);
+        setRideCameraSpanFloorMode("preset");
         setRideFollowCameraNonce((n) => n + 1);
         setRideJoinBurstNonce((n) => n + 1);
       }
@@ -599,6 +610,15 @@ export default function App() {
       rideCameraRestoreRef.current = null;
       setFollowMode(follow);
       setMapZoom(zoom);
+      // 주행 시작 때 들어간 퀵 카메라 1번을 놓는다 — 위성은 사용자가 바꾸지 않았으면 원래 지도로
+      if (camera1StyleBeforeEnterRef.current != null) {
+        if (!camera1UserToggledStyleRef.current) {
+          setMapStyle(camera1StyleBeforeEnterRef.current);
+        }
+        camera1StyleBeforeEnterRef.current = null;
+        camera1UserToggledStyleRef.current = false;
+      }
+      setActiveQuickCamera(null);
     }
   }, [rideStatus]);
 
