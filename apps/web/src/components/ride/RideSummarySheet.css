@@ -22,6 +22,12 @@
 .ride-summary__sheet {
   position: relative;
   z-index: 1;
+  /*
+   * 2026-10-06 Chief: 상자·글자가 상대적으로 크다 → 전체 20% 축소.
+   * rem·px 가 섞여 있어 값을 하나씩 줄이면 비율이 깨진다 — zoom 으로 상자·글자·여백·버튼을 한 번에.
+   * 터치 확장(::after)도 함께 줄어든다.
+   */
+  zoom: 0.8;
   width: min(22rem, calc(100vw - 1rem));
   max-width: 100%;
   max-height: 58%;
