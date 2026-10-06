@@ -2,21 +2,20 @@
  * 우하단 — 좌하단 스택에서 빠져 나왔다(2026-09-17 Chief). 스택이 하단 기준이라 카드가
  * 들고 날 때마다 RouteDock 이 위아래로 흔들렸다.
  *
- * 자리는 **기존 UI 격자에 맞춘다**(Chief) — 아무 데나 두면 화면이 어수선해진다.
+ * 자리(지시 12 · Chief 2026-10-06):
  *  · 오른쪽 끝 = 우상단 계정·맵 버튼(`.map-hud__tr`)의 오른쪽 끝과 같은 선
- *  · 아래 끝   = RouteDock(`.map-bottom-left-stack`)의 아래 끝과 같은 선
- * 세 곳의 여백 변수(`--hud-pad`·`--map-bl-pad`·`--next-ride-pad`)는 모두 같은
- * `clamp(0.45rem, 1.4vw, 0.85rem)` 이라 아래 식이 그 둘과 정확히 일치한다.
- * 어긋나면 e2e 가 렌더된 상자 좌표로 잡는다(선언이 아니라 결과를 본다).
+ *  · 아래 끝   = 시계(`.hud-clock`) 위 ≥8px — 고도/축척 → 시계 → 카드 세로 스택
+ * `--br-*` 는 MapView.css(`.app-shell--map-first`)와 공유. 시계 bottom/height 와 맞춰 둔다.
  */
 .next-ride-anchor {
   --next-ride-pad: clamp(0.45rem, 1.4vw, 0.85rem);
   position: absolute;
   /* = .map-hud__tr 의 right (--hud-pad-right) */
   right: max(var(--next-ride-pad), env(safe-area-inset-right, 0px));
-  /* = .map-bottom-left-stack 의 bottom */
+  /* 시계 위 끝 + 8px. pad + clock-above-scale + clock-height + gap */
   bottom: calc(
-    max(var(--next-ride-pad), env(safe-area-inset-bottom, 0px)) + var(--mapbox-logo-clearance, 2.875rem)
+    max(var(--next-ride-pad), env(safe-area-inset-bottom, 0px)) + var(--br-clock-above-scale, 0.55rem) +
+      var(--br-clock-height, 2.2rem) + var(--br-card-above-clock, 8px)
   );
   z-index: 6;
   max-width: min(23rem, calc(100vw - 2rem));
@@ -176,7 +175,7 @@
  */
 @media (max-height: 560px), (max-width: 480px) {
   .next-ride-anchor {
-    --mapbox-logo-clearance: 0.35rem;
+    /* bottom 은 시계 스택(위) 유지 — logo-clearance 로 내리지 않음(지시 12) */
     --next-ride-ctrl-gutter: calc(24px + 0.35rem);
     max-width: min(18rem, calc(100vw - 2rem));
     box-sizing: border-box;

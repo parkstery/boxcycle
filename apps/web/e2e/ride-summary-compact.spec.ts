@@ -556,16 +556,20 @@ test.describe("다음 주행 카드 자리", () => {
     expect(dockWithCard!.x, "dock 은 좌하단").toBeLessThan(PHONE_LANDSCAPE.width / 2);
 
     /*
-     * 자리는 기존 UI 격자에 맞춘다(2026-09-17 Chief) — 「우하단」이라는 방향만으로는
-     * 부족하고, 이미 있는 컨트롤과의 관계로 기준선을 잡아야 한다.
+     * 자리는 기존 UI 격자에 맞춘다 — 「우하단」이라는 방향만으로는 부족하고,
+     * 이미 있는 컨트롤과의 관계로 기준선을 잡아야 한다.
      *  · 오른쪽 끝 = 우상단 계정·맵 버튼(.map-hud__tr)의 오른쪽 끝
-     *  · 아래 끝   = RouteDock 의 아래 끝
+     *  · 아래 끝   = 시계(.hud-clock) 위 ≥8px (지시 12 · Chief 2026-10-06)
+     *    종전 「RouteDock 아래 끝과 같은 선」은 카드가 시계를 덮어 Chief 가 거부.
      * CSS 선언이 같은지가 아니라 **렌더된 상자 좌표**가 같은지를 본다.
      */
     const trBox = await page.locator(".map-hud__tr").boundingBox();
     expect(trBox, "우상단 계정·맵 묶음 boundingBox").not.toBeNull();
     expect(trBox!.width, "우상단 묶음 폭").toBeGreaterThan(0);
     const ctrlBox = await page.locator(".mapboxgl-ctrl-top-right").boundingBox();
+    const clockBox = await page.locator(".hud-clock").boundingBox();
+    expect(clockBox, "시계 boundingBox").not.toBeNull();
+    expect(clockBox!.height, "시계 높이").toBeGreaterThan(0);
 
     expect(
       cardBox!.x + cardBox!.width,
@@ -573,8 +577,8 @@ test.describe("다음 주행 카드 자리", () => {
     ).toBeCloseTo(trBox!.x + trBox!.width, 0);
     expect(
       cardBox!.y + cardBox!.height,
-      `카드 아래 끝이 RouteDock 아래 끝과 같은 선이어야 한다: card=${cardBox!.y + cardBox!.height}, dock=${dockWithCard!.y + dockWithCard!.height}`,
-    ).toBeCloseTo(dockWithCard!.y + dockWithCard!.height, 0);
+      `카드 아래 끝이 시계 위 끝보다 8px 이상 위여야 한다: cardBottom=${cardBox!.y + cardBox!.height}, clockTop=${clockBox!.y}`,
+    ).toBeLessThan(clockBox!.y - 8);
 
     /*
      * 정렬을 기준선에 맞추면 폰 가로(세로 275px)에서는 카드 상단이 우측 지도 컨트롤 열까지

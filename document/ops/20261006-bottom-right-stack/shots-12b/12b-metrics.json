@@ -1,0 +1,401 @@
+[
+  {
+    "phase": "hit-test-690-riding",
+    "hit": [
+      {
+        "id": "qc1",
+        "ok": true,
+        "hitTag": "button",
+        "hitClass": "hud-quick-camera__btn hud-quick-camera__btn--c1"
+      },
+      {
+        "id": "qc2",
+        "ok": true,
+        "hitTag": "button",
+        "hitClass": "hud-quick-camera__btn"
+      },
+      {
+        "id": "qc3",
+        "ok": true,
+        "hitTag": "button",
+        "hitClass": "hud-quick-camera__btn"
+      },
+      {
+        "id": "qc4",
+        "ok": true,
+        "hitTag": "button",
+        "hitClass": "hud-quick-camera__btn"
+      },
+      {
+        "id": "qc5",
+        "ok": true,
+        "hitTag": "button",
+        "hitClass": "hud-quick-camera__btn"
+      },
+      {
+        "id": "qc6",
+        "ok": true,
+        "hitTag": "button",
+        "hitClass": "hud-quick-camera__btn"
+      },
+      {
+        "id": "style",
+        "ok": true,
+        "hitTag": "button",
+        "hitClass": "hud-ride-map-controls__style"
+      },
+      {
+        "id": "zoom0",
+        "ok": true,
+        "hitTag": "button",
+        "hitClass": "hud-ride-map-controls__zoom"
+      },
+      {
+        "id": "zoom1",
+        "ok": true,
+        "hitTag": "button",
+        "hitClass": "hud-ride-map-controls__zoom"
+      }
+    ]
+  },
+  {
+    "phase": "riding-box-stability",
+    "viewport": {
+      "tag": "690x275",
+      "width": 690,
+      "height": 275
+    },
+    "widths": [
+      {
+        "zoom": 17.5,
+        "altitude": {
+          "x": 491.28125,
+          "y": 259,
+          "w": 74,
+          "h": 16,
+          "right": 565.28125,
+          "bottom": 275,
+          "inlineW": null
+        },
+        "scaleBox": {
+          "x": 570,
+          "y": 259,
+          "w": 120,
+          "h": 16,
+          "right": 690,
+          "bottom": 275,
+          "inlineW": null
+        },
+        "scaleBar": {
+          "x": 570,
+          "y": 259,
+          "w": 89.640625,
+          "h": 16,
+          "right": 659.640625,
+          "bottom": 275,
+          "inlineW": "89.6524px"
+        },
+        "innerHeight": 275
+      },
+      {
+        "zoom": 20.466844140687186,
+        "altitude": {
+          "x": 491.28125,
+          "y": 259,
+          "w": 74,
+          "h": 16,
+          "right": 565.28125,
+          "bottom": 275,
+          "inlineW": null
+        },
+        "scaleBox": {
+          "x": 570,
+          "y": 259,
+          "w": 120,
+          "h": 16,
+          "right": 690,
+          "bottom": 275,
+          "inlineW": null
+        },
+        "scaleBar": {
+          "x": 570,
+          "y": 259,
+          "w": 97.875,
+          "h": 16,
+          "right": 667.875,
+          "bottom": 275,
+          "inlineW": "97.8777px"
+        },
+        "innerHeight": 275
+      },
+      {
+        "zoom": 20.465424256938025,
+        "altitude": {
+          "x": 491.28125,
+          "y": 259,
+          "w": 74,
+          "h": 16,
+          "right": 565.28125,
+          "bottom": 275,
+          "inlineW": null
+        },
+        "scaleBox": {
+          "x": 570,
+          "y": 259,
+          "w": 120,
+          "h": 16,
+          "right": 690,
+          "bottom": 275,
+          "inlineW": null
+        },
+        "scaleBar": {
+          "x": 570,
+          "y": 259,
+          "w": 97.765625,
+          "h": 16,
+          "right": 667.765625,
+          "bottom": 275,
+          "inlineW": "97.7801px"
+        },
+        "innerHeight": 275
+      }
+    ],
+    "boxDw": 0,
+    "boxDh": 0,
+    "altDw": 0,
+    "altDh": 0,
+    "barWs": [
+      89.640625,
+      97.875,
+      97.765625
+    ],
+    "barUnique": 3,
+    "maxBottom": 275,
+    "innerHeight": 275,
+    "bottomOk": true
+  },
+  {
+    "phase": "riding-box-stability",
+    "viewport": {
+      "tag": "740x360",
+      "width": 740,
+      "height": 360
+    },
+    "widths": [
+      {
+        "zoom": 20.46691847711794,
+        "altitude": {
+          "x": 541.28125,
+          "y": 344,
+          "w": 74,
+          "h": 16,
+          "right": 615.28125,
+          "bottom": 360,
+          "inlineW": null
+        },
+        "scaleBox": {
+          "x": 620,
+          "y": 344,
+          "w": 120,
+          "h": 16,
+          "right": 740,
+          "bottom": 360,
+          "inlineW": null
+        },
+        "scaleBar": {
+          "x": 620,
+          "y": 344,
+          "w": 91.328125,
+          "h": 16,
+          "right": 711.328125,
+          "bottom": 360,
+          "inlineW": "91.3283px"
+        },
+        "innerHeight": 360
+      },
+      {
+        "zoom": 21.33485036592337,
+        "altitude": {
+          "x": 541.28125,
+          "y": 344,
+          "w": 74,
+          "h": 16,
+          "right": 615.28125,
+          "bottom": 360,
+          "inlineW": null
+        },
+        "scaleBox": {
+          "x": 620,
+          "y": 344,
+          "w": 120,
+          "h": 16,
+          "right": 740,
+          "bottom": 360,
+          "inlineW": null
+        },
+        "scaleBar": {
+          "x": 620,
+          "y": 344,
+          "w": 111.0625,
+          "h": 16,
+          "right": 731.0625,
+          "bottom": 360,
+          "inlineW": "111.075px"
+        },
+        "innerHeight": 360
+      },
+      {
+        "zoom": 21.332255994813583,
+        "altitude": {
+          "x": 541.28125,
+          "y": 344,
+          "w": 74,
+          "h": 16,
+          "right": 615.28125,
+          "bottom": 360,
+          "inlineW": null
+        },
+        "scaleBox": {
+          "x": 620,
+          "y": 344,
+          "w": 120,
+          "h": 16,
+          "right": 740,
+          "bottom": 360,
+          "inlineW": null
+        },
+        "scaleBar": {
+          "x": 620,
+          "y": 344,
+          "w": 110.859375,
+          "h": 16,
+          "right": 730.859375,
+          "bottom": 360,
+          "inlineW": "110.862px"
+        },
+        "innerHeight": 360
+      }
+    ],
+    "boxDw": 0,
+    "boxDh": 0,
+    "altDw": 0,
+    "altDh": 0,
+    "barWs": [
+      91.328125,
+      111.0625,
+      110.859375
+    ],
+    "barUnique": 3,
+    "maxBottom": 360,
+    "innerHeight": 360,
+    "bottomOk": true
+  },
+  {
+    "phase": "riding-paused-stack",
+    "viewport": {
+      "tag": "690x275",
+      "width": 690,
+      "height": 275
+    },
+    "clock": {
+      "x": 576.90625,
+      "y": 224.859375,
+      "w": 103.4375,
+      "h": 29.6875,
+      "right": 680.34375,
+      "bottom": 254.546875
+    },
+    "altitude": {
+      "x": 491.28125,
+      "y": 259,
+      "w": 74,
+      "h": 16,
+      "right": 565.28125,
+      "bottom": 275
+    },
+    "scale": {
+      "x": 570,
+      "y": 259,
+      "w": 120,
+      "h": 16,
+      "right": 690,
+      "bottom": 275
+    },
+    "clockToScaleRowGap": 4.453125,
+    "innerHeight": 275,
+    "scaleBottomOk": true,
+    "altBottomOk": true
+  },
+  {
+    "phase": "riding-paused-stack",
+    "viewport": {
+      "tag": "740x360",
+      "width": 740,
+      "height": 360
+    },
+    "clock": {
+      "x": 626.203125,
+      "y": 309.15625,
+      "w": 103.4375,
+      "h": 29.6875,
+      "right": 729.640625,
+      "bottom": 338.84375
+    },
+    "altitude": {
+      "x": 541.28125,
+      "y": 344,
+      "w": 74,
+      "h": 16,
+      "right": 615.28125,
+      "bottom": 360
+    },
+    "scale": {
+      "x": 620,
+      "y": 344,
+      "w": 120,
+      "h": 16,
+      "right": 740,
+      "bottom": 360
+    },
+    "clockToScaleRowGap": 5.15625,
+    "innerHeight": 360,
+    "scaleBottomOk": true,
+    "altBottomOk": true
+  },
+  {
+    "phase": "riding-paused-stack",
+    "viewport": {
+      "tag": "1000x640",
+      "width": 1000,
+      "height": 640
+    },
+    "clock": {
+      "x": 855.109375,
+      "y": 584.8125,
+      "w": 131.296875,
+      "h": 35.1875,
+      "right": 986.40625,
+      "bottom": 620
+    },
+    "altitude": {
+      "x": 800.40625,
+      "y": 624,
+      "w": 74,
+      "h": 16,
+      "right": 874.40625,
+      "bottom": 640
+    },
+    "scale": {
+      "x": 880,
+      "y": 624,
+      "w": 120,
+      "h": 16,
+      "right": 1000,
+      "bottom": 640
+    },
+    "clockToScaleRowGap": 4,
+    "innerHeight": 640,
+    "scaleBottomOk": true,
+    "altBottomOk": true
+  }
+]

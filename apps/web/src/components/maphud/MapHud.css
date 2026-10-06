@@ -441,13 +441,13 @@
 .hud-clock {
   position: absolute;
   right: var(--hud-pad-right);
-  /* attrib + 고도/축척 행 위 (Mapbox bottom-right) */
-  bottom: calc(var(--hud-pad-bottom) + 2.55rem);
+  /* 고도/축척 행 바로 위(간격 4~6px). --br-clock-above-scale 은 MapView.css */
+  bottom: calc(var(--hud-pad-bottom) + var(--br-clock-above-scale, 0.55rem));
   z-index: 2;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  height: 2.2rem;
+  height: var(--br-clock-height, 2.2rem);
   padding: 0 0.45rem;
   border-radius: 0.45rem;
   background: rgba(15, 23, 42, 0.45);
@@ -687,6 +687,19 @@
     padding: 0 0.2rem;
     font-size: 0.95rem;
     border-radius: 0.4rem;
+  }
+
+  /*
+   * 지시12-2: 좁은 폭에서 시각 버튼≪44px 이라 가로 ::after 가 이웃 중심을 덮음.
+   * 스타일 칩과 같이 높만 44px — 배치(06-2) 유지, hit-test 는 본인 버튼.
+   */
+  .hud-quick-camera__btn::after,
+  .hud-ride-map-controls__zoom::after {
+    left: 0;
+    right: 0;
+    width: auto;
+    height: max(100%, 44px);
+    transform: translateY(-50%);
   }
 
   .hud-account {
