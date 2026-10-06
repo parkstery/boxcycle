@@ -2,9 +2,13 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   CAMERA1_AERIAL_DISTANCE_M,
+  CAMERA1_LEGACY_MODES,
   CAMERA1_MODE_CYCLE,
   CAMERA1_MODE_META,
   nextCamera1Mode,
+  normalizeCamera1Mode,
+  resolveCamera1EnterMapStyle,
+  resolveCamera1ExitMapStyle,
   type Camera1Mode,
 } from "../../src/lib/camera/camera1Mode.ts";
 import { RIDE_CAMERA_DISTANCE_MAX_M, RIDE_CAMERA_DISTANCE_MIN_M } from "../../src/lib/map/mapGlobeView.ts";
@@ -14,10 +18,12 @@ import { RIDE_CAMERA_DISTANCE_MAX_M, RIDE_CAMERA_DISTANCE_MIN_M } from "../../sr
  *
  * 왜 필요한가 — 2026-09-24 구조 감사에서 「거리 클램프 이원화」가 위험 R5 로 잡혔다.
  * 맵 뷰 시트의 수동 슬라이더는 `RIDE_CAMERA_DISTANCE_MAX_M`(60m)로 클램프하는데,
- * QC1 의 preset 경로는 그 상한을 거치지 않아 200m 가 그대로 통과한다.
+ * QC1 의 preset 경로는 그 상한을 거치지 않아 500m 가 그대로 통과한다.
  * 이 우회는 **의도**이지만 지금까지 주석에만 적혀 있었다. 누군가 두 경로를
- * "일원화" 하면 200m 단계가 조용히 60m 로 잘리고, 화면을 보지 않으면 모른다.
+ * "일원화" 하면 500m 단계가 조용히 60m 로 잘리고, 화면을 보지 않으면 모른다.
  * 그 순간 이 시험이 깨지도록 여기에 못을 박는다.
+ *
+ * 지시11: 순환 routeFit → aerial500 → aerial20. 옛 4단(200/60/5)으로 되돌리면 실패.
  */
 
 /** 표 3개(순환·거리·표식)가 갈라지지 않았는지 — 모든 판정의 전제다. */
@@ -35,12 +41,18 @@ describe("M0 · 시험 자가 검산", () => {
   });
 });
 
-describe("순환 · 4단이 닫힌 고리다", () => {
-  it("단계는 R → 200 → 60 → 5 네 개다", () => {
-    assert.deepEqual([...CAMERA1_MODE_CYCLE], ["routeFit", "aerial200", "aerial60", "aerial5"]);
+describe("순환 · 3단이 닫힌 고리다 (지시11)", () => {
+  it("단계는 R → 500 → 20 세 개다 — 옛 4단(200/60/5)으로 되돌리면 여기서 깨진다", () => {
+    assert.deepEqual([...CAMERA1_MODE_CYCLE], ["routeFit", "aerial500", "aerial20"]);
+    for (const legacy of CAMERA1_LEGACY_MODES) {
+      assert.ok(
+        !(CAMERA1_MODE_CYCLE as readonly string[]).includes(legacy),
+        `옛 단계 ${legacy} 가 순환에 남아 있다`,
+      );
+    }
   });
 
-  it("네 번 누르면 제자리로 돌아온다", () => {
+  it("세 번 누르면 제자리로 돌아온다", () => {
     for (const start of CAMERA1_MODE_CYCLE) {
       let cur: Camera1Mode = start;
       for (let i = 0; i < CAMERA1_MODE_CYCLE.length; i += 1) cur = nextCamera1Mode(cur);
@@ -57,23 +69,51 @@ describe("순환 · 4단이 닫힌 고리다", () => {
     }
     assert.equal(new Set(seen).size, CAMERA1_MODE_CYCLE.length);
   });
+
+  it("순서는 routeFit → aerial500 → aerial20 → routeFit", () => {
+    assert.equal(nextCamera1Mode("routeFit"), "aerial500");
+    assert.equal(nextCamera1Mode("aerial500"), "aerial20");
+    assert.equal(nextCamera1Mode("aerial20"), "routeFit");
+  });
+});
+
+describe("레거시 이관 · 옛 aerial* 는 routeFit", () => {
+  it("현행 식별자는 그대로", () => {
+    assert.equal(normalizeCamera1Mode("routeFit"), "routeFit");
+    assert.equal(normalizeCamera1Mode("aerial500"), "aerial500");
+    assert.equal(normalizeCamera1Mode("aerial20"), "aerial20");
+  });
+
+  it("옛 aerial200/60/5 와 알 수 없는 값은 routeFit", () => {
+    for (const legacy of CAMERA1_LEGACY_MODES) {
+      assert.equal(normalizeCamera1Mode(legacy), "routeFit", `${legacy} → routeFit`);
+    }
+    assert.equal(normalizeCamera1Mode("nope"), "routeFit");
+    assert.equal(normalizeCamera1Mode(null), "routeFit");
+  });
+
+  it("nextCamera1Mode 가 옛 값을 받아도 안전하게 순환한다", () => {
+    assert.equal(nextCamera1Mode("aerial200"), "aerial500");
+    assert.equal(nextCamera1Mode("aerial60"), "aerial500");
+    assert.equal(nextCamera1Mode("aerial5"), "aerial500");
+  });
 });
 
 describe("R5 고정 · preset 거리는 슬라이더 상한을 의도적으로 넘는다", () => {
-  it("200m 단계가 존재하고 값이 정확히 200 이다", () => {
-    assert.equal(CAMERA1_AERIAL_DISTANCE_M.aerial200, 200);
+  it("500m 단계가 존재하고 값이 정확히 500 이다", () => {
+    assert.equal(CAMERA1_AERIAL_DISTANCE_M.aerial500, 500);
   });
 
-  it("200m 는 수동 슬라이더 상한보다 크다 — 두 경로를 일원화하면 여기서 깨진다", () => {
+  it("500m 는 수동 슬라이더 상한보다 크다 — 두 경로를 일원화하면 여기서 깨진다", () => {
     assert.ok(
-      CAMERA1_AERIAL_DISTANCE_M.aerial200 > RIDE_CAMERA_DISTANCE_MAX_M,
-      `preset 200m 가 슬라이더 상한(${RIDE_CAMERA_DISTANCE_MAX_M}m) 이하로 내려왔다. ` +
-        "클램프를 일원화했다면 QC1 의 200m 단계가 죽는다 — 화면으로 확인하고 이 시험을 갱신하라.",
+      CAMERA1_AERIAL_DISTANCE_M.aerial500 > RIDE_CAMERA_DISTANCE_MAX_M,
+      `preset 500m 가 슬라이더 상한(${RIDE_CAMERA_DISTANCE_MAX_M}m) 이하로 내려왔다. ` +
+        "클램프를 일원화했다면 QC1 의 500m 단계가 죽는다 — 화면으로 확인하고 이 시험을 갱신하라.",
     );
   });
 
-  it("5m 단계는 슬라이더 하한보다 작아도 된다 — pitch 0 경로라 floor 를 타지 않는다", () => {
-    assert.equal(CAMERA1_AERIAL_DISTANCE_M.aerial5, 5);
+  it("20m 단계는 정확히 20", () => {
+    assert.equal(CAMERA1_AERIAL_DISTANCE_M.aerial20, 20);
   });
 
   it("aerial 거리는 큰 값에서 작은 값으로 단조 감소한다", () => {
@@ -82,6 +122,50 @@ describe("R5 고정 · preset 거리는 슬라이더 상한을 의도적으로 �
     for (let i = 1; i < values.length; i += 1) {
       assert.ok(values[i]! < values[i - 1]!, `${order[i]} 가 ${order[i - 1]} 보다 멀다 — 순환 방향이 뒤집혔다`);
     }
+  });
+});
+
+describe("맵 스타일 진입/이탈 (지시11)", () => {
+  const outdoors = "mapbox://styles/mapbox/outdoors-v12";
+  const satellite = "mapbox://styles/mapbox/satellite-streets-v12";
+
+  it("1번 진입 시 위성으로 바꾸고 직전 스타일을 기억한다", () => {
+    const enter = resolveCamera1EnterMapStyle({
+      currentStyle: outdoors,
+      satelliteStyle: satellite,
+    });
+    assert.equal(enter.nextStyle, satellite);
+    assert.equal(enter.styleBeforeEnter, outdoors);
+  });
+
+  it("이탈 시 진입 직전 스타일로 복원한다", () => {
+    assert.equal(
+      resolveCamera1ExitMapStyle({
+        currentStyle: satellite,
+        styleBeforeEnter: outdoors,
+        userToggledWhileInCamera1: false,
+      }),
+      outdoors,
+    );
+  });
+
+  it("1번 안에서 사용자가 토글했으면 이탈해도 복원하지 않는다", () => {
+    assert.equal(
+      resolveCamera1ExitMapStyle({
+        currentStyle: outdoors,
+        styleBeforeEnter: outdoors,
+        userToggledWhileInCamera1: true,
+      }),
+      outdoors,
+    );
+    assert.equal(
+      resolveCamera1ExitMapStyle({
+        currentStyle: satellite,
+        styleBeforeEnter: outdoors,
+        userToggledWhileInCamera1: true,
+      }),
+      satellite,
+    );
   });
 });
 

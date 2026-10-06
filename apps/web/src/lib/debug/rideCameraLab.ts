@@ -29,7 +29,7 @@ export type RideCameraLabState = {
 export type RideCameraLabRange = { min: number; max: number; step: number };
 
 export const RIDE_CAMERA_LAB_RANGES: Record<keyof RideCameraLabState, RideCameraLabRange> = {
-  distanceM: { min: 1, max: 250, step: 0.5 },
+  distanceM: { min: 1, max: 500, step: 0.5 },
   pitchDeg: { min: 0, max: RIDE_CAMERA_PITCH_MAX, step: 0.5 },
   bearingOffsetDeg: { min: -180, max: 180, step: 0.5 },
   lookAtAlongExtraM: { min: -30, max: 30, step: 0.1 },

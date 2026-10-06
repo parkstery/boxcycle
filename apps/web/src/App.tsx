@@ -33,9 +33,9 @@ import {
   RIDE_CAMERA_DISTANCE_MIN_M,
 } from "./lib/map/mapGlobeView";
 
-/** HUD 줌 −/+ 거리 상한 — 제스처(MAX×2)와 aerial200 preset 을 모두 수용 */
-const RIDE_USER_ZOOM_DISTANCE_SOFT_MAX_M = Math.max(RIDE_CAMERA_DISTANCE_MAX_M * 2, 250);
-/** 거리 지배 모드 상대 줌(±1 map zoom 체감에 가깝게). 고정 STEP은 aerial200에서 무감. */
+/** HUD 줌 −/+ 거리 상한 — 제스처(MAX×2)와 aerial500 preset 을 모두 수용 */
+const RIDE_USER_ZOOM_DISTANCE_SOFT_MAX_M = Math.max(RIDE_CAMERA_DISTANCE_MAX_M * 2, 500);
+/** 거리 지배 모드 상대 줌(±1 map zoom 체감에 가깝게). 고정 STEP은 aerial500에서 무감. */
 const RIDE_USER_ZOOM_DISTANCE_FACTOR = 1.25;
 import { rideDistanceAlongRoute } from "./lib/ride/liveLocationSnapshot";
 import { AuthGateCard, AuthGoogleMark } from "./components/auth/AuthGateCard";
@@ -164,6 +164,7 @@ import { useReadyRide } from "./hooks/useReadyRide";
 import {
   DEFAULT_MAP_STYLE,
   MAP_STYLE_OPTIONS,
+  MAP_STYLE_SATELLITE,
   mapStyleHudShortLabel,
   nextOutdoorsSatelliteMapStyle,
 } from "./lib/map/rtwMapConfig";
@@ -185,6 +186,8 @@ import {
   type Camera1Mode,
   CAMERA1_AERIAL_DISTANCE_M,
   nextCamera1Mode,
+  resolveCamera1EnterMapStyle,
+  resolveCamera1ExitMapStyle,
 } from "./lib/camera/camera1Mode";
 import { getQuickCameraProductTune } from "./lib/camera/quickCameraProductTune";
 import "./App.css";
@@ -257,8 +260,11 @@ export default function App() {
   const [followMode, setFollowMode] = useState<FollowMode>(DEFAULT_FOLLOW_MODE);
   /** Quick Camera 1~6 — 주행 HUD. null = 미선택 */
   const [activeQuickCamera, setActiveQuickCamera] = useState<1 | 2 | 3 | 4 | 5 | 6 | null>(null);
-  /** Quick Camera 1: routeFit → aerial200 → aerial60 → aerial5 → … (지시07·지시11·20260924-지시01) */
+  /** Quick Camera 1: routeFit → aerial500 → aerial20 → … (지시11) */
   const [camera1Mode, setCamera1Mode] = useState<Camera1Mode>("routeFit");
+  /** 1번 진입 직전 맵 스타일 — 이탈 시 복원(사용자가 1번 안 토글하면 복원 안 함) */
+  const camera1StyleBeforeEnterRef = useRef<string | null>(null);
+  const camera1UserToggledStyleRef = useRef(false);
   /** Quick Camera 6: baseHeading 고정(북=0) */
   const [lockBaseHeading, setLockBaseHeading] = useState<number | null>(null);
   /** 지시06 B1 — preset 거리 vs 사용자 줌 역산 */
@@ -2404,9 +2410,33 @@ export default function App() {
    */
   const handleQuickCameraSelect = useCallback(
     (n: 1 | 2 | 3 | 4 | 5 | 6) => {
+      const leavingCamera1 = activeQuickCamera === 1 && n !== 1;
+      const enteringCamera1 = n === 1 && activeQuickCamera !== 1;
+
+      if (leavingCamera1) {
+        setMapStyle(
+          resolveCamera1ExitMapStyle({
+            currentStyle: mapStyle,
+            styleBeforeEnter: camera1StyleBeforeEnterRef.current,
+            userToggledWhileInCamera1: camera1UserToggledStyleRef.current,
+          }),
+        );
+        camera1StyleBeforeEnterRef.current = null;
+        camera1UserToggledStyleRef.current = false;
+      }
+
       setActiveQuickCamera(n);
       if (n === 1) {
-        // 다른 카메라에서 들어오면 Route Fit 부터. 이미 1이면 4단 순환(20260924-지시01: +200m).
+        if (enteringCamera1) {
+          const enter = resolveCamera1EnterMapStyle({
+            currentStyle: mapStyle,
+            satelliteStyle: MAP_STYLE_SATELLITE,
+          });
+          camera1StyleBeforeEnterRef.current = enter.styleBeforeEnter;
+          camera1UserToggledStyleRef.current = false;
+          setMapStyle(enter.nextStyle);
+        }
+        // 다른 카메라에서 들어오면 Route Fit 부터. 이미 1이면 3단 순환(지시11).
         const next: Camera1Mode =
           activeQuickCamera === 1 ? nextCamera1Mode(camera1Mode) : "routeFit";
         setCamera1Mode(next);
@@ -2425,9 +2455,9 @@ export default function App() {
           setFollowMode("free");
           setRideCameraSpanFloorMode("preset");
         } else {
-          // aerial200/aerial60/aerial5 — 거리는 camera1Mode.ts 의 단일 표(CAMERA1_AERIAL_DISTANCE_M).
+          // aerial500/aerial20 — 거리는 camera1Mode.ts 의 단일 표(CAMERA1_AERIAL_DISTANCE_M).
           // 거리 상한 60m(RIDE_CAMERA_DISTANCE_MAX_M)은 맵 뷰 시트 슬라이더 전용 클램프라
-          // 이 preset 경로는 거치지 않는다 — 200m 도 상한 변경 없이 그대로 적용된다.
+          // 이 preset 경로는 거치지 않는다 — 500m 도 상한 변경 없이 그대로 적용된다.
           setFollowMode("aerial");
           setRideCameraDistanceM(CAMERA1_AERIAL_DISTANCE_M[next]);
           setRideCameraSpanFloorMode("preset");
@@ -2451,6 +2481,7 @@ export default function App() {
     [
       activeQuickCamera,
       camera1Mode,
+      mapStyle,
       routeGeometry,
       liveForMap,
       startLngLat,
@@ -2928,8 +2959,12 @@ export default function App() {
               mapControls: {
                 styleLabel: mapStyleHudShortLabel(mapStyle),
                 styleAriaLabel: `맵 스타일 ${mapStyleHudShortLabel(mapStyle)}, 클릭 시 ${mapStyleHudShortLabel(nextOutdoorsSatelliteMapStyle(mapStyle))}`,
-                onToggleStyle: () =>
-                  setMapStyle(nextOutdoorsSatelliteMapStyle(mapStyle)),
+                onToggleStyle: () => {
+                  if (activeQuickCamera === 1) {
+                    camera1UserToggledStyleRef.current = true;
+                  }
+                  setMapStyle(nextOutdoorsSatelliteMapStyle(mapStyle));
+                },
                 onZoomOut: () => {
                   const rideActive =
                     rideStatus === "running" || rideStatus === "paused";
