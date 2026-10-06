@@ -44,6 +44,7 @@ Supervisor는 아키텍처, 도메인 경계, 데이터 모델, Firestore·RTDB�
 
 | 폴더 | 상태 | 무엇 | 결과·입구 | 이동 |
 |---|---|---|---|---|
+| [20261006-lint-baseline-saved-routes](20261006-lint-baseline-saved-routes/README.md) | **APPROVED** · 커밋 완료 | pre-commit 막는 기존 lint 오류 제거 | [검수 08](20261006-lint-baseline-saved-routes/04-review-08.md) | — |
 | [20261006-minimap-dock-overlap](20261006-minimap-dock-overlap/README.md) | **APPROVED** · 커밋 완료 | PC 에서 미니맵·RouteDock 겹침 | [검수 07](20261006-minimap-dock-overlap/04-review-07.md) | — |
 | [20261006-hud-clock-map-controls](20261006-hud-clock-map-controls/README.md) | **IN_PROGRESS** · Cursor | 시계 HUD 우하단·맵 스타일/줌 상시 표시 | [지시 06](20261006-hud-clock-map-controls/02-task-06.md) | — |
 | [20261006-saved-route-integrity](20261006-saved-route-integrity/README.md) | **APPROVED** · 커밋 완료, functions 배포 대기(Chief) | 퍼블릭 신청 지문 오거절·「내 경로로 저장」 미완주 기록·이어달리기 대상 교체 | [지시 03](20261006-saved-route-integrity/02-task-03.md) · [지시 04](20261006-saved-route-integrity/02-task-04.md) | — |

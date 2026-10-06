@@ -1,6 +1,6 @@
 import type { User } from "firebase/auth";
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { assertCanPersistAppData, canPersistAppData } from "../lib/storage/clientPersistencePolicy";
 import {
   backfillSavedRoutesExpiresAt,
@@ -119,6 +119,8 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
    */
   const loadedSavedRouteProgressRef = useRef(0);
   const [lastEndedWasAdhoc, setLastEndedWasAdhoc] = useState<LastEndedAdhocState | null>(null);
+  /** 로드·백필 apply 가드 — 로그아웃 렌더 직후 effect cleanup 전 경합 방지 */
+  const activeSavedRoutesUidRef = useRef<string | null>(user?.uid ?? null);
 
   const clearLoadedRouteAndAdhoc = useCallback(() => {
     loadedSavedRouteIdRef.current = null;
@@ -127,46 +129,60 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
     setLastEndedWasAdhoc(null);
   }, []);
 
+  // 로그아웃 시 목록 비움 — effect 대신 이전 user 비교(set-state-in-effect 회피).
+  const [prevUser, setPrevUser] = useState(user);
+  if (user !== prevUser) {
+    setPrevUser(user);
+    if (!user) setSavedRoutes([]);
+  }
+
+  // 렌더 직후·passive effect 전에 uid 가드 동기화(로드 apply 경합 방지).
+  useLayoutEffect(() => {
+    activeSavedRoutesUidRef.current = user?.uid ?? null;
+  }, [user]);
+
   useEffect(() => {
     if (!configured || !user) {
       return;
     }
+    const uid = user.uid;
     let cancelled = false;
+    const stillActive = () => !cancelled && activeSavedRoutesUidRef.current === uid;
     void (async () => {
       setSavedRoutesLoading(true);
       try {
         const localPending = exportLocalRoutesForMigration();
         console.info(
-          `[savedRoutes] 마이그레이션·로드 시작 uid=${user.uid} isAnonymous=${user.isAnonymous} 로컬보류=${localPending.length}건`,
+          `[savedRoutes] 마이그레이션·로드 시작 uid=${uid} isAnonymous=${user.isAnonymous} 로컬보류=${localPending.length}건`,
         );
         if (localPending.length > 0) {
           await migrateLocalRoutesToFirestore({
-            userId: user.uid,
+            userId: uid,
             authUser: user,
-            routes: localPending.map((r) => ({ ...r, userId: user.uid })),
+            routes: localPending.map((r) => ({ ...r, userId: uid })),
           });
           clearSavedRoutesLocal();
         }
-        const rows = await loadSavedRoutesFromFirestore(user.uid, 50);
-        if (!cancelled) setSavedRoutes(rows);
+        const rows = await loadSavedRoutesFromFirestore(uid, 50);
+        if (stillActive()) setSavedRoutes(rows);
       } catch (e) {
         console.error("[savedRoutes] 로드/마이그레이션 실패 → localStorage 폴백", e);
-        if (!cancelled) setSavedRoutes(loadSavedRoutesFromLocal());
+        if (stillActive()) setSavedRoutes(loadSavedRoutesFromLocal());
       } finally {
-        if (!cancelled) {
+        if (stillActive()) {
           setSavedRoutesLoading(false);
           setSavedRoutesLoaded(true);
         }
       }
-      const backfillKey = `boxcycle_saved_routes_ttl_backfill_v1_${user.uid}`;
-      if (!cancelled && !localStorage.getItem(backfillKey)) {
+      const backfillKey = `boxcycle_saved_routes_ttl_backfill_v1_${uid}`;
+      if (stillActive() && !localStorage.getItem(backfillKey)) {
         try {
-          const result = await backfillSavedRoutesExpiresAt({ userId: user.uid });
+          const result = await backfillSavedRoutesExpiresAt({ userId: uid });
           console.info("[savedRoutes] expiresAt 백필 완료", result);
           localStorage.setItem(backfillKey, new Date().toISOString());
           if (result.updated > 0) {
-            const rows = await loadSavedRoutesFromFirestore(user.uid, 50);
-            if (!cancelled) setSavedRoutes(rows);
+            const rows = await loadSavedRoutesFromFirestore(uid, 50);
+            if (stillActive()) setSavedRoutes(rows);
           }
         } catch (e) {
           console.warn("[savedRoutes] expiresAt 백필 실패(다음 진입 시 재시도)", e);
@@ -177,11 +193,6 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
       cancelled = true;
     };
   }, [configured, user]);
-
-  useEffect(() => {
-    if (user) return;
-    setSavedRoutes([]);
-  }, [user]);
 
   const handleSaveCurrentRoute = useCallback(
     async (name: string, confirmUpdate = false) => {
