@@ -189,7 +189,10 @@ import {
   resolveCamera1EnterMapStyle,
   resolveCamera1ExitMapStyle,
 } from "./lib/camera/camera1Mode";
-import { getQuickCameraProductTune } from "./lib/camera/quickCameraProductTune";
+import {
+  getQuickCameraProductTune,
+  QUICK_CAMERA_FALLBACK_DISTANCE_M,
+} from "./lib/camera/quickCameraProductTune";
 import "./App.css";
 
 export default function App() {
@@ -2475,7 +2478,9 @@ export default function App() {
       setFollowMode(modeByN[n]);
       // QC2·3 은 quickCameraProductTune 거리. 나머지 밀착은 pitch 80 floor → MIN≈6m.
       const tune = getQuickCameraProductTune(n);
-      setRideCameraDistanceM(tune?.distanceM ?? Math.max(5, RIDE_CAMERA_DISTANCE_MIN_M));
+      setRideCameraDistanceM(
+        tune?.distanceM ?? Math.max(QUICK_CAMERA_FALLBACK_DISTANCE_M, RIDE_CAMERA_DISTANCE_MIN_M),
+      );
       setRideCameraSpanFloorMode("preset");
     },
     [

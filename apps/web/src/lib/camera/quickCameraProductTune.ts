@@ -15,19 +15,25 @@ export type QuickCameraProductTune = {
   screenAnchor: number;
 };
 
+/**
+ * 2026-10-06 Chief: QC2~6 기본 거리를 HUD 「−」 두 번(×1.25², 0.1m 반올림) 만큼 멀게.
+ * 종전 QC2 6m → 9.4m, QC3 7m → 11.0m, QC4·5·6(튜닝 없음) 6m → 9.4m.
+ */
+export const QUICK_CAMERA_FALLBACK_DISTANCE_M = 9.4;
+
 /** 슬롯에 항목이 있는 QC 만 제품 경로에서 덮어쓴다. */
 export const QUICK_CAMERA_PRODUCT_TUNE: Readonly<
   Partial<Record<QuickCameraSlot, QuickCameraProductTune>>
 > = {
   2: {
-    distanceM: 6,
+    distanceM: 9.4,
     pitchDeg: 83.5,
     bearingOffsetDeg: 7.5,
     lookAtAlongExtraM: -0.8,
     screenAnchor: 0.63,
   },
   3: {
-    distanceM: 7,
+    distanceM: 11,
     pitchDeg: 83.5,
     bearingOffsetDeg: -6.5,
     lookAtAlongExtraM: -0.4,
