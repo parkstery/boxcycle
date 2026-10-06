@@ -76,9 +76,39 @@
   min-width: 0;
 }
 
+/* 제목 + 진행률 배지 묶음 — 배지는 제목 바로 옆(오른쪽 열을 「새 도로」 라벨에 내준다) */
+.ride-summary__head-left {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/*
+ * 2026-10-06 Chief: 「새 도로」 는 제목 줄, 새 도로 칸 바로 위. 제목 줄을 히어로와 같은
+ * 2열 그리드(gap 0.35rem)로 나눠 오른쪽 열 가운데에 둔다. ✕ 는 시트 우상단 절대 배치라
+ * 오른쪽 여백(padding-right)을 풀어도 열 정렬이 히어로와 맞는다.
+ */
+.ride-summary__head.ride-summary__head--split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 0.35rem;
+  padding-right: 0;
+}
+
+.ride-summary__head-newroad {
+  justify-self: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #eab308;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
 .ride-summary__title {
   margin: 0;
-  flex: 1;
+  flex: 0 1 auto;
   min-width: 0;
   font-size: 0.85rem;
   font-weight: 700;
@@ -171,13 +201,16 @@
 }
 
 /* 히어로 — 「오늘 N km」, 운동 축 주인공(§9.5.6 단위3). 새 도로와 짝을 이루는 조용한 카드 */
+/* 2026-10-06 Chief: 두 칸 높이를 종전(≈3.5rem)의 약 70% 로 — 고정 2.5rem, 세로 패딩 없음 */
 .ride-summary__hero {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0.15rem;
-  padding: 0.45rem 0.3rem 0.4rem;
+  box-sizing: border-box;
+  height: 2.5rem;
+  padding: 0 0.3rem;
   border-radius: var(--rtw-radius-md);
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--rtw-divider);
@@ -409,7 +442,9 @@
   align-items: center;
   justify-content: center;
   gap: 0.15rem;
-  padding: 0.35rem 0.35rem 0.4rem;
+  box-sizing: border-box;
+  height: 2.5rem;
+  padding: 0 0.35rem;
   border-radius: var(--rtw-radius-md);
   background: rgba(234, 179, 8, 0.1);
   border: 1px solid rgba(234, 179, 8, 0.45);
@@ -477,3 +512,8 @@
   text-align: center;
 }
 
+/* 새 도로 칸만 있을 때(주행/전체 없음)는 라벨이 칸 안에 남는다 — 고정 높이를 풀어 잘리지 않게 */
+.ride-summary__heroes-main--solo .ride-summary__conquest-hero {
+  height: auto;
+  padding: 0.35rem 0.35rem 0.4rem;
+}

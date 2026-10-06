@@ -158,6 +158,8 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
     routeTotalKmNum != null && riddenKmNum != null && routeTotalKmNum > 0
       ? `${riddenKmNum.toFixed(2)} / ${routeTotalKmNum.toFixed(2)}`
       : null;
+  /** 두 칸([주행/전체][새 도로])이 모두 있을 때 제목 줄도 2열로 나눠 「새 도로」 를 그 위에 둔다 */
+  const splitHead = hasConquestContent && distancePair != null;
 
   function requestClose() {
     if (busy) return;
@@ -209,12 +211,15 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
       <div className="ride-summary__sheet" role="dialog" aria-labelledby="ride-summary-title">
         <div className="ride-summary__handle" aria-hidden />
         <div
-          className={
-            props.adhocSaveAvailable
-              ? "ride-summary__head"
-              : "ride-summary__head ride-summary__head--with-close"
-          }
+          className={[
+            "ride-summary__head",
+            props.adhocSaveAvailable ? "" : "ride-summary__head--with-close",
+            splitHead ? "ride-summary__head--split" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
         >
+          <div className="ride-summary__head-left">
           <h2 id="ride-summary-title" className="ride-summary__title">
             주행 결과
             {/* 단위는 여기서 한 번만 — 아래 숫자들엔 붙이지 않는다(2026-09-17 Chief) */}
@@ -232,6 +237,12 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
               {progressPercentLabel(result.progressRatio)}%
             </span>
           ) : null}
+          </div>
+          {/*
+            「새 도로」 라벨은 칸 안이 아니라 **제목 줄**, 새 도로 칸 바로 위(2026-10-06 Chief).
+            제목 줄을 히어로와 같은 2열 그리드로 나눠 오른쪽 열에 둔다(splitHead).
+          */}
+          {splitHead ? <div className="ride-summary__head-newroad">새 도로</div> : null}
           {/*
             닫는 버튼은 **상태마다 정확히 하나**다.
              · 저장할 것이 있으면 → 「저장 안 함」이 닫는다(아래)
@@ -267,7 +278,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
               <div className="ride-summary__conquest-hero" aria-live="polite">
                 {newRoadHero ? (
                   <>
-                    <div className="ride-summary__conquest-label">새 도로</div>
+                    {splitHead ? null : <div className="ride-summary__conquest-label">새 도로</div>}
                     <strong className="ride-summary__conquest-value" aria-label="새 도로">
                       +{newRoadHero}
                     </strong>
