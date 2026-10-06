@@ -31,7 +31,9 @@
 
   /* ---- Glass — tokens.css 패널 토큰 별칭 ---- */
   --rtw-glass-bg: var(--rtw-panel);
-  --rtw-glass-bg-strong: var(--rtw-panel-solid);
+  /* 2026-10-06 Chief: 시커먼 불투명 패널 → 투명도 30%(주행 결과 시트와 같은 값). 이 값을 쓰는
+     패널은 모두 backdrop-filter blur 가 있어 글자는 흐려지지 않는다. 원색은 --rtw-panel-solid. */
+  --rtw-glass-bg-strong: rgba(13, 19, 25, 0.7);
   --rtw-glass-border: var(--rtw-divider);
   --rtw-glass-blur: 12px;
   --rtw-glass-shadow: var(--rtw-shadow-panel);
