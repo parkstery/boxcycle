@@ -14,8 +14,22 @@ import "./OfficialCourseListModal.css";
  */
 export type OfficialCourseSegment = "intro" | "public";
 
+/** 대화상자 접근성 이름 — 제목 칩은 짧게(입문 · 퍼블릭), 읽히는 이름은 온전하게 */
 function segmentTitle(segment: OfficialCourseSegment): string {
   return segment === "intro" ? "입문 경로" : "퍼블릭 경로";
+}
+
+function matchesQuery(c: PublishedPublicCourseSummary, query: string): boolean {
+  return !query || normalizeForSearch(publicationDisplayTitle(c)).includes(query);
+}
+
+function segmentChip(segment: OfficialCourseSegment): string {
+  return segment === "intro" ? "입문" : "퍼블릭";
+}
+
+/** 검색어·이름 정규화(소문자·트림) — 내 경로 검색과 같은 부분일치 규칙 */
+function normalizeForSearch(s: string): string {
+  return s.trim().toLowerCase();
 }
 
 function PublicCoursePickRow(props: {
@@ -38,12 +52,14 @@ function PublicCoursePickRow(props: {
         <span className="oc-modal__item-meta">
           <strong className="oc-modal__item-name">{publicationDisplayTitle(c)}</strong>
           <span className="oc-modal__item-sub">
-            {formatPublicationListMeta(c)}
+            <span className="oc-modal__item-sub-left">
+              {formatPublicationListMeta(c)}
+              {props.activityBadge ? (
+                <span className="oc-modal__item-activity"> · {props.activityBadge}</span>
+              ) : null}
+            </span>
             {c.publisherNickname ? (
-              <span className="oc-modal__item-publisher"> · {c.publisherNickname}</span>
-            ) : null}
-            {props.activityBadge ? (
-              <span className="oc-modal__item-activity"> · {props.activityBadge}</span>
+              <span className="oc-modal__item-publisher">{c.publisherNickname}</span>
             ) : null}
           </span>
         </span>
@@ -94,18 +110,20 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
    * Basic 1·2·3 의 의도된 난이도 순서가 그대로 지켜진다.
    */
   const [sortKey, setSortKey] = useState<RouteSortKey>("recent");
+  const [queryText, setQueryText] = useState("");
+  const query = normalizeForSearch(queryText);
   const sortFields = (c: PublishedPublicCourseSummary) => ({
     name: publicationDisplayTitle(c),
     distanceMeters: c.distanceMeters,
     updatedAtMs: c.publishedAtMs ?? null,
   });
   const introCourses = useMemo(
-    () => sortRouteList(props.basicSharedHubs, sortKey, sortFields),
-    [props.basicSharedHubs, sortKey],
+    () => sortRouteList(props.basicSharedHubs.filter((c) => matchesQuery(c, query)), sortKey, sortFields),
+    [props.basicSharedHubs, sortKey, query],
   );
   const publicCourses = useMemo(
-    () => sortRouteList(props.publishedPublicCourses, sortKey, sortFields),
-    [props.publishedPublicCourses, sortKey],
+    () => sortRouteList(props.publishedPublicCourses.filter((c) => matchesQuery(c, query)), sortKey, sortFields),
+    [props.publishedPublicCourses, sortKey, query],
   );
   /** 두 개 이하면 정렬이 의미 없다 — 좁은 화면에서 줄만 먹는다 */
   const sortableCount =
@@ -138,6 +156,7 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
         ) : (
           <>
           {sortBar}
+          {introCourses.length === 0 ? <p className="oc-modal__hint">검색 결과가 없습니다.</p> : null}
           <ul className="oc-modal__list">
             {introCourses.map((c) => (
               <PublicCoursePickRow
@@ -189,6 +208,7 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
         ) : (
           <>
           {sortBar}
+          {publicCourses.length === 0 ? <p className="oc-modal__hint">검색 결과가 없습니다.</p> : null}
           <ul className="oc-modal__list">
             {publicCourses.map((c) => (
               <PublicCoursePickRow
@@ -211,7 +231,10 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
   return (
     <RouteListModalShell
       titleId="oc-modal-title"
-      title={segmentTitle(props.segment)}
+      title={segmentChip(props.segment)}
+      dialogLabel={segmentTitle(props.segment)}
+      searchValue={queryText}
+      onSearchChange={setQueryText}
       onClose={props.onClose}
     >
       {body}

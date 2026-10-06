@@ -41,12 +41,13 @@ export const PUBLIC_ROUTE_REQUESTS_COLLECTION = "publicRouteRequests";
 /** Firestore `config/routeReviewers` — Console 에서 수동 생성: `{ uids: ["관리자uid", ...] }` */
 export const ROUTE_REVIEWERS_DOC_PATH = ["config", "routeReviewers"] as const;
 
+/** 퍼블릭 등록 창의 태그 표시 순서 그대로다 — 흔한 것부터(2026-10-06 Chief). id 는 저장값이라 바꾸지 않는다. */
 export const EXPERIENCE_TAG_OPTIONS = [
-  { id: "mountain_trail", label: "산악 트레일" },
-  { id: "coastal_road", label: "해변·연안 도로" },
-  { id: "water_route", label: "수상 루트" },
   { id: "urban", label: "도심" },
   { id: "countryside", label: "교외지" },
+  { id: "coastal_road", label: "해변·연안 도로" },
+  { id: "mountain_trail", label: "산악 트레일" },
+  { id: "water_route", label: "수상 루트" },
 ] as const;
 
 export type ExperienceTagId = (typeof EXPERIENCE_TAG_OPTIONS)[number]["id"];

@@ -15,6 +15,8 @@ import "./PublicRouteRequestModal.css";
 export type PublicRouteRequestModalProps = {
   route: SavedRoute;
   onClose: () => void;
+  /** 취소(버튼·오버레이) — 성공 닫기와 구분. 없으면 onClose (2026-10-06 Chief). */
+  onCancel?: () => void;
   onSubmit: (input: {
     publicTitle: string;
     publicSummary: string;
@@ -62,6 +64,8 @@ export function PublicRouteRequestModal(props: PublicRouteRequestModalProps) {
   const [error, setError] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const lastHintRef = useRef<string | null>(null);
+  // 취소와 등록 성공이 같은 onClose 를 쓰면 내 경로 창 복귀 여부를 나눌 수 없다(2026-10-06 Chief).
+  const handleCancel = props.onCancel ?? props.onClose;
 
   const titleHint = useMemo(() => hintPublicRouteTitle(publicTitle), [publicTitle]);
 
@@ -112,7 +116,7 @@ export function PublicRouteRequestModal(props: PublicRouteRequestModalProps) {
   }
 
   return (
-    <div className="pr-modal-overlay" role="presentation" onMouseDown={() => props.onClose()}>
+    <div className="pr-modal-overlay" role="presentation" onMouseDown={() => handleCancel()}>
       <div
         className="pr-modal"
         role="dialog"
@@ -207,7 +211,7 @@ export function PublicRouteRequestModal(props: PublicRouteRequestModalProps) {
             </p>
           ) : null}
           <div className="pr-modal__actions">
-            <button type="button" className="pr-modal__btn" disabled={busy} onClick={props.onClose}>
+            <button type="button" className="pr-modal__btn" disabled={busy} onClick={handleCancel}>
               취소
             </button>
             <button

@@ -48,6 +48,8 @@ type RideRoutePanelProps = {
   onDeleteSavedRoute: (route: SavedRoute) => Promise<void> | void;
   /** 값이 바뀌면 「내 경로」 탭을 열고 대기 필터로 전환(미완료 쿼터 초과 유도). 0=무동작 */
   openSavedTabSignal?: number;
+  /** 값이 바뀌고 >0 이면 「내 경로」 창만 연다(필터 강제 없음). 공개 등록 취소 복귀용(2026-10-06 Chief). */
+  reopenSavedSignal?: number;
   /** 미완료 쿼터 초과 안내 배너 문구(내 경로 탭 상단) */
   savedQuotaNotice?: string | null;
   onDismissSavedQuotaNotice?: () => void;
@@ -110,6 +112,14 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
   if (openSavedTabSignal !== prevOpenSavedTabSignal) {
     setPrevOpenSavedTabSignal(openSavedTabSignal);
     if (openSavedTabSignal > 0) setSavedModalOpen(true);
+  }
+
+  // 공개 등록 취소 시 내 경로 창만 복귀 — openSavedTabSignal 은 대기 필터를 강제하므로 재사용 금지(2026-10-06 Chief).
+  const reopenSavedSignal = props.reopenSavedSignal ?? 0;
+  const [prevReopenSavedSignal, setPrevReopenSavedSignal] = useState(reopenSavedSignal);
+  if (reopenSavedSignal !== prevReopenSavedSignal) {
+    setPrevReopenSavedSignal(reopenSavedSignal);
+    if (reopenSavedSignal > 0) setSavedModalOpen(true);
   }
 
   function openOfficialList(segment: OfficialCourseSegment) {

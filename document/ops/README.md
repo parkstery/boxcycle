@@ -44,6 +44,7 @@ Supervisor는 아키텍처, 도메인 경계, 데이터 모델, Firestore·RTDB�
 
 | 폴더 | 상태 | 무엇 | 결과·입구 | 이동 |
 |---|---|---|---|---|
+| [20261006-route-modal-public-badge](20261006-route-modal-public-badge/README.md) | **APPROVED** · 미커밋 | 경로 선택 창 — Public 배지·등록자 우측·공개 시 창 전환 | [검수 01](20261006-route-modal-public-badge/04-review-01.md) · [검수 02](20261006-route-modal-public-badge/04-review-02.md) | — |
 | [20261006-calories-resume](20261006-calories-resume/README.md) | **APPROVED** · origin/main2 반영 완료 | 칼로리 계산 변경·단일 재개 대상 유지 | [18 검수](20261006-calories-resume/18-review-supervisor.md) · [24 push 완료](20261006-calories-resume/24-result-remote-push.md) | 사용 확인·종료 대기 |
 | [20261006-saved-route-readability](20261006-saved-route-readability/README.md) | **APPROVED** · origin/main2 반영 완료 | Edge 내 경로 글자 가독성 | [03 검수](20261006-saved-route-readability/03-review.md) | 사용 확인·종료 대기 |
 | [20261005-ride-map-controls](20261005-ride-map-controls/README.md) | **APPROVED** · origin/main2 반영 완료 | 카메라 아래 맵 제어·축척 왼쪽 고도 | [09 고도 검수](20261005-ride-map-controls/09-review-camera-altitude.md) | Chief 사용 확인·종료 대기 |

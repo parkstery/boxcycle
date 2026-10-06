@@ -385,6 +385,8 @@ export default function App() {
   /** 미완료 쿼터 초과 유도 — 안내 배너 문구와 「내 경로」 탭 오픈 신호(nonce) */
   const [savedQuotaNotice, setSavedQuotaNotice] = useState<string | null>(null);
   const [openSavedTabNonce, setOpenSavedTabNonce] = useState(0);
+  /** 퍼블릭 등록 취소 시 「내 경로」 창 복귀용 nonce — 대기 필터 강제 없음(2026-10-06 Chief). */
+  const [reopenSavedNonce, setReopenSavedNonce] = useState(0);
   /** 이어 달리기(§9.5.5 단위7) — 마지막으로 로드한 저장 경로 id(재개 후보). 렌더 중 ref 읽기 회피용 state */
   const [resumeCandidateId, setResumeCandidateId] = useState<string | null>(null);
   /**
@@ -3020,6 +3022,7 @@ export default function App() {
           adhocSuggestedName={suggestedRouteName}
           onDismissAdhocSave={() => setLastEndedWasAdhoc(null)}
           openSavedTabSignal={openSavedTabNonce}
+          reopenSavedSignal={reopenSavedNonce}
           savedQuotaNotice={savedQuotaNotice}
           onDismissSavedQuotaNotice={() => setSavedQuotaNotice(null)}
           onIncompleteQuotaBlocked={handleIncompleteQuotaBlocked}
@@ -3185,6 +3188,11 @@ export default function App() {
         <PublicRouteRequestModal
           route={publicRouteRequestModalRoute}
           onClose={() => setPublicRouteRequestModalRoute(null)}
+          // 취소만 내 경로 창을 다시 연다 — 등록 성공은 onClose 만(2026-10-06 Chief).
+          onCancel={() => {
+            setPublicRouteRequestModalRoute(null);
+            setReopenSavedNonce((n) => n + 1);
+          }}
           onSubmit={handleSubmitPublicRouteRequest}
         />
       ) : null}
