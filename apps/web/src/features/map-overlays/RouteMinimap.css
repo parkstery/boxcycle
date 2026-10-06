@@ -1,6 +1,6 @@
 /*
- * 좌측 미니맵 — RouteDock **실측 부착**(지시06).
- * 평상시 bottom/left 는 JS 가 dock·TL rect 로 넣는다.
+ * 좌측 미니맵 — RouteDock **실측 부착**(지시06·07).
+ * 평상시 bottom/left 는 JS 가 dock(접힘/펼침 현재 top)·TL rect 로 넣는다.
  * 아래 변수·미디어쿼리는 **dock 미발견 폴백 전용**(식을 맞춰 두면 또 갈라진다).
  */
 .route-minimap {

@@ -33,11 +33,11 @@ function nearlySame(a: number, b: number, eps = 1): boolean {
 
 /**
  * 주행 중 좌측 미니맵 — SVG.
- * 위치는 RouteDock·좌상단 **실측**(지시06). 탭 없음 · 터치 지도 전파 차단.
+ * 위치는 RouteDock·좌상단 **실측**. 접힘/펼침 높이를 따라가며 dock 위에 붙인다(지시07).
+ * 탭 없음 · 터치 지도 전파 차단.
  */
 export function RouteMinimap({ active, routeGeometry, liveLngLat }: RouteMinimapProps) {
   const rootRef = useRef<HTMLDivElement>(null);
-  const collapsedDockTopRef = useRef<number | null>(null);
   const [box, setBox] = useState<BoxState>({
     w: 0,
     h: 0,
@@ -52,7 +52,8 @@ export function RouteMinimap({ active, routeGeometry, liveLngLat }: RouteMinimap
     const sync = () => {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const gapPx = remToPx(GAP_REM);
+      // 지시07: dock 상단과의 간격 ≥ 8px (rem 폴백이 그보다 작을 수 있음)
+      const gapPx = Math.max(remToPx(GAP_REM), 8);
 
       const dockEl = document.querySelector(".route-dock-anchor");
       const tlEl = document.querySelector(".map-hud__tl");
@@ -60,14 +61,10 @@ export function RouteMinimap({ active, routeGeometry, liveLngLat }: RouteMinimap
       let dockTop: number | null = null;
       let dockLeft: number | null = null;
       if (dockEl instanceof HTMLElement) {
-        const open = dockEl.classList.contains("route-dock-anchor--open");
+        // 주행 중 dock 은 펼침이 기본(2026-09-28). 접힘 top 만 쓰면 CSS 폴백·과대 겹침이 난다.
         const r = dockEl.getBoundingClientRect();
-        if (!open) {
-          collapsedDockTopRef.current = r.top;
-          dockLeft = r.left;
-        }
-        dockTop = collapsedDockTopRef.current;
-        if (dockLeft == null) dockLeft = r.left;
+        dockTop = r.top;
+        dockLeft = r.left;
       }
 
       let tlBottom: number | null = null;

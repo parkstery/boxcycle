@@ -1,0 +1,20 @@
+{
+  "openM": {
+    "open": true,
+    "gap": 8,
+    "mmBottom": 527.1,
+    "dockTop": 535.1
+  },
+  "closedM": {
+    "open": false,
+    "gap": 8,
+    "mmBottom": 606.4,
+    "dockTop": 614.4
+  },
+  "reopenM": {
+    "open": true,
+    "gap": 8,
+    "mmBottom": 527.1,
+    "dockTop": 535.1
+  }
+}
