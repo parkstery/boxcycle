@@ -44,6 +44,8 @@ Supervisor는 아키텍처, 도메인 경계, 데이터 모델, Firestore·RTDB�
 
 | 폴더 | 상태 | 무엇 | 결과·입구 | 이동 |
 |---|---|---|---|---|
+| [20261006-resume-finish-discard](20261006-resume-finish-discard/README.md) | **IN_PROGRESS** · Cursor | 이어 달리기 마지막 구간 완주가 짧은 주행 폐기에 막힘 | [지시 13](20261006-resume-finish-discard/02-task-13.md) | — |
+| [20261006-bottom-right-stack](20261006-bottom-right-stack/README.md) | **IN_PROGRESS** · Cursor | 우하단 시계·다음 주행 카드·고도/축척 고정 | [지시 12](20261006-bottom-right-stack/02-task-12.md) | — |
 | [20261006-camera1-presets](20261006-camera1-presets/README.md) | **IN_PROGRESS** · Cursor | 카메라 1번 경로전체/500m/20m · 위성 기본 | [지시 11](20261006-camera1-presets/02-task-11.md) | — |
 | [20261006-ride-end-north-up](20261006-ride-end-north-up/README.md) | **APPROVED** · 커밋 완료 | 주행 종료 시 지도 정북 복귀 | [검수 10](20261006-ride-end-north-up/04-review-10.md) | — |
 | [20261006-ride-summary-layout](20261006-ride-summary-layout/README.md) | **APPROVED** · 커밋 완료 | 주행 결과 히어로 정리·✕ 닫기 | [검수 09-2](20261006-ride-summary-layout/04-review-09b.md) | — |
