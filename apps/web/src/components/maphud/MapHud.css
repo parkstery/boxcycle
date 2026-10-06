@@ -441,7 +441,7 @@
 .hud-clock {
   position: absolute;
   right: var(--hud-pad-right);
-  /* 고도/축척 행 바로 위(간격 4~6px). --br-clock-above-scale 은 MapView.css */
+  /* 고도/축척 행 위(여유 간격). --br-clock-above-scale 은 MapView.css */
   bottom: calc(var(--hud-pad-bottom) + var(--br-clock-above-scale, 0.55rem));
   z-index: 2;
   flex-shrink: 0;

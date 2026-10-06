@@ -1172,11 +1172,12 @@
  * --br-* 는 MapHud.css·NextRideCard.css 와 공유.
  */
 .app-shell--map-first {
-  /* pad+이 값 = 시계 bottom. 목표: 시계↔고도/축척 행 4~6px.
-   * 지시12-2: bottom-right 음수 margin 제거(잘림)에 맞춰 0.55+0.25 → 0.8rem. */
-  --br-clock-above-scale: 0.8rem;
+  /* pad+이 값 = 시계 bottom. 시계↔고도/축척 행 사이에 여유를 둔다.
+   * 지시12-2: bottom-right 음수 margin 제거(잘림)에 맞춰 0.55+0.25 → 0.8rem.
+   * 2026-10-06 Chief: PC 에서 시계가 축척 바를 덮음 → 1.2rem, 큰 뷰포트 축소 규칙 제거. */
+  --br-clock-above-scale: 1.2rem;
   --br-clock-height: 2.2rem; /* .hud-clock height 와 동일 */
-  --br-card-above-clock: 8px;
+  --br-card-above-clock: 10px; /* e2e 는 ≥8px 를 엄격(<)하게 본다 — 경계값 8 에 걸리지 않게 여유 */
   --br-altitude-box-width: 74px; /* 「고도 999.9 km」 최대 폭 */
   --br-altitude-box-height: 16px;
   --br-scale-box-width: 120px; /* ScaleControl maxWidth·바깥 상자 */
@@ -1187,13 +1188,6 @@
 @media (max-height: 300px) {
   .app-shell--map-first .map-view {
     min-height: 0;
-  }
-}
-
-/* 큰 뷰포트: 축척 행이 더 아래에 있어 시계를 조금 더 내린다 */
-@media (min-height: 501px) {
-  .app-shell--map-first {
-    --br-clock-above-scale: 0.4rem;
   }
 }
 
