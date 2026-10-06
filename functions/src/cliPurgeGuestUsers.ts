@@ -19,6 +19,7 @@ import {
   firestoreForGuestPurge,
   isAnonymousUserRecord,
   listGuestCandidates,
+  listOrphanGuestUserDocs,
   type GuestDataCounts,
 } from "./purgeGuestUsersCore.js";
 
@@ -81,6 +82,7 @@ async function main(): Promise<void> {
 
 기본(인자 없음)은 조사 전용 — 아무것도 지우지 않는다.
 --yes 를 붙여야 Auth 계정 + Firestore 데이터를 실제로 삭제한다.
+Auth 가 이미 없는 고아 Guest users 문서(isAnonymous=true)도 함께 대상이 된다(데이터만 삭제).
 --limit=N 은 --yes 와 함께일 때만 삭제 건수를 제한한다(기본 무제한).`);
     return;
   }
@@ -117,18 +119,24 @@ async function main(): Promise<void> {
     }
   }
 
-  if (candidates.length === 0) {
+  const db = firestoreForGuestPurge();
+  // Auth 는 이미 없고 users 문서만 남은 Guest — Auth 삭제 없이 데이터만 지운다
+  const orphanUids = await listOrphanGuestUserDocs(db);
+  console.info(`[cli] Auth 없는 고아 Guest users 문서 ${orphanUids.length}건`);
+  const orphanSet = new Set(orphanUids);
+
+  const allUids = [...candidates.map((c) => c.uid), ...orphanUids];
+  if (allUids.length === 0) {
     console.info("[cli] 익명 후보가 없습니다. 종료.");
     return;
   }
 
-  const db = firestoreForGuestPurge();
   const presence = await buildPresenceIndex(db);
 
-  const targets = yes && limit ? candidates.slice(0, limit) : candidates;
+  const targets = yes && limit ? allUids.slice(0, limit) : allUids;
   const counts: GuestDataCounts[] = [];
-  for (const c of targets) {
-    counts.push(await countGuestUidData(db, c.uid, presence));
+  for (const uid of targets) {
+    counts.push(await countGuestUidData(db, uid, presence));
   }
 
   console.info(`\n[cli] 대상 ${counts.length}건(${yes ? "삭제 예정" : "조사만"}) 데이터 요약:`);
@@ -149,8 +157,10 @@ async function main(): Promise<void> {
   for (const c of counts) {
     try {
       const docsDeleted = await deleteGuestUidFirestoreData(db, c.uid, presence);
-      await deleteGuestAuthUser(auth, c.uid);
-      authDeleted += 1;
+      if (!orphanSet.has(c.uid)) {
+        await deleteGuestAuthUser(auth, c.uid);
+        authDeleted += 1;
+      }
       firestoreDocsDeleted += docsDeleted;
       console.info(`[DELETE] uid=${c.uid} ok — firestore ${docsDeleted}건 삭제`);
     } catch (e) {

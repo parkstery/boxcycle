@@ -81,6 +81,27 @@ export async function listGuestCandidates(): Promise<ListGuestCandidatesResult> 
   return { scannedAuthUsers, candidates, excludedAdminClaims };
 }
 
+/**
+ * Auth 계정은 이미 없는데 `users/{uid}` 가 isAnonymous=true 로 남은 「고아」 Guest 문서.
+ * Auth 삭제 뒤에도 열려 있던 탭이 만료 전 ID 토큰으로 users 문서를 다시 쓰면 생긴다
+ * (2026-10-07 운영 조사: Auth 5건, users 13건 중 고아 Guest 8건).
+ * listGuestCandidates 는 Auth 만 훑으므로 이 문서들을 못 본다.
+ */
+export async function listOrphanGuestUserDocs(db: Firestore): Promise<string[]> {
+  const auth = getAuth();
+  const snap = await db.collection("users").where("isAnonymous", "==", true).get();
+  const orphans: string[] = [];
+  for (const d of snap.docs) {
+    try {
+      await auth.getUser(d.id);
+    } catch (e) {
+      if ((e as { code?: string }).code === "auth/user-not-found") orphans.push(d.id);
+      else throw e;
+    }
+  }
+  return orphans;
+}
+
 export function isAnonymousUserRecord(user: UserRecord): boolean {
   return user.providerData.length === 0 && !user.email && !user.phoneNumber;
 }
