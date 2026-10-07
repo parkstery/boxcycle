@@ -403,9 +403,43 @@ export type FollowCameraJump = {
   stopFirst?: boolean;
 };
 
+/**
+ * 팔로우 중 래스터(위성) 픽셀 정렬 끄기.
+ *
+ * Mapbox 는 `isMoving()` 이 거짓이면 래스터 타일을 **정수 픽셀에 스냅**해 그린다(선명도용,
+ * `transform.alignedProjMatrix`). 팔로우 카메라는 매 프레임 `jumpTo` 라 `isMoving()` 이 늘
+ * 거짓이다 — 위성 사진만 1px 계단으로 움직이고 경로선·마커는 매끄럽게 미끄러져, 사진이
+ * 떨려 보인다. 벡터 지도(Outdoors)는 스냅이 없어 멀쩡하다. pitch 0(QC1 상공)에서 가장 잘 보인다.
+ *
+ * `isMoving` 을 속이면 `idle` 이 끊겨 스타일 재시도가 죽으므로, 행렬 선택만 바꾼다:
+ * 최근 팔로우 jumpTo 가 있으면 `aligned` 요청을 무시한다. 멈추면 원래대로 선명하게 스냅.
+ */
+const FOLLOW_RASTER_UNALIGNED_MS = 250;
+
+type RasterAlignTransform = {
+  calculateProjMatrix?: (tileId: unknown, aligned?: boolean, expanded?: boolean) => unknown;
+  __rtwFollowJumpAt?: number;
+  __rtwRasterAlignPatched?: boolean;
+};
+
+function markFollowJumpForRasterAlign(map: mapboxgl.Map): void {
+  const t = (map as unknown as { transform?: RasterAlignTransform }).transform;
+  if (!t || typeof t.calculateProjMatrix !== "function") return;
+  t.__rtwFollowJumpAt = performance.now();
+  if (t.__rtwRasterAlignPatched) return;
+  const original = t.calculateProjMatrix;
+  t.calculateProjMatrix = function (this: RasterAlignTransform, tileId, aligned, expanded) {
+    const following =
+      this.__rtwFollowJumpAt != null && performance.now() - this.__rtwFollowJumpAt < FOLLOW_RASTER_UNALIGNED_MS;
+    return original.call(this, tileId, aligned && !following, expanded);
+  };
+  t.__rtwRasterAlignPatched = true;
+}
+
 /** jumpTo 직전 계측 + 적용. */
 export function applyFollowCameraJumpTo(map: mapboxgl.Map, jump: FollowCameraJump): void {
   noteFollowJumpToValues(jump);
+  markFollowJumpForRasterAlign(map);
   noteCameraWrite({
     t: jump.t,
     center: jump.center,
