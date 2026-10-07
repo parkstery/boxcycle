@@ -228,3 +228,40 @@ export function composeRideEndStory(f: RideStoryFacts, previousKind: RideStoryKi
   }
   return { kind: pick.kind, headline: pick.headline, detail: parts.length ? parts.join(" · ") : null };
 }
+
+/** 이어달리기 카드 문형 — 원칙 문서 §5 M1 */
+export type NextRideStoryKind = "halfway" | "todayAgain" | "resume";
+
+/**
+ * 다음 주행 카드의 스토리 한 줄(M1) — 「어디서부터, 얼마나 왔나」.
+ * 우선순위: 숫자가 든 구체적인 문장 먼저(N6) — 절반 넘음 → 오늘 이미 탐 → 기본.
+ * 이어 달릴 경로가 없고 오늘 탄 적도 없으면 null(카드의 기존 날짜 줄을 그대로 쓴다).
+ */
+export function composeNextRideStory(input: {
+  /** 이어 달릴 경로가 있으면 그 진행 — 없으면 null */
+  resume: { routeMeters: number; progressRatio: number } | null;
+  /** 마지막 주행이 끝난 시각 */
+  lastRideEndedAtIso: string;
+  now: Date;
+}): { kind: NextRideStoryKind; text: string } | null {
+  const last = new Date(input.lastRideEndedAtIso);
+  const rodeToday = Number.isFinite(last.getTime()) && localDayKey(last) === localDayKey(input.now);
+  const r = input.resume && input.resume.routeMeters > 0 ? input.resume : null;
+  if (r) {
+    const ratio = clamp01(r.progressRatio);
+    if (ratio >= 0.5) {
+      return {
+        kind: "halfway",
+        text: `절반을 넘으셨어요. 남은 길은 ${formatStoryKm(r.routeMeters * (1 - ratio))}예요.`,
+      };
+    }
+  }
+  if (rodeToday) return { kind: "todayAgain", text: "오늘 한 번 더 이어 가 볼까요?" };
+  if (r) {
+    return {
+      kind: "resume",
+      text: `지난번 멈춘 곳에서 이어 달려요. ${formatStoryKm(r.routeMeters * clamp01(r.progressRatio))} 오셨어요.`,
+    };
+  }
+  return null;
+}

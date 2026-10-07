@@ -83,6 +83,13 @@
   font-weight: 700;
 }
 
+/* 스토리 한 줄 — 결과 시트 헤드라인과 같은 골드(주행 스토리 원칙 §5 M1) */
+.next-ride__story {
+  font-size: 0.76rem;
+  font-weight: 650;
+  color: var(--rtw-trace, #e8a33d);
+}
+
 .next-ride__line--muted {
   opacity: 0.78;
   font-size: 0.74rem;

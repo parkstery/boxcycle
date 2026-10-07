@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   buildRideStoryFacts,
+  composeNextRideStory,
   composeRideEndStory,
   koreanOrdinal,
   type RideStoryFacts,
@@ -185,4 +186,30 @@ it("서수 — 열 번째까지 우리말, 그 뒤는 숫자", () => {
   assert.equal(koreanOrdinal(1), "첫 번째");
   assert.equal(koreanOrdinal(10), "열 번째");
   assert.equal(koreanOrdinal(11), "11번째");
+});
+
+describe("이어달리기 카드 한 줄 — §5 M1", () => {
+  const yesterday = at(-1, 20).toISOString();
+  const today = at(0, 9).toISOString();
+  const route = (progressRatio: number) => ({ routeMeters: 17000, progressRatio });
+
+  it("기본 — 지난번 멈춘 곳에서, 온 거리", () => {
+    const s = composeNextRideStory({ resume: route(0.3), lastRideEndedAtIso: yesterday, now: NOW });
+    assert.equal(s?.text, "지난번 멈춘 곳에서 이어 달려요. 5.1km 오셨어요.");
+  });
+
+  it("오늘 이미 탔으면 한 번 더를 권한다", () => {
+    const s = composeNextRideStory({ resume: route(0.3), lastRideEndedAtIso: today, now: NOW });
+    assert.equal(s?.text, "오늘 한 번 더 이어 가 볼까요?");
+  });
+
+  it("절반을 넘었으면 숫자가 든 문장이 먼저(N6) — 오늘 탔어도", () => {
+    const s = composeNextRideStory({ resume: route(0.5), lastRideEndedAtIso: today, now: NOW });
+    assert.equal(s?.text, "절반을 넘으셨어요. 남은 길은 8.5km예요.");
+  });
+
+  it("이어 달릴 경로가 없으면 — 오늘 탔을 때만 말하고, 아니면 null(날짜 줄을 쓴다)", () => {
+    assert.equal(composeNextRideStory({ resume: null, lastRideEndedAtIso: today, now: NOW })?.kind, "todayAgain");
+    assert.equal(composeNextRideStory({ resume: null, lastRideEndedAtIso: yesterday, now: NOW }), null);
+  });
 });

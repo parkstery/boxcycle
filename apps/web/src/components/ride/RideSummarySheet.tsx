@@ -7,6 +7,7 @@ import { getRideSaveStatusLabel, getSavedRouteProgressStatusLabel } from "../../
 import { formatNewRoadHero, formatConquestStatusCopy } from "../../lib/ride/rideSessionPreview";
 import { formatCaloriesEstimateLabel } from "../../lib/ride/caloriesEstimate";
 import type { RideStory } from "../../lib/ride/rideStory";
+import { formatElapsedFromMs } from "../../lib/ride/rideFormat";
 import "./RideSummarySheet.css";
 
 type RideSummarySheetProps = {
@@ -116,6 +117,18 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
   }
 
   if (!props.open) return null;
+
+  /*
+   * 시간·평속은 **주행이 끝난 순간에 고정된 결과**에서 읽는다. props 의 두 값은 실시간 주행
+   * 계기(rideMetrics)라 종료 직후 계기가 초기화되면 「00:00 · 0.0 km/h」로 바뀌었다
+   * (2026-10-07 Chief 스크린샷). 결과가 없을 때만 props 로 내려간다.
+   */
+  const elapsedLabel =
+    result && Number.isFinite(result.elapsedSec)
+      ? formatElapsedFromMs(result.elapsedSec * 1000)
+      : props.elapsedLabel;
+  const avgKmhLabel =
+    result && Number.isFinite(result.avgSpeedKmh) ? result.avgSpeedKmh.toFixed(1) : props.avgKmh;
 
   const routeCompleted = Boolean(result?.routeCompleted);
   /** 미완주 저장 경로 주행 — 이전→신규 진행률을 보여 줄 수 있는 경우 */
@@ -337,10 +350,10 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
 
         <div className="ride-summary__substats">
           <span className="ride-summary__substat">
-            <span className="ride-summary__substat-metric">{props.elapsedLabel}</span>
+            <span className="ride-summary__substat-metric">{elapsedLabel}</span>
           </span>
           <span className="ride-summary__substat">
-            <span className="ride-summary__substat-metric">{props.avgKmh}&nbsp;km/h</span>
+            <span className="ride-summary__substat-metric">{avgKmhLabel}&nbsp;km/h</span>
           </span>
           {(() => {
             const kcal =

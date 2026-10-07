@@ -1,8 +1,10 @@
+import { useState } from "react";
 import type { LngLat } from "../../lib/geo/geo";
 import { shortPlaceLabel } from "../../lib/route/repo/firestoreSavedRoutes";
 import type { NextRideTarget, NextRideView } from "../../lib/ride/nextRideTarget";
 import { formatRideDistanceKmNumber } from "../../lib/ride/rideDistanceFormat";
 import { progressPercentLabel } from "../../lib/ride/rideEndResult";
+import { composeNextRideStory } from "../../lib/ride/rideStory";
 import "./NextRideCard.css";
 
 export type NextRideCardProps = {
@@ -46,7 +48,18 @@ export function NextRideCard(props: NextRideCardProps) {
   const { view } = props;
   const resumeTarget = view.target.kind === "resume_route" ? view.target : null;
   const placeName = anchorPlaceName(view);
-  const todayKm = formatRideDistanceKmNumber(view.ride.distanceMeters);
+  const lastRideKm = formatRideDistanceKmNumber(view.ride.distanceMeters);
+  // 「오늘」의 기준 시각 — 카드가 뜬 순간으로 고정한다(렌더마다 시계를 읽지 않는다)
+  const [openedAt] = useState(() => new Date());
+  // 스토리 한 줄(M1, 주행 스토리 원칙 §5) — 「어디서부터, 얼마나 왔나」
+  const story = composeNextRideStory({
+    resume:
+      resumeTarget && view.route
+        ? { routeMeters: view.route.distanceMeters, progressRatio: resumeTarget.progressRatio }
+        : null,
+    lastRideEndedAtIso: view.ride.endedAt,
+    now: openedAt,
+  });
 
   return (
     <div className="next-ride-anchor" aria-label="다음 주행">
@@ -84,14 +97,24 @@ export function NextRideCard(props: NextRideCardProps) {
               </span>
               <span>{progressPercentLabel(resumeTarget.progressRatio)}%</span>
             </p>
-            <p className="next-ride__line next-ride__line--muted">멈춘 지점에서 계속합니다</p>
+            <p className="next-ride__line next-ride__story">
+              {story?.text ?? "멈춘 지점에서 계속합니다"}
+            </p>
           </>
         ) : (
           <>
             {/* 둘째·셋째 줄 순서 교체 — 언제 달렸는지가 먼저, 어디서 이어갈지가 다음(2026-09-18 Chief) */}
-            <p className="next-ride__line next-ride__line--muted">
-              마지막 주행 {formatEndedAtKo(view.ride.endedAt)} · 오늘 {todayKm} km
-            </p>
+            {/*
+              오늘 탔으면 날짜 대신 스토리 한 줄. 아니면 날짜 줄 — 종전엔 며칠 전 주행에도
+              「오늘 2.1 km」라고 썼다(마지막 주행 거리를 「오늘」로 잘못 불렀다, 2026-10-07 수정).
+            */}
+            {story ? (
+              <p className="next-ride__line next-ride__story">{story.text}</p>
+            ) : (
+              <p className="next-ride__line next-ride__line--muted">
+                마지막 주행 {formatEndedAtKo(view.ride.endedAt)} · {lastRideKm} km
+              </p>
+            )}
             <p className="next-ride__line next-ride__line--strong">
               {/* 주소만 — 「에서 이어가기」는 제목이 이미 말한다(2026-09-18 Chief) */}
               {placeName ?? "마지막 종료 지점"}

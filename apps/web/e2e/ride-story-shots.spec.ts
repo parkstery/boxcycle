@@ -78,8 +78,28 @@ test.describe("주행 스토리", () => {
       expect(m.scroll, "시트가 스크롤되면 안 된다").toBe(m.client);
       expect(m.bottom).toBeLessThanOrEqual(vp.height);
 
+      // 결함(2026-10-07) — 종료 후 계기가 초기화돼도 시간·평속은 결과값을 지킨다(「00:00 · 0.0 km/h」 금지)
+      await page.waitForTimeout(3_000);
+      const sub = ((await sheet.locator(".ride-summary__substats").textContent()) ?? "").replace(/\s+/g, " ");
+      console.log(`[ride-story] ${vp.name} substats=${sub}`);
+      expect(sub, "경과 시간이 00:00 으로 초기화되면 안 된다").not.toContain("00:00");
+      expect(sub, "평속이 0.0 으로 초기화되면 안 된다").not.toMatch(/(^|\s)0\.0\s*km\/h/);
+
       await page.screenshot({ path: path.join(OUT_DIR, `ride-end-${vp.name}.png`) });
       await sheet.screenshot({ path: path.join(OUT_DIR, `ride-end-sheet-${vp.name}.png`) });
+
+      // M1 — 시트를 닫으면 다음 주행 카드가 스토리 한 줄로 이어 간다(오늘 이미 탔다)
+      const skip = sheet.getByRole("button", { name: "저장 안 함" });
+      if (await skip.count()) await skip.click();
+      else await sheet.getByRole("button", { name: "닫기" }).first().click();
+      const card = page.locator(".next-ride-anchor");
+      await expect(card).toBeVisible({ timeout: 20_000 });
+      const story = card.locator(".next-ride__story");
+      await expect(story).toBeVisible();
+      console.log(`[ride-story] ${vp.name} next-ride=${(await story.textContent())?.trim()}`);
+      await expect(story).toHaveText(/오늘 한 번 더 이어 가 볼까요\?|절반을 넘으셨어요/);
+      await card.screenshot({ path: path.join(OUT_DIR, `next-ride-${vp.name}.png`) });
+      await page.screenshot({ path: path.join(OUT_DIR, `next-ride-full-${vp.name}.png`) });
     });
   }
 });
