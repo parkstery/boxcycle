@@ -4,9 +4,9 @@
  */
 .local-first-anchor {
   pointer-events: none;
-  /* 지시10 실측 카드 폭(~168px) 유지 — 지시11에서 키우지 않음 */
-  width: 10.5rem;
-  max-width: min(10.5rem, calc(100vw - 1.5rem));
+  /* D5 — 폭은 내용(칩 행)에 맞춘다. 고정 10.5rem 은 칩 4개보다 좁아 「10」을 잘랐다(2026-10-07). */
+  width: max-content;
+  max-width: calc(100vw - 1.5rem);
 }
 
 .local-first__card {
@@ -82,18 +82,30 @@
   gap: 0.28rem;
   width: fit-content;
   max-width: 100%;
+  margin-top: -0.3rem;
 }
 
+/* 버튼도 칩과 같은 밀도 — 터치 44px 은 높이로, 보이는 면은 ::before(배경은 변형 클래스가 정한다) */
 .local-first__btn {
+  position: relative;
+  isolation: isolate;
   min-height: 44px;
-  padding: 0.28rem 0.55rem;
+  padding: 0 0.7rem;
   border: none;
-  border-radius: 8px;
+  background: none;
   font-size: 0.74rem;
   font-weight: 700;
   cursor: pointer;
   text-align: center;
   white-space: nowrap;
+}
+
+.local-first__btn::before {
+  content: "";
+  position: absolute;
+  inset: 7px 0;
+  z-index: -1;
+  border-radius: 8px;
 }
 
 .local-first__btn--compact {
@@ -107,24 +119,34 @@
 }
 
 .local-first__btn--primary {
-  background: var(--rtw-accent, #e8a33d);
   color: #10151f;
 }
 
+.local-first__btn--primary::before {
+  background: var(--rtw-accent, #e8a33d);
+}
+
 .local-first__btn--ghost {
-  background: rgba(248, 250, 252, 0.12);
   color: var(--rtw-text, #f8fafc);
+}
+
+.local-first__btn--ghost::before {
+  background: rgba(248, 250, 252, 0.12);
   border: 1px solid rgba(248, 250, 252, 0.18);
 }
 
-.local-first__btn--primary:hover,
-.local-first__btn--ghost:hover {
+.local-first__btn--primary:hover::before,
+.local-first__btn--ghost:hover::before {
   filter: brightness(1.06);
 }
 
 .local-first__btn:focus-visible {
+  outline: none;
+}
+
+.local-first__btn:focus-visible::before {
   outline: 2px solid var(--rtw-accent, #e8a33d);
-  outline-offset: 2px;
+  outline-offset: 1px;
 }
 
 .local-first__chips {
@@ -133,21 +155,65 @@
   gap: 0.22rem;
   width: fit-content;
   max-width: 100%;
+  /* 알약 위 투명 터치 여백만큼 제목 쪽으로 당긴다 — 보이는 간격은 종전과 같게 */
+  margin-top: -0.3rem;
 }
 
-.local-first__chip {
+/* 제목 + 「입문 경로」 한 줄 — 입문 링크가 따로 44px 줄을 차지하지 않게(D4) */
+.local-first__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.local-first__head .local-first__title {
+  flex: 1 1 auto;
+}
+
+.local-first__head .local-first__link {
   flex: 0 0 auto;
-  min-width: 2.4rem;
+  margin: -0.45rem -0.2rem -0.45rem 0;
+  white-space: nowrap;
+}
+
+/*
+ * 칩 — 터치 44px 은 버튼 높이로 지키고(D2), 보이는 알약은 ::before 로 얇게 그린다.
+ * 44px 원 넷이 작은 카드를 짓누르던 것을 RouteDock 거리 칩 밀도에 맞춘다(D7).
+ */
+.local-first__chip {
+  position: relative;
+  isolation: isolate;
+  flex: 0 0 auto;
+  min-width: 2.1rem;
   min-height: 44px;
-  padding: 0.2rem 0.45rem;
-  border: 1px solid rgba(248, 250, 252, 0.18);
-  border-radius: 999px;
-  background: rgba(248, 250, 252, 0.08);
+  padding: 0 0.5rem;
+  border: none;
+  background: none;
   color: var(--rtw-text, #f8fafc);
   font-size: 0.74rem;
   font-weight: 700;
   cursor: pointer;
   text-align: center;
+}
+
+.local-first__chip::before {
+  content: "";
+  position: absolute;
+  inset: 8px 0;
+  z-index: -1;
+  border: 1px solid rgba(248, 250, 252, 0.18);
+  border-radius: 999px;
+  background: rgba(248, 250, 252, 0.08);
+}
+
+.local-first__chip:focus-visible {
+  outline: none;
+}
+
+.local-first__chip:focus-visible::before {
+  outline: 2px solid var(--rtw-accent, #e8a33d);
+  outline-offset: 1px;
 }
 
 .local-first__chip:disabled {
@@ -156,9 +222,12 @@
 }
 
 .local-first__chip--active {
+  color: #10151f;
+}
+
+.local-first__chip--active::before {
   background: var(--rtw-accent, #e8a33d);
   border-color: var(--rtw-accent, #e8a33d);
-  color: #10151f;
 }
 
 .local-first__chip--aux {
@@ -224,8 +293,7 @@
 
 @media (max-height: 520px), (max-width: 480px) {
   .local-first-anchor {
-    width: 10.5rem;
-    max-width: min(10.5rem, calc(100vw - 1.25rem));
+    max-width: calc(100vw - 1.25rem);
   }
 
   .local-first__card {

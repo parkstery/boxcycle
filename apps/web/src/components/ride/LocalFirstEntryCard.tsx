@@ -172,12 +172,17 @@ export function LocalFirstEntryCard({
       <div className="local-first__card hud-glass" role="group">
         {showS1 && region ? (
           <>
-            <p className="local-first__title">
-              <span className="local-first__place">{region.name}</span>
-              <span className="local-first__subtitle">
-                첫 Ready Ride <span className="local-first__title-unit">(km)</span>
-              </span>
-            </p>
+            <div className="local-first__head">
+              <p className="local-first__title">
+                <span className="local-first__place">{region.name}</span>
+                <span className="local-first__subtitle">
+                  첫 Ready Ride <span className="local-first__title-unit">(km)</span>
+                </span>
+              </p>
+              <button type="button" className="local-first__link" onClick={onStartIntro}>
+                입문 경로
+              </button>
+            </div>
 
             <div className="local-first__chips" role="group" aria-label="Ready Ride 거리 km">
               {READY_RIDE_DISTANCE_KM_OPTIONS.map((km) => (
@@ -336,11 +341,13 @@ export function LocalFirstEntryCard({
           </>
         )}
 
-        <div className="local-first__intro">
-          <button type="button" className="local-first__link" onClick={onStartIntro}>
-            입문 경로
-          </button>
-        </div>
+        {showS1 && region ? null : (
+          <div className="local-first__intro">
+            <button type="button" className="local-first__link" onClick={onStartIntro}>
+              입문 경로
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
