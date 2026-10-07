@@ -336,6 +336,8 @@
       "ride/rideSpeedRamp.ts",
       "ride/rideStatsAggregate.ts",
       "ride/rideStatusCopy.ts",
+      "ride/rideStory.ts",
+      "ride/rideStoryMemory.ts",
       "ride/rideSyncPolicy.ts"
     ],
     "ride/repo": [
