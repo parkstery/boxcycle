@@ -717,10 +717,12 @@ test.describe("주행 결과 시트 컴팩트화", () => {
         expect(layout.boxX, "새 도로 칸은 주행/전체 칸 오른쪽").toBeGreaterThan(layout.pairX);
       }
     }
-    expect(
-      ((await sheet.textContent()) ?? "").includes("오늘"),
-      "「오늘」(하루 누적)은 이 화면이 답할 질문이 아니다",
-    ).toBe(false);
+    /*
+     * 스토리 줄(2026-10-07 Chief) — 숫자 위에 사람에게 건네는 한 줄. 종전 「오늘(하루 누적)은
+     * 이 화면이 답할 질문이 아니다」(2026-09-17)를 뒤집는다: 오늘 몇 번째·합계가 칭찬의 근거다.
+     * 완주했으므로 헤드라인은 완주를 말한다.
+     */
+    await expect(sheet.locator(".ride-summary__story-headline"), "스토리 헤드라인").toContainText("완주");
 
     await page.screenshot({ path: path.join(SHOTS_DIR, "summary-compact.png") });
     // 시트만 크롭 — 뷰포트 축소 없이 4행 전체가 실제로 그려졌는지 육안 확인용(보조 산출물).

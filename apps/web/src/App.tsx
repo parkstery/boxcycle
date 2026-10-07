@@ -57,6 +57,8 @@ import {
   type ProgressAppliedSlotEvent,
 } from "./lib/ride/rideResumeSlotPolicy";
 import type { RideEndResult } from "./lib/ride/rideEndResult";
+import { buildRideStoryFacts, composeRideEndStory } from "./lib/ride/rideStory";
+import { readPreviousRideStoryKind, rememberRideStoryKind } from "./lib/ride/rideStoryMemory";
 import type { OnSavedRouteProgressApplied } from "./lib/ride/rideEndPersistence";
 import { MenuPanel } from "./components/MenuPanel";
 import { MapBottomLeftStack } from "./features/map-overlays/MapBottomLeftStack";
@@ -1704,6 +1706,40 @@ export default function App() {
    * 결과 시트 노출(§3.5) — 도착·ad-hoc 여부로 제한하지 않는다.
    * 폐기되지 않은 모든 유효 Ride 가 `lastRideResult` 를 채우므로 그것만으로 열린다.
    */
+  /**
+   * 주행 스토리(2026-10-07 Chief) — 결과 시트 맨 위 한 줄. 「지금」은 주행이 끝난 시각으로
+   * 고정한다(렌더마다 시계를 읽지 않는다). 기록에 이번 주행이 이미 있어도 두 번 세지 않는다.
+   */
+  const rideEndStory = useMemo(() => {
+    if (!lastRideResult) return null;
+    const endedAt = new Date(lastRideResult.endedAtIso);
+    if (!Number.isFinite(endedAt.getTime())) return null;
+    return composeRideEndStory(
+      buildRideStoryFacts({
+        sessions: recentSessions,
+        thisRide: {
+          id: lastRideResult.recordId,
+          serverRideId: lastRideResult.serverRideId,
+          distanceMeters: lastRideResult.sessionDistanceMeters,
+          endedAtIso: lastRideResult.endedAtIso,
+          routeMeters: lastRideResult.hasRoute ? lastRideResult.routeDistanceMeters : 0,
+          previousProgressRatio: lastRideResult.previousProgressRatio,
+          progressRatio: lastRideResult.progressRatio,
+          routeCompleted: lastRideResult.routeCompleted,
+        },
+        now: endedAt,
+      }),
+      readPreviousRideStoryKind(lastRideResult.recordId),
+    );
+  }, [lastRideResult, recentSessions]);
+  const rideEndStoryRecordId = lastRideResult?.recordId ?? null;
+  const rideEndStoryKind = rideEndStory?.kind ?? null;
+  useEffect(() => {
+    if (rideEndStoryRecordId && rideEndStoryKind) {
+      rememberRideStoryKind(rideEndStoryRecordId, rideEndStoryKind);
+    }
+  }, [rideEndStoryRecordId, rideEndStoryKind]);
+
   const summaryVisible =
     lastRideResult !== null ||
     (summarySheetVisible && (arrivalToastTick > 0 || lastEndedWasAdhoc !== null));
@@ -3292,6 +3328,7 @@ export default function App() {
       <RideSummarySheet
         open={summaryVisible}
         result={lastRideResult}
+        story={rideEndStory}
         arrivalCompleted={arrivalToastTick > 0}
         elapsedLabel={elapsedLabel}
         avgKmh={avgSpeedLabel}

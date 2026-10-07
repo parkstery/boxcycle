@@ -76,6 +76,21 @@ export function saveRideSessions(items: StoredRideSession[], user: User | null):
  * - 로컬 세션: id = UUID, serverRideId = Firestore doc ID (저장 후 채워짐)
  * - serverRideId로 매칭하여 한 주행이 두 행으로 중복되지 않게 함
  */
+/**
+ * 같은 주행인지 가르는 지문 — 끝난 시각(초) + 거리(m).
+ *
+ * 로컬 기록을 서버로 올리는 백필(`backfillRideSessionsToFirestore`)은 서버 문서 id 를 새로
+ * 받지만 로컬판에 `serverRideId` 를 적어 두지 않는다. 그러면 id 로는 둘을 이을 수 없어
+ * 같은 주행이 두 줄이 됐다(2026-10-07 — 오늘 두 번째 라이딩이 「네 번째」로 셈).
+ * 끝난 시각과 거리가 둘 다 같은 서로 다른 주행은 현실에 없으므로 이것으로 잇는다.
+ */
+export function rideSessionFingerprint(s: Pick<StoredRideSession, "endedAt" | "distanceMeters">): string | null {
+  const t = Date.parse(s.endedAt ?? "");
+  const d = Number(s.distanceMeters);
+  if (!Number.isFinite(t) || !Number.isFinite(d)) return null;
+  return `${Math.round(t / 1000)}|${Math.round(d)}`;
+}
+
 export function mergeRecentRideSessions(
   serverRows: readonly StoredRideSession[],
   localRows: readonly StoredRideSession[],
@@ -95,6 +110,13 @@ export function mergeRecentRideSessions(
     }
   }
   
+  // 서버판 지문 — id 로 이어지지 않는 로컬판(백필된 legacy)을 같은 주행으로 알아본다
+  const serverFingerprints = new Set<string>();
+  for (const row of serverRows) {
+    const fp = row?.id ? rideSessionFingerprint(row) : null;
+    if (fp) serverFingerprints.add(fp);
+  }
+
   // 2. 로컬 세션 처리
   for (const row of localRows) {
     if (!row?.id) continue;
@@ -120,6 +142,10 @@ export function mergeRecentRideSessions(
       // 서버에 같은 id가 있음 → 서버판 유지
       continue;
     }
+
+    // 2b'. id 는 다르지만 서버에 같은 주행이 있음(백필로 올라간 로컬판) → 서버판 유지
+    const fp = rideSessionFingerprint(row);
+    if (fp && serverFingerprints.has(fp)) continue;
     
     // 2c. 완전히 새로운 로컬 전용
     byKey.set(row.id, row);

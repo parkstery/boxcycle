@@ -99,3 +99,28 @@ describe("결함 ⑦ · 서버 응답이 로컬 최신을 덮지 않는다", () 
     assert.equal(mergeRecentRideSessions([session("y", "2026-09-03T00:00:00.000Z")], []).length, 1);
   });
 });
+
+describe("백필 중복 · id 로 이어지지 않는 같은 주행(2026-10-07)", () => {
+  it("서버 id 를 모르는 로컬판은 끝난 시각·거리가 같은 서버판과 한 줄이 된다", () => {
+    const local = session("local-uuid", "2026-10-07T08:00:00.000Z", { distanceMeters: 3000 });
+    const server = session("srv-1", "2026-10-07T08:00:00.000Z", {
+      distanceMeters: 3000,
+      serverRideId: "srv-1",
+    });
+    const merged = mergeRecentRideSessions([server], [local]);
+    assert.equal(merged.length, 1);
+    assert.equal(merged[0]!.id, "srv-1", "서버판이 정본");
+  });
+
+  it("거리가 다르면(다른 주행) 둘 다 남는다 — 지문이 과하게 묶지 않는다", () => {
+    const local = session("local-uuid", "2026-10-07T08:00:00.000Z", { distanceMeters: 2500 });
+    const server = session("srv-1", "2026-10-07T08:00:00.000Z", { distanceMeters: 3000 });
+    assert.equal(mergeRecentRideSessions([server], [local]).length, 2);
+  });
+
+  it("끝난 시각이 다르면 둘 다 남는다", () => {
+    const local = session("local-uuid", "2026-10-07T09:00:00.000Z");
+    const server = session("srv-1", "2026-10-07T08:00:00.000Z");
+    assert.equal(mergeRecentRideSessions([server], [local]).length, 2);
+  });
+});

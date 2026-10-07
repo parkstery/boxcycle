@@ -6,6 +6,7 @@ import { useRideConquestResult } from "../../hooks/useRideConquestResult";
 import { getRideSaveStatusLabel, getSavedRouteProgressStatusLabel } from "../../lib/ride/rideStatusCopy";
 import { formatNewRoadHero, formatConquestStatusCopy } from "../../lib/ride/rideSessionPreview";
 import { formatCaloriesEstimateLabel } from "../../lib/ride/caloriesEstimate";
+import type { RideStory } from "../../lib/ride/rideStory";
 import "./RideSummarySheet.css";
 
 type RideSummarySheetProps = {
@@ -15,6 +16,11 @@ type RideSummarySheetProps = {
   avgKmh: string;
   /** null = 미산정. result.caloriesEstimate 가 있으면 그쪽 우선 */
   caloriesEstimate: number | null;
+  /**
+   * 주행 스토리(2026-10-07 Chief) — 숫자보다 먼저 사람에게 건네는 한 줄 + 사실 한 줄.
+   * null 이면 줄을 그리지 않는다.
+   */
+  story?: RideStory | null;
   /** 미산정 시 체중·강도 설정 진입 */
   onOpenCalorieSettings?: () => void;
   /**
@@ -264,6 +270,19 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
             </button>
           )}
         </div>
+
+        {/*
+          스토리 — 숫자를 사람의 말로(2026-10-07 Chief). 「드라이한 데이터를 던져 주는 것으로
+          끝내서는 안 된다」. 문장은 lib/ride/rideStory.ts 가 기록의 사실로만 만든다.
+        */}
+        {props.story ? (
+          <div className="ride-summary__story" aria-live="polite">
+            <p className="ride-summary__story-headline">{props.story.headline}</p>
+            {props.story.detail ? (
+              <p className="ride-summary__story-detail">{props.story.detail}</p>
+            ) : null}
+          </div>
+        ) : null}
 
         {/* §3.1 히어로 — 화면 순서 [주행/전체][새 도로](CSS order) 2칸만. 진행률은 헤더 행 */}
         <div className="ride-summary__heroes">

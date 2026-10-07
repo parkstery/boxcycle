@@ -88,16 +88,20 @@ describe("F1 · ID-link after save — local UUID ↔ server doc ID", () => {
     assert.equal(merged[2]?.id, "server-1", "ride1 서버판");
   });
 
-  it("로컬 serverRideId 설정 전후 — 설정 전에는 별도, 설정 후 dedup", () => {
+  it("로컬 serverRideId 설정 전후 — 같은 주행(끝난 시각·거리 동일)이면 설정 전에도 한 행", () => {
     const localBefore = session("local-xyz", "2026-09-07T08:00:00.000Z");
     const serverSession = session("server-doc-123", "2026-09-07T08:00:00.000Z", {
       serverRideId: "server-doc-123",
       endPlaceLabel: "역삼동",
     });
     
-    // 설정 전: 별도 행
+    // 설정 전: 2026-10-07 부터 **한 행**. 종전 계약(「설정 전에는 별도 2개 행」)은 같은 주행을
+    // 두 번 세는 결함을 계약으로 고정하고 있었다 — 백필된 로컬판은 serverRideId 를 끝내 받지
+    // 못해 영영 두 줄이었고, 주행 스토리가 「오늘 두 번째」를 「네 번째」로 셌다.
+    // 끝난 시각·거리 지문(rideSessionFingerprint)으로 잇는다. 서버판이 정본.
     const mergedBefore = mergeRecentRideSessions([serverSession], [localBefore]);
-    assert.equal(mergedBefore.length, 2, "설정 전: 2개 행 (별도)");
+    assert.equal(mergedBefore.length, 1, "설정 전에도 같은 주행은 1개 행");
+    assert.equal(mergedBefore[0]?.id, "server-doc-123", "설정 전에도 서버판이 정본");
     
     // 설정 후
     const localAfter = { ...localBefore, serverRideId: "server-doc-123" };

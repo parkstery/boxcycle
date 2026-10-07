@@ -38,6 +38,7 @@
 | [Route Token 경제](reference/product/260518-Route-Token-경제-설계.md) | 경제 루프·소비처·저장 한도와의 관계 | 검토 중·미결 있음, 한시 무제한 |
 | [퍼블릭 경로 자동등록](reference/product/260717-퍼블릭-경로-자동등록-정책.md) | 등록·자동 심사 조건 | SoT |
 | [UI 공간밀도 원칙](reference/product/260924-RTW-UI-공간밀도-원칙.md) | 화면 공간 규칙 D1~D7 | SoT |
+| [주행 스토리 원칙](reference/product/261007-RTW-주행-스토리-원칙.md) | 주행 기록을 사람의 말로 건네는 규칙 N1~N10·순간별 문장 | 채택·SoT |
 
 ### 현재 설계 — reference/architecture
 
