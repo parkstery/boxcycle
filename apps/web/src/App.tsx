@@ -2308,9 +2308,6 @@ export default function App() {
         onExtend={handleStartRouteFromAnchor}
         onShowOnMap={focusAnchorOnMap}
         onDismiss={() => setNextRideDismissedRideId(nextRideView.target.rideId)}
-        onAbandonResume={
-          nextRideView.target.kind === "resume_route" ? rideResumeSlot.abandon : undefined
-        }
       />
     ) : null;
 
@@ -2856,6 +2853,8 @@ export default function App() {
                 routeGeometry={routeGeometry}
                 liveLngLat={liveForMap}
                 mapboxAccessToken={MAPBOX_TOKEN}
+                traveledMeters={cumulativeDistanceMeters}
+                routeMeters={routeDistanceMeters}
               />
             }
             routeDock={

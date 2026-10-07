@@ -148,3 +148,66 @@
 .route-minimap--map .route-minimap__path-outline {
   stroke: rgba(255, 255, 255, 0.95);
 }
+
+/*
+ * 이정표 띠(주행 스토리 M2) — 미니맵 위쪽 가장자리에 4초. 지도를 오래 가리지 않는다(N8).
+ * 어두운 띠 위 골드 글자 — 밝은 지도·어두운 폴백 어디서나 읽힌다.
+ */
+.route-minimap__milestone {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  padding: 0.22rem 0.5rem;
+  background: rgba(16, 21, 31, 0.82);
+  color: var(--rtw-trace, #e8a33d);
+  font-size: 0.72rem;
+  font-weight: 750;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  animation: route-minimap-milestone 4s ease-out forwards;
+}
+
+@keyframes route-minimap-milestone {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  8%,
+  85% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+}
+
+/* 종점 깃발 펄럭임 — 남은 1km(짧은 경로는 마지막 25%)부터. 글을 읽지 않아도 「거의 다 왔다」 */
+.route-minimap__goal--waving .route-minimap__goal-cloth {
+  animation: route-minimap-flag-wave 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes route-minimap-flag-wave {
+  from {
+    transform: skewY(-12deg) scaleX(0.9);
+  }
+  to {
+    transform: skewY(10deg) scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-minimap__milestone {
+    animation: none;
+  }
+
+  .route-minimap__goal--waving .route-minimap__goal-cloth {
+    animation: none;
+  }
+}

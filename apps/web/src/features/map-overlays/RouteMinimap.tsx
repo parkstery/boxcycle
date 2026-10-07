@@ -1,7 +1,13 @@
-import { useLayoutEffect, useMemo, useRef, useState, type PointerEvent, type TouchEvent } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent, type TouchEvent } from "react";
 import type { LineStringGeometry, LngLat } from "../../lib/geo/geo";
 import { ROUTE_LINE_COLOR } from "../../components/map/routeConquestLayers";
 import { ridePulseAnimationDelay } from "../../lib/ride/ridePulse";
+import {
+  detectRideMilestone,
+  isGoalFlagWaving,
+  RIDE_MILESTONE_TEXT,
+  type RideMilestoneKind,
+} from "../../lib/ride/rideStory";
 import {
   computeRouteMinimapSize,
   projectRouteMinimap,
@@ -19,7 +25,14 @@ export type RouteMinimapProps = {
   liveLngLat: LngLat | null;
   /** 배경 정지 지도용. 비면 어두운 배경으로 폴백 */
   mapboxAccessToken: string;
+  /** 경로상 누적 거리(이어달리기 offset 포함) — 이정표 판정(주행 스토리 M2) */
+  traveledMeters: number;
+  /** 경로 전체 거리 */
+  routeMeters: number;
 };
+
+/** 이정표 띠가 보이는 시간 — 잠깐 보였다 사라진다(N8, 상시 표시 금지) */
+const MILESTONE_BAND_MS = 4000;
 
 const GAP_REM = 0.35;
 
@@ -47,7 +60,7 @@ const FLAG_POLE_H = 13;
 const FLAG_W = 9;
 const FLAG_H = 6;
 
-function GoalFlag({ x, y, boxW }: { x: number; y: number; boxW: number }) {
+function GoalFlag({ x, y, boxW, waving }: { x: number; y: number; boxW: number; waving: boolean }) {
   const dir = x + FLAG_W + 2 > boxW ? -1 : 1;
   const top = y - FLAG_POLE_H;
   const cell = FLAG_W / 3;
@@ -68,10 +81,15 @@ function GoalFlag({ x, y, boxW }: { x: number; y: number; boxW: number }) {
     }
   }
   return (
-    <g className="route-minimap__goal">
+    <g className={`route-minimap__goal${waving ? " route-minimap__goal--waving" : ""}`}>
       <line className="route-minimap__goal-pole" x1={x} y1={y} x2={x} y2={top} />
-      {cells}
-      <rect
+      {/* 깃발 천 — 펄럭일 땐 장대 쪽을 축으로 흔든다 */}
+      <g
+        className="route-minimap__goal-cloth"
+        style={{ transformOrigin: `${x}px ${top + FLAG_H / 2}px` }}
+      >
+        {cells}
+        <rect
         className="route-minimap__goal-frame"
         x={dir > 0 ? x : x - FLAG_W}
         y={top}
@@ -79,6 +97,7 @@ function GoalFlag({ x, y, boxW }: { x: number; y: number; boxW: number }) {
         height={FLAG_H}
         fill="none"
       />
+      </g>
       <circle className="route-minimap__goal-base" cx={x} cy={y} r={1.8} />
     </g>
   );
@@ -93,8 +112,34 @@ function nearlySame(a: number, b: number, eps = 1): boolean {
  * 위치는 RouteDock·좌상단 **실측**. 접힘/펼침 높이를 따라가며 dock 위에 붙인다(지시07).
  * 탭 없음 · 터치 지도 전파 차단.
  */
-export function RouteMinimap({ active, routeGeometry, liveLngLat, mapboxAccessToken }: RouteMinimapProps) {
+export function RouteMinimap({
+  active,
+  routeGeometry,
+  liveLngLat,
+  mapboxAccessToken,
+  traveledMeters,
+  routeMeters,
+}: RouteMinimapProps) {
   const rootRef = useRef<HTMLDivElement>(null);
+
+  /*
+   * 이정표(주행 스토리 M2) — 진행이 갱신될 때 직전 값과 비교해 「지나간」 순간만 띠를 띄운다.
+   * 직전 값은 렌더 중 비교 패턴으로 state 에 둔다(effect 안 setState 금지 규칙).
+   */
+  const [prevTraveled, setPrevTraveled] = useState(traveledMeters);
+  const [milestone, setMilestone] = useState<{ kind: RideMilestoneKind; seq: number } | null>(null);
+  if (traveledMeters !== prevTraveled) {
+    setPrevTraveled(traveledMeters);
+    const kind = active ? detectRideMilestone(prevTraveled, traveledMeters, routeMeters) : null;
+    if (kind) setMilestone((m) => ({ kind, seq: (m?.seq ?? 0) + 1 }));
+  }
+  const milestoneSeq = milestone?.seq ?? 0;
+  useEffect(() => {
+    if (!milestoneSeq) return;
+    const t = window.setTimeout(() => setMilestone(null), MILESTONE_BAND_MS);
+    return () => window.clearTimeout(t);
+  }, [milestoneSeq]);
+  const flagWaving = active && isGoalFlagWaving(traveledMeters, routeMeters);
   const [box, setBox] = useState<BoxState>({
     w: 0,
     h: 0,
@@ -273,7 +318,7 @@ export function RouteMinimap({ active, routeGeometry, liveLngLat, mapboxAccessTo
             cy={layout.start.y}
             r={3.4}
           />
-          <GoalFlag x={layout.end.x} y={layout.end.y} boxW={box.w} />
+          <GoalFlag x={layout.end.x} y={layout.end.y} boxW={box.w} waving={flagWaving} />
           {livePt ? (
             <g className="route-minimap__live">
               <circle
@@ -287,6 +332,11 @@ export function RouteMinimap({ active, routeGeometry, liveLngLat, mapboxAccessTo
             </g>
           ) : null}
         </svg>
+      ) : null}
+      {milestone ? (
+        <div key={milestone.seq} className="route-minimap__milestone" role="status">
+          {RIDE_MILESTONE_TEXT[milestone.kind]}
+        </div>
       ) : null}
     </div>
   );

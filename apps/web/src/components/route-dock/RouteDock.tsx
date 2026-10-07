@@ -284,34 +284,45 @@ export function RouteDock(props: RouteDockProps) {
           aria-hidden={!expanded}
         >
         {!ridingDiet && stage === "ready-to-start" && resumeRatio != null ? (
-          <div className="route-dock__resume" role="radiogroup" aria-label="이어 달리기">
-            <label className="route-dock__resume-option">
-              <input
-                type="radio"
-                name="route-dock-resume"
-                checked={!restartFromZero}
-                onChange={() => setRestartFromZero(false)}
-              />
-              <span>
-                {Math.round(resumeRatio * 100)}% 지점부터 <strong>이어달리기</strong>
-              </span>
-            </label>
-            <label className="route-dock__resume-option">
-              <input
-                type="radio"
-                name="route-dock-resume"
-                checked={restartFromZero}
-                onChange={() => setRestartFromZero(true)}
-              />
-              <span>처음부터</span>
-            </label>
+          <div className="route-dock__resume">
+            {/*
+              선택지 두 줄 + 옆쪽 사각 「종료」 버튼 — 종전엔 버튼이 가로 한 줄을 통째로 먹었다
+              (2026-10-08 Chief). 라디오 묶음과 버튼은 역할이 달라 radiogroup 밖에 둔다.
+            */}
+            <div className="route-dock__resume-options" role="radiogroup" aria-label="이어 달리기">
+              <label className="route-dock__resume-option">
+                <input
+                  type="radio"
+                  name="route-dock-resume"
+                  checked={!restartFromZero}
+                  onChange={() => setRestartFromZero(false)}
+                />
+                <span>
+                  {/* 「지점」을 덜어 한 줄에 — 옆에 종료 버튼이 서면서 두 줄로 꺾였다(2026-10-08) */}
+                  {Math.round(resumeRatio * 100)}%부터 <strong>이어달리기</strong>
+                </span>
+              </label>
+              <label className="route-dock__resume-option">
+                <input
+                  type="radio"
+                  name="route-dock-resume"
+                  checked={restartFromZero}
+                  onChange={() => setRestartFromZero(true)}
+                />
+                <span>처음부터</span>
+              </label>
+            </div>
             {props.onAbandonResume ? (
               <button
                 type="button"
                 className="route-dock__abandon-resume"
+                title="이어달리기 종료"
+                aria-label="이어달리기 종료"
                 onClick={props.onAbandonResume}
               >
-                이어달리기 종료
+                이어달리기
+                <br />
+                종료
               </button>
             ) : null}
           </div>

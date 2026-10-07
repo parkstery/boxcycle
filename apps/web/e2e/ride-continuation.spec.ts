@@ -380,7 +380,7 @@ test.describe('다음 주행 · 이어 달리기', () => {
     await resumeBtn.click()
     const start = page.getByRole('button', { name: '주행 시작' })
     await expect(start).toBeVisible({ timeout: 20_000 })
-    await expect(page.getByText(`${resumePct}% 지점부터`)).toBeVisible()
+    await expect(page.getByText(`${resumePct}%부터`)).toBeVisible()
     // §3.4 — 완료 구간·남은 구간·재개점 마커가 함께 보이는 준비 화면을 증거로 남긴다.
     await expect(page.locator('.map-view__resume-marker')).toBeVisible({ timeout: 15_000 })
     await page.screenshot({ path: RC1_RESUME_READY_EVIDENCE_PATH })

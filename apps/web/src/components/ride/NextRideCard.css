@@ -144,32 +144,8 @@
   background: rgba(248, 250, 252, 0.18);
 }
 
-/* 보조 동작 — 풀 폭 주요 버튼이 되지 않게 내용 폭만 (D2·D3·D6) */
-.next-ride__abandon {
-  align-self: flex-end;
-  flex: 0 0 auto;
-  min-height: 2.75rem;
-  margin: 0;
-  padding: 0.35rem 0.45rem;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: inherit;
-  opacity: 0.7;
-  font-size: 0.72rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.next-ride__abandon:hover {
-  opacity: 1;
-  background: rgba(248, 250, 252, 0.1);
-}
-
 .next-ride__btn:focus-visible,
-.next-ride__dismiss:focus-visible,
-.next-ride__abandon:focus-visible {
+.next-ride__dismiss:focus-visible {
   outline: 2px solid var(--rtw-accent, #e8a33d);
   outline-offset: 2px;
 }

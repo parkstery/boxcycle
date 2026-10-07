@@ -7,7 +7,9 @@ import {
   composeNextRideStory,
   composePeriodStory,
   composeRideEndStory,
+  detectRideMilestone,
   formatStoryKm,
+  isGoalFlagWaving,
   koreanOrdinal,
   type RideStoryFacts,
 } from "../../src/lib/ride/rideStory.ts";
@@ -264,5 +266,36 @@ describe("계정 패널 한 줄 — §5 M4", () => {
       composePeriodStory({ period: "day", sessions: rides, range: day }),
       "오늘 한 번에 3.0km를 달리셨어요.",
     );
+  });
+});
+
+describe("주행 중 이정표 — §5 M2(미니맵, C5)", () => {
+  it("절반을 지나는 순간에만", () => {
+    assert.equal(detectRideMilestone(990, 1010, 2000), "halfway");
+    assert.equal(detectRideMilestone(1010, 1030, 2000), null, "이미 지난 뒤엔 다시 말하지 않는다");
+    assert.equal(detectRideMilestone(980, 999, 2000), null);
+  });
+
+  it("이어달리기 시작 같은 큰 점프는 지나감이 아니다", () => {
+    assert.equal(detectRideMilestone(0, 1200, 2000), null);
+  });
+
+  it("뒤로 가거나 멈춰 있으면 말하지 않는다", () => {
+    assert.equal(detectRideMilestone(1010, 990, 2000), null);
+    assert.equal(detectRideMilestone(1000, 1000, 2000), null);
+  });
+
+  it("1km 남음 — 3km 이상 경로에서만(짧으면 절반보다 먼저 와 순서가 뒤집힌다)", () => {
+    assert.equal(detectRideMilestone(16890, 16910, 17900), "lastKm");
+    assert.equal(detectRideMilestone(990, 1010, 2000), "halfway");
+    assert.equal(detectRideMilestone(1490, 1510, 2500), null, "2.5km 경로의 1km 남음은 말하지 않는다");
+  });
+
+  it("깃발 펄럭임 — 남은 1km 이내, 짧은 경로는 마지막 25%", () => {
+    assert.equal(isGoalFlagWaving(16950, 17900), true);
+    assert.equal(isGoalFlagWaving(16800, 17900), false);
+    assert.equal(isGoalFlagWaving(1600, 2000), true);
+    assert.equal(isGoalFlagWaving(1400, 2000), false);
+    assert.equal(isGoalFlagWaving(2000, 2000), false, "도착하면 멈춘다");
   });
 });

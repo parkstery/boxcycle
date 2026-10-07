@@ -232,8 +232,8 @@
 /* 이어 달리기(§9.5.5 단위7) — 미완주 저장 경로 로드 시 재개/처음부터 선택 */
 .route-dock__resume {
   display: flex;
-  flex-direction: column;
-  gap: 0.22rem;
+  align-items: stretch;
+  gap: 0.4rem;
   flex: 0 0 auto;
   padding: 0.32rem 0.4rem;
   border-radius: 8px;
@@ -241,7 +241,45 @@
   border: 1px solid rgba(232, 163, 61, 0.35);
 }
 
+.route-dock__resume-options {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.22rem;
+}
+
+/* 이어달리기 종료 — 선택지 옆 사각 버튼(두 줄 높이). 가로 한 줄을 차지하지 않는다(2026-10-08 Chief) */
+.route-dock__abandon-resume {
+  flex: 0 0 auto;
+  min-width: 3.4rem;
+  min-height: 44px;
+  padding: 0.2rem 0.4rem;
+  border-radius: 7px;
+  border: 1px solid rgba(248, 250, 252, 0.22);
+  background: rgba(10, 16, 26, 0.45);
+  color: var(--rtw-text, #f8fafc);
+  font: inherit;
+  font-size: 0.62rem;
+  font-weight: 650;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+}
+
+.route-dock__abandon-resume:hover {
+  border-color: rgba(248, 113, 113, 0.5);
+  color: #fca5a5;
+}
+
+.route-dock__abandon-resume:focus-visible {
+  outline: 2px solid var(--rtw-accent, #e8a33d);
+  outline-offset: 1px;
+}
+
 .route-dock__resume-option {
+  white-space: nowrap;
   display: flex;
   align-items: center;
   gap: 0.35rem;

@@ -311,3 +311,44 @@ export function composePeriodStory(input: {
   if (days === 1) return `${word} ${rides.length}번 페달을 밟으셨어요. 어느새 ${km}예요.`;
   return `${word} ${days}일 페달을 밟으셨어요. 어느새 ${km}예요.`;
 }
+
+/** 주행 중 이정표 — 원칙 문서 §5 M2. 미니맵 띠로 잠깐 보인다(C5) */
+export type RideMilestoneKind = "halfway" | "lastKm";
+
+export const RIDE_MILESTONE_TEXT: Record<RideMilestoneKind, string> = {
+  halfway: "절반 왔어요.",
+  lastKm: "1km 남았어요. 거의 다 왔어요.",
+};
+
+/** 「1km 남음」은 이 길이 이상 경로에서만 — 짧은 경로에선 절반보다 먼저 와 순서가 뒤집힌다 */
+export const RIDE_MILESTONE_LAST_KM_MIN_ROUTE_METERS = 3000;
+/** 한 번에 이만큼 넘게 뛴 진행은 「지나감」이 아니다 — 이어달리기 시작 시 0 → 60% 점프 등 */
+const MILESTONE_MAX_STEP_METERS = 200;
+
+/**
+ * 이번 진행 갱신에서 넘은 이정표(N8 — 이정표에서만 말한다). 실제로 **지나갈 때만** 돌려준다.
+ * @param prevMeters 직전 갱신의 경로상 누적 거리
+ * @param nowMeters 이번 갱신의 경로상 누적 거리
+ */
+export function detectRideMilestone(
+  prevMeters: number,
+  nowMeters: number,
+  routeMeters: number,
+): RideMilestoneKind | null {
+  if (!(routeMeters > 0) || !Number.isFinite(prevMeters) || !Number.isFinite(nowMeters)) return null;
+  if (nowMeters <= prevMeters || nowMeters - prevMeters > MILESTONE_MAX_STEP_METERS) return null;
+  const half = routeMeters / 2;
+  if (prevMeters < half && nowMeters >= half) return "halfway";
+  if (routeMeters >= RIDE_MILESTONE_LAST_KM_MIN_ROUTE_METERS) {
+    const lastKm = routeMeters - 1000;
+    if (prevMeters < lastKm && nowMeters >= lastKm) return "lastKm";
+  }
+  return null;
+}
+
+/** 종점 깃발이 펄럭이는 구간 — 남은 거리 1km 이내(짧은 경로는 마지막 25%) */
+export function isGoalFlagWaving(nowMeters: number, routeMeters: number): boolean {
+  if (!(routeMeters > 0) || !Number.isFinite(nowMeters)) return false;
+  const left = routeMeters - nowMeters;
+  return left > 0 && left <= Math.min(1000, routeMeters * 0.25);
+}

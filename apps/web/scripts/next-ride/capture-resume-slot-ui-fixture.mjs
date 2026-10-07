@@ -54,7 +54,6 @@ async function main() {
     });
     await page.goto(url, { waitUntil: "networkidle", timeout: 90_000 });
     await page.getByRole("group", { name: /다음 주행/ }).waitFor({ state: "visible", timeout: 45_000 });
-    await page.getByTitle("이어달리기 종료").waitFor({ state: "visible" });
     await page.screenshot({ path: outPng, fullPage: false });
     console.log("captured", outPng);
   } finally {
