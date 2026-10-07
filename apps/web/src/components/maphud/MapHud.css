@@ -1119,7 +1119,8 @@
   gap: 0.45rem;
   max-width: 100%;
   padding: 0.1rem 0.15rem;
-  color: #f8fafc;
+  /* 문구도 저항 표시(R1)와 같은 골드(2026-10-07 Chief) — 한 줄이 한 색으로 읽히게 */
+  color: var(--rtw-trace);
   font-size: 0.78rem;
   font-weight: 600;
   text-align: center;
