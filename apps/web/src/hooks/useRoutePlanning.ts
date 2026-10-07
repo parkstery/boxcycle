@@ -4,7 +4,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type MutableRefObject,
 } from "react";
@@ -43,12 +42,11 @@ export function useRoutePlanning(options: UseRoutePlanningOptions) {
 
   const [startLngLat, setStartLngLat] = useState<LngLat | null>(null);
   const [endLngLat, setEndLngLat] = useState<LngLat | null>(null);
-  const [startPlaceLabel, setStartPlaceLabel] = useState<string | null>(null);
-  const [endPlaceLabel, setEndPlaceLabel] = useState<string | null>(null);
   const [routeWaypoints, setRouteWaypoints] = useState<LngLat[]>([]);
-  const [waypointPlaceLabels, setWaypointPlaceLabels] = useState<(string | null)[]>([]);
-  const routeWaypointsGeocodeRef = useRef(routeWaypoints);
-  routeWaypointsGeocodeRef.current = routeWaypoints;
+  const geocodeToken = mapboxAccessToken.trim();
+  const startPlaceLabel = useReverseGeocodedLabel(startLngLat, geocodeToken);
+  const endPlaceLabel = useReverseGeocodedLabel(endLngLat, geocodeToken);
+  const waypointPlaceLabels = useReverseGeocodedLabels(routeWaypoints, geocodeToken);
 
   const [profile, setProfile] = useState<RouteProfile>("cycling");
   const [routeGeometry, setRouteGeometry] = useState<LineStringGeometry | null>(null);
@@ -76,100 +74,6 @@ export function useRoutePlanning(options: UseRoutePlanningOptions) {
     if (!startLngLat || !user) return;
     prewarmRouteFunctions(user, "getMapboxDirections", "getDistanceAutoRoute");
   }, [startLngLat, user]);
-
-  useEffect(() => {
-    if (!startLngLat) {
-      setStartPlaceLabel(null);
-      return;
-    }
-    const token = mapboxAccessToken.trim();
-    if (!token) {
-      setStartPlaceLabel(formatLngLat(startLngLat));
-      return;
-    }
-    const ac = new AbortController();
-    setStartPlaceLabel(null);
-    void (async () => {
-      try {
-        const name = await fetchMapboxReverseGeocodePlaceName(startLngLat, token, ac.signal);
-        if (ac.signal.aborted) return;
-        setStartPlaceLabel((name && name.trim()) || formatLngLat(startLngLat));
-      } catch {
-        if (ac.signal.aborted) return;
-        setStartPlaceLabel(formatLngLat(startLngLat));
-      }
-    })();
-    return () => ac.abort();
-  }, [startLngLat, mapboxAccessToken]);
-
-  useEffect(() => {
-    if (!endLngLat) {
-      setEndPlaceLabel(null);
-      return;
-    }
-    const token = mapboxAccessToken.trim();
-    if (!token) {
-      setEndPlaceLabel(formatLngLat(endLngLat));
-      return;
-    }
-    const ac = new AbortController();
-    setEndPlaceLabel(null);
-    void (async () => {
-      try {
-        const name = await fetchMapboxReverseGeocodePlaceName(endLngLat, token, ac.signal);
-        if (ac.signal.aborted) return;
-        setEndPlaceLabel((name && name.trim()) || formatLngLat(endLngLat));
-      } catch {
-        if (ac.signal.aborted) return;
-        setEndPlaceLabel(formatLngLat(endLngLat));
-      }
-    })();
-    return () => ac.abort();
-  }, [endLngLat, mapboxAccessToken]);
-
-  useEffect(() => {
-    const wps = routeWaypoints;
-    const snapshot = JSON.stringify(wps);
-    const ac = new AbortController();
-
-    if (wps.length === 0) {
-      setWaypointPlaceLabels([]);
-      return () => ac.abort();
-    }
-
-    const token = mapboxAccessToken.trim();
-    if (!token) {
-      setWaypointPlaceLabels(wps.map(formatLngLat));
-      return () => ac.abort();
-    }
-
-    setWaypointPlaceLabels(wps.map(() => null));
-
-    void (async () => {
-      try {
-        const resolved = await Promise.all(
-          wps.map(async (wp) => {
-            try {
-              const name = await fetchMapboxReverseGeocodePlaceName(wp, token, ac.signal);
-              if (ac.signal.aborted) return formatLngLat(wp);
-              return (name && name.trim()) || formatLngLat(wp);
-            } catch {
-              return formatLngLat(wp);
-            }
-          }),
-        );
-        if (ac.signal.aborted) return;
-        if (JSON.stringify(routeWaypointsGeocodeRef.current) !== snapshot) return;
-        setWaypointPlaceLabels(resolved);
-      } catch {
-        if (ac.signal.aborted) return;
-        if (JSON.stringify(routeWaypointsGeocodeRef.current) !== snapshot) return;
-        setWaypointPlaceLabels(wps.map(formatLngLat));
-      }
-    })();
-
-    return () => ac.abort();
-  }, [routeWaypoints, mapboxAccessToken]);
 
   const startLabel = !startLngLat
     ? "미설정"
@@ -344,4 +248,67 @@ export function useRoutePlanning(options: UseRoutePlanningOptions) {
     clearRoutePins,
     applyRouteProfileFromMapPopup,
   };
+}
+
+/** 역지오코딩 결과 — 어느 입력의 결과인지(key) 함께 둬서, 입력이 바뀌면 렌더에서 「불러오는 중」(null)으로 본다. */
+type ResolvedLabels<T> = { key: string; value: T };
+
+/**
+ * 좌표 하나의 주소 라벨. null = 미설정 또는 불러오는 중(호출부가 lngLat 로 구분).
+ * 토큰이 없으면 좌표 문자열.
+ */
+function useReverseGeocodedLabel(lngLat: LngLat | null, token: string): string | null {
+  const key = lngLat ? JSON.stringify(lngLat) : "";
+  const [resolved, setResolved] = useState<ResolvedLabels<string> | null>(null);
+
+  useEffect(() => {
+    if (!lngLat || !token) return;
+    const ac = new AbortController();
+    void (async () => {
+      let label: string;
+      try {
+        const name = await fetchMapboxReverseGeocodePlaceName(lngLat, token, ac.signal);
+        label = (name && name.trim()) || formatLngLat(lngLat);
+      } catch {
+        label = formatLngLat(lngLat);
+      }
+      if (ac.signal.aborted) return;
+      setResolved({ key, value: label });
+    })();
+    return () => ac.abort();
+  }, [lngLat, key, token]);
+
+  if (!lngLat) return null;
+  if (!token) return formatLngLat(lngLat);
+  return resolved?.key === key ? resolved.value : null;
+}
+
+/** 경유지 주소 라벨 — 항목별 null = 불러오는 중. */
+function useReverseGeocodedLabels(points: LngLat[], token: string): (string | null)[] {
+  const key = JSON.stringify(points);
+  const [resolved, setResolved] = useState<ResolvedLabels<string[]> | null>(null);
+
+  useEffect(() => {
+    if (points.length === 0 || !token) return;
+    const ac = new AbortController();
+    void (async () => {
+      const labels = await Promise.all(
+        points.map(async (wp) => {
+          try {
+            const name = await fetchMapboxReverseGeocodePlaceName(wp, token, ac.signal);
+            return (name && name.trim()) || formatLngLat(wp);
+          } catch {
+            return formatLngLat(wp);
+          }
+        }),
+      );
+      if (ac.signal.aborted) return;
+      setResolved({ key, value: labels });
+    })();
+    return () => ac.abort();
+  }, [points, key, token]);
+
+  if (points.length === 0) return [];
+  if (!token) return points.map(formatLngLat);
+  return resolved?.key === key ? resolved.value : points.map(() => null);
 }

@@ -34,6 +34,11 @@ test.describe("주행 중 RouteDock", () => {
     await expect(stops.first()).toBeVisible({ timeout: 15_000 });
     const beforeCount = await stops.count();
     expect(beforeCount, "주행 전 경유지 수").toBeGreaterThan(0);
+    // 주소 라벨이 「불러오는 중」에 멈추지 않는다 — 역지오코딩 결과가 렌더에 반영된다
+    await expect(page.locator(".route-dock__stop-label").first()).not.toHaveText("주소 불러오는 중…", {
+      timeout: 15_000,
+    });
+    await page.screenshot({ path: path.join(OUT_DIR, "stops-labeled.png") });
 
     await startRide(page);
 
