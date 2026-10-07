@@ -1271,6 +1271,24 @@ export function scoreReadyOnewayWithClaim(input: {
   );
 }
 
+/**
+ * Ready Ride 단순 경로의 방위 시도 순서. 시작 표본을 회전시켜(기본 무작위) 같은 출발점이라도
+ * 사람마다 첫 경로가 달라지게 한다 — 종전엔 늘 0°(북)가 먼저 채택됐다(Chief 2026-10-07).
+ * 「다른 경로」의 직전 방위 제외는 회전 뒤에 적용한다.
+ */
+export function orderReadyBearingSamples(
+  excludeBearingsDeg: readonly number[] | undefined,
+  startIndex: number,
+): number[] {
+  const all = READY_LOOP_BEARING_SAMPLES_DEG as readonly number[];
+  const n = all.length;
+  const offset = ((Math.floor(startIndex) % n) + n) % n;
+  const rotated = [...all.slice(offset), ...all.slice(0, offset)];
+  const excludeSet = new Set(excludeBearingsDeg ?? []);
+  const filtered = rotated.filter((b) => !excludeSet.has(b));
+  return filtered.length > 0 ? filtered : rotated;
+}
+
 export async function searchReadyOnewayRoute(input: {
   start: LngLat;
   profile: RouteProfile;
@@ -1283,13 +1301,16 @@ export async function searchReadyOnewayRoute(input: {
    * 값이 있으면 예산 안 후보를 모아 신규도로·자기중복으로 순위만 바꾼다.
    */
   claimedCellIds?: ReadonlySet<string>;
+  /** 첫 방위 표본 인덱스. 생략하면 무작위 — 시험에서 고정한다. */
+  bearingStartIndex?: number;
 }): Promise<ReadyOnewaySearchResult> {
   const { start, profile, targetDistanceMeters: D, fetchDirections } = input;
   const budget = input.maxProviderCalls ?? MAX_AUTO_ROUTE_PROVIDER_CALLS;
   const searchStartedAt = Date.now();
-  const excludeSet = new Set(input.excludeBearingsDeg ?? []);
-  const filtered = READY_LOOP_BEARING_SAMPLES_DEG.filter((b) => !excludeSet.has(b));
-  const bearingSamples = filtered.length > 0 ? filtered : READY_LOOP_BEARING_SAMPLES_DEG;
+  const bearingSamples = orderReadyBearingSamples(
+    input.excludeBearingsDeg,
+    input.bearingStartIndex ?? Math.floor(Math.random() * READY_LOOP_BEARING_SAMPLES_DEG.length),
+  );
   const claimed = input.claimedCellIds;
   const useClaimRank = Boolean(claimed && claimed.size > 0);
 

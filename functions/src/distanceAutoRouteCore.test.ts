@@ -21,6 +21,7 @@ import {
   scoreReadyOnewayWithClaim,
   validateRouteGeometryPlausibility,
   type LngLat,
+  orderReadyBearingSamples,
 } from "./distanceAutoRouteCore.js";
 
 const REAL_ROUTE_START: LngLat = [126.9016, 37.5563];
@@ -171,4 +172,14 @@ test("지시08 — z12 청크는 출발점 반경으로만 좁힌다", () => {
   const ids = chunkIdsCoveringRadius([127.0276, 37.4979], 4500);
   assert.ok(ids.length >= 1 && ids.length <= 9, `got ${ids.length}: ${ids.join(",")}`);
   assert.ok(ids.every((id) => id.startsWith("12_")));
+});
+
+test("Ready Ride — 시작 인덱스로 방위 순서가 회전한다(늘 북쪽부터가 아니다)", () => {
+  assert.deepEqual(orderReadyBearingSamples(undefined, 0), [0, 72, 144, 216, 288]);
+  assert.deepEqual(orderReadyBearingSamples(undefined, 2), [144, 216, 288, 0, 72]);
+  assert.deepEqual(orderReadyBearingSamples(undefined, 7), [144, 216, 288, 0, 72]);
+});
+
+test("Ready Ride — 「다른 경로」 직전 방위 제외는 회전 뒤에 적용된다", () => {
+  assert.deepEqual(orderReadyBearingSamples([144], 2), [216, 288, 0, 72]);
 });
