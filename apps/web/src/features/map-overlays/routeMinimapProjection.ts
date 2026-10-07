@@ -12,6 +12,8 @@ import {
 } from "../../lib/geo/geo";
 
 export const ROUTE_MINIMAP_PAD_PX = 6;
+/** 위쪽 여백 — 종점 깃발(높이 ~13px)이 상자 위로 잘리지 않게 */
+export const ROUTE_MINIMAP_PAD_TOP_PX = 16;
 export const ROUTE_MINIMAP_MAX_COORDS = 1000;
 /** Mapbox GL·Static Images 의 세계 한 변 픽셀(zoom 0) */
 const MERCATOR_TILE_PX = 512;
@@ -77,6 +79,7 @@ export function projectRouteMinimap(
   width: number,
   height: number,
   padPx: number = ROUTE_MINIMAP_PAD_PX,
+  padTopPx: number = padPx,
 ): RouteMinimapProjection | null {
   const original = geometry.coordinates as LngLat[];
   if (!original.length || !(width > 0) || !(height > 0)) return null;
@@ -90,18 +93,23 @@ export function projectRouteMinimap(
   const dy = Math.max(EPS, se.y - nw.y);
 
   const innerW = Math.max(1, width - 2 * padPx);
-  const innerH = Math.max(1, height - 2 * padPx);
+  const innerH = Math.max(1, height - padTopPx - padPx);
 
   // 이미지 URL 에 들어갈 값으로 먼저 반올림하고, SVG 도 그 값으로 투영한다 — 둘이 따로 놀지 않게.
   const zoomFit = Math.log2(Math.min(innerW / (MERCATOR_TILE_PX * dx), innerH / (MERCATOR_TILE_PX * dy)));
   const zoom = Math.max(0, Math.min(ROUTE_MINIMAP_MAX_ZOOM, Math.floor(zoomFit * 100) / 100));
-  const centerRaw = mercatorToLngLat((nw.x + se.x) / 2, (nw.y + se.y) / 2);
+  const scale = MERCATOR_TILE_PX * 2 ** zoom;
+  // 위아래 여백이 다르면 bbox 중심을 상자 중심보다 (padTop − pad)/2 만큼 아래에 그린다 —
+  // 이미지 중심(= 상자 중심)은 그만큼 위로 옮긴다.
+  const centerRaw = mercatorToLngLat(
+    (nw.x + se.x) / 2,
+    (nw.y + se.y) / 2 - (padTopPx - padPx) / 2 / scale,
+  );
   const center: LngLat = [
     Math.round(centerRaw[0] * 1e6) / 1e6,
     Math.round(centerRaw[1] * 1e6) / 1e6,
   ];
   const c = mercatorXY(center);
-  const scale = MERCATOR_TILE_PX * 2 ** zoom;
 
   const project = (lngLat: LngLat): MinimapPoint => {
     const m = mercatorXY(lngLat);

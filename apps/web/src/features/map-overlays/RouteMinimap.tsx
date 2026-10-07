@@ -1,9 +1,12 @@
 import { useLayoutEffect, useMemo, useRef, useState, type PointerEvent, type TouchEvent } from "react";
 import type { LineStringGeometry, LngLat } from "../../lib/geo/geo";
 import { ROUTE_LINE_COLOR } from "../../components/map/routeConquestLayers";
+import { ridePulseAnimationDelay } from "../../lib/ride/ridePulse";
 import {
   computeRouteMinimapSize,
   projectRouteMinimap,
+  ROUTE_MINIMAP_PAD_PX,
+  ROUTE_MINIMAP_PAD_TOP_PX,
   routeMinimapStaticImageUrl,
 } from "./routeMinimapProjection";
 import "./RouteMinimap.css";
@@ -32,6 +35,53 @@ type BoxState = {
 function remToPx(rem: number): number {
   const root = parseFloat(getComputedStyle(document.documentElement).fontSize);
   return (Number.isFinite(root) ? root : 16) * rem;
+}
+
+/** 펄스 위상을 메인 지도 내 위치 마커·HUD 와 같은 격자에 못 박는다 — 마운트 때 한 번만 */
+function lockRidePulsePhase(el: SVGCircleElement | null): void {
+  if (el && !el.style.animationDelay) el.style.animationDelay = ridePulseAnimationDelay();
+}
+
+/** 종점 깃발 — 장대 밑동이 종점. 오른쪽 끝에 붙으면 깃발을 왼쪽으로 단다 */
+const FLAG_POLE_H = 13;
+const FLAG_W = 9;
+const FLAG_H = 6;
+
+function GoalFlag({ x, y, boxW }: { x: number; y: number; boxW: number }) {
+  const dir = x + FLAG_W + 2 > boxW ? -1 : 1;
+  const top = y - FLAG_POLE_H;
+  const cell = FLAG_W / 3;
+  const cells = [];
+  for (let r = 0; r < 2; r++) {
+    for (let c = 0; c < 3; c++) {
+      const cx = dir > 0 ? x + c * cell : x - (c + 1) * cell;
+      cells.push(
+        <rect
+          key={`${r}-${c}`}
+          x={cx}
+          y={top + r * (FLAG_H / 2)}
+          width={cell}
+          height={FLAG_H / 2}
+          fill={(r + c) % 2 === 0 ? "#10151f" : "#ffffff"}
+        />,
+      );
+    }
+  }
+  return (
+    <g className="route-minimap__goal">
+      <line className="route-minimap__goal-pole" x1={x} y1={y} x2={x} y2={top} />
+      {cells}
+      <rect
+        className="route-minimap__goal-frame"
+        x={dir > 0 ? x : x - FLAG_W}
+        y={top}
+        width={FLAG_W}
+        height={FLAG_H}
+        fill="none"
+      />
+      <circle className="route-minimap__goal-base" cx={x} cy={y} r={1.8} />
+    </g>
+  );
 }
 
 function nearlySame(a: number, b: number, eps = 1): boolean {
@@ -149,7 +199,7 @@ export function RouteMinimap({ active, routeGeometry, liveLngLat, mapboxAccessTo
 
   const layout = useMemo(() => {
     if (!routeGeometry || box.w < 8 || box.h < 8) return null;
-    return projectRouteMinimap(routeGeometry, box.w, box.h);
+    return projectRouteMinimap(routeGeometry, box.w, box.h, ROUTE_MINIMAP_PAD_PX, ROUTE_MINIMAP_PAD_TOP_PX);
   }, [routeGeometry, box.w, box.h]);
 
   // 경로·상자 크기가 같으면 같은 URL — 주행 중 재요청 없음.
@@ -221,16 +271,20 @@ export function RouteMinimap({ active, routeGeometry, liveLngLat, mapboxAccessTo
             className="route-minimap__endpoint route-minimap__endpoint--start"
             cx={layout.start.x}
             cy={layout.start.y}
-            r={3.2}
+            r={3.4}
           />
-          <circle
-            className="route-minimap__endpoint route-minimap__endpoint--end"
-            cx={layout.end.x}
-            cy={layout.end.y}
-            r={3.2}
-          />
+          <GoalFlag x={layout.end.x} y={layout.end.y} boxW={box.w} />
           {livePt ? (
-            <circle className="route-minimap__live" cx={livePt.x} cy={livePt.y} r={3.5} />
+            <g className="route-minimap__live">
+              <circle
+                ref={lockRidePulsePhase}
+                className="route-minimap__live-pulse"
+                cx={livePt.x}
+                cy={livePt.y}
+                r={4}
+              />
+              <circle className="route-minimap__live-core" cx={livePt.x} cy={livePt.y} r={3.6} />
+            </g>
           ) : null}
         </svg>
       ) : null}

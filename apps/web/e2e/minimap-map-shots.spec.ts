@@ -4,6 +4,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   projectRouteMinimap,
+  ROUTE_MINIMAP_PAD_PX,
+  ROUTE_MINIMAP_PAD_TOP_PX,
   routeMinimapStaticImageUrl,
 } from "../src/features/map-overlays/routeMinimapProjection";
 import type { LngLat } from "../src/lib/geo/geo";
@@ -49,6 +51,8 @@ test.describe("미니맵 정지 지도", () => {
       { type: "LineString", coordinates: [points.start!, points.mid!, points.end!] },
       W,
       H,
+      ROUTE_MINIMAP_PAD_PX,
+      ROUTE_MINIMAP_PAD_TOP_PX, // 제품과 같은 비대칭 여백(깃발 자리) — 중심 이동까지 검산한다
     );
     expect(layout).not.toBeNull();
     const base = routeMinimapStaticImageUrl(layout!, W, H, token)!;
@@ -160,20 +164,64 @@ test.describe("미니맵 정지 지도", () => {
     expect(after, "주행 중 재요청 없음").toBe(first);
 
     await page.screenshot({ path: path.join(OUT_DIR, "01-outdoors-740x300.png") });
-    // 3배 확대 — 미니맵 영역만 잘라 픽셀 그대로 3배로 다시 찍는다
     const clip = box!;
-    const crop = await page.screenshot({
-      clip: { x: clip.x - 4, y: clip.y - 4, width: clip.width + 8, height: clip.height + 8 },
+    await zoomShot(page, { x: clip.x - 4, y: clip.y - 4, width: clip.width + 8, height: clip.height + 8 }, "02-outdoors-zoom.png");
+
+    // 펄스 — 미니맵과 메인 지도 내 위치 마커가 같은 박자·같은 위상(트래픽 없는 로컬 애니메이션)
+    const probe = await page.evaluate(() => {
+      const read = (sel: string) => {
+        const el = document.querySelector(sel);
+        const a = el?.getAnimations()[0];
+        const t = a?.effect?.getComputedTiming();
+        return el && a && typeof t?.progress === "number"
+          ? { progress: t.progress, duration: getComputedStyle(el).animationDuration }
+          : null;
+      };
+      return { mini: read(".route-minimap__live-pulse"), main: read(".map-view__self-location-pulse") };
     });
-    const zoom = await page.context().newPage();
-    const zw = Math.ceil((clip.width + 8) * 3);
-    const zh = Math.ceil((clip.height + 8) * 3);
-    await zoom.setViewportSize({ width: zw, height: zh });
-    await zoom.setContent(
-      `<body style="margin:0"><img src="data:image/png;base64,${crop.toString("base64")}" style="width:${zw}px;height:${zh}px;image-rendering:pixelated"></body>`,
-    );
-    await zoom.screenshot({ path: path.join(OUT_DIR, "02-outdoors-zoom.png") });
-    await zoom.close();
+    expect(probe.mini, "미니맵 펄스 애니메이션").not.toBeNull();
+    expect(probe.main, "메인 지도 펄스 애니메이션").not.toBeNull();
+    expect(probe.mini!.duration).toBe(probe.main!.duration);
+    const diff = Math.abs(probe.mini!.progress - probe.main!.progress);
+    console.log(`[minimap-pulse] mini=${probe.mini!.progress.toFixed(3)} main=${probe.main!.progress.toFixed(3)}`);
+    expect(Math.min(diff, 1 - diff), "미니맵·메인 펄스 위상").toBeLessThan(0.03);
+    await expect(page.locator(".route-minimap__goal")).toHaveCount(1);
+
+    // 캡처용으로 펄스를 퍼지는 중간(30%)에 멈춘다 — 매 캡처 직전(스타일 전환이 마커를 다시 만들 수 있다)
+    const freezePulse = () =>
+      page.evaluate(() => {
+        for (const el of document.querySelectorAll(".route-minimap__live-pulse,.map-view__self-location-pulse")) {
+          for (const a of el.getAnimations()) {
+            const timing = a.effect!.getTiming();
+            const period = Number(timing.duration);
+            const delay = Number(timing.delay ?? 0);
+            let local = 0.3 * period + delay; // active = local − delay
+            while (local < 0) local += period;
+            a.pause();
+            a.currentTime = local;
+          }
+        }
+      });
+    await freezePulse();
+    await zoomShot(page, { x: clip.x - 4, y: clip.y - 4, width: clip.width + 8, height: clip.height + 8 }, "06-goal-pulse-zoom.png");
+    const markerBox = async () => {
+      const b = (await page.locator(".map-view__self-location-host").boundingBox())!;
+      const cx = b.x + b.width / 2;
+      const cy = b.y + b.height / 2;
+      return { x: Math.max(0, cx - 60), y: Math.max(0, cy - 50), width: 120, height: 100 };
+    };
+    // 지금 스타일과 다른 스타일(위성↔야외) 두 장 — 펄스가 둘 다에서 읽히는지
+    const styleBtn = page.locator(".hud-ride-map-controls__style");
+    for (let i = 0; i < 2; i++) {
+      const label = (await styleBtn.innerText()).trim() === "위성" ? "satellite" : "outdoors";
+      await freezePulse();
+      await zoomShot(page, await markerBox(), `07-pulse-${label}.png`);
+      await page.screenshot({ path: path.join(OUT_DIR, `08-${label}-740x300.png`) });
+      if (i === 0) {
+        await styleBtn.click();
+        await page.waitForTimeout(5_000); // 새 스타일 타일
+      }
+    }
   });
 
   test("정지 지도가 실패하면 어두운 배경으로 남는다", async ({ page }) => {
@@ -217,4 +265,22 @@ async function loadIntroCourse(page: import("@playwright/test").Page) {
 async function startRide(page: import("@playwright/test").Page) {
   await page.getByRole("button", { name: "주행 시작" }).click();
   await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled({ timeout: 30_000 });
+}
+
+/** 화면 일부를 잘라 픽셀 그대로 3배로 다시 찍는다 */
+async function zoomShot(
+  page: import("@playwright/test").Page,
+  clip: { x: number; y: number; width: number; height: number },
+  name: string,
+) {
+  const crop = await page.screenshot({ clip });
+  const zoom = await page.context().newPage();
+  const zw = Math.ceil(clip.width * 3);
+  const zh = Math.ceil(clip.height * 3);
+  await zoom.setViewportSize({ width: zw, height: zh });
+  await zoom.setContent(
+    `<body style="margin:0"><img src="data:image/png;base64,${crop.toString("base64")}" style="width:${zw}px;height:${zh}px;image-rendering:pixelated"></body>`,
+  );
+  await zoom.screenshot({ path: path.join(OUT_DIR, name) });
+  await zoom.close();
 }

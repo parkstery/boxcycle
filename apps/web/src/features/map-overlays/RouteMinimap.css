@@ -74,30 +74,77 @@
 }
 
 .route-minimap__endpoint {
-  stroke: rgba(2, 6, 23, 0.9);
-  stroke-width: 1.25;
+  stroke: #ffffff;
+  stroke-width: 1.4;
 }
 
+/* 시점 — 메인 지도 「S」 핀과 같은 초록 */
 .route-minimap__endpoint--start {
-  fill: #94a3b8;
+  fill: #16a34a;
 }
 
-.route-minimap__endpoint--end {
-  fill: #e2e8f0;
+/* 종점 — 체크무늬 깃발(목표) */
+.route-minimap__goal-pole {
+  stroke: #10151f;
+  stroke-width: 1.4;
+  stroke-linecap: round;
 }
 
-.route-minimap__live {
-  fill: #e8a33d;
-  stroke: #f8fafc;
-  stroke-width: 1.75;
+.route-minimap__goal-frame {
+  stroke: #10151f;
+  stroke-width: 0.8;
 }
 
-/* 밝은 지도 위 — 흰 외곽선 + 진한 선, 현재 위치는 진한 테두리 */
+.route-minimap__goal-base {
+  fill: #10151f;
+  stroke: #ffffff;
+  stroke-width: 1;
+}
+
+/*
+ * 현재 위치 — 메인 지도 내 위치 마커와 같은 파랑 + 같은 박자·같은 위상의 펄스.
+ * 펄스는 브라우저 안 CSS 애니메이션이라 네트워크 요청이 없다.
+ */
+.route-minimap__live-core {
+  fill: #1d4ed8;
+  stroke: #ffffff;
+  stroke-width: 1.6;
+}
+
+.route-minimap__live-pulse {
+  /* 작은 상자라 메인 지도보다 더 멀리 퍼뜨린다(반경 4 → ~18px). 밝은 지도 위라 테는 진한 파랑 */
+  fill: rgba(59, 130, 246, 0.42);
+  stroke: rgba(29, 78, 216, 0.95);
+  stroke-width: 1;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: route-minimap-live-pulse var(--rtw-ride-pulse-period, 2.2s) ease-out infinite;
+}
+
+@keyframes route-minimap-live-pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.95;
+  }
+  75% {
+    transform: scale(4.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(4.5);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-minimap__live-pulse {
+    animation: none;
+    opacity: 0.4;
+    transform: scale(1.6);
+  }
+}
+
+/* 밝은 지도 위 — 경로선에 흰 외곽선 */
 .route-minimap--map .route-minimap__path-outline {
   stroke: rgba(255, 255, 255, 0.95);
-}
-
-.route-minimap--map .route-minimap__live {
-  stroke: #10151f;
-  stroke-width: 1.5;
 }
