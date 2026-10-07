@@ -1713,20 +1713,41 @@ export function MapView({
       return;
     }
 
-    const routeFeature = {
-      type: "Feature" as const,
-      properties: {} as Record<string, never>,
-      geometry: routeGeometry,
-    };
-
-    if (map.getSource("route")) {
-      (map.getSource("route") as mapboxgl.GeoJSONSource).setData(routeFeature);
-      if (map.getLayer("route")) {
-        map.setPaintProperty("route", "line-color", ROUTE_LINE_COLOR);
+    const ensureRouteLine = (geometry: LineStringGeometry) => {
+      const routeFeature = {
+        type: "Feature" as const,
+        properties: {} as Record<string, never>,
+        geometry,
+      };
+      if (map.getSource("route")) {
+        (map.getSource("route") as mapboxgl.GeoJSONSource).setData(routeFeature);
+        if (map.getLayer("route")) {
+          map.setPaintProperty("route", "line-color", ROUTE_LINE_COLOR);
+        }
+      } else {
+        map.addSource("route", { type: "geojson", data: routeFeature });
+        addRouteLine(map, routeLayerInsertBefore(map));
       }
-    } else {
-      map.addSource("route", { type: "geojson", data: routeFeature });
-      addRouteLine(map, routeLayerInsertBefore(map));
+    };
+    /*
+     * 스타일을 다시 읽는 중이면 addSource 가 「Style is not done loading」을 던진다. effect 안의
+     * throw 는 React 가 잡지 못해 **앱 전체가 흰 화면**이 됐다 — 주행 종료 직후 결과 시트가
+     * 사라지던 원인(2026-10-08, e2e 8회 중 4회 재현). 던지면 다음 idle 에 **그때의 최신 경로**로
+     * 다시 그린다. isStyleLoaded() 로 막지 않는다 — 라이브 소스가 도는 동안 영영 false 다.
+     */
+    try {
+      ensureRouteLine(routeGeometry);
+    } catch {
+      const retry = () => {
+        const latest = routeGeometryRef.current;
+        if (!latest?.coordinates?.length) return;
+        try {
+          ensureRouteLine(latest);
+        } catch {
+          map.once("idle", retry);
+        }
+      };
+      map.once("idle", retry);
     }
 
     if (shouldMoveActivityWorldLayersToTop()) {
