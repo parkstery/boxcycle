@@ -1,6 +1,11 @@
 import { useLayoutEffect, useMemo, useRef, useState, type PointerEvent, type TouchEvent } from "react";
 import type { LineStringGeometry, LngLat } from "../../lib/geo/geo";
-import { computeRouteMinimapSize, projectRouteMinimap } from "./routeMinimapProjection";
+import { ROUTE_LINE_COLOR } from "../../components/map/routeConquestLayers";
+import {
+  computeRouteMinimapSize,
+  projectRouteMinimap,
+  routeMinimapStaticImageUrl,
+} from "./routeMinimapProjection";
 import "./RouteMinimap.css";
 
 export type RouteMinimapProps = {
@@ -9,6 +14,8 @@ export type RouteMinimapProps = {
   routeGeometry: LineStringGeometry | null;
   /** 경로 폴리라인 위의 현재 위치 */
   liveLngLat: LngLat | null;
+  /** 배경 정지 지도용. 비면 어두운 배경으로 폴백 */
+  mapboxAccessToken: string;
 };
 
 const GAP_REM = 0.35;
@@ -32,11 +39,11 @@ function nearlySame(a: number, b: number, eps = 1): boolean {
 }
 
 /**
- * 주행 중 좌측 미니맵 — SVG.
+ * 주행 중 좌측 미니맵 — Outdoors 정지 지도 한 장 + SVG 경로·현재 위치.
  * 위치는 RouteDock·좌상단 **실측**. 접힘/펼침 높이를 따라가며 dock 위에 붙인다(지시07).
  * 탭 없음 · 터치 지도 전파 차단.
  */
-export function RouteMinimap({ active, routeGeometry, liveLngLat }: RouteMinimapProps) {
+export function RouteMinimap({ active, routeGeometry, liveLngLat, mapboxAccessToken }: RouteMinimapProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState<BoxState>({
     w: 0,
@@ -89,7 +96,9 @@ export function RouteMinimap({ active, routeGeometry, liveLngLat }: RouteMinimap
         availH = Math.max(40, vh * 0.35);
       }
 
-      const next = computeRouteMinimapSize(vw, vh, availH);
+      const fit = computeRouteMinimapSize(vw, vh, availH);
+      // 정지 지도는 정수 px 로만 요청된다 — 상자도 정수로 맞춰야 이미지와 SVG 배율이 같다.
+      const next = { ...fit, width: Math.floor(fit.width), height: Math.floor(fit.height) };
       setBox((prev) => {
         if (
           nearlySame(prev.w, next.width, 0.5) &&
@@ -143,6 +152,15 @@ export function RouteMinimap({ active, routeGeometry, liveLngLat }: RouteMinimap
     return projectRouteMinimap(routeGeometry, box.w, box.h);
   }, [routeGeometry, box.w, box.h]);
 
+  // 경로·상자 크기가 같으면 같은 URL — 주행 중 재요청 없음.
+  const mapImageUrl = useMemo(
+    () => (layout ? routeMinimapStaticImageUrl(layout, box.w, box.h, mapboxAccessToken) : null),
+    [layout, box.w, box.h, mapboxAccessToken],
+  );
+  // 실패한 URL 을 기억해 어두운 배경으로 폴백한다(깨진 이미지 아이콘 금지). URL 이 바뀌면 다시 시도.
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
+  const showMap = mapImageUrl != null && failedImageUrl !== mapImageUrl;
+
   const livePt = useMemo(() => {
     if (!layout || !liveLngLat) return null;
     return layout.project(liveLngLat);
@@ -162,7 +180,7 @@ export function RouteMinimap({ active, routeGeometry, liveLngLat }: RouteMinimap
   return (
     <div
       ref={rootRef}
-      className={`route-minimap hud-glass${measured ? "" : " route-minimap--css-fallback"}`}
+      className={`route-minimap hud-glass${showMap ? " route-minimap--map" : ""}${measured ? "" : " route-minimap--css-fallback"}`}
       role="img"
       aria-hidden
       aria-label="경로 미니맵"
@@ -179,6 +197,17 @@ export function RouteMinimap({ active, routeGeometry, liveLngLat }: RouteMinimap
       onPointerDown={blockMap}
       onTouchStart={blockMap}
     >
+      {showMap ? (
+        <img
+          className="route-minimap__map"
+          src={mapImageUrl}
+          alt=""
+          width={box.w}
+          height={box.h}
+          draggable={false}
+          onError={() => setFailedImageUrl(mapImageUrl)}
+        />
+      ) : null}
       {layout && box.w >= 8 && box.h >= 8 ? (
         <svg
           className="route-minimap__svg"
@@ -187,7 +216,7 @@ export function RouteMinimap({ active, routeGeometry, liveLngLat }: RouteMinimap
           viewBox={`0 0 ${box.w} ${box.h}`}
         >
           <path className="route-minimap__path-outline" d={layout.pathD} fill="none" />
-          <path className="route-minimap__path" d={layout.pathD} fill="none" />
+          <path className="route-minimap__path" d={layout.pathD} fill="none" stroke={ROUTE_LINE_COLOR} />
           <circle
             className="route-minimap__endpoint route-minimap__endpoint--start"
             cx={layout.start.x}

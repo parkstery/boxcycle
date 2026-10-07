@@ -30,6 +30,9 @@
 
 ### 2. 미니맵 배경이 검다 — 실제 지도(Outdoors)가 나와야 한다 — `보류01`
 
+> **완료(2026-10-07, Claude 직접)** — Static 정지 지도 1장 + Web Mercator. 정합 0.22px 이하·주행 중 재요청 0회·실패 시 어두운 배경 폴백.
+> 스타일은 chief 결정으로 **Outdoors 고정**(지시서 §1 「mapStyle 따름」은 폐기). 검산: `apps/web/e2e/minimap-map-shots.spec.ts`
+
 - 감리 설계 오류였다. 「SVG 한 장」으로 확정할 때 지도 타일 자리를 만들지 않았다
 - **방향**: 두 번째 GL 인스턴스가 아니라 **Static Images API 정지 이미지 1장**.
   경로 bbox 는 주행 내내 불변 → **요청 1회**. 움직이는 현재 위치만 SVG 로 위에 얹는다

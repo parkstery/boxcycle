@@ -2819,6 +2819,7 @@ export default function App() {
                 active={stage === "riding" || stage === "paused"}
                 routeGeometry={routeGeometry}
                 liveLngLat={liveForMap}
+                mapboxAccessToken={MAPBOX_TOKEN}
               />
             }
             routeDock={

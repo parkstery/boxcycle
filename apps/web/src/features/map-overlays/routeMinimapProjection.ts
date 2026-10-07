@@ -1,6 +1,9 @@
 /**
- * 미니맵 등축 투영 — SVG 경로용 순수 함수.
- * 가로·세로 배율은 min 하나, 경도에는 cos(중심위도) 보정.
+ * 미니맵 투영 — **Web Mercator**(Mapbox 타일과 같은 투영). 배경 정지 지도와 SVG 경로가 겹치게
+ * 이미지 요청과 SVG 가 **같은 center·zoom** 을 쓴다(2026-10-07, 보류01).
+ *
+ * 전에는 cos(위도) 보정 등거리 근사였다 — 지도 없이 선만 그릴 땐 충분했지만
+ * Mapbox 이미지 위에 얹으면 위도 37°·수 km 에서 수 px 미끄러진다.
  */
 import {
   boundsFromLineCoordinates,
@@ -10,6 +13,11 @@ import {
 
 export const ROUTE_MINIMAP_PAD_PX = 6;
 export const ROUTE_MINIMAP_MAX_COORDS = 1000;
+/** Mapbox GL·Static Images 의 세계 한 변 픽셀(zoom 0) */
+const MERCATOR_TILE_PX = 512;
+/** 한 점·아주 짧은 경로가 끝없이 확대되지 않게 */
+export const ROUTE_MINIMAP_MAX_ZOOM = 17;
+const MERCATOR_MAX_LAT = 85.0511;
 
 export type MinimapPoint = { x: number; y: number };
 
@@ -18,10 +26,15 @@ export type RouteMinimapProjection = {
   start: MinimapPoint;
   end: MinimapPoint;
   project: (lngLat: LngLat) => MinimapPoint;
-  /** 투영 공간 bbox 가로/세로 (경도 cos 보정 후) */
+  /** 정지 지도 요청과 SVG 가 공유하는 중심 — 소수 6자리로 반올림된 값(요청 URL 과 같다) */
+  center: LngLat;
+  /** 같은 이유로 소수 2자리 내림 — 경로가 상자 밖으로 나가지 않게 내림 */
+  zoom: number;
+  /** 투영 공간 bbox 가로/세로 (Mercator) */
   bboxAspect: number;
   /** 그려진 경로 외접 상자 가로/세로 (SVG px) */
   drawnAspect: number;
+  /** Mercator 단위(세계=1) → px 배율 = 512·2^zoom */
   scale: number;
   coordCountOriginal: number;
   coordCountSampled: number;
@@ -39,6 +52,23 @@ function sampleCoords(coords: readonly LngLat[], maxCount: number): LngLat[] {
   return out;
 }
 
+/** 경위도 → Web Mercator 정규 좌표(세계 = 0..1, y 는 아래로 증가) */
+export function mercatorXY(lngLat: LngLat): { x: number; y: number } {
+  const [lng, lat] = lngLat;
+  const clamped = Math.max(-MERCATOR_MAX_LAT, Math.min(MERCATOR_MAX_LAT, lat));
+  const phi = (clamped * Math.PI) / 180;
+  return {
+    x: (lng + 180) / 360,
+    y: (1 - Math.log(Math.tan(phi) + 1 / Math.cos(phi)) / Math.PI) / 2,
+  };
+}
+
+function mercatorToLngLat(x: number, y: number): LngLat {
+  const lng = x * 360 - 180;
+  const lat = (Math.atan(Math.sinh(Math.PI * (1 - 2 * y))) * 180) / Math.PI;
+  return [lng, lat];
+}
+
 /**
  * @returns null — 좌표 없음. 축퇴(한 점)여도 NaN 없이 중앙 점 투영을 반환한다.
  */
@@ -53,39 +83,31 @@ export function projectRouteMinimap(
 
   const sampled = sampleCoords(original, ROUTE_MINIMAP_MAX_COORDS);
   const bounds = boundsFromLineCoordinates(sampled as [number, number][]);
-  const midLat = (bounds.minLat + bounds.maxLat) / 2;
-  const cosLat = Math.cos((midLat * Math.PI) / 180);
-  const cos = Number.isFinite(cosLat) && Math.abs(cosLat) > 1e-6 ? cosLat : 1e-6;
-
-  const x0 = bounds.minLng * cos;
-  const x1 = bounds.maxLng * cos;
-  const y0 = bounds.minLat;
-  const y1 = bounds.maxLat;
-  let dx = x1 - x0;
-  let dy = y1 - y0;
+  const nw = mercatorXY([bounds.minLng, bounds.maxLat]);
+  const se = mercatorXY([bounds.maxLng, bounds.minLat]);
+  const EPS = 1e-12;
+  const dx = Math.max(EPS, se.x - nw.x);
+  const dy = Math.max(EPS, se.y - nw.y);
 
   const innerW = Math.max(1, width - 2 * padPx);
   const innerH = Math.max(1, height - 2 * padPx);
 
-  const EPS = 1e-12;
-  const degenerate = dx < EPS && dy < EPS;
-  if (dx < EPS) dx = EPS;
-  if (dy < EPS) dy = EPS;
-
-  const scale = Math.min(innerW / dx, innerH / dy);
-  const usedW = dx * scale;
-  const usedH = dy * scale;
-  const ox = padPx + (innerW - usedW) / 2;
-  const oy = padPx + (innerH - usedH) / 2;
+  // 이미지 URL 에 들어갈 값으로 먼저 반올림하고, SVG 도 그 값으로 투영한다 — 둘이 따로 놀지 않게.
+  const zoomFit = Math.log2(Math.min(innerW / (MERCATOR_TILE_PX * dx), innerH / (MERCATOR_TILE_PX * dy)));
+  const zoom = Math.max(0, Math.min(ROUTE_MINIMAP_MAX_ZOOM, Math.floor(zoomFit * 100) / 100));
+  const centerRaw = mercatorToLngLat((nw.x + se.x) / 2, (nw.y + se.y) / 2);
+  const center: LngLat = [
+    Math.round(centerRaw[0] * 1e6) / 1e6,
+    Math.round(centerRaw[1] * 1e6) / 1e6,
+  ];
+  const c = mercatorXY(center);
+  const scale = MERCATOR_TILE_PX * 2 ** zoom;
 
   const project = (lngLat: LngLat): MinimapPoint => {
-    if (degenerate) {
-      return { x: width / 2, y: height / 2 };
-    }
-    const [lng, lat] = lngLat;
+    const m = mercatorXY(lngLat);
     return {
-      x: ox + (lng * cos - x0) * scale,
-      y: oy + (y1 - lat) * scale,
+      x: (m.x - c.x) * scale + width / 2,
+      y: (m.y - c.y) * scale + height / 2,
     };
   };
 
@@ -107,12 +129,45 @@ export function projectRouteMinimap(
     start: pts[0]!,
     end: pts[pts.length - 1]!,
     project,
+    center,
+    zoom,
     bboxAspect: dx / dy,
     drawnAspect: drawnH > EPS ? drawnW / drawnH : 1,
     scale,
     coordCountOriginal: original.length,
     coordCountSampled: sampled.length,
   };
+}
+
+/**
+ * 미니맵 배경 정지 지도(Mapbox Static Images API) URL — 주행 하나에 한 장.
+ * 경로 bbox 는 주행 동안 변하지 않으므로 호출부가 useMemo 로 고정하면 재요청이 없다.
+ *
+ * 스타일은 Outdoors 고정(2026-10-07 chief) — 위성은 이만한 크기로 줄이면 경로가 묻힌다.
+ * `logo=false&attribution=false` 는 같은 화면의 메인 지도가 이미 Mapbox·OSM 저작자 표시를
+ * 하고 있어서 허용된다(미니맵은 그 지도 위에 얹힌 보조 그림이다).
+ */
+export const ROUTE_MINIMAP_STATIC_STYLE = "mapbox/outdoors-v12";
+/** Static Images API 의 한 변 상한(논리 px) */
+const STATIC_MAX_SIDE_PX = 1280;
+
+export function routeMinimapStaticImageUrl(
+  layout: Pick<RouteMinimapProjection, "center" | "zoom">,
+  width: number,
+  height: number,
+  accessToken: string,
+  style: string = ROUTE_MINIMAP_STATIC_STYLE,
+): string | null {
+  const token = accessToken.trim();
+  const w = Math.round(width);
+  const h = Math.round(height);
+  if (!token || w < 1 || h < 1 || w > STATIC_MAX_SIDE_PX || h > STATIC_MAX_SIDE_PX) return null;
+  const [lng, lat] = layout.center;
+  return (
+    `https://api.mapbox.com/styles/v1/${style}/static/` +
+    `${lng},${lat},${layout.zoom},0,0/${w}x${h}@2x` +
+    `?access_token=${encodeURIComponent(token)}&attribution=false&logo=false`
+  );
 }
 
 /** 점과 폴리라인(샘플 SVG 점) 사이 최근접 거리 — 진척 검산용 */
