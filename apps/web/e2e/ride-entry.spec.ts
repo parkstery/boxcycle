@@ -22,7 +22,6 @@ const BASIC_INTRO_TITLES = [
   // 2026-09-27 추가 — 2 km. 앞의 셋이 전부 500 m 미만이라 몇 분짜리 계측이 완주해 버렸다.
   'Basic 4 · 암스테르담 폰델파크',
 ]
-const BASIC_INTRO_MAX_KM = 0.5
 
 /**
  * 실패 리소스 로그용 URL 마스킹.
@@ -89,7 +88,8 @@ test.describe('실주행 진입 시퀀스', () => {
     await expect(page.getByRole('button', { name: '주행 종료' })).toBeEnabled()
   })
 
-  test('입문 목록은 실도로 경로 3개이고 전부 0.5km 이하', async ({ page }) => {
+  // 0.5km 상한은 폐기(Chief 2026-10-07) — 긴 경로 주행 시험을 위해 입문에 2km 경로를 허용한다.
+  test('입문 목록은 실도로 경로이고 거리가 표시된다', async ({ page }) => {
     await enterAsGuest(page)
     const modal = await openBasicCourseModal(page)
 
@@ -100,26 +100,22 @@ test.describe('실주행 진입 시퀀스', () => {
       const item = items.nth(i)
       await expect(item.locator('.oc-modal__item-name')).toHaveText(BASIC_INTRO_TITLES[i]!)
 
-      // 부제 "자전거 · 0.41 km · 예상 …" — 실도로 seed 라면 전부 0.5km 이하여야 한다.
+      // 부제 "자전거 · 0.41 km · 예상 …" — 실도로 seed 라면 거리가 양수로 표시된다.
       const sub = (await item.locator('.oc-modal__item-sub').innerText()).trim()
       const km = Number(sub.match(/([\d.]+)\s*km/)?.[1])
       expect(Number.isFinite(km), `거리 파싱 실패: ${sub}`).toBe(true)
       expect(km).toBeGreaterThan(0)
-      expect(km).toBeLessThanOrEqual(BASIC_INTRO_MAX_KM)
     }
   })
 
-  test('입력 준비 전에는 Go 가 잠긴다', async ({ page }) => {
+  // 결정 로그 2026-09-28: 입력 기본값 「센서 없음」 — 센서 시트를 열지 않아도 Go 가 열린다.
+  test('센서 설정 없이도 경로를 고르면 Go 가 열린다', async ({ page }) => {
     await enterAsGuest(page)
     const modal = await openBasicCourseModal(page)
     await modal.locator('button.oc-modal__item').first().click()
 
-    // 기본 manual 초기값은 사용자의 선택이 아니다 — Go 는 disabled 여야 한다.
     const start = page.getByRole('button', { name: '주행 시작' })
     await expect(start).toBeVisible()
-    await expect(start).toBeDisabled()
-
-    await prepareManualRideInput(page)
     await expect(start).toBeEnabled()
   })
 
