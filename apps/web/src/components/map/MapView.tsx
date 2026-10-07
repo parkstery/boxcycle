@@ -1106,8 +1106,27 @@ export function MapView({
       syncActivityWorldLayersOnMapRef.current(map);
     });
 
-    map.on("moveend", reportMapViewport);
-    map.on("zoomend", reportMapViewport);
+    /*
+     * 팔로우 카메라는 매 프레임 jumpTo 하고, jumpTo 는 moveend·zoomend 를 **동기로** 쏜다.
+     * 그때마다 App 상태(중심·span)를 바꾸면 App 이하 전체가 매 프레임 다시 렌더된다 —
+     * 2026-10-08 실측 초당 10~27회, 메인 스레드 포화로 화면 떨림·동행 튐. 팔로우 중엔 1초에 1번.
+     * (주행 중 중심은 liveForMap 이 우선이고, span 은 카메라 거리가 고정이라 거의 변하지 않는다.)
+     */
+    const FOLLOW_VIEWPORT_REPORT_MS = 1000;
+    let followViewportReportedAt = Number.NEGATIVE_INFINITY;
+    const reportMapViewportAfterMove = () => {
+      if (!isFollowCameraJump()) {
+        reportMapViewport();
+        return;
+      }
+      const t = performance.now();
+      if (t - followViewportReportedAt < FOLLOW_VIEWPORT_REPORT_MS) return;
+      followViewportReportedAt = t;
+      reportMapViewport();
+    };
+
+    map.on("moveend", reportMapViewportAfterMove);
+    map.on("zoomend", reportMapViewportAfterMove);
     map.on("zoomend", reportMapZoomToApp);
     map.on("idle", reportMapViewport);
     map.on("move", scheduleLodViewportReport);
@@ -1629,8 +1648,8 @@ export function MapView({
     requestAnimationFrame(onResize);
 
     return () => {
-      map.off("moveend", reportMapViewport);
-      map.off("zoomend", reportMapViewport);
+      map.off("moveend", reportMapViewportAfterMove);
+      map.off("zoomend", reportMapViewportAfterMove);
       map.off("idle", reportMapViewport);
       map.off("move", scheduleLodViewportReport);
       map.off("zoom", scheduleLodViewportReport);
