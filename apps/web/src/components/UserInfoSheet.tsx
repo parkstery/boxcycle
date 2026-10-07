@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { composePeriodStory } from "../lib/ride/rideStory";
 import type { User } from "firebase/auth";
 import { loadRideSessionsForStatsFromFirestore } from "../lib/ride/repo/firestoreRides";
 import { isFirebaseConfigured } from "../lib/firebase/app";
@@ -358,6 +359,12 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
     () => aggregateRideStatsForPeriod(statsSessions, statsPeriod),
     [statsSessions, statsPeriod],
   );
+  // 스토리 한 줄(M4, 주행 스토리 원칙 §5) — 같은 거리도 어떻게 이어 왔는지로 말한다
+  const periodStory = useMemo(
+    () =>
+      composePeriodStory({ period: statsPeriod, sessions: statsSessions, range: periodStats.range }),
+    [statsPeriod, statsSessions, periodStats.range],
+  );
   const periodHasLegacyCalories = useMemo(() => {
     const start = periodStats.range.start.getTime();
     const end = periodStats.range.endExclusive.getTime();
@@ -583,6 +590,9 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
               <p className="user-info-sheet__stats-note" role="status">
                 {statsLoadNote}
               </p>
+            ) : null}
+            {!statsLoading && periodStory ? (
+              <p className="user-info-sheet__stats-story">{periodStory}</p>
             ) : null}
             <p className="user-info-sheet__stats-hero">
               <strong className="rtw-numeric">

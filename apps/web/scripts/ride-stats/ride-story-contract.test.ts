@@ -5,6 +5,7 @@ import { describe, it } from "node:test";
 import {
   buildRideStoryFacts,
   composeNextRideStory,
+  composePeriodStory,
   composeRideEndStory,
   koreanOrdinal,
   type RideStoryFacts,
@@ -211,5 +212,46 @@ describe("이어달리기 카드 한 줄 — §5 M1", () => {
   it("이어 달릴 경로가 없으면 — 오늘 탔을 때만 말하고, 아니면 null(날짜 줄을 쓴다)", () => {
     assert.equal(composeNextRideStory({ resume: null, lastRideEndedAtIso: today, now: NOW })?.kind, "todayAgain");
     assert.equal(composeNextRideStory({ resume: null, lastRideEndedAtIso: yesterday, now: NOW }), null);
+  });
+});
+
+describe("계정 패널 한 줄 — §5 M4", () => {
+  // 2026-10-05(월) ~ 10-12(월) — NOW(10-07 수) 가 든 주
+  const week = { start: new Date(2026, 9, 5), endExclusive: new Date(2026, 9, 12) };
+  const day = { start: new Date(2026, 9, 7), endExclusive: new Date(2026, 9, 8) };
+
+  it("Chief 예시 — 주 5일 × 4.2km 는 「5일」과 「어느새 21km」", () => {
+    const rides = [0, 1, 2, 3, 4].map((i) => session(`w${i}`, new Date(2026, 9, 5 + i, 7), 4200));
+    assert.equal(
+      composePeriodStory({ period: "week", sessions: rides, range: week }),
+      "이번 주 5일 페달을 밟으셨어요. 어느새 21.0km예요.",
+    );
+  });
+
+  it("Chief 예시 — 하루 한 번 42km 는 「한 번에」", () => {
+    assert.equal(
+      composePeriodStory({ period: "day", sessions: [session("a", at(0, 9), 42000)], range: day }),
+      "오늘 한 번에 42.0km를 달리셨어요.",
+    );
+  });
+
+  it("오늘 여러 번 — 횟수와 합계", () => {
+    const rides = [session("a", at(0, 8), 3000), session("b", at(0, 20), 2000)];
+    assert.equal(
+      composePeriodStory({ period: "day", sessions: rides, range: day }),
+      "오늘 2번 페달을 밟으셨어요. 합계 5.0km예요.",
+    );
+  });
+
+  it("그 기간에 주행이 없으면 말하지 않는다(N4)", () => {
+    assert.equal(composePeriodStory({ period: "week", sessions: [session("old", at(-30, 9))], range: week }), null);
+  });
+
+  it("같은 주행 두 줄(로컬판·서버판)은 한 번만 센다", () => {
+    const rides = [session("l", at(0, 8), 3000), session("s", at(0, 8), 3000, { serverRideId: "s" })];
+    assert.equal(
+      composePeriodStory({ period: "day", sessions: rides, range: day }),
+      "오늘 한 번에 3.0km를 달리셨어요.",
+    );
   });
 });

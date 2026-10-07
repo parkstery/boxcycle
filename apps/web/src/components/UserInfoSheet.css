@@ -639,6 +639,15 @@
   white-space: nowrap;
 }
 
+/* 스토리 한 줄(M4) — 바로 아래 거리 숫자가 골드라, 문장은 밝은 흰색으로 숫자를 받쳐 준다 */
+.user-info-sheet__stats-story {
+  margin: 0.2rem 0 0;
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1.35;
+  color: var(--rtw-text-primary, #f8fafc);
+}
+
 .user-info-sheet__stats-hero {
   display: flex;
   align-items: baseline;

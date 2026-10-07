@@ -100,6 +100,19 @@ test.describe("주행 스토리", () => {
       await expect(story).toHaveText(/오늘 한 번 더 이어 가 볼까요\?|절반을 넘으셨어요/);
       await card.screenshot({ path: path.join(OUT_DIR, `next-ride-${vp.name}.png`) });
       await page.screenshot({ path: path.join(OUT_DIR, `next-ride-full-${vp.name}.png`) });
+
+      // M4 — 계정 패널 「오늘」 탭: 오전 3km + 방금 주행 = 2번(서버 통계 기준, 백필 중복 없이)
+      await page.getByRole("button", { name: "사용자 정보" }).click();
+      const info = page.getByRole("dialog", { name: "사용자 정보" });
+      await expect(info).toBeVisible({ timeout: 15_000 });
+      const periodStory = info.locator(".user-info-sheet__stats-story");
+      await expect(periodStory).toHaveText(/^오늘 2번 페달을 밟으셨어요\. 합계 3\.\dkm예요\.$/, { timeout: 20_000 });
+      console.log(`[ride-story] ${vp.name} account-day=${(await periodStory.textContent())?.trim()}`);
+      await info.screenshot({ path: path.join(OUT_DIR, `account-day-${vp.name}.png`) });
+      await info.getByRole("tab", { name: "주간" }).click();
+      await expect(periodStory).toHaveText(/^이번 주 /);
+      console.log(`[ride-story] ${vp.name} account-week=${(await periodStory.textContent())?.trim()}`);
+      await info.screenshot({ path: path.join(OUT_DIR, `account-week-${vp.name}.png`) });
     });
   }
 });

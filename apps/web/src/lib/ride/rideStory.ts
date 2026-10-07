@@ -265,3 +265,50 @@ export function composeNextRideStory(input: {
   }
   return null;
 }
+
+/** 계정 패널 기간 — rideStatsAggregate 의 `RideStatsPeriod` 와 같은 값 */
+export type RideStoryPeriod = "day" | "week" | "month" | "year";
+
+const PERIOD_WORD: Record<RideStoryPeriod, string> = {
+  day: "오늘",
+  week: "이번 주",
+  month: "이번 달",
+  year: "올해",
+};
+
+/**
+ * 계정 패널 한 줄(M4) — 「요즘 나는 어떻게 이어 가고 있나」.
+ *
+ * 같은 거리도 **어떻게 이어 왔는지**로 말한다. 여러 날에 걸쳤으면 탄 날 수를, 한 번에 달렸으면
+ * 그 한 번을. 둘 중 누구도 더 훌륭하지 않다(원칙 §5 M4). 그 기간에 주행이 없으면 말하지 않는다(N4).
+ *
+ * @param range 집계 기간 — 화면 숫자 타일과 같은 범위(`getRideStatsPeriodRange`)
+ */
+export function composePeriodStory(input: {
+  period: RideStoryPeriod;
+  sessions: readonly StoredRideSession[];
+  range: { start: Date; endExclusive: Date };
+}): string | null {
+  const start = input.range.start.getTime();
+  const end = input.range.endExclusive.getTime();
+  const seen = new Set<string>();
+  const rides: StoredRideSession[] = [];
+  for (const s of input.sessions) {
+    if (isDiscardableRideRecord(s.distanceMeters, s.elapsedSec)) continue;
+    const t = Date.parse(s.endedAt);
+    if (!Number.isFinite(t) || t < start || t >= end) continue;
+    const key = rideSessionFingerprint(s) ?? s.id;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    rides.push(s);
+  }
+  if (rides.length === 0) return null;
+
+  const word = PERIOD_WORD[input.period];
+  const km = formatStoryKm(rides.reduce((sum, s) => sum + s.distanceMeters, 0));
+  if (rides.length === 1) return `${word} 한 번에 ${km}를 달리셨어요.`;
+  if (input.period === "day") return `${word} ${rides.length}번 페달을 밟으셨어요. 합계 ${km}예요.`;
+  const days = new Set(rides.map((s) => localDayKey(new Date(s.endedAt)))).size;
+  if (days === 1) return `${word} ${rides.length}번 페달을 밟으셨어요. 어느새 ${km}예요.`;
+  return `${word} ${days}일 페달을 밟으셨어요. 어느새 ${km}예요.`;
+}
