@@ -95,6 +95,28 @@ function parseBody(data: unknown): {
   return { start, end, profile, waypoints: parseWaypoints(waypoints), requestId: parseRequestId(requestId) };
 }
 
+function isWarmRequest(rawBody: unknown): boolean {
+  return (rawBody as { data?: { warm?: unknown } } | null)?.data?.warm === true;
+}
+
+/**
+ * 미리 깨우기(`{ data: { warm: true } }`) — 새 인스턴스의 첫 실요청이 치르는 지연 초기화
+ * (Firestore 채널·Admin 액세스 토큰·Auth 공개키)를 사용자가 End·방향을 고르는 사이에 먼저 치른다.
+ * 읽기만 하고 토큰·문서는 건드리지 않는다. GET 만으로는 컨테이너만 뜨고 이 초기화는 남는다(실측 2026-10-07).
+ */
+async function warmRouteServerClients(uid: string): Promise<void> {
+  await Promise.all([loadRouteTokenEconomy(), getAuth().getUser(uid)]);
+}
+
+async function respondWarm(res: Response, uid: string): Promise<void> {
+  try {
+    await warmRouteServerClients(uid);
+  } catch (e) {
+    console.warn("route warm failed", e);
+  }
+  res.status(200).json({ result: { warm: true } });
+}
+
 /**
  * Mapbox Directions (서버 시크릿).
  *
@@ -144,6 +166,11 @@ export const getMapboxDirections = onRequest(
         res.status(err.httpErrorCode.status).json({ error: err.toJSON() });
         return;
       }
+    }
+
+    if (isWarmRequest(rawBody)) {
+      await respondWarm(res, uid);
+      return;
     }
 
     try {
@@ -406,6 +433,11 @@ export const getDistanceAutoRoute = onRequest(
         res.status(err.httpErrorCode.status).json({ error: err.toJSON() });
         return;
       }
+    }
+
+    if (isWarmRequest(rawBody)) {
+      await respondWarm(res, uid);
+      return;
     }
 
     try {

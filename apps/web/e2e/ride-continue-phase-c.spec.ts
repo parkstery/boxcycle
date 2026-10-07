@@ -1,5 +1,6 @@
 import { test, expect, type Page } from './open-meteo-stub'
 import { readGuestUid } from './readGuestUid'
+import { isRouteWarmRequest } from './route-warm-request'
 
 /**
  * R1 단계 C — 자동 Route 3회 연속 루프.
@@ -97,7 +98,7 @@ async function pickDirectionAndWaitRoute(
   directionOffset: { x: number; y: number },
 ) {
   const autoRoutePromise = page.waitForResponse(
-    (r) => r.request().method() === 'POST' && r.url().includes('getDistanceAutoRoute') && r.ok(),
+    (r) => r.request().method() === 'POST' && r.url().includes('getDistanceAutoRoute') && !isRouteWarmRequest(r) && r.ok(),
     { timeout: 120_000 },
   )
   await clickMap(page, directionOffset.x, directionOffset.y)

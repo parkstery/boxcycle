@@ -1,4 +1,5 @@
 import { test, expect, type Page } from './open-meteo-stub'
+import { isRouteWarmRequest } from './route-warm-request'
 
 /**
  * 5A §2 재현 계측 — **원인 A(우리 우회 waypoint) vs B(provider 경로)** 를 가른다.
@@ -165,6 +166,7 @@ test.describe('5A §2 — 자동 Route 중복 구간 재현 계측', () => {
         (r) =>
           r.request().method() === 'POST' &&
           r.url().includes('getDistanceAutoRoute') &&
+          !isRouteWarmRequest(r) &&
           r.ok(),
         { timeout: 120_000 },
       )

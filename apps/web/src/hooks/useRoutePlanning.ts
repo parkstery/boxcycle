@@ -19,6 +19,7 @@ import { MAX_ROUTE_WAYPOINTS } from "../lib/geo/routeWaypoints";
 import { lockRouteWorkspaceDuringRide } from "../lib/route/routeWorkspaceLock";
 import { fetchRouteByProfile, formatDuration, type RouteProfile } from "../services/mapboxDirections";
 import { fetchMapboxReverseGeocodePlaceName } from "../services/mapboxReverseGeocode";
+import { prewarmRouteFunctions } from "../services/routeFunctionsPrewarm";
 import { useVirtualRideSession } from "./useVirtualRideSession";
 
 export type UseRoutePlanningOptions = {
@@ -69,6 +70,12 @@ export function useRoutePlanning(options: UseRoutePlanningOptions) {
     routeGeometry,
     routeDistanceMeters,
   });
+
+  // Start 가 찍히면 End·방향을 고르는 사이에 경로 Functions cold start 를 끝내 둔다.
+  useEffect(() => {
+    if (!startLngLat || !user) return;
+    prewarmRouteFunctions(user, "getMapboxDirections", "getDistanceAutoRoute");
+  }, [startLngLat, user]);
 
   useEffect(() => {
     if (!startLngLat) {

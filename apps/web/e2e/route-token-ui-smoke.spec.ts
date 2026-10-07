@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { harnessControl, pollInspectUser } from "../scripts/route-token/harness-control.mjs";
 import { HARNESS_TEST_ECONOMY } from "../scripts/route-token/harness-test-economy.mjs";
+import { isRouteWarmRequest } from "./route-warm-request";
 
 const LIVE = process.env.ROUTE_TOKEN_UI_LIVE === "1";
 const FORCE_FAIL = process.env.ROUTE_TOKEN_UI_FORCE_FAIL === "1";
@@ -105,6 +106,7 @@ async function waitForDirectionsPost(
     (r) =>
       r.request().method() === "POST" &&
       r.url().includes("getMapboxDirections") &&
+      !isRouteWarmRequest(r) &&
       r.status() === 200,
     { timeout: 90_000 },
   );

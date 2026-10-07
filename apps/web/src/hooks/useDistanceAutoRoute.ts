@@ -19,6 +19,7 @@ import {
   validateDistanceAutoRouteTargetKm,
   DISTANCE_AUTO_ROUTE_DEFAULT_KM,} from "../lib/route/distanceAutoRouteErrors";
 import { fetchDistanceAutoRoute } from "../services/distanceAutoRouteApi";
+import { prewarmRouteFunctions } from "../services/routeFunctionsPrewarm";
 import type { RouteProfile } from "../services/mapboxDirections";
 import type { ScoredAutoRoute } from "../lib/route/distanceAutoRoute";
 
@@ -206,6 +207,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
         return validated;
       }
 
+      prewarmRouteFunctions(user, "getDistanceAutoRoute");
       setDistanceDirectionModeState(true);
       setSessionActive(true);
       setPopupPickBound(true);
