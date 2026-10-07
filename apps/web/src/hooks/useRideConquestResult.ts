@@ -34,9 +34,17 @@ export function useRideConquestResult(
   const [result, setResult] = useState<RideConquestResult>(EMPTY_CONQUEST_RESULT);
   const subscriptionRef = useRef<RideConquestSubscription | null>(null);
 
+  const hasKey = Boolean(serverRideId && userId);
+  const [prevHasKey, setPrevHasKey] = useState(hasKey);
+  if (hasKey !== prevHasKey) {
+    setPrevHasKey(hasKey);
+    if (!hasKey) setResult(EMPTY_CONQUEST_RESULT);
+  }
+
   useEffect(() => {
     if (!serverRideId || !userId) {
-      setResult(EMPTY_CONQUEST_RESULT);
+      subscriptionRef.current?.dispose();
+      subscriptionRef.current = null;
       return;
     }
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { LngLat } from "../lib/geo/geo";
 import {
   fetchMapboxForwardGeocodeSuggestions,
@@ -16,22 +16,43 @@ type MenuPlaceSearchProps = {
   onPickPlace: (lngLat: LngLat, placeName: string, bbox: MapboxGeocodeBbox | null) => void;
 };
 
+type FetchResolved = {
+  key: string;
+  suggestions: MapboxGeocodeSuggestion[];
+  loading: boolean;
+  fetchError: string | null;
+};
+
+function buildFetchKey(open: boolean, debounced: string, accessToken: string): string {
+  const token = accessToken.trim();
+  if (!open || debounced.length < 2 || !token) return "";
+  return `${debounced}|${token}`;
+}
+
 export function MenuPlaceSearch({ accessToken, open, onPickPlace }: MenuPlaceSearchProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
-  const [suggestions, setSuggestions] = useState<MapboxGeocodeSuggestion[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [resolved, setResolved] = useState<FetchResolved | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   const wasMenuOpenRef = useRef(false);
 
+  const fetchKey = buildFetchKey(open, debounced, accessToken);
+  const suggestions = resolved?.key === fetchKey ? resolved.suggestions : [];
+  const fetchError = resolved?.key === fetchKey ? resolved.fetchError : null;
+  const loading = Boolean(fetchKey) && (resolved?.key !== fetchKey || resolved.loading);
+
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (!open) {
+      setResolved(null);
+    }
+  }
+
   useEffect(() => {
     if (!open) {
-      setSuggestions([]);
-      setFetchError(null);
-      setLoading(false);
       abortRef.current?.abort();
       abortRef.current = null;
       return;
@@ -41,7 +62,7 @@ export function MenuPlaceSearch({ accessToken, open, onPickPlace }: MenuPlaceSea
   }, [open]);
 
   /** 메뉴를 막 연 직후: 직전 검색어로 debounced 를 맞춰 자동완성이 바로 동작하게 함 */
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (open && !wasMenuOpenRef.current) {
       setDebounced(query.trim());
     }
@@ -54,37 +75,38 @@ export function MenuPlaceSearch({ accessToken, open, onPickPlace }: MenuPlaceSea
   }, [query]);
 
   useEffect(() => {
-    const token = accessToken.trim();
-    if (!open || debounced.length < 2 || !token) {
-      setSuggestions([]);
-      setFetchError(null);
-      setLoading(false);
+    if (!fetchKey) {
+      abortRef.current?.abort();
+      abortRef.current = null;
       return;
     }
+
+    const sep = fetchKey.indexOf("|");
+    const debouncedQuery = fetchKey.slice(0, sep);
+    const token = fetchKey.slice(sep + 1);
 
     abortRef.current?.abort();
     const ac = new AbortController();
     abortRef.current = ac;
-    setSuggestions([]);
-    setLoading(true);
-    setFetchError(null);
 
     void (async () => {
       try {
-        const list = await fetchMapboxForwardGeocodeSuggestions(debounced, token, ac.signal);
+        const list = await fetchMapboxForwardGeocodeSuggestions(debouncedQuery, token, ac.signal);
         if (ac.signal.aborted) return;
-        setSuggestions(list);
+        setResolved({ key: fetchKey, suggestions: list, loading: false, fetchError: null });
       } catch (e) {
         if (ac.signal.aborted) return;
-        setSuggestions([]);
-        setFetchError(e instanceof Error ? e.message : "검색에 실패했습니다.");
-      } finally {
-        if (!ac.signal.aborted) setLoading(false);
+        setResolved({
+          key: fetchKey,
+          suggestions: [],
+          loading: false,
+          fetchError: e instanceof Error ? e.message : "검색에 실패했습니다.",
+        });
       }
     })();
 
     return () => ac.abort();
-  }, [debounced, accessToken, open]);
+  }, [fetchKey]);
 
   const handlePick = useCallback(
     async (s: MapboxGeocodeSuggestion) => {
@@ -104,9 +126,10 @@ export function MenuPlaceSearch({ accessToken, open, onPickPlace }: MenuPlaceSea
       }
       onPickPlace(lngLat, s.placeName, bbox);
       setQuery(s.placeName);
-      setSuggestions([]);
+      const key = buildFetchKey(open, debounced, accessToken);
+      setResolved(key ? { key, suggestions: [], loading: false, fetchError: null } : null);
     },
-    [accessToken, onPickPlace],
+    [accessToken, onPickPlace, open, debounced],
   );
 
   const tokenOk = accessToken.trim().length > 0;

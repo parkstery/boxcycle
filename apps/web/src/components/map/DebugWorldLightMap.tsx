@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import type { FeatureCollection, Point } from "geojson";
@@ -214,8 +214,10 @@ export function DebugWorldLightMap({
   const styleReloadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onMapZoomRef = useRef(onMapZoom);
   const onMapViewportRef = useRef(onMapViewport);
-  onMapZoomRef.current = onMapZoom;
-  onMapViewportRef.current = onMapViewport;
+  useLayoutEffect(() => {
+    onMapZoomRef.current = onMapZoom;
+    onMapViewportRef.current = onMapViewport;
+  }, [onMapZoom, onMapViewport]);
 
   const defaultCenter = useMemo<LngLat>(() => [8.04, 46.63], []);
 

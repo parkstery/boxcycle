@@ -115,12 +115,17 @@ export function useMapDebugPhaseBPulseDot(enabled: boolean): {
   const [dot, setDot] = useState<ActivityWorldMapDot | null>(null);
   const [meta, setMeta] = useState<MapDebugPhaseBMeta>({ rowCount: 0, fetchError: null });
 
-  useEffect(() => {
+  const [prevEnabled, setPrevEnabled] = useState(enabled);
+  if (enabled !== prevEnabled) {
+    setPrevEnabled(enabled);
     if (!enabled) {
       setDot(null);
       setMeta({ rowCount: 0, fetchError: null });
-      return;
     }
+  }
+
+  useEffect(() => {
+    if (!enabled) return;
 
     let cancelled = false;
     const tick = async () => {

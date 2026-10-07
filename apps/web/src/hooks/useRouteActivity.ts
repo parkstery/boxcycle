@@ -1,5 +1,5 @@
 import type { User } from "firebase/auth";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import {
   fetchRouteActivity,
   invalidateRouteActivityCache,
@@ -25,7 +25,6 @@ export function useRouteActivity(options: UseRouteActivityOptions) {
   const [error, setError] = useState<string | null>(null);
 
   const selfRideRef = useRef(selfRideActive);
-  selfRideRef.current = selfRideActive;
 
   const reload = useCallback(async (opts?: { forceInvalidate?: boolean }) => {
     const id = publicationId?.trim();
@@ -47,7 +46,20 @@ export function useRouteActivity(options: UseRouteActivityOptions) {
   }, [configured, user, publicationId]);
 
   const reloadRef = useRef(reload);
-  reloadRef.current = reload;
+
+  useLayoutEffect(() => {
+    selfRideRef.current = selfRideActive;
+    reloadRef.current = reload;
+  }, [selfRideActive, reload]);
+
+  const [prevEnabled, setPrevEnabled] = useState(enabled);
+  if (enabled !== prevEnabled) {
+    setPrevEnabled(enabled);
+    if (!enabled) {
+      setActivity(null);
+      setError(null);
+    }
+  }
 
   const applyRideCompletedOptimistic = useCallback(() => {
     const id = publicationId?.trim();
@@ -55,13 +67,6 @@ export function useRouteActivity(options: UseRouteActivityOptions) {
     markRouteActivityRideCompletedOptimistic(id);
     void reloadRef.current({ forceInvalidate: false });
   }, [publicationId]);
-
-  useEffect(() => {
-    if (!enabled) {
-      setActivity(null);
-      setError(null);
-    }
-  }, [enabled]);
 
   useActivityWorldAdaptivePoll({
     enabled,

@@ -1,4 +1,4 @@
-import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ActivityWorldMapDot, ActivityWorldMapRoute } from "../lib/activity/activityWorldLod";
 import {
   ACTIVITY_TRACE_LIVE_STRENGTH,
@@ -190,13 +190,33 @@ export function usePublishedCoursesActivityMapOverlay(
     ReadonlyMap<string, RouteActivitySnapshot | null>
   >(() => new Map());
   const [overlayCandidateIds, setOverlayCandidateIds] = useState<string[]>([]);
-  const [overlayEpoch, setOverlayEpoch] = useState(0);
   const geomByCourseRef = useRef<Map<string, GeomEntry>>(new Map());
   const boundsByCourseRef = useRef<Map<string, BoundsEntry>>(new Map());
-  const bumpOverlay = useRef(() => setOverlayEpoch((n) => n + 1));
+  const [geomByCourse, setGeomByCourse] = useState<ReadonlyMap<string, GeomEntry>>(() => new Map());
+  const [boundsByCourse, setBoundsByCourse] = useState<ReadonlyMap<string, BoundsEntry>>(() => new Map());
+  const bumpOverlay = useRef(() => {
+    setGeomByCourse(new Map(geomByCourseRef.current));
+    setBoundsByCourse(new Map(boundsByCourseRef.current));
+  });
 
   const publicationIdsKey = useMemo(() => [...new Set(publicationIds)].sort().join(","), [publicationIds]);
   const useExternalSync = externalSync != null;
+  const inactive = !enabled || publicationIds.length === 0;
+  const [prevInactive, setPrevInactive] = useState(inactive);
+  if (inactive !== prevInactive) {
+    setPrevInactive(inactive);
+    if (inactive) {
+      setActivityByPublicationId(new Map());
+      setOverlayCandidateIds([]);
+      setGeomByCourse(new Map());
+      setBoundsByCourse(new Map());
+    }
+  }
+  useLayoutEffect(() => {
+    if (!inactive) return;
+    geomByCourseRef.current.clear();
+    boundsByCourseRef.current.clear();
+  }, [inactive]);
 
   const applyBatchMap = useCallback(
     (map: ReadonlyMap<string, RouteActivitySnapshot | null>) => {
@@ -211,6 +231,7 @@ export function usePublishedCoursesActivityMapOverlay(
       if (!worldMapRenderEnabled) {
         geomByCourseRef.current.clear();
         boundsByCourseRef.current.clear();
+        bumpOverlay.current();
         return;
       }
 
@@ -240,7 +261,10 @@ export function usePublishedCoursesActivityMapOverlay(
   );
 
   useEffect(() => {
-    bumpOverlay.current = () => setOverlayEpoch((n) => n + 1);
+    bumpOverlay.current = () => {
+      setGeomByCourse(new Map(geomByCourseRef.current));
+      setBoundsByCourse(new Map(boundsByCourseRef.current));
+    };
   });
 
   useEffect(() => {
@@ -250,15 +274,6 @@ export function usePublishedCoursesActivityMapOverlay(
 
   useEffect(() => {
     if (useExternalSync || !enabled || publicationIds.length === 0) {
-      if (!enabled || publicationIds.length === 0) {
-        startTransition(() => {
-          setActivityByPublicationId(new Map());
-          setOverlayCandidateIds([]);
-        });
-        geomByCourseRef.current.clear();
-        boundsByCourseRef.current.clear();
-        setOverlayEpoch((n) => n + 1);
-      }
       return;
     }
 
@@ -317,8 +332,8 @@ export function usePublishedCoursesActivityMapOverlay(
     const pulseDots: ActivityWorldMapDot[] = [];
     const heatDots: ActivityWorldMapDot[] = [];
 
-    const geomMap = geomByCourseRef.current;
-    const boundsMap = boundsByCourseRef.current;
+    const geomMap = geomByCourse;
+    const boundsMap = boundsByCourse;
 
     let boundsReady = 0;
     let geometryReady = 0;
@@ -408,7 +423,7 @@ export function usePublishedCoursesActivityMapOverlay(
         anchorMissing,
       } satisfies PublishedCoursesActivityOverlayStats,
     };
-  }, [activityByPublicationId, overlayCandidateIds, mapZoom, overlayEpoch, worldMapRenderEnabled]);
+  }, [activityByPublicationId, overlayCandidateIds, mapZoom, geomByCourse, boundsByCourse, worldMapRenderEnabled]);
 
   return { ...overlay, activityByPublicationId, overlayStats };
 }

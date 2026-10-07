@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import {
   BG_MUSIC_ADVANCE_DEBOUNCE_MS,
   BG_MUSIC_ERROR_SUPPRESS_MS,
@@ -64,8 +64,10 @@ export function useRideBgm(opts: {
   const lastErrorAtRef = useRef(0);
   const sessionActiveRef = useRef(false);
   const musicEnabledRef = useRef(false);
-  sessionActiveRef.current = opts.sessionActive;
-  musicEnabledRef.current = opts.musicEnabled;
+  useLayoutEffect(() => {
+    sessionActiveRef.current = opts.sessionActive;
+    musicEnabledRef.current = opts.musicEnabled;
+  }, [opts.sessionActive, opts.musicEnabled]);
 
   useEffect(() => {
     const onVis = () => {
@@ -117,15 +119,15 @@ export function useRideBgm(opts: {
       };
     }
 
-    const audio =
-      audioRef.current ??
-      (() => {
-        const el = new Audio();
-        el.preload = "auto";
-        /* Dropbox 등 외부 MP3: crossOrigin 을 쓰면 CORS 실패 시 decode/play 가 막힌다(Web Audio 미사용이므로 불필요). */
-        audioRef.current = el;
-        return el;
-      })();
+    let audioEl: HTMLAudioElement;
+    if (audioRef.current) {
+      audioEl = audioRef.current;
+    } else {
+      audioEl = new Audio();
+      audioEl.preload = "auto";
+      /* Dropbox 등 외부 MP3: crossOrigin 을 쓰면 CORS 실패 시 decode/play 가 막힌다(Web Audio 미사용이므로 불필요). */
+      audioRef.current = audioEl;
+    }
 
     let cancelled = false;
     let cancelFade: (() => void) | null = null;
@@ -147,13 +149,14 @@ export function useRideBgm(opts: {
     const armWatchdog = () => {
       clearWatchdog();
       watchdogRef.current = window.setInterval(() => {
-        if (cancelled || audio.paused || !audio.src) return;
-        if (audio.currentTime > 0 && audio.duration > 0 && !audio.ended) {
-          const remain = audio.duration - audio.currentTime;
-          if (remain > 2 && audio.readyState >= 2 && audio.buffered.length > 0) {
-            const end = audio.buffered.end(audio.buffered.length - 1);
-            if (end - audio.currentTime < 0.25) {
-              audio.dispatchEvent(new Event("ended"));
+        const el = audioRef.current;
+        if (!el || cancelled || el.paused || !el.src) return;
+        if (el.currentTime > 0 && el.duration > 0 && !el.ended) {
+          const remain = el.duration - el.currentTime;
+          if (remain > 2 && el.readyState >= 2 && el.buffered.length > 0) {
+            const end = el.buffered.end(el.buffered.length - 1);
+            if (end - el.currentTime < 0.25) {
+              el.dispatchEvent(new Event("ended"));
             }
           }
         }
@@ -161,16 +164,18 @@ export function useRideBgm(opts: {
     };
 
     const loadAndPlay = (url: string) => {
+      const el = audioRef.current;
+      if (!el) return;
       nearEndHandledRef.current = false;
       clearAdvance();
       cancelFade?.();
-      audio.pause();
-      audio.src = url;
-      audio.volume = 0;
-      void audio
+      el.pause();
+      el.src = url;
+      el.volume = 0;
+      void el
         .play()
         .then(() => {
-          cancelFade = fadeVolume(audio, 0, BG_MUSIC_FADE_IN_TARGET, BG_MUSIC_FADE_MS);
+          cancelFade = fadeVolume(el, 0, BG_MUSIC_FADE_IN_TARGET, BG_MUSIC_FADE_MS);
           armWatchdog();
         })
         .catch(() => {
@@ -200,32 +205,33 @@ export function useRideBgm(opts: {
       advance();
     };
     const onTimeUpdate = () => {
-      if (nearEndHandledRef.current || !audio.duration) return;
-      const remain = audio.duration - audio.currentTime;
+      const el = audioRef.current;
+      if (!el || nearEndHandledRef.current || !el.duration) return;
+      const remain = el.duration - el.currentTime;
       if (remain <= BG_MUSIC_NEAR_END_SEC && remain > 0) {
         nearEndHandledRef.current = true;
         advance();
       }
     };
 
-    audio.addEventListener("ended", onEnded);
-    audio.addEventListener("error", onMediaError);
-    audio.addEventListener("timeupdate", onTimeUpdate);
+    audioEl.addEventListener("ended", onEnded);
+    audioEl.addEventListener("error", onMediaError);
+    audioEl.addEventListener("timeupdate", onTimeUpdate);
 
     indexRef.current = nextShuffleIndex(playlist.length, indexRef.current);
     loadAndPlay(playlist[indexRef.current]!);
 
     return () => {
       cancelled = true;
-      audio.removeEventListener("ended", onEnded);
-      audio.removeEventListener("error", onMediaError);
-      audio.removeEventListener("timeupdate", onTimeUpdate);
+      audioEl.removeEventListener("ended", onEnded);
+      audioEl.removeEventListener("error", onMediaError);
+      audioEl.removeEventListener("timeupdate", onTimeUpdate);
       clearAdvance();
       clearWatchdog();
       cancelFade?.();
       cancelFade = null;
-      fadeVolume(audio, Math.min(1, Math.max(0, audio.volume)), 0, Math.min(BG_MUSIC_FADE_MS, 800), () => {
-        audio.pause();
+      fadeVolume(audioEl, Math.min(1, Math.max(0, audioEl.volume)), 0, Math.min(BG_MUSIC_FADE_MS, 800), () => {
+        audioEl.pause();
       });
     };
   }, [opts.sessionActive, opts.musicEnabled, playlist]);

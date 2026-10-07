@@ -35,22 +35,13 @@ export function useRouteElevationProfile(
   const routeSig = useMemo(() => routeElevationSignature(geometry), [geometry]);
   const [state, setState] = useState<RouteElevationProfileState>(empty);
 
+  const geometryValid =
+    !!geometry && geometry.coordinates.length >= 2 && !!routeSig;
+
   useEffect(() => {
-    if (!geometry || geometry.coordinates.length < 2 || !routeSig) {
-      setState(empty);
-      return;
-    }
+    if (!geometryValid || !geometry) return;
 
     let cancelled = false;
-    setState((s) => ({
-      ...s,
-      values: [],
-      sampledCoords: [],
-      loading: true,
-      error: null,
-      quotaExceeded: false,
-      routeSig,
-    }));
 
     void (async () => {
       try {
@@ -92,7 +83,9 @@ export function useRouteElevationProfile(
     return () => {
       cancelled = true;
     };
-  }, [geometry, routeSig]);
+  }, [geometry, geometryValid, routeSig]);
 
-  return state;
+  if (!geometryValid) return empty;
+  if (state.routeSig === routeSig) return state;
+  return { ...empty, loading: true, routeSig };
 }

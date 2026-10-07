@@ -27,16 +27,18 @@ export function useRecentRideSessions(options: UseRecentRideSessionsOptions) {
 
   const [recentSessions, setRecentSessions] = useState<StoredRideSession[]>(() => loadRideSessions());
 
+  const [prevUser, setPrevUser] = useState(user);
+  if (user !== prevUser) {
+    setPrevUser(user);
+    if (!user) setRecentSessions([]);
+  }
+
   const reloadRecentSessionsFromLocalStorage = useCallback(() => {
     setRecentSessions(loadRideSessions());
   }, []);
 
   useEffect(() => {
-    if (!user) {
-      setRecentSessions([]);
-      return;
-    }
-    if (!configured) return;
+    if (!user || !configured) return;
     let cancelled = false;
     void loadRecentRideSessionsFromFirestore(user.uid, 50)
       .then(async (rows) => {

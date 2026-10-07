@@ -1,4 +1,4 @@
-import { startTransition, useEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ActivityWorldMapDot, ActivityWorldMapRoute } from "../lib/activity/activityWorldLod";
 import {
   ACTIVITY_TRACE_LIVE_STRENGTH,
@@ -122,22 +122,35 @@ export function useWorldPublicationPresenceOverlay(opts: UseWorldPublicationPres
   const { enabled, mapZoom, excludePublicationRoutesId = null, refreshNonce = 0 } = opts;
   const [rows, setRows] = useState<PublicationPresenceSnapshot[]>([]);
   const [lastFetchError, setLastFetchError] = useState<string | null>(null);
-  const [overlayEpoch, setOverlayEpoch] = useState(0);
   const geomByPublicationRef = useRef<Map<string, GeomEntry>>(new Map());
-  const bumpOverlay = useRef(() => setOverlayEpoch((n) => n + 1));
+  const [geomByPublication, setGeomByPublication] = useState<ReadonlyMap<string, GeomEntry>>(
+    () => new Map(),
+  );
+  const bumpOverlay = useRef(() => {
+    setGeomByPublication(new Map(geomByPublicationRef.current));
+  });
+
+  const [prevEnabled, setPrevEnabled] = useState(enabled);
+  if (enabled !== prevEnabled) {
+    setPrevEnabled(enabled);
+    if (!enabled) {
+      setRows([]);
+      setLastFetchError(null);
+      setGeomByPublication(new Map());
+    }
+  }
+  useLayoutEffect(() => {
+    if (!enabled) geomByPublicationRef.current.clear();
+  }, [enabled]);
 
   useEffect(() => {
-    bumpOverlay.current = () => setOverlayEpoch((n) => n + 1);
+    bumpOverlay.current = () => {
+      setGeomByPublication(new Map(geomByPublicationRef.current));
+    };
   });
 
   useEffect(() => {
     if (!enabled) {
-      startTransition(() => {
-        setRows([]);
-        setLastFetchError(null);
-      });
-      geomByPublicationRef.current.clear();
-      setOverlayEpoch((n) => n + 1);
       return;
     }
 
@@ -204,7 +217,7 @@ export function useWorldPublicationPresenceOverlay(opts: UseWorldPublicationPres
     };
   }, [refreshNonce, enabled]);
 
-  const geometryCandidateIds = useMemo(() => {
+  const geometryCandidateIdsRaw = useMemo(() => {
     const exclude = excludePublicationRoutesId?.trim() ?? "";
     const ids: string[] = [];
     for (const row of rows) {
@@ -217,11 +230,27 @@ export function useWorldPublicationPresenceOverlay(opts: UseWorldPublicationPres
     }
     return [...new Set(ids)].slice(0, MAX_GEOMETRY_LOAD);
   }, [rows, excludePublicationRoutesId]);
+  // presence 폴링마다 rows 가 새 배열이라, 후보 집합이 같으면 같은 배열을 유지해 geometry effect·overlay 재계산을 막는다.
+  const geometryCandidateIdsKey = geometryCandidateIdsRaw.join(",");
+  const geometryCandidateIds = useMemo(
+    () => (geometryCandidateIdsKey ? geometryCandidateIdsKey.split(",") : []),
+    [geometryCandidateIdsKey],
+  );
+  const noGeometryCandidates = !enabled || geometryCandidateIds.length === 0;
+  const [prevNoGeometryCandidates, setPrevNoGeometryCandidates] = useState(noGeometryCandidates);
+  if (noGeometryCandidates !== prevNoGeometryCandidates) {
+    setPrevNoGeometryCandidates(noGeometryCandidates);
+    if (noGeometryCandidates) {
+      setGeomByPublication(new Map());
+    }
+  }
+  useLayoutEffect(() => {
+    if (!noGeometryCandidates) return;
+    geomByPublicationRef.current.clear();
+  }, [noGeometryCandidates]);
 
   useEffect(() => {
     if (!enabled || geometryCandidateIds.length === 0) {
-      geomByPublicationRef.current.clear();
-      setOverlayEpoch((n) => n + 1);
       return;
     }
 
@@ -238,7 +267,7 @@ export function useWorldPublicationPresenceOverlay(opts: UseWorldPublicationPres
       kicked = true;
     }
     if (kicked) bump();
-  }, [enabled, geometryCandidateIds.join(",")]);
+  }, [enabled, geometryCandidateIds]);
 
   const presenceByPublicationId = useMemo(() => {
     const m = new Map<string, PublicationPresenceSnapshot>();
@@ -252,14 +281,13 @@ export function useWorldPublicationPresenceOverlay(opts: UseWorldPublicationPres
 
       const pulseRoutes: ActivityWorldMapRoute[] = [];
       const heatRoutes: ActivityWorldMapRoute[] = [];
-      const geomMap = geomByPublicationRef.current;
       let geometryReady = 0;
       let geometryLoading = 0;
 
       for (const pid of geometryCandidateIds) {
         const row = presenceByPublicationId.get(pid);
         if (!row) continue;
-        const g = geomMap.get(pid);
+        const g = geomByPublication.get(pid);
         if (g?.status === "ready") geometryReady += 1;
         else if (g?.status === "loading") geometryLoading += 1;
         if (g?.status !== "ready") continue;
@@ -298,7 +326,7 @@ export function useWorldPublicationPresenceOverlay(opts: UseWorldPublicationPres
       geometryCandidateIds,
       presenceByPublicationId,
       mapZoom,
-      overlayEpoch,
+      geomByPublication,
     ]);
 
   const overlayStats = useMemo(

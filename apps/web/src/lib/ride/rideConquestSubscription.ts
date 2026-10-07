@@ -7,7 +7,13 @@
  * - Generation/cancel guards in production callbacks
  * - S1-3: 15s delayed status + 60s subscription end + re-query
  */
-import type { Firestore, DocumentSnapshot, Unsubscribe } from "firebase/firestore";
+import type {
+  DocumentData,
+  DocumentReference,
+  Firestore,
+  DocumentSnapshot,
+  Unsubscribe,
+} from "firebase/firestore";
 import { doc, onSnapshot, getDoc } from "firebase/firestore";
 import {
   EMPTY_CONQUEST_RESULT,
@@ -28,8 +34,12 @@ export type RideConquestSubscriptionDeps = {
   subscribe: typeof onSnapshot;
   setTimeout: typeof globalThis.setTimeout;
   clearTimeout: typeof globalThis.clearTimeout;
-  getDoc?: (docRef: any) => Promise<DocumentSnapshot>;
-  doc?: (firestore: Firestore, path: string, ...pathSegments: string[]) => any;
+  getDoc?: (docRef: DocumentReference) => Promise<DocumentSnapshot>;
+  doc?: (
+    firestore: Firestore,
+    path: string,
+    ...pathSegments: string[]
+  ) => DocumentReference;
 };
 
 export type RideConquestSubscriptionObserver = {
@@ -112,7 +122,7 @@ export class RideConquestSubscription {
           this.observer.onResult({ status: "error", newMeters: 0 });
           return;
         }
-        const data = snap.data() as any;
+        const data = snap.data() as DocumentData;
         if (!isRideOwnedByUser(data?.userId as string | undefined, activeKey.userId)) {
           this.observer.onResult({ status: "error", newMeters: 0 });
           return;

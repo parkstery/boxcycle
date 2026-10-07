@@ -10,19 +10,29 @@ import {
  */
 export function useRouteTokenBalance(user: User | null, configured: boolean) {
   const [balance, setBalance] = useState<number | null>(null);
-  const [onboardingPending, setOnboardingPending] = useState(false);
+  const [onboardingDoneForUid, setOnboardingDoneForUid] = useState<string | null>(null);
+
+  const active = configured && !!user;
+  const uid = active && user ? user.uid : "";
+
+  const [prevActive, setPrevActive] = useState(active);
+  if (active !== prevActive) {
+    setPrevActive(active);
+    if (!active) {
+      setBalance(null);
+      setOnboardingDoneForUid(null);
+    }
+  }
+
+  const onboardingPending = Boolean(uid) && onboardingDoneForUid !== uid;
 
   useEffect(() => {
-    if (!configured || !user) {
-      setBalance(null);
-      setOnboardingPending(false);
-      return;
-    }
+    if (!active || !user) return;
 
     let cancelled = false;
-    setOnboardingPending(true);
+    const effectUid = user.uid;
     void ensureRouteTokenOnboardingClient(user).finally(() => {
-      if (!cancelled) setOnboardingPending(false);
+      if (!cancelled) setOnboardingDoneForUid(effectUid);
     });
 
     const unsub = subscribeRouteTokenBalance(user.uid, (next) => {
@@ -33,7 +43,7 @@ export function useRouteTokenBalance(user: User | null, configured: boolean) {
       cancelled = true;
       unsub();
     };
-  }, [configured, user?.uid]);
+  }, [active, user]);
 
   return { routeTokenBalance: balance, routeTokenLoading: onboardingPending && balance === null };
 }

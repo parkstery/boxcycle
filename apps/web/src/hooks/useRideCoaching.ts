@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
 import { routeElevationSignature } from "../lib/route/fetchRouteElevations";
 import type { CoachingData } from "../lib/coach/coachTypes";
@@ -51,16 +51,17 @@ export function useRideCoaching(opts: {
   const [coachData, setCoachData] = useState<CoachingData | null>(null);
   const routeSig = useMemo(() => routeElevationSignature(opts.routeGeometry), [opts.routeGeometry]);
 
+  const [prevRouteSig, setPrevRouteSig] = useState(routeSig);
+  if (routeSig !== prevRouteSig) {
+    setPrevRouteSig(routeSig);
+    setCoachData(null);
+  }
+
   const vdRef = useRef(0);
   const routeLenRef = useRef(0);
   const speedRef = useRef(0);
   const sessionRef = useRef<RideSessionStatus>(opts.sessionStatus);
   const ttsRef = useRef(opts.ttsEnabled);
-  vdRef.current = opts.virtualDistanceMeters;
-  routeLenRef.current = opts.routeDistanceMeters;
-  speedRef.current = opts.speedKmh;
-  sessionRef.current = opts.sessionStatus;
-  ttsRef.current = opts.ttsEnabled;
 
   const segmentRef = useRef<SegmentState | null>(null);
   const inflightRef = useRef(false);
@@ -69,6 +70,28 @@ export function useRideCoaching(opts: {
   const lastTipIndexRef = useRef<number | null>(null);
   const skipResistanceSpeakOnceRef = useRef(false);
   const prevStatusRef = useRef<RideSessionStatus>(opts.sessionStatus);
+
+  useLayoutEffect(() => {
+    vdRef.current = opts.virtualDistanceMeters;
+    routeLenRef.current = opts.routeDistanceMeters;
+    speedRef.current = opts.speedKmh;
+    sessionRef.current = opts.sessionStatus;
+    ttsRef.current = opts.ttsEnabled;
+  }, [
+    opts.virtualDistanceMeters,
+    opts.routeDistanceMeters,
+    opts.speedKmh,
+    opts.sessionStatus,
+    opts.ttsEnabled,
+  ]);
+
+  useLayoutEffect(() => {
+    segmentRef.current = null;
+    inflightRef.current = false;
+    lastResistanceRef.current = null;
+    lastTipIndexRef.current = null;
+    lastFreshTipAtRef.current = 0;
+  }, [routeSig]);
 
   const coachPoints = useMemo(() => {
     if (!opts.routeGeometry || opts.elevationM.length === 0 || opts.sampledCoords.length === 0) {
@@ -84,15 +107,6 @@ export function useRideCoaching(opts: {
   useEffect(() => {
     setRideTtsEnabled(opts.ttsEnabled);
   }, [opts.ttsEnabled]);
-
-  useEffect(() => {
-    segmentRef.current = null;
-    inflightRef.current = false;
-    lastResistanceRef.current = null;
-    lastTipIndexRef.current = null;
-    lastFreshTipAtRef.current = 0;
-    setCoachData(null);
-  }, [routeSig]);
 
   useEffect(() => {
     const prev = prevStatusRef.current;

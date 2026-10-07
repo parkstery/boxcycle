@@ -11,7 +11,7 @@ import {
   signOut,
   updateProfile,
 } from "firebase/auth";
-import { startTransition, useCallback, useEffect, useRef, useState } from "react";
+import { startTransition, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   clearUserSignedOutSessionFlag,
   readGuestEntryAccepted,
@@ -50,14 +50,29 @@ export function useAppAuth(configured: boolean) {
   const [userSignedOut, setUserSignedOut] = useState(readUserSignedOutSessionFlag);
   const autoSignInStartedRef = useRef(false);
 
-  useEffect(() => {
-    if (!user) {
-      return;
+  const [prevUser, setPrevUser] = useState(user);
+  if (user !== prevUser) {
+    setPrevUser(user);
+    if (user) {
+      setUserSignedOut(false);
     }
+  }
+
+  useLayoutEffect(() => {
+    if (!user) return;
     clearUserSignedOutSessionFlag();
-    setUserSignedOut(false);
     autoSignInStartedRef.current = false;
   }, [user]);
+
+  const needsSignedOutUi =
+    configured && authInitialized && !user && readUserSignedOutSessionFlag();
+  const [prevNeedsSignedOutUi, setPrevNeedsSignedOutUi] = useState(needsSignedOutUi);
+  if (needsSignedOutUi !== prevNeedsSignedOutUi) {
+    setPrevNeedsSignedOutUi(needsSignedOutUi);
+    if (needsSignedOutUi) {
+      setUserSignedOut(true);
+    }
+  }
 
   useEffect(() => {
     if (!configured) {
@@ -76,7 +91,6 @@ export function useAppAuth(configured: boolean) {
       return;
     }
     if (readUserSignedOutSessionFlag()) {
-      setUserSignedOut(true);
       return;
     }
     if (!readGuestEntryAccepted()) {
