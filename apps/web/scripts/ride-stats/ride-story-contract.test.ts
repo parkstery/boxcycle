@@ -7,6 +7,7 @@ import {
   composeNextRideStory,
   composePeriodStory,
   composeRideEndStory,
+  formatStoryKm,
   koreanOrdinal,
   type RideStoryFacts,
 } from "../../src/lib/ride/rideStory.ts";
@@ -153,10 +154,14 @@ describe("반복 회피(N7)", () => {
   });
 });
 
-describe("사실 줄 — 해낸 것이 먼저, 남은 것은 뒤(N2)", () => {
-  it("미완주 + 오늘 두 번째", () => {
+describe("사실 줄 — 오늘의 사실만(경로 진행은 결과 시트 진행 블록이 맡는다, 2026-10-08)", () => {
+  it("미완주 + 오늘 두 번째 — 경로 진행을 두 번 말하지 않는다", () => {
     const s = composeRideEndStory({ ...BASE, todayRides: 2, todayMeters: 5000 });
-    assert.equal(s.detail, "17.9km 중 5.4km · 남은 12.5km · 오늘 2번 · 합계 5.0km");
+    assert.equal(s.detail, "오늘 2번 · 합계 5.0km");
+  });
+
+  it("오늘 첫 주행이면 사실 줄이 없다", () => {
+    assert.equal(composeRideEndStory(BASE).detail, null);
   });
 
   it("완주면 남은 거리를 말하지 않는다", () => {
@@ -181,6 +186,12 @@ describe("쓰지 않는 말(N4) — 어떤 사실 조합에서도", () => {
       assert.doesNotMatch(`${s.headline} ${s.detail ?? ""}`, banned, JSON.stringify(v));
     }
   });
+});
+
+it("거리 자릿수 — 1km 미만 둘째 자리(결과 시트 진행 블록과 같다)", () => {
+  assert.equal(formatStoryKm(180), "0.18km");
+  assert.equal(formatStoryKm(2100), "2.1km");
+  assert.equal(formatStoryKm(123400), "123km");
 });
 
 it("서수 — 열 번째까지 우리말, 그 뒤는 숫자", () => {

@@ -93,7 +93,8 @@
  */
 .ride-summary__head.ride-summary__head--split {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* 히어로 두 칸과 같은 비율 — 「새 도로」 라벨이 새 도로 칸 바로 위에 선다 */
+  grid-template-columns: 1.35fr 1fr;
   column-gap: 0.35rem;
   padding-right: 0;
 }
@@ -203,7 +204,8 @@
 .ride-summary__heroes-main {
   min-width: 0;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* 진행 블록(「2.0km 중 0.2km」+막대)이 새 도로 칸보다 글자가 많다 — 조금 더 넓게(2026-10-08) */
+  grid-template-columns: 1.35fr 1fr;
   gap: 0.35rem;
 }
 
@@ -226,28 +228,92 @@
   color: var(--rtw-text-secondary);
 }
 
-/* 히어로 — 「오늘 N km」, 운동 축 주인공(§9.5.6 단위3). 새 도로와 짝을 이루는 조용한 카드 */
-/* 2026-10-06 Chief: 두 칸 높이를 종전(≈3.5rem)의 약 70% 로 — 고정 2.5rem, 세로 패딩 없음 */
-.ride-summary__hero {
+/*
+ * 진행 블록 — 「2.0km 중 0.2km」가 주인공(2026-10-08 Chief). 큰 숫자 칸을 대신한다.
+ * 높이는 새 도로 칸과 같은 2.5rem — 두 칸이 한 줄로 맞물린다.
+ */
+.ride-summary__progress {
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  gap: 0.15rem;
+  gap: 0.28rem;
   box-sizing: border-box;
   height: 2.5rem;
-  padding: 0 0.3rem;
+  padding: 0 0.5rem;
   border-radius: var(--rtw-radius-md);
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--rtw-divider);
+  min-width: 0;
 }
 
-.ride-summary__hero-v {
-  font-size: 1.4rem;
-  font-weight: 700;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
+.ride-summary__progress-text {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
   white-space: nowrap;
+  overflow: hidden;
+}
+
+/* 막대 + 남은 거리 한 줄 */
+.ride-summary__progress-track {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.ride-summary__progress-main {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.28rem;
+  min-width: 0;
+}
+
+.ride-summary__progress-of {
+  font-size: 0.74rem;
+  font-weight: 650;
+  color: var(--rtw-text-secondary);
+}
+
+.ride-summary__progress-v {
+  font-size: 1.15rem;
+  font-weight: 750;
+  line-height: 1.1;
+  color: var(--rtw-trace, #e8a33d);
+  font-variant-numeric: tabular-nums;
+}
+
+.ride-summary__progress-left {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--rtw-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.ride-summary__progress-bar {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* 지난번까지 온 길 — 이미 내 것 */
+.ride-summary__progress-before {
+  background: rgba(248, 250, 252, 0.45);
+}
+
+/* 이번에 달린 구간 — 오늘의 노력 */
+.ride-summary__progress-this {
+  background: var(--rtw-trace, #e8a33d);
+}
+
+.ride-summary__progress--done .ride-summary__progress-v {
+  font-size: 1.25rem;
 }
 
 /* 보조 지표 — 시간·평속·칼로리 한 줄(작게). 셀 안에서는 줄바꿈하지 않는다 */
@@ -442,10 +508,6 @@
 }
 
 @media (max-width: 380px) {
-  .ride-summary__hero-v {
-    font-size: 1.15rem;
-  }
-
   .ride-summary__conquest-value {
     font-size: 1.35rem;
   }

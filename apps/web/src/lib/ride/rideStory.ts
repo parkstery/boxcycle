@@ -69,10 +69,13 @@ export function koreanOrdinal(n: number): string {
   return n >= 1 && n <= ORDINALS.length ? `${ORDINALS[n - 1]!} 번째` : `${n}번째`;
 }
 
-/** 100km 미만은 소수 한 자리 */
+/**
+ * 1km 미만은 소수 둘째 자리, 100km 미만은 첫째 자리 — 결과 시트 진행 블록과 같은 규칙이라
+ * 헤드라인 「0.18km 완주!」와 블록 「0.18km 완주」가 같은 숫자를 말한다.
+ */
 export function formatStoryKm(meters: number): string {
   const km = Math.max(0, meters) / 1000;
-  return `${km < 100 ? km.toFixed(1) : km.toFixed(0)}km`;
+  return `${km < 1 ? km.toFixed(2) : km < 100 ? km.toFixed(1) : km.toFixed(0)}km`;
 }
 
 function localDayKey(d: Date): string {
@@ -216,13 +219,9 @@ export function composeRideEndStory(f: RideStoryFacts, previousKind: RideStoryKi
       (c) => c.kind !== previousKind || c.kind === "completed" || c.kind === "first" || c.kind === "default",
     ) ?? candidates[candidates.length - 1]!;
 
-  // 사실 줄 — 해낸 것이 먼저, 남은 거리는 그 뒤(N2)
+  // 사실 줄 — 경로 진행(「2.0km 중 0.2km」)은 결과 시트의 진행 블록이 맡는다(2026-10-08 Chief:
+  // 같은 숫자를 사실 줄과 큰 숫자 칸에 두 번 쓰지 않는다). 여기엔 오늘의 사실만.
   const parts: string[] = [];
-  if (f.routeMeters > 0 && !f.routeCompleted) {
-    const ridden = f.routeMeters * clamp01(f.progressRatio);
-    const left = f.routeMeters - ridden;
-    parts.push(`${formatStoryKm(f.routeMeters)} 중 ${formatStoryKm(ridden)} · 남은 ${formatStoryKm(left)}`);
-  }
   if (f.todayRides >= 2) {
     parts.push(`오늘 ${f.todayRides}번 · 합계 ${formatStoryKm(f.todayMeters)}`);
   }

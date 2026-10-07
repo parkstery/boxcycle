@@ -492,8 +492,10 @@ test.describe('다음 주행 · 이어 달리기', () => {
      */
     const donePair = summary.getByLabel('주행 거리 / 경로 전체거리')
     await expect(donePair).toBeVisible({ timeout: 15_000 })
-    const doneText = ((await donePair.textContent()) ?? '').trim()
-    const [doneRidden, doneTotal] = doneText.split('/').map((v) => Number(v.trim()))
+    // 2026-10-08 — 진행 블록으로 바뀌어 숫자는 data-* 로 읽는다
+    const doneRidden = Number(await donePair.getAttribute('data-ridden-km'))
+    const doneTotal = Number(await donePair.getAttribute('data-total-km'))
+    const doneText = `${doneRidden} / ${doneTotal}`
     expect(doneTotal, `총거리를 읽지 못했다: ${doneText}`).toBeGreaterThan(0)
     expect(doneRidden, `완주인데 주행거리≠총거리: ${doneText}`).toBeCloseTo(doneTotal, 2)
     // 미완주 진행률 배지는 완주 시 뜨지 않는다

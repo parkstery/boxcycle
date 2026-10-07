@@ -60,6 +60,19 @@ type RideSummarySheetProps = {
  * - 컴팩트 4행 구성: 헤더 → 2열 히어로(새 도로 + 오늘, 완주/진행률 배지) → 보조 수치(+저장 상태) → 저장 폼.
  *   스크롤 없이 가로 폰 화면 한 장에 들어가야 한다.
  */
+/**
+ * 진행 블록 거리 — 자릿수는 **경로 전체 거리**가 정하고 블록 안 숫자가 모두 따른다
+ * (「2.0km 중 0.18km」처럼 섞이지 않게). 1km 미만 경로는 소수 둘째 자리 — 짧은 경로가
+ * 「0.2km 중 0.2km」로 뭉개지지 않게.
+ */
+function sheetKmDigits(totalKm: number): number {
+  return totalKm < 1 ? 2 : totalKm < 100 ? 1 : 0;
+}
+
+function formatSheetKm(km: number, digits: number): string {
+  return `${Math.max(0, km).toFixed(digits)}km`;
+}
+
 export function RideSummarySheet(props: RideSummarySheetProps) {
   const suggested = props.suggestedName ?? "";
   const [name, setName] = useState(suggested);
@@ -177,6 +190,16 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
     routeTotalKmNum != null && riddenKmNum != null && routeTotalKmNum > 0
       ? `${riddenKmNum.toFixed(2)} / ${routeTotalKmNum.toFixed(2)}`
       : null;
+  const kmDigits = sheetKmDigits(routeTotalKmNum ?? 0);
+  // 진행 막대 — 지난번까지(이전 진행률) + 이번 주행분. 완주면 꽉 채운다
+  const progressNowPct = routeCompleted
+    ? 100
+    : Math.round(Math.max(0, Math.min(1, result?.progressRatio ?? 0)) * 1000) / 10;
+  const progressBeforePct = Math.min(
+    progressNowPct,
+    Math.round(Math.max(0, Math.min(1, result?.previousProgressRatio ?? 0)) * 1000) / 10,
+  );
+  const progressThisPct = Math.max(0, progressNowPct - progressBeforePct);
   /** 두 칸([주행/전체][새 도로])이 모두 있을 때 제목 줄도 2열로 나눠 「새 도로」 를 그 위에 둔다 */
   const splitHead = hasConquestContent && distancePair != null;
 
@@ -338,11 +361,49 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
               </div>
             ) : null}
 
-            {distancePair ? (
-              <div className="ride-summary__hero">
-                <strong className="ride-summary__hero-v" aria-label="주행 거리 / 경로 전체거리">
-                  {distancePair}
-                </strong>
+            {/*
+              진행 블록(2026-10-08 Chief) — 큰 숫자 「0.17 / 2.02」를 걷어내고 「2.0km 중 0.2km」를
+              주인공으로. 막대는 지난번까지 온 길(흐린 흰색) + **이번에 달린 구간(골드)** + 남은 길.
+              숫자 계약은 화면 문구가 아니라 data-* 로 남긴다(e2e 가 문구에 묶이지 않게).
+            */}
+            {distancePair && routeTotalKmNum != null && riddenKmNum != null ? (
+              <div
+                className={`ride-summary__progress${routeCompleted ? " ride-summary__progress--done" : ""}`}
+                aria-label="주행 거리 / 경로 전체거리"
+                data-ridden-km={riddenKmNum.toFixed(2)}
+                data-total-km={routeTotalKmNum.toFixed(2)}
+              >
+                <div className="ride-summary__progress-text">
+                  {routeCompleted ? (
+                    <span className="ride-summary__progress-main">
+                      <strong className="ride-summary__progress-v">{formatSheetKm(routeTotalKmNum, kmDigits)}</strong>
+                      <span className="ride-summary__progress-of">완주</span>
+                    </span>
+                  ) : (
+                    <span className="ride-summary__progress-main">
+                      <span className="ride-summary__progress-of">{formatSheetKm(routeTotalKmNum, kmDigits)} 중</span>
+                      <strong className="ride-summary__progress-v">{formatSheetKm(riddenKmNum, kmDigits)}</strong>
+                    </span>
+                  )}
+                </div>
+                {/* 남은 거리는 막대 끝에 작게 — 해낸 거리가 먼저다(N2) */}
+                <div className="ride-summary__progress-track">
+                  <div className="ride-summary__progress-bar" aria-hidden>
+                    <span
+                      className="ride-summary__progress-before"
+                      style={{ width: `${progressBeforePct}%` }}
+                    />
+                    <span
+                      className="ride-summary__progress-this"
+                      style={{ width: `${progressThisPct}%` }}
+                    />
+                  </div>
+                  {routeCompleted ? null : (
+                    <span className="ride-summary__progress-left">
+                      남은 {formatSheetKm(Math.max(0, routeTotalKmNum - riddenKmNum), kmDigits)}
+                    </span>
+                  )}
+                </div>
               </div>
             ) : null}
           </div>

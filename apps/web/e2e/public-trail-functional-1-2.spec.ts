@@ -1543,8 +1543,9 @@ test.describe("Public Trail functional matrix (1–2 riders, emulator)", () => {
 
     const pairText = await withPageHardCap(page, 8_000, "F6 pair text", () =>
       page.evaluate(() => {
+        // 2026-10-08 — 진행 블록으로 바뀌어 숫자는 data-* 로 읽는다
         const el = document.querySelector('[aria-label="주행 거리 / 경로 전체거리"]');
-        return (el?.textContent ?? "").trim();
+        return el ? `${el.getAttribute("data-ridden-km")} / ${el.getAttribute("data-total-km")}` : "";
       }),
     );
     expect(pairText).toMatch(/^\d+\.\d{2}\s*\/\s*\d+\.\d{2}$/);

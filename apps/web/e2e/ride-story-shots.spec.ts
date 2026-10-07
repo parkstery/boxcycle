@@ -26,6 +26,10 @@ test.describe("주행 스토리", () => {
       test.setTimeout(180_000);
       fs.mkdirSync(OUT_DIR, { recursive: true });
       await page.setViewportSize({ width: vp.width, height: vp.height });
+      // 잡히지 않은 에러는 앱 전체를 흰 화면으로 만든다 — 주행 종료 직후 Mapbox 「Style is not done
+      // loading」이 그랬다(2026-10-08, MapView 경로 effect). 한 건이라도 나면 실패시킨다.
+      const pageErrors: string[] = [];
+      page.on("pageerror", (e) => pageErrors.push(String(e)));
       await page.goto("/");
       await guestStart(page);
 
@@ -66,8 +70,15 @@ test.describe("주행 스토리", () => {
       const headline = sheet.locator(".ride-summary__story-headline");
       const detail = sheet.locator(".ride-summary__story-detail");
       await expect(headline).toHaveText("오늘 두 번째 라이딩이에요. 다시 페달을 밟으셨네요.");
-      await expect(detail).toContainText(/^\d+\.\dkm 중 \d+\.\dkm · 남은 \d+\.\dkm/);
-      await expect(detail).toContainText("오늘 2번 · 합계 3.");
+      await expect(detail).toHaveText(/^오늘 2번 · 합계 3\.\dkm$/);
+      // 진행 블록 — 「2.02km 중 0.17km」·남은 거리·막대(이번 주행 골드 구간 > 0)
+      const progress = sheet.locator(".ride-summary__progress");
+      await expect(progress).toContainText(/km 중\s*\d/);
+      await expect(progress).toContainText("남은");
+      const thisWidth = await progress
+        .locator(".ride-summary__progress-this")
+        .evaluate((el) => el.getBoundingClientRect().width, undefined, { timeout: 5_000 });
+      expect(thisWidth, "이번에 달린 구간이 막대에 보여야 한다").toBeGreaterThan(0);
       console.log(`[ride-story] ${vp.name} headline=${await headline.textContent()} | detail=${await detail.textContent()}`);
 
       const m = await sheet.evaluate((el) => {
@@ -113,6 +124,7 @@ test.describe("주행 스토리", () => {
       await expect(periodStory).toHaveText(/^이번 주 /);
       console.log(`[ride-story] ${vp.name} account-week=${(await periodStory.textContent())?.trim()}`);
       await info.screenshot({ path: path.join(OUT_DIR, `account-week-${vp.name}.png`) });
+      expect(pageErrors, "잡히지 않은 페이지 에러(흰 화면 원인)").toEqual([]);
     });
   }
 });

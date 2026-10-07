@@ -671,11 +671,13 @@ test.describe("주행 결과 시트 컴팩트화", () => {
      */
     const pair = sheet.getByLabel("주행 거리 / 경로 전체거리");
     await expect(pair, "주행거리 / 총거리 쌍이 있어야 한다").toBeVisible();
-    const pairText = ((await pair.textContent()) ?? "").trim();
-    expect(pairText, `「N.NN / N.NN」 형식이어야 하고 단위가 붙으면 안 된다: ${pairText}`).toMatch(
-      /^\d+\.\d{2}\s*\/\s*\d+\.\d{2}$/,
-    );
-    const [riddenKm, totalKm] = pairText.split("/").map((v) => Number(v.trim()));
+    // 2026-10-08 — 큰 숫자 「0.17 / 0.18」 칸이 진행 블록(「0.18km 완주」·막대)으로 바뀌었다.
+    // 숫자 계약은 화면 문구가 아니라 data-* 로 읽는다.
+    const riddenKm = Number(await pair.getAttribute("data-ridden-km"));
+    const totalKm = Number(await pair.getAttribute("data-total-km"));
+    const pairText = `${riddenKm} / ${totalKm}`;
+    expect(totalKm, `총거리를 읽지 못했다: ${pairText}`).toBeGreaterThan(0);
+    await expect(pair, "완주 블록은 「완주」를 말한다").toContainText("완주");
     // 완주했으므로 앞뒤가 같아야 한다 — Chief 예시 「완주 시 0.5 / 0.5」.
     expect(riddenKm, `완주인데 주행거리≠총거리: ${pairText}`).toBeCloseTo(totalKm, 2);
     // 200m 이하 경로로 달렸는지 — 시험 시간 규율 자체를 계약으로 고정한다.
@@ -696,7 +698,7 @@ test.describe("주행 결과 시트 컴팩트화", () => {
         const r = el.getBoundingClientRect();
         const label = el.querySelector(".ride-summary__conquest-label");
         const value = el.querySelector(".ride-summary__conquest-value");
-        const pair = el.parentElement?.querySelector(".ride-summary__hero");
+        const pair = el.parentElement?.querySelector(".ride-summary__progress");
         return {
           flexDirection: cs.flexDirection,
           height: Math.round(r.height),
