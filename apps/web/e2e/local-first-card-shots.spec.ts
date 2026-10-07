@@ -69,3 +69,38 @@ for (const vp of [
     await card.screenshot({ path: path.join(OUT_DIR, `${LABEL}-${vp.width}-card.png`) });
   });
 }
+
+test("경로를 만든 뒤 거리 칩을 누르면 그 거리로 다시 만든다", async ({ page }) => {
+  test.skip(!LIVE, "Firebase 에뮬레이터 필요");
+  test.setTimeout(180_000);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.addInitScript((region) => {
+    localStorage.setItem("rtw.localFirst.region", JSON.stringify(region));
+  }, WONJU_REGION);
+  await page.goto("/");
+  const gate = page.getByRole("dialog", { name: "시작" });
+  await expect(gate).toBeVisible({ timeout: 30_000 });
+  await gate.getByRole("button", { name: "시작", exact: true }).click();
+  await expect(gate).toBeHidden({ timeout: 30_000 });
+
+  const card = page.locator(".local-first__card");
+  await expect(card).toBeVisible({ timeout: 30_000 });
+  const isRoutePost = (r: import("@playwright/test").Response) =>
+    r.request().method() === "POST" &&
+    r.url().includes("getDistanceAutoRoute") &&
+    !(r.request().postData() ?? "").includes('"warm":true');
+
+  const first = page.waitForResponse(isRoutePost, { timeout: 120_000 });
+  await card.getByRole("button", { name: "시작", exact: true }).click();
+  expect((await first).ok()).toBe(true);
+  await expect(card.getByRole("button", { name: "다른 경로" })).toBeVisible({ timeout: 30_000 });
+
+  const second = page.waitForResponse(isRoutePost, { timeout: 120_000 });
+  await card.getByRole("button", { name: "5 km" }).click();
+  const resp = await second;
+  const sent = resp.request().postDataJSON() as { data?: { targetDistanceMeters?: number } };
+  expect(sent.data?.targetDistanceMeters).toBe(5000);
+  await expect(card.getByRole("button", { name: "5 km" })).toHaveAttribute("aria-pressed", "true");
+  await page.screenshot({ path: path.join(OUT_DIR, "regenerated-5km.png") });
+});
+
