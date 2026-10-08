@@ -84,6 +84,7 @@ import { companionDisplayDelayMs, getPeerMotionRegistry, resetPeerMotionRegistry
 import {
   PACER_HEADING_HALF_SPAN_M,
   createPacerWorld,
+  enteredPacers,
   resolvePacerDistM,
   stepPacerWorld,
   type PacerWorld,
@@ -2394,7 +2395,7 @@ export function MapView({
         pacerWorldRef.current == null ||
         (session === "running" && prevSession !== "running" && prevSession !== "paused")
       ) {
-        pacerWorldRef.current = createPacerWorld(Date.now() >>> 0);
+        pacerWorldRef.current = createPacerWorld(Date.now() >>> 0, { staggerEntry: true });
       }
       const world = pacerWorldRef.current;
       const features: PeerDomGJFeature[] = [];
@@ -2414,7 +2415,7 @@ export function MapView({
         });
         if (showSprites) {
           const routeLen = lineStringLengthMeters(geomNow);
-          for (const p of world.pacers) {
+          for (const p of enteredPacers(world)) {
             const along = resolvePacerDistM(distM, p.gapM, routeLen);
             const at = getPointOnRouteByDistance(geomNow, along);
             if (!at) continue;
@@ -2449,7 +2450,7 @@ export function MapView({
         enabled,
         visible: showPacers && showSprites && features.length > 0,
         count: features.length,
-        gaps: showPacers && world ? world.pacers.map((p) => p.gapM) : [],
+        gaps: showPacers && world ? enteredPacers(world).map((p) => p.gapM) : [],
       };
       return features;
     };

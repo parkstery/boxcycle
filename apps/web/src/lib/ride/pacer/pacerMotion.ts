@@ -15,9 +15,18 @@ export type PacerState = {
   laneM: number;
   /** 크랭크 위상(렌더용, 연속값) */
   phaseRev: number;
+  /** 세계 나이(주행 초)가 이 값에 닿으면 등장. 0 = 처음부터 */
+  appearAtSec: number;
+  /** 등장 전에는 움직이지도 그려지지도 않는다 */
+  entered: boolean;
 };
 
-export type PacerWorld = { pacers: PacerState[]; rng: () => number };
+export type PacerWorld = {
+  pacers: PacerState[];
+  rng: () => number;
+  /** 세계가 생긴 뒤 흐른 주행 초(일시정지 제외) */
+  ageSec: number;
+};
 
 export const PACER_MAX_GAP_M = 20;
 export const PACER_SOFT_GAP_M = 18;
@@ -55,6 +64,18 @@ export const PACER_INITIAL_GAP_M: Record<PacerId, number> = {
   "pacer-b": 6,
 };
 
+/**
+ * 주행 시작과 동시에 둘이 함께 떠 있으면 어색하다(2026-10-08 Chief) — 5초 뒤 한 명, 10초 뒤 한 명.
+ * 일시정지 시간은 세지 않는다.
+ */
+export const PACER_ENTRY_DELAY_SEC: Record<PacerId, number> = {
+  "pacer-a": 5,
+  "pacer-b": 10,
+};
+
+/** 등장 위치 — 뒤에서 따라붙어 들어온다(제자리에 툭 나타나지 않게) */
+export const PACER_ENTRY_GAP_M = -PACER_SOFT_GAP_M;
+
 const PACER_IDS: readonly PacerId[] = ["pacer-a", "pacer-b"];
 
 function clamp(n: number, lo: number, hi: number): number {
@@ -91,8 +112,13 @@ function pickTarget(p: PacerState, rng: () => number, forceOpposite: boolean): v
   p.retargetInSec = uniform(rng, PACER_RETARGET_SEC[0], PACER_RETARGET_SEC[1]);
 }
 
-export function createPacerWorld(seed: number): PacerWorld {
+/**
+ * `staggerEntry` 가 참이면 `PACER_ENTRY_DELAY_SEC` 에 맞춰 차례로 뒤에서 등장한다.
+ * 거짓(기본)이면 처음부터 초기 간격에 둘 다 있다(모션 단위 시험의 기준 상태).
+ */
+export function createPacerWorld(seed: number, opts?: { staggerEntry?: boolean }): PacerWorld {
   const rng = mulberry32(seed);
+  const stagger = opts?.staggerEntry === true;
   const pacers = PACER_IDS.map((id): PacerState => ({
     id,
     gapM: PACER_INITIAL_GAP_M[id],
@@ -101,8 +127,15 @@ export function createPacerWorld(seed: number): PacerWorld {
     retargetInSec: uniform(rng, PACER_RETARGET_SEC[0], PACER_RETARGET_SEC[1]),
     laneM: PACER_LANE_M[id],
     phaseRev: 0,
+    appearAtSec: stagger ? PACER_ENTRY_DELAY_SEC[id] : 0,
+    entered: !stagger,
   }));
-  return { pacers, rng };
+  return { pacers, rng, ageSec: 0 };
+}
+
+/** 지금 그려야 하는 페이서 */
+export function enteredPacers(world: PacerWorld): PacerState[] {
+  return world.pacers.filter((p) => p.entered);
 }
 
 export function stepPacerWorld(
@@ -115,8 +148,18 @@ export function stepPacerWorld(
   const selfSpeed = Number.isFinite(input.selfSpeedMps) ? Math.max(0, input.selfSpeedMps) : 0;
   const stopped = selfSpeed < PACER_STOP_SELF_MPS;
   const maxRel = pacerMaxRelVMps(selfSpeed);
+  world.ageSec += dt;
 
   for (const p of world.pacers) {
+    if (!p.entered) {
+      if (world.ageSec < p.appearAtSec) continue;
+      // 뒤에서 들어와 원래 자리(초기 간격)로 따라붙는다. 제동 곡선이 넘침을 막는다.
+      p.entered = true;
+      p.gapM = PACER_ENTRY_GAP_M;
+      p.relVMps = 0;
+      p.targetGapM = PACER_INITIAL_GAP_M[p.id];
+      p.retargetInSec = uniform(world.rng, PACER_RETARGET_SEC[0], PACER_RETARGET_SEC[1]);
+    }
     p.retargetInSec -= dt;
     if (p.retargetInSec <= 0) pickTarget(p, world.rng, false);
 

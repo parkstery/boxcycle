@@ -6,7 +6,9 @@ import {
   PACER_MAX_GAP_M,
   PACER_MAX_REL_V_MPS,
   PACER_SOFT_GAP_M,
+  PACER_ENTRY_DELAY_SEC,
   createPacerWorld,
+  enteredPacers,
   pacerSpeedMps,
   resolvePacerDistM,
   stepPacerWorld,
@@ -171,6 +173,33 @@ describe("pacer motion", () => {
       console.log(`U8 sign=${sign} maxAbsGap=${maxAbs.toFixed(3)}`);
       assert.ok(maxAbs <= PACER_MAX_GAP_M + 1e-6, `U8 |gap| ${maxAbs}`);
     }
+  });
+
+  it("U9 차례 등장 — 5초 뒤 한 명, 10초 뒤 한 명, 일시정지는 세지 않는다", () => {
+    const world = createPacerWorld(5, { staggerEntry: true });
+    const ids = () => enteredPacers(world).map((p) => p.id);
+    const run = (sec: number, status: "running" | "paused" = "running") => {
+      for (let i = 0; i < Math.round(sec / DT); i += 1) {
+        stepPacerWorld(world, { dtSec: DT, selfSpeedMps: 8.3, status });
+      }
+    };
+    assert.deepEqual(ids(), []);
+    run(4.9);
+    assert.deepEqual(ids(), []);
+    run(30, "paused");
+    assert.deepEqual(ids(), [], "일시정지 중에는 등장하지 않는다");
+    run(0.2);
+    assert.deepEqual(ids(), ["pacer-a"]);
+    assert.equal(PACER_ENTRY_DELAY_SEC["pacer-a"], 5);
+    run(4.8);
+    assert.deepEqual(ids(), ["pacer-a"]);
+    run(0.2);
+    assert.deepEqual(ids(), ["pacer-a", "pacer-b"]);
+    // 등장 직후는 뒤쪽에서 시작해 ±20 을 넘지 않는다
+    const b = world.pacers.find((p) => p.id === "pacer-b")!;
+    assert.ok(b.gapM < 0, `pacer-b 등장 gap ${b.gapM}`);
+    run(60);
+    for (const p of world.pacers) assert.ok(Math.abs(p.gapM) <= PACER_MAX_GAP_M + 1e-6);
   });
 
   it("U7 resolvePacerDistM 은 경로 안에 둔다", () => {

@@ -180,7 +180,8 @@ test.describe("페이서 혼자 주행", () => {
     await sheet.getByRole("checkbox", { name: "페이서" }).check();
     await page.keyboard.press("Escape");
     await expect(sheet).toBeHidden();
-    await expect.poll(async () => (await readDiag(page)).count, { timeout: 5_000 }).toBe(2);
+    // 다시 켜면 차례 등장(5초·10초)을 다시 거친다
+    await expect.poll(async () => (await readDiag(page)).count, { timeout: 15_000 }).toBe(2);
 
     // 순서 효과를 빼려고 끔 → 켬 순서로 잰다(직전 시트 조작 직후 구간이 「켬」에만 몰리지 않게).
     await page.getByRole("button", { name: "Trail 메뉴" }).click();
@@ -200,7 +201,8 @@ test.describe("페이서 혼자 주행", () => {
     await page.getByRole("button", { name: "주행 설정" }).click();
     await sheet.getByRole("checkbox", { name: "페이서" }).check();
     await page.keyboard.press("Escape");
-    await expect.poll(async () => (await readDiag(page)).count, { timeout: 5_000 }).toBe(2);
+    // 다시 켜면 차례 등장(5초·10초)을 다시 거친다
+    await expect.poll(async () => (await readDiag(page)).count, { timeout: 15_000 }).toBe(2);
     await page.waitForTimeout(5_000);
     counting = true;
     traffic = 0;
