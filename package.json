@@ -36,7 +36,15 @@
     "admin:backfill-last-completed-ride-at": "npm --prefix functions run admin:backfill-last-completed-ride-at --",
     "admin:purge-ride-legacy-fields": "npm --prefix functions run admin:purge-ride-legacy-fields --",
     "admin:purge-guest-users": "npm --prefix functions run admin:purge-guest-users --",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm run test:quick -w boxcycle-web --",
+    "test:quick": "npm run test:quick -w boxcycle-web --",
+    "test:quick:ride": "npm run test:quick -w boxcycle-web -- ride",
+    "test:quick:route": "npm run test:quick -w boxcycle-web -- route",
+    "test:quick:map": "npm run test:quick -w boxcycle-web -- map",
+    "test:quick:peer": "npm run test:quick -w boxcycle-web -- peer",
+    "test:quick:meters": "npm run test:quick -w boxcycle-web -- meters",
+    "test:quick:tools": "npm run test:quick -w boxcycle-web -- tools",
+    "test:quick:list": "npm run test:quick -w boxcycle-web -- --list"
   },
   "repository": {
     "type": "git",

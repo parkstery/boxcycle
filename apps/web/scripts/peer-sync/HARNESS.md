@@ -74,7 +74,7 @@ source 전환·최초만 now 정렬. frozen 재배달·같은 자세 소스 전�
 주식 `replay.mjs` / smoothness 계약은 **단일 스트림**이라 `stampDualSourceIngestPacket` 을 우회한다
 (`scenarios.mjs` 사각 주석 참고). 도착축 stamp 로 되돌려도 그 계약들은 초록이다. 실제 Presence 경로
 (RTDB+FS 동시) 회귀는 **아래 npm 스크립트가 실제 게이트**다 — 산문이 아니라 `githooks/pre-push`
-(`touch_web` 일 때 `test:next-ride` 다음)가 `npm run test:peer-spacing --silent` 를 실행한다.
+(`touch_web` 일 때 타입체크 다음)가 `npm run test:peer-spacing --silent` 를 실행한다.
 
 ```bash
 cd apps/web && npm run test:peer-spacing            # = --gate && --suite transitions  (pre-push 가 호출, ~10s)
