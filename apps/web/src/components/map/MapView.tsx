@@ -2512,7 +2512,7 @@ export function MapView({
     if (!map) return;
     const onRender = () => {
       if (RIDER_PROTOTYPE_IS_3D) {
-        reprojectGlbNametagMarkers(glbLiveNametagMarkerRef.current, peerDomMarkersRef.current, map.getPitch());
+        reprojectGlbNametagMarkers(glbLiveNametagMarkerRef.current, peerDomMarkersRef.current, map);
       }
       const selfMk = selfLocationMarkerRef.current;
       if (selfMk) {

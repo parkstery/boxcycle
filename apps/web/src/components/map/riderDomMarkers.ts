@@ -77,41 +77,64 @@ function applyGlbNametagLabel(el: HTMLDivElement | null, label: string): void {
 
 /**
  * 내려다보는 화면(QC1 상공·경로 전체)에서는 라이더 모델이 점만 해서 머리 위 -40px 이
- * **허공**이 된다 — 이름표가 점에서 떨어져 옆 라이더의 이름처럼 읽힌다(2026-10-08 Chief).
- * 기울기가 이보다 작으면 이름표를 위치 점의 펄스 링 바로 위에 붙인다.
+ * **허공**이 된다 — 이름표가 점에서 떨어져 옆 라이더의 이름처럼 읽혔다(2026-10-08 Chief).
+ *
+ * 기울기가 이보다 작으면:
+ * - **내 이름표는 숨긴다.** 내 위치는 큰 파란 펄스 점 하나로 충분하다. 위·옆 어디에 붙여도
+ *   동행과 붙어 달리면 내 이름이 동행 점 위에 얹혔다(같은 날 2·3차 실측).
+ * - 동행 이름표는 그 동행 점 **옆**, 내 점과 **반대쪽**에 붙인다. 오른쪽 고정이면 동행이
+ *   내 점 바로 왼쪽에 있을 때 이름이 내 점을 덮었다(실측 peerTag 630..709 ⊃ selfDot 626..654).
  */
 const NAMETAG_FLAT_PITCH_MAX_DEG = 30;
-/** 링 반지름 + 2px — 내 점 28px, 동행 점 18px(아래 CSS 와 같은 값). */
-const LIVE_NAMETAG_FLAT_OFFSET_PX: [number, number] = [0, -16];
-const PEER_NAMETAG_FLAT_OFFSET_PX: [number, number] = [0, -11];
+const NAMETAG_FLAT_CLASS = "map-view__glb-nametag-host--flat";
+const NAMETAG_FLAT_LEFT_CLASS = "map-view__glb-nametag-host--flat-left";
+/** 좌우를 바꾸는 최소 가로 차(px) — 나란히 달릴 때 매 프레임 뒤집히지 않게 */
+const NAMETAG_SIDE_HYSTERESIS_PX = 4;
 
 const nametagFlatState = new WeakMap<mapboxgl.Marker, boolean>();
 /** 동행 이름표 마커 → 그 동행의 위치 점 마커 */
 const peerLocationDots = new WeakMap<mapboxgl.Marker, mapboxgl.Marker>();
 
-function applyNametagOffsetForPitch(mk: mapboxgl.Marker, flat: boolean, flatOffset: [number, number]): void {
+function applyNametagOffsetForPitch(mk: mapboxgl.Marker, flat: boolean): void {
   if (nametagFlatState.get(mk) === flat) return;
   nametagFlatState.set(mk, flat);
-  mk.setOffset(flat ? flatOffset : RIDER_GLB_NAMETAG_OFFSET_PX);
+  mk.setOffset(flat ? [0, 0] : RIDER_GLB_NAMETAG_OFFSET_PX);
+  mk.getElement().classList.toggle(NAMETAG_FLAT_CLASS, flat);
+}
+
+/** 동행이 내 점보다 왼쪽에 있으면 이름표도 왼쪽으로. 차가 작으면 직전 쪽을 유지한다. */
+function applyPeerNametagSide(mk: mapboxgl.Marker, peerX: number, selfX: number | null): void {
+  const el = mk.getElement();
+  if (selfX == null) {
+    el.classList.remove(NAMETAG_FLAT_LEFT_CLASS);
+    return;
+  }
+  const dx = peerX - selfX;
+  if (dx < -NAMETAG_SIDE_HYSTERESIS_PX) el.classList.add(NAMETAG_FLAT_LEFT_CLASS);
+  else if (dx > NAMETAG_SIDE_HYSTERESIS_PX) el.classList.remove(NAMETAG_FLAT_LEFT_CLASS);
 }
 
 /** terrain·피치 변화 시 DOM 마커 재투영 (최초 생성 좌표에 고정되는 Mapbox 이슈 완화) */
 export function reprojectGlbNametagMarkers(
   liveMarker: mapboxgl.Marker | null,
   peerMarkers: ReadonlyMap<string, mapboxgl.Marker>,
-  pitchDeg?: number,
+  map?: mapboxgl.Map,
 ): void {
+  const pitchDeg = map?.getPitch();
   const flat = pitchDeg != null && Number.isFinite(pitchDeg) && pitchDeg < NAMETAG_FLAT_PITCH_MAX_DEG;
+  let selfX: number | null = null;
   if (liveMarker) {
-    applyNametagOffsetForPitch(liveMarker, flat, LIVE_NAMETAG_FLAT_OFFSET_PX);
+    applyNametagOffsetForPitch(liveMarker, flat);
     const ll = liveMarker.getLngLat();
     liveMarker.setLngLat([ll.lng, ll.lat]);
+    if (flat && map) selfX = map.project(ll).x;
   }
   for (const mk of peerMarkers.values()) {
-    applyNametagOffsetForPitch(mk, flat, PEER_NAMETAG_FLAT_OFFSET_PX);
+    applyNametagOffsetForPitch(mk, flat);
     const ll = mk.getLngLat();
     mk.setLngLat([ll.lng, ll.lat]);
     peerLocationDots.get(mk)?.setLngLat([ll.lng, ll.lat]);
+    if (flat && map) applyPeerNametagSide(mk, map.project(ll).x, selfX);
   }
 }
 

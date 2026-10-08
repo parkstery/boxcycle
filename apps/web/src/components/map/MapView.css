@@ -886,6 +886,24 @@
   color: #0f766e;
 }
 
+/*
+ * 내려다보는 화면(riderDomMarkers `NAMETAG_FLAT_*`) — 마커 바닥 중앙이 위치 점 중심에 온다
+ * (offset 0). 내 이름표는 숨기고, 동행 이름표는 점 옆으로 옮겨 세로 중앙을 점에 맞춘다
+ * (+3px 은 이름표 margin-bottom). 간격 12px = 동행 펄스 링 반지름 9px + 3px.
+ */
+.map-view__glb-nametag-host--flat.map-view__glb-nametag-host--live {
+  visibility: hidden;
+}
+
+.map-view__glb-nametag-host--flat.map-view__glb-nametag-host--peer .map-view__rider-nametag {
+  transform: translate(calc(50% + 12px), calc(50% + 3px));
+}
+
+.map-view__glb-nametag-host--flat.map-view__glb-nametag-host--flat-left.map-view__glb-nametag-host--peer
+  .map-view__rider-nametag {
+  transform: translate(calc(-50% - 12px), calc(50% + 3px));
+}
+
 .map-view__peer-rider-host .cycling-sim-marker-pedal-sprite {
   filter: hue-rotate(175deg) saturate(1.12) brightness(1.02);
 }
