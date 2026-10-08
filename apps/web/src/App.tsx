@@ -890,6 +890,12 @@ export default function App() {
 
   const trackedPublicationId = basicActiveHubCourseId ?? activeOfficialCourseId;
   const isRideSessionActive = rideStatus === "running" || rideStatus === "paused";
+  /**
+   * 내 위치·접속 신호를 **보내는** 쪽의 가시성. 주행 중이면 창을 가려도 계속 보낸다 —
+   * 끊으면 동행 화면에서 내가 멈춘 사람이 되어 뒤로 밀리다, 돌아오는 순간 앞으로 튀었다
+   * (2026-10-08 Chief). 받는 쪽(구독)은 그대로 `pageVisible` 을 따른다.
+   */
+  const publishVisible = pageVisible || isRideSessionActive;
 
   useEffect(() => {
     if (!isRideSessionActive || ridingTrailId) return;
@@ -939,7 +945,7 @@ export default function App() {
     user: user ?? undefined,
     trailId: presenceTrailId,
     enabled: trailheadSessionActive,
-    pageVisible,
+    pageVisible: publishVisible,
   });
 
   const menuTrailIdForFetch =
@@ -1662,7 +1668,7 @@ export default function App() {
   const globalLivePresencePublishEnabled = Boolean(
     configured &&
       user &&
-      pageVisible &&
+      publishVisible &&
       isRideSessionActive &&
       Boolean(activeCourseIdForGlobalPresence?.trim()),
   );
@@ -1676,7 +1682,7 @@ export default function App() {
         sharedRidePublicationId &&
         Boolean(routeGeometry?.coordinates?.length),
     ),
-    pageVisible,
+    pageVisible: publishVisible,
     lngLat: globalPresencePublishLngLat,
     // peer 동기화는 메뉴 네비(trailId)가 아니라 실제 주행 trail(ridingTrailId)에 publish해야
     // 같은 trail의 motion 노드를 공유한다. 주행 중 메뉴가 Trailhead("default")로 가도 어긋나지 않음.

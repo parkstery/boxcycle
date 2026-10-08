@@ -3,6 +3,7 @@ import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
 import { getPointOnRouteByDistance, lineStringLengthMeters } from "../lib/geo/geo";
 import { rideDistanceAlongRoute } from "../lib/ride/liveLocationSnapshot";
 import { stepRideSpeedKmh } from "../lib/ride/rideSpeedRamp";
+import { setBackgroundSafeInterval } from "../lib/ride/backgroundSafeInterval";
 import { registerPeerSyncDistanceSamplers } from "../lib/peerMotion/peerSyncDistanceSamplers";
 import {
   advanceSelfDisplayRenderTimeMs,
@@ -30,6 +31,8 @@ export type RideMetricsUi = {
 };
 
 const METRICS_UI_MS = 200;
+/** 화면이 가려졌을 때 주행 한 걸음 간격 — 송신 스로틀(200ms)보다 촘촘하지 않아도 된다 */
+const RIDE_BACKGROUND_STEP_MS = 250;
 
 export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
   const [status, setStatus] = useState<RideSessionStatus>("idle");
@@ -99,11 +102,12 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
       return;
     }
 
-    const loop = (ts: number) => {
-      if (statusRef.current !== "running") {
-        rafRef.current = null;
-        return;
-      }
+    /** 목적지 도달로 멈췄으면 rAF·배경 박자 어느 쪽도 더 진행하지 않는다 */
+    let ended = false;
+
+    /** 한 걸음 — 계속 달리면 true. rAF(보일 때)와 배경 박자(가려졌을 때)가 함께 쓴다. */
+    const step = (ts: number): boolean => {
+      if (ended || statusRef.current !== "running") return false;
 
       if (lastAnimTsRef.current == null) {
         lastAnimTsRef.current = ts;
@@ -131,8 +135,8 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
         virtualDistanceRef.current = routeLen;
         const liveAtEnd = geom ? getPointOnRouteByDistance(geom, capDist) : null;
         flushUi(ts, liveAtEnd, true);
-        rafRef.current = null;
-        return;
+        ended = true;
+        return false;
       }
 
       const live = geom ? getPointOnRouteByDistance(geom, capDist) : null;
@@ -140,12 +144,29 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
       const forceFull =
         lastUiTsRef.current == null || ts - lastUiTsRef.current >= METRICS_UI_MS;
       flushUi(ts, live, forceFull);
+      return true;
+    };
 
+    const loop = (ts: number) => {
+      if (!step(ts)) {
+        rafRef.current = null;
+        return;
+      }
       rafRef.current = requestAnimationFrame(loop);
     };
 
     rafRef.current = requestAnimationFrame(loop);
+    /*
+     * 화면이 가려지면 rAF 가 멈춰 주행이 **실제로** 멈췄다 — 동행 화면에서 뒤로 밀리다가,
+     * 다시 보이는 첫 프레임에 가려진 시간이 한꺼번에 더해져 앞으로 튀었다(2026-10-08 Chief).
+     * 가려진 동안은 배경 박자로 같은 걸음을 잇는다. 보일 때는 rAF 만 쓴다(이중 전진 없음).
+     */
+    const stopBackgroundStep = setBackgroundSafeInterval(() => {
+      if (typeof document === "undefined" || document.visibilityState !== "hidden") return;
+      step(performance.now());
+    }, RIDE_BACKGROUND_STEP_MS);
     return () => {
+      stopBackgroundStep();
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
       lastAnimTsRef.current = null;

@@ -38,6 +38,7 @@ import {
   requestMotionNodeCleanup,
 } from "../lib/peerMotion/motionPublishFlight";
 import { MOTION_FLIGHT_DRAIN_TIMEOUT_MS, ROUTE_FLIGHT_DRAIN_TIMEOUT_MS } from "../lib/peerMotion/peerSyncPolicy";
+import { setBackgroundSafeInterval } from "../lib/ride/backgroundSafeInterval";
 
 const PUBLISH_TICK_MS = 100;
 
@@ -367,13 +368,14 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
     publishBurstRef.current = () => {
       void tick();
     };
-    const id = window.setInterval(() => {
+    // 화면이 가려져도 박자가 늦춰지지 않게(주행 중 송신 유지 — App 의 publishVisible 참고).
+    const stopTick = setBackgroundSafeInterval(() => {
       void tick();
     }, PUBLISH_TICK_MS);
 
     return () => {
       publishBurstRef.current = null;
-      window.clearInterval(id);
+      stopTick();
       const tid = sanitizeTrailId(trailId);
       const snap = buildLiveLocationSnapshot(inputRef.current);
       const hadRoute = routeDocActive || flagsRef.current.routeEnabled;

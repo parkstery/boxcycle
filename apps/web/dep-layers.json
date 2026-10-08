@@ -310,6 +310,7 @@
       "activity/repo/firestoreWorldActivity.ts"
     ],
     "ride": [
+      "ride/backgroundSafeInterval.ts",
       "ride/caloriesEstimate.ts",
       "ride/companionHudCount.ts",
       "ride/liveLocationSnapshot.ts",

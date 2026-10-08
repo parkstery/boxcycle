@@ -389,7 +389,8 @@ export function PublicationSharedPresence({
   }, [user.uid, sessionScopeId]);
 
   useEffect(() => {
-    if (!pageVisible) return;
+    // 주행 중이면 창이 가려져도 접속 신호를 이어 간다(App `publishVisible` 과 같은 규칙).
+    if (!pageVisible && !(rideSessionActive && isRiding)) return;
     const ms =
       rideSessionActive && isRiding
         ? COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS
