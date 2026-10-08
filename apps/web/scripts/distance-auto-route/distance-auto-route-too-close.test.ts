@@ -20,6 +20,7 @@ import {
   formatDistanceAutoRouteDirectionClickHint,
   DISTANCE_AUTO_ROUTE_DEFAULT_KM,
 } from "../../src/lib/route/distanceAutoRouteErrors.ts";
+import { denseLine } from "./denseLine.ts";
 
 const START: LngLat = [127.02, 37.5];
 const D = 1000;
@@ -33,7 +34,7 @@ function straightProvider(roadMetersFor: (straightM: number) => number): FetchDi
     // geometry 는 요청 길이 이상으로, provider distance 는 **정확히** 요청값으로 준다.
     // D−5 는 `|road − D| ≤ 5` 의 칼날 위라, 폴리라인 반올림이 판정을 뒤집는다.
     const far = offsetLngLatByBearingMeters(waypoints[0]!, 90, roadM + 2);
-    const geometry = { type: "LineString" as const, coordinates: [waypoints[0]!, far] };
+    const geometry = { type: "LineString" as const, coordinates: denseLine(waypoints[0]! as [number, number], far as [number, number]) };
     return {
       geometry,
       distance: roadM,

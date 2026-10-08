@@ -51,6 +51,11 @@ const MAP_VIEW_SOURCE = readFileSync(
   new URL("../../src/components/map/MapView.tsx", import.meta.url),
   "utf8",
 );
+/** 출발·도착 핀 마커는 2026-09-28(6f5b4d9) MapView 에서 이 훅으로 옮겨졌다 */
+const PIN_MARKERS_SOURCE = readFileSync(
+  new URL("../../src/components/map/useMapPinMarkers.ts", import.meta.url),
+  "utf8",
+);
 const HOOK_SOURCE = readFileSync(
   new URL("../../src/hooks/useDistanceAutoRoute.ts", import.meta.url),
   "utf8",
@@ -189,7 +194,9 @@ describe("distanceAutoRoute", () => {
     assert.match(POPUP_SOURCE, /onSelectPoint\("start", lngLat\)/);
     // setStartLngLat 호출 계약은 phase-c e2e·phase-a-verify 가 동작으로 검증한다.
     assert.match(POPUP_SOURCE, /getDistanceAutoRouteMapBridge\(\)\?\.disarm/);
-    assert.match(MAP_VIEW_SOURCE, /new mapboxgl\.Marker\([\s\S]*?setLngLat\(startLngLat\)/);
+    // MapView 가 startLngLat 을 핀 훅에 넘기고, 훅이 그 좌표로 마커를 만든다(옮긴 뒤에도 같은 계약).
+    assert.match(MAP_VIEW_SOURCE, /useMapPinMarkers\(\{[\s\S]*?startLngLat,[\s\S]*?\}\)/);
+    assert.match(PIN_MARKERS_SOURCE, /new mapboxgl\.Marker\([\s\S]*?setLngLat\(startLngLat\)/);
   });
 
   it("popup 이동수단 — 자동차·자전거·도보 각 1세트(중복 autoProfile 없음)", () => {

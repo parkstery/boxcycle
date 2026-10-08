@@ -18,6 +18,16 @@ const VITE_ENV = {
   VITE_USE_EMULATOR: "",
 };
 
+/** 에뮬레이터 시험이 import.meta.env 를 덮어쓸 때(JSON) — 예: {"VITE_USE_EMULATOR":"1"} */
+const VITE_ENV_OVERRIDES = (() => {
+  try {
+    return JSON.parse(process.env.RTW_VITE_ENV_OVERRIDES ?? "{}");
+  } catch {
+    return {};
+  }
+})();
+Object.assign(VITE_ENV, VITE_ENV_OVERRIDES);
+
 const SRC_MARKER = "/src/";
 
 export async function resolve(specifier, context, nextResolve) {
@@ -28,6 +38,13 @@ export async function resolve(specifier, context, nextResolve) {
       const candidate = base + extra;
       if (existsSync(candidate)) {
         return { url: pathToFileURL(candidate).href, shortCircuit: true };
+      }
+    }
+    // functions/src 의 TS 는 NodeNext 규칙대로 `./x.js` 로 서로를 부른다 — 실제 파일은 x.ts
+    if (base.endsWith(".js")) {
+      const tsCandidate = base.slice(0, -3) + ".ts";
+      if (existsSync(tsCandidate)) {
+        return { url: pathToFileURL(tsCandidate).href, shortCircuit: true };
       }
     }
   }

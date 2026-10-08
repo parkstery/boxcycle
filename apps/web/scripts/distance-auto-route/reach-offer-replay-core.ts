@@ -14,6 +14,7 @@ import {
   type FetchDirectionsFn,
   type LngLat,
 } from "../../../../functions/src/distanceAutoRouteCore.ts";
+import { denseLine } from "./denseLine.ts";
 
 export const SESSION_6_START: LngLat = [127.0351, 37.5047];
 export const SESSION_6_TARGET_METERS = 1000;
@@ -53,7 +54,7 @@ export function createSession6MockFetch(
       const farEnd = offsetLngLatByBearingMeters(startPt, bearing, directRoadMeters);
       const geometry = {
         type: "LineString" as const,
-        coordinates: [startPt, farEnd] as LngLat[],
+        coordinates: denseLine(startPt as [number, number], farEnd as [number, number]),
       };
       return {
         geometry,
@@ -73,7 +74,7 @@ export function createSession6MockFetch(
     const farEnd = offsetLngLatByBearingMeters(startPt, bearing, detourLength);
     const geometry = {
       type: "LineString" as const,
-      coordinates: [startPt, farEnd] as LngLat[],
+      coordinates: denseLine(startPt as [number, number], farEnd as [number, number]),
     };
     return {
       geometry,

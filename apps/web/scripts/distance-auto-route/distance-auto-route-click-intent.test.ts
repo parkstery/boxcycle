@@ -16,6 +16,7 @@ import {
 import {
   formatDistanceAutoRouteClickDebugCoords,
 } from "../../src/lib/debug/distanceAutoRouteClickDebugMarker.ts";
+import { denseLine } from "./denseLine.ts";
 const HOOK_SOURCE = readFileSync(
   new URL("../../src/hooks/useDistanceAutoRoute.ts", import.meta.url),
   "utf8",
@@ -39,14 +40,16 @@ const TOKEN_CONTRACT_SOURCE = readFileSync(
 
 describe("distanceAutoRoute click intent 3F-C-R1", () => {
   it("API·hook이 targetRoadPoint를 전달", () => {
-    assert.match(API_SOURCE, /targetRoadPoint: LngLat/);
+    // Ready Ride(closeLoop)는 방향 없이 부르므로 선택 필드가 됐다(8e0b15e 이후)
+    assert.match(API_SOURCE, /targetRoadPoint\?: LngLat/);
     assert.match(HOOK_SOURCE, /targetRoadPoint: lngLat/);
   });
 
   it("서버 parse·cache·응답에 targetRoadPoint·algorithmVersion·endMissMeters", () => {
     assert.match(HTTP_SOURCE, /targetRoadPoint: LngLat/);
     assert.match(HTTP_SOURCE, /targetRoadPoint 는 \[lng,lat\]/);
-    assert.match(HTTP_SOURCE, /bearingFromOriginToPoint\(start, targetRoadPoint\)/);
+    // 검증을 통과한 좌표(parsedTargetRoadPoint)로만 방위를 잡는다
+    assert.match(HTTP_SOURCE, /bearingFromOriginToPoint\(start, parsedTargetRoadPoint\)/);
     assert.match(HTTP_SOURCE, /algorithmVersion: AUTO_ROUTE_ALGORITHM_VERSION/);
     assert.match(HTTP_SOURCE, /endMissMeters: diagnostics\.rawClickMissMeters/);
     assert.match(HTTP_SOURCE, /targetRoadPoint,/);
@@ -61,8 +64,9 @@ describe("distanceAutoRoute click intent 3F-C-R1", () => {
     assert.doesNotMatch(HTTP_SOURCE, /distanceAdjustRetry/);
   });
 
-  it("알고리즘 버전이 3I-shortfall", () => {
-    assert.equal(AUTO_ROUTE_ALGORITHM_VERSION, "3I-shortfall");
+  // 2026-09-24 8e0b15e — Claim 연동 스코어(신규도로 가산·자기중복 감점)로 교체
+  it("알고리즘 버전이 5A-claim-score", () => {
+    assert.equal(AUTO_ROUTE_ALGORITHM_VERSION, "5A-claim-score");
   });
 
   it("3F-C-R1 핵심 상수 값 확인", () => {
@@ -89,7 +93,7 @@ describe("distanceAutoRoute click intent 3F-C-R1", () => {
 
   it("DirectionsRouteLike가 snappedEnd·endSnapDistanceMeters를 파싱", () => {
     const meta = parseDirectionsSnapMetadata({
-      geometry: { type: "LineString", coordinates: [[127, 37], [127.01, 37]] },
+      geometry: { type: "LineString", coordinates: denseLine([127, 37] as [number, number], [127.01, 37] as [number, number]) },
       distance: 1000,
       duration: 200,
       snappedEnd: [127.01, 37.0001],
@@ -98,7 +102,7 @@ describe("distanceAutoRoute click intent 3F-C-R1", () => {
     assert.ok(meta);
     assert.equal(meta?.endSnapDistanceMeters, 12.5);
     assert.equal(parseDirectionsSnapMetadata({
-      geometry: { type: "LineString", coordinates: [[127, 37], [127.01, 37]] },
+      geometry: { type: "LineString", coordinates: denseLine([127, 37] as [number, number], [127.01, 37] as [number, number]) },
       distance: 1000,
       duration: 200,
     }), null);
@@ -118,7 +122,7 @@ describe("distanceAutoRoute click intent 3F-C-R1", () => {
       const farEnd = offsetLngLatByBearingMeters(waypoints[0]!, 90, 5050);
       const geometry = {
         type: "LineString" as const,
-        coordinates: [waypoints[0]!, farEnd] as [number, number][],
+        coordinates: denseLine(waypoints[0]! as [number, number], farEnd as [number, number]),
       };
       return {
         geometry,
@@ -158,7 +162,7 @@ describe("distanceAutoRoute click intent 3F-C-R1", () => {
       const end = waypoints[waypoints.length - 1]!;
       const geometry = {
         type: "LineString" as const,
-        coordinates: [waypoints[0]!, end] as [number, number][],
+        coordinates: denseLine(waypoints[0]! as [number, number], end as [number, number]),
       };
       return {
         geometry,
@@ -197,7 +201,7 @@ describe("distanceAutoRoute click intent 3F-C-R1", () => {
       const farEnd = offsetLngLatByBearingMeters(waypoints[0]!, 90, 1300);
       const geometry = {
         type: "LineString" as const,
-        coordinates: [waypoints[0]!, farEnd] as [number, number][],
+        coordinates: denseLine(waypoints[0]! as [number, number], farEnd as [number, number]),
       };
       const dist = lineStringLengthMeters(geometry);
       return { geometry, distance: dist, duration: 1200, snappedEnd: end, endSnapDistanceMeters: 0 };
@@ -234,7 +238,7 @@ describe("distanceAutoRoute click intent 3F-C-R1", () => {
       if (waypoints.length === 2) twoWaypointCalls += 1;
       else threeWaypointCalls += 1;
       const farEnd = offsetLngLatByBearingMeters(waypoints[0]!, 90, 800);
-      const geometry = { type: "LineString" as const, coordinates: [waypoints[0]!, farEnd] as [number, number][] };
+      const geometry = { type: "LineString" as const, coordinates: denseLine(waypoints[0]! as [number, number], farEnd as [number, number]) };
       return { geometry, distance: lineStringLengthMeters(geometry), duration: 900, snappedEnd: end, endSnapDistanceMeters: 0 };
     };
 
@@ -288,7 +292,7 @@ describe("distanceAutoRoute click intent 3F-C-R1", () => {
     const fetchDirections: FetchDirectionsFn = async (_profile, waypoints) => {
       // 도로거리는 D 이상(=exact 진입)이지만 geometry 는 2km 까지 뻗어 끝점이 멀다
       const farEnd = offsetLngLatByBearingMeters(waypoints[0]!, 90, 2000);
-      const geometry = { type: "LineString" as const, coordinates: [waypoints[0]!, farEnd] as [number, number][] };
+      const geometry = { type: "LineString" as const, coordinates: denseLine(waypoints[0]! as [number, number], farEnd as [number, number]) };
       return {
         geometry,
         distance: 1100,
@@ -342,7 +346,7 @@ describe("distanceAutoRoute click intent 3F-C-R1", () => {
     const fetchDirections: FetchDirectionsFn = async (_profile, waypoints) => {
       calls += 1;
       const farEnd = offsetLngLatByBearingMeters(waypoints[0]!, 90, 500);
-      const geometry = { type: "LineString" as const, coordinates: [waypoints[0]!, farEnd] as [number, number][] };
+      const geometry = { type: "LineString" as const, coordinates: denseLine(waypoints[0]! as [number, number], farEnd as [number, number]) };
       return { geometry, distance: lineStringLengthMeters(geometry), duration: 600, snappedEnd: targetRoadPoint, endSnapDistanceMeters: 0 };
     };
 
@@ -381,6 +385,11 @@ describe("distanceAutoRoute click debug marker 3F-A-R1 §2.5", () => {
     new URL("../../src/lib/map/distanceAutoRouteMapBridge.ts", import.meta.url),
     "utf8",
   );
+  /** 핀 팝업(Start·End 버튼·방향 모드)은 MapView 에서 이 파일로 옮겨졌다 */
+  const POPUP_ELEMENTS_SOURCE = readFileSync(
+    new URL("../../src/components/map/mapPopupElements.ts", import.meta.url),
+    "utf8",
+  );
 
   it("원본 클릭 좌표를 소수점 6자리 label·dataset으로 표시", () => {
     const lngLat: [number, number] = [127.020123456, 37.500456789];
@@ -411,16 +420,18 @@ describe("distanceAutoRoute click debug marker 3F-A-R1 §2.5", () => {
   it("방향 클릭만 marker 생성·교체, 수동 End·세션 종료 시 제거", () => {
     assert.match(MAP_VIEW_SOURCE, /autoRouteMapPickRef\.current === "direction"/);
     assert.match(MAP_VIEW_SOURCE, /onClearAutoRouteClickDebugMarker/);
-    assert.match(MAP_VIEW_SOURCE, /applyDistanceDirectionMode[\s\S]*onClearAutoRouteClickDebugMarker/);
-    assert.match(MAP_VIEW_SOURCE, /startBtn\.onclick[\s\S]*onClearAutoRouteClickDebugMarker/);
+    // MapView 가 지우기 콜백을 팝업에 넘기고, 팝업의 방향 모드 해제·Start 가 그것을 부른다
+    assert.match(MAP_VIEW_SOURCE, /onClearAutoRouteClickDebugMarker: \(\) => clearAutoRouteClickDebugMarkerRef\.current\(\)/);
+    assert.match(POPUP_ELEMENTS_SOURCE, /function applyDistanceDirectionMode[\s\S]*?onClearAutoRouteClickDebugMarker\?\.\(\)/);
+    assert.match(POPUP_ELEMENTS_SOURCE, /startBtn\.onclick = \(\) => \{\s*onClearAutoRouteClickDebugMarker\?\.\(\)/);
     assert.match(MAP_VIEW_SOURCE, /clearAutoRouteClickDebugMarkerOnMap\(autoRouteClickDebugMarkerRef\)/);
     assert.match(MAP_VIEW_SOURCE, /registerDistanceAutoRouteClickDebugMarkerClear/);
     assert.match(MAP_VIEW_SOURCE, /clearAutoRouteClickDebugMarkerOnMap\(autoRouteClickDebugMarkerRef\)/);
     assert.match(BRIDGE_SOURCE, /clearDistanceAutoRouteClickDebugMarker/);
-    assert.doesNotMatch(
-      MAP_VIEW_SOURCE.slice(MAP_VIEW_SOURCE.indexOf("endBtn.onclick"), MAP_VIEW_SOURCE.indexOf("endBtn.onclick") + 400),
-      /placeAutoRouteClickDebugMarker/,
-    );
+    // 옮긴 뒤 MapView 에서 indexOf 가 -1 이라 빈 문자열을 검사하며 늘 통과하던 확인 — 실제 위치를 겨눈다
+    const endAt = POPUP_ELEMENTS_SOURCE.indexOf("endBtn.onclick");
+    assert.ok(endAt >= 0, "endBtn.onclick 을 찾지 못했다 — 또 옮겨졌다");
+    assert.doesNotMatch(POPUP_ELEMENTS_SOURCE.slice(endAt, endAt + 400), /placeAutoRouteClickDebugMarker/);
   });
 
   it("기존 marker 위치 교체(update)로 단일 marker 유지", () => {
