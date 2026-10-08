@@ -13,7 +13,6 @@ import {
   EXACT_TARGET_DISTANCE_TOLERANCE_M,
   ROUTE_CLIP_FAILED_MESSAGE,
   isExactTargetDistance,
-  getDistanceMeters,
   lineStringLengthMeters,
   offsetLngLatByBearingMeters,
   searchDistanceAutoRoute,
@@ -117,31 +116,6 @@ describe("결함 ① · Stage 0 exact 경계 — routeLen ∈ [D−5, D) 가 실
     });
   }
 });
-
-/**
- * 실제 우회 모양의 geometry — START → 북쪽 정점 → 클릭점. 총 폴리라인 길이가 `totalMeters`
- * 가 되도록 정점 높이를 이분법으로 맞춘다.
- *
- * 왜 이렇게까지 하나: `snappedEndFromRoute` 는 route 의 `snappedEnd` 가 아니라 **geometry 의
- * 마지막 좌표**를 끝점으로 쓴다(`distanceAutoRouteCore.ts:254`). 그래서 geometry 가 클릭점을
- * 지나쳐 끝나면 `endMiss > 200m` 로 `offered` 강등 게이트에 걸려, 경계 시험이 아니라 강등
- * 시험이 된다. 우회는 클릭점에서 끝나야 한다.
- */
-function detourGeometry(origin: LngLat, clickPoint: LngLat, totalMeters: number) {
-  const build = (apexNorthM: number) => {
-    const apex = offsetLngLatByBearingMeters(origin, 0, apexNorthM);
-    return { type: "LineString" as const, coordinates: [origin, apex, clickPoint] };
-  };
-  let lo = 0;
-  let hi = totalMeters;
-  for (let i = 0; i < 80; i += 1) {
-    const mid = (lo + hi) / 2;
-    if (lineStringLengthMeters(build(mid)) < totalMeters) lo = mid;
-    else hi = mid;
-  }
-  // 중앙값이 아니라 상한을 돌린다 — 길이가 요청값 이상이어야 허용오차 안쪽에 든다.
-  return build(hi);
-}
 
 // 5A-R2 §1 로 `road < D − 5m` 는 우회 대신 안내·실패가 되어, **우회 경로로 절단 경계에
 // 도달할 수 없다.** 그 그룹(우회 routeLen D−5 · D−1)은 도달 불가능해져 삭제했다.

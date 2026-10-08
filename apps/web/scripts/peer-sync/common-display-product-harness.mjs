@@ -688,9 +688,12 @@ async function main() {
 
   mkdirSync(OUT_DIR, { recursive: true });
   const outPath = resolve(OUT_DIR, "common-display-product-metrics.json");
-  const opsPath = resolve(OPS_DIR, "common-display-product-metrics.json");
   writeFileSync(outPath, JSON.stringify(results, null, 2));
-  writeFileSync(opsPath, JSON.stringify(results, null, 2));
+  // document/ops 결과 보고서의 증거 JSON — `--record` 일 때만 덮어쓴다(residual-peer-jitter-harness 와 같은 이유).
+  const opsPath = process.argv.includes("--record")
+    ? resolve(OPS_DIR, "common-display-product-metrics.json")
+    : null;
+  if (opsPath) writeFileSync(opsPath, JSON.stringify(results, null, 2));
 
   console.log(
     JSON.stringify(

@@ -597,10 +597,14 @@ async function main() {
   mkdirSync(OUT_DIR, { recursive: true });
   const outPath = args.jsonOut || resolve(OUT_DIR, "residual-peer-jitter-metrics.json");
   writeFileSync(outPath, JSON.stringify(out, null, 2), "utf8");
-  const opsPath = resolve(OPS_DIR, "residual-peer-jitter-metrics.json");
-  writeFileSync(opsPath, JSON.stringify(out, null, 2), "utf8");
   console.log(`wrote ${outPath}`);
-  console.log(`wrote ${opsPath}`);
+  // document/ops 결과 보고서가 이 JSON 을 증거로 링크한다. 매 실행(pre-push 포함) 덮어쓰면 증거가
+  // 시각만 바뀐 값으로 바뀌고 작업 트리가 늘 「수정됨」이 된다 — `--record` 일 때만 쓴다(2026-10-09).
+  if (process.argv.includes("--record")) {
+    const opsPath = resolve(OPS_DIR, "residual-peer-jitter-metrics.json");
+    writeFileSync(opsPath, JSON.stringify(out, null, 2), "utf8");
+    console.log(`wrote ${opsPath}`);
+  }
   console.log(`elapsed=${out.elapsedMs}ms requiredFail=${fail}`);
   process.exitCode = fail === 0 ? 0 : 1;
 }
