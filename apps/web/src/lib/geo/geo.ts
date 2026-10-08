@@ -76,6 +76,16 @@ export function offsetLngLatByBearingMeters(
   return [(lng2 * 180) / Math.PI, (lat2 * 180) / Math.PI];
 }
 
+/**
+ * 진행 방향 기준 좌우 오프셋. `meters` 가 양수면 오른쪽, 음수면 왼쪽.
+ * 거리 0 이면 원점을 그대로 돌려준다.
+ */
+export function offsetLngLatLateral(lngLat: LngLat, headingDeg: number, meters: number): LngLat {
+  if (!Number.isFinite(meters) || meters === 0) return lngLat;
+  const bearing = headingDeg + (meters > 0 ? 90 : -90);
+  return offsetLngLatByBearingMeters(lngLat, bearing, Math.abs(meters));
+}
+
 export function interpolatePoint(a: LngLat, b: LngLat, ratio: number): LngLat {
   return [a[0] + (b[0] - a[0]) * ratio, a[1] + (b[1] - a[1]) * ratio];
 }
@@ -253,6 +263,25 @@ export function headingAtRouteDistanceMeters(
     idx += 1;
   }
   return bearingDegrees(coords[coords.length - 2], coords[coords.length - 1]);
+}
+
+/**
+ * 경로상 distanceMeters 앞뒤 `halfSpanM` 지점을 잇는 현(chord)의 방위(도).
+ * 세그먼트 방위는 꺾임점에서 계단처럼 뛴다 — 이 값은 거리에 대해 연속이라
+ * 경로를 따라 움직이는 모델의 yaw·좌우 오프셋이 툭툭 튀지 않는다.
+ */
+export function smoothedHeadingAtRouteDistanceMeters(
+  geometry: LineStringGeometry,
+  distanceMeters: number,
+  halfSpanM: number,
+  routeLenM: number = lineStringLengthMeters(geometry),
+): number | null {
+  const lo = Math.max(0, distanceMeters - halfSpanM);
+  const hi = Math.min(routeLenM, distanceMeters + halfSpanM);
+  const a = getPointOnRouteByDistance(geometry, lo);
+  const b = getPointOnRouteByDistance(geometry, hi);
+  if (a && b && getDistanceMeters(a, b) > 0.05) return bearingDegrees(a, b);
+  return headingAtRouteDistanceMeters(geometry, distanceMeters);
 }
 
 /** point 가 올라간 **현재 세그먼트** 방향(도). */

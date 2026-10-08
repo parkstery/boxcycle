@@ -12,6 +12,8 @@ type RideSettingsSheetProps = {
   onRideBgmEnabled: (enabled: boolean) => void;
   rideCoachingBanner: boolean;
   onRideCoachingBanner: (enabled: boolean) => void;
+  pacerEnabled: boolean;
+  onPacerEnabled: (enabled: boolean) => void;
   rideBgmCatalogConfigured: boolean;
   rideElevationProfileLoading: boolean;
   calorieWeightKg?: number | null;
@@ -53,6 +55,8 @@ export function RideSettingsSheet(props: RideSettingsSheetProps) {
           onRideBgmEnabled={props.onRideBgmEnabled}
           rideCoachingBanner={props.rideCoachingBanner}
           onRideCoachingBanner={props.onRideCoachingBanner}
+          pacerEnabled={props.pacerEnabled}
+          onPacerEnabled={props.onPacerEnabled}
           rideBgmCatalogConfigured={props.rideBgmCatalogConfigured}
           rideElevationProfileLoading={props.rideElevationProfileLoading}
           calorieWeightKg={props.calorieWeightKg}

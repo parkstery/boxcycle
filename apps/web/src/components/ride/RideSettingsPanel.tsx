@@ -15,6 +15,8 @@ export type RideSettingsPanelProps = {
   onRideBgmEnabled: (enabled: boolean) => void;
   rideCoachingBanner: boolean;
   onRideCoachingBanner: (enabled: boolean) => void;
+  pacerEnabled: boolean;
+  onPacerEnabled: (enabled: boolean) => void;
   rideBgmCatalogConfigured: boolean;
   rideElevationProfileLoading: boolean;
   /** 추정 kcal용 체중(kg). null = 미설정 */
@@ -148,6 +150,14 @@ export function RideSettingsPanel(props: RideSettingsPanelProps) {
               onChange={(e) => props.onRideBgmEnabled(e.target.checked)}
             />
             BGM
+          </label>
+          <label className="ride-settings-sheet__toggle" title="Pacer riders">
+            <input
+              type="checkbox"
+              checked={props.pacerEnabled}
+              onChange={(e) => props.onPacerEnabled(e.target.checked)}
+            />
+            페이서
           </label>
         </div>
         {props.rideElevationProfileLoading ? (

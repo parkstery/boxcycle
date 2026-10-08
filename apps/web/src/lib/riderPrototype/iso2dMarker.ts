@@ -1,7 +1,7 @@
 import type { LngLat } from "../geo/geo";
 import type { RiderGlbPedalPose } from "../rider/riderGlbPedalPose";
 
-export type RiderVisualKind = "self" | "peer";
+export type RiderVisualKind = "self" | "peer" | "pacer";
 
 function prototypeBaseUrl(): string {
   const baseRaw = import.meta.env.BASE_URL ?? "/";
@@ -41,7 +41,9 @@ export function createIso2dRiderMarkerRoot(
   nametag.className =
     kind === "self"
       ? "map-view__rider-nametag map-view__rider-nametag--live"
-      : "map-view__rider-nametag map-view__rider-nametag--peer";
+      : kind === "pacer"
+        ? "map-view__rider-nametag map-view__rider-nametag--peer map-view__rider-nametag--pacer"
+        : "map-view__rider-nametag map-view__rider-nametag--peer";
   nametag.setAttribute("aria-hidden", "true");
   nametag.textContent = label;
   if (!label.trim()) nametag.style.display = "none";
@@ -80,7 +82,7 @@ export type RiderGlbModelSpec = {
   bearingDeg: number;
   /**
    * 화면 구분용 비주얼 역할. 기본 `self`(내 라이더 기본 컬러).
-   * `peer` 는 동행 — 헬멧·상의만 별도 키트로 칠한다(위치·자세·메시 불변).
+   * `peer` 는 동행, `pacer` 는 로컬 페이서 — 헬멧·상의만 별도 키트로 칠한다(위치·자세·메시 불변).
    */
   kind?: RiderVisualKind;
   /** 크랭크·다리 nodeOverride 회전 */

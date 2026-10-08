@@ -117,6 +117,7 @@ flowchart LR
 | **Ride** (주행) | 한 번의 실제 운동 기록(불변 로그). Route를 따르거나 ad-hoc. 운동·Claim·Pioneer는 **즉시 인정**, Route 완주 격상만 ≥98% 게이트 | 지도 경로가 아님(그건 Route) | `rides/{id}` — 인정 규칙 SoT: [Conquest §9.5](../architecture/260703-Conquest-정복-레이어-설계.md) |
 | **Trail** | **같이 달리는 한 판** — 동시 접속·관전·진행률 공유의 라이브 세션 인스턴스. ▶ 시 자동 개설, 사람에게는 3자리 `displayNumber`(`Trail 035`) | 채팅방·게임방·대기실이 아님. 코스(설계도)도 아님 — `○○ 코스 · Trail 3`처럼 병기 | `trails/{id}` — 상세: [260517](260517-제품-용어-Trailhead-Trail.md) |
 | **동행** | **같은 Trail 에서 함께 달리는 사람.** HUD 동행 블록·인원수의 범위. 같은 경로라도 Trail 번호가 다르면 동행이 아니다 | publication 범위 집계(다른 Trail 의 같은 경로 주행자)가 아님. 전역 GPS 트래킹 아님 | Trail 실시간 구독 `livePublicationRides` — [4D](../../ops/route-relay/260903-동행-Trail단일진실-이탈반영-4D-작업지시서.md) |
+| **페이서** (Pacer) | **혼자 달릴 때 곁에 붙는 로컬 가상 라이더.** 내 속도를 기준으로 ±20m 안에서 가감속하며 추월·피추월을 만든다. 나에게만 보이고 실제 동행이 생기면 빠진다. 설정에서 끌 수 있다(기본 켜짐) | 동행이 아님(사람이 아니다). 정복·기록·Trail 멤버·동행 수에 들어가지 않는다. 서버로 송수신하지 않는다. UI 에 「더미」·「봇」 금지 | `lib/ride/pacer/` — [ops 20261008-pacer-riders](../../ops/20261008-pacer-riders/README.md) |
 | **Trailhead** | 길로 나가기 **전** 모이는 허브 — 코스·Trail 선택, MENU, 계정, 설정. presence상 `trailId=default` | "방 목록 로비"가 아님. 사용자는 방을 만들지 않는다 | `trailId=default` — 상세: [260517](260517-제품-용어-Trailhead-Trail.md) |
 | **Presence** | 실시간 존재·위치·하트비트 — **휘발성**. Trail 스코프(같은 Trail만 관전) | 영구 기록이 아님(그건 Conquest). 전역 GPS 트래킹 아님 | `trails/{id}/members`, `livePublicationRides` |
 | **주행경로 전체거리** | 설정한 Route의 **전체 길이**(출발~도착, 라우팅 응답값). 주행 중 목표·진행률의 분모 | 이번에 달린 거리가 아님(그건 주행경로 누적거리). 누적 운동 이력도 아님(그건 마일리지) | `routeDistanceMeters` — HUD 거리 셀 「진행 / 전체」 병기 |
@@ -179,6 +180,7 @@ flowchart LR
 
 | 날짜 | 내용 |
 |------|------|
+| 2026-10-08 | §2.3 **페이서** 등재(Chief, 「더미 라이더」 대신 「페이서」) — 혼자 주행 시 곁에 붙는 로컬 가상 라이더, 동행과 구분. 근거: [ops 20261008-pacer-riders](../../ops/20261008-pacer-riders/01-plan.md) |
 | 2026-10-07 | §2.3 **스토리** 등재(Chief, 「Narrative」 대신 「스토리」) — 주행 기록을 사람의 말로 건네는 표현 층. 근거: [주행 스토리 원칙](261007-RTW-주행-스토리-원칙.md) |
 | 2026-09-23 | §2.2 **Ready Ride** 등재 — 사용자 노출 명칭으로 확정(Chief). 새 데이터 모델이 아니라 **자동 생성된 Route**이며, 목록에서 고르는 「추천 코스」·고정 3경로인 「입문 코스」와 구분한다. 근거: [결정 로그 09-23](../../260707-RTW-결정-로그.md) · [Local First 실행계획](../../archive/260923-RTW-Local-First-Ride-실행계획.md) |
 | 2026-09-03 | §2.3 **동행** 등재 — 같은 Trail 만 동행. 같은 경로·다른 Trail 은 동행이 아님. 인원수 진실은 Trail 실시간 구독([4D](../../ops/route-relay/260903-동행-Trail단일진실-이탈반영-4D-작업지시서.md)) |

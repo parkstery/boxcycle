@@ -316,6 +316,8 @@
       "ride/liveLocationSnapshot.ts",
       "ride/liveRideHudSignal.ts",
       "ride/nextRideTarget.ts",
+      "ride/pacer/pacerMotion.ts",
+      "ride/pacer/pacerPrng.ts",
       "ride/publishLiveLocationFanout.ts",
       "ride/rideBgmConstants.ts",
       "ride/rideConquestResult.ts",

@@ -101,6 +101,7 @@ import { MapViewSheet } from "./components/map/MapViewSheet";
 import { UserInfoSheet } from "./components/UserInfoSheet";
 import { RideSettingsSheet } from "./components/ride/RideSettingsSheet";
 import { useCalorieProfile } from "./hooks/useCalorieProfile";
+import { usePacerPreference } from "./hooks/usePacerPreference";
 import {
   clampActiveSecForCalories,
   estimateGrossKcal,
@@ -561,6 +562,7 @@ export default function App() {
     resetRide,
     syncLiveFromDistance,
     sampleLiveLngLat,
+    sampleLiveDistM,
     startOffsetMetersRef,
     startLabel,
     endLabel,
@@ -755,6 +757,7 @@ export default function App() {
   const calorieSignalGapRef = useRef(false);
   const { profile: calorieProfile, setWeightKg: setCalorieWeightKg, setIntensityId: setCalorieIntensityId } =
     useCalorieProfile(user);
+  const { enabled: pacerEnabled, setEnabled: setPacerEnabled } = usePacerPreference(user);
   /** uid 切替 시 이전 계정 활동초·스냅샷이 남지 않게 렌더 중 ref 정렬 */
   const calorieUidRef = useRef(user?.uid ?? null);
   if (calorieUidRef.current !== (user?.uid ?? null)) {
@@ -2888,6 +2891,8 @@ export default function App() {
               routeWaypoints,
               liveLngLat: liveForMap,
               sampleLiveLngLat: rideStatus === "idle" ? undefined : sampleLiveLngLat,
+              sampleLiveDistM: rideStatus === "idle" ? undefined : sampleLiveDistM,
+              pacerEnabled,
               liveRiderMotion:
                 rideStatus === "idle"
                   ? null
@@ -3204,6 +3209,8 @@ export default function App() {
           onRideBgmEnabled={setRideBgmEnabled}
           rideCoachingBanner={rideCoachingBannerVisible}
           onRideCoachingBanner={setRideCoachingBannerVisible}
+          pacerEnabled={pacerEnabled}
+          onPacerEnabled={setPacerEnabled}
           rideElevationProfileLoading={rideElevationProfileLoading}
           rideBgmCatalogConfigured={rideBgmCatalogConfigured}
         />
@@ -3232,6 +3239,8 @@ export default function App() {
         onRideBgmEnabled={setRideBgmEnabled}
         rideCoachingBanner={rideCoachingBannerVisible}
         onRideCoachingBanner={setRideCoachingBannerVisible}
+        pacerEnabled={pacerEnabled}
+        onPacerEnabled={setPacerEnabled}
         rideBgmCatalogConfigured={rideBgmCatalogConfigured}
         rideElevationProfileLoading={rideElevationProfileLoading}
         calorieWeightKg={calorieProfile.weightKg}

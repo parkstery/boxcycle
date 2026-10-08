@@ -53,14 +53,23 @@ const RIDER_GLB_NAMETAG_MARKER_OPTS = {
   altitude: 1.05,
 };
 
-function createGlbRiderNametagRoot(kind: "live" | "peer", label: string): HTMLDivElement {
+function isPacerMarkerId(id: string): boolean {
+  return id === "pacer-a" || id === "pacer-b";
+}
+
+function createGlbRiderNametagRoot(kind: "live" | "peer" | "pacer", label: string): HTMLDivElement {
   const root = document.createElement("div");
-  root.className = `map-view__glb-nametag-host map-view__glb-nametag-host--${kind}`;
+  root.className =
+    kind === "pacer"
+      ? "map-view__glb-nametag-host map-view__glb-nametag-host--peer map-view__glb-nametag-host--pacer"
+      : `map-view__glb-nametag-host map-view__glb-nametag-host--${kind}`;
   const nametag = document.createElement("div");
   nametag.className =
     kind === "live"
       ? "map-view__rider-nametag map-view__rider-nametag--live"
-      : "map-view__rider-nametag map-view__rider-nametag--peer";
+      : kind === "pacer"
+        ? "map-view__rider-nametag map-view__rider-nametag--peer map-view__rider-nametag--pacer"
+        : "map-view__rider-nametag map-view__rider-nametag--peer";
   nametag.setAttribute("aria-hidden", "true");
   nametag.textContent = label;
   if (!label.trim()) nametag.style.display = "none";
@@ -222,7 +231,7 @@ function syncGlbPeerNametagMarkers(
     const { label } = f.properties;
     let mk = markers.get(id);
     if (!mk) {
-      const root = createGlbRiderNametagRoot("peer", label);
+      const root = createGlbRiderNametagRoot(isPacerMarkerId(id) ? "pacer" : "peer", label);
       mk = new mapboxgl.Marker({
         element: root,
         className: "map-view__glb-nametag-marker",
@@ -280,15 +289,17 @@ function applyPeerDomSpriteFrame(sprite: HTMLDivElement | null, phaseRev: number
   sprite.style.backgroundPosition = `-${stripIndex * cell}px 0`;
 }
 
-function createPeerRiderMarkerRoot(initialLabel: string): HTMLDivElement {
+function createPeerRiderMarkerRoot(initialLabel: string, pacer: boolean): HTMLDivElement {
   if (RIDER_PROTOTYPE_MODE === "iso2d") {
-    return createIso2dRiderMarkerRoot("peer", initialLabel, "map-view__peer-rider-host").root;
+    return createIso2dRiderMarkerRoot(pacer ? "pacer" : "peer", initialLabel, "map-view__peer-rider-host").root;
   }
   ensureRiderPedalStripKeyframes();
   const root = document.createElement("div");
   root.className = "cycling-sim-marker-host map-view__peer-rider-host";
   const nametag = document.createElement("div");
-  nametag.className = "map-view__rider-nametag map-view__rider-nametag--peer";
+  nametag.className = pacer
+    ? "map-view__rider-nametag map-view__rider-nametag--peer map-view__rider-nametag--pacer"
+    : "map-view__rider-nametag map-view__rider-nametag--peer";
   nametag.setAttribute("aria-hidden", "true");
   nametag.textContent = initialLabel;
   const flip = document.createElement("div");
@@ -329,7 +340,7 @@ export function syncPeerDomMarkers(
     const { label, phaseRev, hdg } = f.properties;
     let mk = markers.get(id);
     if (!mk) {
-      const root = createPeerRiderMarkerRoot(label);
+      const root = createPeerRiderMarkerRoot(label, isPacerMarkerId(id));
       mk = new mapboxgl.Marker({
         element: root,
         className: "map-view__peer-rider-marker",

@@ -21,6 +21,8 @@ export function FixtureApp() {
       onRideBgmEnabled={() => {}}
       rideCoachingBanner={true}
       onRideCoachingBanner={() => {}}
+      pacerEnabled={true}
+      onPacerEnabled={() => {}}
       rideBgmCatalogConfigured={false}
       rideElevationProfileLoading={false}
       calorieWeightKg={weightKg}

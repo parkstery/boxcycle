@@ -16,6 +16,20 @@ export const RIDER_VISUAL_KIT_PEER = {
   jersey: { r: 0x0f / 255, g: 0x76 / 255, b: 0x6e / 255 },
 } as const;
 
+/** 페이서 — 동행 teal·자기 오렌지와 구분되는 흐린 슬레이트 */
+export const RIDER_VISUAL_KIT_PACER = {
+  helmet: { r: 0.45, g: 0.5, b: 0.56 },
+  jersey: { r: 0.35, g: 0.4, b: 0.48 },
+} as const;
+
+type RiderKit = typeof RIDER_VISUAL_KIT_SELF | typeof RIDER_VISUAL_KIT_PEER | typeof RIDER_VISUAL_KIT_PACER;
+
+function kitFor(kind: RiderVisualKind): RiderKit {
+  if (kind === "pacer") return RIDER_VISUAL_KIT_PACER;
+  if (kind === "peer") return RIDER_VISUAL_KIT_PEER;
+  return RIDER_VISUAL_KIT_SELF;
+}
+
 export const RIDER_HELMET_SHELL_MATERIAL_NAME = "Helmet | matte orange shell";
 export const RIDER_JERSEY_MATERIAL_NAME = "Rider | orange jersey";
 
@@ -30,10 +44,7 @@ function paintMaterial(material: Material, rgb: { r: number; g: number; b: numbe
   }
 }
 
-function paintNamed(
-  material: Material,
-  kit: typeof RIDER_VISUAL_KIT_SELF | typeof RIDER_VISUAL_KIT_PEER,
-): void {
+function paintNamed(material: Material, kit: RiderKit): void {
   const name = material.name ?? "";
   if (name === RIDER_HELMET_SHELL_MATERIAL_NAME) paintMaterial(material, kit.helmet);
   else if (name === RIDER_JERSEY_MATERIAL_NAME) paintMaterial(material, kit.jersey);
@@ -41,7 +52,7 @@ function paintNamed(
 
 /** presentation-only — 위치·자세·메시 구조는 건드리지 않고 헬멧·상의 baseColor 만 맞춘다. */
 export function applyRiderVisualKit(root: Object3D, kind: RiderVisualKind): void {
-  const kit = kind === "peer" ? RIDER_VISUAL_KIT_PEER : RIDER_VISUAL_KIT_SELF;
+  const kit = kitFor(kind);
   root.traverse((item) => {
     if (!(item instanceof Mesh)) return;
     const list = Array.isArray(item.material) ? item.material : [item.material];
@@ -52,5 +63,5 @@ export function applyRiderVisualKit(root: Object3D, kind: RiderVisualKind): void
 }
 
 export function resolveRiderVisualKit(kind: RiderVisualKind) {
-  return kind === "peer" ? RIDER_VISUAL_KIT_PEER : RIDER_VISUAL_KIT_SELF;
+  return kitFor(kind);
 }

@@ -886,6 +886,11 @@
   color: #0f766e;
 }
 
+.map-view__rider-nametag--pacer,
+.map-view__glb-nametag-host--pacer .map-view__rider-nametag--pacer {
+  color: #64748b;
+}
+
 /*
  * 내려다보는 화면(riderDomMarkers `NAMETAG_FLAT_*`) — 마커 바닥 중앙이 위치 점 중심에 온다
  * (offset 0). 내 이름표는 숨기고, 동행 이름표는 점 옆으로 옮겨 세로 중앙을 점에 맞춘다

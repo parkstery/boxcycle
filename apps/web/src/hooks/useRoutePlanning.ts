@@ -62,6 +62,7 @@ export function useRoutePlanning(options: UseRoutePlanningOptions) {
     resetDistances: resetRide,
     syncLiveFromDistance,
     sampleLiveLngLat,
+    sampleLiveDistM,
     startOffsetMetersRef,
   } = useVirtualRideSession({
     targetSpeedKmh: rideTargetSpeedKmh,
@@ -238,6 +239,7 @@ export function useRoutePlanning(options: UseRoutePlanningOptions) {
     resetRide,
     syncLiveFromDistance,
     sampleLiveLngLat,
+    sampleLiveDistM,
     startOffsetMetersRef,
     startLabel,
     endLabel,

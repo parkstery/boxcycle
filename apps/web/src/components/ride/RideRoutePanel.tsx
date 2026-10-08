@@ -85,6 +85,9 @@ type RideRoutePanelProps = {
   /** 화면 상단 코칭 배너 */
   rideCoachingBanner: boolean;
   onRideCoachingBanner: (enabled: boolean) => void;
+  /** 혼자 달릴 때 페이서. 표시 토글은 주행 설정 시트가 그린다. */
+  pacerEnabled: boolean;
+  onPacerEnabled: (enabled: boolean) => void;
   /** Open-Meteo 고도 프로필 로딩(코칭용) */
   rideElevationProfileLoading: boolean;
   /** BGM 재생 URL 카탈로그 존재(내장·환경변수) */

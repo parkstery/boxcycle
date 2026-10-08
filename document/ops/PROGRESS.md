@@ -1,9 +1,10 @@
 # ops 전체 상태판
 
-마지막 갱신: 2026-10-06. 상세 기록은 각 묶음에, 목표·기능별 진도는 [상태보드](../260707-RTW-기능-인벤토리-상태보드.md), 제품 전체 방향은 [RTW 현황판](../260928-RTW-현황판.md)에 있다.
+마지막 갱신: 2026-10-08. 상세 기록은 각 묶음에, 목표·기능별 진도는 [상태보드](../260707-RTW-기능-인벤토리-상태보드.md), 제품 전체 방향은 [RTW 현황판](../260928-RTW-현황판.md)에 있다.
 
 | 현재 작업 | 단계 | Supervisor | Developer | Chief 승인 | 마지막 검수 | 막힘 | 다음 작업 |
 |---|---|---|---|---|---|---|---|
+| [페이서](20261008-pacer-riders/README.md) | APPROVED · main2 병합·배포 | Claude | Cursor CLI(구현)·Claude(검증) | 이름·기본 켜짐·2명 승인(10-08) | [검수 01](20261008-pacer-riders/04-review-01.md) 자동 전부 pass | 없음 | 사용 확인·종료 |
 | [칼로리·이어달리기](20261006-calories-resume/README.md) | APPROVED · origin/main2 반영 완료 | Codex | Cursor CLI | 칼로리 변경·재개1개유지 요청 | [18 검수](20261006-calories-resume/18-review-supervisor.md) · [24 push 완료](20261006-calories-resume/24-result-remote-push.md) | 실 Firebase·다중 탭/e2e 미실행 · 원격 반영 완료 | Chief 사용 확인·최종 종료 |
 | [내 경로 가독성](20261006-saved-route-readability/README.md) | APPROVED · origin/main2 반영 완료 | Codex | Cursor CLI | Edge 글자 수정 요청 | [03 검수](20261006-saved-route-readability/03-review.md) | Edge 사용자 창 직접 검증 미실시 · 원격 반영 완료 | 사용 확인·종료 대기 |
 | [주행 맵 제어](20261005-ride-map-controls/README.md) | APPROVED · 고도 포함 · origin/main2 반영 완료 | Codex | Cursor CLI | 맵 제어·축척 왼쪽 고도 요청 | [09 고도 검수](20261005-ride-map-controls/09-review-camera-altitude.md) | 원격 반영 완료 | Chief 사용 확인·최종 종료 |

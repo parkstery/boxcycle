@@ -63,6 +63,10 @@ import type { LngLat, LineStringGeometry } from "../../lib/geo/geo";
 import {
   boundsFromLineCoordinates,
   getDistanceMeters,
+  getPointOnRouteByDistance,
+  lineStringLengthMeters,
+  offsetLngLatLateral,
+  smoothedHeadingAtRouteDistanceMeters,
   resolveRiderBearingDeg,
 } from "../../lib/geo/geo";
 import { splitLineStringAtMeters } from "../../lib/route/routeProgressSplit";
@@ -76,7 +80,14 @@ import type { RouteProfile } from "../../services/mapboxDirections";
 import { estimateCrankRpmFromSpeedKmh, resolvePedalCrankRpm } from "../../lib/sensor/crankRpm";
 import { resolveGlbPedalPose } from "../../lib/rider/riderGlbPedalPose";
 import { stepPeerDriveAndBuildGeoJson } from "../../lib/peerMotion/peerRidersDrive";
-import { resetPeerMotionRegistry } from "../../lib/peerMotion";
+import { companionDisplayDelayMs, getPeerMotionRegistry, resetPeerMotionRegistry } from "../../lib/peerMotion";
+import {
+  PACER_HEADING_HALF_SPAN_M,
+  createPacerWorld,
+  resolvePacerDistM,
+  stepPacerWorld,
+  type PacerWorld,
+} from "../../lib/ride/pacer/pacerMotion";
 import { MAP_PEER_SPRITE_MIN_ZOOM } from "../../lib/ride/rideSyncPolicy";
 import { applyCoverageOverlayMode } from "../../services/coverageOverlaySync";
 import type { GlobalLivePresenceDot } from "../../hooks/useGlobalLivePresence";
@@ -325,6 +336,10 @@ export type MapViewProps = {
   liveLngLat: LngLat | null;
   /** rAF 샘플 — React throttle 없이 맵 마커 위치 (가상 주행 세션) */
   sampleLiveLngLat?: () => LngLat | null;
+  /** `sampleLiveLngLat` 과 같은 경로 거리. 페이서 배치용. */
+  sampleLiveDistM?: () => number | null;
+  /** 혼자 달릴 때 로컬 페이서. 기본 켜짐. */
+  pacerEnabled?: boolean;
   /** 내 위치 마커 페달 애니메이션(주행/일시정지·가상 속도). 없으면 스프라이트만 정지 표시 */
   liveRiderMotion?: LiveRiderMotion | null;
   /** 주행 중 내 머리 위 표시(닉네임·guest1 등). 없으면 태그 숨김 */
@@ -512,6 +527,8 @@ export function MapView({
   routeWaypoints,
   liveLngLat,
   sampleLiveLngLat,
+  sampleLiveDistM,
+  pacerEnabled = true,
   liveRiderMotion,
   liveRiderNametag,
   mapStyle,
@@ -637,6 +654,16 @@ export function MapView({
   const routeDistanceMetersRef = useRef(routeDistanceMeters);
   const liveLngLatRef = useRef<LngLat | null>(null);
   const sampleLiveLngLatRef = useRef(sampleLiveLngLat);
+  const sampleLiveDistMRef = useRef(sampleLiveDistM);
+  const pacerEnabledRef = useRef(pacerEnabled);
+  const pacerWorldRef = useRef<PacerWorld | null>(null);
+  const pacerPrevStatusRef = useRef<string | null>(null);
+  const pacerDiagRef = useRef({
+    enabled: false,
+    visible: false,
+    count: 0,
+    gaps: [] as number[],
+  });
   const liveRiderMotionRef = useRef(liveRiderMotion);
   const followModeRef = useRef(followMode);
   const mapZoomRef = useRef(mapZoom);
@@ -753,6 +780,37 @@ export function MapView({
   useEffect(() => {
     sampleLiveLngLatRef.current = sampleLiveLngLat;
   }, [sampleLiveLngLat]);
+
+  useEffect(() => {
+    sampleLiveDistMRef.current = sampleLiveDistM;
+  }, [sampleLiveDistM]);
+
+  useEffect(() => {
+    pacerEnabledRef.current = pacerEnabled;
+  }, [pacerEnabled]);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV || typeof window === "undefined") return;
+    const w = window as Window & {
+      __rtwPacerDiag?: () => {
+        enabled: boolean;
+        visible: boolean;
+        count: number;
+        gaps: number[];
+        companionDelayMs: number;
+      };
+    };
+    w.__rtwPacerDiag = () => ({
+      enabled: pacerDiagRef.current.enabled,
+      visible: pacerDiagRef.current.visible,
+      count: pacerDiagRef.current.count,
+      gaps: pacerDiagRef.current.gaps.slice(),
+      companionDelayMs: companionDisplayDelayMs(),
+    });
+    return () => {
+      delete w.__rtwPacerDiag;
+    };
+  }, []);
 
   useEffect(() => {
     liveRiderMotionRef.current = liveRiderMotion;
@@ -2317,6 +2375,84 @@ export function MapView({
   useEffect(() => {
     if (!mapLoaded) return;
     let lastTs = performance.now();
+    const stepPacersForFrame = (dtSec: number, showSprites: boolean): PeerDomGJFeature[] => {
+      const motionNow = liveRiderMotionRef.current;
+      const session = motionNow?.sessionStatus ?? null;
+      const prevSession = pacerPrevStatusRef.current;
+      pacerPrevStatusRef.current = session;
+      const geomNow = routeGeometryRef.current;
+      const enabled = pacerEnabledRef.current === true;
+      const solo = !getPeerMotionRegistry().hasActivePeers();
+      const eligible =
+        enabled && (session === "running" || session === "paused") && geomNow != null && solo;
+      // 표시 시계를 건드리는 샘플러라 페이서가 그려질 때만 부른다.
+      const distM = eligible ? (sampleLiveDistMRef.current?.() ?? null) : null;
+      const showPacers = eligible && distM != null;
+      if (!showPacers) {
+        pacerWorldRef.current = null;
+      } else if (
+        pacerWorldRef.current == null ||
+        (session === "running" && prevSession !== "running" && prevSession !== "paused")
+      ) {
+        pacerWorldRef.current = createPacerWorld(Date.now() >>> 0);
+      }
+      const world = pacerWorldRef.current;
+      const features: PeerDomGJFeature[] = [];
+      if (
+        showPacers &&
+        world &&
+        geomNow &&
+        distM != null &&
+        (session === "running" || session === "paused")
+      ) {
+        const selfSpeedMps =
+          session === "paused" ? 0 : Math.max(0, (motionNow?.speedKmh ?? 0) / 3.6);
+        stepPacerWorld(world, {
+          dtSec,
+          selfSpeedMps,
+          status: session === "paused" ? "paused" : "running",
+        });
+        if (showSprites) {
+          const routeLen = lineStringLengthMeters(geomNow);
+          for (const p of world.pacers) {
+            const along = resolvePacerDistM(distM, p.gapM, routeLen);
+            const at = getPointOnRouteByDistance(geomNow, along);
+            if (!at) continue;
+            // 세그먼트 방위는 꺾임점마다 최대 10°+ 순간 회전해 페이서가 툭툭 튀었다(실측 30초 13회).
+            const hdg = smoothedHeadingAtRouteDistanceMeters(geomNow, along, PACER_HEADING_HALF_SPAN_M, routeLen) ?? 0;
+            features.push({
+              type: "Feature",
+              geometry: { type: "Point", coordinates: offsetLngLatLateral(at, hdg, p.laneM) },
+              properties: { id: p.id, label: "페이서", phaseRev: p.phaseRev, hdg },
+            });
+          }
+        }
+      }
+      if (import.meta.env.DEV) {
+        const tw = window as Window & { __rtwPacerTrace?: unknown[] };
+        if (Array.isArray(tw.__rtwPacerTrace) && tw.__rtwPacerTrace.length < 4000) {
+          tw.__rtwPacerTrace.push({
+            t: performance.now(),
+            dt: dtSec,
+            selfDist: distM,
+            self: liveLngLatRef.current,
+            gaps: world ? world.pacers.map((p) => p.gapM) : [],
+            relV: world ? world.pacers.map((p) => p.relVMps) : [],
+            spd: motionNow?.speedKmh ?? null,
+            show: showPacers,
+            pts: features.map((f) => f.geometry.coordinates),
+            hdg: features.map((f) => f.properties.hdg),
+          });
+        }
+      }
+      pacerDiagRef.current = {
+        enabled,
+        visible: showPacers && showSprites && features.length > 0,
+        count: features.length,
+        gaps: showPacers && world ? world.pacers.map((p) => p.gapM) : [],
+      };
+      return features;
+    };
     const tickBody = (now: number) => {
       noteRafFrame(now);
       const map = mapRef.current;
@@ -2408,7 +2544,12 @@ export function MapView({
         Date.now(),
         { buildFeatures: showPeerSprites },
       );
-      syncPeerDomMarkers(map, fc.features as PeerDomGJFeature[], peerDomMarkersRef);
+      const pacerFeatures = stepPacersForFrame(dt, showPeerSprites);
+      syncPeerDomMarkers(
+        map,
+        [...(fc.features as PeerDomGJFeature[]), ...pacerFeatures],
+        peerDomMarkersRef,
+      );
       const riderLayerReady =
         RIDER_PROTOTYPE_MODE === "glb"
           ? ensureRiderGlbLayer(map)
@@ -2464,6 +2605,17 @@ export function MapView({
           specs.push({
             id: f.properties.id,
             kind: "peer",
+            lngLat: f.geometry.coordinates,
+            bearingDeg: f.properties.hdg,
+            pedalPose: resolveGlbPedalPose(phaseRev),
+            phaseRev,
+          });
+        }
+        for (const f of pacerFeatures) {
+          const phaseRev = f.properties.phaseRev;
+          specs.push({
+            id: f.properties.id,
+            kind: "pacer",
             lngLat: f.geometry.coordinates,
             bearingDeg: f.properties.hdg,
             pedalPose: resolveGlbPedalPose(phaseRev),

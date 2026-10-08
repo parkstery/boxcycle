@@ -207,16 +207,23 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
   }, []);
 
   /**
-   * rAF 맵·카메라용 위치. 동행이면 송신과 같은 motion 표본 버퍼를 공통 frame renderTime 으로 보간.
-   * delay=0(solo/leave) 이어도 시계를 전진시켜 D600→0 catch-up 이 끊기지 않게 한다.
-   * HUD `metricsUi.virtualDistanceMeters` 는 즉시 실제값 유지.
+   * 같은 밀리초에 `sampleLiveLngLat` 과 `sampleLiveDistM` 이 둘 다 불리도
+   * 표시 시계는 한 번만 전진한다. 페이서 거리가 내 마커와 같은 dist 를 쓰게 하려고다.
    */
-  const sampleLiveLngLat = useCallback((): LngLat | null => {
+  const liveDistSampleCacheRef = useRef<{ now: number; dist: number } | null>(null);
+
+  /**
+   * rAF 용 경로 거리. `sampleLiveLngLat` 과 같은 dist 계산.
+   * idle 이면 null. HUD `metricsUi.virtualDistanceMeters` 는 즉시 실제값 유지.
+   */
+  const sampleLiveDistM = useCallback((): number | null => {
     if (statusRef.current === "idle") return null;
+    const now = Date.now();
+    const cached = liveDistSampleCacheRef.current;
+    if (cached && cached.now === now) return cached.dist;
     const geom = routeGeometryRef.current;
     const routeLen = routeDistanceRef.current;
     const geoLen = geom ? lineStringLengthMeters(geom) : 0;
-    const now = Date.now();
     const renderTime = advanceSelfDisplayRenderTimeMs(now);
     const delayed = sampleSelfDisplayDistM(renderTime);
     const delayMs = companionDisplayDelayMs();
@@ -226,8 +233,20 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
       distSource = delayed;
     }
     const dist = rideDistanceAlongRoute(distSource, routeLen, geoLen);
-    return geom ? getPointOnRouteByDistance(geom, dist) : null;
+    liveDistSampleCacheRef.current = { now, dist };
+    return dist;
   }, []);
+
+  /**
+   * rAF 맵·카메라용 위치. 동행이면 송신과 같은 motion 표본 버퍼를 공통 frame renderTime 으로 보간.
+   * delay=0(solo/leave) 이어도 시계를 전진시켜 D600→0 catch-up 이 끊기지 않게 한다.
+   */
+  const sampleLiveLngLat = useCallback((): LngLat | null => {
+    const dist = sampleLiveDistM();
+    if (dist == null) return null;
+    const geom = routeGeometryRef.current;
+    return geom ? getPointOnRouteByDistance(geom, dist) : null;
+  }, [sampleLiveDistM]);
 
   /** rAF 원본 거리(m) — METRICS_UI_MS 상태와 무관. S3-DIAG ① */
   const sampleVirtualDistanceM = useCallback((): number => virtualDistanceRef.current, []);
@@ -264,6 +283,7 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
     resetDistances,
     syncLiveFromDistance,
     sampleLiveLngLat,
+    sampleLiveDistM,
     sampleVirtualDistanceM,
     sampleAppliedSpeedKmh,
     startOffsetMetersRef,
