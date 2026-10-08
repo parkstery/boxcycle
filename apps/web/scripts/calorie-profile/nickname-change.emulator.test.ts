@@ -101,3 +101,18 @@ test("게스트는 닉네임을 바꿀 수 없다", async () => {
   await assert.rejects(changeNicknameTransaction(g, `gst${stamp}`), /게스트/);
   await signOut(auth);
 });
+
+/**
+ * D (2026-10-09): 이미 가입한 회원이 **다시 로그인** — 앱은 저장된 닉네임으로 claimNicknameTransaction 을
+ * 다시 부른다(useAppAuth). 이것이 규칙에 거절되면 로그인 때 닉네임 동기화가 「오류」로 끝난다.
+ */
+test("재로그인 — 같은 닉네임 재확인이 거절되지 않고, 플랜도 바뀌지 않는다", async () => {
+  const name = `re${stamp}`;
+  const u = await signUp("re");
+  await claimNicknameTransaction(u, name); // 가입
+  await claimNicknameTransaction(u, name); // 다시 로그인(무료)
+  assert.equal((await adminGet(`users/${u.uid}`))?.tier?.stringValue, "registered_free", "무료 유지");
+  await adminSetPaid(u.uid);
+  await claimNicknameTransaction(u, name); // 유료 회원이 다시 로그인
+  assert.equal((await adminGet(`users/${u.uid}`))?.tier?.stringValue, "registered_paid", "유료 유지");
+});

@@ -205,7 +205,21 @@ export async function claimNicknameTransaction(user: User, nickname: string): Pr
   }
 
   try {
-    await setDoc(userRef, buildUserProfileWrite(user, trimmed, key), { merge: true });
+    /*
+     * 재로그인(이미 이 닉네임으로 가입) — 이름만 맞춘다. 가입용 쓰기(buildUserProfileWrite)는 tier·
+     * tierUpdatedAt 을 다시 쓰는데, 규칙은 닉네임이 바뀔 때만 tier 변경을 허용하므로 **회원이 다시
+     * 로그인할 때마다 PERMISSION_DENIED** 였다(2026-10-09 에뮬레이터 재현). 로그인 동기화가 「오류」로
+     * 끝나 닉네임 확인·이름 맞추기가 돌지 않았다. 유료 회원을 무료로 되돌릴 위험도 함께 없앤다.
+     */
+    const current = (await getDocFromServer(userRef)).data();
+    const alreadyMine = current?.nickname === trimmed && current?.nicknameKey === key;
+    await setDoc(
+      userRef,
+      alreadyMine
+        ? { displayName: trimmed, updatedAt: serverTimestamp() }
+        : buildUserProfileWrite(user, trimmed, key),
+      { merge: true },
+    );
   } catch (e) {
     if (claimedNewInTxn) {
       await deleteDoc(nickRef).catch(() => {});
