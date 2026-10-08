@@ -2,6 +2,7 @@ import { startTransition, useCallback, useEffect, useMemo, useRef, useState } fr
 import { PublicationSharedPresence } from "./components/PublicationSharedPresence";
 import { peerHudLabels, type PeerHudEntry } from "./lib/peerMotion/peerHud";
 import { SignUpNicknameCard } from "./components/auth/SignUpNicknameCard";
+import { ProfileEditSheet } from "./components/ProfileEditSheet";
 import { RideRoutePanel } from "./components/ride/RideRoutePanel";
 import type { FollowMode } from "./lib/map/mapGlobeView";
 import { PublicRouteRequestModal } from "./components/PublicRouteRequestModal";
@@ -215,6 +216,7 @@ export default function App() {
     beginAuthenticatedSession,
     handleGoogleSignIn,
     handleCompleteNickname,
+    handleChangeNickname,
     completeFirebaseSignOut,
     setError,
     setBusy,
@@ -758,6 +760,7 @@ export default function App() {
   const { profile: calorieProfile, setWeightKg: setCalorieWeightKg, setIntensityId: setCalorieIntensityId } =
     useCalorieProfile(user);
   const { enabled: pacerEnabled, setEnabled: setPacerEnabled } = usePacerPreference(user);
+  const [profileEditOpen, setProfileEditOpen] = useState(false);
   /** uid 切替 시 이전 계정 활동초·스냅샷이 남지 않게 렌더 중 ref 정렬 */
   const calorieUidRef = useRef(user?.uid ?? null);
   if (calorieUidRef.current !== (user?.uid ?? null)) {
@@ -3294,8 +3297,20 @@ export default function App() {
         onRideCameraDistanceM={handleRideCameraDistancePreset}
       />
 
+      <ProfileEditSheet
+        open={profileEditOpen}
+        onClose={() => setProfileEditOpen(false)}
+        user={user}
+        weightKg={calorieProfile.weightKg}
+        intensityId={calorieProfile.intensityId}
+        onChangeNickname={handleChangeNickname}
+        onWeightKg={setCalorieWeightKg}
+        onIntensityId={setCalorieIntensityId}
+      />
+
       <UserInfoSheet
         open={userInfoSheetOpen}
+        onEditProfile={user ? () => setProfileEditOpen(true) : undefined}
         onClose={() => {
           setUserInfoSheetOpen(false);
           setSubscriptionFlash(null);
@@ -3348,6 +3363,7 @@ export default function App() {
         avgKmh={avgSpeedLabel}
         caloriesEstimate={caloriesEstimate}
         onOpenCalorieSettings={openRideSettingsPanel}
+        calorieProfileComplete={calorieProfile.weightKg != null && calorieProfile.intensityId != null}
         adhocSaveAvailable={lastEndedWasAdhoc !== null}
         userId={user?.uid}
         maxNameLength={SAVED_ROUTE_NAME_MAX}
@@ -3433,7 +3449,17 @@ export default function App() {
 
       {stage === "gate-nickname" && user ? (
         <AuthGateCard title="닉네임">
-          <SignUpNicknameCard busy={busy} onSubmit={handleCompleteNickname} />
+          <SignUpNicknameCard
+            busy={busy}
+            initialWeightKg={calorieProfile.weightKg}
+            initialIntensityId={calorieProfile.intensityId}
+            onSubmit={async (nickname, calorie) => {
+              // 가입 때 한 번 받아 두면 주행마다 다시 묻지 않는다(본인 전용 서버 문서로 기기 간 동기화)
+              if (calorie.weightKg != null) setCalorieWeightKg(calorie.weightKg);
+              if (calorie.intensityId != null) setCalorieIntensityId(calorie.intensityId);
+              await handleCompleteNickname(nickname);
+            }}
+          />
           {error ? <p className="error tight">{error}</p> : null}
           <button
             type="button"

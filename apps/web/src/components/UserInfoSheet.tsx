@@ -36,6 +36,8 @@ import "./UserInfoSheet.css";
 type UserInfoSheetProps = {
   open: boolean;
   onClose: () => void;
+  /** 프로필 수정(닉네임·체중·강도) 열기 */
+  onEditProfile?: () => void;
   user: User | null;
   recentSessions: StoredRideSession[];
   isGuest: boolean;
@@ -474,6 +476,16 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
             <strong>{nickname}</strong>
             <span>{subLine}</span>
           </div>
+          {props.onEditProfile ? (
+            <button
+              type="button"
+              className="user-info-sheet__edit"
+              onClick={props.onEditProfile}
+              title="Edit profile"
+            >
+              프로필 수정
+            </button>
+          ) : null}
           <button
             type="button"
             className="user-info-sheet__close"

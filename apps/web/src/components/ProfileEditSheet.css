@@ -1,0 +1,23 @@
+/* 프로필 수정 — 주행 설정 시트 모양을 그대로 쓰고, 사용자 정보 시트(z 55) 위에 올린다 */
+.profile-edit-sheet {
+  z-index: 57;
+}
+
+.profile-edit-sheet__input {
+  font: inherit;
+  font-size: 0.85rem;
+  min-height: 44px;
+  padding: 0.35rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid var(--rtw-glass-border, rgba(255, 255, 255, 0.12));
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--rtw-text, #EDEFF2);
+}
+
+.profile-edit-sheet__actions {
+  justify-content: flex-end;
+}
+
+.profile-edit-sheet__actions .ride-settings-sheet__btn {
+  min-height: 44px;
+}

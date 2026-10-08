@@ -311,6 +311,7 @@
     ],
     "ride": [
       "ride/backgroundSafeInterval.ts",
+      "ride/calorieProfileSync.ts",
       "ride/caloriesEstimate.ts",
       "ride/companionHudCount.ts",
       "ride/liveLocationSnapshot.ts",
@@ -344,6 +345,7 @@
       "ride/rideSyncPolicy.ts"
     ],
     "ride/repo": [
+      "ride/repo/calorieProfileCloud.ts",
       "ride/repo/calorieProfileLocal.ts",
       "ride/repo/firestoreGlobalLivePresence.ts",
       "ride/repo/firestorePublicationPresence.ts",

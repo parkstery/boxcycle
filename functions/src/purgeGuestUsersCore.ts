@@ -300,6 +300,7 @@ export async function deleteGuestUidFirestoreData(
   const refs: FirebaseFirestore.DocumentReference[] = [];
 
   refs.push(db.doc(`users/${uid}`));
+  refs.push(db.doc(`userPrivate/${uid}`));
   refs.push(db.doc(`conquest/${uid}`));
   refs.push(db.doc(`livePresence/${uid}`));
 

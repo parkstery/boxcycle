@@ -24,6 +24,7 @@ import { getFirebaseAuth } from "../lib/firebase/app";
 import {
   claimNicknameTransaction,
   ensureAnonymousUserTier,
+  changeNicknameTransaction,
   getUserProfileNickname,
   NicknameTakenError,
 } from "../lib/identity/repo/firestoreUser";
@@ -280,6 +281,24 @@ export function useAppAuth(configured: boolean) {
     [user],
   );
 
+  /** displayName 은 User 객체를 제자리에서 바꾸므로 화면 갱신용으로 올린다 */
+  const [, setProfileRev] = useState(0);
+
+  /**
+   * 프로필 수정 — 닉네임 변경. 실패는 throw(시트가 바로 아래에 보여 준다).
+   * NicknameTakenError 는 그대로 전달.
+   */
+  const handleChangeNickname = useCallback(
+    async (nickname: string) => {
+      if (!user || user.isAnonymous) throw new Error("게스트는 닉네임을 바꿀 수 없습니다.");
+      await changeNicknameTransaction(user, nickname);
+      await updateProfile(user, { displayName: nickname.trim() });
+      await reload(user);
+      setProfileRev((n) => n + 1);
+    },
+    [user],
+  );
+
   /** 로그아웃 = 세션 종료(맵·기능 없음). 자동 익명 재진입은 `beginAuthenticatedSession`으로만. */
   const completeFirebaseSignOut = useCallback(async () => {
     autoSignInStartedRef.current = false;
@@ -305,6 +324,7 @@ export function useAppAuth(configured: boolean) {
     beginAuthenticatedSession,
     handleGoogleSignIn,
     handleCompleteNickname,
+    handleChangeNickname,
     completeFirebaseSignOut,
     setError,
     setBusy,

@@ -270,6 +270,23 @@
   color: #fca5a5;
 }
 
+.auth-gate__card .signup-nickname__weight {
+  color: rgba(248, 250, 252, 0.82);
+  font-size: 0.72rem;
+}
+
+.auth-gate__card .signup-nickname__chip {
+  border-color: rgba(248, 250, 252, 0.22);
+  color: #f8fafc;
+  font-size: 0.72rem;
+}
+
+.auth-gate__card .signup-nickname__chip.is-active {
+  background: rgba(232, 163, 61, 0.14);
+  border-color: rgba(232, 163, 61, 0.45);
+  color: #e8a33d;
+}
+
 @media (orientation: landscape) and (max-height: 480px) {
   .auth-gate {
     align-items: flex-start;

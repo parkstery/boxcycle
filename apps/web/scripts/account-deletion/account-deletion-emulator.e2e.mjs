@@ -135,6 +135,8 @@ async function seedUserData(db, rtdb, { uidA, uidB, nicknameA, trailId, pubId })
     // stripeSubscriptionId 없음 — 에뮬레이터에서 Stripe 해지 건너뜀
   });
   batch.set(db.doc(`users/${uidB}`), { nickname: "UserBKeep" });
+  batch.set(db.doc(`userPrivate/${uidA}`), { weightKg: 70, intensityId: "moderate" });
+  batch.set(db.doc(`userPrivate/${uidB}`), { weightKg: 60, intensityId: "light" });
   batch.set(db.doc(`nicknames/${nickKey}`), { ownerUid: uidA, nickname: nicknameA });
 
   for (const id of [`sr-a-1-${uidA.slice(0, 6)}`, `sr-a-2-${uidA.slice(0, 6)}`]) {
@@ -213,6 +215,7 @@ async function runHappyPath(admin) {
 
   // A 개인 데이터 없음
   await assertDocMissing(admin.db, `users/${userA.uid}`);
+  await assertDocMissing(admin.db, `userPrivate/${userA.uid}`);
   await assertDocMissing(admin.db, `nicknames/${nickKey}`);
   await assertDocMissing(admin.db, `conquest/${userA.uid}`);
   await assertDocMissing(admin.db, `conquest/${userA.uid}/chunks/c1`);
@@ -237,6 +240,7 @@ async function runHappyPath(admin) {
   // B 데이터 유지
   const userBDoc = await admin.db.doc(`users/${userB.uid}`).get();
   assert.equal(userBDoc.exists, true, "B users doc remains");
+  assert.equal((await admin.db.doc(`userPrivate/${userB.uid}`).get()).exists, true, "B userPrivate remains");
   const bRoutes = await admin.db.collection("savedRoutes").where("userId", "==", userB.uid).get();
   assert.equal(bRoutes.size, 1, "B savedRoutes remains");
 

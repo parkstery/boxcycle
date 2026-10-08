@@ -172,6 +172,26 @@ service cloud.firestore {
     }
 
     /**
+     * 본인 전용 개인 설정 — 칼로리용 체중·강도(2026-10-08 Chief: 기기를 바꿔도 다시 묻지 않기).
+     * users/{uid} 는 로그인 사용자 전원이 읽으므로 민감값은 여기에만 둔다. 본인 외 읽기·쓰기 금지.
+     */
+    match /userPrivate/{userId} {
+      allow read, delete: if isSelf(userId);
+      allow create, update: if isSelf(userId)
+        && request.resource.data.keys().hasOnly(['weightKg', 'intensityId', 'updatedAt'])
+        && (!('weightKg' in request.resource.data)
+          || request.resource.data.weightKg == null
+          || (request.resource.data.weightKg is number
+            && request.resource.data.weightKg >= 30
+            && request.resource.data.weightKg <= 300))
+        && (!('intensityId' in request.resource.data)
+          || request.resource.data.intensityId == null
+          || request.resource.data.intensityId in ['light', 'moderate', 'hard'])
+        && (!('updatedAt' in request.resource.data)
+          || request.resource.data.updatedAt == request.time);
+    }
+
+    /**
      * 전역 닉네임 예약(소문자 키). 문서 ID = normalizeNicknameKey(닉네임).
      * create 는 ownerUid 만 필수(hasOnly 는 SDK/필드 조합에서 거절되는 사례가 있어 완화).
      * list 는 막고 get 만 허용(무작위 열람 방지).

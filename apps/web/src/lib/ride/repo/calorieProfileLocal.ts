@@ -1,5 +1,5 @@
 /**
- * 체중·강도 — uid별 localStorage. 클라우드 체중 저장 없음(민감정보 최소화).
+ * 체중·강도 — uid별 localStorage 캐시. 서버 원본은 userPrivate/{uid}(본인 전용, `calorieProfileCloud`).
  * 인증 전 영속 금지. 같은 탭은 리스너, 다른 탭은 storage event.
  */
 import type { User } from "firebase/auth";

@@ -35,6 +35,7 @@ export type AccountDeletionAction = "delete" | "anonymize" | "none";
  */
 export const ACCOUNT_DELETION_POLICY: Readonly<Record<string, AccountDeletionAction>> = {
   users: "delete",
+  userPrivate: "delete", // 본인 전용 설정(체중·강도)
   nicknames: "delete",
   livePresence: "delete",
   openTrailListings: "delete", // 내가 연 목록(hostUid)

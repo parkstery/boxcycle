@@ -210,6 +210,69 @@ export async function claimNicknameTransaction(user: User, nickname: string): Pr
   }
 }
 
+/**
+ * 가입 후 닉네임 변경(프로필 수정). 가입용 `claimNicknameTransaction` 은 tier 를 registered_free 로
+ * 덮어써 유료 사용자를 강등시키므로 쓰지 않는다 — 여기서는 nickname·nicknameKey·displayName 만 바꾼다.
+ * 순서: 새 이름 예약 → 서버 재확인 → users 갱신 → 옛 예약 해제(실패해도 새 이름은 유지).
+ */
+export async function changeNicknameTransaction(user: User, nickname: string): Promise<void> {
+  if (user.isAnonymous) throw new Error("게스트는 닉네임을 바꿀 수 없습니다.");
+  const trimmed = nickname.trim();
+  if (!isValidNickname(trimmed)) {
+    throw new Error("닉네임 형식이 올바르지 않습니다.");
+  }
+  const key = normalizeNicknameKey(trimmed);
+  if (!isValidNicknameKeyNormalized(key)) {
+    throw new Error("닉네임 형식이 올바르지 않습니다.");
+  }
+
+  const db = getFirebaseFirestore();
+  const nickRef = doc(db, "nicknames", key);
+  const userRef = doc(db, "users", user.uid);
+
+  const userSnap = await getDocFromServer(userRef).catch((e: unknown) => {
+    throw formatClaimFirestoreError("[프로필 읽기]", e);
+  });
+  const oldKeyRaw = userSnap.exists() ? userSnap.data()?.nicknameKey : null;
+  const oldKey = typeof oldKeyRaw === "string" && oldKeyRaw.length > 0 ? oldKeyRaw : null;
+
+  let claimedNewInTxn: boolean;
+  try {
+    claimedNewInTxn = await runTransaction(db, async (transaction) => {
+      const nickSnap = await transaction.get(nickRef);
+      if (nickSnap.exists()) {
+        if (nickSnap.data()?.ownerUid !== user.uid) throw new NicknameTakenError();
+        return false;
+      }
+      transaction.set(nickRef, { ownerUid: user.uid });
+      return true;
+    });
+  } catch (e) {
+    if (e instanceof NicknameTakenError) throw e;
+    throw formatClaimFirestoreError("[예약]", e);
+  }
+
+  try {
+    const nickSnap = await getDocFromServer(nickRef);
+    if (!(nickSnap.exists() && nickSnap.data()?.ownerUid === user.uid)) {
+      throw new Error("[예약 확인] 서버에 닉네임 예약이 보이지 않습니다.");
+    }
+    await setDoc(
+      userRef,
+      { nickname: trimmed, nicknameKey: key, displayName: trimmed, updatedAt: serverTimestamp() },
+      { merge: true },
+    );
+  } catch (e) {
+    if (claimedNewInTxn) await deleteDoc(nickRef).catch(() => {});
+    throw formatClaimFirestoreError("[프로필]", e);
+  }
+
+  if (oldKey && oldKey !== key) {
+    // 옛 이름을 놓아 준다. 실패하면 예약만 남을 뿐 새 이름은 정상이다.
+    await deleteDoc(doc(db, "nicknames", oldKey)).catch(() => {});
+  }
+}
+
 export async function syncUserProfileToFirestore(
   user: User,
   options?: { nickname?: string },

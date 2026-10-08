@@ -38,7 +38,7 @@ test("firestore.rules 의 모든 최상위 컬렉션이 탈퇴 정책에 분류�
 });
 
 test("사용자 개인 데이터 컬렉션은 삭제, 퍼블릭 경로는 익명화(Chief 결정)", () => {
-  for (const c of ["users", "nicknames", "rides", "savedRoutes", "conquest", "routeTokenLedger", "livePresence", "publicRouteRequests"]) {
+  for (const c of ["users", "userPrivate", "nicknames", "rides", "savedRoutes", "conquest", "routeTokenLedger", "livePresence", "publicRouteRequests"]) {
     assert.equal(ACCOUNT_DELETION_POLICY[c], "delete", c);
   }
   assert.equal(ACCOUNT_DELETION_POLICY.routePublications, "anonymize");

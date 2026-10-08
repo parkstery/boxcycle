@@ -25,6 +25,11 @@ type RideSummarySheetProps = {
   /** 미산정 시 체중·강도 설정 진입 */
   onOpenCalorieSettings?: () => void;
   /**
+   * 체중·강도가 이미 저장돼 있으면 미산정(센서 없음 등)이어도 설정 버튼을 띄우지 않는다 —
+   * 주행마다 다시 묻지 않기(2026-10-08 Chief).
+   */
+  calorieProfileComplete?: boolean;
+  /**
    * 종료 결과(§3.5) — 모든 유효 Ride 가 채운다. 미완주면 이전→신규 진행률을 보여 준다.
    * null 이면 진행률 배지만 생략.
    */
@@ -425,9 +430,12 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
             const signalGap = Boolean(result?.caloriesMeta?.signalGap);
             if (kcal == null) {
               return (
-                <span className="ride-summary__substat ride-summary__substat--calorie">
+                <span
+                  className="ride-summary__substat ride-summary__substat--calorie"
+                  title={props.calorieProfileComplete ? "케이던스 센서가 연결된 주행만 산정합니다" : undefined}
+                >
                   <span className="ride-summary__substat-metric">추정 — kcal</span>
-                  {props.onOpenCalorieSettings ? (
+                  {props.onOpenCalorieSettings && !props.calorieProfileComplete ? (
                     <button
                       type="button"
                       className="ride-summary__calorie-setup"
