@@ -910,7 +910,8 @@
 .map-view__self-location-host {
   width: 28px;
   height: 28px;
-  position: relative;
+  /* position 은 Mapbox `.mapboxgl-marker`(absolute) 그대로 — relative 로 덮으면 마커끼리 문서 흐름에
+     쌓여, 앞 마커 높이만큼 밀린다(동행 점이 내 점 28px 만큼 아래로 내려갔다, 2026-10-08). */
   pointer-events: none !important;
 }
 
@@ -981,7 +982,63 @@
   }
 }
 
+/* 동행 위치 — 내 점(28px·파랑·×2.6)보다 작게(18px·청록·×1.9). 색은 동행 이름표와 같다 */
+.map-view__peer-location-marker {
+  background: transparent !important;
+  border: none !important;
+  pointer-events: none !important;
+}
+
+.map-view__peer-location-host {
+  width: 18px;
+  height: 18px;
+  /* position 은 Mapbox `.mapboxgl-marker`(absolute) 그대로 — relative 로 덮으면 마커끼리 문서 흐름에
+     쌓여, 앞 마커 높이만큼 밀린다(동행 점이 내 점 28px 만큼 아래로 내려갔다, 2026-10-08). */
+  pointer-events: none !important;
+}
+
+.map-view__peer-location-pulse {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(20, 184, 166, 0.3);
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 1px rgba(15, 118, 110, 0.9);
+  box-sizing: border-box;
+  animation: map-view-peer-location-pulse var(--rtw-ride-pulse-period, 2.2s) ease-out infinite;
+}
+
+.map-view__peer-location-core {
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: #0f766e;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.35);
+}
+
+@keyframes map-view-peer-location-pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.9;
+  }
+  75% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .map-view__peer-location-pulse {
+    animation: none;
+    opacity: 0.35;
+  }
+
   .map-view__self-location-pulse {
     animation: none;
     opacity: 0.35;

@@ -17,6 +17,7 @@ import { applyIso2dRiderBearing, createIso2dRiderMarkerRoot } from "../../lib/ri
 import { ensureRiderGlbLayer } from "../../lib/riderPrototype/glbModelLayer";
 import { ensureRiderPreservedLayer } from "../../lib/map/riderPreservedLayer";
 import { getRiderPrototypeMode } from "../../lib/riderPrototype/config";
+import { ridePulseAnimationDelay } from "../../lib/ride/ridePulse";
 
 /** MapView 와 같은 값 — `import.meta.env` 를 읽는 순수 함수라 각자 불러도 결과가 같다. */
 const RIDER_PROTOTYPE_MODE = getRiderPrototypeMode();
@@ -74,20 +75,84 @@ function applyGlbNametagLabel(el: HTMLDivElement | null, label: string): void {
   el.style.display = t ? "flex" : "none";
 }
 
+/**
+ * 내려다보는 화면(QC1 상공·경로 전체)에서는 라이더 모델이 점만 해서 머리 위 -40px 이
+ * **허공**이 된다 — 이름표가 점에서 떨어져 옆 라이더의 이름처럼 읽힌다(2026-10-08 Chief).
+ * 기울기가 이보다 작으면 이름표를 위치 점의 펄스 링 바로 위에 붙인다.
+ */
+const NAMETAG_FLAT_PITCH_MAX_DEG = 30;
+/** 링 반지름 + 2px — 내 점 28px, 동행 점 18px(아래 CSS 와 같은 값). */
+const LIVE_NAMETAG_FLAT_OFFSET_PX: [number, number] = [0, -16];
+const PEER_NAMETAG_FLAT_OFFSET_PX: [number, number] = [0, -11];
+
+const nametagFlatState = new WeakMap<mapboxgl.Marker, boolean>();
+/** 동행 이름표 마커 → 그 동행의 위치 점 마커 */
+const peerLocationDots = new WeakMap<mapboxgl.Marker, mapboxgl.Marker>();
+
+function applyNametagOffsetForPitch(mk: mapboxgl.Marker, flat: boolean, flatOffset: [number, number]): void {
+  if (nametagFlatState.get(mk) === flat) return;
+  nametagFlatState.set(mk, flat);
+  mk.setOffset(flat ? flatOffset : RIDER_GLB_NAMETAG_OFFSET_PX);
+}
+
 /** terrain·피치 변화 시 DOM 마커 재투영 (최초 생성 좌표에 고정되는 Mapbox 이슈 완화) */
 export function reprojectGlbNametagMarkers(
   liveMarker: mapboxgl.Marker | null,
   peerMarkers: ReadonlyMap<string, mapboxgl.Marker>,
+  pitchDeg?: number,
 ): void {
+  const flat = pitchDeg != null && Number.isFinite(pitchDeg) && pitchDeg < NAMETAG_FLAT_PITCH_MAX_DEG;
   if (liveMarker) {
+    applyNametagOffsetForPitch(liveMarker, flat, LIVE_NAMETAG_FLAT_OFFSET_PX);
     const ll = liveMarker.getLngLat();
     liveMarker.setLngLat([ll.lng, ll.lat]);
   }
   for (const mk of peerMarkers.values()) {
+    applyNametagOffsetForPitch(mk, flat, PEER_NAMETAG_FLAT_OFFSET_PX);
     const ll = mk.getLngLat();
     mk.setLngLat([ll.lng, ll.lat]);
+    peerLocationDots.get(mk)?.setLngLat([ll.lng, ll.lat]);
   }
 }
+
+/**
+ * 동행 위치 점 — 내 위치 점보다 작은 청록(이름표와 같은 색) 펄스. 혼동 방지가 목적이라
+ * 크기·색·퍼지는 범위를 모두 내 점과 다르게 둔다(2026-10-08 Chief).
+ *
+ * 이름표 마커에 **붙여서** 만들고 지운다 — MapView 의 정리 코드는 이름표 맵만 돌며
+ * `remove()` 하므로, 점을 따로 들고 있으면 스타일 교체 때 점만 남는다.
+ */
+function createPeerLocationRoot(): HTMLDivElement {
+  const root = document.createElement("div");
+  root.className = "map-view__peer-location-host";
+  root.setAttribute("aria-hidden", "true");
+  const pulse = document.createElement("div");
+  pulse.className = "map-view__peer-location-pulse";
+  pulse.style.animationDelay = ridePulseAnimationDelay();
+  const core = document.createElement("div");
+  core.className = "map-view__peer-location-core";
+  root.append(pulse, core);
+  return root;
+}
+
+function attachPeerLocationDot(map: mapboxgl.Map, nametag: mapboxgl.Marker, lngLat: LngLat): void {
+  const dot = new mapboxgl.Marker({
+    element: createPeerLocationRoot(),
+    className: "map-view__peer-location-marker",
+    anchor: "center",
+    ...PIN_MARKER_VIEWPORT_ALIGNMENT,
+  })
+    .setLngLat(lngLat)
+    .addTo(map);
+  peerLocationDots.set(nametag, dot);
+  const removeNametag = nametag.remove.bind(nametag);
+  nametag.remove = () => {
+    dot.remove();
+    peerLocationDots.delete(nametag);
+    return removeNametag();
+  };
+}
+
 
 export function syncGlbLiveNametagMarker(
   map: mapboxgl.Map,
@@ -143,8 +208,10 @@ function syncGlbPeerNametagMarkers(
         .setLngLat(lngLat)
         .addTo(map);
       markers.set(id, mk);
+      attachPeerLocationDot(map, mk, lngLat);
     } else {
       mk.setLngLat(lngLat);
+      peerLocationDots.get(mk)?.setLngLat(lngLat);
       const nametag = mk.getElement().querySelector<HTMLDivElement>(".map-view__rider-nametag");
       applyGlbNametagLabel(nametag, label);
     }
