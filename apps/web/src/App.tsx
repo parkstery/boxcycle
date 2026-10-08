@@ -41,7 +41,11 @@ import { rideDistanceAlongRoute } from "./lib/ride/liveLocationSnapshot";
 import { AuthGateCard, AuthGoogleMark } from "./components/auth/AuthGateCard";
 import { GuestEntryCard } from "./components/auth/GuestEntryCard";
 import { allowUnauthMapDev } from "./lib/identity/authGatePolicy";
-import { readGuestEntryAccepted } from "./lib/storage/appSessionKeys";
+import {
+  clearAccountDeletedNotice,
+  readAccountDeletedNotice,
+  readGuestEntryAccepted,
+} from "./lib/storage/appSessionKeys";
 import { useUserTier } from "./hooks/useUserTier";
 import { RideSummarySheet } from "./components/ride/RideSummarySheet";
 import { NextRideCard, LocalFirstEntryCard } from "./components/ride";
@@ -197,6 +201,7 @@ import {
   QUICK_CAMERA_FALLBACK_DISTANCE_M,
 } from "./lib/camera/quickCameraProductTune";
 import "./App.css";
+import { memberNeedsNickname, presenceRiderDisplayName, selfRiderDisplayName } from "./lib/identity/riderName";
 
 export default function App() {
   const {
@@ -215,6 +220,7 @@ export default function App() {
     userSignedOut,
     beginAuthenticatedSession,
     handleGoogleSignIn,
+    requestNicknameEntry,
     handleCompleteNickname,
     handleChangeNickname,
     completeFirebaseSignOut,
@@ -1126,8 +1132,7 @@ export default function App() {
   const selfRiderNametagFallback = useMemo(() => {
     if (!user) return null;
     if (sharedPresenceCourseId) return null;
-    if (user.isAnonymous) return "guest";
-    return user.displayName?.trim() || user.email?.trim() || "Rider";
+    return selfRiderDisplayName(user);
   }, [user, sharedPresenceCourseId]);
 
   const resolvedLiveRiderNametag = useMemo(() => {
@@ -1413,6 +1418,11 @@ export default function App() {
 
   function handleStartRide(fromStart?: boolean) {
     if (!routeGeometry || rideStatus !== "idle" || !user || !configured || trailStartBusy) return;
+    // 이름 없는 라이더는 달리지 않는다 — 닉네임 카드부터(가입 카드를 건너뛴 경로의 마지막 확인)
+    if (memberNeedsNickname(user)) {
+      requestNicknameEntry();
+      return;
+    }
     // 주행 입력 준비(센서 확인 또는 명시적 체험 속도 선택)가 끝나기 전에는 시작하지 않는다.
     if (!rideInputReady) return;
     /**
@@ -1755,6 +1765,11 @@ export default function App() {
   const summaryVisible =
     lastRideResult !== null ||
     (summarySheetVisible && (arrivalToastTick > 0 || lastEndedWasAdhoc !== null));
+  // 탈퇴 직후 첫 화면에 한 번 — 읽은 뒤 지워 다음 새로고침엔 나오지 않는다
+  const [accountDeletedNotice] = useState(readAccountDeletedNotice);
+  useEffect(() => {
+    if (accountDeletedNotice) clearAccountDeletedNotice();
+  }, [accountDeletedNotice]);
   const needsGuestEntry =
     configured &&
     authInitialized &&
@@ -2730,13 +2745,11 @@ export default function App() {
   const accountInitial = (() => {
     if (!user) return null;
     if (user.isAnonymous) return "G";
-    const src = user.displayName?.trim() || user.email?.trim() || "U";
-    return src.slice(0, 1).toUpperCase();
+    return selfRiderDisplayName(user).slice(0, 1).toUpperCase();
   })();
   const accountLabel = (() => {
     if (!user) return "";
-    if (user.isAnonymous) return "게스트";
-    return user.displayName?.trim() || user.email?.trim() || "Rider";
+    return selfRiderDisplayName(user);
   })();
   const accountMileageKm = (() => {
     const m = userTier.mileageTotalMeters;
@@ -2770,7 +2783,7 @@ export default function App() {
       : null;
     const trailMembers = trailSession.rows.map((r) => ({
       key: r.uid,
-      display: r.displayName?.trim() || r.uid.slice(0, 8),
+      display: presenceRiderDisplayName(r.uid, r.memberType, r.displayName),
       isSelf: r.uid === user.uid,
       active: isTrailMemberActive(r.lastSeenAtMs),
     }));
@@ -3395,6 +3408,7 @@ export default function App() {
         <GuestEntryCard
           busy={busy || authSigningIn}
           error={error}
+          notice={accountDeletedNotice ? "탈퇴가 완료되었습니다. 그동안 함께 달려 주셔서 고맙습니다." : null}
           onStartGuest={() => void beginAuthenticatedSession()}
           onGoogleSignIn={() => void handleGoogleSignIn()}
         />

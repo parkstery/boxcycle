@@ -19,6 +19,7 @@ import { spectatorPointOnRoute } from "../../lib/peerMotion/spectatorRideExtrap"
 import type { TrailSpectatorDot } from "../../hooks/useTrailLivePublicationRideSpectatorOverlay";
 import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../../lib/geo/geoDecimate";
 import type { RouteActivityMapOverlay } from "../../hooks/useRouteActivityMapOverlay";
+import { presenceRiderDisplayName } from "../../lib/identity/riderName";
 
 type PublicationGeomState =
   | { status: "ready"; geometry: LineStringGeometry }
@@ -277,7 +278,7 @@ export function useWorldLivePublicationRideMapOverlay(opts: {
       }
       const p = spectatorPointOnRoute(r, g.geometry, spectatorTickMs, { logPt10: true });
       if (p) {
-        const who = r.displayName?.trim() || r.uid.slice(0, 6);
+        const who = presenceRiderDisplayName(r.uid, null, r.displayName);
         trailheadSpectatorDots.push({
           id: r.uid,
           lngLat: p as LngLat,

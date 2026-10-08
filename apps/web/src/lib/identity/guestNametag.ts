@@ -1,27 +1,15 @@
 import type { PresenceMemberType } from "./authDisplay";
+import { presenceRiderDisplayName } from "./riderName";
 
-export type NametagMemberPick = { uid: string; memberType: PresenceMemberType | null };
-
-/** 동시 접속 게스트 uid 를 안정적으로 정렬해 guest1, guest2 … 부여에 사용 */
-export function sortedGuestUids(members: NametagMemberPick[]): string[] {
-  return members
-    .filter((m) => m.memberType === "guest")
-    .map((m) => m.uid)
-    .sort((a, b) => a.localeCompare(b));
-}
-
-/** 지도·목록용 표시 문자열 */
+/**
+ * 지도·목록용 표시 문자열 — presence 행 하나.
+ * 2026-10-09: 게스트를 접속 순번(guest1, guest2 …)으로 부르던 것을 없앴다. 남이 들어오고 나갈
+ * 때마다 내 이름이 바뀌었고, 접속 목록·계정 시트와도 이름이 달랐다. 규칙은 riderName 한 곳.
+ */
 export function mapNametagForMember(
   uid: string,
   memberType: PresenceMemberType | null,
   displayName: string | null,
-  guestUidsSorted: string[],
 ): string {
-  if (memberType === "guest") {
-    const i = guestUidsSorted.indexOf(uid);
-    return i >= 0 ? `guest${i + 1}` : "guest";
-  }
-  const d = displayName?.trim();
-  if (d) return d;
-  return "Rider";
+  return presenceRiderDisplayName(uid, memberType, displayName);
 }

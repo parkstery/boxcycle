@@ -204,6 +204,7 @@
     "identity": [
       "identity/authDisplay.ts",
       "identity/authGatePolicy.ts",
+      "identity/riderName.ts",
       "identity/firebaseAuthPopup.ts",
       "identity/guestAccountReset.ts",
       "identity/guestNametag.ts",

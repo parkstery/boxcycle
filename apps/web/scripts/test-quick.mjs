@@ -27,7 +27,9 @@ const SCRIPTS_DIR = join(WEB_ROOT, "scripts");
 /** 묶음 → scripts/ 아래 폴더 이름. 최상위 파일은 "." 으로 적는다. */
 const GROUPS = {
   ride: [
+    "account-deletion",
     "calorie-profile",
+    "identity",
     "conquest",
     "hud-companion",
     "next-ride",
@@ -51,7 +53,7 @@ const GROUPS = {
 };
 
 const GROUP_LABEL = {
-  ride: "주행·결과·센서",
+  ride: "주행·계정·센서",
   route: "경로·토큰",
   map: "지도·화면 읽기",
   peer: "동행 동기화",

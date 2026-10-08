@@ -3,6 +3,7 @@ import type { TrailLivePublicationRideRow } from "../trail/trailTypes";
 import { PEER_LIVE_RIDE_STALE_MS } from "../trail/trailLivePolicy";
 import type { RtdbTrailMotionRow } from "./repo/rtdbTrailMotion";
 import { mapNametagForMember } from "../identity/guestNametag";
+import { presenceRiderDisplayName } from "../identity/riderName";
 import { getPeerMotionRegistry } from "./PeerMotionRegistry";
 import { rtdbMotionRowToPeerMotionPacket } from "./rtdbToPacket";
 import { trailLiveRowToPeerMotionPacket } from "./rowToPacket";
@@ -31,7 +32,6 @@ export type SyncPeerMotionFromPresenceInput = {
   motionRows: readonly RtdbTrailMotionRow[];
   liveRideRows: readonly TrailLivePublicationRideRow[];
   sessionMembers: readonly PeerNametagMember[];
-  guestUidsSorted: readonly string[];
   routeLenM?: number;
   /** 시험·재생용. 기본 Date.now() */
   nowMs?: number;
@@ -433,10 +433,8 @@ export function syncPeerMotionFromPresence(input: SyncPeerMotionFromPresenceInpu
 
     const member = sessionByUid.get(uid);
     const label = member
-      ? mapNametagForMember(uid, member.memberType, member.displayName, [...input.guestUidsSorted])
-      : liveRow?.displayName?.trim() ||
-        motionByUid.get(uid)?.uid.slice(0, 6) ||
-        uid.slice(0, 6);
+      ? mapNametagForMember(uid, member.memberType, member.displayName)
+      : presenceRiderDisplayName(uid, null, liveRow?.displayName);
 
     const changedAt =
       rtdbRow != null ? noteRtdbContentObservation(uid, rtdbRow, nowMs) : null;

@@ -34,6 +34,8 @@ export { DEFAULT_TRAIL_ID, sanitizeTrailId };
 export type TrailMemberRow = {
   uid: string;
   displayName: string | null;
+  /** 쓰는 쪽이 `getPresenceMemberType` 로 싣는다. 옛 문서엔 없을 수 있다 */
+  memberType: "guest" | "user" | null;
   lastSeenAtMs: number | null;
 };
 
@@ -124,6 +126,7 @@ export function subscribeTrailMembers(
           return {
             uid: d.id,
             displayName: typeof data.displayName === "string" ? data.displayName : null,
+            memberType: data.memberType === "guest" || data.memberType === "user" ? data.memberType : null,
             lastSeenAtMs: lastSeenAtToMillis(data.lastSeenAt),
           };
         });

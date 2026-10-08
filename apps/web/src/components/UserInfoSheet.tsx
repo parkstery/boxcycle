@@ -32,6 +32,8 @@ import {
   isDeletionConfirmPhrase,
 } from "../lib/account/accountDeletion";
 import "./UserInfoSheet.css";
+import { selfRiderDisplayName } from "../lib/identity/riderName";
+import { prepareStartScreenAfterAccountDeletion } from "../lib/storage/appSessionKeys";
 
 type UserInfoSheetProps = {
   open: boolean;
@@ -400,14 +402,10 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
   const initial = (() => {
     if (!props.user) return "?";
     if (props.user.isAnonymous) return "G";
-    const src = props.user.displayName?.trim() || props.user.email?.trim() || "U";
-    return src.slice(0, 1).toUpperCase();
+    return selfRiderDisplayName(props.user).slice(0, 1).toUpperCase();
   })();
-  const nickname = props.user
-    ? props.user.isAnonymous
-      ? "게스트"
-      : props.user.displayName ?? props.user.email ?? "Rider"
-    : "";
+  // 다른 라이더에게 보이는 이름과 같은 규칙(riderName). 이메일은 아래 줄에만 — 이 시트는 본인만 본다
+  const nickname = props.user ? selfRiderDisplayName(props.user) : "";
   const subLine = props.user
     ? props.user.isAnonymous
       ? props.user.uid.slice(0, 12) + "…"
@@ -429,6 +427,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
     setDeletionNote(null);
     try {
       await deleteMyAccount(props.user, deletionPhrase);
+      prepareStartScreenAfterAccountDeletion();
       location.reload();
     } catch (e) {
       setDeletionBusy(false);

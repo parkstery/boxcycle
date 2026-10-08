@@ -23,7 +23,8 @@ import {
   COURSE_PRESENCE_HEARTBEAT_PAUSED_MS,
 } from "../lib/ride/rideSyncPolicy";
 import { PEER_LIVE_RIDE_STALE_MS } from "../lib/trail/trailLivePolicy";
-import { mapNametagForMember, sortedGuestUids } from "../lib/identity/guestNametag";
+import { mapNametagForMember } from "../lib/identity/guestNametag";
+import { presenceRiderDisplayName, selfRiderDisplayName } from "../lib/identity/riderName";
 import {
   resetPeerMotionRegistry,
   syncPeerMotionFromPresence,
@@ -128,7 +129,6 @@ export function PublicationSharedPresence({
   const liveRideRowsRef = useRef(liveRideRows);
   const motionRowsRef = useRef(motionRows);
   const sessionRowsRef = useRef(rows);
-  const guestUidsRef = useRef<string[]>([]);
   const [visibilityNowMs, setVisibilityNowMs] = useState(0);
 
   useEffect(() => {
@@ -262,7 +262,6 @@ export function PublicationSharedPresence({
           motionRows: motionRowsRef.current,
           liveRideRows: next,
           sessionMembers: sessionRowsRef.current,
-          guestUidsSorted: guestUidsRef.current,
           routeLenM: routeLenMRef.current,
         });
       },
@@ -340,7 +339,6 @@ export function PublicationSharedPresence({
           motionRows: next,
           liveRideRows: liveRideRowsRef.current,
           sessionMembers: sessionRowsRef.current,
-          guestUidsSorted: guestUidsRef.current,
           routeLenM: routeLenMRef.current,
         });
       },
@@ -360,7 +358,6 @@ export function PublicationSharedPresence({
           motionRows: [],
           liveRideRows: liveRideRowsRef.current,
           sessionMembers: sessionRowsRef.current,
-          guestUidsSorted: guestUidsRef.current,
           routeLenM: routeLenMRef.current,
         });
       },
@@ -468,26 +465,7 @@ export function PublicationSharedPresence({
     return m;
   }, [liveRidesByUid, motionRowsByUid, visibilityNowMs]);
 
-  const guestUidsSorted = useMemo(() => {
-    const picks = active.map((r) => ({ uid: r.uid, memberType: r.memberType }));
-    let ids = sortedGuestUids(picks);
-    if (user.isAnonymous && !ids.includes(user.uid)) {
-      ids = [...ids, user.uid].sort((a, b) => a.localeCompare(b));
-    }
-    return ids;
-  }, [active, user.isAnonymous, user.uid]);
-
-  useEffect(() => {
-    guestUidsRef.current = guestUidsSorted;
-  }, [guestUidsSorted]);
-
-  const myMapNametag = useMemo(() => {
-    if (user.isAnonymous) {
-      const i = guestUidsSorted.indexOf(user.uid);
-      return i >= 0 ? `guest${i + 1}` : "guest";
-    }
-    return user.displayName?.trim() || user.email?.trim() || "Rider";
-  }, [user, guestUidsSorted]);
+  const myMapNametag = useMemo(() => selfRiderDisplayName(user), [user]);
 
   useEffect(() => {
     onLiveTagRef.current?.(myMapNametag);
@@ -507,10 +485,9 @@ export function PublicationSharedPresence({
       motionRows: motionRowsRef.current,
       liveRideRows,
       sessionMembers: rows,
-      guestUidsSorted,
       routeLenM,
     });
-  }, [motionRows, liveRideRows, rows, guestUidsSorted, publicationId, user.uid, routeLenM]);
+  }, [motionRows, liveRideRows, rows, publicationId, user.uid, routeLenM]);
 
   const peerHudEntries = useMemo((): PeerHudEntry[] => {
     return [...liveRidesByUid.keys()]
@@ -519,11 +496,11 @@ export function PublicationSharedPresence({
         const live = liveRidesByUid.get(uid)!;
         const member = sessionByUid.get(uid);
         const label = member
-          ? mapNametagForMember(uid, member.memberType, member.displayName, guestUidsSorted)
-          : live.displayName?.trim() || uid.slice(0, 6);
+          ? mapNametagForMember(uid, member.memberType, member.displayName)
+          : presenceRiderDisplayName(uid, null, live.displayName);
         return { id: uid, label };
       });
-  }, [liveRidesByUid, peerVisibleByUid, sessionByUid, guestUidsSorted]);
+  }, [liveRidesByUid, peerVisibleByUid, sessionByUid]);
 
   const lastPeerHudKeyRef = useRef<string>("__init__");
 
@@ -567,7 +544,7 @@ export function PublicationSharedPresence({
         <ul className="trailhead-presence__list">
           {active.map((r) => (
             <li key={r.uid}>
-              {mapNametagForMember(r.uid, r.memberType, r.displayName, guestUidsSorted)}
+              {mapNametagForMember(r.uid, r.memberType, r.displayName)}
               {r.uid === user.uid ? <span className="trailhead-presence__you"> (나)</span> : null}
               {peerVisibleByUid.get(r.uid) ? (
                 <span className="trailhead-presence__live-dot"> · 지도 공유 중</span>

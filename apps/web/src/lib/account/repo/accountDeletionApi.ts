@@ -6,11 +6,33 @@ import { GoogleAuthProvider, reauthenticateWithPopup, signOut, type User } from 
 import { getFirebaseAuth } from "../../firebase/app";
 import { functionsHttpUrl } from "../../firebase/functionsEmulatorUrl";
 
-/** 서버는 최근 5분 내 로그인만 탈퇴를 받는다 — Google 팝업으로 다시 인증한다 */
+/** 현재 토큰이 기록한 마지막 로그인 시각(ms). 읽지 못하면 null — 그때는 재인증한다 */
+export async function readAuthTimeMs(user: User): Promise<number | null> {
+  try {
+    const ms = Date.parse((await user.getIdTokenResult()).authTime);
+    return Number.isFinite(ms) ? ms : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 서버는 최근 5분 내 로그인만 탈퇴를 받는다 — Google 팝업으로 다시 인증한다.
+ *
+ * 계정 선택 화면(prompt: select_account)을 띄우지 않는다(2026-10-09 Chief): 탈퇴 대상은
+ * 이미 로그인한 이 계정뿐이라 「어느 계정?」 은 묻지 않는다. login_hint 로 이 계정을 지정하면
+ * Google 은 보통 선택 없이 확인만 하고 닫힌다. 다른 계정을 고르면 auth/user-mismatch 로 거절된다.
+ */
 export async function reauthenticateWithGoogle(user: User): Promise<void> {
   const provider = new GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: "select_account" });
+  if (user.email) provider.setCustomParameters({ login_hint: user.email });
   await reauthenticateWithPopup(user, provider);
+}
+
+/** Firebase Auth 오류 코드(없으면 null) */
+export function authErrorCode(e: unknown): string | null {
+  const code = (e as { code?: unknown } | null)?.code;
+  return typeof code === "string" ? code : null;
 }
 
 export type DeleteAccountHttpResponse = {

@@ -17,6 +17,7 @@ import {
   isValidNicknameKeyNormalized,
   normalizeNicknameKey,
 } from "../nickname";
+import { nicknameOrNull, riderDisplayName } from "../riderName";
 
 export type UserTier = "anonymous" | "registered_free" | "registered_paid" | "admin";
 
@@ -66,13 +67,16 @@ type UserProfilePublicLabel = {
   displayName: string | null;
 };
 
-/** 공개 UI용 — 닉네임 → displayName → uid 앞 8자 */
+/**
+ * 공개 UI용 — 닉네임 → (닉네임 규칙을 통과한) displayName → 「라이더-xxxx」.
+ * displayName 에는 가입 직전 Google 실명이 남아 있을 수 있어 그대로 쓰지 않는다(riderName).
+ */
 export function formatUserPublicLabel(uid: string, profile: UserProfilePublicLabel | null): string {
-  const n = profile?.nickname?.trim();
-  if (n) return n;
-  const d = profile?.displayName?.trim();
-  if (d) return d;
-  return `사용자 ${uid.slice(0, 8)}`;
+  return riderDisplayName({
+    uid,
+    isGuest: false,
+    nickname: nicknameOrNull(profile?.nickname) ?? profile?.displayName,
+  });
 }
 
 /** 여러 uid의 표시 이름(닉네임 우선)을 병렬 조회 */
@@ -109,7 +113,8 @@ export async function getUserPublicLabelsByUid(uids: readonly string[]): Promise
 
 function buildUserProfileWrite(user: User, nicknameTrimmed: string, keyLower: string) {
   return {
-    displayName: user.displayName ?? null,
+    // 닉네임을 쓴다 — 이 시점 user.displayName 은 Google 실명이고, users/{uid} 는 로그인한 누구나 읽는다
+    displayName: nicknameTrimmed,
     email: user.email ?? null,
     photoURL: user.photoURL ?? null,
     isAnonymous: false,

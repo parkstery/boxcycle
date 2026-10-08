@@ -4,6 +4,8 @@ import "./GuestEntryCard.css";
 type GuestEntryCardProps = {
   busy: boolean;
   error: string | null;
+  /** 시작 화면 위 한 줄 안내(예: 탈퇴 완료) */
+  notice?: string | null;
   onStartGuest: () => void;
   onGoogleSignIn: () => void;
 };
@@ -12,7 +14,7 @@ type GuestEntryCardProps = {
  * 최초 진입 — 임시 라이더(익명 인증) 안내 후 세계 참가.
  * [tier 정책 §3.2](document/reference/product/260519-사용자-tier-및-진입-정책.md)
  */
-export function GuestEntryCard({ busy, error, onStartGuest, onGoogleSignIn }: GuestEntryCardProps) {
+export function GuestEntryCard({ busy, error, notice = null, onStartGuest, onGoogleSignIn }: GuestEntryCardProps) {
   return (
     <div className="guest-entry" role="dialog" aria-modal="true" aria-label="시작">
       <div className="guest-entry__card">
@@ -20,6 +22,11 @@ export function GuestEntryCard({ busy, error, onStartGuest, onGoogleSignIn }: Gu
           <span className="guest-entry__brand-dot" aria-hidden />
           RTW
         </div>
+        {notice ? (
+          <p className="guest-entry__notice" role="status">
+            {notice}
+          </p>
+        ) : null}
         <h2 className="guest-entry__title">세계에 참가하기</h2>
         <p className="guest-entry__lead">지도에서 입문·퍼블릭 경로를 주행합니다.</p>
         <div className="guest-entry__actions">

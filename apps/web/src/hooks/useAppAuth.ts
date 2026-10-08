@@ -46,6 +46,10 @@ export function useAppAuth(configured: boolean) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fsSync, setFsSync] = useState<FsSyncState>({ state: "idle" });
+  /** 게스트→Google 연결 완료 횟수 — 닉네임 확인을 다시 돌리는 신호(아래 effect) */
+  const [authLinkRev, setAuthLinkRev] = useState(0);
+  /** displayName 은 User 객체를 제자리에서 바꾸므로 화면 갱신용으로 올린다 */
+  const [, setProfileRev] = useState(0);
   const [authInitialized, setAuthInitialized] = useState(false);
   const [authSigningIn, setAuthSigningIn] = useState(false);
   const [userSignedOut, setUserSignedOut] = useState(readUserSignedOutSessionFlag);
@@ -123,6 +127,8 @@ export function useAppAuth(configured: boolean) {
   }, [configured, authInitialized, user]);
 
   useEffect(() => {
+    // authLinkRev: 게스트→Google 연결은 같은 User 객체를 제자리에서 바꿔 onAuthStateChanged 가 울리지 않는다.
+    // 이 값(의존 배열)이 없으면 연결 직후 닉네임 확인이 돌지 않아 닉네임 없는 회원이 생긴다(2026-10-09).
     if (!configured || !user) {
       startTransition(() => setFsSync({ state: "idle" }));
       return;
@@ -153,6 +159,13 @@ export function useAppAuth(configured: boolean) {
         }
         await claimNicknameTransaction(user, stored);
         if (cancelled) return;
+        // 화면·presence 이름은 Auth displayName 을 읽는다(riderName). 예전 계정·게스트 연결 계정은
+        // 여기에 Google 실명이 남아 있을 수 있다 — 저장된 닉네임으로 맞춘다(2026-10-09).
+        if (user.displayName !== stored) {
+          await updateProfile(user, { displayName: stored }).catch(() => {});
+          if (cancelled) return;
+          setProfileRev((n) => n + 1);
+        }
         startTransition(() => setFsSync({ state: "ok" }));
       } catch (e: unknown) {
         if (e instanceof NicknameTakenError) {
@@ -176,7 +189,7 @@ export function useAppAuth(configured: boolean) {
     return () => {
       cancelled = true;
     };
-  }, [configured, user]);
+  }, [configured, user, authLinkRev]);
 
   const beginAuthenticatedSession = useCallback(async () => {
     setGuestEntryAccepted();
@@ -214,6 +227,7 @@ export function useAppAuth(configured: boolean) {
       if (current.isAnonymous) {
         try {
           await linkWithPopup(current, provider);
+          setAuthLinkRev((n) => n + 1);
         } catch (inner: unknown) {
           const ie = inner as { code?: string };
           if (
@@ -281,8 +295,11 @@ export function useAppAuth(configured: boolean) {
     [user],
   );
 
-  /** displayName 은 User 객체를 제자리에서 바꾸므로 화면 갱신용으로 올린다 */
-  const [, setProfileRev] = useState(0);
+  /** 주행 시작 직전 마지막 확인 — 닉네임 없는 회원에게 닉네임 카드를 띄운다(memberNeedsNickname) */
+  const requestNicknameEntry = useCallback(() => {
+    startTransition(() => setFsSync({ state: "awaiting_nickname" }));
+  }, []);
+
 
   /**
    * 프로필 수정 — 닉네임 변경. 실패는 throw(시트가 바로 아래에 보여 준다).
@@ -323,6 +340,7 @@ export function useAppAuth(configured: boolean) {
     userSignedOut,
     beginAuthenticatedSession,
     handleGoogleSignIn,
+    requestNicknameEntry,
     handleCompleteNickname,
     handleChangeNickname,
     completeFirebaseSignOut,

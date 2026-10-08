@@ -893,11 +893,21 @@
 
 /*
  * 내려다보는 화면(riderDomMarkers `NAMETAG_FLAT_*`) — 마커 바닥 중앙이 위치 점 중심에 온다
- * (offset 0). 내 이름표는 숨기고, 동행 이름표는 점 옆으로 옮겨 세로 중앙을 점에 맞춘다
+ * (offset 0). 동행 이름표는 점 옆으로 옮겨 세로 중앙을 점에 맞춘다
  * (+3px 은 이름표 margin-bottom). 간격 12px = 동행 펄스 링 반지름 9px + 3px.
+ *
+ * 내 이름표는 **점 바로 아래, 파란 알약**(2026-10-09 Chief: 1번 카메라에서도 보여 달라).
+ * 10-08 에는 숨겼다 — 위에 두면 동행 이름처럼 읽혔다. 아래·채운 배경으로 동행(점 옆·글자만)과 구분한다.
+ * 위쪽 끝 = 점 중심 + 16px (내 위치 링 반지름 14px + 2px). 펄스는 커지며 사라지므로 덮어도 읽힌다.
  */
-.map-view__glb-nametag-host--flat.map-view__glb-nametag-host--live {
-  visibility: hidden;
+.map-view__glb-nametag-host--flat.map-view__glb-nametag-host--live .map-view__rider-nametag--live {
+  transform: translateY(calc(100% + 3px + 16px));
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: #1d4ed8;
+  color: #fff;
+  text-shadow: none;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.45);
 }
 
 .map-view__glb-nametag-host--flat.map-view__glb-nametag-host--peer .map-view__rider-nametag {

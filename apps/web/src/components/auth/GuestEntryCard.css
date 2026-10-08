@@ -40,6 +40,16 @@
   color: #0f172a;
 }
 
+.guest-entry__notice {
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  background: #f1f5f9;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: #334155;
+}
+
 .guest-entry__lead {
   margin: 0 0 1rem;
   font-size: 0.88rem;

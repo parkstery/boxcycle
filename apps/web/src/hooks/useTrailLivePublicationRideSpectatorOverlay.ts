@@ -16,6 +16,7 @@ import {
   type TrailLivePublicationRideRow,
 } from "../lib/trail/repo/firestoreTrailLivePublicationRides";
 import { spectatorPointOnRoute } from "../lib/peerMotion/spectatorRideExtrap";
+import { presenceRiderDisplayName } from "../lib/identity/riderName";
 
 export type TrailSpectatorDot = { id: string; lngLat: LngLat; label: string };
 
@@ -164,7 +165,7 @@ export function useTrailLivePublicationRideSpectatorOverlay(opts: UseTrailLivePu
       if (!g || g.status !== "ready") continue;
       const p = spectatorPointOnRoute(r, g.geometry, spectatorTickMs, { logPt10: true });
       if (p) {
-        const who = r.displayName?.trim() || r.uid.slice(0, 6);
+        const who = presenceRiderDisplayName(r.uid, null, r.displayName);
         out.push({
           id: r.uid,
           lngLat: p,

@@ -61,3 +61,38 @@ export function clearUserSignedOutSessionFlag(): void {
     /* noop */
   }
 }
+
+/** 탈퇴 직후 시작 화면에 「탈퇴가 완료되었습니다」 를 한 번 보여 준다(같은 탭) */
+export const ACCOUNT_DELETED_NOTICE_SESSION_KEY = "boxcycle_account_deleted_v1";
+
+/**
+ * 탈퇴 직후 — 처음 들어온 사람과 같은 시작 화면(GuestEntryCard)으로 돌린다(2026-10-09 Chief).
+ * 「게스트로 시작함」 표시가 sessionStorage 에 남아 있어, 새로고침하면 아무것도 묻지 않고 **새 게스트를
+ * 자동으로 만들어** 지도로 들어갔다. 탈퇴의 localStorage 정리는 sessionStorage 를 건드리지 않는다.
+ */
+export function prepareStartScreenAfterAccountDeletion(): void {
+  try {
+    sessionStorage.removeItem(GUEST_ENTRY_ACCEPTED_SESSION_KEY);
+    sessionStorage.removeItem(USER_SIGNED_OUT_SESSION_KEY);
+    sessionStorage.setItem(ACCOUNT_DELETED_NOTICE_SESSION_KEY, "1");
+  } catch {
+    /* noop */
+  }
+}
+
+export function readAccountDeletedNotice(): boolean {
+  if (typeof sessionStorage === "undefined") return false;
+  try {
+    return sessionStorage.getItem(ACCOUNT_DELETED_NOTICE_SESSION_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function clearAccountDeletedNotice(): void {
+  try {
+    sessionStorage.removeItem(ACCOUNT_DELETED_NOTICE_SESSION_KEY);
+  } catch {
+    /* noop */
+  }
+}
