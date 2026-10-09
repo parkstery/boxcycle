@@ -6,6 +6,7 @@ import {
   OPEN_QUIET_TO_CLOSED_MS,
   resolveArchivedAtMs,
   resolveClosedAtMs,
+  scanAllPages,
   shouldCloseQuietOpenTrail,
 } from "./trailLifecycleCore.js";
 
@@ -109,5 +110,38 @@ describe("세 단계가 한 방향으로만 흐른다", () => {
       totalMs >= 2 * DAY,
       "조용해진 뒤 삭제까지 최소 이틀 — 판단을 되돌릴 시간을 남긴다",
     );
+  });
+});
+
+describe("단계 문서를 끝까지 훑는다(2026-10-09)", () => {
+  // 250건, 기한 지난 것은 뒤쪽 150건 — 종전처럼 앞 100건만 보면 하나도 못 지운다.
+  const docs = Array.from({ length: 250 }, (_, i) => ({ id: `t${String(i).padStart(3, "0")}`, overdue: i >= 100 }));
+  const fetchPage = (pageSize: number) => async (after: { id: string } | null) => {
+    const start = after ? docs.findIndex((d) => d.id === after.id) + 1 : 0;
+    return docs.slice(start, start + pageSize);
+  };
+
+  it("페이지를 넘겨 뒤쪽의 기한 지난 문서까지 모두 처리한다", async () => {
+    const purged: string[] = [];
+    const r = await scanAllPages(fetchPage(100), 100, async (d) => {
+      if (d.overdue) purged.push(d.id);
+    }, () => false);
+    assert.equal(r.visited, 250);
+    assert.equal(r.stopped, false);
+    assert.equal(purged.length, 150);
+  });
+
+  it("마지막 페이지가 꽉 차도(정확히 배수) 빈 페이지 한 번으로 끝난다", async () => {
+    const r = await scanAllPages(fetchPage(125), 125, async () => {}, () => false);
+    assert.equal(r.visited, 250);
+  });
+
+  it("시간 예산이 다하면 멈추고 멈췄다고 알린다", async () => {
+    let n = 0;
+    const r = await scanAllPages(fetchPage(100), 100, async () => {
+      n += 1;
+    }, () => n >= 30);
+    assert.equal(r.visited, 30);
+    assert.equal(r.stopped, true);
   });
 });

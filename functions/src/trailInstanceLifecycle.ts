@@ -1,4 +1,4 @@
-import { FieldValue, getFirestore, Timestamp } from "firebase-admin/firestore";
+import { FieldValue, getFirestore, Timestamp, type QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { OPEN_TRAIL_LISTINGS_COLLECTION } from "./openTrailListingCore.js";
 
@@ -10,6 +10,7 @@ import {
   OPEN_QUIET_TO_CLOSED_MS,
   resolveArchivedAtMs,
   resolveClosedAtMs,
+  scanAllPages,
   shouldCloseQuietOpenTrail,
 } from "./trailLifecycleCore.js";
 
@@ -18,6 +19,9 @@ const MEMBERS_SUB = "members";
 const LIVE_SUB = TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION;
 
 const BATCH_LIMIT = 400;
+const PAGE_SIZE = 200;
+/** 함수 제한 60초 — 남은 일은 다음 실행(12시간 뒤)이 이어 간다 */
+const RUN_BUDGET_MS = 45_000;
 
 function timestampMs(raw: unknown): number | null {
   if (raw == null) return null;
@@ -69,6 +73,14 @@ export const trailInstanceLifecycle = onSchedule(
     const now = Date.now();
     const closedCutoff = now - CLOSED_TO_ARCHIVED_MS;
     const purgeCutoff = now - ARCHIVED_PURGE_MS;
+    const startedMs = Date.now();
+    const outOfTime = () => Date.now() - startedMs > RUN_BUDGET_MS;
+    // 단계마다 문서를 끝까지 페이지로 훑는다 — 종전 limit 한 번은 기한 지난 것을 남겼다(scanAllPages 주석).
+    const stage = (status: string) => (after: QueryDocumentSnapshot | null) => {
+      let q = db.collection(TRAILS_COLLECTION).where("status", "==", status).limit(PAGE_SIZE);
+      if (after) q = q.startAfter(after);
+      return q.get().then((snap) => snap.docs);
+    };
 
     /*
      * ① 아무도 없는 열린 Trail 을 닫는다.
@@ -76,68 +88,51 @@ export const trailInstanceLifecycle = onSchedule(
      * ⚠️ 닫힌 Trail 은 다시 열 수 없다. 기준을 짧게 줄이면 「쉬었다 돌아오려던 사람이
      *    쫓겨나는」 2026-09-27 의 결함이 그대로 돌아온다. 판정은 `trailLifecycleCore` 에 있다.
      */
-    const quietSnap = await db
-      .collection(TRAILS_COLLECTION)
-      .where("status", "==", "open")
-      .limit(200)
-      .get();
-
     let quietClosedCount = 0;
-    for (const doc of quietSnap.docs) {
-      if (doc.id === "default") continue;
-      if (!shouldCloseQuietOpenTrail(doc.data(), timestampMs, now)) continue;
+    const openScan = await scanAllPages(stage("open"), PAGE_SIZE, async (doc) => {
+      if (doc.id === "default") return;
+      if (!shouldCloseQuietOpenTrail(doc.data(), timestampMs, now)) return;
       await doc.ref.update({
         status: "closed",
         closedAt: FieldValue.serverTimestamp(),
         lastActivityAt: FieldValue.serverTimestamp(),
       });
       quietClosedCount += 1;
-    }
-
-    const closedSnap = await db
-      .collection(TRAILS_COLLECTION)
-      .where("status", "==", "closed")
-      .limit(200)
-      .get();
+    }, outOfTime);
 
     let archivedCount = 0;
-    for (const doc of closedSnap.docs) {
-      const data = doc.data();
-      const closedMs = resolveClosedAtMs(data, timestampMs);
-      if (closedMs == null || closedMs > closedCutoff) continue;
+    const closedScan = await scanAllPages(stage("closed"), PAGE_SIZE, async (doc) => {
+      const closedMs = resolveClosedAtMs(doc.data(), timestampMs);
+      if (closedMs == null || closedMs > closedCutoff) return;
       await doc.ref.update({
         status: "archived",
         archivedAt: FieldValue.serverTimestamp(),
         lastActivityAt: FieldValue.serverTimestamp(),
       });
       archivedCount += 1;
-    }
-
-    const archivedSnap = await db
-      .collection(TRAILS_COLLECTION)
-      .where("status", "==", "archived")
-      .limit(100)
-      .get();
+    }, outOfTime);
 
     let purgedCount = 0;
-    for (const doc of archivedSnap.docs) {
-      const data = doc.data();
-      const archivedMs = resolveArchivedAtMs(data, timestampMs);
-      if (archivedMs == null || archivedMs > purgeCutoff) continue;
+    const archivedScan = await scanAllPages(stage("archived"), PAGE_SIZE, async (doc) => {
+      const archivedMs = resolveArchivedAtMs(doc.data(), timestampMs);
+      if (archivedMs == null || archivedMs > purgeCutoff) return;
       const trailId = doc.id;
-      if (trailId === "default") continue;
+      if (trailId === "default") return;
       await db.collection(OPEN_TRAIL_LISTINGS_COLLECTION).doc(trailId).delete().catch(() => {});
       await deleteSubcollection(trailId, MEMBERS_SUB);
       await deleteSubcollection(trailId, LIVE_SUB);
       await doc.ref.delete();
       purgedCount += 1;
-    }
+    }, outOfTime);
 
     console.info("[trailInstanceLifecycle]", {
       quietClosedCount,
       quietHours: Math.round(OPEN_QUIET_TO_CLOSED_MS / (60 * 60 * 1000)),
       archivedCount,
       purgedCount,
+      // true 면 시간 예산에서 멈췄다 — 남은 것은 다음 실행이 이어 간다
+      stoppedForTime: openScan.stopped || closedScan.stopped || archivedScan.stopped,
+      elapsedMs: Date.now() - startedMs,
     });
   },
 );

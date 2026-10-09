@@ -63,3 +63,33 @@ export function shouldCloseQuietOpenTrail(
   if (lastMs == null) return false;
   return nowMs - lastMs >= quietMs;
 }
+
+/**
+ * 한 단계(open·closed·archived)의 문서를 **끝까지** 페이지로 훑는다(2026-10-09).
+ *
+ * 종전에는 단계마다 `limit(100~200)` 한 번만 읽었다. 순서가 없으니 그 100건에 기한 지난 것이
+ * 몇 개 섞였느냐에 따라 한 번에 지우는 수가 들쭉날쭉했고, 보관 7일이 지난 Trail 102개가
+ * 실행을 여러 번 거치도록 남았다(244개 중). 페이지를 끝까지 넘기되, 함수 시간 제한(60초) 안에서
+ * 멈출 수 있게 `shouldStop` 을 문서마다 확인한다 — 멈춘 곳부터는 다음 실행이 이어 간다.
+ *
+ * fetchPage(after) — after 다음부터 최대 pageSize 건. 마지막 문서를 다음 커서로 쓴다.
+ */
+export async function scanAllPages<T>(
+  fetchPage: (after: T | null) => Promise<T[]>,
+  pageSize: number,
+  visit: (doc: T) => Promise<void>,
+  shouldStop: () => boolean,
+): Promise<{ visited: number; stopped: boolean }> {
+  let after: T | null = null;
+  let visited = 0;
+  for (;;) {
+    const page = await fetchPage(after);
+    for (const doc of page) {
+      if (shouldStop()) return { visited, stopped: true };
+      await visit(doc);
+      visited += 1;
+    }
+    if (page.length < pageSize) return { visited, stopped: false };
+    after = page[page.length - 1];
+  }
+}
