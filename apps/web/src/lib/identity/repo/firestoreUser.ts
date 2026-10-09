@@ -130,12 +130,12 @@ export async function getUserPublicLabelsByUid(uids: readonly string[]): Promise
   return map;
 }
 
-function buildUserProfileWrite(user: User, nicknameTrimmed: string, keyLower: string) {
+function buildUserProfileWrite(nicknameTrimmed: string, keyLower: string) {
   return {
     // 닉네임을 쓴다 — 이 시점 user.displayName 은 Google 실명이고, users/{uid} 는 로그인한 누구나 읽는다
     displayName: nicknameTrimmed,
-    // 이메일은 쓰지 않는다 — users/{uid} 는 로그인한 누구나 읽는다(2026-10-09 Chief). 이메일은 Auth 에 있다.
-    photoURL: user.photoURL ?? null,
+    // 이메일·Google 사진 주소는 쓰지 않는다 — users/{uid} 는 로그인한 누구나 읽는다(2026-10-09 Chief).
+    // 둘 다 읽는 화면이 없고 Auth 에 있다.
     isAnonymous: false,
     tier: "registered_free" as const,
     tierUpdatedAt: serverTimestamp(),
@@ -157,7 +157,6 @@ export async function ensureAnonymousUserTier(user: User): Promise<void> {
     userRef,
     {
       displayName: user.displayName ?? getPresenceDisplayName(user),
-      photoURL: user.photoURL ?? null,
       isAnonymous: true,
       tier: "anonymous",
       tierUpdatedAt: serverTimestamp(),
@@ -252,7 +251,7 @@ export async function claimNicknameTransaction(user: User, nickname: string): Pr
       userRef,
       alreadyMine
         ? { displayName: trimmed, updatedAt: serverTimestamp() }
-        : buildUserProfileWrite(user, trimmed, key),
+        : buildUserProfileWrite(trimmed, key),
       { merge: true },
     );
   } catch (e) {
@@ -349,7 +348,6 @@ export async function syncUserProfileToFirestore(
     doc(db, "users", user.uid),
     {
       displayName: user.displayName ?? (user.isAnonymous ? getPresenceDisplayName(user) : null),
-      photoURL: user.photoURL ?? null,
       isAnonymous: user.isAnonymous,
       ...(nickname != null && nickname !== ""
         ? { nickname: nickname.trim(), nicknameKey: key }

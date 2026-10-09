@@ -88,11 +88,18 @@ service cloud.firestore {
               || request.time > resource.data.nicknameChangedAt + duration.value(30, 'd'))));
     }
 
-    /** users 는 로그인한 누구나 읽는다 — 이메일을 새로 넣지 못한다(2026-10-09 Chief). 기존 값 지우기는 허용 */
-    function userEmailNotAdded() {
-      return !('email' in request.resource.data)
-        || request.resource.data.email == null
-        || (resource != null && 'email' in resource.data && request.resource.data.email == resource.data.email);
+    /**
+     * 로그인한 누구나 읽는 문서(users·동행 members)에 개인정보 필드를 새로 넣지 못한다(2026-10-09 Chief).
+     * null·기존과 같은 값(옛 문서의 merge 쓰기)·지우기는 허용 — 기존 값은 admin:strip-public-pii 가 지운다.
+     */
+    function piiFieldNotAdded(f) {
+      return !(f in request.resource.data)
+        || request.resource.data[f] == null
+        || (resource != null && f in resource.data && request.resource.data[f] == resource.data[f]);
+    }
+
+    function publicPiiNotAdded() {
+      return piiFieldNotAdded('email') && piiFieldNotAdded('photoURL');
     }
 
     function userNicknameChanged() {
@@ -181,7 +188,7 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create: if isSelf(userId)
         && (!request.resource.data.keys().hasAny(['nickname', 'nicknameKey']) || userNicknameReserved())
-        && userEmailNotAdded()
+        && publicPiiNotAdded()
         && !request.resource.data.keys().hasAny([
           'nicknameChangedAt',
           'routeTokenBalance',
@@ -197,7 +204,7 @@ service cloud.firestore {
         && userTierProtectedFieldsUntouched()
         && userTierUpdateValid()
         && userNicknameChangeCooldownOk()
-        && userEmailNotAdded();
+        && publicPiiNotAdded();
       allow delete: if false;
     }
 
@@ -319,7 +326,7 @@ service cloud.firestore {
     /** Trail presence — `rooms/` 레거시는 아래 read-only */
     match /trails/{trailId}/members/{userId} {
       allow read: if isSignedIn();
-      allow create, update: if isSelf(userId) && trailParticipantWriteAllowed(trailId);
+      allow create, update: if isSelf(userId) && trailParticipantWriteAllowed(trailId) && publicPiiNotAdded();
       allow delete: if isSelf(userId);
     }
 
@@ -496,7 +503,8 @@ service cloud.firestore {
 
     match /publicationSessions/{publicationId}/members/{userId} {
       allow read: if isSignedIn() && isPublicationSharedPresenceAllowed(publicationId);
-      allow create, update: if isSelf(userId) && isPublicationSharedPresenceAllowed(publicationId);
+      allow create, update: if isSelf(userId) && isPublicationSharedPresenceAllowed(publicationId)
+        && publicPiiNotAdded();
       allow delete: if isSelf(userId) && isPublicationSharedPresenceAllowed(publicationId);
     }
 

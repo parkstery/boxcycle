@@ -36,7 +36,7 @@
     "admin:backfill-last-completed-ride-at": "npm --prefix functions run admin:backfill-last-completed-ride-at --",
     "admin:purge-ride-legacy-fields": "npm --prefix functions run admin:purge-ride-legacy-fields --",
     "admin:purge-guest-users": "npm --prefix functions run admin:purge-guest-users --",
-    "admin:strip-user-email": "npm --prefix functions run admin:strip-user-email --",
+    "admin:strip-public-pii": "npm --prefix functions run admin:strip-public-pii --",
     "test": "npm run test:quick -w boxcycle-web --",
     "test:quick": "npm run test:quick -w boxcycle-web --",
     "test:quick:ride": "npm run test:quick -w boxcycle-web -- ride",

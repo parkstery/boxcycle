@@ -60,7 +60,6 @@ async function defaultPresenceUpsert(user: User, trailId: string): Promise<void>
     {
       memberType: getPresenceMemberType(user),
       displayName: getPresenceDisplayName(user),
-      photoURL: user.photoURL ?? null,
       lastSeenAt: serverTimestamp(),
     },
     { merge: true },

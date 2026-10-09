@@ -66,7 +66,6 @@ export async function upsertPublicationSessionMember(user: User, publicationId: 
     {
       memberType: getPresenceMemberType(user),
       displayName: getPresenceDisplayName(user),
-      photoURL: user.photoURL ?? null,
       lastSeenAt: serverTimestamp(),
     },
     { merge: true },
@@ -92,7 +91,6 @@ export async function mergePublicationSessionMemberLiveLocation(
       {
         memberType: getPresenceMemberType(user),
         displayName: getPresenceDisplayName(user),
-        photoURL: user.photoURL ?? null,
         liveLng: lngLat[0],
         liveLat: lngLat[1],
         lastSeenAt: serverTimestamp(),
@@ -105,7 +103,6 @@ export async function mergePublicationSessionMemberLiveLocation(
       {
         memberType: getPresenceMemberType(user),
         displayName: getPresenceDisplayName(user),
-        photoURL: user.photoURL ?? null,
         liveLng: deleteField(),
         liveLat: deleteField(),
         lastSeenAt: serverTimestamp(),

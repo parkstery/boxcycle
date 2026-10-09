@@ -91,3 +91,17 @@ test("공개 프로필(users) 쓰기 파일은 이메일을 다루지 않는다"
   const src = readFileSync(fileURLToPath(new URL("../../src/lib/identity/repo/firestoreUser.ts", import.meta.url)), "utf8");
   assert.doesNotMatch(src, /\.email\b|\bemail\s*:/);
 });
+
+/** Google 사진 주소도 같은 이유로 공개 문서(users·동행 members)에 쓰지 않는다(2026-10-09 Chief) */
+test("앱 코드는 photoURL 을 공개 문서에 쓰지 않는다", () => {
+  const srcRoot = fileURLToPath(new URL("../../src/", import.meta.url));
+  const walk = (dir: string): string[] =>
+    readdirSync(dir).flatMap((n) => {
+      const f = join(dir, n);
+      return statSync(f).isDirectory() ? walk(f) : /\.(ts|tsx)$/.test(n) ? [f] : [];
+    });
+  const writers = walk(srcRoot)
+    .filter((f) => /\bphotoURL\s*:/.test(readFileSync(f, "utf8")))
+    .map((f) => relative(srcRoot, f).split(sep).join("/"));
+  assert.deepEqual(writers, []);
+});

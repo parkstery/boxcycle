@@ -160,6 +160,26 @@ test("users 문서에 이메일을 넣지 않는다 — 앱도, 직접 쓰기도
   assert.equal((await adminGet(`users/${u.uid}`))?.email, undefined, "지우기 허용");
 });
 
+test("Google 사진 주소(photoURL)도 공개 문서(users·동행 members)에 넣지 않는다", async () => {
+  const db = getFirebaseFirestore();
+  const u = await signUp("photo");
+  await claimNicknameTransaction(u, `pho${stamp}`);
+  assert.equal((await adminGet(`users/${u.uid}`))?.photoURL, undefined, "가입 쓰기에 사진 주소 없음");
+  await denied(
+    setDoc(doc(db, "users", u.uid), { photoURL: "https://example.test/p.jpg" }, { merge: true }),
+    "users 사진 주소 추가 거절",
+  );
+  const member = doc(db, "trails", "default", "members", u.uid);
+  await denied(
+    setDoc(member, { displayName: `pho${stamp}`, photoURL: "https://example.test/p.jpg" }, { merge: true }),
+    "동행 members 사진 주소 거절",
+  );
+  await setDoc(member, { displayName: `pho${stamp}`, photoURL: null, lastSeenAt: serverTimestamp() }, { merge: true });
+  // 옛 문서에 남은 값이 있어도 다른 쓰기는 막히지 않는다(정리 도구가 지울 때까지)
+  await adminPatch(`trails/default/members/${u.uid}`, { photoURL: { stringValue: "https://example.test/old.jpg" } });
+  await setDoc(member, { lastSeenAt: serverTimestamp() }, { merge: true });
+});
+
 test("게스트는 닉네임을 바꿀 수 없다", async () => {
   const auth = getFirebaseAuth();
   if (auth.currentUser) await signOut(auth);
