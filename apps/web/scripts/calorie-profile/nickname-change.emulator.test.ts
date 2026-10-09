@@ -180,6 +180,51 @@ test("Google 사진 주소(photoURL)도 공개 문서(users·동행 members)에 
   await setDoc(member, { lastSeenAt: serverTimestamp() }, { merge: true });
 });
 
+test("users 문서는 프로필 쓰기만 만든다 — 「주행 이어하기」 칸만 든 문서·로그인 방식과 다른 표시는 거절", async () => {
+  const db = getFirebaseFirestore();
+  const auth = getFirebaseAuth();
+  if (auth.currentUser) await signOut(auth);
+  const cred = await createUserWithEmailAndPassword(auth, `slot-${stamp}@example.test`, "ProfileEdit123!");
+  const ref = doc(db, "users", cred.user.uid);
+  await denied(
+    setDoc(ref, { rideResumeSlot: { v: 1, initialized: true }, updatedAt: serverTimestamp() }, { merge: true }),
+    "슬롯만 든 문서 생성 거절",
+  );
+  await denied(setDoc(ref, { isAnonymous: true, tier: "anonymous" }), "회원이 게스트 표시로 생성 거절");
+  // 정상 경로(가입)는 그대로 된다
+  await claimNicknameTransaction(cred.user, `slt${stamp}`);
+  assert.equal((await adminGet(`users/${cred.user.uid}`))?.isAnonymous?.booleanValue, false);
+
+  // 게스트: 정상 게스트 쓰기는 되고, 회원 표시로는 못 만든다
+  await signOut(auth);
+  const g = (await signInAnonymously(auth)).user;
+  await denied(setDoc(doc(db, "users", g.uid), { isAnonymous: false }), "게스트가 회원 표시로 생성 거절");
+  await setDoc(doc(db, "users", g.uid), { isAnonymous: true, tier: "anonymous", displayName: "게스트-test" });
+  await signOut(auth);
+});
+
+test("게스트를 거치지 않은 새 회원(문서 없음)도 가입을 끝낸다 — 결제 필드·유료 등급은 못 넣는다", async () => {
+  const db = getFirebaseFirestore();
+  const auth = getFirebaseAuth();
+  if (auth.currentUser) await signOut(auth);
+  const cred = await createUserWithEmailAndPassword(auth, `direct-${stamp}@example.test`, "ProfileEdit123!");
+  assert.equal(await adminGet(`users/${cred.user.uid}`), null, "전제: 문서 없음");
+  await claimNicknameTransaction(cred.user, `dir${stamp}`);
+  const created = await adminGet(`users/${cred.user.uid}`);
+  assert.equal(created?.tier?.stringValue, "registered_free", "가입 완료");
+  assert.equal(created?.nickname?.stringValue, `dir${stamp}`);
+
+  // 같은 방법으로 유료 등급·결제 필드를 만들 수는 없다
+  await signOut(auth);
+  const evil = await createUserWithEmailAndPassword(auth, `evil-${stamp}@example.test`, "ProfileEdit123!");
+  await setDoc(doc(db, "nicknames", `evl${stamp}`), { ownerUid: evil.user.uid });
+  const base = { isAnonymous: false, nickname: `evl${stamp}`, nicknameKey: `evl${stamp}`, tierUpdatedAt: serverTimestamp() };
+  await denied(setDoc(doc(db, "users", evil.user.uid), { ...base, tier: "registered_paid" }), "유료 등급 생성 거절");
+  await denied(setDoc(doc(db, "users", evil.user.uid), { ...base, tier: "registered_free", subscriptionStatus: "active" }), "결제 필드 거절");
+  await denied(setDoc(doc(db, "users", evil.user.uid), { isAnonymous: false, tier: "registered_free" }), "닉네임 예약 없이 회원 등급 거절");
+  await signOut(auth);
+});
+
 test("게스트는 닉네임을 바꿀 수 없다", async () => {
   const auth = getFirebaseAuth();
   if (auth.currentUser) await signOut(auth);
