@@ -30,6 +30,11 @@ type RideSummarySheetProps = {
    */
   calorieProfileComplete?: boolean;
   /**
+   * 게스트일 때만 — Google 연결(등록) 권유(2026-10-09 Chief: 게스트는 짧고 강한 경험 뒤 등록으로).
+   * 주행 직후가 가장 강한 순간이다. 연결은 같은 uid 를 유지하므로 이번 주행·내 도로망이 그대로 남는다.
+   */
+  onGuestLinkGoogle?: () => void;
+  /**
    * 종료 결과(§3.5) — 모든 유효 Ride 가 채운다. 미완주면 이전→신규 진행률을 보여 준다.
    * null 이면 진행률 배지만 생략.
    */
@@ -482,6 +487,21 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
             </span>
           ) : null}
         </div>
+
+        {props.onGuestLinkGoogle ? (
+          <div className="ride-summary__guest-cta" role="group" aria-label="기록 지키기">
+            <span className="ride-summary__guest-cta-copy">
+              게스트 기록은 로그아웃하면 사라집니다. Google을 연결하면 이번 주행과 내 도로망이 그대로 남습니다.
+            </span>
+            <button
+              type="button"
+              className="ride-summary__btn ride-summary__btn--primary ride-summary__guest-cta-btn"
+              onClick={props.onGuestLinkGoogle}
+            >
+              Google 연결
+            </button>
+          </div>
+        ) : null}
 
         {props.adhocSaveAvailable ? (
           <>

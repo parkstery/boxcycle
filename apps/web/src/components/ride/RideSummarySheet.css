@@ -399,6 +399,29 @@
 }
 
 /* 저장 폼 한 줄 — 입력창이 남는 폭을 먹고 버튼은 고정 폭. 690px 기준 한 줄, 좁으면 wrap */
+/* 게스트 등록 권유 — 한 줄(문구 + 버튼). 가로 폰 한 장에 들어가야 하므로 좁으면 줄바꿈만 */
+.ride-summary__guest-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--rtw-radius-sm);
+  border: 1px solid rgba(232, 163, 61, 0.45);
+  background: rgba(232, 163, 61, 0.1);
+}
+
+.ride-summary__guest-cta-copy {
+  flex: 1 1 12rem;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  color: var(--rtw-text-primary);
+}
+
+.ride-summary__guest-cta-btn {
+  flex-shrink: 0;
+}
+
 .ride-summary__form {
   display: flex;
   flex-wrap: wrap;

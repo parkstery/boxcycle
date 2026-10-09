@@ -42,10 +42,12 @@ import { AuthGateCard, AuthGoogleMark } from "./components/auth/AuthGateCard";
 import { GuestEntryCard } from "./components/auth/GuestEntryCard";
 import { allowUnauthMapDev } from "./lib/identity/authGatePolicy";
 import {
-  clearAccountDeletedNotice,
-  readAccountDeletedNotice,
+  clearStartScreenNotice,
   readGuestEntryAccepted,
+  readStartScreenNotice,
+  setUserSignedOutSessionFlag,
 } from "./lib/storage/appSessionKeys";
+import { resetGuestAccount } from "./lib/identity/guestAccountReset";
 import { useUserTier } from "./hooks/useUserTier";
 import { RideSummarySheet } from "./components/ride/RideSummarySheet";
 import { NextRideCard, LocalFirstEntryCard } from "./components/ride";
@@ -1630,6 +1632,18 @@ export default function App() {
         }
       }
       setBasicActiveHubCourseId(null);
+      if (user?.isAnonymous) {
+        // 게스트 로그아웃 = 데이터 삭제(2026-10-09 Chief). 같은 게스트로 다시 들어올 길이 없어 남겨도 쓰레기다.
+        // 서버 삭제가 실패하면 로그아웃하지 않는다 — 계정이 남아 있어야 다시 시도하거나 purge 가 찾는다.
+        const result = await resetGuestAccount(user);
+        if (!result.deletedAuth) {
+          setError(`로그아웃하지 못했습니다. 잠시 후 다시 시도하세요. (${result.deleteError ?? "알 수 없는 오류"})`);
+          return;
+        }
+        setUserSignedOutSessionFlag();
+        location.reload();
+        return;
+      }
       reloadRecentSessionsFromLocalStorage();
       await completeFirebaseSignOut();
     } catch (e: unknown) {
@@ -1765,11 +1779,11 @@ export default function App() {
   const summaryVisible =
     lastRideResult !== null ||
     (summarySheetVisible && (arrivalToastTick > 0 || lastEndedWasAdhoc !== null));
-  // 탈퇴 직후 첫 화면에 한 번 — 읽은 뒤 지워 다음 새로고침엔 나오지 않는다
-  const [accountDeletedNotice] = useState(readAccountDeletedNotice);
+  // 탈퇴·게스트 초기화 직후 첫 화면에 한 번 — 읽은 뒤 지워 다음 새로고침엔 나오지 않는다
+  const [startScreenNotice] = useState(readStartScreenNotice);
   useEffect(() => {
-    if (accountDeletedNotice) clearAccountDeletedNotice();
-  }, [accountDeletedNotice]);
+    if (startScreenNotice) clearStartScreenNotice();
+  }, [startScreenNotice]);
   const needsGuestEntry =
     configured &&
     authInitialized &&
@@ -3378,6 +3392,7 @@ export default function App() {
         caloriesEstimate={caloriesEstimate}
         onOpenCalorieSettings={openRideSettingsPanel}
         calorieProfileComplete={calorieProfile.weightKg != null && calorieProfile.intensityId != null}
+        onGuestLinkGoogle={user?.isAnonymous ? () => void handleGoogleSignIn() : undefined}
         adhocSaveAvailable={lastEndedWasAdhoc !== null}
         userId={user?.uid}
         maxNameLength={SAVED_ROUTE_NAME_MAX}
@@ -3409,7 +3424,13 @@ export default function App() {
         <GuestEntryCard
           busy={busy || authSigningIn}
           error={error}
-          notice={accountDeletedNotice ? "탈퇴가 완료되었습니다. 그동안 함께 달려 주셔서 고맙습니다." : null}
+          notice={
+            startScreenNotice === "account-deleted"
+              ? "탈퇴가 완료되었습니다. 그동안 함께 달려 주셔서 고맙습니다."
+              : startScreenNotice === "guest-reset"
+                ? "이 기기의 게스트 기록을 지웠습니다."
+                : null
+          }
           onStartGuest={() => void beginAuthenticatedSession()}
           onGoogleSignIn={() => void handleGoogleSignIn()}
         />
@@ -3423,27 +3444,33 @@ export default function App() {
             <p className="meta tight">연결 중…</p>
           ) : userSignedOut ? (
             <>
+              {/*
+                로그아웃 후(2026-10-09 Chief) — 등록이 주 행동이다. 종전 주 버튼 「다시 시작」 은 누르면 **새**
+                게스트를 만든다는 것이 드러나지 않아, 로그아웃한 사람에게 원치 않은 게스트가 생겼다.
+              */}
               <p className="meta tight">로그아웃되었습니다.</p>
+              <p className="meta tight">Google로 로그인하면 내 도로망과 주행 기록이 계속 쌓입니다.</p>
               <div className="auth-actions auth-actions--gate">
                 <button
                   type="button"
-                  className="btn primary"
-                  disabled={busy}
-                  onClick={() => void beginAuthenticatedSession()}
-                >
-                  {busy ? "…" : "다시 시작"}
-                </button>
-                <button
-                  type="button"
-                  className="btn secondary auth-gate-google"
+                  className="btn auth-gate-google"
                   disabled={busy}
                   title="Sign in with Google"
                   onClick={() => void handleGoogleSignIn()}
                 >
                   <AuthGoogleMark />
-                  Google
+                  Google로 로그인
+                </button>
+                <button
+                  type="button"
+                  className="btn secondary"
+                  disabled={busy}
+                  onClick={() => void beginAuthenticatedSession()}
+                >
+                  {busy ? "…" : "게스트로 새로 시작"}
                 </button>
               </div>
+              <p className="meta tight">새 게스트는 이전 게스트의 기록을 이어받지 않습니다.</p>
             </>
           ) : (
             <>

@@ -33,7 +33,7 @@ import {
 } from "../lib/account/accountDeletion";
 import "./UserInfoSheet.css";
 import { selfRiderDisplayName } from "../lib/identity/riderName";
-import { prepareStartScreenAfterAccountDeletion } from "../lib/storage/appSessionKeys";
+import { prepareStartScreen } from "../lib/storage/appSessionKeys";
 
 type UserInfoSheetProps = {
   open: boolean;
@@ -427,7 +427,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
     setDeletionNote(null);
     try {
       await deleteMyAccount(props.user, deletionPhrase);
-      prepareStartScreenAfterAccountDeletion();
+      prepareStartScreen("account-deleted");
       location.reload();
     } catch (e) {
       setDeletionBusy(false);
@@ -446,6 +446,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
         setGuestResetNote(`지우지 못했습니다. 잠시 후 다시 시도하세요. (${result.deleteError ?? "알 수 없는 오류"})`);
         return;
       }
+      prepareStartScreen("guest-reset");
       location.reload();
     } catch (e) {
       setGuestResetBusy(false);
@@ -859,7 +860,26 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
             {showLogout ? (
               confirmingLogout ? (
                 <div className="user-info-sheet__logout-confirm" role="group" aria-label="로그아웃 확인">
-                  <p className="user-info-sheet__logout-confirm-copy">로그아웃하시겠습니까?</p>
+                  {/*
+                    게스트 로그아웃 = 데이터 삭제(2026-10-09 Chief) — 비밀번호도 Google 계정도 없어 같은 게스트로
+                    다시 들어올 수 없으니 실제로 지운다(App handleServiceExit). 그래서 등록(Google 연결)을 같은 자리에서 권한다.
+                  */}
+                  <p className="user-info-sheet__logout-confirm-copy">
+                    {props.isGuest
+                      ? "게스트는 로그아웃하면 모든 데이터가 삭제됩니다."
+                      : "로그아웃하시겠습니까?"}
+                  </p>
+                  {props.isGuest && props.onLinkGoogle ? (
+                    <button
+                      type="button"
+                      className="user-info-sheet__btn user-info-sheet__btn--google"
+                      disabled={props.busy}
+                      onClick={props.onLinkGoogle}
+                    >
+                      <AuthGoogleMark className="user-info-sheet__google-mark" />
+                      Google 연결하고 기록 지키기
+                    </button>
+                  ) : null}
                   <div className="user-info-sheet__logout-confirm-row">
                     <button
                       type="button"
@@ -876,7 +896,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
                       title="Sign out"
                       onClick={props.onServiceExit}
                     >
-                      로그아웃
+                      {props.isGuest ? "그래도 로그아웃" : "로그아웃"}
                     </button>
                   </div>
                 </div>
