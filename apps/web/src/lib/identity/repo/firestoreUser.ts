@@ -7,6 +7,9 @@ import {
   runTransaction,
   serverTimestamp,
   setDoc,
+  Timestamp,
+  type DocumentReference,
+  type Transaction,
 } from "firebase/firestore";
 import type { User } from "firebase/auth";
 import { getPresenceDisplayName } from "../authDisplay";
@@ -15,7 +18,10 @@ import { noteVisibilityOneShot } from "../../debug/visibilityReadMeters";
 import {
   isValidNickname,
   isValidNicknameKeyNormalized,
+  nicknameChangeBlockedUntilMs,
+  nicknameReservationAccess,
   normalizeNicknameKey,
+  NICKNAME_CHANGE_COOLDOWN_DAYS,
 } from "../nickname";
 import { nicknameOrNull, riderDisplayName } from "../riderName";
 
@@ -26,6 +32,19 @@ export class NicknameTakenError extends Error {
   constructor(message = "이미 사용 중인 닉네임입니다.") {
     super(message);
     this.name = "NicknameTakenError";
+  }
+}
+
+export class NicknameCooldownError extends Error {
+  readonly code = "nickname-cooldown" as const;
+  readonly availableAtMs: number;
+  constructor(availableAtMs: number) {
+    const d = new Date(availableAtMs);
+    super(
+      `닉네임은 ${NICKNAME_CHANGE_COOLDOWN_DAYS}일에 한 번 바꿀 수 있습니다. ${d.getMonth() + 1}월 ${d.getDate()}일 이후에 바꿀 수 있습니다.`,
+    );
+    this.name = "NicknameCooldownError";
+    this.availableAtMs = availableAtMs;
   }
 }
 
@@ -115,7 +134,7 @@ function buildUserProfileWrite(user: User, nicknameTrimmed: string, keyLower: st
   return {
     // 닉네임을 쓴다 — 이 시점 user.displayName 은 Google 실명이고, users/{uid} 는 로그인한 누구나 읽는다
     displayName: nicknameTrimmed,
-    email: user.email ?? null,
+    // 이메일은 쓰지 않는다 — users/{uid} 는 로그인한 누구나 읽는다(2026-10-09 Chief). 이메일은 Auth 에 있다.
     photoURL: user.photoURL ?? null,
     isAnonymous: false,
     tier: "registered_free" as const,
@@ -138,7 +157,6 @@ export async function ensureAnonymousUserTier(user: User): Promise<void> {
     userRef,
     {
       displayName: user.displayName ?? getPresenceDisplayName(user),
-      email: user.email ?? null,
       photoURL: user.photoURL ?? null,
       isAnonymous: true,
       tier: "anonymous",
@@ -147,6 +165,36 @@ export async function ensureAnonymousUserTier(user: User): Promise<void> {
     },
     { merge: true },
   );
+}
+
+/**
+ * `nicknames/{key}` 예약 — 새로 잡았으면(되찾기·가져가기 포함) true, 이미 내 것이면 false.
+ * 남이 놓은 이름은 묶임(7일)이 끝나야 가져갈 수 있다. 서버 규칙이 같은 판정을 강제한다.
+ */
+async function reserveNicknameInTx(
+  transaction: Transaction,
+  nickRef: DocumentReference,
+  uid: string,
+): Promise<boolean> {
+  const nickSnap = await transaction.get(nickRef);
+  if (!nickSnap.exists()) {
+    transaction.set(nickRef, { ownerUid: uid });
+    return true;
+  }
+  const data = nickSnap.data();
+  const releasedAt = data?.releasedAt;
+  const access = nicknameReservationAccess(
+    {
+      ownerUid: typeof data?.ownerUid === "string" ? data.ownerUid : "",
+      releasedAtMs: releasedAt instanceof Timestamp ? releasedAt.toMillis() : null,
+    },
+    uid,
+    Date.now(),
+  );
+  if (access === "mine") return false;
+  if (access === "taken") throw new NicknameTakenError();
+  transaction.set(nickRef, { ownerUid: uid });
+  return true;
 }
 
 /**
@@ -169,20 +217,7 @@ export async function claimNicknameTransaction(user: User, nickname: string): Pr
 
   let claimedNewInTxn: boolean;
   try {
-    claimedNewInTxn = await runTransaction(db, async (transaction) => {
-      const nickSnap = await transaction.get(nickRef);
-      if (nickSnap.exists()) {
-        const owner = nickSnap.data()?.ownerUid;
-        if (owner !== user.uid) {
-          throw new NicknameTakenError();
-        }
-        return false;
-      }
-      transaction.set(nickRef, {
-        ownerUid: user.uid,
-      });
-      return true;
-    });
+    claimedNewInTxn = await runTransaction(db, (transaction) => reserveNicknameInTx(transaction, nickRef, user.uid));
   } catch (e) {
     if (e instanceof NicknameTakenError) throw e;
     throw formatClaimFirestoreError("[예약]", e);
@@ -252,20 +287,22 @@ export async function changeNicknameTransaction(user: User, nickname: string): P
   const userSnap = await getDocFromServer(userRef).catch((e: unknown) => {
     throw formatClaimFirestoreError("[프로필 읽기]", e);
   });
-  const oldKeyRaw = userSnap.exists() ? userSnap.data()?.nicknameKey : null;
+  const current = userSnap.exists() ? userSnap.data() : undefined;
+  const oldKeyRaw = current?.nicknameKey;
   const oldKey = typeof oldKeyRaw === "string" && oldKeyRaw.length > 0 ? oldKeyRaw : null;
+  const hadNickname = typeof current?.nickname === "string" && current.nickname.length > 0;
+  const lastChangedAt = current?.nicknameChangedAt;
+  const blockedUntil = nicknameChangeBlockedUntilMs(
+    lastChangedAt instanceof Timestamp ? lastChangedAt.toMillis() : null,
+    Date.now(),
+  );
+  if (hadNickname && blockedUntil != null) {
+    throw new NicknameCooldownError(blockedUntil);
+  }
 
   let claimedNewInTxn: boolean;
   try {
-    claimedNewInTxn = await runTransaction(db, async (transaction) => {
-      const nickSnap = await transaction.get(nickRef);
-      if (nickSnap.exists()) {
-        if (nickSnap.data()?.ownerUid !== user.uid) throw new NicknameTakenError();
-        return false;
-      }
-      transaction.set(nickRef, { ownerUid: user.uid });
-      return true;
-    });
+    claimedNewInTxn = await runTransaction(db, (transaction) => reserveNicknameInTx(transaction, nickRef, user.uid));
   } catch (e) {
     if (e instanceof NicknameTakenError) throw e;
     throw formatClaimFirestoreError("[예약]", e);
@@ -278,7 +315,14 @@ export async function changeNicknameTransaction(user: User, nickname: string): P
     }
     await setDoc(
       userRef,
-      { nickname: trimmed, nicknameKey: key, displayName: trimmed, updatedAt: serverTimestamp() },
+      {
+        nickname: trimmed,
+        nicknameKey: key,
+        displayName: trimmed,
+        // 가입 때 정한 이름은 세지 않는다 — 첫 변경은 언제든, 그 뒤로 30일(서버 규칙과 같은 기준)
+        ...(hadNickname ? { nicknameChangedAt: serverTimestamp() } : {}),
+        updatedAt: serverTimestamp(),
+      },
       { merge: true },
     );
   } catch (e) {
@@ -287,8 +331,9 @@ export async function changeNicknameTransaction(user: User, nickname: string): P
   }
 
   if (oldKey && oldKey !== key) {
-    // 옛 이름을 놓아 준다. 실패하면 예약만 남을 뿐 새 이름은 정상이다.
-    await deleteDoc(doc(db, "nicknames", oldKey)).catch(() => {});
+    // 옛 이름을 놓되 7일 동안 묶는다 — 남이 바로 가져가 내 행세를 하지 못하게.
+    // 실패하면 예약이 그대로 남을 뿐 새 이름은 정상이다.
+    await setDoc(doc(db, "nicknames", oldKey), { ownerUid: user.uid, releasedAt: serverTimestamp() }).catch(() => {});
   }
 }
 
@@ -304,7 +349,6 @@ export async function syncUserProfileToFirestore(
     doc(db, "users", user.uid),
     {
       displayName: user.displayName ?? (user.isAnonymous ? getPresenceDisplayName(user) : null),
-      email: user.email ?? null,
       photoURL: user.photoURL ?? null,
       isAnonymous: user.isAnonymous,
       ...(nickname != null && nickname !== ""

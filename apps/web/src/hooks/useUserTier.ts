@@ -1,5 +1,5 @@
 import type { User } from "firebase/auth";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot, Timestamp } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import { getFirebaseFirestore } from "../lib/firebase/app";
 import type { UserTier } from "../lib/identity/repo/firestoreUser";
@@ -32,6 +32,8 @@ export function useUserTier(user: User | null, configured: boolean) {
   const [mileageTotalMeters, setMileageTotalMeters] = useState<number | null>(null);
   const [mileageTotalSec, setMileageTotalSec] = useState<number | null>(null);
   const [mileageRideCount, setMileageRideCount] = useState<number | null>(null);
+  /** 마지막 닉네임 변경 시각(ms) — 30일 제한 안내용. 가입 때 정한 이름은 없음(null) */
+  const [nicknameChangedAtMs, setNicknameChangedAtMs] = useState<number | null>(null);
 
   useEffect(() => {
     // 구독 불가(미설정·비로그인)면 구독을 걸지 않는다. 값 초기화는 아래 cleanup 이 맡는다 —
@@ -43,6 +45,7 @@ export function useUserTier(user: User | null, configured: boolean) {
       setMileageTotalMeters(null);
       setMileageTotalSec(null);
       setMileageRideCount(null);
+      setNicknameChangedAtMs(null);
     };
 
     if (!configured || !user?.uid) {
@@ -62,6 +65,8 @@ export function useUserTier(user: User | null, configured: boolean) {
           setMileageTotalMeters(normalizeMileageNumber(data?.mileageTotalMeters));
           setMileageTotalSec(normalizeMileageNumber(data?.mileageTotalSec));
           setMileageRideCount(normalizeMileageNumber(data?.mileageRideCount));
+          const changedAt = data?.nicknameChangedAt;
+          setNicknameChangedAtMs(changedAt instanceof Timestamp ? changedAt.toMillis() : null);
         },
         reset,
       ),
@@ -84,6 +89,7 @@ export function useUserTier(user: User | null, configured: boolean) {
       mileageTotalMeters,
       mileageTotalSec,
       mileageRideCount,
+      nicknameChangedAtMs,
     };
   }, [
     user,
@@ -92,5 +98,6 @@ export function useUserTier(user: User | null, configured: boolean) {
     mileageTotalMeters,
     mileageTotalSec,
     mileageRideCount,
+    nicknameChangedAtMs,
   ]);
 }

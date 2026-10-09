@@ -3316,6 +3316,7 @@ export default function App() {
         user={user}
         weightKg={calorieProfile.weightKg}
         intensityId={calorieProfile.intensityId}
+        nicknameChangedAtMs={userTier.nicknameChangedAtMs}
         onChangeNickname={handleChangeNickname}
         onWeightKg={setCalorieWeightKg}
         onIntensityId={setCalorieIntensityId}

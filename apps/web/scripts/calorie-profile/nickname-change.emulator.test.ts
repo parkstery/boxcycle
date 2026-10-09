@@ -1,12 +1,16 @@
 /**
  * 프로필 수정 — 닉네임 변경을 실제 규칙(에뮬레이터) 위에서 제품 함수 그대로 시험한다.
+ * 2026-10-09: 30일 제한·옛 이름 7일 묶기·users 이메일 금지(규칙을 앱 밖에서 직접 두드려 확인).
  * 실행(apps/web): npm run test:profile-edit:emulator
  */
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createUserWithEmailAndPassword, signInAnonymously, signOut } from "firebase/auth";
 import { getFirebaseAuth } from "../../src/lib/firebase/app.ts";
+import { deleteField, doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { getFirebaseFirestore } from "../../src/lib/firebase/app.ts";
 import {
+  NicknameCooldownError,
   NicknameTakenError,
   changeNicknameTransaction,
   claimNicknameTransaction,
@@ -56,7 +60,24 @@ async function signUp(label: string) {
   return cred.user;
 }
 
-test("닉네임 변경 — 새 이름 예약·옛 이름 해제·유료 플랜 유지·중복 거절", async () => {
+async function adminPatch(path: string, fields: Record<string, unknown>): Promise<void> {
+  const mask = Object.keys(fields).map((k) => `updateMask.fieldPaths=${k}`).join("&");
+  const res = await fetch(`${DOCS}/${path}?${mask}`, {
+    method: "PATCH",
+    headers: { ...ADMIN, "Content-Type": "application/json" },
+    body: JSON.stringify({ fields }),
+  });
+  assert.equal(res.status, 200, await res.text());
+}
+
+const daysAgo = (d: number) => ({ timestampValue: new Date(Date.now() - d * 86_400_000).toISOString() });
+
+async function denied(p: Promise<unknown>, label: string): Promise<void> {
+  await assert.rejects(p, (e: { code?: string }) => e?.code === "permission-denied", label);
+}
+
+test("닉네임 변경 — 예약·플랜 유지·중복 거절·30일 제한·옛 이름 7일 묶기", async () => {
+  const db = getFirebaseFirestore();
   // B 가 먼저 TAKEN 을 가진다
   const b = await signUp("b");
   await claimNicknameTransaction(b, TAKEN);
@@ -64,34 +85,79 @@ test("닉네임 변경 — 새 이름 예약·옛 이름 해제·유료 플랜 �
   const a = await signUp("a");
   await claimNicknameTransaction(a, OLD);
   await adminSetPaid(a.uid);
+  assert.equal((await adminGet(`users/${a.uid}`))?.nicknameChangedAt, undefined, "가입 이름은 세지 않는다");
 
-  // P1 변경 성공
+  // P4 남의 이름은 거절, 내 이름은 그대로
+  await assert.rejects(changeNicknameTransaction(a, TAKEN), NicknameTakenError);
+  assert.equal((await adminGet(`users/${a.uid}`))?.nickname?.stringValue, OLD, "P4 unchanged");
+  assert.equal((await adminGet(`nicknames/${TAKEN}`))?.ownerUid?.stringValue, b.uid, "P4 B keeps");
+
+  // P1 첫 변경은 언제든 — 변경 시각이 남는다
   await changeNicknameTransaction(a, NEW);
   const userDoc = await adminGet(`users/${a.uid}`);
   assert.equal(userDoc?.nickname?.stringValue, NEW, "P1 nickname");
   assert.equal(userDoc?.nicknameKey?.stringValue, NEW.toLowerCase(), "P1 nicknameKey");
   assert.equal(userDoc?.displayName?.stringValue, NEW, "P1 displayName");
+  assert.ok(userDoc?.nicknameChangedAt?.timestampValue, "P1 nicknameChangedAt");
   // P2 유료 플랜이 그대로다(가입 함수를 썼다면 registered_free 로 강등됐다)
   assert.equal(userDoc?.tier?.stringValue, "registered_paid", "P2 tier 유지");
-  // P3 새 예약은 내 것, 옛 예약은 풀렸다
+  // P3 새 예약은 내 것, 옛 예약은 내 이름으로 묶였다
   assert.equal((await adminGet(`nicknames/${NEW.toLowerCase()}`))?.ownerUid?.stringValue, a.uid, "P3 new reserved");
-  assert.equal(await adminGet(`nicknames/${OLD.toLowerCase()}`), null, "P3 old released");
+  const held = await adminGet(`nicknames/${OLD.toLowerCase()}`);
+  assert.equal(held?.ownerUid?.stringValue, a.uid, "P3 old held by me");
+  assert.ok(held?.releasedAt?.timestampValue, "P3 old releasedAt");
 
-  // P4 남의 이름은 거절, 내 이름은 그대로
-  await assert.rejects(changeNicknameTransaction(a, TAKEN), NicknameTakenError);
-  assert.equal((await adminGet(`users/${a.uid}`))?.nickname?.stringValue, NEW, "P4 unchanged");
-  assert.equal((await adminGet(`nicknames/${TAKEN}`))?.ownerUid?.stringValue, b.uid, "P4 B keeps");
+  // P5 30일 안 두 번째 변경 — 앱이 막고, 앱을 거치지 않아도 규칙이 막는다
+  await assert.rejects(changeNicknameTransaction(a, `two${stamp}`), NicknameCooldownError);
+  await setDoc(doc(db, "nicknames", `raw${stamp}`), { ownerUid: a.uid });
+  await denied(
+    setDoc(
+      doc(db, "users", a.uid),
+      { nickname: `raw${stamp}`, nicknameKey: `raw${stamp}`, nicknameChangedAt: serverTimestamp() },
+      { merge: true },
+    ),
+    "P5 rules cooldown",
+  );
+  // 변경 시각만 고치거나 지워 제한을 풀 수 없다
+  await denied(updateDoc(doc(db, "users", a.uid), { nicknameChangedAt: deleteField() }), "P5 rewind");
 
-  // P5 대소문자만 바꾸기 — 같은 예약 키를 유지한다
-  const NEW_CASED = NEW.charAt(0).toUpperCase() + NEW.slice(1);
-  await changeNicknameTransaction(a, NEW_CASED);
-  assert.equal((await adminGet(`users/${a.uid}`))?.nickname?.stringValue, NEW_CASED, "P5 cased");
-  assert.equal((await adminGet(`nicknames/${NEW.toLowerCase()}`))?.ownerUid?.stringValue, a.uid, "P5 key kept");
-
-  // P6 옛 이름은 이제 다른 사람이 가질 수 있다
+  // P6 묶인 옛 이름 — 남은 앱으로도, 직접 써도 못 가져간다
   const c = await signUp("c");
+  await assert.rejects(claimNicknameTransaction(c, OLD), NicknameTakenError);
+  await denied(setDoc(doc(db, "nicknames", OLD.toLowerCase()), { ownerUid: c.uid }), "P6 rules hold");
+
+  // P7 묶임 7일이 지나면 가져갈 수 있다
+  await adminPatch(`nicknames/${OLD.toLowerCase()}`, { releasedAt: daysAgo(8) });
   await claimNicknameTransaction(c, OLD);
-  assert.equal((await adminGet(`nicknames/${OLD.toLowerCase()}`))?.ownerUid?.stringValue, c.uid, "P6 reusable");
+  assert.equal((await adminGet(`nicknames/${OLD.toLowerCase()}`))?.ownerUid?.stringValue, c.uid, "P7 taken after hold");
+
+  // P8 30일이 지나면 다시 바꿀 수 있고, 내가 묶어 둔 옛 이름은 되찾을 수 있다
+  const auth = getFirebaseAuth();
+  await signOut(auth);
+  const { signInWithEmailAndPassword } = await import("firebase/auth");
+  const a2 = (await signInWithEmailAndPassword(auth, `a-${stamp}@example.test`, "ProfileEdit123!")).user;
+  await adminPatch(`users/${a.uid}`, { nicknameChangedAt: daysAgo(31) });
+  await changeNicknameTransaction(a2, `thr${stamp}`);
+  assert.equal((await adminGet(`users/${a.uid}`))?.nickname?.stringValue, `thr${stamp}`, "P8 changed after 30d");
+  assert.ok((await adminGet(`nicknames/${NEW.toLowerCase()}`))?.releasedAt, "P8 NEW held");
+  await adminPatch(`users/${a.uid}`, { nicknameChangedAt: daysAgo(31) });
+  await changeNicknameTransaction(a2, NEW);
+  const back = await adminGet(`nicknames/${NEW.toLowerCase()}`);
+  assert.equal(back?.ownerUid?.stringValue, a.uid, "P8 reclaimed");
+  assert.equal(back?.releasedAt, undefined, "P8 hold cleared");
+});
+
+test("users 문서에 이메일을 넣지 않는다 — 앱도, 직접 쓰기도", async () => {
+  const db = getFirebaseFirestore();
+  const u = await signUp("mail");
+  await claimNicknameTransaction(u, `mail${stamp}`);
+  assert.equal((await adminGet(`users/${u.uid}`))?.email, undefined, "가입 쓰기에 이메일 없음");
+  await denied(setDoc(doc(db, "users", u.uid), { email: "x@example.test" }, { merge: true }), "이메일 추가 거절");
+  // 예전에 저장된 이메일이 있어도 다른 쓰기는 막히지 않고, 지우기는 된다
+  await adminPatch(`users/${u.uid}`, { email: { stringValue: "old@example.test" } });
+  await setDoc(doc(db, "users", u.uid), { displayName: `mail${stamp}`, updatedAt: serverTimestamp() }, { merge: true });
+  await updateDoc(doc(db, "users", u.uid), { email: deleteField() });
+  assert.equal((await adminGet(`users/${u.uid}`))?.email, undefined, "지우기 허용");
 });
 
 test("게스트는 닉네임을 바꿀 수 없다", async () => {

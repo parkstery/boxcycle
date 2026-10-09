@@ -66,7 +66,33 @@ service cloud.firestore {
         && request.resource.data.nicknameKey is string
         && request.resource.data.nicknameKey.matches('^[a-z][a-z0-9]{3,11}$')
         && exists(/databases/$(database)/documents/nicknames/$(request.resource.data.nicknameKey))
-        && get(/databases/$(database)/documents/nicknames/$(request.resource.data.nicknameKey)).data.ownerUid == request.auth.uid;
+        && get(/databases/$(database)/documents/nicknames/$(request.resource.data.nicknameKey)).data.ownerUid == request.auth.uid
+        // 놓아서 묶어 둔 옛 이름(releasedAt)은 되찾기(예약 갱신)를 거쳐야 다시 쓸 수 있다
+        && !('releasedAt' in get(/databases/$(database)/documents/nicknames/$(request.resource.data.nicknameKey)).data);
+    }
+
+    /**
+     * 닉네임 변경 30일 제한(2026-10-09 Chief). 가입 때 정한 이름(이전 닉네임 없음)은 세지 않는다.
+     * 이전 닉네임이 있던 변경은 nicknameChangedAt 을 이번 요청 시각으로 남겨야 하고, 직전 변경에서 30일이 지나야 한다.
+     * nicknameChangedAt 은 닉네임을 바꿀 때만 손댈 수 있다(되감아 제한을 푸는 것 방지).
+     */
+    function userNicknameChangeCooldownOk() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      let hadNickname = ('nickname' in resource.data)
+        && resource.data.nickname is string
+        && resource.data.nickname.size() > 0;
+      return (!changed.hasAny(['nicknameChangedAt']) || userNicknameChanged())
+        && (!userNicknameChanged() || !hadNickname
+          || (request.resource.data.nicknameChangedAt == request.time
+            && (!('nicknameChangedAt' in resource.data)
+              || request.time > resource.data.nicknameChangedAt + duration.value(30, 'd'))));
+    }
+
+    /** users 는 로그인한 누구나 읽는다 — 이메일을 새로 넣지 못한다(2026-10-09 Chief). 기존 값 지우기는 허용 */
+    function userEmailNotAdded() {
+      return !('email' in request.resource.data)
+        || request.resource.data.email == null
+        || (resource != null && 'email' in resource.data && request.resource.data.email == resource.data.email);
     }
 
     function userNicknameChanged() {
@@ -155,7 +181,9 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create: if isSelf(userId)
         && (!request.resource.data.keys().hasAny(['nickname', 'nicknameKey']) || userNicknameReserved())
+        && userEmailNotAdded()
         && !request.resource.data.keys().hasAny([
+          'nicknameChangedAt',
           'routeTokenBalance',
           'routeTokenBalanceUpdatedAt',
           'routeTokenOnboardingGranted',
@@ -167,7 +195,9 @@ service cloud.firestore {
         && (!userNicknameChanged() || userNicknameReserved())
         && userRouteTokenFieldsUntouched()
         && userTierProtectedFieldsUntouched()
-        && userTierUpdateValid();
+        && userTierUpdateValid()
+        && userNicknameChangeCooldownOk()
+        && userEmailNotAdded();
       allow delete: if false;
     }
 
@@ -204,7 +234,21 @@ service cloud.firestore {
         && request.resource.data.ownerUid is string
         && request.resource.data.keys().hasAll(['ownerUid'])
         && key.matches('^[a-z][a-z0-9]{3,11}$');
-      allow update: if false;
+      // 옛 이름 7일 묶기(2026-10-09 Chief): 주인이 놓을 때 releasedAt=요청 시각, 주인은 언제든 되찾고,
+      // 남은 묶임이 끝난 뒤에만 가져간다.
+      allow update: if isSignedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && (
+          (resource.data.ownerUid == request.auth.uid
+            && request.resource.data.keys().hasOnly(['ownerUid', 'releasedAt'])
+            && request.resource.data.releasedAt == request.time)
+          || (resource.data.ownerUid == request.auth.uid
+            && request.resource.data.keys().hasOnly(['ownerUid']))
+          || ('releasedAt' in resource.data
+            && resource.data.releasedAt is timestamp
+            && request.time > resource.data.releasedAt + duration.value(7, 'd')
+            && request.resource.data.keys().hasOnly(['ownerUid']))
+        );
       allow delete: if isSignedIn() && resource.data.ownerUid == request.auth.uid;
     }
 

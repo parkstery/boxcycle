@@ -69,7 +69,6 @@ test("게스트 이름은 다른 게스트의 접속과 무관하다(순번 gues
  */
 test("이메일을 읽는 파일은 허용 목록뿐", () => {
   const ALLOWED = new Set([
-    "lib/identity/repo/firestoreUser.ts", // users 문서 email 필드 저장(이름 아님)
     "components/UserInfoSheet.tsx", // 본인 계정 시트 둘째 줄
     "lib/account/accountDeletion.ts", // 본인에게 보이는 탈퇴 오류 문구
     "lib/account/repo/accountDeletionApi.ts", // Google 재인증 login_hint
@@ -85,4 +84,10 @@ test("이메일을 읽는 파일은 허용 목록뿐", () => {
     .map((f) => relative(srcRoot, f).split(sep).join("/"))
     .filter((rel) => !ALLOWED.has(rel));
   assert.deepEqual(offenders, []);
+});
+
+/** users/{uid} 는 로그인한 누구나 읽는다 — 그 문서를 쓰는 파일은 이메일을 읽지도 않는다(2026-10-09 Chief) */
+test("공개 프로필(users) 쓰기 파일은 이메일을 다루지 않는다", () => {
+  const src = readFileSync(fileURLToPath(new URL("../../src/lib/identity/repo/firestoreUser.ts", import.meta.url)), "utf8");
+  assert.doesNotMatch(src, /\.email\b|\bemail\s*:/);
 });

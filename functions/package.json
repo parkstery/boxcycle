@@ -38,6 +38,7 @@
     "admin:backfill-trails-publication-id": "npm run build && node lib/cliBackfillTrailsPublicationId.js",
     "admin:backfill-mileage": "npm run build && node lib/cliBackfillMileage.js",
     "admin:purge-guest-users": "npm run build && node lib/cliPurgeGuestUsers.js",
+    "admin:strip-user-email": "npm run build && node lib/cliStripUserEmail.js",
     "admin:ride-metrics": "npm run build && node lib/cliRideMetrics.js"
   },
   "dependencies": {

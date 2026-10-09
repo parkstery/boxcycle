@@ -142,6 +142,16 @@ export async function releaseNickname(db: Firestore, uid: string, nickname: unkn
 }
 
 /**
+ * 이 uid 가 쥔 나머지 예약(바꾸면서 놓아 7일 묶어 둔 옛 이름, 2026-10-09)도 푼다.
+ * 탈퇴한 사람의 옛 이름을 묶어 둘 이유가 없다. 반환: 지운 수
+ */
+export async function releaseHeldNicknames(db: Firestore, uid: string): Promise<number> {
+  const snap = await db.collection("nicknames").where("ownerUid", "==", uid).get();
+  for (const d of snap.docs) await d.ref.delete();
+  return snap.size;
+}
+
+/**
  * Firestore·RTDB 의 사용자 데이터를 처리한다(Auth 삭제·Stripe 해지는 호출 측).
  * 순서: 라이브 흔적(RTDB) → 익명화 → 닉네임 → 개인 문서 일괄 삭제(users 포함).
  * users 를 마지막 묶음에서 지우므로 중간 실패 후 재실행해도 닉네임을 다시 찾을 수 있다.
@@ -166,6 +176,7 @@ export async function deleteAccountData(
 
   const publicationsAnonymized = await anonymizeOwnedPublications(db, uid);
   const nicknameReleased = await releaseNickname(db, uid, nickname);
+  await releaseHeldNicknames(db, uid);
   const firestoreDocsDeleted = await deleteGuestUidFirestoreData(db, uid, presence);
 
   return { uid, firestoreDocsDeleted, nicknameReleased, publicationsAnonymized, rtdbMotionNodesRemoved };

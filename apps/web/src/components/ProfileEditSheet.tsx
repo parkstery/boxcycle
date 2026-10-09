@@ -7,7 +7,12 @@ import {
   parseWeightKg,
   type CalorieIntensityId,
 } from "../lib/ride/caloriesEstimate";
-import { isValidNickname, NICKNAME_RULES_SUMMARY_KO } from "../lib/identity/nickname";
+import {
+  isValidNickname,
+  nicknameChangeBlockedUntilMs,
+  NICKNAME_CHANGE_COOLDOWN_DAYS,
+  NICKNAME_RULES_SUMMARY_KO,
+} from "../lib/identity/nickname";
 import "./ride/RideSettingsSheet.css";
 import "./ProfileEditSheet.css";
 
@@ -17,6 +22,8 @@ type ProfileEditSheetProps = {
   user: User | null;
   weightKg: number | null;
   intensityId: CalorieIntensityId | null;
+  /** 마지막 닉네임 변경 시각(ms, users/{uid}.nicknameChangedAt). 30일 안이면 입력을 잠근다 */
+  nicknameChangedAtMs: number | null;
   /** 실패 시 throw — 메시지를 시트에 보여 준다 */
   onChangeNickname: (nickname: string) => Promise<void>;
   onWeightKg: (raw: string) => boolean | void;
@@ -42,6 +49,10 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
   const [intensityId, setIntensityId] = useState<CalorieIntensityId | null>(props.intensityId);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  // 열 때 한 번 판정한다 — 시트를 연 채로 30일이 지나는 경우는 없다
+  const [nicknameLockedUntilMs] = useState(() =>
+    nicknameChangeBlockedUntilMs(props.nicknameChangedAtMs, Date.now()),
+  );
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -108,13 +119,17 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
                 spellCheck={false}
                 maxLength={12}
                 value={nickname}
-                disabled={saving}
+                disabled={saving || nicknameLockedUntilMs != null}
                 onChange={(ev) => {
                   setNickname(ev.target.value);
                   setError(null);
                 }}
               />
-              <p className="ride-settings-sheet__help">{NICKNAME_RULES_SUMMARY_KO}</p>
+              <p className="ride-settings-sheet__help">
+                {nicknameLockedUntilMs != null
+                  ? `닉네임은 ${NICKNAME_CHANGE_COOLDOWN_DAYS}일에 한 번 바꿀 수 있습니다. ${formatMonthDay(nicknameLockedUntilMs)} 이후에 바꿀 수 있습니다.`
+                  : `${NICKNAME_RULES_SUMMARY_KO} 바꾸면 ${NICKNAME_CHANGE_COOLDOWN_DAYS}일 동안 다시 바꿀 수 없습니다.`}
+              </p>
             </>
           )}
         </div>
@@ -182,4 +197,9 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
       </form>
     </div>
   );
+}
+
+function formatMonthDay(ms: number): string {
+  const d = new Date(ms);
+  return `${d.getMonth() + 1}월 ${d.getDate()}일`;
 }
