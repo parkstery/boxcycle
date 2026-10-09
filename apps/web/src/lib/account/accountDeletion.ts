@@ -3,7 +3,7 @@
  *
  * 순서: (필요할 때만) Google 재인증 → 서버 탈퇴(deleteAccountHttp: 구독 해지·데이터 삭제/익명화·Auth 삭제)
  *       → 로그아웃 → 이 기기의 앱 데이터 정리.
- * 게스트(익명)는 서버 탈퇴 대상이 아니다 — 「이 기기 데이터 지우기」(identity/guestAccountReset).
+ * 게스트(익명)는 서버 탈퇴 대상이 아니다 — 게스트는 로그아웃이 곧 삭제(identity/guestAccountReset, 2026-10-09).
  */
 import type { User } from "firebase/auth";
 import { clearAppLocalStorage, clearFirebaseAuthIndexedDb } from "../identity/guestAccountReset";
@@ -39,7 +39,7 @@ export function needsReauthForDeletion(authTimeMs: number | null, nowMs: number)
 
 export async function deleteMyAccount(user: User, confirmPhrase: string): Promise<void> {
   if (user.isAnonymous) {
-    throw new AccountDeletionError("게스트는 「이 기기 데이터 지우기」를 사용하세요.");
+    throw new AccountDeletionError("게스트는 탈퇴할 필요가 없습니다. 로그아웃하면 모든 데이터가 삭제됩니다.");
   }
   if (!isDeletionConfirmPhrase(confirmPhrase)) {
     throw new AccountDeletionError(`확인 문구 「${ACCOUNT_DELETION_CONFIRM_PHRASE}」를 입력하세요.`);

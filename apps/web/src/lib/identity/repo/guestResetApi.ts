@@ -1,5 +1,5 @@
 /**
- * Guest 「이 기기 데이터 지우기」 서버 호출 — resetGuestHttp 가 Firestore·RTDB 데이터와 Auth 를 함께 지운다.
+ * Guest 로그아웃(=삭제) 서버 호출 — resetGuestHttp 가 Firestore·RTDB 데이터와 Auth 를 함께 지운다.
  * 진입점은 `identity/guestAccountReset.ts`.
  */
 import type { User } from "firebase/auth";
