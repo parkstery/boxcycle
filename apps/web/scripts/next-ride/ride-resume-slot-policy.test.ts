@@ -19,7 +19,7 @@ import {
   shouldMarkSlotOpProcessed,
   type RideResumeSlot,
 } from "../../src/lib/ride/rideResumeSlotPolicy.ts";
-import { applyRideResumeSlotTx, type TxLike, type TxRef, type TxSnap } from "../../src/lib/ride/repo/firestoreRideResumeSlot.ts";
+import { applyRideResumeSlotTx, SLOT_USER_DOC_MISSING, type TxLike, type TxRef, type TxSnap } from "../../src/lib/ride/repo/firestoreRideResumeSlot.ts";
 import {
   acquireLocalRideResumeSlot,
   clearLocalRideResumeSlotIfActive,
@@ -752,6 +752,27 @@ describe("applyRideResumeSlotTx (fake tx)", () => {
     assert.equal(result.slot.activeRouteId, null);
     assert.equal(updates.has("savedRoutes/route-A"), false);
   });
+
+  // 2026-10-09: 지워진 계정의 열린 탭이 슬롯만 든 users 문서를 되살렸다(운영 3건).
+  for (const operation of ["markInitializedEmpty", "bootstrap", "acquire", "abandon", "clearIfActive"] as const) {
+    it(`users 문서 없음 → ${operation} 는 문서를 만들지 않는다`, async () => {
+      const { tx, updates, store } = makeFakeStore(null, { "route-A": makeRouteDoc() });
+      const result = await applyRideResumeSlotTx(tx, {
+        uid: "uid1",
+        operation,
+        routeId: "route-A",
+        expectedRouteId: "route-A",
+        expectedUid: "uid1",
+        force: true,
+        makeUserRef: (uid) => makeRef(`users/${uid}`),
+        makeRouteRef: (rid) => makeRef(`savedRoutes/${rid}`),
+      });
+      assert.equal(result.ok, false);
+      assert.equal(!result.ok && result.reason, SLOT_USER_DOC_MISSING);
+      assert.equal(store.has("users/uid1"), false);
+      assert.equal(updates.size, 0);
+    });
+  }
 });
 
 // ---------------------------------------------------------------------------

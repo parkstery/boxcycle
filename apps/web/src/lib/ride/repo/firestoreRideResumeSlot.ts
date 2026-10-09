@@ -86,6 +86,9 @@ export type SlotTxArgs = {
   now?: string;
 };
 
+/** users/{uid} 가 아직(또는 더는) 없다 — 오류가 아니라 「기다림」 */
+export const SLOT_USER_DOC_MISSING = "user_doc_missing";
+
 export type SlotTxResult =
   | { ok: true; slot: RideResumeSlot }
   | { ok: false; reason: string; slot: RideResumeSlot };
@@ -97,11 +100,8 @@ function writeUserSlot(
   slot: RideResumeSlot,
 ): void {
   const slotPayload: Record<string, unknown> = { ...slot };
-  if (userSnap.exists()) {
-    tx.update(userRef, { rideResumeSlot: slotPayload, updatedAt: serverTimestamp() });
-  } else {
-    tx.set(userRef, { rideResumeSlot: slotPayload, updatedAt: serverTimestamp() }, { merge: true });
-  }
+  if (!userSnap.exists()) throw new Error("rideResumeSlot: users 문서 없이 쓰지 않는다");
+  tx.update(userRef, { rideResumeSlot: slotPayload, updatedAt: serverTimestamp() });
 }
 
 function restoreRouteTtl(
@@ -158,6 +158,9 @@ export async function applyRideResumeSlotTx(
   const userSnap = await tx.get(userRef);
   const userData = userSnap.exists() ? userSnap.data() : {};
   let slot = parseRideResumeSlot(userData.rideResumeSlot);
+  // users 문서는 프로필(게스트 tier·닉네임 확정)이 만든다. 슬롯이 만들면 지워진 계정의 열린 탭이
+  // 「슬롯만 든」 문서를 되살린다(2026-10-09 운영에서 3건). 문서가 생기면 구독이 다시 부른다.
+  if (!userSnap.exists()) return { ok: false, reason: SLOT_USER_DOC_MISSING, slot };
 
   if (operation === "markInitializedEmpty") {
     if (slot.initialized) return { ok: true, slot };

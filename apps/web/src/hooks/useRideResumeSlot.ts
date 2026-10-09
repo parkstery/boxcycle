@@ -23,6 +23,7 @@ import {
   abandonRideResumeSlot,
   clearRideResumeSlotIfActive,
   markRideResumeSlotInitializedEmpty,
+  SLOT_USER_DOC_MISSING,
   type SlotTxResult,
 } from "../lib/ride/repo/firestoreRideResumeSlot";
 import {
@@ -293,6 +294,11 @@ export function useRideResumeSlot(props: UseRideResumeSlotProps): UseRideResumeS
       .then((result) => {
         if (mountedUidRef.current !== uid) return;
         startTransition(() => {
+          if (!result.ok && result.reason === SLOT_USER_DOC_MISSING) {
+            // 닉네임 확정 전 회원 — 문서가 생기면 구독이 슬롯을 바꾸고 이 effect 가 다시 돈다
+            bootstrapAttemptedRef.current = false;
+            return;
+          }
           if (!result.ok) {
             bootstrapAttemptedRef.current = false;
             setStatusSafe("error");

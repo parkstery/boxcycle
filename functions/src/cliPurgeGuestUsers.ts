@@ -19,7 +19,7 @@ import {
   firestoreForGuestPurge,
   isAnonymousUserRecord,
   listGuestCandidates,
-  listOrphanGuestUserDocs,
+  listOrphanUserDocs,
   type GuestDataCounts,
 } from "./purgeGuestUsersCore.js";
 
@@ -82,7 +82,7 @@ async function main(): Promise<void> {
 
 기본(인자 없음)은 조사 전용 — 아무것도 지우지 않는다.
 --yes 를 붙여야 Auth 계정 + Firestore 데이터를 실제로 삭제한다.
-Auth 가 이미 없는 고아 Guest users 문서(isAnonymous=true)도 함께 대상이 된다(데이터만 삭제).
+Auth 가 이미 없는 users·userPrivate 문서(고아)도 함께 대상이 된다(데이터만 삭제, 게스트 표시 여부 무관).
 --limit=N 은 --yes 와 함께일 때만 삭제 건수를 제한한다(기본 무제한).`);
     return;
   }
@@ -120,14 +120,14 @@ Auth 가 이미 없는 고아 Guest users 문서(isAnonymous=true)도 함께 대
   }
 
   const db = firestoreForGuestPurge();
-  // Auth 는 이미 없고 users 문서만 남은 Guest — Auth 삭제 없이 데이터만 지운다
-  const orphanUids = await listOrphanGuestUserDocs(db);
-  console.info(`[cli] Auth 없는 고아 Guest users 문서 ${orphanUids.length}건`);
+  // Auth 는 이미 없고 users·userPrivate 문서만 남은 uid — Auth 삭제 없이 데이터만 지운다
+  const orphanUids = await listOrphanUserDocs(db);
+  console.info(`[cli] Auth 없는 고아 users·userPrivate 문서 ${orphanUids.length}건`);
   const orphanSet = new Set(orphanUids);
 
   const allUids = [...candidates.map((c) => c.uid), ...orphanUids];
   if (allUids.length === 0) {
-    console.info("[cli] 익명 후보가 없습니다. 종료.");
+    console.info("[cli] 익명 후보·고아 문서가 없습니다. 종료.");
     return;
   }
 

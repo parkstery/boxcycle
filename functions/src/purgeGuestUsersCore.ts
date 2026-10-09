@@ -82,24 +82,30 @@ export async function listGuestCandidates(): Promise<ListGuestCandidatesResult> 
 }
 
 /**
- * Auth 계정은 이미 없는데 `users/{uid}` 가 isAnonymous=true 로 남은 「고아」 Guest 문서.
- * Auth 삭제 뒤에도 열려 있던 탭이 만료 전 ID 토큰으로 users 문서를 다시 쓰면 생긴다
+ * Auth 계정은 이미 없는데 `users/{uid}`·`userPrivate/{uid}` 가 남은 「고아」 문서의 uid.
+ * Auth 삭제 뒤에도 열려 있던 탭이 만료 전 ID 토큰으로 문서를 다시 쓰면 생긴다
  * (2026-10-07 운영 조사: Auth 5건, users 13건 중 고아 Guest 8건).
- * listGuestCandidates 는 Auth 만 훑으므로 이 문서들을 못 본다.
+ * 종전에는 isAnonymous=true 인 users 만 봤다. 2026-10-09 운영에서 isAnonymous 없이 rideResumeSlot 만
+ * 든 users 3건(그중 1건은 userPrivate 체중도)이 남아 놓쳤다 — 이제 표시와 무관하게 Auth 유무로만 판정한다.
+ * 주인이 없는 문서라 회원·게스트를 가릴 필요가 없다. listGuestCandidates 는 Auth 만 훑으므로 이 문서들을 못 본다.
  */
-export async function listOrphanGuestUserDocs(db: Firestore): Promise<string[]> {
+export async function listOrphanUserDocs(db: Firestore): Promise<string[]> {
   const auth = getAuth();
-  const snap = await db.collection("users").where("isAnonymous", "==", true).get();
+  const [usersSnap, privateSnap] = await Promise.all([
+    db.collection("users").select().get(),
+    db.collection("userPrivate").select().get(),
+  ]);
+  const uids = [...new Set([...usersSnap.docs, ...privateSnap.docs].map((d) => d.id))];
   const orphans: string[] = [];
-  for (const d of snap.docs) {
-    try {
-      await auth.getUser(d.id);
-    } catch (e) {
-      if ((e as { code?: string }).code === "auth/user-not-found") orphans.push(d.id);
-      else throw e;
+  // getUsers 는 한 번에 100건까지 — 없는 uid 는 notFound 로 돌아온다
+  for (let i = 0; i < uids.length; i += 100) {
+    const chunk = uids.slice(i, i + 100);
+    const res = await auth.getUsers(chunk.map((uid) => ({ uid })));
+    for (const id of res.notFound) {
+      if ("uid" in id) orphans.push(id.uid);
     }
   }
-  return orphans;
+  return orphans.sort();
 }
 
 export function isAnonymousUserRecord(user: UserRecord): boolean {
