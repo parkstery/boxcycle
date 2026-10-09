@@ -362,10 +362,18 @@ test.describe("RouteDock 레이아웃", () => {
     await seedShortRoute(uid, `dock-layout-${Date.now()}`);
     await page.reload();
 
-    // 센서를 준비하지 **않은 채** 경로만 올린다 — 안내가 필요한 바로 그 상태.
     await loadSavedRouteFromMenu(page, FIXTURE_NAME);
     const chip = page.locator(".route-dock__top .hud-cadence");
     await expect(chip, "dock 에 센서 칩이 있어야 한다").toBeVisible({ timeout: 15_000 });
+    // 2026-09-28 Chief: 기본 입력은 「센서 없음」(체험 속도) — 경로만 올려도 Go 가 열리므로 깜빡이지 않는다.
+    await expect(chip, "기본(센서 없음)은 준비 완료 → 깜빡이지 않는다").not.toHaveClass(
+      /hud-cadence--attention/,
+    );
+    // 센서 모드인데 센서가 준비되지 않은 상태(연결 끊김 등) — 안내가 필요한 바로 그 상태.
+    // 단절은 manual 로 자동 복귀하지 않으므로 실제로 생기는 상태다. DEV 훅으로 모드만 바꾼다.
+    await page.evaluate(() =>
+      (window as unknown as { __rtwSetRideInputMode?: (m: string) => void }).__rtwSetRideInputMode?.("cadence"),
+    );
     await expect(chip, "경로가 잡혔는데 센서 미준비 → 깜빡인다").toHaveClass(
       /hud-cadence--attention/,
     );
@@ -382,6 +390,7 @@ test.describe("RouteDock 레이아웃", () => {
         caret: box(q(".route-dock__caret")),
         chip: box(q(".route-dock__top .hud-cadence")),
         go: box(q(".route-dock__go")),
+        transport: box(q(".route-dock__transport")),
         top: box(q(".route-dock__top")),
         removeBtn: box(q(".route-dock__stop-remove")),
         stops: box(q(".route-dock__stops")),
@@ -422,16 +431,21 @@ test.describe("RouteDock 레이아웃", () => {
       `캐럿 오른쪽 끝(${layout.caret!.x + layout.caret!.width})과 칩 왼쪽(${layout.chip!.x}) 사이에 빈 공간`,
     ).toBeCloseTo(layout.caret!.x + layout.caret!.width, 0);
 
-    // ④ Go 가 줄의 오른쪽 끝 — 칩 바로 옆이 아니다.
+    // ④ 주행 제어(Go·일시정지·종료, 2026-09-28 셋으로)가 줄의 오른쪽 끝 — 칩 바로 옆이 아니다.
+    // 종전엔 Go 하나였다. 셋이 된 뒤로 Go 는 묶음의 왼쪽 끝이라 묶음 오른쪽을 잰다.
     const rowRight = layout.top!.x + layout.top!.width;
-    const goRight = layout.go!.x + layout.go!.width;
-    expect(rowRight - goRight, `Go 가 줄 오른쪽 끝에서 멀다: ${rowRight - goRight}px`).toBeLessThan(
-      10,
-    );
+    const transportRight = layout.transport!.x + layout.transport!.width;
+    expect(
+      rowRight - transportRight,
+      `주행 제어가 줄 오른쪽 끝에서 멀다: ${rowRight - transportRight}px`,
+    ).toBeLessThan(10);
+    expect(layout.go!.x, "Go 가 주행 제어 묶음의 첫 버튼").toBeCloseTo(layout.transport!.x, 0);
+    // 붙어 있으면 줄 간격(gap 0.28rem ≈ 4px)만 남는다. 40px 는 Go 하나일 때 정한 값 — 버튼이 셋이 된 뒤
+    // 정상 배치가 35px 다(2026-10-09 실측). 「붙음」과 「밀려남」을 가르는 값으로 15px 를 쓴다.
     expect(
       layout.go!.x - (layout.chip!.x + layout.chip!.width),
       "Go 가 SENSOR 바로 옆에 붙어 있다",
-    ).toBeGreaterThan(40);
+    ).toBeGreaterThan(15);
 
     // ⑤ 삭제(X) 오른쪽 여백 2px
     const gap = layout.stops!.x + layout.stops!.width - (layout.removeBtn!.x + layout.removeBtn!.width);
