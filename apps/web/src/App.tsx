@@ -3427,9 +3427,7 @@ export default function App() {
           notice={
             startScreenNotice === "account-deleted"
               ? "탈퇴가 완료되었습니다. 그동안 함께 달려 주셔서 고맙습니다."
-              : startScreenNotice === "guest-reset"
-                ? "이 기기의 게스트 기록을 지웠습니다."
-                : null
+              : null
           }
           onStartGuest={() => void beginAuthenticatedSession()}
           onGoogleSignIn={() => void handleGoogleSignIn()}

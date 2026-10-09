@@ -29,7 +29,7 @@ const local = memoryStorage();
 const keys = await import("../../src/lib/storage/appSessionKeys.ts");
 const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), "utf8");
 
-for (const notice of ["account-deleted", "guest-reset"] as const) {
+for (const notice of ["account-deleted"] as const) {
   test(`${notice} 정리 후: 게스트 자동 진입 안 함 · 로그아웃 화면도 아님 · 안내 1회`, () => {
     keys.setGuestEntryAccepted();
     keys.setUserSignedOutSessionFlag();
@@ -57,10 +57,9 @@ test("로그아웃 표시 키는 게스트 초기화가 지우는 앱 키에 속
   keys.clearUserSignedOutSessionFlag();
 });
 
-test("탈퇴·게스트 초기화 성공 → 정리 → 새로고침 순서", () => {
+test("탈퇴 성공 → 정리 → 새로고침 순서", () => {
   const sheet = read("../../src/components/UserInfoSheet.tsx");
   assert.match(sheet, /await deleteMyAccount\([^)]*\);\s*prepareStartScreen\("account-deleted"\);\s*location\.reload\(\);/);
-  assert.match(sheet, /prepareStartScreen\("guest-reset"\);\s*location\.reload\(\);/);
 });
 
 test("게스트 로그아웃 = 서버 삭제 → 로그아웃 표시 → 새로고침, 실패하면 로그아웃하지 않는다", () => {
@@ -84,11 +83,19 @@ test("게스트 로그아웃 확인 문구", () => {
   assert.ok(sheet.includes('"게스트는 로그아웃하면 모든 데이터가 삭제됩니다."'));
 });
 
-test("시작 화면이 탈퇴·초기화 안내를 받는다", () => {
+test("시작 화면이 탈퇴 안내를 받는다", () => {
   const app = read("../../src/App.tsx");
   const at = app.indexOf("<GuestEntryCard");
   assert.ok(at >= 0);
   const card = app.slice(at, app.indexOf("/>", at));
   assert.match(card, /startScreenNotice === "account-deleted"/);
-  assert.match(card, /startScreenNotice === "guest-reset"/);
+});
+
+/** 게스트는 로그아웃이 곧 삭제 — 같은 일을 하던 별도 버튼은 없앴다(2026-10-09 Chief) */
+test("게스트 「이 기기 데이터 지우기」 버튼이 없다", () => {
+  const sheet = read("../../src/components/UserInfoSheet.tsx");
+  // 주석은 빼고 본다 — 「없앴다」는 설명이 걸리지 않게
+  const code = sheet.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "");
+  assert.ok(!code.includes("이 기기 데이터 지우기"));
+  assert.ok(!sheet.includes("resetGuestAccount"));
 });

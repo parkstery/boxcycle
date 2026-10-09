@@ -79,7 +79,7 @@ export function clearUserSignedOutSessionFlag(): void {
 /** 시작 화면에 한 번 보여 줄 안내(같은 탭) — 탈퇴·게스트 초기화 직후 */
 export const START_SCREEN_NOTICE_SESSION_KEY = "boxcycle_start_notice_v1";
 
-export type StartScreenNotice = "account-deleted" | "guest-reset";
+export type StartScreenNotice = "account-deleted";
 
 /**
  * 탈퇴·게스트 초기화 직후 — 처음 들어온 사람과 같은 시작 화면(GuestEntryCard)으로 돌린다(2026-10-09 Chief).
@@ -100,7 +100,7 @@ export function readStartScreenNotice(): StartScreenNotice | null {
   if (typeof sessionStorage === "undefined") return null;
   try {
     const v = sessionStorage.getItem(START_SCREEN_NOTICE_SESSION_KEY);
-    return v === "account-deleted" || v === "guest-reset" ? v : null;
+    return v === "account-deleted" ? v : null;
   } catch {
     return null;
   }

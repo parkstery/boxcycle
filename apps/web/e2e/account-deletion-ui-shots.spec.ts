@@ -1,5 +1,5 @@
 /**
- * 계정 탈퇴 UI 촬영 — 게스트 「이 기기 데이터 지우기」 확인 + 정식 계정 탈퇴 확인(컴포넌트 마크업).
+ * 계정 탈퇴 UI 촬영 — 게스트 로그아웃(=데이터 삭제) 확인 + 정식 계정 탈퇴 확인(컴포넌트 마크업).
  * 산출: document/ops/20261006-account-deletion/shots-15/
  *
  * 실행(에뮬레이터 래퍼 안): playwright test account-deletion-ui-shots --workers=1 --retries=0
@@ -18,7 +18,7 @@ test.describe("계정 탈퇴 UI 촬영", () => {
     fs.mkdirSync(SHOTS, { recursive: true });
   });
 
-  test("게스트 — 이 기기 데이터 지우기 확인 화면", async ({ page }) => {
+  test("게스트 — 로그아웃(데이터 삭제) 확인 화면", async ({ page }) => {
     test.skip(!LIVE, "Firebase 에뮬레이터 필요");
     test.setTimeout(120_000);
     await page.setViewportSize({ width: 690, height: 275 });
@@ -31,10 +31,12 @@ test.describe("계정 탈퇴 UI 촬영", () => {
     await page.getByRole("button", { name: "사용자 정보" }).click();
     const sheet = page.getByRole("dialog", { name: "사용자 정보" });
     await expect(sheet).toBeVisible({ timeout: 15_000 });
-    await sheet.getByRole("button", { name: "이 기기 데이터 지우기" }).click();
-    await expect(sheet.getByRole("group", { name: "이 기기 데이터 지우기 확인" })).toBeVisible();
+    await expect(sheet.getByRole("button", { name: "이 기기 데이터 지우기" })).toHaveCount(0);
+    await sheet.getByRole("button", { name: "로그아웃", exact: true }).click();
+    const confirm = sheet.getByRole("group", { name: "로그아웃 확인" });
+    await expect(confirm).toContainText("게스트는 로그아웃하면 모든 데이터가 삭제됩니다.");
     await page.screenshot({
-      path: path.join(SHOTS, "01-guest-device-clear-confirm.png"),
+      path: path.join(SHOTS, "01-guest-logout-confirm.png"),
       fullPage: true,
     });
   });
