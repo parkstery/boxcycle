@@ -13,8 +13,8 @@
   width: min(480px, 100%);
   max-height: 90vh;
   overflow: auto;
-  background: #1a1d24;
-  color: #e8eaef;
+  background: #FFFFFF;
+  color: #1F2937;
   border-radius: 12px;
   padding: 1.25rem 1.5rem;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
@@ -43,9 +43,9 @@
   height: 1.35rem;
   padding: 0;
   border-radius: 999px;
-  border: 1px solid #5b8cff;
+  border: 1px solid #2563EB;
   background: transparent;
-  color: #9ec0ff;
+  color: #2563EB;
   font: inherit;
   font-size: 0.75rem;
   font-weight: 700;
@@ -74,8 +74,8 @@
   overflow: auto;
   padding: 1rem 1.1rem;
   border-radius: 10px;
-  border: 1px solid #3a4252;
-  background: #12151c;
+  border: 1px solid #CBD5E1;
+  background: #F8FAFC;
 }
 
 .pr-modal__help-title {
@@ -88,27 +88,27 @@
   padding-left: 1.1rem;
   font-size: 0.82rem;
   line-height: 1.45;
-  color: #b8bec9;
+  color: #475569;
 }
 
 .pr-modal__help-guide {
   margin: 0 0 0.85rem;
   font-size: 0.82rem;
   line-height: 1.45;
-  color: #9aa3b2;
+  color: #64748B;
 }
 
 .pr-modal__hint {
   margin: -0.35rem 0 0;
   font-size: 0.78rem;
-  color: #f0c674;
+  color: #B45309;
 }
 
 .pr-modal__name-note {
   margin: -0.35rem 0 0;
   font-size: 0.78rem;
   line-height: 1.4;
-  color: #9aa3b2;
+  color: #64748B;
 }
 
 .pr-modal__ack {
@@ -116,7 +116,7 @@
   align-items: center;
   gap: 0.35rem;
   font-size: 0.85rem;
-  color: #c8cdd6;
+  color: #475569;
   cursor: pointer;
 }
 
@@ -143,8 +143,8 @@
   font: inherit;
   padding: 0.5rem 0.6rem;
   border-radius: 8px;
-  border: 1px solid #3a4252;
-  background: #12151c;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
   color: inherit;
 }
 
@@ -170,22 +170,22 @@
   font-size: 0.8rem;
   padding: 0.35rem 0.65rem;
   border-radius: 999px;
-  border: 1px solid #3a4252;
+  border: 1px solid #CBD5E1;
   background: transparent;
-  color: #c5cad6;
+  color: #475569;
   cursor: pointer;
 }
 
 .pr-modal__tag.is-on {
-  border-color: #5b8cff;
-  background: rgba(91, 140, 255, 0.15);
-  color: #dbe6ff;
+  border-color: #2563EB;
+  background: #2563EB;
+  color: #FFFFFF;
 }
 
 .pr-modal__error {
   margin: 0;
   font-size: 0.85rem;
-  color: #ff8a8a;
+  color: #DC2626;
 }
 
 .pr-modal__actions {
@@ -199,9 +199,9 @@
   font: inherit;
   padding: 0.45rem 0.9rem;
   border-radius: 8px;
-  border: 1px solid #3a4252;
+  border: 1px solid #CBD5E1;
   background: transparent;
-  color: #e8eaef;
+  color: #1F2937;
   cursor: pointer;
 }
 
@@ -211,7 +211,7 @@
 }
 
 .pr-modal__btn--primary {
-  border-color: #5b8cff;
-  background: #5b8cff;
-  color: #0b1020;
+  border-color: #2563EB;
+  background: #2563EB;
+  color: #FFFFFF;
 }

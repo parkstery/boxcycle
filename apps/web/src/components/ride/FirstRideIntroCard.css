@@ -20,13 +20,13 @@
   flex-direction: column;
   gap: 0.35rem;
   padding: 0.65rem 0.75rem 0.7rem;
-  border: 1px solid var(--rtw-glass-border, rgba(248, 250, 252, 0.18));
+  border: 1px solid #CBD5E1;
   border-radius: var(--rtw-radius, 14px);
-  background: var(--rtw-glass-bg-strong, rgba(10, 16, 26, 0.64));
+  background: #FFFFFF;
   -webkit-backdrop-filter: blur(var(--rtw-glass-blur, 12px));
   backdrop-filter: blur(var(--rtw-glass-blur, 12px));
   box-shadow: var(--rtw-glass-shadow, 4px 8px 28px rgba(2, 8, 20, 0.4));
-  color: var(--rtw-text, #f8fafc);
+  color: #1F2937;
 }
 
 .first-ride__title {
@@ -49,8 +49,8 @@
   padding: 0.38rem 0.7rem;
   border: none;
   border-radius: 9px;
-  background: var(--rtw-accent, #e8a33d);
-  color: #10151f;
+  background: #2563EB;
+  color: #FFFFFF;
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
@@ -62,7 +62,7 @@
 }
 
 .first-ride__btn:focus-visible {
-  outline: 2px solid var(--rtw-accent, #e8a33d);
+  outline: 2px solid #2563EB;
   outline-offset: 2px;
 }
 

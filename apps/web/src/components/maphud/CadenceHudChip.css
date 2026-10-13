@@ -11,9 +11,9 @@
   height: 2.2rem;
   padding: 0 0.7rem;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.55);
-  border: 1px solid rgba(248, 250, 252, 0.25);
-  color: #f8fafc;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
   font: inherit;
   font-size: 0.76rem;
   font-weight: 600;
@@ -26,11 +26,11 @@
 
 .hud-cadence:hover,
 .hud-cadence--open {
-  border-color: rgba(232, 163, 61, 0.55);
+  border-color: #2563EB;
 }
 
 .hud-cadence:focus-visible {
-  outline: 2px solid #e8a33d;
+  outline: 2px solid #2563EB;
   outline-offset: 2px;
 }
 
@@ -42,7 +42,7 @@
 }
 
 .hud-cadence__led--white {
-  background: #f8fafc;
+  background: #F1F5F9;
   box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.5);
 }
 
@@ -93,16 +93,16 @@
   gap: 0.3rem;
   padding: 0.22rem 0.5rem;
   /* 같은 행의 `route-dock__icon-btn` 과 동일한 톤 */
-  border: 1px solid rgba(248, 250, 252, 0.14);
-  background: rgba(10, 16, 26, 0.35);
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
   backdrop-filter: none;
   font-size: 0.7rem;
 }
 
 .hud-cadence--dock:hover,
 .hud-cadence--dock.hud-cadence--open {
-  background: rgba(232, 163, 61, 0.2);
-  border-color: rgba(232, 163, 61, 0.45);
+  background: #EFF6FF;
+  border-color: #2563EB;
 }
 
 .hud-cadence--dock .hud-cadence__text {
@@ -140,18 +140,18 @@
 @keyframes hud-cadence-attention {
   0%,
   100% {
-    border-color: rgba(248, 250, 252, 0.25);
-    background: rgba(15, 23, 42, 0.55);
+    border-color: #CBD5E1;
+    background: #FFFFFF;
   }
   50% {
-    border-color: var(--rtw-trace, #e8a33d);
-    background: rgba(232, 163, 61, 0.22);
+    border-color: #2563EB;
+    background: rgba(37, 99, 235, 0.14);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .hud-cadence--attention {
     animation: none;
-    border-color: var(--rtw-trace, #e8a33d);
+    border-color: #2563EB;
   }
 }

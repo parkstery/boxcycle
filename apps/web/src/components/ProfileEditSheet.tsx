@@ -103,7 +103,7 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
         <div className="ride-settings-sheet__handle" aria-hidden />
         <h2 className="ride-settings-sheet__title">프로필 수정</h2>
 
-        <div className="ride-settings-sheet__group">
+        <div className="ride-settings-sheet__group profile-edit-sheet__nickname">
           <span className="ride-settings-sheet__kicker">닉네임</span>
           {isGuest ? (
             <p className="ride-settings-sheet__help">
@@ -135,7 +135,6 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
         </div>
 
         <div className="ride-settings-sheet__group">
-          <span className="ride-settings-sheet__kicker">칼로리 계산</span>
           <div className="ride-settings-sheet__calorie-row">
             <label className="ride-settings-sheet__weight">
               <span>체중(kg)</span>

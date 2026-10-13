@@ -20,15 +20,15 @@
   max-height: 100%;
   overflow: auto;
   border-radius: 14px;
-  background: rgba(15, 23, 42, 0.92);
-  border: 1px solid rgba(248, 250, 252, 0.18);
-  color: #f8fafc;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.38);
   padding: 0.65rem 0.75rem 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
-  color-scheme: dark;
+  color-scheme: light;
   animation: auth-gate-card-in 0.2s ease-out;
 }
 
@@ -59,15 +59,15 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   font-size: 0.68rem;
-  color: rgba(248, 250, 252, 0.92);
+  color: rgba(31, 41, 55, 0.92);
 }
 
 .auth-gate__brand-dot {
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 50%;
-  background: #38bdf8;
-  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35);
+  background: #2563EB;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
   flex-shrink: 0;
 }
 
@@ -82,10 +82,10 @@
   align-items: center;
   justify-content: center;
   appearance: none;
-  border: 1px solid rgba(248, 250, 252, 0.22);
+  border: 1px solid #CBD5E1;
   border-radius: 50%;
-  background: rgba(248, 250, 252, 0.06);
-  color: #f8fafc;
+  background: #F1F5F9;
+  color: #475569;
   font-size: 1rem;
   font-weight: 400;
   line-height: 1;
@@ -94,11 +94,11 @@
 }
 
 .auth-gate__close:hover:not(:disabled) {
-  background: rgba(248, 250, 252, 0.16);
+  background: #EFF6FF;
 }
 
 .auth-gate__close:focus-visible {
-  outline: 2px solid #38bdf8;
+  outline: 2px solid #2563EB;
   outline-offset: 2px;
 }
 
@@ -112,7 +112,7 @@
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: rgba(248, 250, 252, 0.88);
+  color: rgba(31, 41, 55, 0.88);
 }
 
 .auth-gate__body {
@@ -129,15 +129,16 @@
   font-size: 0.74rem;
   padding: 0.42rem 0.6rem;
   border-radius: 8px;
-  border: 1px solid rgba(248, 250, 252, 0.22);
-  background: rgba(248, 250, 252, 0.06);
-  color: #f8fafc;
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #475569;
   cursor: pointer;
   transition: background 0.15s ease;
 }
 
 .auth-gate__card .btn:hover:not(:disabled) {
-  background: rgba(248, 250, 252, 0.14);
+  background: #EFF6FF;
+  border-color: #2563EB;
 }
 
 .auth-gate__card .btn:disabled {
@@ -159,26 +160,28 @@
   justify-content: center;
 }
 
-/* 게스트: 글래스 유지(secondary) */
+/* 게스트: 중립 유지(secondary) */
 .auth-gate__card .btn.secondary {
-  background: rgba(248, 250, 252, 0.05);
-  border-color: rgba(248, 250, 252, 0.18);
-  color: rgba(248, 250, 252, 0.95);
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+  color: #475569;
 }
 
 .auth-gate__card .btn.secondary:hover:not(:disabled) {
-  background: rgba(248, 250, 252, 0.12);
+  background: #EFF6FF;
+  border-color: #2563EB;
 }
 
 /* 기본 primary — 닉네임 제출 등 */
 .auth-gate__card .btn.primary {
-  background: rgba(56, 189, 248, 0.28);
-  border-color: rgba(56, 189, 248, 0.5);
-  color: #f8fafc;
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
 }
 
 .auth-gate__card .btn.primary:hover:not(:disabled) {
-  background: rgba(56, 189, 248, 0.4);
+  background: #1D4ED8;
+  border-color: #1D4ED8;
 }
 
 /* Google — 계정 선택용 밝은 CTA (앱 내 버튼만; 실제 구글 팝업은 구글 호스트) */
@@ -187,14 +190,15 @@
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  background: #f8fafc;
-  border-color: rgba(248, 250, 252, 0.9);
-  color: #0f172a;
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+  color: #1F2937;
   font-weight: 650;
 }
 
 .auth-gate__card .btn.auth-gate-google:hover:not(:disabled) {
-  background: #ffffff;
+  background: #EFF6FF;
+  border-color: #2563EB;
 }
 
 .auth-gate-google-mark {
@@ -206,85 +210,85 @@
   margin: 0;
   font-size: 0.68rem;
   line-height: 1.4;
-  color: rgba(248, 250, 252, 0.65);
+  color: #64748B;
 }
 
 .auth-gate__card .error {
   margin: 0;
   font-size: 0.68rem;
   line-height: 1.35;
-  color: #fca5a5;
+  color: #DC2626;
 }
 
-/* SignUpNicknameCard — 다크 카드 위 가독성 */
+/* SignUpNicknameCard — 밝은 카드 위 가독성 */
 .auth-gate__card .signup-nickname {
   max-width: none;
   padding-top: 0.1rem;
 }
 
 .auth-gate__card .signup-nickname__title {
-  color: #f8fafc;
+  color: #1F2937;
   font-size: 0.82rem;
   margin-bottom: 0.35rem;
 }
 
 .auth-gate__card .signup-nickname__lead {
-  color: rgba(248, 250, 252, 0.78);
+  color: #475569;
   font-size: 0.72rem;
   line-height: 1.4;
   margin-bottom: 0.35rem;
 }
 
 .auth-gate__card .signup-nickname__rules {
-  color: rgba(248, 250, 252, 0.62);
+  color: #64748B;
   font-size: 0.66rem;
   margin-bottom: 0.45rem;
 }
 
 .auth-gate__card .signup-nickname__rules--meta {
-  color: rgba(248, 250, 252, 0.55);
+  color: #64748B;
 }
 
 .auth-gate__card .signup-nickname__label {
-  color: rgba(248, 250, 252, 0.82);
+  color: #475569;
   font-size: 0.72rem;
 }
 
 .auth-gate__card .signup-nickname__input {
-  border: 1px solid rgba(248, 250, 252, 0.22);
-  background: rgba(2, 6, 23, 0.45);
-  color: #f8fafc;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #1F2937;
 }
 
 .auth-gate__card .signup-nickname__input::placeholder {
-  color: rgba(248, 250, 252, 0.38);
+  color: rgba(71, 85, 105, 0.6);
 }
 
 .auth-gate__card .signup-nickname__input:focus {
   outline: none;
-  border-color: rgba(56, 189, 248, 0.55);
-  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.35);
+  border-color: #2563EB;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.35);
 }
 
 .auth-gate__card .signup-nickname__err {
-  color: #fca5a5;
+  color: #DC2626;
 }
 
 .auth-gate__card .signup-nickname__weight {
-  color: rgba(248, 250, 252, 0.82);
+  color: #475569;
   font-size: 0.72rem;
 }
 
 .auth-gate__card .signup-nickname__chip {
-  border-color: rgba(248, 250, 252, 0.22);
-  color: #f8fafc;
+  border-color: #CBD5E1;
+  color: #475569;
   font-size: 0.72rem;
 }
 
 .auth-gate__card .signup-nickname__chip.is-active {
-  background: rgba(232, 163, 61, 0.14);
-  border-color: rgba(232, 163, 61, 0.45);
-  color: #e8a33d;
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
 }
 
 @media (orientation: landscape) and (max-height: 480px) {

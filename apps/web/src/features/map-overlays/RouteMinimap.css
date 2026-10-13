@@ -151,7 +151,7 @@
 
 /*
  * 이정표 띠(주행 스토리 M2) — 미니맵 위쪽 가장자리에 4초. 지도를 오래 가리지 않는다(N8).
- * 어두운 띠 위 골드 글자 — 밝은 지도·어두운 폴백 어디서나 읽힌다.
+ * 흰 띠 위 파랑 글자 — 밝은 지도·어두운 폴백 어디서나 읽힌다.
  */
 .route-minimap__milestone {
   position: absolute;
@@ -159,8 +159,8 @@
   right: 0;
   top: 0;
   padding: 0.22rem 0.5rem;
-  background: rgba(16, 21, 31, 0.82);
-  color: var(--rtw-trace, #e8a33d);
+  background: #FFFFFF;
+  color: #2563EB;
   font-size: 0.72rem;
   font-weight: 750;
   line-height: 1.2;

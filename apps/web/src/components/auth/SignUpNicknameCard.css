@@ -90,15 +90,15 @@
 }
 
 .signup-nickname__chip.is-active {
-  background: var(--rtw-accent-soft, rgba(232, 163, 61, 0.14));
-  border-color: var(--rtw-accent-line, rgba(232, 163, 61, 0.45));
-  color: var(--rtw-trace, #E8A33D);
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
 }
 
 .signup-nickname__err {
   margin: 0;
   font-size: 0.78rem;
-  color: #b91c1c;
+  color: #DC2626;
   line-height: 1.35;
 }
 

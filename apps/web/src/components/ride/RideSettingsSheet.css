@@ -30,9 +30,9 @@
   margin-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
   padding: 0.55rem 0.85rem 1rem;
   border-radius: 14px 14px 12px 12px;
-  background: var(--rtw-glass-bg-strong, #0D1319);
-  border: 1px solid var(--rtw-glass-border, rgba(255, 255, 255, 0.08));
-  color: var(--rtw-text, #EDEFF2);
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   pointer-events: auto;
@@ -58,7 +58,7 @@
   width: 2.4rem;
   height: 0.22rem;
   border-radius: 99px;
-  background: var(--rtw-text-secondary, rgba(124, 138, 153, 0.9));
+  background: #CBD5E1;
   align-self: center;
   margin-bottom: 0.15rem;
 }
@@ -81,7 +81,7 @@
   font-weight: 750;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--rtw-text-secondary, #7C8A99);
+  color: #64748B;
 }
 
 .ride-settings-sheet__toggles {
@@ -99,13 +99,13 @@
 }
 
 .ride-settings-sheet__toggle input {
-  accent-color: var(--rtw-trace, #E8A33D);
+  accent-color: #2563EB;
 }
 
 .ride-settings-sheet__help {
   margin: 0;
   font-size: 0.68rem;
-  color: var(--rtw-text-secondary, #7C8A99);
+  color: #64748B;
   line-height: 1.35;
 }
 
@@ -126,22 +126,32 @@
   font-weight: 650;
   padding: 0.4rem 0.75rem;
   border-radius: 8px;
-  border: 1px solid var(--rtw-glass-border, rgba(255, 255, 255, 0.08));
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--rtw-text, #EDEFF2);
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #475569;
   cursor: pointer;
 }
 
+.ride-settings-sheet__btn:hover:not(:disabled) {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
 .ride-settings-sheet__btn--primary {
-  background: var(--rtw-accent-soft, rgba(232, 163, 61, 0.14));
-  border-color: var(--rtw-accent-line, rgba(232, 163, 61, 0.45));
-  color: var(--rtw-trace, #E8A33D);
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+}
+
+.ride-settings-sheet__btn--primary:hover:not(:disabled) {
+  background: #1D4ED8;
+  border-color: #1D4ED8;
 }
 
 .ride-settings-sheet__error {
   margin: 0;
   font-size: 0.68rem;
-  color: var(--rtw-danger, #E07A5F);
+  color: #DC2626;
 }
 
 .ride-settings-sheet__calorie-row {
@@ -163,9 +173,9 @@
   min-height: 44px;
   padding: 0.35rem 0.4rem;
   border-radius: 8px;
-  border: 1px solid var(--rtw-glass-border, rgba(255, 255, 255, 0.12));
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--rtw-text, #EDEFF2);
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #1F2937;
   font: inherit;
   font-variant-numeric: tabular-nums;
 }
@@ -183,14 +193,19 @@
   min-height: 44px;
   padding: 0.35rem 0.55rem;
   border-radius: 8px;
-  border: 1px solid var(--rtw-glass-border, rgba(255, 255, 255, 0.12));
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--rtw-text, #EDEFF2);
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #475569;
   cursor: pointer;
 }
 
+.ride-settings-sheet__chip:hover:not(:disabled) {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
 .ride-settings-sheet__chip.is-active {
-  background: var(--rtw-accent-soft, rgba(232, 163, 61, 0.14));
-  border-color: var(--rtw-accent-line, rgba(232, 163, 61, 0.45));
-  color: var(--rtw-trace, #E8A33D);
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
 }

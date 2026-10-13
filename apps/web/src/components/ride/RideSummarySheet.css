@@ -37,9 +37,9 @@
   /* --rtw-panel-solid(#0D1319)에 10% 투명도(2026-09-17 Chief) — 아래 지도가 비쳐
      시트가 화면에서 떠 보인다. backdrop-filter 가 이미 걸려 있어 글자는 안 흐려진다. */
   /* 2026-10-06 Chief: 투명도 10% → 30%(+20%p) — 배경 지도가 더 드러나게 */
-  background: rgba(13, 19, 25, 0.7);
-  border: 1px solid var(--rtw-divider);
-  color: var(--rtw-text-primary);
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
   backdrop-filter: var(--rtw-blur-panel);
   -webkit-backdrop-filter: var(--rtw-blur-panel);
   box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
@@ -66,7 +66,7 @@
   width: 2.4rem;
   height: 0.22rem;
   border-radius: var(--rtw-radius-pill);
-  background: var(--rtw-divider);
+  background: #CBD5E1;
   margin: 0 auto 0.05rem;
 }
 
@@ -103,7 +103,7 @@
   justify-self: center;
   font-size: 0.78rem;
   font-weight: 700;
-  color: #eab308;
+  color: #2563EB;
   letter-spacing: 0.02em;
   line-height: 1;
 }
@@ -123,7 +123,7 @@
   margin-left: 0.32rem;
   font-size: 0.72em;
   font-weight: 600;
-  color: var(--rtw-text-secondary);
+  color: #64748B;
   letter-spacing: 0.02em;
 }
 
@@ -152,7 +152,7 @@
   border-radius: 999px;
   border: none;
   background: transparent;
-  color: #cbd5e1;
+  color: #475569;
   cursor: pointer;
 }
 
@@ -167,12 +167,12 @@
 }
 
 .ride-summary__close:hover {
-  background: rgba(56, 189, 248, 0.14);
-  color: #e8eaef;
+  background: #EFF6FF;
+  color: #1F2937;
 }
 
 /* 히어로 래퍼 — 새 도로(conquest) + 거리. 진행률 배지는 헤더 행으로 옮겼다 */
-/* 스토리 — 제목 아래, 숫자 위. 헤드라인은 따뜻하게(골드), 사실 줄은 조용하게 */
+/* 스토리 — 제목 아래, 숫자 위. 헤드라인은 파랑(주행 스토리 원칙 §5 M1), 사실 줄은 조용하게 */
 .ride-summary__story {
   display: flex;
   flex-direction: column;
@@ -186,7 +186,7 @@
   font-size: 0.9rem;
   font-weight: 750;
   line-height: 1.3;
-  color: var(--rtw-trace, #e8a33d);
+  color: #2563EB;
 }
 
 .ride-summary__story-detail {
@@ -194,7 +194,7 @@
   font-size: 0.76rem;
   font-weight: 600;
   line-height: 1.3;
-  color: var(--rtw-text-secondary);
+  color: #64748B;
 }
 
 .ride-summary__heroes {
@@ -223,9 +223,9 @@
   border-radius: var(--rtw-radius-pill);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--rtw-divider);
-  color: var(--rtw-text-secondary);
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  color: #475569;
 }
 
 /*
@@ -241,8 +241,8 @@
   height: 2.5rem;
   padding: 0 0.5rem;
   border-radius: var(--rtw-radius-md);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--rtw-divider);
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
   min-width: 0;
 }
 
@@ -272,14 +272,14 @@
 .ride-summary__progress-of {
   font-size: 0.74rem;
   font-weight: 650;
-  color: var(--rtw-text-secondary);
+  color: #64748B;
 }
 
 .ride-summary__progress-v {
   font-size: 1.15rem;
   font-weight: 750;
   line-height: 1.1;
-  color: var(--rtw-trace, #e8a33d);
+  color: #2563EB;
   font-variant-numeric: tabular-nums;
 }
 
@@ -288,7 +288,7 @@
   white-space: nowrap;
   font-size: 0.66rem;
   font-weight: 600;
-  color: var(--rtw-text-secondary);
+  color: #64748B;
   font-variant-numeric: tabular-nums;
 }
 
@@ -299,17 +299,17 @@
   height: 6px;
   border-radius: 999px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.1);
+  background: #F1F5F9;
 }
 
 /* 지난번까지 온 길 — 이미 내 것 */
 .ride-summary__progress-before {
-  background: rgba(248, 250, 252, 0.45);
+  background: #CBD5E1;
 }
 
 /* 이번에 달린 구간 — 오늘의 노력 */
 .ride-summary__progress-this {
-  background: var(--rtw-trace, #e8a33d);
+  background: #2563EB;
 }
 
 .ride-summary__progress--done .ride-summary__progress-v {
@@ -328,7 +328,7 @@
      pt 는 절대 단위라 루트 폰트가 달라져도 「정확히 2포인트」가 유지된다. */
   font-size: calc(0.72rem + 2pt);
   font-weight: 650;
-  color: var(--rtw-text-secondary);
+  color: #64748B;
 }
 
 .ride-summary__substat {
@@ -345,7 +345,7 @@
 .ride-summary__substat:not(:last-child)::after {
   content: "·";
   margin-left: 0.28rem;
-  color: var(--rtw-text-faint);
+  color: #64748B;
 }
 
 .ride-summary__substat--calorie {
@@ -368,9 +368,9 @@
   flex-shrink: 0;
   padding: 0.2rem 0.45rem;
   border-radius: 8px;
-  border: 1px solid var(--rtw-glass-border, rgba(255, 255, 255, 0.12));
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--rtw-trace, #E8A33D);
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #2563EB;
   cursor: pointer;
 }
 
@@ -395,7 +395,7 @@
   margin: 0;
   font-size: 0.68rem;
   line-height: 1.35;
-  color: var(--rtw-text-secondary);
+  color: #64748B;
 }
 
 /* 저장 폼 한 줄 — 입력창이 남는 폭을 먹고 버튼은 고정 폭. 690px 기준 한 줄, 좁으면 wrap */
@@ -407,15 +407,15 @@
   gap: 0.35rem 0.5rem;
   padding: 0.35rem 0.5rem;
   border-radius: var(--rtw-radius-sm);
-  border: 1px solid rgba(232, 163, 61, 0.45);
-  background: rgba(232, 163, 61, 0.1);
+  border: 1px solid rgba(37, 99, 235, 0.4);
+  background: #EFF6FF;
 }
 
 .ride-summary__guest-cta-copy {
   flex: 1 1 12rem;
   font-size: 0.74rem;
   line-height: 1.35;
-  color: var(--rtw-text-primary);
+  color: #1F2937;
 }
 
 .ride-summary__guest-cta-btn {
@@ -439,9 +439,9 @@
 
 .ride-summary__btn {
   appearance: none;
-  border: 1px solid var(--rtw-divider);
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--rtw-text-primary);
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #1F2937;
   font: inherit;
   font-size: 0.76rem;
   font-weight: 650;
@@ -451,7 +451,8 @@
 }
 
 .ride-summary__btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.12);
+  background: #EFF6FF;
+  border-color: #2563EB;
 }
 
 .ride-summary__btn:disabled {
@@ -459,27 +460,28 @@
   cursor: not-allowed;
 }
 
-/* 저장 = 행동 유도, 항상 솔리드 골드 + 다크 텍스트 */
+/* 저장 = 행동 유도, 항상 솔리드 파랑 + 흰 글자 */
 .ride-summary__btn--primary {
-  background: var(--rtw-trace);
+  background: #2563EB;
   border-color: transparent;
-  color: var(--rtw-bg);
+  color: #FFFFFF;
   font-weight: var(--rtw-weight-value);
 }
 
 .ride-summary__btn--primary:hover:not(:disabled) {
-  background: #f0b254;
+  background: #1D4ED8;
 }
 
 .ride-summary__btn--ghost {
   background: transparent;
-  border-color: var(--rtw-divider);
-  color: var(--rtw-text-secondary);
+  border-color: #CBD5E1;
+  color: #475569;
   font-weight: 600;
 }
 
 .ride-summary__btn--ghost:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.06);
+  background: #EFF6FF;
+  border-color: #2563EB;
 }
 
 .ride-summary__input {
@@ -488,26 +490,26 @@
   box-sizing: border-box;
   padding: 0.42rem 0.6rem;
   border-radius: var(--rtw-radius-sm);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--rtw-divider);
-  color: var(--rtw-text-primary);
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
   font: inherit;
   font-size: 0.78rem;
   outline: none;
 }
 
 .ride-summary__input:focus {
-  border-color: var(--rtw-trace-warn-border);
+  border-color: #2563EB;
 }
 
 .ride-summary__input::placeholder {
-  color: var(--rtw-text-faint);
+  color: rgba(71, 85, 105, 0.6);
 }
 
 .ride-summary__err {
   margin: 0;
   font-size: 0.68rem;
-  color: var(--rtw-danger);
+  color: #DC2626;
 }
 
 /* 미저장 상태에서 닫기 시도 시 저장 기회를 한 번 더 보장하는 경고 — 골드 워닝 톤 */
@@ -527,7 +529,7 @@
   font-size: 0.72rem;
   line-height: 1.4;
   font-weight: 600;
-  color: #c9924f;
+  color: #B45309;
 }
 
 @media (max-width: 380px) {
@@ -557,8 +559,8 @@
   height: 2.5rem;
   padding: 0 0.35rem;
   border-radius: var(--rtw-radius-md);
-  background: rgba(234, 179, 8, 0.1);
-  border: 1px solid rgba(234, 179, 8, 0.45);
+  background: #EFF6FF;
+  border: 1px solid rgba(37, 99, 235, 0.4);
   order: 1;
 }
 
@@ -566,14 +568,14 @@
   line-height: 1;
   font-size: 0.78rem;
   font-weight: 700;
-  color: #eab308;
+  color: #2563EB;
   letter-spacing: 0.02em;
 }
 
 .ride-summary__conquest-value {
   font-size: 1.85rem;
   font-weight: 800;
-  color: #facc15;
+  color: #2563EB;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -582,7 +584,7 @@
 .ride-summary__conquest-status {
   margin: 0;
   font-size: 0.78rem;
-  color: var(--rtw-text-secondary, #8b949e);
+  color: #64748B;
   text-align: center;
   display: flex;
   align-items: center;
@@ -594,9 +596,9 @@
 .ride-summary__conquest-retry {
   appearance: none;
   background: transparent;
-  border: 1px solid var(--rtw-divider);
+  border: 1px solid #CBD5E1;
   border-radius: var(--rtw-radius-pill);
-  color: var(--rtw-text-primary);
+  color: #1F2937;
   font: inherit;
   font-size: 0.68rem;
   padding: 0.15rem 0.55rem;
@@ -605,18 +607,19 @@
 }
 
 .ride-summary__conquest-retry:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: #EFF6FF;
+  border-color: #2563EB;
 }
 
 /* 구식 conquest 라인 (이전 버전 호환, 이제 hero 블록이 주역) */
-/* Conquest — 「새 도로 +N km」 (도파민 지점): 골드 강조 카드 */
+/* Conquest — 「새 도로 +N km」 (도파민 지점): 파랑 강조 카드 */
 .ride-summary__conquest {
   margin: 0;
   padding: 0.55rem 0.7rem;
   border-radius: var(--rtw-radius-md);
-  background: var(--rtw-trace-warn-bg);
-  border: 1px solid var(--rtw-trace-warn-border);
-  color: var(--rtw-trace);
+  background: #EFF6FF;
+  border: 1px solid rgba(37, 99, 235, 0.4);
+  color: #2563EB;
   font-size: 0.82rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;

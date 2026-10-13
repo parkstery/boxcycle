@@ -93,8 +93,8 @@ body {
 /* .hud-clock 은 2026-10-06 상자를 버리고 halo 글자만(MapHud.css) */
 .hud-icon-btn,
 .hud-metrics__chip {
-  background: var(--rtw-glass-bg);
-  border-color: var(--rtw-glass-border);
+  background: #FFFFFF;
+  border-color: #CBD5E1;
   -webkit-backdrop-filter: blur(var(--rtw-glass-blur));
   backdrop-filter: blur(var(--rtw-glass-blur));
 }
@@ -114,8 +114,8 @@ body {
 }
 
 .hud-brand__dot {
-  background: var(--rtw-accent-on-dark);
-  box-shadow: 0 0 0 3px var(--rtw-accent-soft);
+  background: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
 }
 
 /* =====================================================================
@@ -126,8 +126,9 @@ body {
 }
 
 .hud-signin-pill:hover {
-  border-color: var(--rtw-accent-line);
-  color: var(--rtw-text-primary);
+  border-color: #2563EB;
+  background: #EFF6FF;
+  color: #1F2937;
 }
 
 /* =====================================================================
@@ -144,7 +145,7 @@ body {
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
   padding: 0.26rem 0.62rem;
-  color: var(--rtw-text);
+  color: #1F2937;
 }
 
 .hud-metrics__value {
@@ -163,17 +164,17 @@ body {
    색은 MapHud.css 가 정한다. */
 
 .hud-bc-trigger.is-active {
-  background: var(--rtw-accent-soft);
-  border-color: var(--rtw-accent-line);
-  color: var(--rtw-text-primary);
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
 }
 
 /* =====================================================================
    7) MC — 액션 센터 카드
    ===================================================================== */
 .hud-action {
-  background: var(--rtw-glass-bg-strong);
-  border-color: var(--rtw-glass-border);
+  background: #FFFFFF;
+  border-color: #CBD5E1;
   border-radius: var(--rtw-radius);
   box-shadow: var(--rtw-glass-shadow);
   backdrop-filter: blur(14px);
@@ -189,59 +190,64 @@ body {
 }
 
 .hud-action__btn--primary {
-  background: var(--rtw-accent-soft);
-  border-color: var(--rtw-accent-line);
-  color: var(--rtw-text-primary);
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
 }
 .hud-action__btn--primary:hover {
-  background: rgba(232, 163, 61, 0.28);
+  background: #1D4ED8;
+  border-color: #1D4ED8;
 }
 
 .hud-action__btn--danger {
-  background: var(--rtw-danger-bg);
-  border-color: var(--rtw-danger-border);
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #DC2626;
 }
 
 /* =====================================================================
    8) BR — 메인 FAB (시작 / 일시정지)
    ===================================================================== */
 .hud-icon-btn--primary {
-  background: var(--rtw-accent-soft);
-  border-color: var(--rtw-accent-line);
-  color: var(--rtw-text-primary);
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
 }
 .hud-icon-btn--primary:hover {
-  background: rgba(232, 163, 61, 0.28);
+  background: #1D4ED8;
+  border-color: #1D4ED8;
 }
 
 .hud-icon-btn--danger {
-  background: var(--rtw-danger-bg);
-  border-color: var(--rtw-danger-border);
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #DC2626;
 }
 
 .hud-icon-btn:focus-visible {
-  outline-color: var(--rtw-accent-on-dark);
+  outline-color: #2563EB;
 }
 
 .hud-main-fab {
-  /* 행동 유도는 항상 골드 — 솔리드 골드 + 다크 텍스트 */
-  background: var(--rtw-trace);
+  /* 행동 유도는 항상 파랑 — 솔리드 파랑 + 흰 글자 */
+  background: #2563EB;
   border-color: rgba(255, 255, 255, 0.2);
-  color: var(--rtw-bg);
+  color: #FFFFFF;
   font-family: var(--rtw-font-num);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.42), 0 0 16px var(--rtw-trace-glow);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.42), 0 0 16px rgba(37, 99, 235, 0.35);
 }
 .hud-main-fab:hover {
-  background: #f0b254;
+  background: #1D4ED8;
 }
 
 .hud-main-fab--pause {
-  background: rgba(255, 255, 255, 0.10);
-  border-color: rgba(255, 255, 255, 0.25);
-  color: var(--rtw-text-primary);
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+  color: #475569;
 }
 .hud-main-fab--pause:hover {
-  background: rgba(255, 255, 255, 0.18);
+  background: #EFF6FF;
+  border-color: #2563EB;
 }
 
 .hud-main-fab__caption {
@@ -260,10 +266,13 @@ body {
 }
 
 .btn.primary {
-  background: var(--rtw-accent);
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
 }
 .btn.primary:hover:not(:disabled) {
-  background: var(--rtw-accent-strong);
+  background: #1D4ED8;
+  border-color: #1D4ED8;
 }
 
 /* =====================================================================

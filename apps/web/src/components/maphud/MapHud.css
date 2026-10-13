@@ -45,9 +45,9 @@
 
 /* ---------- glass / chip 기본 톤 ---------- */
 .hud-glass {
-  background: rgba(15, 23, 42, 0.42);
-  border: 1px solid rgba(248, 250, 252, 0.18);
-  color: #f8fafc;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
   border-radius: 12px;
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.22);
   backdrop-filter: blur(10px);
@@ -64,9 +64,9 @@
   font-size: 0.74rem;
   font-weight: 650;
   letter-spacing: 0.02em;
-  background: rgba(15, 23, 42, 0.42);
-  border: 1px solid rgba(248, 250, 252, 0.18);
-  color: #f8fafc;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
@@ -77,18 +77,18 @@
 }
 
 .hud-chip--accent {
-  background: rgba(232, 163, 61, 0.18);
-  border-color: rgba(232, 163, 61, 0.45);
-  color: var(--rtw-text-primary);
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
 }
 
 .hud-icon-btn {
   width: 2.4rem;
   height: 2.4rem;
   border-radius: 999px;
-  border: 1px solid rgba(248, 250, 252, 0.22);
-  background: rgba(15, 23, 42, 0.5);
-  color: #f8fafc;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #475569;
   font: inherit;
   font-size: 1rem;
   line-height: 1;
@@ -103,11 +103,12 @@
 }
 
 .hud-icon-btn:hover {
-  background: rgba(15, 23, 42, 0.62);
+  background: #EFF6FF;
+  border-color: #2563EB;
 }
 
 .hud-icon-btn:focus-visible {
-  outline: 2px solid #E8A33D;
+  outline: 2px solid #2563EB;
   outline-offset: 2px;
 }
 
@@ -130,22 +131,24 @@
 }
 
 .hud-icon-btn--primary {
-  background: rgba(232, 163, 61, 0.32);
-  border-color: rgba(232, 163, 61, 0.55);
-  color: var(--rtw-text-primary);
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
 }
 
 .hud-icon-btn--primary:hover {
-  background: rgba(232, 163, 61, 0.48);
+  background: #1D4ED8;
+  border-color: #1D4ED8;
 }
 
 .hud-icon-btn--danger {
-  background: rgba(248, 113, 113, 0.28);
-  border-color: rgba(248, 113, 113, 0.5);
+  background: rgba(220, 38, 38, 0.12);
+  border-color: rgba(220, 38, 38, 0.5);
+  color: #DC2626;
 }
 
 .hud-icon-btn--danger:hover {
-  background: rgba(248, 113, 113, 0.4);
+  background: rgba(220, 38, 38, 0.2);
 }
 
 /* ---------- 슬롯 ---------- */
@@ -207,7 +210,7 @@
 .hud-ride-presence__block + .hud-ride-presence__block {
   margin-top: 0.45rem;
   padding-top: 0.45rem;
-  border-top: 1px solid rgba(248, 250, 252, 0.12);
+  border-top: 1px solid #E2E8F0;
 }
 
 .hud-ride-presence__head {
@@ -224,13 +227,13 @@
   font-weight: 750;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--rtw-trace);
+  color: #2563EB;
 }
 
 .hud-ride-presence__room {
   font-weight: 650;
   word-break: break-all;
-  color: #f8fafc;
+  color: #1F2937;
 }
 
 /* HUD 접속 패널에서 Trailhead로 원탭 복귀 — 현재 트레일 컨텍스트 옆 주 액션 */
@@ -239,9 +242,9 @@
   margin-left: auto;
   align-self: center;
   appearance: none;
-  border: 1px solid rgba(232, 163, 61, 0.5);
-  background: rgba(232, 163, 61, 0.16);
-  color: var(--rtw-text-primary);
+  border: 1px solid #2563EB;
+  background: #EFF6FF;
+  color: #1D4ED8;
   font: inherit;
   font-size: 0.6rem;
   font-weight: 700;
@@ -254,8 +257,9 @@
 }
 
 .hud-ride-presence__trailhead-btn:hover:not(:disabled) {
-  background: rgba(232, 163, 61, 0.26);
-  border-color: rgba(232, 163, 61, 0.65);
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
 }
 
 .hud-ride-presence__trailhead-btn:disabled {
@@ -275,26 +279,26 @@
 
 .hud-ride-presence__you {
   font-weight: 600;
-  color: rgba(52, 211, 153, 0.95);
+  color: #15803D;
 }
 
 .hud-ride-presence__activity {
   margin: 0.2rem 0 0.35rem;
   font-size: 0.72rem;
   line-height: 1.35;
-  color: rgba(187, 247, 208, 0.92);
+  color: #15803D;
 }
 
 .hud-ride-presence__empty {
   margin: 0;
   font-size: 0.65rem;
-  color: rgba(248, 250, 252, 0.72);
+  color: #64748B;
 }
 
 .hud-ride-presence__err {
   margin: 0;
   font-size: 0.62rem;
-  color: #fecaca;
+  color: #DC2626;
   word-break: break-word;
 }
 
@@ -397,9 +401,9 @@
   height: 2.1rem;
   padding: 0 0.7rem 0 0.55rem;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.5);
-  border: 1px solid rgba(248, 250, 252, 0.18);
-  color: #f8fafc;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
   font-weight: 700;
   font-size: 0.78rem;
   letter-spacing: 0.08em;
@@ -412,8 +416,8 @@
   width: 0.55rem;
   height: 0.55rem;
   border-radius: 50%;
-  background: #E8A33D;
-  box-shadow: 0 0 0 3px rgba(232, 163, 61, 0.25);
+  background: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
 }
 
 .hud-brand--muted {
@@ -427,9 +431,9 @@
   font-size: 0.68rem;
   line-height: 1.35;
   font-weight: 500;
-  color: rgba(226, 232, 240, 0.88);
-  background: rgba(15, 23, 42, 0.45);
-  border: 1px solid rgba(148, 163, 184, 0.22);
+  color: #475569;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
   border-radius: 0.45rem;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -503,10 +507,10 @@
   height: 2.325rem;
   min-width: 2.325rem;
   margin: 0;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid #CBD5E1;
   border-radius: 0.525rem;
-  background: rgba(15, 23, 42, 0.55);
-  color: #e2e8f0;
+  background: #FFFFFF;
+  color: #475569;
   font-weight: 600;
   line-height: 1;
   cursor: pointer;
@@ -564,7 +568,7 @@
 
 .hud-ride-map-controls__style:focus-visible,
 .hud-ride-map-controls__zoom:focus-visible {
-  outline: 2px solid #7dd3fc;
+  outline: 2px solid #2563EB;
   outline-offset: 1px;
 }
 
@@ -580,10 +584,10 @@
   height: 2.325rem;
   padding: 0 0.42rem;
   margin: 0;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid #CBD5E1;
   border-radius: 0.525rem;
-  background: rgba(15, 23, 42, 0.55);
-  color: #e2e8f0;
+  background: #FFFFFF;
+  color: #475569;
   font-size: 1.08rem;
   font-weight: 600;
   line-height: 1;
@@ -608,18 +612,18 @@
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  color: #bae6fd;
+  color: #2563EB;
   line-height: 1;
 }
 
 .hud-quick-camera__btn.is-active {
-  border-color: rgba(125, 211, 252, 0.85);
-  background: rgba(14, 116, 144, 0.55);
-  color: #f0f9ff;
+  border-color: #2563EB;
+  background: #2563EB;
+  color: #FFFFFF;
 }
 
 .hud-quick-camera__btn:focus-visible {
-  outline: 2px solid #7dd3fc;
+  outline: 2px solid #2563EB;
   outline-offset: 1px;
 }
 
@@ -739,9 +743,9 @@
   height: 2.2rem;
   padding: 0 0.7rem 0 0.35rem;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.55);
-  border: 1px solid rgba(248, 250, 252, 0.25);
-  color: #f8fafc;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
   cursor: pointer;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -753,7 +757,7 @@
   width: 1.7rem;
   height: 1.7rem;
   border-radius: 50%;
-  background: rgba(248, 250, 252, 0.14);
+  background: #F1F5F9;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -763,7 +767,7 @@
 }
 
 .hud-account--guest .hud-account__avatar {
-  background: rgba(148, 163, 184, 0.32);
+  background: #E2E8F0;
 }
 
 .hud-account__text {
@@ -794,9 +798,9 @@
   height: 2.2rem;
   padding: 0 0.85rem;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.55);
-  border: 1px solid rgba(248, 250, 252, 0.28);
-  color: #f8fafc;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
   font-weight: 600;
   font-size: 0.78rem;
   letter-spacing: 0.02em;
@@ -809,8 +813,9 @@
 }
 
 .hud-signin-pill:hover {
-  border-color: var(--rtw-accent-line);
-  color: var(--rtw-text-primary);
+  border-color: #2563EB;
+  background: #EFF6FF;
+  color: #1F2937;
 }
 
 /* ---------- TC: 지표 캡슐 (참조 TopHud — 라벨 위·값 아래, 디바이더 구분) ---------- */
@@ -930,17 +935,17 @@
     0 0 27px rgba(0, 0, 0, 0.85);
 }
 
-/* 거리 = 오늘 운동의 핵심 숫자 — 골드는 핵심 강조 숫자에만(운동=본체 위계) */
+/* 거리 = 오늘 운동의 핵심 숫자 — 파랑은 핵심 강조 숫자에만(운동=본체 위계) */
 .hud-metrics__cell--hero .hud-metrics__value {
   font-size: 1.25rem;
-  color: var(--rtw-trace);
+  color: #2563EB;
 }
 
 /* 주행 누적 거리 — 세션 거리는 offset(이어 달리기 재개 시드) 없으면 누적과 항상
    동일해 이중 표기가 중복이었다. 누적값 하나를 히어로 크기·색으로 승격한다. */
 .hud-metrics__value--cumulative {
   font-size: 1.25rem;
-  color: var(--rtw-trace);
+  color: #2563EB;
 }
 
 /* 2026-10-06 Chief: 주행 중 「새 도로」 흐리기(0.72) 제거 — 강조 요소가 가장 약했다.
@@ -1027,9 +1032,9 @@
   gap: 0.2rem;
   padding: 0.18rem 0.55rem;
   border-radius: var(--rtw-radius-pill);
-  background: var(--rtw-panel);
-  border: 1px solid var(--rtw-divider);
-  color: var(--rtw-text-primary);
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
   backdrop-filter: var(--rtw-blur-panel);
   -webkit-backdrop-filter: var(--rtw-blur-panel);
   font-weight: 700;
@@ -1038,13 +1043,14 @@
 }
 
 .hud-metrics__chip--trail {
-  background: var(--rtw-danger-bg);
-  border-color: var(--rtw-danger-border);
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #DC2626;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
 }
 
-/* Conquest — 주행 중 실시간 새 도로 카운터(도파민 지점): 골드 */
+/* Conquest — 주행 중 실시간 새 도로 카운터(도파민 지점): 파랑(UI 강조) */
 
 /*
  * 펄스는 값이 바뀔 때가 아니라 **새 도로를 먹고 있는 동안** 고정 박자로 뛴다
@@ -1060,13 +1066,13 @@
   animation: hud-conquest-pulse var(--rtw-ride-pulse-period, 2.2s) ease-out infinite;
 }
 
-/* 새 도로 — 지도 위에서 가장 밝은 노랑(결과 시트 새 도로와 같은 #facc15). 라벨 흐리기 없음 */
+/* 새 도로 — 지도 위 파랑(UI 강조, 외곽선 유지). 라벨 흐리기 없음 */
 .hud-metrics__cell--conquest .hud-metrics__label {
-  color: #facc15;
+  color: #2563EB;
 }
 
 .hud-metrics__cell--conquest .hud-metrics__value {
-  color: #facc15;
+  color: #2563EB;
 }
 
 @keyframes hud-conquest-pulse {
@@ -1093,16 +1099,16 @@
   display: block;
   font-size: 0.65em;
   font-weight: 500;
-  color: var(--rtw-trace);
+  color: #2563EB;
   opacity: 0.55;
   letter-spacing: 0.02em;
   line-height: 1.2;
   margin-top: 1px;
 }
 
-/* 경로만 선택·주행 전: 동일 캡슐, 값 색만 구분(골드 톤 다운) */
+/* 경로만 선택·주행 전: 동일 캡슐, 값 색만 구분(파랑 톤 다운) */
 .hud-metrics--route-preview .hud-metrics__value {
-  color: var(--rtw-trace);
+  color: #2563EB;
   opacity: 0.85;
 }
 
@@ -1119,8 +1125,8 @@
   gap: 0.45rem;
   max-width: 100%;
   padding: 0.1rem 0.15rem;
-  /* 문구도 저항 표시(R1)와 같은 골드(2026-10-07 Chief) — 한 줄이 한 색으로 읽히게 */
-  color: var(--rtw-trace);
+  /* 문구도 저항 표시(R1)와 같은 파랑(2026-10-07 Chief) — 한 줄이 한 색으로 읽히게 */
+  color: #2563EB;
   font-size: 0.78rem;
   font-weight: 600;
   text-align: center;
@@ -1137,11 +1143,11 @@
   text-overflow: ellipsis;
 }
 
-/* R1 칩도 알약을 버리고 골드 글자만 남는다 — 같은 줄에서 배경 하나만 남으면 더 튄다. */
+/* R1 칩도 알약을 버리고 파랑 글자만 남는다 — 같은 줄에서 배경 하나만 남으면 더 튄다. */
 .hud-coach__r {
   font-weight: 700;
   font-size: 0.7rem;
-  color: var(--rtw-trace);
+  color: #2563EB;
   flex: 0 0 auto;
 }
 
@@ -1153,9 +1159,9 @@
   gap: 0.5rem;
   padding: 0.65rem 0.75rem;
   border-radius: 14px;
-  background: rgba(15, 23, 42, 0.62);
-  border: 1px solid rgba(248, 250, 252, 0.2);
-  color: #f8fafc;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
@@ -1180,9 +1186,9 @@
 
 .hud-action__btn {
   appearance: none;
-  border: 1px solid rgba(248, 250, 252, 0.22);
-  background: rgba(248, 250, 252, 0.08);
-  color: #f8fafc;
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #475569;
   font: inherit;
   font-size: 0.78rem;
   font-weight: 600;
@@ -1193,7 +1199,8 @@
 }
 
 .hud-action__btn:hover {
-  background: rgba(248, 250, 252, 0.15);
+  background: #EFF6FF;
+  border-color: #2563EB;
 }
 
 .hud-action__btn:disabled {
@@ -1202,22 +1209,25 @@
 }
 
 .hud-action__btn--primary {
-  background: rgba(232, 163, 61, 0.4);
-  border-color: rgba(232, 163, 61, 0.6);
-  color: var(--rtw-text-primary);
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
 }
 
 .hud-action__btn--primary:hover {
-  background: rgba(232, 163, 61, 0.55);
+  background: #1D4ED8;
+  border-color: #1D4ED8;
 }
 
 .hud-action__btn--danger {
-  background: rgba(248, 113, 113, 0.32);
-  border-color: rgba(248, 113, 113, 0.55);
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.4);
+  color: #DC2626;
 }
 
 .hud-action__btn--danger:hover {
-  background: rgba(248, 113, 113, 0.48);
+  background: rgba(220, 38, 38, 0.16);
+  border-color: #DC2626;
 }
 
 /* ---------- BR: 큰 메인 FAB ---------- */
@@ -1228,9 +1238,9 @@
   width: var(--hud-main-fab-size);
   height: var(--hud-main-fab-size);
   border-radius: 50%;
-  border: 1.5px solid rgba(248, 250, 252, 0.35);
-  background: rgba(232, 163, 61, 0.4);
-  color: var(--rtw-text-primary);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  background: #2563EB;
+  color: #FFFFFF;
   font-size: 1.55rem;
   font-weight: 700;
   cursor: pointer;
@@ -1240,7 +1250,7 @@
 }
 
 .hud-main-fab:hover {
-  background: rgba(232, 163, 61, 0.55);
+  background: #1D4ED8;
 }
 
 .hud-main-fab:disabled {
@@ -1249,13 +1259,14 @@
 }
 
 .hud-main-fab--pause {
-  background: rgba(250, 204, 21, 0.35);
-  border-color: rgba(250, 204, 21, 0.55);
-  color: #fefce8;
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+  color: #475569;
 }
 
 .hud-main-fab--pause:hover {
-  background: rgba(250, 204, 21, 0.5);
+  background: #EFF6FF;
+  border-color: #2563EB;
 }
 
 .hud-main-fab__caption {
@@ -1273,9 +1284,9 @@
   margin-bottom: 0.4rem;
   padding: 0.45rem 0.75rem;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.52);
-  border: 1px solid rgba(248, 250, 252, 0.18);
-  color: #f8fafc;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
   font-size: 0.74rem;
   text-align: center;
   max-width: min(17.5rem, calc(100vw - 6rem));
@@ -1291,9 +1302,9 @@
   gap: 0.35rem;
   padding: 0.32rem 0.7rem;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.5);
-  border: 1px solid rgba(248, 250, 252, 0.22);
-  color: #f8fafc;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
   font: inherit;
   font-size: 0.74rem;
   font-weight: 650;
@@ -1304,13 +1315,14 @@
 }
 
 .hud-bc-trigger:hover {
-  background: rgba(15, 23, 42, 0.66);
+  background: #EFF6FF;
+  border-color: #2563EB;
 }
 
 .hud-bc-trigger.is-active {
-  background: rgba(232, 163, 61, 0.32);
-  border-color: rgba(232, 163, 61, 0.55);
-  color: var(--rtw-text-primary);
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
 }
 
 .hud-bc-trigger__icon {

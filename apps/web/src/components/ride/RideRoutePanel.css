@@ -1,13 +1,13 @@
-/* MapViewSheet 와 맞춘 다크 글래스 톤 · 모바일용 콤팩트 밀도 */
+/* MapViewSheet 와 맞춘 밝은 카드 톤 · 모바일용 콤팩트 밀도 */
 .ride-panel {
-  --rp-fg: var(--rtw-text, #f1f5f9);
-  --rp-fg-muted: var(--rtw-text-dim, rgba(226, 232, 240, 0.78));
-  --rp-border: var(--rtw-glass-border, rgba(248, 250, 252, 0.14));
-  --rp-surface: rgba(2, 6, 23, 0.38);
-  --rp-chip: rgba(255, 255, 255, 0.08);
-  --rp-accent: var(--rtw-accent-on-dark, #6ba5ff);
-  --rp-accent-strong: var(--rtw-accent, #2f6bff);
-  --rp-btn-fg: var(--rtw-text, #f8fafc);
+  --rp-fg: #1F2937;
+  --rp-fg-muted: #64748B;
+  --rp-border: #CBD5E1;
+  --rp-surface: #F8FAFC;
+  --rp-chip: #F1F5F9;
+  --rp-accent: #2563EB;
+  --rp-accent-strong: #1D4ED8;
+  --rp-btn-fg: #1F2937;
   font-family: var(--rtw-font, inherit);
   /* 세션 블록 컴팩트화로 확보한 높이 → 코스·내 경로 리스트에 재배분 */
   --rp-route-list-base-height: 5.5rem;
@@ -24,14 +24,14 @@
   max-height: min(85vh, 720px);
   overflow: auto;
   box-sizing: border-box;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 .ride-panel input,
 .ride-panel select,
 .ride-panel textarea {
   color: var(--rp-fg);
-  background: rgba(2, 6, 23, 0.55);
+  background: #FFFFFF;
   border: 1px solid var(--rp-border);
   border-radius: 8px;
   padding: 0.32rem 0.45rem;
@@ -190,9 +190,9 @@
 }
 
 .ride-panel__mode.is-active {
-  border-color: rgba(232, 163, 61, 0.55);
-  background: rgba(232, 163, 61, 0.22);
-  color: #EDEFF2;
+  border-color: #2563EB;
+  background: #2563EB;
+  color: #FFFFFF;
 }
 
 .ride-panel__btn-primary {
@@ -204,8 +204,8 @@
   padding: 0.45rem;
   border-radius: 8px;
   border: none;
-  background: var(--rtw-trace);
-  color: var(--rtw-bg);
+  background: #2563EB;
+  color: #FFFFFF;
   cursor: pointer;
 }
 
@@ -255,8 +255,8 @@
   gap: 0.28rem;
   padding: 0.4rem 0.45rem;
   border-radius: 8px;
-  border: 1px dashed rgba(232, 163, 61, 0.35);
-  background: rgba(232, 163, 61, 0.08);
+  border: 1px dashed rgba(37, 99, 235, 0.4);
+  background: rgba(37, 99, 235, 0.06);
 }
 
 .ride-panel__save-route-actions {
@@ -268,7 +268,7 @@
 .ride-panel__save-route-error {
   margin: 0;
   font-size: 0.72rem;
-  color: #fca5a5;
+  color: #DC2626;
 }
 
 .ride-panel__save-route-confirm {
@@ -286,7 +286,7 @@
   font-size: 0.72rem;
   font-weight: 600;
   line-height: 1.4;
-  color: #fde68a;
+  color: #B45309;
 }
 
 .ride-panel__arrival-toast {
@@ -296,9 +296,9 @@
   font-size: 0.8rem;
   font-weight: 650;
   text-align: center;
-  color: #bbf7d0;
-  background: rgba(22, 163, 74, 0.22);
-  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #15803D;
+  background: rgba(22, 163, 74, 0.12);
+  border: 1px solid rgba(22, 163, 74, 0.35);
   animation: ride-panel__arrival-toast-in 200ms ease-out;
 }
 
@@ -318,7 +318,7 @@
   padding: 0.38rem 0.45rem;
   border-radius: 8px;
   background: var(--rp-surface);
-  border: 1px dashed rgba(248, 250, 252, 0.2);
+  border: 1px dashed #CBD5E1;
 }
 
 .ride-panel__adhoc-save-row {
@@ -420,8 +420,9 @@
 }
 
 .ride-panel__official-seg.is-active {
-  border-color: rgba(232, 163, 61, 0.55);
-  background: rgba(232, 163, 61, 0.18);
+  border-color: #2563EB;
+  background: #2563EB;
+  color: #FFFFFF;
 }
 
 .ride-panel__official-seg-badge {
@@ -432,7 +433,7 @@
   padding: 0 0.26rem;
   border-radius: 999px;
   background: var(--rp-accent-strong);
-  color: var(--rtw-bg);
+  color: #FFFFFF;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -447,7 +448,7 @@
   padding: 0.28rem 0.35rem;
   border-radius: 8px;
   border: 1px solid var(--rp-border);
-  background: rgba(2, 6, 23, 0.28);
+  background: #F8FAFC;
   font-size: 0.72rem;
   line-height: 1.35;
 }
@@ -471,8 +472,9 @@
 }
 
 .ride-panel__official-active-leave:hover:not(:disabled) {
-  background: rgba(248, 113, 113, 0.12);
-  border-color: rgba(248, 113, 113, 0.45);
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.45);
+  color: #DC2626;
 }
 
 .ride-panel__official-active-leave:disabled {
@@ -492,7 +494,7 @@
 }
 
 .ride-panel__public-courses-error {
-  color: #fca5a5;
+  color: #DC2626;
 }
 
 .ride-panel__public-courses-error-detail {
@@ -505,7 +507,7 @@
   font-size: 0.68rem;
   padding: 0.08rem 0.22rem;
   border-radius: 4px;
-  background: rgba(248, 250, 252, 0.1);
+  background: #F1F5F9;
 }
 
 .ride-panel__public-courses-list {
@@ -531,7 +533,7 @@
   padding: 0.38rem 0.45rem;
   border-radius: 8px;
   border: 1px solid var(--rp-border);
-  background: rgba(2, 6, 23, 0.35);
+  background: #F8FAFC;
   color: inherit;
   font: inherit;
   text-align: left;
@@ -543,20 +545,20 @@
 }
 
 .ride-panel__public-courses-item:hover:not(:disabled) {
-  background: rgba(232, 163, 61, 0.1);
-  border-color: rgba(232, 163, 61, 0.42);
-  box-shadow: 0 0 0 1px rgba(232, 163, 61, 0.12);
+  background: #EFF6FF;
+  border-color: #2563EB;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.12);
 }
 
 .ride-panel__public-courses-item:focus-visible {
-  outline: 2px solid rgba(232, 163, 61, 0.75);
+  outline: 2px solid rgba(37, 99, 235, 0.75);
   outline-offset: 2px;
 }
 
 .ride-panel__public-courses-item.is-selected {
-  background: rgba(232, 163, 61, 0.16);
-  border-color: rgba(232, 163, 61, 0.55);
-  box-shadow: inset 0 0 0 1px rgba(232, 163, 61, 0.2);
+  background: #EFF6FF;
+  border-color: #2563EB;
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.2);
 }
 
 .ride-panel__public-courses-item:active:not(:disabled) {
@@ -588,11 +590,11 @@
 }
 
 .ride-panel__public-courses-publisher {
-  color: #b8c4d8;
+  color: #64748B;
 }
 
 .ride-panel__public-courses-activity {
-  color: #86efac;
+  color: #16A34A;
   font-weight: 600;
 }
 
@@ -626,11 +628,11 @@
   margin: 0.35rem 0 0;
   font-size: 0.74rem;
   line-height: 1.35;
-  color: var(--ride-panel-muted, rgba(255, 255, 255, 0.72));
+  color: #64748B;
 }
 
 .ride-panel__route-token strong {
-  color: var(--ride-panel-fg, #fff);
+  color: #1F2937;
   font-weight: 600;
 }
 
@@ -651,7 +653,7 @@
   margin: 0.2rem 0 0;
   font-size: 0.72rem;
   line-height: 1.3;
-  color: var(--rp-accent, #6ba5ff);
+  color: var(--rp-accent, #2563EB);
   font-weight: 600;
 }
 
@@ -659,8 +661,8 @@
   margin: 0.35rem 0 0.25rem;
   padding: 0.35rem 0.4rem;
   border-radius: 8px;
-  background: rgba(139, 92, 246, 0.1);
-  border: 1px solid rgba(167, 139, 250, 0.28);
+  background: #EFF6FF;
+  border: 1px solid #CBD5E1;
 }
 
 .ride-panel__ble-cadence-row {
@@ -760,7 +762,7 @@
 
 .ride-panel__session-item {
   padding: 0.2rem 0;
-  border-bottom: 1px solid rgba(248, 250, 252, 0.08);
+  border-bottom: 1px solid #E2E8F0;
 }
 
 .ride-panel__session-date {
@@ -773,15 +775,15 @@
   overflow: auto;
 }
 
-/* SavedRoutesPanel — 다크 패널 안 대비 */
+/* SavedRoutesPanel — 밝은 패널 안 대비 */
 .ride-panel .saved-routes__notice {
-  background: rgba(232, 163, 61, 0.1);
-  border-color: rgba(232, 163, 61, 0.28);
+  background: #EFF6FF;
+  border-color: #CBD5E1;
   color: var(--rp-fg-muted);
 }
 
 .ride-panel .saved-routes__item {
-  background: rgba(2, 6, 23, 0.35);
+  background: #FFFFFF;
   border-color: var(--rp-border);
 }
 
@@ -795,7 +797,7 @@
 }
 
 .ride-panel .saved-routes__profile {
-  background: rgba(248, 250, 252, 0.12);
+  background: #F1F5F9;
   color: var(--rp-fg);
 }
 
@@ -806,9 +808,9 @@
 }
 
 .ride-panel .saved-routes__btn--accent {
-  background: rgba(139, 92, 246, 0.24);
-  border-color: rgba(167, 139, 250, 0.58);
-  color: #f5f3ff;
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
 }
 
 .ride-panel .saved-routes__btn--accent:disabled {
@@ -816,7 +818,7 @@
 }
 
 .ride-panel .saved-routes__rename-input {
-  background: rgba(2, 6, 23, 0.55);
+  background: #FFFFFF;
   border-color: var(--rp-border);
   color: var(--rp-fg);
 }
@@ -828,9 +830,9 @@
 }
 
 .ride-panel .saved-routes__filter-btn.is-active {
-  background: rgba(232, 163, 61, 0.2);
-  border-color: rgba(232, 163, 61, 0.45);
-  color: #EDEFF2;
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
 }
 
 @media (max-width: 900px) {

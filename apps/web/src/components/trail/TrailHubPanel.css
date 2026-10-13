@@ -5,8 +5,8 @@
   padding: 0.6rem 0.7rem;
   margin-bottom: 0.5rem;
   border-radius: var(--rtw-radius, 14px);
-  background: var(--rtw-glass-bg, rgba(12, 18, 28, 0.55));
-  border: 1px solid var(--rtw-glass-border, rgba(255, 255, 255, 0.12));
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
   -webkit-backdrop-filter: blur(var(--rtw-glass-blur, 12px));
   backdrop-filter: blur(var(--rtw-glass-blur, 12px));
 }
@@ -16,7 +16,7 @@
   font-weight: 700;
   letter-spacing: 0.10em;
   text-transform: uppercase;
-  color: var(--rtw-accent-on-dark, #6ba5ff);
+  color: #2563EB;
 }
 
 /* 현재 위치 라벨 — 아래 액션 버튼들의 머리글(대상) 역할 */
@@ -29,7 +29,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: var(--rtw-text, #f4f8ff);
+  color: #1F2937;
 }
 
 .trail-hub__row {
@@ -47,14 +47,14 @@
 .trail-hub__vis-label {
   font-size: 0.72rem;
   font-weight: 600;
-  color: var(--rtw-text-dim, rgba(244, 248, 255, 0.7));
+  color: #64748B;
 }
 
 .trail-hub__trailhead-btn {
   padding: 0.32rem 0.6rem;
   border-radius: var(--rtw-radius-pill, 999px);
-  border: 1px solid var(--rtw-glass-border, rgba(255, 255, 255, 0.18));
-  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
   color: inherit;
   font-size: 0.74rem;
   font-weight: 600;
@@ -62,8 +62,8 @@
 }
 
 .trail-hub__trailhead-btn:hover:not(:disabled) {
-  border-color: var(--rtw-accent-line, rgba(99, 160, 255, 0.55));
-  background: var(--rtw-accent-soft, rgba(47, 107, 255, 0.2));
+  border-color: #2563EB;
+  background: #EFF6FF;
 }
 
 .trail-hub__trailhead-btn:disabled {
@@ -81,16 +81,16 @@
   font-size: 0.7rem;
   font-weight: 600;
   border-radius: var(--rtw-radius-pill, 999px);
-  border: 1px solid var(--rtw-glass-border, rgba(255, 255, 255, 0.12));
+  border: 1px solid #CBD5E1;
   background: transparent;
   color: inherit;
   cursor: pointer;
 }
 
 .trail-hub__vis-btn--on {
-  border-color: var(--rtw-accent-line, rgba(120, 200, 255, 0.55));
-  background: var(--rtw-accent-soft, rgba(80, 160, 255, 0.15));
-  color: var(--rtw-trace);
+  border-color: #2563EB;
+  background: #2563EB;
+  color: #FFFFFF;
 }
 
 .trail-hub__list-head {
@@ -102,7 +102,7 @@
 
 .trail-hub__meta {
   font-size: 0.7rem;
-  color: var(--rtw-text-mute, rgba(244, 248, 255, 0.55));
+  color: #64748B;
 }
 
 .trail-hub__list {
@@ -129,16 +129,16 @@
   border-radius: 10px;
   border: 1px solid transparent;
   border-left: 2px solid transparent;
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--rtw-text, #f4f8ff);
+  background: #F8FAFC;
+  color: #1F2937;
   font: inherit;
   cursor: pointer;
   transition: background 0.14s ease, border-color 0.14s ease;
 }
 
 .trail-hub__row-card--join:hover:not(:disabled) {
-  background: var(--rtw-accent-soft, rgba(47, 107, 255, 0.2));
-  border-left-color: var(--rtw-accent-on-dark, #6ba5ff);
+  background: #EFF6FF;
+  border-left-color: #2563EB;
 }
 
 .trail-hub__row-card--join:disabled {
@@ -147,9 +147,9 @@
 }
 
 .trail-hub__row-card--active {
-  background: var(--rtw-accent-soft, rgba(80, 160, 255, 0.16));
-  border-color: var(--rtw-accent-line, rgba(120, 200, 255, 0.45));
-  border-left-color: var(--rtw-accent-on-dark, #6ba5ff);
+  background: #EFF6FF;
+  border-color: #CBD5E1;
+  border-left-color: #2563EB;
 }
 
 /* 공개 상태 점 */
@@ -158,12 +158,12 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--rtw-ok, #3fd27e);
-  box-shadow: 0 0 0 3px rgba(63, 210, 126, 0.18);
+  background: #16A34A;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.18);
 }
 
 .trail-hub__dot--private {
-  background: var(--rtw-text-mute, rgba(244, 248, 255, 0.55));
+  background: #CBD5E1;
   box-shadow: none;
 }
 
@@ -183,7 +183,7 @@
   min-width: 0;
   font-size: 0.78rem;
   font-weight: 500;
-  color: var(--rtw-text-dim, rgba(244, 248, 255, 0.7));
+  color: #475569;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -195,7 +195,7 @@
   font-size: 0.74rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: var(--rtw-text-mute, rgba(244, 248, 255, 0.55));
+  color: #64748B;
 }
 
 /* LIVE 인원 — 액센트 + 펄스 */
@@ -208,22 +208,22 @@
   font-weight: 700;
   font-size: 0.8rem;
   font-variant-numeric: tabular-nums;
-  color: var(--rtw-accent-on-dark, #6ba5ff);
+  color: #2563EB;
 }
 
 .trail-hub__riders-pulse {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--rtw-trace);
-  box-shadow: 0 0 0 0 var(--rtw-trace-glow);
+  background: #2563EB;
+  box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.35);
   animation: trail-hub-pulse 1.8s ease-out infinite;
 }
 
 @keyframes trail-hub-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(232, 163, 61, 0.55); }
-  70% { box-shadow: 0 0 0 5px rgba(232, 163, 61, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(232, 163, 61, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.55); }
+  70% { box-shadow: 0 0 0 5px rgba(37, 99, 235, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -234,9 +234,9 @@
 .trail-hub__err {
   margin: 0;
   font-size: 0.76rem;
-  color: var(--rtw-text-mute, rgba(244, 248, 255, 0.6));
+  color: #64748B;
 }
 
 .trail-hub__err {
-  color: var(--rtw-danger, #ffb4b4);
+  color: #DC2626;
 }

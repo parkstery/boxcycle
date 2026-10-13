@@ -24,9 +24,9 @@
   align-items: stretch;
   gap: 0;
   pointer-events: auto;
-  border: 1px solid var(--rtw-glass-border, rgba(248, 250, 252, 0.18));
+  border: 1px solid #CBD5E1;
   border-radius: var(--rtw-radius, 14px);
-  background: var(--rtw-glass-bg-strong, rgba(10, 16, 26, 0.64));
+  background: #FFFFFF;
   -webkit-backdrop-filter: blur(var(--rtw-glass-blur, 12px));
   backdrop-filter: blur(var(--rtw-glass-blur, 12px));
   box-shadow: var(--rtw-glass-shadow, 4px 8px 28px rgba(2, 8, 20, 0.4));
@@ -57,7 +57,7 @@
   padding: 0.4rem 0;
   border: none;
   background: transparent;
-  color: var(--rtw-text, #f8fafc);
+  color: #475569;
   cursor: pointer;
   transition: background 0.14s ease, color 0.14s ease;
 }
@@ -68,8 +68,20 @@
 }
 
 .route-dock__caret:hover {
-  background: rgba(232, 163, 61, 0.22);
-  color: var(--rtw-text-primary);
+  background: #EFF6FF;
+  color: #1F2937;
+}
+
+/* boxcycle-theme.css §2 `.hud-glass`(뒤에 로드, 명시도 0,1,0)가 다크 글래스를 덮으므로
+   dock 스코프에서 색만 보정 — 배치·블러 등 비색상 선언은 테마 그대로. */
+.route-dock__caret.hud-glass {
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+}
+
+.route-dock__caret.hud-glass:hover {
+  background: #EFF6FF;
+  border-color: #CBD5E1;
 }
 
 .route-dock__caret-icon {
@@ -123,8 +135,8 @@
    * 본문(hud-glass)과 같은 면. `hud-glass` 클래스를 붙이지 않는 이유는 그 1px 테두리가
    * dock 높이를 2px 키우기 때문 — 「칩을 넣어도 dock 크기는 그대로」를 지킨다.
    */
-  background: var(--rtw-panel-solid, rgba(10, 14, 18, 0.9));
-  color: var(--rtw-text, #f8fafc);
+  background: #FFFFFF;
+  color: #1F2937;
   font-family: var(--rtw-font, inherit);
 }
 
@@ -153,7 +165,7 @@
   /* 왼쪽 0 — 출발·도착 주소가 왼쪽 끝에 붙는다(2026-09-18 Chief) */
   padding: 0.5rem 0.55rem 0.55rem 0;
   background: transparent;
-  color: var(--rtw-text, #f8fafc);
+  color: #1F2937;
   font-family: var(--rtw-font, inherit);
   max-height: min(40vh, 16.5rem);
   overflow: hidden;
@@ -206,17 +218,17 @@
   width: 2.1rem;
   height: 2.1rem;
   padding: 0;
-  border: 1px solid rgba(248, 250, 252, 0.14);
+  border: 1px solid #CBD5E1;
   border-radius: 999px;
-  background: rgba(10, 16, 26, 0.45);
-  color: var(--rtw-text-primary);
+  background: #F1F5F9;
+  color: #475569;
   appearance: none;
   cursor: pointer;
 }
 
 .route-dock__transport-btn:hover:not(:disabled) {
-  border-color: rgba(248, 250, 252, 0.34);
-  background: rgba(10, 16, 26, 0.62);
+  border-color: #2563EB;
+  background: #EFF6FF;
 }
 
 .route-dock__transport-btn:disabled {
@@ -225,8 +237,8 @@
 }
 
 .route-dock__transport-btn--stop:hover:not(:disabled) {
-  border-color: rgba(248, 113, 113, 0.5);
-  color: #fca5a5;
+  border-color: rgba(220, 38, 38, 0.5);
+  color: #DC2626;
 }
 
 /* 이어 달리기(§9.5.5 단위7) — 미완주 저장 경로 로드 시 재개/처음부터 선택 */
@@ -237,8 +249,8 @@
   flex: 0 0 auto;
   padding: 0.32rem 0.4rem;
   border-radius: 8px;
-  background: rgba(232, 163, 61, 0.16);
-  border: 1px solid rgba(232, 163, 61, 0.35);
+  background: #EFF6FF;
+  border: 1px solid #CBD5E1;
 }
 
 .route-dock__resume-options {
@@ -257,9 +269,9 @@
   min-height: 44px;
   padding: 0.2rem 0.4rem;
   border-radius: 7px;
-  border: 1px solid rgba(248, 250, 252, 0.22);
-  background: rgba(10, 16, 26, 0.45);
-  color: var(--rtw-text, #f8fafc);
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #475569;
   font: inherit;
   font-size: 0.62rem;
   font-weight: 650;
@@ -269,12 +281,12 @@
 }
 
 .route-dock__abandon-resume:hover {
-  border-color: rgba(248, 113, 113, 0.5);
-  color: #fca5a5;
+  border-color: rgba(220, 38, 38, 0.5);
+  color: #DC2626;
 }
 
 .route-dock__abandon-resume:focus-visible {
-  outline: 2px solid var(--rtw-accent, #e8a33d);
+  outline: 2px solid #2563EB;
   outline-offset: 1px;
 }
 
@@ -295,21 +307,21 @@
   height: 0.85rem;
   flex: 0 0 auto;
   border-radius: 50%;
-  border: 1px solid rgba(248, 250, 252, 0.45);
+  border: 1px solid #CBD5E1;
   background: transparent;
   cursor: pointer;
 }
 
 /* 선택됨 — 링 색 + 안쪽 채움 점 */
 .route-dock__resume-option input:checked {
-  border-color: #E8A33D;
+  border-color: #2563EB;
   background:
-    radial-gradient(circle, #E8A33D 0 35%, transparent 38%);
+    radial-gradient(circle, #2563EB 0 35%, transparent 38%);
 }
 
 /* 선택 안 됨(hover 시 살짝 밝게) */
 .route-dock__resume-option input:not(:checked):hover {
-  border-color: rgba(248, 250, 252, 0.7);
+  border-color: #2563EB;
 }
 
 .route-dock__resume-option strong {
@@ -349,9 +361,9 @@
   display: flex;
   align-items: center;
   gap: 0.38rem;
-  border: 1px solid rgba(248, 250, 252, 0.1);
+  border: 1px solid #E2E8F0;
   border-radius: 7px;
-  background: rgba(10, 16, 26, 0.35);
+  background: #F8FAFC;
   color: inherit;
   font: inherit;
   text-align: left;
@@ -360,8 +372,8 @@
 }
 
 .route-dock__stop:hover {
-  border-color: rgba(248, 250, 252, 0.22);
-  background: rgba(10, 16, 26, 0.5);
+  border-color: #CBD5E1;
+  background: #EFF6FF;
 }
 
 .route-dock__stop-dot {
@@ -414,10 +426,10 @@
   width: 1.5rem;
   /* 오른쪽 끝에 딱 붙어 답답했다 — 2px 숨통(2026-09-18 Chief) */
   margin-right: 2px;
-  border: 1px solid rgba(248, 250, 252, 0.12);
+  border: 1px solid #CBD5E1;
   border-radius: 7px;
-  background: rgba(10, 16, 26, 0.4);
-  color: #f8fafc;
+  background: #FFFFFF;
+  color: #475569;
   cursor: pointer;
   font-size: 0.68rem;
   line-height: 1;
@@ -425,8 +437,9 @@
 }
 
 .route-dock__stop-remove:hover:not(:disabled) {
-  background: rgba(248, 113, 113, 0.22);
-  border-color: rgba(252, 165, 165, 0.4);
+  background: rgba(220, 38, 38, 0.12);
+  border-color: rgba(220, 38, 38, 0.4);
+  color: #DC2626;
 }
 
 .route-dock__stop-remove:disabled {
@@ -437,14 +450,14 @@
 /* Go 만 채운 알약 — 셋 중 유일한 「진행」 동작이라 색으로 구분한다. */
 .route-dock__go {
   border: 0;
-  background: var(--rtw-trace);
-  color: var(--rtw-bg);
-  box-shadow: 0 3px 12px rgba(232, 163, 61, 0.35);
+  background: #2563EB;
+  color: #FFFFFF;
+  box-shadow: 0 3px 12px rgba(37, 99, 235, 0.35);
 }
 
 .route-dock__go:hover:not(:disabled) {
   filter: brightness(1.06);
-  background: var(--rtw-trace);
+  background: #1D4ED8;
   border: 0;
 }
 

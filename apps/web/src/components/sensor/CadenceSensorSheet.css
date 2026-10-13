@@ -38,9 +38,9 @@
   margin-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
   padding: 0.55rem 0.85rem 1rem;
   border-radius: 14px 14px 12px 12px;
-  background: var(--rtw-glass-bg-strong, #0D1319);
-  border: 1px solid var(--rtw-glass-border, rgba(255, 255, 255, 0.08));
-  color: var(--rtw-text, #EDEFF2);
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   pointer-events: auto;
@@ -66,7 +66,7 @@
   width: 2.4rem;
   height: 0.22rem;
   border-radius: 99px;
-  background: var(--rtw-text-secondary, rgba(124, 138, 153, 0.9));
+  background: #CBD5E1;
   align-self: center;
   margin-bottom: 0.15rem;
 }
@@ -90,7 +90,7 @@
   margin-left: 0.45rem;
   font-size: 0.78em;
   font-weight: 600;
-  color: var(--rtw-text-secondary);
+  color: #64748B;
   letter-spacing: 0.01em;
 }
 
@@ -101,9 +101,9 @@
   font-weight: 650;
   padding: 0.3rem 0.7rem;
   border-radius: 999px;
-  border: 1px solid var(--rtw-glass-border, rgba(255, 255, 255, 0.12));
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--rtw-text, #EDEFF2);
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #475569;
   cursor: pointer;
 }
 
@@ -126,7 +126,7 @@
 .cadence-sheet__device {
   margin: 0;
   font-size: 0.76rem;
-  color: var(--rtw-text-secondary, #7C8A99);
+  color: #64748B;
   overflow-wrap: anywhere;
 }
 
@@ -135,23 +135,23 @@
   font-size: 0.86rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: var(--rtw-trace, #E8A33D);
+  color: #2563EB;
 }
 
 .cadence-sheet__mode {
   margin: 0;
   font-size: 0.74rem;
-  color: var(--rtw-text-secondary, #7C8A99);
+  color: #64748B;
 }
 
 .cadence-sheet__mode strong {
-  color: var(--rtw-text, #EDEFF2);
+  color: #1F2937;
 }
 
 .cadence-sheet__help {
   margin: 0;
   font-size: 0.68rem;
-  color: var(--rtw-text-secondary, #7C8A99);
+  color: #64748B;
   line-height: 1.35;
 }
 
@@ -175,46 +175,52 @@
   line-height: 1;
   padding: 0.38rem 0.75rem;
   border-radius: 8px;
-  border: 1px solid var(--rtw-glass-border, rgba(255, 255, 255, 0.08));
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--rtw-text, #EDEFF2);
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #475569;
   cursor: pointer;
 }
 
 .cadence-sheet__btn:hover:not(:disabled) {
-  border-color: var(--rtw-accent-line, rgba(232, 163, 61, 0.45));
+  border-color: #2563EB;
+  background: #EFF6FF;
 }
 
 .cadence-sheet__btn--primary {
-  background: var(--rtw-accent-soft, rgba(232, 163, 61, 0.14));
-  border-color: var(--rtw-accent-line, rgba(232, 163, 61, 0.45));
-  color: var(--rtw-trace, #E8A33D);
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+}
+
+.cadence-sheet__btn--primary:hover:not(:disabled) {
+  background: #1D4ED8;
+  border-color: #1D4ED8;
 }
 
 .cadence-sheet__error {
   margin: 0;
   font-size: 0.72rem;
   line-height: 1.35;
-  color: #fca5a5;
+  color: #DC2626;
 }
 
 .cadence-sheet__notice {
   margin: 0;
   font-size: 0.72rem;
   line-height: 1.35;
-  color: rgba(255, 255, 255, 0.72);
+  color: #64748B;
 }
 
 .cadence-sheet__speed {
   padding-top: 0.15rem;
-  border-top: 1px solid var(--rtw-glass-border, rgba(255, 255, 255, 0.08));
+  border-top: 1px solid #E2E8F0;
 }
 
 /* 이미 선택된 준비 상태 — 다시 눌러도 같은 결과(멱등)임을 색으로 알린다 */
 .cadence-sheet__btn--on {
-  background: rgba(52, 211, 153, 0.14);
-  border-color: rgba(52, 211, 153, 0.45);
-  color: #34d399;
+  background: rgba(22, 163, 74, 0.12);
+  border-color: rgba(22, 163, 74, 0.45);
+  color: #15803D;
 }
 
 /* 주행 준비가 안 된 이유 — 해소 액션이 바로 아래 있는 이 자리에서만 말한다 */

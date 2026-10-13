@@ -1,19 +1,17 @@
 /*
- * 「내 경로」 목록 — 다크 모달(.oc-modal) 안에서 쓴다.
- * Canvas/CanvasText 금지: portal 로 body 에 붙고 color-scheme 가 OS 선호(특히 Edge light)를
- * 따르면 밝은 카드 위에 모달에서 상속된 밝은 글자가 올라가 대비가 무너진다.
+ * 「내 경로」 목록 — 밝은 모달(.oc-modal) 안에서 쓴다.
  * 입문/퍼블릭(OfficialCourseListModal)과 같은 명시 팔레트.
  */
 .saved-routes {
-  --sr-fg: #e8eaef;
-  --sr-fg-muted: rgba(232, 234, 239, 0.82);
-  --sr-surface: rgba(2, 6, 23, 0.4);
-  --sr-surface-soft: rgba(2, 6, 23, 0.28);
-  --sr-chip: rgba(255, 255, 255, 0.08);
-  --sr-border: rgba(148, 163, 184, 0.28);
-  --sr-border-soft: rgba(148, 163, 184, 0.18);
+  --sr-fg: #1F2937;
+  --sr-fg-muted: #64748B;
+  --sr-surface: #FFFFFF;
+  --sr-surface-soft: #F8FAFC;
+  --sr-chip: #F1F5F9;
+  --sr-border: #CBD5E1;
+  --sr-border-soft: #E2E8F0;
   color: var(--sr-fg);
-  color-scheme: dark;
+  color-scheme: light;
   /* 모달 본문 안에서 남는 높이를 다 쓰고, 목록만 스크롤한다(필터·정렬·툴바 고정) */
   flex: 1 1 auto;
   min-height: 0;
@@ -40,9 +38,9 @@
   margin: 0 0 0.55rem;
   padding: 0.5rem 0.6rem;
   border-radius: 8px;
-  color: #fde68a;
-  background: rgba(146, 64, 14, 0.28);
-  border: 1px solid rgba(252, 211, 77, 0.45);
+  color: #B45309;
+  background: rgba(251, 191, 36, 0.14);
+  border: 1px solid rgba(180, 83, 9, 0.45);
 }
 
 .saved-routes__quota-notice-msg {
@@ -65,9 +63,9 @@
   font-size: 0.72rem;
   padding: 0.2rem 0.6rem;
   border-radius: 6px;
-  border: 1px solid rgba(252, 211, 77, 0.45);
-  background: rgba(146, 64, 14, 0.4);
-  color: #fde68a;
+  border: 1px solid rgba(180, 83, 9, 0.45);
+  background: rgba(251, 191, 36, 0.14);
+  color: #B45309;
   cursor: pointer;
 }
 
@@ -76,9 +74,9 @@
   padding: 0.4rem 0.55rem;
   font-size: 0.78rem;
   border-radius: 8px;
-  color: #fca5a5;
-  background: rgba(185, 28, 28, 0.22);
-  border: 1px solid rgba(252, 165, 165, 0.4);
+  color: #DC2626;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.4);
 }
 
 .saved-routes__empty {
@@ -115,9 +113,9 @@
 }
 
 .saved-routes__item.is-selected {
-  border-color: rgba(56, 189, 248, 0.55);
-  background: rgba(56, 189, 248, 0.16);
-  box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.2);
+  border-color: #2563EB;
+  background: #EFF6FF;
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.2);
 }
 
 /* 카드 전체가 선택 토글 행 — 조밀 행. 액션 버튼은 상단 툴바로 이관됨.
@@ -136,12 +134,12 @@
 }
 
 .saved-routes__row:focus-visible {
-  outline: 2px solid rgba(56, 189, 248, 0.75);
+  outline: 2px solid #2563EB;
   outline-offset: -2px;
 }
 
 .saved-routes__row:hover {
-  background: rgba(56, 189, 248, 0.1);
+  background: #EFF6FF;
 }
 
 .saved-routes__item.is-selected .saved-routes__row:hover {
@@ -204,9 +202,9 @@
 .saved-routes__badge--public {
   margin-left: auto;
   flex-shrink: 0;
-  color: #7dd3fc;
-  background: rgba(14, 116, 144, 0.28);
-  border: 1px solid rgba(56, 189, 248, 0.5);
+  color: #1D4ED8;
+  background: #EFF6FF;
+  border: 1px solid #2563EB;
 }
 
 /* 미완주 카드의 진행률 바 — meta 와 간격 */
@@ -215,7 +213,7 @@
 }
 
 .saved-routes__date {
-  color: rgba(232, 234, 239, 0.72);
+  color: #64748B;
 }
 
 .saved-routes__progress {
@@ -230,14 +228,14 @@
   flex: 1 1 auto;
   height: 6px;
   border-radius: 999px;
-  background: rgba(148, 163, 184, 0.22);
+  background: #F1F5F9;
   overflow: hidden;
 }
 
 .saved-routes__progress-fill {
   height: 100%;
   border-radius: 999px;
-  background: rgba(59, 130, 246, 0.85);
+  background: #2563EB;
   transition: width 0.3s ease;
 }
 
@@ -252,9 +250,9 @@
 
 .saved-routes__badge--resume {
   flex: 0 0 auto;
-  background: rgba(59, 130, 246, 0.2);
-  color: #93c5fd;
-  border: 1px solid rgba(59, 130, 246, 0.4);
+  background: #2563EB;
+  color: #FFFFFF;
+  border: 1px solid #2563EB;
   font-size: 0.65rem;
   padding: 0.05rem 0.35rem;
   white-space: nowrap;
@@ -272,7 +270,7 @@
   padding: 0.25rem 0.55rem;
   border-radius: 6px;
   border: 1px solid var(--sr-border);
-  background: var(--sr-surface-elevated, rgba(2, 6, 23, 0.55));
+  background: #F1F5F9;
   color: var(--sr-fg);
   -webkit-text-fill-color: var(--sr-fg);
   cursor: pointer;
@@ -284,19 +282,23 @@
 }
 
 .saved-routes__btn--primary {
-  background: rgba(59, 130, 246, 0.22);
-  border-color: rgba(59, 130, 246, 0.5);
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+  -webkit-text-fill-color: #FFFFFF;
 }
 
 .saved-routes__btn--accent {
-  background: rgba(139, 92, 246, 0.2);
-  border-color: rgba(139, 92, 246, 0.45);
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+  -webkit-text-fill-color: #FFFFFF;
 }
 
 .saved-routes__btn--danger {
-  color: #fca5a5;
-  -webkit-text-fill-color: #fca5a5;
-  border-color: rgba(252, 165, 165, 0.45);
+  color: #DC2626;
+  -webkit-text-fill-color: #DC2626;
+  border-color: rgba(220, 38, 38, 0.45);
 }
 
 .saved-routes__rename {
@@ -314,7 +316,7 @@
   padding: 0.35rem 0.45rem;
   border-radius: 6px;
   border: 1px solid var(--sr-border);
-  background: rgba(2, 6, 23, 0.55);
+  background: #FFFFFF;
   color: var(--sr-fg);
   -webkit-text-fill-color: var(--sr-fg);
 }
@@ -349,7 +351,7 @@
   padding: 0.3rem 0.2rem;
   border-radius: 6px;
   border: 1px solid var(--sr-border);
-  background: rgba(2, 6, 23, 0.55);
+  background: #F1F5F9;
   color: var(--sr-fg);
   -webkit-text-fill-color: var(--sr-fg);
   cursor: pointer;
@@ -361,19 +363,23 @@
 }
 
 .saved-routes__tool--primary:not(:disabled) {
-  background: rgba(59, 130, 246, 0.22);
-  border-color: rgba(59, 130, 246, 0.5);
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+  -webkit-text-fill-color: #FFFFFF;
 }
 
 .saved-routes__tool--accent:not(:disabled) {
-  background: rgba(139, 92, 246, 0.2);
-  border-color: rgba(139, 92, 246, 0.45);
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+  -webkit-text-fill-color: #FFFFFF;
 }
 
 .saved-routes__tool--danger:not(:disabled) {
-  color: #fca5a5;
-  -webkit-text-fill-color: #fca5a5;
-  border-color: rgba(252, 165, 165, 0.45);
+  color: #DC2626;
+  -webkit-text-fill-color: #DC2626;
+  border-color: rgba(220, 38, 38, 0.45);
 }
 
 .saved-routes__filter {
@@ -395,8 +401,10 @@
 }
 
 .saved-routes__filter-btn.is-active {
-  background: rgba(59, 130, 246, 0.28);
-  border-color: rgba(59, 130, 246, 0.55);
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+  -webkit-text-fill-color: #FFFFFF;
 }
 
 .saved-routes__head-tags {
@@ -415,19 +423,19 @@
 }
 
 .saved-routes__badge--ok {
-  color: #86efac;
-  background: rgba(22, 101, 52, 0.35);
-  border: 1px solid rgba(134, 239, 172, 0.45);
+  color: #15803D;
+  background: rgba(22, 163, 74, 0.12);
+  border: 1px solid rgba(22, 163, 74, 0.45);
 }
 
 .saved-routes__badge--pending {
-  color: #cbd5e1;
-  background: rgba(71, 85, 105, 0.45);
-  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: #64748B;
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
 }
 
 .saved-routes__badge--soon {
-  color: #fde68a;
-  background: rgba(146, 64, 14, 0.35);
-  border: 1px solid rgba(252, 211, 77, 0.45);
+  color: #B45309;
+  background: rgba(251, 191, 36, 0.14);
+  border: 1px solid rgba(180, 83, 9, 0.45);
 }
