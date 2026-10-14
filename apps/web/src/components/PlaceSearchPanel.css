@@ -74,3 +74,20 @@
 .place-search-panel__body {
   overflow: auto;
 }
+
+.place-search-panel {
+  width: min(30rem, calc(100vw - 1.3rem));
+  max-height: calc(100vh - var(--hud-pad-top, 0.65rem) - 2.55rem - max(0.65rem, env(safe-area-inset-bottom, 0px)));
+  max-height: calc(100dvh - var(--hud-pad-top, 0.65rem) - 2.55rem - max(0.65rem, env(safe-area-inset-bottom, 0px)));
+}
+
+.place-search-panel__head {
+  flex-shrink: 0;
+}
+
+.place-search-panel__body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
