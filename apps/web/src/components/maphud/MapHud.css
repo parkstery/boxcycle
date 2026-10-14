@@ -938,14 +938,14 @@
 /* 거리 = 오늘 운동의 핵심 숫자 — 파랑은 핵심 강조 숫자에만(운동=본체 위계) */
 .hud-metrics__cell--hero .hud-metrics__value {
   font-size: 1.25rem;
-  color: #2563EB;
+  color: #FACC15;
 }
 
 /* 주행 누적 거리 — 세션 거리는 offset(이어 달리기 재개 시드) 없으면 누적과 항상
    동일해 이중 표기가 중복이었다. 누적값 하나를 히어로 크기·색으로 승격한다. */
 .hud-metrics__value--cumulative {
   font-size: 1.25rem;
-  color: #2563EB;
+  color: #FACC15;
 }
 
 /* 2026-10-06 Chief: 주행 중 「새 도로」 흐리기(0.72) 제거 — 강조 요소가 가장 약했다.
@@ -1068,11 +1068,11 @@
 
 /* 새 도로 — 지도 위 파랑(UI 강조, 외곽선 유지). 라벨 흐리기 없음 */
 .hud-metrics__cell--conquest .hud-metrics__label {
-  color: #2563EB;
+  color: #FACC15;
 }
 
 .hud-metrics__cell--conquest .hud-metrics__value {
-  color: #2563EB;
+  color: #FACC15;
 }
 
 @keyframes hud-conquest-pulse {

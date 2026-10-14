@@ -291,6 +291,17 @@
   outline-offset: 2px;
 }
 
+/* 지시15 — 지역미선택 prompt 한정(제목이 카드 직계자식인 경우만, S1 제외):
+ * 제목 1pt 축소 + 하단 입문 경로 링크행 높이 축소. 버튼 44px·문구 불변. */
+.local-first__card:has(> .local-first__title) > .local-first__title {
+  font-size: calc(1em - 2pt);
+}
+
+.local-first__card:has(> .local-first__title) .local-first__intro .local-first__link {
+  min-height: 22px;
+  padding: 0.1rem 0.1rem;
+}
+
 @media (max-height: 520px), (max-width: 480px) {
   .local-first-anchor {
     max-width: calc(100vw - 1.25rem);

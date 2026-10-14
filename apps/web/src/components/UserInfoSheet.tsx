@@ -474,6 +474,8 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
         </div>
 
         <div className="user-info-sheet__scroll-body">
+          <div className="user-info-sheet__columns">
+            <div className="user-info-sheet__col user-info-sheet__col--account">
           {/*
             플랜 — 상태와 행동을 **한 줄**로. 종전에는 「Free/미구독」 행 · 「Free 플랜」 라벨 ·
             「유료 플랜 구독」 버튼이 같은 사실을 세 번 말했다(2026-09-15 Chief 지적).
@@ -539,6 +541,47 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
             </div>
           ) : null}
 
+          {/*
+            마지막 주행 카드가 곧 「최근 주행」 목록의 입구다 — 종전에는 두 블록이 패널
+            위아래로 갈라져 있어 스크롤해서 다른 행을 찾아 눌러야 했다.
+          */}
+          <button
+            type="button"
+            className="user-info-sheet__last-ride"
+            aria-expanded={historyOpen}
+            aria-controls="user-info-sheet-history-list"
+            title="Recent rides"
+            onClick={() => setHistoryOpen((v) => !v)}
+          >
+            <span className="user-info-sheet__last-ride-body">
+              <span className="user-info-sheet__last-ride-head">
+                <span className="user-info-sheet__last-ride-k">마지막 주행</span>
+                {lastRide ? (
+                  <span className="user-info-sheet__last-ride-when">
+                    {formatLastRideWhenKo(lastRide.endedAt)}
+                  </span>
+                ) : null}
+              </span>
+              {lastRide ? (
+                <span
+                  className="user-info-sheet__last-ride-v rtw-numeric"
+                  title={formatRideEndedAtKo(lastRide.endedAt)}
+                >
+                  {formatRideDistanceKmNumber(lastRide.distanceMeters)} km ·{" "}
+                  {formatElapsedFromSec(lastRide.elapsedSec)} ·{" "}
+                  {formatSessionAvgSpeedKmh(lastRide)} km/h ·{" "}
+                  {formatSessionCaloriesEstimate(lastRide)}
+                </span>
+              ) : (
+                <span className="user-info-sheet__last-ride-v is-empty">없음</span>
+              )}
+            </span>
+            <span className={`user-info-sheet__h-chevron ${historyOpen ? "is-open" : ""}`} aria-hidden>
+              <ChevronRight />
+            </span>
+          </button>
+            </div>
+            <div className="user-info-sheet__col user-info-sheet__col--stats">
           {/*
             기간 축 하나 — 종전에는 「일일 주행」이 탭 밖 별도 블록이라 주행·거리·시간·평속 +
             칼로리 타일이 **두 벌** 쌓였다. 오늘을 탭으로 흡수해 숫자 묶음을 하나로 만든다.
@@ -623,46 +666,9 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
               </div>
             </div>
           </div>
+            </div>
+          </div>
 
-          {/*
-            마지막 주행 카드가 곧 「최근 주행」 목록의 입구다 — 종전에는 두 블록이 패널
-            위아래로 갈라져 있어 스크롤해서 다른 행을 찾아 눌러야 했다.
-          */}
-          <button
-            type="button"
-            className="user-info-sheet__last-ride"
-            aria-expanded={historyOpen}
-            aria-controls="user-info-sheet-history-list"
-            title="Recent rides"
-            onClick={() => setHistoryOpen((v) => !v)}
-          >
-            <span className="user-info-sheet__last-ride-body">
-              <span className="user-info-sheet__last-ride-head">
-                <span className="user-info-sheet__last-ride-k">마지막 주행</span>
-                {lastRide ? (
-                  <span className="user-info-sheet__last-ride-when">
-                    {formatLastRideWhenKo(lastRide.endedAt)}
-                  </span>
-                ) : null}
-              </span>
-              {lastRide ? (
-                <span
-                  className="user-info-sheet__last-ride-v rtw-numeric"
-                  title={formatRideEndedAtKo(lastRide.endedAt)}
-                >
-                  {formatRideDistanceKmNumber(lastRide.distanceMeters)} km ·{" "}
-                  {formatElapsedFromSec(lastRide.elapsedSec)} ·{" "}
-                  {formatSessionAvgSpeedKmh(lastRide)} km/h ·{" "}
-                  {formatSessionCaloriesEstimate(lastRide)}
-                </span>
-              ) : (
-                <span className="user-info-sheet__last-ride-v is-empty">없음</span>
-              )}
-            </span>
-            <span className={`user-info-sheet__h-chevron ${historyOpen ? "is-open" : ""}`} aria-hidden>
-              <ChevronRight />
-            </span>
-          </button>
         {historyOpen ? (
           <ul id="user-info-sheet-history-list" className="user-info-sheet__list">
             {props.recentSessions.length === 0 ? (

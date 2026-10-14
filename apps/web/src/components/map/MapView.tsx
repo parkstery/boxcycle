@@ -1328,7 +1328,11 @@ export function MapView({
       }
     });
 
+    let dockPanelResizeObserver: ResizeObserver | null = null;
+
     const teardownRoutePickDock = () => {
+      dockPanelResizeObserver?.disconnect();
+      dockPanelResizeObserver = null;
       routePickDockDragCleanupRef.current?.();
       routePickDockDragCleanupRef.current = null;
       if (routePickDockResizeHandlerRef.current) {
@@ -1519,6 +1523,9 @@ export function MapView({
       };
       routePickDockResizeHandlerRef.current = onDockResize;
       window.addEventListener("resize", onDockResize);
+      dockPanelResizeObserver?.disconnect();
+      dockPanelResizeObserver = new ResizeObserver(onDockResize);
+      dockPanelResizeObserver.observe(panel);
     };
 
     const promotePointPopupToDock = (click: LngLat, ac: AbortController) => {
@@ -1727,6 +1734,8 @@ export function MapView({
       glbLiveNametagMarkerRef.current?.remove();
       selfLocationMarkerRef.current?.remove();
       popupRef.current?.remove();
+      dockPanelResizeObserver?.disconnect();
+      dockPanelResizeObserver = null;
       routePickDockDragCleanupRef.current?.();
       routePickDockDragCleanupRef.current = null;
       if (routePickDockResizeHandlerRef.current) {

@@ -72,6 +72,8 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
   const rpm = rpmLine(props);
   const manualReady = props.readiness === "manual-ready";
   const blockedReason = rideInputBlockedReason(props.readiness);
+  // 체험 속도가 명시 선택된 상태에서는 제목 표기만 바꾼다 — dialog aria-label·콜백·조건 불변.
+  const manualSelected = manualReady && !cadenceMode;
 
   return (
     <div className="cadence-sheet" role="dialog" aria-label="케이던스 센서">
@@ -91,8 +93,10 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
         <div className="cadence-sheet__head">
           {/* 제목과 연결 상태를 한 줄로(2026-09-18 Chief) */}
           <h2 className="cadence-sheet__title">
-            케이던스 센서
-            <span className="cadence-sheet__title-status">{cadenceSensorShortStatus(props)}</span>
+            {manualSelected ? "체험 속도" : "케이던스 센서"}
+            <span className="cadence-sheet__title-status">
+              {manualSelected ? "선택됨" : cadenceSensorShortStatus(props)}
+            </span>
           </h2>
           <button
             type="button"
@@ -139,7 +143,9 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
           {showReconnect ? (
             <button
               type="button"
-              className="cadence-sheet__btn cadence-sheet__btn--primary"
+              className={`cadence-sheet__btn${
+                manualReady ? "" : " cadence-sheet__btn--primary"
+              }`}
               title="Connect cadence sensor"
               onClick={props.onConnect}
             >

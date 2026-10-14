@@ -28,14 +28,14 @@
 .user-info-sheet {
   position: absolute;
   top: 0;
-  bottom: 0;
   right: 0;
-  width: min(20rem, 92vw);
+  width: min(460px, calc(100vw - 16px));
   max-height: 100vh;
   max-height: 100dvh;
   background: #FFFFFF;
   color: #1F2937;
   border-left: 1px solid #CBD5E1;
+  border-bottom-left-radius: 12px;
   box-shadow: -6px 0 28px rgba(0, 0, 0, 0.32);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
@@ -264,13 +264,17 @@
 }
 
 .user-info-sheet__stats > div {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
-  border-radius: 8px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
   padding: 0.16rem 0.35rem;
   display: flex;
   flex-direction: column;
   gap: 0.04rem;
+}
+
+.user-info-sheet__stats > div + div {
+  border-left: 1px solid #E2E8F0;
 }
 
 .user-info-sheet__stats span {
@@ -807,44 +811,23 @@
   transform: rotate(90deg);
 }
 
-/* ── 2026-10-13 지시09 계정 UI compact (CSS-only, 폰트·색·문구·TSX 불변) ──
-   플랜 행 + 기간 탭을 같은 grid 행에 모아 세로 한 행 제거. 탭/확인 버튼은
-   내용폭(flex-basis auto + shrink), 확인 패널 중첩 여백 절제. 44px 터치 유지.
-   조건부(구독 안내·자산·내역·액션) 상태를 깨지 않게 body 직계 전부를 명시 배치.
-   순서 주의: DOM의 안내·자산은 탭 뒤 행으로 내려간다(같은 행 합치기 대가). */
-.user-info-sheet__scroll-body {
+/* ── 2026-10-14 지시20 계정창 compact 2컬럼 (참고 mobile-ui-redesign columns 역할만 작게) ──
+   지시09 row합체 grid는 새 columns wrapper에 맞춰 제거 — 본문은 기존 flex column 흐름으로 복귀.
+   헤더 전체폭 유지. 左 플랜·구독안내·자산·마지막주행 / 右 기간탭·통계카드, 열 독립 세로흐름.
+   펼침목록·계정행동/확인은 본문 직계 전체폭. 탭 내용폭·확인행 내용폭·확인패널 여백은 아래 유지. */
+.user-info-sheet__columns {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  column-gap: 0.35rem;
-  row-gap: 0.24rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.35rem;
   align-items: start;
-  align-content: start;
-  grid-auto-rows: max-content;
-}
-
-.user-info-sheet__scroll-body > .user-info-sheet__plan {
-  grid-column: 1;
-  grid-row: 1;
-  align-self: stretch;
   min-width: 0;
 }
 
-.user-info-sheet__scroll-body > .user-info-sheet__stats-head {
-  grid-column: 2;
-  grid-row: 1;
-  align-self: stretch;
+.user-info-sheet__col {
   min-width: 0;
-  gap: 0.2rem;
-}
-
-.user-info-sheet__scroll-body > .user-info-sheet__subscription-note,
-.user-info-sheet__scroll-body > .user-info-sheet__assets,
-.user-info-sheet__scroll-body > .user-info-sheet__stats-card,
-.user-info-sheet__scroll-body > .user-info-sheet__last-ride,
-.user-info-sheet__scroll-body > .user-info-sheet__list,
-.user-info-sheet__scroll-body > .user-info-sheet__actions {
-  grid-column: 1 / -1;
-  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.24rem;
 }
 
 /* 기간 탭 내용폭 — 균등 전폭(flex:1) 대신 내용 기준 + 축소 허용. 44px 유지 */
@@ -907,4 +890,31 @@
 .user-info-sheet__last-ride-v {
   flex: 1 1 auto;
   min-width: 0;
+}
+
+/* ── 2026-10-14 지시20 마지막주행 2줄 허용 (이 버튼만 내용높이, font·색·aria 불변) ──
+   왼쪽 좁은 폭에 단위/정보를 우겨넣지 않음 — header+summary 세로 쌓기, summary 줄바꿈 허용.
+   row 전체클릭·aria-controls/expanded는 TSX 그대로. */
+.user-info-sheet__col--account .user-info-sheet__last-ride {
+  height: auto;
+  min-height: 22px;
+}
+
+.user-info-sheet__col--account .user-info-sheet__last-ride-body {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.04rem;
+}
+
+.user-info-sheet__col--account .user-info-sheet__last-ride-v {
+  white-space: normal;
+  overflow: visible;
+}
+
+/* ── 2026-10-14 지시20 480px 미만 fallback: 기존 단열 ──
+   667x300/740x300/800x360/844x390·PC는 2열 유지. 세로폰은 별도 대응 전까지 단열. */
+@media (max-width: 480px) {
+  .user-info-sheet__columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

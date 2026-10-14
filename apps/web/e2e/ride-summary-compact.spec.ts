@@ -123,7 +123,7 @@ const DISTANCE_THRESHOLD_KM = 0.11;
 /** 제거 대상 문구 2종 — 시트 텍스트에 남아 있으면 회귀다. */
 const REMOVED_PHRASES = ["내 도로망에 더해졌어요", "다음 출발점이 저장되었습니다"];
 
-test.describe("「거리」 체크박스가 자동 End 세션을 끝낸다", () => {
+test.describe("위치 컨트롤 선택이 거리 방향 대기를 끝낸다", () => {
   /*
    * 「여기에서 계속」으로 들어오면 거리 기반 자동 End 선택이 켜진 채 시작한다
    * (rideContinuationSetup 이 보장하는 계약). 이때 「거리」를 끄면 **그 세션까지** 끝나야
@@ -155,8 +155,10 @@ test.describe("「거리」 체크박스가 자동 End 세션을 끝낸다", () 
 
     const dock = page.locator(".map-view__pick-dock-panel, .map-view__pick-popup").last();
     await expect(dock, "「여기에서 계속」이 경로 설정을 연다").toBeVisible({ timeout: 30_000 });
-    const distanceToggle = dock.getByRole("checkbox", { name: "거리와 방향으로 Route 찾기" });
-    await expect(distanceToggle, "들어오면 「거리」가 켜져 있다").toBeChecked();
+    const distanceView = dock.locator(".map-view__pick-auto-route");
+    const locationView = dock.locator(".map-view__pick-route-view--location");
+    await expect(distanceView, "들어오면 거리 탐색 화면이다").toBeVisible();
+    await expect(locationView, "거리 탐색 중 위치 컨트롤은 숨긴다").toBeHidden();
     const hint = dock.getByText(/반경의 원 주변 도로를 선택하세요/);
     await expect(hint, "거리 ON 이면 방향 안내가 보인다").toBeVisible({ timeout: 20_000 });
 
@@ -174,13 +176,18 @@ test.describe("「거리」 체크박스가 자동 End 세션을 끝낸다", () 
       .toBe(true);
 
     // ── 여기서 끈다 ────────────────────────────────────────────────────
-    await distanceToggle.uncheck();
+    await dock.getByRole("button", { name: "위치 선택 컨트롤 펼치기" }).click();
+    await expect(locationView, "캐럿은 위치 컨트롤을 위에 붙인다").toBeVisible();
+    await expect(distanceView, "위치를 펼쳐도 거리 내용은 유지된다").toBeVisible();
+    await expect(hint, "펼치기만으로 거리 대기를 해제하지 않는다").toBeVisible();
+    await dock.getByRole("button", { name: "Set start", exact: true }).click();
 
     await expect(hint, "끄면 방향 안내가 사라져야 한다").toHaveCount(0, { timeout: 15_000 });
     await expect
       .poll(ringOnMap, { timeout: 15_000, message: "끄면 반경 원도 사라져야 한다" })
       .toBe(false);
-    await expect(distanceToggle).not.toBeChecked();
+    await expect(locationView).toBeVisible();
+    await expect(distanceView, "위치 조작 후에도 펼친 거리 컨트롤을 유지한다").toBeVisible();
 
     // 지도를 누르면 평소처럼 지점 팝업이 뜨고 End 를 고를 수 있어야 한다.
     const canvas = page.locator("canvas.mapboxgl-canvas").first();
@@ -195,7 +202,7 @@ test.describe("「거리」 체크박스가 자동 End 세션을 끝낸다", () 
       afterClick.getByText(/반경의 원 주변 도로를 선택하세요/),
       "끈 뒤의 클릭이 방향 선택으로 먹히면 안 된다",
     ).toHaveCount(0);
-    const endBtn = afterClick.getByRole("button", { name: "End" });
+    const endBtn = afterClick.getByRole("button", { name: "Set end", exact: true });
     await expect(endBtn, "사용자가 End 를 직접 고를 수 있어야 한다").toBeEnabled({
       timeout: 15_000,
     });
