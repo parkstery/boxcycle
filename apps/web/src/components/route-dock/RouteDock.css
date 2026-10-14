@@ -465,10 +465,10 @@
   box-shadow: none;
 }
 
-/* 경로 설정 완료 — 시작 버튼 색·그림자만 600ms 주기 2회. 크기·위치는 그대로. */
+/* 경로 설정 완료 — 900ms 주기 2회. 같은 색으로 부드럽게 커졌다 돌아오고 halo가 퍼졌다 사라진다. */
 .route-dock__go--setup-a,
 .route-dock__go--setup-b {
-  animation-duration: 600ms;
+  animation-duration: 900ms;
   animation-timing-function: ease-in-out;
   animation-iteration-count: 2;
 }
@@ -490,11 +490,13 @@
   0%,
   100% {
     background-color: #2563eb;
-    box-shadow: 0 3px 12px rgba(37, 99, 235, 0.35);
+    transform: scale(1);
+    box-shadow: 0 3px 12px rgba(37, 99, 235, 0.35), 0 0 0 0 rgba(37, 99, 235, 0);
   }
   50% {
-    background-color: #93c5fd;
-    box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.95);
+    background-color: #2563eb;
+    transform: scale(1.12);
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.45), 0 0 0 5px rgba(37, 99, 235, 0.2);
   }
 }
 
@@ -502,11 +504,13 @@
   0%,
   100% {
     background-color: #2563eb;
-    box-shadow: 0 3px 12px rgba(37, 99, 235, 0.35);
+    transform: scale(1);
+    box-shadow: 0 3px 12px rgba(37, 99, 235, 0.35), 0 0 0 0 rgba(37, 99, 235, 0);
   }
   50% {
-    background-color: #93c5fd;
-    box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.95);
+    background-color: #2563eb;
+    transform: scale(1.12);
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.45), 0 0 0 5px rgba(37, 99, 235, 0.2);
   }
 }
 
