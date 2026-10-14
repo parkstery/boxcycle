@@ -1,3 +1,5 @@
+2026-10-15 최신 완료: 펄스50 Chief승인·81dcce6 커밋 확인. 지명 검색51 [검수51](04-review-51.md) APPROVED/AWAITING_CHIEF. 폰 일반 결과2→7개/긴 결과1→4개·목록만 스크롤,32상태/선택·닫기 PASS. CSS두파일 ca56e9b 커밋. 앱face-redesign2 worktree / 문서main2 기본저장소 구분 유지. 5013사용확인,실API/실기기미검증. 다음HUD·안내팝업.
+
 2026-10-15 최신 완료: 시작 버튼 펄스50 [검수50](04-review-50.md) APPROVED/AWAITING_CHIEF. 색 고정·확대/광륜 900ms×2, 네 viewport 최고점 겹침 없음·기존 트리거/접기/reduced-motion/selector15 PASS. CSS 한 파일 81dcce6 커밋. 지도 설정49 확인 대기 유지, 디자인 후속 지명 검색. 실기기 미검증.
 
 2026-10-15 최신완료: 주행설정47 Chief통과. 지도설정48/49 [감리49](04-review-49.md) APPROVED/AWAITING_CHIEF. 폰높이227→144px·옵션줄감김감소,PC기존가로overflow해소. 24상태/37callback·전후button/font보존PASS, CSS1파일8b2f6a2커밋. 5013우상단맵버튼확인→다음지명검색. 실기기/실지도미검증,Cursor교대유지·다음주행카드불변.
