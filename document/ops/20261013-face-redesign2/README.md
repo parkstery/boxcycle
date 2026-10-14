@@ -1,3 +1,5 @@
+2026-10-15 최신완료: 주행설정47 Chief통과. 지도설정48/49 [감리49](04-review-49.md) APPROVED/AWAITING_CHIEF. 폰높이227→144px·옵션줄감김감소,PC기존가로overflow해소. 24상태/37callback·전후button/font보존PASS, CSS1파일8b2f6a2커밋. 5013우상단맵버튼확인→다음지명검색. 실기기/실지도미검증,Cursor교대유지·다음주행카드불변.
+
 2026-10-15 최신완료: 미니맵검토/주행설정46·47 [감리47](04-review-47.md) APPROVED/AWAITING_CHIEF. 미니맵16상태현상유지,주행설정16상태/콜백·공유CSS영향검증PASS. 폰높이194→173px,입력/폰트보존,CSS1파일 c6b230e커밋. Muse한도유지로Cursor·남은UI코드전달승인. 5013주행설정확인후다음지도설정/지명검색,실기기미검증.
 
 2026-10-15 최신완료: 시작버튼 안내44/45 [최종검수45](04-review-45.md) APPROVED/AWAITING_CHIEF. 경로설정600ms×2·접힌패널펼침·접기종료·reduced-motion정적강조. 카드해시동일·14기능확인/4viewport배치/selector15/tsc/lint PASS. 코드51866a5, 선행UI b4239b5. 5013사용확인,실기기/실주행미검증·push/merge/deploy없음. 이전권한대기는코드전달승인으로해소.
