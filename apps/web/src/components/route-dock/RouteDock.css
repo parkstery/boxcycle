@@ -465,6 +465,84 @@
   box-shadow: none;
 }
 
+/* 경로 설정 완료 — 시작 버튼 색·그림자만 600ms 주기 2회. 크기·위치는 그대로. */
+.route-dock__go--setup-a,
+.route-dock__go--setup-b {
+  animation-duration: 600ms;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: 2;
+}
+
+.route-dock__go--setup-a {
+  animation-name: route-dock-go-setup-a;
+}
+
+.route-dock__go--setup-b {
+  animation-name: route-dock-go-setup-b;
+}
+
+.route-dock__transport-btn.route-dock__go--setup-a:disabled,
+.route-dock__transport-btn.route-dock__go--setup-b:disabled {
+  opacity: 1;
+}
+
+@keyframes route-dock-go-setup-a {
+  0%,
+  100% {
+    background-color: #2563eb;
+    box-shadow: 0 3px 12px rgba(37, 99, 235, 0.35);
+  }
+  50% {
+    background-color: #93c5fd;
+    box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.95);
+  }
+}
+
+@keyframes route-dock-go-setup-b {
+  0%,
+  100% {
+    background-color: #2563eb;
+    box-shadow: 0 3px 12px rgba(37, 99, 235, 0.35);
+  }
+  50% {
+    background-color: #93c5fd;
+    box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.95);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-dock__go--setup-a,
+  .route-dock__go--setup-b {
+    animation-duration: 1200ms;
+    animation-iteration-count: 1;
+    animation-timing-function: linear;
+  }
+
+  .route-dock__go--setup-a {
+    animation-name: route-dock-go-setup-still-a;
+  }
+
+  .route-dock__go--setup-b {
+    animation-name: route-dock-go-setup-still-b;
+  }
+}
+
+@keyframes route-dock-go-setup-still-a {
+  from,
+  to {
+    background-color: #1d4ed8;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.75);
+  }
+}
+
+@keyframes route-dock-go-setup-still-b {
+  from,
+  to {
+    background-color: #1d4ed8;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.75);
+  }
+}
+
 /*
  * 폰 가로 — 지도 잠식을 줄인다. 계측(690x275)에서 RouteDock 이 지도의 20.4% 를 먹었다.
  * 하단 여백(Mapbox 로고 확보용)도 이 크기에서는 로고가 이미 화면 밖이라 낭비였다.

@@ -2628,6 +2628,7 @@ export default function App() {
       stage={stage}
       stops={routeDockStops}
       routeLoading={routeLoading}
+      routeSetupToken={routeGeometry ?? null}
       canStartRide={canStartRideWithInput}
       sensorAttention={Boolean(routeGeometry) && !routeLoading && !rideInputReady}
       onStartRide={handleStartRide}

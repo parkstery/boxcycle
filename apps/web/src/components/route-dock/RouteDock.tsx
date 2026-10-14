@@ -13,6 +13,8 @@ export type RouteDockProps = {
   stage: RideUiStage;
   stops: RouteDockStop[];
   routeLoading: boolean;
+  /** 계산된 routeGeometry 참조. 완료된 새 참조만 주행 시작 위치 안내에 쓴다. */
+  routeSetupToken?: object | null;
   canStartRide: boolean;
   /**
    * 경로는 잡혔는데 센서·체험 속도를 아직 안 고른 상태. 센서 칩을 깜빡여 다음 할 일을
@@ -52,6 +54,7 @@ export function RouteDock(props: RouteDockProps) {
     stage,
     stops,
     routeLoading,
+    routeSetupToken = null,
     canStartRide,
     sensorAttention = false,
     onStartRide,
@@ -97,6 +100,38 @@ export function RouteDock(props: RouteDockProps) {
     else if (stage === "idle" && stops.length === 0) setExpanded(false);
   }
 
+  const setupToken = routeSetupToken ?? null;
+  const [setupCue, setSetupCue] = useState(() => ({
+    token: setupToken,
+    loading: routeLoading,
+    stage,
+    sequence: 0,
+    attention: false,
+  }));
+  if (
+    setupToken !== setupCue.token ||
+    routeLoading !== setupCue.loading ||
+    stage !== setupCue.stage
+  ) {
+    const stillEligible =
+      setupToken != null && !routeLoading && stage === "ready-to-start";
+    const freshCompleted =
+      stillEligible && (setupToken !== setupCue.token || setupCue.loading);
+    if (freshCompleted) setExpanded(true);
+    setSetupCue({
+      token: setupToken,
+      loading: routeLoading,
+      stage,
+      sequence: freshCompleted ? setupCue.sequence + 1 : setupCue.sequence,
+      attention: freshCompleted ? true : stillEligible ? setupCue.attention : false,
+    });
+  }
+  const setupAttentionClass = setupCue.attention
+    ? setupCue.sequence % 2 === 0
+      ? " route-dock__go--setup-b"
+      : " route-dock__go--setup-a"
+    : "";
+
   if (!visible) return null;
 
   /*
@@ -133,6 +168,7 @@ export function RouteDock(props: RouteDockProps) {
       cadence.onOpen();
       return;
     }
+    if (expanded) setSetupCue((current) => (current.attention ? { ...current, attention: false } : current));
     setExpanded((v) => !v);
   };
 
@@ -238,11 +274,26 @@ export function RouteDock(props: RouteDockProps) {
             <div className="route-dock__transport" role="group" aria-label="주행 제어">
               <button
                 type="button"
-                className="route-dock__go route-dock__transport-btn"
+                className={`route-dock__go route-dock__transport-btn${setupAttentionClass}`}
                 disabled={goDisabled}
                 aria-label={paused ? "재개" : "주행 시작"}
                 title={paused ? "Resume" : "Start ride"}
                 onClick={() => (paused ? onResumeRide() : onStartRide(restartFromZero))}
+                onAnimationEnd={(event) => {
+                  if (event.target !== event.currentTarget) return;
+                  const stillName =
+                    setupCue.sequence % 2 === 0
+                      ? "route-dock-go-setup-still-b"
+                      : "route-dock-go-setup-still-a";
+                  const pulseName =
+                    setupCue.sequence % 2 === 0
+                      ? "route-dock-go-setup-b"
+                      : "route-dock-go-setup-a";
+                  if (event.animationName !== pulseName && event.animationName !== stillName) return;
+                  setSetupCue((current) =>
+                    current.attention ? { ...current, attention: false } : current,
+                  );
+                }}
               >
                 <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden focusable="false">
                   <path d="M8 5.5v13l11-6.5z" fill="currentColor" />
