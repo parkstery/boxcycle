@@ -1,3 +1,5 @@
+2026-10-15 최신 완료: 시작 버튼 펄스50 [검수50](04-review-50.md) APPROVED/AWAITING_CHIEF. 색 고정·확대/광륜 900ms×2, 네 viewport 최고점 겹침 없음·기존 트리거/접기/reduced-motion/selector15 PASS. CSS 한 파일 81dcce6 커밋. 지도 설정49 확인 대기 유지, 디자인 후속 지명 검색. 실기기 미검증.
+
 2026-10-15 최신완료: 주행설정47 Chief통과. 지도설정48/49 [감리49](04-review-49.md) APPROVED/AWAITING_CHIEF. 폰높이227→144px·옵션줄감김감소,PC기존가로overflow해소. 24상태/37callback·전후button/font보존PASS, CSS1파일8b2f6a2커밋. 5013우상단맵버튼확인→다음지명검색. 실기기/실지도미검증,Cursor교대유지·다음주행카드불변.
 
 2026-10-15 최신완료: 미니맵검토/주행설정46·47 [감리47](04-review-47.md) APPROVED/AWAITING_CHIEF. 미니맵16상태현상유지,주행설정16상태/콜백·공유CSS영향검증PASS. 폰높이194→173px,입력/폰트보존,CSS1파일 c6b230e커밋. Muse한도유지로Cursor·남은UI코드전달승인. 5013주행설정확인후다음지도설정/지명검색,실기기미검증.
