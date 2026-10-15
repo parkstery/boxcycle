@@ -19,7 +19,7 @@ export const PRESERVED_RIDER_MODELS = {
 } as const;
 
 /** 제품이 쓰는 모델. 롤백 = 이 한 줄을 "s5" 로. */
-export const PRESERVED_RIDER_ACTIVE_MODEL: PreservedRiderModelId = "s5";
+export const PRESERVED_RIDER_ACTIVE_MODEL: PreservedRiderModelId = "rider14";
 
 export function resolvePreservedRiderModel(): PreservedRiderModelId {
   if (typeof window === "undefined") return PRESERVED_RIDER_ACTIVE_MODEL;

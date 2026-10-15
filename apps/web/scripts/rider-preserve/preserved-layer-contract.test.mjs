@@ -7,19 +7,70 @@ import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(here, "../..");
-const candidateId = "20260921-041426-cd81398e";
-const candidateDir = path.join(webRoot, "public", "rider", "preserved", "candidates", candidateId);
+const S5_CANDIDATE_ID = "20260921-041426-cd81398e";
+const S5_GLB_SHA256 = "1108aa3e37615eef037984a0cdf80018b840a043c6e62f6750f828646b6b1ffb";
 const sha256 = (file) => crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
 const read = (file) => fs.readFileSync(file, "utf8");
 
+function readActivePreservedModel(configText) {
+  const active = configText.match(
+    /export const PRESERVED_RIDER_ACTIVE_MODEL:\s*PreservedRiderModelId\s*=\s*"([^"]+)"/,
+  );
+  assert.ok(active, "PRESERVED_RIDER_ACTIVE_MODEL literal");
+  const modelId = active[1];
+  const models = configText.match(/export const PRESERVED_RIDER_MODELS = \{([\s\S]*?)\}\s*as const;/);
+  assert.ok(models, "PRESERVED_RIDER_MODELS block");
+  const entry = models[1].match(
+    new RegExp(`(?:^|\\n)\\s*${modelId}:\\s*\\{[^}]*candidateId:\\s*"([^"]+)"`),
+  );
+  assert.ok(entry, `candidateId for active model ${modelId}`);
+  return { modelId, candidateId: entry[1] };
+}
+
 test("approved candidate assets are staged byte-for-byte", () => {
+  const config = read(path.join(webRoot, "src", "lib", "riderPrototype", "config.ts"));
+  const active = readActivePreservedModel(config);
+  assert.equal(active.modelId, "rider14");
+  assert.equal(active.candidateId, "20261015-212136-df8de090");
+
+  const candidateDir = path.join(
+    webRoot,
+    "public",
+    "rider",
+    "preserved",
+    "candidates",
+    active.candidateId,
+  );
   const candidate = JSON.parse(read(path.join(candidateDir, "candidate.json")));
-  assert.equal(candidate.candidateId, candidateId);
+  assert.equal(candidate.candidateId, active.candidateId);
   assert.equal(candidate.status, "APP_APPROVED_PRODUCT_ACTIVE");
   assert.equal(sha256(path.join(candidateDir, "rider.glb")), candidate.sourceGlbSha256);
   assert.equal(candidate.stagedGlbSha256, candidate.sourceGlbSha256);
   assert.equal(sha256(path.join(candidateDir, "guide-weights.json")), candidate.guideRuntimeSha256);
-  assert.match(candidate.pedalReportSha256, /^[a-f0-9]{64}$/);
+  if (candidate.schemaVersion === 1) {
+    assert.match(candidate.pedalReportSha256, /^[a-f0-9]{64}$/);
+  } else if (candidate.schemaVersion === 2) {
+    assert.equal(candidate.geometryEquivalentTo, S5_CANDIDATE_ID);
+    assert.equal(fs.existsSync(path.join(here, "rider14-equivalence.test.ts")), true);
+  } else {
+    assert.fail(`unexpected schemaVersion ${candidate.schemaVersion}`);
+  }
+});
+
+test("s5 rollback candidate stays byte-stable", () => {
+  const candidateDir = path.join(
+    webRoot,
+    "public",
+    "rider",
+    "preserved",
+    "candidates",
+    S5_CANDIDATE_ID,
+  );
+  assert.equal(fs.existsSync(candidateDir), true);
+  for (const name of ["rider.glb", "guide-weights.json", "candidate.json"]) {
+    assert.equal(fs.existsSync(path.join(candidateDir, name)), true, name);
+  }
+  assert.equal(sha256(path.join(candidateDir, "rider.glb")), S5_GLB_SHA256);
 });
 
 test("preserved mode stays isolated from the product GLB", () => {
