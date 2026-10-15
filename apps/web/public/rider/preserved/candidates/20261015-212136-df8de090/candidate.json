@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 2,
+  "candidateId": "20261015-212136-df8de090",
+  "nickname": "rider14",
+  "modelProfile": "rider14",
+  "stage": "APP_CUSTOM_LAYER_CANDIDATE",
+  "status": "APP_APPROVED_PRODUCT_ACTIVE",
+  "appApprovedAtKst": "2026-10-16",
+  "appApprovalTarget": "rider-perf-bench.html (P4 G4) + local app",
+  "stagedAtKst": "2026-10-15T21:21:36+09:00",
+  "sourceGlbPath": "C:\\Users\\kdrea\\OneDrive\\Documents\\img\\helmet_fix\\revision\\20260919-natural_joint_skin\\20261015_01-s6-poly-drawcall-reduction\\out\\rider_s6_LOD0_meshopt.glb",
+  "sourceGlbSha256": "df8de090b068f1a8734482ae5698bd578140b387fd3eb1947fd9839d5e4fe54d",
+  "stagedGlbSha256": "df8de090b068f1a8734482ae5698bd578140b387fd3eb1947fd9839d5e4fe54d",
+  "upstreamSourceSha256": "aeefb4d246b815a2391cbf80c0778bfb80cc8f66fa09f7385684bba8d2c8bc70",
+  "geometryEquivalentTo": "20260921-041426-cd81398e",
+  "guideRuntimeSha256": "136895c8d9b8bd29e47b0a53ac10a0f8443e93240eb2578330da0581ee840dca",
+  "compression": "EXT_meshopt_compression+KHR_mesh_quantization",
+  "files": {
+    "glb": "rider.glb",
+    "guideWeights": "guide-weights.json"
+  }
+}
