@@ -240,13 +240,30 @@ export function viewportPxFromMap(map: MapboxMap): { width: number; height: numb
   };
 }
 
+/**
+ * 주행 추적 구도가 쓰는 안전 영역 높이 = 뷰포트 높이 × 이 비율.
+ *
+ * 종전에는 고정 172 px(`RIDE_HUD_SAFE_PADDING` 세로 합)을 뺐다. 폰 가로(CSS 높이 ~355 px)에서는
+ * 그게 화면의 절반이라, 같은 QC 거리 9.4 m 가 PC 창(760 px)에서는 카메라 ~27 m, 폰에서는
+ * ~40 m 로 벌어지고 라이더도 화면 위로 올라갔다(2026-10-15 Chief). 비율로 두면 기기와 무관하게
+ * 같은 구도다. 0.77 = PC 창 760 px 에서 종전 값((760-172)/760)과 같아지는 비율.
+ */
+export const RIDE_FOLLOW_SAFE_HEIGHT_RATIO = 0.77;
+
+/**
+ * 주행 추적 구도는 지도 padding 0 을 전제한다. 경로 맞춤(`fitBounds`)의 padding 이 지도에 남으면
+ * 화면 중심이 (bottom−top)/2 px 위로 올라간다 — 폰 가로에서 ~28 px(8 %)라 라이더가 PC 보다
+ * 위에 놓였다(2026-10-15 실측 top 42·bottom 99). 추적 카메라는 이 값으로 지운다.
+ */
+export const RIDE_FOLLOW_NO_PADDING = { top: 0, bottom: 0, left: 0, right: 0 } as const;
+
 export function rideSafeViewportPx(viewportWidthPx: number, viewportHeightPx: number): {
   width: number;
   height: number;
 } {
   return {
     width: Math.max(1, viewportWidthPx - RIDE_HUD_SAFE_PADDING.left - RIDE_HUD_SAFE_PADDING.right),
-    height: Math.max(1, viewportHeightPx - RIDE_HUD_SAFE_PADDING.top - RIDE_HUD_SAFE_PADDING.bottom),
+    height: Math.max(1, viewportHeightPx * RIDE_FOLLOW_SAFE_HEIGHT_RATIO),
   };
 }
 

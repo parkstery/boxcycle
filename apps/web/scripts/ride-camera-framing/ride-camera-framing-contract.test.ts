@@ -12,7 +12,7 @@ import { describe, it } from "node:test";
 import {
   RIDER_HEAD_C_Y_M,
   RIDER_PELVIS_Y_M,
-  RIDE_HUD_SAFE_PADDING,
+  RIDE_FOLLOW_SAFE_HEIGHT_RATIO,
   RIDE_LOOKAT_SPAN_RATIO,
   RIDE_RIDER_SCREEN_ANCHOR,
   computeRideFollowFraming,
@@ -75,8 +75,16 @@ describe("M0 · 시험 자가 검산", () => {
 
   it("안전영역 세로가 뷰포트보다 좁다", () => {
     const safe = rideSafeViewportPx(1280, 900);
-    assert.equal(safe.height, 900 - RIDE_HUD_SAFE_PADDING.top - RIDE_HUD_SAFE_PADDING.bottom);
+    assert.equal(safe.height, 900 * RIDE_FOLLOW_SAFE_HEIGHT_RATIO);
     assert.ok(safe.height > 0 && safe.height < 900);
+  });
+
+  it("안전영역 세로는 뷰포트 높이에 비례한다 — 폰 가로와 PC 창이 같은 구도(2026-10-15)", () => {
+    const phone = rideSafeViewportPx(891, 355);
+    const pc = rideSafeViewportPx(1536, 760);
+    assert.ok(Math.abs(phone.height / 355 - pc.height / 760) < 1e-9);
+    // 종전 고정 172px 이었다면 폰은 0.52, PC 는 0.77 로 갈렸다 — 비교가 공허하지 않음을 확인
+    assert.ok(Math.abs((355 - 172) / 355 - (760 - 172) / 760) > 0.2);
   });
 });
 

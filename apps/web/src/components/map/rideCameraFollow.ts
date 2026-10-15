@@ -6,7 +6,11 @@ import {
 } from "../../lib/geo/geo";
 import type { FollowMode } from "../../lib/map/mapGlobeView";
 import { resolveRideCameraPitchClose } from "../../lib/map/mapGlobeView";
-import { computeRideFollowFraming, viewportPxFromMap } from "../../lib/camera/rideCameraFraming";
+import {
+  computeRideFollowFraming,
+  RIDE_FOLLOW_NO_PADDING,
+  viewportPxFromMap,
+} from "../../lib/camera/rideCameraFraming";
 import type { RideSpanFloorMode } from "../../lib/camera/rideCameraFraming";
 import {
   beginFollowCameraJump,
@@ -450,11 +454,14 @@ export function applyFollowCameraJumpTo(map: mapboxgl.Map, jump: FollowCameraJum
   beginFollowCameraJump();
   noteFollowJumpTo();
   try {
+    const pad = map.getPadding();
+    const hasPadding = pad.top !== 0 || pad.bottom !== 0 || pad.left !== 0 || pad.right !== 0;
     map.jumpTo({
       center: jump.center,
       bearing: jump.bearing,
       pitch: jump.pitch,
       zoom: jump.zoom,
+      ...(hasPadding ? { padding: RIDE_FOLLOW_NO_PADDING } : {}),
     });
   } finally {
     endFollowCameraJump();

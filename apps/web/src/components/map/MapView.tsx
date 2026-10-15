@@ -136,6 +136,7 @@ function createFixedScaleBoxControl(): mapboxgl.IControl {
 }
 import {
   computeRideFollowFraming,
+  RIDE_FOLLOW_NO_PADDING,
   distanceMFromRideFollowZoom,
   measureRiderScreenDiag,
   publishRiderScreenDiag,
@@ -2846,6 +2847,7 @@ export function MapView({
         zoom: rideZoom,
         bearing: nextCamera.bearing,
         pitch: nextCamera.pitch,
+        padding: RIDE_FOLLOW_NO_PADDING,
       });
       const smooth = cameraSmoothRef.current;
       smooth.center = center;
