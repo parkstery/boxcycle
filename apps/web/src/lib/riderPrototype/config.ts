@@ -15,7 +15,7 @@ export type PreservedRiderModelId = "s5" | "rider14";
 
 export const PRESERVED_RIDER_MODELS = {
   s5: { candidateId: "20260921-041426-cd81398e", profile: "s5", nickname: "s5" },
-  rider14: { candidateId: "20261015-212136-df8de090", profile: "rider14", nickname: "rider14" },
+  rider14: { candidateId: "20261015-212136-df8de090", profile: "rider14", nickname: "rider14", lod2: "rider-lod2.glb" },
 } as const;
 
 /** 제품이 쓰는 모델. 롤백 = 이 한 줄을 "s5" 로. */
@@ -43,7 +43,9 @@ export const PRESERVED_RIDER_CANDIDATE_ID: string =
   PRESERVED_RIDER_MODELS[PRESERVED_RIDER_ACTIVE_MODEL].candidateId;
 export const PRESERVED_RIDER_CUSTOM_LAYER_ID = "boxcycle-rider-preserved-layer";
 
-export function preservedRiderAssetUrl(fileName: "rider.glb" | "guide-weights.json" | "candidate.json"): string {
+export function preservedRiderAssetUrl(
+  fileName: "rider.glb" | "rider-lod2.glb" | "guide-weights.json" | "candidate.json",
+): string {
   const baseRaw = import.meta.env.BASE_URL ?? "/";
   const base = baseRaw.endsWith("/") ? baseRaw : `${baseRaw}/`;
   const candidateId = PRESERVED_RIDER_MODELS[resolvePreservedRiderModel()].candidateId;

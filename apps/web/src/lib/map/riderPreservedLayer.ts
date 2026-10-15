@@ -5,7 +5,7 @@ import {
   measureRiderPose,
   measureRiderRenderFrame,
 } from "../debug/riderRenderCostProbe";
-import { shouldAnimateRiderPose } from "../rider/riderDetailLod";
+import { shouldAnimateRiderPose, shouldUseRiderLod2 } from "../rider/riderDetailLod";
 import { MercatorCoordinate } from "mapbox-gl";
 import {
   AmbientLight,
@@ -33,6 +33,7 @@ import {
   PreservedRiderRig,
   type PreservedGuideData,
 } from "../riderPrototype/preservedRiderRig";
+import { PreservedRiderStatic } from "../riderPrototype/preservedRiderStatic";
 import { getRiderModelProfile } from "../riderPrototype/riderModelProfile";
 import { computeRiderSway, RiderSwayEnvelope } from "../riderPrototype/riderSway";
 import {
@@ -76,11 +77,13 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
   private readonly camera = new Camera();
   private readonly riderRoot = new Group();
   private rig: PreservedRiderRig | null = null;
+  private lod2: PreservedRiderStatic | null = null;
   private specs: readonly RiderGlbModelSpec[] = [];
   private readonly swayEnvelope = new RiderSwayEnvelope();
   private generation = 0;
   private loadState: "idle" | "loading" | "ready" | "error" = "idle";
   private loadError: string | null = null;
+  private lod2State: "none" | "loading" | "ready" | "error" = "none";
 
   // 조절판이 강도·방향만 갱신할 수 있도록 광원 참조를 잡아 둔다(지시02 — 렌더 구조는 그대로).
   private readonly ambientLight = new AmbientLight(0xffffff, DEFAULT_AMBIENT_INTENSITY);
@@ -134,6 +137,8 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
     unregisterRiderLightLabTarget(this);
     this.rig?.dispose();
     this.rig = null;
+    this.lod2?.dispose();
+    this.lod2 = null;
     this.riderRoot.clear();
     this.renderer?.dispose();
     this.renderer = null;
@@ -147,12 +152,19 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
     this.map?.triggerRepaint();
   }
 
-  getDebugState(): { loadState: string; loadError: string | null; hasRig: boolean; hasSpec: boolean } {
+  getDebugState(): {
+    loadState: string;
+    loadError: string | null;
+    hasRig: boolean;
+    hasSpec: boolean;
+    lod2State: "none" | "loading" | "ready" | "error";
+  } {
     return {
       loadState: this.loadState,
       loadError: this.loadError,
       hasRig: this.rig != null,
       hasSpec: this.specs.length > 0,
+      lod2State: this.lod2State,
     };
   }
 
@@ -203,8 +215,18 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
       const yaw = (90 - spec.bearingDeg) * Math.PI / 180;
       const lean = (spec.leanDeg ?? 0) * Math.PI / 180;
       if (animatePose) measureRiderPose(() => rig.setPhase(spec.phaseRev ?? 0));
-      // 공용 rig 1개를 self/peer 순으로 그리므로, 그리기 직전에 컬러 키트와 흔들림만 맞춘다.
-      rig.setVisualKind(spec.kind ?? "self");
+      // 공용 rig 1개와 LOD2 정적 메시를 self/peer 순으로 그린다. 줌 < 19 이고 LOD2 가 있으면 정적 1콜.
+      const staticRider = this.lod2;
+      const useLod2 = shouldUseRiderLod2(this.lod2State === "ready" && staticRider != null, animatePose);
+      if (useLod2 && staticRider) {
+        rig.object.visible = false;
+        staticRider.object.visible = true;
+        staticRider.setVisualKind(spec.kind ?? "self");
+      } else {
+        if (staticRider) staticRider.object.visible = false;
+        rig.object.visible = true;
+        rig.setVisualKind(spec.kind ?? "self");
+      }
       const env = this.swayEnvelope.update(spec.id, spec.phaseRev ?? 0, nowMs, enabled);
       const sway = computeRiderSway(spec.phaseRev ?? 0, rig.crankPhaseR, env);
       rig.setSway({ shaderRollRad: sway.shaderRollRad, bobM: sway.bobM });
@@ -242,6 +264,9 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
         return;
       }
       this.rig?.dispose();
+      this.lod2?.dispose();
+      this.lod2 = null;
+      this.lod2State = "none";
       this.riderRoot.clear();
       this.rig = rig;
       this.riderRoot.add(rig.object);
@@ -249,10 +274,38 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
       if (this.specs[0]) rig.setPhase(this.specs[0].phaseRev ?? 0);
       this.loadState = "ready";
       this.map.triggerRepaint();
+      if ("lod2" in model) void this.loadLod2(generation, model.lod2);
     } catch (error) {
       this.loadState = "error";
       this.loadError = error instanceof Error ? error.message : String(error);
       if (import.meta.env.DEV) console.warn("[riderPreserved] candidate load failed", error);
+    }
+  }
+
+  /** LOD0 가 ready 인 뒤에만 호출한다. 실패해도 리그는 그대로 둔다. */
+  private async loadLod2(generation: number, fileName: "rider-lod2.glb"): Promise<void> {
+    this.lod2State = "loading";
+    try {
+      const loader = new GLTFLoader();
+      loader.setMeshoptDecoder(MeshoptDecoder);
+      const gltf = await loader.loadAsync(preservedRiderAssetUrl(fileName));
+      if (generation !== this.generation || !this.map) return;
+      const model = PRESERVED_RIDER_MODELS[resolvePreservedRiderModel()];
+      const staticRider = new PreservedRiderStatic(gltf.scene, getRiderModelProfile(model.profile));
+      if (generation !== this.generation || !this.map) {
+        staticRider.dispose();
+        return;
+      }
+      this.lod2?.dispose();
+      this.lod2 = staticRider;
+      staticRider.object.visible = false;
+      this.riderRoot.add(staticRider.object);
+      this.lod2State = "ready";
+      this.map.triggerRepaint();
+    } catch (error) {
+      if (generation !== this.generation) return;
+      this.lod2State = "error";
+      if (import.meta.env.DEV) console.warn("[riderPreserved] lod2 load failed", error);
     }
   }
 }
@@ -313,6 +366,7 @@ export function getRiderPreservedDebugState(map: MapboxMap): {
   loadError: string | null;
   hasRig: boolean;
   hasSpec: boolean;
+  lod2State: "none" | "loading" | "ready" | "error";
 } | null {
   return layerByMap.get(map)?.getDebugState() ?? null;
 }

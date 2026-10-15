@@ -83,8 +83,8 @@ export type TestGlb = {
   stripped: boolean;
 };
 
-export async function loadPreservedTestGlb(candidateId: string): Promise<TestGlb> {
-  const raw = fs.readFileSync(path.join(testCandidateDir(candidateId), "rider.glb"));
+export async function loadPreservedTestGlb(candidateId: string, fileName = "rider.glb"): Promise<TestGlb> {
+  const raw = fs.readFileSync(path.join(testCandidateDir(candidateId), fileName));
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
   const slice = (b: Buffer): ArrayBuffer =>
@@ -94,12 +94,12 @@ export async function loadPreservedTestGlb(candidateId: string): Promise<TestGlb
     return { scene: gltf.scene, stripped: false };
   } catch (error) {
     console.warn(
-      `[rider-test] ${candidateId}: parse with images failed (${error instanceof Error ? error.message : String(error)}), retrying with textures stripped`,
+      `[rider-test] ${candidateId}/${fileName}: parse with images failed (${error instanceof Error ? error.message : String(error)}), retrying with textures stripped`,
     );
     const gltf = await loader.parseAsync(slice(stripGlbTextures(raw)), "");
     for (const material of collectMaterials(gltf.scene)) {
       if (material.map === null) {
-        console.warn(`[rider-test] ${candidateId}: texture is null after strip fallback (allowed)`);
+        console.warn(`[rider-test] ${candidateId}/${fileName}: texture is null after strip fallback (allowed)`);
         break;
       }
     }

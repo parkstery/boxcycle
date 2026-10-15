@@ -17,6 +17,9 @@
   "compression": "EXT_meshopt_compression+KHR_mesh_quantization",
   "files": {
     "glb": "rider.glb",
-    "guideWeights": "guide-weights.json"
-  }
+    "guideWeights": "guide-weights.json",
+    "lod2": "rider-lod2.glb"
+  },
+  "lod2SourceSha256": "14c5956eb3a461e87c1e86df095be877e9e2645cbd3216ea55a0e8d3f5c10668",
+  "lod2StagedSha256": "14c5956eb3a461e87c1e86df095be877e9e2645cbd3216ea55a0e8d3f5c10668"
 }

@@ -157,6 +157,7 @@ const fixedPhase = ((queryNumber("phase", 45) % 360) + 360) % 360 / 360;
 let phaseRev = fixedPhase;
 let firstReadyMs: number | null = null;
 let lastLoadState = "idle";
+let lastLod2State: "none" | "loading" | "ready" | "error" = "none";
 let lastMeasureText = "-";
 
 const status = document.querySelector<HTMLElement>("#status")!;
@@ -205,6 +206,8 @@ function refreshPanel(): void {
         : "로드 중…";
   ridersEl.textContent = String(riderCount);
   phaseEl.textContent = `${Math.round(phaseRev * 360)}°`;
+  const lod2El = document.querySelector<HTMLElement>("#lod2");
+  if (lod2El) lod2El.textContent = lastLod2State;
   measureEl.textContent = `measure: ${lastMeasureText}`;
 }
 
@@ -223,6 +226,7 @@ function tick(now: number): void {
   const debug = getRiderPreservedDebugState(map);
   if (debug) {
     lastLoadState = debug.loadState;
+    lastLod2State = debug.lod2State;
     if (debug.loadState === "error") lastLoadState = "error";
     if (debug.loadState === "ready" && firstReadyMs == null) {
       firstReadyMs = performance.now();

@@ -68,7 +68,7 @@
     "test:peer-residual-jitter:mutation": "node scripts/peer-sync/residual-peer-jitter-mutation-failcheck.mjs",
     "test:peer-two-view": "node scripts/peer-sync/two-view-order-harness.mjs",
     "test:peer-common-display": "node scripts/peer-sync/common-display-product-harness.mjs",
-    "test:rider-preserve": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/rider-preserve/rider-visual-kit.test.ts scripts/rider-preserve/rider-model-profile.test.ts scripts/rider-preserve/rider-float32-bake.test.ts scripts/rider-preserve/rider-palette-kit.test.ts scripts/rider-preserve/rider14-equivalence.test.ts scripts/rider-preserve/rider-sway.test.ts && node --test scripts/rider-preserve/preserved-layer-contract.test.mjs",
+    "test:rider-preserve": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/rider-preserve/rider-visual-kit.test.ts scripts/rider-preserve/rider-model-profile.test.ts scripts/rider-preserve/rider-float32-bake.test.ts scripts/rider-preserve/rider-palette-kit.test.ts scripts/rider-preserve/rider14-equivalence.test.ts scripts/rider-preserve/rider-sway.test.ts scripts/rider-preserve/rider-lod2.test.ts && node --test scripts/rider-preserve/preserved-layer-contract.test.mjs",
     "test:entry-selectors": "node scripts/ride-verify/verify-selectors.mjs",
     "test:conquest-cells": "node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/conquest/cell-id-vectors.test.ts",
     "test:e2e:ride-continuation": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test ride-continuation --workers=1 --retries=0\"",

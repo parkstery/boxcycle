@@ -55,6 +55,11 @@ test("approved candidate assets are staged byte-for-byte", () => {
   } else {
     assert.fail(`unexpected schemaVersion ${candidate.schemaVersion}`);
   }
+  if (candidate.files && candidate.files.lod2) {
+    const lod2Sha = sha256(path.join(candidateDir, candidate.files.lod2));
+    assert.equal(lod2Sha, candidate.lod2StagedSha256);
+    assert.equal(candidate.lod2StagedSha256, candidate.lod2SourceSha256);
+  }
 });
 
 test("s5 rollback candidate stays byte-stable", () => {

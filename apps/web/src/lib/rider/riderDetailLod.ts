@@ -41,3 +41,11 @@ export function shouldAnimateRiderPose(
   if (typeof zoom !== "number" || !Number.isFinite(zoom)) return true;
   return zoom >= minZoom;
 }
+
+/**
+ * 원거리에서 LOD2 정적 메시를 쓸지.
+ * 자세를 새로 푸는 줌(`animatePose`)이면 LOD0 리그를 유지한다.
+ */
+export function shouldUseRiderLod2(lod2Ready: boolean, animatePose: boolean): boolean {
+  return lod2Ready && !animatePose;
+}
