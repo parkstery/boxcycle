@@ -1,3 +1,5 @@
+2026-10-16 LOD2·코너 회전: main2 4a35e3f 병합·푸시(게이트 통과, test:quick 1121/0). 운영 배포는 Chief 지시 대기. 미리보기 combo https://boxcycle-dc2df--combo-h77n72cf.web.app.
+
 2026-10-16 rider14 흔들림 배포: main2 8c9763f 푸시·운영 hosting 배포, 어깨 1.0°·자전거 0.4°·상하 2mm. 롤백=riderModelProfile rider14 supportsSway=false. 다음 LOD1·LOD2(P8).
 
 2026-10-16 rider14 배포: main2 8c0587d 푸시·운영 hosting 배포 완료, 운영 라이더 rider14(1명당 14콜, 자산 476KB). 롤백=config.ts ACTIVE_MODEL 한 줄. 다음 묶음 흔들림(P9)→LOD(P8).
