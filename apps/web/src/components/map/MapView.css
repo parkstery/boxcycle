@@ -346,8 +346,8 @@
   align-items: center;
   justify-content: flex-start;
   width: 100%;
-  min-height: 24px;
-  height: 24px;
+  min-height: 16.8px;
+  height: 16.8px;
   padding: 0;
   margin: 0;
   background: transparent;
@@ -369,7 +369,7 @@
 
 .map-view__pick .map-view__pick-caret-ico {
   width: 20px;
-  height: 20px;
+  height: 14px;
   display: block;
   flex-shrink: 0;
 }
