@@ -1,3 +1,5 @@
+2026-10-16 rider14 흔들림 배포: main2 8c9763f 푸시·운영 hosting 배포, 어깨 1.0°·자전거 0.4°·상하 2mm. 롤백=riderModelProfile rider14 supportsSway=false. 다음 LOD1·LOD2(P8).
+
 2026-10-16 rider14 배포: main2 8c0587d 푸시·운영 hosting 배포 완료, 운영 라이더 rider14(1명당 14콜, 자산 476KB). 롤백=config.ts ACTIVE_MODEL 한 줄. 다음 묶음 흔들림(P9)→LOD(P8).
 
 2026-10-16 rider14: 제품 라이더 s5→rider14 교체 브랜치 rider14-replace 커밋·G0~G6 APPROVED/병합·배포 Chief지시대기. 1명당 213→14콜, 자산 1.98MB→476KB, ms/rider −35~−85%, 폰 미리보기 Chief확인. 보고 document/archive/261016-RTW-라이더-rider14-교체-완료보고.md.

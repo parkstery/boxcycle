@@ -92,6 +92,7 @@ Supervisor는 아키텍처, 도메인 경계, 데이터 모델, Firestore·RTDB�
 
 | 폴더 | 상태 | 무엇 | 결과·입구 | 이동 |
 |---|---|---|---|---|
+| [20261016-rider14-sway](20261016-rider14-sway/README.md) | **DONE** · 2026-10-16 운영 배포 | rider14 페달링 흔들림(어깨 1.0°·자전거 0.4°·상하 2 mm). Supervisor Claude · Developer Cursor | [계획](20261016-rider14-sway/01-plan.md) | — |
 | [20261015-rider14-replace](20261015-rider14-replace/README.md) | **DONE** · 2026-10-16 운영 배포 | 라이더 s5 → 경량 rider14 교체(드로우콜 213→14, 자산 1.98 MB→476 KB). Supervisor Claude · Developer Muse Spark→Cursor | [계획](20261015-rider14-replace/01-plan.md) | [완료 보고](../archive/261016-RTW-라이더-rider14-교체-완료보고.md) |
 | [20261013-face-redesign2](20261013-face-redesign2/README.md) | **APPROVED** · 로컬main2 통합 | 디자인수정 완료·병합83079c3·quick1066 PASS | [검수65](20261013-face-redesign2/04-review-65.md) | 실기기/실인증/실주행 검증 별도 |
 | [20261009-mobile-design-collaboration](20261009-mobile-design-collaboration/README.md) | **AWAITING_CHIEF** · 확장 05 · 준비·센서 패널 | 스마트폰 우선 디자인·Muse / Cursor 협업 체계, 코드 작성 금지 | [디자인 초안](20261009-mobile-design-collaboration/17-design-preparation-sensor.md) · [인계 검수](20261009-mobile-design-collaboration/04-review-01.md) | — |
