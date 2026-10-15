@@ -1,0 +1,483 @@
+{
+  "tag": "after",
+  "baseUrl": "http://127.0.0.1:5014",
+  "viewports": {
+    "800x360": {
+      "viewport": {
+        "name": "800x360",
+        "width": 800,
+        "height": 360
+      },
+      "shots": {
+        "01-before-pin": "document\\ops\\20261013-face-redesign2\\evidence\\after-800x360-01-before-pin.png",
+        "02-after-pin": "document\\ops\\20261013-face-redesign2\\evidence\\after-800x360-02-after-pin.png",
+        "03-distance-on": "document\\ops\\20261013-face-redesign2\\evidence\\after-800x360-03-distance-on.png",
+        "04-profile-cycling": "document\\ops\\20261013-face-redesign2\\evidence\\after-800x360-04-profile-cycling.png"
+      },
+      "rects": {
+        "before-pin": {
+          "panel": {
+            "x": 369.58,
+            "y": 61.61,
+            "width": 220.84,
+            "height": 89.39
+          },
+          "scrollW": 221,
+          "scrollH": 89,
+          "bg": "rgba(0, 0, 0, 0)",
+          "color": "rgb(31, 41, 55)",
+          "children": {
+            "map-view__pick-drag-handle": {
+              "box": {
+                "x": 377,
+                "y": 67.67,
+                "width": 206,
+                "height": 51.17
+              },
+              "scrollW": 206,
+              "scrollH": 51
+            },
+            "map-view__pick-actions": {
+              "box": {
+                "x": 377,
+                "y": 123.97,
+                "width": 206,
+                "height": 20.28
+              },
+              "scrollW": 206,
+              "scrollH": 20
+            },
+            "map-view__pick-profile-section": {
+              "box": {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0
+              },
+              "scrollW": 0,
+              "scrollH": 0
+            },
+            "map-view__pick-auto-route": {
+              "box": {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0
+              },
+              "scrollW": 0,
+              "scrollH": 0
+            }
+          }
+        },
+        "after-pin": {
+          "panel": {
+            "x": 583,
+            "y": 139,
+            "width": 207.84,
+            "height": 211.97
+          },
+          "scrollW": 208,
+          "scrollH": 212,
+          "bg": "rgba(0, 0, 0, 0)",
+          "color": "rgb(31, 41, 55)",
+          "children": {
+            "map-view__pick-drag-handle": {
+              "box": {
+                "x": 590.42,
+                "y": 145.06,
+                "width": 193,
+                "height": 51.17
+              },
+              "scrollW": 193,
+              "scrollH": 51
+            },
+            "map-view__pick-actions": {
+              "box": {
+                "x": 590.42,
+                "y": 201.36,
+                "width": 193,
+                "height": 20.28
+              },
+              "scrollW": 193,
+              "scrollH": 20
+            },
+            "map-view__pick-profile-section": {
+              "box": {
+                "x": 590.42,
+                "y": 224.61,
+                "width": 193,
+                "height": 31.72
+              },
+              "scrollW": 193,
+              "scrollH": 32
+            },
+            "map-view__pick-auto-route": {
+              "box": {
+                "x": 590.42,
+                "y": 258.48,
+                "width": 193,
+                "height": 85.73
+              },
+              "scrollW": 193,
+              "scrollH": 85
+            }
+          }
+        },
+        "distance-on": {
+          "panel": {
+            "x": 583,
+            "y": 139,
+            "width": 207.84,
+            "height": 211.97
+          },
+          "scrollW": 208,
+          "scrollH": 212,
+          "bg": "rgba(0, 0, 0, 0)",
+          "color": "rgb(31, 41, 55)",
+          "children": {
+            "map-view__pick-drag-handle": {
+              "box": {
+                "x": 590.42,
+                "y": 145.06,
+                "width": 193,
+                "height": 51.17
+              },
+              "scrollW": 193,
+              "scrollH": 51
+            },
+            "map-view__pick-actions": {
+              "box": {
+                "x": 590.42,
+                "y": 201.36,
+                "width": 193,
+                "height": 20.28
+              },
+              "scrollW": 193,
+              "scrollH": 20
+            },
+            "map-view__pick-profile-section": {
+              "box": {
+                "x": 590.42,
+                "y": 224.61,
+                "width": 193,
+                "height": 31.72
+              },
+              "scrollW": 193,
+              "scrollH": 32
+            },
+            "map-view__pick-auto-route": {
+              "box": {
+                "x": 590.42,
+                "y": 258.48,
+                "width": 193,
+                "height": 85.73
+              },
+              "scrollW": 193,
+              "scrollH": 85
+            }
+          }
+        },
+        "profile-cycling": {
+          "panel": {
+            "x": 583,
+            "y": 139,
+            "width": 207.84,
+            "height": 211.97
+          },
+          "scrollW": 208,
+          "scrollH": 212,
+          "bg": "rgba(0, 0, 0, 0)",
+          "color": "rgb(31, 41, 55)",
+          "children": {
+            "map-view__pick-drag-handle": {
+              "box": {
+                "x": 590.42,
+                "y": 145.06,
+                "width": 193,
+                "height": 51.17
+              },
+              "scrollW": 193,
+              "scrollH": 51
+            },
+            "map-view__pick-actions": {
+              "box": {
+                "x": 590.42,
+                "y": 201.36,
+                "width": 193,
+                "height": 20.28
+              },
+              "scrollW": 193,
+              "scrollH": 20
+            },
+            "map-view__pick-profile-section": {
+              "box": {
+                "x": 590.42,
+                "y": 224.61,
+                "width": 193,
+                "height": 31.72
+              },
+              "scrollW": 193,
+              "scrollH": 32
+            },
+            "map-view__pick-auto-route": {
+              "box": {
+                "x": 590.42,
+                "y": 258.48,
+                "width": 193,
+                "height": 85.73
+              },
+              "scrollW": 193,
+              "scrollH": 85
+            }
+          }
+        }
+      },
+      "failed": null,
+      "profileActive": {
+        "cls": "map-view__pick-btn map-view__pick-btn--profile is-active",
+        "bg": "rgb(29, 78, 216)",
+        "color": "rgb(255, 255, 255)",
+        "border": "rgb(29, 78, 216)"
+      }
+    },
+    "667x300": {
+      "viewport": {
+        "name": "667x300",
+        "width": 667,
+        "height": 300
+      },
+      "shots": {
+        "01-before-pin": "document\\ops\\20261013-face-redesign2\\evidence\\after-667x300-01-before-pin.png",
+        "02-after-pin": "document\\ops\\20261013-face-redesign2\\evidence\\after-667x300-02-after-pin.png",
+        "03-distance-on": "document\\ops\\20261013-face-redesign2\\evidence\\after-667x300-03-distance-on.png",
+        "04-profile-cycling": "document\\ops\\20261013-face-redesign2\\evidence\\after-667x300-04-profile-cycling.png"
+      },
+      "rects": {
+        "before-pin": {
+          "panel": {
+            "x": 281.08,
+            "y": 31.61,
+            "width": 237.84,
+            "height": 89.39
+          },
+          "scrollW": 238,
+          "scrollH": 89,
+          "bg": "rgba(0, 0, 0, 0)",
+          "color": "rgb(31, 41, 55)",
+          "children": {
+            "map-view__pick-drag-handle": {
+              "box": {
+                "x": 288.5,
+                "y": 37.67,
+                "width": 223,
+                "height": 51.17
+              },
+              "scrollW": 223,
+              "scrollH": 51
+            },
+            "map-view__pick-actions": {
+              "box": {
+                "x": 288.5,
+                "y": 93.97,
+                "width": 223,
+                "height": 20.28
+              },
+              "scrollW": 223,
+              "scrollH": 20
+            },
+            "map-view__pick-profile-section": {
+              "box": {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0
+              },
+              "scrollW": 0,
+              "scrollH": 0
+            },
+            "map-view__pick-auto-route": {
+              "box": {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0
+              },
+              "scrollW": 0,
+              "scrollH": 0
+            }
+          }
+        },
+        "after-pin": {
+          "panel": {
+            "x": 221.5,
+            "y": 81,
+            "width": 223.84,
+            "height": 210
+          },
+          "scrollW": 224,
+          "scrollH": 212,
+          "bg": "rgba(0, 0, 0, 0)",
+          "color": "rgb(31, 41, 55)",
+          "children": {
+            "map-view__pick-drag-handle": {
+              "box": {
+                "x": 228.92,
+                "y": 87.06,
+                "width": 209,
+                "height": 51.17
+              },
+              "scrollW": 209,
+              "scrollH": 51
+            },
+            "map-view__pick-actions": {
+              "box": {
+                "x": 228.92,
+                "y": 143.36,
+                "width": 209,
+                "height": 20.28
+              },
+              "scrollW": 209,
+              "scrollH": 20
+            },
+            "map-view__pick-profile-section": {
+              "box": {
+                "x": 228.92,
+                "y": 166.61,
+                "width": 209,
+                "height": 31.72
+              },
+              "scrollW": 209,
+              "scrollH": 32
+            },
+            "map-view__pick-auto-route": {
+              "box": {
+                "x": 228.92,
+                "y": 200.48,
+                "width": 209,
+                "height": 85.73
+              },
+              "scrollW": 209,
+              "scrollH": 85
+            }
+          }
+        },
+        "distance-on": {
+          "panel": {
+            "x": 221.5,
+            "y": 81,
+            "width": 223.84,
+            "height": 210
+          },
+          "scrollW": 224,
+          "scrollH": 212,
+          "bg": "rgba(0, 0, 0, 0)",
+          "color": "rgb(31, 41, 55)",
+          "children": {
+            "map-view__pick-drag-handle": {
+              "box": {
+                "x": 228.92,
+                "y": 87.06,
+                "width": 209,
+                "height": 51.17
+              },
+              "scrollW": 209,
+              "scrollH": 51
+            },
+            "map-view__pick-actions": {
+              "box": {
+                "x": 228.92,
+                "y": 143.36,
+                "width": 209,
+                "height": 20.28
+              },
+              "scrollW": 209,
+              "scrollH": 20
+            },
+            "map-view__pick-profile-section": {
+              "box": {
+                "x": 228.92,
+                "y": 166.61,
+                "width": 209,
+                "height": 31.72
+              },
+              "scrollW": 209,
+              "scrollH": 32
+            },
+            "map-view__pick-auto-route": {
+              "box": {
+                "x": 228.92,
+                "y": 200.48,
+                "width": 209,
+                "height": 85.73
+              },
+              "scrollW": 209,
+              "scrollH": 85
+            }
+          }
+        },
+        "profile-cycling": {
+          "panel": {
+            "x": 221.5,
+            "y": 81,
+            "width": 223.84,
+            "height": 210
+          },
+          "scrollW": 224,
+          "scrollH": 212,
+          "bg": "rgba(0, 0, 0, 0)",
+          "color": "rgb(31, 41, 55)",
+          "children": {
+            "map-view__pick-drag-handle": {
+              "box": {
+                "x": 228.92,
+                "y": 87.06,
+                "width": 209,
+                "height": 51.17
+              },
+              "scrollW": 209,
+              "scrollH": 51
+            },
+            "map-view__pick-actions": {
+              "box": {
+                "x": 228.92,
+                "y": 143.36,
+                "width": 209,
+                "height": 20.28
+              },
+              "scrollW": 209,
+              "scrollH": 20
+            },
+            "map-view__pick-profile-section": {
+              "box": {
+                "x": 228.92,
+                "y": 166.61,
+                "width": 209,
+                "height": 31.72
+              },
+              "scrollW": 209,
+              "scrollH": 32
+            },
+            "map-view__pick-auto-route": {
+              "box": {
+                "x": 228.92,
+                "y": 200.48,
+                "width": 209,
+                "height": 85.73
+              },
+              "scrollW": 209,
+              "scrollH": 85
+            }
+          }
+        }
+      },
+      "failed": null,
+      "profileActive": {
+        "cls": "map-view__pick-btn map-view__pick-btn--profile is-active",
+        "bg": "rgb(29, 78, 216)",
+        "color": "rgb(255, 255, 255)",
+        "border": "rgb(29, 78, 216)"
+      }
+    }
+  },
+  "consoleErrors": []
+}
