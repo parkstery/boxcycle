@@ -133,6 +133,12 @@ const pitch = queryNumber("pitch", 67);
 const bearing = queryNumber("bearing", -32);
 let riderCount = Math.max(0, Math.min(3, Math.round(queryNumber("riders", 3))));
 const animate = queryNumber("animate", 1) !== 0;
+/**
+ * `swayHold=1` 이고 정지면, 위상은 그대로 두고 프레임 홀짝으로 1e-9 만 흔든다.
+ * envelope 은 위상이 바뀌는 동안 1 로 가므로, 정지 캡처에서도 흔들림이 보인다.
+ */
+const swayHold = !animate && queryNumber("swayHold", 0) !== 0;
+let swayHoldParity = 0;
 
 mapboxgl.accessToken = MAPBOX_TOKEN;
 const map = new mapboxgl.Map({
@@ -179,6 +185,13 @@ function buildSpecs(n: number, p: number): RiderGlbModelSpec[] {
   return all.slice(0, Math.max(0, Math.min(3, n)));
 }
 
+/** animate=0 이면 고정 위상. swayHold 이면 그 위상에 홀짝 1e-9 를 더한다. */
+function displayedPhase(): number {
+  if (animate) return phaseRev;
+  if (!swayHold) return fixedPhase;
+  return fixedPhase + 1e-9 * (swayHoldParity & 1);
+}
+
 function refreshPanel(): void {
   const model = PRESERVED_RIDER_MODELS[resolvePreservedRiderModel()];
   const candidateEl = document.querySelector("#panel code");
@@ -186,7 +199,7 @@ function refreshPanel(): void {
   status.dataset.state = lastLoadState;
   status.textContent =
     lastLoadState === "ready"
-      ? `READY — riders=${riderCount} animate=${animate ? 1 : 0}`
+      ? `READY — riders=${riderCount} animate=${animate ? 1 : 0} swayHold=${swayHold ? 1 : 0}`
       : lastLoadState === "error"
         ? "ERROR — 라이더 자산 로드 실패"
         : "로드 중…";
@@ -202,8 +215,11 @@ function tick(now: number): void {
   if (animate) {
     phaseRev = (phaseRev + (dt * 75) / 60) % 1;
     map.triggerRepaint();
+  } else if (swayHold) {
+    swayHoldParity += 1;
+    map.triggerRepaint();
   }
-  syncRiderPreservedModels(map, buildSpecs(riderCount, animate ? phaseRev : fixedPhase));
+  syncRiderPreservedModels(map, buildSpecs(riderCount, displayedPhase()));
   const debug = getRiderPreservedDebugState(map);
   if (debug) {
     lastLoadState = debug.loadState;
@@ -217,7 +233,7 @@ function tick(now: number): void {
 }
 
 map.on("style.load", () => {
-  syncRiderPreservedModels(map, buildSpecs(riderCount, animate ? phaseRev : fixedPhase));
+  syncRiderPreservedModels(map, buildSpecs(riderCount, displayedPhase()));
 });
 map.on("load", () => requestAnimationFrame(tick));
 
@@ -292,7 +308,7 @@ window.__rtwBench = {
   },
   setRiders: (n: number) => {
     riderCount = Math.max(0, Math.min(3, Math.round(n)));
-    syncRiderPreservedModels(map, buildSpecs(riderCount, animate ? phaseRev : fixedPhase));
+    syncRiderPreservedModels(map, buildSpecs(riderCount, displayedPhase()));
     map.triggerRepaint();
     refreshPanel();
   },

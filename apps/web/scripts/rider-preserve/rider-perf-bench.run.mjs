@@ -29,7 +29,9 @@ for (const candidate of BASES) {
   }
 }
 console.log(`base=${BASE}`);
-console.log(`out=${path.basename(outDir)} model=${process.env.RTW_BENCH_MODEL || ""}`);
+console.log(
+  `out=${path.basename(outDir)} model=${process.env.RTW_BENCH_MODEL || ""} extra=${process.env.RTW_BENCH_EXTRA || ""}`,
+);
 // 줌 단위 분할 실행용: RTW_BENCH_ZOOMS="22,19" / RTW_BENCH_SKIP_READY=1
 // (메모리 부족 등으로 중단될 때 남은 줌만 이어서 돌린다. 기본값은 전체·전체.)
 const ZOOMS = (process.env.RTW_BENCH_ZOOMS ?? "22,19,17,15")
@@ -42,10 +44,12 @@ const COST_FRAMES = 240;
 
 function benchUrl(zoom, riders, animate) {
   const model = process.env.RTW_BENCH_MODEL;
+  const extra = process.env.RTW_BENCH_EXTRA || "";
   return (
     `${BASE}/scripts/rider-preserve/rider-perf-bench.html` +
     `?zoom=${zoom}&pitch=67&bearing=-32&riders=${riders}&animate=${animate}` +
-    (model ? `&riderModel=${model}` : "")
+    (model ? `&riderModel=${model}` : "") +
+    extra
   );
 }
 
