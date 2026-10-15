@@ -11,13 +11,34 @@ export function isRiderPrototype3dMode(mode: RiderPrototypeMode): boolean {
   return mode === "glb" || mode === "preserved";
 }
 
-export const PRESERVED_RIDER_CANDIDATE_ID = "20260921-041426-cd81398e";
+export type PreservedRiderModelId = "s5" | "rider14";
+
+export const PRESERVED_RIDER_MODELS = {
+  s5: { candidateId: "20260921-041426-cd81398e", profile: "s5", nickname: "s5" },
+  rider14: { candidateId: "20261015-212136-df8de090", profile: "rider14", nickname: "rider14" },
+} as const;
+
+/** 제품이 쓰는 모델. 롤백 = 이 한 줄을 "s5" 로. */
+export const PRESERVED_RIDER_ACTIVE_MODEL: PreservedRiderModelId = "s5";
+
+export function resolvePreservedRiderModel(): PreservedRiderModelId {
+  if (typeof window === "undefined") return PRESERVED_RIDER_ACTIVE_MODEL;
+  const dev = import.meta.env.DEV;
+  if (dev === false) return PRESERVED_RIDER_ACTIVE_MODEL;
+  const raw = new URLSearchParams(window.location.search).get("riderModel");
+  if (raw === "s5" || raw === "rider14") return raw;
+  return PRESERVED_RIDER_ACTIVE_MODEL;
+}
+
+export const PRESERVED_RIDER_CANDIDATE_ID: string =
+  PRESERVED_RIDER_MODELS[PRESERVED_RIDER_ACTIVE_MODEL].candidateId;
 export const PRESERVED_RIDER_CUSTOM_LAYER_ID = "boxcycle-rider-preserved-layer";
 
 export function preservedRiderAssetUrl(fileName: "rider.glb" | "guide-weights.json" | "candidate.json"): string {
   const baseRaw = import.meta.env.BASE_URL ?? "/";
   const base = baseRaw.endsWith("/") ? baseRaw : `${baseRaw}/`;
-  return `${base}rider/preserved/candidates/${PRESERVED_RIDER_CANDIDATE_ID}/${fileName}`;
+  const candidateId = PRESERVED_RIDER_MODELS[resolvePreservedRiderModel()].candidateId;
+  return `${base}rider/preserved/candidates/${candidateId}/${fileName}`;
 }
 
 export function riderPrototypeGlbUrl(): string {

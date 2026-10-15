@@ -20,15 +20,19 @@ import {
   WebGLRenderer,
 } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import type { RiderGlbModelSpec } from "../riderPrototype/iso2dMarker";
 import {
   PRESERVED_RIDER_CUSTOM_LAYER_ID,
+  PRESERVED_RIDER_MODELS,
   preservedRiderAssetUrl,
+  resolvePreservedRiderModel,
 } from "../riderPrototype/config";
 import {
   PreservedRiderRig,
   type PreservedGuideData,
 } from "../riderPrototype/preservedRiderRig";
+import { getRiderModelProfile } from "../riderPrototype/riderModelProfile";
 import {
   DEFAULT_AMBIENT_INTENSITY,
   DEFAULT_HEMISPHERE_INTENSITY,
@@ -200,6 +204,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
   private async loadApprovedCandidate(generation: number): Promise<void> {
     try {
       const loader = new GLTFLoader();
+      loader.setMeshoptDecoder(MeshoptDecoder);
       const [gltf, response] = await Promise.all([
         loader.loadAsync(preservedRiderAssetUrl("rider.glb")),
         fetch(preservedRiderAssetUrl("guide-weights.json")),
@@ -207,7 +212,8 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
       if (!response.ok) throw new Error(`guide weights ${response.status}`);
       const guides = await response.json() as PreservedGuideData;
       if (generation !== this.generation || !this.map) return;
-      const rig = new PreservedRiderRig(gltf.scene, guides);
+      const model = PRESERVED_RIDER_MODELS[resolvePreservedRiderModel()];
+      const rig = new PreservedRiderRig(gltf.scene, guides, getRiderModelProfile(model.profile));
       if (generation !== this.generation || !this.map) {
         rig.dispose();
         return;

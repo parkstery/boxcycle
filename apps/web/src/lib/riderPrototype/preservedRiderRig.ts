@@ -2,6 +2,7 @@ import {
   BufferAttribute,
   BufferGeometry,
   Group,
+  InterleavedBufferAttribute,
   Matrix4,
   Mesh,
   Object3D,
@@ -9,7 +10,7 @@ import {
   Vector3,
 } from "three";
 import type { RiderVisualKind } from "./iso2dMarker";
-import { applyRiderVisualKit } from "./riderVisualKit";
+import type { BakedMesh, RiderModelProfile, RiderVisualKit } from "./riderModelProfile";
 
 type Side = "R" | "L";
 type Vec3 = [number, number, number];
@@ -41,21 +42,6 @@ const RIG = {
   bb: [0, 0.267, 0] as Vec3,
   hubFront: [0.583, 0.336, 0] as Vec3,
   hubRear: [-0.412, 0.336, 0] as Vec3,
-  groups: {
-    crank: ["Mesh_44", "Mesh_45", "Mesh_46", "Mesh_47", "Mesh_50", "Mesh_51", "Mesh_56"],
-    pedalR: ["Mesh_48", "Mesh_49"],
-    pedalL: ["Mesh_52", "Mesh_53"],
-    footR: ["Mesh_157", "Mesh_158", "Mesh_159", "Mesh_160", "Mesh_161", "Mesh_162"],
-    footL: ["Mesh_167", "Mesh_168", "Mesh_169", "Mesh_170", "Mesh_171", "Mesh_172"],
-    legR: ["Right continuous knee skin", "Mesh_153", "Mesh_156"],
-    legL: ["Left continuous knee skin", "Mesh_163", "Mesh_166"],
-    wheelFront: ["Mesh_0", "Mesh_1", "Mesh_2", "Mesh_3", "Mesh_4", "Mesh_4.001"],
-    wheelRear: [
-      "Mesh_6", "Mesh_7", "Mesh_8", "Mesh_9", "Mesh_10", "Mesh_10.001", "Mesh_12",
-      "Mesh_13", "Mesh_14", "Mesh_15", "Mesh_16", "Mesh_17", "Mesh_18", "Mesh_19",
-      "Mesh_20", "Mesh_27", "Mesh_30",
-    ],
-  },
 } as const;
 
 const FOOT_PITCH_DEG: Record<Side, readonly number[]> = {
@@ -63,17 +49,12 @@ const FOOT_PITCH_DEG: Record<Side, readonly number[]> = {
   L: [0, -0.3, -1.2, -2.6, -4.3, -6.1, -8.2, -10.3, -12.5, -14.7, -16.7, -18.2, -19.1, -19.3, -21.7, -19.1, -15.2, -12.9, -10.3, -7.7, -5.2, -3, -1.4, -0.4, 0],
 };
 
-const GUIDE_MESH: Record<Side, string> = {
-  R: "Right continuous knee skin",
-  L: "Left continuous knee skin",
-};
 const GUIDE_GROUP: Record<Side, readonly [string, string]> = {
   R: ["Guide_Right_Thigh", "Guide_Right_Shin"],
   L: ["Guide_Left_Thigh", "Guide_Left_Shin"],
 };
 
 const v = (a: Vec3) => new Vector3(a[0], a[1], a[2]);
-const toTuple = (a: Vector3): Vec3 => [a.x, a.y, a.z];
 const smooth = (t: number) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
 
 function rotationAt(axis: Vec3, angle: number, pivot: Vec3): Matrix4 {
@@ -146,30 +127,35 @@ function meshName(object: Object3D): string {
   return typeof authored === "string" && authored ? authored : object.name;
 }
 
-function groupForName(name: string, explicit: ReadonlyMap<string, string>): string {
-  const matched = explicit.get(name);
-  if (matched) return matched;
-  if (/^Mesh_5(\.|$)/.test(name)) return "wheelFront";
-  if (/^Mesh_11(\.|$)/.test(name)) return "wheelRear";
-  if (/^(Mesh_(21|22|25|26|28|29|31|33|34|54|55)|Bicycle|Front brake|Rear brake|Handlebar|Compact stem|Stem faceplate|Left compact|Right compact|Left brake|Right brake|Left bar|Right bar|Left lever|Right lever)/.test(name)) return "bike";
-  return "static";
+/**
+ * meshopt + `KHR_mesh_quantization` GLB 의 정규화 정수 `position`·`normal` 을
+ * 비정규화 Float32 로 바꾼다. `getX/getY/getZ` 로 읽으므로 정규화 해제와
+ * interleaved 를 모두 처리한다. 이미 비정규화 Float32 면 그대로 둔다.
+ * `uv` 등 다른 속성은 건드리지 않는다.
+ */
+export function bakeFloat32Attributes(geometry: BufferGeometry): void {
+  for (const key of ["position", "normal"] as const) {
+    const attribute = geometry.getAttribute(key);
+    if (!attribute) continue;
+    if (attribute instanceof InterleavedBufferAttribute) {
+      geometry.setAttribute(key, bakeAttributeToFloat32(attribute));
+      continue;
+    }
+    if (attribute.array instanceof Float32Array && !attribute.normalized) continue;
+    geometry.setAttribute(key, bakeAttributeToFloat32(attribute));
+  }
 }
 
-function centerOfNamedMeshes(draws: readonly { name: string; geometry: BufferGeometry }[], name: string): Vec3 {
-  const low = new Vector3(Infinity, Infinity, Infinity);
-  const high = new Vector3(-Infinity, -Infinity, -Infinity);
-  let found = false;
-  for (const draw of draws) {
-    if (draw.name !== name) continue;
-    found = true;
-    const p = draw.geometry.getAttribute("position");
-    for (let i = 0; i < p.count; i++) {
-      low.min(new Vector3(p.getX(i), p.getY(i), p.getZ(i)));
-      high.max(new Vector3(p.getX(i), p.getY(i), p.getZ(i)));
-    }
+function bakeAttributeToFloat32(
+  attribute: BufferAttribute | InterleavedBufferAttribute,
+): BufferAttribute {
+  const out = new Float32Array(attribute.count * 3);
+  for (let i = 0; i < attribute.count; i++) {
+    out[i * 3] = attribute.getX(i);
+    out[i * 3 + 1] = attribute.getY(i);
+    out[i * 3 + 2] = attribute.getZ(i);
   }
-  if (!found) throw new Error(`Missing approved pedal mesh ${name}`);
-  return toTuple(low.add(high).multiplyScalar(0.5));
+  return new BufferAttribute(out, 3);
 }
 
 function footPitch(side: Side, crankAngle: number): number {
@@ -193,14 +179,15 @@ function proceduralWeights(
   tibia: number,
   sideMin: number,
   sideMax: number,
+  profile: RiderModelProfile,
 ): Float32Array {
   const count = draw.arc.length;
   const out = new Float32Array(count * 4);
-  if (draw.name === "Mesh_153" || draw.name === "Mesh_163") {
+  if (profile.isThighOnly(draw.name)) {
     for (let i = 0; i < count; i++) out[i * 4 + 1] = 1;
     return out;
   }
-  const isSock = draw.name === "Mesh_156" || draw.name === "Mesh_166" || /sock/i.test(draw.name);
+  const isSock = profile.isSock(draw.name);
   const hip = v(RIG.hip[side] as Vec3);
   const knee = v(RIG.knee[side] as Vec3);
   const ankle = v(RIG.ankle[side] as Vec3);
@@ -232,9 +219,9 @@ function proceduralWeights(
   return out;
 }
 
-function guideWeights(side: Side, draw: LegDraw, guides: PreservedGuideData): Float32Array | null {
-  const guideMesh = GUIDE_MESH[side];
-  if (draw.name !== guideMesh) return null;
+function guideWeights(side: Side, draw: LegDraw, guides: PreservedGuideData, profile: RiderModelProfile): Float32Array | null {
+  const guideMesh = profile.guideKeyOf(draw.name, side, draw.mesh);
+  if (guideMesh === null) return null;
   const rows = guides[guideMesh];
   if (!rows) throw new Error(`Missing authored guide mesh ${guideMesh}`);
   const cell = 1e-4;
@@ -283,14 +270,13 @@ export class PreservedRiderRig {
   private readonly crankPhase: Record<Side, number>;
   private readonly crankRadius: number;
   private readonly poles: Record<Side, Vector3>;
+  private readonly visualKit: RiderVisualKit;
   private readonly dualQuaternions = [
     new Float64Array(8), new Float64Array(8), new Float64Array(8), new Float64Array(8),
   ];
 
-  constructor(source: Object3D, guides: PreservedGuideData) {
+  constructor(source: Object3D, guides: PreservedGuideData, profile: RiderModelProfile) {
     this.object.name = "approved-preserved-rider";
-    const explicit = new Map<string, string>();
-    for (const [group, names] of Object.entries(RIG.groups)) for (const name of names) explicit.set(name, group);
     for (const name of ["crank", "pedalR", "pedalL", "footR", "footL", "wheelFront", "wheelRear"]) {
       const group = new Group();
       group.name = `preserved-${name}`;
@@ -299,25 +285,29 @@ export class PreservedRiderRig {
       this.object.add(group);
     }
     source.updateMatrixWorld(true);
-    const baked: { name: string; geometry: BufferGeometry; group: string; mesh: Mesh }[] = [];
+    const baked: (BakedMesh & { group: string })[] = [];
     source.traverse((item) => {
       if (!(item instanceof Mesh)) return;
       const name = meshName(item);
       const geometry = item.geometry.clone();
+      bakeFloat32Attributes(geometry);
       geometry.applyMatrix4(item.matrixWorld);
       const clone = new Mesh(geometry, item.material);
       clone.name = name;
+      // 프로필이 읽는 노드 extras(`pedalBind`·`guideMesh`)는 원본 Mesh 의
+      // userData 에 있으므로 baked/clone 으로 함께 옮긴다.
+      Object.assign(clone.userData, item.userData);
       clone.castShadow = false;
       clone.receiveShadow = false;
       clone.frustumCulled = false;
-      const group = groupForName(name, explicit);
+      const group = profile.groupOf(name);
       (this.transforms.get(group) ?? this.object).add(clone);
       baked.push({ name, geometry, group, mesh: clone });
     });
 
     this.pedalBind = {
-      R: centerOfNamedMeshes(baked, "Mesh_48"),
-      L: centerOfNamedMeshes(baked, "Mesh_52"),
+      R: profile.pedalBind(baked, "R"),
+      L: profile.pedalBind(baked, "L"),
     };
     const bb = RIG.bb;
     this.crankPhase = {
@@ -344,17 +334,18 @@ export class PreservedRiderRig {
       const hip = v(RIG.hip[side] as Vec3); const knee = v(RIG.knee[side] as Vec3); const ankle = v(RIG.ankle[side] as Vec3);
       const femur = hip.distanceTo(knee); const tibia = knee.distanceTo(ankle);
       for (const draw of this.legs[side]) {
-        draw.weights = guideWeights(side, draw, guides) ?? proceduralWeights(side, draw, femur, tibia, sideMin, sideMax);
+        draw.weights = guideWeights(side, draw, guides, profile) ?? proceduralWeights(side, draw, femur, tibia, sideMin, sideMax, profile);
       }
     }
 
     this.poles = { R: this.bindPole("R"), L: this.bindPole("L") };
+    this.visualKit = profile.createVisualKit(this.object);
     this.setPhase(0);
   }
 
-  /** 헬멧·상의 컬러만 교체. self 기본색을 보존하고 peer 에만 구분색을 쓴다. */
+  /** 헬멧·상의 컬러만 교체. 프로필별 키트(s5 이름 방식 / rider14 팔레트 방식)에 위임. */
   setVisualKind(kind: RiderVisualKind): void {
-    applyRiderVisualKit(this.object, kind);
+    this.visualKit.apply(kind);
   }
 
   setPhase(phaseRev: number): void {
@@ -377,7 +368,9 @@ export class PreservedRiderRig {
   }
 
   dispose(): void {
+    this.visualKit.dispose();
     const materials = new Set<unknown>();
+    const textures = new Set<{ dispose: () => void }>();
     this.object.traverse((item) => {
       if (!(item instanceof Mesh)) return;
       item.geometry.dispose();
@@ -385,10 +378,24 @@ export class PreservedRiderRig {
       for (const material of list) materials.add(material);
     });
     for (const material of materials) {
-      if (material && typeof material === "object" && "dispose" in material) {
-        (material as { dispose: () => void }).dispose();
+      if (material && typeof material === "object") {
+        for (const value of Object.values(material)) {
+          if (
+            value &&
+            typeof value === "object" &&
+            "isTexture" in value &&
+            (value as { isTexture: unknown }).isTexture === true &&
+            "dispose" in value
+          ) {
+            textures.add(value as { dispose: () => void });
+          }
+        }
+        if ("dispose" in material) {
+          (material as { dispose: () => void }).dispose();
+        }
       }
     }
+    for (const texture of textures) texture.dispose();
   }
 
   private buildArc(side: Side, positions: Float32Array): Float32Array {
