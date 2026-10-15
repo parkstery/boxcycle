@@ -25,6 +25,7 @@ import type { RiderGlbModelSpec } from "../riderPrototype/iso2dMarker";
 import {
   PRESERVED_RIDER_CUSTOM_LAYER_ID,
   PRESERVED_RIDER_MODELS,
+  isRiderSwayDisabledByQuery,
   preservedRiderAssetUrl,
   resolvePreservedRiderModel,
 } from "../riderPrototype/config";
@@ -33,6 +34,7 @@ import {
   type PreservedGuideData,
 } from "../riderPrototype/preservedRiderRig";
 import { getRiderModelProfile } from "../riderPrototype/riderModelProfile";
+import { computeRiderSway, RiderSwayEnvelope } from "../riderPrototype/riderSway";
 import {
   DEFAULT_AMBIENT_INTENSITY,
   DEFAULT_HEMISPHERE_INTENSITY,
@@ -75,6 +77,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
   private readonly riderRoot = new Group();
   private rig: PreservedRiderRig | null = null;
   private specs: readonly RiderGlbModelSpec[] = [];
+  private readonly swayEnvelope = new RiderSwayEnvelope();
   private generation = 0;
   private loadState: "idle" | "loading" | "ready" | "error" = "idle";
   private loadError: string | null = null;
@@ -157,7 +160,11 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
     const map = this.map;
     const renderer = this.renderer;
     const rig = this.rig;
-    if (!map || !renderer || this.specs.length === 0 || !rig) return;
+    if (!map || !renderer || !rig) return;
+    if (this.specs.length === 0) {
+      this.swayEnvelope.prune(new Set());
+      return;
+    }
 
     /*
      * 2026-09-27 — 이 한 프레임의 비용을 잰다(DEV 전용, 운영은 콜백만 부른다).
@@ -171,6 +178,16 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
      * 위상·위치 같은 상태는 바깥에서 계속 돌므로 가까이 가면 다음 프레임에 바로 맞는다.
      */
     const animatePose = shouldAnimateRiderPose(map.getZoom());
+    const nowMs = performance.now();
+    const swayDisabledByQuery = isRiderSwayDisabledByQuery();
+    const enabled = animatePose && !swayDisabledByQuery;
+    const liveIds = new Set<string>();
+    /*
+     * envelope 감쇠는 이 render 안에서만 적분한다. MapView 주행 틱(rAF)이
+     * 매 프레임 syncRiderPreservedModels → setSpecs → triggerRepaint 하므로,
+     * 위상이 멈춘 뒤에도 지도는 계속 다시 그려진다. 여기서 triggerRepaint 를
+     * 또 부르지 않는다.
+     */
     measureRiderRenderFrame(this.specs.length, () => {
     renderer.resetState();
     for (const spec of this.specs) {
@@ -185,20 +202,26 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
       const meterScale = coordinate.meterInMercatorCoordinateUnits();
       const yaw = (90 - spec.bearingDeg) * Math.PI / 180;
       const lean = (spec.leanDeg ?? 0) * Math.PI / 180;
+      if (animatePose) measureRiderPose(() => rig.setPhase(spec.phaseRev ?? 0));
+      // 공용 rig 1개를 self/peer 순으로 그리므로, 그리기 직전에 컬러 키트와 흔들림만 맞춘다.
+      rig.setVisualKind(spec.kind ?? "self");
+      const env = this.swayEnvelope.update(spec.id, spec.phaseRev ?? 0, nowMs, enabled);
+      const sway = computeRiderSway(spec.phaseRev ?? 0, rig.crankPhaseR, env);
+      rig.setSway({ shaderRollRad: sway.shaderRollRad, bobM: sway.bobM });
+      const bikeRoll = rig.supportsSway ? sway.bikeRollRad : 0;
       const local = new Matrix4()
         .makeTranslation(coordinate.x, coordinate.y, coordinate.z)
         .scale(new Vector3(meterScale, -meterScale, meterScale))
         .multiply(new Matrix4().makeRotationX(Math.PI / 2))
         .multiply(new Matrix4().makeRotationY(yaw))
-        .multiply(new Matrix4().makeRotationX(lean));
-      if (animatePose) measureRiderPose(() => rig.setPhase(spec.phaseRev ?? 0));
-      // 공용 rig 1개를 self/peer 순으로 그리므로, 그리기 직전에 컬러 키트만 맞춘다.
-      rig.setVisualKind(spec.kind ?? "self");
+        .multiply(new Matrix4().makeRotationX(lean + bikeRoll));
+      liveIds.add(spec.id);
       this.camera.projectionMatrix.fromArray(matrix).multiply(local);
       this.camera.projectionMatrixInverse.copy(this.camera.projectionMatrix).invert();
       renderer.render(this.scene, this.camera);
     }
     });
+    this.swayEnvelope.prune(liveIds);
   }
 
   private async loadApprovedCandidate(generation: number): Promise<void> {

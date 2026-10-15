@@ -20,6 +20,8 @@ export interface RiderVisualKit {
 
 export interface RiderModelProfile {
   readonly id: RiderModelProfileId;
+  /** rider14 만 상체 흔들림 셰이더를 설치한다. s5 롤백은 false. */
+  readonly supportsSway: boolean;
   groupOf(name: string): RiderRigGroup;
   pedalBind(baked: readonly BakedMesh[], side: "R" | "L"): [number, number, number];
   guideKeyOf(name: string, side: "R" | "L", mesh?: Mesh): string | null;
@@ -87,6 +89,7 @@ function centerOfNamedMeshes(draws: readonly { name: string; geometry: BufferGeo
 
 const s5Profile: RiderModelProfile = {
   id: "s5",
+  supportsSway: false,
   groupOf: s5GroupOf,
   pedalBind(baked: readonly BakedMesh[], side: "R" | "L"): [number, number, number] {
     return centerOfNamedMeshes(baked, side === "R" ? "Mesh_48" : "Mesh_52");
@@ -161,6 +164,7 @@ function rider14GuideKeyOf(name: string, side: "R" | "L", mesh?: Mesh): string |
 
 const rider14Profile: RiderModelProfile = {
   id: "rider14",
+  supportsSway: true,
   groupOf: rider14GroupOf,
   pedalBind: rider14PedalBind,
   guideKeyOf: rider14GuideKeyOf,

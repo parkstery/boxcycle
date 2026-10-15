@@ -9,8 +9,10 @@ import {
   Quaternion,
   Vector3,
 } from "three";
+import type { Material, WebGLProgramParametersWithUniforms } from "three";
 import type { RiderVisualKind } from "./iso2dMarker";
 import type { BakedMesh, RiderModelProfile, RiderVisualKit } from "./riderModelProfile";
+import { RIDER_SWAY_DEFAULTS } from "./riderSway";
 
 type Side = "R" | "L";
 type Vec3 = [number, number, number];
@@ -271,11 +273,28 @@ export class PreservedRiderRig {
   private readonly crankRadius: number;
   private readonly poles: Record<Side, Vector3>;
   private readonly visualKit: RiderVisualKit;
+  private readonly swaySupported: boolean;
+  private readonly swayUniforms: {
+    uSwayRoll: { value: number };
+    uSwayBob: { value: number };
+    uSwayPivot: { value: Vector3 };
+  } | null;
   private readonly dualQuaternions = [
     new Float64Array(8), new Float64Array(8), new Float64Array(8), new Float64Array(8),
   ];
 
   constructor(source: Object3D, guides: PreservedGuideData, profile: RiderModelProfile) {
+    this.swaySupported = profile.supportsSway;
+    if (profile.supportsSway) {
+      const [x, y, z] = RIDER_SWAY_DEFAULTS.pivot;
+      this.swayUniforms = {
+        uSwayRoll: { value: 0 },
+        uSwayBob: { value: 0 },
+        uSwayPivot: { value: new Vector3(x, y, z) },
+      };
+    } else {
+      this.swayUniforms = null;
+    }
     this.object.name = "approved-preserved-rider";
     for (const name of ["crank", "pedalR", "pedalL", "footR", "footL", "wheelFront", "wheelRear"]) {
       const group = new Group();
@@ -340,7 +359,24 @@ export class PreservedRiderRig {
 
     this.poles = { R: this.bindPole("R"), L: this.bindPole("L") };
     this.visualKit = profile.createVisualKit(this.object);
+    this.installSwayShader();
     this.setPhase(0);
+  }
+
+  get supportsSway(): boolean {
+    return this.swaySupported;
+  }
+
+  /** 기존 private `crankPhase.R`. 흔들림 타이밍용. 계산은 바꾸지 않는다. */
+  get crankPhaseR(): number {
+    return this.crankPhase.R;
+  }
+
+  /** 셰이더 균일 변수만 바꾼다. `supportsSway` 가 false 면 아무것도 안 한다. */
+  setSway(v: { shaderRollRad: number; bobM: number }): void {
+    if (!this.swayUniforms) return;
+    this.swayUniforms.uSwayRoll.value = v.shaderRollRad;
+    this.swayUniforms.uSwayBob.value = v.bobM;
   }
 
   /** 헬멧·상의 컬러만 교체. 프로필별 키트(s5 이름 방식 / rider14 팔레트 방식)에 위임. */
@@ -497,6 +533,42 @@ export class PreservedRiderRig {
       draw.position.needsUpdate = true;
       draw.normal.needsUpdate = true;
     }
+  }
+
+  /**
+   * 뷰어 `installSway` 와 같은 3곳(`common`·`beginnormal_vertex`·`begin_vertex`).
+   * 속성 `_sway`. 균일 변수 객체는 리그가 소유하고 `setSway` 가 값만 바꾼다.
+   */
+  private installSwayShader(): void {
+    const uniforms = this.swayUniforms;
+    if (!uniforms) return;
+    const seen = new Set<Material>();
+    this.object.traverse((item) => {
+      if (!(item instanceof Mesh)) return;
+      const list = Array.isArray(item.material) ? item.material : [item.material];
+      for (const material of list) {
+        if (!material || seen.has(material)) continue;
+        seen.add(material);
+        material.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
+          Object.assign(shader.uniforms, uniforms);
+          shader.vertexShader = shader.vertexShader
+            .replace(
+              "#include <common>",
+              "#include <common>\nattribute float _sway;\nuniform float uSwayRoll;\nuniform float uSwayBob;\nuniform vec3 uSwayPivot;",
+            )
+            .replace(
+              "#include <beginnormal_vertex>",
+              "#include <beginnormal_vertex>\nfloat swR = uSwayRoll * _sway; float swC = cos(swR), swS = sin(swR);\nobjectNormal = vec3(objectNormal.x, objectNormal.y * swC - objectNormal.z * swS, objectNormal.y * swS + objectNormal.z * swC);",
+            )
+            .replace(
+              "#include <begin_vertex>",
+              "#include <begin_vertex>\n{ vec3 q = transformed - uSwayPivot; transformed = uSwayPivot + vec3(q.x, q.y * swC - q.z * swS, q.y * swS + q.z * swC); transformed.y += uSwayBob * _sway; }",
+            );
+        };
+        material.customProgramCacheKey = () => "rider-sway-v1";
+        material.needsUpdate = true;
+      }
+    });
   }
 
   private setTransform(name: string, matrix: Matrix4): void {

@@ -30,6 +30,15 @@ export function resolvePreservedRiderModel(): PreservedRiderModelId {
   return PRESERVED_RIDER_ACTIVE_MODEL;
 }
 
+/** DEV 비교 캡처용. `?sway=0` 이면 흔들림을 끈다. 운영 빌드는 항상 false. */
+export function isRiderSwayDisabledByQuery(): boolean {
+  if (import.meta.env.DEV) {
+    if (typeof window === "undefined") return false;
+    return new URLSearchParams(window.location.search).get("sway") === "0";
+  }
+  return false;
+}
+
 export const PRESERVED_RIDER_CANDIDATE_ID: string =
   PRESERVED_RIDER_MODELS[PRESERVED_RIDER_ACTIVE_MODEL].candidateId;
 export const PRESERVED_RIDER_CUSTOM_LAYER_ID = "boxcycle-rider-preserved-layer";
