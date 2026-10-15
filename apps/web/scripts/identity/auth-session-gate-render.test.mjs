@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { AuthSessionGate } from "../../src/components/auth/AuthSessionGate.tsx";
+// test:quick 은 TSX 로더 없이 돌므로 직접 등록한 뒤 컴포넌트를 불러온다.
+await import("./auth-session-gate-tsx-register.mjs");
+const { AuthSessionGate } = await import("../../src/components/auth/AuthSessionGate.tsx");
 
 const FAILURE = "서비스에 연결할 수 없습니다.";
 const CHOICE = "시작 방법을 선택해 주세요.";
