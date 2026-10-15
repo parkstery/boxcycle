@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RTW Rider Perf Bench (P0 baseline)</title>
+    <style>
+      html, body, #map { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #10151b; }
+      #panel { position: fixed; z-index: 5; top: 14px; left: 14px; width: min(440px, calc(100vw - 28px)); box-sizing: border-box; padding: 14px 16px; border: 1px solid #44505e; border-radius: 12px; color: #f4f7fa; background: rgba(16, 21, 27, .9); font: 13px/1.45 system-ui, sans-serif; box-shadow: 0 8px 32px rgba(0,0,0,.35); }
+      #panel strong { color: #7ee787; }
+      #status[data-state="error"] { color: #ff7b72; }
+      #status[data-state="loading"] { color: #f2cc60; }
+      code { color: #9ecbff; }
+      .row { display: flex; gap: 8px; align-items: center; margin-top: 9px; }
+    </style>
+  </head>
+  <body>
+    <div id="map" aria-label="라이더 성능 기준선 측정 지도"></div>
+    <section id="panel" aria-label="측정 상태">
+      <div><strong>RIDER PERF BENCH</strong> · candidate <code>20260921-041426-cd81398e</code></div>
+      <div id="status" data-state="loading">로드 중…</div>
+      <div class="row"><span>riders</span><code id="riders">-</code><span>phase</span><code id="phase">-</code></div>
+      <div class="row"><code id="measure">measure: -</code></div>
+    </section>
+    <script type="module" src="./rider-perf-bench.ts"></script>
+  </body>
+</html>
