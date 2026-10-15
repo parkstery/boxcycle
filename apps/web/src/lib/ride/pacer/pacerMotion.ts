@@ -51,7 +51,12 @@ export const PACER_STOP_SELF_MPS = 0.5;
 /** 페달 위상을 멈추는 속도(km/h) — 동행 마커와 같은 문턱 */
 export const PACER_PHASE_HOLD_KMH = 0.38;
 
-/** 방향을 경로 앞뒤 이 거리의 현으로 잡는다 — 꺾임점에서 yaw·차선 오프셋이 연속 */
+/**
+ * 예전 페이서 전용 현 반경(m).
+ * 제품 방향은 본인·동행과 같은 `RIDER_TURN_HALF_SPAN_M`(riderTurn.ts, 5m)이다.
+ * ride 가 rider 를 import 할 수 없어 여기 값을 그 상수에 묶지 않는다.
+ * MapView 는 이 상수를 더 이상 읽지 않는다.
+ */
 export const PACER_HEADING_HALF_SPAN_M = 3;
 
 export const PACER_LANE_M: Record<PacerId, number> = {

@@ -42,6 +42,7 @@ const GROUPS = {
     "ride-hierarchy",
     "ride-result",
     "ride-stats",
+    "rider",
     "rider-preserve",
     "sensor-cadence",
   ],

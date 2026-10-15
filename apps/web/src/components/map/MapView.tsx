@@ -79,12 +79,13 @@ import type { CoverageOverlayMode } from "../../lib/activity/coverageOverlayMode
 import type { RouteProfile } from "../../services/mapboxDirections";
 import { estimateCrankRpmFromSpeedKmh, resolvePedalCrankRpm } from "../../lib/sensor/crankRpm";
 import { resolveGlbPedalPose } from "../../lib/rider/riderGlbPedalPose";
+import { RIDER_TURN_HALF_SPAN_M, RiderTurnSmoother } from "../../lib/rider/riderTurn";
 import { stepPeerDriveAndBuildGeoJson } from "../../lib/peerMotion/peerRidersDrive";
 import { companionDisplayDelayMs, getPeerMotionRegistry, resetPeerMotionRegistry } from "../../lib/peerMotion";
 import {
-  PACER_HEADING_HALF_SPAN_M,
   createPacerWorld,
   enteredPacers,
+  pacerSpeedMps,
   resolvePacerDistM,
   stepPacerWorld,
   type PacerWorld,
@@ -688,9 +689,10 @@ export function MapView({
   const onRideCameraDistanceFromUserZoomRef = useRef(onRideCameraDistanceFromUserZoom);
   const prefersReducedMotionRef = useRef(false);
   const enable3DRef = useRef(enable3D);
-  /** GLB 코너링 린 — 직전 heading·지수 감쇠 린(°) */
-  const glbPrevBearingRef = useRef<number | null>(null);
-  const glbLeanDegRef = useRef(0);
+  /** 본인·동행·페이서의 화면 방향·기울기. 라이더 id 하나당 상태 하나. */
+  const riderTurnRef = useRef(new RiderTurnSmoother());
+  /** 동행 feature 에 속도가 없을 때, 직전 경로 거리. */
+  const peerTurnDistPrevRef = useRef(new Map<string, number>());
   const initialMapStyleRef = useRef(mapStyle);
   const currentStyleRef = useRef(mapStyle);
   const onSelectPointRef = useRef(onSelectPoint);
@@ -2448,12 +2450,18 @@ export function MapView({
             const along = resolvePacerDistM(distM, p.gapM, routeLen);
             const at = getPointOnRouteByDistance(geomNow, along);
             if (!at) continue;
-            // 세그먼트 방위는 꺾임점마다 최대 10°+ 순간 회전해 페이서가 툭툭 튀었다(실측 30초 13회).
-            const hdg = smoothedHeadingAtRouteDistanceMeters(geomNow, along, PACER_HEADING_HALF_SPAN_M, routeLen) ?? 0;
+            // 세그먼트 방위는 꺾임점마다 순간 회전한다. 본인·동행과 같은 현 길이.
+            const hdg = smoothedHeadingAtRouteDistanceMeters(geomNow, along, RIDER_TURN_HALF_SPAN_M, routeLen) ?? 0;
             features.push({
               type: "Feature",
               geometry: { type: "Point", coordinates: offsetLngLatLateral(at, hdg, p.laneM) },
-              properties: { id: p.id, label: "페이서", phaseRev: p.phaseRev, hdg },
+              properties: {
+                id: p.id,
+                label: "페이서",
+                phaseRev: p.phaseRev,
+                hdg,
+                speedMps: pacerSpeedMps(selfSpeedMps, p),
+              },
             });
           }
         }
@@ -2572,7 +2580,7 @@ export function MapView({
         getBearing,
         routeGeometryRef.current,
         Date.now(),
-        { buildFeatures: showPeerSprites },
+        { buildFeatures: showPeerSprites, headingHalfSpanM: RIDER_TURN_HALF_SPAN_M },
       );
       const pacerFeatures = stepPacersForFrame(dt, showPeerSprites);
       syncPeerDomMarkers(
@@ -2586,17 +2594,26 @@ export function MapView({
           : RIDER_PROTOTYPE_MODE === "preserved"
             ? ensureRiderPreservedLayer(map)
             : false;
+      const turnLiveIds: string[] = [];
+      let didTurn = false;
       if (RIDER_PROTOTYPE_IS_3D && riderLayerReady) {
+        didTurn = true;
         const specs: RiderGlbModelSpec[] = [];
         const live = liveLngLatRef.current;
         if (live) {
-          const bearingDeg = resolveRiderBearingDeg(
-            routeGeometryRef.current,
-            live,
-            prevForBearing,
-          );
+          const routeNow = routeGeometryRef.current;
+          const distM = sampleLiveDistMRef.current?.() ?? null;
+          const chordHeading =
+            routeNow && distM != null
+              ? smoothedHeadingAtRouteDistanceMeters(routeNow, distM, RIDER_TURN_HALF_SPAN_M)
+              : null;
+          const targetHeadingDeg =
+            chordHeading ??
+            resolveRiderBearingDeg(routeNow, live, prevForBearing);
           const motion = liveRiderMotionRef.current;
           const speedNow = motion?.speedKmh ?? 0;
+          const selfSpeedMps = Math.max(0, speedNow / 3.6);
+          const selfTurn = riderTurnRef.current.update("live-self", targetHeadingDeg, selfSpeedMps, dt);
           const pedalingRunning =
             motion != null && motion.sessionStatus === "running" && speedNow > 0.35;
           if (pedalingRunning && !prefersReducedMotionRef.current) {
@@ -2606,51 +2623,55 @@ export function MapView({
             });
             liveCrankPhaseRevRef.current += (rpm / 60) * dt;
           }
-          // 코너링 린 — heading 변화율(°/s)에 비례, 지수 감쇠로 부드럽게
-          const prevB = glbPrevBearingRef.current;
-          glbPrevBearingRef.current = bearingDeg;
-          let leanTarget = 0;
-          if (prevB != null && dt > 0) {
-            let dB = bearingDeg - prevB;
-            if (dB > 180) dB -= 360;
-            if (dB < -180) dB += 360;
-            leanTarget = Math.max(-10, Math.min(10, (dB / dt) * 0.22));
-          }
-          const leanAlpha = 1 - Math.exp(-dt / 0.35);
-          glbLeanDegRef.current += (leanTarget - glbLeanDegRef.current) * leanAlpha;
           specs.push({
             id: "live-self",
             kind: "self",
             lngLat: live,
-            bearingDeg,
+            bearingDeg: selfTurn.headingDeg,
             pedalPose: resolveGlbPedalPose(liveCrankPhaseRevRef.current),
             phaseRev: liveCrankPhaseRevRef.current,
-            leanDeg: glbLeanDegRef.current,
+            leanDeg: selfTurn.leanDeg,
           });
+          turnLiveIds.push("live-self");
         }
         for (const f of fc.features as PeerDomGJFeature[]) {
           // 연속 위상을 그대로 쓴다 — 종전에는 6단계 `pframe` 을 다시 6으로 나눠
           // 동행의 페달만 계단으로 움직였다(본인 라이더는 연속값).
           const phaseRev = f.properties.phaseRev;
+          const stated = f.properties.speedMps;
+          let peerSpeed = 0;
+          if (typeof stated === "number" && Number.isFinite(stated)) peerSpeed = Math.max(0, stated);
+          else if (typeof f.properties.displayDistM === "number" && Number.isFinite(f.properties.displayDistM)) {
+            const prevDist = peerTurnDistPrevRef.current.get(f.properties.id);
+            peerTurnDistPrevRef.current.set(f.properties.id, f.properties.displayDistM);
+            if (prevDist != null && dt > 0) peerSpeed = Math.max(0, (f.properties.displayDistM - prevDist) / dt);
+          }
+          const peerTurn = riderTurnRef.current.update(f.properties.id, f.properties.hdg, peerSpeed, dt);
           specs.push({
             id: f.properties.id,
             kind: "peer",
             lngLat: f.geometry.coordinates,
-            bearingDeg: f.properties.hdg,
+            bearingDeg: peerTurn.headingDeg,
             pedalPose: resolveGlbPedalPose(phaseRev),
             phaseRev,
+            leanDeg: peerTurn.leanDeg,
           });
+          turnLiveIds.push(f.properties.id);
         }
         for (const f of pacerFeatures) {
           const phaseRev = f.properties.phaseRev;
+          const pacerSpeed = f.properties.speedMps ?? 0;
+          const pacerTurn = riderTurnRef.current.update(f.properties.id, f.properties.hdg, pacerSpeed, dt);
           specs.push({
             id: f.properties.id,
             kind: "pacer",
             lngLat: f.geometry.coordinates,
-            bearingDeg: f.properties.hdg,
+            bearingDeg: pacerTurn.headingDeg,
             pedalPose: resolveGlbPedalPose(phaseRev),
             phaseRev,
+            leanDeg: pacerTurn.leanDeg,
           });
+          turnLiveIds.push(f.properties.id);
         }
         if (RIDER_PROTOTYPE_MODE === "glb") syncRiderGlbModels(map, specs);
         else syncRiderPreservedModels(map, specs);
@@ -2663,6 +2684,13 @@ export function MapView({
           glbLiveNametagMarkerRef,
           glbLiveNametagElRef,
         );
+      }
+      if (didTurn) {
+        riderTurnRef.current.prune(turnLiveIds);
+        const liveTurn = new Set(turnLiveIds);
+        for (const id of peerTurnDistPrevRef.current.keys()) {
+          if (!liveTurn.has(id)) peerTurnDistPrevRef.current.delete(id);
+        }
       }
     };
     /**
