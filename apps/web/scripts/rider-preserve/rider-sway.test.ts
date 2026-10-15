@@ -28,7 +28,7 @@ function viewerSway(phaseRev: number, crankPhaseR: number, envelope: number): {
   const a = phaseRev * 2 * Math.PI;
   const lag = -60 * Math.PI / 180;
   const wave = Math.cos(a - crankPhaseR - lag);
-  const shoulder = 0.5 * Math.PI / 180;
+  const shoulder = 1.0 * Math.PI / 180;
   const bike = 0.4 * Math.PI / 180;
   const bob = 2 / 1000;
   const bikeRollRad = -sign * bike * wave * envelope;
@@ -85,7 +85,7 @@ describe("computeRiderSway", () => {
     assert.equal(z.bikeRollRad, 0);
   });
 
-  it("기본값 극값: |bikeRoll| 0.4°, |shaderRoll| 0.9°, bob −2 mm … 0", () => {
+  it("기본값 극값: |bikeRoll| 0.4°, |shaderRoll| 1.4°, bob −2 mm … 0", () => {
     const lag = -60 * Math.PI / 180;
     const crank = 0.2;
     const at = (a: number) => computeRiderSway(a / (2 * Math.PI), crank, 1);
@@ -93,8 +93,8 @@ describe("computeRiderSway", () => {
     const waveNeg = at(crank + lag + Math.PI);
     assert.ok(Math.abs(Math.abs(wave1.bikeRollRad) * 180 / Math.PI - 0.4) < 1e-12);
     assert.ok(Math.abs(Math.abs(waveNeg.bikeRollRad) * 180 / Math.PI - 0.4) < 1e-12);
-    assert.ok(Math.abs(Math.abs(wave1.shaderRollRad) * 180 / Math.PI - 0.9) < 1e-12);
-    assert.ok(Math.abs(Math.abs(waveNeg.shaderRollRad) * 180 / Math.PI - 0.9) < 1e-12);
+    assert.ok(Math.abs(Math.abs(wave1.shaderRollRad) * 180 / Math.PI - 1.4) < 1e-12);
+    assert.ok(Math.abs(Math.abs(waveNeg.shaderRollRad) * 180 / Math.PI - 1.4) < 1e-12);
     const bobMin = at(crank);
     const bobMax = at(crank + Math.PI / 2);
     assert.ok(Math.abs(bobMin.bobM - (-0.002)) < 1e-12);

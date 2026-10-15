@@ -5,7 +5,7 @@
  */
 
 export const RIDER_SWAY_DEFAULTS = {
-  shoulderRollDeg: 0.5,
+  shoulderRollDeg: 1.0,
   bikeRollDeg: 0.4,
   bobMm: 2,
   lagDeg: -60,
