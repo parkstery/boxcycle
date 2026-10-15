@@ -1,4 +1,52 @@
+2026-10-15 진행79: 콜로세움 약간 오른쪽 프레이밍, 카메라 서쪽으로 0.0017도 이동/zoom15 유지. 지시 document/ops/20261013-face-redesign2/02-task-79.md.
+
+2026-10-15 최신78: 실제 첫 지도 로마콜로세움주변zoom15·명시지역우선 6a1d5e6 커밋·APPROVED/Chief화면확인대기. 검수 document/ops/20261013-face-redesign2/04-review-78.md. 공개정사영상도로구도·실Mapbox엔진5경우/marker0/geo0/자유이동·회귀6·타입/lint/selector18/build PASS. 서울실데이터유지,실타일/실기기미검증,push/배포없음.
+
+2026-10-15 최신77: 인증대기를연결실패로오표시하던UI버그교정 f20450a 커밋·APPROVED/Chief확인대기. 검수 document/ops/20261013-face-redesign2/04-review-77.md. 수정전busy/error없음실패재현, 수정후실App fixture8전환·React렌더4·selector18·타입/lint/build·수집105 PASS. 실제OAuth/실주행미검증,push/배포없음.
+
+2026-10-15 최신: 교정76 콜로세움 수직 위성영상 dbab829 커밋·APPROVED/Chief확인대기.74지도위치방식·75조감도영상대체. 검수 document/ops/20261013-face-redesign2/04-review-76.md. 공개원본직접확인·브라우저5크기fixture/CTA/실패시서울차단·타입/lint/selector17/build PASS.5014,온라인영상,push/배포없음.
+
+2026-10-15 교정75 진행: Chief 요구는 실제 콜로세움 지역 사진 배경. 74 지도카메라 방식은 요구 오해로 대체. 로컬 사진 고정·직접 캡처 검수, 지시 document/ops/20261013-face-redesign2/02-task-75.md.
+
+2026-10-15 최신: 인트로74 로마 콜로세움 위성 배경 d4d7ec0 커밋·APPROVED/Chief확인대기. 검수 document/ops/20261013-face-redesign2/04-review-74.md. 5폭Mapbox투영·실앱위성/CTA/로그아웃·타입/lint/selector17/build PASS. 실지도외관·실기기미검증,5014유지,push/배포없음.
+
+2026-10-15 최신: 지도 배경 앱 인트로72·E2E진입보정73 1f5f14d 커밋·APPROVED/Chief확인대기. 검수: document/ops/20261013-face-redesign2/04-review-73.md. 6화면·실앱9·helper10·selector17·수집105·타입/lint/build PASS. 로컬main2/5014, 실지도·실기기미검증, push/배포없음.
+
 # ops — 에이전트 작업 창구
+
+2026-10-15 최신창:41 Chief통과,결과42/43 [감리43](20261013-face-redesign2/04-review-43.md) APPROVED/Chief확인대기。CSS余白/테두리/단위대비·보조수치wrap,지도없는browser1/page1순차8상태PASS,face-redesign2/5013유지。
+
+2026-10-15 최신창:40 Chief통과,센서41 [감리41](20261013-face-redesign2/04-review-41.md) APPROVED/Chief확인대기。체험선택표시/강조/余白정리,単一browser/page順次검수,face-redesign2/5013유지。
+
+2026-10-15 최신창: 콤팩트캐럿40 [감리40](20261013-face-redesign2/04-review-40.md) APPROVED/Chief확인대기.왼쪽정렬·44→24px·여백0,CSS4선만·DOM48/실제15 PASS,face-redesign2/5013유지。
+
+2026-10-14 최신창: 이중캐럿/위아래동반패널38/39 [최종감리39](20261013-face-redesign2/04-review-39.md) APPROVED/Chief확인대기.텍스트모드button제거·위치위/거리아래펼침/접기·값보존.48DOM+실제15·141테스트 PASS,face-redesign2/5013유지.
+
+2026-10-14 최신창: 위치/거리모드別화면34~37 [최종감리37](20261013-face-redesign2/04-review-37.md) APPROVED/Chief확인대기. 두중간토글제거·거리›진입/‹위치선택복귀·공통삭제.32DOM+실제15상태·141테스트 PASS,face-redesign2/5013유지. 이전33디자인미채택.
+
+2026-10-14 최신창: 경로 탐색 모드별접기30~33 [최종감리33](20261013-face-redesign2/04-review-33.md) APPROVED/Chief확인대기. 두패널한행토글44px·값보존·펼침후배치·내부스크롤해소. face-redesign2/5013유지.
+
+2026-10-14 최신창: 경로생성 [감리29](20261013-face-redesign2/04-review-29.md) APPROVED·Chief확인대기.입문28 Chief통과,face-redesign2/5013유지.
+
+2026-10-14 최신창: 입문행간추가축소 [감리28](20261013-face-redesign2/04-review-28.md) APPROVED·Chief확인대기. face-redesign2/5013유지.
+
+2026-10-14 최신창: 입문 [감리27](20261013-face-redesign2/04-review-27.md) APPROVED·Chief확인대기.두목록26 Chief통과,face-redesign2/5013유지.
+
+2026-10-14 최신: face-redesign2 두목록추가밀도 [감리26](20261013-face-redesign2/04-review-26.md) APPROVED·Chief확인대기.5013유지.
+
+2026-10-14 최신창: 내경로/퍼블릭줄간격·행밀도 [감리25](20261013-face-redesign2/04-review-25.md) APPROVED·Chief확인대기. face-redesign2/5013유지.
+
+2026-10-14 최신창: 내경로22 Chief통과,퍼블릭23/24 [감리24](20261013-face-redesign2/04-review-24.md) APPROVED·Chief확인대기. face-redesign2/5013유지.
+
+2026-10-14 최신창: 계정20 Chief통과,내경로21/22 [감리22](20261013-face-redesign2/04-review-22.md) APPROVED·Chief확인대기。face-redesign2/5013유지。
+
+2026-10-14 최신창: face-redesign2 계정compact2컬럼 [감리20](20261013-face-redesign2/04-review-20.md) APPROVED·Chief확인대기. 5013유지,계정19단열대체.
+
+2026-10-14 최신창: 메뉴18 Chief승인, 계정19 [감리19](20261013-face-redesign2/04-review-19.md) APPROVED·Chief확인대기. face-redesign2/5013 유지, 다음창피드백후.
+
+2026-10-14 메뉴 한 창 완료: face-redesign2 [감리18](20261013-face-redesign2/04-review-18.md) APPROVED, Chief 확인 대기. Muse 구현·Supervisor 독립 검수, 5013 실행 중. 다음 창은 피드백 후.
+
+2026-10-14: face-redesign2 [UI 균형 수정안17](20261013-face-redesign2/17-proposal-ui-balance.md) 추가. Chief 검토 후보, 구현 전. 기존 묶음에 이어 기록한다.
 
 | 항목 | 내용 |
 |------|------|
@@ -8,14 +56,14 @@
 | 상태 | **SoT** — 묶음을 열거나 닫을 때 이 표를 함께 고친다 |
 | 연결 문서 | [현황판](../260928-RTW-현황판.md) · [문서 지침 §8.4](../260509-BOXCYCLE-문서-생성-및-수정-지침.md) |
 
-> `ops/` 는 Supervisor(Codex) ↔ Developer(Cursor CLI)의 공식 파일 기반 업무 창구다. 기존 Claude 릴레이 기록도 보존한다.
+> `ops/` 는 Supervisor(Codex) ↔ Developer(OpenCode Muse Spark 1.3 / Cursor AI·CLI)의 공식 파일 기반 업무 창구다. 기존 Claude 릴레이 기록도 보존한다.
 > chief 는 [전체 상태판](PROGRESS.md)과 아래 묶음 표로 현재 상황을 확인한다. 폴더 안의 지시서·보고서는 에이전트용이다.
 
 ## 역할과 handoff
 
 1. **Chief**: 요구와 제품 방향을 전달하고 중요한 결정·최종 완료를 승인한다. AI 사이의 파일을 복사해 전달하지 않는다.
 2. **Supervisor (Codex)**: 요구를 분석해 범위, 완료 조건, 검증 방법, 승인 필요 여부를 지시에 적고 상태를 `READY_FOR_DEVELOPMENT`로 둔다.
-3. **Developer (Cursor CLI)**: 지정된 지시 파일을 읽고 그 범위만 수행한다. 실제 변경 파일, 실행한 검증과 결과, 실패·미완·범위 밖 발견을 별도 결과 파일에 적는다. 승인 대상이 발견되면 구현을 멈추고 `BLOCKED`로 보고한다.
+3. **Developer (기본 OpenCode Muse Spark 1.3 / 교대 Cursor AI·CLI)**: 지정된 지시 파일을 읽고 그 범위만 수행한다. 실제 변경 파일, 실행한 검증과 결과, 실패·미완·범위 밖 발견을 별도 결과 파일에 적는다. 승인 대상이 발견되면 구현을 멈추고 `BLOCKED`로 보고한다.
 4. **Supervisor**: 결과 문서뿐 아니라 Git diff와 검증 근거를 확인한다. 합격이면 `APPROVED`, 부족하면 이유와 완료 조건을 별도 재지시 파일에 기록해 `REWORK_REQUIRED`로 둔다. 완료 보고는 Chief에게 직접 한다.
 
 이 역할은 **새 작업의 기본값**이다. 기존 Claude 묶음의 파일명·도메인 규율·증거는 해당 기록을 읽을 때 그대로 유효하다. 종료된 묶음에 남은 자동 대기 명령은 재가동을 뜻하지 않는다.
@@ -32,7 +80,7 @@ Supervisor는 아키텍처, 도메인 경계, 데이터 모델, Firestore·RTDB�
 
 ## 실행·Git
 
-새 지시 한 건마다 Cursor CLI 프로세스 한 번을 기본으로 한다. `agent -p --workspace C:\20.HDev\boxcycle "document/ops/<묶음>/<지시파일>을 읽고 지시된 범위만 수행한 뒤 결과 파일을 작성하라"` 형태로 실행하고 종료 코드와 출력을 확인한다. 실제 옵션은 로컬 `agent --help`에서 확인한다. 무한 대기 릴레이는 기본 실행 방식이 아니다. Git 브랜치·커밋·푸시는 [개발 워크플로](../reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md)와 해당 작업 지시의 제한을 따른다. 다른 작업의 변경은 섞지 않는다.
+새 지시 한 건마다 기본 Muse 또는 교대 Cursor 실행 한 번으로 제한한다. 모델·교대·모바일 검수는 [협업·감리 계약](../reference/operations/261009-RTW-개발에이전트-협업-감리.md)을 따른다. 아래 Cursor 명령은 교대 실행 예시다. `agent -p --workspace C:\20.HDev\boxcycle "document/ops/<묶음>/<지시파일>을 읽고 지시된 범위만 수행한 뒤 결과 파일을 작성하라"` 형태로 실행하고 종료 코드와 출력을 확인한다. 실제 옵션은 로컬 `agent --help`에서 확인한다. 무한 대기 릴레이는 기본 실행 방식이 아니다. Git 브랜치·커밋·푸시는 [개발 워크플로](../reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md)와 해당 작업 지시의 제한을 따른다. 다른 작업의 변경은 섞지 않는다.
 
 ## 규칙 (요약)
 
@@ -40,11 +88,13 @@ Supervisor는 아키텍처, 도메인 경계, 데이터 모델, Firestore·RTDB�
 2. 종료가 확정되면 현재 표와 PROGRESS에서 빼고 [종료 색인](../archive/README.md)에 결과와 위치를 남긴다. APPROVED는 CLOSED와 다르다.
 3. 종료된 폴더는 **코드·스킬·명령이 그 경로를 가리키지 않을 때만** `archive/ops/` 로 옮긴다. 가리키면 제자리에 둔다.
 
-## 진행·대기 묶음 (2026-10-05)
+## 진행·대기 묶음 (2026-10-09)
 
 | 폴더 | 상태 | 무엇 | 결과·입구 | 이동 |
 |---|---|---|---|---|
-| [20261013-face-redesign2](20261013-face-redesign2/README.md) | **APPROVED** · 디자인1차마감·main2통합 | 밝은컬러·프로필/계정밀도·맵뷰하단여백 | [결과14](20261013-face-redesign2/03-result-14-integration.md) | — |
+| [20261015-rider14-replace](20261015-rider14-replace/README.md) | **AWAITING_CHIEF** · 계획 초안 | 라이더 s5 → 경량 rider14 교체(드로우콜 213→14) | [계획](20261015-rider14-replace/01-plan.md) | — |
+| [20261013-face-redesign2](20261013-face-redesign2/README.md) | **APPROVED** · 로컬main2 통합 | 디자인수정 완료·병합83079c3·quick1066 PASS | [검수65](20261013-face-redesign2/04-review-65.md) | 실기기/실인증/실주행 검증 별도 |
+| [20261009-mobile-design-collaboration](20261009-mobile-design-collaboration/README.md) | **AWAITING_CHIEF** · 확장 05 · 준비·센서 패널 | 스마트폰 우선 디자인·Muse / Cursor 협업 체계, 코드 작성 금지 | [디자인 초안](20261009-mobile-design-collaboration/17-design-preparation-sensor.md) · [인계 검수](20261009-mobile-design-collaboration/04-review-01.md) | — |
 | [20261008-pacer-riders](20261008-pacer-riders/README.md) | **APPROVED** · main2 병합·배포 | 혼자 주행 시 로컬 페이서 2명(±20m 추월, 기본 켜짐) | [계획](20261008-pacer-riders/01-plan.md) · [검수 01](20261008-pacer-riders/04-review-01.md) | — |
 | [20261007-lint-baseline-react-hooks](20261007-lint-baseline-react-hooks/README.md) | **APPROVED** · 커밋 완료 | 기존 lint 오류 15파일 36건 제거(의미 보존) | [검수 01](20261007-lint-baseline-react-hooks/04-review-01.md) | — |
 | [20261006-account-deletion](20261006-account-deletion/README.md) | **APPROVED** · 배포 대기 | 계정 탈퇴 기능 | [계획](20261006-account-deletion/01-plan.md) · [검수 15](20261006-account-deletion/04-review-15.md) | — |
@@ -71,3 +121,4 @@ Supervisor는 아키텍처, 도메인 경계, 데이터 모델, Firestore·RTDB�
 | [20260927-peer-competition](20260927-peer-competition/README.md) | **대기** · PLANNING | 경쟁 판정 분리·느낌 보정의 기존 미착수 계획 | [계획](20260927-peer-competition/260927-RTW-동행-지연과-경쟁-판정.md) | 재개 시 새 지시 |
 
 종료 작업과 옛 relay 이력은 [완료 기록 색인](../archive/README.md)에 있다. 코드·시험·스킬이 경로를 사용하는 종료 묶음은 제자리에 보존하지만 현재 작업으로 표시하지 않는다.
+

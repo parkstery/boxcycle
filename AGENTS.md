@@ -50,7 +50,8 @@
 
 - **Chief**는 제품 방향, 중요한 기술·범위 결정과 최종 완료를 승인한다. 일상적인 구현의 중간 전달을 맡기지 않는다.
 - **Codex = Engineering Supervisor**: 요구를 분석하고 작업 범위·완료 조건·검증 방법을 정해 `document/ops/`에 지시한다. 구현 결과와 실제 diff·검증 증거를 검수하고 재작업 또는 완료를 판정한다.
-- **Cursor CLI = Development Lead**: 지정된 작업을 조사·구현·검증하고 같은 묶음에 사실에 근거한 결과를 남긴다. 범위 밖 문제는 보고하고, 독단적으로 확장하지 않는다. Cursor IDE는 사람이 확인·디버깅할 때 쓰는 보조 도구다.
+- **Developer = OpenCode의 Muse Spark 1.3(기본) / Cursor AI·CLI(교대)**: 지정된 작업을 조사·구현·검증하고 같은 묶음에 사실에 근거한 결과를 남긴다. 범위 밖 문제는 보고하고, 독단적으로 확장하지 않는다. Cursor AI는 IDE·CLI 어느 환경이든 같은 파일 인계·검수 계약을 따른다.
+- 최종 사용 기기는 **스마트폰**이다. PC는 개발·반복 테스트 환경이며, 현행 폰 가로 방향·공간밀도 기준을 우선한다. [협업·감리 계약](document/reference/operations/261009-RTW-개발에이전트-협업-감리.md)에 따라 도구가 교대해도 동일 지시·결과·검수 기록을 이어간다.
 - 공식 handoff는 [document/ops/README.md](document/ops/README.md)에 따른 파일 기록이다. 새 작업은 현재 묶음의 `README.md`와 최신 지시를 읽고 시작한다. 이전 릴레이의 상시 대기 지침을 새 작업에 적용하지 않는다.
 - 지시 → 결과 → 검수 → 필요하면 새 재지시를 별도 파일로 남긴다. 상태 요약은 [document/ops/PROGRESS.md](document/ops/PROGRESS.md)에 기록한다. 기존 ops 기록은 보존한다.
 - 아키텍처·도메인 경계·데이터 모델·Firestore/RTDB/Rules·외부 API·의미 있는 비용·Public Trail 동기화·공용 인터페이스·대규모 이동·기능 의미·요구 해석 또는 큰 범위 변경은 구현 전에 Chief 결정이 필요한지 Supervisor가 판정한다.
