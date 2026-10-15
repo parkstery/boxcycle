@@ -302,3 +302,10 @@
     gap: 0.35rem;
   }
 }
+
+.auth-gate__card:has(.signup-nickname) { width:min(30rem,calc(100vw - 1.3rem)); }
+.auth-gate__card .signup-nickname__form { gap:0.25rem; }
+.auth-gate__card .signup-nickname__rules { margin-bottom:0.3rem; }
+.auth-gate__card .signup-nickname__rules--meta { margin-top:0; }
+.auth-gate__card .signup-nickname__calorie { flex-direction:row; flex-wrap:wrap; align-items:center; gap:0.3rem 0.55rem; margin-top:0.2rem; min-width:0; }
+.auth-gate__card .signup-nickname__calorie > .signup-nickname__rules { flex-basis:100%; margin-bottom:0; }
