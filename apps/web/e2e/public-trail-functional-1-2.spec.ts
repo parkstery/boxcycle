@@ -2,7 +2,7 @@ import { test, expect, type Page, type Browser } from "./open-meteo-stub";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ensureRiding, guestStart, loadIntroCourse, setSpeedKmh } from "./rideEntryHelpers";
+import { dismissAppIntroIfShown, ensureRiding, guestStart, loadIntroCourse, setSpeedKmh } from "./rideEntryHelpers";
 import { hostFor } from "../../../scripts/emulatorPorts.mjs";
 
 /**
@@ -1186,6 +1186,7 @@ test.describe("Public Trail functional matrix (1–2 riders, emulator)", () => {
     await pageA.goto(`/?trail=${encodeURIComponent(trailId)}&peerSyncLogMs=200`);
     markHb();
     // Same browser context keeps guest auth; gate only if shown.
+    await dismissAppIntroIfShown(pageA);
     const gateRejoin = pageA.getByRole("dialog", { name: "시작" });
     const gateRejoinOpen = await withPageHardCap(pageA, 3_000, "F5 gate-dom", () =>
       pageA.evaluate(() => document.querySelector('[role="dialog"][aria-label="시작"]') != null),
@@ -1348,6 +1349,7 @@ test.describe("Public Trail functional matrix (1–2 riders, emulator)", () => {
       markHb();
       await expect(pageA.getByRole("button", { name: "Trail 메뉴" })).toBeVisible({ timeout: 12_000 });
       markHb();
+      await dismissAppIntroIfShown(pageA);
       const gate = pageA.getByRole("dialog", { name: "시작" });
       const gateOpen = await withPageHardCap(pageA, 3_000, "F7 gate-dom", () =>
         pageA.evaluate(() => {

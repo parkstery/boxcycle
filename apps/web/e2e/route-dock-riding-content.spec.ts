@@ -2,6 +2,7 @@ import { test, expect } from "./open-meteo-stub";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { dismissAppIntroIfShown } from "./rideEntryHelpers";
 
 /**
  * 주행 중 RouteDock 계약 — Chief 의도(2026-09-28, 2026-09-15 의도를 뒤집음):
@@ -71,6 +72,7 @@ test.describe("주행 중 RouteDock", () => {
 });
 
 async function guestStart(page: import("@playwright/test").Page) {
+  await dismissAppIntroIfShown(page);
   const gate = page.getByRole("dialog", { name: "시작" });
   await expect(gate).toBeVisible({ timeout: 30_000 });
   await gate.getByRole("button", { name: "시작", exact: true }).click();

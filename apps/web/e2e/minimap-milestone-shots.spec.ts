@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readGuestUid } from "./readGuestUid";
+import { dismissAppIntroIfShown } from "./rideEntryHelpers";
 
 /**
  * 주행 중 이정표(주행 스토리 M2, 2026-10-08) + 이어달리기 UI 정리.
@@ -147,6 +148,7 @@ async function zoomShot(page: Page, clip: { x: number; y: number; width: number;
 }
 
 async function guestStart(page: Page) {
+  await dismissAppIntroIfShown(page);
   const gate = page.getByRole("dialog", { name: "시작" });
   await expect(gate).toBeVisible({ timeout: 30_000 });
   await gate.getByRole("button", { name: "시작", exact: true }).click();

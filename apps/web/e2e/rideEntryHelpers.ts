@@ -16,8 +16,64 @@ import { fileURLToPath } from 'node:url'
  * 다음에 UI 가 또 움직이면 **이 파일 하나만** 고치면 된다.
  */
 
+const ENTRY_SURFACE_TIMEOUT_MS = 30_000
+
+type EntrySurface =
+  | 'intro'
+  | 'guest'
+  | 'signed-out'
+  | 'unconfigured'
+  | 'nickname'
+  | 'account'
+  | 'connect-failed'
+
+/**
+ * 인증이 정착한 뒤의 화면. `연결 중…` 은 아직 소개·카드·로그인 중 어디에도
+ * 속하지 않으므로 넣지 않는다.
+ */
+async function readEntrySurface(page: Page): Promise<EntrySurface | null> {
+  if (await page.getByRole('region', { name: '앱 소개' }).isVisible()) return 'intro'
+  if (await page.getByRole('dialog', { name: '시작' }).isVisible()) return 'guest'
+  if (await page.getByText('로그아웃되었습니다.', { exact: true }).isVisible()) return 'signed-out'
+  if (await page.getByText('Firebase 설정 필요', { exact: true }).isVisible()) return 'unconfigured'
+  if (await page.getByRole('heading', { name: '닉네임', exact: true }).isVisible()) return 'nickname'
+  if (await page.getByRole('button', { name: '사용자 정보' }).isVisible()) return 'account'
+  if (await page.getByText('서비스에 연결할 수 없습니다.', { exact: true }).isVisible()) return 'connect-failed'
+  return null
+}
+
+/**
+ * 첫 진입의 앱 소개가 보이면 「시작하기」로 닫고, 기존 인증 카드가 나올 때까지 기다린다.
+ *
+ * `showAppIntro` 는 `authInitialized` 이후에야 정해진다. 그 전에 `isVisible()` 을 한 번만
+ * 보면 소개를 놓치고, 소개만 무조건 기다리면 이미 로그인·명시 로그아웃·탈퇴 안내·게스트
+ * 재진입이 타임아웃된다.
+ */
+export async function dismissAppIntroIfShown(page: Page): Promise<void> {
+  let surface: EntrySurface | null = null
+  await expect
+    .poll(async () => {
+      surface = await readEntrySurface(page)
+      return surface
+    }, { timeout: ENTRY_SURFACE_TIMEOUT_MS })
+    .not.toBeNull()
+
+  if (surface !== 'intro') return
+
+  const intro = page.getByRole('region', { name: '앱 소개' })
+  await intro.getByRole('button', { name: '시작하기', exact: true }).click()
+  await expect(intro).toBeHidden({ timeout: 15_000 })
+  await expect
+    .poll(async () => {
+      const next = await readEntrySurface(page)
+      return next != null && next !== 'intro'
+    }, { timeout: ENTRY_SURFACE_TIMEOUT_MS })
+    .toBe(true)
+}
+
 /** 게스트 진입 카드 → 익명 인증 완료 */
 export async function guestStart(page: Page): Promise<void> {
+  await dismissAppIntroIfShown(page)
   const gate = page.getByRole('dialog', { name: '시작' })
   await expect(gate).toBeVisible({ timeout: 30_000 })
   await gate.getByRole('button', { name: '시작', exact: true }).click()

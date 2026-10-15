@@ -7,6 +7,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { stubMapboxStyle } from "./mapbox-stub";
+import { dismissAppIntroIfShown } from "./rideEntryHelpers";
 
 const LIVE = process.env.RIDE_VERIFY_LIVE === "1";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -79,6 +80,7 @@ async function readMapZoom(page: Page): Promise<number | null> {
 
 async function enterAsGuest(page: Page) {
   await page.goto("/");
+  await dismissAppIntroIfShown(page);
   const gate = page.getByRole("dialog", { name: "시작" });
   try {
     await expect(gate).toBeVisible({ timeout: 8_000 });

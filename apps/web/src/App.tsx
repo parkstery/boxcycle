@@ -39,6 +39,7 @@ const RIDE_USER_ZOOM_DISTANCE_SOFT_MAX_M = Math.max(RIDE_CAMERA_DISTANCE_MAX_M *
 const RIDE_USER_ZOOM_DISTANCE_FACTOR = 1.25;
 import { rideDistanceAlongRoute } from "./lib/ride/liveLocationSnapshot";
 import { AuthGateCard, AuthGoogleMark } from "./components/auth/AuthGateCard";
+import { AppIntroScreen } from "./components/auth/AppIntroScreen";
 import { GuestEntryCard } from "./components/auth/GuestEntryCard";
 import { allowUnauthMapDev } from "./lib/identity/authGatePolicy";
 import {
@@ -1782,6 +1783,7 @@ export default function App() {
     (summarySheetVisible && (arrivalToastTick > 0 || lastEndedWasAdhoc !== null));
   // 탈퇴·게스트 초기화 직후 첫 화면에 한 번 — 읽은 뒤 지워 다음 새로고침엔 나오지 않는다
   const [startScreenNotice] = useState(readStartScreenNotice);
+  const [introDismissed, setIntroDismissed] = useState(false);
   useEffect(() => {
     if (startScreenNotice) clearStartScreenNotice();
   }, [startScreenNotice]);
@@ -1791,6 +1793,13 @@ export default function App() {
     !user &&
     !userSignedOut &&
     !readGuestEntryAccepted();
+  const showAppIntro =
+    needsGuestEntry &&
+    !introDismissed &&
+    startScreenNotice !== "account-deleted" &&
+    !authSigningIn &&
+    !busy &&
+    !error;
 
   const needsAuthCard =
     !configured ||
@@ -3422,7 +3431,11 @@ export default function App() {
         />
       ) : null}
 
-      {needsGuestEntry ? (
+      {showAppIntro ? (
+        <AppIntroScreen onStart={() => setIntroDismissed(true)} />
+      ) : null}
+
+      {needsGuestEntry && !showAppIntro ? (
         <GuestEntryCard
           busy={busy || authSigningIn}
           error={error}

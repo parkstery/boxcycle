@@ -8,7 +8,7 @@ import { expect, test, type Page } from "./open-meteo-stub";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { guestStart } from "./rideEntryHelpers";
+import { dismissAppIntroIfShown, guestStart } from "./rideEntryHelpers";
 import { readGuestUid } from "./readGuestUid";
 
 const OUT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../.out/calorie-profile");
@@ -71,6 +71,7 @@ test.describe("체중·강도 기기 간 동기화", () => {
     // 2) 「새 기기」 — 이 기기 저장값을 지우고 새로고침(같은 계정)
     await page.evaluate((u) => localStorage.removeItem(`boxcycle_calorie_profile_v1_${u}`), uid);
     await page.reload();
+    await dismissAppIntroIfShown(page);
     const gate = page.getByRole("dialog", { name: "시작" });
     if (await gate.isVisible({ timeout: 5_000 }).catch(() => false)) await guestStart(page);
     expect(await readGuestUid(page)).toBe(uid);

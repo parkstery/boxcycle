@@ -2,6 +2,7 @@ import { test, expect, type Page } from "./open-meteo-stub";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { dismissAppIntroIfShown } from "./rideEntryHelpers";
 
 /**
  * 터치 타깃 44px · 표고 그래프 통과 계약 (2026-09-17 Chief).
@@ -356,6 +357,7 @@ async function armRideInput(page: Page) {
 }
 
 async function guestStart(page: Page) {
+  await dismissAppIntroIfShown(page);
   const gate = page.getByRole("dialog", { name: "시작" });
   await expect(gate).toBeVisible({ timeout: 30_000 });
   await gate.getByRole("button", { name: "시작", exact: true }).click();

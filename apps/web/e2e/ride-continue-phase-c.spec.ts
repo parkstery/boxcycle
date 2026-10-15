@@ -1,6 +1,7 @@
 import { test, expect, type Page } from './open-meteo-stub'
 import { readGuestUid } from './readGuestUid'
 import { isRouteWarmRequest } from './route-warm-request'
+import { dismissAppIntroIfShown } from './rideEntryHelpers'
 
 /**
  * R1 단계 C — 자동 Route 3회 연속 루프.
@@ -27,6 +28,7 @@ function attachProdFunctions401Guard(page: Page): string[] {
 
 async function enterAsGuest(page: Page) {
   await page.goto('/')
+  await dismissAppIntroIfShown(page)
   const gate = page.getByRole('dialog', { name: '시작' })
   await expect(gate).toBeVisible()
   await gate.getByRole('button', { name: '시작', exact: true }).click()

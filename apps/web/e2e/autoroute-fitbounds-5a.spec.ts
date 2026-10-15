@@ -1,4 +1,5 @@
 import { test, expect, type Page } from './open-meteo-stub'
+import { dismissAppIntroIfShown } from './rideEntryHelpers'
 
 /**
  * 5A-R1 §4.1 계측 — 거리 원 자동 축척(fitBounds)이 폰 뷰포트에서 왜 안 먹는가.
@@ -13,6 +14,7 @@ const CENTER: [number, number] = [127.0347, 37.5051]
 
 async function enterAsGuest(page: Page) {
   await page.goto('/')
+  await dismissAppIntroIfShown(page)
   const gate = page.getByRole('dialog', { name: '시작' })
   await expect(gate).toBeVisible()
   await gate.getByRole('button', { name: '시작', exact: true }).click()

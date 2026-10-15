@@ -1,0 +1,13 @@
+const{chromium}=require('../../../node_modules/playwright');const assert=require('node:assert/strict');const fs=require('node:fs');const path=require('node:path');
+(async()=>{const b=await chromium.launch({headless:true});const p=await b.newPage({viewport:{width:800,height:360}});const rows=[];const out=path.join(__dirname,'intro-72-shots');try{
+ await p.goto('http://127.0.0.1:5014/');const intro=p.getByRole('region',{name:'앱 소개'});await intro.waitFor();assert.equal(await p.getByRole('dialog',{name:'시작',exact:true}).count(),0);
+ await p.screenshot({animations:'disabled',path:path.join(out,'app-800x360.png')});
+ await p.getByRole('button',{name:'줌 확대',exact:true}).click();await p.getByRole('button',{name:'줌 축소',exact:true}).click();rows.push('actual app map zoom buttons clickable');
+ const storageBefore=await p.evaluate(()=>({local:{...localStorage},session:{...sessionStorage}}));
+ await intro.getByRole('button',{name:'시작하기',exact:true}).click();await p.getByRole('dialog',{name:'시작',exact:true}).waitFor();assert.equal(await intro.count(),0);const storageAfter=await p.evaluate(()=>({local:{...localStorage},session:{...sessionStorage}}));assert.deepEqual(storageAfter,storageBefore);rows.push('CTA dismiss without storage change');
+ await p.reload();await intro.waitFor();rows.push('reload intro restored');
+ for(const size of [{width:667,height:300},{width:740,height:300},{width:844,height:390},{width:1366,height:768}]){await p.setViewportSize(size);await p.screenshot({animations:'disabled',path:path.join(out,`app-${size.width}x${size.height}.png`)});const cta=intro.getByRole('button',{name:'시작하기',exact:true});assert(await cta.isVisible());const box=await cta.boundingBox();assert(box.y>=0&&box.y+box.height<=size.height);rows.push(`app ${size.width}x${size.height}`)}
+ await p.evaluate(()=>localStorage.setItem('boxcycle_user_signed_out_v1','1'));await p.reload();await p.getByText('로그아웃되었습니다.',{exact:true}).waitFor();assert.equal(await intro.count(),0);rows.push('explicit signed out bypass');
+ await p.evaluate(()=>{localStorage.removeItem('boxcycle_user_signed_out_v1');sessionStorage.setItem('boxcycle_start_notice_v1','account-deleted')});await p.reload();await p.getByRole('dialog',{name:'시작',exact:true}).waitFor();assert.equal(await intro.count(),0);rows.push('account deleted bypass');
+ fs.writeFileSync(path.join(out,'live-results.json'),JSON.stringify({rows,limits:'Fresh anonymous browser; no login or ride started; no Firebase writes requested'},null,2));console.log(JSON.stringify({checks:rows.length,rows}));
+ }finally{await b.close()}})().catch(e=>{console.error(e);process.exitCode=1});

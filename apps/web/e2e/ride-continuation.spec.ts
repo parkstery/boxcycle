@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { readGuestUid } from './readGuestUid'
 import { stubMapboxStyle } from './mapbox-stub'
+import { dismissAppIntroIfShown } from './rideEntryHelpers'
 
 // 다음 주행·이어 달리기 e2e(RIDE-CONTINUE-1 §7.3).
 // 「어제 멈춘 곳이 오늘 앱을 열었을 때 자동으로 다음 출발점이 된다」를 종료→재진입까지 고정한다.
@@ -83,6 +84,7 @@ const RC1_RESUME_READY_EVIDENCE_PATH = path.resolve(
 /** 게스트 진입 카드 → 익명 인증 완료 */
 async function enterAsGuest(page: Page) {
   await page.goto('/')
+  await dismissAppIntroIfShown(page)
   const gate = page.getByRole('dialog', { name: '시작' })
   await expect(gate).toBeVisible()
   await gate.getByRole('button', { name: '시작', exact: true }).click()

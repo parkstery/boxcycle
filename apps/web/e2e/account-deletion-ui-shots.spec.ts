@@ -8,6 +8,7 @@ import { test, expect } from "./open-meteo-stub";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { dismissAppIntroIfShown } from "./rideEntryHelpers";
 
 const LIVE = process.env.RIDE_VERIFY_LIVE === "1";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -23,6 +24,7 @@ test.describe("계정 탈퇴 UI 촬영", () => {
     test.setTimeout(120_000);
     await page.setViewportSize({ width: 690, height: 275 });
     await page.goto("/");
+    await dismissAppIntroIfShown(page);
     const gate = page.getByRole("dialog", { name: "시작" });
     await expect(gate).toBeVisible({ timeout: 30_000 });
     await gate.getByRole("button", { name: "시작", exact: true }).click();

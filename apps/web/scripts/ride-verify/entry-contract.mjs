@@ -8,6 +8,34 @@
 
 export const ENTRY_STEPS = [
   {
+    step: "app-intro",
+    desc: "최초 인증 전 앱 소개 — '시작하기'는 화면 dismiss만 하고 게스트 카드로 넘긴다",
+    file: "src/components/auth/AppIntroScreen.tsx",
+    anchors: [
+      { name: "소개 region", re: /aria-label="앱 소개"/ },
+      { name: "시작하기 CTA", re: /시작하기/ },
+      { name: "CTA는 onStart만", re: /onClick=\{onStart\}/ },
+    ],
+    selector: `getByRole('region',{name:'앱 소개'}) → getByRole('button',{name:'시작하기',exact:true})`,
+  },
+  {
+    step: "app-intro-gate",
+    desc:
+      "소개는 needsGuestEntry 이고 메모리 dismiss 전일 때만. " +
+      "로그인·명시 로그아웃·탈퇴 안내·busy·서명 중·error 에서는 기존 화면. 게스트 카드와 동시에 두지 않는다.",
+    file: "src/App.tsx",
+    anchors: [
+      { name: "메모리 dismiss", re: /const \[introDismissed, setIntroDismissed\] = useState\(false\)/ },
+      {
+        name: "소개 조건",
+        re: /const showAppIntro =\s*needsGuestEntry &&\s*!introDismissed &&\s*startScreenNotice !== "account-deleted" &&\s*!authSigningIn &&\s*!busy &&\s*!error/,
+      },
+      { name: "CTA는 dismiss만", re: /<AppIntroScreen onStart=\{\(\) => setIntroDismissed\(true\)\} \/>/ },
+      { name: "게스트 카드는 소개 이후", re: /\{needsGuestEntry && !showAppIntro \? \(/ },
+    ],
+    selector: `(게이트 — e2e 는 소개 CTA 다음 게스트 카드를 본다)`,
+  },
+  {
     step: "guest-entry",
     desc: "게스트 진입 카드 — 익명 인증 '시작' 버튼",
     file: "src/components/auth/GuestEntryCard.tsx",

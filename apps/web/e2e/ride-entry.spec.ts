@@ -33,9 +33,13 @@ function redactUrl(url: string): string {
   return q === -1 ? url : `${url.slice(0, q)}?<redacted>`
 }
 
-/** 게스트 진입 카드 → 익명 인증 완료 */
+/** 앱 소개 dismiss → 게스트 진입 카드 → 익명 인증 완료 */
 async function enterAsGuest(page: import('@playwright/test').Page) {
   await page.goto('/')
+  const intro = page.getByRole('region', { name: '앱 소개' })
+  await expect(intro).toBeVisible()
+  await intro.getByRole('button', { name: '시작하기', exact: true }).click()
+  await expect(intro).toBeHidden()
   const gate = page.getByRole('dialog', { name: '시작' })
   await expect(gate).toBeVisible()
   await gate.getByRole('button', { name: '시작', exact: true }).click()

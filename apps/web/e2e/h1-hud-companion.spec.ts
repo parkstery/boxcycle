@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { createHash } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
+import { dismissAppIntroIfShown } from './rideEntryHelpers'
 
 /**
  * H-1R — 같은 Trail 2인 주행 HUD 동행 진단.
@@ -42,6 +43,7 @@ type HudDiag = {
 }
 
 async function guestStart(page: import('@playwright/test').Page) {
+  await dismissAppIntroIfShown(page)
   const gate = page.getByRole('dialog', { name: '시작' })
   await expect(gate).toBeVisible({ timeout: 30_000 })
   await gate.getByRole('button', { name: '시작', exact: true }).click()

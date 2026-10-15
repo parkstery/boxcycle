@@ -1,0 +1,190 @@
+/* 최초 인증 전 앱 소개. 좌측 밝은 포슬린 그라데이션, 우측은 투명해 기존 지도가 비친다.
+ * 색은 기존 인증 카드와 같은 계열: 남색 #1e3a8a / 청록 #0d7a6f / 빨강 #dc2626.
+ * 자체 지도·타일·외부 이미지 없음. 중앙 카드·스크림 없음. */
+.app-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  /* 셸은 통과. 좌측 본문 스크롤만 다시 받는다. 우측 지도 조작과 하단 컨트롤은 가리지 않는다. */
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    #fdfcf9 0%,
+    #faf8f3 30%,
+    rgba(250, 248, 243, 0.92) 44%,
+    rgba(250, 248, 243, 0.45) 58%,
+    rgba(250, 248, 243, 0) 72%
+  );
+  color: #0f172a;
+  color-scheme: light;
+  overflow: hidden;
+  animation: app-intro-in 0.18s ease-out;
+}
+
+@keyframes app-intro-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 히트 영역은 좌측 본문 폭만. 낮은 높이에서는 이 칸 안에서 스크롤해 CTA에 닿는다. */
+.app-intro__scroll {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: min(46%, 26rem);
+  bottom: calc(44px + env(safe-area-inset-bottom, 0px));
+  overflow: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  pointer-events: auto;
+}
+
+.app-intro__content {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding-left: max(6vw, env(safe-area-inset-left, 0px));
+  padding-right: 1rem;
+  padding-top: max(0.65rem, env(safe-area-inset-top, 0px));
+  padding-bottom: max(0.65rem, env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.7rem;
+  min-width: 0;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.app-intro__brand {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.app-intro__brand-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: #dc2626;
+  flex-shrink: 0;
+}
+
+.app-intro__brand-name {
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  font-size: 1.6rem;
+  line-height: 1.1;
+  color: #1e3a8a;
+}
+
+.app-intro__brand-sub {
+  flex-basis: 100%;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  color: #1e3a8a;
+}
+
+.app-intro__headline {
+  margin: 0.35rem 0 0;
+  font-size: 1.85rem;
+  line-height: 1.3;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: #1e3a8a;
+}
+
+.app-intro__headline-line {
+  display: block;
+}
+
+.app-intro__support {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: #334155;
+}
+
+/* 단일 청록 CTA. 폭은 약 180px, 44px 하한은 높이로 둔다. */
+.app-intro__cta {
+  appearance: none;
+  box-sizing: border-box;
+  width: 180px;
+  max-width: 100%;
+  min-width: 44px;
+  min-height: 44px;
+  margin-top: 0.35rem;
+  padding: 0.7rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid #0d7a6f;
+  border-radius: 10px;
+  background: #0d7a6f;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.25;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.app-intro__cta:hover:not(:disabled) {
+  background: #0b6b61;
+  border-color: #0b6b61;
+}
+
+.app-intro__cta:focus-visible {
+  /* 링은 버튼 안쪽. 낮은 스크롤포트에서 바깥 링이 잘리지 않게. 바탕이 청록이라 링은 흰색. */
+  outline: 2px solid #ffffff;
+  outline-offset: -4px;
+}
+
+.app-intro__cta-arrow {
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* 하단 지도 저작권·컨트롤용 투명 띠. 클릭을 받지 않는다. */
+.app-intro__map-reserve {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  height: calc(44px + env(safe-area-inset-bottom, 0px));
+  min-height: 44px;
+  pointer-events: none;
+  background: transparent;
+}
+
+@media (orientation: landscape) and (max-height: 480px) {
+  .app-intro__content {
+    gap: 0.5rem;
+  }
+
+  .app-intro__headline {
+    font-size: 1.55rem;
+  }
+
+  .app-intro__brand-name {
+    font-size: 1.35rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-intro {
+    animation: none;
+  }
+}

@@ -1,0 +1,11 @@
+const{chromium}=require('../../../node_modules/playwright');const assert=require('node:assert/strict');const fs=require('node:fs');const path=require('node:path');const{pathToFileURL}=require('node:url');
+(async()=>{const{dismissAppIntroIfShown}=await import(pathToFileURL(path.resolve(__dirname,'../../../apps/web/e2e/rideEntryHelpers.ts')).href);const b=await chromium.launch({headless:true});const p=await b.newPage({viewport:{width:800,height:360}});const rows=[];try{
+ await p.goto('http://127.0.0.1:5014/');await dismissAppIntroIfShown(p);assert(await p.getByRole('dialog',{name:'시작',exact:true}).isVisible());rows.push('real first entry');
+ await dismissAppIntroIfShown(p);rows.push('real already dismissed');
+ await p.evaluate(()=>localStorage.setItem('boxcycle_user_signed_out_v1','1'));await p.reload();await dismissAppIntroIfShown(p);assert(await p.getByText('로그아웃되었습니다.',{exact:true}).isVisible());rows.push('real signed out');
+ await p.evaluate(()=>{localStorage.removeItem('boxcycle_user_signed_out_v1');sessionStorage.setItem('boxcycle_start_notice_v1','account-deleted')});await p.reload();await dismissAppIntroIfShown(p);assert(await p.getByRole('dialog',{name:'시작',exact:true}).isVisible());rows.push('real deleted notice');
+ await p.goto('about:blank');
+ for(const [label,html] of [['account','<button aria-label="사용자 정보">G</button>'],['nickname','<h2>닉네임</h2>'],['unconfigured','<p>Firebase 설정 필요</p>'],['failed','<p>서비스에 연결할 수 없습니다.</p>'],['guest','<div role="dialog" aria-label="시작">Guest</div>']]){await p.setContent(html);await dismissAppIntroIfShown(p);rows.push('fixture '+label)}
+ await p.setContent('<p>연결 중…</p>');await p.evaluate(()=>{setTimeout(()=>{document.body.innerHTML='<section aria-label="앱 소개"><button>시작하기</button></section>';document.querySelector('button').onclick=()=>document.body.innerHTML='<div role="dialog" aria-label="시작">Guest</div>'},300)});await dismissAppIntroIfShown(p);assert(await p.getByRole('dialog',{name:'시작',exact:true}).isVisible());rows.push('delayed intro after loading');
+ fs.writeFileSync(path.join(__dirname,'intro-72-shots/helper-results.json'),JSON.stringify({rows,limits:'No authentication or ride started; authenticated state verified with DOM fixture'},null,2));console.log(JSON.stringify({states:rows.length,rows}));
+ }finally{await b.close()}})().catch(e=>{console.error(e);process.exitCode=1});
