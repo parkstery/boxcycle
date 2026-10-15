@@ -136,8 +136,8 @@ export type MapHudProps = {
     camera1Mode?: Camera1Mode;
   } | null;
   /**
-   * Outdoors/Satellite 토글 + 줌 ± — 카메라 유무와 무관하게 우상단 한 줄
-   * (QC 와 계정 사이 · idle 이면 계정 바로 왼쪽).
+   * Outdoors/Satellite 토글 + 줌 + − — 카메라 유무와 무관하게 우상단 한 줄
+   * (QC 와 계정 사이 · idle 이면 계정 바로 왼쪽). 지시66: 확대가 축소보다 앞.
    */
   mapControls?: {
     styleLabel: string;
@@ -509,7 +509,7 @@ export function MapHud(props: MapHudProps) {
         </div>
       ) : null}
 
-      {/* 우상단 한 줄 — [QC][야외 − +][계정]. 센서 칩은 RouteDock 이 소유한다 */}
+      {/* 우상단 한 줄 — [QC][야외 + −][계정]. 센서 칩은 RouteDock 이 소유한다. 지시66 */}
       {showTopRight ? (
         <div className="map-hud__tr">
           {quickCamera ? (
@@ -575,18 +575,6 @@ export function MapHud(props: MapHudProps) {
               <button
                 type="button"
                 className="hud-ride-map-controls__zoom"
-                aria-label="줌 축소"
-                title="축소"
-                disabled={mapControls.zoomOutDisabled}
-                onPointerDown={(e) => e.stopPropagation()}
-                onTouchStart={(e) => e.stopPropagation()}
-                onClick={mapControls.onZoomOut}
-              >
-                −
-              </button>
-              <button
-                type="button"
-                className="hud-ride-map-controls__zoom"
                 aria-label="줌 확대"
                 title="확대"
                 disabled={mapControls.zoomInDisabled}
@@ -595,6 +583,18 @@ export function MapHud(props: MapHudProps) {
                 onClick={mapControls.onZoomIn}
               >
                 +
+              </button>
+              <button
+                type="button"
+                className="hud-ride-map-controls__zoom"
+                aria-label="줌 축소"
+                title="축소"
+                disabled={mapControls.zoomOutDisabled}
+                onPointerDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onClick={mapControls.onZoomOut}
+              >
+                −
               </button>
             </div>
           ) : null}
