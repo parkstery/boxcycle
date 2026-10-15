@@ -1,3 +1,5 @@
+2026-10-16 LOD2·코너 회전 운영 배포: hosting index-Dld5MVGd.js(미리보기 combo 와 동일), rider-lod2.glb 200. 미리보기 채널 4개 삭제. 로컬 ~/bin/npm(Kimi 깨진 shim) 제거 — Git Bash npm 정상.
+
 2026-10-16 LOD2·코너 회전: main2 4a35e3f 병합·푸시(게이트 통과, test:quick 1121/0). 운영 배포는 Chief 지시 대기. 미리보기 combo https://boxcycle-dc2df--combo-h77n72cf.web.app.
 
 2026-10-16 rider14 흔들림 배포: main2 8c9763f 푸시·운영 hosting 배포, 어깨 1.0°·자전거 0.4°·상하 2mm. 롤백=riderModelProfile rider14 supportsSway=false. 다음 LOD1·LOD2(P8).
