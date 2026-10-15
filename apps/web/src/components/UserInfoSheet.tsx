@@ -777,7 +777,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
 
         {showActionsFooter ? (
           <div className="user-info-sheet__actions">
-            {showGoogleLink ? (
+            {showGoogleLink && !confirmingLogout ? (
               <button
                 type="button"
                 className="user-info-sheet__btn user-info-sheet__btn--google"
