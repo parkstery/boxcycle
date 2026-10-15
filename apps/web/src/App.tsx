@@ -178,7 +178,6 @@ import {
   mapStyleHudShortLabel,
   nextOutdoorsSatelliteMapStyle,
 } from "./lib/map/rtwMapConfig";
-import { createAppIntroMapView } from "./lib/map/appIntroMapView";
 import { formatElapsedFromMs } from "./lib/ride/rideFormat";
 import { formatRideDistanceKmNumber } from "./lib/ride/rideDistanceFormat";
 import { useBleCrankRpm } from "./hooks/useBleCrankRpm";
@@ -1801,17 +1800,6 @@ export default function App() {
     !authSigningIn &&
     !busy &&
     !error;
-  useEffect(() => {
-    if (!showAppIntro) return;
-    const view = createAppIntroMapView(window.innerWidth);
-    setMapStyle(MAP_STYLE_SATELLITE);
-    setMapZoom(view.zoom);
-    cameraJumpSeqRef.current += 1;
-    setExternalCameraJump({
-      ...view,
-      requestId: cameraJumpSeqRef.current,
-    });
-  }, [showAppIntro]);
 
   const needsAuthCard =
     !configured ||

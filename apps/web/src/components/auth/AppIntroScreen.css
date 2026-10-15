@@ -1,11 +1,39 @@
-/* 최초 인증 전 앱 소개. 좌측 밝은 포슬린 그라데이션, 우측은 투명해 기존 지도가 비친다.
+/* 최초 인증 전 앱 소개. 좌측 밝은 포슬린 그라데이션.
+ * 우측은 수직 정사투영 위성영상, 온라인 고정영역 이미지.
  * 색은 기존 인증 카드와 같은 계열: 남색 #1e3a8a / 청록 #0d7a6f / 빨강 #dc2626.
- * 자체 지도·타일·외부 이미지 없음. 중앙 카드·스크림 없음. */
+ * 지도·타일 로드와 무관하다. 중앙 카드·스크림 없음. */
 .app-intro {
   position: fixed;
   inset: 0;
   z-index: 40;
-  /* 셸은 통과. 좌측 본문 스크롤만 다시 받는다. 우측 지도 조작과 하단 컨트롤은 가리지 않는다. */
+  /* 불투명 셸이 하위 지도와 컨트롤을 가린다. 우측 클릭 통과는 하지 않는다. */
+  pointer-events: auto;
+  background: #fdfcf9;
+  color: #0f172a;
+  color-scheme: light;
+  overflow: hidden;
+  animation: app-intro-in 0.18s ease-out;
+}
+
+.app-intro__photo {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 32%;
+  width: 68%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+}
+
+.app-intro::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
   pointer-events: none;
   background: linear-gradient(
     90deg,
@@ -15,10 +43,6 @@
     rgba(250, 248, 243, 0.45) 58%,
     rgba(250, 248, 243, 0) 72%
   );
-  color: #0f172a;
-  color-scheme: light;
-  overflow: hidden;
-  animation: app-intro-in 0.18s ease-out;
 }
 
 @keyframes app-intro-in {
@@ -33,6 +57,7 @@
 /* 히트 영역은 좌측 본문 폭만. 낮은 높이에서는 이 칸 안에서 스크롤해 CTA에 닿는다. */
 .app-intro__scroll {
   position: absolute;
+  z-index: 2;
   top: 0;
   left: 0;
   width: min(46%, 26rem);
@@ -156,17 +181,32 @@
   line-height: 1;
 }
 
-/* 하단 지도 저작권·컨트롤용 투명 띠. 클릭을 받지 않는다. */
-.app-intro__map-reserve {
+/* 사진 위 우하단 출처. 스크롤은 하단 44px를 비워 두어 이 배지와 겹치지 않는다. */
+.app-intro__credit {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  z-index: 2;
+  right: max(0.35rem, env(safe-area-inset-right, 0px));
+  bottom: env(safe-area-inset-bottom, 0px);
   box-sizing: border-box;
-  height: calc(44px + env(safe-area-inset-bottom, 0px));
+  min-width: 44px;
   min-height: 44px;
-  pointer-events: none;
-  background: transparent;
+  padding: 0 0.55rem;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 6px;
+  background: rgba(253, 252, 249, 0.9);
+  color: #0f172a;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  max-width: calc(100% - 1rem);
+  white-space: normal;
+  text-decoration: none;
+}
+
+.app-intro__credit:focus-visible {
+  outline: 2px solid #1e3a8a;
+  outline-offset: -2px;
 }
 
 @media (orientation: landscape) and (max-height: 480px) {
