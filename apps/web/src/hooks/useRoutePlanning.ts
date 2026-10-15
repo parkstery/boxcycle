@@ -6,6 +6,7 @@ import {
   useMemo,
   useState,
   type MutableRefObject,
+  type SetStateAction,
 } from "react";
 import { getFirebaseApp } from "../lib/firebase/app";
 import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
@@ -49,7 +50,26 @@ export function useRoutePlanning(options: UseRoutePlanningOptions) {
   const waypointPlaceLabels = useReverseGeocodedLabels(routeWaypoints, geocodeToken);
 
   const [profile, setProfile] = useState<RouteProfile>("cycling");
-  const [routeGeometry, setRouteGeometry] = useState<LineStringGeometry | null>(null);
+  /*
+   * geometry 와 완료 token 을 한 state 에 둔다. nonnull 설정마다 새 object token
+   * (같은 geometry 참조를 다시 골라도). null 이면 token 도 null. token 은 렌더 중 만들지 않는다.
+   */
+  const [routeGeometryState, setRouteGeometryState] = useState<{
+    geometry: LineStringGeometry | null;
+    token: object | null;
+  }>({ geometry: null, token: null });
+  const routeGeometry = routeGeometryState.geometry;
+  const routeSetupToken = routeGeometryState.token;
+  const setRouteGeometry = useCallback((update: SetStateAction<LineStringGeometry | null>) => {
+    setRouteGeometryState((prev) => {
+      const nextGeometry = typeof update === "function" ? update(prev.geometry) : update;
+      if (nextGeometry == null) {
+        if (prev.geometry == null && prev.token == null) return prev;
+        return { geometry: null, token: null };
+      }
+      return { geometry: nextGeometry, token: {} };
+    });
+  }, []);
   const [routeDistanceMeters, setRouteDistanceMeters] = useState(0);
   const [routeDurationSec, setRouteDurationSec] = useState(0);
   const [routeSummary, setRouteSummary] = useState("");
@@ -187,6 +207,7 @@ export function useRoutePlanning(options: UseRoutePlanningOptions) {
       resetRide,
       user,
       functionsRegion,
+      setRouteGeometry,
     ],
   );
 
@@ -202,7 +223,7 @@ export function useRoutePlanning(options: UseRoutePlanningOptions) {
       setRouteSummary("");
       clearRouteArtifactsRef.current();
     },
-    [],
+    [setRouteGeometry],
   );
 
   const applyRouteProfileFromMapPopup = useCallback(
@@ -225,6 +246,7 @@ export function useRoutePlanning(options: UseRoutePlanningOptions) {
     setProfile,
     routeGeometry,
     setRouteGeometry,
+    routeSetupToken,
     routeDistanceMeters,
     setRouteDistanceMeters,
     routeDurationSec,

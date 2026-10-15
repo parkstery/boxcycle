@@ -13,7 +13,7 @@ export type RouteDockProps = {
   stage: RideUiStage;
   stops: RouteDockStop[];
   routeLoading: boolean;
-  /** 계산된 routeGeometry 참조. 완료된 새 참조만 주행 시작 위치 안내에 쓴다. */
+  /** 경로 설정 완료 token. ready 이전에 소비하지 않고, 같은 token 은 한 번만 안내한다. */
   routeSetupToken?: object | null;
   canStartRide: boolean;
   /**
@@ -101,29 +101,67 @@ export function RouteDock(props: RouteDockProps) {
   }
 
   const setupToken = routeSetupToken ?? null;
+  /*
+   * pending = 봤지만 ready 이전이라 아직 안내하지 않은 token.
+   * consumed = 이미 1회 시작한 token. 같은 token 의 재렌더·센서·접기·주행 종료 후 복귀는 다시 시작하지 않는다.
+   */
   const [setupCue, setSetupCue] = useState(() => ({
-    token: setupToken,
+    observed: null as object | null,
+    pending: null as object | null,
+    consumed: null as object | null,
     loading: routeLoading,
     stage,
     sequence: 0,
     attention: false,
   }));
   if (
-    setupToken !== setupCue.token ||
+    setupToken !== setupCue.observed ||
     routeLoading !== setupCue.loading ||
     stage !== setupCue.stage
   ) {
-    const stillEligible =
-      setupToken != null && !routeLoading && stage === "ready-to-start";
-    const freshCompleted =
-      stillEligible && (setupToken !== setupCue.token || setupCue.loading);
-    if (freshCompleted) setExpanded(true);
+    const ridingLike = stage === "riding" || stage === "paused";
+    let pending: object | null;
+    let consumed = setupCue.consumed;
+    let attention = setupCue.attention;
+    let sequence = setupCue.sequence;
+
+    if (setupToken == null) {
+      pending = null;
+      consumed = null;
+      attention = false;
+    } else if (ridingLike) {
+      pending = setupToken === consumed ? null : setupToken;
+      attention = false;
+    } else if (setupToken !== consumed) {
+      pending = setupToken;
+      attention = false;
+    } else {
+      pending = null;
+      if (stage !== "ready-to-start" || routeLoading) attention = false;
+    }
+
+    if (
+      setupToken != null &&
+      pending != null &&
+      pending !== consumed &&
+      !routeLoading &&
+      stage === "ready-to-start"
+    ) {
+      consumed = pending;
+      pending = null;
+      sequence += 1;
+      attention = true;
+      setExpanded(true);
+    }
+
     setSetupCue({
-      token: setupToken,
+      observed: setupToken,
+      pending,
+      consumed,
       loading: routeLoading,
       stage,
-      sequence: freshCompleted ? setupCue.sequence + 1 : setupCue.sequence,
-      attention: freshCompleted ? true : stillEligible ? setupCue.attention : false,
+      sequence,
+      attention,
     });
   }
   const setupAttentionClass = setupCue.attention
