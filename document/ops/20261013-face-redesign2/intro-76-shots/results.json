@@ -1,0 +1,79 @@
+{
+  "rows": [
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "result": {
+        "src": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox=12.4865%2C41.8875%2C12.4979%2C41.8929&bboxSR=4326&imageSR=3857&size=1600%2C1000&format=jpg&f=image",
+        "naturalWidth": 1600,
+        "naturalHeight": 1000,
+        "cover": "cover",
+        "referrerPolicy": "no-referrer"
+      },
+      "underlyingMapBlocked": true
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "result": {
+        "src": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox=12.4865%2C41.8875%2C12.4979%2C41.8929&bboxSR=4326&imageSR=3857&size=1600%2C1000&format=jpg&f=image",
+        "naturalWidth": 1600,
+        "naturalHeight": 1000,
+        "cover": "cover",
+        "referrerPolicy": "no-referrer"
+      },
+      "underlyingMapBlocked": true
+    },
+    {
+      "viewport": {
+        "width": 800,
+        "height": 360
+      },
+      "result": {
+        "src": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox=12.4865%2C41.8875%2C12.4979%2C41.8929&bboxSR=4326&imageSR=3857&size=1600%2C1000&format=jpg&f=image",
+        "naturalWidth": 1600,
+        "naturalHeight": 1000,
+        "cover": "cover",
+        "referrerPolicy": "no-referrer"
+      },
+      "underlyingMapBlocked": true
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "result": {
+        "src": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox=12.4865%2C41.8875%2C12.4979%2C41.8929&bboxSR=4326&imageSR=3857&size=1600%2C1000&format=jpg&f=image",
+        "naturalWidth": 1600,
+        "naturalHeight": 1000,
+        "cover": "cover",
+        "referrerPolicy": "no-referrer"
+      },
+      "underlyingMapBlocked": true
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "result": {
+        "src": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox=12.4865%2C41.8875%2C12.4979%2C41.8929&bboxSR=4326&imageSR=3857&size=1600%2C1000&format=jpg&f=image",
+        "naturalWidth": 1600,
+        "naturalHeight": 1000,
+        "cover": "cover",
+        "referrerPolicy": "no-referrer"
+      },
+      "underlyingMapBlocked": true
+    }
+  ],
+  "imageRequests": 1,
+  "credit": "PASS",
+  "transition": "PASS",
+  "failureNoSeoulReveal": "PASS",
+  "network": "Browser image response fixture uses exact downloaded public service JPEG, original visually inspected independently"
+}

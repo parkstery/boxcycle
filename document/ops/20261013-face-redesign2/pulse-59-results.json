@@ -1,0 +1,309 @@
+{
+  "PASS": true,
+  "initial": [
+    {
+      "name": "route-dock-go-setup-b",
+      "iterations": 2,
+      "duration": 900
+    }
+  ],
+  "pulseFrames": [
+    {
+      "offset": 0,
+      "easing": "ease-in-out",
+      "composite": "auto",
+      "boxShadow": "rgba(37, 99, 235, 0.35) 0px 3px 12px 0px, rgba(37, 99, 235, 0) 0px 0px 0px 0px",
+      "backgroundColor": "rgb(37, 99, 235)",
+      "transform": "scale(1)",
+      "computedOffset": 0
+    },
+    {
+      "offset": 0.5,
+      "easing": "ease-in-out",
+      "composite": "auto",
+      "boxShadow": "rgba(37, 99, 235, 0.45) 0px 4px 16px 0px, rgba(37, 99, 235, 0.2) 0px 0px 0px 5px",
+      "backgroundColor": "rgb(37, 99, 235)",
+      "transform": "scale(1.12)",
+      "computedOffset": 0.5
+    },
+    {
+      "offset": 1,
+      "easing": "ease-in-out",
+      "composite": "auto",
+      "boxShadow": "rgba(37, 99, 235, 0.35) 0px 3px 12px 0px, rgba(37, 99, 235, 0) 0px 0px 0px 0px",
+      "backgroundColor": "rgb(37, 99, 235)",
+      "transform": "scale(1)",
+      "computedOffset": 1
+    }
+  ],
+  "pulsePeaks": [
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "boxes": [
+        {
+          "x": 116.47969055175781,
+          "y": 206.6359405517578,
+          "w": 27.212493896484375,
+          "h": 27.212493896484375,
+          "layoutW": 24,
+          "layoutH": 24
+        },
+        {
+          "x": 145.46875,
+          "y": 208.09375,
+          "w": 24.296875,
+          "h": 24.296875,
+          "layoutW": 24,
+          "layoutH": 24
+        },
+        {
+          "x": 173,
+          "y": 208.09375,
+          "w": 24.296875,
+          "h": 24.296875,
+          "layoutW": 24,
+          "layoutH": 24
+        }
+      ]
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "boxes": [
+        {
+          "x": 117.51094055175781,
+          "y": 205.6203155517578,
+          "w": 27.212493896484375,
+          "h": 27.212493896484375,
+          "layoutW": 24,
+          "layoutH": 24
+        },
+        {
+          "x": 146.5,
+          "y": 207.078125,
+          "w": 24.296875,
+          "h": 24.296875,
+          "layoutW": 24,
+          "layoutH": 24
+        },
+        {
+          "x": 174.03125,
+          "y": 207.078125,
+          "w": 24.296875,
+          "h": 24.296875,
+          "layoutW": 24,
+          "layoutH": 24
+        }
+      ]
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "boxes": [
+        {
+          "x": 118.62031555175781,
+          "y": 294.51092529296875,
+          "w": 27.212493896484375,
+          "h": 27.2125244140625,
+          "layoutW": 24,
+          "layoutH": 24
+        },
+        {
+          "x": 147.609375,
+          "y": 295.96875,
+          "w": 24.296875,
+          "h": 24.296875,
+          "layoutW": 24,
+          "layoutH": 24
+        },
+        {
+          "x": 175.140625,
+          "y": 295.96875,
+          "w": 24.296875,
+          "h": 24.296875,
+          "layoutW": 24,
+          "layoutH": 24
+        }
+      ]
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "boxes": [
+        {
+          "x": 164.28125,
+          "y": 592.046875,
+          "w": 37.625,
+          "h": 37.625,
+          "layoutW": 34,
+          "layoutH": 34
+        },
+        {
+          "x": 204.6875,
+          "y": 594.0625,
+          "w": 33.59375,
+          "h": 33.59375,
+          "layoutW": 34,
+          "layoutH": 34
+        },
+        {
+          "x": 243.078125,
+          "y": 594.0625,
+          "w": 33.59375,
+          "h": 33.59375,
+          "layoutW": 34,
+          "layoutH": 34
+        }
+      ]
+    }
+  ],
+  "viewport": "740x300",
+  "geometry": [
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "buttons": [
+        {
+          "x": 117.9375,
+          "y": 208.09375,
+          "w": 24.296875,
+          "h": 24.296875,
+          "font": "13.3333px"
+        },
+        {
+          "x": 145.46875,
+          "y": 208.09375,
+          "w": 24.296875,
+          "h": 24.296875,
+          "font": "13.3333px"
+        },
+        {
+          "x": 173,
+          "y": 208.09375,
+          "w": 24.296875,
+          "h": 24.296875,
+          "font": "13.3333px"
+        }
+      ]
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "buttons": [
+        {
+          "x": 118.96875,
+          "y": 207.078125,
+          "w": 24.296875,
+          "h": 24.296875,
+          "font": "13.3333px"
+        },
+        {
+          "x": 146.5,
+          "y": 207.078125,
+          "w": 24.296875,
+          "h": 24.296875,
+          "font": "13.3333px"
+        },
+        {
+          "x": 174.03125,
+          "y": 207.078125,
+          "w": 24.296875,
+          "h": 24.296875,
+          "font": "13.3333px"
+        }
+      ]
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "buttons": [
+        {
+          "x": 120.078125,
+          "y": 295.96875,
+          "w": 24.296875,
+          "h": 24.296875,
+          "font": "13.3333px"
+        },
+        {
+          "x": 147.609375,
+          "y": 295.96875,
+          "w": 24.296875,
+          "h": 24.296875,
+          "font": "13.3333px"
+        },
+        {
+          "x": 175.140625,
+          "y": 295.96875,
+          "w": 24.296875,
+          "h": 24.296875,
+          "font": "13.3333px"
+        }
+      ]
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "buttons": [
+        {
+          "x": 166.296875,
+          "y": 594.0625,
+          "w": 33.59375,
+          "h": 33.59375,
+          "font": "13.3333px"
+        },
+        {
+          "x": 204.6875,
+          "y": 594.0625,
+          "w": 33.59375,
+          "h": 33.59375,
+          "font": "13.3333px"
+        },
+        {
+          "x": 243.078125,
+          "y": 594.0625,
+          "w": 33.59375,
+          "h": 33.59375,
+          "font": "13.3333px"
+        }
+      ]
+    }
+  ],
+  "checks": [
+    "StrictMode two 900ms pulses",
+    "constant background and opacity",
+    "scale 1 to 1.12 to 1",
+    "halo expands and returns",
+    "four viewports no adjacent overlap at peak",
+    "animation ends",
+    "same route/input rerender does not restart",
+    "fold/unfold does not restart",
+    "new disabled route pulses",
+    "button layout unchanged",
+    "riding/paused no animation",
+    "callbacks preserved",
+    "loading defers",
+    "fold during cue ends it",
+    "new route opens collapsed dock",
+    "delete/new route retriggers",
+    "reduced motion uses finite constant frames",
+    "three mobile and PC button geometry unchanged"
+  ],
+  "errors": []
+}

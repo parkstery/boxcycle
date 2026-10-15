@@ -1,0 +1,387 @@
+.map-view-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 54;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.map-view-sheet__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.32);
+  border: none;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.map-view-sheet__panel {
+  position: relative;
+  z-index: 1;
+  /* 한 줄 칩 유지를 위해 넉넉한 상한 — 뷰포트에 맞춰 줄어듦 */
+  width: min(25rem, calc(100vw - 1rem));
+  max-width: 100%;
+  max-height: 70%;
+  overflow: auto;
+  margin-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  padding: 0.55rem 0.75rem 0.9rem;
+  border-radius: 14px 14px 12px 12px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  animation: map-view-sheet-up 180ms ease-out;
+  box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.35);
+}
+
+@keyframes map-view-sheet-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.map-view-sheet__group--in-advanced {
+  width: 100%;
+  align-items: flex-start;
+}
+
+.map-view-sheet__group--in-advanced .map-view-sheet__row-body {
+  flex-wrap: wrap;
+}
+
+/* ----- 고급: 노선 커버리지 접기 ----- */
+.map-view-sheet__advanced {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.map-view-sheet__advanced-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  margin: 0;
+  padding: 0.38rem 0.45rem;
+  border-radius: 10px;
+  border: 1px solid #CBD5E1;
+  background: #F8FAFC;
+  color: #1F2937;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.map-view-sheet__advanced-toggle:hover {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
+.map-view-sheet__advanced-toggle:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: 2px;
+}
+
+.map-view-sheet__advanced-leading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.map-view-sheet__advanced-leading strong {
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+}
+
+.map-view-sheet__advanced-sub {
+  font-size: 0.62rem;
+  font-weight: 500;
+  opacity: 0.75;
+}
+
+.map-view-sheet__advanced-pill {
+  flex-shrink: 0;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  background: #2563EB;
+  border: 1px solid transparent;
+  color: #FFFFFF;
+}
+
+.map-view-sheet__advanced-chevron {
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  opacity: 0.85;
+  width: 1rem;
+  text-align: center;
+}
+
+.map-view-sheet__advanced-body {
+  padding: 0 0.1rem 0.15rem;
+}
+
+.map-view-sheet__handle {
+  width: 2.4rem;
+  height: 0.22rem;
+  border-radius: 99px;
+  background: #CBD5E1;
+  margin: 0.05rem auto 0.3rem;
+}
+
+/* 한 줄: 왼쪽 타이틀 · 오른쪽 컨트롤 */
+.map-view-sheet__group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.map-view-sheet__label-title {
+  flex: 0 0 2.8rem;
+  width: 2.8rem;
+  min-width: 3.2rem;
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  opacity: 0.82;
+  line-height: 1.25;
+}
+
+.map-view-sheet__row-body {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.28rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.map-view-sheet__check--inline-3d {
+  flex-shrink: 0;
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.map-view-sheet__chips--inline {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.24rem;
+}
+
+.map-view-sheet__group .map-view-sheet__chip {
+  flex-shrink: 0;
+  padding: 0.22rem 0.42rem;
+  font-size: 0.68rem;
+}
+
+.map-view-sheet__chip {
+  appearance: none;
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #475569;
+  font: inherit;
+  font-weight: 600;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.map-view-sheet__chip:hover {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
+.map-view-sheet__chip.is-active {
+  background: #2563EB;
+  border-color: transparent;
+  color: #FFFFFF;
+}
+
+.map-view-sheet__chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.map-view-sheet__help--inline {
+  flex-shrink: 0;
+  margin: 0;
+  padding-left: 0.15rem;
+  font-size: 0.62rem;
+  font-weight: 500;
+  opacity: 0.72;
+  white-space: nowrap;
+}
+
+.map-view-sheet__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+}
+
+.map-view-sheet__check input {
+  accent-color: #2563EB;
+}
+
+.map-view-sheet__row-body--zoom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.map-view-sheet__zoom-step {
+  flex: 0 0 auto;
+  appearance: none;
+  width: 1.85rem;
+  height: 1.65rem;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #1F2937;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.map-view-sheet__zoom-step:hover {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
+.map-view-sheet__zoom-readout {
+  flex: 0 0 auto;
+  min-width: 2.25rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  opacity: 0.9;
+  text-align: right;
+}
+
+.map-view-sheet__range {
+  flex: 1;
+  min-width: 5rem;
+  width: auto;
+  max-width: 100%;
+  accent-color: #2563EB;
+}
+
+/* 주행 중 거리뷰 창 on/off — 기본 꺼짐 */
+.map-view-sheet__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.map-view-sheet__toggle input {
+  accent-color: #2563EB;
+}
+
+.map-view-sheet__toggle input:disabled {
+  cursor: not-allowed;
+}
+
+/*
+ * 폰 가로 — 하단 중앙에 크게 뜨면 지도 한가운데를 덮는다.
+ * 트리거(맵 버튼)가 우상단으로 갔으므로 시트도 우측에 붙는 좁은 패널로 낸다.
+ */
+@media (max-height: 560px) {
+  .map-view-sheet {
+    align-items: stretch;
+    justify-content: flex-end;
+  }
+
+  .map-view-sheet__panel {
+    width: min(17rem, calc(100vw - 1rem));
+    max-height: 100%;
+    margin-bottom: 0;
+    margin-right: max(0.4rem, env(safe-area-inset-right, 0px));
+    margin-top: max(0.4rem, env(safe-area-inset-top, 0px));
+    margin-bottom: max(0.4rem, env(safe-area-inset-bottom, 0px));
+    border-radius: 12px;
+    padding: 0.4rem 0.55rem 0.6rem;
+  }
+
+  .map-view-sheet__handle {
+    display: none;
+  }
+
+  /* 좁은 우측 패널에서는 칩을 가로 스크롤 대신 줄바꿈으로 — 잘려 보이지 않게 */
+  .map-view-sheet__row-body,
+  .map-view-sheet__chips--inline {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+
+  .map-view-sheet__chips--inline {
+    flex-shrink: 1;
+  }
+}
+
+.map-view-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.map-view-sheet__head-title {
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.map-view-sheet__close {
+  flex: 0 0 auto;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 650;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #475569;
+  cursor: pointer;
+}
+
+.map-view-sheet__close:hover {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}

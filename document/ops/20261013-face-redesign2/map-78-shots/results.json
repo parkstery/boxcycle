@@ -1,0 +1,155 @@
+{
+  "rows": [
+    {
+      "scenario": "fresh",
+      "view": {
+        "center": [
+          12.492200000001162,
+          41.8902000000015
+        ],
+        "zoom": 15,
+        "bearing": 0,
+        "pitch": 0,
+        "drag": true,
+        "scroll": true,
+        "geoCalls": 0,
+        "markers": 0,
+        "sources": [
+          "boxcycle-routable-roads-src",
+          "boxcycle-activity-pulse-routes",
+          "boxcycle-activity-heat-routes",
+          "boxcycle-activity-heat-dots",
+          "boxcycle-activity-pulse-dots",
+          "boxcycle-conquest-traces",
+          "boxcycle-conquest-live"
+        ]
+      },
+      "manualPanPreserved": true,
+      "styles": [
+        "/styles/v1/mapbox/satellite-streets-v12",
+        "/styles/v1/mapbox/satellite-streets-v12"
+      ]
+    },
+    {
+      "scenario": "narrow-fresh",
+      "view": {
+        "center": [
+          12.49219999999957,
+          41.890200000000675
+        ],
+        "zoom": 15,
+        "bearing": 0,
+        "pitch": 0,
+        "drag": true,
+        "scroll": true,
+        "geoCalls": 0,
+        "markers": 0,
+        "sources": [
+          "boxcycle-routable-roads-src",
+          "boxcycle-activity-pulse-routes",
+          "boxcycle-activity-heat-routes",
+          "boxcycle-activity-heat-dots",
+          "boxcycle-activity-pulse-dots",
+          "boxcycle-conquest-traces",
+          "boxcycle-conquest-live"
+        ]
+      },
+      "manualPanPreserved": true,
+      "styles": [
+        "/styles/v1/mapbox/satellite-streets-v12",
+        "/styles/v1/mapbox/satellite-streets-v12"
+      ]
+    },
+    {
+      "scenario": "Seoul-history",
+      "view": {
+        "center": [
+          12.492200000001162,
+          41.8902000000015
+        ],
+        "zoom": 15,
+        "bearing": 0,
+        "pitch": 0,
+        "drag": true,
+        "scroll": true,
+        "geoCalls": 0,
+        "markers": 0,
+        "sources": [
+          "boxcycle-routable-roads-src",
+          "boxcycle-activity-pulse-routes",
+          "boxcycle-activity-heat-routes",
+          "boxcycle-activity-heat-dots",
+          "boxcycle-activity-pulse-dots",
+          "boxcycle-conquest-traces",
+          "boxcycle-conquest-live"
+        ]
+      },
+      "manualPanPreserved": true,
+      "styles": [
+        "/styles/v1/mapbox/satellite-streets-v12",
+        "/styles/v1/mapbox/satellite-streets-v12"
+      ]
+    },
+    {
+      "scenario": "shared-region",
+      "view": {
+        "center": [
+          129.07559999999853,
+          35.17959999999982
+        ],
+        "zoom": 13,
+        "bearing": 0,
+        "pitch": 0,
+        "drag": true,
+        "scroll": true,
+        "geoCalls": 0,
+        "markers": 0,
+        "sources": [
+          "boxcycle-routable-roads-src",
+          "boxcycle-activity-pulse-routes",
+          "boxcycle-activity-heat-routes",
+          "boxcycle-activity-heat-dots",
+          "boxcycle-activity-pulse-dots",
+          "boxcycle-conquest-traces",
+          "boxcycle-conquest-live"
+        ]
+      },
+      "manualPanPreserved": true,
+      "styles": [
+        "/styles/v1/mapbox/outdoors-v12",
+        "/styles/v1/mapbox/outdoors-v12"
+      ]
+    },
+    {
+      "scenario": "chosen-region",
+      "view": {
+        "center": [
+          2.2944999999979245,
+          48.85840000000158
+        ],
+        "zoom": 14,
+        "bearing": 0,
+        "pitch": 0,
+        "drag": true,
+        "scroll": true,
+        "geoCalls": 0,
+        "markers": 0,
+        "sources": [
+          "boxcycle-routable-roads-src",
+          "boxcycle-activity-pulse-routes",
+          "boxcycle-activity-heat-routes",
+          "boxcycle-activity-heat-dots",
+          "boxcycle-activity-pulse-dots",
+          "boxcycle-conquest-traces",
+          "boxcycle-conquest-live"
+        ]
+      },
+      "manualPanPreserved": true,
+      "styles": [
+        "/styles/v1/mapbox/outdoors-v12",
+        "/styles/v1/mapbox/outdoors-v12"
+      ]
+    }
+  ],
+  "limits": "Actual MapView/WebGL; empty Mapbox style fixture and auth User fixture; every external request blocked; no real account or Firebase writes."
+}

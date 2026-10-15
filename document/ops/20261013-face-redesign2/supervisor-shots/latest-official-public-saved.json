@@ -1,0 +1,98 @@
+{
+  "rows": [
+    {
+      "unit": "official",
+      "sel": ".oc-modal",
+      "geometryIdentical": true,
+      "elements": 39,
+      "style": {
+        "bg": "rgb(255, 255, 255)",
+        "fg": "rgb(31, 41, 55)",
+        "border": "rgb(203, 213, 225)"
+      },
+      "beforeRect": {
+        "tag": "DIV",
+        "cls": "oc-modal",
+        "x": 190,
+        "y": 36.92,
+        "w": 420,
+        "h": 286.16,
+        "sw": 418,
+        "sh": 284
+      },
+      "afterRect": {
+        "tag": "DIV",
+        "cls": "oc-modal",
+        "x": 190,
+        "y": 36.92,
+        "w": 420,
+        "h": 286.16,
+        "sw": 418,
+        "sh": 284
+      }
+    },
+    {
+      "unit": "public",
+      "sel": ".oc-modal",
+      "geometryIdentical": true,
+      "elements": 284,
+      "style": {
+        "bg": "rgb(255, 255, 255)",
+        "fg": "rgb(31, 41, 55)",
+        "border": "rgb(203, 213, 225)"
+      },
+      "beforeRect": {
+        "tag": "DIV",
+        "cls": "oc-modal",
+        "x": 190,
+        "y": 27,
+        "w": 420,
+        "h": 306,
+        "sw": 418,
+        "sh": 304
+      },
+      "afterRect": {
+        "tag": "DIV",
+        "cls": "oc-modal",
+        "x": 190,
+        "y": 27,
+        "w": 420,
+        "h": 306,
+        "sw": 418,
+        "sh": 304
+      }
+    },
+    {
+      "unit": "saved",
+      "sel": ".oc-modal",
+      "geometryIdentical": true,
+      "elements": 10,
+      "style": {
+        "bg": "rgb(255, 255, 255)",
+        "fg": "rgb(31, 41, 55)",
+        "border": "rgb(203, 213, 225)"
+      },
+      "beforeRect": {
+        "tag": "DIV",
+        "cls": "oc-modal",
+        "x": 190,
+        "y": 110.64,
+        "w": 420,
+        "h": 138.72,
+        "sw": 418,
+        "sh": 137
+      },
+      "afterRect": {
+        "tag": "DIV",
+        "cls": "oc-modal",
+        "x": 190,
+        "y": 110.64,
+        "w": 420,
+        "h": 138.72,
+        "sw": 418,
+        "sh": 137
+      }
+    }
+  ],
+  "runtimeErrors": []
+}

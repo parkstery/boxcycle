@@ -1,0 +1,40 @@
+{
+  "rows": [
+    {
+      "unit": "auth",
+      "error": "TimeoutError: locator.waitFor: Timeout 8000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.auth-gate__card').first() to be visible\u001b[22m\n"
+    },
+    {
+      "unit": "account",
+      "sel": ".user-info-sheet",
+      "geometryIdentical": true,
+      "elements": 50,
+      "style": {
+        "bg": "rgb(255, 255, 255)",
+        "fg": "rgb(31, 41, 55)",
+        "border": "rgb(31, 41, 55) rgb(31, 41, 55) rgb(31, 41, 55) rgb(203, 213, 225)"
+      },
+      "beforeRect": {
+        "tag": "ASIDE",
+        "cls": "user-info-sheet",
+        "x": 530,
+        "y": 0,
+        "w": 270,
+        "h": 360,
+        "sw": 269,
+        "sh": 360
+      },
+      "afterRect": {
+        "tag": "ASIDE",
+        "cls": "user-info-sheet",
+        "x": 530,
+        "y": 0,
+        "w": 270,
+        "h": 360,
+        "sw": 269,
+        "sh": 360
+      }
+    }
+  ],
+  "runtimeErrors": []
+}

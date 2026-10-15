@@ -1,0 +1,1526 @@
+/* Map-first + floating cards + glass HUD
+ * 모든 슬롯은 맵 위 절대 위치. 슬롯 자체는 pointer-events: none,
+ * 내부 인터랙티브 요소만 다시 켠다 → 빈 영역은 항상 맵 조작 가능.
+ */
+
+.map-hud {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  /** `.hud-main-fab` 와 동기 — BR 주행 버튼 뭉치 수직 오프셋에 사용 */
+  --hud-main-fab-size: 3.8rem;
+  --hud-pad: clamp(0.45rem, 1.4vw, 0.85rem);
+  --hud-pad-top: max(var(--hud-pad), env(safe-area-inset-top, 0px));
+  --hud-pad-bottom: max(var(--hud-pad), env(safe-area-inset-bottom, 0px));
+  --hud-pad-left: max(var(--hud-pad), env(safe-area-inset-left, 0px));
+  --hud-pad-right: max(var(--hud-pad), env(safe-area-inset-right, 0px));
+  font-family: inherit;
+  color: #f8fafc;
+}
+
+.map-hud > * {
+  pointer-events: auto;
+}
+
+/*
+ * 하단 중앙 슬롯은 「표시 전용」이다 — 담는 것이 코치 토스트(`role="status"`) 하나뿐이고
+ * 누를 것이 없다. 그런데 이 슬롯은 표고 그래프와 **같은 자리**라, 위 `.map-hud > *` 규칙으로
+ * auto 가 되면 그래프 위 빈 공간이 지도 팬·핀치를 통째로 삼킨다.
+ *
+ * f046ce5 에서 표고 오버레이를 `pointer-events: none` 으로 바꿨는데도 Chief 가 여전히
+ * 「표고 그래프 영역이 안 눌린다」고 한 이유가 이것이다 — 오버레이는 이미 통과하고 있었고,
+ * 그 **위에 얹힌 이 슬롯**이 막고 있었다. 실측(`.out/touch-targets/diag-hit-scan.json`):
+ * 하단 절반 격자에서 `hud-coach`·`hud-coach__tip`·`hud-coach__r`·`map-hud__bc` 가 합쳐 27 지점.
+ *
+ * 이 파일 첫머리 주석이 규정한 계약(「슬롯 자체는 none, 내부 인터랙티브 요소만 다시 켠다」)의
+ * 원래 뜻이기도 하다 — 지금 코드는 슬롯을 전부 켜고 있어 계약과 반대다. 전면 교정은
+ * 모든 슬롯의 위젯을 다시 켜야 해 회귀 범위가 크므로, 여기서는 지도 조작이 실제로 막히던
+ * 하단 중앙만 계약대로 되돌린다(2026-09-17 Chief).
+ */
+.map-hud__bc,
+.hud-coach {
+  pointer-events: none;
+}
+
+/* ---------- glass / chip 기본 톤 ---------- */
+.hud-glass {
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
+  border-radius: 12px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.hud-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  height: 1.8rem;
+  padding: 0 0.6rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.hud-chip--mute {
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.hud-chip--accent {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+}
+
+.hud-icon-btn {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 999px;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #475569;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+  transition: transform 120ms ease-out, background-color 120ms ease-out;
+}
+
+.hud-icon-btn:hover {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
+.hud-icon-btn:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: 2px;
+}
+
+.hud-icon-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.hud-icon-btn--lg {
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.2rem;
+}
+
+.hud-icon-btn--xl {
+  width: 3.6rem;
+  height: 3.6rem;
+  font-size: 1.5rem;
+  border-width: 1.5px;
+}
+
+.hud-icon-btn--primary {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+}
+
+.hud-icon-btn--primary:hover {
+  background: #1D4ED8;
+  border-color: #1D4ED8;
+}
+
+.hud-icon-btn--danger {
+  background: rgba(220, 38, 38, 0.12);
+  border-color: rgba(220, 38, 38, 0.5);
+  color: #DC2626;
+}
+
+.hud-icon-btn--danger:hover {
+  background: rgba(220, 38, 38, 0.2);
+}
+
+/* ---------- 슬롯 ---------- */
+.map-hud__tl {
+  position: absolute;
+  top: var(--hud-pad-top);
+  left: var(--hud-pad-left);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  max-width: none;
+}
+
+/*
+ * 좌상단 한 행 — RTW + 계기판(20260923-minimap 지시01).
+ * 세로 중앙 정렬로 한 줄로 읽히게 한다. 계기판은 이 행 안·stack 제약 밖.
+ */
+.map-hud__tl-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: nowrap;
+}
+
+/*
+ * 계기판 슬롯. 예전 min-height: 2rem 은 「계기가 비어도 RTW 가 위아래로 튀지 않게」
+ * 높이를 예약하던 근거였다. RTW·계기가 같은 한 행이 되면 RTW 자신이 행 높이를
+ * 정하므로 그 예약은 근거가 사라져 제거했다(20260923-minimap 지시01 §1).
+ */
+.map-hud__tl-metrics {
+  display: flex;
+}
+
+.map-hud__tl-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  width: 100%;
+  /* 날씨 힌트·동행 패널 줄바꿈 제약 — 계기판 캡슐은 이 제약 밖(.map-hud__tl-row)에 둔다 */
+  max-width: min(58vw, 15rem);
+}
+
+/* 좌상단: 로비 방 + 동행 코스 요약 */
+.hud-ride-presence {
+  width: 100%;
+  max-height: 11.5rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0.45rem 0.55rem;
+  border-radius: 10px;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  -webkit-overflow-scrolling: touch;
+}
+
+.hud-ride-presence__block + .hud-ride-presence__block {
+  margin-top: 0.45rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid #E2E8F0;
+}
+
+.hud-ride-presence__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.4rem;
+  margin-bottom: 0.2rem;
+}
+
+.hud-ride-presence__tag {
+  flex-shrink: 0;
+  font-size: 0.62rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #2563EB;
+}
+
+.hud-ride-presence__room {
+  font-weight: 650;
+  word-break: break-all;
+  color: #1F2937;
+}
+
+/* HUD 접속 패널에서 Trailhead로 원탭 복귀 — 현재 트레일 컨텍스트 옆 주 액션 */
+.hud-ride-presence__trailhead-btn {
+  flex-shrink: 0;
+  margin-left: auto;
+  align-self: center;
+  appearance: none;
+  border: 1px solid #2563EB;
+  background: #EFF6FF;
+  color: #1D4ED8;
+  font: inherit;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 0.22rem 0.45rem;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.hud-ride-presence__trailhead-btn:hover:not(:disabled) {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+}
+
+.hud-ride-presence__trailhead-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.hud-ride-presence__list {
+  margin: 0;
+  padding: 0 0 0 0.85rem;
+  list-style: disc;
+}
+
+.hud-ride-presence__list li {
+  margin: 0.1rem 0;
+}
+
+.hud-ride-presence__you {
+  font-weight: 600;
+  color: #15803D;
+}
+
+.hud-ride-presence__activity {
+  margin: 0.2rem 0 0.35rem;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: #15803D;
+}
+
+.hud-ride-presence__empty {
+  margin: 0;
+  font-size: 0.65rem;
+  color: #64748B;
+}
+
+.hud-ride-presence__err {
+  margin: 0;
+  font-size: 0.62rem;
+  color: #DC2626;
+  word-break: break-word;
+}
+
+/* 센서 칩 + 계정/로그인 칩이 함께 사는 단일 액션 행 */
+.map-hud__tr {
+  position: absolute;
+  top: var(--hud-pad-top);
+  right: var(--hud-pad-right);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  /* 좁은 폭에서 좌상단 Trail 메뉴·Mapbox 컨트롤을 밀지 않도록 상한을 둔다 */
+  max-width: calc(100vw - var(--hud-pad-right) - 10rem);
+}
+
+/* 맵 뷰 트리거 — 우상단 한 줄(맵 제어 44px 포함) 바로 아래 */
+.map-hud__tr-under {
+  position: absolute;
+  top: calc(var(--hud-pad-top) + 44px + 0.35rem);
+  right: var(--hud-pad-right);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.map-hud__rs {
+  position: absolute;
+  top: 50%;
+  right: var(--hud-pad-right);
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.45rem;
+  max-height: calc(100% - 6.5rem);
+}
+
+
+.map-hud__bc {
+  position: absolute;
+  bottom: calc(var(--hud-pad-bottom) + 0.2rem);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(70%, 30rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.map-hud__br {
+  position: absolute;
+  bottom: var(--hud-pad-bottom);
+  right: var(--hud-pad-right);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+/* 주행 종료는 DOM 상 뒤지만 column-reverse 로 일시정지·재생 아래에 두지 않고 위에 배치 → 플레이/일시정지 위치·축척과의 관계 유지 */
+.map-hud__br-main {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-end;
+  gap: 0.35rem;
+  /* 주행 시작 FAB 높이의 약 1/2 만큼 위로 (맵 하단·축척과 간격) */
+  transform: translateY(calc(-0.7 * var(--hud-main-fab-size)));
+}
+
+.map-hud__mc {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: min(92vw, 22rem);
+  width: max-content;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.55rem;
+}
+
+/* 일시정지 딤 레이어 — z-index 를 올리면 형제 슬롯(MC 재개·종료 등) 전부 아래로 깔려 클릭이 막힌다. */
+.map-hud__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.42);
+  border: none;
+  margin: 0;
+  padding: 0;
+  cursor: default;
+}
+
+/* ---------- TL: BrandMark ---------- */
+.hud-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 2.1rem;
+  padding: 0 0.7rem 0 0.55rem;
+  border-radius: 999px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.hud-brand__dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+}
+
+.hud-brand--muted {
+  opacity: 0.62;
+}
+
+.hud-world-hint {
+  margin: 0.2rem 0 0;
+  padding: 0.35rem 0.55rem;
+  max-width: min(22rem, 88vw);
+  font-size: 0.68rem;
+  line-height: 1.35;
+  font-weight: 500;
+  color: #475569;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 0.45rem;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* ---------- TR: AccountChip ---------- */
+
+/* 우하단 — 고도/축척·저작권 위. 날짜·시분초(초 갱신). 터치 타깃 아님 */
+.hud-clock {
+  position: absolute;
+  right: var(--hud-pad-right);
+  /* 고도/축척 행 위(여유 간격). --br-clock-above-scale 은 MapView.css */
+  bottom: calc(var(--hud-pad-bottom) + var(--br-clock-above-scale, 0.55rem));
+  z-index: 2;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  height: var(--br-clock-height, 2.2rem);
+  padding: 0 0.15rem;
+  /* 2026-10-06 Chief: 검은 상자 대신 코칭 문구(.hud-coach)와 같은 halo — 배경·테두리 없이 글자 키라인만 */
+  background: none;
+  border: none;
+  color: #f8fafc;
+  text-shadow: var(--rtw-map-text-keyline-strong);
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Quick Camera 1~6 — Account 왼쪽(맵 제어 옆), 주행 중에만 렌더
+ * 지시10: 버튼 자체만 150%(gap 0.2rem 유지). 터치가 맵으로 통과하지 않게
+ * 컨테이너·버튼 모두 pointer-events: auto !important (Mapbox 특이도 함정 대비).
+ */
+.hud-quick-camera {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem; /* 간격은 150% 확대 대상이 아님 — 현행 유지 */
+  flex-shrink: 0;
+  pointer-events: auto !important;
+  /* gap·가장자리도 히트 영역 — 빈 틈이 맵으로 떨어지지 않게 */
+  touch-action: manipulation;
+}
+
+/* 우상단 한 줄 — Outdoors/Satellite 토글 + 줌 ± (맵 뷰 시트와 동일 상태) */
+.hud-ride-map-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.2rem;
+  flex-shrink: 0;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+}
+
+.hud-ride-map-controls__style,
+.hud-ride-map-controls__zoom {
+  box-sizing: border-box;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /*
+   * 크기는 퀵 카메라 버튼과 같다(2026-10-06 Chief: 기기마다 카메라 버튼과 동일하게).
+   * 터치 44px 는 실높이 대신 ::after 로 — 카메라 버튼과 같은 방식.
+   */
+  height: 2.325rem;
+  min-width: 2.325rem;
+  margin: 0;
+  border: 1px solid #CBD5E1;
+  border-radius: 0.525rem;
+  background: #FFFFFF;
+  color: #475569;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+}
+
+/* 줌 ± 는 정사각에 가깝다 — 세로·가로 모두 44px 히트(이웃과 겹치면 같은 그룹) */
+.hud-ride-map-controls__zoom::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
+}
+
+/* 스타일 칩은 가로가 이미 44+ — 높이만 확장 */
+.hud-ride-map-controls__style::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: max(100%, 44px);
+  transform: translateY(-50%);
+}
+
+.hud-quick-camera__btn::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
+}
+
+.hud-ride-map-controls__style {
+  padding: 0 0.42rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+}
+
+.hud-ride-map-controls__zoom {
+  padding: 0 0.42rem;
+  font-size: 1.08rem;
+}
+
+.hud-ride-map-controls__zoom:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+.hud-ride-map-controls__style:focus-visible,
+.hud-ride-map-controls__zoom:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: 1px;
+}
+
+.hud-quick-camera__btn {
+  box-sizing: border-box;
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* 1.55rem → 150% */
+  min-width: 2.325rem;
+  height: 2.325rem;
+  padding: 0 0.42rem;
+  margin: 0;
+  border: 1px solid #CBD5E1;
+  border-radius: 0.525rem;
+  background: #FFFFFF;
+  color: #475569;
+  font-size: 1.08rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+}
+
+.hud-quick-camera__btn--c1.is-active {
+  /* 1.85rem → 150% */
+  min-width: 2.775rem;
+  height: 2.775rem;
+  padding-bottom: 0.18rem;
+}
+
+.hud-quick-camera__num {
+  line-height: 1;
+}
+
+.hud-quick-camera__c1-mark {
+  margin-top: 0.12rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #2563EB;
+  line-height: 1;
+}
+
+.hud-quick-camera__btn.is-active {
+  border-color: #2563EB;
+  background: #2563EB;
+  color: #FFFFFF;
+}
+
+.hud-quick-camera__btn:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: 1px;
+}
+
+@media (max-height: 420px) {
+  .hud-quick-camera__btn {
+    /* 1.35rem → 150% */
+    min-width: 2.025rem;
+    height: 2.025rem;
+    font-size: 0.975rem;
+  }
+
+  .hud-quick-camera__btn--c1.is-active {
+    /* 1.55rem → 150% */
+    min-width: 2.325rem;
+    height: 2.325rem;
+  }
+
+  .hud-quick-camera__c1-mark {
+    font-size: 0.63rem;
+  }
+
+  .hud-ride-map-controls__style,
+  .hud-ride-map-controls__zoom {
+    min-width: 2.025rem;
+    height: 2.025rem;
+  }
+
+  .hud-ride-map-controls__zoom {
+    font-size: 0.975rem;
+  }
+}
+
+/*
+ * 지시 06-2 — 폰 가로+좁은 폭에서 우상단 [QC][야외−+][계정] 이 좌상단 계기판(새 도로)을 덮는다.
+ * 해법 a: 한 줄 유지, 카메라·맵 버튼의 시각 폭만 축소. 터치 44px 는 ::after.
+ */
+@media (max-width: 900px) and (max-height: 560px) {
+  .map-hud__tr {
+    gap: 0.2rem;
+  }
+
+  .hud-quick-camera {
+    gap: 0.1rem;
+  }
+
+  .hud-quick-camera__btn {
+    min-width: 1.55rem;
+    height: 1.55rem;
+    padding: 0 0.22rem;
+    font-size: 0.85rem;
+    border-radius: 0.4rem;
+  }
+
+  .hud-quick-camera__btn--c1.is-active {
+    min-width: 1.85rem;
+    height: 1.85rem;
+    padding-bottom: 0.1rem;
+  }
+
+  .hud-quick-camera__c1-mark {
+    margin-top: 0.06rem;
+    font-size: 0.55rem;
+  }
+
+  .hud-ride-map-controls {
+    gap: 0.12rem;
+  }
+
+  .hud-ride-map-controls__style,
+  .hud-ride-map-controls__zoom {
+    min-width: 1.55rem;
+    height: 1.55rem;
+    padding: 0 0.22rem;
+    border-radius: 0.4rem;
+  }
+
+  .hud-ride-map-controls__style {
+    font-size: 0.65rem;
+  }
+
+  .hud-ride-map-controls__zoom {
+    font-size: 0.85rem;
+  }
+
+  /*
+   * 지시12-2: 좁은 폭에서 시각 버튼≪44px 이라 가로 ::after 가 이웃 중심을 덮음.
+   * 스타일 칩과 같이 높만 44px — 배치(06-2) 유지, hit-test 는 본인 버튼.
+   */
+  .hud-quick-camera__btn::after,
+  .hud-ride-map-controls__zoom::after {
+    left: 0;
+    right: 0;
+    width: auto;
+    height: max(100%, 44px);
+    transform: translateY(-50%);
+  }
+
+  .hud-account {
+    gap: 0.3rem;
+    padding: 0 0.45rem 0 0.28rem;
+    max-width: 7.2rem;
+  }
+
+  .hud-account__name {
+    font-size: 0.72rem;
+  }
+
+  .hud-account__mileage {
+    font-size: 0.6rem;
+  }
+}
+
+.hud-account {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.2rem;
+  padding: 0 0.7rem 0 0.35rem;
+  border-radius: 999px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  max-width: min(60vw, 15rem);
+}
+
+.hud-account__avatar {
+  flex: 0 0 auto;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  background: #F1F5F9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+}
+
+.hud-account--guest .hud-account__avatar {
+  background: #E2E8F0;
+}
+
+.hud-account__text {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.05;
+  min-width: 0;
+}
+
+.hud-account__name {
+  font-weight: 600;
+  font-size: 0.8rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hud-account__mileage {
+  font-size: 0.68rem;
+  font-weight: 500;
+  opacity: 0.72;
+  letter-spacing: 0.01em;
+}
+
+.hud-signin-pill {
+  height: 2.2rem;
+  padding: 0 0.85rem;
+  border-radius: 999px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.hud-signin-pill:hover {
+  border-color: #2563EB;
+  background: #EFF6FF;
+  color: #1F2937;
+}
+
+/* ---------- TC: 지표 캡슐 (참조 TopHud — 라벨 위·값 아래, 디바이더 구분) ---------- */
+.hud-metrics {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+/*
+ * 계기판은 「패널」이 아니라 지도 위에 뜬 숫자다(2026-09-17 Chief).
+ * 종전엔 불투명 검은 알약이 좌상단 지도를 통째로 가렸다 — HUD 가 지도를 가리면
+ * 맵 포워드가 아니다. 배경·테두리·그림자·블러를 전부 걷어내고, 대신 글자마다
+ * 짙은 외곽선을 둘러 **위성 이미지처럼 밝은 배경 위에서도** 읽히게 한다.
+ * (배경을 지우면 대비를 글자 자신이 만들어야 한다 — 그게 text-shadow 3겹의 이유다.)
+ */
+.hud-metrics__capsule {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  /* 간격 재절반(20260923-minimap 지시01 §2) — gap + 고정폭 여유분을 같이 줄인다.
+   * 고정 폭 셀에서 패딩만 줄이면 글자가 안 움직인다(가운데 정렬). */
+  gap: 0.2rem;
+  padding: 0.1rem 0.15rem;
+  /*
+   * 부드러운 그림자만으로는 **흰 지형 위 흰 글자**가 안 읽힌다(실측: 밝은 배경 3배
+   * 확대 촬영에서 값·라벨 모두 판독 불가). 그림자를 키우는 대신 8방향 1px 로
+   * 글자마다 진짜 키라인을 둘러 어떤 배경에서도 윤곽이 서게 한다. 마지막 한 겹은
+   * 바탕과 떼어 놓는 부드러운 드롭섀도.
+   *
+   * 2026-10-06 Chief: 위성 지도에서 대비 부족 → 2중 불투명 키라인(코칭과 동일) +
+   * 넓은 헤일로 2겹(6px·12px)으로 글자 주변을 어둡게 띄운다.
+   */
+  /* 같은 날 2차: 위성 지명과 더 구분되게 헤일로 3배(6/12 → 18/36px) + 겹쳐 진하게 */
+  text-shadow:
+    var(--rtw-map-text-keyline-strong),
+    0 0 6px #000,
+    0 0 18px rgba(0, 0, 0, 0.95),
+    0 0 18px rgba(0, 0, 0, 0.95),
+    0 0 36px rgba(0, 0, 0, 0.85),
+    0 0 36px rgba(0, 0, 0, 0.7);
+}
+
+.hud-metrics__cell {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.14rem;
+  min-width: 3.2rem;
+  padding: 0 0.5rem;
+  text-align: center;
+}
+
+/*
+ * 2026-10-06 Chief: 위성 지도에서 대비 부족 → 계기판 뒤에 **가장자리 없는** 검은 그림자 바탕.
+ * 알약(테두리·면)이 아니라 가운데가 짙고 바깥으로 사라지는 타원이라 지도를 가리는 「패널」로 읽히지 않는다.
+ */
+.hud-metrics__capsule::before {
+  content: "";
+  position: absolute;
+  inset: -0.55rem -1.1rem;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, 0.62) 0%,
+    rgba(0, 0, 0, 0.45) 50%,
+    rgba(0, 0, 0, 0) 78%
+  );
+}
+
+/* 지도 위에 직접 뜨므로 종전의 흐린 회색(--rtw-text-secondary)으로는 밝은 지형에서
+   읽히지 않는다. 흰색을 살짝 낮춰 값과의 위계는 유지하되 대비는 확보한다. */
+.hud-metrics__label {
+  font-size: var(--rtw-text-xs);
+  line-height: 1;
+  font-weight: var(--rtw-weight-label);
+  color: #f8fafc;
+}
+
+.hud-metrics__value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.15rem;
+  font-family: var(--rtw-font-num);
+  font-size: 0.95rem;
+  line-height: 1;
+  font-weight: var(--rtw-weight-value);
+  color: var(--rtw-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-metrics__cell-unit {
+  font-size: 0.55rem;
+  font-weight: 500;
+  color: #f8fafc;
+}
+
+/*
+ * 라벨·단위는 글자가 8px 안팎이라 캡슐의 1px 키라인이 한글 획 사이를 메워 뭉갠다
+ * (실측: 3배 확대에서 「거리·시간」이 검은 덩어리로 보인다). 작은 글자에는 키라인 대신
+ * 촘촘한 헤일로를 씌운다 — 획을 침범하지 않으면서 밝은 지형과 분리된다.
+ */
+.hud-metrics__label,
+.hud-metrics__cell-unit {
+  text-shadow:
+    0 0 1px rgba(0, 0, 0, 0.98),
+    0 0 2px rgba(0, 0, 0, 0.95),
+    0 0 3px rgba(0, 0, 0, 0.9),
+    0 1px 3px rgba(0, 0, 0, 0.85),
+    /* 2026-10-06 Chief: 위성 지도 대비 — 획은 그대로, 헤일로만 넓게(2차: 3배 15/27px) */
+    0 0 5px #000,
+    0 0 15px rgba(0, 0, 0, 0.95),
+    0 0 27px rgba(0, 0, 0, 0.85);
+}
+
+/* 거리 = 오늘 운동의 핵심 숫자 — 파랑은 핵심 강조 숫자에만(운동=본체 위계) */
+.hud-metrics__cell--hero .hud-metrics__value {
+  font-size: 1.25rem;
+  color: #FACC15;
+}
+
+/* 주행 누적 거리 — 세션 거리는 offset(이어 달리기 재개 시드) 없으면 누적과 항상
+   동일해 이중 표기가 중복이었다. 누적값 하나를 히어로 크기·색으로 승격한다. */
+.hud-metrics__value--cumulative {
+  font-size: 1.25rem;
+  color: #FACC15;
+}
+
+/* 2026-10-06 Chief: 주행 중 「새 도로」 흐리기(0.72) 제거 — 강조 요소가 가장 약했다.
+   opacity 는 글자뿐 아니라 검은 헤일로까지 옅게 만든다. */
+
+/* 종전엔 주행 중 코칭을 흐리게 해 계기판에 양보했다. 배경이 사라진 지금은 흐리기가
+   곧 대비 손실이라(지도 무늬 위에서 글자가 묻힌다) 그대로 둔다 — 위계는 글자 크기가 맡는다. */
+
+/* 「/ 주행경로 전체거리」 — 주행 목표라 시간·평균·속도와 같은 흰색 볼드로(2026-09-17 Chief).
+   .hud-metrics__value 와 동일한 절대 단위 — 부모가 1.25rem 히어로라 em 이면 의도한 크기가 안 나온다. */
+.hud-metrics__value-total {
+  font-size: 0.95rem;
+  font-weight: var(--rtw-weight-value);
+  color: var(--rtw-text-primary);
+}
+
+/* 패널이 사라지면 이 선은 지도 위에 떠 있는 정체불명의 1px 가 된다 — 셀 사이 간격이
+   대신 구분을 맡는다(`.hud-metrics__capsule` 의 gap). */
+.hud-metrics__divider {
+  display: none;
+}
+
+/*
+ * 계기는 제자리를 지킨다(2026-09-17 Chief).
+ * 종전엔 셀 폭이 내용에 따라 늘었다 줄었다 해서 「평균 9.9 → 10.0」 한 자리 차이로
+ * 오른쪽 계기가 통째로 밀리고 당겨졌다. 주행 중에는 눈이 화면을 훑지 않고 **같은 자리**를
+ * 보므로, 숫자가 움직이는 게 아니라 판이 움직이면 읽기가 무너진다.
+ *
+ * `tabular-nums`(값 폰트)는 **같은 자릿수**끼리만 폭을 맞춘다 — 자릿수 자체가 바뀌면
+ * 소용없다. 그래서 셀마다 최악의 경우를 담는 **고정 폭**을 준다(`flex: 0 0`).
+ * 폭 산정 근거(폰 가로 루트 13.5px 기준 최악값):
+ *   distance  「99.99 / 99.99 km」  히어로 1.25rem
+ *   time      「999:59」            분은 자릿수 제한이 없다(rideFormat.ts 는 MM:SS 인데 분을 안 자른다)
+ *   speed     「99.9 km/h」         평균·속도 공용
+ * 내용이 폭을 넘더라도 가운데 정렬로 **간격 안쪽으로만** 넘칠 뿐, 이웃을 밀지 않는다.
+ */
+/*
+ * 계기 사이가 필요 이상으로 벌어져 보이던 이유(2026-09-17 Chief):
+ * 고정 폭 셀에서 **좌우 패딩은 글자를 옮기지 않는다** — 내용이 가운데 정렬이라
+ * 상자만 넓힐 뿐이다. 즉 패딩은 순수하게 이웃과의 거리로만 나타났다.
+ * 패딩을 걷어내고 그만큼 폭을 줄이면 **글자가 쓸 수 있는 자리는 그대로**인 채
+ * 간격만 좁아진다. 미디어쿼리의 `.hud-metrics__cell` 패딩(0,1,0)보다 높은
+ * 특이도(0,2,0)로 덮는다.
+ */
+.hud-metrics__capsule .hud-metrics__cell {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/*
+ * 고정 폭 — 최악값(거리 123.45/234.56km · 시간 10:00:00 · 속도 100 · 새 도로 +12.34km)
+ * 이 잘리지 않는 최소폭 + 값 사이 빈 간격이 변경 전 평균의 절반(±10%)이 되게 조임
+ * (20260923-minimap 지시01 §2 · 폰 가로 루트 13.5px 실측).
+ */
+.hud-metrics__cell--w-distance {
+  flex: 0 0 6.45rem;
+  width: 6.45rem;
+}
+
+.hud-metrics__cell--w-time {
+  flex: 0 0 3.25rem;
+  width: 3.25rem;
+}
+
+.hud-metrics__cell--w-speed {
+  flex: 0 0 2.9rem;
+  width: 2.9rem;
+}
+
+/* 마지막 셀이라 폭이 변해도 이웃을 밀지 않지만, 「이미 내 도로」 힌트가 들고 날 때
+   캡슐 전체 폭이 출렁이지 않도록 함께 고정한다. */
+.hud-metrics__cell--conquest {
+  flex: 0 0 3.65rem;
+  width: 3.65rem;
+}
+
+/* Trail 배지 칩(캡슐 밖 컨텍스트 배지) */
+.hud-metrics__chip {
+  min-width: 3.4rem;
+  text-align: center;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: var(--rtw-radius-pill);
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
+  backdrop-filter: var(--rtw-blur-panel);
+  -webkit-backdrop-filter: var(--rtw-blur-panel);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
+.hud-metrics__chip--trail {
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #DC2626;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
+/* Conquest — 주행 중 실시간 새 도로 카운터(도파민 지점): 파랑(UI 강조) */
+
+/*
+ * 펄스는 값이 바뀔 때가 아니라 **새 도로를 먹고 있는 동안** 고정 박자로 뛴다
+ * (2026-09-17 Chief). 종전엔 값마다 요소를 갈아끼워 0.35s 팝을 다시 틀었고, 빠르게
+ * 달릴수록 갱신이 잦아 주기가 짧아져 촐랑거렸다 — 펄스가 아니라 갱신 알림이었다.
+ *
+ * 박자·위상 모두 내 위치 마커(`map-view-self-location-pulse`)와 맞춘다. 마커는 0% 에
+ * 터져 70% 까지 퍼지고 나머지는 침묵하므로, 여기서도 0% 에 한 번 부풀고 32%(≈0.7s)에
+ * 가라앉은 뒤 조용히 기다려 둘이 한 박자로 읽힌다. 위상 고정은 음수 `animation-delay`
+ * 인라인 스타일이 맡는다(`lib/ridePulse.ts` — CSS 만으로는 시계를 읽을 수 없다).
+ */
+.hud-metrics__cell--conquest-pulsing {
+  animation: hud-conquest-pulse var(--rtw-ride-pulse-period, 2.2s) ease-out infinite;
+}
+
+/* 새 도로 — 지도 위 파랑(UI 강조, 외곽선 유지). 라벨 흐리기 없음 */
+.hud-metrics__cell--conquest .hud-metrics__label {
+  color: #FACC15;
+}
+
+.hud-metrics__cell--conquest .hud-metrics__value {
+  color: #FACC15;
+}
+
+@keyframes hud-conquest-pulse {
+  0% {
+    transform: scale(1.13);
+  }
+  32% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-metrics__cell--conquest,
+  .hud-metrics__cell--conquest-pulsing {
+    animation: none;
+  }
+}
+
+/* 「이미 내 도로」 힌트 — +0.00 아래 작게 표시(모든 셀이 기보유일 때) */
+.hud-metrics__conquest-owned-hint {
+  display: block;
+  font-size: 0.65em;
+  font-weight: 500;
+  color: #2563EB;
+  opacity: 0.55;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  margin-top: 1px;
+}
+
+/* 경로만 선택·주행 전: 동일 캡슐, 값 색만 구분(파랑 톤 다운) */
+.hud-metrics--route-preview .hud-metrics__value {
+  color: #2563EB;
+  opacity: 0.85;
+}
+
+/* ---------- BC: CoachLine ---------- */
+/*
+ * 코칭 메시지도 계기판과 같은 표기다(2026-09-18 Chief) — 검은 알약을 걷어내고 지도 위에
+ * 글자만 띄운다. 대비는 계기판과 **같은 키라인**(`--rtw-map-text-keyline`)이 만든다.
+ * 배경·테두리·블러가 사라지므로 `.map-hud > *` 의 글래스 톤에서도 빠져야 한다
+ * (boxcycle-theme.css 의 그룹 셀렉터 참고).
+ */
+.hud-coach {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  max-width: 100%;
+  padding: 0.1rem 0.15rem;
+  /* 문구도 저항 표시(R1)와 같은 파랑(2026-10-07 Chief) — 한 줄이 한 색으로 읽히게 */
+  color: #2563EB;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: center;
+  /* 코칭은 계기판보다 글자가 작아(0.78rem) 1px 키라인으로는 흰 지도에서 묻힌다 —
+     2중 테두리를 쓴다(2026-09-18 Chief). */
+  text-shadow: var(--rtw-map-text-keyline-strong);
+}
+
+.hud-coach__tip {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* R1 칩도 알약을 버리고 파랑 글자만 남는다 — 같은 줄에서 배경 하나만 남으면 더 튄다. */
+.hud-coach__r {
+  font-weight: 700;
+  font-size: 0.7rem;
+  color: #2563EB;
+  flex: 0 0 auto;
+}
+
+/* ---------- MC: ActionCenterCard ---------- */
+.hud-action {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 14px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+}
+
+.hud-action__title {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-align: center;
+  opacity: 0.92;
+}
+
+.hud-action__row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.hud-action__btn {
+  appearance: none;
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #475569;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.hud-action__btn:hover {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
+.hud-action__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.hud-action__btn--primary {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+}
+
+.hud-action__btn--primary:hover {
+  background: #1D4ED8;
+  border-color: #1D4ED8;
+}
+
+.hud-action__btn--danger {
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.4);
+  color: #DC2626;
+}
+
+.hud-action__btn--danger:hover {
+  background: rgba(220, 38, 38, 0.16);
+  border-color: #DC2626;
+}
+
+/* ---------- BR: 큰 메인 FAB ---------- */
+.hud-main-fab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--hud-main-fab-size);
+  height: var(--hud-main-fab-size);
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  background: #2563EB;
+  color: #FFFFFF;
+  font-size: 1.55rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.hud-main-fab:hover {
+  background: #1D4ED8;
+}
+
+.hud-main-fab:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.hud-main-fab--pause {
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+  color: #475569;
+}
+
+.hud-main-fab--pause:hover {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
+.hud-main-fab__caption {
+  display: block;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+  margin-top: 0.2rem;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* ---------- 첫 진입 안내 토스트 ---------- */
+.hud-idle-hint {
+  margin-bottom: 0.4rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
+  font-size: 0.74rem;
+  text-align: center;
+  max-width: min(17.5rem, calc(100vw - 6rem));
+  line-height: 1.35;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* ---------- BC 트리거(맵 뷰 시트 진입) ---------- */
+.hud-bc-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.32rem 0.7rem;
+  border-radius: 999px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.hud-bc-trigger:hover {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
+.hud-bc-trigger.is-active {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+}
+
+.hud-bc-trigger__icon {
+  display: inline-block;
+  font-size: 0.9rem;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.hud-bc-trigger__label {
+  font-size: 0.72rem;
+}
+
+/* ---------- 반응형 ---------- */
+@media (max-width: 640px) {
+  .map-hud {
+    --hud-main-fab-size: 3.3rem;
+  }
+
+  .hud-icon-btn--xl {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.25rem;
+  }
+
+  .hud-main-fab {
+    width: var(--hud-main-fab-size);
+    height: var(--hud-main-fab-size);
+    font-size: 1.35rem;
+  }
+
+  .hud-metrics__chip {
+    min-width: 2.8rem;
+    font-size: 0.72rem;
+    padding: 0.16rem 0.45rem;
+  }
+
+  .hud-metrics__cell {
+    min-width: 2.6rem;
+    padding: 0 0.35rem;
+  }
+
+  .hud-metrics__value {
+    font-size: 0.82rem;
+  }
+
+  .hud-metrics__cell--hero .hud-metrics__value {
+    font-size: 1.05rem;
+  }
+
+  .hud-action {
+    padding: 0.55rem 0.65rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hud-aux__panel {
+    width: min(15rem, 78vw);
+  }
+}
+
+
+@media (max-width: 640px) {
+  /* 이름은 줄이고 LED·RPM 은 끝까지 유지한다 — 연결 여부가 첫 화면 정보다 */
+  .hud-account {
+    max-width: 9rem;
+  }
+
+  .hud-account__text {
+    overflow: hidden;
+  }
+}
+
+/*
+ * 폰 가로 — CSS 높이가 ~275px 뿐이라 좌상단 정보 패널과 하단 RouteDock 이 정면 충돌한다.
+ * 정보 패널을 먼저 양보시킨다(조작 우선). 겹쳐도 Go 가 위에 오도록 RouteDock 이
+ * z-index 6 을 갖지만, 시각적 침범 자체를 줄이는 편이 낫다.
+ */
+@media (max-height: 560px) {
+  /*
+   * 이 제약은 원래 `.map-hud__tl` 전체(RTW·날씨·동행)에 걸려 있었다. 계기판 캡슐이
+   * 이 슬롯으로 들어오면서 그대로 두면 여기서도 잘린다 — 베이스 규칙과 동일하게
+   * `.map-hud__tl-stack` 으로 좁혀 계기판(`.map-hud__tl-metrics`)은 이 제약 밖에 둔다.
+   */
+  .map-hud__tl-stack {
+    max-width: min(46vw, 11rem);
+  }
+
+  /*
+   * 접속·동행 현황 패널 전체를 숨긴다. 폰 가로에서는 지도 잠식이 가장 큰 문제이고,
+   * 이 정보는 Trail 메뉴에서 볼 수 있다(첫 화면에 상주할 이유가 없다).
+   */
+  .hud-ride-presence {
+    display: none;
+  }
+
+  /* 주행 FAB — 지도 컨트롤과 세로로 부딪히지 않게 축소하고 위로 밀던 보정 제거 */
+  .map-hud {
+    --hud-main-fab-size: 2.9rem;
+  }
+
+  .map-hud__br-main {
+    transform: none;
+    gap: 0.25rem;
+  }
+
+  .hud-main-fab__caption {
+    font-size: 0.55rem;
+    margin-top: 0.1rem;
+  }
+
+  .hud-icon-btn--xl {
+    width: 2.4rem;
+    height: 2.4rem;
+    font-size: 1rem;
+  }
+
+  .map-hud__tr-under {
+    top: calc(var(--hud-pad-top) + 44px + 0.3rem);
+  }
+
+  /* Trail 번호 배지 — MENU 의 TRAIL 행과 중복이고 주행 중 조작할 것도 아니다 */
+  .hud-metrics__chip--trail {
+    display: none;
+  }
+
+  /* 주행 지표 — 라벨·값·패딩을 조여 높이를 44px → 30px 대로 */
+  .hud-metrics__capsule {
+    padding: 0.16rem 0.35rem;
+  }
+
+  .hud-metrics__cell {
+    min-width: 2.5rem;
+    padding: 0 0.28rem;
+    gap: 0.05rem;
+  }
+
+  .hud-metrics__value {
+    font-size: 0.82rem;
+  }
+
+  .hud-metrics__cell--hero .hud-metrics__value {
+    font-size: 0.92rem;
+  }
+
+  .hud-metrics__label {
+    font-size: 0.52rem;
+  }
+}
+
+/* ── 터치 타깃 44px ────────────────────────────────────────────────────────
+ * 인수인계 §2.2: 「터치 타깃 44px 이상. rem 으로 주면 가로에서 같이 줄어드니 px 로 고정한다.」
+ * 이 규칙을 HUD 가 지키지 못하고 있었다 — 폰 가로에서 루트 폰트가 16→13.5px 로 줄면서
+ * 선언 2.1~2.4rem 인 버튼들이 실제 28.4~32.4px 까지 작아진다. 손가락 접점(≈40px)보다
+ * 작아 가장자리를 빗맞히면 그 밑이 곧 지도라, 메뉴를 누르려다 지도 지점 팝업이 떴다
+ * (2026-09-17 Chief).
+ *
+ * 보이는 크기는 건드리지 않는다 — 버튼을 실제로 키우면 그동안 줄여 온 화면 밀도가
+ * 되돌아간다. **투명한 히트 영역만** 44px 로 넓힌다.
+ */
+.hud-brand,
+.hud-account,
+.hud-signin-pill,
+.hud-bc-trigger,
+.hud-icon-btn {
+  position: relative;
+}
+
+/*
+ * 글자가 든 알약은 가로가 이미 44px 을 넘는다(패딩+텍스트). 모자란 것은 높이뿐이라
+ * **세로로만** 넓힌다 — 가로로도 넓히면 같은 행의 옆 버튼 위를 덮어 탭을 가로챈다.
+ */
+.hud-brand::after,
+.hud-account::after,
+.hud-signin-pill::after,
+.hud-bc-trigger::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: max(100%, 44px);
+  transform: translateY(-50%);
+}
+
+/*
+ * 정사각 아이콘 버튼은 두 축 다 모자라다(32.4px). 세로로 쌓인 지도 컨트롤 열의 간격은
+ * 0.45rem(6.1px)이고 한쪽당 확장은 5.8px 이라, 서로의 **보이는 면적**은 침범하지 않는다.
+ * `max()` 라서 이미 44px 이상인 큰 변형(--xl 48.6px)은 줄어들지 않는다.
+ */
+.hud-icon-btn::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
+}
+
+.map-hud__mc .hud-action { padding: 0.4rem 0.6rem; gap: 0.3rem; }

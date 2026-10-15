@@ -1,0 +1,1088 @@
+{
+  "PASS": true,
+  "rows": [
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "paused",
+      "before": {
+        "card": {
+          "x": 246.6171875,
+          "y": 114,
+          "w": 173.765625,
+          "h": 72,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "일시정지\n\n재개\n변경\n종료",
+        "controls": [
+          {
+            "text": "재개",
+            "w": 47.359375,
+            "h": 29.921875,
+            "font": "10.53px"
+          },
+          {
+            "text": "변경",
+            "w": 47.359375,
+            "h": 29.921875,
+            "font": "10.53px"
+          },
+          {
+            "text": "종료",
+            "w": 47.359375,
+            "h": 29.921875,
+            "font": "10.53px"
+          }
+        ],
+        "stable": [
+          {
+            "text": "거리\n25.50\n/ 40.00\nkm\n시간\n12:34\n평균\n21.5\nkm/h\n속도\n22\nkm/h",
+            "x": 71.578125,
+            "y": 9.328125,
+            "w": 226.71875,
+            "h": 37.65625,
+            "font": "13.5px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "none"
+          },
+          {
+            "text": "편안하게 페달을 돌려주세요\nR3",
+            "x": 253.953125,
+            "y": 269.484375,
+            "w": 159.09375,
+            "h": 18.484375,
+            "font": "10.53px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) 1px -1px 0px, rgb(0, 0, 0) -1px 1px 0px, rgb(0, 0, 0) 1px 1px 0px, rgb(0, 0, 0) 0px -1px 0px, rgb(0, 0, 0) 0px 1px 0px, rgb(0, 0, 0) -1px 0px 0px, rgb(0, 0, 0) 1px 0px 0px, rgb(0, 0, 0) -2px -2px 0px, rgb(0, 0, 0) 2px -2px 0px, rgb(0, 0, 0) -2px 2px 0px, rgb(0, 0, 0) 2px 2px 0px, rgb(0, 0, 0) 0px -2px 0px, rgb(0, 0, 0) 0px 2px 0px, rgb(0, 0, 0) -2px 0px 0px, rgb(0, 0, 0) 2px 0px 0px, rgba(0, 0, 0, 0.9) 0px 2px 7px"
+          }
+        ]
+      },
+      "after": {
+        "card": {
+          "x": 248.6484375,
+          "y": 118.7265625,
+          "w": 169.703125,
+          "h": 62.546875,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "일시정지\n\n재개\n변경\n종료",
+        "controls": [
+          {
+            "text": "재개",
+            "w": 47.359375,
+            "h": 29.921875,
+            "font": "10.53px"
+          },
+          {
+            "text": "변경",
+            "w": 47.359375,
+            "h": 29.921875,
+            "font": "10.53px"
+          },
+          {
+            "text": "종료",
+            "w": 47.359375,
+            "h": 29.921875,
+            "font": "10.53px"
+          }
+        ],
+        "stable": [
+          {
+            "text": "거리\n25.50\n/ 40.00\nkm\n시간\n12:34\n평균\n21.5\nkm/h\n속도\n22\nkm/h",
+            "x": 71.578125,
+            "y": 9.328125,
+            "w": 226.71875,
+            "h": 37.65625,
+            "font": "13.5px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "none"
+          },
+          {
+            "text": "편안하게 페달을 돌려주세요\nR3",
+            "x": 253.953125,
+            "y": 269.484375,
+            "w": 159.09375,
+            "h": 18.484375,
+            "font": "10.53px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) 1px -1px 0px, rgb(0, 0, 0) -1px 1px 0px, rgb(0, 0, 0) 1px 1px 0px, rgb(0, 0, 0) 0px -1px 0px, rgb(0, 0, 0) 0px 1px 0px, rgb(0, 0, 0) -1px 0px 0px, rgb(0, 0, 0) 1px 0px 0px, rgb(0, 0, 0) -2px -2px 0px, rgb(0, 0, 0) 2px -2px 0px, rgb(0, 0, 0) -2px 2px 0px, rgb(0, 0, 0) 2px 2px 0px, rgb(0, 0, 0) 0px -2px 0px, rgb(0, 0, 0) 0px 2px 0px, rgb(0, 0, 0) -2px 0px 0px, rgb(0, 0, 0) 2px 0px 0px, rgba(0, 0, 0, 0.9) 0px 2px 7px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "short",
+      "before": {
+        "card": {
+          "x": 261.5,
+          "y": 114,
+          "w": 144,
+          "h": 72,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "경로를 찾지 못했습니다.\n\n핀 초기화",
+        "controls": [
+          {
+            "text": "핀 초기화",
+            "w": 73,
+            "h": 29.921875,
+            "font": "10.53px"
+          }
+        ],
+        "stable": []
+      },
+      "after": {
+        "card": {
+          "x": 263.53125,
+          "y": 118.7265625,
+          "w": 139.9375,
+          "h": 62.546875,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "경로를 찾지 못했습니다.\n\n핀 초기화",
+        "controls": [
+          {
+            "text": "핀 초기화",
+            "w": 73,
+            "h": 29.921875,
+            "font": "10.53px"
+          }
+        ],
+        "stable": []
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "long",
+      "before": {
+        "card": {
+          "x": 185,
+          "y": 90.3046875,
+          "w": 297,
+          "h": 119.390625,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "선택한 출발지와 도착지 사이에서 이동 가능한 경로를 찾지 못했습니다. 지도에서 도로 위의 위치를 선택한 뒤 다시 시도해 주세요. 긴 안내 문구가 모두 표시되어야 합니다.\n\n핀 초기화",
+        "controls": [
+          {
+            "text": "핀 초기화",
+            "w": 73,
+            "h": 29.921875,
+            "font": "10.53px"
+          }
+        ],
+        "stable": []
+      },
+      "after": {
+        "card": {
+          "x": 185,
+          "y": 95.03125,
+          "w": 297,
+          "h": 109.9375,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "선택한 출발지와 도착지 사이에서 이동 가능한 경로를 찾지 못했습니다. 지도에서 도로 위의 위치를 선택한 뒤 다시 시도해 주세요. 긴 안내 문구가 모두 표시되어야 합니다.\n\n핀 초기화",
+        "controls": [
+          {
+            "text": "핀 초기화",
+            "w": 73,
+            "h": 29.921875,
+            "font": "10.53px"
+          }
+        ],
+        "stable": []
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "riding",
+      "before": {
+        "card": null,
+        "controls": [],
+        "stable": [
+          {
+            "text": "거리\n25.50\n/ 40.00\nkm\n시간\n12:34\n평균\n21.5\nkm/h\n속도\n22\nkm/h",
+            "x": 71.578125,
+            "y": 9.328125,
+            "w": 226.71875,
+            "h": 37.65625,
+            "font": "13.5px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "none"
+          },
+          {
+            "text": "편안하게 페달을 돌려주세요\nR3",
+            "x": 253.953125,
+            "y": 269.484375,
+            "w": 159.09375,
+            "h": 18.484375,
+            "font": "10.53px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) 1px -1px 0px, rgb(0, 0, 0) -1px 1px 0px, rgb(0, 0, 0) 1px 1px 0px, rgb(0, 0, 0) 0px -1px 0px, rgb(0, 0, 0) 0px 1px 0px, rgb(0, 0, 0) -1px 0px 0px, rgb(0, 0, 0) 1px 0px 0px, rgb(0, 0, 0) -2px -2px 0px, rgb(0, 0, 0) 2px -2px 0px, rgb(0, 0, 0) -2px 2px 0px, rgb(0, 0, 0) 2px 2px 0px, rgb(0, 0, 0) 0px -2px 0px, rgb(0, 0, 0) 0px 2px 0px, rgb(0, 0, 0) -2px 0px 0px, rgb(0, 0, 0) 2px 0px 0px, rgba(0, 0, 0, 0.9) 0px 2px 7px"
+          }
+        ]
+      },
+      "after": {
+        "card": null,
+        "controls": [],
+        "stable": [
+          {
+            "text": "거리\n25.50\n/ 40.00\nkm\n시간\n12:34\n평균\n21.5\nkm/h\n속도\n22\nkm/h",
+            "x": 71.578125,
+            "y": 9.328125,
+            "w": 226.71875,
+            "h": 37.65625,
+            "font": "13.5px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "none"
+          },
+          {
+            "text": "편안하게 페달을 돌려주세요\nR3",
+            "x": 253.953125,
+            "y": 269.484375,
+            "w": 159.09375,
+            "h": 18.484375,
+            "font": "10.53px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) 1px -1px 0px, rgb(0, 0, 0) -1px 1px 0px, rgb(0, 0, 0) 1px 1px 0px, rgb(0, 0, 0) 0px -1px 0px, rgb(0, 0, 0) 0px 1px 0px, rgb(0, 0, 0) -1px 0px 0px, rgb(0, 0, 0) 1px 0px 0px, rgb(0, 0, 0) -2px -2px 0px, rgb(0, 0, 0) 2px -2px 0px, rgb(0, 0, 0) -2px 2px 0px, rgb(0, 0, 0) 2px 2px 0px, rgb(0, 0, 0) 0px -2px 0px, rgb(0, 0, 0) 0px 2px 0px, rgb(0, 0, 0) -2px 0px 0px, rgb(0, 0, 0) 2px 0px 0px, rgba(0, 0, 0, 0.9) 0px 2px 7px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "paused",
+      "before": {
+        "card": {
+          "x": 283.1171875,
+          "y": 114,
+          "w": 173.765625,
+          "h": 72,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "일시정지\n\n재개\n변경\n종료",
+        "controls": [
+          {
+            "text": "재개",
+            "w": 47.359375,
+            "h": 29.921875,
+            "font": "10.53px"
+          },
+          {
+            "text": "변경",
+            "w": 47.359375,
+            "h": 29.921875,
+            "font": "10.53px"
+          },
+          {
+            "text": "종료",
+            "w": 47.359375,
+            "h": 29.921875,
+            "font": "10.53px"
+          }
+        ],
+        "stable": [
+          {
+            "text": "거리\n25.50\n/ 40.00\nkm\n시간\n12:34\n평균\n21.5\nkm/h\n속도\n22\nkm/h",
+            "x": 72.609375,
+            "y": 10.359375,
+            "w": 226.71875,
+            "h": 37.65625,
+            "font": "13.5px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "none"
+          },
+          {
+            "text": "편안하게 페달을 돌려주세요\nR3",
+            "x": 290.453125,
+            "y": 268.46875,
+            "w": 159.09375,
+            "h": 18.484375,
+            "font": "10.53px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) 1px -1px 0px, rgb(0, 0, 0) -1px 1px 0px, rgb(0, 0, 0) 1px 1px 0px, rgb(0, 0, 0) 0px -1px 0px, rgb(0, 0, 0) 0px 1px 0px, rgb(0, 0, 0) -1px 0px 0px, rgb(0, 0, 0) 1px 0px 0px, rgb(0, 0, 0) -2px -2px 0px, rgb(0, 0, 0) 2px -2px 0px, rgb(0, 0, 0) -2px 2px 0px, rgb(0, 0, 0) 2px 2px 0px, rgb(0, 0, 0) 0px -2px 0px, rgb(0, 0, 0) 0px 2px 0px, rgb(0, 0, 0) -2px 0px 0px, rgb(0, 0, 0) 2px 0px 0px, rgba(0, 0, 0, 0.9) 0px 2px 7px"
+          }
+        ]
+      },
+      "after": {
+        "card": {
+          "x": 285.1484375,
+          "y": 118.7265625,
+          "w": 169.703125,
+          "h": 62.546875,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "일시정지\n\n재개\n변경\n종료",
+        "controls": [
+          {
+            "text": "재개",
+            "w": 47.359375,
+            "h": 29.921875,
+            "font": "10.53px"
+          },
+          {
+            "text": "변경",
+            "w": 47.359375,
+            "h": 29.921875,
+            "font": "10.53px"
+          },
+          {
+            "text": "종료",
+            "w": 47.359375,
+            "h": 29.921875,
+            "font": "10.53px"
+          }
+        ],
+        "stable": [
+          {
+            "text": "거리\n25.50\n/ 40.00\nkm\n시간\n12:34\n평균\n21.5\nkm/h\n속도\n22\nkm/h",
+            "x": 72.609375,
+            "y": 10.359375,
+            "w": 226.71875,
+            "h": 37.65625,
+            "font": "13.5px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "none"
+          },
+          {
+            "text": "편안하게 페달을 돌려주세요\nR3",
+            "x": 290.453125,
+            "y": 268.46875,
+            "w": 159.09375,
+            "h": 18.484375,
+            "font": "10.53px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) 1px -1px 0px, rgb(0, 0, 0) -1px 1px 0px, rgb(0, 0, 0) 1px 1px 0px, rgb(0, 0, 0) 0px -1px 0px, rgb(0, 0, 0) 0px 1px 0px, rgb(0, 0, 0) -1px 0px 0px, rgb(0, 0, 0) 1px 0px 0px, rgb(0, 0, 0) -2px -2px 0px, rgb(0, 0, 0) 2px -2px 0px, rgb(0, 0, 0) -2px 2px 0px, rgb(0, 0, 0) 2px 2px 0px, rgb(0, 0, 0) 0px -2px 0px, rgb(0, 0, 0) 0px 2px 0px, rgb(0, 0, 0) -2px 0px 0px, rgb(0, 0, 0) 2px 0px 0px, rgba(0, 0, 0, 0.9) 0px 2px 7px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "short",
+      "before": {
+        "card": {
+          "x": 298,
+          "y": 114,
+          "w": 144,
+          "h": 72,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "경로를 찾지 못했습니다.\n\n핀 초기화",
+        "controls": [
+          {
+            "text": "핀 초기화",
+            "w": 73,
+            "h": 29.921875,
+            "font": "10.53px"
+          }
+        ],
+        "stable": []
+      },
+      "after": {
+        "card": {
+          "x": 300.03125,
+          "y": 118.7265625,
+          "w": 139.9375,
+          "h": 62.546875,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "경로를 찾지 못했습니다.\n\n핀 초기화",
+        "controls": [
+          {
+            "text": "핀 초기화",
+            "w": 73,
+            "h": 29.921875,
+            "font": "10.53px"
+          }
+        ],
+        "stable": []
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "long",
+      "before": {
+        "card": {
+          "x": 221.5,
+          "y": 90.3046875,
+          "w": 297,
+          "h": 119.390625,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "선택한 출발지와 도착지 사이에서 이동 가능한 경로를 찾지 못했습니다. 지도에서 도로 위의 위치를 선택한 뒤 다시 시도해 주세요. 긴 안내 문구가 모두 표시되어야 합니다.\n\n핀 초기화",
+        "controls": [
+          {
+            "text": "핀 초기화",
+            "w": 73,
+            "h": 29.921875,
+            "font": "10.53px"
+          }
+        ],
+        "stable": []
+      },
+      "after": {
+        "card": {
+          "x": 221.5,
+          "y": 95.03125,
+          "w": 297,
+          "h": 109.9375,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "선택한 출발지와 도착지 사이에서 이동 가능한 경로를 찾지 못했습니다. 지도에서 도로 위의 위치를 선택한 뒤 다시 시도해 주세요. 긴 안내 문구가 모두 표시되어야 합니다.\n\n핀 초기화",
+        "controls": [
+          {
+            "text": "핀 초기화",
+            "w": 73,
+            "h": 29.921875,
+            "font": "10.53px"
+          }
+        ],
+        "stable": []
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "riding",
+      "before": {
+        "card": null,
+        "controls": [],
+        "stable": [
+          {
+            "text": "거리\n25.50\n/ 40.00\nkm\n시간\n12:34\n평균\n21.5\nkm/h\n속도\n22\nkm/h",
+            "x": 72.609375,
+            "y": 10.359375,
+            "w": 226.71875,
+            "h": 37.65625,
+            "font": "13.5px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "none"
+          },
+          {
+            "text": "편안하게 페달을 돌려주세요\nR3",
+            "x": 290.453125,
+            "y": 268.46875,
+            "w": 159.09375,
+            "h": 18.484375,
+            "font": "10.53px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) 1px -1px 0px, rgb(0, 0, 0) -1px 1px 0px, rgb(0, 0, 0) 1px 1px 0px, rgb(0, 0, 0) 0px -1px 0px, rgb(0, 0, 0) 0px 1px 0px, rgb(0, 0, 0) -1px 0px 0px, rgb(0, 0, 0) 1px 0px 0px, rgb(0, 0, 0) -2px -2px 0px, rgb(0, 0, 0) 2px -2px 0px, rgb(0, 0, 0) -2px 2px 0px, rgb(0, 0, 0) 2px 2px 0px, rgb(0, 0, 0) 0px -2px 0px, rgb(0, 0, 0) 0px 2px 0px, rgb(0, 0, 0) -2px 0px 0px, rgb(0, 0, 0) 2px 0px 0px, rgba(0, 0, 0, 0.9) 0px 2px 7px"
+          }
+        ]
+      },
+      "after": {
+        "card": null,
+        "controls": [],
+        "stable": [
+          {
+            "text": "거리\n25.50\n/ 40.00\nkm\n시간\n12:34\n평균\n21.5\nkm/h\n속도\n22\nkm/h",
+            "x": 72.609375,
+            "y": 10.359375,
+            "w": 226.71875,
+            "h": 37.65625,
+            "font": "13.5px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "none"
+          },
+          {
+            "text": "편안하게 페달을 돌려주세요\nR3",
+            "x": 290.453125,
+            "y": 268.46875,
+            "w": 159.09375,
+            "h": 18.484375,
+            "font": "10.53px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) 1px -1px 0px, rgb(0, 0, 0) -1px 1px 0px, rgb(0, 0, 0) 1px 1px 0px, rgb(0, 0, 0) 0px -1px 0px, rgb(0, 0, 0) 0px 1px 0px, rgb(0, 0, 0) -1px 0px 0px, rgb(0, 0, 0) 1px 0px 0px, rgb(0, 0, 0) -2px -2px 0px, rgb(0, 0, 0) 2px -2px 0px, rgb(0, 0, 0) -2px 2px 0px, rgb(0, 0, 0) 2px 2px 0px, rgb(0, 0, 0) 0px -2px 0px, rgb(0, 0, 0) 0px 2px 0px, rgb(0, 0, 0) -2px 0px 0px, rgb(0, 0, 0) 2px 0px 0px, rgba(0, 0, 0, 0.9) 0px 2px 7px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "paused",
+      "before": {
+        "card": {
+          "x": 335.1171875,
+          "y": 159,
+          "w": 173.765625,
+          "h": 72,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "일시정지\n\n재개\n변경\n종료",
+        "controls": [
+          {
+            "text": "재개",
+            "w": 47.359375,
+            "h": 29.921875,
+            "font": "10.53px"
+          },
+          {
+            "text": "변경",
+            "w": 47.359375,
+            "h": 29.921875,
+            "font": "10.53px"
+          },
+          {
+            "text": "종료",
+            "w": 47.359375,
+            "h": 29.921875,
+            "font": "10.53px"
+          }
+        ],
+        "stable": [
+          {
+            "text": "거리\n25.50\n/ 40.00\nkm\n시간\n12:34\n평균\n21.5\nkm/h\n속도\n22\nkm/h",
+            "x": 73.71875,
+            "y": 11.46875,
+            "w": 226.71875,
+            "h": 37.65625,
+            "font": "13.5px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "none"
+          },
+          {
+            "text": "편안하게 페달을 돌려주세요\nR3",
+            "x": 342.453125,
+            "y": 357.34375,
+            "w": 159.09375,
+            "h": 18.484375,
+            "font": "10.53px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) 1px -1px 0px, rgb(0, 0, 0) -1px 1px 0px, rgb(0, 0, 0) 1px 1px 0px, rgb(0, 0, 0) 0px -1px 0px, rgb(0, 0, 0) 0px 1px 0px, rgb(0, 0, 0) -1px 0px 0px, rgb(0, 0, 0) 1px 0px 0px, rgb(0, 0, 0) -2px -2px 0px, rgb(0, 0, 0) 2px -2px 0px, rgb(0, 0, 0) -2px 2px 0px, rgb(0, 0, 0) 2px 2px 0px, rgb(0, 0, 0) 0px -2px 0px, rgb(0, 0, 0) 0px 2px 0px, rgb(0, 0, 0) -2px 0px 0px, rgb(0, 0, 0) 2px 0px 0px, rgba(0, 0, 0, 0.9) 0px 2px 7px"
+          }
+        ]
+      },
+      "after": {
+        "card": {
+          "x": 337.1484375,
+          "y": 163.7265625,
+          "w": 169.703125,
+          "h": 62.546875,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "일시정지\n\n재개\n변경\n종료",
+        "controls": [
+          {
+            "text": "재개",
+            "w": 47.359375,
+            "h": 29.921875,
+            "font": "10.53px"
+          },
+          {
+            "text": "변경",
+            "w": 47.359375,
+            "h": 29.921875,
+            "font": "10.53px"
+          },
+          {
+            "text": "종료",
+            "w": 47.359375,
+            "h": 29.921875,
+            "font": "10.53px"
+          }
+        ],
+        "stable": [
+          {
+            "text": "거리\n25.50\n/ 40.00\nkm\n시간\n12:34\n평균\n21.5\nkm/h\n속도\n22\nkm/h",
+            "x": 73.71875,
+            "y": 11.46875,
+            "w": 226.71875,
+            "h": 37.65625,
+            "font": "13.5px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "none"
+          },
+          {
+            "text": "편안하게 페달을 돌려주세요\nR3",
+            "x": 342.453125,
+            "y": 357.34375,
+            "w": 159.09375,
+            "h": 18.484375,
+            "font": "10.53px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) 1px -1px 0px, rgb(0, 0, 0) -1px 1px 0px, rgb(0, 0, 0) 1px 1px 0px, rgb(0, 0, 0) 0px -1px 0px, rgb(0, 0, 0) 0px 1px 0px, rgb(0, 0, 0) -1px 0px 0px, rgb(0, 0, 0) 1px 0px 0px, rgb(0, 0, 0) -2px -2px 0px, rgb(0, 0, 0) 2px -2px 0px, rgb(0, 0, 0) -2px 2px 0px, rgb(0, 0, 0) 2px 2px 0px, rgb(0, 0, 0) 0px -2px 0px, rgb(0, 0, 0) 0px 2px 0px, rgb(0, 0, 0) -2px 0px 0px, rgb(0, 0, 0) 2px 0px 0px, rgba(0, 0, 0, 0.9) 0px 2px 7px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "short",
+      "before": {
+        "card": {
+          "x": 350,
+          "y": 159,
+          "w": 144,
+          "h": 72,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "경로를 찾지 못했습니다.\n\n핀 초기화",
+        "controls": [
+          {
+            "text": "핀 초기화",
+            "w": 73,
+            "h": 29.921875,
+            "font": "10.53px"
+          }
+        ],
+        "stable": []
+      },
+      "after": {
+        "card": {
+          "x": 352.03125,
+          "y": 163.7265625,
+          "w": 139.9375,
+          "h": 62.546875,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "경로를 찾지 못했습니다.\n\n핀 초기화",
+        "controls": [
+          {
+            "text": "핀 초기화",
+            "w": 73,
+            "h": 29.921875,
+            "font": "10.53px"
+          }
+        ],
+        "stable": []
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "long",
+      "before": {
+        "card": {
+          "x": 273.5,
+          "y": 135.3046875,
+          "w": 297,
+          "h": 119.390625,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "선택한 출발지와 도착지 사이에서 이동 가능한 경로를 찾지 못했습니다. 지도에서 도로 위의 위치를 선택한 뒤 다시 시도해 주세요. 긴 안내 문구가 모두 표시되어야 합니다.\n\n핀 초기화",
+        "controls": [
+          {
+            "text": "핀 초기화",
+            "w": 73,
+            "h": 29.921875,
+            "font": "10.53px"
+          }
+        ],
+        "stable": []
+      },
+      "after": {
+        "card": {
+          "x": 273.5,
+          "y": 140.03125,
+          "w": 297,
+          "h": 109.9375,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "선택한 출발지와 도착지 사이에서 이동 가능한 경로를 찾지 못했습니다. 지도에서 도로 위의 위치를 선택한 뒤 다시 시도해 주세요. 긴 안내 문구가 모두 표시되어야 합니다.\n\n핀 초기화",
+        "controls": [
+          {
+            "text": "핀 초기화",
+            "w": 73,
+            "h": 29.921875,
+            "font": "10.53px"
+          }
+        ],
+        "stable": []
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "riding",
+      "before": {
+        "card": null,
+        "controls": [],
+        "stable": [
+          {
+            "text": "거리\n25.50\n/ 40.00\nkm\n시간\n12:34\n평균\n21.5\nkm/h\n속도\n22\nkm/h",
+            "x": 73.71875,
+            "y": 11.46875,
+            "w": 226.71875,
+            "h": 37.65625,
+            "font": "13.5px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "none"
+          },
+          {
+            "text": "편안하게 페달을 돌려주세요\nR3",
+            "x": 342.453125,
+            "y": 357.34375,
+            "w": 159.09375,
+            "h": 18.484375,
+            "font": "10.53px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) 1px -1px 0px, rgb(0, 0, 0) -1px 1px 0px, rgb(0, 0, 0) 1px 1px 0px, rgb(0, 0, 0) 0px -1px 0px, rgb(0, 0, 0) 0px 1px 0px, rgb(0, 0, 0) -1px 0px 0px, rgb(0, 0, 0) 1px 0px 0px, rgb(0, 0, 0) -2px -2px 0px, rgb(0, 0, 0) 2px -2px 0px, rgb(0, 0, 0) -2px 2px 0px, rgb(0, 0, 0) 2px 2px 0px, rgb(0, 0, 0) 0px -2px 0px, rgb(0, 0, 0) 0px 2px 0px, rgb(0, 0, 0) -2px 0px 0px, rgb(0, 0, 0) 2px 0px 0px, rgba(0, 0, 0, 0.9) 0px 2px 7px"
+          }
+        ]
+      },
+      "after": {
+        "card": null,
+        "controls": [],
+        "stable": [
+          {
+            "text": "거리\n25.50\n/ 40.00\nkm\n시간\n12:34\n평균\n21.5\nkm/h\n속도\n22\nkm/h",
+            "x": 73.71875,
+            "y": 11.46875,
+            "w": 226.71875,
+            "h": 37.65625,
+            "font": "13.5px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "none"
+          },
+          {
+            "text": "편안하게 페달을 돌려주세요\nR3",
+            "x": 342.453125,
+            "y": 357.34375,
+            "w": 159.09375,
+            "h": 18.484375,
+            "font": "10.53px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) 1px -1px 0px, rgb(0, 0, 0) -1px 1px 0px, rgb(0, 0, 0) 1px 1px 0px, rgb(0, 0, 0) 0px -1px 0px, rgb(0, 0, 0) 0px 1px 0px, rgb(0, 0, 0) -1px 0px 0px, rgb(0, 0, 0) 1px 0px 0px, rgb(0, 0, 0) -2px -2px 0px, rgb(0, 0, 0) 2px -2px 0px, rgb(0, 0, 0) -2px 2px 0px, rgb(0, 0, 0) 2px 2px 0px, rgb(0, 0, 0) 0px -2px 0px, rgb(0, 0, 0) 0px 2px 0px, rgb(0, 0, 0) -2px 0px 0px, rgb(0, 0, 0) 2px 0px 0px, rgba(0, 0, 0, 0.9) 0px 2px 7px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "paused",
+      "before": {
+        "card": {
+          "x": 583.875,
+          "y": 341.703125,
+          "w": 198.25,
+          "h": 84.59375,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "일시정지\n\n재개\n변경\n종료",
+        "controls": [
+          {
+            "text": "재개",
+            "w": 53.6875,
+            "h": 35.09375,
+            "font": "12.48px"
+          },
+          {
+            "text": "변경",
+            "w": 53.6875,
+            "h": 35.09375,
+            "font": "12.48px"
+          },
+          {
+            "text": "종료",
+            "w": 53.6875,
+            "h": 35.09375,
+            "font": "12.48px"
+          }
+        ],
+        "stable": [
+          {
+            "text": "거리\n25.50\n/ 40.00\nkm\n시간\n12:34\n평균\n21.5\nkm/h\n속도\n22\nkm/h",
+            "x": 85.5625,
+            "y": 13.59375,
+            "w": 271.90625,
+            "h": 51.828125,
+            "font": "16px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "none"
+          },
+          {
+            "text": "편안하게 페달을 돌려주세요\nR3",
+            "x": 595.515625,
+            "y": 729.296875,
+            "w": 174.96875,
+            "h": 21.90625,
+            "font": "12.48px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) 1px -1px 0px, rgb(0, 0, 0) -1px 1px 0px, rgb(0, 0, 0) 1px 1px 0px, rgb(0, 0, 0) 0px -1px 0px, rgb(0, 0, 0) 0px 1px 0px, rgb(0, 0, 0) -1px 0px 0px, rgb(0, 0, 0) 1px 0px 0px, rgb(0, 0, 0) -2px -2px 0px, rgb(0, 0, 0) 2px -2px 0px, rgb(0, 0, 0) -2px 2px 0px, rgb(0, 0, 0) 2px 2px 0px, rgb(0, 0, 0) 0px -2px 0px, rgb(0, 0, 0) 0px 2px 0px, rgb(0, 0, 0) -2px 0px 0px, rgb(0, 0, 0) 2px 0px 0px, rgba(0, 0, 0, 0.9) 0px 2px 7px"
+          }
+        ]
+      },
+      "after": {
+        "card": {
+          "x": 586.28125,
+          "y": 347.3046875,
+          "w": 193.4375,
+          "h": 73.390625,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "일시정지\n\n재개\n변경\n종료",
+        "controls": [
+          {
+            "text": "재개",
+            "w": 53.6875,
+            "h": 35.09375,
+            "font": "12.48px"
+          },
+          {
+            "text": "변경",
+            "w": 53.6875,
+            "h": 35.09375,
+            "font": "12.48px"
+          },
+          {
+            "text": "종료",
+            "w": 53.6875,
+            "h": 35.09375,
+            "font": "12.48px"
+          }
+        ],
+        "stable": [
+          {
+            "text": "거리\n25.50\n/ 40.00\nkm\n시간\n12:34\n평균\n21.5\nkm/h\n속도\n22\nkm/h",
+            "x": 85.5625,
+            "y": 13.59375,
+            "w": 271.90625,
+            "h": 51.828125,
+            "font": "16px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "none"
+          },
+          {
+            "text": "편안하게 페달을 돌려주세요\nR3",
+            "x": 595.515625,
+            "y": 729.296875,
+            "w": 174.96875,
+            "h": 21.90625,
+            "font": "12.48px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) 1px -1px 0px, rgb(0, 0, 0) -1px 1px 0px, rgb(0, 0, 0) 1px 1px 0px, rgb(0, 0, 0) 0px -1px 0px, rgb(0, 0, 0) 0px 1px 0px, rgb(0, 0, 0) -1px 0px 0px, rgb(0, 0, 0) 1px 0px 0px, rgb(0, 0, 0) -2px -2px 0px, rgb(0, 0, 0) 2px -2px 0px, rgb(0, 0, 0) -2px 2px 0px, rgb(0, 0, 0) 2px 2px 0px, rgb(0, 0, 0) 0px -2px 0px, rgb(0, 0, 0) 0px 2px 0px, rgb(0, 0, 0) -2px 0px 0px, rgb(0, 0, 0) 2px 0px 0px, rgba(0, 0, 0, 0.9) 0px 2px 7px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "short",
+      "before": {
+        "card": {
+          "x": 603.875,
+          "y": 341.703125,
+          "w": 158.25,
+          "h": 84.59375,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "경로를 찾지 못했습니다.\n\n핀 초기화",
+        "controls": [
+          {
+            "text": "핀 초기화",
+            "w": 81.4375,
+            "h": 35.09375,
+            "font": "12.48px"
+          }
+        ],
+        "stable": []
+      },
+      "after": {
+        "card": {
+          "x": 606.28125,
+          "y": 347.3046875,
+          "w": 153.4375,
+          "h": 73.390625,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "경로를 찾지 못했습니다.\n\n핀 초기화",
+        "controls": [
+          {
+            "text": "핀 초기화",
+            "w": 81.4375,
+            "h": 35.09375,
+            "font": "12.48px"
+          }
+        ],
+        "stable": []
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "long",
+      "before": {
+        "card": {
+          "x": 507,
+          "y": 322.984375,
+          "w": 352,
+          "h": 122.03125,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "선택한 출발지와 도착지 사이에서 이동 가능한 경로를 찾지 못했습니다. 지도에서 도로 위의 위치를 선택한 뒤 다시 시도해 주세요. 긴 안내 문구가 모두 표시되어야 합니다.\n\n핀 초기화",
+        "controls": [
+          {
+            "text": "핀 초기화",
+            "w": 81.4375,
+            "h": 35.09375,
+            "font": "12.48px"
+          }
+        ],
+        "stable": []
+      },
+      "after": {
+        "card": {
+          "x": 507,
+          "y": 328.5859375,
+          "w": 352,
+          "h": 110.828125,
+          "overflowX": 0,
+          "overflowY": 0
+        },
+        "text": "선택한 출발지와 도착지 사이에서 이동 가능한 경로를 찾지 못했습니다. 지도에서 도로 위의 위치를 선택한 뒤 다시 시도해 주세요. 긴 안내 문구가 모두 표시되어야 합니다.\n\n핀 초기화",
+        "controls": [
+          {
+            "text": "핀 초기화",
+            "w": 81.4375,
+            "h": 35.09375,
+            "font": "12.48px"
+          }
+        ],
+        "stable": []
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "riding",
+      "before": {
+        "card": null,
+        "controls": [],
+        "stable": [
+          {
+            "text": "거리\n25.50\n/ 40.00\nkm\n시간\n12:34\n평균\n21.5\nkm/h\n속도\n22\nkm/h",
+            "x": 85.5625,
+            "y": 13.59375,
+            "w": 271.90625,
+            "h": 51.828125,
+            "font": "16px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "none"
+          },
+          {
+            "text": "편안하게 페달을 돌려주세요\nR3",
+            "x": 595.515625,
+            "y": 729.296875,
+            "w": 174.96875,
+            "h": 21.90625,
+            "font": "12.48px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) 1px -1px 0px, rgb(0, 0, 0) -1px 1px 0px, rgb(0, 0, 0) 1px 1px 0px, rgb(0, 0, 0) 0px -1px 0px, rgb(0, 0, 0) 0px 1px 0px, rgb(0, 0, 0) -1px 0px 0px, rgb(0, 0, 0) 1px 0px 0px, rgb(0, 0, 0) -2px -2px 0px, rgb(0, 0, 0) 2px -2px 0px, rgb(0, 0, 0) -2px 2px 0px, rgb(0, 0, 0) 2px 2px 0px, rgb(0, 0, 0) 0px -2px 0px, rgb(0, 0, 0) 0px 2px 0px, rgb(0, 0, 0) -2px 0px 0px, rgb(0, 0, 0) 2px 0px 0px, rgba(0, 0, 0, 0.9) 0px 2px 7px"
+          }
+        ]
+      },
+      "after": {
+        "card": null,
+        "controls": [],
+        "stable": [
+          {
+            "text": "거리\n25.50\n/ 40.00\nkm\n시간\n12:34\n평균\n21.5\nkm/h\n속도\n22\nkm/h",
+            "x": 85.5625,
+            "y": 13.59375,
+            "w": 271.90625,
+            "h": 51.828125,
+            "font": "16px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "none"
+          },
+          {
+            "text": "편안하게 페달을 돌려주세요\nR3",
+            "x": 595.515625,
+            "y": 729.296875,
+            "w": 174.96875,
+            "h": 21.90625,
+            "font": "12.48px",
+            "background": "rgba(0, 0, 0, 0)",
+            "shadow": "rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) 1px -1px 0px, rgb(0, 0, 0) -1px 1px 0px, rgb(0, 0, 0) 1px 1px 0px, rgb(0, 0, 0) 0px -1px 0px, rgb(0, 0, 0) 0px 1px 0px, rgb(0, 0, 0) -1px 0px 0px, rgb(0, 0, 0) 1px 0px 0px, rgb(0, 0, 0) -2px -2px 0px, rgb(0, 0, 0) 2px -2px 0px, rgb(0, 0, 0) -2px 2px 0px, rgb(0, 0, 0) 2px 2px 0px, rgb(0, 0, 0) 0px -2px 0px, rgb(0, 0, 0) 0px 2px 0px, rgb(0, 0, 0) -2px 0px 0px, rgb(0, 0, 0) 2px 0px 0px, rgba(0, 0, 0, 0.9) 0px 2px 7px"
+          }
+        ]
+      }
+    }
+  ],
+  "events": [
+    "resume",
+    "modify",
+    "end",
+    "clear",
+    "resume",
+    "modify",
+    "end",
+    "clear",
+    "resume",
+    "modify",
+    "end",
+    "clear",
+    "resume",
+    "modify",
+    "end",
+    "clear"
+  ],
+  "errors": []
+}

@@ -1,0 +1,73 @@
+{
+  "rows": [
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "panel": {
+        "x": 280,
+        "y": 0,
+        "w": 460,
+        "h": 186.328125
+      },
+      "left": {
+        "x": 292.46875,
+        "y": 47.234375,
+        "w": 215,
+        "h": 53.203125
+      },
+      "right": {
+        "x": 512.1875,
+        "y": 47.234375,
+        "w": 215,
+        "h": 110.09375
+      },
+      "scroll": 0,
+      "xOverflow": 0,
+      "functions": {
+        "periodTabs": true,
+        "historyToggle": true,
+        "logoutConfirmCancel": true,
+        "escape": true,
+        "closeButton": true,
+        "scrim": true
+      }
+    },
+    {
+      "viewport": {
+        "width": 800,
+        "height": 360
+      },
+      "panel": {
+        "x": 340,
+        "y": 0,
+        "w": 460,
+        "h": 186.328125
+      },
+      "left": {
+        "x": 352.46875,
+        "y": 47.234375,
+        "w": 215,
+        "h": 53.203125
+      },
+      "right": {
+        "x": 572.1875,
+        "y": 47.234375,
+        "w": 215,
+        "h": 110.09375
+      },
+      "scroll": 0,
+      "xOverflow": 0,
+      "functions": {
+        "periodTabs": true,
+        "historyToggle": true,
+        "logoutConfirmCancel": true,
+        "escape": true,
+        "closeButton": true,
+        "scrim": true
+      }
+    }
+  ],
+  "errors": []
+}

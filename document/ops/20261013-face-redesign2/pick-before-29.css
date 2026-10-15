@@ -1,0 +1,1475 @@
+.map-view-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.map-view__pick-dock-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.map-view__pick-dock-panel {
+  position: absolute;
+  pointer-events: auto;
+  box-sizing: border-box;
+  max-width: min(300px, calc(100vw - 1.5rem));
+  border-radius: 12px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.map-view__pick-dock-close {
+  position: absolute;
+  z-index: 2;
+  top: 0.2rem;
+  right: 0.2rem;
+  width: 1.65rem;
+  height: 1.65rem;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #475569;
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.map-view__pick-dock-close:hover {
+  color: #1F2937;
+  background: #EFF6FF;
+}
+
+.map-view__pick-dock-panel .map-view__pick {
+  max-height: min(70vh, 26rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.map-view--pick-dragging {
+  cursor: grabbing !important;
+}
+
+.map-view__tick-test {
+  position: absolute;
+  left: 8px;
+  bottom: 28px;
+  z-index: 20;
+  pointer-events: none;
+  font: 11px/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: #e6edf3;
+  background: rgb(0 0 0 / 0.55);
+  padding: 4px 7px;
+  border-radius: 4px;
+}
+
+.map-view {
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
+}
+
+/* 축척 바(「30m」)는 표시 전용 — 지도 하단에서 팬·핀치를 삼킬 이유가 없다.
+   실측에서 하단 격자 6 지점을 막고 있었다(diag-hit-scan.json). */
+.map-view .mapboxgl-ctrl-scale {
+  pointer-events: none;
+}
+
+/* 빌보드 마커: 기본 레이어 위로. 내 라이더·핀이 동행(맵 레이어)보다 위에 오도록 */
+.map-view .mapboxgl-marker {
+  z-index: 5;
+}
+
+.map-view .mapboxgl-marker.map-view__pin-marker {
+  z-index: 8;
+}
+
+.map-view .mapboxgl-marker.map-view__live-rider-marker,
+.map-view .mapboxgl-marker.cycling-sim-marker-host {
+  z-index: 10;
+}
+
+/* 260527 Phase A–C — Mapbox circle 실패 시 WORLD_LIGHT DOM 폴백 */
+.map-debug-world-light-marker {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: red;
+  border: 2px solid #fff;
+  box-shadow: 0 0 10px rgb(255 0 0 / 0.7);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* 동행은 GeoJSON 레이어(맵 캔버스)로 그려 HTML 마커 z-index와 무관 */
+.map-view .mapboxgl-popup {
+  z-index: 30;
+}
+
+/* 지도 클릭 — 출발/도착/경유·수단 (앱 다크 글래스 톤, 콤팩트) */
+.map-view .map-view__activity-popup-wrap.mapboxgl-popup .mapboxgl-popup-content {
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  background: #FFFFFF;
+  color: #1F2937;
+  border: 1px solid #CBD5E1;
+}
+
+.map-view__activity-popup-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #DC2626;
+}
+
+.map-view__activity-popup--heat .map-view__activity-popup-title {
+  color: #B91C1C;
+}
+
+.map-view__activity-popup-body {
+  margin-top: 0.25rem;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: #1F2937;
+}
+
+.map-view .map-view__activity-popup-wrap.mapboxgl-popup .mapboxgl-popup-tip {
+  border-top-color: #FFFFFF;
+}
+
+.map-view .map-view__pick-popup.mapboxgl-popup {
+  overflow: visible;
+}
+
+.map-view .map-view__pick-popup .mapboxgl-popup-content {
+  padding: 0;
+  max-height: min(70vh, 26rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-radius: 12px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.map-view .map-view__pick-popup.mapboxgl-popup-anchor-top .mapboxgl-popup-tip {
+  border-bottom-color: #FFFFFF;
+}
+.map-view .map-view__pick-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
+  border-top-color: #FFFFFF;
+}
+.map-view .map-view__pick-popup.mapboxgl-popup-anchor-left .mapboxgl-popup-tip {
+  border-right-color: #FFFFFF;
+}
+.map-view .map-view__pick-popup.mapboxgl-popup-anchor-right .mapboxgl-popup-tip {
+  border-left-color: #FFFFFF;
+}
+
+.map-view .map-view__pick-popup .mapboxgl-popup-close-button {
+  color: #475569;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+  width: 1.65rem;
+  height: 1.65rem;
+  right: 0.2rem;
+  top: 0.2rem;
+  border-radius: 50%;
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-view .map-view__pick-popup .mapboxgl-popup-close-button:hover {
+  color: #1F2937;
+  background: #EFF6FF;
+}
+
+.map-view__pick {
+  padding: 0.45rem 0.55rem 0.5rem;
+  min-width: 13.5rem;
+  max-width: 20rem;
+  box-sizing: border-box;
+  color: #1F2937;
+}
+
+.map-view__pick-drag-handle {
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+
+/*
+ * 제목 행이 스스로 ✕ 자리를 비우므로(`.map-view__pick-token` padding-right) 핸들 전체를
+ * 밀 필요가 없다 — 주소·좌표는 둘째 줄부터라 ✕ 와 만나지 않는다.
+ */
+
+.map-view__pick-address {
+  font-size: calc(0.82rem - 2pt);
+  font-weight: 700;
+  line-height: 1.3;
+  color: #1F2937;
+  word-break: break-word;
+}
+
+.map-view__pick-meta {
+  margin-top: 0.22rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.01em;
+  color: rgba(71, 85, 105, 0.78);
+  line-height: 1.35;
+  word-break: break-all;
+}
+
+.map-view__pick-actions {
+  display: flex;
+  gap: 0.28rem;
+  margin-top: 0.38rem;
+}
+
+.map-view__pick-actions--pin-row {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #FFFFFF;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0.24rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.map-view__pick-actions--pin-row .map-view__pick-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0.24rem 0.32rem;
+  font-size: 0.7rem;
+}
+
+.map-view__pick-btn {
+  flex: 1;
+  appearance: none;
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 0.26rem 0.42rem;
+  min-height: 0;
+  line-height: 1.25;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.map-view__pick-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.map-view__pick-btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+.map-view__pick-btn--start {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+}
+
+.map-view__pick-btn--start:hover:not(:disabled) {
+  background: #1D4ED8;
+  border-color: #1D4ED8;
+}
+
+.map-view__pick-btn--end {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+}
+
+.map-view__pick-btn--end:hover:not(:disabled) {
+  background: #1D4ED8;
+  border-color: #1D4ED8;
+}
+
+.map-view__pick-btn--wp {
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+  color: #1F2937;
+}
+
+.map-view__pick-btn--wp:hover:not(:disabled) {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
+.map-view__pick-profile-section {
+  margin-top: 0.22rem;
+}
+
+/*
+ * 팝업 제목 행(2026-09-16 Chief). 주소보다 **위**에 온다.
+ * 짧은 문구라 오른쪽 끝 닫기 ✕ 와 부딪히지 않고, 긴 주소는 둘째 줄로 내려가 ✕ 를 덮지 않는다.
+ * 상자를 벗고 아래 구분선만 남겨 「제목 → 본문」으로 읽히게 한다.
+ */
+.map-view__pick-token {
+  margin: 0 0 0.3rem;
+  /* 오른쪽은 닫기 ✕(1.65rem + 0.2rem) 자리 */
+  padding: 0 1.95rem 0.28rem 0;
+  border-bottom: 1px solid #CBD5E1;
+}
+
+.map-view__pick-token-line {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #1F2937;
+  line-height: 1.3;
+  word-break: keep-all;
+}
+
+/* 잔액이 아직 없을 때 — 제목만. 상태 색을 쓰지 않는다 */
+.map-view__pick-token-line--title {
+  color: rgba(31, 41, 55, 0.92);
+}
+
+.map-view__pick-token-line--insufficient {
+  color: #DC2626;
+}
+
+.map-view__pick-token-line--spend {
+  color: #16a34a;
+}
+
+.map-view__pick-token-line--pending {
+  color: rgba(37, 99, 235, 0.9);
+}
+
+.map-view__pick-btn--clear-route {
+  margin-left: auto;
+  flex: 0 0 auto;
+  appearance: none;
+  font: inherit;
+  font-size: 0.66rem;
+  font-weight: 650;
+  padding: 0.2rem 0.48rem;
+  line-height: 1.25;
+  border-radius: 999px;
+  cursor: pointer;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #475569;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.map-view__pick-btn--clear-route:hover {
+  background: #EFF6FF;
+  border-color: #CBD5E1;
+}
+
+.map-view__pick-btn--clear-route:active {
+  transform: scale(0.98);
+}
+
+.map-view__pick-actions--profile {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.28rem;
+  margin-top: 0;
+}
+
+.map-view__pick-btn--profile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: 2.35rem;
+  height: 2.35rem;
+  min-width: 2.35rem;
+  min-height: 2.35rem;
+  max-width: 2.35rem;
+  max-height: 2.35rem;
+  padding: 0;
+  border-radius: 50%;
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+  color: #475569;
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+.map-view__pick-profile-ico {
+  width: 1.22rem;
+  height: 1.22rem;
+  display: block;
+  flex-shrink: 0;
+}
+
+.map-view__pick-btn--profile:hover:not(:disabled) {
+  background: #EFF6FF;
+  border-color: #CBD5E1;
+}
+
+.map-view__pick-btn--profile.is-active {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+}
+
+/* 선택된 수단은 hover 중에도 파랑을 유지한다 — hover 규칙(구 CSS 그대로)이
+   배경을 덮으면 흰 아이콘이 옅은 바탕에 묻혀 읽히지 않는다(실측). 색 성분만 지정. */
+.map-view__pick-btn--profile.is-active:hover:not(:disabled) {
+  background: #1D4ED8;
+  border-color: #1D4ED8;
+  color: #FFFFFF;
+}
+
+.map-view__pick-auto-route {
+  margin-top: 0.16rem;
+  padding-top: 0.16rem;
+  border-top: 1px solid #CBD5E1;
+}
+
+.map-view__pick-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.map-view__pick-distance-row {
+  --pick-distance-control-height: 1.625rem;
+  display: grid;
+  grid-template-columns: auto auto 1fr auto auto;
+  align-items: center;
+  gap: 0.22rem;
+}
+
+.map-view__pick-distance-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.12rem;
+  margin: 0;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: rgba(71, 85, 105, 0.9);
+  cursor: pointer;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.map-view__pick-distance-mode-checkbox {
+  width: 0.9rem;
+  height: 0.9rem;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: #2563EB;
+}
+
+.map-view__pick-distance-mode-label {
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.map-view__pick-distance-row--disabled .map-view__pick-distance-slider {
+  opacity: 0.42;
+}
+
+.map-view__pick-distance-step {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: var(--pick-distance-control-height);
+  height: var(--pick-distance-control-height);
+  min-width: var(--pick-distance-control-height);
+  min-height: var(--pick-distance-control-height);
+  padding: 0;
+  border-radius: 0.35rem;
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #1F2937;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.map-view__pick-distance-step:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.map-view__pick-distance-slider {
+  width: 100%;
+  min-width: 0;
+  accent-color: #2563EB;
+}
+
+.map-view__pick-distance-number {
+  width: 2.65rem;
+  height: var(--pick-distance-control-height);
+  box-sizing: border-box;
+  padding: 0 0.22rem;
+  font-size: 0.68rem;
+  color: #1F2937;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 0.35rem;
+  text-align: right;
+}
+
+.map-view__pick-distance-number:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.map-view__pick-auto-route-status-slot {
+  min-height: 0.92rem;
+  margin: 0.12rem 0 0;
+}
+
+.map-view__pick-auto-route-status {
+  margin: 0;
+  min-height: inherit;
+  color: rgba(71, 85, 105, 0.9);
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.map-view__pick-auto-route-status--idle {
+  visibility: hidden;
+}
+
+.map-view__pick-auto-route-status--searching {
+  color: #B45309;
+}
+
+.map-view__pick-auto-route-status--failed {
+  color: #DC2626;
+}
+
+.map-view__pick-auto-route-status--found {
+  color: #16a34a;
+}
+
+.map-view__auto-route-status {
+  display: grid;
+  gap: 0.42rem;
+  min-width: 14rem;
+}
+
+.map-view__auto-route-status-title {
+  margin: 0;
+  color: #1F2937;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.map-view__auto-route-status-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.map-view__pick-btn--auto-cancel {
+  flex: 0 0 auto;
+  border-radius: 0.65rem;
+  padding: 0.48rem 0.65rem;
+  color: #475569;
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+}
+
+.map-view__auto-route-progress {
+  height: 0.18rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #F1F5F9;
+}
+
+.map-view__auto-route-progress::after {
+  content: "";
+  display: block;
+  width: 42%;
+  height: 100%;
+  border-radius: inherit;
+  background: #2563EB;
+  animation: map-view-auto-route-progress 1s ease-in-out infinite alternate;
+}
+
+@keyframes map-view-auto-route-progress {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(138%);
+  }
+}
+
+.map-view__auto-route-click-debug-marker-host {
+  pointer-events: none;
+}
+
+.map-view__auto-route-click-debug-host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  pointer-events: none;
+}
+
+.map-view__auto-route-click-debug-marker {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border: 2px solid #d946ef;
+  border-radius: 999px;
+  background: rgba(217, 70, 239, 0.18);
+  color: #f5d0fe;
+  font:
+    700 0.62rem/1 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    monospace;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.55);
+  pointer-events: none;
+}
+
+.map-view__auto-route-click-debug-marker::before,
+.map-view__auto-route-click-debug-marker::after {
+  content: "";
+  position: absolute;
+  background: #d946ef;
+  pointer-events: none;
+}
+
+.map-view__auto-route-click-debug-marker::before {
+  width: 0.72rem;
+  height: 2px;
+}
+
+.map-view__auto-route-click-debug-marker::after {
+  width: 2px;
+  height: 0.72rem;
+}
+
+.map-view__auto-route-click-debug-label {
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+  background: rgba(15, 23, 42, 0.82);
+  color: #f5d0fe;
+  font:
+    600 0.62rem/1.2 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    monospace;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.map-view__pick--awaiting-profile {
+  outline: 1px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 1px;
+  border-radius: 10px;
+}
+
+.map-view__waypoint-marker {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #fefce8;
+  background: linear-gradient(145deg, rgba(234, 179, 8, 0.95), rgba(180, 83, 9, 0.92));
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
+}
+
+.map-view .mapboxgl-marker.map-view__route-pin-marker {
+  background: transparent !important;
+}
+
+.map-view__route-pin {
+  width: 27px;
+  height: 41px;
+  line-height: 0;
+  /* `!important` 인 이유는 위 `background` 와 같다 — Mapbox 자체 `.mapboxgl-marker` 가
+     같은 특이도(0,1,0)로 부딪혀 우리 선언이 밀린다. S·E 핀은 표시 전용이고 클릭 핸들러도
+     없는데, 밀리면 지도 조작을 삼킨다(2026-09-18 실측: 표고 그래프 면에서 21 지점). */
+  pointer-events: none !important;
+}
+
+/* 라이더 프로토타입 — isometric 2D (VITE_RIDER_PROTOTYPE=iso2d) */
+.map-view__proto-iso-host.cycling-sim-marker-host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  width: auto;
+  min-width: 72px;
+  height: auto;
+  min-height: 72px;
+  background: transparent !important;
+}
+
+.map-view__proto-iso-flip {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  transform-origin: 50% 85%;
+}
+
+.map-view__proto-iso-sprite {
+  width: 72px;
+  height: auto;
+  max-height: 72px;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+}
+
+/* 내 라이브 위치: 페달 스프라이트 마커(보고서 6·9절) */
+.map-view .mapboxgl-marker.cycling-sim-marker-host,
+.map-view .cycling-sim-marker-host.mapboxgl-marker {
+  background: transparent !important;
+}
+
+.cycling-sim-marker-host {
+  width: 120px;
+  height: 120px;
+  background: transparent !important;
+  pointer-events: none;
+}
+
+.map-view__live-rider-host.cycling-sim-marker-host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: auto;
+  min-height: 120px;
+  width: auto;
+  min-width: 120px;
+}
+
+.map-view__rider-nametag {
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1.2;
+  padding: 0.08rem 0.12rem;
+  margin-bottom: 3px;
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* 자기: 파란 글자 + 흰 글로우(지도와 분리) */
+.map-view__rider-nametag--live {
+  color: #1d4ed8;
+  text-shadow:
+    0 0 1px #fff,
+    0 0 2px #fff,
+    0 0 4px #fff,
+    0 0 10px #fff,
+    0 0 14px rgba(37, 99, 235, 0.55),
+    0 1px 2px rgba(15, 23, 42, 0.55);
+}
+
+.map-view__live-rider-host .cycling-sim-marker-flip {
+  width: 120px;
+  height: 120px;
+  flex-shrink: 0;
+}
+
+/* 동행 라이더 DOM 마커 — 본인과 톤만 구분 */
+.map-view__peer-rider-host.cycling-sim-marker-host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: auto;
+  min-height: 120px;
+  width: auto;
+  min-width: 120px;
+}
+
+.map-view__peer-rider-host .cycling-sim-marker-flip {
+  width: 120px;
+  height: 120px;
+  flex-shrink: 0;
+}
+
+.map-view__rider-nametag--peer {
+  color: #0f766e;
+  text-shadow:
+    0 0 1px #fff,
+    0 0 2px #fff,
+    0 0 4px #fff,
+    0 1px 2px rgba(15, 23, 42, 0.55);
+}
+
+/* GLB 모드 — 캐릭터 위 네임태그만 DOM 마커 */
+.map-view__glb-nametag-host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  /* 이름표는 표시 전용인데 Mapbox `.mapboxgl-marker` 와 특이도가 같아 밀리고 있었다.
+     라이더를 화면 아래로 내린 뒤(anchor 0.6) 표고 그래프 면까지 들어와 15 지점을
+     막는 것이 계약에 걸렸다(2026-09-18). */
+  pointer-events: none !important;
+  background: transparent !important;
+}
+
+.map-view__glb-nametag-marker {
+  background: transparent !important;
+  border: none !important;
+  pointer-events: none !important;
+}
+
+.map-view__glb-nametag-host .map-view__rider-nametag {
+  display: flex;
+  justify-content: center;
+  max-width: 11rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.map-view__glb-nametag-host--live .map-view__rider-nametag--live {
+  color: #1d4ed8;
+}
+
+.map-view__glb-nametag-host--peer .map-view__rider-nametag--peer {
+  color: #0f766e;
+}
+
+.map-view__rider-nametag--pacer,
+.map-view__glb-nametag-host--pacer .map-view__rider-nametag--pacer {
+  color: #64748b;
+}
+
+/*
+ * 내려다보는 화면(riderDomMarkers `NAMETAG_FLAT_*`) — 마커 바닥 중앙이 위치 점 중심에 온다
+ * (offset 0). 동행 이름표는 점 옆으로 옮겨 세로 중앙을 점에 맞춘다
+ * (+3px 은 이름표 margin-bottom). 간격 12px = 동행 펄스 링 반지름 9px + 3px.
+ *
+ * 내 이름표는 **점 바로 아래, 파란 알약**(2026-10-09 Chief: 1번 카메라에서도 보여 달라).
+ * 10-08 에는 숨겼다 — 위에 두면 동행 이름처럼 읽혔다. 아래·채운 배경으로 동행(점 옆·글자만)과 구분한다.
+ * 위쪽 끝 = 점 중심 + 16px (내 위치 링 반지름 14px + 2px). 펄스는 커지며 사라지므로 덮어도 읽힌다.
+ */
+.map-view__glb-nametag-host--flat.map-view__glb-nametag-host--live .map-view__rider-nametag--live {
+  transform: translateY(calc(100% + 3px + 16px));
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: #1d4ed8;
+  color: #fff;
+  text-shadow: none;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.45);
+}
+
+.map-view__glb-nametag-host--flat.map-view__glb-nametag-host--peer .map-view__rider-nametag {
+  transform: translate(calc(50% + 12px), calc(50% + 3px));
+}
+
+.map-view__glb-nametag-host--flat.map-view__glb-nametag-host--flat-left.map-view__glb-nametag-host--peer
+  .map-view__rider-nametag {
+  transform: translate(calc(-50% - 12px), calc(50% + 3px));
+}
+
+.map-view__peer-rider-host .cycling-sim-marker-pedal-sprite {
+  filter: hue-rotate(175deg) saturate(1.12) brightness(1.02);
+}
+
+.cycling-sim-marker-flip {
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 50%;
+}
+
+/* Self-location — 화면 고정 px, live nametag·peer 와 별 요소 */
+.map-view__self-location-marker {
+  background: transparent !important;
+  border: none !important;
+  /* `!important` 인 이유는 위 두 줄과 같다 — Mapbox 자체 `.mapboxgl-marker` 규칙이
+     같은 특이도(0,1,0)로 부딪혀 우리 선언이 밀린다. 실측에서 이 호스트가 표고 그래프
+     면 안에서 지도 조작을 3 지점 막고 있었다(elevation-area-scan.json). 내 위치 표식은
+     표시 전용이므로 못을 박는다. */
+  pointer-events: none !important;
+}
+
+.map-view__self-location-host {
+  width: 28px;
+  height: 28px;
+  /* position 은 Mapbox `.mapboxgl-marker`(absolute) 그대로 — relative 로 덮으면 마커끼리 문서 흐름에
+     쌓여, 앞 마커 높이만큼 밀린다(동행 점이 내 점 28px 만큼 아래로 내려갔다, 2026-10-08). */
+  pointer-events: none !important;
+}
+
+.map-view__self-location-pulse {
+  /* 장식(펄스 링)일 뿐인데 실측에서 터치를 잡고 있었다 — 부모 2개가 이미 none 이지만
+     Mapbox 자체 `.mapboxgl-marker` 규칙과 같은 특이도로 부딪힌다. 여기서 못을 박는다. */
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  /*
+   * 흰 링 + 파란 테 두 겹 — 위성(어두움)에선 흰색이, Outdoors(밝음)에선 파랑이 대비를 맡는다.
+   * 종전 반투명 파랑 원판은 위성 사진에 묻혀 보이지 않았다(2026-10-07 Chief).
+   */
+  background: rgba(59, 130, 246, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 1.5px rgba(29, 78, 216, 0.9);
+  box-sizing: border-box;
+  animation: map-view-self-location-pulse var(--rtw-ride-pulse-period, 2.2s) ease-out infinite;
+}
+
+.map-view__self-location-core {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: #1d4ed8;
+  border: 2px solid #fff;
+  box-shadow:
+    0 0 0 1px rgba(29, 78, 216, 0.45),
+    0 2px 8px rgba(15, 23, 42, 0.35);
+}
+
+.map-view__self-location-bearing {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.map-view__self-location-bearing-chevron {
+  position: absolute;
+  left: 50%;
+  top: -1px;
+  width: 0;
+  height: 0;
+  margin-left: -4px;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 7px solid #fff;
+  filter: drop-shadow(0 0 1px rgba(15, 23, 42, 0.55));
+}
+
+/* 퍼지는 범위 28px → ~73px(종전 ~42px). 위상·박자는 그대로(ridePulse.ts) */
+@keyframes map-view-self-location-pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.95;
+  }
+  75% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+/* 동행 위치 — 내 점(28px·파랑·×2.6)보다 작게(18px·청록·×1.9). 색은 동행 이름표와 같다 */
+.map-view__peer-location-marker {
+  background: transparent !important;
+  border: none !important;
+  pointer-events: none !important;
+}
+
+.map-view__peer-location-host {
+  width: 18px;
+  height: 18px;
+  /* position 은 Mapbox `.mapboxgl-marker`(absolute) 그대로 — relative 로 덮으면 마커끼리 문서 흐름에
+     쌓여, 앞 마커 높이만큼 밀린다(동행 점이 내 점 28px 만큼 아래로 내려갔다, 2026-10-08). */
+  pointer-events: none !important;
+}
+
+.map-view__peer-location-pulse {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(20, 184, 166, 0.3);
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 1px rgba(15, 118, 110, 0.9);
+  box-sizing: border-box;
+  animation: map-view-peer-location-pulse var(--rtw-ride-pulse-period, 2.2s) ease-out infinite;
+}
+
+.map-view__peer-location-core {
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: #0f766e;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.35);
+}
+
+@keyframes map-view-peer-location-pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.9;
+  }
+  75% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-view__peer-location-pulse {
+    animation: none;
+    opacity: 0.35;
+  }
+
+  .map-view__self-location-pulse {
+    animation: none;
+    opacity: 0.35;
+    transform: scale(1.1);
+  }
+}
+
+.cycling-sim-marker-stack {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/*
+ * 표고 그래프 — **표시 전용**.
+ *
+ * 배경이 transparent 라 지도가 비쳐 보이는데 터치는 삼키고 있었다. 폰 가로(690×275)에서
+ * 386×120px = 화면의 24.4% 이고, 그것도 팬·핀치를 가장 많이 하는 하단 중앙이다.
+ * `.map-hud` 가 이미 쓰는 규칙(「슬롯은 pointer-events: none, 내부 위젯만 다시 켠다」)에서
+ * 이 오버레이만 빠져 있었다. 나중에 그래프 위 스크럽 같은 조작을 넣으면 그 요소에만
+ * `pointer-events: auto` 를 준다 (2026-09-17 Chief).
+ */
+.elevation-overlay {
+  pointer-events: none;
+  position: absolute;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  width: min(56%, 560px);
+  min-width: 320px;
+  height: 120px;
+  border: none;
+  background: transparent;
+  backdrop-filter: none;
+  border-radius: 4px;
+  padding: 0.25rem 0.4rem;
+  box-sizing: border-box;
+  z-index: 3;
+}
+
+/* 지도 위에 배경 없이 뜨는 흰 글자다 — 밝은 지형에서 묻히지 않게 2중 테두리(2026-09-18 Chief).
+ * (2026-09-24 지시03) 세로를 화면 하단 코칭 멘트 줄 높이에 맞췄다 — 「허공에 떠 있다」던 지적.
+ *
+ * (2026-09-28 Chief) 그 높이가 하필 **그래프 안쪽**이었다. 표고가 낮은 시·종점은 플롯 바닥
+ * 근처에 찍히는데 메타 행이 거기 얹혀 시점·종점 점과 「N% covered」 배지를 가렸다. 그래서
+ * 메타 행을 오버레이 **맨 아래(bottom: 0)** 로 내리고 플롯은 그만큼 바닥을 비운다
+ * (`.elevation-overlay__plot` 의 `calc(100% - 1.4rem)`). 두 값은 한 쌍이다 — 한쪽만 바꾸면
+ * 겹침이 돌아온다. 가로는 그대로 좌(시점)·우(종점) 끝을 유지한다.
+ */
+.elevation-overlay__meta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.1rem 0;
+  font-size: 0.72rem;
+  color: #f8fafc;
+  text-shadow: var(--rtw-map-text-keyline-strong);
+}
+
+/* svg 와 진행률 라벨(elevation-overlay__progress)이 같은 % 좌표계를 공유하도록
+   묶는 박스 — 라벨은 SVG 밖 HTML 요소라 이 박스 기준으로만 좌표가 맞는다.
+   바닥 1.4rem 은 메타 행(「시점/종점」) 자리로 비워 둔다 — 2026-09-28 Chief.
+   0.3rem 만 비웠던 종전 값은 메타 행이 플롯 안쪽에 걸쳐, 표고가 낮은 시·종점에서
+   점과 「N% covered」 배지를 가렸다. 이 값과 `.elevation-overlay__meta { bottom: 0 }` 은
+   한 쌍이다 — 한쪽만 바꾸면 겹침이 돌아온다. e2e `hud-distance-elevation-shots` 의
+   「진행률 라벨이 시점/종점 메타 행과 겹치면 안 된다」가 감시한다. */
+.elevation-overlay__plot {
+  position: relative;
+  width: 100%;
+  height: calc(100% - 1.4rem);
+}
+
+.elevation-overlay__svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* 표고 그래프 마커 위 진행률(「NN% covered」) — 점 위치와 같은 clamped 값에서 나온 xPct/yPct 로
+   절대배치되어 점과 절대 어긋나지 않는다(mapElevationUi.buildElevationUi 참고).
+   `left` 는 클램프 없이 xPct 그대로 쓴다 — " covered" 가 붙어 라벨 폭이 약 17px → 60px 로
+   커지면서 예전 4~96% 클램프로는 경로 시작·끝에서 라벨이 점으로부터 30px 가까이 떨어져
+   보였다(클램프를 키워도 더 떨어질 뿐). 대신 수평 정렬을 앵커 전환으로 바꿔 라벨이 항상
+   점에 붙어 있게 한다 — 가운데(기본) / 왼쪽 끝(--start, xPct<15) / 오른쪽 끝(--end, xPct>85).
+   수평·수직 변형을 각 클래스가 `transform` 전체를 다시 쓰면 서로 덮어써 조합이 안 되므로
+   커스텀 프로퍼티로 축을 분리한다(2026-09-17 Chief). */
+.elevation-overlay__progress {
+  position: absolute;
+  --elev-label-x: -50%;
+  --elev-label-y: -160%;
+  transform: translate(var(--elev-label-x), var(--elev-label-y));
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: #f8fafc;
+  text-shadow: var(--rtw-map-text-keyline-strong);
+  white-space: nowrap;
+}
+
+/* (2026-09-24 지시03) 예전에는 경로 최고점 부근(플롯 상단 여백 ≈ 8.5px < 라벨 16px)에서
+   라벨이 「시점/종점」 메타 행을 침범해 `.elevation-overlay__progress--below`(yPct<20 전용,
+   점 아래로 뒤집기)로 피했다. 메타 행이 코칭 멘트 줄 높이로 내려가 침범할 자리 자체가
+   없어져 죽은 코드가 됐으므로 제거했다(--below 클래스는 더 이상 생성되지 않는다). */
+
+/* 경로 시작 부근(xPct<15) — 라벨 왼쪽 끝을 점에 맞춰 오른쪽으로 뻗는다 */
+.elevation-overlay__progress--start {
+  --elev-label-x: 0%;
+}
+
+/* 경로 끝 부근(xPct>85) — 라벨 오른쪽 끝을 점에 맞춰 왼쪽으로 뻗는다 */
+.elevation-overlay__progress--end {
+  --elev-label-x: -100%;
+}
+
+/* 종점 깃발 — 종점은 항상 플롯 오른쪽 끝이라 오른쪽 정렬로 붙인다.
+   (2026-09-24 지시03) 「최고점에서 -100% 로 띄우면 메타 행을 침범해 -50%(가운데)를
+   유지한다」던 옛 주석은 실제 transform 값(-100%, 아래)과 맞지 않았고, 메타 행이 코칭
+   멘트 줄 높이로 내려가며 그 전제 자체도 사라져 지웠다 — 실제 -100% 의 이유는 바로
+   아래 「깃대 밑동」 설명이다.
+   `pointer-events` 는 켜지 않는다 — `.elevation-overlay { pointer-events: none }` 상속을
+   유지해야 지도 조작이 안 막힌다(커밋 f046ce5). */
+/* 종점 깃발 — 깃대(SVG 오른쪽 끝, 중심 x=11.9 / 폭 13)의 밑동이 종점에 앉도록
+   span 우하단을 종점에 맞춘다. 0.85px 은 깃대 중심을 span 오른쪽 끝에서 되돌리는 보정.
+   빨간 선(#ef4444) 위에 겹칠 수 있어 drop-shadow 로 윤곽을 준다. */
+.elevation-overlay__finish {
+  position: absolute;
+  transform: translate(calc(-100% + 0.85px), -100%);
+  line-height: 0;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9));
+}
+
+/*
+ * 「고도 계산 중…」·「고도 데이터를 불러오지 못했습니다」 — 그림자가 아예 없어 흰 지도
+ * 위에서는 글자가 통째로 사라졌다(2026-09-18 Chief 가 실기기에서 지적). 배경 없이 지도
+ * 위에 뜨는 글자는 예외 없이 테두리를 둔다.
+ */
+.elevation-overlay__empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f8fafc;
+  font-size: 0.8rem;
+  text-shadow: var(--rtw-map-text-keyline-strong);
+}
+
+.map-view--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  text-align: center;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  background: color-mix(in srgb, CanvasText 6%, Canvas);
+  border: 1px solid color-mix(in srgb, CanvasText 12%, transparent);
+  border-radius: 12px;
+}
+
+.map-view--placeholder code {
+  font-size: 0.88em;
+  padding: 0.12em 0.35em;
+  border-radius: 4px;
+  background: color-mix(in srgb, CanvasText 10%, transparent);
+}
+
+/*
+ * MapHud 우상단 TR(맵 제어 44px 포함) + 「맵」 트리거 아래와 Mapbox NavigationControl 이 겹침.
+ * HUD 상단 패딩과 맞춘 뒤 TR·트리거·소간격만큼 아래로 내림.
+ */
+.app-shell--map-first .map-view .mapboxgl-ctrl-top-right {
+  margin-top: calc(
+    max(clamp(0.45rem, 1.4vw, 0.85rem), env(safe-area-inset-top, 0px)) + 44px + 0.35rem + 2rem + 0.25rem
+  );
+}
+
+/* MapZoomGlobeControl — 지구 전체 보기(줌 +/- 아래) */
+.map-view .mapboxgl-ctrl-globe-view .mapboxgl-ctrl-icon {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22' fill='none' stroke='%23333' stroke-width='1.55' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8.25'/%3E%3Cellipse cx='11' cy='11' rx='3.25' ry='8.25'/%3E%3Cpath d='M2.75 11h16.5M11 2.75v16.5'/%3E%3C/svg%3E");
+  background-size: 18px 18px;
+}
+
+/*
+ * 축척( bottom-right ): Mapbox 기본값이 attribution 위에 넉넉한 간격을 둠 → 저작권 바에 더 붙이기.
+ * 고도 라벨은 축척 왼쪽 같은 행. attribution 은 아래 줄 전체.
+ * HUD 주행 FAB은 맵 밖 오버레이라 여기 margin 은 Mapbox 컨트롤만 영향.
+ *
+ * 우하단 세로 스택(지시 12): [고도|축척] → 시계(4~6px) → 다음 주행 카드(≥8px).
+ * --br-* 는 MapHud.css·NextRideCard.css 와 공유.
+ */
+.app-shell--map-first {
+  /* pad+이 값 = 시계 bottom. 시계↔고도/축척 행 사이에 여유를 둔다.
+   * 지시12-2: bottom-right 음수 margin 제거(잘림)에 맞춰 0.55+0.25 → 0.8rem.
+   * 2026-10-06 Chief: PC 에서 시계가 축척 바를 덮음 → 큰 뷰포트 축소 규칙 제거, 1.2rem 도 3px 겹쳐 1.9rem. */
+  --br-clock-above-scale: 1.9rem;
+  --br-clock-height: 2.2rem; /* .hud-clock height 와 동일 */
+  --br-card-above-clock: 10px; /* e2e 는 ≥8px 를 엄격(<)하게 본다 — 경계값 8 에 걸리지 않게 여유 */
+  --br-altitude-box-width: 74px; /* 「고도 999.9 km」 최대 폭 */
+  --br-altitude-box-height: 16px;
+  --br-scale-box-width: 120px; /* ScaleControl maxWidth(막대 최대 길이) */
+  --br-scale-box-height: 16px;
+}
+
+/* 폰 가로(~275): .map-view min-height:320 이 뷰포트보다 커서 고도/축척이 화면 아래로 밀림 → 해제 */
+@media (max-height: 300px) {
+  .app-shell--map-first .map-view {
+    min-height: 0;
+  }
+}
+
+.app-shell--map-first .map-view .mapboxgl-ctrl-bottom-right {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: flex-end;
+  align-items: flex-end;
+  column-gap: 0.35rem;
+  row-gap: 0.12rem;
+  /* 지시12-2: 음수 margin 은 고도/축척 bottom 을 innerHeight 밖으로 밀어 잘림 */
+  margin-bottom: 0;
+}
+
+.app-shell--map-first .map-view .mapboxgl-ctrl-bottom-right .mapboxgl-ctrl-attrib {
+  flex: 1 0 100%;
+  order: 10;
+}
+
+/* 2026-10-06 Chief: 축척 ↔ 고도 자리 교환 — 고도가 오른쪽 끝(고정 폭), 축척은 그 왼쪽에서 늘고 준다 */
+.app-shell--map-first .map-view .map-ctrl-camera-altitude {
+  order: 2;
+  margin: 0 0 0 0;
+  pointer-events: none;
+  flex: 0 0 var(--br-altitude-box-width);
+  width: var(--br-altitude-box-width);
+  min-width: var(--br-altitude-box-width);
+  max-width: var(--br-altitude-box-width);
+  height: var(--br-altitude-box-height);
+  box-sizing: border-box;
+}
+
+/*
+ * 축척 — Mapbox 원래 동작대로 막대 길이가 줌에 따라 늘고 준다(2026-10-06 Chief: 고정 폭 상자 해제).
+ * 고도가 오른쪽 끝에 있으므로 막대 길이가 변해도 고도 상자는 움직이지 않는다.
+ */
+.app-shell--map-first .map-view .map-ctrl-scale-box {
+  order: 1;
+  margin: 0;
+  flex: 0 0 auto;
+  height: var(--br-scale-box-height);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  pointer-events: none;
+}
+
+/*
+ * 축척·고도 — 앱 HUD 스타일(시계와 같은 어두운 반투명 칩, 2026-10-06 Chief: Mapbox 기본의
+ * 흰 바탕·검은 테두리 「문서 스타일」이 앱과 어울리지 않음). 축척은 자 역할이므로
+ * 아래·양옆 눈금 테두리는 밝은 색으로 남기고, 막대 길이는 Mapbox 계산 그대로.
+ */
+.app-shell--map-first .map-view .map-ctrl-scale-box .mapboxgl-ctrl-scale {
+  margin: 0;
+  /* width 강제 금지 — Mapbox 가 줌에 맞춰 inline width 설정 */
+  max-width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 0 4px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: calc(var(--br-scale-box-height, 16px) - 2px);
+  font-variant-numeric: tabular-nums;
+  color: #475569;
+  background: #FFFFFF; /* 2026-10-06 Chief: 45% 는 글씨가 흐려 70% */
+  border: 1.5px solid #CBD5E1;
+  border-top: none;
+  border-radius: 0 0 3px 3px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.map-view .map-ctrl-camera-altitude__label {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 0 5px;
+  border-radius: 0.35rem;
+  background-color: #FFFFFF; /* 2026-10-06 Chief: 45% 는 글씨가 흐려 70% */
+  border: 1px solid #CBD5E1;
+  color: #475569;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: calc(var(--br-altitude-box-height, 16px) - 2px); /* 테두리 1px×2 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * 폰 가로 — 지도 컨트롤(줌·지구·나침반) 버튼만 작게. 열은 오른쪽 가장자리 유지
+ * (주행 중에도 margin-right 로 밀지 않음). 「다음 주행」 카드가 비키는 쪽은
+ * NextRideCard.css (짧은 뷰포트 padding-right 거터).
+ */
+@media (max-height: 560px) {
+  .app-shell--map-first .map-view .mapboxgl-ctrl-top-right {
+    /* TR(44px) + 「맵」 트리거 행 아래 — 오른쪽 복귀 후 트리거와 1줄 겹치지 않게 여유 */
+    margin-top: calc(
+      max(0.45rem, env(safe-area-inset-top, 0px)) + 44px + 0.35rem + 1.75rem + 0.45rem
+    );
+  }
+
+  .map-view .mapboxgl-ctrl-group button {
+    width: 24px;
+    height: 24px;
+  }
+
+  .map-view .mapboxgl-ctrl-group .mapboxgl-ctrl-icon {
+    background-size: 15px 15px;
+  }
+
+  .map-view .mapboxgl-ctrl-group {
+    margin: 0 0 4px 0;
+  }
+}
+
+/*
+ * 이어 달리기 재개점 마커(§3.4) — 「N% · 여기서 계속」.
+ * 완료 구간(마젠타)과 남은 구간(빨강)의 경계에 단 하나만 찍는다.
+ */
+.map-view__resume-marker {
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  /* 「달린 길」과 같은 색 — 골드(--rtw-trace)는 HUD 강조색이라 궤적 이야기와 어긋난다(2026-08-27 결정) */
+  background: var(--rtw-trace-owned, #8a2be2);
+  color: #f8fafc;
+  font-size: 0.66rem;
+  font-weight: 800;
+  white-space: nowrap;
+  border: 1.5px solid rgba(248, 250, 252, 0.85);
+  box-shadow: 0 2px 10px rgba(2, 8, 20, 0.45);
+  pointer-events: none;
+}
+
+/* 목표 거리 칩 — 슬라이더를 대체한다(5A-R2 §4.2). 팝업이 커지지 않게 한 줄로 둔다. */
+.map-view__pick-distance-chips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: nowrap;
+  grid-column: 1 / -1;
+}
+
+.map-view__pick-distance-chip {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 4px 0;
+  border: 1px solid #CBD5E1;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.map-view__pick-distance-chip.is-active {
+  border-color: #2563EB;
+  background: #EFF6FF;
+  font-weight: 600;
+}
+
+.map-view__pick-distance-chip:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.map-view__pick-distance-eta {
+  grid-column: 1 / -1;
+  margin: 2px 0 0;
+  font-size: 11px;
+  line-height: 1.3;
+  opacity: 0.75;
+}

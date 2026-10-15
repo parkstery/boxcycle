@@ -1,0 +1,15 @@
+{
+  "rows": [
+    "real first entry",
+    "real already dismissed",
+    "real signed out",
+    "real deleted notice",
+    "fixture account",
+    "fixture nickname",
+    "fixture unconfigured",
+    "fixture failed",
+    "fixture guest",
+    "delayed intro after loading"
+  ],
+  "limits": "No authentication or ride started; authenticated state verified with DOM fixture"
+}

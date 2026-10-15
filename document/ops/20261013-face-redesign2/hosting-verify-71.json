@@ -1,0 +1,21 @@
+{
+  "PASS": true,
+  "url": "https://boxcycle-dc2df.web.app",
+  "status": 200,
+  "indexMatches": true,
+  "assets": [
+    {
+      "path": "/assets/index-DVproG9-.js",
+      "bytes": 3645132,
+      "sha256": "E4FC60ECDA0E8198DB09679595CC2707CB615B7F82C68590386BF7546ABE5E3C",
+      "matches": true
+    },
+    {
+      "path": "/assets/index-DWKoPQXF.css",
+      "bytes": 213549,
+      "sha256": "57B853677F79464EC42758BB02CD07A33BBFABF6944B7F4F17EE5C6E2C532207",
+      "matches": true
+    }
+  ],
+  "checkedAtUtc": "2026-10-15T06:23:12.1670187Z"
+}

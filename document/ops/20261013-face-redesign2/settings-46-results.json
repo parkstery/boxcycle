@@ -1,0 +1,2294 @@
+{
+  "PASS": true,
+  "rows": [
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "rich",
+      "before": {
+        "w": 297,
+        "h": 193.75,
+        "x": 185,
+        "y": 99.5,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 46.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 432,
+        "h": 172.578125,
+        "x": 117.5,
+        "y": 120.671875,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 46.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "simple",
+      "before": {
+        "w": 297,
+        "h": 101.625,
+        "x": 185,
+        "y": 191.625,
+        "text": "주행 설정\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 432,
+        "h": 75.71875,
+        "x": 117.5,
+        "y": 217.53125,
+        "text": "주행 설정\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "no-bgm",
+      "before": {
+        "w": 297,
+        "h": 193.75,
+        "x": 185,
+        "y": 99.5,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 46.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": true
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 432,
+        "h": 172.578125,
+        "x": 117.5,
+        "y": 120.671875,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 46.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": true
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "loading",
+      "before": {
+        "w": 297,
+        "h": 195,
+        "x": 185,
+        "y": 98.25,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서\n\n고도 프로필 로드 중…",
+        "scrollX": 0,
+        "scrollY": 14,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 46.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 432,
+        "h": 189.015625,
+        "x": 117.5,
+        "y": 104.234375,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서\n\n고도 프로필 로드 중…",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 46.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "rich",
+      "before": {
+        "w": 297,
+        "h": 193.75,
+        "x": 221.5,
+        "y": 99.5,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 46.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 432,
+        "h": 172.578125,
+        "x": 154,
+        "y": 120.671875,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 46.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "simple",
+      "before": {
+        "w": 297,
+        "h": 101.625,
+        "x": 221.5,
+        "y": 191.625,
+        "text": "주행 설정\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 432,
+        "h": 75.71875,
+        "x": 154,
+        "y": 217.53125,
+        "text": "주행 설정\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "no-bgm",
+      "before": {
+        "w": 297,
+        "h": 193.75,
+        "x": 221.5,
+        "y": 99.5,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 46.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": true
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 432,
+        "h": 172.578125,
+        "x": 154,
+        "y": 120.671875,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 46.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": true
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "loading",
+      "before": {
+        "w": 297,
+        "h": 195,
+        "x": 221.5,
+        "y": 98.25,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서\n\n고도 프로필 로드 중…",
+        "scrollX": 0,
+        "scrollY": 14,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 46.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 432,
+        "h": 189.015625,
+        "x": 154,
+        "y": 104.234375,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서\n\n고도 프로필 로드 중…",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 46.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "rich",
+      "before": {
+        "w": 297,
+        "h": 193.75,
+        "x": 273.5,
+        "y": 189.5,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 46.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 432,
+        "h": 172.578125,
+        "x": 206,
+        "y": 210.671875,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 46.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "simple",
+      "before": {
+        "w": 297,
+        "h": 101.625,
+        "x": 273.5,
+        "y": 281.625,
+        "text": "주행 설정\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 432,
+        "h": 75.71875,
+        "x": 206,
+        "y": 307.53125,
+        "text": "주행 설정\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "no-bgm",
+      "before": {
+        "w": 297,
+        "h": 193.75,
+        "x": 273.5,
+        "y": 189.5,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 46.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": true
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 432,
+        "h": 172.578125,
+        "x": 206,
+        "y": 210.671875,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 46.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": true
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "loading",
+      "before": {
+        "w": 297,
+        "h": 211.53125,
+        "x": 273.5,
+        "y": 171.71875,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서\n\n고도 프로필 로드 중…",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 46.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 432,
+        "h": 189.015625,
+        "x": 206,
+        "y": 194.234375,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서\n\n고도 프로필 로드 중…",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 46.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 44,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "rich",
+      "before": {
+        "w": 352,
+        "h": 217.546875,
+        "x": 507,
+        "y": 542.453125,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 67.1875,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 55.59375,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 43.59375,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 43.59375,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 512,
+        "h": 192.453125,
+        "x": 427,
+        "y": 567.546875,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 67.1875,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 55.59375,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 43.59375,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 43.59375,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "simple",
+      "before": {
+        "w": 352,
+        "h": 116.546875,
+        "x": 507,
+        "y": 643.453125,
+        "text": "주행 설정\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 512,
+        "h": 85.84375,
+        "x": 427,
+        "y": 674.15625,
+        "text": "주행 설정\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "no-bgm",
+      "before": {
+        "w": 352,
+        "h": 217.546875,
+        "x": 507,
+        "y": 542.453125,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 67.1875,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 55.59375,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 43.59375,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 43.59375,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": true
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 512,
+        "h": 192.453125,
+        "x": 427,
+        "y": 567.546875,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 67.1875,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 55.59375,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 43.59375,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 43.59375,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": true
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "loading",
+      "before": {
+        "w": 352,
+        "h": 238.609375,
+        "x": 507,
+        "y": 521.390625,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서\n\n고도 프로필 로드 중…",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 67.1875,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 55.59375,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 43.59375,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 43.59375,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 512,
+        "h": 211.921875,
+        "x": 427,
+        "y": 548.078125,
+        "text": "주행 설정\n추정 KCAL\n체중(kg)\n가벼움\n보통\n강함\n\n페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면 측정 안 함. 주행 중 변경은 다음 주행부터.\n\n표시\n코칭 배너\nTTS\nBGM\n페이서\n\n고도 프로필 로드 중…",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 67.1875,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "가벼움",
+            "w": 55.59375,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 43.59375,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 43.59375,
+            "h": 44,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    }
+  ],
+  "events": [
+    [
+      "coaching",
+      false
+    ],
+    [
+      "tts",
+      false
+    ],
+    [
+      "bgm",
+      true
+    ],
+    [
+      "pacer",
+      false
+    ],
+    [
+      "weight",
+      "75"
+    ],
+    [
+      "weight",
+      "75"
+    ],
+    [
+      "intensity",
+      "light"
+    ],
+    "close",
+    "close"
+  ],
+  "errors": []
+}

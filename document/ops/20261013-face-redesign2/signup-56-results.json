@@ -1,0 +1,3469 @@
+{
+  "PASS": true,
+  "rows": [
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "empty",
+      "before": {
+        "x": 222.125,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 286.515625,
+        "scrollX": 0,
+        "scrollY": 156,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "x": 131,
+        "y": 4.71875,
+        "w": 405,
+        "h": 286.515625,
+        "scrollX": 0,
+        "scrollY": 60,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "initial",
+      "before": {
+        "x": 222.125,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 286.515625,
+        "scrollX": 0,
+        "scrollY": 156,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "x": 131,
+        "y": 4.71875,
+        "w": 405,
+        "h": 286.515625,
+        "scrollX": 0,
+        "scrollY": 60,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "busy",
+      "before": {
+        "x": 222.125,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 286.515625,
+        "scrollX": 0,
+        "scrollY": 156,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n저장 중…\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": true
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": true
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": true
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": true
+          }
+        ]
+      },
+      "after": {
+        "x": 131,
+        "y": 4.71875,
+        "w": 405,
+        "h": 286.515625,
+        "scrollX": 0,
+        "scrollY": 60,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n저장 중…\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": true
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": true
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": true
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": true
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "error",
+      "before": {
+        "x": 222.125,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 286.515625,
+        "scrollX": 0,
+        "scrollY": 249,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n\n서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요.\n\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "x": 131,
+        "y": 4.71875,
+        "w": 405,
+        "h": 286.515625,
+        "scrollX": 0,
+        "scrollY": 115,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n\n서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요.\n\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "login",
+      "before": {
+        "x": 222.125,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 107.9375,
+        "scrollX": 0,
+        "scrollY": 0,
+        "text": "RTW\n×\n\nGoogle로 로그인하면 내 도로망과 주행 기록이 계속 쌓입니다.\n\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "x": 222.125,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 107.9375,
+        "scrollX": 0,
+        "scrollY": 0,
+        "text": "RTW\n×\n\nGoogle로 로그인하면 내 도로망과 주행 기록이 계속 쌓입니다.\n\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "empty",
+      "before": {
+        "x": 258.625,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 286.515625,
+        "scrollX": 0,
+        "scrollY": 156,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "x": 167.5,
+        "y": 4.71875,
+        "w": 405,
+        "h": 286.515625,
+        "scrollX": 0,
+        "scrollY": 60,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "initial",
+      "before": {
+        "x": 258.625,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 286.515625,
+        "scrollX": 0,
+        "scrollY": 156,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "x": 167.5,
+        "y": 4.71875,
+        "w": 405,
+        "h": 286.515625,
+        "scrollX": 0,
+        "scrollY": 60,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "busy",
+      "before": {
+        "x": 258.625,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 286.515625,
+        "scrollX": 0,
+        "scrollY": 156,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n저장 중…\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": true
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": true
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": true
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": true
+          }
+        ]
+      },
+      "after": {
+        "x": 167.5,
+        "y": 4.71875,
+        "w": 405,
+        "h": 286.515625,
+        "scrollX": 0,
+        "scrollY": 60,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n저장 중…\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": true
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": true
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": true
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": true
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "error",
+      "before": {
+        "x": 258.625,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 286.515625,
+        "scrollX": 0,
+        "scrollY": 249,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n\n서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요.\n\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "x": 167.5,
+        "y": 4.71875,
+        "w": 405,
+        "h": 286.515625,
+        "scrollX": 0,
+        "scrollY": 115,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n\n서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요.\n\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "login",
+      "before": {
+        "x": 258.625,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 107.9375,
+        "scrollX": 0,
+        "scrollY": 0,
+        "text": "RTW\n×\n\nGoogle로 로그인하면 내 도로망과 주행 기록이 계속 쌓입니다.\n\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "x": 258.625,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 107.9375,
+        "scrollX": 0,
+        "scrollY": 0,
+        "text": "RTW\n×\n\nGoogle로 로그인하면 내 도로망과 주행 기록이 계속 쌓입니다.\n\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "empty",
+      "before": {
+        "x": 310.625,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 376.515625,
+        "scrollX": 0,
+        "scrollY": 66,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "x": 219.5,
+        "y": 4.71875,
+        "w": 405,
+        "h": 346.59375,
+        "scrollX": 0,
+        "scrollY": 0,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "initial",
+      "before": {
+        "x": 310.625,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 376.515625,
+        "scrollX": 0,
+        "scrollY": 66,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "x": 219.5,
+        "y": 4.71875,
+        "w": 405,
+        "h": 346.59375,
+        "scrollX": 0,
+        "scrollY": 0,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "busy",
+      "before": {
+        "x": 310.625,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 376.515625,
+        "scrollX": 0,
+        "scrollY": 66,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n저장 중…\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": true
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": true
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": true
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": true
+          }
+        ]
+      },
+      "after": {
+        "x": 219.5,
+        "y": 4.71875,
+        "w": 405,
+        "h": 346.59375,
+        "scrollX": 0,
+        "scrollY": 0,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n저장 중…\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": true
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": true
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": true
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": true
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "error",
+      "before": {
+        "x": 310.625,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 376.515625,
+        "scrollX": 0,
+        "scrollY": 159,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n\n서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요.\n\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "x": 219.5,
+        "y": 4.71875,
+        "w": 405,
+        "h": 376.515625,
+        "scrollX": 0,
+        "scrollY": 25,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n\n서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요.\n\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "login",
+      "before": {
+        "x": 310.625,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 107.9375,
+        "scrollX": 0,
+        "scrollY": 0,
+        "text": "RTW\n×\n\nGoogle로 로그인하면 내 도로망과 주행 기록이 계속 쌓입니다.\n\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "x": 310.625,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 107.9375,
+        "scrollX": 0,
+        "scrollY": 0,
+        "text": "RTW\n×\n\nGoogle로 로그인하면 내 도로망과 주행 기록이 계속 쌓입니다.\n\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "empty",
+      "before": {
+        "x": 551,
+        "y": 126.8125,
+        "w": 264,
+        "h": 514.359375,
+        "scrollX": 0,
+        "scrollY": 0,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 29.59375,
+            "font": "16px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 40.375,
+            "font": "16px",
+            "padding": "7.2px 8.8px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "7.2px 8.8px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 33.203125,
+            "font": "11.84px",
+            "padding": "6.72px 9.6px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 33.203125,
+            "font": "11.84px",
+            "padding": "6.72px 9.6px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "x": 443,
+        "y": 180.15625,
+        "w": 480,
+        "h": 407.671875,
+        "scrollX": 0,
+        "scrollY": 0,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 29.59375,
+            "font": "16px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 40.375,
+            "font": "16px",
+            "padding": "7.2px 8.8px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "7.2px 8.8px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 33.203125,
+            "font": "11.84px",
+            "padding": "6.72px 9.6px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 33.203125,
+            "font": "11.84px",
+            "padding": "6.72px 9.6px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "initial",
+      "before": {
+        "x": 551,
+        "y": 126.8125,
+        "w": 264,
+        "h": 514.359375,
+        "scrollX": 0,
+        "scrollY": 0,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 29.59375,
+            "font": "16px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 40.375,
+            "font": "16px",
+            "padding": "7.2px 8.8px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "7.2px 8.8px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 33.203125,
+            "font": "11.84px",
+            "padding": "6.72px 9.6px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 33.203125,
+            "font": "11.84px",
+            "padding": "6.72px 9.6px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "x": 443,
+        "y": 180.15625,
+        "w": 480,
+        "h": 407.671875,
+        "scrollX": 0,
+        "scrollY": 0,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 29.59375,
+            "font": "16px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 40.375,
+            "font": "16px",
+            "padding": "7.2px 8.8px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "7.2px 8.8px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 33.203125,
+            "font": "11.84px",
+            "padding": "6.72px 9.6px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 33.203125,
+            "font": "11.84px",
+            "padding": "6.72px 9.6px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "busy",
+      "before": {
+        "x": 551,
+        "y": 126.8125,
+        "w": 264,
+        "h": 514.359375,
+        "scrollX": 0,
+        "scrollY": 0,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n저장 중…\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 29.59375,
+            "font": "16px",
+            "padding": "0px",
+            "disabled": true
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 40.375,
+            "font": "16px",
+            "padding": "7.2px 8.8px",
+            "disabled": true
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "7.2px 8.8px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 33.203125,
+            "font": "11.84px",
+            "padding": "6.72px 9.6px",
+            "disabled": true
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 33.203125,
+            "font": "11.84px",
+            "padding": "6.72px 9.6px",
+            "disabled": true
+          }
+        ]
+      },
+      "after": {
+        "x": 443,
+        "y": 180.15625,
+        "w": 480,
+        "h": 407.671875,
+        "scrollX": 0,
+        "scrollY": 0,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n저장 중…\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 29.59375,
+            "font": "16px",
+            "padding": "0px",
+            "disabled": true
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 40.375,
+            "font": "16px",
+            "padding": "7.2px 8.8px",
+            "disabled": true
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "7.2px 8.8px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 33.203125,
+            "font": "11.84px",
+            "padding": "6.72px 9.6px",
+            "disabled": true
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 33.203125,
+            "font": "11.84px",
+            "padding": "6.72px 9.6px",
+            "disabled": true
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "error",
+      "before": {
+        "x": 551,
+        "y": 64.53125,
+        "w": 264,
+        "h": 638.921875,
+        "scrollX": 0,
+        "scrollY": 0,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n\n서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요.\n\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 29.59375,
+            "font": "16px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 40.375,
+            "font": "16px",
+            "padding": "7.2px 8.8px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "7.2px 8.8px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 33.203125,
+            "font": "11.84px",
+            "padding": "6.72px 9.6px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 33.203125,
+            "font": "11.84px",
+            "padding": "6.72px 9.6px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "x": 443,
+        "y": 147.21875,
+        "w": 480,
+        "h": 473.546875,
+        "scrollX": 0,
+        "scrollY": 0,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n\n서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요.\n\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 29.59375,
+            "font": "16px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 40.375,
+            "font": "16px",
+            "padding": "7.2px 8.8px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "7.2px 8.8px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "11.52px",
+            "padding": "5.6px 11.2px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 33.203125,
+            "font": "11.84px",
+            "padding": "6.72px 9.6px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 33.203125,
+            "font": "11.84px",
+            "padding": "6.72px 9.6px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "login",
+      "before": {
+        "x": 551,
+        "y": 318,
+        "w": 264,
+        "h": 132,
+        "scrollX": 0,
+        "scrollY": 0,
+        "text": "RTW\n×\n\nGoogle로 로그인하면 내 도로망과 주행 기록이 계속 쌓입니다.\n\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 29.59375,
+            "font": "16px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 33.203125,
+            "font": "11.84px",
+            "padding": "6.72px 9.6px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "x": 551,
+        "y": 318,
+        "w": 264,
+        "h": 132,
+        "scrollX": 0,
+        "scrollY": 0,
+        "text": "RTW\n×\n\nGoogle로 로그인하면 내 도로망과 주행 기록이 계속 쌓입니다.\n\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 29.59375,
+            "font": "16px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 33.203125,
+            "font": "11.84px",
+            "padding": "6.72px 9.6px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 180
+      },
+      "state": "empty",
+      "before": {
+        "x": 258.625,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 166.515625,
+        "scrollX": 0,
+        "scrollY": 276,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "x": 167.5,
+        "y": 4.71875,
+        "w": 405,
+        "h": 166.515625,
+        "scrollX": 0,
+        "scrollY": 180,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 180
+      },
+      "state": "initial",
+      "before": {
+        "x": 258.625,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 166.515625,
+        "scrollX": 0,
+        "scrollY": 276,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "x": 167.5,
+        "y": 4.71875,
+        "w": 405,
+        "h": 166.515625,
+        "scrollX": 0,
+        "scrollY": 180,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 180
+      },
+      "state": "busy",
+      "before": {
+        "x": 258.625,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 166.515625,
+        "scrollX": 0,
+        "scrollY": 276,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n저장 중…\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": true
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": true
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": true
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": true
+          }
+        ]
+      },
+      "after": {
+        "x": 167.5,
+        "y": 4.71875,
+        "w": 405,
+        "h": 166.515625,
+        "scrollX": 0,
+        "scrollY": 180,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n저장 중…\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": true
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": true
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": true
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": true
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 180
+      },
+      "state": "error",
+      "before": {
+        "x": 258.625,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 166.515625,
+        "scrollX": 0,
+        "scrollY": 369,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n\n서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요.\n\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "x": 167.5,
+        "y": 4.71875,
+        "w": 405,
+        "h": 166.515625,
+        "scrollX": 0,
+        "scrollY": 235,
+        "text": "RTW\n×\n닉네임\n회원가입 마무리\n\n사용할 닉네임을 입력해 주세요.\n\n영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.\n\n같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.\n\n닉네임\n칼로리 계산용 (선택)\n체중(kg)\n가벼움\n보통\n강함\n\n본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.\n\n가입 완료\n\n서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요. 서버에서 가입 정보를 저장하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요.\n\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "text",
+            "label": "nickname",
+            "h": 34.375,
+            "font": "13.5px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "number",
+            "label": "weightKg",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "6.075px 7.425px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "가벼움",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "보통",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "강함",
+            "h": 44,
+            "font": "9.72px",
+            "padding": "4.725px 9.45px",
+            "disabled": false
+          },
+          {
+            "type": "submit",
+            "label": "Save nickname",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 180
+      },
+      "state": "login",
+      "before": {
+        "x": 258.625,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 107.9375,
+        "scrollX": 0,
+        "scrollY": 0,
+        "text": "RTW\n×\n\nGoogle로 로그인하면 내 도로망과 주행 기록이 계속 쌓입니다.\n\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "x": 258.625,
+        "y": 4.71875,
+        "w": 222.75,
+        "h": 107.9375,
+        "scrollX": 0,
+        "scrollY": 0,
+        "text": "RTW\n×\n\nGoogle로 로그인하면 내 도로망과 주행 기록이 계속 쌓입니다.\n\n로그아웃",
+        "controls": [
+          {
+            "type": "button",
+            "label": "Close",
+            "h": 24.96875,
+            "font": "13.5px",
+            "padding": "0px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "label": "로그아웃",
+            "h": 28.28125,
+            "font": "9.99px",
+            "padding": "5.67px 8.1px",
+            "disabled": false
+          }
+        ]
+      }
+    }
+  ],
+  "events": [
+    [
+      "submit",
+      "rider42",
+      {
+        "weightKg": 75,
+        "intensityId": "light"
+      }
+    ],
+    [
+      "submit",
+      "rider42",
+      {
+        "weightKg": null,
+        "intensityId": null
+      }
+    ]
+  ],
+  "errors": []
+}

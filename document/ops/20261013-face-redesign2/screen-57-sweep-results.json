@@ -1,0 +1,65 @@
+{
+  "PASS": false,
+  "rows": [
+    {
+      "file": "settings-54-qa.cjs",
+      "exit": 1,
+      "durationMs": 6943,
+      "error": null
+    },
+    {
+      "file": "map-settings-48-qa.cjs",
+      "exit": 0,
+      "durationMs": 10492,
+      "error": null
+    },
+    {
+      "file": "place-51-qa.cjs",
+      "exit": 0,
+      "durationMs": 18105,
+      "error": null
+    },
+    {
+      "file": "hud-53-qa.cjs",
+      "exit": 0,
+      "durationMs": 4424,
+      "error": null
+    },
+    {
+      "file": "minimap-46-qa.cjs",
+      "exit": 0,
+      "durationMs": 5870,
+      "error": null
+    },
+    {
+      "file": "pulse-50-qa.cjs",
+      "exit": 0,
+      "durationMs": 7639,
+      "error": null
+    },
+    {
+      "file": "guest-55-qa.cjs",
+      "exit": 0,
+      "durationMs": 7089,
+      "error": null
+    },
+    {
+      "file": "signup-56-qa.cjs",
+      "exit": 0,
+      "durationMs": 16484,
+      "error": null
+    },
+    {
+      "file": "summary-43-qa.cjs",
+      "exit": 1,
+      "durationMs": 6470,
+      "error": null
+    },
+    {
+      "file": "pick-40-qa.cjs",
+      "exit": 0,
+      "durationMs": 22431,
+      "error": null
+    }
+  ]
+}

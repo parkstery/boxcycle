@@ -1,0 +1,3079 @@
+{
+  "rows": [
+    {
+      "viewport": {
+        "width": 800,
+        "height": 360
+      },
+      "state": "guest",
+      "fixture": "actual component/mock props and intercepted subscription response; uid empty prevents Firestore",
+      "before": {
+        "clientH": 300,
+        "scrollH": 336,
+        "excess": 36,
+        "overflowX": 0,
+        "naturalHeight": 336.28125,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan",
+            "y": 49.9375,
+            "h": 27.75,
+            "bottom": 77.6875
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 87.125,
+            "h": 44,
+            "bottom": 131.125
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 138.546875,
+            "h": 107.921875,
+            "bottom": 246.46875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 253.890625,
+            "h": 52,
+            "bottom": 305.890625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 318.703125,
+            "h": 67.515625,
+            "bottom": 386.21875
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "Google 연결",
+            "font": "10.53px",
+            "h": 31.5,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "after": {
+        "clientH": 300,
+        "scrollH": 336,
+        "excess": 36,
+        "overflowX": 0,
+        "naturalHeight": 336.28125,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan",
+            "y": 49.9375,
+            "h": 27.75,
+            "bottom": 77.6875
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 87.125,
+            "h": 44,
+            "bottom": 131.125
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 138.546875,
+            "h": 107.921875,
+            "bottom": 246.46875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 253.890625,
+            "h": 52,
+            "bottom": 305.890625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 318.703125,
+            "h": 67.515625,
+            "bottom": 386.21875
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "Google 연결",
+            "font": "10.53px",
+            "h": 31.5,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "lastControlReachable": true
+    },
+    {
+      "viewport": {
+        "width": 800,
+        "height": 360
+      },
+      "state": "free",
+      "fixture": "actual component/mock props and intercepted subscription response; uid empty prevents Firestore",
+      "before": {
+        "clientH": 300,
+        "scrollH": 352,
+        "excess": 52,
+        "overflowX": 0,
+        "naturalHeight": 352.328125,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 103.375,
+            "h": 44,
+            "bottom": 147.375
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 154.796875,
+            "h": 107.921875,
+            "bottom": 262.71875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 270.140625,
+            "h": 52,
+            "bottom": 322.140625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 334.953125,
+            "h": 67.3125,
+            "bottom": 402.265625
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          },
+          {
+            "text": "계정 탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "after": {
+        "clientH": 300,
+        "scrollH": 352,
+        "excess": 52,
+        "overflowX": 0,
+        "naturalHeight": 352.328125,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 103.375,
+            "h": 44,
+            "bottom": 147.375
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 154.796875,
+            "h": 107.921875,
+            "bottom": 262.71875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 270.140625,
+            "h": 52,
+            "bottom": 322.140625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 334.953125,
+            "h": 67.3125,
+            "bottom": 402.265625
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          },
+          {
+            "text": "계정 탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "lastControlReachable": true
+    },
+    {
+      "viewport": {
+        "width": 800,
+        "height": 360
+      },
+      "state": "assets",
+      "fixture": "actual component/mock props and intercepted subscription response; uid empty prevents Firestore",
+      "before": {
+        "clientH": 300,
+        "scrollH": 419,
+        "excess": 119,
+        "overflowX": 0,
+        "naturalHeight": 418.640625,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__assets",
+            "y": 101.359375,
+            "h": 58.890625,
+            "bottom": 160.25
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 169.6875,
+            "h": 44,
+            "bottom": 213.6875
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 221.109375,
+            "h": 107.921875,
+            "bottom": 329.03125
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 336.453125,
+            "h": 52,
+            "bottom": 388.453125
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 401.265625,
+            "h": 67.3125,
+            "bottom": 468.578125
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          },
+          {
+            "text": "계정 탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "after": {
+        "clientH": 300,
+        "scrollH": 419,
+        "excess": 119,
+        "overflowX": 0,
+        "naturalHeight": 418.640625,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__assets",
+            "y": 101.359375,
+            "h": 58.890625,
+            "bottom": 160.25
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 169.6875,
+            "h": 44,
+            "bottom": 213.6875
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 221.109375,
+            "h": 107.921875,
+            "bottom": 329.03125
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 336.453125,
+            "h": 52,
+            "bottom": 388.453125
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 401.265625,
+            "h": 67.3125,
+            "bottom": 468.578125
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          },
+          {
+            "text": "계정 탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "lastControlReachable": true
+    },
+    {
+      "viewport": {
+        "width": 800,
+        "height": 360
+      },
+      "state": "note",
+      "fixture": "actual component/mock props and intercepted subscription response; uid empty prevents Firestore",
+      "before": {
+        "clientH": 300,
+        "scrollH": 414,
+        "excess": 114,
+        "overflowX": 0,
+        "naturalHeight": 414.359375,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__subscription-note is-ok",
+            "y": 101.359375,
+            "h": 54.609375,
+            "bottom": 155.96875
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 165.40625,
+            "h": 44,
+            "bottom": 209.40625
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 216.828125,
+            "h": 107.921875,
+            "bottom": 324.75
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 332.171875,
+            "h": 52,
+            "bottom": 384.171875
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 396.984375,
+            "h": 67.3125,
+            "bottom": 464.296875
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          },
+          {
+            "text": "계정 탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "after": {
+        "clientH": 300,
+        "scrollH": 414,
+        "excess": 114,
+        "overflowX": 0,
+        "naturalHeight": 414.359375,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__subscription-note is-ok",
+            "y": 101.359375,
+            "h": 54.609375,
+            "bottom": 155.96875
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 165.40625,
+            "h": 44,
+            "bottom": 209.40625
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 216.828125,
+            "h": 107.921875,
+            "bottom": 324.75
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 332.171875,
+            "h": 52,
+            "bottom": 384.171875
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 396.984375,
+            "h": 67.3125,
+            "bottom": 464.296875
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          },
+          {
+            "text": "계정 탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "lastControlReachable": true
+    },
+    {
+      "viewport": {
+        "width": 800,
+        "height": 360
+      },
+      "state": "history",
+      "fixture": "actual component/mock props and intercepted subscription response; uid empty prevents Firestore",
+      "before": {
+        "clientH": 300,
+        "scrollH": 387,
+        "excess": 87,
+        "overflowX": 0,
+        "naturalHeight": 386.84375,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 103.375,
+            "h": 44,
+            "bottom": 147.375
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 154.796875,
+            "h": 107.921875,
+            "bottom": 262.71875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 270.140625,
+            "h": 52,
+            "bottom": 322.140625
+          },
+          {
+            "cls": "user-info-sheet__list",
+            "y": 329.5625,
+            "h": 27.09375,
+            "bottom": 356.65625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 369.46875,
+            "h": 67.3125,
+            "bottom": 436.78125
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          },
+          {
+            "text": "계정 탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "after": {
+        "clientH": 300,
+        "scrollH": 387,
+        "excess": 87,
+        "overflowX": 0,
+        "naturalHeight": 386.84375,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 103.375,
+            "h": 44,
+            "bottom": 147.375
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 154.796875,
+            "h": 107.921875,
+            "bottom": 262.71875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 270.140625,
+            "h": 52,
+            "bottom": 322.140625
+          },
+          {
+            "cls": "user-info-sheet__list",
+            "y": 329.5625,
+            "h": 27.09375,
+            "bottom": 356.65625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 369.46875,
+            "h": 67.3125,
+            "bottom": 436.78125
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          },
+          {
+            "text": "계정 탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "lastControlReachable": true
+    },
+    {
+      "viewport": {
+        "width": 800,
+        "height": 360
+      },
+      "state": "logout",
+      "fixture": "actual component/mock props and intercepted subscription response; uid empty prevents Firestore",
+      "before": {
+        "clientH": 300,
+        "scrollH": 389,
+        "excess": 89,
+        "overflowX": 0,
+        "naturalHeight": 388.609375,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 103.375,
+            "h": 44,
+            "bottom": 147.375
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 154.796875,
+            "h": 107.921875,
+            "bottom": 262.71875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 270.140625,
+            "h": 52,
+            "bottom": 322.140625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 334.953125,
+            "h": 103.59375,
+            "bottom": 438.546875
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "취소",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 110.5625
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 110.578125
+          },
+          {
+            "text": "계정 탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "after": {
+        "clientH": 300,
+        "scrollH": 389,
+        "excess": 89,
+        "overflowX": 0,
+        "naturalHeight": 388.609375,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 103.375,
+            "h": 44,
+            "bottom": 147.375
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 154.796875,
+            "h": 107.921875,
+            "bottom": 262.71875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 270.140625,
+            "h": 52,
+            "bottom": 322.140625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 334.953125,
+            "h": 103.59375,
+            "bottom": 438.546875
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "취소",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 110.5625
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 110.578125
+          },
+          {
+            "text": "계정 탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "lastControlReachable": true
+    },
+    {
+      "viewport": {
+        "width": 800,
+        "height": 360
+      },
+      "state": "deletion",
+      "fixture": "actual component/mock props and intercepted subscription response; uid empty prevents Firestore",
+      "before": {
+        "clientH": 300,
+        "scrollH": 473,
+        "excess": 173,
+        "overflowX": 0,
+        "naturalHeight": 472.859375,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 103.375,
+            "h": 44,
+            "bottom": 147.375
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 154.796875,
+            "h": 107.921875,
+            "bottom": 262.71875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 270.140625,
+            "h": 52,
+            "bottom": 322.140625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 334.953125,
+            "h": 187.84375,
+            "bottom": 522.796875
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          },
+          {
+            "text": "탈퇴 확인 문구",
+            "font": "11.475px",
+            "h": 28.640625,
+            "w": 226.53125
+          },
+          {
+            "text": "취소",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 110.5625
+          },
+          {
+            "text": "탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 110.578125
+          }
+        ]
+      },
+      "after": {
+        "clientH": 300,
+        "scrollH": 473,
+        "excess": 173,
+        "overflowX": 0,
+        "naturalHeight": 472.859375,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 103.375,
+            "h": 44,
+            "bottom": 147.375
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 154.796875,
+            "h": 107.921875,
+            "bottom": 262.71875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 270.140625,
+            "h": 52,
+            "bottom": 322.140625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 334.953125,
+            "h": 187.84375,
+            "bottom": 522.796875
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          },
+          {
+            "text": "탈퇴 확인 문구",
+            "font": "11.475px",
+            "h": 28.640625,
+            "w": 226.53125
+          },
+          {
+            "text": "취소",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 110.5625
+          },
+          {
+            "text": "탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 110.578125
+          }
+        ]
+      },
+      "lastControlReachable": true
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "guest",
+      "fixture": "actual component/mock props and intercepted subscription response; uid empty prevents Firestore",
+      "before": {
+        "clientH": 240,
+        "scrollH": 336,
+        "excess": 96,
+        "overflowX": 0,
+        "naturalHeight": 336.28125,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan",
+            "y": 49.9375,
+            "h": 27.75,
+            "bottom": 77.6875
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 87.125,
+            "h": 44,
+            "bottom": 131.125
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 138.546875,
+            "h": 107.921875,
+            "bottom": 246.46875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 253.890625,
+            "h": 52,
+            "bottom": 305.890625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 318.703125,
+            "h": 67.515625,
+            "bottom": 386.21875
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "Google 연결",
+            "font": "10.53px",
+            "h": 31.5,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "after": {
+        "clientH": 240,
+        "scrollH": 336,
+        "excess": 96,
+        "overflowX": 0,
+        "naturalHeight": 336.28125,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan",
+            "y": 49.9375,
+            "h": 27.75,
+            "bottom": 77.6875
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 87.125,
+            "h": 44,
+            "bottom": 131.125
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 138.546875,
+            "h": 107.921875,
+            "bottom": 246.46875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 253.890625,
+            "h": 52,
+            "bottom": 305.890625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 318.703125,
+            "h": 67.515625,
+            "bottom": 386.21875
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "Google 연결",
+            "font": "10.53px",
+            "h": 31.5,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "lastControlReachable": true
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "free",
+      "fixture": "actual component/mock props and intercepted subscription response; uid empty prevents Firestore",
+      "before": {
+        "clientH": 240,
+        "scrollH": 352,
+        "excess": 112,
+        "overflowX": 0,
+        "naturalHeight": 352.328125,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 103.375,
+            "h": 44,
+            "bottom": 147.375
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 154.796875,
+            "h": 107.921875,
+            "bottom": 262.71875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 270.140625,
+            "h": 52,
+            "bottom": 322.140625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 334.953125,
+            "h": 67.3125,
+            "bottom": 402.265625
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          },
+          {
+            "text": "계정 탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "after": {
+        "clientH": 240,
+        "scrollH": 352,
+        "excess": 112,
+        "overflowX": 0,
+        "naturalHeight": 352.328125,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 103.375,
+            "h": 44,
+            "bottom": 147.375
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 154.796875,
+            "h": 107.921875,
+            "bottom": 262.71875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 270.140625,
+            "h": 52,
+            "bottom": 322.140625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 334.953125,
+            "h": 67.3125,
+            "bottom": 402.265625
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          },
+          {
+            "text": "계정 탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "lastControlReachable": true
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "assets",
+      "fixture": "actual component/mock props and intercepted subscription response; uid empty prevents Firestore",
+      "before": {
+        "clientH": 240,
+        "scrollH": 419,
+        "excess": 179,
+        "overflowX": 0,
+        "naturalHeight": 418.640625,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__assets",
+            "y": 101.359375,
+            "h": 58.890625,
+            "bottom": 160.25
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 169.6875,
+            "h": 44,
+            "bottom": 213.6875
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 221.109375,
+            "h": 107.921875,
+            "bottom": 329.03125
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 336.453125,
+            "h": 52,
+            "bottom": 388.453125
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 401.265625,
+            "h": 67.3125,
+            "bottom": 468.578125
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          },
+          {
+            "text": "계정 탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "after": {
+        "clientH": 240,
+        "scrollH": 419,
+        "excess": 179,
+        "overflowX": 0,
+        "naturalHeight": 418.640625,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__assets",
+            "y": 101.359375,
+            "h": 58.890625,
+            "bottom": 160.25
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 169.6875,
+            "h": 44,
+            "bottom": 213.6875
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 221.109375,
+            "h": 107.921875,
+            "bottom": 329.03125
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 336.453125,
+            "h": 52,
+            "bottom": 388.453125
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 401.265625,
+            "h": 67.3125,
+            "bottom": 468.578125
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          },
+          {
+            "text": "계정 탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "lastControlReachable": true
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "note",
+      "fixture": "actual component/mock props and intercepted subscription response; uid empty prevents Firestore",
+      "before": {
+        "clientH": 240,
+        "scrollH": 414,
+        "excess": 174,
+        "overflowX": 0,
+        "naturalHeight": 414.359375,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__subscription-note is-ok",
+            "y": 101.359375,
+            "h": 54.609375,
+            "bottom": 155.96875
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 165.40625,
+            "h": 44,
+            "bottom": 209.40625
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 216.828125,
+            "h": 107.921875,
+            "bottom": 324.75
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 332.171875,
+            "h": 52,
+            "bottom": 384.171875
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 396.984375,
+            "h": 67.3125,
+            "bottom": 464.296875
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          },
+          {
+            "text": "계정 탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "after": {
+        "clientH": 240,
+        "scrollH": 414,
+        "excess": 174,
+        "overflowX": 0,
+        "naturalHeight": 414.359375,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__subscription-note is-ok",
+            "y": 101.359375,
+            "h": 54.609375,
+            "bottom": 155.96875
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 165.40625,
+            "h": 44,
+            "bottom": 209.40625
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 216.828125,
+            "h": 107.921875,
+            "bottom": 324.75
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 332.171875,
+            "h": 52,
+            "bottom": 384.171875
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 396.984375,
+            "h": 67.3125,
+            "bottom": 464.296875
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          },
+          {
+            "text": "계정 탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "lastControlReachable": true
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "history",
+      "fixture": "actual component/mock props and intercepted subscription response; uid empty prevents Firestore",
+      "before": {
+        "clientH": 240,
+        "scrollH": 387,
+        "excess": 147,
+        "overflowX": 0,
+        "naturalHeight": 386.84375,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 103.375,
+            "h": 44,
+            "bottom": 147.375
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 154.796875,
+            "h": 107.921875,
+            "bottom": 262.71875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 270.140625,
+            "h": 52,
+            "bottom": 322.140625
+          },
+          {
+            "cls": "user-info-sheet__list",
+            "y": 329.5625,
+            "h": 27.09375,
+            "bottom": 356.65625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 369.46875,
+            "h": 67.3125,
+            "bottom": 436.78125
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          },
+          {
+            "text": "계정 탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "after": {
+        "clientH": 240,
+        "scrollH": 387,
+        "excess": 147,
+        "overflowX": 0,
+        "naturalHeight": 386.84375,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 103.375,
+            "h": 44,
+            "bottom": 147.375
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 154.796875,
+            "h": 107.921875,
+            "bottom": 262.71875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 270.140625,
+            "h": 52,
+            "bottom": 322.140625
+          },
+          {
+            "cls": "user-info-sheet__list",
+            "y": 329.5625,
+            "h": 27.09375,
+            "bottom": 356.65625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 369.46875,
+            "h": 67.3125,
+            "bottom": 436.78125
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          },
+          {
+            "text": "계정 탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "lastControlReachable": true
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "logout",
+      "fixture": "actual component/mock props and intercepted subscription response; uid empty prevents Firestore",
+      "before": {
+        "clientH": 240,
+        "scrollH": 389,
+        "excess": 149,
+        "overflowX": 0,
+        "naturalHeight": 388.609375,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 103.375,
+            "h": 44,
+            "bottom": 147.375
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 154.796875,
+            "h": 107.921875,
+            "bottom": 262.71875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 270.140625,
+            "h": 52,
+            "bottom": 322.140625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 334.953125,
+            "h": 103.59375,
+            "bottom": 438.546875
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "취소",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 110.5625
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 110.578125
+          },
+          {
+            "text": "계정 탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "after": {
+        "clientH": 240,
+        "scrollH": 389,
+        "excess": 149,
+        "overflowX": 0,
+        "naturalHeight": 388.609375,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 103.375,
+            "h": 44,
+            "bottom": 147.375
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 154.796875,
+            "h": 107.921875,
+            "bottom": 262.71875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 270.140625,
+            "h": 52,
+            "bottom": 322.140625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 334.953125,
+            "h": 103.59375,
+            "bottom": 438.546875
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "취소",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 110.5625
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 110.578125
+          },
+          {
+            "text": "계정 탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          }
+        ]
+      },
+      "lastControlReachable": true
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "deletion",
+      "fixture": "actual component/mock props and intercepted subscription response; uid empty prevents Firestore",
+      "before": {
+        "clientH": 240,
+        "scrollH": 473,
+        "excess": 233,
+        "overflowX": 0,
+        "naturalHeight": 472.859375,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 103.375,
+            "h": 44,
+            "bottom": 147.375
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 154.796875,
+            "h": 107.921875,
+            "bottom": 262.71875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 270.140625,
+            "h": 52,
+            "bottom": 322.140625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 334.953125,
+            "h": 187.84375,
+            "bottom": 522.796875
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          },
+          {
+            "text": "탈퇴 확인 문구",
+            "font": "11.475px",
+            "h": 28.640625,
+            "w": 226.53125
+          },
+          {
+            "text": "취소",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 110.5625
+          },
+          {
+            "text": "탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 110.578125
+          }
+        ]
+      },
+      "after": {
+        "clientH": 240,
+        "scrollH": 473,
+        "excess": 233,
+        "overflowX": 0,
+        "naturalHeight": 472.859375,
+        "children": [
+          {
+            "cls": "user-info-sheet__plan is-actionable",
+            "y": 49.9375,
+            "h": 44,
+            "bottom": 93.9375
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 103.375,
+            "h": 44,
+            "bottom": 147.375
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 154.796875,
+            "h": 107.921875,
+            "bottom": 262.71875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 270.140625,
+            "h": 52,
+            "bottom": 322.140625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 334.953125,
+            "h": 187.84375,
+            "bottom": 522.796875
+          }
+        ],
+        "controls": [
+          {
+            "text": "프로필 수정",
+            "font": "9.45px",
+            "h": 24.265625,
+            "w": 60.1875
+          },
+          {
+            "text": "×",
+            "font": "13.5px",
+            "h": 25.640625,
+            "w": 25.640625
+          },
+          {
+            "text": "Free업그레이드",
+            "font": "13.5px",
+            "h": 44,
+            "w": 244.71875
+          },
+          {
+            "text": "오늘",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "주간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "월간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.640625
+          },
+          {
+            "text": "연간",
+            "font": "9.72px",
+            "h": 44,
+            "w": 58.65625
+          },
+          {
+            "text": "마지막 주행없음",
+            "font": "13.5px",
+            "h": 52,
+            "w": 244.71875
+          },
+          {
+            "text": "로그아웃",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 244.71875
+          },
+          {
+            "text": "탈퇴 확인 문구",
+            "font": "11.475px",
+            "h": 28.640625,
+            "w": 226.53125
+          },
+          {
+            "text": "취소",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 110.5625
+          },
+          {
+            "text": "탈퇴",
+            "font": "10.53px",
+            "h": 31.296875,
+            "w": 110.578125
+          }
+        ]
+      },
+      "lastControlReachable": true
+    }
+  ],
+  "errors": []
+}

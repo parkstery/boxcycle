@@ -1,0 +1,63 @@
+{
+  "rows": [
+    {
+      "width": 667,
+      "landmarkScreenFraction": 0.7599999999970958,
+      "view": {
+        "lngLat": [
+          12.49033940525055,
+          41.8902
+        ],
+        "zoom": 16
+      }
+    },
+    {
+      "width": 740,
+      "landmarkScreenFraction": 0.7599999999979863,
+      "view": {
+        "lngLat": [
+          12.490135771942139,
+          41.8902
+        ],
+        "zoom": 16
+      }
+    },
+    {
+      "width": 800,
+      "landmarkScreenFraction": 0.76,
+      "view": {
+        "lngLat": [
+          12.48996840209961,
+          41.8902
+        ],
+        "zoom": 16
+      }
+    },
+    {
+      "width": 844,
+      "landmarkScreenFraction": 0.7599999999971752,
+      "view": {
+        "lngLat": [
+          12.489845664215089,
+          41.8902
+        ],
+        "zoom": 16
+      }
+    },
+    {
+      "width": 1366,
+      "landmarkScreenFraction": 0.7599999999973819,
+      "view": {
+        "lngLat": [
+          12.488389546585083,
+          41.8902
+        ],
+        "zoom": 16
+      }
+    }
+  ],
+  "invalidWidths": "PASS",
+  "appSatelliteAndTransition": "PASS",
+  "signedOutNoOverride": "PASS",
+  "limits": "Real tiles unavailable in sandbox; no authentication or ride started"
+}

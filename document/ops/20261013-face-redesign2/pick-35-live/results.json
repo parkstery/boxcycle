@@ -1,0 +1,120 @@
+{
+  "rows": [
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "position",
+      "rect": {
+        "x": 8,
+        "y": 83.5,
+        "w": 184.25,
+        "h": 132.53125,
+        "bottom": 216.03125,
+        "right": 192.25,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "bottom": 300,
+          "right": 667
+        },
+        "overflowY": 0,
+        "overflowX": 0
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "distance",
+      "rect": {
+        "x": 475,
+        "y": 112,
+        "w": 184.25,
+        "h": 180.28125,
+        "bottom": 292.28125,
+        "right": 659.25,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "bottom": 300,
+          "right": 667
+        },
+        "overflowY": 0,
+        "overflowX": 0
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "return",
+      "rect": {
+        "x": 8,
+        "y": 83.5,
+        "w": 184.25,
+        "h": 132.53125,
+        "bottom": 216.03125,
+        "right": 192.25,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "bottom": 300,
+          "right": 667
+        },
+        "overflowY": 0,
+        "overflowX": 0
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "retained",
+      "rect": {
+        "x": 475,
+        "y": 112,
+        "w": 184.25,
+        "h": 180.28125,
+        "bottom": 292.28125,
+        "right": 659.25,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "bottom": 300,
+          "right": 667
+        },
+        "overflowY": 0,
+        "overflowX": 0
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "drag",
+      "rect": {
+        "x": 415,
+        "y": 112,
+        "w": 184.25,
+        "h": 180.28125,
+        "bottom": 292.28125,
+        "right": 599.25,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "bottom": 300,
+          "right": 667
+        },
+        "overflowY": 0,
+        "overflowX": 0
+      }
+    }
+  ],
+  "errors": []
+}

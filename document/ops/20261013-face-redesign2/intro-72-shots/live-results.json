@@ -1,0 +1,14 @@
+{
+  "rows": [
+    "actual app map zoom buttons clickable",
+    "CTA dismiss without storage change",
+    "reload intro restored",
+    "app 667x300",
+    "app 740x300",
+    "app 844x390",
+    "app 1366x768",
+    "explicit signed out bypass",
+    "account deleted bypass"
+  ],
+  "limits": "Fresh anonymous browser; no login or ride started; no Firebase writes requested"
+}

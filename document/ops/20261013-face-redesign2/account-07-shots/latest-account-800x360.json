@@ -1,0 +1,245 @@
+{
+  "viewport": {
+    "width": 800,
+    "height": 360
+  },
+  "rows": [
+    {
+      "unit": "account",
+      "sel": ".user-info-sheet",
+      "viewport": {
+        "width": 800,
+        "height": 360
+      },
+      "geometryIdentical": true,
+      "geometryDifferences": [],
+      "elements": 50,
+      "style": {
+        "bg": "rgb(255, 255, 255)",
+        "fg": "rgb(31, 41, 55)",
+        "border": "rgb(31, 41, 55) rgb(31, 41, 55) rgb(31, 41, 55) rgb(203, 213, 225)"
+      },
+      "controls": [
+        {
+          "cls": "user-info-sheet__edit",
+          "text": "프로필 수정",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "9.45px",
+          "x": 695.28125,
+          "y": 14.1875,
+          "w": 60.1875,
+          "h": 24.265625
+        },
+        {
+          "cls": "user-info-sheet__close",
+          "text": "×",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "13.5px",
+          "x": 762.890625,
+          "y": 13.5,
+          "w": 25.640625,
+          "h": 25.640625
+        },
+        {
+          "cls": "user-info-sheet__stats-tab is-active",
+          "text": "오늘",
+          "bg": "rgb(37, 99, 235)",
+          "fg": "rgb(255, 255, 255)",
+          "border": "rgb(37, 99, 235)",
+          "fontSize": "9.72px",
+          "x": 542.46875,
+          "y": 87.125,
+          "w": 58.640625,
+          "h": 44
+        },
+        {
+          "cls": "user-info-sheet__stats-tab ",
+          "text": "주간",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "9.72px",
+          "x": 604.484375,
+          "y": 87.125,
+          "w": 58.65625,
+          "h": 44
+        },
+        {
+          "cls": "user-info-sheet__stats-tab ",
+          "text": "월간",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "9.72px",
+          "x": 666.515625,
+          "y": 87.125,
+          "w": 58.640625,
+          "h": 44
+        },
+        {
+          "cls": "user-info-sheet__stats-tab ",
+          "text": "연간",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "9.72px",
+          "x": 728.53125,
+          "y": 87.125,
+          "w": 58.65625,
+          "h": 44
+        },
+        {
+          "cls": "user-info-sheet__last-ride",
+          "text": "마지막 주행없음",
+          "bg": "rgb(248, 250, 252)",
+          "fg": "rgb(31, 41, 55)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "13.5px",
+          "x": 542.46875,
+          "y": 253.890625,
+          "w": 244.71875,
+          "h": 52
+        },
+        {
+          "cls": "user-info-sheet__btn user-info-sheet__btn--google",
+          "text": "Google 연결",
+          "bg": "rgb(255, 255, 255)",
+          "fg": "rgb(31, 41, 55)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "10.53px",
+          "x": 542.46875,
+          "y": 318.703125,
+          "w": 244.71875,
+          "h": 31.5
+        },
+        {
+          "cls": "user-info-sheet__btn user-info-sheet__btn--danger",
+          "text": "로그아웃",
+          "bg": "rgba(220, 38, 38, 0.08)",
+          "fg": "rgb(220, 38, 38)",
+          "border": "rgba(220, 38, 38, 0.3)",
+          "fontSize": "10.53px",
+          "x": 542.46875,
+          "y": 354.921875,
+          "w": 244.71875,
+          "h": 31.296875
+        }
+      ],
+      "overflow": {
+        "clientW": 269,
+        "clientH": 360,
+        "scrollW": 269,
+        "scrollH": 360
+      },
+      "accountBefore": {
+        "clientH": 300,
+        "scrollH": 336,
+        "excess": 36,
+        "naturalHeight": 336.28125,
+        "rect": {
+          "y": 49.9375,
+          "h": 299.9375
+        },
+        "children": [
+          {
+            "cls": "user-info-sheet__plan",
+            "y": 49.9375,
+            "h": 27.75,
+            "bottom": 77.6875
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 87.125,
+            "h": 44,
+            "bottom": 131.125
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 138.546875,
+            "h": 107.921875,
+            "bottom": 246.46875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 253.890625,
+            "h": 52,
+            "bottom": 305.890625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 318.703125,
+            "h": 67.515625,
+            "bottom": 386.21875
+          }
+        ]
+      },
+      "accountAfter": {
+        "clientH": 300,
+        "scrollH": 336,
+        "excess": 36,
+        "naturalHeight": 336.28125,
+        "rect": {
+          "y": 49.9375,
+          "h": 299.9375
+        },
+        "children": [
+          {
+            "cls": "user-info-sheet__plan",
+            "y": 49.9375,
+            "h": 27.75,
+            "bottom": 77.6875
+          },
+          {
+            "cls": "user-info-sheet__stats-head",
+            "y": 87.125,
+            "h": 44,
+            "bottom": 131.125
+          },
+          {
+            "cls": "user-info-sheet__stats-card",
+            "y": 138.546875,
+            "h": 107.921875,
+            "bottom": 246.46875
+          },
+          {
+            "cls": "user-info-sheet__last-ride",
+            "y": 253.890625,
+            "h": 52,
+            "bottom": 305.890625
+          },
+          {
+            "cls": "user-info-sheet__actions",
+            "y": 318.703125,
+            "h": 67.515625,
+            "bottom": 386.21875
+          }
+        ]
+      },
+      "beforeRect": {
+        "tag": "ASIDE",
+        "cls": "user-info-sheet",
+        "x": 530,
+        "y": 0,
+        "w": 270,
+        "h": 360,
+        "sw": 269,
+        "sh": 360
+      },
+      "afterRect": {
+        "tag": "ASIDE",
+        "cls": "user-info-sheet",
+        "x": 530,
+        "y": 0,
+        "w": 270,
+        "h": 360,
+        "sw": 269,
+        "sh": 360
+      }
+    }
+  ],
+  "runtimeErrors": []
+}

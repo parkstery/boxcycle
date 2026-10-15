@@ -1,0 +1,72 @@
+{
+  "rows": [
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "result": {
+        "src": "/images/intro/rome-colosseum.jpg",
+        "naturalWidth": 1920,
+        "naturalHeight": 1140,
+        "cover": "cover"
+      },
+      "underlyingMapBlocked": true
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "result": {
+        "src": "/images/intro/rome-colosseum.jpg",
+        "naturalWidth": 1920,
+        "naturalHeight": 1140,
+        "cover": "cover"
+      },
+      "underlyingMapBlocked": true
+    },
+    {
+      "viewport": {
+        "width": 800,
+        "height": 360
+      },
+      "result": {
+        "src": "/images/intro/rome-colosseum.jpg",
+        "naturalWidth": 1920,
+        "naturalHeight": 1140,
+        "cover": "cover"
+      },
+      "underlyingMapBlocked": true
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "result": {
+        "src": "/images/intro/rome-colosseum.jpg",
+        "naturalWidth": 1920,
+        "naturalHeight": 1140,
+        "cover": "cover"
+      },
+      "underlyingMapBlocked": true
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "result": {
+        "src": "/images/intro/rome-colosseum.jpg",
+        "naturalWidth": 1920,
+        "naturalHeight": 1140,
+        "cover": "cover"
+      },
+      "underlyingMapBlocked": true
+    }
+  ],
+  "credit": "PASS",
+  "transition": "PASS",
+  "network": "Photo served locally; no Mapbox tiles needed"
+}

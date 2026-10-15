@@ -1,0 +1,726 @@
+{
+  "viewport": {
+    "width": 800,
+    "height": 360
+  },
+  "rows": [
+    {
+      "unit": "profile",
+      "sel": ".profile-edit-sheet .ride-settings-sheet__panel",
+      "viewport": {
+        "width": 800,
+        "height": 360
+      },
+      "geometryIdentical": false,
+      "geometryDifferences": [
+        {
+          "index": 0,
+          "before": {
+            "tag": "FORM",
+            "cls": "ride-settings-sheet__panel",
+            "x": 251.5,
+            "y": 119.25,
+            "w": 297,
+            "h": 234,
+            "sw": 295,
+            "sh": 232
+          },
+          "after": {
+            "tag": "FORM",
+            "cls": "ride-settings-sheet__panel",
+            "x": 251.5,
+            "y": 161.77,
+            "w": 297,
+            "h": 191.48,
+            "sw": 295,
+            "sh": 189
+          }
+        },
+        {
+          "index": 1,
+          "before": {
+            "tag": "DIV",
+            "cls": "ride-settings-sheet__handle",
+            "x": 383.8,
+            "y": 127.67,
+            "w": 32.39,
+            "h": 0.69,
+            "sw": 32,
+            "sh": 1
+          },
+          "after": {
+            "tag": "DIV",
+            "cls": "ride-settings-sheet__handle",
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0,
+            "sw": 0,
+            "sh": 0
+          }
+        },
+        {
+          "index": 2,
+          "before": {
+            "tag": "H2",
+            "cls": "ride-settings-sheet__title",
+            "x": 263.97,
+            "y": 139.14,
+            "w": 272.06,
+            "h": 19.23,
+            "sw": 272,
+            "sh": 19
+          },
+          "after": {
+            "tag": "H2",
+            "cls": "ride-settings-sheet__title",
+            "x": 261.94,
+            "y": 168.16,
+            "w": 276.13,
+            "h": 19.23,
+            "sw": 276,
+            "sh": 19
+          }
+        },
+        {
+          "index": 3,
+          "before": {
+            "tag": "DIV",
+            "cls": "ride-settings-sheet__group",
+            "x": 263.97,
+            "y": 167.14,
+            "w": 272.06,
+            "h": 30.34,
+            "sw": 272,
+            "sh": 30
+          },
+          "after": {
+            "tag": "DIV",
+            "cls": "ride-settings-sheet__group",
+            "x": 261.94,
+            "y": 191.44,
+            "w": 276.13,
+            "h": 27.64,
+            "sw": 276,
+            "sh": 28
+          }
+        },
+        {
+          "index": 4,
+          "before": {
+            "tag": "SPAN",
+            "cls": "ride-settings-sheet__kicker",
+            "x": 263.97,
+            "y": 167.14,
+            "w": 272.06,
+            "h": 12.56,
+            "sw": 272,
+            "sh": 13
+          },
+          "after": {
+            "tag": "SPAN",
+            "cls": "ride-settings-sheet__kicker",
+            "x": 261.94,
+            "y": 191.44,
+            "w": 276.13,
+            "h": 12.56,
+            "sw": 276,
+            "sh": 13
+          }
+        },
+        {
+          "index": 5,
+          "before": {
+            "tag": "P",
+            "cls": "ride-settings-sheet__help",
+            "x": 263.97,
+            "y": 185.09,
+            "w": 272.06,
+            "h": 12.39,
+            "sw": 272,
+            "sh": 12
+          },
+          "after": {
+            "tag": "P",
+            "cls": "ride-settings-sheet__help",
+            "x": 261.94,
+            "y": 206.69,
+            "w": 276.13,
+            "h": 12.39,
+            "sw": 276,
+            "sh": 12
+          }
+        },
+        {
+          "index": 6,
+          "before": {
+            "tag": "DIV",
+            "cls": "ride-settings-sheet__group",
+            "x": 263.97,
+            "y": 206.25,
+            "w": 272.06,
+            "h": 79.73,
+            "sw": 272,
+            "sh": 80
+          },
+          "after": {
+            "tag": "DIV",
+            "cls": "ride-settings-sheet__group",
+            "x": 261.94,
+            "y": 223.13,
+            "w": 276.13,
+            "h": 74.33,
+            "sw": 276,
+            "sh": 74
+          }
+        },
+        {
+          "index": 7,
+          "before": {
+            "tag": "SPAN",
+            "cls": "ride-settings-sheet__kicker",
+            "x": 263.97,
+            "y": 206.25,
+            "w": 272.06,
+            "h": 12.56,
+            "sw": 272,
+            "sh": 13
+          },
+          "after": {
+            "tag": "SPAN",
+            "cls": "ride-settings-sheet__kicker",
+            "x": 261.94,
+            "y": 223.13,
+            "w": 276.13,
+            "h": 12.56,
+            "sw": 276,
+            "sh": 13
+          }
+        },
+        {
+          "index": 8,
+          "before": {
+            "tag": "DIV",
+            "cls": "ride-settings-sheet__calorie-row",
+            "x": 263.97,
+            "y": 224.2,
+            "w": 272.06,
+            "h": 44,
+            "sw": 272,
+            "sh": 44
+          },
+          "after": {
+            "tag": "DIV",
+            "cls": "ride-settings-sheet__calorie-row",
+            "x": 261.94,
+            "y": 238.38,
+            "w": 276.13,
+            "h": 44,
+            "sw": 276,
+            "sh": 44
+          }
+        },
+        {
+          "index": 9,
+          "before": {
+            "tag": "LABEL",
+            "cls": "ride-settings-sheet__weight",
+            "x": 263.97,
+            "y": 224.2,
+            "w": 95.73,
+            "h": 44,
+            "sw": 96,
+            "sh": 44
+          },
+          "after": {
+            "tag": "LABEL",
+            "cls": "ride-settings-sheet__weight",
+            "x": 261.94,
+            "y": 238.38,
+            "w": 91.69,
+            "h": 44,
+            "sw": 92,
+            "sh": 44
+          }
+        },
+        {
+          "index": 10,
+          "before": {
+            "tag": "SPAN",
+            "cls": "",
+            "x": 263.97,
+            "y": 238.5,
+            "w": 35,
+            "h": 15.39,
+            "sw": 35,
+            "sh": 15
+          },
+          "after": {
+            "tag": "SPAN",
+            "cls": "",
+            "x": 261.94,
+            "y": 252.67,
+            "w": 35,
+            "h": 15.39,
+            "sw": 35,
+            "sh": 15
+          }
+        },
+        {
+          "index": 11,
+          "before": {
+            "tag": "INPUT",
+            "cls": "",
+            "x": 303.02,
+            "y": 224.2,
+            "w": 56.69,
+            "h": 44,
+            "sw": 55,
+            "sh": 42
+          },
+          "after": {
+            "tag": "INPUT",
+            "cls": "",
+            "x": 300.98,
+            "y": 238.38,
+            "w": 52.64,
+            "h": 44,
+            "sw": 51,
+            "sh": 42
+          }
+        },
+        {
+          "index": 12,
+          "before": {
+            "tag": "DIV",
+            "cls": "ride-settings-sheet__chips",
+            "x": 367.13,
+            "y": 224.2,
+            "w": 121.63,
+            "h": 44,
+            "sw": 122,
+            "sh": 44
+          },
+          "after": {
+            "tag": "DIV",
+            "cls": "ride-settings-sheet__chips",
+            "x": 360.38,
+            "y": 238.38,
+            "w": 121.63,
+            "h": 44,
+            "sw": 122,
+            "sh": 44
+          }
+        },
+        {
+          "index": 13,
+          "before": {
+            "tag": "BUTTON",
+            "cls": "ride-settings-sheet__chip",
+            "x": 367.13,
+            "y": 224.2,
+            "w": 43.84,
+            "h": 44,
+            "sw": 42,
+            "sh": 42
+          },
+          "after": {
+            "tag": "BUTTON",
+            "cls": "ride-settings-sheet__chip",
+            "x": 360.38,
+            "y": 238.38,
+            "w": 43.84,
+            "h": 44,
+            "sw": 42,
+            "sh": 42
+          }
+        },
+        {
+          "index": 14,
+          "before": {
+            "tag": "BUTTON",
+            "cls": "ride-settings-sheet__chip",
+            "x": 415.02,
+            "y": 224.2,
+            "w": 34.84,
+            "h": 44,
+            "sw": 33,
+            "sh": 42
+          },
+          "after": {
+            "tag": "BUTTON",
+            "cls": "ride-settings-sheet__chip",
+            "x": 408.27,
+            "y": 238.38,
+            "w": 34.84,
+            "h": 44,
+            "sw": 33,
+            "sh": 42
+          }
+        },
+        {
+          "index": 15,
+          "before": {
+            "tag": "BUTTON",
+            "cls": "ride-settings-sheet__chip",
+            "x": 453.91,
+            "y": 224.2,
+            "w": 34.84,
+            "h": 44,
+            "sw": 33,
+            "sh": 42
+          },
+          "after": {
+            "tag": "BUTTON",
+            "cls": "ride-settings-sheet__chip",
+            "x": 447.16,
+            "y": 238.38,
+            "w": 34.84,
+            "h": 44,
+            "sw": 33,
+            "sh": 42
+          }
+        },
+        {
+          "index": 16,
+          "before": {
+            "tag": "P",
+            "cls": "ride-settings-sheet__help",
+            "x": 263.97,
+            "y": 273.59,
+            "w": 272.06,
+            "h": 12.39,
+            "sw": 272,
+            "sh": 12
+          },
+          "after": {
+            "tag": "P",
+            "cls": "ride-settings-sheet__help",
+            "x": 261.94,
+            "y": 285.06,
+            "w": 276.13,
+            "h": 12.39,
+            "sw": 276,
+            "sh": 12
+          }
+        },
+        {
+          "index": 17,
+          "before": {
+            "tag": "DIV",
+            "cls": "ride-settings-sheet__row profile-edit-sheet__actions",
+            "x": 263.97,
+            "y": 294.75,
+            "w": 272.06,
+            "h": 44,
+            "sw": 272,
+            "sh": 44
+          },
+          "after": {
+            "tag": "DIV",
+            "cls": "ride-settings-sheet__row profile-edit-sheet__actions",
+            "x": 261.94,
+            "y": 301.5,
+            "w": 276.13,
+            "h": 44,
+            "sw": 276,
+            "sh": 44
+          }
+        },
+        {
+          "index": 18,
+          "before": {
+            "tag": "BUTTON",
+            "cls": "ride-settings-sheet__btn",
+            "x": 448.78,
+            "y": 294.75,
+            "w": 40.25,
+            "h": 44,
+            "sw": 38,
+            "sh": 42
+          },
+          "after": {
+            "tag": "BUTTON",
+            "cls": "ride-settings-sheet__btn",
+            "x": 450.81,
+            "y": 301.5,
+            "w": 40.25,
+            "h": 44,
+            "sw": 38,
+            "sh": 42
+          }
+        },
+        {
+          "index": 19,
+          "before": {
+            "tag": "BUTTON",
+            "cls": "ride-settings-sheet__btn ride-settings-sheet__btn--primary",
+            "x": 495.78,
+            "y": 294.75,
+            "w": 40.25,
+            "h": 44,
+            "sw": 38,
+            "sh": 42
+          },
+          "after": {
+            "tag": "BUTTON",
+            "cls": "ride-settings-sheet__btn ride-settings-sheet__btn--primary",
+            "x": 497.81,
+            "y": 301.5,
+            "w": 40.25,
+            "h": 44,
+            "sw": 38,
+            "sh": 42
+          }
+        }
+      ],
+      "elements": 20,
+      "style": {
+        "bg": "rgb(255, 255, 255)",
+        "fg": "rgb(31, 41, 55)",
+        "border": "rgb(203, 213, 225)"
+      },
+      "controls": [
+        {
+          "cls": "",
+          "text": "",
+          "bg": "rgb(255, 255, 255)",
+          "fg": "rgb(31, 41, 55)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "10.26px",
+          "x": 300.984375,
+          "y": 238.375,
+          "w": 52.640625,
+          "h": 44
+        },
+        {
+          "cls": "ride-settings-sheet__chip",
+          "text": "가벼움",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "10.26px",
+          "x": 360.375,
+          "y": 238.375,
+          "w": 43.84375,
+          "h": 44
+        },
+        {
+          "cls": "ride-settings-sheet__chip",
+          "text": "보통",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "10.26px",
+          "x": 408.265625,
+          "y": 238.375,
+          "w": 34.84375,
+          "h": 44
+        },
+        {
+          "cls": "ride-settings-sheet__chip",
+          "text": "강함",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "10.26px",
+          "x": 447.15625,
+          "y": 238.375,
+          "w": 34.84375,
+          "h": 44
+        },
+        {
+          "cls": "ride-settings-sheet__btn",
+          "text": "취소",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "10.26px",
+          "x": 450.8125,
+          "y": 301.5,
+          "w": 40.25,
+          "h": 44
+        },
+        {
+          "cls": "ride-settings-sheet__btn ride-settings-sheet__btn--primary",
+          "text": "저장",
+          "bg": "rgb(37, 99, 235)",
+          "fg": "rgb(255, 255, 255)",
+          "border": "rgb(37, 99, 235)",
+          "fontSize": "10.26px",
+          "x": 497.8125,
+          "y": 301.5,
+          "w": 40.25,
+          "h": 44
+        }
+      ],
+      "overflow": {
+        "clientW": 295,
+        "clientH": 189,
+        "scrollW": 295,
+        "scrollH": 189
+      },
+      "beforeRect": {
+        "tag": "FORM",
+        "cls": "ride-settings-sheet__panel",
+        "x": 251.5,
+        "y": 119.25,
+        "w": 297,
+        "h": 234,
+        "sw": 295,
+        "sh": 232
+      },
+      "afterRect": {
+        "tag": "FORM",
+        "cls": "ride-settings-sheet__panel",
+        "x": 251.5,
+        "y": 161.77,
+        "w": 297,
+        "h": 191.48,
+        "sw": 295,
+        "sh": 189
+      }
+    },
+    {
+      "unit": "settings",
+      "sel": ".ride-settings-sheet__panel",
+      "viewport": {
+        "width": 800,
+        "height": 360
+      },
+      "geometryIdentical": true,
+      "geometryDifferences": [],
+      "elements": 26,
+      "style": {
+        "bg": "rgb(255, 255, 255)",
+        "fg": "rgb(31, 41, 55)",
+        "border": "rgb(203, 213, 225)"
+      },
+      "controls": [
+        {
+          "cls": "",
+          "text": "",
+          "bg": "rgb(255, 255, 255)",
+          "fg": "rgb(31, 41, 55)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "10.26px",
+          "x": 303.015625,
+          "y": 227.625,
+          "w": 56.6875,
+          "h": 44
+        },
+        {
+          "cls": "ride-settings-sheet__chip",
+          "text": "가벼움",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "10.26px",
+          "x": 367.125,
+          "y": 227.625,
+          "w": 43.84375,
+          "h": 44
+        },
+        {
+          "cls": "ride-settings-sheet__chip",
+          "text": "보통",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "10.26px",
+          "x": 415.015625,
+          "y": 227.625,
+          "w": 34.84375,
+          "h": 44
+        },
+        {
+          "cls": "ride-settings-sheet__chip",
+          "text": "강함",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "10.26px",
+          "x": 453.90625,
+          "y": 227.625,
+          "w": 34.84375,
+          "h": 44
+        },
+        {
+          "cls": "",
+          "text": "",
+          "bg": "rgba(0, 0, 0, 0)",
+          "fg": "rgb(0, 0, 0)",
+          "border": "rgb(0, 0, 0)",
+          "fontSize": "13.3333px",
+          "x": 267.96875,
+          "y": 322.75,
+          "w": 13,
+          "h": 13
+        },
+        {
+          "cls": "",
+          "text": "",
+          "bg": "rgba(0, 0, 0, 0)",
+          "fg": "rgb(0, 0, 0)",
+          "border": "rgb(0, 0, 0)",
+          "fontSize": "13.3333px",
+          "x": 344.453125,
+          "y": 322.75,
+          "w": 13,
+          "h": 13
+        },
+        {
+          "cls": "",
+          "text": "",
+          "bg": "rgba(0, 0, 0, 0)",
+          "fg": "rgb(0, 0, 0)",
+          "border": "rgb(0, 0, 0)",
+          "fontSize": "13.3333px",
+          "x": 398.9375,
+          "y": 322.75,
+          "w": 13,
+          "h": 13
+        },
+        {
+          "cls": "",
+          "text": "",
+          "bg": "rgba(0, 0, 0, 0)",
+          "fg": "rgb(0, 0, 0)",
+          "border": "rgb(0, 0, 0)",
+          "fontSize": "13.3333px",
+          "x": 456.421875,
+          "y": 322.75,
+          "w": 13,
+          "h": 13
+        }
+      ],
+      "overflow": {
+        "clientW": 295,
+        "clientH": 192,
+        "scrollW": 295,
+        "scrollH": 192
+      },
+      "beforeRect": {
+        "tag": "DIV",
+        "cls": "ride-settings-sheet__panel",
+        "x": 251.5,
+        "y": 159.5,
+        "w": 297,
+        "h": 193.75,
+        "sw": 295,
+        "sh": 192
+      },
+      "afterRect": {
+        "tag": "DIV",
+        "cls": "ride-settings-sheet__panel",
+        "x": 251.5,
+        "y": 159.5,
+        "w": 297,
+        "h": 193.75,
+        "sw": 295,
+        "sh": 192
+      }
+    }
+  ],
+  "runtimeErrors": []
+}

@@ -1,0 +1,1004 @@
+{
+  "viewport": {
+    "width": 667,
+    "height": 300
+  },
+  "rows": [
+    {
+      "unit": "pick",
+      "sel": ".map-view__pick",
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "geometryIdentical": false,
+      "geometryDifferences": [
+        {
+          "index": 0,
+          "before": {
+            "tag": "DIV",
+            "cls": "map-view__pick",
+            "x": 361.08,
+            "y": 61.61,
+            "w": 237.84,
+            "h": 89.39,
+            "sw": 238,
+            "sh": 89
+          },
+          "after": {
+            "tag": "DIV",
+            "cls": "map-view__pick",
+            "x": 388.88,
+            "y": 65.06,
+            "w": 182.25,
+            "h": 85.94,
+            "sw": 182,
+            "sh": 86
+          }
+        },
+        {
+          "index": 1,
+          "before": {
+            "tag": "DIV",
+            "cls": "map-view__pick-drag-handle",
+            "x": 368.5,
+            "y": 67.67,
+            "w": 223,
+            "h": 51.17,
+            "sw": 223,
+            "sh": 51
+          },
+          "after": {
+            "tag": "DIV",
+            "cls": "map-view__pick-drag-handle",
+            "x": 396.3,
+            "y": 71.13,
+            "w": 167.41,
+            "h": 47.72,
+            "sw": 167,
+            "sh": 48
+          }
+        },
+        {
+          "index": 2,
+          "before": {
+            "tag": "DIV",
+            "cls": "map-view__pick-token",
+            "x": 368.5,
+            "y": 67.67,
+            "w": 223,
+            "h": 17.39,
+            "sw": 223,
+            "sh": 16
+          },
+          "after": {
+            "tag": "DIV",
+            "cls": "map-view__pick-token",
+            "x": 396.3,
+            "y": 71.13,
+            "w": 167.41,
+            "h": 17.39,
+            "sw": 167,
+            "sh": 16
+          }
+        },
+        {
+          "index": 3,
+          "before": {
+            "tag": "P",
+            "cls": "map-view__pick-token-line map-view__pick-token-line--title",
+            "x": 368.5,
+            "y": 67.67,
+            "w": 196.69,
+            "h": 12.63,
+            "sw": 197,
+            "sh": 13
+          },
+          "after": {
+            "tag": "P",
+            "cls": "map-view__pick-token-line map-view__pick-token-line--title",
+            "x": 396.3,
+            "y": 71.13,
+            "w": 141.09,
+            "h": 12.63,
+            "sw": 141,
+            "sh": 13
+          }
+        },
+        {
+          "index": 4,
+          "before": {
+            "tag": "DIV",
+            "cls": "map-view__pick-address",
+            "x": 368.5,
+            "y": 89.11,
+            "w": 223,
+            "h": 14.38,
+            "sw": 223,
+            "sh": 14
+          },
+          "after": {
+            "tag": "DIV",
+            "cls": "map-view__pick-address",
+            "x": 396.3,
+            "y": 92.56,
+            "w": 167.41,
+            "h": 10.92,
+            "sw": 167,
+            "sh": 11
+          }
+        },
+        {
+          "index": 5,
+          "before": {
+            "tag": "DIV",
+            "cls": "map-view__pick-meta",
+            "x": 368.5,
+            "y": 106.45,
+            "w": 223,
+            "h": 12.39,
+            "sw": 223,
+            "sh": 12
+          },
+          "after": {
+            "tag": "DIV",
+            "cls": "map-view__pick-meta",
+            "x": 396.3,
+            "y": 106.45,
+            "w": 167.41,
+            "h": 12.39,
+            "sw": 167,
+            "sh": 12
+          }
+        },
+        {
+          "index": 6,
+          "before": {
+            "tag": "DIV",
+            "cls": "map-view__pick-actions map-view__pick-actions--pin-row",
+            "x": 368.5,
+            "y": 123.97,
+            "w": 223,
+            "h": 20.28,
+            "sw": 223,
+            "sh": 20
+          },
+          "after": {
+            "tag": "DIV",
+            "cls": "map-view__pick-actions map-view__pick-actions--pin-row",
+            "x": 396.3,
+            "y": 123.97,
+            "w": 167.41,
+            "h": 20.28,
+            "sw": 167,
+            "sh": 20
+          }
+        },
+        {
+          "index": 7,
+          "before": {
+            "tag": "BUTTON",
+            "cls": "map-view__pick-btn map-view__pick-btn--start",
+            "x": 368.5,
+            "y": 123.97,
+            "w": 42,
+            "h": 20.28,
+            "sw": 40,
+            "sh": 18
+          },
+          "after": {
+            "tag": "BUTTON",
+            "cls": "map-view__pick-btn map-view__pick-btn--start",
+            "x": 396.3,
+            "y": 123.97,
+            "w": 30.89,
+            "h": 20.28,
+            "sw": 29,
+            "sh": 18
+          }
+        },
+        {
+          "index": 8,
+          "before": {
+            "tag": "BUTTON",
+            "cls": "map-view__pick-btn map-view__pick-btn--wp",
+            "x": 413.73,
+            "y": 123.97,
+            "w": 42.02,
+            "h": 20.28,
+            "sw": 40,
+            "sh": 18
+          },
+          "after": {
+            "tag": "BUTTON",
+            "cls": "map-view__pick-btn map-view__pick-btn--wp",
+            "x": 430.42,
+            "y": 123.97,
+            "w": 30.91,
+            "h": 20.28,
+            "sw": 29,
+            "sh": 18
+          }
+        },
+        {
+          "index": 9,
+          "before": {
+            "tag": "BUTTON",
+            "cls": "map-view__pick-btn map-view__pick-btn--wp",
+            "x": 458.98,
+            "y": 123.97,
+            "w": 42.02,
+            "h": 20.28,
+            "sw": 40,
+            "sh": 18
+          },
+          "after": {
+            "tag": "BUTTON",
+            "cls": "map-view__pick-btn map-view__pick-btn--wp",
+            "x": 464.56,
+            "y": 123.97,
+            "w": 30.89,
+            "h": 20.28,
+            "sw": 29,
+            "sh": 18
+          }
+        },
+        {
+          "index": 10,
+          "before": {
+            "tag": "BUTTON",
+            "cls": "map-view__pick-btn map-view__pick-btn--wp",
+            "x": 504.23,
+            "y": 123.97,
+            "w": 42.02,
+            "h": 20.28,
+            "sw": 40,
+            "sh": 18
+          },
+          "after": {
+            "tag": "BUTTON",
+            "cls": "map-view__pick-btn map-view__pick-btn--wp",
+            "x": 498.69,
+            "y": 123.97,
+            "w": 30.89,
+            "h": 20.28,
+            "sw": 29,
+            "sh": 18
+          }
+        },
+        {
+          "index": 11,
+          "before": {
+            "tag": "BUTTON",
+            "cls": "map-view__pick-btn map-view__pick-btn--end",
+            "x": 549.48,
+            "y": 123.97,
+            "w": 42.02,
+            "h": 20.28,
+            "sw": 40,
+            "sh": 18
+          },
+          "after": {
+            "tag": "BUTTON",
+            "cls": "map-view__pick-btn map-view__pick-btn--end",
+            "x": 532.81,
+            "y": 123.97,
+            "w": 30.89,
+            "h": 20.28,
+            "sw": 29,
+            "sh": 18
+          }
+        }
+      ],
+      "elements": 55,
+      "style": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "fg": "rgb(31, 41, 55)",
+        "border": "rgb(31, 41, 55)"
+      },
+      "controls": [
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--start",
+          "text": "Start",
+          "bg": "rgb(37, 99, 235)",
+          "fg": "rgb(255, 255, 255)",
+          "border": "rgb(37, 99, 235)",
+          "fontSize": "9.45px",
+          "x": 396.296875,
+          "y": 123.96875,
+          "w": 30.890625,
+          "h": 20.28125
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--wp",
+          "text": "WP1",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(31, 41, 55)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "9.45px",
+          "x": 430.421875,
+          "y": 123.96875,
+          "w": 30.90625,
+          "h": 20.28125
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--wp",
+          "text": "WP2",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(31, 41, 55)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "9.45px",
+          "x": 464.5625,
+          "y": 123.96875,
+          "w": 30.890625,
+          "h": 20.28125
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--wp",
+          "text": "WP3",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(31, 41, 55)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "9.45px",
+          "x": 498.6875,
+          "y": 123.96875,
+          "w": 30.890625,
+          "h": 20.28125
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--end",
+          "text": "End",
+          "bg": "rgb(37, 99, 235)",
+          "fg": "rgb(255, 255, 255)",
+          "border": "rgb(37, 99, 235)",
+          "fontSize": "9.45px",
+          "x": 532.8125,
+          "y": 123.96875,
+          "w": 30.890625,
+          "h": 20.28125
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--profile",
+          "text": "",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "9.72px",
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--profile is-active",
+          "text": "",
+          "bg": "rgb(37, 99, 235)",
+          "fg": "rgb(255, 255, 255)",
+          "border": "rgb(37, 99, 235)",
+          "fontSize": "9.72px",
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--profile",
+          "text": "",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "9.72px",
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--clear-route",
+          "text": "경로 삭제",
+          "bg": "rgb(255, 255, 255)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "8.91px",
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        {
+          "cls": "map-view__pick-distance-mode-checkbox",
+          "text": "",
+          "bg": "rgba(0, 0, 0, 0)",
+          "fg": "rgb(0, 0, 0)",
+          "border": "rgb(0, 0, 0)",
+          "fontSize": "13.3333px",
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        {
+          "cls": "map-view__pick-distance-step map-view__pick-distance-step--minus",
+          "text": "−",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(31, 41, 55)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "11.07px",
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        {
+          "cls": "map-view__pick-distance-slider",
+          "text": "",
+          "bg": "rgba(0, 0, 0, 0)",
+          "fg": "rgb(197, 197, 197)",
+          "border": "rgba(118, 118, 118, 0.3)",
+          "fontSize": "13.3333px",
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        {
+          "cls": "map-view__pick-distance-step map-view__pick-distance-step--plus",
+          "text": "+",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(31, 41, 55)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "11.07px",
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        {
+          "cls": "map-view__pick-distance-number",
+          "text": "",
+          "bg": "rgb(255, 255, 255)",
+          "fg": "rgb(31, 41, 55)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "9.18px",
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        {
+          "cls": "map-view__pick-distance-chip is-active",
+          "text": "1",
+          "bg": "rgb(239, 246, 255)",
+          "fg": "rgb(31, 41, 55)",
+          "border": "rgb(37, 99, 235)",
+          "fontSize": "12px",
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        {
+          "cls": "map-view__pick-distance-chip",
+          "text": "3",
+          "bg": "rgba(0, 0, 0, 0)",
+          "fg": "rgb(31, 41, 55)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "12px",
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        {
+          "cls": "map-view__pick-distance-chip",
+          "text": "5",
+          "bg": "rgba(0, 0, 0, 0)",
+          "fg": "rgb(31, 41, 55)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "12px",
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        {
+          "cls": "map-view__pick-distance-chip",
+          "text": "10",
+          "bg": "rgba(0, 0, 0, 0)",
+          "fg": "rgb(31, 41, 55)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "12px",
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        {
+          "cls": "map-view__pick-distance-chip",
+          "text": "20",
+          "bg": "rgba(0, 0, 0, 0)",
+          "fg": "rgb(31, 41, 55)",
+          "border": "rgb(203, 213, 225)",
+          "fontSize": "12px",
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        }
+      ],
+      "overflow": {
+        "clientW": 182,
+        "clientH": 86,
+        "scrollW": 182,
+        "scrollH": 86
+      },
+      "beforeFonts": [
+        {
+          "cls": "map-view__pick",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-drag-handle",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-token",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-token-line map-view__pick-token-line--title",
+          "font": "9.72px"
+        },
+        {
+          "cls": "map-view__pick-address",
+          "font": "11.07px"
+        },
+        {
+          "cls": "map-view__pick-meta",
+          "font": "9.18px"
+        },
+        {
+          "cls": "map-view__pick-actions map-view__pick-actions--pin-row",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--start",
+          "font": "9.45px"
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--wp",
+          "font": "9.45px"
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--wp",
+          "font": "9.45px"
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--wp",
+          "font": "9.45px"
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--end",
+          "font": "9.45px"
+        },
+        {
+          "cls": "map-view__pick-profile-section",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-actions map-view__pick-actions--profile",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-sr-only",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--profile",
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--profile is-active",
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--profile",
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--clear-route",
+          "font": "8.91px"
+        },
+        {
+          "cls": "map-view__pick-auto-route",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-distance-row map-view__pick-distance-row--disabled",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-distance-mode",
+          "font": "8.775px"
+        },
+        {
+          "cls": "map-view__pick-distance-mode-checkbox",
+          "font": "13.3333px"
+        },
+        {
+          "cls": "map-view__pick-distance-mode-label",
+          "font": "8.775px"
+        },
+        {
+          "cls": "map-view__pick-sr-only",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-distance-step map-view__pick-distance-step--minus",
+          "font": "11.07px"
+        },
+        {
+          "cls": "map-view__pick-distance-slider",
+          "font": "13.3333px"
+        },
+        {
+          "cls": "map-view__pick-distance-step map-view__pick-distance-step--plus",
+          "font": "11.07px"
+        },
+        {
+          "cls": "map-view__pick-distance-number",
+          "font": "9.18px"
+        },
+        {
+          "cls": "map-view__pick-distance-chips",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-distance-chip is-active",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-distance-chip",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-distance-chip",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-distance-chip",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-distance-chip",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-distance-eta",
+          "font": "11px"
+        },
+        {
+          "cls": "map-view__pick-auto-route-status-slot",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-auto-route-status map-view__pick-auto-route-status--idle",
+          "font": "9.18px"
+        }
+      ],
+      "afterFonts": [
+        {
+          "cls": "map-view__pick",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-drag-handle",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-token",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-token-line map-view__pick-token-line--title",
+          "font": "9.72px"
+        },
+        {
+          "cls": "map-view__pick-address",
+          "font": "8.40333px"
+        },
+        {
+          "cls": "map-view__pick-meta",
+          "font": "9.18px"
+        },
+        {
+          "cls": "map-view__pick-actions map-view__pick-actions--pin-row",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--start",
+          "font": "9.45px"
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--wp",
+          "font": "9.45px"
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--wp",
+          "font": "9.45px"
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--wp",
+          "font": "9.45px"
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--end",
+          "font": "9.45px"
+        },
+        {
+          "cls": "map-view__pick-profile-section",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-actions map-view__pick-actions--profile",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-sr-only",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--profile",
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--profile is-active",
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--profile",
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": {},
+          "font": "9.72px"
+        },
+        {
+          "cls": "map-view__pick-btn map-view__pick-btn--clear-route",
+          "font": "8.91px"
+        },
+        {
+          "cls": "map-view__pick-auto-route",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-distance-row map-view__pick-distance-row--disabled",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-distance-mode",
+          "font": "8.775px"
+        },
+        {
+          "cls": "map-view__pick-distance-mode-checkbox",
+          "font": "13.3333px"
+        },
+        {
+          "cls": "map-view__pick-distance-mode-label",
+          "font": "8.775px"
+        },
+        {
+          "cls": "map-view__pick-sr-only",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-distance-step map-view__pick-distance-step--minus",
+          "font": "11.07px"
+        },
+        {
+          "cls": "map-view__pick-distance-slider",
+          "font": "13.3333px"
+        },
+        {
+          "cls": "map-view__pick-distance-step map-view__pick-distance-step--plus",
+          "font": "11.07px"
+        },
+        {
+          "cls": "map-view__pick-distance-number",
+          "font": "9.18px"
+        },
+        {
+          "cls": "map-view__pick-distance-chips",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-distance-chip is-active",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-distance-chip",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-distance-chip",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-distance-chip",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-distance-chip",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-distance-eta",
+          "font": "11px"
+        },
+        {
+          "cls": "map-view__pick-auto-route-status-slot",
+          "font": "12px"
+        },
+        {
+          "cls": "map-view__pick-auto-route-status map-view__pick-auto-route-status--idle",
+          "font": "9.18px"
+        }
+      ],
+      "accountBefore": null,
+      "accountAfter": null,
+      "beforeRect": {
+        "tag": "DIV",
+        "cls": "map-view__pick",
+        "x": 361.08,
+        "y": 61.61,
+        "w": 237.84,
+        "h": 89.39,
+        "sw": 238,
+        "sh": 89
+      },
+      "afterRect": {
+        "tag": "DIV",
+        "cls": "map-view__pick",
+        "x": 388.88,
+        "y": 65.06,
+        "w": 182.25,
+        "h": 85.94,
+        "sw": 182,
+        "sh": 86
+      }
+    }
+  ],
+  "runtimeErrors": []
+}

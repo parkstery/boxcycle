@@ -1,0 +1,13 @@
+{
+  "rows": [
+    {
+      "unit": "sensor-chip",
+      "error": "TimeoutError: locator.waitFor: Timeout 8000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.hud-cadence').first() to be visible\u001b[22m\n"
+    },
+    {
+      "unit": "route-dock",
+      "error": "TimeoutError: locator.click: Timeout 8000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.route-dock__caret')\u001b[22m\n"
+    }
+  ],
+  "runtimeErrors": []
+}

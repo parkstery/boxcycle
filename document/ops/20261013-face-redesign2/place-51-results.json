@@ -1,0 +1,3393 @@
+{
+  "PASS": true,
+  "rows": [
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "blank",
+      "before": {
+        "w": 249.75,
+        "h": 77.09375,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 76.09375,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "no-token",
+      "before": {
+        "w": 249.75,
+        "h": 93.484375,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n\nMapbox 토큰이 없으면 검색할 수 없습니다.",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 92.484375,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n\nMapbox 토큰이 없으면 검색할 수 없습니다.",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "loading",
+      "before": {
+        "w": 249.75,
+        "h": 95.046875,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n\n검색 중…",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 94.046875,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n\n검색 중…",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "error",
+      "before": {
+        "w": 249.75,
+        "h": 124.203125,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n\n검색 서버 연결에 실패했습니다. 네트워크 연결을 확인하고 잠시 후 다시 검색해 주세요. 긴 오류 안내도 끝까지 읽을 수 있어야 합니다.",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 108.625,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n\n검색 서버 연결에 실패했습니다. 네트워크 연결을 확인하고 잠시 후 다시 검색해 주세요. 긴 오류 안내도 끝까지 읽을 수 있어야 합니다.",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "empty",
+      "before": {
+        "w": 249.75,
+        "h": 77.09375,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 76.09375,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "one",
+      "before": {
+        "w": 249.75,
+        "h": 106.796875,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n서울숲 자전거길 1",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 1,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 103.796875,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n서울숲 자전거길 1",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 1,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "many",
+      "before": {
+        "w": 249.75,
+        "h": 126,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n서울숲 자전거길 1\n서울숲 자전거길 2\n서울숲 자전거길 3\n서울숲 자전거길 4\n서울숲 자전거길 5\n서울숲 자전거길 6\n서울숲 자전거길 7\n서울숲 자전거길 8\n서울숲 자전거길 9\n서울숲 자전거길 10\n서울숲 자전거길 11\n서울숲 자전거길 12",
+        "scrollX": 0,
+        "bodyScrollY": 76,
+        "listScrollY": 167,
+        "fully": 2,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 248.015625,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n서울숲 자전거길 1\n서울숲 자전거길 2\n서울숲 자전거길 3\n서울숲 자전거길 4\n서울숲 자전거길 5\n서울숲 자전거길 6\n서울숲 자전거길 7\n서울숲 자전거길 8\n서울숲 자전거길 9\n서울숲 자전거길 10\n서울숲 자전거길 11\n서울숲 자전거길 12",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 119,
+        "fully": 7,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "long",
+      "before": {
+        "w": 249.75,
+        "h": 126,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 1\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 2\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 3\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 4\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 5\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 6\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 7\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 8\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 9\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 10\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 11\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 12",
+        "scrollX": 0,
+        "bodyScrollY": 76,
+        "listScrollY": 332,
+        "fully": 1,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 248.015625,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 1\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 2\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 3\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 4\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 5\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 6\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 7\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 8\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 9\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 10\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 11\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 12",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 284,
+        "fully": 4,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "blank",
+      "before": {
+        "w": 249.75,
+        "h": 77.09375,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 76.09375,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "no-token",
+      "before": {
+        "w": 249.75,
+        "h": 93.484375,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n\nMapbox 토큰이 없으면 검색할 수 없습니다.",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 92.484375,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n\nMapbox 토큰이 없으면 검색할 수 없습니다.",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "loading",
+      "before": {
+        "w": 249.75,
+        "h": 95.046875,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n\n검색 중…",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 94.046875,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n\n검색 중…",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "error",
+      "before": {
+        "w": 249.75,
+        "h": 124.203125,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n\n검색 서버 연결에 실패했습니다. 네트워크 연결을 확인하고 잠시 후 다시 검색해 주세요. 긴 오류 안내도 끝까지 읽을 수 있어야 합니다.",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 108.625,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n\n검색 서버 연결에 실패했습니다. 네트워크 연결을 확인하고 잠시 후 다시 검색해 주세요. 긴 오류 안내도 끝까지 읽을 수 있어야 합니다.",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "empty",
+      "before": {
+        "w": 249.75,
+        "h": 77.09375,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 76.09375,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "one",
+      "before": {
+        "w": 249.75,
+        "h": 106.796875,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n서울숲 자전거길 1",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 1,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 103.796875,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n서울숲 자전거길 1",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 1,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "many",
+      "before": {
+        "w": 249.75,
+        "h": 126,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n서울숲 자전거길 1\n서울숲 자전거길 2\n서울숲 자전거길 3\n서울숲 자전거길 4\n서울숲 자전거길 5\n서울숲 자전거길 6\n서울숲 자전거길 7\n서울숲 자전거길 8\n서울숲 자전거길 9\n서울숲 자전거길 10\n서울숲 자전거길 11\n서울숲 자전거길 12",
+        "scrollX": 0,
+        "bodyScrollY": 76,
+        "listScrollY": 167,
+        "fully": 2,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 248.015625,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n서울숲 자전거길 1\n서울숲 자전거길 2\n서울숲 자전거길 3\n서울숲 자전거길 4\n서울숲 자전거길 5\n서울숲 자전거길 6\n서울숲 자전거길 7\n서울숲 자전거길 8\n서울숲 자전거길 9\n서울숲 자전거길 10\n서울숲 자전거길 11\n서울숲 자전거길 12",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 119,
+        "fully": 7,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "long",
+      "before": {
+        "w": 249.75,
+        "h": 126,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 1\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 2\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 3\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 4\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 5\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 6\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 7\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 8\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 9\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 10\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 11\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 12",
+        "scrollX": 0,
+        "bodyScrollY": 76,
+        "listScrollY": 332,
+        "fully": 1,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 248.015625,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 1\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 2\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 3\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 4\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 5\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 6\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 7\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 8\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 9\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 10\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 11\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 12",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 284,
+        "fully": 4,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "blank",
+      "before": {
+        "w": 249.75,
+        "h": 77.09375,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 76.09375,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "no-token",
+      "before": {
+        "w": 249.75,
+        "h": 93.484375,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n\nMapbox 토큰이 없으면 검색할 수 없습니다.",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 92.484375,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n\nMapbox 토큰이 없으면 검색할 수 없습니다.",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "loading",
+      "before": {
+        "w": 249.75,
+        "h": 95.046875,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n\n검색 중…",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 94.046875,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n\n검색 중…",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "error",
+      "before": {
+        "w": 249.75,
+        "h": 124.203125,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n\n검색 서버 연결에 실패했습니다. 네트워크 연결을 확인하고 잠시 후 다시 검색해 주세요. 긴 오류 안내도 끝까지 읽을 수 있어야 합니다.",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 108.625,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n\n검색 서버 연결에 실패했습니다. 네트워크 연결을 확인하고 잠시 후 다시 검색해 주세요. 긴 오류 안내도 끝까지 읽을 수 있어야 합니다.",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "empty",
+      "before": {
+        "w": 249.75,
+        "h": 77.09375,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 76.09375,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "one",
+      "before": {
+        "w": 249.75,
+        "h": 106.796875,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n서울숲 자전거길 1",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 1,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 103.796875,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n서울숲 자전거길 1",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 1,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "many",
+      "before": {
+        "w": 249.75,
+        "h": 163.796875,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n서울숲 자전거길 1\n서울숲 자전거길 2\n서울숲 자전거길 3\n서울숲 자전거길 4\n서울숲 자전거길 5\n서울숲 자전거길 6\n서울숲 자전거길 7\n서울숲 자전거길 8\n서울숲 자전거길 9\n서울숲 자전거길 10\n서울숲 자전거길 11\n서울숲 자전거길 12",
+        "scrollX": 0,
+        "bodyScrollY": 39,
+        "listScrollY": 167,
+        "fully": 3,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 338.015625,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n서울숲 자전거길 1\n서울숲 자전거길 2\n서울숲 자전거길 3\n서울숲 자전거길 4\n서울숲 자전거길 5\n서울숲 자전거길 6\n서울숲 자전거길 7\n서울숲 자전거길 8\n서울숲 자전거길 9\n서울숲 자전거길 10\n서울숲 자전거길 11\n서울숲 자전거길 12",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 29,
+        "fully": 10,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "long",
+      "before": {
+        "w": 249.75,
+        "h": 163.796875,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 1\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 2\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 3\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 4\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 5\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 6\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 7\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 8\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 9\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 10\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 11\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 12",
+        "scrollX": 0,
+        "bodyScrollY": 39,
+        "listScrollY": 332,
+        "fully": 2,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          }
+        ]
+      },
+      "after": {
+        "w": 405,
+        "h": 338.015625,
+        "x": 8.765625,
+        "y": 43.1875,
+        "text": "지명 검색\n×\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 1\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 2\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 3\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 4\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 5\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 6\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 7\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 8\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 9\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 10\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 11\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 12",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 194,
+        "fully": 6,
+        "styles": [
+          {
+            "role": "button",
+            "font": "14.85px",
+            "padding": "1px 6px",
+            "lineHeight": "14.85px",
+            "h": 21.59375
+          },
+          {
+            "role": "search",
+            "font": "11.34px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "17.01px",
+            "h": 29.265625
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "10.53px",
+            "padding": "5.13px 6.75px",
+            "lineHeight": "13.689px",
+            "h": null
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "blank",
+      "before": {
+        "w": 296,
+        "h": 90.265625,
+        "x": 10.390625,
+        "y": 51.1875,
+        "text": "지명 검색\n×",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "17.6px",
+            "padding": "1px 6px",
+            "lineHeight": "17.6px",
+            "h": 25.59375
+          },
+          {
+            "role": "search",
+            "font": "13.44px",
+            "padding": "6.08px 8px",
+            "lineHeight": "20.16px",
+            "h": 34.3125
+          }
+        ]
+      },
+      "after": {
+        "w": 480,
+        "h": 89.265625,
+        "x": 10.390625,
+        "y": 51.1875,
+        "text": "지명 검색\n×",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "17.6px",
+            "padding": "1px 6px",
+            "lineHeight": "17.6px",
+            "h": 25.59375
+          },
+          {
+            "role": "search",
+            "font": "13.44px",
+            "padding": "6.08px 8px",
+            "lineHeight": "20.16px",
+            "h": 34.3125
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "no-token",
+      "before": {
+        "w": 296,
+        "h": 109.703125,
+        "x": 10.390625,
+        "y": 51.1875,
+        "text": "지명 검색\n×\n\nMapbox 토큰이 없으면 검색할 수 없습니다.",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "17.6px",
+            "padding": "1px 6px",
+            "lineHeight": "17.6px",
+            "h": 25.59375
+          },
+          {
+            "role": "search",
+            "font": "13.44px",
+            "padding": "6.08px 8px",
+            "lineHeight": "20.16px",
+            "h": 34.3125
+          }
+        ]
+      },
+      "after": {
+        "w": 480,
+        "h": 108.703125,
+        "x": 10.390625,
+        "y": 51.1875,
+        "text": "지명 검색\n×\n\nMapbox 토큰이 없으면 검색할 수 없습니다.",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "17.6px",
+            "padding": "1px 6px",
+            "lineHeight": "17.6px",
+            "h": 25.59375
+          },
+          {
+            "role": "search",
+            "font": "13.44px",
+            "padding": "6.08px 8px",
+            "lineHeight": "20.16px",
+            "h": 34.3125
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "loading",
+      "before": {
+        "w": 296,
+        "h": 111.53125,
+        "x": 10.390625,
+        "y": 51.1875,
+        "text": "지명 검색\n×\n\n검색 중…",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "17.6px",
+            "padding": "1px 6px",
+            "lineHeight": "17.6px",
+            "h": 25.59375
+          },
+          {
+            "role": "search",
+            "font": "13.44px",
+            "padding": "6.08px 8px",
+            "lineHeight": "20.16px",
+            "h": 34.3125
+          }
+        ]
+      },
+      "after": {
+        "w": 480,
+        "h": 110.53125,
+        "x": 10.390625,
+        "y": 51.1875,
+        "text": "지명 검색\n×\n\n검색 중…",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "17.6px",
+            "padding": "1px 6px",
+            "lineHeight": "17.6px",
+            "h": 25.59375
+          },
+          {
+            "role": "search",
+            "font": "13.44px",
+            "padding": "6.08px 8px",
+            "lineHeight": "20.16px",
+            "h": 34.3125
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "error",
+      "before": {
+        "w": 296,
+        "h": 146.0625,
+        "x": 10.390625,
+        "y": 51.1875,
+        "text": "지명 검색\n×\n\n검색 서버 연결에 실패했습니다. 네트워크 연결을 확인하고 잠시 후 다시 검색해 주세요. 긴 오류 안내도 끝까지 읽을 수 있어야 합니다.",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "17.6px",
+            "padding": "1px 6px",
+            "lineHeight": "17.6px",
+            "h": 25.59375
+          },
+          {
+            "role": "search",
+            "font": "13.44px",
+            "padding": "6.08px 8px",
+            "lineHeight": "20.16px",
+            "h": 34.3125
+          }
+        ]
+      },
+      "after": {
+        "w": 480,
+        "h": 127.796875,
+        "x": 10.390625,
+        "y": 51.1875,
+        "text": "지명 검색\n×\n\n검색 서버 연결에 실패했습니다. 네트워크 연결을 확인하고 잠시 후 다시 검색해 주세요. 긴 오류 안내도 끝까지 읽을 수 있어야 합니다.",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "17.6px",
+            "padding": "1px 6px",
+            "lineHeight": "17.6px",
+            "h": 25.59375
+          },
+          {
+            "role": "search",
+            "font": "13.44px",
+            "padding": "6.08px 8px",
+            "lineHeight": "20.16px",
+            "h": 34.3125
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "empty",
+      "before": {
+        "w": 296,
+        "h": 90.265625,
+        "x": 10.390625,
+        "y": 51.1875,
+        "text": "지명 검색\n×",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "17.6px",
+            "padding": "1px 6px",
+            "lineHeight": "17.6px",
+            "h": 25.59375
+          },
+          {
+            "role": "search",
+            "font": "13.44px",
+            "padding": "6.08px 8px",
+            "lineHeight": "20.16px",
+            "h": 34.3125
+          }
+        ]
+      },
+      "after": {
+        "w": 480,
+        "h": 89.265625,
+        "x": 10.390625,
+        "y": 51.1875,
+        "text": "지명 검색\n×",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 0,
+        "styles": [
+          {
+            "role": "button",
+            "font": "17.6px",
+            "padding": "1px 6px",
+            "lineHeight": "17.6px",
+            "h": 25.59375
+          },
+          {
+            "role": "search",
+            "font": "13.44px",
+            "padding": "6.08px 8px",
+            "lineHeight": "20.16px",
+            "h": 34.3125
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "one",
+      "before": {
+        "w": 296,
+        "h": 125.109375,
+        "x": 10.390625,
+        "y": 51.1875,
+        "text": "지명 검색\n×\n서울숲 자전거길 1",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 1,
+        "styles": [
+          {
+            "role": "button",
+            "font": "17.6px",
+            "padding": "1px 6px",
+            "lineHeight": "17.6px",
+            "h": 25.59375
+          },
+          {
+            "role": "search",
+            "font": "13.44px",
+            "padding": "6.08px 8px",
+            "lineHeight": "20.16px",
+            "h": 34.3125
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          }
+        ]
+      },
+      "after": {
+        "w": 480,
+        "h": 122.109375,
+        "x": 10.390625,
+        "y": 51.1875,
+        "text": "지명 검색\n×\n서울숲 자전거길 1",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 1,
+        "styles": [
+          {
+            "role": "button",
+            "font": "17.6px",
+            "padding": "1px 6px",
+            "lineHeight": "17.6px",
+            "h": 25.59375
+          },
+          {
+            "role": "search",
+            "font": "13.44px",
+            "padding": "6.08px 8px",
+            "lineHeight": "20.16px",
+            "h": 34.3125
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "many",
+      "before": {
+        "w": 296,
+        "h": 224,
+        "x": 10.390625,
+        "y": 51.1875,
+        "text": "지명 검색\n×\n서울숲 자전거길 1\n서울숲 자전거길 2\n서울숲 자전거길 3\n서울숲 자전거길 4\n서울숲 자전거길 5\n서울숲 자전거길 6\n서울숲 자전거길 7\n서울숲 자전거길 8\n서울숲 자전거길 9\n서울숲 자전거길 10\n서울숲 자전거길 11\n서울숲 자전거길 12",
+        "scrollX": 0,
+        "bodyScrollY": 14,
+        "listScrollY": 199,
+        "fully": 4,
+        "styles": [
+          {
+            "role": "button",
+            "font": "17.6px",
+            "padding": "1px 6px",
+            "lineHeight": "17.6px",
+            "h": 25.59375
+          },
+          {
+            "role": "search",
+            "font": "13.44px",
+            "padding": "6.08px 8px",
+            "lineHeight": "20.16px",
+            "h": 34.3125
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          }
+        ]
+      },
+      "after": {
+        "w": 480,
+        "h": 434.234375,
+        "x": 10.390625,
+        "y": 51.1875,
+        "text": "지명 검색\n×\n서울숲 자전거길 1\n서울숲 자전거길 2\n서울숲 자전거길 3\n서울숲 자전거길 4\n서울숲 자전거길 5\n서울숲 자전거길 6\n서울숲 자전거길 7\n서울숲 자전거길 8\n서울숲 자전거길 9\n서울숲 자전거길 10\n서울숲 자전거길 11\n서울숲 자전거길 12",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 12,
+        "styles": [
+          {
+            "role": "button",
+            "font": "17.6px",
+            "padding": "1px 6px",
+            "lineHeight": "17.6px",
+            "h": 25.59375
+          },
+          {
+            "role": "search",
+            "font": "13.44px",
+            "padding": "6.08px 8px",
+            "lineHeight": "20.16px",
+            "h": 34.3125
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "long",
+      "before": {
+        "w": 296,
+        "h": 224,
+        "x": 10.390625,
+        "y": 51.1875,
+        "text": "지명 검색\n×\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 1\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 2\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 3\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 4\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 5\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 6\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 7\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 8\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 9\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 10\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 11\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 12",
+        "scrollX": 0,
+        "bodyScrollY": 14,
+        "listScrollY": 393,
+        "fully": 3,
+        "styles": [
+          {
+            "role": "button",
+            "font": "17.6px",
+            "padding": "1px 6px",
+            "lineHeight": "17.6px",
+            "h": 25.59375
+          },
+          {
+            "role": "search",
+            "font": "13.44px",
+            "padding": "6.08px 8px",
+            "lineHeight": "20.16px",
+            "h": 34.3125
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          }
+        ]
+      },
+      "after": {
+        "w": 480,
+        "h": 434.234375,
+        "x": 10.390625,
+        "y": 51.1875,
+        "text": "지명 검색\n×\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 1\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 2\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 3\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 4\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 5\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 6\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 7\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 8\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 9\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 10\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 11\n대한민국 서울특별시 성동구 성수동 서울숲 공원 자전거길 긴 주소와 장소 이름 12",
+        "scrollX": 0,
+        "bodyScrollY": 0,
+        "listScrollY": 0,
+        "fully": 12,
+        "styles": [
+          {
+            "role": "button",
+            "font": "17.6px",
+            "padding": "1px 6px",
+            "lineHeight": "17.6px",
+            "h": 25.59375
+          },
+          {
+            "role": "search",
+            "font": "13.44px",
+            "padding": "6.08px 8px",
+            "lineHeight": "20.16px",
+            "h": 34.3125
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          },
+          {
+            "role": "option",
+            "font": "12.48px",
+            "padding": "6.08px 8px",
+            "lineHeight": "16.224px",
+            "h": null
+          }
+        ]
+      }
+    }
+  ],
+  "events": [
+    [
+      "pick",
+      [
+        128,
+        38
+      ],
+      "서울숲 자전거길 1",
+      [
+        127,
+        37,
+        129,
+        39
+      ]
+    ],
+    [
+      "pick",
+      [
+        127,
+        37
+      ],
+      "서울숲 자전거길 1",
+      null
+    ],
+    [
+      "close"
+    ],
+    [
+      "close"
+    ],
+    [
+      "close"
+    ]
+  ],
+  "errors": [],
+  "note": "Mock geocode service; no real API, map or device keyboard."
+}

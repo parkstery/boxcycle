@@ -1,0 +1,10 @@
+diff --git a/document/ops/README.md b/document/ops/README.md
+--- a/document/ops/README.md
++++ b/document/ops/README.md
+@@ -46,0 +47 @@
++| [20261013-face-redesign2](20261013-face-redesign2/README.md) | **APPROVED** · 디자인1차마감·main2통합 | 밝은컬러·프로필/계정밀도·맵뷰하단여백 | [결과14](20261013-face-redesign2/03-result-14-integration.md) | — |
+diff --git a/document/ops/PROGRESS.md b/document/ops/PROGRESS.md
+--- a/document/ops/PROGRESS.md
++++ b/document/ops/PROGRESS.md
+@@ -6,0 +7 @@
++| [face-redesign2 UI](20261013-face-redesign2/README.md) | APPROVED · 디자인1차마감·main2통합 | Codex | Muse/교대Cursor | 1차마감·커밋/푸시/병합승인 | [결과14](20261013-face-redesign2/03-result-14-integration.md) 코드8fdedae·1066시험통과 | 실기기·실제인증미검증 | main2원격동기화·운영배포미실행 |

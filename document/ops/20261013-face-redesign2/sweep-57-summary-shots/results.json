@@ -1,0 +1,6045 @@
+{
+  "rows": [
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "complete",
+      "before": {
+        "w": 237.59375,
+        "h": 90.765625,
+        "scrollX": 6,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n새 도로\n✕\n+1.20\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-value",
+            "font": "24.975px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          }
+        ]
+      },
+      "after": {
+        "w": 237.59375,
+        "h": 82.125,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n새 도로\n✕\n+1.20\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-value",
+            "font": "24.975px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "pending",
+      "before": {
+        "w": 237.59375,
+        "h": 90.765625,
+        "scrollX": 111,
+        "statsOverflowX": 121,
+        "scrollY": 0,
+        "text": "주행 결과km\n20% → 50%\n새 도로\n✕\n\n새 도로 확인 중…\n\n10.0km 중\n5.0km\n남은 5.0km\n20:00\n15.0 km/h\n추정 140 kcal\n주행 저장 중…\n진행률 저장 중…",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__heroes-badge",
+            "font": "8.37px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-status",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__progress",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "15.525px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-left",
+            "font": "8.91px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--pending",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--pending",
+            "font": "12.3867px"
+          }
+        ]
+      },
+      "after": {
+        "w": 237.59375,
+        "h": 100,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n20% → 50%\n새 도로\n✕\n\n새 도로 확인 중…\n\n10.0km 중\n5.0km\n남은 5.0km\n20:00\n15.0 km/h\n추정 140 kcal\n주행 저장 중…\n진행률 저장 중…",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__heroes-badge",
+            "font": "8.37px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-status",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__progress",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "15.525px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-left",
+            "font": "8.91px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--pending",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--pending",
+            "font": "12.3867px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "guest",
+      "before": {
+        "w": 237.59375,
+        "h": 174,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 22,
+        "text": "주행 결과km\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal\n게스트 기록은 로그아웃하면 사라집니다. Google을 연결하면 이번 주행과 내 도로망이 그대로 남습니다.\nGoogle 연결\n내 경로로 저장\n저장 안 함",
+        "controls": [
+          {
+            "label": "Google 연결",
+            "w": 63.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          },
+          {
+            "label": "",
+            "w": 217.25,
+            "h": 23.6875,
+            "font": "10.53px"
+          },
+          {
+            "label": "내 경로로 저장",
+            "w": 70.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          },
+          {
+            "label": "저장 안 함",
+            "w": 54.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main ride-summary__heroes-main--solo",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__guest-cta",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__guest-cta-copy",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--primary ride-summary__guest-cta-btn",
+            "font": "10.26px"
+          },
+          {
+            "cls": "ride-summary__form",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__input",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__form-btns",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--ghost",
+            "font": "10.26px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--ghost",
+            "font": "10.26px"
+          }
+        ]
+      },
+      "after": {
+        "w": 237.59375,
+        "h": 174,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 7,
+        "text": "주행 결과km\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal\n게스트 기록은 로그아웃하면 사라집니다. Google을 연결하면 이번 주행과 내 도로망이 그대로 남습니다.\nGoogle 연결\n내 경로로 저장\n저장 안 함",
+        "controls": [
+          {
+            "label": "Google 연결",
+            "w": 63.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          },
+          {
+            "label": "",
+            "w": 217.25,
+            "h": 23.6875,
+            "font": "10.53px"
+          },
+          {
+            "label": "내 경로로 저장",
+            "w": 70.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          },
+          {
+            "label": "저장 안 함",
+            "w": 54.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main ride-summary__heroes-main--solo",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__guest-cta",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__guest-cta-copy",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--primary ride-summary__guest-cta-btn",
+            "font": "10.26px"
+          },
+          {
+            "cls": "ride-summary__form",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__input",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__form-btns",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--ghost",
+            "font": "10.26px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--ghost",
+            "font": "10.26px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "error",
+      "before": {
+        "w": 237.59375,
+        "h": 90.765625,
+        "scrollX": 143,
+        "statsOverflowX": 154,
+        "scrollY": 0,
+        "text": "주행 결과km\n새 도로\n✕\n\n새 도로를 확인하지 못했어요\n\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal\n⚠ 주행 저장 실패\n⚠ 진행률 저장 실패",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-status",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--failed",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--failed",
+            "font": "12.3867px"
+          }
+        ]
+      },
+      "after": {
+        "w": 237.59375,
+        "h": 100,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n새 도로\n✕\n\n새 도로를 확인하지 못했어요\n\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal\n⚠ 주행 저장 실패\n⚠ 진행률 저장 실패",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-status",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--failed",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--failed",
+            "font": "12.3867px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "complete",
+      "before": {
+        "w": 237.59375,
+        "h": 90.765625,
+        "scrollX": 6,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n새 도로\n✕\n+1.20\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-value",
+            "font": "24.975px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          }
+        ]
+      },
+      "after": {
+        "w": 237.59375,
+        "h": 82.125,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n새 도로\n✕\n+1.20\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-value",
+            "font": "24.975px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "pending",
+      "before": {
+        "w": 237.59375,
+        "h": 90.765625,
+        "scrollX": 111,
+        "statsOverflowX": 121,
+        "scrollY": 0,
+        "text": "주행 결과km\n20% → 50%\n새 도로\n✕\n\n새 도로 확인 중…\n\n10.0km 중\n5.0km\n남은 5.0km\n20:00\n15.0 km/h\n추정 140 kcal\n주행 저장 중…\n진행률 저장 중…",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__heroes-badge",
+            "font": "8.37px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-status",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__progress",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "15.525px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-left",
+            "font": "8.91px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--pending",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--pending",
+            "font": "12.3867px"
+          }
+        ]
+      },
+      "after": {
+        "w": 237.59375,
+        "h": 100,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n20% → 50%\n새 도로\n✕\n\n새 도로 확인 중…\n\n10.0km 중\n5.0km\n남은 5.0km\n20:00\n15.0 km/h\n추정 140 kcal\n주행 저장 중…\n진행률 저장 중…",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__heroes-badge",
+            "font": "8.37px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-status",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__progress",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "15.525px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-left",
+            "font": "8.91px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--pending",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--pending",
+            "font": "12.3867px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "guest",
+      "before": {
+        "w": 237.59375,
+        "h": 174,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 22,
+        "text": "주행 결과km\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal\n게스트 기록은 로그아웃하면 사라집니다. Google을 연결하면 이번 주행과 내 도로망이 그대로 남습니다.\nGoogle 연결\n내 경로로 저장\n저장 안 함",
+        "controls": [
+          {
+            "label": "Google 연결",
+            "w": 63.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          },
+          {
+            "label": "",
+            "w": 217.25,
+            "h": 23.6875,
+            "font": "10.53px"
+          },
+          {
+            "label": "내 경로로 저장",
+            "w": 70.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          },
+          {
+            "label": "저장 안 함",
+            "w": 54.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main ride-summary__heroes-main--solo",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__guest-cta",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__guest-cta-copy",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--primary ride-summary__guest-cta-btn",
+            "font": "10.26px"
+          },
+          {
+            "cls": "ride-summary__form",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__input",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__form-btns",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--ghost",
+            "font": "10.26px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--ghost",
+            "font": "10.26px"
+          }
+        ]
+      },
+      "after": {
+        "w": 237.59375,
+        "h": 174,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 7,
+        "text": "주행 결과km\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal\n게스트 기록은 로그아웃하면 사라집니다. Google을 연결하면 이번 주행과 내 도로망이 그대로 남습니다.\nGoogle 연결\n내 경로로 저장\n저장 안 함",
+        "controls": [
+          {
+            "label": "Google 연결",
+            "w": 63.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          },
+          {
+            "label": "",
+            "w": 217.25,
+            "h": 23.6875,
+            "font": "10.53px"
+          },
+          {
+            "label": "내 경로로 저장",
+            "w": 70.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          },
+          {
+            "label": "저장 안 함",
+            "w": 54.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main ride-summary__heroes-main--solo",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__guest-cta",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__guest-cta-copy",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--primary ride-summary__guest-cta-btn",
+            "font": "10.26px"
+          },
+          {
+            "cls": "ride-summary__form",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__input",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__form-btns",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--ghost",
+            "font": "10.26px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--ghost",
+            "font": "10.26px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "error",
+      "before": {
+        "w": 237.59375,
+        "h": 90.765625,
+        "scrollX": 143,
+        "statsOverflowX": 154,
+        "scrollY": 0,
+        "text": "주행 결과km\n새 도로\n✕\n\n새 도로를 확인하지 못했어요\n\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal\n⚠ 주행 저장 실패\n⚠ 진행률 저장 실패",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-status",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--failed",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--failed",
+            "font": "12.3867px"
+          }
+        ]
+      },
+      "after": {
+        "w": 237.59375,
+        "h": 100,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n새 도로\n✕\n\n새 도로를 확인하지 못했어요\n\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal\n⚠ 주행 저장 실패\n⚠ 진행률 저장 실패",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-status",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--failed",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--failed",
+            "font": "12.3867px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "complete",
+      "before": {
+        "w": 237.59375,
+        "h": 90.765625,
+        "scrollX": 6,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n새 도로\n✕\n+1.20\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-value",
+            "font": "24.975px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          }
+        ]
+      },
+      "after": {
+        "w": 237.59375,
+        "h": 82.125,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n새 도로\n✕\n+1.20\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-value",
+            "font": "24.975px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "pending",
+      "before": {
+        "w": 237.59375,
+        "h": 90.765625,
+        "scrollX": 111,
+        "statsOverflowX": 121,
+        "scrollY": 0,
+        "text": "주행 결과km\n20% → 50%\n새 도로\n✕\n\n새 도로 확인 중…\n\n10.0km 중\n5.0km\n남은 5.0km\n20:00\n15.0 km/h\n추정 140 kcal\n주행 저장 중…\n진행률 저장 중…",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__heroes-badge",
+            "font": "8.37px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-status",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__progress",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "15.525px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-left",
+            "font": "8.91px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--pending",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--pending",
+            "font": "12.3867px"
+          }
+        ]
+      },
+      "after": {
+        "w": 237.59375,
+        "h": 100,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n20% → 50%\n새 도로\n✕\n\n새 도로 확인 중…\n\n10.0km 중\n5.0km\n남은 5.0km\n20:00\n15.0 km/h\n추정 140 kcal\n주행 저장 중…\n진행률 저장 중…",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__heroes-badge",
+            "font": "8.37px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-status",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__progress",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "15.525px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-left",
+            "font": "8.91px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--pending",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--pending",
+            "font": "12.3867px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "guest",
+      "before": {
+        "w": 237.59375,
+        "h": 193.78125,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal\n게스트 기록은 로그아웃하면 사라집니다. Google을 연결하면 이번 주행과 내 도로망이 그대로 남습니다.\nGoogle 연결\n내 경로로 저장\n저장 안 함",
+        "controls": [
+          {
+            "label": "Google 연결",
+            "w": 63.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          },
+          {
+            "label": "",
+            "w": 217.25,
+            "h": 23.6875,
+            "font": "10.53px"
+          },
+          {
+            "label": "내 경로로 저장",
+            "w": 70.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          },
+          {
+            "label": "저장 안 함",
+            "w": 54.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main ride-summary__heroes-main--solo",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__guest-cta",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__guest-cta-copy",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--primary ride-summary__guest-cta-btn",
+            "font": "10.26px"
+          },
+          {
+            "cls": "ride-summary__form",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__input",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__form-btns",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--ghost",
+            "font": "10.26px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--ghost",
+            "font": "10.26px"
+          }
+        ]
+      },
+      "after": {
+        "w": 237.59375,
+        "h": 181.890625,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal\n게스트 기록은 로그아웃하면 사라집니다. Google을 연결하면 이번 주행과 내 도로망이 그대로 남습니다.\nGoogle 연결\n내 경로로 저장\n저장 안 함",
+        "controls": [
+          {
+            "label": "Google 연결",
+            "w": 63.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          },
+          {
+            "label": "",
+            "w": 217.25,
+            "h": 23.6875,
+            "font": "10.53px"
+          },
+          {
+            "label": "내 경로로 저장",
+            "w": 70.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          },
+          {
+            "label": "저장 안 함",
+            "w": 54.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main ride-summary__heroes-main--solo",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__guest-cta",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__guest-cta-copy",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--primary ride-summary__guest-cta-btn",
+            "font": "10.26px"
+          },
+          {
+            "cls": "ride-summary__form",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__input",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__form-btns",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--ghost",
+            "font": "10.26px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--ghost",
+            "font": "10.26px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "error",
+      "before": {
+        "w": 237.59375,
+        "h": 90.765625,
+        "scrollX": 143,
+        "statsOverflowX": 154,
+        "scrollY": 0,
+        "text": "주행 결과km\n새 도로\n✕\n\n새 도로를 확인하지 못했어요\n\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal\n⚠ 주행 저장 실패\n⚠ 진행률 저장 실패",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-status",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--failed",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--failed",
+            "font": "12.3867px"
+          }
+        ]
+      },
+      "after": {
+        "w": 237.59375,
+        "h": 100,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n새 도로\n✕\n\n새 도로를 확인하지 못했어요\n\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal\n⚠ 주행 저장 실패\n⚠ 진행률 저장 실패",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-status",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--failed",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--failed",
+            "font": "12.3867px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "complete",
+      "before": {
+        "w": 281.59375,
+        "h": 106.546875,
+        "scrollX": 3,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n새 도로\n✕\n+1.20\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 24.3125,
+            "h": 24.3125,
+            "font": "15.2px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "13.6px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "9.792px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "12.48px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "15.2px"
+          },
+          {
+            "cls": "",
+            "font": "15.2px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__conquest-value",
+            "font": "29.6px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "20px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "11.84px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "14.1867px"
+          }
+        ]
+      },
+      "after": {
+        "w": 281.59375,
+        "h": 96.3125,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n새 도로\n✕\n+1.20\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 24.3125,
+            "h": 24.3125,
+            "font": "15.2px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "13.6px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "9.792px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "12.48px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "15.2px"
+          },
+          {
+            "cls": "",
+            "font": "15.2px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__conquest-value",
+            "font": "29.6px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "20px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "11.84px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "14.1867px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "pending",
+      "before": {
+        "w": 281.59375,
+        "h": 106.546875,
+        "scrollX": 88,
+        "statsOverflowX": 101,
+        "scrollY": 0,
+        "text": "주행 결과km\n20% → 50%\n새 도로\n✕\n\n새 도로 확인 중…\n\n10.0km 중\n5.0km\n남은 5.0km\n20:00\n15.0 km/h\n추정 140 kcal\n주행 저장 중…\n진행률 저장 중…",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 24.3125,
+            "h": 24.3125,
+            "font": "15.2px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "13.6px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "9.792px"
+          },
+          {
+            "cls": "ride-summary__heroes-badge",
+            "font": "9.92px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "12.48px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "15.2px"
+          },
+          {
+            "cls": "",
+            "font": "15.2px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__conquest-status",
+            "font": "12.48px"
+          },
+          {
+            "cls": "ride-summary__progress",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "11.84px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "18.4px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-left",
+            "font": "10.56px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--pending",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--pending",
+            "font": "14.1867px"
+          }
+        ]
+      },
+      "after": {
+        "w": 281.59375,
+        "h": 116.90625,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n20% → 50%\n새 도로\n✕\n\n새 도로 확인 중…\n\n10.0km 중\n5.0km\n남은 5.0km\n20:00\n15.0 km/h\n추정 140 kcal\n주행 저장 중…\n진행률 저장 중…",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 24.3125,
+            "h": 24.3125,
+            "font": "15.2px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "13.6px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "9.792px"
+          },
+          {
+            "cls": "ride-summary__heroes-badge",
+            "font": "9.92px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "12.48px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "15.2px"
+          },
+          {
+            "cls": "",
+            "font": "15.2px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__conquest-status",
+            "font": "12.48px"
+          },
+          {
+            "cls": "ride-summary__progress",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "11.84px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "18.4px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-left",
+            "font": "10.56px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--pending",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--pending",
+            "font": "14.1867px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "guest",
+      "before": {
+        "w": 281.59375,
+        "h": 227.609375,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal\n게스트 기록은 로그아웃하면 사라집니다. Google을 연결하면 이번 주행과 내 도로망이 그대로 남습니다.\nGoogle 연결\n내 경로로 저장\n저장 안 함",
+        "controls": [
+          {
+            "label": "Google 연결",
+            "w": 77.1875,
+            "h": 28.09375,
+            "font": "12.16px"
+          },
+          {
+            "label": "",
+            "w": 257.84375,
+            "h": 27.71875,
+            "font": "12.48px"
+          },
+          {
+            "label": "내 경로로 저장",
+            "w": 87.1875,
+            "h": 28.09375,
+            "font": "12.16px"
+          },
+          {
+            "label": "저장 안 함",
+            "w": 67.1875,
+            "h": 28.09375,
+            "font": "12.16px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__head",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "13.6px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "9.792px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__heroes-main ride-summary__heroes-main--solo",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "20px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "11.84px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__guest-cta",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__guest-cta-copy",
+            "font": "11.84px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--primary ride-summary__guest-cta-btn",
+            "font": "12.16px"
+          },
+          {
+            "cls": "ride-summary__form",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__input",
+            "font": "12.48px"
+          },
+          {
+            "cls": "ride-summary__form-btns",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--ghost",
+            "font": "12.16px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--ghost",
+            "font": "12.16px"
+          }
+        ]
+      },
+      "after": {
+        "w": 281.59375,
+        "h": 213.53125,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal\n게스트 기록은 로그아웃하면 사라집니다. Google을 연결하면 이번 주행과 내 도로망이 그대로 남습니다.\nGoogle 연결\n내 경로로 저장\n저장 안 함",
+        "controls": [
+          {
+            "label": "Google 연결",
+            "w": 77.1875,
+            "h": 28.09375,
+            "font": "12.16px"
+          },
+          {
+            "label": "",
+            "w": 257.84375,
+            "h": 27.71875,
+            "font": "12.48px"
+          },
+          {
+            "label": "내 경로로 저장",
+            "w": 87.1875,
+            "h": 28.09375,
+            "font": "12.16px"
+          },
+          {
+            "label": "저장 안 함",
+            "w": 67.1875,
+            "h": 28.09375,
+            "font": "12.16px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__head",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "13.6px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "9.792px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__heroes-main ride-summary__heroes-main--solo",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "20px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "11.84px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__guest-cta",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__guest-cta-copy",
+            "font": "11.84px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--primary ride-summary__guest-cta-btn",
+            "font": "12.16px"
+          },
+          {
+            "cls": "ride-summary__form",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__input",
+            "font": "12.48px"
+          },
+          {
+            "cls": "ride-summary__form-btns",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--ghost",
+            "font": "12.16px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--ghost",
+            "font": "12.16px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "error",
+      "before": {
+        "w": 281.59375,
+        "h": 106.546875,
+        "scrollX": 120,
+        "statsOverflowX": 134,
+        "scrollY": 0,
+        "text": "주행 결과km\n새 도로\n✕\n\n새 도로를 확인하지 못했어요\n\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal\n⚠ 주행 저장 실패\n⚠ 진행률 저장 실패",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 24.3125,
+            "h": 24.3125,
+            "font": "15.2px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "13.6px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "9.792px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "12.48px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "15.2px"
+          },
+          {
+            "cls": "",
+            "font": "15.2px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__conquest-status",
+            "font": "12.48px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "20px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "11.84px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--failed",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--failed",
+            "font": "14.1867px"
+          }
+        ]
+      },
+      "after": {
+        "w": 281.59375,
+        "h": 116.90625,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n새 도로\n✕\n\n새 도로를 확인하지 못했어요\n\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal\n⚠ 주행 저장 실패\n⚠ 진행률 저장 실패",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 24.3125,
+            "h": 24.3125,
+            "font": "15.2px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "13.6px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "9.792px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "12.48px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "15.2px"
+          },
+          {
+            "cls": "",
+            "font": "15.2px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__conquest-status",
+            "font": "12.48px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "20px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "11.84px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "16px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--failed",
+            "font": "14.1867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--failed",
+            "font": "14.1867px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 180
+      },
+      "state": "complete",
+      "before": {
+        "w": 237.59375,
+        "h": 90.765625,
+        "scrollX": 6,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n새 도로\n✕\n+1.20\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-value",
+            "font": "24.975px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          }
+        ]
+      },
+      "after": {
+        "w": 237.59375,
+        "h": 82.125,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n새 도로\n✕\n+1.20\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-value",
+            "font": "24.975px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 180
+      },
+      "state": "pending",
+      "before": {
+        "w": 237.59375,
+        "h": 90.765625,
+        "scrollX": 111,
+        "statsOverflowX": 121,
+        "scrollY": 0,
+        "text": "주행 결과km\n20% → 50%\n새 도로\n✕\n\n새 도로 확인 중…\n\n10.0km 중\n5.0km\n남은 5.0km\n20:00\n15.0 km/h\n추정 140 kcal\n주행 저장 중…\n진행률 저장 중…",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__heroes-badge",
+            "font": "8.37px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-status",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__progress",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "15.525px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-left",
+            "font": "8.91px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--pending",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--pending",
+            "font": "12.3867px"
+          }
+        ]
+      },
+      "after": {
+        "w": 237.59375,
+        "h": 100,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n20% → 50%\n새 도로\n✕\n\n새 도로 확인 중…\n\n10.0km 중\n5.0km\n남은 5.0km\n20:00\n15.0 km/h\n추정 140 kcal\n주행 저장 중…\n진행률 저장 중…",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__heroes-badge",
+            "font": "8.37px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-status",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__progress",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "15.525px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-left",
+            "font": "8.91px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--pending",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--pending",
+            "font": "12.3867px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 180
+      },
+      "state": "guest",
+      "before": {
+        "w": 237.59375,
+        "h": 104.390625,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 109,
+        "text": "주행 결과km\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal\n게스트 기록은 로그아웃하면 사라집니다. Google을 연결하면 이번 주행과 내 도로망이 그대로 남습니다.\nGoogle 연결\n내 경로로 저장\n저장 안 함",
+        "controls": [
+          {
+            "label": "Google 연결",
+            "w": 63.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          },
+          {
+            "label": "",
+            "w": 217.25,
+            "h": 23.6875,
+            "font": "10.53px"
+          },
+          {
+            "label": "내 경로로 저장",
+            "w": 70.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          },
+          {
+            "label": "저장 안 함",
+            "w": 54.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main ride-summary__heroes-main--solo",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__guest-cta",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__guest-cta-copy",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--primary ride-summary__guest-cta-btn",
+            "font": "10.26px"
+          },
+          {
+            "cls": "ride-summary__form",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__input",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__form-btns",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--ghost",
+            "font": "10.26px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--ghost",
+            "font": "10.26px"
+          }
+        ]
+      },
+      "after": {
+        "w": 237.59375,
+        "h": 104.390625,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 94,
+        "text": "주행 결과km\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal\n게스트 기록은 로그아웃하면 사라집니다. Google을 연결하면 이번 주행과 내 도로망이 그대로 남습니다.\nGoogle 연결\n내 경로로 저장\n저장 안 함",
+        "controls": [
+          {
+            "label": "Google 연결",
+            "w": 63.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          },
+          {
+            "label": "",
+            "w": 217.25,
+            "h": 23.6875,
+            "font": "10.53px"
+          },
+          {
+            "label": "내 경로로 저장",
+            "w": 70.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          },
+          {
+            "label": "저장 안 함",
+            "w": 54.1875,
+            "h": 24.015625,
+            "font": "10.26px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main ride-summary__heroes-main--solo",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__guest-cta",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__guest-cta-copy",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--primary ride-summary__guest-cta-btn",
+            "font": "10.26px"
+          },
+          {
+            "cls": "ride-summary__form",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__input",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__form-btns",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--ghost",
+            "font": "10.26px"
+          },
+          {
+            "cls": "ride-summary__btn ride-summary__btn--ghost",
+            "font": "10.26px"
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 180
+      },
+      "state": "error",
+      "before": {
+        "w": 237.59375,
+        "h": 90.765625,
+        "scrollX": 143,
+        "statsOverflowX": 154,
+        "scrollY": 0,
+        "text": "주행 결과km\n새 도로\n✕\n\n새 도로를 확인하지 못했어요\n\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal\n⚠ 주행 저장 실패\n⚠ 진행률 저장 실패",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-status",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--failed",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--failed",
+            "font": "12.3867px"
+          }
+        ]
+      },
+      "after": {
+        "w": 237.59375,
+        "h": 100,
+        "scrollX": 0,
+        "statsOverflowX": 0,
+        "scrollY": 0,
+        "text": "주행 결과km\n새 도로\n✕\n\n새 도로를 확인하지 못했어요\n\n10.0km\n완주\n20:00\n15.0 km/h\n추정 140 kcal\n⚠ 주행 저장 실패\n⚠ 진행률 저장 실패",
+        "controls": [
+          {
+            "label": "닫기",
+            "w": 20.515625,
+            "h": 20.515625,
+            "font": "12.825px"
+          }
+        ],
+        "fonts": [
+          {
+            "cls": "ride-summary__handle",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head ride-summary__head--with-close ride-summary__head--split",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__head-left",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__title",
+            "font": "11.475px"
+          },
+          {
+            "cls": "ride-summary__title-unit",
+            "font": "8.262px"
+          },
+          {
+            "cls": "ride-summary__head-newroad",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__close",
+            "font": "12.825px"
+          },
+          {
+            "cls": "",
+            "font": "12.825px"
+          },
+          {
+            "cls": "ride-summary__heroes",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__heroes-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-hero",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__conquest-status",
+            "font": "10.53px"
+          },
+          {
+            "cls": "ride-summary__progress ride-summary__progress--done",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-text",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-main",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-v",
+            "font": "16.875px"
+          },
+          {
+            "cls": "ride-summary__progress-of",
+            "font": "9.99px"
+          },
+          {
+            "cls": "ride-summary__progress-track",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-bar",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-before",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__progress-this",
+            "font": "13.5px"
+          },
+          {
+            "cls": "ride-summary__substats",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat-metric",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__substat ride-summary__status",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--failed",
+            "font": "12.3867px"
+          },
+          {
+            "cls": "ride-summary__status-item ride-summary__status-item--failed",
+            "font": "12.3867px"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": []
+}

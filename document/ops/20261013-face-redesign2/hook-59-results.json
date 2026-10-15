@@ -1,0 +1,11 @@
+{
+  "PASS": true,
+  "checks": [
+    "geometry identity and stable Dispatch preserved",
+    "same geometry reload gets fresh token",
+    "unrelated render preserves token",
+    "functional setter supported",
+    "delete clears token"
+  ],
+  "errors": []
+}

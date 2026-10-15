@@ -1,0 +1,36 @@
+[
+  {
+    "viewport": {
+      "width": 740,
+      "height": 300
+    },
+    "positionDistancePosition": true,
+    "bridge": {
+      "mode": false,
+      "active": false
+    },
+    "rect": {
+      "x": 549,
+      "y": 141,
+      "w": 182.25,
+      "h": 150.390625
+    }
+  },
+  {
+    "viewport": {
+      "width": 844,
+      "height": 390
+    },
+    "positionDistancePosition": true,
+    "bridge": {
+      "mode": false,
+      "active": false
+    },
+    "rect": {
+      "x": 9,
+      "y": 120,
+      "w": 182.25,
+      "h": 150.390625
+    }
+  }
+]

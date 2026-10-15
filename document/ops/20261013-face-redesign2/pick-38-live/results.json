@@ -1,0 +1,350 @@
+{
+  "rows": [
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "location",
+      "rect": {
+        "x": 475,
+        "y": 127,
+        "w": 184.25,
+        "h": 165.046875,
+        "bottom": 292.046875,
+        "right": 659.25,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "bottom": 300,
+          "right": 667
+        },
+        "overflowY": 0,
+        "overflowX": 0
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "both",
+      "rect": {
+        "x": 241.5,
+        "y": 8,
+        "w": 184.25,
+        "h": 261.359375,
+        "bottom": 269.359375,
+        "right": 425.75,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "bottom": 300,
+          "right": 667
+        },
+        "overflowY": 0,
+        "overflowX": 0
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "collapse",
+      "rect": {
+        "x": 475,
+        "y": 127,
+        "w": 184.25,
+        "h": 165.046875,
+        "bottom": 292.046875,
+        "right": 659.25,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "bottom": 300,
+          "right": 667
+        },
+        "overflowY": 0,
+        "overflowX": 0
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "reactivate",
+      "rect": {
+        "x": 241.5,
+        "y": 8,
+        "w": 184.25,
+        "h": 261.359375,
+        "bottom": 269.359375,
+        "right": 425.75,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "bottom": 300,
+          "right": 667
+        },
+        "overflowY": 0,
+        "overflowX": 0
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "drag",
+      "rect": {
+        "x": 201.5,
+        "y": 18,
+        "w": 184.25,
+        "h": 261.359375,
+        "bottom": 279.359375,
+        "right": 385.75,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "bottom": 300,
+          "right": 667
+        },
+        "overflowY": 0,
+        "overflowX": 0
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "location",
+      "rect": {
+        "x": 548,
+        "y": 127,
+        "w": 184.25,
+        "h": 165.046875,
+        "bottom": 292.046875,
+        "right": 732.25,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "bottom": 300,
+          "right": 740
+        },
+        "overflowY": 0,
+        "overflowX": 0
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "both",
+      "rect": {
+        "x": 278,
+        "y": 8,
+        "w": 184.25,
+        "h": 261.359375,
+        "bottom": 269.359375,
+        "right": 462.25,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "bottom": 300,
+          "right": 740
+        },
+        "overflowY": 0,
+        "overflowX": 0
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "collapse",
+      "rect": {
+        "x": 548,
+        "y": 127,
+        "w": 184.25,
+        "h": 165.046875,
+        "bottom": 292.046875,
+        "right": 732.25,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "bottom": 300,
+          "right": 740
+        },
+        "overflowY": 0,
+        "overflowX": 0
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "reactivate",
+      "rect": {
+        "x": 278,
+        "y": 8,
+        "w": 184.25,
+        "h": 261.359375,
+        "bottom": 269.359375,
+        "right": 462.25,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "bottom": 300,
+          "right": 740
+        },
+        "overflowY": 0,
+        "overflowX": 0
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "drag",
+      "rect": {
+        "x": 238,
+        "y": 18,
+        "w": 184.25,
+        "h": 261.359375,
+        "bottom": 279.359375,
+        "right": 422.25,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "bottom": 300,
+          "right": 740
+        },
+        "overflowY": 0,
+        "overflowX": 0
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "location",
+      "rect": {
+        "x": 8,
+        "y": 112.5,
+        "w": 184.25,
+        "h": 165.046875,
+        "bottom": 277.546875,
+        "right": 192.25,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "bottom": 390,
+          "right": 844
+        },
+        "overflowY": 0,
+        "overflowX": 0
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "both",
+      "rect": {
+        "x": 652,
+        "y": 121,
+        "w": 184.25,
+        "h": 261.359375,
+        "bottom": 382.359375,
+        "right": 836.25,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "bottom": 390,
+          "right": 844
+        },
+        "overflowY": 0,
+        "overflowX": 0
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "collapse",
+      "rect": {
+        "x": 8,
+        "y": 112.5,
+        "w": 184.25,
+        "h": 165.046875,
+        "bottom": 277.546875,
+        "right": 192.25,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "bottom": 390,
+          "right": 844
+        },
+        "overflowY": 0,
+        "overflowX": 0
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "reactivate",
+      "rect": {
+        "x": 652,
+        "y": 121,
+        "w": 184.25,
+        "h": 261.359375,
+        "bottom": 382.359375,
+        "right": 836.25,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "bottom": 390,
+          "right": 844
+        },
+        "overflowY": 0,
+        "overflowX": 0
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "drag",
+      "rect": {
+        "x": 612,
+        "y": 121,
+        "w": 184.25,
+        "h": 261.359375,
+        "bottom": 382.359375,
+        "right": 796.25,
+        "canvas": {
+          "x": 0,
+          "y": 0,
+          "bottom": 390,
+          "right": 844
+        },
+        "overflowY": 0,
+        "overflowX": 0
+      }
+    }
+  ],
+  "errors": []
+}

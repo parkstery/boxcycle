@@ -1,0 +1,59 @@
+{
+  "rows": [
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "before": {
+        "panel": {
+          "x": 140,
+          "y": 29.421875,
+          "w": 460,
+          "h": 241.15625
+        },
+        "fullRows": 4,
+        "list": {
+          "x": 149.09375,
+          "y": 78.484375,
+          "w": 441.8125,
+          "h": 183,
+          "clientH": 182
+        }
+      },
+      "after": {
+        "panel": {
+          "x": 140,
+          "y": 53.421875,
+          "w": 460,
+          "h": 193.15625
+        },
+        "fullRows": 4,
+        "list": {
+          "x": 149.09375,
+          "y": 102.484375,
+          "w": 441.8125,
+          "h": 135,
+          "clientH": 134
+        }
+      },
+      "comparison": [
+        {
+          "dialog": "퍼블릭 경로",
+          "geometryUnchanged": true
+        },
+        {
+          "dialog": "내 경로",
+          "geometryUnchanged": true
+        }
+      ],
+      "functions": {
+        "entry": true,
+        "search": true,
+        "sort": true,
+        "escapeClose": true
+      }
+    }
+  ],
+  "errors": []
+}

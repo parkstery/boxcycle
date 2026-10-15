@@ -1,0 +1,13 @@
+{
+  "rows": [
+    "boot pending no failure",
+    "Google popup pending no failure or retry",
+    "cancel returns to selection; Google can retry",
+    "actual error preserved; retry becomes pending",
+    "stale error hidden while pending",
+    "explicit sign out retained",
+    "automatic guest pending no failure",
+    "authenticated success removes gate"
+  ],
+  "limits": "Actual App and gate; only useAppAuth replaced with deterministic state/callback fixture. All external requests blocked; no real account login or Firebase writes."
+}

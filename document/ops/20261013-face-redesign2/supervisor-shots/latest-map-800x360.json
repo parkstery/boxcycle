@@ -1,0 +1,155 @@
+{
+  "viewport": {
+    "width": 800,
+    "height": 360
+  },
+  "rows": [
+    {
+      "unit": "map",
+      "sel": ".map-view-sheet__panel",
+      "geometryIdentical": true,
+      "geometryDifferences": [],
+      "elements": 41,
+      "style": {
+        "bg": "rgb(255, 255, 255)",
+        "fg": "rgb(31, 41, 55)",
+        "border": "rgb(203, 213, 225)"
+      },
+      "controls": [
+        {
+          "cls": "map-view-sheet__close",
+          "text": "닫기",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)"
+        },
+        {
+          "cls": "map-view-sheet__chip is-active",
+          "text": "끔",
+          "bg": "rgb(37, 99, 235)",
+          "fg": "rgb(255, 255, 255)",
+          "border": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "cls": "map-view-sheet__chip ",
+          "text": "OSRM",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)"
+        },
+        {
+          "cls": "map-view-sheet__chip ",
+          "text": "RTW Dark",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)"
+        },
+        {
+          "cls": "map-view-sheet__chip is-active",
+          "text": "Outdoors",
+          "bg": "rgb(37, 99, 235)",
+          "fg": "rgb(255, 255, 255)",
+          "border": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "cls": "map-view-sheet__chip ",
+          "text": "Satellite",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)"
+        },
+        {
+          "cls": "map-view-sheet__chip ",
+          "text": "free",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)"
+        },
+        {
+          "cls": "map-view-sheet__chip ",
+          "text": "유지",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)"
+        },
+        {
+          "cls": "map-view-sheet__chip ",
+          "text": "상공",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)"
+        },
+        {
+          "cls": "map-view-sheet__chip ",
+          "text": "북향",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)"
+        },
+        {
+          "cls": "map-view-sheet__chip ",
+          "text": "전방",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)"
+        },
+        {
+          "cls": "map-view-sheet__chip ",
+          "text": "후방",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)"
+        },
+        {
+          "cls": "map-view-sheet__chip is-active",
+          "text": "좌측",
+          "bg": "rgb(37, 99, 235)",
+          "fg": "rgb(255, 255, 255)",
+          "border": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "cls": "map-view-sheet__chip ",
+          "text": "우측",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(203, 213, 225)"
+        },
+        {
+          "cls": "map-view-sheet__zoom-step",
+          "text": "−",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(31, 41, 55)",
+          "border": "rgb(203, 213, 225)"
+        },
+        {
+          "cls": "map-view-sheet__zoom-step",
+          "text": "+",
+          "bg": "rgb(241, 245, 249)",
+          "fg": "rgb(31, 41, 55)",
+          "border": "rgb(203, 213, 225)"
+        }
+      ],
+      "beforeRect": {
+        "tag": "DIV",
+        "cls": "map-view-sheet__panel",
+        "x": 565.11,
+        "y": 5.39,
+        "w": 229.5,
+        "h": 349.22,
+        "sw": 228,
+        "sh": 347
+      },
+      "afterRect": {
+        "tag": "DIV",
+        "cls": "map-view-sheet__panel",
+        "x": 565.11,
+        "y": 5.39,
+        "w": 229.5,
+        "h": 349.22,
+        "sw": 228,
+        "sh": 347
+      }
+    }
+  ],
+  "runtimeErrors": []
+}

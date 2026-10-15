@@ -1,0 +1,235 @@
+/* 케이던스 센서 전용 상세 설정 — 주행 설정 시트와 같은 하단 시트 형태를 쓰되 별도 표면이다. */
+
+.cadence-sheet {
+  /* 메뉴 드로어·주행 설정 시트 위 */
+  position: fixed;
+  inset: 0;
+  z-index: 57;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.cadence-sheet__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.32);
+  border: none;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.cadence-sheet__panel {
+  position: relative;
+  z-index: 1;
+  /*
+   * 스피드 바를 종전의 70% 로 줄이고, 줄어든 만큼 시트 폭도 함께 줄인다(2026-09-18 Chief).
+   * 바는 `flex: 1 1 auto` 라 행에서 남는 폭을 혼자 먹는다 — 다른 요소(±·숫자·SPD)는 고정
+   * 폭이므로, 시트에서 뺀 만큼이 그대로 바에서 빠진다.
+   * 실측(폰 가로 루트 13.5px): 바 172.20px → 목표 120.54px(−51.66px),
+   * 시트 297.00px(=22rem) → 245.34px ≈ 18.17rem.
+   */
+  width: min(18.17rem, calc(100vw - 1rem));
+  max-height: 70%;
+  overflow: auto;
+  margin-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  padding: 0.55rem 0.85rem 1rem;
+  border-radius: 14px 14px 12px 12px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  animation: cadence-sheet-up 180ms ease-out;
+  box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.35);
+}
+
+@keyframes cadence-sheet-up {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.cadence-sheet__handle {
+  width: 2.4rem;
+  height: 0.22rem;
+  border-radius: 99px;
+  background: #CBD5E1;
+  align-self: center;
+  margin-bottom: 0.15rem;
+}
+
+.cadence-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.cadence-sheet__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* 제목 옆 연결 상태(2026-09-18 Chief) — 제목보다 조용하게, 붙어 읽히지 않게 띄운다. */
+.cadence-sheet__title-status {
+  margin-left: 0.45rem;
+  font-size: 0.78em;
+  font-weight: 600;
+  color: #64748B;
+  letter-spacing: 0.01em;
+}
+
+.cadence-sheet__close {
+  flex: 0 0 auto;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 650;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #475569;
+  cursor: pointer;
+}
+
+/* 폰 가로 — 시트가 화면을 다 먹지 않게 */
+@media (max-height: 560px) {
+  .cadence-sheet__panel {
+    max-height: 88%;
+    padding: 0.4rem 0.7rem 0.6rem;
+    gap: 0.35rem;
+  }
+}
+
+.cadence-sheet__status {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+/* 전체 장치명은 오직 여기 — 메인 칩에는 절대 넣지 않는다 */
+.cadence-sheet__device {
+  margin: 0;
+  font-size: 0.76rem;
+  color: #64748B;
+  overflow-wrap: anywhere;
+}
+
+.cadence-sheet__rpm {
+  margin: 0;
+  font-size: 0.86rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #2563EB;
+}
+
+.cadence-sheet__mode {
+  margin: 0;
+  font-size: 0.74rem;
+  color: #64748B;
+}
+
+.cadence-sheet__mode strong {
+  color: #1F2937;
+}
+
+.cadence-sheet__help {
+  margin: 0;
+  font-size: 0.68rem;
+  color: #64748B;
+  line-height: 1.35;
+}
+
+.cadence-sheet__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/*
+ * 높이 80% 축소(2026-09-18 Chief — 70% 는 너무 줄었다는 판단). 원래 28.17px → 목표 22.54px.
+ * 세로 패딩만 줄이면 글자가 테두리에 닿는다(기본 line-height 1.5 가 15.4px 를 먹는다).
+ * line-height 를 1 로 조여 글자 상자를 글리프 크기까지 줄이고, 남은 몫을 패딩으로 나눈다:
+ *   2px(테두리) + 10.26px(0.76rem × 1) + 0.38rem × 2 ≈ 22.5px.
+ */
+.cadence-sheet__btn {
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 650;
+  line-height: 1;
+  padding: 0.38rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #475569;
+  cursor: pointer;
+}
+
+.cadence-sheet__btn:hover:not(:disabled) {
+  border-color: #2563EB;
+  background: #EFF6FF;
+}
+
+.cadence-sheet__btn--primary {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+}
+
+.cadence-sheet__btn--primary:hover:not(:disabled) {
+  background: #1D4ED8;
+  border-color: #1D4ED8;
+}
+
+.cadence-sheet__error {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: #DC2626;
+}
+
+.cadence-sheet__notice {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: #64748B;
+}
+
+.cadence-sheet__speed {
+  padding-top: 0.15rem;
+  border-top: 1px solid #E2E8F0;
+}
+
+/* 이미 선택된 준비 상태 — 다시 눌러도 같은 결과(멱등)임을 색으로 알린다 */
+.cadence-sheet__btn--on {
+  background: rgba(22, 163, 74, 0.12);
+  border-color: rgba(22, 163, 74, 0.45);
+  color: #15803D;
+}
+
+/* 주행 준비가 안 된 이유 — 해소 액션이 바로 아래 있는 이 자리에서만 말한다 */
+.cadence-sheet__blocked {
+  margin: 0;
+  padding: 0.35rem 0.5rem;
+  border-radius: 8px;
+  background: rgba(232, 163, 61, 0.12);
+  border: 1px solid rgba(232, 163, 61, 0.3);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}

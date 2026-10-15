@@ -1,0 +1,633 @@
+.ride-summary {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  pointer-events: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.ride-summary__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  pointer-events: auto;
+  border: none;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.ride-summary__sheet {
+  position: relative;
+  z-index: 1;
+  /*
+   * 2026-10-06 Chief: 상자·글자가 상대적으로 크다 → 전체 20% 축소.
+   * rem·px 가 섞여 있어 값을 하나씩 줄이면 비율이 깨진다 — zoom 으로 상자·글자·여백·버튼을 한 번에.
+   * 터치 확장(::after)도 함께 줄어든다.
+   */
+  zoom: 0.8;
+  width: min(22rem, calc(100vw - 1rem));
+  max-width: 100%;
+  max-height: 58%;
+  overflow: auto;
+  margin-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  border-radius: var(--rtw-radius-lg) var(--rtw-radius-lg) var(--rtw-radius-md) var(--rtw-radius-md);
+  /* --rtw-panel-solid(#0D1319)에 10% 투명도(2026-09-17 Chief) — 아래 지도가 비쳐
+     시트가 화면에서 떠 보인다. backdrop-filter 가 이미 걸려 있어 글자는 안 흐려진다. */
+  /* 2026-10-06 Chief: 투명도 10% → 30%(+20%p) — 배경 지도가 더 드러나게 */
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
+  backdrop-filter: var(--rtw-blur-panel);
+  -webkit-backdrop-filter: var(--rtw-blur-panel);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
+  padding: 0.5rem 0.85rem 0.85rem;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  animation: ride-summary-up 180ms ease-out;
+}
+
+@keyframes ride-summary-up {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.ride-summary__handle {
+  width: 2.4rem;
+  height: 0.22rem;
+  border-radius: var(--rtw-radius-pill);
+  background: #CBD5E1;
+  margin: 0 auto 0.05rem;
+}
+
+.ride-summary__head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+/* 제목 + 진행률 배지 묶음 — 배지는 제목 바로 옆(오른쪽 열을 「새 도로」 라벨에 내준다) */
+.ride-summary__head-left {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/*
+ * 2026-10-06 Chief: 「새 도로」 는 제목 줄, 새 도로 칸 바로 위. 제목 줄을 히어로와 같은
+ * 2열 그리드(gap 0.35rem)로 나눠 오른쪽 열 가운데에 둔다. ✕ 는 시트 우상단 절대 배치라
+ * 오른쪽 여백(padding-right)을 풀어도 열 정렬이 히어로와 맞는다.
+ */
+.ride-summary__head.ride-summary__head--split {
+  display: grid;
+  /* 히어로 두 칸과 같은 비율 — 「새 도로」 라벨이 새 도로 칸 바로 위에 선다 */
+  grid-template-columns: 1.35fr 1fr;
+  column-gap: 0.35rem;
+  padding-right: 0;
+}
+
+.ride-summary__head-newroad {
+  justify-self: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #2563EB;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.ride-summary__title {
+  margin: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* 단위는 헤더가 한 번만 말한다 — 아래 숫자들엔 붙이지 않는다(2026-09-17 Chief).
+   제목보다 조용하게 두어 「주행 결과」가 먼저 읽히게 한다. */
+.ride-summary__title-unit {
+  margin-left: 0.32rem;
+  font-size: 0.72em;
+  font-weight: 600;
+  color: #64748B;
+  letter-spacing: 0.02em;
+}
+
+/* 닫기 ✕ 가 우상단에 절대 배치되므로 헤더 우측을 비워 배지·제목과 겹치지 않게 한다 */
+.ride-summary__head--with-close {
+  padding-right: 2.2rem;
+}
+
+/* oc-modal__close(OfficialCourseListModal.css)와 같은 모양 — 시트 우상단 ✕.
+   보이는 원은 1.9rem, 터치 영역은 ::after 로 44px 확보(D2: 폭이 아니라 투명 확장). */
+.ride-summary__close {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  z-index: 2;
+  width: 1.9rem;
+  height: 1.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  appearance: none;
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+}
+
+.ride-summary__close::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+.ride-summary__close:hover {
+  background: #EFF6FF;
+  color: #1F2937;
+}
+
+/* 히어로 래퍼 — 새 도로(conquest) + 거리. 진행률 배지는 헤더 행으로 옮겼다 */
+/* 스토리 — 제목 아래, 숫자 위. 헤드라인은 파랑(주행 스토리 원칙 §5 M1), 사실 줄은 조용하게 */
+.ride-summary__story {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+  min-width: 0;
+  padding: 0 0.1rem;
+}
+
+.ride-summary__story-headline {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 750;
+  line-height: 1.3;
+  color: #2563EB;
+}
+
+.ride-summary__story-detail {
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #64748B;
+}
+
+.ride-summary__heroes {
+  min-width: 0;
+}
+
+.ride-summary__heroes-main {
+  min-width: 0;
+  display: grid;
+  /* 진행 블록(「2.0km 중 0.2km」+막대)이 새 도로 칸보다 글자가 많다 — 조금 더 넓게(2026-10-08) */
+  grid-template-columns: 1.35fr 1fr;
+  gap: 0.35rem;
+}
+
+.ride-summary__heroes-main--solo {
+  grid-template-columns: 1fr;
+}
+
+/* 진행률 배지 — 헤더 행(제목과 닫기 사이). 독립 줄 대신 여기 하나로 */
+.ride-summary__heroes-badge {
+  flex-shrink: 0;
+  line-height: 1.2;
+  font-size: 0.62rem;
+  font-weight: 650;
+  padding: 0.12rem 0.45rem;
+  border-radius: var(--rtw-radius-pill);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  color: #475569;
+}
+
+/*
+ * 진행 블록 — 「2.0km 중 0.2km」가 주인공(2026-10-08 Chief). 큰 숫자 칸을 대신한다.
+ * 높이는 새 도로 칸과 같은 2.5rem — 두 칸이 한 줄로 맞물린다.
+ */
+.ride-summary__progress {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.28rem;
+  box-sizing: border-box;
+  height: 2.5rem;
+  padding: 0 0.5rem;
+  border-radius: var(--rtw-radius-md);
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  min-width: 0;
+}
+
+.ride-summary__progress-text {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* 막대 + 남은 거리 한 줄 */
+.ride-summary__progress-track {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.ride-summary__progress-main {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.28rem;
+  min-width: 0;
+}
+
+.ride-summary__progress-of {
+  font-size: 0.74rem;
+  font-weight: 650;
+  color: #64748B;
+}
+
+.ride-summary__progress-v {
+  font-size: 1.15rem;
+  font-weight: 750;
+  line-height: 1.1;
+  color: #2563EB;
+  font-variant-numeric: tabular-nums;
+}
+
+.ride-summary__progress-left {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: #64748B;
+  font-variant-numeric: tabular-nums;
+}
+
+.ride-summary__progress-bar {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #F1F5F9;
+}
+
+/* 지난번까지 온 길 — 이미 내 것 */
+.ride-summary__progress-before {
+  background: #CBD5E1;
+}
+
+/* 이번에 달린 구간 — 오늘의 노력 */
+.ride-summary__progress-this {
+  background: #2563EB;
+}
+
+.ride-summary__progress--done .ride-summary__progress-v {
+  font-size: 1.25rem;
+}
+
+/* 보조 지표 — 시간·평속·칼로리 한 줄(작게). 셀 안에서는 줄바꿈하지 않는다 */
+.ride-summary__substats {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.28rem;
+  padding: 0 0.48rem 0.1rem;
+  /* 종전 0.72rem(폰 가로 루트 13.5px 기준 약 9.7px)에서 2pt 키운다(2026-09-17 Chief).
+     pt 는 절대 단위라 루트 폰트가 달라져도 「정확히 2포인트」가 유지된다. */
+  font-size: calc(0.72rem + 2pt);
+  font-weight: 650;
+  color: #64748B;
+}
+
+.ride-summary__substat {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.ride-summary__substat-metric {
+  display: inline-block;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.ride-summary__substat:not(:last-child)::after {
+  content: "·";
+  margin-left: 0.28rem;
+  color: #64748B;
+}
+
+.ride-summary__substat--calorie {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.3rem;
+  flex: 1 1 auto;
+  white-space: nowrap;
+}
+
+/* 보이는 높이는 내용 + 최소 패딩, 터치 44px 는 ::after 로 확보(D2) */
+.ride-summary__calorie-setup {
+  position: relative;
+  font: inherit;
+  font-size: inherit;
+  font-weight: 650;
+  min-height: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 0.2rem 0.45rem;
+  border-radius: 8px;
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #2563EB;
+  cursor: pointer;
+}
+
+.ride-summary__calorie-setup::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 44px;
+  transform: translateY(-50%);
+}
+
+/* R2: F4 저장 상태 칩 — 독립 줄 대신 보조 수치 줄에 인라인 합류 */
+.ride-summary__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.ride-summary__policy {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: #64748B;
+}
+
+/* 저장 폼 한 줄 — 입력창이 남는 폭을 먹고 버튼은 고정 폭. 690px 기준 한 줄, 좁으면 wrap */
+/* 게스트 등록 권유 — 한 줄(문구 + 버튼). 가로 폰 한 장에 들어가야 하므로 좁으면 줄바꿈만 */
+.ride-summary__guest-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--rtw-radius-sm);
+  border: 1px solid rgba(37, 99, 235, 0.4);
+  background: #EFF6FF;
+}
+
+.ride-summary__guest-cta-copy {
+  flex: 1 1 12rem;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  color: #1F2937;
+}
+
+.ride-summary__guest-cta-btn {
+  flex-shrink: 0;
+}
+
+.ride-summary__form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ride-summary__form-btns {
+  display: flex;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.ride-summary__btn {
+  appearance: none;
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #1F2937;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 650;
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--rtw-radius-sm);
+  cursor: pointer;
+}
+
+.ride-summary__btn:hover:not(:disabled) {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
+.ride-summary__btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* 저장 = 행동 유도, 항상 솔리드 파랑 + 흰 글자 */
+.ride-summary__btn--primary {
+  background: #2563EB;
+  border-color: transparent;
+  color: #FFFFFF;
+  font-weight: var(--rtw-weight-value);
+}
+
+.ride-summary__btn--primary:hover:not(:disabled) {
+  background: #1D4ED8;
+}
+
+.ride-summary__btn--ghost {
+  background: transparent;
+  border-color: #CBD5E1;
+  color: #475569;
+  font-weight: 600;
+}
+
+.ride-summary__btn--ghost:hover:not(:disabled) {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
+.ride-summary__input {
+  flex: 1 1 8rem;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0.42rem 0.6rem;
+  border-radius: var(--rtw-radius-sm);
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
+  font: inherit;
+  font-size: 0.78rem;
+  outline: none;
+}
+
+.ride-summary__input:focus {
+  border-color: #2563EB;
+}
+
+.ride-summary__input::placeholder {
+  color: rgba(71, 85, 105, 0.6);
+}
+
+.ride-summary__err {
+  margin: 0;
+  font-size: 0.68rem;
+  color: #DC2626;
+}
+
+/* 미저장 상태에서 닫기 시도 시 저장 기회를 한 번 더 보장하는 경고 — 골드 워닝 톤 */
+.ride-summary__confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--rtw-radius-sm);
+  background: var(--rtw-trace-warn-bg);
+  border: 1px solid var(--rtw-trace-warn-border);
+  animation: ride-summary-up 140ms ease-out;
+}
+
+.ride-summary__confirm-msg {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  font-weight: 600;
+  color: #B45309;
+}
+
+@media (max-width: 380px) {
+  .ride-summary__conquest-value {
+    font-size: 1.35rem;
+  }
+
+  /* 좁은 폭: 행은 줄바꿈 허용, 셀 안(.substat / .substat-metric)은 nowrap 유지 */
+  .ride-summary__substats {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}
+
+/* 지시09 C — 「새 도로 +N」이 거리보다 먼저·더 크게. 줄 수는 그대로 2열. */
+/*
+ * 2026-10-06 Chief: [주행/전체][새 도로] 순서로 자리 교환, 「새 도로」 는 값 바로 위 타이틀 줄
+ * (종전: 「새 도로 +0.99」 가로 한 줄 · 왼쪽 칸).
+ */
+.ride-summary__conquest-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  box-sizing: border-box;
+  height: 2.5rem;
+  padding: 0 0.35rem;
+  border-radius: var(--rtw-radius-md);
+  background: #EFF6FF;
+  border: 1px solid rgba(37, 99, 235, 0.4);
+  order: 1;
+}
+
+.ride-summary__conquest-label {
+  line-height: 1;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #2563EB;
+  letter-spacing: 0.02em;
+}
+
+.ride-summary__conquest-value {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #2563EB;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.ride-summary__conquest-status {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #64748B;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.ride-summary__conquest-retry {
+  appearance: none;
+  background: transparent;
+  border: 1px solid #CBD5E1;
+  border-radius: var(--rtw-radius-pill);
+  color: #1F2937;
+  font: inherit;
+  font-size: 0.68rem;
+  padding: 0.15rem 0.55rem;
+  cursor: pointer;
+  min-height: 28px;
+}
+
+.ride-summary__conquest-retry:hover {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
+/* 구식 conquest 라인 (이전 버전 호환, 이제 hero 블록이 주역) */
+/* Conquest — 「새 도로 +N km」 (도파민 지점): 파랑 강조 카드 */
+.ride-summary__conquest {
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--rtw-radius-md);
+  background: #EFF6FF;
+  border: 1px solid rgba(37, 99, 235, 0.4);
+  color: #2563EB;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+/* 새 도로 칸만 있을 때(주행/전체 없음)는 라벨이 칸 안에 남는다 — 고정 높이를 풀어 잘리지 않게 */
+.ride-summary__heroes-main--solo .ride-summary__conquest-hero {
+  height: auto;
+  padding: 0.35rem 0.35rem 0.4rem;
+}

@@ -1,0 +1,14 @@
+[
+  {
+    "file": "sweep-57-saved.cjs",
+    "exit": 0
+  },
+  {
+    "file": "sweep-57-public.cjs",
+    "exit": 1
+  },
+  {
+    "file": "sweep-57-intro.cjs",
+    "exit": 0
+  }
+]

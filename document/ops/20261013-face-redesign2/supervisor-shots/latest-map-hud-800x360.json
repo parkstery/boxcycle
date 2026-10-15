@@ -1,0 +1,73 @@
+{
+  "viewport": {
+    "width": 800,
+    "height": 360
+  },
+  "rows": [
+    {
+      "unit": "map",
+      "sel": ".map-view-sheet__panel",
+      "geometryIdentical": true,
+      "geometryDifferences": [],
+      "elements": 41,
+      "style": {
+        "bg": "rgb(255, 255, 255)",
+        "fg": "rgb(31, 41, 55)",
+        "border": "rgb(203, 213, 225)"
+      },
+      "beforeRect": {
+        "tag": "DIV",
+        "cls": "map-view-sheet__panel",
+        "x": 565.11,
+        "y": 5.39,
+        "w": 229.5,
+        "h": 349.22,
+        "sw": 228,
+        "sh": 347
+      },
+      "afterRect": {
+        "tag": "DIV",
+        "cls": "map-view-sheet__panel",
+        "x": 565.11,
+        "y": 5.39,
+        "w": 229.5,
+        "h": 349.22,
+        "sw": 228,
+        "sh": 347
+      }
+    },
+    {
+      "unit": "hud",
+      "sel": ".map-hud",
+      "geometryIdentical": true,
+      "geometryDifferences": [],
+      "elements": 32,
+      "style": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "fg": "rgb(237, 239, 242)",
+        "border": "rgb(237, 239, 242)"
+      },
+      "beforeRect": {
+        "tag": "DIV",
+        "cls": "map-hud",
+        "x": 0,
+        "y": 0,
+        "w": 800,
+        "h": 360,
+        "sw": 800,
+        "sh": 360
+      },
+      "afterRect": {
+        "tag": "DIV",
+        "cls": "map-hud",
+        "x": 0,
+        "y": 0,
+        "w": 800,
+        "h": 360,
+        "sw": 800,
+        "sh": 360
+      }
+    }
+  ],
+  "runtimeErrors": []
+}

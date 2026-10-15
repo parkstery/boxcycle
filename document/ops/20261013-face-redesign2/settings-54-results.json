@@ -1,0 +1,2858 @@
+{
+  "PASS": true,
+  "rows": [
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "rich",
+      "before": {
+        "w": 351,
+        "h": 108.921875,
+        "x": 158,
+        "y": 184.328125,
+        "text": "주행 설정\n주행 KCAL - 체중과 체력 설정하세요. (NO 센서 NO 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 266.671875,
+        "h": 108.921875,
+        "x": 200.15625,
+        "y": 184.328125,
+        "text": "주행 설정\n주행 Kcal - 체중과 체력 설정하세요. (No 센서 No 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "simple",
+      "before": {
+        "w": 351,
+        "h": 68.296875,
+        "x": 158,
+        "y": 224.953125,
+        "text": "주행 설정\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 265.359375,
+        "h": 68.296875,
+        "x": 200.8125,
+        "y": 224.953125,
+        "text": "주행 설정\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "no-bgm",
+      "before": {
+        "w": 351,
+        "h": 108.921875,
+        "x": 158,
+        "y": 184.328125,
+        "text": "주행 설정\n주행 KCAL - 체중과 체력 설정하세요. (NO 센서 NO 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": true
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 266.671875,
+        "h": 108.921875,
+        "x": 200.15625,
+        "y": 184.328125,
+        "text": "주행 설정\n주행 Kcal - 체중과 체력 설정하세요. (No 센서 No 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": true
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "loading",
+      "before": {
+        "w": 351,
+        "h": 123.328125,
+        "x": 158,
+        "y": 169.921875,
+        "text": "주행 설정\n주행 KCAL - 체중과 체력 설정하세요. (NO 센서 NO 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서\n\n고도 프로필 로드 중…",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 266.671875,
+        "h": 123.328125,
+        "x": 200.15625,
+        "y": 169.921875,
+        "text": "주행 설정\n주행 Kcal - 체중과 체력 설정하세요. (No 센서 No 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서\n\n고도 프로필 로드 중…",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "rich",
+      "before": {
+        "w": 351,
+        "h": 108.921875,
+        "x": 194.5,
+        "y": 184.328125,
+        "text": "주행 설정\n주행 KCAL - 체중과 체력 설정하세요. (NO 센서 NO 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 266.671875,
+        "h": 108.921875,
+        "x": 236.65625,
+        "y": 184.328125,
+        "text": "주행 설정\n주행 Kcal - 체중과 체력 설정하세요. (No 센서 No 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "simple",
+      "before": {
+        "w": 351,
+        "h": 68.296875,
+        "x": 194.5,
+        "y": 224.953125,
+        "text": "주행 설정\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 265.359375,
+        "h": 68.296875,
+        "x": 237.3125,
+        "y": 224.953125,
+        "text": "주행 설정\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "no-bgm",
+      "before": {
+        "w": 351,
+        "h": 108.921875,
+        "x": 194.5,
+        "y": 184.328125,
+        "text": "주행 설정\n주행 KCAL - 체중과 체력 설정하세요. (NO 센서 NO 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": true
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 266.671875,
+        "h": 108.921875,
+        "x": 236.65625,
+        "y": 184.328125,
+        "text": "주행 설정\n주행 Kcal - 체중과 체력 설정하세요. (No 센서 No 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": true
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "loading",
+      "before": {
+        "w": 351,
+        "h": 123.328125,
+        "x": 194.5,
+        "y": 169.921875,
+        "text": "주행 설정\n주행 KCAL - 체중과 체력 설정하세요. (NO 센서 NO 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서\n\n고도 프로필 로드 중…",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 266.671875,
+        "h": 123.328125,
+        "x": 236.65625,
+        "y": 169.921875,
+        "text": "주행 설정\n주행 Kcal - 체중과 체력 설정하세요. (No 센서 No 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서\n\n고도 프로필 로드 중…",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "rich",
+      "before": {
+        "w": 351,
+        "h": 108.921875,
+        "x": 246.5,
+        "y": 274.328125,
+        "text": "주행 설정\n주행 KCAL - 체중과 체력 설정하세요. (NO 센서 NO 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 266.671875,
+        "h": 108.921875,
+        "x": 288.65625,
+        "y": 274.328125,
+        "text": "주행 설정\n주행 Kcal - 체중과 체력 설정하세요. (No 센서 No 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "simple",
+      "before": {
+        "w": 351,
+        "h": 68.296875,
+        "x": 246.5,
+        "y": 314.953125,
+        "text": "주행 설정\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 265.359375,
+        "h": 68.296875,
+        "x": 289.3125,
+        "y": 314.953125,
+        "text": "주행 설정\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "no-bgm",
+      "before": {
+        "w": 351,
+        "h": 108.921875,
+        "x": 246.5,
+        "y": 274.328125,
+        "text": "주행 설정\n주행 KCAL - 체중과 체력 설정하세요. (NO 센서 NO 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": true
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 266.671875,
+        "h": 108.921875,
+        "x": 288.65625,
+        "y": 274.328125,
+        "text": "주행 설정\n주행 Kcal - 체중과 체력 설정하세요. (No 센서 No 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": true
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "loading",
+      "before": {
+        "w": 351,
+        "h": 123.328125,
+        "x": 246.5,
+        "y": 259.921875,
+        "text": "주행 설정\n주행 KCAL - 체중과 체력 설정하세요. (NO 센서 NO 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서\n\n고도 프로필 로드 중…",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 266.671875,
+        "h": 123.328125,
+        "x": 288.65625,
+        "y": 259.921875,
+        "text": "주행 설정\n주행 Kcal - 체중과 체력 설정하세요. (No 센서 No 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서\n\n고도 프로필 로드 중…",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1020,
+        "height": 460
+      },
+      "state": "rich",
+      "before": {
+        "w": 351,
+        "h": 108.921875,
+        "x": 334.5,
+        "y": 344.328125,
+        "text": "주행 설정\n주행 KCAL - 체중과 체력 설정하세요. (NO 센서 NO 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 266.671875,
+        "h": 108.921875,
+        "x": 376.65625,
+        "y": 344.328125,
+        "text": "주행 설정\n주행 Kcal - 체중과 체력 설정하세요. (No 센서 No 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1020,
+        "height": 460
+      },
+      "state": "simple",
+      "before": {
+        "w": 351,
+        "h": 68.296875,
+        "x": 334.5,
+        "y": 384.953125,
+        "text": "주행 설정\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 265.359375,
+        "h": 68.296875,
+        "x": 377.3125,
+        "y": 384.953125,
+        "text": "주행 설정\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1020,
+        "height": 460
+      },
+      "state": "no-bgm",
+      "before": {
+        "w": 351,
+        "h": 108.921875,
+        "x": 334.5,
+        "y": 344.328125,
+        "text": "주행 설정\n주행 KCAL - 체중과 체력 설정하세요. (NO 센서 NO 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": true
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 266.671875,
+        "h": 108.921875,
+        "x": 376.65625,
+        "y": 344.328125,
+        "text": "주행 설정\n주행 Kcal - 체중과 체력 설정하세요. (No 센서 No 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": true
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1020,
+        "height": 460
+      },
+      "state": "loading",
+      "before": {
+        "w": 351,
+        "h": 123.328125,
+        "x": 334.5,
+        "y": 329.921875,
+        "text": "주행 설정\n주행 KCAL - 체중과 체력 설정하세요. (NO 센서 NO 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서\n\n고도 프로필 로드 중…",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 266.671875,
+        "h": 123.328125,
+        "x": 376.65625,
+        "y": 329.921875,
+        "text": "주행 설정\n주행 Kcal - 체중과 체력 설정하세요. (No 센서 No 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서\n\n고도 프로필 로드 중…",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 56.6875,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 36.84375,
+            "h": 22,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "rich",
+      "before": {
+        "w": 416,
+        "h": 123.109375,
+        "x": 475,
+        "y": 636.890625,
+        "text": "주행 설정\n주행 KCAL - 체중과 체력 설정하세요. (NO 센서 NO 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 67.1875,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 43.59375,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 43.59375,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 43.59375,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 316.921875,
+        "h": 121.109375,
+        "x": 524.53125,
+        "y": 638.890625,
+        "text": "주행 설정\n주행 Kcal - 체중과 체력 설정하세요. (No 센서 No 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 67.1875,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 43.59375,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 43.59375,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 43.59375,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "simple",
+      "before": {
+        "w": 416,
+        "h": 77.046875,
+        "x": 475,
+        "y": 682.953125,
+        "text": "주행 설정\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 285.734375,
+        "h": 77.046875,
+        "x": 540.125,
+        "y": 682.953125,
+        "text": "주행 설정\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "no-bgm",
+      "before": {
+        "w": 416,
+        "h": 123.109375,
+        "x": 475,
+        "y": 636.890625,
+        "text": "주행 설정\n주행 KCAL - 체중과 체력 설정하세요. (NO 센서 NO 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 67.1875,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 43.59375,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 43.59375,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 43.59375,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": true
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 316.921875,
+        "h": 121.109375,
+        "x": 524.53125,
+        "y": 638.890625,
+        "text": "주행 설정\n주행 Kcal - 체중과 체력 설정하세요. (No 센서 No 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 67.1875,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 43.59375,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 43.59375,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 43.59375,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": true
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "loading",
+      "before": {
+        "w": 416,
+        "h": 140.171875,
+        "x": 475,
+        "y": 619.828125,
+        "text": "주행 설정\n주행 KCAL - 체중과 체력 설정하세요. (NO 센서 NO 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서\n\n고도 프로필 로드 중…",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 67.1875,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 43.59375,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 43.59375,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 43.59375,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 316.921875,
+        "h": 138.171875,
+        "x": 524.53125,
+        "y": 621.828125,
+        "text": "주행 설정\n주행 Kcal - 체중과 체력 설정하세요. (No 센서 No 측정)\n체중(kg)\n체력\n약함\n보통\n강함\n표시\n코칭 배너\nTTS\nBGM\n페이서\n\n고도 프로필 로드 중…",
+        "scrollX": 0,
+        "scrollY": 0,
+        "controls": [
+          {
+            "type": "number",
+            "text": "",
+            "w": 67.1875,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "약함",
+            "w": 43.59375,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "보통",
+            "w": 43.59375,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "button",
+            "text": "강함",
+            "w": 43.59375,
+            "h": 22,
+            "font": "12.16px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          },
+          {
+            "type": "checkbox",
+            "text": "",
+            "w": 13,
+            "h": 13,
+            "font": "13.3333px",
+            "disabled": false
+          }
+        ]
+      }
+    }
+  ],
+  "events": [
+    [
+      "coaching",
+      false
+    ],
+    [
+      "tts",
+      false
+    ],
+    [
+      "bgm",
+      true
+    ],
+    [
+      "pacer",
+      false
+    ],
+    [
+      "weight",
+      "75"
+    ],
+    [
+      "weight",
+      "75"
+    ],
+    [
+      "intensity",
+      "light"
+    ],
+    "close",
+    "close"
+  ],
+  "errors": []
+}

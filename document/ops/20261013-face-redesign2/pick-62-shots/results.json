@@ -1,0 +1,1157 @@
+{
+  "rows": [
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "location",
+      "r": {
+        "w": 319.59375,
+        "h": 156.65625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n경로 탐색 유형 선택"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "false",
+        "targetExists": true,
+        "targetVisible": false,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "location-both",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n5.0 km 반경의 원 주변 도로를 선택하세요"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "location-collapse",
+      "r": {
+        "w": 319.59375,
+        "h": 156.65625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n경로 탐색 유형 선택"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "false",
+        "targetExists": true,
+        "targetVisible": false,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "distance",
+      "r": {
+        "w": 225.59375,
+        "h": 167.875,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n5.0 km 반경의 원 주변 도로를 선택하세요"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 208,
+        "text": "",
+        "expanded": "false",
+        "targetExists": true,
+        "targetVisible": false,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "distance-both",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n발견 상태 유지"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "distance-collapse",
+      "r": {
+        "w": 216,
+        "h": 167.875,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n발견 상태 유지"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 198.40625,
+        "text": "",
+        "expanded": "false",
+        "targetExists": true,
+        "targetVisible": false,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "manual-reactivate",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 30분 (20 km/h 기준)\n\n10.0 km 반경의 원 주변 도로를 선택하세요"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "searching",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 30분 (20 km/h 기준)\n\n테스트 searching"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "failed",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 30분 (20 km/h 기준)\n\n테스트 failed"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "found",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 30분 (20 km/h 기준)\n\n테스트 found"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "blocked",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n경로 토큰 부족"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "start-both",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n5.0 km 반경의 원 주변 도로를 선택하세요"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "location",
+      "r": {
+        "w": 319.59375,
+        "h": 156.65625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n경로 탐색 유형 선택"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "false",
+        "targetExists": true,
+        "targetVisible": false,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "location-both",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n5.0 km 반경의 원 주변 도로를 선택하세요"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "location-collapse",
+      "r": {
+        "w": 319.59375,
+        "h": 156.65625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n경로 탐색 유형 선택"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "false",
+        "targetExists": true,
+        "targetVisible": false,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "distance",
+      "r": {
+        "w": 225.59375,
+        "h": 167.875,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n5.0 km 반경의 원 주변 도로를 선택하세요"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 208,
+        "text": "",
+        "expanded": "false",
+        "targetExists": true,
+        "targetVisible": false,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "distance-both",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n발견 상태 유지"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "distance-collapse",
+      "r": {
+        "w": 216,
+        "h": 167.875,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n발견 상태 유지"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 198.40625,
+        "text": "",
+        "expanded": "false",
+        "targetExists": true,
+        "targetVisible": false,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "manual-reactivate",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 5m\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 30분 (20 km/h 기준)\n\n10.0 km 반경의 원 주변 도로를 선택하세요"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "searching",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 5m\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 30분 (20 km/h 기준)\n\n테스트 searching"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "failed",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 5m\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 30분 (20 km/h 기준)\n\n테스트 failed"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "found",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 5m\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 30분 (20 km/h 기준)\n\n테스트 found"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "blocked",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n경로 토큰 부족"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "start-both",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n5.0 km 반경의 원 주변 도로를 선택하세요"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "location",
+      "r": {
+        "w": 319.59375,
+        "h": 156.65625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n경로 탐색 유형 선택"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "false",
+        "targetExists": true,
+        "targetVisible": false,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "location-both",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n5.0 km 반경의 원 주변 도로를 선택하세요"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "location-collapse",
+      "r": {
+        "w": 319.59375,
+        "h": 156.65625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n경로 탐색 유형 선택"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "false",
+        "targetExists": true,
+        "targetVisible": false,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "distance",
+      "r": {
+        "w": 225.59375,
+        "h": 167.875,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n5.0 km 반경의 원 주변 도로를 선택하세요"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 208,
+        "text": "",
+        "expanded": "false",
+        "targetExists": true,
+        "targetVisible": false,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "distance-both",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n발견 상태 유지"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "distance-collapse",
+      "r": {
+        "w": 216,
+        "h": 167.875,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n발견 상태 유지"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 198.40625,
+        "text": "",
+        "expanded": "false",
+        "targetExists": true,
+        "targetVisible": false,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "manual-reactivate",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 5m\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 30분 (20 km/h 기준)\n\n10.0 km 반경의 원 주변 도로를 선택하세요"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "searching",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 5m\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 30분 (20 km/h 기준)\n\n테스트 searching"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "failed",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 5m\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 30분 (20 km/h 기준)\n\n테스트 failed"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "found",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 5m\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 30분 (20 km/h 기준)\n\n테스트 found"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "blocked",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n경로 토큰 부족"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "start-both",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 5m\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n5.0 km 반경의 원 주변 도로를 선택하세요"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "location",
+      "r": {
+        "w": 319.59375,
+        "h": 156.65625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n경로 탐색 유형 선택"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "false",
+        "targetExists": true,
+        "targetVisible": false,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "location-both",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n5.0 km 반경의 원 주변 도로를 선택하세요"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "location-collapse",
+      "r": {
+        "w": 319.59375,
+        "h": 156.65625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n경로 탐색 유형 선택"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "false",
+        "targetExists": true,
+        "targetVisible": false,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "distance",
+      "r": {
+        "w": 225.59375,
+        "h": 167.875,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n5.0 km 반경의 원 주변 도로를 선택하세요"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 208,
+        "text": "",
+        "expanded": "false",
+        "targetExists": true,
+        "targetVisible": false,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "distance-both",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n발견 상태 유지"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "distance-collapse",
+      "r": {
+        "w": 216,
+        "h": 167.875,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n발견 상태 유지"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 198.40625,
+        "text": "",
+        "expanded": "false",
+        "targetExists": true,
+        "targetVisible": false,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "manual-reactivate",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 30분 (20 km/h 기준)\n\n10.0 km 반경의 원 주변 도로를 선택하세요"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "searching",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 30분 (20 km/h 기준)\n\n테스트 searching"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "failed",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 5m\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 30분 (20 km/h 기준)\n\n테스트 failed"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "found",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 5m\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 30분 (20 km/h 기준)\n\n테스트 found"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "blocked",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 …\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n경로 토큰 부족"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "state": "start-both",
+      "r": {
+        "w": 319.59375,
+        "h": 263.265625,
+        "overflow": 0,
+        "text": "경로 생성\n\n경로 삭제\n대한민국 강원특별자치도 원주시 아주 긴 위치 이름과 도로명 주소\n37.0000, 127.0000 · 고도 5m\nStart\nWP1\nWP2\nWP3\nEnd\n이동수단\n\n출발 설정됨 · 자전거\n\n목표거리(km)\n−\n+\n목표 거리\nkm\n1\n3\n5\n10\n20\n\n약 15분 (20 km/h 기준)\n\n5.0 km 반경의 원 주변 도로를 선택하세요"
+      },
+      "caret": {
+        "h": 16.796875,
+        "w": 302,
+        "text": "",
+        "expanded": "true",
+        "targetExists": true,
+        "targetVisible": true,
+        "svg": 1,
+        "iconLeft": 0,
+        "margin": "0px"
+      }
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,55 @@
+{
+  "rows": [
+    {
+      "width": 667,
+      "center": [
+        12.4905,
+        41.8902
+      ],
+      "zoom": 15,
+      "landmarkX": 412.7257422217616,
+      "fraction": 0.618779223720782
+    },
+    {
+      "width": 740,
+      "center": [
+        12.4905,
+        41.8902
+      ],
+      "zoom": 15,
+      "landmarkX": 449.2257422217616,
+      "fraction": 0.6070618138131914
+    },
+    {
+      "width": 800,
+      "center": [
+        12.4905,
+        41.8902
+      ],
+      "zoom": 15,
+      "landmarkX": 479.2257422217616,
+      "fraction": 0.599032177777202
+    },
+    {
+      "width": 844,
+      "center": [
+        12.4905,
+        41.8902
+      ],
+      "zoom": 15,
+      "landmarkX": 501.2257422217616,
+      "fraction": 0.5938693628219924
+    },
+    {
+      "width": 1366,
+      "center": [
+        12.4905,
+        41.8902
+      ],
+      "zoom": 15,
+      "landmarkX": 762.2257422208786,
+      "fraction": 0.5579983471602332
+    }
+  ],
+  "limits": "Actual Mapbox WebGL projection with empty style; no live imagery or external requests"
+}

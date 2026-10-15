@@ -1,0 +1,253 @@
+{
+  "viewport": {
+    "width": 800,
+    "height": 360
+  },
+  "rows": [
+    {
+      "unit": "first",
+      "sel": ".local-first__card",
+      "viewport": {
+        "width": 800,
+        "height": 360
+      },
+      "geometryIdentical": false,
+      "geometryDifferences": [
+        {
+          "index": 0,
+          "before": {
+            "tag": "DIV",
+            "cls": "local-first__card hud-glass",
+            "x": 11.19,
+            "y": 219.64,
+            "w": 175.78,
+            "h": 124.44,
+            "sw": 174,
+            "sh": 122
+          },
+          "after": {
+            "tag": "DIV",
+            "cls": "local-first__card hud-glass",
+            "x": 11.19,
+            "y": 243.64,
+            "w": 147.78,
+            "h": 100.44,
+            "sw": 146,
+            "sh": 98
+          }
+        },
+        {
+          "index": 1,
+          "before": {
+            "tag": "P",
+            "cls": "local-first__title",
+            "x": 17.58,
+            "y": 225.22,
+            "w": 163,
+            "h": 20.25,
+            "sw": 163,
+            "sh": 20
+          },
+          "after": {
+            "tag": "P",
+            "cls": "local-first__title",
+            "x": 17.58,
+            "y": 249.22,
+            "w": 135,
+            "h": 18.25,
+            "sw": 135,
+            "sh": 18
+          }
+        },
+        {
+          "index": 2,
+          "before": {
+            "tag": "DIV",
+            "cls": "local-first__actions",
+            "x": 17.58,
+            "y": 243.84,
+            "w": 127.52,
+            "h": 44,
+            "sw": 128,
+            "sh": 44
+          },
+          "after": {
+            "tag": "DIV",
+            "cls": "local-first__actions",
+            "x": 17.58,
+            "y": 265.84,
+            "w": 127.52,
+            "h": 44,
+            "sw": 128,
+            "sh": 44
+          }
+        },
+        {
+          "index": 3,
+          "before": {
+            "tag": "BUTTON",
+            "cls": "local-first__btn local-first__btn--primary local-first__btn--compact",
+            "x": 17.58,
+            "y": 243.84,
+            "w": 61.88,
+            "h": 44,
+            "sw": 62,
+            "sh": 44
+          },
+          "after": {
+            "tag": "BUTTON",
+            "cls": "local-first__btn local-first__btn--primary local-first__btn--compact",
+            "x": 17.58,
+            "y": 265.84,
+            "w": 61.88,
+            "h": 44,
+            "sw": 62,
+            "sh": 44
+          }
+        },
+        {
+          "index": 4,
+          "before": {
+            "tag": "BUTTON",
+            "cls": "local-first__btn local-first__btn--compact local-first__btn--ghost",
+            "x": 83.22,
+            "y": 243.84,
+            "w": 61.88,
+            "h": 44,
+            "sw": 62,
+            "sh": 44
+          },
+          "after": {
+            "tag": "BUTTON",
+            "cls": "local-first__btn local-first__btn--compact local-first__btn--ghost",
+            "x": 83.22,
+            "y": 265.84,
+            "w": 61.88,
+            "h": 44,
+            "sw": 62,
+            "sh": 44
+          }
+        },
+        {
+          "index": 5,
+          "before": {
+            "tag": "DIV",
+            "cls": "local-first__intro",
+            "x": 17.58,
+            "y": 291.06,
+            "w": 163,
+            "h": 47.16,
+            "sw": 163,
+            "sh": 46
+          },
+          "after": {
+            "tag": "DIV",
+            "cls": "local-first__intro",
+            "x": 17.58,
+            "y": 313.06,
+            "w": 135,
+            "h": 25.16,
+            "sw": 135,
+            "sh": 24
+          }
+        },
+        {
+          "index": 6,
+          "before": {
+            "tag": "BUTTON",
+            "cls": "local-first__link",
+            "x": 17.58,
+            "y": 294.22,
+            "w": 41.69,
+            "h": 44,
+            "sw": 42,
+            "sh": 44
+          },
+          "after": {
+            "tag": "BUTTON",
+            "cls": "local-first__link",
+            "x": 17.58,
+            "y": 316.22,
+            "w": 41.69,
+            "h": 22,
+            "sw": 42,
+            "sh": 22
+          }
+        }
+      ],
+      "elements": 7,
+      "style": {
+        "bg": "rgb(255, 255, 255)",
+        "fg": "rgb(31, 41, 55)",
+        "border": "rgb(203, 213, 225)"
+      },
+      "controls": [
+        {
+          "cls": "local-first__btn local-first__btn--primary local-first__btn--compact",
+          "text": "현재 위치",
+          "bg": "rgba(0, 0, 0, 0)",
+          "fg": "rgb(255, 255, 255)",
+          "border": "rgb(255, 255, 255)",
+          "fontSize": "9.99px",
+          "x": 17.578125,
+          "y": 265.84375,
+          "w": 61.875,
+          "h": 44
+        },
+        {
+          "cls": "local-first__btn local-first__btn--compact local-first__btn--ghost",
+          "text": "지역 선택",
+          "bg": "rgba(0, 0, 0, 0)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(71, 85, 105)",
+          "fontSize": "9.99px",
+          "x": 83.21875,
+          "y": 265.84375,
+          "w": 61.875,
+          "h": 44
+        },
+        {
+          "cls": "local-first__link",
+          "text": "입문 경로",
+          "bg": "rgba(0, 0, 0, 0)",
+          "fg": "rgb(71, 85, 105)",
+          "border": "rgb(71, 85, 105)",
+          "fontSize": "9.45px",
+          "x": 17.578125,
+          "y": 316.21875,
+          "w": 41.6875,
+          "h": 22
+        }
+      ],
+      "overflow": {
+        "clientW": 146,
+        "clientH": 98,
+        "scrollW": 146,
+        "scrollH": 98
+      },
+      "accountBefore": null,
+      "accountAfter": null,
+      "beforeRect": {
+        "tag": "DIV",
+        "cls": "local-first__card hud-glass",
+        "x": 11.19,
+        "y": 219.64,
+        "w": 175.78,
+        "h": 124.44,
+        "sw": 174,
+        "sh": 122
+      },
+      "afterRect": {
+        "tag": "DIV",
+        "cls": "local-first__card hud-glass",
+        "x": 11.19,
+        "y": 243.64,
+        "w": 147.78,
+        "h": 100.44,
+        "sw": 146,
+        "sh": 98
+      }
+    }
+  ],
+  "runtimeErrors": []
+}

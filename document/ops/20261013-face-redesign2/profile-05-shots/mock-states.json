@@ -1,0 +1,1733 @@
+{
+  "rows": [
+    {
+      "viewport": {
+        "width": 800,
+        "height": 360
+      },
+      "state": "account",
+      "fixture": "real component/mock User and callbacks, no Firebase save",
+      "before": {
+        "w": 297,
+        "h": 234,
+        "x": 251.5,
+        "y": 119.25,
+        "clientH": 232,
+        "scrollH": 293,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 272.0625,
+            "h": 44,
+            "y": 184.40625,
+            "font": "11.475px",
+            "disabled": false
+          },
+          {
+            "text": "number",
+            "w": 56.6875,
+            "h": 44,
+            "y": 285.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 285.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 285.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 285.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 355.84375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 355.84375,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 297,
+        "h": 250.5625,
+        "x": 251.5,
+        "y": 102.6875,
+        "clientH": 249,
+        "scrollH": 249,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 276.125,
+            "h": 44,
+            "y": 147.609375,
+            "font": "11.475px",
+            "disabled": false
+          },
+          {
+            "text": "number",
+            "w": 52.640625,
+            "h": 44,
+            "y": 238.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 238.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 238.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 238.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 301.5,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 301.5,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 800,
+        "height": 360
+      },
+      "state": "locked",
+      "fixture": "real component/mock User and callbacks, no Firebase save",
+      "before": {
+        "w": 297,
+        "h": 234,
+        "x": 251.5,
+        "y": 119.25,
+        "clientH": 232,
+        "scrollH": 281,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 272.0625,
+            "h": 44,
+            "y": 184.40625,
+            "font": "11.475px",
+            "disabled": true
+          },
+          {
+            "text": "number",
+            "w": 56.6875,
+            "h": 44,
+            "y": 272.90625,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 272.90625,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 272.90625,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 272.90625,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 343.453125,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 343.453125,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 297,
+        "h": 238.171875,
+        "x": 251.5,
+        "y": 115.078125,
+        "clientH": 236,
+        "scrollH": 236,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 276.125,
+            "h": 44,
+            "y": 160,
+            "font": "11.475px",
+            "disabled": true
+          },
+          {
+            "text": "number",
+            "w": 52.640625,
+            "h": 44,
+            "y": 238.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 238.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 238.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 238.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 301.5,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 301.5,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 800,
+        "height": 360
+      },
+      "state": "error",
+      "fixture": "real component/mock User and callbacks, no Firebase save",
+      "before": {
+        "w": 297,
+        "h": 234,
+        "x": 251.5,
+        "y": 119.25,
+        "clientH": 232,
+        "scrollH": 316,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 272.0625,
+            "h": 44,
+            "y": 184.40625,
+            "font": "11.475px",
+            "disabled": false
+          },
+          {
+            "text": "number",
+            "w": 56.6875,
+            "h": 44,
+            "y": 285.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 285.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 285.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 285.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 378.390625,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 378.390625,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 297,
+        "h": 268.390625,
+        "x": 251.5,
+        "y": 84.859375,
+        "clientH": 266,
+        "scrollH": 266,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 276.125,
+            "h": 44,
+            "y": 129.78125,
+            "font": "11.475px",
+            "disabled": false
+          },
+          {
+            "text": "number",
+            "w": 52.640625,
+            "h": 44,
+            "y": 220.546875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 220.546875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 220.546875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 220.546875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 301.5,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 301.5,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "account",
+      "fixture": "real component/mock User and callbacks, no Firebase save",
+      "before": {
+        "w": 297,
+        "h": 195,
+        "x": 221.5,
+        "y": 98.25,
+        "clientH": 193,
+        "scrollH": 293,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 272.0625,
+            "h": 44,
+            "y": 163.40625,
+            "font": "11.475px",
+            "disabled": false
+          },
+          {
+            "text": "number",
+            "w": 56.6875,
+            "h": 44,
+            "y": 264.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 264.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 264.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 264.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 334.84375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 334.84375,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 297,
+        "h": 250.5625,
+        "x": 221.5,
+        "y": 42.6875,
+        "clientH": 249,
+        "scrollH": 249,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 276.125,
+            "h": 44,
+            "y": 87.609375,
+            "font": "11.475px",
+            "disabled": false
+          },
+          {
+            "text": "number",
+            "w": 52.640625,
+            "h": 44,
+            "y": 178.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 178.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 178.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 178.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 241.5,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 241.5,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "locked",
+      "fixture": "real component/mock User and callbacks, no Firebase save",
+      "before": {
+        "w": 297,
+        "h": 195,
+        "x": 221.5,
+        "y": 98.25,
+        "clientH": 193,
+        "scrollH": 281,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 272.0625,
+            "h": 44,
+            "y": 163.40625,
+            "font": "11.475px",
+            "disabled": true
+          },
+          {
+            "text": "number",
+            "w": 56.6875,
+            "h": 44,
+            "y": 251.90625,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 251.90625,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 251.90625,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 251.90625,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 322.453125,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 322.453125,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 297,
+        "h": 238.171875,
+        "x": 221.5,
+        "y": 55.078125,
+        "clientH": 236,
+        "scrollH": 236,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 276.125,
+            "h": 44,
+            "y": 100,
+            "font": "11.475px",
+            "disabled": true
+          },
+          {
+            "text": "number",
+            "w": 52.640625,
+            "h": 44,
+            "y": 178.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 178.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 178.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 178.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 241.5,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 241.5,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "state": "error",
+      "fixture": "real component/mock User and callbacks, no Firebase save",
+      "before": {
+        "w": 297,
+        "h": 195,
+        "x": 221.5,
+        "y": 98.25,
+        "clientH": 193,
+        "scrollH": 316,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 272.0625,
+            "h": 44,
+            "y": 163.40625,
+            "font": "11.475px",
+            "disabled": false
+          },
+          {
+            "text": "number",
+            "w": 56.6875,
+            "h": 44,
+            "y": 264.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 264.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 264.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 264.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 357.390625,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 357.390625,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 297,
+        "h": 268.390625,
+        "x": 221.5,
+        "y": 24.859375,
+        "clientH": 266,
+        "scrollH": 266,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 276.125,
+            "h": 44,
+            "y": 69.78125,
+            "font": "11.475px",
+            "disabled": false
+          },
+          {
+            "text": "number",
+            "w": 52.640625,
+            "h": 44,
+            "y": 160.546875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 160.546875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 160.546875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 160.546875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 241.5,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 241.5,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "account",
+      "fixture": "real component/mock User and callbacks, no Firebase save",
+      "before": {
+        "w": 297,
+        "h": 195,
+        "x": 185,
+        "y": 98.25,
+        "clientH": 193,
+        "scrollH": 293,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 272.0625,
+            "h": 44,
+            "y": 163.40625,
+            "font": "11.475px",
+            "disabled": false
+          },
+          {
+            "text": "number",
+            "w": 56.6875,
+            "h": 44,
+            "y": 264.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 264.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 264.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 264.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 334.84375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 334.84375,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 297,
+        "h": 250.5625,
+        "x": 185,
+        "y": 42.6875,
+        "clientH": 249,
+        "scrollH": 249,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 276.125,
+            "h": 44,
+            "y": 87.609375,
+            "font": "11.475px",
+            "disabled": false
+          },
+          {
+            "text": "number",
+            "w": 52.640625,
+            "h": 44,
+            "y": 178.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 178.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 178.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 178.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 241.5,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 241.5,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "locked",
+      "fixture": "real component/mock User and callbacks, no Firebase save",
+      "before": {
+        "w": 297,
+        "h": 195,
+        "x": 185,
+        "y": 98.25,
+        "clientH": 193,
+        "scrollH": 281,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 272.0625,
+            "h": 44,
+            "y": 163.40625,
+            "font": "11.475px",
+            "disabled": true
+          },
+          {
+            "text": "number",
+            "w": 56.6875,
+            "h": 44,
+            "y": 251.90625,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 251.90625,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 251.90625,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 251.90625,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 322.453125,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 322.453125,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 297,
+        "h": 238.171875,
+        "x": 185,
+        "y": 55.078125,
+        "clientH": 236,
+        "scrollH": 236,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 276.125,
+            "h": 44,
+            "y": 100,
+            "font": "11.475px",
+            "disabled": true
+          },
+          {
+            "text": "number",
+            "w": 52.640625,
+            "h": 44,
+            "y": 178.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 178.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 178.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 178.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 241.5,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 241.5,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "state": "error",
+      "fixture": "real component/mock User and callbacks, no Firebase save",
+      "before": {
+        "w": 297,
+        "h": 195,
+        "x": 185,
+        "y": 98.25,
+        "clientH": 193,
+        "scrollH": 316,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 272.0625,
+            "h": 44,
+            "y": 163.40625,
+            "font": "11.475px",
+            "disabled": false
+          },
+          {
+            "text": "number",
+            "w": 56.6875,
+            "h": 44,
+            "y": 264.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 264.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 264.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 264.296875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 357.390625,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 357.390625,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 297,
+        "h": 268.390625,
+        "x": 185,
+        "y": 24.859375,
+        "clientH": 266,
+        "scrollH": 266,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 276.125,
+            "h": 44,
+            "y": 69.78125,
+            "font": "11.475px",
+            "disabled": false
+          },
+          {
+            "text": "number",
+            "w": 52.640625,
+            "h": 44,
+            "y": 160.546875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 160.546875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 160.546875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 160.546875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 241.5,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 241.5,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "account",
+      "fixture": "real component/mock User and callbacks, no Firebase save",
+      "before": {
+        "w": 297,
+        "h": 253.5,
+        "x": 273.5,
+        "y": 129.75,
+        "clientH": 252,
+        "scrollH": 293,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 272.0625,
+            "h": 44,
+            "y": 194.90625,
+            "font": "11.475px",
+            "disabled": false
+          },
+          {
+            "text": "number",
+            "w": 56.6875,
+            "h": 44,
+            "y": 295.796875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 295.796875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 295.796875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 295.796875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 366.34375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 366.34375,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 297,
+        "h": 250.5625,
+        "x": 273.5,
+        "y": 132.6875,
+        "clientH": 249,
+        "scrollH": 249,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 276.125,
+            "h": 44,
+            "y": 177.609375,
+            "font": "11.475px",
+            "disabled": false
+          },
+          {
+            "text": "number",
+            "w": 52.640625,
+            "h": 44,
+            "y": 268.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 268.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 268.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 268.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 331.5,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 331.5,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "locked",
+      "fixture": "real component/mock User and callbacks, no Firebase save",
+      "before": {
+        "w": 297,
+        "h": 253.5,
+        "x": 273.5,
+        "y": 129.75,
+        "clientH": 252,
+        "scrollH": 281,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 272.0625,
+            "h": 44,
+            "y": 194.90625,
+            "font": "11.475px",
+            "disabled": true
+          },
+          {
+            "text": "number",
+            "w": 56.6875,
+            "h": 44,
+            "y": 283.40625,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 283.40625,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 283.40625,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 283.40625,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 353.953125,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 353.953125,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 297,
+        "h": 238.171875,
+        "x": 273.5,
+        "y": 145.078125,
+        "clientH": 236,
+        "scrollH": 236,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 276.125,
+            "h": 44,
+            "y": 190,
+            "font": "11.475px",
+            "disabled": true
+          },
+          {
+            "text": "number",
+            "w": 52.640625,
+            "h": 44,
+            "y": 268.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 268.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 268.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 268.375,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 331.5,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 331.5,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "error",
+      "fixture": "real component/mock User and callbacks, no Firebase save",
+      "before": {
+        "w": 297,
+        "h": 253.5,
+        "x": 273.5,
+        "y": 129.75,
+        "clientH": 252,
+        "scrollH": 316,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 272.0625,
+            "h": 44,
+            "y": 194.90625,
+            "font": "11.475px",
+            "disabled": false
+          },
+          {
+            "text": "number",
+            "w": 56.6875,
+            "h": 44,
+            "y": 295.796875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 295.796875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 295.796875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 295.796875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 388.890625,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 388.890625,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      },
+      "after": {
+        "w": 297,
+        "h": 268.390625,
+        "x": 273.5,
+        "y": 114.859375,
+        "clientH": 266,
+        "scrollH": 266,
+        "clientW": 295,
+        "scrollW": 295,
+        "controls": [
+          {
+            "text": "닉네임",
+            "w": 276.125,
+            "h": 44,
+            "y": 159.78125,
+            "font": "11.475px",
+            "disabled": false
+          },
+          {
+            "text": "number",
+            "w": 52.640625,
+            "h": 44,
+            "y": 250.546875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "가벼움",
+            "w": 43.84375,
+            "h": 44,
+            "y": 250.546875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "보통",
+            "w": 34.84375,
+            "h": 44,
+            "y": 250.546875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "강함",
+            "w": 34.84375,
+            "h": 44,
+            "y": 250.546875,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "취소",
+            "w": 40.25,
+            "h": 44,
+            "y": 331.5,
+            "font": "10.26px",
+            "disabled": false
+          },
+          {
+            "text": "저장",
+            "w": 40.25,
+            "h": 44,
+            "y": 331.5,
+            "font": "10.26px",
+            "disabled": false
+          }
+        ]
+      }
+    }
+  ],
+  "errors": []
+}

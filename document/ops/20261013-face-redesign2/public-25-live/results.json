@@ -1,0 +1,113 @@
+{
+  "rows": [
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "before": {
+        "panel": {
+          "x": 90,
+          "y": 8,
+          "w": 560,
+          "h": 284
+        },
+        "fullRows": 5,
+        "list": {
+          "x": 99.09375,
+          "y": 57.0625,
+          "w": 541.8125,
+          "h": 225.84375,
+          "clientH": 225
+        }
+      },
+      "after": {
+        "panel": {
+          "x": 90,
+          "y": 8,
+          "w": 560,
+          "h": 284
+        },
+        "fullRows": 5,
+        "list": {
+          "x": 99.09375,
+          "y": 57.0625,
+          "w": 541.8125,
+          "h": 225.84375,
+          "clientH": 225
+        }
+      },
+      "comparison": [
+        {
+          "dialog": "입문 경로",
+          "geometryUnchanged": true
+        },
+        {
+          "dialog": "내 경로",
+          "geometryUnchanged": true
+        }
+      ],
+      "functions": {
+        "entry": true,
+        "search": true,
+        "sort": true,
+        "escapeClose": true
+      }
+    },
+    {
+      "viewport": {
+        "width": 1024,
+        "height": 450
+      },
+      "before": {
+        "panel": {
+          "x": 232,
+          "y": 8,
+          "w": 560,
+          "h": 434
+        },
+        "fullRows": 8,
+        "list": {
+          "x": 241.09375,
+          "y": 57.0625,
+          "w": 541.8125,
+          "h": 375.84375,
+          "clientH": 375
+        }
+      },
+      "after": {
+        "panel": {
+          "x": 232,
+          "y": 8,
+          "w": 560,
+          "h": 434
+        },
+        "fullRows": 8,
+        "list": {
+          "x": 241.09375,
+          "y": 57.0625,
+          "w": 541.8125,
+          "h": 375.84375,
+          "clientH": 375
+        }
+      },
+      "comparison": [
+        {
+          "dialog": "입문 경로",
+          "geometryUnchanged": true
+        },
+        {
+          "dialog": "내 경로",
+          "geometryUnchanged": true
+        }
+      ],
+      "functions": {
+        "entry": true,
+        "search": true,
+        "sort": true,
+        "escapeClose": true
+      }
+    }
+  ],
+  "errors": []
+}

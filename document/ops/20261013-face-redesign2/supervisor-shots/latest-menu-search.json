@@ -1,0 +1,67 @@
+{
+  "rows": [
+    {
+      "unit": "menu",
+      "sel": ".menu-panel",
+      "geometryIdentical": true,
+      "elements": 20,
+      "style": {
+        "bg": "rgb(255, 255, 255)",
+        "fg": "rgb(31, 41, 55)",
+        "border": "rgb(31, 41, 55) rgb(203, 213, 225) rgb(31, 41, 55) rgb(31, 41, 55)"
+      },
+      "beforeRect": {
+        "tag": "ASIDE",
+        "cls": "menu-panel",
+        "x": 0,
+        "y": 0,
+        "w": 207.89,
+        "h": 360,
+        "sw": 207,
+        "sh": 360
+      },
+      "afterRect": {
+        "tag": "ASIDE",
+        "cls": "menu-panel",
+        "x": 0,
+        "y": 0,
+        "w": 207.89,
+        "h": 360,
+        "sw": 207,
+        "sh": 360
+      }
+    },
+    {
+      "unit": "search",
+      "sel": ".place-search-panel",
+      "geometryIdentical": true,
+      "elements": 8,
+      "style": {
+        "bg": "rgb(255, 255, 255)",
+        "fg": "rgb(31, 41, 55)",
+        "border": "rgb(203, 213, 225)"
+      },
+      "beforeRect": {
+        "tag": "ASIDE",
+        "cls": "place-search-panel",
+        "x": 8.77,
+        "y": 43.19,
+        "w": 249.75,
+        "h": 77.09,
+        "sw": 248,
+        "sh": 75
+      },
+      "afterRect": {
+        "tag": "ASIDE",
+        "cls": "place-search-panel",
+        "x": 8.77,
+        "y": 43.19,
+        "w": 249.75,
+        "h": 77.09,
+        "sw": 248,
+        "sh": 75
+      }
+    }
+  ],
+  "runtimeErrors": []
+}

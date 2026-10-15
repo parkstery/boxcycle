@@ -1,0 +1,488 @@
+.oc-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.oc-modal {
+  width: min(420px, 100%);
+  max-height: min(85dvh, 560px);
+  display: flex;
+  flex-direction: column;
+  background: #FFFFFF;
+  color: #1F2937;
+  color-scheme: light;
+  border: 1px solid #CBD5E1;
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+/* 제목 줄 — [제목 칩][검색][X]. X 는 우상단 구석, 검색이 남는 폭을 전부 쓴다(2026-10-06) */
+.oc-modal__head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 2.4rem 0.6rem 0.75rem;
+  border-bottom: 1px solid #E2E8F0;
+  flex-shrink: 0;
+}
+
+.oc-modal__title {
+  margin: 0;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #2563EB;
+  background: #EFF6FF;
+  color: #1D4ED8;
+  white-space: nowrap;
+}
+
+.oc-modal__search {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 0.32rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #1F2937;
+  -webkit-text-fill-color: #1F2937;
+}
+
+.oc-modal__search::placeholder {
+  color: #64748B;
+  -webkit-text-fill-color: #64748B;
+}
+
+.oc-modal__close {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  width: 1.9rem;
+  height: 1.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+}
+
+.oc-modal__close:hover {
+  background: #EFF6FF;
+  color: #1F2937;
+}
+
+/*
+ * 본문 — 정렬·필터·툴바는 고정, **목록(ul)만** 스크롤한다(2026-10-06 Chief).
+ * 종전에는 본문 전체가 스크롤돼 목록을 내리면 정렬·공개/열기/이름/삭제가 화면 밖으로 밀려났다.
+ */
+.oc-modal__body {
+  padding: 0.6rem 0.75rem 0.75rem;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.oc-modal__body > * {
+  flex-shrink: 0;
+}
+
+.oc-modal__hint,
+.oc-modal__error {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.oc-modal__hint {
+  opacity: 0.85;
+}
+
+.oc-modal__error {
+  color: #DC2626;
+}
+
+.oc-modal__error-detail {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.72rem;
+  opacity: 0.95;
+  word-break: break-word;
+}
+
+.oc-modal__list {
+  list-style: none;
+  margin: 0;
+  /* 포커스 링(outline-offset 2px)이 스크롤 영역에 잘리지 않을 여유 */
+  padding: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.oc-modal__body > .oc-modal__list {
+  flex-shrink: 1;
+}
+
+.oc-modal__list > li {
+  list-style: none;
+}
+
+.oc-modal__item {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0.45rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid #CBD5E1;
+  background: #F8FAFC;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.oc-modal__item:hover:not(:disabled) {
+  background: #EFF6FF;
+  border-color: #2563EB;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.12);
+}
+
+.oc-modal__item:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.75);
+  outline-offset: 2px;
+}
+
+.oc-modal__item.is-selected {
+  background: #EFF6FF;
+  border-color: #2563EB;
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.2);
+}
+
+.oc-modal__item:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.oc-modal__item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.oc-modal__item-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.oc-modal__item-name {
+  display: block;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: #1F2937;
+  -webkit-text-fill-color: #1F2937;
+}
+
+.oc-modal__item-sub {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
+  font-size: 0.72rem;
+  opacity: 0.78;
+  line-height: 1.35;
+  min-width: 0;
+}
+
+.oc-modal__item-sub-left {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.oc-modal__item-publisher {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: #64748B;
+}
+
+.oc-modal__item-activity {
+  color: #16A34A;
+  font-weight: 600;
+}
+
+.oc-modal__leave {
+  display: block;
+  width: 100%;
+  margin-top: 0.65rem;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.38rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid #CBD5E1;
+  background: #F8FAFC;
+  color: inherit;
+  cursor: pointer;
+}
+
+.oc-modal__leave:hover:not(:disabled) {
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.45);
+  color: #DC2626;
+}
+
+.oc-modal__leave:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* 정렬 바 — 목록 바로 위, 오른쪽 정렬(2026-09-16) */
+.oc-modal__sortbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 0.45rem;
+}
+
+/* ── 지시23: 퍼블릭 경로 목록 한정 (입문/내 경로·모달 기본 불변) ── */
+
+/* 1. 퍼블릭이 든 창만 넓게·높게. 0/1/2/빈/로딩은 내용 높이, 많으면 상한까지. */
+.oc-modal-overlay:has(.oc-modal[aria-label="퍼블릭 경로"]) {
+  padding: 8px;
+}
+
+.oc-modal[aria-label="퍼블릭 경로"] {
+  position: relative;
+  width: min(560px, calc(100vw - 16px));
+  max-height: calc(100vh - 16px);
+  max-height: calc(100dvh - 16px);
+}
+
+/* 4. 상단 여백 절제 — 퍼블릭 창에만. 폰트·버튼 높이/패딩 불변, 닫기 자리(우 2.4rem) 유지. */
+.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__head {
+  padding: 0.5rem 2.4rem 0.5rem 0.65rem;
+}
+
+.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__body {
+  padding: 0.5rem 0.6rem 0.6rem;
+}
+
+/* 2. 정렬 바를 헤더 한 행 안에 absolute. 닫기(우 0.3rem·폭 1.9rem)와 겹치지 않게 우 2.4rem. */
+.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__sortbar {
+  position: absolute;
+  top: 0;
+  right: 2.4rem;
+  height: 3rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+/* 정렬 바가 있을 때만 검색 오른쪽을 정렬 폭만큼 비운다. 0/1/2개(정렬 없음)는 예약 없음. */
+.oc-modal[aria-label="퍼블릭 경로"]:has(.oc-modal__sortbar) .oc-modal__search {
+  margin-right: 6.5rem;
+}
+
+/* 3. 내 경로와 같이 행 구분선·gap 절제. 카드 테두리/둥근 반복 제거. */
+.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__list {
+  gap: 0;
+  border-top: 1px solid #E2E8F0;
+}
+
+.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__item {
+  border: none;
+  border-bottom: 1px solid #E2E8F0;
+  border-radius: 0;
+  background: transparent;
+  box-sizing: border-box;
+  min-height: 32px;
+  height: auto;
+  padding: 1px 0.55rem;
+}
+
+.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__item:hover:not(:disabled) {
+  background: #EFF6FF;
+}
+
+.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__item.is-selected {
+  background: #EFF6FF;
+  box-shadow: inset 3px 0 0 0 #2563EB;
+}
+
+/* 이름 전체 유지·줄바꿈으로 가로 overflow 방지. 축약/재작성/line-clamp 없음.
+   지시25: 행 밀도용 line-height만 퍼블릭 범위에서 1.2로 (공용 base 불변). */
+.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__item-name {
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* 긴 등록자 이름은 메타 안에서 줄바꿈으로 가로 overflow 방지. 숨김으로 해결하지 않음.
+   지시25: sub 상단 간격·행간만 퍼블릭 범위에서 절제 (공용 base 불변). */
+.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__item-sub {
+  flex-wrap: wrap;
+  row-gap: 0.1rem;
+  margin-top: 0;
+  line-height: 1.15;
+}
+
+.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__item-publisher {
+  flex-shrink: 1;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  text-align: right;
+}
+
+/* 4. 긴 오류는 본문 스크롤 예외로 전체 접근, 헤더(본문 밖) 고정. 일반 상태는 목록만 스크롤. */
+.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__body:has(.oc-modal__error) {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__error {
+  flex-shrink: 0;
+}
+
+.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__error-detail {
+  overflow-wrap: anywhere;
+}
+
+/* ── 지시27: 입문 경로 목록 한정 (공용 base·퍼블릭 기존 rule 불변, 입문 override만 append) ── */
+
+/* 1. 입문이 든 창만 460px·상한까지. 소수 0/1/2/빈은 내용 높이로 끝나며, 폭/높이 고정 없음. */
+.oc-modal-overlay:has(.oc-modal[aria-label="입문 경로"]) {
+  padding: 8px;
+}
+
+.oc-modal[aria-label="입문 경로"] {
+  position: relative;
+  width: min(460px, calc(100vw - 16px));
+  max-height: calc(100vh - 16px);
+  max-height: calc(100dvh - 16px);
+}
+
+/* 2. 헤더 한 행 — 퍼블릭 compact값 참고. 폰트·높이·동작 불변, 닫기 자리(우 2.4rem) 유지. */
+.oc-modal[aria-label="입문 경로"] .oc-modal__head {
+  padding: 0.5rem 2.4rem 0.5rem 0.65rem;
+}
+
+.oc-modal[aria-label="입문 경로"] .oc-modal__body {
+  padding: 0.5rem 0.6rem 0.6rem;
+}
+
+/* 정렬 바가 있을 때만(3개 이상) 헤더 한 행 안에 absolute. 없으면 검색이 전체 가용폭. */
+.oc-modal[aria-label="입문 경로"] .oc-modal__sortbar {
+  position: absolute;
+  top: 0;
+  right: 2.4rem;
+  height: 3rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+.oc-modal[aria-label="입문 경로"]:has(.oc-modal__sortbar) .oc-modal__search {
+  margin-right: 6.5rem;
+}
+
+/* 3. 카드 반복을 행 구분선·gap 0으로 정리. 이번 입문 선택행은 min 44px 유지
+   (32px 예외는 Chief 지정 내 경로/퍼블릭만). 전체 텍스트·수단거리·활동 배지 보존. */
+.oc-modal[aria-label="입문 경로"] .oc-modal__list {
+  gap: 0;
+  border-top: 1px solid #E2E8F0;
+}
+
+.oc-modal[aria-label="입문 경로"] .oc-modal__item {
+  border: none;
+  border-bottom: 1px solid #E2E8F0;
+  border-radius: 0;
+  background: transparent;
+  box-sizing: border-box;
+  min-height: 44px;
+  height: auto;
+  padding: 2px 0.55rem;
+}
+
+.oc-modal[aria-label="입문 경로"] .oc-modal__item:hover:not(:disabled) {
+  background: #EFF6FF;
+}
+
+.oc-modal[aria-label="입문 경로"] .oc-modal__item.is-selected {
+  background: #EFF6FF;
+  box-shadow: inset 3px 0 0 0 #2563EB;
+}
+
+.oc-modal[aria-label="입문 경로"] .oc-modal__item-name {
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.oc-modal[aria-label="입문 경로"] .oc-modal__item-sub {
+  flex-wrap: wrap;
+  row-gap: 0.1rem;
+  margin-top: 1px;
+  line-height: 1.2;
+}
+
+.oc-modal[aria-label="입문 경로"] .oc-modal__item-publisher {
+  flex-shrink: 1;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  text-align: right;
+}
+
+/* 4. 선택 안내·나가기는 그대로. 긴 선택 안내/오류(예외 有) 내용 접근,
+   일반은 목록만 스크롤·헤더(본문 밖) 고정. */
+.oc-modal[aria-label="입문 경로"] .oc-modal__hint {
+  overflow-wrap: anywhere;
+}
+
+.oc-modal[aria-label="입문 경로"] .oc-modal__body:has(.oc-modal__error) {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.oc-modal[aria-label="입문 경로"] .oc-modal__error {
+  flex-shrink: 0;
+}
+
+.oc-modal[aria-label="입문 경로"] .oc-modal__error-detail {
+  overflow-wrap: anywhere;
+}

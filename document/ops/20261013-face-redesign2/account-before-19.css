@@ -1,0 +1,910 @@
+.user-info-sheet-root {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  pointer-events: none;
+}
+
+.user-info-sheet-root.is-open {
+  pointer-events: auto;
+}
+
+.user-info-sheet__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.42);
+  opacity: 0;
+  transition: opacity 0.18s ease-out;
+  border: none;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.user-info-sheet-root.is-open .user-info-sheet__scrim {
+  opacity: 1;
+}
+
+.user-info-sheet {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: min(20rem, 92vw);
+  max-height: 100vh;
+  max-height: 100dvh;
+  background: #FFFFFF;
+  color: #1F2937;
+  border-left: 1px solid #CBD5E1;
+  box-shadow: -6px 0 28px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transform: translateX(105%);
+  transition: transform 0.22s ease-out;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0.55rem 0.85rem 0.28rem;
+  gap: 0.55rem;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.user-info-sheet-root.is-open .user-info-sheet {
+  transform: translateX(0);
+}
+
+.user-info-sheet__head {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-shrink: 0;
+}
+
+.user-info-sheet__scroll-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 0.24rem;
+  padding-right: 0.1rem;
+}
+
+.user-info-sheet__avatar {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  background: #F1F5F9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  flex: 0 0 auto;
+}
+
+.user-info-sheet__avatar.is-guest {
+  background: #E2E8F0;
+}
+
+.user-info-sheet__id {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.user-info-sheet__id strong {
+  font-size: 0.86rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-info-sheet__id span {
+  font-size: 0.66rem;
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-info-sheet__close {
+  position: relative;
+  appearance: none;
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #475569;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+
+/* 보이는 원은 그대로. 44px 히트는 오른쪽 패딩 쪽으로 치우쳐 프로필 수정과 겹치지 않는다. */
+.user-info-sheet__close::after {
+  content: "";
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  right: -0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.user-info-sheet__edit {
+  position: relative;
+  appearance: none;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 650;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #475569;
+  cursor: pointer;
+}
+
+/* 보이는 크기는 작게, 누르는 영역은 44px */
+.user-info-sheet__edit::after {
+  content: "";
+  position: absolute;
+  inset: 50% 0 auto;
+  height: 44px;
+  transform: translateY(-50%);
+}
+
+.user-info-sheet__edit:hover {
+  background: #EFF6FF;
+  border-color: #2563EB;
+  color: #1F2937;
+}
+
+.user-info-sheet__close:hover {
+  background: #EFF6FF;
+  border-color: #2563EB;
+  color: #1F2937;
+}
+
+.user-info-sheet__plan {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 8px;
+  background: #EFF6FF;
+  border: 1px solid #CBD5E1;
+}
+
+.user-info-sheet__plan-tier {
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.user-info-sheet__plan-status {
+  font-size: 0.64rem;
+  opacity: 0.85;
+}
+
+.user-info-sheet__subscription {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.user-info-sheet__subscription-note {
+  margin: 0;
+  font-size: 0.6rem;
+  line-height: 1.35;
+  color: #B45309;
+}
+
+.user-info-sheet__subscription-note.is-ok {
+  color: #16A34A;
+}
+
+.user-info-sheet__stats-head {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0;
+}
+
+.user-info-sheet__stats-tab {
+  flex: 1;
+  appearance: none;
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #475569;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  /* 폰 터치 기준 — 종전 0.35rem 패딩은 높이 약 24px 이라 손가락으로 집기 어려웠다 */
+  min-height: 44px;
+  padding: 0.35rem 0.25rem;
+  border-radius: 10px;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+}
+
+.user-info-sheet__stats-tab:hover {
+  background: #EFF6FF;
+}
+
+.user-info-sheet__stats-tab.is-active {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+}
+
+.user-info-sheet__stats-note {
+  margin: 0;
+  font-size: 0.58rem;
+  line-height: 1.35;
+  opacity: 0.72;
+  color: #B45309;
+}
+
+.user-info-sheet__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.22rem;
+}
+
+.user-info-sheet__stats > div {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 0.16rem 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.04rem;
+}
+
+.user-info-sheet__stats span {
+  font-size: 0.62rem;
+  opacity: 0.72;
+}
+
+.user-info-sheet__stat-note {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: #64748B;
+  line-height: 1.2;
+}
+
+.user-info-sheet__stats strong {
+  font-size: 0.82rem;
+}
+
+.user-info-sheet__h {
+  margin: 0.16rem 0 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+}
+
+.user-info-sheet__h-toggle {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.16rem 0 0;
+  padding: 0.2rem 0.5rem;
+  border-radius: 8px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  color: #1F2937;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  text-align: left;
+}
+
+.user-info-sheet__h-toggle:hover {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
+.user-info-sheet__h-toggle > span:first-child {
+  flex: 1;
+}
+
+.user-info-sheet__h-chevron {
+  flex: 0 0 auto;
+  font-size: 0.7rem;
+  opacity: 0.75;
+}
+
+.user-info-sheet__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.user-info-sheet__item {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.14rem;
+  padding: 0.28rem 0.45rem;
+  border-radius: 8px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  font-size: 0.74rem;
+  min-width: 0;
+}
+
+.user-info-sheet__item-summary {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  gap: 0.4rem;
+  min-width: 0;
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.user-info-sheet__item-summary .user-info-sheet__item-km {
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.user-info-sheet__item-summary .user-info-sheet__item-when {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 500;
+  opacity: 0.88;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-info-sheet__item-summary .user-info-sheet__item-completion {
+  flex: 0 0 auto;
+  font-size: 0.64rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+.user-info-sheet__item-completion.is-unknown {
+  opacity: 0.65;
+  color: #64748B;
+}
+
+.user-info-sheet__item-completion.is-completed {
+  color: #16A34A;
+}
+
+.user-info-sheet__item-completion.is-partial {
+  color: #B45309;
+}
+
+.user-info-sheet__item-route {
+  font-size: 0.62rem;
+  line-height: 1.35;
+  opacity: 0.82;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.user-info-sheet__empty {
+  font-size: 0.74rem;
+  opacity: 0.62;
+  padding: 0.2rem 0.4rem;
+}
+
+.user-info-sheet__actions {
+  margin-top: 0;
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  gap: 0.28rem 0.35rem;
+}
+
+.user-info-sheet__btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #1F2937;
+  font: inherit;
+  font-size: 0.78rem;
+  min-height: 44px;
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.user-info-sheet__actions > .user-info-sheet__btn {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.user-info-sheet__btn--google {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  justify-content: flex-start;
+  font-weight: 650;
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+  color: #1F2937;
+}
+
+.user-info-sheet__google-mark {
+  flex-shrink: 0;
+  display: block;
+}
+
+.user-info-sheet__btn:hover:not(:disabled) {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
+.user-info-sheet__btn.user-info-sheet__btn--google:hover:not(:disabled) {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
+.user-info-sheet__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.user-info-sheet__btn--danger {
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #DC2626;
+}
+
+.user-info-sheet__btn--danger:hover {
+  background: rgba(220, 38, 38, 0.14);
+  border-color: #DC2626;
+}
+
+.user-info-sheet__logout-confirm {
+  display: flex;
+  flex: 1 0 100%;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  gap: 0.28rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 8px;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+.user-info-sheet__logout-confirm-copy {
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 650;
+  color: #1F2937;
+}
+
+/* 계정 탈퇴 확인 문구 입력(2026-10-06) */
+.user-info-sheet__confirm-input {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 0.16rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(220, 38, 38, 0.55);
+  background: #FFFFFF;
+  color: #1F2937;
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.user-info-sheet__logout-confirm-row {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.user-info-sheet__logout-confirm-row .user-info-sheet__btn {
+  flex: 1 1 0;
+  min-width: 0;
+  justify-content: center;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .user-info-sheet__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/*
+ * 최근 주행 행 액션(§3.6) — 요약 자체가 「지도에서 보기」 버튼이 되고, 재개·새 경로는 형제 버튼이다.
+ * 중첩 button 을 만들지 않기 위한 구조이므로 버튼을 서로 감싸지 말 것.
+ */
+.user-info-sheet__item-summary--action {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.user-info-sheet__item-summary--action:hover .user-info-sheet__item-when {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.user-info-sheet__item-summary--action:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.user-info-sheet__item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.28rem;
+  margin-top: 0.1rem;
+}
+
+.user-info-sheet__item-action {
+  padding: 0.22rem 0.45rem;
+  border-radius: 7px;
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: inherit;
+  font-size: 0.62rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.user-info-sheet__item-action:hover {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
+.user-info-sheet__item-action:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: 2px;
+}
+
+
+/* ── 2026-09-15 계정 패널 정비 ─────────────────────────────────────────
+   접는 것과 지우는 것을 분리하고, 같은 사실을 한 번만 말한다.
+   블록 12개 → 7개. 정보는 그대로 두고 중복·이중 기간축만 걷어냈다.
+   ------------------------------------------------------------------ */
+
+/* 플랜 — 상태 + 행동 한 줄(버튼 형태) */
+.user-info-sheet__plan.is-actionable {
+  appearance: none;
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.user-info-sheet__plan.is-actionable:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.user-info-sheet__plan-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #2563EB;
+}
+
+/* 자산 — 내 도로망 · 누적을 2열 한 행으로 */
+.user-info-sheet__assets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.24rem;
+}
+
+.user-info-sheet__asset {
+  display: flex;
+  flex-direction: column;
+  gap: 0.06rem;
+  min-width: 0;
+  padding: 0.28rem 0.45rem;
+  border-radius: 10px;
+  border: 1px solid #CBD5E1;
+  background: #F8FAFC;
+}
+
+.user-info-sheet__asset.is-conquest {
+  border-color: rgba(37, 99, 235, 0.4);
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.user-info-sheet__asset-k {
+  font-size: 0.64rem;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.user-info-sheet__asset-v {
+  font-size: 1.06rem;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.user-info-sheet__asset-v span {
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.user-info-sheet__asset.is-conquest .user-info-sheet__asset-v {
+  color: #2563EB;
+}
+
+.user-info-sheet__asset-sub {
+  font-size: 0.6rem;
+  opacity: 0.62;
+}
+
+/* 통계 — 기간 하나, 거리 히어로 + 보조 3 */
+.user-info-sheet__stats-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.16rem;
+  padding: 0.26rem 0.5rem 0.2rem;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  background: #F8FAFC;
+}
+
+.user-info-sheet__stats-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.45rem;
+  min-width: 0;
+  font-size: 0.62rem;
+  opacity: 0.72;
+}
+
+.user-info-sheet__stats-meta span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 스토리 한 줄(M4) — 바로 아래 거리 숫자가 파랑이라, 문장은 본문색으로 숫자를 받쳐 준다 */
+.user-info-sheet__stats-story {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1.35;
+  color: #1F2937;
+}
+
+.user-info-sheet__stats-hero {
+  display: flex;
+  align-items: baseline;
+  gap: 0.22rem;
+  margin: 0;
+  color: #2563EB;
+}
+
+.user-info-sheet__stats-hero strong {
+  font-size: 1.85rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.user-info-sheet__stats-hero span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+/* 마지막 주행 = 최근 주행 목록 입구 */
+.user-info-sheet__last-ride {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 0.2rem 0.55rem;
+  border-radius: 12px;
+  border: 1px solid #CBD5E1;
+  background: #F8FAFC;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.user-info-sheet__last-ride:hover {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
+.user-info-sheet__last-ride-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.04rem;
+}
+
+.user-info-sheet__last-ride-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.user-info-sheet__last-ride-k {
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.user-info-sheet__last-ride-when {
+  font-size: 0.6rem;
+  opacity: 0.66;
+}
+
+.user-info-sheet__last-ride-v {
+  font-size: 0.64rem;
+  line-height: 1.35;
+  opacity: 0.9;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-info-sheet__last-ride-v.is-empty {
+  opacity: 0.6;
+}
+
+.user-info-sheet__h-chevron {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.66;
+  transition: transform 0.16s ease-out;
+}
+
+.user-info-sheet__h-chevron.is-open {
+  transform: rotate(90deg);
+}
+
+/* ── 2026-10-13 지시09 계정 UI compact (CSS-only, 폰트·색·문구·TSX 불변) ──
+   플랜 행 + 기간 탭을 같은 grid 행에 모아 세로 한 행 제거. 탭/확인 버튼은
+   내용폭(flex-basis auto + shrink), 확인 패널 중첩 여백 절제. 44px 터치 유지.
+   조건부(구독 안내·자산·내역·액션) 상태를 깨지 않게 body 직계 전부를 명시 배치.
+   순서 주의: DOM의 안내·자산은 탭 뒤 행으로 내려간다(같은 행 합치기 대가). */
+.user-info-sheet__scroll-body {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 0.35rem;
+  row-gap: 0.24rem;
+  align-items: start;
+  align-content: start;
+  grid-auto-rows: max-content;
+}
+
+.user-info-sheet__scroll-body > .user-info-sheet__plan {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: stretch;
+  min-width: 0;
+}
+
+.user-info-sheet__scroll-body > .user-info-sheet__stats-head {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: stretch;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+.user-info-sheet__scroll-body > .user-info-sheet__subscription-note,
+.user-info-sheet__scroll-body > .user-info-sheet__assets,
+.user-info-sheet__scroll-body > .user-info-sheet__stats-card,
+.user-info-sheet__scroll-body > .user-info-sheet__last-ride,
+.user-info-sheet__scroll-body > .user-info-sheet__list,
+.user-info-sheet__scroll-body > .user-info-sheet__actions {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+/* 기간 탭 내용폭 — 균등 전폭(flex:1) 대신 내용 기준 + 축소 허용. 44px 유지 */
+.user-info-sheet__stats-tab {
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 0;
+}
+
+/* 확인 버튼 내용폭 — 전폭 확장(flex:1 1 0) 제거. 44px 유지 */
+.user-info-sheet__logout-confirm-row {
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.user-info-sheet__logout-confirm-row .user-info-sheet__btn {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+/* 확인 패널 중첩 여백 절제 — 경고 문구·입력·스크롤은 유지 */
+.user-info-sheet__logout-confirm {
+  gap: 0.2rem;
+  padding: 0.25rem 0.4rem;
+}
+
+.user-info-sheet__confirm-input {
+  margin-top: 0.1rem;
+  min-height: 44px;
+}
+
+/* ── 2026-10-13 지시13 계정창 컨트롤 44→22px (UserInfoSheet scoped, 폰트·색·폭·TSX 불변) ──
+   대상: 플랜행(액션/비액션 동일행)·기간탭4·마지막주행입구·일반btn(Google/로그아웃/탈퇴·확인행 확인취소실행)·탈퇴확인input.
+   height/min-height/box-sizing/padding-block만 조절해 실제 rect 22px. 헤더 수정/닫기·목록내 작은액션·통계카드·자산 손대지 않음. pseudo44 추가 없음. row合체 grid 유지. */
+.user-info-sheet__plan,
+.user-info-sheet__plan.is-actionable,
+.user-info-sheet__stats-tab,
+.user-info-sheet__last-ride,
+.user-info-sheet__btn,
+.user-info-sheet__confirm-input {
+  min-height: 22px;
+  height: 22px;
+  box-sizing: border-box;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* 마지막주행 두줄→한줄 최소조정 (font-size·line-height 불변, ellipsis 유지) */
+.user-info-sheet__last-ride-body {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.user-info-sheet__last-ride-head {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.user-info-sheet__last-ride-v {
+  flex: 1 1 auto;
+  min-width: 0;
+}

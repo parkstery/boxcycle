@@ -1,0 +1,265 @@
+diff --git a/AGENTS.md b/AGENTS.md
+index 41a5ebc..0485b8e 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -50,7 +50,8 @@
+ 
+ - **Chief**는 제품 방향, 중요한 기술·범위 결정과 최종 완료를 승인한다. 일상적인 구현의 중간 전달을 맡기지 않는다.
+ - **Codex = Engineering Supervisor**: 요구를 분석하고 작업 범위·완료 조건·검증 방법을 정해 `document/ops/`에 지시한다. 구현 결과와 실제 diff·검증 증거를 검수하고 재작업 또는 완료를 판정한다.
+-- **Cursor CLI = Development Lead**: 지정된 작업을 조사·구현·검증하고 같은 묶음에 사실에 근거한 결과를 남긴다. 범위 밖 문제는 보고하고, 독단적으로 확장하지 않는다. Cursor IDE는 사람이 확인·디버깅할 때 쓰는 보조 도구다.
++- **Developer = OpenCode의 Muse Spark 1.3(기본) / Cursor AI·CLI(교대)**: 지정된 작업을 조사·구현·검증하고 같은 묶음에 사실에 근거한 결과를 남긴다. 범위 밖 문제는 보고하고, 독단적으로 확장하지 않는다. Cursor AI는 IDE·CLI 어느 환경이든 같은 파일 인계·검수 계약을 따른다.
++- 최종 사용 기기는 **스마트폰**이다. PC는 개발·반복 테스트 환경이며, 현행 폰 가로 방향·공간밀도 기준을 우선한다. [협업·감리 계약](document/reference/operations/261009-RTW-개발에이전트-협업-감리.md)에 따라 도구가 교대해도 동일 지시·결과·검수 기록을 이어간다.
+ - 공식 handoff는 [document/ops/README.md](document/ops/README.md)에 따른 파일 기록이다. 새 작업은 현재 묶음의 `README.md`와 최신 지시를 읽고 시작한다. 이전 릴레이의 상시 대기 지침을 새 작업에 적용하지 않는다.
+ - 지시 → 결과 → 검수 → 필요하면 새 재지시를 별도 파일로 남긴다. 상태 요약은 [document/ops/PROGRESS.md](document/ops/PROGRESS.md)에 기록한다. 기존 ops 기록은 보존한다.
+ - 아키텍처·도메인 경계·데이터 모델·Firestore/RTDB/Rules·외부 API·의미 있는 비용·Public Trail 동기화·공용 인터페이스·대규모 이동·기능 의미·요구 해석 또는 큰 범위 변경은 구현 전에 Chief 결정이 필요한지 Supervisor가 판정한다.
+diff --git "a/document/260707-RTW-\352\262\260\354\240\225-\353\241\234\352\267\270.md" "b/document/260707-RTW-\352\262\260\354\240\225-\353\241\234\352\267\270.md"
+index cd30213..3e25967 100644
+--- "a/document/260707-RTW-\352\262\260\354\240\225-\353\241\234\352\267\270.md"
++++ "b/document/260707-RTW-\352\262\260\354\240\225-\353\241\234\352\267\270.md"
+@@ -12,6 +12,31 @@
+ 
+ | 날짜 | 태그 | 결정 | 이유 (한 줄) | 근거·상세 |
+ |---|---|---|---|---|
++| 2026-10-15 | `[UI]` | 주행 설정54 Chief채택, 다음 시작 인증 카드 여백·짧은 화면 접근 보정 | 사용자 승인·커밋·다음 진행, 인증 동작과 버튼 크기 보존 | [검수54](ops/20261013-face-redesign2/04-review-54.md) · [지시55](ops/20261013-face-redesign2/02-task-55.md) |
++| 2026-10-15 | `[UI]` | 주행 설정 칼로리 제목·체력 라벨·약함 표시, 설명 삭제 및 내용 폭으로 축소 | Chief의 첨부 화면·다섯 항목 명시 요청, 계산 ID와 센서 정책 유지 | [지시54](ops/20261013-face-redesign2/02-task-54.md) · [검수54](ops/20261013-face-redesign2/04-review-54.md) |
++| 2026-10-15 | `[UI]` | 지명 검색51 Chief채택, 주행 설정 체중·강도 컨트롤을 22px로 축소하고 여백 정리 | 첨부 화면에서 낭비 공간·높은 버튼 축소를 명시 요청, 해당 창에만 크기 예외 적용 | [검수51](ops/20261013-face-redesign2/04-review-51.md) · [지시52](ops/20261013-face-redesign2/02-task-52.md) |
++| 2026-10-15 | `[UI]` | 시작 버튼 펄스50 Chief채택, 다음 지명 검색 창 정리 진행 | 사용자 승인·커밋·다음 지시, 검색 기능과 다음 주행 카드 보존 | [검수50](ops/20261013-face-redesign2/04-review-50.md) · [지시51](ops/20261013-face-redesign2/02-task-51.md) |
++| 2026-10-15 | `[UI]` | 경로 설정 후 시작 안내를 색상 점멸에서 확대·광륜 펄스 2회로 변경 | Chief가 blink 대신 pulsing을 명시 요청 | [지시50](ops/20261013-face-redesign2/02-task-50.md) · [검수50](ops/20261013-face-redesign2/04-review-50.md) |
++| 2026-10-15 | `[UI]` | 주행 설정46/47 Chief채택, 다음 지도 설정 창 밀도 정리 진행 | 사용자 통과·다음 지시, 기존 크기·기능 보존 및 Cursor 교대 유지 | [감리47](ops/20261013-face-redesign2/04-review-47.md) · [지시48](ops/20261013-face-redesign2/02-task-48.md) |
++| 2026-10-15 | `[UI]` | 다음 주행 카드는 현재 상태 유지, 경로 설정 시 주행 시작 버튼 두 번 점멸 안내 | 설정·주행 패널이 분리되어 사용자가 시작 버튼 위치를 바로 찾도록 Chief 요청 | [지시44](ops/20261013-face-redesign2/02-task-44.md) |
++| 2026-10-15 | `[UI]` | 센서창41 Chief채택, 다음주행결과창 여백·테두리 균형 정리 | 사용자통과·다음지시,기존표시/기능보존·자원절약지속 | [감리41](ops/20261013-face-redesign2/04-review-41.md) · [지시42](ops/20261013-face-redesign2/02-task-42.md) |
++| 2026-10-15 | `[UI]` | 왼쪽24px캐럿40 Chief채택, 다음센서창개선순차진행 | 사용자통과·이어서진행지시,컴퓨터자원절약명시 | [감리40](ops/20261013-face-redesign2/04-review-40.md) · [지시41](ops/20261013-face-redesign2/02-task-41.md) |
++| 2026-10-15 | `[UI]` | 캐럿을 왼쪽 정렬·24px 행·상단 여백0으로 축소, 캐럿에 한해44px하한예외 적용 | Chief 수정이미지지정: 공간절약·큰컨트롤금지,위/아래모든캐럿동일스타일 | [지시40](ops/20261013-face-redesign2/02-task-40.md) |
++| 2026-10-14 | `[UI]` | 텍스트 모드 전환을 이중 캐럿으로 교체, 거리에서는 위치를 위에·위치에서는 거리를 아래에 펼침/접기 | Chief 첨부 지시: 둔탁한 텍스트 버튼 제거, 상대 컨트롤을 같은 패널에 붙여 접근 | [지시38](ops/20261013-face-redesign2/02-task-38.md) · [감리39](ops/20261013-face-redesign2/04-review-39.md) |
++| 2026-10-14 | `[UI]` | 30~33의 두 토글·혼합 패널을 대체: 위치 화면 '거리›'로 거리 화면 진입, '‹위치 선택'으로 복귀 | Chief가 mobile-ui-redesign의 명확한 모드 분리를 지정, 흰/파랑 디자인 유지·구현 설명 승인 | [지시34](ops/20261013-face-redesign2/02-task-34.md) |
++| 2026-10-14 | `[UI]` | ❌ 경로 탐색의 위치·거리 컨트롤을 상호 접고 두 영역을 다시 펼침 — 후속34의 별도 화면 전환으로 대체 | Chief가30~33 혼합/중간토글디자인 거부, mobile-ui-redesign 모드분리컨셉 승인 | [지시30](ops/20261013-face-redesign2/02-task-30.md) · [지시34](ops/20261013-face-redesign2/02-task-34.md) |
++| 2026-10-14 | `[UI]` | 입문28의 퍼블릭과 동일한 행 간격을 Chief 채택, 다음 경로 생성 창 진행 | 입문도 최소32px 특정예외·폰트/동작보존 사용 확인 통과 | [감리28](ops/20261013-face-redesign2/04-review-28.md) · [감리29](ops/20261013-face-redesign2/04-review-29.md) |
++| 2026-10-14 | `[UI]` | 입문 선택행도 퍼블릭과 같은 최소32px·간격으로 적용 | Chief가 입문 목록 간격도 동일하게 축소 요청,글자와동작유지 | [지시28](ops/20261013-face-redesign2/02-task-28.md) · [감리28](ops/20261013-face-redesign2/04-review-28.md) |
++| 2026-10-14 | `[UI]` | 두 경로 목록26의 추가 행 압축을 Chief 채택, 다음 입문 목록 정리 진행 | 선택행32px 특정예외·폰트/배지보존·표시개수 증가 사용 확인 통과 | [감리26](ops/20261013-face-redesign2/04-review-26.md) · [감리27](ops/20261013-face-redesign2/04-review-27.md) |
++| 2026-10-14 | `[UI]` | 두 경로 목록은 추가 밀도 요청에 따라 선택행 최소32px 특정예외,내용높이 허용 | 44px 하한 설명 후 Chief가 남은 간격 추가축소 지시,글자·배지 유지 | [지시26](ops/20261013-face-redesign2/02-task-26.md) · [감리26](ops/20261013-face-redesign2/04-review-26.md) |
++| 2026-10-14 | `[UI]` | 내경로21/22 밀도·비교 공간 개선을 Chief 채택, 다음 퍼블릭 목록 진행 | 행수 증가·선택 전 비활성 툴바 접힘·긴 안내 접근 사용 확인 통과 | [내경로 감리22](ops/20261013-face-redesign2/04-review-22.md) · [퍼블릭 감리24](ops/20261013-face-redesign2/04-review-24.md) |
++| 2026-10-14 | `[UI]` | compact 계정2컬럼20을 Chief 채택, 다음 내경로목록 비교공간·밀도 개선 진행 | 요청한 좌계정자산/우기간통계 구조 사용 확인 통과 | [계정 감리20](ops/20261013-face-redesign2/04-review-20.md) · [내경로 감리22](ops/20261013-face-redesign2/04-review-22.md) |
++| 2026-10-14 | `[UI]` | 계정 창은 mobile-ui-redesign의 좌계정·자산/우기간통계 2컬럼 구조를 참고하되 크기를 줄여 face-redesign2에 구현 | Chief가 단열보다 구조를 선호하며 참고 창은 과대하다고 피드백 | [지시20](ops/20261013-face-redesign2/02-task-20.md) · [감리20](ops/20261013-face-redesign2/04-review-20.md) |
++| 2026-10-14 | `[UI]` | 메뉴 창의 내용 높이 종료를 Chief 승인. 창 하나씩 Muse 구현·Supervisor 검수 후 사용 피드백으로 다음 진행 | 불필요한 지도 가림을 줄이고 창별 결과를 즉시 확인 | [메뉴 감리18](ops/20261013-face-redesign2/04-review-18.md) · [계정 지시19](ops/20261013-face-redesign2/02-task-19.md) |
++| 2026-10-09 | `[UI]` `[Workflow]` | 준비·센서 패널 방향 채택. 센서 위치 유지, 옆 주행 버튼은 시작/재개·일시정지 토글과 별도 종료로 정정(이전 3버튼 유지 대체). 개편은 별도 워크트리, 앱 코드 금지 유지 | Chief 패널 승인·센서 위치 정정·작업 격리 요청 | [최신 결정](ops/20261009-mobile-design-collaboration/19-chief-control-worktree.md) |
++| 2026-10-09 | UI | 주행 제어는 텍스트 없이 기호로, 통짜 배경 없이 개별 작은 표면으로 정돈하는 방향 수락. 준비·센서 시안으로 확장 | Chief: 지도 가림 최소화, 작은 기호 버튼안 이후 계속 요청. 코드 작성 금지는 유지 | [기호안](ops/20261009-mobile-design-collaboration/14-design-revision-04.md) · [확장·감리](ops/20261009-mobile-design-collaboration/17-design-preparation-sensor.md) |
++| 2026-10-09 | UI | 주행 계기는 통짜 단색 배경을 없애고 작은 텍스트 중심으로, 라이더 앞쪽 경로와 다음 굽이의 시야를 우선 확보 | Chief: 가독성을 일부 양보하더라도 지도 노출 우선, 전방 노선 가림 금지 | [D9 기준](reference/product/260924-RTW-UI-공간밀도-원칙.md) · [수정안 02](ops/20261009-mobile-design-collaboration/07-design-revision-02.md) |
++| 2026-10-09 | `[UI]` `[Docs]` | 스마트폰을 디자인·검수 우선 대상으로 유지하고, Developer는 OpenCode Muse Spark 1.3 기본·Cursor 교대, Codex가 공통 파일 창구로 감리 | Chief 지시: PC는 개발 환경, 최종 기기는 폰. 도구 교대에도 인계·검수 기준 유지 | [협업 계약](reference/operations/261009-RTW-개발에이전트-협업-감리.md) · [작업](ops/20261009-mobile-design-collaboration/README.md) |
+ | 2026-10-09 | `[Account]` `[Infra]` | users 문서 생성 규칙: 게스트(`anonymous`) 외에 **닉네임 예약을 함께 확정하는 무료 회원**(`registered_free`)도 생성 허용, 결제 필드는 어느 쪽도 금지. `isAnonymous` 는 로그인 방식과 일치해야 생성 가능 | 게스트를 거치지 않고 바로 Google 로 가입하면 문서가 없어 가입 쓰기가 create 가 되는데, 규칙이 막아 **가입을 끝낼 수 없었다**(에뮬레이터 재현). 지워진 계정 탭이 문서를 되살리는 일의 2차 방어 | `firestore.rules` (`userTierOnCreateValid`·`userCreateIsProfile`) |
+ | 2026-10-09 | `[Trail]` `[Infra]` | Trail 수명주기 정리는 단계마다 문서를 끝까지 페이지로 훑는다(45초 예산, 넘치면 다음 실행이 이어감) | 순서 없는 `limit` 한 번만 읽어 보관 7일 지난 Trail 102개가 남아 있었다 | `functions/src/trailLifecycleCore.ts` (`scanAllPages`) |
+ | 2026-10-09 | `[Account]` `[Privacy]` | Google 사진 주소(`photoURL`)도 로그인한 누구나 읽는 문서(`users`·Trail/공개 경로 동행 `members`)에 쓰지 않는다 — 규칙이 새로 넣기를 막고(이메일과 같은 `publicPiiNotAdded`), 기존 값은 `admin:strip-public-pii` 로 지운다 | 읽는 화면이 하나도 없는데 얼굴 사진으로 이어지는 주소가 동행 기록 72건에 남아 있었다 | `firestore.rules` · `functions/src/cliStripPublicPii.ts` |
+diff --git a/document/README.md b/document/README.md
+index 21e9184..5c1799e 100644
+--- a/document/README.md
++++ b/document/README.md
+@@ -53,6 +53,7 @@
+ | 문서 | 역할 | 문서 상태 |
+ |---|---|---|
+ | [Firebase 비용 체크리스트](reference/operations/260523-Firebase-비용-운영-체크리스트.md) | 반복 비용 관측·대응 절차 | 검토됨·운영 문서 |
++| [개발 에이전트 협업·감리](reference/operations/261009-RTW-개발에이전트-협업-감리.md) | Muse·Cursor 교대·모바일 검수·파일 인계 | 채택 |
+ | [개발 워크플로](reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md) | 브랜치·커밋·검증 게이트 | SoT |
+ | [Skill·Harness 아키텍처](reference/operations/260722-Skill-Harness-아키텍처.md) | 규율·도구·실행코드 3계층 | SoT |
+ | [구조 게이트 운용](reference/operations/260926-RTW-구조-게이트-운용-지침.md) | 구조 도구·게이트 규율 | SoT |
+diff --git a/document/ops/PROGRESS.md b/document/ops/PROGRESS.md
+index e63d5c5..1f814bc 100644
+--- a/document/ops/PROGRESS.md
++++ b/document/ops/PROGRESS.md
+@@ -1,10 +1,77 @@
++2026-10-15 최신: 계기판63/64 f623d8d 검수/커밋. 폰크기동일·전체최대폭+3.53%/높이0%,50상태·조합36 PASS. [검수63](20261013-face-redesign2/04-review-63.md),실기기미검증.
++
++2026-10-15 최신: 추천1 단일캐럿62 d9071d7 커밋/검수완료. 행16.8유지·48상태/tsc/lint PASS. [검수62](20261013-face-redesign2/04-review-62.md),실기기미검증.
++
++2026-10-15 최신: face-redesign2 펄스59/61 d51676c·캐럿행70%60 1cff026 커밋/검수완료. hook5+펄스21+캐럿48+selector15/tsc/lint오류0 PASS,실기기미검증. [검수59](20261013-face-redesign2/04-review-59.md)·[검수60](20261013-face-redesign2/04-review-60.md).
++
++2026-10-15 최신 완료: [검수57](20261013-face-redesign2/04-review-57.md) Google중복제거147e83c / [전체검수58](20261013-face-redesign2/04-review-58.md) 438상태+펄스PASS·결과가로넘침보정80fb6a6. 실기기/실지도/실인증미검증,5013사용확인·통합/푸시미실시.
++
++2026-10-15 최신 완료: 최우선닉네임56 [검수56](20261013-face-redesign2/04-review-56.md) APPROVED/AWAITING_CHIEF. b31de2a·25상태/validation/콜백/selector15 PASS. 잔여Google상태/통합점검/실기기/병합푸시. 실가입미검증.
++
++2026-10-15 최신 완료: 시작인증55 [검수55](20261013-face-redesign2/04-review-55.md) APPROVED/AWAITING_CHIEF. 주행설정54승인·시작카드205→176px,25상태/selector15 PASS,9c8a761. 실인증/실기기미검증,다음Google/닉네임카드.
++
++2026-10-15 최신 완료: 주행 설정54 [검수54](20261013-face-redesign2/04-review-54.md) APPROVED/AWAITING_CHIEF. 다섯요청반영·폭351→267px,20상태/tsc/lint PASS,93d9284. 5013사용확인·실기기미검증.
++
++2026-10-15 최신 완료: HUD 중앙안내53 [검수53](20261013-face-redesign2/04-review-53.md) APPROVED/AWAITING_CHIEF. 폰높이72→63px,버튼/계기/코칭보존,16상태/콜백/selector15 PASS. face-redesign2 9bcc219커밋·5013확인,실기기미검증. 다음가입·인증창.
++
++2026-10-15 최신 완료: 검색51 Chief승인. 주행설정52 [검수52](20261013-face-redesign2/04-review-52.md) APPROVED/AWAITING_CHIEF. 체중/강도22px·면적36%축소,20상태/콜백/공유CSS PASS. face-redesign2 CSS1파일6e89efa,5013확인·실기기미검증.
++
++2026-10-15 최신 완료: 펄스50 Chief승인. 지명 검색51 [검수51](20261013-face-redesign2/04-review-51.md) APPROVED/AWAITING_CHIEF,일반2→7/긴1→4개·단일목록스크롤·32상태PASS. face-redesign2 CSS두파일ca56e9b,기본main2문서기록. 5013사용확인·실API/실기기미검증,다음HUD·안내팝업.
++
++2026-10-15 최신 완료: 시작 안내를 펄스50으로 변경 [검수50](20261013-face-redesign2/04-review-50.md). 900ms×2·색 고정·확대/광륜, 네 viewport 겹침 없음/기존 동작/selector15 PASS. CSS81dcce6 커밋, 실기기 미검증. 지도 설정49 확인 대기 유지·디자인 후속 지명 검색.
++
++2026-10-15 최신완료: 지도설정48/49 [감리49](20261013-face-redesign2/04-review-49.md) APPROVED/AWAITING_CHIEF. 주행설정47 Chief통과,폰227→144px·PC가로overflow0. 24상태/37콜백PASS,CSS1파일8b2f6a2커밋. 5013맵버튼사용확인,다음지명검색. 실기기미검증·Cursor교대.
++
++2026-10-15 최신완료: 미니맵/주행설정46·47 [감리47](20261013-face-redesign2/04-review-47.md) APPROVED/AWAITING_CHIEF. 미니맵16상태현상유지·주행설정16상태PASS,CSS1파일 c6b230e커밋. 폰194→173px,다음주행카드/시작안내보존. Muse한도유지→Cursor,남은UI코드전달승인済. 5013주행설정사용확인·후속지도설정/지명검색,실기기미검증.
++
++2026-10-15 최신완료: 주행시작 안내44/45 [감리45](20261013-face-redesign2/04-review-45.md) APPROVED/AWAITING_CHIEF. 코드51866a5·선행UI b4239b5 커밋, 다음주행카드유지. 경로완료600ms×2·접힌패널표시·접기종료,4viewport/14확인/selector15/tsc/lint PASS. 외부코드전달승인으로권한대기해소. 5013확인·실기기/실주행미검증.
++
++2026-10-15 주행시작 안내44: 기존 UI 코드 b4239b5 커밋, 다음 주행 카드 유지. 셀렉터15/tsc PASS. Muse429·Cursor 외부 코드 전달 자동 승인 거부로 사용자 응답 대기. [검수44](20261013-face-redesign2/04-review-44.md), 점멸 미구현.
++
+ # ops 전체 상태판
+ 
+-마지막 갱신: 2026-10-08. 상세 기록은 각 묶음에, 목표·기능별 진도는 [상태보드](../260707-RTW-기능-인벤토리-상태보드.md), 제품 전체 방향은 [RTW 현황판](../260928-RTW-현황판.md)에 있다.
++2026-10-15 최신완료:41 Chief통과.결과42/43 [감리43](20261013-face-redesign2/04-review-43.md) APPROVED/AWAITING_CHIEF.CSS8속성만·지도없는단일browser/page8상태PASS,기본높이91→82/Guest166→155,保存중·失敗안내完整표시。5013확인대기·실기기/실주행미검증·미커밋。
++
++2026-10-15 최신완료:40 Chief통과.센서41 [감리41](20261013-face-redesign2/04-review-41.md) APPROVED/AWAITING_CHIEF.체험선택표시/강조·余白정리,740높이105→96,버튼/기능보존。단일browser/page10상태+실제1·selector15/tsc PASS,5013확인대기。실기기BLE미검증/미커밋。
++
++2026-10-15 최신완료: 캐럿左정렬/24px행40 [감리40](20261013-face-redesign2/04-review-40.md) APPROVED/AWAITING_CHIEF.48고유DOM+실제15상태,CSS4선외변경0.대표패널높이약21px감소,다른버튼/값/기능보존。5013확인대기,실기기미검증/미커밋。
++
++2026-10-14 최신완료: 텍스트전환→이중캐럿38/계약39 [최종감리39](20261013-face-redesign2/04-review-39.md) APPROVED/AWAITING_CHIEF. 위치위/거리아래동반펼침·접기·재활성/값보존.48DOM+실제15상태·141거리테스트·tsc/lint/diff PASS,5013확인대기.실기기/전체주행e2e미검증,미커밋.
++
++2026-10-14 최신완료: 위치/거리別화면34·마감35/37 [최종감리37](20261013-face-redesign2/04-review-37.md) APPROVED/AWAITING_CHIEF. 중간토글제거·거리›/‹위치선택전환·공통삭제/값보존.32DOM+실제15상태·141거리테스트·tsc/lint/diff PASS.5013확인대기.이전33디자인미채택,실기기/전체주행e2e미검증,미커밋.
++
++2026-10-14 최신진행: Chief30~33 디자인미채택. 명확한 위치/거리 별도화면컨셉승인 → [지시34](20261013-face-redesign2/02-task-34.md) Muse IN_PROGRESS,5013유지. 이전33 기술검수보존,최종디자인합격아님.
++
++2026-10-14 최신: 경로 탐색 모드별 접기30/31·펼침배치32·내부높이33 완료. [최종감리33](20261013-face-redesign2/04-review-33.md) APPROVED/AWAITING_CHIEF. 44px 한행토글·입력보존·상호접기/양쪽펼침,4viewport20상태+실제3viewport18상태 PASS.5013확인대기,실기기/실제주행未검증,커밋/배포없음.
++
++2026-10-14 최신: 입문28 Chief통과. 경로생성 [감리29](20261013-face-redesign2/04-review-29.md) APPROVED/AWAITING_CHIEF. 거리그룹·여백/테두리정리,높이209→201,35mock+2live PASS.5013지도클릭→Start확인대기.
++
++2026-10-14 최신: 입문도퍼블릭밀도 [감리28](20261013-face-redesign2/04-review-28.md) APPROVED/AWAITING_CHIEF. 선택행44→32,실제창높이241→193·4개모두표시.21mock+live PASS,5013확인대기.
++
++2026-10-14 최신: 두목록26 Chief통과. 입문 [감리27](20261013-face-redesign2/04-review-27.md) APPROVED/AWAITING_CHIEF,실제7403→4개모두표시·35mock+live PASS.5013입문확인후다음.
++
++2026-10-14 최신: [감리26](20261013-face-redesign2/04-review-26.md) 두목록추가축소 APPROVED/AWAITING_CHIEF.1024내경로7→10·퍼블릭실제8→11,두목록선택행min32특정예외.60mock+2live PASS,5013확인대기.
++
++2026-10-14 최신: 두목록밀도 [감리25](20261013-face-redesign2/04-review-25.md) APPROVED/AWAITING_CHIEF. 내경로meta/progress둘째줄統合·복합행74→44·폰완전행+1,퍼블릭長행/PC행수증가·phone短행수유지.5013확인대기.
++
++2026-10-14 최신: 내경로22 Chief통과. 퍼블릭23/24 [감리24](20261013-face-redesign2/04-review-24.md) APPROVED/AWAITING_CHIEF.실제7403→5행、검색/정렬한행、55mock+2live PASS.5013 RTW→퍼블릭확인후다음.
++
++2026-10-14 최신: 계정20 Chief통과. 내경로21/22 [최종감리22](20261013-face-redesign2/04-review-22.md) APPROVED/AWAITING_CHIEF,740혼합목록1→3행·예외안내재작업PASS。5013 RTW→내경로확인후다음。
++
++2026-10-14 최신: 계정2컬럼再지시20 [감리20](20261013-face-redesign2/04-review-20.md) APPROVED/AWAITING_CHIEF. 폭460px·좌계정자산/우통계,40mock+2live·tsc/diff PASS. 5013계정창확인후다음. 계정19단열대체,메뉴18승인보존.
++
++2026-10-14 최신: 메뉴18 Chief채택. 계정19 Muse완료 → [감리19](20261013-face-redesign2/04-review-19.md) APPROVED / AWAITING_CHIEF. 28mock·2실제viewport·tsc/diff PASS. 실기기·실제등록계정미검증. 5013 오른쪽계정창확인후다음.
++
++2026-10-14 메뉴 구현 완료: Muse [결과18](20261013-face-redesign2/03-result-18.md) → Supervisor [감리18](20261013-face-redesign2/04-review-18.md) APPROVED / AWAITING_CHIEF. 4화면 크기·12상태 및 닫기/내 경로 진입 PASS, 실기기 미검증. 5013에서 확인·피드백 후 다음 창 진행.
++
++2026-10-14 디자인 검토 추가: face-redesign2 [수정안17](20261013-face-redesign2/17-proposal-ui-balance.md) 제시. 첨부 11장·소스 검토, 실행/실기기 검증 미실시. 구현·채택 전이며 기존 추가15/16 상태는 유지.
++
++마지막 갱신: 2026-10-09. 상세 기록은 각 묶음에, 목표·기능별 진도는 [상태보드](../260707-RTW-기능-인벤토리-상태보드.md), 제품 전체 방향은 [RTW 현황판](../260928-RTW-현황판.md)에 있다.
+ 
+ | 현재 작업 | 단계 | Supervisor | Developer | Chief 승인 | 마지막 검수 | 막힘 | 다음 작업 |
+ |---|---|---|---|---|---|---|---|
+-| [face-redesign2 UI](20261013-face-redesign2/README.md) | APPROVED · 디자인1차마감·main2통합 | Codex | Muse/교대Cursor | 1차마감·커밋/푸시/병합승인 | [결과14](20261013-face-redesign2/03-result-14-integration.md) 코드8fdedae·1066시험통과 | 실기기·실제인증미검증 | main2원격동기화·운영배포미실행 |
++| [face-redesign2 UI](20261013-face-redesign2/README.md) | AWAITING_CHIEF · Google57/점검58 | Codex | Cursor(Muse한도 유지) | 중복제거·전체화면점검 요청 | [검수58](20261013-face-redesign2/04-review-58.md) 438상태/대표조합 PASS | 실기기·실지도·실인증 미검증 | Chief5013확인·실기기·최종통합 |
++| [모바일 디자인·협업](20261009-mobile-design-collaboration/README.md) | DESIGN_ACCEPTED · 패널 채택·주행 토글·워크트리 분리 | Codex | OpenCode Muse Spark 1.3 / Cursor 교대 | 스마트폰 우선·협업 체계 승인, 코드 작성 금지 유지 | [인계 검수 PASS](20261009-mobile-design-collaboration/04-review-01.md) · 요약 오류 1건 정정 | 실제 UI·실기기 미검증 | [최신 Chief 결정](20261009-mobile-design-collaboration/19-chief-control-worktree.md) 기준 워크트리에서 토글 시안·상태 명세 정리(코드 금지) |
+ | [페이서](20261008-pacer-riders/README.md) | APPROVED · main2 병합·배포 | Claude | Cursor CLI(구현)·Claude(검증) | 이름·기본 켜짐·2명 승인(10-08) | [검수 01](20261008-pacer-riders/04-review-01.md) 자동 전부 pass | 없음 | 사용 확인·종료 |
+ | [칼로리·이어달리기](20261006-calories-resume/README.md) | APPROVED · origin/main2 반영 완료 | Codex | Cursor CLI | 칼로리 변경·재개1개유지 요청 | [18 검수](20261006-calories-resume/18-review-supervisor.md) · [24 push 완료](20261006-calories-resume/24-result-remote-push.md) | 실 Firebase·다중 탭/e2e 미실행 · 원격 반영 완료 | Chief 사용 확인·최종 종료 |
+ | [내 경로 가독성](20261006-saved-route-readability/README.md) | APPROVED · origin/main2 반영 완료 | Codex | Cursor CLI | Edge 글자 수정 요청 | [03 검수](20261006-saved-route-readability/03-review.md) | Edge 사용자 창 직접 검증 미실시 · 원격 반영 완료 | 사용 확인·종료 대기 |
+@@ -20,3 +87,5 @@
+ 
+ 종료된 묶음과 이동 가능 여부는 [완료 기록 색인](../archive/README.md)에 보존한다. 이 표의 상태는 각 작업 폴더의 최신 지시·결과·검수와 함께 갱신한다.
+ 
++
++
+diff --git a/document/ops/README.md b/document/ops/README.md
+index 600600b..de3105b 100644
+--- a/document/ops/README.md
++++ b/document/ops/README.md
+@@ -1,5 +1,39 @@
+ # ops — 에이전트 작업 창구
+ 
++2026-10-15 최신창:41 Chief통과,결과42/43 [감리43](20261013-face-redesign2/04-review-43.md) APPROVED/Chief확인대기。CSS余白/테두리/단위대비·보조수치wrap,지도없는browser1/page1순차8상태PASS,face-redesign2/5013유지。
++
++2026-10-15 최신창:40 Chief통과,센서41 [감리41](20261013-face-redesign2/04-review-41.md) APPROVED/Chief확인대기。체험선택표시/강조/余白정리,単一browser/page順次검수,face-redesign2/5013유지。
++
++2026-10-15 최신창: 콤팩트캐럿40 [감리40](20261013-face-redesign2/04-review-40.md) APPROVED/Chief확인대기.왼쪽정렬·44→24px·여백0,CSS4선만·DOM48/실제15 PASS,face-redesign2/5013유지。
++
++2026-10-14 최신창: 이중캐럿/위아래동반패널38/39 [최종감리39](20261013-face-redesign2/04-review-39.md) APPROVED/Chief확인대기.텍스트모드button제거·위치위/거리아래펼침/접기·값보존.48DOM+실제15·141테스트 PASS,face-redesign2/5013유지.
++
++2026-10-14 최신창: 위치/거리모드別화면34~37 [최종감리37](20261013-face-redesign2/04-review-37.md) APPROVED/Chief확인대기. 두중간토글제거·거리›진입/‹위치선택복귀·공통삭제.32DOM+실제15상태·141테스트 PASS,face-redesign2/5013유지. 이전33디자인미채택.
++
++2026-10-14 최신창: 경로 탐색 모드별접기30~33 [최종감리33](20261013-face-redesign2/04-review-33.md) APPROVED/Chief확인대기. 두패널한행토글44px·값보존·펼침후배치·내부스크롤해소. face-redesign2/5013유지.
++
++2026-10-14 최신창: 경로생성 [감리29](20261013-face-redesign2/04-review-29.md) APPROVED·Chief확인대기.입문28 Chief통과,face-redesign2/5013유지.
++
++2026-10-14 최신창: 입문행간추가축소 [감리28](20261013-face-redesign2/04-review-28.md) APPROVED·Chief확인대기. face-redesign2/5013유지.
++
++2026-10-14 최신창: 입문 [감리27](20261013-face-redesign2/04-review-27.md) APPROVED·Chief확인대기.두목록26 Chief통과,face-redesign2/5013유지.
++
++2026-10-14 최신: face-redesign2 두목록추가밀도 [감리26](20261013-face-redesign2/04-review-26.md) APPROVED·Chief확인대기.5013유지.
++
++2026-10-14 최신창: 내경로/퍼블릭줄간격·행밀도 [감리25](20261013-face-redesign2/04-review-25.md) APPROVED·Chief확인대기. face-redesign2/5013유지.
++
++2026-10-14 최신창: 내경로22 Chief통과,퍼블릭23/24 [감리24](20261013-face-redesign2/04-review-24.md) APPROVED·Chief확인대기. face-redesign2/5013유지.
++
++2026-10-14 최신창: 계정20 Chief통과,내경로21/22 [감리22](20261013-face-redesign2/04-review-22.md) APPROVED·Chief확인대기。face-redesign2/5013유지。
++
++2026-10-14 최신창: face-redesign2 계정compact2컬럼 [감리20](20261013-face-redesign2/04-review-20.md) APPROVED·Chief확인대기. 5013유지,계정19단열대체.
++
++2026-10-14 최신창: 메뉴18 Chief승인, 계정19 [감리19](20261013-face-redesign2/04-review-19.md) APPROVED·Chief확인대기. face-redesign2/5013 유지, 다음창피드백후.
++
++2026-10-14 메뉴 한 창 완료: face-redesign2 [감리18](20261013-face-redesign2/04-review-18.md) APPROVED, Chief 확인 대기. Muse 구현·Supervisor 독립 검수, 5013 실행 중. 다음 창은 피드백 후.
++
++2026-10-14: face-redesign2 [UI 균형 수정안17](20261013-face-redesign2/17-proposal-ui-balance.md) 추가. Chief 검토 후보, 구현 전. 기존 묶음에 이어 기록한다.
++
+ | 항목 | 내용 |
+ |------|------|
+ | 문서 유형 | **메타** — `ops/` 묶음 색인. 폴더마다 한 줄 |
+@@ -8,14 +42,14 @@
+ | 상태 | **SoT** — 묶음을 열거나 닫을 때 이 표를 함께 고친다 |
+ | 연결 문서 | [현황판](../260928-RTW-현황판.md) · [문서 지침 §8.4](../260509-BOXCYCLE-문서-생성-및-수정-지침.md) |
+ 
+-> `ops/` 는 Supervisor(Codex) ↔ Developer(Cursor CLI)의 공식 파일 기반 업무 창구다. 기존 Claude 릴레이 기록도 보존한다.
++> `ops/` 는 Supervisor(Codex) ↔ Developer(OpenCode Muse Spark 1.3 / Cursor AI·CLI)의 공식 파일 기반 업무 창구다. 기존 Claude 릴레이 기록도 보존한다.
+ > chief 는 [전체 상태판](PROGRESS.md)과 아래 묶음 표로 현재 상황을 확인한다. 폴더 안의 지시서·보고서는 에이전트용이다.
+ 
+ ## 역할과 handoff
+ 
+ 1. **Chief**: 요구와 제품 방향을 전달하고 중요한 결정·최종 완료를 승인한다. AI 사이의 파일을 복사해 전달하지 않는다.
+ 2. **Supervisor (Codex)**: 요구를 분석해 범위, 완료 조건, 검증 방법, 승인 필요 여부를 지시에 적고 상태를 `READY_FOR_DEVELOPMENT`로 둔다.
+-3. **Developer (Cursor CLI)**: 지정된 지시 파일을 읽고 그 범위만 수행한다. 실제 변경 파일, 실행한 검증과 결과, 실패·미완·범위 밖 발견을 별도 결과 파일에 적는다. 승인 대상이 발견되면 구현을 멈추고 `BLOCKED`로 보고한다.
++3. **Developer (기본 OpenCode Muse Spark 1.3 / 교대 Cursor AI·CLI)**: 지정된 지시 파일을 읽고 그 범위만 수행한다. 실제 변경 파일, 실행한 검증과 결과, 실패·미완·범위 밖 발견을 별도 결과 파일에 적는다. 승인 대상이 발견되면 구현을 멈추고 `BLOCKED`로 보고한다.
+ 4. **Supervisor**: 결과 문서뿐 아니라 Git diff와 검증 근거를 확인한다. 합격이면 `APPROVED`, 부족하면 이유와 완료 조건을 별도 재지시 파일에 기록해 `REWORK_REQUIRED`로 둔다. 완료 보고는 Chief에게 직접 한다.
+ 
+ 이 역할은 **새 작업의 기본값**이다. 기존 Claude 묶음의 파일명·도메인 규율·증거는 해당 기록을 읽을 때 그대로 유효하다. 종료된 묶음에 남은 자동 대기 명령은 재가동을 뜻하지 않는다.
+@@ -32,7 +66,7 @@ Supervisor는 아키텍처, 도메인 경계, 데이터 모델, Firestore·RTDB
+ 
+ ## 실행·Git
+ 
+-새 지시 한 건마다 Cursor CLI 프로세스 한 번을 기본으로 한다. `agent -p --workspace C:\20.HDev\boxcycle "document/ops/<묶음>/<지시파일>을 읽고 지시된 범위만 수행한 뒤 결과 파일을 작성하라"` 형태로 실행하고 종료 코드와 출력을 확인한다. 실제 옵션은 로컬 `agent --help`에서 확인한다. 무한 대기 릴레이는 기본 실행 방식이 아니다. Git 브랜치·커밋·푸시는 [개발 워크플로](../reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md)와 해당 작업 지시의 제한을 따른다. 다른 작업의 변경은 섞지 않는다.
++새 지시 한 건마다 기본 Muse 또는 교대 Cursor 실행 한 번으로 제한한다. 모델·교대·모바일 검수는 [협업·감리 계약](../reference/operations/261009-RTW-개발에이전트-협업-감리.md)을 따른다. 아래 Cursor 명령은 교대 실행 예시다. `agent -p --workspace C:\20.HDev\boxcycle "document/ops/<묶음>/<지시파일>을 읽고 지시된 범위만 수행한 뒤 결과 파일을 작성하라"` 형태로 실행하고 종료 코드와 출력을 확인한다. 실제 옵션은 로컬 `agent --help`에서 확인한다. 무한 대기 릴레이는 기본 실행 방식이 아니다. Git 브랜치·커밋·푸시는 [개발 워크플로](../reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md)와 해당 작업 지시의 제한을 따른다. 다른 작업의 변경은 섞지 않는다.
+ 
+ ## 규칙 (요약)
+ 
+@@ -40,11 +74,12 @@ Supervisor는 아키텍처, 도메인 경계, 데이터 모델, Firestore·RTDB
+ 2. 종료가 확정되면 현재 표와 PROGRESS에서 빼고 [종료 색인](../archive/README.md)에 결과와 위치를 남긴다. APPROVED는 CLOSED와 다르다.
+ 3. 종료된 폴더는 **코드·스킬·명령이 그 경로를 가리키지 않을 때만** `archive/ops/` 로 옮긴다. 가리키면 제자리에 둔다.
+ 
+-## 진행·대기 묶음 (2026-10-05)
++## 진행·대기 묶음 (2026-10-09)
+ 
+ | 폴더 | 상태 | 무엇 | 결과·입구 | 이동 |
+ |---|---|---|---|---|
+-| [20261013-face-redesign2](20261013-face-redesign2/README.md) | **APPROVED** · 디자인1차마감·main2통합 | 밝은컬러·프로필/계정밀도·맵뷰하단여백 | [결과14](20261013-face-redesign2/03-result-14-integration.md) | — |
++| [20261013-face-redesign2](20261013-face-redesign2/README.md) | **AWAITING_CHIEF** · Google57/점검58 | 중복제거·438상태검증·결과창가로넘침보정 | [검수58](20261013-face-redesign2/04-review-58.md) | 5013확인·실기기/실인증 미검증 |
++| [20261009-mobile-design-collaboration](20261009-mobile-design-collaboration/README.md) | **AWAITING_CHIEF** · 확장 05 · 준비·센서 패널 | 스마트폰 우선 디자인·Muse / Cursor 협업 체계, 코드 작성 금지 | [디자인 초안](20261009-mobile-design-collaboration/17-design-preparation-sensor.md) · [인계 검수](20261009-mobile-design-collaboration/04-review-01.md) | — |
+ | [20261008-pacer-riders](20261008-pacer-riders/README.md) | **APPROVED** · main2 병합·배포 | 혼자 주행 시 로컬 페이서 2명(±20m 추월, 기본 켜짐) | [계획](20261008-pacer-riders/01-plan.md) · [검수 01](20261008-pacer-riders/04-review-01.md) | — |
+ | [20261007-lint-baseline-react-hooks](20261007-lint-baseline-react-hooks/README.md) | **APPROVED** · 커밋 완료 | 기존 lint 오류 15파일 36건 제거(의미 보존) | [검수 01](20261007-lint-baseline-react-hooks/04-review-01.md) | — |
+ | [20261006-account-deletion](20261006-account-deletion/README.md) | **APPROVED** · 배포 대기 | 계정 탈퇴 기능 | [계획](20261006-account-deletion/01-plan.md) · [검수 15](20261006-account-deletion/04-review-15.md) | — |
+diff --git "a/document/reference/product/260924-RTW-UI-\352\263\265\352\260\204\353\260\200\353\217\204-\354\233\220\354\271\231.md" "b/document/reference/product/260924-RTW-UI-\352\263\265\352\260\204\353\260\200\353\217\204-\354\233\220\354\271\231.md"
+index b356d5b..f483da7 100644
+--- "a/document/reference/product/260924-RTW-UI-\352\263\265\352\260\204\353\260\200\353\217\204-\354\233\220\354\271\231.md"
++++ "b/document/reference/product/260924-RTW-UI-\352\263\265\352\260\204\353\260\200\353\217\204-\354\233\220\354\271\231.md"
+@@ -34,6 +34,10 @@
+ | **D7** | 같은 화면에 **이미 있는 좋은 예**를 따른다 — RouteDock 거리 칩(`1 3 5 10 20`) | 한 앱 안에서 두 가지 밀도를 쓰지 않는다 |
+ | **D8** | **임시·개발용 표면은 기존 UI 를 가리지 않는 자리에 둔다.** 겹치면 기존 것을 옮기지 말고 **임시 쪽이 비켜라** | 도구가 제품을 가리면 도구를 쓰는 동안 제품을 시험할 수 없다(2026-09-24 조명 조절판이 Quick Camera 4·5·6 을 덮었다) |
+ 
++### D9 — 주행 계기와 전방 시야 (2026-10-09 Chief 확정)
++
++주행 계기는 지도 노출을 우선하여 상단 전체를 단색 배경으로 덮지 않는다. 배경 없는 선명한 텍스트·절제된 윤곽/그림자를 기본 방향으로 한다. 특히 라이더 앞쪽 노선과 다음 굽이를 표시하는 영역을 가리지 않는다. 계기 글자 자체의 겹침도 카메라별로 확인한다. 설정·기록 패널의 배경까지 없애라는 뜻은 아니다. [시각 수정안·검증 한계](../../ops/20261009-mobile-design-collaboration/07-design-revision-02.md).
++
+ ### D1 예시
+ 
+ ```
+@@ -53,6 +57,12 @@
+ 
+ ## 2. 하지 말 것
+ 
++2026-10-15 특정 예외: Chief가 첨부한 주행 설정 화면의 높은 버튼과 낭비 공간을 명시적으로 줄이도록 요청했다. **주행 설정 창 안의 체중 입력·강도 버튼 3개만 높이 22px**로 적용한다. 폰트·문구·체크박스는 보존하며, 공용 클래스를 사용하는 프로필·계정과 다른 컨트롤에는 확대 적용하지 않는다. [지시52](../../ops/20261013-face-redesign2/02-task-52.md).
++
++2026-10-14 후속 특정 예외: Chief가 입문도 퍼블릭과 같은 간격을 명시 요청하여 입문 목록 선택행에도 최소32px·내용 높이를 적용한다. 예외 대상은 세 경로 목록 선택행이며, 다른 컨트롤로 확대하지 않는다. [지시28](../../ops/20261013-face-redesign2/02-task-28.md).
++
++2026-10-14 특정 예외: Chief가 내 경로·퍼블릭 목록의 44px 하한에 따른 여백 설명 후 추가 축소를 명시 요청했다. 해당 두 목록의 선택행만 최소 32px·내용 높이로 허용한다. 글자 크기·배지·기능은 유지하며, 인접 행 위에 투명 44px 영역을 겹쳐 놓지 않는다. 다른 컨트롤의 기본 기준은 유지한다. [지시26](../../ops/20261013-face-redesign2/02-task-26.md).
++
+ - 터치 타깃을 44px 미만으로 줄여 공간을 버는 것 — **이건 규칙 위반이다**.
+   D2 는 「작게 만들라」가 아니라 「**넓게** 만들지 말라」다
+ - 글자 크기를 줄여 우겨넣는 것 — 폰 가로에서 루트 글꼴이 이미 13.5px 이다

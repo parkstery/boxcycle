@@ -1,0 +1,96 @@
+{
+  "rows": [
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "measured": {
+        "x": 40.015625,
+        "y": 188.59375,
+        "width": 180,
+        "height": 44,
+        "hit": true,
+        "overflow": false
+      },
+      "transition": "PASS"
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "measured": {
+        "x": 44.390625,
+        "y": 178.65625,
+        "width": 180,
+        "height": 44,
+        "hit": true,
+        "overflow": false
+      },
+      "transition": "PASS"
+    },
+    {
+      "viewport": {
+        "width": 800,
+        "height": 360
+      },
+      "measured": {
+        "x": 48,
+        "y": 208.65625,
+        "width": 180,
+        "height": 44,
+        "hit": true,
+        "overflow": false
+      },
+      "transition": "PASS"
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "measured": {
+        "x": 50.625,
+        "y": 223.65625,
+        "width": 180,
+        "height": 44,
+        "hit": true,
+        "overflow": false
+      },
+      "transition": "PASS"
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "measured": {
+        "x": 81.953125,
+        "y": 439.328125,
+        "width": 180,
+        "height": 44,
+        "hit": true,
+        "overflow": false
+      },
+      "transition": "PASS"
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 180
+      },
+      "measured": {
+        "x": 44.390625,
+        "y": 83.0625,
+        "width": 180,
+        "height": 44,
+        "hit": true,
+        "overflow": false
+      },
+      "transition": "PASS"
+    }
+  ],
+  "reducedMotion": "PASS",
+  "fixture": "real components, simulated map; no Firebase writes"
+}

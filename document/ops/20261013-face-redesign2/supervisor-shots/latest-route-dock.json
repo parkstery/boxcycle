@@ -1,0 +1,36 @@
+{
+  "rows": [
+    {
+      "unit": "route-dock",
+      "sel": ".route-dock__shell",
+      "geometryIdentical": true,
+      "elements": 16,
+      "style": {
+        "bg": "rgb(255, 255, 255)",
+        "fg": "rgb(237, 239, 242)",
+        "border": "rgb(203, 213, 225)"
+      },
+      "beforeRect": {
+        "tag": "DIV",
+        "cls": "route-dock__shell",
+        "x": 11.19,
+        "y": 298.08,
+        "w": 79.75,
+        "h": 46,
+        "sw": 78,
+        "sh": 44
+      },
+      "afterRect": {
+        "tag": "DIV",
+        "cls": "route-dock__shell",
+        "x": 11.19,
+        "y": 298.08,
+        "w": 79.75,
+        "h": 46,
+        "sw": 78,
+        "sh": 44
+      }
+    }
+  ],
+  "runtimeErrors": []
+}

@@ -1,0 +1,343 @@
+{
+  "PASS": true,
+  "rows": [
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "expanded": true,
+      "stage": "riding",
+      "mm": {
+        "x": 9.328125,
+        "y": 81.609375,
+        "width": 196,
+        "height": 88
+      },
+      "dock": {
+        "x": 9.328125,
+        "y": 177.609375,
+        "width": 194.359375,
+        "height": 108.328125
+      },
+      "gap": 8
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "expanded": true,
+      "stage": "paused",
+      "mm": {
+        "x": 9.328125,
+        "y": 81.609375,
+        "width": 196,
+        "height": 88
+      },
+      "dock": {
+        "x": 9.328125,
+        "y": 177.609375,
+        "width": 194.359375,
+        "height": 108.328125
+      },
+      "gap": 8
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "expanded": false,
+      "stage": "riding",
+      "mm": {
+        "x": 9.328125,
+        "y": 143.9375,
+        "width": 196,
+        "height": 88
+      },
+      "dock": {
+        "x": 9.328125,
+        "y": 239.9375,
+        "width": 14.546875,
+        "height": 46
+      },
+      "gap": 8
+    },
+    {
+      "viewport": {
+        "width": 667,
+        "height": 300
+      },
+      "expanded": false,
+      "stage": "paused",
+      "mm": {
+        "x": 9.328125,
+        "y": 143.9375,
+        "width": 196,
+        "height": 88
+      },
+      "dock": {
+        "x": 9.328125,
+        "y": 239.9375,
+        "width": 14.546875,
+        "height": 46
+      },
+      "gap": 8
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "expanded": true,
+      "stage": "riding",
+      "mm": {
+        "x": 10.359375,
+        "y": 80.59375,
+        "width": 217,
+        "height": 88
+      },
+      "dock": {
+        "x": 10.359375,
+        "y": 176.59375,
+        "width": 194.359375,
+        "height": 108.328125
+      },
+      "gap": 8
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "expanded": true,
+      "stage": "paused",
+      "mm": {
+        "x": 10.359375,
+        "y": 80.59375,
+        "width": 217,
+        "height": 88
+      },
+      "dock": {
+        "x": 10.359375,
+        "y": 176.59375,
+        "width": 194.359375,
+        "height": 108.328125
+      },
+      "gap": 8
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "expanded": false,
+      "stage": "riding",
+      "mm": {
+        "x": 10.359375,
+        "y": 142.921875,
+        "width": 217,
+        "height": 88
+      },
+      "dock": {
+        "x": 10.359375,
+        "y": 238.921875,
+        "width": 14.546875,
+        "height": 46
+      },
+      "gap": 8
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "expanded": false,
+      "stage": "paused",
+      "mm": {
+        "x": 10.359375,
+        "y": 142.921875,
+        "width": 217,
+        "height": 88
+      },
+      "dock": {
+        "x": 10.359375,
+        "y": 238.921875,
+        "width": 14.546875,
+        "height": 46
+      },
+      "gap": 8
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "expanded": true,
+      "stage": "riding",
+      "mm": {
+        "x": 11.46875,
+        "y": 143.484375,
+        "width": 248,
+        "height": 114
+      },
+      "dock": {
+        "x": 11.46875,
+        "y": 265.484375,
+        "width": 194.359375,
+        "height": 108.328125
+      },
+      "gap": 8
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "expanded": true,
+      "stage": "paused",
+      "mm": {
+        "x": 11.46875,
+        "y": 143.484375,
+        "width": 248,
+        "height": 114
+      },
+      "dock": {
+        "x": 11.46875,
+        "y": 265.484375,
+        "width": 194.359375,
+        "height": 108.328125
+      },
+      "gap": 8
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "expanded": false,
+      "stage": "riding",
+      "mm": {
+        "x": 11.46875,
+        "y": 205.8125,
+        "width": 248,
+        "height": 114
+      },
+      "dock": {
+        "x": 11.46875,
+        "y": 327.8125,
+        "width": 14.546875,
+        "height": 46
+      },
+      "gap": 8
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "expanded": false,
+      "stage": "paused",
+      "mm": {
+        "x": 11.46875,
+        "y": 205.8125,
+        "width": 248,
+        "height": 114
+      },
+      "dock": {
+        "x": 11.46875,
+        "y": 327.8125,
+        "width": 14.546875,
+        "height": 46
+      },
+      "gap": 8
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "expanded": true,
+      "stage": "riding",
+      "mm": {
+        "x": 13.59375,
+        "y": 316.421875,
+        "width": 401,
+        "height": 225
+      },
+      "dock": {
+        "x": 13.59375,
+        "y": 549.421875,
+        "width": 272.875,
+        "height": 158.984375
+      },
+      "gap": 8
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "expanded": true,
+      "stage": "paused",
+      "mm": {
+        "x": 13.59375,
+        "y": 316.421875,
+        "width": 401,
+        "height": 225
+      },
+      "dock": {
+        "x": 13.59375,
+        "y": 549.421875,
+        "width": 272.875,
+        "height": 158.984375
+      },
+      "gap": 8
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "expanded": false,
+      "stage": "riding",
+      "mm": {
+        "x": 13.59375,
+        "y": 429.40625,
+        "width": 401,
+        "height": 225
+      },
+      "dock": {
+        "x": 13.59375,
+        "y": 662.40625,
+        "width": 16.875,
+        "height": 46
+      },
+      "gap": 8
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "expanded": false,
+      "stage": "paused",
+      "mm": {
+        "x": 13.59375,
+        "y": 429.40625,
+        "width": 401,
+        "height": 225
+      },
+      "dock": {
+        "x": 13.59375,
+        "y": 662.40625,
+        "width": 16.875,
+        "height": 46
+      },
+      "gap": 8
+    }
+  ],
+  "errors": [],
+  "note": "Actual RouteMinimap and RouteDock; fixed mock HUD rect, no base map or static image requests; no code changes."
+}

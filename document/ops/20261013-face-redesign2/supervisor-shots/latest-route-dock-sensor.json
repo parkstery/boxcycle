@@ -1,0 +1,40 @@
+{
+  "rows": [
+    {
+      "unit": "route-dock",
+      "sel": ".route-dock__shell",
+      "geometryIdentical": true,
+      "elements": 16,
+      "style": {
+        "bg": "rgba(13, 19, 25, 0.7)",
+        "fg": "rgb(237, 239, 242)",
+        "border": "rgba(255, 255, 255, 0.08)"
+      },
+      "beforeRect": {
+        "tag": "DIV",
+        "cls": "route-dock__shell",
+        "x": 11.19,
+        "y": 298.08,
+        "w": 79.75,
+        "h": 46,
+        "sw": 78,
+        "sh": 44
+      },
+      "afterRect": {
+        "tag": "DIV",
+        "cls": "route-dock__shell",
+        "x": 11.19,
+        "y": 298.08,
+        "w": 79.75,
+        "h": 46,
+        "sw": 78,
+        "sh": 44
+      }
+    },
+    {
+      "unit": "sensor",
+      "error": "TimeoutError: locator.click: Timeout 8000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.hud-cadence')\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-expanded=\"false\" title=\"Cadence sensor\" aria-label=\"케이던스 센서: 연결 안 됨\" class=\"hud-cadence hud-cadence--dock\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - performing click action\u001b[22m\n"
+    }
+  ],
+  "runtimeErrors": []
+}

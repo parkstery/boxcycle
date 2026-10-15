@@ -1,0 +1,103 @@
+{
+  "rows": [
+    {
+      "viewport": {
+        "width": 740,
+        "height": 300
+      },
+      "before": {
+        "cls": "oc-modal",
+        "x": 160,
+        "y": 80.640625,
+        "w": 420,
+        "h": 138.71875
+      },
+      "after": {
+        "cls": "oc-modal",
+        "x": 90,
+        "y": 84.34375,
+        "w": 560,
+        "h": 131.296875
+      },
+      "publicAndIntro": [
+        {
+          "dialog": "입문 경로",
+          "geometryUnchanged": true,
+          "rect": {
+            "cls": "oc-modal",
+            "x": 160,
+            "y": 22.5,
+            "w": 420,
+            "h": 255
+          }
+        },
+        {
+          "dialog": "퍼블릭 경로",
+          "geometryUnchanged": true,
+          "rect": {
+            "cls": "oc-modal",
+            "x": 160,
+            "y": 22.5,
+            "w": 420,
+            "h": 255
+          }
+        }
+      ],
+      "functions": {
+        "menuEntry": true,
+        "search": true,
+        "close": true
+      }
+    },
+    {
+      "viewport": {
+        "width": 800,
+        "height": 360
+      },
+      "before": {
+        "cls": "oc-modal",
+        "x": 190,
+        "y": 110.640625,
+        "w": 420,
+        "h": 138.71875
+      },
+      "after": {
+        "cls": "oc-modal",
+        "x": 120,
+        "y": 114.34375,
+        "w": 560,
+        "h": 131.296875
+      },
+      "publicAndIntro": [
+        {
+          "dialog": "입문 경로",
+          "geometryUnchanged": true,
+          "rect": {
+            "cls": "oc-modal",
+            "x": 190,
+            "y": 36.921875,
+            "w": 420,
+            "h": 286.15625
+          }
+        },
+        {
+          "dialog": "퍼블릭 경로",
+          "geometryUnchanged": true,
+          "rect": {
+            "cls": "oc-modal",
+            "x": 190,
+            "y": 27,
+            "w": 420,
+            "h": 306
+          }
+        }
+      ],
+      "functions": {
+        "menuEntry": true,
+        "search": true,
+        "close": true
+      }
+    }
+  ],
+  "errors": []
+}

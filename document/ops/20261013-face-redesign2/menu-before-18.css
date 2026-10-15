@@ -1,0 +1,180 @@
+.menu-panel-root {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.menu-panel-root.is-open {
+  pointer-events: auto;
+}
+
+.menu-panel__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transition: opacity 0.18s ease-out;
+  border: none;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.menu-panel-root.is-open .menu-panel__scrim {
+  opacity: 1;
+}
+
+.menu-panel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  --menu-panel-width: 15.4rem; /* 기존 22rem 대비 약 30% 축소 */
+  width: min(var(--menu-panel-width), 92vw);
+  background: #FFFFFF;
+  color: #1F2937;
+  font-family: var(--rtw-font, inherit);
+  border-right: 1px solid #CBD5E1;
+  box-shadow: 8px 0 30px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transform: translateX(-105%);
+  transition: transform 0.22s ease-out;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.menu-panel-root.is-open .menu-panel {
+  transform: translateX(0);
+}
+
+.menu-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.menu-panel__title {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: #1F2937;
+}
+
+.menu-panel__head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.menu-panel__settings {
+  appearance: none;
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #475569;
+  min-height: 2rem;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.menu-panel__settings:hover {
+  border-color: #2563EB;
+  background: #EFF6FF;
+}
+
+.menu-panel__close {
+  appearance: none;
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #475569;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.menu-panel__close:hover {
+  border-color: #2563EB;
+  background: #EFF6FF;
+}
+
+.menu-panel__body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #F8FAFC;
+  color: #475569;
+}
+
+/*
+ * 2026-09-16: 섹션 헤더(`.menu-panel__section*`) 제거.
+ * 라벨만 있고 조작이 없는 두 줄이 폰 가로(패널 275px)에서 51px 를 먹었다 —
+ * 목록에 남던 높이 61px 에 맞먹는다. Trail 은 자체 라벨, 경로는 출처 칩이 스스로 말한다.
+ */
+
+/* 지명 검색은 고정 높이, 경로 패널만 스크롤 → 모바일에서 한 화면에 가깝게 */
+.menu-panel__body > .menu-place-search {
+  flex-shrink: 0;
+}
+
+/*
+ * 지명 검색 — 헤더 행에 「설정」 왼쪽 칩으로 산다(2026-09-17 Chief).
+ * 종전엔 본문 첫 줄을 전폭으로 차지했는데, 「⌕ 지명으로 찾기」 한 줄에 목록 한 줄만큼을
+ * 통째로 썼다. 폰 가로에서 메뉴 본문 높이는 그렇게 쓸 여유가 없다.
+ * 톤은 옆의 `.menu-panel__settings` 와 같게 맞춘다 — 같은 행의 형제니까.
+ */
+.menu-panel__place-search {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #475569;
+  min-height: 2rem;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.menu-panel__place-search:hover {
+  border-color: #2563EB;
+  background: #EFF6FF;
+}
+
+.menu-panel__place-search-icon {
+  font-size: 0.92rem;
+  line-height: 1;
+}
+
+.menu-panel__body > .ride-panel {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border-right: none;
+  max-height: none;
+  max-width: none;
+}

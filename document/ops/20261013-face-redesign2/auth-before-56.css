@@ -1,0 +1,304 @@
+/* 맵 퍼스트 UI — MapViewSheet / UserInfoSheet 와 맞춘 다크 글래스 톤 */
+.auth-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(0.65rem, env(safe-area-inset-top, 0px))
+    max(0.65rem, env(safe-area-inset-right, 0px))
+    max(0.65rem, env(safe-area-inset-bottom, 0px))
+    max(0.65rem, env(safe-area-inset-left, 0px));
+  background: rgba(2, 6, 23, 0.42);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.auth-gate__card {
+  width: min(16.5rem, 92vw);
+  max-height: 100%;
+  overflow: auto;
+  border-radius: 14px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1F2937;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.38);
+  padding: 0.65rem 0.75rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  color-scheme: light;
+  animation: auth-gate-card-in 0.2s ease-out;
+}
+
+@keyframes auth-gate-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-gate__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+}
+
+.auth-gate__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  flex: 1;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+  color: rgba(31, 41, 55, 0.92);
+}
+
+.auth-gate__brand-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: #2563EB;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+  flex-shrink: 0;
+}
+
+.auth-gate__close {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 1.85rem;
+  height: 1.85rem;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  appearance: none;
+  border: 1px solid #CBD5E1;
+  border-radius: 50%;
+  background: #F1F5F9;
+  color: #475569;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.auth-gate__close:hover:not(:disabled) {
+  background: #EFF6FF;
+}
+
+.auth-gate__close:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: 2px;
+}
+
+.auth-gate__close:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.auth-gate__title {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(31, 41, 55, 0.88);
+}
+
+.auth-gate__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+/* 카드 내 공통 버튼 — UserInfoSheet 버튼과 유사 */
+.auth-gate__card .btn {
+  appearance: none;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.74rem;
+  padding: 0.42rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #CBD5E1;
+  background: #F1F5F9;
+  color: #475569;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.auth-gate__card .btn:hover:not(:disabled) {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
+.auth-gate__card .btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.auth-gate__card .auth-actions {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 0.35rem;
+}
+
+.auth-gate__card .auth-actions--gate .btn {
+  flex: none;
+  width: 100%;
+  text-align: center;
+  justify-content: center;
+}
+
+/* 게스트: 중립 유지(secondary) */
+.auth-gate__card .btn.secondary {
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+  color: #475569;
+}
+
+.auth-gate__card .btn.secondary:hover:not(:disabled) {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
+/* 기본 primary — 닉네임 제출 등 */
+.auth-gate__card .btn.primary {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+}
+
+.auth-gate__card .btn.primary:hover:not(:disabled) {
+  background: #1D4ED8;
+  border-color: #1D4ED8;
+}
+
+/* Google — 계정 선택용 밝은 CTA (앱 내 버튼만; 실제 구글 팝업은 구글 호스트) */
+.auth-gate__card .btn.auth-gate-google {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+  color: #1F2937;
+  font-weight: 650;
+}
+
+.auth-gate__card .btn.auth-gate-google:hover:not(:disabled) {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
+.auth-gate-google-mark {
+  flex-shrink: 0;
+  display: block;
+}
+
+.auth-gate__card .meta {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.4;
+  color: #64748B;
+}
+
+.auth-gate__card .error {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: #DC2626;
+}
+
+/* SignUpNicknameCard — 밝은 카드 위 가독성 */
+.auth-gate__card .signup-nickname {
+  max-width: none;
+  padding-top: 0.1rem;
+}
+
+.auth-gate__card .signup-nickname__title {
+  color: #1F2937;
+  font-size: 0.82rem;
+  margin-bottom: 0.35rem;
+}
+
+.auth-gate__card .signup-nickname__lead {
+  color: #475569;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  margin-bottom: 0.35rem;
+}
+
+.auth-gate__card .signup-nickname__rules {
+  color: #64748B;
+  font-size: 0.66rem;
+  margin-bottom: 0.45rem;
+}
+
+.auth-gate__card .signup-nickname__rules--meta {
+  color: #64748B;
+}
+
+.auth-gate__card .signup-nickname__label {
+  color: #475569;
+  font-size: 0.72rem;
+}
+
+.auth-gate__card .signup-nickname__input {
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #1F2937;
+}
+
+.auth-gate__card .signup-nickname__input::placeholder {
+  color: rgba(71, 85, 105, 0.6);
+}
+
+.auth-gate__card .signup-nickname__input:focus {
+  outline: none;
+  border-color: #2563EB;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.35);
+}
+
+.auth-gate__card .signup-nickname__err {
+  color: #DC2626;
+}
+
+.auth-gate__card .signup-nickname__weight {
+  color: #475569;
+  font-size: 0.72rem;
+}
+
+.auth-gate__card .signup-nickname__chip {
+  border-color: #CBD5E1;
+  color: #475569;
+  font-size: 0.72rem;
+}
+
+.auth-gate__card .signup-nickname__chip.is-active {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+}
+
+@media (orientation: landscape) and (max-height: 480px) {
+  .auth-gate {
+    align-items: flex-start;
+    padding-top: 0.35rem;
+  }
+
+  .auth-gate__card {
+    padding: 0.55rem 0.65rem 0.65rem;
+    gap: 0.35rem;
+  }
+}

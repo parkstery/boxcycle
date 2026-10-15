@@ -1,0 +1,488 @@
+/*
+ * 「내 경로」 목록 — 밝은 모달(.oc-modal) 안에서 쓴다.
+ * 입문/퍼블릭(OfficialCourseListModal)과 같은 명시 팔레트.
+ */
+.saved-routes {
+  --sr-fg: #1F2937;
+  --sr-fg-muted: #64748B;
+  --sr-surface: #FFFFFF;
+  --sr-surface-soft: #F8FAFC;
+  --sr-chip: #F1F5F9;
+  --sr-border: #CBD5E1;
+  --sr-border-soft: #E2E8F0;
+  color: var(--sr-fg);
+  color-scheme: light;
+  /* 모달 본문 안에서 남는 높이를 다 쓰고, 목록만 스크롤한다(필터·정렬·툴바 고정) */
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.saved-routes > * {
+  flex-shrink: 0;
+}
+
+.saved-routes__notice {
+  margin: 0 0 0.4rem;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.74rem;
+  line-height: 1.4;
+  border-radius: 8px;
+  color: var(--sr-fg-muted);
+  background: var(--sr-surface-soft);
+  border: 1px dashed var(--sr-border-soft);
+}
+
+.saved-routes__quota-notice {
+  margin: 0 0 0.45rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  color: #B45309;
+  background: rgba(251, 191, 36, 0.14);
+  border: 1px solid rgba(180, 83, 9, 0.45);
+}
+
+.saved-routes__quota-notice-msg {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.saved-routes__quota-notice-hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.74rem;
+  line-height: 1.4;
+  opacity: 0.9;
+}
+
+.saved-routes__quota-notice-close {
+  margin-top: 0.45rem;
+  font: inherit;
+  font-size: 0.72rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid rgba(180, 83, 9, 0.45);
+  background: rgba(251, 191, 36, 0.14);
+  color: #B45309;
+  cursor: pointer;
+}
+
+.saved-routes__error {
+  margin: 0 0 0.4rem;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.78rem;
+  border-radius: 8px;
+  color: #DC2626;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.4);
+}
+
+.saved-routes__empty {
+  margin: 0.4rem 0;
+  font-size: 0.8rem;
+  color: var(--sr-fg-muted);
+  line-height: 1.4;
+}
+
+.saved-routes__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid var(--sr-border-soft);
+}
+
+.saved-routes > .saved-routes__list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.saved-routes__item {
+  /* 리스트가 flex-column 이라 아이템이 많으면 shrink 로 눌려 내용이 잘린다.
+     축소를 막아 각 행이 콘텐츠 높이를 유지하고 리스트는 스크롤되게 한다.
+     지시21: 카드마다 두꺼운 둥근 테두리 대신 행구분선(아래 1px)으로 밀도를 올린다. */
+  flex: 0 0 auto;
+  border: none;
+  border-bottom: 1px solid var(--sr-border-soft);
+  border-radius: 0;
+  background: transparent;
+  color: var(--sr-fg);
+  overflow: hidden;
+}
+
+.saved-routes__item.is-selected {
+  background: #EFF6FF;
+  box-shadow: inset 3px 0 0 0 #2563EB;
+}
+
+/* 카드 전체가 선택 토글 행 — 조밀 행. 액션 버튼은 상단 툴바로 이관됨.
+   div[role=option] 사용(내부에 블록 콘텐츠를 담기 위함). */
+.saved-routes__row {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  padding: 0.4rem 0.55rem;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.saved-routes__row:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: -2px;
+}
+
+.saved-routes__row:hover {
+  background: #EFF6FF;
+}
+
+.saved-routes__item.is-selected .saved-routes__row:hover {
+  background: transparent;
+}
+
+.saved-routes__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.saved-routes__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.88rem;
+  font-weight: 650;
+  color: var(--sr-fg);
+  -webkit-text-fill-color: var(--sr-fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.saved-routes__profile {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  background: var(--sr-chip);
+  color: var(--sr-fg);
+}
+
+.saved-routes__profile-icon {
+  width: 0.92rem;
+  height: 0.92rem;
+  display: block;
+}
+
+.saved-routes__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.2rem 0 0;
+  font-size: 0.74rem;
+  color: var(--sr-fg-muted);
+}
+
+.saved-routes__meta-left {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.saved-routes__badge--public {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: #1D4ED8;
+  background: #EFF6FF;
+  border: 1px solid #2563EB;
+}
+
+/* 미완주 카드의 진행률 바 — meta 와 간격 */
+.saved-routes__meta + .saved-routes__progress {
+  margin-top: 0.4rem;
+}
+
+.saved-routes__date {
+  color: #64748B;
+}
+
+.saved-routes__progress {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+}
+
+.saved-routes__progress-track {
+  position: relative;
+  flex: 1 1 auto;
+  height: 6px;
+  border-radius: 999px;
+  background: #F1F5F9;
+  overflow: hidden;
+}
+
+.saved-routes__progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #2563EB;
+  transition: width 0.3s ease;
+}
+
+.saved-routes__progress-label {
+  flex: 0 0 auto;
+  min-width: 2.6em;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--sr-fg-muted);
+}
+
+.saved-routes__badge--resume {
+  flex: 0 0 auto;
+  background: #2563EB;
+  color: #FFFFFF;
+  border: 1px solid #2563EB;
+  font-size: 0.65rem;
+  padding: 0.05rem 0.35rem;
+  white-space: nowrap;
+}
+
+.saved-routes__row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.saved-routes__btn {
+  font: inherit;
+  font-size: 0.74rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid var(--sr-border);
+  background: #F1F5F9;
+  color: var(--sr-fg);
+  -webkit-text-fill-color: var(--sr-fg);
+  cursor: pointer;
+}
+
+.saved-routes__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.saved-routes__btn--primary {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+  -webkit-text-fill-color: #FFFFFF;
+}
+
+.saved-routes__btn--accent {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+  -webkit-text-fill-color: #FFFFFF;
+}
+
+.saved-routes__btn--danger {
+  color: #DC2626;
+  -webkit-text-fill-color: #DC2626;
+  border-color: rgba(220, 38, 38, 0.45);
+}
+
+.saved-routes__rename {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.45rem 0.55rem;
+}
+
+.saved-routes__rename-input {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.45rem;
+  border-radius: 6px;
+  border: 1px solid var(--sr-border);
+  background: #FFFFFF;
+  color: var(--sr-fg);
+  -webkit-text-fill-color: var(--sr-fg);
+}
+
+/* 상단 고정 컨트롤 묶음: 필터·정렬 → 액션 툴바(검색은 모달 제목 줄) */
+.saved-routes__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0 0 0.5rem;
+}
+
+.saved-routes__control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+/* 선택한 경로에 작용하는 공용 액션 툴바(선택 전 전체 비활성) */
+.saved-routes__toolbar {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.saved-routes__tool {
+  flex: 1 1 0;
+  min-width: 0;
+  font: inherit;
+  font-size: 0.74rem;
+  padding: 0.3rem 0.2rem;
+  border-radius: 6px;
+  border: 1px solid var(--sr-border);
+  background: #F1F5F9;
+  color: var(--sr-fg);
+  -webkit-text-fill-color: var(--sr-fg);
+  cursor: pointer;
+}
+
+.saved-routes__tool:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.saved-routes__tool--primary:not(:disabled) {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+  -webkit-text-fill-color: #FFFFFF;
+}
+
+.saved-routes__tool--accent:not(:disabled) {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+  -webkit-text-fill-color: #FFFFFF;
+}
+
+.saved-routes__tool--danger:not(:disabled) {
+  color: #DC2626;
+  -webkit-text-fill-color: #DC2626;
+  border-color: rgba(220, 38, 38, 0.45);
+}
+
+.saved-routes__filter {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.saved-routes__filter-btn {
+  font: inherit;
+  font-size: 0.72rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--sr-border-soft);
+  background: var(--sr-chip);
+  color: var(--sr-fg);
+  -webkit-text-fill-color: var(--sr-fg);
+  cursor: pointer;
+}
+
+.saved-routes__filter-btn.is-active {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+  -webkit-text-fill-color: #FFFFFF;
+}
+
+.saved-routes__head-tags {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 0 0 auto;
+}
+
+.saved-routes__badge {
+  flex: 0 0 auto;
+  font-size: 0.68rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.saved-routes__badge--ok {
+  color: #15803D;
+  background: rgba(22, 163, 74, 0.12);
+  border: 1px solid rgba(22, 163, 74, 0.45);
+}
+
+.saved-routes__badge--pending {
+  color: #64748B;
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+}
+
+.saved-routes__badge--soon {
+  color: #B45309;
+  background: rgba(251, 191, 36, 0.14);
+  border: 1px solid rgba(180, 83, 9, 0.45);
+}
+
+/* ── 지시21: 내 경로 목록 밀도·비교 공간 (아래 전부 내 경로 한정, 입문/퍼블릭·모달 기본 불변) ── */
+
+/* 1. 내 경로가 든 창만 넓게·높게. 높이는 내용 높이(auto)가 원칙이라 0/1/2개는
+ * 내용에서 끝나고, 개수가 불어나면 아래 상한까지 자라 목록이 스크롤된다.
+ * 로딩·오류·키보드 등 모든 상태에서 상한은 항상 유지된다. */
+.oc-modal-overlay:has(.saved-routes) {
+  padding: 8px;
+}
+
+.oc-modal:has(.saved-routes) {
+  width: min(560px, calc(100vw - 16px));
+  max-height: calc(100vh - 16px);
+  max-height: calc(100dvh - 16px);
+}
+
+/* 3. 상단 반복 여백 절제 — 껍데기 패딩도 내 경로가 든 창에만.
+ * 폰트·기존 버튼 높이/패딩은 손대지 않음. Guest 안내·필터4·정렬·검색 전부 표시 유지. */
+.oc-modal:has(.saved-routes) .oc-modal__head {
+  padding: 0.5rem 2.4rem 0.5rem 0.65rem;
+}
+
+.oc-modal:has(.saved-routes) .oc-modal__body {
+  padding: 0.5rem 0.6rem 0.6rem;
+}
+
+/* 2. 선택 없으면 툴바만 접어 목록에 내어준다. 항목을 선택하면 기존 툴바 그대로 표시.
+ * disabled·문구·동작은 TSX 그대로, 자리만 조건부. flex 흐름 안이라
+ * 목록 스크롤 영역에 자동 반영된다. */
+.saved-routes:not(:has(.saved-routes__item.is-selected)) .saved-routes__toolbar {
+  display: none;
+}
+
+/* 5. 긴 오류·쿼터 안내 overflow 예외 — 평소엔 목록만 스크롤하고, 이 둘이 길어지면
+ * 스스로 줄어들어(내부 스크롤, 확인 버튼 포함) 접근 가능. 부모가 잘라 숨기지 않는다. */
+.saved-routes > .saved-routes__error,
+.saved-routes > .saved-routes__quota-notice {
+  flex-shrink: 1;
+  min-height: 0;
+  overflow-y: auto;
+  max-height: 9rem;
+  max-height: 30vh;
+  max-height: 30dvh;
+}

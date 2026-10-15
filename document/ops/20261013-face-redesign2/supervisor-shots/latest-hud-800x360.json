@@ -1,0 +1,40 @@
+{
+  "viewport": {
+    "width": 800,
+    "height": 360
+  },
+  "rows": [
+    {
+      "unit": "hud",
+      "sel": ".map-hud",
+      "geometryIdentical": false,
+      "elements": 26,
+      "style": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "fg": "rgb(237, 239, 242)",
+        "border": "rgb(237, 239, 242)"
+      },
+      "beforeRect": {
+        "tag": "DIV",
+        "cls": "map-hud",
+        "x": 0,
+        "y": 0,
+        "w": 800,
+        "h": 360,
+        "sw": 800,
+        "sh": 360
+      },
+      "afterRect": {
+        "tag": "DIV",
+        "cls": "map-hud",
+        "x": 0,
+        "y": 0,
+        "w": 800,
+        "h": 360,
+        "sw": 800,
+        "sh": 360
+      }
+    }
+  ],
+  "runtimeErrors": []
+}

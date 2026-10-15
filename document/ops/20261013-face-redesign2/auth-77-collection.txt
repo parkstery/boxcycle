@@ -1,0 +1,107 @@
+Listing tests:
+  [chromium] › account-deletion-ui-shots.spec.ts:22:3 › 계정 탈퇴 UI 촬영 › 게스트 — 로그아웃(데이터 삭제) 확인 화면
+  [chromium] › account-deletion-ui-shots.spec.ts:46:3 › 계정 탈퇴 UI 촬영 › 정식 계정 — 탈퇴 확인(입력 전 비활성 · 「탈퇴」 입력 후 활성)
+  [chromium] › account-panel-tidy.spec.ts:24:3 › 계정 패널 › 기간 축 하나 · 통계 한 벌 · 마지막 주행이 목록 입구
+  [chromium] › autoroute-fitbounds-5a.spec.ts:39:5 › 5A-R1 §4.1 — 거리 원 fitBounds 뷰포트 계측 › 목표 0.7km 원 · 뷰포트별 fitBounds
+  [chromium] › autoroute-fitbounds-5a.spec.ts:39:5 › 5A-R1 §4.1 — 거리 원 fitBounds 뷰포트 계측 › 목표 3km 원 · 뷰포트별 fitBounds
+  [chromium] › autoroute-fitbounds-5a.spec.ts:131:5 › 5A-R1 §4.1 후보 2 — 팝업이 지도를 얼마나 덮는가 › desktop — pick 표면 점유율
+  [chromium] › autoroute-fitbounds-5a.spec.ts:131:5 › 5A-R1 §4.1 후보 2 — 팝업이 지도를 얼마나 덮는가 › phone-portrait — pick 표면 점유율
+  [chromium] › autoroute-fitbounds-5a.spec.ts:131:5 › 5A-R1 §4.1 후보 2 — 팝업이 지도를 얼마나 덮는가 › phone-landscape — pick 표면 점유율
+  [chromium] › autoroute-fitbounds-5a.spec.ts:131:5 › 5A-R1 §4.1 후보 2 — 팝업이 지도를 얼마나 덮는가 › phone-small — pick 표면 점유율
+  [chromium] › autoroute-fitbounds-5a.spec.ts:131:5 › 5A-R1 §4.1 후보 2 — 팝업이 지도를 얼마나 덮는가 › phone-landscape-small — pick 표면 점유율
+  [chromium] › autoroute-overlap-5a-measure.spec.ts:126:3 › 5A §2 — 자동 Route 중복 구간 재현 계측 › 자동차 · 목표 0.7km · 강남 — outcome 과 geometry 를 그대로 떨어뜨린다
+  [chromium] › calorie-profile-sync.spec.ts:55:3 › 체중·강도 기기 간 동기화 › 새 기기에서도 다시 묻지 않는다
+  [chromium] › calorie-profile-sync.spec.ts:92:3 › 체중·강도 기기 간 동기화 › 프로필 수정 메뉴 — 사용자 정보에서 열어 체중·강도를 저장한다
+  [chromium] › camera-angle-candidates.spec.ts:38:3 › 지시07 각도 후보 · QC1 3단 › angle a–f + qc1 3단
+  [chromium] › camera-angle-real-p85.spec.ts:28:3 › 지시08 pitch85 only › c e f
+  [chromium] › camera-angle-real.spec.ts:47:3 › 지시08 실 스타일 각도 후보 › angle a–f real mapbox style
+  [chromium] › camera-qc-lightlab.spec.ts:27:3 › 라이더 조명 조절판 (20260924-지시02) › lightlab=1 없으면 패널 없음 → 있으면 조절판 + 프리셋 4종
+  [chromium] › camera-qc1-200m.spec.ts:24:3 › QC1 200m 추가 4단 (20260924-지시01) › routeFit → 200m → 60m → 10m → routeFit
+  [chromium] › camera-qc1-hold.spec.ts:23:3 › QC1 Route Fit hold (지시05) › t0 · t3s · aerial
+  [chromium] › camera-quick-capture.spec.ts:25:3 › Quick Camera 캡처 (지시04) › 주행 중 QC 1~6 · 칩 · pitch80
+  [chromium] › camera-zoom-noninterfere.spec.ts:39:3 › 지시06 줌 비간섭 › F5 샘플 + preset→휠→유지→재클릭
+  [chromium] › conquest-lod-shots.spec.ts:56:3 › Conquest 줌아웃 LOD 샷 › zoom ladder
+  [chromium] › firebase-traffic-compare.spec.ts:94:3 › Firebase traffic before/after ride windows › 1인 1분 / Trail 2인 1분
+  [chromium] › focus-read-spike.spec.ts:117:1 › Trailhead idle: short-hide ×10 grace keeps members; long-hide closes once
+  [chromium] › focus-read-spike.spec.ts:279:1 › optional: seed N=3 world trails → short-hide trailLiveRides 0/0; long-hide close+open
+  [chromium] › h1-hud-companion.spec.ts:145:3 › H-1 HUD companion diag › 2인 동시 주행 계측 (before)
+  [chromium] › hud-distance-elevation-shots.spec.ts:42:3 › HUD 거리 1줄 + 표고 진행률 라벨 촬영 › 시나리오 A — 완만한 오르막(라벨이 점 위)
+  [chromium] › hud-distance-elevation-shots.spec.ts:47:3 › HUD 거리 1줄 + 표고 진행률 라벨 촬영 › 시나리오 B — 초반이 경로 최고점(라벨이 점 아래로 뒤집힘)
+  [chromium] › hud-distance-elevation-shots.spec.ts:59:3 › HUD 거리 1줄 + 표고 진행률 라벨 촬영 › 좌상단 고정 계약 — 계기판 첫 줄, RTW 버튼 y 불변
+  [chromium] › hud-distance-elevation-shots.spec.ts:164:3 › 계기 고정 폭 — 값이 바뀌어도 셀 x 가 움직이지 않는다
+  [chromium] › hud-distance-elevation-shots.spec.ts:280:3 › 새 도로 펄스가 내 위치 마커와 같은 박자·위상으로 뛴다
+  [chromium] › listener-scope-ride.spec.ts:229:3 › listener-scope ride release/reacquire (emulator) › CG release mid-ride, reacquire on menu, restore on end
+  [chromium] › local-first-card-shots.spec.ts:30:3 › 첫 Ready Ride 카드 740x300
+  [chromium] › local-first-card-shots.spec.ts:30:3 › 첫 Ready Ride 카드 1280x900
+  [chromium] › local-first-card-shots.spec.ts:75:1 › 경로를 만든 뒤 거리 칩을 누르면 그 거리로 다시 만든다
+  [chromium] › menu-declutter-a.spec.ts:36:3 › MENU 정리 A단계 › 라벨·탭·이벤트가 없고, 목록에 돌아간 높이가 실측된다
+  [chromium] › minimap-map-shots.spec.ts:38:3 › 미니맵 정지 지도 › Static 기준 표식과 투영 점이 2px 안에서 겹친다
+  [chromium] › minimap-map-shots.spec.ts:134:3 › 미니맵 정지 지도 › 주행 중 미니맵에 Outdoors 지도가 깔리고 다시 받지 않는다
+  [chromium] › minimap-map-shots.spec.ts:228:3 › 미니맵 정지 지도 › 정지 지도가 실패하면 어두운 배경으로 남는다
+  [chromium] › minimap-milestone-shots.spec.ts:24:3 › 주행 중 이정표 › 절반 띠 · 깃발 펄럭임 · 이어달리기 종료 버튼 자리
+  [chromium] › open-meteo-stub-guard.spec.ts:26:1 › ① 고도·forecast 요청이 전역 스텁에 가로채진다
+  [chromium] › open-meteo-stub-guard.spec.ts:46:1 › ② 스펙이 직접 건 스텁이 전역 스텁을 이긴다
+  [chromium] › open-meteo-stub-guard.spec.ts:61:1 › ③ 스텁이 못 잡는 open-meteo 경로는 차단된다
+  [chromium] › open-meteo-stub-guard.spec.ts:80:1 › ④ 스펙이 따로 만든 context 도 덮인다
+  [chromium] › pacer-solo.spec.ts:69:3 › 페이서 혼자 주행 › 표시·토글·추월·트래픽
+  [chromium] › pacer-trace.spec.ts:12:1 › pacer frame trace
+  [chromium] › peer-sync-s1.spec.ts:137:3 › S1 peer sync 정량화 › 2-browser 8케이스 D_eff/residual
+  [chromium] › peer-sync-s3-diag-r2.spec.ts:57:3 › S3-DIAG-R2 chain rejudge › 전량 이벤트 보존 · 시계 보정
+  [chromium] › peer-sync-s3-diag.spec.ts:124:3 › S3-DIAG peer chain › cruise 창 seq 조인 · 최초 이탈
+  [chromium] › peer-sync-s3a.spec.ts:57:3 › S3A publish queue removed › 재측정 · 수용 조건 집계
+  [chromium] › peer-sync-s3av.spec.ts:95:3 › S3A-V end-to-end screen error › z15-depart · z15-cruise 판정 + z13 기록
+  [chromium] › peer-sync-s3b1.spec.ts:85:3 › S3B-1 D-0 publish from rAF › z15-depart · z15-cruise 재측정
+  [chromium] › peer-sync-s3b2.spec.ts:88:3 › S3B-2 D-1 applied speed › z15-depart · z15-cruise (post)
+  [chromium] › peer-sync-s3b2r.spec.ts:76:3 › S3B-2R repeat measurement › z15-depart · z15-cruise (run 1)
+  [chromium] › peer-sync-s3b3.spec.ts:96:3 › S3B-3 D-2 low-zoom + spectator › z15 + path A/B (after run 1)
+  [chromium] › peer-sync-s41.spec.ts:99:3 › S4-1 route in-flight › z15 + path B + writes (after run 1)
+  [chromium] › peer-sync-s41r.spec.ts:243:3 › S4-1R route flight lifecycle › T1~T5 (after fix)
+  [chromium] › peer-sync-s4m1.spec.ts:255:3 › S4-M1 motion flight lifecycle › M1~M6 (after fix)
+  [chromium] › public-trail-functional-1-2.spec.ts:733:3 › Public Trail functional matrix (1–2 riders, emulator) › TASK-29B single-rider-stop-probe: Stop → RideSummarySheet + liveClear
+  [chromium] › public-trail-functional-1-2.spec.ts:895:3 › Public Trail functional matrix (1–2 riders, emulator) › create → join → companion → A stop (B keeps) → A rejoin → both end
+  [chromium] › public-trail-functional-1-2.spec.ts:1476:3 › Public Trail functional matrix (1–2 riders, emulator) › F6 public trail finish (short intro ≤0.5km @50km/h)
+  [chromium] › public-trail-traffic-1-2.spec.ts:462:3 › public-trail traffic 1 vs 2 (emulator meters) › solo then dual same-duration measure window
+  [chromium] › ride-continuation.spec.ts:324:3 › 다음 주행 · 이어 달리기 › RC1 — 미완주 SavedRoute 를 종료→재진입→재개까지 이어 달린다
+  [chromium] › ride-continuation.spec.ts:440:3 › 다음 주행 · 이어 달리기 › RC2 — 늦은 낮은 진행률 write 가 높은 진행률을 되돌리지 않는다
+  [chromium] › ride-continuation.spec.ts:474:3 › 다음 주행 · 이어 달리기 › RC3 — 완주 끝점에서 새 Route 를 연결하고 이전 경로는 불변이다
+  [chromium] › ride-continuation.spec.ts:527:3 › 다음 주행 · 이어 달리기 › RC4 — ad-hoc 주행은 저장하지 않아도 다음 출발점이 남는다
+  [chromium] › ride-continuation.spec.ts:562:3 › 다음 주행 · 이어 달리기 › RC5 — legacy Ride 는 기록만 보이고 잘못된 CTA·Null Island 이동이 없다
+  [chromium] › ride-continuation.spec.ts:598:3 › 다음 주행 · 이어 달리기 › RC13 — reload 없이 종료→카드→이어 달리기 Go 까지 완주한다
+  [chromium] › ride-continuation.spec.ts:666:3 › 다음 주행 · 이어 달리기 › CF-LIVE — CF conquestOnRideCreated 가 에뮬레이터에서 conquestResult 를 기록한다
+  [chromium] › ride-continue-phase-c.spec.ts:473:3 › R1 단계 C — 자동 Route 3회 루프 › 3회 연속 — anchor 자동 Route · Token · Start 승계
+  [chromium] › ride-continue-phase-c.spec.ts:563:3 › R1 단계 C — 자동 Route 3회 루프 › Start 이동 시 anchor 고정 해제 — 일반 자동 Route
+  [chromium] › ride-entry.spec.ts:75:3 › 실주행 진입 시퀀스 › 게스트 → 주행 입력 준비 → 입문 코스 → 주행 시작 → running
+  [chromium] › ride-entry.spec.ts:96:3 › 실주행 진입 시퀀스 › 입문 목록은 실도로 경로이고 거리가 표시된다
+  [chromium] › ride-entry.spec.ts:116:3 › 실주행 진입 시퀀스 › 센서 설정 없이도 경로를 고르면 Go 가 열린다
+  [chromium] › ride-entry.spec.ts:127:5 › 실주행 진입 시퀀스 › 입문 1 'Basic 1 · 서울 남산공원길' 로드 → 주행 시작 → running
+  [chromium] › ride-entry.spec.ts:127:5 › 실주행 진입 시퀀스 › 입문 2 'Basic 2 · 파리 퐁뇌프' 로드 → 주행 시작 → running
+  [chromium] › ride-entry.spec.ts:127:5 › 실주행 진입 시퀀스 › 입문 3 'Basic 3 · 뉴욕 센트럴파크' 로드 → 주행 시작 → running
+  [chromium] › ride-entry.spec.ts:127:5 › 실주행 진입 시퀀스 › 입문 4 'Basic 4 · 암스테르담 폰델파크' 로드 → 주행 시작 → running
+  [chromium] › ride-hierarchy-narrow.spec.ts:69:3 › 주행 중 HUD 위계 — 좁은 가로 조작 › ready-to-start — Go 클릭 가능(H3)
+  [chromium] › ride-hierarchy-narrow.spec.ts:86:3 › 주행 중 HUD 위계 — 좁은 가로 조작 › riding — 일시정지·종료 클릭 가능(H3)
+  [chromium] › ride-story-shots.spec.ts:26:5 › 주행 스토리 › 오늘 두 번째·미완주 — 헤드라인과 남은 거리 (690x275)
+  [chromium] › ride-story-shots.spec.ts:26:5 › 주행 스토리 › 오늘 두 번째·미완주 — 헤드라인과 남은 거리 (1280x800)
+  [chromium] › ride-summary-compact.spec.ts:137:3 › 위치 컨트롤 선택이 거리 방향 대기를 끝낸다 › 끄면 방향 안내가 사라지고 지도 클릭이 지점 선택으로 돌아온다
+  [chromium] › ride-summary-compact.spec.ts:259:3 › 센서 설정 시트 레이아웃 › 제목 한 줄 · 버튼 이름 · 불필요 줄 제거 · SPD 2줄 · 스피너 없음 · ＋/숫자 교체
+  [chromium] › ride-summary-compact.spec.ts:363:3 › RouteDock 레이아웃 › 센서 안내 깜빡임 · 캐럿 60% · 왼쪽 밀착 · Go 우측 끝 · X 여백
+  [chromium] › ride-summary-compact.spec.ts:481:3 › 다음 주행 카드 자리 › 카드가 들고 나도 RouteDock 이 움직이지 않는다 · 카드는 우하단
+  [chromium] › ride-summary-compact.spec.ts:651:3 › 주행 결과 시트 컴팩트화 › 스크롤 없음 · 6줄 이하 · 끝점 CTA 제거 · 설명문 제거
+  [chromium] › route-dock-riding-content.spec.ts:25:3 › 주행 중 RouteDock › 주행 시작해도 펼친 채로 남고, 경로 내용·주행 제어가 보인다
+  [chromium] › route-pick-popup-title.spec.ts:32:5 › 지도 지점 팝업 — 제목 행 › desktop — 제목이 첫 줄, 주소는 둘째 줄, ✕ 안 가림
+  [chromium] › route-pick-popup-title.spec.ts:32:5 › 지도 지점 팝업 — 제목 행 › phone-landscape — 제목이 첫 줄, 주소는 둘째 줄, ✕ 안 가림
+  [chromium] › route-token-ui-force-fail.spec.ts:6:3 › Route Token UI force fail › runner cleanup regression — intentional failure
+  [chromium] › route-token-ui-smoke.spec.ts:265:3 › Route Token UI smoke › 메뉴 닫힘 기본 지도: 보유량·차감·4번째 차단·계정 격리·적립 재개
+  [chromium] › s42-read.spec.ts:88:3 › S4-2 읽기 구독 계측 › A~F snapshot (baseline)
+  [chromium] › sensor-chip-route-dock-6a.spec.ts:32:3 › 센서 칩 — RouteDock 이전 › 8 조합 표시 · 우상단 제거 · 시트 열림 · Go 실측
+  [chromium] › sensor-chip-route-dock-6a.spec.ts:278:3 › 센서 칩 — RouteDock 이전 › setup(경로 없이 핀만) — 접힘·펼침 모두 센서가 보인다
+  [chromium] › smoke.spec.ts:4:1 › 앱이 로드된다
+  [chromium] › touch-targets-44.spec.ts:40:3 › 터치 타깃 44px › HUD 히트 영역이 44px · 표고 그래프는 지도 터치를 막지 않는다
+  [chromium] › touch-targets-44.spec.ts:116:3 › 터치 타깃 44px › 표고 그래프 영역이 지도 터치를 통과시킨다
+  [chromium] › touch-targets-44.spec.ts:164:3 › 터치 타깃 44px › 표고 그래프 면 전체가 주행 중에도 지도 조작을 막지 않는다
+  [chromium] › touch-targets-44.spec.ts:228:3 › 터치 타깃 44px › 주행 컨트롤(정사각 아이콘)도 두 축 다 44px
+  [chromium] › touch-targets-44.spec.ts:287:3 › 터치 타깃 44px › RouteDock 캐럿 히트 높이 44px · 옆 센서 칩 탭을 가로채지 않는다
+  [chromium] › u2-map-render-tick.spec.ts:48:3 › U-2 맵 렌더 틱 › 30s 주행 3런 (baseline)
+  [chromium] › u3-camera-trace.spec.ts:49:3 › U-3 카메라 출력 시계열 › 30s 추적 (baseline)
+  [chromium] › u5-render-phase.spec.ts:39:3 › U-5 Mapbox render 카메라 채택 › 5km/h 1m 좌측 headed
+  [chromium] › u5-shots.spec.ts:15:3 › U-5 1m 좌측 팔로우 샷 › before-1m.png
+Total: 105 tests in 58 files

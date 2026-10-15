@@ -1,0 +1,105 @@
+{
+  "viewport": {
+    "width": 667,
+    "height": 300
+  },
+  "rows": [
+    {
+      "unit": "map",
+      "sel": ".map-view-sheet__panel",
+      "geometryIdentical": true,
+      "geometryDifferences": [],
+      "elements": 41,
+      "style": {
+        "bg": "rgb(255, 255, 255)",
+        "fg": "rgb(31, 41, 55)",
+        "border": "rgb(203, 213, 225)"
+      },
+      "beforeRect": {
+        "tag": "DIV",
+        "cls": "map-view-sheet__panel",
+        "x": 432.11,
+        "y": 5.39,
+        "w": 229.5,
+        "h": 289.22,
+        "sw": 228,
+        "sh": 287
+      },
+      "afterRect": {
+        "tag": "DIV",
+        "cls": "map-view-sheet__panel",
+        "x": 432.11,
+        "y": 5.39,
+        "w": 229.5,
+        "h": 289.22,
+        "sw": 228,
+        "sh": 287
+      }
+    },
+    {
+      "unit": "settings",
+      "sel": ".ride-settings-sheet__panel",
+      "geometryIdentical": true,
+      "geometryDifferences": [],
+      "elements": 26,
+      "style": {
+        "bg": "rgb(255, 255, 255)",
+        "fg": "rgb(31, 41, 55)",
+        "border": "rgb(203, 213, 225)"
+      },
+      "beforeRect": {
+        "tag": "DIV",
+        "cls": "ride-settings-sheet__panel",
+        "x": 185,
+        "y": 99.5,
+        "w": 297,
+        "h": 193.75,
+        "sw": 295,
+        "sh": 192
+      },
+      "afterRect": {
+        "tag": "DIV",
+        "cls": "ride-settings-sheet__panel",
+        "x": 185,
+        "y": 99.5,
+        "w": 297,
+        "h": 193.75,
+        "sw": 295,
+        "sh": 192
+      }
+    },
+    {
+      "unit": "profile",
+      "sel": ".profile-edit-sheet .ride-settings-sheet__panel",
+      "geometryIdentical": true,
+      "geometryDifferences": [],
+      "elements": 20,
+      "style": {
+        "bg": "rgb(255, 255, 255)",
+        "fg": "rgb(31, 41, 55)",
+        "border": "rgb(203, 213, 225)"
+      },
+      "beforeRect": {
+        "tag": "FORM",
+        "cls": "ride-settings-sheet__panel",
+        "x": 185,
+        "y": 98.25,
+        "w": 297,
+        "h": 195,
+        "sw": 295,
+        "sh": 231
+      },
+      "afterRect": {
+        "tag": "FORM",
+        "cls": "ride-settings-sheet__panel",
+        "x": 185,
+        "y": 98.25,
+        "w": 297,
+        "h": 195,
+        "sw": 295,
+        "sh": 231
+      }
+    }
+  ],
+  "runtimeErrors": []
+}
