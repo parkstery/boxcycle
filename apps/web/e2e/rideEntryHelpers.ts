@@ -25,11 +25,12 @@ type EntrySurface =
   | 'unconfigured'
   | 'nickname'
   | 'account'
+  | 'auth-choice'
   | 'connect-failed'
 
 /**
- * 인증이 정착한 뒤의 화면. `연결 중…` 은 아직 소개·카드·로그인 중 어디에도
- * 속하지 않으므로 넣지 않는다.
+ * 인증이 정착한 뒤의 화면. `연결 중…`·`로그인 중…` 은 아직 소개·카드·로그인 중
+ * 어디에도 속하지 않으므로 넣지 않는다. `시작 방법을 선택해 주세요.` 는 정착된 선택 화면이다.
  */
 async function readEntrySurface(page: Page): Promise<EntrySurface | null> {
   if (await page.getByRole('region', { name: '앱 소개' }).isVisible()) return 'intro'
@@ -38,6 +39,7 @@ async function readEntrySurface(page: Page): Promise<EntrySurface | null> {
   if (await page.getByText('Firebase 설정 필요', { exact: true }).isVisible()) return 'unconfigured'
   if (await page.getByRole('heading', { name: '닉네임', exact: true }).isVisible()) return 'nickname'
   if (await page.getByRole('button', { name: '사용자 정보' }).isVisible()) return 'account'
+  if (await page.getByText('시작 방법을 선택해 주세요.', { exact: true }).isVisible()) return 'auth-choice'
   if (await page.getByText('서비스에 연결할 수 없습니다.', { exact: true }).isVisible()) return 'connect-failed'
   return null
 }
@@ -47,7 +49,7 @@ async function readEntrySurface(page: Page): Promise<EntrySurface | null> {
  *
  * `showAppIntro` 는 `authInitialized` 이후에야 정해진다. 그 전에 `isVisible()` 을 한 번만
  * 보면 소개를 놓치고, 소개만 무조건 기다리면 이미 로그인·명시 로그아웃·탈퇴 안내·게스트
- * 재진입이 타임아웃된다.
+ * 재진입·시작 방법 선택이 타임아웃된다.
  */
 export async function dismissAppIntroIfShown(page: Page): Promise<void> {
   let surface: EntrySurface | null = null

@@ -46,6 +46,55 @@ export const ENTRY_STEPS = [
     selector: `getByRole('dialog',{name:'시작'}) → getByRole('button',{name:'시작',exact:true})`,
   },
   {
+    step: "auth-session-state",
+    desc:
+      "인증 세션 게이트 — 설정 없음, 부트·서명·busy 대기(실패/선택 버튼 없음, stale error 숨김), " +
+      "명시 로그아웃, 실제 실패와 다시 시도/Google, idle 선택. App 은 이 컴포넌트에 같은 상태를 연결한다.",
+    file: "src/components/auth/AuthSessionGate.tsx",
+    anchors: [
+      {
+        name: "대기 조건(부트·서명·busy)",
+        re: /const pending = configured && \(!authInitialized \|\| authSigningIn \|\| busy\)/,
+      },
+      { name: "대기 status", re: /role="status"/ },
+      { name: "로그인 중 또는 연결 중", re: /authSigningIn \|\| busy \? "로그인 중…" : "연결 중…"/ },
+      { name: "설정 없음", re: /Firebase 설정 필요/ },
+      { name: "명시 로그아웃", re: /로그아웃되었습니다\./ },
+      { name: "실패 문구", re: /서비스에 연결할 수 없습니다\./ },
+      { name: "다시 시도", re: /다시 시도/ },
+      { name: "Google 로그인", re: /Google로 로그인/ },
+      { name: "게스트로 새로 시작", re: /게스트로 새로 시작/ },
+      { name: "idle 선택", re: /시작 방법을 선택해 주세요\./ },
+      {
+        name: "비대기에서만 error 상세",
+        re: /!pending && error && \(userSignedOut \|\| !configured\)/,
+      },
+    ],
+    also: [
+      {
+        file: "src/App.tsx",
+        anchors: [
+          { name: "세션 게이트 컴포넌트", re: /<AuthSessionGate/ },
+          { name: "configured 연결", re: /configured=\{configured\}/ },
+          { name: "authInitialized 연결", re: /authInitialized=\{authInitialized\}/ },
+          { name: "authSigningIn 연결", re: /authSigningIn=\{authSigningIn\}/ },
+          { name: "userSignedOut 연결", re: /userSignedOut=\{userSignedOut\}/ },
+          { name: "busy 연결", re: /busy=\{busy\}/ },
+          { name: "error 연결", re: /error=\{error\}/ },
+          {
+            name: "게스트 콜백",
+            re: /onStartGuest=\{\(\) => void beginAuthenticatedSession\(\)\}/,
+          },
+          {
+            name: "Google 콜백",
+            re: /onGoogleSignIn=\{\(\) => void handleGoogleSignIn\(\)\}/,
+          },
+        ],
+      },
+    ],
+    selector: `pending getByRole('status'); idle getByText('시작 방법을 선택해 주세요.'); failure getByText('서비스에 연결할 수 없습니다.')`,
+  },
+  {
     step: "cadence-chip",
     desc:
       "케이던스 센서 칩 — 센서 상세 설정 트리거. 자리는 stage 에 따라 둘 중 하나다(6A): " +

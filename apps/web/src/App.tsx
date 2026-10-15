@@ -38,7 +38,8 @@ const RIDE_USER_ZOOM_DISTANCE_SOFT_MAX_M = Math.max(RIDE_CAMERA_DISTANCE_MAX_M *
 /** 거리 지배 모드 상대 줌(±1 map zoom 체감에 가깝게). 고정 STEP은 aerial500에서 무감. */
 const RIDE_USER_ZOOM_DISTANCE_FACTOR = 1.25;
 import { rideDistanceAlongRoute } from "./lib/ride/liveLocationSnapshot";
-import { AuthGateCard, AuthGoogleMark } from "./components/auth/AuthGateCard";
+import { AuthGateCard } from "./components/auth/AuthGateCard";
+import { AuthSessionGate } from "./components/auth/AuthSessionGate";
 import { AppIntroScreen } from "./components/auth/AppIntroScreen";
 import { GuestEntryCard } from "./components/auth/GuestEntryCard";
 import { allowUnauthMapDev } from "./lib/identity/authGatePolicy";
@@ -3450,56 +3451,16 @@ export default function App() {
       ) : null}
 
       {stage === "gate" && !needsGuestEntry ? (
-        <AuthGateCard>
-          {!configured ? (
-            <p className="meta tight">Firebase 설정 필요</p>
-          ) : !authInitialized || authSigningIn ? (
-            <p className="meta tight">연결 중…</p>
-          ) : userSignedOut ? (
-            <>
-              {/*
-                로그아웃 후(2026-10-09 Chief) — 등록이 주 행동이다. 종전 주 버튼 「다시 시작」 은 누르면 **새**
-                게스트를 만든다는 것이 드러나지 않아, 로그아웃한 사람에게 원치 않은 게스트가 생겼다.
-              */}
-              <p className="meta tight">로그아웃되었습니다.</p>
-              <p className="meta tight">Google로 로그인하면 내 도로망과 주행 기록이 계속 쌓입니다.</p>
-              <div className="auth-actions auth-actions--gate">
-                <button
-                  type="button"
-                  className="btn auth-gate-google"
-                  disabled={busy}
-                  title="Sign in with Google"
-                  onClick={() => void handleGoogleSignIn()}
-                >
-                  <AuthGoogleMark />
-                  Google로 로그인
-                </button>
-                <button
-                  type="button"
-                  className="btn secondary"
-                  disabled={busy}
-                  onClick={() => void beginAuthenticatedSession()}
-                >
-                  {busy ? "…" : "게스트로 새로 시작"}
-                </button>
-              </div>
-              <p className="meta tight">새 게스트는 이전 게스트의 기록을 이어받지 않습니다.</p>
-            </>
-          ) : (
-            <>
-              <p className="meta tight">서비스에 연결할 수 없습니다.</p>
-              <button
-                type="button"
-                className="btn primary"
-                disabled={busy}
-                onClick={() => void beginAuthenticatedSession()}
-              >
-                {busy ? "…" : "다시 시도"}
-              </button>
-            </>
-          )}
-          {error ? <p className="error tight">{error}</p> : null}
-        </AuthGateCard>
+        <AuthSessionGate
+          configured={configured}
+          authInitialized={authInitialized}
+          authSigningIn={authSigningIn}
+          userSignedOut={userSignedOut}
+          busy={busy}
+          error={error}
+          onStartGuest={() => void beginAuthenticatedSession()}
+          onGoogleSignIn={() => void handleGoogleSignIn()}
+        />
       ) : null}
 
       {stage === "gate-nickname" && user ? (

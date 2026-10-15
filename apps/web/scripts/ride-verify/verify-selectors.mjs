@@ -13,22 +13,33 @@ import { ENTRY_STEPS } from "./entry-contract.mjs";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const WEB_ROOT = resolve(HERE, "../..");
 
-let failed = 0;
-for (const step of ENTRY_STEPS) {
-  const path = resolve(WEB_ROOT, step.file);
+function readAnchors(file, anchors) {
+  const path = resolve(WEB_ROOT, file);
   let src;
   try {
     src = readFileSync(path, "utf8");
   } catch {
-    failed += 1;
-    console.error(`✗ ${step.step} — 파일 없음: ${step.file}`);
-    continue;
+    return { ok: false, missingFile: true, missing: anchors, path: file };
   }
-  const missing = step.anchors.filter((a) => !a.re.test(src));
-  if (missing.length) {
+  const missing = anchors.filter((a) => !a.re.test(src));
+  return { ok: missing.length === 0, missingFile: false, missing, path: file };
+}
+
+let failed = 0;
+for (const step of ENTRY_STEPS) {
+  const targets = [{ file: step.file, anchors: step.anchors }, ...(step.also ?? [])];
+  const bad = targets.map((target) => readAnchors(target.file, target.anchors)).filter((result) => !result.ok);
+  if (bad.length) {
     failed += 1;
-    console.error(`✗ ${step.step} (${step.file})`);
-    for (const m of missing) console.error(`  · 앵커 실종: ${m.name}  ${m.re}`);
+    console.error(`✗ ${step.step}`);
+    for (const result of bad) {
+      if (result.missingFile) {
+        console.error(`  · 파일 없음: ${result.path}`);
+        continue;
+      }
+      console.error(`  (${result.path})`);
+      for (const anchor of result.missing) console.error(`  · 앵커 실종: ${anchor.name}  ${anchor.re}`);
+    }
     console.error(`  → 셀렉터: ${step.selector}`);
   } else {
     console.log(`✓ ${step.step} — ${step.desc}`);
