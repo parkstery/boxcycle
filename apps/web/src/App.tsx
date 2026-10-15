@@ -246,10 +246,12 @@ export default function App() {
     traces: conquestTraces,
   } = useConquest(user, configured);
 
-  const [mapStyle, setMapStyle] = useState(DEFAULT_MAP_STYLE);
-  const [showRtwPoi, setShowRtwPoi] = useState(false);
-  /** 지시09 A — 지도 최초 중심. 마운트 시 1회만 계산(재점프 금지). */
+  /** 지시78 — 지도 최초 중심. 마운트 시 1회만 계산(재점프 금지). */
   const [mapBoot] = useState(() => resolveMapBootCenter());
+  const [mapStyle, setMapStyle] = useState(
+    mapBoot.source === "fallback" ? MAP_STYLE_SATELLITE : DEFAULT_MAP_STYLE,
+  );
+  const [showRtwPoi, setShowRtwPoi] = useState(false);
   const [mapZoom, setMapZoom] = useState(() => mapBoot.zoom);
   /** 주행 카메라 라이더~카메라 거리(m) — 개발용 거리 슬라이더, 최적값 확정 후 제거 예정 */
   const [rideCameraDistanceM, setRideCameraDistanceM] = useState(RIDE_CAMERA_DISTANCE_DEFAULT_M);
@@ -257,7 +259,10 @@ export default function App() {
   const [rideJoinBurstNonce, setRideJoinBurstNonce] = useState(0);
   const [mapViewportSpanKm, setMapViewportSpanKm] = useState<number | null>(null);
   /** 전역 livePresence publish — idle 시 지도 중심(주행 중에는 liveForMap 우선) */
-  const [mapViewportCenterLngLat, setMapViewportCenterLngLat] = useState<LngLat>([127.035, 37.505]);
+  const [mapViewportCenterLngLat, setMapViewportCenterLngLat] = useState<LngLat>([
+    mapBoot.center[0],
+    mapBoot.center[1],
+  ]);
   /** Activity World LOD — 제스처 중 실제 줌·span (HUD `mapZoom` 과 분리) */
   const [mapLodZoom, setMapLodZoom] = useState(DEFAULT_MAP_ZOOM);
   const [mapLodSpanKm, setMapLodSpanKm] = useState<number | null>(null);
@@ -428,8 +433,6 @@ export default function App() {
    * Ride·SavedRoute 를 삭제하지 않는다.
    */
   const [nextRideDismissedRideId, setNextRideDismissedRideId] = useState<string | null>(null);
-  /** 카드가 뜰 때 지도를 1회만 앵커로 이동한 Ride id(pan 후 재점프 금지, RIDE-NEXT-VISIT-2 V1·V2) */
-  const nextRideFramedRideIdRef = useRef<string | null>(null);
   /**
    * 지명 검색 결과 목적지 — menu(기존) vs localFirst(Recognition 카드).
    * 패널을 여는 쪽이 설정하고, pick/close 때 menu 로 되돌린다.
@@ -2362,30 +2365,6 @@ export default function App() {
         onDismiss={() => setNextRideDismissedRideId(nextRideView.target.rideId)}
       />
     ) : null;
-
-  /**
-   * 카드가 처음 나타날 때 지도를 재개 앵커로 1회 이동(RIDE-NEXT-VISIT-2 V1·V2).
-   * pan 후 재점프를 막기 위해 rideId 단위로 1회만 실행하고, 이후에는 카드가 다시
-   * 보여도 카메라를 건드리지 않는다.
-   */
-  useEffect(() => {
-    if (
-      nextRideCardVisible &&
-      nextRideView &&
-      nextRideFramedRideIdRef.current !== nextRideView.target.rideId
-    ) {
-      nextRideFramedRideIdRef.current = nextRideView.target.rideId;
-      setFollowMode("free");
-      setActiveQuickCamera(null);
-      setLockBaseHeading(null);
-      cameraJumpSeqRef.current += 1;
-      setExternalCameraJump({
-        lngLat: nextRideView.target.anchorLngLat,
-        zoom: 14,
-        requestId: cameraJumpSeqRef.current,
-      });
-    }
-  }, [nextRideCardVisible, nextRideView]);
 
   const defaultIntroPublication = BASIC_SHARED_HUB_SUMMARIES[0] ?? null;
 

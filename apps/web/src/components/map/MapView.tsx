@@ -146,13 +146,13 @@ import {
 import {
   MAP_GLOBE_MIN_ZOOM,
   MAP_ZOOM_SLIDER_MAX,
-  DEFAULT_MAP_ZOOM,
   RIDE_FOLLOW_CAMERA_MODE,
   RIDE_CAMERA_DISTANCE_DEFAULT_M,
   RIDE_CAMERA_DISTANCE_MIN_M,
   RIDE_CAMERA_DISTANCE_MAX_M,
   resolveRideCameraPitchClose,
 } from "../../lib/map/mapGlobeView";
+import { MAP_FALLBACK_CENTER, MAP_FALLBACK_ZOOM } from "../../lib/map/mapBootCenter";
 import { type LiveRiderMotion } from "./mapViewTypes";
 import {
   tickRideCameraFollow,
@@ -230,9 +230,9 @@ const EMPTY_ACTIVITY_WORLD_RAW: ActivityWorldRawOverlay = {
 };
 
 
-/** 레거시 `app.js` 와 동일한 서울 근처 기본 시야(강남). 지시09 — 부트 중심은 `initialCenter` 우선. */
-const DEFAULT_CENTER: [number, number] = [127.035, 37.505];
-const DEFAULT_ZOOM = DEFAULT_MAP_ZOOM;
+/** 지역 초기값이 없을 때의 첫 지도 — 로마 콜로세움 주변. `initialCenter`/`initialZoom` 이 있으면 그쪽이 우선. */
+const DEFAULT_CENTER: [number, number] = [MAP_FALLBACK_CENTER[0], MAP_FALLBACK_CENTER[1]];
+const DEFAULT_ZOOM = MAP_FALLBACK_ZOOM;
 
 function mountSelfLocationMarker(
   map: mapboxgl.Map,
@@ -394,11 +394,11 @@ export type MapViewProps = {
    */
   resumeAnchor?: { lngLat: LngLat; label: string } | null;
   /**
-   * 지도 **최초** 생성 중심(지시09 A). 생략 시 강남 기본.
+   * 지도 최초 생성 중심. 생략 시 콜로세움 주변 폴백.
    * 생성 후에는 쓰지 않는다 — 재점프 금지.
    */
   initialCenter?: LngLat | null;
-  /** 최초 줌. 생략 시 DEFAULT_MAP_ZOOM(13). */
+  /** 최초 줌. 생략 시 MAP_FALLBACK_ZOOM(15). */
   initialZoom?: number | null;
   /** Trail: 같은 Trail 에서 코스 주행 중인 다른 사용자 (빨간 dot + 노선) */
   trailSpectatorDots?: TrailSpectatorDot[] | null;

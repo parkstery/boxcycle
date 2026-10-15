@@ -1,13 +1,16 @@
 import type { LngLat } from "../geo/geo";
 import { readLocalFirstRegion } from "../geo/localFirstRegion";
-import { DEFAULT_MAP_ZOOM } from "./mapGlobeView";
-import { pickLastRide } from "../ride/rideStatsAggregate";
-import { loadRideSessions } from "../ride/rideSessionsStorage";
 
-/** MapView 레거시 기본 — 강남. 첫 사용자·기록 없음 폴백. */
-export const MAP_FALLBACK_CENTER: LngLat = [127.035, 37.505];
+/**
+ * 위치를 공유하지 않은 사용자의 첫 지도 — 로마 콜로세움 주변.
+ * 현재 위치 표시가 아니라 자유 탐색의 시작 시점이다.
+ */
+export const MAP_FALLBACK_CENTER: LngLat = [12.4922, 41.8902];
 
-export type MapBootCenterSource = "localFirst" | "lastRide" | "fallback";
+/** 800×360에서 주변 도로가 읽히는 초기 줌. */
+export const MAP_FALLBACK_ZOOM = 15;
+
+export type MapBootCenterSource = "localFirst" | "fallback";
 
 export type MapBootCenter = {
   center: LngLat;
@@ -16,41 +19,23 @@ export type MapBootCenter = {
 };
 
 /**
- * 지도 **최초** 중심 — 지시09 A.
- * 우선순위: 사용자가 고른 지역(localFirst) > 마지막 유효 주행 종료점 > 강남.
- * localStorage 만 읽는다(가장 쌈). Firestore rides 조회 없음.
+ * 지도 최초 중심.
+ * 사용자가 고른 지역(search/geolocation)이 있으면 그 좌표·줌을 유지한다.
+ * 없으면 콜로세움 주변. 마지막 주행으로 대체하지 않는다.
  */
 export function resolveMapBootCenter(): MapBootCenter {
   const region = readLocalFirstRegion();
   if (region) {
     return {
       center: [region.lngLat[0], region.lngLat[1]],
-      zoom: region.zoom || DEFAULT_MAP_ZOOM,
+      zoom: region.zoom,
       source: "localFirst",
-    };
-  }
-
-  const last = pickLastRide(loadRideSessions());
-  const end = last?.sessionEndLngLat ?? last?.sessionStartLngLat ?? null;
-  if (
-    end &&
-    Array.isArray(end) &&
-    end.length >= 2 &&
-    typeof end[0] === "number" &&
-    typeof end[1] === "number" &&
-    Number.isFinite(end[0]) &&
-    Number.isFinite(end[1])
-  ) {
-    return {
-      center: [end[0], end[1]],
-      zoom: DEFAULT_MAP_ZOOM,
-      source: "lastRide",
     };
   }
 
   return {
     center: [MAP_FALLBACK_CENTER[0], MAP_FALLBACK_CENTER[1]],
-    zoom: DEFAULT_MAP_ZOOM,
+    zoom: MAP_FALLBACK_ZOOM,
     source: "fallback",
   };
 }
