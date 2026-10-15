@@ -4,8 +4,9 @@ import { readLocalFirstRegion } from "../geo/localFirstRegion";
 /**
  * 위치를 공유하지 않은 사용자의 첫 지도 — 로마 콜로세움 주변.
  * 현재 위치 표시가 아니라 자유 탐색의 시작 시점이다.
+ * 카메라만 0.0017° 서쪽으로 보정해 줌 15에서 랜드마크가 화면 오른쪽에 놓인다.
  */
-export const MAP_FALLBACK_CENTER: LngLat = [12.4922, 41.8902];
+export const MAP_FALLBACK_CENTER: LngLat = [12.4905, 41.8902];
 
 /** 800×360에서 주변 도로가 읽히는 초기 줌. */
 export const MAP_FALLBACK_ZOOM = 15;

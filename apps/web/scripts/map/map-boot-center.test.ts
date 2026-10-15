@@ -8,7 +8,7 @@ import {
 } from "../../src/lib/map/mapBootCenter.ts";
 import { loadRideSessions, saveRideSessions } from "../../src/lib/ride/rideSessionsStorage.ts";
 
-const ROME: [number, number] = [12.4922, 41.8902];
+const ROME: [number, number] = [12.4905, 41.8902];
 const SEOUL_END: [number, number] = [127.035, 37.505];
 
 type MemStorage = {
