@@ -1522,3 +1522,5 @@
   height: max(100%, 44px);
   transform: translate(-50%, -50%);
 }
+
+.map-hud__mc .hud-action { padding: 0.4rem 0.6rem; gap: 0.3rem; }
