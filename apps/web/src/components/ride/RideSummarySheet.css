@@ -631,3 +631,5 @@
   height: auto;
   padding: 0.35rem 0.35rem 0.4rem;
 }
+
+.ride-summary__close::after { left:auto; right:0; transform:translateY(-50%); }
