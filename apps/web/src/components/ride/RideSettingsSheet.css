@@ -234,7 +234,6 @@
 
 /* Chief 2026-10-15: 주행 설정 한정 22px 입력/강도 예외. 프로필 22px와 같은 밀도. */
 .ride-settings-sheet[aria-label="주행 설정"] .ride-settings-sheet__panel {
-  width: min(26rem, calc(100vw - 1rem));
   padding: 0.35rem 0.6rem 0.4rem;
   gap: 0.25rem;
 }
@@ -254,4 +253,31 @@
   min-height: 22px;
   padding-top: 0;
   padding-bottom: 0;
+}
+
+.ride-settings-sheet[aria-label="주행 설정"] .ride-settings-sheet__panel {
+  width: max-content;
+  max-width: calc(100vw - 1rem);
+}
+
+.ride-settings-sheet[aria-label="주행 설정"] .ride-settings-sheet__calorie-title {
+  text-transform: none;
+  letter-spacing: normal;
+  white-space: normal;
+  max-width: 24rem;
+}
+
+.ride-settings-sheet[aria-label="주행 설정"] .ride-settings-sheet__calorie-row {
+  gap: 0.3rem 0.45rem;
+}
+
+.ride-settings-sheet[aria-label="주행 설정"] .ride-settings-sheet__chips {
+  align-items: center;
+}
+
+.ride-settings-sheet[aria-label="주행 설정"] .ride-settings-sheet__fitness-label {
+  font-size: 0.76rem;
+  color: inherit;
+  margin-right: 0.15rem;
+  white-space: nowrap;
 }

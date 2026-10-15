@@ -55,7 +55,9 @@ export function RideSettingsPanel(props: RideSettingsPanelProps) {
     <div className={rootClass}>
       {showCalorie ? (
         <div className="ride-settings-sheet__group" aria-label="추정 칼로리">
-          <span className="ride-settings-sheet__kicker">추정 kcal</span>
+          <span className="ride-settings-sheet__kicker ride-settings-sheet__calorie-title">
+            주행 Kcal - 체중과 체력 설정하세요. (No 센서 No 측정)
+          </span>
           <div className="ride-settings-sheet__calorie-row">
             <label className="ride-settings-sheet__weight" title="Body weight">
               <span>체중(kg)</span>
@@ -93,30 +95,28 @@ export function RideSettingsPanel(props: RideSettingsPanelProps) {
                 }}
               />
             </label>
-            <div className="ride-settings-sheet__chips" role="group" aria-label="강도">
+            <div className="ride-settings-sheet__chips" role="group" aria-label="체력">
+              <span className="ride-settings-sheet__fitness-label">체력</span>
               {CALORIE_INTENSITY_OPTIONS.map((opt) => {
                 const active = props.calorieIntensityId === opt.id;
+                const label = opt.id === "light" ? "약함" : opt.label;
                 return (
                   <button
                     key={opt.id}
                     type="button"
                     className={`ride-settings-sheet__chip${active ? " is-active" : ""}`}
                     aria-pressed={active}
-                    title={opt.label}
+                    title={label}
                     onClick={() => {
                       props.onCalorieIntensityId?.(opt.id);
                     }}
                   >
-                    {opt.label}
+                    {label}
                   </button>
                 );
               })}
             </div>
           </div>
-          <p className="ride-settings-sheet__help">
-            페달이 도는 시간과 선택 강도로 추정합니다. 체중·강도가 없으면 —. 센서 없으면
-            측정 안 함. 주행 중 변경은 다음 주행부터.
-          </p>
         </div>
       ) : null}
 
