@@ -1,3 +1,5 @@
+2026-10-15 최신: main2 Firebase Hosting 배포완료. [결과71](03-result-71.md)·[검수71](04-review-71.md) APPROVED. boxcycle-dc2df.web.app HTTP200/HTML·JS·CSS 해시일치,최신8f341a0반영. backend/Rules변경없음.
+
 2026-10-15 최신: main2상단카메라·맵버튼약20%확대/줌+−교환66~70 8f341a0커밋. [검수66](04-review-66.md) APPROVED/Chief확인대기. 48상태/계기없는화면/클릭/키보드/타입/selector15 PASS. 좁은폰계기있을때카메라다음행·원본main2서버5014,실기기미검증.
 
 2026-10-15 최신 완료: 요청 디자인 수정 전체 커밋 및 로컬 원본 main2 병합83079c3. [결과65](03-result-65.md)·[검수65](04-review-65.md) APPROVED. build/quick1066·selector15·의존검사PASS. 기존문서변경보존,main/push/배포없음. 실기기·실인증·실주행검증은별도잔여.
@@ -129,6 +131,7 @@ Supervisor Codex / Developer OpenCode Muse Spark 1.3.
 이전완료: [결과06](03-result-06.md)·[감리06](04-review-06.md). 프로필CSS 한 파일 마감, 실제Guest234→191.48px(18.17%감소)。
 
 최신: [감리10](04-review-10.md)·[결과09](03-result-09.md)·[결과10](03-result-10.md)。Cursor08조사정체로중지후Muse09/10교대。계정Free/업그레이드와기간탭한행,확인버튼내용폭,grid늘어남제거。기본Free275.80→228.56px,667x300스크롤27→0。자산+확인·긴탈퇴안내스크롤은잔여량보고,숨기지않음。실제Guest+mock18조합검수,실기기/실제인증미검증。5013관찰서버유지,다른창/commit/push/deploy없음。맵후속미착수。
+
 
 
 
