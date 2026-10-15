@@ -36,7 +36,7 @@
   max-height: 70%;
   overflow: auto;
   margin-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
-  padding: 0.55rem 0.85rem 1rem;
+  padding: 0.55rem 0.85rem 0.65rem;
   border-radius: 14px 14px 12px 12px;
   background: #FFFFFF;
   border: 1px solid #CBD5E1;
@@ -46,7 +46,7 @@
   pointer-events: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
   animation: cadence-sheet-up 180ms ease-out;
   box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.35);
 }
@@ -68,7 +68,7 @@
   border-radius: 99px;
   background: #CBD5E1;
   align-self: center;
-  margin-bottom: 0.15rem;
+  margin-bottom: 0;
 }
 
 .cadence-sheet__head {
@@ -111,8 +111,8 @@
 @media (max-height: 560px) {
   .cadence-sheet__panel {
     max-height: 88%;
-    padding: 0.4rem 0.7rem 0.6rem;
-    gap: 0.35rem;
+    padding: 0.4rem 0.7rem 0.4rem;
+    gap: 0.22rem;
   }
 }
 
@@ -195,6 +195,12 @@
 .cadence-sheet__btn--primary:hover:not(:disabled) {
   background: #1D4ED8;
   border-color: #1D4ED8;
+}
+
+.cadence-sheet__close:focus-visible,
+.cadence-sheet__btn:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: 2px;
 }
 
 .cadence-sheet__error {

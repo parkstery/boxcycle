@@ -13,6 +13,8 @@ export type RouteDockProps = {
   stage: RideUiStage;
   stops: RouteDockStop[];
   routeLoading: boolean;
+  /** 경로 설정 완료 token. ready 이전에 소비하지 않고, 같은 token 은 한 번만 안내한다. */
+  routeSetupToken?: object | null;
   canStartRide: boolean;
   /**
    * 경로는 잡혔는데 센서·체험 속도를 아직 안 고른 상태. 센서 칩을 깜빡여 다음 할 일을
@@ -52,6 +54,7 @@ export function RouteDock(props: RouteDockProps) {
     stage,
     stops,
     routeLoading,
+    routeSetupToken = null,
     canStartRide,
     sensorAttention = false,
     onStartRide,
@@ -97,6 +100,76 @@ export function RouteDock(props: RouteDockProps) {
     else if (stage === "idle" && stops.length === 0) setExpanded(false);
   }
 
+  const setupToken = routeSetupToken ?? null;
+  /*
+   * pending = 봤지만 ready 이전이라 아직 안내하지 않은 token.
+   * consumed = 이미 1회 시작한 token. 같은 token 의 재렌더·센서·접기·주행 종료 후 복귀는 다시 시작하지 않는다.
+   */
+  const [setupCue, setSetupCue] = useState(() => ({
+    observed: null as object | null,
+    pending: null as object | null,
+    consumed: null as object | null,
+    loading: routeLoading,
+    stage,
+    sequence: 0,
+    attention: false,
+  }));
+  if (
+    setupToken !== setupCue.observed ||
+    routeLoading !== setupCue.loading ||
+    stage !== setupCue.stage
+  ) {
+    const ridingLike = stage === "riding" || stage === "paused";
+    let pending: object | null;
+    let consumed = setupCue.consumed;
+    let attention = setupCue.attention;
+    let sequence = setupCue.sequence;
+
+    if (setupToken == null) {
+      pending = null;
+      consumed = null;
+      attention = false;
+    } else if (ridingLike) {
+      pending = setupToken === consumed ? null : setupToken;
+      attention = false;
+    } else if (setupToken !== consumed) {
+      pending = setupToken;
+      attention = false;
+    } else {
+      pending = null;
+      if (stage !== "ready-to-start" || routeLoading) attention = false;
+    }
+
+    if (
+      setupToken != null &&
+      pending != null &&
+      pending !== consumed &&
+      !routeLoading &&
+      stage === "ready-to-start"
+    ) {
+      consumed = pending;
+      pending = null;
+      sequence += 1;
+      attention = true;
+      setExpanded(true);
+    }
+
+    setSetupCue({
+      observed: setupToken,
+      pending,
+      consumed,
+      loading: routeLoading,
+      stage,
+      sequence,
+      attention,
+    });
+  }
+  const setupAttentionClass = setupCue.attention
+    ? setupCue.sequence % 2 === 0
+      ? " route-dock__go--setup-b"
+      : " route-dock__go--setup-a"
+    : "";
+
   if (!visible) return null;
 
   /*
@@ -133,6 +206,7 @@ export function RouteDock(props: RouteDockProps) {
       cadence.onOpen();
       return;
     }
+    if (expanded) setSetupCue((current) => (current.attention ? { ...current, attention: false } : current));
     setExpanded((v) => !v);
   };
 
@@ -238,11 +312,26 @@ export function RouteDock(props: RouteDockProps) {
             <div className="route-dock__transport" role="group" aria-label="주행 제어">
               <button
                 type="button"
-                className="route-dock__go route-dock__transport-btn"
+                className={`route-dock__go route-dock__transport-btn${setupAttentionClass}`}
                 disabled={goDisabled}
                 aria-label={paused ? "재개" : "주행 시작"}
                 title={paused ? "Resume" : "Start ride"}
                 onClick={() => (paused ? onResumeRide() : onStartRide(restartFromZero))}
+                onAnimationEnd={(event) => {
+                  if (event.target !== event.currentTarget) return;
+                  const stillName =
+                    setupCue.sequence % 2 === 0
+                      ? "route-dock-go-setup-still-b"
+                      : "route-dock-go-setup-still-a";
+                  const pulseName =
+                    setupCue.sequence % 2 === 0
+                      ? "route-dock-go-setup-b"
+                      : "route-dock-go-setup-a";
+                  if (event.animationName !== pulseName && event.animationName !== stillName) return;
+                  setSetupCue((current) =>
+                    current.attention ? { ...current, attention: false } : current,
+                  );
+                }}
               >
                 <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden focusable="false">
                   <path d="M8 5.5v13l11-6.5z" fill="currentColor" />

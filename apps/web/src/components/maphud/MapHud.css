@@ -818,7 +818,7 @@
   color: #1F2937;
 }
 
-/* ---------- TC: 지표 캡슐 (참조 TopHud — 라벨 위·값 아래, 디바이더 구분) ---------- */
+/* ---------- TC: 지표 캡슐 (라벨 위·값 아래, 셀 사이 선 없음) ---------- */
 .hud-metrics {
   display: flex;
   align-items: center;
@@ -828,11 +828,8 @@
 }
 
 /*
- * 계기판은 「패널」이 아니라 지도 위에 뜬 숫자다(2026-09-17 Chief).
- * 종전엔 불투명 검은 알약이 좌상단 지도를 통째로 가렸다 — HUD 가 지도를 가리면
- * 맵 포워드가 아니다. 배경·테두리·그림자·블러를 전부 걷어내고, 대신 글자마다
- * 짙은 외곽선을 둘러 **위성 이미지처럼 밝은 배경 위에서도** 읽히게 한다.
- * (배경을 지우면 대비를 글자 자신이 만들어야 한다 — 그게 text-shadow 3겹의 이유다.)
+ * 계기판은 흰 캡슐이다. 면 #FFFFFF, 모서리 0.65rem.
+ * 테두리는 inset 그림자(실제 border 없음 — 레이아웃 불변). 글자 그림자는 없다.
  */
 .hud-metrics__capsule {
   position: relative;
@@ -842,24 +839,11 @@
   /* 간격 재절반(20260923-minimap 지시01 §2) — gap + 고정폭 여유분을 같이 줄인다.
    * 고정 폭 셀에서 패딩만 줄이면 글자가 안 움직인다(가운데 정렬). */
   gap: 0.2rem;
-  padding: 0.1rem 0.15rem;
-  /*
-   * 부드러운 그림자만으로는 **흰 지형 위 흰 글자**가 안 읽힌다(실측: 밝은 배경 3배
-   * 확대 촬영에서 값·라벨 모두 판독 불가). 그림자를 키우는 대신 8방향 1px 로
-   * 글자마다 진짜 키라인을 둘러 어떤 배경에서도 윤곽이 서게 한다. 마지막 한 겹은
-   * 바탕과 떼어 놓는 부드러운 드롭섀도.
-   *
-   * 2026-10-06 Chief: 위성 지도에서 대비 부족 → 2중 불투명 키라인(코칭과 동일) +
-   * 넓은 헤일로 2겹(6px·12px)으로 글자 주변을 어둡게 띄운다.
-   */
-  /* 같은 날 2차: 위성 지명과 더 구분되게 헤일로 3배(6/12 → 18/36px) + 겹쳐 진하게 */
-  text-shadow:
-    var(--rtw-map-text-keyline-strong),
-    0 0 6px #000,
-    0 0 18px rgba(0, 0, 0, 0.95),
-    0 0 18px rgba(0, 0, 0, 0.95),
-    0 0 36px rgba(0, 0, 0, 0.85),
-    0 0 36px rgba(0, 0, 0, 0.7);
+  padding: 0.1rem 0.45rem;
+  background: #FFFFFF;
+  border-radius: 0.65rem;
+  box-shadow: inset 0 0 0 1px #CBD5E1, 0 2px 8px rgba(15,23,42,0.12);
+  text-shadow: none;
 }
 
 .hud-metrics__cell {
@@ -872,31 +856,17 @@
   text-align: center;
 }
 
-/*
- * 2026-10-06 Chief: 위성 지도에서 대비 부족 → 계기판 뒤에 **가장자리 없는** 검은 그림자 바탕.
- * 알약(테두리·면)이 아니라 가운데가 짙고 바깥으로 사라지는 타원이라 지도를 가리는 「패널」로 읽히지 않는다.
- */
+/* 종전 방사형 검정 바탕은 흰 캡슐이 대비를 맡으므로 그리지 않는다. */
 .hud-metrics__capsule::before {
-  content: "";
-  position: absolute;
-  inset: -0.55rem -1.1rem;
-  z-index: -1;
-  pointer-events: none;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(0, 0, 0, 0.62) 0%,
-    rgba(0, 0, 0, 0.45) 50%,
-    rgba(0, 0, 0, 0) 78%
-  );
+  content: none;
 }
 
-/* 지도 위에 직접 뜨므로 종전의 흐린 회색(--rtw-text-secondary)으로는 밝은 지형에서
-   읽히지 않는다. 흰색을 살짝 낮춰 값과의 위계는 유지하되 대비는 확보한다. */
+/* 라벨은 슬레이트. 값보다 한 단계 낮고 그림자는 쓰지 않는다. */
 .hud-metrics__label {
   font-size: var(--rtw-text-xs);
   line-height: 1;
   font-weight: var(--rtw-weight-label);
-  color: #f8fafc;
+  color: #475569;
 }
 
 .hud-metrics__value {
@@ -907,32 +877,20 @@
   font-size: 0.95rem;
   line-height: 1;
   font-weight: var(--rtw-weight-value);
-  color: var(--rtw-text-primary);
+  color: #0F172A;
   font-variant-numeric: tabular-nums;
 }
 
 .hud-metrics__cell-unit {
   font-size: 0.55rem;
   font-weight: 500;
-  color: #f8fafc;
+  color: #475569;
 }
 
-/*
- * 라벨·단위는 글자가 8px 안팎이라 캡슐의 1px 키라인이 한글 획 사이를 메워 뭉갠다
- * (실측: 3배 확대에서 「거리·시간」이 검은 덩어리로 보인다). 작은 글자에는 키라인 대신
- * 촘촘한 헤일로를 씌운다 — 획을 침범하지 않으면서 밝은 지형과 분리된다.
- */
+/* 라벨·단위는 작은 글자다. 흰 면 위에서는 키라인·헤일로를 두지 않는다. */
 .hud-metrics__label,
 .hud-metrics__cell-unit {
-  text-shadow:
-    0 0 1px rgba(0, 0, 0, 0.98),
-    0 0 2px rgba(0, 0, 0, 0.95),
-    0 0 3px rgba(0, 0, 0, 0.9),
-    0 1px 3px rgba(0, 0, 0, 0.85),
-    /* 2026-10-06 Chief: 위성 지도 대비 — 획은 그대로, 헤일로만 넓게(2차: 3배 15/27px) */
-    0 0 5px #000,
-    0 0 15px rgba(0, 0, 0, 0.95),
-    0 0 27px rgba(0, 0, 0, 0.85);
+  text-shadow: none;
 }
 
 /* 거리 = 오늘 운동의 핵심 숫자 — 파랑은 핵심 강조 숫자에만(운동=본체 위계) */
@@ -948,22 +906,20 @@
   color: #2563EB;
 }
 
-/* 2026-10-06 Chief: 주행 중 「새 도로」 흐리기(0.72) 제거 — 강조 요소가 가장 약했다.
-   opacity 는 글자뿐 아니라 검은 헤일로까지 옅게 만든다. */
+/* 주행 중 「새 도로」는 흐리지 않는다 — 강조 요소가 가장 약해지지 않게. */
 
-/* 종전엔 주행 중 코칭을 흐리게 해 계기판에 양보했다. 배경이 사라진 지금은 흐리기가
-   곧 대비 손실이라(지도 무늬 위에서 글자가 묻힌다) 그대로 둔다 — 위계는 글자 크기가 맡는다. */
+/* 종전엔 주행 중 코칭을 흐리게 해 계기판에 양보했다. 위계는 글자 크기가 맡으므로
+   코칭 흐리기는 두지 않는다. */
 
-/* 「/ 주행경로 전체거리」 — 주행 목표라 시간·평균·속도와 같은 흰색 볼드로(2026-09-17 Chief).
+/* 「/ 주행경로 전체거리」 — 시간·평균·속도 값보다 한 단계 낮은 슬레이트.
    .hud-metrics__value 와 동일한 절대 단위 — 부모가 1.25rem 히어로라 em 이면 의도한 크기가 안 나온다. */
 .hud-metrics__value-total {
   font-size: 0.95rem;
   font-weight: var(--rtw-weight-value);
-  color: var(--rtw-text-primary);
+  color: #334155;
 }
 
-/* 패널이 사라지면 이 선은 지도 위에 떠 있는 정체불명의 1px 가 된다 — 셀 사이 간격이
-   대신 구분을 맡는다(`.hud-metrics__capsule` 의 gap). */
+/* 셀 사이에는 테두리를 두지 않는다. 구분은 `.hud-metrics__capsule` 의 gap 이 맡는다. */
 .hud-metrics__divider {
   display: none;
 }
@@ -1066,9 +1022,9 @@
   animation: hud-conquest-pulse var(--rtw-ride-pulse-period, 2.2s) ease-out infinite;
 }
 
-/* 새 도로 — 지도 위 파랑(UI 강조, 외곽선 유지). 라벨 흐리기 없음 */
+/* 새 도로 — 값은 파랑(UI 강조), 라벨은 슬레이트. 라벨 흐리기·글자 그림자 없음 */
 .hud-metrics__cell--conquest .hud-metrics__label {
-  color: #2563EB;
+  color: #475569;
 }
 
 .hud-metrics__cell--conquest .hud-metrics__value {
@@ -1099,17 +1055,18 @@
   display: block;
   font-size: 0.65em;
   font-weight: 500;
-  color: #2563EB;
-  opacity: 0.55;
+  color: #475569;
+  opacity: 1;
+  text-shadow: none;
   letter-spacing: 0.02em;
   line-height: 1.2;
   margin-top: 1px;
 }
 
-/* 경로만 선택·주행 전: 동일 캡슐, 값 색만 구분(파랑 톤 다운) */
+/* 경로만 선택·주행 전: 동일 캡슐, 값 색은 파랑(불투명). */
 .hud-metrics--route-preview .hud-metrics__value {
   color: #2563EB;
-  opacity: 0.85;
+  opacity: 1;
 }
 
 /* ---------- BC: CoachLine ---------- */
@@ -1522,3 +1479,5 @@
   height: max(100%, 44px);
   transform: translate(-50%, -50%);
 }
+
+.map-hud__mc .hud-action { padding: 0.4rem 0.6rem; gap: 0.3rem; }

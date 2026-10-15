@@ -559,6 +559,7 @@ export default function App() {
     setProfile,
     routeGeometry,
     setRouteGeometry,
+    routeSetupToken,
     routeDistanceMeters,
     setRouteDistanceMeters,
     routeDurationSec,
@@ -2628,6 +2629,7 @@ export default function App() {
       stage={stage}
       stops={routeDockStops}
       routeLoading={routeLoading}
+      routeSetupToken={routeSetupToken}
       canStartRide={canStartRideWithInput}
       sensorAttention={Boolean(routeGeometry) && !routeLoading && !rideInputReady}
       onStartRide={handleStartRide}

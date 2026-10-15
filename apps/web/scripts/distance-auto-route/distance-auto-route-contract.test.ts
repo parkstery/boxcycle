@@ -470,9 +470,11 @@ describe("distanceAutoRoute", () => {
     assert.doesNotMatch(MOUNT_TOKEN_SOURCE, /map-view__pick-token-secondary/);
   });
 
-  it("3D-2 — 이동수단과 경로 삭제가 같은 action row", () => {
+  it("경로 탐색 화면 — 경로 삭제는 두 모드의 공통 제목 영역", () => {
     assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-btn--clear-route/);
-    assert.match(BUILD_PICK_POPUP_SOURCE, /rowProfile\.appendChild\(clearRouteBtn\)/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /headerRow\.append\(clearRouteBtn\)/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /dragHandle\.append\(headerRow, addressEl, metaEl\)/);
+    assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /rowProfile\.appendChild\(clearRouteBtn\)/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /profileHeader/);
   });
 
@@ -491,7 +493,14 @@ describe("distanceAutoRoute", () => {
     assert.doesNotMatch(stepBlock, /fetchDistanceAutoRoute/);
     assert.doesNotMatch(stepBlock, /onAutoRouteMapPick/);
     assert.match(stepBlock, /tryArmDirectionPickIfChecked/);
-    assert.match(stepBlock, /if \(!distanceDirectionChecked\) return/);
+    assert.match(stepBlock, /if \(!ensureDistanceDirectionForInput\(\)\) return/);
+    const activationBlock = BUILD_PICK_POPUP_SOURCE.slice(
+      BUILD_PICK_POPUP_SOURCE.indexOf("function ensureDistanceDirectionForInput"),
+      BUILD_PICK_POPUP_SOURCE.indexOf("function applyDistanceDirectionMode"),
+    );
+    assert.match(activationBlock, /!pins\.start/);
+    assert.match(activationBlock, /setDistanceDirectionMode\?\.\(true\)/);
+    assert.doesNotMatch(activationBlock, /fetchDistanceAutoRoute|onAutoRouteMapPick/);
   });
 
   it("3D-2-R1 — 거리·방향 모드 checkbox와 armed 분리", () => {

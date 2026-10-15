@@ -37,6 +37,13 @@ const PICK_POPUP_PROFILE_ICON_SVG: Record<RouteProfile, string> = {
   walking: `<svg class="map-view__pick-profile-ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"/><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/><path d="M16 17h4"/><path d="M4 13h4"/></svg>`,
 };
 
+/** 지시34 — 거리 화면 요약용 이동수단 한글 표기(실제 currentProfile 동기화). */
+const ROUTE_PROFILE_KO: Record<RouteProfile, string> = {
+  driving: "자동차",
+  cycling: "자전거",
+  walking: "보행",
+};
+
 export function pickPickPopupAnchor(
   map: mapboxgl.Map,
   e: mapboxgl.MapMouseEvent | mapboxgl.MapLayerMouseEvent,
@@ -319,6 +326,27 @@ export function buildPickPopup(deps: {
   let autoSessionActive = autoRouteSessionActive || mapBridge?.sessionActive || false;
   let distanceDirectionChecked =
     mapBridge?.distanceDirectionMode ?? autoSessionActive;
+  /*
+   * 지시34 — 위치/거리 별도 화면(단일 routePickView). 30~33의 두 토글/두 영역 혼합 제거.
+   * DOM은 같은 wrap, 내용만 교체. 화면 전환으로 핀·거리·수단·토큰·탐색을 초기화하지 않는다.
+   * 초기 bridge 거리모드/거리세션 + Start면 distance뷰.
+   */
+  let routePickView: "location" | "distance" =
+    pins.start && (distanceDirectionChecked || autoSessionActive) ? "distance" : "location";
+  /*
+   * 지시38 — 중심 화면은 routePickView로 유지, 보조 영역 펼침 boolean 하나 추가.
+   * 초기 location이면 위치만, distance/재개이면 거리만. 이후 mode/토큰/status 갱신은
+   * 펼침을 리셋하지 않는다. 단 prerequisite(Start 없음)는 위치 필수 상태로 복귀.
+   */
+  let routePickAuxExpanded = false;
+
+  /* 지시62 — 얇은 단일 캐럿 SVG. 12×6px가 20×14 svg 중앙. 보이는 텍스트 0, stroke 파랑. */
+  const PICK_CARET_SVG_ATTRS =
+    `class="map-view__pick-caret-ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14" fill="none" stroke="#2563EB" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="20" height="14"`;
+  const PICK_CARET_DOWN_SVG =
+    `<svg ${PICK_CARET_SVG_ATTRS}><path d="M4 4 10 10 16 4"/></svg>`;
+  const PICK_CARET_UP_SVG =
+    `<svg ${PICK_CARET_SVG_ATTRS}><path d="M4 10 10 4 16 10"/></svg>`;
 
   function getRouteStart(): LngLat | null {
     const armed = getDistanceAutoRouteMapBridge()?.getArmedStart?.() ?? null;
@@ -350,19 +378,16 @@ export function buildPickPopup(deps: {
   startBtn.setAttribute("aria-label", "Set start");
   startBtn.onclick = () => {
     onClearAutoRouteClickDebugMarker?.();
+    if (distanceDirectionChecked) {
+      applyDistanceDirectionMode(false);
+    }
     getDistanceAutoRouteMapBridge()?.disarm?.();
     onSelectPoint("start", lngLat);
-    queueMicrotask(() => {
-      if (!getDistanceAutoRouteMapBridge()?.distanceDirectionMode) {
-        applyDistanceDirectionMode(false);
-      }
-    });
     pins.start = true;
     selectedStart = lngLat;
     syncProfileUi();
     syncAutoRouteUi();
     syncTokenUi();
-    if (pins.start && distanceDirectionChecked) previewCircleForTargetKm(targetKm);
     onRoutePanelActivated?.();
   };
 
@@ -381,6 +406,9 @@ export function buildPickPopup(deps: {
     wpBtn.onclick = () => {
       const count = getWaypointCount();
       if (!isWaypointSlotEnabled(count, slot)) return;
+      if (distanceDirectionChecked) {
+        applyDistanceDirectionMode(false);
+      }
       onSelectPoint("waypoint", lngLat, slot);
       closePopup();
     };
@@ -394,6 +422,9 @@ export function buildPickPopup(deps: {
   endBtn.title = "Set as end";
   endBtn.setAttribute("aria-label", "Set end");
   endBtn.onclick = () => {
+    if (distanceDirectionChecked) {
+      applyDistanceDirectionMode(false);
+    }
     onSelectPoint("end", lngLat);
     pins.end = true;
     if (!pins.start) closePopup();
@@ -405,6 +436,13 @@ export function buildPickPopup(deps: {
   };
 
   pinRow.append(startBtn, wpButtons[0]!, wpButtons[1]!, wpButtons[2]!, endBtn);
+
+  /* 지시38 — 위치 화면. pinRow가 profileSection보다 앞(profileSection은 아래에서 붙는다). */
+  const routeLocationView = document.createElement("div");
+  routeLocationView.className =
+    "map-view__pick-route-view map-view__pick-route-view--location";
+  routeLocationView.id = "map-view-pick-location-view";
+  routeLocationView.append(pinRow);
 
   const profileSection = document.createElement("div");
   profileSection.className = "map-view__pick-profile-section";
@@ -445,6 +483,8 @@ export function buildPickPopup(deps: {
       profileButtons.forEach((item, index) => {
         item.classList.toggle("is-active", profileSpecs[index]?.profile === currentProfile);
       });
+      /* 지시34 — 거리 화면 요약을 실제 수단과 동기화한다. */
+      syncRoutePickView();
       const manualRouteReady = pins.start && pins.end && !distanceDirectionChecked;
       if (manualRouteReady) {
         if (getRouteTokenInsufficient?.()) return;
@@ -458,8 +498,14 @@ export function buildPickPopup(deps: {
     rowProfile.appendChild(pb);
   }
 
+  /*
+   * 재지시35 — 공통 삭제. 전용 변수에 보관하고 DOM은 profile row에 두지 않는다.
+   * headerRow(아래 dragHandle 직전)에서 tokenSection과 나란히 붙여 두 모드 공통 노출.
+   * 라벨/aria/콜백/폰트·크기는 기존 그대로. profile행은 3수단+거리›만.
+   */
+  let clearRouteBtn: HTMLButtonElement | null = null;
   if (typeof onClearRoute === "function") {
-    const clearRouteBtn = document.createElement("button");
+    clearRouteBtn = document.createElement("button");
     clearRouteBtn.type = "button";
     clearRouteBtn.className = "map-view__pick-btn map-view__pick-btn--clear-route";
     clearRouteBtn.textContent = "경로 삭제";
@@ -473,8 +519,14 @@ export function buildPickPopup(deps: {
       selectedStart = null;
       closePopup();
     };
-    rowProfile.appendChild(clearRouteBtn);
+    /* 재지시37 — dragHandle pointerdown이 자손 삭제 버튼의 click을 삼키지 않게 차단. preventDefault 금지. */
+    clearRouteBtn.addEventListener("pointerdown", (event) => event.stopPropagation());
   }
+
+  /*
+   * 지시38 — profile행 끝 '거리 ›' 버튼 제거(이중 캐럿으로 대체). 별도 중간행 없음.
+   * 기존 폰트/버튼 크기 축소 금지 원칙에 따라 profile 버튼은 그대로 둔다.
+   */
 
   function syncProfileUi() {
     const hasStart = pins.start;
@@ -525,6 +577,17 @@ export function buildPickPopup(deps: {
 
   const autoRouteSection = document.createElement("div");
   autoRouteSection.className = "map-view__pick-auto-route";
+  autoRouteSection.id = "map-view-pick-distance-view";
+
+  /*
+   * 지시38 — 한 개의 캐럿 disclosure 행. 두 패널 사이 비drag 영역에 둔다.
+   * 보이는 텍스트 0, 현재 행 16.8px 투명 영역, Enter/Space 네이티브 button.
+   */
+  const routePickCaret = document.createElement("button");
+  routePickCaret.type = "button";
+  routePickCaret.className = "map-view__pick-caret";
+  routePickCaret.innerHTML = PICK_CARET_DOWN_SVG;
+  routePickCaret.setAttribute("aria-expanded", "false");
 
   let targetKm = autoRouteTargetKm;
 
@@ -533,6 +596,12 @@ export function buildPickPopup(deps: {
 
   const modeField = document.createElement("label");
   modeField.className = "map-view__pick-distance-mode";
+  /*
+   * 지시34 — checkbox는 내부 동기화용으로만 남기고 사용자에게 표시하지 않는다
+   * (hidden이라 조작·탭 불가, 거리 화면 진입에 체크 추가 요구 없음).
+   * 계약이 클래스명·aria 상수를 겨누므로 DOM과 상수는 유지한다.
+   */
+  modeField.hidden = true;
 
   const modeCheckbox = document.createElement("input");
   modeCheckbox.type = "checkbox";
@@ -594,7 +663,8 @@ export function buildPickPopup(deps: {
     chip.textContent = String(km);
     chip.setAttribute("aria-label", `목표 거리 ${km}km`);
     chip.onclick = () => {
-      if (!distanceDirectionChecked) return;
+      /* 지시38 — mode=false라는 이유만으로 보이는 거리 컨트롤을 먹통으로 하지 않는다. */
+      if (!ensureDistanceDirectionForInput()) return;
       syncDistanceInputs(km);
       previewCircleForTargetKm(km);
       tryArmDirectionPickIfChecked();
@@ -609,6 +679,20 @@ export function buildPickPopup(deps: {
   distanceEta.setAttribute("aria-live", "polite");
 
   distanceRow.append(modeField, distanceLabel, minusBtn, distanceSlider, plusBtn, distanceNumber);
+  /*
+   * 지시34 — 한행 '목표 거리 −/숫자/km/＋'. DOM 순서(계약 고정)는 그대로 두고
+   * CSS order로만 시각 배열한다. sr-only label은 AT용으로 유지하고,
+   * 보이는 캡션·단위는 aria-hidden으로 중복 낭독을 피한다.
+   */
+  const routeDistanceCaption = document.createElement("span");
+  routeDistanceCaption.className = "map-view__pick-distance-caption";
+  routeDistanceCaption.textContent = "목표 거리";
+  routeDistanceCaption.setAttribute("aria-hidden", "true");
+  const routeDistanceUnit = document.createElement("span");
+  routeDistanceUnit.className = "map-view__pick-distance-unit";
+  routeDistanceUnit.textContent = "km";
+  routeDistanceUnit.setAttribute("aria-hidden", "true");
+  distanceRow.append(routeDistanceCaption, routeDistanceUnit);
   distanceRow.append(distanceChips, distanceEta);
 
   const autoRouteStatusSlot = document.createElement("div");
@@ -637,31 +721,58 @@ export function buildPickPopup(deps: {
       }),
     );
     distanceNumber.value = km.toFixed(1);
-    if (distanceDirectionChecked) {
+    /* 지시38 — 보이는 거리 컨트롤의 stepper/disabled는 Start/기능 전제·min/max로만 판정. */
+    const available = pins.start && typeof onArmDirectionPick === "function";
+    if (!available) {
+      minusBtn.disabled = true;
+      plusBtn.disabled = true;
+    } else {
       minusBtn.disabled = km <= DISTANCE_AUTO_ROUTE_KM_MIN;
       plusBtn.disabled = km >= DISTANCE_AUTO_ROUTE_KM_MAX;
-      // 원과 함께 안내 `{N}` 즉시 갱신(검색/결과 문구는 덮지 않음)
-      if (autoRouteStatus.dataset.phase === "direction") {
-        autoRouteStatus.textContent = formatDistanceAutoRouteDirectionClickHint(km);
-      }
+    }
+    // 원과 함께 안내 `{N}` 즉시 갱신(검색/결과 문구는 덮지 않음)
+    if (autoRouteStatus.dataset.phase === "direction") {
+      autoRouteStatus.textContent = formatDistanceAutoRouteDirectionClickHint(km);
     }
   }
 
   function syncDistanceModeUi() {
     modeCheckbox.checked = distanceDirectionChecked;
-    distanceSlider.disabled = !distanceDirectionChecked;
-    for (const c of chipButtons) c.el.disabled = !distanceDirectionChecked;
-    distanceNumber.disabled = !distanceDirectionChecked;
+    /* 지시38 — 숨긴 checkbox는 내부 동기화용으로만 유지. 보이는 컨트롤은 mode=false
+     * 때문이 아니라 Start/기능 전제로만 막는다(펼친 뒤 재선택 가능해야 함). */
+    const available = pins.start && typeof onArmDirectionPick === "function";
+    distanceSlider.disabled = !available;
+    for (const c of chipButtons) c.el.disabled = !available;
+    distanceNumber.disabled = !available;
     distanceRow.classList.toggle(
       "map-view__pick-distance-row--disabled",
-      !distanceDirectionChecked,
+      !available,
     );
-    if (!distanceDirectionChecked) {
+    if (!available) {
       minusBtn.disabled = true;
       plusBtn.disabled = true;
       return;
     }
-    syncDistanceInputs(targetKm);
+    minusBtn.disabled = targetKm <= DISTANCE_AUTO_ROUTE_KM_MIN;
+    plusBtn.disabled = targetKm >= DISTANCE_AUTO_ROUTE_KM_MAX;
+    if (autoRouteStatus.dataset.phase === "direction") {
+      autoRouteStatus.textContent = formatDistanceAutoRouteDirectionClickHint(targetKm);
+    }
+  }
+
+  /*
+   * 지시38 — 거리 입력 조작 시 방향대기 활성화를 위한 내부 승격. 모드 변경과
+   * presentation 중심/펼침은 분리하므로 여기서 view/펼침을 건드리지 않는다.
+   */
+  function ensureDistanceDirectionForInput(): boolean {
+    if (!pins.start || typeof onArmDirectionPick !== "function") return false;
+    if (!distanceDirectionChecked) {
+      distanceDirectionChecked = true;
+      getDistanceAutoRouteMapBridge()?.setDistanceDirectionMode?.(true);
+      syncDistanceModeUi();
+      syncProfileUi();
+    }
+    return true;
   }
 
   function applyDistanceDirectionMode(checked: boolean) {
@@ -671,9 +782,18 @@ export function buildPickPopup(deps: {
      * `mapBridge` 는 팝업을 만들 때 한 번 잡아 둔 값이라, 그 시점에 아직 등록 전이었거나
      * 이후 다시 등록됐으면 `null`·낡은 객체를 붙들고 있다 — 그러면 이 호출이 조용히
      * 사라져 체크를 풀어도 훅은 아무것도 모른다(반경 원이 그대로 남던 원인).
+     *
+     * 지시34 — '거리 ›' 진입은 이 경로로 기존 bridge의 방향대기를 활성화하며
+     * distance뷰로 전환한다. 진입은 지도 방향 클릭 준비뿐: 원격 도로탐색·토큰차감·
+     * 핀초기화·경로삭제를 하지 않는다. 복귀는 disarm/원 정리 후 location뷰.
+     * 핀·목표거리·수단·이미 생성된 경로는 여기서 임의 초기화하지 않는다(아래 정리 호출 제외).
+     * 수동 경로 준비/토큰 disabled가 낡지 않게 syncProfileUi도 갱신한다.
      */
     getDistanceAutoRouteMapBridge()?.setDistanceDirectionMode?.(checked);
+    /* 지시38 — 모드 변경과 중심/펼침 분리: 여기서는 view를 건드리지 않는다. */
     syncDistanceModeUi();
+    syncRoutePickView();
+    syncProfileUi();
     if (!checked) {
       onClearAutoRouteClickDebugMarker?.();
       // 원을 소유한 쪽에 직접 지우라고 말한다 — 훅의 정리에만 기대지 않는다.
@@ -685,13 +805,35 @@ export function buildPickPopup(deps: {
     tryArmDirectionPickIfChecked();
   }
 
+  function setRoutePickAuxExpanded(next: boolean) {
+    if (routePickView === "location") {
+      if (next === routePickAuxExpanded && distanceDirectionChecked === next) {
+        syncRoutePickView();
+        return;
+      }
+      routePickAuxExpanded = next;
+      applyDistanceDirectionMode(next);
+      return;
+    }
+    if (routePickAuxExpanded === next) {
+      syncRoutePickView();
+      return;
+    }
+    routePickAuxExpanded = next;
+    syncRoutePickView();
+  }
+
+  routePickCaret.onclick = () => {
+    setRoutePickAuxExpanded(!routePickAuxExpanded);
+  };
+
   function tryArmDirectionPickIfChecked() {
     if (!distanceDirectionChecked) return;
     tryArmDirectionPick();
   }
 
   function stepTargetKm(deltaKm: number) {
-    if (!distanceDirectionChecked) return;
+    if (!ensureDistanceDirectionForInput()) return;
     const next = Math.min(
       DISTANCE_AUTO_ROUTE_KM_MAX,
       Math.max(
@@ -792,19 +934,82 @@ export function buildPickPopup(deps: {
   });
 
   distanceNumber.addEventListener("change", () => {
-    if (!distanceDirectionChecked) return;
+    if (!ensureDistanceDirectionForInput()) return;
     tryArmDirectionPickIfChecked();
   });
 
+  /*
+   * 지시38 — 거리 화면 head/뒤로가기/제목행 제거(이중 캐럿으로 대체).
+   * autoRouteSection이 거리 컨테이너(계약 append 유지). 작은 출발 요약만 남긴다.
+   */
+
+  /*
+   * 작은 출발 요약. 실제 currentProfile과 동기화하고, 클릭 지점 주소를
+   * 출발 주소로 오표시하지 않는다(출발 설정 여부·수단만).
+   */
+  const routeDistanceSummary = document.createElement("p");
+  routeDistanceSummary.className = "map-view__pick-route-distance-summary";
+  routeDistanceSummary.setAttribute("aria-live", "polite");
+  autoRouteSection.append(routeDistanceSummary);
   autoRouteSection.append(distanceRow, autoRouteStatusSlot);
+
+  /*
+   * 지시38 — 중심+펼침 동기화. 관련 hidden/캐럿/요약을 한 곳에서 갱신한다.
+   * 화면 전환·펼침은 값을 초기화하지 않는다(핀·목표거리·수단·토큰·검색/오류 상태 유지).
+   * DOM 순서: dragHandle, routeLocationView, 캐럿 행, autoRouteSection.
+   * location 기본 동반 거리 hidden, distance 기본 동반 위치 hidden. 펼침 시 둘 다 표시,
+   * 공통 header/삭제/주소/수단 중복 없음. 주소/meta는 위치 영역 표시 때만 표시.
+   * 함수 선언이라 호이스팅되고, 첫 호출은 아래 초기 동기화(모든 DOM 정의 뒤)다.
+   */
+  function syncPickCaretUi() {
+    const expanded = routePickAuxExpanded;
+    routePickCaret.setAttribute("aria-expanded", String(expanded));
+    if (routePickView === "location") {
+      routePickCaret.setAttribute(
+        "aria-label",
+        expanded ? "거리 선택 컨트롤 접기" : "거리 선택 컨트롤 펼치기",
+      );
+      routePickCaret.setAttribute("aria-controls", autoRouteSection.id);
+      routePickCaret.innerHTML = expanded ? PICK_CARET_UP_SVG : PICK_CARET_DOWN_SVG;
+    } else {
+      routePickCaret.setAttribute(
+        "aria-label",
+        expanded ? "위치 선택 컨트롤 접기" : "위치 선택 컨트롤 펼치기",
+      );
+      routePickCaret.setAttribute("aria-controls", routeLocationView.id);
+      routePickCaret.innerHTML = expanded ? PICK_CARET_DOWN_SVG : PICK_CARET_UP_SVG;
+    }
+  }
+
+  function syncRoutePickView() {
+    const inDistance = routePickView === "distance";
+    const locationVisible = !inDistance || routePickAuxExpanded;
+    const distanceVisible = inDistance || routePickAuxExpanded;
+    routeLocationView.hidden = !locationVisible;
+    autoRouteSection.hidden = !distanceVisible;
+    addressEl.hidden = !locationVisible;
+    metaEl.hidden = !locationVisible;
+    const available = pins.start && typeof onArmDirectionPick === "function";
+    /* prerequisite 없으면 캐럿 자체를 숨긴다(위치 필수 상태). */
+    routePickCaret.hidden = !available;
+    routeDistanceSummary.textContent = `출발 설정됨 · ${ROUTE_PROFILE_KO[currentProfile]}`;
+    syncPickCaretUi();
+  }
 
   function syncAutoRouteUi() {
     const available = pins.start && typeof onArmDirectionPick === "function";
-    autoRouteSection.hidden = !available;
+    /* 출발 전제 없으면 위치 필수 상태로 복귀 — 펼침도 정리, 상태만 idle 정리. */
     if (!available) {
+      routePickView = "location";
+      routePickAuxExpanded = false;
+      distanceDirectionChecked = false;
+      getDistanceAutoRouteMapBridge()?.setDistanceDirectionMode?.(false);
+      modeCheckbox.checked = false;
       setInlinePhase("idle");
       onClearDistanceAutoRouteCircle?.();
     }
+    /* 사용자 값(핀·목표거리·수단)은 리셋하지 않는다 — 전제 정리와 뷰 동기화만 다룬다. */
+    syncRoutePickView();
   }
   syncAutoRouteUi();
   syncDistanceModeUi();
@@ -833,13 +1038,18 @@ export function buildPickPopup(deps: {
   const dragHandle = document.createElement("div");
   dragHandle.className = "map-view__pick-drag-handle";
   /*
-   * 첫 줄 = 제목(「경로 생성 …」), 둘째 줄 = 주소(2026-09-16 Chief).
-   * 종전에는 긴 주소가 첫 줄이라 오른쪽 끝의 닫기 ✕ 밑으로 파고들었고, 팝업에
-   * 제목 구실을 하는 행이 아예 없었다. 짧은 제목을 위로 올려 둘 다 해결한다.
+   * 재지시35 — 공통 headerRow: tokenSection + 경로 삭제 나란히, 두 모드 공통(dragHandle이라 항상 노출).
+   * 첫 줄 = headerRow(제목+삭제), 둘째 = 주소, 셋째 = 좌표. 닫기 ✕ 자리는 headerRow가 확보.
    */
-  dragHandle.append(tokenSection, addressEl, metaEl);
+  const headerRow = document.createElement("div");
+  headerRow.className = "map-view__pick-header-row";
+  headerRow.append(tokenSection);
+  if (clearRouteBtn) headerRow.append(clearRouteBtn);
+  dragHandle.append(headerRow, addressEl, metaEl);
 
-  wrap.append(dragHandle, pinRow, profileSection, autoRouteSection);
+  /* 지시38 — wrap 순서 dragHandle, routeLocationView(pinRow → profileSection), 캐럿 행, autoRouteSection. */
+  routeLocationView.append(profileSection);
+  wrap.append(dragHandle, routeLocationView, routePickCaret, autoRouteSection);
 
   const token = accessToken.trim();
   if (token.length > 0) {
@@ -892,7 +1102,16 @@ export function buildPickPopup(deps: {
     if (typeof live.targetKm === "number" && live.targetKm > 0) {
       syncDistanceInputs(live.targetKm);
     }
+    /* 지시38 — 하단 bridge 초기 거리재개 뷰 동기화만. 사용자 caret/토큰/phase 갱신 때 리셋 금지. */
+    if (pins.start) {
+      routePickView = "distance";
+    } else {
+      routePickView = "location";
+    }
+    routePickAuxExpanded = false;
     syncDistanceModeUi();
+    syncAutoRouteUi();
+    syncProfileUi();
     tryArmDirectionPickIfChecked();
     onDirectionPickArmed?.();
   });

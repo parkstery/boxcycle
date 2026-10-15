@@ -28,14 +28,17 @@
 .menu-panel {
   position: absolute;
   top: 0;
-  bottom: 0;
   left: 0;
   --menu-panel-width: 15.4rem; /* 기존 22rem 대비 약 30% 축소 */
   width: min(var(--menu-panel-width), 92vw);
+  /* 내용 높이로 끝내기: bottom 고정 제거, 폰 가로 높이 상한만 둔다 */
+  max-height: 100vh;
+  max-height: 100dvh;
   background: #FFFFFF;
   color: #1F2937;
   font-family: var(--rtw-font, inherit);
   border-right: 1px solid #CBD5E1;
+  border-bottom-right-radius: 12px;
   box-shadow: 8px 0 30px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -44,6 +47,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  overflow: hidden;
 }
 
 .menu-panel-root.is-open .menu-panel {
@@ -51,6 +55,7 @@
 }
 
 .menu-panel__head {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -115,8 +120,9 @@
 }
 
 .menu-panel__body {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
+  min-width: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -171,10 +177,16 @@
 }
 
 .menu-panel__body > .ride-panel {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
+  min-width: 0;
   overflow: auto;
   border-right: none;
   max-height: none;
   max-width: none;
+}
+
+/* Trail 블록은 줄어들지 않게 — 내용이 많을 때 직계 ride-panel만 스크롤 */
+.menu-panel__body > .trail-hub {
+  flex-shrink: 0;
 }
