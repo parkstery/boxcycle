@@ -2927,6 +2927,7 @@ export default function App() {
               mapZoom,
               initialCenter: mapBoot.center,
               initialZoom: mapBoot.zoom,
+              bootFlyHold: needsAuthCard || needsGuestEntry,
               followMode,
               enable3D,
               onMapZoom: setMapZoom,

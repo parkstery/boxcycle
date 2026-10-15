@@ -11,6 +11,16 @@ export const MAP_FALLBACK_CENTER: LngLat = [12.4905, 41.8902];
 /** 800×360에서 주변 도로가 읽히는 초기 줌. */
 export const MAP_FALLBACK_ZOOM = 15;
 
+/**
+ * 첫 지도 연출 — 지구의를 잠깐 보여 준 뒤 시작 위치로 확대해 들어간다(2026-10-15 Chief).
+ * 지구의는 시작 위치를 화면 가운데에 두고 시작해 확대가 곧장 내려앉는다.
+ */
+export const BOOT_GLOBE_ZOOM = 0.6;
+/** 지구의를 보여 주는 시간 */
+export const BOOT_GLOBE_PAUSE_MS = 600;
+/** 지구의 → 시작 위치 확대 시간 */
+export const BOOT_GLOBE_FLY_MS = 3500;
+
 export type MapBootCenterSource = "localFirst" | "fallback";
 
 export type MapBootCenter = {

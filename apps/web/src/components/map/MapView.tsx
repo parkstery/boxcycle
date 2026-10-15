@@ -152,7 +152,13 @@ import {
   RIDE_CAMERA_DISTANCE_MAX_M,
   resolveRideCameraPitchClose,
 } from "../../lib/map/mapGlobeView";
-import { MAP_FALLBACK_CENTER, MAP_FALLBACK_ZOOM } from "../../lib/map/mapBootCenter";
+import {
+  BOOT_GLOBE_FLY_MS,
+  BOOT_GLOBE_PAUSE_MS,
+  BOOT_GLOBE_ZOOM,
+  MAP_FALLBACK_CENTER,
+  MAP_FALLBACK_ZOOM,
+} from "../../lib/map/mapBootCenter";
 import { type LiveRiderMotion } from "./mapViewTypes";
 import {
   tickRideCameraFollow,
@@ -400,6 +406,8 @@ export type MapViewProps = {
   initialCenter?: LngLat | null;
   /** 최초 줌. 생략 시 MAP_FALLBACK_ZOOM(15). */
   initialZoom?: number | null;
+  /** true 인 동안 첫 지도 연출의 확대를 미루고 지구의에 머문다(인트로·로그인 카드가 지도를 가릴 때). */
+  bootFlyHold?: boolean;
   /** Trail: 같은 Trail 에서 코스 주행 중인 다른 사용자 (빨간 dot + 노선) */
   trailSpectatorDots?: TrailSpectatorDot[] | null;
   trailSpectatorRoutes?: LineStringGeometry[] | null;
@@ -552,6 +560,7 @@ export function MapView({
   resumeAnchor = null,
   initialCenter = null,
   initialZoom = null,
+  bootFlyHold = false,
   trailSpectatorDots = null,
   trailSpectatorRoutes = null,
   globalPresenceDots = null,
@@ -668,6 +677,8 @@ export function MapView({
   const liveRiderMotionRef = useRef(liveRiderMotion);
   const followModeRef = useRef(followMode);
   const mapZoomRef = useRef(mapZoom);
+  /** 첫 지도 연출의 확대 목표. 확대를 시작했거나 취소되면 null. */
+  const bootFlyTargetRef = useRef<{ center: [number, number]; zoom: number } | null>(null);
   /** 주행 카메라 거리(m) — 개발용 거리 슬라이더 최신값, rAF 루프에서 참조 */
   const rideCameraDistanceMRef = useRef(rideCameraDistanceM);
   const lockBaseHeadingRef = useRef(lockBaseHeading);
@@ -1086,11 +1097,14 @@ export function MapView({
       typeof initialZoom === "number" && Number.isFinite(initialZoom)
         ? initialZoom
         : DEFAULT_ZOOM;
+    // 첫 지도 연출: 지구의에서 시작해 load 뒤 시작 위치로 확대한다. 동작 줄이기 설정이면 곧장 시작 위치.
+    const bootGlobe = !getReducedMotionSnapshot() && bootZoom > BOOT_GLOBE_ZOOM;
+    bootFlyTargetRef.current = bootGlobe ? { center: bootCenter, zoom: bootZoom } : null;
     const map = new mapboxgl.Map({
       container: el,
       style: initialMapStyleRef.current,
       center: bootCenter,
-      zoom: bootZoom,
+      zoom: bootGlobe ? BOOT_GLOBE_ZOOM : bootZoom,
       minZoom: MAP_GLOBE_MIN_ZOOM,
       // 주행 밀착 카메라(거리 1~3m)가 zoom 22+를 요구 — 기본 maxZoom 22 클램프 해제
       maxZoom: 24,
@@ -1156,6 +1170,11 @@ export function MapView({
         syncActivityWorldLayersOnMapRef.current(map);
       });
     };
+
+    // 확대 전에 사용자가 지구의를 직접 움직이면 연출을 취소한다.
+    map.on("movestart", (e: { originalEvent?: unknown }) => {
+      if (e.originalEvent) bootFlyTargetRef.current = null;
+    });
 
     map.on("load", () => {
       setMapLoaded(true);
@@ -2734,6 +2753,27 @@ export function MapView({
       }
     };
   }, [mapZoom, mapLoaded]);
+
+  /** 첫 지도 연출 — 지구의를 잠깐 보여 준 뒤 시작 위치로 확대. 인트로·로그인 카드가 가리는 동안은 기다린다. */
+  useEffect(() => {
+    const map = mapRef.current;
+    const target = bootFlyTargetRef.current;
+    if (!map || !mapLoaded || !target || bootFlyHold) return;
+    const timer = window.setTimeout(() => {
+      const live = mapRef.current;
+      if (!live || bootFlyTargetRef.current !== target) return;
+      bootFlyTargetRef.current = null;
+      // 그사이 다른 카메라 이동(재개·지역 이동 등)이 있었으면 그쪽을 존중한다.
+      if (live.isMoving() || Math.abs(live.getZoom() - BOOT_GLOBE_ZOOM) > 0.05) return;
+      live.flyTo({
+        center: target.center,
+        zoom: target.zoom,
+        duration: BOOT_GLOBE_FLY_MS,
+        essential: true,
+      });
+    }, BOOT_GLOBE_PAUSE_MS);
+    return () => window.clearTimeout(timer);
+  }, [mapLoaded, bootFlyHold]);
 
   const appliedMapZoomStepIdRef = useRef(0);
 
