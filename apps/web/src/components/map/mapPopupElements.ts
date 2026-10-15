@@ -340,13 +340,13 @@ export function buildPickPopup(deps: {
    */
   let routePickAuxExpanded = false;
 
-  /* 지시38 — 이중 캐럿 SVG(루시드 chevrons-up/down 유사). 보이는 텍스트 0, stroke 파랑. */
+  /* 지시62 — 얇은 단일 캐럿 SVG. 12×6px가 20×14 svg 중앙. 보이는 텍스트 0, stroke 파랑. */
   const PICK_CARET_SVG_ATTRS =
-    `class="map-view__pick-caret-ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="20" height="20"`;
+    `class="map-view__pick-caret-ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14" fill="none" stroke="#2563EB" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="20" height="14"`;
   const PICK_CARET_DOWN_SVG =
-    `<svg ${PICK_CARET_SVG_ATTRS}><path d="m7 6 5 5 5-5"/><path d="m7 13 5 5 5-5"/></svg>`;
+    `<svg ${PICK_CARET_SVG_ATTRS}><path d="M4 4 10 10 16 4"/></svg>`;
   const PICK_CARET_UP_SVG =
-    `<svg ${PICK_CARET_SVG_ATTRS}><path d="m17 11-5-5-5 5"/><path d="m17 18-5-5-5 5"/></svg>`;
+    `<svg ${PICK_CARET_SVG_ATTRS}><path d="M4 10 10 4 16 10"/></svg>`;
 
   function getRouteStart(): LngLat | null {
     const armed = getDistanceAutoRouteMapBridge()?.getArmedStart?.() ?? null;
@@ -581,7 +581,7 @@ export function buildPickPopup(deps: {
 
   /*
    * 지시38 — 한 개의 캐럿 disclosure 행. 두 패널 사이 비drag 영역에 둔다.
-   * 보이는 텍스트 0, 전체폭 44px 투명 영역, Enter/Space 네이티브 button.
+   * 보이는 텍스트 0, 현재 행 16.8px 투명 영역, Enter/Space 네이티브 button.
    */
   const routePickCaret = document.createElement("button");
   routePickCaret.type = "button";
