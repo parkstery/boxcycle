@@ -1,3 +1,5 @@
+2026-10-15 최신 완료: 검색51 Chief승인·ca56e9b 커밋 확인. 주행 설정52 [검수52](04-review-52.md) APPROVED/AWAITING_CHIEF. 체중/강도22px·폰패널432×173→351×136·면적36% 축소. 문구/font/체크박스/공유CSS 보존,20상태/콜백PASS. CSS1파일6e89efa커밋. 5013주행설정확인,실기기미검증.
+
 2026-10-15 최신 완료: 펄스50 Chief승인·81dcce6 커밋 확인. 지명 검색51 [검수51](04-review-51.md) APPROVED/AWAITING_CHIEF. 폰 일반 결과2→7개/긴 결과1→4개·목록만 스크롤,32상태/선택·닫기 PASS. CSS두파일 ca56e9b 커밋. 앱face-redesign2 worktree / 문서main2 기본저장소 구분 유지. 5013사용확인,실API/실기기미검증. 다음HUD·안내팝업.
 
 2026-10-15 최신 완료: 시작 버튼 펄스50 [검수50](04-review-50.md) APPROVED/AWAITING_CHIEF. 색 고정·확대/광륜 900ms×2, 네 viewport 최고점 겹침 없음·기존 트리거/접기/reduced-motion/selector15 PASS. CSS 한 파일 81dcce6 커밋. 지도 설정49 확인 대기 유지, 디자인 후속 지명 검색. 실기기 미검증.
