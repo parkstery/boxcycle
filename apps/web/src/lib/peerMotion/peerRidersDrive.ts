@@ -52,13 +52,25 @@ export function stepPeerDriveAndBuildGeoJson(
      * 건너뛰는 것은 **그릴 때만 필요한 것**뿐이다.
      */
     buildFeatures?: boolean;
+    /**
+     * 동행 방향 현의 반경(m). 제품은 `RIDER_TURN_HALF_SPAN_M`.
+     * 0 이면 구간 방위 — peerMotion 이 rider 모듈을 직접 보지 않게 호출부가 넘긴다.
+     */
+    headingHalfSpanM?: number;
   },
 ): {
   type: "FeatureCollection";
   features: Array<{
     type: "Feature";
     geometry: { type: "Point"; coordinates: LngLat };
-    properties: { id: string; label: string; phaseRev: number; hdg: number };
+    properties: {
+      id: string;
+      label: string;
+      phaseRev: number;
+      hdg: number;
+      speedMps: number;
+      displayDistM: number;
+    };
   }>;
 } {
   const registry = getPeerMotionRegistry();
@@ -67,10 +79,17 @@ export function stepPeerDriveAndBuildGeoJson(
   // 길이는 **DEV 로그가 실제로 찍을 때만** 잰다 — 인자로 넘기면 운영에서도 매 프레임 O(n) 이 돈다.
   peerDriveDevLog(registry, nowMs, () => (routeGeometry ? lineStringLengthMeters(routeGeometry) : 0));
   if (opts?.buildFeatures === false) return { type: "FeatureCollection", features: [] };
-  const features = registry.buildRenderFeatures(routeGeometry).map((f) => ({
+  const features = registry.buildRenderFeatures(routeGeometry, opts?.headingHalfSpanM ?? 0).map((f) => ({
     type: "Feature" as const,
     geometry: { type: "Point" as const, coordinates: f.lngLat },
-    properties: { id: f.id, label: f.label, phaseRev: f.phaseRev, hdg: f.hdg },
+    properties: {
+      id: f.id,
+      label: f.label,
+      phaseRev: f.phaseRev,
+      hdg: f.hdg,
+      speedMps: f.speedMps,
+      displayDistM: f.displayDistM,
+    },
   }));
   return { type: "FeatureCollection", features };
 }

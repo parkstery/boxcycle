@@ -3,6 +3,7 @@ import {
   getPointOnRouteByDistance,
   headingAtRouteDistanceMeters,
   lineStringLengthMeters,
+  smoothedHeadingAtRouteDistanceMeters,
 } from "../geo/geo";
 import {
   PEER_DRIVE_SIM_GRACE_MS,
@@ -37,6 +38,10 @@ export type PeerMotionRenderFeature = {
   label: string;
   lngLat: LngLat;
   hdg: number;
+  /** 표시 속도(m/s). 기울기용. 없으면 호출부가 경로 거리 변화로 대신 잰다. */
+  speedMps: number;
+  /** 클램프된 경로 거리(m). `speedMps` 가 비었을 때의 폴백. */
+  displayDistM: number;
   /**
    * 크랭크 위상 0~1(연속). 페달을 밟지 않으면 0.
    *
@@ -290,7 +295,10 @@ export class PeerMotionRegistry {
     }
   }
 
-  buildRenderFeatures(routeGeometry: LineStringGeometry | null): PeerMotionRenderFeature[] {
+  buildRenderFeatures(
+    routeGeometry: LineStringGeometry | null,
+    headingHalfSpanM = 0,
+  ): PeerMotionRenderFeature[] {
     if (!routeGeometry) {
       publishPeerStepDiag([]);
       return [];
@@ -308,7 +316,13 @@ export class PeerMotionRegistry {
       const clamped = distM !== beforeClamp && routeLenM > 0;
       const lngLat = getPointOnRouteByDistance(routeGeometry, distM);
       if (!lngLat) continue;
-      const h = headingAtRouteDistanceMeters(routeGeometry, distM) ?? 0;
+      // 현 길이 0 이면 구간 방위(종전). 제품은 MapView 가 RIDER_TURN_HALF_SPAN_M 을 넘긴다.
+      // peerMotion 은 rider 를 import 하지 못한다(dep-layers).
+      const span = Number.isFinite(headingHalfSpanM) && headingHalfSpanM > 0 ? headingHalfSpanM : 0;
+      const h =
+        (span > 0
+          ? smoothedHeadingAtRouteDistanceMeters(routeGeometry, distM, span, routeLenM)
+          : headingAtRouteDistanceMeters(routeGeometry, distM)) ?? 0;
       const moving = entity.phase === "live" && entity.speedMps > 0.02;
       if (h !== 0 || moving) entity.hdg = h;
 
@@ -363,6 +377,8 @@ export class PeerMotionRegistry {
         label: mapLabel,
         lngLat,
         hdg: Number.isFinite(entity.hdg) ? entity.hdg : 0,
+        speedMps: Number.isFinite(entity.speedMps) ? Math.max(0, entity.speedMps) : 0,
+        displayDistM: distM,
         phaseRev: Number.isFinite(phaseRevRaw) ? phaseRevRaw : 0,
       });
       n += 1;

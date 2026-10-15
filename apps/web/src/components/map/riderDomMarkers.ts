@@ -266,7 +266,15 @@ const PEER_DOM_STRIP_INDICES = pickPeerSourceFrameIndices(RIDER_PEDAL_FRAME_COUN
 export type PeerDomGJFeature = {
   type: "Feature";
   geometry: { type: "Point"; coordinates: LngLat };
-  properties: { id: string; label: string; phaseRev: number; hdg: number };
+  properties: {
+    id: string;
+    label: string;
+    phaseRev: number;
+    hdg: number;
+    /** 레지스트리 속도. 없으면 MapView 가 `displayDistM` 변화로 기울기 속도를 잰다. */
+    speedMps?: number;
+    displayDistM?: number;
+  };
 };
 
 /**

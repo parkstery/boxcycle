@@ -362,6 +362,7 @@
       "rider/riderGlbPedalPose.ts",
       "rider/riderPedalSpriteMeta.ts",
       "rider/riderPedalStripKeyframes.ts",
+      "rider/riderTurn.ts",
       "riderPrototype/"
     ],
     "camera": [
