@@ -3,11 +3,11 @@
 | 항목 | 내용 |
 |---|---|
 | 목적 | 현재 제품 라이더(s5, 후보 `20260921-041426-cd81398e`)를 경량 모델 **rider14**(같은 형상, 드로우콜 213→14, 삼각형 53,514→29,604, 전송 1.75 MB→245 KB)로 교체한다 |
-| 상태 | **DONE_ON_BRANCH** — G0~G6 통과, 브랜치 커밋 완료. main2 병합·운영 배포(G7) Chief 지시 대기 (Chief 결정 2026-10-15: 권장안 전부 수용, 신발 갑피 변경 승인) |
+| 상태 | **DONE** — G0~G7 통과, main2 병합·푸시·운영 배포 2026-10-16 (Chief 결정 2026-10-15: 권장안 전부 수용, 신발 갑피 변경 승인) |
 | 계획 | [01-plan](01-plan.md) |
 | rider14 원본·보고서 | `C:\Users\kdrea\OneDrive\Documents\img\helmet_fix\revision\20260919-natural_joint_skin\20261015_01-s6-poly-drawcall-reduction\reports\결과보고서.md` |
 | Supervisor | **Claude** (계획·감리) · Developer: **Cursor Agent CLI** (2026-10-15 23:30 Chief 지시로 Muse Spark 에서 교대 — Muse 무료 모델 사용량 한도) · 작업 위치 worktree `C:\20.HDev\boxcycle-rider14` (브랜치 `rider14-replace`) |
-| 다음 | Chief: main2 병합·푸시·운영 배포 지시 |
+| 다음 | 후속 묶음: 상체·자전거 흔들림(P9) → LOD1·LOD2(P8) |
 
 ## 기록
 

@@ -4,7 +4,7 @@
 |------|------|
 | 문서 유형 | **작업 계획(ops)** — 라이더 3D 모델 교체의 범위·결정·단계·검증 게이트 |
 | 최초 작성 | 2026-10-15 |
-| **상태** | `완료(브랜치)` — G0~G6 통과, G7 배포 대기. 결정 — Chief 2026-10-15 결정: D1 meshopt · D2 1단계 LOD0만 · D3 별도 묶음 · D4 수용(신발 갑피 포함 명시 승인) · D5 표기안대로 |
+| **상태** | `완료` — G0~G7 통과, 2026-10-16 운영 배포. 결정 — Chief 2026-10-15 결정: D1 meshopt · D2 1단계 LOD0만 · D3 별도 묶음 · D4 수용(신발 갑피 포함 명시 승인) · D5 표기안대로 |
 | 역할 | Supervisor(계획·감리) = **Claude** · Developer = OpenCode Muse Spark → **Cursor Agent CLI**(2026-10-15 교대) · Chief = 결정·육안 승인 |
 | 작업 위치 | worktree `C:\20.HDev\boxcycle-rider14`, 브랜치 `rider14-replace`(기준 `main2` `734af62`) |
 | 독자 | `chief · AI` |
