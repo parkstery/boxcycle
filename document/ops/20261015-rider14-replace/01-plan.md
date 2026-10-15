@@ -4,7 +4,9 @@
 |------|------|
 | 문서 유형 | **작업 계획(ops)** — 라이더 3D 모델 교체의 범위·결정·단계·검증 게이트 |
 | 최초 작성 | 2026-10-15 |
-| **상태** | `초안` — Chief 결정 D1~D5 대기 |
+| **상태** | `완료(브랜치)` — G0~G6 통과, G7 배포 대기. 결정 — Chief 2026-10-15 결정: D1 meshopt · D2 1단계 LOD0만 · D3 별도 묶음 · D4 수용(신발 갑피 포함 명시 승인) · D5 표기안대로 |
+| 역할 | Supervisor(계획·감리) = **Claude** · Developer = OpenCode Muse Spark → **Cursor Agent CLI**(2026-10-15 교대) · Chief = 결정·육안 승인 |
+| 작업 위치 | worktree `C:\20.HDev\boxcycle-rider14`, 브랜치 `rider14-replace`(기준 `main2` `734af62`) |
 | 독자 | `chief · AI` |
 | 연결 문서 | [직전 교체 완료 보고(s5 탑재)](../../archive/260922-RTW-라이더-신구모델-교체-완료보고.md) · [형상보존 교체계획](../../archive/260920-RTW-라이더-형상보존-교체계획.md) · [ops 창구 규칙](../README.md) · [개발 워크플로](../../reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md) |
 
@@ -93,6 +95,8 @@ rider14 작업 폴더: `C:\Users\kdrea\OneDrive\Documents\img\helmet_fix\revisio
 ---
 
 ## 4. Chief 결정 사항
+
+> **2026-10-15 Chief 결정: 아래 권장안 전부 수용. D4 신발 갑피 변경 명시 승인. Supervisor 를 Claude 로 지정, Developer 는 OpenCode Muse Spark.**
 
 | # | 결정 | 선택지 | 권장 | 이유 |
 |---|---|---|---|---|
@@ -208,14 +212,14 @@ rider 작업 보고서 §5-10 의 확정값을 그대로 옮긴다. 셰이더(`o
 
 ## 6. 단계별 작업과 게이트
 
-역할은 [ops 창구 규칙](../README.md)을 따른다. **Supervisor(Codex)** 가 지시서를 쓰고 검수, **Developer(Muse Spark / Cursor)** 가 구현, **Chief** 가 D1~D5 와 육안 승인.
+역할은 [ops 창구 규칙](../README.md)을 따르되 이 묶음은 **Supervisor = Claude**(지시서·독립 검수), **Developer = OpenCode Muse Spark**(구현), **Chief** 가 육안 승인(Chief 지정 2026-10-15).
 
 | 단계 | 내용 | 담당 | 완료 조건 (게이트) |
 |---|---|---|---|
 | **P0 기준선** | 현행 s5 로 고정 카메라 캡처(5 m·60 m·200 m·전체), 본인+페이서 2명 상태에서 `window.__rtwRiderCost.read()`, `renderer.info.render.calls`·`triangles`, 라이더 자산 전송 바이트, 첫 라이더 표시 시각을 기록. 현 자산 해시 재확인 | Developer | **G0**: 수치표 + 캡처가 `03-result-p0.md` 에 있음. s5 자산 해시 3종 일치 |
 | **P1 스테이징** | `apps/web/scripts/rider-preserve/stage-rider14.mjs`(신규): rider 작업 폴더 `out\rider_s6_LOD0_meshopt.glb`·`source\guide-weights.json` 을 해시 검증 후 복사, `candidate.json` 작성. 재export·후처리 금지 | Developer | **G1**: 복사본 SHA = §1 표의 값. `guide-weights.json` SHA = `136895c8…`. 원본 폴더 SHA(`aeefb4d2…`) 불변 |
 | **P2 코드** | 모델 프로필(§5.3), meshopt 디코더·Float32 변환(§5.4), 컬러 키트(§5.5). `config.ts` 는 **아직 s5 를 가리킨 채로** 두고 프로필 전환은 시험에서만 | Developer | **G2**: `npx tsc --noEmit`, `npm run lint`, 기존 시험 전부 통과. 신규 단위 시험(§7) 통과 |
-| **P3 동등성** | 저장소 안에 앱 리그 동등성 시험 추가: 같은 `PreservedRiderRig` 코드로 s5 와 rider14 를 8위상(0,45,…,315°)에서 자세 → 그룹별 비교 | Developer → Supervisor 독립 재실행 | **G3**: 다리 6메시 정점별 최대차 ≤ 1e-5 m(meshopt 양자화 포함), 강체 그룹 최근접 최대차 ≤ 1e-5 m, 가이드 미매칭 0, 페달 기준점 차 ≤ 1e-5 m, 좌우 위상 180° |
+| **P3 동등성** | 저장소 안에 앱 리그 동등성 시험 추가: 같은 `PreservedRiderRig` 코드로 s5 와 rider14 를 8위상(0,45,…,315°)에서 자세 → 그룹별 비교 | Developer → Supervisor 독립 재실행 | **G3**(2026-10-15 정정): 다리 6메시 같은 인덱스 정점 최대차 ≤ 1e-5 m, 법선 최대 ≤ 1.5°·중앙값 ≤ 0.5°(meshopt Int8 법선 양자화), 강체 7그룹 **변환 행렬** 원소 최대차 ≤ 1e-5(rider14 강체는 단순화 형상이라 정점 비교 불가), 가이드 미매칭 0, 페달 기준점 차 ≤ 1e-5 m, 좌우 위상 180° |
 | **P4 앱 검증** | `preserved-app-validator` 를 rider14 로 열어 실제 지도·지형 위에서 확인. 컬러 키트 3종 픽셀 샘플(헬멧·저지 칸 색 = 키트 sRGB ±1), 조명 조절판(`?lightlab=1`)에서 s5 와 나란히 비교 | Developer 캡처 → **Chief 육안** | **G4**: Chief 승인(D4 포함). 캡처 경로가 결과 파일에 있음 |
 | **P5 성능** | P0 와 같은 조건으로 재측정 | Developer → Supervisor | **G5**: 드로우콜/라이더 ≤ 14, `msPerRider` P0 대비 감소, 자산 전송 ≤ 0.5 MB, 첫 표시 시각 악화 없음. **스마트폰 실기기 1회 이상**(최종 사용 기기 원칙) |
 | **P6 승격** | `config.ts` 를 rider14 로 전환, `candidate.json` status 갱신, 계약 테스트 갱신, 빌드 | Developer → Supervisor | **G6**: `npm run build` 통과, 번들 증가분 기록, `node --test apps/web/scripts/rider-preserve/preserved-layer-contract.test.mjs` 통과, 로컬 앱에서 본인·페이서 2명 주행 1회 |

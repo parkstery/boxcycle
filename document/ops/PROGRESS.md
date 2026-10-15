@@ -1,3 +1,5 @@
+2026-10-16 rider14: 제품 라이더 s5→rider14 교체 브랜치 rider14-replace 커밋·G0~G6 APPROVED/병합·배포 Chief지시대기. 1명당 213→14콜, 자산 1.98MB→476KB, ms/rider −35~−85%, 폰 미리보기 Chief확인. 보고 document/archive/261016-RTW-라이더-rider14-교체-완료보고.md.
+
 2026-10-15 진행79: 콜로세움 약간 오른쪽 프레이밍, 카메라 서쪽으로 0.0017도 이동/zoom15 유지. 지시 document/ops/20261013-face-redesign2/02-task-79.md.
 
 2026-10-15 최신78: 실제 첫 지도 로마콜로세움주변zoom15·명시지역우선 6a1d5e6 커밋·APPROVED/Chief화면확인대기. 검수 document/ops/20261013-face-redesign2/04-review-78.md. 공개정사영상도로구도·실Mapbox엔진5경우/marker0/geo0/자유이동·회귀6·타입/lint/selector18/build PASS. 서울실데이터유지,실타일/실기기미검증,push/배포없음.
