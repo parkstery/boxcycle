@@ -69,3 +69,9 @@
   justify-content: center;
   gap: 0.45rem;
 }
+
+.guest-entry { padding: max(0.65rem,env(safe-area-inset-top,0px)) max(0.65rem,env(safe-area-inset-right,0px)) max(0.65rem,env(safe-area-inset-bottom,0px)) max(0.65rem,env(safe-area-inset-left,0px)); }
+.guest-entry__card { padding:0.65rem 0.85rem 0.75rem; max-height:100%; overflow:auto; }
+.guest-entry__title { margin:0.5rem 0 0.35rem; }
+.guest-entry__lead { margin:0 0 0.6rem; }
+.guest-entry__notice { margin:0 0 0.5rem; }
