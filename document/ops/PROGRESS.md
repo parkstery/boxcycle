@@ -1,3 +1,5 @@
+2026-10-16 떨림 지수(J1) 운영 배포: main2 a726c3c, hosting index-C4A8_p9l.js. ?perflab=1 패널에 라이더별 역행·속도 변동. 실측: PC(GTX1660)·폰(Adreno730) 모두 약 30fps, 라이더 3ms(10%) → 병목은 라이더 밖. J2(시계 통일)는 fix/rider-jitter worktree 에 미커밋으로 중단(메모리).
+
 2026-10-16 perflab 운영 배포: main2 99c176f, hosting index-CVgjzurr.js. 주소에 ?perflab=1 → 프레임·라이더 비용·기기 정보 패널. 다음: 동행 떨림 조사(perflab 에 동행 추적 추가).
 
 2026-10-16 LOD2·코너 회전 운영 배포: hosting index-Dld5MVGd.js(미리보기 combo 와 동일), rider-lod2.glb 200. 미리보기 채널 4개 삭제. 로컬 ~/bin/npm(Kimi 깨진 shim) 제거 — Git Bash npm 정상.
