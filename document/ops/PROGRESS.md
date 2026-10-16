@@ -1,3 +1,5 @@
+2026-10-16 글자 모드 names 운영 배포: main2 ffa68af, hosting index-BciKl-xW.js (Muse Spark). 이름 전부 유지·장식 기호만 숨김, perflab 패널 왼쪽 이동. Chief 직접 확인 대기.
+
 2026-10-16 폰 실측(Chief): 가까운 줌 31→56.5 fps, 프레임 p50·p95 16.7 ms(60 Hz 한도). 틱 다이어트+렌더 배율 2+글자 숨김 합산 효과. PC 46→72 fps. GPU 스키닝 보류 유지.
 
 2026-10-16 주행 가까운 카메라 글자 숨김 운영 배포: main2 1f3e683, hosting index-C6Ocm1hM.js (Muse Spark). Supervisor 실제 GPU 실측 PC 줌22 57→72 fps(지도 JS 7.8→4.9 ms). 오늘 아침 46 fps 대비 약 1.55배. 폰 확인 대기.
