@@ -18,3 +18,17 @@
 | `?labels=1`-b | 표시 | 57.8 | 21.2 ms | 7.86 ms | 3.06 | 2.66 | 6.33 |
 
 자동 숨김이 동작(`rideLabelsHidden: true`)하고 지도 JS −2.9 ms, fps 57 → 72. 오늘 아침 같은 조건(46 fps, 프레임 21.7 ms, 틱 7.4 ms)과 비교하면 틱 다이어트와 합쳐 약 1.55배. 측정 스크립트: `apps/web/scripts/rider-preserve/.out/mapcut/run-mapcut.mjs`(git 제외).
+
+## Chief 폰 실측 (운영 index-C6Ocm1hM.js, Adreno 730·DPR 3, 카메라 2·줌 21.8)
+
+| | 오후(31 fps 측정) | 지금 |
+|---|---:|---:|
+| fps | 31.4 | **56.5** |
+| 프레임 p50 / p95 | 33.3 / 50 ms | **16.7 / 16.8 ms**(60 Hz 한도) |
+| >33 ms | 83% | 4.4% |
+| 틱 | 8.7 | 3.4 ms |
+| 지도 JS(라이더 제외) | 10.7 | 5.2 ms |
+| 대기(GPU·합성) | 10.3 | 6.9 ms |
+| 라이더 | 2.1 | 2.2 ms |
+
+`mapPixelRatio` 2·`rideLabelsHidden` true 확인. 폰이 화면 주사율 한도에 도달 → 이 기기에서 추가 성능 작업의 체감 이득은 작다. GPU 스키닝은 계속 보류(동행 인원 증가·저사양 대응 시 재검토).
