@@ -264,8 +264,45 @@ function JitterLines({ rows }: { rows: readonly RiderJitterStats[] }) {
   );
 }
 
+type PanelPos = { x: number; y: number };
+
+const PERF_LAB_POS_KEY = "rtw.perflab.pos";
+
+function readSavedPos(): PanelPos | null {
+  try {
+    const raw = window.localStorage.getItem(PERF_LAB_POS_KEY);
+    if (!raw) return null;
+    const v = JSON.parse(raw) as Partial<PanelPos>;
+    return typeof v.x === "number" && typeof v.y === "number" ? { x: v.x, y: v.y } : null;
+  } catch {
+    return null;
+  }
+}
+
+function savePos(pos: PanelPos | null): void {
+  try {
+    if (pos) window.localStorage.setItem(PERF_LAB_POS_KEY, JSON.stringify(pos));
+    else window.localStorage.removeItem(PERF_LAB_POS_KEY);
+  } catch {
+    /* 저장 못 해도 이번 화면에서는 옮긴 자리에 있다 */
+  }
+}
+
+/** 패널이 화면 밖으로 나가지 않게 왼쪽 위 좌표를 가둔다. */
+function clampPos(pos: PanelPos, el: HTMLElement | null): PanelPos {
+  const w = el?.offsetWidth ?? 120;
+  const h = el?.offsetHeight ?? 48;
+  return {
+    x: Math.min(Math.max(0, pos.x), Math.max(0, window.innerWidth - w)),
+    y: Math.min(Math.max(0, pos.y), Math.max(0, window.innerHeight - h)),
+  };
+}
+
 function PerfLabPanelInner({ mapZoom }: { mapZoom: number }) {
   const [collapsed, setCollapsed] = useState(true);
+  const [pos, setPos] = useState<PanelPos | null>(() => readSavedPos());
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const dragRef = useRef<{ id: number; dx: number; dy: number } | null>(null);
   const [tick, setTick] = useState(0);
   const [copied, setCopied] = useState(false);
   const [fallback, setFallback] = useState<string | null>(null);
@@ -318,18 +355,65 @@ function PerfLabPanelInner({ mapZoom }: { mapZoom: number }) {
     }
   };
 
+  // 손잡이(⠿)를 끌어 패널을 옮긴다. 자리는 이 기기에 기억, 손잡이 두 번 탭이면 기본 자리.
+  const onHandleDown = (e: PointerEvent<HTMLElement>) => {
+    e.stopPropagation();
+    const rect = panelRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    dragRef.current = { id: e.pointerId, dx: e.clientX - rect.left, dy: e.clientY - rect.top };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const onHandleMove = (e: PointerEvent<HTMLElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.id !== e.pointerId) return;
+    setPos(clampPos({ x: e.clientX - drag.dx, y: e.clientY - drag.dy }, panelRef.current));
+  };
+  const onHandleUp = (e: PointerEvent<HTMLElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.id !== e.pointerId) return;
+    dragRef.current = null;
+    setPos((p) => {
+      savePos(p);
+      return p;
+    });
+  };
+  const resetPos = () => {
+    setPos(null);
+    savePos(null);
+  };
+
   return (
     <div
-      className={`perf-lab${collapsed ? " perf-lab--collapsed" : ""}`}
+      ref={panelRef}
+      className={`perf-lab${collapsed ? " perf-lab--collapsed" : ""}${pos ? " perf-lab--moved" : ""}`}
+      style={pos ? { left: pos.x, top: pos.y } : undefined}
       data-perflab-panel=""
       onPointerDown={blockMapPropagation}
       onTouchStart={blockMapPropagation}
     >
       <div className="perf-lab__head">
+        <span
+          className="perf-lab__handle"
+          role="button"
+          tabIndex={-1}
+          aria-label="성능 패널 옮기기"
+          title="끌어서 옮기기 · 두 번 탭하면 기본 자리"
+          onPointerDown={onHandleDown}
+          onPointerMove={onHandleMove}
+          onPointerUp={onHandleUp}
+          onPointerCancel={onHandleUp}
+          onDoubleClick={resetPos}
+        >
+          ⠿
+        </span>
         <span className="perf-lab__title">성능</span>
         <span className="perf-lab__muted">스킨 {readEffectiveRiderSkinMode()}</span>
-        <span className="perf-lab__muted">mapcut {mapcut.length > 0 ? mapcut.join(",") : "없음"}</span>
-        <span className="perf-lab__muted">글자 모드 {rideLabelMode} (D {rideLabelDist}) · {rideLabelsHidden ? "숨김" : "표시"}</span>
+        {!collapsed ? (
+          <>
+            <span className="perf-lab__muted">mapcut {mapcut.length > 0 ? mapcut.join(",") : "없음"}</span>
+            <span className="perf-lab__muted">글자 모드 {rideLabelMode} (D {rideLabelDist}) · {rideLabelsHidden ? "숨김" : "표시"}</span>
+          </>
+        ) : null}
         <button
           type="button"
           className="perf-lab__collapse"

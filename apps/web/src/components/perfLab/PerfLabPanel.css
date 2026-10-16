@@ -3,11 +3,14 @@
  * M4: 상단 가운데에 두면 카메라 1·2 버튼을 가려 클릭을 가로챈다 —
  * 화면 왼쪽 가장자리 세로 중앙에 둔다(우상단 카메라·맵 버튼 줄과 겹치지 않음).
  * 기본은 접힘. 네 귀퉁이(계기·QC·경로·주행 버튼)는 쓰지 않는다.
+ * 2026-10-17: 왼쪽 가운데는 폰에서 RTW 경로 목록(입문·퍼블릭·내 경로)을 가린다 →
+ * 기본 자리를 오른쪽 가장자리 세로 중앙으로, 손잡이(⠿)로 끌어 옮길 수 있게 한다.
  */
 .perf-lab {
   position: fixed;
   top: 50%;
-  left: var(--hud-pad-left, 0.5rem);
+  /* 오른쪽 끝 세로줄(지도 확대·축소·나침반 버튼) 왼쪽에 둔다 */
+  right: calc(var(--hud-pad-right, 0.5rem) + 2.6rem);
   transform: translateY(-50%);
   z-index: 60;
   width: max-content;
@@ -28,6 +31,31 @@
   font-size: 0.74rem;
   line-height: 1.25;
   pointer-events: auto;
+}
+
+.perf-lab--moved {
+  right: auto;
+  transform: none;
+}
+
+.perf-lab__handle {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  margin-left: -0.3rem;
+  font-size: 1.1rem;
+  color: var(--rtw-text-secondary, #7c8a99);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.perf-lab__handle:active {
+  cursor: grabbing;
 }
 
 .perf-lab--collapsed {
