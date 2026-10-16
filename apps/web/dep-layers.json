@@ -338,6 +338,7 @@
       "ride/rideSessionPreview.ts",
       "ride/rideSessionsStorage.ts",
       "ride/rideSpeech.ts",
+      "ride/frameDistProject.ts",
       "ride/rideSpeedRamp.ts",
       "ride/rideStatsAggregate.ts",
       "ride/rideStatusCopy.ts",
