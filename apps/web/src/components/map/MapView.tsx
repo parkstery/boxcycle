@@ -57,6 +57,7 @@ import {
   noteSyncActivityMs,
   isFollowCameraJump,
 } from "../../lib/debug/mapTickProbe";
+import { noteRiderJitterFrame } from "../../lib/debug/riderJitterProbe";
 import { installCameraRenderPhaseHook } from "../../lib/camera/cameraRenderPhase";
 import { applyTickTestToMap, getTickTestOffList, installTickTestMapHooks, subscribeTickTest } from "../../lib/debug/tickTestSwitches";
 import type { LngLat, LineStringGeometry } from "../../lib/geo/geo";
@@ -2461,6 +2462,7 @@ export function MapView({
                 phaseRev: p.phaseRev,
                 hdg,
                 speedMps: pacerSpeedMps(selfSpeedMps, p),
+                pathDistM: along,
               },
             });
           }
@@ -2600,9 +2602,11 @@ export function MapView({
         didTurn = true;
         const specs: RiderGlbModelSpec[] = [];
         const live = liveLngLatRef.current;
+        let selfPathDistM: number | null = null;
         if (live) {
           const routeNow = routeGeometryRef.current;
           const distM = sampleLiveDistMRef.current?.() ?? null;
+          selfPathDistM = distM;
           const chordHeading =
             routeNow && distM != null
               ? smoothedHeadingAtRouteDistanceMeters(routeNow, distM, RIDER_TURN_HALF_SPAN_M)
@@ -2673,6 +2677,7 @@ export function MapView({
           });
           turnLiveIds.push(f.properties.id);
         }
+        noteRiderJitterFrame(now, selfPathDistM, fc.features, pacerFeatures);
         if (RIDER_PROTOTYPE_MODE === "glb") syncRiderGlbModels(map, specs);
         else syncRiderPreservedModels(map, specs);
         if (import.meta.env.DEV && getTickTestOffList().length > 0) applyTickTestToMap(map);

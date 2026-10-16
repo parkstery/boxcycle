@@ -274,6 +274,8 @@ export type PeerDomGJFeature = {
     /** 레지스트리 속도. 없으면 MapView 가 `displayDistM` 변화로 기울기 속도를 잰다. */
     speedMps?: number;
     displayDistM?: number;
+    /** 페이서 경로 거리. 배치는 좌표를 쓰고, perflab 떨림 계측만 읽는다. */
+    pathDistM?: number;
   };
 };
 

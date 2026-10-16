@@ -14,6 +14,7 @@ import {
   type RiderLod2State,
   type RiderPerfScene,
 } from "../../lib/debug/riderRenderCostProbe";
+import { readRiderJitterStats, type RiderJitterKind, type RiderJitterStats } from "../../lib/debug/riderJitterProbe";
 import { shouldAnimateRiderPose, shouldUseRiderLod2 } from "../../lib/rider/riderDetailLod";
 import "./PerfLabPanel.css";
 
@@ -55,6 +56,26 @@ function fmtZoom(n: number | null): string {
   return n.toFixed(1);
 }
 
+function fmtM(n: number | null): string {
+  if (n == null || !Number.isFinite(n)) return "—";
+  return n.toFixed(3);
+}
+
+function fmtCv(n: number | null): string {
+  if (n == null || !Number.isFinite(n)) return "—";
+  return n.toFixed(2);
+}
+
+function kindLabel(kind: RiderJitterKind): string {
+  if (kind === "self") return "본인";
+  if (kind === "pacer") return "페이서";
+  return "동행";
+}
+
+function shortId(id: string): string {
+  return id.length > 8 ? id.slice(0, 8) : id;
+}
+
 function lod2Label(state: RiderLod2State | null, zoom: number | null): string {
   if (state == null) return "—";
   if (state === "loading") return "로딩";
@@ -94,7 +115,35 @@ function buildReport(mapZoom: number, scene: RiderPerfScene) {
       lod2Used,
     },
     device: readPerfLabDeviceInfo(),
+    jitter: readRiderJitterStats(),
   };
+}
+
+function JitterLines({ rows }: { rows: readonly RiderJitterStats[] }) {
+  if (rows.length === 0) {
+    return (
+      <p className="perf-lab__line perf-lab__muted">
+        떨림 <span className="rtw-numeric">—</span>
+      </p>
+    );
+  }
+  return (
+    <>
+      {rows.map((row) => (
+        <p key={`${row.kind}:${row.id}`} className="perf-lab__line">
+          <span className="perf-lab__muted">{kindLabel(row.kind)}</span> {shortId(row.id)}
+          {" 역 "}
+          <span className="rtw-numeric">{row.reverseFrames}</span>
+          {" · "}
+          <span className="rtw-numeric">{fmtM(row.maxReverseM)}</span>
+          {" · cv "}
+          <span className="rtw-numeric">{fmtCv(row.speedCv)}</span>
+          {" · ±"}
+          <span className="rtw-numeric">{fmtM(row.relStdM)}</span>
+        </p>
+      ))}
+    </>
+  );
 }
 
 function PerfLabPanelInner({ mapZoom }: { mapZoom: number }) {
@@ -124,6 +173,7 @@ function PerfLabPanelInner({ mapZoom }: { mapZoom: number }) {
   const scene = readRiderPerfScene();
   const frame = readPerfLabFrameStats();
   const rider = readRiderCostWindow();
+  const jitter = readRiderJitterStats();
   const device = readPerfLabDeviceInfo();
   const zoom = scene.zoom ?? mapZoom;
   void tick;
@@ -189,6 +239,7 @@ function PerfLabPanelInner({ mapZoom }: { mapZoom: number }) {
             {" · "}줌 <span className="rtw-numeric">{fmtZoom(zoom)}</span>
             {" · "}LOD2 <span className="rtw-numeric">{lod2Label(scene.lod2State, zoom)}</span>
           </p>
+          <JitterLines rows={jitter} />
           <p className="perf-lab__device">{deviceLine(device)}</p>
           <button type="button" className="perf-lab__copy" onClick={() => void copyReport()}>
             {copied ? "복사됨" : "결과 복사"}
