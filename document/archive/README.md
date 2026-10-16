@@ -27,6 +27,7 @@
 
 | 묶음 | 종료 결과 | 이동을 막는 참조 |
 |---|---|---|
+| [20261016-map-cut](../ops/20261016-map-cut/04-review-m4.md) | CLOSED 2026-10-17 · [보고](reports/261017-RTW-주행-지도-글자-names-모드.md) | `apps/web/scripts/map/ride-label-names-headless.mjs` 주석 |
 | [20261005-peer-spacing-jitter](../ops/20261005-peer-spacing-jitter/README.md) | Chief PASS · main2/main 통합 · [최종 보고](261005-RTW-동행-위치-동기화와-반복진동-해결-결과보고.md) | `apps/web/scripts/peer-sync/*harness*`·mutation 도구의 입력/출력 경로 |
 | [20260929-public-trail-traffic](../ops/20260929-public-trail-traffic/README.md) | CLOSED · [최종 보고](261001-Public-Trail-동행-트래픽-개선-결과보고.md) · 운영 billed 관측은 별도 미실시 | `apps/web/scripts/e2e/run-public-trail-traffic-meter.mjs`가 실행 결과를 이 묶음에 복사 |
 | [cyclefit-relay](../ops/cyclefit-relay/HANDOFF.md) | 09-28 Chief 종료 · [라이더 교체 완료](260922-RTW-라이더-신구모델-교체-완료보고.md) | `.claude/commands/지시확인.md`·`.cursor/commands/order.md` 등 |
@@ -44,6 +45,17 @@
 
 | 묶음 | 무엇 | 이동일 |
 |---|---|---|
+| [20261015-rider14-replace](ops/20261015-rider14-replace/README.md) | 라이더 s5 → rider14 교체 · [보고](reports/261016-RTW-라이더-rider14-교체-완료보고.md) | 2026-10-17 |
+| [20261016-rider14-sway](ops/20261016-rider14-sway/README.md) | 페달링 흔들림 · [보고](reports/261017-RTW-페달링-흔들림-속도비례.md) | 2026-10-17 |
+| [20261016-rider14-lod2](ops/20261016-rider14-lod2/README.md) | 원거리 LOD2 · [보고](reports/261017-RTW-원거리-LOD2.md) | 2026-10-17 |
+| [20261016-rider-smooth-turn](ops/20261016-rider-smooth-turn/README.md) | 코너 회전·기울기 · [보고](reports/261017-RTW-코너-회전-기울기-드리프트.md) | 2026-10-17 |
+| [20261016-rider-curve-sway](ops/20261016-rider-curve-sway/04-review-c1.md) | 코너 드리프트·속도 비례 흔들림 · [보고](reports/261017-RTW-코너-회전-기울기-드리프트.md) | 2026-10-17 |
+| [20261016-rider-jitter](ops/20261016-rider-jitter/04-review-j2.md) | 앞뒤 떨림 · [보고](reports/261017-RTW-라이더-앞뒤-떨림-해결.md) | 2026-10-17 |
+| [20261016-rider-perf](ops/20261016-rider-perf/01-plan.md) | perflab F1 · [보고](reports/261017-RTW-성능-측정-방법-perflab.md) | 2026-10-17 |
+| [20261016-frame-breakdown](ops/20261016-frame-breakdown/04-review-f2.md) | 프레임 분해 · [보고](reports/261017-RTW-성능-측정-방법-perflab.md) | 2026-10-17 |
+| [20261016-ride-tick-diet](ops/20261016-ride-tick-diet/04-review-f3.md) | 주행 틱 다이어트 · [보고](reports/261017-RTW-주행-틱-다이어트.md) | 2026-10-17 |
+| [20261016-mobile-pixel-ratio](ops/20261016-mobile-pixel-ratio/04-review-p1.md) | 폰 렌더 배율 상한 · [보고](reports/261017-RTW-폰-렌더-해상도-상한.md) | 2026-10-17 |
+| [20261016-rider-gpu-skinning](ops/20261016-rider-gpu-skinning/04-review-g1.md) | GPU 스키닝 · [보고](reports/261017-RTW-GPU-스키닝.md) | 2026-10-17 |
 | [20260929-ai-development-system](ops/20260929-ai-development-system/README.md) | Codex ↔ Cursor CLI 프로토콜 검수 PASS · [완료 보고](260929-RTW-AI-개발체계-구축-완료보고.md) | 2026-10-05 |
 | [ride-relay](ops/ride-relay/) | 이어 달리기·도로망 성취 0~3단계(4·5 폐기) | 2026-09-28 |
 | [sensor-relay](ops/sensor-relay/) | BLE 케이던스 직결·HUD 센서 칩 | 2026-09-28 |

@@ -5,7 +5,7 @@
 | 문서 유형 | **방법 기록**(문제 해결 보고 묶음의 공용 도구) |
 | 작성 | 2026-10-17 · Supervisor (Claude) |
 | 도입 커밋 | F1 `99c176f`(프레임·라이더 비용) · J1 `58f4fdb`(떨림 줄) · F2 `38fc81f`(프레임 분해) · M1 `079ace0`(`?mapcut=`) · M4 `ffa68af`(패널 왼쪽 이동) |
-| 작업 묶음 | [ops/20261016-rider-perf](../../ops/20261016-rider-perf/) · [ops/20261016-frame-breakdown](../../ops/20261016-frame-breakdown/04-review-f2.md) · [ops/20261016-map-cut](../../ops/20261016-map-cut/) |
+| 작업 묶음 | [ops/20261016-rider-perf](../ops/20261016-rider-perf/) · [ops/20261016-frame-breakdown](../ops/20261016-frame-breakdown/04-review-f2.md) · [ops/20261016-map-cut](../../ops/20261016-map-cut/) |
 
 ## 왜 필요했나
 

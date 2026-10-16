@@ -8,7 +8,7 @@
 | 역할 | Supervisor(계획·감리) = **Claude** · Developer = OpenCode Muse Spark → **Cursor Agent CLI**(2026-10-15 교대) · Chief = 결정·육안 승인 |
 | 작업 위치 | worktree `C:\20.HDev\boxcycle-rider14`, 브랜치 `rider14-replace`(기준 `main2` `734af62`) |
 | 독자 | `chief · AI` |
-| 연결 문서 | [직전 교체 완료 보고(s5 탑재)](../../archive/260922-RTW-라이더-신구모델-교체-완료보고.md) · [형상보존 교체계획](../../archive/260920-RTW-라이더-형상보존-교체계획.md) · [ops 창구 규칙](../README.md) · [개발 워크플로](../../reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md) |
+| 연결 문서 | [직전 교체 완료 보고(s5 탑재)](../../260922-RTW-라이더-신구모델-교체-완료보고.md) · [형상보존 교체계획](../../260920-RTW-라이더-형상보존-교체계획.md) · [ops 창구 규칙](../../../ops/README.md) · [개발 워크플로](../../../reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md) |
 
 ---
 
@@ -212,7 +212,7 @@ rider 작업 보고서 §5-10 의 확정값을 그대로 옮긴다. 셰이더(`o
 
 ## 6. 단계별 작업과 게이트
 
-역할은 [ops 창구 규칙](../README.md)을 따르되 이 묶음은 **Supervisor = Claude**(지시서·독립 검수), **Developer = OpenCode Muse Spark**(구현), **Chief** 가 육안 승인(Chief 지정 2026-10-15).
+역할은 [ops 창구 규칙](../../../ops/README.md)을 따르되 이 묶음은 **Supervisor = Claude**(지시서·독립 검수), **Developer = OpenCode Muse Spark**(구현), **Chief** 가 육안 승인(Chief 지정 2026-10-15).
 
 | 단계 | 내용 | 담당 | 완료 조건 (게이트) |
 |---|---|---|---|
