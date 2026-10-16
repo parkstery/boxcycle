@@ -1,0 +1,554 @@
+{
+  "port": 5070,
+  "at": "2026-10-16T11:41:56.400Z",
+  "panelFirstLine": [
+    "성능",
+    "mapcut 없음",
+    "글자 모드 near (D 2) · 표시"
+  ],
+  "results": [
+    {
+      "styleName": "outdoors",
+      "zoom": 19.5,
+      "modes": {
+        "both": {
+          "targetCount": 34,
+          "hiddenCount": 20,
+          "hidden": [
+            "tunnel-oneway-arrow-blue",
+            "tunnel-oneway-arrow-white",
+            "level-crossing",
+            "road-oneway-arrow-blue",
+            "road-oneway-arrow-white",
+            "crosswalks",
+            "gate-label",
+            "bridge-oneway-arrow-blue",
+            "bridge-oneway-arrow-white",
+            "contour-label",
+            "building-entrance",
+            "building-number-label",
+            "block-number-label",
+            "road-intersection",
+            "road-number-shield",
+            "road-exit-shield",
+            "path-pedestrian-label",
+            "golf-hole-label",
+            "ferry-aerialway-label",
+            "transit-label"
+          ],
+          "filteredCount": 14,
+          "filtered": [
+            "road-label",
+            "waterway-label",
+            "natural-line-label",
+            "natural-point-label",
+            "water-line-label",
+            "water-point-label",
+            "poi-label",
+            "airport-label",
+            "settlement-subdivision-label",
+            "settlement-minor-label",
+            "settlement-major-label",
+            "state-label",
+            "country-label",
+            "continent-label"
+          ],
+          "skipped": [],
+          "withDistanceCount": 14,
+          "withTighten": [
+            "road-label"
+          ],
+          "applyError": null,
+          "restoreMismatches": []
+        },
+        "near": {
+          "targetCount": 34,
+          "hiddenCount": 0,
+          "hidden": [],
+          "filteredCount": 34,
+          "filtered": [
+            "tunnel-oneway-arrow-blue",
+            "tunnel-oneway-arrow-white",
+            "level-crossing",
+            "road-oneway-arrow-blue",
+            "road-oneway-arrow-white",
+            "crosswalks",
+            "gate-label",
+            "bridge-oneway-arrow-blue",
+            "bridge-oneway-arrow-white",
+            "contour-label",
+            "building-entrance",
+            "building-number-label",
+            "block-number-label",
+            "road-label",
+            "road-intersection",
+            "road-number-shield",
+            "road-exit-shield",
+            "path-pedestrian-label",
+            "golf-hole-label",
+            "ferry-aerialway-label",
+            "waterway-label",
+            "natural-line-label",
+            "natural-point-label",
+            "water-line-label",
+            "water-point-label",
+            "poi-label",
+            "transit-label",
+            "airport-label",
+            "settlement-subdivision-label",
+            "settlement-minor-label",
+            "settlement-major-label",
+            "state-label",
+            "country-label",
+            "continent-label"
+          ],
+          "skipped": [],
+          "withDistanceCount": 34,
+          "withTighten": [
+            "road-label"
+          ],
+          "applyError": null,
+          "restoreMismatches": []
+        },
+        "major": {
+          "targetCount": 34,
+          "hiddenCount": 20,
+          "hidden": [
+            "tunnel-oneway-arrow-blue",
+            "tunnel-oneway-arrow-white",
+            "level-crossing",
+            "road-oneway-arrow-blue",
+            "road-oneway-arrow-white",
+            "crosswalks",
+            "gate-label",
+            "bridge-oneway-arrow-blue",
+            "bridge-oneway-arrow-white",
+            "contour-label",
+            "building-entrance",
+            "building-number-label",
+            "block-number-label",
+            "road-intersection",
+            "road-number-shield",
+            "road-exit-shield",
+            "path-pedestrian-label",
+            "golf-hole-label",
+            "ferry-aerialway-label",
+            "transit-label"
+          ],
+          "filteredCount": 2,
+          "filtered": [
+            "road-label",
+            "poi-label"
+          ],
+          "skipped": [],
+          "withDistanceCount": 0,
+          "withTighten": [
+            "road-label"
+          ],
+          "applyError": null,
+          "restoreMismatches": []
+        },
+        "all": {
+          "targetCount": 0,
+          "hiddenCount": 0,
+          "hidden": [],
+          "filteredCount": 0,
+          "filtered": [],
+          "skipped": [],
+          "withDistanceCount": 0,
+          "withTighten": [
+            "road-label"
+          ],
+          "applyError": null,
+          "restoreMismatches": []
+        },
+        "none": {
+          "targetCount": 34,
+          "hiddenCount": 34,
+          "hidden": [
+            "tunnel-oneway-arrow-blue",
+            "tunnel-oneway-arrow-white",
+            "level-crossing",
+            "road-oneway-arrow-blue",
+            "road-oneway-arrow-white",
+            "crosswalks",
+            "gate-label",
+            "bridge-oneway-arrow-blue",
+            "bridge-oneway-arrow-white",
+            "contour-label",
+            "building-entrance",
+            "building-number-label",
+            "block-number-label",
+            "road-label",
+            "road-intersection",
+            "road-number-shield",
+            "road-exit-shield",
+            "path-pedestrian-label",
+            "golf-hole-label",
+            "ferry-aerialway-label",
+            "waterway-label",
+            "natural-line-label",
+            "natural-point-label",
+            "water-line-label",
+            "water-point-label",
+            "poi-label",
+            "transit-label",
+            "airport-label",
+            "settlement-subdivision-label",
+            "settlement-minor-label",
+            "settlement-major-label",
+            "state-label",
+            "country-label",
+            "continent-label"
+          ],
+          "filteredCount": 0,
+          "filtered": [],
+          "skipped": [],
+          "withDistanceCount": 0,
+          "withTighten": [
+            "road-label"
+          ],
+          "applyError": null,
+          "restoreMismatches": []
+        }
+      }
+    },
+    {
+      "styleName": "satellite",
+      "zoom": 19.5,
+      "modes": {
+        "both": {
+          "targetCount": 20,
+          "hiddenCount": 6,
+          "hidden": [
+            "road-intersection",
+            "road-number-shield",
+            "road-exit-shield",
+            "path-pedestrian-label",
+            "ferry-aerialway-label",
+            "transit-label"
+          ],
+          "filteredCount": 14,
+          "filtered": [
+            "road-label",
+            "waterway-label",
+            "natural-line-label",
+            "natural-point-label",
+            "water-line-label",
+            "water-point-label",
+            "poi-label",
+            "airport-label",
+            "settlement-subdivision-label",
+            "settlement-minor-label",
+            "settlement-major-label",
+            "state-label",
+            "country-label",
+            "continent-label"
+          ],
+          "skipped": [],
+          "withDistanceCount": 14,
+          "withTighten": [
+            "road-label"
+          ],
+          "applyError": null,
+          "restoreMismatches": []
+        },
+        "near": {
+          "targetCount": 20,
+          "hiddenCount": 0,
+          "hidden": [],
+          "filteredCount": 20,
+          "filtered": [
+            "road-label",
+            "road-intersection",
+            "road-number-shield",
+            "road-exit-shield",
+            "path-pedestrian-label",
+            "ferry-aerialway-label",
+            "waterway-label",
+            "natural-line-label",
+            "natural-point-label",
+            "water-line-label",
+            "water-point-label",
+            "poi-label",
+            "transit-label",
+            "airport-label",
+            "settlement-subdivision-label",
+            "settlement-minor-label",
+            "settlement-major-label",
+            "state-label",
+            "country-label",
+            "continent-label"
+          ],
+          "skipped": [],
+          "withDistanceCount": 20,
+          "withTighten": [
+            "road-label"
+          ],
+          "applyError": null,
+          "restoreMismatches": []
+        },
+        "major": {
+          "targetCount": 20,
+          "hiddenCount": 6,
+          "hidden": [
+            "road-intersection",
+            "road-number-shield",
+            "road-exit-shield",
+            "path-pedestrian-label",
+            "ferry-aerialway-label",
+            "transit-label"
+          ],
+          "filteredCount": 2,
+          "filtered": [
+            "road-label",
+            "poi-label"
+          ],
+          "skipped": [],
+          "withDistanceCount": 0,
+          "withTighten": [
+            "road-label"
+          ],
+          "applyError": null,
+          "restoreMismatches": []
+        },
+        "all": {
+          "targetCount": 0,
+          "hiddenCount": 0,
+          "hidden": [],
+          "filteredCount": 0,
+          "filtered": [],
+          "skipped": [],
+          "withDistanceCount": 0,
+          "withTighten": [
+            "road-label"
+          ],
+          "applyError": null,
+          "restoreMismatches": []
+        },
+        "none": {
+          "targetCount": 20,
+          "hiddenCount": 20,
+          "hidden": [
+            "road-label",
+            "road-intersection",
+            "road-number-shield",
+            "road-exit-shield",
+            "path-pedestrian-label",
+            "ferry-aerialway-label",
+            "waterway-label",
+            "natural-line-label",
+            "natural-point-label",
+            "water-line-label",
+            "water-point-label",
+            "poi-label",
+            "transit-label",
+            "airport-label",
+            "settlement-subdivision-label",
+            "settlement-minor-label",
+            "settlement-major-label",
+            "state-label",
+            "country-label",
+            "continent-label"
+          ],
+          "filteredCount": 0,
+          "filtered": [],
+          "skipped": [],
+          "withDistanceCount": 0,
+          "withTighten": [
+            "road-label"
+          ],
+          "applyError": null,
+          "restoreMismatches": []
+        }
+      }
+    },
+    {
+      "styleName": "night",
+      "zoom": 19.5,
+      "modes": {
+        "both": {
+          "targetCount": 29,
+          "hiddenCount": 16,
+          "hidden": [
+            "turning-feature-outline-navigation",
+            "level-crossing-navigation",
+            "turning-feature-navigation",
+            "traffic-level-crossing-navigation",
+            "traffic-tunnel-oneway-arrow-blue-navigation",
+            "traffic-tunnel-oneway-arrow-white-navigation",
+            "traffic-road-oneway-arrow-blue-navigation",
+            "traffic-road-oneway-arrow-white-navigation",
+            "traffic-bridge-oneway-arrow-blue-navigation",
+            "traffic-bridge-oneway-arrow-white-navigation",
+            "incident-endpoints-navigation",
+            "incident-startpoints-navigation",
+            "road-intersection",
+            "road-number-shield-navigation",
+            "road-exit-shield-navigation",
+            "ferry-aerialway-label"
+          ],
+          "filteredCount": 13,
+          "filtered": [
+            "road-label-navigation",
+            "waterway-label",
+            "natural-line-label",
+            "natural-point-label",
+            "water-line-label",
+            "water-point-label",
+            "poi-label",
+            "airport-label",
+            "settlement-subdivision-label",
+            "settlement-minor-label",
+            "settlement-major-label",
+            "state-label",
+            "country-label"
+          ],
+          "skipped": [],
+          "withDistanceCount": 13,
+          "withTighten": [
+            "road-label-navigation"
+          ],
+          "applyError": null,
+          "restoreMismatches": []
+        },
+        "near": {
+          "targetCount": 29,
+          "hiddenCount": 0,
+          "hidden": [],
+          "filteredCount": 29,
+          "filtered": [
+            "turning-feature-outline-navigation",
+            "level-crossing-navigation",
+            "turning-feature-navigation",
+            "traffic-level-crossing-navigation",
+            "traffic-tunnel-oneway-arrow-blue-navigation",
+            "traffic-tunnel-oneway-arrow-white-navigation",
+            "traffic-road-oneway-arrow-blue-navigation",
+            "traffic-road-oneway-arrow-white-navigation",
+            "traffic-bridge-oneway-arrow-blue-navigation",
+            "traffic-bridge-oneway-arrow-white-navigation",
+            "incident-endpoints-navigation",
+            "incident-startpoints-navigation",
+            "road-intersection",
+            "road-label-navigation",
+            "road-number-shield-navigation",
+            "road-exit-shield-navigation",
+            "ferry-aerialway-label",
+            "waterway-label",
+            "natural-line-label",
+            "natural-point-label",
+            "water-line-label",
+            "water-point-label",
+            "poi-label",
+            "airport-label",
+            "settlement-subdivision-label",
+            "settlement-minor-label",
+            "settlement-major-label",
+            "state-label",
+            "country-label"
+          ],
+          "skipped": [],
+          "withDistanceCount": 29,
+          "withTighten": [
+            "road-label-navigation"
+          ],
+          "applyError": null,
+          "restoreMismatches": []
+        },
+        "major": {
+          "targetCount": 29,
+          "hiddenCount": 16,
+          "hidden": [
+            "turning-feature-outline-navigation",
+            "level-crossing-navigation",
+            "turning-feature-navigation",
+            "traffic-level-crossing-navigation",
+            "traffic-tunnel-oneway-arrow-blue-navigation",
+            "traffic-tunnel-oneway-arrow-white-navigation",
+            "traffic-road-oneway-arrow-blue-navigation",
+            "traffic-road-oneway-arrow-white-navigation",
+            "traffic-bridge-oneway-arrow-blue-navigation",
+            "traffic-bridge-oneway-arrow-white-navigation",
+            "incident-endpoints-navigation",
+            "incident-startpoints-navigation",
+            "road-intersection",
+            "road-number-shield-navigation",
+            "road-exit-shield-navigation",
+            "ferry-aerialway-label"
+          ],
+          "filteredCount": 2,
+          "filtered": [
+            "road-label-navigation",
+            "poi-label"
+          ],
+          "skipped": [],
+          "withDistanceCount": 0,
+          "withTighten": [
+            "road-label-navigation"
+          ],
+          "applyError": null,
+          "restoreMismatches": []
+        },
+        "all": {
+          "targetCount": 0,
+          "hiddenCount": 0,
+          "hidden": [],
+          "filteredCount": 0,
+          "filtered": [],
+          "skipped": [],
+          "withDistanceCount": 0,
+          "withTighten": [
+            "road-label-navigation"
+          ],
+          "applyError": null,
+          "restoreMismatches": []
+        },
+        "none": {
+          "targetCount": 29,
+          "hiddenCount": 29,
+          "hidden": [
+            "turning-feature-outline-navigation",
+            "level-crossing-navigation",
+            "turning-feature-navigation",
+            "traffic-level-crossing-navigation",
+            "traffic-tunnel-oneway-arrow-blue-navigation",
+            "traffic-tunnel-oneway-arrow-white-navigation",
+            "traffic-road-oneway-arrow-blue-navigation",
+            "traffic-road-oneway-arrow-white-navigation",
+            "traffic-bridge-oneway-arrow-blue-navigation",
+            "traffic-bridge-oneway-arrow-white-navigation",
+            "incident-endpoints-navigation",
+            "incident-startpoints-navigation",
+            "road-intersection",
+            "road-label-navigation",
+            "road-number-shield-navigation",
+            "road-exit-shield-navigation",
+            "ferry-aerialway-label",
+            "waterway-label",
+            "natural-line-label",
+            "natural-point-label",
+            "water-line-label",
+            "water-point-label",
+            "poi-label",
+            "airport-label",
+            "settlement-subdivision-label",
+            "settlement-minor-label",
+            "settlement-major-label",
+            "state-label",
+            "country-label"
+          ],
+          "filteredCount": 0,
+          "filtered": [],
+          "skipped": [],
+          "withDistanceCount": 0,
+          "withTighten": [
+            "road-label-navigation"
+          ],
+          "applyError": null,
+          "restoreMismatches": []
+        }
+      }
+    }
+  ]
+}
