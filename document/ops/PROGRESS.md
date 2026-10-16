@@ -1,3 +1,5 @@
+2026-10-16 성능 배포: 주행 틱 다이어트(4109f2c)·렌더 배율 상한 2(da98361), hosting index-DDOX2IOH.js. P1 은 Muse Spark + Supervisor 보정. Chief PC·폰 perflab 재측정 대기. 남은 후보: 주행 중 지도 구성 축소, 동행 모드 측정값 확인, GPU 스키닝(보류).
+
 2026-10-16 코너 드리프트 해결 Chief 확인. 다음: 프레임 시간 분석(perflab 항목별 분해).
 
 2026-10-16 코너 둥근 경로·속도 비례 흔들림 운영 배포: main2 59b17eb, hosting index-ChghrNj0.js. 화면 드리프트 39.9°→2.4°, 꼭짓점 안쪽 1.4 m. Chief 육안 대기.
