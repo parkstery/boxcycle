@@ -269,6 +269,7 @@ import {
   PIN_MARKER_VIEWPORT_ALIGNMENT,
   RIDER_ROUTE_MARKER_OFFSET_PX,
   reprojectGlbNametagMarkers,
+  setMarkerLngLatIfChanged,
   syncGlbLiveNametagMarker,
   syncPeerDomMarkers,
   type PeerDomGJFeature,
@@ -2530,10 +2531,10 @@ export function MapView({
             : sampled;
         liveLngLatRef.current = displayLl;
         if (liveMarkerRef.current && !RIDER_PROTOTYPE_IS_3D) {
-          liveMarkerRef.current.setLngLat(displayLl);
+          setMarkerLngLatIfChanged(liveMarkerRef.current, displayLl);
         }
         if (selfLocationMarkerRef.current) {
-          selfLocationMarkerRef.current.setLngLat(displayLl);
+          setMarkerLngLatIfChanged(selfLocationMarkerRef.current, displayLl);
         }
         syncLiveSelfRiderVisual(
           displayLl,

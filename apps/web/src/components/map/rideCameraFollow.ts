@@ -1,6 +1,8 @@
 import type { LngLat, LineStringGeometry } from "../../lib/geo/geo";
 import {
+  distanceOnRouteByProjectedPoint,
   getDistanceMeters,
+  headingAtRouteDistanceMeters,
   headingOnRouteAtPoint,
   type LineStringGeometry as RouteLineStringGeometry,
 } from "../../lib/geo/geo";
@@ -115,17 +117,17 @@ export function getAverageHeadingAheadFromPoint(
   samples: number,
 ): number | null {
   if (!geometry || geometry.coordinates.length < 2) return null;
-  const currentDistance = getDistanceOnRouteByProjectedPoint(geometry.coordinates, point);
+  const currentDistance = distanceOnRouteByProjectedPoint(geometry, point);
   if (currentDistance == null) return headingOnRouteAtPoint(geometry, point);
   if (windowMeters <= 0 || samples <= 0) {
-    return getHeadingByRouteDistance(geometry.coordinates, currentDistance);
+    return headingAtRouteDistanceMeters(geometry, currentDistance);
   }
 
   let sumX = 0;
   let sumY = 0;
   for (let i = 1; i <= samples; i += 1) {
-    const ahead = getHeadingByRouteDistance(
-      geometry.coordinates,
+    const ahead = headingAtRouteDistanceMeters(
+      geometry,
       currentDistance + (windowMeters * i) / samples,
     );
     if (ahead == null) continue;
@@ -137,53 +139,6 @@ export function getAverageHeadingAheadFromPoint(
   let deg = (Math.atan2(sumY, sumX) * 180) / Math.PI;
   if (deg < 0) deg += 360;
   return deg;
-}
-
-function getHeadingByRouteDistance(coords: LngLat[], routeDistanceMeters: number): number | null {
-  if (coords.length < 2) return null;
-  let idx = 0;
-  let remain = Math.max(0, routeDistanceMeters);
-  while (idx < coords.length - 1) {
-    const seg = getDistanceMeters(coords[idx], coords[idx + 1]);
-    if (seg <= 0) {
-      idx += 1;
-      continue;
-    }
-    if (remain <= seg) return getBearing(coords[idx], coords[idx + 1]);
-    remain -= seg;
-    idx += 1;
-  }
-  return getBearing(coords[coords.length - 2], coords[coords.length - 1]);
-}
-
-function getDistanceOnRouteByProjectedPoint(coords: LngLat[], point: LngLat): number | null {
-  if (coords.length < 2) return null;
-  let cumulative = 0;
-  let bestDistance = Number.POSITIVE_INFINITY;
-  let bestRouteDistance = 0;
-
-  for (let i = 0; i < coords.length - 1; i += 1) {
-    const a = coords[i];
-    const b = coords[i + 1];
-    const segLen = getDistanceMeters(a, b);
-    if (segLen <= 0) continue;
-
-    const abx = b[0] - a[0];
-    const aby = b[1] - a[1];
-    const apx = point[0] - a[0];
-    const apy = point[1] - a[1];
-    const denom = abx * abx + aby * aby;
-    const rawT = denom > 0 ? (apx * abx + apy * aby) / denom : 0;
-    const t = Math.max(0, Math.min(1, rawT));
-    const projected: LngLat = [a[0] + abx * t, a[1] + aby * t];
-    const d = getDistanceMeters(projected, point);
-    if (d < bestDistance) {
-      bestDistance = d;
-      bestRouteDistance = cumulative + segLen * t;
-    }
-    cumulative += segLen;
-  }
-  return bestRouteDistance;
 }
 
 export function resetCameraSmoothing(

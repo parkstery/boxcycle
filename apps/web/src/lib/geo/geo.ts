@@ -109,6 +109,115 @@ function mercatorMetersToLngLat(x: number, y: number): LngLat {
 }
 
 /**
+ * 경로 누적거리. `cum[i]` 는 꼭짓점 i 까지의 미터(haversine 합, `cum[0] === 0`).
+ * 키는 geometry 객체. 좌표 배열을 갈아끼우면 다시 만든다.
+ * 같은 거리 질의 몇 건은 슬롯에 남겨 한 프레임 안의 반복을 다시 훑지 않는다.
+ */
+type RouteMeterIndex = {
+  coords: LngLat[];
+  cum: Float64Array;
+  pointQ: Array<{ d: number; lng: number; lat: number } | null>;
+  pointQi: number;
+  smoothQ: Array<{ d: number; span: number; routeLen: number; lng: number; lat: number } | null>;
+  smoothQi: number;
+};
+
+const ROUTE_QUERY_SLOTS = 4;
+const routeIndexByGeometry = new WeakMap<LineStringGeometry, RouteMeterIndex>();
+
+function emptyQuerySlots<T>(): Array<T | null> {
+  return [null, null, null, null];
+}
+
+function routeMeterIndex(geometry: LineStringGeometry): RouteMeterIndex {
+  const coords = geometry.coordinates as LngLat[];
+  const prev = routeIndexByGeometry.get(geometry);
+  if (prev && prev.coords === coords && prev.cum.length === coords.length) return prev;
+  const cum = new Float64Array(coords.length);
+  for (let i = 1; i < coords.length; i += 1) {
+    cum[i] = cum[i - 1] + getDistanceMeters(coords[i - 1], coords[i]);
+  }
+  const created: RouteMeterIndex = {
+    coords,
+    cum,
+    pointQ: emptyQuerySlots(),
+    pointQi: 0,
+    smoothQ: emptyQuerySlots(),
+    smoothQi: 0,
+  };
+  routeIndexByGeometry.set(geometry, created);
+  return created;
+}
+
+/** `cum[i] >= d` 인 가장 작은 꼭짓점. */
+function lowerBoundCum(cum: Float64Array, d: number): number {
+  let lo = 0;
+  let hi = cum.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (cum[mid] < d) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo;
+}
+
+/** `cum[i] > lo` 인 가장 작은 꼭짓점. */
+function firstCumGreaterThan(cum: Float64Array, lo: number): number {
+  let a = 0;
+  let b = cum.length - 1;
+  while (a < b) {
+    const mid = (a + b) >> 1;
+    if (cum[mid] <= lo) a = mid + 1;
+    else b = mid;
+  }
+  return a;
+}
+
+type SegmentLocate =
+  | { kind: "past" }
+  | { kind: "seg"; start: number; ratio: number };
+
+/**
+ * 선형 스캔과 같은 선분.
+ * 거리가 꼭짓점과 같으면 그 점으로 **끝나는** 선분(비율 1)이다.
+ * 0 이면 첫 양수 선분의 비율 0. 전장을 넘으면 past.
+ */
+function locateRouteSegment(cum: Float64Array, distanceMeters: number): SegmentLocate {
+  const n = cum.length;
+  if (n < 2) return { kind: "past" };
+  if (!Number.isFinite(distanceMeters)) return { kind: "past" };
+  const d = Math.max(0, distanceMeters);
+  const total = cum[n - 1];
+  if (d > total) return { kind: "past" };
+  if (d === 0) {
+    for (let i = 0; i < n - 1; i += 1) {
+      if (cum[i + 1] - cum[i] > 0) return { kind: "seg", start: i, ratio: 0 };
+    }
+    return { kind: "past" };
+  }
+  const end = lowerBoundCum(cum, d);
+  if (end <= 0) return { kind: "seg", start: 0, ratio: 0 };
+  const start = end - 1;
+  const seg = cum[end] - cum[start];
+  if (!(seg > 0)) return { kind: "past" };
+  return { kind: "seg", start, ratio: (d - cum[start]) / seg };
+}
+
+function readCachedPoint(idx: RouteMeterIndex, d: number): LngLat | null {
+  const q = idx.pointQ;
+  for (let i = 0; i < ROUTE_QUERY_SLOTS; i += 1) {
+    const hit = q[i];
+    if (hit && hit.d === d) return [hit.lng, hit.lat];
+  }
+  return null;
+}
+
+function storeCachedPoint(idx: RouteMeterIndex, d: number, point: LngLat): void {
+  idx.pointQ[idx.pointQi] = { d, lng: point[0], lat: point[1] };
+  idx.pointQi = (idx.pointQi + 1) % ROUTE_QUERY_SLOTS;
+}
+
+/**
  * 두 지점을 Mapbox `line` 레이어와 같이 **머캐토 평면에서 직선**으로 잇는 가정 하의 보간.
  * (경도·위도 선형 보간은 같은 세그먼트에서 화면상 선에서 벗어날 수 있음)
  */
@@ -124,40 +233,31 @@ export function getPointOnRouteByDistance(
   geometry: LineStringGeometry,
   distanceMeters: number,
 ): LngLat | null {
-  const coords = geometry.coordinates as LngLat[];
+  const idx = routeMeterIndex(geometry);
+  const coords = idx.coords;
   if (!coords.length) return null;
   if (coords.length === 1) return coords[0];
-
-  let remaining = Math.max(0, distanceMeters);
-  for (let i = 0; i < coords.length - 1; i += 1) {
-    const segmentStart = coords[i];
-    const segmentEnd = coords[i + 1];
-    const segmentDistance = getDistanceMeters(segmentStart, segmentEnd);
-    if (segmentDistance <= 0) continue;
-    if (remaining <= segmentDistance) {
-      const ratio = remaining / segmentDistance;
-      return interpolateLngLatAlongMercatorChord(segmentStart, segmentEnd, ratio);
-    }
-    remaining -= segmentDistance;
+  if (Number.isFinite(distanceMeters)) {
+    const cached = readCachedPoint(idx, distanceMeters);
+    if (cached) return cached;
   }
-  return coords[coords.length - 1];
+  const loc = locateRouteSegment(idx.cum, distanceMeters);
+  const point: LngLat =
+    loc.kind === "seg"
+      ? interpolateLngLatAlongMercatorChord(coords[loc.start], coords[loc.start + 1], loc.ratio)
+      : coords[coords.length - 1];
+  if (Number.isFinite(distanceMeters)) storeCachedPoint(idx, distanceMeters, point);
+  return point;
 }
 
 /** LineString 꼭짓점마다 시작점부터의 누적 거리(m). `cum[0] === 0`. */
 export function buildVertexCumulativeMeters(geometry: LineStringGeometry): number[] {
-  const coords = geometry.coordinates as LngLat[];
-  if (!coords.length) return [];
-  const cum: number[] = [0];
-  for (let i = 1; i < coords.length; i += 1) {
-    const d = getDistanceMeters(coords[i - 1], coords[i]);
-    cum.push(cum[i - 1] + d);
-  }
-  return cum;
+  return Array.from(routeMeterIndex(geometry).cum);
 }
 
 /** 경로 전장(m). */
 export function lineStringLengthMeters(geometry: LineStringGeometry): number {
-  const cum = buildVertexCumulativeMeters(geometry);
+  const cum = routeMeterIndex(geometry).cum;
   return cum.length ? cum[cum.length - 1] : 0;
 }
 
@@ -213,18 +313,18 @@ export function distanceOnRouteByProjectedPoint(
   geometry: LineStringGeometry,
   point: LngLat,
 ): number | null {
-  const coords = geometry.coordinates as LngLat[];
+  const idx = routeMeterIndex(geometry);
+  const coords = idx.coords;
+  const cum = idx.cum;
   if (coords.length < 2) return null;
-  let cumulative = 0;
   let bestDistance = Number.POSITIVE_INFINITY;
   let bestRouteDistance = 0;
 
   for (let i = 0; i < coords.length - 1; i += 1) {
+    const segLen = cum[i + 1] - cum[i];
+    if (segLen <= 0) continue;
     const a = coords[i];
     const b = coords[i + 1];
-    const segLen = getDistanceMeters(a, b);
-    if (segLen <= 0) continue;
-
     const abx = b[0] - a[0];
     const aby = b[1] - a[1];
     const apx = point[0] - a[0];
@@ -236,9 +336,8 @@ export function distanceOnRouteByProjectedPoint(
     const d = getDistanceMeters(projected, point);
     if (d < bestDistance) {
       bestDistance = d;
-      bestRouteDistance = cumulative + segLen * t;
+      bestRouteDistance = cum[i] + segLen * t;
     }
-    cumulative += segLen;
   }
   return bestRouteDistance;
 }
@@ -248,20 +347,11 @@ export function headingAtRouteDistanceMeters(
   geometry: LineStringGeometry,
   distanceMeters: number,
 ): number | null {
-  const coords = geometry.coordinates as LngLat[];
+  const idx = routeMeterIndex(geometry);
+  const coords = idx.coords;
   if (coords.length < 2) return null;
-  let idx = 0;
-  let remain = Math.max(0, distanceMeters);
-  while (idx < coords.length - 1) {
-    const seg = getDistanceMeters(coords[idx], coords[idx + 1]);
-    if (seg <= 0) {
-      idx += 1;
-      continue;
-    }
-    if (remain <= seg) return bearingDegrees(coords[idx], coords[idx + 1]);
-    remain -= seg;
-    idx += 1;
-  }
+  const loc = locateRouteSegment(idx.cum, distanceMeters);
+  if (loc.kind === "seg") return bearingDegrees(coords[loc.start], coords[loc.start + 1]);
   return bearingDegrees(coords[coords.length - 2], coords[coords.length - 1]);
 }
 
@@ -308,24 +398,36 @@ export function smoothedRoutePoint(
   const hi = Math.max(lo, Math.min(total, distanceMeters + span));
   if (hi - lo <= 1e-9) return getPointOnRouteByDistance(geometry, lo);
 
-  let acc = 0;
+  const idx = routeMeterIndex(geometry);
+  const q = idx.smoothQ;
+  for (let s = 0; s < ROUTE_QUERY_SLOTS; s += 1) {
+    const hit = q[s];
+    if (hit && hit.d === distanceMeters && hit.span === halfSpanM && hit.routeLen === routeLenM) {
+      return [hit.lng, hit.lat];
+    }
+  }
+
+  const cum = idx.cum;
+  const indexed = idx.coords;
   let sumX = 0;
   let sumY = 0;
   let sumLen = 0;
-  for (let i = 0; i < coords.length - 1; i += 1) {
-    const a = coords[i];
-    const b = coords[i + 1];
-    const segLen = getDistanceMeters(a, b);
+  const begin = firstCumGreaterThan(cum, lo);
+  const start = cum[begin] <= lo ? indexed.length : Math.max(0, begin - 1);
+  for (let i = start; i < indexed.length - 1; i += 1) {
+    const segLen = cum[i + 1] - cum[i];
     if (segLen <= 0) continue;
-    const segStart = acc;
-    acc += segLen;
-    if (acc <= lo) continue;
+    const segStart = cum[i];
+    const segEnd = cum[i + 1];
+    if (segEnd <= lo) continue;
     if (segStart >= hi) break;
     const overlapLo = Math.max(lo, segStart);
-    const overlapHi = Math.min(hi, acc);
+    const overlapHi = Math.min(hi, segEnd);
     const overlap = overlapHi - overlapLo;
     if (overlap <= 0) continue;
     const tMid = ((overlapLo + overlapHi) / 2 - segStart) / segLen;
+    const a = indexed[i];
+    const b = indexed[i + 1];
     const pa = lngLatToMercatorMeters(a);
     const pb = lngLatToMercatorMeters(b);
     sumX += (pa.x + (pb.x - pa.x) * tMid) * overlap;
@@ -333,7 +435,16 @@ export function smoothedRoutePoint(
     sumLen += overlap;
   }
   if (!(sumLen > 0)) return getPointOnRouteByDistance(geometry, lo);
-  return mercatorMetersToLngLat(sumX / sumLen, sumY / sumLen);
+  const point = mercatorMetersToLngLat(sumX / sumLen, sumY / sumLen);
+  idx.smoothQ[idx.smoothQi] = {
+    d: distanceMeters,
+    span: halfSpanM,
+    routeLen: routeLenM,
+    lng: point[0],
+    lat: point[1],
+  };
+  idx.smoothQi = (idx.smoothQi + 1) % ROUTE_QUERY_SLOTS;
+  return point;
 }
 
 /**

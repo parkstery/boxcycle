@@ -151,7 +151,17 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
   setSpecs(specs: readonly RiderGlbModelSpec[]): void {
     this.specs = specs.slice();
     this.riderRoot.visible = specs.length > 0;
-    if (specs[0] && this.rig) this.rig.setPhase(specs[0].phaseRev ?? 0);
+    /*
+     * 원거리 LOD2 는 리그를 숨기고, render() 도 그 줌에서는 setPhase 를 부르지 않는다.
+     * 여기서까지 매 프레임 IK 를 풀면 화면에 없는 자세에 틱을 쓴다.
+     * 리그가 보이는 줌이거나 LOD2 가 아직 없으면 종전대로 위상을 반영한다.
+     */
+    const animatePose = shouldAnimateRiderPose(this.map?.getZoom() ?? null);
+    const lod2Showing = shouldUseRiderLod2(
+      this.lod2State === "ready" && this.lod2 != null,
+      animatePose,
+    );
+    if (!lod2Showing && specs[0] && this.rig) this.rig.setPhase(specs[0].phaseRev ?? 0);
     this.map?.triggerRepaint();
   }
 
@@ -321,8 +331,45 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
 
 const layerByMap = new WeakMap<MapboxMap, PreservedRiderCustomLayer>();
 const desiredSpecsByMap = new WeakMap<MapboxMap, readonly RiderGlbModelSpec[]>();
+const appliedDesiredByMap = new WeakMap<MapboxMap, readonly RiderGlbModelSpec[]>();
+const rankVerifiedByMap = new WeakMap<MapboxMap, boolean>();
+const styleWatchBound = new WeakSet<MapboxMap>();
+const EMPTY_RIDER_SPECS: readonly RiderGlbModelSpec[] = [];
+
+function bindRiderLayerRankWatch(map: MapboxMap): void {
+  if (styleWatchBound.has(map)) return;
+  styleWatchBound.add(map);
+  const invalidate = () => {
+    rankVerifiedByMap.set(map, false);
+  };
+  map.on("styledata", invalidate);
+  map.on("remove", () => {
+    rankVerifiedByMap.delete(map);
+    styleWatchBound.delete(map);
+  });
+}
+
+function applyDesiredRiderSpecs(map: MapboxMap, layer: PreservedRiderCustomLayer): void {
+  const desired = desiredSpecsByMap.get(map) ?? EMPTY_RIDER_SPECS;
+  if (appliedDesiredByMap.get(map) === desired) return;
+  appliedDesiredByMap.set(map, desired);
+  layer.setSpecs(desired);
+}
 
 export function ensureRiderPreservedLayer(map: MapboxMap): boolean {
+  bindRiderLayerRankWatch(map);
+  const known = layerByMap.get(map);
+  if (known && rankVerifiedByMap.get(map) === true) {
+    try {
+      if (map.getLayer(PRESERVED_RIDER_CUSTOM_LAYER_ID)) {
+        applyDesiredRiderSpecs(map, known);
+        return true;
+      }
+    } catch {
+      /* 스타일이 빠졌으면 아래 전체 경로 */
+    }
+    rankVerifiedByMap.set(map, false);
+  }
   let styleLayers: ReadonlyArray<{ id: string }> | undefined;
   try {
     styleLayers = map.getStyle()?.layers;
@@ -350,7 +397,8 @@ export function ensureRiderPreservedLayer(map: MapboxMap): boolean {
        */
       moveLayerByRank(map, PRESERVED_RIDER_CUSTOM_LAYER_ID);
     }
-    layer?.setSpecs(desiredSpecsByMap.get(map) ?? []);
+    if (layer) applyDesiredRiderSpecs(map, layer);
+    rankVerifiedByMap.set(map, true);
     return true;
   } catch (error) {
     if (import.meta.env.DEV) console.warn("[riderPreserved] layer init failed", error);
@@ -360,14 +408,15 @@ export function ensureRiderPreservedLayer(map: MapboxMap): boolean {
 
 export function syncRiderPreservedModels(map: MapboxMap, specs: readonly RiderGlbModelSpec[]): void {
   desiredSpecsByMap.set(map, specs.slice());
-  if (!ensureRiderPreservedLayer(map)) return;
-  layerByMap.get(map)?.setSpecs(specs);
+  ensureRiderPreservedLayer(map);
 }
 
 export function clearRiderPreservedModels(map: MapboxMap | null): void {
   if (!map) return;
-  desiredSpecsByMap.set(map, []);
-  layerByMap.get(map)?.setSpecs([]);
+  desiredSpecsByMap.set(map, EMPTY_RIDER_SPECS);
+  appliedDesiredByMap.delete(map);
+  const layer = layerByMap.get(map);
+  if (layer) applyDesiredRiderSpecs(map, layer);
 }
 
 export function getRiderPreservedDebugState(map: MapboxMap): {

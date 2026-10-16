@@ -80,8 +80,18 @@ function createGlbRiderNametagRoot(kind: "live" | "peer" | "pacer", label: strin
 function applyGlbNametagLabel(el: HTMLDivElement | null, label: string): void {
   if (!el) return;
   const t = label.trim();
+  if (nametagLabelText.get(el) === t) return;
+  nametagLabelText.set(el, t);
   el.textContent = t;
   el.style.display = t ? "flex" : "none";
+}
+
+function peerNametagElement(marker: mapboxgl.Marker): HTMLDivElement | null {
+  const cached = nametagElByMarker.get(marker);
+  if (cached !== undefined) return cached;
+  const el = marker.getElement().querySelector<HTMLDivElement>(".map-view__rider-nametag");
+  nametagElByMarker.set(marker, el);
+  return el;
 }
 
 /**
@@ -103,6 +113,24 @@ const NAMETAG_SIDE_HYSTERESIS_PX = 4;
 const nametagFlatState = new WeakMap<mapboxgl.Marker, boolean>();
 /** 동행 이름표 마커 → 그 동행의 위치 점 마커 */
 const peerLocationDots = new WeakMap<mapboxgl.Marker, mapboxgl.Marker>();
+const markerLngLat = new WeakMap<mapboxgl.Marker, { lng: number; lat: number }>();
+const nametagLabelText = new WeakMap<HTMLElement, string>();
+const nametagElByMarker = new WeakMap<mapboxgl.Marker, HTMLDivElement | null>();
+const spriteFramePos = new WeakMap<HTMLElement, string>();
+
+/** 경위도가 직전과 같으면 `setLngLat` 를 부르지 않는다. */
+export function setMarkerLngLatIfChanged(marker: mapboxgl.Marker, lngLat: LngLat): void {
+  const lng = lngLat[0];
+  const lat = lngLat[1];
+  const prev = markerLngLat.get(marker);
+  if (prev && prev.lng === lng && prev.lat === lat) return;
+  markerLngLat.set(marker, { lng, lat });
+  marker.setLngLat(lngLat);
+}
+
+function rememberMarkerLngLat(marker: mapboxgl.Marker, lngLat: LngLat): void {
+  markerLngLat.set(marker, { lng: lngLat[0], lat: lngLat[1] });
+}
 
 function applyNametagOffsetForPitch(mk: mapboxgl.Marker, flat: boolean): void {
   if (nametagFlatState.get(mk) === flat) return;
@@ -176,6 +204,7 @@ function attachPeerLocationDot(map: mapboxgl.Map, nametag: mapboxgl.Marker, lngL
   })
     .setLngLat(lngLat)
     .addTo(map);
+  rememberMarkerLngLat(dot, lngLat);
   peerLocationDots.set(nametag, dot);
   const removeNametag = nametag.remove.bind(nametag);
   nametag.remove = () => {
@@ -210,9 +239,10 @@ export function syncGlbLiveNametagMarker(
     })
       .setLngLat(lngLat)
       .addTo(map);
+    rememberMarkerLngLat(mk, lngLat);
     markerRef.current = mk;
   } else {
-    mk.setLngLat(lngLat);
+    setMarkerLngLatIfChanged(mk, lngLat);
     applyGlbNametagLabel(nametagElRef.current, label);
   }
 }
@@ -239,13 +269,14 @@ function syncGlbPeerNametagMarkers(
       })
         .setLngLat(lngLat)
         .addTo(map);
+      rememberMarkerLngLat(mk, lngLat);
       markers.set(id, mk);
       attachPeerLocationDot(map, mk, lngLat);
     } else {
-      mk.setLngLat(lngLat);
-      peerLocationDots.get(mk)?.setLngLat(lngLat);
-      const nametag = mk.getElement().querySelector<HTMLDivElement>(".map-view__rider-nametag");
-      applyGlbNametagLabel(nametag, label);
+      setMarkerLngLatIfChanged(mk, lngLat);
+      const dot = peerLocationDots.get(mk);
+      if (dot) setMarkerLngLatIfChanged(dot, lngLat);
+      applyGlbNametagLabel(peerNametagElement(mk), label);
     }
   }
   for (const id of [...markers.keys()]) {
@@ -296,7 +327,10 @@ function applyPeerDomSpriteFrame(sprite: HTMLDivElement | null, phaseRev: number
   const idx = ((frame % PEER_DOM_PEDAL_FRAME_COUNT) + PEER_DOM_PEDAL_FRAME_COUNT) % PEER_DOM_PEDAL_FRAME_COUNT;
   const stripIndex = PEER_DOM_STRIP_INDICES[idx] ?? 0;
   const cell = RIDER_PEDAL_CELL_PX;
-  sprite.style.backgroundPosition = `-${stripIndex * cell}px 0`;
+  const pos = `-${stripIndex * cell}px 0`;
+  if (spriteFramePos.get(sprite) === pos) return;
+  spriteFramePos.set(sprite, pos);
+  sprite.style.backgroundPosition = pos;
 }
 
 function createPeerRiderMarkerRoot(initialLabel: string, pacer: boolean): HTMLDivElement {
@@ -360,9 +394,10 @@ export function syncPeerDomMarkers(
       })
         .setLngLat(lngLat)
         .addTo(map);
+      rememberMarkerLngLat(mk, lngLat);
       markers.set(id, mk);
     } else {
-      mk.setLngLat(lngLat);
+      setMarkerLngLatIfChanged(mk, lngLat);
     }
     const root = mk.getElement();
     const nametag = root.querySelector<HTMLDivElement>(".map-view__rider-nametag--peer");
