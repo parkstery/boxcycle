@@ -25,6 +25,7 @@ import {
   type TickPhase,
 } from "../../lib/debug/frameBreakdownProbe";
 import { shouldAnimateRiderPose, shouldUseRiderLod2 } from "../../lib/rider/riderDetailLod";
+import { readEffectiveRiderSkinMode } from "../../lib/riderPrototype/riderSkinMode";
 import { getMapCutKeys } from "../../lib/map/mapCut";
 import { readRideLabelDist, readRideLabelMode, readRideLabelsHidden } from "../../lib/map/rideLabels";
 import "./PerfLabPanel.css";
@@ -125,6 +126,7 @@ function buildReport(mapZoom: number, scene: RiderPerfScene) {
     capturedAt: new Date().toISOString(),
     build: readAppBuildId(),
     mapcut: getMapCutKeys(),
+    skinMode: readEffectiveRiderSkinMode(),
     rideLabelsHidden: readRideLabelsHidden(),
     rideLabelMode: readRideLabelMode(),
     rideLabelDist: readRideLabelDist(),
@@ -325,6 +327,7 @@ function PerfLabPanelInner({ mapZoom }: { mapZoom: number }) {
     >
       <div className="perf-lab__head">
         <span className="perf-lab__title">성능</span>
+        <span className="perf-lab__muted">스킨 {readEffectiveRiderSkinMode()}</span>
         <span className="perf-lab__muted">mapcut {mapcut.length > 0 ? mapcut.join(",") : "없음"}</span>
         <span className="perf-lab__muted">글자 모드 {rideLabelMode} (D {rideLabelDist}) · {rideLabelsHidden ? "숨김" : "표시"}</span>
         <button

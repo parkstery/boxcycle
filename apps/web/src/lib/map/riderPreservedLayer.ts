@@ -31,10 +31,8 @@ import {
   preservedRiderAssetUrl,
   resolvePreservedRiderModel,
 } from "../riderPrototype/config";
-import {
-  PreservedRiderRig,
-  type PreservedGuideData,
-} from "../riderPrototype/preservedRiderRig";
+import { PreservedRiderRig, type PreservedGuideData } from "../riderPrototype/preservedRiderRig";
+import { readRequestedRiderSkinMode } from "../riderPrototype/riderSkinMode";
 import { PreservedRiderStatic } from "../riderPrototype/preservedRiderStatic";
 import { getRiderModelProfile } from "../riderPrototype/riderModelProfile";
 import { computeRiderSway, RiderSwayEnvelope, RiderSwaySpeedFollow } from "../riderPrototype/riderSway";
@@ -130,9 +128,47 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
      */
     this.renderer.outputColorSpace = SRGBColorSpace;
     this.renderer.autoClear = false;
+    this.installSkinShaderFallback();
     this.loadState = "loading";
     this.loadError = null;
     void this.loadApprovedCandidate(++this.generation);
+  }
+
+  /**
+   * GPU 스키닝 셰이더가 컴파일 실패하면 CPU 로 자동 폴백한다.
+   * 실패한 정점 셰이더 안에 스킨 마커(`uSkinDQ`)가 있을 때만 내리고,
+   * 그 외 셰이더 오류는 기본 보고(콘솔)만 남긴다. 기본 보고를 살리기 위해
+   * 이전 콜백이 있으면 그대로 잇는다(기본값 null).
+   */
+  private installSkinShaderFallback(): void {
+    const renderer = this.renderer;
+    if (!renderer) return;
+    const previous = renderer.debug.onShaderError;
+    renderer.debug.onShaderError = (gl, program, glVertexShader, glFragmentShader) => {
+      try {
+        const source = gl.getShaderSource(glVertexShader);
+        if (typeof source === "string" && source.includes("uSkinDQ")) this.fallbackSkinToCpu();
+      } catch {
+        /* 셰이더 소스를 못 읽으면 폴백 없이 보고만 */
+      }
+      if (typeof previous === "function") {
+        try {
+          previous(gl, program, glVertexShader, glFragmentShader);
+        } catch {
+          /* 이전 보고가 실패해도 폴백은 끝났다 */
+        }
+      } else if (import.meta.env.DEV) {
+        console.warn("[riderPreserved] shader error (skin fallback checked)");
+      }
+    };
+  }
+
+  private fallbackSkinToCpu(): void {
+    if (this.rig && this.rig.skinModeValue === "gpu") {
+      if (import.meta.env.DEV) console.warn("[riderPreserved] skin shader failed, falling back to cpu");
+      this.rig.setSkinMode("cpu");
+      this.map?.triggerRepaint();
+    }
   }
 
   onRemove(): void {
@@ -277,7 +313,9 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
       const guides = await response.json() as PreservedGuideData;
       if (generation !== this.generation || !this.map) return;
       const model = PRESERVED_RIDER_MODELS[resolvePreservedRiderModel()];
-      const rig = new PreservedRiderRig(gltf.scene, guides, getRiderModelProfile(model.profile));
+      const rig = new PreservedRiderRig(gltf.scene, guides, getRiderModelProfile(model.profile), {
+        skinMode: readRequestedRiderSkinMode(),
+      });
       if (generation !== this.generation || !this.map) {
         rig.dispose();
         return;

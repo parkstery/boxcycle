@@ -10,6 +10,7 @@ import {
   PRESERVED_RIDER_MODELS,
   resolvePreservedRiderModel,
 } from "../../src/lib/riderPrototype/config";
+import { readEffectiveRiderSkinMode } from "../../src/lib/riderPrototype/riderSkinMode";
 
 /* 드로우콜 계수 — 지도 생성 전에 WebGL2 프로토타입을 감싼다. */
 const TRIANGLES = 0x0004;
@@ -268,6 +269,8 @@ declare global {
   interface Window {
     __rtwBench?: {
       state: () => { loadState: string; firstReadyMs: number | null };
+      /** perflab `skinMode` 와 같은 실제 스키닝 위치(G1 헤드리스 증거용). */
+      skin: () => string;
       measure: (frames?: number) => Promise<{
         frames: number;
         drawCallsPerFrame: number;
@@ -287,6 +290,7 @@ declare global {
 
 window.__rtwBench = {
   state: () => ({ loadState: lastLoadState, firstReadyMs }),
+  skin: () => readEffectiveRiderSkinMode(),
   measure: async (frames = 120) => {
     await waitMapIdle();
     benchDrawCalls = 0;

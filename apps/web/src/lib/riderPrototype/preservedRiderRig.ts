@@ -12,6 +12,18 @@ import {
 import type { Material, WebGLProgramParametersWithUniforms } from "three";
 import type { RiderVisualKind } from "./iso2dMarker";
 import type { BakedMesh, RiderModelProfile, RiderVisualKit } from "./riderModelProfile";
+import {
+  packSkinDQ,
+  RIDER_SKIN_COMMON_GLSL,
+  RIDER_SKIN_NORMAL_CHUNK,
+  RIDER_SKIN_VERTEX_CHUNK,
+} from "./riderGpuSkin";
+import {
+  isGpuSkinCapable,
+  noteEffectiveRiderSkinMode,
+  readRequestedRiderSkinMode,
+  type RiderSkinMode,
+} from "./riderSkinMode";
 import { RIDER_SWAY_DEFAULTS } from "./riderSway";
 
 type Side = "R" | "L";
@@ -19,8 +31,25 @@ type Vec3 = [number, number, number];
 type GuideRow = { p: Vec3; w: Record<string, number> };
 export type PreservedGuideData = Record<string, GuideRow[]>;
 
+/** `?skin=gpu` 로 리그가 여는 GPU 스키닝 옵션. 생략하면 쿼리 요청값(기본 cpu). */
+export type PreservedRiderRigOptions = {
+  skinMode?: RiderSkinMode;
+};
+
+/** 흔들림 셰이더 주입 조각 — 기존 주입 결과와 바이트 동일해야 한다(시험이 문자열로 본다). */
+const SWAY_COMMON_SUFFIX =
+  "attribute float _sway;\nuniform float uSwayRoll;\nuniform float uSwayBob;\nuniform vec3 uSwayPivot;";
+const SWAY_NORMAL_SUFFIX =
+  "float swR = uSwayRoll * _sway; float swC = cos(swR), swS = sin(swR);\nobjectNormal = vec3(objectNormal.x, objectNormal.y * swC - objectNormal.z * swS, objectNormal.y * swS + objectNormal.z * swC);";
+const SWAY_VERTEX_SUFFIX =
+  "{ vec3 q = transformed - uSwayPivot; transformed = uSwayPivot + vec3(q.x, q.y * swC - q.z * swS, q.y * swS + q.z * swC); transformed.y += uSwayBob * _sway; }";
+
+/** GPU 스키닝 다리 머티리얼 프로그램 캐시 키 — 흔들림 키에 skin 구분을 더한다. */
+const SKIN_GPU_CACHE_KEY = "rider-sway-v1:skin-gpu";
+
 type LegDraw = {
   name: string;
+  side: Side;
   mesh: Mesh;
   position: BufferAttribute;
   normal: BufferAttribute;
@@ -282,8 +311,22 @@ export class PreservedRiderRig {
   private readonly dualQuaternions = [
     new Float64Array(8), new Float64Array(8), new Float64Array(8), new Float64Array(8),
   ];
+  /**
+   * GPU 스키닝 상태. `rider14 + ?skin=gpu + GPU 조건` 일 때만 `gpu`.
+   * s5·LOD2 는 항상 cpu(영향 없음). 기본은 cpu.
+   */
+  private skinMode: RiderSkinMode = "cpu";
+  /** GPU 스키닝이 허용되는 리그·기기인가(rider14 + 정점 유니폼·highp). 쿼리와 무관. */
+  private readonly gpuSkinSupported: boolean;
+  private lastPhaseRev = 0;
+  /** 좌·우 다리 머티리얼 복제본(GPU 모드에서만, 서로 다른 `uSkinDQ`). */
+  private readonly legSkinMaterial: Record<Side, Material | null> = { R: null, L: null };
+  private readonly skinUniforms: Record<Side, { uSkinDQ: { value: Float32Array } } | null> = {
+    R: null,
+    L: null,
+  };
 
-  constructor(source: Object3D, guides: PreservedGuideData, profile: RiderModelProfile) {
+  constructor(source: Object3D, guides: PreservedGuideData, profile: RiderModelProfile, options?: PreservedRiderRigOptions) {
     this.swaySupported = profile.supportsSway;
     if (profile.supportsSway) {
       const [x, y, z] = RIDER_SWAY_DEFAULTS.pivot;
@@ -344,7 +387,7 @@ export class PreservedRiderRig {
         const restNormal = new Float32Array(normal.array as ArrayLike<number>);
         const arc = this.buildArc(side, restPosition);
         this.legs[side].push({
-          name: item.name, mesh: item.mesh, position, normal, restPosition, restNormal, arc,
+          name: item.name, side, mesh: item.mesh, position, normal, restPosition, restNormal, arc,
           weights: new Float32Array(arc.length * 4),
         });
       }
@@ -358,6 +401,12 @@ export class PreservedRiderRig {
     }
 
     this.poles = { R: this.bindPole("R"), L: this.bindPole("L") };
+    this.gpuSkinSupported = profile.id === "rider14" && isGpuSkinCapable();
+    const requested = options?.skinMode ?? readRequestedRiderSkinMode();
+    this.skinMode = requested === "gpu" && this.gpuSkinSupported ? "gpu" : "cpu";
+    if (profile.id === "rider14") this.attachSkinWeights();
+    if (this.skinMode === "gpu") this.ensureGpuSkinAssets();
+    noteEffectiveRiderSkinMode(this.skinMode);
     this.visualKit = profile.createVisualKit(this.object);
     this.installSwayShader();
     this.setPhase(0);
@@ -384,7 +433,69 @@ export class PreservedRiderRig {
     this.visualKit.apply(kind);
   }
 
+  /** 실제 스키닝 실행 위치. 생성 직후·폴백 후 perflab 이 읽는다. */
+  get skinModeValue(): RiderSkinMode {
+    return this.skinMode;
+  }
+
+  /**
+   * 스키닝 실행 위치를 바꾼다. `gpu` 는 허용된 리그·기기에서만(아니면 cpu 유지).
+   * 셰이더를 다시 컴파일하고(`needsUpdate`), 현재 위상을 새 위치에서 다시
+   * 계산한다. 셰이더 컴파일 실패 폴백(레이어)도 이 진입점으로 내린다.
+   */
+  setSkinMode(mode: RiderSkinMode): void {
+    const next = mode === "gpu" && this.gpuSkinSupported ? "gpu" : "cpu";
+    if (next === this.skinMode && (next === "cpu" || this.skinUniforms.R !== null)) {
+      noteEffectiveRiderSkinMode(this.skinMode);
+      return;
+    }
+    if (next === "gpu") this.ensureGpuSkinAssets();
+    this.skinMode = next;
+    noteEffectiveRiderSkinMode(this.skinMode);
+    if (next === "gpu") {
+      // 셰이더가 `position`/`normal` 을 휴지 입력으로 쓰므로 CPU 값이 남아 있으면
+      // 이중 변형이 된다. 휴지값을 되돌리고 재업로드한다.
+      for (const side of ["R", "L"] as const) {
+        for (const draw of this.legs[side]) {
+          (draw.position.array as Float32Array).set(draw.restPosition);
+          (draw.normal.array as Float32Array).set(draw.restNormal);
+          draw.position.needsUpdate = true;
+          draw.normal.needsUpdate = true;
+        }
+      }
+    }
+    const seen = new Set<Material>();
+    this.object.traverse((item) => {
+      if (!(item instanceof Mesh)) return;
+      const list = Array.isArray(item.material) ? item.material : [item.material];
+      for (const material of list) {
+        if (!material || seen.has(material)) continue;
+        seen.add(material);
+        material.needsUpdate = true;
+      }
+    });
+    this.setPhase(this.lastPhaseRev);
+  }
+
+  /** 시험용: 현재 리그 수학(IK·DQ)으로 특정 위상의 부호 보정済み 4 본 DQ. 앱 동작 불변. */
+  skinDQForTests(side: Side, phaseRev: number): Float64Array[] {
+    const pose = this.solveLeg(side, phaseRev * Math.PI * 2);
+    return this.poseDualQuaternions(pose).map((q) => Float64Array.from(q));
+  }
+
+  /** 시험용: 다리 메시 휴지값·가중치·현재 스킨 결과. 앱 동작 불변. */
+  legDrawsForTests(side: Side): readonly {
+    name: string;
+    restPosition: Float32Array;
+    restNormal: Float32Array;
+    weights: Float32Array;
+    mesh: Mesh;
+  }[] {
+    return this.legs[side];
+  }
+
   setPhase(phaseRev: number): void {
+    this.lastPhaseRev = phaseRev;
     const crankAngle = phaseRev * Math.PI * 2;
     const poses: Record<Side, LegPose> = {
       R: this.solveLeg("R", crankAngle),
@@ -489,13 +600,13 @@ export class PreservedRiderRig {
   }
 
   private updateSkin(side: Side, pose: LegPose): void {
-    const matrices = [new Matrix4(), pose.thigh, pose.shin, pose.footSkin];
-    const dq = this.dualQuaternions;
-    for (let i = 0; i < 4; i++) matrixToDualQuaternion(matrices[i]!, dq[i]!);
-    for (let bone = 1; bone < 4; bone++) {
-      let dot = 0;
-      for (let k = 0; k < 4; k++) dot += dq[0]![k]! * dq[bone]![k]!;
-      if (dot < 0) for (let k = 0; k < 8; k++) dq[bone]![k] = -dq[bone]![k]!;
+    const dq = this.poseDualQuaternions(pose);
+    const uniforms = this.skinUniforms[side];
+    if (this.skinMode === "gpu" && uniforms) {
+      // GPU 모드: 정점 루프 대신 좌·우 `uSkinDQ` 만 갱신한다.
+      // `position`/`normal` 은 휴지값 그대로라 버퍼 재업로드가 없다.
+      packSkinDQ(dq, uniforms.uSkinDQ.value);
+      return;
     }
     for (const draw of this.legs[side]) {
       for (let i = 0; i < draw.arc.length; i++) {
@@ -536,8 +647,66 @@ export class PreservedRiderRig {
   }
 
   /**
+   * 자세 행렬 4개 → 부호 보정済み 4 본 DQ. CPU 정점 루프와 GPU 유니폼 갱신이
+   * 같은 값을 쓴다. 기존 `updateSkin` 앞부분과 같은 식이다.
+   */
+  private poseDualQuaternions(pose: LegPose): Float64Array[] {
+    const matrices = [new Matrix4(), pose.thigh, pose.shin, pose.footSkin];
+    const dq = this.dualQuaternions;
+    for (let i = 0; i < 4; i++) matrixToDualQuaternion(matrices[i]!, dq[i]!);
+    for (let bone = 1; bone < 4; bone++) {
+      let dot = 0;
+      for (let k = 0; k < 4; k++) dot += dq[0]![k]! * dq[bone]![k]!;
+      if (dot < 0) for (let k = 0; k < 8; k++) dq[bone]![k] = -dq[bone]![k]!;
+    }
+    return dq;
+  }
+
+  /**
+   * 다리 메시 지오메트리에 `skinWeight`(vec4) 속성을 단다.
+   * CPU 모드에서는 셰이더가 읽지 않으므로 출력이 바뀌지 않는다.
+   */
+  private attachSkinWeights(): void {
+    for (const side of ["R", "L"] as const) {
+      for (const draw of this.legs[side]) {
+        draw.mesh.geometry.setAttribute("skinWeight", new BufferAttribute(draw.weights.slice(), 4));
+      }
+    }
+  }
+
+  /**
+   * GPU 스키닝 자산: 다리 머티리얼 좌·우 복제 + 좌·우 `uSkinDQ` 유니폼.
+   * `position`/`normal` 은 휴지값 그대로 둔다(매 프레임 덮어쓰지 않음).
+   */
+  private ensureGpuSkinAssets(): void {
+    for (const side of ["R", "L"] as const) {
+      if (this.skinUniforms[side] && this.legSkinMaterial[side]) continue;
+      const draws = this.legs[side];
+      const base = draws[0]?.mesh.material;
+      if (!base || Array.isArray(base)) throw new Error(`Missing leg base material for ${side}`);
+      const clone = base.clone();
+      for (const draw of draws) draw.mesh.material = clone;
+      this.legSkinMaterial[side] = clone;
+      this.skinUniforms[side] = { uSkinDQ: { value: new Float32Array(32) } };
+    }
+  }
+
+  /** GPU 모드에서 스킨 셰이더를 입는 다리 머티리얼의 좌·우. CPU 모드에서는 null. */
+  private skinSideOfMaterial(material: Material): Side | null {
+    if (this.skinMode !== "gpu") return null;
+    if (material === this.legSkinMaterial.R) return "R";
+    if (material === this.legSkinMaterial.L) return "L";
+    return null;
+  }
+
+  private skinCacheKeyFor(material: Material): string {
+    return this.skinSideOfMaterial(material) ? SKIN_GPU_CACHE_KEY : "rider-sway-v1";
+  }
+
+  /**
    * 뷰어 `installSway` 와 같은 3곳(`common`·`beginnormal_vertex`·`begin_vertex`).
    * 속성 `_sway`. 균일 변수 객체는 리그가 소유하고 `setSway` 가 값만 바꾼다.
+   * GPU 모드 다리 머티리얼에는 스킨 주입을 앞에 더하고 캐시 키를 구분한다.
    */
   private installSwayShader(): void {
     const uniforms = this.swayUniforms;
@@ -550,22 +719,27 @@ export class PreservedRiderRig {
         if (!material || seen.has(material)) continue;
         seen.add(material);
         material.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
+          // 컴파일 시점의 모드로 주입을 정한다 — `setSkinMode` 가 `needsUpdate` 로
+          // 다시 컴파일하므로 모드 전환 후에도 어긋나지 않는다.
+          const side = this.skinSideOfMaterial(material);
+          const skin = side ? this.skinUniforms[side] : null;
           Object.assign(shader.uniforms, uniforms);
+          if (skin) Object.assign(shader.uniforms, skin);
           shader.vertexShader = shader.vertexShader
             .replace(
               "#include <common>",
-              "#include <common>\nattribute float _sway;\nuniform float uSwayRoll;\nuniform float uSwayBob;\nuniform vec3 uSwayPivot;",
+              `#include <common>\n${SWAY_COMMON_SUFFIX}${skin ? `\n${RIDER_SKIN_COMMON_GLSL}` : ""}`,
             )
             .replace(
               "#include <beginnormal_vertex>",
-              "#include <beginnormal_vertex>\nfloat swR = uSwayRoll * _sway; float swC = cos(swR), swS = sin(swR);\nobjectNormal = vec3(objectNormal.x, objectNormal.y * swC - objectNormal.z * swS, objectNormal.y * swS + objectNormal.z * swC);",
+              `#include <beginnormal_vertex>\n${skin ? `${RIDER_SKIN_NORMAL_CHUNK}\n` : ""}${SWAY_NORMAL_SUFFIX}`,
             )
             .replace(
               "#include <begin_vertex>",
-              "#include <begin_vertex>\n{ vec3 q = transformed - uSwayPivot; transformed = uSwayPivot + vec3(q.x, q.y * swC - q.z * swS, q.y * swS + q.z * swC); transformed.y += uSwayBob * _sway; }",
+              `#include <begin_vertex>\n${skin ? `${RIDER_SKIN_VERTEX_CHUNK}\n` : ""}${SWAY_VERTEX_SUFFIX}`,
             );
         };
-        material.customProgramCacheKey = () => "rider-sway-v1";
+        material.customProgramCacheKey = () => this.skinCacheKeyFor(material);
         material.needsUpdate = true;
       }
     });

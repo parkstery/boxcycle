@@ -189,10 +189,15 @@ const rider14Profile: RiderModelProfile = {
         typeof material.userData?.palette === "object" &&
         material.userData.palette !== null,
     );
-    if (paletteMaterials.length !== 1) {
-      throw new Error(`Expected exactly one palette material, found ${paletteMaterials.length}`);
+    /*
+     * CPU 모드 1개(공용 팔레트). GPU 스키닝에서는 리그가 다리 머티리얼을
+     * 좌·우로 복제해 3개가 된다(복제본도 같은 팔레트·같은 map 공유).
+     * 그 외 개수는 rig 배선이 어긋난 것이므로 그대로 예외를 낸다.
+     */
+    if (paletteMaterials.length !== 1 && paletteMaterials.length !== 3) {
+      throw new Error(`Expected one palette material (or 3 with leg clones), found ${paletteMaterials.length}`);
     }
-    const kit = RiderPaletteKit.fromMaterial(paletteMaterials[0]!);
+    const kit = RiderPaletteKit.fromMaterials(paletteMaterials);
     return {
       apply: (kind: RiderVisualKind) => kit.apply(kind),
       dispose: () => kit.dispose(),
