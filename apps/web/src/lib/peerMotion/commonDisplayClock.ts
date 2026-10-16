@@ -35,9 +35,14 @@ type SelfDisplayClockState = {
   /** 목표 지연(0 또는 600). 전환 중에도 목표는 즉시 바꾸고 시계만 catch-up. */
   targetDelayMs: number;
   companionActive: boolean;
-  /** 이번 프레임에 이미 전진시킨 localNow (동일 프레임 peek 재사용). */
+  /** 이번 프레임에 넘긴 epoch (같은 값일 때만 peek 재사용). */
   frameLocalMs: number | null;
   frameRenderTimeMs: number | null;
+  /**
+   * 목표 지연이 바뀐 뒤, 시계가 새 목표의 2ms 안으로 붙을 때까지.
+   * 지연 0인 단독 주행의 한 틱 오차와 구분한다.
+   */
+  modeTransitionCatchUp: boolean;
 };
 
 let selfClock: SelfDisplayClockState = {
@@ -47,6 +52,7 @@ let selfClock: SelfDisplayClockState = {
   companionActive: false,
   frameLocalMs: null,
   frameRenderTimeMs: null,
+  modeTransitionCatchUp: false,
 };
 
 /** clock jump / axis reset 시 외부(버퍼) 정리 훅 */
@@ -78,15 +84,24 @@ export function resetCommonDisplayClock(): void {
     companionActive: false,
     frameLocalMs: null,
     frameRenderTimeMs: null,
+    modeTransitionCatchUp: false,
   };
+}
+
+function assignTargetDelay(delay: number): void {
+  if (delay !== selfClock.targetDelayMs && selfClock.renderClockMs != null) {
+    selfClock.modeTransitionCatchUp = true;
+  }
+  selfClock.targetDelayMs = delay;
 }
 
 export function setCompanionDisplayActive(active: boolean): void {
   selfClock.companionActive = active;
-  selfClock.targetDelayMs =
+  const delay =
     active && isServerClockReady() && !isServerClockUncertain()
       ? COMMON_COMPANION_DISPLAY_DELAY_MS
       : 0;
+  assignTargetDelay(delay);
 }
 
 export function isCompanionDisplayActive(): boolean {
@@ -112,7 +127,7 @@ function advanceClockTowardTarget(localNowMs: number): number {
     selfClock.companionActive && commonNow != null && !isServerClockUncertain()
       ? COMMON_COMPANION_DISPLAY_DELAY_MS
       : 0;
-  selfClock.targetDelayMs = delay;
+  assignTargetDelay(delay);
 
   const axisNow = commonNow ?? localNowMs;
   const target = axisNow - delay;
@@ -124,6 +139,7 @@ function advanceClockTowardTarget(localNowMs: number): number {
 
   if (selfClock.renderClockMs == null) {
     selfClock.renderClockMs = target;
+    selfClock.modeTransitionCatchUp = false;
     return target;
   }
 
@@ -136,20 +152,21 @@ function advanceClockTowardTarget(localNowMs: number): number {
     clock += Math.max(-maxStep, Math.min(maxStep, err));
   }
   selfClock.renderClockMs = clock;
+  if (Math.abs(target - clock) <= 2) selfClock.modeTransitionCatchUp = false;
   return clock;
 }
 
 /**
- * 이 프레임의 단일 renderTime. 같은 rAF 안(±8ms) 재호출은 재사용 —
- * sampleLiveLngLat 와 registry.step 이 Date.now() 를 각각 불러도 동일 시각.
+ * 이 프레임의 단일 renderTime.
+ * 같은 epoch 값(한 프레임에서 넘긴 시각)만 재사용한다.
+ * 틱이 넘기지 않으면 Date.now().
  * delay=0(solo/leave) 이어도 시계를 전진시켜 D600→0 catch-up 이 끊기지 않게 한다.
  */
 export function ensureFrameDisplayRenderTimeMs(localNowMs: number = Date.now()): number {
-  const FRAME_REUSE_MS = 8;
   if (
     selfClock.frameLocalMs != null &&
     selfClock.frameRenderTimeMs != null &&
-    Math.abs(localNowMs - selfClock.frameLocalMs) <= FRAME_REUSE_MS
+    localNowMs === selfClock.frameLocalMs
   ) {
     return selfClock.frameRenderTimeMs;
   }
@@ -176,14 +193,19 @@ export function peekFrameDisplayRenderTimeMs(): number | null {
   return selfClock.frameRenderTimeMs ?? selfClock.renderClockMs;
 }
 
-/** catch-up 중인지 — leave 직후 버퍼 보간을 유지할 때 사용. */
+/**
+ * catch-up 중인지 — leave 직후 버퍼 보간을 유지할 때 사용.
+ * 지연 0이고 모드 전환이 아니면, 시계가 한 틱 뒤진 것만으로는 참이 되지 않는다.
+ */
 export function isDisplayRenderCatchingUp(localNowMs: number = Date.now()): boolean {
   const commonNow = sharedDisplayCommonNowMs(localNowMs);
   const axisNow = commonNow ?? localNowMs;
   const target = axisNow - selfClock.targetDelayMs;
   const clock = selfClock.renderClockMs;
   if (clock == null) return false;
-  return Math.abs(target - clock) > 2;
+  if (Math.abs(target - clock) <= 2) return false;
+  if (selfClock.targetDelayMs === 0 && !selfClock.modeTransitionCatchUp) return false;
+  return true;
 }
 
 export function getCommonDisplayDebugState(): Readonly<{

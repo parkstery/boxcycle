@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
 import { getPointOnRouteByDistance, lineStringLengthMeters } from "../lib/geo/geo";
+import { projectRideDistToFramePerfMs } from "../lib/ride/frameDistProject";
 import { rideDistanceAlongRoute } from "../lib/ride/liveLocationSnapshot";
 import { stepRideSpeedKmh } from "../lib/ride/rideSpeedRamp";
 import { setBackgroundSafeInterval } from "../lib/ride/backgroundSafeInterval";
@@ -207,7 +208,7 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
   }, []);
 
   /**
-   * 같은 밀리초에 `sampleLiveLngLat` 과 `sampleLiveDistM` 이 둘 다 불리도
+   * 같은 프레임 epoch 로 `sampleLiveLngLat` 과 `sampleLiveDistM` 이 둘 다 불리도
    * 표시 시계는 한 번만 전진한다. 페이서 거리가 내 마커와 같은 dist 를 쓰게 하려고다.
    */
   const liveDistSampleCacheRef = useRef<{ now: number; dist: number } | null>(null);
@@ -215,10 +216,12 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
   /**
    * rAF 용 경로 거리. `sampleLiveLngLat` 과 같은 dist 계산.
    * idle 이면 null. HUD `metricsUi.virtualDistanceMeters` 는 즉시 실제값 유지.
+   * `frameEpochMs` 는 MapView 틱이 넘긴 시각. 틱 밖은 Date.now().
    */
-  const sampleLiveDistM = useCallback((): number | null => {
+  const sampleLiveDistM = useCallback((frameEpochMs?: number): number | null => {
     if (statusRef.current === "idle") return null;
-    const now = Date.now();
+    const hasFrame = typeof frameEpochMs === "number" && Number.isFinite(frameEpochMs);
+    const now = hasFrame ? frameEpochMs : Date.now();
     const cached = liveDistSampleCacheRef.current;
     if (cached && cached.now === now) return cached.dist;
     const geom = routeGeometryRef.current;
@@ -229,6 +232,24 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
     const delayMs = companionDisplayDelayMs();
     const catchingUp = isDisplayRenderCatchingUp(now);
     let distSource = virtualDistanceRef.current;
+    // 지도 틱이 세션 rAF 보다 먼저 읽는다. 이번 프레임 perf 까지 읽어 화면 속도가
+    // rAF 간격과 맞게 한다. 숨은 탭 250ms 걸음은 이 인자를 넘기지 않는다.
+    if (
+      typeof frameEpochMs === "number" &&
+      Number.isFinite(frameEpochMs) &&
+      statusRef.current === "running"
+    ) {
+      const origin = performance.timeOrigin;
+      if (Number.isFinite(origin)) {
+        distSource = projectRideDistToFramePerfMs(
+          distSource,
+          appliedSpeedRef.current,
+          speedRef.current,
+          lastAnimTsRef.current,
+          frameEpochMs - origin,
+        );
+      }
+    }
     if (delayed != null && (delayMs > 0 || catchingUp)) {
       distSource = delayed;
     }
@@ -241,8 +262,8 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
    * rAF 맵·카메라용 위치. 동행이면 송신과 같은 motion 표본 버퍼를 공통 frame renderTime 으로 보간.
    * delay=0(solo/leave) 이어도 시계를 전진시켜 D600→0 catch-up 이 끊기지 않게 한다.
    */
-  const sampleLiveLngLat = useCallback((): LngLat | null => {
-    const dist = sampleLiveDistM();
+  const sampleLiveLngLat = useCallback((frameEpochMs?: number): LngLat | null => {
+    const dist = sampleLiveDistM(frameEpochMs);
     if (dist == null) return null;
     const geom = routeGeometryRef.current;
     return geom ? getPointOnRouteByDistance(geom, dist) : null;

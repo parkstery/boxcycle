@@ -345,9 +345,9 @@ export type MapViewProps = {
   routeWaypoints: LngLat[];
   liveLngLat: LngLat | null;
   /** rAF 샘플 — React throttle 없이 맵 마커 위치 (가상 주행 세션) */
-  sampleLiveLngLat?: () => LngLat | null;
+  sampleLiveLngLat?: (frameEpochMs?: number) => LngLat | null;
   /** `sampleLiveLngLat` 과 같은 경로 거리. 페이서 배치용. */
-  sampleLiveDistM?: () => number | null;
+  sampleLiveDistM?: (frameEpochMs?: number) => number | null;
   /** 혼자 달릴 때 로컬 페이서. 기본 켜짐. */
   pacerEnabled?: boolean;
   /** 내 위치 마커 페달 애니메이션(주행/일시정지·가상 속도). 없으면 스프라이트만 정지 표시 */
@@ -2408,7 +2408,11 @@ export function MapView({
   useEffect(() => {
     if (!mapLoaded) return;
     let lastTs = performance.now();
-    const stepPacersForFrame = (dtSec: number, showSprites: boolean): PeerDomGJFeature[] => {
+    const stepPacersForFrame = (
+      dtSec: number,
+      showSprites: boolean,
+      epochMs: number,
+    ): PeerDomGJFeature[] => {
       const motionNow = liveRiderMotionRef.current;
       const session = motionNow?.sessionStatus ?? null;
       const prevSession = pacerPrevStatusRef.current;
@@ -2419,7 +2423,7 @@ export function MapView({
       const eligible =
         enabled && (session === "running" || session === "paused") && geomNow != null && solo;
       // 표시 시계를 건드리는 샘플러라 페이서가 그려질 때만 부른다.
-      const distM = eligible ? (sampleLiveDistMRef.current?.() ?? null) : null;
+      const distM = eligible ? (sampleLiveDistMRef.current?.(epochMs) ?? null) : null;
       const showPacers = eligible && distM != null;
       if (!showPacers) {
         pacerWorldRef.current = null;
@@ -2500,9 +2504,11 @@ export function MapView({
       if (!map?.style) return;
       const dt = Math.min(0.1, (now - lastTs) / 1000);
       lastTs = now;
+      // Date.now() 와 같은 epoch 축. 표시 시계·거리 캐시·동행 step 이 이 값 하나를 쓴다.
+      const epochMs = performance.timeOrigin + now;
 
       const sampleFn = sampleLiveLngLatRef.current;
-      const sampled = sampleFn?.() ?? liveLngLatRef.current;
+      const sampled = sampleFn?.(epochMs) ?? liveLngLatRef.current;
       const prevForBearing = prevLiveForBearingRef.current;
       if (sampled) {
         liveLngLatRef.current = sampled;
@@ -2581,10 +2587,10 @@ export function MapView({
         dt,
         getBearing,
         routeGeometryRef.current,
-        Date.now(),
+        epochMs,
         { buildFeatures: showPeerSprites, headingHalfSpanM: RIDER_TURN_HALF_SPAN_M },
       );
-      const pacerFeatures = stepPacersForFrame(dt, showPeerSprites);
+      const pacerFeatures = stepPacersForFrame(dt, showPeerSprites, epochMs);
       syncPeerDomMarkers(
         map,
         [...(fc.features as PeerDomGJFeature[]), ...pacerFeatures],
@@ -2605,7 +2611,7 @@ export function MapView({
         let selfPathDistM: number | null = null;
         if (live) {
           const routeNow = routeGeometryRef.current;
-          const distM = sampleLiveDistMRef.current?.() ?? null;
+          const distM = sampleLiveDistMRef.current?.(epochMs) ?? null;
           selfPathDistM = distM;
           const chordHeading =
             routeNow && distM != null

@@ -34,6 +34,7 @@ const GROUPS = {
     "hud-companion",
     "next-ride",
     "pacer",
+    "jitter",
     "ride-calories",
     "ride-camera-framing",
     "ride-continue",
