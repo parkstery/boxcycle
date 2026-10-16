@@ -31,7 +31,7 @@ type Vec3 = [number, number, number];
 type GuideRow = { p: Vec3; w: Record<string, number> };
 export type PreservedGuideData = Record<string, GuideRow[]>;
 
-/** `?skin=gpu` 로 리그가 여는 GPU 스키닝 옵션. 생략하면 쿼리 요청값(기본 cpu). */
+/** `?skin=gpu` 로 리그가 여는 GPU 스키닝 옵션. 생략하면 쿼리 요청값(브라우저 기본 gpu, Node 시험 cpu). */
 export type PreservedRiderRigOptions = {
   skinMode?: RiderSkinMode;
 };
@@ -312,8 +312,8 @@ export class PreservedRiderRig {
     new Float64Array(8), new Float64Array(8), new Float64Array(8), new Float64Array(8),
   ];
   /**
-   * GPU 스키닝 상태. `rider14 + ?skin=gpu + GPU 조건` 일 때만 `gpu`.
-   * s5·LOD2 는 항상 cpu(영향 없음). 기본은 cpu.
+   * GPU 스키닝 상태. `rider14 + GPU 조건` 이고 `?skin=cpu` 가 아닐 때 `gpu`.
+   * s5·LOD2 는 항상 cpu(영향 없음). 브라우저 기본은 gpu(`?skin=cpu` 로 끔).
    */
   private skinMode: RiderSkinMode = "cpu";
   /** GPU 스키닝이 허용되는 리그·기기인가(rider14 + 정점 유니폼·highp). 쿼리와 무관. */

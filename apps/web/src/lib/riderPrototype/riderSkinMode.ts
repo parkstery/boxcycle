@@ -1,7 +1,8 @@
 /**
  * 다리 DQS 스키닝 실행 위치 (`?skin=gpu|cpu`, 운영 포함).
  *
- * - 요청값: `?skin=gpu` 면 gpu, 그 외(없음·`cpu`·오타)는 전부 `cpu`. 기본은 cpu.
+ * - 요청값: `?skin=cpu` 면 cpu, 그 외(없음·`gpu`·오타)는 전부 `gpu`. 기본은 gpu
+ *   (G2, 2026-10-17 Chief 결정 — PC 실측 라이더 비용 약 1/6, 화면 픽셀 차 0).
  * - 실제값(effective): 요청이 gpu 여도 rider14 리그가 아니거나, 정점 유니폼·highp
  *   같은 GPU 조건이 안 되면 cpu 로 내려간다. 셰이더 컴파일 실패도 레이어가
  *   `setSkinMode("cpu")` 로 내린다. perflab 패널·복사 JSON 은 이 실제값을 본다.
@@ -13,9 +14,9 @@ export type RiderSkinMode = "cpu" | "gpu";
 /** 쿼리 문자열만 보고 요청값을 정한다(순수 함수 — 시험용). */
 export function readRiderSkinModeSearch(search: string): RiderSkinMode {
   try {
-    return new URLSearchParams(search).get("skin") === "gpu" ? "gpu" : "cpu";
+    return new URLSearchParams(search).get("skin") === "cpu" ? "cpu" : "gpu";
   } catch {
-    return "cpu";
+    return "gpu";
   }
 }
 
@@ -28,8 +29,9 @@ function currentSearch(): string {
   }
 }
 
-/** 페이지 요청값. Node(시험)에서는 항상 `cpu` — GPU 경로는 rig 옵션으로 연다. */
+/** 페이지 요청값. Node(시험)에서는 항상 `cpu` — 기존 CPU 동등성 시험 보호, GPU 경로는 rig 옵션으로 연다. */
 export function readRequestedRiderSkinMode(): RiderSkinMode {
+  if (typeof window === "undefined") return "cpu";
   return readRiderSkinModeSearch(currentSearch());
 }
 

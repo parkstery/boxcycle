@@ -21,6 +21,7 @@ import {
 import {
   noteEffectiveRiderSkinMode,
   readEffectiveRiderSkinMode,
+  readRequestedRiderSkinMode,
   readRiderSkinModeSearch,
   resetRiderSkinModeForTests,
 } from "../../src/lib/riderPrototype/riderSkinMode.ts";
@@ -75,13 +76,17 @@ async function buildRider14(options?: { skinMode?: "cpu" | "gpu" }): Promise<Pre
 }
 
 describe("skin mode switch", () => {
-  it("?skin=gpu 만 gpu, 나머지는 전부 cpu(기본 cpu)", () => {
-    assert.equal(readRiderSkinModeSearch(""), "cpu");
+  it("?skin=cpu 만 cpu, 나머지는 전부 gpu(G2 기본 gpu)", () => {
+    assert.equal(readRiderSkinModeSearch(""), "gpu");
     assert.equal(readRiderSkinModeSearch("?skin=cpu"), "cpu");
     assert.equal(readRiderSkinModeSearch("?skin=gpu"), "gpu");
-    assert.equal(readRiderSkinModeSearch("?skin=GPU"), "cpu");
-    assert.equal(readRiderSkinModeSearch("?foo=1&skin=gpu"), "gpu");
-    assert.equal(readRiderSkinModeSearch("???"), "cpu");
+    assert.equal(readRiderSkinModeSearch("?skin=CPU"), "gpu");
+    assert.equal(readRiderSkinModeSearch("?foo=1&skin=cpu"), "cpu");
+    assert.equal(readRiderSkinModeSearch("???"), "gpu");
+  });
+
+  it("Node(시험)에서 요청값은 cpu — 옵션 없는 리그는 기존 CPU 경로", () => {
+    assert.equal(readRequestedRiderSkinMode(), "cpu");
   });
 
   it("effective 기본 cpu · note/read", () => {
