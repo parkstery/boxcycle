@@ -76,4 +76,4 @@
 | [원거리 LOD2](reports/261017-RTW-원거리-LOD2.md) | 먼 줌 라이더 비용 | 줌 < 19 정적 메시 |
 | [동행 미표시](reports/261017-RTW-동행-미표시-같은계정.md) | 서로 안 보임 | 같은 계정 — 버그 아님 |
 | [작업 환경 함정](reports/261017-RTW-작업-환경-함정.md) | dep-layers·npm shim·포트·worktree·메모리 | 운영 노하우 |
-| GPU 스키닝 | 가까운 줌 다리 DQS CPU 비용 | 진행 중 — 완료 후 추가 |
+| [GPU 스키닝](reports/261017-RTW-GPU-스키닝.md) | 가까운 줌 다리 DQS CPU 비용 | 정점 셰이더로, 기본 gpu |

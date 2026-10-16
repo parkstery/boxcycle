@@ -1,3 +1,5 @@
+2026-10-17 GPU 스키닝 G2 운영 배포: main2 ef9efad, 기본 gpu(?skin=cpu 로 끔). 운영 쿼리 없이 skin=gpu 확인, PC 70.7 fps·라이더 0.39 ms. perflab 패널 오른쪽·끌어 옮기기(5b1f3c2). 보고 archive/reports/261017-RTW-GPU-스키닝.md. 다음: 개발 부산물(측정 코드·스크립트) 관리 방안 정립.
+
 2026-10-17 GPU 스키닝 G1 운영 배포: main2 8eaf954, hosting index-CuiDaVtD.js (Muse Spark). ?skin=gpu 스위치, 기본 cpu. PC 실측 라이더 비용 2.4–2.6→0.4 ms/프레임(3명). 폰 확인 후 G2(기본 gpu) Chief 결정 대기.
 
 2026-10-17 문제 해결 보고 10건 작성: document/archive/reports/261017-RTW-*.md(떨림·코너·지도 글자·틱·해상도·측정 방법·흔들림·LOD2·동행 미표시·환경 함정), rider14 보고 reports/ 로 이동, 색인 document/archive/README.md. GPU 스키닝 보고는 G1 완료 후.
