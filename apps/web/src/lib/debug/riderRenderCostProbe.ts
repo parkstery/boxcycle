@@ -1,18 +1,15 @@
 /**
- * 라이더 3D 렌더 비용 계측 — **DEV 전용 진단**.
+ * 라이더 3D 렌더 비용 계측.
  *
- * 왜 (2026-09-27) — 카메라 4단계(5m·60m·200m·전체) 중 뒤 둘은 라이더가 점으로만 보이는데,
- * 렌더 경로에 **줌 판단이 한 줄도 없다.** 점 크기에서도 다리 IK 와 three.js 렌더를 매 프레임
- * 돌린다. 게다가 렌더 루프가 **라이더 한 명마다 전체 장면을 한 번씩** 그린다.
- *
- * 「아낄 수 있나」를 감으로 정하지 않기 위해 **먼저 잰다.** 기존 `mapTickProbe` 는 프레임
- * 전체만 재므로 라이더 몫을 떼어낼 수 없다.
- *
- * 운영 빌드에서는 아무 일도 하지 않는다(`import.meta.env.DEV` 가드).
+ * DEV 에서는 기존과 같이 수명 누적(`window.__rtwRiderCost`).
+ * `?perflab=1` 이면 운영에서도 같은 누적과 최근 10 s 창을 남긴다.
+ * 둘 다 아니면 콜백만 부르고 `performance.now()` 도 호출하지 않는다.
  *
  *   window.__rtwRiderCost.reset()
  *   window.__rtwRiderCost.read()   → { frames, riders, totalMs, msPerFrame, msPerRider, ... }
  */
+
+import { isPerfLabEnabled, PERF_LAB_WINDOW_MS } from "./perfLab";
 
 export type RiderRenderCostSnapshot = {
   /** render() 가 불린 횟수 = 프레임 수 */
@@ -35,6 +32,30 @@ export type RiderRenderCostSnapshot = {
   windowMs: number;
 };
 
+export type RiderLod2State = "none" | "loading" | "ready" | "error";
+
+export type RiderCostSample = {
+  t: number;
+  riders: number;
+  ms: number;
+  poseMs: number;
+};
+
+export type RiderCostWindow = {
+  frames: number;
+  riders: number;
+  msPerFrame: number | null;
+  msPerRider: number | null;
+  posePct: number | null;
+  riderCount: number | null;
+};
+
+export type RiderPerfScene = {
+  zoom: number | null;
+  riderCount: number | null;
+  lod2State: RiderLod2State | null;
+};
+
 declare global {
   interface Window {
     __rtwRiderCost?: {
@@ -50,6 +71,28 @@ let totalMs = 0;
 let maxFrameMs = 0;
 let poseMs = 0;
 let startedAt = 0;
+let framePoseScratch = 0;
+const riderSamples: RiderCostSample[] = [];
+let lastScene: RiderPerfScene = { zoom: null, riderCount: null, lod2State: null };
+
+/**
+ * 시험이 운영 빌드(`import.meta.env.DEV === false`)를 흉내 낸다.
+ * `undefined` 이면 빌드 플래그를 그대로 쓴다.
+ */
+let devOverride: boolean | undefined;
+
+export function setRiderCostDevOverrideForTests(dev: boolean | undefined): void {
+  devOverride = dev;
+}
+
+function devOn(): boolean {
+  if (devOverride !== undefined) return devOverride;
+  return import.meta.env.DEV;
+}
+
+function shouldMeasure(): boolean {
+  return devOn() || isPerfLabEnabled();
+}
 
 function reset(): void {
   frames = 0;
@@ -58,6 +101,9 @@ function reset(): void {
   maxFrameMs = 0;
   poseMs = 0;
   startedAt = performance.now();
+  framePoseScratch = 0;
+  riderSamples.length = 0;
+  lastScene = { zoom: null, riderCount: null, lod2State: null };
 }
 
 function read(): RiderRenderCostSnapshot {
@@ -75,23 +121,103 @@ function read(): RiderRenderCostSnapshot {
   };
 }
 
+export function readRiderRenderCostSnapshot(): RiderRenderCostSnapshot {
+  return read();
+}
+
+export function resetRiderRenderCostProbe(): void {
+  reset();
+}
+
+function pruneRiderSamples(nowMs: number): void {
+  const minT = nowMs - PERF_LAB_WINDOW_MS;
+  let drop = 0;
+  while (drop < riderSamples.length && riderSamples[drop]!.t < minT) drop += 1;
+  if (drop > 0) riderSamples.splice(0, drop);
+}
+
+export function summarizeRiderCostSamples(
+  samples: readonly RiderCostSample[],
+  nowMs: number,
+  windowMs = PERF_LAB_WINDOW_MS,
+): RiderCostWindow {
+  const minT = nowMs - windowMs;
+  let windowFrames = 0;
+  let windowRiders = 0;
+  let windowTotal = 0;
+  let windowPose = 0;
+  let riderCount: number | null = null;
+  for (const sample of samples) {
+    if (sample.t < minT || sample.t > nowMs) continue;
+    windowFrames += 1;
+    windowRiders += sample.riders;
+    windowTotal += sample.ms;
+    windowPose += sample.poseMs;
+    riderCount = sample.riders;
+  }
+  return {
+    frames: windowFrames,
+    riders: windowRiders,
+    msPerFrame: windowFrames > 0 ? windowTotal / windowFrames : null,
+    msPerRider: windowRiders > 0 ? windowTotal / windowRiders : null,
+    posePct: windowTotal > 0 ? (windowPose / windowTotal) * 100 : null,
+    riderCount,
+  };
+}
+
+export function readRiderCostWindow(nowMs?: number): RiderCostWindow {
+  if (!isPerfLabEnabled()) return summarizeRiderCostSamples([], 0);
+  return summarizeRiderCostSamples(riderSamples, nowMs ?? performance.now());
+}
+
+export function readRiderPerfScene(): RiderPerfScene {
+  return { ...lastScene };
+}
+
+/** 라이더가 0명이라 렌더 계측이 안 돌 때도 화면 상태를 남긴다. perflab 이 아니면 즉시 반환. */
+export function noteRiderPerfScene(zoom: number, riderCount: number, lod2State: RiderLod2State): void {
+  if (!isPerfLabEnabled()) return;
+  lastScene = {
+    zoom: Number.isFinite(zoom) ? zoom : null,
+    riderCount,
+    lod2State,
+  };
+}
+
 /**
- * 라이더 렌더 한 프레임을 감싼다. **DEV 가 아니면 콜백만 부르고 끝난다.**
+ * 라이더 렌더 한 프레임을 감싼다.
+ * DEV 도 perflab 도 아니면 콜백만 부르고 끝난다.
  * @param riderCount 이번 프레임에 그린 라이더 수
  */
-export function measureRiderRenderFrame<T>(riderCount: number, run: () => T): T {
-  if (!import.meta.env.DEV) return run();
+export function measureRiderRenderFrame<T>(
+  riderCount: number,
+  run: () => T,
+  zoom?: number,
+  lod2State?: RiderLod2State,
+): T {
+  if (!shouldMeasure()) return run();
 
   if (startedAt === 0) reset();
+  framePoseScratch = 0;
   const t0 = performance.now();
   try {
     return run();
   } finally {
-    const ms = performance.now() - t0;
+    const t1 = performance.now();
+    const ms = t1 - t0;
     frames += 1;
     riders += riderCount;
     totalMs += ms;
     if (ms > maxFrameMs) maxFrameMs = ms;
+    if (isPerfLabEnabled()) {
+      riderSamples.push({ t: t1, riders: riderCount, ms, poseMs: framePoseScratch });
+      pruneRiderSamples(t1);
+      lastScene = {
+        zoom: typeof zoom === "number" && Number.isFinite(zoom) ? zoom : lastScene.zoom,
+        riderCount,
+        lod2State: lod2State ?? lastScene.lod2State,
+      };
+    }
   }
 }
 
@@ -100,12 +226,14 @@ export function measureRiderRenderFrame<T>(riderCount: number, run: () => T): T 
  * 이 비율에 따라 고칠 자리가 달라진다: 자세만 건너뛸지, 렌더까지 건너뛸지.
  */
 export function measureRiderPose<T>(run: () => T): T {
-  if (!import.meta.env.DEV) return run();
+  if (!shouldMeasure()) return run();
   const t0 = performance.now();
   try {
     return run();
   } finally {
-    poseMs += performance.now() - t0;
+    const dt = performance.now() - t0;
+    poseMs += dt;
+    framePoseScratch += dt;
   }
 }
 

@@ -416,6 +416,7 @@
       "debug/mapTickProbe.ts",
       "debug/readSubscriptionMeters.ts",
       "debug/peerSmoothnessProbe.ts",
+      "debug/perfLab.ts",
       "debug/riderRenderCostProbe.ts",
       "debug/tickTestSwitches.ts",
       "debug/rideCameraLab.ts",

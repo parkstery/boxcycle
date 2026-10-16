@@ -1,0 +1,43 @@
+{
+  "capturedAt": "2026-10-16T00:13:14.220Z",
+  "build": "development",
+  "frame": {
+    "samples": 189,
+    "windowMs": 10000,
+    "fps": 18.651929339780914,
+    "p50Ms": 50,
+    "p95Ms": 83.39999999999782,
+    "p99Ms": 149.90000000000146,
+    "maxMs": 1033.2999999999993,
+    "over33Ratio": 0.8359788359788359,
+    "over50Ratio": 0.31746031746031744
+  },
+  "rider": {
+    "frames": 0,
+    "riders": 0,
+    "msPerFrame": null,
+    "msPerRider": null,
+    "posePct": null,
+    "riderCount": 0,
+    "zoom": 15,
+    "lod2State": "ready",
+    "lod2Used": true
+  },
+  "device": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.7827.55 Safari/537.36",
+    "hardwareConcurrency": 12,
+    "deviceMemory": 16,
+    "devicePixelRatio": 1,
+    "screenWidth": 1280,
+    "screenHeight": 720,
+    "innerWidth": 1280,
+    "innerHeight": 720,
+    "webgl": {
+      "unmaskedRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "maxVertexUniformVectors": 4096,
+      "vertexHighFloatPrecision": 23,
+      "vertexHighFloatRangeMin": 127,
+      "vertexHighFloatRangeMax": 127
+    }
+  }
+}

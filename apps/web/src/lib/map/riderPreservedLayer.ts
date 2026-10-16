@@ -1,9 +1,11 @@
 import type { CustomLayerInterface, Map as MapboxMap } from "mapbox-gl";
 import { moveLayerByRank, resolveBeforeIdByRank } from "./layerOrder";
+import { isPerfLabEnabled } from "../debug/perfLab";
 import {
   installRiderRenderCostProbe,
   measureRiderPose,
   measureRiderRenderFrame,
+  noteRiderPerfScene,
 } from "../debug/riderRenderCostProbe";
 import { shouldAnimateRiderPose, shouldUseRiderLod2 } from "../rider/riderDetailLod";
 import { MercatorCoordinate } from "mapbox-gl";
@@ -175,11 +177,13 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
     if (!map || !renderer || !rig) return;
     if (this.specs.length === 0) {
       this.swayEnvelope.prune(new Set());
+      if (isPerfLabEnabled()) noteRiderPerfScene(map.getZoom(), 0, this.lod2State);
       return;
     }
 
     /*
-     * 2026-09-27 — 이 한 프레임의 비용을 잰다(DEV 전용, 운영은 콜백만 부른다).
+     * 2026-09-27 — 이 한 프레임의 비용을 잰다.
+     * DEV 또는 `?perflab=1` 일 때만 누적하고, 그 외 운영은 콜백만 부른다.
      * 아래 루프는 **라이더 한 명마다 전체 장면을 한 번씩** 그린다. 점으로만 보이는
      * 줌에서도 그대로 돈다 — 아낄 여지를 감으로 정하지 않기 위해 먼저 재는 것이다.
      */
@@ -189,7 +193,8 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
      * 실측상 렌더 비용의 40~46% 가 자세 계산이고, 그 자세는 화면에서 보이지 않는다.
      * 위상·위치 같은 상태는 바깥에서 계속 돌므로 가까이 가면 다음 프레임에 바로 맞는다.
      */
-    const animatePose = shouldAnimateRiderPose(map.getZoom());
+    const zoom = map.getZoom();
+    const animatePose = shouldAnimateRiderPose(zoom);
     const nowMs = performance.now();
     const swayDisabledByQuery = isRiderSwayDisabledByQuery();
     const enabled = animatePose && !swayDisabledByQuery;
@@ -242,7 +247,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
       this.camera.projectionMatrixInverse.copy(this.camera.projectionMatrix).invert();
       renderer.render(this.scene, this.camera);
     }
-    });
+    }, zoom, this.lod2State);
     this.swayEnvelope.prune(liveIds);
   }
 

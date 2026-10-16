@@ -106,6 +106,7 @@ import {
 import { RotateOverlay } from "./components/RotateOverlay";
 import { RiderLightLabPanel } from "./components/riderLightLab/RiderLightLabPanel";
 import { RideCameraLabPanel } from "./components/rideCameraLab/RideCameraLabPanel";
+import { PerfLabPanel } from "./components/perfLab/PerfLabPanel";
 import { MapViewSheet } from "./components/map/MapViewSheet";
 import { UserInfoSheet } from "./components/UserInfoSheet";
 import { RideSettingsSheet } from "./components/ride/RideSettingsSheet";
@@ -2841,6 +2842,7 @@ export default function App() {
         camera1Mode={camera1Mode}
         onDistanceM={handleRideCameraDistancePreset}
       />
+      <PerfLabPanel mapZoom={mapZoom} />
 
       <div className="app-map-stage">
         {debugMapIsolationActive ? (

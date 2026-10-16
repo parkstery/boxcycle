@@ -1,0 +1,101 @@
+/*
+ * 실측 패널(`?perflab=1`). 조명·카메라 조절판과 같은 임시 표면.
+ * 네 귀퉁이는 계기·QC·경로·주행 버튼이 쓴다. 기본은 접힘, 펼치면 지도 한가운데 위.
+ */
+.perf-lab {
+  position: fixed;
+  top: 0.35rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  width: max-content;
+  max-width: min(18rem, calc(100vw - 1.2rem));
+  max-height: calc(100dvh - 7rem);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  padding: 0.3rem 0.45rem;
+  background: var(--rtw-panel, rgba(10, 14, 18, 0.88));
+  border: 1px solid var(--rtw-divider, rgba(255, 255, 255, 0.08));
+  border-radius: var(--rtw-radius-md, 14px);
+  box-shadow: var(--rtw-shadow-panel, 0 8px 24px rgba(0, 0, 0, 0.4));
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: var(--rtw-text-primary, #edeff2);
+  font-size: 0.74rem;
+  line-height: 1.25;
+  pointer-events: auto;
+}
+
+.perf-lab--collapsed {
+  max-height: none;
+  overflow: visible;
+  padding: 0.2rem 0.45rem;
+}
+
+.perf-lab__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+}
+
+.perf-lab__title {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.perf-lab__collapse {
+  flex: none;
+  min-height: 44px;
+  padding: 0 0.7rem;
+  border: 1px solid var(--rtw-divider, rgba(255, 255, 255, 0.08));
+  border-radius: var(--rtw-radius-sm, 10px);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  cursor: pointer;
+}
+
+.perf-lab__line {
+  margin: 0;
+}
+
+.perf-lab__muted {
+  color: var(--rtw-text-secondary, #7c8a99);
+  font-weight: 600;
+}
+
+.perf-lab__device {
+  margin: 0;
+  color: var(--rtw-text-secondary, #7c8a99);
+  word-break: break-word;
+}
+
+.perf-lab__copy {
+  width: 100%;
+  min-height: 44px;
+  border: none;
+  border-radius: var(--rtw-radius-md, 14px);
+  background: var(--rtw-trace, #e8a33d);
+  color: var(--rtw-bg, #0a0e12);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.perf-lab__fallback {
+  width: 100%;
+  min-height: 5.5rem;
+  margin: 0;
+  padding: 0.28rem 0.32rem;
+  border-radius: var(--rtw-radius-sm, 10px);
+  border: 1px solid var(--rtw-divider, rgba(255, 255, 255, 0.08));
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  font-family: "Barlow Semi Condensed", "Pretendard Variable", monospace;
+  font-size: 0.66rem;
+  line-height: 1.25;
+  resize: vertical;
+  user-select: text;
+  -webkit-user-select: text;
+}
