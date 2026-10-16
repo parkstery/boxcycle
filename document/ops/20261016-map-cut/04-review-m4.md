@@ -9,3 +9,7 @@
 - `names`(새 기본): `isDecorativeSymbolLayer` — 이름 레이어 우선 유지, 모르는 것은 숨기지 않음. 스타일 3종 숨김 = 기대치 정확 일치(outdoors 20·satellite 6·night 16), 이름층 filter·visibility 호출 0, 복원 불일치 0.
 - perflab 패널: 상단 가운데 → 왼쪽 가장자리 세로 중앙, 카메라·맵 버튼 줄과 겹침 0(1280×720·699×273).
 - 검증: tsc 0, check-dep 미지정 0, test:quick(worktree 3건 외) map 123/0, rider-preserve 44+6, build 0.
+
+## Chief 확정
+
+2026-10-16 Chief: "names 모드로 하자. 이대로 간다." — 기본 글자 모드 `names` 확정, 추가 캡처 불필요.
