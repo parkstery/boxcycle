@@ -60,8 +60,11 @@ import {
   noteSyncActivityMs,
   isFollowCameraJump,
 } from "../../lib/debug/mapTickProbe";
-import { noteRiderJitterFrame } from "../../lib/debug/riderJitterProbe";
-import { attachMapRenderProbe, openFrameBreakdownTick } from "../../lib/debug/frameBreakdownProbe";
+import {
+  attachMapRenderProbe,
+  noteRiderJitterFrame,
+  openFrameBreakdownTick,
+} from "../../lib/debug/perfLabFacade";
 import { installCameraRenderPhaseHook } from "../../lib/camera/cameraRenderPhase";
 import type { LngLat, LineStringGeometry } from "../../lib/geo/geo";
 import {

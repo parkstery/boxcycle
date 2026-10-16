@@ -419,6 +419,8 @@
       "debug/readSubscriptionMeters.ts",
       "debug/frameBreakdownProbe.ts",
       "debug/perfLab.ts",
+      "debug/perfLabFacade.ts",
+      "debug/perfLabRuntime.ts",
       "debug/riderJitterProbe.ts",
       "debug/riderRenderCostProbe.ts",
       "debug/rideCameraLab.ts",
