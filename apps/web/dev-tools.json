@@ -1,0 +1,610 @@
+{
+  "$schema": "./dev-tools.schema.md",
+  "왜": "디버그 모듈·주소 스위치·아무도 부르지 않는 스크립트의 단일 등록부. scripts/check-dev-tools.mjs 가 이 파일만 읽고 푸시 전에 판정한다.",
+  "원칙": [
+    "디버그 코드는 apps/web/src/lib/debug/ 에만 둔다.",
+    ".out 안에는 실행 코드를 두지 않는다. 지워도 되는 산출물만 두고 git 이 추적하면 게이트가 막는다.",
+    "temporary 는 만료일이 필수다. 만료 후 30일까지는 경고, 그 다음은 실패.",
+    "시험 파일과 다른 코드가 부르는 스크립트는 등록하지 않아도 된다. 판단이 애매하면 temporary."
+  ],
+  "tools": [
+    {
+      "id": "distanceAutoRouteClickDebugMarker",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/distanceAutoRouteClickDebugMarker.ts",
+      "class": "permanent",
+      "purpose": "DEV 자동 경로 클릭 좌표. distance-auto-route-click-intent.test.ts",
+      "enable": "DEV 빌드. 시험이 직접 import",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "documentVisibilityOverride",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/documentVisibilityOverride.ts",
+      "class": "permanent",
+      "purpose": "가시성 시험 덮어쓰기. visibility-read-meters.test.ts · visibility-gate-contract.test.ts",
+      "enable": "시험이 setDocumentVisibilityOverrideForTests",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "frameBreakdownProbe",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/frameBreakdownProbe.ts",
+      "class": "permanent",
+      "purpose": "perflab 프레임 분해. frame-breakdown.test.ts",
+      "enable": "?perflab=1",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "hudCompanionDiag",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/hudCompanionDiag.ts",
+      "class": "permanent",
+      "purpose": "HUD 동행 진단. e2e/h1-hud-companion.spec.ts · e2e/pacer-solo.spec.ts",
+      "enable": "DEV 빌드 window.__rtwHudDiag",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "installHudCompanionDebug",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/installHudCompanionDebug.ts",
+      "class": "permanent",
+      "purpose": "DEV window.__rtwHudDiag 설치. e2e/h1-hud-companion.spec.ts",
+      "enable": "DEV 빌드에서 main.tsx 가 설치",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "installLiveRideExistsDebug",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/installLiveRideExistsDebug.ts",
+      "class": "permanent",
+      "purpose": "DEV window.__rtwLiveRideExists. e2e/peer-sync-s41r.spec.ts",
+      "enable": "DEV 빌드",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "installMotionExistsDebug",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/installMotionExistsDebug.ts",
+      "class": "permanent",
+      "purpose": "DEV window.__rtwMotionExists. e2e/peer-sync-s4m1.spec.ts",
+      "enable": "DEV 빌드",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "installReadSubscriptionDebug",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/installReadSubscriptionDebug.ts",
+      "class": "permanent",
+      "purpose": "DEV 구독 계측 window. s42/read-meters-and-hubs.test.ts",
+      "enable": "DEV 빌드에서 main.tsx 가 설치",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "installTouchActivityDebug",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/installTouchActivityDebug.ts",
+      "class": "permanent",
+      "purpose": "DEV window.__rtwTouchMeters. s43/touch-meters.test.ts 가 같은 계측을 쓴다",
+      "enable": "DEV 빌드에서 main.tsx 가 설치",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "installTrafficPublishDebug",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/installTrafficPublishDebug.ts",
+      "class": "permanent",
+      "purpose": "DEV 트래픽 계측 window. traffic-publish-meters.test.ts · e2e/public-trail-traffic-1-2.spec.ts",
+      "enable": "DEV 빌드에서 main.tsx 가 설치",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "mapDebugPhase",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/mapDebugPhase.ts",
+      "class": "permanent",
+      "purpose": "지도 표현 단계. VITE_MAP_DEBUG_PHASE",
+      "enable": "VITE_MAP_DEBUG_PHASE=A|B|C",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "mapTickProbe",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/mapTickProbe.ts",
+      "class": "permanent",
+      "purpose": "DEV 맵 틱 계측만 남음. e2e/u2-map-render-tick.spec.ts · u3-camera-trace.spec.ts · u5-shots.spec.ts",
+      "enable": "DEV 빌드 window.__RTW_MAP_TICK_START__",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "peerIngestDiag",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/peerIngestDiag.ts",
+      "class": "permanent",
+      "purpose": "DEV 동행 ingest 진단. peer-ingest-diag-capture.test.mjs",
+      "enable": "DEV 빌드 window.__rtwPeerIngestDiag",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "perfLab",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/perfLab.ts",
+      "class": "permanent",
+      "purpose": "perflab 패널·프레임 통계. perf-lab.test.ts · frame-breakdown.test.ts",
+      "enable": "?perflab=1",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "perfLabFacade",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/perfLabFacade.ts",
+      "class": "permanent",
+      "purpose": "perflab 창구. 기본 청크에는 스위치와 빈 함수만",
+      "enable": "?perflab=1",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "perfLabRuntime",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/perfLabRuntime.ts",
+      "class": "permanent",
+      "purpose": "perflab 계측 청크의 동적 import 진입",
+      "enable": "?perflab=1",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "readSubscriptionMeters",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/readSubscriptionMeters.ts",
+      "class": "permanent",
+      "purpose": "구독 읽기 계측. s42/read-meters-and-hubs.test.ts",
+      "enable": "상시 계측. 시험이 직접 import",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "rideCameraLab",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/rideCameraLab.ts",
+      "class": "permanent",
+      "purpose": "카메라 조절판",
+      "enable": "?camlab=1",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "riderJitterProbe",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/riderJitterProbe.ts",
+      "class": "permanent",
+      "purpose": "라이더 떨림 계측. rider-jitter.test.ts",
+      "enable": "?perflab=1",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "riderRenderCostProbe",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/riderRenderCostProbe.ts",
+      "class": "permanent",
+      "purpose": "라이더 렌더 비용. perf-lab.test.ts · frame-breakdown.test.ts",
+      "enable": "?perflab=1 또는 DEV window.__rtwRiderCost",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "touchActivityMeters",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/touchActivityMeters.ts",
+      "class": "permanent",
+      "purpose": "터치 계측. s43/touch-meters.test.ts",
+      "enable": "상시 계측. 시험이 직접 import",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "trafficPairedCapture",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/trafficPairedCapture.ts",
+      "class": "permanent",
+      "purpose": "같은 구간 트래픽 캡처. traffic-paired-capture.test.ts · e2e/public-trail-traffic-1-2.spec.ts",
+      "enable": "DEV 빌드 __rtwTrafficMetersApi.armPairedCapture",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "trafficPublishMeters",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/trafficPublishMeters.ts",
+      "class": "permanent",
+      "purpose": "트래픽 발행 계측. traffic-publish-meters.test.ts",
+      "enable": "상시 계측. 시험이 직접 import",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "visibilityReadMeters",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/visibilityReadMeters.ts",
+      "class": "permanent",
+      "purpose": "가시성 읽기 계측. visibility-read-meters.test.ts",
+      "enable": "상시 계측. 시험이 직접 import",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "q-subscription",
+      "kind": "query",
+      "key": "subscription",
+      "class": "product",
+      "purpose": "결제 복귀",
+      "enable": "?subscription=",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "q-trail",
+      "kind": "query",
+      "key": "trail",
+      "class": "product",
+      "purpose": "공유 링크 Trail ID",
+      "enable": "?trail=",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "q-room",
+      "kind": "query",
+      "key": "room",
+      "class": "product",
+      "purpose": "공유 링크 하위 호환. trail 과 같은 Trail ID",
+      "enable": "?room=",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "q-perflab",
+      "kind": "query",
+      "key": "perflab",
+      "class": "permanent",
+      "purpose": "성능 패널",
+      "enable": "?perflab=1",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "q-mapcut",
+      "kind": "query",
+      "key": "mapcut",
+      "class": "permanent",
+      "purpose": "지도 요소별 비용 비교",
+      "enable": "?mapcut=",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "q-labelmode",
+      "kind": "query",
+      "key": "labelmode",
+      "class": "permanent",
+      "purpose": "주행 글자 모드",
+      "enable": "?labelmode=",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "q-labeldist",
+      "kind": "query",
+      "key": "labeldist",
+      "class": "permanent",
+      "purpose": "주행 글자 거리",
+      "enable": "?labeldist=",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "q-labels",
+      "kind": "query",
+      "key": "labels",
+      "class": "permanent",
+      "purpose": "주행 글자 숨김 끄기",
+      "enable": "?labels=1",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "q-maxdpr",
+      "kind": "query",
+      "key": "maxdpr",
+      "class": "permanent",
+      "purpose": "지도 렌더 배율 상한",
+      "enable": "?maxdpr=",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "q-skin",
+      "kind": "query",
+      "key": "skin",
+      "class": "permanent",
+      "purpose": "스키닝 경로",
+      "enable": "?skin=cpu|gpu",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "q-camlab",
+      "kind": "query",
+      "key": "camlab",
+      "class": "permanent",
+      "purpose": "카메라 조절판",
+      "enable": "?camlab=1",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "q-lightlab",
+      "kind": "query",
+      "key": "lightlab",
+      "class": "permanent",
+      "purpose": "조명 조절판",
+      "enable": "?lightlab=1",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "q-rideCam",
+      "kind": "query",
+      "key": "rideCam",
+      "class": "permanent",
+      "purpose": "카메라 거리 덮어쓰기",
+      "enable": "?rideCam=",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "q-ridePitch",
+      "kind": "query",
+      "key": "ridePitch",
+      "class": "permanent",
+      "purpose": "카메라 각도 덮어쓰기",
+      "enable": "?ridePitch=",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "q-riderModel",
+      "kind": "query",
+      "key": "riderModel",
+      "class": "permanent",
+      "purpose": "라이더 모델 비교. DEV",
+      "enable": "?riderModel=",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "q-sway",
+      "kind": "query",
+      "key": "sway",
+      "class": "permanent",
+      "purpose": "흔들림 끄기. DEV",
+      "enable": "?sway=0",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "q-peerSyncLogMs",
+      "kind": "query",
+      "key": "peerSyncLogMs",
+      "class": "permanent",
+      "purpose": "동행 동기 로그 간격. DEV",
+      "enable": "?peerSyncLogMs=",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "run-real-gpu",
+      "kind": "script",
+      "path": "apps/web/scripts/perf/run-real-gpu.mjs",
+      "class": "permanent",
+      "purpose": "운영 URL·실GPU perflab 측정. headed 필요",
+      "enable": "node apps/web/scripts/perf/run-real-gpu.mjs",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "ride-label-names-headless",
+      "kind": "script",
+      "path": "apps/web/scripts/map/ride-label-names-headless.mjs",
+      "class": "permanent",
+      "purpose": "새 지도 스타일의 주행 글자 확인",
+      "enable": "node apps/web/scripts/map/ride-label-names-headless.mjs",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "rider-perf-bench-run",
+      "kind": "script",
+      "path": "apps/web/scripts/rider-preserve/rider-perf-bench.run.mjs",
+      "class": "permanent",
+      "purpose": "라이더 성능 벤치 실행",
+      "enable": "node apps/web/scripts/rider-preserve/rider-perf-bench.run.mjs",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "stage-rider14",
+      "kind": "script",
+      "path": "apps/web/scripts/rider-preserve/stage-rider14.mjs",
+      "class": "permanent",
+      "purpose": "rider14 후보 GLB 스테이징",
+      "enable": "node apps/web/scripts/rider-preserve/stage-rider14.mjs",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "stage-rider14-lod2",
+      "kind": "script",
+      "path": "apps/web/scripts/rider-preserve/stage-rider14-lod2.mjs",
+      "class": "permanent",
+      "purpose": "rider14 LOD2 GLB 스테이징",
+      "enable": "node apps/web/scripts/rider-preserve/stage-rider14-lod2.mjs",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "capture-gpu-skin-compare",
+      "kind": "script",
+      "path": "apps/web/scripts/rider-preserve/capture-gpu-skin-compare.mjs",
+      "class": "permanent",
+      "purpose": "GPU 스키닝 비교 캡처",
+      "enable": "node apps/web/scripts/rider-preserve/capture-gpu-skin-compare.mjs",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "verify-visual-kit-on-glb",
+      "kind": "script",
+      "path": "apps/web/scripts/rider-preserve/verify-visual-kit-on-glb.mjs",
+      "class": "permanent",
+      "purpose": "GLB 에 비주얼 키트가 붙는지 확인",
+      "enable": "node apps/web/scripts/rider-preserve/verify-visual-kit-on-glb.mjs",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "preserved-app-validator-html",
+      "kind": "script",
+      "path": "apps/web/scripts/rider-preserve/preserved-app-validator.html",
+      "class": "permanent",
+      "purpose": "preserved 라이더 앱 검증 페이지",
+      "enable": "브라우저로 apps/web/scripts/rider-preserve/preserved-app-validator.html",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "check-document-system",
+      "kind": "script",
+      "path": "scripts/check-document-system.mjs",
+      "class": "permanent",
+      "purpose": "현재 문서 링크·색인 검사. document/ 언급은 호출로 치지 않아 등록",
+      "enable": "node scripts/check-document-system.mjs",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "verify-gates-alive",
+      "kind": "script",
+      "path": "scripts/verify-gates-alive.mjs",
+      "class": "permanent",
+      "purpose": "게이트를 일부러 깨뜨려 살아 있는지 확인. 깨끗한 트리에서만",
+      "enable": "node scripts/verify-gates-alive.mjs",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17"
+    },
+    {
+      "id": "resume-slot-ui-fixture",
+      "kind": "script",
+      "path": "apps/web/scripts/next-ride/resume-slot-ui-fixture.html",
+      "class": "temporary",
+      "purpose": "이어달리기 UI 캡처 픽스처. 캡처 스크립트는 T1 에서 삭제",
+      "enable": "브라우저로 apps/web/scripts/next-ride/resume-slot-ui-fixture.html",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17",
+      "expires": "2026-11-17"
+    },
+    {
+      "id": "calorie-settings-ui-fixture",
+      "kind": "script",
+      "path": "apps/web/scripts/ride-calories/calorie-settings-ui-fixture.html",
+      "class": "temporary",
+      "purpose": "칼로리 설정 UI 캡처 픽스처. 캡처 스크립트는 T1 에서 삭제",
+      "enable": "브라우저로 apps/web/scripts/ride-calories/calorie-settings-ui-fixture.html",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17",
+      "expires": "2026-11-17"
+    },
+    {
+      "id": "s3b2r-fitcurve",
+      "kind": "script",
+      "path": "apps/web/scripts/peer-sync/s3b2r-fitcurve.mjs",
+      "class": "temporary",
+      "purpose": "동행 S3B2 곡선 맞춤 일회 요약. e2e 가 쓰지 않음",
+      "enable": "node apps/web/scripts/peer-sync/s3b2r-fitcurve.mjs",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17",
+      "expires": "2026-11-17"
+    },
+    {
+      "id": "ride-result-s2-hook-note",
+      "kind": "script",
+      "path": "apps/web/scripts/ride-result/ride-result-s2-hook-integration-note.md",
+      "class": "temporary",
+      "purpose": "S2 훅 통합 메모. 시험이 이 파일을 열지 않음",
+      "enable": "문서 apps/web/scripts/ride-result/ride-result-s2-hook-integration-note.md",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17",
+      "expires": "2026-11-17"
+    },
+    {
+      "id": "phase-align-predeploy-misaligned",
+      "kind": "script",
+      "path": "apps/web/scripts/traffic/fixtures/phase-align-predeploy-misaligned.json",
+      "class": "temporary",
+      "purpose": "phase-aligned 측정 예시 입력(어긋난 경우)",
+      "enable": "node apps/web/scripts/traffic/phase-aligned-measurement.mjs --input apps/web/scripts/traffic/fixtures/phase-align-predeploy-misaligned.json",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17",
+      "expires": "2026-11-17"
+    },
+    {
+      "id": "phase-align-synthetic-ok",
+      "kind": "script",
+      "path": "apps/web/scripts/traffic/fixtures/phase-align-synthetic-ok.json",
+      "class": "temporary",
+      "purpose": "phase-aligned 측정 예시 입력(맞는 경우)",
+      "enable": "node apps/web/scripts/traffic/phase-aligned-measurement.mjs --input apps/web/scripts/traffic/fixtures/phase-align-synthetic-ok.json",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17",
+      "expires": "2026-11-17"
+    },
+    {
+      "id": "ops-relay-check-amend",
+      "kind": "script",
+      "path": "scripts/ops-relay/check-amend.mjs",
+      "class": "temporary",
+      "purpose": "옛 ops 릴레이 정정 감지. 현재 프로토콜은 파일 인계",
+      "enable": "node scripts/ops-relay/check-amend.mjs",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17",
+      "expires": "2026-11-17"
+    },
+    {
+      "id": "ops-relay-watch-status",
+      "kind": "script",
+      "path": "scripts/ops-relay/watch-status.mjs",
+      "class": "temporary",
+      "purpose": "옛 ops 릴레이 상태 감시",
+      "enable": "node scripts/ops-relay/watch-status.mjs",
+      "bundle": "20261017-dev-byproducts",
+      "added": "2026-10-17",
+      "expires": "2026-11-17"
+    }
+  ]
+}

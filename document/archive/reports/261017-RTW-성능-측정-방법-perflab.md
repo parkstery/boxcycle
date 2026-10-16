@@ -38,11 +38,11 @@
 
 ## 3. 실GPU 자동 측정 스크립트(PC)
 
-- 경로: `C:\20.HDev\boxcycle\apps\web\scripts\rider-preserve\.out\mapcut\run-mapcut.mjs` (`.out` 은 gitignore — 저장소에 없음, 지우지 말 것)
+- 경로: `apps/web/scripts/perf/run-real-gpu.mjs` (git 추적). 실행: `node apps/web/scripts/perf/run-real-gpu.mjs`
 - **headed** Playwright 로 운영 사이트를 실제 GPU(GTX 1660)로 연다. 헤드리스는 SwiftShader 라 GPU 수치가 무의미.
 - 환경 변수: `VARIANTS`(쉼표 구분: `none`, `labelsOn`, `mode-X[@거리]`, `deco` …), `COURSE`(예 `파리`).
 - 동작: 코스 선택 → 주행 시작 → 카메라 2 버튼을 `dispatchEvent` 로 클릭 → **줌 ≥ 21 될 때까지 대기** → 일정 시간 perflab 수치 수집.
-- 출력: 같은 폴더 `report-*.json`, `view-*.png`, `label-modes-*.png`(비교 이미지).
+- 출력: `apps/web/scripts/perf/.out/<날짜시각>/` 의 `report-*.json`, `view-*.png`, `shot-*.png` (`.out` 은 gitignore).
 - 실행 전 메모리 확보(브라우저·opencode 등 보조 프로세스 종료). 메모리 압박 중 수치는 버린다.
 
 ## 함정

@@ -58,8 +58,8 @@ import {
   notePathBInterval,
   noteRafFrame,
   noteSyncActivityMs,
-  isFollowCameraJump,
 } from "../../lib/debug/mapTickProbe";
+import { isFollowCameraJump } from "./followCameraJump";
 import {
   attachMapRenderProbe,
   noteRiderJitterFrame,

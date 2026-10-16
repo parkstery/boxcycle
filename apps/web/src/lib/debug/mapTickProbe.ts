@@ -1,6 +1,7 @@
 /**
  * U-2 DEV — 주행 중 맵 틱 계측. 센티넬(Infinity·축퇴 0)은 기록하지 않고 버린다.
  * 수정 전/후 같은 시계(performance.now)로 이벤트·경로 A/B·rAF 를 남긴다.
+ * 운영 카메라 jump 깊이는 components/map/followCameraJump.ts.
  */
 
 export type MapTickLongFrame = { t: number; dt: number };
@@ -60,7 +61,6 @@ type Probe = {
 const EMPTY_EVENTS = { move: 0, zoom: 0, moveend: 0, zoomend: 0, idle: 0 };
 
 let probe: Probe | null = null;
-let followJumpDepth = 0;
 
 function now(): number {
   return performance.now();
@@ -72,18 +72,6 @@ function finite(n: number): boolean {
 
 function dropSentinel(): void {
   if (probe) probe.sentinelDropped += 1;
-}
-
-export function isFollowCameraJump(): boolean {
-  return followJumpDepth > 0;
-}
-
-export function beginFollowCameraJump(): void {
-  followJumpDepth += 1;
-}
-
-export function endFollowCameraJump(): void {
-  followJumpDepth = Math.max(0, followJumpDepth - 1);
 }
 
 export function startMapTickProbe(): void {

@@ -3,7 +3,7 @@
 | 항목 | 내용 |
 |---|---|
 | 발행 | 2026-10-17 · Supervisor (Claude) |
-| 대상 | Developer — T2 와 같은 에이전트(교대 규칙에 따름) |
+| 대상 | Developer — **Cursor Agent** (Muse 한도 초과 후 교대 유지) |
 | 작업 위치 | `C:\20.HDev\boxcycle-devtools` (T2 병합 뒤 main2 기준) |
 | 결과 파일 | `document/ops/20261017-dev-byproducts/03-result-t3.md` |
 | 근거 | [02-rules](02-rules.md) §2·§3·§5 |
@@ -29,7 +29,7 @@
 
 ## 3. 측정 스크립트 정식 위치
 
-- `apps/web/scripts/rider-preserve/.out/mapcut/run-mapcut.mjs` → **`apps/web/scripts/perf/run-real-gpu.mjs`** (git 추적). 결과 출력 경로는 `apps/web/scripts/perf/.out/<날짜시각>/` 로. 파일 머리 주석에 사용법: 환경 변수(`VARIANTS`, `COURSE`), 변형 이름 규칙(`none`, `labelsOn`, `mode-X[@D]`, `deco`, `skin-cpu|gpu[N]`, mapcut 키), headed·실제 GPU 필요, 운영 URL 대상.
+- `apps/web/scripts/rider-preserve/.out/mapcut/run-mapcut.mjs` → **`apps/web/scripts/perf/run-real-gpu.mjs`** (git 추적). 결과 출력 경로는 `apps/web/scripts/perf/.out/<날짜시각>/` 로. 파일 머리 주석에 사용법: 환경 변수(`VARIANTS`, `COURSE`, `BASE`=대상 주소, 기본 운영), 변형 이름 규칙(`none`, `labelsOn`, `mode-X[@D]`, `deco`, `skin-cpu|gpu[N]`, mapcut 키), headed·실제 GPU 필요, 운영 URL 대상.
 - 등록부에 `permanent` 로 등록, `enable` 에 실행 명령.
 - 원본 `.out` 파일은 그대로 둔다(이동 아님 — 복사 후 수정).
 - `document/archive/reports/261017-RTW-성능-측정-방법-perflab.md` §3 의 경로를 새 위치로 고친다.

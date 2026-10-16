@@ -1,8 +1,9 @@
 #!/bin/sh
-# RTW pre-push 게이트 8종 (2026-10-09 기준).
+# RTW pre-push 게이트 9종 (2026-10-17 기준).
 #
-#   lock 동기 · harness 설정 동기 · lib 의존 방향/순환 · web 타입체크 ·
-#   web 단위 시험 전체(test:quick) · **진입 셀렉터 계약** · functions 타입체크+계약 · Claim 셀 ID 벡터
+#   lock 동기 · harness 설정 동기 · lib 의존 방향/순환 · 개발 부산물 등록부 ·
+#   web 타입체크 · web 단위 시험 전체(test:quick) · **진입 셀렉터 계약** ·
+#   functions 타입체크+계약 · Claim 셀 ID 벡터
 #
 # 건수는 여기 적지 않는다 — 시험이 늘 때마다 주석만 낡는다(2026-09-26: 245·269 가 둘 다 낡아 있었다).
 #
@@ -65,6 +66,16 @@ if [ -n "$touch_web" ] || [ -n "$touch_dep" ]; then
   node scripts/check-dep-direction.mjs --check || fail=1
 fi
 
+# 개발 부산물 등록부 (2026-10-17).
+# 디버그 파일·주소 스위치·안 불리는 스크립트·추적된 .out·낡은 등록·만료를 막는다.
+# 통과만으로는 게이트가 살아 있는지 모른다. src/lib/debug 에 임시 파일을 두면
+# --check 가 「debug 미등록」으로 실패하는 것을 확인했다.
+touch_devtools=$(echo "$changed" | grep -E 'apps/web/dev-tools|apps/web/src/lib/debug/|^apps/web/scripts/|^scripts/' || true)
+if [ -n "$touch_web" ] || [ -n "$touch_devtools" ]; then
+  echo "[pre-push] 개발 부산물 등록부…"
+  node scripts/check-dev-tools.mjs --check || fail=1
+fi
+
 if [ -n "$touch_web" ]; then
   echo "[pre-push] typecheck apps/web (tsc -b --noEmit)…"
   ( cd apps/web && npx tsc -b --noEmit ) || fail=1
@@ -116,9 +127,9 @@ fi
 if [ "$fail" -ne 0 ]; then
   echo ""
   echo "[pre-push] 게이트 실패 — 원격에 올리기 전에 고치세요."
-  echo "           게이트 8종: lock 동기 · harness 설정 동기 · lib 의존 방향/순환 ·"
-  echo "                      web 타입체크 · web 단위 시험(test:quick) · 진입 셀렉터 계약 ·"
-  echo "                      functions 타입체크+계약 ·"
+  echo "           게이트 9종: lock 동기 · harness 설정 동기 · lib 의존 방향/순환 ·"
+  echo "                      개발 부산물 등록부 · web 타입체크 · web 단위 시험(test:quick) ·"
+  echo "                      진입 셀렉터 계약 · functions 타입체크+계약 ·"
   echo "                      Claim 셀 ID 벡터(클라↔서버)"
   echo "           정말 급하면: git push --no-verify (예외)"
   exit 1
