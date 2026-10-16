@@ -47,6 +47,7 @@ import {
 } from "../../lib/map/rtwMapConfig";
 import { conquestLayerEmphasis } from "../../lib/conquest/conquestLayerEmphasis";
 import { applyMapCutToMap, getMapCutKeys } from "../../lib/map/mapCut";
+import { getRideLabelsController } from "../../lib/map/rideLabels";
 import {
   shouldMoveActivityWorldLayersToTop,
 } from "../../lib/debug/mapDebugPhase";
@@ -3179,6 +3180,40 @@ export function MapView({
       map.off("style.load", reapply);
     };
   }, [mapLoaded]);
+
+  /**
+   * 주행 중 가까운 카메라 글자 숨김 (Chief 결정 A) — 주행 상태·줌 변화에만 반응.
+   * 상태가 바뀔 때만 setLayoutProperty 를 호출한다(컨트롤러가 보장).
+   * mapcut effect 보다 뒤에 등록되므로 style.load 에서는 mapcut 적용 뒤에 덮는다.
+   */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+    const controller = getRideLabelsController();
+    const sync = () => {
+      try {
+        controller.update(map, { riding: rideActive, zoom: map.getZoom() });
+      } catch {
+        /* 글자 스위치 실패가 주행 지도를 막지 않는다 */
+      }
+    };
+    sync();
+    map.on("zoom", sync);
+    map.on("zoomend", sync);
+    const onStyleLoad = () => {
+      try {
+        controller.reapply(map);
+      } catch {
+        /* 글자 스위치 */
+      }
+    };
+    map.on("style.load", onStyleLoad);
+    return () => {
+      map.off("zoom", sync);
+      map.off("zoomend", sync);
+      map.off("style.load", onStyleLoad);
+    };
+  }, [mapLoaded, rideActive]);
 
   if (!accessToken?.trim()) {
     return (

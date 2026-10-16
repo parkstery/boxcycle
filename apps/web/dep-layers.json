@@ -399,6 +399,7 @@
       "map/mapPickRouteDock.ts",
       "map/mapSelfLocationMarker.ts",
       "map/mapCut.ts",
+      "map/rideLabels.ts",
       "map/rideEndNorthUp.ts",
       "map/riderPreservedLayer.ts",
       "map/rtwMapConfig.ts"

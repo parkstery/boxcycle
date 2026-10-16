@@ -26,6 +26,7 @@ import {
 } from "../../lib/debug/frameBreakdownProbe";
 import { shouldAnimateRiderPose, shouldUseRiderLod2 } from "../../lib/rider/riderDetailLod";
 import { getMapCutKeys } from "../../lib/map/mapCut";
+import { readRideLabelsHidden } from "../../lib/map/rideLabels";
 import "./PerfLabPanel.css";
 
 /**
@@ -124,6 +125,7 @@ function buildReport(mapZoom: number, scene: RiderPerfScene) {
     capturedAt: new Date().toISOString(),
     build: readAppBuildId(),
     mapcut: getMapCutKeys(),
+    rideLabelsHidden: readRideLabelsHidden(),
     frame: readPerfLabFrameStats(),
     rider: {
       ...readRiderCostWindow(),
@@ -292,6 +294,7 @@ function PerfLabPanelInner({ mapZoom }: { mapZoom: number }) {
   const device = readPerfLabDeviceInfo();
   const zoom = scene.zoom ?? mapZoom;
   const mapcut = getMapCutKeys();
+  const rideLabelsHidden = readRideLabelsHidden();
   void tick;
 
   const copyReport = async () => {
@@ -319,6 +322,7 @@ function PerfLabPanelInner({ mapZoom }: { mapZoom: number }) {
       <div className="perf-lab__head">
         <span className="perf-lab__title">성능</span>
         <span className="perf-lab__muted">mapcut {mapcut.length > 0 ? mapcut.join(",") : "없음"}</span>
+        <span className="perf-lab__muted">글자 {rideLabelsHidden ? "숨김" : "표시"}</span>
         <button
           type="button"
           className="perf-lab__collapse"
