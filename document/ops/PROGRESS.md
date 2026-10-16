@@ -1,3 +1,5 @@
+2026-10-17 개발 부산물 묶음 CLOSED: T1 삭제(Muse→Supervisor), T2 패널 분리(Cursor, 기본 청크 3,731→3,692 kB), T3 dev-tools.json 등록부 59항목 + pre-push 게이트 + scripts/perf/run-real-gpu.mjs (Cursor). main2 5cc0c26 운영 배포. temporary 8건 만료 2026-11-17.
+
 2026-10-17 정리: 10-15~16 묶음 12개 CLOSED — 11개 archive/ops 이동(링크 재작성, 새 오류 0), map-cut 은 스크립트 주석 참조로 제자리. 고아 프로세스(gpuskin vite 3·opencode serve·firebase-functions) 종료, gpuskin 폴더·tmp/stash-backup-20261015 삭제. T1 삭제 완료(Muse 한도 → Supervisor 마무리), T2 Cursor 진행 중.
 
 2026-10-17 GPU 스키닝 G2 운영 배포: main2 ef9efad, 기본 gpu(?skin=cpu 로 끔). 운영 쿼리 없이 skin=gpu 확인, PC 70.7 fps·라이더 0.39 ms. perflab 패널 오른쪽·끌어 옮기기(5b1f3c2). 보고 archive/reports/261017-RTW-GPU-스키닝.md. 다음: 개발 부산물(측정 코드·스크립트) 관리 방안 정립.

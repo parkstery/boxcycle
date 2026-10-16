@@ -27,6 +27,7 @@
 
 | 묶음 | 종료 결과 | 이동을 막는 참조 |
 |---|---|---|
+| [20261017-dev-byproducts](../ops/20261017-dev-byproducts/README.md) | CLOSED 2026-10-17 · 부산물 삭제·패널 분리·등록부 게이트 | `document/ops/README.md` 규칙이 이 묶음의 [관리 규칙](../ops/20261017-dev-byproducts/02-rules.md)을 가리킴(현행 규칙 문서) |
 | [20261016-map-cut](../ops/20261016-map-cut/04-review-m4.md) | CLOSED 2026-10-17 · [보고](reports/261017-RTW-주행-지도-글자-names-모드.md) | `apps/web/scripts/map/ride-label-names-headless.mjs` 주석 |
 | [20261005-peer-spacing-jitter](../ops/20261005-peer-spacing-jitter/README.md) | Chief PASS · main2/main 통합 · [최종 보고](261005-RTW-동행-위치-동기화와-반복진동-해결-결과보고.md) | `apps/web/scripts/peer-sync/*harness*`·mutation 도구의 입력/출력 경로 |
 | [20260929-public-trail-traffic](../ops/20260929-public-trail-traffic/README.md) | CLOSED · [최종 보고](261001-Public-Trail-동행-트래픽-개선-결과보고.md) · 운영 billed 관측은 별도 미실시 | `apps/web/scripts/e2e/run-public-trail-traffic-meter.mjs`가 실행 결과를 이 묶음에 복사 |
