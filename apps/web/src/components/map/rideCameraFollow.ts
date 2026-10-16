@@ -15,11 +15,13 @@ import {
 } from "../../lib/camera/rideCameraFraming";
 import type { RideSpanFloorMode } from "../../lib/camera/rideCameraFraming";
 import {
-  beginFollowCameraJump,
-  endFollowCameraJump,
   noteFollowJumpTo,
   noteHeadingFromMove,
 } from "../../lib/debug/mapTickProbe";
+import {
+  beginFollowCameraJump,
+  endFollowCameraJump,
+} from "./followCameraJump";
 import { noteFollowJumpToValues } from "../../lib/camera/cameraFollowTrace";
 import { noteCameraWrite } from "../../lib/camera/cameraRenderPhase";
 import {

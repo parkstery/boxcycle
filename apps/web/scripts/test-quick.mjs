@@ -51,7 +51,7 @@ const GROUPS = {
   map: ["map", "focus-read-spike"],
   peer: ["peer-sync"],
   meters: ["traffic", "s42", "s43"],
-  tools: ["e2e", "."],
+  tools: ["e2e", ".", "tools"],
 };
 
 const GROUP_LABEL = {
