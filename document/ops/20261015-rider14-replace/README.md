@@ -23,5 +23,5 @@
 | 지시 P4-R1 | [02-task-p4-r1](02-task-p4-r1.md) → [03-result-p4](03-result-p4.md) → [감리](04-review-p4.md) | **APPROVED** — G4 Chief 승인("계속 진행해") |
 | 지시 P5 | [02-task-p5](02-task-p5.md) → [03-result-p5](03-result-p5.md) → [감리](04-review-p5.md) | **APPROVED** — 14콜, ms/rider −35~−85%, 자산 476 KB, 첫 표시 +6%/−3%, 폰 실기기(미리보기 채널) Chief 확인 |
 | 지시 P6 | [02-task-p6](02-task-p6.md) → [03-result-p6](03-result-p6.md) → [감리](04-review-p6.md) | **APPROVED** — 제품 기본 rider14(미커밋), 번들 +32.6 KB(gzip +9.6 KB), 운영 빌드 `riderModel` 0건, 로컬 앱 주행 렌더 확인 |
-| P7 마감 | [완료 보고](../../archive/261016-RTW-라이더-rider14-교체-완료보고.md) | 결정 로그·진행판·색인 갱신, 브랜치 `rider14-replace` 커밋 |
+| P7 마감 | [완료 보고](../../archive/reports/261016-RTW-라이더-rider14-교체-완료보고.md) | 결정 로그·진행판·색인 갱신, 브랜치 `rider14-replace` 커밋 |
 | 미리보기 | https://boxcycle-dc2df--rider14-k0goz95b.web.app | 만료 2026-10-23, 운영은 s5 |

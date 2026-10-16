@@ -1,3 +1,5 @@
+2026-10-17 문제 해결 보고 10건 작성: document/archive/reports/261017-RTW-*.md(떨림·코너·지도 글자·틱·해상도·측정 방법·흔들림·LOD2·동행 미표시·환경 함정), rider14 보고 reports/ 로 이동, 색인 document/archive/README.md. GPU 스키닝 보고는 G1 완료 후.
+
 2026-10-16 Chief 확정: 주행 글자 기본 모드 names(이름 전부·장식 기호만 숨김). 운영 index-BciKl-xW.js 유지.
 
 2026-10-16 글자 모드 names 운영 배포: main2 ffa68af, hosting index-BciKl-xW.js (Muse Spark). 이름 전부 유지·장식 기호만 숨김, perflab 패널 왼쪽 이동. Chief 직접 확인 대기.
@@ -30,7 +32,7 @@
 
 2026-10-16 rider14 배포: main2 8c0587d 푸시·운영 hosting 배포 완료, 운영 라이더 rider14(1명당 14콜, 자산 476KB). 롤백=config.ts ACTIVE_MODEL 한 줄. 다음 묶음 흔들림(P9)→LOD(P8).
 
-2026-10-16 rider14: 제품 라이더 s5→rider14 교체 브랜치 rider14-replace 커밋·G0~G6 APPROVED/병합·배포 Chief지시대기. 1명당 213→14콜, 자산 1.98MB→476KB, ms/rider −35~−85%, 폰 미리보기 Chief확인. 보고 document/archive/261016-RTW-라이더-rider14-교체-완료보고.md.
+2026-10-16 rider14: 제품 라이더 s5→rider14 교체 브랜치 rider14-replace 커밋·G0~G6 APPROVED/병합·배포 Chief지시대기. 1명당 213→14콜, 자산 1.98MB→476KB, ms/rider −35~−85%, 폰 미리보기 Chief확인. 보고 document/archive/reports/261016-RTW-라이더-rider14-교체-완료보고.md.
 
 2026-10-15 진행79: 콜로세움 약간 오른쪽 프레이밍, 카메라 서쪽으로 0.0017도 이동/zoom15 유지. 지시 document/ops/20261013-face-redesign2/02-task-79.md.
 
