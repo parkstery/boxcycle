@@ -20,3 +20,7 @@
 ## 검증
 
 tsc 0, `rider-turn` 7/7, `test:peer-spacing` PASS, pacer 14, rider-preserve 44+6, build 0. `test:quick`·`check-dep` 의 route/`functions/lib` 실패는 worktree 환경(본 작업트리 pre-push 에서 확인).
+
+## Chief 확인
+
+2026-10-16 Chief: 운영(index-ChghrNj0.js)에서 "드리프트 사라졌다" — 코너 드리프트 해결 확인.
