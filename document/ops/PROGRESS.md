@@ -1,3 +1,5 @@
+2026-10-17 GPU 스키닝 G1 운영 배포: main2 8eaf954, hosting index-CuiDaVtD.js (Muse Spark). ?skin=gpu 스위치, 기본 cpu. PC 실측 라이더 비용 2.4–2.6→0.4 ms/프레임(3명). 폰 확인 후 G2(기본 gpu) Chief 결정 대기.
+
 2026-10-17 문제 해결 보고 10건 작성: document/archive/reports/261017-RTW-*.md(떨림·코너·지도 글자·틱·해상도·측정 방법·흔들림·LOD2·동행 미표시·환경 함정), rider14 보고 reports/ 로 이동, 색인 document/archive/README.md. GPU 스키닝 보고는 G1 완료 후.
 
 2026-10-16 Chief 확정: 주행 글자 기본 모드 names(이름 전부·장식 기호만 숨김). 운영 index-BciKl-xW.js 유지.
