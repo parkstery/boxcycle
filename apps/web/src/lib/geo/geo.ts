@@ -284,6 +284,71 @@ export function smoothedHeadingAtRouteDistanceMeters(
   return headingAtRouteDistanceMeters(geometry, distanceMeters);
 }
 
+/**
+ * 경로 위 `[d−halfSpan, d+halfSpan]` 의 연속 평균 위치.
+ * 선분마다 `겹친 길이 × 겹친 부분의 중점` 을 더하고, 창 길이(끝에서 잘리면 그 길이)로 나눈다.
+ * 직선에서는 선 위에 있고, 코너에서는 안쪽으로 둥글게 돈다. 좌표는 머캐이터.
+ */
+export function smoothedRoutePoint(
+  geometry: LineStringGeometry,
+  distanceMeters: number,
+  halfSpanM: number,
+  routeLenM: number = lineStringLengthMeters(geometry),
+): LngLat | null {
+  if (!Number.isFinite(distanceMeters) || !Number.isFinite(halfSpanM) || !Number.isFinite(routeLenM)) {
+    return null;
+  }
+  const coords = geometry.coordinates as LngLat[];
+  if (!coords.length) return null;
+  if (coords.length === 1) return coords[0];
+
+  const span = Math.max(0, halfSpanM);
+  const total = Math.max(0, routeLenM);
+  const lo = Math.max(0, Math.min(total, distanceMeters - span));
+  const hi = Math.max(lo, Math.min(total, distanceMeters + span));
+  if (hi - lo <= 1e-9) return getPointOnRouteByDistance(geometry, lo);
+
+  let acc = 0;
+  let sumX = 0;
+  let sumY = 0;
+  let sumLen = 0;
+  for (let i = 0; i < coords.length - 1; i += 1) {
+    const a = coords[i];
+    const b = coords[i + 1];
+    const segLen = getDistanceMeters(a, b);
+    if (segLen <= 0) continue;
+    const segStart = acc;
+    acc += segLen;
+    if (acc <= lo) continue;
+    if (segStart >= hi) break;
+    const overlapLo = Math.max(lo, segStart);
+    const overlapHi = Math.min(hi, acc);
+    const overlap = overlapHi - overlapLo;
+    if (overlap <= 0) continue;
+    const tMid = ((overlapLo + overlapHi) / 2 - segStart) / segLen;
+    const pa = lngLatToMercatorMeters(a);
+    const pb = lngLatToMercatorMeters(b);
+    sumX += (pa.x + (pb.x - pa.x) * tMid) * overlap;
+    sumY += (pa.y + (pb.y - pa.y) * tMid) * overlap;
+    sumLen += overlap;
+  }
+  if (!(sumLen > 0)) return getPointOnRouteByDistance(geometry, lo);
+  return mercatorMetersToLngLat(sumX / sumLen, sumY / sumLen);
+}
+
+/**
+ * 구간 평균 곡선의 진행 방위(도).
+ * 도함수는 `(P(d+h) − P(d−h)) / 2h` 이므로 같은 반경의 끝점 현과 같다.
+ */
+export function smoothedCurveHeadingAtRouteDistanceMeters(
+  geometry: LineStringGeometry,
+  distanceMeters: number,
+  halfSpanM: number,
+  routeLenM: number = lineStringLengthMeters(geometry),
+): number | null {
+  return smoothedHeadingAtRouteDistanceMeters(geometry, distanceMeters, halfSpanM, routeLenM);
+}
+
 /** point 가 올라간 **현재 세그먼트** 방향(도). */
 export function headingOnRouteAtPoint(geometry: LineStringGeometry, point: LngLat): number | null {
   const d = distanceOnRouteByProjectedPoint(geometry, point);

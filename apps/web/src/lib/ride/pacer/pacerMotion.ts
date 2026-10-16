@@ -53,7 +53,7 @@ export const PACER_PHASE_HOLD_KMH = 0.38;
 
 /**
  * 예전 페이서 전용 현 반경(m).
- * 제품 방향은 본인·동행과 같은 `RIDER_TURN_HALF_SPAN_M`(riderTurn.ts, 5m)이다.
+ * 제품 위치·방향 반경은 `RIDER_CURVE_HALF_SPAN_M`(riderTurn.ts, 4m)이다.
  * ride 가 rider 를 import 할 수 없어 여기 값을 그 상수에 묶지 않는다.
  * MapView 는 이 상수를 더 이상 읽지 않는다.
  */

@@ -3,10 +3,10 @@ import { describe, it } from "node:test";
 import {
   headingAtRouteDistanceMeters,
   lineStringLengthMeters,
-  smoothedHeadingAtRouteDistanceMeters,
+  smoothedCurveHeadingAtRouteDistanceMeters,
   type LineStringGeometry,
 } from "../../src/lib/geo/geo.ts";
-import { RIDER_TURN_HALF_SPAN_M } from "../../src/lib/rider/riderTurn.ts";
+import { RIDER_CURVE_HALF_SPAN_M } from "../../src/lib/rider/riderTurn.ts";
 
 /** 동쪽 ~50 m → 북쪽 ~50 m 직각 코너 + 짧은 지그재그(산길 꺾임점 흉내) */
 const geom: LineStringGeometry = {
@@ -35,12 +35,11 @@ function maxStepDelta(fn: (d: number) => number | null): number {
 }
 
 describe("pacer heading", () => {
-  it("현 방위는 0.05 m 이동마다 3° 미만으로만 바뀐다(꺾임점 포함)", () => {
+  it("곡선 방위는 0.05 m 이동마다 3° 미만으로만 바뀐다(꺾임점 포함)", () => {
     const len = lineStringLengthMeters(geom);
-    // 제품 현 반경은 RIDER_TURN_HALF_SPAN_M(5). 종전 페이서 전용 3m 가 아니다.
-    // 단언은 그대로 0.05m 당 3° 미만 — 반경을 키운 것이지 허용 각을 늘린 것이 아니다.
+    // 제품 반경은 RIDER_CURVE_HALF_SPAN_M(4). 허용 각 3° 는 그대로다.
     const worst = maxStepDelta((d) =>
-      smoothedHeadingAtRouteDistanceMeters(geom, d, RIDER_TURN_HALF_SPAN_M, len),
+      smoothedCurveHeadingAtRouteDistanceMeters(geom, d, RIDER_CURVE_HALF_SPAN_M, len),
     );
     console.log(`smoothed worst step=${worst.toFixed(2)}°`);
     assert.ok(worst < 3, `smoothed ${worst}`);

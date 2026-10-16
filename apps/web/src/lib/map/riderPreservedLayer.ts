@@ -37,7 +37,7 @@ import {
 } from "../riderPrototype/preservedRiderRig";
 import { PreservedRiderStatic } from "../riderPrototype/preservedRiderStatic";
 import { getRiderModelProfile } from "../riderPrototype/riderModelProfile";
-import { computeRiderSway, RiderSwayEnvelope } from "../riderPrototype/riderSway";
+import { computeRiderSway, RiderSwayEnvelope, RiderSwaySpeedFollow } from "../riderPrototype/riderSway";
 import {
   DEFAULT_AMBIENT_INTENSITY,
   DEFAULT_HEMISPHERE_INTENSITY,
@@ -82,6 +82,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
   private lod2: PreservedRiderStatic | null = null;
   private specs: readonly RiderGlbModelSpec[] = [];
   private readonly swayEnvelope = new RiderSwayEnvelope();
+  private readonly swaySpeed = new RiderSwaySpeedFollow();
   private generation = 0;
   private loadState: "idle" | "loading" | "ready" | "error" = "idle";
   private loadError: string | null = null;
@@ -177,6 +178,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
     if (!map || !renderer || !rig) return;
     if (this.specs.length === 0) {
       this.swayEnvelope.prune(new Set());
+      this.swaySpeed.prune(new Set());
       if (isPerfLabEnabled()) noteRiderPerfScene(map.getZoom(), 0, this.lod2State);
       return;
     }
@@ -233,7 +235,8 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
         rig.setVisualKind(spec.kind ?? "self");
       }
       const env = this.swayEnvelope.update(spec.id, spec.phaseRev ?? 0, nowMs, enabled);
-      const sway = computeRiderSway(spec.phaseRev ?? 0, rig.crankPhaseR, env);
+      const factor = this.swaySpeed.update(spec.id, spec.speedMps, nowMs);
+      const sway = computeRiderSway(spec.phaseRev ?? 0, rig.crankPhaseR, env * factor);
       rig.setSway({ shaderRollRad: sway.shaderRollRad, bobM: sway.bobM });
       const bikeRoll = rig.supportsSway ? sway.bikeRollRad : 0;
       const local = new Matrix4()
@@ -249,6 +252,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
     }
     }, zoom, this.lod2State);
     this.swayEnvelope.prune(liveIds);
+    this.swaySpeed.prune(liveIds);
   }
 
   private async loadApprovedCandidate(generation: number): Promise<void> {

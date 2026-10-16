@@ -15,7 +15,24 @@ export const RIDER_SWAY_DEFAULTS = {
 
 export type RiderSwayParams = typeof RIDER_SWAY_DEFAULTS;
 
+/** 이 속도에서 흔들림 배율 1. 현재(배율 없는) 진폭과 같다. */
+export const RIDER_SWAY_REF_KMH = 20;
+export const RIDER_SWAY_MIN_FACTOR = 0.3;
+export const RIDER_SWAY_MAX_FACTOR = 1.8;
+/** 속도 배율을 라이더 id 별로 따라가는 시상수. */
+export const RIDER_SWAY_SPEED_TAU_S = 1;
+
 const DEG = Math.PI / 180;
+
+/** `clamp(speedKmh / 20, 0.3, 1.8)`. 유한하지 않으면 1. */
+export function swaySpeedFactor(speedKmh: number): number {
+  if (!Number.isFinite(speedKmh)) return 1;
+  const raw = speedKmh / RIDER_SWAY_REF_KMH;
+  if (raw < RIDER_SWAY_MIN_FACTOR) return RIDER_SWAY_MIN_FACTOR;
+  if (raw > RIDER_SWAY_MAX_FACTOR) return RIDER_SWAY_MAX_FACTOR;
+  return raw;
+}
+
 const HOLD_MS = 300;
 const TAU_MS = 400;
 
@@ -90,6 +107,39 @@ export class RiderSwayEnvelope {
       }
     }
     state.lastMs = nowMs;
+    return state.value;
+  }
+
+  prune(liveIds: ReadonlySet<string>): void {
+    for (const id of this.states.keys()) {
+      if (!liveIds.has(id)) this.states.delete(id);
+    }
+  }
+}
+
+type SwaySpeedState = { value: number; lastMs: number };
+
+/**
+ * 라이더 id 별 속도 배율. 처음 보는 id 는 목표 배율.
+ * 이후 τ 1 s 로 따라간다. 속도가 없으면 1(저장 상태는 그대로).
+ */
+export class RiderSwaySpeedFollow {
+  private readonly states = new Map<string, SwaySpeedState>();
+
+  update(id: string, speedMps: number | undefined, nowMs: number): number {
+    if (typeof speedMps !== "number" || !Number.isFinite(speedMps)) return 1;
+    const target = swaySpeedFactor(speedMps * 3.6);
+    const state = this.states.get(id);
+    if (!state) {
+      this.states.set(id, { value: target, lastMs: nowMs });
+      return target;
+    }
+    const dtMs = nowMs - state.lastMs;
+    if (dtMs > 0) {
+      const alpha = 1 - Math.exp(-dtMs / (RIDER_SWAY_SPEED_TAU_S * 1000));
+      state.value = state.value + (target - state.value) * alpha;
+      state.lastMs = nowMs;
+    }
     return state.value;
   }
 

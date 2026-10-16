@@ -7,7 +7,7 @@ import { describe, it } from "node:test";
 import { Material, Mesh, type Object3D } from "three";
 import { PreservedRiderRig } from "../../src/lib/riderPrototype/preservedRiderRig";
 import { getRiderModelProfile } from "../../src/lib/riderPrototype/riderModelProfile";
-import { computeRiderSway, RiderSwayEnvelope } from "../../src/lib/riderPrototype/riderSway";
+import { computeRiderSway, RiderSwayEnvelope, RiderSwaySpeedFollow, swaySpeedFactor } from "../../src/lib/riderPrototype/riderSway";
 import {
   attachPaletteStubMap,
   loadPreservedTestGlb,
@@ -99,6 +99,39 @@ describe("computeRiderSway", () => {
     const bobMax = at(crank + Math.PI / 2);
     assert.ok(Math.abs(bobMin.bobM - (-0.002)) < 1e-12);
     assert.ok(Math.abs(bobMax.bobM - 0) < 1e-12);
+  });
+});
+
+describe("swaySpeedFactor", () => {
+  it("5·12·20·35·50 km/h 배율 표", () => {
+    assert.ok(Math.abs(swaySpeedFactor(5) - 0.3) < 1e-12);
+    assert.ok(Math.abs(swaySpeedFactor(12) - 0.6) < 1e-12);
+    assert.ok(Math.abs(swaySpeedFactor(20) - 1) < 1e-12);
+    assert.ok(Math.abs(swaySpeedFactor(35) - 1.75) < 1e-12);
+    assert.ok(Math.abs(swaySpeedFactor(50) - 1.8) < 1e-12);
+  });
+
+  it("τ 1 s 로 따라가고, envelope 과 곱하면 세 값이 같이 줄어든다", () => {
+    const follow = new RiderSwaySpeedFollow();
+    const born = follow.update("a", 20 / 3.6, 0);
+    assert.ok(Math.abs(born - 1) < 1e-12, `born ${born}`);
+    const soon = follow.update("a", 50 / 3.6, 200);
+    assert.ok(soon > 1 && soon < 1.8, `soon ${soon}`);
+    const later = follow.update("a", 50 / 3.6, 5000);
+    assert.ok(Math.abs(later - 1.8) < 0.02, `later ${later}`);
+    assert.equal(follow.update("missing", undefined, 0), 1);
+
+    const phase = 0.3;
+    const crank = 0.37;
+    const full = computeRiderSway(phase, crank, 1);
+    const scaled = computeRiderSway(phase, crank, 0.5 * swaySpeedFactor(12));
+    assert.ok(Math.abs(scaled.shaderRollRad - full.shaderRollRad * 0.3) < 1e-12);
+    assert.ok(Math.abs(scaled.bobM - full.bobM * 0.3) < 1e-12);
+    assert.ok(Math.abs(scaled.bikeRollRad - full.bikeRollRad * 0.3) < 1e-12);
+    const stopped = computeRiderSway(phase, crank, 0 * swaySpeedFactor(50));
+    assert.equal(stopped.shaderRollRad, 0);
+    assert.equal(stopped.bobM, 0);
+    assert.equal(stopped.bikeRollRad, 0);
   });
 });
 

@@ -53,8 +53,8 @@ export function stepPeerDriveAndBuildGeoJson(
      */
     buildFeatures?: boolean;
     /**
-     * 동행 방향 현의 반경(m). 제품은 `RIDER_TURN_HALF_SPAN_M`.
-     * 0 이면 구간 방위 — peerMotion 이 rider 모듈을 직접 보지 않게 호출부가 넘긴다.
+     * 동행 곡선 반경(m). 제품은 `RIDER_CURVE_HALF_SPAN_M`.
+     * 0 이면 경로 선 위·구간 방위 — peerMotion 이 rider 모듈을 직접 보지 않게 호출부가 넘긴다.
      */
     headingHalfSpanM?: number;
   },

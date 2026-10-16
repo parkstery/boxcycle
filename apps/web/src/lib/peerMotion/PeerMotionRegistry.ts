@@ -3,7 +3,8 @@ import {
   getPointOnRouteByDistance,
   headingAtRouteDistanceMeters,
   lineStringLengthMeters,
-  smoothedHeadingAtRouteDistanceMeters,
+  smoothedCurveHeadingAtRouteDistanceMeters,
+  smoothedRoutePoint,
 } from "../geo/geo";
 import {
   PEER_DRIVE_SIM_GRACE_MS,
@@ -314,14 +315,17 @@ export class PeerMotionRegistry {
       const beforeClamp = entity.displayDistM;
       const distM = clampRouteDist(entity.displayDistM, routeLenM);
       const clamped = distM !== beforeClamp && routeLenM > 0;
-      const lngLat = getPointOnRouteByDistance(routeGeometry, distM);
-      if (!lngLat) continue;
-      // 현 길이 0 이면 구간 방위(종전). 제품은 MapView 가 RIDER_TURN_HALF_SPAN_M 을 넘긴다.
-      // peerMotion 은 rider 를 import 하지 못한다(dep-layers).
       const span = Number.isFinite(headingHalfSpanM) && headingHalfSpanM > 0 ? headingHalfSpanM : 0;
+      const lngLat =
+        span > 0
+          ? smoothedRoutePoint(routeGeometry, distM, span, routeLenM)
+          : getPointOnRouteByDistance(routeGeometry, distM);
+      if (!lngLat) continue;
+      // span 0 이면 구간 방위(종전). 제품은 MapView 가 RIDER_CURVE_HALF_SPAN_M 을 넘긴다.
+      // peerMotion 은 rider 를 import 하지 못한다(dep-layers).
       const h =
         (span > 0
-          ? smoothedHeadingAtRouteDistanceMeters(routeGeometry, distM, span, routeLenM)
+          ? smoothedCurveHeadingAtRouteDistanceMeters(routeGeometry, distM, span, routeLenM)
           : headingAtRouteDistanceMeters(routeGeometry, distM)) ?? 0;
       const moving = entity.phase === "live" && entity.speedMps > 0.02;
       if (h !== 0 || moving) entity.hdg = h;

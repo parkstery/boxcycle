@@ -64,11 +64,11 @@ import type { LngLat, LineStringGeometry } from "../../lib/geo/geo";
 import {
   boundsFromLineCoordinates,
   getDistanceMeters,
-  getPointOnRouteByDistance,
   lineStringLengthMeters,
   offsetLngLatLateral,
-  smoothedHeadingAtRouteDistanceMeters,
   resolveRiderBearingDeg,
+  smoothedCurveHeadingAtRouteDistanceMeters,
+  smoothedRoutePoint,
 } from "../../lib/geo/geo";
 import { splitLineStringAtMeters } from "../../lib/route/routeProgressSplit";
 import type { RouteElevationProfileState } from "../../hooks/useRouteElevationProfile";
@@ -80,7 +80,12 @@ import type { CoverageOverlayMode } from "../../lib/activity/coverageOverlayMode
 import type { RouteProfile } from "../../services/mapboxDirections";
 import { estimateCrankRpmFromSpeedKmh, resolvePedalCrankRpm } from "../../lib/sensor/crankRpm";
 import { resolveGlbPedalPose } from "../../lib/rider/riderGlbPedalPose";
-import { RIDER_TURN_HALF_SPAN_M, RiderTurnSmoother } from "../../lib/rider/riderTurn";
+import {
+  RIDER_CURVE_HALF_SPAN_M,
+  RIDER_TURN_HEADING_TAU_ROUTE_S,
+  RIDER_TURN_HEADING_TAU_S,
+  RiderTurnSmoother,
+} from "../../lib/rider/riderTurn";
 import { stepPeerDriveAndBuildGeoJson } from "../../lib/peerMotion/peerRidersDrive";
 import { companionDisplayDelayMs, getPeerMotionRegistry, resetPeerMotionRegistry } from "../../lib/peerMotion";
 import {
@@ -2453,10 +2458,11 @@ export function MapView({
           const routeLen = lineStringLengthMeters(geomNow);
           for (const p of enteredPacers(world)) {
             const along = resolvePacerDistM(distM, p.gapM, routeLen);
-            const at = getPointOnRouteByDistance(geomNow, along);
+            const at = smoothedRoutePoint(geomNow, along, RIDER_CURVE_HALF_SPAN_M, routeLen);
             if (!at) continue;
-            // 세그먼트 방위는 꺾임점마다 순간 회전한다. 본인·동행과 같은 현 길이.
-            const hdg = smoothedHeadingAtRouteDistanceMeters(geomNow, along, RIDER_TURN_HALF_SPAN_M, routeLen) ?? 0;
+            // 차선은 둥근 곡선의 진행 방향 기준. 모델 yaw 는 아래 smoother 출력.
+            const hdg =
+              smoothedCurveHeadingAtRouteDistanceMeters(geomNow, along, RIDER_CURVE_HALF_SPAN_M, routeLen) ?? 0;
             features.push({
               type: "Feature",
               geometry: { type: "Point", coordinates: offsetLngLatLateral(at, hdg, p.laneM) },
@@ -2511,15 +2517,21 @@ export function MapView({
       const sampled = sampleFn?.(epochMs) ?? liveLngLatRef.current;
       const prevForBearing = prevLiveForBearingRef.current;
       if (sampled) {
-        liveLngLatRef.current = sampled;
+        const routeForDisplay = routeGeometryRef.current;
+        const distForDisplay = routeForDisplay ? (sampleLiveDistMRef.current?.(epochMs) ?? null) : null;
+        const displayLl =
+          routeForDisplay && distForDisplay != null
+            ? (smoothedRoutePoint(routeForDisplay, distForDisplay, RIDER_CURVE_HALF_SPAN_M) ?? sampled)
+            : sampled;
+        liveLngLatRef.current = displayLl;
         if (liveMarkerRef.current && !RIDER_PROTOTYPE_IS_3D) {
-          liveMarkerRef.current.setLngLat(sampled);
+          liveMarkerRef.current.setLngLat(displayLl);
         }
         if (selfLocationMarkerRef.current) {
-          selfLocationMarkerRef.current.setLngLat(sampled);
+          selfLocationMarkerRef.current.setLngLat(displayLl);
         }
         syncLiveSelfRiderVisual(
-          sampled,
+          displayLl,
           liveRiderMotionRef.current,
           routeGeometryRef.current,
           prevLiveForBearingRef,
@@ -2532,7 +2544,7 @@ export function MapView({
         const session = liveRiderMotionRef.current?.sessionStatus;
         const rideSessionLive = session === "running" || session === "paused";
         if (rideSessionLive && !holdCameraAfterRideEndRef.current) {
-          tickRideCameraFollow(map, sampled, {
+          tickRideCameraFollow(map, displayLl, {
             followMode: followModeRef.current,
             mapZoom: mapZoomRef.current,
             rideCameraDistanceM: rideCameraDistanceMRef.current,
@@ -2550,7 +2562,7 @@ export function MapView({
         if (selfLocationMarkerRef.current) {
           const geoBearingDeg = resolveRiderBearingDeg(
             routeGeometryRef.current,
-            sampled,
+            displayLl,
             prevForBearing,
           );
           selfLocationGeoBearingRef.current = geoBearingDeg;
@@ -2563,10 +2575,10 @@ export function MapView({
         if (import.meta.env.DEV) {
           const headingDeg = resolveRiderBearingDeg(
             routeGeometryRef.current,
-            sampled,
+            displayLl,
             prevForBearing,
           );
-          publishRiderScreenDiag(measureRiderScreenDiag(map, sampled, headingDeg));
+          publishRiderScreenDiag(measureRiderScreenDiag(map, displayLl, headingDeg));
         }
       } else if (selfLocationMarkerRef.current && selfLocationGeoBearingRef.current != null) {
         updateSelfLocationMarkerViewportBearing(
@@ -2588,7 +2600,7 @@ export function MapView({
         getBearing,
         routeGeometryRef.current,
         epochMs,
-        { buildFeatures: showPeerSprites, headingHalfSpanM: RIDER_TURN_HALF_SPAN_M },
+        { buildFeatures: showPeerSprites, headingHalfSpanM: RIDER_CURVE_HALF_SPAN_M },
       );
       const pacerFeatures = stepPacersForFrame(dt, showPeerSprites, epochMs);
       syncPeerDomMarkers(
@@ -2613,17 +2625,23 @@ export function MapView({
           const routeNow = routeGeometryRef.current;
           const distM = sampleLiveDistMRef.current?.(epochMs) ?? null;
           selfPathDistM = distM;
-          const chordHeading =
+          const curveHeading =
             routeNow && distM != null
-              ? smoothedHeadingAtRouteDistanceMeters(routeNow, distM, RIDER_TURN_HALF_SPAN_M)
+              ? smoothedCurveHeadingAtRouteDistanceMeters(routeNow, distM, RIDER_CURVE_HALF_SPAN_M)
               : null;
           const targetHeadingDeg =
-            chordHeading ??
+            curveHeading ??
             resolveRiderBearingDeg(routeNow, live, prevForBearing);
           const motion = liveRiderMotionRef.current;
           const speedNow = motion?.speedKmh ?? 0;
           const selfSpeedMps = Math.max(0, speedNow / 3.6);
-          const selfTurn = riderTurnRef.current.update("live-self", targetHeadingDeg, selfSpeedMps, dt);
+          const selfTurn = riderTurnRef.current.update(
+            "live-self",
+            targetHeadingDeg,
+            selfSpeedMps,
+            dt,
+            curveHeading != null ? RIDER_TURN_HEADING_TAU_ROUTE_S : RIDER_TURN_HEADING_TAU_S,
+          );
           const pedalingRunning =
             motion != null && motion.sessionStatus === "running" && speedNow > 0.35;
           if (pedalingRunning && !prefersReducedMotionRef.current) {
@@ -2641,6 +2659,7 @@ export function MapView({
             pedalPose: resolveGlbPedalPose(liveCrankPhaseRevRef.current),
             phaseRev: liveCrankPhaseRevRef.current,
             leanDeg: selfTurn.leanDeg,
+            speedMps: selfSpeedMps,
           });
           turnLiveIds.push("live-self");
         }
@@ -2656,7 +2675,13 @@ export function MapView({
             peerTurnDistPrevRef.current.set(f.properties.id, f.properties.displayDistM);
             if (prevDist != null && dt > 0) peerSpeed = Math.max(0, (f.properties.displayDistM - prevDist) / dt);
           }
-          const peerTurn = riderTurnRef.current.update(f.properties.id, f.properties.hdg, peerSpeed, dt);
+          const peerTurn = riderTurnRef.current.update(
+            f.properties.id,
+            f.properties.hdg,
+            peerSpeed,
+            dt,
+            RIDER_TURN_HEADING_TAU_ROUTE_S,
+          );
           specs.push({
             id: f.properties.id,
             kind: "peer",
@@ -2665,13 +2690,20 @@ export function MapView({
             pedalPose: resolveGlbPedalPose(phaseRev),
             phaseRev,
             leanDeg: peerTurn.leanDeg,
+            speedMps: peerSpeed,
           });
           turnLiveIds.push(f.properties.id);
         }
         for (const f of pacerFeatures) {
           const phaseRev = f.properties.phaseRev;
           const pacerSpeed = f.properties.speedMps ?? 0;
-          const pacerTurn = riderTurnRef.current.update(f.properties.id, f.properties.hdg, pacerSpeed, dt);
+          const pacerTurn = riderTurnRef.current.update(
+            f.properties.id,
+            f.properties.hdg,
+            pacerSpeed,
+            dt,
+            RIDER_TURN_HEADING_TAU_ROUTE_S,
+          );
           specs.push({
             id: f.properties.id,
             kind: "pacer",
@@ -2680,6 +2712,7 @@ export function MapView({
             pedalPose: resolveGlbPedalPose(phaseRev),
             phaseRev,
             leanDeg: pacerTurn.leanDeg,
+            speedMps: pacerSpeed,
           });
           turnLiveIds.push(f.properties.id);
         }

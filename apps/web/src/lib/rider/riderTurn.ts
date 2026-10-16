@@ -1,12 +1,16 @@
 /**
  * 코너에서 라이더 방향·기울기.
  *
- * 경로 현(chord)이 목표 방향을 주고, 여기서는 그 목표를 각속도로 추종한 뒤
- * `atan(v·ω/g)` 로 안쪽 기울기를 만든다. 위치(궤적)는 건드리지 않는다.
+ * 목표 방향은 구간 평균 곡선의 끝점 현이다. 여기서는 그 목표를 각속도로 추종한 뒤
+ * `atan(v·ω/g)` 로 안쪽 기울기를 만든다. 위치는 호출부가 같은 반경의 구간 평균에 둔다.
  */
 
-export const RIDER_TURN_HALF_SPAN_M = 5;
+/** 위치·방향이 같이 쓰는 곡선 반경(m). 경로 거리 ±이 값의 구간 평균이 화면 위치다. */
+export const RIDER_CURVE_HALF_SPAN_M = 4;
+/** 경로 거리가 없는 방향(GPS). */
 export const RIDER_TURN_HEADING_TAU_S = 0.15;
+/** 경로 거리로 이미 매끄러운 방향(본인·페이서·동행). */
+export const RIDER_TURN_HEADING_TAU_ROUTE_S = 0.03;
 export const RIDER_LEAN_MAX_DEG = 20;
 export const RIDER_LEAN_TAU_S = 0.25;
 
@@ -53,12 +57,14 @@ export class RiderTurnSmoother {
    * 처음 보는 id 는 목표 방향·기울기 0.
    * 이후 방향은 `approachHeadingDeg`, ω 는 그 스무딩된 방향의 프레임 변화율,
    * 기울기는 `physicalLeanDeg` 를 τ 로 추종.
+   * `headingTauS` 를 생략하면 GPS 용 0.15 s. 경로 방향은 `RIDER_TURN_HEADING_TAU_ROUTE_S`.
    */
   update(
     id: string,
     targetHeadingDeg: number,
     speedMps: number,
     dtSec: number,
+    headingTauS: number = RIDER_TURN_HEADING_TAU_S,
   ): { headingDeg: number; leanDeg: number } {
     const target = wrapHeadingDeg(targetHeadingDeg);
     const prev = this.states.get(id);
@@ -68,8 +74,9 @@ export class RiderTurnSmoother {
       return { headingDeg: born.headingDeg, leanDeg: born.leanDeg };
     }
     const dt = Number.isFinite(dtSec) && dtSec > 0 ? dtSec : 0;
+    const tau = Number.isFinite(headingTauS) && headingTauS > 0 ? headingTauS : RIDER_TURN_HEADING_TAU_S;
     const headingDeg =
-      dt > 0 ? approachHeadingDeg(prev.headingDeg, target, dt, RIDER_TURN_HEADING_TAU_S) : prev.headingDeg;
+      dt > 0 ? approachHeadingDeg(prev.headingDeg, target, dt, tau) : prev.headingDeg;
     const deltaDeg = shortestAngleDeltaDeg(prev.headingDeg, headingDeg);
     const yawRateRadPerS = dt > 0 ? ((deltaDeg * Math.PI) / 180) / dt : 0;
     const leanTarget = physicalLeanDeg(speedMps, yawRateRadPerS);

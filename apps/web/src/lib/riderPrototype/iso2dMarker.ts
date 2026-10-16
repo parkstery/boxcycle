@@ -91,4 +91,6 @@ export type RiderGlbModelSpec = {
   phaseRev?: number;
   /** 코너링 기울임(°) — heading 변화율 비례, 진행축 롤 */
   leanDeg?: number;
+  /** 흔들림 속도 배율용. 없으면 배율 1. */
+  speedMps?: number;
 };
