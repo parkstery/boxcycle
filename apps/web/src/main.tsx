@@ -9,8 +9,7 @@ import { installTouchActivityDebug } from './lib/debug/installTouchActivityDebug
 import { installHudCompanionDebug } from './lib/debug/installHudCompanionDebug'
 import { installTrafficPublishDebug } from './lib/debug/installTrafficPublishDebug'
 import { installPeerIngestDiag } from './lib/debug/peerIngestDiag'
-import { isPerfLabEnabled } from './lib/debug/perfLab'
-import { noteReactProfilerCommit } from './lib/debug/frameBreakdownProbe'
+import { isPerfLabEnabled, noteReactProfilerCommit } from './lib/debug/perfLabFacade'
 
 installReadSubscriptionDebug()
 installTouchActivityDebug()

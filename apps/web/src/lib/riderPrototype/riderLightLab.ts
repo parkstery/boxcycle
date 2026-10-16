@@ -11,19 +11,7 @@ import {
 
 export type { RiderLightLabState };
 export { RIDER_LIGHT_LAB_DEFAULT_STATE };
-
-/**
- * ⚠ `import.meta.env.DEV` 로 막지 않는다 — Chief 는 배포본(`boxcycle-dc2df.web.app`)에서
- * 테스트한다. URL 쿼리 `?lightlab=1` 이 없으면 패널을 아예 렌더하지 않는다(일반 사용자 흔적 없음).
- */
-export function isRiderLightLabEnabled(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    return new URLSearchParams(window.location.search).get("lightlab") === "1";
-  } catch {
-    return false;
-  }
-}
+export { isRiderLightLabEnabled } from "./riderLightLabSwitch";
 
 export type RiderLightLabRange = { min: number; max: number; step: number };
 

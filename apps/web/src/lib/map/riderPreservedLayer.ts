@@ -1,12 +1,12 @@
 import type { CustomLayerInterface, Map as MapboxMap } from "mapbox-gl";
 import { moveLayerByRank, resolveBeforeIdByRank } from "./layerOrder";
-import { isPerfLabEnabled } from "../debug/perfLab";
 import {
   installRiderRenderCostProbe,
+  isPerfLabEnabled,
   measureRiderPose,
   measureRiderRenderFrame,
   noteRiderPerfScene,
-} from "../debug/riderRenderCostProbe";
+} from "../debug/perfLabFacade";
 import { shouldAnimateRiderPose, shouldUseRiderLod2 } from "../rider/riderDetailLod";
 import { MercatorCoordinate } from "mapbox-gl";
 import {
