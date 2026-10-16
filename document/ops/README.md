@@ -92,6 +92,15 @@ Supervisor는 아키텍처, 도메인 경계, 데이터 모델, Firestore·RTDB�
 
 | 폴더 | 상태 | 무엇 | 결과·입구 | 이동 |
 |---|---|---|---|---|
+| [20261017-dev-byproducts](20261017-dev-byproducts/README.md) | **IN_PROGRESS** · T1 삭제 | 개발 부산물 정리 + 관리 규칙(등록부·게이트·종료 조건). Supervisor Claude · Developer Muse Spark | [조사](20261017-dev-byproducts/01-inventory.md) · [규칙](20261017-dev-byproducts/02-rules.md) | — |
+| [20261016-rider-gpu-skinning](20261016-rider-gpu-skinning/04-review-g1.md) | **DONE** · 2026-10-17 운영 기본 gpu | 다리 DQS 정점 셰이더. Developer Muse Spark | [G2](20261016-rider-gpu-skinning/05-g2-default-gpu.md) | [보고](../archive/reports/261017-RTW-GPU-스키닝.md) |
+| [20261016-map-cut](20261016-map-cut/) | **DONE** · 2026-10-16 운영 배포 | 주행 글자 `names` 모드·`?mapcut=`. Developer Muse Spark | [M4 감리](20261016-map-cut/04-review-m4.md) | [보고](../archive/reports/261017-RTW-주행-지도-글자-names-모드.md) |
+| [20261016-ride-tick-diet](20261016-ride-tick-diet/04-review-f3.md) | **DONE** · 2026-10-16 운영 배포 | 주행 틱 7–9 → 2–3 ms | [감리](20261016-ride-tick-diet/04-review-f3.md) | [보고](../archive/reports/261017-RTW-주행-틱-다이어트.md) |
+| [20261016-mobile-pixel-ratio](20261016-mobile-pixel-ratio/04-review-p1.md) | **DONE** · 2026-10-16 운영 배포 | 폰 렌더 배율 상한 2 | [감리](20261016-mobile-pixel-ratio/04-review-p1.md) | [보고](../archive/reports/261017-RTW-폰-렌더-해상도-상한.md) |
+| [20261016-frame-breakdown](20261016-frame-breakdown/04-review-f2.md) | **DONE** · 2026-10-16 운영 배포 | perflab 프레임 분해 | [감리](20261016-frame-breakdown/04-review-f2.md) | [보고](../archive/reports/261017-RTW-성능-측정-방법-perflab.md) |
+| [20261016-rider-perf](20261016-rider-perf/) | **DONE** · 2026-10-16 운영 배포 | perflab 패널(F1) | — | [보고](../archive/reports/261017-RTW-성능-측정-방법-perflab.md) |
+| [20261016-rider-jitter](20261016-rider-jitter/) | **DONE** · 2026-10-16 운영 배포 | 앞뒤 떨림 해결 | [감리](20261016-rider-jitter/04-review-j2.md) | [보고](../archive/reports/261017-RTW-라이더-앞뒤-떨림-해결.md) |
+| [20261016-rider-curve-sway](20261016-rider-curve-sway/04-review-c1.md) | **DONE** · 2026-10-16 운영 배포 | 코너 드리프트·속도 비례 흔들림 | [감리](20261016-rider-curve-sway/04-review-c1.md) | [보고](../archive/reports/261017-RTW-코너-회전-기울기-드리프트.md) |
 | [20261016-rider-smooth-turn](20261016-rider-smooth-turn/README.md) | **DONE** · 2026-10-16 운영 배포 | 코너 부드러운 회전 + 안쪽 기울기(최대 20°). Supervisor Claude · Developer Cursor | [계획](20261016-rider-smooth-turn/01-plan.md) | — |
 | [20261016-rider14-lod2](20261016-rider14-lod2/README.md) | **DONE** · 2026-10-16 운영 배포 | 줌<19 에서 1콜 LOD2. Supervisor Claude · Developer Cursor | [계획](20261016-rider14-lod2/01-plan.md) | — |
 | [20261016-rider14-sway](20261016-rider14-sway/README.md) | **DONE** · 2026-10-16 운영 배포 | rider14 페달링 흔들림(어깨 1.0°·자전거 0.4°·상하 2 mm). Supervisor Claude · Developer Cursor | [계획](20261016-rider14-sway/01-plan.md) | — |
