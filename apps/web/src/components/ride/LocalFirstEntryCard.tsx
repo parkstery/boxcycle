@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent, type TouchEvent } from "react";
 import type { LocalFirstRegion } from "../../lib/geo/localFirstRegion";
 import { LOCAL_FIRST_CAMERA_ZOOM, makeLocalFirstRegion, localFirstRegionLabel } from "../../lib/geo/localFirstRegion";
-import { installLocalFirstGeoProbe } from "../../lib/debug/localFirstGeoProbe";
 import { fetchMapboxReverseGeocodeRegionLabel } from "../../services/mapboxReverseGeocode";
 import {
   READY_RIDE_DISTANCE_KM_OPTIONS,
@@ -67,10 +66,6 @@ export function LocalFirstEntryCard({
   const geoAbortRef = useRef<AbortController | null>(null);
   const geoAvailable =
     typeof navigator !== "undefined" && typeof navigator.geolocation !== "undefined";
-
-  useEffect(() => {
-    installLocalFirstGeoProbe();
-  }, []);
 
   useEffect(() => {
     return () => {

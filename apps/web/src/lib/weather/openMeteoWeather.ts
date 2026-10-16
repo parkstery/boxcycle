@@ -56,39 +56,6 @@ function weatherGlyph(code: number, isDay: boolean): { icon: string; label: stri
   return { icon: "🌡️", label: "" };
 }
 
-/**
- * 개발용 — URL `?weather=<키>` 로 날씨를 강제해 비주얼을 검증한다(실제 데이터 무관).
- * 예: `?weather=rain`, `?weather=night`, `?weather=typhoon`. 없거나 unknown 이면 null.
- */
-export function parseWeatherOverride(search: string): LiveWeather | null {
-  const key = new URLSearchParams(search).get("weather")?.trim().toLowerCase();
-  if (!key) return null;
-  const P: Record<string, Partial<LiveWeather> & { code: number }> = {
-    clear: { code: 0, isDay: true },
-    night: { code: 0, isDay: false },
-    cloudy: { code: 3 },
-    fog: { code: 45 },
-    rain: { code: 63 },
-    heavyrain: { code: 65 },
-    shower: { code: 82 },
-    snow: { code: 73 },
-    heavysnow: { code: 75 },
-    hail: { code: 96 },
-    thunder: { code: 95 },
-    typhoon: { code: 82, windKmh: 55 },
-    blizzard: { code: 75, windKmh: 45 },
-    rainynight: { code: 63, isDay: false },
-  };
-  const preset = P[key];
-  if (!preset) return null;
-  return {
-    tempC: preset.tempC ?? 14,
-    code: preset.code,
-    isDay: preset.isDay ?? true,
-    windKmh: preset.windKmh ?? 6,
-  };
-}
-
 /** 화면 날씨 비주얼 상태 — WMO 코드·바람·밤낮 → 렌더 파라미터로 정규화 */
 export type WeatherVisual = {
   night: boolean;

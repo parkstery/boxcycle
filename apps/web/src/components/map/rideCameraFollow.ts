@@ -27,7 +27,6 @@ import {
   type QuickCameraSlot,
 } from "../../lib/camera/quickCameraProductTune";
 import { getRideCameraLabOverride } from "../../lib/debug/rideCameraLab";
-import { isTickTestAlignCamOn, isTickTestFollowOn, isTickTestMapStopOn } from "../../lib/debug/tickTestSwitches";
 import { type LiveRiderMotion } from "./mapViewTypes";
 
 const CAMERA_POSITION_TAU_SEC = 0.1;
@@ -203,7 +202,7 @@ export function tickRideCameraFollow(
 ): void {
   if (opts.nowMs < opts.suppressUntilMs) return;
 
-  if (opts.followMode === "free" || !isTickTestFollowOn()) {
+  if (opts.followMode === "free") {
     opts.prevLiveRef.current = targetLngLat;
     return;
   }
@@ -277,7 +276,7 @@ export function tickRideCameraFollow(
   smooth.lastTs = opts.nowMs;
   const dtSec = clamp(dtMs, 0, CAMERA_MAX_DT_MS) / 1000;
   const alphaPos = dampAlpha(dtSec, CAMERA_POSITION_TAU_SEC);
-  const alignCam = isTickTestAlignCamOn();
+  const alignCam = true;
   const snapLab = lab != null;
   const alphaCenter = alignCam || snapLab ? 1 : alphaPos;
   const alphaBearingPrimary = snapLab ? 1 : dampAlpha(dtSec, CAMERA_BEARING_TAU_PRIMARY_SEC);
@@ -348,7 +347,7 @@ export function tickRideCameraFollow(
     zoom: nextZoom,
     riderLngLat: targetLngLat,
     t: opts.nowMs,
-    stopFirst: isTickTestMapStopOn(),
+    stopFirst: true,
   });
 }
 

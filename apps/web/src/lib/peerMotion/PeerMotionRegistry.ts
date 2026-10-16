@@ -21,7 +21,6 @@ import {
 } from "./integrator";
 import type { PeerMotionEntity, PeerMotionPacket } from "./types";
 import { PEER_LIVE_RIDE_STALE_MS } from "../trail/trailLivePolicy";
-import { notePeerSmoothness } from "../debug/peerSmoothnessProbe";
 import { notePeerFrameDiag } from "../debug/peerIngestDiag";
 import { getPeerSyncSelfDistM } from "./peerSyncDebug";
 import { peerSyncChainLog, peerSyncChainShouldEmit } from "./peerSyncChainLog";
@@ -263,8 +262,6 @@ export class PeerMotionRegistry {
         stepPeerMotionEntity(entity, clampedDt, routeLenM, stepNow);
       }
     }
-    // 화면 위 속도를 잰다(DEV 전용). 여기가 **적분이 끝난 직후**라 화면과 같은 값이다.
-    notePeerSmoothness(this.entities.values(), nowMs);
     if (import.meta.env.DEV) {
       for (const entity of this.entities.values()) {
         notePeerFrameDiag({

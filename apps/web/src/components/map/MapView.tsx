@@ -63,7 +63,6 @@ import {
 import { noteRiderJitterFrame } from "../../lib/debug/riderJitterProbe";
 import { attachMapRenderProbe, openFrameBreakdownTick } from "../../lib/debug/frameBreakdownProbe";
 import { installCameraRenderPhaseHook } from "../../lib/camera/cameraRenderPhase";
-import { applyTickTestToMap, getTickTestOffList, installTickTestMapHooks, subscribeTickTest } from "../../lib/debug/tickTestSwitches";
 import type { LngLat, LineStringGeometry } from "../../lib/geo/geo";
 import {
   boundsFromLineCoordinates,
@@ -189,7 +188,6 @@ import {
   isSameRouteLine,
   RIDE_END_NORTH_UP_DURATION_MS,
 } from "../../lib/map/rideEndNorthUp";
-import { TickTestOffBadge } from "./TickTestOffBadge";
 import "./MapView.css";
 
 const RIDER_PROTOTYPE_MODE = getRiderPrototypeMode();
@@ -1063,16 +1061,6 @@ export function MapView({
   }, [getActivityWorldPinLabel]);
 
   useEffect(() => {
-    if (!import.meta.env.DEV || !mapLoaded) return;
-    const apply = () => {
-      const map = mapRef.current;
-      if (map) applyTickTestToMap(map);
-    };
-    apply();
-    return subscribeTickTest(apply);
-  }, [mapLoaded]);
-
-  useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
     resetCameraSmoothing(cameraSmoothRef.current, map);
@@ -1143,7 +1131,6 @@ export function MapView({
       (window as Window & { __RTW_MAP__?: mapboxgl.Map }).__RTW_MAP__ = map;
     }
     installCameraRenderPhaseHook(map);
-    installTickTestMapHooks(map);
     const detachFrameBreakdown = attachMapRenderProbe(map);
 
     const reportMapViewport = () => {
@@ -1328,7 +1315,6 @@ export function MapView({
         clearRiderPreservedModels(map);
         ensureRiderPreservedLayer(map);
       }
-      if (import.meta.env.DEV) applyTickTestToMap(map);
       try {
         applyCoverageOverlayMode(
           map,
@@ -2755,7 +2741,6 @@ export function MapView({
         if (RIDER_PROTOTYPE_MODE === "glb") syncRiderGlbModels(map, specs);
         else syncRiderPreservedModels(map, specs);
         tickClock?.mark("sync");
-        if (import.meta.env.DEV && getTickTestOffList().length > 0) applyTickTestToMap(map);
         const liveLabel = liveRiderNametagRef.current?.trim() ?? "";
         syncGlbLiveNametagMarker(
           map,
@@ -3230,7 +3215,6 @@ export function MapView({
     <div ref={mapShellRef} className="map-view-shell">
       <div ref={containerRef} className="map-view" role="presentation" />
       <div ref={routePickDockLayerRef} className="map-view__pick-dock-layer" />
-      <TickTestOffBadge />
       <RouteElevationOverlay
         routeGeometry={routeGeometry}
         liveLngLat={liveLngLat}
