@@ -381,7 +381,7 @@ for (const [name, ok, value] of m0) {
   console.log(`  ${ok ? "PASS" : "FAIL"}  ${name}  (${value})`);
 }
 if (unresolved.length > 0) {
-  console.log("\n  해석 못 한 상대경로 — 이동이 덜 끝났다는 뜻이다(repair-lib-imports.mjs):");
+  console.log("\n  해석 못 한 상대경로 — import 대상 파일이 없다(이동·삭제 뒤 경로를 고칠 것):");
   for (const u of unresolved.slice(0, 20)) console.log("    " + u);
 }
 if (unassigned.length > 0) {

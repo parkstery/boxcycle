@@ -6,7 +6,7 @@
 | 교대 | 규칙에 따라 다음 지시(T2)는 **Cursor** |
 | 판정 | **APPROVED** (Supervisor 자체 감리) |
 
-## 지운 것 — 68개 파일 삭제 + 10개 추적 해제
+## 지운 것 — 69개 파일 삭제 + 10개 추적 해제
 
 | 묶음 | 수 |
 |---|---:|
@@ -16,7 +16,7 @@
 | `peer-sync/` `s3b2r`·`s41r` summarize | 2 |
 | `map/` headless 2종 | 2 |
 | UI 캡처 픽스처 4종, `phase-c-three-loop` | 5 |
-| 루트 `scripts/move-lib-files.mjs`·`repair-lib-imports.mjs` | 2 |
+| 루트 `scripts/move-lib-files.mjs`·`repair-lib-imports.mjs`, `apps/web/scripts/build-rider-candidate.mjs`(삭제한 rider-preview 를 import — 감리 중 dep 검사가 발견) | 3 |
 | DEV 디버그: `tickTestSwitches`, `TickTestOffBadge`, `localFirstGeoProbe`, `peerSmoothnessProbe` | 4 |
 | 죽은 코드 `parseWeatherOverride`(33줄) | 함수 |
 | `.out` 추적 해제(디스크 유지): ride-map-controls 8, saved-route-readability 2 | 10 |
