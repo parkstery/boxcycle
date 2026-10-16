@@ -1,3 +1,5 @@
+2026-10-16 perflab 운영 배포: main2 99c176f, hosting index-CVgjzurr.js. 주소에 ?perflab=1 → 프레임·라이더 비용·기기 정보 패널. 다음: 동행 떨림 조사(perflab 에 동행 추적 추가).
+
 2026-10-16 LOD2·코너 회전 운영 배포: hosting index-Dld5MVGd.js(미리보기 combo 와 동일), rider-lod2.glb 200. 미리보기 채널 4개 삭제. 로컬 ~/bin/npm(Kimi 깨진 shim) 제거 — Git Bash npm 정상.
 
 2026-10-16 LOD2·코너 회전: main2 4a35e3f 병합·푸시(게이트 통과, test:quick 1121/0). 운영 배포는 Chief 지시 대기. 미리보기 combo https://boxcycle-dc2df--combo-h77n72cf.web.app.
