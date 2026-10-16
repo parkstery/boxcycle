@@ -11,3 +11,7 @@
 - 회귀 방지: `scripts/jitter/raf-beat-replay.test.mjs` 를 `test:quick`(pre-push 게이트) `jitter` 묶음에 포함 — 2026-10 c57e0c6 의 시계 통일이 다시 틀어진 일을 반복하지 않게.
 - 동행 동기화 게이트 `test:peer-spacing` PASS, pacer 14, rider-preserve 42+6, tsc 0.
 - 배포 후 확인: PC `?perflab=1` 떨림 줄 speedCv 가 0.05 근처로 내려가는지 Chief 실측.
+
+## Chief 확인
+
+2026-10-16 Chief: 운영(index-CnMiq8hs.js) PC 주행에서 "툭툭툭툭이 사라졌다" — 떨림 해결 확인.

@@ -1,3 +1,5 @@
+2026-10-16 떨림 해결 Chief 확인: 운영 PC 주행에서 툭툭 진동 사라짐.
+
 2026-10-16 떨림 수정 운영 배포: main2 2037382, hosting index-CnMiq8hs.js. 지도 rAF 가 세션 적분보다 먼저 거리를 읽던 위상 어긋남 수정, 재생 speedCv→0, pre-push jitter 게이트. Chief PC perflab 재측정 대기. 동행 미표시는 같은 계정 두 기기(자기 uid 제외) — 버그 아님.
 
 2026-10-16 떨림 지수(J1) 운영 배포: main2 a726c3c, hosting index-C4A8_p9l.js. ?perflab=1 패널에 라이더별 역행·속도 변동. 실측: PC(GTX1660)·폰(Adreno730) 모두 약 30fps, 라이더 3ms(10%) → 병목은 라이더 밖. J2(시계 통일)는 fix/rider-jitter worktree 에 미커밋으로 중단(메모리).
