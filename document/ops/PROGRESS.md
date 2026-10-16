@@ -1,3 +1,5 @@
+2026-10-16 코너 둥근 경로·속도 비례 흔들림 운영 배포: main2 59b17eb, hosting index-ChghrNj0.js. 화면 드리프트 39.9°→2.4°, 꼭짓점 안쪽 1.4 m. Chief 육안 대기.
+
 2026-10-16 떨림 해결 Chief 확인: 운영 PC 주행에서 툭툭 진동 사라짐.
 
 2026-10-16 떨림 수정 운영 배포: main2 2037382, hosting index-CnMiq8hs.js. 지도 rAF 가 세션 적분보다 먼저 거리를 읽던 위상 어긋남 수정, 재생 speedCv→0, pre-push jitter 게이트. Chief PC perflab 재측정 대기. 동행 미표시는 같은 계정 두 기기(자기 uid 제외) — 버그 아님.
