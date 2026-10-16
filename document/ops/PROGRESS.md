@@ -1,3 +1,5 @@
+2026-10-16 주행 가까운 카메라 글자 숨김 운영 배포: main2 1f3e683, hosting index-C6Ocm1hM.js (Muse Spark). Supervisor 실제 GPU 실측 PC 줌22 57→72 fps(지도 JS 7.8→4.9 ms). 오늘 아침 46 fps 대비 약 1.55배. 폰 확인 대기.
+
 2026-10-16 지도 구성 측정 스위치 ?mapcut= 운영 배포: main2 079ace0, hosting index-BODeTQEZ.js (Muse Spark). 미니맵은 정지 이미지라 이중 렌더 아님. Chief 실기기 주행 중 비교 대기.
 
 2026-10-16 성능 배포: 주행 틱 다이어트(4109f2c)·렌더 배율 상한 2(da98361), hosting index-DDOX2IOH.js. P1 은 Muse Spark + Supervisor 보정. Chief PC·폰 perflab 재측정 대기. 남은 후보: 주행 중 지도 구성 축소, 동행 모드 측정값 확인, GPU 스키닝(보류).
