@@ -36,8 +36,8 @@
 
 ### Playwright 증거
 
-캡처: [.out/altitude-cam1.png](.out/altitude-cam1.png) · [.out/altitude-cam2.png](.out/altitude-cam2.png) · [.out/altitude-zoom.png](.out/altitude-zoom.png) · [.out/altitude-style.png](.out/altitude-style.png)
-측정: [.out/metrics-altitude.json](.out/metrics-altitude.json)
+캡처: [.out/altitude-cam1.png](evidence/altitude-cam1.png) · [.out/altitude-cam2.png](evidence/altitude-cam2.png) · [.out/altitude-zoom.png](evidence/altitude-zoom.png) · [.out/altitude-style.png](evidence/altitude-style.png)
+측정: [.out/metrics-altitude.json](evidence/metrics-altitude.json)
 
 | 항목 | 결과 |
 |---|---|

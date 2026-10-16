@@ -41,7 +41,7 @@
 
 ### Playwright 증거
 
-캡처: [.out/after-zoom-rework.png](.out/after-zoom-rework.png) · [.out/metrics-zoom-rework.json](.out/metrics-zoom-rework.json)
+캡처: [.out/after-zoom-rework.png](evidence/after-zoom-rework.png) · [.out/metrics-zoom-rework.json](evidence/metrics-zoom-rework.json)
 
 | 항목 | 결과 |
 |---|---|

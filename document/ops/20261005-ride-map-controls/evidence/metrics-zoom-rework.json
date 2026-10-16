@@ -1,0 +1,140 @@
+{
+  "viewport": {
+    "w": 740,
+    "h": 300
+  },
+  "note": [
+    "guest",
+    "sensor",
+    "intro",
+    "running"
+  ],
+  "qc2": {
+    "z0": 20.702715349130703,
+    "zIn": 21.30123068160173,
+    "zInHold": 21.310558931567684,
+    "zOut": 20.995016502130426,
+    "plusIncreases": true,
+    "hold300": true,
+    "minusDecreases": true
+  },
+  "qc2Reset": {
+    "zReset": 20.989120917286115,
+    "restoredTowardPreset": true
+  },
+  "qc1RouteFit": {
+    "zFit0": 15.692483433649969,
+    "zFitIn": 16.7,
+    "zFitOut": 15.7,
+    "plusIncreases": true,
+    "minusDecreases": true
+  },
+  "aerial": {
+    "zAir0": 16.486458840043433,
+    "zAirIn": 16.808146310089278,
+    "zAirOut": 16.487379193282315,
+    "airOutDisabled": false,
+    "airInDisabled": false,
+    "plusIncreases": true,
+    "minusDecreases": true,
+    "buttonsEnabled": true
+  },
+  "after": {
+    "controlsBox": {
+      "x": 440.203125,
+      "y": 45.5,
+      "width": 96.375,
+      "height": 44
+    },
+    "styleBox": {
+      "x": 440.203125,
+      "y": 45.5,
+      "width": 36.34375,
+      "height": 44
+    },
+    "zoomOutBox": {
+      "x": 479.234375,
+      "y": 45.5,
+      "width": 27.328125,
+      "height": 44
+    },
+    "zoomInBox": {
+      "x": 509.25,
+      "y": 45.5,
+      "width": 27.328125,
+      "height": 44
+    },
+    "qcBox": {
+      "x": 355.125,
+      "y": 10.359375,
+      "width": 181.453125,
+      "height": 31.375
+    },
+    "accountBox": {
+      "x": 650.796875,
+      "y": 35.078125,
+      "width": 78.84375,
+      "height": 29.6875
+    },
+    "mapBox": {
+      "x": 683.640625,
+      "y": 89.1875,
+      "width": 46,
+      "height": 25.203125
+    },
+    "controlsAreaPct": "1.91",
+    "touch44": {
+      "styleH": 44,
+      "zoomH": 44,
+      "realHeightNotPseudo": true
+    }
+  },
+  "overlap": {
+    "account": false,
+    "mapTrigger": false,
+    "qc": false,
+    "zoomButtons": false,
+    "styleZoomOut": false
+  },
+  "hitTest": {
+    "zoomOutCenter": {
+      "tag": "BUTTON",
+      "cls": "hud-ride-map-controls__zoom",
+      "aria": "줌 축소"
+    },
+    "zoomOutLeft": {
+      "tag": "BUTTON",
+      "cls": "hud-ride-map-controls__zoom",
+      "aria": "줌 축소"
+    },
+    "zoomInCenter": {
+      "tag": "BUTTON",
+      "cls": "hud-ride-map-controls__zoom",
+      "aria": "줌 확대"
+    },
+    "styleCenter": {
+      "tag": "BUTTON",
+      "cls": "hud-ride-map-controls__style",
+      "aria": "맵 스타일 야외, 클릭 시 위성"
+    },
+    "betweenZooms": {
+      "tag": "DIV",
+      "cls": "hud-ride-map-controls",
+      "aria": "맵 제어"
+    },
+    "aboveControls": {
+      "tag": "DIV",
+      "cls": "hud-quick-camera",
+      "aria": "Quick Camera"
+    }
+  },
+  "hitOk": {
+    "zoomOutIsZoomOut": true,
+    "zoomInIsZoomIn": true,
+    "styleIsStyle": true,
+    "betweenNotNeighborSteal": true,
+    "aboveNotControlsStealQc": true
+  },
+  "elapsedMs": 31741,
+  "pass": true
+}

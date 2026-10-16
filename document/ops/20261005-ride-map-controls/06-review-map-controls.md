@@ -26,4 +26,4 @@
 
 ## 최종 보완 후 재검증
 
-타입 검사·린트(error 0)·89개 카메라 시험·15단계 셀렉터 계약 재통과. 일반 sandbox 실행은 주행 준비 셀렉터 대기로 실패했고, 기존 서버에 접근하는 권한으로 재실행한 실화면 검증은 exit 0, pass:true였다. QC2·routeFit·상공의 ± 방향과 44px 실제 높이·겹침 없음이 모두 통과했다. [최종 실측](.out/metrics-zoom-rework.json).
+타입 검사·린트(error 0)·89개 카메라 시험·15단계 셀렉터 계약 재통과. 일반 sandbox 실행은 주행 준비 셀렉터 대기로 실패했고, 기존 서버에 접근하는 권한으로 재실행한 실화면 검증은 exit 0, pass:true였다. QC2·routeFit·상공의 ± 방향과 44px 실제 높이·겹침 없음이 모두 통과했다. [최종 실측](evidence/metrics-zoom-rework.json).

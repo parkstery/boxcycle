@@ -48,7 +48,7 @@
 
 ### Playwright 증거 (740×300)
 
-캡처: [.out/after-ride-controls.png](.out/after-ride-controls.png) · [.out/after-toggle-zoom.png](.out/after-toggle-zoom.png) · [.out/metrics.json](.out/metrics.json)
+캡처: [.out/after-ride-controls.png](evidence/after-ride-controls.png) · [.out/after-toggle-zoom.png](evidence/after-toggle-zoom.png) · [.out/metrics.json](evidence/metrics.json)
 
 | 항목 | 전(추정) | 후(측정) |
 |---|---|---|

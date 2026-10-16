@@ -1,0 +1,402 @@
+{
+  "at": "2026-10-05T15:18:36.369Z",
+  "note": "CSS fixture mount (non-live). Guest/auth untouched. Real Edge UI session not driven.",
+  "results": [
+    {
+      "channel": "msedge",
+      "colorScheme": "light",
+      "shot": "C:\\20.HDev\\boxcycle\\document\\ops\\20261006-saved-route-readability\\.out\\msedge-light-740x300.png",
+      "data": {
+        "savedName": {
+          "sel": ".saved-routes__name",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "-webkit-text-fill-color": "rgb(232, 234, 239)",
+          "opacity": "1"
+        },
+        "savedItem": {
+          "sel": ".saved-routes__item:not(.is-selected)",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(2, 6, 23, 0.4)"
+        },
+        "savedItemSelected": {
+          "sel": ".saved-routes__item.is-selected",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(56, 189, 248, 0.16)"
+        },
+        "savedMeta": {
+          "sel": ".saved-routes__meta",
+          "color": "rgba(232, 234, 239, 0.82)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "opacity": "1"
+        },
+        "savedFilter": {
+          "sel": ".saved-routes__filter-btn.is-active",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(59, 130, 246, 0.28)",
+          "-webkit-text-fill-color": "rgb(232, 234, 239)"
+        },
+        "savedToolDisabled": {
+          "sel": ".saved-routes__tool:disabled",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(2, 6, 23, 0.55)",
+          "opacity": "0.4"
+        },
+        "ocName": {
+          "sel": ".oc-modal__item-name",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "-webkit-text-fill-color": "rgb(232, 234, 239)"
+        },
+        "ocItem": {
+          "sel": ".oc-modal__item:not(.is-selected)",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(2, 6, 23, 0.4)"
+        },
+        "chipMine": {
+          "sel": "button[aria-label=\"내 경로 목록\"]",
+          "color": "rgb(248, 250, 252)",
+          "background-color": "rgba(255, 255, 255, 0.08)",
+          "-webkit-text-fill-color": "rgb(248, 250, 252)",
+          "opacity": "1"
+        },
+        "chipIntro": {
+          "sel": ".ride-panel__official-seg",
+          "color": "rgb(248, 250, 252)",
+          "background-color": "rgba(255, 255, 255, 0.08)"
+        },
+        "ocModal": {
+          "sel": ".oc-modal",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgb(20, 24, 32)",
+          "color-scheme": "dark"
+        },
+        "pageBg": {
+          "color": "rgb(10, 14, 18)",
+          "background-color": "rgb(10, 14, 18)"
+        },
+        "legacyName": {
+          "sel": "#legacy-name",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(0, 0, 0, 0)"
+        },
+        "legacyItem": {
+          "sel": "#legacy-item",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "color(srgb 0.96 0.96 0.96)"
+        },
+        "legacyBtn": {
+          "sel": "#legacy-btn",
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgb(255, 255, 255)"
+        },
+        "colorScheme": "light",
+        "contrast": {
+          "savedName_on_item": 15.66,
+          "savedName_on_selected": 11.03,
+          "ocName_on_item": 15.66,
+          "chipMine": 15.45,
+          "legacyCanvasName_on_item": 1.1,
+          "legacyCanvasBtn": 21
+        }
+      }
+    },
+    {
+      "channel": "msedge",
+      "colorScheme": "dark",
+      "shot": "C:\\20.HDev\\boxcycle\\document\\ops\\20261006-saved-route-readability\\.out\\msedge-dark-740x300.png",
+      "data": {
+        "savedName": {
+          "sel": ".saved-routes__name",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "-webkit-text-fill-color": "rgb(232, 234, 239)",
+          "opacity": "1"
+        },
+        "savedItem": {
+          "sel": ".saved-routes__item:not(.is-selected)",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(2, 6, 23, 0.4)"
+        },
+        "savedItemSelected": {
+          "sel": ".saved-routes__item.is-selected",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(56, 189, 248, 0.16)"
+        },
+        "savedMeta": {
+          "sel": ".saved-routes__meta",
+          "color": "rgba(232, 234, 239, 0.82)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "opacity": "1"
+        },
+        "savedFilter": {
+          "sel": ".saved-routes__filter-btn.is-active",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(59, 130, 246, 0.28)",
+          "-webkit-text-fill-color": "rgb(232, 234, 239)"
+        },
+        "savedToolDisabled": {
+          "sel": ".saved-routes__tool:disabled",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(2, 6, 23, 0.55)",
+          "opacity": "0.4"
+        },
+        "ocName": {
+          "sel": ".oc-modal__item-name",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "-webkit-text-fill-color": "rgb(232, 234, 239)"
+        },
+        "ocItem": {
+          "sel": ".oc-modal__item:not(.is-selected)",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(2, 6, 23, 0.4)"
+        },
+        "chipMine": {
+          "sel": "button[aria-label=\"내 경로 목록\"]",
+          "color": "rgb(248, 250, 252)",
+          "background-color": "rgba(255, 255, 255, 0.08)",
+          "-webkit-text-fill-color": "rgb(248, 250, 252)",
+          "opacity": "1"
+        },
+        "chipIntro": {
+          "sel": ".ride-panel__official-seg",
+          "color": "rgb(248, 250, 252)",
+          "background-color": "rgba(255, 255, 255, 0.08)"
+        },
+        "ocModal": {
+          "sel": ".oc-modal",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgb(20, 24, 32)",
+          "color-scheme": "dark"
+        },
+        "pageBg": {
+          "color": "rgb(10, 14, 18)",
+          "background-color": "rgb(10, 14, 18)"
+        },
+        "legacyName": {
+          "sel": "#legacy-name",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(0, 0, 0, 0)"
+        },
+        "legacyItem": {
+          "sel": "#legacy-item",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "color(srgb 0.96 0.96 0.96)"
+        },
+        "legacyBtn": {
+          "sel": "#legacy-btn",
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgb(255, 255, 255)"
+        },
+        "colorScheme": "dark",
+        "contrast": {
+          "savedName_on_item": 15.66,
+          "savedName_on_selected": 11.03,
+          "ocName_on_item": 15.66,
+          "chipMine": 15.45,
+          "legacyCanvasName_on_item": 1.1,
+          "legacyCanvasBtn": 21
+        }
+      }
+    },
+    {
+      "channel": "chrome",
+      "colorScheme": "light",
+      "shot": "C:\\20.HDev\\boxcycle\\document\\ops\\20261006-saved-route-readability\\.out\\chrome-light-740x300.png",
+      "data": {
+        "savedName": {
+          "sel": ".saved-routes__name",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "-webkit-text-fill-color": "rgb(232, 234, 239)",
+          "opacity": "1"
+        },
+        "savedItem": {
+          "sel": ".saved-routes__item:not(.is-selected)",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(2, 6, 23, 0.4)"
+        },
+        "savedItemSelected": {
+          "sel": ".saved-routes__item.is-selected",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(56, 189, 248, 0.16)"
+        },
+        "savedMeta": {
+          "sel": ".saved-routes__meta",
+          "color": "rgba(232, 234, 239, 0.82)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "opacity": "1"
+        },
+        "savedFilter": {
+          "sel": ".saved-routes__filter-btn.is-active",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(59, 130, 246, 0.28)",
+          "-webkit-text-fill-color": "rgb(232, 234, 239)"
+        },
+        "savedToolDisabled": {
+          "sel": ".saved-routes__tool:disabled",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(2, 6, 23, 0.55)",
+          "opacity": "0.4"
+        },
+        "ocName": {
+          "sel": ".oc-modal__item-name",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "-webkit-text-fill-color": "rgb(232, 234, 239)"
+        },
+        "ocItem": {
+          "sel": ".oc-modal__item:not(.is-selected)",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(2, 6, 23, 0.4)"
+        },
+        "chipMine": {
+          "sel": "button[aria-label=\"내 경로 목록\"]",
+          "color": "rgb(248, 250, 252)",
+          "background-color": "rgba(255, 255, 255, 0.08)",
+          "-webkit-text-fill-color": "rgb(248, 250, 252)",
+          "opacity": "1"
+        },
+        "chipIntro": {
+          "sel": ".ride-panel__official-seg",
+          "color": "rgb(248, 250, 252)",
+          "background-color": "rgba(255, 255, 255, 0.08)"
+        },
+        "ocModal": {
+          "sel": ".oc-modal",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgb(20, 24, 32)",
+          "color-scheme": "dark"
+        },
+        "pageBg": {
+          "color": "rgb(10, 14, 18)",
+          "background-color": "rgb(10, 14, 18)"
+        },
+        "legacyName": {
+          "sel": "#legacy-name",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(0, 0, 0, 0)"
+        },
+        "legacyItem": {
+          "sel": "#legacy-item",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "color(srgb 0.96 0.96 0.96)"
+        },
+        "legacyBtn": {
+          "sel": "#legacy-btn",
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgb(255, 255, 255)"
+        },
+        "colorScheme": "light",
+        "contrast": {
+          "savedName_on_item": 15.66,
+          "savedName_on_selected": 11.03,
+          "ocName_on_item": 15.66,
+          "chipMine": 15.45,
+          "legacyCanvasName_on_item": 1.1,
+          "legacyCanvasBtn": 21
+        }
+      }
+    },
+    {
+      "channel": "chrome",
+      "colorScheme": "dark",
+      "shot": "C:\\20.HDev\\boxcycle\\document\\ops\\20261006-saved-route-readability\\.out\\chrome-dark-740x300.png",
+      "data": {
+        "savedName": {
+          "sel": ".saved-routes__name",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "-webkit-text-fill-color": "rgb(232, 234, 239)",
+          "opacity": "1"
+        },
+        "savedItem": {
+          "sel": ".saved-routes__item:not(.is-selected)",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(2, 6, 23, 0.4)"
+        },
+        "savedItemSelected": {
+          "sel": ".saved-routes__item.is-selected",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(56, 189, 248, 0.16)"
+        },
+        "savedMeta": {
+          "sel": ".saved-routes__meta",
+          "color": "rgba(232, 234, 239, 0.82)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "opacity": "1"
+        },
+        "savedFilter": {
+          "sel": ".saved-routes__filter-btn.is-active",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(59, 130, 246, 0.28)",
+          "-webkit-text-fill-color": "rgb(232, 234, 239)"
+        },
+        "savedToolDisabled": {
+          "sel": ".saved-routes__tool:disabled",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(2, 6, 23, 0.55)",
+          "opacity": "0.4"
+        },
+        "ocName": {
+          "sel": ".oc-modal__item-name",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(0, 0, 0, 0)",
+          "-webkit-text-fill-color": "rgb(232, 234, 239)"
+        },
+        "ocItem": {
+          "sel": ".oc-modal__item:not(.is-selected)",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(2, 6, 23, 0.4)"
+        },
+        "chipMine": {
+          "sel": "button[aria-label=\"내 경로 목록\"]",
+          "color": "rgb(248, 250, 252)",
+          "background-color": "rgba(255, 255, 255, 0.08)",
+          "-webkit-text-fill-color": "rgb(248, 250, 252)",
+          "opacity": "1"
+        },
+        "chipIntro": {
+          "sel": ".ride-panel__official-seg",
+          "color": "rgb(248, 250, 252)",
+          "background-color": "rgba(255, 255, 255, 0.08)"
+        },
+        "ocModal": {
+          "sel": ".oc-modal",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgb(20, 24, 32)",
+          "color-scheme": "dark"
+        },
+        "pageBg": {
+          "color": "rgb(10, 14, 18)",
+          "background-color": "rgb(10, 14, 18)"
+        },
+        "legacyName": {
+          "sel": "#legacy-name",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "rgba(0, 0, 0, 0)"
+        },
+        "legacyItem": {
+          "sel": "#legacy-item",
+          "color": "rgb(232, 234, 239)",
+          "background-color": "color(srgb 0.96 0.96 0.96)"
+        },
+        "legacyBtn": {
+          "sel": "#legacy-btn",
+          "color": "rgb(0, 0, 0)",
+          "background-color": "rgb(255, 255, 255)"
+        },
+        "colorScheme": "dark",
+        "contrast": {
+          "savedName_on_item": 15.66,
+          "savedName_on_selected": 11.03,
+          "ocName_on_item": 15.66,
+          "chipMine": 15.45,
+          "legacyCanvasName_on_item": 1.1,
+          "legacyCanvasBtn": 21
+        }
+      }
+    }
+  ]
+}

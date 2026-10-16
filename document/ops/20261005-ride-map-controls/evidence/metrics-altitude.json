@@ -1,0 +1,126 @@
+{
+  "viewport": {
+    "w": 740,
+    "h": 300
+  },
+  "note": [
+    "guest",
+    "sensor",
+    "intro",
+    "running"
+  ],
+  "samples": {
+    "s1": {
+      "tag": "cam1",
+      "altM": 561.8657351618084,
+      "err": null,
+      "text": "고도 561.9 m",
+      "expect": "고도 561.9 m",
+      "match": true,
+      "leftOfScale": true,
+      "altBox": {
+        "x": 579.859375,
+        "y": 285.765625,
+        "width": 70,
+        "height": 14
+      },
+      "scaleBox": {
+        "x": 654.578125,
+        "y": 279.765625,
+        "width": 85.421875,
+        "height": 22
+      },
+      "aria": "카메라 고도(해수면 기준)",
+      "title": "카메라 고도(해수면 기준)"
+    },
+    "s2": {
+      "tag": "cam2",
+      "altM": 4.466547165744045,
+      "err": null,
+      "text": "고도 4.5 m",
+      "expect": "고도 4.5 m",
+      "match": true,
+      "leftOfScale": true,
+      "altBox": {
+        "x": 572.046875,
+        "y": 285.765625,
+        "width": 58,
+        "height": 14
+      },
+      "scaleBox": {
+        "x": 631.3125,
+        "y": 279.765625,
+        "width": 108.6875,
+        "height": 22
+      },
+      "aria": "카메라 고도(해수면 기준)",
+      "title": "카메라 고도(해수면 기준)"
+    },
+    "sZoom": {
+      "tag": "zoom-in",
+      "altM": 1.3090673239890183,
+      "err": null,
+      "text": "고도 1.3 m",
+      "expect": "고도 1.3 m",
+      "match": true,
+      "leftOfScale": true,
+      "altBox": {
+        "x": 609.328125,
+        "y": 285.765625,
+        "width": 58,
+        "height": 14
+      },
+      "scaleBox": {
+        "x": 671.859375,
+        "y": 279.765625,
+        "width": 68.140625,
+        "height": 22
+      },
+      "aria": "카메라 고도(해수면 기준)",
+      "title": "카메라 고도(해수면 기준)"
+    },
+    "sStyle": {
+      "tag": "style-toggle",
+      "altM": 1.564813594048483,
+      "err": null,
+      "text": "고도 1.6 m",
+      "expect": "고도 1.6 m",
+      "match": true,
+      "leftOfScale": true,
+      "altBox": {
+        "x": 609.53125,
+        "y": 285.765625,
+        "width": 58,
+        "height": 14
+      },
+      "scaleBox": {
+        "x": 672.046875,
+        "y": 279.765625,
+        "width": 67.953125,
+        "height": 22
+      },
+      "aria": "카메라 고도(해수면 기준)",
+      "title": "카메라 고도(해수면 기준)"
+    }
+  },
+  "style": {
+    "before": "맵 스타일 야외, 클릭 시 위성",
+    "after": "맵 스타일 위성, 클릭 시 야외",
+    "toggled": true
+  },
+  "layout": {
+    "leftOfScale": true,
+    "noOverlapRide": true,
+    "noOverlapAttrib": true,
+    "ariaOk": true
+  },
+  "updates": {
+    "cam1Match": true,
+    "cam2Match": true,
+    "zoomMatch": true,
+    "styleMatch": true,
+    "camChanged": true,
+    "zoomChanged": true
+  },
+  "pass": true
+}
