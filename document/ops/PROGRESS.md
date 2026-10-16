@@ -1,3 +1,5 @@
+2026-10-16 지도 구성 측정 스위치 ?mapcut= 운영 배포: main2 079ace0, hosting index-BODeTQEZ.js (Muse Spark). 미니맵은 정지 이미지라 이중 렌더 아님. Chief 실기기 주행 중 비교 대기.
+
 2026-10-16 성능 배포: 주행 틱 다이어트(4109f2c)·렌더 배율 상한 2(da98361), hosting index-DDOX2IOH.js. P1 은 Muse Spark + Supervisor 보정. Chief PC·폰 perflab 재측정 대기. 남은 후보: 주행 중 지도 구성 축소, 동행 모드 측정값 확인, GPU 스키닝(보류).
 
 2026-10-16 코너 드리프트 해결 Chief 확인. 다음: 프레임 시간 분석(perflab 항목별 분해).
