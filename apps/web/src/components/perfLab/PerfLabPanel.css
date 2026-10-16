@@ -59,6 +59,7 @@
 
 .perf-lab__line {
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .perf-lab__muted {

@@ -417,6 +417,7 @@
       "debug/mapTickProbe.ts",
       "debug/readSubscriptionMeters.ts",
       "debug/peerSmoothnessProbe.ts",
+      "debug/frameBreakdownProbe.ts",
       "debug/perfLab.ts",
       "debug/riderJitterProbe.ts",
       "debug/riderRenderCostProbe.ts",

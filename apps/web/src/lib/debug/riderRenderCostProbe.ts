@@ -237,6 +237,21 @@ export function measureRiderPose<T>(run: () => T): T {
   }
 }
 
+/**
+ * 지도 `_render` 한 번 안에 끝난 라이더 레이어 시간.
+ * perflab 이 아니면 0 을 반환하고 `performance.now()` 는 부르지 않는다.
+ */
+export function readRiderRenderMsOverlapping(sinceMs: number): number {
+  if (!isPerfLabEnabled()) return 0;
+  let ms = 0;
+  for (let i = riderSamples.length - 1; i >= 0; i -= 1) {
+    const sample = riderSamples[i]!;
+    if (sample.t < sinceMs) break;
+    ms += sample.ms;
+  }
+  return ms;
+}
+
 export function installRiderRenderCostProbe(): void {
   if (!import.meta.env.DEV || typeof window === "undefined") return;
   if (window.__rtwRiderCost) return;

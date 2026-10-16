@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { Profiler, StrictMode, type ProfilerOnRenderCallback } from 'react'
 import { createRoot } from 'react-dom/client'
 import './tokens.css'            // ← 디자인 토큰 단일 진실 — 가장 먼저
 import './index.css'
@@ -9,6 +9,8 @@ import { installTouchActivityDebug } from './lib/debug/installTouchActivityDebug
 import { installHudCompanionDebug } from './lib/debug/installHudCompanionDebug'
 import { installTrafficPublishDebug } from './lib/debug/installTrafficPublishDebug'
 import { installPeerIngestDiag } from './lib/debug/peerIngestDiag'
+import { isPerfLabEnabled } from './lib/debug/perfLab'
+import { noteReactProfilerCommit } from './lib/debug/frameBreakdownProbe'
 
 installReadSubscriptionDebug()
 installTouchActivityDebug()
@@ -16,8 +18,25 @@ installHudCompanionDebug()
 installTrafficPublishDebug()
 installPeerIngestDiag()
 
+const onAppProfilerRender: ProfilerOnRenderCallback = (
+  _id,
+  _phase,
+  actualDuration,
+  _baseDuration,
+  _startTime,
+  commitTime,
+) => {
+  noteReactProfilerCommit(actualDuration, commitTime)
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    {isPerfLabEnabled() ? (
+      <Profiler id="app" onRender={onAppProfilerRender}>
+        <App />
+      </Profiler>
+    ) : (
+      <App />
+    )}
   </StrictMode>,
 )

@@ -15,6 +15,15 @@ import {
   type RiderPerfScene,
 } from "../../lib/debug/riderRenderCostProbe";
 import { readRiderJitterStats, type RiderJitterKind, type RiderJitterStats } from "../../lib/debug/riderJitterProbe";
+import {
+  readFrameBreakdown,
+  startFrameBreakdownObservers,
+  stopFrameBreakdownObservers,
+  TICK_PHASES,
+  type DurationStats,
+  type FrameBreakdown,
+  type TickPhase,
+} from "../../lib/debug/frameBreakdownProbe";
 import { shouldAnimateRiderPose, shouldUseRiderLod2 } from "../../lib/rider/riderDetailLod";
 import "./PerfLabPanel.css";
 
@@ -116,7 +125,101 @@ function buildReport(mapZoom: number, scene: RiderPerfScene) {
     },
     device: readPerfLabDeviceInfo(),
     jitter: readRiderJitterStats(),
+    breakdown: readFrameBreakdown(),
   };
+}
+
+const PHASE_LABEL: Record<TickPhase, string> = {
+  self: "본인",
+  camera: "카메라",
+  peer: "동행",
+  pacer: "페이서",
+  markers: "마커",
+  spec: "스펙",
+  sync: "동기",
+  nametag: "이름",
+};
+
+function DurationLine({ label, stats }: { label: string; stats: DurationStats }) {
+  return (
+    <p className="perf-lab__line">
+      <span className="perf-lab__muted">{label}</span>{" "}
+      <span className="rtw-numeric">
+        {fmtMs(stats.meanMs)} {fmtMs(stats.p95Ms)}
+      </span>
+    </p>
+  );
+}
+
+function gpuLine(breakdown: FrameBreakdown): string {
+  if (breakdown.gpu.reason === "unsupported") return "미지원";
+  if (!breakdown.gpu.supported) return "—";
+  return `${fmtMs(breakdown.gpu.meanMs)} ${fmtMs(breakdown.gpu.p95Ms)}`;
+}
+
+function BreakdownLines({ breakdown }: { breakdown: FrameBreakdown }) {
+  const summary = breakdown.summary;
+  return (
+    <>
+      <DurationLine label="틱" stats={breakdown.tick} />
+      {TICK_PHASES.map((phase) => (
+        <DurationLine key={phase} label={PHASE_LABEL[phase]} stats={breakdown.tick.phases[phase]} />
+      ))}
+      <DurationLine label="나머지" stats={breakdown.tick.other} />
+      {breakdown.map.method === "map._render" ? (
+        <>
+          <DurationLine label="지도" stats={breakdown.map} />
+          <p className="perf-lab__line">
+            <span className="perf-lab__muted">지도자체</span>{" "}
+            <span className="rtw-numeric">
+              {fmtMs(breakdown.map.exRiderMeanMs)} {fmtMs(breakdown.map.exRiderP95Ms)}
+            </span>
+          </p>
+        </>
+      ) : (
+        <p className="perf-lab__line">
+          <span className="perf-lab__muted">지도</span> {breakdown.map.method === "events-only" ? "이벤트" : "—"}
+        </p>
+      )}
+      <p className="perf-lab__line">
+        <span className="perf-lab__muted">React</span>{" "}
+        <span className="rtw-numeric">{breakdown.react.commitsPerSec.toFixed(1)}</span>
+        <span className="perf-lab__muted">/s · </span>
+        <span className="rtw-numeric">{fmtMs(breakdown.react.commitSumMs)}</span>
+      </p>
+      <p className="perf-lab__line">
+        <span className="perf-lab__muted">LoAF</span>{" "}
+        {breakdown.loaf.supported ? (
+          <>
+            <span className="rtw-numeric">{breakdown.loaf.count}</span>
+            <span className="perf-lab__muted"> · 막 </span>
+            <span className="rtw-numeric">{fmtMs(breakdown.loaf.blockingMs)}</span>
+            <span className="perf-lab__muted"> · 배치 </span>
+            <span className="rtw-numeric">{fmtMs(breakdown.loaf.styleAndLayoutMs)}</span>
+          </>
+        ) : (
+          "미지원"
+        )}
+      </p>
+      {breakdown.loaf.topScripts.map((row) => (
+        <p key={row.source} className="perf-lab__line">
+          <span className="perf-lab__muted">스크립트</span> {row.source}{" "}
+          <span className="rtw-numeric">{fmtMs(row.ms)}</span>
+        </p>
+      ))}
+      <p className="perf-lab__line">
+        <span className="perf-lab__muted">GPU</span> <span className="rtw-numeric">{gpuLine(breakdown)}</span>
+      </p>
+      <p className="perf-lab__line">
+        <span className="perf-lab__muted">합</span> 간격{" "}
+        <span className="rtw-numeric">{fmtMs(summary.frameMeanMs)}</span>
+        {" ≈ JS "}
+        <span className="rtw-numeric">{fmtMs(summary.jsMs)}</span>
+        {" + 대기 "}
+        <span className="rtw-numeric">{fmtMs(summary.waitMs)}</span>
+      </p>
+    </>
+  );
 }
 
 function JitterLines({ rows }: { rows: readonly RiderJitterStats[] }) {
@@ -156,10 +259,12 @@ function PerfLabPanelInner({ mapZoom }: { mapZoom: number }) {
 
   useEffect(() => {
     startPerfLabFrameClock();
+    startFrameBreakdownObservers();
     const id = window.setInterval(() => setTick((n) => n + 1), 1000);
     return () => {
       window.clearInterval(id);
       if (copiedTimerRef.current != null) window.clearTimeout(copiedTimerRef.current);
+      stopFrameBreakdownObservers();
       stopPerfLabFrameClock();
     };
   }, []);
@@ -174,6 +279,7 @@ function PerfLabPanelInner({ mapZoom }: { mapZoom: number }) {
   const frame = readPerfLabFrameStats();
   const rider = readRiderCostWindow();
   const jitter = readRiderJitterStats();
+  const breakdown = readFrameBreakdown();
   const device = readPerfLabDeviceInfo();
   const zoom = scene.zoom ?? mapZoom;
   void tick;
@@ -240,6 +346,7 @@ function PerfLabPanelInner({ mapZoom }: { mapZoom: number }) {
             {" · "}LOD2 <span className="rtw-numeric">{lod2Label(scene.lod2State, zoom)}</span>
           </p>
           <JitterLines rows={jitter} />
+          <BreakdownLines breakdown={breakdown} />
           <p className="perf-lab__device">{deviceLine(device)}</p>
           <button type="button" className="perf-lab__copy" onClick={() => void copyReport()}>
             {copied ? "복사됨" : "결과 복사"}

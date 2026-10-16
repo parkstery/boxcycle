@@ -58,6 +58,7 @@ import {
   isFollowCameraJump,
 } from "../../lib/debug/mapTickProbe";
 import { noteRiderJitterFrame } from "../../lib/debug/riderJitterProbe";
+import { attachMapRenderProbe, openFrameBreakdownTick } from "../../lib/debug/frameBreakdownProbe";
 import { installCameraRenderPhaseHook } from "../../lib/camera/cameraRenderPhase";
 import { applyTickTestToMap, getTickTestOffList, installTickTestMapHooks, subscribeTickTest } from "../../lib/debug/tickTestSwitches";
 import type { LngLat, LineStringGeometry } from "../../lib/geo/geo";
@@ -1132,6 +1133,7 @@ export function MapView({
     }
     installCameraRenderPhaseHook(map);
     installTickTestMapHooks(map);
+    const detachFrameBreakdown = attachMapRenderProbe(map);
 
     const reportMapViewport = () => {
       const bounds = map.getBounds();
@@ -1742,6 +1744,7 @@ export function MapView({
     requestAnimationFrame(onResize);
 
     return () => {
+      detachFrameBreakdown();
       map.off("moveend", reportMapViewportAfterMove);
       map.off("zoomend", reportMapViewportAfterMove);
       map.off("idle", reportMapViewport);
@@ -2504,6 +2507,8 @@ export function MapView({
       return features;
     };
     const tickBody = (now: number) => {
+      const tickClock = openFrameBreakdownTick();
+      try {
       noteRafFrame(now);
       const map = mapRef.current;
       // isStyleLoaded() 는 위성+3D terrain 에서 영구 false 가능 → 동행 스프라이트 영영 차단.
@@ -2540,6 +2545,7 @@ export function MapView({
           liveMarkerPedalSpriteRef,
           prefersReducedMotionRef.current,
         );
+        tickClock?.mark("self");
         // 종료 hold·비주행: follow tick 금지 — App followMode 복원(left 등)이 카메라를 덮지 않게.
         const session = liveRiderMotionRef.current?.sessionStatus;
         const rideSessionLive = session === "running" || session === "paused";
@@ -2559,6 +2565,7 @@ export function MapView({
             nowMs: now,
           });
         }
+        tickClock?.mark("camera");
         if (selfLocationMarkerRef.current) {
           const geoBearingDeg = resolveRiderBearingDeg(
             routeGeometryRef.current,
@@ -2587,6 +2594,7 @@ export function MapView({
           map.getBearing(),
         );
       }
+      tickClock?.mark("self");
 
       const showPeerSprites = mapZoomRef.current > MAP_PEER_SPRITE_MIN_ZOOM;
       /*
@@ -2602,12 +2610,15 @@ export function MapView({
         epochMs,
         { buildFeatures: showPeerSprites, headingHalfSpanM: RIDER_CURVE_HALF_SPAN_M },
       );
+      tickClock?.mark("peer");
       const pacerFeatures = stepPacersForFrame(dt, showPeerSprites, epochMs);
+      tickClock?.mark("pacer");
       syncPeerDomMarkers(
         map,
         [...(fc.features as PeerDomGJFeature[]), ...pacerFeatures],
         peerDomMarkersRef,
       );
+      tickClock?.mark("markers");
       const riderLayerReady =
         RIDER_PROTOTYPE_MODE === "glb"
           ? ensureRiderGlbLayer(map)
@@ -2717,8 +2728,10 @@ export function MapView({
           turnLiveIds.push(f.properties.id);
         }
         noteRiderJitterFrame(now, selfPathDistM, fc.features, pacerFeatures);
+        tickClock?.mark("spec");
         if (RIDER_PROTOTYPE_MODE === "glb") syncRiderGlbModels(map, specs);
         else syncRiderPreservedModels(map, specs);
+        tickClock?.mark("sync");
         if (import.meta.env.DEV && getTickTestOffList().length > 0) applyTickTestToMap(map);
         const liveLabel = liveRiderNametagRef.current?.trim() ?? "";
         syncGlbLiveNametagMarker(
@@ -2728,6 +2741,7 @@ export function MapView({
           glbLiveNametagMarkerRef,
           glbLiveNametagElRef,
         );
+        tickClock?.mark("nametag");
       }
       if (didTurn) {
         riderTurnRef.current.prune(turnLiveIds);
@@ -2735,6 +2749,9 @@ export function MapView({
         for (const id of peerTurnDistPrevRef.current.keys()) {
           if (!liveTurn.has(id)) peerTurnDistPrevRef.current.delete(id);
         }
+      }
+      } finally {
+        tickClock?.end();
       }
     };
     /**
