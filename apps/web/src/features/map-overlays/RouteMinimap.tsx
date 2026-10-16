@@ -15,6 +15,7 @@ import {
   ROUTE_MINIMAP_PAD_TOP_PX,
   routeMinimapStaticImageUrl,
 } from "./routeMinimapProjection";
+import { isMapCutKeyActive } from "../../lib/map/mapCut";
 import "./RouteMinimap.css";
 
 export type RouteMinimapProps = {
@@ -122,6 +123,10 @@ export function RouteMinimap({
 }: RouteMinimapProps) {
   const rootRef = useRef<HTMLDivElement>(null);
 
+  // mapcut 측정 스위치 — `?mapcut=minimap` 이면 렌더 중지(DOM·정지 지도 요청·펄스 없음).
+  const mapcutMinimapOff = isMapCutKeyActive("minimap");
+  const effectiveActive = active && !mapcutMinimapOff;
+
   /*
    * 이정표(주행 스토리 M2) — 진행이 갱신될 때 직전 값과 비교해 「지나간」 순간만 띠를 띄운다.
    * 직전 값은 렌더 중 비교 패턴으로 state 에 둔다(effect 안 setState 금지 규칙).
@@ -130,7 +135,7 @@ export function RouteMinimap({
   const [milestone, setMilestone] = useState<{ kind: RideMilestoneKind; seq: number } | null>(null);
   if (traveledMeters !== prevTraveled) {
     setPrevTraveled(traveledMeters);
-    const kind = active ? detectRideMilestone(prevTraveled, traveledMeters, routeMeters) : null;
+    const kind = effectiveActive ? detectRideMilestone(prevTraveled, traveledMeters, routeMeters) : null;
     if (kind) setMilestone((m) => ({ kind, seq: (m?.seq ?? 0) + 1 }));
   }
   const milestoneSeq = milestone?.seq ?? 0;
@@ -139,7 +144,7 @@ export function RouteMinimap({
     const t = window.setTimeout(() => setMilestone(null), MILESTONE_BAND_MS);
     return () => window.clearTimeout(t);
   }, [milestoneSeq]);
-  const flagWaving = active && isGoalFlagWaving(traveledMeters, routeMeters);
+  const flagWaving = effectiveActive && isGoalFlagWaving(traveledMeters, routeMeters);
   const [box, setBox] = useState<BoxState>({
     w: 0,
     h: 0,
@@ -149,7 +154,7 @@ export function RouteMinimap({
   });
 
   useLayoutEffect(() => {
-    if (!active || !routeGeometry) return;
+    if (!effectiveActive || !routeGeometry) return;
 
     const sync = () => {
       const vw = window.innerWidth;
@@ -240,7 +245,7 @@ export function RouteMinimap({
       vv?.removeEventListener("resize", sync);
       vv?.removeEventListener("scroll", sync);
     };
-  }, [active, routeGeometry]);
+  }, [effectiveActive, routeGeometry]);
 
   const layout = useMemo(() => {
     if (!routeGeometry || box.w < 8 || box.h < 8) return null;
@@ -261,7 +266,7 @@ export function RouteMinimap({
     return layout.project(liveLngLat);
   }, [layout, liveLngLat]);
 
-  if (!active || !routeGeometry || routeGeometry.coordinates.length < 1) {
+  if (!effectiveActive || !routeGeometry || routeGeometry.coordinates.length < 1) {
     return null;
   }
 

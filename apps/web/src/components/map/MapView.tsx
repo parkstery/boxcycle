@@ -46,6 +46,7 @@ import {
   RTW_TRACE_LIVE_PAINT,
 } from "../../lib/map/rtwMapConfig";
 import { conquestLayerEmphasis } from "../../lib/conquest/conquestLayerEmphasis";
+import { applyMapCutToMap, getMapCutKeys } from "../../lib/map/mapCut";
 import {
   shouldMoveActivityWorldLayersToTop,
 } from "../../lib/debug/mapDebugPhase";
@@ -1313,6 +1314,12 @@ export function MapView({
         moveActivityWorldLayersToTop(map);
       }
       apply3DState(map, enable3DRef.current, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID);
+      // mapcut 측정 스위치 — 쿼리 있을 때만. apply3DState 가 지형·건물을 되살린 뒤라 순서가 중요.
+      try {
+        applyMapCutToMap(map);
+      } catch {
+        /* lab 스위치 실패가 주행 지도를 막지 않는다 */
+      }
       if (RIDER_PROTOTYPE_MODE === "glb") {
         clearRiderGlbModels(map);
         ensureRiderGlbLayer(map);
@@ -3138,7 +3145,40 @@ export function MapView({
     } catch (err) {
       console.warn("[MapView] apply3DState failed", err);
     }
+    // mapcut 측정 스위치 — 쿼리 있을 때만(없으면 내부에서 아무 호출도 없다).
+    try {
+      applyMapCutToMap(map);
+    } catch {
+      /* lab 스위치 */
+    }
   }, [enable3D, mapLoaded]);
+
+  /**
+   * mapcut 측정 스위치 — 스타일 재로드마다 재적용. 생성 effect 의 `style.load`
+   * 핸들러(apply3DState 등)보다 나중에 등록되므로, 되살아난 지형·건물을 덮는다.
+   * 쿼리가 없으면 내부에서 아무 호출도 없이 반환한다.
+   */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+    if (getMapCutKeys().length === 0) return;
+    try {
+      applyMapCutToMap(map);
+    } catch {
+      /* lab 스위치 */
+    }
+    const reapply = () => {
+      try {
+        applyMapCutToMap(map);
+      } catch {
+        /* lab 스위치 */
+      }
+    };
+    map.on("style.load", reapply);
+    return () => {
+      map.off("style.load", reapply);
+    };
+  }, [mapLoaded]);
 
   if (!accessToken?.trim()) {
     return (
