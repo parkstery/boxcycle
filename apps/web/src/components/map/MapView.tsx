@@ -37,6 +37,7 @@ import {
 } from "../../lib/map/mapPickRouteDock";
 import {
   applyRtwLayerStyle,
+  installRiderMapPixelRatioCap,
   resetRtwStyleSnapshot,
   RTW_MAP_STYLE_URL,
   RTW_TRACE_ACCUMULATED_HALO_PAINT,
@@ -1111,6 +1112,13 @@ export function MapView({
     // 첫 지도 연출: 지구의에서 시작해 load 뒤 시작 위치로 확대한다. 동작 줄이기 설정이면 곧장 시작 위치.
     const bootGlobe = !getReducedMotionSnapshot() && bootZoom > BOOT_GLOBE_ZOOM;
     bootFlyTargetRef.current = bootGlobe ? { center: bootCenter, zoom: bootZoom } : null;
+    /*
+     * 고밀도 렌더 상한 (P1): mapbox-gl 3.23.1 의 MapOptions 에는 `pixelRatio` 가 없어
+     * 생성자 옵션으로 줄 수 없다 — `installRiderMapPixelRatioCap()` 이 JS 관측 DPR 을
+     * min(실측, 상한) 으로 고정하고, Mapbox 내부(`_resizeCanvas`·painter·타일·셰이더)가
+     * 그 값을 읽는다. DPR ≤ 2 기기는 min 으로 그대로라 동작이 바뀌지 않는다.
+     */
+    installRiderMapPixelRatioCap();
     const map = new mapboxgl.Map({
       container: el,
       style: initialMapStyleRef.current,
@@ -1740,6 +1748,12 @@ export function MapView({
       onMapZoomRef.current(Number(map.getZoom().toFixed(1)));
     });
 
+    /*
+     * 화면 회전·창 크기 변경: Mapbox 의 trackResize(`_onWindowResize` → `resize()`,
+     * orientationchange 포함)와 아래 리스너가 같은 `map.resize()` 로 모인다.
+     * resize 경로는 고정된 DPR 관측값(min(실측, 상한))을 다시 읽으므로 상한이 유지된다
+     * (`map.setPixelRatio` 는 mapbox-gl 3.23.1 에 없어 별도 강제 호출이 없다).
+     */
     const onResize = () => map.resize();
     window.addEventListener("resize", onResize);
     requestAnimationFrame(onResize);

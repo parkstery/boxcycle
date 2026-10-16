@@ -5,6 +5,8 @@
  * 값은 패널에서 복사할 뿐 서버로 보내지 않는다.
  */
 
+import { readRiderMapTrueDevicePixelRatio } from "../map/rtwMapConfig";
+
 export const PERF_LAB_WINDOW_MS = 10_000;
 
 /** 탭이 숨은 뒤의 공백은 프레임 시간이 아니다. */
@@ -39,6 +41,8 @@ export type PerfLabDeviceInfo = {
   hardwareConcurrency: number | null;
   deviceMemory: number | null;
   devicePixelRatio: number | null;
+  /** 지도 캔버스 실측 적용 비율 (canvas.width ÷ CSS 너비). 상한 설치 전이면 null. */
+  mapPixelRatio: number | null;
   screenWidth: number | null;
   screenHeight: number | null;
   innerWidth: number | null;
@@ -243,6 +247,42 @@ function contextOf(canvas: HTMLCanvasElement): WebGLRenderingContext | WebGL2Ren
 let webglCache: PerfLabWebGlInfo | null = null;
 let webglTempTried = false;
 
+/*
+ * 렌더 상한(P1)이 `window.devicePixelRatio` 의 JS 관측값을 min(실측, 상한) 으로
+ * 고정하므로, 여기서 `window` 를 직접 읽으면 상한값이 나온다. 기기 정보의 DPR 은
+ * 설치 때 스냅샷한 실측을 우선 보고한다. mapbox-gl 3.23.1 에 `map.getPixelRatio()`
+ * 가 없어 실제 적용 비율은 지도 캔버스(canvas.width ÷ CSS 너비)로 잰다.
+ */
+function readTrueDevicePixelRatio(): number | null {
+  try {
+    const stashed = readRiderMapTrueDevicePixelRatio();
+    if (stashed != null) return stashed;
+  } catch {
+    /* 상한 모듈을 못 읽으면 아래 window 직독으로 복귀 */
+  }
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.devicePixelRatio;
+    return typeof raw === "number" && Number.isFinite(raw) ? raw : null;
+  } catch {
+    return null;
+  }
+}
+
+function readMapCanvasPixelRatio(): number | null {
+  if (typeof document === "undefined") return null;
+  try {
+    const canvas = document.querySelector("canvas.mapboxgl-canvas");
+    if (!(canvas instanceof HTMLCanvasElement)) return null;
+    const cssWidth = canvas.clientWidth;
+    if (!Number.isFinite(cssWidth) || cssWidth <= 0) return null;
+    const ratio = canvas.width / cssWidth;
+    if (!Number.isFinite(ratio) || ratio <= 0) return null;
+    return Math.round(ratio * 100) / 100;
+  } catch {
+    return null;
+  }
+}
 export function readPerfLabWebGlInfo(): PerfLabWebGlInfo | null {
   if (webglCache) return webglCache;
   if (typeof document === "undefined") return null;
@@ -279,7 +319,8 @@ export function readPerfLabDeviceInfo(): PerfLabDeviceInfo {
     hardwareConcurrency:
       nav != null && Number.isFinite(nav.hardwareConcurrency) ? nav.hardwareConcurrency : null,
     deviceMemory: typeof memory === "number" && Number.isFinite(memory) ? memory : null,
-    devicePixelRatio: viewOk && Number.isFinite(window.devicePixelRatio) ? window.devicePixelRatio : null,
+    devicePixelRatio: readTrueDevicePixelRatio(),
+    mapPixelRatio: readMapCanvasPixelRatio(),
     screenWidth: screenOk && Number.isFinite(screen.width) ? screen.width : null,
     screenHeight: screenOk && Number.isFinite(screen.height) ? screen.height : null,
     innerWidth: viewOk && Number.isFinite(window.innerWidth) ? window.innerWidth : null,

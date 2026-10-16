@@ -326,3 +326,132 @@ export function mapStyleHudShortLabel(style: string): string {
  * RTW Dark 는 스타일 목록에 그대로 남아 있다.
  */
 export const DEFAULT_MAP_STYLE = MAP_STYLE_OPTIONS[1]!.value;
+
+/**
+ * 고밀도 화면 렌더 해상도 상한 (2026-10-16 P1).
+ *
+ * mapbox-gl 3.23.1 의 `MapOptions` 에는 `pixelRatio` 가 없고 `Map` 에도
+ * `get/setPixelRatio` 가 없다. 내부는 전역 `window.devicePixelRatio` 를 직접 읽는다
+ * (`_resizeCanvas`·`painter.resize`·타일 pixelRatio·셰이더 `u_device_pixel_ratio` 전부).
+ * 그래서 상한은 「JS 가 보는 DPR」을 `min(실측, 상한)` 으로 고정해 강제한다.
+ * Mapbox 의 resize 경로(`_onWindowResize` → `resize()`)도 같은 값을 다시 읽으므로
+ * 화면 회전·창 크기 변경 뒤에도 상한이 유지된다. 지도 위 3D 라이더 레이어(three.js)는
+ * `map.getCanvas()` 와 같은 GL 컨텍스트를 공유하므로 지도 캔버스 해상도를 그대로 따른다.
+ */
+export const RIDER_MAP_MAX_PIXEL_RATIO = 2;
+/** `?maxdpr=` 비교 측정용 키 (운영 포함). 범위를 벗어나면 상수로 복귀. */
+export const RIDER_MAP_MAX_DPR_QUERY_KEY = "maxdpr";
+export const RIDER_MAP_MAX_DPR_MIN = 1;
+export const RIDER_MAP_MAX_DPR_MAX = 4;
+
+/** `?maxdpr=` 파싱 — 1–4 범위만 인정, 없거나 잘못되면 상수. */
+export function parseRiderMapMaxPixelRatio(search: string | null | undefined): number {
+  try {
+    const raw = new URLSearchParams(search ?? "").get(RIDER_MAP_MAX_DPR_QUERY_KEY);
+    if (raw == null || raw.trim() === "") return RIDER_MAP_MAX_PIXEL_RATIO;
+    const n = Number(raw);
+    if (!Number.isFinite(n) || n < RIDER_MAP_MAX_DPR_MIN || n > RIDER_MAP_MAX_DPR_MAX) {
+      return RIDER_MAP_MAX_PIXEL_RATIO;
+    }
+    return n;
+  } catch {
+    return RIDER_MAP_MAX_PIXEL_RATIO;
+  }
+}
+
+/**
+ * 실측 DPR → 렌더에 쓸 비율. DPR ≤ 2 기기는 그대로라 동작이 바뀌지 않는다.
+ * `maxRatio` 가 범위를 벗어나면 상수를 쓴다.
+ */
+export function resolveRiderMapPixelRatio(
+  devicePixelRatio: number,
+  maxRatio: number = RIDER_MAP_MAX_PIXEL_RATIO,
+): number {
+  const dpr =
+    Number.isFinite(devicePixelRatio) && devicePixelRatio > 0 ? devicePixelRatio : 1;
+  const cap =
+    Number.isFinite(maxRatio) &&
+    maxRatio >= RIDER_MAP_MAX_DPR_MIN &&
+    maxRatio <= RIDER_MAP_MAX_DPR_MAX
+      ? maxRatio
+      : RIDER_MAP_MAX_PIXEL_RATIO;
+  return Math.min(dpr, cap);
+}
+
+let riderMapMaxCache: number | undefined;
+let riderMapTrueDprCache: number | null = null;
+/**
+ * 상한을 걸기 전 브라우저의 원래 `devicePixelRatio` 접근자. 매번 이것으로 실측해야
+ * PC 브라우저 확대·축소나 모니터 이동으로 배율이 바뀌어도 따라간다(Supervisor 보정).
+ */
+let riderMapNativeDprGetter: (() => number) | null = null;
+
+function readNativeDevicePixelRatio(): number | null {
+  if (typeof window === "undefined") return null;
+  // 원래 접근자를 못 찾았는데 이미 덮어썼다면 window 를 다시 읽으면 자기 자신을 부른다 → 설치 때 값.
+  if (!riderMapNativeDprGetter && riderMapCapInstalled) return riderMapTrueDprCache;
+  const raw = riderMapNativeDprGetter ? riderMapNativeDprGetter() : window.devicePixelRatio;
+  return typeof raw === "number" && Number.isFinite(raw) && raw > 0 ? raw : null;
+}
+let riderMapCapInstalled = false;
+
+/** 페이지 수명 동안 `?maxdpr=` 를 한 번만 읽는다. */
+export function getRiderMapMaxPixelRatio(): number {
+  if (riderMapMaxCache !== undefined) return riderMapMaxCache;
+  const search = typeof window === "undefined" ? "" : (window.location?.search ?? "");
+  riderMapMaxCache = parseRiderMapMaxPixelRatio(search);
+  return riderMapMaxCache;
+}
+
+/** 상한 적용 전 실측 DPR. perflab 기기 정보가 실측을 그대로 보고하게 둔다. */
+export function readRiderMapTrueDevicePixelRatio(): number | null {
+  if (riderMapCapInstalled) return readNativeDevicePixelRatio() ?? riderMapTrueDprCache;
+  if (riderMapTrueDprCache != null) return riderMapTrueDprCache;
+  return readNativeDevicePixelRatio();
+}
+
+/** 현재 렌더에 적용되는 비율 (= min(실측, 상한)). */
+export function readRiderMapAppliedPixelRatio(): number {
+  return resolveRiderMapPixelRatio(readRiderMapTrueDevicePixelRatio() ?? 1, getRiderMapMaxPixelRatio());
+}
+
+/**
+ * 렌더 해상도 상한을 설치한다 — `new mapboxgl.Map` 보다 먼저 부를 것.
+ * `window.devicePixelRatio` 의 JS 관측값을 `min(실측, 상한)` 으로 고정한다.
+ * @returns 적용 비율. 재정의가 막힌 환경이면 상한 없이 진행하고 값을 그대로 반환한다.
+ */
+export function installRiderMapPixelRatioCap(): number {
+  const max = getRiderMapMaxPixelRatio();
+  if (typeof window === "undefined") return max;
+  if (riderMapTrueDprCache == null) {
+    const raw = window.devicePixelRatio;
+    riderMapTrueDprCache =
+      typeof raw === "number" && Number.isFinite(raw) && raw > 0 ? raw : 1;
+  }
+  const applied = Math.min(riderMapTrueDprCache, max);
+  if (riderMapCapInstalled) return applied;
+  try {
+    const own = Object.getOwnPropertyDescriptor(window, "devicePixelRatio");
+    const proto = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(window) ?? {}, "devicePixelRatio");
+    const nativeGet = own?.get ?? proto?.get;
+    if (nativeGet) riderMapNativeDprGetter = () => nativeGet.call(window) as number;
+    Object.defineProperty(window, "devicePixelRatio", {
+      configurable: true,
+      enumerable: true,
+      get: () =>
+        Math.min(readNativeDevicePixelRatio() ?? riderMapTrueDprCache ?? 1, getRiderMapMaxPixelRatio()),
+    });
+    riderMapCapInstalled = true;
+  } catch {
+    /* 재정의가 막힌 환경이면 상한 없이 진행 — 순수 함수·계측은 그대로 둔다 */
+  }
+  return applied;
+}
+
+/** 시험이 쿼리 캐시·실측 스냅샷·설치 표시를 비운다. 운영에서는 부르지 않는다. */
+export function resetRiderMapPixelRatioCapForTests(): void {
+  riderMapMaxCache = undefined;
+  riderMapTrueDprCache = null;
+  riderMapNativeDprGetter = null;
+  riderMapCapInstalled = false;
+}

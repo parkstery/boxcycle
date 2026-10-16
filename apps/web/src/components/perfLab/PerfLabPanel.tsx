@@ -94,11 +94,18 @@ function lod2Label(state: RiderLod2State | null, zoom: number | null): string {
 }
 
 function deviceLine(device: PerfLabDeviceInfo): string {
+  const dpr =
+    device.devicePixelRatio != null
+      ? `${Math.round(device.devicePixelRatio * 100) / 100}x`
+      : null;
+  const mapRatio =
+    device.mapPixelRatio != null ? `지도${Math.round(device.mapPixelRatio * 100) / 100}x` : null;
   const parts = [
     device.webgl?.unmaskedRenderer ?? null,
     device.hardwareConcurrency != null ? `${device.hardwareConcurrency}c` : null,
     device.deviceMemory != null ? `${device.deviceMemory}GB` : null,
-    device.devicePixelRatio != null ? `${device.devicePixelRatio}x` : null,
+    dpr,
+    mapRatio,
     device.screenWidth != null && device.screenHeight != null
       ? `${device.screenWidth}×${device.screenHeight}`
       : null,
