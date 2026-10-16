@@ -1,12 +1,14 @@
 /*
  * 실측 패널(`?perflab=1`). 조명·카메라 조절판과 같은 임시 표면.
- * 네 귀퉁이는 계기·QC·경로·주행 버튼이 쓴다. 기본은 접힘, 펼치면 지도 한가운데 위.
+ * M4: 상단 가운데에 두면 카메라 1·2 버튼을 가려 클릭을 가로챈다 —
+ * 화면 왼쪽 가장자리 세로 중앙에 둔다(우상단 카메라·맵 버튼 줄과 겹치지 않음).
+ * 기본은 접힘. 네 귀퉁이(계기·QC·경로·주행 버튼)는 쓰지 않는다.
  */
 .perf-lab {
   position: fixed;
-  top: 0.35rem;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 50%;
+  left: var(--hud-pad-left, 0.5rem);
+  transform: translateY(-50%);
   z-index: 60;
   width: max-content;
   max-width: min(18rem, calc(100vw - 1.2rem));

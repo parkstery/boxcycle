@@ -1,5 +1,8 @@
 /**
- * 주행 중 가까운 카메라에서 베이스맵 글자(symbol 레이어) 절충 (Chief 결정 ③, M3).
+ * 주행 중 가까운 카메라에서 베이스맵 글자(symbol 레이어) 절충 (Chief 결정 ③, M3 → M4).
+ *
+ * M4(기본 `names`): 장식·보조 symbol 만 숨기고 도로명·지명·다리·건물·POI
+ * 이름은 전부 남긴다 — 이름 레이어는 filter·visibility 모두 그대로.
  *
  * 배경 — M2(주행 + 줌 ≥ 19 글자 전부 숨김)는 지도 JS −2.9 ms·fps 57 → 72 로
  * 성능은 좋지만 "주변 지리를 알려면 지명·건물명이 필요, 너무 많이 줄었다"(Chief).
@@ -7,8 +10,11 @@
  * 글자를 한꺼번에 배치·충돌 계산하기 때문이다. 그래서 라이더 주변 글자는 남기고
  * 먼 글자·사소한 종류만 뺀다.
  *
- * 모드 (`?labelmode=`, 운영 포함, 잘못된 값 → `both`):
- * - `both`(기본) = `near` + `major`.
+ * 모드 (`?labelmode=`, 운영 포함, 잘못된 값 → `names`):
+ * - `names`(기본) = 장식·보조 symbol 만 숨김. 이름 레이어(road-label*·
+ *   poi-label·settlement*·자연·수계·공항·행정)는 filter·visibility 모두
+ *   그대로(조임·거리 조건 없음) — Chief 결정(M4).
+ * - `both` = `near` + `major` (비교용).
  * - `near`: 모든 베이스맵 symbol 에 `["<", ["distance-from-center"], D]` 조건을
  *   기존 filter 와 `all` 로 결합(지평선 쪽 먼 글자만 제거). D 기본 1.2,
  *   `?labeldist=0.5–3` 으로 조정(범위 밖은 자름, 잘못된 값은 기본).
@@ -41,18 +47,18 @@ export const RIDE_LABELS_SHOW_ZOOM = 18.7;
 
 export const RIDE_LABELS_QUERY_KEY = "labels";
 
-/** 주행 글자 모드 쿼리 키 (`?labelmode=both|near|major|all|none`). */
+/** 주행 글자 모드 쿼리 키 (`?labelmode=names|both|near|major|all|none`). */
 export const RIDE_LABEL_MODE_QUERY_KEY = "labelmode";
 
 /** near 거리 D 쿼리 키 (`?labeldist=`, 0.5–3). */
 export const RIDE_LABEL_DIST_QUERY_KEY = "labeldist";
 
-export type RideLabelMode = "both" | "near" | "major" | "all" | "none";
+export type RideLabelMode = "names" | "both" | "near" | "major" | "all" | "none";
 
-const KNOWN_MODES: ReadonlySet<string> = new Set(["both", "near", "major", "all", "none"]);
+const KNOWN_MODES: ReadonlySet<string> = new Set(["names", "both", "near", "major", "all", "none"]);
 
-/** 새 기본값 — M2 의 전부 숨김(`none`)이 아니다. */
-export const RIDE_LABEL_MODE_DEFAULT: RideLabelMode = "both";
+/** 새 기본값 — 장식 기호만 숨기고 이름은 전부 남긴다(M4, Chief 결정). */
+export const RIDE_LABEL_MODE_DEFAULT: RideLabelMode = "names";
 
 /** near 거리 기본·범위. `distance-from-center` 단위(화면 중심 기준 정규 거리). */
 export const RIDE_LABEL_DIST_DEFAULT = 1.2;
@@ -106,7 +112,7 @@ export function parseRideLabelsForceShow(search: string | null | undefined): boo
   }
 }
 
-/** `?labelmode=` 파싱 — 모르면(잘못된 값·없음) 새 기본값 `both`. */
+/** `?labelmode=` 파싱 — 모르면(잘못된 값·없음) 새 기본값 `names`. */
 export function parseRideLabelMode(search: string | null | undefined): RideLabelMode {
   try {
     const raw = new URLSearchParams(search ?? "")
@@ -247,6 +253,53 @@ export function isMajorKeptLabelLayer(layer: {
   }
   if (sourceLayer !== "") return false;
   return MAJOR_KEEP_ID_PATTERNS.some((re) => re.test(id));
+}
+
+/**
+ * `names`(M4 기본) 장식 판정 — 이름 레이어는 절대 숨기지 않는다.
+ *
+ * M3 `MAJOR_MINOR_ID_PATTERNS`(방패·화살표·횡단보도·출입구·지번·블록번호·
+ * 교차로·게이트·등고선·보행로·골프·여객선·transit 등)를 재사용하되, 이름
+ * 레이어(`road-label*`, `poi-label`, `settlement*`, `natural*`, `water*`,
+ * `waterway*`, `airport*`, `state*`, `country*`, `continent*`)를 먼저
+ * 가려내어 `false`(유지)로 돌려보낸다. 소스 레이어로 판정할 때도 이름
+ * 소스(`place_label`·`natural_label`·`airport_label`·`poi_label`,
+ * `road` 의 `road-label`)는 유지. 모르는 것(패턴·소스 모두 해당 없음)은
+ * 이름일 수 있으니 숨기지 않는다(M3 와 반대 — M3 는 모르면 숨김).
+ */
+const NAMES_KEEP_ID_PATTERNS: readonly RegExp[] = [
+  /road-label/,
+  /poi-label/,
+  /settlement/,
+  /country/,
+  /state/,
+  /continent/,
+  /natural/,
+  /waterway/,
+  /water/,
+  /airport/,
+];
+
+/** 이름 레이어의 소스 레이어 (`road` 는 `road-label` 일 때만 이름 — id 로 먼저 가린다). */
+const NAMES_KEEP_SOURCES: ReadonlySet<string> = new Set([
+  "place_label",
+  "natural_label",
+  "airport_label",
+  "poi_label",
+]);
+
+export function isDecorativeSymbolLayer(layer: {
+  id: string;
+  "source-layer"?: string;
+}): boolean {
+  const id = layer.id.toLowerCase();
+  if (NAMES_KEEP_ID_PATTERNS.some((re) => re.test(id))) return false;
+  if (MAJOR_MINOR_ID_PATTERNS.some((re) => re.test(id))) return true;
+  const sourceLayer = (layer["source-layer"] ?? "").toLowerCase();
+  if (sourceLayer === "road") return !id.includes("road-label");
+  if (sourceLayer === "") return false;
+  if (NAMES_KEEP_SOURCES.has(sourceLayer)) return false;
+  return true;
 }
 
 /** `near` 조건 — 화면 중심에서 D 이상 떨어진 글자를 걷어낸다. */
@@ -444,6 +497,12 @@ export class RideLabelsController {
     const near = mode === "near" || mode === "both";
     const major = mode === "major" || mode === "both";
     for (const layer of targets) {
+      if (mode === "names") {
+        // 장식·보조 symbol 만 visibility 로 숨김 — 이름 레이어는 손대지 않음
+        // (filter·visibility 호출 0, 조임·거리 조건 없음).
+        if (isDecorativeSymbolLayer(layer)) this.hideLayer(map, layer.id, summary);
+        continue;
+      }
       const kept = !major || isMajorKeptLabelLayer(layer);
       if (!kept) {
         this.hideLayer(map, layer.id, summary);

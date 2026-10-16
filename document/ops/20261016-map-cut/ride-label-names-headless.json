@@ -1,0 +1,213 @@
+{
+  "port": 5070,
+  "at": "2026-10-16T14:12:55.909Z",
+  "names": [
+    {
+      "styleName": "outdoors",
+      "zoom": 19.5,
+      "mode": "names",
+      "targetCount": 34,
+      "expectedDecorative": [
+        "tunnel-oneway-arrow-blue",
+        "tunnel-oneway-arrow-white",
+        "level-crossing",
+        "road-oneway-arrow-blue",
+        "road-oneway-arrow-white",
+        "crosswalks",
+        "gate-label",
+        "bridge-oneway-arrow-blue",
+        "bridge-oneway-arrow-white",
+        "contour-label",
+        "building-entrance",
+        "building-number-label",
+        "block-number-label",
+        "road-intersection",
+        "road-number-shield",
+        "road-exit-shield",
+        "path-pedestrian-label",
+        "golf-hole-label",
+        "ferry-aerialway-label",
+        "transit-label"
+      ],
+      "hidden": [
+        "tunnel-oneway-arrow-blue",
+        "tunnel-oneway-arrow-white",
+        "level-crossing",
+        "road-oneway-arrow-blue",
+        "road-oneway-arrow-white",
+        "crosswalks",
+        "gate-label",
+        "bridge-oneway-arrow-blue",
+        "bridge-oneway-arrow-white",
+        "contour-label",
+        "building-entrance",
+        "building-number-label",
+        "block-number-label",
+        "road-intersection",
+        "road-number-shield",
+        "road-exit-shield",
+        "path-pedestrian-label",
+        "golf-hole-label",
+        "ferry-aerialway-label",
+        "transit-label"
+      ],
+      "unexpectedHidden": [],
+      "missedDecorative": [],
+      "filteredCount": 0,
+      "filtered": [],
+      "skipped": [],
+      "applyError": null,
+      "restoreMismatches": []
+    },
+    {
+      "styleName": "satellite",
+      "zoom": 19.5,
+      "mode": "names",
+      "targetCount": 20,
+      "expectedDecorative": [
+        "road-intersection",
+        "road-number-shield",
+        "road-exit-shield",
+        "path-pedestrian-label",
+        "ferry-aerialway-label",
+        "transit-label"
+      ],
+      "hidden": [
+        "road-intersection",
+        "road-number-shield",
+        "road-exit-shield",
+        "path-pedestrian-label",
+        "ferry-aerialway-label",
+        "transit-label"
+      ],
+      "unexpectedHidden": [],
+      "missedDecorative": [],
+      "filteredCount": 0,
+      "filtered": [],
+      "skipped": [],
+      "applyError": null,
+      "restoreMismatches": []
+    },
+    {
+      "styleName": "night",
+      "zoom": 19.5,
+      "mode": "names",
+      "targetCount": 29,
+      "expectedDecorative": [
+        "turning-feature-outline-navigation",
+        "level-crossing-navigation",
+        "turning-feature-navigation",
+        "traffic-level-crossing-navigation",
+        "traffic-tunnel-oneway-arrow-blue-navigation",
+        "traffic-tunnel-oneway-arrow-white-navigation",
+        "traffic-road-oneway-arrow-blue-navigation",
+        "traffic-road-oneway-arrow-white-navigation",
+        "traffic-bridge-oneway-arrow-blue-navigation",
+        "traffic-bridge-oneway-arrow-white-navigation",
+        "incident-endpoints-navigation",
+        "incident-startpoints-navigation",
+        "road-intersection",
+        "road-number-shield-navigation",
+        "road-exit-shield-navigation",
+        "ferry-aerialway-label"
+      ],
+      "hidden": [
+        "turning-feature-outline-navigation",
+        "level-crossing-navigation",
+        "turning-feature-navigation",
+        "traffic-level-crossing-navigation",
+        "traffic-tunnel-oneway-arrow-blue-navigation",
+        "traffic-tunnel-oneway-arrow-white-navigation",
+        "traffic-road-oneway-arrow-blue-navigation",
+        "traffic-road-oneway-arrow-white-navigation",
+        "traffic-bridge-oneway-arrow-blue-navigation",
+        "traffic-bridge-oneway-arrow-white-navigation",
+        "incident-endpoints-navigation",
+        "incident-startpoints-navigation",
+        "road-intersection",
+        "road-number-shield-navigation",
+        "road-exit-shield-navigation",
+        "ferry-aerialway-label"
+      ],
+      "unexpectedHidden": [],
+      "missedDecorative": [],
+      "filteredCount": 0,
+      "filtered": [],
+      "skipped": [],
+      "applyError": null,
+      "restoreMismatches": []
+    }
+  ],
+  "overlap": [
+    {
+      "viewportName": "desktop-1280x720",
+      "states": [
+        {
+          "label": "collapsed",
+          "collapsed": true,
+          "panelRect": {
+            "x": 8,
+            "y": 333.8125,
+            "width": 288,
+            "height": 52.375
+          },
+          "cameraButtonCount": 0,
+          "overlaps": []
+        },
+        {
+          "label": "expanded",
+          "collapsed": false,
+          "panelRect": {
+            "x": 8,
+            "y": 56,
+            "width": 288,
+            "height": 608
+          },
+          "cameraButtonCount": 0,
+          "overlaps": []
+        }
+      ],
+      "cameraButtonsPresent": false,
+      "panelText": [
+        "성능",
+        "mapcut 없음",
+        "글자 모드 names (D 1.2) · 표시"
+      ]
+    },
+    {
+      "viewportName": "phone-699x273",
+      "states": [
+        {
+          "label": "collapsed",
+          "collapsed": true,
+          "panelRect": {
+            "x": 6.75,
+            "y": 110.8125,
+            "width": 243,
+            "height": 51.375
+          },
+          "cameraButtonCount": 0,
+          "overlaps": []
+        },
+        {
+          "label": "expanded",
+          "collapsed": false,
+          "panelRect": {
+            "x": 6.75,
+            "y": 47.25,
+            "width": 243,
+            "height": 178.5
+          },
+          "cameraButtonCount": 0,
+          "overlaps": []
+        }
+      ],
+      "cameraButtonsPresent": false,
+      "panelText": [
+        "성능",
+        "mapcut 없음",
+        "글자 모드 names (D 1.2) · 표시"
+      ]
+    }
+  ]
+}

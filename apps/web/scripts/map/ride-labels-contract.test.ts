@@ -5,6 +5,7 @@ import {
   combineLabelFilter,
   getMajorTightenCondition,
   getRideLabelLayerIds,
+  isDecorativeSymbolLayer,
   isMajorKeptLabelLayer,
   MAJOR_POI_FILTERRANK_MAX,
   MAJOR_ROAD_CLASSES,
@@ -258,14 +259,14 @@ describe("주행 글자 컨트롤러 (M2 동작 — 모드 none)", () => {
 });
 
 describe("모드·D 파싱", () => {
-  it("알려진 모드는 그대로, 잘못된 값·없음 → both", () => {
-    for (const m of ["both", "near", "major", "all", "none"]) {
+  it("알려진 모드는 그대로, 잘못된 값·없음 → names", () => {
+    for (const m of ["names", "both", "near", "major", "all", "none"]) {
       assert.equal(parseRideLabelMode(`?labelmode=${m}`), m);
     }
-    assert.equal(parseRideLabelMode("?labelmode=everything"), "both");
-    assert.equal(parseRideLabelMode("?labelmode="), "both");
-    assert.equal(parseRideLabelMode(""), "both");
-    assert.equal(parseRideLabelMode(null), "both");
+    assert.equal(parseRideLabelMode("?labelmode=everything"), "names");
+    assert.equal(parseRideLabelMode("?labelmode="), "names");
+    assert.equal(parseRideLabelMode(""), "names");
+    assert.equal(parseRideLabelMode(null), "names");
   });
 
   it("D 범위 — 0.5–3, 없거나 잘못되면 1.2", () => {
@@ -548,5 +549,144 @@ describe("모드 적용·복원", () => {
     );
     assert.ok(map.filterCalls.length > 0);
     assert.equal(c.getLastSummary().mode, "both");
+  });
+});
+
+describe("names 장식 판정 (M4 — 이름은 전부 유지)", () => {
+  it("장식 20종 → true (Supervisor 실험 목록, night 기준)", () => {
+    const decorative: RideLabelStyleLayer[] = [
+      { id: "tunnel-oneway-arrow-blue", type: "symbol", "source-layer": "road" },
+      { id: "tunnel-oneway-arrow-white", type: "symbol", "source-layer": "road" },
+      { id: "road-oneway-arrow-blue", type: "symbol", "source-layer": "road" },
+      { id: "road-oneway-arrow-white", type: "symbol", "source-layer": "road" },
+      { id: "bridge-oneway-arrow-blue", type: "symbol", "source-layer": "road" },
+      { id: "bridge-oneway-arrow-white", type: "symbol", "source-layer": "road" },
+      { id: "level-crossing", type: "symbol", "source-layer": "road" },
+      { id: "crosswalks", type: "symbol", "source-layer": "road" },
+      { id: "gate-label", type: "symbol", "source-layer": "structure" },
+      { id: "contour-label", type: "symbol", "source-layer": "contour" },
+      { id: "building-entrance", type: "symbol", "source-layer": "structure" },
+      { id: "building-number-label", type: "symbol", "source-layer": "housenum_label" },
+      { id: "block-number-label", type: "symbol", "source-layer": "place_label" },
+      { id: "road-intersection", type: "symbol", "source-layer": "road" },
+      { id: "road-number-shield", type: "symbol", "source-layer": "road" },
+      { id: "road-exit-shield", type: "symbol", "source-layer": "motorway_junction" },
+      { id: "path-pedestrian-label", type: "symbol", "source-layer": "road" },
+      { id: "golf-hole-label", type: "symbol" },
+      { id: "ferry-aerialway-label", type: "symbol", "source-layer": "road" },
+      { id: "transit-label", type: "symbol", "source-layer": "transit_stop_label" },
+    ];
+    assert.equal(decorative.length, 20);
+    for (const layer of decorative) {
+      assert.equal(isDecorativeSymbolLayer(layer), true, layer.id);
+    }
+  });
+
+  it("이름 레이어 → false (filter·visibility 대상 아님)", () => {
+    const names: RideLabelStyleLayer[] = [
+      { id: "road-label", type: "symbol", "source-layer": "road" },
+      { id: "road-label-navigation", type: "symbol", "source-layer": "road" },
+      { id: "poi-label", type: "symbol", "source-layer": "poi_label" },
+      { id: "airport-label", type: "symbol", "source-layer": "airport_label" },
+      { id: "waterway-label", type: "symbol", "source-layer": "natural_label" },
+      { id: "natural-point-label", type: "symbol", "source-layer": "natural_label" },
+      { id: "water-point-label", type: "symbol", "source-layer": "natural_label" },
+      { id: "continent-label", type: "symbol", "source-layer": "natural_label" },
+      { id: "settlement-subdivision-label", type: "symbol", "source-layer": "place_label" },
+      { id: "settlement-minor-label", type: "symbol", "source-layer": "place_label" },
+      { id: "settlement-major-label", type: "symbol", "source-layer": "place_label" },
+      { id: "state-label", type: "symbol", "source-layer": "place_label" },
+      { id: "country-label", type: "symbol", "source-layer": "place_label" },
+    ];
+    for (const layer of names) {
+      assert.equal(isDecorativeSymbolLayer(layer), false, layer.id);
+    }
+  });
+
+  it("모르는 것 — 이름일 수 있으니 숨기지 않음 (M3 와 반대)", () => {
+    assert.equal(isDecorativeSymbolLayer({ id: "something-unknown-label" }), false);
+    assert.equal(
+      isDecorativeSymbolLayer({ id: "something-unknown-label", "source-layer": "place_label" }),
+      false,
+    );
+    // 보조 소스가 확실하면 장식으로 본다
+    assert.equal(
+      isDecorativeSymbolLayer({ id: "something-unknown-label", "source-layer": "housenum_label" }),
+      true,
+    );
+    // road 소스인데 road-label 이 아니면 보조 층이다
+    assert.equal(isDecorativeSymbolLayer({ id: "road-aux", "source-layer": "road" }), true);
+  });
+});
+
+describe("names 적용·복원 (M4 기본)", () => {
+  const NAMES_LAYERS: RideLabelStyleLayer[] = [
+    { id: "settlement-major-label", type: "symbol", "source-layer": "place_label" },
+    { id: "poi-label", type: "symbol", "source-layer": "poi_label" },
+    { id: "road-label", type: "symbol", "source-layer": "road" },
+    { id: "waterway-label", type: "symbol", "source-layer": "natural_label" },
+    { id: "transit-label", type: "symbol", "source-layer": "transit_stop_label" },
+    { id: "road-number-shield", type: "symbol", "source-layer": "road" },
+    { id: "route", type: "line" },
+  ];
+
+  it("장식만 숨김 + 이름은 호출 0 (filter 무호출), 복원은 원본 그대로", () => {
+    const origRoad: unknown = ["==", ["get", "class"], "motorway"];
+    const c = new RideLabelsController();
+    const map = makeFakeMap(NAMES_LAYERS, {}, { "road-label": origRoad });
+    assert.equal(c.update(map, { riding: true, zoom: 22, mode: "names", dist: 1.2 }), true);
+    assert.deepEqual(
+      map.calls.map(([id]) => id).sort(),
+      ["road-number-shield", "transit-label"],
+    );
+    // 이름 레이어는 filter 도 visibility 도 건드리지 않는다
+    assert.equal(map.filterCalls.length, 0);
+    assert.equal(map.visibility.get("road-label"), "visible");
+    assert.equal(map.filters.get("road-label"), origRoad);
+    const summary = c.getLastSummary();
+    assert.equal(summary.mode, "names");
+    assert.equal(summary.targetCount, 6);
+    assert.deepEqual(summary.filteredIds, []);
+    // 복원 — 숨김 해제만, filter 는 건드린 적 없으니 호출 없음
+    map.calls.length = 0;
+    assert.equal(c.update(map, { riding: false, zoom: 22, mode: "names", dist: 1.2 }), false);
+    assert.equal(map.visibility.get("transit-label"), "visible");
+    assert.equal(map.visibility.get("road-number-shield"), "visible");
+    assert.equal(map.filters.get("road-label"), origRoad);
+    assert.equal(map.filterCalls.length, 0);
+  });
+
+  it("같은 상태면 호출 0, reapply 는 같은 숨김을 다시 적용", () => {
+    const c = new RideLabelsController();
+    const map = makeFakeMap(NAMES_LAYERS);
+    assert.equal(c.update(map, { riding: true, zoom: 22, mode: "names", dist: 1.2 }), true);
+    map.calls.length = 0;
+    map.filterCalls.length = 0;
+    assert.equal(c.update(map, { riding: true, zoom: 21.5, mode: "names", dist: 1.2 }), true);
+    assert.equal(map.calls.length, 0);
+    assert.equal(map.filterCalls.length, 0);
+    for (const l of NAMES_LAYERS) {
+      if (l.type === "symbol") map.visibility.set(l.id, "visible");
+    }
+    map.calls.length = 0;
+    c.reapply(map);
+    assert.deepEqual(
+      map.calls.map(([id]) => id).sort(),
+      ["road-number-shield", "transit-label"],
+    );
+    assert.equal(map.filterCalls.length, 0);
+    assert.equal(c.getLastSummary().mode, "names");
+  });
+
+  it("names 에서 both 로 바꾸면 복원 뒤 다시 적용", () => {
+    const c = new RideLabelsController();
+    const map = makeFakeMap(NAMES_LAYERS);
+    assert.equal(c.update(map, { riding: true, zoom: 22, mode: "names", dist: 1.2 }), true);
+    map.calls.length = 0;
+    map.filterCalls.length = 0;
+    assert.equal(c.update(map, { riding: true, zoom: 22, mode: "both", dist: 1.2 }), true);
+    // both 는 transit·방패 숨김 + 유지층 filter
+    assert.ok(map.calls.map(([id]) => id).includes("transit-label"));
+    assert.ok(map.filterCalls.length > 0);
   });
 });
