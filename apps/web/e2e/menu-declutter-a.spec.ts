@@ -2,7 +2,7 @@ import { test, expect, type Page } from "./open-meteo-stub";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { dismissAppIntroIfShown } from "./rideEntryHelpers";
+import { guestStart as sharedGuestStart } from "./rideEntryHelpers";
 
 /**
  * MENU 정리 A단계 계약 (2026-09-16 Chief).
@@ -202,9 +202,5 @@ test.describe("MENU 정리 A단계", () => {
 });
 
 async function guestStart(page: Page) {
-  await dismissAppIntroIfShown(page);
-  const gate = page.getByRole("dialog", { name: "시작" });
-  await expect(gate).toBeVisible({ timeout: 30_000 });
-  await gate.getByRole("button", { name: "시작", exact: true }).click();
-  await expect(gate).toBeHidden({ timeout: 30_000 });
+  await sharedGuestStart(page);
 }

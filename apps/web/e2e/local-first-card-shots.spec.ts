@@ -1,7 +1,7 @@
 import { test, expect } from "./open-meteo-stub";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { dismissAppIntroIfShown } from "./rideEntryHelpers";
+import { guestStart } from "./rideEntryHelpers";
 
 /**
  * 첫 Ready Ride 카드(LocalFirstEntryCard) 캡처·실측 — UI 공간밀도 원칙 §3 보고용.
@@ -35,11 +35,7 @@ for (const vp of [
       localStorage.setItem("rtw.localFirst.region", JSON.stringify(region));
     }, WONJU_REGION);
     await page.goto("/");
-    await dismissAppIntroIfShown(page);
-    const gate = page.getByRole("dialog", { name: "시작" });
-    await expect(gate).toBeVisible({ timeout: 30_000 });
-    await gate.getByRole("button", { name: "시작", exact: true }).click();
-    await expect(gate).toBeHidden({ timeout: 30_000 });
+    await guestStart(page);
 
     const card = page.locator(".local-first__card");
     await expect(card).toBeVisible({ timeout: 30_000 });
@@ -80,11 +76,7 @@ test("경로를 만든 뒤 거리 칩을 누르면 그 거리로 다시 만든�
     localStorage.setItem("rtw.localFirst.region", JSON.stringify(region));
   }, WONJU_REGION);
   await page.goto("/");
-  await dismissAppIntroIfShown(page);
-  const gate = page.getByRole("dialog", { name: "시작" });
-  await expect(gate).toBeVisible({ timeout: 30_000 });
-  await gate.getByRole("button", { name: "시작", exact: true }).click();
-  await expect(gate).toBeHidden({ timeout: 30_000 });
+  await guestStart(page);
 
   const card = page.locator(".local-first__card");
   await expect(card).toBeVisible({ timeout: 30_000 });

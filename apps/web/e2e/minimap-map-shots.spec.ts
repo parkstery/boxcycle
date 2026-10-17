@@ -9,7 +9,7 @@ import {
   routeMinimapStaticImageUrl,
 } from "../src/features/map-overlays/routeMinimapProjection";
 import type { LngLat } from "../src/lib/geo/geo";
-import { dismissAppIntroIfShown } from "./rideEntryHelpers";
+import { guestStart as sharedGuestStart } from "./rideEntryHelpers";
 
 /**
  * 미니맵 배경 정지 지도(보류01, 2026-10-07).
@@ -246,11 +246,7 @@ test.describe("미니맵 정지 지도", () => {
 });
 
 async function guestStart(page: import("@playwright/test").Page) {
-  await dismissAppIntroIfShown(page);
-  const gate = page.getByRole("dialog", { name: "시작" });
-  await expect(gate).toBeVisible({ timeout: 30_000 });
-  await gate.getByRole("button", { name: "시작", exact: true }).click();
-  await expect(gate).toBeHidden({ timeout: 30_000 });
+  await sharedGuestStart(page);
 }
 
 async function loadIntroCourse(page: import("@playwright/test").Page) {

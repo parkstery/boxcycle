@@ -94,6 +94,12 @@
 
 # ops 전체 상태판
 
+2026-10-17 [첫 진입 인증·위치 통합](20261017-entry-location/README.md): IN_PROGRESS. 담당 Codex/Cursor. Chief 진행 승인, 두 인증 선택과 위치 안내·지구본 연결. 다음 구현·권한별 회귀·모바일 검수. 이전 2초 전환은 대체, 배포 없음.
+
+2026-10-17 [인트로 자동 전환](20261017-intro-auto-transition/README.md): SUPERSEDED. Chief의 [첫 진입 인증·위치 통합](20261017-entry-location/README.md)으로 대체. 당시 CTA 제거·2초 타이머 구현·검증은 보존, 2초 자동 전환은 최종 채택하지 않는다.
+
+2026-10-17 [인트로 배경 선요청](20261017-intro-preload/README.md): APPROVED/Chief 확인 대기. Cursor 구현·Codex [검수02](20261017-intro-preload/04-review-02.md), 빌드·원본/빌드 주소 일치·브라우저 선요청/총1건 재사용·문서검사 통과. 기본 Cursor·OpenCode는 명시 요청 때만·한국어 안내 지침 반영. 다음 Chief 확인, 배포·실기기 속도 측정 없음.
+
 2026-10-15 최신완료:41 Chief통과.결과42/43 [감리43](20261013-face-redesign2/04-review-43.md) APPROVED/AWAITING_CHIEF.CSS8속성만·지도없는단일browser/page8상태PASS,기본높이91→82/Guest166→155,保存중·失敗안내完整표시。5013확인대기·실기기/실주행미검증·미커밋。
 
 2026-10-15 최신완료:40 Chief통과.센서41 [감리41](20261013-face-redesign2/04-review-41.md) APPROVED/AWAITING_CHIEF.체험선택표시/강조·余白정리,740높이105→96,버튼/기능보존。단일browser/page10상태+실제1·selector15/tsc PASS,5013확인대기。실기기BLE미검증/미커밋。

@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { harnessControl, pollInspectUser } from "../scripts/route-token/harness-control.mjs";
 import { HARNESS_TEST_ECONOMY } from "../scripts/route-token/harness-test-economy.mjs";
 import { isRouteWarmRequest } from "./route-warm-request";
-import { dismissAppIntroIfShown } from "./rideEntryHelpers";
+import { guestStart } from "./rideEntryHelpers";
 
 const LIVE = process.env.ROUTE_TOKEN_UI_LIVE === "1";
 const FORCE_FAIL = process.env.ROUTE_TOKEN_UI_FORCE_FAIL === "1";
@@ -39,25 +39,22 @@ function clearEvidenceDir() {
 
 async function enterAsGuest(page: import("@playwright/test").Page, options: { gateTimeoutMs?: number } = {}) {
   const gateTimeoutMs = options.gateTimeoutMs ?? 60_000;
-  await page.goto("/");
-  await dismissAppIntroIfShown(page);
-  const gate = page.getByRole("dialog", { name: "시작" });
-  await expect(gate).toBeVisible({ timeout: gateTimeoutMs });
+  // 소개의 게스트 버튼이 곧바로 익명 가입을 보내므로 응답 대기를 먼저 건다.
   const uidPromise = page.waitForResponse(
     (r) =>
       r.url().includes("identitytoolkit.googleapis.com") &&
       (r.url().includes("signUp") || r.url().includes("signIn")) &&
       r.ok(),
-    { timeout: 60_000 },
+    { timeout: Math.max(60_000, gateTimeoutMs) },
   );
   const onboardingPromise = page
     .waitForResponse(
       (r) => r.url().includes("ensureRouteTokenOnboardingHttp") && r.ok(),
-      { timeout: 60_000 },
+      { timeout: Math.max(60_000, gateTimeoutMs) },
     )
     .catch(() => null);
-  await gate.getByRole("button", { name: "시작", exact: true }).click();
-  await expect(gate).toBeHidden();
+  await page.goto("/");
+  await guestStart(page);
   const authJson = (await (await uidPromise).json()) as { localId?: string };
   if (!authJson.localId) throw new Error("Guest uid 를 auth 응답에서 찾을 수 없습니다");
   await onboardingPromise;

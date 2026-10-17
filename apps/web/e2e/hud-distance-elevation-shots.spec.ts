@@ -2,7 +2,7 @@ import { test, expect, type Page } from "./open-meteo-stub";
 import fs from "node:fs";
 import path from "node:path";
 import { stubMapboxStyle } from "./mapbox-stub";
-import { dismissAppIntroIfShown } from "./rideEntryHelpers";
+import { guestStart as sharedGuestStart } from "./rideEntryHelpers";
 
 /**
  * HUD 거리 1줄화 + 표고 그래프 진행률 라벨 — 렌더 검증 하네스 (2026-09-17).
@@ -524,11 +524,7 @@ function recordMeasurement(scenario: ScenarioId, data: unknown) {
 
 async function guestStart(page: Page) {
   await page.goto("/");
-  await dismissAppIntroIfShown(page);
-  const gate = page.getByRole("dialog", { name: "시작" });
-  await expect(gate).toBeVisible({ timeout: 30_000 });
-  await gate.getByRole("button", { name: "시작", exact: true }).click();
-  await expect(gate).toBeHidden({ timeout: 30_000 });
+  await sharedGuestStart(page);
 }
 
 /** 주행 입력 준비 — Go 의 사전조건(SENSOR-2 §1.4) */

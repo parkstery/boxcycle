@@ -1,6 +1,6 @@
 import { test, expect, type Page } from './open-meteo-stub'
 import { isRouteWarmRequest } from './route-warm-request'
-import { dismissAppIntroIfShown } from './rideEntryHelpers'
+import { guestStart } from './rideEntryHelpers'
 
 /**
  * 5A §2 재현 계측 — **원인 A(우리 우회 waypoint) vs B(provider 경로)** 를 가른다.
@@ -14,11 +14,7 @@ const OUT_PATH = process.env.OVERLAP_OUT ?? 'overlap-5a-samples.json'
 
 async function enterAsGuest(page: Page) {
   await page.goto('/')
-  await dismissAppIntroIfShown(page)
-  const gate = page.getByRole('dialog', { name: '시작' })
-  await expect(gate).toBeVisible()
-  await gate.getByRole('button', { name: '시작', exact: true }).click()
-  await expect(gate).toBeHidden()
+  await guestStart(page)
 }
 
 async function prepareManualRideInput(page: Page) {

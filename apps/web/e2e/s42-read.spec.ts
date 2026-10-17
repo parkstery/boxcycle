@@ -2,7 +2,7 @@ import { test, expect, type Page } from "./open-meteo-stub";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { dismissAppIntroIfShown } from "./rideEntryHelpers";
+import { guestStart as sharedGuestStart } from "./rideEntryHelpers";
 
 const LIVE = process.env.RIDE_VERIFY_LIVE === "1";
 const PHASE = process.env.S42_PHASE === "after" ? "after" : "baseline";
@@ -52,11 +52,7 @@ async function readSubs(page: Page): Promise<ReadSnap | { unmeasurable: string }
 }
 
 async function guestStart(page: Page) {
-  await dismissAppIntroIfShown(page);
-  const gate = page.getByRole("dialog", { name: "시작" });
-  await expect(gate).toBeVisible({ timeout: 30_000 });
-  await gate.getByRole("button", { name: "시작", exact: true }).click();
-  await expect(gate).toBeHidden({ timeout: 30_000 });
+  await sharedGuestStart(page);
 }
 
 async function waitMeters(page: Page) {

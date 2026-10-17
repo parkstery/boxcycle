@@ -84,7 +84,9 @@ import {
   writeLocalFirstRegion,
   type LocalFirstRegion,
 } from "./lib/geo/localFirstRegion";
-import { resolveMapBootCenter } from "./lib/map/mapBootCenter";
+import { EntryLocationDialog } from "./components/auth/EntryLocationDialog";
+import { useEntryLocation } from "./hooks/useEntryLocation";
+import { MAP_FALLBACK_CENTER, MAP_FALLBACK_ZOOM } from "./lib/map/mapBootCenter";
 import {
   buildTrailRegionLabel,
   createTrailInstance,
@@ -245,13 +247,10 @@ export default function App() {
     traces: conquestTraces,
   } = useConquest(user, configured);
 
-  /** 지시78 — 지도 최초 중심. 마운트 시 1회만 계산(재점프 금지). */
-  const [mapBoot] = useState(() => resolveMapBootCenter());
-  const [mapStyle, setMapStyle] = useState(
-    mapBoot.source === "fallback" ? MAP_STYLE_SATELLITE : DEFAULT_MAP_STYLE,
-  );
+  /** 첫 지도는 저장 지역이 아니라 콜로세움. 실제 목적지는 위치 선택이 정한다. */
+  const [mapStyle, setMapStyle] = useState(MAP_STYLE_SATELLITE);
   const [showRtwPoi, setShowRtwPoi] = useState(false);
-  const [mapZoom, setMapZoom] = useState(() => mapBoot.zoom);
+  const [mapZoom, setMapZoom] = useState(MAP_FALLBACK_ZOOM);
   /** 주행 카메라 라이더~카메라 거리(m) — 개발용 거리 슬라이더, 최적값 확정 후 제거 예정 */
   const [rideCameraDistanceM, setRideCameraDistanceM] = useState(RIDE_CAMERA_DISTANCE_DEFAULT_M);
   const [rideFollowCameraNonce, setRideFollowCameraNonce] = useState(0);
@@ -259,8 +258,8 @@ export default function App() {
   const [mapViewportSpanKm, setMapViewportSpanKm] = useState<number | null>(null);
   /** 전역 livePresence publish — idle 시 지도 중심(주행 중에는 liveForMap 우선) */
   const [mapViewportCenterLngLat, setMapViewportCenterLngLat] = useState<LngLat>([
-    mapBoot.center[0],
-    mapBoot.center[1],
+    MAP_FALLBACK_CENTER[0],
+    MAP_FALLBACK_CENTER[1],
   ]);
   /** Activity World LOD — 제스처 중 실제 줌·span (HUD `mapZoom` 과 분리) */
   const [mapLodZoom, setMapLodZoom] = useState(DEFAULT_MAP_ZOOM);
@@ -441,8 +440,12 @@ export default function App() {
   const [localFirstRegion, setLocalFirstRegion] = useState<LocalFirstRegion | null>(() =>
     readLocalFirstRegion(),
   );
-  /** 지역 선택 1회당 카메라 점프 1회 — at 키로 가드(NextRide rideId 가드와 동일 성질) */
-  const localFirstFramedAtRef = useRef<string | null>(null);
+  /**
+   * 지역 선택 1회당 카메라 점프 1회 — at 키로 가드.
+   * 저장돼 있던 지역은 이번 진입 위치 선택을 덮지 않도록 이미 처리한 것으로 둔다.
+   * 이후 검색·지역 선택은 새 at 로 그대로 점프한다.
+   */
+  const localFirstFramedAtRef = useRef<string | null>(localFirstRegion?.at ?? null);
   /** anchor 이어 달리기 — Start 가 sessionEndLngLat 에 고정된 상태(null=일반 자동 Route) */
   const anchorFixedStartRef = useRef<LngLat | null>(null);
   const routePickOpenSeqRef = useRef(0);
@@ -1787,6 +1790,7 @@ export default function App() {
   // 탈퇴·게스트 초기화 직후 첫 화면에 한 번 — 읽은 뒤 지워 다음 새로고침엔 나오지 않는다
   const [startScreenNotice] = useState(readStartScreenNotice);
   const [introDismissed, setIntroDismissed] = useState(false);
+  const [entryRequested, setEntryRequested] = useState(false);
   useEffect(() => {
     if (startScreenNotice) clearStartScreenNotice();
   }, [startScreenNotice]);
@@ -1803,6 +1807,31 @@ export default function App() {
     !authSigningIn &&
     !busy &&
     !error;
+  const entryLocationSessionRef = useRef(false);
+  const entryArmed =
+    configured &&
+    authInitialized &&
+    !userSignedOut &&
+    (entryRequested || Boolean(user));
+  if (!entryArmed) entryLocationSessionRef.current = false;
+  else if (rideStatus === "idle") entryLocationSessionRef.current = true;
+  const entryLocationEnabled = entryLocationSessionRef.current;
+  const entryLocation = useEntryLocation(entryLocationEnabled);
+  const entryLocationPrompt =
+    entryLocation.phase === "checking" ||
+    entryLocation.phase === "choice" ||
+    entryLocation.phase === "locating";
+  const bootFlyHold = showAppIntro || !authInitialized || entryLocation.phase !== "ready";
+  const startIntroGuest = () => {
+    setIntroDismissed(true);
+    setEntryRequested(true);
+    void beginAuthenticatedSession().catch(() => undefined);
+  };
+  const startIntroLogin = () => {
+    setIntroDismissed(true);
+    setEntryRequested(true);
+    void handleGoogleSignIn().catch(() => undefined);
+  };
 
   const needsAuthCard =
     !configured ||
@@ -2832,7 +2861,7 @@ export default function App() {
   ]);
 
   return (
-    <div className="app-shell app-shell--map-first">
+    <div className={`app-shell app-shell--map-first${showAppIntro ? " app-shell--intro" : ""}`}>
       <RotateOverlay />
       <DevLabPanels
         mapZoom={mapZoom}
@@ -2924,9 +2953,10 @@ export default function App() {
               liveRiderNametag: resolvedLiveRiderNametag,
               mapStyle,
               mapZoom,
-              initialCenter: mapBoot.center,
-              initialZoom: mapBoot.zoom,
-              bootFlyHold: needsAuthCard || needsGuestEntry,
+              initialCenter: MAP_FALLBACK_CENTER,
+              initialZoom: MAP_FALLBACK_ZOOM,
+              bootFlyTarget: entryLocation.target,
+              bootFlyHold,
               followMode,
               enable3D,
               onMapZoom: setMapZoom,
@@ -3411,11 +3441,24 @@ export default function App() {
         />
       ) : null}
 
-      {showAppIntro ? (
-        <AppIntroScreen onStart={() => setIntroDismissed(true)} />
+      {entryLocation.notice ? (
+        <p className="entry-location-notice" role="status">
+          {entryLocation.notice}
+        </p>
       ) : null}
 
-      {needsGuestEntry && !showAppIntro ? (
+      {showAppIntro ? (
+        <AppIntroScreen onStartGuest={startIntroGuest} onLogin={startIntroLogin} />
+      ) : null}
+
+      <EntryLocationDialog
+        phase={entryLocation.phase}
+        permission={entryLocation.permission}
+        onChooseRome={entryLocation.chooseRome}
+        onChooseCurrent={entryLocation.chooseCurrent}
+      />
+
+      {needsGuestEntry && !showAppIntro && !entryRequested && !entryLocationPrompt ? (
         <GuestEntryCard
           busy={busy || authSigningIn}
           error={error}
@@ -3429,7 +3472,7 @@ export default function App() {
         />
       ) : null}
 
-      {stage === "gate" && !needsGuestEntry ? (
+      {stage === "gate" && !needsGuestEntry && !entryLocationPrompt ? (
         <AuthSessionGate
           configured={configured}
           authInitialized={authInitialized}
@@ -3442,7 +3485,7 @@ export default function App() {
         />
       ) : null}
 
-      {stage === "gate-nickname" && user ? (
+      {stage === "gate-nickname" && user && !entryLocationPrompt ? (
         <AuthGateCard title="닉네임">
           <SignUpNicknameCard
             busy={busy}

@@ -1,4 +1,5 @@
 import { test, expect } from './open-meteo-stub'
+import { guestStart } from './rideEntryHelpers'
 
 // 실주행 진입 시퀀스 e2e: 게스트(익명 인증) → 입문 코스 로드 → 주행 시작 → running 확정.
 // 셀렉터는 scripts/ride-verify/entry-contract.mjs 와 동일한 계약을 쓴다 —
@@ -33,17 +34,10 @@ function redactUrl(url: string): string {
   return q === -1 ? url : `${url.slice(0, q)}?<redacted>`
 }
 
-/** 앱 소개 dismiss → 게스트 진입 카드 → 익명 인증 완료 */
+/** 앱 소개의 게스트 버튼 → 필요하면 콜로세움 → 인증 완료. 대기 문구는 성공이 아니다. */
 async function enterAsGuest(page: import('@playwright/test').Page) {
   await page.goto('/')
-  const intro = page.getByRole('region', { name: '앱 소개' })
-  await expect(intro).toBeVisible()
-  await intro.getByRole('button', { name: '시작하기', exact: true }).click()
-  await expect(intro).toBeHidden()
-  const gate = page.getByRole('dialog', { name: '시작' })
-  await expect(gate).toBeVisible()
-  await gate.getByRole('button', { name: '시작', exact: true }).click()
-  await expect(gate).toBeHidden()
+  await guestStart(page)
 }
 
 /**
