@@ -14,6 +14,8 @@
 
 # ops — 에이전트 작업 창구
 
+2026-10-17 첫 진입 인증·위치 호스팅 배포: main2 5cb0679, https://boxcycle-dc2df.web.app. 권한별·폰 검수는 아직.
+
 2026-10-17 [첫 진입 인증·위치 통합](20261017-entry-location/README.md): IN_PROGRESS. Chief 승인, 인트로 게스트/로그인→지구본→위치 권한별 현재 위치/콜로세움. 이전 2초 자동 전환 대체. Cursor 구현·Codex 검수, 배포 없음.
 
 2026-10-17 [인트로 자동 전환](20261017-intro-auto-transition/README.md): SUPERSEDED. 최신 [첫 진입 인증·위치 통합](20261017-entry-location/README.md)으로 대체. 2초 타이머는 채택하지 않고 당시 구현·검증 기록만 보존한다.

@@ -94,6 +94,8 @@
 
 # ops 전체 상태판
 
+2026-10-17 첫 진입 인증·위치 호스팅 배포: main2 5cb0679, https://boxcycle-dc2df.web.app (index-CzaDkCRY.js). 인트로에서 게스트·로그인 후 지구본, 권한에 따라 현재 위치 또는 콜로세움. 권한별·폰 화면 검수는 아직.
+
 2026-10-17 [첫 진입 인증·위치 통합](20261017-entry-location/README.md): IN_PROGRESS. 담당 Codex/Cursor. Chief 진행 승인, 두 인증 선택과 위치 안내·지구본 연결. 다음 구현·권한별 회귀·모바일 검수. 이전 2초 전환은 대체, 배포 없음.
 
 2026-10-17 [인트로 자동 전환](20261017-intro-auto-transition/README.md): SUPERSEDED. Chief의 [첫 진입 인증·위치 통합](20261017-entry-location/README.md)으로 대체. 당시 CTA 제거·2초 타이머 구현·검증은 보존, 2초 자동 전환은 최종 채택하지 않는다.
