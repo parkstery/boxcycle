@@ -181,6 +181,7 @@
       "geo/geo.ts",
       "geo/geoDecimate.ts",
       "geo/lineStringCoordsJson.ts",
+      "geo/entryLocation.ts",
       "geo/localFirstRegion.ts",
       "geo/routeProgressMath.ts",
       "geo/routeWaypoints.ts"
@@ -391,6 +392,7 @@
       "coach/coachTypes.ts"
     ],
     "map": [
+      "map/appIntroMapView.ts",
       "map/disableMapboxTelemetry.ts",
       "map/distanceAutoRouteMapBridge.ts",
       "map/layerOrder.ts",
