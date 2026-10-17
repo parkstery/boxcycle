@@ -2,7 +2,7 @@ import { test, expect } from "./open-meteo-stub";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { dismissAppIntroIfShown } from "./rideEntryHelpers";
+import { guestStart as sharedGuestStart } from "./rideEntryHelpers";
 
 /**
  * U-2 — 주행 30s 맵 틱 계측. U2_PHASE=baseline|after (기본 baseline).
@@ -167,11 +167,7 @@ function median(xs: number[]): number {
 }
 
 async function guestStart(page: import("@playwright/test").Page) {
-  await dismissAppIntroIfShown(page);
-  const gate = page.getByRole("dialog", { name: "시작" });
-  await expect(gate).toBeVisible({ timeout: 30_000 });
-  await gate.getByRole("button", { name: "시작", exact: true }).click();
-  await expect(gate).toBeHidden({ timeout: 30_000 });
+  await sharedGuestStart(page);
 }
 
 async function loadIntroCourse(page: import("@playwright/test").Page) {

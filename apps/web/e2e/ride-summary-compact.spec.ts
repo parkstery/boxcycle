@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { stubMapboxStyle } from "./mapbox-stub";
 import { readGuestUid } from "./readGuestUid";
-import { dismissAppIntroIfShown } from "./rideEntryHelpers";
+import { guestStart as sharedGuestStart } from "./rideEntryHelpers";
 
 /**
  * 주행 결과 시트 컴팩트화 — 스크롤 없음 실측 (2026-09-17 Chief).
@@ -843,11 +843,7 @@ async function readCumulativeKm(page: Page): Promise<number> {
 //    원본 파일은 수정하지 않는다.
 
 async function guestStart(page: Page) {
-  await dismissAppIntroIfShown(page);
-  const gate = page.getByRole("dialog", { name: "시작" });
-  await expect(gate).toBeVisible({ timeout: 30_000 });
-  await gate.getByRole("button", { name: "시작", exact: true }).click();
-  await expect(gate).toBeHidden({ timeout: 30_000 });
+  await sharedGuestStart(page);
 }
 
 /*

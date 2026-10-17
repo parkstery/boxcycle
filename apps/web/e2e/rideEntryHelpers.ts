@@ -20,6 +20,7 @@ const ENTRY_SURFACE_TIMEOUT_MS = 30_000
 
 type EntrySurface =
   | 'intro'
+  | 'location'
   | 'guest'
   | 'signed-out'
   | 'unconfigured'
@@ -28,12 +29,15 @@ type EntrySurface =
   | 'auth-choice'
   | 'connect-failed'
 
+const LOCATION_DIALOG_NAME = '어디에서 시작할까요?'
+
 /**
  * 인증이 정착한 뒤의 화면. `연결 중…`·`로그인 중…` 은 아직 소개·카드·로그인 중
  * 어디에도 속하지 않으므로 넣지 않는다. `시작 방법을 선택해 주세요.` 는 정착된 선택 화면이다.
  */
 async function readEntrySurface(page: Page): Promise<EntrySurface | null> {
   if (await page.getByRole('region', { name: '앱 소개' }).isVisible()) return 'intro'
+  if (await page.getByRole('dialog', { name: LOCATION_DIALOG_NAME }).isVisible()) return 'location'
   if (await page.getByRole('dialog', { name: '시작' }).isVisible()) return 'guest'
   if (await page.getByText('로그아웃되었습니다.', { exact: true }).isVisible()) return 'signed-out'
   if (await page.getByText('Firebase 설정 필요', { exact: true }).isVisible()) return 'unconfigured'
@@ -45,11 +49,30 @@ async function readEntrySurface(page: Page): Promise<EntrySurface | null> {
 }
 
 /**
- * 첫 진입의 앱 소개가 보이면 「시작하기」로 닫고, 기존 인증 카드가 나올 때까지 기다린다.
+ * 위치 안내가 떠 있으면 콜로세움을 고른다. 권한 확인 직후 잠깐 떴다 사라지면 넘어간다.
+ * 이미 인증된 화면에서는 기다리지 않는다.
+ */
+async function chooseColosseumIfNeeded(page: Page, waitForDialog: boolean): Promise<void> {
+  const location = page.getByRole('dialog', { name: LOCATION_DIALOG_NAME })
+  if (waitForDialog) {
+    const appeared = await location
+      .waitFor({ state: 'visible', timeout: 2_500 })
+      .then(() => true)
+      .catch(() => false)
+    if (!appeared) return
+  }
+  const rome = location.getByRole('button', { name: '콜로세움에서 시작' })
+  if (!(await rome.isVisible().catch(() => false))) return
+  await rome.click()
+  await expect(location).toBeHidden({ timeout: 15_000 })
+}
+
+/**
+ * 첫 진입의 앱 소개가 보이면 「게스트로 시작」을 누르고, 위치 안내가 있으면 콜로세움을 고른다.
  *
  * `showAppIntro` 는 `authInitialized` 이후에야 정해진다. 그 전에 `isVisible()` 을 한 번만
  * 보면 소개를 놓치고, 소개만 무조건 기다리면 이미 로그인·명시 로그아웃·탈퇴 안내·게스트
- * 재진입·시작 방법 선택이 타임아웃된다.
+ * 재진입·시작 방법 선택이 타임아웃된다. `연결 중…`·`로그인 중…` 은 정착 화면이 아니다.
  */
 export async function dismissAppIntroIfShown(page: Page): Promise<void> {
   let surface: EntrySurface | null = null
@@ -60,26 +83,54 @@ export async function dismissAppIntroIfShown(page: Page): Promise<void> {
     }, { timeout: ENTRY_SURFACE_TIMEOUT_MS })
     .not.toBeNull()
 
-  if (surface !== 'intro') return
+  if (surface === 'intro') {
+    const intro = page.getByRole('region', { name: '앱 소개' })
+    await intro.getByRole('button', { name: '게스트로 시작' }).click()
+    await expect(intro).toBeHidden({ timeout: 15_000 })
+    await chooseColosseumIfNeeded(page, true)
+    return
+  }
 
-  const intro = page.getByRole('region', { name: '앱 소개' })
-  await intro.getByRole('button', { name: '시작하기', exact: true }).click()
-  await expect(intro).toBeHidden({ timeout: 15_000 })
-  await expect
-    .poll(async () => {
-      const next = await readEntrySurface(page)
-      return next != null && next !== 'intro'
-    }, { timeout: ENTRY_SURFACE_TIMEOUT_MS })
-    .toBe(true)
+  if (surface === 'location') {
+    await chooseColosseumIfNeeded(page, false)
+  }
 }
 
-/** 게스트 진입 카드 → 익명 인증 완료 */
+/**
+ * 게스트 진입. 소개 버튼이 이미 인증을 시작했으면 게스트 카드를 다시 누르지 않는다.
+ * 대기 status 는 인증 성공으로 보지 않는다. 복원된 계정과 회복 카드도 처리한다.
+ */
 export async function guestStart(page: Page): Promise<void> {
   await dismissAppIntroIfShown(page)
   const gate = page.getByRole('dialog', { name: '시작' })
-  await expect(gate).toBeVisible({ timeout: 30_000 })
-  await gate.getByRole('button', { name: '시작', exact: true }).click()
-  await expect(gate).toBeHidden({ timeout: 30_000 })
+  const account = page.getByRole('button', { name: '사용자 정보' })
+  const nickname = page.getByRole('heading', { name: '닉네임', exact: true })
+  const pending = page.getByText(/연결 중…|로그인 중…/)
+
+  let landed: 'gate' | 'account' | null = null
+  await expect
+    .poll(async () => {
+      if (await account.isVisible().catch(() => false)) {
+        landed = 'account'
+        return 'account'
+      }
+      if (await nickname.isVisible().catch(() => false)) {
+        landed = 'account'
+        return 'account'
+      }
+      if (await gate.isVisible().catch(() => false)) {
+        landed = 'gate'
+        return 'gate'
+      }
+      if (await pending.isVisible().catch(() => false)) return 'pending'
+      return null
+    }, { timeout: 30_000 })
+    .toMatch(/^(gate|account)$/)
+
+  if (landed === 'gate') {
+    await gate.getByRole('button', { name: '시작', exact: true }).click()
+    await expect(gate).toBeHidden({ timeout: 30_000 })
+  }
 }
 
 /**

@@ -70,8 +70,15 @@ for (const v of VARIANTS) {
       }
       if (await intro.isVisible().catch(() => false)) {
         surface = "intro";
-        await intro.getByRole("button", { name: "시작하기", exact: true }).click();
+        await intro.getByRole("button", { name: "게스트로 시작", exact: true }).click();
         await intro.waitFor({ state: "hidden", timeout: 15_000 });
+        continue;
+      }
+      const location = page.getByRole("dialog", { name: "어디에서 시작할까요?" });
+      if (await location.isVisible().catch(() => false)) {
+        surface = "location";
+        await location.getByRole("button", { name: "콜로세움에서 시작" }).click();
+        await location.waitFor({ state: "hidden", timeout: 15_000 });
         continue;
       }
       if (await gate.isVisible().catch(() => false)) {
@@ -126,8 +133,13 @@ for (const v of VARIANTS) {
     await step("arm-and-ride", async () => {
     const intro = page.getByRole("region", { name: "앱 소개" });
     if (await intro.isVisible().catch(() => false)) {
-      await intro.getByRole("button", { name: "시작하기", exact: true }).click();
+      await intro.getByRole("button", { name: "게스트로 시작", exact: true }).click();
       await intro.waitFor({ state: "hidden", timeout: 15_000 });
+    }
+    const location = page.getByRole("dialog", { name: "어디에서 시작할까요?" });
+    if (await location.isVisible().catch(() => false)) {
+      await location.getByRole("button", { name: "콜로세움에서 시작" }).click();
+      await location.waitFor({ state: "hidden", timeout: 15_000 });
     }
     const caret = page.getByRole("button", { name: /^센서 설정 열기/ });
     const expand = page.getByRole("button", { name: /^경로 패널 펼치기/ });

@@ -351,6 +351,25 @@
   white-space: pre-wrap;
 }
 
+.entry-location-notice {
+  position: absolute;
+  z-index: 40;
+  top: max(0.45rem, env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(28rem, calc(100% - 1.5rem));
+  margin: 0;
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
+  background: rgb(15 23 42 / 0.88);
+  color: #f8fafc;
+  font-size: 0.875rem;
+  line-height: 1.35;
+  text-align: center;
+  pointer-events: none;
+}
+
 /*
  * 폰 가로 — 거리뷰 창이 화면 위로 넘쳐 좌상단 RTW·지명 버튼을 덮었다
  * (bottom 10rem + max-height 50dvh 가 275px 뷰포트를 넘어섬).

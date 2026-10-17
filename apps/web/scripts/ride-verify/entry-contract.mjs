@@ -9,31 +9,47 @@
 export const ENTRY_STEPS = [
   {
     step: "app-intro",
-    desc: "최초 인증 전 앱 소개 — '시작하기'는 화면 dismiss만 하고 게스트 카드로 넘긴다",
+    desc:
+      "최초 인증 전 앱 소개 — onStartGuest·onLogin 두 콜백과 「게스트로 시작」「로그인」 버튼. " +
+      "이 화면은 인증·타이머를 하지 않는다.",
     file: "src/components/auth/AppIntroScreen.tsx",
     anchors: [
       { name: "소개 region", re: /aria-label="앱 소개"/ },
-      { name: "시작하기 CTA", re: /시작하기/ },
-      { name: "CTA는 onStart만", re: /onClick=\{onStart\}/ },
+      { name: "소개 제목", re: /달린 길이,/ },
+      { name: "게스트 시작 콜백", re: /onStartGuest: \(\) => void/ },
+      { name: "로그인 콜백", re: /onLogin: \(\) => void/ },
+      { name: "게스트로 시작", re: /게스트로 시작/ },
+      { name: "로그인 버튼", re: />\s*로그인\s*</ },
+      { name: "게스트 클릭", re: /onClick=\{onStartGuest\}/ },
+      { name: "로그인 클릭", re: /onClick=\{onLogin\}/ },
     ],
-    selector: `getByRole('region',{name:'앱 소개'}) → getByRole('button',{name:'시작하기',exact:true})`,
+    selector: `getByRole('region',{name:'앱 소개'}) → getByRole('button',{name:'게스트로 시작'}) · getByRole('button',{name:'로그인'})`,
   },
   {
     step: "app-intro-gate",
     desc:
-      "소개는 needsGuestEntry 이고 메모리 dismiss 전일 때만. " +
-      "로그인·명시 로그아웃·탈퇴 안내·busy·서명 중·error 에서는 기존 화면. 게스트 카드와 동시에 두지 않는다.",
+      "소개는 needsGuestEntry 이고 메모리 dismiss 전일 때만. 2초 자동 전환은 없다. " +
+      "게스트·로그인 버튼은 인트로를 닫고 기존 인증을 바로 호출한다. " +
+      "정상 첫 진입은 게스트 카드를 다시 띄우지 않는다. " +
+      "탈퇴·로그아웃·설정 없음·오류 회복은 위치 안내와 겹치지 않는다.",
     file: "src/App.tsx",
     anchors: [
       { name: "메모리 dismiss", re: /const \[introDismissed, setIntroDismissed\] = useState\(false\)/ },
+      { name: "버튼 진입", re: /const \[entryRequested, setEntryRequested\] = useState\(false\)/ },
       {
         name: "소개 조건",
         re: /const showAppIntro =\s*needsGuestEntry &&\s*!introDismissed &&\s*startScreenNotice !== "account-deleted" &&\s*!authSigningIn &&\s*!busy &&\s*!error/,
       },
-      { name: "CTA는 dismiss만", re: /<AppIntroScreen onStart=\{\(\) => setIntroDismissed\(true\)\} \/>/ },
-      { name: "게스트 카드는 소개 이후", re: /\{needsGuestEntry && !showAppIntro \? \(/ },
+      { name: "위치 hook", re: /useEntryLocation\(entryLocationEnabled\)/ },
+      { name: "부트 목적지", re: /bootFlyTarget: entryLocation\.target/ },
+      { name: "소개에 게스트 콜백", re: /<AppIntroScreen\b[^>]*\bonStartGuest=/ },
+      { name: "소개에 로그인 콜백", re: /<AppIntroScreen\b[^>]*\bonLogin=/ },
+      {
+        name: "게스트 카드는 소개·진입 요청·위치 안내 밖",
+        re: /\{needsGuestEntry && !showAppIntro && !entryRequested && !entryLocationPrompt \? \(/,
+      },
     ],
-    selector: `(게이트 — e2e 는 소개 CTA 다음 게스트 카드를 본다)`,
+    selector: `getByRole('region',{name:'앱 소개'}) → getByRole('button',{name:'게스트로 시작'})`,
   },
   {
     step: "guest-entry",

@@ -14,6 +14,12 @@
 
 # ops — 에이전트 작업 창구
 
+2026-10-17 [첫 진입 인증·위치 통합](20261017-entry-location/README.md): IN_PROGRESS. Chief 승인, 인트로 게스트/로그인→지구본→위치 권한별 현재 위치/콜로세움. 이전 2초 자동 전환 대체. Cursor 구현·Codex 검수, 배포 없음.
+
+2026-10-17 [인트로 자동 전환](20261017-intro-auto-transition/README.md): SUPERSEDED. 최신 [첫 진입 인증·위치 통합](20261017-entry-location/README.md)으로 대체. 2초 타이머는 채택하지 않고 당시 구현·검증 기록만 보존한다.
+
+2026-10-17 [인트로 배경 선요청](20261017-intro-preload/README.md): APPROVED/Chief 확인 대기. Cursor 구현·Supervisor 검수: 빌드·원본/빌드 URL 대조·브라우저 선요청/총1건 재사용·문서검사 통과. 기본 Cursor/한국어 지침 반영. 배포 없음.
+
 2026-10-15 최신창:41 Chief통과,결과42/43 [감리43](20261013-face-redesign2/04-review-43.md) APPROVED/Chief확인대기。CSS余白/테두리/단위대비·보조수치wrap,지도없는browser1/page1순차8상태PASS,face-redesign2/5013유지。
 
 2026-10-15 최신창:40 Chief통과,센서41 [감리41](20261013-face-redesign2/04-review-41.md) APPROVED/Chief확인대기。체험선택표시/강조/余白정리,単一browser/page順次검수,face-redesign2/5013유지。
@@ -56,14 +62,14 @@
 | 상태 | **SoT** — 묶음을 열거나 닫을 때 이 표를 함께 고친다 |
 | 연결 문서 | [현황판](../260928-RTW-현황판.md) · [문서 지침 §8.4](../260509-BOXCYCLE-문서-생성-및-수정-지침.md) |
 
-> `ops/` 는 Supervisor(Codex) ↔ Developer(OpenCode Muse Spark 1.3 / Cursor AI·CLI)의 공식 파일 기반 업무 창구다. 기존 Claude 릴레이 기록도 보존한다.
+> `ops/` 는 Supervisor(Codex) ↔ Developer(Cursor AI·CLI 기본)의 공식 파일 기반 업무 창구다. OpenCode는 Chief가 명시 요청할 때만 GLM-5.3으로 사용하며 불가 시 Cursor로 돌아온다. 기존 릴레이 기록도 보존한다.
 > chief 는 [전체 상태판](PROGRESS.md)과 아래 묶음 표로 현재 상황을 확인한다. 폴더 안의 지시서·보고서는 에이전트용이다.
 
 ## 역할과 handoff
 
 1. **Chief**: 요구와 제품 방향을 전달하고 중요한 결정·최종 완료를 승인한다. AI 사이의 파일을 복사해 전달하지 않는다.
 2. **Supervisor (Codex)**: 요구를 분석해 범위, 완료 조건, 검증 방법, 승인 필요 여부를 지시에 적고 상태를 `READY_FOR_DEVELOPMENT`로 둔다.
-3. **Developer (기본 OpenCode Muse Spark 1.3 / 교대 Cursor AI·CLI)**: 지정된 지시 파일을 읽고 그 범위만 수행한다. 실제 변경 파일, 실행한 검증과 결과, 실패·미완·범위 밖 발견을 별도 결과 파일에 적는다. 승인 대상이 발견되면 구현을 멈추고 `BLOCKED`로 보고한다.
+3. **Developer (기본 Cursor AI·CLI / 명시 요청 시에만 OpenCode GLM-5.3)**: 지정된 지시 파일을 읽고 그 범위만 수행한다. 실제 변경 파일, 실행한 검증과 결과, 실패·미완·범위 밖 발견을 별도 결과 파일에 적는다. 승인 대상이 발견되면 구현을 멈추고 `BLOCKED`로 보고한다.
 4. **Supervisor**: 결과 문서뿐 아니라 Git diff와 검증 근거를 확인한다. 합격이면 `APPROVED`, 부족하면 이유와 완료 조건을 별도 재지시 파일에 기록해 `REWORK_REQUIRED`로 둔다. 완료 보고는 Chief에게 직접 한다.
 
 이 역할은 **새 작업의 기본값**이다. 기존 Claude 묶음의 파일명·도메인 규율·증거는 해당 기록을 읽을 때 그대로 유효하다. 종료된 묶음에 남은 자동 대기 명령은 재가동을 뜻하지 않는다.
@@ -80,7 +86,9 @@ Supervisor는 아키텍처, 도메인 경계, 데이터 모델, Firestore·RTDB�
 
 ## 실행·Git
 
-새 지시 한 건마다 기본 Muse 또는 교대 Cursor 실행 한 번으로 제한한다. 모델·교대·모바일 검수는 [협업·감리 계약](../reference/operations/261009-RTW-개발에이전트-협업-감리.md)을 따른다. 아래 Cursor 명령은 교대 실행 예시다. `agent -p --workspace C:\20.HDev\boxcycle "document/ops/<묶음>/<지시파일>을 읽고 지시된 범위만 수행한 뒤 결과 파일을 작성하라"` 형태로 실행하고 종료 코드와 출력을 확인한다. 실제 옵션은 로컬 `agent --help`에서 확인한다. 무한 대기 릴레이는 기본 실행 방식이 아니다. Git 브랜치·커밋·푸시는 [개발 워크플로](../reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md)와 해당 작업 지시의 제한을 따른다. 다른 작업의 변경은 섞지 않는다.
+2026-10-17 Chief 변경: 기본 실행은 Cursor이다. 아래 과거 Muse·교대 표현보다 이 지시가 우선하며, 새 지시당 기본 Cursor 실행 한 번을 사용한다. OpenCode는 명시 요청 시에만 GLM-5.3으로 사용한다.
+
+새 지시 한 건마다 기본 Cursor 실행 한 번으로 제한한다. 모델·교대·모바일 검수는 [협업·감리 계약](../reference/operations/261009-RTW-개발에이전트-협업-감리.md)을 따른다. `agent -p --workspace C:\20.HDev\boxcycle "document/ops/<묶음>/<지시파일>을 읽고 지시된 범위만 수행한 뒤 결과 파일을 작성하라"` 형태로 실행하고 종료 코드와 출력을 확인한다. 실제 옵션은 로컬 `agent --help`에서 확인한다. 무한 대기 릴레이는 기본 실행 방식이 아니다. Git 브랜치·커밋·푸시는 [개발 워크플로](../reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md)와 해당 작업 지시의 제한을 따른다. 다른 작업의 변경은 섞지 않는다.
 
 ## 규칙 (요약)
 

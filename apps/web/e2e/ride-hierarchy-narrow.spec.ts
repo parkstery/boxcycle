@@ -1,7 +1,7 @@
 import { test, expect } from './open-meteo-stub'
 import fs from 'node:fs'
 import path from 'node:path'
-import { dismissAppIntroIfShown } from './rideEntryHelpers'
+import { guestStart } from './rideEntryHelpers'
 
 /**
  * RIDE-IN-RIDE-HIERARCHY-3 H3 — 좁은 가로에서 Go·종료/일시정지 조작 가능.
@@ -19,11 +19,7 @@ if (!fs.existsSync(ARCHIVE_DIR)) fs.mkdirSync(ARCHIVE_DIR, { recursive: true })
 
 async function enterAsGuest(page: import('@playwright/test').Page) {
   await page.goto('/')
-  await dismissAppIntroIfShown(page)
-  const gate = page.getByRole('dialog', { name: '시작' })
-  await expect(gate).toBeVisible()
-  await gate.getByRole('button', { name: '시작', exact: true }).click()
-  await expect(gate).toBeHidden()
+  await guestStart(page)
 }
 
 async function prepareManualRideInput(page: import('@playwright/test').Page) {
