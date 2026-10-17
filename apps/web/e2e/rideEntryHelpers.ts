@@ -49,8 +49,8 @@ async function readEntrySurface(page: Page): Promise<EntrySurface | null> {
 }
 
 /**
- * 위치 안내가 떠 있으면 콜로세움을 고른다. 권한 확인 직후 잠깐 떴다 사라지면 넘어간다.
- * 이미 인증된 화면에서는 기다리지 않는다.
+ * 위치 안내가 떠 있으면 앱 기본 위치(로마 콜로세움)를 고른다. 권한 확인 직후 잠깐 떴다
+ * 사라지면 넘어간다. 이미 인증된 화면에서는 기다리지 않는다.
  */
 async function chooseColosseumIfNeeded(page: Page, waitForDialog: boolean): Promise<void> {
   const location = page.getByRole('dialog', { name: LOCATION_DIALOG_NAME })
@@ -61,7 +61,7 @@ async function chooseColosseumIfNeeded(page: Page, waitForDialog: boolean): Prom
       .catch(() => false)
     if (!appeared) return
   }
-  const rome = location.getByRole('button', { name: '콜로세움에서 시작' })
+  const rome = location.getByRole('button', { name: '앱 기본 위치에서 시작' })
   if (!(await rome.isVisible().catch(() => false))) return
   await rome.click()
   await expect(location).toBeHidden({ timeout: 15_000 })

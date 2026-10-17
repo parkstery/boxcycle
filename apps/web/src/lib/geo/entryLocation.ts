@@ -10,7 +10,6 @@ export const ENTRY_GEOLOCATION_TIMEOUT_MS = 8000;
 export const ENTRY_LOCATION_NOTICE = {
   unsupported: "이 브라우저에서는 위치를 사용할 수 없어 콜로세움에서 시작합니다.",
   failed: "위치를 확인하지 못해 콜로세움에서 시작합니다.",
-  denied: "위치 공유가 거절되어 콜로세움에서 시작합니다.",
   invalid: "위치 좌표가 올바르지 않아 콜로세움에서 시작합니다.",
 } as const;
 
@@ -46,7 +45,7 @@ export const CHECKING_SNAPSHOT: EntryLocationSnapshot = {
 
 type QueryPermission = "granted" | "prompt" | "denied";
 
-type LocatePermission = "granted" | "prompt" | "unknown";
+type LocatePermission = "granted" | "prompt" | "denied" | "unknown";
 
 export type EntryLocationReadOptions = {
   timeout: number;
@@ -226,11 +225,17 @@ export function createEntryLocationSession(
     emit();
 
     let done = false;
-    const cancelWatch = arm(ENTRY_GEOLOCATION_TIMEOUT_MS, () => {
-      if (done || !isCurrent(gen)) return;
-      done = true;
-      settleReady(gen, ENTRY_LOCATION_NOTICE.failed);
-    });
+    // 권한 선택 대기는 브라우저의 위치 취득 timeout에 포함되지 않는다.
+    // prompt/unknown/denied에서 벽시계로 먼저 끝내면 승인 후의 정상 응답까지 버린다.
+    // 이때는 브라우저 timeout/error, 거절 오류(→ 선택 화면 복귀), 사용자의 기본 위치
+    // 선택으로 종료한다.
+    const cancelWatch = permission === "granted"
+      ? arm(ENTRY_GEOLOCATION_TIMEOUT_MS, () => {
+          if (done || !isCurrent(gen)) return;
+          done = true;
+          settleReady(gen, ENTRY_LOCATION_NOTICE.failed);
+        })
+      : () => {};
 
     try {
       env.readPosition(
@@ -256,7 +261,7 @@ export function createEntryLocationSession(
             clearTimers();
             snapshot = {
               phase: "ready",
-              permission,
+              permission: "granted",
               target,
               notice: null,
             };
@@ -270,11 +275,13 @@ export function createEntryLocationSession(
             if (kind === "denied") {
               if (!isCurrent(gen)) return;
               clearTimers();
+              // 거절 오류로도 ready 를 확정하지 않는다. 같은 두 버튼의 선택 화면으로
+              // 돌아온다. 콜로세움 확정은 명시 앱 기본 위치 버튼으로만 일어난다.
               snapshot = {
-                phase: "ready",
+                phase: "choice",
                 permission: "denied",
-                target: fallback,
-                notice: ENTRY_LOCATION_NOTICE.denied,
+                target: null,
+                notice: null,
               };
               emit();
               retire(gen);
@@ -369,8 +376,11 @@ export function createEntryLocationSession(
     chooseCurrent() {
       if (!active) return;
       if (snapshot.phase !== "choice") return;
-      if (snapshot.permission !== "prompt" && snapshot.permission !== "unknown") return;
-      startLocate(generation, snapshot.permission);
+      const permission = snapshot.permission;
+      // 차단(denied)에서도 클릭 한 번당 위치 요청 한 번을 허용한다. 권한을 우회하거나
+      // 자동으로 다시 요청하지 않는다. 브라우저 설정에서 허용한 뒤 같은 버튼으로 재시도한다.
+      if (permission !== "prompt" && permission !== "unknown" && permission !== "denied") return;
+      startLocate(generation, permission);
     },
   };
 }

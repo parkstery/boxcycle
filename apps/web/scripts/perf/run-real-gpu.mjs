@@ -77,7 +77,7 @@ for (const v of VARIANTS) {
       const location = page.getByRole("dialog", { name: "어디에서 시작할까요?" });
       if (await location.isVisible().catch(() => false)) {
         surface = "location";
-        await location.getByRole("button", { name: "콜로세움에서 시작" }).click();
+        await location.getByRole("button", { name: "앱 기본 위치에서 시작" }).click();
         await location.waitFor({ state: "hidden", timeout: 15_000 });
         continue;
       }
@@ -138,7 +138,7 @@ for (const v of VARIANTS) {
     }
     const location = page.getByRole("dialog", { name: "어디에서 시작할까요?" });
     if (await location.isVisible().catch(() => false)) {
-      await location.getByRole("button", { name: "콜로세움에서 시작" }).click();
+      await location.getByRole("button", { name: "앱 기본 위치에서 시작" }).click();
       await location.waitFor({ state: "hidden", timeout: 15_000 });
     }
     const caret = page.getByRole("button", { name: /^센서 설정 열기/ });

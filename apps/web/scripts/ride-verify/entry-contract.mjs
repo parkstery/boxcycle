@@ -8,6 +8,37 @@
 
 export const ENTRY_STEPS = [
   {
+    // 2026-10-17(지시08): 위치 차단(denied)에서도 두 시작 버튼이 모두 활성이다.
+    // 라벨이 또 바뀌면 e2e 공용 helper(rideEntryHelpers.ts)의 버튼 이름도 함께 고친다.
+    step: "location-choice",
+    desc:
+      "지구본 위 위치 선택 — 「어디에서 시작할까요?」. 차단(denied)에는 설명 문구 없이 " +
+      "「내 위치 근처에서 시작」(클릭 한 번당 위치 요청 한 번)과 " +
+      "「앱 기본 위치에서 시작」(로마 콜로세움 확정) 두 버튼만 둔다.",
+    file: "src/components/auth/EntryLocationDialog.tsx",
+    anchors: [
+      { name: "dialog role·제목", re: /role="dialog" aria-label=\{TITLE\}/ },
+      { name: "질문 제목", re: /어디에서 시작할까요\?/ },
+      { name: "내 위치 근처 버튼", re: /내 위치 근처에서 시작/ },
+      { name: "앱 기본 위치 버튼", re: /앱 기본 위치에서 시작/ },
+      { name: "차단 시 설명 없음", re: /permission === "denied"\) \{\s*body = null;/ },
+      { name: "내 위치 클릭", re: /onClick=\{onChooseCurrent\}/ },
+      { name: "기본 위치 클릭", re: /onClick=\{onChooseRome\}/ },
+    ],
+    also: [
+      {
+        file: "src/App.tsx",
+        anchors: [
+          { name: "phase 연결", re: /phase=\{entryLocation\.phase\}/ },
+          { name: "permission 연결", re: /permission=\{entryLocation\.permission\}/ },
+          { name: "기본 위치 콜백", re: /onChooseRome=\{entryLocation\.chooseRome\}/ },
+          { name: "내 위치 콜백", re: /onChooseCurrent=\{entryLocation\.chooseCurrent\}/ },
+        ],
+      },
+    ],
+    selector: `getByRole('dialog',{name:'어디에서 시작할까요?'}) → getByRole('button',{name:'내 위치 근처에서 시작'}) · getByRole('button',{name:'앱 기본 위치에서 시작'})`,
+  },
+  {
     step: "app-intro",
     desc:
       "최초 인증 전 앱 소개 — onStartGuest·onLogin 두 콜백과 「게스트로 시작」「로그인」 버튼. " +
