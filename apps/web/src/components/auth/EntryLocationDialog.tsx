@@ -3,11 +3,10 @@ import type { EntryLocationPermission, EntryLocationPhase } from "../../lib/geo/
 import "./EntryLocationDialog.css";
 
 const TITLE = "어디에서 시작할까요?";
-const SHARE_BODY =
-  "위치를 공유하면 내 주변 지도에서 시작합니다. 공유하지 않아도 로마 콜로세움에서 시작할 수 있습니다.";
 const CHECKING_BODY = "위치 권한을 확인하고 있습니다.";
 const LOCATING_BODY = "현재 위치를 확인하고 있습니다.";
 const CURRENT_LABEL = "내 위치 근처에서 시작";
+const CURRENT_HINT = "(위치공유 필요)";
 const ROME_LABEL = "앱 기본 위치에서 시작";
 
 export type EntryLocationDialogProps = {
@@ -44,7 +43,7 @@ export function EntryLocationDialog({
 }: EntryLocationDialogProps) {
   if (phase === "idle" || phase === "ready") return null;
 
-  let body: string | null = SHARE_BODY;
+  let body: string | null = null;
   let showCurrent = true;
   if (phase === "checking") {
     body = CHECKING_BODY;
@@ -70,9 +69,10 @@ export function EntryLocationDialog({
             <button
               type="button"
               className="entry-location__button entry-location__button--primary"
+              aria-label={CURRENT_LABEL}
               onClick={onChooseCurrent}
             >
-              {CURRENT_LABEL}
+              {CURRENT_LABEL}<span className="entry-location__button-hint">{CURRENT_HINT}</span>
             </button>
           ) : null}
           <RomeButton onChooseRome={onChooseRome} />

@@ -635,13 +635,14 @@ test("대화상자는 idle·ready 에서 비우고 권한별로 문구와 버튼
   assert.equal(promptHtml.includes("어디에서 시작할까요?"), true);
   assert.equal(promptHtml.includes('aria-label="어디에서 시작할까요?"'), true);
   assert.equal(promptHtml.includes("<h2"), true);
-  assert.equal(promptHtml.includes(SHARE), true);
+  assert.equal(promptHtml.includes(SHARE), false);
   assert.equal(promptHtml.includes(CURRENT_LABEL), true);
+  assert.equal(promptHtml.includes('내 위치 근처에서 시작<span class="entry-location__button-hint">(위치공유 필요)</span>'), true);
   assert.equal(promptHtml.includes(ROME_LABEL), true);
   assert.equal(promptHtml.includes("entry-location__button--primary"), true);
 
   const unknownHtml = renderToStaticMarkup(dialog("choice", "unknown"));
-  assert.equal(unknownHtml.includes(SHARE), true);
+  assert.equal(unknownHtml.includes(SHARE), false);
   assert.equal(unknownHtml.includes(CURRENT_LABEL), true);
 
   const deniedHtml = renderToStaticMarkup(dialog("choice", "denied"));
@@ -672,7 +673,7 @@ test("대화상자는 idle·ready 에서 비우고 권한별로 문구와 버튼
   assert.equal(calls.current, 0);
 
   const choiceButtons = buttonsOf(dialog("choice", "prompt", calls));
-  const current = choiceButtons.find((button) => labelOf(button) === CURRENT_LABEL);
+  const current = choiceButtons.find((button) => labelOf(button).startsWith(CURRENT_LABEL));
   const rome = choiceButtons.find((button) => labelOf(button) === ROME_LABEL);
   current?.props.onClick?.();
   rome?.props.onClick?.();
@@ -683,7 +684,7 @@ test("대화상자는 idle·ready 에서 비우고 권한별로 문구와 버튼
   const deniedCalls = { rome: 0, current: 0 };
   const deniedButtons = buttonsOf(dialog("choice", "denied", deniedCalls));
   assert.equal(deniedButtons.length, 2);
-  const deniedCurrent = deniedButtons.find((button) => labelOf(button) === CURRENT_LABEL);
+  const deniedCurrent = deniedButtons.find((button) => labelOf(button).startsWith(CURRENT_LABEL));
   const deniedRome = deniedButtons.find((button) => labelOf(button) === ROME_LABEL);
   assert.ok(deniedCurrent);
   assert.ok(deniedRome);

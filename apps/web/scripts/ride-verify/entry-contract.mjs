@@ -22,6 +22,7 @@ export const ENTRY_STEPS = [
       { name: "내 위치 근처 버튼", re: /내 위치 근처에서 시작/ },
       { name: "앱 기본 위치 버튼", re: /앱 기본 위치에서 시작/ },
       { name: "차단 시 설명 없음", re: /permission === "denied"\) \{\s*body = null;/ },
+      { name: "버튼 내부 두 줄", re: /\{CURRENT_LABEL\}<span className="entry-location__button-hint">\{CURRENT_HINT\}<\/span>/ },
       { name: "내 위치 클릭", re: /onClick=\{onChooseCurrent\}/ },
       { name: "기본 위치 클릭", re: /onClick=\{onChooseRome\}/ },
     ],
