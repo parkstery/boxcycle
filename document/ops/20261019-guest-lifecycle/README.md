@@ -9,6 +9,8 @@
 
 ## 지금 할 일
 
+2026-10-20 [감리27](04-review-27.md): 종료후첫인트로·계정패널닫기·동일Guest재사용. main2 e1ac2199·hosting배포 index-BXz026cM.js/운영200. 실제SDK종료3회동일UID/계정증가0·1295시험PASS. 서버/Rules/운영계정변경없음.
+
 2026-10-19 [배포감리26](04-review-26-release.md): main2 d22c0492·원격반영, Functions12/Rules/Hosting 배포완료. https://boxcycle-dc2df.web.app · web1295/서버127/독립32 PASS,실제인트로·API204/401·Google4/문서2227보존. Guest정리매일03:15KST활성. Chief실사용/최종CLOSED대기. 아래미배포기록은당시이력이다.
 
 2026-10-19 [감리25](04-review-25.md): 위치선택창 「내 위치/기본 위치」·아이콘·220×162카드·44px버튼. 단위26/실제hook DOM1/selector19/lint/build·3화면12상태 PASS. 실앱추가캡처는창해제실패·실기기/Chief디자인확인대기. 주소추적중지·redirect초안제거. 운영변경/배포없음.
