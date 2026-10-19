@@ -1645,6 +1645,8 @@ export default function App() {
       }
       setBasicActiveHubCourseId(null);
       reloadRecentSessionsFromLocalStorage();
+      setIntroDismissed(false);
+      setEntryRequested(false);
       endAppUse();
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
@@ -1798,7 +1800,7 @@ export default function App() {
     !authOffline &&
     !readGuestEntryAccepted();
   const showAppIntro =
-    needsGuestEntry &&
+    (needsGuestEntry || (configured && authInitialized && !user && appUseEnded && !authOffline)) &&
     !introDismissed &&
     startScreenNotice !== "account-deleted" &&
     expiryKind == null &&
@@ -3478,7 +3480,7 @@ export default function App() {
         />
       ) : null}
 
-      {stage === "gate" && !needsGuestEntry && !entryLocationPrompt ? (
+      {stage === "gate" && !showAppIntro && !needsGuestEntry && !entryLocationPrompt ? (
         <AuthSessionGate
           configured={configured}
           authInitialized={authInitialized}
