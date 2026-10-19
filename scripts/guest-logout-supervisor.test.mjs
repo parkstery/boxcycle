@@ -25,6 +25,8 @@ for (const isAnonymous of [true, false]) {
       setBasicActiveHubCourseId: () => {}, reloadRecentSessionsFromLocalStorage: () => {},
       completeFirebaseSignOut: asyncEvent('signOut'),
       endAppUse: () => events.push('endAppUse'),
+      setIntroDismissed: value => events.push(`introDismissed:${value}`),
+      setEntryRequested: value => events.push(`entryRequested:${value}`),
       resetGuestAccount: async () => { events.push('deleteAccount'); return { deletedAuth: true }; },
       setUserSignedOutSessionFlag: () => {}, location: { reload: () => events.push('reload') },
     });
@@ -35,5 +37,7 @@ for (const isAnonymous of [true, false]) {
     assert.ok(!events.includes('reload'), 'logout must not reload');
     assert.ok(events.includes('trail') && events.includes('global') && events.includes('publication'));
     assert.ok(!events.some(e => e.startsWith('error:')), events.join(','));
+    assert.ok(events.includes('introDismissed:false'));
+    assert.ok(events.includes('entryRequested:false'));
   });
 }

@@ -54,7 +54,7 @@ export const ENTRY_STEPS = [
   {
     step: "app-intro-gate",
     desc:
-      "소개는 needsGuestEntry 이고 메모리 dismiss 전일 때만. 2초 자동 전환은 없다. " +
+      "소개는 최초 진입 또는 이용 종료 후 표시하며 메모리 dismiss 전일 때만. 2초 자동 전환은 없다. " +
       "게스트·로그인 버튼은 인트로를 닫고 기존 인증을 바로 호출한다. " +
       "정상 첫 진입은 게스트 카드를 다시 띄우지 않는다. " +
       "탈퇴·로그아웃·설정 없음·오류 회복은 위치 안내와 겹치지 않는다.",
@@ -64,7 +64,7 @@ export const ENTRY_STEPS = [
       { name: "버튼 진입", re: /const \[entryRequested, setEntryRequested\] = useState\(false\)/ },
       {
         name: "소개 조건",
-        re: /const showAppIntro =\s*needsGuestEntry &&\s*!introDismissed &&\s*startScreenNotice !== "account-deleted" &&\s*expiryKind == null &&\s*!authSigningIn &&\s*!busy &&\s*!error/,
+        re: /const showAppIntro =\s*\(needsGuestEntry \|\| \(configured && authInitialized && !user && appUseEnded && !authOffline\)\) &&\s*!introDismissed &&\s*startScreenNotice !== "account-deleted" &&\s*expiryKind == null &&\s*!authSigningIn &&\s*!busy &&\s*!error/,
       },
       { name: "위치 hook", re: /useEntryLocation\(entryLocationEnabled\)/ },
       { name: "부트 목적지", re: /bootFlyTarget: entryLocation\.target/ },

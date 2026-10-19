@@ -327,6 +327,8 @@ async function startOneGuest(page: Page, before: string[]): Promise<string> {
  * (로그아웃되었습니다 등)는 나오지 않는다. 제품이 이름 미반영이면 이 기대로 실패한다.
  */
 async function expectStartMenu(page: Page): Promise<void> {
+  await expect(page.getByRole('region', { name: '앱 소개' })).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByText('시작 방법을 선택해 주세요.', { exact: true })).toHaveCount(0)
   await expect(page.getByRole('button', { name: '게스트로 시작' })).toBeVisible({ timeout: 30_000 })
   await expect(page.getByRole('button', { name: '로그인', exact: true })).toBeVisible()
   await expect(page.getByText('로그아웃되었습니다.', { exact: true })).toHaveCount(0)
@@ -395,6 +397,7 @@ test.describe('guest lifecycle firebase sdk', () => {
   })
 
   test('종료를 반복해도 같은 Guest 한 명을 재사용하고 계정 추가·활동 핑·presence 를 만들지 않는다', async ({ page }) => {
+    await page.setViewportSize({ width: 844, height: 390 })
     const before = await listLocalIds()
     const created = await startOneGuest(page, before)
     await seedPrivate(created)
@@ -426,6 +429,7 @@ test.describe('guest lifecycle firebase sdk', () => {
 
     // 종료된 상태가 유지되는 동안 membership/presence 만들기가 없어야 한다.
     await endSession(page)
+    await page.screenshot({ path: test.info().outputPath('ended-intro.png') })
     await expectNoMembershipOrPresence(page, created)
 
     // 활동 heartbeat 정지 — 새 탭 clock 가속으로 5분 간격 2칸 건너뛴 뒤 콜·기록 불변.
